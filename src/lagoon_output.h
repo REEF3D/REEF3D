@@ -28,7 +28,9 @@ Architect: Hans Bihs
 // of its VTU piece, as the printer has just put them together, and writes them to
 // its block of ./REEF3D_<SOLVER>.lagoon (see lagoon_store.h). The VTU points are
 // columns of knoz+1 σ-levels, written x fastest, then y, then the level, which is
-// exactly the store's block layout.
+// exactly the store's block layout. On a curvilinear grid (G 50; NHFLOW, SFLOW) the
+// output also has xc and yc, where every grid point lies (lexer::curv_node); so have
+// the free surface and bed (lagoon_surface).
 
 #include"lagoon_store.h"
 #include"increment.h"
@@ -117,8 +119,8 @@ private:
     static std::vector<lagoon_output*> &all();
 };
 
-// LAGOON store output of a solver's free surface or bed VTP (P 18; FNPF, NHFLOW, CFD
-// topography): each rank's piece, just written, goes into its block of the output
+// LAGOON store output of a solver's free surface or bed VTP (P 18; FNPF, NHFLOW, SFLOW,
+// CFD topography): each rank's piece, just written, goes into its block of the output
 // "free_surface" or "bed" (grid "surface": the point heights z and the point arrays).
 // The VTP points are the grid nodes, x outermost (TPSLICELOOP); the store's blocks
 // have x fastest. As for the volume, a thread of each rank writes its block while

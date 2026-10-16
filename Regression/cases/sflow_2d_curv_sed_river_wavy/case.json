@@ -1,0 +1,20 @@
+{
+ "np": 1,
+ "steps": 60,
+ "tags": [
+  "2d",
+  "sflow",
+  "river",
+  "curvilinear",
+  "sediment"
+ ],
+ "description": "Sediment transport with SFLOW on a skewed (wavy) curvilinear grid: river reach with discharge inflow, stage outflow and Manning friction over a sand mound, bed load and the sand slide (S 90 1, angle of repose 8 deg); the bed volume changes by the sediment flux through the in- and outflow only (sediment_curvilinear/t2).",
+ "covers": [
+  "fill_PQ_sflow on the curvilinear grid, bedshear taubed_curv",
+  "sandslide_f::slide_curv (distance and area ratio of the cells)"
+ ],
+ "solver": "sflow",
+ "files": [
+  "curvgrid.dat"
+ ]
+}

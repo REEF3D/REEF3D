@@ -30,12 +30,14 @@ Architect: Hans Bihs
 #include"seastate_swan_spc.h"
 #include"seastate_source.h"
 #include"seastate_amr.h"
+#include"seastate_fas2.h"
 #include"sliceint4.h"
 #include"lexer.h"
 #include"ghostcell.h"
 #include<algorithm>
 #include<cmath>
 #include<fstream>
+#include<functional>
 #include<iomanip>
 #include<sys/stat.h>
 
@@ -95,6 +97,33 @@ void seastate_f::boundary_spectrum(lexer *p, ghostcell *pgc, const seastate_grid
     }
 }
 
+// Phase 13: Hs of every wet cell, the rows shared out to nt threads (each with its own seastate_param); returns the
+// largest Hs of the rank
+static double hs_cells(lexer *p, fdm_seastate *e, const seastate_grid &g, std::vector<double> &hs, int nt)
+{
+    nt = std::max(1,std::min(nt,p->knox));
+    std::vector<double> hm(nt,0.0);
+
+    const std::function<void(int)> job = [&](int t)
+    {
+        seastate_param sp;
+        double m = 0.0;
+
+        for(int ii=t; ii<p->knox; ii+=nt)
+        for(int jj=0; jj<p->knoy; ++jj)
+        if(p->flagslice4[(ii-p->imin)*p->jmax + (jj-p->jmin)]>0 && e->wet(ii,jj)==1)
+        {
+        sp.compute(g,e->N->spec(ii,jj));
+        hs[size_t(ii)*p->knoy+jj] = sp.Hs;
+        m = std::max(m,sp.Hs);
+        }
+    hm[t] = m;
+    };
+    seastate_implicit::run_threads(nt,job);
+
+    return *std::max_element(hm.begin(),hm.end());
+}
+
 // stationary convergence test of a cell: the change d of Hs in the last iteration (A 799 0), or (A 799 1)
 // the estimated distance of Hs to the solution d/(1-rho), rho = d/d_previous the contraction of the
 // iteration in the cell (at most 0.99; an alternating change counts with d); relative to Hs
@@ -141,6 +170,10 @@ void seastate_f::transport(lexer *p, ghostcell *pgc)
         obstacles(p,pgc);
         psolv->iterate(p,pgc,e,pex,N0,rdt,Nb,side,refraction,fshift);
         ++iter_done;
+
+        // Phase 12: FAS on the uniform grid (A 758), within the step but not after its last iteration
+        if(pfas!=nullptr && iter_done%p->A758_n==0 && it<iter_max-1)
+        pfas->correct(p,pgc,N0,rdt,Nb,side,refraction,fshift,p->A758_m);
         }
 
         return;
@@ -148,17 +181,13 @@ void seastate_f::transport(lexer *p, ghostcell *pgc)
 
     // stationary: iterate until the largest relative change of Hs is below A 708
     const seastate_grid &g = *e->grid;
-    seastate_param sp;
 
     hs_old.assign(size_t(p->knox)*p->knoy,0.0);
     std::vector<double> dprev(hs_old.size(),0.0);
+    const int nth = psolv->thread_count();
 
-    SLICELOOP4
-    if(e->wet(i,j)==1)
-    {
-    sp.compute(g,e->N->spec(i,j));
-    hs_old[size_t(i)*p->knoy+j] = sp.Hs;
-    }
+    hs_cells(p,e,g,hs_old,nth);
+    bool stopped = false;
 
     for(int it=0; it<iter_max; ++it)
     {
@@ -168,16 +197,16 @@ void seastate_f::transport(lexer *p, ghostcell *pgc)
     psolv->iterate(p,pgc,e,pex,nullptr,rdt,Nb,side,refraction,fshift);
     ++iter_done;
 
-    double hmax=0.0;
-    std::vector<double> hs(size_t(p->knox)*p->knoy,0.0);
+    // Phase 12: FAS on the uniform grid (A 758)
+    if(pfas!=nullptr && iter_done%p->A758_n==0)
+    {
+    pfas->correct(p,pgc,nullptr,rdt,Nb,side,refraction,fshift,p->A758_m);
+    if(p->mpirank==0)
+    cout<<"SEASTATE FAS: iteration "<<iter_done<<", "<<p->A758_m<<" coarse iterations, largest relative change of the coarse cells "<<pfas->last()<<endl;
+    }
 
-        SLICELOOP4
-        if(e->wet(i,j)==1)
-        {
-        sp.compute(g,e->N->spec(i,j));
-        hs[size_t(i)*p->knoy+j] = sp.Hs;
-        hmax = std::max(hmax,sp.Hs);
-        }
+    std::vector<double> hs(size_t(p->knox)*p->knoy,0.0);
+    double hmax = hs_cells(p,e,g,hs,nth);
 
     hmax = pgc->globalmax(hmax);
 
@@ -216,11 +245,40 @@ void seastate_f::transport(lexer *p, ghostcell *pgc)
         }
 
         if(conv<p->A708)
+        {
+        stopped = true;
         break;
+        }
 
         // SWAN-type criterion (A 709 < 100): the percentage of cells within A 708
         if(p->A709<100.0 && percent>=p->A709)
+        {
+        stopped = true;
         break;
+        }
+    }
+
+    // Phase 15: the iterations ran out with cells whose peak lies within a factor 1.5 of the highest frequency: the
+    // young wind sea of the first cells of fetch at the upwind shores of fine grids, whose high frequencies the grid
+    // cuts, goes back and forth by some percent per iteration without settling (validation 63: with A 702 up to 2 Hz
+    // the same cells converge)
+    if(!stopped && psrc!=nullptr && psrc->param().komen)
+    {
+    seastate_param sp;
+    const double flim = g.f[g.nsig-1]/1.5;
+    double nc = 0.0;
+        SLICELOOP4
+        if(e->wet(i,j)==1)
+        {
+        sp.compute(g,e->N->spec(i,j));
+        if(sp.Hs>0.0 && sp.Tp>0.0 && 1.0/sp.Tp>flim)
+        nc += 1.0;
+        }
+    nc = pgc->globalsum(nc);
+        if(p->mpirank==0 && nc>0.0)
+        cout<<"SEASTATE note: "<<long(nc)<<" wet cells have their peak above "<<std::round(100.0*flim)/100.0<<" Hz, within a factor 1.5 of the highest "
+            <<"frequency (A 702). The young wind sea of the first cells of fetch at upwind shores of fine grids, cut by the frequency "
+            <<"grid, may not settle; a higher A 702 fmax (e.g. 2 Hz) lets it converge"<<endl;
     }
 }
 
@@ -251,6 +309,12 @@ void seastate_f::transport_amr(lexer *p, ghostcell *pgc)
         obstacles(p,pgc);
         pamr->iterate(p,pgc,N0,rdt,Nb,side,refraction,fshift);
         ++iter_done;
+
+        // FAS coarse-grid correction (A 758) within the step: every A 758 n iterations of the step, not after the
+        // last one (the prolonged correction needs an iteration of the fine grids after it, else its error enters
+        // the next step: with one iteration per step and a correction after it, the wind sea grew 18 % too fast)
+        if(p->A758_n>0 && iter_done%p->A758_n==0 && it<iter_max-1)
+        pamr->fas(p,pgc,N0,rdt,Nb,side,refraction,fshift,p->A758_m);
         }
 
         return;
@@ -292,6 +356,14 @@ void seastate_f::transport_amr(lexer *p, ghostcell *pgc)
     obstacles(p,pgc);
     pamr->iterate(p,pgc,nullptr,rdt,Nb,side,refraction,fshift);
     ++iter_done;
+
+    // FAS coarse-grid correction (A 758): level 0 as the coarse grid of the patches
+    if(p->A758_n>0 && iter_done%p->A758_n==0)
+    {
+    pamr->fas(p,pgc,nullptr,rdt,Nb,side,refraction,fshift,p->A758_m);
+    if(p->mpirank==0)
+    cout<<"SEASTATE FAS: iteration "<<iter_done<<", "<<p->A758_m<<" coarse iterations, largest relative change of the coarse cells "<<pamr->fas_last()<<endl;
+    }
 
     leaf_hs(hs,hmax);
     hmax = pgc->globalmax(hmax);

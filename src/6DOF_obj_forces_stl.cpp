@@ -74,10 +74,22 @@ void sixdof_obj_cfd::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, fi
 			yc >= p->originy && yc < p->endy &&
 			zc >= p->originz && zc < p->endz)
 		{
+            // the grid of the loads: with the mesh refinement the finest grid at the triangle
+            // (its pressure, density, viscosity, velocities and spacing), else level 0
+            lexer *q = p;
+            fdm *fa = a;
+            field *U = &uvel, *V = &vvel, *W = &wvel;
+            if(amr_loads!=nullptr && amr_loads->finest_grid(xc,yc,zc,q,fa))
+            {
+                U = &fa->u;
+                V = &fa->v;
+                W = &fa->w;
+            }
+
             // Position of triangle
-            i = p->posc_i(xc);
-            j = p->posc_j(yc);
-            k = p->posc_k(zc);
+            i = q->posc_i(xc);
+            j = q->posc_j(yc);
+            k = q->posc_k(zc);
 			
             // Area of triangle using Heron's formula
 			at = sqrt(pow(x1-x0,2.0) + pow(y1-y0,2.0) + pow(z1-z0,2.0));
@@ -101,21 +113,21 @@ void sixdof_obj_cfd::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, fi
 			ny /= norm > 1.0e-20 ? norm : 1.0e20;
 			nz /= norm > 1.0e-20 ? norm : 1.0e20;
             
-            if(p->j_dir==0)
+            if(q->j_dir==0)
             ny=0.0;
             
             // Add normal stress contributions
-            xlocp = xc + p->X42*nx*p->DXP[IP];
-            ylocp = yc + p->X42*ny*p->DYP[JP];
-            zlocp = zc + p->X42*nz*p->DZP[KP];
+            xlocp = xc + q->X42*nx*q->DXP[IP];
+            ylocp = yc + q->X42*ny*q->DYP[JP];
+            zlocp = zc + q->X42*nz*q->DZP[KP];
 
-            p_int = p->ccipol4a(a->press,xlocp,ylocp,zlocp) - p->pressgage;
+            p_int = q->ccipol4a(fa->press,xlocp,ylocp,zlocp) - p->pressgage;
             
             Fp_x = -nx*p_int*A_triang;
             Fp_y = -ny*p_int*A_triang;
             Fp_z = -nz*p_int*A_triang;
              
-            if(p->j_dir==0)
+            if(q->j_dir==0)
             Fp_y = 0.0;
              
 		   
@@ -131,31 +143,31 @@ void sixdof_obj_cfd::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, fi
             double dir;
 
 
-            if(p->X38==0)
+            if(q->X38==0)
             {
-            xlocvel = xc + p->X43*nx*p->DXP[IP];
-            ylocvel = yc + p->X43*ny*p->DYP[JP];
-            zlocvel = zc + p->X43*nz*p->DZP[KP];
+            xlocvel = xc + q->X43*nx*q->DXP[IP];
+            ylocvel = yc + q->X43*ny*q->DYP[JP];
+            zlocvel = zc + q->X43*nz*q->DZP[KP];
             
-             nu_int = p->ccipol4a(a->visc,xlocvel,ylocvel,zlocvel);
-			enu_int = 0.0; //p->ccipol4a(a->eddyv,xlocvel,ylocvel,zlocvel);
-			rho_int = p->ccipol4a(a->ro,xlocvel,ylocvel,zlocvel);
+             nu_int = q->ccipol4a(fa->visc,xlocvel,ylocvel,zlocvel);
+			enu_int = 0.0; //q->ccipol4a(fa->eddyv,xlocvel,ylocvel,zlocvel);
+			rho_int = q->ccipol4a(fa->ro,xlocvel,ylocvel,zlocvel);
 	        
-             i = p->posc_i(xlocvel);
-			j = p->posc_j(ylocvel);
-			k = p->posc_k(zlocvel);
+             i = q->posc_i(xlocvel);
+			j = q->posc_j(ylocvel);
+			k = q->posc_k(zlocvel);
             
-            dudx = (uvel(i+1,j,k) - uvel(i-1,j,k))/(p->DXP[IP] + p->DXP[IM1]);
-            dudy = (uvel(i,j+1,k) - uvel(i,j-1,k))/(p->DYP[JP] + p->DYP[JM1]);
-            dudz = (uvel(i,j,k+1) - uvel(i,j,k-1))/(p->DZP[KP] + p->DZP[KM1]);
+            dudx = ((*U)(i+1,j,k) - (*U)(i-1,j,k))/(q->DXP[IP] + q->DXP[IM1]);
+            dudy = ((*U)(i,j+1,k) - (*U)(i,j-1,k))/(q->DYP[JP] + q->DYP[JM1]);
+            dudz = ((*U)(i,j,k+1) - (*U)(i,j,k-1))/(q->DZP[KP] + q->DZP[KM1]);
                                                                            
-            dvdx = (vvel(i+1,j,k) - vvel(i-1,j,k))/(p->DXP[IP] + p->DXP[IM1]);
-            dvdy = (vvel(i,j+1,k) - vvel(i,j-1,k))/(p->DYP[JP] + p->DYP[JM1]);
-            dvdz = (vvel(i,j,k+1) - vvel(i,j,k-1))/(p->DZP[KP] + p->DZP[KM1]);
+            dvdx = ((*V)(i+1,j,k) - (*V)(i-1,j,k))/(q->DXP[IP] + q->DXP[IM1]);
+            dvdy = ((*V)(i,j+1,k) - (*V)(i,j-1,k))/(q->DYP[JP] + q->DYP[JM1]);
+            dvdz = ((*V)(i,j,k+1) - (*V)(i,j,k-1))/(q->DZP[KP] + q->DZP[KM1]);
                                                                             
-            dwdx = (wvel(i+1,j,k) - wvel(i-1,j,k))/(p->DXP[IP] + p->DXP[IM1]);
-            dwdy = (wvel(i,j+1,k) - wvel(i,j-1,k))/(p->DYP[JP] + p->DYP[JM1]);
-            dwdz = (wvel(i,j,k+1) - wvel(i,j,k-1))/(p->DZP[KP] + p->DZP[KM1]);
+            dwdx = ((*W)(i+1,j,k) - (*W)(i-1,j,k))/(q->DXP[IP] + q->DXP[IM1]);
+            dwdy = ((*W)(i,j+1,k) - (*W)(i,j-1,k))/(q->DYP[JP] + q->DYP[JM1]);
+            dwdz = ((*W)(i,j,k+1) - (*W)(i,j,k-1))/(q->DZP[KP] + q->DZP[KM1]);
 
             Fv_x = rho_int*(nu_int + enu_int)*A_triang*(2.0*dudx*nx + (dudy + dvdx)*ny + (dudz + dwdx)*nz);
             Fv_y = rho_int*(nu_int + enu_int)*A_triang*((dudy + dvdx)*nx + 2.0*dvdy*ny + (dvdz + dwdy)*nz);
@@ -163,23 +175,23 @@ void sixdof_obj_cfd::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, fi
             }
             
             
-            if(p->X38==1)
+            if(q->X38==1)
             {
-            xlocvel = xc + p->X43*nx*p->DXP[IP];
-            ylocvel = yc + p->X43*ny*p->DYP[JP];
-            zlocvel = zc + p->X43*nz*p->DZP[KP];
+            xlocvel = xc + q->X43*nx*q->DXP[IP];
+            ylocvel = yc + q->X43*ny*q->DYP[JP];
+            zlocvel = zc + q->X43*nz*q->DZP[KP];
             
-            nu_int  = p->ccipol4a(a->visc,xlocvel,ylocvel,zlocvel);
-            enu_int = p->ccipol4a(a->eddyv,xlocvel,ylocvel,zlocvel);
-            rho_int = p->ccipol4a(a->ro,xlocvel,ylocvel,zlocvel);
+            nu_int  = q->ccipol4a(fa->visc,xlocvel,ylocvel,zlocvel);
+            enu_int = q->ccipol4a(fa->eddyv,xlocvel,ylocvel,zlocvel);
+            rho_int = q->ccipol4a(fa->ro,xlocvel,ylocvel,zlocvel);
             
-            uval=p->ccipol1(uvel,xlocvel,ylocvel,zlocvel);
-            vval=p->ccipol2(vvel,xlocvel,ylocvel,zlocvel);
-            wval=p->ccipol3(wvel,xlocvel,ylocvel,zlocvel);
+            uval=q->ccipol1(*U,xlocvel,ylocvel,zlocvel);
+            vval=q->ccipol2(*V,xlocvel,ylocvel,zlocvel);
+            wval=q->ccipol3(*W,xlocvel,ylocvel,zlocvel);
 	        
-            i = p->posc_i(xlocvel);
-            j = p->posc_j(ylocvel);
-            k = p->posc_k(zlocvel);
+            i = q->posc_i(xlocvel);
+            j = q->posc_j(ylocvel);
+            k = q->posc_k(zlocvel);
             
             double delta = sqrt(pow(xc-xlocvel,2.0) + pow(yc-ylocvel,2.0) + pow(zc-zlocvel,2.0));
             
@@ -203,25 +215,25 @@ void sixdof_obj_cfd::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, fi
             }
             
             
-            if(p->X38==2)
+            if(q->X38==2)
             {
-            xlocvel = xc + p->X43*nx*p->DXP[IP];
-            ylocvel = yc + p->X43*ny*p->DYP[JP];
-            zlocvel = zc + p->X43*nz*p->DZP[KP];
+            xlocvel = xc + q->X43*nx*q->DXP[IP];
+            ylocvel = yc + q->X43*ny*q->DYP[JP];
+            zlocvel = zc + q->X43*nz*q->DZP[KP];
             
-            nu_int  = p->ccipol4a(a->visc,xlocvel,ylocvel,zlocvel);
-            enu_int = p->ccipol4a(a->eddyv,xlocvel,ylocvel,zlocvel);
-            rho_int = p->ccipol4a(a->ro,xlocvel,ylocvel,zlocvel);
+            nu_int  = q->ccipol4a(fa->visc,xlocvel,ylocvel,zlocvel);
+            enu_int = q->ccipol4a(fa->eddyv,xlocvel,ylocvel,zlocvel);
+            rho_int = q->ccipol4a(fa->ro,xlocvel,ylocvel,zlocvel);
 	        
-            i = p->posc_i(xlocvel);
-            j = p->posc_j(ylocvel);
-            k = p->posc_k(zlocvel);
+            i = q->posc_i(xlocvel);
+            j = q->posc_j(ylocvel);
+            k = q->posc_k(zlocvel);
             
-            uval=p->ccipol1(uvel,xlocvel,ylocvel,zlocvel);
-            vval=p->ccipol2(vvel,xlocvel,ylocvel,zlocvel);
-            wval=p->ccipol3(wvel,xlocvel,ylocvel,zlocvel);
+            uval=q->ccipol1(*U,xlocvel,ylocvel,zlocvel);
+            vval=q->ccipol2(*V,xlocvel,ylocvel,zlocvel);
+            wval=q->ccipol3(*W,xlocvel,ylocvel,zlocvel);
             
-            dist = fabs(p->ccipol4(a->fb,xlocvel,ylocvel,zlocvel));
+            dist = fabs(q->ccipol4(fa->fb,xlocvel,ylocvel,zlocvel));
             
             ks = 0.00001;
             
@@ -249,30 +261,30 @@ void sixdof_obj_cfd::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, fi
             }
             
             
-            if(p->X38==3)
+            if(q->X38==3)
             {
-            xlocvel = xc + p->X43*nx*p->DXP[IP];
-            ylocvel = yc + p->X43*ny*p->DYP[JP];
-            zlocvel = zc + p->X43*nz*p->DZP[KP];
+            xlocvel = xc + q->X43*nx*q->DXP[IP];
+            ylocvel = yc + q->X43*ny*q->DYP[JP];
+            zlocvel = zc + q->X43*nz*q->DZP[KP];
             
-            nu_int  = p->ccipol4a(a->visc,xlocvel,ylocvel,zlocvel);
-            enu_int = p->ccipol4a(a->eddyv,xlocvel,ylocvel,zlocvel);
-            rho_int = p->ccipol4a(a->ro,xlocvel,ylocvel,zlocvel);
+            nu_int  = q->ccipol4a(fa->visc,xlocvel,ylocvel,zlocvel);
+            enu_int = q->ccipol4a(fa->eddyv,xlocvel,ylocvel,zlocvel);
+            rho_int = q->ccipol4a(fa->ro,xlocvel,ylocvel,zlocvel);
             
-            uval=p->ccipol1(uvel,xlocvel,ylocvel,zlocvel);
-            vval=p->ccipol2(vvel,xlocvel,ylocvel,zlocvel);
-            wval=p->ccipol3(wvel,xlocvel,ylocvel,zlocvel);
+            uval=q->ccipol1(*U,xlocvel,ylocvel,zlocvel);
+            vval=q->ccipol2(*V,xlocvel,ylocvel,zlocvel);
+            wval=q->ccipol3(*W,xlocvel,ylocvel,zlocvel);
 	        
-            i = p->posc_i(xlocvel);
-            j = p->posc_j(ylocvel);
-            k = p->posc_k(zlocvel);
+            i = q->posc_i(xlocvel);
+            j = q->posc_j(ylocvel);
+            k = q->posc_k(zlocvel);
             
             double delta = sqrt(pow(xc-xlocvel,2.0) + pow(yc-ylocvel,2.0) + pow(zc-zlocvel,2.0));
             
                 
-            nu_int  = p->ccipol4a(a->visc,xlocvel,ylocvel,zlocvel);
-            enu_int = p->ccipol4a(a->eddyv,xlocvel,ylocvel,zlocvel);
-            rho_int = p->ccipol4a(a->ro,xlocvel,ylocvel,zlocvel);
+            nu_int  = q->ccipol4a(fa->visc,xlocvel,ylocvel,zlocvel);
+            enu_int = q->ccipol4a(fa->eddyv,xlocvel,ylocvel,zlocvel);
+            rho_int = q->ccipol4a(fa->ro,xlocvel,ylocvel,zlocvel);
 
 
             u_abs = sqrt(uval*uval + vval*vval + wval*wval);
@@ -285,9 +297,9 @@ void sixdof_obj_cfd::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, fi
             }
             
             
-            if(p->X38==4)
+            if(q->X38==4)
             {
-            //zval = s->bedzh(i,j) + 0.5*p->DZN[KP];
+            //zval = s->bedzh(i,j) + 0.5*q->DZN[KP];
             
             //tau=density*pturb->ccipol_a_kinval(p,pgc,xip,yip,zval)*0.3;
             }

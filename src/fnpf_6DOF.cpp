@@ -61,16 +61,22 @@ fnpf_6DOF::fnpf_6DOF(lexer *p, fdm_fnpf *c, ghostcell *pgc) : initialized(false)
     if(p->mpirank==0)
     cout<<"6DOF FNPF startup ..."<<endl;
     
-    // one body, as in NHFLOW
-    nbody = 1;
+    // X 20 bodies (geometry: floating.stl, floating-1.stl, ...), coupled through the added mass
+    nbody = MAX(1, p->X20);
     
     for(int nb=0; nb<nbody; ++nb)
     fb_obj.push_back(new sixdof_obj_fnpf(p,pgc,nb));
     
+    Across.assign(nbody*nbody, Eigen::Matrix<double,6,6>::Zero());
+
     // hull pressure with the body-following time derivative of phi (exact rigid-body Neumann
-    // data, no m-terms neglected): needs the velocity field of the one body on the free surface
+    // data, no m-terms neglected): needs the velocity field of the one body on the free surface;
+    // with several bodies psi_0 = phi_t with the m-terms neglected
     sixdof_obj_fnpf::chi_on = (nbody==1);
     
+    if(p->mpirank==0 && nbody>1)
+    cout<<"6DOF FNPF: "<<nbody<<" bodies, coupled added mass, psi_0 = phi_t (m-terms neglected)"<<endl;
+
     gcval = (p->j_dir==0) ? 150 : 250;
     
     const int size = p->imax*p->jmax*(p->kmax+2);
@@ -318,6 +324,15 @@ fnpf_6DOF::~fnpf_6DOF()
 
 void fnpf_6DOF::ini(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
+    if(nbody>1 && amr_sub())
+    {
+        if(p->mpirank==0)
+        cout<<"6DOF FNPF: several bodies (X 20 > 1) with mesh refinement need G 7 0 (no subcycling) for now"<<endl;
+
+        pgc->final();
+        exit(1);
+    }
+
     for(int nb=0; nb<nbody; ++nb)
     fb_obj[nb]->initialize_fnpf(p,c,pgc);
     
@@ -351,16 +366,27 @@ void fnpf_6DOF::forces(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, fnp
     
     solve_psi(p,c,pgc,psolv,plap,pf,psi0,psiD);
     
-    // added mass: six unit-mode solves, once per time step
+    // added mass: unit-mode solves of the free DOFs, once per time step (the rows and columns
+    // of fixed or prescribed DOFs are not used in the motion); with several bodies the modes of
+    // body nb also give its cross added mass on all other bodies
     const bool refresh = (iter==0);
     
+    if(refresh && nbody>1)
+    for(auto &A : Across)
+    A.setZero();
+
     for(int nb=0; nb<nbody; ++nb)
     {
         const bool computeA = refresh && !fb_obj[nb]->fnpf_fixed(p);
         
-        if(computeA)
+        double *pm[6] = {nullptr,nullptr,nullptr,nullptr,nullptr,nullptr};
+
         for(int m=0; m<6; ++m)
-        if(psi[m]!=nullptr)
+        if(computeA && psi[m]!=nullptr && !fb_obj[nb]->dof_fixed_fnpf(p,m))
+        pm[m] = psi[m];
+
+        for(int m=0; m<6; ++m)
+        if(pm[m]!=nullptr)
         {
             zero_face(g0);
             fb_obj[nb]->face_data_fnpf(p,c,pgc,m,c->FBF,c->FBu,c->FBv,c->FBw);
@@ -369,7 +395,12 @@ void fnpf_6DOF::forces(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, fnp
             solve_psi(p,c,pgc,psolv,plap,pf,psi[m],zeroslice);
         }
         
-        fb_obj[nb]->forces_fnpf(p,c,pgc,psi0,psi,computeA);
+        if(computeA && nbody>1)
+        for(int nb2=0; nb2<nbody; ++nb2)
+        if(nb2!=nb)
+        fb_obj[nb2]->added_mass_block_fnpf(p,c,pgc,zero,pm,Across[nb2*nbody+nb]);
+
+        fb_obj[nb]->forces_fnpf(p,c,pgc,psi0,pm,computeA);
         
         // force log: first stage = state at the current time level
         if(iter==0)
@@ -382,13 +413,103 @@ void fnpf_6DOF::motion(lexer *p, fdm_fnpf *c, ghostcell *pgc, int iter)
     // last stage: 2 for RK3 (A 310 3), 3 for RK4 (A 310 4)
     const bool finalize = (iter == ((p->A310==3) ? 2 : 3));
     
+    if(nbody>1)
+    motion_coupled(p,c,pgc,iter,finalize);
+
     for(int nb=0; nb<nbody; ++nb)
     {
+        if(nbody==1)
         fb_obj[nb]->solve_eqmotion_fnpf(p,c,pgc,iter,finalize);
+
         fb_obj[nb]->update_position_fnpf(p,pgc,finalize);
         
         if(finalize)
         fb_obj[nb]->print_fnpf(p,pgc,iter);
+    }
+}
+
+void fnpf_6DOF::motion_coupled(lexer *p, fdm_fnpf *c, ghostcell *pgc, int iter, bool finalize)
+{
+    // Several bodies: each body assembles its block of the instantaneous added-mass system
+    //   (M_i + A_ii) a_i + sum_j A_ij a_j = F_i
+    // (own added mass, gyroscopic and PTO terms, fixed DOFs), the cross blocks A_ij come from
+    // the unit modes of body j on the hull of body i, symmetrised as (A_ij + A_ji^T)/2.
+    // The coupled system is solved on every rank (identical data), then each body takes its
+    // accelerations and does its RK stage.
+    const int n6 = 6*nbody;
+
+    for(int nb=0; nb<nbody; ++nb)
+    fb_obj[nb]->eqmotion_assemble_fnpf(p,c,pgc,iter,finalize);
+
+    Eigen::MatrixXd K = Eigen::MatrixXd::Zero(n6,n6);
+    Eigen::VectorXd r = Eigen::VectorXd::Zero(n6);
+    std::vector<int> has(nbody,0);
+    std::vector<int> fixed(n6,1);
+
+    for(int nb=0; nb<nbody; ++nb)
+    {
+        Eigen::Matrix<double,6,6> L;
+        Eigen::Matrix<double,6,1> rb;
+        bool fx[6];
+
+        has[nb] = fb_obj[nb]->eqmotion_block_fnpf(L,rb,fx) ? 1 : 0;
+
+        if(!has[nb])
+        {
+        L.setIdentity();
+        rb.setZero();
+        for(int n=0; n<6; ++n)
+        fx[n] = true;
+        }
+
+        K.block<6,6>(6*nb,6*nb) = L;
+        r.segment<6>(6*nb) = rb;
+
+        for(int n=0; n<6; ++n)
+        fixed[6*nb+n] = fx[n] ? 1 : 0;
+    }
+
+    for(int i=0; i<nbody; ++i)
+    for(int j=0; j<nbody; ++j)
+    if(i!=j && has[i] && has[j])
+    {
+        const Eigen::Matrix<double,6,6> Aij = 0.5*(Across[i*nbody+j] + Across[j*nbody+i].transpose());
+
+        for(int a=0; a<6; ++a)
+        for(int b=0; b<6; ++b)
+        if(!fixed[6*i+a] && !fixed[6*j+b])
+        K(6*i+a,6*j+b) = Aij(a,b);
+    }
+
+    const Eigen::VectorXd acc = K.partialPivLu().solve(r);
+
+    for(int nb=0; nb<nbody; ++nb)
+    {
+        const Eigen::Matrix<double,6,1> a = acc.segment<6>(6*nb);
+        fb_obj[nb]->eqmotion_advance_fnpf(p,pgc,iter, has[nb] ? &a : nullptr);
+    }
+
+    if(p->mpirank==0 && iter==0 && (p->count%p->P12==0))
+    {
+        double amax=0.0, across=0.0;
+
+        for(int i=0; i<nbody; ++i)
+        for(int j=0; j<nbody; ++j)
+        {
+        const double v = Across[i*nbody+j].cwiseAbs().maxCoeff();
+        across = MAX(across,v);
+        }
+
+        for(int n=0; n<n6; ++n)
+        if(!fixed[n])
+        amax = MAX(amax,fabs(K(n,n)));
+
+        cout<<"6DOF FNPF coupled: max |A_ij| (i!=j) "<<across<<"  max diagonal "<<amax<<endl;
+
+        // heave-heave cross added mass of the first bodies (compare with A_33,ij at infinite frequency)
+        for(int i=0; i<MIN(nbody,4); ++i)
+        for(int j=i+1; j<MIN(nbody,4); ++j)
+        cout<<"A33 cross "<<i<<" "<<j<<": "<<0.5*(Across[i*nbody+j](2,2) + Across[j*nbody+i](2,2))<<endl;
     }
 }
 
@@ -1019,13 +1140,20 @@ void fnpf_6DOF::forces_amr(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv,
         fb_obj[0]->chi_fsf(p,G.c,D,*G.foot);
         
         pgc->gcsl_start4(p,D,50);
+        
+        // X 18 on the patches
+        if(nbody==1)
+        fb_obj[0]->chi_mean_patch(p,pgc,D,*G.foot,amr->patch_level(G.id));
     }
     }
     
-    auto face = [&](int mode)
+    // Neumann data on all grids: mode -2 (psi_0) for every body, a unit mode (0-5) only for the
+    // body sel, the others held (its added mass and its cross added mass on the others)
+    auto face = [&](int mode, int sel)
     {
         zero_face(g0);
         for(int nb=0; nb<nbody; ++nb)
+        if(sel<0 || nb==sel)
         fb_obj[nb]->face_data_fnpf(p,c,pgc,mode,c->FBF,c->FBu,c->FBv,c->FBw);
         exchange_face(g0,pgc);
         
@@ -1034,31 +1162,34 @@ void fnpf_6DOF::forces_amr(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv,
         {
             zero_face(G);
             for(int nb=0; nb<nbody; ++nb)
+            if(sel<0 || nb==sel)
             fb_obj[nb]->face_data_fnpf(G.p,G.c,pgc,mode,G.c->FBF,G.c->FBu,G.c->FBv,G.c->FBw);
         }
     };
     
-    face(-2);
+    face(-2,-1);
     solve_psi_amr(p,c,pgc,psolv,pf,-1,true);
     
-    // added mass: six unit-mode solves, once per time step
+    // added mass: unit-mode solves of the free DOFs, once per time step (rows and columns of
+    // fixed or prescribed DOFs are not used in the motion); with several bodies the modes of
+    // body nb also give its cross added mass on all other bodies (one patch per body, G 12)
     const bool refresh = (iter==0);
     
-    for(int nb=0; nb<nbody; ++nb)
+    if(refresh && nbody>1)
+    for(auto &A : Across)
+    A.setZero();
+
+    // psi arrays of grid G restricted to the solved modes
+    auto modes = [&](fnpf_6DOF_grid &G, const bool *on, double **out)
     {
-        const bool computeA = refresh && !fb_obj[nb]->fnpf_fixed(p);
-        
-        if(computeA)
         for(int m=0; m<6; ++m)
-        if(psi[m]!=nullptr)
-        {
-            face(m);
-            solve_psi_amr(p,c,pgc,psolv,pf,m,false);
-        }
-        
-        // every hull triangle on the finest grid that holds its centroid
-        sixdof_obj_fnpf::fnpf_force_sum S;
-        fb_obj[nb]->forces_fnpf_zero(p,S);
+        out[m] = on[m] ? G.psi[m] : nullptr;
+    };
+
+    // hull integral of body nbi over all grids, every triangle on the finest grid that holds its centroid
+    auto hull_sum = [&](int nbi, const bool *on, bool computeA, sixdof_obj_fnpf::fnpf_force_sum &S, bool zero_psi0)
+    {
+        fb_obj[nbi]->forces_fnpf_zero(p,S);
         
         for(int g=-1; g<(int)gp.size(); ++g)
         {
@@ -1068,9 +1199,39 @@ void fnpf_6DOF::forces_amr(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv,
             {
                 return amr->owns_point(x,y,id);
             };
-            const double del = (g<0) ? 0.5*fb_obj[nb]->fnpf_dsm() : G.del;
-            fb_obj[nb]->forces_fnpf_sum(G.p,G.c,G.psi0,G.psi,computeA,del,&own,S);
+            const double del = (g<0) ? 0.5*fb_obj[nbi]->fnpf_dsm() : G.del;
+            double *pm[6];
+            modes(G,on,pm);
+            fb_obj[nbi]->forces_fnpf_sum(G.p,G.c,zero_psi0 ? G.zero : G.psi0,pm,computeA,del,&own,S);
         }
+    };
+
+    for(int nb=0; nb<nbody; ++nb)
+    {
+        const bool computeA = refresh && !fb_obj[nb]->fnpf_fixed(p);
+
+        bool on[6];
+        for(int m=0; m<6; ++m)
+        on[m] = computeA && psi[m]!=nullptr && !fb_obj[nb]->dof_fixed_fnpf(p,m);
+
+        for(int m=0; m<6; ++m)
+        if(on[m])
+        {
+            face(m,nb);
+            solve_psi_amr(p,c,pgc,psolv,pf,m,false);
+        }
+
+        if(computeA && nbody>1)
+        for(int nb2=0; nb2<nbody; ++nb2)
+        if(nb2!=nb)
+        {
+            sixdof_obj_fnpf::fnpf_force_sum S2;
+            hull_sum(nb2,on,true,S2,true);
+            fb_obj[nb2]->added_mass_from_sum(pgc,S2,Across[nb2*nbody+nb]);
+        }
+
+        sixdof_obj_fnpf::fnpf_force_sum S;
+        hull_sum(nb,on,computeA,S,false);
         
         fb_obj[nb]->forces_fnpf_set(p,pgc,S,computeA);
         

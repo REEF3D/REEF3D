@@ -119,7 +119,7 @@ void seastate_coupling::wave_step(lexer *p, ghostcell *pgc, double dt)
 
 void seastate_coupling::print(lexer *p, ghostcell *pgc)
 {
-    if(p->P10!=1)
+    if(p->P10<1)
     return;
 
     // coupling interval: every wave step

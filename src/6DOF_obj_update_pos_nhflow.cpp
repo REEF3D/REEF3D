@@ -60,14 +60,27 @@ void sixdof_obj_nhflow::update_trimesh_nhflow(lexer *p, fdm_nhf *d, ghostcell *p
 	nhflow_reini_RK2(p,d,pgc,d->FB);
 }
 
-void sixdof_obj_nhflow::update_wavemaker_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &fsglobal, bool finalize)
+void sixdof_obj_nhflow::update_wavemaker_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &fsglobal, int iter, bool finalize)
 {
+    // paddle at the time of the stage result, like the floating body: stage s of TVD RK3 gives
+    // the solution at t^n + (1, 1/2, 1) dt, of RK2 at t^n + (1, 1) dt (p->simtime is t^n)
+    static const double crk3[3] = {1.0, 0.5, 1.0};
+    static const double crk2[2] = {1.0, 1.0};
+    
+    double t = p->simtime + p->dt;
+    
+    if(p->A510==3 && iter>=0 && iter<3)
+    t = p->simtime + crk3[iter]*p->dt;
+    
+    if(p->A510==2 && iter>=0 && iter<2)
+    t = p->simtime + crk2[iter]*p->dt;
+    
     // Update position of wavemaker
     if(p->X170==1)
-	piston(p, pgc, 0);
+	piston(p,pgc,0,t);
     
     if(p->X172==1)
-    flap_double(p,pgc,0);
+    flap_double(p,pgc,0,t);
     
     // Update floating level set function
 	ray_cast(p,d,pgc);

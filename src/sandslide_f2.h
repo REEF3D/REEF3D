@@ -37,10 +37,13 @@ public:
     virtual ~sandslide_f2();
 
 	void start(lexer*,ghostcell*, sediment_fdm*) override final;
+    int amr_sweep(lexer*,ghostcell*,sediment_fdm*) override;
+    slice* amr_fh() override { return &fh; }
 
 private:
 
     void slide(lexer*,ghostcell*, sediment_fdm*);
+    void slide_curv(lexer *p, ghostcell *pgc, sediment_fdm *s);     // curvilinear grid (G 50)
 
     slice4 fh;
     

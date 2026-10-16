@@ -35,7 +35,8 @@ void sixdof_obj::objects_create(lexer *p, ghostcell *pgc)
     if(p->X170==1)
     {
         tstart[entity_count]=tricount;
-        piston(p,pgc,0);
+        wm_tri0=tricount;
+        piston(p,pgc,0,p->simtime);
         tricount+=12;
         tend[entity_count]=tricount;
         ++entity_count;
@@ -44,7 +45,8 @@ void sixdof_obj::objects_create(lexer *p, ghostcell *pgc)
     if(p->X172==1)
     {
         tstart[entity_count]=tricount;
-        flap_double(p,pgc,0);
+        wm_tri0=tricount;
+        flap_double(p,pgc,0,p->simtime);
         tricount+=28;
         tend[entity_count]=tricount;
         ++entity_count;

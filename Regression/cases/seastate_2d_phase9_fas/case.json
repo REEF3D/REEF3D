@@ -1,0 +1,20 @@
+{
+ "base": "seastate_2d_phase9_width",
+ "ctrl_add": [
+  "A 758 2 4"
+ ],
+ "description": "as seastate_2d_phase9_width (one level of 100 m along a 600 m wide fjord, G 1 1) with the FAS coarse-grid correction (A 758 2 4, Phase 9): every 2 iterations, level 0 is solved as a grid of its own for 4 iterations with tau = r_c(R N) - R r on the covered cells and the difference of its own and the composite residual on the others, and the change is prolonged into the patches; tight convergence (A 708 1e-5, A 709 100) for several corrections. Validation in Dropbox SEASTATE/validation/45_fas.",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate"
+ ],
+ "covers": [
+  "seastate_amr fas (residuals, tau, coarse solve, prolongation)",
+  "seastate_implicit residual mode and FAS source"
+ ],
+ "ctrl_set": {
+  "A 708": "1.0e-5",
+  "A 709": "100.0"
+ }
+}

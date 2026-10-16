@@ -1,0 +1,18 @@
+{
+ "np": 1,
+ "steps": 30,
+ "tags": [
+  "3d",
+  "nhflow",
+  "curvilinear",
+  "amr"
+ ],
+ "description": "NHFLOW mesh refinement on a curvilinear grid (turned by 90 deg): patches following the surface of a dam break, regrid every step, subcycling (G 7 1): per cell index the Cartesian run to round-off.",
+ "covers": [
+  "nhflow_amr on curvilinear grids: patch geometry, fills, refluxing per face length (sub_reflux)"
+ ],
+ "solver": "nhflow",
+ "files": [
+  "curvgrid.dat"
+ ]
+}

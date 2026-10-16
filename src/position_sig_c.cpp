@@ -26,6 +26,15 @@ Author: Hans Bihs
 int position::posc_sig(int ii, int jj, double xp, double yp, double zs)
 {
     double Z0,Z1,Z2;
+
+    // curvilinear grid (G 50): the bilinear coordinates of the point in the quadrilateral of the cell centres
+    // (ii,jj) (grid_locate.cpp), in place of (x-XP)/DXP
+    double cfx=0.0, cfy=0.0;
+    if(p->geo_curv==1)
+    {
+    int qi,qj;
+    p->geo_quad(xp,yp,qi,qj,cfx,cfy);
+    }
     
     i = ii;
     j = jj;
@@ -72,7 +81,14 @@ int position::posc_sig(int ii, int jj, double xp, double yp, double zs)
     }
     
     
-    if(p->j_dir==1)
+    if(p->j_dir==1 && p->geo_curv==1)
+    {
+    Z0 = (p->ZSN[FIp1JKm1] - p->ZSN[FIJKm1])*cfx + (p->ZSN[FIJp1Km1] - p->ZSN[FIJKm1])*cfy + p->ZSN[FIJKm1];
+    Z1 = (p->ZSN[FIp1JK] - p->ZSN[FIJK])*cfx + (p->ZSN[FIJp1K] - p->ZSN[FIJK])*cfy + p->ZSN[FIJK];
+    Z2 = (p->ZSN[FIp1JKp1] - p->ZSN[FIJKp1])*cfx + (p->ZSN[FIJp1Kp1] - p->ZSN[FIJKp1])*cfy + p->ZSN[FIJKp1];
+    }
+
+    if(p->j_dir==1 && p->geo_curv==0)
     {
     Z0 =  ((p->ZSN[FIp1JKm1] - p->ZSN[FIJKm1])/p->DXP[IP])*(xp - p->XP[IP]) 
     

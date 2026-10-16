@@ -1,0 +1,19 @@
+{
+ "base": "nhflow_3d_curv_river_inflow_conveyance",
+ "ctrl_add": [
+  "B 61 1"
+ ],
+ "np": 1,
+ "steps": 100,
+ "tags": [
+  "3d",
+  "nhflow",
+  "curvilinear",
+  "river",
+  "wetdry"
+ ],
+ "description": "as nhflow_3d_curv_river_inflow_conveyance with the plain inflow profile (B 61 1): u = Uk h^(2/3) across the inflow face (B 62 1)",
+ "covers": [
+  "inflow_plain_nhflow with B 62 1"
+ ]
+}

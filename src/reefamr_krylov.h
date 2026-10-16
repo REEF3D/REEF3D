@@ -54,6 +54,10 @@ Author: Hans Bihs
 //  residual RH = R often recovers it within a few iterations (restarts receives their number).
 //  If it stagnates again after a restart and the relative residual is below stagtol (0: never),
 //  the solve stops there (stalls receives their number) instead of running to maxiter.
+//  Such a space is also restarted at a breakdown, RH.R = 0 to round-off: with RH = R0 this
+//  happens when the right-hand side is local and the preconditioner exact around it (SFLOW AMR
+//  Boussinesq, u_a of a dam break: the residual of the first iteration lives only at the
+//  coarse-fine boundaries, outside the support of R0).
 
 // default vector indices (a module may use its own)
 enum { REEFAMR_NR=0, REEFAMR_NRH, REEFAMR_NPV, REEFAMR_NVV, REEFAMR_NS, REEFAMR_NT, REEFAMR_NPH, REEFAMR_NSH, REEFAMR_NTMP, REEFAMR_NVEC };
@@ -77,6 +81,17 @@ int reefamr_bicgstab(S &sp, double tol, int maxiter, double &bn, double &rn, dou
     while(rn/bn>tol && it<maxiter)
     {
         double rhon = sp.dot(S::RH,S::R);
+
+        if constexpr (requires { sp.op_restart(); })
+        if(it>0 && fabs(rhon)<=1.0e-12*rn*sqrt(sp.dot(S::RH,S::RH)))
+        {
+            sp.op_restart();
+            rho = alp = om = 1.0;
+            rhon = rn*rn;
+            if(restarts)
+            ++(*restarts);
+        }
+
         double beta = (rhon/rho)*(alp/om);
         rho = rhon;
 

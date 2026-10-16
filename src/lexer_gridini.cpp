@@ -30,10 +30,16 @@ void lexer::gridini(ghostcell *pgc)
 
     grid::gridspacing(pgc);
 
+    // horizontal geometry layer: 2D nodes and metrics (not read by the solvers yet)
+    geometry_ini(pgc);
+
     gcd_ini(pgc);
     
     // solids and topography of the grid file: fields, bed levels, ghost cell estimates
     grid_solids(pgc);
+
+    // curvilinear grid (G 50): bed levels of its nodes
+    geometry_bed();
 }
 
 void lexer::flagini()

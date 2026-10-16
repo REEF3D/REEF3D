@@ -22,6 +22,7 @@ Author: Hans Bihs
 
 #include "runlog.h"
 #include "lexer.h"
+#include "georef.h"
 #include <cstdint>
 #include <cstdio>
 #include <ctime>
@@ -96,8 +97,14 @@ void runlog::start(lexer *p)
         <<",\"units\":{\"length\":\"m\",\"time\":\"s\",\"mass\":\"kg\",\"force\":\"N\"}"
         <<",\"still_water_level\":"<<number(p->phimean)
         <<",\"domain\":{\"min\":["<<number(p->global_xmin)<<","<<number(p->global_ymin)<<","<<number(p->global_zmin)
-        <<"],\"max\":["<<number(p->global_xmax)<<","<<number(p->global_ymax)<<","<<number(p->global_zmax)<<"]}"
-        <<",\"streams\":{}}";
+        <<"],\"max\":["<<number(p->global_xmax)<<","<<number(p->global_ymax)<<","<<number(p->global_zmax)<<"]}";
+
+    // where the model lies on the Earth: the case's georef.json, unchanged
+    const std::string georef = georef_json();
+    if(!georef.empty())
+    line<<",\"georef\":"<<georef;
+
+    line<<",\"streams\":{}}";
     write(line.str());
 }
 

@@ -31,7 +31,8 @@ void sixdof_obj_fnpf::ray_cast_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc, doubl
     // Vertical ray per sigma column: the z-crossings with the trimesh give an exact
     // inside/outside test (parity) for every sigma node of the column.
     // Marks FBF = n6DOF+1 inside the body and foot = n6DOF+1 where the top node
-    // (the free-surface node k=knoz) lies inside, i.e. the body footprint.
+    // (the free-surface node k=knoz) lies inside, i.e. the body footprint
+    // (with X 27 n also columns with a body node within n layers below the top node).
     // The caller zeroes FBF/foot beforehand and exchanges them afterwards.
     
     const double id = double(n6DOF+1);
@@ -62,6 +63,38 @@ void sixdof_obj_fnpf::ray_cast_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc, doubl
             
             if(cnt%2==1)
             FBF[FIJK] = id;
+        }
+        
+        // X 27 n: a body node within n sigma layers below the free-surface node puts the column
+        // into the footprint, the nodes above it become body nodes. Where the hull side passes
+        // (almost) through a column centre, the vertical ray grazes the wall: the free-surface
+        // node lies just outside, a node one or two layers below just inside (sections that curve
+        // in, a slight roll, pitch or yaw). Such a column carries the free surface one or two
+        // nodes above a body node; its Fz and the kinematic condition are not resolved there:
+        // W of 1-3 m/s, eta rises, the sigma nodes move into the sliver and the column blows up
+        // within a few steps (smooth hull on a straight course at 1.18 m/s, the side of the
+        // parallel midbody on a row of column centres after a slow sway and yaw drift).
+        if(p->X27>0)
+        {
+            k = p->knoz;
+            
+            if(fabs(FBF[FIJK]-id)>0.5)
+            for(int n=1; n<=p->X27; ++n)
+            {
+                k = p->knoz-n;
+                
+                if(k<0)
+                break;
+                
+                if(p->flag7[FIJK]>0 && fabs(FBF[FIJK]-id)<0.5)
+                {
+                    for(k=p->knoz-n+1; k<=p->knoz; ++k)
+                    if(p->flag7[FIJK]>0)
+                    FBF[FIJK] = id;
+                    
+                    break;
+                }
+            }
         }
         
         k = p->knoz;
@@ -184,6 +217,9 @@ void sixdof_obj_fnpf::chi_mean(lexer *p, ghostcell *pgc, slice &D, slice &foot)
         xmin = pgc->globalmin(xmin); ymin = pgc->globalmin(ymin);
         xmax = pgc->globalmax(xmax); ymax = pgc->globalmax(ymax);
         
+        chim_bx0 = xmin; chim_bx1 = xmax;
+        chim_by0 = ymin; chim_by1 = ymax;
+        
         chim_h = p->DXM;
         const double margin = 5.0*chim_h;
         chim_x0 = xmin - margin;
@@ -213,6 +249,70 @@ void sixdof_obj_fnpf::chi_mean(lexer *p, ghostcell *pgc, slice &D, slice &foot)
         
         double &m1 = chim_[bj*chim_nx + bi];
         double &m2 = chim2_[bj*chim_nx + bi];
+        
+        if(update)
+        {
+        m1 += alpha*(D(i,j) - m1);
+        m2 += alpha*(m1 - m2);
+        }
+        
+        D(i,j) -= m2;
+    }
+    
+    pgc->gcsl_start4(p,D,50);
+}
+
+void sixdof_obj_fnpf::chi_mean_patch(lexer *p, ghostcell *pgc, slice &D, slice &foot, int lev)
+{
+    // X 18 on a patch of level lev of FNPF mesh refinement: as chi_mean, with one body-frame grid
+    // per level (cell size of the level, so it survives regridding) and the update once per time
+    // step of the level (subcycling: once per finest step). Needs the body extent from the base
+    // grid (chi_mean, called before the patches).
+    if(!chi_on || p->X18<=0.0 || chim_nx==0 || lev<1)
+    return;
+    
+    if((int)chim_lev_.size()<=lev)
+    chim_lev_.resize(lev+1);
+    
+    chim_level &g = chim_lev_[lev];
+    
+    if(g.nx==0)
+    {
+        g.h = p->DXM;
+        const double margin = 5.0*chim_h;
+        g.x0 = chim_bx0 - margin;
+        g.y0 = chim_by0 - margin;
+        g.nx = int((chim_bx1 - chim_bx0 + 2.0*margin)/g.h) + 2;
+        g.ny = int((chim_by1 - chim_by0 + 2.0*margin)/g.h) + 2;
+        g.m1.assign(g.nx*g.ny,0.0);
+        g.m2.assign(g.nx*g.ny,0.0);
+    }
+    
+    const bool update = (p->simtime != g.t);
+    const double dtu = (g.t>-1.0e19) ? p->simtime - g.t : p->dt;
+    
+    if(update)
+    g.t = p->simtime;
+    
+    const double alpha = MIN(1.0, MAX(dtu,0.0)/p->X18);
+    
+    const double psi = atan2(R_(1,0),R_(0,0));
+    const double cp = cos(psi), sp = sin(psi);
+    
+    SLICELOOP4
+    if(foot(i,j)<0.5)
+    {
+        const double rx = p->XP[IP]-c_(0), ry = p->YP[JP]-c_(1);
+        const double xb =  cp*rx + sp*ry;
+        const double yb = -sp*rx + cp*ry;
+        const int bi = int(floor((xb - g.x0)/g.h + 0.5));
+        const int bj = int(floor((yb - g.y0)/g.h + 0.5));
+        
+        if(bi<0 || bj<0 || bi>=g.nx || bj>=g.ny)
+        continue;
+        
+        double &m1 = g.m1[bj*g.nx + bi];
+        double &m2 = g.m2[bj*g.nx + bi];
         
         if(update)
         {
@@ -477,4 +577,28 @@ void sixdof_obj_fnpf::forces_fnpf_set(lexer *p, ghostcell *pgc, fnpf_force_sum &
     if(computeA)
     cout<<"A11: "<<Aadd_(0,0)<<" A33: "<<Aadd_(2,2)<<" A55: "<<Aadd_(4,4)<<endl;
     }
+}
+
+void sixdof_obj_fnpf::added_mass_block_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc, double *zero, double **psi,
+                                            Eigen::Matrix<double,6,6> &A)
+{
+    // A_ij(ii,jj) = -rho int_{S_i} psi_jj N_ii dS: load on this body (rows) from the unit
+    // acceleration jj of another body (psi), with the hull sampling of forces_fnpf; the
+    // pressure part is evaluated with psi_0 = 0 and not used
+    fnpf_force_sum S;
+    forces_fnpf_zero(p,S);
+
+    forces_fnpf_sum(p,c,zero,psi,true,0.5*DSM,nullptr,S);
+
+    added_mass_from_sum(pgc,S,A);
+}
+
+void sixdof_obj_fnpf::added_mass_from_sum(ghostcell *pgc, fnpf_force_sum &S, Eigen::Matrix<double,6,6> &A)
+{
+    for(int m=0; m<36; ++m)
+    S.Am[m] = pgc->globalsum(S.Am[m]);
+
+    for(int ii=0; ii<6; ++ii)
+    for(int jj=0; jj<6; ++jj)
+    A(ii,jj) = S.Am[ii*6+jj];
 }

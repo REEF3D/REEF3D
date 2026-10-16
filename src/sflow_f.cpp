@@ -40,6 +40,7 @@ Author: Hans Bihs
 #include"sflow_turbulence.h"
 #include"6DOF_sflow.h"
 #include"sflow_amr.h"
+#include"lagoon_output.h"
 #include"regression_dump.h"
 #include"seastate_sflow.h"
 #include<iostream>
@@ -233,6 +234,9 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
     }
     
 	}
+
+	// the last outputs of the LAGOON store are counted (P 18)
+	lagoon_output::finish_all(p,pgc);
 
 	if(p->mpirank==0)
 	{

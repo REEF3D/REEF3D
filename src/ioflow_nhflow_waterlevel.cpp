@@ -30,16 +30,22 @@ void ioflow_f::fsfinflow_nhflow(lexer *p, fdm_nhf* d, ghostcell* pgc, slice &WL)
 {
     // -------------------------------------
      // fsf out
+    // mean surface over the wet outflow cells only: a dry cell holds eta = bed - wd + A 544,
+    // so an outflow edge that also crosses dry land (a river in a wider domain) would lift
+    // the mean by the height of the banks
     p->phiout=0.0;
     count=0;
     for(n=0;n<p->gcslout_count;n++)
     {
         i=p->gcslout[n][0];
         j=p->gcslout[n][1];
-        
+
+        if(p->wet[IJ]==1)
+        {
         p->phiout+=d->eta(i,j);
-        
+
         ++count;
+        }
     }
     
     p->phiout=pgc->globalsum(p->phiout);
@@ -52,6 +58,10 @@ void ioflow_f::fsfinflow_nhflow(lexer *p, fdm_nhf* d, ghostcell* pgc, slice &WL)
     
     // -------------------------------------
     // Find Hi
+    // mean surface over the wet inflow cells only (see fsf out): with dry cells on the inflow
+    // edge, Hi was lifted to the mean bank height and the ghost water level of the wet inflow
+    // cells, Hi - bed, became far too large.  Without a wet inflow cell the surface is taken
+    // at rest (eta 0).
     double eta_in;
     count=0;
     zval=0.0;
@@ -60,15 +70,17 @@ void ioflow_f::fsfinflow_nhflow(lexer *p, fdm_nhf* d, ghostcell* pgc, slice &WL)
         i=p->gcslin[n][0];
         j=p->gcslin[n][1];
 
+        if(p->wet[IJ]==1)
+        {
         zval+=d->eta(i,j);
         ++count;
-
+        }
     }
 
     count=pgc->globalisum(count);
     zval=pgc->globalsum(zval);
-    
-    eta_in=zval/double(count);
+
+    eta_in = count>0 ? zval/double(count) : 0.0;
     
     p->Hi = p->wd+eta_in;
     

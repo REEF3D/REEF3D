@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"bedload_direction_f.h"
+#include"sediment_curv.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
@@ -37,6 +38,13 @@ bedload_direction_f::~bedload_direction_f()
 
 void bedload_direction_f::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
 {
+    // curvilinear grid (G 50): sediment_curv.h
+    if(p->geo_curv==1)
+    {
+    start_curv(p,pgc,s);
+    return;
+    }
+
 	double cosa, sina;
     double uvel,vvel,u_abs;
     double bx0,by0;
@@ -73,6 +81,63 @@ void bedload_direction_f::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
         if(p->DFBED[IJm1]<0 && p->DFBED[IJp1]<0)
         by0 = 0.0;
 
+        s->qbe(i,j) = s->qbe(i,j)*(1.0 - MIN(1.0, beta*(cosa*bx0 + sina*by0)));
+	}
+    
+    pgc->gcsl_start4(p,s->qbe,1);
+    
+}
+
+// ---- curvilinear grid (G 50): the functions above with the geometry of sediment_curv.h
+
+void bedload_direction_f::start_curv(lexer* p, ghostcell* pgc, sediment_fdm *s)
+{
+	double cosa, sina;
+    double uvel,vvel,u_abs;
+    double bx0,by0;
+    
+	SEDSLICELOOP
+    {
+        if(p->geo_curv==1)
+        sediment_curv::cellvel(p,s,i,j,uvel,vvel);
+        else
+        {
+        uvel=0.5*(s->P(i,j)+s->P(i-1,j));
+        vvel=0.5*(s->Q(i,j)+s->Q(i,j-1));
+        }
+        
+         u_abs = sqrt(uvel*uvel + vvel*vvel);
+		cosa=fabs(u_abs)>1.0e-10?uvel/fabs(u_abs):0.0;
+		sina=fabs(u_abs)>1.0e-10?vvel/fabs(u_abs):0.0;
+        
+        // bed slope as in bedslope::slope_cds: one-sided next to cells without a bed (structures)
+        if(p->geo_curv==1)
+        sediment_curv::bedgrad(p,s->bedzh,i,j,1,bx0,by0);
+        else
+        {
+        bx0 = (s->bedzh(i+1,j)-s->bedzh(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
+        
+        if(p->DFBED[Im1J]<0)
+        bx0 = (s->bedzh(i+1,j)-s->bedzh(i,j))/(p->DXP[IP]);
+        
+        if(p->DFBED[Ip1J]<0)
+        bx0 = (s->bedzh(i,j)-s->bedzh(i-1,j))/(p->DXP[IM1]);
+        
+        if(p->DFBED[Im1J]<0 && p->DFBED[Ip1J]<0)
+        bx0 = 0.0;
+        
+        by0 = (s->bedzh(i,j+1)-s->bedzh(i,j-1))/(p->DYP[JP]+p->DYP[JM1]);
+        
+        if(p->DFBED[IJm1]<0)
+        by0 = (s->bedzh(i,j+1)-s->bedzh(i,j))/(p->DYP[JP]);
+        
+        if(p->DFBED[IJp1]<0)
+        by0 = (s->bedzh(i,j)-s->bedzh(i,j-1))/(p->DYP[JM1]);
+        
+        if(p->DFBED[IJm1]<0 && p->DFBED[IJp1]<0)
+        by0 = 0.0;
+        }
+        
         s->qbe(i,j) = s->qbe(i,j)*(1.0 - MIN(1.0, beta*(cosa*bx0 + sina*by0)));
 	}
     

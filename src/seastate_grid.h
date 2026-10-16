@@ -57,6 +57,13 @@ REEF3D::SEASTATE - spectral (frequency-direction) grid
   from the angle. wth[m] = dth[m]/dtheta, exactly 1 on the uniform grid,
   so that the integrals sum N wth and multiply by dtheta in both cases
 
+  compact computational sector (A 717, compact_sector(), Phase 12): on
+  uniform directions only the directions of the sector form the grid,
+  theta_m = theta0 + m dtheta from its first direction on (beyond 2 pi
+  where the sector passes 0), not periodic (prev/next give -1 beyond the
+  ends), faces and quadrants those of the full circle; costhl, sinthl:
+  the lower faces of every direction
+
 No lexer or MPI dependency, so the class is unit-testable stand-alone.
 --------------------------------------------------------------------*/
 
@@ -72,6 +79,27 @@ public:
     // the bin that holds direction th [rad]
     int direction_bin(double th) const;
 
+    // computational direction sector (A 717, as SWAN CGRID SECTOR): only the directions with centres in
+    // th1 .. th2 [rad] (counter-clockwise) are computed, the others hold no energy (act[m] = 0); false
+    // if the active directions of a quadrant are not contiguous (sector wider than 270 deg)
+    bool computational_sector(double th1, double th2);
+    int active() const;
+
+    // Phase 12: the computational sector (A 717) as a grid of its own directions only (uniform grids): the spectra hold
+    // only the computed directions; theta_m = theta0 + m dtheta, not periodic; false (grid unchanged except act) if the
+    // grid is not uniform or the sector holds all directions
+    bool compact_sector(double th1, double th2);
+
+    // Phase 15: a quadrant of a compact sector whose directions all lie on an axis (the end of a sector at 0, 90, 180 or
+    // 270 deg) joins the neighbouring quadrant that sweeps in the same direction along the axis and holds the next
+    // directions (no flux across the axis: the sweep order of the other component does not matter). A sector of 180 to
+    // 360 deg then has 2 sweeps instead of 3. Returns the number of directions moved
+    int merge_axis_quadrants();
+
+    // neighbour directions (-1: none, the end of a compact sector)
+    int prev(int m) const {return m>0 ? m-1 : (periodic ? ndir-1 : -1);}
+    int next(int m) const {return m<ndir-1 ? m+1 : (periodic ? 0 : -1);}
+
     bool valid() const {return error.empty();}
     const std::string &message() const {return error;}
 
@@ -83,12 +111,19 @@ public:
     std::vector<double> f, sig, dsig;           // size nsig
     std::vector<double> theta, costh, sinth;    // size ndir
     std::vector<double> costhf, sinthf;         // faces theta_m + dtheta/2, size ndir
-    std::vector<int> quad;                      // quadrant 0..3 of direction m: theta in [q pi/2, (q+1) pi/2)
+    std::vector<int> quad;                      // quadrant 0..3 of direction m: theta in [q pi/2, (q+1) pi/2) (Phase 15: axis
+                                                // directions of a compact sector may join the neighbouring quadrant)
     std::vector<double> dth, wth;               // bin widths, dth/dtheta (1 on the uniform grid)
+    std::vector<char> act;                      // 1: direction m is computed (A 717), size ndir
+    std::vector<double> costhl, sinthl;         // lower faces theta_m - dth/2 (the upper face of the previous direction)
     bool uniform = true;
+    bool periodic = true;                       // false: compact computational sector (A 717), the ends absorb
+    bool compact = false;
+    double theta0 = 0.0;                        // direction of bin 0 (compact sector), else 0
 
 private:
     void directions();
+    void lower_faces();
     std::string error;
 };
 

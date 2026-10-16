@@ -1,0 +1,21 @@
+{
+ "description": "SFLOW multi-block wetting and drying with refinement: dam break running up a slope across the interface of two blocks (the second turned by 90 deg), shoreline (G 22) and surface-jump (G 20) refinement, regrid every 4 steps, 2 ranks. The same solution as one block to round-off (p2tests/t7).",
+ "solver": "sflow",
+ "np": 2,
+ "steps": 60,
+ "files": [
+  "blocks.dat"
+ ],
+ "tags": [
+  "2d",
+  "sflow",
+  "curvilinear",
+  "multiblock",
+  "amr",
+  "wetdry",
+  "mpi"
+ ],
+ "covers": [
+  "wet-dry fills across a turned interface, shoreline tags of the blocks"
+ ]
+}

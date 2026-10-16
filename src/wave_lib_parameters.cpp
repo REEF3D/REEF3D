@@ -27,6 +27,11 @@ Author: Hans Bihs
 
 wave_lib_parameters::wave_lib_parameters(lexer *p, ghostcell *pgc) : pshift(p->B120*(PI/180.0)), order(5)
 {
+  // wave parameters of the regular-wave branches; irregular waves leave some of them unset,
+  // and they are copied to the lexer (p->wC, ...) and printed
+  wk=ww=wdt=wa=wH=wL=wf=wT=wL0=k0=S0=0.0;
+  wC=ubar=0.0;
+
 
   p->phiin=p->phimean;
 

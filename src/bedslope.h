@@ -41,6 +41,7 @@ public:
     virtual ~bedslope();
     
     void slope_cds(lexer*,ghostcell*,sediment_fdm*);
+    void slope_cds_curv(lexer *p, ghostcell *pgc, sediment_fdm *s);     // curvilinear grid (G 50)
     
 
 private:

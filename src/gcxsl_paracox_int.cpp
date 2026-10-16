@@ -89,6 +89,10 @@ void ghostcell::gcslparacox_int(lexer* p, sliceint& f,int gcv)
 
 void ghostcell::gcslparacoxV_int(lexer* p, int *f, int gcv)
 {
+    // MPI exchange off (patch kernels of the mesh refinement): the patch has no neighbour ranks
+    if(!do_comms)
+    return;
+
     //  FILL SEND
     for(q=0;q<p->gcslparaco1_count;++q)
     {

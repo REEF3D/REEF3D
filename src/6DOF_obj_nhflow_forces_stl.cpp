@@ -71,10 +71,10 @@ void sixdof_obj_nhflow::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, sli
     // -> buoyancy and Froude-Krylov load on the skeleton
     const double pfac = (p->X16==1) ? (1.0 - p->X16_n) : 1.0;
     Xe_p=Ye_p=Ze_p=Xe_v=Ye_v=Ze_v=0.0;
-    double dMhs=0.0,dMhs0=0.0,dMnh=0.0,dMv=0.0;
     
     // Set new time
-    curr_time = p->simtime;
+    // the loads of the last stage belong to the end of the step (simtime is advanced after it)
+    curr_time = finalize ? p->simtime + p->dt : p->simtime;
     
     for(int n=0; n<tricount; ++n)
     {     
@@ -98,6 +98,13 @@ void sixdof_obj_nhflow::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, sli
             if(!amr_owner_nhflow(xc,yc))
             continue;
         }
+        else if(p->geo_curv==1)
+        {
+            // curvilinear grid (G 50): the rank of the cell that holds the centroid (grid_locate.cpp)
+            int ci,cj;
+            if(!p->geo_cell(xc,yc,ci,cj))
+            continue;
+        }
         else
         {
         if(!(xc >= p->originx && xc < p->endx))
@@ -118,8 +125,11 @@ void sixdof_obj_nhflow::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, sli
             pl = g.p;
             dl = g.d;
             WLl = g.WL;
-            dsm = DSM*pl->DXM/p->DXM;
+            dsm = (g.hr>0.0) ? DSM*g.hr : DSM*pl->DXM/p->DXM;
         }
+        lexer *plc = pl;
+        fdm_nhf *dlc = dl;
+        slice *WLc = WLl;
         
         // Normal vector (pointing outwards)
         double nx = (vy[1] - vy[0])*(vz[2] - vz[0]) - (vy[2] - vy[0])*(vz[1] - vz[0]);
@@ -194,6 +204,43 @@ void sixdof_obj_nhflow::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, sli
             const double my[3] = {0.5*(ay + by), 0.5*(by + cy), 0.5*(cy + ay)};
             const double mz[3] = {0.5*(az + bz), 0.5*(bz + cz), 0.5*(cz + az)};
             
+            // multi-block grid: every quadrature point on the grid of this rank that holds it (amr_point_nhflow)
+            if(amr_point_grid)
+            {
+            for(int q=0; q<3; ++q)
+            {
+                const double sx = mx[q] + p->X42*nx*dsm, sy = my[q] + p->X42*ny*dsm;
+                amr_point_nhflow(p,sx,sy,plc,dlc,WLc,pl,dl,WLl);
+                
+                const double pval = pl->ccipol7V(dl->P, *WLl, dl->bed, sx, sy, mz[q] + p->X42*nz*dsm);
+                const double hsp = MAX(0.0, (p->wd + pl->ccslipol4(dl->eta,mx[q],my[q]) - mz[q])*p->W1*fabs(p->W22));
+                
+                const double w  = A_sub/3.0;
+                const double fx = -pfac*(pval + hsp)*w*nx;
+                const double fy = -pfac*(pval + hsp)*w*ny;
+                const double fz = -pfac*(pval + hsp)*w*nz;
+                
+                const double rx = mx[q] - c_(0);
+                const double ry = my[q] - c_(1);
+                const double rz = mz[q] - c_(2);
+                
+                Xe += fx;
+                Ye += fy;
+                Ze += fz;
+                Ke += ry*fz - rz*fy;
+                Me += rz*fx - rx*fz;
+                Ne += rx*fy - ry*fx;
+                
+                Xe_p += fx;
+                Ye_p += fy;
+                Ze_p += fz;
+            }
+            pl = plc;
+            dl = dlc;
+            WLl = WLc;
+            }
+            
+            else
             for(int q=0; q<3; ++q)
             {
                 // non-hydrostatic pressure, optionally sampled X42 mean cell sizes off the wall
@@ -222,12 +269,6 @@ void sixdof_obj_nhflow::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, sli
                 Xe_p += fx;
                 Ye_p += fy;
                 Ze_p += fz;
-                {
-                const double hs0 = MAX(0.0, (p->wd - mz[q])*p->W1*fabs(p->W22));
-                dMhs  += rz*(-hsp*w*nx)  - rx*(-hsp*w*nz);
-                dMhs0 += rz*(-hs0*w*nx)  - rx*(-hs0*w*nz);
-                dMnh  += rz*(-pval*w*nx) - rx*(-pval*w*nz);
-                }
             }
             
             A += A_sub;
@@ -248,7 +289,6 @@ void sixdof_obj_nhflow::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, sli
             Ze += Fv_z;
             Ke += (gy - c_(1))*Fv_z - (gz - c_(2))*Fv_y;
             Me += (gz - c_(2))*Fv_x - (gx - c_(0))*Fv_z;
-            dMv += (gz - c_(2))*Fv_x - (gx - c_(0))*Fv_z;
             Ne += (gx - c_(0))*Fv_y - (gy - c_(1))*Fv_x;
             
             Xe_v += Fv_x;
@@ -258,9 +298,6 @@ void sixdof_obj_nhflow::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, sli
 	}
     
 	// Communication with other processors
-    dMhs=pgc->globalsum(dMhs); dMhs0=pgc->globalsum(dMhs0); dMnh=pgc->globalsum(dMnh); dMv=pgc->globalsum(dMv);
-    if(p->mpirank==0)
-    cout<<"DIAG "<<p->simtime<<" "<<dMhs<<" "<<dMhs0<<" "<<dMnh<<" "<<dMv<<" "<<p->ccslipol4(d->eta,c_(0),c_(1))<<" "<<p->ccslipol4(d->eta,c_(0)+0.35,c_(1))<<" "<<p->ccslipol4(d->eta,c_(0)-0.35,c_(1))<<" "<<p->ccslipol4(d->eta,c_(0)+0.15,c_(1))<<" "<<p->ccslipol4(d->eta,c_(0)-0.15,c_(1))<<" "<<finalize<<endl;
     A = pgc->globalsum(A);
     
 	Xe = pgc->globalsum(Xe);
@@ -311,7 +348,7 @@ void sixdof_obj_nhflow::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, sli
 	Ye += p->W21*Mass_fb;
 	Ze += p->W22*Mass_fb;
     
-    if(p->mpirank==0)
+    if(p->mpirank==0 && finalize==1 && p->count%p->P12==0)
     {
     cout<<"Mass_fb: "<<Mass_fb<<" G_fb: "<<p->W22*Mass_fb<<endl;
     cout<<"Fx: "<<Fx<<" Fy: "<<Fy<<" Fz: "<<Fz<<endl;
@@ -325,4 +362,25 @@ void sixdof_obj_nhflow::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, sli
         printforce<<curr_time<<" \t "<<Xe<<" \t "<<Ye<<" \t "<<Ze<<" \t "<<Ke
         <<" \t "<<Me<<" \t "<<Ne<<" \t "<<Xe_p<<" \t "<<Ye_p<<" \t "<<Ze_p<<" \t "<<Xe_v<<" \t "<<Ye_v<<" \t "<<Ze_v<<endl;   
     }
+}
+
+// multi-block grid (amr_point_grid): the grid of this rank that holds the quadrature point (x,y): a patch or block piece,
+// level 0 (the native grid with its ring) where it holds the point, else the grid of the centroid (plc, dlc, WLc)
+void sixdof_obj_nhflow::amr_point_nhflow(lexer *p, double x, double y, lexer *plc, fdm_nhf *dlc, slice *WLc,
+                                         lexer *&pl, fdm_nhf *&dl, slice *&WLl)
+{
+    nhflow_grid g = amr_grid_nhflow(x,y);
+    int a,b;
+    
+    if(g.p!=p || plc==p || p->geo_cell(x,y,a,b))
+    {
+        pl = g.p;
+        dl = g.d;
+        WLl = g.WL;
+        return;
+    }
+    
+    pl = plc;
+    dl = dlc;
+    WLl = WLc;
 }

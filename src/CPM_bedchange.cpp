@@ -49,7 +49,7 @@ void CPM::topo_iso(lexer *p, ghostcell *pgc, field &f)
     
     BASELOOP
     {
-        h = p->j_dir==1 ? (1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]) : 0.5*(p->DXN[IP]+p->DZN[KP]);
+        h = p->DZN[KP];
         
         Tm = wallcell(p,i-1,j,k) ? Ts(i,j,k) : Ts(i-1,j,k);
         Tp = wallcell(p,i+1,j,k) ? Ts(i,j,k) : Ts(i+1,j,k);
@@ -183,6 +183,13 @@ void CPM::topo_column(lexer *p, fdm *a, ghostcell *pgc)
             
             if(oc[k] >= theta_bed*A*p->DZN[KP])
             ktop=k;
+            
+            // the bed ends at the first almost empty cell above it: single parcels resting higher up in
+            // the flow (on a structure, in a recirculation, at rest for a moment in the wake) are no bed
+            // level; on fine grids two slow parcels fill a cell to theta_bed (a pipeline wake on 2.5 mm
+            // cells gave a bed 7 cm above the real one)
+            else if(ktop>=0 && oc[k] < 0.25*theta_bed*A*p->DZN[KP])
+            break;
         }
 
         // the cells below the highest cell of the bed count as full (dilated or loose cells inside
@@ -211,9 +218,73 @@ void CPM::topo_column(lexer *p, fdm *a, ghostcell *pgc)
         if(zbf_ini==0)
         zbf(i,j) = z;
         
-        zbf(i,j) += MIN(1.0, p->dt/MAX(p->Q63,1.0e-12))*(z - zbf(i,j));
+        // Q 63 is a time of the bed (morphological time, Q 65 t): with the flow time the level seen by the fluid
+        // lagged the parcels by Q 65 Q 63 of bed time (pipeline, Q 65 50, Q 63 2: 100 s; the fluid bed 1 cm above
+        // the parcels under the pipe and up to 1 cm below them on the mound, where hundreds of deposited grains
+        // stood in the resolved flow and were carried into the wake)
+        const double mfz = p->Q65>0.0 ? p->Q65 : 1.0;
+        
+        zbf(i,j) += MIN(1.0, mfz*p->dt/MAX(p->Q63,1.0e-12))*(z - zbf(i,j));
         
         zb[(i+1)*nj + j+1] = zbf(i,j);
+    }
+    
+    // Q 72: the level seen by the fluid is smoothed over the neighbouring columns (1-2-1 filter, Q 72 passes).
+    // A fluid cell is bed or fluid by the sign of topo at its centre: a single column whose level passes the
+    // centre by a fraction of a cell (parcel noise) blocks the whole cell, and the one-cell bump stalls the
+    // near-bed flow behind it (periodic channel, bed level at a cell centre: bed shear stress down by 40 %
+    // for 2 s, w = 0.13 m/s at the bump; with Q 72 2 no cell switched and no stall)
+    if(p->Q72>0)
+    {
+        for(i=0;i<p->knox;++i)
+        for(j=0;j<p->knoy;++j)
+        zbt(i,j) = zbf(i,j);
+        
+        std::vector<double> tmp(size_t(p->knox)*p->knoy);
+        
+        for(int qn=0;qn<p->Q72;++qn)
+        {
+            pgc->gcsl_start4(p,zbt,1);
+            
+            for(i=0;i<p->knox;++i)
+            for(j=0;j<p->knoy;++j)
+            {
+                // the domain sides (no neighbour subdomain, not periodic) mirror the column: the ghost values of
+                // the slice are no bed level there (an inflow boundary pulled the first column down by 1/4 of
+                // the bed height per pass)
+                const double c  = zbt(i,j);
+                const double xm = (i==0 && p->nb1<0 && perx!=1) ? c : zbt(i-1,j);
+                const double xp = (i==p->knox-1 && p->nb4<0 && perx!=1) ? c : zbt(i+1,j);
+                
+                double v = 0.25*xm + 0.5*c + 0.25*xp;
+                
+                if(p->j_dir==1)
+                {
+                    const double ym = (j==0 && p->nb3<0 && pery!=1) ? c : zbt(i,j-1);
+                    const double yp = (j==p->knoy-1 && p->nb2<0 && pery!=1) ? c : zbt(i,j+1);
+                    
+                    v = 0.5*(v + 0.25*ym + 0.5*c + 0.25*yp);
+                }
+                
+                tmp[size_t(i)*p->knoy + j] = v;
+            }
+            
+            for(i=0;i<p->knox;++i)
+            for(j=0;j<p->knoy;++j)
+            zbt(i,j) = tmp[size_t(i)*p->knoy + j];
+        }
+        
+        // the filter removes the noise, not the bed forms: the level of a column moves by at most half a cell
+        // (the edge of the initial hole under a pipeline, a step of several cells, was smeared over the
+        // neighbouring columns, opened cells next to the pipe and made the flow unstable)
+        for(i=0;i<p->knox;++i)
+        for(j=0;j<p->knoy;++j)
+        {
+            const int kc = MAX(0, MIN(nk-1, p->posc_k(zbf(i,j))));
+            const double dmax = 0.5*p->DZN[kc+marge];
+            
+            zb[(i+1)*nj + j+1] = zbf(i,j) + MAX(-dmax, MIN(dmax, zbt(i,j) - zbf(i,j)));
+        }
     }
     
     zbf_ini=1;
@@ -224,7 +295,7 @@ void CPM::topo_column(lexer *p, fdm *a, ghostcell *pgc)
     
     BASELOOP
     {
-        double h = p->j_dir==1 ? (1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]) : 0.5*(p->DXN[IP]+p->DZN[KP]);
+        double h = p->DZN[KP];
         double val = p->ZP[KP] - zb[(i+1)*nj + j+1];
 
         a->topo(i,j,k) = MAX(-3.0*h, MIN(3.0*h, val));

@@ -29,6 +29,7 @@ Author: Hans Bihs
 #include"solver.h"
 #include"slice.h"
 #include"vrans.h"
+#include"nhflow_curv.h"
 
 void nhflow_idiff::diff_w(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, solver *psolv, double *WHdiff, double *WHin, double *UH, double *VH, double *WH, slice &WL, double alpha)
 {
@@ -80,6 +81,35 @@ void nhflow_idiff::diff_w(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, s
             sigxyz2_t = pow(p->sigx[FIJKp1],2.0) + pow(p->sigy[FIJKp1],2.0) + pow(p->sigz[IJ],2.0) + pow(p->sigz[IJ],2.0);
             
             
+            // curvilinear grid (G 50): compact horizontal rows, the rest explicit (nhflow_curv.h)
+            if(p->geo_curv==1)
+            {
+            double cIp,cIm,cJp,cJm;
+            nhflow_curv::lapcoef(p,i,j,cIp,cIm,cJp,cJm);
+            
+            d->M.p[n]  =  visc_IP1*cIp + visc_IM1*cIm + visc_JP1*cJp + visc_JM1*cJm
+                        
+                        + (visc_KP1*sigxyz2_t)/(p->DZP[KP]*p->DZN[KP])
+                        + (visc_KM1*sigxyz2_b)/(p->DZP[KM1]*p->DZN[KP])
+                        
+                        + CPORNH/(alpha*p->dt);
+            
+            d->M.n[n] = -visc_IP1*cIp;
+            d->M.s[n] = -visc_IM1*cIm;
+            d->M.w[n] = -visc_JP1*cJp;
+            d->M.e[n] = -visc_JM1*cJm;
+            
+            d->M.t[n] = -(visc_KP1*sigxyz2_t)/(p->DZP[KP]*p->DZN[KP])
+                        - visc_KP1*p->sigxx[FIJK]/((p->DZP[KP]+p->DZP[KM1]));
+                        
+            d->M.b[n] = -(visc_KM1*sigxyz2_b)/(p->DZP[KM1]*p->DZN[KP])
+                        + visc_KM1*p->sigxx[FIJK]/((p->DZP[KP]+p->DZP[KM1]));
+            
+            d->rhsvec.V[n] = (CPORNH*WHin[IJK])/(alpha*p->dt) + visc_IP*nhflow_curv::diff_explicit(p,3,i,j,k,UH,VH,WH);
+            }
+            
+            if(p->geo_curv==0)
+            {
             d->M.p[n]  =  visc_IP1/(p->DXP[IP]*p->DXN[IP])
                         + visc_IM1/(p->DXP[IM1]*p->DXN[IP])
                         
@@ -115,6 +145,7 @@ void nhflow_idiff::diff_w(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, s
                         
                             + visc_IP*2.0*0.5*(p->sigy[FIJK]+p->sigy[FIJKp1])*(WH[IJp1Kp1] - WH[IJm1Kp1] - WH[IJp1Km1] + WH[IJm1Km1])
                             /((p->DYP[JP]+p->DYP[JM1])*(p->DZP[KP]+p->DZP[KM1]))*p->y_dir;
+            }
         }
         
         if(p->wet[IJ]==0 || p->flag4[IJK]<0 || p->DF[IJK]<0)

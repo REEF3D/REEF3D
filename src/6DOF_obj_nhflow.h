@@ -24,6 +24,7 @@ Authors: Hans Bihs, Tobias Martin
 #define SIXDOF_OBJ_NHFLOW_H_
 
 #include"6DOF_obj_2D.h"
+#include<array>
 
 class nhflow_reinidisc_fsf;
 
@@ -54,13 +55,17 @@ public:
     void initialize_wavemaker(lexer*,fdm_nhf*,ghostcell*,slice&,slice&);
     void hydrodynamic_forces_nhflow(lexer*, fdm_nhf*, ghostcell*,slice&,bool);
     void update_position_nhflow(lexer*, fdm_nhf*, ghostcell*,slice&, bool);
-    void update_wavemaker_nhflow(lexer*, fdm_nhf*, ghostcell*,slice&, bool);
+    void update_wavemaker_nhflow(lexer*, fdm_nhf*, ghostcell*,slice&, int, bool);
+    void ini_band(lexer*, ghostcell*);
     void solve_eqmotion_nhflow(lexer*,fdm_nhf*,ghostcell*,int,bool);
     void solve_eqmotion_oneway_nhflow(lexer*,ghostcell*,int,bool);
     void update_forcing_nhflow(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*, double*, double*, double*, slice&, slice&, int);
     void update_forcing_nhflow_wavemaker(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*, double*, double*, double*, slice&, slice&, int);
     double Hsolidface_nhflow(lexer*, fdm_nhf*, int,int,int);
     double Hpsi_nhflow(lexer*, fdm_nhf*);
+    void fbnormal_curv(lexer*, fdm_nhf*, double&, double&);   // curvilinear grid: horizontal part of -grad(FB)
+    void forcing_kernel_nhflow(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*, double*, double*, double*, slice&, int, bool);
+    void target_velocity(lexer*, bool, double&, double&, double&);
     void membrane_forcing_nhflow(lexer*,fdm_nhf*,ghostcell*,double,double*,double*,double*,slice&);
     void membrane_reaction_nhflow(lexer*,fdm_nhf*,ghostcell*,double,slice&,bool);
     bool membrane_iterated();
@@ -77,11 +82,27 @@ public:
     
     // actuator disks of the load models (body-force propellers): momentum source of the
     // component comp (0 x, 1 y, 2 z) added to the right-hand side F (NHFLOW form, times WL)
-    void actuator_source(lexer*, fdm_nhf*, ghostcell*, slice&, int, double*);
+    // patch: the source on an NHFLOW AMR patch (nhflow_amr_6dof). A disk that lies completely in
+    // the computed cells of the patch is distributed with the sums of the patch (exactly T and Q on
+    // the fine grid); a disk across the patch boundary uses the sums of the last level-0 call
+    void actuator_source(lexer*, fdm_nhf*, ghostcell*, slice&, int, double*, bool patch=false);
     bool actuator_warned = false;
+    bool actuator_warned_patch = false;
+    vector<std::array<sixdof_actuator_disk::sums,3>> actuator_S0;   // level-0 sums per disk
     double nhflow_dsm() const {return DSM;}
-    struct nhflow_grid { lexer *p; fdm_nhf *d; slice *WL; };
+    double nhflow_nb() const {return NB;}
+    
+    // X 13: signed distance of the top cell centre of every column to the hull (negative inside,
+    // |phi| <= band), from the current trimesh on the grid of p (level 0 or a patch)
+    void top_phi_nhflow(lexer*, fdm_nhf*, slice&, double, slice&);
+    // hr: the spacing of the grid relative to level 0 for the band of the loads (0: DXM of the grid / DXM of level 0;
+    // the blocks of a multi-block grid have their own logical DXM)
+    struct nhflow_grid { lexer *p; fdm_nhf *d; slice *WL; double hr = 0.0; };
     std::function<nhflow_grid(double,double)> amr_grid_nhflow;
+    // multi-block grid: every quadrature point of a triangle on the grid of this rank that holds it (a hull triangle
+    // reaches across the faces of the blocks), the grid of the centroid where none does
+    static inline bool amr_point_grid = false;
+    void amr_point_nhflow(lexer*, double, double, lexer*, fdm_nhf*, slice*, lexer*&, fdm_nhf*&, slice*&);
     // mesh refinement with placed patches (G 40 1): this rank takes the triangle with the centroid
     // (x,y) (it holds the finest grid there), instead of the level-0 subdomain test
     std::function<bool(double,double)> amr_owner_nhflow;

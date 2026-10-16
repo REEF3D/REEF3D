@@ -132,6 +132,24 @@ fem_coupling::fem_coupling(lexer *p, ghostcell *pgc) : surf_version(-1), dxmin(0
 #endif
     fs.use_threads(nthr);
 
+    // distribution of the solid over the ranks (fem.dat 'distribute', default auto)
+    struct comm_mpi : public fem_comm
+    {
+        MPI_Comm c; int n, r;
+        explicit comm_mpi(MPI_Comm cc) : c(cc) {MPI_Comm_size(c,&n); MPI_Comm_rank(c,&r);}
+        int size() const override {return n;}
+        int rank() const override {return r;}
+        void allgatherv(const void* send,int nbytes,void* recv,const int* counts,const int* displs) override
+        {MPI_Allgatherv(send,nbytes,MPI_BYTE,recv,counts,displs,MPI_BYTE,c);}
+        void allgather_int(int v,int* all) override
+        {MPI_Allgather(&v,1,MPI_INT,all,1,MPI_INT,c);}
+    };
+    if(p->mpi_size>1 && fs.distribute_requested()!=0)
+    {
+        dcomm = new comm_mpi(pgc->mpi_comm);
+        fs.set_comm(dcomm);
+    }
+
     force_scale = (p->j_dir==0) ? 1.0/fs.lattice_h(1) : 1.0;
     outdir = "./REEF3D_FEM";
 
@@ -484,6 +502,8 @@ void fem_coupling::write_summary(lexer *p)
     else
     f<<"first element failure:   none\n";
     f<<"failed mass:             "<<100.0*ef<<" %,  debris particles "<<fs.debris().size()<<"\n";
+    if(fs.element_type()==2 && fs.n_full_elements()>0)
+    f<<"2x2x2 integration:       "<<fs.n_full_elements()<<" of "<<fs.n_deformable()<<" intact deformable elements (adaptive: near cracking or yield)\n";
     }
 
     // rigid bodies: floating and drifting debris
@@ -525,10 +545,16 @@ void fem_coupling::write_summary(lexer *p)
             f<<"\n";
         }
     }
+    if(fs.coupling().strong==1 && sc_steps>0)
+    f<<"strong coupling:         "<<sc_steps<<" fluid steps repeated until the rigid bodies converged, "
+     <<double(sc_passes)/double(sc_steps)<<" passes on average"
+     <<(sc_unconv>0 ? ", "+std::to_string(sc_unconv)+" not converged within strong_maxit" : std::string())<<"\n";
 }
 
 fem_coupling::~fem_coupling()
 {
+    delete sc;
+    delete dcomm;
 }
 
 void fem_coupling::ini_points(lexer *p, ghostcell *pgc)

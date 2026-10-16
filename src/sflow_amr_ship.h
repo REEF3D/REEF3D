@@ -66,6 +66,7 @@ public:
     void jsource2D(lexer*,fdm2D*,ghostcell*) override final;
 
     double Hsolid(lexer*, slice&);
+    static double cellwidth(lexer*, int, int);
 
     slice4 press, draft;
 

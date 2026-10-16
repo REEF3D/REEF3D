@@ -39,6 +39,9 @@ fdm_nhf::fdm_nhf(lexer *p) :  eta(p),etaloc(p),
                               ETAs(p),ETAn(p),ETAe(p),ETAw(p),
                               Ds(p),Dn(p),De(p),Dw(p),dfx(p),dfy(p)
 {    
+    // largest forcing terms (reset by nhflow_timestep; AMR patch grids start without one)
+    maxF=maxG=maxH=0.0;
+
     p->Darray(p->sig, p->imax*p->jmax*(p->kmax+2));
     p->Darray(p->sigx,p->imax*p->jmax*(p->kmax+2));
     p->Darray(p->sigy,p->imax*p->jmax*(p->kmax+2));

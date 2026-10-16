@@ -1,0 +1,23 @@
+{
+ "base": "cfd_2d_nwt_porous_komega",
+ "np": 1,
+ "steps": 100,
+ "ctrl_add": [
+  "G 1 1",
+  "G 7 1",
+  "G 15 4.2 11.8 0.0 1.0 0.3 0.75"
+ ],
+ "description": "k-omega in the wave tank with the porous box (B 270, x 5-6 m, full depth), the band z 0.3-0.75 refined with subcycling: the porous structure on the patch, the patch edge across it (the porosity factors of the faces at the patch edge).",
+ "tags": [
+  "quick",
+  "2d",
+  "waves",
+  "turbulence",
+  "vrans",
+  "amr"
+ ],
+ "covers": [
+  "vrans_f::initialize_patch, the resistance and the porosity factors on the patch",
+  "cfd_amr::pr_weights, pr_predict, pr_level: CPOR n at the faces of the patch edges"
+ ]
+}

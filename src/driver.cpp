@@ -32,6 +32,7 @@ Author: Hans Bihs
 #include"patchBC.h"
 #include"runlog.h"
 #include"seastate_f.h"
+#include"cfd_amr.h"
 
 driver::driver(int& argc, char **argv)
 {
@@ -41,7 +42,7 @@ driver::driver(int& argc, char **argv)
 	if(p->mpirank==0)
     {
     cout<<endl<<"REEF3D (c) 2008-2026 Hans Bihs"<<endl;
-    sprintf(version,"v_261009");
+    sprintf(version,"v_261015");
     cout<<endl<<":: Open-Source Hydrodynamics" <<endl;
     cout<<endl<<version<<endl;
     cout<<endl<<"github branch: "<<BRANCH<<endl;
@@ -238,6 +239,14 @@ void driver::cfd_driver()
     logic_cfd();
 
     driver_ini_cfd();
+
+    // mesh refinement (G 1 > 0): patches from the boxes G 15, initialised from level 0
+    if(cfd_amr::scope(p,pgc))
+    {
+        pcfdamr = new cfd_amr(p,a,pgc,pmom,ppress,ppois,pflow,pvrans,pfsi,pini,pturb,p6dof);
+        pcfdamr->ini(p,a,pgc);
+        pprint->amr_probes(pcfdamr);
+    }
 
     preg = new regression_dump(p);
     preg->cfd_ini(p,a,pgc,pturb,pconc);

@@ -36,6 +36,7 @@ public:
     virtual ~bedload_EH();
 
 	void start(lexer*, ghostcell*, sediment_fdm*) override final;
+    void start_curv(lexer* p, ghostcell* pgc, sediment_fdm *s);     // curvilinear grid (G 50)
 
 private:
     double rhosed,rhowat;

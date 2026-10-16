@@ -1,0 +1,17 @@
+{
+ "np": 2,
+ "steps": 16,
+ "description": "Adaptive CFD mesh refinement in 3D: dam break, the patches in the interface band (G 24 1, tiles G 4 2), regrid every 2 steps (G 2 2, G 5 0, G 3 0), 2 ranks.",
+ "tags": [
+  "quick",
+  "3d",
+  "dambreak",
+  "levelset",
+  "amr",
+  "adaptive",
+  "mpi"
+ ],
+ "covers": [
+  "regrid in 3D on two ranks"
+ ]
+}

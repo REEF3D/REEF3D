@@ -26,6 +26,8 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"fnpf_cds2.h"
 #include"fnpf_cds4.h"
+#include"nhflow_curv.h"
+#include"sflow_curv.h"
 
 #define WLVL (fabs(WL(i,j))>p->A544?WL(i,j):p->A544)
 
@@ -53,9 +55,41 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
     
     pgc->gcsl_start4(p,df,1);
     
+    // curvilinear grid (G 50): gradients by the chain rule with the cell centres, the second
+    // derivatives only enter as Laplacians (Exx + Eyy, Bxx + Byy): the compact Laplacian in Exx, Bxx
+    if(p->geo_curv==1)
+    SLICELOOP4
+    {
+    double fx,fy;
+    
+    // A 524 1 central, 2 limited (nhflow_gradient::sx), 3 limited on ef
+    if(p->A524==1)
+    sflow_curv::grad(p,d->eta,i,j,fx,fy);
+    
+    if(p->A524==2)
+    nhflow_curv::grad_lim(p,d->eta,i,j,fx,fy);
+    
+    if(p->A524==3)
+    nhflow_curv::grad_lim(p,ef,i,j,fx,fy);
+    
+    d->Ex(i,j) = fx;
+    d->Ey(i,j) = fy;
+    d->Exx(i,j) = nhflow_curv::lap(p,ef,i,j);
+    d->Eyy(i,j) = 0.0;
+    
+    if(p->A524==1)
+    sflow_curv::grad(p,d->depth,i,j,fx,fy);
+    else
+    nhflow_curv::grad_lim(p,d->depth,i,j,fx,fy);
+    d->Bx(i,j) = fx;
+    d->By(i,j) = fy;
+    d->Bxx(i,j) = nhflow_curv::lap(p,df,i,j);
+    d->Byy(i,j) = 0.0;
+    }
+    
     // calculate: Ex,Ey,Exx,Eyy
     // 3D
-    if(p->j_dir==1)
+    if(p->j_dir==1 && p->geo_curv==0)
     SLICELOOP4
     {
     if(p->A524<=2)
@@ -99,7 +133,7 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
     
     // calculate: Bx,By,Bxx,Byy
     // 3D
-    if(p->j_dir==1)
+    if(p->j_dir==1 && p->geo_curv==0)
     SLICELOOP4
     {
     d->Bx(i,j) = sx(d->depth);

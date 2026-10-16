@@ -74,6 +74,30 @@ void geo_raycast::column_hits(lexer *p, double **tri_x, double **tri_y, double *
         const double txmax = MAX(x0,MAX(x1,x2));
         const double tymin = MIN(y0,MIN(y1,y2));
         const double tymax = MAX(y0,MAX(y1,y2));
+
+        // curvilinear grid (G 50): the columns whose physical centre lies under the triangle
+        if(p->geo_curv==1)
+        {
+            vector<int> cand;
+            p->geo_cells(txmin-ex, txmax-ex, tymin-ey, tymax-ey, cand);
+
+            for(size_t c=0; c<cand.size(); c+=2)
+            {
+                i = cand[c];
+                j = cand[c+1];
+                const double xr = p->XC2D[IJ] + ex, yr = p->YC2D[IJ] + ey;
+
+                const double l0 = ((y1-y2)*(xr-x2) + (x2-x1)*(yr-y2))/det;
+                const double l1 = ((y2-y0)*(xr-x2) + (x0-x2)*(yr-y2))/det;
+                const double l2 = 1.0 - l0 - l1;
+
+                if(l0<0.0 || l1<0.0 || l2<0.0)
+                continue;
+
+                hits[i*ny+j].push_back(l0*z0 + l1*z1 + l2*z2);
+            }
+            continue;
+        }
         
         ILOOP
         {

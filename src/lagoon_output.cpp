@@ -60,21 +60,12 @@ void log_stored(lexer *p, const std::string &output, const std::string &group, c
                     path.c_str(), group.c_str(), pieces);
 }
 
-// the run id in a store's root metadata, or "" if there is none
-std::string stored_run(const std::string &path)
+// the run log's run record for a store's root, or "" without a run log
+std::string run_record(lexer *p)
 {
-    std::ifstream in((path + "/zarr.json").c_str());
-    if(!in)
+    if(!p->plog)
         return "";
-    std::stringstream text;
-    text << in.rdbuf();
-    const std::string s = text.str();
-    const std::string key = "\"run\": \"";
-    const size_t at = s.find(key, s.find("\"reef3d_run\""));
-    if(at==std::string::npos)
-        return "earlier";
-    const size_t end = s.find('"', at + key.size());
-    return s.substr(at + key.size(), end - at - key.size());
+    return "{\"type\": \"run\", \"run\": " + lagoon_store::json_string(p->plog->id()) + "}";
 }
 
 double seconds_since(std::chrono::steady_clock::time_point start)
@@ -109,6 +100,24 @@ void grid_lines(lexer *p, ghostcell *pgc, std::vector<double> &x, std::vector<do
         y[p->origin_j + j + 1] = p->YN[JP1];
     pgc->globalmax(x.data(), gnx);
     pgc->globalmax(y.data(), gny);
+}
+
+// a curvilinear grid (G 50): the x and y of every grid point, x fastest, as the VTU
+// and VTP points have them (lexer::curv_node: every rank has the global nodes); false
+// for a rectilinear grid
+bool curvilinear_nodes(lexer *p, std::vector<double> &xc, std::vector<double> &yc)
+{
+    if(p->geo_curv!=1)
+        return false;
+    const int gnx = p->gknox + 1;
+    const int gny = p->gknoy + 1;
+    xc.assign(size_t(gnx)*gny, 0.0);
+    yc.assign(size_t(gnx)*gny, 0.0);
+    double z;
+    for(int L=0; L<gny; ++L)
+        for(int K=0; K<gnx; ++K)
+            p->curv_node(K, L, xc[size_t(L)*gnx + K], yc[size_t(L)*gnx + K], z);
+    return true;
 }
 }
 
@@ -145,20 +154,7 @@ lagoon_output::lagoon_output(lexer *p, ghostcell *pgc, const char *solver_)
 {
     // a store holds one run: the store of an earlier run in this folder is moved aside
     if(p->mpirank==0)
-    {
-        const std::string path = store_path(solver_);
-        struct stat info;
-        if(stat(path.c_str(), &info)==0)
-        {
-            const std::string aside = std::string("./REEF3D_") + solver_ + "-" + stored_run(path) + ".lagoon-earlier";
-            if(std::rename(path.c_str(), aside.c_str())==0)
-                std::cout<<"LAGOON: the store of the earlier run is now "<<aside<<std::endl;
-        }
-        std::string run;
-        if(p->plog)
-            run = "{\"type\": \"run\", \"run\": " + lagoon_store::json_string(p->plog->id()) + "}";
-        store.create_root(solver, run);
-    }
+        store.begin_run(solver, run_record(p));
     timing.threads = lagoon_timing::compress_threads(pgc);
     store.set_threads(timing.threads);
     all().push_back(this);
@@ -214,8 +210,13 @@ bool lagoon_output::start(lexer *p, ghostcell *pgc, const std::vector<lagoon_sto
     }
 
     if(p->mpirank==0)
+    {
+        std::vector<double> xc, yc;
+        const bool curvilinear = curvilinear_nodes(p, xc, yc);
         store.create_output("volume", cartesian ? "cartesian" : "sigma", x, y, levels, fields,
-                            p->M10>0 ? p->M10 : 1, std::string("REEF3D_") + solver + "_VTU");
+                            p->M10>0 ? p->M10 : 1, std::string("REEF3D_") + solver + "_VTU",
+                            curvilinear ? &xc : nullptr, curvilinear ? &yc : nullptr);
+    }
     store.create_block("volume", p->mpirank, p->origin_i, p->origin_j, nx, ny, nz, fields, p->mpirank,
                        cartesian, cartesian ? p->origin_k : 0);
     MPI_Barrier(pgc->mpi_comm);
@@ -402,15 +403,11 @@ bool lagoon_surface::start(lexer *p, ghostcell *pgc, const std::vector<lagoon_st
     grid_lines(p, pgc, x, y);
     if(p->mpirank==0)
     {
-        struct stat info;
-        if(stat((store_path(solver.c_str()) + "/zarr.json").c_str(), &info)!=0)  // no volume output
-        {
-            std::string run;
-            if(p->plog)
-                run = "{\"type\": \"run\", \"run\": " + lagoon_store::json_string(p->plog->id()) + "}";
-            store.create_root(solver, run);
-        }
-        store.create_output(output, "surface", x, y, std::vector<double>(), fields, p->M10>0 ? p->M10 : 1, source);
+        store.begin_run(solver, run_record(p));  // a new run: a new store (the volume's, if any)
+        std::vector<double> xc, yc;
+        const bool curvilinear = curvilinear_nodes(p, xc, yc);
+        store.create_output(output, "surface", x, y, std::vector<double>(), fields, p->M10>0 ? p->M10 : 1, source,
+                            curvilinear ? &xc : nullptr, curvilinear ? &yc : nullptr);
     }
     MPI_Barrier(pgc->mpi_comm);
     store.create_block(output, p->mpirank, p->origin_i, p->origin_j, nx, ny, 1, fields, p->mpirank);
@@ -627,9 +624,7 @@ bool lagoon_amr_output::write(lexer *p, ghostcell *pgc, const std::vector<lagoon
         {
             if(writer==nullptr)
             {
-                std::string run;
-                if(p->plog)
-                    run = "{\"type\": \"run\", \"run\": " + lagoon_store::json_string(p->plog->id()) + "}";
+                const std::string run = run_record(p);
                 std::string key = solver;
                 for(char &c : key)
                     c = char(std::tolower((unsigned char)c));

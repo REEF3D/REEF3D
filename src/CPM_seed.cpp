@@ -198,6 +198,24 @@ void CPM::seed_particles(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
     if(P.Flag[n]>=ACTIVE)
     {
         double topoval  = p->ccipol4_b(a->topo,P.X[n],P.Y[n],P.Z[n]);
+        
+        // next to a periodic side the stencil of ccipol4_b reaches into the ghost cells, and the interpolated topo
+        // of the top grains of the first and last columns came out above the bed (jump channel: +0.23 mm instead
+        // of -0.40 mm): they were removed, the bed level of the column was 1/9 cell too low and the bed shear
+        // stress there 11 % too low. There the topo of the parcel's own column, linear between its cell centres
+        int ip = p->posf_i(P.X[n]);
+        int jp = p->posf_j(P.Y[n]);
+        
+        if((perx==1 && (ip+p->origin_i<0 || ip+p->origin_i>=p->gknox-1))
+        || (pery==1 && p->j_dir==1 && (jp+p->origin_j<0 || jp+p->origin_j>=p->gknoy-1)))
+        {
+            int ic = p->posc_i(P.X[n]);
+            int jc = p->j_dir==1 ? p->posc_j(P.Y[n]) : 0;
+            int k0 = MAX(0, MIN(p->knoz-2, p->posf_k(P.Z[n])));
+            double wz = (P.Z[n] - p->ZP[k0+marge])/(p->ZP[k0+1+marge] - p->ZP[k0+marge]);
+            
+            topoval = (1.0-wz)*a->topo(ic,jc,k0) + wz*a->topo(ic,jc,k0+1);
+        }
         double solidval = p->ccipol4_b(a->solid,P.X[n],P.Y[n],P.Z[n]);
 
         bool box=false;

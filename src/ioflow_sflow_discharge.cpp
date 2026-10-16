@@ -55,6 +55,7 @@ void ioflow_f::Qin2D(lexer *p, fdm2D* b, ghostcell* pgc)
     hval=0.0;
     hcount=0;
     Ai=0.0;
+    Ki=0.0;
     p->Qi=0.0;
     p->Ui=0.0;
 
@@ -65,12 +66,28 @@ void ioflow_f::Qin2D(lexer *p, fdm2D* b, ghostcell* pgc)
     i=p->gcslin[n][0];
     j=p->gcslin[n][1];
     
+        // curvilinear grid: length of the inflow face, normal velocity of the ghost cell
+        if(p->wet[IJ]==1 && p->geo_curv==1)
+        {
+        const int qf = (i-1-p->imin)*p->jmax + (j-p->jmin);
+        
+        area = p->LEN1[qf]*b->hp(i-1,j);
+        
+        Ai+=area;
+        Ki+=p->LEN1[qf]*pow(MAX(b->hp(i-1,j),0.0),5.0/3.0);
+        p->Qi+=(b->U(i-1,j)*p->SX1[qf] + b->V(i-1,j)*p->SY1[qf])*b->hp(i-1,j);
+        hval += b->hp(i,j);
+        ++hcount;
+        continue;
+        }
+        
         if(p->wet[IJ]==1)
         {
     
         area = p->DYN[JP]*b->hp(i-1,j);
         
         Ai+=area;
+        Ki+=p->DYN[JP]*pow(MAX(b->hp(i-1,j),0.0),5.0/3.0);
         p->Qi+=area*b->P(i-1,j);
         hval += b->hp(i,j);
         ++hcount;
@@ -79,6 +96,7 @@ void ioflow_f::Qin2D(lexer *p, fdm2D* b, ghostcell* pgc)
     }
     
     Ai=pgc->globalsum(Ai);
+    Ki=pgc->globalsum(Ki);
     p->Qi=pgc->globalsum(p->Qi);
     Hi=pgc->globalsum(hval);
     hcount=pgc->globalisum(hcount);
@@ -93,6 +111,10 @@ void ioflow_f::Qin2D(lexer *p, fdm2D* b, ghostcell* pgc)
     
     if(p->mpirank==0 && (p->B60==2 || p->B60==4))
     cout<<"Qi_ipol: "<<hydrograph_ipol(p,pgc,hydro_in,hydro_in_count)<<endl;
+    
+    // B 62 1: the discharge across the face by conveyance, u = Uk h^(2/3), so shallow cells at the
+    // edges of the inflow get small velocities
+    Uk = p->Ui*Ai/(Ki>1.0e-20?Ki:1.0e20);
         
     p->Ua=p->Qi/Ai;
 }
@@ -112,6 +134,18 @@ void ioflow_f::Qout2D(lexer *p, fdm2D* b, ghostcell* pgc)
     area=0.0;
     i=p->gcslout[n][0];
     j=p->gcslout[n][1];
+        
+        // curvilinear grid: length of the outflow face, mean normal velocity at the face
+        if(p->wet[IJ]==1 && p->geo_curv==1)
+        {
+        area = p->LEN1[IJ]*b->hp(i,j);
+        
+        Ao+=area;
+        p->Qo+=0.5*((b->U(i,j)+b->U(i+1,j))*p->SX1[IJ] + (b->V(i,j)+b->V(i+1,j))*p->SY1[IJ])*b->hp(i,j);
+        hval += b->hp(i,j);
+        ++hcount;
+        continue;
+        }
         
         if(p->wet[IJ]==1)
         {

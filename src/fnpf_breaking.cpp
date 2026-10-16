@@ -30,6 +30,8 @@ fnpf_breaking::fnpf_breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc) : bx(p), by(
                  wdband(p)
 
 {
+    count_n = 0;        // step of the last reset of the breaking flags (breaking_baquet_wd)
+    
     // Default parameter values
     eta_I    = 0.65;    // onset threshold coefficient
     eta_F    = 0.15;    // cessation threshold coefficient

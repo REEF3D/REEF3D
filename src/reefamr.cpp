@@ -21,8 +21,10 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"reefamr.h"
+#include"geo_mesh.h"
 #include"lexer.h"
 #include"ghostcell.h"
+#include"slice.h"
 #include"mgcslice1.h"
 #include"mgcslice2.h"
 #include"mgcslice4.h"
@@ -115,8 +117,22 @@ lexer* reefamr::glex(int g)
 
 int reefamr::patch_at(int l, int I, int J)
 {
-    // placed patches: from the global table, -3 where a patch of another rank holds the cell
-    if(par.place>0 && l>=1)
+    // multi-block: a level-0 block on this rank (outside the native box)
+    if(nblk>0 && l==0 && (I<0 || I>=GNX || J<0 || J>=GNY))
+    {
+        const int b = block_near(I,J);
+        if(b<1)
+        return -2;
+        int i,j;
+        block_own(0,b,I,J,i,j);
+        if(i<0 || i>=blk[b].ni || j<0 || j>=blk[b].nj)
+        return -2;
+        return (blk[b].rank==p0->mpirank) ? blk[b].lid : -3;
+    }
+
+    // placed patches and multi-block grids: from the global table, -3 where a patch of another rank
+    // holds the cell
+    if((par.place>0 || nblk>0) && l>=1)
     {
         const int q = gpatch_at(l,I,J);
         if(q<0)
@@ -138,7 +154,21 @@ int reefamr::patch_at(int l, int I, int J)
 int reefamr::owner(int I, int J)
 {
     if(I<0 || I>=GNX || J<0 || J>=GNY)
-    return -1;
+    {
+        // multi-block: the rank of a level-0 block
+        if(nblk>0)
+        {
+            const int b = block_near(I,J);
+            if(b>=1)
+            {
+                int i,j;
+                block_own(0,b,I,J,i,j);
+                if(i>=0 && i<blk[b].ni && j>=0 && j<blk[b].nj)
+                return blk[b].rank;
+            }
+        }
+        return -1;
+    }
 
     int r = last_owner;
     if(I>=rbx0[r] && I<=rbx1[r] && J>=rby0[r] && J<=rby1[r])
@@ -254,9 +284,19 @@ void reefamr::build_gtable()
 int reefamr::flag0(int I, int J)
 {
     if(I<0 || I>=GNX || J<0 || J>=GNY)
-    return -10;
+    {
+        // multi-block: cells of the blocks and the cells beyond their interfaces are fluid
+        if(nblk>0)
+        {
+            const int b = block_near(I,J);
+            int I2,J2;
+            if(b>=1 && canon(0,b,I,J,I2,J2))
+            return 1;
+        }
+        return -10;
+    }
 
-    if(par.place>0)
+    if(par.place>0 || !gfl0.empty())
     return gfl0[(size_t)I*GNY+J];
 
     int ii = I-O0i+FH, jj = J-O0j+FH;
@@ -360,6 +400,33 @@ int reefamr::finest_rank(double x, double y)
     if(p0->j_dir==0)
     y = 0.5*(gyn[marge]+gyn[marge+GNY]);
 
+    // curvilinear grid (G 50): the logical coordinates of the point (lexer::curv_logical), the patches and the
+    // level-0 cells by their logical ranges (the patch cells subdivide the level-0 cells bilinearly)
+    if(p0->geo_curv==1 && p0->geo_mb==0)
+    {
+        double X,Y;
+        if(!p0->curv_logical(x,y,X,Y))
+        return -1;
+        if(p0->j_dir==0)
+        Y = 0.5*double(GNY);
+
+        int best=-1, bl=0;
+        for(const reefamr_gpatch &G : GP)
+        {
+            if(G.lev<=bl)
+            continue;
+            const double r = double(1<<G.lev);
+            if(X*r>=double(G.I0) && X*r<double(G.I1+1) && Y*r>=double(G.J0) && Y*r<double(G.J1+1))
+            {
+                best = G.rank;
+                bl = G.lev;
+            }
+        }
+        if(best>=0)
+        return best;
+        return owner(std::min(int(X),GNX-1),std::min(int(Y),GNY-1));
+    }
+
     int best=-1, bl=0;
     for(const reefamr_gpatch &G : GP)
     {
@@ -393,6 +460,8 @@ void reefamr::setup(lexer *p, ghostcell *pgc)
     NY0 = p->knoy;
     GNX = p->gknox;
     GNY = p->gknoy;
+    GNXV = GNX;     // multi-block: the blocks widen the index space (blocks_refine_setup)
+    GNYV = GNY;
 
     // rank boxes
     int mine[4] = {O0i, O0i+NX0-1, O0j, O0j+NY0-1};
@@ -443,8 +512,9 @@ void reefamr::setup(lexer *p, ghostcell *pgc)
     build_tiles();
     build_flags(p);
 
-    // placed patches: the global level-0 nodes and solid flags (a patch may lie outside the rank box)
-    if(par.place>0)
+    // placed patches: the global level-0 nodes and solid flags (a patch may lie outside the rank box);
+    // multi-block grids: the solid flags (a block on any rank reaches the native cells next to it)
+    if(par.place>0 || p->geo_mb>0)
     {
         const int np = p->mpi_size;
         const int m = marge;
@@ -522,10 +592,15 @@ void reefamr::setup(lexer *p, ghostcell *pgc)
     for(n=0; n<p->gcslout_count; ++n)
     forbid_around(p->gcslout[n][0],p->gcslout[n][1]);
 
+    // (curvilinear grid: the cell centres, as F 72)
     for(size_t q=0; q+3<par.fbox.size(); q+=4)
     SLICELOOP4
-    if(p->XP[IP]>=par.fbox[q] && p->XP[IP]<=par.fbox[q+1] && p->YP[JP]>=par.fbox[q+2] && p->YP[JP]<=par.fbox[q+3])
-    forbid0[(size_t)(i+O0i)*GNY+(j+O0j)]=1;
+    {
+        const double xc = (p->geo_curv==1) ? p->XC2D[IJ] : p->XP[IP];
+        const double yc = (p->geo_curv==1) ? p->YC2D[IJ] : p->YP[JP];
+        if(xc>=par.fbox[q] && xc<=par.fbox[q+1] && yc>=par.fbox[q+2] && yc<=par.fbox[q+3])
+        forbid0[(size_t)(i+O0i)*GNY+(j+O0j)]=1;
+    }
 
     global_or(forbid0);
 }
@@ -540,8 +615,8 @@ void reefamr::build_tiles()
         tny[l] = byhi(l)/tile - ttj0[l] + 1;
         tmap[l].assign(tnx[l]*tny[l],-2);
 
-        // (placed patches are looked up in the global table)
-        if(par.place==0)
+        // (placed patches and the patches of multi-block grids are looked up in the global table)
+        if(par.place==0 && nblk==0)
         for(int id : lev[l])
         {
             reefamr_patch *c = P[id];
@@ -573,10 +648,11 @@ void reefamr::tag_cell(int lf, int I, int J, int buf, vector<unsigned char> &M)
 
 // --------------------------------------------------------------------- patches
 // allocate the patch, its lexer and (through the module) its objects; the state is set later
-reefamr_patch* reefamr::make_patch(lexer *p, ghostcell *pgc, int l, int I0, int I1, int J0, int J1)
+reefamr_patch* reefamr::make_patch(lexer *p, ghostcell *pgc, int l, int I0, int I1, int J0, int J1, int b)
 {
     reefamr_patch *c = patch_new();
     c->lev = l;
+    c->blk = b;
     c->I0=I0; c->I1=I1; c->J0=J0; c->J1=J1;
     c->nx = I1-I0+1;
     c->ny = J1-J0+1;
@@ -633,6 +709,8 @@ void reefamr::free_patch(reefamr_patch *c)
     pp->del_Iarray(pp->dgcsl4,pp->dgcsl4_count,3);
     }
 
+    pp->geometry_free();
+
     delete pp;
     delete c;
 }
@@ -681,8 +759,14 @@ void reefamr::build_lexer(lexer *p, reefamr_patch &c)
     pp->ZN = p->ZN; pp->ZP = p->ZP; pp->DZN = p->DZN; pp->DZP = p->DZP;
     build_vertical(p,c);
 
+    // multi-block: the blocks 1.. are logical boxes (the geometry are their 2D nodes) with the spacing
+    // of the native box (CURV raster spacing; DXM depends on the decomposition)
+    const double hlog = (p->gridgeo!=nullptr && p->gridgeo->curv_par.size()>=5 && p->gridgeo->curv_par[4]>0.0) ? p->gridgeo->curv_par[4] : p->DXM;
+
     auto x0 = [&](int K)   // global level-0 node K, linear extrapolation outside the rank arrays
     {
+        if(c.blk>0)
+        return hlog*double(K);
         if(par.place>0)
         return x0g(K);
         int a = K-O0i+m;
@@ -692,6 +776,8 @@ void reefamr::build_lexer(lexer *p, reefamr_patch &c)
     };
     auto y0 = [&](int K)
     {
+        if(c.blk>0)
+        return hlog*double(K);
         if(par.place>0)
         return y0g(K);
         int a = K-O0j+m;
@@ -723,6 +809,62 @@ void reefamr::build_lexer(lexer *p, reefamr_patch &c)
     for(int a=0; a<nya-1; ++a) pp->DYP[a] = pp->YP[a+1]-pp->YP[a];
     pp->DXP[nxa-1] = pp->DXP[nxa-2];
     pp->DYP[nya-1] = pp->DYP[nya-2];
+
+    // horizontal geometry layer: the patch nodes subdivide the level-0 2D nodes bilinearly (on a
+    // Cartesian grid bit for bit the XN/YN above), then the metrics of the patch cells; curvilinear
+    // grid: nodes beyond the rank's ones (placement G 40) from the global nodes
+    pp->geo_curv = p->geo_curv;
+    pp->geometry_alloc();
+    {
+        auto node0 = [&](int K, int L, double &x, double &y)   // level-0 2D node, global index
+        {
+            if(c.blk>0)         // multi-block: the nodes of the block, beyond its faces the neighbours
+            {
+                double z;
+                int k,q;
+                block_own(0,c.blk,K,L,k,q);
+                block_node_any(c.blk,k,q,x,y,z);
+                return;
+            }
+            const int k = K-O0i, q = L-O0j;
+            if(par.place==0 && p->XN2D!=nullptr && k>=p->imin && k<=p->imin+p->imax && q>=p->jmin && q<=p->jmin+p->jmax)
+            {
+                x = p->XN2D[p->nij(k,q)];
+                y = p->YN2D[p->nij(k,q)];
+            }
+            else
+            if(p->geo_curv==1)
+            {
+                double z;
+                p->curv_node(K,L,x,y,z);
+            }
+            else
+            {
+                x = x0(K);
+                y = y0(L);
+            }
+        };
+
+        for(int ii=pp->imin; ii<=pp->imin+pp->imax; ++ii)
+        for(int jj=pp->jmin; jj<=pp->jmin+pp->jmax; ++jj)
+        {
+            const int NI = ii-EXT+c.I0, NJ = jj-EXT+c.J0;    // global level-l node
+            const int K = fsh(NI,l), L = fsh(NJ,l);
+            const double fr = double(NI-(K<<l))/rl, fs = double(NJ-(L<<l))/rl;
+            double x00,y00,x10,y10,x01,y01,x11,y11;
+            node0(K,L,x00,y00); node0(K+1,L,x10,y10); node0(K,L+1,x01,y01); node0(K+1,L+1,x11,y11);
+
+            pp->XN2D[pp->nij(ii,jj)] = x00 + (x10-x00)*fr + (x01-x00)*fs + (x11-x10-x01+x00)*fr*fs;
+            pp->YN2D[pp->nij(ii,jj)] = y00 + (y10-y00)*fr + (y01-y00)*fs + (y11-y10-y01+y00)*fr*fs;
+        }
+    }
+    pp->geometry_metrics();
+    {
+        double err,gcl;
+        const int mismatch = pp->geometry_check(err,gcl);
+        if(mismatch!=0)
+        cout<<"!!! AMR patch (level "<<l<<"): "<<mismatch<<" 2D nodes differ from XN/YN !!!"<<endl;
+    }
 
     // mean spacing: exact fraction of level 0, independent of the patch size
     pp->DXM = p->DXM/rl;
@@ -780,6 +922,8 @@ void reefamr::build_lexer(lexer *p, reefamr_patch &c)
     pp->gcslparaco1_count = pp->gcslparaco2_count = pp->gcslparaco3_count = pp->gcslparaco4_count = 0;
     pp->nb1 = pp->nb2 = pp->nb3 = pp->nb4 = pp->nb5 = pp->nb6 = -2;
     pp->periodic1 = pp->periodic2 = pp->periodic3 = 0;   // no periodic ghost copies on a patch (the lexer copy leaves them unset)
+    pp->bcside1 = p->bcside1; pp->bcside2 = p->bcside2; pp->bcside3 = p->bcside3;   // side types of the domain edges (y in 2D),
+    pp->bcside4 = p->bcside4; pp->bcside5 = p->bcside5; pp->bcside6 = p->bcside6;   // as on the base grid (the lexer copy leaves them unset)
     pp->mpi_size = 1;
     pp->mpirank = p->mpirank;
 
@@ -796,13 +940,8 @@ void reefamr::build_lexer(lexer *p, reefamr_patch &c)
     pp->global_xmax = p->global_xmax; pp->global_ymax = p->global_ymax;
     pp->originx = p->originx; pp->originy = p->originy;
 
-    pp->wd = p->wd;
-    pp->phimean = p->phimean;
-    pp->phiout = p->phiout;
-    pp->dt = p->dt;
-    pp->dt_old = p->dt_old;
-    pp->simtime = p->simtime;
-    pp->count = p->count;
+    // the runtime state of level 0 (time, wave parameters, water levels, extent): the lexer copy
+    // (lexer_amr.cpp)
 }
 
 // vertical grid of the patch: the level-0 arrays, or (vref) the level-0 nodes subdivided by
@@ -916,6 +1055,42 @@ void reefamr::xsetup(vector<vector<int>> &req, vector<vector<int>> &srv, int K)
 
     for(int r=0; r<np; ++r)
     srv[r].assign(rb.begin()+rd[r],rb.begin()+rd[r]+rc[r]);
+}
+
+void reefamr::xrun_rev(reefamr_xplan &X, int nv, int tag)
+{
+    vector<MPI_Request> rq;
+    X.sbuf.resize(X.speer.size());
+
+    for(size_t k=0; k<X.speer.size(); ++k)
+    {
+        X.sbuf[k].resize(X.sitem[k].size()*nv);
+        if(!X.sbuf[k].empty())
+        {
+            rq.push_back(MPI_REQUEST_NULL);
+            MPI_Irecv(&X.sbuf[k][0],(int)X.sbuf[k].size(),MPI_DOUBLE,X.speer[k],tag,MPI_COMM_WORLD,&rq.back());
+        }
+    }
+
+    for(size_t k=0; k<X.rpeer.size(); ++k)
+    if(!X.rbuf[k].empty())
+    {
+        rq.push_back(MPI_REQUEST_NULL);
+        MPI_Isend(&X.rbuf[k][0],(int)X.rbuf[k].size(),MPI_DOUBLE,X.rpeer[k],tag,MPI_COMM_WORLD,&rq.back());
+    }
+
+    if(!rq.empty())
+    MPI_Waitall((int)rq.size(),&rq[0],MPI_STATUSES_IGNORE);
+}
+
+void reefamr::native_gc4(slice &f)
+{
+    pgc0->gcsl_start4(p0,f,1);
+}
+
+void reefamr::native_fh(slice &f)
+{
+    pgc0->gcslparax_fh(p0,f,4);
 }
 
 void reefamr::xrun(reefamr_xplan &X, int nv, int tag)

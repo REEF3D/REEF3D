@@ -247,6 +247,123 @@ int main()
         check(c.empty() && d==std::vector<float>(p[1].begin()+half,p[1].end()), "output 1: the chunk of fill values is left out");
     }
 
+    // the georeference: the case's georef.json goes into the store's root, on one line
+    {
+        std::cout<<"georef.json into the root"<<std::endl;
+        const std::string path = "lagoon_store_test_georef.lagoon";
+        if(std::system(("rm -rf "+path).c_str())!=0) std::cout<<"  (could not clear "<<path<<")"<<std::endl;
+        {
+            std::ofstream out("georef.json");
+            out<<"{\n  \"version\": 1,\n  \"crs\": \"EPSG:25833\",\n  \"origin\": [270000.0, 7040000.0],\n"
+               <<"  \"rotation_deg\": 30.0\n}\n";
+        }
+        lagoon_store store(path,16,1);
+        store.create_root("NHFLOW","");
+        const std::string root=slurp(path+"/zarr.json");
+        check(root.find("\"georef\": {   \"version\": 1,   \"crs\": \"EPSG:25833\",   \"origin\": [270000.0, 7040000.0],   \"rotation_deg\": 30.0 }}}")!=std::string::npos,
+              "georef: the block, on one line, at the end of the root's attributes");
+        check(root.find("\"version\": \"0.5\"")!=std::string::npos, "format version 0.5");
+        {
+            std::ofstream out("georef.json");
+            out<<"[1, 2]\n";
+        }
+        store.create_root("NHFLOW","");
+        check(slurp(path+"/zarr.json").find("georef")==std::string::npos, "georef: not an object, left out");
+        std::remove("georef.json");
+        store.create_root("NHFLOW","");
+        check(slurp(path+"/zarr.json").find("georef")==std::string::npos, "no georef.json: no georef");
+    }
+
+    // a curvilinear grid (G 50, SPEC 2.2): xc and yc, the place of every grid point
+    {
+        std::cout<<"curvilinear surface: xc, yc"<<std::endl;
+        const std::string path = "lagoon_store_test_curv.lagoon";
+        if(std::system(("rm -rf "+path).c_str())!=0) std::cout<<"  (could not clear "<<path<<")"<<std::endl;
+        const int CX=4, CY=3;
+        std::vector<double> x, y, xc, yc;
+        for(int i=0;i<CX;++i) x.push_back(i);
+        for(int j=0;j<CY;++j) y.push_back(j);
+        for(int j=0;j<CY;++j)
+            for(int i=0;i<CX;++i)
+            {
+                const double a = 0.5*i, r = 10.0 + j;
+                xc.push_back(r*std::cos(a));
+                yc.push_back(r*std::sin(a));
+            }
+        lagoon_store store(path,16,1);
+        store.create_root("SFLOW","");
+        store.create_output("free_surface","surface",x,y,{},{{"eta",1,"m"}},1,"REEF3D_SFLOW_VTP_FSF",&xc,&yc);
+        const std::string meta=slurp(path+"/free_surface/zarr.json");
+        check(meta.find("\"horizontal\": \"curvilinear\"")!=std::string::npos, "horizontal: curvilinear");
+        const std::string xmeta=slurp(path+"/free_surface/xc/zarr.json");
+        check(xmeta.find("\"shape\": [3, 4]")!=std::string::npos && xmeta.find("\"dimension_names\": [\"y\", \"x\"]")!=std::string::npos,
+              "xc: (ny, nx) = (3, 4), dimensions y, x");
+        const std::string xs=slurp(path+"/free_surface/xc/c/0/0");
+        const std::string ys=slurp(path+"/free_surface/yc/c/0/0");
+        double x5=0.0, y5=0.0;
+        if(xs.size()==12*8 && ys.size()==12*8)
+        {
+            std::memcpy(&x5, xs.data()+5*8, 8);
+            std::memcpy(&y5, ys.data()+5*8, 8);
+        }
+        check(x5==11.0*std::cos(0.5) && y5==11.0*std::sin(0.5), "point (i 1, j 1): x fastest, float64 as given");
+        lagoon_store plain("lagoon_store_test_plain.lagoon",16,1);
+        plain.create_root("SFLOW","");
+        plain.create_output("bed","surface",x,y,{},{{"z",1,"m"}},1,"");
+        check(slurp("lagoon_store_test_plain.lagoon/bed/zarr.json").find("horizontal")==std::string::npos
+              && !std::ifstream("lagoon_store_test_plain.lagoon/bed/xc/zarr.json"), "a rectilinear grid: no xc, yc");
+        if(std::system("rm -rf lagoon_store_test_plain.lagoon")!=0) std::cout<<"  (could not clear)"<<std::endl;
+    }
+
+    // a store holds one run: the first writer of a new run moves the store of an earlier
+    // run aside (SFLOW writes no volume: its surfaces and AMR start the store)
+    {
+        std::cout<<"a new run: a new store, the earlier one moved aside"<<std::endl;
+        if(std::system("rm -rf lagoon_store_test_run*.lagoon*")!=0) std::cout<<"  (could not clear)"<<std::endl;
+        const std::string path = "lagoon_store_test_run.lagoon";
+        const std::string run_a = "{\"type\": \"run\", \"run\": \"20261015T173119Z-fc5d\"}";
+        const std::string run_b = "{\"type\": \"run\", \"run\": \"20261015T211317Z-6b67\"}";
+        check(lagoon_store::run_id(run_a)=="20261015T173119Z-fc5d", "the run id of a run record");
+        {
+            lagoon_store earlier(path,16,1);  // the store of run a, with an AMR group
+            earlier.create_root("SFLOW", run_a);
+            if(std::system(("mkdir -p "+path+"/amr/sflow_amr && touch "+path+"/amr/sflow_amr/zarr.json").c_str())!=0)
+                std::cout<<"  (could not make the AMR group)"<<std::endl;
+        }
+        check(lagoon_store::run_id(slurp(path+"/zarr.json"))=="20261015T173119Z-fc5d", "the run id of a store's root");
+        lagoon_store surfaces(path,16,1);   // run b: its free surface starts the store
+        const std::string aside = surfaces.begin_run("SFLOW", run_b);
+        check(aside=="lagoon_store_test_run-20261015T173119Z-fc5d.lagoon-earlier", "run a's store moved aside, named by its run");
+        check(std::ifstream((aside+"/amr/sflow_amr/zarr.json").c_str()).good(), "run a's AMR goes with it");
+        check(!std::ifstream((path+"/amr/sflow_amr/zarr.json").c_str()), "the new store has no AMR of run a");
+        check(lagoon_store::run_id(slurp(path+"/zarr.json"))=="20261015T211317Z-6b67", "the new root is run b's");
+        surfaces.create_output("free_surface","surface",{0.0,1.0},{0.0,1.0},{},{{"eta",1,"m"}},1,"REEF3D_SFLOW_VTP_FSF");
+        lagoon_store amr(path,16,1);        // run b's AMR writer, later: writes into the same store
+        check(amr.begin_run("SFLOW", run_b).empty() && std::ifstream((path+"/free_surface/zarr.json").c_str()).good(),
+              "a second writer of the run keeps the store");
+        check(slurp(path+"/zarr.json").find("\"outputs\": [\"free_surface\"]")!=std::string::npos, "and its root");
+        // a store without a run id (no run log), moved aside twice by the same name
+        const std::string other = "lagoon_store_test_run2.lagoon";
+        for(int k=0; k<2; ++k)
+        {
+            lagoon_store plain(other,16,1);
+            plain.create_root("SFLOW","");
+        }
+        lagoon_store first(other,16,1);
+        check(first.begin_run("SFLOW", run_b)=="lagoon_store_test_run2-earlier.lagoon-earlier", "no run id: -earlier");
+        if(std::system(("rm -rf "+other+" && mkdir "+other+" && touch "+other+"/zarr.json").c_str())!=0)
+            std::cout<<"  (could not remake)"<<std::endl;
+        lagoon_store again("./"+other,16,1);  // another path string: begun anew
+        check(again.begin_run("SFLOW", run_b)=="./lagoon_store_test_run2-earlier-2.lagoon-earlier", "a second one: -2");
+        // an empty folder (a writer made it before the root) is no earlier store
+        if(std::system("rm -rf lagoon_store_test_run3.lagoon && mkdir lagoon_store_test_run3.lagoon")!=0)
+            std::cout<<"  (could not make)"<<std::endl;
+        lagoon_store empty("lagoon_store_test_run3.lagoon",16,1);
+        check(empty.begin_run("SFLOW", run_b).empty() && std::ifstream("lagoon_store_test_run3.lagoon/zarr.json").good(),
+              "an empty folder: the root made in it, nothing moved");
+        if(std::system("rm -rf lagoon_store_test_run*.lagoon*")!=0) std::cout<<"  (could not clear)"<<std::endl;
+    }
+
     std::cout<<(nfail ? "FAILED: " : "all tests passed")<<(nfail ? std::to_string(nfail) : "")<<std::endl;
     return nfail ? 1 : 0;
 }

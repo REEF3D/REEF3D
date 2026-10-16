@@ -28,6 +28,7 @@ Author: Hans Bihs
 #include"ioflow.h"
 #include"patchBC_interface.h"
 #include"sflow_amr.h"
+#include"sflow_curv.h"
 
 #define HP (WL(i,j)>1.0e-20?WL(i,j):1.0e20)
 
@@ -149,6 +150,12 @@ void sflow_pjm_quad::quad_calc(lexer *p, fdm2D *b, ghostcell *pgc, slice &UH, sl
     Vest(i,j) = b->V(i,j);
     }
     
+    if(p->geo_curv==1)
+    {
+    quad_calc_curv(p,b,pgc,UH,VH,WL,Un,Vn,alpha);
+    return;
+    }
+    
     SLICELOOP4
     if(active(p,b)==1)
     {
@@ -243,6 +250,24 @@ void sflow_pjm_quad::ucorr(lexer* p, fdm2D* b, slice &UH, slice &WL, double alph
 {	
     double dx,qb;
     
+    // curvilinear grid: central gradients by the chain rule
+    if(p->geo_curv==1)
+    {
+    double gx,gy,dx_,dy_;
+
+	SLICELOOP4
+    if(active(p,b)==1)
+    {
+    grad_q(p,b,WL,gx,gy);
+    sflow_curv::grad(p,b->depth,i,j,dx_,dy_);
+    
+    qb = cb*b->press(i,j) + adisp*0.25*p->W1*WL(i,j)*phi(i,j);
+    
+	UH(i,j) -= alpha*p->dt*(1.0/p->W1)*(gx - qb*dx_);
+    }
+    return;
+    }
+
 	SLICELOOP4
     if(active(p,b)==1)
     {
@@ -259,6 +284,24 @@ void sflow_pjm_quad::vcorr(lexer* p, fdm2D* b, slice &VH, slice &WL, double alph
 {	
     double dy,qb;
     
+    // curvilinear grid: central gradients by the chain rule
+    if(p->geo_curv==1)
+    {
+    double gx,gy,dx_,dy_;
+
+	SLICELOOP4
+    if(active(p,b)==1)
+    {
+    grad_q(p,b,WL,gx,gy);
+    sflow_curv::grad(p,b->depth,i,j,dx_,dy_);
+    
+    qb = cb*b->press(i,j) + adisp*0.25*p->W1*WL(i,j)*phi(i,j);
+    
+	VH(i,j) -= alpha*p->dt*(1.0/p->W1)*(gy - qb*dy_);
+    }
+    return;
+    }
+
     if(p->j_dir==1)
 	SLICELOOP4
     if(active(p,b)==1)
@@ -284,7 +327,40 @@ void sflow_pjm_quad::rhs(lexer *p, fdm2D* b, slice &WL, double alpha)
     double dx,dy,dudx,dvdy,dddx,dddy;
     
     b->rhsvec.reset();
-    
+
+    // curvilinear grid: chain-rule gradients, the non-orthogonal part of the operator on the
+    // previous pressure (deferred correction)
+    if(p->geo_curv==1)
+    {
+    double ux,uy,vx,vy;
+
+    n=0;
+    SLICELOOP4
+    {
+        if(active(p,b)==1)
+        {
+        sflow_curv::grad(p,b->U,i,j,ux,uy);
+        sflow_curv::grad(p,b->V,i,j,vx,vy);
+        sflow_curv::grad(p,b->depth,i,j,dddx,dddy);
+
+        b->rhsvec.V[n] = -(WL(i,j)*(ux + vy)
+                          + 2.0*(b->W(i,j) + b->U(i,j)*dddx + b->V(i,j)*dddy))/(alpha*p->dt)
+                         - 0.5*phi(i,j);
+
+        const int si=i, sj=j;
+        const double kf = sflow_curv::kflux(p,b->press,si,sj,[&](int a, int c)
+                          {
+                              if(p->flagslice4[(a-p->imin)*p->jmax+(c-p->jmin)]<0) return false;
+                              i=a; j=c; const int r=active(p,b); i=si; j=sj;
+                              return r==1;
+                          });
+        b->rhsvec.V[n] += WL(i,j)/p->W1*kf;
+        }
+    ++n;
+    }
+    return;
+    }
+
     n=0;
     SLICELOOP4
     {
@@ -310,6 +386,26 @@ void sflow_pjm_quad::rhs(lexer *p, fdm2D* b, slice &WL, double alpha)
 void sflow_pjm_quad::poisson(lexer*p, fdm2D* b, slice &WL, double alpha)
 {
     n=0;
+
+    // curvilinear grid: compact Laplacian of the orthogonal parts of the faces
+    if(p->geo_curv==1)
+    {
+    double cE,cW,cN,cS;
+
+	SLICELOOP4
+	{
+    sflow_curv::lapcoef(p,i,j,cE,cW,cN,cS);
+
+	b->M.p[n] = WL(i,j)*(cE + cW + cN + cS)/p->W1 + 2.0*cw/(HP*p->W1);
+   	b->M.n[n] = -WL(i,j)*cE/p->W1;
+	b->M.s[n] = -WL(i,j)*cW/p->W1;
+	b->M.w[n] = -WL(i,j)*cN/p->W1;
+	b->M.e[n] = -WL(i,j)*cS/p->W1;
+	++n;
+	}
+    }
+
+    if(p->geo_curv==0)
     SLICELOOP4
 	{
 	b->M.p[n] =  WL(i,j)/(p->W1*p->DXP[IP]*p->DXN[IP])
@@ -377,6 +473,10 @@ void sflow_pjm_quad::poisson(lexer*p, fdm2D* b, slice &WL, double alpha)
 
 void sflow_pjm_quad::upgrad(lexer*p, fdm2D* b, slice &eta)
 {
+    if(p->geo_curv==1)
+    sflow_curv::pgrad(p,b,eta,b->F,1);
+
+    if(p->geo_curv==0)
     SLICELOOP4
     WETDRY
     b->F(i,j) += fabs(p->W22)*eta(i,j)*(b->dfx(i,j) - b->dfx(i-1,j))/p->DXN[IP];
@@ -384,6 +484,38 @@ void sflow_pjm_quad::upgrad(lexer*p, fdm2D* b, slice &eta)
     // dispersion correction (A 220 3): B g grad(h^3 div(grad(eta)))
     // all derivatives central: the collocated projection only acts through central
     // gradients, a compact Laplacian here would limit the time step to dt ~ dx^2 much earlier
+    if(Bdisp>0.0 && p->geo_curv==1)
+    {
+    double h,a1,a2,lx,ly;
+    
+        SLICELOOP4
+        sflow_curv::grad(p,eta,i,j,Gx(i,j),Gy(i,j));
+        
+        pgc->gcsl_start4(p,Gx,1);
+        pgc->gcsl_start4(p,Gy,1);
+        
+        SLICELOOP4
+        {
+        Ld(i,j) = 0.0;
+        
+            if(active(p,b)==1)
+            {
+            h = MAX(eta(i,j) + b->depth(i,j),0.0);
+            sflow_curv::grad(p,Gx,i,j,lx,a1);
+            sflow_curv::grad(p,Gy,i,j,a2,ly);
+            Ld(i,j) = h*h*h*(lx + ly);
+            }
+        }
+        
+        pgc->gcsl_start4(p,Ld,1);
+        
+        SLICELOOP4
+        if(active(p,b)==1)
+        b->F(i,j) += Bdisp*fabs(p->W22)*sflow_curv::ddx(p,Ld,i,j);
+        
+    return;
+    }
+    
     if(Bdisp>0.0)
     {
     double h;
@@ -420,11 +552,23 @@ void sflow_pjm_quad::upgrad(lexer*p, fdm2D* b, slice &eta)
 
 void sflow_pjm_quad::vpgrad(lexer*p, fdm2D* b, slice &eta)
 {
+    if(p->geo_curv==1)
+    sflow_curv::pgrad(p,b,eta,b->G,2);
+
+    if(p->geo_curv==0)
     SLICELOOP4
     WETDRY
     b->G(i,j) += fabs(p->W22)*eta(i,j)*(b->dfy(i,j) - b->dfy(i,j-1))/p->DYN[JP];
     
     // dispersion correction (A 220 3), Ld from upgrad
+    if(Bdisp>0.0 && p->geo_curv==1)
+    {
+    SLICELOOP4
+    if(active(p,b)==1)
+    b->G(i,j) += Bdisp*fabs(p->W22)*sflow_curv::ddy(p,Ld,i,j);
+    return;
+    }
+    
     if(Bdisp>0.0 && p->j_dir==1)
     SLICELOOP4
     if(active(p,b)==1)
@@ -433,4 +577,83 @@ void sflow_pjm_quad::vpgrad(lexer*p, fdm2D* b, slice &eta)
 
 void sflow_pjm_quad::wpgrad(lexer*p, fdm2D* b, slice &eta)
 {
+}
+
+// curvilinear grid: gradient of h q at cell (i,j)
+void sflow_pjm_quad::grad_q(lexer *p, fdm2D *b, slice &WL, double &gx, double &gy)
+{
+    sflow_curv::grad5(p,i,j,WL(i+1,j)*b->press(i+1,j),WL(i-1,j)*b->press(i-1,j),
+                            WL(i,j+1)*b->press(i,j+1),WL(i,j-1)*b->press(i,j-1),gx,gy);
+}
+
+// curvilinear grid: quad_calc with chain-rule gradients; the second derivatives of the depth as
+// gradients of its gradient (wide stencil)
+void sflow_pjm_quad::quad_calc_curv(lexer *p, fdm2D *b, ghostcell *pgc, slice &UH, slice &VH, slice &WL, slice &Un, slice &Vn, double alpha)
+{
+    double gx,gy,dddx,dddy,dddxx,dddyy,dddxy,ux,uy,vx,vy,dudt,dvdt,a1,a2;
+    
+    SLICELOOP4
+    if(active(p,b)==1)
+    {
+    grad_q(p,b,WL,gx,gy);
+    sflow_curv::grad(p,b->depth,i,j,dddx,dddy);
+    
+    Uest(i,j) = (UH(i,j) - alpha*p->dt*(1.0/p->W1)*(gx - cb*b->press(i,j)*dddx))/HP;
+    Vest(i,j) = (VH(i,j) - alpha*p->dt*(1.0/p->W1)*(gy - cb*b->press(i,j)*dddy))/HP;
+    }
+    
+    // ghost cells: boundary velocities
+    GCSL4LOOP
+    {
+    i = p->gcbsl4[n][0];
+    j = p->gcbsl4[n][1];
+    
+        for(q=1;q<=3;++q)
+        {
+        int a = i, c = j;
+        if(p->gcbsl4[n][3]==1) a = i-q;
+        if(p->gcbsl4[n][3]==4) a = i+q;
+        if(p->gcbsl4[n][3]==2) c = j+q;
+        if(p->gcbsl4[n][3]==3) c = j-q;
+        Uest(a,c) = b->U(a,c);
+        Vest(a,c) = b->V(a,c);
+        }
+    }
+    
+    pgc->gcsl_start4(p,Uest,10);
+    pgc->gcsl_start4(p,Vest,10);
+    
+    // depth gradient, for its second derivatives
+    SLICELOOP4
+    sflow_curv::grad(p,b->depth,i,j,Gx(i,j),Gy(i,j));
+    
+    pgc->gcsl_start4(p,Gx,1);
+    pgc->gcsl_start4(p,Gy,1);
+    
+    // bed acceleration phi = Dw_b/Dt,  w_b = -u.grad(d)
+    SLICELOOP4
+    {
+    phi(i,j) = 0.0;
+    
+        if(active(p,b)==1)
+        {
+        dddx = Gx(i,j);
+        dddy = Gy(i,j);
+        sflow_curv::grad(p,Gx,i,j,dddxx,a1);
+        sflow_curv::grad(p,Gy,i,j,a2,dddyy);
+        dddxy = 0.0;
+        
+        if(p->flagslice4[Ip1Jp1]>0 && p->flagslice4[Ip1Jm1]>0 && p->flagslice4[Im1Jp1]>0 && p->flagslice4[Im1Jm1]>0)
+        dddxy = 0.5*(a1 + a2);
+        
+        sflow_curv::grad(p,Uest,i,j,ux,uy);
+        sflow_curv::grad(p,Vest,i,j,vx,vy);
+        
+        dudt = (Uest(i,j) - Un(i,j))/(alpha*p->dt) + Uest(i,j)*ux + Vest(i,j)*uy;
+        dvdt = (Vest(i,j) - Vn(i,j))/(alpha*p->dt) + Uest(i,j)*vx + Vest(i,j)*vy;
+        
+        phi(i,j) = -dudt*dddx - Uest(i,j)*Uest(i,j)*dddxx
+                   -dvdt*dddy - Vest(i,j)*Vest(i,j)*dddyy - 2.0*Uest(i,j)*Vest(i,j)*dddxy;
+        }
+    }
 }

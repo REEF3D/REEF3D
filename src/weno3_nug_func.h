@@ -62,11 +62,22 @@ public:
     void weight_max_z();
     
     
-    static double ****qfx,****qfy,****qfz;
-    static double ***cfx,***cfy,***cfz;
-    static double ***isfx,***isfy,***isfz;
-    
+    // coefficient tables: shared by the instances on the rank grid (static storage, built for the
+    // first lexer); an instance on another grid (a CFD mesh refinement patch) builds its own, as
+    // weno_nug_func
+    double ****qfx,****qfy,****qfz;
+    double ***cfx,***cfy,***cfz;
+    double ***isfx,***isfy,***isfz;
+
+    static double ****s_qfx,****s_qfy,****s_qfz;
+    static double ***s_cfx,***s_cfy,***s_cfz;
+    static double ***s_isfx,***s_isfy,***s_isfz;
+
 	static int iniflag;
+    static lexer *s_lexer;          // the lexer the shared tables were built for
+    void own_ini(lexer*);
+    lexer *own_p = nullptr;
+    int own_tables = 0, own_nx = 0, own_ny = 0, own_nz = 0;
     
     
     

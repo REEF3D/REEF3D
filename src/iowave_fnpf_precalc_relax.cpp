@@ -39,7 +39,7 @@ void iowave::fnpf_precalc_relax(lexer *p, ghostcell *pgc)
     // of the relaxation functions (SLICELOOP4 order).
     count=0;
     
-    if(p->B98==2)
+    if(relax_gen)
     for(size_t q=0; q<gen_i.size(); ++q)
     {
         i = gen_i[q];

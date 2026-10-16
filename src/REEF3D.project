@@ -41,6 +41,9 @@
   <Dependencies/>
   <VirtualDirectory Name="HEADERS">
     <VirtualDirectory Name="REEFAMR">
+      <VirtualDirectory Name="CFD">
+        <File Name="reefamr3d.h"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="SFLOW">
         <File Name="sflow_amr_ship.h"/>
         <File Name="sflow_amr_linesolve.h"/>
@@ -55,8 +58,15 @@
         <File Name="nhflow_amr.h"/>
         <File Name="nhflow_amr_6dof.h"/>
       </VirtualDirectory>
+      <VirtualDirectory Name="CFD">
+        <File Name="cfd_amr.h"/>
+        <File Name="cfd_amr_6dof.h"/>
+        <File Name="amr_grid_lookup.h"/>
+      </VirtualDirectory>
       <File Name="reefamr.h"/>
+      <File Name="reefamr_sed.h"/>
       <File Name="reefamr_krylov.h"/>
+      <File Name="reefamr3d.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Solver">
       <VirtualDirectory Name="REEFMG">
@@ -109,6 +119,7 @@
         <File Name="seastate_forcing.h"/>
         <File Name="seastate_amr.h"/>
         <File Name="seastate_bathy.h"/>
+        <File Name="seastate_fas2.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="CFD">
         <VirtualDirectory Name="Printer">
@@ -387,11 +398,15 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="SFLOW">
+        <VirtualDirectory Name="Curvilinear">
+          <File Name="sflow_curv.h"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="FSF SC"/>
         <VirtualDirectory Name="Convect">
           <File Name="sflow_HLL.h"/>
           <File Name="sflow_flux_build.h"/>
           <File Name="sflow_flux_build_f.h"/>
+          <File Name="nhflow_curv.h"/>
           <VirtualDirectory Name="Scalar"/>
           <VirtualDirectory Name="Signal Speed">
             <File Name="sflow_signal_speed.h"/>
@@ -649,6 +664,7 @@
           <VirtualDirectory Name="Poisson">
             <File Name="nhflow_poisson_pcorr.h"/>
             <File Name="nhflow_poisson.h"/>
+            <File Name="nhflow_poisson_cross.h"/>
           </VirtualDirectory>
           <File Name="nhflow_pressure.h"/>
         </VirtualDirectory>
@@ -785,6 +801,71 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Multiphysics">
+      <VirtualDirectory Name="CORAL">
+        <File Name="coral/README.md"/>
+        <VirtualDirectory Name="Core">
+          <File Name="coral/core/README.md"/>
+          <File Name="coral/core/coral_body.h"/>
+          <File Name="coral/core/coral_constraint.h"/>
+          <File Name="coral/core/coral_gravity.h"/>
+          <File Name="coral/core/coral_load.h"/>
+          <File Name="coral/core/coral_model.h"/>
+          <File Name="coral/core/coral_rotation.h"/>
+          <File Name="coral/core/coral_timeint.h"/>
+          <File Name="coral/core/coral_types.h"/>
+          <File Name="coral/core/coral_version.h"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Structure">
+          <File Name="coral/structure/README.md"/>
+          <File Name="coral/structure/coral_linear6.h"/>
+          <File Name="coral/structure/coral_spring.h"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Linear">
+          <File Name="coral/linear/README.md"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Wind">
+          <File Name="coral/wind/README.md"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Aero">
+          <File Name="coral/aero/README.md"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Control">
+          <File Name="coral/control/README.md"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Hydro">
+          <File Name="coral/hydro/README.md"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Panel">
+          <File Name="coral/panel/README.md"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Mooring">
+          <File Name="coral/mooring/README.md"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="PTO">
+          <File Name="coral/pto/README.md"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Soil">
+          <File Name="coral/soil/README.md"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Ice">
+          <File Name="coral/ice/README.md"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="IO">
+          <File Name="coral/io/README.md"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Load Cases">
+          <File Name="coral/loadcase/README.md"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Post">
+          <File Name="coral/post/README.md"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="REEF3D">
+          <File Name="coral/reef3d/README.md"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="App">
+          <File Name="coral/app/README.md"/>
+        </VirtualDirectory>
+      </VirtualDirectory>
       <VirtualDirectory Name="DEM">
         <File Name="dem.h"/>
         <File Name="dem_void.h"/>
@@ -913,6 +994,8 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Exner">
           <File Name="sediment_exner.h"/>
+          <File Name="sediment_curv.h"/>
+          <File Name="sediment_xfilter.h"/>
           <VirtualDirectory Name="Exnerdisc">
             <File Name="sediment_cds_hj.h"/>
             <File Name="sediment_exnerdisc.h"/>
@@ -1074,6 +1157,7 @@
       </VirtualDirectory>
       <VirtualDirectory Name="Printer">
         <VirtualDirectory Name="Lagoon">
+          <File Name="georef.h"/>
           <File Name="lagoon_output.h"/>
           <File Name="lagoon_store.h"/>
         </VirtualDirectory>
@@ -1231,6 +1315,8 @@
       </VirtualDirectory>
       <VirtualDirectory Name="Wave Lib">
         <File Name="wave_lib_irregular_2nd_cache.h"/>
+        <File Name="wave_lib_fastexp.h"/>
+        <File Name="wave_lib_eta_series.h"/>
         <File Name="wave_lib_wavemaker2nd.h"/>
         <File Name="wave_lib_hdc.h"/>
         <File Name="wave_lib_ssgw.h"/>
@@ -1273,6 +1359,10 @@
   </VirtualDirectory>
   <VirtualDirectory Name="SOURCES">
     <VirtualDirectory Name="REEFAMR">
+      <VirtualDirectory Name="CFD">
+        <File Name="cfd_amr_relax.cpp"/>
+        <File Name="reefamr3d.cpp"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="SFLOW">
         <File Name="sflow_amr_ship.cpp"/>
         <File Name="sflow_amr_nh.cpp"/>
@@ -1281,6 +1371,7 @@
         <File Name="sflow_amr_linesolve.cpp"/>
         <File Name="sflow_amr_bous.cpp"/>
         <File Name="sflow_amr.cpp"/>
+        <File Name="sflow_amr_sed.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="FNPF">
         <File Name="fnpf_6DOF_sub.cpp"/>
@@ -1290,16 +1381,29 @@
         <File Name="fnpf_amr.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="NHFLOW">
+        <File Name="nhflow_amr_block.cpp"/>
         <File Name="nhflow_amr_print.cpp"/>
         <File Name="nhflow_amr_press.cpp"/>
         <File Name="nhflow_amr_diff.cpp"/>
         <File Name="nhflow_amr_sub.cpp"/>
         <File Name="nhflow_amr.cpp"/>
+        <File Name="nhflow_amr_sed.cpp"/>
         <File Name="nhflow_amr_6dof.cpp"/>
+      </VirtualDirectory>
+      <VirtualDirectory Name="CFD">
+        <File Name="cfd_amr.cpp"/>
+        <File Name="cfd_amr_press.cpp"/>
+        <File Name="cfd_amr_print.cpp"/>
+        <File Name="cfd_amr_sub.cpp"/>
+        <File Name="cfd_amr_regrid.cpp"/>
+        <File Name="cfd_amr_6dof.cpp"/>
+        <File Name="cfd_amr_fields.cpp"/>
       </VirtualDirectory>
       <File Name="reefamr.cpp"/>
       <File Name="reefamr_regrid.cpp"/>
+      <File Name="reefamr_block.cpp"/>
       <File Name="reefamr_zone.cpp"/>
+      <File Name="reefamr3d.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Solver">
       <VirtualDirectory Name="REEFMG">
@@ -1371,6 +1475,7 @@
           <File Name="seastate_structure.cpp"/>
           <File Name="seastate_f_diffraction.cpp"/>
           <File Name="seastate_amr.cpp"/>
+          <File Name="seastate_fas2.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Sources">
           <File Name="seastate_source.cpp"/>
@@ -1744,6 +1849,9 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="SFLOW">
+        <VirtualDirectory Name="Curvilinear">
+          <File Name="sflow_curv.cpp"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Convect">
           <File Name="sflow_HLL.cpp"/>
           <File Name="sflow_flux_build_f.cpp"/>
@@ -1761,6 +1869,8 @@
         </VirtualDirectory>
         <File Name="sflow_f_logic.cpp"/>
         <File Name="sflow_f_ini.cpp"/>
+        <File Name="sflow_f_ini_river.cpp"/>
+        <File Name="river_ini.cpp"/>
         <File Name="sflow_f.cpp"/>
         <VirtualDirectory Name="Turbulence">
           <File Name="sflow_turb_kw_IM1_v1.cpp"/>
@@ -2042,6 +2152,7 @@
             <File Name="nhflow_coastline.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Sigma">
+            <File Name="nhflow_curv.cpp"/>
             <File Name="nhflow_sigma_bedacc.cpp"/>
             <File Name="nhflow_sigma_omega.cpp"/>
             <File Name="nhflow_sigma_ini.cpp"/>
@@ -2247,6 +2358,35 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Multiphysics">
+      <VirtualDirectory Name="CORAL">
+        <VirtualDirectory Name="Core">
+          <File Name="coral/core/coral_constraint.cpp"/>
+          <File Name="coral/core/coral_gravity.cpp"/>
+          <File Name="coral/core/coral_model.cpp"/>
+          <File Name="coral/core/coral_rotation.cpp"/>
+          <File Name="coral/core/coral_timeint.cpp"/>
+          <File Name="coral/core/coral_version.cpp"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Structure">
+          <File Name="coral/structure/coral_linear6.cpp"/>
+          <File Name="coral/structure/coral_spring.cpp"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Linear"/>
+        <VirtualDirectory Name="Wind"/>
+        <VirtualDirectory Name="Aero"/>
+        <VirtualDirectory Name="Control"/>
+        <VirtualDirectory Name="Hydro"/>
+        <VirtualDirectory Name="Panel"/>
+        <VirtualDirectory Name="Mooring"/>
+        <VirtualDirectory Name="PTO"/>
+        <VirtualDirectory Name="Soil"/>
+        <VirtualDirectory Name="Ice"/>
+        <VirtualDirectory Name="IO"/>
+        <VirtualDirectory Name="Load Cases"/>
+        <VirtualDirectory Name="Post"/>
+        <VirtualDirectory Name="REEF3D"/>
+        <VirtualDirectory Name="App"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="DEM">
         <File Name="dem_core.cpp"/>
         <File Name="dem_shape.cpp"/>
@@ -2377,10 +2517,12 @@
           <File Name="fem_solid_contact.cpp"/>
           <File Name="fem_solid_print.cpp"/>
           <File Name="fem_solid_tools.cpp"/>
+          <File Name="fem_solid_dist.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Coupling CFD">
           <File Name="fem_coupling.cpp"/>
           <File Name="fem_coupling_cfd.cpp"/>
+          <File Name="fem_coupling_strong.cpp"/>
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="FSI">
@@ -2495,6 +2637,12 @@
           <File Name="sediment_exner_topovel.cpp"/>
           <File Name="sediment_exner_timestep.cpp"/>
           <File Name="sediment_exner.cpp"/>
+          <File Name="sediment_exner_curv.cpp"/>
+          <File Name="sediment_exner_amr.cpp"/>
+          <File Name="sediment_exner_bend.cpp"/>
+          <File Name="sediment_amr.cpp"/>
+          <File Name="sediment_curv.cpp"/>
+          <File Name="sediment_xfilter.cpp"/>
           <VirtualDirectory Name="Exnerdisc">
             <File Name="sediment_cds_hj.cpp"/>
             <File Name="sediment_cds.cpp"/>
@@ -2643,6 +2791,7 @@
           <VirtualDirectory Name="Forcing">
             <File Name="6DOF_obj_forcing_nhflow_wavemaker.cpp"/>
             <File Name="6DOF_obj_forcing.cpp"/>
+            <File Name="6DOF_obj_cfd_amr.cpp"/>
             <File Name="6DOF_obj_forcing_sflow.cpp"/>
             <File Name="6DOF_obj_forcing_nhflow.cpp"/>
             <File Name="6DOF_obj_forcing_2D.cpp"/>
@@ -2716,6 +2865,7 @@
               <File Name="6DOF_obj_ray2D_io_y.cpp"/>
               <File Name="6DOF_obj_ray2D_io_x.cpp"/>
               <File Name="6DOF_obj_ray2D.cpp"/>
+          <File Name="6DOF_obj_ray2D_curv.cpp"/>
             </VirtualDirectory>
             <File Name="6DOF_obj_objects.cpp"/>
             <File Name="6DOF_obj_geometry.cpp"/>
@@ -3023,6 +3173,11 @@
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="Geometry">
+        <VirtualDirectory Name="Curvilinear">
+          <File Name="grid_geometry.cpp"/>
+          <File Name="grid_locate.cpp"/>
+          <File Name="lexer_geometry.cpp"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Geo_Core">
           <File Name="geo_mesh.cpp"/>
           <File Name="geo_raycast.cpp"/>
@@ -3095,6 +3250,7 @@
         <File Name="lexer_read.cpp"/>
         <File Name="lexer_ini.cpp"/>
         <File Name="lexer_assign.cpp"/>
+        <File Name="lexer_amr.cpp"/>
         <File Name="read_grid.cpp"/>
         <File Name="lexer_gridsize.cpp"/>
         <File Name="lexer_vectorsize.cpp"/>
@@ -3192,6 +3348,7 @@
           <File Name="bc_zone.cpp"/>
           <File Name="background_state.cpp"/>
           <VirtualDirectory Name="SFLOW">
+            <File Name="iowave_sflow_tide.cpp"/>
             <File Name="iowave_sflow_wavegen.cpp"/>
             <File Name="iowave_sflow_waterlevel.cpp"/>
             <File Name="iowave_sflow_relax.cpp"/>

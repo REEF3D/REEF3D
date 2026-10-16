@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"sediment_exner.h"
+#include"sediment_curv.h"
 #include"lexer.h"
 #include"ghostcell.h"
 #include"sediment_fdm.h"
@@ -86,6 +87,13 @@ identical to equilibrium transport.
 
 void sediment_exner::non_equillibrium_solve(lexer* p, ghostcell *pgc, sediment_fdm *s)
 {
+    // curvilinear grid (G 50): sediment_curv.h
+    if(p->geo_curv==1)
+    {
+    non_equillibrium_solve_curv(p,pgc,s);
+    return;
+    }
+
     const double d50 = s->dk;
     const double visc = p->W2;
     const double grav = 9.81;
@@ -161,6 +169,203 @@ void sediment_exner::non_equillibrium_solve(lexer* p, ghostcell *pgc, sediment_f
         if(sgy<0.0 && p->DFBED[IJp1]>0 && p->DYP[JP]>1.0e-20)
         cy = Lsc*sgy/p->DYP[JP];
 
+        cxn(i,j) = cx;
+        cyn(i,j) = cy;
+
+        qbe_max = MAX(qbe_max,s->qbe(i,j));
+    }
+
+    qbe_max = pgc->globalmax(qbe_max);
+    Ls_max = pgc->globalmax(Ls_max);
+
+
+    // initial guess: equilibrium, afterwards the previous sediment step
+    if(noneq_ini==0)
+    {
+    SEDSLICELOOP
+    qbn(i,j) = s->qbe(i,j);
+
+    noneq_ini=1;
+    }
+
+    pgc->gcsl_start4(p,qbn,1);
+
+
+    // Gauss-Seidel, alternating sweep directions ----------------------------
+    for(iter=0; iter<itermax; ++iter)
+    {
+        const int sweep = iter%4;
+        const bool xrev = (sweep==1 || sweep==2);
+        const bool yrev = (sweep==2 || sweep==3);
+
+        dqmax = 0.0;
+
+        for(int ii=0; ii<p->knox; ++ii)
+        for(int jj=0; jj<p->knoy; ++jj)
+        {
+            i = xrev?(p->knox-1-ii):ii;
+            j = yrev?(p->knoy-1-jj):jj;
+
+            if(p->flagslice4[IJ]>0 && p->DFBED[IJ]>0)
+            {
+            cx = cxn(i,j);
+            cy = cyn(i,j);
+
+            num = s->qbe(i,j);
+            den = 1.0;
+
+            if(cx>0.0)
+            {
+            num += cx*qbn(i-1,j);
+            den += cx;
+            }
+
+            if(cx<0.0)
+            {
+            num -= cx*qbn(i+1,j);
+            den -= cx;
+            }
+
+            if(cy>0.0)
+            {
+            num += cy*qbn(i,j-1);
+            den += cy;
+            }
+
+            if(cy<0.0)
+            {
+            num -= cy*qbn(i,j+1);
+            den -= cy;
+            }
+
+            qnew = num/den;
+
+            dqmax = MAX(dqmax,fabs(qnew-qbn(i,j)));
+
+            qbn(i,j) = qnew;
+            }
+        }
+
+        pgc->gcsl_start4(p,qbn,1);
+
+        dqmax = pgc->globalmax(dqmax);
+
+        if(dqmax<=tol*qbe_max)
+        {
+        ++iter;
+        break;
+        }
+    }
+
+
+    SEDSLICELOOP
+    s->qb(i,j) = qbn(i,j);
+
+    if(p->mpirank==0)
+    cout<<"non-eq. bedload  Ls_max: "<<setprecision(4)<<Ls_max<<"  sweeps: "<<iter<<"  dq/qbe_max: "<<setprecision(3)<<(qbe_max>1.0e-20?dqmax/qbe_max:0.0)<<endl;
+}
+
+// ---- curvilinear grid (G 50): the functions above with the geometry of sediment_curv.h
+
+void sediment_exner::non_equillibrium_solve_curv(lexer* p, ghostcell *pgc, sediment_fdm *s)
+{
+    const double d50 = s->dk;
+    const double visc = p->W2;
+    const double grav = 9.81;
+    const double Rstar = (p->S22 - p->W1)/p->W1;
+    const double Dstar = d50*pow(fabs(Rstar)*grav/(visc*visc),1.0/3.0);
+    const double ydir = p->y_dir;
+    const int itermax = MAX(p->S49,1);
+    const double tol = 1.0e-6;
+
+    double uvel,vvel,umag;
+    double sgx,sgy;
+    double ustar2,ucrit2,Ti;
+    double Lsc,cx,cy,num,den,qnew;
+    double qbe_max=0.0;
+    double Ls_max=0.0;
+    double dqmax=0.0;
+    int iter=0;
+
+
+    // coefficients: transport direction and adaptation length ------------
+    SEDSLICELOOP
+    {
+        // transport direction
+        if(p->geo_curv==1)
+        sediment_curv::cellvel(p,s,i,j,uvel,vvel);
+        else
+        {
+        uvel = 0.5*(s->P(i,j) + s->P(i-1,j));
+        vvel = 0.5*(s->Q(i,j) + s->Q(i,j-1))*ydir;
+        }
+
+        umag = sqrt(uvel*uvel + vvel*vvel);
+
+        sgx = umag>1.0e-10?uvel/umag:0.0;
+        sgy = umag>1.0e-10?vvel/umag:0.0;
+
+
+        // adaptation length
+        Lsc = 0.0;
+
+        if(p->S33==1)
+        Lsc = p->S40;
+
+        if(p->S33==2)
+        {
+        ucrit2 = s->shearvel_crit(i,j)*s->shearvel_crit(i,j);
+        ustar2 = s->shearvel_eff(i,j)*s->shearvel_eff(i,j);
+
+        Ti = ucrit2>1.0e-20?MAX((ustar2-ucrit2)/ucrit2,0.0):0.0;
+
+        Lsc = 3.0*d50*pow(Dstar,0.6)*pow(Ti,0.9);
+        }
+
+        if(p->S33==3)
+        Lsc = 4000.0*MAX(s->shields_eff(i,j)-s->shields_crit(i,j),0.0)*d50;
+
+        if(p->S33==4)
+        Lsc = p->S40*MAX(s->waterlevel(i,j),0.0);
+
+        Lsc = MAX(Lsc,0.0);
+
+        Ls_max = MAX(Ls_max,Lsc);
+
+
+        // signed upwind coefficients, zero where the upwind cell carries no bed
+        cx = 0.0;
+        cy = 0.0;
+
+        if(sgx>0.0 && p->DFBED[Im1J]>0 && p->DXP[IM1]>1.0e-20)
+        cx = Lsc*sgx/p->DXP[IM1];
+
+        if(sgx<0.0 && p->DFBED[Ip1J]>0 && p->DXP[IP]>1.0e-20)
+        cx = Lsc*sgx/p->DXP[IP];
+
+        if(sgy>0.0 && p->DFBED[IJm1]>0 && p->DYP[JM1]>1.0e-20)
+        cy = Lsc*sgy/p->DYP[JM1];
+
+        if(sgy<0.0 && p->DFBED[IJp1]>0 && p->DYP[JP]>1.0e-20)
+        cy = Lsc*sgy/p->DYP[JP];
+
+        // curvilinear grid (G 50): Ls s.grad(qb) upwinded per index direction, the contravariant
+        // components of s (per index, from the centre differences over two cells)
+        if(p->geo_curv==1)
+        {
+        const double sxi = sediment_curv::contra(p,1,i,j,sgx,sgy);
+        const double seta = sediment_curv::contra(p,2,i,j,sgx,sgy);
+        cx = cy = 0.0;
+        if(sxi>0.0 && p->DFBED[Im1J]>0)
+        cx = Lsc*sxi;
+        if(sxi<0.0 && p->DFBED[Ip1J]>0)
+        cx = Lsc*sxi;
+        if(seta>0.0 && p->DFBED[IJm1]>0)
+        cy = Lsc*seta;
+        if(seta<0.0 && p->DFBED[IJp1]>0)
+        cy = Lsc*seta;
+        }
+        
         cxn(i,j) = cx;
         cyn(i,j) = cy;
 

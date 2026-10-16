@@ -47,11 +47,11 @@ seastate_vtp::seastate_vtp(lexer *p, fdm_seastate *e, ghostcell *pgc, bool coupl
 void seastate_vtp::start(lexer *p, fdm_seastate *e, ghostcell *pgc)
 {
     // print out based on iteration
-    if((p->count%p->P181==0 && p->P182<0.0 && p->P10==1 && p->P181>0) || (p->count==0 && p->P182<0.0))
+    if((p->count%p->P181==0 && p->P182<0.0 && p->P10>0 && p->P181>0) || (p->count==0 && p->P182<0.0))
     print2D(p,e,pgc);
 
     // print out based on time
-    if((p->simtime>p->printtime && p->P182>0.0 && p->P10==1) || (p->count==0 && p->P182>0.0))
+    if((p->simtime>p->printtime && p->P182>0.0 && p->P10>0) || (p->count==0 && p->P182>0.0))
     {
     print2D(p,e,pgc);
 

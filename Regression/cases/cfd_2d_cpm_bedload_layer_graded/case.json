@@ -1,0 +1,10 @@
+{
+ "base": "cfd_2d_cpm_bedload_layer",
+ "control_add": ["B 101 10"],
+ "files": ["x-spacing.dat"],
+ "steps": 150,
+ "tags": ["quick", "2d", "cpm"],
+ "description": "as cfd_2d_cpm_bedload_layer on a grid with a change of cell size in x: 2.5 mm cells on the first half of the periodic channel, 5 mm on the second (two 1:2 jumps), 5 mm in z",
+ "covers": ["CPM solid fraction on a non-uniform grid (kernel volume of the nodes, kvol)", "conservative smoothing of the solid fraction across a change of cell size",
+            "bed shear stress of the bedload layer with the vertical cell size", "column bed level ending at the first almost empty cell"]
+}

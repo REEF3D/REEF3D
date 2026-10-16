@@ -78,7 +78,7 @@ public:
 
     // NHFLOW
     int A509,A510,A511,A512,A513,A514,A515,A516,A517,A518,A519;
-    int A520,A521,A524,A527;
+    int A520,A521,A524,A527,A529,A530;
     double A522,A526,A528;
     double A531;
     int A532,A533;
@@ -125,10 +125,17 @@ public:
     double A752,A761;
     int A748,A770,A773,A774,A775;
     double A746,A747,A749,A771,A772,A780;
-    int A790,A792,A794,A796,A797,A738,A798,A799,A715_k,A718,A719,A722;
+    int A790,A792,A794,A796,A797,A738,A798,A799,A781,A715_k,A718,A719,A722;
+    int A758_m;
+    int A758_n;
+    int A762;
     double A715_th1,A715_th2;
+    double A757_br;
+    double A757_cds2;
     double A716_m;
     double A716_w;
+    int A717;
+    double A717_th1,A717_th2;
     double A709,A791,A793,A795,A739;
     double *A760_x,*A760_y;
     double *A722_xs,*A722_ys,*A722_xe,*A722_ye,*A722_kt,*A722_kr,*A722_zc;
@@ -152,7 +159,7 @@ public:
     int B10,B11,B20,B21,B22,B23;
     int B30,B32,B33;
     double B31,B32_x,B32_y,B32_z;
-    int B60,B61,B71,B75,B76,B77,B84,B85,B81,B82,B86,B87,B89,B90,B91,B92,B93,B94,B97,B98,B99,B101,B105,B106,B107;
+    int B60,B61,B62,B71,B75,B76,B77,B84,B85,B81,B82,B86,B87,B89,B90,B91,B92,B93,B94,B97,B98,B99,B101,B105,B106,B107;
     int B136,B138,B138_1,B138_2,B139;
     int B180,B191,B192,B240,B241,B242,B243;
     double B29,B50,B51,B52,B53,B54,B55,B56,B57,B81_1,B81_2,B81_3,B83,B117,B118,B87_1,B87_2,B88;
@@ -174,6 +181,9 @@ public:
     int B510,B511,B514,B515,B523;
     int B530,B530_N;    // iowave redesign: waves on the background (B 530 mode N)
     int B529;           // iowave redesign: edge mass balance log every B 529 steps (0: off)
+    double B526;        // iowave: low-pass time scale [s] of the combined beach B 99 6 (0: Tp / 4 of the B 92 wave)
+    double B527;        // iowave: low-pass time scale [s] of the combined generation B 98 6 and of B 98 7 (0: Tp / 4 of the B 92 wave)
+    double B528;        // iowave: reference (peak) period [s] of the two-band absorption B 98 7 / B 99 7 (0: Tp of the B 92 wave)
     int *B515_id; double *B515_x0,*B515_y0,*B515_href;
     int *B510_id,*B510_mode; double *B510_dir,*B510_tramp;
     int *B511_id; double *B511_a,*B511_T,*B511_phase;
@@ -205,7 +215,7 @@ public:
     
     int B200,B201,B208;
     double B201_n, B201_d50, B201_alpha, B201_beta;
-    int B202,B203;
+    int B202,B203,B204;
     double *B202_t,*B202_n,*B202_d50,*B202_alpha,*B202_beta;
     double B209;
     int B210;
@@ -306,7 +316,7 @@ public:
     double F59_xm, F59_ym, F59_zs, F59_ze, F59_r;
     int F60_flag;
     double F60,F61,F62,F63;
-    int F64;
+    int F64,F65;
     int F68;
     double F68_x,F68_y,F68_z;
     int F70;
@@ -360,9 +370,12 @@ public:
 
     // Grid Options
     // mesh refinement (SFLOW, FNPF, NHFLOW): G 1-G 40
-    int G1,G2,G3,G4,G5,G6,G7,G10,G11,G12,G22,G23,G30,G31,G40;
+    int G1,G2,G3,G4,G5,G6,G7,G10,G11,G12,G22,G23,G30,G31,G40,G50,G51,G52,G53;
     double G12_r,G13_L,G13_a,G20,G21;
     double *G10_xs,*G10_xe,*G10_ys,*G10_ye;
+    int G15,G25;
+    double G24,G26;
+    double *G15_xs,*G15_xe,*G15_ys,*G15_ye,*G15_zs,*G15_ze;
     double *G11_xs,*G11_xe,*G11_ys,*G11_ye;
     // grid
     int G501,G502,G505;
@@ -403,7 +416,8 @@ public:
     double *P35_ts,*P35_te,*P35_dt;
     double P43_xs,P43_xe,P43_ys,P43_ye;
     int P46,P46_is,P46_ie;
-    int P47,P47_ts,P47_te;
+    int P47;
+    double P47_ts,P47_te;
     double *P50_x,*P50_y;
     double *P51_x,*P51_y;
     double *P52_y,*P56_x;
@@ -479,6 +493,7 @@ public:
 
 
     double Q25,Q30,Q45,Q53,Q54,Q55,Q56,Q59,Q60,Q62,Q63,Q64,Q65,Q66,Q70;
+    int Q72;
     double Q41;
     int Q61,*Q61_i;
     double *Q61_x,*Q61_y,*Q61_z;
@@ -506,8 +521,8 @@ public:
 
 
     // Sediment Transport
-    int S10,S11,S12,S15,S16,S25,S27,S28,S29,S31,S32,S33,S34,S36,S37,S38,S41,S42,S43,S44,S50,S61,S62,S73,S74,S75,S77,S78,S80,S84,S85,S90,S91,S94,S100,S101,S49,S51,S54,S56;
-    double S13,S14,S17,S18,S19,S20,S21,S22,S23,S24,S26_a,S26_b,S30,S35,S39,S40,S45,S46,S47,S48,S57,S71,S72,S81,S82,S92,S93,S102,S103,S104,S52,S53,S55;
+    int S10,S11,S12,S15,S16,S25,S27,S28,S29,S31,S32,S33,S34,S36,S37,S38,S41,S42,S43,S44,S50,S61,S62,S73,S74,S75,S77,S78,S80,S84,S85,S86,S95,S90,S91,S94,S100,S101,S49,S51,S54,S56;
+    double S13,S14,S17,S18,S19,S20,S21,S22,S23,S24,S26_a,S26_b,S30,S35,S39,S40,S45,S46,S47,S48,S57,S71,S72,S81,S82,S87,S88,S89,S96,S92,S93,S102,S103,S104,S52,S53,S55,S58,S63;
     double S29_ts,S29_te,S29_dts,S29_dte;
     double *S73_val,*S73_dist,*S73_b,*S73_x,*S73_y;
     double *S74_xs,*S74_xe,*S74_ys,*S74_ye;
@@ -566,6 +581,7 @@ public:
     double X25_Cp,X25_Cq,X25_Cr;
     double X26_Cu,X26_Cv,X26_Cw;
     double X17,X18;
+    int X27;
     double X41,X42,X43,X44;
     double X100_x,X100_y,X100_z;
     double X101_phi, X101_theta, X101_psi;

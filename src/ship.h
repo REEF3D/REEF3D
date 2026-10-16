@@ -50,7 +50,8 @@ using namespace std;
 //   crossflow      Cd           cross-flow drag coefficient            (default 0: off)
 //   strips         n            strips for the cross-flow drag         (default 40)
 //   thrust         T [x z]      constant thrust along the ship x-axis [N] at (x, z) relative
-//                               to the CoG in the ship frame           (default 0)
+//                               to the CoG in the ship frame           (default 0); the pitch
+//                               moment is z T, x lies on the line of action and has no effect
 //   current        Ux Uy        uniform current, inertial frame [m/s]: the hull, propeller and
 //                               rudder models use the velocity relative to it (ship held in a
 //                               current instead of towed)              (default 0 0)
@@ -103,6 +104,12 @@ using namespace std;
 //                               velocity terms, Munk moment, waves, drift), the MMG model the
 //                               hull derivatives without the Munk moment -(my - mx) u vm (needs
 //                               mmg_added_mass for my, mx; no MMG added mass is solved)
+//   hybrid_munk    dm           mmg_fluid 2: A22 - A11 [kg] of the Munk moment -dm u vm taken out of
+//                               N'v, e.g. the value of the solver's computational hull from a
+//                               prescribed drift run (default: my - mx of mmg_added_mass)
+//   hybrid_surge   0|1          mmg_fluid 2: 1 adds the MMG surge velocity term my vm r - mx v r
+//                               (the ideal-fluid speed loss in a turn) to the MMG loads, for grids
+//                               on which the solver does not resolve it (validation 12; default 0)
 //   mmg_draft      d            draft for the nondimensionalisation    (default: from the hull)
 //   propeller_wake_mmg C1 C2p C2n xP   MMG wake in manoeuvring with wP0 = propeller_inflow wake,
 //                               xP: propeller position from midship in units of L
@@ -128,6 +135,7 @@ private:
     
     void read(lexer*);
     void ini(lexer*, const sixdof_rigidbody&, const sixdof_geometry&);
+    double cell_size_at(lexer*, const Eigen::Vector3d&) const;
     void steering(lexer*, double, double);
     double propeller_inflow(const sixdof_rigidbody&, sixdof_fluid*, const Eigen::Vector3d&, const Eigen::Vector3d&);
     
@@ -165,6 +173,8 @@ private:
     bool mmg, mmg_am, pwake_mmg, mmg_draft_in;
     int mmg_fluid;
     double mmgc[17], mmg_mx, mmg_my, mmg_Jz, mmg_d, xm, Umin, rho_am;
+    double hyb_dm;   // hybrid_munk: A22 - A11 of the Munk moment taken out (< 0: my - mx)
+    int hyb_surge;   // hybrid_surge: the MMG surge velocity term added in mmg_fluid 2
     double wC1, wC2p, wC2n, wxP;
     double XH, YH, NH, NM;
     bool appr, appr_done;

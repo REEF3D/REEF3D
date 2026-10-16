@@ -21,7 +21,9 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"sandslide_steepest_descent.h"
+#include"sediment_curv.h"
 #include"sediment_fdm.h"
+#include<algorithm>
 #include"sediment_mixture.h"
 #include"lexer.h"
 #include"ghostcell.h"
@@ -112,6 +114,7 @@ void sandslide_steepest_descent::slide(lexer *p, ghostcell *pgc, sediment_fdm *s
     fh(i,j) = 0.0;
     
     SEDSLICELOOP
+    SLIDE_DONOR
     if(p->pos_x()>p->S77_xs && p->pos_x()<p->S77_xe)
     {
         int i_steep, j_steep;
@@ -142,7 +145,7 @@ void sandslide_steepest_descent::slide(lexer *p, ghostcell *pgc, sediment_fdm *s
             
             // Accumulate flux (don't modify topo directly yet)
             fh(i,j) -= transfer;
-            fh(i_steep, j_steep) += transfer*SLIDE_AR(i_steep-i,j_steep-j);
+            fh(i_steep, j_steep) += transfer*(p->geo_curv==1 ? SLIDE_ARC(i_steep-i,j_steep-j) : SLIDE_AR(i_steep-i,j_steep-j));
             
             if(s->pmix!=nullptr)
             s->pmix->slide_transfer(i,j,i_steep,j_steep,transfer);
@@ -157,6 +160,13 @@ void sandslide_steepest_descent::slide(lexer *p, ghostcell *pgc, sediment_fdm *s
 void sandslide_steepest_descent::find_steepest_neighbor(lexer* p, slice& zh, int i, int j, int& i_steep, int& j_steep, 
                                                         double& max_slope, double& dist_steep)
 {
+    // curvilinear grid (G 50): sediment_curv.h
+    if(p->geo_curv==1)
+    {
+    find_steepest_neighbor_curv(p,zh,i,j,i_steep,j_steep,max_slope,dist_steep);
+    return;
+    }
+
     double z0 = zh(i,j);
     max_slope = 0.0;
     i_steep = i;
@@ -196,4 +206,63 @@ void sandslide_steepest_descent::find_steepest_neighbor(lexer* p, slice& zh, int
             }
         }
     }
+}
+
+// ---- curvilinear grid (G 50): the functions above with the geometry of sediment_curv.h
+
+void sandslide_steepest_descent::find_steepest_neighbor_curv(lexer* p, slice& zh, int i, int j, int& i_steep, int& j_steep, 
+                                                        double& max_slope, double& dist_steep)
+{
+    double z0 = zh(i,j);
+    max_slope = 0.0;
+    i_steep = i;
+    j_steep = j;
+    dist_steep = (p->geo_curv==1) ? sediment_curv::dist(p,i,j,1,0) : p->DXP[IP];
+    
+    // 8-connectivity: check all surrounding cells
+    for(int di = -1; di <= 1; ++di)
+    {
+        for(int dj = -1; dj <= 1; ++dj)
+        {
+            if((di == 0 && dj == 0)||p->DFBED[(i-p->imin+di)*p->jmax + (j-p->jmin+dj)]<0) 
+            continue;
+            
+            // no transfer into physical boundary ghost cells (lost) or across rows in 2D
+            if(!SLIDE_NB(di,dj))
+            continue;
+                
+            // distance between the cell centres (was 0.5*(dx+dy) and sqrt(2) of it: wrong for dx != dy)
+            double ddx = di<0?p->DXP[IM1]:(di>0?p->DXP[IP]:0.0);
+            double ddy = dj<0?p->DYP[JM1]:(dj>0?p->DYP[JP]:0.0);
+            double dist = sqrt(ddx*ddx + ddy*ddy);
+            if(p->geo_curv==1)
+            dist = sediment_curv::dist(p,i,j,di,dj);
+                
+            // Elevation difference (positive means neighbor is lower)
+            double dz = z0 - zh(i+di, j+dj);
+                
+            // Slope in this direction
+            double slope = dz / dist;
+                
+            // Track steepest downslope direction
+            if(slope > max_slope)
+            {
+                max_slope = slope;
+                i_steep = i + di;
+                j_steep = j + dj;
+                dist_steep = dist;
+            }
+        }
+    }
+}
+
+// mesh refinement and multi-block grids: one iteration of start() (sandslide.h)
+int sandslide_steepest_descent::amr_sweep(lexer *p, ghostcell *pgc, sediment_fdm *s)
+{
+    count=0;
+    std::fill(fh.V,fh.V+p->imax*p->jmax,0.0);
+
+    slide(p,pgc,s);
+
+    return count;
 }

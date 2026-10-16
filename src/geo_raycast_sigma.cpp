@@ -57,6 +57,11 @@ void geo_raycast::sigma_io(lexer *p, double **tri_x, double **tri_y, double **tr
     const double margin   = 2.0*DSM;
     const double psi      = 1.0e-8*DSM;
 
+    double cbx0=0.0, cbx1=0.0, cby0=0.0, cby1=0.0;
+    vector<int> cand;
+    if(p->geo_curv==1)
+    p->geo_box(cbx0,cbx1,cby0,cby1);
+
     LOOP
 	{
 	CL[IJK]=0;
@@ -85,12 +90,20 @@ void geo_raycast::sigma_io(lexer *p, double **tri_x, double **tri_y, double **tr
 	ys = MIN3(Ay,By,Cy);
 	ye = MAX3(Ay,By,Cy);
 
-    // AABB reject: footprint does not overlap this subdomain
+    // AABB reject: footprint does not overlap this subdomain (curvilinear grid: the physical box of the rank)
+    if(p->geo_curv==1)
+    {
+        if(xe < cbx0-margin || xs > cbx1+margin || ye < cby0-margin || ys > cby1+margin)
+        continue;
+    }
+    else
+    {
     if(xe < p->originx-margin || xs > p->endx+margin)
     continue;
 
     if(p->j_dir==1 && (ye < p->originy-margin || ys > p->endy+margin))
     continue;
+    }
 
     // projected edge vectors, loop invariant
     abx = Bx-Ax;
@@ -112,6 +125,39 @@ void geo_raycast::sigma_io(lexer *p, double **tri_x, double **tri_y, double **tr
     // normalise the winding to counter-clockwise
     sgn   = (area2 > 0.0 ? 1.0 : -1.0);
     denom = 1.0/(sgn*area2);
+
+    // curvilinear grid (G 50): the columns whose physical centre lies in the footprint
+    if(p->geo_curv==1)
+    {
+        p->geo_cells(xs-psi, xe+psi, ys-psi, ye+psi, cand);
+
+        for(size_t c=0; c<cand.size(); c+=2)
+        {
+        i = cand[c];
+        j = cand[c+1];
+        Px = p->XC2D[IJ] - psi;
+        Py = p->YC2D[IJ] + psi;
+
+        e0 = sgn*(abx*(Py-Ay) - aby*(Px-Ax));
+        e1 = sgn*(bcx*(Py-By) - bcy*(Px-Bx));
+        e2 = sgn*(cax*(Py-Cy) - cay*(Px-Cx));
+
+        if(e0 < 0.0 || e1 < 0.0 || e2 < 0.0)
+        continue;
+
+        Rz = (e1*Az + e2*Bz + e0*Cz)*denom;
+
+            for(k=0;k<p->knoz;++k)
+            {
+				if(p->ZSP[IJK] < Rz)
+				CL[IJK] += 1;
+
+                else
+				CR[IJK] += 1;
+            }
+        }
+    continue;
+    }
 
 	is = MAX(p->posc_i(xs)-1, 0);
 	ie = MIN(p->posc_i(xe)+2, p->knox);
@@ -240,20 +286,27 @@ done:
 
 
 void geo_raycast::sigma_band(lexer *p, double **tri_x, double **tri_y, double **tri_z, int ts, int te,
-                             double band, double *LS)
+                             double band, double *LS, const int *use)
 {
     // band = NB*DSM, NB ~ 4 cells; must exceed A526 by 2-3
     int i,j,k,n;
     const double band2 = band*band;
 
+    double cbx0=0.0, cbx1=0.0, cby0=0.0, cby1=0.0;
+    vector<int> cand;
+    if(p->geo_curv==1)
+    p->geo_box(cbx0,cbx1,cby0,cby1);
+
     for(n=ts; n<te; ++n)
     {
+        if(use!=nullptr && use[n]==0)
+        continue;
+        
         double Ax=tri_x[n][0], Ay=tri_y[n][0], Az=tri_z[n][0];
         double Bx=tri_x[n][1], By=tri_y[n][1], Bz=tri_z[n][1];
         double Cx=tri_x[n][2], Cy=tri_y[n][2], Cz=tri_z[n][2];
         
-        // <<<< INSERT HERE >>>>
-        // 2D: skip the y-normal end caps. In a one-cell-wide domain they sit
+// 2D: skip the y-normal end caps. In a one-cell-wide domain they sit
         // DYN/2 from every interior cell and win every distance comparison,
         // flattening the interior to a constant. Matches ray_cast_z and
         // force_calc_stl, which both drop |ny|>0.9 facets when j_dir==0.
@@ -271,6 +324,35 @@ void geo_raycast::sigma_band(lexer *p, double **tri_x, double **tri_y, double **
         double txs=MIN3(Ax,Bx,Cx)-band, txe=MAX3(Ax,Bx,Cx)+band;
         double tys=MIN3(Ay,By,Cy)-band, tye=MAX3(Ay,By,Cy)+band;
         double tzs=MIN3(Az,Bz,Cz)-band, tze=MAX3(Az,Bz,Cz)+band;
+
+        // curvilinear grid (G 50): the columns of the rank whose physical centre lies in the band box
+        if(p->geo_curv==1)
+        {
+            if(txe<cbx0 || txs>cbx1 || tye<cby0 || tys>cby1) continue;
+
+            p->geo_cells(txs, txe, tys, tye, cand);
+
+            for(size_t c=0; c<cand.size(); c+=2)
+            {
+            i = cand[c];
+            j = cand[c+1];
+            const double xc = p->XC2D[IJ], yc = p->YC2D[IJ];
+
+            int ks = MAX(p->posc_sig(i,j,tzs)-1, 0);
+            int ke = MIN(p->posc_sig(i,j,tze)+2, p->knoz);
+
+                for(k=ks; k<ke; ++k)
+                {
+                if(p->ZSP[IJK] < tzs || p->ZSP[IJK] > tze) continue;
+
+                double dd = dist2_tri(xc, yc, p->ZSP[IJK], Ax,Ay,Az, Bx,By,Bz, Cx,Cy,Cz);
+
+                if(dd < band2 && dd < LS[IJK]*LS[IJK])
+                LS[IJK] = sqrt(dd);
+                }
+            }
+            continue;
+        }
 
         // cheap reject: triangle band outside this subdomain
         if(txe<p->originx || txs>p->endx) continue;

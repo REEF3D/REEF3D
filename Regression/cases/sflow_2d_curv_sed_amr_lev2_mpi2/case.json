@@ -1,0 +1,20 @@
+{
+ "np": 2,
+ "steps": 40,
+ "tags": [
+  "2d",
+  "sflow",
+  "amr",
+  "mpi",
+  "curvilinear",
+  "sediment"
+ ],
+ "description": "Sediment transport on the mesh refinement of SFLOW: two levels in a static box on a curvilinear grid turned by 90 deg, two ranks (sediment_curvilinear/t4).",
+ "covers": [
+  "sflow_amr_sed on several ranks: remote fills of qb and of the bed, remote flux matching (face_run_at), the cross-grid exchanges of the filter"
+ ],
+ "solver": "sflow",
+ "files": [
+  "curvgrid.dat"
+ ]
+}

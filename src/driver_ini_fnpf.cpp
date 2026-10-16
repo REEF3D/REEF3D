@@ -108,6 +108,10 @@ void driver::driver_ini_fnpf()
 	 p->xcoormin=pgc->globalmin(p->xcoormin);
 	 p->ycoormin=pgc->globalmin(p->ycoormin);
 	 p->zcoormin=pgc->globalmin(p->zcoormin);
+
+     // F 42 sets it explicitly (as in driver::makegrid_sigma and for CFD)
+     if(p->F42>=0.0)
+     p->maxlength = p->F42;
      
     if(p->mpirank==0)
     cout<<"starting driver_ini_FNPF"<<endl;

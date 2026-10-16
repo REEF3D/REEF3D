@@ -62,7 +62,7 @@ void reefamr::regrid(lexer *p, ghostcell *pgc, bool initial)
     if(dyn)
     {
         const int B = par.dryband;
-        forbidd.assign((size_t)GNX*GNY,0);
+        forbidd.assign((size_t)GNXV*GNYV,0);
         for(int ii=0; ii<NX0; ++ii)
         for(int jj=0; jj<NY0; ++jj)
         if(cell_unfit(ii,jj))
@@ -70,18 +70,33 @@ void reefamr::regrid(lexer *p, ghostcell *pgc, bool initial)
             int I=ii+O0i, J=jj+O0j;
             for(int a=MAX(I-B,0); a<=MIN(I+B,GNX-1); ++a)
             for(int d=MAX(J-B,0); d<=MIN(J+B,GNY-1); ++d)
-            forbidd[(size_t)a*GNY+d]=1;
+            forbidd[(size_t)a*GNYV+d]=1;
+        }
+
+        // multi-block: the cells of the blocks 1.. (the band within the block)
+        for(int id : lev[0])
+        {
+            reefamr_patch *c = P[id];
+            for(int ii=EXT; ii<EXT+c->nx; ++ii)
+            for(int jj=EXT; jj<EXT+c->ny; ++jj)
+            if(cell_unfit_patch(c,ii,jj))
+            {
+                int I=ii-EXT+c->I0, J=jj-EXT+c->J0;
+                for(int a=MAX(I-B,c->I0); a<=MIN(I+B,c->I1); ++a)
+                for(int d=MAX(J-B,c->J0); d<=MIN(J+B,c->J1); ++d)
+                forbidd[(size_t)a*GNYV+d]=1;
+            }
         }
         global_or(forbidd);
     }
 
     auto tile_forbidden = [&](int l, int ti, int tj)
     {
-        int a0 = (ti*T)>>l, a1 = (MIN((ti+1)*T,GNX<<l)-1)>>l;
-        int d0 = (tj*T)>>l, d1 = (MIN((tj+1)*T,GNY<<l)-1)>>l;
+        int a0 = (ti*T)>>l, a1 = (MIN((ti+1)*T,GNXV<<l)-1)>>l;
+        int d0 = (tj*T)>>l, d1 = (MIN((tj+1)*T,GNYV<<l)-1)>>l;
         for(int a=a0; a<=a1; ++a)
         for(int d=d0; d<=d1; ++d)
-        if(forbid0[(size_t)a*GNY+d] || (dyn && forbidd[(size_t)a*GNY+d]))
+        if(forbid0[(size_t)a*GNYV+d] || (dyn && forbidd[(size_t)a*GNYV+d]))
         return true;
         return false;
     };
@@ -94,22 +109,73 @@ void reefamr::regrid(lexer *p, ghostcell *pgc, bool initial)
 
         for(size_t q=0; q+3<par.rbox.size(); q+=4)
         SLICELOOP4
-        if(p->XP[IP]>=par.rbox[q] && p->XP[IP]<=par.rbox[q+1] && p->YP[JP]>=par.rbox[q+2] && p->YP[JP]<=par.rbox[q+3])
         {
+            // curvilinear grid: the cell centres (as F 72), not the logical coordinates
+            const double xc = (p->geo_curv==1) ? p->XC2D[(i-p->imin)*p->jmax+(j-p->jmin)] : p->XP[IP];
+            const double yc = (p->geo_curv==1) ? p->YC2D[(i-p->imin)*p->jmax+(j-p->jmin)] : p->YP[JP];
+            if(xc>=par.rbox[q] && xc<=par.rbox[q+1] && yc>=par.rbox[q+2] && yc<=par.rbox[q+3])
+            {
+                int I=i+O0i, J=j+O0j;
+                if(nblk>0 && native_ring(I,J))
+                continue;
+                for(int ti=(I<<l)/T; ti<=(((I+1)<<l)-1)/T; ++ti)
+                for(int tj=(J<<l)/T; tj<=(((J+1)<<l)-1)/T; ++tj)
+                M[l][(size_t)ti*gtny[l]+tj]=1;
+            }
+        }
+
+        // multi-block: the cells of the blocks of this rank
+        for(size_t q=0; q+3<par.rbox.size(); q+=4)
+        for(int id : lev[0])
+        {
+            reefamr_patch *c = P[id];
+            lexer *pp = c->pp;
+            for(int ii=EXT; ii<EXT+c->nx; ++ii)
+            for(int jj=EXT; jj<EXT+c->ny; ++jj)
+            {
+                const int k = (ii-pp->imin)*pp->jmax+(jj-pp->jmin);
+                if(pp->XC2D[k]>=par.rbox[q] && pp->XC2D[k]<=par.rbox[q+1] && pp->YC2D[k]>=par.rbox[q+2] && pp->YC2D[k]<=par.rbox[q+3])
+                {
+                    int I=ii-EXT+c->I0, J=jj-EXT+c->J0;
+                    for(int ti=(I<<l)/T; ti<=(((I+1)<<l)-1)/T; ++ti)
+                    for(int tj=(J<<l)/T; tj<=(((J+1)<<l)-1)/T; ++tj)
+                    M[l][(size_t)ti*gtny[l]+tj]=1;
+                }
+            }
+        }
+
+        if(par.zones)
+        SLICELOOP4
+        if(p->geo_curv==1 ? zone_test(p->XC2D[(i-p->imin)*p->jmax+(j-p->jmin)],p->YC2D[(i-p->imin)*p->jmax+(j-p->jmin)])
+                          : zone_test(p->XP[IP],p->YP[JP]))
+        {
+            // curvilinear grid: the cell centres (as the boxes above); multi-block: not the ring
             int I=i+O0i, J=j+O0j;
+            if(nblk>0 && native_ring(I,J))
+            continue;
             for(int ti=(I<<l)/T; ti<=(((I+1)<<l)-1)/T; ++ti)
             for(int tj=(J<<l)/T; tj<=(((J+1)<<l)-1)/T; ++tj)
             M[l][(size_t)ti*gtny[l]+tj]=1;
         }
 
+        // multi-block: the zone in the cells of the blocks of this rank
         if(par.zones)
-        SLICELOOP4
-        if(zone_test(p->XP[IP],p->YP[JP]))
+        for(int id : lev[0])
         {
-            int I=i+O0i, J=j+O0j;
-            for(int ti=(I<<l)/T; ti<=(((I+1)<<l)-1)/T; ++ti)
-            for(int tj=(J<<l)/T; tj<=(((J+1)<<l)-1)/T; ++tj)
-            M[l][(size_t)ti*gtny[l]+tj]=1;
+            reefamr_patch *c = P[id];
+            lexer *pp = c->pp;
+            for(int ii=EXT; ii<EXT+c->nx; ++ii)
+            for(int jj=EXT; jj<EXT+c->ny; ++jj)
+            {
+                const int k = (ii-pp->imin)*pp->jmax+(jj-pp->jmin);
+                if(zone_test(pp->XC2D[k],pp->YC2D[k]))
+                {
+                    int I=ii-EXT+c->I0, J=jj-EXT+c->J0;
+                    for(int ti=(I<<l)/T; ti<=(((I+1)<<l)-1)/T; ++ti)
+                    for(int tj=(J<<l)/T; tj<=(((J+1)<<l)-1)/T; ++tj)
+                    M[l][(size_t)ti*gtny[l]+tj]=1;
+                }
+            }
         }
 
         global_or(M[l]);
@@ -143,17 +209,22 @@ void reefamr::regrid(lexer *p, ghostcell *pgc, bool initial)
         {
             int a0 = (ti*T)/2-nest, a1 = ((ti+1)*T-1)/2+nest;
             int d0 = (tj*T)/2-nest, d1 = ((tj+1)*T-1)/2+nest;
-            a0 = MAX(a0,0)/T; a1 = MIN(a1,(GNX<<l)-1)/T;
-            d0 = MAX(d0,0)/T; d1 = MIN(d1,(GNY<<l)-1)/T;
+            a0 = MAX(a0,0)/T; a1 = MIN(a1,(GNXV<<l)-1)/T;
+            d0 = MAX(d0,0)/T; d1 = MIN(d1,(GNYV<<l)-1)/T;
             for(int a=a0; a<=a1; ++a)
             for(int d=d0; d<=d1; ++d)
             M[l][(size_t)a*gtny[l]+d]=1;
         }
 
+        // multi-block: the refinement continues across the interfaces
+        blocks_propagate(l,M[l],false);
+
         for(int ti=0; ti<gtnx[l]; ++ti)
         for(int tj=0; tj<gtny[l]; ++tj)
         if(M[l][(size_t)ti*gtny[l]+tj] && tile_forbidden(l,ti,tj))
         M[l][(size_t)ti*gtny[l]+tj]=0;
+
+        blocks_propagate(l,M[l],true);
 
         // lazy layout: the refined tiles of the current layout stay as long as the union with the
         // flagged tiles is at most par.lazy times the flagged tiles.  A patch is kept only with
@@ -185,8 +256,8 @@ void reefamr::regrid(lexer *p, ghostcell *pgc, bool initial)
     {
         int a0 = (ti*T)/2-nest, a1 = ((ti+1)*T-1)/2+nest;
         int d0 = (tj*T)/2-nest, d1 = ((tj+1)*T-1)/2+nest;
-        a0 = MAX(a0,0)/T; a1 = MIN(a1,(GNX<<(l-1))-1)/T;
-        d0 = MAX(d0,0)/T; d1 = MIN(d1,(GNY<<(l-1))-1)/T;
+        a0 = MAX(a0,0)/T; a1 = MIN(a1,(GNXV<<(l-1))-1)/T;
+        d0 = MAX(d0,0)/T; d1 = MIN(d1,(GNYV<<(l-1))-1)/T;
         bool ok=true;
         for(int a=a0; a<=a1 && ok; ++a)
         for(int d=d0; d<=d1 && ok; ++d)
@@ -212,11 +283,20 @@ void reefamr::regrid(lexer *p, ghostcell *pgc, bool initial)
         }
     }
 
-    // ---- patches: marked tiles merged into rectangles, cut at the rank box
+    // ---- patches: marked tiles merged into rectangles, cut at the rank box (multi-block: at the
+    //      block faces as well; the level-0 blocks stay first in the patch list)
     vector<reefamr_patch*> oldP = P;
     vector<char> kept(oldP.size(),0);
     vector<reefamr_patch*> newP;
     vector<vector<int>> newlev(maxlev+1);
+
+    for(size_t k=0; k<oldP.size(); ++k)
+    if(oldP[k]->lev==0)
+    {
+        kept[k]=1;
+        newlev[0].push_back((int)newP.size());
+        newP.push_back(oldP[k]);
+    }
 
     if(par.place>0)
     place_patches(p,pgc,M,oldP,kept,newP,newlev);
@@ -225,71 +305,95 @@ void reefamr::regrid(lexer *p, ghostcell *pgc, bool initial)
     {
         gtile[l] = M[l];
 
-        struct R { int ta,tb,tj0,tj1; };
-        vector<R> open, done;
-        int t0i=bxlo(l)/T, t1i=bxhi(l)/T, t0j=bylo(l)/T, t1j=byhi(l)/T;
-
-        for(int tj=t0j; tj<=t1j; ++tj)
+        // the marked tiles of the tile range, rectangles clipped to the cell box [cx0,cx1]x[cy0,cy1]
+        auto merge = [&](int cx0, int cx1, int cy0, int cy1, int b)
         {
-            vector<R> next;
-            int ti=t0i;
-            while(ti<=t1i)
-            {
-                if(!M[l][(size_t)ti*gtny[l]+tj]) { ++ti; continue; }
-                int ta=ti;
-                while(ti<=t1i && M[l][(size_t)ti*gtny[l]+tj]) ++ti;
-                int tb=ti-1;
+            struct R { int ta,tb,tj0,tj1; };
+            vector<R> open, done;
+            int t0i=cx0/T, t1i=cx1/T, t0j=cy0/T, t1j=cy1/T;
 
-                bool ext=false;
-                for(auto &o : open)
-                if(o.ta==ta && o.tb==tb && o.tj1==tj-1)
+            for(int tj=t0j; tj<=t1j; ++tj)
+            {
+                vector<R> next;
+                int ti=t0i;
+                while(ti<=t1i)
                 {
-                    o.tj1=tj;
-                    next.push_back(o);
-                    o.ta=-1;
-                    ext=true;
-                    break;
+                    if(!M[l][(size_t)ti*gtny[l]+tj]) { ++ti; continue; }
+                    int ta=ti;
+                    while(ti<=t1i && M[l][(size_t)ti*gtny[l]+tj]) ++ti;
+                    int tb=ti-1;
+
+                    bool ext=false;
+                    for(auto &o : open)
+                    if(o.ta==ta && o.tb==tb && o.tj1==tj-1)
+                    {
+                        o.tj1=tj;
+                        next.push_back(o);
+                        o.ta=-1;
+                        ext=true;
+                        break;
+                    }
+                    if(!ext)
+                    next.push_back({ta,tb,tj,tj});
                 }
-                if(!ext)
-                next.push_back({ta,tb,tj,tj});
+                for(auto &o : open)
+                if(o.ta>=0)
+                done.push_back(o);
+                open = next;
             }
             for(auto &o : open)
-            if(o.ta>=0)
             done.push_back(o);
-            open = next;
-        }
-        for(auto &o : open)
-        done.push_back(o);
 
-        for(auto &o : done)
-        {
-            int I0 = MAX(o.ta*T,bxlo(l)), I1 = MIN((o.tb+1)*T-1,bxhi(l));
-            int J0 = MAX(o.tj0*T,bylo(l)), J1 = MIN((o.tj1+1)*T-1,byhi(l));
-
-            // only solid cells: no patch
-            int fluid=0;
-            for(int a=(I0>>l); a<=(I1>>l) && fluid==0; ++a)
-            for(int d=(J0>>l); d<=(J1>>l) && fluid==0; ++d)
-            if(flag0(a,d)>0)
-            fluid=1;
-            if(fluid==0)
-            continue;
-
-            reefamr_patch *c=nullptr;
-            for(size_t k=0; k<oldP.size(); ++k)
-            if(!kept[k] && oldP[k]->lev==l && oldP[k]->I0==I0 && oldP[k]->I1==I1 && oldP[k]->J0==J0 && oldP[k]->J1==J1)
+            for(auto &o : done)
             {
-                kept[k]=1;
-                c = oldP[k];
-                c->fresh = false;
-                break;
+                int I0 = MAX(o.ta*T,cx0), I1 = MIN((o.tb+1)*T-1,cx1);
+                int J0 = MAX(o.tj0*T,cy0), J1 = MIN((o.tj1+1)*T-1,cy1);
+
+                // only solid cells: no patch
+                int fluid=0;
+                for(int a=(I0>>l); a<=(I1>>l) && fluid==0; ++a)
+                for(int d=(J0>>l); d<=(J1>>l) && fluid==0; ++d)
+                if(flag0(a,d)>0)
+                fluid=1;
+                if(fluid==0)
+                continue;
+
+                reefamr_patch *c=nullptr;
+                for(size_t k=0; k<oldP.size(); ++k)
+                if(!kept[k] && oldP[k]->lev==l && oldP[k]->I0==I0 && oldP[k]->I1==I1 && oldP[k]->J0==J0 && oldP[k]->J1==J1)
+                {
+                    kept[k]=1;
+                    c = oldP[k];
+                    c->fresh = false;
+                    break;
+                }
+
+                if(c==nullptr)
+                c = make_patch(p,pgc,l,I0,I1,J0,J1,b);
+
+                newlev[l].push_back((int)newP.size());
+                newP.push_back(c);
             }
+        };
 
-            if(c==nullptr)
-            c = make_patch(p,pgc,l,I0,I1,J0,J1);
+        if(nblk==0)
+        merge(bxlo(l),bxhi(l),bylo(l),byhi(l),0);
+        else
+        {
+            // block 0: the rank box without the ring; the blocks of this rank
+            int X0,X1,Y0,Y1;
+            block_region(l,0,X0,X1,Y0,Y1);
+            X0 = MAX(X0,bxlo(l)); X1 = MIN(X1,bxhi(l));
+            Y0 = MAX(Y0,bylo(l)); Y1 = MIN(Y1,byhi(l));
+            if(X0<=X1 && Y0<=Y1)
+            merge(X0,X1,Y0,Y1,0);
 
-            newlev[l].push_back((int)newP.size());
-            newP.push_back(c);
+            for(int b=1; b<nblk; ++b)
+            if(blk[b].rank==p->mpirank)
+            {
+                block_region(l,b,X0,X1,Y0,Y1);
+                merge(X0,X1,Y0,Y1,b);
+            }
         }
     }
 
@@ -320,11 +424,17 @@ void reefamr::regrid(lexer *p, ghostcell *pgc, bool initial)
     for(auto c : P)
     c->fresh = false;
 
+    // (the level-0 blocks of a multi-block grid are not counted)
     long cells=0;
+    int npatch=0;
     for(auto c : P)
-    cells += (long)c->nx*c->ny;
+    if(c->lev>=1)
+    {
+        cells += (long)c->nx*c->ny;
+        ++npatch;
+    }
 
-    patches_total = pgc->globalisum((int)P.size());
+    patches_total = pgc->globalisum(npatch);
     nlevg.assign(maxlev+1,0);
     for(int l=1; l<=maxlev; ++l)
     nlevg[l] = pgc->globalisum((int)lev[l].size());
@@ -400,6 +510,17 @@ void reefamr::build_plans(ghostcell *pgc)
                 continue;
 
                 int I = ii-EXT+c->I0, J = jj-EXT+c->J0;
+
+                // multi-block: beyond a block face the cell it stands for (beyond a wall: none)
+                if(nblk>0)
+                {
+                    int I2,J2;
+                    if(!canon(l,c->blk,I,J,I2,J2))
+                    continue;
+                    I = I2;
+                    J = J2;
+                }
+
                 int o = holder(l,I,J);
                 if(o<0)
                 continue;
@@ -585,6 +706,13 @@ void reefamr::build_plans(ghostcell *pgc)
                     if(side==2) { Ic=(c->I0>>1)+k; Jc=(c->J0>>1)-1; Ii=Ic; Ji=Jc+1; }
                     if(side==3) { Ic=(c->I0>>1)+k; Jc=(c->J1>>1)+1; Ii=Ic; Ji=Jc-1; }
 
+                    // the coarse face as seen from the outside cell: side2 (as side: 1/3 the inside
+                    // cell lower), sgn -1 where it points against the fine faces (multi-block: the
+                    // outside cell in the neighbour block, its indices turned)
+                    int side2 = side, sgn = 1;
+                    if(nblk>0 && !block_face_map(l-1,c->blk,side,Ic,Jc,Ii,Ji,side2,sgn))
+                    continue;
+
                     if(flag0(fsh(Ic,l-1),fsh(Jc,l-1))<0 || flag0(fsh(Ii,l-1),fsh(Ji,l-1))<0)
                     continue;
 
@@ -606,18 +734,19 @@ void reefamr::build_plans(ghostcell *pgc)
                         int oi,oj;
                         goff(g,oi,oj);
                         reefamr_match mt;
-                        mt.dir = side<2 ? 0 : 1;
-                        mt.fi = Ic-oi - (side==1 ? 1 : 0);
-                        mt.fj = Jc-oj - (side==3 ? 1 : 0);
+                        mt.dir = side2<2 ? 0 : 1;
+                        mt.fi = Ic-oi - (side2==1 ? 1 : 0);
+                        mt.fj = Jc-oj - (side2==3 ? 1 : 0);
                         mt.child = id;
                         mt.side = side;
                         mt.r = 2*k;
+                        mt.sgn = sgn;
                         for(int q=0;q<reefamr_match::NVAL;++q) mt.val[q]=0.0;
                         match[g+1].push_back(mt);
                         continue;
                     }
 
-                    freq[o].push_back(side); freq[o].push_back(Ic); freq[o].push_back(Jc);
+                    freq[o].push_back(side2+(sgn<0 ? 4 : 0)); freq[o].push_back(Ic); freq[o].push_back(Jc);
                     fitems[o].push_back(id); fitems[o].push_back(side); fitems[o].push_back(2*k);
                 }
             }
@@ -655,7 +784,8 @@ void reefamr::build_plans(ghostcell *pgc)
 
             for(size_t k=0; k<fsrv[r].size(); k+=3)
             {
-                int side=fsrv[r][k], Ic=fsrv[r][k+1], Jc=fsrv[r][k+2];
+                int side=fsrv[r][k]&3, Ic=fsrv[r][k+1], Jc=fsrv[r][k+2];
+                const int sgn = (fsrv[r][k]&4) ? -1 : 1;
                 int tgt=-1, idx=-1;
 
                 if(!covered(l,2*Ic,2*Jc))
@@ -672,6 +802,7 @@ void reefamr::build_plans(ghostcell *pgc)
                         mt.child = -1;
                         mt.side = side;
                         mt.r = 0;
+                        mt.sgn = sgn;
                         for(int q=0;q<reefamr_match::NVAL;++q) mt.val[q]=0.0;
                         tgt = g+1;
                         idx = (int)rmatch[g+1].size();
@@ -708,7 +839,7 @@ void reefamr::place_patches(lexer *p, ghostcell *pgc, vector<vector<unsigned cha
     const int me = p->mpirank;
     const int np = p->mpi_size;
 
-    struct piece { int lev, I0, I1, J0, J1; double w; int rank; };
+    struct piece { int lev, I0, I1, J0, J1; double w; int rank; int cx0, cx1, cy0, cy1, blk; };   // cx, cy: clip box (cells)
     vector<piece> pcs;
 
     auto work = [&](int l, int I0, int I1, int J0, int J1)
@@ -756,8 +887,20 @@ void reefamr::place_patches(lexer *p, ghostcell *pgc, vector<vector<unsigned cha
         for(auto &o : open)
         done.push_back(o);
 
+        // tile ranges for now; multi-block: one piece per block the rectangle reaches, clipped to it
         for(auto &o : done)
-        pcs.push_back({l,o.ta,o.tb,o.tj0,o.tj1,0.0,-1});      // tile ranges for now
+        if(nblk==0)
+        pcs.push_back({l,o.ta,o.tb,o.tj0,o.tj1,0.0,-1,0,(GNX<<l)-1,0,(GNY<<l)-1,0});
+        else
+        for(int b=0; b<nblk; ++b)
+        {
+            int X0,X1,Y0,Y1;
+            block_region(l,b,X0,X1,Y0,Y1);
+            const int ta = MAX(o.ta,X0/T), tb = MIN(o.tb,X1/T);
+            const int tc = MAX(o.tj0,Y0/T), td = MIN(o.tj1,Y1/T);
+            if(ta<=tb && tc<=td)
+            pcs.push_back({l,ta,tb,tc,td,0.0,-1,X0,X1,Y0,Y1,b});
+        }
     }
 
     // work per rank on level 0 and the mean work per rank
@@ -770,8 +913,8 @@ void reefamr::place_patches(lexer *p, ghostcell *pgc, vector<vector<unsigned cha
     }
     auto box = [&](const piece &c, int &I0, int &I1, int &J0, int &J1)
     {
-        I0 = c.I0*T; I1 = MIN((c.I1+1)*T-1,(GNX<<c.lev)-1);
-        J0 = c.J0*T; J1 = MIN((c.J1+1)*T-1,(GNY<<c.lev)-1);
+        I0 = MAX(c.I0*T,c.cx0); I1 = MIN((c.I1+1)*T-1,c.cx1);
+        J0 = MAX(c.J0*T,c.cy0); J1 = MIN((c.J1+1)*T-1,c.cy1);
     };
     for(auto &c : pcs)
     {
@@ -933,7 +1076,7 @@ void reefamr::place_patches(lexer *p, ghostcell *pgc, vector<vector<unsigned cha
         }
 
         if(q==nullptr)
-        q = make_patch(p,pgc,l,c.I0,c.I1,c.J0,c.J1);
+        q = make_patch(p,pgc,l,c.I0,c.I1,c.J0,c.J1,c.blk);
 
         newlev[l].push_back((int)newP.size());
         newP.push_back(q);

@@ -313,11 +313,12 @@ void vtu3D::structureWrite(lexer *p, fdm_nhf *d, std::vector<char> &buffer, size
             zcoor = p->ZN[KP1]*d->WL(i,j) + d->bed(i,j);
 
         // -- 
-        ffn=float(p->Xout(p->XN[IP1],p->YN[JP]));
+        // curvilinear grid (G 50): the physical nodes
+        ffn=(p->geo_curv==1) ? float(p->XN2D[p->nij(i+1,j+1)]) : float(p->Xout(p->XN[IP1],p->YN[JP]));
         std::memcpy(&buffer[m],&ffn,sizeof(float));
         m+=sizeof(float);
 
-        ffn=float(p->Yout(p->XN[IP],p->YN[JP1]));
+        ffn=(p->geo_curv==1) ? float(p->YN2D[p->nij(i+1,j+1)]) : float(p->Yout(p->XN[IP],p->YN[JP1]));
         std::memcpy(&buffer[m],&ffn,sizeof(float));
         m+=sizeof(float);
 

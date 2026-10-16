@@ -339,10 +339,10 @@ void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc, sediment *pse
     result.write((char*)&iin, sizeof(int));
     TPSLICELOOP
     {
-        ffn=float(p->Xout(p->XN[IP1],p->YN[JP1]));
+        ffn=(p->geo_curv==1) ? float(p->XN2D[p->nij(i+1,j+1)]) : float(p->Xout(p->XN[IP1],p->YN[JP1]));
         result.write((char*)&ffn, sizeof(float));
 
-        ffn=float(p->Yout(p->XN[IP1],p->YN[JP1]));
+        ffn=(p->geo_curv==1) ? float(p->YN2D[p->nij(i+1,j+1)]) : float(p->Yout(p->XN[IP1],p->YN[JP1]));
         result.write((char*)&ffn, sizeof(float));
 
         ffn=p->sl_ipol4eta(p->wet,d->eta,d->bed)+p->wd;
@@ -596,10 +596,10 @@ void nhflow_vtp_fsf::print2D_avg(lexer *p, fdm_nhf *d, ghostcell* pgc, sediment 
     const size_t base = static_cast<size_t>(q) * static_cast<size_t>(avg_npt);
     TPSLICELOOP
     {
-        ffn=float(p->Xout(p->XN[IP1],p->YN[JP1]));
+        ffn=(p->geo_curv==1) ? float(p->XN2D[p->nij(i+1,j+1)]) : float(p->Xout(p->XN[IP1],p->YN[JP1]));
         result.write((char*)&ffn, sizeof(float));
 
-        ffn=float(p->Yout(p->XN[IP1],p->YN[JP1]));
+        ffn=(p->geo_curv==1) ? float(p->YN2D[p->nij(i+1,j+1)]) : float(p->Yout(p->XN[IP1],p->YN[JP1]));
         result.write((char*)&ffn, sizeof(float));
 
         ffn=float(wlavg[base + idx]/avg_time[q]);

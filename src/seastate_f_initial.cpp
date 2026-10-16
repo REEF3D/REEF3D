@@ -21,6 +21,7 @@ Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"seastate_f.h"
+#include"seastate_implicit.h"
 #include"fdm_seastate.h"
 #include"seastate_grid.h"
 #include"seastate_store.h"
@@ -29,6 +30,7 @@ Architect: Hans Bihs
 #include"lexer.h"
 #include"ghostcell.h"
 #include<algorithm>
+#include<functional>
 #include<cmath>
 #include<iostream>
 #include<iomanip>
@@ -63,13 +65,19 @@ void seastate_f::initial_parametric(lexer *p, ghostcell *pgc)
     std::vector<float> N;
     parametric_spectrum(p,pgc,*e->grid,N,"A 710 1");
 
-    IMALOOP
-    JMALOOP
-    if(e->wet(i,j)==1)
+    // the rows shared out to the threads (A 798, Phase 13): they touch the pages of the spectra first
+    const int nt = std::max(1,std::min(p->A798,p->knox+2*p->margin));
+    const std::function<void(int)> job = [&](int t)
     {
-    float *s = e->N->spec(i,j);
-    std::copy(N.begin(),N.end(),s);
-    }
+        for(int ii=-p->margin+t; ii<p->knox+p->margin; ii+=nt)
+        for(int jj=-p->margin; jj<p->knoy+p->margin; ++jj)
+        if(e->wet(ii,jj)==1)
+        {
+        float *s = e->N->spec(ii,jj);
+        std::copy(N.begin(),N.end(),s);
+        }
+    };
+    seastate_implicit::run_threads(nt,job);
 }
 
 void seastate_f::parametric_spectrum(lexer *p, ghostcell *pgc, const seastate_grid &g, std::vector<float> &N, const char *key)
@@ -138,6 +146,24 @@ void seastate_f::parametric_spectrum(lexer *p, ghostcell *pgc, const seastate_gr
             sum += D[m]*g.dth[m];
             }
 
+            // compact computational sector (A 717, Phase 12): normalised over the full circle as well, the
+            // directions beyond the sector (theta0 + m dtheta, m >= ndir) added
+            if(g.compact)
+            {
+            const int nfull = int(std::lround(2.0*pi/g.dtheta));
+                for(int m=g.ndir; m<nfull; ++m)
+                {
+                double beta = g.theta0 + double(m)*g.dtheta;
+                while(beta-main>pi)
+                beta -= 2.0*pi;
+                while(beta-main<-pi)
+                beta += 2.0*pi;
+                const double d = spec.spreading_function(p,beta,g.sig[l]);
+                if(d>0.0)
+                sum += d*g.dtheta;
+                }
+            }
+
         p->B131 = b131;
         }
 
@@ -147,10 +173,23 @@ void seastate_f::parametric_spectrum(lexer *p, ghostcell *pgc, const seastate_gr
         std::fill(D.begin(),D.end(),0.0);
         D[mmain] = 1.0;
         sum = g.dth[mmain];
+
+            // compact computational sector (A 717): no energy if the main direction lies outside the sector
+            if(g.compact)
+            {
+            double d = std::fmod(mw-g.theta0,2.0*pi);
+            if(d<0.0)
+            d += 2.0*pi;
+            const int nfull = int(std::lround(2.0*pi/g.dtheta));
+            if(int(std::lround(d/g.dtheta))%nfull>=g.ndir)
+            D[mmain] = 0.0;
+            }
         }
 
+        // normalised over the full circle; with a computational sector (A 717) the directions outside hold
+        // no energy (as SWAN, the part of the spectrum outside the sector is not imposed)
         for(int m=0; m<g.ndir; ++m)
-        N[g.bin(l,m)] = float(S*D[m]/sum/g.sig[l]);
+        N[g.bin(l,m)] = (g.act.empty() || g.act[m]) ? float(S*D[m]/sum/g.sig[l]) : 0.0f;
     }
 
     seastate_param sp;

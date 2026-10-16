@@ -70,7 +70,8 @@ void iowave::wavegen_precalc_decomp_relax(lexer *p, ghostcell *pgc)
 
     
     count=0;
-    ULOOP
+    if(!zc_built) zonecol_build(p);
+    ZULOOP
     {
         dg = distgen(p);
         
@@ -95,7 +96,7 @@ void iowave::wavegen_precalc_decomp_relax(lexer *p, ghostcell *pgc)
         {
             
             // Zone 1
-            if(dg<dist1)
+            if(dg<1.0e20)
             {
             uval[count]=0.0;
             
@@ -114,7 +115,8 @@ void iowave::wavegen_precalc_decomp_relax(lexer *p, ghostcell *pgc)
 
 
     count=0;
-    VLOOP
+    if(!zc_built) zonecol_build(p);
+    ZVLOOP
     {
         dg = distgen(p);
         
@@ -138,7 +140,7 @@ void iowave::wavegen_precalc_decomp_relax(lexer *p, ghostcell *pgc)
 		if(p->B98==2 && v_switch==1)
         {
             // Zone 1
-            if(dg<dist1)
+            if(dg<1.0e20)
             {
             vval[count]=0.0;
             
@@ -156,7 +158,8 @@ void iowave::wavegen_precalc_decomp_relax(lexer *p, ghostcell *pgc)
 
 
     count=0;
-    WLOOP
+    if(!zc_built) zonecol_build(p);
+    ZWLOOP
     {
         dg = distgen(p);
         
@@ -180,7 +183,7 @@ void iowave::wavegen_precalc_decomp_relax(lexer *p, ghostcell *pgc)
 		if(p->B98==2 && w_switch==1)
         {
             // Zone 1
-            if(dg<dist1)
+            if(dg<1.0e20)
             {
             wval[count]=0.0;
             
@@ -197,7 +200,8 @@ void iowave::wavegen_precalc_decomp_relax(lexer *p, ghostcell *pgc)
     }	
     
     count=0;
-    LOOP
+    if(!zc_built) zonecol_build(p);
+    ZLOOP
     {
 		dg = distgen(p);
         
@@ -211,7 +215,7 @@ void iowave::wavegen_precalc_decomp_relax(lexer *p, ghostcell *pgc)
         if(p->B98==2 && h_switch==1)
         {
             // Zone 1
-            if(dg<dist1)
+            if(dg<1.0e20)
             {
             lsval[count] = eta(i,j)+p->phimean-p->pos_z();
             
@@ -224,7 +228,8 @@ void iowave::wavegen_precalc_decomp_relax(lexer *p, ghostcell *pgc)
     
     if(p->F80==4)
     {
-    LOOP
+    if(!zc_built) zonecol_build(p);
+    ZLOOP
     {
         dg = distgen(p);
         
@@ -238,7 +243,7 @@ void iowave::wavegen_precalc_decomp_relax(lexer *p, ghostcell *pgc)
         if(p->B98==2 && h_switch==1)
         {
             // Zone 1
-            if(dg<dist1)
+            if(dg<1.0e20)
             {
             if(eta(i,j)+p->phimean>=p->pos_z()+0.5*p->DZN[KP])
                 vofval[count]=1.0;
@@ -257,7 +262,8 @@ void iowave::wavegen_precalc_decomp_relax(lexer *p, ghostcell *pgc)
     }
     }
     count=0;
-    LOOP
+    if(!zc_built) zonecol_build(p);
+    ZLOOP
     {
         dg = distgen(p);
         
@@ -281,7 +287,7 @@ void iowave::wavegen_precalc_decomp_relax(lexer *p, ghostcell *pgc)
 		if(p->B98==2 && u_switch==1)
         {  
             // Zone 1
-            if(dg<dist1)
+            if(dg<1.0e20)
             {
             Fival[count]=0.0;
             

@@ -27,10 +27,12 @@ Architect: Hans Bihs
 #include"6DOF_geometry.h"
 #include"6DOF_output_dir.h"
 #include"lexer.h"
+#include"increment.h"
 #include<iostream>
 #include<sstream>
 #include<cstdio>
 #include<cmath>
+#include<mpi.h>
 
 namespace
 {
@@ -61,7 +63,7 @@ ship::ship(lexer *p, int number) : id(number), initialized(false),
                                    zz_sign(1), zz_started(false),
                                    alphaR(0.0), UR(0.0), FN(0.0), XR(0.0), YR(0.0), NR(0.0), KR(0.0),
                                    mmg(false), mmg_am(false), pwake_mmg(false), mmg_draft_in(false), mmg_fluid(1),
-                                   mmg_mx(0.0), mmg_my(0.0), mmg_Jz(0.0), mmg_d(0.0), xm(0.0), Umin(0.0), rho_am(1000.0),
+                                   mmg_mx(0.0), mmg_my(0.0), mmg_Jz(0.0), mmg_d(0.0), xm(0.0), Umin(0.0), rho_am(1000.0), hyb_dm(-1.0), hyb_surge(0),
                                    wC1(0.0), wC2p(1.0), wC2n(1.0), wxP(0.0), XH(0.0), YH(0.0), NH(0.0), NM(0.0), appr(false), appr_done(false), appr_U(0.0), appr_tr(0.0), appr_tf(0.0), Xc(0.0), Yc(0.0), Nc(0.0),
                                    ub(0.0), vb(0.0), wb(0.0), pb(0.0), qb(0.0), rb_(0.0),
                                    Re(0.0), CF(0.0), XF(0.0), Ycf(0.0), Ncf(0.0), Kroll(0.0)
@@ -327,6 +329,12 @@ void ship::read(lexer *p)
         else if(key=="mmg_fluid")
         ls>>mmg_fluid;
         
+        else if(key=="hybrid_munk")
+        ls>>hyb_dm;
+        
+        else if(key=="hybrid_surge")
+        ls>>hyb_surge;
+        
         else if(key=="mmg_draft")
         {
             ls>>mmg_d;
@@ -384,9 +392,13 @@ void ship::ini(lexer *p, const sixdof_rigidbody &b, const sixdof_geometry &g)
     // velocity limit in the denominators of the MMG polynomials
     Umin = 0.01*sqrt(9.81*(lpp>0.0 ? lpp : 1.0));
     
-    // actuator disk thickness: resolved by at least 4 cells
+    // actuator disk thickness: resolved by at least 4 cells, with the horizontal cell size at the
+    // disk (DXM, the mean cell size, is far too large on a stretched sigma grid)
     if(prop && thick<=0.0)
-    thick = 0.2*Dp>4.0*p->DXM ? 0.2*Dp : 4.0*p->DXM;
+    {
+        const double h = cell_size_at(p,b.c + b.R*Eigen::Vector3d(xp,yp,zp));
+        thick = 0.2*Dp>4.0*h ? 0.2*Dp : 4.0*h;
+    }
     
     // actuator line width: 2 cells
     if(prop && blades>0 && lwidth<=0.0)
@@ -420,9 +432,58 @@ void ship::ini(lexer *p, const sixdof_rigidbody &b, const sixdof_geometry &g)
         
         if(mmg_fluid==2 && mmg && !mmg_am)
         cout<<"ship "<<id<<": mmg_fluid 2 without mmg_added_mass: the Munk moment stays in N'v and is counted twice"<<endl;
+        
+        if(mmg_fluid==2 && mmg && mmg_am)
+        {
+            const double fm = 0.5*p->W1*lpp*lpp*mmg_d;
+            cout<<"ship "<<id<<": Munk moment taken out of N'v with A22 - A11 = "<<(hyb_dm>=0.0 ? hyb_dm : (mmg_my - mmg_mx)*fm)<<" kg"
+                <<(hyb_dm>=0.0 ? " (hybrid_munk)" : " (my - mx of mmg_added_mass)")<<endl;
+            
+            if(hyb_surge==1)
+            cout<<"ship "<<id<<": hybrid_surge 1: the MMG surge velocity term my vm r - mx v r is added (v at the CoG)"<<endl;
+        }
     }
     
     initialized = true;
+}
+
+// horizontal cell size at the point x (inertial frame): the larger of dx and dy of the cell that
+// holds x, found by the rank that owns it; the mean cell size DXM outside the grid or on a
+// curvilinear grid (G 50). All ranks call it (ini, from add_load).
+double ship::cell_size_at(lexer *p, const Eigen::Vector3d &x) const
+{
+    double h = 0.0;
+    const int m = increment::marge;     // the node arrays XN, YN
+    
+    if(p->geo_curv!=1 && p->knox>0)
+    {
+        int ci=-1, cj=0;
+        
+        for(int ii=0; ii<p->knox; ++ii)
+        if(x(0)>=p->XN[ii+m] && x(0)<p->XN[ii+1+m])
+        ci = ii;
+        
+        if(p->j_dir==1)
+        {
+            cj=-1;
+            
+            for(int jj=0; jj<p->knoy; ++jj)
+            if(x(1)>=p->YN[jj+m] && x(1)<p->YN[jj+1+m])
+            cj = jj;
+        }
+        
+        if(ci>=0 && cj>=0)
+        {
+            h = p->XN[ci+1+m] - p->XN[ci+m];
+            
+            if(p->j_dir==1)
+            h = MAX(h, p->YN[cj+1+m] - p->YN[cj+m]);
+        }
+    }
+    
+    MPI_Allreduce(MPI_IN_PLACE,&h,1,MPI_DOUBLE,MPI_MAX,MPI_COMM_WORLD);
+    
+    return h>0.0 ? h : p->DXM;
 }
 
 void ship::steering(lexer *p, double psi, double r)
@@ -444,23 +505,21 @@ void ship::steering(lexer *p, double psi, double r)
     
     if(rmode==1 && p->simtime>=zz_t0 && !hold)
     {
-        // zig-zag: starboard rudder first (heading decreases), counter rudder at -psi / +psi
+        // zig-zag: first rudder with the sign of d (d > 0 starboard, heading decreases; d < 0 port),
+        // counter rudder when the heading change reaches psi against the rudder
         if(!zz_started)
         {
             zz_started = true;
             psi0 = psi;
-            zz_sign = 1;
+            zz_sign = zz_d<0.0 ? -1 : 1;
         }
         
         const double dpsi = psi - psi0;
         
-        if(zz_sign>0 && dpsi<=-zz_psi)
-        zz_sign = -1;
+        if(double(zz_sign)*dpsi<=-fabs(zz_psi))
+        zz_sign = -zz_sign;
         
-        else if(zz_sign<0 && dpsi>=zz_psi)
-        zz_sign = 1;
-        
-        cmd = double(zz_sign)*zz_d;
+        cmd = double(zz_sign)*fabs(zz_d);
     }
     
     if(rmode==2 && !hold)
@@ -601,6 +660,7 @@ void ship::add_load(lexer *p, const sixdof_rigidbody &b, const sixdof_geometry &
     }
     
     Ms(0) = Kroll;
+    // r x F with r = (x, 0, z), F = (T, 0, 0): only the pitch moment z T (x is on the line of action)
     Ms(1) = zthrust*thrust;
     Ms(2) = Ncf + Nc;
     
@@ -638,9 +698,17 @@ void ship::add_load(lexer *p, const sixdof_rigidbody &b, const sixdof_geometry &
     {
         const double fm = 0.5*p->W1*lpp*lpp*mmg_d;
         const double mx = mmg_mx*fm, my = mmg_my*fm;
+        const double dm = hyb_dm>=0.0 ? hyb_dm : my - mx;
         
-        NM = -(my - mx)*ub*vm;
+        NM = -dm*ub*vm;
         Ms(2) -= NM;
+        
+        // hybrid_surge 1: the ideal-fluid surge force in a turn, my vm r - mx v r from the MMG model
+        // (vm at midship, v at the CoG: the -mx v r takes the mx part out of the rigid-body Coriolis
+        // term of the implicit added mass, as for mmg_added_mass above; the solver's surge force from
+        // the combined sway and yaw is grid-sensitive, validation 12)
+        if(hyb_surge==1)
+        Fs(0) += my*vm*rb_ - mx*vb*rb_;
     }
     
     // propeller

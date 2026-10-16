@@ -27,6 +27,7 @@ Author: Hans Bihs
 #include"wave_lib_parameters.h"
 #include"wave_lib_spectrum.h"
 #include"increment.h"
+#include"wave_lib_zgroup.h"
 
 using namespace std;
 
@@ -49,6 +50,7 @@ public:
     double wave_v_c(lexer*, int, double) override final;
     double wave_w_c(lexer*, int, double) override final;
     void wave_uvw_c(lexer*, int, double, double&, double&, double&) override final;
+    void wave_eta_series(lexer*, double, double, const std::vector<double>&, std::vector<double>&) override final;
 
     double wave_u(lexer*,double,double,double) override final;
     double wave_u_space_sin(lexer*,double,double,double,int) override final;
@@ -101,13 +103,26 @@ private:
 
     // cached-point data
     void cache_time(lexer*);
+    double eta_c(int);                          // eta, the potential and u, v, w of cached point q at cache_t
+    double fi_c(int, double);
+    void uvw_c(int, double, bool, double&, double&, double&);
     std::vector<double> cS, sS;                 // cos/sin of the spatial phase, [q*wN+n]
     std::vector<double> cT, sT;                 // cos/sin of the time phase, [n]
     std::vector<double> em2kd, invden;          // exp(-2 k d), 1/(1-exp(-2 k d))
     std::vector<double> Aeta, Afi, Au, Av, Aw;  // component amplitudes of each quantity
-    std::vector<double> ezb;                    // exp(k z) scratch, [n]
+    // distinct wave numbers: components of the same frequency in a directional sea share
+    // the vertical profile, so exp(k z) is evaluated once per distinct k (results bitwise equal)
+    void group_k();
+    void vertical_c(double z, const double*&, const double*&);
+    std::vector<int> iu;                        // component -> distinct k, [n]
+    std::vector<double> uK, uem, uinv;          // distinct k, its exp(-2 k d) and 1/(1-exp(-2 k d))
+    std::vector<double> uch, ush;               // cosh / sinh ratios at the current z, [distinct k]
+    std::vector<double> chm, shm;               // ... per component (unless u_id)
+    double uKmax=0.0;                           // largest distinct k
+    bool u_id=false;                            // every component its own k (iu the identity)
     double cache_t=-1.0e300;
     std::vector<double> ph_c, ph_s;             // phases of column ph_q at time ph_t (wave_uvw_c)
+    wave_lib_zgroup zg;                         // groups of points with the same phases, tables in z
     int ph_q=-1;
     double ph_t=-1.0e300;
     double **fixy,*fin;

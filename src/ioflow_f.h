@@ -127,6 +127,7 @@ public:
     
     void inflow_plain_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double*,double*,double*);
     void inflow_log_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double*,double*,double*);
+    void curv_inflow_dir(lexer*,double*,double*,double*,double*);
     
     
     void vrans_sed_update(lexer*,fdm*,ghostcell*,vrans*) override final;
@@ -147,6 +148,7 @@ private:
 
     int n,count;
     double area,Ai,Ao,Hi,Ho,Ui,fac;
+    double Ki,Uk;     // SFLOW inflow by conveyance (B 62 1): sum of L h^(5/3) of the wet inflow cells, Q/Ki
     double zval;
     double *walldin, *walldout;
 	int walldin_size, walldout_size;

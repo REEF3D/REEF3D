@@ -1,0 +1,19 @@
+{
+ "np": 1,
+ "steps": 40,
+ "tags": [
+  "3d",
+  "nhflow",
+  "curvilinear",
+  "amr",
+  "quick"
+ ],
+ "description": "NHFLOW mesh refinement on a wavy, skewed curvilinear grid: lake at rest over a bump under a static patch (G 10 box in physical coordinates, six patches): velocities and pressure at round-off on both levels.",
+ "covers": [
+  "nhflow_amr: restriction per area (cw4), bed prolongation with the area mean of the parent"
+ ],
+ "solver": "nhflow",
+ "files": [
+  "curvgrid.dat"
+ ]
+}

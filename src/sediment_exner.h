@@ -44,6 +44,31 @@ public:
 	void start(lexer*, ghostcell*, sediment_fdm*) override final;
     void start_RK(lexer*, ghostcell*, sediment_fdm*) override final;
     void  timestep(lexer*,ghostcell*,sediment_fdm*) override final;
+    void timestep_curv(lexer* p, ghostcell *pgc, sediment_fdm *s);     // curvilinear grid (G 50)
+    
+    // mesh refinement and multi-block grids (nhflow_amr, sflow_amr; sediment_exner_amr.cpp): the step
+    // of start() in parts, so that the grids share the face fluxes of their interfaces and one dtsed
+    //   amr_qb:   qb (equilibrium or non-equilibrium), cleared outside the sediment cells, ghost cells
+    //   amr_flux: face fluxes per unit length, Fx(i,j) on face i+1/2, Fy(i,j) on face j+1/2 (S 31 1/2,
+    //             S 32 1/2; Cartesian and curvilinear grids)
+    //   amr_vz:   vz from the fluxes (and the suspended exchange); the filter (S 100) is the driver's
+    //             (sediment_xfilter over all grids)
+    //   amr_vzmax: the largest |vz| of the cells with mask > 0.5 (nullptr: all), rank-local
+    //   amr_bed:  dh = dtsed*vz, the dry deposit, bedzh += dh
+    //   amr_dx:   the smallest cell width of the grid (rank-local), for dtsed
+    // amr_maxvz and amr_mindx (> 0) take part in timestep(): the maxima and minima of the other grids.
+    void amr_qb(lexer*, ghostcell*, sediment_fdm*);
+    // the cell fields of the Exner step that the cells around the grids take from their sources: qb, and
+    // the bend fields qb/f(theta) (S 86), tan(delta) (S 95), the bed of the slope flux and its open flag
+    static const int amr_nfield = 5;
+    double& amr_field(sediment_fdm*, int n, int ii, int jj);
+    slice4& bend_slice(int n) { return (n==1) ? bK : (n==2 ? btd : (n==3 ? bz : bg)); }
+    void amr_flux(lexer*, ghostcell*, sediment_fdm*, slice&, slice&);
+    double amr_vz(lexer*, ghostcell*, sediment_fdm*, slice&, slice&, slice*);
+    double amr_vzmax(lexer*, sediment_fdm*, slice*);
+    void amr_bed(lexer*, ghostcell*, sediment_fdm*);
+    double amr_dx(lexer*);
+    double amr_maxvz = 0.0, amr_mindx = 0.0;
 
 private:
     void start_mixture(lexer*,ghostcell*,sediment_fdm*);
@@ -51,16 +76,36 @@ private:
     void topovel1(lexer*,ghostcell*,sediment_fdm*);
     void topovel2(lexer*,ghostcell*,sediment_fdm*);
     void topovel3(lexer*,ghostcell*,sediment_fdm*);
+    void topovel_curv(lexer*,ghostcell*,sediment_fdm*,int);   // curvilinear grid (G 50): S 31 1, 2 (sediment_exner_curv.cpp)
     void face_closure(lexer*,double&,double&,double&,double&);
     void qb_clear(lexer*,sediment_fdm*);
     void dry_deposit(lexer*,sediment_fdm*);
     
     double ramp_dt(lexer*);
     void  non_equillibrium_solve(lexer*,ghostcell*,sediment_fdm*);
+    void non_equillibrium_solve_curv(lexer* p, ghostcell *pgc, sediment_fdm *s);     // curvilinear grid (G 50)
     double  susp_ED(lexer*,ghostcell*,sediment_fdm*);
     void  susp_qs(lexer*,ghostcell*,sediment_fdm*);
     
-    void filter(lexer*,ghostcell*,slice&,int,int);   
+    // bend morphology (sediment_exner_bend.cpp): the transverse bed slope effect (S 86) as a face flux
+    // -qb/f(theta) dz/dn, and the spiral-flow correction (S 95) of the transport direction, tan(delta)
+    // = alpha_I h/R_s (turned towards the centre of the streamline curvature)
+    void bend_prep(lexer*,ghostcell*,sediment_fdm*);
+    double bend_flux(lexer*,sediment_fdm*,int,int,int);
+    double bend_div(lexer*,sediment_fdm*,int,int);
+    bool bend_open(lexer*,int,int);
+    double bend_td(lexer*,int,int,int);
+    static double bend_turn(double un, double ut, double mag, double td);
+    slice4 bK,btd,bu,bv,bz,bg;
+    // the largest qb/f (1/dx^2 + 1/dy^2) of the grid (rank-local): the slope flux is an explicit diffusion of the
+    // bed, timestep() keeps dtsed below its stability limit; amr_bendrate: that of the other grids
+public:
+    double bend_rate = 0.0, amr_bendrate = 0.0;
+private:
+    int p_S95=0;
+
+    void filter(lexer*,ghostcell*,slice&,int,int);
+    void filter_curv(lexer*,ghostcell*,slice&,int,int);     // curvilinear grid (G 50)   
     topo_relax *prelax;
     sediment_exnerdisc *pdx;
     solver2D *psolv;

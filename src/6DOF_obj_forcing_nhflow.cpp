@@ -35,6 +35,36 @@ void sixdof_obj_nhflow::update_forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *p
     return;
     }
     
+    forcing_kernel_nhflow(p,d,pgc,U,V,W,FX,FY,FZ,WL,iter,false);
+}
+
+void sixdof_obj_nhflow::update_forcing_nhflow_wavemaker(lexer *p, fdm_nhf *d, ghostcell *pgc, 
+                             double *U, double *V, double *W, double *FX, double *FY, double *FZ, slice &WL, slice &fe, int iter)
+{
+    // wavemaker (X 10 4): the same direct forcing (X 15 0/1/2) as the floating body, with the
+    // paddle velocity of the stage as the target
+    forcing_kernel_nhflow(p,d,pgc,U,V,W,FX,FY,FZ,WL,iter,true);
+}
+
+void sixdof_obj_nhflow::target_velocity(lexer *p, bool wavemaker, double &uf, double &vf, double &wf)
+{
+    // target velocity of the direct forcing at the cell (i,j,k)
+    if(wavemaker)
+    {
+        uf = wm_u(p,p->pos_x(),p->pos_z());
+        vf = 0.0;
+        wf = 0.0;
+        return;
+    }
+    
+    uf = u_fb(0) + u_fb(4)*(p->pos_z() - c_(2)) - u_fb(5)*(p->pos_y() - c_(1));
+    vf = u_fb(1) + u_fb(5)*(p->pos_x() - c_(0)) - u_fb(3)*(p->pos_z() - c_(2));
+    wf = u_fb(2) + u_fb(3)*(p->pos_y() - c_(1)) - u_fb(4)*(p->pos_x() - c_(0));
+}
+
+void sixdof_obj_nhflow::forcing_kernel_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, 
+                             double *U, double *V, double *W, double *FX, double *FY, double *FZ, slice &WL, int iter, bool wavemaker)
+{
     // Calculate forcing fields
     double H, uf, vf, wf;
     double ef,efc;
@@ -54,9 +84,7 @@ void sixdof_obj_nhflow::update_forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *p
     {
         H = Hsolidface_nhflow(p,d,0,0,0);
         
-        uf = u_fb(0) + u_fb(4)*(p->pos_z() - c_(2)) - u_fb(5)*(p->pos_y() - c_(1));
-        vf = u_fb(1) + u_fb(5)*(p->pos_x() - c_(0)) - u_fb(3)*(p->pos_z() - c_(2));
-        wf = u_fb(2) + u_fb(3)*(p->pos_y() - c_(1)) - u_fb(4)*(p->pos_x() - c_(0));
+        target_velocity(p,wavemaker,uf,vf,wf);
          
         d->FHB[IJK] = MIN(d->FHB[IJK] + H, 1.0); 
         
@@ -65,18 +93,26 @@ void sixdof_obj_nhflow::update_forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *p
         FZ[IJK] += H*(wf - W[IJK])/(alpha[iter]*p->dt);
     }
     
-    if(p->X15==1)
+    // X 15 3: as X 15 1, but only the cells inside the body are forced. A body moving through the
+    // grid at speed (towed or self-propelled ship) otherwise pushes the water in the forcing band ahead
+    // of the bow up to the body velocity; that water passes under the hull and is carried along with it.
+    if(p->X15==1 || p->X15==3)
     LOOP
     {
         H = Hsolidface_nhflow(p,d,0,0,0);
         
-        uf = u_fb(0) + u_fb(4)*(p->pos_z() - c_(2)) - u_fb(5)*(p->pos_y() - c_(1));
-        vf = u_fb(1) + u_fb(5)*(p->pos_x() - c_(0)) - u_fb(3)*(p->pos_z() - c_(2));
-        wf = u_fb(2) + u_fb(3)*(p->pos_y() - c_(1)) - u_fb(4)*(p->pos_x() - c_(0));
+        target_velocity(p,wavemaker,uf,vf,wf);
          
         d->FHB[IJK] = MIN(d->FHB[IJK] + H, 1.0); 
         
+        if(p->X15==3 && d->FB[IJK]>=0.0)
+        continue;
+        
     // Normal vectors calculation 
+        if(p->geo_curv==1)
+        fbnormal_curv(p,d,nx,ny);
+        else
+        {
 		nx = -(d->FB[Ip1JK] - d->FB[Im1JK])/(p->DXP[IP] + p->DXP[IM1])
             - 0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*(d->FB[IJKp1] - d->FB[IJKm1])/(p->DZP[KP] + p->DZP[KM1]);
         
@@ -86,6 +122,7 @@ void sixdof_obj_nhflow::update_forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *p
         if(p->j_dir==1)
 		ny = -(d->FB[IJp1K] - d->FB[IJm1K])/(p->DYP[JP] + p->DYP[JM1])
             - 0.5*(p->sigy[FIJK]+p->sigy[FIJKp1])*(d->FB[IJKp1] - d->FB[IJKm1])/(p->DZP[KP] + p->DZP[KM1]);
+        }
             
 		nz = -(d->FB[IJKp1] - d->FB[IJKm1])/(p->DZP[KP]*WL(i,j) + p->DZP[KM1]*WL(i,j));
 
@@ -119,9 +156,7 @@ void sixdof_obj_nhflow::update_forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *p
         
         d->FHB[IJK] = MIN(d->FHB[IJK] + H, 1.0); 
         
-        uf = u_fb(0) + u_fb(4)*(p->pos_z() - c_(2)) - u_fb(5)*(p->pos_y() - c_(1));
-        vf = u_fb(1) + u_fb(5)*(p->pos_x() - c_(0)) - u_fb(3)*(p->pos_z() - c_(2));
-        wf = u_fb(2) + u_fb(3)*(p->pos_y() - c_(1)) - u_fb(4)*(p->pos_x() - c_(0));
+        target_velocity(p,wavemaker,uf,vf,wf);
         
         du = uf - U[IJK];
         dv = vf - V[IJK];
@@ -138,6 +173,10 @@ void sixdof_obj_nhflow::update_forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *p
         else
         {
             // Normal vectors calculation 
+            if(p->geo_curv==1)
+            fbnormal_curv(p,d,nx,ny);
+            else
+            {
             nx = -(d->FB[Ip1JK] - d->FB[Im1JK])/(p->DXP[IP] + p->DXP[IM1])
                 - 0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*(d->FB[IJKp1] - d->FB[IJKm1])/(p->DZP[KP] + p->DZP[KM1]);
                 
@@ -147,6 +186,7 @@ void sixdof_obj_nhflow::update_forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *p
             if(p->j_dir==1)
             ny = -(d->FB[IJp1K] - d->FB[IJm1K])/(p->DYP[JP] + p->DYP[JM1])
                 - 0.5*(p->sigy[FIJK]+p->sigy[FIJKp1])*(d->FB[IJKp1] - d->FB[IJKm1])/(p->DZP[KP] + p->DZP[KM1]);
+            }
                 
             nz = -(d->FB[IJKp1] - d->FB[IJKm1])/(p->DZP[KP]*WL(i,j) + p->DZP[KM1]*WL(i,j));
 
@@ -179,9 +219,24 @@ void sixdof_obj_nhflow::update_forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *p
     pgc->start5V(p,d->FHB,50);
 }
     
+void sixdof_obj_nhflow::fbnormal_curv(lexer *p, fdm_nhf *d, double &gx, double &gy)
+{
+    // curvilinear grid (G 50): the horizontal part of -grad(FB) at the cell (i,j,k), the gradient along the sigma
+    // level by the chain rule on the cell centres, then the sigma correction (sigx, sigy are physical)
+    double fx,fy;
+    p->geo_grad(i,j,d->FB[Ip1JK],d->FB[Im1JK],d->FB[IJp1K],d->FB[IJm1K],fx,fy);
+    const double fs = (d->FB[IJKp1] - d->FB[IJKm1])/(p->DZP[KP] + p->DZP[KM1]);
+
+    gx = -fx - 0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*fs;
+    gy = -fy - 0.5*(p->sigy[FIJK]+p->sigy[FIJKp1])*fs;
+}
+
 double sixdof_obj_nhflow::Hpsi_nhflow(lexer *p, fdm_nhf *d)
 {
     // half width of the smoothed Heaviside of the direct forcing (as in Hsolidface_nhflow)
+    if(p->geo_curv==1)
+    return p->A526*p->geo_width(i,j);
+
     if(p->j_dir==0)
     return p->A526*p->DXN[IP];
     
@@ -197,6 +252,10 @@ double sixdof_obj_nhflow::Hsolidface_nhflow(lexer *p, fdm_nhf *d, int aa, int bb
     
     if(p->j_dir==1)
     psi = p->A526*(1.0/2.0)*(p->DXN[IP] + p->DYN[JP] + 0.0*p->DZN[KP]*p->WL[IJ]);
+
+    // curvilinear grid (G 50): the physical mean width of the cell
+    if(p->geo_curv==1)
+    psi = p->A526*p->geo_width(i,j);
 
 
     // Construct solid heaviside function

@@ -54,6 +54,14 @@ void sixdof_nhflow::isource(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
     //dfdx = WL(i,j)*limiter(dfdx_plus,dfdx_min);
     
     dfdx = WL(i,j)*(press(i+1,j)-press(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
+
+    // curvilinear grid (G 50): the physical x-gradient (chain rule on the cell centres)
+    if(p->geo_curv==1)
+    {
+    double gx,gy;
+    p->geo_grad(i,j,press(i+1,j),press(i-1,j),press(i,j+1),press(i,j-1),gx,gy);
+    dfdx = WL(i,j)*gx;
+    }
  
     d->F[IJK] += dfdx/p->W1;
     }
@@ -74,6 +82,14 @@ void sixdof_nhflow::jsource(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
     //dfdy = WL(i,j)*limiter(dfdy_plus,dfdy_min);
     
     dfdy = WL(i,j)*(press(i,j+1)-press(i,j-1))/(p->DYP[JP]+p->DYP[JM1]);
+
+    // curvilinear grid (G 50): the physical y-gradient
+    if(p->geo_curv==1)
+    {
+    double gx,gy;
+    p->geo_grad(i,j,press(i+1,j),press(i-1,j),press(i,j+1),press(i,j-1),gx,gy);
+    dfdy = WL(i,j)*gy;
+    }
         
     d->G[IJK] += dfdy/p->W1;
     }

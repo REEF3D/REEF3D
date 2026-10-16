@@ -84,8 +84,9 @@ void fem_solid::write_vtu(const std::string& filename) const
     for(int e : cells)
     {
         double d = 0.0;
-        for(int g=0; g<ngp; ++g) d += gps[e*ngp+g].d;
-        f<<d/double(ngp)<<"\n";
+        const int ng = ngauss(e);
+        for(int g=0; g<ng; ++g) d += gps[e*ngp+g].d;
+        f<<d/double(ng)<<"\n";
     }
     for(int q=0; q<no; ++q) f<<"1\n";
     f<<"</DataArray>\n";
@@ -94,8 +95,9 @@ void fem_solid::write_vtu(const std::string& filename) const
     for(int e : cells)
     {
         double p = 0.0;
-        for(int g=0; g<ngp; ++g) p += gps[e*ngp+g].ep;
-        f<<p/double(ngp)<<"\n";
+        const int ng = ngauss(e);
+        for(int g=0; g<ng; ++g) p += gps[e*ngp+g].ep;
+        f<<p/double(ng)<<"\n";
     }
     for(int q=0; q<no; ++q) f<<"0\n";
     f<<"</DataArray>\n";
@@ -142,12 +144,14 @@ void fem_solid::write_vtu(const std::string& filename) const
 
 void fem_solid::info(std::ostream& os) const
 {
-    os<<"FEM: "<<nelem()<<" hex8 elements ("<<(ngp==8 ? "full" : "reduced")<<" integration), "
+    os<<"FEM: "<<nelem()<<" hex8 elements ("<<(full_int==1 ? "full" : full_int==2 ? "adaptive" : "reduced")<<" integration), "
       <<nnode()<<" nodes, lattice "<<nx<<"x"<<ny<<"x"<<nz<<" h = "<<hx<<" "<<hy<<" "<<hz
       <<", "<<faces.size()<<" surface faces, "<<nbodies<<" bodies, dt_crit "<<dtcrit<<" s"
       <<(plane_strain ? ", plane strain" : "")<<"\n";
     if(nthr>1)
     os<<"FEM: "<<nthr<<" threads (OpenMP)\n";
+    if(comm && comm->size()>1 && dist_req!=0)
+    os<<"FEM: solid split over the "<<comm->size()<<" ranks"<<(dist_req<0 ? " if it has at least "+std::to_string(dist_min)+" deformable elements (now "+std::to_string(n_deformable())+")" : std::string())<<"\n";
 
     for(const material& mt : mats)
     {

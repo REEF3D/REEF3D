@@ -28,6 +28,13 @@ Author: Hans Bihs
 
 void sixdof_obj_2D::ray_cast_2D(lexer *p, ghostcell *pgc)
 {
+    // curvilinear grid (G 50): no rays along the grid lines (6DOF_obj_ray2D_curv.cpp)
+    if(p->geo_curv==1)
+    {
+    ray_cast_2D_curv(p,pgc);
+    return;
+    }
+
 	SLICELOOP4
 	{
         fsio(i,j)=1;

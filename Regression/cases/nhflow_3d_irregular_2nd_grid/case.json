@@ -1,0 +1,24 @@
+{
+ "base": "nhflow_3d_irregular_decomp",
+ "ctrl_set": {
+  "B 92": "32",
+  "B 89": "0",
+  "B 84": "1",
+  "B 136": "1",
+  "B 86": "8",
+  "B 133": "4"
+ },
+ "description": "nhflow_3d_irregular_decomp with 2nd-order irregular waves A (B 92 32) on a frequency-direction grid (B 84 1, B 136 1: 8 frequencies x 4 directions) and B 89 0: pair terms of one direction from the per-component profiles, pairs of different directions summed per distinct |K| (wave_lib_irregular_2nd_cache.h).",
+ "tags": [
+  "3d",
+  "nhflow",
+  "waves",
+  "iowave",
+  "irregular",
+  "mpi"
+ ],
+ "covers": [
+  "wave_lib_irregular_2nd_terms: same-direction runs, other-direction |K| groups, column coefficients",
+  "wave_lib_irregular_2nd_terms::series (REEF3D_Log-Wave time series)"
+ ]
+}

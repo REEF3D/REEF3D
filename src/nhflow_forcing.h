@@ -63,6 +63,10 @@ public:
     
     void solid_forcing(lexer*, fdm_nhf*, ghostcell*, double, double*, double*, double*, slice&);
     void forcing_ini(lexer*, fdm_nhf*, ghostcell*);
+    // FEM strong coupling (Z 30, coupling option 'strong'): around the momentum step of the
+    // driver; fem_step_redo true: the momentum step is to be repeated
+    void fem_step_begin(lexer*, fdm_nhf*, ghostcell*);
+    bool fem_step_redo(lexer*, fdm_nhf*, ghostcell*);
         
     void reset(lexer*, fdm_nhf*, ghostcell*);
     

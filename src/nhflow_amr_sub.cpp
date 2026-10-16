@@ -408,6 +408,7 @@ void nhflow_amr::sub_level(lexer *p, ghostcell *pgc, int l, int k, double t, dou
         pp->dt_old = dt;
         pp->simtime = t;
         pp->count = p->count;
+        pp->amr_follow(*p);
         pscope ps(pgc,c->d,d0);
         c->pmom->step_begin(pp,c->d,pgc,c->S);
     }
@@ -557,10 +558,9 @@ void nhflow_amr::sub_body_stage(lexer *p, ghostcell *pgc, int l, int s, double t
 }
 
 // end of the level-0 step: the hull on level 0 at the final pose (FB, the position line) and the
-// output of the bodies, once per level-0 step.  The body output labels the state at the end of a
-// step with the start of that step (6DOF_obj_print_parameters, simtime); here the start of the
-// last finest step, so that the label lags by one finest step as with one step for all levels
-// (with the level-0 start it lagged by dt - dt/2^L more)
+// output of the bodies, once per level-0 step: the state at the end of the level-0 step, labelled
+// with that time (as the fluid output after the driver advances simtime); the vtp/stl print
+// interval logic still sees the start of the last finest step
 void nhflow_amr::sub_body_end(lexer *p, ghostcell *pgc)
 {
     const double ts = p->simtime;
@@ -577,7 +577,7 @@ void nhflow_amr::sub_body_end(lexer *p, ghostcell *pgc)
         if(p->X50==2)
         o->print_stl(p,pgc);
 
-        o->print_parameter(p,pgc);
+        o->print_parameter(p,pgc,ts + dtlev[0]);
     }
 
     p->simtime = ts;
@@ -736,7 +736,9 @@ void nhflow_amr::sub_reflux(int l)
             const int ii = m.fi + (m.side==1 ? 1 : 0);
             const int jj = m.fj + (m.side==3 ? 1 : 0);
             const double sg = (m.side==0 || m.side==2) ? -1.0 : 1.0;
-            const double f = (m.dir==0) ? sg/q->DXN[ii+marge] : sg*q->y_dir/q->DYN[jj+marge];
+            // curvilinear grid: face length over cell area (the fluxes are per unit length)
+            const double f = (q->geo_curv==1) ? sg*((m.dir==0) ? q->LEN1[lij(q,m.fi,m.fj)] : q->LEN2[lij(q,m.fi,m.fj)])/q->AREA2D[lij(q,ii,jj)]
+                           : ((m.dir==0) ? sg/q->DXN[ii+marge] : sg*q->y_dir/q->DYN[jj+marge]);
 
             // continuity: the layer fluxes per unit sigma times the layer thickness
             double dw = 0.0;

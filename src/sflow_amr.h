@@ -24,6 +24,8 @@ Author: Hans Bihs
 #define SFLOW_AMR_H_
 
 #include"reefamr.h"
+#include"sediment_f.h"
+#include"slice4.h"
 #include<vector>
 #include<fstream>
 #include<unordered_map>
@@ -113,6 +115,8 @@ struct sflow_amr_told
 
 struct sflow_amr_patch : public reefamr_patch
 {
+    sediment_f *sed = nullptr;      // S 10: the sediment transport of the grid (sflow_amr_sed.cpp)
+    vector<double> sedrec[4];       // S 10: Exner face fluxes on the box faces, per side
     fdm2D *b;
     sflow_HLL *phll;
     sflow_signal_speed *pss;
@@ -146,6 +150,15 @@ struct sflow_amr_patch : public reefamr_patch
     // regrid: blocks of a fresh patch that took the state of an old patch
     vector<char> blkold;
 
+    // shoreline: offset of the water surface of a cell a finer patch covers at a shoreline (from its wet children,
+    // restriction) from its mean water level plus mean bed, NaN where no child is dry or the cell is not covered
+    // (lij index)
+    vector<double> sfc;
+
+    // shoreline: water surface of the parent of a ghost cell (prolonged ghost cells), NaN where the parent is dry
+    // or the cell is not a prolonged ghost cell (lij index)
+    vector<double> gsf;
+
     // G 7 1: state at the start of the step, fine face fluxes summed over the steps of the
     // patch within one step of its parent (dt * RK weight), freg[ipol][side][fine index]
     sflow_amr_told told;
@@ -155,9 +168,12 @@ struct sflow_amr_patch : public reefamr_patch
     vector<double> rend;
 };
 
-class sflow_amr : public reefamr
+class sflow_amr : public reefamr, public sediment_grids
 {
 public:
+    // S 10: sediment transport on all grids (sflow_amr_sed.cpp): the level-0 sediment_f hands its step over
+    void sed_attach(sediment*);
+    void sediment_step_sflow(lexer*, fdm2D*, ghostcell*, ioflow*, sediment_f*) override;
     sflow_amr(lexer*, fdm2D*, ghostcell*, patchBC_interface*, sixdof*, sflow_HLL*, sflow_momentum_RK3*);
     virtual ~sflow_amr();
 
@@ -168,6 +184,7 @@ public:
     void step_end(lexer*, fdm2D*, ghostcell*);
     void timestep(lexer*, fdm2D*, ghostcell*);
     void print(lexer*, fdm2D*, ghostcell*);
+    void dump_grids(lexer*);        // REEF3D_AMR_DUMP: every grid of the rank (own cells) to <dir>/amr_r<rank>.bin (tests)
 
     // called by sflow_HLL between flux_bc and the divergence (ipol 1-4)
     void hll_hook(lexer*, fdm2D*, int, int);
@@ -205,6 +222,11 @@ public:
     void bq_p(double, double);
     void bq_s(double);
     void bq_x(double, double);
+    void bq_restart();
+    void cq_apply(int, int, bool, int);
+    void cq_prec(int, int, int);
+    double cq_dot(int, int, int);
+    void cq_ops(int, double, double, int);
 
 protected:
     // REEFAMR hooks
@@ -261,6 +283,7 @@ private:
     int shipmode;                   // X 10 of the body, 0: none
     sixdof_sflow *ship6;
     void ship_fields(sflow_amr_patch&, bool);
+    void ship_fields_curv(sflow_amr_patch&, bool);
     void ship_patches(bool);
     double fs0_at(sflow_amr_patch&, int, int);
     // G 7 1: the level-0 body at the start of the level-0 step (hull triangles, level set, u, c);
@@ -286,8 +309,20 @@ private:
     // regridding
     void tag_level(int, vector<unsigned char>&);
     double bed_at(int, int, int);
+    double block_bed(int, int, int);
+    double native_bed(int, int);
+    double area_at(int, int, int);
     unordered_map<uint64_t,double> bedmemo;     // the bed is static (S 10 0)
     void ini_patch_defaults(sflow_amr_patch&);
+    // S 10 (sflow_amr_sed.cpp)
+    sediment_f *sed0 = nullptr;
+    sediment_f* gsed(int g) { return (g<0) ? sed0 : SP(g)->sed; }
+    void sed_patch_ini(ghostcell*, sflow_amr_patch&);
+    void sed_bed_regrid(ghostcell*, int, vector<reefamr_patch*>&);
+    void sed_fill_bed(ghostcell*, int);
+    void sed_fill_bed0(ghostcell*);
+    double sed_plin(slice&, lexer*, int, int, int, int);
+    vector<vector<double>> sedr;
     void ini_patch_old(int, vector<reefamr_patch*>&);
     void ini_patch_prolong(int);
     void ini_block(sflow_amr_patch&, int, int, const double*);
@@ -297,13 +332,22 @@ private:
     // coupling
     void cache_stage(int);
     void fill_level(ghostcell*, int, int);
+    // multi-block level 0 (reefamr_block.cpp): the blocks 1.. run as level-0 patches
+    bool active() const { return maxlev>=1 || nblk>0; }
+    void blocks_ini(lexer*, ghostcell*);
+    void fill_level0(ghostcell*, int);
+    void store_native(int, int, const double*);
     // Boussinesq (A 220 4): u_a on the leaf cells of all levels (sflow_amr_bous.cpp)
     void bq_setup();
     void bq_sync(int, int);
+    // curvilinear grid: the pairs (a, b) of the grid-aligned components, matrix-free operator
+    void bous_window_curv(ghostcell*, int, double);
+    slice& cq_vec(int, int, int);
+    void cq_sync(int);
     int bq_layout = -1;
     // leaf cells, line segments (start, length), the fill entries of a patch next to a leaf cell
     // along x, y
-    struct bqgrid { vector<int> leaf, seg[2], need[2]; };
+    struct bqgrid { vector<int> leaf, seg[2]; };
     map<int,vector<bqgrid>> bqw;                  // per level window (G 7 1), [g+1]
     vector<bqgrid> *bqc = nullptr;                // the current one
     int nh_keep = -1;                             // vector whose fixed cells around the patches keep their values (nh_edge)
@@ -314,13 +358,24 @@ private:
     void eval_fill(const reefamr_fill&, double*);
     void store_fill(sflow_amr_patch*, int, int, int, const double*);
     void prolong(int, int, int, int, int, double, double*);
-    static const int NPR = 9;       // values of prolong_parts
+    static const int NPR = 10;      // values of prolong_parts
     void prolong_parts(int, int, int, int, int, double*);
     void prolong_finish(const double*, double, double*);
+
+    // shoreline (well balanced at rest): the restricted water surface of the covered cells at a shoreline (sfc, as
+    // the offset from the mean water level plus mean bed), level 0 (a slice: its halo) and the patches; children
+    // of a dry parent whose bed lies above the surface of its wet neighbours are wet below that surface (the
+    // initial hierarchy: dryfill)
+    slice4 *sfs0 = nullptr;
+    double *sfc_of(int);
+    void sfc_reset(int);
+    void sfc_stage(int);
+    bool dryfill = false;
+    bool ini_pass = false;          // the initial hierarchy (sflow_amr::ini)
     void apply_bc(ghostcell*, sflow_amr_patch&, int);
     void restrict_levels(lexer*, int);   // all patches into their parents, finest first (block plans)
     void restrict_level(lexer*, int, int);   // the level-l patches into their parents
-    void exchange_level0(lexer*, fdm2D*, ghostcell*, int);
+    void exchange_level0(lexer*, fdm2D*, ghostcell*, int, bool=false);
     void exchange_fluxes(int);
 
     // G 7 1: subcycling (sflow_amr_sub.cpp)
@@ -371,8 +426,9 @@ private:
     int printcount_amr;
     ofstream logout;
     const double eps;
-    static const int NVMAX = 14;
-    int NV;                         // values per filled cell: WL UH VH eta U V wet deep WH W (+ Boussinesq: UA VA MX MY)
+    static const int NVMAX = 15;
+    int NV;                         // values per filled cell: WL UH VH eta U V wet deep WH W (+ Boussinesq: UA VA MX MY), the parent surface
+    int ISF;                        // index of the parent surface in the filled values (NV-1)
     int bous;                       // Boussinesq (A 220 4): UH,VH hold V, u_a and M are filled as well
 };
 

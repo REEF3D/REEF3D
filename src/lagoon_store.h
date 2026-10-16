@@ -23,7 +23,7 @@ Architect: Hans Bihs
 #ifndef LAGOON_STORE_H_
 #define LAGOON_STORE_H_
 
-// Writes LAGOON stores (LAGOON lagoon-format SPEC.md, version 0.3): one Zarr v3
+// Writes LAGOON stores (LAGOON lagoon-format SPEC.md, version 0.5): one Zarr v3
 // store per run, one group per output stream, one block per MPI rank.
 //
 // No MPI and no REEF3D types in here: every rank writes its own block's files
@@ -60,14 +60,28 @@ public:
     // rank 0, once: the root group (run_json: the run log's run record, or "")
     void create_root(const std::string &solver, const std::string &run_json);
 
+    // rank 0, before a run's first output into the store, by every writer (volume,
+    // surfaces, AMR, bodies, particles): a store holds one run. The store of an
+    // earlier run in its place (another run id in its root, or none) is moved aside
+    // to REEF3D_<SOLVER>-<its run>.lagoon-earlier and this run's root is made; later
+    // calls of the run do nothing. Returns where the earlier store went, or "".
+    std::string begin_run(const std::string &solver, const std::string &run_json);
+
+    // the run id a run record or a root's zarr.json text holds, or ""
+    static std::string run_id(const std::string &json);
+
     // rank 0, once per output stream: the group, its grid lines and time arrays
     // grid: "sigma" (levels: their σ, 0 at the bed, 1 at the surface), "cartesian"
     // (levels: their heights z, CFD) or "surface" (levels empty)
+    // A curvilinear grid (G 50; SPEC 2.2) also gives xc and yc: the x and y of every
+    // grid point, x fastest (y.size() rows of x.size()); x and y are then the grid's
+    // index lines.
     void create_output(const std::string &output, const std::string &grid,
                        const std::vector<double> &x, const std::vector<double> &y,
                        const std::vector<double> &levels,
                        const std::vector<variable> &variables,
-                       int blocks, const std::string &source);
+                       int blocks, const std::string &source,
+                       const std::vector<double> *xc=nullptr, const std::vector<double> *yc=nullptr);
 
     // every rank, once per output stream: its block (i0, j0: index of its first
     // point in x and y; nx, ny: its number of points; nz: levels, 1 for surfaces).

@@ -54,6 +54,12 @@ public:
 	lexer();
 	// SFLOW AMR patch: control keys copied from b, the patch geometry is set by sflow_amr
 	lexer(const lexer &b, int);
+
+    // the grids of a mesh refinement (lexer_amr.cpp): the runtime state of level 0 at the
+    // construction, the members level 0 changes during the run before every step of a grid
+    void amr_inherit(const lexer &b);
+    void amr_follow(const lexer &b);
+    std::vector<double> amr_last;   // amr_follow: the values it set (the contract check)
 	virtual ~lexer();
 
 //-----functions------------------
@@ -62,6 +68,20 @@ public:
     void flagini();
 	void gridini(ghostcell*);
     void grid_solids(ghostcell*);   // solids and topography of the grid file for all modules
+    void geometry_ini(ghostcell*);  // horizontal geometry layer of the grid (lexer_geometry.cpp)
+    void curv_report();             // checks of the CURV corridor grid of the geometry file
+    void curv_nodes(ghostcell*);    // G 50: 2D nodes of the curvilinear grid
+    void geometry_bed();            // G 50: cell bed levels from the curvilinear nodes
+    vector<double> geo_zbn;         // G 50: bed level at the 2D nodes
+    int curv_ni=0, curv_nj=0;        // G 50: the global nodes of the curvilinear grid
+    vector<double> curv_gx, curv_gy, curv_gz;
+    void curv_node(int K, int L, double &x, double &y, double &z) const;
+    // G 50: the continuous logical coordinates (X, Y) of the physical point (x, y) in the global grid, in level-0
+    // node units (cell K holds K <= X < K+1; the patches of level l subdivide them by 2^l); false: outside the
+    // domain. The same on every rank (one table over the global nodes, built on the first call)
+    struct curv_logical_cache *curvloc=nullptr;
+    bool curv_logical(double x, double y, double &X, double &Y);
+    void curv_logical_free();
     void gcd_ini(ghostcell*);
     void makeflag(int*);
 
@@ -102,6 +122,7 @@ public:
     int *wet,*wet_n;
     int *deep;
     int *wetfix = nullptr;          // mesh refinement (NHFLOW G 30): flag a cell keeps through wetdry, -1 none
+    int amr_patch = 0;              // mesh refinement (CFD, G 15): 1 on the lexer of a patch
     double *amrvb = nullptr;        // mesh refinement (NHFLOW A 550): breaking viscosity of the source of a filled cell, -1 none
     int gcbextra;
     int solidread,toporead,porousread,topoforcing;

@@ -1,0 +1,19 @@
+{
+ "solver": "sflow",
+ "np": 2,
+ "steps": 300,
+ "description": "sflow_2d_river_clamped on 2 ranks: B 525 area and B 529 fluxes summed across ranks.",
+ "tags": [
+  "quick",
+  "2d",
+  "sflow",
+  "tide",
+  "iowave",
+  "bc_zone",
+  "background",
+  "mpi"
+ ],
+ "covers": [
+  "clamped edges and B 529 with MPI"
+ ]
+}

@@ -1,0 +1,20 @@
+{
+ "solver": "sflow",
+ "np": 1,
+ "steps": 300,
+ "description": "SFLOW channel 3 km, 10 m deep: progressive tide (a 0.25 m, T 600 s) in through a Riemann edge at x-, out through a Flather edge with a still-water background at x+ (as nhflow_2d_tide_flather).",
+ "tags": [
+  "quick",
+  "2d",
+  "sflow",
+  "tide",
+  "iowave",
+  "bc_zone",
+  "background"
+ ],
+ "covers": [
+  "Riemann and Flather edges in SFLOW (iowave::sflow_open_edges)",
+  "open-edge boundary fluxes in sflow_HLL",
+  "vel_bc and depth_update skip open sides"
+ ]
+}

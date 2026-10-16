@@ -43,6 +43,8 @@ public:
 
 	void start(fdm*,lexer* p, poisson*, solver*, ghostcell*, ioflow*, field&, field&, field&,double) override final;
     void ini(lexer*,fdm*,ghostcell*) override final;
+    void amr_prepare(lexer*,fdm*,poisson*,ghostcell*,field&,field&,field&,double);
+    void amr_finish(lexer*,fdm*,ghostcell*,field&,field&,field&,double);
 	void rhs(lexer*,fdm*,ghostcell*,field&,field&,field&,double);
 	void vel_setup(lexer*,fdm*,ghostcell*,field&,field&,field&,double);
     void presscorr(lexer*p,fdm *a,field&,field&,field&,field&, double);

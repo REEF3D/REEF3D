@@ -24,6 +24,7 @@ Architect: Hans Bihs
 #include"seastate_bathy.h"
 #include<algorithm>
 #include<cmath>
+#include<cstdlib>
 #include<fstream>
 #include<sstream>
 
@@ -98,13 +99,20 @@ bool seastate_bathy::read(const std::string &file, std::string &err)
     z.assign(size_t(nx)*ny,0.0);
     size_t n = 0;
 
+    // the values of a line with strtod (Phase 13: several times faster than a stream per line, the same values)
     while(n<z.size() && next_line(in,s))
     {
-    std::istringstream is(s);
-    double v;
+    const char *c = s.c_str();
 
-        while(n<z.size() && is>>v)
+        while(n<z.size())
+        {
+        char *end = nullptr;
+        const double v = std::strtod(c,&end);
+        if(end==c)
+        break;
         z[n++] = v;
+        c = end;
+        }
     }
 
     if(n<z.size())

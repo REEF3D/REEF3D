@@ -329,10 +329,18 @@ void driver::makegrid_sigma(lexer *p, ghostcell *pgc)
      p->xcoormax=pgc->globalmax(p->xcoormax);
 	 p->ycoormax=pgc->globalmax(p->ycoormax);
 	 p->zcoormax=pgc->globalmax(p->zcoormax);
-	 
+
 	 p->xcoormin=pgc->globalmin(p->xcoormin);
 	 p->ycoormin=pgc->globalmin(p->ycoormin);
 	 p->zcoormin=pgc->globalmin(p->zcoormin);
+
+     // largest domain extent, as in initialize (CFD) and driver_ini_fnpf: the number of
+     // reinitialisation iterations at the first step (NHFLOW ship wave, sixdof_obj_2D::reini_2D)
+     // (F 42 sets it explicitly, as for CFD)
+     p->maxlength = MAX3(p->xcoormax-p->xcoormin, p->ycoormax-p->ycoormin, p->zcoormax-p->zcoormin);
+
+     if(p->F42>=0.0)
+     p->maxlength = p->F42;
 
 }
 

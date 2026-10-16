@@ -23,6 +23,8 @@ Author: Hans Bihs
 #include"nhflow_timestep.h"
 #include<iomanip>
 #include"lexer.h"
+#include"nhflow_curv.h"
+#include"sflow_curv.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 
@@ -70,6 +72,24 @@ void nhflow_timestep::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
     p->vmax=MAX(p->vmax,phook->dt_local_max(2));
 	p->vmax=pgc->globalmax(p->vmax);
 
+    // curvilinear grid (G 50): the horizontal speed in both directions (the faces have any orientation;
+    // the Cartesian components made the time step depend on the orientation of the grid)
+    if(p->geo_curv==1)
+    {
+    double sp=0.0;
+    LOOP
+    sp=MAX(sp,sqrt(d->U[IJK]*d->U[IJK] + d->V[IJK]*d->V[IJK]));
+    
+    if(phook!=nullptr)
+    {
+    const double pu=phook->dt_local_max(1), pv=phook->dt_local_max(2);
+    sp=MAX(sp,sqrt(pu*pu + pv*pv));
+    }
+    
+    sp=pgc->globalmax(sp);
+    p->umax=p->vmax=sp;
+    }
+
 
 	LOOP
 	p->wmax=MAX(p->wmax,fabs(d->W[IJK]));
@@ -114,6 +134,10 @@ void nhflow_timestep::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
     if(p->j_dir==0 || p->knoy==1)
     dx = p->DXN[IP];
     
+    // curvilinear grid: the widths of the cell across its faces
+    if(p->geo_curv==1)
+    dx = MIN(nhflow_curv::width1(p,i,j),nhflow_curv::width2(p,i,j));
+    
     dz = p->DZN[KP]*d->WL(i,j);
     
     cu = MIN(cu, dx/(p->umax + sqrt(9.81*depthmax)));
@@ -137,7 +161,7 @@ void nhflow_timestep::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
     if(p->A512==1)
     {
     const double visc = d->VISC[IJK] + d->EV[IJK];
-    const double lam = 1.0/(p->DXN[IP]*p->DXN[IP]) + p->y_dir/(p->DYN[JP]*p->DYN[JP]) + 1.0/(dz*dz);
+    const double lam = (p->geo_curv==1 ? sflow_curv::inv2(p,i,j) : 1.0/(p->DXN[IP]*p->DXN[IP]) + p->y_dir/(p->DYN[JP]*p->DYN[JP])) + 1.0/(dz*dz);
     
     p->viscmax = MAX(p->viscmax, visc);
     cu = MIN(cu, 0.25/(visc*lam + 1.0e-20)/MAX(p->N47,1.0e-20));
@@ -228,6 +252,14 @@ void nhflow_timestep::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     if(p->j_dir==0)
     p->vmax=0.0;
 
+    if(p->geo_curv==1)
+    {
+    double sp=0.0;
+    LOOP
+    sp=MAX(sp,sqrt(d->U[IJK]*d->U[IJK] + d->V[IJK]*d->V[IJK]));
+    p->umax=p->vmax=pgc->globalmax(sp);
+    }
+
 
 	LOOP
 	p->wmax=MAX(p->wmax,fabs(d->W[IJK]));
@@ -257,6 +289,9 @@ void nhflow_timestep::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     
     if(p->j_dir==0 || p->knoy==1)
     dx = p->DXN[IP];
+    
+    if(p->geo_curv==1)
+    dx = MIN(nhflow_curv::width1(p,i,j),nhflow_curv::width2(p,i,j));
     
     
     cu = MIN(cu, 1.0/((fabs((p->umax + sqrt(9.81*depthmax)))/dx)));

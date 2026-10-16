@@ -1,0 +1,17 @@
+{
+ "base": "nhflow_3d_mb_quadrants",
+ "ctrl_add": [
+  "A 512 2",
+  "W 2 0.001"
+ ],
+ "description": "As nhflow_3d_mb_quadrants with the implicit horizontal diffusion (A 512 2): one composite diffusion solve over the blocks (the ring no unknown, the cells around the blocks filled from the increments).",
+ "tags": [
+  "3d",
+  "nhflow",
+  "curvilinear",
+  "multiblock"
+ ],
+ "covers": [
+  "nhflow_amr_diff: leaf lists without the ring, df_sync level-0 fill"
+ ]
+}

@@ -170,7 +170,7 @@ void CPM::volfrac_update(lexer *p, ghostcell *pgc, sediment_fdm *s, double *PX, 
     
     BASELOOP
     {
-        double vol = p->DXN[IP]*p->DYN[JP]*p->DZN[KP];
+        double vol = kvol(p,i,j,k);
         
         Ts(i,j,k) = cellSum(i,j,k)/vol;
         
@@ -197,39 +197,80 @@ void CPM::volfrac_update(lexer *p, ghostcell *pgc, sediment_fdm *s, double *PX, 
     pgc->start4a(p,Ws,1);
 }
 
-// conservative explicit filter, zero flux at physical walls
+// volume of the kernel of a node: the integral of the tri-linear weights of the node over the domain.
+// On a uniform grid it is the cell volume; where the cell size changes, the weights of a node reach
+// half way to the neighbouring centres on each side, 0.5 (DXP[i-1] + DXP[i]), and at a wall (weights
+// folded back) from the wall to half way to the next centre. Dividing the deposited volume by the cell
+// volume instead over-fills the last fine cell at a change 1:2 by 25 % and under-fills the first coarse
+// cell by 12.5 %; the contact pressure then pushes the parcels of the bed out of the fine cell.
+double CPM::kvol(lexer *p, int ii, int jj, int kk)
+{
+    auto dir = [&](const double *DN, const double *DP, int q, int nq, bool lo, bool hi) -> double
+    {
+        double h = DN[q+marge];
+        double v = 0.5*(DP[q-1+marge] + DP[q+marge]);
+        
+        if(q==0 && lo)
+        v = 0.5*(DN[q+marge] + DP[q+marge]);
+        
+        if(q==nq-1 && hi)
+        v = 0.5*(DN[q+marge] + DP[q-1+marge]);
+        
+        if(nq==1 && lo && hi)
+        v = h;
+        
+        return fabs(v-h) <= 1.0e-9*h ? h : v;
+    };
+    
+    double vx = dir(p->DXN, p->DXP, ii, p->knox, p->nb1<0 && perx!=1, p->nb4<0 && perx!=1);
+    double vy = p->j_dir==1 ? dir(p->DYN, p->DYP, jj, p->knoy, p->nb3<0 && pery!=1, p->nb2<0 && pery!=1) : p->DYN[jj+marge];
+    double vz = dir(p->DZN, p->DZP, kk, p->knoz, p->nb5<0, p->nb6<0);
+    
+    return vx*vy*vz;
+}
+
+// conservative explicit filter, zero flux at physical walls; the exchange between two nodes is
+// limited by the smaller kernel volume, so that the solid volume (Ts kvol) is conserved where the
+// cell size changes (on a uniform grid the weights are 1)
 void CPM::smooth(lexer *p, ghostcell *pgc, field &f, int passes)
 {
     double c = p->j_dir==1 ? 1.0/12.0 : 1.0/8.0;
-    double val,fc;
+    double val,fc,vc;
+    
+    auto wgt = [&](int ii, int jj, int kk) -> double
+    {
+        double vn = kvol(p,ii,jj,kk);
+        return vn<vc ? vn/vc : 1.0;
+    };
     
     for(int qn=0;qn<passes;++qn)
     {
         BASELOOP
         {
             fc = f(i,j,k);
+            vc = kvol(p,i,j,k);
             val = 0.0;
             
             if(!wallcell(p,i-1,j,k))
-            val += f(i-1,j,k) - fc;
+            val += (f(i-1,j,k) - fc)*wgt(i-1,j,k);
             
             if(!wallcell(p,i+1,j,k))
-            val += f(i+1,j,k) - fc;
+            val += (f(i+1,j,k) - fc)*wgt(i+1,j,k);
             
             if(p->j_dir==1)
             {
             if(!wallcell(p,i,j-1,k))
-            val += f(i,j-1,k) - fc;
+            val += (f(i,j-1,k) - fc)*wgt(i,j-1,k);
             
             if(!wallcell(p,i,j+1,k))
-            val += f(i,j+1,k) - fc;
+            val += (f(i,j+1,k) - fc)*wgt(i,j+1,k);
             }
             
             if(!wallcell(p,i,j,k-1))
-            val += f(i,j,k-1) - fc;
+            val += (f(i,j,k-1) - fc)*wgt(i,j,k-1);
             
             if(!wallcell(p,i,j,k+1))
-            val += f(i,j,k+1) - fc;
+            val += (f(i,j,k+1) - fc)*wgt(i,j,k+1);
             
             cellSum(i,j,k) = fc + c*val;
         }

@@ -191,7 +191,8 @@ void nhflow_amr::diff_solve(lexer *p, ghostcell *pgc, int s)
         for(int ii=0; ii<q->knox; ++ii)
         for(int jj=0; jj<q->knoy; ++jj)
         {
-            const bool box = (ii>=i0 && ii<=i1 && jj>=j0 && jj<=j1);
+            // multi-block: the ring of the native grid stands for cells of the other blocks
+            const bool box = (ii>=i0 && ii<=i1 && jj>=j0 && jj<=j1) && !(g<0 && ring0(ii,jj));
             bool cov = false;
             if(box && l<maxlev)
             {
@@ -345,9 +346,18 @@ void nhflow_amr::df_sync(int k)
                      const int nby = q->ny/2;
                      const int i0 = EXT+2*(kb/nby), j0 = EXT+2*(kb%nby);
                      const int fz = pp->knoz/Kc;
+                     double w[4];
+                     cw4(pp,i0,j0,w);    // curvilinear grid: per area of the children
                      for(int kk=0; kk<Kc; ++kk)
                      {
                          double r = 0.0;
+                         if(pp->geo_curv==1)
+                         {
+                         for(int kf=fz*kk; kf<fz*kk+fz; ++kf)
+                         r += w[0]*f[cidx(pp,i0,j0,kf)]+w[1]*f[cidx(pp,i0+1,j0,kf)]+w[2]*f[cidx(pp,i0,j0+1,kf)]+w[3]*f[cidx(pp,i0+1,j0+1,kf)];
+                         v[kk] = r/double(fz);
+                         continue;
+                         }
                          for(int kf=fz*kk; kf<fz*kk+fz; ++kf)
                          r += f[cidx(pp,i0,j0,kf)]+f[cidx(pp,i0+1,j0,kf)]+f[cidx(pp,i0,j0+1,kf)]+f[cidx(pp,i0+1,j0+1,kf)];
                          v[kk] = 0.25*r/double(fz);
@@ -360,6 +370,38 @@ void nhflow_amr::df_sync(int k)
                      for(int kk=0; kk<Kc; ++kk)
                      dst[cidx(q,B.ic,B.jc,kk)] = v[kk];
                  });
+    }
+
+    // multi-block: the cells around the blocks and the ring from the cells they stand for
+    if(nblk>0)
+    {
+        const int K0 = p0->knoz;
+        fill_run0(K0,7819,
+                  [&](const reefamr_fill &f, double *v)
+                  {
+                      if(f.kind!=0)
+                      {
+                          for(int kk=0; kk<K0; ++kk)
+                          v[kk] = 0.0;
+                          return;
+                      }
+                      const double *src = dvec(f.g,k);
+                      lexer *q = glex(f.g);
+                      for(int kk=0; kk<K0; ++kk)
+                      v[kk] = src[cidx(q,f.si,f.sj,kk)];
+                  },
+                  [&](reefamr_patch *q, int id, const reefamr_fill &f, const double *w)
+                  {
+                      double *dst = dvec(id,k);
+                      for(int kk=0; kk<K0; ++kk)
+                      dst[cidx(q->pp,f.di,f.dj,kk)] = w[kk];
+                  },
+                  [&](const reefamr_fill &f, const double *w)
+                  {
+                      double *dst = dvec(-1,k);
+                      for(int kk=0; kk<K0; ++kk)
+                      dst[cidx(p0,f.di,f.dj,kk)] = w[kk];
+                  });
     }
 
     if(p0->mpi_size>1)

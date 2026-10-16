@@ -69,6 +69,13 @@ void sflow_eta::update(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *pflow, slice 
     SLICELOOP4
     K(i,j) = 0.0;
     
+    if(p->geo_curv==1)
+    SLICELOOP4
+    WETDRY
+    K(i,j) = -(b->FEx(i,j)*p->LEN1[IJ] - b->FEx(i-1,j)*p->LEN1[Im1J]
+             + b->FEy(i,j)*p->LEN2[IJ] - b->FEy(i,j-1)*p->LEN2[IJm1])/p->AREA2D[IJ];
+    
+    if(p->geo_curv==0)
     SLICELOOP4
     WETDRY
     K(i,j) = -(b->FEx(i,j) - b->FEx(i-1,j))/p->DXN[IP] 
@@ -138,6 +145,11 @@ void sflow_eta::depth_update(lexer *p, fdm2D *b , ghostcell *pgc, slice &WL)
     {
     i=p->gcslout[n][0];
     j=p->gcslout[n][1];
+    
+    // not at iowave Riemann / Flather / clamped edges (B 520 methods 3-6)
+    const int cs = p->gcslout[n][3];
+    if((cs==4 && p->open_xp==1) || (cs==3 && p->open_ym==1) || (cs==2 && p->open_yp==1) || (cs==1 && p->open_xm==1))
+    continue;
     
     if(p->wet[IJ]==1)
     b->eta(i,j) = wsfout-p->wd;

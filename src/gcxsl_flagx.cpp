@@ -26,6 +26,10 @@ Author: Hans Bihs
 
 void ghostcell::gcslflagx(lexer* p, int *flag)
 {
+    // a patch of the mesh refinement (set_comms off) has no partition neighbours
+    if(!do_comms)
+    return;
+
     count=0;
     for(n=0;n<p->gcslpara1_count;++n)
     {

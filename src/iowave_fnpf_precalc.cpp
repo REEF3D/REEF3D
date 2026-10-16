@@ -35,9 +35,14 @@ void iowave::wavegen_precalc_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 
         if(p->B89==0)
         {
-            if(p->B98==2)
+            if(relax_gen)
             fnpf_precalc_relax(p,pgc);
             
+            // B 98 6: zone above, absorbing generating edge here
+            if(gen_lp)
+            fnpf_precalc_edge(p,pgc);
+            
+            else
             if(p->B98==3 || p->B98==4)
             fnpf_precalc_dirichlet(p,pgc);
         }

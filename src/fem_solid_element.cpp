@@ -381,11 +381,13 @@ void fem_solid::internal_forces(double dts)
         int nfail = 0;
         double dmean = 0.0;
         double Jmin = 1.0e30;
+        double emax = 0.0;              // strain measure of the point (one-point elements)
+        const int ng = el.full ? 8 : 1;
 
-        for(int g=0; g<ngp; ++g)
+        for(int g=0; g<ng; ++g)
         {
-            const double (*dN)[3] = (ngp==1) ? G.dN0 : G.dNg[g];
-            const double w = (ngp==1) ? G.V : G.wg[g];
+            const double (*dN)[3] = (ng==1) ? G.dN0 : G.dNg[g];
+            const double w = (ng==1) ? G.V : G.wg[g];
 
             Mat3 F = Mat3::Zero(), Fd = Mat3::Zero();
             for(int a=0; a<8; ++a)
@@ -406,19 +408,21 @@ void fem_solid::internal_forces(double dts)
             svm_sum += svm;
             dmean += st.d;
             Jmin = std::min(Jmin,F.determinant());
+            if(ng==1)
+            emax = (0.5*(F.transpose()*F - Mat3::Identity())).norm();
 
             for(int a=0; a<8; ++a)
             for(int i=0; i<3; ++i)
             fe[a][i] += w*(P(i,0)*dN[a][0] + P(i,1)*dN[a][1] + P(i,2)*dN[a][2]);
         }
 
-        el.svm = svm_sum/double(ngp);
+        el.svm = svm_sum/double(ng);
         el.J = Jmin;
-        dmean /= double(ngp);
+        dmean /= double(ng);
 
         // erosion: failure in at least half of the integration points
         // (the counts of the nodes are updated below)
-        if(2*nfail>=ngp && nfail>0)
+        if(2*nfail>=ng && nfail>0)
         {
             el.alive = false;
             fe_on[e] = 0;
@@ -427,8 +431,10 @@ void fem_solid::internal_forces(double dts)
 
         // hourglass control (one-point integration): stiffness on the
         // hourglass modes of the current positions, rotation invariant
-        if(ngp==1)
+        if(ng==1)
         {
+            double qsum = 0.0;          // hourglass amplitudes (strain at the faces: |q| / (4 L))
+
             // reinforced member: at least 1 % of the concrete stiffness (as the shear of
             // cracked concrete); the bars add none: within one element they have one
             // strain, an elastic hourglass stiffness of the bars stiffened the plastic hinge
@@ -446,6 +452,27 @@ void fem_solid::internal_forces(double dts)
                 for(int a=0; a<8; ++a)
                 for(int i=0; i<3; ++i)
                 fe[a][i] += kh*G.gam[al][a]*q[i];
+                qsum += std::sqrt(q[0]*q[0] + q[1]*q[1] + q[2]*q[2]);
+            }
+
+            // adaptive integration: one point (+ hourglass control) cannot represent the strain
+            // gradient across an element once the material turns nonlinear (a crack or a plastic
+            // zone at one face): the element is switched to 2x2x2 points when its strain, with the
+            // bending strain of the hourglass modes at the faces, reaches a fraction of the strain
+            // of the first nonlinearity, or the point is already nonlinear. The history of the
+            // point is copied to the 8 points; the switch acts from the next substep
+            if(full_int==2 && !mt.rigid && mt.type!=MAT_ELASTIC)
+            {
+                const double elin = (mt.type==MAT_J2) ? mt.sigy/mt.E : (mt.ft>0.0 ? mt.ft/mt.E : mt.fc/mt.E);
+                const gpstate& s0 = gps[(size_t)e*ngp];
+                const bool nonlin = s0.d>0.0 || s0.ep>0.0 || s0.es[0]!=0.0 || s0.es[1]!=0.0 || s0.es[2]!=0.0;
+                const double ehg = G.L>0.0 ? qsum/(4.0*G.L) : 0.0;
+                if(nonlin || emax+ehg >= adapt_frac*elin)
+                {
+                    for(int g=1; g<8; ++g)
+                    gps[(size_t)e*ngp+g] = s0;
+                    el.full = true;
+                }
             }
         }
 
@@ -456,15 +483,34 @@ void fem_solid::internal_forces(double dts)
         fe_on[e] = 1;
     }
 
-    // in the order of the elements (as a serial loop): dissipated energy, eroded elements
+    // in the order of the elements (as a serial loop): dissipated energy (per element),
+    // eroded elements
+    std::vector<int> failed;
     for(int k=0; k<na; ++k)
     {
         const int e = act[k];
         const double* wl = &wl_buf[(size_t)e*WLOG];
         for(int q=0; q<wl_n[e]; ++q)
-        wdiss += wl[q];
+        wde[e] += wl[q];
         if(!elems[e].alive)
         {
+            surf_dirty = true;
+            act_dirty = true;
+            failed.push_back(e);
+            for(int a=0; a<8; ++a)
+            --nalive[elems[e].n[a]];
+        }
+    }
+
+    // distributed: elements that failed on other ranks fail here too
+    if(dist)
+    {
+        dist_failures(failed);
+        for(int e : failed)
+        if(elems[e].alive)
+        {
+            elems[e].alive = false;
+            fe_on[e] = 0;
             surf_dirty = true;
             act_dirty = true;
             for(int a=0; a<8; ++a)
@@ -503,7 +549,7 @@ void fem_solid::build_gather()
     if(elems[e].alive)
     {
         ++nalive_el;
-        if(!elems[e].rigid)
+        if(!elems[e].rigid && (!dist || ecomp[e]))
         act.push_back(e);
     }
     if(fe_buf.size()!=(size_t)ne*24)
@@ -520,6 +566,8 @@ void fem_solid::build_gather()
     g_node.clear(); g_start.assign(1,0); g_off.clear(); g_elem.clear();
     for(int i=0; i<nn; ++i)
     {
+        if(dist && nown[i]!=myrank)
+        continue;
         const int q0 = (int)g_off.size();
         for(int q=node_elem_start[i]; q<node_elem_start[i+1]; ++q)
         {

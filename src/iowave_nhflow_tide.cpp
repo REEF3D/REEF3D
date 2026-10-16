@@ -131,6 +131,47 @@ static void edge_geometry(int e, int &sc, int &di, int &dj, double &nx, double &
     ny = -double(dj);
 }
 
+// curvilinear grid (G 50): the boundary face of the edge cell (i,j) (side 1: x-, 2: x+, 3: y-, 4: y+):
+// its inward unit normal, its length and the physical centre
+static int curv_face(const lexer *p, int e, int i, int j, int &dir, int &fi, int &fj)
+{
+    dir = e<=2 ? 1 : 2;
+    fi = e==1 ? i-1 : i;
+    fj = e==3 ? j-1 : j;
+    return (fi-p->imin)*p->jmax + (fj-p->jmin);
+}
+
+void iowave::curv_edge_normal(lexer *p, int e, int i, int j, double &nx, double &ny)
+{
+    int dir,fi,fj;
+    const int q = curv_face(p,e,i,j,dir,fi,fj);
+    const double len = dir==1 ? p->LEN1[q] : p->LEN2[q];
+    const double sx = dir==1 ? p->SX1[q] : p->SX2[q];
+    const double sy = dir==1 ? p->SY1[q] : p->SY2[q];
+    const double sg = (e==1 || e==3) ? 1.0 : -1.0;
+    
+    nx = len>0.0 ? sg*sx/len : (dir==1 ? sg : 0.0);
+    ny = len>0.0 ? sg*sy/len : (dir==1 ? 0.0 : sg);
+}
+
+double iowave::curv_edge_len(lexer *p, int e, int i, int j)
+{
+    int dir,fi,fj;
+    const int q = curv_face(p,e,i,j,dir,fi,fj);
+    return dir==1 ? p->LEN1[q] : p->LEN2[q];
+}
+
+void iowave::curv_edge_centre(lexer *p, int e, int i, int j, double &x, double &y)
+{
+    int dir,fi,fj;
+    curv_face(p,e,i,j,dir,fi,fj);
+    // nodes of face i+1/2: (i+1,j), (i+1,j+1); of face j+1/2: (i,j+1), (i+1,j+1)
+    const int a = dir==1 ? p->nij(fi+1,fj) : p->nij(fi,fj+1);
+    const int c = p->nij(fi+1,fj+1);
+    x = 0.5*(p->XN2D[a] + p->XN2D[c]);
+    y = 0.5*(p->YN2D[a] + p->YN2D[c]);
+}
+
 // edge e is a Riemann / Flather edge with its ghost cells set here (lexer flags, set in iowave::ini)
 static int edge_open(const lexer *p, int e)
 {
@@ -179,7 +220,7 @@ void iowave::nhflow_open_edges(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, 
                 j=gs[n][1];
                 
                 if(p->wet[IJ]==1)
-                area += d->WL(i,j)*(xedge ? p->DYN[JP] : p->DXN[IP]);
+                area += d->WL(i,j)*(p->geo_curv==1 ? curv_edge_len(p,side,i,j) : (xedge ? p->DYN[JP] : p->DXN[IP]));
             }
             }
             
@@ -228,7 +269,7 @@ void iowave::nhflow_open_edges(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, 
                 {
                 su += wave_u(p,pgc,xg,yg,p->ZSP[IJK]-p->phimean)*p->DZN[KP];
                 
-                if(!xedge)
+                if(!xedge || p->geo_curv==1)
                 sv += wave_v(p,pgc,xg,yg,p->ZSP[IJK]-p->phimean)*p->DZN[KP];
                 }
                 
@@ -266,8 +307,12 @@ void iowave::nhflow_open_edges(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, 
             continue;
             
             // background at the boundary face
-            const double xf = side==1 ? p->XN[IP] : side==2 ? p->XN[IP1] : p->XP[IP];
-            const double yf = side==3 ? p->YN[JP] : side==4 ? p->YN[JP1] : p->YP[JP];
+            double xf = side==1 ? p->XN[IP] : side==2 ? p->XN[IP1] : p->XP[IP];
+            double yf = side==3 ? p->YN[JP] : side==4 ? p->YN[JP1] : p->YP[JP];
+            
+            // curvilinear grid (G 50): the physical centre of the edge face
+            if(p->geo_curv==1)
+            curv_edge_centre(p,side,i,j,xf,yf);
             const double eb = b>=0 ? bgs.eta(b,xf,yf) : 0.0;
             double ub=0.0, vb=0.0;
             if(b>=0)
@@ -275,7 +320,16 @@ void iowave::nhflow_open_edges(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, 
             
             // normal (inward) and tangential velocities: x edges U / V, y edges V / U
             const double nn = xedge ? nx : ny;
-            const double ui = xedge ? nhflow_col_ubar(p,d,d->U) : nhflow_col_ubar(p,d,d->V);
+            double ui = xedge ? nhflow_col_ubar(p,d,d->U) : nhflow_col_ubar(p,d,d->V);
+            
+            // curvilinear grid (G 50): along the inward normal of the edge face (cx, cy), the
+            // tangential direction (-cy, cx); ui is the inward normal velocity times nn
+            double cx = nx, cy = ny;
+            if(p->geo_curv==1)
+            {
+            curv_edge_normal(p,side,i,j,cx,cy);
+            ui = nn*(nhflow_col_ubar(p,d,d->U)*cx + nhflow_col_ubar(p,d,d->V)*cy);
+            }
             
             // waves of the layer and of the column (ramped), added to the background
             double uwk=0.0, vwk=0.0, wwk=0.0, ewc=0.0, uwc=0.0, vwc=0.0;
@@ -295,8 +349,11 @@ void iowave::nhflow_open_edges(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, 
                 vwc = rw*edge_vw[IJ];
             }
             
-            const double unb = xedge ? nn*(ub + uwc) : nn*(vb + vwc);   // target, normal
+            double unb = xedge ? nn*(ub + uwc) : nn*(vb + vwc);   // target, normal
             const double uni = nn*ui;                                  // interior, normal
+            
+            if(p->geo_curv==1)
+            unb = (ub + uwc)*cx + (vb + vwc)*cy;
             double ung, hg;
             
             if(z->method==bc_method::riemann)
@@ -313,7 +370,7 @@ void iowave::nhflow_open_edges(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, 
             {
                 // q_n(outward) = q_n,b + sqrt(g h) (eta - eta_b)
                 hg = hi;
-                ung = (xedge ? nn*ub : nn*vb) - sqrt(g/hi)*((hi-h0) - eb);
+                ung = (p->geo_curv==1 ? ub*cx + vb*cy : (xedge ? nn*ub : nn*vb)) - sqrt(g/hi)*((hi-h0) - eb);
             }
             else
             if(z->method==bc_method::clamp_level)
@@ -326,7 +383,7 @@ void iowave::nhflow_open_edges(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, 
             {
                 // clamped discharge: normal velocity of the background or B 525, depth of the interior
                 hg = hi;
-                ung = z->has_Q ? uq : (xedge ? nn*ub : nn*vb);
+                ung = z->has_Q ? uq : (p->geo_curv==1 ? ub*cx + vb*cy : (xedge ? nn*ub : nn*vb));
             }
             
             edge_h[IJ] = hg;
@@ -363,6 +420,19 @@ void iowave::nhflow_open_edges(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, 
                 vg = nn*ung*fp + (vwk - vwc);
                 ug = ub*fp + uwk;
                 }
+            }
+            
+            // curvilinear grid (G 50): normal part from the characteristics and the waves' deviation
+            // from their column mean, tangential part of the background (+ waves) or of the interior
+            if(p->geo_curv==1)
+            {
+                const double tx = -cy, ty = cx;
+                const double fp = (in && bgs.profiled(b)) ? bg_prof(p,b,fmax(h0+eb,1.0e-6)) : 1.0;
+                const double dn = (uwk - uwc)*cx + (vwk - vwc)*cy;
+                const double ut = in ? (ub*fp + uwk)*tx + (vb*fp + vwk)*ty : U[IJK]*tx + V[IJK]*ty;
+                
+                ug = (ung*fp + dn)*cx + ut*tx;
+                vg = (ung*fp + dn)*cy + ut*ty;
             }
             
             const double wg = in ? wwk : W[IJK];
@@ -822,7 +892,7 @@ void iowave::nhflow_mass_balance(lexer *p, fdm_nhf *d, ghostcell *pgc)
                 if(side==4) f -= p->DZN[KP]*d->FEy[IJK];
             }
             
-            q[side] += f*(side<=2 ? p->DYN[JP] : p->DXN[IP]);
+            q[side] += f*(p->geo_curv==1 ? curv_edge_len(p,side,i,j) : (side<=2 ? p->DYN[JP] : p->DXN[IP]));
         }
         }
         

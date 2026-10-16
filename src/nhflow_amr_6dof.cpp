@@ -113,3 +113,41 @@ void nhflow_amr_6dof::reforce_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int i
     for(int nb=0; nb<b->objects(); ++nb)
     b->object(nb)->update_forcing_nhflow(p,d,pgc,d->U,d->V,d->W,FX,FY,FZ,WL,fe,iter);
 }
+
+bool nhflow_amr_6dof::top_phi_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter, slice &WL, slice &phi)
+{
+    if(b==nullptr || b->objects()<1)
+    return false;
+    
+    b->object(0)->top_phi_nhflow(p,d,WL,b->object(0)->nhflow_nb()*dsm,phi);
+    
+    return true;
+}
+
+// the actuator disks on the patch (sixdof_obj_nhflow::actuator_source, patch form)
+void nhflow_amr_6dof::isource(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
+{
+    if(b==nullptr)
+    return;
+
+    for(int nb=0; nb<b->objects(); ++nb)
+    b->object(nb)->actuator_source(p,d,pgc,WL,0,d->F,true);
+}
+
+void nhflow_amr_6dof::jsource(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
+{
+    if(b==nullptr)
+    return;
+
+    for(int nb=0; nb<b->objects(); ++nb)
+    b->object(nb)->actuator_source(p,d,pgc,WL,1,d->G,true);
+}
+
+void nhflow_amr_6dof::ksource(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
+{
+    if(b==nullptr)
+    return;
+
+    for(int nb=0; nb<b->objects(); ++nb)
+    b->object(nb)->actuator_source(p,d,pgc,WL,2,d->H,true);
+}

@@ -1,0 +1,21 @@
+{
+ "np": 1,
+ "steps": 150,
+ "tags": [
+  "3d",
+  "nhflow",
+  "curvilinear",
+  "tide",
+  "iowave"
+ ],
+ "description": "NHFLOW on a curvilinear grid turned by 30 deg at UTM coordinates: an oblique tide (direction 60 deg in the physical frame) through a basin with Riemann edges at x- and y- and Flather edges at x+ and y+.",
+ "covers": [
+  "iowave open edges on face normals (nhflow_open_edges)",
+  "bc_fluxes at open edges",
+  "background at the physical face centres"
+ ],
+ "solver": "nhflow",
+ "files": [
+  "curvgrid.dat"
+ ]
+}

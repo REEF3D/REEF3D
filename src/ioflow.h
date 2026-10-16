@@ -44,6 +44,8 @@ using namespace std;
 class ioflow
 {
 public:
+    virtual ~ioflow() = default;
+
     // cfd
     virtual void gcio_update(lexer*,fdm*,ghostcell*)=0;
     virtual void gcio_update_nhflow(lexer*,fdm_nhf*,ghostcell*)=0;
@@ -76,6 +78,8 @@ public:
     virtual void W_relax(lexer*,ghostcell*,double*,double*)=0;
     virtual void P_relax(lexer*,ghostcell*,double*)=0;
     virtual void WL_relax(lexer*,ghostcell*,slice&,slice&)=0;
+    // (x,y) inside a relaxation (generation or beach) zone
+    virtual bool relax_zone(double, double) {return false;}
     virtual void fifsf_relax(lexer*, ghostcell*, slice&)=0;
     virtual void eta_relax(lexer*,ghostcell*,slice&)=0;
     // SFLOW: um/vm/wm_relax(U,UH,WL) at the cell centres

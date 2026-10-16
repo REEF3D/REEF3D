@@ -144,8 +144,11 @@ void seastate_f::handover(lexer *p, ghostcell *pgc)
     // in direction between the bin centres
     const double dto = g.uniform ? g.dtheta : *std::min_element(g.dth.begin(),g.dth.end());
     const int nout = int(std::lround(2.0*pi/dto));
-    const double t0 = g.uniform ? 0.0 : g.theta[g.direction_bin(sp.dir*pi/180.0)];
-    const int m0 = g.uniform ? int(std::lround(sp.dir*pi/180.0/g.dtheta)) % g.ndir : 0;
+    const double t0 = g.uniform ? g.theta0 : g.theta[g.direction_bin(sp.dir*pi/180.0)];
+    double dr = std::fmod(sp.dir*pi/180.0-g.theta0,2.0*pi);
+    if(dr<0.0)
+    dr += 2.0*pi;
+    const int m0 = g.uniform ? int(std::lround(dr/g.dtheta)) % nout : 0;
     int nh = int(std::floor(p->A761*pi/180.0/dto + 1.0e-9));
     nh = std::max(nh,1);
 
@@ -154,8 +157,9 @@ void seastate_f::handover(lexer *p, ghostcell *pgc)
     {
         if(g.uniform)
         {
-        const int mm = ((m%g.ndir)+g.ndir)%g.ndir;
-        return g.sig[l]*double(N[g.bin(l,mm)]);
+        // full circle: nout = ndir; compact computational sector (A 717): nothing beyond the sector
+        const int mm = ((m%nout)+nout)%nout;
+        return mm<g.ndir ? g.sig[l]*double(N[g.bin(l,mm)]) : 0.0;
         }
 
         double t = std::fmod(t0 + double(m)*dto,2.0*pi);

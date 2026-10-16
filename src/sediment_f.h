@@ -54,6 +54,20 @@ class bedshear_max;
 class bedprobe_line_x;
 class bedprobe_line_y;
 class sediment_roughness;
+class sediment_exner;
+class fdm_nhf;
+class fdm2D;
+class ioflow;
+
+// mesh refinement and multi-block grids: the sediment step of all grids (nhflow_amr, sflow_amr), called by
+// the level-0 sediment_f instead of its own step (sediment_amr.cpp)
+class sediment_grids
+{
+public:
+    virtual ~sediment_grids(){}
+    virtual void sediment_step_nhflow(lexer*, fdm_nhf*, ghostcell*, ioflow*, class sediment_f*) {}
+    virtual void sediment_step_sflow(lexer*, fdm2D*, ghostcell*, ioflow*, class sediment_f*) {}
+};
 
 using namespace std;
 
@@ -61,6 +75,8 @@ class sediment_f : public sediment, public increment
 {
 public:
     sediment_f(lexer*,ghostcell*,turbulence*,patchBC_interface*);
+    // a grid of the mesh refinement or a block (amrgrid 1): no log, no probes, no messages
+    sediment_f(lexer*,ghostcell*,turbulence*,patchBC_interface*,int amrgrid);
 	virtual ~sediment_f();
     
     // CFD interface
@@ -167,34 +183,46 @@ public:
     
     void log_ini(lexer*);
     void sedimentlog(lexer*);
-    sediment_fdm *s;
-    bedload *pbed;  
-    bedconc *pcbed;
-    sandslide *pslide;
-    topo_relax *prelax;
-    vrans *pvrans;
-    bedslope *pslope;
-    bedshear_reduction *preduce;
-    topo *ptopo;
-    suspended *psusp;
-    nhflow_suspended *pnhfsusp;
-    nhflow_scalar_convection *pnhfsuspdisc;
-    nhflow_diffusion *pnhfsuspdiff;
     
-    diffusion *psuspdiff;
-    convection *psuspdisc;
-	bedshear *pbedshear;
+    // mesh refinement and multi-block grids (sediment_amr.cpp): the step of one grid in parts
+    //   amr_physics: velocities, bed slope, roughness, bed shear, bed load and its direction, the reference
+    //                concentration, the relaxation zones, qb (sediment_exner::amr_qb)
+    //   amr_finish:  relaxation zones, the bed to the flow (the sand slide: pslide in steps, reefamr_sed.h)
+    void amr_physics_nhflow(lexer*, fdm_nhf*, ghostcell*);
+    void amr_physics_sflow(lexer*, fdm2D*, ghostcell*);
+    void amr_finish_nhflow(lexer*, fdm_nhf*, ghostcell*, ioflow*);
+    void amr_finish_sflow(lexer*, fdm2D*, ghostcell*, ioflow*);
+    sediment_exner* exner();
+    sediment_grids *grids = nullptr;    // set by nhflow_amr / sflow_amr when they run the sediment step
+    int amrgrid = 0;
+    sediment_fdm *s = nullptr;
+    bedload *pbed = nullptr;  
+    bedconc *pcbed = nullptr;
+    sandslide *pslide = nullptr;
+    topo_relax *prelax = nullptr;
+    vrans *pvrans = nullptr;
+    bedslope *pslope = nullptr;
+    bedshear_reduction *preduce = nullptr;
+    topo *ptopo = nullptr;
+    suspended *psusp = nullptr;
+    nhflow_suspended *pnhfsusp = nullptr;
+    nhflow_scalar_convection *pnhfsuspdisc = nullptr;
+    nhflow_diffusion *pnhfsuspdiff = nullptr;
+    
+    diffusion *psuspdiff = nullptr;
+    convection *psuspdisc = nullptr;
+	bedshear *pbedshear = nullptr;
     patchBC_interface *pBC;
-    bedload_direction *pbeddir;
-    bedprobe_point *pbedpt;
-	bedprobe_line_x *pbedlinex;
-	bedprobe_line_y *pbedliney;
-	bedprobe_max *pbedmax;
-	bedshear_probe *pbedshearprobe;
-	bedshear_max *pbedshearmax;
+    bedload_direction *pbeddir = nullptr;
+    bedprobe_point *pbedpt = nullptr;
+	bedprobe_line_x *pbedlinex = nullptr;
+	bedprobe_line_y *pbedliney = nullptr;
+	bedprobe_max *pbedmax = nullptr;
+	bedshear_probe *pbedshearprobe = nullptr;
+	bedshear_max *pbedshearmax = nullptr;
     sediment_f *psed;
     ofstream sedlogout;
-    sediment_roughness *pks; 
+    sediment_roughness *pks = nullptr; 
     
     double starttime;
     

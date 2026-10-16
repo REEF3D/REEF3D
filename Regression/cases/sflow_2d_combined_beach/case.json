@@ -1,0 +1,17 @@
+{
+ "solver": "sflow",
+ "np": 1,
+ "steps": 300,
+ "description": "SFLOW flume (h 10 m, linear waves kh 1) with the combined beach B 99 6",
+ "tags": [
+  "quick",
+  "2d",
+  "sflow",
+  "waves",
+  "iowave",
+  "bc_zone"
+ ],
+ "covers": [
+  " relaxation beach towards the low-passed state in front of the absorbing Riemann edge at x+ (default tau T / 4).:B 99 6 in SFLOW (beach_target in iowave_sflow_relax, absorbing edge)"
+ ]
+}

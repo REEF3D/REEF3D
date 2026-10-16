@@ -47,7 +47,8 @@ void iowave::nhflow_wavegen_precalc_decomp_relax(lexer *p, fdm_nhf *d, ghostcell
 
 // ETA
     count=0;
-    SLICELOOP4
+    if(!zc_built) zonecol_build(p);
+    ZSLICELOOP4
     {
 		dg = distgen(p);
 
@@ -72,7 +73,7 @@ void iowave::nhflow_wavegen_precalc_decomp_relax(lexer *p, fdm_nhf *d, ghostcell
     
 // U
     count=0;
-    LOOP
+    ZLOOP
     {
         dg = distgen(p);
 		
@@ -97,7 +98,7 @@ void iowave::nhflow_wavegen_precalc_decomp_relax(lexer *p, fdm_nhf *d, ghostcell
 
 
     count=0;
-    LOOP
+    ZLOOP
     {
         dg = distgen(p);
         
@@ -121,7 +122,7 @@ void iowave::nhflow_wavegen_precalc_decomp_relax(lexer *p, fdm_nhf *d, ghostcell
 
 
     count=0;
-    LOOP
+    ZLOOP
     {
         dg = distgen(p);
 

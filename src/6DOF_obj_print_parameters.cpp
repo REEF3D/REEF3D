@@ -30,16 +30,23 @@ Author: Hans Bihs
 
 void sixdof_obj::print_parameter(lexer *p, ghostcell *pgc)
 {
+    print_parameter(p,pgc,p->simtime);
+}
+
+void sixdof_obj::print_parameter(lexer *p, ghostcell *pgc, double t)
+{
+    // t: time of the printed state. NHFLOW prints the body at the end of the step, before the
+    // driver advances simtime, so it passes simtime + dt (the label of the fluid output)
 	if(p->mpirank==0 && p->count%p->X19==0)
     {
         ofstream print;
         char str[1000];
         
         
-        printpos<<p->simtime<<" \t "<<p->xg<<" \t "<<p->yg<<" \t "<<p->zg<<" \t "<<phi*(180/PI)<<" \t "<<theta*(180/PI)<<" \t "<<psi*(180/PI)<<endl;
+        printpos<<t<<" \t "<<p->xg<<" \t "<<p->yg<<" \t "<<p->zg<<" \t "<<phi*(180/PI)<<" \t "<<theta*(180/PI)<<" \t "<<psi*(180/PI)<<endl;
 
 
-        printvel<<p->simtime<<" \t "<<p->ufbi<<" \t "<<p->vfbi<<" \t "<<p->wfbi<<" \t "<<p->pfbi<<" \t "<<p->qfbi<<" \t "<<p->rfbi<<endl;
+        printvel<<t<<" \t "<<p->ufbi<<" \t "<<p->vfbi<<" \t "<<p->wfbi<<" \t "<<p->pfbi<<" \t "<<p->qfbi<<" \t "<<p->rfbi<<endl;
 
     }
     

@@ -27,6 +27,8 @@ Architect: Hans Bihs
 #include"reefamr.h"
 #include"seastate_implicit.h"
 #include<fstream>
+#include<memory>
+#include<mutex>
 #include<string>
 #include<unordered_map>
 #include<vector>
@@ -61,6 +63,9 @@ criteria evaluated on each level for the next finer one:
   A 792  within this many cells of a dry or land cell (coastline)
   A 793  relative depth change |d_nb - d|/max(d, d_nb) to a neighbour
          cell above this value (bathymetry gradient)
+  A 762  water width below this many cells of the level (Phase 9): the
+         shortest wet run through the level-0 cell along x, y and the
+         diagonals, runs open to the domain edge do not count
 No refinement within A 794 level-0 cells of the sides with boundary
 spectra or zero gradient (A 712 1, 2): the forcing acts on level 0.
 
@@ -101,6 +106,16 @@ the refined grids need the iterations of a uniform grid. Ring cells
 held by other ranks: the exchange at the start of each quadrant sweep
 (lagged, as the level-0 halo). With parents on other ranks (G 40) the
 level-by-level sweeps are used.
+Faces across patches and ranks (Phase 16): a cell next to a covered cell
+takes the face spectrum of the covered cell (the mean of the two fine
+cells next to the face) also where the covered cell lies in another
+patch of the level or on another rank: on level 0 the covered halo
+cells are marked and their faces sent after every halo exchange; on the
+patches the ring cells whose source cell is covered take its face, from
+the fine cells on this rank or from the rank of the source patch with
+the fills. The discrete problem no longer depends on where a level is
+cut into patches, so a converged run on several ranks gives the result
+of one rank.
 Nonstationary runs keep the spectra of the start of the step on every
 grid (N0); stationary runs iterate until the largest relative change
 of Hs on all grids is below A 708.
@@ -109,6 +124,43 @@ Output: REEF3D_SEASTATE_AMR/ (VTR per patch with Hs, Tm01, Tp, dir,
 spread, depth, level, at every VTP print of level 0; a .vtm per print
 with all patches; the patch log). The handover points (A 760) and the
 integral log use the finest grid.
+
+FAS coarse-grid correction (A 758 n m, Phase 9; stationary, G 1 1):
+every n iterations level 0 is the coarse grid of the level-1 patches.
+The residuals r = b - A N of the patch cells (residual mode of the
+solver) are restricted (mean of the children, as the spectra). Level 0
+on its own (covered cells solved as coarse cells, no fine faces) gets
+the source -tau: tau = r_c(R N) - R r on the covered cells, and on the
+others the difference of their residual on their own and in the
+composite problem (they differ next to the patches), so that the
+converged composite solution is a fixed point of the coarse problem.
+It is iterated m times (the loss part of -tau proportional to N), and
+the children take the coarse change multiplicatively (N *= N_c/R N,
+within 1/4 to 4; additive where R N vanishes), then the restriction
+again.
+Phase 10: all levels (G 1 >= 1). The residuals of the uncovered cells
+of every level, the covered cells taking the mean of the residuals of
+their children from the finest level up; the coarse change of a level-0
+cell goes into all cells under it on every level. No correction under a
+coarse cell with a dry child (its restricted spectrum holds the dry
+child as zero). Nonstationary runs: the residuals with the time term of
+the step (N0 of every grid), a correction after every n iterations of
+the step but not after the last one (a fine iteration must follow).
+
+Threads (A 798, Phase 10): level by level, the level-0 sweeps (covered
+cells skipped) and the sweeps of the patches of at least 64 cells run
+over tiles of cells (seastate_implicit, Phase 13); Phase 12: on a level with at least
+2 A 798 patches the patches themselves are shared out to the threads, one
+thread per patch, in an order that keeps every patch to the values of the
+serial order (a patch waits for the patches before it that it reads or
+that read it through their rings), where this dependency graph leaves
+enough parallelism (the cells of the level over the cells of its longest
+chain at least 0.75 A 798; otherwise the patches are threaded inside, one
+after the other, as before); in the composite sweep the level-0
+tiles visit the covered cells with the index of its thread, which
+solves the patch cells under them with its own copies of the patch
+solvers and of the source terms (made once). The ring cells of the
+patches are written under a lock. The result is that of one thread.
 
 Not with the coupling (A 750), the surfbeat model (A 770), regridding
 or patches on several ranks (G 40): patches are cut at the rank boxes.
@@ -119,6 +171,7 @@ struct seastate_amr_patch : public reefamr_patch
     fdm_seastate *e = nullptr;
     seastate_implicit *solv = nullptr;
     seastate_store *N0 = nullptr;           // spectra at the start of the step (nonstationary)
+    seastate_store *res = nullptr;          // FAS (A 758): residual of the cell equations
     sliceint4 *cov = nullptr;               // 1: covered by a patch of the next finer level
     slice4 *wU = nullptr, *wD = nullptr;    // wind field (A 730 2)
     vector<int> ring;                       // fill entries next to the interior (inflow of the sweeps), local sources
@@ -185,6 +238,11 @@ public:
     void iterate(lexer*, ghostcell*, const seastate_store *N0, double rdt, const vector<float> &Nb,
                  const int side[4], bool refraction, bool fshift);
 
+    // FAS coarse-grid correction (A 758): level 0 is the coarse grid of the patches of all levels; N0 the spectra
+    // of the start of the step (nonstationary) or nullptr
+    void fas(lexer*, ghostcell*, const seastate_store *N0, double rdt, const vector<float> &Nb, const int side[4], bool refraction, bool fshift, int ncoarse);
+    double fas_last() const {return fas_change;}
+
     // integrated parameters of the patches; Hs of the patch interiors (leaf cells) for the
     // stationary convergence (appended to hs, the cell area relative to a level-0 cell to w),
     // the largest Hs and the smallest N of the leaf cells
@@ -236,9 +294,22 @@ private:
     void restrict_all();
     void restrict_level(int l);
     void fill_level(int l);
-    void fill_local(seastate_amr_patch*);
+    void fill_local(seastate_amr_patch*, int id);
     vector<vector<int>> order[4];           // [q][l]: patches of level l in the downstream order of quadrant q
     void sweep_level(int l, int q, double rdt, bool refraction, bool fshift);
+
+    // Phase 12: threads over the patches of a level (level by level, A 798, at least 2 A 798 patches on the level):
+    // patch k of order[q][l] waits for the patches before it that it reads or that read it through their rings, so
+    // that every patch sees the values of the serial order (bitwise the result of one thread); each patch is swept
+    // by one thread. Only where the graph allows it: the cells of the level over the cells of its longest chain of
+    // dependent patches at least 0.75 times the threads; otherwise the patches are threaded inside, one after the other
+    vector<vector<int>> dag_npred[4];                   // [q][l][k]: number of predecessors of position k
+    vector<double> dag_gain[4];                         // [q][l]: cells of the level / cells of the longest chain
+    vector<vector<vector<int>>> dag_succ[4];            // [q][l][k]: successors of position k
+    void dag_build();
+    void dag_report();                                  // the choice per level in the log (rank 0)
+    bool sweep_level_threads(int l, int q, double rdt, bool refraction, bool fshift);
+    void thread_copies(int nt);
 
     // composite sweep (A 797 1): the cells of a patch are solved where the sweep of the coarser grid
     // reaches their parent cell, so that one sweep carries the waves through all levels
@@ -249,15 +320,55 @@ private:
     void composite_maps();
     void composite_sweep(lexer*, ghostcell*, int q, const seastate_store *N0, double rdt, const vector<float> &Nb,
                          const int side[4], bool refraction, bool fshift);
-    void descend(int g, int I, int J, int q, double rdt, bool refraction, bool fshift);
+    void descend(int g, int I, int J, int q, double rdt, bool refraction, bool fshift, int t = 0);
     void ghost_fill(seastate_amr_patch*, int id, int fi, int fj);
+    // threads in the composite sweep (A 798): per thread (1 .. A 798 - 1) a copy of every patch solver and of the
+    // source terms; thread 0 uses the patch solvers themselves
+    vector<vector<std::unique_ptr<seastate_implicit>>> tsolv;
+    vector<std::unique_ptr<seastate_source>> tsrc;
+    std::mutex ring_mutex;                  // writes into the ring cells of the patches (ghost_fill)
+    seastate_implicit* solver_of(int id, int t) {return t==0 ? SP(id)->solv : tsolv[t][id].get();}
     bool remote_blocks = false;             // a parent cell on another rank (restriction through the block plans)
+
+    // Phase 16: the faces of the covered level-0 cells at the rank boundaries. A covered cell next to a rank
+    // boundary has a face spectrum towards the halo cell (the mean of the two fine cells next to the face, as the
+    // faces inside the rank); the neighbour rank marks its halo cell as covered and takes the face spectrum for
+    // its cell next to it, so that the cells next to a patch of another rank see the outflow of the fine grid as
+    // on one rank. Sent after every level-0 halo exchange.
+    vector<int> rface_send[4], rface_recv[4];   // [side]: interior cells (i,j,...) with a face, halo cells taking one
+    bool rfaces = false;                        // any rank boundary with faces
+    void remote_faces_plan(ghostcell*);
+    void remote_faces(ghostcell*);
+    void halo0(lexer*, ghostcell*);             // level-0 halo exchange, then the faces
+
+    // Phase 16: the faces at the interfaces of the patches of one level (on this rank and across ranks). A ring cell
+    // whose source cell (the same cell of a neighbouring patch of the level) is covered by the next finer level is
+    // marked covered in its patch and takes the face spectrum of the source cell towards the patch (the mean of the
+    // two fine cells next to the face), as a cell next to a covered cell inside one patch. Without this the result
+    // depended on where the level is cut into patches, and so on the ranks (patches are cut at the rank boxes).
+    vector<vector<seastate_amr_flink>> rlinks;  // [id]: g = id, key of the ring face, the fine cells (patch L.id)
+    vector<vector<int>> rlink_of;               // [id][fill index]: index into rlinks[id], -1: none
+    struct ring_plan
+    {
+        reefamr_xplan X;                        // the face spectra of covered source cells on other ranks
+        vector<seastate_amr_flink> serve;       // served faces: the fine cells (L.id, i0..j1), L.g -1: none
+        vector<pair<int,long>> dst;             // received faces: patch id, key in its faces
+    };
+    vector<ring_plan> rplan;                    // [l]
+    void ring_faces_plan();
+    void ring_face(const seastate_amr_flink&, float*);  // the mean of the two fine cells, nbin values
+    void ring_faces_local(seastate_amr_patch*, int id);
+    void ring_faces_remote(int l);
 
     lexer *p0;
     level0 L0;
     int nbin, nsig;
     int fills, sweeps;
     vector<double> bed0;                    // level-0 bed of the whole domain (global index I*GNY+J)
+    vector<double> width0;                  // water width of the level-0 cells [m] (A 762)
+    seastate_store *fasT = nullptr, *fasN = nullptr, *fasR = nullptr, *fasC = nullptr;   // FAS: tau, restricted spectra, coarse and composite residual (level 0)
+    double fas_change = 0.0;                // FAS: largest relative change of the coarse correction (log)
+    void water_width(const vector<unsigned char> &wet0, double dx, double dy);
     unordered_map<unsigned long long,double> bedmemo;
     sliceint4 *cov0 = nullptr;
     vector<seastate_amr_faces> faces;       // [g+1]

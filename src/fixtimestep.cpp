@@ -37,9 +37,14 @@ fixtimestep::~fixtimestep()
 
 void fixtimestep::start(fdm* a, lexer* p,ghostcell* pgc, turbulence *pturb)
 {
-   	p->dt=p->N49;
+    p->dt=p->dt_old=p->N49;
 
-   	// maximum values: local first, then one reduction over all ranks
+    // maximum values of this step (as etimestep / ietimestep; they were maxima over the whole run,
+    // and N 61 stopped the run on a past value): local first, then one reduction over all ranks
+    p->umax=p->vmax=p->wmax=p->viscmax=0.0;
+    p->kinmax=p->epsmax=p->pressmax=0.0;
+    p->pressmin=1.0e9;
+
 	ULOOP
 	p->umax=MAX(p->umax,fabs(a->u(i,j,k)));
 
@@ -88,10 +93,14 @@ void fixtimestep::start(fdm* a, lexer* p,ghostcell* pgc, turbulence *pturb)
 	cout<<"kinmax: "<<p->kinmax<<endl;
 	cout<<"epsmax: "<<p->epsmax<<endl;
     }
+    
+    // largest momentum source terms of the step, reset as in etimestep (they grew over the run)
+    a->maxF=0.0;
+	a->maxG=0.0;
+	a->maxH=0.0;
 }
 
 void fixtimestep::ini(fdm* a, lexer* p,ghostcell* pgc)
 {
-    p->dt=p->N49;
-
+    p->dt=p->dt_old=p->N49;
 }

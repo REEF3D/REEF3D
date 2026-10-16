@@ -36,6 +36,25 @@ namespace nhflow_amr_detail
 {
 inline int lij(const lexer *q, int ii, int jj) { return (ii-q->imin)*q->jmax + (jj-q->jmin); }
 
+// curvilinear grid (G 50): weights of the 2x2 children (i0+a, j0+b), order (0,0) (1,0) (0,1) (1,1), in a
+// mean of cell values per area (conservative restriction): their areas over the sum; Cartesian 1/4
+inline void cw4(const lexer *q, int i0, int j0, double *w)
+{
+    if(q->geo_curv!=1)
+    {
+    w[0] = w[1] = w[2] = w[3] = 0.25;
+    return;
+    }
+    const double a0 = q->AREA2D[lij(q,i0,j0)], a1 = q->AREA2D[lij(q,i0+1,j0)];
+    const double a2 = q->AREA2D[lij(q,i0,j0+1)], a3 = q->AREA2D[lij(q,i0+1,j0+1)];
+    const double s = a0 + a1 + a2 + a3;
+    w[0] = a0/s; w[1] = a1/s; w[2] = a2/s; w[3] = a3/s;
+}
+
+// cell centre of cell (a,b): the geometry layer on curvilinear grids, else XP / YP
+inline double cxc(const lexer *q, int a, int b) { return q->geo_curv==1 ? q->XC2D[lij(q,a,b)] : q->XP[a+q->marge]; }
+inline double cyc(const lexer *q, int a, int b) { return q->geo_curv==1 ? q->YC2D[lij(q,a,b)] : q->YP[b+q->marge]; }
+
 // restriction of point values to the coarse cell centre: cubic in x and y on the 4x4 fine cells
 // around the 2x2 children, the plain average next to solids
 inline bool rcubic(const lexer *pp, int i0, int j0)

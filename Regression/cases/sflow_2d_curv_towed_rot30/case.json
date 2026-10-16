@@ -1,0 +1,19 @@
+{
+ "np": 1,
+ "steps": 40,
+ "solver": "sflow",
+ "files": [
+  "curvgrid.dat"
+ ],
+ "tags": [
+  "2d",
+  "sflow",
+  "curvilinear",
+  "6dof"
+ ],
+ "description": "Towed hull (X 10 2, direct forcing of the body velocity) on a curvilinear grid turned by 30 deg (sixdof_curvilinear/t1, A 211 0): the waterline level set by the exact distance to the waterline segments.",
+ "covers": [
+  "sixdof_obj_2D::ray_cast_2D_curv",
+  "updateForcing_stl/Hsolidface_2D widths on G 50"
+ ]
+}

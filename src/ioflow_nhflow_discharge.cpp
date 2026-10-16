@@ -52,6 +52,7 @@ void ioflow_f::Qin_nhf(lexer *p, fdm_nhf *d, ghostcell* pgc)
 {
     area=0.0;
     Ai=0.0;
+    Ki=0.0;
     p->Qi=0.0;
     p->Ui=0.0;
 
@@ -65,11 +66,24 @@ void ioflow_f::Qin_nhf(lexer *p, fdm_nhf *d, ghostcell* pgc)
         j=p->gcin[n][1];
         k=p->gcin[n][2];
         
+        // curvilinear grid (G 50): length of the inflow face, normal velocity of the ghost cell
+        if(p->geo_curv==1)
+        {
+        const int qf = (i-1-p->imin)*p->jmax + (j-p->jmin);
+        area=p->LEN1[qf]*p->DZN[KP]*d->WL(i-1,j);
+        Ai+=area;
+        Ki+=area*pow(MAX(d->WL(i-1,j),0.0),2.0/3.0);
+        p->Qi+=p->DZN[KP]*d->WL(i-1,j)*(d->U[Im1JK]*p->SX1[qf] + d->V[Im1JK]*p->SY1[qf]);
+        ++count;
+        continue;
+        }
+        
         area=p->DYN[JP]*p->DZN[KP]*d->WL(i-1,j);
         
         //cout<<"i: "<<i<<" p->DYN[JP]: "<<p->DYN[JP]<<" k: "<<k<<" p->DZN[KP]*p->sigz[IJ]: "<<p->DZN[KP]*p->sigz[IJ]<<" "<<p->sigz[IJ]<<endl;
 
         Ai+=area;
+        Ki+=area*pow(MAX(d->WL(i-1,j),0.0),2.0/3.0);
                 
         p->Qi+=area*d->U[Im1JK];
         
@@ -77,6 +91,7 @@ void ioflow_f::Qin_nhf(lexer *p, fdm_nhf *d, ghostcell* pgc)
     }
 
     Ai=pgc->globalsum(Ai);
+    Ki=pgc->globalsum(Ki);
     p->Qi=pgc->globalsum(p->Qi);
     
     if(p->B60==1)
@@ -89,6 +104,9 @@ void ioflow_f::Qin_nhf(lexer *p, fdm_nhf *d, ghostcell* pgc)
     if(p->mpirank==0 && (p->B60==2 || p->B60==4))
     cout<<"Qi_ipol: "<<hydrograph_ipol(p,pgc,hydro_in,hydro_in_count)<<endl;
         
+    // B 62 1: the discharge across the face by conveyance (plain profile B 61 1: u = Uk h^(2/3))
+    Uk = p->Ui*Ai/(Ki>1.0e-20?Ki:1.0e20);
+    
     p->Ua=p->Qi/Ai;
 }
 
@@ -108,6 +126,16 @@ void ioflow_f::Qout_nhf(lexer *p, fdm_nhf *d, ghostcell* pgc)
         i=p->gcout[n][0];
         j=p->gcout[n][1];
         k=p->gcout[n][2];
+        
+        // curvilinear grid (G 50): length of the outflow face, normal velocity of the cell
+        if(p->wet[IJ]==1 && p->DF[IJK]>0 && p->geo_curv==1)
+        {
+        area=p->LEN1[IJ]*p->DZN[KP]*d->WL(i,j);
+
+        Ao+=area;
+        p->Qo+=p->DZN[KP]*d->WL(i,j)*(d->U[IJK]*p->SX1[IJ] + d->V[IJK]*p->SY1[IJ]);
+        continue;
+        }
         
         if(p->wet[IJ]==1 && p->DF[IJK]>0)
         {

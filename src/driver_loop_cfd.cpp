@@ -43,6 +43,7 @@ Author: Hans Bihs
 #include"cavitation.h"
 #include"runlog.h"
 #include"lagoon_output.h"
+#include"cfd_amr.h"
 
 
 void driver::loop_cfd(fdm* a)
@@ -95,6 +96,9 @@ void driver::loop_cfd(fdm* a)
         pdem->start_cfd(p,a,pgc);
         if(pcav)
         pcav->coefficients(p,a,pgc);
+        if(pcfdamr!=nullptr)
+        pcfdamr->step(p,a,pgc,pvrans,p6dof);
+        else
         pmom->start(p,a,pgc,pvrans,p6dof); 
         if(pcav)
         pcav->start(p,a,pgc);
@@ -109,8 +113,12 @@ void driver::loop_cfd(fdm* a)
         //timestep control
         p->simtime+=p->dt;
         ptstep->start(a,p,pgc,pturb);
+        if(pcfdamr!=nullptr)
+        pcfdamr->timestep(p,a,pgc);
         
         // printer
+        if(pcfdamr!=nullptr)
+        pcfdamr->print(p);
         pprint->start(p,a,pgc,pturb,pheat,pflow,pdata,pconc,pmp,psed);
         pacoustic->start(p,a,pgc);
         preg->cfd_step(p,a,pgc,pturb,pconc);

@@ -33,13 +33,23 @@ Author: Hans Bihs
 #include"sflow_turbulence.h"
 #include"sflow_state.h"
 #include"fnpf_print_Hs.h"
+#include"lagoon_output.h"
 #include<sys/stat.h>
 #include<sys/types.h>
+
+namespace
+{
+lagoon_surface *lagoon_free_surface = nullptr;  // P 18
+}
 
 sflow_vtp_fsf::sflow_vtp_fsf(lexer *p, fdm2D *b, ghostcell *pgc)
 {
     if(p->I40==0)
+    {
         p->printtime=0.0;
+        p->probeprinttime=0.0;
+        p->stateprinttime=0.0;
+    }
 
     p->printcount=0;
 
@@ -70,13 +80,13 @@ sflow_vtp_fsf::sflow_vtp_fsf(lexer *p, fdm2D *b, ghostcell *pgc)
 void sflow_vtp_fsf::start(lexer *p, fdm2D* b, ghostcell* pgc, ioflow *pflow, sflow_turbulence *pturb, sediment *psed)
 {
     // Print out based on iteration
-    if((p->count%p->P181==0 && p->P182<0.0 && p->P10==1 && p->P181>0)  || (p->count==0 &&  p->P182<0.0))
+    if((p->count%p->P181==0 && p->P182<0.0 && p->P10>0 && p->P181>0)  || (p->count==0 &&  p->P182<0.0))
     {
         print2D(p,b,pgc,pturb,psed);
     }
 
     // Print out based on time
-    if((p->simtime>p->printtime && p->P182>0.0 && p->P10==1) || (p->count==0 &&  p->P182>0.0))
+    if((p->simtime>p->printtime && p->P182>0.0 && p->P10>0) || (p->count==0 &&  p->P182>0.0))
     {
         print2D(p,b,pgc,pturb,psed);
 
@@ -90,10 +100,10 @@ void sflow_vtp_fsf::start(lexer *p, fdm2D* b, ghostcell* pgc, ioflow *pflow, sfl
     if(p->P50>0)
         pwsf_theory->height_gauge(p,b,pgc,pflow);
 
-    if((p->P52>0 && p->count%p->P54==0 && p->P55<0.0) || ((p->P52>0 && p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0)))
+    if((p->P52>0 && p->count%p->P54==0 && p->P55<0.0) || ((p->P52>0 && p->simtime>p->probeprinttime && p->P55>0.0) || (p->count==0 &&  p->P55>0.0)))
         pwsfline->start(p,b,pgc,pflow,b->eta);
 
-    if((p->P56>0 && p->count%p->P54==0 && p->P55<0.0) || ((p->P56>0 && p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0)))
+    if((p->P56>0 && p->count%p->P54==0 && p->P55<0.0) || ((p->P56>0 && p->simtime>p->probeprinttime && p->P55>0.0) || (p->count==0 &&  p->P55>0.0)))
         pwsfline_y->start(p,b,pgc,pflow,b->eta);
 
     // DA Gages
@@ -111,20 +121,20 @@ void sflow_vtp_fsf::start(lexer *p, fdm2D* b, ghostcell* pgc, ioflow *pflow, sfl
     }*/
 
     // Print state out based on iteration
-    if(p->count%p->P41==0 && p->P42<0.0 && p->P40>0 && (p->P46==0 || (p->count>=p->P46_is && p->count<p->P46_ie)))
+    if(p->P40>0 && p->P41>0 && p->count%p->P41==0 && p->P42<0.0 && (p->P46==0 || (p->count>=p->P46_is && p->count<p->P46_ie)))
     {
         pstate->write(p,b,pgc);
     }
 
     // Print state out based on time
-    if((p->simtime>p->stateprinttime && p->P42>0.0 || (p->count==0 &&  p->P42>0.0)) && p->P40>0 && (p->P47==0 || (p->count>=p->P47_ts && p->count<p->P47_te)))
+    if(p->P40>0 && p->P42>0.0 && (p->simtime>p->stateprinttime || p->count==0) && (p->P47==0 || (p->simtime>=p->P47_ts && p->simtime<p->P47_te)))
     {
         pstate->write(p,b,pgc);
 
         p->stateprinttime+=p->P42;
     }
 
-    if((p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0))
+    if(p->P55>0.0 && (p->simtime>p->probeprinttime || p->count==0))
         p->probeprinttime+=p->P55;
 }
 
@@ -136,7 +146,7 @@ void sflow_vtp_fsf::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence
     else if(p->P15==2)
         num = p->count;
     
-    if(p->mpirank==0)
+    if(p->mpirank==0 && lagoon_output::vtu_files(p))  // P 18 1: the store instead
         pvtp(p,b,pgc,pturb,psed,num);
 
     if(p->origin_i==0 && p->origin_j==0)
@@ -291,10 +301,10 @@ void sflow_vtp_fsf::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence
     result.write((char*)&iin, sizeof(int));
     TPSLICELOOP
     {
-        ffn=p->XN[IP1];
+        ffn=(p->geo_curv==1) ? p->XN2D[p->nij(i+1,j+1)] : p->XN[IP1];
         result.write((char*)&ffn, sizeof(float));
 
-        ffn=p->YN[JP1];
+        ffn=(p->geo_curv==1) ? p->YN2D[p->nij(i+1,j+1)] : p->YN[JP1];
         result.write((char*)&ffn, sizeof(float));
 
         if(p->P73==0)
@@ -461,6 +471,9 @@ void sflow_vtp_fsf::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence
     vtp3D::footer(result);
 
     result.close();
+
+    // P 18: the piece in the LAGOON store (P 18 1: instead of the file, P 18 2: as well)
+    lagoon_surface::piece_written(p,pgc,lagoon_free_surface,"SFLOW","free_surface","REEF3D_SFLOW_VTP_FSF",name,num);
 
     ++p->printcount;
 }

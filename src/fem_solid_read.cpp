@@ -286,13 +286,29 @@ void fem_solid::read(std::istream& is)
         {
             std::string type;
             need(static_cast<bool>(ls>>type));
+            // element adaptive [frac] | reduced [hg] | full
             if(type=="full") full_int = 1;
             else if(type=="reduced") full_int = 0;
-            else fail("element type must be 'full' or 'reduced'");
-            double hg;
-            if(ls>>hg) hg_coef = hg;
+            else if(type=="adaptive") full_int = 2;
+            else fail("element type must be 'adaptive', 'full' or 'reduced'");
+            double v;
+            if(ls>>v)
+            {
+                if(full_int==2) {need(v>0.0 && v<=1.0); adapt_frac = v;}
+                else hg_coef = v;
+            }
         }
         else if(kw=="cfl")           need(static_cast<bool>(ls>>cfl) && cfl>0.0 && cfl<=1.0);
+        else if(kw=="distribute")
+        {
+            // distribute auto|on|off: the solid split over the MPI ranks
+            std::string t;
+            need(static_cast<bool>(ls>>t));
+            if(t=="auto") dist_req = -1;
+            else if(t=="on") dist_req = 1;
+            else if(t=="off") dist_req = 0;
+            else fail("distribute: auto, on or off");
+        }
         else if(kw=="threads")
         {
             // threads <n> | threads auto: threads of the solid (OpenMP builds)
@@ -448,6 +464,20 @@ void fem_solid::read(std::istream& is)
         else if(kw=="print")            need(static_cast<bool>(ls>>copt.print_dt));
         else if(kw=="hybrid_tau")       need(static_cast<bool>(ls>>copt.hybrid_tau));
         else if(kw=="added_mass")       need(static_cast<bool>(ls>>copt.added_mass) && copt.added_mass>=0.0);
+        else if(kw=="strong" || kw=="strong_coupling")
+        {
+            // strong on|off|test [max passes] [tolerance]
+            std::string t;
+            need(static_cast<bool>(ls>>t));
+            if(t=="on") copt.strong = 1;
+            else if(t=="off") copt.strong = 0;
+            else if(t=="test") copt.strong = 2;
+            else fail("strong: on, off or test");
+            int n;
+            if(ls>>n) {need(n>=2 && n<=50); copt.strong_maxit = n;}
+            double tol;
+            if(ls>>tol) {need(tol>0.0 && tol<1.0); copt.strong_tol = tol;}
+        }
         else if(kw=="rigid_contact_speed") need(static_cast<bool>(ls>>c_rigid) && c_rigid>0.0);
         else if(kw=="debris_damping")
         {

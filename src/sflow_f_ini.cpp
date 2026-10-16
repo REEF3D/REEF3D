@@ -177,6 +177,9 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
     // potential flow ini: sets the cell-centred U,V directly (I 11 1)
     potflow->start(p,b,ppoissonsolv,pgc);
     
+    // steady 1D river flow (F 65 2): velocities of the wet cells
+    ini_river(p,b,pgc,1);
+    
     // FSF ini
     ini_fsf_2(p,b,pgc);
     
@@ -202,6 +205,7 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
     if(pamr!=nullptr)
     {
     pamr->ini(p,b,pgc);
+    pamr->sed_attach(psed);
     pamr->timestep(p,b,pgc);
     pamr->print(p,b,pgc);
     }
@@ -227,6 +231,14 @@ void sflow_f::ini_fsf(lexer *p, fdm2D* b, ghostcell* pgc)
     p->phiout=p->F60;
     p->wd=p->F60;
     }
+    
+    // river free-surface initialisation (F 65): reference level at the outflow when F 60 is not given
+    if(p->F65>0 && p->F60<-1.0e19 && p->F62>-1.0e19)
+    {
+    p->phimean=p->F62;
+    p->phiout=p->F62;
+    p->wd=p->F62;
+    }
 
     // eta plain
     SLICELOOP4
@@ -237,7 +249,16 @@ void sflow_f::ini_fsf(lexer *p, fdm2D* b, ghostcell* pgc)
     SLICELOOP4
     b->eta(i,j)= -p->A251_val*(p->XP[IP]-p->global_xmin);
 
-    // eta box area
+    // eta box area (curvilinear grid: the cells whose centroid lies in the box)
+    if(p->geo_curv==1)
+    for(int qn=0;qn<p->F72;++qn)
+    {
+        SLICELOOP4
+        if(p->XC2D[IJ]>=p->F72_xs[qn] && p->XC2D[IJ]<p->F72_xe[qn] && p->YC2D[IJ]>=p->F72_ys[qn] && p->YC2D[IJ]<p->F72_ye[qn])
+        b->eta(i,j) = p->F72_h[qn]-p->wd;
+    }
+    
+    if(p->geo_curv==0)
     for(int qn=0;qn<p->F72;++qn)
     {
 		istart = p->posc_i(p->F72_xs[qn]);
@@ -250,6 +271,9 @@ void sflow_f::ini_fsf(lexer *p, fdm2D* b, ghostcell* pgc)
         if(i>=istart && i<iend && j>=jstart && j<jend)
         b->eta(i,j) = p->F72_h[qn]-p->wd;
 	}
+    
+    // river free-surface initialisation along the i-direction (F 65)
+    ini_river(p,b,pgc,0);
     
     
     
@@ -266,9 +290,9 @@ void sflow_f::ini_fsf(lexer *p, fdm2D* b, ghostcell* pgc)
         i=p->gcslin[n][0];
         j=p->gcslin[n][1];
 
-        b->eta(i-1,j) = 0.0;
-        b->eta(i-2,j) = 0.0;
-        b->eta(i-3,j) = 0.0;
+        b->eta(i-1,j) = p->F65>0 ? b->eta(i,j) : 0.0;
+        b->eta(i-2,j) = p->F65>0 ? b->eta(i,j) : 0.0;
+        b->eta(i-3,j) = p->F65>0 ? b->eta(i,j) : 0.0;
 
         b->hp(i-1,j) = MAX(b->eta(i-1,j) + p->wd - b->bed(i,j),0.0);
         b->hp(i-2,j) = MAX(b->eta(i-2,j) + p->wd - b->bed(i,j),0.0);
@@ -299,9 +323,10 @@ void sflow_f::ini_fsf(lexer *p, fdm2D* b, ghostcell* pgc)
         
             if(p->gcbsl1[n][4]==1)
             {
-            b->hx(i-1,j) = MAX(p->wd - b->bed(i,j),0.0);
-            b->hx(i-2,j) = MAX(p->wd - b->bed(i,j),0.0);
-            b->hx(i-3,j) = MAX(p->wd - b->bed(i,j),0.0);
+            const double wli = p->F65>0 ? b->eta(i,j) + p->wd : p->wd;
+            b->hx(i-1,j) = MAX(wli - b->bed(i,j),0.0);
+            b->hx(i-2,j) = MAX(wli - b->bed(i,j),0.0);
+            b->hx(i-3,j) = MAX(wli - b->bed(i,j),0.0);
             }
             
             if(p->gcbsl1[n][4]==2)
@@ -319,9 +344,10 @@ void sflow_f::ini_fsf(lexer *p, fdm2D* b, ghostcell* pgc)
 
             if(p->gcbsl2[n][4]==1)
             {
-            b->hy(i-1,j) = MAX(p->wd - b->bed(i,j),0.0);
-            b->hy(i-2,j) = MAX(p->wd - b->bed(i,j),0.0);
-            b->hy(i-3,j) = MAX(p->wd - b->bed(i,j),0.0);
+            const double wli = p->F65>0 ? b->eta(i,j) + p->wd : p->wd;
+            b->hy(i-1,j) = MAX(wli - b->bed(i,j),0.0);
+            b->hy(i-2,j) = MAX(wli - b->bed(i,j),0.0);
+            b->hy(i-3,j) = MAX(wli - b->bed(i,j),0.0);
             }
             
             if(p->gcbsl2[n][4]==2)

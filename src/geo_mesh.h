@@ -74,6 +74,27 @@ public:
     int geodat;     // geodat bed level (GEOB) belongs to: 0 none, 1 solid, 2 topo
     double dxm;     // DIVEMesh mean cell size
 
+    // CURV (optional): river corridor grid of DIVEMesh (R 1), read and checked, not used by a solver yet
+    //   nodes (i,j), i=0..curv_ni along the river from the inflow, j=0..curv_nj from the right bank,
+    //   index i + (curv_ni+1)*j; curv_par = {R 2 wl0, R 3 wl, R 3 margin, R 5 open, raster spacing}
+    int curv_ni, curv_nj;
+    vector<double> curv_par, curv_x, curv_y, curv_zb;
+
+    // BLKS (optional): multi-block grid of DIVEMesh (R 20 1); block 0 is the grid of the run (CURV,
+    // with a ring of blk_ring cells on its interface faces, blk[0].ring), blocks 1.. carry their
+    // nodes; interface segments: face, lo, hi (cells along it), neighbour block and face, cell
+    // transform i' = sign0*c[perm0]+off0, j' = sign1*c[perm1]+off1, c = (i,j)
+    struct blk_seg { int face, lo, hi, nbr, nface, perm[2], sign[2], off[2]; };
+    struct blk_block
+    {
+        int ni=0, nj=0;
+        int ring[4] = {0,0,0,0};
+        vector<blk_seg> seg;
+        vector<double> x, y, zb;
+    };
+    vector<blk_block> blk;
+    int blk_ring = 0;
+
 private:
     void allocate(int);
     void release();

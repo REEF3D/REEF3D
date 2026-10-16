@@ -27,6 +27,7 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 #include"nhflow_bcmom.h"
+#include"nhflow_curv.h"
 #include"nhflow_reconstruct.h"
 #include"nhflow_convection.h"
 #include"nhflow_signal_speed.h"
@@ -73,7 +74,8 @@ void nhflow_momentum_func::reconstruct(lexer *p, fdm_nhf *d, ghostcell *pgc, nhf
     // reconstruct U 
     // Vs,Vn,Ws,Wn,Ue,Uw,We,Ww are only read by the HLLC flux (wave-speed scaling);
     // HLL (A511=1) and HLLYL (A520=3) never use them -> skip 4 of 12 horizontal reconstructions
-    const bool hllc = (p->A511==2 && p->A520!=3);
+    // curvilinear grid (G 50): both components on both face directions (normal velocity)
+    const bool hllc = (p->A511==2 && p->A520!=3) || p->geo_curv==1;
 
     precon->reconstruct_3D_x(p, pgc, d, U, d->Us, d->Un);
     if(hllc)
@@ -108,6 +110,10 @@ void nhflow_momentum_func::reconstruct(lexer *p, fdm_nhf *d, ghostcell *pgc, nhf
     
     // wetdry
     pfsf->wetdry_fluxes(p,d,pgc,WL,U,V,W,UH,VH,WH);
+    
+    // curvilinear grid: Us/Un, Ve/Vw become the face-normal velocities
+    if(p->geo_curv==1)
+    nhflow_curv::normal_velocities(p,d);
     
     pss->signal_speed_update(p, pgc, d, d->Us, d->Un, d->Ve, d->Vw, d->Ds, d->Dn, d->De, d->Dw);
     

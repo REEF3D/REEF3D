@@ -71,9 +71,27 @@ void sixdof_obj_2D::updateForcing_stl(lexer *p, ghostcell *pgc, slice &press, sl
         //
         etaval =0.0;
         
-        if(p->X410==1)
+        if(p->X410==1 && p->geo_curv==1)
         {
-        dfdx = (fs(i+1,j) - fs(i-1,j))/(p->DXP[IP] + p->DXP[IM1]);
+        // curvilinear grid (G 50): the physical gradient of fs and the cell width
+        double gx,gy;
+        p->geo_grad(i,j,fs(i+1,j),fs(i-1,j),fs(i,j+1),fs(i,j-1),gx,gy);
+        dnorm = sqrt(gx*gx + gy*gy);
+        nx = gx/(dnorm>1.0e-20?dnorm:1.0e20);
+        ny = gy/(dnorm>1.0e-20?dnorm:1.0e20);
+        const double w = p->geo_width(i,j);
+        const double xq = p->pos_x() + p->X41*nx*w;
+        const double yq = p->pos_y() + p->X41*ny*w;
+
+        fbval = p->ccslipol4(fs,xq,yq);
+
+        if(fbval>-0.6*w)
+        etaval = p->ccslipol4(eta,xq,yq);
+        }
+
+        if(p->X410==1 && p->geo_curv==0)
+        {
+        dfdx= (fs(i+1,j) - fs(i-1,j))/(p->DXP[IP] + p->DXP[IM1]);
         dfdy = (fs(i,j+1) - fs(i,j-1))/(p->DYP[JP] + p->DYP[JM1]);
         
         dnorm=sqrt(dfdx*dfdx + dfdy*dfdy);
@@ -108,7 +126,9 @@ void sixdof_obj_2D::updateForcing_oned(lexer *p, ghostcell *pgc, slice &press)
     {
         xpos = p->pos_x() - p->xg;
    
-        press(i,j) = press0*exp(-pow(xpos/as,2));
+        // same sign convention as the box and STL ship (press <= 0 for X 401 p0 > 0): the
+        // velocity source adds +D/rho dpress/dx
+        press(i,j) = -press0*exp(-pow(xpos/as,2));
     }
 
     pgc->gcsl_start4(p,press,50);
@@ -119,6 +139,10 @@ double sixdof_obj_2D::Hsolidface_2D(lexer *p, int aa, int bb)
     double psi, H, phival_fb;
 
     psi = p->X41*(1.0/2.0)*(p->DXN[IP] + p->DYN[JP]); 
+
+    // curvilinear grid (G 50): the physical mean width of the cell
+    if(p->geo_curv==1)
+    psi = p->X41*p->geo_width(i,j);
 
     // Construct solid heaviside function
     phival_fb = 0.5*(fs(i,j) + fs(i+aa,j+bb));

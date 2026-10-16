@@ -46,6 +46,14 @@ void sixdof_sflow::isource2D(lexer *p, fdm2D *b, ghostcell *pgc)
 	SLICELOOP4
     {
     dfdx = (press(i+1,j)-press(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
+
+    // curvilinear grid (G 50): the physical gradient (chain rule on the cell centres)
+    if(p->geo_curv==1)
+    {
+    double gx,gy;
+    p->geo_grad(i,j,press(i+1,j),press(i-1,j),press(i,j+1),press(i,j-1),gx,gy);
+    dfdx = gx;
+    }
     
     b->F(i,j) += b->WL(i,j)*dfdx/p->W1;
     }
@@ -60,6 +68,13 @@ void sixdof_sflow::jsource2D(lexer *p, fdm2D *b, ghostcell *pgc)
 	SLICELOOP4
     {
     dfdy = (press(i,j+1)-press(i,j-1))/(p->DYP[JP]+p->DYP[JM1]);
+
+    if(p->geo_curv==1)
+    {
+    double gx,gy;
+    p->geo_grad(i,j,press(i+1,j),press(i-1,j),press(i,j+1),press(i,j-1),gx,gy);
+    dfdy = gy;
+    }
     
     b->G(i,j) += b->WL(i,j)*dfdy/p->W1;
     }

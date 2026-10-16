@@ -133,6 +133,17 @@ sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc, int number) : ddweno_f_nug(p),
     
     Mass_fb =  Rfb = Vfb = 1.0;
     
+    // body velocity and added mass: Eigen does not zero them, and the wavemaker (X 10 4) and the
+    // NHFLOW body (no FNPF added mass) never set them before use
+    u_fb.setZero();
+    Aadd_.setZero();
+    
+    // wavemaker kinematics
+    timecount=1;
+    timecount_old=0;
+    ptnum=0;
+    xwm1=zwm1=xwm2=zwm2=0.0;
+    
     // porous floating body (X 16): Darcy-Forchheimer coefficients, same closure as vrans_nhflow_f
     // K = Apor_fb*visc + Bpor_fb*|u - u_fb|  [1/s]
     Xd=Yd=Zd=Kd=Md=Nd=0.0;

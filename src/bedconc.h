@@ -33,6 +33,7 @@ class bedconc
 {
 public:
 
+    virtual ~bedconc(){}
 	virtual void start(lexer*,ghostcell*,sediment_fdm*)=0;
 
 

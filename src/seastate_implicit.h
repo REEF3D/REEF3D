@@ -85,7 +85,8 @@ order of its quadrant, so that geographic upwinding is exact within a
 sweep. In each cell the directions of the quadrant are solved together
 per frequency (tridiagonal in theta, Thomas algorithm); frequencies and
 the directions of the other quadrants use the latest values. Halo
-exchange after each sweep (block Gauss-Seidel across ranks).
+exchange after each sweep (block Gauss-Seidel across ranks; Phase 14:
+pipelined across the ranks, see below).
 
 Source terms (Phase 2, seastate_source): dN/dt = P - D N with P >= 0
 added to the right-hand side and D >= 0 to the diagonal, computed per
@@ -112,7 +113,17 @@ F2 - F1 = c/2 phi(r) (N_down - N_up) (van Leer limiter, r = (N_up -
 N_upup)/(N_down - N_up)) between active cells, with the latest values
 (deferred correction); the source terms stay implicit, N is clipped at
 zero. The first-order path (cell) is unchanged.
-Directions: periodic (full circle).
+Directions: periodic (full circle); with a computational sector (A 717,
+Phase 10) the quadrant ranges m0..m1 hold only the active directions
+(a quadrant without any is skipped), the directions outside hold zero.
+Compact computational sector (A 717 on uniform directions, Phase 12):
+the grid holds only the directions of the sector (seastate_grid::
+compact_sector); the theta fluxes beyond its ends carry no inflow
+(prev/next of the grid), the faces m - 1/2 are the lower faces of the
+grid.
+Source iterations (A 738, Phase 7b; fixed in Phase 10): the action
+density limiter bounds the change from the spectrum of the cell before
+its first solve; a cell that does not contract keeps its first solve.
 
 Mesh refinement (Phase 5b, seastate_amr): the same solver runs on every
 grid of the hierarchy. range() limits the sweeps to the interior of a
@@ -154,6 +165,37 @@ Phase 7 (performance):
   two active upwind cells; not monotone, the solution is clipped at zero;
   two halo layers.
 
+Phase 12: threads (A 798) with persistent worker threads (spinning
+shortly, then sleeping) and the copies of the solver and of the source
+terms kept from sweep to sweep (copy_config before every sweep), so that
+the many small sweeps of the refinement patches do not start threads and
+copy the solver each time.
+
+Phase 13: the sweeps go over tiles of 16 x 16 cells (smaller where the
+grid holds too few tiles for the threads), also with one thread. A tile
+waits for its two upwind tiles, inside it the cells follow the serial
+order, so that every cell has its four neighbours solved before or after
+it as in the serial sweep: the result is that of the serial sweep. The
+upwind neighbours of a cell stay in the cache of its thread, which the
+cell diagonals of Phase 7b did not (22 % more time per cell with 2
+threads on the sparse swell spectra, 10 % less with one thread now).
+The first visits of the cells (spectral sparsity) are shared out to the
+threads as well.
+
+Phase 14: the sweeps pipelined across the MPI ranks (A 781 1, the
+default; grids without refinement, not the surfbeat model or the FAS
+residuals). A tile at the upstream boundary of a rank waits for the
+halo cells of the same sweep from the rank upstream of it (one message
+per boundary tile and halo layers), and a tile at the downstream
+boundary sends its cells as soon as it is solved: the tiles of all ranks
+form one dependency graph, swept as a wavefront (KBA, Koch, Baker and
+Alcouffe 1992). The halo downstream holds the values of the exchange
+after the last sweep, which the serial sweep sees as well. So every cell
+sees its neighbours as in the serial sweep of one rank, and the result
+is that of one rank, bitwise, for any number of ranks and threads. The
+thread 0 of a rank posts the messages. Before: each rank swept from the
+halo of the last exchange (block Gauss-Seidel), and the stationary
+iterations grew with the ranks.
 Phase 6 (seastate_obstacle): faces blocked by obstacles, structures or
 reflecting coasts transmit Kt^2 of the inflow (per frequency for the
 structures of A 725) and return Kr^2 of the outflow into the mirrored
@@ -206,11 +248,19 @@ public:
     // and second-order geographic fluxes (A 796 2)
     void sparsity(double e_) {eps = e_;}
     void geographic_order(int o) {order2 = (o==2);}
+    // FAS (A 758): residual mode (r = b - A N into R, no solve) and the coarse-grid source -tau (tau, the restricted
+    // spectra Nt at the start of the coarse solve)
+    void residual_out(seastate_store *R) {rout = R; raccum = false;}
+    // ... added into the cell (i >> s, j >> s) of R instead (Phase 12, the FAS of a uniform grid: the sum over the
+    // children of a coarse cell; s > 0 without threads); nullptr: off
+    void residual_add(seastate_store *R, int s) {rout = R; raccum = (R!=nullptr); rshift = s;}
+    // hold_zero (Phase 15, with the spectral sparsity A 795 of the finer grid): the bins that are zero in N_t are held at zero
+    void fas_source(const seastate_store *tau, const seastate_store *Nt, bool hold_zero=false) {ftau = tau; ftil = Nt; fhold = hold_zero;}
     void source_iterations(int n, double tol) {nsrcit = std::max(n,1); srctol = tol;}
 
-    // threads per rank (A 798): the cells of a quadrant sweep in wavefront order, the cells of one
-    // diagonal i+j = const at the same time (level 0 without refinement, not the surfbeat model)
-    void threads(int n) {nthreads = std::max(n,1);}
+    // threads per rank (A 798): the tiles of a quadrant sweep, a tile once its two upwind tiles are solved (Phase 13;
+    // Phase 7b: the cells of one diagonal i+j = const at the same time); not the surfbeat model
+    void threads(int n, int nmin = 1) {nthreads = std::max(n,1); thread_min = nmin;}
 
     // Phase 6: diffraction (A 718): Ca and its gradient per cell and frequency; obstacles (A 722)
     void diffraction(const seastate_store *ca, const seastate_store *cax, const seastate_store *cay) {dca = ca; dcax = cax; dcay = cay;}
@@ -222,6 +272,27 @@ public:
 
     // mesh refinement, composite sweep: called for the covered cells in the sweep order (else skipped)
     void visit(std::function<void(int,int)> *f) {vis = f;}
+    // ... with threads (A 798): the visit of a covered cell gets the thread index (0 .. A 798 - 1) first
+    void visit_threads(std::function<void(int,int,int)> *f) {visT = f;}
+    int thread_count() const {return nthreads;}
+    // spectral sparsity: the active ranges of all managed cells of the grid, set before a threaded sweep
+    void preset_ranges(lexer*, fdm_seastate*);
+
+    // Phase 12: the settings of another solver of the same grid (a copy that works a thread: everything the cell
+    // kernel reads besides its own work arrays)
+    void copy_config(const seastate_implicit &o);
+    int thread_minimum() const {return thread_min;}
+
+    // Phase 12: f(t), t = 0 .. nt-1, t = 0 on the calling thread, the others on the persistent worker threads of the
+    // threaded sweeps (not from within such a job)
+    static void run_threads(int nt, const std::function<void(int)> &f);
+
+    // Phase 14: the sweeps pipelined across the MPI ranks (A 781 1) on a grid without refinement. Collective: true when
+    // every rank has aligned neighbours (the same rows as its i neighbours, the same columns as its j neighbours);
+    // then the tiles at the boundary of a rank wait for the halo cells of the same sweep from the ranks upstream, and the
+    // result is that of one rank. false: the ranks sweep from the halo of the last exchange as before
+    bool pipeline(lexer*, ghostcell*);
+    bool pipelined() const {return kpgc!=nullptr;}
 
 private:
 
@@ -230,7 +301,28 @@ private:
 
     void sweep_threads(lexer*, fdm_seastate*, int q, const seastate_store *N0, double rdt,
                        const vector<float> &Nb, const int side[4], bool refraction, bool fshift);
+    // Phase 12: the copies of the solver and of the source terms that work the threads, kept from sweep to sweep
+    // (their settings are taken from this solver before every threaded sweep, copy_config); a copy of the solver
+    // starts with none of its own
+    struct worker_cache
+    {
+    std::vector<std::shared_ptr<seastate_implicit>> wk;
+    std::vector<std::shared_ptr<seastate_source>> ws;
+    const seastate_source *from = nullptr;
+    worker_cache() = default;
+    worker_cache(const worker_cache&) {}
+    worker_cache &operator=(const worker_cache&) {return *this;}
+    };
+    worker_cache workers;
+    // Phase 14: pipelined sweeps across the ranks (pipeline): communicator, the tile size of all ranks, the exchange of
+    // iterate (halo layers), the first visits of the cells exchanged once
+    ghostcell *kpgc = nullptr;
+    int ktb = 16;
+    seastate_exchange *kex = nullptr;
+    bool kfirst = true;
+    bool pipelined_sweep() const;
     int nthreads = 1;
+    int thread_min = 1;                 // threads only on grids of at least this many cells
     const seastate_store *dca = nullptr, *dcax = nullptr, *dcay = nullptr;
     const seastate_obstacle *pob = nullptr;
     vector<double> cdp, cdm;            // diffraction: c_theta at the faces m+1/2, m-1/2 per frequency and direction
@@ -263,6 +355,11 @@ private:
     // spectral sparsity
     double eps = 0.0;
     bool order2 = false;
+    seastate_store *rout = nullptr;
+    bool raccum = false;                // residual_add
+    int rshift = 0;
+    const seastate_store *ftau = nullptr, *ftil = nullptr;
+    bool fhold = false;
     int nsrcit = 1;                     // source iterations per cell and sweep (A 738)
     double srctol = 0.0;                // ... until the relative energy change of the cell is below this
     vector<int> wlo, whi;               // window of directions solved per frequency (quadrant index)
@@ -279,14 +376,19 @@ private:
                                         // 64<<2q / 128<<2q energy in the first / last direction of quadrant q
     void summary(int ci, int cj, int q, const uint16_t *r);
     vector<double> rsum;                // row sums of the active ranges
-    vector<float> Nsit;                 // source iterations: the spectrum of the cell before the last solve
+    vector<float> Nsi0, Nsi1;           // source iterations: the spectrum of the cell before and after the first solve
+    const float *Nlim = nullptr;        // ... the spectrum the action density limiter refers to (before the first solve)
     vector<uint16_t> &rb = sr->rb;      // per cell and quadrant: band of frequencies with energy (lo<<8 | hi)
     int lmin = 0, lmax = -1;            // band of the windows of the current cell
     int &rni = sr->rni, &rnj = sr->rnj, &rimin = sr->rimin, &rjmin = sr->rjmin;
     std::function<void(int,int)> *vis = nullptr;
+    std::function<void(int,int,int)> *visT = nullptr;
     double energy(const seastate_grid&, const float *N) const;
     bool managed(lexer*, fdm_seastate*, int ci, int cj) const;
     uint16_t *ranges(lexer*, fdm_seastate*, int ci, int cj);
+    void ranges_alloc(lexer*);
+    void ranges_all(lexer*, fdm_seastate*, int ia, int ni, int ja, int nj, int nt);   // the first visits, by nt threads
+    static int tile_size(int ni, int nj, int nt);
     void windows(lexer*, fdm_seastate*, int q, int ci, int cj, const float *N, const seastate_neighbour &W,
                  const seastate_neighbour &E, const seastate_neighbour &S, const seastate_neighbour &Nn, bool rf, bool fs,
                  bool all=false);

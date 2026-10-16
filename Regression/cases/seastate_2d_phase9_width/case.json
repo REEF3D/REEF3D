@@ -1,0 +1,19 @@
+{
+ "description": "REEF3D::SEASTATE refinement by water width (A 762 4, Phase 9): open sea of 20 m (x < 2 km) and a fjord of 20 m, 600 m (3 level-0 cells of 200 m) wide and 3.4 km long, from the bathymetry raster (A 790 1); one level of 100 m (G 1 1) where the shortest wet run through a level-0 cell along x, y or a diagonal is below 4 cells of 200 m (runs open to the domain edge do not count), i.e. along the fjord only; no other criteria; stationary, Komen whitecapping, breaking, triads, handover points in the fjord. Validation in Dropbox SEASTATE/validation/44_water_width.",
+ "solver": "seastate",
+ "np": 1,
+ "steps": 1,
+ "time": 1.0,
+ "files": [
+  "seastate-bathy.dat"
+ ],
+ "tags": [
+  "quick",
+  "2d",
+  "seastate"
+ ],
+ "covers": [
+  "seastate_amr water_width (A 762) and tagging",
+  "level-0 wet gather with the wet flag"
+ ]
+}

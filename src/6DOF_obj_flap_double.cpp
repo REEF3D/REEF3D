@@ -24,16 +24,10 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"ghostcell.h"
 
-void sixdof_obj::flap_double(lexer *p, ghostcell *pgc, int id)
+void sixdof_obj::flap_double(lexer *p, ghostcell *pgc, int id, double t)
 {
-    KLOOP
-    {
-    uwm[k] = 0.0;
-    wwm[k] = 0.0;
-    }
-    
     double z1,z2; 
-    double xe2,xe3,m1,m2;
+    double xe2,xe3;
     
     xs = p->X172_xs;
     xe = p->X172_xe;
@@ -47,55 +41,23 @@ void sixdof_obj::flap_double(lexer *p, ghostcell *pgc, int id)
     z1 = p->X172_z1;
     z2 = p->X172_z2;  
     
-    
-    // find correct time step    
-    if((p->simtime>kinematics[timecount][0]))
-    timecount_old=timecount;
-    
-	while(p->simtime>kinematics[timecount][0])
-	++timecount;
+    // displacement of the upper hinge (column 1) and of the top relative to it (column 2), and
+    // their rates, at the stage time t (B 118 on both)
+    double d1,d2;
+    wm_sample(p,t,1,d1,wm_v1);
+    wm_sample(p,t,2,d2,wm_v2);
     
     // position
-    xe2 = xe3 = xe;
-    if(timecount>0)
-    if(p->simtime>=ts && p->simtime<=te && timecount<ptnum-1 && timecount_old<ptnum)
-    {
-    m1 = (kinematics[timecount][1]-kinematics[timecount_old][1])/(kinematics[timecount][0]-kinematics[timecount_old][0]);
-    m2 = (kinematics[timecount][2]-kinematics[timecount_old][2])/(kinematics[timecount][0]-kinematics[timecount_old][0]);
+    xe2 = xe  + d1;
+    xe3 = xe2 + d2;
     
-	xe2 = xe  + p->B118*(kinematics[timecount_old][1] + m1*(p->simtime-kinematics[timecount_old][0]));        
-	xe3 = xe2 + p->B118*(kinematics[timecount_old][2] + m2*(p->simtime-kinematics[timecount_old][0]));
-    }
-
-    // velocity
-    double z,fac,dX,vel;
-    
-    i=j=0;
-    
-    if(timecount>0)
+    // velocity profile: evaluated at the cell height in the forcing (wm_u); uwm[k] is kept for
+    // output only, from the lower and upper flap rates
     KLOOP
     {
-        i=p->posc_i(xe)+1;
-        z = p->ZSP[IJK];
-        dX=0.0;
-        
-        if(z>z1 && z<ze)
-        {
-        fac = (z-z1)/(z2-z1);
-        dX = fac*((kinematics[timecount][1]-kinematics[timecount_old][1])/(kinematics[timecount][0]-kinematics[timecount_old][0]));
-        }
-        
-        if(z>=z2 && z<ze)
-        {
-        fac = (z-z2)/(ze-z2);
-        dX += fac*((kinematics[timecount][2]-kinematics[timecount_old][2])/(kinematics[timecount][0]-kinematics[timecount_old][0]));
-        }
-        
-        uwm[k] = dX*p->B118;
-        
-        //cout<<"uwm[k]: "<<uwm[k]<<" timecout: "<<timecount<<endl;
+    uwm[k] = 0.0;
+    wwm[k] = 0.0;
     }
-	
 
     //cout<<"xs: "<<xs<<" xe: "<<xe<<" ys: "<<ys<<" ye: "<<ye<<"zs: "<<zs<<" ze: "<<ze<<endl;
     //cout<<"xe2: "<<xe2<<" xe3: "<<xe3<<" z1: "<<z1<<" z2: "<<z2<<endl;
@@ -106,7 +68,7 @@ void sixdof_obj::flap_double(lexer *p, ghostcell *pgc, int id)
 // Lower part 5
 	// 3
         // Tri 1
-    count=0;
+    count=wm_tri0;
 	
 	tri_x[count][0] = xs;
 	tri_x[count][1] = xe;

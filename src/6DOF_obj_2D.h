@@ -57,6 +57,8 @@ protected:
     void ray_cast_2D_y(lexer*, ghostcell*,int,int);
     void ray_cast_2D_z(lexer*, ghostcell*,int,int);
     void reini_2D(lexer*,ghostcell*,slice&);
+    void ray_cast_2D_curv(lexer*, ghostcell*);   // curvilinear grid (G 50): waterline segments, exact distance
+    double curv_dsm = 0.0;
     void disc_2D(lexer*,ghostcell*,slice&);
     void time_preproc_2D(lexer*);
     

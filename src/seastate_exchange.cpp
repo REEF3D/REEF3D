@@ -128,6 +128,117 @@ void seastate_exchange::unpack(lexer *p, seastate_store &N, int s)
     }
 }
 
+void seastate_halo2(lexer *p, ghostcell *pgc, int nv, const std::function<void(int,int,double*)> &get,
+                    const std::function<void(int,int,const double*)> &set)
+{
+    static const int opposite[4] = {1,0,3,2};
+    vector<double> sb[4], rb[4];
+    MPI_Request req[8];
+    int nreq=0;
+
+    for(int s=0; s<4; ++s)
+    if(nb_of(p,s)>=0 && count_of(p,s)>0)
+    {
+    const int n = count_of(p,s);
+    sb[s].assign(size_t(n)*nv,0.0);
+    rb[s].assign(size_t(n)*nv,0.0);
+        for(int q=0; q<n; ++q)
+        {
+        const int *ij = cell_of(p,s,q);
+        int ii,jj;
+        interior(s,ij[0],ij[1],1,ii,jj);
+        get(ii,jj,&sb[s][size_t(q)*nv]);
+        }
+    MPI_Irecv(rb[s].data(),int(rb[s].size()),MPI_DOUBLE,nb_of(p,s),940+opposite[s],pgc->mpi_comm,&req[nreq++]);
+    MPI_Isend(sb[s].data(),int(sb[s].size()),MPI_DOUBLE,nb_of(p,s),940+s,pgc->mpi_comm,&req[nreq++]);
+    }
+
+    if(nreq>0)
+    MPI_Waitall(nreq,req,MPI_STATUSES_IGNORE);
+
+    for(int s=0; s<4; ++s)
+    if(!rb[s].empty())
+        for(int q=0; q<count_of(p,s); ++q)
+        {
+        const int *ij = cell_of(p,s,q);
+        int ii,jj;
+        halo(s,ij[0],ij[1],1,ii,jj);
+        set(ii,jj,&rb[s][size_t(q)*nv]);
+        }
+}
+
+void seastate_halo1(lexer *p, ghostcell *pgc, int nv, int tag, const std::function<void(int,int,int,double*)> &get,
+                    const std::function<void(int,int,int,const double*)> &set)
+{
+    static const int opposite[4] = {1,0,3,2};
+    vector<double> sb[4], rb[4];
+    MPI_Request req[8];
+    int nreq=0;
+
+    for(int s=0; s<4; ++s)
+    if(nb_of(p,s)>=0 && count_of(p,s)>0)
+    {
+    const int n = count_of(p,s);
+    sb[s].assign(size_t(n)*nv,0.0);
+    rb[s].assign(size_t(n)*nv,0.0);
+        for(int q=0; q<n; ++q)
+        {
+        const int *ij = cell_of(p,s,q);
+        get(s,ij[0],ij[1],&sb[s][size_t(q)*nv]);
+        }
+    MPI_Irecv(rb[s].data(),int(rb[s].size()),MPI_DOUBLE,nb_of(p,s),tag+opposite[s],pgc->mpi_comm,&req[nreq++]);
+    MPI_Isend(sb[s].data(),int(sb[s].size()),MPI_DOUBLE,nb_of(p,s),tag+s,pgc->mpi_comm,&req[nreq++]);
+    }
+
+    if(nreq>0)
+    MPI_Waitall(nreq,req,MPI_STATUSES_IGNORE);
+
+    for(int s=0; s<4; ++s)
+    if(!rb[s].empty())
+        for(int q=0; q<count_of(p,s); ++q)
+        {
+        const int *ij = cell_of(p,s,q);
+        int ii,jj;
+        halo(s,ij[0],ij[1],0,ii,jj);
+        set(s,ii,jj,&rb[s][size_t(q)*nv]);
+        }
+}
+
+void seastate_halo_list(lexer *p, ghostcell *pgc, int nv, int tag, const vector<int> send[4], const vector<int> recv[4],
+                        const std::function<void(int,int,int,float*)> &get, const std::function<void(int,int,int,const float*)> &set)
+{
+    static const int opposite[4] = {1,0,3,2};
+    vector<float> sb[4], rb[4];
+    MPI_Request req[8];
+    int nreq=0;
+
+    for(int s=0; s<4; ++s)
+    if(nb_of(p,s)>=0)
+    {
+        if(!recv[s].empty())
+        {
+        rb[s].assign(recv[s].size()/2*size_t(nv),0.0f);
+        MPI_Irecv(rb[s].data(),int(rb[s].size()),MPI_FLOAT,nb_of(p,s),tag+opposite[s],pgc->mpi_comm,&req[nreq++]);
+        }
+
+        if(!send[s].empty())
+        {
+        const size_t n = send[s].size()/2;
+        sb[s].assign(n*size_t(nv),0.0f);
+        for(size_t q=0; q<n; ++q)
+        get(s,send[s][2*q],send[s][2*q+1],&sb[s][q*nv]);
+        MPI_Isend(sb[s].data(),int(sb[s].size()),MPI_FLOAT,nb_of(p,s),tag+s,pgc->mpi_comm,&req[nreq++]);
+        }
+    }
+
+    if(nreq>0)
+    MPI_Waitall(nreq,req,MPI_STATUSES_IGNORE);
+
+    for(int s=0; s<4; ++s)
+    for(size_t q=0; q<rb[s].size()/size_t(nv); ++q)
+    set(s,recv[s][2*q],recv[s][2*q+1],&rb[s][q*nv]);
+}
+
 void seastate_exchange::start(lexer *p, ghostcell *pgc, seastate_store &N)
 {
     MPI_Request req[8];

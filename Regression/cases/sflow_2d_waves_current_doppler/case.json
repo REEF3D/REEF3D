@@ -1,0 +1,18 @@
+{
+ "solver": "sflow",
+ "np": 1,
+ "steps": 300,
+ "description": "SFLOW channel, linear waves (H 0.1 m, T 4 s, h 5 m) on a following current of 1 m/s (B 514) with Doppler (B 530 2 10); Riemann edges and zones with the background.",
+ "tags": [
+  "quick",
+  "2d",
+  "sflow",
+  "waves",
+  "iowave",
+  "bc_zone"
+ ],
+ "covers": [
+  "B 530 in SFLOW",
+  "backgrounds with currents in SFLOW zones"
+ ]
+}

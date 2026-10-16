@@ -20,6 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#include"nhflow_curv.h"
 #include"driver.h"
 #include"lexer.h"
 #include"ghostcell.h"
@@ -76,6 +77,14 @@ void driver::logic_nhflow()
     cout<<"creating objects"<<endl;
     
     p->phimean = p->wd = p->F60;
+    
+    // river free-surface initialisation (F 65): reference level at the outflow when F 60 is not given
+    if(p->F65>0 && p->F60<-1.0e19 && p->F62>-1.0e19)
+    p->phimean = p->wd = p->F62;
+    
+    // curvilinear grid (G 50): unsupported options are refused
+    if(p->geo_curv==1)
+    nhflow_curv::check(p);
     
 // nhflow
     if(p->A10!=5)
@@ -299,7 +308,8 @@ void driver::logic_nhflow()
 	pnhfmom = new nhflow_momentum_RK3(p,d,pgc,p6dof,pnhfvrans,pnhfdf);    
 
 // mesh refinement (G 1): patches on the NHFLOW grid
-    if(p->G1>0)
+    // multi-block grid (G 50 1, DIVEMesh R 20 1): the blocks 1.. are level-0 patches of the hierarchy
+    if(p->G1>0 || p->geo_mb>0)
     pnhfamr = new nhflow_amr(p,d,pgc,pnhfmom,pnhfconvec,pnhfstep,p6dof);
 
 //Lagrangian particles

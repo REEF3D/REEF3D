@@ -120,7 +120,8 @@ void initialize::nodecalc(lexer* p, fdm* a)
 	int count=0;
 	p->pointnum=0;
 	p->cellnum=0;
-	i=0;
+	p->tpcellnum=0;
+	p->pointnum2D=0;
     
     // 3D
 	TPLOOP

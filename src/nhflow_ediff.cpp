@@ -26,6 +26,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"ioflow.h"
 #include"solver.h"
+#include"nhflow_curv.h"
 
 // neighbour value in the diffusion stencil, the same boundary rule as nhflow_idiff: faces to solid or ghost
 // cells (flag4 < 0 or DF < 0) have zero gradient with A 513 1 and take the ghost value with A 513 2. Without it
@@ -64,6 +65,13 @@ void nhflow_ediff::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, s
     pgc->start4V(p,UHdiff,gcval_uh);
     
     pflow->rkinflow_nhflow(p,d,pgc,UHdiff,UHin);
+    
+    // curvilinear grid (G 50): nhflow_curv.h
+    if(p->geo_curv==1)
+    {
+    nhflow_curv::ediff(p,d,1,d->F,UH,VH,WH);
+    return;
+    }
 
     LOOP
     {
@@ -108,6 +116,13 @@ void nhflow_ediff::diff_v(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, s
     pgc->start4V(p,VHdiff,gcval_vh);
     
     pflow->rkinflow_nhflow(p,d,pgc,VHdiff,VHin);
+    
+    // curvilinear grid (G 50): nhflow_curv.h
+    if(p->geo_curv==1)
+    {
+    nhflow_curv::ediff(p,d,2,d->G,UH,VH,WH);
+    return;
+    }
 
     LOOP
     {
@@ -152,6 +167,13 @@ void nhflow_ediff::diff_w(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, s
     pgc->start4V(p,WHdiff,gcval_wh);
     
     pflow->rkinflow_nhflow(p,d,pgc,WHdiff,WHin);
+    
+    // curvilinear grid (G 50): nhflow_curv.h
+    if(p->geo_curv==1)
+    {
+    nhflow_curv::ediff(p,d,3,d->H,UH,VH,WH);
+    return;
+    }
 
     LOOP
     {

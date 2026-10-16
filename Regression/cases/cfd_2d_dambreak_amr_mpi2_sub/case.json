@@ -1,0 +1,5 @@
+{"base": "cfd_2d_dambreak", "np": 2, "steps": 20,
+ "ctrl_add": ["G 1 1", "G 4 4", "G 7 1", "G 15 0.0 0.295 0.0 1.0 0.0 0.4"],
+ "description": "CFD mesh refinement with subcycling on 2 ranks: patches on both ranks next to each other (one component of the level projection across the ranks).",
+ "tags": ["quick", "2d", "dambreak", "levelset", "amr", "mpi"],
+ "covers": ["pr_level with patches on two ranks: remote fills, the compatibility over a component across ranks"]}

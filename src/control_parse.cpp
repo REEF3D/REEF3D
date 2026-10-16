@@ -71,7 +71,9 @@ void control::parse(lexer* p)
     if(T10==0)
     I13=0;
 
-    if((N40==3 || N40==23 ) && X10>0)
+    // floating bodies: low-storage RK3; with the CFD mesh refinement (G 1 > 0, SSP stages only)
+    // the SSP-RK3 of the input (the bodies have its stage weights)
+    if((N40==3 || N40==23 ) && X10>0 && G1==0)
     N40=4;
     else if(N40==13 && X10>0)
     N40=44;

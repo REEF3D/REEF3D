@@ -2,7 +2,7 @@
 // Standalone verification of the REEF3D::SEASTATE kernels: spectral grid, block-sparse action
 // storage, integrated wave parameters, dispersion relation, SWAN spectrum files, source terms (incl. vegetation), surfbeat boundary generator, forcing files,
 // structure formulas (d'Angremond, porous), the DIA of a sweep window (Phase 8). No MPI, no REEF3D binary.
-// Build:  g++ -O2 -std=c++20 -I../../src seastate_test.cpp ../../src/seastate_grid.cpp ../../src/seastate_store.cpp ../../src/seastate_param.cpp ../../src/seastate_dispersion.cpp ../../src/seastate_swan_spc.cpp ../../src/seastate_source.cpp ../../src/seastate_surfbeat.cpp ../../src/seastate_forcing.cpp ../../src/seastate_bathy.cpp ../../src/seastate_structure.cpp -o seastate_test
+// Build:  g++ -O2 -std=c++20 -I../../src seastate_test.cpp ../../src/seastate_grid.cpp ../../src/seastate_store.cpp ../../src/seastate_param.cpp ../../src/seastate_dispersion.cpp ../../src/seastate_swan_spc.cpp ../../src/seastate_source.cpp ../../src/seastate_surfbeat.cpp ../../src/seastate_forcing.cpp ../../src/seastate_bathy.cpp ../../src/seastate_structure.cpp seastate_test_threads.cpp -o seastate_test
 // Run:    ./seastate_test
 #include"seastate_bathy.h"
 #include"seastate_grid.h"
@@ -16,6 +16,7 @@
 #include"seastate_structure.h"
 #include<cstdio>
 #include<fstream>
+#include<algorithm>
 #include<cmath>
 #include<iostream>
 #include<string>
@@ -68,6 +69,68 @@ static void test_grid()
     check(!seastate_grid(32,0.5,0.1,36).valid(),"fmax <= fmin rejected");
     check(!seastate_grid(32,0.0,1.0,36).valid(),"fmin <= 0 rejected");
     check(!seastate_grid(32,0.04,1.0,2).valid(),"ndir < 4 rejected");
+
+    // computational direction sector (A 717, Phase 10)
+    {
+    seastate_grid sc(20,0.08,1.0,24);
+    check(sc.active()==24,"full circle: all directions active");
+    const bool ok1 = sc.computational_sector(270.0*pi/180.0,90.0*pi/180.0);
+    check(ok1 && sc.active()==13,"sector 270 -> 90 deg (ccw, through 0): 13 of 24 directions, both edges included");
+    check(sc.act[0] && sc.act[6] && !sc.act[7] && !sc.act[17] && sc.act[18] && sc.act[23],"sector 270 -> 90: directions 0..90 and 270..345 active");
+    int nq[4] = {0,0,0,0};
+    for(int m=0; m<sc.ndir; ++m)
+    if(sc.act[m])
+    ++nq[sc.quad[m]];
+    check(nq[0]==6 && nq[1]==1 && nq[2]==0 && nq[3]==6,"sector 270 -> 90: quadrants hold 6, 1, 0, 6 active directions");
+    seastate_grid s72(20,0.08,1.0,72);
+    check(s72.computational_sector(pi,2.0*pi) && s72.active()==37,"SWAN SEC -90 90 (nautical) = 180 -> 360 deg: 37 of 72 directions, as SWAN");
+    check(!s72.computational_sector(60.0*pi/180.0,30.0*pi/180.0),"a sector of 330 deg (60 -> 30 deg) splits quadrant 0: rejected");
+    }
+
+    // compact computational sector (A 717, Phase 12): the grid holds only the directions of the sector
+    {
+    seastate_grid full(20,0.08,1.0,24), cs(20,0.08,1.0,24);
+    const bool ok = cs.compact_sector(270.0*pi/180.0,90.0*pi/180.0);
+    check(ok && cs.ndir==13 && cs.nbin==20*13 && cs.compact && !cs.periodic,"compact sector 270 -> 90: 13 directions stored, nbin = nsig*13, not periodic");
+    check(close(cs.theta0,270.0*pi/180.0,1e-14) && close(cs.theta[0],cs.theta0,1e-14) && close(cs.theta[12],2.0*pi+0.5*pi,1e-12),"compact sector: theta from 270 deg on, beyond 2 pi through 0 to 90 deg");
+    bool same=true, mono=true;
+    for(int k=0; k<13; ++k)
+    {
+    const int m = (18+k)%24;
+    same = same && cs.costh[k]==full.costh[m] && cs.sinth[k]==full.sinth[m] && cs.costhf[k]==full.costhf[m] && cs.costhl[k]==full.costhl[m] && cs.quad[k]==full.quad[m];
+    if(k>0) mono = mono && cs.theta[k]>cs.theta[k-1];
+    }
+    check(same && mono,"compact sector: cos/sin, faces and quadrants those of the full grid, theta increasing");
+    check(cs.prev(0)==-1 && cs.next(12)==-1 && cs.prev(5)==4 && full.prev(0)==23 && full.next(23)==0,"neighbour directions: none beyond the ends of the sector, periodic on the full circle");
+    check(cs.direction_bin(0.0)==6 && cs.direction_bin(300.0*pi/180.0)==2 && cs.direction_bin(100.0*pi/180.0)==12 && cs.direction_bin(250.0*pi/180.0)==0,"compact sector: direction_bin inside the sector, nearest end outside");
+    bool lf=true;
+    for(int m=0; m<24; ++m)
+    lf = lf && full.costhl[m]==full.costhf[(m+23)%24] && full.sinthl[m]==full.sinthf[(m+23)%24];
+    check(lf,"lower faces = upper faces of the previous direction (full circle)");
+    seastate_grid all(20,0.08,1.0,24);
+    check(!all.compact_sector(0.0,2.0*pi-1.0e-12) || all.ndir==24,"a sector of all directions is not compacted");
+
+    // Phase 15: a quadrant that holds only a direction on an axis joins the neighbouring quadrant that sweeps the
+    // same way along the axis (270 -> 90: the direction 90 deg, alone in quadrant 1, joins quadrant 0)
+    const int mv = cs.merge_axis_quadrants();
+    int nq = 0;
+    for(int q=0; q<4; ++q)
+    if(std::count(cs.quad.begin(),cs.quad.end(),q)>0)
+    ++nq;
+    check(mv==1 && cs.quad[12]==0 && cs.quad[11]==0 && cs.quad[0]==3 && nq==2,"axis quadrant: 270 -> 90, the direction 90 deg joins quadrant 0, two sweeps");
+    seastate_grid tr(31,0.05,1.0,72);
+    tr.compact_sector(180.0*pi/180.0,360.0*pi/180.0);
+    const int mt = tr.merge_axis_quadrants();
+    nq = 0;
+    for(int q=0; q<4; ++q)
+    if(std::count(tr.quad.begin(),tr.quad.end(),q)>0)
+    ++nq;
+    check(mt==1 && tr.quad[tr.ndir-1]==3 && tr.quad[0]==2 && nq==2,"axis quadrant: 180 -> 360 (Trondheimsfjorden), the direction 0 deg joins quadrant 3, two sweeps");
+    seastate_grid ns(20,0.08,1.0,24);
+    ns.compact_sector(200.0*pi/180.0,340.0*pi/180.0);
+    check(ns.merge_axis_quadrants()==0,"axis quadrant: a sector without a direction on an axis is unchanged");
+    check(full.merge_axis_quadrants()==0,"axis quadrant: the full circle is unchanged");
+    }
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -464,6 +527,43 @@ static void test_source()
         check(close(src.Hs,2.0,0.01) && close(2.0*pi/src.sigm01,7.72,0.01) && close(2.0*pi/src.sigm_10,8.57,0.01),"moments with tail: PM Hs, Tm01 = 0.772 Tp, Tm-1,0 = 0.857 Tp within 1 %");
         const double kp=std::pow(2.0*pi/10.0,2.0)/g;
         check(src.km_wam>kp && src.km_wam<2.0*kp,"k_WAM between k_p and 2 k_p");
+    }
+
+    // van der Westhuysen et al. (2007) as SWAN GEN3 WESTH (A 732 2, Phase 9): whitecapping of SWCAP (IWCAP 7) and the
+    // Yan wind input of SWIND5, recomputed here from the formulas
+    {
+        seastate_source_param sp; sp.komen=true; sp.westh=true; sp.wind=true; sp.U10=12.0; sp.wdir=0.3;
+        seastate_source src(sg,sp);
+        const double d=30.0;
+        cell_kin ck(sg,d);
+        std::vector<float> N=make_spectrum(sg,1.5,5.0,3.3,0.3,10.0);
+        src.compute(N.data(),d,ck.k.data(),ck.cg.data(),P.data(),D.data());
+        // u* of Wu (1982) as the source terms, k_WAM, sig_-10, E_tot from the source object
+        const double us=src.ustar, stp=src.km_wam*std::sqrt(src.Etot)/std::sqrt(3.02e-3), ck_=3.0e-5*std::pow(stp,4.0);
+        double ew=0.0, ey=0.0;
+        for(int l=2;l<sg.nsig;l+=5)
+        {
+            double El=0.0;
+            for(int m=0;m<sg.ndir;++m) El+=N[sg.bin(l,m)];
+            El*=sg.sig[l]*sg.dtheta;
+            const double kl=ck.k[l], B=ck.cg[l]*kl*kl*kl*El;
+            const double fbr=0.5*(1.0+std::tanh(10.0*(std::sqrt(B/1.75e-3)-1.0)));
+            const double pp=3.0+std::tanh(25.76*(us*kl/sg.sig[l]-0.1));
+            const double fac2=std::sqrt(g*kl);
+            const double wc=fbr*5.0e-5*std::pow(B/1.75e-3,0.5*pp)*std::pow(fac2/sg.sig[l],0.5*pp-1.0)*fac2+(1.0-fbr)*ck_*src.sigm_10*kl/src.km_wam;
+            ew=std::max(ew,std::fabs(D[sg.bin(l,5)]-wc)/wc);
+            // Yan: max(0, ((0.04 x^2 + 0.00552 x + 0.000052) cos - 0.000302) sig) N with x = u* k/sig, plus the linear growth (P without N)
+            const double x=us*kl/sg.sig[l], cosd=std::cos(sg.theta[5]-0.3);
+            const double yan=std::max(0.0,((0.04*x*x+0.00552*x+0.000052)*cosd-0.000302)*sg.sig[l]);
+            seastate_source_param sl=sp; sl.komen=false; sl.westh=false;
+            seastate_source lin(sg,sl);
+            std::vector<double> P0(nb), D0(nb);
+            lin.compute(N.data(),d,ck.k.data(),ck.cg.data(),P0.data(),D0.data());
+            const double py=P[sg.bin(l,5)]-P0[sg.bin(l,5)];
+            if(yan*N[sg.bin(l,5)]>0.0) ey=std::max(ey,std::fabs(py-yan*N[sg.bin(l,5)])/(yan*N[sg.bin(l,5)]));
+        }
+        std::cout<<"        Westhuysen: max. rel. difference of D "<<ew<<", of the Yan input "<<ey<<std::endl;
+        check(ew<1e-9 && ey<1e-9,"van der Westhuysen whitecapping (SWAN IWCAP 7) and Yan wind input (SWIND5) as the formulas");
     }
 
     // whitecapping (Komen): D proportional to k^2, value
@@ -1014,6 +1114,27 @@ static void test_structure()
     const double t2=16.0*ga*ga/(std::pow((1+ga)*(1+ga)-(1-ga)*(1-ga),2.0)*std::pow(std::cos(ph),2.0)+std::pow((1+ga)*(1+ga)+(1-ga)*(1-ga),2.0)*std::pow(std::sin(ph),2.0));
     std::cout<<"        long wave Kt^2 "<<kt2[1]<<", Madsen (1974) "<<t2<<std::endl;
     check(std::fabs(kt2[1]-t2)<2e-3,"porous: long waves within 2e-3 of Madsen (1974)");
+
+    // Phase 15: strong resistance after the first iteration of q (regular waves of growing height on small stones,
+    // depth 1 m, width 2 m, n 0.45, D50 5 cm): the root is followed in steps of at most 0.05 max(1, f) of the
+    // resistance; with 4 steps it jumped to a damped mode (H 0.3 m: Kt 0.004, Kr 0.95). Kt falls with H; at H 0.3 m
+    // the values of a continuation in steps of 0.002
+    {
+    seastate_grid sr(0.5,4);
+    std::vector<float> a(1), b(1);
+    const double H[6] = {0.05,0.1,0.15,0.2,0.25,0.3};
+    double kp = 1.0;
+    bool mono = true;
+        for(int k=0; k<6; ++k)
+        {
+        double Er = 0.5*(0.5*H[k])*(0.5*H[k])/sr.dsig[0];
+        seastate_porous(sr,&Er,1.0,2.0,0.45,0.05,a.data(),b.data());
+        mono = mono && std::sqrt(a[0])<kp;
+        kp = std::sqrt(a[0]);
+        }
+    std::cout<<"        regular waves T 2 s, H 0.3 m: Kt "<<kp<<", Kr "<<std::sqrt(b[0])<<" (continuation in small steps: 0.0392, 0.7088)"<<std::endl;
+    check(mono && std::fabs(kp-0.039216)<1e-3 && std::fabs(std::sqrt(b[0])-0.708849)<1e-3,"porous: strong resistance on the progressive mode (Kt falls with H, H 0.3 m: Kt 0.039, Kr 0.709)");
+    }
 }
 
 // ---------------------------------------------------------------------------------------------

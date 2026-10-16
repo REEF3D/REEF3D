@@ -34,6 +34,84 @@ iowave::iowave(lexer *p, ghostcell *pgc, patchBC_interface *ppBC)  : wave_interf
                                           vofheight(p),genheight(p)
 {
     pBC = ppBC;
+    paddle_setup = 0;
+    
+    // combined beach (B 99 6): in NHFLOW, SFLOW and FNPF an absorbing edge at x+ (as B 99 3) behind a
+    // relaxation beach (length B 96) that relaxes to the low-passed state, so short waves are damped
+    // in the zone and long waves pass to the edge; the solver sees B 99 3. CFD: B 99 2.
+    if(p->B99==6)
+    {
+        if(p->A10==5 || p->A10==2 || p->A10==3)
+        {
+        beach_lp = true;
+        p->B99 = 3;
+        }
+        else
+        {
+        if(p->mpirank==0)
+        cout<<"iowave: B 99 6 (combined beach) is available for NHFLOW, SFLOW and FNPF; runs as B 99 2"<<endl;
+        p->B99 = 2;
+        }
+    }
+    
+    // two-band active absorption (B 98 7: active generation, B 99 7: active beach), FNPF with a wave
+    // theory; NHFLOW and CFD run B 98 4 / B 99 3, SFLOW B 98 2 / B 99 3
+    if(p->B98==7)
+    {
+        if(p->A10==3 && (p->B92<20 || p->B92>29))
+        {
+        ab2_in = true;
+        p->B98 = 4;
+        }
+        else
+        {
+        p->B98 = (p->A10==5 || p->A10==6) ? 4 : 2;
+        
+        if(p->mpirank==0)
+        cout<<"iowave: B 98 7 (two-band active absorption) is available for FNPF with a wave theory; runs as B 98 "<<p->B98<<endl;
+        }
+    }
+    
+    if(p->B99==7)
+    {
+        if(p->A10==3)
+        ab2_out = true;
+        else
+        {
+        p->B99 = 3;
+        
+        if(p->mpirank==0)
+        cout<<"iowave: B 99 7 (two-band active beach) is available for FNPF; runs as B 99 3"<<endl;
+        }
+    }
+    
+    if(ab2_in || ab2_out)
+    ab2_ini(p);
+    
+    // combined generation (B 98 6): relaxation zone (length B 96) towards target + low-passed deviation,
+    // and an absorbing generating edge at x- behind it. FNPF runs B 98 4 (active generation) at the
+    // edge and the relaxation zone with it, NHFLOW B 98 2 and a Riemann edge carrying the waves.
+    // Wave theories only (no wavemakers); CFD and SFLOW: B 98 2.
+    if(p->B98==6)
+    {
+        if((p->A10==3 || p->A10==5) && (p->B92<20 || p->B92>29))
+        {
+        gen_lp = true;
+        p->B98 = p->A10==3 ? 4 : 2;
+        gen_tau = p->B527>0.0 ? p->B527 : 0.25*(p->wTp>0.0 ? p->wTp : p->wT);
+        
+        if(p->mpirank==0)
+        cout<<"iowave: combined generation B 98 6: relaxation over "<<p->B96_1<<" m towards target + deviation low-passed over "<<gen_tau<<" s, absorbing generating edge at x-"<<endl;
+        }
+        else
+        {
+        if(p->mpirank==0)
+        cout<<"iowave: B 98 6 (combined generation) is available for FNPF and NHFLOW with a wave theory; runs as B 98 2"<<endl;
+        p->B98 = 2;
+        }
+    }
+    
+    relax_gen = p->B98==2 || gen_lp;
     
     // decomposed precalc (B 89 1) needs the space / time parts of the wave theory, which only
     // the 5th-order Stokes (B 92 5) and the irregular theories (31, 41, 51) provide; with any
@@ -60,6 +138,17 @@ iowave::iowave(lexer *p, ghostcell *pgc, patchBC_interface *ppBC)  : wave_interf
             
             p->B89 = 0;
         }
+    }
+    
+    // FNPF Dirichlet / active generation (B 98 3, 4) with B 89 1 never filled the space parts of the
+    // inflow velocity (Uin 0), took the surface potential for the surface velocity and, for B 98 4,
+    // had no space parts at all: no or wrong waves. The edge is one column of cells, so it runs with B 89 0.
+    if(p->B89==1 && p->A10==3 && (p->B98==3 || p->B98==4))
+    {
+        if(p->mpirank==0)
+        cout<<"iowave: FNPF Dirichlet / active wave generation (B 98 "<<p->B98<<") runs with B 89 0"<<endl;
+        
+        p->B89 = 0;
     }
 
     if(p->F80==4)
@@ -195,9 +284,10 @@ iowave::iowave(lexer *p, ghostcell *pgc, patchBC_interface *ppBC)  : wave_interf
     b530_auto(p);
     zones_check(p);
     nhflow_active_beach_edge(p,pgc);
+    nhflow_gen_edge(p,pgc);
     
     // tidal / current background (NHFLOW)
-    if(zones.has_background() || nhf_active_edge)
+    if(zones.has_background() || nhf_active_edge || nhf_gen_edge)
     {
     bg_on = zones.has_background();
     p->open_xm = zones.open_edge(1)!=nullptr ? 1 : 0;
@@ -294,6 +384,18 @@ iowave::iowave(lexer *p, ghostcell *pgc, patchBC_interface *ppBC)  : wave_interf
     
     if(p->B99==1 || p->B99==2)
     beach_relax=1;
+    
+    if(beach_lp)
+    {
+        beach_relax=1;
+        // default Tp / 4: waves much longer than the peak period pass the zone to the edge
+        // (|1 - H| = omega tau / sqrt(1 + omega^2 tau^2)), shorter waves are damped; much smaller
+        // tau slows the long waves in the zone and reflects them (validation 17)
+        beach_tau = p->B526>0.0 ? p->B526 : 0.25*(p->wTp>0.0 ? p->wTp : p->wT);
+        
+        if(p->mpirank==0)
+        cout<<"iowave: combined beach B 99 6: relaxation over "<<p->B96_2<<" m to the state low-passed over "<<beach_tau<<" s, absorbing edge at x+"<<endl;
+    }
     
     expinverse = 1.0/(exp(1.0)-1.0);
     

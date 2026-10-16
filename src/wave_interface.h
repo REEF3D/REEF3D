@@ -103,6 +103,7 @@ public:
     wave_lib *wave_source_lib(int n, int &id, int &type, double &rot) const;
 
     double wave_paddle_Q(lexer*,ghostcell*,double);
+    void wave_paddle_setup(lexer*,ghostcell*,double);
 
 
 private:

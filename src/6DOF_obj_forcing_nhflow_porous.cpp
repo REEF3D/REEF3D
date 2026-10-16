@@ -96,7 +96,7 @@ void sixdof_obj_nhflow::update_forcing_nhflow_porous(lexer *p, fdm_nhf *d, ghost
         FZ[IJK] += fz;
         
         // reaction on the body
-        dV = p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*WL(i,j);
+        dV = p->cellarea(i,j)*p->DZN[KP]*WL(i,j);
         
         rx = p->pos_x() - c_(0);
         ry = p->pos_y() - c_(1);

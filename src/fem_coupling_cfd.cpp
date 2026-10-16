@@ -476,7 +476,9 @@ void fem_coupling::finish_step(lexer *p, ghostcell *pgc, double alpha)
         std::cout<<"\n!!! "<<e.what()<<" !!!\n"<<std::endl;
         MPI_Abort(pgc->mpi_comm,1);
     }
-    if(nhflow)
+    // relative speed limit of light bodies (not with strong coupling, which removes the
+    // delay of the added-mass stabilisation it guards against)
+    if(nhflow && fs.coupling().strong!=1)
     nhf_limit_rigid(p,true);
 
     // hybrid: filtered parcel loads of the step
@@ -495,6 +497,14 @@ void fem_coupling::finish_step(lexer *p, ghostcell *pgc, double alpha)
         fr_bar[i] += c*(fs.parcel_load(i)-fr_bar[i]);
     }
 
+    // outputs of the step; with strong coupling after its last pass
+    if(!sc_defer)
+    step_output(p,pgc);
+}
+
+void fem_coupling::step_output(lexer *p, ghostcell *pgc)
+{
+    (void)pgc;
     // log
     if(p->mpirank==0)
     {

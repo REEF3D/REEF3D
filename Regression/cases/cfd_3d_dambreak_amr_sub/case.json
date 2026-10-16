@@ -1,0 +1,4 @@
+{"np": 2, "steps": 10,
+ "description": "CFD mesh refinement in 3D with subcycling (G 7 1): dam break, one refined level, patches on 2 ranks.",
+ "tags": ["quick", "3d", "dambreak", "levelset", "amr", "mpi"],
+ "covers": ["cfd_amr_sub in 3D, level projection over patches of two ranks"]}

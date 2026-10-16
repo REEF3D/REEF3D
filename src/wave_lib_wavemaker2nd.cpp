@@ -549,7 +549,7 @@ int wave_lib_wavemaker2nd::compute_multi(double g, double h, const std::vector<s
 
 void wave_lib_wavemaker2nd::compute_paddle_Q_multi(double g, double h, const std::vector<shape_t> &shp,
                        int J, double fmin, double fmax, int nmax,
-                       const std::vector<std::vector<double> > &x, double dt, int nlev, std::vector<float> &Q)
+                       const std::vector<std::vector<double> > &x, double dt, int nlev, std::vector<float> &Q, double f2min)
 {
     // The pointwise Taylor terms Q(z,t) of the linear paddle solution are
     // singular at the paddle/free-surface corner (phi_xx ~ log r) and, applied
@@ -576,7 +576,22 @@ void wave_lib_wavemaker2nd::compute_paddle_Q_multi(double g, double h, const std
     if(N==0)
     return;
 
-    compute_components_multi(g,h,shp,1,J,1,dw,0.0,cand,X,X2,&RQ);
+    // same low-frequency cutoff as the correction (f2min<0: none, 0: 0.1 x peak frequency):
+    // very long difference frequencies (set-down under ramps, leakage) are left out,
+    // so the forcing has no slow net volume flux
+    double w2min = 0.0;
+    if(f2min==0.0)
+    {
+        int bp=cand[0];
+        for(int n=0; n<N; ++n)
+        if(amp[cand[n]]>amp[bp])
+        bp=cand[n];
+        w2min = 0.1*double(bp)*dw;
+    }
+    if(f2min>0.0)
+    w2min = 2.0*pi_*f2min;
+
+    compute_components_multi(g,h,shp,1,J,1,dw,w2min,cand,X,X2,&RQ);
 
     const int nb = int(RQ.size());
     std::vector<double> Kb(nb,0.0);
@@ -661,7 +676,7 @@ void wave_lib_wavemaker2nd::compute_paddle_Q(double g, double h, int shape, doub
 {
     std::vector<shape_t> shp(1,make_shape(shape,zs,ze));
     std::vector<std::vector<double> > xv(1,x);
-    compute_paddle_Q_multi(g,h,shp,J,fmin,fmax,nmax,xv,dt,nlev,Q);
+    compute_paddle_Q_multi(g,h,shp,J,fmin,fmax,nmax,xv,dt,nlev,Q,-1.0);
 }
 
 int wave_lib_wavemaker2nd::resample(double **kin, int ptnum, int col, double &t0, double &dt, std::vector<double> &xu)
@@ -766,7 +781,7 @@ void wave_lib_wavemaker2nd::correct_impl(lexer *p, ghostcell *pgc, double **kin,
     return;
 
     const double g = fabs(p->W22)>0.0 ? fabs(p->W22) : 9.81;
-    const int addQ = (p->B119==1 && p->A10==3) ? 1 : 0;
+    const int addQ = (p->B119==1 && (p->A10==3 || p->A10==5)) ? 1 : 0;
     const int P = int(shp.size());
 
     double t0=0.0, dt=1.0;
@@ -777,7 +792,14 @@ void wave_lib_wavemaker2nd::correct_impl(lexer *p, ghostcell *pgc, double **kin,
     if(nu<8)
     return;
 
-    const double starttime = pgc->timer();
+    // the paddle velocities are scaled by B118, so the physical displacement is B118*X:
+    // the second-order theory is quadratic and must see the physical stroke
+    const double sc = (fabs(p->B118)>1.0e-20) ? p->B118 : 1.0;
+    for(int c=0; c<P; ++c)
+    for(int q=0; q<nu; ++q)
+    xu[c][q] *= sc;
+
+    const double starttime = pgc!=nullptr ? pgc->timer() : 0.0;
 
     const int N = compute_multi(g,h,shp,p->B113,p->B113_J,addQ,p->B114_fmin,p->B114_fmax,p->B114_f2min,500,xu,dt,x2);
 
@@ -796,6 +818,8 @@ void wave_lib_wavemaker2nd::correct_impl(lexer *p, ghostcell *pgc, double **kin,
             if(iq>=nu-1)
             corr = x2[c][nu-1];
 
+            corr /= sc;   // back to the units of wavemaker.dat
+
             xmax[c]  = std::max(xmax[c],fabs(kin[q][col[c]]));
             x2max[c] = std::max(x2max[c],fabs(corr));
             kin[q][col[c]] += corr;
@@ -810,7 +834,8 @@ void wave_lib_wavemaker2nd::correct_impl(lexer *p, ghostcell *pgc, double **kin,
         if(p->B113==3) cout<<"(superharmonic)";
         cout<<"  components: "<<N<<"  evanescent modes: "<<p->B113_J<<"  paddle BC terms: "<<addQ<<endl;
         for(int c=0; c<P; ++c)
-        cout<<"Wave_Lib: "<<(P>1?(c==0?"lower flap ":"upper flap "):"")<<"max |X1|: "<<xmax[c]<<"  max |X2|: "<<x2max[c]<<endl;
+        cout<<"Wave_Lib: "<<(P>1?(c==0?"lower flap ":"upper flap "):"")<<"max |X1|: "<<xmax[c]<<"  max |X2|: "<<x2max[c]<<"  (wavemaker.dat units)"<<endl;
+        if(pgc!=nullptr)
         cout<<"Wave_Lib: time: "<<pgc->timer()-starttime<<" s"<<endl;
     }
 }
@@ -846,14 +871,29 @@ void wave_lib_wavemaker2nd::make_Qtable_impl(lexer *p, ghostcell *pgc, double **
     if(nu<8)
     return;
 
-    const double starttime = pgc->timer();
+    // physical displacement B118*X (velocities are scaled by B118)
+    const double sc = (fabs(p->B118)>1.0e-20) ? p->B118 : 1.0;
+    for(int c=0; c<P; ++c)
+    for(int q=0; q<nu; ++q)
+    xu[c][q] *= sc;
+
+    const double starttime = pgc!=nullptr ? pgc->timer() : 0.0;
 
     Qh = h;
     Qnlev = 41;
     Qnt = nu;
-    compute_paddle_Q_multi(g,h,shp,p->B113_J,p->B114_fmin,p->B114_fmax,500,xu,Qdt,Qnlev,Qtab);
+    compute_paddle_Q_multi(g,h,shp,p->B113_J,p->B114_fmin,p->B114_fmax,500,xu,Qdt,Qnlev,Qtab,p->B114_f2min);
+
+    double qmax=0.0;
+    for(size_t q=0; q<Qtab.size(); ++q)
+    qmax = std::max(qmax,double(fabs(Qtab[q])));
 
     if(p->mpirank==0)
-    cout<<"Wave_Lib: moving-paddle BC terms tabulated, levels: "<<Qnlev<<"  samples: "<<Qnt<<"  evanescent modes: "<<p->B113_J<<"  time: "<<pgc->timer()-starttime<<" s"<<endl;
+    {
+    cout<<"Wave_Lib: moving-paddle BC terms tabulated, levels: "<<Qnlev<<"  samples: "<<Qnt<<"  evanescent modes: "<<p->B113_J<<"  max |Q|: "<<qmax<<" m/s";
+    if(pgc!=nullptr)
+    cout<<"  time: "<<pgc->timer()-starttime<<" s";
+    cout<<endl;
+    }
 }
 #endif

@@ -1,0 +1,20 @@
+{
+ "base": "nhflow_3d_irregular_decomp",
+ "ctrl_set": {
+  "B 89": "0",
+  "B 84": "1",
+  "B 136": "1"
+ },
+ "description": "nhflow_3d_irregular_decomp with B 89 0 and a frequency-direction grid (B 84 1, B 136 1: 32 frequencies x 8 directions): short-crested waves from the cached-point evaluation (wave_uvw_c); the 8 components of a frequency share the vertical profile (one exp per distinct k).",
+ "tags": [
+  "3d",
+  "nhflow",
+  "waves",
+  "iowave",
+  "irregular",
+  "mpi"
+ ],
+ "covers": [
+  "wave_lib_irregular_1st cached kinematics with distinct k (group_k / vertical_c)"
+ ]
+}

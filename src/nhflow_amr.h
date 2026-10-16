@@ -28,6 +28,7 @@ Author: Hans Bihs
 #include"nhflow_momentum_func.h"
 #include"nhflow_convection.h"
 #include"nhflow_timestep.h"
+#include"sediment_f.h"
 #include<vector>
 #include<fstream>
 #include<unordered_map>
@@ -157,6 +158,8 @@ struct nhflow_amr_patch : public reefamr_patch
     vrans_nhflow *pvrans = nullptr;
     sixdof *p6dof = nullptr;
     sediment *psed = nullptr;
+    sediment_f *sed = nullptr;      // S 10: the sediment transport of the grid (nhflow_amr_sed.cpp)
+    vector<double> sedrec[4];       // S 10: Exner face fluxes on the box faces, per side (as rec)
     ioflow *pflow = nullptr;
     patchBC_interface *pBC = nullptr;
     nhflow_stage_obj S;
@@ -182,15 +185,18 @@ struct nhflow_amr_patch : public reefamr_patch
     vector<double> freg[5][4];
 };
 
-class nhflow_amr : public reefamr, public nhflow_stage_runner, public nhflow_flux_hook, public nhflow_timestep_hook
+class nhflow_amr : public reefamr, public nhflow_stage_runner, public nhflow_flux_hook, public nhflow_timestep_hook, public sediment_grids
 {
 public:
     nhflow_amr(lexer*, fdm_nhf*, ghostcell*, nhflow_momentum*, nhflow_convection*, nhflow_timestep*, sixdof*);
     virtual ~nhflow_amr();
 
     void ini(lexer*, fdm_nhf*, ghostcell*);
+    // S 10: sediment transport on all grids (nhflow_amr_sed.cpp): the level-0 sediment_f hands its step over
+    void sed_attach(sediment*);
+    void sediment_step_nhflow(lexer*, fdm_nhf*, ghostcell*, ioflow*, sediment_f*) override;
     void print(lexer*, fdm_nhf*, ghostcell*);
-    bool active() const { return maxlev>0 && patches_total>0; }
+    bool active() const { return (maxlev>0 && patches_total>0) || nblk>0; }
 
     // the time step of all grids (nhflow_momentum_RK2/RK3::start)
     void step(lexer*, fdm_nhf*, ghostcell*, nhflow_momentum_func*, nhflow_stage_obj&) override;
@@ -236,6 +242,7 @@ protected:
     void regrid_finish(ghostcell*, int) override;
     void zone_bodies(vector<sixdof_obj*>&) override;
     bool cell_unfit(int, int) override;
+    bool cell_unfit_patch(reefamr_patch*, int, int) override;
 
 private:
     // a patch kernel runs: ghostcell exchange off and the fdm of the ghostcell on the patch (the
@@ -345,6 +352,18 @@ private:
     void pr_stencils();
     template<class SEL> void pr_restrict(SEL);
     template<class SEL> void pr_fill(int, int, SEL);
+    template<class SEL> void pr_fill0(SEL);  // multi-block: the columns around the blocks and the ring
+    int npass0 = 2;                          // multi-block: passes of the block-local V-cycles (G 51)
+    // multi-block: coarse space across the blocks (G 53 w): aggregates of w x w columns of every
+    // level-0 grid, the coarse operator summed from the rows, factorized on every rank; the
+    // preconditioner corrects with it before the block-local V-cycles
+    struct cs_impl;
+    cs_impl *cs = nullptr;
+    int csw = 0;
+    int cs_n = 0;
+    void cs_build(ghostcell*);
+    void cs_correct(int, int);
+    void cs_free();
     void pr_prolong(int, int);               // level, vector
 
     // composite implicit diffusion (G 31 1 with A 512 2, nhflow_amr_diff.cpp): phase_D of every
@@ -453,6 +472,20 @@ private:
     double rkc(int) const;          // time of the input of stage s in the step
     double rko(int) const;          // time of the output of stage s in the step
 
+    // multi-block level 0 (G 50 1 with DIVEMesh R 20 1, nhflow_amr_block.cpp): blocks 1.. are level-0
+    // patches (lev[0]), block 0 the native grid with its ring; before every stage the cells around the
+    // blocks and the ring take the stage input of the cells they stand for
+    void blocks_check(lexer*);
+    void blocks_ini(lexer*, ghostcell*);
+    void fill_level0(ghostcell*, int);
+    void fill_bed0(ghostcell*);
+    void blocks_sigma(ghostcell*);
+    void ring_halo(ghostcell*, int);
+    void blocks_phase(ghostcell*, int, int);
+    void dump_grids(lexer*);
+    void potential(lexer*, ghostcell*);     // I 11: potential flow initialisation over the blocks
+    bool ring0(int ii, int jj) const { return nblk>0 && nring[(ii-p0->imin)*p0->jmax + (jj-p0->jmin)]==1; }
+
     // output
     void write_vtr(lexer*, nhflow_amr_patch&, int);
     void write_vtr0(lexer*, fdm_nhf*);
@@ -476,6 +509,13 @@ private:
     int printcount_amr;
     double m0 = 0.0;
     double tm[8];
+    
+    // S 10 (nhflow_amr_sed.cpp)
+    sediment_f *sed0 = nullptr;     // the sediment of level 0
+    sediment_f* gsed(int g) { return (g<0) ? sed0 : NP(g)->sed; }
+    void sed_patch_ini(ghostcell*, nhflow_amr_patch&);
+    void sed_bed_ghosts(ghostcell*);
+    vector<vector<double>> sedr;    // remote matched faces: the fine flux of rmatch[g][n]
 };
 
 #endif

@@ -1,0 +1,4 @@
+{"np": 1, "steps": 20,
+ "description": "CFD mesh refinement with a floating body (X 10 1): 2D heave decay of a box (X 110, heave only), a refined box around the body and the free surface. The body moves on level 0; the patch casts the hull on its grid and forces the rigid-body velocity.",
+ "tags": ["quick", "2d", "6dof", "floating", "levelset", "amr"],
+ "covers": ["cfd_amr_6dof: ray cast and reinitialisation of fb on a patch (cells around the patch included), direct forcing on the patch", "control_parse: N 40 3 kept with bodies and G 1 > 0"]}

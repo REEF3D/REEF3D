@@ -25,8 +25,11 @@ Architect: Hans Bihs
 #include"seastate_grid.h"
 #include"seastate_store.h"
 #include"seastate_dispersion.h"
+#include"seastate_implicit.h"
 #include"lexer.h"
 #include"ghostcell.h"
+#include<algorithm>
+#include<functional>
 
 /*--------------------------------------------------------------------
 Kinematics of the spectral grid: wave number k and group velocity cg
@@ -62,19 +65,22 @@ static int status(int i, int j, sliceint &wet, int gi0, int gj0, int gnx, int gn
 
 void seastate_f::kinematics(lexer *p, ghostcell *pgc, double dt_depth)
 {
-    seastate_kinematics(p,e,dt_depth,p->origin_i,p->origin_j,p->gknox,p->gknoy);
+    seastate_kinematics(p,e,dt_depth,p->origin_i,p->origin_j,p->gknox,p->gknoy,p->A798);
 }
 
-// also for the patches of the mesh refinement (seastate_amr): global index and size of their level
-void seastate_kinematics(lexer *p, fdm_seastate *e, double dt_depth, int gi0, int gj0, int gnx, int gny)
+// also for the patches of the mesh refinement (seastate_amr): global index and size of their level. Every cell
+// writes only its own values: the rows are shared out to nt threads (Phase 13)
+void seastate_kinematics(lexer *p, fdm_seastate *e, double dt_depth, int gi0, int gj0, int gnx, int gny, int nt)
 {
     auto status = [&](lexer *pp, int ii, int jj) {return ::status(ii,jj,e->wet,gi0,gj0,gnx,gny);};
-    int i,j;
-
     const seastate_grid &g = *e->grid;
+    const int ni = p->knox+2*p->margin;
+    nt = std::max(1,std::min(nt,ni));
 
-    IMALOOP
-    JMALOOP
+    const std::function<void(int)> job = [&](int t)
+    {
+    for(int i=-p->margin+t; i<p->knox+p->margin; i+=nt)
+    for(int j=-p->margin; j<p->knoy+p->margin; ++j)
     {
         // k and cg
         float *kk = e->kw->spec(i,j);
@@ -134,4 +140,6 @@ void seastate_kinematics(lexer *p, fdm_seastate *e, double dt_depth, int gi0, in
 
     e->depth_n(i,j) = e->depth(i,j);
     }
+    };
+    seastate_implicit::run_threads(nt,job);
 }

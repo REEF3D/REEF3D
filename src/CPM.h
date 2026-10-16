@@ -82,7 +82,7 @@ public:
     void topo_column(lexer*, fdm*, ghostcell*);
     void topo_iso(lexer*, ghostcell*, field&);
     double ptopo(lexer*, fdm*, double, double, double);
-    slice4 zbf,blZb;
+    slice4 zbf,blZb,zbt;
     int zbf_ini=0, zbl_ok=0;
     double zbl(sediment_fdm*, int, int);
 
@@ -95,6 +95,7 @@ public:
     void state_read(lexer*, ghostcell*, int);
     void sedlog(lexer*, ghostcell*);
     void ini_fields(lexer*, fdm*, ghostcell*, sediment_fdm*);
+    void set_turbulence(turbulence *pt){pturb_=pt;}   // before ini_fields: the k term of the layer (Q 68 1) from the first step on
     
     // print
     void print_particles(lexer*,sediment_fdm*);
@@ -177,6 +178,7 @@ private:
     
     void volfrac_update(lexer*, ghostcell*, sediment_fdm*, double*, double*, double*, double*, double*, double*);
     void smooth(lexer*, ghostcell*, field&, int);
+    double kvol(lexer*, int, int, int);
     void kernel(lexer*, double, double, double);
     bool wallcell(lexer*, int, int, int);
     

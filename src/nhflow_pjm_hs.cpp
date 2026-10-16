@@ -22,6 +22,7 @@ Author: Hans Bihs
 
 #include"nhflow_pjm_hs.h"
 #include"lexer.h"
+#include"nhflow_curv.h"
 #include"fdm_nhf.h" 
 #include"ghostcell.h"
 #include"nhflow_poisson.h"
@@ -75,6 +76,13 @@ void nhflow_pjm_hs::vel_setup(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, d
 
 void nhflow_pjm_hs::upgrad(lexer*p, fdm_nhf *d, slice &WL)
 {
+    // curvilinear grid: g eta sum(d_face S_face)/A (nhflow_curv.h)
+    if(p->geo_curv==1)
+    LOOP
+    WETDRY
+    d->F[IJK] += nhflow_curv::bedslope(p,d,1,i,j);
+    
+    if(p->geo_curv==0)
     LOOP
     WETDRY
     d->F[IJK] += d->eta(i,j)*fabs(p->W22)*
@@ -83,6 +91,12 @@ void nhflow_pjm_hs::upgrad(lexer*p, fdm_nhf *d, slice &WL)
 
 void nhflow_pjm_hs::vpgrad(lexer*p, fdm_nhf *d, slice &WL)
 {
+    if(p->geo_curv==1)
+    LOOP
+    WETDRY
+    d->G[IJK] += nhflow_curv::bedslope(p,d,2,i,j);
+    
+    if(p->geo_curv==0)
     LOOP
     WETDRY
 	d->G[IJK] += d->eta(i,j)*fabs(p->W22)*

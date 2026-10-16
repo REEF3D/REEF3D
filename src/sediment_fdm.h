@@ -61,6 +61,7 @@ public:
     
     slice4 qb,qbe,qbs;
     slice4 cbe,cb,cbn,conc;
+    slice4 ub,vb;   // curvilinear grid (G 50): near-bed velocity of the cells (Cartesian components, sediment_curv)
     slice4 dryd;    // NHFLOW: suspended sediment volume per area of columns that fell dry, deposited at the next bed update
     
     slice4 waterlevel;

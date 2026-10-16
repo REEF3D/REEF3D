@@ -91,8 +91,15 @@ void driver::loop_nhflow()
         // DEM
         pdem->start_nhflow(p,d,pgc);
         
+        // FEM strong coupling (Z 30): the momentum step is repeated until the motion of the
+        // rigid bodies converges (no repetition without it)
+        pnhfdf->fem_step_begin(p,d,pgc);
+        do
+        {
         pnhfmom->start(p,d,pgc,pflow,pss,precon,pnhfconvec,pnhfdiff,
                        pnhpress,ppoissonsolv,psolv,pnhf,pnhfsf,pnhfturb,pnhfvrans); 
+        }
+        while(pnhfdf->fem_step_redo(p,d,pgc));
 
         //save previous timestep
         pnhfturb->ktimesave(p,d,pgc);

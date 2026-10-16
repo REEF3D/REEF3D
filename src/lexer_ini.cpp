@@ -30,6 +30,7 @@ void lexer::lexer_ini()
     kinmax=0.0;
     epsmax=0.0;
     pressmax=0.0;
+    pressmin=1.0e9;
     omegamax=0.0;
 
     utime=vtime=wtime=0.0;

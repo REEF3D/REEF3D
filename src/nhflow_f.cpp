@@ -20,12 +20,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#include"river_ini.h"
 #include"nhflow_f.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 #include"vrans.h"
 #include"nhflow_fsf.h"
+#include"slice4.h"
 
 nhflow_f::nhflow_f(lexer *p, fdm_nhf *d, ghostcell *pgc) 
 {
@@ -104,6 +106,17 @@ void nhflow_f::ini(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, nhflow_f
     
     for(int qn=0; qn<p->A509;++qn)
     {
+    // G 52 1 (multi-block grids): the sweep from the old values, independent of the index directions
+    if(p->G52==1)
+    {
+    slice4 b0(p);
+    SLICELOOP4
+    b0(i,j) = d->bed(i,j);
+    pgc->gcsl_start4(p,b0,50);
+    SLICELOOP4
+	d->bed(i,j) = 0.5*b0(i,j) + 0.125*(b0(i-1,j) + b0(i+1,j) + b0(i,j-1) + b0(i,j+1));
+    }
+    else
 	SLICELOOP4
 	d->bed(i,j) = 0.5*d->bed(i,j) + 0.125*(d->bed(i-1,j) +d->bed(i+1,j) +d->bed(i,j-1) +d->bed(i,j+1) );
     
@@ -129,12 +142,43 @@ void nhflow_f::ini(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, nhflow_f
     pgc->gcsl_start4Vint(p,p->wet,50);
     pgc->gcsl_start4Vint(p,p->deep,50);
     pgc->gcsl_start4(p,d->eta,50);
+    
+    // river free-surface initialisation along the i-direction (F 65, river_ini.h)
+    if(p->F65>0)
+    {
+    river_ini river;
+        if(river.start(p,pgc,d->bed,1,1)==1)
+        {
+        SLICELOOP4
+        d->eta(i,j) = river.eta(p,i,j,d->bed(i,j));
+        
+        pgc->gcsl_start4(p,d->eta,50);
+        }
+    }
 
     
     LOOP
     d->POR[IJK]=1.0;
     
     pgc->start5Vfull(p,d->POR,1);
+
+    // the columns of the partition halo (cells of the neighbour ranks, not the ghost cells beyond the
+    // domain) below the bed and above the surface as start5Vfull sets them for the own columns: the
+    // exchange covers the fluid layers only, and the Poisson rows of the bottom layer next to a partition
+    // edge read POR below the bed of the neighbour column (cN ... of nhflow_poisson), which stayed 0
+    // (coefficient 0 instead of 1): the result depended on the rank layout
+    for(int ii=p->imin; ii<p->imin+p->imax; ++ii)
+    for(int jj=p->jmin; jj<p->jmin+p->jmax; ++jj)
+    {
+        const int c0 = (ii-p->imin)*p->jmax*p->kmax + (jj-p->jmin)*p->kmax - p->kmin;
+        const int I = ii+p->origin_i, J = jj+p->origin_j;
+        if(p->flag4[c0]<0 || (ii>=0 && ii<p->knox && jj>=0 && jj<p->knoy) || I<0 || I>=p->gknox || J<0 || J>=p->gknoy)
+        continue;
+        for(int kk=p->kmin; kk<0; ++kk)
+        d->POR[c0+kk] = d->POR[c0];
+        for(int kk=p->knoz; kk<p->kmin+p->kmax; ++kk)
+        d->POR[c0+kk] = d->POR[c0+p->knoz-1];
+    }
     
     SLICELOOP4
     d->WL(i,j) = d->eta(i,j) + d->depth(i,j);

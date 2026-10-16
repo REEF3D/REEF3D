@@ -22,9 +22,13 @@ Author: Hans Bihs
 
 #include"sflow_f.h"
 #include"sflow_header.h"
+#include"sflow_curv.h"
 
 void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
 {	
+    // curvilinear grid (G 50): options available on it
+    if(p->geo_curv==1)
+    sflow_curv::check(p);
     
     // forcing
     psfdf=new sflow_forcing(p);
@@ -166,7 +170,7 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
 	pmom = new sflow_momentum_RK3(p,b,pgc,phll,pss,precon,pdiff,ppress,psolv,ppoissonsolv,pflow,pfsf,psfdf,p6dof);
 
     // mesh refinement (G 1): static boxes (G 10) and/or flagged regions (G 20, G 22)
-    if(p->G1>0 && (p->G10>0 || p->G20>0.0 || p->G22>0 || p->G12>0))
+    if((p->G1>0 && (p->G10>0 || p->G20>0.0 || p->G22>0 || p->G12>0)) || p->geo_mb>0)
     {
     sflow_momentum_RK3 *prk3 = dynamic_cast<sflow_momentum_RK3*>(pmom);
     
@@ -182,6 +186,14 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
         pnh->amr = pamr;
         pamr->pnh0 = pnh;
         }
+        }
+
+        // multi-block grid: the blocks 1.. run in the mesh refinement (RK3 only)
+        if(prk3==nullptr && p->geo_mb>0)
+        {
+            if(p->mpirank==0)
+            cout<<"!!! SFLOW multi-block grid (G 50 1 with DIVEMesh R 20 1): only with A 210 3 !!!"<<endl;
+            exit(1);
         }
     }
     

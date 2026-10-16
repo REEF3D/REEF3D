@@ -129,6 +129,7 @@ private:
     void vel_bc(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&);
     
     void mirror(lexer*, slice&, int, double);
+    void wall_bc(lexer*, slice&, slice&, slice&, int);   // free-slip wall of boundary cell (i,j), side cs
     void neumann(lexer*, slice&, int);
 };
 

@@ -1,0 +1,7 @@
+{
+ "base": "nhflow_2d_irregular_2nd_lowrank",
+ "ctrl_set": {"B 98": "6", "B 99": "6"},
+ "description": "nhflow_2d_irregular_2nd_lowrank with combined generation B 98 6 (zone to the target + low-passed deviation, Riemann edge at x-) and combined beach B 99 6: the low-rank 2nd-order target in the zone-column relaxation and the generation edge.",
+ "tags": ["quick", "2d", "waves", "iowave", "awa", "nhflow", "irregular"],
+ "covers": ["B 98 6 / B 99 6 with the 2nd-order low-rank sums (NHFLOW)"]
+}

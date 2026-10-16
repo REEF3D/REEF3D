@@ -1,0 +1,14 @@
+{
+ "base": "seastate_2d_phase9_fas",
+ "np": 2,
+ "description": "as seastate_2d_phase9_fas on 2 ranks: the FAS coarse-grid correction (A 758) with the level-0 exchange of the coarse sweeps.",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate",
+  "mpi"
+ ],
+ "covers": [
+  "A 758 on 2 ranks"
+ ]
+}

@@ -479,7 +479,7 @@ void CPM::friction(lexer *p, fdm *a, double xp, double yp, double zp, double &up
     j = p->posc_j(yp);
     k = p->posc_k(zp);
     
-    double h = p->j_dir==1 ? (1.0/3.0)*(p->DXN[IP]+p->DYN[JP]+p->DZN[KP]) : 0.5*(p->DXN[IP]+p->DZN[KP]);
+    double h = p->DZN[KP];
     
     // contact normal: bed normal at the surface, gravity inside the bed
     double gx = cip4a(p,dSx,xp,yp,zp);

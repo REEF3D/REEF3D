@@ -29,6 +29,7 @@ version 3 or later (see seastate_source.cpp).
 #define SEASTATE_SOURCE_H_
 
 #include<vector>
+#include <cstddef>
 
 class seastate_grid;
 
@@ -64,7 +65,17 @@ in brackets):
   whitecapping     Komen et al. (1984) (SWCAP): C_ds 2.36e-5,
                    s_PM^2 3.02e-3, p 4, delta 1, mean sig_-10 and
                    k_WAM, spectral tail sig^-4                       -> D
-  quadruplets      DIA (Hasselmann et al. 1985) (FAC4WW, SWSNL1):
+  wind input and   van der Westhuysen et al. (2007), A 732 2 (SWAN GEN3
+  whitecapping     WESTH): exponential growth of Yan (1987) (SWIND5),
+  (A 732 2)        B = max(0, (0.04 s^2 + 0.00552 s + 0.000052) cos(theta-
+                   theta_w) - 0.000302) sig, s = u_star/c            -> P
+                   saturation-based whitecapping (SWCAP, IWCAP 7):
+                   B_k = c_g k^3 E(sig), f_br = (1 + tanh(10 (sqrt(B_k/B_r)
+                   - 1)))/2, p = 3 + tanh(25.76 (u_star k/sig - 0.1)),
+                   f_br C_ds (B_k/B_r)^(p/2) (sqrt(g k)/sig)^(p/2-1)
+                   sqrt(g k) + (1 - f_br) 3e-5 (st/s_PM)^4 sig_-10 k/k_WAM,
+                   st = k_WAM sqrt(E_tot), C_ds 5e-5, B_r 1.75e-3 (A 757) -> D
+  quadruplets     DIA (Hasselmann et al. 1985) (FAC4WW, SWSNL1):
                    lambda 0.25, C 3e7, shallow-water scaling
                    1 + 5.5/x (1 - 0.833 x) exp(-1.25 x),
                    x = max(0.75 k_WAM d, 0.5)                       -> P, D
@@ -113,6 +124,8 @@ struct seastate_source_param
     double Alin = 1.5e-3;                // linear growth coefficient, 0: off
 
     bool komen = false;                  // whitecapping (and exponential wind input with wind)
+    bool westh = false;                  // ... as van der Westhuysen et al. (2007): Yan wind input, saturation-based whitecapping (SWAN GEN3 WESTH)
+    double cds2 = 5.0e-5, br = 1.75e-3;  // ... its coefficient and saturation threshold
     bool dia = false;                    // quadruplets
     double limiter = 0.1;                // action density limiter gamma with komen, 0: off
 
@@ -145,6 +158,9 @@ public:
 
     // vegetation field (A 756 1): stems per m^2 of the cell before compute
     void set_vegetation(double nv) {prm.vn = nv;}
+
+    // the parameters of another source object of the same grid (Phase 12: the copies kept for the threads)
+    void sync_param(const seastate_source &o) {prm = o.prm;}
 
     // spectral sparsity (A 795): energy may appear in any bin of the cell (wind input, DIA)
     bool fills_spectrum() const {return (prm.wind && prm.U10>0.0) || prm.dia;}

@@ -42,7 +42,7 @@ void rheology_f::u_source(lexer *p, fdm *a)
 
          
         if(p->W110==3)
-        tau += ((p->W97)*pow(gamma,p->W98-1.0))/a->ro(i,j,k);
+        tau += p->W97*pow(gamma,p->W98);
         
         f = fabs(a->u(i,j,k))>1.0e-20?(a->u(i,j,k)/fabs(a->u(i,j,k))):0.0;
         
@@ -72,8 +72,8 @@ void rheology_f::u_source(lexer *p, fdm *a)
          
         if(p->W110==5)
         {
-            tau01 +=  ((p->W97)*pow(gamma,p->W98-1.0))/a->ro(i,j,k);
-            tau02 +=  ((p->W97)*pow(gamma,p->W98-1.0))/a->ro(i+1,j,k);
+            tau01 +=  p->W97*pow(gamma,p->W98);
+            tau02 +=  p->W97*pow(gamma2,p->W98);
         }
         
         f = fabs(a->u(i,j,k))>1.0e-20?(a->u(i,j,k)/fabs(a->u(i,j,k))):0.0;
@@ -83,7 +83,7 @@ void rheology_f::u_source(lexer *p, fdm *a)
 
         H = heaviside(phival);
         
-        a->rhsvec.V[count] += H*((tau02-tau01)/(p->DXN[IP]*0.5*(a->ro(i,j,k)+a->ro(i+1,j,k)))); // *f ?
+        a->rhsvec.V[count] += H*((tau02-tau01)/(p->DXP[IP]*0.5*(a->ro(i,j,k)+a->ro(i+1,j,k)))); // *f ?
 
         ++count;
 	}
@@ -108,9 +108,9 @@ void rheology_f::u_source(lexer *p, fdm *a)
         fxz = fabs(dudz)>1.0e-20?(dudz/fabs(dudz)):0.0; // dudz
 
         // Pressure gradients at location of u(i,j,k):
-        dpdx = (a->press(i+1,j,k) - a->press(i,j,k))/(p->DXM);
-        dpdy = (0.5*(a->press(i,j+1,k)+a->press(i+1,j+1,k)) - 0.5*(a->press(i,j-1,k)+a->press(i+1,j-1,k)))/(2.0*p->DXM);
-        dpdz = (0.5*(a->press(i,j,k+1)+a->press(i+1,j,k+1)) - 0.5*(a->press(i,j,k-1)+a->press(i+1,j,k-1)))/(2.0*p->DXM);
+        dpdx = (a->press(i+1,j,k) - a->press(i,j,k))/p->DXP[IP];
+        dpdy = (0.5*(a->press(i,j+1,k)+a->press(i+1,j+1,k)) - 0.5*(a->press(i,j-1,k)+a->press(i+1,j-1,k)))/(p->DYP[JM1]+p->DYP[JP]);
+        dpdz = (0.5*(a->press(i,j,k+1)+a->press(i+1,j,k+1)) - 0.5*(a->press(i,j,k-1)+a->press(i+1,j,k-1)))/(p->DZP[KM1]+p->DZP[KP]);
 
         phival = 0.5*(a->phi(i,j,k)+a->phi(i+1,j,k));
         epsi = interface_width_face(p,a->phi,i,j,k,1,0,0);
@@ -138,8 +138,8 @@ void rheology_f::v_source(lexer *p, fdm *a)
         
         tau0 = yield_stress(p,a);
         
-        if(p->W110==5)
-            tau0 += ((p->W97)*pow(gamma,p->W98-1.0))/a->ro(i,j,k);
+        if(p->W110==3)
+            tau0 += p->W97*pow(gamma,p->W98);
         
         f = fabs(a->v(i,j,k))>1.0e-20?(a->v(i,j,k)/fabs(a->v(i,j,k))):0.0;
         
@@ -148,7 +148,7 @@ void rheology_f::v_source(lexer *p, fdm *a)
         
         H = heaviside(phival);
         
-        a->rhsvec.V[count] -= H*f*(tau0/(p->DYN[JP]*0.5*(a->ro(i,j,k)+a->ro(i,j+1,k))));
+        a->rhsvec.V[count] -= H*f*(tau0/(p->DZN[KP]*0.5*(a->ro(i,j,k)+a->ro(i,j+1,k))));
         
         ++count;
     }
@@ -169,9 +169,9 @@ void rheology_f::v_source(lexer *p, fdm *a)
         fyz = fabs(dvdz)>1.0e-20?(dvdz/fabs(dvdz)):0.0; // dvdz
 
         // Pressure gradients at location of v(i,j,k):
-        dpdx = (0.5*(a->press(i+1,j,k)+a->press(i+1,j+1,k)) - 0.5*(a->press(i-1,j,k)+a->press(i-1,j+1,k)))/(2.0*p->DXM);
-        dpdy = (a->press(i,j+1,k) - a->press(i,j,k))/(p->DXM);
-        dpdz = (0.5*(a->press(i,j,k+1)+a->press(i,j+1,k+1)) - 0.5*(a->press(i,j,k-1)+a->press(i,j+1,k-1)))/(2.0*p->DXM);
+        dpdx = (0.5*(a->press(i+1,j,k)+a->press(i+1,j+1,k)) - 0.5*(a->press(i-1,j,k)+a->press(i-1,j+1,k)))/(p->DXP[IM1]+p->DXP[IP]);
+        dpdy = (a->press(i,j+1,k) - a->press(i,j,k))/p->DYP[JP];
+        dpdz = (0.5*(a->press(i,j,k+1)+a->press(i,j+1,k+1)) - 0.5*(a->press(i,j,k-1)+a->press(i,j+1,k-1)))/(p->DZP[KM1]+p->DZP[KP]);
 
         phival = 0.5*(a->phi(i,j,k)+a->phi(i,j+1,k));
         epsi = interface_width_face(p,a->phi,i,j,k,0,1,0);
@@ -197,7 +197,7 @@ void rheology_f::w_source(lexer *p, fdm *a)
         tau0 = yield_stress(p,a);
             
         if(p->W110==3)
-            tau0 += ((p->W97)*pow(gamma,p->W98-1.0))/a->ro(i,j,k);
+            tau0 += p->W97*pow(gamma,p->W98);
         
         f = fabs(a->w(i,j,k))>1.0e-20?(a->w(i,j,k)/fabs(a->w(i,j,k))):0.0;
         
@@ -206,7 +206,7 @@ void rheology_f::w_source(lexer *p, fdm *a)
 
         H = heaviside(phival);
         
-        a->rhsvec.V[count] -= H*f*(tau0/(0.5*(p->DZN[KP]*a->ro(i,j,k)+a->ro(i,j,k+1))));
+        a->rhsvec.V[count] -= H*f*(tau0/(p->DZP[KP]*0.5*(a->ro(i,j,k)+a->ro(i,j,k+1))));
 
         ++count;
 	}
@@ -227,8 +227,8 @@ void rheology_f::w_source(lexer *p, fdm *a)
          
         if(p->W110==5)
         {
-            tau01 +=  ((p->W97)*pow(gamma,p->W98-1.0))/a->ro(i,j,k);
-            tau02 +=  ((p->W97)*pow(gamma,p->W98-1.0))/a->ro(i,j,k+1);
+            tau01 +=  p->W97*pow(gamma,p->W98);
+            tau02 +=  p->W97*pow(gamma2,p->W98);
         }
         
         f = fabs(a->w(i,j,k))>1.0e-20?(a->w(i,j,k)/fabs(a->w(i,j,k))):0.0;
@@ -238,7 +238,7 @@ void rheology_f::w_source(lexer *p, fdm *a)
 
         H = heaviside(phival);
         
-        a->rhsvec.V[count] += H*((tau02-tau01)/(p->DXM*0.5*(a->ro(i,j,k)+a->ro(i,j,k+1)))); // PFo: Missing "*f" ?
+        a->rhsvec.V[count] += H*((tau02-tau01)/(p->DZP[KP]*0.5*(a->ro(i,j,k)+a->ro(i,j,k+1)))); // PFo: Missing "*f" ?
 
         ++count;
 	}
@@ -261,9 +261,9 @@ void rheology_f::w_source(lexer *p, fdm *a)
        
 
         // Pressure gradients at location of w(i,j,k):
-        dpdx = (0.5*(a->press(i+1,j,k)+a->press(i+1,j,k+1)) - 0.5*(a->press(i-1,j,k)+a->press(i-1,j,k+1)))/(2.0*p->DXM);
-        dpdy = (0.5*(a->press(i,j+1,k)+a->press(i,j+1,k+1)) - 0.5*(a->press(i,j-1,k)+a->press(i,j-1,k+1)))/(2.0*p->DXM);
-        dpdz = (a->press(i,j,k+1) - a->press(i,j,k))/(p->DXM);
+        dpdx = (0.5*(a->press(i+1,j,k)+a->press(i+1,j,k+1)) - 0.5*(a->press(i-1,j,k)+a->press(i-1,j,k+1)))/(p->DXP[IM1]+p->DXP[IP]);
+        dpdy = (0.5*(a->press(i,j+1,k)+a->press(i,j+1,k+1)) - 0.5*(a->press(i,j-1,k)+a->press(i,j-1,k+1)))/(p->DYP[JM1]+p->DYP[JP]);
+        dpdz = (a->press(i,j,k+1) - a->press(i,j,k))/p->DZP[KP];
 
         phival = 0.5*(a->phi(i,j,k)+a->phi(i,j,k+1));
         epsi = interface_width_face(p,a->phi,i,j,k,0,0,1);

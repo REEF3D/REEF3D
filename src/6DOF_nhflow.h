@@ -87,6 +87,11 @@ public:
     // stages with the loads frozen, the trimesh, ray cast and forcing; no loads, no output
     bool amr_predict = false;
     
+    // X 13: the top-cell distance of the pierced-column level at the pose of the stage. The body
+    // is then advanced at the start of the stage (advance_stage, from the loads of the last
+    // stage, as before), not in phase_P1, so the footprint and the loads see the same hull.
+    bool top_phi_nhflow(lexer*,fdm_nhf*,ghostcell*,int,slice&,slice&) override final;
+    
 private:
 	
     // hires gradient
@@ -99,6 +104,14 @@ private:
 
     int number6DOF;
     vector<sixdof_obj_nhflow*> fb_obj;
+    
+    // body advanced ahead of phase_P1 for stage adv_iter of step adv_count at adv_time (X 13)
+    void advance_stage(lexer*,fdm_nhf*,ghostcell*,int);
+    bool advanced(lexer*,int) const;
+    bool advance_early_ok(lexer*) const;
+    int adv_count = -1, adv_iter = -1;
+    double adv_time = -1.0e20;
+    bool adv_told = false;
 
     slice4 press;
 

@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"sediment_mixture.h"
+#include"sediment_curv.h"
 #include"sediment_fdm.h"
 #include"lexer.h"
 #include"ghostcell.h"
@@ -406,6 +407,13 @@ void sediment_mixture::exner_end(lexer *p, ghostcell *pgc, sediment_fdm *s)
 
 void sediment_mixture::bedchange(lexer *p, ghostcell *pgc, sediment_fdm *s, slice4 **dhk)
 {
+    // curvilinear grid (G 50): sediment_curv.h
+    if(p->geo_curv==1)
+    {
+    bedchange_curv(p,pgc,s,dhk);
+    return;
+    }
+
     double dz,dz0,Vs,area,corr;
     int neg;
 
@@ -624,6 +632,13 @@ void sediment_mixture::composition_eroded(int ii, int jj, double L, double *C)
 // after the sandslide fill back: per-fraction bed change and sorting update
 void sediment_mixture::slide_finish(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
+    // curvilinear grid (G 50): sediment_curv.h
+    if(p->geo_curv==1)
+    {
+    slide_finish_curv(p,pgc,s);
+    return;
+    }
+
     double L,x;
 
     SEDSLICELOOP
@@ -728,6 +743,13 @@ double sediment_mixture::ks_diameter(lexer *p, int ii, int jj)
 
 void sediment_mixture::print_log(lexer *p, ghostcell *pgc)
 {
+    // curvilinear grid (G 50): sediment_curv.h
+    if(p->geo_curv==1)
+    {
+    print_log_curv(p,pgc);
+    return;
+    }
+
     double area;
 
     for(int q=0;q<nf;++q)
@@ -764,4 +786,227 @@ void sediment_mixture::print_log(lexer *p, ghostcell *pgc)
 int sediment_mixture::nfields()
 {
     return nf+4;
+}
+
+// ---- curvilinear grid (G 50): the functions above with the geometry of sediment_curv.h
+
+void sediment_mixture::bedchange_curv(lexer *p, ghostcell *pgc, sediment_fdm *s, slice4 **dhk)
+{
+    double dz,dz0,Vs,area,corr;
+    int neg;
+
+    SEDSLICELOOP
+    {
+        area = (p->geo_curv==1) ? sediment_curv::area(p,i,j) : p->DXN[IP]*p->DYN[JP];
+
+        dz0=0.0;
+        for(int q=0;q<nf;++q)
+        {
+        dhc[q] = (*dhk[q])(i,j);
+        dz0 += dhc[q];
+        }
+
+        // limit the erosion of fractions that are not available:
+        // for the set S of fractions that would become negative, V_q = 0 is solved exactly,
+        //   dhc_q = dhk_q + x_q,  x_q = X FI_q - V_q,  X = -sum_S V_q/(1 - sum_S FI_q)
+        // (V_q at dhk, FI fixed). S only grows; FI changes with the sign of dz, so the
+        // solve is repeated until S and the sign are consistent (a few passes).
+        // (The previous fixed-point update reduced the deficit only by FI_q per pass and
+        // could stop after 20 passes with a remaining deficit, e.g. armoured beds.)
+        for(int q=0;q<nf;++q)
+        inS[q]=0;
+        
+        for(int it=0;it<2*nf+4;++it)
+        {
+            dz=0.0;
+            for(int q=0;q<nf;++q)
+            dz += dhc[q];
+
+            for(int q=0;q<nf;++q)
+            FI[q] = dz>=0.0?(*F[q])(i,j):(*Fs[q])(i,j);
+
+            neg=0;
+            for(int q=0;q<nf;++q)
+            {
+            V[q] = La*(*F[q])(i,j) + dhc[q] - dz*FI[q];
+
+                if(V[q]<-1.0e-12*La && inS[q]==0)
+                {
+                inS[q]=1;
+                neg=1;
+                }
+            }
+
+            if(neg==0)
+            break;
+            
+            // exact solve for S, starting from the unlimited bed change
+            double sumV=0.0, sumFI=0.0, dzk=0.0;
+            
+            for(int q=0;q<nf;++q)
+            dzk += (*dhk[q])(i,j);
+            
+            for(int q=0;q<nf;++q)
+            FI[q] = dzk>=0.0?(*F[q])(i,j):(*Fs[q])(i,j);
+            
+            for(int q=0;q<nf;++q)
+            if(inS[q]==1)
+            {
+            sumV  += La*(*F[q])(i,j) + (*dhk[q])(i,j) - dzk*FI[q];
+            sumFI += FI[q];
+            }
+            
+            if(sumFI>1.0-1.0e-12)
+            break;
+            
+            double X = -sumV/(1.0-sumFI);
+            
+            for(int q=0;q<nf;++q)
+            {
+            dhc[q] = (*dhk[q])(i,j);
+            
+            if(inS[q]==1)
+            dhc[q] += X*FI[q] - (La*(*F[q])(i,j) + (*dhk[q])(i,j) - dzk*FI[q]);
+            }
+        }
+        
+        // final volumes with the limited bed change
+        dz=0.0;
+        for(int q=0;q<nf;++q)
+        dz += dhc[q];
+        
+        for(int q=0;q<nf;++q)
+        {
+        FI[q] = dz>=0.0?(*F[q])(i,j):(*Fs[q])(i,j);
+        V[q] = La*(*F[q])(i,j) + dhc[q] - dz*FI[q];
+        }
+
+        // bookkeeping of the limited volume
+        corr=0.0;
+        for(int q=0;q<nf;++q)
+        {
+        corr += dhc[q] - (*dhk[q])(i,j);
+        clip_k[q] += (dhc[q] - (*dhk[q])(i,j))*area;
+
+            if(V[q]<0.0)
+            {
+            clip_k[q] += -V[q]*area;
+            V[q] = 0.0;
+            }
+        }
+
+        s->bedzh(i,j) += corr;
+
+        dz = dz0 + corr;
+
+        // substrate
+        if(dz>0.0)
+        {
+            for(int q=0;q<nf;++q)
+            (*Fs[q])(i,j) = (Hs(i,j)*(*Fs[q])(i,j) + dz*(*F[q])(i,j))/(Hs(i,j)+dz);
+
+        Hs(i,j) += dz;
+        }
+
+        // degradation: the active layer takes dz*Fs from the substrate; beyond its thickness
+        // there is nothing left, the missing volume is booked as limiter volume
+        if(dz<=0.0)
+        {
+            if(Hs(i,j)+dz<0.0)
+            for(int q=0;q<nf;++q)
+            clip_k[q] += -(Hs(i,j)+dz)*(*Fs[q])(i,j)*area;
+            
+        Hs(i,j) = MAX(Hs(i,j)+dz,0.0);
+        }
+
+        // active layer
+        Vs=0.0;
+        for(int q=0;q<nf;++q)
+        Vs += V[q];
+
+        if(Vs>1.0e-30)
+        for(int q=0;q<nf;++q)
+        (*F[q])(i,j) = V[q]/Vs;
+    }
+
+    for(int q=0;q<nf;++q)
+    {
+    pgc->gcsl_start4(p,*F[q],1);
+    pgc->gcsl_start4(p,*Fs[q],1);
+    }
+
+    pgc->gcsl_start4(p,Hs,1);
+    pgc->gcsl_start4(p,s->bedzh,1);
+
+    grain_stats(p,pgc);
+}
+
+void sediment_mixture::slide_finish_curv(lexer *p, ghostcell *pgc, sediment_fdm *s)
+{
+    double L,x;
+
+    SEDSLICELOOP
+    {
+        L=0.0;
+        for(int dir=0;dir<9;++dir)
+        L += (*out[dir])(i,j);
+
+        if(L>0.0)
+        {
+            composition_eroded(i,j,L,Fe);
+
+            for(int dir=0;dir<9;++dir)
+            {
+            x = (*out[dir])(i,j);
+
+                if(x>0.0)
+                for(int q=0;q<nf;++q)
+                {
+                // receiver height with the area ratio (volume conserving, as the bed sand slide)
+                (*fh_k[q])(i,j) -= x*Fe[q];
+                (*fh_k[q])(i+dir/3-1,j+dir%3-1) += x*Fe[q]*((p->geo_curv==1) ? sediment_curv::aratio(p,i,j,dir/3-1,dir%3-1) : (p->DXN[IP]*p->DYN[JP])/(p->DXN[IP+dir/3-1]*p->DYN[JP+dir%3-1]));
+                }
+            }
+        }
+    }
+
+    for(int q=0;q<nf;++q)
+    pgc->gcslparax_fh(p,*fh_k[q],4);
+
+    bedchange(p,pgc,s,fh_k);
+}
+
+void sediment_mixture::print_log_curv(lexer *p, ghostcell *pgc)
+{
+    double area;
+
+    for(int q=0;q<nf;++q)
+    {
+    V[q]=0.0;
+    clip_sum[q] = pgc->globalsum(clip_k[q]);
+    }
+
+    SEDSLICELOOP
+    {
+    area = (p->geo_curv==1) ? sediment_curv::area(p,i,j) : p->DXN[IP]*p->DYN[JP];
+
+        for(int q=0;q<nf;++q)
+        V[q] += (La*(*F[q])(i,j) + Hs(i,j)*(*Fs[q])(i,j))*area;
+    }
+
+    for(int q=0;q<nf;++q)
+    V[q] = pgc->globalsum(V[q]);
+
+    if(p->mpirank==0)
+    {
+    mixlog<<p->sediter<<" \t "<<setprecision(8)<<p->sedtime;
+
+    for(int q=0;q<nf;++q)
+    mixlog<<" \t "<<setprecision(12)<<V[q];
+
+    for(int q=0;q<nf;++q)
+    mixlog<<" \t "<<setprecision(6)<<clip_sum[q];
+
+    mixlog<<endl;
+    }
 }

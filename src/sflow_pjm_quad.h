@@ -75,6 +75,8 @@ private:
 	void vcorr(lexer*, fdm2D*, slice&, slice&, double);
 	void wcorr(lexer*, fdm2D*, slice&, slice&, double);
     int active(lexer*, fdm2D*);
+    void grad_q(lexer*, fdm2D*, slice&, double&, double&);
+    void quad_calc_curv(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&, slice&, slice&, double);
     
 	double starttime;
     int gcval_press,q;

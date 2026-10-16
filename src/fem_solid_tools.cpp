@@ -429,9 +429,10 @@ void fem_solid::update_utilisation()
         const egeom& G = geom(el);
         double u = 0.0;
 
-        for(int g=0; g<ngp; ++g)
+        const int ng = ngauss(e);
+        for(int g=0; g<ng; ++g)
         {
-            const double (*dN)[3] = (ngp==1) ? G.dN0 : G.dNg[g];
+            const double (*dN)[3] = (ng==1) ? G.dN0 : G.dNg[g];
             Mat3 F = Mat3::Zero();
             for(int a=0; a<8; ++a)
             for(int i=0; i<3; ++i)
@@ -527,7 +528,7 @@ bool fem_solid::steel_yielded(int* elem) const
 {
     for(int e=0; e<nelem(); ++e)
     if(elems[e].reinforced())
-    for(int g=0; g<ngp; ++g)
+    for(int g=0; g<ngauss(e); ++g)
     {
         const gpstate& st = gps[e*ngp+g];
         if(std::fabs(st.es[0])+std::fabs(st.es[1])+std::fabs(st.es[2])>0.0)
@@ -544,7 +545,7 @@ int fem_solid::bars_ruptured() const
     int n = 0;
     for(int e=0; e<nelem(); ++e)
     if(elems[e].reinforced())
-    for(int g=0; g<ngp; ++g)
+    for(int g=0; g<ngauss(e); ++g)
     if(gps[e*ngp+g].sfail)
     ++n;
     return n;
@@ -577,7 +578,7 @@ double fem_solid::max_damage(int* elem) const
     double d = 0.0;
     int best = -1;
     for(int e=0; e<nelem(); ++e)
-    for(int g=0; g<ngp; ++g)
+    for(int g=0; g<ngauss(e); ++g)
     if(gps[e*ngp+g].d>d)
     {
         d = gps[e*ngp+g].d;
@@ -592,7 +593,7 @@ double fem_solid::max_plastic_strain(int* elem) const
     double p = 0.0;
     int best = -1;
     for(int e=0; e<nelem(); ++e)
-    for(int g=0; g<ngp; ++g)
+    for(int g=0; g<ngauss(e); ++g)
     if(gps[e*ngp+g].ep>p)
     {
         p = gps[e*ngp+g].ep;
@@ -727,6 +728,7 @@ fem_solid::check_info fem_solid::check()
     const std::vector<element> e0 = elems;
     const Vec3 grav0 = grav;
     const double wdiss0 = wdiss;
+    const std::vector<double> wde0 = wde;
 
     // self weight
     if(ci.nfixed>0 || ground_on)
@@ -746,7 +748,7 @@ fem_solid::check_info fem_solid::check()
         if(n_eroded()>0)
         ci.warnings.push_back("elements fail under the self weight alone");
 
-        x = x0; gps = g0; elems = e0; wdiss = wdiss0; act_dirty = true;
+        x = x0; gps = g0; elems = e0; wdiss = wdiss0; wde = wde0; act_dirty = true;
         build_surface();
         count_bodies();
     }
@@ -764,7 +766,7 @@ void fem_solid::write_check(std::ostream& os,const check_info& ci) const
 {
     os<<std::setprecision(4);
     os<<"FEM check\n";
-    os<<"  mesh:        "<<nelem()<<" hex8 elements ("<<(ngp==8 ? "full" : "reduced")<<" integration), "<<nnode()<<" nodes, "
+    os<<"  mesh:        "<<nelem()<<" hex8 elements ("<<(full_int==1 ? "full" : full_int==2 ? "adaptive" : "reduced")<<" integration), "<<nnode()<<" nodes, "
       <<geos.size()<<" elements snapped to the surface, element size "<<hx<<" x "<<hy<<" x "<<hz<<" m\n";
     os<<"  extent:      x "<<ci.lo(0)<<" .. "<<ci.hi(0)<<"   y "<<ci.lo(1)<<" .. "<<ci.hi(1)<<"   z "<<ci.lo(2)<<" .. "<<ci.hi(2)<<" m\n";
     os<<"  volume:      "<<ci.volume<<" m3,  mass "<<ci.mass<<" kg,  weight "<<ci.mass*grav.norm()/1000.0<<" kN\n";
@@ -840,6 +842,7 @@ void fem_solid::rayleigh_frequencies(double f[3],bool ok[3])
     const std::vector<element> e0 = elems;
     const Vec3 grav0 = grav;
     const double wdiss0 = wdiss;
+    const std::vector<double> wde0 = wde;
     const int ne0 = n_eroded();
     const std::vector<material> m0 = mats;
 
@@ -872,7 +875,7 @@ void fem_solid::rayleigh_frequencies(double f[3],bool ok[3])
             f[d] = std::sqrt(num/den)/(2.0*3.14159265358979);
             ok[d] = true;
         }
-        x = x0; gps = g0; elems = e0; wdiss = wdiss0; act_dirty = true;
+        x = x0; gps = g0; elems = e0; wdiss = wdiss0; wde = wde0; act_dirty = true;
         build_surface();
         count_bodies();
     }

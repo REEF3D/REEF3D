@@ -20,7 +20,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Architect: Hans Bihs
 --------------------------------------------------------------------
 Parts of this file are C++ translations of routines of SWAN 41.51:
-FAC4WW and SWSNL1 (DIA quadruplets), FAC3WW and SWLTA (LTA triads),
+FAC4WW and SWSNL1 (DIA quadruplets), FAC3WW and SWLTA (LTA triads), SWIND5
+(Yan wind input) and SWCAP with IWCAP 7 (van der Westhuysen whitecapping),
 SSURF (Newton linearisation of the Battjes-Janssen dissipation),
 SINTGRL (maximum energy with Battjes-Janssen breaking) and SVEG
 (vegetation, one layer).
@@ -372,17 +373,46 @@ void seastate_source::compute(const float *N, double depth, const float *k, cons
                 P[b] += reduc*ta/sig*t*t*t*t*filter;
                 }
 
-                // exponential growth
-                if(prm.komen)
+                // exponential growth: Snyder et al. (1981) as Komen et al. (1984), or Yan (1987) as adapted by
+                // van der Westhuysen et al. (2007) (SWAN SWIND5 with IWCAP 7)
+                if(prm.komen && !prm.westh)
                 P[b] += std::max(0.0,0.25*rho_ratio*(28.0*ustar*cinv*cosdif - 1.0))*sig*double(N[b]);
+                if(prm.westh)
+                {
+                const double us = ustar*cinv;
+                const double yan = (0.04*us*us + 0.00552*us + 0.000052)*cosdif - 0.000302;
+                P[b] += std::max(0.0,yan*sig)*double(N[b]);
+                }
             }
         }
     }
 
     if(Etot>0.0)
     {
+        // whitecapping (van der Westhuysen et al. 2007, SWAN SWCAP with IWCAP 7): saturation-based breaking
+        // dissipation weighted with f_br, the rest non-breaking (Komen type, Cds 3.0e-5, delta 0)
+        if(prm.westh && km_wam>0.0)
+        {
+        const double stp = km_wam*std::sqrt(Etot)/std::sqrt(3.02e-3);
+        const double ck = 3.0e-5*stp*stp*stp*stp;
+
+            for(int l=fa; l<=fb; ++l)
+            {
+            const double sig = g.sig[l], kl = double(k[l]);
+            const double El = row[l]*sig*g.dtheta;                       // E(sig) [m^2 s/rad]
+            const double B = double(cg[l])*kl*kl*kl*El;                  // saturation spectrum
+            const double fbr = 0.5*(1.0 + std::tanh(10.0*(std::sqrt(B/prm.br) - 1.0)));
+            const double pp = 3.0 + std::tanh(25.76*(ustar*kl/sig - 0.1));
+            const double fac1 = std::pow(B/prm.br,0.5*pp), fac2 = std::sqrt(seastate_gravity*kl);
+            const double w = fbr*prm.cds2*fac1*std::pow(fac2/sig,0.5*pp-1.0)*fac2 + (1.0-fbr)*ck*sigm_10*(kl/km_wam);
+
+            for(int m=wa; m<=wb; ++m)
+            D[g.bin(l,m)] += w;
+            }
+        }
+
         // whitecapping (Komen)
-        if(prm.komen && km_wam>0.0)
+        if(prm.komen && !prm.westh && km_wam>0.0)
         {
         const double stp = km_wam*std::sqrt(Etot)/std::sqrt(wc_stpm);
         const double ck = wc_cds*stp*stp*stp*stp;
@@ -608,34 +638,47 @@ void seastate_source::dia(const float *N, double depth)
     const int lhi = nsig - 1 - ism1 + isp1;     // last row of UE
     const int shi = nsig - 1 - ism1;            // last row of SA
 
-    for(int l=ism1; l<=lhi; ++l)
+    // rows and directions of SA needed by the transfers of the window
+    const int l0 = std::max(0,fa-isp1), l1 = std::min(shi,fb-ism1);
+    const int m0 = wa-dpad, m1 = wb+dpad, nm = m1-m0+1;
+
+    // E for the rows and directions that these SA read (Phase 15: before, every row and direction of the spectrum in
+    // every call; the same values): rows l0+ism1 .. l1+isp1, directions m0-dpad .. m1+dpad, continued periodically or
+    // (compact sector, A 717) zero beyond the ends; above the grid the sig^-4 tail of the row below
+    const int ua = std::max(ism1,l0+ism1), ub = std::min(lhi,l1+isp1);
+    const int ma = std::max(m0-dpad,-2*dpad), mb = std::min(m1+dpad,ndir+2*dpad-1);
+    const bool per = g.periodic;
+
+    for(int l=ua; l<=ub; ++l)
     {
     double *u = &ue(l,0);
 
-        for(int m=0; m<ndir; ++m)
+        if(l<0)
         {
-            if(l<0)
-            u[m] = 0.0;
-            else if(l<nsig)
-            u[m] = 2.0*pi*g.sig[l]*double(N[g.bin(l,m)]);
-            else
-            u[m] = ue(l-1,m)*fachfr;
+        for(int m=ma; m<=mb; ++m)
+        u[m] = 0.0;
         }
-
-        // periodic continuation of the directions
-        for(int m=-2*dpad; m<0; ++m)
-        u[m] = u[dw(m)];
-        for(int m=ndir; m<ndir+2*dpad; ++m)
-        u[m] = u[dw(m)];
+        else if(l<nsig)
+        {
+        const double tps = 2.0*pi*g.sig[l];
+        const float *Nl = N + g.bin(l,0);
+            for(int m=ma; m<=mb; ++m)
+            {
+            const int mm = per ? dw(m) : m;
+            u[m] = (mm>=0 && mm<ndir) ? tps*double(Nl[mm]) : 0.0;
+            }
+        }
+        else
+        {
+        const double *ul = &ue(l-1,0);
+        for(int m=ma; m<=mb; ++m)
+        u[m] = ul[m]*fachfr;
+        }
     }
 
     const double x = std::max(0.75*depth*km_wam,0.5);
     const double cons = 1.0/(grav*grav*grav*grav)*(1.0 + dia_cs1/x*(1.0-dia_cs2*x)*std::exp(std::max(-1.0e15,dia_cs3*x)));
     const double C = dia_C;
-
-    // rows and directions of SA needed by the transfers of the window
-    const int l0 = std::max(0,fa-isp1), l1 = std::min(shi,fb-ism1);
-    const int m0 = wa-dpad, m1 = wb+dpad, nm = m1-m0+1;
 
     for(int l=l0; l<=l1; ++l)
     {

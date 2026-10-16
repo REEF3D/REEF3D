@@ -62,6 +62,7 @@ private:
 	void vcorr(lexer*, fdm2D*, slice&, slice&, double);
 	void wcorr(lexer*, fdm2D*, slice&, slice&, double);
     int active(lexer*, fdm2D*);
+    void grad_q(lexer*, fdm2D*, slice&, double&, double&);
     
 	double starttime;
     int gcval_press;

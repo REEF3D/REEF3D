@@ -160,8 +160,29 @@ void sixdof_obj::apply_added_mass(lexer *p, const Eigen::Matrix<double,6,6> *A_e
     }
     }
     
+    // several FNPF bodies: hand the block to the coupled solve (fnpf_6DOF::motion)
+    if(am_coupled_)
+    {
+        Lc_ = L;
+        rc_ = r;
+        IIc_ = II;
+        gyroc_ = gyro;
+
+        for(int n=0; n<6; ++n)
+        fixedc_[n] = fixed[n];
+
+        am_assembled_ = true;
+        return;
+    }
+
     const Eigen::Matrix<double,6,1> acc = L.partialPivLu().solve(r);
     
+    finish_added_mass(acc,II,gyro,fixed);
+}
+
+void sixdof_obj::finish_added_mass(const Eigen::Matrix<double,6,1> &acc, const Eigen::Matrix3d &II,
+                                   const Eigen::Vector3d &gyro, const bool *fixed)
+{
     Ffb_ = Mass_fb*acc.head<3>();
     Mfb_ = II*acc.tail<3>() + gyro;
     

@@ -55,6 +55,10 @@ void sixdof_obj_cfd::solve_eqmotion_cfd(lexer *p, fdm *a, ghostcell *pgc, int it
 void sixdof_obj_nhflow::solve_eqmotion_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter, bool finalize)
 {
     externalForces_nhflow(p, d, pgc, alpha[iter], finalize);
+    
+    // power take-off (X 500): load of the stage, as in FNPF
+    if(pto_on_)
+    pto_forces(p,pgc,iter);
 
     // load models (ship module) sample the NHFLOW velocity
     sixdof_fluid_nhflow fluid(p,d,pgc);

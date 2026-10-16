@@ -27,6 +27,10 @@ LDFLAGS      :=
 INCLUDE      := -I ${EIGEN_DIR} -DEIGEN_MPL2_ONLY 
 SRC          := $(filter-out src/hypre_%.cpp,$(wildcard src/*.cpp))
 endif
+# REEF3D::CORAL (src/coral/<folder>/): every folder except app/ (the standalone CORAL executable);
+# its includes start at src/ (#include"coral/core/coral_types.h")
+SRC          += $(shell find src/coral -name '*.cpp' -not -path 'src/coral/app/*' 2>/dev/null | sort)
+INCLUDE      += -I src
 # zlib: the LAGOON store output (P 18) compresses its chunks with gzip, in a thread
 LDFLAGS      += -lz -pthread
 # OpenMP threads for the FEM solid (Z 30): on when the compiler can build OpenMP code (OMP=auto,
@@ -79,7 +83,12 @@ debug: $(APP)
 ifeq ($(shell uname -s),Linux)
 $(OBJ_DIR)/src/wave_lib_irregular_1st.o: CXXFLAGS += -fopenmp-simd -fno-math-errno -DREEF3D_SIMD_MATH
 LDFLAGS += -lmvec
+else
+$(OBJ_DIR)/src/wave_lib_irregular_1st.o: CXXFLAGS += -fopenmp-simd
 endif
+
+# SIMD reductions over the second-order irregular-wave terms (#pragma omp simd, GCC and Clang)
+$(OBJ_DIR)/src/wave_lib_irregular_2nd_a.o $(OBJ_DIR)/src/wave_lib_irregular_2nd_b.o: CXXFLAGS += -fopenmp-simd
 
 $(OBJ_DIR)/%.o: %.cpp
 	@mkdir -p $(@D)

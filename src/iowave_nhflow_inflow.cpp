@@ -121,6 +121,23 @@ void iowave::nhflow_inflow_plain(lexer *p, fdm_nhf *d, ghostcell* pgc, double *U
         WH[Im1JK]=0.0;
         WH[Im2JK]=0.0;
         WH[Im3JK]=0.0;
+        
+        // curvilinear grid (G 50): along the normal of the inflow face
+        if(p->geo_curv==1)
+        {
+        const int qf = (i-1-p->imin)*p->jmax + (j-p->jmin);
+        const double len = p->LEN1[qf];
+        const double nx = len>0.0 ? p->SX1[qf]/len : 1.0, ny = len>0.0 ? p->SY1[qf]/len : 0.0;
+        const int c[3] = {Im1JK,Im2JK,Im3JK};
+        
+            for(int q=0; q<3; ++q)
+            {
+            V[c[q]]  = U[c[q]]*ny;
+            U[c[q]]  = U[c[q]]*nx;
+            VH[c[q]] = UH[c[q]]*ny;
+            UH[c[q]] = UH[c[q]]*nx;
+            }
+        }
     }
 }
 
@@ -158,6 +175,14 @@ void iowave::fsfinflow_flux_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     j=p->gcin[n][1];
     k=p->gcin[n][2];
     
+        if(p->wet[IJ]==1 && p->geo_curv==1)
+        {
+        // curvilinear grid (G 50): the flux along the normal of the inflow face
+        const int qf = (i-1-p->imin)*p->jmax + (j-p->jmin);
+        const double len = p->LEN1[qf];
+        d->FEx[Im1JK] = len>0.0 ? (UHval[count]*p->SX1[qf] + VHval[count]*p->SY1[qf])/len*ramp(p) : 0.0;
+        }
+        else
         if(p->wet[IJ]==1)
         d->FEx[Im1JK] = UHval[count]*ramp(p);
     

@@ -41,6 +41,13 @@ cavitation::cavitation(lexer *p, fdm *a, ghostcell *pgc) : alpha(p), Cs(p), Sv(p
         pgc->final(true);
     }
 
+    if(p->G1>0)
+    {
+        if(p->mpirank==0)
+        std::cout<<"W 60: cavitation runs on the base grid only, not with mesh refinement (G 1)"<<std::endl;
+        pgc->final(true);
+    }
+
     rhol = p->W1;
     nul = p->W2;
     rhov = p->W62;

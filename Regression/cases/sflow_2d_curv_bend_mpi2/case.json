@@ -1,0 +1,20 @@
+{
+ "np": 2,
+ "steps": 100,
+ "tags": [
+  "2d",
+  "sflow",
+  "curvilinear",
+  "river",
+  "mpi"
+ ],
+ "description": "SFLOW on a curvilinear grid (G 50 2): 90 deg river bend (radius 50 m, width 20 m) with straight reaches, Manning friction, discharge inflow and stage outflow, two ranks.",
+ "covers": [
+  "sflow_curv on several ranks (face fluxes exchanged)",
+  "superelevation in a bend (tests/t3)"
+ ],
+ "solver": "sflow",
+ "files": [
+  "curvgrid.dat"
+ ]
+}

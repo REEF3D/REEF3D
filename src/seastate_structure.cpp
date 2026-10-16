@@ -104,8 +104,11 @@ double seastate_porous(const seastate_grid &g, const double *E, double h, double
             return z;
         };
 
-        const int nst = (it==0) ? 32 : 4;
+        // Phase 15: steps of at most 0.05 max(1, f) in the resistance. Before, 4 steps from the previous iteration,
+        // where the first iterations jump from small to large resistance: with strong resistance the root jumped to a
+        // damped mode (T 2 s, H 0.3 m, depth 1 m, width 2 m, n 0.45, D50 5 cm: Kt 0.004, Kr 0.93 instead of 0.039, 0.71)
         const double f0 = (it==0) ? 0.0 : fprev[l];
+        const int nst = std::max((it==0) ? 32 : 4, int(std::ceil(std::fabs(f-f0)/(0.05*std::max(1.0,std::min(f,f0))))));
         cplx ks = (it==0) ? cplx(seastate_wavenumber(sig*std::sqrt(s),h),0.0) : kprev[l];
             for(int st=1; st<=nst; ++st)
             {

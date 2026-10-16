@@ -313,6 +313,8 @@ private:
     int neighbors[6] = {MPI_PROC_NULL, MPI_PROC_NULL, MPI_PROC_NULL,
                         MPI_PROC_NULL, MPI_PROC_NULL, MPI_PROC_NULL};
     bool do_comms = true;
+    double *curv_upart = nullptr;   // curvilinear NHFLOW: U of the pair whose V comes next (start4V)
+    double *curv_uhpart = nullptr;  // curvilinear NHFLOW: UH of the pair whose VH comes next (start4V)
     bool local_red = false;
     bool periodic_comms = true;     // any rank has periodic partition neighbours (gcperiodicx)
     std::vector<uint16_t> geo_sig;  // geometry_changed: per cell sign classes of solid, topo, fb

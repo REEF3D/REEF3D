@@ -52,6 +52,9 @@ public:
     void start_sflow(lexer*,fdm2D*,ghostcell*,int,slice&,slice&,slice&,slice&,slice&,slice&,slice&,bool) override final {}
 
     void reforce_nhflow(lexer*,fdm_nhf*,ghostcell*,int,double*,double*,double*,double*,double*,double*,slice&,slice&,bool) override final;
+    // X 13 on a patch: the body is already at the pose of the stage (advanced by level 0, or by the
+    // finest level with subcycling); the distance on the patch grid, band with the patch spacing
+    bool top_phi_nhflow(lexer*,fdm_nhf*,ghostcell*,int,slice&,slice&) override final;
 
     void ini(lexer*,ghostcell*) override final {}
     void initialize(lexer*, fdm*, ghostcell*) override final {}
@@ -62,9 +65,11 @@ public:
     void jsource(lexer*,fdm*,ghostcell*) override final {}
     void ksource(lexer*,fdm*,ghostcell*) override final {}
 
-    void isource(lexer*,fdm_nhf*,ghostcell*,slice&) override final {}
-    void jsource(lexer*,fdm_nhf*,ghostcell*,slice&) override final {}
-    void ksource(lexer*,fdm_nhf*,ghostcell*,slice&) override final {}
+    // the actuator disks of the load models (ship propellers, propeller_source 1) on the patch;
+    // without them the restriction would overwrite the level-0 source under the patch
+    void isource(lexer*,fdm_nhf*,ghostcell*,slice&) override final;
+    void jsource(lexer*,fdm_nhf*,ghostcell*,slice&) override final;
+    void ksource(lexer*,fdm_nhf*,ghostcell*,slice&) override final;
 
     void isource2D(lexer*,fdm2D*,ghostcell*) override final {}
     void jsource2D(lexer*,fdm2D*,ghostcell*) override final {}

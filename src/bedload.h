@@ -35,6 +35,7 @@ class bedload
 {
 public:
 
+    virtual ~bedload(){}
 	virtual void start(lexer*, ghostcell*, sediment_fdm*)=0;
 
 };

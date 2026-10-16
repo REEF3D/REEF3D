@@ -48,6 +48,13 @@ void sediment_f::sediment_algorithm_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc,
     
     ++p->sediter;
     
+    // mesh refinement, multi-block grids: all grids together (sediment_amr.cpp)
+    if(grids!=nullptr)
+    {
+    grids->sediment_step_nhflow(p,d,pgc,pflow,this);
+    }
+    else
+    {
     // prep NHFLOW -------
     prep_nhflow(p,d,pgc);
     
@@ -93,6 +100,7 @@ void sediment_f::sediment_algorithm_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc,
     
     // update sflow  --------
     update_nhflow(p,d,pgc,pflow);
+    }
     
     // sediment print
     print_probes(p,pgc,s,pflow);

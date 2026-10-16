@@ -16,5 +16,6 @@
  "covers": [
   "seastate_source vegetation (IVEG 2)",
   "seastate_f vegetation field"
- ]
+ ],
+ "same_as": "seastate_2d_phase14_vegetation_field"
 }

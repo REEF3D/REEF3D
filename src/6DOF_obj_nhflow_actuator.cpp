@@ -35,7 +35,9 @@ void sixdof_fluid_nhflow::velocity(int n, const double *xyz, double *uvw)
         
         uvw[3*q] = uvw[3*q+1] = uvw[3*q+2] = 0.0;
         
-        const bool own = (x>=p->originx && x<p->endx) && (p->j_dir==0 || (y>=p->originy && y<p->endy));
+        int ci,cj;
+        const bool own = (p->geo_curv==1) ? p->geo_cell(x,y,ci,cj)       // curvilinear grid: the rank of the cell
+                       : (x>=p->originx && x<p->endx) && (p->j_dir==0 || (y>=p->originy && y<p->endy));
         
         if(own)
         {
@@ -49,7 +51,7 @@ void sixdof_fluid_nhflow::velocity(int n, const double *xyz, double *uvw)
     uvw[q] = pgc->globalsum(uvw[q]);
 }
 
-void sixdof_obj_nhflow::actuator_source(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL, int comp, double *F)
+void sixdof_obj_nhflow::actuator_source(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL, int comp, double *F, bool patch)
 {
     if(pload.empty())
     return;
@@ -58,6 +60,13 @@ void sixdof_obj_nhflow::actuator_source(lexer *p, fdm_nhf *d, ghostcell *pgc, sl
     
     for(size_t ql=0; ql<pload.size(); ++ql)
     pload[ql]->actuator_disks(disks);
+    
+    if(!patch)
+    actuator_S0.resize(disks.size());
+    
+    // computed cells of a patch (the global sums are local to the patch there)
+    const double px0 = p->XN[marge], px1 = p->XN[p->knox+marge];
+    const double py0 = p->YN[marge], py1 = p->YN[p->knoy+marge];
     
     for(size_t qd=0; qd<disks.size(); ++qd)
     {
@@ -70,30 +79,74 @@ void sixdof_obj_nhflow::actuator_source(lexer *p, fdm_nhf *d, ghostcell *pgc, sl
         // would take it out again and hand it to the hull as a resistance
         sixdof_actuator_disk::sums S[3];
         
-        LOOP
+        // patch: own sums only when the whole disk lies in the computed cells of the patch
+        bool own = true;
+        
+        if(patch)
         {
-            const Eigen::Vector3d x(p->XP[IP], p->YP[JP], p->ZSP[IJK]);
-            const double V = p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*WL(i,j);
-            const double fl = 1.0 - MIN(MAX(d->FHB[IJK],0.0),1.0);
+            const double rb = sqrt(ad.R*ad.R + 0.25*ad.thickness*ad.thickness);
             
-            for(int c=0; c<3; ++c)
-            ad.accumulate(x,V,fl,c,S[c]);
+            own = p->geo_curv!=1
+               && ad.centre(0)-rb>=px0 && ad.centre(0)+rb<=px1
+               && (p->j_dir==0 || (ad.centre(1)-rb>=py0 && ad.centre(1)+rb<=py1));
         }
         
-        for(int c=0; c<3; ++c)
+        if(own)
         {
-            S[c].SA0 = pgc->globalsum(S[c].SA0);
-            S[c].SA  = pgc->globalsum(S[c].SA);
-            S[c].SW  = pgc->globalsum(S[c].SW);
-            S[c].SE  = pgc->globalsum(S[c].SE);
-            S[c].G1  = pgc->globalsum(S[c].G1);
-            S[c].G0  = pgc->globalsum(S[c].G0);
-            S[c].GA  = pgc->globalsum(S[c].GA);
+            LOOP
+            {
+                const Eigen::Vector3d x(p->pos_x(), p->pos_y(), p->ZSP[IJK]);
+                const double V = p->cellarea(i,j)*p->DZN[KP]*WL(i,j);
+                const double fl = 1.0 - MIN(MAX(d->FHB[IJK],0.0),1.0);
+                
+                for(int c=0; c<3; ++c)
+                ad.accumulate(x,V,fl,c,S[c]);
+            }
+            
+            for(int c=0; c<3; ++c)
+            {
+                S[c].SA0 = pgc->globalsum(S[c].SA0);
+                S[c].SA  = pgc->globalsum(S[c].SA);
+                S[c].SW  = pgc->globalsum(S[c].SW);
+                S[c].SE  = pgc->globalsum(S[c].SE);
+                S[c].G1  = pgc->globalsum(S[c].G1);
+                S[c].G0  = pgc->globalsum(S[c].G0);
+                S[c].GA  = pgc->globalsum(S[c].GA);
+            }
+            
+            if(!patch)
+            for(int c=0; c<3; ++c)
+            actuator_S0[qd][c] = S[c];
+        }
+        
+        // patch with a part of the disk: the distribution of level 0 (force densities do not depend
+        // on the cell size, the integral over the patch cells is close to the share of the patch)
+        else
+        {
+            if(qd>=actuator_S0.size())
+            continue;
+            
+            for(int c=0; c<3; ++c)
+            S[c] = actuator_S0[qd][c];
+            
+            if(!actuator_warned_patch && comp==0)
+            {
+                actuator_warned_patch = true;
+                cout<<"6DOF: actuator disk (centre "<<ad.centre.transpose()<<") crosses the boundary of an AMR patch;"
+                    <<" the patch uses the distribution of level 0, enlarge the patch (G 10) to hold the whole disk"<<endl;
+            }
+            
+            // the patch cells outside the disk support: nothing to add
+            const double rb = sqrt(ad.R*ad.R + 0.25*ad.thickness*ad.thickness);
+            
+            if(ad.centre(0)+rb<px0 || ad.centre(0)-rb>px1
+            || (p->j_dir==1 && (ad.centre(1)+rb<py0 || ad.centre(1)-rb>py1)))
+            continue;
         }
         
         const double SA0 = S[0].SA0, SA = S[0].SA;
         
-        if(SA0>0.0 && SA<0.95*SA0 && !actuator_warned)
+        if(!patch && SA0>0.0 && SA<0.95*SA0 && !actuator_warned)
         {
             actuator_warned = true;
             
@@ -104,7 +157,7 @@ void sixdof_obj_nhflow::actuator_source(lexer *p, fdm_nhf *d, ghostcell *pgc, sl
         
         if(SA<=0.0)
         {
-            if(p->mpirank==0 && comp==0)
+            if(!patch && p->mpirank==0 && comp==0)
             cout<<"6DOF: actuator disk without fluid cells (centre "<<ad.centre.transpose()<<"), no momentum source"<<endl;
             
             continue;
@@ -115,7 +168,7 @@ void sixdof_obj_nhflow::actuator_source(lexer *p, fdm_nhf *d, ghostcell *pgc, sl
         LOOP
         {
             // force density on the fluid [N/m^3]: thrust reaction along -axis, swirl along the blade motion
-            const Eigen::Vector3d x(p->XP[IP], p->YP[JP], p->ZSP[IJK]);
+            const Eigen::Vector3d x(p->pos_x(), p->pos_y(), p->ZSP[IJK]);
             const double fl = 1.0 - MIN(MAX(d->FHB[IJK],0.0),1.0);
             
             F[IJK] += WL(i,j)*ad.force(x,fl,comp,S[comp],kappa)/p->W1;

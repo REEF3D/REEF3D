@@ -166,6 +166,10 @@ void fnpf_6DOF::forces_level(lexer *p, fdm_fnpf *c, ghostcell *pgc, int l)
         
         pgc->gcsl_start4(p,D,50);
         
+        // X 18 on the patches of level l
+        if(nbody==1)
+        fb_obj[0]->chi_mean_patch(p,pgc,D,*G.foot,l);
+        
         zero_face(G);
         for(int nb=0; nb<nbody; ++nb)
         fb_obj[nb]->face_data_fnpf(G.p,G.c,pgc,-2,G.c->FBF,G.c->FBu,G.c->FBv,G.c->FBw);

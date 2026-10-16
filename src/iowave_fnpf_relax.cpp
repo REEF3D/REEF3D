@@ -39,11 +39,19 @@ void iowave::fifsf_relax(lexer *p, ghostcell *pgc, slice& f)
         db = rz4_db[rzq];
         
 		// Wave Generation
-		if(p->B98==2 && f_switch==1)
+		if(relax_gen && f_switch==1)
         {
             if(dg<1.0e20)
             {
+            if(!gen_lp)
             f(i,j) = (1.0-relax4_wg(i,j))*ramp(p)*Fifsfval[count]  + relax4_wg(i,j)*f(i,j);
+            
+            // combined generation (B 98 6): target plus the low-passed deviation
+            if(gen_lp)
+            {
+            const double tg = ramp(p)*Fifsfval[count];
+            f(i,j) = (1.0-relax4_wg(i,j))*(tg + gen_dev(p,lpg_fifsf,p->imax*p->jmax,IJ,f(i,j)-tg)) + relax4_wg(i,j)*f(i,j);
+            }
             ++count;
             }
 		}
@@ -54,7 +62,14 @@ void iowave::fifsf_relax(lexer *p, ghostcell *pgc, slice& f)
 		{
             // Zone 2
             if(db<1.0e20)
+            {
+            // combined beach (B 99 6): towards the low-passed surface potential, so long waves
+            // pass the zone to the active beach at x+
+            if(beach_lp)
+            f(i,j) = relax4_nb(i,j)*f(i,j) + (1.0-relax4_nb(i,j))*beach_target(p,lp_fifsf,p->imax*p->jmax,IJ,0.0,f(i,j));
+            else
             f(i,j) = relax4_nb(i,j)*f(i,j);
+            }
         }
     }
     

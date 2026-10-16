@@ -105,9 +105,11 @@ public:
                        const std::vector<std::vector<double> > &x, double dt, std::vector<std::vector<double> > &x2);
 
     // progressive-mode projection of Q on nlev equidistant levels s=z+h in [0,h], Q[l*npts+q]
+    // f2min [Hz]: lowest second-order frequency included (<0: none, 0: 0.1 x peak frequency)
     static void compute_paddle_Q_multi(double g, double h, const std::vector<shape_t> &shp,
                        int J, double fmin, double fmax, int nmax,
-                       const std::vector<std::vector<double> > &x, double dt, int nlev, std::vector<float> &Q);
+                       const std::vector<std::vector<double> > &x, double dt, int nlev, std::vector<float> &Q,
+                       double f2min=-1.0);
 
     // ---- core, single segment (shape: 1 piston, 2 flap; zs,ze from the bed) ----
     static int compute(double g, double h, int shape, double zs, double ze,

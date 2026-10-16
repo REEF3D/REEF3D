@@ -27,19 +27,34 @@ Author: Hans Bihs
 
 void vrans_nhflow_f::force_calc(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, int val)
 {
-    double rho,cmval;
+    double rho,cmval,nfac,pfac;
+    double Du,Dv,Dw,dpdx,dpdy,dpdz;
     
     Fx=Fy=Fz=0.0;
     
     FLOOP
     P[FIJK] = (p->wd + d->eta(i,j) - p->ZSN[FIJK])*p->W1*fabs(p->W22) + d->P[FIJK];
     
-    // VRANS force on the static structures
-    // F = sum dV [ rho (A u + B |u| u) + rho c du/dt - (1 - n_s) grad p ],  c = gamma (1-n_s)/n_s^2
-    // all terms vanish with (1 - n_s) outside the structure
+    // VRANS force on the static structures, consistent with the NHFLOW momentum equation of the Darcy velocity U:
+    // F = sum dV ( -grad p - rho dU/dt ), written term-wise (D = A U + B |U| U, n = n_s of the static structure):
+    //
+    // B 265 0:  (1 + c) dU/dt = -grad p/rho - D,         c = gamma (1-n)/n^2
+    //           the full pressure gradient acts on U, the reaction on the structure is
+    //           F = sum dV rho ( D + c dU/dt ),  no (1-n) grad p term (it is contained in c dU/dt)
+    //
+    // B 265 1:  (1 + c_A)/n dU/dt = -grad p/rho - D,     c_A = gamma (1-n)/n   (Jensen et al. 2014)
+    //           F = sum dV [ n rho D + rho c_A dU/dt - (1-n) grad p ]
+    //
+    // all terms vanish with (1 - n) outside the structure.
+    // Cells inside direct forcing solids (DF < 0, e.g. a pile inside a porous cover) are skipped:
+    // the pressure on their surface is integrated by the P 81 force, their volume would be counted twice.
+    // grad p in sigma coordinates: dp/dx = dp/dx|_sig + sigx dp/dsig,  dp/dz = sigz dp/dsig
     if(p->B200>0)
     LOOP
 	{
+        if(p->DF[IJK]<0)
+        continue;
+        
         porous_coeff(p,d);
         
         if(H<1.0e-12)
@@ -49,31 +64,40 @@ void vrans_nhflow_f::force_calc(lexer *p, fdm_nhf *d, ghostcell *pgc, double alp
         
         rho = d->RO[IJK];
         
+        if(p->B265==1)
+        {
+        cmval = p->B260*(1.0-porval)/porval;
+        nfac  = porval;
+        pfac  = 1.0-porval;
+        }
+        
+        else
+        {
         cmval = p->B260*(1.0-porval)/(porval*porval);
+        nfac  = 1.0;
+        pfac  = 0.0;
+        }
         
-        Fx += dV*(rho*(Aporval*d->U[IJK] + Bporval*d->U[IJK]*fabs(d->U[IJK]))
+        Du = Aporval*d->U[IJK] + Bporval*d->U[IJK]*fabs(d->U[IJK]);
+        Dv = Aporval*d->V[IJK] + Bporval*d->V[IJK]*fabs(d->V[IJK]);
+        Dw = Aporval*d->W[IJK] + Bporval*d->W[IJK]*fabs(d->W[IJK]);
         
-                + rho*cmval*(d->U[IJK]-UN[IJK])/(alpha*p->dt)*cmfac
-                
-                - (1.0-porval)*(((0.5*(P[FIp1JKp1]+P[FIp1JK])-0.5*(P[FIm1JKp1]+P[FIm1JK]))/(p->DXP[IP]+p->DXP[IM1]))
-                
-                + 0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*((P[FIJKp1]-P[FIJK])/p->DZN[KP])));
+        dpdx = (0.5*(P[FIp1JKp1]+P[FIp1JK])-0.5*(P[FIm1JKp1]+P[FIm1JK]))/(p->DXP[IP]+p->DXP[IM1])
         
+             + 0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*((P[FIJKp1]-P[FIJK])/p->DZN[KP]);
         
-        Fy += dV*(rho*(Aporval*d->V[IJK] + Bporval*d->V[IJK]*fabs(d->V[IJK]))
+        dpdy = (0.5*(P[FIJp1Kp1]+P[FIJp1K])-0.5*(P[FIJm1Kp1]+P[FIJm1K]))/(p->DYP[JP]+p->DYP[JM1])
         
-                + rho*cmval*(d->V[IJK]-VN[IJK])/(alpha*p->dt)*cmfac
-                
-                - (1.0-porval)*(((0.5*(P[FIJp1Kp1]+P[FIJp1K])-0.5*(P[FIJm1Kp1]+P[FIJm1K]))/(p->DYP[JP]+p->DYP[JM1]))
-                
-                + 0.5*(p->sigy[FIJK]+p->sigy[FIJKp1])*((P[FIJKp1]-P[FIJK])/p->DZN[KP])));
+             + 0.5*(p->sigy[FIJK]+p->sigy[FIJKp1])*((P[FIJKp1]-P[FIJK])/p->DZN[KP]);
+        
+        dpdz = p->sigz[IJ]*(P[FIJKp1]-P[FIJK])/p->DZN[KP];
         
         
-        Fz += dV*(rho*(Aporval*d->W[IJK] + Bporval*d->W[IJK]*fabs(d->W[IJK]))
+        Fx += dV*(nfac*rho*Du + rho*cmval*(d->U[IJK]-UN[IJK])/(alpha*p->dt)*cmfac - pfac*dpdx);
         
-                + rho*cmval*(d->W[IJK]-WN[IJK])/(alpha*p->dt)*cmfac
-                
-                - (1.0-porval)*((P[FIJKp1]-P[FIJK])/(p->DZN[KP])));
+        Fy += dV*(nfac*rho*Dv + rho*cmval*(d->V[IJK]-VN[IJK])/(alpha*p->dt)*cmfac - pfac*dpdy);
+        
+        Fz += dV*(nfac*rho*Dw + rho*cmval*(d->W[IJK]-WN[IJK])/(alpha*p->dt)*cmfac - pfac*dpdz);
 	}
     
     Fx = pgc->globalsum(Fx);
@@ -85,8 +109,10 @@ void vrans_nhflow_f::force_calc(lexer *p, fdm_nhf *d, ghostcell *pgc, double alp
     UN[IJK] = d->U[IJK];
     VN[IJK] = d->V[IJK];
     WN[IJK] = d->W[IJK];
-    cmfac = 1.0;
     }
+    
+    // no time derivative before UN holds a velocity (first call)
+    cmfac = 1.0;
     
     // print
     if(val==1)

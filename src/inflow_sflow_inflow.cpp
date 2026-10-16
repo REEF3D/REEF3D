@@ -34,11 +34,24 @@ void ioflow_f::inflow2D(lexer *p, fdm2D* b, ghostcell* pgc, slice &P, slice &Q, 
     i=p->gcslin[n][0];
     j=p->gcslin[n][1];
     
+        // curvilinear grid: inflow along the normal of the inflow face
+        if(p->wet[IJ]==1 && p->geo_curv==1)
+        {
+        const int qf = (i-1-p->imin)*p->jmax + (j-p->jmin);
+        const double nx = p->SX1[qf]/p->LEN1[qf], ny = p->SY1[qf]/p->LEN1[qf];
+        const double ui = (p->B62==1) ? Uk*pow(MAX(b->hp(i-1,j),0.0),2.0/3.0) : p->Ui;
+        
+        P(i-1,j)=P(i-2,j)=P(i-3,j)=ui*nx;
+        Q(i-1,j)=Q(i-2,j)=Q(i-3,j)=ui*ny;
+        continue;
+        }
+        
         if(p->wet[IJ]==1)
         {
-        P(i-1,j)=p->Ui;
-        P(i-2,j)=p->Ui;
-        P(i-3,j)=p->Ui;
+        const double ui = (p->B62==1) ? Uk*pow(MAX(b->hp(i-1,j),0.0),2.0/3.0) : p->Ui;
+        P(i-1,j)=ui;
+        P(i-2,j)=ui;
+        P(i-3,j)=ui;
         }
         
         if(p->wet[IJ]==0)// || p->gcslin[n][5]==0)

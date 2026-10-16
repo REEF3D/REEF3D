@@ -77,6 +77,7 @@ public:
     // predicted copy of the body; the state is saved before and put back after
     void amr_save();
     void amr_restore(lexer*, ghostcell*);
+    void pose_update(lexer*, ghostcell*);   // Euler angles, trimesh, omega, u_fb from the rigid-body state
     sixdof_rigidbody rb_amr;
     
     // surface geometry: hull triangles and pose transformation (solver independent)
@@ -104,6 +105,7 @@ public:
     // print
     void saveTimeStep(lexer*,int);
     void print_parameter(lexer*,ghostcell*);
+    void print_parameter(lexer*,ghostcell*,double);   // with the time of the printed state
     void print_ini_vtp(lexer*,ghostcell*);
 	void print_vtp(lexer*,ghostcell*);
     void print_ini_stl(lexer*,ghostcell*);
@@ -140,9 +142,9 @@ protected:
     double ramp_draft(lexer*);
     
     void objects_create(lexer*, ghostcell*);
-    void piston(lexer*, ghostcell*,int);
+    void piston(lexer*, ghostcell*,int,double);
     void flap(lexer*, ghostcell*,int);
-    void flap_double(lexer*, ghostcell*,int);
+    void flap_double(lexer*, ghostcell*,int,double);
    
     void ini_parallel(lexer*, ghostcell*);
     
@@ -305,6 +307,14 @@ protected:
     double ts,te;
     double f0;
     int timecount,timecount_old;
+    
+    // wavemaker kinematics (X 170, X 172) at the time of the RK stage: wm_sample interpolates column
+    // col of wavemaker.dat between the bracketing samples (B 118 on displacement and velocity),
+    // wm_u is the paddle velocity at (x,z); wm_tri0 the first triangle of the paddle
+    void wm_sample(lexer*, double, int, double&, double&);
+    double wm_u(lexer*, double, double) const;
+    double wm_v1=0.0, wm_v2=0.0;
+    int wm_tri0=0;
     int rowcount,colcount;
     int colnum;
     int ptnum;
@@ -315,11 +325,22 @@ protected:
     // FNPF: classical RK4 stage derivatives and the added-mass coupling
     void rk4(lexer*, ghostcell*, int);
     void apply_added_mass(lexer*, const Eigen::Matrix<double,6,6>* = nullptr);
+    void finish_added_mass(const Eigen::Matrix<double,6,1>&, const Eigen::Matrix3d&, const Eigen::Vector3d&, const bool*);
     bool p_fixed_dof(lexer*, int);
     Eigen::Matrix<double, 6, 6> Aadd_;
     bool am_on_ = false;
 
-    // FNPF: power take-off (X 500 - X 508, 6DOF_obj_pto.cpp)
+    // FNPF with several bodies (X 20 > 1): apply_added_mass only assembles the body's block
+    // (Lc_, rc_), fnpf_6DOF solves the system of all bodies with the cross added mass and
+    // hands the accelerations back (finish_added_mass)
+    bool am_coupled_ = false, am_assembled_ = false;
+    Eigen::Matrix<double,6,6> Lc_;
+    Eigen::Matrix<double,6,1> rc_;
+    Eigen::Matrix3d IIc_;
+    Eigen::Vector3d gyroc_;
+    bool fixedc_[6] = {false,false,false,false,false,false};
+
+    // FNPF and NHFLOW: power take-off (X 500 - X 508, 6DOF_obj_pto.cpp)
     void ini_pto(lexer*, ghostcell*);
     void pto_forces(lexer*, ghostcell*, int);
     void pto_implicit(lexer*, Eigen::Matrix<double,6,6>&, Eigen::Matrix<double,6,1>&);
@@ -332,6 +353,8 @@ protected:
     pto_output pto_out_;
     bool pto_on_ = false, pto_implicit_ = false, pto_warned_ = false;
     double pto_E_ = 0.0, pto_Estep_ = 0.0;
+    int pto_rk_ = 3;   // RK scheme of the body: 2 (NHFLOW A 510 2), 3 (TVD RK3), 4 (FNPF A 310 4)
+    void pto_rk(int, double&, double&) const;
     ofstream printpto;
 };
 

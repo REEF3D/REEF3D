@@ -26,6 +26,10 @@ Author: Hans Bihs
 
 void ghostcell::gcslparax_fh(lexer* p, slice& f, int gcv)
 {
+    // MPI exchange off (patch kernels of the mesh refinement): the patch has no neighbour ranks
+    if(!do_comms)
+    return;
+
     paramargin=margin;
 
     //  FILL SEND

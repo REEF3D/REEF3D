@@ -217,6 +217,51 @@ void sixdof_obj_fnpf::solve_eqmotion_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc,
     rk4(p,pgc,iter);
 }
 
+void sixdof_obj_fnpf::eqmotion_assemble_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc, int iter, bool finalize)
+{
+    externalForces_fnpf(p,pgc,iter,finalize);
+
+    sixdof_fluid_fnpf fluid(p,c,pgc);
+    pfluid = &fluid;
+
+    am_coupled_ = true;
+    am_assembled_ = false;
+
+    update_forces(p);
+
+    am_coupled_ = false;
+    pfluid = nullptr;
+}
+
+bool sixdof_obj_fnpf::eqmotion_block_fnpf(Eigen::Matrix<double,6,6> &L, Eigen::Matrix<double,6,1> &r, bool *fixed) const
+{
+    if(!am_assembled_)
+    return false;
+
+    L = Lc_;
+    r = rc_;
+
+    for(int n=0; n<6; ++n)
+    fixed[n] = fixedc_[n];
+
+    return true;
+}
+
+void sixdof_obj_fnpf::eqmotion_advance_fnpf(lexer *p, ghostcell *pgc, int iter, const Eigen::Matrix<double,6,1> *acc)
+{
+    // a body without a block (no added mass yet, fully fixed) keeps the loads of update_forces
+    if(am_assembled_ && acc!=nullptr)
+    finish_added_mass(*acc,IIc_,gyroc_,fixedc_);
+
+    am_assembled_ = false;
+
+    if(p->A310==3)
+    rk3(p,pgc,iter);
+
+    else
+    rk4(p,pgc,iter);
+}
+
 void sixdof_obj_fnpf::externalForces_fnpf(lexer *p, ghostcell *pgc, int iter, bool finalize)
 {
     Xext = Yext = Zext = Kext = Mext = Next = 0.0;

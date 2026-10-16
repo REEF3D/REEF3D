@@ -1,0 +1,21 @@
+{
+ "np": 1,
+ "steps": 40,
+ "tags": [
+  "3d",
+  "nhflow",
+  "amr",
+  "curvilinear",
+  "sediment"
+ ],
+ "description": "Sediment transport on the mesh refinement of NHFLOW (G 1 1, patches following the surface, regrid every 4 steps) on a curvilinear grid turned by 90 deg: the Exner fluxes of the coarse faces next to a patch from the patch, one dtsed, the filter and the sand slide over all grids, the bed of fresh patches from the old patches and their parents; the bed volume over the leaf cells is conserved (sediment_curvilinear/t4).",
+ "covers": [
+  "nhflow_amr_sed: the sediment step of all grids, flux matching, qb restriction and fill, sed_bed_ghosts",
+  "reefamr_sed.h: the filter (sediment_xfilter) and the sand slide (sandslide amr_sweep) across the grids",
+  "the water level of the cells around the patches after a bed update (fill_stage with S 10)"
+ ],
+ "solver": "nhflow",
+ "files": [
+  "curvgrid.dat"
+ ]
+}

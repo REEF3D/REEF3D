@@ -1,0 +1,5 @@
+{"base": "cfd_2d_dambreak", "np": 1, "steps": 20,
+ "ctrl_add": ["G 1 2", "G 7 1", "G 15 0.0 0.2 0.0 1.0 0.0 0.34"],
+ "description": "CFD mesh refinement with three levels and subcycling (G 1 2, G 7 1): four steps of level 2 per step of level 0.",
+ "tags": ["quick", "2d", "dambreak", "levelset", "amr"],
+ "covers": ["cfd_amr_sub: recursion over the levels, a patch as the coarser level (time interpolation from a patch)"]}

@@ -108,7 +108,7 @@ void sixdof_obj_cfd::geometry_parameters(lexer *p, fdm *a, ghostcell *pgc)
         LOOP
         {
             H = Hsolidface(p,a,0,0,0);
-            Vol_ls+= p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*H;
+            Vol_ls+= p->cellarea(i,j)*p->DZN[KP]*H;
         }
         Vol_ls=pgc->globalsum(Vol_ls);
 
@@ -142,9 +142,14 @@ void sixdof_obj_cfd::geometry_parameters(lexer *p, fdm *a, ghostcell *pgc)
 		integ[2] *= Rint/24.0;
 		integ[3] *= Rint/24.0;
 
-		c_(0) = integ[1]/Mass_fb;
-		c_(1) = integ[2]/Mass_fb;
-		c_(2) = integ[3]/Mass_fb;
+		// mass centroid of the triangulation (uniform density)
+		const double gx = integ[1]/Mass_fb;
+		const double gy = integ[2]/Mass_fb;
+		const double gz = integ[3]/Mass_fb;
+		
+		c_(0) = gx;
+		c_(1) = gy;
+		c_(2) = gz;
 		
 		if(p->X23==1)
 		{
@@ -174,12 +179,28 @@ void sixdof_obj_cfd::geometry_parameters(lexer *p, fdm *a, ghostcell *pgc)
 			integ[8] *= Rint/120.0;
 			integ[9] *= Rint/120.0;
 		
-			Ix = integ[5] + integ[6] - Mass_fb*(c_(1)*c_(1) + c_(2)*c_(2));
-			Iy = integ[4] + integ[6] - Mass_fb*(c_(2)*c_(2) + c_(0)*c_(0));
-			Iz = integ[4] + integ[5] - Mass_fb*(c_(0)*c_(0) + c_(1)*c_(1));
-			I_(0,1) = -integ[7] + Mass_fb*c_(0)*c_(1);
-			I_(1,2) = -integ[8] + Mass_fb*c_(1)*c_(2);
-			I_(0,2) = -integ[9] + Mass_fb*c_(2)*c_(0);
+			// inertia about the mass centroid g: the parallel-axis reduction of the origin
+			// integrals is only valid about g (with X 23 the CoG c_ differs from g, and
+			// reducing about c_ made the inertia depend on the position of the coordinate origin)
+			Ix = integ[5] + integ[6] - Mass_fb*(gy*gy + gz*gz);
+			Iy = integ[4] + integ[6] - Mass_fb*(gz*gz + gx*gx);
+			Iz = integ[4] + integ[5] - Mass_fb*(gx*gx + gy*gy);
+			I_(0,1) = -integ[7] + Mass_fb*gx*gy;
+			I_(1,2) = -integ[8] + Mass_fb*gy*gz;
+			I_(0,2) = -integ[9] + Mass_fb*gz*gx;
+			
+			// X 23: shift to the prescribed CoG, d = c - g:  I_c = I_g + M (|d|^2 1 - d d^T)
+			// (the off-diagonal entries hold the negative products of inertia)
+			const double dx = c_(0) - gx;
+			const double dy = c_(1) - gy;
+			const double dz = c_(2) - gz;
+			
+			Ix += Mass_fb*(dy*dy + dz*dz);
+			Iy += Mass_fb*(dz*dz + dx*dx);
+			Iz += Mass_fb*(dx*dx + dy*dy);
+			I_(0,1) -= Mass_fb*dx*dy;
+			I_(1,2) -= Mass_fb*dy*dz;
+			I_(0,2) -= Mass_fb*dz*dx;
 		}
 
 		I_(0,0) = Ix;
@@ -229,7 +250,7 @@ void sixdof_obj_nhflow::geometry_parameters_nhflow(lexer *p, fdm_nhf *d, ghostce
         LOOP
         {
             H = Hsolidface_nhflow(p,d,0,0,0);
-            Vol_ls+= p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*d->WL(i,j)*H;
+            Vol_ls+= p->cellarea(i,j)*p->DZN[KP]*d->WL(i,j)*H;
         }
         Vol_ls=pgc->globalsum(Vol_ls);
         
@@ -252,19 +273,37 @@ void sixdof_obj::geometry_parameters_surface(lexer *p, ghostcell *pgc, double Vo
 
 		p->Darray(integ, 10);
 
+        // curvilinear grid (G 50, map coordinates such as UTM): the integrals about a point of the body, not
+        // about the coordinate origin (the moments of x^2 at 1e6 m lose the inertia of a body of 10 m)
+        double xr=0.0, yr=0.0, zr=0.0;
+        if(p->geo_curv==1 && tricount>0)
+        {
+            double bx0=1.0e300, bx1=-1.0e300, by0=1.0e300, by1=-1.0e300, bz0=1.0e300, bz1=-1.0e300;
+            for(int n=0; n<tricount; ++n)
+            for(int q=0; q<3; ++q)
+            {
+                bx0 = MIN(bx0,tri_x[n][q]); bx1 = MAX(bx1,tri_x[n][q]);
+                by0 = MIN(by0,tri_y[n][q]); by1 = MAX(by1,tri_y[n][q]);
+                bz0 = MIN(bz0,tri_z[n][q]); bz1 = MAX(bz1,tri_z[n][q]);
+            }
+            xr = 0.5*(bx0+bx1);
+            yr = 0.5*(by0+by1);
+            zr = 0.5*(bz0+bz1);
+        }
+
 		for (int n = 0; n < tricount; ++n)
 		{
-			x0 = tri_x[n][0];
-			x1 = tri_x[n][1];
-			x2 = tri_x[n][2];
+			x0 = tri_x[n][0] - xr;
+			x1 = tri_x[n][1] - xr;
+			x2 = tri_x[n][2] - xr;
 		
-			y0 = tri_y[n][0];
-			y1 = tri_y[n][1];
-			y2 = tri_y[n][2];
+			y0 = tri_y[n][0] - yr;
+			y1 = tri_y[n][1] - yr;
+			y2 = tri_y[n][2] - yr;
 		
-			z0 = tri_z[n][0];
-			z1 = tri_z[n][1];
-			z2 = tri_z[n][2];  
+			z0 = tri_z[n][0] - zr;
+			z1 = tri_z[n][1] - zr;
+			z2 = tri_z[n][2] - zr;  
 			
 			n0 = (y1 - y0) * (z2 - z0) - (y2 - y0) * (z1 - z0);
 			n1 = (x2 - x0) * (z1 - z0) - (x1 - x0) * (z2 - z0); 
@@ -339,9 +378,14 @@ void sixdof_obj::geometry_parameters_surface(lexer *p, ghostcell *pgc, double Vo
 		integ[2] *= Rint/24.0;
 		integ[3] *= Rint/24.0;
 
-		c_(0) = integ[1]/Mass_fb;
-		c_(1) = integ[2]/Mass_fb;
-		c_(2) = integ[3]/Mass_fb;
+		// mass centroid of the triangulation (uniform density)
+		const double gx = integ[1]/Mass_fb;
+		const double gy = integ[2]/Mass_fb;
+		const double gz = integ[3]/Mass_fb;
+		
+		c_(0) = gx + xr;
+		c_(1) = gy + yr;
+		c_(2) = gz + zr;
 		
 		if(p->X23==1)
 		{
@@ -371,12 +415,28 @@ void sixdof_obj::geometry_parameters_surface(lexer *p, ghostcell *pgc, double Vo
 			integ[8] *= Rint/120.0;
 			integ[9] *= Rint/120.0;
 		
-			Ix = integ[5] + integ[6] - Mass_fb*(c_(1)*c_(1) + c_(2)*c_(2));
-			Iy = integ[4] + integ[6] - Mass_fb*(c_(2)*c_(2) + c_(0)*c_(0));
-			Iz = integ[4] + integ[5] - Mass_fb*(c_(0)*c_(0) + c_(1)*c_(1));
-			I_(0,1) = -integ[7] + Mass_fb*c_(0)*c_(1);
-			I_(1,2) = -integ[8] + Mass_fb*c_(1)*c_(2);
-			I_(0,2) = -integ[9] + Mass_fb*c_(2)*c_(0);
+			// inertia about the mass centroid g: the parallel-axis reduction of the origin
+			// integrals is only valid about g (with X 23 the CoG c_ differs from g, and
+			// reducing about c_ made the inertia depend on the position of the coordinate origin)
+			Ix = integ[5] + integ[6] - Mass_fb*(gy*gy + gz*gz);
+			Iy = integ[4] + integ[6] - Mass_fb*(gz*gz + gx*gx);
+			Iz = integ[4] + integ[5] - Mass_fb*(gx*gx + gy*gy);
+			I_(0,1) = -integ[7] + Mass_fb*gx*gy;
+			I_(1,2) = -integ[8] + Mass_fb*gy*gz;
+			I_(0,2) = -integ[9] + Mass_fb*gz*gx;
+			
+			// X 23: shift to the prescribed CoG, d = c - g:  I_c = I_g + M (|d|^2 1 - d d^T)
+			// (the off-diagonal entries hold the negative products of inertia)
+			const double dx = c_(0) - (gx + xr);
+			const double dy = c_(1) - (gy + yr);
+			const double dz = c_(2) - (gz + zr);
+			
+			Ix += Mass_fb*(dy*dy + dz*dz);
+			Iy += Mass_fb*(dz*dz + dx*dx);
+			Iz += Mass_fb*(dx*dx + dy*dy);
+			I_(0,1) -= Mass_fb*dx*dy;
+			I_(1,2) -= Mass_fb*dy*dz;
+			I_(0,2) -= Mass_fb*dz*dx;
 		}
 
 		I_(0,0) = Ix;

@@ -65,16 +65,36 @@ void vrans_f::exchange(lexer *p, fdm *a, ghostcell *pgc)
 // (called before every sediment update, so the structures are kept)
 void vrans_f::structures(lexer *p, fdm *a)
 {
+	BASELOOP
+	set_cell(p,a,1.0,0.01,0.0,0.0);
+
+    LOOP
+    structure_cell(p,a);
+}
+
+// a grid of the mesh refinement (cfd_amr): every cell of the patch arrays, the cells around the
+// patch included (PORVAL and CPOR at the patch edges read the cell across), from the geometry at
+// their own positions; no exchange
+void vrans_f::initialize_patch(lexer *p, fdm *a)
+{
+    for(i=p->imin; i<p->imin+p->imax; ++i)
+    for(j=p->jmin; j<p->jmin+p->jmax; ++j)
+    for(k=p->kmin; k<p->kmin+p->kmax; ++k)
+    {
+        set_cell(p,a,1.0,0.01,0.0,0.0);
+        structure_cell(p,a);
+    }
+}
+
+// the porous structures at cell (i,j,k), in the order of the keys (a later structure overrides)
+void vrans_f::structure_cell(lexer *p, fdm *a)
+{
 	int qn;
     double zmin,zmax,slope;
     double xs,xe,ys,ye;
 	
-	BASELOOP
-	set_cell(p,a,1.0,0.01,0.0,0.0);
-	
 	// Box
     for(qn=0;qn<p->B270;++qn)
-    LOOP
 	if(p->XN[IP]>=p->B270_xs[qn] && p->XN[IP]<p->B270_xe[qn]
 	&& p->YN[JP]>=p->B270_ys[qn] && p->YN[JP]<p->B270_ye[qn]
 	&& p->ZN[KP]>=p->B270_zs[qn] && p->ZN[KP]<p->B270_ze[qn])
@@ -82,7 +102,6 @@ void vrans_f::structures(lexer *p, fdm *a)
     
     // Vertical Cylinder
     for(qn=0;qn<p->B274;++qn)
-    LOOP
     {
         double  r = sqrt( pow(p->XP[IP]-p->B274_xc[qn],2.0)+pow(p->YP[JP]-p->B274_yc[qn],2.0));
         
@@ -110,7 +129,6 @@ void vrans_f::structures(lexer *p, fdm *a)
 
 		slope=(p->B281_ze[qn]-p->B281_zs[qn])/(p->B281_xe[qn]-p->B281_xs[qn]);
 
-		LOOP
 		if(p->pos_x()>=xs && p->pos_x()<xe
 		&& p->pos_y()>=p->B281_ys[qn] && p->pos_y()<p->B281_ye[qn]
 		&& p->pos_z()>=zmin && p->pos_z()<slope*(p->pos_x()-p->B281_xs[qn])+p->B281_zs[qn] )
@@ -136,7 +154,6 @@ void vrans_f::structures(lexer *p, fdm *a)
 
 		slope=(p->B282_ze[qn]-p->B282_zs[qn])/(p->B282_ye[qn]-p->B282_ys[qn]);
 
-		LOOP
 		if(p->pos_x()>=p->B282_xs[qn] && p->pos_x()<p->B282_xe[qn]
 		&& p->pos_y()>=ys && p->pos_y()<ye
 		&& p->pos_z()>=zmin && p->pos_z()<slope*(p->pos_y()-p->B282_ys[qn])+p->B282_zs[qn] )
@@ -163,7 +180,6 @@ void vrans_f::structures(lexer *p, fdm *a)
 
 		slope=(p->B291_ze[qn]-p->B291_zs[qn])/(p->B291_xe[qn]-p->B291_xs[qn]);
 
-		LOOP
 		if(p->pos_x()>=xs && p->pos_x()<xe
 		&& p->pos_y()>=p->B291_ys[qn] && p->pos_y()<p->B291_ye[qn]
         

@@ -33,6 +33,9 @@ void iowave::wavegen_precalc_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     p->wavetime = p->simtime;
     wave_prestep(p,pgc);
     
+    // piston/flap wavemakers: 2nd-order set-up (B113, B119) with the depth at the paddle
+    nhflow_paddle_setup(p,d,pgc);
+    
     // tidal / current background (B 510-514)
     nhflow_bg_update(p,d,pgc);
     
@@ -70,6 +73,8 @@ void iowave::wavegen_precalc_ini_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     p->wavetime = p->simtime;
     wave_prestep(p,pgc);
     
+    nhflow_paddle_setup(p,d,pgc);
+    
     nhflow_bg_update(p,d,pgc);
     
     if(p->B98==2)
@@ -77,4 +82,33 @@ void iowave::wavegen_precalc_ini_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
         
     if(p->B98==3 || p->B98==4)
     nhflow_precalc_dirichlet_ini(p,d,pgc);
+}
+
+void iowave::nhflow_paddle_setup(lexer *p, fdm_nhf *d, ghostcell *pgc)
+{
+    // the paddle sits at the inflow boundary: use the still-water depth there
+    // (e.g. a wavemaker pit), unless the wave theory depth is given with B 94
+    if(paddle_setup==1 || !(p->B92==21 || p->B92==22 || p->B92==23))
+    return;
+    
+    double depth=0.0;
+    for(n=0;n<p->gcslin_count;n++)
+    {
+    i=p->gcslin[n][0];
+    j=p->gcslin[n][1];
+    
+    depth = MAX(depth,d->depth(i,j));
+    }
+    
+    depth = pgc->globalmax(depth);
+    
+    if(p->B94==1)
+    depth = p->B94_wdt;
+    
+    // depth not available yet: try again at the next call
+    if(depth<=0.0)
+    return;
+    
+    wave_paddle_setup(p,pgc,depth);
+    paddle_setup=1;
 }

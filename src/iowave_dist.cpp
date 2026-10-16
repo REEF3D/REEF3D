@@ -157,6 +157,23 @@ void iowave::xy_cache_build(lexer *p)
     j=js;
 }
 
+// columns of the generation and beach zones, in ILOOP / JLOOP order (CFD relaxation loops)
+void iowave::zonecol_build(lexer *p)
+{
+    zc_i.clear();
+    zc_j.clear();
+    
+    ILOOP
+    JLOOP
+    if(distgen(p)<1.0e20 || distbeach(p)<1.0e20)
+    {
+        zc_i.push_back(i);
+        zc_j.push_back(j);
+    }
+    
+    zc_built = true;
+}
+
 double iowave::distgen(lexer *p)
 {
     if(dgcache==nullptr)
@@ -223,16 +240,50 @@ void iowave::genzone4_build(lexer *p, ghostcell *pgc)
     gen_built=true;
 }
 
+// CFD: generation-zone columns with three cached points each, the cell centre (q = 3g),
+// the u point (3g+1) and the v point (3g+2) of the staggered grid
+void iowave::cfd_genzone_build(lexer *p, ghostcell *pgc)
+{
+    gen_i.clear(); gen_j.clear(); gen_src.clear();
+    gen_idx.assign(size_t(p->imax)*size_t(p->jmax),-1);
+    
+    std::vector<double> xg_, yg_;
+    
+    ILOOP
+    JLOOP
+    {
+        dg = distgen(p);
+        
+        if(dg<1.0e20)
+        {
+        gen_idx[IJ] = int(gen_i.size());
+        gen_i.push_back(i);
+        gen_j.push_back(j);
+        
+        const bc_zone *z = zones.relax_zone_at(p->pos_x(),p->pos_y());
+        gen_src.push_back((z!=nullptr && !z->sources.empty()) ? &z->sources : nullptr);
+        xg_.push_back(xgen(p));
+        yg_.push_back(ygen(p));
+        xg_.push_back(xgen1(p));
+        yg_.push_back(ygen1(p));
+        xg_.push_back(xgen2(p));
+        yg_.push_back(ygen2(p));
+        }
+    }
+    
+    wave_cache_points(p,pgc,xg_,yg_);
+    
+    gen_built=true;
+}
+
 // zone input (B 520-524) that iowave cannot honour yet
 void iowave::zones_check(lexer *p)
 {
     std::string err;
     
-    if(zones.user_relax() && p->B98!=2)
+    if(zones.user_relax() && !relax_gen)
     err = "relaxation zones (B 520 method 1) need relaxation wave generation (B 98 2)";
     
-    if(zones.has_sources() && p->A10!=3 && p->A10!=5)
-    err = "zone sources (B 524) are available for FNPF and NHFLOW only, so far";
     
     
     for(const bc_zone &z : zones.relax)
@@ -253,8 +304,8 @@ void iowave::zones_check(lexer *p)
     if(!source_exists(s))
     err = "zone "+std::to_string(z.id)+" uses source "+std::to_string(s)+", which is not defined (B 92 is 1, B 500 the others)";
     
-    if(zones.has_background() && p->A10!=5)
-    err = "backgrounds (B 523) and Riemann / Flather edges are available for NHFLOW only, so far";
+    if(zones.has_background() && p->A10!=5 && p->A10!=2)
+    err = "backgrounds (B 523) and Riemann / Flather / clamped edges are available for NHFLOW and SFLOW only, so far";
     
     // decomposed precalc (B 89 1) keeps the spatial parts of the waves from the start, so k
     // cannot follow the background
@@ -272,8 +323,8 @@ void iowave::zones_check(lexer *p)
         if(p->B530<0 || p->B530>2)
         err = "B 530 mode is 1 (waves on h_eff) or 2 (h_eff + Doppler)";
         
-        if(!zones.has_background() || p->A10!=5)
-        err = "waves on the background (B 530) need a background (B 510, B 523) in NHFLOW";
+        if(!zones.has_background() || (p->A10!=5 && p->A10!=2))
+        err = "waves on the background (B 530) need a background (B 510, B 523) in NHFLOW or SFLOW";
         
         for(int n=0; n<wave_nsources(); ++n)
         {
@@ -304,7 +355,7 @@ void iowave::b530_auto(lexer *p)
     
     int mode = 0;
     
-    if(zones.has_background() && p->A10==5)
+    if(zones.has_background() && (p->A10==5 || p->A10==2))
     for(const std::vector<bc_zone> *v : {&zones.relax, &zones.beach, &zones.edges})
     for(const bc_zone &z : *v)
     {
@@ -359,7 +410,8 @@ void iowave::nhflow_active_beach_edge(lexer *p, ghostcell *pgc)
 {
     nhf_active_edge = false;
     
-    if(p->A10!=5 || (p->B99!=3 && p->B99!=4))
+    // NHFLOW and SFLOW: B 99 3 / 4 (B 99 6 arrives here as 3, iowave constructor)
+    if((p->A10!=5 && p->A10!=2) || (p->B99!=3 && p->B99!=4))
     return;
     
     // only with an outflow boundary at x+
@@ -374,18 +426,63 @@ void iowave::nhflow_active_beach_edge(lexer *p, ghostcell *pgc)
     if(zones.open_edge(2)!=nullptr)
     {
         if(p->mpirank==0)
-        cout<<"iowave: B 99 "<<p->B99<<" ignored at x+: the edge of B 520 zone "<<zones.open_edge(2)->id<<" is used"<<endl;
+        cout<<"iowave: B 99 "<<(beach_lp ? 6 : p->B99)<<" ignored at x+: the edge of B 520 zone "<<zones.open_edge(2)->id<<" is used"<<endl;
         return;
     }
     
     bc_zone e(-99,bc_method::riemann,0.0,0.0,0.0,0.0,0.0,1.0);
     e.edge = 2;
-    e.active = p->B99;
+    e.active = beach_lp ? 6 : p->B99;
     zones.edges.push_back(e);
     nhf_active_edge = true;
     
     if(p->mpirank==0)
-    cout<<"iowave: active beach B 99 "<<p->B99<<": absorbing Riemann edge at x+ with still water outside"<<endl;
+    cout<<"iowave: "<<(beach_lp ? "combined beach B 99 6" : (p->B99==3 ? "active beach B 99 3" : "active beach B 99 4"))<<": absorbing Riemann edge at x+ with still water outside"<<endl;
+}
+
+// NHFLOW combined generation (B 98 6): a Riemann edge at x- carrying the waves of all sources,
+// behind the relaxation zone. The zone relaxes to target + low-passed deviation (iowave_nhflow_relax.cpp),
+// so free long waves reach the edge and leave through its outgoing characteristic; short waves are
+// set by the zone. A Riemann / Flather / clamped edge of the user at x- (B 520, B 521 edge 1) takes
+// precedence.
+void iowave::nhflow_gen_edge(lexer *p, ghostcell *pgc)
+{
+    nhf_gen_edge = false;
+    
+    if(!gen_lp || p->A10!=5)
+    return;
+    
+    int nin = 0;
+    for(int q=0; q<p->gcslin_count; ++q)
+    if(p->gcslin[q][3]==1)
+    ++nin;
+    
+    if(pgc->globalisum(nin)==0)
+    return;
+    
+    if(zones.open_edge(1)!=nullptr)
+    {
+        if(p->mpirank==0)
+        cout<<"iowave: B 98 6 at x-: the edge of B 520 zone "<<zones.open_edge(1)->id<<" is used"<<endl;
+        return;
+    }
+    
+    bc_zone e(-98,bc_method::riemann,0.0,0.0,0.0,0.0,0.0,1.0);
+    e.edge = 1;
+    
+    for(int q=0; q<wave_nsources(); ++q)
+    {
+        int sid, stype;
+        double srot;
+        wave_source_lib(q,sid,stype,srot);
+        e.sources.push_back(sid);
+    }
+    
+    zones.edges.push_back(e);
+    nhf_gen_edge = true;
+    
+    if(p->mpirank==0)
+    cout<<"iowave: combined generation B 98 6: Riemann edge with the waves at x-"<<endl;
 }
 
 // decomposed precalc (B 89 1) with zone sources (B 524): selects the sources of the relaxation

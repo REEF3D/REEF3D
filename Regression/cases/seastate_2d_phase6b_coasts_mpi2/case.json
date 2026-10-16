@@ -15,5 +15,6 @@
  "covers": [
   "coast faces across the rank border",
   "seastate_implicit second-order fluxes next to blocked faces, threads"
- ]
+ ],
+ "same_as": "seastate_2d_phase14_coasts"
 }

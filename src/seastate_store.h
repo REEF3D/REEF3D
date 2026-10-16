@@ -25,7 +25,36 @@ Architect: Hans Bihs
 
 #include<algorithm>
 #include<cstddef>
+#include<cstdlib>
+#include<new>
+#include<utility>
 #include<vector>
+
+// Phase 13: the pool of the spectra comes zeroed from calloc and is not written on allocation, so that its pages
+// are first touched by the threads that fill or solve the cells (the serial zero fill took about 1 s per 2 GB)
+template<class T>
+struct seastate_calloc_allocator
+{
+    typedef T value_type;
+    seastate_calloc_allocator() = default;
+    template<class U> seastate_calloc_allocator(const seastate_calloc_allocator<U>&) {}
+
+    T *allocate(size_t n)
+    {
+        void *m = std::calloc(n ? n : 1,sizeof(T));
+        if(m==nullptr)
+        throw std::bad_alloc();
+        return static_cast<T*>(m);
+    }
+    void deallocate(T *m, size_t) {std::free(m);}
+
+    // value initialisation (resize) leaves the zeros of calloc; with a value: placement new
+    template<class U> void construct(U*) {}
+    template<class U, class A, class... B> void construct(U *m, A &&a, B &&...b) {::new(static_cast<void*>(m)) U(std::forward<A>(a),std::forward<B>(b)...);}
+
+    template<class U> bool operator==(const seastate_calloc_allocator<U>&) const {return true;}
+    template<class U> bool operator!=(const seastate_calloc_allocator<U>&) const {return false;}
+};
 
 /*--------------------------------------------------------------------
 REEF3D::SEASTATE - block-sparse storage of the wave action density
@@ -55,7 +84,7 @@ public:
     seastate_store(int imin, int jmin, int ni, int nj, int nbin, int tile);
 
     void build(const int *mask);
-    void fill(float val);
+    void fill(float val, int nt=1);   // nt threads (rows shared out), Phase 13
     bool copy_from(const seastate_store&);      // same layout only (same index range, tiles and mask)
 
     float *spec(int i, int j)
@@ -112,7 +141,7 @@ private:
     std::vector<int> toff;      // tile -> allocated tile number, -1: not allocated
     std::vector<long> tbase;    // tile -> first cell of the tile in the pool
     std::vector<char> act;      // active flag per cell
-    std::vector<float> pool;    // allocated tiles x tile^2 cells x nbin
+    std::vector<float,seastate_calloc_allocator<float>> pool;    // allocated tiles x tile^2 cells x nbin
 };
 
 #endif

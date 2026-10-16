@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
+#include"nhflow_curv.h"
 #include"vrans.h"
 #include"vrans_nhflow.h"
 
@@ -42,6 +43,14 @@ void  nhflow_komega_func::clearfield(lexer *p, fdm_nhf *d, double *F)
 	F[IJK]=0.0;
 }
 
+// curvilinear grid (G 50): horizontal derivative along the sigma layer by the chain rule
+static inline double curv_kx(lexer *p, double *f, int i, int j, int k, int comp)
+{
+    double fx,fy;
+    nhflow_curv::grad5(p,i,j,f[Ip1JK],f[Im1JK],f[IJp1K],f[IJm1K],fx,fy);
+    return comp==1 ? fx : fy;
+}
+
 void nhflow_komega_func::isource(lexer *p, fdm_nhf *d)
 {
     if(p->T33==0)
@@ -51,7 +60,7 @@ void nhflow_komega_func::isource(lexer *p, fdm_nhf *d)
     // momentum is solved for UH: source is -(2/3) D dk/dx|z, with dk/dx|z = dk/dx|s + sigx dk/ds
     if(p->T33==1)
     LOOP
-	d->F[IJK] = -(2.0/3.0)*d->WL(i,j)*((KIN[Ip1JK]-KIN[Im1JK])/(p->DXP[IP]+p->DXP[IM1])
+	d->F[IJK] = -(2.0/3.0)*d->WL(i,j)*((p->geo_curv==1 ? curv_kx(p,KIN,i,j,k,1) : (KIN[Ip1JK]-KIN[Im1JK])/(p->DXP[IP]+p->DXP[IM1]))
               + 0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*(KIN[IJKp1]-KIN[IJKm1])/(p->DZP[KP]+p->DZP[KM1]));
 }
 
@@ -63,7 +72,7 @@ void nhflow_komega_func::jsource(lexer *p, fdm_nhf *d)
     
     if(p->T33==1)
     LOOP
-	d->G[IJK] = -(2.0/3.0)*d->WL(i,j)*((KIN[IJp1K]-KIN[IJm1K])/(p->DYP[JP]+p->DYP[JM1])
+	d->G[IJK] = -(2.0/3.0)*d->WL(i,j)*((p->geo_curv==1 ? curv_kx(p,KIN,i,j,k,2) : (KIN[IJp1K]-KIN[IJm1K])/(p->DYP[JP]+p->DYP[JM1]))
               + 0.5*(p->sigy[FIJK]+p->sigy[FIJKp1])*(KIN[IJKp1]-KIN[IJKm1])/(p->DZP[KP]+p->DZP[KM1]))*p->y_dir;
 }
 
@@ -116,7 +125,7 @@ void nhflow_komega_func::eddyvisc(lexer* p, fdm_nhf *d, ghostcell* pgc, vrans_nh
             dxm = pow(p->DXN[IP]*p->DZN[KP]*d->WL(i,j), (1.0/2.0));
 
             if(p->j_dir==1)
-            dxm = pow(p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*d->WL(i,j), (1.0/3.0));
+            dxm = pow((p->geo_curv==1 ? p->AREA2D[IJ] : p->DXN[IP]*p->DYN[JP])*p->DZN[KP]*d->WL(i,j), (1.0/3.0));
 
             f = MIN(1.0, dxm*p->A568*p->cmu*EPS[IJK]/pow((KIN[IJK]>(1.0e-20)?(KIN[IJK]):(1.0e20)),0.5));
 

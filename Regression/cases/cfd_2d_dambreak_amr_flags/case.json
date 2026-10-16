@@ -1,0 +1,25 @@
+{
+ "base": "cfd_2d_dambreak",
+ "np": 1,
+ "steps": 120,
+ "ctrl_add": [
+  "G 1 1",
+  "G 24 1",
+  "G 26 20.0",
+  "G 15 0.0 0.1 0.0 1.0 0.0 0.1",
+  "G 2 2",
+  "G 5 0"
+ ],
+ "description": "Adaptive CFD mesh refinement with the flag criteria together: the interface band (G 24), the vorticity (G 26) and a static box (G 15).",
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "levelset",
+  "amr",
+  "adaptive"
+ ],
+ "covers": [
+  "cfd_amr::flags: union of G 24, G 26 and the G 15 boxes"
+ ]
+}

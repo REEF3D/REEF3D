@@ -40,9 +40,11 @@ void iowave::wavegen_precalc_ini(lexer *p, ghostcell *pgc)
     
     if(p->A10==3) // FNPF
     {
-        if(p->B98==2)
+        // B 98 6: the relaxation zone; the edge has its own arrays (fnpf_precalc_edge)
+        if(relax_gen)
         fnpf_precalc_relax_ini(p,pgc);
         
+        else
         if(p->B98==3 || p->B98==4)
         fnpf_precalc_dirichlet_ini(p,pgc);
     }

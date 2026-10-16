@@ -34,6 +34,7 @@ using namespace std;
 class sflow_fsf
 {
 public:    
+    virtual ~sflow_fsf() = default;    // deleted through the base pointer (AMR patches)
 	virtual void ini(lexer*, fdm2D*, ghostcell*, ioflow*)=0;
     
     // WLout = a*WL0 + (1-a)*(WLs + dt*K), K = -div(FEx,FEy)

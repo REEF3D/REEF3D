@@ -120,7 +120,13 @@ file(GLOB SOURCES CONFIGURE_DEPENDS src/*.cpp)
 if(NOT REEF3D_USE_HYPRE)
   list(FILTER SOURCES EXCLUDE REGEX "/hypre_[^/]*\\.cpp$")
 endif()
+# REEF3D::CORAL (src/coral/<folder>/): every folder except app/ (the standalone CORAL executable)
+file(GLOB_RECURSE CORAL_SOURCES CONFIGURE_DEPENDS src/coral/*.cpp)
+list(FILTER CORAL_SOURCES EXCLUDE REGEX "/src/coral/app/")
+list(APPEND SOURCES ${CORAL_SOURCES})
 add_executable(REEF3D ${SOURCES})
+# includes of CORAL start at src/ (#include"coral/core/coral_types.h")
+target_include_directories(REEF3D PRIVATE ${PROJECT_SOURCE_DIR}/src)
 
 set_target_properties(REEF3D PROPERTIES
   RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin")
@@ -189,4 +195,13 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     COMPILE_OPTIONS "-fopenmp-simd;-fno-math-errno"
     COMPILE_DEFINITIONS "REEF3D_SIMD_MATH")
   target_link_libraries(REEF3D PRIVATE mvec)
+elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+  set_source_files_properties(src/wave_lib_irregular_1st.cpp PROPERTIES
+    COMPILE_OPTIONS "-fopenmp-simd")
+endif()
+
+# SIMD reductions over the second-order irregular-wave terms (#pragma omp simd)
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+  set_source_files_properties(src/wave_lib_irregular_2nd_a.cpp src/wave_lib_irregular_2nd_b.cpp PROPERTIES
+    COMPILE_OPTIONS "-fopenmp-simd")
 endif()

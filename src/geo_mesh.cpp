@@ -27,7 +27,8 @@ Author: Hans Bihs
 #include<cstdlib>
 
 geo_mesh::geo_mesh() : tri_x(nullptr), tri_y(nullptr), tri_z(nullptr), ntri(0),
-                       solidread(0), toporead(0), geodat(0), dxm(0.0)
+                       solidread(0), toporead(0), geodat(0), dxm(0.0),
+                       curv_ni(0), curv_nj(0)
 {
 }
 
@@ -215,6 +216,94 @@ void geo_mesh::read(lexer *p, const char *name)
     else
     rd.fail(p,"section TIDX missing");
     
+    // CURV: optional, layout version 1
+    curv_ni = curv_nj = 0;
+    curv_par.clear(); curv_x.clear(); curv_y.clear(); curv_zb.clear();
+    
+    if(rd.find("CURV",sc))
+    {
+        const int nint = sc.get_int();
+        vector<int> iv(nint>0 ? nint : 0);
+        for(int &v : iv)
+        v = sc.get_int();
+        
+        if(nint<3 || iv[0]!=1 || iv[1]<1 || iv[2]<1)
+        rd.fail(p,"section CURV: unknown layout");
+        
+        const int npar = sc.get_int();
+        curv_par.resize(npar>0 ? npar : 0);
+        for(double &v : curv_par)
+        v = sc.get_double();
+        
+        const size_t nn = size_t(iv[1]+1)*size_t(iv[2]+1);
+        
+        if(3*nn*sizeof(double)>sc.size)
+        rd.fail(p,"section CURV truncated");
+        
+        curv_x.resize(nn);
+        curv_y.resize(nn);
+        curv_zb.resize(nn);
+        
+        if(!sc.get(curv_x.data(),nn*sizeof(double)) || !sc.get(curv_y.data(),nn*sizeof(double)) || !sc.get(curv_zb.data(),nn*sizeof(double)))
+        rd.fail(p,"section CURV truncated");
+        
+        rd.check(sc);
+        
+        curv_ni = iv[1];
+        curv_nj = iv[2];
+    }
+    
+    // BLKS: optional, layout version 1
+    blk.clear();
+    blk_ring = 0;
+
+    if(rd.find("BLKS",sc))
+    {
+        const int nint = sc.get_int();
+        vector<int> iv(nint>0 ? nint : 0);
+        for(int &v : iv)
+        v = sc.get_int();
+
+        if(nint<4 || iv[0]!=1 || iv[1]<1 || iv[3]!=11)
+        rd.fail(p,"section BLKS: unknown layout");
+
+        blk.resize(iv[1]);
+        blk_ring = iv[2];
+
+        for(blk_block &B : blk)
+        {
+            B.ni = sc.get_int();
+            B.nj = sc.get_int();
+            for(int f=0; f<4; ++f)
+            B.ring[f] = sc.get_int();
+            const int ns = sc.get_int();
+            if(B.ni<1 || B.nj<1 || ns<0)
+            rd.fail(p,"section BLKS: bad block");
+            B.seg.resize(ns);
+            for(blk_seg &S : B.seg)
+            {
+                S.face = sc.get_int(); S.lo = sc.get_int(); S.hi = sc.get_int();
+                S.nbr = sc.get_int(); S.nface = sc.get_int();
+                S.perm[0] = sc.get_int(); S.perm[1] = sc.get_int();
+                S.sign[0] = sc.get_int(); S.sign[1] = sc.get_int();
+                S.off[0] = sc.get_int(); S.off[1] = sc.get_int();
+                if(S.nbr<0 || S.nbr>=int(blk.size()) || S.face<0 || S.face>3)
+                rd.fail(p,"section BLKS: bad segment");
+            }
+        }
+
+        for(size_t q=1; q<blk.size(); ++q)
+        {
+            blk_block &B = blk[q];
+            const size_t nn = size_t(B.ni+1)*size_t(B.nj+1);
+            B.x.resize(nn); B.y.resize(nn); B.zb.resize(nn);
+            if(!sc.get(B.x.data(),nn*sizeof(double)) || !sc.get(B.y.data(),nn*sizeof(double)) || !sc.get(B.zb.data(),nn*sizeof(double)))
+            rd.fail(p,"section BLKS truncated");
+        }
+
+        rd.check(sc);
+    }
+
     if(!rd.ok())
     rd.fail(p,"truncated geometry file");
     

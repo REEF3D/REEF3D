@@ -33,9 +33,123 @@ Architect: Hans Bihs
 #include"ghostcell.h"
 #include<algorithm>
 #include<atomic>
+#include<chrono>
+#include<condition_variable>
 #include<memory>
+#include<mutex>
 #include<thread>
 #include<cmath>
+#include<mpi.h>
+
+namespace
+{
+// Phase 12: persistent worker threads for the threaded sweeps (A 798). A sweep hands a job to the
+// workers and works its own share; the workers stay awake for a short time after a job (the next
+// sweep of a patch follows within microseconds), then sleep until the next one.
+class seastate_pool
+{
+public:
+    static seastate_pool &get()
+    {
+        static seastate_pool p;
+        return p;
+    }
+
+    // f(t) for t = 0 .. nt-1: t = 0 on the calling thread, the others on the workers
+    void run(int nt, const std::function<void(int)> &f)
+    {
+        if(nt<=1)
+        {
+        f(0);
+        return;
+        }
+
+        ensure(nt-1);
+
+        {
+        std::lock_guard<std::mutex> lk(mx);
+        job = &f;
+        njob = nt;
+        pending.store(nt-1,std::memory_order_relaxed);
+        gen.fetch_add(1,std::memory_order_release);
+        }
+        cv.notify_all();
+
+        f(0);
+
+        for(int k=0; pending.load(std::memory_order_acquire)>0; ++k)
+        if(k>2000)
+        std::this_thread::yield();
+    }
+
+    ~seastate_pool()
+    {
+        {
+        std::lock_guard<std::mutex> lk(mx);
+        quit = true;
+        gen.fetch_add(1,std::memory_order_release);
+        }
+        cv.notify_all();
+        for(auto &t : th)
+        t.join();
+    }
+
+private:
+    void ensure(int n)
+    {
+        // the generation before the job that needs the new workers: they take that job too
+        const long g0 = gen.load(std::memory_order_acquire);
+        while(int(th.size())<n)
+        {
+        const int t = int(th.size())+1;
+        th.emplace_back([this,t,g0]() {loop(t,g0);});
+        }
+    }
+
+    void loop(int t, long seen)
+    {
+        for(;;)
+        {
+            // short spin for the next job, then sleep
+            const auto t0 = std::chrono::steady_clock::now();
+            while(gen.load(std::memory_order_acquire)==seen && std::chrono::steady_clock::now()-t0<std::chrono::microseconds(200))
+            std::this_thread::yield();
+
+            if(gen.load(std::memory_order_acquire)==seen)
+            {
+            std::unique_lock<std::mutex> lk(mx);
+            cv.wait(lk,[&]() {return gen.load(std::memory_order_acquire)!=seen;});
+            }
+
+            const std::function<void(int)> *f;
+            int n;
+            {
+            std::lock_guard<std::mutex> lk(mx);
+            if(quit)
+            return;
+            seen = gen.load(std::memory_order_acquire);
+            f = job;
+            n = njob;
+            }
+
+            if(t<n)
+            {
+            (*f)(t);
+            pending.fetch_sub(1,std::memory_order_acq_rel);
+            }
+        }
+    }
+
+    std::vector<std::thread> th;
+    std::mutex mx;
+    std::condition_variable cv;
+    const std::function<void(int)> *job = nullptr;
+    int njob = 0;
+    std::atomic<long> gen{0};
+    std::atomic<int> pending{0};
+    bool quit = false;
+};
+}
 
 seastate_implicit::seastate_implicit(lexer *p, fdm_seastate *e) : src(nullptr), wU(nullptr), wD(nullptr), second(false)
 {
@@ -53,7 +167,9 @@ seastate_implicit::seastate_implicit(lexer *p, fdm_seastate *e) : src(nullptr), 
     m0.assign(4,ndir);
     m1.assign(4,-1);
 
+    // the directions of each quadrant (with a computational sector, A 717: the active ones)
     for(int m=0; m<ndir; ++m)
+    if(g.act.empty() || g.act[m])
     {
     m0[g.quad[m]] = std::min(m0[g.quad[m]],m);
     m1[g.quad[m]] = std::max(m1[g.quad[m]],m);
@@ -92,6 +208,8 @@ seastate_implicit::seastate_implicit(lexer *p, fdm_seastate *e) : src(nullptr), 
 void seastate_implicit::iterate(lexer *p, ghostcell *pgc, fdm_seastate *e, seastate_exchange *pex, const seastate_store *N0,
                                 double rdt, const vector<float> &Nb, const int side[4], bool refraction, bool fshift)
 {
+    kex = pex;
+
     for(int q=0; q<4; ++q)
     {
     sweep(p,e,q,N0,rdt,Nb,side,refraction,fshift);
@@ -107,8 +225,20 @@ void seastate_implicit::sweep(lexer *p, fdm_seastate *e, int q, const seastate_s
     if(m1[q]<m0[q])
     return;
 
-    // threads (A 798): wavefront order on level 0
-    if(nthreads>1 && !ranged && skp==nullptr && vis==nullptr && !second)
+    // Phase 14: pipelined across the ranks
+    if(pipelined_sweep())
+    {
+    sweep_threads(p,e,q,N0,rdt,Nb,side,refraction,fshift);
+    return;
+    }
+
+    // tiles (Phase 13, also with one thread: the upwind neighbours of a cell stay in the cache) and threads (A 798),
+    // on level 0 and on the patches of the mesh refinement (covered cells skipped); in the composite sweep (A 797 1)
+    // the visit of a covered cell gets the thread (visit_threads)
+    // (not when the residuals of neighbouring cells are added into the same coarse cell, residual_add with s > 0)
+    const int nbox = ranged ? (ri1-ri0+1)*(rj1-rj0+1) : p->knox*p->knoy;
+    if((vis==nullptr || visT!=nullptr) && !second && !(rout!=nullptr && raccum && rshift>0)
+       && nbox>=thread_min && (nthreads>1 || nbox>=4096))     // one thread: tiles from 16 tiles of 16 x 16 cells on
     {
     sweep_threads(p,e,q,N0,rdt,Nb,side,refraction,fshift);
     return;
@@ -160,93 +290,443 @@ void seastate_implicit::sweep_threads(lexer *p, fdm_seastate *e, int q, const se
 {
     const bool idown = (q==1 || q==2);
     const bool jdown = (q==2 || q==3);
-    const int ni = p->knox, nj = p->knoy;
+
+    // the whole grid, or (mesh refinement) the interior of a patch
+    const int ia = ranged ? ri0 : 0, ja = ranged ? rj0 : 0;
+    const int ni = ranged ? ri1-ri0+1 : p->knox, nj = ranged ? rj1-rj0+1 : p->knoy;
 
     if(ni<=0 || nj<=0)
     return;
 
-    if(eps>0.0)
-    for(int ci=0; ci<ni; ++ci)
-    for(int cj=0; cj<nj; ++cj)
-    if(managed(p,e,ci,cj))
-    ranges(p,e,ci,cj);
-
     const int nt = std::min(nthreads,std::max(ni,nj));
+    const bool kba = pipelined_sweep();
 
-    // copies of the solver and of the source terms for the threads 1..nt-1
-    std::vector<std::unique_ptr<seastate_source>> ws(nt);
-    std::vector<std::unique_ptr<seastate_implicit>> wk(nt);
+    if(eps>0.0)
+    {
+    ranges_all(p,e,ia,ni,ja,nj,nt);
+
+        // Phase 14: the first visits zero the bins below the threshold in all cells before the first sweep; the halo
+        // takes them as the serial sweep sees them (once, on all ranks at the same sweep)
+        if(kba && kfirst)
+        kex->start(p,kpgc,*e->N);
+    }
+    kfirst = false;
+
+    // copies of the solver and of the source terms for the threads 1..nt-1, made once (Phase 12) and given the
+    // settings of this solver before every sweep
+    worker_cache &W = workers;
+    if(W.from!=src)
+    {
+    W.wk.clear();
+    W.ws.clear();
+    W.from = src;
+    }
+    while(int(W.wk.size())<nt)
+    {
+    W.wk.push_back(std::make_shared<seastate_implicit>(*this));
+    W.ws.push_back(src!=nullptr ? std::make_shared<seastate_source>(*src) : nullptr);
+    }
+
     std::vector<seastate_implicit*> sol(nt,this);
 
     for(int t=1; t<nt; ++t)
     {
-    wk[t].reset(new seastate_implicit(*this));
+    seastate_implicit *w = W.wk[t].get();
+    w->copy_config(*this);
         if(src!=nullptr)
         {
-        ws[t].reset(new seastate_source(*src));
-        wk[t]->src = ws[t].get();
+        W.ws[t]->sync_param(*src);
+        w->src = W.ws[t].get();
         }
-    sol[t] = wk[t].get();
+    sol[t] = w;
     }
 
-    const int nd = ni+nj-1;
-    std::vector<std::atomic<int>> next(nd);
-    for(int d=0; d<nd; ++d)
-    next[d].store(0,std::memory_order_relaxed);
+    // Phase 13: tiles of tb x tb cells (in the order of the quadrant) are the units of the threads. A tile waits for
+    // its upwind tiles (the tile before it in i and the one before it in j); inside a tile the cells are solved in the
+    // order of the serial sweep. So every cell has its four neighbours solved before or after it as in the serial
+    // sweep, and the result is that of the serial sweep. Unlike the cell diagonals (Phase 7b), the tiles keep the
+    // upwind neighbours of a cell in the cache of its thread: on the sparse swell spectra the cells took 22 % more time
+    // with 2 threads than alone. The thread that finishes a tile goes on with the next tile in j if it is ready
+    const int tb = kba ? ktb : tile_size(ni,nj,nt);
+    const int nI = (ni+tb-1)/tb, nJ = (nj+tb-1)/tb, ntile = nI*nJ;
 
-    // barrier after each diagonal: generation counter, spinning first (a diagonal takes microseconds
-    // to milliseconds), then yielding (more threads than cores)
-    std::atomic<int> arrived(0), generation(0);
-    auto barrier = [&]()
+    // Phase 14: the ranks upstream and downstream of this one in the order of the quadrant (-1: none). A tile at the
+    // upstream boundary also waits for the halo cells of its rows (columns) from the rank upstream; a tile at the
+    // downstream boundary sends its cells to the rank downstream when it is solved
+    int upI = -1, dnI = -1, upJ = -1, dnJ = -1;
+    if(kba)
     {
-        const int gen = generation.load(std::memory_order_acquire);
+    upI = idown ? p->nb4 : p->nb1;
+    dnI = idown ? p->nb1 : p->nb4;
+    upJ = jdown ? p->nb2 : p->nb3;
+    dnJ = jdown ? p->nb3 : p->nb2;
+    upI = upI>=0 ? upI : -1; dnI = dnI>=0 ? dnI : -1;
+    upJ = upJ>=0 ? upJ : -1; dnJ = dnJ>=0 ? dnJ : -1;
+    }
 
-        if(arrived.fetch_add(1,std::memory_order_acq_rel)==nt-1)
+    std::vector<std::atomic<int>> npred(ntile);
+    for(int I=0; I<nI; ++I)
+    for(int J=0; J<nJ; ++J)
+    npred[size_t(I)*nJ+J].store((I>0 ? 1 : 0) + (J>0 ? 1 : 0) + (I==0 && upI>=0 ? 1 : 0) + (J==0 && upJ>=0 ? 1 : 0),
+                                std::memory_order_relaxed);
+
+    std::mutex qm;
+    std::vector<int> ready;
+    ready.reserve(ntile);
+    if(npred[0].load(std::memory_order_relaxed)==0)
+    ready.push_back(0);
+    std::atomic<int> done(0);
+
+    // Phase 14: messages of the boundary tiles. Axis 0: the rows of tile column J at the i boundary (cells ii = ni-1-n
+    // downstream, the halo ii = -1-n upstream, n < L, in the order of the quadrant), axis 1: the columns of tile row I at
+    // the j boundary. Cells without storage send zeros and ignore what they receive, as the halo exchange
+    const int L = kba ? kex->halo_layers() : 0;
+    const int nbin = e->grid->nbin;
+    struct kmsg {int axis, idx; std::vector<float> buf; MPI_Request rq = MPI_REQUEST_NULL;};
+    std::vector<kmsg> kin, kout;
+    std::vector<int> outbox;            // kout entries packed by a thread, to be sent by thread 0
+    size_t nposted = 0;
+
+    auto cell_of = [&](int axis, int idx, int n, int k, bool halo, int &ci, int &cj)
+    {
+        const int ii = (axis==0) ? (halo ? -1-n : ni-1-n) : idx*tb+k;
+        const int jj = (axis==0) ? idx*tb+k : (halo ? -1-n : nj-1-n);
+        ci = ia + (idown ? ni-1-ii : ii);
+        cj = ja + (jdown ? nj-1-jj : jj);
+    };
+    auto length = [&](int axis, int idx)
+    {
+        return (axis==0) ? std::min(nj,(idx+1)*tb) - idx*tb : std::min(ni,(idx+1)*tb) - idx*tb;
+    };
+    auto pack = [&](kmsg &m)
+    {
+        const int len = length(m.axis,m.idx);
+        size_t c = 0;
+        for(int n=0; n<L; ++n)
+        for(int k=0; k<len; ++k)
         {
-        arrived.store(0,std::memory_order_relaxed);
-        generation.fetch_add(1,std::memory_order_release);
-        return;
+        int ci, cj;
+        cell_of(m.axis,m.idx,n,k,false,ci,cj);
+        const float *f = e->N->spec(ci,cj);
+            if(f!=nullptr && e->N->active(ci,cj))
+            std::copy(f,f+nbin,&m.buf[c]);
+            else
+            std::fill(&m.buf[c],&m.buf[c]+nbin,0.0f);
+        c += nbin;
+        }
+    };
+    auto unpack = [&](kmsg &m)
+    {
+        const int len = length(m.axis,m.idx);
+        size_t c = 0;
+        for(int n=0; n<L; ++n)
+        for(int k=0; k<len; ++k)
+        {
+        int ci, cj;
+        cell_of(m.axis,m.idx,n,k,true,ci,cj);
+        float *f = e->N->spec(ci,cj);
+        if(f!=nullptr && e->N->active(ci,cj))
+        std::copy(&m.buf[c],&m.buf[c]+nbin,f);
+        c += nbin;
+        }
+    };
+    auto tag = [](int axis, int idx) {return 5000 + 2*idx + axis;};
+
+    if(kba)
+    {
+        for(int axis=0; axis<2; ++axis)
+        {
+        const int up = axis==0 ? upI : upJ, dn = axis==0 ? dnI : dnJ, n = axis==0 ? nJ : nI;
+            for(int idx=0; idx<n; ++idx)
+            {
+                if(up>=0)
+                {
+                kin.push_back(kmsg{axis,idx,std::vector<float>(size_t(L)*length(axis,idx)*nbin)});
+                MPI_Irecv(kin.back().buf.data(),int(kin.back().buf.size()),MPI_FLOAT,up,tag(axis,idx),kpgc->mpi_comm,&kin.back().rq);
+                }
+            if(dn>=0)
+            kout.push_back(kmsg{axis,idx,std::vector<float>(size_t(L)*length(axis,idx)*nbin)});
+            }
+        }
+    outbox.reserve(kout.size());
+    }
+    // the kout entry of a boundary tile (axis, idx), -1: none
+    const int nkoutI = (dnI>=0) ? nJ : 0;
+    auto kout_of = [&](int axis, int idx) {return axis==0 ? (dnI>=0 ? idx : -1) : (dnJ>=0 ? nkoutI+idx : -1);};
+
+    // Phase 14: the order of the tiles: towards the rank downstream in i the tile columns first (I fastest), towards
+    // the one in j the tile rows (J fastest), towards both the diagonals I + J
+    auto prio = [&](int k)
+    {
+        const long I = k/nJ, J = k%nJ;
+        if(dnI>=0 && dnJ<0) return J*nI + I;
+        if(dnJ>=0 && dnI<0) return I*nJ + J;
+        return (I+J)*long(nI+nJ) + I;
+    };
+
+    // thread 0: send what the threads have packed, take in what has arrived (the tile it frees becomes ready)
+    std::vector<int> kidx(kin.size());
+    std::vector<MPI_Request> kreq(kin.size());
+    auto pump = [&]()
+    {
+        std::vector<int> send;
+        {
+        std::lock_guard<std::mutex> lk(qm);
+        send.swap(outbox);
+        }
+        for(int o : send)
+        {
+        kmsg &m = kout[o];
+        MPI_Isend(m.buf.data(),int(m.buf.size()),MPI_FLOAT,m.axis==0 ? dnI : dnJ,tag(m.axis,m.idx),kpgc->mpi_comm,&m.rq);
+        ++nposted;
         }
 
-        for(int k=0; generation.load(std::memory_order_acquire)==gen; ++k)
-        if(k>2000)
-        std::this_thread::yield();
+        // the messages in flight progress only within MPI calls (large messages wait for the receiver): test them
+        for(kmsg &m : kout)
+            if(m.rq!=MPI_REQUEST_NULL)
+            {
+            int f = 0;
+            MPI_Test(&m.rq,&f,MPI_STATUS_IGNORE);
+            }
+
+        if(kin.empty())
+        return;
+        for(size_t r=0; r<kin.size(); ++r)
+        kreq[r] = kin[r].rq;
+        int nd = 0;
+        MPI_Testsome(int(kin.size()),kreq.data(),&nd,kidx.data(),MPI_STATUSES_IGNORE);
+        if(nd==MPI_UNDEFINED)
+        return;
+        for(int a=0; a<nd; ++a)
+        {
+        kmsg &m = kin[kidx[a]];
+        m.rq = MPI_REQUEST_NULL;
+        unpack(m);
+        const int k = (m.axis==0) ? m.idx : m.idx*nJ;
+            if(npred[k].fetch_sub(1,std::memory_order_acq_rel)==1)
+            {
+            std::lock_guard<std::mutex> lk(qm);
+            ready.push_back(k);
+            }
+        }
     };
 
     auto work = [&](int t)
     {
         seastate_implicit *s = sol[t];
+        int k = -1;
 
-        for(int d=0; d<nd; ++d)
+        for(int spin=0;;)
         {
-        const int i0 = std::max(0,d-(nj-1)), i1 = std::min(ni-1,d);
-
-            for(;;)
+            if(k<0)
             {
-            const int k = next[d].fetch_add(1,std::memory_order_relaxed);
-            const int ii = i0+k;
-            if(ii>i1)
-            break;
+                if(kba && t==0)
+                pump();
 
-            const int ci = idown ? ni-1-ii : ii;
-            const int cj = jdown ? nj-1-(d-ii) : d-ii;
+                {
+                std::lock_guard<std::mutex> lk(qm);
+                    if(!ready.empty())
+                    {
+                        if(kba)
+                        {
+                        // Phase 14: the ready tile that the ranks downstream need first
+                        size_t b = 0;
+                        for(size_t r=1; r<ready.size(); ++r)
+                        if(prio(ready[r])<prio(ready[b]))
+                        b = r;
+                        std::swap(ready[b],ready.back());
+                        }
+                    k = ready.back();
+                    ready.pop_back();
+                    }
+                }
 
-                if(e->wet(ci,cj)==1)
+                if(k<0)
+                {
+                    if(done.load(std::memory_order_acquire)>=ntile)
+                    {
+                    if(kba && t==0)
+                    pump();
+                    break;
+                    }
+                if(++spin>2000)
+                std::this_thread::yield();
+                continue;
+                }
+            spin = 0;
+            }
+
+        const int I = k/nJ, J = k%nJ;
+        const int ie = std::min(ni,(I+1)*tb), je = std::min(nj,(J+1)*tb);
+
+            for(int ii=I*tb; ii<ie; ++ii)
+            for(int jj=J*tb; jj<je; ++jj)
+            {
+            const int ci = ia + (idown ? ni-1-ii : ii);
+            const int cj = ja + (jdown ? nj-1-jj : jj);
+
+                if(skp!=nullptr && (*skp)(ci,cj)==1)
+                {
+                if(visT!=nullptr)
+                (*visT)(t,ci,cj);
+                }
+                else if(e->wet(ci,cj)==1)
                 s->cell(p,e,q,ci,cj,N0!=nullptr ? N0->spec(ci,cj) : nullptr,rdt,Nb,side,refraction,fshift);
             }
 
-        barrier();
+        // Phase 14: the cells at the downstream boundary of the rank for the rank downstream
+        if(kba)
+        {
+        const int oi = (I==nI-1) ? kout_of(0,J) : -1, oj = (J==nJ-1) ? kout_of(1,I) : -1;
+        if(oi>=0) pack(kout[oi]);
+        if(oj>=0) pack(kout[oj]);
+            if(oi>=0 || oj>=0)
+            {
+            std::lock_guard<std::mutex> lk(qm);
+            if(oi>=0) outbox.push_back(oi);
+            if(oj>=0) outbox.push_back(oj);
+            }
+        }
+
+        int next = -1;
+        if(J+1<nJ && npred[k+1].fetch_sub(1,std::memory_order_acq_rel)==1)
+        next = k+1;
+            if(I+1<nI && npred[k+nJ].fetch_sub(1,std::memory_order_acq_rel)==1)
+            {
+                if(next<0)
+                next = k+nJ;
+                else
+                {
+                int other = k+nJ;
+                if(kba && prio(other)<prio(next))
+                std::swap(other,next);
+                std::lock_guard<std::mutex> lk(qm);
+                ready.push_back(other);
+                }
+            }
+        done.fetch_add(1,std::memory_order_acq_rel);
+        k = next;
+
+        // Phase 14: thread 0 posts the messages after every tile
+        if(kba && t==0)
+        pump();
         }
     };
 
-    std::vector<std::thread> th;
-    for(int t=1; t<nt; ++t)
-    th.emplace_back(work,t);
+    const std::function<void(int)> job = work;
+    seastate_pool::get().run(nt,job);
 
-    work(0);
+    if(kba)
+    {
+    if(nposted!=kout.size())
+    pump();
+        for(kmsg &m : kout)
+        if(m.rq!=MPI_REQUEST_NULL)
+        MPI_Wait(&m.rq,MPI_STATUS_IGNORE);
+    }
+}
 
-    for(auto &x : th)
-    x.join();
+bool seastate_implicit::pipelined_sweep() const
+{
+    return kpgc!=nullptr && kex!=nullptr && !ranged && skp==nullptr && vis==nullptr && visT==nullptr && !second && rout==nullptr;
+}
+
+// Phase 14: the pipeline needs the same rows on both sides of an i boundary and the same columns on both sides of a j
+// boundary (a Cartesian decomposition), and one tile size on all ranks
+bool seastate_implicit::pipeline(lexer *p, ghostcell *pgc)
+{
+    int ok = 1;
+    const int nb[4] = {p->nb1,p->nb4,p->nb3,p->nb2};
+    for(int s=0; s<4; ++s)
+    if(nb[s]>=0)
+    {
+    int mine[2] = {s<2 ? p->origin_j : p->origin_i, s<2 ? p->knoy : p->knox}, theirs[2] = {0,0};
+    MPI_Sendrecv(mine,2,MPI_INT,nb[s],6100+s,theirs,2,MPI_INT,nb[s],6100+(s^1),pgc->mpi_comm,MPI_STATUS_IGNORE);
+    if(theirs[0]!=mine[0] || theirs[1]!=mine[1])
+    ok = 0;
+    }
+    int all = 0;
+    MPI_Allreduce(&ok,&all,1,MPI_INT,MPI_MIN,pgc->mpi_comm);
+
+    int tb = tile_size(p->knox,p->knoy,nthreads), tmin = tb;
+    MPI_Allreduce(&tb,&tmin,1,MPI_INT,MPI_MIN,pgc->mpi_comm);
+
+    if(all==1)
+    {
+    kpgc = pgc;
+    ktb = std::max(tmin,1);
+    }
+    return all==1;
+}
+
+// tiles of the threaded sweep: 16 x 16 cells; with several threads smaller while the tile graph holds less than 3
+// tiles per thread on average along its longest chain (nI nJ / (nI + nJ - 1))
+int seastate_implicit::tile_size(int ni, int nj, int nt)
+{
+    int tb = 16;
+        while(nt>1 && tb>2)
+        {
+        const double nI = std::ceil(double(ni)/tb), nJ = std::ceil(double(nj)/tb);
+        if(nI*nJ/(nI+nJ-1.0)>=3.0*nt)
+        break;
+        tb /= 2;
+        }
+    return tb;
+}
+
+void seastate_implicit::run_threads(int nt, const std::function<void(int)> &f)
+{
+    seastate_pool::get().run(nt,f);
+}
+
+// the settings of another solver of the same grid (the threads of a sweep, Phase 12): everything the cell kernel
+// reads besides its own work arrays
+void seastate_implicit::copy_config(const seastate_implicit &o)
+{
+    for(int k=0; k<4; ++k)
+    {
+    Nbs[k] = o.Nbs[k];
+    Nbs0[k] = o.Nbs0[k];
+    }
+    wU = o.wU;
+    wD = o.wD;
+    vN = o.vN;
+    second = o.second;
+    ranged = o.ranged;
+    ri0 = o.ri0; ri1 = o.ri1; rj0 = o.rj0; rj1 = o.rj1;
+    skp = o.skp;
+    fcs = o.fcs;
+    eps = o.eps;
+    order2 = o.order2;
+    rout = o.rout;
+    raccum = o.raccum;
+    rshift = o.rshift;
+    ftau = o.ftau;
+    ftil = o.ftil;
+    fhold = o.fhold;
+    nsrcit = o.nsrcit;
+    srctol = o.srctol;
+    vis = o.vis;
+    visT = o.visT;
+    dca = o.dca; dcax = o.dcax; dcay = o.dcay;
+    pob = o.pob;
+    nthreads = o.nthreads;
+    thread_min = o.thread_min;
+    sr = o.sr;
+}
+
+void seastate_implicit::preset_ranges(lexer *p, fdm_seastate *e)
+{
+    if(!(eps>0.0))
+    return;
+
+    const int ia = ranged ? ri0 : 0, ib = ranged ? ri1 : p->knox-1;
+    const int ja = ranged ? rj0 : 0, jb = ranged ? rj1 : p->knoy-1;
+
+    for(int ci=ia; ci<=ib; ++ci)
+    for(int cj=ja; cj<=jb; ++cj)
+    if(managed(p,e,ci,cj))
+    ranges(p,e,ci,cj);
 }
 
 void seastate_implicit::solve(lexer *p, fdm_seastate *e, int q, int ci, int cj, const seastate_store *N0, double rdt,
@@ -382,15 +862,36 @@ bool seastate_implicit::managed(lexer *p, fdm_seastate *e, int ci, int cj) const
     return skp==nullptr || (*skp)(ci,cj)==0;
 }
 
-uint16_t *seastate_implicit::ranges(lexer *p, fdm_seastate *e, int ci, int cj)
+void seastate_implicit::ranges_alloc(lexer *p)
 {
-    if(rg.empty())
-    {
+    if(!rg.empty())
+    return;
+
     rni = p->imax; rnj = p->jmax; rimin = p->imin; rjmin = p->jmin;
     rg.assign(size_t(rni)*rnj*4*nsig,0xFFFF);
     rv.assign(size_t(rni)*rnj,uint16_t(0));
     rb.assign(size_t(rni)*rnj*4,uint16_t(0xFFFF));
-    }
+}
+
+// the first visits of the cells of a box (ranges of the present spectrum), shared out by rows to nt threads: each
+// writes only the ranges and the spectrum of its own cells
+void seastate_implicit::ranges_all(lexer *p, fdm_seastate *e, int ia, int ni, int ja, int nj, int nt)
+{
+    ranges_alloc(p);
+
+    const std::function<void(int)> job = [&](int t)
+    {
+        for(int ci=ia+t; ci<ia+ni; ci+=nt)
+        for(int cj=ja; cj<ja+nj; ++cj)
+        if(rv[size_t(ci-rimin)*rnj + (cj-rjmin)]==0 && managed(p,e,ci,cj))
+        ranges(p,e,ci,cj);
+    };
+    seastate_pool::get().run(std::max(1,std::min(nt,ni)),job);
+}
+
+uint16_t *seastate_implicit::ranges(lexer *p, fdm_seastate *e, int ci, int cj)
+{
+    ranges_alloc(p);
 
     const size_t c = size_t(ci-rimin)*rnj + (cj-rjmin);
     uint16_t *r = &rg[c*4*nsig];
@@ -688,10 +1189,14 @@ void seastate_implicit::store(float *N, int l, int ma, int nq, double dmax, bool
     return;
     }
 
+    // the limiter bounds the change of the iteration: with source iterations (A 738) the change from the
+    // spectrum of the cell before its first solve, not the change of each solve
+    const float *Nb = (Nlim!=nullptr) ? Nlim + l*ndir + ma : Nl;
+
     if(dmax>=0.0)
     for(int n=na; n<=nb; ++n)
     {
-    const double v = double(Nl[n]);
+    const double v = double(Nb[n]);
     tso[o+n] = std::min(std::max(tso[o+n],v-dmax),v+dmax);
     }
 
@@ -822,12 +1327,18 @@ void seastate_implicit::cell(lexer *p, fdm_seastate *e, int q, int ci, int cj, c
 
     // source iterations per cell (A 738): the source terms are evaluated again from the spectrum just
     // solved and the cell is solved again
-    double esit = (nsrcit>1) ? energy(g,N) : 0.0, dsit = 0.0;
+    // (residual mode, FAS: one evaluation)
+    const int nsi = (rout!=nullptr) ? 1 : nsrcit;
+    double esit = (nsi>1) ? energy(g,N) : 0.0, dsit = 0.0;
 
-    for(int sit=0; sit<nsrcit; ++sit)
+    if(nsi>1)
+    Nsi0.assign(N,N+g.nbin);
+    Nlim = (nsi>1) ? Nsi0.data() : nullptr;
+
+    for(int sit=0; sit<nsi; ++sit)
     {
-    if(nsrcit>1 && sit>0)
-    Nsit.assign(N,N+g.nbin);
+    if(nsi>1 && sit==1)
+    Nsi1.assign(N,N+g.nbin);
 
     // maximum energy (A 737 1, SWAN SINTGRL), then the source terms from the latest spectrum,
     // for the directions that are solved; with spectral sparsity the row sums over the active ranges
@@ -856,6 +1367,35 @@ void seastate_implicit::cell(lexer *p, fdm_seastate *e, int q, int ci, int cj, c
 
     src->cap(N,d);
     src->compute(N,d,kc,cgc,P.data(),D.data(),ma+wmin,ma+wmax,lmin,lmax);
+    }
+
+    // FAS coarse-grid correction (A 758): the source -tau of the coarse cell, its loss part proportional to
+    // N (exact at the restricted spectrum, where the coarse problem starts); Phase 15, with the spectral sparsity
+    // (A 795) of the finer grid: a bin that is zero in all children is held at zero. The finer grid keeps the bins
+    // below its threshold empty; filled on the coarse grid (wind input, DIA) they changed the coarse spectra at the
+    // converged fine solution, the corrections did not vanish and grew after about 100 iterations
+    if(ftau!=nullptr)
+    {
+    const float *T = ftau->spec(ic,jc), *Nt = (ftil!=nullptr) ? ftil->spec(ic,jc) : nullptr;
+
+        if(src==nullptr)
+        for(int l=lmin; l<=lmax; ++l)
+        for(int n=wlo[l]; n<=whi[l]; ++n)
+        P[g.bin(l,ma+n)] = D[g.bin(l,ma+n)] = 0.0;
+
+        if(T!=nullptr && Nt!=nullptr)
+        for(int l=lmin; l<=lmax; ++l)
+        for(int n=wlo[l]; n<=whi[l]; ++n)
+        {
+        const int b = g.bin(l,ma+n);
+        const double s = -double(T[b]);
+            if(fhold && !(Nt[b]>0.0f))
+            D[b] += 1.0e20;
+            else if(s>0.0)
+            P[b] += s;
+            else if(s<0.0 && Nt[b]>1.0e-30f)
+            D[b] -= s/double(Nt[b]);
+        }
     }
 
     const double *lim = (src!=nullptr) ? src->limit() : nullptr;
@@ -893,9 +1433,8 @@ void seastate_implicit::cell(lexer *p, fdm_seastate *e, int q, int ci, int cj, c
         tAp[n] = tCp[n] = tAm[n] = tCm[n] = 0.0;
         else
         {
-        const int mm = (m-1+ndir)%ndir;
         const double sp = g.sinthf[m],  cp_ = g.costhf[m];
-        const double sm = g.sinthf[mm], cm  = g.costhf[mm];
+        const double sm = g.sinthl[m],  cm  = g.costhl[m];
 
         tAp[n] = sp*ddx - cp_*ddy;
         tCp[n] = sp*cp_*(dUdx-dVdy) + sp*sp*dVdx - cp_*cp_*dUdy;
@@ -921,9 +1460,9 @@ void seastate_implicit::cell(lexer *p, fdm_seastate *e, int q, int ci, int cj, c
 
         for(int n=0; n<nq; ++n)
         {
-        const int m = ma+n, mm = (m-1+ndir)%ndir;
+        const int m = ma+n;
         dp[n] = A*tAp[n] + tCp[n] - ax*g.sinthf[m]  + ay*g.costhf[m];
-        dm[n] = A*tAm[n] + tCm[n] - ax*g.sinthf[mm] + ay*g.costhf[mm];
+        dm[n] = A*tAm[n] + tCm[n] - ax*g.sinthl[m]  + ay*g.costhl[m];
         }
     }
 
@@ -951,8 +1490,8 @@ void seastate_implicit::cell(lexer *p, fdm_seastate *e, int q, int ci, int cj, c
     const float *NN = Nn.N ? Nn.N : zero.data();
     const bool self = W.self || E.self || S.self || Nn.self;
     const float *Nold = (N0!=nullptr) ? N0 : N;
-    const double *Dsrc = (src!=nullptr) ? D.data() : zerod.data();
-    const double *Psrc = (src!=nullptr) ? P.data() : zerod.data();
+    const double *Dsrc = (src!=nullptr || ftau!=nullptr) ? D.data() : zerod.data();
+    const double *Psrc = (src!=nullptr || ftau!=nullptr) ? P.data() : zerod.data();
 
     // second-order geographic fluxes (A 796 2): the cells up to two away (active, solved or the ring
     // around a patch, not covered by a finer grid)
@@ -1069,8 +1608,11 @@ void seastate_implicit::cell(lexer *p, fdm_seastate *e, int q, int ci, int cj, c
     // theta: outside the window (other quadrants, empty bins) with the latest values
     {
     const double ctm0 = dif ? cdm_[na] : A*tAm[na] + tCm[na], ctp1 = dif ? cdp_[nb] : A*tAp[nb] + tCp[nb];
-    rh_[na] += pos(ctm0)*rth[na]*double(N[g.bin(l,(ma+na-1+ndir)%ndir)]);
-    rh_[nb] -= neg(ctp1)*rth[nb]*double(N[g.bin(l,(ma+nb+1)%ndir)]);
+    const int mlo = g.prev(ma+na), mhi = g.next(ma+nb);       // -1: the end of a compact sector (no inflow)
+    if(mlo>=0)
+    rh_[na] += pos(ctm0)*rth[na]*double(N[g.bin(l,mlo)]);
+    if(mhi>=0)
+    rh_[nb] -= neg(ctp1)*rth[nb]*double(N[g.bin(l,mhi)]);
     la_[na] = 0.0;
     up_[nb] = 0.0;
     }
@@ -1088,6 +1630,19 @@ void seastate_implicit::cell(lexer *p, fdm_seastate *e, int q, int ci, int cj, c
             t = std::fmod(t,pi2);
             if(t<0.0)
             t += pi2;
+            // compact sector (A 717): directions from theta0 on, nothing outside the sector
+            if(!g.periodic)
+            {
+            double d = std::fmod(t-g.theta0,pi2);
+            if(d<0.0)
+            d += pi2;
+            const double x = d/g.dtheta;
+            if(x>double(ndir-1))
+            return 0.0;
+            const int a = std::min(int(x),ndir-2);
+            const double w = x-double(a);
+            return (1.0-w)*double(Nl0[a]) + w*double(Nl0[a+1]);
+            }
             const int b = int(std::upper_bound(g.theta.begin(),g.theta.end(),t) - g.theta.begin());
             const int m1 = (b==0) ? ndir-1 : b-1, m2 = (b==ndir) ? 0 : b;
             double d1 = g.theta[m1], d2 = g.theta[m2];
@@ -1219,6 +1774,50 @@ void seastate_implicit::cell(lexer *p, fdm_seastate *e, int q, int ci, int cj, c
     for(int l=lmin; l<=lmax; ++l)
     if(wlo[l]<=whi[l])
     assemble(l,wlo[l],whi[l]);
+
+    // residual mode (FAS, A 758): r = b - A N of the cell equations at the latest spectra (the pseudo
+    // time step drops out: N_old = N), for the directions of the quadrant; no solve
+    // (residual_add, Phase 12: added into the cell (ic >> s, jc >> s) of R, no zeroing: the sum over the children of a
+    // coarse cell of the uniform-grid FAS)
+    if(rout!=nullptr)
+    {
+    float *R = raccum ? rout->spec(ic>>rshift,jc>>rshift) : rout->spec(ic,jc);
+
+        if(R!=nullptr)
+        {
+            if(!raccum)
+            for(int l=0; l<nsig; ++l)
+            for(int n=0; n<nq; ++n)
+            R[g.bin(l,ma+n)] = 0.0f;
+
+            for(int l=lmin; l<=lmax; ++l)
+            {
+            const int o = l*ndir, na = wlo[l], nb = whi[l];
+            const float *Nl = N + g.bin(l,ma);
+            const float *Nlm = (l>0) ? N + g.bin(l-1,ma) : nullptr;
+
+                for(int n=na; n<=nb; ++n)
+                {
+                double r = trh[o+n] - tdi[o+n]*double(Nl[n]);
+                if(Nlm!=nullptr) r += tsi[o+n]*double(Nlm[n]);
+                if(n>na) r -= tla[o+n]*double(Nl[n-1]);
+                if(n<nb) r -= tup[o+n]*double(Nl[n+1]);
+                // Phase 15: with the spectral sparsity a zero bin is inactive (below the threshold, set to zero by
+                // the sweep), its equation does not hold at the converged solution: no residual
+                if(sparse && !(Nl[n]>0.0f))
+                r = 0.0;
+                if(raccum)
+                R[g.bin(l,ma+n)] += float(r);
+                else
+                R[g.bin(l,ma+n)] = float(r);
+                }
+            }
+        }
+
+    i = ic;
+    j = jc;
+    return;
+    }
 
     // B: elimination factors of all frequencies (independent, the inner loop over l hides the
     // latency of the divisions); a frequency with a vanishing pivot is set to zero
@@ -1389,17 +1988,17 @@ void seastate_implicit::cell(lexer *p, fdm_seastate *e, int q, int ci, int cj, c
         // the cell has reached the balance of its source terms with the inflow: the distance of its
         // energy to the fixed point, estimated from the change d of the last solve and the contraction
         // rho = d/d_previous as d/(1-rho), relative below A 738
-        if(nsrcit>1)
+        if(nsi>1)
         {
         const double en = energy(g,N), d = std::fabs(en-esit);
 
         // no contraction (the sources and the solve of the cell oscillate or stall, e.g. steep breaking
-        // dissipation, sources against the limiter): the mean of the last two spectra, end of the
-        // source iterations
+        // dissipation, sources against the limiter): the spectrum of the first solve, end of the source
+        // iterations (a fixed point of the outer iteration is then a solution of the cell, as without
+        // source iterations; the mean of the last two spectra used before held two-cycles of the cell)
         if(sit>0 && d>=0.95*dsit && d>srctol*std::max(en,1.0e-30))
         {
-        for(int b=0; b<g.nbin; ++b)
-        N[b] = 0.5f*(N[b] + Nsit[b]);
+        std::copy(Nsi1.begin(),Nsi1.end(),N);
         break;
         }
 
@@ -1410,6 +2009,8 @@ void seastate_implicit::cell(lexer *p, fdm_seastate *e, int q, int ci, int cj, c
         dsit = d;
         }
     }
+
+    Nlim = nullptr;
 
     // new active ranges of the cell
     if(sparse)

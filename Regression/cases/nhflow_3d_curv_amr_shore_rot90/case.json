@@ -1,0 +1,19 @@
+{
+ "np": 1,
+ "steps": 40,
+ "tags": [
+  "3d",
+  "nhflow",
+  "curvilinear",
+  "amr",
+  "wetdry"
+ ],
+ "description": "NHFLOW mesh refinement with wetting and drying in the patches (G 30 1) on a curvilinear grid turned by 90 deg: water running up a plane beach under a static patch.",
+ "covers": [
+  "nhflow_amr G 30 on curvilinear grids (F 72 and G 10 boxes in physical coordinates)"
+ ],
+ "solver": "nhflow",
+ "files": [
+  "curvgrid.dat"
+ ]
+}

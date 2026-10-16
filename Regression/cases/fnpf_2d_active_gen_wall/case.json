@@ -1,0 +1,23 @@
+{
+ "base": "fnpf_2d_regular",
+ "control_set": {
+  "C 14": "21"
+ },
+ "ctrl_set": {
+  "B 98": "4",
+  "B 99": "0"
+ },
+ "steps": 1200,
+ "description": "FNPF active wave generation (B 98 4) with a wall at x+: the reflected waves leave through the wavemaker (shallow-water absorption against the target).",
+ "tags": [
+  "quick",
+  "2d",
+  "waves",
+  "iowave",
+  "awa",
+  "fnpf"
+ ],
+ "covers": [
+  "iowave_fnpf_dirichlet-wavegen (B 98 4 absorption, ramp)"
+ ]
+}

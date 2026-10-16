@@ -1,0 +1,19 @@
+{
+ "np": 1,
+ "steps": 60,
+ "tags": [
+  "2d",
+  "sflow",
+  "curvilinear",
+  "quick"
+ ],
+ "description": "SFLOW on a wavy, skewed curvilinear grid (G 50 2) with non-hydrostatic pressure (A 220 2, quadratic profile): a raised box of water spreading in a closed basin.",
+ "covers": [
+  "sflow_pjm_quad curvilinear: chain-rule gradients, compact Poisson operator, deferred non-orthogonal correction",
+  "sflow_curv::kflux, lapcoef, grad5"
+ ],
+ "solver": "sflow",
+ "files": [
+  "curvgrid.dat"
+ ]
+}

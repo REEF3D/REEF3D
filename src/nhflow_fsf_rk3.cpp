@@ -22,6 +22,7 @@ Author: Hans Bihs
 
 #include"nhflow_fsf_f.h"
 #include"lexer.h"
+#include"nhflow_curv.h"
 #include"fdm_nhf.h"
 #include"seastate_nhflow.h"
 #include"ghostcell.h"
@@ -38,7 +39,12 @@ void nhflow_fsf_f::rk3_step1(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow
     
     LOOP
     WETDRY
+    {
+    if(p->geo_curv==1)
+    K(i,j) += -p->DZN[KP]*nhflow_curv::divh(p,d->FEx,d->FEy,i,j,k);
+    else
     K(i,j) += -p->DZN[KP]*((d->FEx[IJK] - d->FEx[Im1JK])/p->DXN[IP]  + (d->FEy[IJK] - d->FEy[IJm1K])/p->DYN[JP]*p->y_dir);
+    }
     
     // VRANS: d/dt int_{-h}^{eta} n dz = n(eta) deta/dt -> divide the column divergence by the
     // porosity of the surface cell, not layer by layer (mass error for vertically varying n)
@@ -85,7 +91,12 @@ void nhflow_fsf_f::rk3_step2(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow
     
     LOOP
     WETDRY
+    {
+    if(p->geo_curv==1)
+    K(i,j) += -p->DZN[KP]*nhflow_curv::divh(p,d->FEx,d->FEy,i,j,k);
+    else
     K(i,j) += -p->DZN[KP]*((d->FEx[IJK] - d->FEx[Im1JK])/p->DXN[IP]  + (d->FEy[IJK] - d->FEy[IJm1K])/p->DYN[JP]*p->y_dir);
+    }
     
     // VRANS: d/dt int_{-h}^{eta} n dz = n(eta) deta/dt -> divide the column divergence by the
     // porosity of the surface cell, not layer by layer (mass error for vertically varying n)
@@ -129,7 +140,12 @@ void nhflow_fsf_f::rk3_step3(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow
     
     LOOP
     WETDRY
+    {
+    if(p->geo_curv==1)
+    K(i,j) += -p->DZN[KP]*nhflow_curv::divh(p,d->FEx,d->FEy,i,j,k);
+    else
     K(i,j) += - p->DZN[KP]*((d->FEx[IJK] - d->FEx[Im1JK])/p->DXN[IP]  + (d->FEy[IJK] - d->FEy[IJm1K])/p->DYN[JP]*p->y_dir);
+    }
     
     // VRANS: d/dt int_{-h}^{eta} n dz = n(eta) deta/dt -> divide the column divergence by the
     // porosity of the surface cell, not layer by layer (mass error for vertically varying n)

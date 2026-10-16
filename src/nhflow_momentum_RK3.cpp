@@ -188,7 +188,7 @@ void nhflow_momentum_RK3::phase_F(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_s
     pconvec->start(p,d,4,d->eta,UHRK1);
     
     pfsf->rk3_step1(p, d, pgc, pflow, d->UH, d->VH, d->WH, WLRK1, WLRK2, 1.0);
-    pfsfbody->level(p,d,pgc,WLRK1,1.0);
+    pfsfbody->level(p,d,pgc,p6dof,pflow,s,WLRK1,1.0);
     omega_update(p,d,pgc,WLRK1,d->U,d->V,d->W);
     p->fsftime+=pgc->timer()-starttime;
     }
@@ -207,7 +207,7 @@ void nhflow_momentum_RK3::phase_F(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_s
     
     pconvec->start(p,d,4,WLRK1,UHRK2);
     pfsf->rk3_step2(p, d, pgc, pflow, d->UH, d->VH, d->WH, WLRK1, WLRK2, 0.25);
-    pfsfbody->level(p,d,pgc,WLRK2,0.25);
+    pfsfbody->level(p,d,pgc,p6dof,pflow,s,WLRK2,0.25);
     omega_update(p,d,pgc,WLRK2,d->U,d->V,d->W);
     
     p->fsftime+=pgc->timer()-starttime;
@@ -227,7 +227,7 @@ void nhflow_momentum_RK3::phase_F(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_s
     
     pconvec->start(p,d,4,WLRK2,d->UH);
     pfsf->rk3_step3(p, d, pgc, pflow, d->UH, d->VH, d->WH, WLRK1, WLRK2, 2.0/3.0);
-    pfsfbody->level(p,d,pgc,d->WL,2.0/3.0);
+    pfsfbody->level(p,d,pgc,p6dof,pflow,s,d->WL,2.0/3.0);
     omega_update(p,d,pgc,d->WL,d->U,d->V,d->W);
     
     p->fsftime+=pgc->timer()-starttime;
@@ -285,6 +285,9 @@ void nhflow_momentum_RK3::phase_M(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_s
 	d->UH[IJK] = (1.0/3.0)*d->UH[IJK] + (2.0/3.0)*UHDIFF[IJK]
 				+ (2.0/3.0)*p->dt*CPORNH*d->F[IJK];
 
+    // VRANS: point-implicit Darcy-Forchheimer drag of the static structures (B 204 1)
+    pvrans->implicit_drag(p,d,UHo,alpha,0);
+    
     if(s==0)
     p->utime=pgc->timer()-starttime;
     else
@@ -320,6 +323,9 @@ void nhflow_momentum_RK3::phase_M(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_s
 	d->VH[IJK] = (1.0/3.0)*d->VH[IJK] + (2.0/3.0)*VHDIFF[IJK]
 				+ (2.0/3.0)*p->dt*CPORNH*d->G[IJK];
 
+    // VRANS: point-implicit Darcy-Forchheimer drag of the static structures (B 204 1)
+    pvrans->implicit_drag(p,d,VHo,alpha,1);
+    
     if(s==0)
     p->vtime=pgc->timer()-starttime;
     else
@@ -352,6 +358,9 @@ void nhflow_momentum_RK3::phase_M(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_s
 	d->WH[IJK] = (1.0/3.0)*d->WH[IJK] + (2.0/3.0)*WHDIFF[IJK]
 				+ (2.0/3.0)*p->dt*CPORNH*d->H[IJK];
 	
+    // VRANS: point-implicit Darcy-Forchheimer drag of the static structures (B 204 1)
+    pvrans->implicit_drag(p,d,WHo,alpha,2);
+    
     if(s==0)
     p->wtime=pgc->timer()-starttime;
     else

@@ -1,0 +1,15 @@
+{
+ "base": "seastate_2d_front",
+ "np": 4,
+ "same_as": "seastate_2d_front",
+ "description": "as seastate_2d_front (nonstationary) on 4 MPI ranks, pipelined (Phase 14): one iteration per step as on one rank; bitwise one rank.",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate",
+  "mpi"
+ ],
+ "covers": [
+  "Phase 14 nonstationary: iter_max 1 with the pipeline"
+ ]
+}

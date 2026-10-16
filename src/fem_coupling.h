@@ -85,6 +85,12 @@ public:
     // solid: immersed solids of the grid in d->SOLID; dfreset: nhflow_forcing has
     // reset p->DF in this stage. Ghost cells of the velocities are updated by nhflow_forcing.
     void start_nhflow(lexer*, fdm_nhf*, ghostcell*, double alpha, double *UH, double *VH, double *WH, slice &WL, bool solid, bool dfreset, bool finalize);
+    // NHFLOW strong coupling (coupling option 'strong'), around the momentum step of a fluid step:
+    // the state is saved before, and after the step redo is true while the motion of the rigid
+    // bodies in the water has not converged: the fluid and the solid are reset to the start of the
+    // step and the step is repeated with the new estimate of the body motion
+    void nhf_step_begin(lexer*, fdm_nhf*, ghostcell*);
+    bool nhf_step_redo(lexer*, fdm_nhf*, ghostcell*);
 
 private:
     struct lpoint
@@ -111,6 +117,34 @@ private:
     bool on_bed(int q, const fem_solid::Vec3& nf, double zmin) const;   // rigid face near the bed: no forcing of the water under it
     void pressure_loads(lexer*, ghostcell*, std::vector<fem_solid::Vec3>& F, bool hydrostatic=false);
     void print(lexer*);
+    void step_output(lexer*, ghostcell*);     // log, rigid-body and monitor files, summary, VTU (once per fluid step)
+    // strong coupling
+    struct sc_snapshot
+    {
+        fem_solid fs;
+        std::vector<lpoint> pts;
+        int surf_version = 0;
+        std::vector<fem_solid::Vec3> fdeb, fprb, fp_bar, fr_bar, lim_u, rb_lo, rb_hi;
+        std::vector<double> pnh_bar, pnh_bar_b, lim_vt, sp_w, sp_u;
+        std::vector<int> df_cells, df_save;
+        bool hybrid_ini = false, warned_overtop = false;
+        double printtime = 0.0;
+        int printcount = 0, nstep = 0;
+        std::vector<std::vector<double>> farr;   // fluid fields
+        std::vector<std::vector<int>> iarr;
+    };
+    sc_snapshot *sc = nullptr;
+    fem_comm *dcomm = nullptr;          // MPI communicator of the distributed solid
+    bool sc_on = false;                 // strong coupling active in this fluid step
+    bool sc_defer = false;              // outputs after the last pass
+    int sc_pass = 0;
+    std::vector<unsigned char> sc_wet;  // rigid bodies iterated (in the water)
+    std::vector<fem_solid::Vec3> sc_Vin, sc_win, sc_rV, sc_rw, sc_V0, sc_w0;
+    std::vector<double> sc_om;
+    long sc_steps = 0, sc_passes = 0, sc_unconv = 0;
+    void sc_fluid(lexer*, fdm_nhf*, bool save);
+    void sc_save();
+    void sc_restore();
     void first_call(lexer*, ghostcell*);     // supports on the bed, check mode, gravity settling
 
     // fluid of the current call: CFD (cfd) or NHFLOW (nhf, WLn, nhf_solid)

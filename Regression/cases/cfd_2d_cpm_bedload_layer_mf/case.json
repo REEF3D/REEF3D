@@ -1,0 +1,8 @@
+{
+ "base": "cfd_2d_cpm_bedload_layer",
+ "ctrl_add": ["Q 65 10.0", "Q 63 2.0"],
+ "steps": 150,
+ "tags": ["quick", "2d", "cpm"],
+ "description": "as cfd_2d_cpm_bedload_layer with the morphological factor Q 65 10: pickup and hops 10 times faster, relaxation of the bed level seen by the fluid Q 63 2 s of bed time (0.2 s of flow time)",
+ "covers": ["CPM bedload_move: hop speed times Q 65", "CPM topo_column: relaxation time Q 63 in bed time"]
+}

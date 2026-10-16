@@ -36,6 +36,10 @@ public:
 	virtual ~nhflow_potential_f();
 
 	void start(lexer*,fdm_nhf*, solver*, ghostcell*) override final;
+    
+    // multi-block grid (nhflow_amr::potential): the rows of one grid, its velocities from the solution
+    void amr_assemble(lexer*, fdm_nhf*, ghostcell*, double*);
+    int amr_velocities(lexer*, fdm_nhf*, ghostcell*, const double*);
 
 
 private:
@@ -46,6 +50,8 @@ private:
     
     void laplace(lexer*,fdm_nhf*,ghostcell*);
     void ini_bc(lexer*,fdm_nhf*,ghostcell*);
+    void curv_ghost(lexer*);
+    void curv_velocities(lexer*,fdm_nhf*);
     
     
 	double starttime,endtime;

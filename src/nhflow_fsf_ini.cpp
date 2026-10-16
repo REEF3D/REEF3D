@@ -22,6 +22,7 @@ Author: Hans Bihs
 
 #include"nhflow_fsf_f.h"
 #include"lexer.h"
+#include"nhflow_curv.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 #include"ioflow.h"
@@ -38,7 +39,12 @@ void nhflow_fsf_f::ini(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, doub
     pgc->gcsl_start4(p,d->detadt,1);
     
     LOOP
+    {
+    if(p->geo_curv==1)
+    d->detadt(i,j) += -p->DZN[KP]*nhflow_curv::divh(p,d->FEx,d->FEy,i,j,k);
+    else
     d->detadt(i,j) += -p->DZN[KP]*((d->FEx[IJK] - d->FEx[Im1JK])/p->DXN[IP]  + (d->FEy[IJK] - d->FEy[IJm1K])/p->DYN[JP]*p->y_dir);
+    }
     
     pgc->gcsl_start4(p,d->detadt,1);
     
@@ -110,6 +116,13 @@ void nhflow_fsf_f::ini(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, doub
             jstart = p->posc_j(p->F72_ys[qn]);
             jend = p->posc_j(p->F72_ye[qn]);
 
+            // curvilinear grid: the cells whose centre lies in the box
+            if(p->geo_curv==1)
+            SLICELOOP4
+            if(p->XC2D[IJ]>=p->F72_xs[qn] && p->XC2D[IJ]<p->F72_xe[qn] && p->YC2D[IJ]>=p->F72_ys[qn] && p->YC2D[IJ]<p->F72_ye[qn])
+            d->eta(i,j)= p->F72_h[qn] - p->F60;
+            
+            if(p->geo_curv==0)
             SLICELOOP4
             if(i>=istart && i<iend && j>=jstart && j<jend)
             d->eta(i,j)= p->F72_h[qn] - p->F60;

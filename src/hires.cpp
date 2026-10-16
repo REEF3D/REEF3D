@@ -40,7 +40,7 @@ Author: Hans Bihs
 #include"flux_face_FOU_2D.h"
 #include"flux_face_FOU_vrans_2D.h"
 
-hires::hires (lexer *p, int limiter) 
+hires::hires (lexer *p, int limiter) : plim(nullptr), pflux(nullptr)
 {
     if(p->j_dir==0)
     {
@@ -55,6 +55,9 @@ hires::hires (lexer *p, int limiter)
     
     if(p->B200>=1 || p->S10==2)
     {
+        delete pflux;   // the porous fluxes replace the plain ones (S 10 2 with B 200 0)
+        pflux = nullptr;
+
         if(p->D11==1)
         pflux = new flux_face_FOU_vrans_2D(p);
         
@@ -76,6 +79,9 @@ hires::hires (lexer *p, int limiter)
     
     if(p->B200>=1 || p->S10==2)
     {
+        delete pflux;   // the porous fluxes replace the plain ones (S 10 2 with B 200 0)
+        pflux = nullptr;
+
         if(p->D11==1)
         pflux = new flux_face_FOU_vrans(p);
         
@@ -112,7 +118,8 @@ hires::hires (lexer *p, int limiter)
 
 hires::~hires()
 {
-
+    delete plim;
+    delete pflux;
 }
 
 void hires::start(lexer* p, fdm* a, field& b, int ipol, field& uvel, field& vvel, field& wvel)
@@ -177,7 +184,7 @@ double hires::aij(lexer* p,fdm* a,field& b,int ipol, field& uvel, field& vvel, f
         
              + (1.0-vdir)*(jvel2*(b(i,j+1,k) - 0.5*plim->jphi(b,1,0,2,1)*(b(i,j+2,k)-b(i,j+1,k)))
 
-             -             jvel1*(b(i,j,k) - 0.5*plim->jphi(b,0,-1,1,0)*(b(i,j,k)-b(i+1,j,k))))/DY[JP]; 
+             -             jvel1*(b(i,j,k) - 0.5*plim->jphi(b,0,-1,1,0)*(b(i,j+1,k)-b(i,j,k))))/DY[JP]; 
         }
 
 

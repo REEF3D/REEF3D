@@ -366,6 +366,14 @@ void fem_solid::advance(double dt)
     return;
     dt_last = dt;
 
+    // distribution over the ranks (fixed over the fluid step)
+    const bool dist_was = dist;
+    dist = comm!=nullptr && comm->size()>1 && (dist_req==1 || (dist_req<0 && n_deformable()>=dist_min));
+    if(dist)
+    dist_partition();
+    else if(dist_was)
+    act_dirty = true;
+
     // effective masses: the enclosed fluid reduces the mass that is accelerated
     // by the structural forces (at most to 10 %), the time step follows
     std::vector<double> mr(nnode());
@@ -451,6 +459,9 @@ void fem_solid::advance(double dt)
         {
             if(m[i]<=0.0)
             continue;
+            // distributed: the owner moves a node; all ranks move the rigid bodies
+            if(dist && nown[i]!=myrank && (rnode.empty() || rnode[i]<0))
+            continue;
 
             const Vec3 F = fext[i] + fcon[i] + fpar[i] - fint[i] + mr[i]*grav;
 
@@ -481,6 +492,14 @@ void fem_solid::advance(double dt)
             vsum[i] += v[i];
         }
 
+        if(dist)
+        {
+            std::vector<int> all(nranks);
+            comm->allgather_int(bad,all.data());
+            bad = *std::min_element(all.begin(),all.end());
+            if(bad>=nn)
+            dist_exchange_nodes(false);
+        }
         if(bad<nn)
         {
             const int i = bad;
@@ -506,6 +525,13 @@ void fem_solid::advance(double dt)
 
     for(int i=0; i<nnode(); ++i)
     vbar[i] = vsum[i]/double(nsub);
+
+    // distributed: mean velocities and internal forces of the nodes, integration points
+    if(dist)
+    {
+        dist_exchange_nodes(true);
+        dist_exchange_elements();
+    }
 
     // accelerations of the rigid bodies over the fluid step without the contact
     // (added-mass stabilisation of the fluid loads)
@@ -543,6 +569,14 @@ void fem_solid::advance(double dt)
 // diagnostics
 // ----------------------------------------------------------------------
 
+int fem_solid::n_full_elements() const
+{
+    int n = 0;
+    for(const element& e : elems)
+    if(e.alive && !e.rigid && e.full) ++n;
+    return n;
+}
+
 int fem_solid::n_alive() const
 {
     // counted with the active list (build_gather), else here
@@ -574,13 +608,14 @@ double fem_solid::strain_energy() const
 
         const material& mt = mats[el.mat];
 
-        for(int g=0; g<ngp; ++g)
+        const int ng = el.full ? 8 : 1;
+        for(int g=0; g<ng; ++g)
         {
             Mat3 F = Mat3::Zero();
             for(int a=0; a<8; ++a)
             for(int i=0; i<3; ++i)
             for(int J=0; J<3; ++J)
-            F(i,J) += x[el.n[a]](i)*(ngp==1 ? geom(el).dN0[a][J] : geom(el).dNg[g][a][J]);
+            F(i,J) += x[el.n[a]](i)*(ng==1 ? geom(el).dN0[a][J] : geom(el).dNg[g][a][J]);
 
             Mat3 E = 0.5*(F.transpose()*F - Mat3::Identity());
             const gpstate& st = gps[e*ngp+g];
@@ -595,7 +630,7 @@ double fem_solid::strain_energy() const
 
             const double tr = E.trace();
             Mat3 S = mt.lambda*tr*Mat3::Identity() + 2.0*mt.mu*E;
-            es += (1.0-st.d)*0.5*(S.array()*E.array()).sum()*(ngp==1 ? geom(el).V : geom(el).wg[g]);
+            es += (1.0-st.d)*0.5*(S.array()*E.array()).sum()*(ng==1 ? geom(el).V : geom(el).wg[g]);
         }
     }
     return es;
