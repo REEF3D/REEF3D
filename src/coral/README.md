@@ -79,9 +79,11 @@ its own. `Regression/unit/coral_layering_check.py` checks these rules.
 ## Reuse of existing REEF3D code
 
 CORAL does not copy existing code. The geometrically exact beam (`beam.h`), the dynamic mooring
-lines (`mooring_*`), the PTO elements and controllers (`6DOF_pto_*`) and the 6DOF force
-integration on the body surface (`6DOF_obj_*`) are used through adapters in `reef3d/` until
-they are moved into CORAL. Without CORAL switched on, REEF3D runs as before.
+lines (`mooring_*`) and the 6DOF force integration on the body surface (`6DOF_obj_*`) are used
+through adapters in `reef3d/` until they are moved into CORAL. Moved so far: the PTO joint,
+elements and controllers of the 6DOF bodies (formerly `6DOF_pto_*`, now `pto/coral_pto_*`; the
+6DOF side of X 500 - X 508 is `reef3d/coral_sixdof_pto.cpp`). Without CORAL switched on, REEF3D
+runs as before.
 
 ## Roadmap
 

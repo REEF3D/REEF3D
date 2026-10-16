@@ -17,13 +17,16 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
-#ifndef SIXDOF_PTO_ELEMENTS_H_
-#define SIXDOF_PTO_ELEMENTS_H_
+#ifndef CORAL_PTO_ELEMENTS_H_
+#define CORAL_PTO_ELEMENTS_H_
 
-#include"6DOF_pto.h"
+#include"coral/pto/coral_pto_element.h"
+
+namespace coral
+{
 
 // linear damper (X 502): F = -B qd
 class pto_damper : public pto_base
@@ -88,5 +91,7 @@ public:
 private:
     double K, C;
 };
+
+}
 
 #endif

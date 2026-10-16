@@ -17,14 +17,17 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
-#ifndef SIXDOF_PTO_JOINT_H_
-#define SIXDOF_PTO_JOINT_H_
+#ifndef CORAL_PTO_JOINT_H_
+#define CORAL_PTO_JOINT_H_
 
-#include"6DOF_pto.h"
+#include"coral/pto/coral_pto_element.h"
 #include<Eigen/Dense>
+
+namespace coral
+{
 
 // Prismatic PTO joint between the body and the ground (X 501).
 // Axis a fixed in the inertial frame, attachment point x_att on the body (body-fixed offset r_b
@@ -50,5 +53,7 @@ public:
     Eigen::Vector3d rb = Eigen::Vector3d::Zero();
     Eigen::Vector3d x0 = Eigen::Vector3d::Zero();
 };
+
+}
 
 #endif

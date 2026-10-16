@@ -17,10 +17,13 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"6DOF_pto_elements.h"
+#include"coral/pto/coral_pto_elements.h"
+
+namespace coral
+{
 
 // --- linear damper ---
 
@@ -144,4 +147,6 @@ void pto_latch::set_param(const std::string &key, double val)
 
     if(key=="t_release")
     t_release = val;
+}
+
 }

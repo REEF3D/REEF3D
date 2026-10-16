@@ -17,10 +17,13 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"6DOF_pto_joint.h"
+#include"coral/pto/coral_pto_joint.h"
+
+namespace coral
+{
 
 void pto_joint_prismatic::initialize(const Eigen::Vector3d &axis, const Eigen::Vector3d &x_att,
                                      const Eigen::Vector3d &c, const Eigen::Matrix3d &R)
@@ -49,4 +52,6 @@ pto_state pto_joint_prismatic::state(const Eigen::Vector3d &c, const Eigen::Matr
     s.t  = t;
 
     return s;
+}
+
 }

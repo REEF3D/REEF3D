@@ -17,15 +17,18 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"6DOF_pto_controller.h"
+#include"coral/pto/coral_pto_controller.h"
 #include<algorithm>
 #include<cctype>
 #include<cmath>
 #include<fstream>
 #include<sstream>
+
+namespace coral
+{
 
 // --- zero crossing ---
 
@@ -192,5 +195,7 @@ double pto_bopt(double w, double m, double A, double Brad, double C)
 {
     const double X = w*(m + A) - C/w;
 
-    return sqrt(Brad*Brad + X*X);
+    return std::sqrt(Brad*Brad + X*X);
+}
+
 }

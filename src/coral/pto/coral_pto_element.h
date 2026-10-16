@@ -17,27 +17,32 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
-#ifndef SIXDOF_PTO_H_
-#define SIXDOF_PTO_H_
+#ifndef CORAL_PTO_ELEMENT_H_
+#define CORAL_PTO_ELEMENT_H_
 
 #include<memory>
 #include<string>
 #include<vector>
 #include<cmath>
 
-// Power take-off (PTO) library of the 6DOF kernel.
+// REEF3D::CORAL: power take-off (PTO) element library, shared by the REEF3D 6DOF bodies (FNPF and
+// NHFLOW, ctrl.txt X 500 - X 508, coral/reef3d/coral_sixdof_pto.cpp) and CORAL's PTO in a joint.
 //
-//   joint     (6DOF_pto_joint.h)    : body state -> PTO coordinate q, qd and the generalised
-//                                     direction J (6), qd = J^T [v; w], load on the body F J
-//   element   (6DOF_pto_elements.h) : F(q,qd,t) along the joint and its Jacobians dF/dq, dF/dqd
-//   composite (this file)           : sum of elements = one PTO
+//   joint      (coral_pto_joint.h)      : body state -> PTO coordinate q, qd and the generalised
+//                                         direction J (6), qd = J^T [v; w], load on the body F J
+//   element    (coral_pto_elements.h)   : F(q,qd,t) along the joint and its Jacobians dF/dq, dF/dqd
+//   composite  (this file)              : sum of elements = one PTO
+//   controller (coral_pto_controller.h) : act on the elements via set_param() and on the
+//                                         composite's generator gain, once per time step
 //
 // The Jacobians of stiff elements (end-stops, latch) let the 6DOF step treat them linearly
-// implicit together with the added mass (X 500 2). Controllers (6DOF_pto_controller.h) act on
-// the elements via set_param() and on the composite's generator gain.
+// implicit together with the added mass (X 500 2).
+
+namespace coral
+{
 
 struct pto_state
 {
@@ -133,16 +138,16 @@ public:
 
         sat_last = 0;
 
-        if(Fmax>0.0 && fabs(F)>Fmax)
+        if(Fmax>0.0 && std::fabs(F)>Fmax)
         {
             F = (F>0.0 ? Fmax : -Fmax);
             dFdq = dFdqd = 0.0;
             sat_last = 1;
         }
 
-        if(Pmax>0.0 && fabs(F*s.qd)>Pmax)
+        if(Pmax>0.0 && std::fabs(F*s.qd)>Pmax)
         {
-            F = (F>0.0 ? 1.0 : -1.0)*Pmax/fabs(s.qd);
+            F = (F>0.0 ? 1.0 : -1.0)*Pmax/std::fabs(s.qd);
             dFdq = 0.0;
             dFdqd = -F/s.qd;
             sat_last = 2;
@@ -201,5 +206,7 @@ public:
     double Pmax=0.0;    // generator power limit, 0: none
     int sat_last=0;     // 0: free, 1: force limited, 2: power limited
 };
+
+}
 
 #endif
