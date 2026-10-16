@@ -99,17 +99,17 @@
    "last": [
     0.0611792596,
     1.8706153e-05,
-    0.000149962361
+    0.000148432968
    ],
    "colsum": [
     3.311681333603,
     3.5000686259130718,
-    2.0005269324970567
+    2.0005213879184556
    ],
    "colabs": [
     3.311681333603,
     3.5000686259130718,
-    2.0005269324970567
+    2.0005213879184556
    ]
   },
   "REEF3D_NHFLOW_6DOF/REEF3D_6DOF_forces_0.dat": {
@@ -297,7 +297,7 @@
   0.006610338916250247,
   0.006586853459193412
  ],
- "blessed_from": "/home/claude/reg/reg55r/REEF3D",
- "date": "2026-10-15",
- "note": "re-blessed with hans_dev 31582419 + iowave 0049-0052 (regression flags -O2, Linux x86-64, DIVEMesh ee065db; the same on hans_dev 51bf6517 + 0049-0052): the P5a references of these cases do not reproduce with hans_dev (with the P5a code, also with P5b); validation 23"
+ "blessed_from": "/root/reg/REEF3D_wt22",
+ "date": "2026-10-16",
+ "note": "hans_dev c4dacb0 + 0054-0057: the gauges on the finest grid (0054)"
 }

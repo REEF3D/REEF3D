@@ -91,6 +91,7 @@ TEXT_OUTPUT_GLOBS = [
     "REEF3D_SFLOW_6DOF/*.dat",
     "REEF3D_SEASTATE_Log/*.dat",
     "REEF3D_SEASTATE_Spectra/*.dat",
+    "REEF3D_CORAL/*.dat",
 ]
 
 # output folders deleted after a run unless --keep (large and not compared)

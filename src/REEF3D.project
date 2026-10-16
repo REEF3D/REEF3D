@@ -801,60 +801,69 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Multiphysics">
-      <VirtualDirectory Name="MAST">
-        <File Name="mast/README.md"/>
+      <VirtualDirectory Name="CORAL">
+        <File Name="coral/README.md"/>
         <VirtualDirectory Name="Core">
-          <File Name="mast/core/README.md"/>
-          <File Name="mast/core/mast_types.h"/>
-          <File Name="mast/core/mast_version.h"/>
+          <File Name="coral/core/README.md"/>
+          <File Name="coral/core/coral_body.h"/>
+          <File Name="coral/core/coral_constraint.h"/>
+          <File Name="coral/core/coral_gravity.h"/>
+          <File Name="coral/core/coral_load.h"/>
+          <File Name="coral/core/coral_model.h"/>
+          <File Name="coral/core/coral_rotation.h"/>
+          <File Name="coral/core/coral_timeint.h"/>
+          <File Name="coral/core/coral_types.h"/>
+          <File Name="coral/core/coral_version.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Structure">
-          <File Name="mast/structure/README.md"/>
+          <File Name="coral/structure/README.md"/>
+          <File Name="coral/structure/coral_linear6.h"/>
+          <File Name="coral/structure/coral_spring.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Linear">
-          <File Name="mast/linear/README.md"/>
+          <File Name="coral/linear/README.md"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Wind">
-          <File Name="mast/wind/README.md"/>
+          <File Name="coral/wind/README.md"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Aero">
-          <File Name="mast/aero/README.md"/>
+          <File Name="coral/aero/README.md"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Control">
-          <File Name="mast/control/README.md"/>
+          <File Name="coral/control/README.md"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Hydro">
-          <File Name="mast/hydro/README.md"/>
+          <File Name="coral/hydro/README.md"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Panel">
-          <File Name="mast/panel/README.md"/>
+          <File Name="coral/panel/README.md"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Mooring">
-          <File Name="mast/mooring/README.md"/>
+          <File Name="coral/mooring/README.md"/>
         </VirtualDirectory>
         <VirtualDirectory Name="PTO">
-          <File Name="mast/pto/README.md"/>
+          <File Name="coral/pto/README.md"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Soil">
-          <File Name="mast/soil/README.md"/>
+          <File Name="coral/soil/README.md"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Ice">
-          <File Name="mast/ice/README.md"/>
+          <File Name="coral/ice/README.md"/>
         </VirtualDirectory>
         <VirtualDirectory Name="IO">
-          <File Name="mast/io/README.md"/>
+          <File Name="coral/io/README.md"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Load Cases">
-          <File Name="mast/loadcase/README.md"/>
+          <File Name="coral/loadcase/README.md"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Post">
-          <File Name="mast/post/README.md"/>
+          <File Name="coral/post/README.md"/>
         </VirtualDirectory>
         <VirtualDirectory Name="REEF3D">
-          <File Name="mast/reef3d/README.md"/>
+          <File Name="coral/reef3d/README.md"/>
         </VirtualDirectory>
         <VirtualDirectory Name="App">
-          <File Name="mast/app/README.md"/>
+          <File Name="coral/app/README.md"/>
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="DEM">
@@ -2349,11 +2358,19 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Multiphysics">
-      <VirtualDirectory Name="MAST">
+      <VirtualDirectory Name="CORAL">
         <VirtualDirectory Name="Core">
-          <File Name="mast/core/mast_version.cpp"/>
+          <File Name="coral/core/coral_constraint.cpp"/>
+          <File Name="coral/core/coral_gravity.cpp"/>
+          <File Name="coral/core/coral_model.cpp"/>
+          <File Name="coral/core/coral_rotation.cpp"/>
+          <File Name="coral/core/coral_timeint.cpp"/>
+          <File Name="coral/core/coral_version.cpp"/>
         </VirtualDirectory>
-        <VirtualDirectory Name="Structure"/>
+        <VirtualDirectory Name="Structure">
+          <File Name="coral/structure/coral_linear6.cpp"/>
+          <File Name="coral/structure/coral_spring.cpp"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Linear"/>
         <VirtualDirectory Name="Wind"/>
         <VirtualDirectory Name="Aero"/>

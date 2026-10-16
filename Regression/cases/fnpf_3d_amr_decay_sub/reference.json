@@ -122,16 +122,16 @@
    "rows": 22,
    "last": [
     0.350817463,
-    0.00149000882
+    0.00140134092
    ],
    "colsum": [
     4.389765896,
-    4.513637634544293,
+    4.512546368261619,
     1.0
    ],
    "colabs": [
     4.389765896,
-    4.513637634544293,
+    4.512546368261619,
     1.0
    ]
   },
@@ -282,7 +282,7 @@
   0.019156525704422618,
   0.019156525704422618
  ],
- "blessed_from": "/home/claude/reg/reg49/REEF3D",
- "date": "2026-10-14",
- "note": "re-blessed with hans_dev 14f37abe9 + 0045-0048 (regression flags -O2, Linux x86-64, DIVEMesh 43c819f); validation 22"
+ "blessed_from": "/root/reg/REEF3D_wt22",
+ "date": "2026-10-16",
+ "note": "hans_dev c4dacb0 + 0054-0057: the gauges on the finest grid (0054)"
 }
