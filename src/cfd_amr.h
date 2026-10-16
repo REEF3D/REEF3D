@@ -60,15 +60,46 @@ class initialize;
 using namespace std;
 
 // subcycling (G 7 1): a grid that is the coarser level of a patch keeps its state at the start of
-// its step (u, v, w, phi, press, eddyv) and gets the values at the time of a stage of the finer level
-// (linear in time between the start and the end of its step)
+// its step (the fields of the registry with AF_TIME: u, v, w, phi, press, eddyv; kin, eps) and gets
+// the values at the time of a stage of the finer level (linear in time between the start and the
+// end of its step)
 struct cfd_amr_tlev
 {
-    cfd_amr_tlev(lexer*, int n);
+    cfd_amr_tlev(lexer*, const vector<int> &types);     // per field: CELL (-1) or the face direction
     ~cfd_amr_tlev();
     int n;
-    field *o[8];        // start of the step: u, v, w, phi, press, eddyv (and kin, eps with turbulence)
-    field *t[8];        // at the time of the finer stage
+    vector<field*> o;   // start of the step
+    vector<field*> t;   // at the time of the finer stage
+};
+
+// The registry of the patch state (cfd_amr_fields.cpp): every field of a grid that the refinement
+// moves between the grids, once, with what it takes part in.  The fills (cells around the patches),
+// the restriction, the time levels of the subcycling, the transfer at a regrid and the boundary
+// values of the grids are built from it; new physics (heat, concentration) adds its fields there.
+enum : unsigned
+{
+    AF_STATE   = 1u<<0,     // the state of new patches (ini, regrid: from the parent or an old patch) and its fill
+    AF_TIME    = 1u<<1,     // the time levels of the subcycling (G 7 1): kept at the start of a step, in time for the finer level
+    AF_TMID    = 1u<<2,     //   its value belongs to the middle of the step (the pressure; held at the free surface from a patch)
+    AF_STAGEIN = 1u<<3,     // filled around the patches at the start of a stage
+    AF_TURBIN  = 1u<<4,     // filled around the patches before the turbulence step (G 7 0)
+    AF_RSTEP   = 1u<<5,     // restricted at the end of a step of the finer level (G 7 1)
+    AF_RSTAGE  = 1u<<6,     // restricted at the end of a stage (G 7 0)
+    AF_BCSTATE = 1u<<7,     // boundary values of a patch before it is a parent (bc_state)
+    AF_BCINI   = 1u<<8,     // boundary values of the initial patches
+    AF_BCSTEP  = 1u<<9,     // boundary values of level 0 after the restriction of a step (G 7 1)
+    AF_BCSTAGE = 1u<<10,    // boundary values of level 0 after the restriction of a stage (G 7 0)
+    AF_CONS    = 1u<<11     // conserved quantity (its fluxes at the patch edges: flux registers, not yet)
+};
+struct cfd_amr_field
+{
+    const char *name;
+    int type;           // CELL (-1) or the face direction 0, 1, 2
+    int prolong;        // 0 linear, 1 linear with the MC limiter, 2 injection
+    unsigned roles;     // AF_*
+    int gc, gcval;      // its boundary values: ghostcell start1-4 (1-4), start4a (5), none (0); the code
+    std::function<field&(fdm*,turbulence*)> get;      // the field of a grid (its fdm and turbulence model)
+    int tl = -1;        // AF_TIME: its index in the time levels
 };
 
 //  REEF3D::CFD with mesh refinement (A 10 6, G 1 > 0, static boxes G 15).
@@ -269,10 +300,24 @@ private:
     void patch_fields_ini(int id);
     void free_patch(cfd_amr_patch*);
 
+    // the registry of the patch state (cfd_amr_fields.cpp)
+    vector<cfd_amr_field> reg;
+    void register_fields();
+    turbulence* gturb(int g) { return g<0 ? pturb0 : CP(g)->pturb; }
+    field& rf(const cfd_amr_field &e, int g) { return e.get(gfd(g),gturb(g)); }
+    vector<fspec> specs(unsigned role);                         // fills
+    vector<std::function<field&(int)>> rcells(unsigned role);    // restriction: cell fields
+    vector<std::function<field&(int)>> rfaces(unsigned role);    // restriction: u, v, w (by direction)
+    void bc_grid(int g, unsigned role);                         // boundary values of grid g (level 0: -1)
+    vector<int> tl_types();
+    int tl_phi = -1, tl_press = -1;     // the time levels of the level set and the pressure
+
     // subcycling (cfd_amr_sub.cpp)
     cfd_amr_tlev* gts(int g) { return g<0 ? ts0 : CP(g)->ts; }
     field& tsf(int g, int m) { return *gts(g)->t[m]; }
     field& stf(int g, int m);
+    int nts() const { return tl_n; }
+    int tl_n = 0;
     void advance(int l, double dtc, double tc);
     void patch_step(int l, double dt, double th0, double t);
     void save_old(int l);
@@ -334,13 +379,7 @@ private:
     void body_end();
     int bfin = 0;
     int patch_forcing() const { return bodies ? 1 : (solids ? 2 : 0); }
-    int nts = 6;                        // fields of the subcycling state (8 with turbulence)
     field& kfield(int g, int m);        // kin (m 0), eps (m 1) of the turbulence model of grid g
-    // the state of a grid transferred to new patches (ini, regrid): 0 phi, 1 press, 2 eddyv, 3-5 u,
-    // v, w; with turbulence 6 kin, 7 eps, 10 walld; with solids 8 solid, 9 topo
-    vector<int> state_ids();
-    static field& sfield(fdm *a, turbulence *t, int m);
-    vector<fspec> state_specs();
     void turb_step(int l);              // the turbulence model on the patches of level l (cells around filled)
     cfd_amr_tlev *ts0 = nullptr;
 

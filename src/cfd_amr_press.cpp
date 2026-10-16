@@ -870,7 +870,7 @@ void cfd_amr::pr_hydro(int lsub)
 {
     // the level set of grid gg: with subcycling the coarser grids at the time of the stage (as
     // their pressure, tsf), the grids of the level their own
-    auto lsf = [&](int gg) -> field& { return (lsub>=0 && glevel(gg)<lsub) ? tsf(gg,3) : gfd(gg)->phi; };
+    auto lsf = [&](int gg) -> field& { return (lsub>=0 && glevel(gg)<lsub) ? tsf(gg,tl_phi) : gfd(gg)->phi; };
 
     const bool zgrav = (p0->W20==0.0 && p0->W21==0.0 && p0->W22!=0.0);
     const double g = fabs(p0->W22);
@@ -1741,14 +1741,14 @@ void cfd_amr::pr_level(lexer *p, ghostcell *pgc, int l, int s)
 
         lexer *pp = c->pp;
         lexer *qc = glex(F.gc), *qp = glex(F.gp);
-        const double pC = tsf(F.gc,4).V[F.qc];
-        const double pP = tsf(F.gp,4).V[F.qp];
+        const double pC = tsf(F.gc,tl_press).V[F.qc];
+        const double pP = tsf(F.gp,tl_press).V[F.qp];
         double pCs = -F.hs;
         for(int m=0; m<F.ns; ++m)
-        pCs += F.sw[m]*tsf(F.sg[m],4).V[F.sq[m]];
+        pCs += F.sw[m]*tsf(F.sg[m],tl_press).V[F.sq[m]];
         const double pf = c->a->press.V[F.qf] - F.hf;
 
-        field &lc = tsf(F.gc,3), &lp = tsf(F.gp,3);
+        field &lc = tsf(F.gc,tl_phi), &lp = tsf(F.gp,tl_phi);
         const double phC = lc(F.ci[0],F.ci[1],F.ci[2]);
         const double phP = lp(F.pi[0],F.pi[1],F.pi[2]);
         const double wc = 0.5*(interface_width(qc,lc,F.ci[0],F.ci[1],F.ci[2]) + interface_width(qp,lp,F.pi[0],F.pi[1],F.pi[2]));
