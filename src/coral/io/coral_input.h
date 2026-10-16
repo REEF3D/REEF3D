@@ -48,17 +48,38 @@ Architect: Hans Bihs
 //        [latching <t_hold> <c_latch>] [declutching <t_hold>]
 //   spring <name> a <body> <x y z> b <body> <x y z> k <k> [c <c>] [L0 <L>] [T0 <T>] [tension_only]
 //   linear6 <name> body <b> point <x y z> [k <k1..k6>] [c <c1..c6>]       (diagonal stiffness, damping)
+//        [K <36 values>] [C <36 values>]           (full 6x6 matrices, row by row, e.g. coupled springs)
+//   force <name> body <b> [point <x y z>] [F <fx fy fz>] [M <mx my mz>] [ramp <t>]   (constant load)
 //   mooring <name> <quasi_static|dynamic> a <body> <x y z> b <body> <x y z> L <L> d <d> mass <m/L>
 //        EA <EA> [BA <BA>] [CB <CB>] [Cdn <c>] [Cdt <c>] [Can <c>] [Cat <c>] [kb <k>] [cb <c>] [mu <mu>]
 //        [nseg <n>] [seabed <z>] [dt_line <dt>] [settle <T>] [current <ux uy uz>]
 //   morison <name> body <b> p1 <x y z> p2 <x y z> D <D> [Cd <c>] [Ca <c>] [Cm <c>] [n <n>] [current <u v w>]
+//   morison <name> member <m> [D <D>] [Cd <c>] [Ca <c>] [Cm <c>] [n <strips per element>] [current <u v w>]
+//        [no_buoyancy] [flooded <D_inner>]
+//        (distributed on a frame or superelement member, buoyancy of the submerged strips; D defaults to
+//        the section's; flooded: the inner water below z = 0 as node mass, frame members only)
 //   section <name> tube D <D> t <t> E <E> G <G> rho <rho>
 //   section <name> EA <EA> EIy <EI> EIz <EI> GJ <GJ> m <m/L> [GAy <GA>] [GAz <GA>] [rIx <r>] [rIy <r>] [rIz <r>] [D <D>]
 //   member <name> p1 <x y z> p2 <x y z> n <n> section <s> [section2 <s>] [orient <x y z>] [beta <b>]
 //        [end1 <body|ground>] [end2 <body|ground>]
 //        (co-rotational beam elements on nodes "<name>:0" .. "<name>:n", usable as bodies by the items
 //        below; members meeting at a point share the node; end1/end2 put an end on a body or the ground)
-//   point_mass <body> mass <m> [inertia <Ixx Iyy Izz>]       (added to a body, e.g. a node)
+//   point_mass <body> mass <m> [inertia <Ixx Iyy Izz>] [at <x y z>]
+//        (added to a body, e.g. a node; with at: rigidly attached at that global point)
+//   superelement <name> members <m1> [<m2> ...] [modes <n>] [zeta <z>] [beta <b>]
+//        (the listed members form a Craig-Bampton superelement instead of frame members: ends on the
+//        ground clamped, ends on bodies are the interface; n fixed-interface modes (10), modal damping
+//        ratio, stiffness-proportional damping of the interface part)
+//   soil <name> mudline <z>
+//   soil_layer <soil> sand top <d> bottom <d> phi <deg> k <N/m3> [gamma <N/m3>] [delta <deg>] [K <K>] [Nq <Nq>] [cyclic]
+//   soil_layer <soil> clay top <d> bottom <d> su <Pa> [su_bottom <Pa>] [gamma <N/m3>] [eps50 <e>] [J <J>]
+//        [residual <r>] [cyclic]
+//   soil_layer <soil> linear top <d> bottom <d> kh <N/m2> [kv <N/m2>] [kq <N/m>]
+//        (depths below the mudline; gamma: submerged unit weight; API p-y, t-z and Q-z curves, see
+//        soil/coral_soil.h)
+//   pile <frame member> soil <soil> D <D> [py] [tz] [qz] [linear]
+//        (springs at the member's nodes below the mudline; all three kinds unless some are listed;
+//        linear: initial slopes only)
 //   static                                       static equilibrium before the time integration
 //   modes <n> [damped]                           linear analysis: the first n modes (modes.dat, mode_shapes.dat)
 //   output vtp <dt>                              VTP of the structure (coral_vtp/)

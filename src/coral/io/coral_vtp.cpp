@@ -23,6 +23,7 @@ Architect: Hans Bihs
 #include"coral/io/coral_vtp.h"
 #include"coral/core/coral_model.h"
 #include"coral/structure/coral_beam.h"
+#include"coral/structure/coral_superelement.h"
 #include"coral/mooring/coral_mooring.h"
 #include<fstream>
 #include<iomanip>
@@ -50,6 +51,18 @@ bool write_vtp(const model &m, const std::string &file)
             pts.push_back(pb);
             lines.push_back({i0, i0+1});
             kind.push_back(1);
+        }
+        else if(const auto *se = dynamic_cast<const superelement*>(l.get()))
+        {
+            std::vector<Vec3> np;
+            se->node_positions(m, np);
+            const int i0 = (int)pts.size();
+            pts.insert(pts.end(), np.begin(), np.end());
+            for(const auto &e : se->elements())
+            {
+                lines.push_back({i0 + e.first, i0 + e.second});
+                kind.push_back(3);
+            }
         }
         else if(const auto *ml = dynamic_cast<const mooring_line*>(l.get()))
         {

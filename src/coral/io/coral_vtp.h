@@ -20,7 +20,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Architect: Hans Bihs
 --------------------------------------------------------------------*/
 // REEF3D::CORAL: VTK PolyData (ASCII .vtp) of the structure for ParaView: beam elements and mooring
-// lines as lines, the bodies as vertices (cell data "kind": 0 body, 1 beam element, 2 mooring line).
+// lines as lines, the bodies as vertices (cell data "kind": 0 body, 1 beam element, 2 mooring line,
+// 3 superelement element between recovered nodes).
 
 #ifndef CORAL_VTP_H_
 #define CORAL_VTP_H_

@@ -87,7 +87,9 @@ they are moved into CORAL. Without CORAL switched on, REEF3D runs as before.
 
 1. Core, rigid bodies, engineering hydrodynamics, hydrodynamic coefficients from REEF3D, PTO and
    mooring. First check: wave energy converters (RM3, OSWEC).
-2. Structure: modal bodies, frame finite elements, eigenanalysis and linearisation, soil.
+2. Structure: co-rotational frames with analytic tangents and sparse solvers, Craig-Bampton
+   superelements, static equilibrium, eigenanalysis and linearisation, soil (API p-y, t-z, Q-z),
+   Morison loads on flexible members; floating-frame superelements and modal bodies to follow.
 3. Wind, aerodynamics and the native controller. Checks: OC3, OC4, IEA 15 MW (fixed and floating).
 4. Strong coupling with the resolved fluid (CFD, NHFLOW, FNPF), flexible immersed geometry.
 5. Load cases and post-processing; vortex wake, wind farms, marine operations.
