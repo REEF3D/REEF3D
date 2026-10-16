@@ -20,7 +20,7 @@ ALLOWED = {
     'control':   ['core'],
     'hydro':     ['core'],
     'linear':    ['core', 'structure'],
-    'mooring':   ['core', 'structure'],
+    'mooring':   ['core', 'structure', 'hydro'],
     'pto':       ['core', 'structure'],
     'soil':      ['core', 'structure'],
     'ice':       ['core', 'structure'],

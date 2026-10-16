@@ -1,0 +1,5 @@
+{"base": "cfd_2d_dambreak", "np": 1, "steps": 60,
+ "ctrl_add": ["G 1 1", "G 7 1", "G 15 0.0 0.3 0.0 1.0 0.0 0.4", "H 10 3", "H 15 4", "H 50 40.0 10.0", "H 51 0.0", "H 52 -1.0", "H 53 0.0", "H 54 0.1", "H 55 1.0", "H 56 0.3", "P 12 1"],
+ "description": "Heat on the CFD patches with subcycling (G 7 1): the refinement transports T on all grids in flux form (SSP-RK3, WENO face values H 15 4, implicit diffusion D 20 2); warm water in the dam column, the front crosses the patch edge x = 0.3; flux registers at the patch edges (refluxing after the two steps of the patch), density and viscosity from T (H 3 1) at the patch edges and the cells around the patch.",
+ "tags": ["quick", "2d", "dambreak", "levelset", "amr", "heat"],
+ "covers": ["cfd_amr_scalar: SSP-RK3 flux form on all grids, flux registers, refluxing (G 7 1)", "rmix/vmix: density from T at the patch edges", "heat_RK3 on the patches as the holder of T"]}
