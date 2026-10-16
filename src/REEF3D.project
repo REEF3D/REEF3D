@@ -863,6 +863,7 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Soil">
           <File Name="coral/soil/README.md"/>
+          <File Name="coral/soil/coral_soil.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Ice">
           <File Name="coral/ice/README.md"/>
@@ -2422,7 +2423,9 @@
         <VirtualDirectory Name="PTO">
           <File Name="coral/pto/coral_pto.cpp"/>
         </VirtualDirectory>
-        <VirtualDirectory Name="Soil"/>
+        <VirtualDirectory Name="Soil">
+          <File Name="coral/soil/coral_soil.cpp"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Ice"/>
         <VirtualDirectory Name="IO">
           <File Name="coral/io/coral_input.cpp"/>
