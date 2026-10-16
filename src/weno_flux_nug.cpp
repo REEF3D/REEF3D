@@ -116,6 +116,19 @@ void weno_flux_nug::start(lexer* p, fdm* a, field& b, int ipol, field& uvel, fie
         a->L(i,j,k)+=aij(p,a,b,5,uvel,vvel,wvel,p->DXN,p->DYN,p->DZN);
 }
 
+double weno_flux_nug::face_value(lexer *p, fdm *a, field &b, field &vel, int d, int ii, int jj, int kk, double vel_face)
+{
+    uf=vf=wf=0;
+    i=ii;
+    j=jj;
+    k=kk;
+    if(d==0)
+    return fx(p,a,b,vel,4,vel_face);
+    if(d==1)
+    return fy(p,a,b,vel,4,vel_face);
+    return fz(p,a,b,vel,4,vel_face);
+}
+
 double weno_flux_nug::aij(lexer* p,fdm* a,field& b,int ipol, field& uvel, field& vvel, field& wvel, double *DX,double *DY, double *DZ)
 {
         pflux->u_flux(a,ipol,uvel,ivel1,ivel2);

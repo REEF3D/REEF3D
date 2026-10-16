@@ -249,6 +249,7 @@ void driver::cfd_driver()
     if(cfd_amr::scope(p,pgc))
     {
         pcfdamr = new cfd_amr(p,a,pgc,pmom,ppress,ppois,pflow,pvrans,pfsi,pini,pturb,p6dof);
+        pcfdamr->scalar_objects(pheat,pconc);
         pcfdamr->ini(p,a,pgc);
         pprint->amr_probes(pcfdamr);
     }

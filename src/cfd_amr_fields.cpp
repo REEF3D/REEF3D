@@ -26,6 +26,8 @@ Architect: Hans Bihs
 #include"ghostcell.h"
 #include"turbulence.h"
 #include"rans_io.h"
+#include"heat_print.h"
+#include"concentration_io.h"
 #include<iostream>
 #include<string>
 #include<mpi.h>
@@ -43,8 +45,8 @@ Architect: Hans Bihs
 //
 //  A new field (heat T, concentration C, ...): one entry here with its roles, the field of the
 //  patch's own object in get (patch_objects builds the object), its boundary code; the fills,
-//  restriction, time levels and regrid transfer then take it.  AF_CONS marks a conserved quantity:
-//  with subcycling its fluxes across the patch edges need refluxing (flux registers, not yet).
+//  restriction, time levels and regrid transfer then take it.  AF_CONS marks a conserved quantity
+//  (the heat or concentration of cfd_amr_scalar.cpp): its fluxes across the patch edges matched.
 //
 //  The order of the entries is the order of the boundary-value calls and of the time levels
 //  (u, v, w first: their time levels are indexed by the direction).
@@ -104,9 +106,26 @@ void cfd_amr::register_fields()
     add("ro",CELL,0,AF_RSTEP|AF_RSTAGE|AF_BCINI|AF_BCSTEP|AF_BCSTAGE,4,1,[](fdm *a, turbulence*) -> field& { return a->ro; });
     add("visc",CELL,0,AF_RSTEP|AF_RSTAGE|AF_BCINI|AF_BCSTEP|AF_BCSTAGE,4,1,[](fdm *a, turbulence*) -> field& { return a->visc; });
 
+    // heat T or concentration C (cfd_amr_scalar.cpp): conserved (flux registers), transported by
+    // the refinement; the field of the heat / concentration object of the grid
+    if(scal)
+    {
+        cfd_amr_field e;
+        e.name = (scal==1) ? "T" : "C";
+        e.type = CELL;
+        e.prolong = 1;
+        e.roles = AF_STATE|AF_TIME|AF_RSTEP|AF_BCSTATE|AF_BCINI|AF_BCSTEP|AF_CONS;
+        e.gc = 4;
+        e.gcval = 80;
+        e.get = [](fdm *a, turbulence*) -> field& { return a->phi; };   // not used (pget, get0)
+        e.pget = [this](cfd_amr_patch *c) -> field& { return scal==1 ? static_cast<heat_print*>(c->pheat)->T : static_cast<concentration_io*>(c->pconc)->C; };
+        e.get0 = [this]() -> field& { return sfield(-1); };
+        reg.push_back(e);
+    }
+
     // the time levels: u, v, w first (indexed by the direction)
     tl_n = 0;
-    tl_phi = tl_press = -1;
+    tl_phi = tl_press = tl_s = -1;
     for(cfd_amr_field &e : reg)
     if(e.roles & AF_TIME)
     {
@@ -120,6 +139,8 @@ void cfd_amr::register_fields()
         tl_phi = e.tl;
         if(e.roles & AF_TMID)
         tl_press = e.tl;
+        if(e.roles & AF_CONS)
+        tl_s = e.tl;
     }
 
     // a field filled at a stage of G 7 1 is taken from the time levels of the coarser grid

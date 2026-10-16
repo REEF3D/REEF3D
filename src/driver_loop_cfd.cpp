@@ -81,8 +81,12 @@ void driver::loop_cfd(fdm* a)
 		    
             pfsf->start(a,p, pfsfdisc,psolv,pgc,pflow,preini,a->phi);
             pturb->start(a,p,pturbdisc,pturbdiff,psolv,pgc,pflow,pvrans);
+            // with the mesh refinement it transports heat and concentration on all grids
+            if(pcfdamr==nullptr || !pcfdamr->scalars())
+            {
             pheat->start(a,p,pheatdisc,pdiff,psolv,pgc,pflow);
             pconc->start(a,p,pconcdisc,pconcdiff,pturb,psolv,pgc,pflow);
+            }
             pmp->start(p,a,pgc,pmpconvec,psolv,pflow,preini);
         
         psed->start_susp(p,a,pgc,pflow,psolv);

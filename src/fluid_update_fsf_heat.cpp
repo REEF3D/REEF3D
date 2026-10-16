@@ -108,6 +108,30 @@ void fluid_update_fsf_heat::start(lexer *p, fdm* a, ghostcell* pgc, field &u, fi
 
 }
 
+void fluid_update_fsf_heat::props(lexer *p, double temp, double &r1, double &r2, double &v1, double &v2)
+{
+    r1 = p->W1;
+    r2 = p->W3;
+    v1 = p->W2;
+    v2 = p->W4;
+
+    if(p->H9==1)
+    {
+    r1 = material_ipol(water_density,water_density_num, temp);
+    r2 = material_ipol(air_density,air_density_num, temp);
+    v1 = material_ipol(water_viscosity,water_viscosity_num, temp);
+    v2 = material_ipol(air_viscosity,air_viscosity_num, temp);
+    }
+
+    if(p->H9==2)
+    {
+    r1 = material_ipol(air_density,air_density_num, temp);
+    r2 = material_ipol(water_density,water_density_num, temp);
+    v1 = material_ipol(air_viscosity,air_viscosity_num, temp);
+    v2 = material_ipol(water_viscosity,water_viscosity_num, temp);
+    }
+}
+
 double fluid_update_fsf_heat::material_ipol(double **pm, int num, double temp)
 {
     double val=0.0;

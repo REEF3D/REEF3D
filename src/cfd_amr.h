@@ -56,6 +56,11 @@ class momentum;
 class momentum_rk;
 class reefmg_core;
 class initialize;
+class field1;
+class field2;
+class field3;
+class weno_flux_nug;
+class fluid_update_fsf_heat;
 
 using namespace std;
 
@@ -89,8 +94,9 @@ enum : unsigned
     AF_BCINI   = 1u<<8,     // boundary values of the initial patches
     AF_BCSTEP  = 1u<<9,     // boundary values of level 0 after the restriction of a step (G 7 1)
     AF_BCSTAGE = 1u<<10,    // boundary values of level 0 after the restriction of a stage (G 7 0)
-    AF_CONS    = 1u<<11     // conserved quantity (its fluxes at the patch edges: flux registers, not yet)
+    AF_CONS    = 1u<<11     // conserved quantity: its fluxes at the patch edges matched (flux registers, cfd_amr_scalar.cpp)
 };
+struct cfd_amr_patch;
 struct cfd_amr_field
 {
     const char *name;
@@ -100,6 +106,9 @@ struct cfd_amr_field
     int gc, gcval;      // its boundary values: ghostcell start1-4 (1-4), start4a (5), none (0); the code
     std::function<field&(fdm*,turbulence*)> get;      // the field of a grid (its fdm and turbulence model)
     int tl = -1;        // AF_TIME: its index in the time levels
+    // a field of an object of the grid (heat T, concentration C): of a patch, of level 0
+    std::function<field&(cfd_amr_patch*)> pget;
+    std::function<field&()> get0;
 };
 
 //  REEF3D::CFD with mesh refinement (A 10 6, G 1 > 0, static boxes G 15).
@@ -128,7 +137,9 @@ struct cfd_amr_field
 //  The step size is the minimum of all levels.  Scope of this version: two-phase or single-phase
 //  flow (F 30, N 40 2/3), RANS turbulence, solids and topography, floating bodies (X 10 1), the
 //  porous structures B 200 1 (vrans_f on every patch, the zones at its cells; CPOR n at the faces of
-//  the patch edges); no sediment, vegetation, heat or concentration; the convection schemes D 10
+//  the patch edges); heat or concentration (H 10 3, C 10 3: transported by the refinement on all
+//  grids in flux form, the patch edges with flux registers, cfd_amr_scalar.cpp); no sediment or
+//  vegetation; the convection schemes D 10
 //  0-8, 10-16, 60 and F 35 1-8, 10-16, the diffusion D 20 0-3; the relaxation zones of the wave
 //  generation and the beach (B 98 2, B 99 1/2) with a wave theory on the patches as on level 0
 //  (cfd_amr_relax.cpp, the eddy viscosity as well), the other wave generation and absorption on
@@ -143,6 +154,14 @@ struct cfd_amr_field
 //  level at the patch edges (pr_level), and at the end of the level-0 step the synchronisation
 //  projection over all levels (pr_sync_project).  F 46 2/3: the volume correction of the level set
 //  over the leaf cells of all grids at the end of the step.
+
+// heat, concentration (cfd_amr_scalar.cpp): the work fields of a grid
+struct cfd_amr_scgrid
+{
+    field *s0 = nullptr, *kap = nullptr, *L = nullptr;
+    field *fx = nullptr, *fy = nullptr, *fz = nullptr;
+    weno_flux_nug *weno = nullptr;
+};
 
 struct cfd_amr_patch : public r3patch
 {
@@ -166,6 +185,7 @@ struct cfd_amr_patch : public r3patch
     vrans *pvrans = nullptr;
     momentum_rk *pmom = nullptr;
     cfd_amr_6dof *p6dof = nullptr;  // the floating bodies on the patch (X 10 1)
+    cfd_amr_scgrid *sc = nullptr;   // heat, concentration: the work fields
 
     vector<signed char> mkind;      // per cell of the array: -1 interior, else the fill kind of the cell
     vector<double> edge[3];         // per face of u, v, w: the Dirichlet value of the implicit diffusion at the high patch edges (NaN: none)
@@ -245,6 +265,12 @@ public:
     // subcycling (cfd_amr_sub.cpp)
     void step_sub(lexer*, fdm*, ghostcell*, vrans*, sixdof*);
 
+    // heat (H 10) or concentration (C 10) on all grids (cfd_amr_scalar.cpp): the driver's objects
+    // of level 0 (before ini); true: the refinement transports the scalar on all grids (the driver
+    // leaves its step out)
+    void scalar_objects(heat*, concentration*);
+    bool scalars() const { return scal>0; }
+
     double tm[8] = {0,0,0,0,0,0,0,0};
     double tp[4] = {0,0,0,0};
 
@@ -304,7 +330,13 @@ private:
     vector<cfd_amr_field> reg;
     void register_fields();
     turbulence* gturb(int g) { return g<0 ? pturb0 : CP(g)->pturb; }
-    field& rf(const cfd_amr_field &e, int g) { return e.get(gfd(g),gturb(g)); }
+    field& rf(const cfd_amr_field &e, int g)
+    {
+        if(e.pget)
+        return g<0 ? e.get0() : e.pget(CP(g));
+        return e.get(gfd(g),gturb(g));
+    }
+    field& rfp(const cfd_amr_field &e, cfd_amr_patch *c) { return e.pget ? e.pget(c) : e.get(c->a,c->pturb); }
     vector<fspec> specs(unsigned role);                         // fills
     vector<std::function<field&(int)>> rcells(unsigned role);    // restriction: cell fields
     vector<std::function<field&(int)>> rfaces(unsigned role);    // restriction: u, v, w (by direction)
@@ -440,6 +472,44 @@ private:
     double pr_res_last = 0.0;
     long pr_it_total = 0, pr_solves = 0;
     bool pr_ready = false;
+
+    // heat or concentration (cfd_amr_scalar.cpp): a conservative transport of the scalar on all
+    // grids (SSP-RK3 in flux form; the diffusion explicit in the stages, D 20 1, or implicit after
+    // them, D 20 2), the fluxes through the faces at the patch edges matched with flux registers
+    int scal = 0;                       // 0 none, 1 heat T (H 10), 2 concentration C (C 10)
+    int sc_conv = 0;                    // convection H 15 / C 15: 0 none, 1 first-order upwind, 4 WENO (weno_flux_nug)
+    int sc_diff = 0;                    // D 20: 0 none, 1 explicit, 2 implicit
+    double sc_sig = 1.0;                // the turbulent Prandtl (Schmidt) number of the eddy viscosity
+    heat *pheat0 = nullptr;
+    concentration *pconc0 = nullptr;
+    fluid_update_fsf_heat *smat = nullptr;      // heat: the material tables of the density and viscosity
+    cfd_amr_scgrid sc0;                 // level 0 (the patches: cfd_amr_patch::sc)
+    cfd_amr_scgrid& SG(int g) { return g<0 ? sc0 : *CP(g)->sc; }
+    void sc_make(int g);
+    void sc_release(cfd_amr_scgrid&);
+    vector<double> fr_c, fr_f;          // flux registers per face of cf: the coarse and the fine flux (time integral x fine face area)
+    int tl_s = -1;                      // the time level of the scalar
+    field& sfield(int g);               // the scalar of grid g
+    double sval(int g, int i, int j, int k);
+    double sval(int g, int q);
+    double rmix(const lexer*, double H, double s);   // density of the mixture (as fluid_update_fsf_heat / _concentration)
+    double vmix(const lexer*, double H, double s);   // viscosity
+    void sc_alloc();
+    void sc_free();
+    void sc_kappa(int g);
+    void sc_save(int g);
+    void sc_flux(int g);
+    void sc_record(int g, double w, bool coarse, int lfine);
+    void sc_record_diff(int g, double w, bool coarse, int lfine);
+    void sc_update(int g, int s, double dt);
+    void sc_bc(int g);
+    void sc_diffuse(int g);
+    void sc_fill(int l, int mode);      // the cells around the patches of level l: 0 the current scalar, 1 the time level of the coarser grid
+    void sc_step_comp();                // G 7 0: all grids
+    void sc_step_level(int l, double dt, double th0);  // G 7 1: the grids of level l
+    void sc_reflux(int l);              // the flux registers of the patch edges of level l onto level l-1
+    void sc_reset(int lfine);
+    double sc_total(double &smin, double &smax);
 };
 
 #endif

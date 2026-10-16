@@ -38,6 +38,11 @@ public:
 
 	void start(lexer*,fdm*,field&,int,field&,field&,field&) override final;
 
+    // the face value of the cell scalar b at the face i+1/2 (d 0), j+1/2 (1), k+1/2 (2) of cell
+    // (i,j,k) for the face velocity vel (as start with ipol 4: the conservative flux vel x value;
+    // the mesh refinement takes the fluxes through the faces at its patch edges from it)
+    double face_value(lexer*, fdm*, field &b, field &vel, int d, int i, int j, int k, double vel_face);
+
 private:
     double aij(lexer*, fdm*, field&, int,field&,field&,field&,double*,double*,double*);
     

@@ -1409,6 +1409,7 @@
         <File Name="cfd_amr_regrid.cpp"/>
         <File Name="cfd_amr_6dof.cpp"/>
         <File Name="cfd_amr_fields.cpp"/>
+        <File Name="cfd_amr_scalar.cpp"/>
       </VirtualDirectory>
       <File Name="reefamr.cpp"/>
       <File Name="reefamr_regrid.cpp"/>
