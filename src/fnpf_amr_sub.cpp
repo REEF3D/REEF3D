@@ -335,6 +335,7 @@ void fnpf_amr::sub_stage(lexer *p, ghostcell *pgc, int l, int k, int s, double d
         pp->dt_old = dt;
         pp->simtime = tsub;
         pp->count = p->count;
+        pp->amr_follow(*p);
 
         slice4 &ek = *pc->ek, &fk = *pc->fk;
         slice4 &erk1 = *pc->erk1, &erk2 = *pc->erk2;

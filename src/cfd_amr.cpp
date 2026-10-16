@@ -1473,6 +1473,7 @@ void cfd_amr::step_comp(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof 
         pp->dt_old = p->dt_old;
         pp->simtime = p->simtime;
         pp->count = p->count;
+        pp->amr_follow(*p);
     }
 
     // the turbulence model on the patches (level 0: the driver), the cells around them from the

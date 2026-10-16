@@ -3155,6 +3155,7 @@
         <File Name="lexer_read.cpp"/>
         <File Name="lexer_ini.cpp"/>
         <File Name="lexer_assign.cpp"/>
+        <File Name="lexer_amr.cpp"/>
         <File Name="read_grid.cpp"/>
         <File Name="lexer_gridsize.cpp"/>
         <File Name="lexer_vectorsize.cpp"/>

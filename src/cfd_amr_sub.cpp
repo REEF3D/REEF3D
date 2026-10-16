@@ -251,6 +251,7 @@ void cfd_amr::patch_step(int l, double dt, double th0, double t)
         c->dt_l = dt;
         pp->simtime = t;
         pp->count = p0->count;
+        pp->amr_follow(*p0);
     }
 
     // the turbulence model (the cells around the patches filled at the start of the step)

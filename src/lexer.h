@@ -54,6 +54,12 @@ public:
 	lexer();
 	// SFLOW AMR patch: control keys copied from b, the patch geometry is set by sflow_amr
 	lexer(const lexer &b, int);
+
+    // the grids of a mesh refinement (lexer_amr.cpp): the runtime state of level 0 at the
+    // construction, the members level 0 changes during the run before every step of a grid
+    void amr_inherit(const lexer &b);
+    void amr_follow(const lexer &b);
+    std::vector<double> amr_last;   // amr_follow: the values it set (the contract check)
 	virtual ~lexer();
 
 //-----functions------------------

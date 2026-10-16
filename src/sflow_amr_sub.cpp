@@ -211,6 +211,7 @@ void sflow_amr::sub_level(lexer *p, ghostcell *pgc, int l, int k, double t, doub
         c->pp->dt_old = dt;
         c->pp->simtime = t;
         c->pp->count = p->count;
+        c->pp->amr_follow(*p);
         c->pmom->inflow(c->pp,c->b,pgc,pflow_void);
     }
     }
