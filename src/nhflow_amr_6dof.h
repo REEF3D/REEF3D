@@ -65,9 +65,11 @@ public:
     void jsource(lexer*,fdm*,ghostcell*) override final {}
     void ksource(lexer*,fdm*,ghostcell*) override final {}
 
-    void isource(lexer*,fdm_nhf*,ghostcell*,slice&) override final {}
-    void jsource(lexer*,fdm_nhf*,ghostcell*,slice&) override final {}
-    void ksource(lexer*,fdm_nhf*,ghostcell*,slice&) override final {}
+    // the actuator disks of the load models (ship propellers, propeller_source 1) on the patch;
+    // without them the restriction would overwrite the level-0 source under the patch
+    void isource(lexer*,fdm_nhf*,ghostcell*,slice&) override final;
+    void jsource(lexer*,fdm_nhf*,ghostcell*,slice&) override final;
+    void ksource(lexer*,fdm_nhf*,ghostcell*,slice&) override final;
 
     void isource2D(lexer*,fdm2D*,ghostcell*) override final {}
     void jsource2D(lexer*,fdm2D*,ghostcell*) override final {}

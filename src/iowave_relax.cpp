@@ -283,7 +283,8 @@ void iowave::phi_relax(lexer *p, ghostcell *pgc, field& f)
             // Zone 1
             if(dg<1.0e20)
             {
-            f(i,j,k) = (1.0-relax4_wg(i,j))*ramp(p) * lsval[count] + relax4_wg(i,j)*f(i,j,k);
+            // the ramp (B 101) acts on the wave elevation only: lsval = eta + phimean - z
+            f(i,j,k) = (1.0-relax4_wg(i,j))*(lsval[count] - (1.0-ramp(p))*eta(i,j)) + relax4_wg(i,j)*f(i,j,k);
             ++count;
             }
         }
@@ -321,10 +322,10 @@ void iowave::vof_relax(lexer *p, fdm* a, ghostcell *pgc, field& f)
     db = distbeach(p);
     
     if(dg<1.0e20)
-    genheight(i,j) = (1.0-relax4_wg(i,j))*ramp(p) * (eta(i,j)+p->phimean) + relax4_wg(i,j)*vofheight(i,j);
+    genheight(i,j) = (1.0-relax4_wg(i,j))*(ramp(p)*eta(i,j) + p->phimean) + relax4_wg(i,j)*vofheight(i,j);
     
     else if (db<1.0e20)
-    genheight(i,j) = (1.0-relax4_nb(i,j))*ramp(p) * (p->phimean) + relax4_nb(i,j)*vofheight(i,j);
+    genheight(i,j) = (1.0-relax4_nb(i,j))*p->phimean + relax4_nb(i,j)*vofheight(i,j);
     
     else
     genheight(i,j)=vofheight(i,j);

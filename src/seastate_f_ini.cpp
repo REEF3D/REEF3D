@@ -608,10 +608,19 @@ void seastate_f::storage(lexer *p, ghostcell *pgc)
             const double t1 = p->A717_th1*3.14159265358979323846/180.0, t2 = p->A717_th2*3.14159265358979323846/180.0;
             const int nfull = e->grid->ndir;
 
-            if(!e->grid->computational_sector(t1,t2) || e->grid->active()==0)
+            const bool contiguous = e->grid->computational_sector(t1,t2);
+
+            if(!contiguous || e->grid->active()==0)
             {
-            if(p->mpirank==0)
-            cout<<endl<<"SEASTATE input error  --  A 717: the computational sector must hold at least one direction and be at most 270 deg wide"<<endl<<endl;
+            // computational_sector checks that the active directions of every 90 deg quadrant are one
+            // contiguous range: the two ends of the sector must not lie in the same quadrant with the
+            // gap of the sector between them (possible only for sectors wider than 270 deg)
+            if(p->mpirank==0 && !contiguous)
+            cout<<endl<<"SEASTATE input error  --  A 717: the gap outside the computational sector lies inside one 90 deg quadrant;"
+                <<" the active directions of every quadrant must be contiguous, narrow the sector or move its ends to different quadrants"<<endl<<endl;
+
+            if(p->mpirank==0 && contiguous)
+            cout<<endl<<"SEASTATE input error  --  A 717: the computational sector holds no direction"<<endl<<endl;
 
             pgc->final(true);
             }

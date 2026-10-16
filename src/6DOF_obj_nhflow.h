@@ -24,6 +24,7 @@ Authors: Hans Bihs, Tobias Martin
 #define SIXDOF_OBJ_NHFLOW_H_
 
 #include"6DOF_obj_2D.h"
+#include<array>
 
 class nhflow_reinidisc_fsf;
 
@@ -81,8 +82,13 @@ public:
     
     // actuator disks of the load models (body-force propellers): momentum source of the
     // component comp (0 x, 1 y, 2 z) added to the right-hand side F (NHFLOW form, times WL)
-    void actuator_source(lexer*, fdm_nhf*, ghostcell*, slice&, int, double*);
+    // patch: the source on an NHFLOW AMR patch (nhflow_amr_6dof). A disk that lies completely in
+    // the computed cells of the patch is distributed with the sums of the patch (exactly T and Q on
+    // the fine grid); a disk across the patch boundary uses the sums of the last level-0 call
+    void actuator_source(lexer*, fdm_nhf*, ghostcell*, slice&, int, double*, bool patch=false);
     bool actuator_warned = false;
+    bool actuator_warned_patch = false;
+    vector<std::array<sixdof_actuator_disk::sums,3>> actuator_S0;   // level-0 sums per disk
     double nhflow_dsm() const {return DSM;}
     double nhflow_nb() const {return NB;}
     
