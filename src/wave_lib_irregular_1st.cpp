@@ -31,7 +31,10 @@ Author: Hans Bihs
 
 // Expose glibc's libmvec vector variants (normally only with -ffast-math).
 // Used only when compiled with -fopenmp-simd; otherwise these are no-ops.
-#if defined(_OPENMP) || defined(REEF3D_SIMD_MATH)
+// glibc only (__GLIBC__ comes with <cmath>): glibc declares these functions as non-throwing, the
+// macOS SDK does not, and clang rejects the noexcept redeclaration there; on macOS (no libmvec)
+// the loops use the scalar functions.
+#if (defined(_OPENMP) || defined(REEF3D_SIMD_MATH)) && defined(__GLIBC__)
 extern "C" {
 #pragma omp declare simd notinbranch
 double sin(double) noexcept;

@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"fnpf_print_wsf.h"
 #include"lexer.h"
 #include"fdm2D.h"
+#include"fdm_fnpf.h"
 #include"ghostcell.h"
 #include<sys/stat.h>
 #include<sys/types.h>
@@ -142,14 +143,27 @@ void fnpf_print_wsf::fill_eta(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f)
     wsf[n]=-1.0e20;
 
 	
+    // the mesh refinement: the finest grid at the gauge (one rank writes it, its cell there)
+    amr_points ap;
+    if(amr!=nullptr)
+    ap.find(amr,p,gauge_num,x,y,flag);
+
     for(n=0;n<gauge_num;++n)
-    if(flag[n]>0)
+    if(amr==nullptr ? flag[n]>0 : ap.mine[n]!=0)
     {
     zval=0.0;
 
     i=iloc[n];
     j=jloc[n];
-	
+
+        if(amr!=nullptr && ap.f[n]!=nullptr)
+        {
+            lexer *q = ap.q[n];
+            i = q->posc_i(x[n]);
+            j = (q->j_dir==1) ? q->posc_j(y[n]) : 0;
+            wsf[n] = static_cast<fdm_fnpf*>(ap.f[n])->eta(i,j);
+        }
+        else
 			wsf[n] = f(i,j);
 
     }

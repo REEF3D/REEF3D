@@ -259,7 +259,7 @@ void cfd_amr::regrid(lexer *p, ghostcell *pgc)
                     const int oi = I[0]-o->lo[0], oj = I[1]-o->lo[1], ok = I[2]-o->lo[2];
                     for(const cfd_amr_field &e : reg)
                     if(e.roles & AF_STATE)
-                    e.get(c->a,c->pturb)(li,lj,lk) = e.get(o->a,o->pturb)(oi,oj,ok);
+                    rfp(e,c)(li,lj,lk) = rfp(e,o)(oi,oj,ok);
                     continue;
                 }
 

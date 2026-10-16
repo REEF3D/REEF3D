@@ -193,6 +193,10 @@ void driver::driver_ini_nhflow()
     // mesh refinement ini: patches from the initial state
     if(pnhfamr!=nullptr)
     pnhfamr->ini(p,d,pgc);
+
+    // the wave gauges and probes of the printer on the finest grid
+    if(pnhfamr!=nullptr)
+    pprint->amr_columns(p,pnhfamr);
     
     // S 10: the sediment step runs on all grids (nhflow_amr_sed.cpp)
     if(pnhfamr!=nullptr)

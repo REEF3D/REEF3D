@@ -25,6 +25,12 @@ Author: Hans Bihs
 lexer::lexer() : cmu(0.09), position(this), interpolation(this), coordinates(this)
 {
     sigT=0.9;
+    // runtime state set only by the features that use it (the grids of a mesh refinement copy it:
+    // lexer_amr.cpp)
+    fsfinval=fsfoutval=0.0;
+    wts=wte=0.0;
+    sedsimtime=sedwavetime=0.0;
+    deltax=0.0;
     veclength=0;
     vec2Dlength=0;
     

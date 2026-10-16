@@ -24,6 +24,7 @@ Author: Hans Bihs
 #define NHFLOW_PROBE_PRESS_H_
 
 #include"boundarycheck.h"
+#include"amr_grid_lookup.h"
 #include<iostream>
 #include<fstream>
 
@@ -37,6 +38,9 @@ using namespace std;
 class nhflow_probe_press : public boundarycheck
 {
 public:
+    // the mesh refinement: the points read the finest grid (amr_grid_lookup.h), nullptr: level 0
+    const amr_column_lookup *amr = nullptr;
+
     nhflow_probe_press(lexer*,fdm_nhf*);
 	virtual ~nhflow_probe_press();
 

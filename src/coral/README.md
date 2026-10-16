@@ -52,7 +52,8 @@ A folder includes only from itself and the folders below it:
 |---|---|
 | `core` | `core` |
 | `structure`, `wind`, `control`, `hydro` | `core` |
-| `linear`, `mooring`, `pto`, `soil`, `ice` | `core`, `structure` |
+| `linear`, `pto`, `soil`, `ice` | `core`, `structure` |
+| `mooring` | `core`, `structure`, `hydro` (wave kinematics) |
 | `aero` | `core`, `structure`, `wind` |
 | `panel` | `core`, `hydro` |
 | `io` | all physics folders |

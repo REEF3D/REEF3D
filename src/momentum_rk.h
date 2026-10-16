@@ -115,6 +115,11 @@ public:
     field4& amr_phi_in(int s);
     field4& amr_phi_out(int s);
 
+    // the diffusion and its solver (the mesh refinement: the implicit diffusion of heat and
+    // concentration on the grid of this object)
+    diffusion* amr_diffusion() { return pdiff; }
+    solver* amr_solver() { return psolv; }
+
 private:
     enum {SSP=0, LOWSTORAGE=1};
 

@@ -477,3 +477,9 @@ void sflow_vtp_fsf::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence
 
     ++p->printcount;
 }
+
+void sflow_vtp_fsf::amr_columns(const amr_column_lookup *amr)
+{
+    pwsf->amr = amr;
+    pprobe->amr = amr;
+}

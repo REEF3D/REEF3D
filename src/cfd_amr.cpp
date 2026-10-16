@@ -62,6 +62,9 @@ Architect: Hans Bihs
 #include"iweno_hj_df_nug.h"
 #include"idiff2.h"
 #include"heat_void.h"
+#include"heat_RK3.h"
+#include"concentration_RK3.h"
+#include"fluid_update_fsf_heat.h"
 #include"concentration_void.h"
 #include"reini_RK3.h"
 #include"patchBC_void.h"
@@ -205,8 +208,22 @@ bool cfd_amr::scope(lexer *p, ghostcell *pgc)
     why = "the level set (F 30) or single phase flow, no VOF (F 80) or multiphase (F 300)";
     else if(!(p->T10==0 || p->T10==1 || p->T10==2 || p->T10==21 || p->T10==22))
     why = "laminar flow or a RANS model (T 10 0, 1, 2, 21, 22)";
-    else if(p->H10!=0 || p->C10!=0 || p->W30!=0 || p->W90!=0)
-    why = "no heat, concentration, compressibility or rheology (H 10, C 10, W 30, W 90)";
+    else if(p->W30!=0 || p->W90!=0)
+    why = "no compressibility or rheology (W 30, W 90)";
+    else if(p->H10!=0 && p->C10!=0)
+    why = "heat or concentration, not both (H 10, C 10)";
+    else if((p->H10!=0 && p->H10!=3) || (p->C10!=0 && p->C10!=3))
+    why = "heat and concentration with SSP-RK3, H 10 3, C 10 3 (the refinement transports them in flux form on all grids)";
+    else if(p->H10>0 && !(p->H15==0 || p->H15==1 || p->H15==4))
+    why = "the heat convection H 15 0, 1 or 4 (a conservative face flux)";
+    else if(p->C10>0 && !(p->C15==0 || p->C15==1 || p->C15==4))
+    why = "the concentration convection C 15 0, 1 or 4 (a conservative face flux), no S 12";
+    else if(p->C10>0 && p->S12>=1)
+    why = "the concentration convection C 15 0, 1 or 4 (a conservative face flux), no S 12";
+    else if(p->H10>0 && p->H3!=1)
+    why = "heat with the material tables, H 3 1";
+    else if((p->H10>0 || p->C10>0) && (p->B200!=0 || p->D20>2))
+    why = "heat and concentration without porous structures (B 200 0), with the diffusion D 20 0, 1 or 2";
     else if(p->S10!=0 || p->Q10!=0)
     why = "no sediment (S 10, Q 10)";
     else if(p->E10>0)
@@ -275,6 +292,15 @@ cfd_amr::cfd_amr(lexer *p, fdm *a, ghostcell *pgc, momentum *pmom, pressure *ppr
     if(p->F50==2) gcval_phi = 52;
     if(p->F50==3) gcval_phi = 53;
     if(p->F50==4) gcval_phi = 54;
+
+    // heat or concentration: transported by the refinement on all grids (cfd_amr_scalar.cpp)
+    scal = (p->H10>0) ? 1 : (p->C10>0 ? 2 : 0);
+    if(scal)
+    {
+        sc_conv = (scal==1) ? p->H15 : p->C15;
+        sc_diff = (p->D20==1) ? 1 : (p->D20>=2 ? 2 : 0);
+        sc_sig = (scal==1) ? p->sigT : 1.0;
+    }
 
     // the registry of the patch state (cfd_amr_fields.cpp)
     register_fields();
@@ -359,6 +385,29 @@ void cfd_amr::hierarchy(bool first)
         cout<<endl;
     }
 
+    // the load of the ranks: level-0 cells and patch cells (the patches lie on the rank of the level-0
+    // cells below them); max / mean over the ranks
+    if(nranks>1)
+    {
+        double w[2] = {double(p->knox)*p->knoy*p->knoz, 0.0};
+        for(auto q : P)
+        w[1] += double(q->n[0])*q->n[1]*q->n[2];
+        double wmax[2], wsum[2];
+        const double wt[1] = {w[0]+w[1]};
+        double tmax, tsum;
+        MPI_Allreduce(w,wmax,2,MPI_DOUBLE,MPI_MAX,MPI_COMM_WORLD);
+        MPI_Allreduce(w,wsum,2,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+        MPI_Allreduce(wt,&tmax,1,MPI_DOUBLE,MPI_MAX,MPI_COMM_WORLD);
+        MPI_Allreduce(wt,&tsum,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+        if(p->mpirank==0)
+        {
+            const std::streamsize pr = cout.precision();
+            cout<<"CFD AMR: load max/mean over "<<nranks<<" ranks: cells "<<setprecision(3)<<tmax/(tsum/nranks)
+                <<" (level 0 "<<wmax[0]/(wsum[0]/nranks)<<", patches "<<(wsum[1]>0.0 ? wmax[1]/(wsum[1]/nranks) : 0.0)<<")"<<endl;
+            cout.precision(pr);
+        }
+    }
+
     sync_x_ok = false;
 
     // kinds of the cells around the patches
@@ -371,6 +420,10 @@ void cfd_amr::hierarchy(bool first)
     }
 
     pr_setup();
+
+    // heat, concentration: the work fields and the flux registers
+    if(scal)
+    sc_alloc();
 
     // subcycling: the state of the grids that are the coarser level of a patch
     if(sub)
@@ -388,6 +441,8 @@ cfd_amr::~cfd_amr()
     for(cfd_amr_lmg &M : lmg)
     delete M.mg;
     delete zones0;
+    sc_free();
+    delete smat;
 
     if(bodies)
     for(int nb=0; nb<b6->objects(); ++nb)
@@ -467,6 +522,22 @@ void free_lexer_cells(lexer *q)
     delete [] q->flag_topo;
     q->flag_solid = q->flag_topo = nullptr;
     q->geometry_free();     // the horizontal geometry layer of build_lexer
+
+    // the grid and the slices of build_lexer and gridspacing (the boundary lists are left: their
+    // sizes change after build_lexer)
+    double **da[] = {&q->XN,&q->YN,&q->ZN,&q->XP,&q->YP,&q->ZP,&q->DXN,&q->DYN,&q->DZN,&q->DXP,&q->DYP,&q->DZP,
+                     &q->ZSN,&q->ZSP,&q->solidbed,&q->topobed,&q->geobed,&q->bed,&q->depth,&q->WL,&q->data};
+    for(double **a : da)
+    {
+        delete [] *a;
+        *a = nullptr;
+    }
+    int **sa[] = {&q->wet,&q->wet_n,&q->deep,&q->flagslice1,&q->flagslice2,&q->flagslice4,&q->IOSL};
+    for(int **a : sa)
+    {
+        delete [] *a;
+        *a = nullptr;
+    }
 }
 }
 
@@ -479,6 +550,14 @@ void cfd_amr::free_patch(cfd_amr_patch *c)
     delete f;
     c->kv.clear();
     delete c->mg;
+
+    // heat, concentration: the work fields (the WENO tables of the patch lexer)
+    if(c->sc!=nullptr)
+    {
+        sc_release(*c->sc);
+        delete c->sc;
+        c->sc = nullptr;
+    }
 
     // the objects of patch_objects (the base classes have virtual destructors)
     delete c->pmom;
@@ -524,7 +603,14 @@ void cfd_amr::patch_objects(r3patch *rp)
     pp->F46 = 0;
     pp->B30 = (b30==3) ? 3 : 0;
 
-    c->a = new fdm(pp);
+    // the fields of fdm the patch objects use (the others unallocated: VOF, VRANS without porous
+    // structures, the wall distance without a RANS model, output and initialisation fields)
+    unsigned lean = FDM_LEAN_FI|FDM_LEAN_TEST|FDM_LEAN_CONC|FDM_LEAN_VOF|FDM_LEAN_NODE;
+    if(pp->B200==0)
+    lean |= FDM_LEAN_POR;
+    if(!turb)
+    lean |= FDM_LEAN_WALLD;
+    c->a = new fdm(pp,lean);
     pscope ps(pgc0,c->a,a0);
     ghostcell *pgc = pgc0;
     fdm *a = c->a;
@@ -626,7 +712,16 @@ void cfd_amr::patch_objects(r3patch *rp)
     c->psolv = new amr_dsolver(c->psolv_in,&c->mkind,c->edge);
     c->ppoissonsolv = new solver_void(pp,a,pgc);
 
+    // heat, concentration: the objects hold the scalar of the patch (its density and viscosity in
+    // momentum_rk, pjm_corr, poisson_pcorr); the refinement transports it (cfd_amr_scalar.cpp)
+    heat *hdum = nullptr;
+    if(scal==1)
+    c->pheat = new heat_RK3(pp,a,pgc,hdum);
+    else
     c->pheat = new heat_void(pp,a,pgc);
+    if(scal==2)
+    c->pconc = new concentration_RK3(pp,a,pgc);
+    else
     c->pconc = new concentration_void(pp,a,pgc);
 
     // turbulence: the model of level 0, its convection (T 12) and diffusion
@@ -695,17 +790,20 @@ double cfd_amr::cell_slope(field &f, int g, const int *s, int d, int mode)
 // grid g, the child at offset o
 double cfd_amr::prolong(const fspec &F, int g, const int *s, const int *o)
 {
-    field &f = F.f(g);
+    return prolong_f(F.f(g),F.type,F.mode,g,s,o);
+}
 
-    if(F.type==CELL)
+double cfd_amr::prolong_f(field &f, int type, int mode, int g, const int *s, const int *o)
+{
+    if(type==CELL)
     {
         double v = f(s[0],s[1],s[2]);
         for(int d=0; d<3; ++d)
-        v += cell_slope(f,g,s,d,F.mode)*(o[d]==0 ? -0.25 : 0.25);
+        v += cell_slope(f,g,s,d,mode)*(o[d]==0 ? -0.25 : 0.25);
         return v;
     }
 
-    const int d0 = F.type;
+    const int d0 = type;
 
     // the coarse face value of cell c, linear in the transverse directions
     auto T = [&](const int *cc)
@@ -713,7 +811,7 @@ double cfd_amr::prolong(const fspec &F, int g, const int *s, const int *o)
         double v = f(cc[0],cc[1],cc[2]);
         for(int t=0; t<3; ++t)
         if(t!=d0)
-        v += cell_slope(f,g,cc,t,F.mode)*(o[t]==0 ? -0.25 : 0.25);
+        v += cell_slope(f,g,cc,t,mode)*(o[t]==0 ? -0.25 : 0.25);
         return v;
     };
 
@@ -730,18 +828,37 @@ void cfd_amr::fill(int l, vector<fspec> &fs, bool siblings_only)
 {
     const int nv = (int)fs.size();
 
+    // the fields of the grids, resolved once per fill (the field functions of fs are evaluated for
+    // the grids they are asked for, as before, but once each)
+    const int ng = (int)P.size()+1;
+    vector<field*> src((size_t)nv*ng,nullptr), dst((size_t)nv*ng,nullptr);
+    auto S = [&](int m, int g) -> field&
+    {
+        field *&q = src[(size_t)m*ng+g+1];
+        if(q==nullptr)
+        q = &fs[m].f(g);
+        return *q;
+    };
+    auto D = [&](int m, int id) -> field&
+    {
+        field *&q = dst[(size_t)m*ng+id+1];
+        if(q==nullptr)
+        q = &(fs[m].fd ? fs[m].fd : fs[m].f)(id);
+        return *q;
+    };
+
     fill_run(l,nv,
              [&](int kind, int g, const int *s, const int *o, double *v)
              {
                  for(int m=0; m<nv; ++m)
-                 v[m] = (kind==0) ? fs[m].f(g)(s[0],s[1],s[2]) : (siblings_only ? 0.0 : prolong(fs[m],g,s,o));
+                 v[m] = (kind==0) ? S(m,g)(s[0],s[1],s[2]) : (siblings_only ? 0.0 : prolong_f(S(m,g),fs[m].type,fs[m].mode,g,s,o));
              },
              [&](r3patch *c, int id, const r3fill &f, const double *v)
              {
                  if(siblings_only && f.kind==1)
                  return;
                  for(int m=0; m<nv; ++m)
-                 (fs[m].fd ? fs[m].fd : fs[m].f)(id)(f.d[0],f.d[1],f.d[2]) = v[m];
+                 D(m,id)(f.d[0],f.d[1],f.d[2]) = v[m];
              });
 }
 
@@ -771,8 +888,9 @@ void cfd_amr::margin_rovisc(int id)
         const int jw = pp->j_dir==1 ? std::min(std::max(j,1-m),pp->knoy+m-2) : j;
         const int kw = std::min(std::max(k,1-m),pp->knoz+m-2);
         const double H = heaviside(a->phi(i,j,k),interface_width(pp,a->phi,iw,jw,kw));
-        a->ro(i,j,k) = pp->W1*H + pp->W3*(1.0-H);
-        a->visc(i,j,k) = pp->W2*H + pp->W4*(1.0-H);
+        const double sv = sval(id,i,j,k);
+        a->ro(i,j,k) = rmix(pp,H,sv);
+        a->visc(i,j,k) = vmix(pp,H,sv);
     }
 }
 
@@ -1029,8 +1147,9 @@ void cfd_amr::ini(lexer *p, fdm *a, ghostcell *pgc)
         for(int k=0; k<pp->knoz; ++k)
         {
             const double H = heaviside(fa->phi(i,j,k),interface_width(pp,fa->phi,i,j,k));
-            fa->ro(i,j,k) = pp->W1*H + pp->W3*(1.0-H);
-            fa->visc(i,j,k) = pp->W2*H + pp->W4*(1.0-H);
+            const double sv = sval(id,i,j,k);
+            fa->ro(i,j,k) = rmix(pp,H,sv);
+            fa->visc(i,j,k) = vmix(pp,H,sv);
         }
         margin_rovisc(id);
 
@@ -1381,6 +1500,11 @@ void cfd_amr::step_comp(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof 
         turb_step(l);
     }
 
+    // heat, concentration on all grids (before momentum, with the velocities of the start of the
+    // step, as the driver's step on level 0)
+    if(scal)
+    sc_step_comp();
+
     mom0->amr_step_begin(p,a,pgc);
     for(int id=0; id<(int)P.size(); ++id)
     {
@@ -1397,6 +1521,7 @@ void cfd_amr::step_comp(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof 
         // level set
         mom0->amr_ls_transport(p,a,pgc,s);
         mom0->amr_ls_finish(p,a,pgc,s,false,-1);
+        t0l[0] += MPI_Wtime()-ta;
 
         for(int l=1; l<=maxlev; ++l)
         {
@@ -1437,6 +1562,7 @@ void cfd_amr::step_comp(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof 
 
         // momentum
         mom0->amr_momentum(p,a,pgc,pvrans,p6dof,s,1);
+        t0l[1] += MPI_Wtime()-tb;
 
         for(int l=1; l<=maxlev; ++l)
         {
@@ -1461,6 +1587,7 @@ void cfd_amr::step_comp(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof 
 
         // end of the stage
         mom0->amr_stage_end(p,a,pgc,s);
+        t0l[2] += MPI_Wtime()-td;
         for(int id=0; id<(int)P.size(); ++id)
         {
             pscope ps(pgc,CP(id)->a,a0);
@@ -1501,8 +1628,20 @@ void cfd_amr::step_comp(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof 
             cout.precision(pr);
         }
     }
+    if(scal && p->count%p->P12==0)
+    {
+        double smin, smax;
+        const double S = sc_total(smin,smax);
+        if(p->mpirank==0)
+        {
+            const std::streamsize pr = cout.precision();
+            cout<<"CFD AMR: "<<(scal==1 ? "heat (T V)" : "concentration (C V)")<<" over the leaf cells "<<setprecision(12)<<S
+                <<", range "<<setprecision(6)<<smin<<" "<<smax<<endl;
+            cout.precision(pr);
+        }
+    }
 
     if(p->mpirank==0 && (p->count%p->P12==0))
     cout<<"CFD AMR: pressure iterations "<<pr_it_last<<"  res "<<setprecision(3)<<pr_res_last
-        <<"  time: level set "<<tm[0]<<" momentum "<<tm[1]<<" projection "<<tm[2]<<" end "<<tm[3]<<" total "<<tm[7]<<" (solver: prec "<<tm[5]<<" apply "<<tm[6]<<" patch cycles "<<tp[0]<<" level-0 cycles "<<tp[1]<<")"<<endl;
+        <<"  time: level set "<<tm[0]<<" momentum "<<tm[1]<<" projection "<<tm[2]<<" end "<<tm[3]<<" total "<<tm[7]<<" (solver: prec "<<tm[5]<<" apply "<<tm[6]<<" patch cycles "<<tp[0]<<" level-0 cycles "<<tp[1]<<"; level 0: level set "<<t0l[0]<<" momentum "<<t0l[1]<<" end "<<t0l[2]<<")"<<endl;
 }

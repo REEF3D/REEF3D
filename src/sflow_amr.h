@@ -24,6 +24,7 @@ Author: Hans Bihs
 #define SFLOW_AMR_H_
 
 #include"reefamr.h"
+#include"amr_grid_lookup.h"
 #include"sediment_f.h"
 #include"slice4.h"
 #include<vector>
@@ -168,9 +169,22 @@ struct sflow_amr_patch : public reefamr_patch
     vector<double> rend;
 };
 
-class sflow_amr : public reefamr, public sediment_grids
+class sflow_amr : public reefamr, public amr_column_lookup, public sediment_grids
 {
 public:
+    // the output on the finest grid (amr_grid_lookup.h): the finest patch of this rank at (x,y)
+    int finest_column(double x, double y, lexer *&q, void *&f) const override
+    {
+        int id;
+        const int L = finest_point(x,y,id);
+        if(L>0)
+        {
+            q = P[id]->pp;
+            f = static_cast<sflow_amr_patch*>(P[id])->b;
+        }
+        return L;
+    }
+
     // S 10: sediment transport on all grids (sflow_amr_sed.cpp): the level-0 sediment_f hands its step over
     void sed_attach(sediment*);
     void sediment_step_sflow(lexer*, fdm2D*, ghostcell*, ioflow*, sediment_f*) override;

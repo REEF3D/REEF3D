@@ -24,6 +24,7 @@ Author: Hans Bihs
 #define FNPF_AMR_H_
 
 #include"reefamr.h"
+#include"amr_grid_lookup.h"
 #include"fnpf_laplace.h"
 #include<vector>
 #include<fstream>
@@ -113,9 +114,22 @@ struct fnpf_amr_patch : public reefamr_patch
     reefmg_core *mg = nullptr;      // patch-local multigrid of the preconditioner
 };
 
-class fnpf_amr : public reefamr
+class fnpf_amr : public reefamr, public amr_column_lookup
 {
 public:
+    // the output on the finest grid (amr_grid_lookup.h): the finest patch of this rank at (x,y)
+    int finest_column(double x, double y, lexer *&q, void *&f) const override
+    {
+        int id;
+        const int L = finest_point(x,y,id);
+        if(L>0)
+        {
+            q = P[id]->pp;
+            f = static_cast<fnpf_amr_patch*>(P[id])->c;
+        }
+        return L;
+    }
+
     fnpf_amr(lexer*, fdm_fnpf*, ghostcell*);
     virtual ~fnpf_amr();
 

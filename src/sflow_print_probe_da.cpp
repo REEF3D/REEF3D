@@ -72,22 +72,35 @@ sflow_print_probe_da::~sflow_print_probe_da()
 void sflow_print_probe_da::start(lexer *p, fdm2D *b, ghostcell *pgc)
 {
 	double xp,yp;
+    // the mesh refinement: the finest grid at the probe (one rank writes it)
+    amr_points ap;
+    if(amr!=nullptr)
+    ap.find(amr,p,probenum,p->P63_x,p->P63_y,flag);
+
     // find values and write
 	for(n=0;n<probenum;++n)
 	{
 	uval=vval=wval=pval=eval=-1.0e20;
 	double bval=-1.0e20;
-		if(flag[n]>0)
+		if(amr==nullptr ? flag[n]>0 : ap.mine[n]!=0)
 		{
 		xp=p->P63_x[n];
 		yp=p->P63_y[n];
+
+        lexer *q = p;
+        fdm2D *g = b;
+        if(amr!=nullptr && ap.f[n]!=nullptr)
+        {
+            q = ap.q[n];
+            g = static_cast<fdm2D*>(ap.f[n]);
+        }
         
-		uval = p->ccslipol1(b->P, xp, yp);
-		vval = p->ccslipol2(b->Q, xp, yp);
-		wval = p->ccslipol4(b->ws,xp,yp); 
-		pval = p->ccslipol4(b->press,xp,yp);
-        eval = p->ccslipol4(b->eta,xp,yp);
-        bval = p->ccslipol4(b->bed,xp,yp); 
+		uval = q->ccslipol1(g->P, xp, yp);
+		vval = q->ccslipol2(g->Q, xp, yp);
+		wval = q->ccslipol4(g->ws,xp,yp); 
+		pval = q->ccslipol4(g->press,xp,yp);
+        eval = q->ccslipol4(g->eta,xp,yp);
+        bval = q->ccslipol4(g->bed,xp,yp); 
 		}
 	
 	uval=pgc->globalmax(uval);

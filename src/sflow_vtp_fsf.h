@@ -27,6 +27,7 @@ Author: Hans Bihs
 #include"vtp3D.h"
 
 class lexer;
+class amr_column_lookup;
 class fdm2D;
 class ghostcell;
 class ioflow;
@@ -45,6 +46,9 @@ using namespace std;
 class sflow_vtp_fsf : public increment, private vtp3D
 {
 public:
+    // the mesh refinement: the wave gauges (P 51) and the probes (P 63) on the finest grid
+    void amr_columns(const amr_column_lookup*);
+
     sflow_vtp_fsf(lexer*,fdm2D*,ghostcell*);
     virtual ~sflow_vtp_fsf() = default;
 

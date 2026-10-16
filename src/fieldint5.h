@@ -28,7 +28,7 @@ Author: Hans Bihs
 class fieldint5 final : public fieldint
 {
 public:
-    fieldint5(lexer* p) : fieldint(p) {}
+    fieldint5(lexer* p, bool allocate=true) : fieldint(p,allocate) {}
     virtual ~fieldint5() = default;
 };
 

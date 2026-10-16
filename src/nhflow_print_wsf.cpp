@@ -98,14 +98,22 @@ void nhflow_print_wsf::fill_eta(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &f)
     wsf[n]=-1.0e20;
 
 	
+    // the mesh refinement: the finest grid at the gauge (one rank writes it)
+    amr_points ap;
+    if(amr!=nullptr)
+    ap.find(amr,p,gauge_num,x,y,flag);
+
     for(n=0;n<gauge_num;++n)
-    if(flag[n]>0)
+    if(amr==nullptr ? flag[n]>0 : ap.mine[n]!=0)
     {
     zval=0.0;
 
     i=iloc[n];
     j=jloc[n];
     
+    if(amr!=nullptr && ap.f[n]!=nullptr)
+    wsf[n] = ap.q[n]->ccslipol4(static_cast<fdm_nhf*>(ap.f[n])->eta, x[n], y[n]);
+    else
     wsf[n] = p->ccslipol4(f, x[n], y[n]);
     }
 	

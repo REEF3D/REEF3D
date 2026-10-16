@@ -82,7 +82,9 @@ products per term:
   velocities and eta are evaluated from truncated eigen / singular value
   expansions of the coefficient matrices (rank 7-11 at a relative error of
   1e-10), O(R L) per level instead of O(L^2)
-  (lr_build, lr_kin, lr_eta); the potential of their difference terms stays
+  (lr_build, lr_kin, lr_eta; per level the loops over the components run
+  over chunks of four ranks with their accumulators in registers,
+  lr_sum_chunk, lr_dif_chunk); the potential of their difference terms stays
   direct, with the pair phase formed in the summation loop (the coefficient
   array is the only one read per pair)
 v is skipped when all wave vectors lie on the x axis. Results agree with
@@ -1348,6 +1350,78 @@ struct wave_lib_irregular_2nd_terms
     }
     
     // low-rank block at the current level (profiles P, Q, 1/P of the cache)
+    // per-level sums of a low-rank block over chunks of C ranks: the accumulators of a chunk stay in
+    // registers over the loop on the components (one array of all ranks was loaded and stored per
+    // component, the loop bound by the stores); per rank the order of the additions is unchanged
+    //   sum terms:        a_r = sum_n W_nr P_n, b_r = sum_n W_nr Q_n (complex W)
+    template<int C>
+    static void lr_sum_chunk(int L, int R, int r0, const double *wr, const double *wi, const double *P, const double *Q,
+                             double *ar, double *ai, double *br, double *bi)
+    {
+        double xa[C]={}, ya[C]={}, xb[C]={}, yb[C]={};
+        
+        for(int n=0; n<L; ++n)
+        {
+            const double p = P[n], q = Q[n];
+            const double *xr = wr + size_t(n)*R + r0, *xi = wi + size_t(n)*R + r0;
+            
+            #pragma omp simd
+            for(int r=0; r<C; ++r)
+            {
+            xa[r] += xr[r]*p;
+            ya[r] += xi[r]*p;
+            xb[r] += xr[r]*q;
+            yb[r] += xi[r]*q;
+            }
+        }
+        
+        for(int r=0; r<C; ++r)
+        {
+        ar[r0+r] = xa[r];
+        ai[r0+r] = ya[r];
+        br[r0+r] = xb[r];
+        bi[r0+r] = yb[r];
+        }
+    }
+    
+    //   difference terms: prefix sums A_r(m) = sum_{n<m} DU_nr Z_n / P_n, B_r(m) = sum_{n<m} DU_nr Z_n P_n / T_n
+    //   and their products with V_mr P_m, V_mr Q_m
+    template<int C>
+    static void lr_dif_chunk(int L, int R, int r0, const double *dr, const double *di, const double *zr, const double *zi,
+                             const double *P, const double *Q, const double *iP, const double *Tn,
+                             double *ser, double *sei, double *sfr, double *sfi)
+    {
+        double aAr[C]={}, aAi[C]={}, aBr[C]={}, aBi[C]={}, s1[C]={}, s2[C]={}, s3[C]={}, s4[C]={};
+        
+        for(int m=0; m<L; ++m)
+        {
+            const double p = P[m], q = Q[m], ip = iP[m], pt = P[m]/Tn[m];
+            const double *vr = zr + size_t(m)*R + r0, *vi = zi + size_t(m)*R + r0;
+            const double *wr = dr + size_t(m)*R + r0, *wi = di + size_t(m)*R + r0;
+            
+            #pragma omp simd
+            for(int r=0; r<C; ++r)
+            {
+            s1[r] += p*(vr[r]*aAr[r] - vi[r]*aAi[r]);
+            s2[r] += p*(vr[r]*aAi[r] + vi[r]*aAr[r]);
+            s3[r] += q*(vr[r]*aBr[r] - vi[r]*aBi[r]);
+            s4[r] += q*(vr[r]*aBi[r] + vi[r]*aBr[r]);
+            aAr[r] += wr[r]*ip;
+            aAi[r] += wi[r]*ip;
+            aBr[r] += wr[r]*pt;
+            aBi[r] += wi[r]*pt;
+            }
+        }
+        
+        for(int r=0; r<C; ++r)
+        {
+        ser[r0+r] = s1[r];
+        sei[r0+r] = s2[r];
+        sfr[r0+r] = s3[r];
+        sfi[r0+r] = s4[r];
+        }
+    }
+    
     template<bool UW, bool DV, bool DF>
     void lr_kin(wave_lib_irregular_2nd_cache &c, const lr_blk &bl, double &su, double &sv, double &sw, double &sf) const
     {
@@ -1360,23 +1434,14 @@ struct wave_lib_irregular_2nd_terms
         {
             const double *wr = w, *wi = w + size_t(L)*R;
             double *ar = t, *ai = t + R, *br = t + 2*R, *bi = t + 3*R;
-            for(int r=0; r<4*R; ++r)
-            t[r] = 0.0;
             
-            for(int n=0; n<L; ++n)
-            {
-                const double p = P[n], q = Q[n];
-                const double *xr = wr + size_t(n)*R, *xi = wi + size_t(n)*R;
-                
-                #pragma omp simd
-                for(int r=0; r<R; ++r)
-                {
-                ar[r] += xr[r]*p;
-                ai[r] += xi[r]*p;
-                br[r] += xr[r]*q;
-                bi[r] += xi[r]*q;
-                }
-            }
+            int r0 = 0;
+            for(; r0+4<=R; r0+=4)
+            lr_sum_chunk<4>(L,R,r0,wr,wi,P,Q,ar,ai,br,bi);
+            for(; r0+2<=R; r0+=2)
+            lr_sum_chunk<2>(L,R,r0,wr,wi,P,Q,ar,ai,br,bi);
+            for(; r0<R; ++r0)
+            lr_sum_chunk<1>(L,R,r0,wr,wi,P,Q,ar,ai,br,bi);
             
             // X = Re(SP + SQ), Y = Im(SP - SQ), Z = Im(SP + SQ)
             X = Y = Z = 0.0;
@@ -1393,34 +1458,19 @@ struct wave_lib_irregular_2nd_terms
             double X, Y, Z;
             sums(c.lw.data()+bl.ow,bl.Rv,bl.lv.data(),X,Y,Z);
             
-            // difference terms: prefix sums A_r(m) = sum_{n<m} DU_nr Z_n / P_n, B_r(m) = sum_{n<m} DU_nr Z_n P_n / T_n
+            // difference terms (lr_dif_chunk)
             const int R = bl.Dv;
             const double *dr = c.lw.data() + bl.od, *di = dr + size_t(L)*R;
             const double *zr = c.lw.data() + bl.oz, *zi = zr + size_t(L)*R;
-            double *aAr = t, *aAi = t + R, *aBr = t + 2*R, *aBi = t + 3*R;
             double *ser = t + 4*R, *sei = t + 5*R, *sfr = t + 6*R, *sfi = t + 7*R;
-            for(int r=0; r<8*R; ++r)
-            t[r] = 0.0;
             
-            for(int m=0; m<L; ++m)
-            {
-                const double p = P[m], q = Q[m], ip = iP[m], pt = P[m]/Tn[m];
-                const double *vr = zr + size_t(m)*R, *vi = zi + size_t(m)*R;
-                const double *wr = dr + size_t(m)*R, *wi = di + size_t(m)*R;
-                
-                #pragma omp simd
-                for(int r=0; r<R; ++r)
-                {
-                ser[r] += p*(vr[r]*aAr[r] - vi[r]*aAi[r]);
-                sei[r] += p*(vr[r]*aAi[r] + vi[r]*aAr[r]);
-                sfr[r] += q*(vr[r]*aBr[r] - vi[r]*aBi[r]);
-                sfi[r] += q*(vr[r]*aBi[r] + vi[r]*aBr[r]);
-                aAr[r] += wr[r]*ip;
-                aAi[r] += wi[r]*ip;
-                aBr[r] += wr[r]*pt;
-                aBi[r] += wi[r]*pt;
-                }
-            }
+            int r0 = 0;
+            for(; r0+4<=R; r0+=4)
+            lr_dif_chunk<4>(L,R,r0,dr,di,zr,zi,P,Q,iP,Tn,ser,sei,sfr,sfi);
+            for(; r0+2<=R; r0+=2)
+            lr_dif_chunk<2>(L,R,r0,dr,di,zr,zi,P,Q,iP,Tn,ser,sei,sfr,sfi);
+            for(; r0<R; ++r0)
+            lr_dif_chunk<1>(L,R,r0,dr,di,zr,zi,P,Q,iP,Tn,ser,sei,sfr,sfi);
             
             double Xd=0.0, Yd=0.0;
             for(int r=0; r<R; ++r)

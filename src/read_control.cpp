@@ -3772,6 +3772,9 @@ void control::read_control(lexer* p)
                 case  31: control>>Z31;
                          clear(c,numint);
                          break;
+                case  40: control>>Z40;
+                         clear(c,numint);
+                         break;
                 }
                 break;
         }
