@@ -398,6 +398,14 @@ void seastate_implicit::sweep_threads(lexer *p, fdm_seastate *e, int q, const se
     {
         return (axis==0) ? std::min(nj,(idx+1)*tb) - idx*tb : std::min(ni,(idx+1)*tb) - idx*tb;
     };
+    // Phase 17: the sides of the rank downstream and upstream of it along an axis (0 i-, 1 i+, 2 j-, 3 j+)
+    // (only in the composite sweep, which visits the covered cells; the FAS coarse sweeps of level 0 carry no patches)
+    const int sdn[2] = {idown ? 0 : 1, jdown ? 2 : 3}, sup[2] = {idown ? 1 : 0, jdown ? 3 : 2};
+    seastate_kba_extra *kx = (kba && visT!=nullptr) ? kext : nullptr;
+    auto extra = [&](int axis, int idx, bool send) -> size_t
+    {
+        return kx!=nullptr ? kx->kba_size(q,send ? sdn[axis] : sup[axis],idx,tb,send) : 0;
+    };
     auto pack = [&](kmsg &m)
     {
         const int len = length(m.axis,m.idx);
@@ -414,6 +422,8 @@ void seastate_implicit::sweep_threads(lexer *p, fdm_seastate *e, int q, const se
             std::fill(&m.buf[c],&m.buf[c]+nbin,0.0f);
         c += nbin;
         }
+        if(kx!=nullptr && c<m.buf.size())
+        kx->kba_pack(q,sdn[m.axis],m.idx,tb,&m.buf[c]);
     };
     auto unpack = [&](kmsg &m)
     {
@@ -429,6 +439,8 @@ void seastate_implicit::sweep_threads(lexer *p, fdm_seastate *e, int q, const se
         std::copy(&m.buf[c],&m.buf[c]+nbin,f);
         c += nbin;
         }
+        if(kx!=nullptr && c<m.buf.size())
+        kx->kba_unpack(q,sup[m.axis],m.idx,tb,&m.buf[c]);
     };
     auto tag = [](int axis, int idx) {return 5000 + 2*idx + axis;};
 
@@ -441,11 +453,11 @@ void seastate_implicit::sweep_threads(lexer *p, fdm_seastate *e, int q, const se
             {
                 if(up>=0)
                 {
-                kin.push_back(kmsg{axis,idx,std::vector<float>(size_t(L)*length(axis,idx)*nbin)});
+                kin.push_back(kmsg{axis,idx,std::vector<float>(size_t(L)*length(axis,idx)*nbin + extra(axis,idx,false))});
                 MPI_Irecv(kin.back().buf.data(),int(kin.back().buf.size()),MPI_FLOAT,up,tag(axis,idx),kpgc->mpi_comm,&kin.back().rq);
                 }
             if(dn>=0)
-            kout.push_back(kmsg{axis,idx,std::vector<float>(size_t(L)*length(axis,idx)*nbin)});
+            kout.push_back(kmsg{axis,idx,std::vector<float>(size_t(L)*length(axis,idx)*nbin + extra(axis,idx,true))});
             }
         }
     outbox.reserve(kout.size());
@@ -628,7 +640,14 @@ void seastate_implicit::sweep_threads(lexer *p, fdm_seastate *e, int q, const se
 
 bool seastate_implicit::pipelined_sweep() const
 {
-    return kpgc!=nullptr && kex!=nullptr && !ranged && skp==nullptr && vis==nullptr && visT==nullptr && !second && rout==nullptr;
+    if(kpgc==nullptr || kex==nullptr || ranged || second || rout!=nullptr)
+    return false;
+
+    // Phase 17: the composite sweep of the mesh refinement (covered cells visited with the index of the thread)
+    if(skp!=nullptr || vis!=nullptr || visT!=nullptr)
+    return kext!=nullptr && skp!=nullptr && visT!=nullptr;
+
+    return true;
 }
 
 // Phase 14: the pipeline needs the same rows on both sides of an i boundary and the same columns on both sides of a j
@@ -694,6 +713,7 @@ void seastate_implicit::copy_config(const seastate_implicit &o)
     second = o.second;
     ranged = o.ranged;
     ri0 = o.ri0; ri1 = o.ri1; rj0 = o.rj0; rj1 = o.rj1;
+    rwid = o.rwid;
     skp = o.skp;
     fcs = o.fcs;
     eps = o.eps;
@@ -1155,8 +1175,8 @@ void seastate_implicit::keep(lexer *p, fdm_seastate *e, int q, int ci, int cj)
 // not covered by a finer grid
 const float *seastate_implicit::usable(lexer *p, fdm_seastate *e, int ci, int cj) const
 {
-    const int ia = ranged ? ri0-1 : -2, ib = ranged ? ri1+1 : p->knox+1;
-    const int ja = ranged ? rj0-1 : -2, jb = ranged ? rj1+1 : p->knoy+1;
+    const int ia = ranged ? ri0-rwid : -2, ib = ranged ? ri1+rwid : p->knox+1;
+    const int ja = ranged ? rj0-rwid : -2, jb = ranged ? rj1+rwid : p->knoy+1;
 
     if(ci<ia || ci>ib || cj<ja || cj>jb)
     return nullptr;

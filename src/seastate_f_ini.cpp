@@ -263,6 +263,25 @@ void seastate_f::ini_common(lexer *p, ghostcell *pgc, bool coupled_)
 
         if(wser!=nullptr)
         pamr->wind(tref+p->simtime);
+
+        // Phase 17: the composite sweep (A 797 1) pipelined across the ranks (A 781 1): the level-0 tiles of all ranks
+        // form one dependency graph, and the boundary tiles also carry the faces of the covered cells and the ring cells
+        // of the patches downstream, so that the sweep sees what it sees on one rank
+        if(p->A781==1 && p->M10>1 && p->A797==1 && !second && pamr->active())
+        {
+        kba = psolv->pipeline(p,pgc);
+        if(kba)
+        pamr->pipeline_setup(p,pgc);
+            if(p->mpirank==0)
+            cout<<"SEASTATE sweeps pipelined across the "<<p->M10<<" ranks (A 781 1) with the composite sweep of the refinement (A 797 1)"
+                <<(kba ? ": the result of one rank" : ": not possible, the ranks are not aligned; each rank from the halo of the last exchange")<<endl;
+        }
+
+        // the level-by-level sweeps (A 797 0) are not pipelined: their result depends on the order of the patches of a level,
+        // which the rank boxes cut
+        if(p->A781==1 && p->M10>1 && p->A797!=1 && p->mpirank==0 && pamr->active())
+        cout<<"SEASTATE note: the level-by-level sweeps of the refinement (A 797 0) are not pipelined across the ranks; each rank"
+            <<" sweeps from the halo of the last exchange. The composite sweep (A 797 1) is pipelined and gives the result of one rank"<<endl;
     }
 
     parameters(p,pgc);

@@ -1,0 +1,8 @@
+{
+ "base": "cfd_2d_cpm_bedload_layer",
+ "ctrl_add": ["Q 74 1"],
+ "steps": 150,
+ "tags": ["quick", "2d", "cpm"],
+ "description": "as cfd_2d_cpm_bedload_layer with Q 74 1: grains of the bed that were not released into the suspension see no resolved flow and no turbulent dispersion (moved by the layer, gravity and the packed bed only)",
+ "covers": ["CPM advec_mppic: no resolved drag on unreleased bed grains (Q 74)", "CPM bedload_nodisp (Q 74)"]
+}

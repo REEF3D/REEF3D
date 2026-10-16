@@ -1,0 +1,9 @@
+{
+ "base": "cfd_2d_cpm_wedge_yield",
+ "ctrl_set": {"Q 67": "0"},
+ "ctrl_add": ["Q 75 0.62", "Q 76 0.05"],
+ "steps": 300,
+ "tags": ["quick", "2d", "cpm"],
+ "description": "the 40 degree sand wedge of cfd_2d_cpm_wedge_yield without the column yield (Q 67 0), with the sand slide of the bed surface beyond a slope of 0.62 (Q 75) and a fixed bed for x < 0.05 m (Q 76)",
+ "covers": ["CPM bedload_slide (Q 75): smoothed column slope, top grains moved to the lower column", "CPM wallbc: fixed parcels upstream of Q 76"]
+}

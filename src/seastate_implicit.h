@@ -47,6 +47,18 @@ struct seastate_faces
     virtual const float *face(int i, int j, int s) const = 0;
 };
 
+// Phase 17: values that the boundary tiles of the pipelined sweep (A 781 1) carry besides the halo cells of level 0
+// (the composite sweep of the mesh refinement, seastate_amr): side s of the rank (0 i-, 1 i+, 2 j-, 3 j+), tile idx
+// along it (tb cells in the order of quadrant q). size: the number of floats sent towards side s (send) or received
+// from it; pack after the tile is solved (the thread that solved it), unpack before the tile downstream starts
+struct seastate_kba_extra
+{
+    virtual ~seastate_kba_extra() {}
+    virtual size_t kba_size(int q, int s, int idx, int tb, bool send) = 0;
+    virtual void kba_pack(int q, int s, int idx, int tb, float *buf) = 0;
+    virtual void kba_unpack(int q, int s, int idx, int tb, const float *buf) = 0;
+};
+
 using namespace std;
 
 // neighbour of a cell: active cell, boundary with incoming spectrum, zero-gradient side, or nothing (land, open side)
@@ -196,6 +208,11 @@ is that of one rank, bitwise, for any number of ranks and threads. The
 thread 0 of a rank posts the messages. Before: each rank swept from the
 halo of the last exchange (block Gauss-Seidel), and the stationary
 iterations grew with the ranks.
+Phase 17: also the composite sweep of the mesh refinement (A 797 1,
+seastate_amr): the level-0 tiles visit their covered cells, and the
+boundary tiles carry besides the halo cells what the patches of the rank
+downstream read from the tile (seastate_kba_extra: the faces of the
+covered boundary cells, the ring cells of the patches and their faces).
 Phase 6 (seastate_obstacle): faces blocked by obstacles, structures or
 reflecting coasts transmit Kt^2 of the inflow (per frequency for the
 structures of A 725) and return Kr^2 of the outflow into the mirrored
@@ -241,6 +258,9 @@ public:
     // spectra on the faces of the skipped cells
     void range(int i0_, int i1_, int j0_, int j1_) {ri0 = i0_; ri1 = i1_; rj0 = j0_; rj1 = j1_; ranged = true;}
     void unrange() {ranged = false;}
+    // Phase 17: the ring layers around the range that hold the spectra of the cells beyond it (2: the cells two upwind of
+    // the second-order fluxes, A 796 2)
+    void ring_width(int w) {rwid = std::max(w,1);}
     void skip(sliceint *s) {skp = s;}
     void faces(const seastate_faces *f) {fcs = f;}
 
@@ -293,6 +313,9 @@ public:
     // result is that of one rank. false: the ranks sweep from the halo of the last exchange as before
     bool pipeline(lexer*, ghostcell*);
     bool pipelined() const {return kpgc!=nullptr;}
+    // Phase 17: the pipeline with the composite sweep of the mesh refinement (A 797 1): the halo exchange of the level-0
+    // spectra and the values the boundary tiles carry for the patches (nullptr: none)
+    void pipeline_refined(seastate_exchange *ex, seastate_kba_extra *x) {kex = ex; kext = x;}
 
 private:
 
@@ -319,6 +342,7 @@ private:
     ghostcell *kpgc = nullptr;
     int ktb = 16;
     seastate_exchange *kex = nullptr;
+    seastate_kba_extra *kext = nullptr;
     bool kfirst = true;
     bool pipelined_sweep() const;
     int nthreads = 1;
@@ -338,6 +362,7 @@ private:
     bool second;
     bool ranged = false;
     int ri0 = 0, ri1 = -1, rj0 = 0, rj1 = -1;
+    int rwid = 1;
     sliceint *skp = nullptr;
     const seastate_faces *fcs = nullptr;
     vector<double> P, D;                // source terms of the cell (src != nullptr)

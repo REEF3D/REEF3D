@@ -10,7 +10,9 @@
 // a pendulum read from the input runs bit for bit like the same model built in code; the output
 // file has one column per channel; structure keywords (section, member, point_mass, static, modes,
 // output vtp) build the same frame as the code and give bit for bit the same modes, the mode table
-// (kinetic energy split) and the VTP file are written.
+// (kinetic energy split) and the VTP file are written; offshore keywords (superelement, soil,
+// soil_layer, pile, morison on frame and superelement members, point_mass at an offset, force, linear6
+// with full matrices) build the expected loads and the model finds its static equilibrium.
 // Architect: Hans Bihs
 #include"coral/core/coral_gravity.h"
 #include"coral/core/coral_constraint.h"
@@ -23,6 +25,11 @@
 #include"coral/core/coral_static.h"
 #include"coral/structure/coral_frame.h"
 #include"coral/linear/coral_modes.h"
+#include"coral/structure/coral_superelement.h"
+#include"coral/structure/coral_linear6.h"
+#include"coral/core/coral_force.h"
+#include"coral/soil/coral_soil.h"
+#include"coral/hydro/coral_member_morison.h"
 #include<cmath>
 #include<cstdio>
 #include<fstream>
@@ -38,6 +45,13 @@ static void check(bool ok, const std::string &what)
 {
     std::cout<<(ok ? "  PASS  " : "  FAIL  ")<<what<<std::endl;
     if(!ok) ++nfail;
+}
+
+static std::string fmt_n(const char *f, int n)
+{
+    char b[256];
+    std::snprintf(b, sizeof(b), f, n);
+    return b;
 }
 
 static std::string fmt_modes(const mode_result &r)
@@ -229,12 +243,70 @@ time dt 0.01 end 0
     check(vs.str().find("NumberOfLines=\"6\"")!=std::string::npos, "VTP: six beam elements as lines");
 }
 
+static void test_offshore()
+{
+    std::cout<<"offshore keywords"<<std::endl;
+    const std::string text = R"(
+rho 1025
+waves depth 30
+waves regular H 2 T 9
+section leg tube D 1.2 t 0.04 E 2.1e11 G 8.08e10 rho 7850
+section tw tube D 5 t 0.04 E 2.1e11 G 8.08e10 rho 7850
+section pl tube D 2 t 0.05 E 2.1e11 G 8.08e10 rho 7850
+body tp mass 2e5 inertia 4e6 4e6 6e6 cog 0 0 10
+member l1 p1 8 0 -30 p2 3 0 10 n 6 section leg end1 ground end2 tp orient 0 0 1
+member l2 p1 -4 6.93 -30 p2 -1.5 2.6 10 n 6 section leg end1 ground end2 tp orient 0 0 1
+member l3 p1 -4 -6.93 -30 p2 -1.5 -2.6 10 n 6 section leg end1 ground end2 tp orient 0 0 1
+superelement jacket members l1 l2 l3 modes 12 zeta 0.01
+member tower p1 0 0 10 p2 0 0 70 n 10 section tw end1 tp orient 1 0 0
+point_mass tp mass 1e4 at 3 0 10
+member p p1 20 0 -30 p2 20 0 -60 n 15 section pl orient 1 0 0
+soil s1 mudline -30
+soil_layer s1 clay top 0 bottom 20 su 20e3 su_bottom 80e3 gamma 8e3 eps50 0.01
+soil_layer s1 sand top 20 bottom 40 phi 33 gamma 10e3 k 2e7
+pile p soil s1 D 2
+morison wl1 member l1 Cd 1.0 Ca 1.0
+morison wt member tower Cd 0.7 Ca 1.0
+force push body tp point 0 0 12 F 1e5 0 0 M 0 0 1e4 ramp 2
+linear6 cs body tp point 0 0 10 K 1e9 0 0 0 0 0 0 1e9 0 0 0 0 0 0 1e9 0 0 0 0 0 0 1e10 0 0 0 0 0 0 1e10 0 0 0 0 0 0 1e10
+static
+time dt 0.05 end 0
+)";
+    coral_case c;
+    bool ok = true;
+    try {c.read_string(text);} catch(const std::exception &e) {std::cout<<"  "<<e.what()<<std::endl; ok = false;}
+    check(ok, "reads without error");
+    if(!ok) return;
+    int nse = 0, nsoil = 0, nmor = 0, nl6 = 0, nmodes = 0, nforce = 0;
+    for(const auto &l : c.m.load_list)
+    {
+        if(const auto *se = dynamic_cast<const superelement*>(l.get())) {++nse; nmodes = se->nmode();}
+        if(dynamic_cast<const soil_spring*>(l.get())) ++nsoil;
+        if(dynamic_cast<const member_morison*>(l.get())) ++nmor;
+        if(dynamic_cast<const linear6*>(l.get())) ++nl6;
+        if(dynamic_cast<const point_force*>(l.get())) ++nforce;
+    }
+    check(nse==1 && nmodes==12 && c.m.ncoord()==12, "superelement with 12 modes (12 generalized coordinates)");
+    check(nforce==1, "point force");
+    check(nsoil==15 && nmor==2 && nl6==1 && c.m.point_masses.size()==2, fmt_n("15 pile springs below the mudline (%d), two Morison members, linear6, point masses at offsets (point_mass, tower end on tp)", nsoil));
+    // tower nodes and the pile are frame nodes; the jacket legs are not
+    check(c.m.find_body("tower:3") >= 0 && c.m.find_body("p:3") >= 0 && c.m.find_body("l1:3") < 0, "frame nodes for the tower and the pile, none for the superelement legs");
+    const static_result r = static_solve(c.m, 0.0);
+    check(r.converged, fmt_n("static equilibrium in %d iterations", r.iterations));
+    check(write_vtp(c.m, "/tmp/coral_io_test_offshore.vtp"), "VTP written");
+    std::ifstream vf("/tmp/coral_io_test_offshore.vtp");
+    std::stringstream vs;
+    vs<<vf.rdbuf();
+    check(vs.str().find("\n3\n")!=std::string::npos, "VTP: superelement elements (kind 3)");
+}
+
 int main()
 {
     test_full_model();
     test_errors();
     test_same_as_code();
     test_structure();
+    test_offshore();
     std::cout<<(nfail ? "FAILED: " : "all passed")<<(nfail ? std::to_string(nfail) : "")<<std::endl;
     return nfail ? 1 : 0;
 }
