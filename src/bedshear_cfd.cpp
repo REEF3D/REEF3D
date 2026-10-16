@@ -329,13 +329,14 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
     
     // S 16 10: the bed shear stress of the CPM bedload layer (bedshear::column_tau): log law at the first cell
     // centre at least half a cell above the bed level, or S 63 cells above it, and max(log law, 0.3 rho k) with
-    // k of the first fluid cell (validation 16: in separated flow the log law gives a fraction of the skin friction)
-    if(p->S16==10)
+    // k of the first fluid cell (validation 16: in separated flow the log law gives a fraction of the skin friction);
+    // S 16 11: the same with two velocity scales, sqrt(log law * 0.3 rho k), zero where the flow reattaches
+    if(p->S16==10 || p->S16==11)
     {
         double tx=0.0, ty=0.0, hc=0.0;
         bool rest=false;
         
-        bedshear::column_tau(p,a,pturb,i,j,s->bedzh(i,j),s->ks_eff(i,j),p->S63,true,density,tx,ty,hc,rest);
+        bedshear::column_tau(p,a,pturb,i,j,s->bedzh(i,j),s->ks_eff(i,j),p->S63,p->S16==11?2:1,density,tx,ty,hc,rest);
         
         tau_eff = sqrt(tx*tx + ty*ty);
     }
@@ -394,14 +395,14 @@ bed shear stress of a bed column from the flow above the bed level set (S 16 10 
   the column, at most half way to a solid body or the free surface above (the first cell next to the bed is
   under-resolved in an accelerated flow, e.g. the gap below a pipeline)
   log law:  tau = rho (u / u+)^2,  u+ = ln(30 z_r/k_s)/kappa
-  kterm:    tau = max(tau, 0.3 rho k) with k of the reference cell: in a separated or reattaching flow the
+  kmode 1:  tau = max(tau, 0.3 rho k) with k of the reference cell: in a separated or reattaching flow the
             near-bed turbulence moves the grains while the mean velocity next to the bed is small
             (backward-facing step: the log law gives 0-13 % of the measured skin friction in the
             recirculation, 0.3 rho k its size, validation 16)
   k is the value of the first fluid cell in both sediment models: the Eulerian S 16 2 interpolates k half a
   cell above the bed level, which takes in the cell below the bed where the bed cuts through the cells
 --------------------------------------------------------------------*/
-bool bedshear::column_tau(lexer *p, fdm *a, turbulence *pt, int i, int j, double zbed, double ks, double href, bool kterm,
+bool bedshear::column_tau(lexer *p, fdm *a, turbulence *pt, int i, int j, double zbed, double ks, double href, int kmode,
                           double rho, double &tx, double &ty, double &hcell, bool &rest)
 {
     int kb = MAX(0,MIN(p->knoz-1, p->posc_k(zbed)));
@@ -499,8 +500,9 @@ bool bedshear::column_tau(lexer *p, fdm *a, turbulence *pt, int i, int j, double
     }
 
     double um = sqrt(ur*ur + vr*vr);
-    bool kt = kterm && pt!=nullptr && !rest;
-    double tau = tau_logk(um, zr, ks, kt ? pt->kinval(i,j,k) : 0.0, kt, rho);
+    
+    int km = (pt!=nullptr && !rest) ? kmode : 0;
+    double tau = tau_logk(um, zr, ks, km>0 ? pt->kinval(i,j,k) : 0.0, km, rho);
 
     tx = um>1.0e-12 ? tau*ur/um : 0.0;
     ty = um>1.0e-12 ? tau*vr/um : 0.0;
@@ -509,14 +511,20 @@ bool bedshear::column_tau(lexer *p, fdm *a, turbulence *pt, int i, int j, double
 }
 
 // the closure of column_tau, shared by the CFD and the NHFLOW column (S 16 10) and the CPM bedload layer
-double bedshear::tau_logk(double um, double zr, double ks, double kin, bool kterm, double rho)
+double bedshear::tau_logk(double um, double zr, double ks, double kin, int kmode, double rho)
 {
     double up = log(MAX(30.0*zr/ks, 1.0+1.0e-6))/0.4;
     double us = um/up;
     double tau = rho*us*us;
     
-    if(kterm)
+    if(kmode==1)
     tau = MAX(tau, 0.3*rho*MAX(kin,0.0));
+    
+    // two velocity scales: u* = sqrt(u*_log * C_mu^1/4 k^1/2) with C_mu^1/2 = 0.3, the same as the log law in
+    // equilibrium (0.3 k = u*^2), zero where the mean velocity at the reference point vanishes (separation,
+    // reattachment), with the size of the k term in the recirculation; without k (no turbulence model) the log law
+    if(kmode==2 && kin>0.0)
+    tau = sqrt(tau*0.3*rho*kin);
     
     return tau;
 }

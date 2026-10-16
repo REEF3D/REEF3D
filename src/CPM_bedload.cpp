@@ -123,7 +123,7 @@ void CPM::bedload_columns(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
         double tx=0.0, ty=0.0, hc=0.0;
         bool rest=false;
         
-        bedshear::column_tau(p,a,pturb_,i,j,s->bedzh(i,j),ks,p->Q66,p->Q68==1,p->W1,tx,ty,hc,rest);
+        bedshear::column_tau(p,a,pturb_,i,j,s->bedzh(i,j),ks,p->Q66,(p->Q68==1||p->Q68==2)?p->Q68:0,p->W1,tx,ty,hc,rest);
         
         blTx(i,j) = tx;
         blTy(i,j) = ty;

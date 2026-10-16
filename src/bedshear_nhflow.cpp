@@ -119,12 +119,12 @@ void bedshear::taubed(lexer *p, fdm_nhf*d, ghostcell *pgc, sediment_fdm *s)
         
         // S 16 10: the bed shear stress of the CFD S 16 10 and the CPM bedload layer (bedshear::column_tau):
         // log law at the first cell centre, or S 63 cells above the bed, horizontal velocity, and
-        // max(log law, 0.3 rho k) with k of the first cell
-        if(p->S16==10)
+        // max(log law, 0.3 rho k) with k of the first cell; S 16 11: sqrt(log law * 0.3 rho k)
+        if(p->S16==10 || p->S16==11)
         {
         double tx=0.0, ty=0.0;
         
-        bedshear::column_tau(p,d,i,j,s->ks_eff(i,j),p->S63,true,density,tx,ty);
+        bedshear::column_tau(p,d,i,j,s->ks_eff(i,j),p->S63,p->S16==11?2:1,density,tx,ty);
         
         tau_eff = sqrt(tx*tx + ty*ty);
         }
@@ -292,7 +292,7 @@ the first cell, as in CFD); horizontal velocity; k of the first cell
 thin water: z_r at least e k_s/30 (u+ >= 1/kappa, as uplus and the NHFLOW wall drag), no singular shear
 stress when the depth approaches zero; the CFD column has z_r >= half a cell
 --------------------------------------------------------------------*/
-bool bedshear::column_tau(lexer *p, fdm_nhf *d, int i, int j, double ks, double href, bool kterm,
+bool bedshear::column_tau(lexer *p, fdm_nhf *d, int i, int j, double ks, double href, int kmode,
                           double rho, double &tx, double &ty)
 {
     double wl = d->WL(i,j);
@@ -346,7 +346,7 @@ bool bedshear::column_tau(lexer *p, fdm_nhf *d, int i, int j, double ks, double 
     zr = MAX(zr, 2.718281828459045*ks/30.0);
     
     double um = sqrt(ur*ur + vr*vr);
-    double tau = tau_logk(um, zr, ks, kin, kterm, rho);
+    double tau = tau_logk(um, zr, ks, kin, kmode, rho);
     
     tx = um>1.0e-12 ? tau*ur/um : 0.0;
     ty = um>1.0e-12 ? tau*vr/um : 0.0;

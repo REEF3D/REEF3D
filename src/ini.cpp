@@ -994,7 +994,7 @@ void control::ini_default()
     Q65=1.0;            // double bedload layer: morphological factor, the pickup into the layer and the hops are Q 65 times faster
     Q66=0.0;            // double bedload layer: reference height of the bed shear stress in cells above the bed, 0: first cell
     Q67=0;              // int bedload layer: jammed bed only within the Mohr-Coulomb yield of the column (deep slope failures), 0 off, 1 on
-    Q68=0;              // int bedload layer: bed shear stress, 0 log law, 1 max(log law, 0.3 rho k) with the turbulent kinetic energy
+    Q68=0;              // int bedload layer: bed shear stress, 0 log law, 1 max(log law, 0.3 rho k) with the turbulent kinetic energy, 2 sqrt(log law * 0.3 rho k) (two velocity scales)
     Q69=0;              // int bedload layer: seepage flow in the bed (Darcy), pore pressure and its force on the contact network, 0 off, 1 on
     Q70=0.0;            // double seepage (Q 69): excess pore pressure [Pa] at the bottom of the domain (upflow tests), 0: closed bottom
     Q72=0;              // int bedload layer: passes of a 1-2-1 filter over the columns of the bed level seen by the fluid, 0: off
