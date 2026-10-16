@@ -94,6 +94,7 @@ public:
     void quat_matrices();                               // E, G, R, Rinv from e
     void euler_angles();                                // phi, theta, psi from e
     void update_omega();                                // omega_B, omega_I from h
+    void constrain_rotation();                          // h without the fixed rotational DOFs (X 11 0)
     void velocity(Eigen::Matrix<double, 6, 1>&) const;  // (u, v, w, p, q, r) of the CoG, inertial frame
 
     // ---- loads

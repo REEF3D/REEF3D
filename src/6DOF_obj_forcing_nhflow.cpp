@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
+#include"vrans_definitions.h"
 
 void sixdof_obj_nhflow::update_forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, 
                              double *U, double *V, double *W, double *FX, double *FY, double *FZ, slice &WL, slice &fe, int iter)
@@ -214,6 +215,81 @@ void sixdof_obj_nhflow::forcing_kernel_nhflow(lexer *p, fdm_nhf *d, ghostcell *p
             }
         }
     
+    }
+    
+    // X 15 4: normal projection outside the body (as X 15 2), ramped over the thin shell |FB| < dsh of X 15 1:
+    //   F = H [sb du + (1 - sb)(du.n) n] / (alpha dt CPORNH)
+    // sb = 1 inside the body (full rigid-body velocity), 0 outside (only the normal velocity is imposed,
+    // the tangential velocity is kept). Unlike the component weighting |n_i| of X 15 1, the projection does
+    // not depend on the orientation of the hull to the grid (rolled hull, bilges): the tangential velocity
+    // outside is not damped. Unlike the sharp switch of X 15 2 at FB = 0, the forcing stays continuous when
+    // the hull moves across cell centres. On grid-aligned faces X 15 1 and 4 are identical.
+    // The forcing is divided by CPORNH as in nhflow_forcing::solid_forcing, so that the body velocity is
+    // fully imposed also inside a porous structure (without porous media CPORNH = 1).
+    if(p->X15==4)
+    LOOP
+    {
+        H = Hsolidface_nhflow(p,d,0,0,0);
+        
+        d->FHB[IJK] = MIN(d->FHB[IJK] + H, 1.0); 
+        
+        if(H<=0.0)
+        continue;
+        
+        target_velocity(p,wavemaker,uf,vf,wf);
+        
+        du = uf - U[IJK];
+        dv = vf - V[IJK];
+        dw = wf - W[IJK];
+        
+        const double dsh = 0.25*Hpsi_nhflow(p,d);
+        const double tb = MIN(MAX(0.5*(1.0 - d->FB[IJK]/dsh), 0.0), 1.0);
+        double sb = tb*tb*(3.0 - 2.0*tb);
+        
+        nx=ny=nz=0.0;
+        udotn=0.0;
+        
+        if(sb<1.0)
+        {
+            // Normal vectors calculation 
+            if(p->geo_curv==1)
+            fbnormal_curv(p,d,nx,ny);
+            else
+            {
+            nx = -(d->FB[Ip1JK] - d->FB[Im1JK])/(p->DXP[IP] + p->DXP[IM1])
+                - 0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*(d->FB[IJKp1] - d->FB[IJKm1])/(p->DZP[KP] + p->DZP[KM1]);
+                
+            if(p->j_dir==0)
+            ny = 0.0;
+            
+            if(p->j_dir==1)
+            ny = -(d->FB[IJp1K] - d->FB[IJm1K])/(p->DYP[JP] + p->DYP[JM1])
+                - 0.5*(p->sigy[FIJK]+p->sigy[FIJKp1])*(d->FB[IJKp1] - d->FB[IJKm1])/(p->DZP[KP] + p->DZP[KM1]);
+            }
+                
+            nz = -(d->FB[IJKp1] - d->FB[IJKm1])/(p->DZP[KP]*WL(i,j) + p->DZP[KM1]*WL(i,j));
+
+            norm = sqrt(nx*nx + ny*ny + nz*nz);
+            
+            if(norm > 1.0e-10)
+            {
+            nx /= norm;
+            ny /= norm;
+            nz /= norm;
+            
+            udotn = nx*du + ny*dv + nz*dw;
+            }
+            
+            // degenerate gradient (flat level set): fall back to full forcing
+            else
+            sb = 1.0;
+        }
+        
+        const double fac = H/(alpha[iter]*p->dt*CPORNH);
+        
+        FX[IJK] += fac*(sb*du + (1.0-sb)*udotn*nx);
+        FY[IJK] += fac*(sb*dv + (1.0-sb)*udotn*ny);
+        FZ[IJK] += fac*(sb*dw + (1.0-sb)*udotn*nz);
     }
    
     pgc->start5V(p,d->FHB,50);

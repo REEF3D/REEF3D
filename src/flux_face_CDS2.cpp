@@ -114,11 +114,22 @@ void flux_face_CDS2::w_flux(fdm* a, int ipol, field& wvel, double &wflux1, doubl
 	wflux2= wvel(i,j,k);
 	}
     
-    if(p->flagsf4[IJKm1]<0)
+    // no vertical flux next to a solid or the topography (static geometry).  Not next to a
+    // floating body (flagsf4 < 0 in fb < 0 too): the x and y fluxes are not cut there, and a body
+    // moving in z (a propeller turning about x) then builds up a spurious jet in w at its surface
+    if(p->flagsf4[IJKm1]<0 && static_geometry(a,i,j,k-1))
     wflux1=0.0;
     
-    if(p->flagsf4[IJKp1]<0)
+    if(p->flagsf4[IJKp1]<0 && static_geometry(a,i,j,k+1))
     wflux2=0.0;
+}
+
+bool flux_face_CDS2::static_geometry(fdm *a, int ii, int jj, int kk)
+{
+    if(p->X10!=1)
+    return true;
+    
+    return (p->solidread==1 && a->solid(ii,jj,kk)<0.0) || (p->toporead==1 && a->topo(ii,jj,kk)<0.0);
 }
 
 
