@@ -522,6 +522,22 @@ void free_lexer_cells(lexer *q)
     delete [] q->flag_topo;
     q->flag_solid = q->flag_topo = nullptr;
     q->geometry_free();     // the horizontal geometry layer of build_lexer
+
+    // the grid and the slices of build_lexer and gridspacing (the boundary lists are left: their
+    // sizes change after build_lexer)
+    double **da[] = {&q->XN,&q->YN,&q->ZN,&q->XP,&q->YP,&q->ZP,&q->DXN,&q->DYN,&q->DZN,&q->DXP,&q->DYP,&q->DZP,
+                     &q->ZSN,&q->ZSP,&q->solidbed,&q->topobed,&q->geobed,&q->bed,&q->depth,&q->WL,&q->data};
+    for(double **a : da)
+    {
+        delete [] *a;
+        *a = nullptr;
+    }
+    int **sa[] = {&q->wet,&q->wet_n,&q->deep,&q->flagslice1,&q->flagslice2,&q->flagslice4,&q->IOSL};
+    for(int **a : sa)
+    {
+        delete [] *a;
+        *a = nullptr;
+    }
 }
 }
 
@@ -587,7 +603,14 @@ void cfd_amr::patch_objects(r3patch *rp)
     pp->F46 = 0;
     pp->B30 = (b30==3) ? 3 : 0;
 
-    c->a = new fdm(pp);
+    // the fields of fdm the patch objects use (the others unallocated: VOF, VRANS without porous
+    // structures, the wall distance without a RANS model, output and initialisation fields)
+    unsigned lean = FDM_LEAN_FI|FDM_LEAN_TEST|FDM_LEAN_CONC|FDM_LEAN_VOF|FDM_LEAN_NODE;
+    if(pp->B200==0)
+    lean |= FDM_LEAN_POR;
+    if(!turb)
+    lean |= FDM_LEAN_WALLD;
+    c->a = new fdm(pp,lean);
     pscope ps(pgc0,c->a,a0);
     ghostcell *pgc = pgc0;
     fdm *a = c->a;

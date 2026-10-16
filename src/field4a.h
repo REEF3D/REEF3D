@@ -28,7 +28,7 @@ Author: Hans Bihs
 class field4a final : public field
 {
 public:
-    field4a(lexer* p) : field(p) {}
+    field4a(lexer* p, bool allocate=true) : field(p,allocate) {}
     virtual ~field4a() = default;
 };
 
