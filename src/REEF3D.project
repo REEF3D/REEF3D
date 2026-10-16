@@ -1785,6 +1785,7 @@
           <VirtualDirectory Name="EARSM"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Pressure">
+          <File Name="pjm_corr_comp.cpp"/>
           <File Name="pressure_void.cpp"/>
           <File Name="pjm_hydrostatic.cpp"/>
           <File Name="pjm_corr.cpp"/>
@@ -2907,7 +2908,7 @@
               <File Name="6DOF_obj_ray2D_io_y.cpp"/>
               <File Name="6DOF_obj_ray2D_io_x.cpp"/>
               <File Name="6DOF_obj_ray2D.cpp"/>
-          <File Name="6DOF_obj_ray2D_curv.cpp"/>
+              <File Name="6DOF_obj_ray2D_curv.cpp"/>
             </VirtualDirectory>
             <File Name="6DOF_obj_objects.cpp"/>
             <File Name="6DOF_obj_geometry.cpp"/>
