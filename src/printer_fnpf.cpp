@@ -674,3 +674,11 @@ void printer_fnpf::print(lexer* p, fdm_fnpf *c, ghostcell* pgc)
         ++printcount;
     }
 }
+
+// the mesh refinement: the wave gauges (P 51) and the velocity probes (P 65) on the finest grid
+void printer_fnpf::amr_columns(lexer *p, const amr_column_lookup *amr)
+{
+    pwsf->amr = amr;
+    if(p->P65>0)
+    pvel->amr = amr;
+}

@@ -24,6 +24,7 @@ Author: Hans Bihs
 #define SFLOW_PRINT_WSF_H_
 
 #include"increment.h"
+#include"amr_grid_lookup.h"
 #include<iostream>
 #include<fstream>
 
@@ -37,6 +38,9 @@ using namespace std;
 class sflow_print_wsf : public increment
 {
 public:
+    // the mesh refinement: the points read the finest grid (amr_grid_lookup.h), nullptr: level 0
+    const amr_column_lookup *amr = nullptr;
+
     sflow_print_wsf(lexer*,fdm2D*);
 	virtual ~sflow_print_wsf();
 

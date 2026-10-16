@@ -82,19 +82,32 @@ void nhflow_probe_press::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
     double xp,yp,zp;
     
     ini_location(p,d);
+
+    // the mesh refinement: the finest grid at the probe (one rank writes it)
+    amr_points ap;
+    if(amr!=nullptr)
+    ap.find(amr,p,probenum,p->P64_x,p->P64_y,flag);
 	
 	for(n=0;n<probenum;++n)
 	{
 	pval=-1.0e20;
 	
-		if(flag[n]>0)
+		if(amr==nullptr ? flag[n]>0 : ap.mine[n]!=0)
 		{
 		xp=p->P64_x[n];
 		yp=p->P64_y[n];
 		zp=p->P64_z[n];
+
+        lexer *q = p;
+        fdm_nhf *g = d;
+        if(amr!=nullptr && ap.f[n]!=nullptr)
+        {
+            q = ap.q[n];
+            g = static_cast<fdm_nhf*>(ap.f[n]);
+        }
     
-		pdyn = p->ccipol4V(d->P, d->WL, d->bed, xp, yp, zp);
-         etaval = p->ccslipol4(d->eta,xp,yp);  
+		pdyn = q->ccipol4V(g->P, g->WL, g->bed, xp, yp, zp);
+         etaval = q->ccslipol4(g->eta,xp,yp);  
          phs = (p->wd + etaval - zp)*p->W1*fabs(p->W22);
          
          pval = pdyn + phs;

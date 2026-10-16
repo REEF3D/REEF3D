@@ -1,0 +1,977 @@
+From 024b53b2688e042b468d361026b6fa6d76b40ada Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Fri, 16 Oct 2026 09:52:08 +0200
+Subject: [PATCH 54/57] reefamr: the gauges and probes of NHFLOW, FNPF, SFLOW
+ read the finest grid
+
+The printers of the column models read level 0, which under a patch holds the restriction of the
+patch.  amr_grid_lookup.h gets amr_column_lookup (the finest patch of a rank at (x,y)) and
+amr_point_owners (collective: the rank that writes a point of an output, the one with the finest
+grid there; points on level 0 alone as before), amr_points (the grids of the points of an output).
+reefamr::finest_point finds the finest local patch whose interior holds the point with the cells
+within two of it interior or boundary values (not filled from another grid).  nhflow_amr,
+fnpf_amr and sflow_amr implement the lookup, the printers take it after the setup of the
+refinement: NHFLOW P 51, P 64, P 65; FNPF P 51, P 65; SFLOW P 51, P 63.  The lines and the run-up
+stay on level 0.  With the placement (G 40) a point is written by the rank of its finest grid.
+
+The states are unchanged; the WSF files of the cases with refinement and gauges change (the SFLOW
+dam break: 3-10 times closer to the uniform fine run, validation/32).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_014G7omtKaJAENUnj6HCVcLM
+---
+ src/REEF3D.project           |  1 +
+ src/amr_grid_lookup.cpp      | 72 ++++++++++++++++++++++++++++++++++++
+ src/amr_grid_lookup.h        | 32 ++++++++++++++++
+ src/driver_ini_fnpf.cpp      |  4 ++
+ src/driver_ini_nhflow.cpp    |  4 ++
+ src/fnpf_amr.h               | 16 +++++++-
+ src/fnpf_print_wsf.cpp       | 18 ++++++++-
+ src/fnpf_print_wsf.h         |  4 ++
+ src/fnpf_vel_probe.cpp       | 23 +++++++++---
+ src/fnpf_vel_probe.h         |  4 ++
+ src/nhflow_amr.h             | 16 +++++++-
+ src/nhflow_print_wsf.cpp     | 10 ++++-
+ src/nhflow_print_wsf.h       |  4 ++
+ src/nhflow_probe_press.cpp   | 19 ++++++++--
+ src/nhflow_probe_press.h     |  4 ++
+ src/nhflow_probe_vel.cpp     | 23 +++++++++---
+ src/nhflow_probe_vel.h       |  4 ++
+ src/printer.h                |  3 ++
+ src/printer_fnpf.cpp         |  8 ++++
+ src/printer_fnpf.h           |  2 +
+ src/printer_nhflow.cpp       | 10 +++++
+ src/printer_nhflow.h         |  2 +
+ src/reefamr.cpp              | 52 ++++++++++++++++++++++++++
+ src/reefamr.h                |  4 ++
+ src/sflow_amr.h              | 16 +++++++-
+ src/sflow_f_ini.cpp          |  1 +
+ src/sflow_print_probe_da.cpp | 27 ++++++++++----
+ src/sflow_print_probe_da.h   |  4 ++
+ src/sflow_print_wsf.cpp      | 17 ++++++++-
+ src/sflow_print_wsf.h        |  4 ++
+ src/sflow_vtp_fsf.cpp        |  6 +++
+ src/sflow_vtp_fsf.h          |  4 ++
+ 32 files changed, 390 insertions(+), 28 deletions(-)
+ create mode 100644 src/amr_grid_lookup.cpp
+
+diff --git a/src/REEF3D.project b/src/REEF3D.project
+index 19ba0fd..be5b9ad 100644
+--- a/src/REEF3D.project
++++ b/src/REEF3D.project
+@@ -3234,6 +3234,7 @@
+         <File Name="lexer_ini.cpp"/>
+         <File Name="lexer_assign.cpp"/>
+         <File Name="lexer_amr.cpp"/>
++        <File Name="amr_grid_lookup.cpp"/>
+         <File Name="read_grid.cpp"/>
+         <File Name="lexer_gridsize.cpp"/>
+         <File Name="lexer_vectorsize.cpp"/>
+diff --git a/src/amr_grid_lookup.cpp b/src/amr_grid_lookup.cpp
+new file mode 100644
+index 0000000..b4d5900
+--- /dev/null
++++ b/src/amr_grid_lookup.cpp
+@@ -0,0 +1,72 @@
++/*--------------------------------------------------------------------
++REEF3D
++Copyright 2008-2026 Hans Bihs
++
++This file is part of REEF3D.
++
++REEF3D is free software; you can redistribute it and/or modify it
++under the terms of the GNU General Public License as published by
++the Free Software Foundation; either version 3 of the License, or
++(at your option) any later version.
++
++This program is distributed in the hope that it will be useful, but WITHOUT
++ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
++for more details.
++
++You should have received a copy of the GNU General Public License
++along with this program; if not, see <http://www.gnu.org/licenses/>.
++--------------------------------------------------------------------
++Architect: Hans Bihs
++--------------------------------------------------------------------*/
++
++#include"amr_grid_lookup.h"
++#include<mpi.h>
++#include<vector>
++
++void amr_point_owners(const int *lev, int n, char *mine)
++{
++    if(n<=0)
++    return;
++
++    int rank = 0, size = 1;
++    MPI_Comm_rank(MPI_COMM_WORLD,&rank);
++    MPI_Comm_size(MPI_COMM_WORLD,&size);
++
++    // the key of a point: the level first, the lower rank before the higher one
++    std::vector<int> key(n), top(n);
++    for(int m=0; m<n; ++m)
++    key[m] = (lev[m]<0) ? -1 : lev[m]*size + (size-1-rank);
++    MPI_Allreduce(key.data(),top.data(),n,MPI_INT,MPI_MAX,MPI_COMM_WORLD);
++
++    for(int m=0; m<n; ++m)
++    {
++        if(top[m]<size)     // level 0 at most: every rank that holds the point
++        mine[m] = (lev[m]==0) ? 1 : 0;
++        else
++        mine[m] = (key[m]==top[m]) ? 1 : 0;
++    }
++}
++
++void amr_points::find(const amr_column_lookup *amr, lexer *p, int n, const double *x, const double *y, const int *flag)
++{
++    lev.assign(n,-1);
++    q.assign(n,p);
++    f.assign(n,nullptr);
++    mine.assign(n,0);
++    for(int m=0; m<n; ++m)
++    {
++        lexer *qq = p;
++        void *ff = nullptr;
++        const int L = amr->finest_column(x[m],y[m],qq,ff);
++        if(L>0)
++        {
++            lev[m] = L;
++            q[m] = qq;
++            f[m] = ff;
++        }
++        else
++        lev[m] = (flag[m]>0) ? 0 : -1;
++    }
++    amr_point_owners(lev.data(),n,mine.data());
++}
+diff --git a/src/amr_grid_lookup.h b/src/amr_grid_lookup.h
+index fb18e69..f1ece1a 100644
+--- a/src/amr_grid_lookup.h
++++ b/src/amr_grid_lookup.h
+@@ -41,4 +41,36 @@ public:
+     virtual bool finest_grid(double x, double y, double z, lexer *&q, fdm *&a, turbulence *&t) const = 0;
+ };
+ 
++// The same for the 2D-column models of the refinement core reefamr (NHFLOW, FNPF, SFLOW): the
++// finest patch of this rank for the output at (x,y), the point two cells inside the cells the
++// patch takes from other grids (reefamr::finest_point); its level (0: none here, the output reads
++// level 0 where this rank holds the point), its lexer and the model's fdm (fdm_nhf, fdm_fnpf,
++// fdm2D).  The printers of the models (P 51 and their probes) read the finest grid with it.
++class amr_column_lookup
++{
++public:
++    virtual ~amr_column_lookup() {}
++    virtual int finest_column(double x, double y, lexer *&q, void *&f) const = 0;
++};
++
++// The rank that writes a point of the output, over all ranks: per point the level of this rank's
++// grid there (-1: none, 0: level 0); mine (1: this rank writes it).  A point on level 0 alone:
++// every rank that holds it (the caller reduces the values as before); else the rank of the finest
++// grid, the lowest of equal ones (with the placement of the patches, G 40, it need not be the rank
++// of the level-0 cell).  Collective.
++void amr_point_owners(const int *lev, int n, char *mine);
++
++// the grids of the points of an output: find (collective) sets per point the grid to read on this
++// rank (q, f; f nullptr: level 0, the printer's own fields) and whether this rank writes the point
++// (mine); flag: the point on this rank's level-0 grid
++#include<vector>
++struct amr_points
++{
++    std::vector<int> lev;
++    std::vector<lexer*> q;
++    std::vector<void*> f;
++    std::vector<char> mine;
++    void find(const amr_column_lookup *amr, lexer *p, int n, const double *x, const double *y, const int *flag);
++};
++
+ #endif
+diff --git a/src/driver_ini_fnpf.cpp b/src/driver_ini_fnpf.cpp
+index 3f6613b..766b73b 100644
+--- a/src/driver_ini_fnpf.cpp
++++ b/src/driver_ini_fnpf.cpp
+@@ -194,6 +194,10 @@ void driver::driver_ini_fnpf()
+     // mesh refinement: initial hierarchy
+     if(pfamr!=nullptr)
+     pfamr->ini(p,c,pgc);
++
++    // the wave gauges and probes of the printer on the finest grid
++    if(pfamr!=nullptr)
++    pprint->amr_columns(p,pfamr);
+     
+     pftstep->ini(c,p,pgc);
+     
+diff --git a/src/driver_ini_nhflow.cpp b/src/driver_ini_nhflow.cpp
+index d784474..4581037 100644
+--- a/src/driver_ini_nhflow.cpp
++++ b/src/driver_ini_nhflow.cpp
+@@ -193,6 +193,10 @@ void driver::driver_ini_nhflow()
+     // mesh refinement ini: patches from the initial state
+     if(pnhfamr!=nullptr)
+     pnhfamr->ini(p,d,pgc);
++
++    // the wave gauges and probes of the printer on the finest grid
++    if(pnhfamr!=nullptr)
++    pprint->amr_columns(p,pnhfamr);
+     
+     // S 10: the sediment step runs on all grids (nhflow_amr_sed.cpp)
+     if(pnhfamr!=nullptr)
+diff --git a/src/fnpf_amr.h b/src/fnpf_amr.h
+index a30f2aa..78fb9bc 100644
+--- a/src/fnpf_amr.h
++++ b/src/fnpf_amr.h
+@@ -24,6 +24,7 @@ Author: Hans Bihs
+ #define FNPF_AMR_H_
+ 
+ #include"reefamr.h"
++#include"amr_grid_lookup.h"
+ #include"fnpf_laplace.h"
+ #include<vector>
+ #include<fstream>
+@@ -113,9 +114,22 @@ struct fnpf_amr_patch : public reefamr_patch
+     reefmg_core *mg = nullptr;      // patch-local multigrid of the preconditioner
+ };
+ 
+-class fnpf_amr : public reefamr
++class fnpf_amr : public reefamr, public amr_column_lookup
+ {
+ public:
++    // the output on the finest grid (amr_grid_lookup.h): the finest patch of this rank at (x,y)
++    int finest_column(double x, double y, lexer *&q, void *&f) const override
++    {
++        int id;
++        const int L = finest_point(x,y,id);
++        if(L>0)
++        {
++            q = P[id]->pp;
++            f = static_cast<fnpf_amr_patch*>(P[id])->c;
++        }
++        return L;
++    }
++
+     fnpf_amr(lexer*, fdm_fnpf*, ghostcell*);
+     virtual ~fnpf_amr();
+ 
+diff --git a/src/fnpf_print_wsf.cpp b/src/fnpf_print_wsf.cpp
+index 21a4552..bf78d9c 100644
+--- a/src/fnpf_print_wsf.cpp
++++ b/src/fnpf_print_wsf.cpp
+@@ -24,6 +24,7 @@ Author: Hans Bihs
+ #include"fnpf_print_wsf.h"
+ #include"lexer.h"
+ #include"fdm2D.h"
++#include"fdm_fnpf.h"
+ #include"ghostcell.h"
+ #include<sys/stat.h>
+ #include<sys/types.h>
+@@ -142,14 +143,27 @@ void fnpf_print_wsf::fill_eta(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f)
+     wsf[n]=-1.0e20;
+ 
+ 	
++    // the mesh refinement: the finest grid at the gauge (one rank writes it, its cell there)
++    amr_points ap;
++    if(amr!=nullptr)
++    ap.find(amr,p,gauge_num,x,y,flag);
++
+     for(n=0;n<gauge_num;++n)
+-    if(flag[n]>0)
++    if(amr==nullptr ? flag[n]>0 : ap.mine[n]!=0)
+     {
+     zval=0.0;
+ 
+     i=iloc[n];
+     j=jloc[n];
+-	
++
++        if(amr!=nullptr && ap.f[n]!=nullptr)
++        {
++            lexer *q = ap.q[n];
++            i = q->posc_i(x[n]);
++            j = (q->j_dir==1) ? q->posc_j(y[n]) : 0;
++            wsf[n] = static_cast<fdm_fnpf*>(ap.f[n])->eta(i,j);
++        }
++        else
+ 			wsf[n] = f(i,j);
+ 
+     }
+diff --git a/src/fnpf_print_wsf.h b/src/fnpf_print_wsf.h
+index 05a5a8f..eb6c876 100644
+--- a/src/fnpf_print_wsf.h
++++ b/src/fnpf_print_wsf.h
+@@ -24,6 +24,7 @@ Author: Hans Bihs
+ #define FNPF_PRINT_WSF_H_
+ 
+ #include"increment.h"
++#include"amr_grid_lookup.h"
+ #include<iostream>
+ #include<fstream>
+ 
+@@ -37,6 +38,9 @@ using namespace std;
+ class fnpf_print_wsf : public increment
+ {
+ public:
++    // the mesh refinement: the points read the finest grid (amr_grid_lookup.h), nullptr: level 0
++    const amr_column_lookup *amr = nullptr;
++
+     fnpf_print_wsf(lexer*,fdm_fnpf*);
+ 	virtual ~fnpf_print_wsf();
+ 
+diff --git a/src/fnpf_vel_probe.cpp b/src/fnpf_vel_probe.cpp
+index 758f5cb..63150c5 100644
+--- a/src/fnpf_vel_probe.cpp
++++ b/src/fnpf_vel_probe.cpp
+@@ -82,21 +82,34 @@ void fnpf_vel_probe::start(lexer *p, fdm_fnpf *c, ghostcell *pgc)
+     double xp,yp,zp;
+     
+     ini_location(p,c);
++
++    // the mesh refinement: the finest grid at the probe (one rank writes it)
++    amr_points ap;
++    if(amr!=nullptr)
++    ap.find(amr,p,probenum,p->P65_x,p->P65_y,flag);
+ 	
+ 	for(n=0;n<probenum;++n)
+ 	{
+ 	uval=vval=wval=fival=-1.0e20;
+ 	
+-		if(flag[n]>0)
++		if(amr==nullptr ? flag[n]>0 : ap.mine[n]!=0)
+ 		{
+ 		xp=p->P65_x[n];
+ 		yp=p->P65_y[n];
+ 		zp=p->P65_z[n];
++
++        lexer *q = p;
++        fdm_fnpf *g = c;
++        if(amr!=nullptr && ap.f[n]!=nullptr)
++        {
++            q = ap.q[n];
++            g = static_cast<fdm_fnpf*>(ap.f[n]);
++        }
+     
+-		uval = p->ccipol7V(c->U, c->WL, c->bed, xp, yp, zp);
+-		vval = p->ccipol7V(c->V, c->WL, c->bed, xp, yp, zp);
+-		wval = p->ccipol7V(c->W, c->WL, c->bed, xp, yp, zp);
+-        fival = p->ccipol7V(c->Fi, c->WL, c->bed, xp, yp, zp);
++		uval = q->ccipol7V(g->U, g->WL, g->bed, xp, yp, zp);
++		vval = q->ccipol7V(g->V, g->WL, g->bed, xp, yp, zp);
++		wval = q->ccipol7V(g->W, g->WL, g->bed, xp, yp, zp);
++        fival = q->ccipol7V(g->Fi, g->WL, g->bed, xp, yp, zp);
+ 		}
+ 	
+ 	val[n*4+0]=uval;
+diff --git a/src/fnpf_vel_probe.h b/src/fnpf_vel_probe.h
+index 5e5131e..5f7f464 100644
+--- a/src/fnpf_vel_probe.h
++++ b/src/fnpf_vel_probe.h
+@@ -24,6 +24,7 @@ Author: Hans Bihs
+ #define FNPF_VEL_PROBE_H_
+ 
+ #include"boundarycheck.h"
++#include"amr_grid_lookup.h"
+ #include<iostream>
+ #include<fstream>
+ 
+@@ -37,6 +38,9 @@ using namespace std;
+ class fnpf_vel_probe : public boundarycheck
+ {
+ public:
++    // the mesh refinement: the points read the finest grid (amr_grid_lookup.h), nullptr: level 0
++    const amr_column_lookup *amr = nullptr;
++
+     fnpf_vel_probe(lexer*,fdm_fnpf*);
+ 	virtual ~fnpf_vel_probe();
+ 
+diff --git a/src/nhflow_amr.h b/src/nhflow_amr.h
+index fd924ef..fb6dd6d 100644
+--- a/src/nhflow_amr.h
++++ b/src/nhflow_amr.h
+@@ -24,6 +24,7 @@ Author: Hans Bihs
+ #define NHFLOW_AMR_H_
+ 
+ #include"reefamr.h"
++#include"amr_grid_lookup.h"
+ #include"lexer.h"
+ #include"nhflow_momentum_func.h"
+ #include"nhflow_convection.h"
+@@ -185,9 +186,22 @@ struct nhflow_amr_patch : public reefamr_patch
+     vector<double> freg[5][4];
+ };
+ 
+-class nhflow_amr : public reefamr, public nhflow_stage_runner, public nhflow_flux_hook, public nhflow_timestep_hook, public sediment_grids
++class nhflow_amr : public reefamr, public amr_column_lookup, public nhflow_stage_runner, public nhflow_flux_hook, public nhflow_timestep_hook, public sediment_grids
+ {
+ public:
++    // the output on the finest grid (amr_grid_lookup.h): the finest patch of this rank at (x,y)
++    int finest_column(double x, double y, lexer *&q, void *&f) const override
++    {
++        int id;
++        const int L = finest_point(x,y,id);
++        if(L>0)
++        {
++            q = P[id]->pp;
++            f = static_cast<nhflow_amr_patch*>(P[id])->d;
++        }
++        return L;
++    }
++
+     nhflow_amr(lexer*, fdm_nhf*, ghostcell*, nhflow_momentum*, nhflow_convection*, nhflow_timestep*, sixdof*);
+     virtual ~nhflow_amr();
+ 
+diff --git a/src/nhflow_print_wsf.cpp b/src/nhflow_print_wsf.cpp
+index 8fef760..eb272b0 100644
+--- a/src/nhflow_print_wsf.cpp
++++ b/src/nhflow_print_wsf.cpp
+@@ -98,14 +98,22 @@ void nhflow_print_wsf::fill_eta(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &f)
+     wsf[n]=-1.0e20;
+ 
+ 	
++    // the mesh refinement: the finest grid at the gauge (one rank writes it)
++    amr_points ap;
++    if(amr!=nullptr)
++    ap.find(amr,p,gauge_num,x,y,flag);
++
+     for(n=0;n<gauge_num;++n)
+-    if(flag[n]>0)
++    if(amr==nullptr ? flag[n]>0 : ap.mine[n]!=0)
+     {
+     zval=0.0;
+ 
+     i=iloc[n];
+     j=jloc[n];
+     
++    if(amr!=nullptr && ap.f[n]!=nullptr)
++    wsf[n] = ap.q[n]->ccslipol4(static_cast<fdm_nhf*>(ap.f[n])->eta, x[n], y[n]);
++    else
+     wsf[n] = p->ccslipol4(f, x[n], y[n]);
+     }
+ 	
+diff --git a/src/nhflow_print_wsf.h b/src/nhflow_print_wsf.h
+index e809133..082cc68 100644
+--- a/src/nhflow_print_wsf.h
++++ b/src/nhflow_print_wsf.h
+@@ -24,6 +24,7 @@ Author: Hans Bihs
+ #define NHFLOW_PRINT_WSF_H_
+ 
+ #include"increment.h"
++#include"amr_grid_lookup.h"
+ #include<iostream>
+ #include<fstream>
+ 
+@@ -37,6 +38,9 @@ using namespace std;
+ class nhflow_print_wsf : public increment
+ {
+ public:
++    // the mesh refinement: the points read the finest grid (amr_grid_lookup.h), nullptr: level 0
++    const amr_column_lookup *amr = nullptr;
++
+     nhflow_print_wsf(lexer*,fdm_nhf*);
+ 	virtual ~nhflow_print_wsf();
+ 
+diff --git a/src/nhflow_probe_press.cpp b/src/nhflow_probe_press.cpp
+index 290f4ee..26d2e89 100644
+--- a/src/nhflow_probe_press.cpp
++++ b/src/nhflow_probe_press.cpp
+@@ -82,19 +82,32 @@ void nhflow_probe_press::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
+     double xp,yp,zp;
+     
+     ini_location(p,d);
++
++    // the mesh refinement: the finest grid at the probe (one rank writes it)
++    amr_points ap;
++    if(amr!=nullptr)
++    ap.find(amr,p,probenum,p->P64_x,p->P64_y,flag);
+ 	
+ 	for(n=0;n<probenum;++n)
+ 	{
+ 	pval=-1.0e20;
+ 	
+-		if(flag[n]>0)
++		if(amr==nullptr ? flag[n]>0 : ap.mine[n]!=0)
+ 		{
+ 		xp=p->P64_x[n];
+ 		yp=p->P64_y[n];
+ 		zp=p->P64_z[n];
++
++        lexer *q = p;
++        fdm_nhf *g = d;
++        if(amr!=nullptr && ap.f[n]!=nullptr)
++        {
++            q = ap.q[n];
++            g = static_cast<fdm_nhf*>(ap.f[n]);
++        }
+     
+-		pdyn = p->ccipol4V(d->P, d->WL, d->bed, xp, yp, zp);
+-         etaval = p->ccslipol4(d->eta,xp,yp);  
++		pdyn = q->ccipol4V(g->P, g->WL, g->bed, xp, yp, zp);
++         etaval = q->ccslipol4(g->eta,xp,yp);  
+          phs = (p->wd + etaval - zp)*p->W1*fabs(p->W22);
+          
+          pval = pdyn + phs;
+diff --git a/src/nhflow_probe_press.h b/src/nhflow_probe_press.h
+index 997f337..5aa6855 100644
+--- a/src/nhflow_probe_press.h
++++ b/src/nhflow_probe_press.h
+@@ -24,6 +24,7 @@ Author: Hans Bihs
+ #define NHFLOW_PROBE_PRESS_H_
+ 
+ #include"boundarycheck.h"
++#include"amr_grid_lookup.h"
+ #include<iostream>
+ #include<fstream>
+ 
+@@ -37,6 +38,9 @@ using namespace std;
+ class nhflow_probe_press : public boundarycheck
+ {
+ public:
++    // the mesh refinement: the points read the finest grid (amr_grid_lookup.h), nullptr: level 0
++    const amr_column_lookup *amr = nullptr;
++
+     nhflow_probe_press(lexer*,fdm_nhf*);
+ 	virtual ~nhflow_probe_press();
+ 
+diff --git a/src/nhflow_probe_vel.cpp b/src/nhflow_probe_vel.cpp
+index ef114d0..60bb334 100644
+--- a/src/nhflow_probe_vel.cpp
++++ b/src/nhflow_probe_vel.cpp
+@@ -82,22 +82,35 @@ void nhflow_probe_vel::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
+     double xp,yp,zp;
+     
+     ini_location(p,d);
++
++    // the mesh refinement: the finest grid at the probe (one rank writes it)
++    amr_points ap;
++    if(amr!=nullptr)
++    ap.find(amr,p,probenum,p->P65_x,p->P65_y,flag);
+ 	
+ 	for(n=0;n<probenum;++n)
+ 	{
+ 	uval=vval=wval=-1.0e20;
+ 	
+-		if(flag[n]>0)
++		if(amr==nullptr ? flag[n]>0 : ap.mine[n]!=0)
+ 		{
+ 		xp=p->P65_x[n];
+ 		yp=p->P65_y[n];
+ 		zp=p->P65_z[n];
++
++        lexer *q = p;
++        fdm_nhf *g = d;
++        if(amr!=nullptr && ap.f[n]!=nullptr)
++        {
++            q = ap.q[n];
++            g = static_cast<fdm_nhf*>(ap.f[n]);
++        }
+     
+-		uval = p->ccipol4V(d->U, d->WL, d->bed, xp, yp, zp);
+-		vval = p->ccipol4V(d->V, d->WL, d->bed, xp, yp, zp);
+-		wval = p->ccipol4V(d->W, d->WL, d->bed, xp, yp, zp);
++		uval = q->ccipol4V(g->U, g->WL, g->bed, xp, yp, zp);
++		vval = q->ccipol4V(g->V, g->WL, g->bed, xp, yp, zp);
++		wval = q->ccipol4V(g->W, g->WL, g->bed, xp, yp, zp);
+         
+-        etaval = p->ccslipol4(d->eta,xp,yp);
++        etaval = q->ccslipol4(g->eta,xp,yp);
+         
+         if(zp > p->wd + etaval)
+          uval = vval = wval = 0.0;
+diff --git a/src/nhflow_probe_vel.h b/src/nhflow_probe_vel.h
+index c9320c5..3407682 100644
+--- a/src/nhflow_probe_vel.h
++++ b/src/nhflow_probe_vel.h
+@@ -24,6 +24,7 @@ Author: Hans Bihs
+ #define NHFLOW_PROBE_VEL_H_
+ 
+ #include"boundarycheck.h"
++#include"amr_grid_lookup.h"
+ #include<iostream>
+ #include<fstream>
+ 
+@@ -37,6 +38,9 @@ using namespace std;
+ class nhflow_probe_vel : public boundarycheck
+ {
+ public:
++    // the mesh refinement: the points read the finest grid (amr_grid_lookup.h), nullptr: level 0
++    const amr_column_lookup *amr = nullptr;
++
+     nhflow_probe_vel(lexer*,fdm_nhf*);
+ 	virtual ~nhflow_probe_vel();
+ 
+diff --git a/src/printer.h b/src/printer.h
+index aa85ee7..3b859c1 100644
+--- a/src/printer.h
++++ b/src/printer.h
+@@ -40,6 +40,7 @@ class concentration;
+ class multiphase;
+ class sediment;
+ class amr_grid_lookup;
++class amr_column_lookup;
+ 
+ class printer
+ {
+@@ -49,6 +50,8 @@ public:
+     virtual void print_stop(lexer*,fdm*,ghostcell*,turbulence*,heat*,ioflow*,expdata*,concentration*,multiphase*,sediment*) {};
+     // CFD mesh refinement: the probes and wave gauges read the finest grid at their position
+     virtual void amr_probes(const amr_grid_lookup*) {};
++    // the 2D-column models (NHFLOW, FNPF): the gauges and probes read the finest grid
++    virtual void amr_columns(lexer*, const amr_column_lookup*) {};
+     // NHFLOW
+     virtual void start(lexer*,fdm_nhf*,ghostcell*,ioflow*,nhflow_turbulence*,sediment*) {};
+     virtual void print_stop(lexer*,fdm_nhf*,ghostcell*,ioflow*,nhflow_turbulence*,sediment*) {};
+diff --git a/src/printer_fnpf.cpp b/src/printer_fnpf.cpp
+index c33cb51..99ffdd5 100644
+--- a/src/printer_fnpf.cpp
++++ b/src/printer_fnpf.cpp
+@@ -674,3 +674,11 @@ void printer_fnpf::print(lexer* p, fdm_fnpf *c, ghostcell* pgc)
+         ++printcount;
+     }
+ }
++
++// the mesh refinement: the wave gauges (P 51) and the velocity probes (P 65) on the finest grid
++void printer_fnpf::amr_columns(lexer *p, const amr_column_lookup *amr)
++{
++    pwsf->amr = amr;
++    if(p->P65>0)
++    pvel->amr = amr;
++}
+diff --git a/src/printer_fnpf.h b/src/printer_fnpf.h
+index 62eaa45..9ca2f1d 100644
+--- a/src/printer_fnpf.h
++++ b/src/printer_fnpf.h
+@@ -53,6 +53,8 @@ class printer_fnpf final : public printer, public increment
+ {
+ 
+ public:
++    void amr_columns(lexer*, const amr_column_lookup*) override;
++
+     printer_fnpf(lexer*,fdm_fnpf*,ghostcell*);
+     virtual ~printer_fnpf() = default;
+     void start(lexer*,fdm_fnpf*,ghostcell*,ioflow*) override final;
+diff --git a/src/printer_nhflow.cpp b/src/printer_nhflow.cpp
+index 48aaee9..1c5635f 100644
+--- a/src/printer_nhflow.cpp
++++ b/src/printer_nhflow.cpp
+@@ -890,3 +890,13 @@ void printer_nhflow::print(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbulen
+         ++printcount;
+     }
+ }
++
++// the mesh refinement: the wave gauges (P 51) and the probes (P 64, P 65) on the finest grid
++void printer_nhflow::amr_columns(lexer *p, const amr_column_lookup *amr)
++{
++    pwsf->amr = amr;
++    if(p->P64>0)
++    ppressprobe->amr = amr;
++    if(p->P65>0)
++    pvel->amr = amr;
++}
+diff --git a/src/printer_nhflow.h b/src/printer_nhflow.h
+index e38c9a3..2b72750 100644
+--- a/src/printer_nhflow.h
++++ b/src/printer_nhflow.h
+@@ -64,6 +64,8 @@ class printer_nhflow final : public printer, public increment
+ {
+ 
+ public:
++    void amr_columns(lexer*, const amr_column_lookup*) override;
++
+     printer_nhflow(lexer*,fdm_nhf*,ghostcell*);
+     virtual ~printer_nhflow() = default;
+     void start(lexer*,fdm_nhf*,ghostcell*,ioflow*,nhflow_turbulence*,sediment*) override final;
+diff --git a/src/reefamr.cpp b/src/reefamr.cpp
+index fa4941d..9989aef 100644
+--- a/src/reefamr.cpp
++++ b/src/reefamr.cpp
+@@ -29,6 +29,7 @@ Author: Hans Bihs
+ #include"mgcslice2.h"
+ #include"mgcslice4.h"
+ #include<mpi.h>
++#include<algorithm>
+ 
+ namespace
+ {
+@@ -450,6 +451,57 @@ int reefamr::finest_rank(double x, double y)
+     return owner(I,J);
+ }
+ 
++int reefamr::finest_point(double x, double y, int &id) const
++{
++    id = -1;
++    if(p0->geo_mb>0)
++    return 0;
++
++    int best = 0;
++    for(int n=0; n<(int)P.size(); ++n)
++    {
++        const reefamr_patch *c = P[n];
++        lexer *pp = c->pp;
++        if(c->lev<=best)
++        continue;
++
++        // the cell of the point in the patch lexer (index EXT: first interior cell)
++        int a=-1, b=-1;
++        if(pp->geo_curv==1)
++        {
++            if(!pp->geo_cell(x,y,a,b))
++            continue;
++        }
++        else
++        {
++            if(!(x>=pp->XN[EXT+marge] && x<pp->XN[EXT+c->nx+marge]))
++            continue;
++            if(pp->j_dir==1 && !(y>=pp->YN[EXT+marge] && y<pp->YN[EXT+c->ny+marge]))
++            continue;
++            a = int(std::upper_bound(pp->XN+EXT+marge,pp->XN+EXT+c->nx+marge+1,x) - (pp->XN+marge)) - 1;
++            b = (pp->j_dir==1) ? int(std::upper_bound(pp->YN+EXT+marge,pp->YN+EXT+c->ny+marge+1,y) - (pp->YN+marge)) - 1 : EXT;
++        }
++        if(a<EXT || a>=EXT+c->nx || b<EXT || b>=EXT+c->ny)
++        continue;
++
++        // the cells within two of it: interior, or not taken from another grid
++        bool ok = true;
++        const int bj = (pp->j_dir==1) ? 2 : 0;
++        for(const reefamr_fill &f : c->fill)
++        if(f.kind<=2 && f.di>=a-2 && f.di<=a+2 && f.dj>=b-bj && f.dj<=b+bj)
++        {
++            ok = false;
++            break;
++        }
++        if(!ok)
++        continue;
++
++        best = c->lev;
++        id = n;
++    }
++    return best;
++}
++
+ // --------------------------------------------------------------------- setup
+ // rank boxes, level arrays, tiles, level-0 flags and the no-refinement cells
+ void reefamr::setup(lexer *p, ghostcell *pgc)
+diff --git a/src/reefamr.h b/src/reefamr.h
+index a3e1504..9ce8c65 100644
+--- a/src/reefamr.h
++++ b/src/reefamr.h
+@@ -254,6 +254,10 @@ protected:
+     bool covered(int l, int I, int J) { return l>=1 && gpatch_at(l,I,J)>=0; }   // a level-l patch (any rank) holds (I,J)
+     double gnode(int, int, int);            // place 1: x (dir 0) or y (dir 1) of global node N of level l
+     int finest_rank(double, double);        // place 1: rank of the finest grid at (x,y), -1 outside
++    // the output on the finest grid (amr_column_lookup): the finest local patch whose interior holds
++    // (x,y) with the cells within two of the point's cell its own (interior) or boundary values,
++    // not taken from another grid (fill kinds 0-2); its level (0: none), id its index in P
++    int finest_point(double x, double y, int &id) const;
+     int flag0(int, int);                    // level-0 flagslice4 of the global cell (I,J), from the rank box + halo
+     void goff(int, int&, int&);             // grid id: local index = global index - offset
+     lexer* glex(int);                       // grid id: lexer
+diff --git a/src/sflow_amr.h b/src/sflow_amr.h
+index a9cd31f..b3d7e42 100644
+--- a/src/sflow_amr.h
++++ b/src/sflow_amr.h
+@@ -24,6 +24,7 @@ Author: Hans Bihs
+ #define SFLOW_AMR_H_
+ 
+ #include"reefamr.h"
++#include"amr_grid_lookup.h"
+ #include"sediment_f.h"
+ #include"slice4.h"
+ #include<vector>
+@@ -168,9 +169,22 @@ struct sflow_amr_patch : public reefamr_patch
+     vector<double> rend;
+ };
+ 
+-class sflow_amr : public reefamr, public sediment_grids
++class sflow_amr : public reefamr, public amr_column_lookup, public sediment_grids
+ {
+ public:
++    // the output on the finest grid (amr_grid_lookup.h): the finest patch of this rank at (x,y)
++    int finest_column(double x, double y, lexer *&q, void *&f) const override
++    {
++        int id;
++        const int L = finest_point(x,y,id);
++        if(L>0)
++        {
++            q = P[id]->pp;
++            f = static_cast<sflow_amr_patch*>(P[id])->b;
++        }
++        return L;
++    }
++
+     // S 10: sediment transport on all grids (sflow_amr_sed.cpp): the level-0 sediment_f hands its step over
+     void sed_attach(sediment*);
+     void sediment_step_sflow(lexer*, fdm2D*, ghostcell*, ioflow*, sediment_f*) override;
+diff --git a/src/sflow_f_ini.cpp b/src/sflow_f_ini.cpp
+index 0e8d248..c9f8eb9 100644
+--- a/src/sflow_f_ini.cpp
++++ b/src/sflow_f_ini.cpp
+@@ -205,6 +205,7 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
+     if(pamr!=nullptr)
+     {
+     pamr->ini(p,b,pgc);
++    pprint->amr_columns(pamr);      // the wave gauges and probes on the finest grid
+     pamr->sed_attach(psed);
+     pamr->timestep(p,b,pgc);
+     pamr->print(p,b,pgc);
+diff --git a/src/sflow_print_probe_da.cpp b/src/sflow_print_probe_da.cpp
+index 8f2afbb..fa58a92 100644
+--- a/src/sflow_print_probe_da.cpp
++++ b/src/sflow_print_probe_da.cpp
+@@ -72,22 +72,35 @@ sflow_print_probe_da::~sflow_print_probe_da()
+ void sflow_print_probe_da::start(lexer *p, fdm2D *b, ghostcell *pgc)
+ {
+ 	double xp,yp;
++    // the mesh refinement: the finest grid at the probe (one rank writes it)
++    amr_points ap;
++    if(amr!=nullptr)
++    ap.find(amr,p,probenum,p->P63_x,p->P63_y,flag);
++
+     // find values and write
+ 	for(n=0;n<probenum;++n)
+ 	{
+ 	uval=vval=wval=pval=eval=-1.0e20;
+ 	double bval=-1.0e20;
+-		if(flag[n]>0)
++		if(amr==nullptr ? flag[n]>0 : ap.mine[n]!=0)
+ 		{
+ 		xp=p->P63_x[n];
+ 		yp=p->P63_y[n];
++
++        lexer *q = p;
++        fdm2D *g = b;
++        if(amr!=nullptr && ap.f[n]!=nullptr)
++        {
++            q = ap.q[n];
++            g = static_cast<fdm2D*>(ap.f[n]);
++        }
+         
+-		uval = p->ccslipol1(b->P, xp, yp);
+-		vval = p->ccslipol2(b->Q, xp, yp);
+-		wval = p->ccslipol4(b->ws,xp,yp); 
+-		pval = p->ccslipol4(b->press,xp,yp);
+-        eval = p->ccslipol4(b->eta,xp,yp);
+-        bval = p->ccslipol4(b->bed,xp,yp); 
++		uval = q->ccslipol1(g->P, xp, yp);
++		vval = q->ccslipol2(g->Q, xp, yp);
++		wval = q->ccslipol4(g->ws,xp,yp); 
++		pval = q->ccslipol4(g->press,xp,yp);
++        eval = q->ccslipol4(g->eta,xp,yp);
++        bval = q->ccslipol4(g->bed,xp,yp); 
+ 		}
+ 	
+ 	uval=pgc->globalmax(uval);
+diff --git a/src/sflow_print_probe_da.h b/src/sflow_print_probe_da.h
+index 64ab191..6cb77d0 100644
+--- a/src/sflow_print_probe_da.h
++++ b/src/sflow_print_probe_da.h
+@@ -24,6 +24,7 @@ Author: Hans Bihs
+ #define SFLOW_PRINT_PROBE_DA_H_
+ 
+ #include"boundarycheck.h"
++#include"amr_grid_lookup.h"
+ #include<iostream>
+ #include<fstream>
+ 
+@@ -38,6 +39,9 @@ using namespace std;
+ class sflow_print_probe_da : public boundarycheck
+ {
+ public:
++    // the mesh refinement: the points read the finest grid (amr_grid_lookup.h), nullptr: level 0
++    const amr_column_lookup *amr = nullptr;
++
+     sflow_print_probe_da(lexer*,fdm2D*,ghostcell*);
+ 	virtual ~sflow_print_probe_da();
+ 
+diff --git a/src/sflow_print_wsf.cpp b/src/sflow_print_wsf.cpp
+index 0ebf602..6a34399 100644
+--- a/src/sflow_print_wsf.cpp
++++ b/src/sflow_print_wsf.cpp
+@@ -86,14 +86,27 @@ void sflow_print_wsf::height_gauge(lexer *p, fdm2D *b, ghostcell *pgc, slice &f)
+     wsf[n]=-1.0e20;
+ 
+ 	
++    // the mesh refinement: the finest grid at the gauge (one rank writes it, its cell there)
++    amr_points ap;
++    if(amr!=nullptr)
++    ap.find(amr,p,gauge_num,x,y,flag);
++
+     for(n=0;n<gauge_num;++n)
+-    if(flag[n]>0)
++    if(amr==nullptr ? flag[n]>0 : ap.mine[n]!=0)
+     {
+     zval=0.0;
+ 
+     i=iloc[n];
+     j=jloc[n];
+-	
++
++        if(amr!=nullptr && ap.f[n]!=nullptr)
++        {
++            lexer *q = ap.q[n];
++            i = q->posc_i(x[n]);
++            j = (q->j_dir==1) ? q->posc_j(y[n]) : 0;
++            wsf[n] = static_cast<fdm2D*>(ap.f[n])->eta(i,j);
++        }
++        else
+ 			wsf[n] = f(i,j);
+ 
+     }
+diff --git a/src/sflow_print_wsf.h b/src/sflow_print_wsf.h
+index e02fd2e..5434614 100644
+--- a/src/sflow_print_wsf.h
++++ b/src/sflow_print_wsf.h
+@@ -24,6 +24,7 @@ Author: Hans Bihs
+ #define SFLOW_PRINT_WSF_H_
+ 
+ #include"increment.h"
++#include"amr_grid_lookup.h"
+ #include<iostream>
+ #include<fstream>
+ 
+@@ -37,6 +38,9 @@ using namespace std;
+ class sflow_print_wsf : public increment
+ {
+ public:
++    // the mesh refinement: the points read the finest grid (amr_grid_lookup.h), nullptr: level 0
++    const amr_column_lookup *amr = nullptr;
++
+     sflow_print_wsf(lexer*,fdm2D*);
+ 	virtual ~sflow_print_wsf();
+ 
+diff --git a/src/sflow_vtp_fsf.cpp b/src/sflow_vtp_fsf.cpp
+index 1c3cf16..41c0818 100644
+--- a/src/sflow_vtp_fsf.cpp
++++ b/src/sflow_vtp_fsf.cpp
+@@ -477,3 +477,9 @@ void sflow_vtp_fsf::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence
+ 
+     ++p->printcount;
+ }
++
++void sflow_vtp_fsf::amr_columns(const amr_column_lookup *amr)
++{
++    pwsf->amr = amr;
++    pprobe->amr = amr;
++}
+diff --git a/src/sflow_vtp_fsf.h b/src/sflow_vtp_fsf.h
+index 161c8a6..8957d97 100644
+--- a/src/sflow_vtp_fsf.h
++++ b/src/sflow_vtp_fsf.h
+@@ -27,6 +27,7 @@ Author: Hans Bihs
+ #include"vtp3D.h"
+ 
+ class lexer;
++class amr_column_lookup;
+ class fdm2D;
+ class ghostcell;
+ class ioflow;
+@@ -45,6 +46,9 @@ using namespace std;
+ class sflow_vtp_fsf : public increment, private vtp3D
+ {
+ public:
++    // the mesh refinement: the wave gauges (P 51) and the probes (P 63) on the finest grid
++    void amr_columns(const amr_column_lookup*);
++
+     sflow_vtp_fsf(lexer*,fdm2D*,ghostcell*);
+     virtual ~sflow_vtp_fsf() = default;
+ 
+-- 
+2.43.0
+

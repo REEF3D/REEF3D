@@ -82,22 +82,35 @@ void nhflow_probe_vel::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
     double xp,yp,zp;
     
     ini_location(p,d);
+
+    // the mesh refinement: the finest grid at the probe (one rank writes it)
+    amr_points ap;
+    if(amr!=nullptr)
+    ap.find(amr,p,probenum,p->P65_x,p->P65_y,flag);
 	
 	for(n=0;n<probenum;++n)
 	{
 	uval=vval=wval=-1.0e20;
 	
-		if(flag[n]>0)
+		if(amr==nullptr ? flag[n]>0 : ap.mine[n]!=0)
 		{
 		xp=p->P65_x[n];
 		yp=p->P65_y[n];
 		zp=p->P65_z[n];
+
+        lexer *q = p;
+        fdm_nhf *g = d;
+        if(amr!=nullptr && ap.f[n]!=nullptr)
+        {
+            q = ap.q[n];
+            g = static_cast<fdm_nhf*>(ap.f[n]);
+        }
     
-		uval = p->ccipol4V(d->U, d->WL, d->bed, xp, yp, zp);
-		vval = p->ccipol4V(d->V, d->WL, d->bed, xp, yp, zp);
-		wval = p->ccipol4V(d->W, d->WL, d->bed, xp, yp, zp);
+		uval = q->ccipol4V(g->U, g->WL, g->bed, xp, yp, zp);
+		vval = q->ccipol4V(g->V, g->WL, g->bed, xp, yp, zp);
+		wval = q->ccipol4V(g->W, g->WL, g->bed, xp, yp, zp);
         
-        etaval = p->ccslipol4(d->eta,xp,yp);
+        etaval = q->ccslipol4(g->eta,xp,yp);
         
         if(zp > p->wd + etaval)
          uval = vval = wval = 0.0;

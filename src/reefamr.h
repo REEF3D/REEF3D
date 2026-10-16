@@ -254,6 +254,10 @@ protected:
     bool covered(int l, int I, int J) { return l>=1 && gpatch_at(l,I,J)>=0; }   // a level-l patch (any rank) holds (I,J)
     double gnode(int, int, int);            // place 1: x (dir 0) or y (dir 1) of global node N of level l
     int finest_rank(double, double);        // place 1: rank of the finest grid at (x,y), -1 outside
+    // the output on the finest grid (amr_column_lookup): the finest local patch whose interior holds
+    // (x,y) with the cells within two of the point's cell its own (interior) or boundary values,
+    // not taken from another grid (fill kinds 0-2); its level (0: none), id its index in P
+    int finest_point(double x, double y, int &id) const;
     int flag0(int, int);                    // level-0 flagslice4 of the global cell (I,J), from the rank box + halo
     void goff(int, int&, int&);             // grid id: local index = global index - offset
     lexer* glex(int);                       // grid id: lexer
