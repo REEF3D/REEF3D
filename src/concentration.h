@@ -41,6 +41,8 @@ using namespace std;
 class concentration
 {
 public:
+    virtual ~concentration() = default;
+
 
 	virtual void start(fdm*, lexer*, convection*, diffusion*, turbulence*, solver*, ghostcell*, ioflow*)=0;
 	virtual void ini(lexer*, fdm*, ghostcell*, concentration *pconcentration)=0;

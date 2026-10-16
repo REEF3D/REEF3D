@@ -453,35 +453,6 @@ bool cfd_amr::finest_grid(double x, double y, double z, lexer *&q, fdm *&a, turb
 
 namespace
 {
-template<class T, class B> bool del_as(B *&b)
-{
-    T *t = dynamic_cast<T*>(b);
-    if(t==nullptr)
-    return false;
-    delete t;
-    b = nullptr;
-    return true;
-}
-
-// the convection and diffusion objects of patch_objects (the base classes have no virtual
-// destructor; weno3_flux, weno3_hj free the coefficient tables of the patch in theirs)
-void del_convec(convection *&b)
-{
-    if(b==nullptr)
-    return;
-    del_as<fou>(b) || del_as<weno_flux_nug>(b) || del_as<weno_hj_nug>(b) || del_as<weno_hj_df_nug>(b)
-    || del_as<convection_void>(b) || del_as<cds2>(b) || del_as<cds2_alt>(b) || del_as<quick>(b) || del_as<cds4>(b)
-    || del_as<weno3_flux>(b) || del_as<weno3_hj>(b) || del_as<hcds6>(b) || del_as<hires>(b);
-}
-
-void del_diff(diffusion *&b)
-{
-    if(b==nullptr)
-    return;
-    del_as<diff_void>(b) || del_as<ediff2>(b) || del_as<ediff2_2D>(b) || del_as<idiff2_FS>(b) || del_as<idiff2_FS_2D>(b)
-    || del_as<idiff2_CN>(b);
-}
-
 // the cell arrays of a patch lexer (build_lexer, flagini); the lexer has no destructor for them
 void free_lexer_cells(lexer *q)
 {
@@ -509,30 +480,26 @@ void cfd_amr::free_patch(cfd_amr_patch *c)
     c->kv.clear();
     delete c->mg;
 
+    // the objects of patch_objects (the base classes have virtual destructors)
     delete c->pmom;
     delete c->p6dof;
     delete c->ppress;
-    del_as<poisson_pcorr>(c->ppois);
-    del_as<reini_RK3>(c->preini);
-    del_as<amr_dsolver>(c->psolv);
-    if(!del_as<bicgstab_ijk>(c->psolv_in))
-    del_as<bicgstab_ijk_2D>(c->psolv_in);
-    del_as<solver_void>(c->ppoissonsolv);
-    del_as<heat_void>(c->pheat);
-    del_as<concentration_void>(c->pconc);
-    if(!del_as<kepsilon_void>(c->pturb) && !del_as<kepsilon_IM1>(c->pturb))
-    del_as<komega_IM1>(c->pturb);
-    if(!del_as<convection_void>(c->pturbdisc) && !del_as<ifou>(c->pturbdisc))
-    del_as<iweno_hj_df_nug>(c->pturbdisc);
-    if(!del_as<diff_void>(c->pturbdiff))
-    del_as<idiff2>(c->pturbdiff);
+    delete c->ppois;
+    delete c->preini;
+    delete c->psolv;
+    delete c->psolv_in;
+    delete c->ppoissonsolv;
+    delete c->pheat;
+    delete c->pconc;
+    delete c->pturb;
+    delete c->pturbdisc;
+    delete c->pturbdiff;
     delete c->pBC;
-    del_as<ioflow_v>(c->pflow);
-    if(!del_as<vrans_v>(c->pvrans))
-    del_as<vrans_f>(c->pvrans);
-    del_diff(c->pdiff);
-    del_convec(c->pconvec);
-    del_convec(c->pfsfdisc);
+    delete c->pflow;
+    delete c->pvrans;
+    delete c->pdiff;
+    delete c->pconvec;
+    delete c->pfsfdisc;
 
     delete c->a;
     free_lexer_cells(c->pp);

@@ -32,6 +32,8 @@ using namespace std;
 class reinidisc
 {
 public:
+    virtual ~reinidisc() = default;
+
 	virtual void start(lexer*, fdm*, ghostcell*, field&, field&, int)=0;
 };
 

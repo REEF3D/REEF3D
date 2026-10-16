@@ -82,6 +82,8 @@ reini_RK3::reini_RK3(lexer* p, int type) : frk1(p),frk2(p),dt(p)
 
 reini_RK3::~reini_RK3()
 {
+    delete ppicard;
+    delete prdisc;
 }
 
 void reini_RK3::start(fdm *a, lexer *p, field &f, ghostcell *pgc, ioflow* pflow)
