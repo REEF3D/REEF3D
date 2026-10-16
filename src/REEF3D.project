@@ -845,9 +845,12 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Mooring">
           <File Name="coral/mooring/README.md"/>
+          <File Name="coral/mooring/coral_catenary.h"/>
+          <File Name="coral/mooring/coral_mooring.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="PTO">
           <File Name="coral/pto/README.md"/>
+          <File Name="coral/pto/coral_pto.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Soil">
           <File Name="coral/soil/README.md"/>
@@ -2388,8 +2391,13 @@
           <File Name="coral/hydro/coral_waves.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Panel"/>
-        <VirtualDirectory Name="Mooring"/>
-        <VirtualDirectory Name="PTO"/>
+        <VirtualDirectory Name="Mooring">
+          <File Name="coral/mooring/coral_catenary.cpp"/>
+          <File Name="coral/mooring/coral_mooring.cpp"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="PTO">
+          <File Name="coral/pto/coral_pto.cpp"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Soil"/>
         <VirtualDirectory Name="Ice"/>
         <VirtualDirectory Name="IO"/>
