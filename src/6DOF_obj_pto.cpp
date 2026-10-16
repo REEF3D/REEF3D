@@ -315,10 +315,23 @@ void sixdof_obj::pto_tuned_passive(lexer *p, ghostcell *pgc)
 
     pto_hydro_table tab;
 
-    if(T<=0.0 || p->X506_C<=0.0 || !tab.read("pto_hydro.dat"))
+    // the input of X 506 T C, every missing part with its own message
+    const bool tab_ok = tab.read("pto_hydro.dat");
+
+    if(T<=0.0 || p->X506_C<=0.0 || !tab_ok)
     {
         if(p->mpirank==0)
-        cout<<"6DOF PTO: X 506 needs T > 0 (or B 93), C > 0 and pto_hydro.dat (w A B_rad) in the case folder"<<endl;
+        {
+        if(T<=0.0)
+        cout<<"6DOF PTO: X 506 T C: no period, give T > 0 [s] or use a wave input with a period (B 93)"<<endl;
+
+        if(p->X506_C<=0.0)
+        cout<<"6DOF PTO: X 506 T C: the hydrostatic stiffness C along the joint has no default, give C > 0"
+            <<" (e.g. rho g A_wp [N/m] for a heave joint, the restoring moment per radian [Nm/rad] for a hinge)"<<endl;
+
+        if(!tab_ok)
+        cout<<"6DOF PTO: X 506: pto_hydro.dat (columns w [rad/s], A, B_rad along the joint) not found in the case folder"<<endl;
+        }
 
         pgc->final();
         exit(1);

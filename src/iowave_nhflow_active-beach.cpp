@@ -49,6 +49,8 @@ void iowave::nhflow_active_beach(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U
 		eta_T = 0.0;
 		eta_M = d->eta(i,j); 
 		eta_R = eta_M-eta_T;
+        // B 99 5: water level of the column (the linear profile above the hinge B 123 reaches it)
+        wsf = p->phimean + eta_M;
 
         
         if(eta_R>=0.0)
@@ -77,14 +79,14 @@ void iowave::nhflow_active_beach(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U
                 
                if(p->B99==5)
                {
-                   if(p->ZP[KP]>p->B123)
+                   if(p->pos_z()>p->B123 && wsf>p->B123)
                    {
                    fac = (p->pos_z()-p->B123)/(wsf-p->B123);
                    multiplier = 2.0*((wsf)/(wsf-p->B123));
                    Uc =   multiplier*fac*eta_R*sqrt(9.81/p->wd);
                    }
                    
-                   if(p->ZP[KP]<=p->B123)
+                   else
                    Uc=0.0;
                }
                
@@ -113,6 +115,8 @@ void iowave::nhflow_active_beach(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U
 		eta_T = 0.0;
 		eta_M = d->eta(i,j); 
 		eta_R = eta_M-eta_T;
+        // B 99 5: water level of the column (the linear profile above the hinge B 123 reaches it)
+        wsf = p->phimean + eta_M;
         
         if(eta_R>=0.0)
 		fac1=1.0;
@@ -156,15 +160,15 @@ void iowave::nhflow_active_beach(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U
                 
                if(p->B99==5)
                {
-                   if(p->pos_z()>p->B123)
+                   if(p->pos_z()>p->B123 && wsf>p->B123)
                    {
                    fac = (p->pos_z()-p->B123)/(wsf-p->B123);
                    multiplier = 2.0*((wsf)/(wsf-p->B123));
                    Uc =   multiplier*fac*eta_R*sqrt(9.81/p->wd);
                    }
                    
-                   if(p->pos_z()<=p->B123)
-                    Uc=0.0;
+                   else
+                   Uc=0.0;
                }
                
                 V[(i-p->imin+1*aa)*p->jmax*p->kmax + (j-p->jmin+1*bb)*p->kmax + k-p->kmin] = Uc*fy;

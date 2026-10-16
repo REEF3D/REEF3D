@@ -53,12 +53,13 @@ void iowave::WL_relax(lexer *p, ghostcell *pgc, slice &WL, slice &depth)
             const int b = bg_on ? gen_bg(p) : -1;
             
             if(b<0 && !gen_lp)
-            WL(i,j) = (1.0-relax4_wg(i,j))*ramp(p)*(eta(i,j) + depth(i,j)) + relax4_wg(i,j) * WL(i,j);
+            // the ramp (B 101) acts on the wave elevation only, not on the still water depth
+            WL(i,j) = (1.0-relax4_wg(i,j))*(depth(i,j) + ramp(p)*eta(i,j)) + relax4_wg(i,j) * WL(i,j);
             
             // combined generation (B 98 6): target plus the low-passed deviation
             if(b<0 && gen_lp)
             {
-            const double tg = ramp(p)*(eta(i,j) + depth(i,j));
+            const double tg = depth(i,j) + ramp(p)*eta(i,j);
             WL(i,j) = (1.0-relax4_wg(i,j))*(tg + gen_dev(p,lpg_wl,p->imax*p->jmax,IJ,WL(i,j)-tg)) + relax4_wg(i,j) * WL(i,j);
             }
             

@@ -59,7 +59,8 @@ vrans_nhflow_f::vrans_nhflow_f(lexer *p, fdm_nhf *d, ghostcell *pgc) : nhflow_ge
     
     print_force_ini(p,d,pgc);
     
-    cmfac=1.0;
+    // UN is set at the first force_calc, dU/dt starts with the second call
+    cmfac=0.0;
 }
 
 vrans_nhflow_f::~vrans_nhflow_f()

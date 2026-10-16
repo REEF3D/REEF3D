@@ -50,7 +50,8 @@ using namespace std;
 //   crossflow      Cd           cross-flow drag coefficient            (default 0: off)
 //   strips         n            strips for the cross-flow drag         (default 40)
 //   thrust         T [x z]      constant thrust along the ship x-axis [N] at (x, z) relative
-//                               to the CoG in the ship frame           (default 0)
+//                               to the CoG in the ship frame           (default 0); the pitch
+//                               moment is z T, x lies on the line of action and has no effect
 //   current        Ux Uy        uniform current, inertial frame [m/s]: the hull, propeller and
 //                               rudder models use the velocity relative to it (ship held in a
 //                               current instead of towed)              (default 0 0)
@@ -102,7 +103,7 @@ using namespace std;
 //   hybrid_munk    dm           mmg_fluid 2: A22 - A11 [kg] of the Munk moment -dm u vm taken out of
 //                               N'v, e.g. the value of the solver's computational hull from a
 //                               prescribed drift run (default: my - mx of mmg_added_mass)
-//   hybrid_surge   0|1          mmg_fluid 2: 1 adds the MMG surge velocity term my vm r - mx u r
+//   hybrid_surge   0|1          mmg_fluid 2: 1 adds the MMG surge velocity term my vm r - mx v r
 //                               (the ideal-fluid speed loss in a turn) to the MMG loads, for grids
 //                               on which the solver does not resolve it (validation 12; default 0)
 //   mmg_draft      d            draft for the nondimensionalisation    (default: from the hull)
@@ -130,6 +131,7 @@ private:
     
     void read(lexer*);
     void ini(lexer*, const sixdof_rigidbody&, const sixdof_geometry&);
+    double cell_size_at(lexer*, const Eigen::Vector3d&) const;
     void steering(lexer*, double, double);
     double propeller_inflow(const sixdof_rigidbody&, sixdof_fluid*, const Eigen::Vector3d&, const Eigen::Vector3d&);
     

@@ -123,3 +123,31 @@ bool nhflow_amr_6dof::top_phi_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int i
     
     return true;
 }
+
+// the actuator disks on the patch (sixdof_obj_nhflow::actuator_source, patch form)
+void nhflow_amr_6dof::isource(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
+{
+    if(b==nullptr)
+    return;
+
+    for(int nb=0; nb<b->objects(); ++nb)
+    b->object(nb)->actuator_source(p,d,pgc,WL,0,d->F,true);
+}
+
+void nhflow_amr_6dof::jsource(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
+{
+    if(b==nullptr)
+    return;
+
+    for(int nb=0; nb<b->objects(); ++nb)
+    b->object(nb)->actuator_source(p,d,pgc,WL,1,d->G,true);
+}
+
+void nhflow_amr_6dof::ksource(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
+{
+    if(b==nullptr)
+    return;
+
+    for(int nb=0; nb<b->objects(); ++nb)
+    b->object(nb)->actuator_source(p,d,pgc,WL,2,d->H,true);
+}
