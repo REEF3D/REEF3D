@@ -24,6 +24,7 @@ Architect: Hans Bihs
 #include"coral/core/coral_model.h"
 #include"coral/core/coral_rotation.h"
 #include"coral/core/coral_fdjac.h"
+#include"coral/core/coral_linsolve.h"
 #include<algorithm>
 #include<cmath>
 #include<vector>
@@ -33,30 +34,15 @@ namespace coral
 
 namespace
 {
-    struct config {std::vector<Vec3> x; std::vector<Mat3> R;};
-
-    config save(const model &m)
-    {
-        config c;
-        for(const auto &b : m.bodies) {c.x.push_back(b.x); c.R.push_back(b.R);}
-        return c;
-    }
-
-    void set(model &m, const config &c, const VecX &dq, double s)
-    {
-        for(int i=0; i<m.nbody(); ++i)
-        {
-            rigid_body &b = m.bodies[i];
-            b.x = c.x[i] + s*dq.segment<3>(6*i);
-            b.R = c.R[i]*exp_so3(s*dq.segment<3>(6*i+3));
-        }
-    }
+    using config = model::config;
+    config save(const model &m) {return m.save_config();}
+    void set(model &m, const config &c, const VecX &dq, double s) {m.set_config(c, dq, s);}
 
     // residual for the configuration in the model and the scaled multipliers mu
-    void residual(model &m, double t, double scale, const VecX &mu, VecX &r, VecX &f, VecX &g, MatX &G)
+    void residual(model &m, double t, double scale, const VecX &mu, VecX &r, VecX &f, VecX &g, MatX &G, bool fd_only=false)
     {
         const int n = m.ndof(), nc = m.ncon();
-        m.forces(t, f);
+        m.forces(t, f, fd_only);
         m.constraints(g, G);
         r.resize(n + nc);
         r.head(n) = -f;
@@ -74,26 +60,37 @@ static bool newton(model &m, double t, const static_settings &s, bool damped, do
 {
     const int n = m.ndof(), nc = m.ncon(), N = n + nc;
     VecX r, f, g;
-    MatX G, J(N, N);
+    MatX G;
+    std::vector<triplet> T;
+    linear_solver lu;
+    lu.dense_max = s.dense_max;
     config c = save(m);
+    const bool tang = m.has_tangents();
     const VecX zero = VecX::Zero(n);
     residual(m, t, scale, mu, r, f, g, G);
     double d0 = -1.0;
     for(int it=0; it<s.max_iter; ++it)
     {
-        // Jacobian: configuration columns by central differences, multiplier columns exact
-        J.setZero();
+        // Jacobian: analytic tangents of the loads that have one, the configuration columns of the rest
+        // by central differences, multiplier columns exact
+        T.clear();
         VecX dq = zero;
-        fd_jacobian(m, J, r,
+        const int nb = m.nbody();
+        fd_jacobian(m, T, r,
             [&](int col, double e) {dq(col) = e;},
-            [&](VecX &rr) {set(m, c, dq, 1.0); VecX ff, gg; MatX GG; residual(m, t, scale, mu, rr, ff, gg, GG);},
-            [&](int col) {return s.fd_eps*((col%6) < 3 ? std::max(1.0, std::fabs(c.x[col/6](col%6))) : 1.0);},
-            true);
+            [&](VecX &rr) {set(m, c, dq, 1.0); VecX ff, gg; MatX GG; residual(m, t, scale, mu, rr, ff, gg, GG, tang);},
+            [&](int col) {return s.fd_eps*(col < 6*nb ? ((col%6) < 3 ? std::max(1.0, std::fabs(c.x[col/6](col%6))) : 1.0)
+                                                      : std::max(1.0, std::fabs(c.cq(col - 6*nb))));},
+            true, tang);
         set(m, c, zero, 1.0);
         residual(m, t, scale, mu, r, f, g, G);
-        if(nc)
-            J.block(0, n, n, nc) = scale*G.transpose();
-        const Eigen::FullPivLU<MatX> lu(J);
+        if(tang)
+            m.tangents(t, -1.0, 0.0, 0.0, T);
+        for(int j=0; j<nc; ++j)
+            for(int i=0; i<n; ++i)
+                if(G(j, i) != 0.0)
+                    T.emplace_back(i, n + j, scale*G(j, i));
+        lu.compute(N, T);
         const VecX d = -lu.solve(r);
         if(!d.allFinite())
             return false;
@@ -125,7 +122,7 @@ static bool newton(model &m, double t, const static_settings &s, bool damped, do
         ++res.iterations;
         double xmax = 0.0;
         for(const auto &b : m.bodies) xmax = std::max(xmax, b.x.cwiseAbs().maxCoeff());
-        if(a*d.head(n).cwiseAbs().maxCoeff() <= s.tol*(1.0 + xmax))
+        if(a*m.increment_norm(d.head(n)) <= s.tol*(1.0 + xmax))
             return true;
     }
     return false;
@@ -135,10 +132,7 @@ static_result static_solve(model &m, double t, const static_settings &s)
 {
     static_result res;
     const int n = m.ndof(), nc = m.ncon();
-    for(auto &b : m.bodies)
-    {
-        b.v.setZero(); b.w.setZero(); b.vd.setZero(); b.wd.setZero();
-    }
+    m.zero_rates();
     double msum = 0.0;
     for(const auto &b : m.bodies) msum += b.mass;
     const double scale = std::max(1.0, m.nbody() ? msum/m.nbody() : 1.0);

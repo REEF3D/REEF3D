@@ -808,9 +808,12 @@
           <File Name="coral/core/coral_body.h"/>
           <File Name="coral/core/coral_constraint.h"/>
           <File Name="coral/core/coral_fdjac.h"/>
+          <File Name="coral/core/coral_force.h"/>
           <File Name="coral/core/coral_gravity.h"/>
+          <File Name="coral/core/coral_linsolve.h"/>
           <File Name="coral/core/coral_load.h"/>
           <File Name="coral/core/coral_model.h"/>
+          <File Name="coral/core/coral_points.h"/>
           <File Name="coral/core/coral_rotation.h"/>
           <File Name="coral/core/coral_static.h"/>
           <File Name="coral/core/coral_timeint.h"/>
@@ -2380,8 +2383,11 @@
       <VirtualDirectory Name="CORAL">
         <VirtualDirectory Name="Core">
           <File Name="coral/core/coral_constraint.cpp"/>
+          <File Name="coral/core/coral_force.cpp"/>
           <File Name="coral/core/coral_gravity.cpp"/>
+          <File Name="coral/core/coral_linsolve.cpp"/>
           <File Name="coral/core/coral_model.cpp"/>
+          <File Name="coral/core/coral_points.cpp"/>
           <File Name="coral/core/coral_rotation.cpp"/>
           <File Name="coral/core/coral_static.cpp"/>
           <File Name="coral/core/coral_timeint.cpp"/>

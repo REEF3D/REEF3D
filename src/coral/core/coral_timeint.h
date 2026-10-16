@@ -32,14 +32,18 @@ Architect: Hans Bihs
 // are not damped, and fast gyroscopic motion of constrained bodies can become unstable.
 //
 // The unknowns dnu_{n+1} and lambda_{n+1} are solved with Newton's method. The Jacobian is formed
-// by finite differences of the residual (loads may depend on positions, velocities and
-// accelerations, e.g. added mass), the lambda columns exactly (G^T); it is kept over iterations and
-// steps while Newton converges fast (modified Newton) and rebuilt otherwise.
+// from the analytic tangents of the loads that have one (beams, superelements, soil springs) and
+// by coloured finite differences of the residual of all other loads (loads may depend on positions,
+// velocities and accelerations, e.g. added mass), the lambda columns exactly (G^T); it is kept over
+// iterations and steps while Newton converges fast (modified Newton) and rebuilt otherwise. Up to
+// linear_solver::dense_max unknowns the system is solved dense, above that sparse.
+// Generalized coordinates (model::ncoord) are integrated with the same scheme on R^n.
 
 #ifndef CORAL_TIMEINT_H_
 #define CORAL_TIMEINT_H_
 
 #include"coral/core/coral_types.h"
+#include"coral/core/coral_linsolve.h"
 #include<vector>
 
 namespace coral
@@ -53,6 +57,7 @@ namespace coral
         int max_iter = 30;
         bool full_newton = false;   // new Jacobian in every iteration
         double fd_eps = 1.0e-7;     // relative perturbation of the finite-difference Jacobian
+        int dense_max = 400;        // dense LU up to this many unknowns, sparse LU above
     };
 
     struct timeint_stats
@@ -97,8 +102,8 @@ namespace coral
         void store(const model&);
         void restore(model&) const;
         void trial(model&, const VecX &dnu, double h) const;
-        void residual(model&, double t1, double h, const VecX &u, VecX &r);
-        void residual_initial(model&, double t0, const VecX &c, const VecX &u, VecX &r);
+        void residual(model&, double t1, double h, const VecX &u, VecX &r, bool fd_only=false);
+        void residual_initial(model&, double t0, const VecX &c, const VecX &u, VecX &r, bool fd_only=false);
         void build_jacobian(model&, double t1, double h, const VecX &u, const VecX &r, bool initial, const VecX &c);
 
         timeint_settings set_;
@@ -107,10 +112,10 @@ namespace coral
 
         std::vector<Vec3> xn_;
         std::vector<Mat3> Rn_;
+        VecX cqn_;                     // generalized coordinates at t_n
         VecX nun_, dnun_, an_, lam_;
-
-        MatX J_;
-        Eigen::PartialPivLU<MatX> lu_;
+        std::vector<Eigen::Triplet<double>> T_;
+        linear_solver lu_;
         bool jac_ok_ = false;
         double jac_h_ = 0.0;
 
