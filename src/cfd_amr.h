@@ -273,6 +273,7 @@ public:
 
     double tm[8] = {0,0,0,0,0,0,0,0};
     double tp[4] = {0,0,0,0};
+    double t0l[3] = {0,0,0};        // G 7 0: the level-0 parts of tm[0], tm[1], tm[3]
 
 protected:
     r3patch* patch_new() override;
@@ -296,6 +297,7 @@ private:
     void fill(int l, vector<fspec> &fs, bool siblings_only=false);   // siblings_only: copies from the patches of the same level (kind 0, 2) alone
     void fill_all(vector<fspec> &fs);
     double prolong(const fspec &F, int g, const int *s, const int *o);
+    double prolong_f(field &f, int type, int mode, int g, const int *s, const int *o);
     double cell_slope(field &f, int g, const int *s, int d, int mode);
     void margin_rovisc(int id);
     // the boundary values of the state of patch id (before it is the parent of a new patch)

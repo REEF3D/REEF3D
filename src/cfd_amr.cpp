@@ -385,6 +385,29 @@ void cfd_amr::hierarchy(bool first)
         cout<<endl;
     }
 
+    // the load of the ranks: level-0 cells and patch cells (the patches lie on the rank of the level-0
+    // cells below them); max / mean over the ranks
+    if(nranks>1)
+    {
+        double w[2] = {double(p->knox)*p->knoy*p->knoz, 0.0};
+        for(auto q : P)
+        w[1] += double(q->n[0])*q->n[1]*q->n[2];
+        double wmax[2], wsum[2];
+        const double wt[1] = {w[0]+w[1]};
+        double tmax, tsum;
+        MPI_Allreduce(w,wmax,2,MPI_DOUBLE,MPI_MAX,MPI_COMM_WORLD);
+        MPI_Allreduce(w,wsum,2,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+        MPI_Allreduce(wt,&tmax,1,MPI_DOUBLE,MPI_MAX,MPI_COMM_WORLD);
+        MPI_Allreduce(wt,&tsum,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+        if(p->mpirank==0)
+        {
+            const std::streamsize pr = cout.precision();
+            cout<<"CFD AMR: load max/mean over "<<nranks<<" ranks: cells "<<setprecision(3)<<tmax/(tsum/nranks)
+                <<" (level 0 "<<wmax[0]/(wsum[0]/nranks)<<", patches "<<(wsum[1]>0.0 ? wmax[1]/(wsum[1]/nranks) : 0.0)<<")"<<endl;
+            cout.precision(pr);
+        }
+    }
+
     sync_x_ok = false;
 
     // kinds of the cells around the patches
@@ -744,17 +767,20 @@ double cfd_amr::cell_slope(field &f, int g, const int *s, int d, int mode)
 // grid g, the child at offset o
 double cfd_amr::prolong(const fspec &F, int g, const int *s, const int *o)
 {
-    field &f = F.f(g);
+    return prolong_f(F.f(g),F.type,F.mode,g,s,o);
+}
 
-    if(F.type==CELL)
+double cfd_amr::prolong_f(field &f, int type, int mode, int g, const int *s, const int *o)
+{
+    if(type==CELL)
     {
         double v = f(s[0],s[1],s[2]);
         for(int d=0; d<3; ++d)
-        v += cell_slope(f,g,s,d,F.mode)*(o[d]==0 ? -0.25 : 0.25);
+        v += cell_slope(f,g,s,d,mode)*(o[d]==0 ? -0.25 : 0.25);
         return v;
     }
 
-    const int d0 = F.type;
+    const int d0 = type;
 
     // the coarse face value of cell c, linear in the transverse directions
     auto T = [&](const int *cc)
@@ -762,7 +788,7 @@ double cfd_amr::prolong(const fspec &F, int g, const int *s, const int *o)
         double v = f(cc[0],cc[1],cc[2]);
         for(int t=0; t<3; ++t)
         if(t!=d0)
-        v += cell_slope(f,g,cc,t,F.mode)*(o[t]==0 ? -0.25 : 0.25);
+        v += cell_slope(f,g,cc,t,mode)*(o[t]==0 ? -0.25 : 0.25);
         return v;
     };
 
@@ -779,18 +805,37 @@ void cfd_amr::fill(int l, vector<fspec> &fs, bool siblings_only)
 {
     const int nv = (int)fs.size();
 
+    // the fields of the grids, resolved once per fill (the field functions of fs are evaluated for
+    // the grids they are asked for, as before, but once each)
+    const int ng = (int)P.size()+1;
+    vector<field*> src((size_t)nv*ng,nullptr), dst((size_t)nv*ng,nullptr);
+    auto S = [&](int m, int g) -> field&
+    {
+        field *&q = src[(size_t)m*ng+g+1];
+        if(q==nullptr)
+        q = &fs[m].f(g);
+        return *q;
+    };
+    auto D = [&](int m, int id) -> field&
+    {
+        field *&q = dst[(size_t)m*ng+id+1];
+        if(q==nullptr)
+        q = &(fs[m].fd ? fs[m].fd : fs[m].f)(id);
+        return *q;
+    };
+
     fill_run(l,nv,
              [&](int kind, int g, const int *s, const int *o, double *v)
              {
                  for(int m=0; m<nv; ++m)
-                 v[m] = (kind==0) ? fs[m].f(g)(s[0],s[1],s[2]) : (siblings_only ? 0.0 : prolong(fs[m],g,s,o));
+                 v[m] = (kind==0) ? S(m,g)(s[0],s[1],s[2]) : (siblings_only ? 0.0 : prolong_f(S(m,g),fs[m].type,fs[m].mode,g,s,o));
              },
              [&](r3patch *c, int id, const r3fill &f, const double *v)
              {
                  if(siblings_only && f.kind==1)
                  return;
                  for(int m=0; m<nv; ++m)
-                 (fs[m].fd ? fs[m].fd : fs[m].f)(id)(f.d[0],f.d[1],f.d[2]) = v[m];
+                 D(m,id)(f.d[0],f.d[1],f.d[2]) = v[m];
              });
 }
 
@@ -1453,6 +1498,7 @@ void cfd_amr::step_comp(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof 
         // level set
         mom0->amr_ls_transport(p,a,pgc,s);
         mom0->amr_ls_finish(p,a,pgc,s,false,-1);
+        t0l[0] += MPI_Wtime()-ta;
 
         for(int l=1; l<=maxlev; ++l)
         {
@@ -1493,6 +1539,7 @@ void cfd_amr::step_comp(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof 
 
         // momentum
         mom0->amr_momentum(p,a,pgc,pvrans,p6dof,s,1);
+        t0l[1] += MPI_Wtime()-tb;
 
         for(int l=1; l<=maxlev; ++l)
         {
@@ -1517,6 +1564,7 @@ void cfd_amr::step_comp(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof 
 
         // end of the stage
         mom0->amr_stage_end(p,a,pgc,s);
+        t0l[2] += MPI_Wtime()-td;
         for(int id=0; id<(int)P.size(); ++id)
         {
             pscope ps(pgc,CP(id)->a,a0);
@@ -1572,5 +1620,5 @@ void cfd_amr::step_comp(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof 
 
     if(p->mpirank==0 && (p->count%p->P12==0))
     cout<<"CFD AMR: pressure iterations "<<pr_it_last<<"  res "<<setprecision(3)<<pr_res_last
-        <<"  time: level set "<<tm[0]<<" momentum "<<tm[1]<<" projection "<<tm[2]<<" end "<<tm[3]<<" total "<<tm[7]<<" (solver: prec "<<tm[5]<<" apply "<<tm[6]<<" patch cycles "<<tp[0]<<" level-0 cycles "<<tp[1]<<")"<<endl;
+        <<"  time: level set "<<tm[0]<<" momentum "<<tm[1]<<" projection "<<tm[2]<<" end "<<tm[3]<<" total "<<tm[7]<<" (solver: prec "<<tm[5]<<" apply "<<tm[6]<<" patch cycles "<<tp[0]<<" level-0 cycles "<<tp[1]<<"; level 0: level set "<<t0l[0]<<" momentum "<<t0l[1]<<" end "<<t0l[2]<<")"<<endl;
 }
