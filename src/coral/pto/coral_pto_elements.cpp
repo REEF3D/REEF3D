@@ -21,6 +21,7 @@ Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"coral/pto/coral_pto_elements.h"
+#include<cmath>
 
 namespace coral
 {
@@ -50,7 +51,7 @@ void pto_damper::set_param(const std::string &key, double val)
 
 // --- spring-damper ---
 
-pto_springdamper::pto_springdamper(double K_, double B_) : K(K_), B(B_)
+pto_springdamper::pto_springdamper(double K_, double B_, double q0_, double F0_) : K(K_), B(B_), q0(q0_), F0(F0_)
 {
 }
 
@@ -58,7 +59,7 @@ pto_output pto_springdamper::force(const pto_state &s)
 {
     pto_output o;
 
-    o.F     = -K*s.q - B*s.qd;
+    o.F     = F0 - K*(s.q - q0) - B*s.qd;
     o.dFdq  = -K;
     o.dFdqd = -B;
     o.P     = -o.F*s.qd;
@@ -73,6 +74,37 @@ void pto_springdamper::set_param(const std::string &key, double val)
 
     if(key=="B")
     B = val;
+
+    if(key=="q0")
+    q0 = val;
+
+    if(key=="F0")
+    F0 = val;
+}
+
+// --- Coulomb friction ---
+
+pto_coulomb::pto_coulomb(double Fc_, double v_eps_) : Fc(Fc_), v_eps(v_eps_)
+{
+}
+
+pto_output pto_coulomb::force(const pto_state &s)
+{
+    pto_output o;
+
+    const double th = std::tanh(s.qd/v_eps);
+
+    o.F     = -Fc*th;
+    o.dFdqd = -Fc*(1.0 - th*th)/v_eps;
+    o.P     = -o.F*s.qd;
+
+    return o;
+}
+
+void pto_coulomb::set_param(const std::string &key, double val)
+{
+    if(key=="Fc")
+    Fc = val;
 }
 
 // --- end-stops ---

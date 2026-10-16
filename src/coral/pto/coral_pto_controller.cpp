@@ -67,7 +67,7 @@ void pto_ctrl_latching::update(const pto_ctrl_in &in, pto_composite &pto)
         // the latch element itself releases at the stage time t_release
         if(in.t >= t_release - 1.0e-12)
         {
-        pto.set_param("latch",0.0);
+        pto.set_param("latch","latch",0.0);
         latched = false;
         zc.reset();        // the next zero is the one after the motion has resumed
         }
@@ -78,9 +78,9 @@ void pto_ctrl_latching::update(const pto_ctrl_in &in, pto_composite &pto)
     if(zc.detect(in.t,in.qd))
     {
     t_release = zc.t_cross + t_hold;
-    pto.set_param("q0",in.q);
-    pto.set_param("t_release",t_release);
-    pto.set_param("latch",1.0);
+    pto.set_param("latch","q0",in.q);
+    pto.set_param("latch","t_release",t_release);
+    pto.set_param("latch","latch",1.0);
     latched = true;
     }
 }

@@ -544,7 +544,13 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
                 if(is+4 < (int)it.t.size()) {try {s.c_stop = std::stod(it.t[is+4]);} catch(...) {}}
             }
             const int il = it.find("latching");
-            if(il >= 0) {s.control = pto_control::latching; s.t_hold = it.num(il+1); s.c_latch = it.num(il+2);}
+            if(il >= 0)
+            {
+                s.control = pto_control::latching;
+                s.t_hold = it.num(il+1);
+                s.c_latch = it.num(il+2);
+                if(il+3 < (int)it.t.size()) {try {s.k_latch = std::stod(it.t[il+3]);} catch(...) {}}
+            }
             const int idc = it.find("declutching");
             if(idc >= 0) {s.control = pto_control::declutching; s.t_hold = it.num(idc+1);}
             m.add_load(std::make_unique<pto_load>(*joints[jn], it.has("rotational"), s, name));

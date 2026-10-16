@@ -45,7 +45,8 @@ Architect: Hans Bihs
 //        (modes 1..6N of the database; damping linear, drag quadratic, diagonal entries)
 //   pto <name> joint <joint> [rotational] [k <k>] [c <c>] [q0 <q>] [F0 <F>] [coulomb <Fc>]
 //        [v_eps <v>] [F_max <F>] [P_max <P>] [stops <qmin> <qmax> <k_stop> [<c_stop>]]
-//        [latching <t_hold> <c_latch>] [declutching <t_hold>]
+//        [latching <t_hold> <c_latch> [<k_latch>]] [declutching <t_hold>]
+//        (elements and controllers of the PTO library, coral/pto/coral_pto_element.h)
 //   spring <name> a <body> <x y z> b <body> <x y z> k <k> [c <c>] [L0 <L>] [T0 <T>] [tension_only]
 //   linear6 <name> body <b> point <x y z> [k <k1..k6>] [c <c1..c6>]       (diagonal stiffness, damping)
 //        [K <36 values>] [C <36 values>]           (full 6x6 matrices, row by row, e.g. coupled springs)

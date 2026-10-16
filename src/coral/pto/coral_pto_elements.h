@@ -42,18 +42,33 @@ private:
     double B;
 };
 
-// spring-damper (X 503): F = -K q - B qd, K < 0 allowed (reactive control)
+// spring-damper (X 503): F = F0 - K (q - q0) - B qd, K < 0 allowed (reactive control); q0 and the
+// preload F0 are 0 for the 6DOF bodies
 class pto_springdamper : public pto_base
 {
 public:
-    pto_springdamper(double, double);
+    pto_springdamper(double, double, double=0.0, double=0.0);
 
     pto_output force(const pto_state&) override;
     void set_param(const std::string&, double) override;
     const char* name() const override {return "spring-damper";}
 
 private:
-    double K, B;
+    double K, B, q0, F0;
+};
+
+// Coulomb friction, regularised: F = -Fc tanh(qd / v_eps)
+class pto_coulomb : public pto_base
+{
+public:
+    pto_coulomb(double, double);
+
+    pto_output force(const pto_state&) override;
+    void set_param(const std::string&, double) override;
+    const char* name() const override {return "coulomb";}
+
+private:
+    double Fc, v_eps;
 };
 
 // end-stops (X 504): penalty spring-damper outside [qmin,qmax], pushes only, no absorbed power
