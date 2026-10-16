@@ -229,6 +229,64 @@ void CPM::topo_column(lexer *p, fdm *a, ghostcell *pgc)
         zb[(i+1)*nj + j+1] = zbf(i,j);
     }
     
+    // Q 72: the level seen by the fluid is smoothed over the neighbouring columns (1-2-1 filter, Q 72 passes).
+    // A fluid cell is bed or fluid by the sign of topo at its centre: a single column whose level passes the
+    // centre by a fraction of a cell (parcel noise) blocks the whole cell, and the one-cell bump stalls the
+    // near-bed flow behind it (periodic channel, bed level at a cell centre: bed shear stress down by 40 %
+    // for 2 s, w = 0.13 m/s at the bump; with Q 72 2 no cell switched and no stall)
+    if(p->Q72>0)
+    {
+        for(i=0;i<p->knox;++i)
+        for(j=0;j<p->knoy;++j)
+        zbt(i,j) = zbf(i,j);
+        
+        std::vector<double> tmp(size_t(p->knox)*p->knoy);
+        
+        for(int qn=0;qn<p->Q72;++qn)
+        {
+            pgc->gcsl_start4(p,zbt,1);
+            
+            for(i=0;i<p->knox;++i)
+            for(j=0;j<p->knoy;++j)
+            {
+                // the domain sides (no neighbour subdomain, not periodic) mirror the column: the ghost values of
+                // the slice are no bed level there (an inflow boundary pulled the first column down by 1/4 of
+                // the bed height per pass)
+                const double c  = zbt(i,j);
+                const double xm = (i==0 && p->nb1<0 && perx!=1) ? c : zbt(i-1,j);
+                const double xp = (i==p->knox-1 && p->nb4<0 && perx!=1) ? c : zbt(i+1,j);
+                
+                double v = 0.25*xm + 0.5*c + 0.25*xp;
+                
+                if(p->j_dir==1)
+                {
+                    const double ym = (j==0 && p->nb3<0 && pery!=1) ? c : zbt(i,j-1);
+                    const double yp = (j==p->knoy-1 && p->nb2<0 && pery!=1) ? c : zbt(i,j+1);
+                    
+                    v = 0.5*(v + 0.25*ym + 0.5*c + 0.25*yp);
+                }
+                
+                tmp[size_t(i)*p->knoy + j] = v;
+            }
+            
+            for(i=0;i<p->knox;++i)
+            for(j=0;j<p->knoy;++j)
+            zbt(i,j) = tmp[size_t(i)*p->knoy + j];
+        }
+        
+        // the filter removes the noise, not the bed forms: the level of a column moves by at most half a cell
+        // (the edge of the initial hole under a pipeline, a step of several cells, was smeared over the
+        // neighbouring columns, opened cells next to the pipe and made the flow unstable)
+        for(i=0;i<p->knox;++i)
+        for(j=0;j<p->knoy;++j)
+        {
+            const int kc = MAX(0, MIN(nk-1, p->posc_k(zbf(i,j))));
+            const double dmax = 0.5*p->DZN[kc+marge];
+            
+            zb[(i+1)*nj + j+1] = zbf(i,j) + MAX(-dmax, MIN(dmax, zbt(i,j) - zbf(i,j)));
+        }
+    }
+    
     zbf_ini=1;
     
     // layer bed level of the neighbour subdomains: the slope in CPM_bedload reads blZb(-1,j) etc.

@@ -82,7 +82,7 @@ public:
     void topo_column(lexer*, fdm*, ghostcell*);
     void topo_iso(lexer*, ghostcell*, field&);
     double ptopo(lexer*, fdm*, double, double, double);
-    slice4 zbf,blZb;
+    slice4 zbf,blZb,zbt;
     int zbf_ini=0, zbl_ok=0;
     double zbl(sediment_fdm*, int, int);
 
