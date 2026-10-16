@@ -52,6 +52,16 @@ Architect: Hans Bihs
 //        EA <EA> [BA <BA>] [CB <CB>] [Cdn <c>] [Cdt <c>] [Can <c>] [Cat <c>] [kb <k>] [cb <c>] [mu <mu>]
 //        [nseg <n>] [seabed <z>] [dt_line <dt>] [settle <T>] [current <ux uy uz>]
 //   morison <name> body <b> p1 <x y z> p2 <x y z> D <D> [Cd <c>] [Ca <c>] [Cm <c>] [n <n>] [current <u v w>]
+//   section <name> tube D <D> t <t> E <E> G <G> rho <rho>
+//   section <name> EA <EA> EIy <EI> EIz <EI> GJ <GJ> m <m/L> [GAy <GA>] [GAz <GA>] [rIx <r>] [rIy <r>] [rIz <r>] [D <D>]
+//   member <name> p1 <x y z> p2 <x y z> n <n> section <s> [section2 <s>] [orient <x y z>] [beta <b>]
+//        [end1 <body|ground>] [end2 <body|ground>]
+//        (co-rotational beam elements on nodes "<name>:0" .. "<name>:n", usable as bodies by the items
+//        below; members meeting at a point share the node; end1/end2 put an end on a body or the ground)
+//   point_mass <body> mass <m> [inertia <Ixx Iyy Izz>]       (added to a body, e.g. a node)
+//   static                                       static equilibrium before the time integration
+//   modes <n> [damped]                           linear analysis: the first n modes (modes.dat, mode_shapes.dat)
+//   output vtp <dt>                              VTP of the structure (coral_vtp/)
 
 #ifndef CORAL_INPUT_H_
 #define CORAL_INPUT_H_
@@ -75,6 +85,10 @@ namespace coral
         double dt = 0.01;
         double out_dt = 0.0;          // 0: every step
         std::string out_file = "coral_results.dat";
+        double vtp_dt = -1.0;         // < 0: no VTP output of the structure
+        bool static_ini = false;      // static equilibrium before the time integration
+        int modes = 0;                // number of modes of the linear analysis (0: none)
+        bool modes_damped = false;
         timeint_settings ti;
     };
 

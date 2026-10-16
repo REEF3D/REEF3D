@@ -4,7 +4,7 @@ The link between CORAL and REEF3D. The only folder that includes REEF3D headers 
 
 ## Content
 
-* `coral_reef3d.h/.cpp`: REEF3D runs the CORAL model of `coral.txt` alongside the fluid solver (ctrl.txt `Z 40 1`; CFD, NHFLOW, FNPF): rank 0 reads and broadcasts the input, every rank advances the same model in step with the fluid time (CORAL steps of at most the dt of `coral.txt` per fluid step), rank 0 writes the time series to `REEF3D_CORAL/`
+* `coral_reef3d.h/.cpp`: REEF3D runs the CORAL model of `coral.txt` alongside the fluid solver (ctrl.txt `Z 40 1`; CFD, NHFLOW, FNPF): rank 0 reads and broadcasts the input, every rank advances the same model in step with the fluid time (CORAL steps of at most the dt of `coral.txt` per fluid step), rank 0 writes the time series to `REEF3D_CORAL/`; the static equilibrium and the linear analysis (`modes.dat`, `mode_shapes.dat`) run before the first fluid step when `coral.txt` asks for them
 
 ## Planned
 

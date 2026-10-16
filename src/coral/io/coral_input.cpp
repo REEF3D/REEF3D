@@ -26,6 +26,7 @@ Architect: Hans Bihs
 #include"coral/core/coral_rotation.h"
 #include"coral/structure/coral_spring.h"
 #include"coral/structure/coral_linear6.h"
+#include"coral/structure/coral_frame.h"
 #include"coral/hydro/coral_hydro_db.h"
 #include"coral/hydro/coral_hydro_load.h"
 #include"coral/hydro/coral_morison.h"
@@ -158,6 +159,7 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
     // pass 1: settings, waves, bodies
     std::vector<std::pair<int, Vec3>> offsets;    // initial displacement of bodies, applied after the set-up
     std::vector<std::pair<mooring_line*, double>> settles;
+    std::map<std::string, beam_section> sections;
     bool gravity_on = true;
     double wdepth = -1.0, wramp = 0.0;
     std::vector<item> wave_items;
@@ -181,8 +183,34 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
         }
         else if(k=="output")
         {
-            run.out_dt = it.get("dt", 0.0);
-            if(it.has("file")) run.out_file = it.word("file");
+            if(it.t.size() > 1 && it.t[1]=="vtp")
+                run.vtp_dt = it.num(2);
+            else
+            {
+                run.out_dt = it.get("dt", 0.0);
+                if(it.has("file")) run.out_file = it.word("file");
+            }
+        }
+        else if(k=="static")
+            run.static_ini = true;
+        else if(k=="modes")
+        {
+            run.modes = (int)it.num(1);
+            run.modes_damped = it.has("damped");
+        }
+        else if(k=="section")
+        {
+            const std::string name = it.word(1);
+            beam_section s;
+            if(it.t.size() > 2 && it.t[2]=="tube")
+                s = beam_section::tube(it.need("D"), it.need("t"), it.need("E"), it.need("G"), it.need("rho"));
+            else
+            {
+                s.EA = it.need("EA"); s.EIy = it.need("EIy"); s.EIz = it.need("EIz"); s.GJ = it.need("GJ"); s.m = it.need("m");
+                s.GAy = it.get("GAy", 0.0); s.GAz = it.get("GAz", 0.0);
+                s.rIx = it.get("rIx", 0.0); s.rIy = it.get("rIy", 0.0); s.rIz = it.get("rIz", 0.0); s.D = it.get("D", 0.0);
+            }
+            sections[name] = s;
         }
         else if(k=="waves")
         {
@@ -248,6 +276,47 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
                 it.fail("unknown wave type '" + type + "'");
         }
     }
+    // members (nodes are bodies: before the joints and loads), then point masses
+    {
+        frame_builder fb(m);
+        bool any = false;
+        for(const item &it : items)
+        {
+            if(it.t[0] != "member") continue;
+            member_spec ms;
+            ms.name = it.word(1);
+            ms.p1 = it.need_vec("p1");
+            ms.p2 = it.need_vec("p2");
+            ms.n = (int)it.get("n", 10);
+            const std::string s1 = it.word("section");
+            if(!sections.count(s1)) it.fail("unknown section '" + s1 + "'");
+            ms.s1 = sections[s1];
+            if(it.has("section2"))
+            {
+                const std::string s2 = it.word("section2");
+                if(!sections.count(s2)) it.fail("unknown section '" + s2 + "'");
+                ms.s2 = sections[s2];
+                ms.tapered = true;
+            }
+            ms.orient = it.vec("orient", Vec3::UnitZ());
+            ms.beta = it.get("beta", 0.0);
+            if(it.has("end1")) ms.body1 = body_of(it, it.word("end1"));
+            if(it.has("end2")) ms.body2 = body_of(it, it.word("end2"));
+            fb.add_member(ms);
+            any = true;
+        }
+        if(any) fb.finish();
+        for(const item &it : items)
+        {
+            if(it.t[0] != "point_mass") continue;
+            const int b = body_of(it, it.word(1));
+            if(b < 0) it.fail("point mass on the ground");
+            m.bodies[b].mass += it.need("mass");
+            const int ii = it.find("inertia");
+            if(ii >= 0) m.bodies[b].inertia += Mat3(it.vec(ii+1).asDiagonal());
+        }
+    }
+
     if(gravity_on && m.nbody() > 0)
         m.add_load(std::make_unique<gravity_load>());
 
@@ -414,7 +483,8 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
             const int b = body_of(it, it.word("body"));
             m.add_load(std::make_unique<morison_load>(m, b, std::vector<morison_member>{mb}, waves, rho, it.vec("current", Vec3::Zero()), it.word(1)));
         }
-        else if(k!="gravity" && k!="rho" && k!="time" && k!="output" && k!="waves" && k!="body" && k!="joint")
+        else if(k!="gravity" && k!="rho" && k!="time" && k!="output" && k!="waves" && k!="body" && k!="joint"
+                && k!="section" && k!="member" && k!="point_mass" && k!="static" && k!="modes")
             it.fail("unknown keyword");
     }
 

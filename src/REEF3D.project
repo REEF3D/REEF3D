@@ -866,7 +866,9 @@
         <VirtualDirectory Name="IO">
           <File Name="coral/io/README.md"/>
           <File Name="coral/io/coral_input.h"/>
+          <File Name="coral/io/coral_modes_out.h"/>
           <File Name="coral/io/coral_output.h"/>
+          <File Name="coral/io/coral_vtp.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Load Cases">
           <File Name="coral/loadcase/README.md"/>
@@ -2416,7 +2418,9 @@
         <VirtualDirectory Name="Ice"/>
         <VirtualDirectory Name="IO">
           <File Name="coral/io/coral_input.cpp"/>
+          <File Name="coral/io/coral_modes_out.cpp"/>
           <File Name="coral/io/coral_output.cpp"/>
+          <File Name="coral/io/coral_vtp.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Load Cases"/>
         <VirtualDirectory Name="Post"/>

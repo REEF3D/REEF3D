@@ -26,7 +26,12 @@ Architect: Hans Bihs
 #include"coral/core/coral_timeint.h"
 #include"coral/io/coral_input.h"
 #include"coral/io/coral_output.h"
+#include"coral/io/coral_vtp.h"
+#include"coral/core/coral_static.h"
+#include"coral/linear/coral_modes.h"
+#include"coral/io/coral_modes_out.h"
 #include<chrono>
+#include<sys/stat.h>
 #include<cmath>
 #include<cstdio>
 #include<exception>
@@ -45,9 +50,32 @@ int main(int argc, char **argv)
         std::printf("input %s: %d bodies, %d constraint equations, %d loads, %s waves\n", file.c_str(),
                     c.m.nbody(), c.m.ncon(), (int)c.m.load_list.size(), c.waves ? std::to_string(c.waves->components().size()).c_str() : "no");
         const run_settings &r = c.run;
-        timeint ti(r.ti);
         const auto w0 = std::chrono::steady_clock::now();
+        if(r.static_ini)
+        {
+            const static_result sr = static_solve(c.m, r.t_start);
+            std::printf("static equilibrium: %s after %d iterations, max |residual| %.2e\n",
+                        sr.converged ? "converged" : "NOT converged", sr.iterations, sr.residual);
+        }
+        if(r.modes > 0)
+        {
+            const mode_result mr = modes(c.m, r.t_start, r.modes, r.modes_damped);
+            print_modes(c.m, mr, r.modes_damped);
+            write_modes("", c.m, mr);
+        }
+        if(r.vtp_dt >= 0.0)
+            mkdir("coral_vtp", 0777);
+        int nvtp = 0;
+        auto vtp = [&]() {char b[64]; std::snprintf(b, sizeof(b), "coral_vtp/structure_%05d.vtp", nvtp++); write_vtp(c.m, b);};
+        if(r.t_end <= r.t_start)
+        {
+            if(r.vtp_dt >= 0.0) vtp();
+            return 0;
+        }
+        timeint ti(r.ti);
         ti.initialize(c.m, r.t_start);
+        if(r.vtp_dt >= 0.0) vtp();
+        const long nvtp_every = r.vtp_dt > 0.0 ? std::max(1L, std::lround(r.vtp_dt/r.dt)) : 1L;
         time_series out;
         out.open(r.out_file, c.m);
         out.write(c.m, r.t_start);
@@ -77,6 +105,8 @@ int main(int argc, char **argv)
             }
             if((i+1)%nout==0)
                 out.write(c.m, r.t_start + (i+1)*r.dt);
+            if(r.vtp_dt >= 0.0 && (i+1)%nvtp_every==0)
+                vtp();
             if(n >= 10 && i+1 >= next_report)
             {
                 std::printf("  t = %10.4f s  (%3.0f%%)\n", r.t_start + (i+1)*r.dt, 100.0*(i+1)/n);

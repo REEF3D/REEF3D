@@ -22,6 +22,9 @@ Architect: Hans Bihs
 
 #include"coral/reef3d/coral_reef3d.h"
 #include"coral/core/coral_timeint.h"
+#include"coral/core/coral_static.h"
+#include"coral/linear/coral_modes.h"
+#include"coral/io/coral_modes_out.h"
 #include"coral/core/coral_version.h"
 #include"coral/io/coral_input.h"
 #include"coral/io/coral_output.h"
@@ -92,10 +95,24 @@ void coral_reef3d::fail(ghostcell *pgc, const std::string &msg)
 void coral_reef3d::ini(lexer *p, ghostcell*)
 {
     t_ = p->simtime;
+    if(case_->run.static_ini)
+    {
+        const coral::static_result sr = coral::static_solve(case_->m, t_);
+        if(p->mpirank==0)
+            std::cout<<"CORAL static equilibrium: "<<(sr.converged ? "converged" : "NOT converged")<<" after "
+                     <<sr.iterations<<" iterations"<<std::endl;
+    }
+    if(p->mpirank==0)
+        mkdir("./REEF3D_CORAL", 0777);
+    if(case_->run.modes > 0)
+    {
+        const coral::mode_result mr = coral::modes(case_->m, t_, case_->run.modes, case_->run.modes_damped);
+        if(p->mpirank==0)
+            coral::write_modes("./REEF3D_CORAL/", case_->m, mr);
+    }
     ti_->initialize(case_->m, t_);
     if(p->mpirank==0)
     {
-        mkdir("./REEF3D_CORAL", 0777);
         std::string f = case_->run.out_file;
         const size_t s = f.find_last_of('/');
         if(s != std::string::npos)
