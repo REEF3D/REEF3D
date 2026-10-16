@@ -819,6 +819,8 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Structure">
           <File Name="coral/structure/README.md"/>
+          <File Name="coral/structure/coral_beam.h"/>
+          <File Name="coral/structure/coral_frame.h"/>
           <File Name="coral/structure/coral_linear6.h"/>
           <File Name="coral/structure/coral_spring.h"/>
         </VirtualDirectory>
@@ -2383,6 +2385,8 @@
           <File Name="coral/core/coral_version.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Structure">
+          <File Name="coral/structure/coral_beam.cpp"/>
+          <File Name="coral/structure/coral_frame.cpp"/>
           <File Name="coral/structure/coral_linear6.cpp"/>
           <File Name="coral/structure/coral_spring.cpp"/>
         </VirtualDirectory>
