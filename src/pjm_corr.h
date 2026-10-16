@@ -56,9 +56,16 @@ public:
     void wpgrad(lexer*,fdm*,slice&,slice&) override final;
 
     field4 pcorr;
+    field4 pn;
 
 private:
+    void comp_ini(lexer*);
+    void comp_terms(lexer*,fdm*,field&,field&,field&,double);
+    double comp_weight(double);
+
 	double starttime,endtime;
+    double comp_a,comp_r,comp_W,epsi,hn;
+    double cstage,fac_t,fac_c,wt,pabs,kappa,uc,vc,wc,ugradp;
 	int count, gcval_press;
 	int gcval_u, gcval_v, gcval_w;
 	

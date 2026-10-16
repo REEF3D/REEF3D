@@ -207,6 +207,17 @@ void driver::driver_ini_cfd()
 	if(p->I40==1)
     {
 	pini->stateini(p,a,pgc,pturb,psed);
+
+    pgc->start4(p,a->press,40);
+    ppress->ini(p,a,pgc);
+
+    pgc->start1(p,a->u,10);
+    pgc->start2(p,a->v,11);
+    pgc->start3(p,a->w,12);
+    if(p->X10==0)
+    ptstep->start(a,p,pgc,pturb);
+
+    p->dt *= 0.1;
     
     if(p->S10==1||(p->Q10>=1 && p->S10==2))
     psed->ini_cfd(p,a,pgc);

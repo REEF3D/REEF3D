@@ -2270,6 +2270,16 @@ void control::ctrlsend()
     ii++;
     dctrl[dd] = W31;
     dd++;
+    ictrl[ii] = W32;
+    ii++;
+    dctrl[dd] = W33;
+    dd++;
+    dctrl[dd] = W34;
+    dd++;
+    dctrl[dd] = W35;
+    dd++;
+    dctrl[dd] = W36;
+    dd++;
     ictrl[ii] = W41;
     ii++;
     dctrl[dd] = W50;

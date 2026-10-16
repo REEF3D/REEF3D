@@ -41,8 +41,10 @@ Author: Hans Bihs
 #include"density_pst.h"
 #include"CPM.h"
  
-pjm_corr::pjm_corr(lexer* p, fdm *a, ghostcell *pgc, heat *&pheat, concentration *&pconc) : pcorr(p), pressure_reference(p)
+pjm_corr::pjm_corr(lexer* p, fdm *a, ghostcell *pgc, heat *&pheat, concentration *&pconc) : pcorr(p), pn(p), pressure_reference(p)
 {
+    comp_ini(p);
+
     if(p->F80==0 && p->F300==0 && p->W90==0)
     {
         if(p->W30==0 && p->C10==0 && p->H10==0)
@@ -113,10 +115,17 @@ void pjm_corr::start(fdm* a,lexer*p, poisson* ppois,solver* psolv, ghostcell* pg
 // all grids in between)
 void pjm_corr::amr_prepare(lexer *p, fdm *a, poisson *ppois, ghostcell *pgc, field &uvel, field &vvel, field &wvel, double alpha)
 {
+    if(p->W32>0 && fabs(alpha-1.0)<1.0e-12)
+    LOOP
+    pn(i,j,k) = a->press(i,j,k);
+
 	vel_setup(p,a,pgc,uvel,vvel,wvel,alpha);	
     rhs(p,a,pgc,uvel,vvel,wvel,alpha);
     
     ppois->start(p,a,pcorr);
+
+    if(p->W32>0)
+    comp_terms(p,a,uvel,vvel,wvel,alpha);
 }
 
 void pjm_corr::amr_finish(lexer *p, fdm *a, ghostcell *pgc, field &uvel, field &vvel, field &wvel, double alpha)
@@ -226,6 +235,9 @@ void pjm_corr::wpgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
 void pjm_corr::ini(lexer*p,fdm* a, ghostcell *pgc)
 {
     reference_ini(p,a,pgc);
+
+    LOOP
+    pn(i,j,k) = a->press(i,j,k);
 }
 
 

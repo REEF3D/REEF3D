@@ -162,7 +162,7 @@ void poisson_pcorr::start(lexer* p, fdm *a, field &press)
     if(p->amr_patch==0)
     MPI_Allreduce(&ndirichlet,&nd_glob,1,MPI_INT,MPI_SUM,MPI_COMM_WORLD);
 
-    if(nd_glob==0 && p->amr_patch==0)
+    if(nd_glob==0 && p->amr_patch==0 && p->W32==0)
     {
         int myrank = (pin_n>=0) ? p->mpirank : 1<<30;
         int pinrank = 1<<30;
