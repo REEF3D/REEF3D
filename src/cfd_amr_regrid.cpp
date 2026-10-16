@@ -229,8 +229,7 @@ void cfd_amr::regrid(lexer *p, ghostcell *pgc)
         patch_fields_ini(id);
     }
 
-    vector<fspec> fs = state_specs();
-    const vector<int> ids = state_ids();
+    vector<fspec> fs = specs(AF_STATE);
 
     for(int l=1; l<=maxlev; ++l)
     {
@@ -258,8 +257,9 @@ void cfd_amr::regrid(lexer *p, ghostcell *pgc)
                 if(o!=nullptr)
                 {
                     const int oi = I[0]-o->lo[0], oj = I[1]-o->lo[1], ok = I[2]-o->lo[2];
-                    for(int m : ids)
-                    sfield(c->a,c->pturb,m)(li,lj,lk) = sfield(o->a,o->pturb,m)(oi,oj,ok);
+                    for(const cfd_amr_field &e : reg)
+                    if(e.roles & AF_STATE)
+                    e.get(c->a,c->pturb)(li,lj,lk) = e.get(o->a,o->pturb)(oi,oj,ok);
                     continue;
                 }
 

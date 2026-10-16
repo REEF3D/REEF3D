@@ -408,6 +408,7 @@ void nhflow_amr::sub_level(lexer *p, ghostcell *pgc, int l, int k, double t, dou
         pp->dt_old = dt;
         pp->simtime = t;
         pp->count = p->count;
+        pp->amr_follow(*p);
         pscope ps(pgc,c->d,d0);
         c->pmom->step_begin(pp,c->d,pgc,c->S);
     }

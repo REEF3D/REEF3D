@@ -88,37 +88,38 @@ inline void cdecode(const lexer *q, int qq, int &i, int &j, int &k)
 }
 }
 
-cfd_amr_tlev::cfd_amr_tlev(lexer *q, int nn) : n(nn)
+cfd_amr_tlev::cfd_amr_tlev(lexer *q, const vector<int> &types) : n((int)types.size())
 {
-    o[0] = new field1(q); o[1] = new field2(q); o[2] = new field3(q);
-    t[0] = new field1(q); t[1] = new field2(q); t[2] = new field3(q);
-    for(int m=3; m<8; ++m)
+    auto make = [&](int type) -> field*
     {
-        o[m] = (m<n) ? new field4(q) : nullptr;
-        t[m] = (m<n) ? new field4(q) : nullptr;
+        if(type==0) return new field1(q);
+        if(type==1) return new field2(q);
+        if(type==2) return new field3(q);
+        return new field4(q);
+    };
+    for(int type : types)
+    {
+        o.push_back(make(type));
+        t.push_back(make(type));
     }
 }
 
 cfd_amr_tlev::~cfd_amr_tlev()
 {
-    for(int m=0; m<8; ++m)
+    for(int m=0; m<n; ++m)
     {
         delete o[m];
         delete t[m];
     }
 }
 
-// the fields of grid g that the finer level interpolates: u, v, w, phi, press, eddyv; kin, eps
+// the field of time level m of grid g (the registry: the fields with AF_TIME in their order)
 field& cfd_amr::stf(int g, int m)
 {
-    fdm *a = gfd(g);
-    if(m==0) return a->u;
-    if(m==1) return a->v;
-    if(m==2) return a->w;
-    if(m==3) return a->phi;
-    if(m==4) return a->press;
-    if(m==5) return a->eddyv;
-    return kfield(g,m-6);
+    for(const cfd_amr_field &e : reg)
+    if(e.tl==m)
+    return rf(e,g);
+    return rf(reg[0],g);
 }
 
 namespace
@@ -172,10 +173,10 @@ void cfd_amr::interp(int l, double th)
             // surface across the edge of level 2: unstable after 1.3 s).  From a patch it is held at
             // the end value in the interface band and the air (phi < 3 psi), extrapolated in the
             // water (held everywhere, the waves lost 1-3.5 % of their amplitude along two levels)
-            const double w = (m!=4) ? th : (press_step ? th+0.5 : 1.0);
-            if(m==4 && l>=1 && w>1.0)
+            const double w = (m!=tl_press) ? th : (press_step ? th+0.5 : 1.0);
+            if(m==tl_press && l>=1 && w>1.0)
             {
-                const double *ph = stf(g,3).V;
+                const double *ph = stf(g,tl_phi).V;
                 const double band = 3.0*glex(g)->psi;
                 for(size_t q=0; q<n; ++q)
                 t[q] = o[q] + ((ph[q]<band) ? 1.0 : w)*(c[q]-o[q]);
@@ -193,9 +194,12 @@ void cfd_amr::fill_level(int l, double th)
     interp(l-1,th);
 
     vector<fspec> fs;
-    const int mode[8] = {1,1,1,0,0,1,1,1};
-    for(int m=0; m<nts; ++m)
-    fs.push_back({m<3 ? m : CELL,mode[m],[this,m,l](int g) -> field& { return glevel(g)==l ? stf(g,m) : tsf(g,m); }});
+    for(const cfd_amr_field &e : reg)
+    if(e.roles & AF_TIME)
+    {
+        const int m = e.tl;
+        fs.push_back({e.type,e.prolong,[this,m,l](int g) -> field& { return glevel(g)==l ? stf(g,m) : tsf(g,m); }});
+    }
     fill(l,fs);
 
     for(int id : lev[l])
@@ -206,30 +210,13 @@ void cfd_amr::fill_level(int l, double th)
 // level set, density, viscosity
 void cfd_amr::restrict_sub(int l)
 {
-    vector<std::function<field&(int)>> cells, faces;
-    cells.push_back([this](int g) -> field& { return gfd(g)->phi; });
-    cells.push_back([this](int g) -> field& { return gfd(g)->ro; });
-    cells.push_back([this](int g) -> field& { return gfd(g)->visc; });
-    if(turb)
-    {
-        cells.push_back([this](int g) -> field& { return gfd(g)->eddyv; });
-        cells.push_back([this](int g) -> field& { return kfield(g,0); });
-        cells.push_back([this](int g) -> field& { return kfield(g,1); });
-    }
-    faces.push_back([this](int g) -> field& { return gfd(g)->u; });
-    faces.push_back([this](int g) -> field& { return gfd(g)->v; });
-    faces.push_back([this](int g) -> field& { return gfd(g)->w; });
+    vector<std::function<field&(int)>> cells = rcells(AF_RSTEP), faces = rfaces(AF_RSTEP);
 
     restrict_level(l,cells,faces);
 
     if(l==1)
     {
-        pgc0->start1(p0,a0->u,10);
-        pgc0->start2(p0,a0->v,11);
-        pgc0->start3(p0,a0->w,12);
-        pgc0->start4(p0,a0->phi,gcval_phi);
-        pgc0->start4(p0,a0->ro,1);
-        pgc0->start4(p0,a0->visc,1);
+        bc_grid(-1,AF_BCSTEP);
         if(turb)
         pturb0->gcupdate(p0,a0,pgc0);
     }
@@ -251,6 +238,7 @@ void cfd_amr::patch_step(int l, double dt, double th0, double t)
         c->dt_l = dt;
         pp->simtime = t;
         pp->count = p0->count;
+        pp->amr_follow(*p0);
     }
 
     // the turbulence model (the cells around the patches filled at the start of the step)
@@ -281,14 +269,18 @@ void cfd_amr::patch_step(int l, double dt, double th0, double t)
             vector<fspec> fs;
             for(int c=0; c<3; ++c)
             fs.push_back({c,1,[this,s,c,l](int g) -> field& { return glevel(g)==l ? gmom(g)->amr_vel(gfd(g),c,s) : tsf(g,c); }});
-            fs.push_back({CELL,0,[this,l](int g) -> field& { return glevel(g)==l ? gfd(g)->phi : tsf(g,3); }});
-            fs.push_back({CELL,0,[this,l](int g) -> field& { return glevel(g)==l ? gfd(g)->press : tsf(g,4); }});
-            fs.push_back({CELL,1,[this,l](int g) -> field& { return glevel(g)==l ? gfd(g)->eddyv : tsf(g,5); }});
+            for(const cfd_amr_field &e : reg)
+            if(e.roles & AF_STAGEIN)
+            {
+                const cfd_amr_field *pe = &e;
+                fs.push_back({e.type,e.prolong,[this,pe,l](int g) -> field& { return glevel(g)==l ? rf(*pe,g) : tsf(g,pe->tl); }});
+            }
+            const int tp = tl_phi;
             if(s==0)
-            fs.push_back({CELL,0,[this,l](int g) -> field& { return glevel(g)==l ? gfd(g)->phi : tsf(g,3); },
+            fs.push_back({CELL,0,[this,l,tp](int g) -> field& { return glevel(g)==l ? gfd(g)->phi : tsf(g,tp); },
                                  [this](int g) -> field& { return gmom(g)->amr_phi_in(0); }});
             else
-            fs.push_back({CELL,0,[this,s,l](int g) -> field& { return glevel(g)==l ? gmom(g)->amr_phi_in(s) : tsf(g,3); }});
+            fs.push_back({CELL,0,[this,s,l,tp](int g) -> field& { return glevel(g)==l ? gmom(g)->amr_phi_in(s) : tsf(g,tp); }});
             fill(l,fs);
             for(int id : lev[l])
             margin_rovisc(id);
@@ -304,7 +296,8 @@ void cfd_amr::patch_step(int l, double dt, double th0, double t)
         interp(l-1,tho);
 
         vector<fspec> fo;
-        fo.push_back({CELL,0,[this,s,l](int g) -> field& { return glevel(g)==l ? gmom(g)->amr_phi_out(s) : tsf(g,3); }});
+        const int tp = tl_phi;
+        fo.push_back({CELL,0,[this,s,l,tp](int g) -> field& { return glevel(g)==l ? gmom(g)->amr_phi_out(s) : tsf(g,tp); }});
         fill(l,fo);
 
         const int iters = mom0->amr_reini_iters(p0,s);

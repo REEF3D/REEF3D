@@ -1857,6 +1857,7 @@ void sflow_amr::step_begin(lexer *p, fdm2D *b, ghostcell *pgc)
         c->pp->dt_old = p->dt_old;
         c->pp->simtime = p->simtime;
         c->pp->count = p->count;
+        c->pp->amr_follow(*p);
         c->pmom->inflow(c->pp,c->b,pgc,pflow_void);
     }
 

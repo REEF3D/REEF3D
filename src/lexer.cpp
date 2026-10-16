@@ -83,25 +83,12 @@ lexer::lexer(const lexer &b, int) : control(b), position(this), interpolation(th
 	mpirank=b.mpirank;
     mpi_size=1;
 
-	simtime=b.simtime;
-	poissontime=0.0;
 	pressval=0;
-    alpha=0.0;
     solidread=toporead=porousread=topoforcing=0;
     gridgeo=nullptr;
     geobed=nullptr;
     net_count=0;
     mooring_count=0;
-
-    count=b.count;
-    dt=b.dt;
-    dt_old=b.dt_old;
-    umax=vmax=wmax=0.0;
-    gctime=xtime=0.0;
-    utime=vtime=wtime=0.0;
-    recontime=fsftime=0.0;
-    lsmtime=0.0;
-    solver_error=0;
     wenofunc=nullptr;
     for(int n=0; n<8; ++n)
     gcbl_count[n]=-2;
@@ -109,20 +96,11 @@ lexer::lexer(const lexer &b, int) : control(b), position(this), interpolation(th
     // iowave Riemann / Flather edges: set by iowave on the base grid only (AMR patch grids have none)
     open_xm=open_xp=open_ym=open_yp=0;
 
-    // the state of the base grid that the patch grids (AMR, FAS) read but do not set themselves:
-    // in- and outflow (discharge of ioflow, used before it by the wave generation), wave parameters
-    // (wave_lib, B 526-528 default to wTp), free-surface levels at the in- and outflow (ini_phi,
-    // F 60-62; the outflow pressure B 77 1), largest domain extent (reinitialisation)
-    Ui=b.Ui; Ua=b.Ua; Uo=b.Uo;
-    Hi=b.Hi; Ho=b.Ho;
-    Qi=b.Qi; Qo=b.Qo;
-    wT=b.wT; wV=b.wV; wH=b.wH; wA=b.wA; wL=b.wL; wd=b.wd; ww=b.ww; wk=b.wk; wC=b.wC;
-    wHs=b.wHs; wAs=b.wAs; wwp=b.wwp; ww_s=b.ww_s; ww_e=b.ww_e; wTp=b.wTp; wLp=b.wLp;
-    wN=b.wN;
+    // the runtime state of the base grid: time, in- and outflow, wave parameters, free-surface
+    // levels, extent of the domain, ...; the grid's own counters and maxima reset (lexer_amr.cpp:
+    // the groups of the contract between level 0 and the grids of a mesh refinement)
+    amr_inherit(b);
     cms_flag=0;     // coordinate transformation: set by the patch builder (reefamr3d)
-    fsfin=b.fsfin; fsfout=b.fsfout;
-    maxlength=b.maxlength;
-    printcount=printcount_sixdof=0;
 
     // extra ghost cells per side: never set, read by vecsize (gcbextra) and reduced over the ranks
     gcextra1=gcextra2=gcextra3=gcextra4=gcextra4a=gcextra6=0;

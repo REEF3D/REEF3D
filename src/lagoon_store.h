@@ -60,6 +60,16 @@ public:
     // rank 0, once: the root group (run_json: the run log's run record, or "")
     void create_root(const std::string &solver, const std::string &run_json);
 
+    // rank 0, before a run's first output into the store, by every writer (volume,
+    // surfaces, AMR, bodies, particles): a store holds one run. The store of an
+    // earlier run in its place (another run id in its root, or none) is moved aside
+    // to REEF3D_<SOLVER>-<its run>.lagoon-earlier and this run's root is made; later
+    // calls of the run do nothing. Returns where the earlier store went, or "".
+    std::string begin_run(const std::string &solver, const std::string &run_json);
+
+    // the run id a run record or a root's zarr.json text holds, or ""
+    static std::string run_id(const std::string &json);
+
     // rank 0, once per output stream: the group, its grid lines and time arrays
     // grid: "sigma" (levels: their σ, 0 at the bed, 1 at the surface), "cartesian"
     // (levels: their heights z, CFD) or "surface" (levels empty)

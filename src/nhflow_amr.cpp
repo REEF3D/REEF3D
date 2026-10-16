@@ -2333,6 +2333,7 @@ void nhflow_amr::step(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum_func
         pp->dt_old = p->dt_old;
         pp->simtime = p->simtime;
         pp->count = p->count;
+        pp->amr_follow(*p);
         pscope ps(pgc,c->d,d0);
         c->pmom->step_begin(pp,c->d,pgc,c->S);
     }

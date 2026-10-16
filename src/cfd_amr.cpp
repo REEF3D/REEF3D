@@ -209,6 +209,8 @@ bool cfd_amr::scope(lexer *p, ghostcell *pgc)
     why = "no heat, concentration, compressibility or rheology (H 10, C 10, W 30, W 90)";
     else if(p->S10!=0 || p->Q10!=0)
     why = "no sediment (S 10, Q 10)";
+    else if(p->E10>0)
+    why = "no DEM particles (E 10; momentum_forcing holds the particle forcing of level 0 in a static member)";
     else if(p->X10>1 || p->Z10!=0 || p->Z20!=0 || p->Z30!=0)
     why = "floating bodies X 10 0 or 1, no structures (Z 10, Z 20, Z 30)";
     else if(p->B200!=0 && p->B200!=1)
@@ -253,7 +255,6 @@ cfd_amr::cfd_amr(lexer *p, fdm *a, ghostcell *pgc, momentum *pmom, pressure *ppr
     // RANS and solids on the patches
     pturb0 = pturb;
     turb = (p->T10==1 || p->T10==2 || p->T10==21 || p->T10==22) && dynamic_cast<rans_io*>(pturb)!=nullptr ? 1 : 0;
-    nts = turb ? 8 : 6;
     solids = (p->solidread!=0 || p->toporead!=0) ? 1 : 0;
 
     // floating bodies: moved on level 0, the hull and its forcing on every grid
@@ -274,6 +275,9 @@ cfd_amr::cfd_amr(lexer *p, fdm *a, ghostcell *pgc, momentum *pmom, pressure *ppr
     if(p->F50==2) gcval_phi = 52;
     if(p->F50==3) gcval_phi = 53;
     if(p->F50==4) gcval_phi = 54;
+
+    // the registry of the patch state (cfd_amr_fields.cpp)
+    register_fields();
 
     // subcycling (G 7 1): the stage times
     sub = (p->G7==1) ? 1 : 0;
@@ -372,10 +376,10 @@ void cfd_amr::hierarchy(bool first)
     if(sub)
     {
         if(maxlev>=1 && ts0==nullptr)
-        ts0 = new cfd_amr_tlev(p,nts);
+        ts0 = new cfd_amr_tlev(p,tl_types());
         for(int id=0; id<(int)P.size(); ++id)
         if(P[id]->lev<maxlev && CP(id)->ts==nullptr)
-        CP(id)->ts = new cfd_amr_tlev(CP(id)->pp,nts);
+        CP(id)->ts = new cfd_amr_tlev(CP(id)->pp,tl_types());
     }
 }
 
@@ -449,35 +453,6 @@ bool cfd_amr::finest_grid(double x, double y, double z, lexer *&q, fdm *&a, turb
 
 namespace
 {
-template<class T, class B> bool del_as(B *&b)
-{
-    T *t = dynamic_cast<T*>(b);
-    if(t==nullptr)
-    return false;
-    delete t;
-    b = nullptr;
-    return true;
-}
-
-// the convection and diffusion objects of patch_objects (the base classes have no virtual
-// destructor; weno3_flux, weno3_hj free the coefficient tables of the patch in theirs)
-void del_convec(convection *&b)
-{
-    if(b==nullptr)
-    return;
-    del_as<fou>(b) || del_as<weno_flux_nug>(b) || del_as<weno_hj_nug>(b) || del_as<weno_hj_df_nug>(b)
-    || del_as<convection_void>(b) || del_as<cds2>(b) || del_as<cds2_alt>(b) || del_as<quick>(b) || del_as<cds4>(b)
-    || del_as<weno3_flux>(b) || del_as<weno3_hj>(b) || del_as<hcds6>(b) || del_as<hires>(b);
-}
-
-void del_diff(diffusion *&b)
-{
-    if(b==nullptr)
-    return;
-    del_as<diff_void>(b) || del_as<ediff2>(b) || del_as<ediff2_2D>(b) || del_as<idiff2_FS>(b) || del_as<idiff2_FS_2D>(b)
-    || del_as<idiff2_CN>(b);
-}
-
 // the cell arrays of a patch lexer (build_lexer, flagini); the lexer has no destructor for them
 void free_lexer_cells(lexer *q)
 {
@@ -505,30 +480,26 @@ void cfd_amr::free_patch(cfd_amr_patch *c)
     c->kv.clear();
     delete c->mg;
 
+    // the objects of patch_objects (the base classes have virtual destructors)
     delete c->pmom;
     delete c->p6dof;
     delete c->ppress;
-    del_as<poisson_pcorr>(c->ppois);
-    del_as<reini_RK3>(c->preini);
-    del_as<amr_dsolver>(c->psolv);
-    if(!del_as<bicgstab_ijk>(c->psolv_in))
-    del_as<bicgstab_ijk_2D>(c->psolv_in);
-    del_as<solver_void>(c->ppoissonsolv);
-    del_as<heat_void>(c->pheat);
-    del_as<concentration_void>(c->pconc);
-    if(!del_as<kepsilon_void>(c->pturb) && !del_as<kepsilon_IM1>(c->pturb))
-    del_as<komega_IM1>(c->pturb);
-    if(!del_as<convection_void>(c->pturbdisc) && !del_as<ifou>(c->pturbdisc))
-    del_as<iweno_hj_df_nug>(c->pturbdisc);
-    if(!del_as<diff_void>(c->pturbdiff))
-    del_as<idiff2>(c->pturbdiff);
+    delete c->ppois;
+    delete c->preini;
+    delete c->psolv;
+    delete c->psolv_in;
+    delete c->ppoissonsolv;
+    delete c->pheat;
+    delete c->pconc;
+    delete c->pturb;
+    delete c->pturbdisc;
+    delete c->pturbdiff;
     delete c->pBC;
-    del_as<ioflow_v>(c->pflow);
-    if(!del_as<vrans_v>(c->pvrans))
-    del_as<vrans_f>(c->pvrans);
-    del_diff(c->pdiff);
-    del_convec(c->pconvec);
-    del_convec(c->pfsfdisc);
+    delete c->pflow;
+    delete c->pvrans;
+    delete c->pdiff;
+    delete c->pconvec;
+    delete c->pfsfdisc;
 
     delete c->a;
     free_lexer_cells(c->pp);
@@ -812,22 +783,10 @@ void cfd_amr::bc_state(int id)
     fdm *fa = c->a;
     pscope ps(pgc0,fa,a0);
 
-    pgc0->start1(pp,fa->u,10);
-    pgc0->start2(pp,fa->v,11);
-    pgc0->start3(pp,fa->w,12);
-    pgc0->start4(pp,fa->phi,gcval_phi);
-    pgc0->start4(pp,fa->press,40);
+    bc_grid(id,AF_BCSTATE);
 
     if(turb)
-    {
-        pgc0->start4(pp,fa->eddyv,24);
-        c->pturb->gcupdate(pp,fa,pgc0);
-    }
-    if(solids)
-    {
-        pgc0->start4a(pp,fa->solid,150);
-        pgc0->start4a(pp,fa->topo,150);
-    }
+    c->pturb->gcupdate(pp,fa,pgc0);
 }
 
 // --------------------------------------------------------------------- restriction
@@ -961,50 +920,6 @@ field& cfd_amr::kfield(int g, int m)
     return (m==0) ? r->kin : r->eps;
 }
 
-vector<int> cfd_amr::state_ids()
-{
-    vector<int> ids = {0,1,2,3,4,5};
-    if(turb)
-    {
-        ids.push_back(6);
-        ids.push_back(7);
-        ids.push_back(10);
-    }
-    if(solids)
-    {
-        ids.push_back(8);
-        ids.push_back(9);
-    }
-    return ids;
-}
-
-field& cfd_amr::sfield(fdm *a, turbulence *t, int m)
-{
-    if(m==0) return a->phi;
-    if(m==1) return a->press;
-    if(m==2) return a->eddyv;
-    if(m==3) return a->u;
-    if(m==4) return a->v;
-    if(m==5) return a->w;
-    if(m==6) return dynamic_cast<rans_io*>(t)->kin;
-    if(m==7) return dynamic_cast<rans_io*>(t)->eps;
-    if(m==8) return a->solid;
-    if(m==9) return a->topo;
-    return a->walld;
-}
-
-vector<cfd_amr::fspec> cfd_amr::state_specs()
-{
-    vector<fspec> fs;
-    for(int m : state_ids())
-    {
-        const int type = (m>=3 && m<=5) ? m-3 : CELL;
-        const int mode = (m==2 || (m>=3 && m<=7)) ? 1 : 0;
-        fs.push_back({type,mode,[this,m](int g) -> field& { return sfield(gfd(g),g<0 ? pturb0 : CP(g)->pturb,m); }});
-    }
-    return fs;
-}
-
 // the fields of patch id before its data: initialize, ioflow, the porous structures; no solids or
 // bodies
 void cfd_amr::patch_fields_ini(int id)
@@ -1058,9 +973,9 @@ void cfd_amr::ini(lexer *p, fdm *a, ghostcell *pgc)
     for(int id=0; id<(int)P.size(); ++id)
     patch_fields_ini(id);
 
-    // interior of every patch from its parent, level by level (with the geometry: solid, topo,
-    // wall distance)
-    vector<fspec> fs = state_specs();
+    // interior of every patch from its parent, level by level (the state of the registry, with the
+    // geometry: solid, topo, wall distance)
+    vector<fspec> fs = specs(AF_STATE);
 
     for(int l=1; l<=maxlev; ++l)
     {
@@ -1119,13 +1034,7 @@ void cfd_amr::ini(lexer *p, fdm *a, ghostcell *pgc)
         }
         margin_rovisc(id);
 
-        pgc->start1(pp,fa->u,10);
-        pgc->start2(pp,fa->v,11);
-        pgc->start3(pp,fa->w,12);
-        pgc->start4(pp,fa->phi,gcval_phi);
-        pgc->start4(pp,fa->press,40);
-        pgc->start4(pp,fa->ro,1);
-        pgc->start4(pp,fa->visc,1);
+        bc_grid(id,AF_BCINI);
 
         c->ppress->ini(pp,fa,pgc);
 
@@ -1296,9 +1205,8 @@ void cfd_amr::fill_stage_in(int l, int s)
     fs.push_back({0,1,[this,s](int g) -> field& { return gmom(g)->amr_vel(gfd(g),0,s); }});
     fs.push_back({1,1,[this,s](int g) -> field& { return gmom(g)->amr_vel(gfd(g),1,s); }});
     fs.push_back({2,1,[this,s](int g) -> field& { return gmom(g)->amr_vel(gfd(g),2,s); }});
-    fs.push_back({CELL,0,[this](int g) -> field& { return gfd(g)->phi; }});
-    fs.push_back({CELL,0,[this](int g) -> field& { return gfd(g)->press; }});
-    fs.push_back({CELL,1,[this](int g) -> field& { return gfd(g)->eddyv; }});
+    for(const fspec &F : specs(AF_STAGEIN))
+    fs.push_back(F);
 
     // the level-set field of the stage input: in the first stage momentum_rk copies phi into it
     // (the patch interior), the cells around the patch get the phi of the coarser level
@@ -1402,18 +1310,8 @@ void cfd_amr::restrict_vel(int s)
 // restriction of the level set, pressure, density, viscosity at the end of the stage
 void cfd_amr::restrict_scalars(int s)
 {
-    vector<std::function<field&(int)>> cells, none;
-    cells.push_back([this](int g) -> field& { return gfd(g)->phi; });
+    vector<std::function<field&(int)>> cells = rcells(AF_RSTAGE), none;
     cells.push_back([this,s](int g) -> field& { return gmom(g)->amr_phi_out(s); });
-    cells.push_back([this](int g) -> field& { return gfd(g)->press; });
-    cells.push_back([this](int g) -> field& { return gfd(g)->ro; });
-    cells.push_back([this](int g) -> field& { return gfd(g)->visc; });
-    if(turb)
-    {
-        cells.push_back([this](int g) -> field& { return gfd(g)->eddyv; });
-        cells.push_back([this](int g) -> field& { return kfield(g,0); });
-        cells.push_back([this](int g) -> field& { return kfield(g,1); });
-    }
 
     for(int l=maxlev; l>=1; --l)
     restrict_level(l,cells,none);
@@ -1421,11 +1319,8 @@ void cfd_amr::restrict_scalars(int s)
     if(turb)
     pturb0->gcupdate(p0,a0,pgc0);
 
-    pgc0->start4(p0,a0->phi,gcval_phi);
+    bc_grid(-1,AF_BCSTAGE);
     pgc0->start4(p0,mom0->amr_phi_out(s),gcval_phi);
-    pgc0->start4(p0,a0->press,40);
-    pgc0->start4(p0,a0->ro,1);
-    pgc0->start4(p0,a0->visc,1);
 }
 
 void cfd_amr::step(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof *p6dof)
@@ -1473,6 +1368,7 @@ void cfd_amr::step_comp(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof 
         pp->dt_old = p->dt_old;
         pp->simtime = p->simtime;
         pp->count = p->count;
+        pp->amr_follow(*p);
     }
 
     // the turbulence model on the patches (level 0: the driver), the cells around them from the
@@ -1480,10 +1376,7 @@ void cfd_amr::step_comp(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof 
     if(turb)
     for(int l=1; l<=maxlev; ++l)
     {
-        vector<fspec> fs;
-        fs.push_back({CELL,1,[this](int g) -> field& { return gfd(g)->eddyv; }});
-        fs.push_back({CELL,1,[this](int g) -> field& { return kfield(g,0); }});
-        fs.push_back({CELL,1,[this](int g) -> field& { return kfield(g,1); }});
+        vector<fspec> fs = specs(AF_TURBIN);
         fill(l,fs);
         turb_step(l);
     }

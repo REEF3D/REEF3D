@@ -879,6 +879,7 @@ void fnpf_amr::stage_tendency(lexer *p, fdm_fnpf *c, ghostcell *pgc, int s)
         pp->dt_old = p->dt_old;
         pp->simtime = p->simtime;
         pp->count = p->count;
+        pp->amr_follow(*p);
 
         slice4 &ek = *pc->ek, &fk = *pc->fk;
         slice4 &erk1 = *pc->erk1, &erk2 = *pc->erk2;

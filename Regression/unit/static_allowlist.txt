@@ -1,0 +1,56 @@
+# static and thread_local variables of src/ that hold no data of one grid (static_check.py):
+# file | declaration | why it is safe with several grids (mesh refinement) in one process
+
+6DOF_obj_fnpf.h | bool chi_on | a one-body mode flag of the process (FNPF bodies)
+6DOF_obj_nhflow.h | bool amr_point_grid = false | a mode flag of the process (the loads of NHFLOW bodies on the grid of the point)
+6DOF_obj_print_vtp.cpp | lagoon_bodies *writer = nullptr | one output writer per process
+6DOF_obj_remesh.cpp | std::vector<int> nb | thread_local scratch, filled before use
+CPM.h | CPM *coupled = nullptr | the coupled CPM object of the rank grid; CFD AMR refuses Q 10 (cfd_amr::scope)
+CPM_seed.cpp | long seq=0 | a random-number sequence counter
+dem_f_print.cpp | lagoon_particles *writer = nullptr | one output writer per process
+density_heat.h | int iocheck,iter | print throttle of the volume output (not built on patches)
+fluid_update_fsf.h | int iocheck,iter | print throttle of the volume output (not built on patches)
+fluid_update_fsf_comp.h | int iocheck,iter | print throttle of the volume output (not built on patches)
+fluid_update_fsf_concentration.h | int iocheck,iter | print throttle of the volume output (not built on patches)
+fluid_update_fsf_heat.h | int iocheck,iter | print throttle of the volume output (not built on patches)
+fluid_update_fsf_heat_Bouss.h | int iocheck,iter | print throttle of the volume output (not built on patches)
+fluid_update_vof.h | int iocheck,iter | print throttle of the volume output (not built on patches)
+fnpf_amr_print.cpp | lagoon_amr_output *writer = nullptr | one output writer per process (it takes all grids)
+fnpf_ice_print.cpp | lagoon_particles *writer = nullptr | one output writer per process
+gc_fivec.cpp | std::vector<int> fivec_list3D, fivec_list2D | the wall-cell lists of the first lexer (the rank grid, built before any patch); other lexers rebuild their own
+gc_fivec.cpp | bool fivec_listbuilt=false | the wall-cell lists of the first lexer (the rank grid, built before any patch); other lexers rebuild their own
+gc_fivec.cpp | lexer *fivec_lexer=nullptr | the wall-cell lists of the first lexer (the rank grid, built before any patch); other lexers rebuild their own
+increment.h | int i,j,k,n,h | loop indices shared by all objects of the process (one thread at a time; not with the threads of seastate_implicit, A 798 >= 2: README_amr_infrastructure_step20 A2)
+increment.h | int innercounter | loop counter shared by all objects (one thread per grid at a time)
+increment.h | int marge | the margin of the arrays, the same for every grid
+increment.h | fdm *aa | set by the driver, never dereferenced
+increment.h | fdm2D *bb | set by the driver, never dereferenced
+lagoon_output.cpp | int threads = 0 | output writers and threads of the process
+lagoon_output.cpp | std::vector<lagoon_output*> writers | output writers and threads of the process
+lagoon_output.cpp | std::vector<lagoon_surface*> writers | output writers and threads of the process
+lagoon_output.h | bool failed = false | output error flag of the process
+lagoon_store.cpp | uint32_t table[256] | CRC table and per-thread deflater (no grid data)
+lagoon_store.cpp | bool ready = false | CRC table and per-thread deflater (no grid data)
+lagoon_store.cpp | deflater d | CRC table and per-thread deflater (no grid data)
+lexer_amr.cpp | bool told[64] = {false} | the AMR contract check: a violation printed once per member
+momentum_forcing.h | dem *pdem = nullptr | the DEM object of the rank grid; CFD AMR refuses DEM (E 10, cfd_amr::scope)
+momentum_forcing.h | sediment *psed = nullptr | the sediment object of the rank grid; CFD AMR refuses S 10, Q 10 (cfd_amr::scope)
+multiphase_fluid_update_f.h | int iocheck,iter | print throttle of the volume output (not built on patches)
+multiphase_fluid_update_rheology.h | int iocheck,iter | print throttle of the volume output (not built on patches)
+nhflow_amr_print.cpp | lagoon_amr_output *writer = nullptr | one output writer per process (it takes all grids)
+nhflow_curv.cpp | std::vector<double> curv_diff_D | scratch of the grid being solved, filled just before it is read on the same grid (one thread per process)
+nhflow_particle_f_print.cpp | lagoon_particles *writer = nullptr | one output writer per process
+seastate_implicit.cpp | seastate_pool p | the thread pool of the process
+sflow_amr.cpp | bool told_curv = false | a warning printed once
+sflow_amr.cpp | lagoon_amr_output *writer = nullptr | one output writer per process (it takes all grids)
+wave_interface.h | int printcheck | unused
+weno3_nug_func.h | double ****s_qfx,****s_qfy,****s_qfz | coefficient tables shared by the instances on the first lexer (the rank grid); an instance on another grid builds its own (own_ini)
+weno3_nug_func.h | double ***s_cfx,***s_cfy,***s_cfz | coefficient tables shared by the instances on the first lexer (the rank grid); an instance on another grid builds its own (own_ini)
+weno3_nug_func.h | double ***s_isfx,***s_isfy,***s_isfz | coefficient tables shared by the instances on the first lexer (the rank grid); an instance on another grid builds its own (own_ini)
+weno3_nug_func.h | int iniflag | coefficient tables shared by the instances on the first lexer (the rank grid); an instance on another grid builds its own (own_ini)
+weno3_nug_func.h | lexer *s_lexer | coefficient tables shared by the instances on the first lexer (the rank grid); an instance on another grid builds its own (own_ini)
+weno_nug_func.h | double ****s_qfx,****s_qfy,****s_qfz | coefficient tables shared by the instances on the first lexer (the rank grid); an instance on another grid builds its own (own_ini)
+weno_nug_func.h | double ***s_cfx,***s_cfy,***s_cfz | coefficient tables shared by the instances on the first lexer (the rank grid); an instance on another grid builds its own (own_ini)
+weno_nug_func.h | double ****s_isfx,****s_isfy,****s_isfz | coefficient tables shared by the instances on the first lexer (the rank grid); an instance on another grid builds its own (own_ini)
+weno_nug_func.h | int iniflag | coefficient tables shared by the instances on the first lexer (the rank grid); an instance on another grid builds its own (own_ini)
+weno_nug_func.h | lexer *s_lexer | coefficient tables shared by the instances on the first lexer (the rank grid); an instance on another grid builds its own (own_ini)

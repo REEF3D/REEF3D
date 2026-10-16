@@ -79,13 +79,22 @@ void nhflow_HLL::start(lexer *&p, fdm_nhf *&d, int ipol, slice &eta, double *FH)
 // ---------------------------------------------------------------------------
 namespace
 {
+// X 15 3 (fb != nullptr): at a face between a cell inside a floating body (FB < 0) and a fluid cell,
+// the momentum flux is the physical flux of the fluid side only. The forced body velocity is then
+// neither carried nor diffused (HLL jump term) into the water next to the hull.
 template<class FL, class FR, class DQ>
-inline void hll_sweep_x(lexer *p, fdm_nhf *d, double *F, FL fl, FR fr, DQ dq)
+inline void hll_sweep_x(lexer *p, fdm_nhf *d, double *F, FL fl, FR fr, DQ dq, const double *fb=nullptr)
 {
     int i,j,k;
     
     ULOOP
     {
+        if(fb!=nullptr && ((fb[IJK]<0.0) != (fb[Ip1JK]<0.0)))
+        {
+        F[IJK] = fb[IJK]<0.0 ? fr(i,j,k) : fl(i,j,k);
+        continue;
+        }
+        
         const double SL = d->Ss[IJK];
         const double SR = d->Sn[IJK];
         
@@ -107,12 +116,18 @@ inline void hll_sweep_x(lexer *p, fdm_nhf *d, double *F, FL fl, FR fr, DQ dq)
 }
 
 template<class FL, class FR, class DQ>
-inline void hll_sweep_y(lexer *p, fdm_nhf *d, double *F, FL fl, FR fr, DQ dq)
+inline void hll_sweep_y(lexer *p, fdm_nhf *d, double *F, FL fl, FR fr, DQ dq, const double *fb=nullptr)
 {
     int i,j,k;
     
     VLOOP
     {
+        if(fb!=nullptr && ((fb[IJK]<0.0) != (fb[IJp1K]<0.0)))
+        {
+        F[IJK] = fb[IJK]<0.0 ? fr(i,j,k) : fl(i,j,k);
+        continue;
+        }
+        
         const double SL = d->Se[IJK];
         const double SR = d->Sw[IJK];
         
@@ -134,6 +149,22 @@ inline void hll_sweep_y(lexer *p, fdm_nhf *d, double *F, FL fl, FR fr, DQ dq)
 }
 }
 
+namespace
+{
+// X 15 3: vertical momentum flux at a face between a body cell and a fluid cell from the fluid side only
+inline void body_zflux(lexer *p, fdm_nhf *d, const double *fb, const double *Fb, const double *Ft)
+{
+    if(fb==nullptr)
+    return;
+    
+    int i,j,k;
+    
+    WLOOP
+    if((fb[IJK]<0.0) != (fb[IJKp1]<0.0))
+    d->Fz[IJK] = d->omegaF[FIJKp1]*(fb[IJK]<0.0 ? Ft[IJK] : Fb[IJK])/(PORVALNH3*PORVALNH3);
+}
+}
+
 // curvilinear grid (G 50, nhflow_curv.h): Us/Un, Ve/Vw hold the face-normal velocities; the pressure
 // term acts along the face normal, the continuity flux is UH.n
 namespace curvface
@@ -148,6 +179,9 @@ inline double n2y(lexer *p, int i, int j) { double nx,ny,l; nhflow_curv::normal(
 
 void nhflow_HLL::aij_U(lexer *&p,fdm_nhf *&d, int ipol)
 {
+    // X 15 3: momentum fluxes at body faces from the fluid side only (hll_sweep_x/y, body_zflux)
+    const double *fbm = (p->X15==3 && p->X10>0) ? d->FB : nullptr;
+
     // HLL flux 
     // fused flux build + HLL
     // curvilinear grid (G 50)
@@ -156,28 +190,29 @@ void nhflow_HLL::aij_U(lexer *&p,fdm_nhf *&d, int ipol)
     hll_sweep_x(p, d, d->Fx,
                 [p,d](int i, int j, int k){return d->UHs[IJK]*d->Us[IJK]/(PORVALNH1m*PORVALNH1m) + curvface::Px(p,d,d->ETAs(i,j),i,j)*curvface::n1x(p,i,j);},
                 [p,d](int i, int j, int k){return d->UHn[IJK]*d->Un[IJK]/(PORVALNH1*PORVALNH1) + curvface::Px(p,d,d->ETAn(i,j),i,j)*curvface::n1x(p,i,j);},
-                [p,d](int i, int j, int k){return d->UHn[IJK] - d->UHs[IJK];});
+                [p,d](int i, int j, int k){return d->UHn[IJK] - d->UHs[IJK];}, fbm);
     
     hll_sweep_y(p, d, d->Fy,
                 [p,d](int i, int j, int k){return d->UHe[IJK]*d->Ve[IJK]/(PORVALNH2m*PORVALNH2m) + curvface::Py(p,d,d->ETAe(i,j),i,j)*curvface::n2x(p,i,j);},
                 [p,d](int i, int j, int k){return d->UHw[IJK]*d->Vw[IJK]/(PORVALNH2*PORVALNH2) + curvface::Py(p,d,d->ETAw(i,j),i,j)*curvface::n2x(p,i,j);},
-                [p,d](int i, int j, int k){return d->UHw[IJK] - d->UHe[IJK];});
+                [p,d](int i, int j, int k){return d->UHw[IJK] - d->UHe[IJK];}, fbm);
     }
     else
     {
         hll_sweep_x(p, d, d->Fx,
                     [p,d](int i, int j, int k){return nhflow_face::U_s(p,d,i,j,k);},
                     [p,d](int i, int j, int k){return nhflow_face::U_n(p,d,i,j,k);},
-                    [p,d](int i, int j, int k){return d->UHn[IJK] - d->UHs[IJK];});
+                    [p,d](int i, int j, int k){return d->UHn[IJK] - d->UHs[IJK];}, fbm);
         
         if(p->j_dir==1)
         hll_sweep_y(p, d, d->Fy,
                     [p,d](int i, int j, int k){return nhflow_face::U_e(p,d,i,j,k);},
                     [p,d](int i, int j, int k){return nhflow_face::U_w(p,d,i,j,k);},
-                    [p,d](int i, int j, int k){return d->UHw[IJK] - d->UHe[IJK];});
+                    [p,d](int i, int j, int k){return d->UHw[IJK] - d->UHe[IJK];}, fbm);
     }
     
     nhflow_face::zflux(p,d,d->Ub,d->Ut);
+    body_zflux(p,d,fbm,d->Ub,d->Ut);
     
     pgc->start1V(p,d->Fx,10);
     pgc->start2V(p,d->Fy,10);
@@ -205,6 +240,9 @@ void nhflow_HLL::aij_U(lexer *&p,fdm_nhf *&d, int ipol)
 
 void nhflow_HLL::aij_V(lexer *&p, fdm_nhf *&d, int ipol)
 {
+    // X 15 3: momentum fluxes at body faces from the fluid side only (hll_sweep_x/y, body_zflux)
+    const double *fbm = (p->X15==3 && p->X10>0) ? d->FB : nullptr;
+
     // HLL flux 
     // fused flux build + HLL
     // curvilinear grid (G 50)
@@ -213,28 +251,29 @@ void nhflow_HLL::aij_V(lexer *&p, fdm_nhf *&d, int ipol)
     hll_sweep_x(p, d, d->Fx,
                 [p,d](int i, int j, int k){return d->VHs[IJK]*d->Us[IJK]/(PORVALNH1m*PORVALNH1m) + curvface::Px(p,d,d->ETAs(i,j),i,j)*curvface::n1y(p,i,j);},
                 [p,d](int i, int j, int k){return d->VHn[IJK]*d->Un[IJK]/(PORVALNH1*PORVALNH1) + curvface::Px(p,d,d->ETAn(i,j),i,j)*curvface::n1y(p,i,j);},
-                [p,d](int i, int j, int k){return d->VHn[IJK] - d->VHs[IJK];});
+                [p,d](int i, int j, int k){return d->VHn[IJK] - d->VHs[IJK];}, fbm);
     
     hll_sweep_y(p, d, d->Fy,
                 [p,d](int i, int j, int k){return d->VHe[IJK]*d->Ve[IJK]/(PORVALNH2m*PORVALNH2m) + curvface::Py(p,d,d->ETAe(i,j),i,j)*curvface::n2y(p,i,j);},
                 [p,d](int i, int j, int k){return d->VHw[IJK]*d->Vw[IJK]/(PORVALNH2*PORVALNH2) + curvface::Py(p,d,d->ETAw(i,j),i,j)*curvface::n2y(p,i,j);},
-                [p,d](int i, int j, int k){return d->VHw[IJK] - d->VHe[IJK];});
+                [p,d](int i, int j, int k){return d->VHw[IJK] - d->VHe[IJK];}, fbm);
     }
     else
     {
         hll_sweep_x(p, d, d->Fx,
                     [p,d](int i, int j, int k){return nhflow_face::V_s(p,d,i,j,k);},
                     [p,d](int i, int j, int k){return nhflow_face::V_n(p,d,i,j,k);},
-                    [p,d](int i, int j, int k){return d->VHn[IJK] - d->VHs[IJK];});
+                    [p,d](int i, int j, int k){return d->VHn[IJK] - d->VHs[IJK];}, fbm);
         
         if(p->j_dir==1)
         hll_sweep_y(p, d, d->Fy,
                     [p,d](int i, int j, int k){return nhflow_face::V_e(p,d,i,j,k);},
                     [p,d](int i, int j, int k){return nhflow_face::V_w(p,d,i,j,k);},
-                    [p,d](int i, int j, int k){return d->VHw[IJK] - d->VHe[IJK];});
+                    [p,d](int i, int j, int k){return d->VHw[IJK] - d->VHe[IJK];}, fbm);
     }
     
     nhflow_face::zflux(p,d,d->Vb,d->Vt);
+    body_zflux(p,d,fbm,d->Vb,d->Vt);
     
     pgc->start1V(p,d->Fx,11);
     pgc->start2V(p,d->Fy,11);
@@ -262,6 +301,9 @@ void nhflow_HLL::aij_V(lexer *&p, fdm_nhf *&d, int ipol)
 
 void nhflow_HLL::aij_W(lexer *&p,fdm_nhf *&d, int ipol)
 {
+    // X 15 3: momentum fluxes at body faces from the fluid side only (hll_sweep_x/y, body_zflux)
+    const double *fbm = (p->X15==3 && p->X10>0) ? d->FB : nullptr;
+
     // HLL flux 
     // fused flux build + HLL
     // curvilinear grid (G 50)
@@ -270,28 +312,29 @@ void nhflow_HLL::aij_W(lexer *&p,fdm_nhf *&d, int ipol)
     hll_sweep_x(p, d, d->Fx,
                 [p,d](int i, int j, int k){return d->WHs[IJK]*d->Us[IJK]/(PORVALNH1m*PORVALNH1m);},
                 [p,d](int i, int j, int k){return d->WHn[IJK]*d->Un[IJK]/(PORVALNH1*PORVALNH1);},
-                [p,d](int i, int j, int k){return d->WHn[IJK] - d->WHs[IJK];});
+                [p,d](int i, int j, int k){return d->WHn[IJK] - d->WHs[IJK];}, fbm);
     
     hll_sweep_y(p, d, d->Fy,
                 [p,d](int i, int j, int k){return d->WHe[IJK]*d->Ve[IJK]/(PORVALNH2m*PORVALNH2m);},
                 [p,d](int i, int j, int k){return d->WHw[IJK]*d->Vw[IJK]/(PORVALNH2*PORVALNH2);},
-                [p,d](int i, int j, int k){return d->WHw[IJK] - d->WHe[IJK];});
+                [p,d](int i, int j, int k){return d->WHw[IJK] - d->WHe[IJK];}, fbm);
     }
     else
     {
         hll_sweep_x(p, d, d->Fx,
                     [p,d](int i, int j, int k){return nhflow_face::W_s(p,d,i,j,k);},
                     [p,d](int i, int j, int k){return nhflow_face::W_n(p,d,i,j,k);},
-                    [p,d](int i, int j, int k){return d->WHn[IJK] - d->WHs[IJK];});
+                    [p,d](int i, int j, int k){return d->WHn[IJK] - d->WHs[IJK];}, fbm);
         
         if(p->j_dir==1)
         hll_sweep_y(p, d, d->Fy,
                     [p,d](int i, int j, int k){return nhflow_face::W_e(p,d,i,j,k);},
                     [p,d](int i, int j, int k){return nhflow_face::W_w(p,d,i,j,k);},
-                    [p,d](int i, int j, int k){return d->WHw[IJK] - d->WHe[IJK];});
+                    [p,d](int i, int j, int k){return d->WHw[IJK] - d->WHe[IJK];}, fbm);
     }
     
     nhflow_face::zflux(p,d,d->Wb,d->Wt);
+    body_zflux(p,d,fbm,d->Wb,d->Wt);
     
     pgc->start1V(p,d->Fx,12);
     pgc->start2V(p,d->Fy,12);

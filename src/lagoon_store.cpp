@@ -36,8 +36,11 @@ Architect: Hans Bihs
 #include<fstream>
 #include<iostream>
 #include<limits>
+#include<mutex>
+#include<set>
 #include<sstream>
 #include<stdexcept>
+#include<dirent.h>
 #include<sys/stat.h>
 #include<sys/types.h>
 #include<thread>
@@ -283,6 +286,23 @@ bool exists(const std::string &file)
     return stat(file.c_str(), &info)==0;
 }
 
+// a directory with nothing in it (or none): no store of an earlier run
+bool empty_dir(const std::string &dir)
+{
+    DIR *d = opendir(dir.c_str());
+    if(d==nullptr)
+        return true;
+    bool empty = true;
+    while(struct dirent *entry = readdir(d))
+        if(std::strcmp(entry->d_name, ".")!=0 && std::strcmp(entry->d_name, "..")!=0)
+        {
+            empty = false;
+            break;
+        }
+    closedir(d);
+    return empty;
+}
+
 // a plain (unsharded, uncompressed) float64 or int64 array in one chunk
 void write_plain_array(const std::string &dir, const std::vector<double> &values,
                        const std::string &dimension, const std::string &units)
@@ -369,6 +389,61 @@ void lagoon_store::create_root(const std::string &solver, const std::string &run
         j << ", \"georef\": " << georef;
     j << "}}";
     write_file(path + "/zarr.json", j.str());
+}
+
+std::string lagoon_store::run_id(const std::string &json)
+{
+    const size_t record = json.find("\"reef3d_run\"");
+    const std::string key = "\"run\": \"";
+    const size_t at = json.find(key, record==std::string::npos ? 0 : record);
+    if(at==std::string::npos)
+        return "";
+    const size_t end = json.find('"', at + key.size());
+    return end==std::string::npos ? "" : json.substr(at + key.size(), end - at - key.size());
+}
+
+std::string lagoon_store::begin_run(const std::string &solver, const std::string &run_json)
+{
+    // the stores begun in this run: the first writer moves an earlier run's store
+    // aside, the others write into the new one (writers may start in their threads)
+    static std::mutex guard;
+    static std::set<std::string> begun;
+    std::lock_guard<std::mutex> lock(guard);
+    if(!begun.insert(path).second)
+        return "";
+    std::string aside;
+    if(exists(path) && !empty_dir(path))
+    {
+        std::string root;
+        {
+            std::ifstream in((path + "/zarr.json").c_str());
+            std::stringstream text;
+            text << in.rdbuf();
+            root = text.str();
+        }
+        const std::string mine = run_id(run_json);
+        const std::string theirs = run_id(root);
+        if(!mine.empty() && theirs==mine && !root.empty())
+            return "";  // already this run's store
+        std::string stem = path;
+        const std::string suffix = ".lagoon";
+        if(stem.size()>suffix.size() && stem.compare(stem.size()-suffix.size(), suffix.size(), suffix)==0)
+            stem.erase(stem.size()-suffix.size());
+        const std::string base = stem + "-" + (theirs.empty() ? std::string("earlier") : theirs);
+        aside = base + ".lagoon-earlier";
+        for(int n=2; exists(aside); ++n)  // a run moved aside before, by the same name
+            aside = base + "-" + std::to_string(n) + ".lagoon-earlier";
+        if(std::rename(path.c_str(), aside.c_str())!=0)
+        {
+            std::cout<<"LAGOON: could not move the store of the earlier run aside ("<<std::strerror(errno)
+                     <<"); the new run writes over it"<<std::endl;
+            aside.clear();
+        }
+        else
+            std::cout<<"LAGOON: the store of the earlier run is now "<<aside<<std::endl;
+    }
+    create_root(solver, run_json);
+    return aside;
 }
 
 void lagoon_store::create_output(const std::string &output, const std::string &grid,
@@ -843,9 +918,7 @@ void lagoon_bodies::quaternion(const double R[9], double q[4])
 
 void lagoon_bodies::start()
 {
-    make_dirs(path);
-    if(!exists(path + "/zarr.json"))  // no P 18 volume output: the store is made here
-        store.create_root(solver, run_json);
+    store.begin_run(solver, run_json);  // a new run: a new store (the volume's, if any)
     make_dirs(path + "/bodies");
     if(!exists(path + "/bodies/zarr.json"))
         write_file(path + "/bodies/zarr.json", "{\"zarr_format\": 3, \"node_type\": \"group\", \"attributes\": {}}");
@@ -1051,9 +1124,7 @@ std::string lagoon_particles::fields_json(const std::vector<field> &list) const
 
 void lagoon_particles::start()
 {
-    make_dirs(path);
-    if(!exists(path + "/zarr.json"))
-        store.create_root(solver, run_json);
+    store.begin_run(solver, run_json);  // a new run: a new store (the volume's, if any)
     make_dirs(path + "/particles");
     if(!exists(path + "/particles/zarr.json"))
         write_group(path + "/particles");
@@ -1313,9 +1384,7 @@ lagoon_amr::lagoon_amr(const std::string &path_, const std::string &solver_, con
 
 void lagoon_amr::start()
 {
-    make_dirs(path);
-    if(!exists(path + "/zarr.json"))
-        store.create_root(solver, run_json);
+    store.begin_run(solver, run_json);  // a new run: a new store (the volume's, if any)
     make_dirs(path + "/amr");
     if(!exists(path + "/amr/zarr.json"))
         write_group(path + "/amr");

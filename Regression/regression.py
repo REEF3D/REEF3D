@@ -251,6 +251,9 @@ def run_case(c, args, outroot):
     env["REEF3D_REGRESSION_DIR"] = DUMP_DIR
     env["REEF3D_REGRESSION_EVERY"] = str(c.get("dump_every", 0))
     env.setdefault("OMP_NUM_THREADS", "1")
+    # the refinement checks the contract of its grids with level 0 (src/lexer_amr.cpp): a violation
+    # stops the run (REEF3D_AMR_CHECK=0 in the environment: printed only)
+    env.setdefault("REEF3D_AMR_CHECK", "1")
 
     t0 = time.time()
     with open(os.path.join(rundir, "divemesh.log"), "w") as log:

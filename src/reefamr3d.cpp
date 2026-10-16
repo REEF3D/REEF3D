@@ -803,10 +803,8 @@ void reefamr3d::build_lexer(r3patch &c)
     pp->gridgeo = p->gridgeo;
     pp->solidread = 0;
     pp->toporead = 0;
-    pp->maxlength = p->maxlength;
-    pp->wd = p->wd;
-    pp->phimean = p->phimean;
-    pp->phiout = p->phiout;
+    // the runtime state of level 0 (time, wave parameters, water levels, extent): the lexer copy
+    // (lexer_amr.cpp)
 
     pp->assign_margin();
 
@@ -1084,11 +1082,6 @@ void reefamr3d::build_lexer(r3patch &c)
     else
     pp->psi = p->F45*(1.0/3.0)*(pp->DXM+pp->DYM+pp->DZM);
     pp->psi0 = pp->psi;
-
-    pp->dt = p->dt;
-    pp->dt_old = p->dt_old;
-    pp->simtime = p->simtime;
-    pp->count = p->count;
 }
 
 // --------------------------------------------------------------------- plans

@@ -940,13 +940,8 @@ void reefamr::build_lexer(lexer *p, reefamr_patch &c)
     pp->global_xmax = p->global_xmax; pp->global_ymax = p->global_ymax;
     pp->originx = p->originx; pp->originy = p->originy;
 
-    pp->wd = p->wd;
-    pp->phimean = p->phimean;
-    pp->phiout = p->phiout;
-    pp->dt = p->dt;
-    pp->dt_old = p->dt_old;
-    pp->simtime = p->simtime;
-    pp->count = p->count;
+    // the runtime state of level 0 (time, wave parameters, water levels, extent): the lexer copy
+    // (lexer_amr.cpp)
 }
 
 // vertical grid of the patch: the level-0 arrays, or (vref) the level-0 nodes subdivided by

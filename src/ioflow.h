@@ -44,6 +44,8 @@ using namespace std;
 class ioflow
 {
 public:
+    virtual ~ioflow() = default;
+
     // cfd
     virtual void gcio_update(lexer*,fdm*,ghostcell*)=0;
     virtual void gcio_update_nhflow(lexer*,fdm_nhf*,ghostcell*)=0;
