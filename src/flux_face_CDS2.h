@@ -41,6 +41,7 @@ public:
 
     
 private:
+    bool static_geometry(fdm*,int,int,int);   // cell inside a solid or the topography
     lexer *p;
 
 };
