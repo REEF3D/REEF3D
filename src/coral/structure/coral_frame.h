@@ -23,13 +23,15 @@ Architect: Hans Bihs
 // co-rotational beam elements (coral_beam) on node bodies. A node is a small rigid body (6 DOF) named
 // "<member>:<i>" (i = 0 .. n); members that meet at a point share the node. The mass of the elements
 // is lumped on the nodes (half an element each, with the rotary inertia of the section and of the
-// half element). A member end can also sit on a rigid body or the ground (no node there).
+// half element). A member end can also sit on a rigid body (its half element becomes a point mass of
+// that body at the end point) or on the ground (no node there).
 
 #ifndef CORAL_FRAME_H_
 #define CORAL_FRAME_H_
 
 #include"coral/core/coral_types.h"
 #include"coral/structure/coral_beam.h"
+#include<map>
 #include<string>
 #include<vector>
 
@@ -70,6 +72,7 @@ namespace coral
         model &m_;
         double tol_;
         std::vector<int> nodes_;
+        std::map<int,int> index_;      // node body -> position in nodes_
         std::vector<double> mass_;
         std::vector<Mat3> inertia_;
         bool finished_ = false;

@@ -38,6 +38,7 @@ int frame_builder::node_at(const Vec3 &p, const std::string &name)
     b.name = name;
     b.x = p;
     const int i = m_.add_body(b);
+    index_[i] = (int)nodes_.size();
     nodes_.push_back(i);
     mass_.push_back(0.0);
     inertia_.push_back(Mat3::Zero());
@@ -88,12 +89,14 @@ std::vector<int> frame_builder::add_member(const member_spec &s)
         for(int end=0; end<2; ++end)
         {
             const int nb = st[e+end];
-            for(size_t k=0; k<nodes_.size(); ++k)
-                if(nodes_[k]==nb)
-                {
-                    mass_[k] += mh;
-                    inertia_[k] += Jg;
-                }
+            const auto it = index_.find(nb);
+            if(it != index_.end())
+            {
+                mass_[it->second] += mh;
+                inertia_[it->second] += Jg;
+            }
+            else if(nb >= 0)
+                m_.add_point_mass(nb, end ? pb : pa, mh, Jg);   // end on a rigid body: mass at the end point
         }
         m_.add_load(std::move(el));
     }

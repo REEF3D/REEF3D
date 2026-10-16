@@ -158,57 +158,152 @@ double beam_element::potential(const model &m) const
     return 0.5*d.dot(local_forces(d));
 }
 
+namespace
+{
+    // inverse of the left Jacobian of SO(3): exp(psi + Jl^-1(psi) eta) = exp(eta) exp(psi) to first order
+    Mat3 jl_inv(const Vec3 &psi)
+    {
+        const double th = psi.norm();
+        const Mat3 S = skew(psi);
+        double c;
+        if(th < 1.0e-4)
+            c = 1.0/12.0 + th*th/720.0;
+        else
+            c = 1.0/(th*th) - (1.0 + std::cos(th))/(2.0*th*std::sin(th));
+        return Mat3::Identity() - 0.5*S + c*S*S;
+    }
+}
+
+void beam_element::kinematics(const Vec3 &xa, const Mat3 &Ra, const Vec3 &xb, const Mat3 &Rb, Vec7 &d, Mat7x12 &B) const
+{
+    const Vec3 pa = xa + Ra*sa_, pb = xb + Rb*sb_;
+    const Mat3 Ta = Ra*Qa_, Tb = Rb*Qb_;
+    double L;
+    const Mat3 E = element_frame(pa, Ta, pb, Tb, L);
+    const Vec3 psa = log_so3(E.transpose()*Ta), psb = log_so3(E.transpose()*Tb);
+    d(0) = L - L0_;
+    d.segment<3>(1) = psa;
+    d.segment<3>(4) = psb;
+    // variations of the chord dd, the end spins wa, wb (global) in the 12 coordinates
+    Eigen::Matrix<double,3,12> Dd = Eigen::Matrix<double,3,12>::Zero(), Wa = Dd, Wb = Dd;
+    Dd.block<3,3>(0,0) = -Mat3::Identity();
+    Dd.block<3,3>(0,3) = Ra*skew(sa_);
+    Dd.block<3,3>(0,6) = Mat3::Identity();
+    Dd.block<3,3>(0,9) = -Rb*skew(sb_);
+    Wa.block<3,3>(0,3) = Ra;
+    Wb.block<3,3>(0,9) = Rb;
+    const Vec3 e1 = E.col(0), e2 = E.col(1), e3 = E.col(2);
+    const Vec3 ya = Ta.col(1), yb = Tb.col(1), q = 0.5*(ya + yb);
+    const double nn = e1.cross(q).norm();
+    const Mat3 P = Mat3::Identity() - e1*e1.transpose();
+    // spin of the element frame: e3 component from the chord in e2, e2 component from the chord in e3,
+    // e1 component from the rotation of e3 = e1 x q / |e1 x q| about e1
+    const Eigen::Matrix<double,1,12> w3 = e2.transpose()*Dd/L;
+    const Eigen::Matrix<double,1,12> w2 = -e3.transpose()*Dd/L;
+    // (d e3 = w x e3, so w.e1 = -e2.d e3 = -e2.d n/|n|, d n = d e1 x q + e1 x d q)
+    const Eigen::Matrix<double,1,12> w1 = -((P*q.cross(e2)).transpose()*Dd/L - 0.5*ya.cross(e3).transpose()*Wa
+                                           - 0.5*yb.cross(e3).transpose()*Wb)/nn;
+    const Eigen::Matrix<double,3,12> WE = e1*w1 + e2*w2 + e3*w3;
+    B.row(0) = e1.transpose()*Dd;
+    B.middleRows<3>(1) = jl_inv(psa)*E.transpose()*(Wa - WE);
+    B.middleRows<3>(4) = jl_inv(psb)*E.transpose()*(Wb - WE);
+    if(ba_ < 0) B.leftCols<6>().setZero();
+    if(bb_ < 0) B.rightCols<6>().setZero();
+}
+
+Eigen::Matrix<double,7,7> beam_element::local_stiffness() const
+{
+    Eigen::Matrix<double,7,7> K;
+    for(int k=0; k<7; ++k)
+        K.col(k) = local_forces(Vec7::Unit(k));
+    return K;
+}
+
+beam_element::Vec12 beam_element::element_force(const Vec3 &xa, const Mat3 &Ra, const Vec3 &xb, const Mat3 &Rb, const Vec12 &qd) const
+{
+    Vec7 d;
+    Mat7x12 B;
+    kinematics(xa, Ra, xb, Rb, d, B);
+    Vec7 fl = local_forces(d);
+    if(beta_ > 0.0)
+        fl += beta_*local_forces(B*qd);
+    return -B.transpose()*fl;
+}
+
+beam_element::Vec12 beam_element::rates(const model &m) const
+{
+    Vec12 qd = Vec12::Zero();
+    if(ba_ >= 0) {qd.segment<3>(0) = m.body(ba_).v; qd.segment<3>(3) = m.body(ba_).w;}
+    if(bb_ >= 0) {qd.segment<3>(6) = m.body(bb_).v; qd.segment<3>(9) = m.body(bb_).w;}
+    return qd;
+}
+
+Eigen::Matrix<double,7,12> beam_element::strain_matrix(const model &m) const
+{
+    const rigid_body &A = m.body(ba_), &B = m.body(bb_);
+    Vec7 d;
+    Mat7x12 Bm;
+    kinematics(A.x, A.R, B.x, B.R, d, Bm);
+    return Bm;
+}
+
 void beam_element::eval(const model &m, double, VecX &f) const
 {
-    Vec3 pa, pb; Mat3 Ta, Tb;
-    ends(m, pa, Ta, pb, Tb);
-    const Eigen::Matrix<double,7,1> d = deformation(pa, Ta, pb, Tb);
-    // B = dd/dq by central differences: q = (dx_a, dth_a, dx_b, dth_b), rotations in the body frames
     const rigid_body &A = m.body(ba_), &B = m.body(bb_);
-    Eigen::Matrix<double,7,12> Bm = Eigen::Matrix<double,7,12>::Zero();
-    const double ex = 1.0e-6*L0_, er = 1.0e-6;
-    for(int k=0; k<12; ++k)
-    {
-        const bool onA = k < 6;
-        const int body = onA ? ba_ : bb_;
-        if(body < 0)
-            continue;
-        const rigid_body &Bd = onA ? A : B;
-        const int c = k%6;
-        Eigen::Matrix<double,7,1> dp, dm;
-        for(int sgn=-1; sgn<=1; sgn+=2)
-        {
-            Vec3 x = Bd.x;
-            Mat3 R = Bd.R;
-            if(c < 3)
-                x(c) += sgn*ex;
-            else
-                R = R*exp_so3(sgn*er*Vec3::Unit(c-3));
-            const Vec3 p = x + R*(onA ? sa_ : sb_);
-            const Mat3 T = R*(onA ? Qa_ : Qb_);
-            const Eigen::Matrix<double,7,1> dd = onA ? deformation(p, T, pb, Tb) : deformation(pa, Ta, p, T);
-            if(sgn < 0) dm = dd; else dp = dd;
-        }
-        Bm.col(k) = (dp - dm)/(2.0*(c < 3 ? ex : er));
-    }
-    Eigen::Matrix<double,7,1> fl = local_forces(d);
-    if(beta_ > 0.0)
-    {
-        Eigen::Matrix<double,12,1> qd = Eigen::Matrix<double,12,1>::Zero();
-        if(ba_ >= 0) {qd.segment<3>(0) = A.v; qd.segment<3>(3) = A.w;}
-        if(bb_ >= 0) {qd.segment<3>(6) = B.v; qd.segment<3>(9) = B.w;}
-        fl += beta_*local_forces(Bm*qd);
-    }
-    const Eigen::Matrix<double,12,1> g = -Bm.transpose()*fl;
+    const Vec12 g = element_force(A.x, A.R, B.x, B.R, rates(m));
     if(ba_ >= 0)
-    {
-        f.segment<3>(6*ba_) += g.segment<3>(0);
-        f.segment<3>(6*ba_+3) += g.segment<3>(3);
-    }
+        f.segment<6>(6*ba_) += g.head<6>();
     if(bb_ >= 0)
+        f.segment<6>(6*bb_) += g.tail<6>();
+}
+
+void beam_element::tangent(const model &m, double, double cK, double cC, double, std::vector<triplet> &T) const
+{
+    const rigid_body &A = m.body(ba_), &Bd = m.body(bb_);
+    const Vec12 qd = rates(m);
+    Eigen::Matrix<double,12,12> K = Eigen::Matrix<double,12,12>::Zero();
+    if(cK != 0.0)
     {
-        f.segment<3>(6*bb_) += g.segment<3>(6);
-        f.segment<3>(6*bb_+3) += g.segment<3>(9);
+        // dF/dq by central differences of the element force (analytic B), velocities fixed
+        const double ex = 1.0e-5*L0_, er = 1.0e-5;
+        for(int k=0; k<12; ++k)
+        {
+            const bool onA = k < 6;
+            if((onA ? ba_ : bb_) < 0)
+                continue;
+            const int c = k%6;
+            Vec12 gp, gm;
+            for(int sgn=-1; sgn<=1; sgn+=2)
+            {
+                Vec3 xa = A.x, xb = Bd.x;
+                Mat3 Ra = A.R, Rb = Bd.R;
+                Vec3 &x = onA ? xa : xb;
+                Mat3 &R = onA ? Ra : Rb;
+                if(c < 3) x(c) += sgn*ex;
+                else R = R*exp_so3(sgn*er*Vec3::Unit(c-3));
+                (sgn < 0 ? gm : gp) = element_force(xa, Ra, xb, Rb, qd);
+            }
+            K.col(k) = cK*(gp - gm)/(2.0*(c < 3 ? ex : er));
+        }
+    }
+    if(cC != 0.0 && beta_ > 0.0)
+    {
+        Vec7 d;
+        Mat7x12 B;
+        kinematics(A.x, A.R, Bd.x, Bd.R, d, B);
+        K -= cC*beta_*B.transpose()*local_stiffness()*B;
+    }
+    auto dof = [&](int k) {return k < 6 ? (ba_ >= 0 ? 6*ba_ + k : -1) : (bb_ >= 0 ? 6*bb_ + k - 6 : -1);};
+    for(int j=0; j<12; ++j)
+    {
+        const int cj = dof(j);
+        if(cj < 0) continue;
+        for(int i=0; i<12; ++i)
+        {
+            const int ri = dof(i);
+            if(ri >= 0 && K(i, j) != 0.0)
+                T.emplace_back(ri, cj, K(i, j));
+        }
     }
 }
 

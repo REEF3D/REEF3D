@@ -826,6 +826,7 @@
           <File Name="coral/structure/coral_frame.h"/>
           <File Name="coral/structure/coral_linear6.h"/>
           <File Name="coral/structure/coral_spring.h"/>
+          <File Name="coral/structure/coral_superelement.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Linear">
           <File Name="coral/linear/README.md"/>
@@ -2398,6 +2399,7 @@
           <File Name="coral/structure/coral_frame.cpp"/>
           <File Name="coral/structure/coral_linear6.cpp"/>
           <File Name="coral/structure/coral_spring.cpp"/>
+          <File Name="coral/structure/coral_superelement.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Linear">
           <File Name="coral/linear/coral_modes.cpp"/>
