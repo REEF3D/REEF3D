@@ -128,6 +128,15 @@ add_executable(REEF3D ${SOURCES})
 # includes of CORAL start at src/ (#include"coral/core/coral_types.h")
 target_include_directories(REEF3D PRIVATE ${PROJECT_SOURCE_DIR}/src)
 
+# REEF3D::CORAL standalone executable (no fluid grid, no MPI): src/coral without reef3d/, with app/
+file(GLOB_RECURSE CORAL_APP_SOURCES CONFIGURE_DEPENDS src/coral/*.cpp)
+list(FILTER CORAL_APP_SOURCES EXCLUDE REGEX "/src/coral/reef3d/")
+add_executable(CORAL EXCLUDE_FROM_ALL ${CORAL_APP_SOURCES})
+set_target_properties(CORAL PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin")
+target_include_directories(CORAL PRIVATE ${PROJECT_SOURCE_DIR}/src)
+target_link_libraries(CORAL PRIVATE Eigen3::Eigen)
+target_compile_features(CORAL PRIVATE cxx_std_20)
+
 set_target_properties(REEF3D PROPERTIES
   RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin")
 

@@ -860,6 +860,8 @@
         </VirtualDirectory>
         <VirtualDirectory Name="IO">
           <File Name="coral/io/README.md"/>
+          <File Name="coral/io/coral_input.h"/>
+          <File Name="coral/io/coral_output.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Load Cases">
           <File Name="coral/loadcase/README.md"/>
@@ -2400,7 +2402,10 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Soil"/>
         <VirtualDirectory Name="Ice"/>
-        <VirtualDirectory Name="IO"/>
+        <VirtualDirectory Name="IO">
+          <File Name="coral/io/coral_input.cpp"/>
+          <File Name="coral/io/coral_output.cpp"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Load Cases"/>
         <VirtualDirectory Name="Post"/>
         <VirtualDirectory Name="REEF3D"/>
