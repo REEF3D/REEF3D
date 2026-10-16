@@ -50,6 +50,22 @@ Numerics (P1b, P1c):
 - mesh refinement on curvilinear grids: the fine bed is prolonged with area-weighted children
   means (a lake at rest stays at rest on skewed grids); the composite Boussinesq solve exchanges
   the vector a e1 + b e2 between the grids (the bases of parent and children differ)
+- mesh refinement at a shoreline (the coarse grid does not resolve it: a coarse cell is dry while some of
+  its children lie below the water, or wet with a mean water level plus mean bed above the water):
+  - the initial hierarchy fills the children of a dry parent whose bed lies above the surface of its wet
+    neighbours up to that surface (as the initial state of level 0 is a water surface), a shallow parent
+    with its surface; the patches of a regrid and the ghost cells keep the mass of the parent (dry stays dry)
+  - a covered cell at a shoreline shows the uncovered neighbours (reconstruction, pre-balanced bed term,
+    the slopes of the prolongation) the surface of its wet children, not its mean water level plus mean
+    bed; with subcycling (`G 7 1`) through the steps of the coarser level (`sfc`, an offset carried with
+    the water level)
+  - the fine faces on a patch boundary that replace a coarse face (refluxing): no mass flux into a dry
+    cell of the patch from a wet ghost cell (as `aij_E` does between two cells of a grid), and a face
+    between two dry cells whose ghost cell has a wet parent is a wall of the parent (the pressure of the
+    parent's surface; the flux between the two dry surfaces, bed + film, moved the water at rest)
+  - before: 0.1 m/s at a lake at rest with an emerged island where a patch boundary crossed or ran near
+    the shoreline (0.7 m/s at a steep quay of the Nidelva - harbour run); now the same as on one level
+    (`t8_shoreline_amr.py`)
 - `A 209 0` is recommended (the default in-place bed smoothing depends on the partition)
 
 Limitation: Boussinesq with mesh refinement on a skewed grid went unstable when the finest cells
@@ -69,7 +85,24 @@ Several blocks (multi-block grid, DIVEMesh `R 20 1`): see `../sflow_multiblock`.
 | `t4_nh_bous_rotation.py` | `A 220 1`, `2`, `3`, `4`: dam break, curvilinear = Cartesian on the same nodes and rotated by 90 deg to 1e-15 (`A 220 4`: curvilinear = Cartesian to the solver tolerance, rotated = curvilinear to 1e-15); river reach with an island rotated by 30 deg (`A 211 0`) to 1e-10 |
 | `t5_amr_rotation.py` | mesh refinement, dam break with patches following the surface (`G 20`, regrid every 4 steps): hydrostatic, NH, Boussinesq (small step), subcycling, two ranks with placement: curvilinear = Cartesian = rotated by 90 deg per level-0 cell to round-off, identical patches, volume to round-off |
 | `t6_lake_amr.py` | lake at rest on the wavy, skewed grid with static and regridded patches (shoreline flagging), hydrostatic, NH, Boussinesq, subcycling: velocities at round-off (2e-15), volume constant |
+| `t8_shoreline_amr.py` | lake at rest with an EMERGED island (1.6 m, water level 1.0 m) and mesh refinement: patch boundaries through the island and next to the shoreline, the whole island refined, two levels, subcycling, NH, Boussinesq, regridding along the shoreline, two ranks: see the table below |
 | `t7_skew_stability.py` | Boussinesq on strongly skewed grids (up to 45 deg non-orthogonality), one level, and with patches: a small disturbance stays bounded |
 | `t3_bend.py` | 90 deg bend, Manning friction: discharge through the outlet, superelevation 0.0099 m against U^2 B/(g R) = 0.0102 m; 2 ranks equal 1 rank to round-off |
 | `make_regression_cases.py` | writes the `Regression/cases/sflow_2d_curv_*` cases |
 | `read_curv.py` | reads the CURV section of a geometry file |
+
+`t8_shoreline_amr.py` (400 steps, 9.6 s; the largest velocity of level 0 in m/s and the change of the water volume;
+one level: 5.9e-7, and 1.3e-4 for one level at the dx of level 2, the film of the wetting and drying):
+
+| case | before | now | volume change before / now |
+|---|---|---|---|
+| `cut`: patch boundary through the island | 4.1e-2 | 7.7e-7 | 2e-14 / 3e-14 |
+| `cut_y`: the same along y | 9.2e-2 | 8.8e-7 | 2e-14 / 2e-14 |
+| `edge`: patch boundary 0.6 m off the shore | 4.4e-2 | 8.9e-7 | 2e-14 / 2e-14 |
+| `all`: the whole island refined | 4.7e-2 | 8.9e-7 | 3e-14 / 2e-14 |
+| `sub`: `cut` with `G 7 1` | 5.9e-2 | 1.7e-6 | 3e-14 / 3e-14 |
+| `lev2`: `cut` with two levels | 3.6e-2 | 2.5e-4 | 8.2e-7 / 2e-14 |
+| `nh`, `bous`: `A 220 1`, `A 220 4` | 2.9e-2, 4.5e-2 | 7.8e-7, 7.4e-7 | 3e-14 / 2e-14 |
+| `shore`: regridded along the shoreline (`G 22 1`, `G 2 5`) | 2.6e-2 | 8.4e-7 | 2e-14 / 2e-14 |
+| `shore2_sub`: two levels, `G 7 1` | 1.9e-2 | 5.7e-4 | 1.9e-6 / 3e-14 |
+| `mpi2`, `shore_mpi2`: two ranks | 4.1e-2, 2.6e-2 | 7.7e-7, 8.4e-7 | 2e-14 / 3e-14 |

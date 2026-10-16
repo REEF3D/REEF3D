@@ -113,7 +113,8 @@ sflow_amr::sflow_amr(lexer *p, fdm2D *b, ghostcell *pgc, patchBC_interface *ppBC
     bous = (p->A220==4) ? 1 : 0;
     if(bous==1)
     pmom0->bous_amr = this;
-    NV = bous==1 ? 14 : 10;
+    NV = bous==1 ? 15 : 11;
+    ISF = NV-1;
 
     // the patch arrays reach EXT + margin fine cells beyond the patch: the coarser level has to
     // cover them
@@ -191,6 +192,7 @@ sflow_amr::~sflow_amr()
     told_free(told0);
     delete nhmg0;
     delete nhr0;
+    delete sfs0;
 }
 
 // --------------------------------------------------------------------- grids
@@ -262,6 +264,10 @@ void sflow_amr::ini(lexer *p, fdm2D *b, ghostcell *pgc)
     pgc->gcslparax(p,b->bed,4);
     pgc->gcslparax(p,b->depth,4);
 
+    // shoreline: restricted water surface of the covered level-0 cells
+    sfs0 = new slice4(p);
+    std::fill(sfs0->V,sfs0->V+(size_t)p->imax*p->jmax,NAN);
+
     // multi-block grid: blocks 1.. as level-0 patches, their initial state, the fill plans
     if(p->geo_mb>0)
     {
@@ -285,9 +291,14 @@ void sflow_amr::ini(lexer *p, fdm2D *b, ghostcell *pgc)
         logout<<"# count \t simtime \t dt \t patches \t cells \t mass \t rel. mass change"<<endl;
     }
 
-    // initial hierarchy: every pass can add one level
+    // initial hierarchy: every pass can add one level.  The initial state of the fine cells: as the level-0
+    // initial state is a water surface (F 60, relaxation zones), a fine cell below the surface of the wet
+    // neighbours of its dry parent is wet (dryfill, regrid_state), so a lake at rest starts at rest at a
+    // shoreline the coarser grid does not resolve
+    ini_pass = true;
     for(int it=0; it<maxlev; ++it)
     regrid(p,pgc,true);
+    ini_pass = false;
 
     if(p->geo_mb>0 && maxlev>=1)
     {
@@ -392,6 +403,9 @@ void sflow_amr::patch_objects(reefamr_patch *q, ghostcell *pgc)
         c->freg[ip][2].assign(c->nx,0.0);
         c->freg[ip][3].assign(c->nx,0.0);
     }
+
+    c->sfc.assign((size_t)pp->imax*pp->jmax,NAN);
+    c->gsf.assign((size_t)pp->imax*pp->jmax,NAN);
 }
 
 void sflow_amr::patch_delete(reefamr_patch *q)
@@ -588,7 +602,13 @@ void sflow_amr::regrid_state(ghostcell *pgc, vector<reefamr_patch*> &oldP)
         }
 
         ini_patch_old(l,oldP);
+
+        // shoreline: in the initial hierarchy the children of a dry parent whose bed lies (about) at or above
+        // the surface of its wet neighbours are wet below that surface (the initial state is a surface);
+        // at a later regrid the children of a dry parent stay dry (its mass is what it is)
+        dryfill = ini_pass;
         ini_patch_prolong(l);
+        dryfill = false;
 
         {
         comms_off guard(pgc);
@@ -1203,6 +1223,48 @@ void sflow_amr::cache_stage(int s)
     }
 }
 
+// shoreline: the restricted water surface of grid g (index id+1 as sWL), NaN where none
+double *sflow_amr::sfc_of(int g)
+{
+    if(g<0)
+    return sfs0->V;
+    return SP(g)->sfc.data();
+}
+
+// G 7 1: the covered cells of the grids of level l at a shoreline after a stage of their own (the restriction
+// follows after the steps of the finer level): their surface is the restricted surface of the wet children,
+// moved with the water level.  The halo of level 0 holds the offsets and wet flags of the neighbour ranks
+// (exchange_level0), so it is shifted alike without an exchange; cells without an offset keep their bits
+void sflow_amr::sfc_stage(int l)
+{
+    auto shift = [&](lexer *q, fdm2D *b, const double *D)
+    {
+        for(int ii=q->imin; ii<q->imin+q->imax; ++ii)
+        for(int jj=q->jmin; jj<q->jmin+q->jmax; ++jj)
+        {
+            const int k = lij(q,ii,jj);
+            if(!std::isnan(D[k]) && q->wet[k]==1)
+            b->eta(ii,jj) += D[k];
+        }
+    };
+
+    if(l==0)
+    shift(p0,b0,sfs0->V);
+
+    for(int n : lev[l])
+    shift(SP(n)->pp,SP(n)->b,SP(n)->sfc.data());
+}
+
+// the grids of level l hold no restricted surface (before their cells are restricted again)
+void sflow_amr::sfc_reset(int l)
+{
+    if(l==0)
+    std::fill(sfs0->V,sfs0->V+(size_t)p0->imax*p0->jmax,NAN);
+
+    for(int n : lev[l])
+    std::fill(SP(n)->sfc.begin(),SP(n)->sfc.end(),NAN);
+}
+
 // well balanced prolongation from grid g (coarse cell ic,jc): the surface eta is interpolated
 // with minmod slopes (switched off next to dry or solid cells), the fine depth follows from the
 // fine bed; momentum through u.  Thin films (h_c < 3 A 244) copy the parent depth.
@@ -1217,8 +1279,18 @@ void sflow_amr::prolong(int g, int ic, int jc, int ox, int oy, double depthf, do
     prolong_finish(r,depthf,v);
 }
 
-// r[0] 0 dry parent, 1 shallow parent (its values), 2 interpolated; r[1] surface (2) or water
-// level (1), r[2..4] velocities (2) or UH, VH, WH (1), r[5..8] Boussinesq u_a, v_a, M/H
+// r[0] 0 dry parent, 1 shallow parent (its values), 2 interpolated, 3 dry parent whose bed lies above
+// the surface of its wet neighbours (dryfill), 4 shallow parent with a water surface (dryfill); r[1] surface (2, 3, 4)
+// or water level (1), r[2..4] velocities (2) or UH, VH, WH (1, 4), r[5..8] Boussinesq u_a, v_a, M/H,
+// r[9] the parent's water level (4)
+//
+// Shoreline: the surface of a covered cell is the restricted surface of its wet children (sfc: its offset), not its
+// mean water level plus mean bed, which lies above the water where children are dry.  With dryfill (the
+// fresh patches of the initial hierarchy: the initial state is a water surface) the children of a dry or
+// shallow parent take the surface of the parent or of its wet neighbours: a lake at rest starts at rest
+// where the coarser grid does not resolve the shoreline.  Not for the ghost cells (a wet ghost cell would
+// exchange mass with a coarse cell that cannot take it) and not at a later regrid (the children of a dry
+// parent stay dry: its mass is what it is)
 void sflow_amr::prolong_parts(int g, int ic, int jc, int ox, int oy, double *r)
 {
     gh G = grid(g);
@@ -1250,10 +1322,13 @@ void sflow_amr::prolong_parts(int g, int ic, int jc, int ox, int oy, double *r)
         return ((O->wet[k]==1 || q->wet[k]==1) && wlc>wd+eps) ? 1 : 0;
     };
 
+    const double *SF = sfc_of(g);
+
     auto get = [&](int a, int bb, double &e, double &u, double &vv, double &ww, int &wt)
     {
         double wlc = wlat(a,bb);
-        e = wlc - pb->depth(a,bb);
+        const double sf = SF[lij(q,a,bb)];
+        e = wlc - pb->depth(a,bb) + (std::isnan(sf) ? 0.0 : sf);
         wt = wetat(a,bb,wlc);
         if(q->flagslice4[lij(q,a,bb)]<0)
         wt = -1;
@@ -1300,14 +1375,53 @@ void sflow_amr::prolong_parts(int g, int ic, int jc, int ox, int oy, double *r)
     double e0,u0,v0,w0v; int w0;
     get(ic,jc,e0,u0,v0,w0v,w0);
 
+    // shoreline: the water surface at the parent, from its own (restricted) surface or, dry, from its
+    // wet neighbours (the lowest), NaN if there is none
+    auto surface = [&]() -> double
+    {
+        if(w0==-1)
+        return NAN;
+        if(w0==1 || !std::isnan(SF[lij(q,ic,jc)]))
+        return e0;
+        double sm = NAN;
+        for(int a=-1; a<=1; ++a)
+        for(int d=-1; d<=1; ++d)
+        if(a!=0 || d!=0)
+        {
+            double en,un,vn,wn; int wtn;
+            get(ic+a,jc+d,en,un,vn,wn,wtn);
+            if(wtn==1 || (wtn==0 && !std::isnan(SF[lij(q,ic+a,jc+d)])))
+            sm = std::isnan(sm) ? en : MIN(sm,en);
+        }
+        return sm;
+    };
+
     if(w0!=1)
-    return;
+    {
+        if(!dryfill)
+        return;
+        // only where the surface lies below the parent's (mean) bed plus the wet-dry depth: the coarser grid
+        // holds it dry because its bed reaches (about) to the water, not because a wet front has yet to reach it
+        const double sm = surface();
+        if(!std::isnan(sm) && sm + pb->depth(ic,jc) <= wd+eps)
+        {
+            r[0] = 3.0;
+            r[1] = sm;
+        }
+        return;
+    }
 
     double hc = wlat(ic,jc);
     if(hc<3.0*wd)
     {
         r[0] = 1.0;
         r[1] = hc; r[2] = uhat(ic,jc); r[3] = vhat(ic,jc); r[4] = what(ic,jc);
+        if(dryfill)
+        {
+            r[0] = 4.0;
+            r[1] = surface();
+            r[9] = hc;
+        }
         if(bous==1)
         partb(0.0,0.0);
         return;
@@ -1346,6 +1460,9 @@ void sflow_amr::prolong_parts(int g, int ic, int jc, int ox, int oy, double *r)
 void sflow_amr::prolong_finish(const double *r, double depthf, double *v)
 {
     const double wd = p0->A244;
+
+    // shoreline: the water surface of the parent (ghost cells, sflow_amr::hll_hook), NaN for a dry one
+    v[ISF] = (r[0]==2.0 || r[0]==4.0) ? r[1] : NAN;
 
     auto dry = [&]()
     {
@@ -1391,6 +1508,28 @@ void sflow_amr::prolong_finish(const double *r, double depthf, double *v)
         return;
     }
 
+    // shoreline (dryfill): wet below the surface, at rest (dry parent) or with the parent's flux per
+    // width, at most its velocity (shallow parent)
+    if(r[0]==3.0 || r[0]==4.0)
+    {
+        const double hs = r[1] + depthf;
+        if(hs<=wd+eps)
+        {
+            dry();
+            return;
+        }
+        const double f = (r[0]==4.0) ? MIN(1.0,hs/r[9]) : 0.0;
+        fin(hs, f*r[2], f*r[3], f*r[4]);
+        if(bous==1)
+        {
+            if(r[0]==3.0)
+            v[10]=v[11]=v[12]=v[13]=0.0;
+            else
+            finb(hs);
+        }
+        return;
+    }
+
     double hf = r[1] + depthf;
 
     if(hf<=wd+eps)
@@ -1433,6 +1572,7 @@ void sflow_amr::eval_fill(const reefamr_fill &f, double *v)
         v[12] = G.b->MX(f.si,f.sj);
         v[13] = G.b->MY(f.si,f.sj);
         }
+        v[ISF] = NAN;
         return;
     }
 
@@ -1440,6 +1580,7 @@ void sflow_amr::eval_fill(const reefamr_fill &f, double *v)
     v[0]=wd; v[1]=v[2]=0.0; v[3]=wd-f.aux; v[4]=v[5]=0.0; v[6]=v[7]=0.0; v[8]=v[9]=0.0;
     if(bous==1)
     v[10]=v[11]=v[12]=v[13]=0.0;
+    v[ISF] = NAN;
 }
 
 // values of a filled cell into patch c (grid id n)
@@ -1465,6 +1606,7 @@ void sflow_amr::store_fill(sflow_amr_patch *c, int n, int ii, int jj, const doub
     b->MX(ii,jj) = w[12];
     b->MY(ii,jj) = w[13];
     }
+    c->gsf[lij(pp,ii,jj)] = w[ISF];
 }
 
 // cells of the level-l patches outside their interior, then the wall conditions
@@ -1511,7 +1653,10 @@ void sflow_amr::restrict_level(lexer *p, int l, int s)
 {
     const int nv = (bous==1) ? 8 : 4;
 
-    block_up(l,nv,7020+l,
+    // shoreline: the surface of the wet children (v[nv]); the parents of other cells hold none
+    sfc_reset(l-1);
+
+    block_up(l,nv+1,7020+l,
              [&](reefamr_patch *q, int id, int k, double *v)
              {
                  sflow_amr_patch &c = *SP(q);
@@ -1523,6 +1668,34 @@ void sflow_amr::restrict_level(lexer *p, int l, int s)
 
                  const int nby = c.ny/2;
                  const int i0 = EXT+2*(k/nby), j0 = EXT+2*(k%nby);
+
+                 // shoreline: the water surface of the wet children (area weighted on a curvilinear grid)
+                 // where some children are dry (or have dry children themselves), NaN otherwise.  The
+                 // parent's own surface (mean water level + mean bed) lies above it: the bed of the dry
+                 // children reaches above the water
+                 {
+                 lexer *pp = c.pp;
+                 double se=0.0, sa=0.0;
+                 int nf=0, nw=0, np=0;
+                 for(int a=0;a<2;++a)
+                 for(int d=0;d<2;++d)
+                 if(pp->flagslice4[lij(pp,i0+a,j0+d)]>0)
+                 {
+                 ++nf;
+                 // a child covered by a finer patch at a shoreline: the surface of its own wet children
+                 const double dc = c.sfc[lij(pp,i0+a,j0+d)];
+                 if(!std::isnan(dc))
+                 ++np;
+                 if((*WLo)(i0+a,j0+d)>p->A244+eps)
+                 {
+                 ++nw;
+                 const double A = (pp->geo_curv==1) ? pp->AREA2D[lij(pp,i0+a,j0+d)] : 1.0;
+                 se += A*((*WLo)(i0+a,j0+d) - b->depth(i0+a,j0+d) + (std::isnan(dc) ? 0.0 : dc));
+                 sa += A;
+                 }
+                 }
+                 v[nv] = (sa>0.0 && (nw<nf || np>0)) ? se/sa : NAN;
+                 }
 
                  // curvilinear grid: area weighted (the children of a cell differ in area)
                  if(c.pp->geo_curv==1)
@@ -1583,10 +1756,19 @@ void sflow_amr::restrict_level(lexer *p, int l, int s)
 
                  double wlvl = fabs(wl)>p->A244 ? wl : 1.0e20;
                  G.b->eta(ic,jc) = wl - G.b->depth(ic,jc);
+
+                 // shoreline: the surface the uncovered neighbours see (reconstruction, pre-balanced source) is
+                 // the surface of the wet children, not the mean water level plus the mean bed; kept as the
+                 // offset from the latter (sfc), which the water level carries along (G 7 1: the coarse steps)
+                 const double ds = std::isnan(v[nv]) ? NAN : v[nv] - G.b->eta(ic,jc);
+                 if(w==1 && !std::isnan(ds))
+                 G.b->eta(ic,jc) = v[nv];
                  G.b->U(ic,jc) = w==1 ? uh/wlvl : 0.0;
                  G.b->V(ic,jc) = w==1 ? vh/wlvl : 0.0;
                  G.b->W(ic,jc) = w==1 ? wh/wlvl : 0.0;
                  G.b->hp(ic,jc) = wl;
+
+                 sfc_of(B.g)[lij(G.q,ic,jc)] = ds;
 
                  // Boussinesq: u_a and M with V, U = M/H
                  if(bous==1)
@@ -1628,6 +1810,9 @@ void sflow_amr::exchange_level0(lexer *p, fdm2D *b, ghostcell *pgc, int s, bool 
 
     pgc->gcslparaxV_int(p,p->wet,4);
     pgc->gcslparacoxV_int(p,p->wet,50);
+
+    // shoreline: the restricted surface of the covered cells in the halo (prolongation next to the partition edge)
+    pgc->gcslparax(p,*sfs0,4);
 }
 
 // fine face values of the level-l patches on the partition edges, to the rank of the coarse cell
@@ -1654,7 +1839,12 @@ void sflow_amr::step_begin(lexer *p, fdm2D *b, ghostcell *pgc)
     if(sub==1)
     {
         if(maxlev>=1 && patches_total>0)
-        sub_begin(p,b,pgc);
+        {
+            // shoreline: the covered cells of level 0 start the step with the restricted surface (depth_update
+            // at the end of the last step set it from the mean water level and the mean bed)
+            sfc_stage(0);
+            sub_begin(p,b,pgc);
+        }
         return;
     }
 
@@ -1758,6 +1948,13 @@ void sflow_amr::stage_begin(lexer *p, fdm2D *b, ghostcell *pgc, int s)
 
 void sflow_amr::stage_end(lexer *p, fdm2D *b, ghostcell *pgc, int s)
 {
+    // G 7 1: level 0 alone, its covered cells at a shoreline keep the restricted surface
+    if(maxlev>=1 && patches_total>0 && sub==1)
+    {
+        sfc_stage(0);
+        return;
+    }
+
     if(maxlev<1 || patches_total==0 || sub==1)
     return;
 
@@ -1835,6 +2032,58 @@ void sflow_amr::hll_hook(lexer *p, fdm2D *b, int ipol, int id)
         sflow_amr_patch &c = *SP(id-1);
         const int il = EXT-1, ih = EXT+c.nx-1;
         const int jl = EXT-1, jh = EXT+c.ny-1;
+
+        // shoreline: the boundary faces the fine fluxes of which replace the coarse ones (refluxing).
+        //  - no mass flux between a dry cell of the patch and a wet cell beyond its boundary, as between two
+        //    cells of a grid (sflow_HLL::aij_E zeroes the faces of the wet cells it visits, the ghost cells it
+        //    does not)
+        //  - a face between a dry cell of the patch and a dry ghost cell of a wet parent (the bed of both
+        //    reaches above the surface of the parent) is a wall of the parent, as the face between a wet and
+        //    a dry cell on the coarse grid: the pressure of the parent's surface with the face depth, no mass
+        //    or momentum flux.  The flux between the two dry cells (their surfaces are bed + film) would
+        //    move the water of the parent, which is at rest
+        {
+            lexer *pp = c.pp;
+            const double g = fabs(p0->W22);
+            auto drycell = [&](int a, int d) { return pp->wet[lij(pp,a,d)]==0 && pp->flagslice4[lij(pp,a,d)]>0; };
+            auto wetcell = [&](int a, int d) { return pp->wet[lij(pp,a,d)]==1 && pp->flagslice4[lij(pp,a,d)]>0; };
+
+            // the face (dir 1: i-face, 2: j-face) at (fi,fj) between the patch cell (a,d) and the ghost cell (a2,d2)
+            auto face = [&](int dir, int fi, int fj, int a, int d, int a2, int d2)
+            {
+                slice &F = (dir==1) ? Fx : Fy;
+                const double es = c.gsf[lij(pp,a2,d2)];
+                if(ipol==4 && drycell(a,d) && wetcell(a2,d2))
+                F(fi,fj) = 0.0;
+
+                if(!(drycell(a,d) && drycell(a2,d2) && !std::isnan(es)))
+                return;
+
+                if(ipol==3 || ipol==4)
+                {
+                    F(fi,fj) = 0.0;
+                    return;
+                }
+
+                const double df = (dir==1) ? c.b->dfx(fi,fj) : c.b->dfy(fi,fj);
+                const double P = 0.5*g*es*es + g*es*df;
+                double nx = (dir==1) ? 1.0 : 0.0, ny = (dir==1) ? 0.0 : 1.0, len;
+                if(pp->geo_curv==1)
+                sflow_curv::normal(pp,dir,fi,fj,nx,ny,len);
+                F(fi,fj) = P*((ipol==1) ? nx : ny);
+            };
+
+            for(int r=0; r<c.ny; ++r)
+            {
+                face(1,il,EXT+r,il+1,EXT+r,il,EXT+r);
+                face(1,ih,EXT+r,ih,EXT+r,ih+1,EXT+r);
+            }
+            for(int r=0; r<c.nx; ++r)
+            {
+                face(2,EXT+r,jl,EXT+r,jl+1,EXT+r,jl);
+                face(2,EXT+r,jh,EXT+r,jh,EXT+r,jh+1);
+            }
+        }
 
         for(int r=0; r<c.ny; ++r)
         {

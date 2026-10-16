@@ -25,6 +25,7 @@ Author: Hans Bihs
 
 #include"reefamr.h"
 #include"sediment_f.h"
+#include"slice4.h"
 #include<vector>
 #include<fstream>
 #include<unordered_map>
@@ -148,6 +149,15 @@ struct sflow_amr_patch : public reefamr_patch
     solver2D *psolv = nullptr;
     // regrid: blocks of a fresh patch that took the state of an old patch
     vector<char> blkold;
+
+    // shoreline: offset of the water surface of a cell a finer patch covers at a shoreline (from its wet children,
+    // restriction) from its mean water level plus mean bed, NaN where no child is dry or the cell is not covered
+    // (lij index)
+    vector<double> sfc;
+
+    // shoreline: water surface of the parent of a ghost cell (prolonged ghost cells), NaN where the parent is dry
+    // or the cell is not a prolonged ghost cell (lij index)
+    vector<double> gsf;
 
     // G 7 1: state at the start of the step, fine face fluxes summed over the steps of the
     // patch within one step of its parent (dt * RK weight), freg[ipol][side][fine index]
@@ -348,9 +358,20 @@ private:
     void eval_fill(const reefamr_fill&, double*);
     void store_fill(sflow_amr_patch*, int, int, int, const double*);
     void prolong(int, int, int, int, int, double, double*);
-    static const int NPR = 9;       // values of prolong_parts
+    static const int NPR = 10;      // values of prolong_parts
     void prolong_parts(int, int, int, int, int, double*);
     void prolong_finish(const double*, double, double*);
+
+    // shoreline (well balanced at rest): the restricted water surface of the covered cells at a shoreline (sfc, as
+    // the offset from the mean water level plus mean bed), level 0 (a slice: its halo) and the patches; children
+    // of a dry parent whose bed lies above the surface of its wet neighbours are wet below that surface (the
+    // initial hierarchy: dryfill)
+    slice4 *sfs0 = nullptr;
+    double *sfc_of(int);
+    void sfc_reset(int);
+    void sfc_stage(int);
+    bool dryfill = false;
+    bool ini_pass = false;          // the initial hierarchy (sflow_amr::ini)
     void apply_bc(ghostcell*, sflow_amr_patch&, int);
     void restrict_levels(lexer*, int);   // all patches into their parents, finest first (block plans)
     void restrict_level(lexer*, int, int);   // the level-l patches into their parents
@@ -405,8 +426,9 @@ private:
     int printcount_amr;
     ofstream logout;
     const double eps;
-    static const int NVMAX = 14;
-    int NV;                         // values per filled cell: WL UH VH eta U V wet deep WH W (+ Boussinesq: UA VA MX MY)
+    static const int NVMAX = 15;
+    int NV;                         // values per filled cell: WL UH VH eta U V wet deep WH W (+ Boussinesq: UA VA MX MY), the parent surface
+    int ISF;                        // index of the parent surface in the filled values (NV-1)
     int bous;                       // Boussinesq (A 220 4): UH,VH hold V, u_a and M are filled as well
 };
 

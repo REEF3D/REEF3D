@@ -1,0 +1,20 @@
+{
+ "base": "sflow_2d_curv_amr_lake_island",
+ "np": 1,
+ "steps": 30,
+ "tags": [
+  "2d",
+  "sflow",
+  "curvilinear",
+  "amr",
+  "wetdry",
+  "subcycling"
+ ],
+ "description": "sflow_2d_curv_amr_lake_island with subcycling (G 7 1): the covered cells at the shoreline keep the restricted surface through the steps of level 0.",
+ "covers": [
+  "sflow_amr shoreline with G 7 1: sfc_stage at the start of the level-0 step and after the stages of the coarser levels"
+ ],
+ "ctrl_add": [
+  "G 7 1"
+ ]
+}

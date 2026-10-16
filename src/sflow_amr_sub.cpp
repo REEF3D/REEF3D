@@ -248,6 +248,10 @@ void sflow_amr::sub_level(lexer *p, ghostcell *pgc, int l, int k, double t, doub
         comms_off guard(pgc);
         for(int n : lev[l])
         SP(n)->pmom->rk_stage(SP(n)->pp,SP(n)->b,pgc,s);
+
+        // shoreline: the covered cells keep the restricted surface (sflow_amr::sfc_stage)
+        if(l<maxlev)
+        sfc_stage(l);
         }
         tm[1] += MPI_Wtime()-t0;
 
