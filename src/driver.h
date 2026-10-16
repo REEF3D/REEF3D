@@ -84,6 +84,7 @@ class multiphase;
 class nhflow_momentum;
 class nhflow_particle;
 class particle_base;
+class coral_reef3d;
 
 #include<iostream>
 #include<fstream>
@@ -107,6 +108,7 @@ public:
     void nhflow_driver();
     void fnpf_driver();
     void sflow_driver();
+    void coral_ini();
     void seastate_driver();
     
 	void loop_cfd(fdm*);
@@ -184,6 +186,7 @@ public:
     fnpf *ppfsg;
     fnpf_ice *pfice = nullptr;
     fnpf_amr *pfamr = nullptr;
+    coral_reef3d *pcoral = nullptr;   // REEF3D::CORAL structural solver (Z 40)
     nhflow_amr *pnhfamr = nullptr;
     nhflow_fsf *pnhfsf;
     sflow *psflow;

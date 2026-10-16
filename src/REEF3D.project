@@ -871,6 +871,7 @@
         </VirtualDirectory>
         <VirtualDirectory Name="REEF3D">
           <File Name="coral/reef3d/README.md"/>
+          <File Name="coral/reef3d/coral_reef3d.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="App">
           <File Name="coral/app/README.md"/>
@@ -2408,7 +2409,9 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Load Cases"/>
         <VirtualDirectory Name="Post"/>
-        <VirtualDirectory Name="REEF3D"/>
+        <VirtualDirectory Name="REEF3D">
+          <File Name="coral/reef3d/coral_reef3d.cpp"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="App"/>
       </VirtualDirectory>
       <VirtualDirectory Name="DEM">

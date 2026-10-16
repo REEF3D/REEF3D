@@ -33,6 +33,7 @@ Author: Hans Bihs
 #include"runlog.h"
 #include"seastate_f.h"
 #include"cfd_amr.h"
+#include"coral/reef3d/coral_reef3d.h"
 
 driver::driver(int& argc, char **argv)
 {
@@ -200,6 +201,8 @@ void driver::fnpf_driver()
     preg = new regression_dump(p);
     preg->fnpf_ini(p,c,pgc);
 
+    coral_ini();
+
     // Start MAINLOOP
     loop_fnpf();
 }
@@ -221,6 +224,8 @@ void driver::nhflow_driver()
 
     preg = new regression_dump(p);
     preg->nhflow_ini(p,d,pgc);
+
+    coral_ini();
 
     // Start MAINLOOP
     loop_nhflow();
@@ -251,10 +256,23 @@ void driver::cfd_driver()
     preg = new regression_dump(p);
     preg->cfd_ini(p,a,pgc,pturb,pconc);
 
+    coral_ini();
+
     // Start MAINLOOP
     loop_cfd(a);
 }
 
+// REEF3D::CORAL (Z 40 1): the CORAL model of coral.txt, in step with the fluid time
+void driver::coral_ini()
+{
+    if(p->Z40>0)
+    {
+        pcoral = new coral_reef3d(p,pgc);
+        pcoral->ini(p,pgc);
+    }
+}
+
 driver::~driver()
 {
+    delete pcoral;
 }

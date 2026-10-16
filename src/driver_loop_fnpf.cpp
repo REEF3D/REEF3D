@@ -41,6 +41,7 @@ Author: Hans Bihs
 #include"fnpf_ice.h"
 #include"fnpf_amr.h"
 #include"regression_dump.h"
+#include"coral/reef3d/coral_reef3d.h"
 #include"runlog.h"
 #include"lagoon_output.h"
 
@@ -95,6 +96,10 @@ void driver::loop_fnpf()
         if(pfamr!=nullptr)
         pfamr->print(p,c,pgc);
         
+        // REEF3D::CORAL (Z 40): structural model from simtime to simtime + dt
+        if(pcoral!=nullptr)
+        pcoral->step(p,pgc);
+
         //timestep control
         p->simtime+=p->dt;
         pftstep->start(c,p,pgc);

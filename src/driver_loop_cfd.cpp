@@ -22,6 +22,7 @@ Author: Hans Bihs
 
  #include"driver.h"
 #include"regression_dump.h"
+#include"coral/reef3d/coral_reef3d.h"
 #include"dem.h"
 #include"lexer.h"
 #include"fdm.h"
@@ -103,6 +104,10 @@ void driver::loop_cfd(fdm* a)
         pturb->etimesave(p,a,pgc);
         pflow->veltimesave(p,a,pgc,pvrans);
         psed->ctimesave(p,a);
+
+        // REEF3D::CORAL (Z 40): structural model from simtime to simtime + dt
+        if(pcoral!=nullptr)
+        pcoral->step(p,pgc);
 
         //timestep control
         p->simtime+=p->dt;
