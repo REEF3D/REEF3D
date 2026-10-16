@@ -805,11 +805,20 @@
         <File Name="coral/README.md"/>
         <VirtualDirectory Name="Core">
           <File Name="coral/core/README.md"/>
+          <File Name="coral/core/coral_body.h"/>
+          <File Name="coral/core/coral_constraint.h"/>
+          <File Name="coral/core/coral_gravity.h"/>
+          <File Name="coral/core/coral_load.h"/>
+          <File Name="coral/core/coral_model.h"/>
+          <File Name="coral/core/coral_rotation.h"/>
+          <File Name="coral/core/coral_timeint.h"/>
           <File Name="coral/core/coral_types.h"/>
           <File Name="coral/core/coral_version.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Structure">
           <File Name="coral/structure/README.md"/>
+          <File Name="coral/structure/coral_linear6.h"/>
+          <File Name="coral/structure/coral_spring.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Linear">
           <File Name="coral/linear/README.md"/>
@@ -2351,9 +2360,17 @@
     <VirtualDirectory Name="Multiphysics">
       <VirtualDirectory Name="CORAL">
         <VirtualDirectory Name="Core">
+          <File Name="coral/core/coral_constraint.cpp"/>
+          <File Name="coral/core/coral_gravity.cpp"/>
+          <File Name="coral/core/coral_model.cpp"/>
+          <File Name="coral/core/coral_rotation.cpp"/>
+          <File Name="coral/core/coral_timeint.cpp"/>
           <File Name="coral/core/coral_version.cpp"/>
         </VirtualDirectory>
-        <VirtualDirectory Name="Structure"/>
+        <VirtualDirectory Name="Structure">
+          <File Name="coral/structure/coral_linear6.cpp"/>
+          <File Name="coral/structure/coral_spring.cpp"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Linear"/>
         <VirtualDirectory Name="Wind"/>
         <VirtualDirectory Name="Aero"/>
