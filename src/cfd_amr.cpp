@@ -209,6 +209,8 @@ bool cfd_amr::scope(lexer *p, ghostcell *pgc)
     why = "no heat, concentration, compressibility or rheology (H 10, C 10, W 30, W 90)";
     else if(p->S10!=0 || p->Q10!=0)
     why = "no sediment (S 10, Q 10)";
+    else if(p->E10>0)
+    why = "no DEM particles (E 10; momentum_forcing holds the particle forcing of level 0 in a static member)";
     else if(p->X10>1 || p->Z10!=0 || p->Z20!=0 || p->Z30!=0)
     why = "floating bodies X 10 0 or 1, no structures (Z 10, Z 20, Z 30)";
     else if(p->B200!=0 && p->B200!=1)
