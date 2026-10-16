@@ -123,7 +123,7 @@ void CPM::bedload_columns(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
         double tx=0.0, ty=0.0, hc=0.0;
         bool rest=false;
         
-        bedshear::column_tau(p,a,pturb_,i,j,s->bedzh(i,j),ks,p->Q66,p->Q68==1,p->W1,tx,ty,hc,rest);
+        bedshear::column_tau(p,a,pturb_,i,j,s->bedzh(i,j),ks,p->Q66,(p->Q68==1||p->Q68==2)?p->Q68:0,p->W1,tx,ty,hc,rest);
         
         blTx(i,j) = tx;
         blTy(i,j) = ty;
@@ -528,7 +528,13 @@ void CPM::bedload_move(lexer *p, fdm *a, sediment_fdm *s, int q, double dt)
     bedload_column(p,P.X[q],P.Y[q],ic,jc);
 
     bool mob = bedload_grain(p,ic,jc,P.D[q],ub,vb,te);
-    double sp = sqrt(ub*ub + vb*vb);
+    
+    // morphological factor Q 65: the pickup is Q 65 times faster (bedload_exchange), and so is the hop:
+    // the bed evolves on the clock Q 65 t for both. With the pickup alone the volume of the grains in transit
+    // (q/u_b) was Q 65 times the physical one and was missing from the bed level seen by the fluid
+    // (pipeline, Q 65 50: 40 times more grains in the layer, 9 mm of bed over 1.5 D)
+    const double mf = p->Q65>0.0 ? p->Q65 : 1.0;
+    double sp = mf*sqrt(ub*ub + vb*vb);
     double f = 1.0;
 
     bool dep = !mob || P.Hop[q] <= sp*dt;
@@ -539,8 +545,8 @@ void CPM::bedload_move(lexer *p, fdm *a, sediment_fdm *s, int q, double dt)
     if(!mob)
     f = 0.0;
 
-    P.XRK1[q] = P.X[q] + f*dt*ub;
-    P.YRK1[q] = p->j_dir==1 ? P.Y[q] + f*dt*vb : P.Y[q];
+    P.XRK1[q] = P.X[q] + f*dt*mf*ub;
+    P.YRK1[q] = p->j_dir==1 ? P.Y[q] + f*dt*mf*vb : P.Y[q];
 
     bedload_column(p,P.XRK1[q],P.YRK1[q],ic,jc);
     double zb = zbl(s,ic,jc);

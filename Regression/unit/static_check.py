@@ -2,7 +2,8 @@
 # Static data in the sources (the contract of the mesh refinement: every grid has its own lexer,
 # fdm and solver objects, so data that belongs to one grid must not be static).  Lists every
 # non-constant static or thread_local variable (class members, function-local and file-scope
-# statics) and every non-constant variable at namespace scope in src/*.h, src/*.cpp, and compares
+# statics) and every non-constant variable at namespace scope in src/*.h, src/*.cpp and the
+# REEF3D::MAST folders below src/mast/, and compares
 # them with static_allowlist.txt (one per line: file | declaration | why it is safe).
 #   python3 static_check.py            check: exit 1 with the new ones (and the stale entries)
 #   python3 static_check.py --list     print the current list in the allowlist format
@@ -24,7 +25,11 @@ def strip_comments(text):
 
 def scan():
     found = []
-    for fn in sorted(os.listdir(src)):
+    files = sorted(os.listdir(src))
+    # REEF3D::MAST lives in folders below src/mast (named by their path from src, e.g. mast/core/x.cpp)
+    for dirpath, _, names in sorted(os.walk(os.path.join(src, 'mast'))):
+        files += sorted(os.path.relpath(os.path.join(dirpath, n), src) for n in names)
+    for fn in files:
         if not fn.endswith(('.h', '.cpp')):
             continue
         text = strip_comments(open(os.path.join(src, fn), errors='replace').read())

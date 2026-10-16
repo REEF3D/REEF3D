@@ -1,0 +1,17 @@
+{
+ "base": "seastate_2d_phase16_faces_composite",
+ "np": 2,
+ "same_as": "seastate_2d_phase16_faces_composite",
+ "same_as_rtol": 1e-05,
+ "description": "as seastate_2d_phase16_faces_composite on 2 ranks: the remote ring faces with the fills at the start of each quadrant sweep, the level-0 faces after it; the converged result of one rank within 1e-5 (regression.py ranks).",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate",
+  "amr",
+  "mpi"
+ ],
+ "covers": [
+  "composite sweep with remote ring and level-0 faces"
+ ]
+}

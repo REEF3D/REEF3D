@@ -24,7 +24,7 @@ Typical use
   ./regression.py check runs/new --rtol 1e-6
 
   # SEASTATE on several ranks against one rank, cell by cell: the cases with "same_as": "<case>" in their
-  # case.json against that case of the same run
+  # case.json against that case of the same run (bitwise; with "same_as_rtol": r, Hs and the spectra within r)
   ./regression.py ranks runs/new
 
 Case selection: --cases <glob> [<glob> ...] and/or --tags <tag> [...] (e.g. --tags quick).
@@ -136,7 +136,8 @@ def load_case(name, _seen=None):
         # inherit everything that is not specific to the base case's own files/overrides
         for k, v in b.items():
             if k not in ("name", "dir", "base", "control_lines", "ctrl_lines", "files_abs", "files",
-                         "control_set", "ctrl_set", "control_add", "ctrl_add", "description", "covers", "same_as"):
+                         "control_set", "ctrl_set", "control_add", "ctrl_add", "description", "covers", "same_as",
+                         "same_as_rtol"):
                 c.setdefault(k, v)
     else:
         control = read_lines(os.path.join(cdir, "control.txt"))
@@ -619,9 +620,10 @@ def cmd_compare(args):
     return 0
 
 
-def merged_by_cell(rundir):
+def merged_by_cell(rundir, names=None):
     """SEASTATE: {(gi, gj): values} of the final state, all ranks together (needs the fields gi, gj, wet of
-    regression_dump::seastate_collect, Phase 14); None without them."""
+    regression_dump::seastate_collect, Phase 14); None without them. names (a list): filled with the field of
+    every value of a cell (the per-cell fields, then "N" for the bins of the spectrum)."""
     m = merged_final_state(rundir)
     if m is None:
         return None
@@ -636,6 +638,8 @@ def merged_by_cell(rundir):
         nwet = sum(1 for w in f["wet"] if w == 1.0)
         nbin = len(f["N"]) // nwet if nwet > 0 and "N" in f else 0
         b = 0
+        if names is not None and not names:
+            names.extend(per_cell)
         for c in range(n):
             vals = [f[name][c] for name in per_cell]
             if f["wet"][c] == 1.0 and nbin > 0:
@@ -659,7 +663,8 @@ def cmd_ranks(args):
         print("no cases with \"same_as\" in %s" % args.run)
         return 1
     for a, b in pairs:
-        ra = merged_by_cell(os.path.join(args.run, a))
+        names = []
+        ra = merged_by_cell(os.path.join(args.run, a), names)
         rb = merged_by_cell(os.path.join(args.run, b))
         if ra is None or rb is None:
             print("%-48s %-40s FAILED (missing state dump or cell indices)" % (b, "= " + a))
@@ -668,6 +673,35 @@ def cmd_ranks(args):
         if ra[0] != rb[0] or set(ra[1]) != set(rb[1]):
             print("%-48s %-40s DIFFERENT (steps %d/%d, cells %d/%d)" % (b, "= " + a, ra[0], rb[0], len(ra[1]), len(rb[1])))
             rc = 1
+            continue
+        rt = load_case(b).get("same_as_rtol")
+        if rt:
+            # Phase 16: converged runs whose iterations differ (lagged halos): Hs relative to itself and the bins of
+            # the spectrum relative to the largest bin of the cell, within rtol
+            ih = names.index("Hs") if "Hs" in names else -1
+            nf = len(names)
+            nd, mr, nv = 0, 0.0, 0
+            for k, va in ra[1].items():
+                vb = rb[1][k]
+                if len(va) != len(vb):
+                    nd += 1
+                    continue
+                nmax = max([abs(x) for x in va[nf:]] + [0.0])
+                pairs_k = ([(va[ih], vb[ih], abs(va[ih]))] if ih >= 0 else []) + [(x, y, nmax) for x, y in zip(va[nf:], vb[nf:])]
+                for x, y, sc in pairs_k:
+                    nv += 1
+                    r = abs(x - y) / sc if sc > 0.0 else abs(x - y)
+                    if not (r <= rt):
+                        nd += 1
+                    if r == r:
+                        mr = max(mr, r)
+                    else:
+                        mr = float("inf")
+            ok = (nd == 0)
+            rc |= 0 if ok else 1
+            print("%-48s %-40s %s" % (b, "= " + a, ("within rtol %.0e (%d cells, %d values, largest relative difference %.2e)"
+                                                     % (rt, len(ra[1]), nv, mr)) if ok
+                                      else "DIFFERENT: %d values beyond rtol %.0e, largest relative difference %.3e" % (nd, rt, mr)))
             continue
         nd, md, nv = 0, 0.0, 0
         for k, va in ra[1].items():

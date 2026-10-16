@@ -56,19 +56,20 @@ public:
     
     // bed shear stress of the bed column (i,j) from the flow above the bed level set, shared by the Eulerian
     // bed shear stress (S 16 10) and the CPM bedload layer (Q 58): log law at the first cell centre at least
-    // half a cell above the bed, or href cells above the bed (href > 0), and with kterm max(log law, 0.3 rho k)
-    // with k of the first fluid cell; returns false if the column has no fluid cell above the bed
-    static bool column_tau(lexer*, fdm*, turbulence*, int i, int j, double zbed, double ks, double href, bool kterm,
+    // half a cell above the bed, or href cells above the bed (href > 0); kmode 0: log law, 1: max(log law, 0.3 rho k),
+    // 2: two velocity scales sqrt(log law * 0.3 rho k) (rough-wall Launder-Spalding wall function), with k of the
+    // first fluid cell; returns false if the column has no fluid cell above the bed
+    static bool column_tau(lexer*, fdm*, turbulence*, int i, int j, double zbed, double ks, double href, int kmode,
                            double rho, double &tx, double &ty, double &hcell, bool &rest);
 
     // the same for the NHFLOW sigma grid (S 16 10): the first cell centre is half a cell above the bed, href > 0
     // takes the log law href cells of the first cell above the bed (at most half the water depth)
-    static bool column_tau(lexer*, fdm_nhf*, int i, int j, double ks, double href, bool kterm,
+    static bool column_tau(lexer*, fdm_nhf*, int i, int j, double ks, double href, int kmode,
                            double rho, double &tx, double &ty);
 
     // the closure of column_tau: rho (u / u+)^2 with u+ = ln(30 z_r/k_s)/kappa at the reference height z_r,
-    // with kterm max(log law, 0.3 rho k)
-    static double tau_logk(double um, double zr, double ks, double kin, bool kterm, double rho);
+    // kmode 0: log law, 1: max(log law, 0.3 rho k), 2: sqrt(log law * 0.3 rho k)
+    static double tau_logk(double um, double zr, double ks, double kin, int kmode, double rho);
     
     // rough-wall log law u/u* = ln(30 z/ks)/kappa, with z0 = ks/30 clamped so that u+ >= 1/kappa
     // (as the NHFLOW wall drag): no singular shear stress when z approaches ks/30 in thin water

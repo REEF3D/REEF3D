@@ -217,6 +217,21 @@ void seastate_amr::ini(lexer *p, ghostcell *pgc, const level0 &l0)
 
     dag_report();
 
+    // Phase 16: the faces taken by cells next to a covered cell of another patch or rank
+    double nloc=0.0, nrem=0.0, n0=0.0;
+    for(size_t id=0; id<rlinks.size(); ++id)
+    nloc += double(rlinks[id].size());
+    for(const ring_plan &R : rplan)
+    nrem += double(R.dst.size());
+    for(int s=0; s<4; ++s)
+    n0 += double(rface_recv[s].size()/2);
+    nloc = pgc->globalsum(nloc);
+    nrem = pgc->globalsum(nrem);
+    n0 = pgc->globalsum(n0);
+    if(p->mpirank==0 && nloc+nrem+n0>0.0)
+    cout<<"SEASTATE AMR: faces of covered cells next to other patches: "<<long(nloc)<<" on the rank, "<<long(nrem)
+        <<" from other ranks; next to the level-0 halo: "<<long(n0)<<endl;
+
     if(p->mpirank==0)
     cout<<"SEASTATE AMR: active leaf cells on the patches "<<long(act)<<", memory of the patches "<<fixed<<setprecision(1)<<mb<<" MB"<<endl<<endl;
     cout.unsetf(ios::floatfield);
@@ -633,6 +648,7 @@ void seastate_amr::regrid_finish(ghostcell *pgc, int)
 {
     covered();
     composite_maps();
+    ring_faces_plan();
 
     // restriction without the block plans when every parent cell is on the rank of its patch
     int rem = 0;
@@ -676,7 +692,8 @@ void seastate_amr::regrid_finish(ghostcell *pgc, int)
     }
 
     restrict_all();
-    L0.pex->start(p0,pgc,*L0.e->N);
+    remote_faces_plan(pgc);
+    halo0(p0,pgc);
 }
 
 // covered cells of every grid and the faces of the covered cells next to cells solved on their grid
@@ -717,6 +734,16 @@ void seastate_amr::covered()
         return a>=EXT && a<EXT+c->nx && d>=EXT && d<EXT+c->ny;
     };
 
+    // a halo cell of level 0 held by a neighbour rank
+    auto remote = [&](int a, int d)
+    {
+        if(d>=0 && d<p0->knoy)
+        return (a<0 && p0->nb1>=0) || (a>=p0->knox && p0->nb4>=0);
+        if(a>=0 && a<p0->knox)
+        return (d<0 && p0->nb3>=0) || (d>=p0->knoy && p0->nb2>=0);
+        return false;
+    };
+
     const int di[4]={-1,1,0,0}, dj[4]={0,0,-1,1};
 
     for(int id=0; id<(int)P.size(); ++id)
@@ -739,7 +766,8 @@ void seastate_amr::covered()
             {
             const int a = ic+di[s], d = jc+dj[s];
 
-            if(!solved(g,a,d) || ec->wet(a,d)!=1 || cv(a,d)==1)
+            // Phase 16: level 0 also towards the halo cells of a neighbour rank (remote_faces)
+            if(!(solved(g,a,d) || (g<0 && remote(a,d))) || ec->wet(a,d)!=1 || cv(a,d)==1)
             continue;
 
             seastate_amr_flink L;
@@ -760,10 +788,286 @@ void seastate_amr::covered()
     }
 }
 
+// Phase 16: the faces of the covered level-0 cells at the rank boundaries. Every rank tells its neighbours which of
+// its cells next to the boundary are covered (once, the grids are static); a covered halo cell is marked in cov0 and
+// gets an entry in the level-0 faces on the side towards the interior of the rank, which remote_faces fills
+void seastate_amr::remote_faces_plan(ghostcell *pgc)
+{
+    static const int opposite[4] = {1,0,3,2};
+    lexer *p = p0;
+
+    int n = 0;
+    for(int s=0; s<4; ++s)
+    {
+    rface_send[s].clear();
+    rface_recv[s].clear();
+    }
+
+    seastate_halo1(p,pgc,1,960,
+        [&](int s, int ii, int jj, double *v)
+        {
+            v[0] = 0.0;
+            if((*cov0)(ii,jj)==1 && L0.e->wet(ii,jj)==1 && gfaces(-1)->F.count(seastate_amr_faces::key(ii,jj,s))>0)
+            {
+            v[0] = 1.0;
+            rface_send[s].push_back(ii);
+            rface_send[s].push_back(jj);
+            }
+        },
+        [&](int s, int ii, int jj, const double *v)
+        {
+            if(v[0]>0.5)
+            {
+            (*cov0)(ii,jj) = 1;
+            gfaces(-1)->F[seastate_amr_faces::key(ii,jj,opposite[s])].assign(nbin,0.0f);
+            rface_recv[s].push_back(ii);
+            rface_recv[s].push_back(jj);
+            ++n;
+            }
+        });
+
+    for(int s=0; s<4; ++s)
+    n += int(rface_send[s].size()/2);
+
+    rfaces = pgc->globalimax(n)>0;
+}
+
+// the face spectra of the covered cells next to the rank boundaries into the halo of the neighbour ranks
+void seastate_amr::remote_faces(ghostcell *pgc)
+{
+    static const int opposite[4] = {1,0,3,2};
+
+    if(!rfaces)
+    return;
+
+    seastate_amr_faces *F = gfaces(-1);
+
+    seastate_halo_list(p0,pgc,nbin,970,rface_send,rface_recv,
+        [&](int s, int ii, int jj, float *v)
+        {
+            const vector<float> &f = F->F.at(seastate_amr_faces::key(ii,jj,s));
+            std::copy(f.begin(),f.end(),v);
+        },
+        [&](int s, int ii, int jj, const float *v)
+        {
+            vector<float> &f = F->F.at(seastate_amr_faces::key(ii,jj,opposite[s]));
+            std::copy(v,v+nbin,f.begin());
+        });
+}
+
+void seastate_amr::halo0(lexer *p, ghostcell *pgc)
+{
+    L0.pex->start(p,pgc,*L0.e->N);
+    remote_faces(pgc);
+}
+
+// Phase 16: the faces at the interfaces of the patches of one level. For every ring cell next to the interior of a
+// patch (one interior neighbour, side fs of the source cell towards it): a local source cell of a patch of the same
+// level that is covered gives a link to its two fine cells on side fs; a source on another rank is requested from
+// it where the global table holds a finer patch over the cell (served by the rank of the source patch)
+void seastate_amr::ring_faces_plan()
+{
+    const int np = p0->mpi_size;
+
+    rlinks.assign(P.size(),vector<seastate_amr_flink>());
+    rlink_of.assign(P.size(),vector<int>());
+    rplan.assign(maxlev+1,ring_plan());
+
+    // the side of the source cell towards the interior neighbour of ring cell (di,dj) of patch c
+    auto side_of = [&](const reefamr_patch *c, int di, int dj)
+    {
+        if(di==EXT-1) return 1;
+        if(di==EXT+c->nx) return 0;
+        if(dj==EXT-1) return 3;
+        return 2;
+    };
+
+    // the two fine cells of covered cell (si,sj) of grid g on side s; false: no child patch on this rank
+    auto children = [&](int g, int si, int sj, int s, seastate_amr_flink &L)
+    {
+        auto it = childof.find(ckey(g,si,sj));
+        if(it==childof.end())
+        return false;
+        const int id = it->second.first, k = it->second.second;
+        const int nby = P[id]->ny/2;
+        const int fi = EXT+2*(k/nby), fj = EXT+2*(k%nby);
+        L.id = id;
+        if(s==0) {L.i0=fi;   L.j0=fj;   L.i1=fi;   L.j1=fj+1;}
+        if(s==1) {L.i0=fi+1; L.j0=fj;   L.i1=fi+1; L.j1=fj+1;}
+        if(s==2) {L.i0=fi;   L.j0=fj;   L.i1=fi+1; L.j1=fj;}
+        if(s==3) {L.i0=fi;   L.j0=fj+1; L.i1=fi+1; L.j1=fj+1;}
+        return true;
+    };
+
+    // the interior neighbour of the ring cell is solved on the patch (wet and not covered)
+    auto solved_next = [&](seastate_amr_patch *c, int di, int dj, int s)
+    {
+        const int ii = di + (s==1 ? 1 : (s==0 ? -1 : 0));
+        const int jj = dj + (s==3 ? 1 : (s==2 ? -1 : 0));
+        return c->e->wet(ii,jj)==1 && (*c->cov)(ii,jj)==0;
+    };
+
+    for(int l=1; l<=maxlev; ++l)
+    {
+        vector<vector<int>> req(np), srv;
+        vector<vector<pair<int,long>>> dst(np);
+
+        for(int id : lev[l])
+        {
+        seastate_amr_patch *c = SP(id);
+        rlink_of[id].assign(c->fill.size(),-1);
+
+            for(int k : c->ring)
+            {
+            const reefamr_fill &f = c->fill[k];
+            if(f.kind!=0 || f.g<0 || P[f.g]->lev!=l || (*gcov(f.g))(f.si,f.sj)!=1)
+            continue;
+
+            const int s = side_of(c,f.di,f.dj);
+            seastate_amr_flink L;
+            if(!solved_next(c,f.di,f.dj,s) || !children(f.g,f.si,f.sj,s,L))
+            continue;
+            L.g = id;
+            L.key = seastate_amr_faces::key(f.di,f.dj,s);
+            rlink_of[id][k] = int(rlinks[id].size());
+            rlinks[id].push_back(L);
+            (*c->cov)(f.di,f.dj) = 1;
+            gfaces(id)->F[L.key].assign(nbin,0.0f);
+            }
+
+            for(int k : c->ringr)
+            {
+            const reefamr_fill &f = c->fill[k];
+            const int I = f.di-EXT+c->I0, J = f.dj-EXT+c->J0;
+            if(l>=maxlev || gpatch_at(l,I,J)<0 || !reefamr::covered(l+1,2*I,2*J))
+            continue;
+
+            const int o = holder(l,I,J);
+            const int s = side_of(c,f.di,f.dj);
+            if(o<0 || o==p0->mpirank || !solved_next(c,f.di,f.dj,s))
+            continue;
+
+            const long key = seastate_amr_faces::key(f.di,f.dj,s);
+            req[o].push_back(I);
+            req[o].push_back(J);
+            req[o].push_back(s);
+            dst[o].push_back(std::make_pair(id,key));
+            (*c->cov)(f.di,f.dj) = 1;
+            gfaces(id)->F[key].assign(nbin,0.0f);
+            }
+        }
+
+        xsetup(req,srv,3);
+
+        ring_plan &R = rplan[l];
+        for(int r=0; r<np && r<(int)srv.size(); ++r)
+        if(!srv[r].empty())
+        {
+        R.X.speer.push_back(r);
+        vector<int> items;
+            for(size_t m=0; m+2<srv[r].size(); m+=3)
+            {
+            seastate_amr_flink L;
+            L.g = -1;
+            L.key = 0;
+            L.id = -1;
+            L.i0 = L.j0 = L.i1 = L.j1 = 0;
+            const int q = patch_at(l,srv[r][m],srv[r][m+1]);
+                if(q>=0)
+                {
+                const int si = srv[r][m]-P[q]->I0+EXT, sj = srv[r][m+1]-P[q]->J0+EXT;
+                    if((*SP(q)->cov)(si,sj)==1 && children(q,si,sj,srv[r][m+2],L))
+                    L.g = q;
+                    else
+                    {
+                    // no finer cells here: the spectrum of the cell itself (as without the face)
+                    L.g = q;
+                    L.key = -1;
+                    L.id = q;
+                    L.i0 = L.i1 = si;
+                    L.j0 = L.j1 = sj;
+                    }
+                }
+            items.push_back(int(R.serve.size()));
+            R.serve.push_back(L);
+            }
+        R.X.sitem.push_back(items);
+        R.X.sbuf.push_back(vector<double>());
+        }
+
+        for(int r=0; r<np; ++r)
+        if(!req[r].empty())
+        {
+        R.X.rpeer.push_back(r);
+        R.X.rcount.push_back(int(req[r].size()/3));
+        R.dst.insert(R.dst.end(),dst[r].begin(),dst[r].end());
+        }
+    }
+}
+
+void seastate_amr::ring_face(const seastate_amr_flink &L, float *F)
+{
+    seastate_amr_patch *cc = SP(L.id);
+    const float *a = (cc->e->wet(L.i0,L.j0)==1) ? cc->e->N->spec(L.i0,L.j0) : nullptr;
+    const float *b = (cc->e->wet(L.i1,L.j1)==1) ? cc->e->N->spec(L.i1,L.j1) : nullptr;
+
+    for(int n=0; n<nbin; ++n)
+    F[n] = 0.5f*((a!=nullptr ? a[n] : 0.0f) + (b!=nullptr ? b[n] : 0.0f));
+}
+
+void seastate_amr::ring_faces_local(seastate_amr_patch*, int id)
+{
+    if(id>=(int)rlinks.size())
+    return;
+
+    seastate_amr_faces *F = gfaces(id);
+    for(const seastate_amr_flink &L : rlinks[id])
+    ring_face(L,F->F.at(L.key).data());
+}
+
+void seastate_amr::ring_faces_remote(int l)
+{
+    if(l>=(int)rplan.size())
+    return;
+
+    ring_plan &R = rplan[l];
+    if(R.X.speer.empty() && R.X.rpeer.empty())
+    return;
+
+    vector<float> v(nbin);
+    for(size_t k=0; k<R.X.speer.size(); ++k)
+    {
+    vector<double> &sb = R.X.sbuf[k];
+    sb.assign(R.X.sitem[k].size()*size_t(nbin),0.0);
+        for(size_t m=0; m<R.X.sitem[k].size(); ++m)
+        {
+        const seastate_amr_flink &L = R.serve[R.X.sitem[k][m]];
+        if(L.g<0)
+        continue;
+        ring_face(L,v.data());
+        for(int n=0; n<nbin; ++n)
+        sb[m*nbin+n] = double(v[n]);
+        }
+    }
+
+    xrun(R.X,nbin,7600+l);
+
+    size_t it = 0;
+    for(size_t k=0; k<R.X.rpeer.size(); ++k)
+    for(int m=0; m<R.X.rcount[k]; ++m)
+    {
+    const pair<int,long> &d = R.dst[it++];
+    float *F = gfaces(d.first)->F.at(d.second).data();
+    const double *s = &R.X.rbuf[k][size_t(m)*nbin];
+    for(int n=0; n<nbin; ++n)
+    F[n] = float(s[n]);
+    }
+}
+
 // --------------------------------------------------------------------- composite solve
 // the cells next to the interior of one patch from sources on this rank: copy (same level) or constant
 // prolongation (coarser level), float to float
-void seastate_amr::fill_local(seastate_amr_patch *c)
+void seastate_amr::fill_local(seastate_amr_patch *c, int id)
 {
         for(int k : c->ring)
         {
@@ -786,12 +1090,18 @@ void seastate_amr::fill_local(seastate_amr_patch *c)
         else
         std::fill(d,d+nbin,0.0f);
         }
+
+    // Phase 16: the faces of covered source cells of the same level
+    ring_faces_local(c,id);
 }
 
 void seastate_amr::fill_level(int l)
 {
     for(int id : lev[l])
-    fill_local(SP(id));
+    fill_local(SP(id),id);
+
+    // Phase 16: the faces of covered source cells on other ranks
+    ring_faces_remote(l);
 
     // cells held by other ranks: the exchange plans of the level
     const reefamr_xplan &X = gplan[l];
@@ -980,6 +1290,14 @@ void seastate_amr::ghost_fill(seastate_amr_patch *c, int id, int fi, int fj)
         std::copy(src,src+nbin,d);
         else
         std::fill(d,d+nbin,0.0f);
+
+        // Phase 16: a covered source cell: its face towards the patch from the latest fine cells
+        const int rl = rlink_of[id][it->second];
+        if(rl>=0)
+        {
+        const seastate_amr_flink &L = rlinks[id][rl];
+        ring_face(L,gfaces(id)->F.at(L.key).data());
+        }
     }
 }
 
@@ -1089,7 +1407,7 @@ void seastate_amr::composite_sweep(lexer *p, ghostcell *pgc, int q, const seasta
     t0 = pgc->timer();
     tm[0] += t0-t1;
 
-    L0.pex->start(p,pgc,*L0.e->N);
+    halo0(p,pgc);
     tm[3] += pgc->timer()-t0;
 
     ++sweeps;
@@ -1266,7 +1584,7 @@ bool seastate_amr::sweep_level_threads(int l, int q, double rdt, bool refraction
         s->copy_config(*c->solv);
         s->threads(1);
 
-        fill_local(c);
+        fill_local(c,id);
         s->sweep(c->pp,c->e,q,c->N0,rdt,none,side0,refraction,fshift);
 
             for(int j : dag_succ[q][l][k])
@@ -1298,7 +1616,7 @@ void seastate_amr::sweep_level(int l, int q, double rdt, bool refraction, bool f
     for(int id : order[q][l])
     {
     seastate_amr_patch *c = SP(id);
-    fill_local(c);
+    fill_local(c,id);
     c->solv->sweep(c->pp,c->e,q,c->N0,rdt,none,side0,refraction,fshift);
     }
 }
@@ -1376,7 +1694,7 @@ void seastate_amr::iterate(lexer *p, ghostcell *pgc, const seastate_store *N0, d
         t1 = pgc->timer();
         tm[0] += t1-t0;
 
-        L0.pex->start(p,pgc,*L0.e->N);
+        halo0(p,pgc);
         tm[3] += pgc->timer()-t1;
 
         ++sweeps;
@@ -1424,7 +1742,7 @@ void seastate_amr::fas(lexer *p, ghostcell *pgc, const seastate_store *N0, doubl
     for(int id : lev[l])
     {
     seastate_amr_patch *c = SP(id);
-    fill_local(c);
+    fill_local(c,id);
     c->res->fill(0.0f);
     c->solv->residual_out(c->res);
         for(int q=0; q<4; ++q)
@@ -1645,7 +1963,7 @@ void seastate_amr::fas(lexer *p, ghostcell *pgc, const seastate_store *N0, doubl
     }
     fas_change = pgc->globalmax(chg);
 
-    L0.pex->start(p,pgc,*L0.e->N);
+    halo0(p,pgc);
 }
 
 // --------------------------------------------------------------------- parameters, wind, output

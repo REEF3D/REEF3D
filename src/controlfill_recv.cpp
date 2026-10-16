@@ -1956,6 +1956,8 @@ void control::ctrlrecv()
     dd++;
     Q50 = ictrl[ii];
     ii++;
+    Q72 = ictrl[ii];
+    ii++;
     Q51 = ictrl[ii];
     ii++;
     Q61 = ictrl[ii];
