@@ -106,6 +106,16 @@ the refined grids need the iterations of a uniform grid. Ring cells
 held by other ranks: the exchange at the start of each quadrant sweep
 (lagged, as the level-0 halo). With parents on other ranks (G 40) the
 level-by-level sweeps are used.
+Faces across patches and ranks (Phase 16): a cell next to a covered cell
+takes the face spectrum of the covered cell (the mean of the two fine
+cells next to the face) also where the covered cell lies in another
+patch of the level or on another rank: on level 0 the covered halo
+cells are marked and their faces sent after every halo exchange; on the
+patches the ring cells whose source cell is covered take its face, from
+the fine cells on this rank or from the rank of the source patch with
+the fills. The discrete problem no longer depends on where a level is
+cut into patches, so a converged run on several ranks gives the result
+of one rank.
 Nonstationary runs keep the spectra of the start of the step on every
 grid (N0); stationary runs iterate until the largest relative change
 of Hs on all grids is below A 708.
@@ -284,7 +294,7 @@ private:
     void restrict_all();
     void restrict_level(int l);
     void fill_level(int l);
-    void fill_local(seastate_amr_patch*);
+    void fill_local(seastate_amr_patch*, int id);
     vector<vector<int>> order[4];           // [q][l]: patches of level l in the downstream order of quadrant q
     void sweep_level(int l, int q, double rdt, bool refraction, bool fshift);
 
@@ -319,6 +329,36 @@ private:
     std::mutex ring_mutex;                  // writes into the ring cells of the patches (ghost_fill)
     seastate_implicit* solver_of(int id, int t) {return t==0 ? SP(id)->solv : tsolv[t][id].get();}
     bool remote_blocks = false;             // a parent cell on another rank (restriction through the block plans)
+
+    // Phase 16: the faces of the covered level-0 cells at the rank boundaries. A covered cell next to a rank
+    // boundary has a face spectrum towards the halo cell (the mean of the two fine cells next to the face, as the
+    // faces inside the rank); the neighbour rank marks its halo cell as covered and takes the face spectrum for
+    // its cell next to it, so that the cells next to a patch of another rank see the outflow of the fine grid as
+    // on one rank. Sent after every level-0 halo exchange.
+    vector<int> rface_send[4], rface_recv[4];   // [side]: interior cells (i,j,...) with a face, halo cells taking one
+    bool rfaces = false;                        // any rank boundary with faces
+    void remote_faces_plan(ghostcell*);
+    void remote_faces(ghostcell*);
+    void halo0(lexer*, ghostcell*);             // level-0 halo exchange, then the faces
+
+    // Phase 16: the faces at the interfaces of the patches of one level (on this rank and across ranks). A ring cell
+    // whose source cell (the same cell of a neighbouring patch of the level) is covered by the next finer level is
+    // marked covered in its patch and takes the face spectrum of the source cell towards the patch (the mean of the
+    // two fine cells next to the face), as a cell next to a covered cell inside one patch. Without this the result
+    // depended on where the level is cut into patches, and so on the ranks (patches are cut at the rank boxes).
+    vector<vector<seastate_amr_flink>> rlinks;  // [id]: g = id, key of the ring face, the fine cells (patch L.id)
+    vector<vector<int>> rlink_of;               // [id][fill index]: index into rlinks[id], -1: none
+    struct ring_plan
+    {
+        reefamr_xplan X;                        // the face spectra of covered source cells on other ranks
+        vector<seastate_amr_flink> serve;       // served faces: the fine cells (L.id, i0..j1), L.g -1: none
+        vector<pair<int,long>> dst;             // received faces: patch id, key in its faces
+    };
+    vector<ring_plan> rplan;                    // [l]
+    void ring_faces_plan();
+    void ring_face(const seastate_amr_flink&, float*);  // the mean of the two fine cells, nbin values
+    void ring_faces_local(seastate_amr_patch*, int id);
+    void ring_faces_remote(int l);
 
     lexer *p0;
     level0 L0;

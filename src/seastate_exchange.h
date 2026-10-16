@@ -53,6 +53,18 @@ sides always exchange the same message sizes.
 void seastate_halo2(lexer*, ghostcell*, int nv, const std::function<void(int,int,double*)> &get,
                     const std::function<void(int,int,const double*)> &set);
 
+// Phase 16: the first halo layer, nv values per cell, with the side s of the rank boundary (0 i-, 1 i+, 2 j-, 3 j+):
+// get(s,i,j,v) reads them from the interior cell (i,j) next to side s, set(s,i,j,v) writes them into the halo cell
+// (i,j) of side s
+void seastate_halo1(lexer*, ghostcell*, int nv, int tag, const std::function<void(int,int,int,double*)> &get,
+                    const std::function<void(int,int,int,const double*)> &set);
+
+// Phase 16: nv floats on chosen cells of the first layer: send[s] the interior cells (i0,j0,i1,j1,...) next to side s,
+// in the order of the boundary cells of the side, recv[s] the halo cells of side s that take the values of the
+// neighbour rank in the same order (the neighbour's send list of the opposite side)
+void seastate_halo_list(lexer*, ghostcell*, int nv, int tag, const vector<int> send[4], const vector<int> recv[4],
+                        const std::function<void(int,int,int,float*)> &get, const std::function<void(int,int,int,const float*)> &set);
+
 class seastate_exchange : public increment
 {
 public:
