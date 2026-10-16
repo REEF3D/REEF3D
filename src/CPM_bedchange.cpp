@@ -218,7 +218,13 @@ void CPM::topo_column(lexer *p, fdm *a, ghostcell *pgc)
         if(zbf_ini==0)
         zbf(i,j) = z;
         
-        zbf(i,j) += MIN(1.0, p->dt/MAX(p->Q63,1.0e-12))*(z - zbf(i,j));
+        // Q 63 is a time of the bed (morphological time, Q 65 t): with the flow time the level seen by the fluid
+        // lagged the parcels by Q 65 Q 63 of bed time (pipeline, Q 65 50, Q 63 2: 100 s; the fluid bed 1 cm above
+        // the parcels under the pipe and up to 1 cm below them on the mound, where hundreds of deposited grains
+        // stood in the resolved flow and were carried into the wake)
+        const double mfz = p->Q65>0.0 ? p->Q65 : 1.0;
+        
+        zbf(i,j) += MIN(1.0, mfz*p->dt/MAX(p->Q63,1.0e-12))*(z - zbf(i,j));
         
         zb[(i+1)*nj + j+1] = zbf(i,j);
     }
