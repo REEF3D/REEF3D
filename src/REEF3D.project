@@ -826,6 +826,7 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Linear">
           <File Name="coral/linear/README.md"/>
+          <File Name="coral/linear/coral_modes.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Wind">
           <File Name="coral/wind/README.md"/>
@@ -2390,7 +2391,9 @@
           <File Name="coral/structure/coral_linear6.cpp"/>
           <File Name="coral/structure/coral_spring.cpp"/>
         </VirtualDirectory>
-        <VirtualDirectory Name="Linear"/>
+        <VirtualDirectory Name="Linear">
+          <File Name="coral/linear/coral_modes.cpp"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Wind"/>
         <VirtualDirectory Name="Aero"/>
         <VirtualDirectory Name="Control"/>
