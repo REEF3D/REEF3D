@@ -96,33 +96,19 @@ void nhflow_kepsilon_bc::bckin_matrix(lexer *p, fdm_nhf *d, double *KIN, double 
     if(d->thinbody!=nullptr)
     d->thinbody->matrix_walls(p,d,KIN);
 
-	int q;
-    int inflow=0;
-    int outflow=0;
-    
-    if(p->B98>=3 || p->B60==1)
-    inflow=1;
-    
-    if(p->B99>=3)
-    outflow=1;
-    
-    if(p->B60==1)
-    outflow=2;
-    
-        
         n=0;
         LOOP
         {
             if(p->flag4[IJK]>0 && p->DF[IJK]>0)
             {
-            if((p->flag4[Im1JK]<0 || p->DF[Im1JK]<0))// && inflow==0)
+            if((p->flag4[Im1JK]<0 || p->DF[Im1JK]<0))
             {
             if(TURBIN(Im1JK)) d->rhsvec.V[n] -= d->M.s[n]*KIN[Im1JK];   // discharge inflow profile (Dirichlet)
             else d->M.p[n] += d->M.s[n];   // zero gradient, implicit (was lagged)
             d->M.s[n] = 0.0;
             }
             
-            if((p->flag4[Ip1JK]<0 || p->DF[Ip1JK]<0))// && outflow==0)
+            if((p->flag4[Ip1JK]<0 || p->DF[Ip1JK]<0))
             {
             d->M.p[n] += d->M.n[n];
             d->M.n[n] = 0.0;
@@ -221,27 +207,13 @@ void nhflow_kepsilon_bc::bcepsilon_matrix(lexer *p, fdm_nhf *d, double *KIN, dou
     if(d->thinbody!=nullptr)
     d->thinbody->matrix_walls(p,d,EPS);
 
-	int q;
-    int inflow=0;
-    int outflow=0;
-    
-    if(p->B98>=3 || p->B60==1)
-    inflow=1;
-    
-    if(p->B99>=3)
-    outflow=1;
-    
-    if(p->B60==1)
-    outflow=2;
-    
-    
         n=0;
         LOOP
         {
             if(p->flag4[IJK]>0 && p->DF[IJK]>0)
             {
             // s
-            if(p->flag4[Im1JK]<0)// && inflow==0)
+            if(p->flag4[Im1JK]<0)
             {
             if(TURBIN(Im1JK)) d->rhsvec.V[n] -= d->M.s[n]*EPS[Im1JK];   // discharge inflow profile (Dirichlet)
             else d->M.p[n] += d->M.s[n];   // zero gradient, implicit (was lagged)
@@ -256,7 +228,7 @@ void nhflow_kepsilon_bc::bcepsilon_matrix(lexer *p, fdm_nhf *d, double *KIN, dou
             }
             
             // n
-            if(p->flag4[Ip1JK]<0)// && outflow==0)
+            if(p->flag4[Ip1JK]<0)
             {
             d->M.p[n] += d->M.n[n];
             d->M.n[n] = 0.0;

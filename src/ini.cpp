@@ -200,7 +200,7 @@ void control::ini_default()
     A557=1.86;   // double viscosity breaking wave
     
     A560=0;      // int turbulence model
-    A564=1;      // int eddyv limiter
+    A564=1;      // int eddyv limiter (NHFLOW: 1 realizability, 2 SST; >= 1 also the length-scale limit l <= kappa h)
     A565=0;      // int stabilization
     A566=0;      // int buoyancy
     A567=0;      // int fsf eps
@@ -1106,11 +1106,11 @@ void control::ini_default()
     T33=0;               // int kin source
     T34=1;               // int eddyv limiter
 	T36=0;				// int explciti free surface dampong through dissipation
-	T37=0.07;		    // int damping coefficient for T36
+	T37=0.07;		    // double free-surface length scale y' for T36 / NHFLOW A567
     T38=1.6;            // double epsi fsf turbulence damping
     T39=0;              // blend fsf eddyv with sgs-eddyv
     T41=0;              // int RANS stabilization
-    T42=0.05;           // double lambda1 factor
+    T42=0.05;           // double lambda2 factor (Larsen & Fuhrman stabilization)
     T44=1.0;            // double komega_func wall BC velocity factor for DF
     T45=0;              // int buoyancy term
 

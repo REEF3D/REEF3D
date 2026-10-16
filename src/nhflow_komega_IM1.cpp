@@ -61,7 +61,7 @@ void nhflow_komega_IM1::start(lexer* p, fdm_nhf* d, ghostcell* pgc, nhflow_scala
     bckomega_start(p,d,KIN,EPS,gcval_kin);
     bckin_matrix(p,d,KIN,EPS);
     psolv->startV(p,pgc,KIN,d->rhsvec,d->M,4);
-    if(p->A566==1)   // buoyancy sink: keep k >= 0 also against the explicit convection
+    // k >= 0 also against the explicit convection (was only with the buoyancy sink A 566 1)
     LOOP
     KIN[IJK] = MAX(KIN[IJK],0.0);
     pgc->start20V(p,KIN,gcval_kin);
@@ -80,7 +80,6 @@ void nhflow_komega_IM1::start(lexer* p, fdm_nhf* d, ghostcell* pgc, nhflow_scala
     bcomega_matrix(p,d,KIN,EPS);
     bckomega_start(p,d,KIN,EPS,gcval_eps);
 	psolv->startV(p,pgc,EPS,d->rhsvec,d->M,4);
-    //bckomega_start(p,d,KIN,EPS,gcval_eps);
 	epsfsf(p,d,pgc);
     length_limit(p,d,true);   // l <= kappa h (A 564 >= 1)
 	pgc->start30V(p,EPS,gcval_eps);

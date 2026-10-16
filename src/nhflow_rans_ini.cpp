@@ -56,10 +56,7 @@ void nhflow_rans_io::ini(lexer* p, fdm_nhf *d, ghostcell* pgc)
     {
     beddist = p->ZSP[IJK] - d->bed(i,j);
     
-    inflow_profile(p, beddist, d->WL(i,j), KIN[IJK], EPS[IJK], d->EV[IJK]);
-    
-    if(p->B11==0)
-    EPS[IJK] = 1.0;
+    inflow_profile(p, beddist, d->WL(i,j), KIN[IJK], EPS[IJK], d->EV[IJK]);   // k, eps/omega and nu_t consistent
     }
     
     // inflow

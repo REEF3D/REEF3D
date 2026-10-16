@@ -94,6 +94,10 @@ void nhflow_komega_func::eddyvisc(lexer* p, fdm_nhf *d, ghostcell* pgc, vrans_nh
     // A564 0: nu_t = k/omega
     // A564 1: + realizability,  nu_t <= T31 k/S
     // A564 2: + SST/Bradshaw,   nu_t <= a1 k/(F2 S)
+    // SST: distance to the side walls with a wall function for F2 (computed once, nhflow_rans_io::walldist_h)
+    if(p->A564==2)
+    walldist_h(p,d,pgc);
+
     if(p->A560==2 || p->A560==22)
     LOOP
     {
@@ -242,30 +246,3 @@ void nhflow_komega_func::epsfsf(lexer *p, fdm_nhf *d, ghostcell *pgc)
 	EPS[IJK] = MAX(EPS[IJK], 2.5*pow(p->cmu,-0.25)*pow(fabs(KIN[IJK]),0.5)/(ly>1.0e-20?ly:1.0e-20));
 	}
 }
-
-double nhflow_komega_func::sst_walldist(lexer *p, fdm_nhf *d)
-{
-    double y = p->ZSP[IJK] - d->bed(i,j);
-
-    if(d->SOLID[IJK] > 0.0)
-    y = MIN(y, d->SOLID[IJK]);
-
-    return MAX(y, 1.0e-10);
-}
-
-double nhflow_komega_func::sst_F2(lexer *p, fdm_nhf *d, double kval, double wval)
-{
-    double y = sst_walldist(p,d);
-
-    kval = MAX(kval, 0.0);
-    wval = MAX(wval, 1.0e-20);
-
-    double arg2 = MAX( 2.0*sqrt(kval)/(p->cmu*wval*y),
-                       500.0*d->VISC[IJK]/(y*y*wval) );
-
-    arg2 = MIN(arg2, 25.0);
-
-    return tanh(arg2*arg2);
-}
-
-

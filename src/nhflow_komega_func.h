@@ -44,9 +44,6 @@ public:
 	void epsfsf(lexer*,fdm_nhf*,ghostcell*);
 	void eddyvisc(lexer*,fdm_nhf*,ghostcell*,vrans_nhflow*);
 	void clearfield(lexer*,fdm_nhf*,double*);
-    
-    double sst_walldist(lexer *p, fdm_nhf *d);
-    double sst_F2(lexer *p, fdm_nhf *d, double kval, double wval);
 
 	int count,q;
 	double starttime;
