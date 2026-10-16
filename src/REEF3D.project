@@ -845,6 +845,7 @@
           <File Name="coral/hydro/README.md"/>
           <File Name="coral/hydro/coral_hydro_db.h"/>
           <File Name="coral/hydro/coral_hydro_load.h"/>
+          <File Name="coral/hydro/coral_member_morison.h"/>
           <File Name="coral/hydro/coral_morison.h"/>
           <File Name="coral/hydro/coral_radiation.h"/>
           <File Name="coral/hydro/coral_waves.h"/>
@@ -2411,6 +2412,7 @@
         <VirtualDirectory Name="Hydro">
           <File Name="coral/hydro/coral_hydro_db.cpp"/>
           <File Name="coral/hydro/coral_hydro_load.cpp"/>
+          <File Name="coral/hydro/coral_member_morison.cpp"/>
           <File Name="coral/hydro/coral_morison.cpp"/>
           <File Name="coral/hydro/coral_radiation.cpp"/>
           <File Name="coral/hydro/coral_waves.cpp"/>
