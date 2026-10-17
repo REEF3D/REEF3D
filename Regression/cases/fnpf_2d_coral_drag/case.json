@@ -1,0 +1,9 @@
+{
+ "description": "The FNPF box of fnpf_2d_coral_fluid_body (Z 40 1, fluid_body, heave joint) with CORAL's quadratic drag (drag ... Cd area) in place of the PTO: heave decay from its start 3 cm above equilibrium; REEF3D_FNPF_6DOF and REEF3D_CORAL (with the drag channels) compared.",
+ "base": "fnpf_2d_6dof_box",
+ "ctrl_set": {"X 11": "0 0 1 0 0 0"},
+ "ctrl_add": ["Z 40 1"],
+ "files": ["coral.txt"],
+ "tags": ["2d", "fnpf", "6dof", "floating", "coral"],
+ "covers": ["CORAL body_drag (drag keyword) on a fluid body"]
+}
