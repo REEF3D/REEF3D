@@ -13,7 +13,10 @@
 // predictor (the load of the next fluid stage at a predicted pose as a provisional sample) the error of
 // CORAL's own time integration; constant loads much worse (a lagged restoring force is a negative
 // damping); the predictor stable at ten steps per period; a body 100 times lighter than its added
-// mass stays stable; the fluid_body and fluid_coupling keywords.
+// mass stays stable; the fluid_body and fluid_coupling keywords. A fluid without the instantaneous added
+// mass (NHFLOW: the reaction of the body acceleration it saw is in its loads): the artificial added mass
+// of CORAL stabilises a body ten times lighter than its added mass; As = A is as accurate as the implicit
+// added mass, other values are stable with an error growing with |A - As|.
 // Sampled kinematics (src/coral/hydro/coral_sampled_kinematics): the points of Morison members on frame
 // members and bodies and of a dynamic mooring line (kinematics_points); an emulated fluid (linear waves)
 // sampled there once per fluid step: velocity, acceleration (time derivative of the polynomial) and
@@ -249,6 +252,96 @@ static void test_coupled_heave()
     // light body: m = A/100 (the added mass explicit in the loads would be unstable)
     const double el = heave_error(6.0, A, C, B, T/100.0, 2, 1, st, false, true);
     check(st && el < 3.0*epb, fmt("body 100 times lighter than its added mass: stable, max error %.2e of z0", el));
+}
+
+// heaving body, emulated fluid without the instantaneous added mass (NHFLOW): its loads contain the
+// reaction -A a_f of the body acceleration a_f it saw (the mean of its step), F = -C z - B z' - A a_f;
+// CORAL's artificial added
+// mass As makes the staggered coupling implicit with compensation (fluid_load::set_artificial_added_mass)
+static double heave_error_lagged(double mass, double A, double As, double C, double B, double dt_fluid, bool &stable,
+                                 bool predictor=true, int order=2)
+{
+    model m;
+    rigid_body b;
+    b.name = "buoy"; b.mass = mass; b.inertia = Vec3(1, 1, 1).asDiagonal()*mass;
+    m.add_body(b);
+    m.gravity = Vec3::Zero();
+    fluid_load &fl = static_cast<fluid_load&>(m.add_load(std::make_unique<fluid_load>(m, std::vector<int>{0})));
+    fl.order = order;
+    Mat6 Ma = Mat6::Zero();
+    Ma(2,2) = As;
+    if(As > 0.0)
+        fl.set_artificial_added_mass(0, Ma);
+    const double z0 = 0.2;
+    m.bodies[0].x(2) = z0;
+    // the accelerations of the body when the fluid sampled (as the coupling passes them)
+    auto sample = [&](double t, double z, double v, double a, bool prov)
+    {
+        VecX F = VecX::Zero(6), acc = VecX::Zero(6);
+        F(2) = -C*z - B*v - A*a;
+        acc(2) = a;
+        fl.set_sample(t, F, MatX(), prov, acc);
+    };
+    timeint_settings ts;
+    ts.rho_inf = 1.0;
+    timeint ti(ts);
+    // start at rest: the consistent acceleration of the free decay
+    const double a0 = -C*z0/(mass + A);
+    m.bodies[0].vd(2) = a0;
+    sample(0.0, z0, 0.0, a0, false);
+    ti.initialize(m, 0.0);
+    const double M = mass + A, wn = std::sqrt(C/M), zeta = B/(2.0*std::sqrt(C*M)), wd = wn*std::sqrt(1.0 - zeta*zeta);
+    const double T = 2.0*M_PI/wn;
+    const int n = (int)std::lround(5.0*T/dt_fluid);
+    double err = 0.0;
+    stable = true;
+    for(int i=0; i<n; ++i)
+    {
+        const double t = i*dt_fluid, h = dt_fluid;
+        const rigid_body &r = m.bodies[0];
+        // predictor: the fluid's stage at the predicted pose (Taylor, constant acceleration)
+        if(predictor)
+            sample(t + h, r.x(2) + h*r.v(2) + 0.5*h*h*r.vd(2), r.v(2) + h*r.vd(2), r.vd(2), true);
+        const double v0 = r.v(2);
+        ti.step(m, t, h);
+        // the fluid at the end of the step, at CORAL's motion: it reacts to the mean acceleration of its
+        // step (the change of the imposed body velocity, as NHFLOW's direct forcing; the coupling passes
+        // the same mean)
+        sample(t + h, r.x(2), r.v(2), (r.v(2) - v0)/h, false);
+        const double t1 = t + h;
+        const double ze = z0*std::exp(-zeta*wn*t1)*(std::cos(wd*t1) + zeta*wn/wd*std::sin(wd*t1));
+        err = std::max(err, std::fabs(r.x(2) - ze));
+        if(!(std::fabs(r.x(2)) < 10.0*z0)) {stable = false; break;}
+    }
+    return err/z0;
+}
+
+static void test_artificial_added_mass()
+{
+    std::cout<<"fluid without its own added mass: artificial added mass"<<std::endl;
+    const double A = 600.0, C = 4.0e4, B = 800.0;
+    const double T = 2.0*M_PI*std::sqrt((1000.0 + A)/C);
+    bool st, s0, s1, s2, s3;
+    // reference: the same body with the added mass implicit (as FNPF hands it over)
+    const double eref = heave_error(1000.0, A, C, B, T/100.0, 2, 1, st, false, true);
+    const double eh = heave_error_lagged(1000.0, A, A, C, B, T/100.0, s1);
+    const double eh0 = heave_error_lagged(1000.0, A, 0.0, C, B, T/100.0, s0);
+    check(s1 && eh < 3.0*eref, fmt("m = 1000, A = 600: As = A max error %.2e of z0 (added mass implicit %.2e; As = 0: %.2e)", eh, eref, s0 ? eh0 : 1.0/0.0));
+    // light body m = A/10: explicit added mass unstable, As stabilises, the result does not depend on As
+    const double T2 = 2.0*M_PI*std::sqrt((60.0 + A)/C);
+    heave_error_lagged(60.0, A, 0.0, C, B, T2/100.0, s0);
+    const double ea = heave_error_lagged(60.0, A, A, C, B, T2/100.0, s1);
+    const double eb = heave_error_lagged(60.0, A, 0.6*A, C, B, T2/100.0, s2);
+    const double ec = heave_error_lagged(60.0, A, 2.0*A, C, B, T2/100.0, s3);
+    check(!s0, "light body (m = A/10) without artificial added mass: unstable");
+    // the provisional sample carries -(A - As) a^n explicitly: As = A is as accurate as the implicit
+    // added mass, other values stay stable with an error that grows with |A - As|
+    check(s1 && s2 && s3 && ea < 1.5*heave_error(60.0, A, C, B, T2/100.0, 2, 1, st, false, true) && eb > ea && ec > ea && eb < 0.25 && ec < 0.25,
+          fmt("light body with As = A, 0.6 A, 2 A: stable, max error %.2e %.2e %.2e of z0 over 5 periods", ea, eb, ec));
+    const double ea2 = heave_error_lagged(60.0, A, A, C, B, T2/200.0, st);
+    check(st && ea/ea2 > 3.0, fmt("light body, As = A: second order in the fluid step (error ratio %.2f from T/100 to T/200)", ea/ea2));
+    const double en = heave_error_lagged(60.0, A, A, C, B, T2/100.0, st, false, 2);
+    check(st && en < 2.0*ea, fmt("light body, As = A, without the predictor (quadratic extrapolation): stable, max error %.2e of z0", en));
 }
 
 static void test_input()
@@ -538,6 +631,7 @@ int main()
     test_track();
     test_load();
     test_coupled_heave();
+    test_artificial_added_mass();
     test_input();
     test_sampled();
     test_one_way();

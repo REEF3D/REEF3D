@@ -37,6 +37,19 @@ Architect: Hans Bihs
 // without the acceleration term (FNPF: psi_0 = phi_t or chi without the body accelerations), so the
 // added mass is implicit in CORAL's Newton iterations and the coupling is stable for light bodies.
 // The loads act at the CoG of each body, or at a point of application given by set_attachment.
+// A fluid without the instantaneous added mass (NHFLOW, CFD) delivers loads that contain the reaction of
+// the body accelerations it imposed, one stage late; a staggered coupling of light bodies is then unstable.
+// The artificial added mass A_s (set_artificial_added_mass) makes it implicit with compensation:
+//   F_total(t) = P(t) - A_s a,   P: the polynomial through the samples F_k + A_s a_k
+// a_k: the accelerations of the bodies the fluid saw in the step that produced sample k (the coupling
+// passes them: the mean acceleration (v_k - v_k-1)/(t_k - t_k-1) of the step for a committed sample, the
+// acceleration of the predictor for a provisional one), so the extra term A_s (a_k - a) vanishes where
+// CORAL's motion is the fluid's. Within a step the provisional sample keeps -(A - A_s) a^n explicit: A_s
+// close to the added mass A the fluid reacts with within a step gives the accuracy of an implicit added
+// mass (FNPF), other values stay stable over a wide range (0.6 A to 2 A for a body ten times lighter than
+// A, coral_fluid_test) with an error growing with |A - A_s|. NHFLOW reacts within a step with much less
+// than the added mass of the body's oscillation; A_s far above that reaction is unstable as well
+// (validation 08).
 
 #ifndef CORAL_FLUID_LOAD_H_
 #define CORAL_FLUID_LOAD_H_
@@ -64,7 +77,10 @@ namespace coral
 
         // fluid loads at the fluid time t (6N) and the added mass (6N x 6N; empty: keep the last);
         // provisional: a stage of the current fluid step (see above)
-        void set_sample(double t, const VecX &F, const MatX &A=MatX(), bool provisional=false);
+        void set_sample(double t, const VecX &F, const MatX &A=MatX(), bool provisional=false, const VecX &a=VecX());
+        // artificial added mass of fluid body k (6x6, global, about the CoG; see above)
+        void set_artificial_added_mass(int k, const Mat6 &As);
+        bool has_artificial_added_mass() const {return As_.any();}
         bool has_sample() const {return !ts_.empty();}
         double sample_time() const {return ts_.empty() ? 0.0 : ts_.back();}
         bool has_provisional() const {return prov_;}
@@ -73,6 +89,7 @@ namespace coral
         VecX force(double t) const;
         VecX added_mass_force(const model&) const;
         VecX acceleration(const model&) const;
+        VecX velocity(const model&) const;
         const MatX &added_mass() const {return A_;}
         // point of application of the load of fluid body k (global, now; default its CoG): the loads are
         // about that point (one-way loads of a fluid body on a CORAL body that is not the fluid body itself)
@@ -89,6 +106,7 @@ namespace coral
         std::vector<VecX> Fs_;
         bool prov_ = false;
         MatX A_;
+        MatX As_;                       // artificial added mass (block diagonal)
     };
 }
 

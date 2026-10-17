@@ -106,6 +106,9 @@ namespace coral
         body_track track_;
         double t_ = 0.0, next_out_ = 0.0;
         long nstep_ = 0;
+        bool am_told_ = false;
+        VecX v_commit_;                 // velocities of the fluid bodies at the last committed sample
+        double t_commit_ = 0.0;
         bool fluid_started_ = false;
         bool twoway_ = false;
         double t_load_ = -1.0e300;

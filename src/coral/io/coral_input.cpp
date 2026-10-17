@@ -719,6 +719,16 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
             fb.one_way = it.has("one_way");
             fb.excitation = it.has("excitation");
             if(fb.excitation && !fb.one_way) it.fail("excitation needs one_way");
+            const int ia = it.find("added_mass");
+            if(ia >= 0)
+            {
+                if(fb.one_way) it.fail("added_mass is for two-way bodies, not one_way");
+                for(int d=0; d<6; ++d)
+                {
+                    fb.added_mass(d) = it.num(ia+1+d);
+                    if(fb.added_mass(d) < 0.0) it.fail("added_mass must not be negative");
+                }
+            }
             for(const auto &o : fluid_bodies)
             {
                 if(o.body == fb.body) it.fail("body '" + it.word(1) + "' is a fluid body twice");
@@ -794,6 +804,9 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
             b.push_back(o.body);
         fluid = &static_cast<fluid_load&>(m.add_load(std::make_unique<fluid_load>(m, b, "fluid")));
         fluid->order = fluid_order;
+        for(int k=0; k<(int)fluid_bodies.size(); ++k)
+            if(fluid_bodies[k].added_mass.any())
+                fluid->set_artificial_added_mass(k, fluid_bodies[k].added_mass.asDiagonal());
     }
 
     // initial displacements (the joints, the reference positions of the loads and the line attachments

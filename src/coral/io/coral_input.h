@@ -81,10 +81,18 @@ Architect: Hans Bihs
 //   pile <frame member> soil <soil> D <D> [py] [tz] [qz] [linear]
 //        (springs at the member's nodes below the mudline; all three kinds unless some are listed;
 //        linear: initial slopes only)
-//   fluid_body <body> [n <k>] [own_mass] [one_way [excitation]]
+//   fluid_body <body> [n <k>] [own_mass] [added_mass <a1 .. a6>] [one_way [excitation]]
 //        (REEF3D with Z 40 1: the body is driven by CORAL, the resolved fluid acts on it; k: number of the
 //        REEF3D 6DOF body (X 20 order, default: the order of the fluid_body lines); mass and inertia are
-//        taken from the REEF3D body unless own_mass; FNPF only so far, see coral/reef3d.
+//        taken from the REEF3D body unless own_mass; FNPF and NHFLOW, see coral/reef3d.
+//        added_mass: an artificial added mass (diagonal, surge sway heave roll pitch yaw, global axes about
+//        the CoG) for a fluid without its own (NHFLOW): implicit in CORAL and compensated by the same mass
+//        times the acceleration the fluid saw; it stabilises the staggered coupling of light bodies. Use it
+//        only where needed: NHFLOW reacts to the body acceleration within a step with much less than the
+//        added mass of the body's motion: half to once that added mass stabilised a box 9 times lighter
+//        than it (validation 08) at a few percent error in the start transient, a quarter did not, and
+//        twice made the 4 kg box unstable too; for bodies not much lighter than their added mass leave it
+//        out (more accurate).
 //        one_way: REEF3D keeps its body fixed (X 11 0) or prescribed, only its loads act on the CORAL body,
 //        at the REEF3D CoG, which may be any CORAL body (FNPF and NHFLOW); excitation: without the load of
 //        the start (still water), e.g. with the hydrostatics and radiation of a hydro database)
@@ -156,7 +164,8 @@ namespace coral
         double rho = 1025.0;
 
         // bodies driven by the resolved fluid of REEF3D (fluid_body) and their load
-        struct fluid_body_spec {int body = -1; int n = 0; bool own_mass = false; bool one_way = false; bool excitation = false;};
+        struct fluid_body_spec {int body = -1; int n = 0; bool own_mass = false; bool one_way = false; bool excitation = false;
+                               Vec6 added_mass = Vec6::Zero();};
         std::vector<fluid_body_spec> fluid_bodies;
         fluid_load *fluid = nullptr;
         std::shared_ptr<sampled_kinematics> fluid_kin;     // fluid_kinematics

@@ -34,13 +34,24 @@ fluid_load::fluid_load(const model &m, const std::vector<int> &bodies, const std
         bname_.push_back(m.body(b).name);
     s_.assign(map_.size(), Vec3::Zero());
     A_ = MatX::Zero(6*nbody(), 6*nbody());
+    As_ = MatX::Zero(6*nbody(), 6*nbody());
 }
 
-void fluid_load::set_sample(double t, const VecX &F, const MatX &A, bool provisional)
+void fluid_load::set_artificial_added_mass(int k, const Mat6 &As)
+{
+    if(k >= 0 && k < nbody())
+        As_.block<6,6>(6*k, 6*k) = As;
+}
+
+void fluid_load::set_sample(double t, const VecX &F, const MatX &A, bool provisional, const VecX &a)
 {
     const int n = 6*nbody();
     if(F.size() != n)
         return;
+    // with the artificial added mass: the sample carries its compensation A_s a_k
+    VecX G = F;
+    if(a.size() == n)
+        G += As_*a;
     // a new sample replaces the provisional one and any sample at or after its time
     if(prov_)
     {
@@ -54,7 +65,7 @@ void fluid_load::set_sample(double t, const VecX &F, const MatX &A, bool provisi
         Fs_.pop_back();
     }
     ts_.push_back(t);
-    Fs_.push_back(F);
+    Fs_.push_back(G);
     prov_ = provisional;
     // keep the samples the polynomials need (3 committed + 1 provisional)
     while(ts_.size() > 4)
@@ -103,9 +114,21 @@ VecX fluid_load::acceleration(const model &m) const
     return a;
 }
 
+VecX fluid_load::velocity(const model &m) const
+{
+    VecX v(6*nbody());
+    for(int i=0; i<nbody(); ++i)
+    {
+        const rigid_body &b = m.body(map_[i]);
+        v.segment<3>(6*i) = b.v;
+        v.segment<3>(6*i+3) = b.R*b.w;
+    }
+    return v;
+}
+
 VecX fluid_load::added_mass_force(const model &m) const
 {
-    return -A_*acceleration(m);
+    return -(A_ + As_)*acceleration(m);
 }
 
 void fluid_load::eval(const model &m, double t, VecX &f) const

@@ -341,7 +341,32 @@ void coupling::fluid_loads(double t, const std::vector<Vec6> &F, const std::vect
             if(spec.excitation && k < (int)F_ref_.size() && F_ref_[k].size())
                 f.segment<6>(6*k) -= F_ref_[k];
         }
-        c_.fluid->set_sample(t, f, Am, provisional);
+        // the accelerations of the bodies the fluid saw in the step of this sample (artificial added mass):
+        // committed: the mean of CORAL's motion over the step (v(t) - v(t_last))/(t - t_last), CORAL has
+        // stepped to t; provisional: the predicted pose keeps the acceleration of the start
+        VecX acc;
+        if(c_.fluid->has_artificial_added_mass())
+        {
+            acc = c_.fluid->acceleration(c_.m);
+            if(!provisional)
+            {
+                const VecX v = c_.fluid->velocity(c_.m);
+                if(v_commit_.size() == v.size() && t > t_commit_)
+                    acc = (v - v_commit_)/(t - t_commit_);
+                v_commit_ = v;
+                t_commit_ = t;
+            }
+        }
+        else if(!am_told_ && Am.size() == 0)
+            for(const auto &spec : c_.fluid_bodies)
+                if(!spec.one_way)
+                {
+                    log_<<"CORAL: the fluid gives no added mass and fluid_body has no added_mass: the coupling is"
+                        <<" explicit in the loads, light bodies may need added_mass (coral/hydro/coral_fluid_load.h)"<<std::endl;
+                    break;
+                }
+        am_told_ = true;
+        c_.fluid->set_sample(t, f, Am, provisional, acc);
     }
     // first loads: consistent accelerations of the start with the fluid loads, masses of the fluid
     if(!fluid_started_ && !provisional)
