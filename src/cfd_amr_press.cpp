@@ -57,14 +57,14 @@ Architect: Hans Bihs
 //    - after the solve the fine faces are corrected with that flux, the coarse face is the mean of
 //      the fine faces (restriction): the velocities of all leaf cells are divergence free together
 //
-//  BiCGStab (reefamr_bicgstab), right preconditioned by one FAC sweep: the residual restricted
-//  onto level 0, a REEFMG V-cycle on level 0 (the whole rank grid with its own Poisson matrix),
-//  then level by level the correction prolonged into the patches and a patch-local REEFMG V-cycle
-//  on the residual it leaves (zero correction around the patch), as the composite solves of
-//  NHFLOW and FNPF with mesh refinement.  The patches of a rank next to each other take one
-//  V-cycle together (the joint multigrids); at the sides to the patches of another rank the
-//  V-cycles reach three cells into them (their rows and right-hand side, the correction kept
-//  inside: pr_ras, the overlap), on one rank without G 40 and periodic edges not needed.
+//  BiCGStab (reefamr_bicgstab), right preconditioned by one multiplicative FAC V-cycle (pr_prec):
+//  patch-local REEFMG V-cycles level by level down (zero correction around the patch), a REEFMG
+//  V-cycle on level 0 (the whole rank grid with its own Poisson matrix), patch-local V-cycles level
+//  by level up, every correction passed on into the finer levels at once.  The patches of a rank
+//  next to each other take one V-cycle together (the joint multigrids); at the sides to the
+//  patches of the level in another multigrid (another rank, or no joint multigrid) the V-cycles
+//  reach three cells into them (their rows and right-hand side, the correction kept inside:
+//  pr_ras, the overlap).
 
 namespace
 {
@@ -459,6 +459,18 @@ void cfd_amr::pr_setup()
     // G 40 has no joint multigrids)
     pr_level_mg_setup();
     pr_overlap();
+    {
+        int any = 0;
+        for(int id=0; id<npat; ++id)
+        for(int d=0; d<3; ++d)
+        if(CP(id)->olo[d]>0 || CP(id)->ohi[d]>0)
+        any = 1;
+        for(const cfd_amr_lmg &M : lmg)
+        if(!M.ovm.empty())
+        any = 1;
+        MPI_Allreduce(MPI_IN_PLACE,&any,1,MPI_INT,MPI_MAX,MPI_COMM_WORLD);
+        pr_ovl = (any>0);
+    }
 
     for(int id=0; id<npat; ++id)
     {
@@ -497,7 +509,7 @@ void cfd_amr::pr_setup()
         if(!c->mg->setup(MPI_COMM_SELF,nx,ny,nz,nx,ny,0,wx.data(),wy.data(),pr_wrap(id,0),pr_wrap(id,1)))
         cout<<"CFD AMR: patch multigrid "<<c->mg->err()<<endl;
     }
-    if(pr_ras())
+    if(pr_ovl)
     for(int id=0; id<npat; ++id)
     if(CP(id)->kc7.empty())
     for(int m=0; m<7; ++m)
@@ -999,7 +1011,7 @@ void cfd_amr::pr_level_mg_fill_comp(int m)
 
 // one V-cycle of the level multigrid of level l on the right-hand side kr of its patches, added
 // to z
-void cfd_amr::pr_level_vcycle(int m, int kr, int kz)
+void cfd_amr::pr_level_vcycle(int m, int kr, int kz, int kc)
 {
     const double t0 = MPI_Wtime();
     cfd_amr_lmg &M = lmg[m];
@@ -1035,24 +1047,29 @@ void cfd_amr::pr_level_vcycle(int m, int kr, int kz)
         cfd_amr_patch *c = CP(g);
         lexer *pp = c->pp;
         double *z = pvec(g,kz);
+        double *cc = (kc>=0) ? pvec(g,kc) : nullptr;
         const int o[3] = {M.o(g,0), M.o(g,1), M.o(g,2)};
         for(int i=0; i<pp->knox; ++i)
         for(int j=0; j<pp->knoy; ++j)
         for(int k=0; k<pp->knoz; ++k)
         {
             const int qq = cix(pp,i,j,k);
-            if(c->row[qq]>=0)
-            z[qq] += L.u[L.idx(i+o[0],j+o[1],k+o[2])];
+            if(c->row[qq]<0)
+            continue;
+            const double u = L.u[L.idx(i+o[0],j+o[1],k+o[2])];
+            z[qq] += u;
+            if(cc)
+            cc[qq] += u;
         }
     }
     tp[0] += MPI_Wtime()-t0;
 }
 
-void cfd_amr::pr_level_solve(int l, int kr, int kz)
+void cfd_amr::pr_level_solve(int l, int kr, int kz, int kc)
 {
     // the overlap (pr_ras): the right-hand side in the overlap of the patch multigrids (the patches next
     // to them)
-    if(pr_ras())
+    if(pr_ovl)
     {
         vector<fspec> fs;
         fs.push_back({CELL,2,[this,kr](int g) -> field& { return pfield(g,kr); }});
@@ -1060,10 +1077,10 @@ void cfd_amr::pr_level_solve(int l, int kr, int kz)
     }
     for(int m=0; m<(int)lmg.size(); ++m)
     if(P[lmg[m].ids[0]]->lev==l)
-    pr_level_vcycle(m,kr,kz);
+    pr_level_vcycle(m,kr,kz,kc);
     for(int id : lev[l])
     if(lmg_of[id]<0)
-    pr_patch_solve(id,kr,kz,-1);
+    pr_patch_solve(id,kr,kz,kc);
 }
 
 // the coarse value at the position of the fine cell of a face at a patch edge: from the coarse cell
@@ -1485,7 +1502,7 @@ void cfd_amr::pr_matrix(int s)
     // patches: their own matrix (before the couplings across the patch edges below), the couplings
     // to the cells around the patch dropped (G 40: those into the overlap kept, the rows of the
     // patches next to it there)
-    if(pr_ras())
+    if(pr_ovl)
     pr_coef_fill(-1);
     for(int id=0; id<npat; ++id)
     pr_patch_mg(id,1.0);
@@ -1932,15 +1949,21 @@ double cfd_amr::psi_band(int g)
     return (g<0) ? p0->psi : glex(g)->psi;
 }
 
-// z = M^-1 r: one FAC V-cycle over the levels.  Down: on every level, finest first, a patch-local
-// V-cycle on the composite residual (the cells under a finer patch take the residual of the finer
-// level); level 0: a V-cycle on the residual left; up: the correction of the coarser level prolonged
-// into the patches (not in the interface band of the coarser level), a patch-local V-cycle on the
-// residual left.
+// z = M^-1 r: one multiplicative FAC V-cycle over the levels.  Down: on every level, finest first, a
+// V-cycle of the level (patch-local or joint) on the composite residual (the cells under a finer patch
+// take the residual of the finer level); level 0: a V-cycle on the residual left; up: on every level,
+// coarsest first, a V-cycle of the level on the residual left.  Every correction of a level goes at
+// once into the finer levels under it (prolonged level by level, not in the interface band of the
+// coarser level), so that the next residual is that of all corrections so far.  (With the
+// correction of the down sweep kept on its level until the up sweep, the residual of the coarser
+// levels did not see it under the finer patches and their corrections took it again: a static
+// nested box without a density contrast took 4.7, 6.1, 12.3 and 35 BiCGStab iterations with 1, 2, 3
+// and 4 refined levels, four adaptive levels with a free surface 67; with the corrections passed on
+// 4.6-4.8, and 11.)
 void cfd_amr::pr_prec(int kr, int kz)
 {
     const int KT = REEFAMR_NTMP;        // residual
-    const int KC = REEFAMR_NVEC;        // correction of a level, prolonged to the next finer one
+    const int KC = REEFAMR_NVEC;        // the correction of a level, passed on to the finer levels
 
     // level projection (G 7 1): one patch-local V-cycle on every patch of the level
     if(prl>0)
@@ -1955,6 +1978,16 @@ void cfd_amr::pr_prec(int kr, int kz)
     }
 
     // (a patch: its cells and the layer around it, the cells the sweep reads and writes)
+    auto zero_patch = [&](int id, double *v)
+    {
+        lexer *q = CP(id)->pp;
+        for(int i=-1; i<=q->knox; ++i)
+        for(int j=-1; j<=q->knoy; ++j)
+        {
+            const size_t a = cix(q,i,j,-1);
+            std::fill(v+a,v+a+q->knoz+2,0.0);
+        }
+    };
     for(int g=-1; g<(int)P.size(); ++g)
     {
         lexer *q = glex(g);
@@ -1966,36 +1999,102 @@ void cfd_amr::pr_prec(int kr, int kz)
             std::fill(c,c+n,0.0);
             continue;
         }
-        for(int i=-1; i<=q->knox; ++i)
-        for(int j=-1; j<=q->knoy; ++j)
-        {
-            const size_t a = cix(q,i,j,-1);
-            std::fill(z+a,z+a+q->knoz+2,0.0);
-            std::fill(c+a,c+a+q->knoz+2,0.0);
-        }
+        zero_patch(g,z);
+        zero_patch(g,c);
     }
 
-    // a level: its multigrid over the patches together (several patches on the rank), else a
-    // patch-local V-cycle on each
-    auto level_solve = [&](int l, int kt) { pr_level_solve(l,kt,kz); };
-
+    // KC of a level: its cells around the patches (the slopes of the prolongation reach one cell)
     vector<fspec> fc;
     fc.push_back({CELL,2,[this](int g) -> field& { return pfield(g,REEFAMR_NVEC); }});
-    const fspec cl = {CELL,0,[this](int g) -> field& { return pfield(g,REEFAMR_NVEC); }};
 
-    // down
-    for(int l=maxlev; l>=1; --l)
+    // the correction of level l-1 (KC) prolonged into the patches of level l: added to z, and into
+    // KC of level l (linear: the central differences of the parent, as prolong mode 0)
+    auto into = [&](int l)
+    {
+        for(int id : lev[l])
+        {
+            cfd_amr_patch *c = CP(id);
+            lexer *pp = c->pp;
+            double *z = pvec(id,kz);
+            double *t = pvec(id,KC);
+            zero_patch(id,t);
+            for(const r3patch::pblock &B : c->par)
+            {
+                lexer *q = glex(B.g);
+                const double *f = pvec(B.g,KC);
+                const double bw = psi_band(B.g);
+                const long st[3] = {(long)q->jmax*q->kmax, (long)q->kmax, 1};
+                int og[3];
+                goff(B.g,og);
+                int Pg[3];
+                for(Pg[0]=B.lo[0]; Pg[0]<=B.hi[0]; ++Pg[0])
+                for(Pg[1]=B.lo[1]; Pg[1]<=B.hi[1]; ++Pg[1])
+                for(Pg[2]=B.lo[2]; Pg[2]<=B.hi[2]; ++Pg[2])
+                {
+                    const long qs = cix(q,Pg[0]-og[0],Pg[1]-og[1],Pg[2]-og[2]);
+                    const double c0 = f[qs];
+                    double sl[3];
+                    for(int d=0; d<3; ++d)
+                    sl[d] = (rr[d]==1) ? 0.0 : 0.5*((c0-f[qs-st[d]]) + (f[qs+st[d]]-c0));
+                    for(int a=0; a<rr[0]; ++a)
+                    for(int b=0; b<rr[1]; ++b)
+                    for(int e=0; e<rr[2]; ++e)
+                    {
+                        const int i = Pg[0]*rr[0]+a-c->lo[0], j = Pg[1]*rr[1]+b-c->lo[1], k = Pg[2]*rr[2]+e-c->lo[2];
+                        const int qq = cix(pp,i,j,k);
+                        if(c->row[qq]<0)
+                        continue;
+                        // not inside the interface band of the coarser level: there its density is
+                        // smeared over its own band (psi of each level), the fine cell is water or air,
+                        // and the coarse correction does not fit the fine rows (with 4 levels and a
+                        // free surface in the patches the composite BiCGStab diverged, 250 iterations);
+                        // the level solve takes these cells from the residual alone
+                        if(p0->F30>0 && fabs(c->a->phi(i,j,k))<bw)
+                        continue;
+                        double v = c0;
+                        v += sl[0]*(a==0 ? -0.25 : 0.25);
+                        v += sl[1]*(b==0 ? -0.25 : 0.25);
+                        v += sl[2]*(e==0 ? -0.25 : 0.25);
+                        t[qq] = v;
+                        z[qq] += v;
+                    }
+                }
+            }
+        }
+    };
+
+    // the correction of level l (KC) into all finer levels
+    auto pass_on = [&](int l)
+    {
+        for(int lv=l+1; lv<=maxlev; ++lv)
+        {
+            into(lv);
+            if(lv<maxlev)
+            fill(lv,fc,false,1);
+        }
+    };
+
+    // a V-cycle of level l on the residual kt, its correction passed on to the finer levels
+    auto level_solve = [&](int l, int kt)
     {
         if(l==maxlev)
         {
-            // z = 0: the residual is r
-            level_solve(l,kr);
+            pr_level_solve(l,kt,kz);
+            return;
         }
-        else
-        {
-            pr_residual(kr,kz,KT,l);
-            level_solve(l,KT);
-        }
+        for(int id : lev[l])
+        zero_patch(id,pvec(id,KC));
+        pr_level_solve(l,kt,kz,KC);
+        fill(l,fc,false,1);
+        pass_on(l);
+    };
+
+    // down (the finest level: z = 0, the residual is r)
+    for(int l=maxlev; l>=1; --l)
+    {
+        if(l<maxlev)
+        pr_residual(kr,kz,KT,l);
+        level_solve(l,(l==maxlev) ? kr : KT);
     }
 
     // level 0
@@ -2010,6 +2109,7 @@ void cfd_amr::pr_prec(int kr, int kz)
         for(size_t n=0; n<l0a.size(); ++n)
         L.f[l0a[n]] = t[l0f[n]];
 
+        lbar();
         const double t0 = MPI_Wtime();
         mg0->vcycle(0,1,1);
         tp[1] += MPI_Wtime()-t0;
@@ -2029,62 +2129,13 @@ void cfd_amr::pr_prec(int kr, int kz)
         vector<std::function<field&(int)>> f(1,[this](int g) -> field& { return pfield(g,REEFAMR_NVEC); });
         sh_down_f(f);
     }
+    pass_on(0);
 
     // up
     for(int l=1; l<=maxlev; ++l)
     {
-        for(int id : lev[l])
-        {
-            cfd_amr_patch *c = CP(id);
-            field &z = pfield(id,kz);
-            field &t = pfield(id,KC);
-            for(const r3patch::pblock &B : c->par)
-            {
-                int og[3];
-                goff(B.g,og);
-                int Pg[3];
-                for(Pg[0]=B.lo[0]; Pg[0]<=B.hi[0]; ++Pg[0])
-                for(Pg[1]=B.lo[1]; Pg[1]<=B.hi[1]; ++Pg[1])
-                for(Pg[2]=B.lo[2]; Pg[2]<=B.hi[2]; ++Pg[2])
-                {
-                    const int sp[3] = {Pg[0]-og[0],Pg[1]-og[1],Pg[2]-og[2]};
-                    for(int a=0; a<rr[0]; ++a)
-                    for(int b=0; b<rr[1]; ++b)
-                    for(int e=0; e<rr[2]; ++e)
-                    {
-                        const int o[3] = {a,b,e};
-                        const int i = Pg[0]*rr[0]+a-c->lo[0], j = Pg[1]*rr[1]+b-c->lo[1], k = Pg[2]*rr[2]+e-c->lo[2];
-                        if(c->row[cix(c->pp,i,j,k)]<0)
-                        continue;
-                        // not inside the interface band of the coarser level: there its density is
-                        // smeared over its own band (psi of each level), the fine cell is water or air,
-                        // and the coarse correction does not fit the fine rows (with 4 levels and a
-                        // free surface in the patches the composite BiCGStab diverged, 250 iterations);
-                        // the level solve below takes these cells from the residual alone
-                        if(p0->F30>0 && fabs(c->a->phi(i,j,k))<psi_band(B.g))
-                        continue;
-                        const double v = prolong(cl,B.g,sp,o);
-                        t(i,j,k) = v;
-                        z(i,j,k) += v;
-                    }
-                }
-            }
-        }
-
         pr_residual(kr,kz,KT,l);
         level_solve(l,KT);
-
-        // the correction of this level for the next finer one: all of z (zero before the cycle;
-        // the part of the down sweep is the coarse correction of the finer level's residual)
-        if(l<maxlev)
-        {
-            for(int id : lev[l])
-            {
-                lexer *q = CP(id)->pp;
-                std::copy(pvec(id,kz),pvec(id,kz)+q->imax*q->jmax*q->kmax,pvec(id,KC));
-            }
-            fill(l,fc);
-        }
     }
 }
 
@@ -2600,7 +2651,7 @@ void cfd_amr::pr_level(lexer *p, ghostcell *pgc, int l, int s)
         Mf.p[F.nf] += cfn + F.kf;
         cfn = 0.0;
     }
-    if(pr_ras())
+    if(pr_ovl)
     pr_coef_fill(l);
     for(int id : lev[l])
     {

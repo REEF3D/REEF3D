@@ -294,10 +294,13 @@ void cfd_amr::patch_step(int l, double dt, double th0, double t)
             margin_rovisc(id);
         }
 
+        {
+        cfd_amr_wclock wc(wtp);
         for(int id : lev[l])
         {
             pscope3 ps(pgc,CP(id)->a,a0);
             CP(id)->pmom->amr_ls_transport(CP(id)->pp,CP(id)->a,pgc,s);
+        }
         }
 
         // the coarser level at the output time of the stage
@@ -314,6 +317,7 @@ void cfd_amr::patch_step(int l, double dt, double th0, double t)
             if(it>0)
             fill(l,fo);
 
+            cfd_amr_wclock wc(wtp);
             for(int id : lev[l])
             {
                 pscope3 ps(pgc,CP(id)->a,a0);
@@ -341,19 +345,25 @@ void cfd_amr::patch_step(int l, double dt, double th0, double t)
         if(bodies)
         body_stage(l,s,t,dt);
 
+        {
+        cfd_amr_wclock wc(wtp);
         for(int id : lev[l])
         {
             pscope3 ps(pgc,CP(id)->a,a0);
             CP(id)->pmom->amr_momentum(CP(id)->pp,CP(id)->a,pgc,CP(id)->pvrans,(sixdof*)CP(id)->p6dof,s,patch_forcing());
         }
+        }
 
         // the projection of the level with the coarse flux at the patch edges
         pr_level(p0,pgc,l,s);
 
+        {
+        cfd_amr_wclock wc(wtp);
         for(int id : lev[l])
         {
             pscope3 ps(pgc,CP(id)->a,a0);
             CP(id)->pmom->amr_stage_end(CP(id)->pp,CP(id)->a,pgc,s);
+        }
         }
 
         // the finest level: the loads after its stage, on the finest grid at every hull triangle;
@@ -411,6 +421,7 @@ void cfd_amr::advance(int l, double dtc, double tc)
 
 void cfd_amr::step_sub(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof *p6dof)
 {
+    lbar();
     const double t0 = MPI_Wtime();
 
     for(auto q : P)

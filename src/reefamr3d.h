@@ -179,7 +179,8 @@ public:
     vector<int> col0;               // the rank of every level-0 column (I,J)
     int owner0(const int *I) const; // the rank that holds level-0 cell I (clamped into the domain)
     r3cplan sh_down;                // level 0 down into the arrays of the shadows (all their cells)
-    double load_w(int l) const;     // the work of a cell of level l (G 7 1: the steps of the level)
+    double load_w(int l) const;     // the work of a cell of level l (G 7 1: the steps of the level; a patch cell wpatch)
+    double wpatch = 1.0;            // the work of a patch cell against a level-0 cell (G 41, or measured)
     // items[peer]: grid, cell index here, global level-0 cell I0 I1 I2, tag (6 ints each)
     void cplan_build(r3cplan&, bool down, vector<vector<int>> &items);
     // the transfer: the items packed from src(m, grid) (an array, at the cell index), received into

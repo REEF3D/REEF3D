@@ -135,6 +135,8 @@ void control::ctrlrecv()
     ii++;
     G26 = dctrl[dd];
     dd++;
+    G41 = dctrl[dd];
+    dd++;
     G40 = ictrl[ii];
     ii++;
     G50 = ictrl[ii];

@@ -255,6 +255,15 @@ struct cfd_amr_cf
     double tdel[3];     // offset of the fine cell from the coarse centre (coarse cells), 0: none
 };
 
+// the time of a scope added to a timer
+struct cfd_amr_wclock
+{
+    double &a;
+    double t;
+    explicit cfd_amr_wclock(double &x) : a(x), t(MPI_Wtime()) {}
+    ~cfd_amr_wclock() { a += MPI_Wtime()-t; }
+};
+
 class cfd_amr : public reefamr3d, public amr_grid_lookup
 {
 public:
@@ -301,6 +310,7 @@ public:
     double tm[8] = {0,0,0,0,0,0,0,0};
     double tp[4] = {0,0,0,0};
     double t0l[3] = {0,0,0};        // G 7 0: the level-0 parts of tm[0], tm[1], tm[3]
+    double wtp = 0.0;               // the loops over the patches of this rank (their work without the fills)
 
 protected:
     r3patch* patch_new() override;
@@ -353,6 +363,14 @@ private:
     void flags(vector<vector<unsigned char>> &seed, bool init);
     bool flagged(int g, int i, int j, int k, int lt, bool init);
     void regrid(lexer*, ghostcell*);
+    // G 41 0 (several ranks): the work of the ranks measured since the last regrid, the weight of a
+    // patch cell for the placement (wpatch), the report; lbar: a barrier before a level-0 part (the
+    // waits for the patches of other ranks not in the level-0 timers)
+    bool lmeas() const;
+    void lbar();
+    void measure_load();
+    double ml_t0 = 0.0, ml_tp = 0.0;
+    int ml_n = 0;
     void regrid_old(const vector<int> &fresh, vector<vector<char>> &got);   // G 40: from the old patches of all ranks
     void patch_fields_ini(int id);
     void free_patch(cfd_amr_patch*);
@@ -412,12 +430,14 @@ private:
     void pr_covered_coef();                              // the coarse couplings under the finer patches from the fine faces
     void pr_halo0(field &f);                             // the halo of a level-0 vector (ranks, periodic edges)
     bool pr_wrap(int id, int d) const;                   // patch id over the whole length of periodic direction d
-    // the overlap of the patch multigrids at the sides where a patch of the level of another rank
-    // is next to it (a restricted additive Schwarz; the patches of one rank next to each other in a
-    // joint multigrid, with overlap cells for the sides to other ranks): on several ranks, G 40,
-    // periodic edges.  Without it the cuts at the rank boxes were a block Jacobi (a 3D band on 3
-    // ranks 60 BiCGStab iterations, 12 with it)
-    bool pr_ras() const { return nranks>1 || place>0 || per[0]>0 || per[1]>0; }
+    // the overlap of the patch multigrids at the sides where a patch of the level is next to it that
+    // is not in its joint multigrid (a restricted additive Schwarz; the patches of one rank next to
+    // each other in a joint multigrid, with overlap cells for the sides to other ranks): every run.
+    // Without it the cuts at the rank boxes were a block Jacobi (a 3D band on 3 ranks 60 BiCGStab
+    // iterations, 12 with it), and so were the sides between the patches of one rank in no joint
+    // multigrid (four adaptive levels with G 7 1: the level projections 13.6 iterations, 6.8 with it)
+    bool pr_ras() const { return true; }
+    bool pr_ovl = false;            // some patch multigrid of some rank has overlap cells (the fills of their rows, right-hand sides)
     void pr_level(lexer*, ghostcell*, int l, int s);
     void pr_sync_project(lexer*, ghostcell*);   // G 7 1: the synchronisation projection at the end of the level-0 step
     double psi_band(int g);                     // the half width of the interface band of grid g
@@ -493,8 +513,8 @@ private:
     void pr_level_mg_fill(int m);
     void pr_level_mg_fill_comp(int m);
     void pr_level_mg_ovrows(int m, double dshift);   // the rows of the overlap cells of a joint multigrid
-    void pr_level_vcycle(int m, int kr, int kz);
-    void pr_level_solve(int l, int kr, int kz);     // the V-cycles of level l: joint or patch-local
+    void pr_level_vcycle(int m, int kr, int kz, int kc=-1);
+    void pr_level_solve(int l, int kr, int kz, int kc=-1);     // the V-cycles of level l: joint or patch-local (the correction added to z, and to kc)
     // the fine level of the multigrid of patch id from its rows (diagonal times dshift), the couplings
     // to the cells around it dropped, G 40: over its box with the overlap (pr_overlap, pr_coef_fill)
     void pr_patch_mg(int id, double dshift);
