@@ -141,6 +141,11 @@ void fnpf_6DOF::stage(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, fnpf
     if(!initialized)
     ini(p,c,pgc);
     
+    // external dynamics: connect once at the first step (the external solver is set up after the
+    // fluid initialisation)
+    if(!ext_checked)
+    ext_connect(p,pgc);
+    
     pvel->velcalc_sig(p,c,pgc,c->Fi);
     pgc->gcparax7(p,c->U,7);
     pgc->gcparax7(p,c->V,7);
@@ -410,6 +415,12 @@ void fnpf_6DOF::forces(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, fnp
 
 void fnpf_6DOF::motion(lexer *p, fdm_fnpf *c, ghostcell *pgc, int iter)
 {
+    if(pext!=nullptr)
+    {
+    motion_external(p,c,pgc,iter);
+    return;
+    }
+    
     // last stage: 2 for RK3 (A 310 3), 3 for RK4 (A 310 4)
     const bool finalize = (iter == ((p->A310==3) ? 2 : 3));
     

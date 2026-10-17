@@ -817,6 +817,7 @@
           <File Name="coral/core/coral_rotation.h"/>
           <File Name="coral/core/coral_static.h"/>
           <File Name="coral/core/coral_timeint.h"/>
+          <File Name="coral/core/coral_track.h"/>
           <File Name="coral/core/coral_types.h"/>
           <File Name="coral/core/coral_version.h"/>
         </VirtualDirectory>
@@ -843,6 +844,7 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Hydro">
           <File Name="coral/hydro/README.md"/>
+          <File Name="coral/hydro/coral_fluid_load.h"/>
           <File Name="coral/hydro/coral_hydro_db.h"/>
           <File Name="coral/hydro/coral_hydro_load.h"/>
           <File Name="coral/hydro/coral_member_morison.h"/>
@@ -1084,6 +1086,7 @@
           <File Name="6DOF_rigidbody.h"/>
           <File Name="6DOF_geometry.h"/>
           <File Name="6DOF_load.h"/>
+          <File Name="6DOF_external.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Geometry">
           <File Name="6DOF_obj_remesh.h"/>
@@ -2393,6 +2396,7 @@
           <File Name="coral/core/coral_rotation.cpp"/>
           <File Name="coral/core/coral_static.cpp"/>
           <File Name="coral/core/coral_timeint.cpp"/>
+          <File Name="coral/core/coral_track.cpp"/>
           <File Name="coral/core/coral_version.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Structure">
@@ -2409,6 +2413,7 @@
         <VirtualDirectory Name="Aero"/>
         <VirtualDirectory Name="Control"/>
         <VirtualDirectory Name="Hydro">
+          <File Name="coral/hydro/coral_fluid_load.cpp"/>
           <File Name="coral/hydro/coral_hydro_db.cpp"/>
           <File Name="coral/hydro/coral_hydro_load.cpp"/>
           <File Name="coral/hydro/coral_member_morison.cpp"/>
@@ -2776,6 +2781,7 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Interface FNPF">
           <File Name="fnpf_6DOF.cpp"/>
+          <File Name="fnpf_6DOF_external.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Net Interface">
           <File Name="net_interface_membrane_nhflow.cpp"/>
@@ -2839,6 +2845,8 @@
             <File Name="6DOF_obj_trans_matrices.cpp"/>
             <File Name="6DOF_obj_solve.cpp"/>
             <File Name="6DOF_obj_fbvel.cpp"/>
+            <File Name="6DOF_obj_external.cpp"/>
+            <File Name="6DOF_external.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Forcing">
             <File Name="6DOF_obj_forcing_nhflow_wavemaker.cpp"/>
