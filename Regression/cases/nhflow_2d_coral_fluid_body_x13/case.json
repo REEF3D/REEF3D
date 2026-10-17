@@ -1,0 +1,7 @@
+{
+ "description": "nhflow_2d_coral_fluid_body with X 13 1 (the body advanced at the start of the stage, the water level of the pierced columns from the surrounding free surface): CORAL's poses set in advance_stage; REEF3D_NHFLOW_6DOF and REEF3D_CORAL compared.",
+ "base": "nhflow_2d_coral_fluid_body",
+ "ctrl_add": ["X 13 1"],
+ "tags": ["2d", "nhflow", "6dof", "floating", "coral"],
+ "covers": ["sixdof_nhflow::advance_stage with external dynamics"]
+}

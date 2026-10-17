@@ -1,0 +1,8 @@
+{
+ "description": "The box of cfd_2d_coral_fluid_body held (X 11 0): its CFD loads one-way on a rigid CORAL body (fluid_body ... one_way) and in 10 strips along a clamped beam spanning it (fluid_member, STL load integration); REEF3D_CFD_6DOF and REEF3D_CORAL compared.",
+ "base": "cfd_2d_coral_fluid_body",
+ "ctrl_set": {"X 11": "0 0 0 0 0 0"},
+ "files": ["coral.txt"],
+ "tags": ["2d", "6dof", "levelset", "coral"],
+ "covers": ["6DOF_cfd_external one-way", "6DOF strips (forces_stl)"]
+}

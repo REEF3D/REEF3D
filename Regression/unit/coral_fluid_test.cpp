@@ -6,7 +6,8 @@
 //
 // Tests: body track (Hermite interpolation of position, velocity, rotation and angular velocity of an
 // analytic motion between recorded states, exact at the recorded times); fluid load (extrapolation
-// of the samples, added-mass force on the accelerations, channels); a heaving body driven by an
+// of the samples, added-mass force on the accelerations, channels, at most linear beyond a provisional
+// sample inside the step); a heaving body driven by an
 // emulated fluid solver that hands over the hydrostatic and damping loads of its own time levels plus
 // the added mass (the coupling of coral/reef3d): period and decay against the damped oscillator
 // (m + A) z'' + B z' + C z = 0: second order in the fluid time step; with quadratic extrapolation or the
@@ -159,6 +160,19 @@ static void test_load()
     std::vector<std::string> names;
     fl.channel_names(names);
     check(names.size() == 6 && names[2] == "fluid_float_Fz", "channels fluid_<body>_Fx .. Mz");
+    // a provisional sample inside the step (CFD low-storage RK3): beyond it at most linear
+    fluid_load fp(m, {0});
+    fp.order = 2;
+    VecX F2(6);
+    F2 << 0, 2, 9, 4, 3, 6;
+    fp.set_sample(0.0, F0);
+    fp.set_sample(0.1, F1);
+    fp.set_sample(0.1 + 0.1*8.0/15.0, F2, MatX(), true);
+    const double tp = 0.1 + 0.1*8.0/15.0, te = 0.2;
+    const VecX lin = F2 + (te - tp)/(tp - 0.1)*(F2 - F1);
+    double l0 = (0.15 - 0.1)*(0.15 - tp)/((0.0 - 0.1)*(0.0 - tp)), l1 = (0.15 - 0.0)*(0.15 - tp)/((0.1 - 0.0)*(0.1 - tp)), l2 = (0.15 - 0.0)*(0.15 - 0.1)/((tp - 0.0)*(tp - 0.1));
+    check((fp.force(te) - lin).norm() < 1.0e-12 && (fp.force(0.15) - (l0*F0 + l1*F1 + l2*F2)).norm() < 1.0e-12,
+          "provisional sample inside the step: quadratic up to it, linear beyond");
 }
 
 // heaving body, emulated fluid: F = -C z - B z' at the fluid time levels, added mass A

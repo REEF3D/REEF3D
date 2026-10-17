@@ -15,6 +15,8 @@
 // zero crossing interpolation, latching and declutching controllers, hydrodynamic table and B_opt,
 // prismatic joint of one body (q, qd, J against finite differences); latching with a stiff latch
 // spring in the CORAL joint PTO.
+// Joint drive (prescribed joint motion, coral_joint_drive): a mass on a spring follows the sine with the
+// ramp, the drive force is the force the motion needs (m q'' + k q), translation and rotation; keyword.
 // Architect: Hans Bihs
 #include"coral/core/coral_model.h"
 #include"coral/core/coral_timeint.h"
@@ -25,6 +27,8 @@
 #include"coral/pto/coral_pto_elements.h"
 #include"coral/pto/coral_pto_joint.h"
 #include"coral/pto/coral_pto_controller.h"
+#include"coral/pto/coral_joint_drive.h"
+#include"coral/io/coral_input.h"
 #include"coral/core/coral_rotation.h"
 #include<fstream>
 #include<iostream>
@@ -550,6 +554,56 @@ static void test_latch_spring()
     check(holds >= 3 && dq < 2.0*k*0.08/1.0e6, fmt("held at %.0f turns, drift from the latched position %.1e m", holds, dq));
 }
 
+static void test_drive()
+{
+    std::cout<<"joint drive (prescribed motion)"<<std::endl;
+    for(bool rot : {false, true})
+    {
+        const double mass = 4.0, kspring = 300.0;
+        model m;
+        rigid_body b;
+        b.mass = mass;
+        b.inertia = Vec3(1, 1, 1).asDiagonal()*mass;
+        m.add_body(b);
+        m.gravity = Vec3::Zero();
+        joint &j = static_cast<joint&>(m.add_constraint(std::make_unique<joint>(m, rot ? joint_type::revolute : joint_type::prismatic,
+                                                                                 -1, 0, Vec3::Zero(), Vec3::UnitX())));
+        Mat6 K = Mat6::Zero();
+        K(rot ? 3 : 0, rot ? 3 : 0) = kspring;
+        m.add_load(std::make_unique<linear6>(m, 0, Vec3::Zero(), K, Mat6::Zero()));
+        drive_settings ds;
+        ds.amp = 0.02; ds.period = 1.3; ds.ramp = 1.3;
+        joint_drive &d = static_cast<joint_drive&>(m.add_load(std::make_unique<joint_drive>(j, rot, ds, "drive")));
+        timeint ti;
+        ti.initialize(m, 0.0);
+        double eq = 0.0, eF = 0.0, Fmax = 0.0;
+        const double h = 0.005;
+        for(int i=0; i<int(5.2/h); ++i)
+        {
+            ti.step(m, i*h, h);
+            const double t = (i + 1)*h;
+            double qp, qdp, qddp;
+            d.prescribed(t, qp, qdp, qddp);
+            const double q = rot ? j.rotation_coordinate(m) : j.coordinate(m);
+            const double Fneed = mass*qddp + kspring*qp;
+            eq = std::max(eq, std::fabs(q - qp));
+            eF = std::max(eF, std::fabs(d.force(m, t) - Fneed));
+            Fmax = std::max(Fmax, std::fabs(Fneed));
+        }
+        check(eq < 1.0e-3*ds.amp && eF < 0.02*Fmax, fmt(rot ? "revolute: max |q - q_p| %.1e (of %.2f), drive torque against I q'' + k q: max error %.1e of %.2f"
+                                                        : "prismatic: max |q - q_p| %.1e m (of %.2f), drive force against m q'' + k q: max error %.1e of %.2f N",
+                                                        eq, ds.amp, eF, Fmax));
+    }
+    coral_case c;
+    c.read_string("time dt 0.01 end 1\nbody b mass 1 cog 0 0 0\njoint s prismatic ground b point 0 0 0 axis 0 0 1\n"
+                  "drive d joint s sine 0.1 2.0 phase 90 ramp 1 k 1e6 c 1e3\n", ".");
+    const joint_drive *jd = nullptr;
+    for(const auto &l : c.m.load_list)
+        if(auto p = dynamic_cast<const joint_drive*>(l.get())) jd = p;
+    check(jd && jd->settings.amp == 0.1 && jd->settings.period == 2.0 && jd->settings.phase == 90.0 && jd->settings.ramp == 1.0
+          && jd->settings.k == 1.0e6 && jd->settings.c == 1.0e3, "keyword drive");
+}
+
 int main()
 {
     test_damper();
@@ -563,6 +617,7 @@ int main()
     test_controllers();
     test_joint();
     test_latch_spring();
+    test_drive();
     std::cout<<(nfail ? "FAILED: " : "all passed")<<(nfail ? std::to_string(nfail) : "")<<std::endl;
     return nfail ? 1 : 0;
 }

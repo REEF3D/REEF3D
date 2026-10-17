@@ -1,0 +1,9 @@
+{
+ "description": "REEF3D::CORAL drives a CFD body (Z 40 1, fluid_body, two-way): 2D heave decay of a box (0.2 m x 0.15 m, density 500) in a level-set tank, low-storage RK3; the loads of the first stage committed, those of the second at the predicted pose provisional, CORAL steps, the third stage on CORAL's motion; REEF3D_CFD_6DOF and REEF3D_CORAL compared.",
+ "np": 1,
+ "steps": 100,
+ "ctrl_add": ["Z 40 1"],
+ "files": ["coral.txt"],
+ "tags": ["2d", "6dof", "floating", "levelset", "coral"],
+ "covers": ["6DOF_cfd_external two-way", "CORAL fluid_load provisional sample inside the step"]
+}
