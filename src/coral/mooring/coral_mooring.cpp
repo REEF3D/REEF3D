@@ -98,7 +98,7 @@ void mooring_qs::channel_values(const model &m, double, std::vector<double> &v) 
 // ---------------------------------------------------------------- lumped mass
 
 mooring_line::mooring_line(const model &m, const mooring_end &a, const mooring_end &b, const mooring_props &p, int nseg,
-                           std::shared_ptr<const wave_field> waves, const Vec3 &current, double z_seabed, double dt_line,
+                           std::shared_ptr<const wave_kinematics> waves, const Vec3 &current, double z_seabed, double dt_line,
                            const std::string &name)
     : name_(name), ba_(a.body), bb_(b.body), pr_(p), nseg_(std::max(nseg, 2)), waves_(std::move(waves)),
       current_(current), zbed_(z_seabed)
@@ -194,11 +194,11 @@ void mooring_line::accel(const state &s, const Vec3 &ra, const Vec3 &rb, const V
     }
     // external forces on a node of length ll (weight, hydrodynamics, seabed); q tangent; added mass
     // alpha (normal) and beta (tangential)
-    auto external = [&](const Vec3 &x, const Vec3 &vx, const Vec3 &q, double ll, double &an, double &at)
+    auto external = [&](int node, const Vec3 &x, const Vec3 &vx, const Vec3 &q, double ll, double &an, double &at)
     {
         Vec3 F = p.mass*ll*g;
         an = at = 0.0;
-        const double eta = waves_ ? waves_->elevation(x(0), x(1), t) : 0.0;
+        const double eta = waves_ ? waves_->elevation_at(this, node, x, t) : 0.0;
         if(x(2) > eta)
             return F;
         F -= p.rho*A*ll*g;
@@ -206,7 +206,7 @@ void mooring_line::accel(const state &s, const Vec3 &ra, const Vec3 &rb, const V
         if(waves_)
         {
             Vec3 u, du; double pr;
-            waves_->kinematics(x, t, u, du, pr);
+            waves_->kinematics_at(this, node, x, t, u, du, pr);
             uw += u;
             aw = du;
         }
@@ -249,7 +249,7 @@ void mooring_line::accel(const state &s, const Vec3 &ra, const Vec3 &rb, const V
         Vec3 q = R(i+1) - R(i-1);
         const double qn = q.norm();
         q = qn > 0.0 ? Vec3(q/qn) : Vec3::UnitZ();
-        const Vec3 F = T_[i] - T_[i-1] + external(R(i), V(i), q, l_, an, at) - extra*mi*V(i);
+        const Vec3 F = T_[i] - T_[i-1] + external(i, R(i), V(i), q, l_, an, at) - extra*mi*V(i);
         // (m I + an (I - q q^T) + at q q^T)^-1 F
         const double al = mi + an, be = at - an;
         const double fq = F.dot(q);
@@ -259,8 +259,8 @@ void mooring_line::accel(const state &s, const Vec3 &ra, const Vec3 &rb, const V
     Vec3 qa = R(1) - R(0), qb = R(N) - R(N-1);
     qa = qa.norm() > 0.0 ? Vec3(qa/qa.norm()) : Vec3::UnitZ();
     qb = qb.norm() > 0.0 ? Vec3(qb/qb.norm()) : Vec3::UnitZ();
-    Fa = T_[0] + external(ra, va, qa, 0.5*l_, an, at);
-    Fb = -T_[N-1] + external(rb, vb, qb, 0.5*l_, an, at);
+    Fa = T_[0] + external(0, ra, va, qa, 0.5*l_, an, at);
+    Fb = -T_[N-1] + external(N, rb, vb, qb, 0.5*l_, an, at);
 }
 
 void mooring_line::integrate(state &s, const Vec3 &ra0, const Vec3 &ra1, const Vec3 &rb0, const Vec3 &rb1,
@@ -353,6 +353,14 @@ void mooring_line::eval(const model &m, double t, VecX &f) const
     }
     m.add_force(f, ba_, ra1, cFa_);
     m.add_force(f, bb_, rb1, cFb_);
+}
+
+void mooring_line::kinematics_points(const model&, const void *source, std::vector<Vec3> &pts) const
+{
+    // the converged nodes 0 .. N
+    if(waves_.get() != source)
+        return;
+    pts.insert(pts.end(), r_.begin(), r_.end());
 }
 
 void mooring_line::commit(const model &m, double t, double)

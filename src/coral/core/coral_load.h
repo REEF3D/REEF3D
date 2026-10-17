@@ -27,6 +27,8 @@ Architect: Hans Bihs
 // with trial states (Newton iterations), so eval() must not change the load.
 // commit() is called once per converged step with the converged state; loads with a history
 // (radiation memory, internal states, line dynamics) update it there.
+// kinematics_points(): the points where the load asks a sampled wave source (the resolved fluid of REEF3D)
+// for the kinematics, so that the coupling can sample the fluid there once per fluid step.
 // coupling() tells the Jacobian which bodies the load couples: global (any body may act on any other;
 // the default), local (only the bodies listed by coupled_bodies() and the generalized coordinates
 // listed by coupled_coordinates()), diagonal (each body only on itself, e.g. gravity). Local and
@@ -76,6 +78,11 @@ namespace coral
         virtual bool has_tangent() const {return false;}
         virtual void tangent(const model&, double /*t*/, double /*cK*/, double /*cC*/, double /*cM*/,
                              std::vector<triplet>&) const {}
+
+        // points at which the load takes the wave kinematics from source (a wave_kinematics, see
+        // hydro/coral_waves.h), at their current positions, in the order of the indices of its requests;
+        // nothing if the load does not use that source
+        virtual void kinematics_points(const model&, const void* /*source*/, std::vector<Vec3>&) const {}
 
         // potential energy of conservative loads (energy checks), 0 otherwise
         virtual double potential(const model&) const {return 0.0;}

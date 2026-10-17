@@ -47,7 +47,25 @@ namespace coral
 
     enum class wave_spectrum {jonswap, pierson_moskowitz};
 
-    class wave_field
+    // Source of the wave kinematics of the Morison members and the mooring lines: CORAL's linear waves
+    // (wave_field) or the resolved fluid of REEF3D sampled at the loads' points (sampled_kinematics).
+    // A load that asks at one of its own points passes itself and the index of the point (owner, index),
+    // so that a sampled source can return the values sampled there; the load lists these points, in
+    // index order, in load::kinematics_points. Elevation: z of the free surface (CORAL frame).
+    class wave_kinematics
+    {
+    public:
+        virtual ~wave_kinematics() = default;
+        virtual double elevation(double x, double y, double t) const = 0;
+        // velocity u, acceleration du (local), dynamic pressure / rho at the point p
+        virtual void kinematics(const Vec3 &p, double t, Vec3 &u, Vec3 &du, double &p_rho) const = 0;
+        // the same at point index of owner (default: at p)
+        virtual double elevation_at(const void*, int, const Vec3 &p, double t) const {return elevation(p(0), p(1), t);}
+        virtual void kinematics_at(const void*, int, const Vec3 &p, double t, Vec3 &u, Vec3 &du, double &p_rho) const
+        {kinematics(p, t, u, du, p_rho);}
+    };
+
+    class wave_field : public wave_kinematics
     {
     public:
         // depth <= 0: infinite depth
@@ -64,9 +82,9 @@ namespace coral
         void set_ramp(double t_ramp) {t_ramp_ = t_ramp;}
         double ramp(double t) const;
 
-        double elevation(double x, double y, double t) const;
+        double elevation(double x, double y, double t) const override;
         // velocity u, acceleration du (local, linear), dynamic pressure / rho at the point p
-        void kinematics(const Vec3 &p, double t, Vec3 &u, Vec3 &du, double &p_rho) const;
+        void kinematics(const Vec3 &p, double t, Vec3 &u, Vec3 &du, double &p_rho) const override;
 
         const std::vector<wave_component> &components() const {return comp_;}
         double depth() const {return depth_;}

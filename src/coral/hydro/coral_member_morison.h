@@ -57,7 +57,7 @@ namespace coral
     public:
         // elements: pairs of point indices of pts
         member_morison(std::shared_ptr<const point_set> pts, const std::vector<std::pair<int,int>> &elements,
-                       const member_morison_coef&, std::shared_ptr<const wave_field>, double rho, double g,
+                       const member_morison_coef&, std::shared_ptr<const wave_kinematics>, double rho, double g,
                        const Vec3 &current, const std::string &name);
 
         std::string name() const override {return name_;}
@@ -65,6 +65,7 @@ namespace coral
         void coupled_bodies(std::vector<int> &b) const override {b.insert(b.end(), bodies_.begin(), bodies_.end());}
         void coupled_coordinates(std::vector<int> &c) const override {c.insert(c.end(), coords_.begin(), coords_.end());}
         void eval(const model&, double t, VecX &f) const override;
+        void kinematics_points(const model&, const void *source, std::vector<Vec3>&) const override;
         void channel_names(std::vector<std::string>&) const override;
         void channel_values(const model&, double t, std::vector<double>&) const override;
 
@@ -78,7 +79,7 @@ namespace coral
         std::vector<std::pair<int,int>> elem_;
         std::vector<int> pidx_;        // the two end points of each element
         member_morison_coef c_;
-        std::shared_ptr<const wave_field> waves_;
+        std::shared_ptr<const wave_kinematics> waves_;
         double rho_, g_;
         Vec3 current_;
         std::vector<int> bodies_, coords_;

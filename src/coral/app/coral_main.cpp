@@ -20,7 +20,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Architect: Hans Bihs
 --------------------------------------------------------------------*/
 // REEF3D::CORAL standalone executable: runs a CORAL model without a fluid grid.
-//   CORAL [input file]        (default coral.txt)
+//   CORAL [input file]                       (default coral.txt)
+//   CORAL <input file> replay <journal>      the fluid input recorded by a coupled REEF3D run
+//                                            (fluid_coupling record), output in this folder
 
 #include"coral/core/coral_version.h"
 #include"coral/core/coral_timeint.h"
@@ -30,6 +32,7 @@ Architect: Hans Bihs
 #include"coral/core/coral_static.h"
 #include"coral/linear/coral_modes.h"
 #include"coral/io/coral_modes_out.h"
+#include"coral/io/coral_coupling.h"
 #include<chrono>
 #include<sys/stat.h>
 #include<cmath>
@@ -47,6 +50,14 @@ int main(int argc, char **argv)
     {
         coral_case c;
         c.read(file);
+        if(argc > 3 && std::string(argv[2]) == "replay")
+        {
+            const auto w0 = std::chrono::steady_clock::now();
+            const long nev = coupling::replay(c, argv[3], ".", std::cout);
+            const double wall = std::chrono::duration<double>(std::chrono::steady_clock::now() - w0).count();
+            std::printf("replay of %s: %ld events, %.2f s\n", argv[3], nev, wall);
+            return 0;
+        }
         std::printf("input %s: %d bodies, %d constraint equations, %d loads, %s waves\n", file.c_str(),
                     c.m.nbody(), c.m.ncon(), (int)c.m.load_list.size(), c.waves ? std::to_string(c.waves->components().size()).c_str() : "no");
         if(c.fluid)

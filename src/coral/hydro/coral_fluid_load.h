@@ -36,6 +36,7 @@ Architect: Hans Bihs
 // a: acceleration of the CoG, alpha: angular acceleration (global). F is the part of the fluid load
 // without the acceleration term (FNPF: psi_0 = phi_t or chi without the body accelerations), so the
 // added mass is implicit in CORAL's Newton iterations and the coupling is stable for light bodies.
+// The loads act at the CoG of each body, or at a point of application given by set_attachment.
 
 #ifndef CORAL_FLUID_LOAD_H_
 #define CORAL_FLUID_LOAD_H_
@@ -73,6 +74,9 @@ namespace coral
         VecX added_mass_force(const model&) const;
         VecX acceleration(const model&) const;
         const MatX &added_mass() const {return A_;}
+        // point of application of the load of fluid body k (global, now; default its CoG): the loads are
+        // about that point (one-way loads of a fluid body on a CORAL body that is not the fluid body itself)
+        void set_attachment(const model&, int k, const Vec3 &p);
 
         int order = 1;      // polynomial order in time through the samples (0, 1, 2)
 
@@ -80,6 +84,7 @@ namespace coral
         std::string name_;
         std::vector<int> map_;
         std::vector<std::string> bname_;
+        std::vector<Vec3> s_;           // points of application, body frame
         std::vector<double> ts_;        // sample times (the committed ones, then the provisional one)
         std::vector<VecX> Fs_;
         bool prov_ = false;
