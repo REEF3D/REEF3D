@@ -299,9 +299,17 @@ void dem_core::narrow(int a, int b, double margin)
         dem_vec d = A.x - B.x;
         double dist = d.norm();
         double gap = dist - SA.dim(0) - SB.dim(0);
-        if(gap<margin && dist>1.0e-14)
+        if(gap<margin)
         {
-            dem_vec n = d/dist;
+            // (nearly) coincident centres: no direction from the centres, separate along z as the
+            // sphere level set does (sdf_grad); the sign from the particle ids, so that every rank
+            // and either order of the pair give the same normal
+            dem_vec n;
+            if(dist>1.0e-12*(SA.dim(0)+SB.dim(0)))
+            n = d/dist;
+            else
+            n = A.id>B.id ? dem_vec(dem_vec::UnitZ()) : dem_vec(-dem_vec::UnitZ());
+            
             add(a,b,0,B.x + n*(SB.dim(0)+0.5*gap),n,gap);
         }
         return;
