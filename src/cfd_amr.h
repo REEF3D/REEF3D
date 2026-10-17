@@ -412,12 +412,14 @@ private:
     void pr_covered_coef();                              // the coarse couplings under the finer patches from the fine faces
     void pr_halo0(field &f);                             // the halo of a level-0 vector (ranks, periodic edges)
     bool pr_wrap(int id, int d) const;                   // patch id over the whole length of periodic direction d
-    // the overlap of the patch multigrids at the sides where a patch of the level of another rank
-    // is next to it (a restricted additive Schwarz; the patches of one rank next to each other in a
-    // joint multigrid, with overlap cells for the sides to other ranks): on several ranks, G 40,
-    // periodic edges.  Without it the cuts at the rank boxes were a block Jacobi (a 3D band on 3
-    // ranks 60 BiCGStab iterations, 12 with it)
-    bool pr_ras() const { return nranks>1 || place>0 || per[0]>0 || per[1]>0; }
+    // the overlap of the patch multigrids at the sides where a patch of the level is next to it that
+    // is not in its joint multigrid (a restricted additive Schwarz; the patches of one rank next to
+    // each other in a joint multigrid, with overlap cells for the sides to other ranks): every run.
+    // Without it the cuts at the rank boxes were a block Jacobi (a 3D band on 3 ranks 60 BiCGStab
+    // iterations, 12 with it), and so were the sides between the patches of one rank in no joint
+    // multigrid (four adaptive levels with G 7 1: the level projections 13.6 iterations, 6.8 with it)
+    bool pr_ras() const { return true; }
+    bool pr_ovl = false;            // some patch multigrid of some rank has overlap cells (the fills of their rows, right-hand sides)
     void pr_level(lexer*, ghostcell*, int l, int s);
     void pr_sync_project(lexer*, ghostcell*);   // G 7 1: the synchronisation projection at the end of the level-0 step
     double psi_band(int g);                     // the half width of the interface band of grid g

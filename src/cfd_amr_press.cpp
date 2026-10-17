@@ -62,9 +62,9 @@ Architect: Hans Bihs
 //  V-cycle on level 0 (the whole rank grid with its own Poisson matrix), patch-local V-cycles level
 //  by level up, every correction passed on into the finer levels at once.  The patches of a rank
 //  next to each other take one V-cycle together (the joint multigrids); at the sides to the
-//  patches of another rank the V-cycles reach three cells into them (their rows and right-hand
-//  side, the correction kept inside: pr_ras, the overlap), on one rank without G 40 and periodic
-//  edges not needed.
+//  patches of the level in another multigrid (another rank, or no joint multigrid) the V-cycles
+//  reach three cells into them (their rows and right-hand side, the correction kept inside:
+//  pr_ras, the overlap).
 
 namespace
 {
@@ -459,6 +459,18 @@ void cfd_amr::pr_setup()
     // G 40 has no joint multigrids)
     pr_level_mg_setup();
     pr_overlap();
+    {
+        int any = 0;
+        for(int id=0; id<npat; ++id)
+        for(int d=0; d<3; ++d)
+        if(CP(id)->olo[d]>0 || CP(id)->ohi[d]>0)
+        any = 1;
+        for(const cfd_amr_lmg &M : lmg)
+        if(!M.ovm.empty())
+        any = 1;
+        MPI_Allreduce(MPI_IN_PLACE,&any,1,MPI_INT,MPI_MAX,MPI_COMM_WORLD);
+        pr_ovl = (any>0);
+    }
 
     for(int id=0; id<npat; ++id)
     {
@@ -497,7 +509,7 @@ void cfd_amr::pr_setup()
         if(!c->mg->setup(MPI_COMM_SELF,nx,ny,nz,nx,ny,0,wx.data(),wy.data(),pr_wrap(id,0),pr_wrap(id,1)))
         cout<<"CFD AMR: patch multigrid "<<c->mg->err()<<endl;
     }
-    if(pr_ras())
+    if(pr_ovl)
     for(int id=0; id<npat; ++id)
     if(CP(id)->kc7.empty())
     for(int m=0; m<7; ++m)
@@ -1057,7 +1069,7 @@ void cfd_amr::pr_level_solve(int l, int kr, int kz, int kc)
 {
     // the overlap (pr_ras): the right-hand side in the overlap of the patch multigrids (the patches next
     // to them)
-    if(pr_ras())
+    if(pr_ovl)
     {
         vector<fspec> fs;
         fs.push_back({CELL,2,[this,kr](int g) -> field& { return pfield(g,kr); }});
@@ -1490,7 +1502,7 @@ void cfd_amr::pr_matrix(int s)
     // patches: their own matrix (before the couplings across the patch edges below), the couplings
     // to the cells around the patch dropped (G 40: those into the overlap kept, the rows of the
     // patches next to it there)
-    if(pr_ras())
+    if(pr_ovl)
     pr_coef_fill(-1);
     for(int id=0; id<npat; ++id)
     pr_patch_mg(id,1.0);
@@ -2638,7 +2650,7 @@ void cfd_amr::pr_level(lexer *p, ghostcell *pgc, int l, int s)
         Mf.p[F.nf] += cfn + F.kf;
         cfn = 0.0;
     }
-    if(pr_ras())
+    if(pr_ovl)
     pr_coef_fill(l);
     for(int id : lev[l])
     {
