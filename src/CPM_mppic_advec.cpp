@@ -72,7 +72,19 @@ void CPM::advec_mppic(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulence *pt
         // level are part of the bed surface, they are moved by the layer only (fluid at rest at the
         // grain level); moving grains (suspension, settling, avalanches) see the resolved flow
         // reduced towards the bed, u delta/h
-        if(p->Q58>0)
+        // Q 74 1: the grains of the bed that were not released into the suspension (Hop = 0) see no resolved
+        // flow anywhere: they are moved by the layer, gravity and the packed bed only. Without it a bed grain
+        // more than a cell above the fluid bed (deposited on a crest, lifted by the flow up a lee slope) took
+        // the full resolved drag, a second pickup without a closure and not accelerated by Q 65 (pipeline:
+        // 0.1-0.8 times the flux of the layer on the lee slope and the only flux beyond the crest of the mound,
+        // validations 18 and 21)
+        if(p->Q58>0 && p->Q74==1 && P.Hop[n]==0.0)
+        {
+            uf=vf=wf=0.0;
+            liftx=lifty=liftz=0.0;
+        }
+        
+        else if(p->Q58>0)
         {
             double topo = ptopo(p,a,PX[n],PY[n],PZ[n]);
 

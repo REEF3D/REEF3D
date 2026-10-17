@@ -640,6 +640,10 @@ bool CPM::bedload_nodisp(lexer *p, fdm *a, int q)
     if(P.Hop[q]<0.0)
     return false;
     
+    // Q 74 1: bed grains that were not released are not dispersed at any height
+    if(p->Q74==1)
+    return true;
+    
     i = p->posc_i(P.X[q]);
     j = p->posc_j(P.Y[q]);
     k = p->posc_k(P.Z[q]);
