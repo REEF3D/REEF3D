@@ -1931,6 +1931,9 @@ void control::read_control(lexer* p)
                 case 10: ++G10;
                          clear(c,numint);
                          break;
+                case 54: ++G54;
+                         clear(c,numint);
+                         break;
                 case 11: ++G11;
                          clear(c,numint);
                          break;
@@ -4141,6 +4144,10 @@ void control::read_control(lexer* p)
     Darray(G10_ys,G10);
     Darray(G10_ye,G10);
 
+    Iarray(G54_b,G54);
+    Iarray(G54_t,G54);
+    Darray(G54_v,G54);
+
     Darray(G11_xs,G11);
     Darray(G11_xe,G11);
     Darray(G11_ys,G11);
@@ -4740,6 +4747,7 @@ void control::read_control(lexer* p)
     int countF71=0;
     int countF72=0;
     int countG10=0;
+    int countG54=0;
     int countG11=0;
     int countG15=0;
     int countA760=0;
@@ -5293,6 +5301,10 @@ void control::read_control(lexer* p)
             case 'G': control>>numint;
                 switch(numint)
                 {
+                case 54: control>>G54_b[countG54]>>G54_t[countG54]>>G54_v[countG54];
+                         ++countG54;
+                         clear(c,numint);
+                         break;
                 case 10: control>>G10_xs[countG10]>>G10_xe[countG10]>>G10_ys[countG10]>>G10_ye[countG10];
                          p->XYin(G10_xs[countG10],G10_ys[countG10]);
                          p->XYin(G10_xe[countG10],G10_ye[countG10]);

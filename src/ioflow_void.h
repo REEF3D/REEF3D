@@ -34,7 +34,7 @@ class fdm_fnpf;
 
 using namespace std;
 
-class ioflow_v final : public ioflow, public increment, public flowfile_in
+class ioflow_v : public ioflow, public increment, public flowfile_in
 {
 
 public:
@@ -79,11 +79,11 @@ public:
     
     void wavegen_2D_precalc(lexer*,fdm2D*,ghostcell*) override final;
     
-    void discharge2D(lexer*,fdm2D*,ghostcell*) override final;
-    void waterlevel2D(lexer*,fdm2D*,ghostcell*,slice&) override final;
+    void discharge2D(lexer*,fdm2D*,ghostcell*) override;
+    void waterlevel2D(lexer*,fdm2D*,ghostcell*,slice&) override;
     void Qin2D(lexer*,fdm2D*,ghostcell*) override final;
 	void Qout2D(lexer*,fdm2D*,ghostcell*) override final;
-    void inflow2D(lexer*,fdm2D*,ghostcell*,slice&,slice&,slice&,slice&) override final;
+    void inflow2D(lexer*,fdm2D*,ghostcell*,slice&,slice&,slice&,slice&) override;
 	void isource2D(lexer*,fdm2D*,ghostcell*) override final;
     void jsource2D(lexer*,fdm2D*,ghostcell*) override final;
     
@@ -106,14 +106,14 @@ public:
     // nhflow
     void wavegen_precalc_nhflow(lexer*,fdm_nhf*,ghostcell*) override final;
     void ini_nhflow(lexer*,fdm_nhf*,ghostcell*) override final;
-    void discharge_nhflow(lexer*,fdm_nhf*,ghostcell*) override final;
-    void inflow_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double*,double*,double*,slice&) override final;
-    void rkinflow_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double*,double*,double*,slice&) override final;
-    void rkinflow_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*) override final {};
+    void discharge_nhflow(lexer*,fdm_nhf*,ghostcell*) override;
+    void inflow_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double*,double*,double*,slice&) override;
+    void rkinflow_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double*,double*,double*,slice&) override;
+    void rkinflow_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*) override {};
     void isource_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans_nhflow*,slice&) override final;
     void jsource_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans_nhflow*,slice&) override final;
     void ksource_nhflow(lexer*,fdm_nhf*,ghostcell*,vrans_nhflow*,slice&) override final;
-    void fsfinflow_nhflow(lexer*,fdm_nhf*,ghostcell*,slice&) override final;
+    void fsfinflow_nhflow(lexer*,fdm_nhf*,ghostcell*,slice&) override;
     void vrans_sed_update(lexer*,fdm*,ghostcell*,vrans*) override final;
     void turb_relax_nhflow(lexer*,fdm_nhf*,ghostcell*,double*) override final {};
 	

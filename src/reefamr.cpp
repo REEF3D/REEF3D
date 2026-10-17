@@ -1066,6 +1066,21 @@ void reefamr::build_bc2D(ghostcell *pgc, reefamr_patch &c)
     pgc->gcsl_setbc2(pp);
     pgc->gcsl_setbc4(pp);
 
+    // multi-block: an open face of a block 1.. (G 54) is the -i (inflow, bc 1) or +i face (outflow, bc 2) of
+    // its level-0 grid, the lists as gcsl_setbc for a native grid whose first cell is the first one of the block
+    if(c.blk>0 && c.lev==0 && (bopen[0][c.blk]>=0 || bopen[1][c.blk]>=0))
+    {
+        const int oi = pp->origin_i, gn = pp->gknox, s1 = pp->bcside1, s4 = pp->bcside4;
+        pp->origin_i = -EXT;
+        pp->gknox = blk[c.blk].ni;
+        pp->bcside1 = (bopen[0][c.blk]>=0) ? 1 : 21;
+        pp->bcside4 = (bopen[1][c.blk]>=0) ? 2 : 21;
+        pgc->gcsl_setbc1(pp);
+        pgc->gcsl_setbc2(pp);
+        pgc->gcsl_setbc4(pp);
+        pp->origin_i = oi; pp->gknox = gn; pp->bcside1 = s1; pp->bcside4 = s4;
+    }
+
     pgc->gcsl_setbcio(pp);
 
     pgc->dgcslini1(pp);

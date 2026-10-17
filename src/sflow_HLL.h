@@ -57,6 +57,9 @@ public:
 
     void start(lexer*, fdm2D*, int);
 
+    // the in- and outflow faces (gcslin, gcslout) carry the flux of the ghost state (open faces of a block, G 54)
+    void open_io() { inflow = outflow = 1; }
+
 private:
     void aij_U(lexer*, fdm2D*);
     void aij_V(lexer*, fdm2D*);

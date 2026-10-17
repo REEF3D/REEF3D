@@ -60,6 +60,7 @@ public:
     void amr_inherit(const lexer &b);
     void amr_follow(const lexer &b);
     std::vector<double> amr_last;   // amr_follow: the values it set (the contract check)
+    int amr_own_io = 0;             // a block with open faces (G 54): the IO members of the RUN group are its own (lexer_amr.cpp)
 	virtual ~lexer();
 
 //-----functions------------------
@@ -277,6 +278,7 @@ public:
     double printtime, sedprinttime,fsfprinttime,fsfsedprinttime,probeprinttime,stateprinttime,exportprinttime;
     double wavetime;
     int open_xm,open_xp,open_ym,open_yp;    // iowave Riemann / Flather edge on x- / x+ / y- / y+ (NHFLOW): ghost cells set by iowave
+    int river_xm = 1, river_xp = 1;         // NHFLOW B 60: the -i / +i walls are in- / outflow faces (0: walls; a block with one open face, G 54)
 
 	// solver watch
 	int uiter,viter,witer;

@@ -55,6 +55,7 @@ class vec;
 class matrix_diag;
 class sixdof_obj;
 class ioflow;
+class ioflow_amr_block;
 class patchBC_interface;
 class reefmg_core;
 class solver;
@@ -162,6 +163,7 @@ struct nhflow_amr_patch : public reefamr_patch
     sediment_f *sed = nullptr;      // S 10: the sediment transport of the grid (nhflow_amr_sed.cpp)
     vector<double> sedrec[4];       // S 10: Exner face fluxes on the box faces, per side (as rec)
     ioflow *pflow = nullptr;
+    ioflow_amr_block *pio = nullptr;    // multi-block: in- and outflow of a block 1.. through its open faces (G 54)
     patchBC_interface *pBC = nullptr;
     nhflow_stage_obj S;
     vector<int> wfix;               // G 30: flags of the filled cells, kept through wetdry (lexer::wetfix)
@@ -282,6 +284,7 @@ private:
 
     // patch lexer: 3D flags, boundary list, sigma arrays
     void build_lexer3D(nhflow_amr_patch&);
+    void open_lists(nhflow_amr_patch&, bool, bool);     // G 54: the 3D in- and outflow cells of the open faces of a block
     void free_lexer3D(nhflow_amr_patch&);
 
     // interpolation from the coarser grid g: cell (ic,jc), quadrant (ox,oy); the last argument

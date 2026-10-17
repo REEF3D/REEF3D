@@ -30,7 +30,8 @@ coordinates), several ranks, mesh refinement (`G 1`, static boxes `G 10` and no-
 placement `G 40 1`).  Sediment transport (`S 10 1`, bed load and the sand slide, phase P5a): `../sediment_curvilinear/README.md`.  Refused with a message: `A 220 >= 1` (non-hydrostatic pressure and Boussinesq
 across blocks: phase P2c), subcycling `G 7 1`, moving bodies `X 10`.  Faces of the blocks 1.. without
 an interface are walls; in- and outflow boundaries, solids and topography of the DIVEMesh grid
-belong to block 0.
+belong to block 0.  Discharge inflow and water level on the -i / +i faces of the blocks 1.. (`G 54`, phase
+P5d): `../harbour_multiblock/README.md`.
 
 Output: the native grid (block 0 with its ring) as before; the blocks 1.. and the patches in the AMR
 output (`REEF3D_SFLOW_AMR`, VTS: level 0 for the blocks).  The AMR gauges (`P 51`,

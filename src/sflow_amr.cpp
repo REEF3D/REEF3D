@@ -47,6 +47,7 @@ Author: Hans Bihs
 #include"reefmg2D.h"
 #include"vec2D.h"
 #include"ioflow_void.h"
+#include"ioflow_amr_block.h"
 #include<cmath>
 #include<mpi.h>
 #include<iomanip>
@@ -383,7 +384,26 @@ void sflow_amr::patch_objects(reefamr_patch *q, ghostcell *pgc)
     }
     if(bous==1)
     c->psolv = new sflow_amr_linesolve;
-    c->pmom = new sflow_momentum_RK3(pp,c->b,pgc,c->phll,c->pss,c->precon,c->pdiff,c->ppress,c->psolv,nullptr,pflow_void,c->pfsf,c->psfdf,p6);
+
+    // multi-block: the open faces of a block 1.. (G 54; the lists from build_bc2D)
+    if(c->blk>0 && c->lev==0 && (bopen[0][c->blk]>=0 || bopen[1][c->blk]>=0))
+    {
+        c->pio = new ioflow_amr_block(pp,pgc,pBC);
+        pp->amr_own_io = 1;
+        if(bopen[0][c->blk]>=0)
+        {
+            c->pio->in = 1;
+            c->pio->Q = p->G54_v[bopen[0][c->blk]];
+        }
+        if(bopen[1][c->blk]>=0)
+        {
+            c->pio->out = 1;
+            c->pio->wsf = pp->F62 = p->G54_v[bopen[1][c->blk]];
+        }
+        c->phll->open_io();
+    }
+
+    c->pmom = new sflow_momentum_RK3(pp,c->b,pgc,c->phll,c->pss,c->precon,c->pdiff,c->ppress,c->psolv,nullptr,pflow_of(c),c->pfsf,c->psfdf,p6);
     c->pmom->nh_defer = (nh==1);
     c->pmom->bous_defer = (bous==1);
 
@@ -408,6 +428,11 @@ void sflow_amr::patch_objects(reefamr_patch *q, ghostcell *pgc)
     c->gsf.assign((size_t)pp->imax*pp->jmax,NAN);
 }
 
+ioflow* sflow_amr::pflow_of(sflow_amr_patch *c)
+{
+    return (c->pio!=nullptr) ? static_cast<ioflow*>(c->pio) : pflow_void;
+}
+
 void sflow_amr::patch_delete(reefamr_patch *q)
 {
     sflow_amr_patch *c = SP(q);
@@ -424,6 +449,7 @@ void sflow_amr::patch_delete(reefamr_patch *q)
     c->pp->del_Iarray(c->pp->DFBED,c->pp->imax*c->pp->jmax);
     }
     delete c->pmom;
+    delete c->pio;
     delete c->pship;
     delete c->psolv;
     delete c->psfdf;
@@ -1858,7 +1884,7 @@ void sflow_amr::step_begin(lexer *p, fdm2D *b, ghostcell *pgc)
         c->pp->simtime = p->simtime;
         c->pp->count = p->count;
         c->pp->amr_follow(*p);
-        c->pmom->inflow(c->pp,c->b,pgc,pflow_void);
+        c->pmom->inflow(c->pp,c->b,pgc,pflow_of(c));
     }
 
     // body on the patches: X 10 3 updates the ship pressure once per step (as level 0),

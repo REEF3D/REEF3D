@@ -151,6 +151,8 @@ void control::ctrlsend()
     ii++;
     ictrl[ii] = G53;
     ii++;
+    ictrl[ii] = G54;
+    ii++;
     ictrl[ii] = G7;
     ii++;
 
@@ -3712,6 +3714,16 @@ void control::ctrlsend()
         dctrl[dd] = F72_ye[n];
         dd++;
         dctrl[dd] = F72_h[n];
+        dd++;
+    }
+
+    for(n=0;n<G54;++n)
+    {
+        ictrl[ii] = G54_b[n];
+        ii++;
+        ictrl[ii] = G54_t[n];
+        ii++;
+        dctrl[dd] = G54_v[n];
         dd++;
     }
 

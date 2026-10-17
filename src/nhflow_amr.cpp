@@ -50,6 +50,7 @@ Author: Hans Bihs
 #include"6DOF_obj.h"
 #include"sediment_void.h"
 #include"ioflow_void.h"
+#include"ioflow_amr_block.h"
 #include"patchBC_void.h"
 #include"reefmg_core.h"
 #include"nhflow_curv.h"
@@ -595,6 +596,48 @@ void nhflow_amr::build_lexer3D(nhflow_amr_patch &c)
     }
 }
 
+// the 3D in- and outflow cells of the open faces of a block (G 54): the fluid cells of its first (-i, gcin)
+// and last (+i, gcout) column of cells, the ghost cells beyond them marked IO 1 / 2 (as ioflow_gcio_lists and
+// ioflow_gcio_marks with the DIVEMesh boundary groups 1 and 2 on the native grid)
+void nhflow_amr::open_lists(nhflow_amr_patch &c, bool in, bool out)
+{
+    lexer *pp = c.pp;
+    const int i0 = EXT, i1 = EXT+blk[c.blk].ni-1;
+    auto fluid = [&](int ii, int jj) { return pp->flagslice4[lij(pp,ii,jj)]>0; };
+
+    int nin=0, nout=0;
+    for(int jj=0; jj<pp->knoy; ++jj)
+    {
+        if(in && fluid(i0,jj) && !fluid(i0-1,jj))
+        nin += pp->knoz;
+        if(out && fluid(i1,jj) && !fluid(i1+1,jj))
+        nout += pp->knoz;
+    }
+
+    pp->gcin_count = nin;
+    pp->gcout_count = nout;
+    pp->Iarray(pp->gcin,nin,6);
+    pp->Iarray(pp->gcout,nout,6);
+
+    int a=0, b=0;
+    for(int jj=0; jj<pp->knoy; ++jj)
+    for(int kk=0; kk<pp->knoz; ++kk)
+    {
+        if(in && fluid(i0,jj) && !fluid(i0-1,jj))
+        {
+            pp->gcin[a][0]=i0; pp->gcin[a][1]=jj; pp->gcin[a][2]=kk; pp->gcin[a][3]=1; pp->gcin[a][4]=1; pp->gcin[a][5]=0;
+            pp->IO[cidx(pp,i0-1,jj,kk)] = 1;
+            ++a;
+        }
+        if(out && fluid(i1,jj) && !fluid(i1+1,jj))
+        {
+            pp->gcout[b][0]=i1; pp->gcout[b][1]=jj; pp->gcout[b][2]=kk; pp->gcout[b][3]=4; pp->gcout[b][4]=2; pp->gcout[b][5]=0;
+            pp->IO[cidx(pp,i1+1,jj,kk)] = 2;
+            ++b;
+        }
+    }
+}
+
 void nhflow_amr::free_lexer3D(nhflow_amr_patch &c)
 {
     lexer *pp = c.pp;
@@ -638,10 +681,15 @@ void nhflow_amr::patch_objects(reefamr_patch *q, ghostcell *pgc)
     lexer *pp = c->pp;
 
     // multi-block: in- and outflow, open edges and wave generation belong to block 0, the faces of
-    // the blocks 1.. without an interface are walls
+    // the blocks 1.. without an interface are walls; the open faces of a block (G 54) are its in- and
+    // outflow as B 60 1 on the native grid (only these i-faces: river_xm, river_xp)
+    const int oin = (c->blk>0 && c->lev==0) ? bopen[0][c->blk] : -1;
+    const int oout = (c->blk>0 && c->lev==0) ? bopen[1][c->blk] : -1;
     if(c->blk>0)
     {
-        pp->B60 = 0;
+        pp->B60 = (oin>=0 || oout>=0) ? 1 : 0;
+        pp->river_xm = (oin>=0) ? 1 : 0;
+        pp->river_xp = (oout>=0) ? 1 : 0;
         pp->B98 = 0;
         pp->B99 = 0;
         pp->open_xm = pp->open_xp = pp->open_ym = pp->open_yp = 0;
@@ -649,6 +697,9 @@ void nhflow_amr::patch_objects(reefamr_patch *q, ghostcell *pgc)
 
     build_bc2D(pgc,*c);
     build_lexer3D(*c);
+
+    if(oin>=0 || oout>=0)
+    open_lists(*c,oin>=0,oout>=0);
 
     // vectors of the Poisson rows (nhflow_poisson fills them over FBASELOOP and LOOP)
     pp->veclength = pp->imax*pp->jmax*pp->kmaxF;
@@ -676,6 +727,22 @@ void nhflow_amr::patch_objects(reefamr_patch *q, ghostcell *pgc)
 
     c->pBC = pBCv;
     c->pflow = pflowv;
+    if(oin>=0 || oout>=0)
+    {
+        c->pio = new ioflow_amr_block(pp,pgc,pBCv);
+        pp->amr_own_io = 1;
+        if(oin>=0)
+        {
+            c->pio->in = 1;
+            c->pio->Q = p0->G54_v[oin];
+        }
+        if(oout>=0)
+        {
+            c->pio->out = 1;
+            c->pio->wsf = pp->F62 = p0->G54_v[oout];
+        }
+        c->pflow = c->pio;
+    }
     // the floating bodies on the patch grid (all calls do nothing without bodies)
     // (multi-block grid: the blocks have their own logical spacing, the band by the level)
     c->p6dof = new nhflow_amr_6dof(pp,b6,(b6==nullptr) ? 0.0 : (nblk>0) ? b6->object(0)->nhflow_dsm()/double(1<<c->lev)
@@ -788,6 +855,12 @@ void nhflow_amr::patch_delete(reefamr_patch *q)
 
     delete c->sed;
     delete c->pmom;
+    delete c->pio;
+    if(c->pio!=nullptr)
+    {
+        c->pp->del_Iarray(c->pp->gcin,c->pp->gcin_count,6);
+        c->pp->del_Iarray(c->pp->gcout,c->pp->gcout_count,6);
+    }
     delete c->p6dof;
     delete c->pdf;
     delete c->pfsf;

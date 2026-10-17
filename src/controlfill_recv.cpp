@@ -147,6 +147,8 @@ void control::ctrlrecv()
     ii++;
     G53 = ictrl[ii];
     ii++;
+    G54 = ictrl[ii];
+    ii++;
     G7 = ictrl[ii];
     ii++;
 
@@ -3408,6 +3410,13 @@ void control::ctrlrecv()
         Darray(F72_h,F72);
     }
 
+    if(G54>0)
+    {
+        Iarray(G54_b,G54);
+        Iarray(G54_t,G54);
+        Darray(G54_v,G54);
+    }
+
     if(G10>0)
     {
         Darray(G10_xs,G10);
@@ -5012,6 +5021,16 @@ void control::ctrlrecv()
         F72_ye[n] = dctrl[dd];
         dd++;
         F72_h[n] = dctrl[dd];
+        dd++;
+    }
+
+    for(n=0;n<G54;++n)
+    {
+        G54_b[n] = ictrl[ii];
+        ii++;
+        G54_t[n] = ictrl[ii];
+        ii++;
+        G54_v[n] = dctrl[dd];
         dd++;
     }
 

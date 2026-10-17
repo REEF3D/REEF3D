@@ -249,7 +249,7 @@ void nhflow_curv::pair_bc(lexer *p, double *u, double *v)
     
     // river outflow (B 60, start4V outflow 2): the normal velocity of the ghost cells advected out and
     // kept positive (outwards), the tangential one zero gradient
-    if(p->B60>=1 && p->open_xp==0)
+    if(p->B60>=1 && p->river_xp==1 && p->open_xp==0)
     for(int ii=0; ii<p->knox; ++ii)
     for(int jj=0; jj<p->knoy; ++jj)
     for(int kk=0; kk<p->knoz; ++kk)
@@ -340,8 +340,8 @@ void nhflow_curv::pair_bc(lexer *p, double *u, double *v)
 bool nhflow_curv::iwall(lexer *p, int side)
 {
     if(side==0)
-    return p->B60==0 && p->B98<2 && p->open_xm==0;
-    return p->B60==0 && p->B99<3 && p->open_xp==0;
+    return (p->B60==0 || p->river_xm==0) && p->B98<2 && p->open_xm==0;
+    return (p->B60==0 || p->river_xp==0) && p->B99<3 && p->open_xp==0;
 }
 
 // G 52 1: a field other than the velocity pair at the i-walls symmetric, as at the j-walls (start4V)
@@ -394,10 +394,10 @@ void nhflow_curv::bc_fluxes(lexer *p, fdm_nhf *d, int comp, double *Fx, double *
     
     int inflow = 0, outflow = 0;
     
-    if(p->B60>=1 || p->B98>=3 || p->open_xm==1)
+    if((p->B60>=1 && p->river_xm==1) || p->B98>=3 || p->open_xm==1)
     inflow = 1;
     
-    if(p->B99>=3 || p->B60>=1 || p->open_xp==1)
+    if(p->B99>=3 || (p->B60>=1 && p->river_xp==1) || p->open_xp==1)
     outflow = 1;
     
     // i-faces

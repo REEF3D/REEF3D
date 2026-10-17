@@ -1,0 +1,21 @@
+{
+ "np": 1,
+ "steps": 200,
+ "tags": [
+  "2d",
+  "sflow",
+  "curvilinear",
+  "multiblock",
+  "river"
+ ],
+ "description": "SFLOW on a multi-block grid (G 50 1): a river reach on a skewed grid turned by 30 deg (a mound on the bed, friction) as three blocks along the river, the discharge inflow through the -i face of block 1 and the water level at the +i face of block 2 (G 54), none on the native grid: the same water level as one block with the native in- and outflow (B 60 1, F 62) to round-off (harbour_multiblock/t1).",
+ "covers": [
+  "G 54: the open faces of the blocks 1.. (reefamr::blocks_open, the bc of the 2D lists in build_bc2D)",
+  "ioflow_amr_block: SFLOW discharge, inflow along the face normal, water level",
+  "sflow_HLL::open_io"
+ ],
+ "solver": "sflow",
+ "files": [
+  "blocks.dat"
+ ]
+}

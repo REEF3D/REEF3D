@@ -14,7 +14,8 @@ gives the sigma layers), REEF3D `ctrl.txt` with `G 50 1`.  Block 0 becomes the n
 interface may touch several blocks, together they have to cover the whole face.  The faces of block 0
 without an interface keep the DIVEMesh boundary types `C 11` (-i), `C 14` (+i), `C 13` (-j), `C 12`
 (+j): in- and outflow, open edges and wave generation belong to block 0.  The faces of the blocks 1..
-without an interface are walls.
+without an interface are walls, or (`G 54`, phase P5d) discharge inflow through the -i face and water level
+at the +i face of a block: `../harbour_multiblock/README.md`.
 
 Available: everything P3 offers on curvilinear grids (`../nhflow_curvilinear/README.md`) in every block:
 hydrostatic and non-hydrostatic (`A 520 0`, `1`, `2`), HLL, all reconstructions, RK2/RK3, wetting and

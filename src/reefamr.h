@@ -626,6 +626,8 @@ protected:
     };
     vector<rblock> blk;                 // empty: one block, the native grid
     int nblk = 0;
+    vector<int> bopen[2];               // G 54: per block the line of its -i face (inflow) [0] / +i face (outflow) [1], -1 none
+    void blocks_open(lexer*);           // the open faces of the blocks 1.. (G 54), checked
     int GNXV = 0, GNYV = 0;             // extent of the level-0 index space with the blocks
     static const int BGAP = 64;         // level-0 cells between the blocks in the index space
     void blocks_setup(lexer*, ghostcell*);

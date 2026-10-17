@@ -1337,6 +1337,7 @@
         <File Name="bc_zone.h"/>
         <File Name="background_state.h"/>
         <File Name="ioflow_void.h"/>
+        <File Name="ioflow_amr_block.h"/>
         <File Name="ioflow_gravity.h"/>
         <File Name="ioflow_f.h"/>
         <File Name="ioflow.h"/>
@@ -3382,6 +3383,7 @@
       <VirtualDirectory Name="ioFlow">
         <VirtualDirectory Name="Void">
           <File Name="ioflow_void.cpp"/>
+          <File Name="ioflow_amr_block.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="ioWave">
           <File Name="iowave_probes.cpp"/>
