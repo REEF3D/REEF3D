@@ -417,6 +417,7 @@ private:
     bool pr_ras() const { return place>0 || per[0]>0 || per[1]>0; }
     void pr_level(lexer*, ghostcell*, int l, int s);
     void pr_sync_project(lexer*, ghostcell*);   // G 7 1: the synchronisation projection at the end of the level-0 step
+    double psi_band(int g);                     // the half width of the interface band of grid g
     void pr_components();
     const vector<int>& UQ(int g) { return prl<0 ? lq[g+1] : aq[g+1]; }
     const vector<int>& UR(int g) { return prl<0 ? lr[g+1] : ar[g+1]; }

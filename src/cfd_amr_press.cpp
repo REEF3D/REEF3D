@@ -1785,10 +1785,17 @@ void cfd_amr::pr_residual(int kr, int kz, int kt, int lmin)
     restrict_level(l,cells,none);
 }
 
+// the half width of the interface band of grid g (psi of its level)
+double cfd_amr::psi_band(int g)
+{
+    return (g<0) ? p0->psi : glex(g)->psi;
+}
+
 // z = M^-1 r: one FAC V-cycle over the levels.  Down: on every level, finest first, a patch-local
 // V-cycle on the composite residual (the cells under a finer patch take the residual of the finer
 // level); level 0: a V-cycle on the residual left; up: the correction of the coarser level prolonged
-// into the patches, a patch-local V-cycle on the residual left.
+// into the patches (not in the interface band of the coarser level), a patch-local V-cycle on the
+// residual left.
 void cfd_amr::pr_prec(int kr, int kz)
 {
     const int KT = REEFAMR_NTMP;        // residual
@@ -1907,6 +1914,13 @@ void cfd_amr::pr_prec(int kr, int kz)
                         const int o[3] = {a,b,e};
                         const int i = Pg[0]*rr[0]+a-c->lo[0], j = Pg[1]*rr[1]+b-c->lo[1], k = Pg[2]*rr[2]+e-c->lo[2];
                         if(c->row[cix(c->pp,i,j,k)]<0)
+                        continue;
+                        // not inside the interface band of the coarser level: there its density is
+                        // smeared over its own band (psi of each level), the fine cell is water or air,
+                        // and the coarse correction does not fit the fine rows (with 4 levels and a
+                        // free surface in the patches the composite BiCGStab diverged, 250 iterations);
+                        // the level solve below takes these cells from the residual alone
+                        if(p0->F30>0 && fabs(c->a->phi(i,j,k))<psi_band(B.g))
                         continue;
                         const double v = prolong(cl,B.g,sp,o);
                         t(i,j,k) = v;
