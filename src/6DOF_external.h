@@ -30,7 +30,8 @@ Architect: Hans Bihs
 //
 //  The fluid solver keeps the geometry, the body boundary conditions and the integration of the loads
 //  on the hull; the external solver owns the equations of motion (joints, PTO, mooring) and returns the
-//  pose and velocity of the bodies at the times the fluid solver needs them. Per fluid step t0 -> t1:
+//  pose and velocity of the bodies at the times the fluid solver needs them. Per fluid step t0 -> t1
+//  (FNPF, fnpf_6DOF_external.cpp):
 //
 //   first stage:  fluid_loads(t0, F, A, false)      loads of the state at t0 (shared by both solvers)
 //                 without predictor: advance(t0, t1), then state() for the stage poses
@@ -39,15 +40,25 @@ Architect: Hans Bihs
 //                                    then advance(t0, t1)
 //   later stages: state(n, t) inside [t0, t1]
 //
+//  NHFLOW (6DOF_nhflow_external.cpp) integrates the loads at the end of each stage instead: the loads of
+//  the initialisation are the first committed sample; per step the first stage takes predict() (or,
+//  without predictor, advance(t0, t1) and state()), the loads at its end go over as provisional at
+//  t0 + dt, then advance(t0, t1); the later stages take state(); the loads at the end of the step are
+//  committed at t1. NHFLOW has no instantaneous added mass (A empty), its loads contain the reaction of
+//  the body accelerations (CORAL: artificial added mass, fluid_body ... added_mass).
+//
 //  Loads: per body force and moment about the CoG, inertial frame, without gravity (the external solver
-//  has its own), without the acceleration part; A: instantaneous added mass, block (n, m) = load on body
+//  has its own); A: instantaneous added mass, block (n, m) = load on body
 //  n from the accelerations of body m, index n*N + m (empty: none, or unchanged).
 //  Bodies are numbered as the solver's 6DOF objects (0 .. N-1). Every rank makes the same calls with the
 //  same (reduced) loads and gets the same states; the external solver needs no communication.
+//  FNPF hands over the loads without the acceleration part and with A; NHFLOW with the acceleration part
+//  and without A.
 //
 //  One-way bodies (one_way): the fluid solver keeps moving them itself (fixed, prescribed motion or its
 //  own dynamics) and only hands over their loads, once per fluid step (FNPF: first stage, at t0; NHFLOW:
-//  after the last stage, at t1); the external solver does not return a state for them.
+//  after the last stage, at t1, and the loads of the initialisation); the external solver does not
+//  return a state for them.
 //
 //  The external solver registers itself (attach); the bodies look it up at their first step.
 

@@ -2823,6 +2823,7 @@
           <File Name="6DOF_nhflow_velsource.cpp"/>
           <File Name="6DOF_nhflow_initialize.cpp"/>
           <File Name="6DOF_nhflow.cpp"/>
+          <File Name="6DOF_nhflow_external.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Interface CFD">
           <File Name="6DOF_cfd_initialize.cpp"/>

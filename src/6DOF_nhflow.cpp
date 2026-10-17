@@ -58,6 +58,10 @@ void sixdof_nhflow::start_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter,
 {
     starttime = pgc->timer();
     
+    // external dynamics (REEF3D::CORAL): the bodies are connected before their first stage
+    if(!ext_checked)
+    ext_connect(p,pgc);
+    
     if(amr_predict && (p->X10==1 || p->X10==2))
     {
     start_oneway(p,d,pgc,iter,FX,FY,FZ,WL,fe,false);
@@ -83,6 +87,10 @@ void sixdof_nhflow::start_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter,
 void sixdof_nhflow::start_twoway(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter, 
                                 double *FX, double *FY, double *FZ, slice &WL, slice &fe, bool finalize)
 {
+    // two-way external dynamics: the poses of the stage come from the external solver
+    if(ext_twoway && !advanced(p,iter))
+    ext_stage(p,iter);
+    
     for (int nb=0; nb<number6DOF;++nb)
     {
         // Calculate forces
@@ -91,6 +99,7 @@ void sixdof_nhflow::start_twoway(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter,
         // Advance body in time (X 13: already done at the start of the stage)
         if(!advanced(p,iter))
         {
+        if(!ext_drives(nb))
         fb_obj[nb]->solve_eqmotion_nhflow(p,d,pgc,iter,finalize);
         
         // Update transformation matrices
@@ -284,9 +293,19 @@ void sixdof_nhflow::reforce_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int ite
         }*/
     }
     
-    // one-way loads to the external solver (CORAL): the loads of the end of the step
-    if(finalize)
-    ext_loads(p,pgc);
+    // external solver (CORAL): with the predictor the loads of the first stage at the predicted pose
+    // (provisional), then the external step; the loads of the end of the step (committed)
+    if(pext!=nullptr)
+    {
+        if(ext_twoway && iter==0 && pext->predictor())
+        {
+            ext_loads(p,p->simtime + ext_node(p,0)*p->dt,true);
+            pext->advance(p->simtime,p->simtime + p->dt);
+        }
+        
+        if(finalize)
+        ext_loads(p,p->simtime + p->dt,false);
+    }
 }
 
 
@@ -351,12 +370,15 @@ void sixdof_nhflow::advance_stage(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter
     
     const int last = (p->A510==2) ? 1 : 2;
     
+    if(ext_twoway && !amr_predict && p->X10==1)
+    ext_stage(p,iter);
+    
     for (int nb=0; nb<number6DOF;++nb)
     {
         if(amr_predict || p->X10==2)
         fb_obj[nb]->solve_eqmotion_oneway_nhflow(p,pgc,iter,false);
         
-        else
+        else if(!ext_drives(nb))
         fb_obj[nb]->solve_eqmotion_nhflow(p,d,pgc,iter,iter==last);
         
         fb_obj[nb]->quat_matrices(p);
@@ -384,77 +406,4 @@ bool sixdof_nhflow::top_phi_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int ite
     fb_obj[0]->top_phi_nhflow(p,d,WL,fb_obj[0]->nhflow_nb()*fb_obj[0]->nhflow_dsm(),phi);
     
     return true;
-}
-
-void sixdof_nhflow::ext_loads(lexer *p, ghostcell *pgc)
-{
-    // the strips are set at the first call, after this step's load integration: from the next step on
-    const bool strips_ready = ext_checked;
-    
-    if(!ext_checked)
-    {
-        ext_checked = true;
-        sixdof_external *e = sixdof_external::instance();
-        
-        bool any = false;
-        
-        for(int nb=0; nb<number6DOF; ++nb)
-        if(e!=nullptr && e->drives(nb))
-        {
-            any = true;
-            
-            if(!e->one_way(nb))
-            {
-                if(p->mpirank==0)
-                cout<<"6DOF NHFLOW: two-way external dynamics (fluid_body without one_way) is not available yet, use one_way"<<endl;
-                
-                pgc->final();
-                exit(1);
-            }
-            
-            double m;
-            Eigen::Vector3d cg;
-            Eigen::Matrix3d R, I;
-            
-            fb_obj[nb]->external_properties(m,cg,R,I);
-            e->connect(nb,m,cg,R,I);
-            
-            // distributed loads along a member of the external model
-            Eigen::Vector3d a, ax;
-            double L;
-            int ns;
-            
-            if(e->strips(nb,a,ax,L,ns))
-            {
-            fb_obj[nb]->external_strips_set(a,ax,L,ns);
-            
-            if(p->X60==2 && p->mpirank==0)
-            cout<<"6DOF NHFLOW: distributed loads (fluid_member) need the STL load integration (X 60 1)"<<endl;
-            }
-        }
-        
-        if(any)
-        {
-        pext = e;
-        
-        if(p->mpirank==0)
-        cout<<"6DOF NHFLOW: the loads of "<<number6DOF<<(number6DOF>1?" bodies go":" body goes")<<" one-way to the external solver"<<endl;
-        }
-    }
-    
-    if(pext==nullptr)
-    return;
-    
-    std::vector<sixdof_external::vec6> F(number6DOF);
-    std::vector<sixdof_external::mat6> A;
-    
-    for(int nb=0; nb<number6DOF; ++nb)
-    {
-    fb_obj[nb]->external_fluid_load(p,F[nb]);
-    
-    if(strips_ready && fb_obj[nb]->external_strips_on())
-    pext->fluid_strips(nb,p->simtime + p->dt,fb_obj[nb]->external_strips());
-    }
-    
-    pext->fluid_loads(p->simtime + p->dt,F,A,false);
 }
