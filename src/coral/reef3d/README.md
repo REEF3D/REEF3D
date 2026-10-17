@@ -16,7 +16,8 @@ The link between CORAL and REEF3D. The only folder that includes REEF3D headers 
   NHFLOW integrates its loads at the end of each stage and has no instantaneous added mass: the first
   stage takes a predicted pose, its loads go over as provisional before CORAL steps, the loads of the
   step's end are committed; CORAL's artificial added mass (`fluid_body ... added_mass`) keeps light
-  bodies stable
+  bodies stable; the same with X 13 and with the subcycling of the mesh refinement (G 7 1: every finest
+  step is a CORAL step, the coarser levels take predicted poses)
 * one-way loads (FNPF and NHFLOW): `fluid_body ... one_way` puts the loads of a 6DOF body that REEF3D
   holds fixed (X 11 0) or moves itself on any CORAL body, at the REEF3D CoG; `fluid_member` distributes
   them along a flexible member: the 6DOF body bins its hull force in strips along the member axis

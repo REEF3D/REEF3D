@@ -117,7 +117,17 @@ private:
     
     // external solver of the bodies (6DOF_external.h, REEF3D::CORAL fluid_body; 6DOF_nhflow_external.cpp)
     void ext_connect(lexer*, ghostcell*);
+    
+public:
+    // mesh refinement with subcycling (nhflow_amr_sub.cpp): stage s of the bodies with the step of a level
+    // (p->simtime, p->dt: that step), predict: a coarser level's copy; the loads after stage s of the
+    // finest level (to the external solver)
+    void amr_body_stage(lexer*, fdm_nhf*, ghostcell*, int s, bool predict);
+    void amr_body_loads(lexer*, ghostcell*, int s, int ns);
+    
+private:
     void ext_stage(lexer*, int);
+    void ext_predict_copy(lexer*, int);
     void ext_loads(lexer*, double, bool);
     double ext_node(lexer*, int) const;
     bool ext_drives(int) const;

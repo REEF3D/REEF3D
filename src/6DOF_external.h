@@ -45,7 +45,9 @@ Architect: Hans Bihs
 //  without predictor, advance(t0, t1) and state()), the loads at its end go over as provisional at
 //  t0 + dt, then advance(t0, t1); the later stages take state(); the loads at the end of the step are
 //  committed at t1. NHFLOW has no instantaneous added mass (A empty), its loads contain the reaction of
-//  the body accelerations (CORAL: artificial added mass, fluid_body ... added_mass).
+//  the body accelerations (CORAL: artificial added mass, fluid_body ... added_mass). X 13 and the
+//  subcycling of the mesh refinement (G 7 1): the same calls, each finest step is a fluid step; coarser
+//  levels take predict() for their copies of the bodies.
 //
 //  Loads: per body force and moment about the CoG, inertial frame, without gravity (the external solver
 //  has its own); A: instantaneous added mass, block (n, m) = load on body

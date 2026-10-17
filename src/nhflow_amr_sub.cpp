@@ -482,6 +482,14 @@ void nhflow_amr::sub_level(lexer *p, ghostcell *pgc, int l, int k, double t, dou
             for(int nb=0; nb<b6->objects(); ++nb)
             b6->object(nb)->hydrodynamic_forces_nhflow(p,d0,pgc,d0->WL,fin);
             p->simtime = ts;
+            
+            // external solver (REEF3D::CORAL): the finest step is its fluid step
+            const double dts = p->dt;
+            p->simtime = t;
+            p->dt = dt;
+            b6->amr_body_loads(p,pgc,s,ns);
+            p->simtime = ts;
+            p->dt = dts;
         }
     }
     cur_stage = -1;
@@ -550,8 +558,7 @@ void nhflow_amr::sub_body_stage(lexer *p, ghostcell *pgc, int l, int s, double t
     p->dt = dt;
     p->simtime = t;
 
-    for(int nb=0; nb<b6->objects(); ++nb)
-    b6->object(nb)->amr_stage(p,d0,pgc,s,l<maxlev);
+    b6->amr_body_stage(p,d0,pgc,s,l<maxlev);
 
     p->dt = dts;
     p->simtime = ts;

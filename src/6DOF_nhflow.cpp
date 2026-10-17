@@ -64,6 +64,9 @@ void sixdof_nhflow::start_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter,
     
     if(amr_predict && (p->X10==1 || p->X10==2))
     {
+    if(ext_twoway && !advanced(p,iter))
+    ext_predict_copy(p,iter);
+    
     start_oneway(p,d,pgc,iter,FX,FY,FZ,WL,fe,false);
     p->fbtime+=pgc->timer()-starttime;
     return;
@@ -138,6 +141,7 @@ void sixdof_nhflow::start_oneway(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter,
         // Advance body in time (X 13: already done at the start of the stage)
         if(!advanced(p,iter))
         {
+        if(!ext_drives(nb))
         fb_obj[nb]->solve_eqmotion_oneway_nhflow(p,pgc,iter,finalize);
         
         // Update transformation matrices
@@ -368,14 +372,26 @@ void sixdof_nhflow::advance_stage(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter
     if(advanced(p,iter))
     return;
     
+    if(!ext_checked)
+    ext_connect(p,pgc);
+    
     const int last = (p->A510==2) ? 1 : 2;
     
-    if(ext_twoway && !amr_predict && p->X10==1)
-    ext_stage(p,iter);
+    if(ext_twoway && p->X10==1)
+    {
+        if(amr_predict)
+        ext_predict_copy(p,iter);
+        
+        else
+        ext_stage(p,iter);
+    }
     
     for (int nb=0; nb<number6DOF;++nb)
     {
-        if(amr_predict || p->X10==2)
+        if(ext_drives(nb))
+        {}
+        
+        else if(amr_predict || p->X10==2)
         fb_obj[nb]->solve_eqmotion_oneway_nhflow(p,pgc,iter,false);
         
         else if(!ext_drives(nb))

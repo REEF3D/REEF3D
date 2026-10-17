@@ -39,9 +39,12 @@ Architect: Hans Bihs
 
 // stage iter of the body (p->dt, p->simtime: the step of the level), without the level-0 ray
 // cast: the grids cast the hull themselves; predict: the RK stage with the frozen loads
-void sixdof_obj_nhflow::amr_stage(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter, bool predict)
+void sixdof_obj_nhflow::amr_stage(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter, bool predict, bool external)
 {
-    if(predict || p->X10==2)
+    if(external)
+    {}
+    
+    else if(predict || p->X10==2)
     solve_eqmotion_oneway_nhflow(p,pgc,iter,false);
     
     else

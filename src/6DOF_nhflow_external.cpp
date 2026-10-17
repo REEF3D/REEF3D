@@ -38,6 +38,11 @@ Architect: Hans Bihs
 // prescribed), the loads at the end of the step go to the external solver.
 // Both: the loads of the initialisation (X 10 1) are the first committed sample. The PTO (X 500) and
 // the mooring (X 310) of two-way bodies are not used: they belong to the external model.
+// X 13 (advance at the start of the stage, advance_stage): the same poses, set earlier.
+// Mesh refinement with subcycling (G 7 1, nhflow_amr_sub.cpp): every step of the finest level is a fluid
+// step of the external solver (stages and loads as above, amr_body_stage, amr_body_loads); the coarser
+// levels, which step first, take poses predicted from the external state at the start of their step
+// (amr_predict, the predicted copy of the 6DOF kernel). Without external bodies nothing changes.
 
 #include"6DOF_nhflow.h"
 #include"6DOF_external.h"
@@ -83,16 +88,10 @@ void sixdof_nhflow::ext_connect(lexer *p, ghostcell *pgc)
     if(!any)
     return;
 
-    if(twoway && (p->X10!=1 || p->X13==1 || amr_predict))
+    if(twoway && p->X10!=1)
     {
         if(p->mpirank==0)
-        {
-        if(p->X10!=1)
         cout<<"6DOF NHFLOW: two-way external dynamics (fluid_body without one_way) needs a floating body (X 10 1)"<<endl;
-
-        else
-        cout<<"6DOF NHFLOW: two-way external dynamics with X 13 or subcycling (G 7 1) is not supported yet"<<endl;
-        }
 
         pgc->final();
         exit(1);
@@ -201,4 +200,53 @@ void sixdof_nhflow::ext_loads(lexer *p, double t, bool provisional)
     }
 
     pext->fluid_loads(t,F,A,provisional);
+}
+
+void sixdof_nhflow::ext_predict_copy(lexer *p, int iter)
+{
+    // a coarser level's copy of the bodies (subcycling): the pose predicted from the external state
+    const double ts = p->simtime + ext_node(p,iter)*p->dt;
+    
+    for(int nb=0; nb<number6DOF; ++nb)
+    if(ext_drives(nb))
+    {
+        Eigen::Vector3d xc, v, w;
+        Eigen::Matrix3d R;
+        
+        pext->predict(nb,ts,xc,R,v,w);
+        fb_obj[nb]->external_set_state(xc,R,v,w);
+    }
+}
+
+void sixdof_nhflow::amr_body_stage(lexer *p, fdm_nhf *d, ghostcell *pgc, int s, bool predict)
+{
+    if(!ext_checked)
+    ext_connect(p,pgc);
+    
+    if(ext_twoway)
+    {
+        if(predict)
+        ext_predict_copy(p,s);
+        
+        else
+        ext_stage(p,s);
+    }
+    
+    for(int nb=0; nb<number6DOF; ++nb)
+    fb_obj[nb]->amr_stage(p,d,pgc,s,predict,ext_drives(nb));
+}
+
+void sixdof_nhflow::amr_body_loads(lexer *p, ghostcell *pgc, int s, int ns)
+{
+    if(pext==nullptr)
+    return;
+    
+    if(ext_twoway && s==0 && pext->predictor())
+    {
+        ext_loads(p,p->simtime + ext_node(p,0)*p->dt,true);
+        pext->advance(p->simtime,p->simtime + p->dt);
+    }
+    
+    if(s==ns-1)
+    ext_loads(p,p->simtime + p->dt,false);
 }
