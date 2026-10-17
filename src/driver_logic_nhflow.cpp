@@ -180,6 +180,24 @@ void driver::logic_nhflow()
         pgc->final(true);
     }
     
+    // HLES split (A 561) and QCR (A 563) work with the RANS models (k-epsilon, k-omega) only
+    if((p->A561!=0 || p->A563>0.0) && p->A560!=1 && p->A560!=21 && p->A560!=2 && p->A560!=22)
+    {
+        if(p->mpirank==0)
+        cout<<"A 561 / A 563: need a RANS model (A 560 1, 21, 2 or 22), switched off"<<endl;
+        
+        p->A561=0;
+        p->A563=0.0;
+    }
+    
+    if(p->A561<0 || p->A561>2)
+    {
+        if(p->mpirank==0)
+        cout<<endl<<"A 561: unknown HLES option; use 0 (off), 1 (nu_h = nu_t + nu_sgs) or 2 (nu_h = nu_sgs)."<<endl<<endl;
+        
+        pgc->final(true);
+    }
+    
     if(p->A560==0)
 	pnhfturb = new nhflow_komega_func_void(p,d,pgc);
     

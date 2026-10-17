@@ -100,6 +100,10 @@ void nhflow_kepsilon_IM1::start(lexer* p, fdm_nhf* d, ghostcell* pgc, nhflow_sca
     kinupdate(p,d,pgc);
     pgc->start24V(p,d->EV,24);
     pgc->start24V(p,d->EV0,24);
+    
+    // HLES split (A 561) and QCR (A 563) from the final nu_t
+    hles_update(p,d,pgc);
+    qcr_update(p,d,pgc);
 }
 
 void nhflow_kepsilon_IM1::ktimesave(lexer *p, fdm_nhf* d, ghostcell *pgc)

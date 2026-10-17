@@ -32,6 +32,17 @@ nhflow_strain::nhflow_strain(lexer *p, fdm_nhf *d)	: nhflow_gradient(p),epsi(p->
     p->Darray(PK0,p->imax*p->jmax*(p->kmax+2));
     p->Darray(PK_b,p->imax*p->jmax*(p->kmax+2));
     
+    TQ11=TQ22=TQ33=TQ12=TQ13=TQ23=nullptr;
+    
+    if(p->A563>0.0)
+    {
+    p->Darray(TQ11,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(TQ22,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(TQ33,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(TQ12,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(TQ13,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(TQ23,p->imax*p->jmax*(p->kmax+2));
+    }
 }
 
 nhflow_strain::~nhflow_strain()
@@ -74,6 +85,15 @@ void nhflow_strain::Pk_update(lexer *p, fdm_nhf *d, ghostcell *pgc)
         s12 = 0.0;
         s13 = (dudz(d->U) + dwdx(d->W));
         s23 = 0.0;
+        }
+        
+        // HLES split (A 561 1): the RANS model carries the 3D (bed-generated) turbulence, its production comes from
+        // the vertical shear only; the horizontal shear is mixed by the resolved eddies and nu_sgs (hles_update)
+        if(p->A561==1)
+        {
+        s11 = s22 = s33 = s12 = 0.0;
+        s13 = dudz(d->U);
+        s23 = (p->j_dir==1) ? dvdz(d->V) : 0.0;
         }
 
         PK0[IJK] = d->EV0[IJK]*(2.0*s11*s11 + 2.0*s22*s22 + 2.0*s33*s33 + s12*s12 + s13*s13 + s23*s23);
@@ -180,6 +200,14 @@ double nhflow_strain::strainterm(lexer *p, fdm_nhf *d)
     s = sqrt(2.0*s11*s11 + 2.0*s22*s22 + 2.0*s33*s33 + s12*s12 + s13*s13 + s23*s23);
     
 	return s;
+}
+
+double nhflow_strain::strainterm_v(lexer *p, fdm_nhf *d)
+{
+    const double uz = dudz(d->U);
+    const double vz = (p->j_dir==1) ? dvdz(d->V) : 0.0;
+    
+	return sqrt(uz*uz + vz*vz);
 }
 
 double nhflow_strain::strainterm(lexer *p, double *U, double *V, double *W)
@@ -449,4 +477,156 @@ double nhflow_strain::strainplain(lexer *p, fdm_nhf *d)
     s=fabs(s11)+fabs(s22)+fabs(s33)+0.5*fabs(s12)+0.5*fabs(s13)+0.5*fabs(s13);
 */
 	return s;
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// HLES split (A 561 > 0, A 562 C_s nu_b): horizontal and vertical eddy viscosity of the momentum equations
+//   vertical   (stresses with a z index: xz, yz, zz and the whole w equation): nu_v = d->EV (k-omega / k-eps)
+//   horizontal (stresses xx, yy, xy):                                          nu_h = d->EVH
+//     A 561 1: nu_h = nu_t + (C_s Delta_h)^2 |S_h| + nu_b, the RANS production from the vertical shear only (Pk_update)
+//     A 561 2: nu_h =        (C_s Delta_h)^2 |S_h| + nu_b, full RANS production
+//   |S_h| = sqrt(2 S11^2 + 2 S22^2 + 4 S12^2) (horizontal strain along the z = const plane), Delta_h = sqrt(dx dy)
+// With a nu_h well below the isotropic RANS value the horizontal shear layers become unsteady and their large,
+// quasi 2D eddies are resolved on the horizontal grid (horizontal large eddy simulation, as Delft3D HLES /
+// Hinterberger, Froehlich & Rodi 2007), the vertical resolution is not changed.
+// ---------------------------------------------------------------------------------------------------------------
+void nhflow_strain::hles_update(lexer *p, fdm_nhf *d, ghostcell *pgc)
+{
+    if(p->A561==0)
+    return;
+    
+    LOOP
+    {
+        double nusgs = 0.0;
+        
+        if(p->wet[IJ]==1 && p->DF[IJK]>0)
+        {
+            double sh11 = dudx(d->U);
+            double sh22 = 0.0;
+            double sh12 = 0.0;
+            double dh2  = p->DXN[IP]*p->DXN[IP];
+            
+            if(p->j_dir==1)
+            {
+            sh22 = dvdy(d->V);
+            sh12 = dudy(d->U) + dvdx(d->V);
+            dh2  = (p->geo_curv==1) ? p->AREA2D[IJ] : p->DXN[IP]*p->DYN[JP];
+            }
+            
+            const double Sh = sqrt(2.0*sh11*sh11 + 2.0*sh22*sh22 + sh12*sh12);
+            
+            nusgs = p->A562_cs*p->A562_cs*dh2*Sh;
+        }
+        
+        if(p->A561==1)
+        d->EVH[IJK] = d->EV[IJK] + nusgs + p->A562_nub;
+        
+        if(p->A561==2)
+        d->EVH[IJK] = nusgs + p->A562_nub;
+        
+        if(p->DF[IJK]<0)
+        d->EVH[IJK] = 0.0;
+    }
+    
+    pgc->start24V(p,d->EVH,24);
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// QCR (A 563 C_cr1 > 0, quadratic constitutive relation, Spalart 2000): anisotropy of the normal stresses, which
+// drives the secondary currents of the second kind (corners, narrow channels); explicit, lagged by one step
+// ---------------------------------------------------------------------------------------------------------------
+void nhflow_strain::qcr_update(lexer *p, fdm_nhf *d, ghostcell *pgc)
+{
+    if(p->A563<=0.0 || TQ11==nullptr)
+    return;
+    
+    double g[3][3],tau[3][3],O[3][3],dt[3][3];
+    double *vel[3] = {d->U,d->V,d->W};
+    
+    LOOP
+    {
+        TQ11[IJK]=TQ22[IJK]=TQ33[IJK]=TQ12[IJK]=TQ13[IJK]=TQ23[IJK]=0.0;
+        
+        if(p->wet[IJ]==0 || p->DF[IJK]<0)
+        continue;
+        
+        // g[a][b] = du_a/dx_b (Cartesian, sigma chain rule in nhflow_gradient)
+        for(int a=0; a<3; ++a)
+        {
+            g[a][0] = dudx(vel[a]);
+            g[a][1] = (p->j_dir==1) ? dudy(vel[a]) : 0.0;
+            g[a][2] = dudz(vel[a]);
+        }
+        
+        if(p->j_dir==0)
+        g[1][0] = g[1][2] = 0.0;
+        
+        double gn = 0.0;
+        for(int a=0; a<3; ++a)
+        for(int b=0; b<3; ++b)
+        gn += g[a][b]*g[a][b];
+        
+        gn = sqrt(gn);
+        
+        if(gn<1.0e-10)
+        continue;
+        
+        const double nut = d->EV[IJK];
+        
+        for(int a=0; a<3; ++a)
+        for(int b=0; b<3; ++b)
+        {
+            tau[a][b] = nut*(g[a][b] + g[b][a]);
+            O[a][b]   = (g[a][b] - g[b][a])/gn;
+        }
+        
+        for(int a=0; a<3; ++a)
+        for(int b=0; b<3; ++b)
+        {
+            double s=0.0;
+            for(int c=0; c<3; ++c)
+            s += O[a][c]*tau[b][c] + O[b][c]*tau[a][c];
+            
+            dt[a][b] = -p->A563*s;
+        }
+        
+        TQ11[IJK] = dt[0][0];
+        TQ22[IJK] = dt[1][1];
+        TQ33[IJK] = dt[2][2];
+        TQ12[IJK] = dt[0][1];
+        TQ13[IJK] = dt[0][2];
+        TQ23[IJK] = dt[1][2];
+    }
+    
+    pgc->start24V(p,TQ11,24);
+    pgc->start24V(p,TQ22,24);
+    pgc->start24V(p,TQ33,24);
+    pgc->start24V(p,TQ12,24);
+    pgc->start24V(p,TQ13,24);
+    pgc->start24V(p,TQ23,24);
+}
+
+// momentum is solved for UH: source D (d dtau_xx/dx + d dtau_xy/dy + d dtau_xz/dz) at z = const
+double nhflow_strain::qcr_fx(lexer *p, fdm_nhf *d)
+{
+    if(p->wet[IJ]==0 || p->DF[IJK]<0)
+    return 0.0;
+    
+    return d->WL(i,j)*(dudx(TQ11) + (p->j_dir==1 ? dudy(TQ12) : 0.0) + dudz(TQ13));
+}
+
+double nhflow_strain::qcr_fy(lexer *p, fdm_nhf *d)
+{
+    if(p->wet[IJ]==0 || p->DF[IJK]<0 || p->j_dir==0)
+    return 0.0;
+    
+    return d->WL(i,j)*(dudx(TQ12) + dudy(TQ22) + dudz(TQ23));
+}
+
+double nhflow_strain::qcr_fz(lexer *p, fdm_nhf *d)
+{
+    if(p->wet[IJ]==0 || p->DF[IJK]<0)
+    return 0.0;
+    
+    return d->WL(i,j)*(dudx(TQ13) + (p->j_dir==1 ? dudy(TQ23) : 0.0) + dudz(TQ33));
 }

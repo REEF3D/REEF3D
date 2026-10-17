@@ -50,6 +50,10 @@ void nhflow_idiff_2D::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow
 	starttime=pgc->timer();
     
     double visc_IP,visc_IM1,visc_IP1,visc_JM1,visc_JP1,visc_KM1,visc_KP1;
+    double visc_IPh,visc_KM1h,visc_KP1h,cvt,cvb;
+    
+    // HLES split (A 561): horizontal stresses (xx, yy, xy) with nu_h = EVH, stresses with a z index with nu_v = EV
+    double *EVh = (p->A561>0) ? d->EVH : d->EV;
 
     LOOP
     UHdiff[IJK] = UHin[IJK];
@@ -64,34 +68,54 @@ void nhflow_idiff_2D::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow
         if(p->wet[IJ]==1 && p->DF[IJK]>0)
         {
             visc_IP = d->VISC[IJK] + d->EV[IJK];
+            visc_IPh = d->VISC[IJK] + EVh[IJK];
             
-            visc_IM1 = 0.5*(visc_IP + d->VISC[Im1JK] + d->EV[Im1JK] + d->vb(i-1,j));
-            visc_IP1 = 0.5*(visc_IP + d->VISC[Ip1JK] + d->EV[Ip1JK] + d->vb(i+1,j));
+            visc_IM1 = 0.5*(visc_IPh + d->VISC[Im1JK] + EVh[Im1JK] + d->vb(i-1,j));
+            visc_IP1 = 0.5*(visc_IPh + d->VISC[Ip1JK] + EVh[Ip1JK] + d->vb(i+1,j));
             
             visc_KM1 = 0.5*(visc_IP + d->VISC[IJKm1] + d->EV[IJKm1] + d->vb(i,j));
             visc_KP1 = 0.5*(visc_IP + d->VISC[IJKp1] + d->EV[IJKp1] + d->vb(i,j));
             
+            visc_KM1h = 0.5*(visc_IPh + d->VISC[IJKm1] + EVh[IJKm1] + d->vb(i,j));
+            visc_KP1h = 0.5*(visc_IPh + d->VISC[IJKp1] + EVh[IJKp1] + d->vb(i,j));
+            
             if(k==p->knoz-1)
             {
             visc_IP +=  d->vb(i,j);
+            visc_IPh += d->vb(i,j);
             
             visc_IM1 += 0.5*(d->vb(i,j) + d->vb(i-1,j));
             visc_IP1 += 0.5*(d->vb(i,j) + d->vb(i+1,j));
             
             visc_KM1 += d->vb(i,j);
             visc_KP1 += d->vb(i,j);
+            visc_KM1h += d->vb(i,j);
+            visc_KP1h += d->vb(i,j);
             }
             
             // vertical coefficient at the faces k-1/2 (FIJK) and k+1/2 (FIJKp1)
             sigxyz2_b = pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[IJ],2.0);
             sigxyz2_t = pow(p->sigx[FIJKp1],2.0) + pow(p->sigy[FIJKp1],2.0) + pow(p->sigz[IJ],2.0);
             
+            // vertical faces: the sigx, sigy parts belong to the horizontal stresses (nu_h), the sigz part to the
+            // vertical one (nu_v); identical to visc*sigxyz2 without the split
+            if(p->A561>0)
+            {
+            cvt = visc_KP1h*(pow(p->sigx[FIJKp1],2.0) + pow(p->sigy[FIJKp1],2.0)) + visc_KP1*pow(p->sigz[IJ],2.0);
+            cvb = visc_KM1h*(pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0)) + visc_KM1*pow(p->sigz[IJ],2.0);
+            }
+            else
+            {
+            cvt = visc_KP1*sigxyz2_t;
+            cvb = visc_KM1*sigxyz2_b;
+            }
+            
             
             d->M.p[n]  =   2.0*visc_IP1/(p->DXP[IP]*p->DXN[IP])
                         + 2.0*visc_IM1/(p->DXP[IM1]*p->DXN[IP])
                         
-                        + (visc_KP1*sigxyz2_t)/(p->DZP[KP]*p->DZN[KP])
-                        + (visc_KM1*sigxyz2_b)/(p->DZP[KM1]*p->DZN[KP])
+                        + cvt/(p->DZP[KP]*p->DZN[KP])
+                        + cvb/(p->DZP[KM1]*p->DZN[KP])
                         
                         + CPORNH/(alpha*p->dt);
             
@@ -99,11 +123,11 @@ void nhflow_idiff_2D::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow
             d->M.n[n] = -2.0*visc_IP1/(p->DXP[IP]*p->DXN[IP]);
             d->M.s[n] = -2.0*visc_IM1/(p->DXP[IM1]*p->DXN[IP]);
 
-            d->M.t[n] = -(visc_KP1*sigxyz2_t)/(p->DZP[KP]*p->DZN[KP])
-                        - visc_KP1*p->sigxx[FIJK]/((p->DZP[KP]+p->DZP[KM1]));
+            d->M.t[n] = -cvt/(p->DZP[KP]*p->DZN[KP])
+                        - visc_KP1h*p->sigxx[FIJK]/((p->DZP[KP]+p->DZP[KM1]));
                         
-            d->M.b[n] = -(visc_KM1*sigxyz2_b)/(p->DZP[KM1]*p->DZN[KP])
-                        + visc_KM1*p->sigxx[FIJK]/((p->DZP[KP]+p->DZP[KM1]));
+            d->M.b[n] = -cvb/(p->DZP[KM1]*p->DZN[KP])
+                        + visc_KM1h*p->sigxx[FIJK]/((p->DZP[KP]+p->DZP[KM1]));
             
             
             d->rhsvec.V[n] = visc_IP*((WH[Ip1JKp1]-WH[Im1JKp1]) - (WH[Ip1JKm1]-WH[Im1JKm1]))/((p->DXP[IP]+p->DXP[IM1])*(p->DZP[KP]+p->DZP[KM1]))*p->sigz[IJ]
@@ -111,7 +135,7 @@ void nhflow_idiff_2D::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow
 						 + (CPORNH*UHin[IJK])/(alpha*p->dt)
                             
                             
-                            + visc_IP*2.0*0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*(UH[Ip1JKp1] - UH[Im1JKp1] - UH[Ip1JKm1] + UH[Im1JKm1])
+                            + visc_IPh*2.0*0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*(UH[Ip1JKp1] - UH[Im1JKp1] - UH[Ip1JKm1] + UH[Im1JKm1])
                             /((p->DXP[IP]+p->DXP[IM1])*(p->DZP[KP]+p->DZP[KM1]));
         }
         

@@ -73,6 +73,9 @@ void nhflow_rans_io::ini(lexer* p, fdm_nhf *d, ghostcell* pgc)
     
     pgc->start24V(p,d->EV0,24);
     
+    // HLES split (A 561): horizontal eddy viscosity before the first momentum step
+    hles_update(p,d,pgc);
+    
     LOOP
     if(p->DF[IJK]<0)
     {

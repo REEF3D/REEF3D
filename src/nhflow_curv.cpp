@@ -525,6 +525,36 @@ double nhflow_curv::diff_explicit(lexer *p, int comp, int ii, int jj, int kk, co
     return r;
 }
 
+double nhflow_curv::diff_explicit_hv(lexer *p, int comp, int ii, int jj, int kk, const double *UH, const double *VH, const double *WH, double visc_h, double visc_v)
+{
+    // w: all its stresses have a z index (nu_v)
+    if(comp==3)
+    return visc_v*diff_explicit(p,comp,ii,jj,kk,UH,VH,WH);
+    
+    auto C = [&](int a, int b, int c) { return (a-p->imin)*p->jmax*p->kmax + (b-p->jmin)*p->kmax + c-p->kmin; };
+    const double *f = (comp==1) ? UH : VH;
+    const int q2 = (ii-p->imin)*p->jmax + (jj-p->jmin);
+    const int fl = (ii-p->imin)*p->jmax*p->kmaxF + (jj-p->jmin)*p->kmaxF + kk-p->kmin, flp = fl+1;
+    double rh = 0.0, rv = 0.0, qx, qy;
+    
+    // horizontal: non-orthogonal Laplacian part, d/dx d/dy of the horizontal divergence, sigma cross terms
+    rh += kflux3(p,f,ii,jj,kk);
+    
+    const std::vector<double> &D = curv_diff_D;
+    double Dx,Dy;
+    grad5(p,ii,jj,D[C(ii+1,jj,kk)],D[C(ii-1,jj,kk)],D[C(ii,jj+1,kk)],D[C(ii,jj-1,kk)],Dx,Dy);
+    rh += (comp==1) ? Dx : Dy;
+    
+    grad_dsig(p,f,ii,jj,kk,qx,qy);
+    rh += 2.0*0.5*(p->sigx[fl]+p->sigx[flp])*qx + 2.0*0.5*(p->sigy[fl]+p->sigy[flp])*qy;
+    
+    // vertical transpose stress d/dz (dw/dx), d/dz (dw/dy)
+    grad_dsig(p,WH,ii,jj,kk,qx,qy);
+    rv += ((comp==1) ? qx : qy)*p->sigz[q2];
+    
+    return visc_h*rh + visc_v*rv;
+}
+
 void nhflow_curv::ediff(lexer *p, fdm_nhf *d, int comp, double *F, double *UH, double *VH, double *WH)
 {
     auto C = [&](int a, int b, int c) { return (a-p->imin)*p->jmax*p->kmax + (b-p->jmin)*p->kmax + c-p->kmin; };
@@ -547,6 +577,9 @@ void nhflow_curv::ediff(lexer *p, fdm_nhf *d, int comp, double *F, double *UH, d
         continue;
         
         const double visc = d->VISC[c] + d->EV[c];
+        // HLES split (A 561): u, v horizontal stresses with nu_h = EVH (w: all stresses nu_v)
+        const bool split = (p->A561>0 && comp<3);
+        const double visch = split ? d->VISC[c] + d->EVH[c] : visc;
         const int fl = (ii-p->imin)*p->jmax*p->kmaxF + (jj-p->jmin)*p->kmaxF + kk-p->kmin, flp = fl+1;
         const double sz2 = (comp==3 ? 2.0 : 1.0)*pow(p->sigz[q2],2.0);
         const double s2b = pow(p->sigx[fl],2.0) + pow(p->sigy[fl],2.0) + sz2;
@@ -561,9 +594,17 @@ void nhflow_curv::ediff(lexer *p, fdm_nhf *d, int comp, double *F, double *UH, d
         const double lh = cE*(nb(c,C(ii+1,jj,kk))-fc) + cW*(nb(c,C(ii-1,jj,kk))-fc)
                         + cN*(nb(c,C(ii,jj+1,kk))-fc) + cS*(nb(c,C(ii,jj-1,kk))-fc);
         
+        if(!split)
         F[c] += visc*lh
               + visc*(s2t*(fkp-fc)/p->DZP[kk+marge] - s2b*(fc-fkm)/p->DZP[kk-1+marge])/p->DZN[kk+marge]
               + visc*p->sigxx[fl]*(fkp-fkm)/(p->DZP[kk+marge]+p->DZP[kk-1+marge])
               + visc*diff_explicit(p,comp,ii,jj,kk,UH,VH,WH);
+        
+        if(split)
+        F[c] += visch*lh
+              + (visch*((s2t-sz2)*(fkp-fc)/p->DZP[kk+marge] - (s2b-sz2)*(fc-fkm)/p->DZP[kk-1+marge])
+              +  visc*sz2*((fkp-fc)/p->DZP[kk+marge] - (fc-fkm)/p->DZP[kk-1+marge]))/p->DZN[kk+marge]
+              + visch*p->sigxx[fl]*(fkp-fkm)/(p->DZP[kk+marge]+p->DZP[kk-1+marge])
+              + diff_explicit_hv(p,comp,ii,jj,kk,UH,VH,WH,visch,visc);
     }
 }

@@ -62,6 +62,11 @@ void nhflow_komega_func::isource(lexer *p, fdm_nhf *d)
     LOOP
 	d->F[IJK] = -(2.0/3.0)*d->WL(i,j)*((p->geo_curv==1 ? curv_kx(p,KIN,i,j,k,1) : (KIN[Ip1JK]-KIN[Im1JK])/(p->DXP[IP]+p->DXP[IM1]))
               + 0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*(KIN[IJKp1]-KIN[IJKm1])/(p->DZP[KP]+p->DZP[KM1]));
+    
+    // QCR extra stress (A 563)
+    if(p->A563>0.0)
+    LOOP
+    d->F[IJK] += qcr_fx(p,d);
 }
 
 void nhflow_komega_func::jsource(lexer *p, fdm_nhf *d)
@@ -74,6 +79,10 @@ void nhflow_komega_func::jsource(lexer *p, fdm_nhf *d)
     LOOP
 	d->G[IJK] = -(2.0/3.0)*d->WL(i,j)*((p->geo_curv==1 ? curv_kx(p,KIN,i,j,k,2) : (KIN[IJp1K]-KIN[IJm1K])/(p->DYP[JP]+p->DYP[JM1]))
               + 0.5*(p->sigy[FIJK]+p->sigy[FIJKp1])*(KIN[IJKp1]-KIN[IJKm1])/(p->DZP[KP]+p->DZP[KM1]))*p->y_dir;
+    
+    if(p->A563>0.0)
+    LOOP
+    d->G[IJK] += qcr_fy(p,d)*p->y_dir;
 }
 
 void nhflow_komega_func::ksource(lexer *p, fdm_nhf *d)
@@ -86,6 +95,10 @@ void nhflow_komega_func::ksource(lexer *p, fdm_nhf *d)
     if(p->T33==1)
     LOOP
 	d->H[IJK] = -(2.0/3.0)*(KIN[IJKp1]-KIN[IJKm1])/(p->DZP[KP]+p->DZP[KM1]);
+    
+    if(p->A563>0.0)
+    LOOP
+    d->H[IJK] += qcr_fz(p,d);
 }
 
 void nhflow_komega_func::eddyvisc(lexer* p, fdm_nhf *d, ghostcell* pgc, vrans_nhflow* pvrans)
@@ -102,7 +115,8 @@ void nhflow_komega_func::eddyvisc(lexer* p, fdm_nhf *d, ghostcell* pgc, vrans_nh
     LOOP
     {
         const double kval = MAX(KIN[IJK],0.0);
-        const double Sval = strainterm(p,d);
+        // HLES split (A 561 1): the limiters with the vertical shear, as the production (Pk_update)
+        const double Sval = (p->A561==1) ? strainterm_v(p,d) : strainterm(p,d);
 
         double ev = EPS[IJK]>1.0e-20 ? kval/EPS[IJK] : 0.0;
 

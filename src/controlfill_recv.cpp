@@ -418,6 +418,14 @@ void control::ctrlrecv()
     ii++;
     A568 = dctrl[dd];
     dd++;
+    A561 = ictrl[ii];
+    ii++;
+    A562_cs = dctrl[dd];
+    dd++;
+    A562_nub = dctrl[dd];
+    dd++;
+    A563 = dctrl[dd];
+    dd++;
     A570 = ictrl[ii];
     ii++;
     A571_u = dctrl[dd];

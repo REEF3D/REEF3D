@@ -206,6 +206,10 @@ void control::ini_default()
     A566=0;      // int buoyancy
     A567=0;      // int fsf eps
     A568=1.0;      // double URANS C3 coefficient
+    A561=0;        // int horizontal/vertical eddy viscosity split (HLES): 0 off, 1 nu_h = nu_t + nu_sgs (vertical-shear production), 2 nu_h = nu_sgs
+    A562_cs=0.15;  // double horizontal Smagorinsky constant for A 561
+    A562_nub=0.0;  // double background horizontal eddy viscosity for A 561
+    A563=0.0;      // double QCR coefficient C_cr1 (0: off, Spalart 2000: 0.3)
     
     A570=0;      // int wind model
     A571_u=0.0;  // double wind velocity

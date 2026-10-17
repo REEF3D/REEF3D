@@ -422,6 +422,14 @@ void control::ctrlsend()
     ii++;
     dctrl[dd] = A568;
     dd++;
+    ictrl[ii] = A561;
+    ii++;
+    dctrl[dd] = A562_cs;
+    dd++;
+    dctrl[dd] = A562_nub;
+    dd++;
+    dctrl[dd] = A563;
+    dd++;
     ictrl[ii] = A570;
     ii++;
     dctrl[dd] = A571_u;

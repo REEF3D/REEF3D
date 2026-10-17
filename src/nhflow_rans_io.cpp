@@ -102,6 +102,31 @@ void nhflow_rans_io::print_3D(lexer* p, fdm_nhf *d, ghostcell *pgc, std::vector<
         std::memcpy(&buffer[m],&ffn,sizeof(float));
         m+=sizeof(float);
     }
+    
+    // eddyv_h: horizontal eddy viscosity of the HLES split (A 561)
+    if(p->A561>0)
+    {
+    iin=4*(p->pointnum);
+    std::memcpy(&buffer[m],&iin,sizeof(int));
+    m+=sizeof(int);
+
+    TPLOOP
+    {
+        if(p->j_dir==0)
+        {
+            jj=j;
+            j=0;
+            ffn=float(0.25*(d->EVH[IJK]+d->EVH[Ip1JK]+d->EVH[IJKp1]+d->EVH[Ip1JKp1]));
+            j=jj;
+        }
+        else if(p->j_dir==1)
+            ffn=float(0.125*(d->EVH[IJK]+d->EVH[Ip1JK]+d->EVH[IJp1K]+d->EVH[Ip1Jp1K]
+                        +d->EVH[IJKp1]+d->EVH[Ip1JKp1]+d->EVH[IJp1Kp1]+d->EVH[Ip1Jp1Kp1]));
+
+        std::memcpy(&buffer[m],&ffn,sizeof(float));
+        m+=sizeof(float);
+    }
+    }
 
     // kin
     iin=4*(p->pointnum);
@@ -265,6 +290,9 @@ void nhflow_rans_io::name_ParaView_parallel(lexer *p, ofstream &result)
 {
     result<<"<PDataArray type=\"Float32\" Name=\"eddyv\"/>\n";
     
+    if(p->A561>0)
+    result<<"<PDataArray type=\"Float32\" Name=\"eddyv_h\"/>\n";
+    
     result<<"<PDataArray type=\"Float32\" Name=\"kin\"/>\n";
 	
 	if(p->A560==1 || p->A560==21)
@@ -277,6 +305,11 @@ void nhflow_rans_io::name_ParaView(lexer *p, stringstream &result, int *offset, 
 {
     result<<"<DataArray type=\"Float32\" Name=\"eddyv\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
+    if(p->A561>0)
+    {
+    result<<"<DataArray type=\"Float32\" Name=\"eddyv_h\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
+    ++n;
+    }
     result<<"<DataArray type=\"Float32\" Name=\"kin\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
 	if(p->A560==1 || p->A560==21)
@@ -290,6 +323,11 @@ void nhflow_rans_io::offset_ParaView(lexer *p, int *offset, int &n)
 {
     offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;
+    if(p->A561>0)
+    {
+    offset[n]=offset[n-1]+4*(p->pointnum)+4;
+	++n;
+    }
 	offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;
     offset[n]=offset[n-1]+4*(p->pointnum)+4;
