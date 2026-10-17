@@ -275,7 +275,8 @@ public:
     int finest_id(double, double, double) const;
     void step(lexer*, fdm*, ghostcell*, vrans*, sixdof*);
     void timestep(lexer*, fdm*, ghostcell*);
-    void print(lexer*, bool after=false);
+    void print(lexer*, ghostcell*, bool after=false);
+    bool print_lagoon(lexer*, ghostcell*, int num);    // P 18: the blocks into the LAGOON store
 
     // the composite projection (cfd_amr_press.cpp), public for the vector space of the solver
     void pr_apply(int kx, int ky);

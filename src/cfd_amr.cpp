@@ -1249,7 +1249,7 @@ void cfd_amr::ini(lexer *p, fdm *a, ghostcell *pgc)
     }
 
     // the output of the patches at the start (printer_CFD has written level 0)
-    print(p,true);
+    print(p,pgc,true);
 }
 
 // --------------------------------------------------------------------- time step
