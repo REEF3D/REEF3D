@@ -1,0 +1,7 @@
+{
+ "base": "cfd_2d_cpm_bedload_layer",
+ "ctrl_set": {"Q 10": "2"},
+ "tags": ["quick", "2d", "cpm"],
+ "description": "as cfd_2d_cpm_bedload_layer with the RK2 time scheme of the parcels (Q 10 2): both stages, the resting grains of the jammed bed sleep in both",
+ "covers": ["CPM mppic_RK2 / substep_rk2 with the bedload layer", "CPM bed_asleep in both RK2 stages"]
+}
