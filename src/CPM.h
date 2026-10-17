@@ -176,10 +176,24 @@ private:
     int st_last=0;
     double cip4a(lexer*, field&, double, double, double);
     
+    // cell indices of the parcel coordinates, posc_* and posf_*, kept per parcel together with the
+    // coordinate they belong to (index_cache, once per sub-step): the parcel loops of a sub-step look
+    // up the same coordinates a few dozen times. A lookup with another coordinate (a moved parcel, a
+    // tentative position, another point) computes the index, so the result is always that of posc_* and posf_*.
+    std::vector<double> ixX,ixY,ixZ;
+    std::vector<int> ixCi,ixCj,ixCk,ixFi,ixFj,ixFk;
+    void index_cache(lexer*);
+    int pci(lexer*, int, double);
+    int pcj(lexer*, int, double);
+    int pck(lexer*, int, double);
+    int pfi(lexer*, int, double);
+    int pfj(lexer*, int, double);
+    int pfk(lexer*, int, double);
+    
     void volfrac_update(lexer*, ghostcell*, sediment_fdm*, double*, double*, double*, double*, double*, double*);
     void smooth(lexer*, ghostcell*, field&, int);
     double kvol(lexer*, int, int, int);
-    void kernel(lexer*, double, double, double);
+    void kernel(lexer*, double, double, double, int=-1);
     bool wallcell(lexer*, int, int, int);
     
     // periodic boundaries in x and y (DIVEMesh C 21, C 22)
@@ -216,6 +230,9 @@ private:
     field4a Kc,KUx,KUy,KUz;
     field4a dSx,dSy,dSz;
     field4a Locc,Lout,Lin,Ltc,Lloc,LA,Lh0,Lh1,Lh2,Lh3;
+    std::vector<int> lm_ci,lm_cj,lm_ck,lm_si,lm_sj,lm_sk;
+    std::vector<double> lm_t,lm_ub;
+    std::vector<char> lm_state;
 
     // relax
     void relax_ini(lexer*);
@@ -286,7 +303,7 @@ private:
     void bedload_exchange(lexer*, fdm*, ghostcell*, sediment_fdm*, double);
     void bedload_move(lexer*, fdm*, sediment_fdm*, int, double);
     bool bedload_grain(lexer*, int, int, double, double&, double&, double&);
-    void bedload_column(lexer*, double, double, int&, int&);
+    void bedload_column(lexer*, double, double, int&, int&, int=-1);
     double settling_velocity(lexer*, double);
     void bedload_occupancy(lexer*);
     void bedload_slide(lexer*, fdm*, sediment_fdm*);

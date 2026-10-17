@@ -87,7 +87,7 @@ The flow moves the bed through the layer only:
 --------------------------------------------------------------------*/
 
 // bed column of a position: periodic sides wrap, beyond the local domain the edge column
-void CPM::bedload_column(lexer *p, double x, double y, int &ic, int &jc)
+void CPM::bedload_column(lexer *p, double x, double y, int &ic, int &jc, int q)
 {
     if(perx==1)
     {
@@ -103,8 +103,8 @@ void CPM::bedload_column(lexer *p, double x, double y, int &ic, int &jc)
         if(y<p->global_ymin) y+=Ly;
     }
 
-    ic = MAX(0, MIN(p->knox-1, p->posc_i(x)));
-    jc = p->j_dir==1 ? MAX(0, MIN(p->knoy-1, p->posc_j(y))) : 0;
+    ic = MAX(0, MIN(p->knox-1, pci(p,q,x)));
+    jc = p->j_dir==1 ? MAX(0, MIN(p->knoy-1, pcj(p,q,y))) : 0;
 }
 
 // bed shear stress vector and bed slope per column
@@ -242,8 +242,8 @@ void CPM::bedload_occupancy(lexer *p)
     if(P.Flag[n]>=ACTIVE)
     {
         int ic,jc;
-        bedload_column(p,P.X[n],P.Y[n],ic,jc);
-        int kc = MAX(0, MIN(p->knoz-1, p->posc_k(P.Z[n])));
+        bedload_column(p,P.X[n],P.Y[n],ic,jc,n);
+        int kc = MAX(0, MIN(p->knoz-1, pck(p,n,P.Z[n])));
         Locc(ic,jc,kc) += vpar;
     }
 }
@@ -340,7 +340,7 @@ void CPM::bedload_slide(lexer *p, fdm *a, sediment_fdm *s)
     for(n=0;n<P.index;++n)
     if(P.Flag[n]==ACTIVE && P.Hop[n]==0.0)
     {
-        bedload_column(p,P.X[n],P.Y[n],ic,jc);
+        bedload_column(p,P.X[n],P.Y[n],ic,jc,n);
         
         if(ic<0 || ic>=p->knox || jc<0 || jc>=nj)
         continue;
@@ -433,7 +433,7 @@ void CPM::bedload_exchange(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, do
     for(n=0;n<P.index;++n)
     if(P.Flag[n]==ACTIVE)
     {
-        bedload_column(p,P.X[n],P.Y[n],ic,jc);
+        bedload_column(p,P.X[n],P.Y[n],ic,jc,n);
         int c = (ic+1)*nj + jc+1;
 
         if(P.Hop[n]>0.0)
@@ -550,7 +550,7 @@ void CPM::bedload_exchange(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, do
                 break;
 
                 int is,js;
-                bedload_column(p,P.X[q],P.Y[q],is,js);
+                bedload_column(p,P.X[q],P.Y[q],is,js,q);
                 int ks = MAX(0, MIN(p->knoz-1, p->posc_k(P.Z[q])));
                 Locc(is,js,ks) -= vpar;
 
@@ -649,7 +649,7 @@ void CPM::bedload_move(lexer *p, fdm *a, sediment_fdm *s, int q, double dt)
     int ic,jc;
     double ub,vb,te;
 
-    bedload_column(p,P.X[q],P.Y[q],ic,jc);
+    bedload_column(p,P.X[q],P.Y[q],ic,jc,q);
 
     bool mob = bedload_grain(p,ic,jc,P.D[q],ub,vb,te);
     
@@ -672,14 +672,14 @@ void CPM::bedload_move(lexer *p, fdm *a, sediment_fdm *s, int q, double dt)
     P.XRK1[q] = P.X[q] + f*dt*mf*ub;
     P.YRK1[q] = p->j_dir==1 ? P.Y[q] + f*dt*mf*vb : P.Y[q];
 
-    bedload_column(p,P.XRK1[q],P.YRK1[q],ic,jc);
+    bedload_column(p,P.XRK1[q],P.YRK1[q],ic,jc,q);
     double zb = zbl(s,ic,jc);
 
     if(p->solidread>0 && p->ccipol4_b(a->solid,P.XRK1[q],P.YRK1[q],zb+0.5*P.D[q]) < 0.5*P.D[q])
     {
         P.XRK1[q] = P.X[q];
         P.YRK1[q] = P.Y[q];
-        bedload_column(p,P.X[q],P.Y[q],ic,jc);
+        bedload_column(p,P.X[q],P.Y[q],ic,jc,q);
         zb = zbl(s,ic,jc);
         dep = true;
     }
@@ -725,7 +725,7 @@ bool CPM::bedload_settle(lexer *p, fdm *a, sediment_fdm *s, int q)
     
     int ic,jc;
     
-    bedload_column(p,P.XRK1[q],P.YRK1[q],ic,jc);
+    bedload_column(p,P.XRK1[q],P.YRK1[q],ic,jc,q);
     double zb = zbl(s,ic,jc);
     
     // the bed level, or a quarter cell above it: the top cell of the bed can be full above the
@@ -768,9 +768,9 @@ bool CPM::bedload_nodisp(lexer *p, fdm *a, int q)
     if(p->Q74==1)
     return true;
     
-    i = p->posc_i(P.X[q]);
-    j = p->posc_j(P.Y[q]);
-    k = p->posc_k(P.Z[q]);
+    i = pci(p,q,P.X[q]);
+    j = pcj(p,q,P.Y[q]);
+    k = pck(p,q,P.Z[q]);
     
     double h = p->DZN[KP];
     
@@ -786,9 +786,9 @@ bool CPM::bedload_rest(lexer *p, fdm *a, int q)
     if(topo<0.0)
     return true;
 
-    i = p->posc_i(P.X[q]);
-    j = p->posc_j(P.Y[q]);
-    k = p->posc_k(P.Z[q]);
+    i = pci(p,q,P.X[q]);
+    j = pcj(p,q,P.Y[q]);
+    k = pck(p,q,P.Z[q]);
 
     double h = p->DZN[KP];
     double sp = sqrt(P.U[q]*P.U[q] + P.V[q]*P.V[q] + P.W[q]*P.W[q]);

@@ -69,12 +69,20 @@ void CPM::limiter(lexer *p, fdm *a, ghostcell *pgc, double *X0, double *Y0, doub
     int i0,j0,k0,i1,j1,k1;
     double ta,t;
     
-    std::vector<int> ci(P.index),cj(P.index),ck(P.index);
-    std::vector<int> si(P.index),sj(P.index),sk(P.index);
-    std::vector<double> tarr(P.index);
+    // work arrays per parcel, kept between the calls (the entries are set before they are read)
+    if(lm_ci.size()<size_t(P.index))
+    {
+        lm_ci.resize(P.index); lm_cj.resize(P.index); lm_ck.resize(P.index);
+        lm_si.resize(P.index); lm_sj.resize(P.index); lm_sk.resize(P.index);
+        lm_t.resize(P.index); lm_ub.resize(P.index);
+    }
+    std::vector<int> &ci=lm_ci, &cj=lm_cj, &ck=lm_ck;
+    std::vector<int> &si=lm_si, &sj=lm_sj, &sk=lm_sk;
+    std::vector<double> &tarr=lm_t;
     
     // 0 stays in its cell, 1 pending request (rejected if still pending at the end), 2 accepted, 4 accepted without check
-    std::vector<char> state(P.index,0);
+    std::vector<char> &state=lm_state;
+    state.assign(P.index,0);
     
     auto local = [&](int ii, int jj, int kk) {return ii>=0 && ii<p->knox && jj>=0 && jj<p->knoy && kk>=0 && kk<p->knoz;};
     auto bin = [&](double tt) {return MIN(NB-1, int(tt*NB));};
@@ -82,9 +90,9 @@ void CPM::limiter(lexer *p, fdm *a, ghostcell *pgc, double *X0, double *Y0, doub
     // cell index of a position; beyond the local domain posc_i/j/k return knox+1 (knoy+1, knoz+1),
     // a move of less than one cell ends in the first ghost layer: knox (the neighbour's first cell,
     // or for a serial periodic side the copy of cell 0, see pfold)
-    auto ci_of = [&](double x) {int q = p->posc_i(x); return q>p->knox ? p->knox : (q<-1 ? -1 : q);};
-    auto cj_of = [&](double y) {int q = p->posc_j(y); return q>p->knoy ? p->knoy : (q<-1 ? -1 : q);};
-    auto ck_of = [&](double z) {int q = p->posc_k(z); return q>p->knoz ? p->knoz : (q<-1 ? -1 : q);};
+    auto ci_of = [&](int m, double x) {int q = pci(p,m,x); return q>p->knox ? p->knox : (q<-1 ? -1 : q);};
+    auto cj_of = [&](int m, double y) {int q = pcj(p,m,y); return q>p->knoy ? p->knoy : (q<-1 ? -1 : q);};
+    auto ck_of = [&](int m, double z) {int q = pck(p,m,z); return q>p->knoz ? p->knoz : (q<-1 ? -1 : q);};
     
     // occupancy at the start of the step
     for(i=-1;i<p->knox+1;++i)
@@ -95,9 +103,9 @@ void CPM::limiter(lexer *p, fdm *a, ghostcell *pgc, double *X0, double *Y0, doub
     for(n=0;n<P.index;++n)
     if(P.Flag[n]>=ACTIVE)
     {
-        i0 = ci_of(X0[n]);
-        j0 = p->j_dir==1 ? cj_of(Y0[n]) : 0;
-        k0 = ck_of(Z0[n]);
+        i0 = ci_of(n,X0[n]);
+        j0 = p->j_dir==1 ? cj_of(n,Y0[n]) : 0;
+        k0 = ck_of(n,Z0[n]);
         
         if(local(i0,j0,k0))
         Locc(i0,j0,k0) += vpar;
@@ -114,9 +122,9 @@ void CPM::limiter(lexer *p, fdm *a, ghostcell *pgc, double *X0, double *Y0, doub
         if(p->Q58>0 && (P.Hop[n]>0.0 || P.Test[n]<0.0))
         continue;
         
-        i0 = ci_of(X0[n]);
-        j0 = p->j_dir==1 ? cj_of(Y0[n]) : 0;
-        k0 = ck_of(Z0[n]);
+        i0 = ci_of(n,X0[n]);
+        j0 = p->j_dir==1 ? cj_of(n,Y0[n]) : 0;
+        k0 = ck_of(n,Z0[n]);
         
         // a move of more than one cell is shortened to stay within the neighbour cell
         {
@@ -137,9 +145,9 @@ void CPM::limiter(lexer *p, fdm *a, ghostcell *pgc, double *X0, double *Y0, doub
             }
         }
         
-        i1 = ci_of(X1[n]);
-        j1 = p->j_dir==1 ? cj_of(Y1[n]) : 0;
-        k1 = ck_of(Z1[n]);
+        i1 = ci_of(n,X1[n]);
+        j1 = p->j_dir==1 ? cj_of(n,Y1[n]) : 0;
+        k1 = ck_of(n,Z1[n]);
         
         si[n]=i0; sj[n]=j0; sk[n]=k0;
         ci[n]=i1; cj[n]=j1; ck[n]=k1;
@@ -358,7 +366,7 @@ void CPM::limiter(lexer *p, fdm *a, ghostcell *pgc, double *X0, double *Y0, doub
     // a move across one face stops at the face, a diagonal move stays at the start
     int nrej=0;
     double gmag = sqrt(p->W20*p->W20 + p->W21*p->W21 + p->W22*p->W22);
-    std::vector<double> ublk(P.index,0.0);
+    std::vector<double> &ublk=lm_ub;
     
     for(n=0;n<P.index;++n)
     if(P.Flag[n]==ACTIVE && state[n]==1)
@@ -371,7 +379,7 @@ void CPM::limiter(lexer *p, fdm *a, ghostcell *pgc, double *X0, double *Y0, doub
         Z1[n] = Z0[n] + f*(Z1[n]-Z0[n]);
         
         // safeguard at faces (round-off of the cell search): back to the start
-        if(ci_of(X1[n])!=si[n] || (p->j_dir==1 && cj_of(Y1[n])!=sj[n]) || ck_of(Z1[n])!=sk[n])
+        if(ci_of(n,X1[n])!=si[n] || (p->j_dir==1 && cj_of(n,Y1[n])!=sj[n]) || ck_of(n,Z1[n])!=sk[n])
         {
             X1[n] = X0[n];
             Y1[n] = Y0[n];
@@ -435,7 +443,7 @@ void CPM::limiter(lexer *p, fdm *a, ghostcell *pgc, double *X0, double *Y0, doub
         for(n=0;n<P.index;++n)
         if(P.Flag[n]>=ACTIVE)
         {
-            int a1=ci_of(X1[n]), b1=p->j_dir==1?cj_of(Y1[n]):0, c1=ck_of(Z1[n]);
+            int a1=ci_of(n,X1[n]), b1=p->j_dir==1?cj_of(n,Y1[n]):0, c1=ck_of(n,Z1[n]);
             
             if(local(a1,b1,c1))
             Lloc(a1,b1,c1) += vpar;

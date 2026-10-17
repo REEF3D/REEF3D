@@ -33,6 +33,7 @@ enum
 };
 
 #include"increment.h"
+#include<vector>
 
 class lexer;
 class ghostcell;
@@ -97,6 +98,12 @@ private:
     int sendcount[6],recvcount[6];
     int **sendid;
     double **send,**recv;
+    
+    // xchange: target side of each parcel (0: stays, 1..6: neighbour), found once per call in xchange_count;
+    // the cell indices of the last position looked up are kept per parcel slot with that position
+    std::vector<signed char> xdest;
+    std::vector<double> xkx,xky,xkz;
+    std::vector<int> xki,xkj,xkk;
 };
 
 #endif

@@ -187,7 +187,7 @@ void CPM::coupling_update(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
         // drag coefficient of the fluid source F/eps, per unit fluid velocity of the solver
         double mD = P.RO[n]*vpar*D/eps;
         
-        kernel(p,P.X[n],P.Y[n],P.Z[n]);
+        kernel(p,P.X[n],P.Y[n],P.Z[n],n);
         
         for(qi=0;qi<2;++qi)
         for(qj=0;qj<2;++qj)

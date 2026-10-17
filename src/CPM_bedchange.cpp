@@ -145,9 +145,9 @@ void CPM::topo_column(lexer *p, fdm *a, ghostcell *pgc)
     for(n=0;n<P.index;++n)
     if(P.Flag[n]>=ACTIVE && P.Hop[n]<=0.0)
     {
-        int ic = p->posc_i(P.X[n]);
-        int jc = p->j_dir==1 ? p->posc_j(P.Y[n]) : 0;
-        int kc = p->posc_k(P.Z[n]);
+        int ic = pci(p,n,P.X[n]);
+        int jc = p->j_dir==1 ? pcj(p,n,P.Y[n]) : 0;
+        int kc = pck(p,n,P.Z[n]);
         
         if(ic<0 || ic>=p->knox || jc<0 || jc>=p->knoy || kc<0 || kc>=nk)
         continue;

@@ -35,7 +35,7 @@ void CPM::wallbc(lexer *p, ghostcell *pgc, sediment_fdm *s)
     for(size_t n=0;n<P.index;n++)
     if(P.Flag[n]==ACTIVE)
     {
-        i=p->posc_i(P.X[n]);
+        i=pci(p,n,P.X[n]);
         
         if((i<=0 && p->nb1<0 && open_side[0]==1) || (i>=p->knox-1 && p->nb4<0 && open_side[3]==1)
         || P.X[n]<p->Q76 || P.X[n]>p->Q77)
