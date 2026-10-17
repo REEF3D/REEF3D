@@ -36,6 +36,7 @@ Architect: Hans Bihs
 #include"coral/hydro/coral_member_morison.h"
 #include"coral/core/coral_points.h"
 #include"coral/pto/coral_pto.h"
+#include"coral/hydro/coral_fluid_load.h"
 #include"coral/mooring/coral_mooring.h"
 #include<cmath>
 #include<fstream>
@@ -690,10 +691,39 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
             const int b = body_of(it, it.word("body"));
             m.add_load(std::make_unique<morison_load>(m, b, std::vector<morison_member>{mb}, waves, rho, it.vec("current", Vec3::Zero()), it.word(1)));
         }
+        else if(k=="fluid_body")
+        {
+            // body driven by the resolved fluid of REEF3D (coral/reef3d): one fluid load for all of them
+            fluid_body_spec fb;
+            fb.body = body_of(it, it.word(1));
+            if(fb.body < 0) it.fail("the ground cannot be a fluid body");
+            fb.n = (int)it.get("n", (double)fluid_bodies.size());
+            fb.own_mass = it.has("own_mass");
+            for(const auto &o : fluid_bodies)
+            {
+                if(o.body == fb.body) it.fail("body '" + it.word(1) + "' is a fluid body twice");
+                if(o.n == fb.n) it.fail("REEF3D body " + std::to_string(fb.n) + " mapped twice");
+            }
+            fluid_bodies.push_back(fb);
+        }
+        else if(k=="fluid_coupling")
+        {
+            fluid_order = (int)it.get("order", (double)fluid_order);
+            if(fluid_order < 0 || fluid_order > 2) it.fail("order must be 0, 1 or 2");
+            if(it.has("no_predictor")) fluid_predictor = false;
+        }
         else if(k!="gravity" && k!="rho" && k!="time" && k!="output" && k!="waves" && k!="body" && k!="joint"
                 && k!="section" && k!="member" && k!="point_mass" && k!="static" && k!="modes"
                 && k!="superelement" && k!="soil" && k!="soil_layer" && k!="pile" && k!="force")
             it.fail("unknown keyword");
+    }
+    if(!fluid_bodies.empty())
+    {
+        std::vector<int> b;
+        for(const auto &o : fluid_bodies)
+            b.push_back(o.body);
+        fluid = &static_cast<fluid_load&>(m.add_load(std::make_unique<fluid_load>(m, b, "fluid")));
+        fluid->order = fluid_order;
     }
 
     // initial displacements (the joints, the reference positions of the loads and the line attachments

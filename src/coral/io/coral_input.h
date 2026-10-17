@@ -81,6 +81,14 @@ Architect: Hans Bihs
 //   pile <frame member> soil <soil> D <D> [py] [tz] [qz] [linear]
 //        (springs at the member's nodes below the mudline; all three kinds unless some are listed;
 //        linear: initial slopes only)
+//   fluid_body <body> [n <k>] [own_mass]
+//        (REEF3D with Z 40 1: the body is driven by CORAL, the resolved fluid acts on it; k: number of the
+//        REEF3D 6DOF body (X 20 order, default: the order of the fluid_body lines); mass and inertia are
+//        taken from the REEF3D body unless own_mass; FNPF only so far, see coral/reef3d)
+//   fluid_coupling [order <0|1|2>] [no_predictor]
+//        (fluid loads in time over a CORAL step: polynomial of this order through the last loads of the
+//        fluid, default 2; predictor (default): the load of the next fluid stage, computed at a predicted
+//        pose, enters the CORAL step, which then interpolates; see coral/hydro/coral_fluid_load.h)
 //   static                                       static equilibrium before the time integration
 //   modes <n> [damped]                           linear analysis: the first n modes (modes.dat, mode_shapes.dat)
 //   output vtp <dt>                              VTP of the structure (coral_vtp/)
@@ -99,6 +107,7 @@ Architect: Hans Bihs
 namespace coral
 {
     class joint;
+    class fluid_load;
 
     struct run_settings
     {
@@ -127,6 +136,13 @@ namespace coral
         std::shared_ptr<wave_field> waves;
         std::map<std::string, joint*> joints;
         double rho = 1025.0;
+
+        // bodies driven by the resolved fluid of REEF3D (fluid_body) and their load
+        struct fluid_body_spec {int body = -1; int n = 0; bool own_mass = false;};
+        std::vector<fluid_body_spec> fluid_bodies;
+        fluid_load *fluid = nullptr;
+        int fluid_order = 2;
+        bool fluid_predictor = true;
 
     private:
         void parse(const std::vector<std::pair<int, std::vector<std::string>>> &lines, const std::string &dir);

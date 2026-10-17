@@ -49,6 +49,8 @@ int main(int argc, char **argv)
         c.read(file);
         std::printf("input %s: %d bodies, %d constraint equations, %d loads, %s waves\n", file.c_str(),
                     c.m.nbody(), c.m.ncon(), (int)c.m.load_list.size(), c.waves ? std::to_string(c.waves->components().size()).c_str() : "no");
+        if(c.fluid)
+            std::printf("fluid_body: no resolved fluid in the standalone run, the fluid loads are zero\n");
         const run_settings &r = c.run;
         const auto w0 = std::chrono::steady_clock::now();
         if(r.static_ini)

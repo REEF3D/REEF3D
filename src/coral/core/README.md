@@ -16,6 +16,7 @@ Core of CORAL: the data types and the multibody machinery every other folder bui
 * `coral_linsolve.h/.cpp`: the Newton systems as triplets: dense LU up to 400 unknowns, sparse LU (COLAMD) above, symbolic analysis kept while the pattern stays
 * `coral_timeint.h/.cpp`: Lie group generalized-α on R3 x SO(3) with index-3 constraints and Lagrange multipliers, Newton with the analytic tangents of the loads that have one plus a coloured finite-difference Jacobian of the rest (modified Newton: the Jacobian is kept while Newton converges fast); the generalized coordinates with the same scheme on R^n
 * `coral_gravity.h/.cpp`: gravity on all bodies and point masses
+* `coral_track.h/.cpp`: motion of bodies recorded at the ends of the (sub)steps and interpolated in between (cubic Hermite in position, velocity, rotation and angular velocity), for a coupled solver that needs the bodies at its own times (the stages of the fluid)
 * `coral_static.h/.cpp`: static equilibrium (all loads at zero velocity, constraints by Lagrange multipliers): full Newton, falling back to Newton damped by the natural monotonicity test (Deuflhard) from the start configuration
 * `coral_fdjac.h`: finite-difference Jacobian by columns grouped with a distance-2 colouring of the body coupling graph (`model::coloring`): a load declares which bodies it couples (`load::coupling()`: global, local to its bodies, or diagonal), so a frame of n nodes needs a few dozen residual evaluations instead of 6n
 

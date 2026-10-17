@@ -9,6 +9,7 @@ Engineering hydrodynamic loads (no resolved fluid needed).
 * `coral_radiation.h/.cpp`: retardation function K(t) (exact for B piecewise linear), A_inf from Ogilvie's relation, state-space realization of K (eigensystem realization, diagonal form, exact step for a linear velocity)
 * `coral_hydro_load.h/.cpp`: Cummins equation for the database bodies: buoyancy, hydrostatics, excitation, radiation (convolution or state-space), linear and quadratic damping
 * `coral_morison.h/.cpp`: Morison members on rigid bodies (strip theory, relative velocity, current, added mass of the member)
+* `coral_fluid_load.h/.cpp`: loads of a resolved fluid (REEF3D, `fluid_body`) on rigid bodies: force and moment per body sampled at the fluid time levels, a polynomial in time through the last samples (a provisional sample of the next fluid stage turns the extrapolation into an interpolation, the predictor), the instantaneous added mass implicit on the accelerations of the current state
 * `coral_member_morison.h/.cpp`: Morison loads distributed along flexible members (frame nodes or superelement nodes through `point_set`), relative motion, current, buoyancy of the submerged strips, wet part of the strip cut by the surface
 
 ## Planned
