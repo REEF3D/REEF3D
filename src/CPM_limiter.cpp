@@ -219,18 +219,23 @@ void CPM::limiter(lexer *p, fdm *a, ghostcell *pgc, double *X0, double *Y0, doub
     
     for(it=0; it<MAXIT; ++it)
     {
+        // the four arrival counts per cell (time bins) are whole numbers: they are counted packed in one
+        // field, h0 + B h1 + B^2 h2 + B^3 h3 (B = 4096, exact in double precision up to 4095 arrivals per
+        // bin and cell), summed to the owner in one exchange and unpacked there (one exchange instead of four)
+        const double bw[4] = {1.0, 4096.0, 4096.0*4096.0, 4096.0*4096.0*4096.0};
+        
         for(i=-1;i<p->knox+1;++i)
         for(j=-1;j<p->knoy+1;++j)
         for(k=-1;k<p->knoz+1;++k)
         {
         Lout(i,j,k) = 0.0;
         Lin(i,j,k) = 0.0;
-        for(int b=0;b<NB;++b)
-        (*hist[b])(i,j,k) = 0.0;
+        Lh0(i,j,k) = 0.0;
+        Lloc(i,j,k) = 0.0;
         }
         
         // volume leaving (local source) and arriving (any target, summed to the owner);
-        // arrivals that can be rejected are counted per arrival time bin
+        // arrivals that can be rejected are counted per arrival time bin, and the local ones per cell
         for(n=0;n<P.index;++n)
         if(P.Flag[n]==ACTIVE && (state[n]==2 || state[n]==4))
         {
@@ -240,16 +245,25 @@ void CPM::limiter(lexer *p, fdm *a, ghostcell *pgc, double *X0, double *Y0, doub
             Lin(ci[n],cj[n],ck[n]) += vpar;
             
             if(state[n]==2)
-            (*hist[bin(tarr[n])])(ci[n],cj[n],ck[n]) += 1.0;
+            {
+            Lh0(ci[n],cj[n],ck[n]) += bw[bin(tarr[n])];
+            
+            if(local(ci[n],cj[n],ck[n]))
+            Lloc(ci[n],cj[n],ck[n]) += 1.0;
+            }
         }
         
-        BASELOOP
-        Lloc(i,j,k) = (*hist[0])(i,j,k) + (*hist[1])(i,j,k) + (*hist[2])(i,j,k) + (*hist[3])(i,j,k);
+        pfold(p,Lh0);
+        pgc->start4a_sum(p,Lh0,1);
         
-        for(int b=0;b<NB;++b)
+        BASELOOP
         {
-        pfold(p,*hist[b]);
-        pgc->start4a_sum(p,*hist[b],1);
+            long long v = llround(Lh0(i,j,k));
+            const long long b1 = 4096;
+            Lh0(i,j,k) = double(v%b1);
+            Lh1(i,j,k) = double((v/b1)%b1);
+            Lh2(i,j,k) = double((v/(b1*b1))%b1);
+            Lh3(i,j,k) = double(v/(b1*b1*b1));
         }
         
         pfold(p,Lin);
