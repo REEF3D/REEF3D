@@ -26,8 +26,9 @@ Author: Hans Bihs
 
 void ghostcell::gcperiodicx(lexer* p, field& f, int gcv)
 {
-    // no rank has periodic partition neighbours: nothing to exchange (the decision is the same on all ranks)
-    if(!periodic_comms)
+    // no rank has periodic partition neighbours: nothing to exchange (the decision is the same on all ranks);
+    // nor on the grids of one rank (mesh refinement: the patches, do_comms off)
+    if(!periodic_comms || !do_comms)
     return;
 
     paramargin=margin;

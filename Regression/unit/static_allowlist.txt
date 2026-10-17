@@ -1,6 +1,7 @@
 # static and thread_local variables of src/ that hold no data of one grid (static_check.py):
 # file | declaration | why it is safe with several grids (mesh refinement) in one process
 
+6DOF_external.cpp | sixdof_external *sixdof_external_ptr = nullptr | the external dynamics of the 6DOF bodies (REEF3D::CORAL, Z 40 1): one model per run, attached once by coral_reef3d; the bodies of every grid hand their loads to the same model
 6DOF_obj_fnpf.h | bool chi_on | a one-body mode flag of the process (FNPF bodies)
 6DOF_obj_nhflow.h | bool amr_point_grid = false | a mode flag of the process (the loads of NHFLOW bodies on the grid of the point)
 6DOF_obj_print_vtp.cpp | lagoon_bodies *writer = nullptr | one output writer per process

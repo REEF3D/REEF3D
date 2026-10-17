@@ -1962,9 +1962,17 @@ void control::ctrlsend()
     ii++;
     dctrl[dd] = Q70;
     dd++;
+    dctrl[dd] = Q75;
+    dd++;
+    dctrl[dd] = Q76;
+    dd++;
+    dctrl[dd] = Q77;
+    dd++;
     ictrl[ii] = Q50;
     ii++;
     ictrl[ii] = Q72;
+    ii++;
+    ictrl[ii] = Q74;
     ii++;
     ictrl[ii] = Q51;
     ii++;

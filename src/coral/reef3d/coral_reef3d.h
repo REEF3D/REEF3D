@@ -24,12 +24,18 @@ Architect: Hans Bihs
 // simtime + dt is covered by CORAL steps of at most the dt of coral.txt. Every rank holds the same model
 // and computes the same motion (no communication); rank 0 reads coral.txt and broadcasts it, and writes
 // the time series to REEF3D_CORAL/.
-// Phase 1: CORAL's own engineering hydrodynamics (Cummins, Morison, mooring, PTO); the loads from the
-// resolved fluid and the body motion back to the fluid follow with the fluid interfaces.
+// CORAL's own engineering hydrodynamics (Cummins, Morison, mooring, PTO) work as in the standalone
+// CORAL. Bodies marked fluid_body in coral.txt are the 6DOF bodies of the fluid solver (FNPF so far):
+// CORAL is their external dynamics (6DOF_external.h): the fluid hands over its loads and added mass,
+// CORAL steps the whole model and returns the bodies' poses and velocities at the stage times of the
+// fluid (cubic Hermite interpolation over the CORAL steps, coral/core/coral_track.h). The CORAL step of
+// a fluid step then happens inside the fluid step; step() after the fluid step finds it done.
 
 #ifndef CORAL_REEF3D_H_
 #define CORAL_REEF3D_H_
 
+#include"6DOF_external.h"
+#include"coral/core/coral_track.h"
 #include<memory>
 #include<string>
 
@@ -43,7 +49,7 @@ namespace coral
     class time_series;
 }
 
-class coral_reef3d
+class coral_reef3d : public sixdof_external
 {
 public:
     coral_reef3d(lexer*, ghostcell*);
@@ -51,11 +57,27 @@ public:
 
     // set up at p->simtime (consistent accelerations, first output)
     void ini(lexer*, ghostcell*);
-    // advance from p->simtime to p->simtime + p->dt
+    // advance from p->simtime to p->simtime + p->dt (nothing to do when the fluid bodies already did)
     void step(lexer*, ghostcell*);
+
+    // external dynamics of the 6DOF bodies of the fluid solver (fluid_body in coral.txt)
+    bool drives(int n) const override;
+    void connect(int n, double mass, const Eigen::Vector3d &c, const Eigen::Matrix3d &R, const Eigen::Matrix3d &I) override;
+    bool predictor() const override;
+    void fluid_loads(double t, const std::vector<vec6> &F, const std::vector<mat6> &A, bool provisional) override;
+    void advance(double t0, double t1) override;
+    void predict(int n, double t, Eigen::Vector3d &c, Eigen::Matrix3d &R, Eigen::Vector3d &v, Eigen::Vector3d &w) override;
+    void state(int n, double t, Eigen::Vector3d &c, Eigen::Matrix3d &R, Eigen::Vector3d &v, Eigen::Vector3d &w) override;
 
 private:
     void fail(ghostcell*, const std::string&);
+    void advance_to(double t1);
+    int fluid_index(int n) const;       // index in the fluid load of 6DOF body n, -1: not driven
+
+    lexer *p_ = nullptr;
+    ghostcell *pgc_ = nullptr;
+    coral::body_track track_;
+    bool fluid_started_ = false;
 
     std::unique_ptr<coral::coral_case> case_;
     std::unique_ptr<coral::timeint> ti_;

@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"nhflow_vtp_fsf.h"
+#include"nhflow_turbulence.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
@@ -189,13 +190,13 @@ void nhflow_vtp_fsf::start_avg(lexer *p, fdm_nhf *d, ghostcell* pgc, sediment *p
     }
 }
 
-void nhflow_vtp_fsf::start(lexer *p, fdm_nhf *d, ghostcell* pgc, sediment *psed)
+void nhflow_vtp_fsf::start(lexer *p, fdm_nhf *d, ghostcell* pgc, sediment *psed, nhflow_turbulence *pnhfturb)
 {
     if(p->P180==1)
-        print2D(p,d,pgc,psed);
+        print2D(p,d,pgc,psed,pnhfturb);
 }
 
-void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc, sediment *psed)
+void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc, sediment *psed, nhflow_turbulence *pnhfturb)
 {
     SLICELOOP4
     {
@@ -212,7 +213,7 @@ void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc, sediment *pse
         num = p->count;
 
     if(p->mpirank==0 && lagoon_output::vtu_files(p))  // P 18 1: the store instead
-        pvtp(p,num);
+        pvtp(p,d,pgc,pnhfturb,num);
 
     // offsets
     n=0;
@@ -275,6 +276,9 @@ void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc, sediment *pse
         ++n;
     }
 
+    // eddyv, kin, epsilon/omega of the top layer (k-epsilon, k-omega; none otherwise)
+    pnhfturb->offset_ParaView_2D(p,offset,n);
+
     // Cells
     offset[n]=offset[n-1] + sizeof(int)*p->polygon_sum*3+sizeof(int);
     ++n;
@@ -324,6 +328,8 @@ void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc, sediment *pse
         result<<"<DataArray type=\"Float32\" Name=\"wetdry_max\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
         ++n;
     }
+
+    pnhfturb->name_vtp(p,d,pgc,result,offset,n);
     result<<"</PointData>\n";
 
     vtp3D::polys(result,offset,n);
@@ -486,8 +492,8 @@ void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc, sediment *pse
         }
     }
 
-    //  kin and eps
-    //pnhfturb->print_2D(p,d,pgc,result,1);
+    //  eddyv, kin, epsilon/omega of the top layer
+    pnhfturb->print_2D(p,d,pgc,result,1);
 
     //  Connectivity
     iin=sizeof(int)*p->polygon_sum*3;

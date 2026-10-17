@@ -289,12 +289,13 @@ private:
     void bedload_column(lexer*, double, double, int&, int&);
     double settling_velocity(lexer*, double);
     void bedload_occupancy(lexer*);
+    void bedload_slide(lexer*, fdm*, sediment_fdm*);
     bool bedload_rest(lexer*, fdm*, int);
     bool bedload_settle(lexer*, fdm*, sediment_fdm*, int);
     bool bedload_nodisp(lexer*, fdm*, int);
     double bedload_place(lexer*, fdm*, double, double, double, int, int, double, double);
     slice4 blTx,blTy,blGx,blGy,blH,blC,blCs;
-    int bl_npick=0, bl_ndep=0, bl_nsus=0, bl_nset=0;
+    int bl_npick=0, bl_ndep=0, bl_nsus=0, bl_nset=0, bl_nslide=0;
     // hybrid suspension (Q 58 3), see CPM_suspension.cpp: erodible parcels per column, net exchange rate
     slice4 blNc,blSr,blMc;
     int blMc_ok=0;

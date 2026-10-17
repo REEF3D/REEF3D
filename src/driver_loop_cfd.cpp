@@ -121,7 +121,7 @@ void driver::loop_cfd(fdm* a)
         
         // printer
         if(pcfdamr!=nullptr)
-        pcfdamr->print(p);
+        pcfdamr->print(p,pgc);
         pprint->start(p,a,pgc,pturb,pheat,pflow,pdata,pconc,pmp,psed);
         preg->cfd_step(p,a,pgc,pturb,pconc);
 

@@ -492,8 +492,8 @@ public:
     double Q32,Q33,Q34,Q35,Q36,Q37,Q38;
 
 
-    double Q25,Q30,Q45,Q53,Q54,Q55,Q56,Q59,Q60,Q62,Q63,Q64,Q65,Q66,Q70;
-    int Q72;
+    double Q25,Q30,Q45,Q53,Q54,Q55,Q56,Q59,Q60,Q62,Q63,Q64,Q65,Q66,Q70,Q75,Q76,Q77;
+    int Q72,Q74;
     double Q41;
     int Q61,*Q61_i;
     double *Q61_x,*Q61_y,*Q61_z;

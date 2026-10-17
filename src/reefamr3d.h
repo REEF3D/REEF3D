@@ -25,6 +25,7 @@ Architect: Hans Bihs
 
 #include"increment.h"
 #include<vector>
+#include<unordered_map>
 #include<mpi.h>
 
 class lexer;
@@ -48,6 +49,15 @@ using namespace std;
 //  cells outside the domain are the physical boundary of the patch: the patch lexer has the
 //  boundary lists of level 0 below it, and ghostcell sets them.
 //
+//  Placement (G 40 1): the level-1 patches are not cut at the rank boxes; a level-1 piece with the
+//  patches of the finer levels inside it (a unit) is placed on a rank for the load of the ranks.
+//  The coarser level of a level-1 patch is then a shadow: a copy of the level-0 cells under it and
+//  around it (two cells, the array margin three more) on the rank of the unit, filled from the
+//  ranks that hold those cells (down) and giving back what the patch writes onto level 0 (up):
+//  every access of the patches to level 0 is local, to the shadow.  The finer levels of a unit are
+//  cut at its edges, so their parents are in the unit; a unit is cut only where the finer levels
+//  continue across the cut (no edge of a finer level on it).
+//
 //  Static refinement (step 15b): the boxes G 15 xs xe ys ye zs ze are refined to level G 1, and
 //  every coarser level covers the next finer one with a nesting band of 3 cells.  Adaptive
 //  refinement: the module gives seed tiles per level (setup, rebuild), the boxes G 15 are added on
@@ -64,12 +74,30 @@ struct r3fill
     int slot;           // kind 2
 };
 
+// the level-0 cell data of a box (G 40, the shadows): what a patch lexer takes from level 0 below it
+struct r3raw
+{
+    int lo[3] = {0,0,0}, n[3] = {0,0,0};    // global level-0 cells of the box (with the array margin)
+    vector<int> flag4;                      // per cell
+    vector<int> fs1, fs2, fs4, wet, wetn, deep;         // per column (i,j)
+    vector<double> sbed, tbed, gbed, bed, depth, WL;
+    std::unordered_map<long long,int> grp;  // the boundary group of a global cell and side
+    vector<double> xn2d, yn2d;              // the 2D nodes from lo, (n0+1)(n1+1)
+    size_t c3(int I, int J, int K) const { return ((size_t)(I-lo[0])*n[1] + (J-lo[1]))*n[2] + (K-lo[2]); }
+    size_t c2(int I, int J) const { return (size_t)(I-lo[0])*n[1] + (J-lo[1]); }
+    size_t n2(int I, int J) const { return (size_t)(I-lo[0])*(n[1]+1) + (J-lo[1]); }
+    static long long gkey(int I, int J, int K, int side) { return (((long long)(I+16)*65536 + (J+16))*65536 + (K+16))*8 + side; }
+};
+
 struct r3patch
 {
-    virtual ~r3patch(){}
+    virtual ~r3patch(){ delete raw; }
 
     int lev = 0;
     int gid = -1;       // index into the global list
+    bool shadow = false;    // G 40: a copy of level-0 cells (the coarser level of a level-1 patch), not a patch
+    int sh = -1;            // G 40: the shadow of the unit of the patch (its coarser level for level 1)
+    r3raw *raw = nullptr;   // a shadow: the level-0 data of its array
     int lo[3], hi[3];   // box on the global index space of the level (inclusive)
     int n[3];           // cells
 
@@ -85,6 +113,7 @@ struct r3patch
 struct r3gpatch
 {
     int lev, lo[3], hi[3], rank, lid;
+    int unit = -1;      // G 40: the level-1 patch (global id) of its unit
 };
 
 // items served to other ranks (copy from local grid g at cell s)
@@ -100,6 +129,19 @@ struct r3xplan
     vector<r3serve> serve;
     int nsend = 0, nrecv = 0;
     vector<double> sbuf, rbuf;
+};
+
+// G 40: a copy plan between the level-0 cells (on the ranks that hold them) and grids of this rank
+// (the shadows): down the level-0 values into the grids, up the values of the grids onto level 0
+// (set or added).  Every item: a grid and cell index here, a level-0 cell index there; a tag per
+// item (the receiving side keeps it).
+struct r3cplan
+{
+    vector<int> sp, rp;                 // peers: sent to, received from
+    vector<vector<int>> sg, sq;         // per send peer: grid, cell index of the items
+    vector<vector<int>> rg, rq, rt;     // per receive peer: grid, cell index, tag
+    vector<vector<double>> sb, rb;
+    bool empty() const { return sp.empty() && rp.empty(); }
 };
 
 class reefamr3d : public increment
@@ -118,6 +160,7 @@ public:
     int org[3], kn0[3];             // level-0 box of this rank
     vector<int> rbox;               // level-0 boxes of all ranks: origin, cells (6 per rank)
     int tile[3];                    // tile size in cells of the refined level
+    int per[3] = {0,0,0};           // periodic directions of level 0 (1 on one rank, 2 across ranks; no z)
     vector<vector<int>> tn;         // [l][3] tiles per direction
     vector<vector<unsigned char>> tmask;   // [l] refined tiles of level l (l >= 1)
 
@@ -127,6 +170,61 @@ public:
     vector<vector<int>> glev;       // [l] global ids
     vector<r3xplan> xp;             // [l] remote fills
     vector<double> gx[3];           // global level-0 nodes, with margin nodes (index + marge)
+
+    // G 40: the placement of the units (level-1 pieces with their finer patches) and the shadows
+    int place = 0;                  // 0 cut at the rank boxes; 1 placed; 2 test of 1 (small pieces, placed anew)
+    double rebalance = 0.1;         // a new placement when it lowers the predicted maximum load by more
+    int npat = 0;                   // P[0..npat-1]: the patches, P[npat..]: the shadows
+    vector<int> col0;               // the rank of every level-0 column (I,J)
+    int owner0(const int *I) const; // the rank that holds level-0 cell I (clamped into the domain)
+    r3cplan sh_down;                // level 0 down into the arrays of the shadows (all their cells)
+    double load_w(int l) const;     // the work of a cell of level l (G 7 1: the steps of the level)
+    // items[peer]: grid, cell index here, global level-0 cell I0 I1 I2, tag (6 ints each)
+    void cplan_build(r3cplan&, bool down, vector<vector<int>> &items);
+    // the transfer: the items packed from src(m, grid) (an array, at the cell index), received into
+    // X.rb (per receive peer: field m of item q at m*n + q); collective
+    template<class SRC>
+    void cplan_xfer(r3cplan &X, int nv, SRC &&src)
+    {
+        const int ns = (int)X.sp.size(), nr = (int)X.rp.size();
+        X.sb.resize(ns);
+        X.rb.resize(nr);
+        vector<MPI_Request> rq(ns+nr);
+        for(int r=0; r<nr; ++r)
+        {
+            X.rb[r].resize(X.rq[r].size()*(size_t)nv);
+            MPI_Irecv(X.rb[r].data(),(int)X.rb[r].size(),MPI_DOUBLE,X.rp[r],3170,MPI_COMM_WORLD,&rq[r]);
+        }
+        for(int s=0; s<ns; ++s)
+        {
+            vector<double> &b = X.sb[s];
+            const size_t n = X.sq[s].size();
+            b.resize(n*nv);
+            for(int m=0; m<nv; ++m)
+            for(size_t q=0; q<n; ++q)
+            b[(size_t)m*n+q] = src(m,X.sg[s][q])[X.sq[s][q]];
+            MPI_Isend(b.data(),(int)b.size(),MPI_DOUBLE,X.sp[s],3170,MPI_COMM_WORLD,&rq[nr+s]);
+        }
+        MPI_Waitall(ns+nr,rq.data(),MPI_STATUSES_IGNORE);
+    }
+    // down: sent from level 0 (grid -1), received into the grids; up: the other way; set or added
+    template<class SRC, class DST>
+    void cplan_run(r3cplan &X, int nv, SRC &&src, DST &&dst, bool add)
+    {
+        cplan_xfer(X,nv,src);
+        const int nr = (int)X.rp.size();
+        for(int r=0; r<nr; ++r)
+        {
+            const vector<double> &b = X.rb[r];
+            const size_t n = X.rq[r].size();
+            for(int m=0; m<nv; ++m)
+            for(size_t q=0; q<n; ++q)
+            {
+                double &v = dst(m,X.rg[r][q])[X.rq[r][q]];
+                v = add ? v + b[(size_t)m*n+q] : b[(size_t)m*n+q];
+            }
+        }
+    }
     // the relaxation zones of the wave generation (B 98 2) and the beach (B 99 1/2) may be refined
     // (the model relaxes its patches there; CFD with a wave theory), else they stay on level 0
     bool zone_gen_refine = false, zone_beach_refine = false;
@@ -135,6 +233,10 @@ public:
     int gn(int l, int d) const;                         // global cells of level l
     int ratio(int l, int d) const;                      // rr^l
     bool in_domain(int l, const int *I) const;
+    bool wrap(int l, const int *I, int *J) const;       // J: I with the periodic directions wrapped; false if J is
+                                                        // outside the domain
+    bool wrap_local0(const int *I, int *L) const;       // level-0 cell I (global, may be past a periodic
+                                                        // edge) in the box of this rank: L local; else false
     bool refined(int l, const int *I) const;            // level-l cell in the region of level l (l >= 1)
     bool covered(int l, const int *I) const;            // level-l cell covered by level l+1
     int gpatch_at(int l, const int *I) const;           // global patch whose box holds I, -1
@@ -192,6 +294,8 @@ protected:
     // the plans are new, gone holds the old patches not kept (the caller deletes them), fresh the
     // local ids of the new patches (lexer and module objects made, no data)
     bool rebuild(const vector<vector<unsigned char>> &seed, vector<r3patch*> &gone, vector<int> &fresh);
+    vector<r3gpatch> GPold;         // the global list before the last rebuild (its patches: Pold, by lid)
+    vector<r3patch*> Pold;          // (valid until the caller deletes gone)
     size_t tid(int l, int ti, int tj, int tk) const { return ((size_t)ti*tn[l][1] + tj)*tn[l][2] + tk; }
     bool verbose = true;
 
@@ -202,6 +306,11 @@ private:
     void global_nodes();
     void mark_tiles(const vector<vector<unsigned char>> *seed);
     void make_boxes();
+    void place_units(vector<vector<int>> &box);     // G 40: the level-1 pieces and their ranks
+    bool conforming(int d, int X, const int *lo, const int *hi) const;   // a cut of level 1 at X along d
+    double unit_work(const int *lo, const int *hi) const;
+    void make_shadows(vector<r3patch*> *old, vector<int> &fresh_sh);   // G 40: the shadows of the level-1 patches
+    void fetch_raw(const vector<int> &ids);
     void plans();
     bool tile_marked(int l, int ti, int tj, int tk) const;
 };

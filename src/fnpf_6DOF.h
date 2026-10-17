@@ -41,6 +41,7 @@ class sixdof_obj;
 class sixdof_obj_fnpf;
 class slice;
 class fnpf_amr;
+class sixdof_external;
 
 using namespace std;
 
@@ -146,6 +147,15 @@ private:
     
     vector<sixdof_obj_fnpf*> fb_obj;
     int nbody;
+
+    // external dynamics (6DOF_external.h, e.g. REEF3D::CORAL with fluid_body in coral.txt): the
+    // bodies follow the external solver, their loads and added mass go to it (fnpf_6DOF_external.cpp)
+    void ext_connect(lexer*, ghostcell*);
+    void motion_external(lexer*, fdm_fnpf*, ghostcell*, int);
+    void ext_loads(lexer*, double, bool, bool);
+    void ext_stage_nodes(lexer*, int, double&, double&) const;
+    sixdof_external *pext = nullptr;
+    bool ext_checked = false;
 
     // several bodies (X 20): cross added mass A_ij (load on body i from the unit modes of body j),
     // refreshed with the unit-mode solves at the first stage, used in the coupled solve of motion()

@@ -225,7 +225,12 @@ void CPM::sedlog(lexer *p, ghostcell *pgc)
     int ndep = pgc->globalisum(bl_ndep);
     int nsus = pgc->globalisum(bl_nsus);
     int nset = pgc->globalisum(bl_nset);
-    bl_npick = bl_ndep = bl_nsus = bl_nset = 0;
+    int nsl = pgc->globalisum(bl_nslide);
+    bl_npick = bl_ndep = bl_nsus = bl_nset = bl_nslide = 0;
+    
+    // sand slide (Q 75): moved grains since the last line, on the screen (the log keeps its columns)
+    if(p->Q75>0.0 && nsl>0 && p->mpirank==0)
+    cout<<"CPM sand slide: "<<nsl<<" parcels"<<endl;
     
     // hybrid suspension (Q 58 3): sediment volume in the concentration
     double vsus = afdm!=nullptr ? susp_volume(p,afdm,pgc) : 0.0;

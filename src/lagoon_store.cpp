@@ -1378,7 +1378,7 @@ lagoon_amr::lagoon_amr(const std::string &path_, const std::string &solver_, con
                        const std::vector<field> &fields_, int gzip_level_)
     : path(path_), solver(solver_), key(key_), source(source_), run_json(run_json_),
       dir(path_ + "/amr/" + key_), fields(fields_), gzip_level(gzip_level_), ok(true), started(false),
-      x_end(0), y_end(0), cell_end(0), store(path_), rw(gzip_level_)
+      dims(2), x_end(0), y_end(0), z_end(0), cell_end(0), store(path_), rw(gzip_level_)
 {
 }
 
@@ -1399,18 +1399,23 @@ void lagoon_amr::start()
           << (fields[f].integer ? "int32" : "float32") << "\", \"array\": "
           << lagoon_store::json_string(array_name(fields[f].name)) << "}";
     j << "}, \"dataset\": " << lagoon_store::json_string(key)
-      << ", \"role\": \"amr\", \"refinement\": 2"
+      << ", \"role\": \"amr\", \"refinement\": 2" << (dims==3 ? ", \"dims\": 3" : "")
       << ", \"source\": " << lagoon_store::json_string(source) << "}}}";
     write_file(dir + "/zarr.json", j.str());
 
     table = {lagoon_rows::make(dir + "/grids/level", "int32", 1, false, "grid"),
              lagoon_rows::make(dir + "/grids/rank", "int32", 1, false, "grid"),
-             lagoon_rows::make(dir + "/grids/size", "int32", 2, false, "grid"),
+             lagoon_rows::make(dir + "/grids/size", "int32", dims, false, "grid"),
              lagoon_rows::make(dir + "/grids/x_end", "int64", 1, false, "grid"),
              lagoon_rows::make(dir + "/grids/y_end", "int64", 1, false, "grid"),
              lagoon_rows::make(dir + "/grids/cell_end", "int64", 1, false, "grid")};
     nodes = {lagoon_rows::make(dir + "/x", "float64", 1, true, "node"),
              lagoon_rows::make(dir + "/y", "float64", 1, true, "node")};
+    if(dims==3)  // a block's z, and where it ends
+    {
+        table.push_back(lagoon_rows::make(dir + "/grids/z_end", "int64", 1, false, "grid"));
+        nodes.push_back(lagoon_rows::make(dir + "/z", "float64", 1, true, "node"));
+    }
     cells.clear();
     for(const field &f : fields)
         cells.push_back(lagoon_rows::make(dir + "/cell_data/" + array_name(f.name),
@@ -1434,20 +1439,25 @@ bool lagoon_amr::output(double time, long long step, const std::vector<grid> &gr
     try
     {
         const size_t nf = fields.size();
+        if(!started && !grids.empty())
+            dims = grids.front().nz>0 ? 3 : 2;  // the first output says what the set holds
         std::vector<int32_t> level, rank, size;
-        std::vector<int64_t> xe, ye, ce;
-        std::vector<double> x, y;
+        std::vector<int64_t> xe, ye, ze, ce;
+        std::vector<double> x, y, z;
         std::vector<std::vector<unsigned char> > values(nf);
         for(const grid &g : grids)
         {
-            const size_t n = size_t(g.nx)*size_t(g.ny);
+            const size_t n = size_t(g.nx)*size_t(g.ny)*size_t(dims==3 ? g.nz : 1);
             if(g.nx<1 || g.ny<1 || g.x.size()!=size_t(g.nx+1) || g.y.size()!=size_t(g.ny+1)
-               || g.values.size()!=nf*n)
+               || g.values.size()!=nf*n || (dims==3) != (g.nz>0)
+               || (dims==3 && g.z.size()!=size_t(g.nz+1)))
                 throw std::runtime_error("lagoon_amr: a grid's sizes do not fit");
             level.push_back(g.level);
             rank.push_back(g.rank);
             size.push_back(g.nx);
             size.push_back(g.ny);
+            if(dims==3)
+                size.push_back(g.nz);
             x.insert(x.end(), g.x.begin(), g.x.end());
             y.insert(y.end(), g.y.begin(), g.y.end());
             x_end += g.nx + 1;
@@ -1456,6 +1466,12 @@ bool lagoon_amr::output(double time, long long step, const std::vector<grid> &gr
             xe.push_back(x_end);
             ye.push_back(y_end);
             ce.push_back(cell_end);
+            if(dims==3)
+            {
+                z.insert(z.end(), g.z.begin(), g.z.end());
+                z_end += g.nz + 1;
+                ze.push_back(z_end);
+            }
             for(size_t f=0; f<nf; ++f)
             {
                 std::vector<unsigned char> &out = values[f];
@@ -1485,12 +1501,16 @@ bool lagoon_amr::output(double time, long long step, const std::vector<grid> &gr
             rw.append(cells[f], values[f].data(), values[f].size()/4);
         rw.append(nodes[0], reinterpret_cast<const unsigned char*>(x.data()), x.size());
         rw.append(nodes[1], reinterpret_cast<const unsigned char*>(y.data()), y.size());
+        if(dims==3)
+            rw.append(nodes[2], reinterpret_cast<const unsigned char*>(z.data()), z.size());
         rw.append(table[0], reinterpret_cast<const unsigned char*>(level.data()), ng);
         rw.append(table[1], reinterpret_cast<const unsigned char*>(rank.data()), ng);
         rw.append(table[2], reinterpret_cast<const unsigned char*>(size.data()), ng);
         rw.append(table[3], reinterpret_cast<const unsigned char*>(xe.data()), ng);
         rw.append(table[4], reinterpret_cast<const unsigned char*>(ye.data()), ng);
         rw.append(table[5], reinterpret_cast<const unsigned char*>(ce.data()), ng);
+        if(dims==3)
+            rw.append(table[6], reinterpret_cast<const unsigned char*>(ze.data()), ng);
         grid_end.push_back((grid_end.empty() ? 0 : grid_end.back()) + (long long)ng);
         rw.write_ends(dir + "/grid_end", grid_end, "time");
         store.commit("amr/" + key, int(grid_end.size()-1), time, step);  // step, then time
@@ -1512,9 +1532,16 @@ void lagoon_amr::pack(const std::vector<grid> &grids, int nf, std::vector<double
         out.push_back(g.level);
         out.push_back(g.nx);
         out.push_back(g.ny);
+        out.push_back(g.nz);
         out.insert(out.end(), g.x.begin(), g.x.end());
         out.insert(out.end(), g.y.begin(), g.y.end());
-        const size_t n = size_t(nf)*size_t(g.nx)*size_t(g.ny);
+        if(g.nz>0)
+        {
+            if(g.z.size()!=size_t(g.nz+1))
+                throw std::runtime_error("lagoon_amr: a block's z does not fit its size");
+            out.insert(out.end(), g.z.begin(), g.z.end());
+        }
+        const size_t n = size_t(nf)*size_t(g.nx)*size_t(g.ny)*size_t(g.nz>0 ? g.nz : 1);
         if(g.values.size()!=n)
             throw std::runtime_error("lagoon_amr: a grid's values do not fit its size");
         out.insert(out.end(), g.values.begin(), g.values.end());
@@ -1529,22 +1556,29 @@ bool lagoon_amr::unpack(const double *data, size_t n, int nf, int rank, std::vec
     const long long count = (long long)data[at++];
     for(long long q=0; q<count; ++q)
     {
-        if(at + 3 > n)
+        if(at + 4 > n)
             return false;
         grid g;
         g.level = int(data[at]);
         g.nx = int(data[at+1]);
         g.ny = int(data[at+2]);
+        g.nz = int(data[at+3]);
         g.rank = rank;
-        at += 3;
-        const size_t need = size_t(g.nx+1) + size_t(g.ny+1) + size_t(nf)*size_t(g.nx)*size_t(g.ny);
-        if(g.nx<1 || g.ny<1 || at + need > n)
+        at += 4;
+        const size_t layers = size_t(g.nz>0 ? g.nz : 1);
+        const size_t nv = size_t(nf)*size_t(g.nx)*size_t(g.ny)*layers;
+        const size_t need = size_t(g.nx+1) + size_t(g.ny+1) + (g.nz>0 ? size_t(g.nz+1) : 0) + nv;
+        if(g.nx<1 || g.ny<1 || g.nz<0 || at + need > n)
             return false;
         g.x.assign(data + at, data + at + g.nx + 1);
         at += g.nx + 1;
         g.y.assign(data + at, data + at + g.ny + 1);
         at += g.ny + 1;
-        const size_t nv = size_t(nf)*size_t(g.nx)*size_t(g.ny);
+        if(g.nz>0)
+        {
+            g.z.assign(data + at, data + at + g.nz + 1);
+            at += g.nz + 1;
+        }
         g.values.assign(data + at, data + at + nv);
         at += nv;
         out.push_back(std::move(g));

@@ -119,6 +119,15 @@ public:
     double Vfb, Rfb;
     
 
+    // external dynamics (6DOF_external.h, e.g. REEF3D::CORAL): pose and velocity from the external
+    // solver, the fluid loads and the added mass to it (6DOF_obj_external.cpp)
+    void external_set_state(const Eigen::Vector3d&, const Eigen::Matrix3d&, const Eigen::Vector3d&, const Eigen::Vector3d&);
+    void external_fluid_load(lexer*, Eigen::Matrix<double,6,1>&) const;
+    void external_properties(double&, Eigen::Vector3d&, Eigen::Matrix3d&, Eigen::Matrix3d&) const;
+    const Eigen::Matrix<double,6,6> &external_added_mass() const {return Aadd_;}
+    bool external_added_mass_on() const {return am_on_;}
+    bool external_on() const {return ext_on_;}
+
     // read-only access for the SFLOW mesh refinement (sflow_amr)
     int amr_tricount() const {return tricount;}
     double **amr_tri(int d) {return d==0?tri_x:(d==1?tri_y:tri_z);}
@@ -225,6 +234,10 @@ protected:
     double &phi, &theta, &psi;
     
     Eigen::Matrix<double, 6, 1> u_fb;
+    
+    // external dynamics: velocity and angular velocity (inertial) of the external solver
+    bool ext_on_ = false;
+    Eigen::Vector3d ext_v_ = Eigen::Vector3d::Zero(), ext_w_ = Eigen::Vector3d::Zero();
     
     int &tricount, &entity_count;   // = geom
     
