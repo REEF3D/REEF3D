@@ -412,10 +412,12 @@ private:
     void pr_covered_coef();                              // the coarse couplings under the finer patches from the fine faces
     void pr_halo0(field &f);                             // the halo of a level-0 vector (ranks, periodic edges)
     bool pr_wrap(int id, int d) const;                   // patch id over the whole length of periodic direction d
-    // the overlap of the patch multigrids at the sides where a patch of the level is next to it (a
-    // restricted additive Schwarz): G 40 (instead of the joint multigrids of the level); periodic (the
-    // patches not in a joint multigrid)
-    bool pr_ras() const { return place>0 || per[0]>0 || per[1]>0; }
+    // the overlap of the patch multigrids at the sides where a patch of the level of another rank
+    // is next to it (a restricted additive Schwarz; the patches of one rank next to each other in a
+    // joint multigrid, with overlap cells for the sides to other ranks): on several ranks, G 40,
+    // periodic edges.  Without it the cuts at the rank boxes were a block Jacobi (a 3D band on 3
+    // ranks 60 BiCGStab iterations, 12 with it)
+    bool pr_ras() const { return nranks>1 || place>0 || per[0]>0 || per[1]>0; }
     void pr_level(lexer*, ghostcell*, int l, int s);
     void pr_sync_project(lexer*, ghostcell*);   // G 7 1: the synchronisation projection at the end of the level-0 step
     double psi_band(int g);                     // the half width of the interface band of grid g
@@ -480,7 +482,7 @@ private:
         bool wrap[3] = {false,false,false};     // the box over the whole length of a periodic direction:
                                                 // the multigrid periodic there
         int o(int id, int d) const { return off.at(id)[d]; }
-        // periodic: the overlap across the sides where a member meets a patch of another rank (OV
+        // the overlap (pr_ras): across the sides where a member meets a patch of another rank (OV
         // cells of its margin, own -2): the rows and the right-hand side of that patch, from the margin
         // of the member ovm at index ovq; the correction kept in the members
         vector<int> ovm, ovq;
@@ -490,7 +492,7 @@ private:
     void pr_level_mg_setup();
     void pr_level_mg_fill(int m);
     void pr_level_mg_fill_comp(int m);
-    void pr_level_mg_ovrows(int m, double dshift);   // periodic: the rows of the overlap cells of a joint multigrid
+    void pr_level_mg_ovrows(int m, double dshift);   // the rows of the overlap cells of a joint multigrid
     void pr_level_vcycle(int m, int kr, int kz);
     void pr_level_solve(int l, int kr, int kz);     // the V-cycles of level l: joint or patch-local
     // the fine level of the multigrid of patch id from its rows (diagonal times dshift), the couplings

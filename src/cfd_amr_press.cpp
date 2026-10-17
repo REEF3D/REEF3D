@@ -61,7 +61,10 @@ Architect: Hans Bihs
 //  onto level 0, a REEFMG V-cycle on level 0 (the whole rank grid with its own Poisson matrix),
 //  then level by level the correction prolonged into the patches and a patch-local REEFMG V-cycle
 //  on the residual it leaves (zero correction around the patch), as the composite solves of
-//  NHFLOW and FNPF with mesh refinement.
+//  NHFLOW and FNPF with mesh refinement.  The patches of a rank next to each other take one
+//  V-cycle together (the joint multigrids); at the sides to the patches of another rank the
+//  V-cycles reach three cells into them (their rows and right-hand side, the correction kept
+//  inside: pr_ras, the overlap), on one rank without G 40 and periodic edges not needed.
 
 namespace
 {
@@ -452,7 +455,8 @@ void cfd_amr::pr_setup()
     }
 
     // the joint multigrids of the levels (the patches of a rank next to each other), then the overlap
-    // of the patch multigrids (G 40; periodic: the patches not in a joint multigrid)
+    // of the patch multigrids (several ranks, periodic, G 40: the patches not in a joint multigrid;
+    // G 40 has no joint multigrids)
     pr_level_mg_setup();
     pr_overlap();
 
@@ -667,8 +671,8 @@ void cfd_amr::pr_level_mg_setup()
             if((size_t)M.n[0]*M.n[1]*M.n[2] > 4*ncell)
             continue;
 
-            // periodic: the overlap cells (the margin of a member next to a patch of another rank, OV
-            // cells deep across a side); the box grows to hold them
+            // the overlap (pr_ras): the overlap cells (the margin of a member next to a patch of
+            // another rank, OV cells deep across a side); the box grows to hold them
             struct ovc { int id, qq, b[3]; };
             vector<ovc> ovl;
             if(pr_ras())
@@ -865,8 +869,9 @@ void cfd_amr::pr_level_mg_fill(int m)
     M.mg->coarsen();
 }
 
-// periodic: the rows of the overlap cells of a joint multigrid (the rows of the patches of the other
-// rank there, from the kc7 fields of the members), the couplings to cells of the box with a row
+// the overlap (pr_ras): the rows of the overlap cells of a joint multigrid (the rows of the
+// patches of the other rank there, from the kc7 fields of the members), the couplings to cells of
+// the box with a row
 void cfd_amr::pr_level_mg_ovrows(int m, double dshift)
 {
     cfd_amr_lmg &M = lmg[m];
@@ -1045,7 +1050,7 @@ void cfd_amr::pr_level_vcycle(int m, int kr, int kz)
 
 void cfd_amr::pr_level_solve(int l, int kr, int kz)
 {
-    // G 40, periodic: the right-hand side in the overlap of the patch multigrids (the patches next
+    // the overlap (pr_ras): the right-hand side in the overlap of the patch multigrids (the patches next
     // to them)
     if(pr_ras())
     {
