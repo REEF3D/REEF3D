@@ -50,7 +50,7 @@ double density_sf::roface(lexer *p, fdm *a, int aa, int bb, int cc)
     if(a->solid(i,j,k)<0.0 || a->topo(i,j,k)<0.0)
     phival = a->phi(i+aa,j+bb,k+cc);
 
-    H = heaviside(phival,interface_width_face(p,a->phi,i,j,k,aa,bb,cc));
+    H = heaviside_face(p,a->phi,phival,i,j,k,aa,bb,cc);
     
 
 

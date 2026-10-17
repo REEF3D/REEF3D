@@ -43,7 +43,7 @@ double density_comp::roface(lexer *p, fdm *a, int aa, int bb, int cc)
         ro_air = (0.0035*(101325.0 + 0.5*(a->press(i,j,k) + a->press(i+aa,j+bb,k+cc))))  / (273.15 + p->W31);
 
 
-        H = heaviside(phival,interface_width_face(p,a->phi,i,j,k,aa,bb,cc));
+        H = heaviside_face(p,a->phi,phival,i,j,k,aa,bb,cc);
         
             
         roval = p->W1*H + ro_air*(1.0-H);
