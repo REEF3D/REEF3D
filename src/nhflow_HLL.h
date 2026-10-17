@@ -62,6 +62,8 @@ private:
     double denom;
 
     double ivel1,ivel2,jvel1,jvel2,kvel1,kvel2;
+    
+    int hllc;   // A 511 2: contact-resolving (HLLC) flux for the tangential momentum components
 
     ghostcell *pgc;
     patchBC_interface *pBC;

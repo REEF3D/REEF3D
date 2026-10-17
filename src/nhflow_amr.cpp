@@ -34,7 +34,6 @@ Author: Hans Bihs
 #include"nhflow_reconstruct_hires.h"
 #include"nhflow_reconstruct_weno.h"
 #include"nhflow_HLL.h"
-#include"nhflow_HLLC.h"
 #include"nhflow_diff_void.h"
 #include"nhflow_ediff.h"
 #include"nhflow_idiff.h"
@@ -691,7 +690,7 @@ void nhflow_amr::patch_objects(reefamr_patch *q, ghostcell *pgc)
     if(pp->A511==1)
     c->pconv = new nhflow_HLL(pp,pgc,c->pBC);
     if(pp->A511==2)
-    c->pconv = new nhflow_HLLC(pp,pgc,c->pBC);
+    c->pconv = new nhflow_HLL(pp,pgc,c->pBC);   // HLLC mode inside nhflow_HLL (A 511 2)
 
     // diffusion as on level 0 (A 512 1 explicit, 2 implicit with the breaking viscosity vb), the
     // implicit one with a solver of its own: bicgstab_ijk on the patch, its global sums stay on
