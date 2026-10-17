@@ -35,6 +35,7 @@ void control::ini_default()
     A212=-1;	  // int diffusion treatment for SFLOW velocities (-1: not set, becomes 1 with a turbulence model A 260 > 0, else 0)
     A213=1;      // int SFLOW WENO5 nonlinear weights (A 211 4): 0 WENO-JS, 1 WENO-Z (default), 2 TENO5
     A214=1;      // int convection for vertical velocity
+    A225=1;      // int SFLOW Riemann solver: 1 HLL, 2 HLLC (contact-resolving tangential fluxes)
     A217=2;      // int slip or no-slip boundary conditions
     A218=0;      // int turn on roughness
     A219=1;      // int additional courant number constraint
