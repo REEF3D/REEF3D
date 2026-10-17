@@ -756,6 +756,35 @@ bool CPM::bedload_settle(lexer *p, fdm *a, sediment_fdm *s, int q)
 // above the bed level that were not released into the suspension (Hop = 0): the release (Q 58 2) is the
 // only path into the suspension. Without it the grains of the top cell that move with the near-bed flow
 // were dispersed into the flow as a second, uncontrolled pickup, and never deposited by bedload_settle.
+// resting grains of the jammed bed sleep (validation 22). With the bedload layer (Q 58, S 10 1) the parcel
+// update multiplies the new velocity of a grain by 1 - Hjam, Hjam = 1 below the mobile surface layer
+// (topo + 1.5 psi <= -0.5 psi, psi = Q 64 h; the solid level set only lowers it). Such a grain gets zero
+// velocity and stays in place whatever the drag, stress and friction are, and it is not dispersed (below
+// the bed surface). The update is skipped for it: the result is the same, up to the sign of a zero velocity.
+// Not with the column yield (Q 67) or the seepage (Q 69), which make Hjam smaller than 1 in the bed.
+bool CPM::bed_asleep(lexer *p, fdm *a, int q, double xp, double yp, double zp)
+{
+    ++bl_nupd;
+    
+    if(p->Q58<=0 || p->S10!=1 || p->Q67>0 || p->Q69>0 || P.Hop[q]!=0.0)
+    return false;
+    
+    i = pci(p,q,xp);
+    j = pcj(p,q,yp);
+    k = pck(p,q,zp);
+    
+    double psi = p->Q64*p->DZN[KP];
+    double phi = ptopo(p,a,xp,yp,zp);
+    
+    if(phi + 1.5*psi <= -0.5*psi)
+    {
+        ++bl_nsleep;
+        return true;
+    }
+    
+    return false;
+}
+
 bool CPM::bedload_nodisp(lexer *p, fdm *a, int q)
 {
     if(bedload_rest(p,a,q))

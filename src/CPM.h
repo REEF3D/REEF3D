@@ -310,6 +310,8 @@ private:
     bool bedload_rest(lexer*, fdm*, int);
     bool bedload_settle(lexer*, fdm*, sediment_fdm*, int);
     bool bedload_nodisp(lexer*, fdm*, int);
+    bool bed_asleep(lexer*, fdm*, int, double, double, double);
+    int bl_nsleep=0, bl_nupd=0;
     double bedload_place(lexer*, fdm*, double, double, double, int, int, double, double);
     slice4 blTx,blTy,blGx,blGy,blH,blC,blCs;
     int bl_npick=0, bl_ndep=0, bl_nsus=0, bl_nset=0, bl_nslide=0;

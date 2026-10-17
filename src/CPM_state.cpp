@@ -226,7 +226,18 @@ void CPM::sedlog(lexer *p, ghostcell *pgc)
     int nsus = pgc->globalisum(bl_nsus);
     int nset = pgc->globalisum(bl_nset);
     int nsl = pgc->globalisum(bl_nslide);
-    bl_npick = bl_ndep = bl_nsus = bl_nset = bl_nslide = 0;
+    double nslp = pgc->globalsum(double(bl_nsleep));
+    double nupd = pgc->globalsum(double(bl_nupd));
+    bl_npick = bl_ndep = bl_nsus = bl_nset = bl_nslide = bl_nsleep = bl_nupd = 0;
+    
+    // sleeping grains of the jammed bed (bed_asleep): share of the parcel updates (parcels not in a hop)
+    // skipped since the last line
+    if(nupd>0.0 && p->mpirank==0)
+    {
+        std::streamsize prec = cout.precision();
+        cout<<"CPM sleeping grains: "<<setprecision(3)<<100.0*nslp/nupd<<" % of the parcel updates"<<endl;
+        cout.precision(prec);
+    }
     
     // sand slide (Q 75): moved grains since the last line, on the screen (the log keeps its columns)
     if(p->Q75>0.0 && nsl>0 && p->mpirank==0)

@@ -151,6 +151,17 @@ void CPM::substep_euler(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbu
             continue;
         }
         
+        // a grain held at rest by the jammed bed sleeps: the update below would give it zero velocity
+        // and leave it in place (Hjam = 1, no dispersion inside the bed)
+        if(layer && bed_asleep(p,a,n,P.X[n],P.Y[n],P.Z[n]))
+        {
+            P.URK1[n] = P.VRK1[n] = P.WRK1[n] = 0.0;
+            P.XRK1[n] = P.X[n];
+            P.YRK1[n] = P.Y[n];
+            P.ZRK1[n] = P.Z[n];
+            continue;
+        }
+        
         advec_mppic(p, a, P, s, pturb,
                     P.X, P.Y, P.Z, P.U, P.V, P.W,
                     F, G, H, dt);

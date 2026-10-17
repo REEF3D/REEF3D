@@ -122,6 +122,10 @@ void CPM::limiter(lexer *p, fdm *a, ghostcell *pgc, double *X0, double *Y0, doub
         if(p->Q58>0 && (P.Hop[n]>0.0 || P.Test[n]<0.0))
         continue;
         
+        // a parcel that does not move stays in its cell (the sleeping grains of the bed)
+        if(X1[n]==X0[n] && Y1[n]==Y0[n] && Z1[n]==Z0[n])
+        continue;
+        
         i0 = ci_of(n,X0[n]);
         j0 = p->j_dir==1 ? cj_of(n,Y0[n]) : 0;
         k0 = ck_of(n,Z0[n]);

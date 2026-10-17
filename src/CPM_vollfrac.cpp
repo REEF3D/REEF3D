@@ -140,6 +140,8 @@ void CPM::volfrac_update(lexer *p, ghostcell *pgc, sediment_fdm *s, double *PX, 
     {
         kernel(p,PX[n],PY[n],PZ[n],int(n));
         
+        const bool still = PU[n]==0.0 && PV[n]==0.0 && PW[n]==0.0;
+        
         for(qi=0;qi<2;++qi)
         for(qj=0;qj<2;++qj)
         for(qk=0;qk<2;++qk)
@@ -151,6 +153,11 @@ void CPM::volfrac_update(lexer *p, ghostcell *pgc, sediment_fdm *s, double *PX, 
             // the parcels of the sub-grid bedload layer (Q 58) do not move the pore water of the bed
             double wu = P.Hop[n]>0.0 ? 0.0 : w;
             cellSum(ki[qi],kj[qj],kk[qk]) += w;
+            
+            // a parcel at rest adds nothing to the momentum (the sleeping grains of the bed)
+            if(still)
+            continue;
+            
             Us(ki[qi],kj[qj],kk[qk]) += wu*PU[n];
             Vs(ki[qi],kj[qj],kk[qk]) += wu*PV[n];
             Ws(ki[qi],kj[qj],kk[qk]) += wu*PW[n];
