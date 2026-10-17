@@ -49,6 +49,9 @@ sflow_HLL::sflow_HLL(lexer *p, ghostcell *ppgc, patchBC_interface *ppBC)
     
     if(p->B99>=3 || p->B60>=1)
     outflow=1;
+    
+    // A 225 2: HLLC for the tangential momentum components (HLLC_x/HLLC_y), not on the curvilinear grid
+    hllc = (p->A225==2 && p->geo_curv!=1) ? 1 : 0;
 }
 
 sflow_HLL::~sflow_HLL()
@@ -81,6 +84,11 @@ void sflow_HLL::aij_U(lexer *p, fdm2D *b)
     
     else
     HLL(p,b,b->UHs,b->UHn,b->UHe,b->UHw,b->Fx,b->Fy);
+    
+    // HLLC: U is tangential to the y-faces
+    if(hllc==1 && p->j_dir==1)
+    HLLC_y(p,b,b->Fy,b->Ue,b->Uw);
+    
     flux_bc(p,b,1);
     
     if(amr!=nullptr)
@@ -98,6 +106,11 @@ void sflow_HLL::aij_V(lexer *p, fdm2D *b)
     
     else
     HLL(p,b,b->VHs,b->VHn,b->VHe,b->VHw,b->Fx,b->Fy);
+    
+    // HLLC: V is tangential to the x-faces
+    if(hllc==1)
+    HLLC_x(p,b,b->Fx,b->Vs,b->Vn);
+    
     flux_bc(p,b,2);
     
     if(amr!=nullptr)
@@ -110,6 +123,16 @@ void sflow_HLL::aij_W(lexer *p, fdm2D *b)
 {
     pflux->start_W(p,b,pgc);
     HLL(p,b,b->WHs,b->WHn,b->WHe,b->WHw,b->Fx,b->Fy);
+    
+    // HLLC: W is tangential to both face directions
+    if(hllc==1)
+    {
+    HLLC_x(p,b,b->Fx,b->Ws,b->Wn);
+    
+    if(p->j_dir==1)
+    HLLC_y(p,b,b->Fy,b->We,b->Ww);
+    }
+    
     flux_bc(p,b,3);
     
     if(amr!=nullptr)
@@ -198,6 +221,67 @@ void sflow_HLL::HLL(lexer *p, fdm2D *b, slice &Qs, slice &Qn, slice &Qe, slice &
         denom = fabs(denom)>1.0e-10?denom:1.0e10;
         
         Fy(i,j) = (b->Sw(i,j)*b->Fe(i,j) - b->Se(i,j)*b->Fw(i,j) + b->Sw(i,j)*b->Se(i,j)*(Qw(i,j) - Qe(i,j)))/denom;
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// A 225 2: HLLC flux of a tangential component phi (V or W across an x-face, U or W across a y-face)
+//
+// For the shallow-water Riemann problem the HLLC flux of D and of the face-normal momentum equals
+// the HLL flux when the contact speed is the consistent one (Toro 2001),
+//     S* = (SL DR (uR-SR) - SR DL (uL-SL)) / (DR (uR-SR) - DL (uL-SL)),   D*_L = D*_R = D_HLL,
+// and the tangential component is carried with the contact:
+//     F(phi H) = F_D^HLL * phi_L  (S* >= 0),   F_D^HLL * phi_R  (S* < 0).
+// F_D^HLL = D* S* with D* > 0, so sign(S*) = sign(F_D^HLL): the tangential flux is the HLL mass flux
+// (the continuity flux of aij_E, Boussinesq: of the volume flux M) upwinded with its own sign.
+// Continuous where the mass flux changes sign; dissipation |F_D| dphi instead of ~c dphi of HLL.
+// The supersonic branches are the physical fluxes b->Fs/Fn, b->Fe/Fw (as HLL).
+// ---------------------------------------------------------------------------
+void sflow_HLL::HLLC_x(lexer *p, fdm2D *b, slice &Fx, slice &phis, slice &phin)
+{
+    SLICELOOP1
+    {
+        if(b->Ss(i,j)>=0.0)
+        Fx(i,j) = b->Fs(i,j);
+        
+        else
+        if(b->Sn(i,j)<=0.0)
+        Fx(i,j) = b->Fn(i,j);
+        
+        else
+        {
+        denom = b->Sn(i,j)-b->Ss(i,j);
+        denom = fabs(denom)>1.0e-10?denom:1.0e10;
+        
+        // HLL mass flux of the face
+        const double FD = (b->Sn(i,j)*b->UHs(i,j) - b->Ss(i,j)*b->UHn(i,j) + b->Sn(i,j)*b->Ss(i,j)*(b->Dn(i,j) - b->Ds(i,j)))/denom;
+        
+        Fx(i,j) = FD>=0.0 ? FD*phis(i,j) : FD*phin(i,j);
+        }
+    }
+}
+
+void sflow_HLL::HLLC_y(lexer *p, fdm2D *b, slice &Fy, slice &phie, slice &phiw)
+{
+    SLICELOOP2
+    {
+        if(b->Se(i,j)>=0.0)
+        Fy(i,j) = b->Fe(i,j);
+        
+        else
+        if(b->Sw(i,j)<=0.0)
+        Fy(i,j) = b->Fw(i,j);
+        
+        else
+        {
+        denom = b->Sw(i,j)-b->Se(i,j);
+        denom = fabs(denom)>1.0e-10?denom:1.0e10;
+        
+        // HLL mass flux of the face
+        const double FD = (b->Sw(i,j)*b->VHe(i,j) - b->Se(i,j)*b->VHw(i,j) + b->Sw(i,j)*b->Se(i,j)*(b->Dw(i,j) - b->De(i,j)))/denom;
+        
+        Fy(i,j) = FD>=0.0 ? FD*phie(i,j) : FD*phiw(i,j);
         }
     }
 }

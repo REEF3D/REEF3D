@@ -111,6 +111,9 @@ void control::read_control(lexer* p)
                 case 224: control>>A224;
                          clear(c,numint);
                          break;
+                case 225: control>>A225;
+                         clear(c,numint);
+                         break;
                 case 230: retired_key(control,p,c,numint);
                          clear(c,numint);
                          break;

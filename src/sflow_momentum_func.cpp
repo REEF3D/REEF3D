@@ -448,6 +448,24 @@ void sflow_momentum_func::reconstruct(lexer *p, fdm2D *b, ghostcell *pgc, slice 
     precon->reconstruct_y(p, pgc, b, b->U, b->Ue, b->Uw);
     sflow_curv::normal_velocities(p,b);
     }
+    
+    // HLLC (A 225 2): the tangential velocities of the faces (sflow_HLL::HLLC_x/HLLC_y)
+    if(p->A225==2 && p->geo_curv!=1)
+    {
+        if(p->j_dir==1)
+        {
+        precon->reconstruct_x(p, pgc, b, b->V, b->Vs, b->Vn);
+        precon->reconstruct_y(p, pgc, b, b->U, b->Ue, b->Uw);
+        }
+        
+        if(nhp==1 && p->A214==1)
+        {
+        precon->reconstruct_x(p, pgc, b, b->W, b->Ws, b->Wn);
+        
+        if(p->j_dir==1)
+        precon->reconstruct_y(p, pgc, b, b->W, b->We, b->Ww);
+        }
+    }
 
     // conserved variables (Boussinesq: volume flux M instead of V)
     slice &UHf = (bous==1)?b->MX:UH;
