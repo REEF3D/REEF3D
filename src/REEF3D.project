@@ -2832,6 +2832,7 @@
           <File Name="6DOF_cfd_initialize.cpp"/>
           <File Name="6DOF_cfd_velsource.cpp"/>
           <File Name="6DOF_cfd.cpp"/>
+          <File Name="6DOF_cfd_external.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Interface Void">
           <File Name="6DOF_void_initialize.cpp"/>

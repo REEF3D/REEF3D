@@ -49,6 +49,11 @@ Architect: Hans Bihs
 //  subcycling of the mesh refinement (G 7 1): the same calls, each finest step is a fluid step; coarser
 //  levels take predict() for their copies of the bodies.
 //
+//  CFD (6DOF_cfd_external.cpp) integrates the loads at the start of each stage, as FNPF, without the
+//  added mass: the first stage commits the loads of t0 and takes predict() (or advance and state), the
+//  second stage's loads (at the stage node, 8/15 dt for the low-storage RK3) are provisional, then
+//  advance(t0, t1), the later stages take state().
+//
 //  Loads: per body force and moment about the CoG, inertial frame, without gravity (the external solver
 //  has its own); A: instantaneous added mass, block (n, m) = load on body
 //  n from the accelerations of body m, index n*N + m (empty: none, or unchanged).
@@ -58,9 +63,9 @@ Architect: Hans Bihs
 //  and without A.
 //
 //  One-way bodies (one_way): the fluid solver keeps moving them itself (fixed, prescribed motion or its
-//  own dynamics) and only hands over their loads, once per fluid step (FNPF: first stage, at t0; NHFLOW:
-//  after the last stage, at t1, and the loads of the initialisation); the external solver does not
-//  return a state for them.
+//  own dynamics) and only hands over their loads, once per fluid step (FNPF and CFD: first stage, at t0;
+//  NHFLOW: after the last stage, at t1, and the loads of the initialisation); the external solver does
+//  not return a state for them.
 //
 //  The external solver registers itself (attach); the bodies look it up at their first step.
 

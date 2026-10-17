@@ -70,6 +70,16 @@ public:
 private:
    void setup(lexer*,fdm*,ghostcell*);
    
+    // external solver of the bodies (6DOF_external.h, REEF3D::CORAL fluid_body; 6DOF_cfd_external.cpp)
+    void ext_connect(lexer*, ghostcell*);
+    void ext_nodes(lexer*, int, double&, double&, int&) const;
+    void ext_loads(lexer*, double, bool);
+    bool ext_drives(int) const;
+    void ext_stage(lexer*, int);
+    class sixdof_external *pext = nullptr;
+    bool ext_checked = false;
+    bool ext_twoway = false;
+   
     int number6DOF;
     vector<sixdof_obj_cfd*> fb_obj;
 

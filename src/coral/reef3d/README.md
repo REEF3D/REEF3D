@@ -6,7 +6,8 @@ The link between CORAL and REEF3D. The only folder that includes REEF3D headers 
 
 * `coral_reef3d.h/.cpp`: (a thin wrapper around `coral/io/coral_coupling`, which does all the coupling work and can record it) REEF3D runs the CORAL model of `coral.txt` alongside the fluid solver (ctrl.txt `Z 40 1`; CFD, NHFLOW, FNPF): rank 0 reads and broadcasts the input, every rank advances the same model in step with the fluid time (CORAL steps of at most the dt of `coral.txt` per fluid step), rank 0 writes the time series to `REEF3D_CORAL/`; the static equilibrium and the linear analysis (`modes.dat`, `mode_shapes.dat`) run before the first fluid step when `coral.txt` asks for them
 * fluid bodies (`fluid_body` in `coral.txt`): `coral_reef3d` is the external dynamics of the REEF3D 6DOF
-  bodies (`6DOF_external.h`; FNPF: `fnpf_6DOF_external.cpp`, NHFLOW: `6DOF_nhflow_external.cpp`): the fluid hands over the loads of
+  bodies (`6DOF_external.h`; FNPF: `fnpf_6DOF_external.cpp`, NHFLOW: `6DOF_nhflow_external.cpp`, CFD:
+  `6DOF_cfd_external.cpp`): the fluid hands over the loads of
   each body (force and moment about the CoG without the weight, the instantaneous added mass with the
   cross terms of several bodies) at the first stage of its step, with the predictor also the loads of
   the next stage at a predicted pose; CORAL steps the whole model (joints, PTO, mooring, structure) and
@@ -18,7 +19,11 @@ The link between CORAL and REEF3D. The only folder that includes REEF3D headers 
   step's end are committed; CORAL's artificial added mass (`fluid_body ... added_mass`) keeps light
   bodies stable; the same with X 13 and with the subcycling of the mesh refinement (G 7 1: every finest
   step is a CORAL step, the coarser levels take predicted poses)
-* one-way loads (FNPF and NHFLOW): `fluid_body ... one_way` puts the loads of a 6DOF body that REEF3D
+* CFD (several bodies, X 20) integrates its loads at the start of each stage like FNPF, without added
+  mass: the loads of the first stage are committed, those of the second (at the predicted pose; 8/15 dt
+  for the low-storage RK3 the bodies get) provisional; one-way and two-way, strips of `fluid_member`
+  from the STL load integration (X 60 1); not yet with the subcycling of the CFD mesh refinement
+* one-way loads (FNPF, NHFLOW and CFD): `fluid_body ... one_way` puts the loads of a 6DOF body that REEF3D
   holds fixed (X 11 0) or moves itself on any CORAL body, at the REEF3D CoG; `fluid_member` distributes
   them along a flexible member: the 6DOF body bins its hull force in strips along the member axis
   (`sixdof_obj::external_strips_*`, filled by `forces_fnpf` and `force_calc_stl`: the pressure of each
@@ -39,7 +44,7 @@ The link between CORAL and REEF3D. The only folder that includes REEF3D headers 
 
 ## Planned
 
-* fluid bodies in CFD (one-way and two-way), several NHFLOW bodies
+* several NHFLOW bodies, CFD bodies with the subcycling of the mesh refinement (G 7 1)
 * strong coupling with the fluid where needed: sub-iterations (Aitken, IQN-ILS)
 * actuator line and actuator disk in the air phase
 * adapters to existing REEF3D code until it moves into CORAL: `beam.h`, `mooring_*`, `6DOF_obj_*`

@@ -47,6 +47,9 @@ void sixdof_obj_cfd::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, fi
     Xe=Ye=Ze=Ke=Me=Ne=0.0;
     Xe_p=Ye_p=Ze_p=Xe_v=Ye_v=Ze_v=0.0;
     
+    // distributed loads (REEF3D::CORAL fluid_member): the hull forces binned along the member, this rank's part
+    external_strips_zero();
+    
     // Set new time
     curr_time = p->simtime;
 
@@ -334,6 +337,16 @@ void sixdof_obj_cfd::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, fi
 			Xe += Fx;
 			Ye += Fy;
 			Ze += Fz;
+            
+            // strips: the pressure of the triangle (constant) split at the strip boundaries, the viscous
+            // force at its centre
+            if(external_strips_on())
+            {
+                const double ta[3] = {x0,y0,z0}, tb[3] = {x1,y1,z1}, tc[3] = {x2,y2,z2};
+                const double pm[3] = {p_int,p_int,p_int};
+                external_strips_tri(ta,tb,tc,pm,nx,ny,nz);
+                external_strips_add(xc,yc,zc,Fv_x,Fv_y,Fv_z);
+            }
 
 			Ke += (yc - c_(1))*Fz - (zc - c_(2))*Fy;
 			Me += (zc - c_(2))*Fx - (xc - c_(0))*Fz;

@@ -46,13 +46,27 @@ void sixdof_cfd::start_cfd(lexer* p, fdm* a, ghostcell* pgc, int iter, field &uv
 {
     setup(p,a,pgc);
     
+    // external dynamics (REEF3D::CORAL): the bodies are connected before their first stage
+    if(!ext_checked)
+    ext_connect(p,pgc);
+    
+    // the loads of all bodies first: the external solver takes them before it returns the poses
+    if(pext!=nullptr && !amr_predict)
+    {
+        for (int nb=0; nb<number6DOF;++nb)
+        fb_obj[nb]->hydrodynamic_forces_cfd(p,a,pgc,uvel,vvel,wvel,iter,finalize);
+        
+        ext_stage(p,iter);
+    }
+    
     for (int nb=0; nb<number6DOF;++nb)
     {
         // Calculate forces (a predicted copy for the mesh refinement keeps the loads of the finest level)
-        if(!amr_predict)
+        if(!amr_predict && pext==nullptr)
         fb_obj[nb]->hydrodynamic_forces_cfd(p,a,pgc,uvel,vvel,wvel,iter,finalize);
         
-        // Advance body in time
+        // Advance body in time (two-way external bodies: the pose of the external solver, ext_stage)
+        if(!ext_drives(nb))
         fb_obj[nb]->solve_eqmotion_cfd(p,a,pgc,iter,finalize);
          
         // Update transformation matrices
