@@ -338,6 +338,8 @@ cfd_amr::cfd_amr(lexer *p, fdm *a, ghostcell *pgc, momentum *pmom, pressure *ppr
         cout<<"CFD AMR: G 40 "<<p->G40<<" with periodic boundaries not available; the patches on the rank of the level-0 cells (G 40 0)"<<endl;
         place = 0;
     }
+    // G 41: the work of a patch cell in the placement (0: measured, from 1 until the first measurement)
+    wpatch = (p->G41>0.0) ? p->G41 : 1.0;
 
     // the hierarchy: static boxes G 15, adaptive with the flags G 24-26 of the initial level 0
     adapt = (p->G24>0.0 || p->G25>0 || p->G26>0.0) ? 1 : 0;
@@ -1574,6 +1576,7 @@ void cfd_amr::step_comp(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof 
 
     for(int s=0; s<stages; ++s)
     {
+        lbar();
         double ta = MPI_Wtime();
 
         // level set
@@ -1585,10 +1588,13 @@ void cfd_amr::step_comp(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof 
         {
             fill_stage_in(l,s);
 
+            {
+            cfd_amr_wclock wc(wtp);
             for(int id : lev[l])
             {
                 pscope ps(pgc,CP(id)->a,a0);
                 CP(id)->pmom->amr_ls_transport(CP(id)->pp,CP(id)->a,pgc,s);
+            }
             }
 
             fill_phi_out(l,s);
@@ -1601,6 +1607,7 @@ void cfd_amr::step_comp(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof 
                 if(it>0)
                 fill_phi_out(l,s);
 
+                cfd_amr_wclock wc(wtp);
                 for(int id : lev[l])
                 {
                     pscope ps(pgc,CP(id)->a,a0);
@@ -1615,6 +1622,7 @@ void cfd_amr::step_comp(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof 
             }
         }
 
+        lbar();
         double tb = MPI_Wtime();
         tm[0] += tb-ta;
 
@@ -1627,6 +1635,7 @@ void cfd_amr::step_comp(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof 
             fill_velout(l,s);
             edge_faces(l,s);
 
+            cfd_amr_wclock wc(wtp);
             for(int id : lev[l])
             {
                 pscope ps(pgc,CP(id)->a,a0);
@@ -1640,16 +1649,20 @@ void cfd_amr::step_comp(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof 
         // composite projection
         pr_project(p,pgc,s);
 
+        lbar();
         double td = MPI_Wtime();
         tm[2] += td-tc;
 
         // end of the stage
         mom0->amr_stage_end(p,a,pgc,s);
         t0l[2] += MPI_Wtime()-td;
+        {
+        cfd_amr_wclock wc(wtp);
         for(int id=0; id<npat; ++id)
         {
             pscope ps(pgc,CP(id)->a,a0);
             CP(id)->pmom->amr_stage_end(CP(id)->pp,CP(id)->a,pgc,s);
+        }
         }
 
         restrict_scalars(s);

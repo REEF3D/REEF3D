@@ -182,8 +182,9 @@ int reefamr3d::owner0(const int *I) const
 
 double reefamr3d::load_w(int l) const
 {
-    // all levels take the step of the finest one (G 7 0), or level l its 2^l steps (G 7 1)
-    return (p0->G7==1) ? double(1<<l) : 1.0;
+    // all levels take the step of the finest one (G 7 0), or level l its 2^l steps (G 7 1); a patch
+    // cell the work wpatch of a level-0 cell (G 41)
+    return ((p0->G7==1) ? double(1<<l) : 1.0)*(l>0 ? wpatch : 1.0);
 }
 
 // a copy plan from the items of this rank (per peer: grid, index here; the level-0 cell there; tag)
@@ -1733,7 +1734,8 @@ void reefamr3d::place_units(vector<vector<int>> &mb)
         GP.push_back(q);
     }
 
-    if(myrank==0 && verbose)
+    // (G 41 0: at every regrid, with the measured weight of a patch cell)
+    if(myrank==0 && (verbose || (p0->G41<=0.0 && nranks>1)))
     {
         vector<double> &L = keep ? lk : lf;
         const double mx = *std::max_element(L.begin(),L.end());

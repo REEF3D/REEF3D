@@ -255,6 +255,15 @@ struct cfd_amr_cf
     double tdel[3];     // offset of the fine cell from the coarse centre (coarse cells), 0: none
 };
 
+// the time of a scope added to a timer
+struct cfd_amr_wclock
+{
+    double &a;
+    double t;
+    explicit cfd_amr_wclock(double &x) : a(x), t(MPI_Wtime()) {}
+    ~cfd_amr_wclock() { a += MPI_Wtime()-t; }
+};
+
 class cfd_amr : public reefamr3d, public amr_grid_lookup
 {
 public:
@@ -301,6 +310,7 @@ public:
     double tm[8] = {0,0,0,0,0,0,0,0};
     double tp[4] = {0,0,0,0};
     double t0l[3] = {0,0,0};        // G 7 0: the level-0 parts of tm[0], tm[1], tm[3]
+    double wtp = 0.0;               // the loops over the patches of this rank (their work without the fills)
 
 protected:
     r3patch* patch_new() override;
@@ -353,6 +363,14 @@ private:
     void flags(vector<vector<unsigned char>> &seed, bool init);
     bool flagged(int g, int i, int j, int k, int lt, bool init);
     void regrid(lexer*, ghostcell*);
+    // G 41 0 (several ranks): the work of the ranks measured since the last regrid, the weight of a
+    // patch cell for the placement (wpatch), the report; lbar: a barrier before a level-0 part (the
+    // waits for the patches of other ranks not in the level-0 timers)
+    bool lmeas() const;
+    void lbar();
+    void measure_load();
+    double ml_t0 = 0.0, ml_tp = 0.0;
+    int ml_n = 0;
     void regrid_old(const vector<int> &fresh, vector<vector<char>> &got);   // G 40: from the old patches of all ranks
     void patch_fields_ini(int id);
     void free_patch(cfd_amr_patch*);

@@ -303,9 +303,71 @@ void cfd_amr::regrid_old(const vector<int> &fresh, vector<vector<char>> &got)
 }
 
 // a new hierarchy from the flags, the data transferred
+// G 41 0 on several ranks: the work of the ranks since the last regrid, from the timers (level 0: its
+// level set, momentum, end of the stages (G 7 1: its step) and the level-0 V-cycles of the composite
+// solves; the patches: the loops over the patches of the rank and their V-cycles, without the fills
+// and the waits).  The work of a patch cell against a level-0 cell (both per step of their level) is
+// the weight wpatch of the patch cells in the placement of G 40 1, 2 (the mean with the last one).
+// The report: the measured work max/mean over the ranks, and the weight.
+bool cfd_amr::lmeas() const
+{
+    return nranks>1 && p0->G41<=0.0;
+}
+
+void cfd_amr::lbar()
+{
+    if(lmeas())
+    MPI_Barrier(MPI_COMM_WORLD);
+}
+
+void cfd_amr::measure_load()
+{
+    if(!lmeas())
+    return;
+
+    const double T0 = t0l[0]+t0l[1]+t0l[2]+tm[4]+tp[1];
+    const double Tp = wtp+tp[0];
+    double n0 = double(p0->knox)*p0->knoy*p0->knoz, np = 0.0;
+    for(int qi=0; qi<npat; ++qi)
+    np += ((p0->G7==1) ? double(1<<P[qi]->lev) : 1.0)*double(P[qi]->n[0])*P[qi]->n[1]*P[qi]->n[2];
+
+    double d[5] = {T0-ml_t0, Tp-ml_tp, n0, np, 0.0};
+    d[4] = d[0]+d[1];
+    ml_t0 = T0;
+    ml_tp = Tp;
+    ++ml_n;
+    double s[5], m[5];
+    MPI_Allreduce(d,s,5,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+    MPI_Allreduce(d,m,5,MPI_DOUBLE,MPI_MAX,MPI_COMM_WORLD);
+
+    // (the first regrid: the timers since the start, with the initialisation)
+    if(ml_n<2 || s[0]<=0.0 || s[2]<=0.0)
+    return;
+
+    double w = -1.0;
+    if(s[1]>0.0 && s[3]>0.0)
+    {
+        w = (s[1]/s[3])/(s[0]/s[2]);
+        w = MIN(MAX(w,0.25),16.0);
+        wpatch = (ml_n==2) ? w : 0.5*(wpatch+w);
+    }
+    if(p0->mpirank==0)
+    {
+        const std::streamsize pr = cout.precision();
+        cout<<"CFD AMR: measured since the last regrid: work max/mean over "<<nranks<<" ranks "<<setprecision(3)<<m[4]/(s[4]/nranks)
+            <<" (level 0 "<<m[0]/(s[0]/nranks)<<", patches "<<(s[1]>0.0 ? m[1]/(s[1]/nranks) : 0.0)<<")";
+        if(w>0.0)
+        cout<<"; a patch cell "<<w<<" level-0 cells, the weight of the placement "<<wpatch;
+        cout<<endl;
+        cout.precision(pr);
+    }
+}
+
 void cfd_amr::regrid(lexer *p, ghostcell *pgc)
 {
     const double t0 = MPI_Wtime();
+
+    measure_load();
 
     vector<vector<unsigned char>> seed;
     flags(seed,false);

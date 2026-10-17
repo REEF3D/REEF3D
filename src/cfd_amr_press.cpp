@@ -2109,6 +2109,7 @@ void cfd_amr::pr_prec(int kr, int kz)
         for(size_t n=0; n<l0a.size(); ++n)
         L.f[l0a[n]] = t[l0f[n]];
 
+        lbar();
         const double t0 = MPI_Wtime();
         mg0->vcycle(0,1,1);
         tp[1] += MPI_Wtime()-t0;
