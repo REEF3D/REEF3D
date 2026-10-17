@@ -411,8 +411,8 @@ void nhflow_HLL::aij_E(lexer *&p, fdm_nhf *&d, int ipol)
     d->FEy[IJm1K] = 0.0;
     }
     
-    // cells inside FEM structures (Z 30): no continuity flux through their faces
-    if(d->solid_flux==1)
+    // cells inside FEM structures (Z 30) and direct forcing solids: no continuity flux through their faces
+    if(d->solid_flux>0)
     nhflow_solid_flux(p,d);
     
     pgc->start1V(p,d->FEx,14);
