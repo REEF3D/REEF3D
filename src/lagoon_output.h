@@ -34,6 +34,7 @@ Architect: Hans Bihs
 
 #include"lagoon_store.h"
 #include"increment.h"
+#include<atomic>
 #include<string>
 #include<thread>
 #include<utility>
@@ -67,8 +68,9 @@ public:
     // one output of this rank's VTU piece: buffer holds the whole piece, its XML
     // header (point arrays, their offsets) before data_start, the appended data after
     // The arrays are copied and compressed and written by a thread of this rank
-    // while the solver goes on; an output is counted (its time committed) at the
-    // next output, or at finish(), once every rank has written it.
+    // while the solver goes on; an output is counted (its time committed) as soon
+    // as every rank has written it (poll_all, every iteration), at the latest at the
+    // next output or at finish().
     void vtu_piece(lexer*, ghostcell*, const std::vector<char> &buffer, size_t data_start, int num);
 
     // the end of the run: wait for the last output and count it
@@ -77,6 +79,12 @@ public:
     // the end of the run (all ranks; the drivers at the end of their loop, the
     // printers' print_stop): finish every volume, free surface and bed of the store
     static void finish_all(lexer*, ghostcell*);
+
+    // every rank, every iteration (the drivers, after the printers): the outputs
+    // every rank has finished writing are counted, volume and surfaces, so the store
+    // has an output (the first, iteration 0, too) a few iterations after it was
+    // made, not only at the next output. One reduction while an output is pending.
+    static void poll_all(lexer*, ghostcell*);
 
     // P 18 1: the VTU files are left out (P 18 2: written as well)
     static bool vtu_files(lexer*);
@@ -111,11 +119,13 @@ private:
     };
     job pending;
     std::thread worker;
+    std::atomic<bool> written{true};  // the worker is done with the pending output
     lagoon_timing timing;
     bool finished = false;
 
     void write_job(job *j);
     bool settle(lexer*, ghostcell*);  // wait for the pending output, count it if all ranks wrote it
+    bool waiting() const;  // an output is pending (the same on every rank)
     static std::vector<lagoon_output*> &all();
 };
 
@@ -148,6 +158,10 @@ public:
     // last output of every surface and count it
     static void finish_all(lexer*, ghostcell*);
 
+    // every rank (from lagoon_output::poll_all): the surfaces' outputs that every
+    // rank has written are counted
+    static void poll_all(lexer*, ghostcell*);
+
 private:
     std::string solver, output, source;
     lagoon_store store;
@@ -172,11 +186,13 @@ private:
     };
     job pending;
     std::thread worker;
+    std::atomic<bool> written{true};  // the worker is done with the pending output
     lagoon_timing timing;
     bool finished = false;
 
     void write_job(job *j);
     bool settle(lexer*, ghostcell*);
+    bool waiting() const;
     static std::vector<lagoon_surface*> &all();
 };
 

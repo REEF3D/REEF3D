@@ -162,6 +162,7 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
         
         pprint->start(p,b,pgc,pflow,pturb,psed);
 		pprintbed->start(p,b,pgc,psed);
+        lagoon_output::poll_all(p,pgc);  // outputs of the LAGOON store written by now (P 18)
         rdump.sflow_step(p,b,pgc);
 		
 		p->printouttime=pgc->timer()-ptime;

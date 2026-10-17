@@ -92,6 +92,7 @@ void driver::loop_fnpf()
         
         // printer
         pprint->start(p,c,pgc,pflow);
+        lagoon_output::poll_all(p,pgc);  // outputs of the LAGOON store written by now (P 18)
         
         if(pfamr!=nullptr)
         pfamr->print(p,c,pgc);

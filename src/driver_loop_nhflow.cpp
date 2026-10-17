@@ -121,6 +121,7 @@ void driver::loop_nhflow()
         
         // printer
         pprint->start(p,d,pgc,pflow,pnhfturb,psed);
+        lagoon_output::poll_all(p,pgc);  // outputs of the LAGOON store written by now (P 18)
         preg->nhflow_step(p,d,pgc);
         
         if(pnhfamr!=nullptr)
