@@ -339,7 +339,14 @@ void sixdof_obj_fnpf::forces_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc, double 
     fnpf_force_sum S;
     forces_fnpf_zero(p,S);
     
+    // distributed loads (fluid_member): the hull forces binned along the member, this rank's part
+    external_strips_zero();
+    strip_collect_ = true;
+    
     forces_fnpf_sum(p,c,psi0,psi,computeA,0.5*DSM,nullptr,S);
+    
+    strip_collect_ = false;
+    
     forces_fnpf_set(p,pgc,S,computeA);
 }
 
@@ -466,6 +473,7 @@ void sixdof_obj_fnpf::forces_fnpf_sum(lexer *p, fdm_fnpf *c, double *psi0, doubl
             const double mx[3] = {0.5*(ax + bx), 0.5*(bx + cx), 0.5*(cx + ax)};
             const double my[3] = {0.5*(ay + by), 0.5*(by + cy), 0.5*(cy + ay)};
             const double mz[3] = {0.5*(az + bz), 0.5*(bz + cz), 0.5*(cz + az)};
+            double pq[3];
             
             for(int q=0; q<3; ++q)
             {
@@ -492,6 +500,7 @@ void sixdof_obj_fnpf::forces_fnpf_sum(lexer *p, fdm_fnpf *c, double *psi0, doubl
                                   + rho*grav*(p->wd - mz[q]);
                 
                 const double wgt = A_sub/3.0;
+                pq[q] = pres;
                 
                 const double fx = -pres*wgt*nx;
                 const double fy = -pres*wgt*ny;
@@ -504,6 +513,7 @@ void sixdof_obj_fnpf::forces_fnpf_sum(lexer *p, fdm_fnpf *c, double *psi0, doubl
                 F[0] += fx;
                 F[1] += fy;
                 F[2] += fz;
+                
                 Mo[0] += ry*fz - rz*fy;
                 Mo[1] += rz*fx - rx*fz;
                 Mo[2] += rx*fy - ry*fx;
@@ -521,6 +531,12 @@ void sixdof_obj_fnpf::forces_fnpf_sum(lexer *p, fdm_fnpf *c, double *psi0, doubl
                         Am[ii*6+jj] += -rho*pj*N[ii]*wgt;
                     }
                 }
+            }
+            
+            if(strip_collect_)
+            {
+                const double ta[3] = {ax,ay,az}, tb[3] = {bx,by,bz}, tc[3] = {cx,cy,cz};
+                external_strips_tri(ta,tb,tc,pq,nx,ny,nz);
             }
             
             Atot += A_sub;

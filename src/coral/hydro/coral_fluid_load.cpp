@@ -32,6 +32,7 @@ fluid_load::fluid_load(const model &m, const std::vector<int> &bodies, const std
 {
     for(int b : map_)
         bname_.push_back(m.body(b).name);
+    s_.assign(map_.size(), Vec3::Zero());
     A_ = MatX::Zero(6*nbody(), 6*nbody());
 }
 
@@ -84,6 +85,12 @@ VecX fluid_load::force(double t) const
     return F;
 }
 
+void fluid_load::set_attachment(const model &m, int k, const Vec3 &p)
+{
+    if(k >= 0 && k < nbody())
+        s_[k] = m.body(map_[k]).to_body(p);
+}
+
 VecX fluid_load::acceleration(const model &m) const
 {
     VecX a(6*nbody());
@@ -107,7 +114,7 @@ void fluid_load::eval(const model &m, double t, VecX &f) const
     for(int i=0; i<nbody(); ++i)
     {
         const int b = map_[i];
-        f.segment<3>(6*b) += F.segment<3>(6*i);
+        m.add_force(f, b, m.body(b).point(s_[i]), F.segment<3>(6*i));
         m.add_moment(f, b, F.segment<3>(6*i+3));
     }
 }

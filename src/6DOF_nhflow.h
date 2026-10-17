@@ -114,6 +114,12 @@ private:
     bool adv_told = false;
 
     slice4 press;
+    
+    // external solver of the bodies (6DOF_external.h, REEF3D::CORAL fluid_body ... one_way): the loads of
+    // the last stage go to it once per step (two-way coupling of NHFLOW bodies: Phase 4.4)
+    void ext_loads(lexer*, ghostcell*);
+    class sixdof_external *pext = nullptr;
+    bool ext_checked = false;
 
 
 };

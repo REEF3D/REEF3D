@@ -81,14 +81,30 @@ Architect: Hans Bihs
 //   pile <frame member> soil <soil> D <D> [py] [tz] [qz] [linear]
 //        (springs at the member's nodes below the mudline; all three kinds unless some are listed;
 //        linear: initial slopes only)
-//   fluid_body <body> [n <k>] [own_mass]
+//   fluid_body <body> [n <k>] [own_mass] [one_way [excitation]]
 //        (REEF3D with Z 40 1: the body is driven by CORAL, the resolved fluid acts on it; k: number of the
 //        REEF3D 6DOF body (X 20 order, default: the order of the fluid_body lines); mass and inertia are
-//        taken from the REEF3D body unless own_mass; FNPF only so far, see coral/reef3d)
-//   fluid_coupling [order <0|1|2>] [no_predictor]
+//        taken from the REEF3D body unless own_mass; FNPF only so far, see coral/reef3d.
+//        one_way: REEF3D keeps its body fixed (X 11 0) or prescribed, only its loads act on the CORAL body,
+//        at the REEF3D CoG, which may be any CORAL body (FNPF and NHFLOW); excitation: without the load of
+//        the start (still water), e.g. with the hydrostatics and radiation of a hydro database)
+//   fluid_member <name> member <m> [n <k>] [strips <ns>] [order <0|1|2>] [excitation]
+//        (REEF3D with Z 40 1, FNPF or NHFLOW: the loads on the hull of the REEF3D 6DOF body k, kept fixed or
+//        prescribed there, integrated in ns strips along the frame or superelement member m (default two per
+//        element) and applied along it; order of the time polynomial (2); excitation: without the loads of
+//        the start; see coral/hydro/coral_member_fluid_load.h)
+//   fluid_kinematics [order <0|1|2>]
+//        (REEF3D with Z 40 1, FNPF or NHFLOW: the Morison members (on bodies and frame/superelement members)
+//        and the dynamic mooring lines take the velocity, acceleration and free surface of the resolved
+//        fluid, sampled at their points once per fluid step and interpolated in time with this order
+//        (default 2); the waves of coral.txt act outside the fluid domain and before the first sample)
+//   fluid_coupling [order <0|1|2>] [no_predictor] [origin <x y z>] [record <file>]
 //        (fluid loads in time over a CORAL step: polynomial of this order through the last loads of the
 //        fluid, default 2; predictor (default): the load of the next fluid stage, computed at a predicted
-//        pose, enters the CORAL step, which then interpolates; see coral/hydro/coral_fluid_load.h)
+//        pose, enters the CORAL step, which then interpolates; see coral/hydro/coral_fluid_load.h);
+//        origin: the point of the REEF3D grid that is CORAL's origin (default 0 0 0; e.g. 0 0 <depth> for
+//        CORAL's still water level z = 0 with REEF3D's bed at z = 0); record: a journal of all fluid input
+//        (REEF3D_CORAL/<file>) for the standalone CORAL: CORAL coral.txt replay <file> (io/coral_coupling.h)
 //   static                                       static equilibrium before the time integration
 //   modes <n> [damped]                           linear analysis: the first n modes (modes.dat, mode_shapes.dat)
 //   output vtp <dt>                              VTP of the structure (coral_vtp/)
@@ -108,6 +124,8 @@ namespace coral
 {
     class joint;
     class fluid_load;
+    class sampled_kinematics;
+    class member_fluid_load;
 
     struct run_settings
     {
@@ -138,9 +156,14 @@ namespace coral
         double rho = 1025.0;
 
         // bodies driven by the resolved fluid of REEF3D (fluid_body) and their load
-        struct fluid_body_spec {int body = -1; int n = 0; bool own_mass = false;};
+        struct fluid_body_spec {int body = -1; int n = 0; bool own_mass = false; bool one_way = false; bool excitation = false;};
         std::vector<fluid_body_spec> fluid_bodies;
         fluid_load *fluid = nullptr;
+        std::shared_ptr<sampled_kinematics> fluid_kin;     // fluid_kinematics
+        struct fluid_member_spec {member_fluid_load *load = nullptr; int n = 0;};
+        std::vector<fluid_member_spec> fluid_members;       // fluid_member
+        Vec3 fluid_origin = Vec3::Zero();
+        std::string fluid_record;                           // fluid_coupling record <file>
         int fluid_order = 2;
         bool fluid_predictor = true;
 

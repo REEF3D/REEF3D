@@ -95,7 +95,7 @@ namespace coral
     {
     public:
         mooring_line(const model&, const mooring_end &a, const mooring_end &b, const mooring_props&, int nseg,
-                     std::shared_ptr<const wave_field> waves=nullptr, const Vec3 &current=Vec3::Zero(),
+                     std::shared_ptr<const wave_kinematics> waves=nullptr, const Vec3 &current=Vec3::Zero(),
                      double z_seabed=-1.0e30, double dt_line=0.0, const std::string &name="line");
 
         std::string name() const override {return name_;}
@@ -104,6 +104,7 @@ namespace coral
         void initialize(const model&, double t0) override;
         void eval(const model&, double t, VecX &f) const override;
         void commit(const model&, double t, double dt) override;
+        void kinematics_points(const model&, const void *source, std::vector<Vec3>&) const override;
         void channel_names(std::vector<std::string>&) const override;
         void channel_values(const model&, double t, std::vector<double>&) const override;
 
@@ -131,7 +132,7 @@ namespace coral
         int nseg_;
         double l_;                     // unstretched segment length
         double dt_;
-        std::shared_ptr<const wave_field> waves_;
+        std::shared_ptr<const wave_kinematics> waves_;
         Vec3 current_;
         double zbed_;
         Vec3 g_;

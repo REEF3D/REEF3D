@@ -81,7 +81,10 @@ its own. `Regression/unit/coral_layering_check.py` checks these rules.
 CORAL does not copy existing code. The geometrically exact beam (`beam.h`), the dynamic mooring
 lines (`mooring_*`) and the 6DOF force integration on the body surface (`6DOF_obj_*`) are used
 through adapters in `reef3d/` until they are moved into CORAL. The 6DOF bodies of FNPF can be driven
-by CORAL (`fluid_body`): REEF3D keeps the geometry and the loads, CORAL the equations of motion. Moved so far: the PTO joint,
+by CORAL (`fluid_body`): REEF3D keeps the geometry and the loads, CORAL the equations of motion.
+One-way, FNPF and NHFLOW hand their body loads (`fluid_body ... one_way`, `fluid_member`) and the
+resolved velocity and surface at CORAL's points (`fluid_kinematics`) to CORAL, and a journal of
+this input replays a run without the fluid (`fluid_coupling record`, `CORAL coral.txt replay`). Moved so far: the PTO joint,
 elements and controllers of the 6DOF bodies (formerly `6DOF_pto_*`, now `pto/coral_pto_*`; the
 6DOF side of X 500 - X 508 is `reef3d/coral_sixdof_pto.cpp`). Without CORAL switched on, REEF3D
 runs as before.

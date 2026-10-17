@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"6DOF_nhflow.h"
+#include"6DOF_external.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"fdm_nhf.h"
@@ -282,7 +283,12 @@ void sixdof_nhflow::reforce_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int ite
             fb_obj[nb]->print_parameter(p,pgc,p->simtime+p->dt);
         }*/
     }
+    
+    // one-way loads to the external solver (CORAL): the loads of the end of the step
+    if(finalize)
+    ext_loads(p,pgc);
 }
+
 
 void sixdof_nhflow::membrane_forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, 
                                             double *UH, double *VH, double *WH, slice &WL)
@@ -378,4 +384,77 @@ bool sixdof_nhflow::top_phi_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int ite
     fb_obj[0]->top_phi_nhflow(p,d,WL,fb_obj[0]->nhflow_nb()*fb_obj[0]->nhflow_dsm(),phi);
     
     return true;
+}
+
+void sixdof_nhflow::ext_loads(lexer *p, ghostcell *pgc)
+{
+    // the strips are set at the first call, after this step's load integration: from the next step on
+    const bool strips_ready = ext_checked;
+    
+    if(!ext_checked)
+    {
+        ext_checked = true;
+        sixdof_external *e = sixdof_external::instance();
+        
+        bool any = false;
+        
+        for(int nb=0; nb<number6DOF; ++nb)
+        if(e!=nullptr && e->drives(nb))
+        {
+            any = true;
+            
+            if(!e->one_way(nb))
+            {
+                if(p->mpirank==0)
+                cout<<"6DOF NHFLOW: two-way external dynamics (fluid_body without one_way) is not available yet, use one_way"<<endl;
+                
+                pgc->final();
+                exit(1);
+            }
+            
+            double m;
+            Eigen::Vector3d cg;
+            Eigen::Matrix3d R, I;
+            
+            fb_obj[nb]->external_properties(m,cg,R,I);
+            e->connect(nb,m,cg,R,I);
+            
+            // distributed loads along a member of the external model
+            Eigen::Vector3d a, ax;
+            double L;
+            int ns;
+            
+            if(e->strips(nb,a,ax,L,ns))
+            {
+            fb_obj[nb]->external_strips_set(a,ax,L,ns);
+            
+            if(p->X60==2 && p->mpirank==0)
+            cout<<"6DOF NHFLOW: distributed loads (fluid_member) need the STL load integration (X 60 1)"<<endl;
+            }
+        }
+        
+        if(any)
+        {
+        pext = e;
+        
+        if(p->mpirank==0)
+        cout<<"6DOF NHFLOW: the loads of "<<number6DOF<<(number6DOF>1?" bodies go":" body goes")<<" one-way to the external solver"<<endl;
+        }
+    }
+    
+    if(pext==nullptr)
+    return;
+    
+    std::vector<sixdof_external::vec6> F(number6DOF);
+    std::vector<sixdof_external::mat6> A;
+    
+    for(int nb=0; nb<number6DOF; ++nb)
+    {
+    fb_obj[nb]->external_fluid_load(p,F[nb]);
+    
+    if(strips_ready && fb_obj[nb]->external_strips_on())
+    pext->fluid_strips(nb,p->simtime + p->dt,fb_obj[nb]->external_strips());
+    }
+    
+    pext->fluid_loads(p->simtime + p->dt,F,A,false);
 }

@@ -32,8 +32,10 @@ Architect: Hans Bihs
 // its predictor it steps to t^n + dt at once. With the predictor (default) the next stage gets a
 // predicted pose; its loads go over as provisional and the external solver steps then, interpolating
 // the loads over the step. All later stages take the external solver's motion within the step.
-// The PTO (X 500) and the mooring (X 310) of the 6DOF bodies are not used: they belong to the external
-// model. X 11 selects the unit-mode solves of the added mass: the free DOFs there must contain every
+// One-way bodies (fluid_body ... one_way) keep the 6DOF kernel's motion (fixed with X 11 0, or prescribed),
+// only their loads of the first stage go to the external solver, which then steps after the fluid step.
+// The PTO (X 500) and the mooring (X 310) of the two-way bodies are not used: they belong to the
+// external model. X 11 selects the unit-mode solves of the added mass: the free DOFs there must contain every
 // DOF the external joints let the body move in.
 
 #include"fnpf_6DOF.h"
@@ -77,6 +79,12 @@ void fnpf_6DOF::ext_connect(lexer *p, ghostcell *pgc)
     
     pext = e;
     
+    ext_twoway = false;
+    
+    for(int nb=0; nb<nbody; ++nb)
+    if(!pext->one_way(nb))
+    ext_twoway = true;
+    
     bool anyfixed = false;
     
     for(int nb=0; nb<nbody; ++nb)
@@ -88,20 +96,38 @@ void fnpf_6DOF::ext_connect(lexer *p, ghostcell *pgc)
         fb_obj[nb]->external_properties(m,cg,R,I);
         pext->connect(nb,m,cg,R,I);
         
+        // distributed loads along a member of the external model
+        Eigen::Vector3d a, e;
+        double L;
+        int ns;
+        
+        if(pext->strips(nb,a,e,L,ns))
+        fb_obj[nb]->external_strips_set(a,e,L,ns);
+        
         for(int n=0; n<6; ++n)
-        if(fb_obj[nb]->dof_fixed_fnpf(p,n) && !(p->j_dir==0 && (n==1 || n==3 || n==5)))
+        if(!pext->one_way(nb) && fb_obj[nb]->dof_fixed_fnpf(p,n) && !(p->j_dir==0 && (n==1 || n==3 || n==5)))
         anyfixed = true;
     }
     
     if(p->mpirank==0)
     {
-        cout<<"6DOF FNPF: "<<nbody<<(nbody>1?" bodies follow":" body follows")<<" the external dynamics ("
+        int n1 = 0;
+        
+        for(int nb=0; nb<nbody; ++nb)
+        if(pext->one_way(nb))
+        ++n1;
+        
+        if(nbody-n1>0)
+        cout<<"6DOF FNPF: "<<nbody-n1<<(nbody-n1>1?" bodies follow":" body follows")<<" the external dynamics ("
         <<(pext->predictor() ? "predictor" : "no predictor")<<")"<<endl;
         
-        if(p->X500>0)
+        if(n1>0)
+        cout<<"6DOF FNPF: the loads of "<<n1<<(n1>1?" bodies go":" body goes")<<" one-way to the external solver"<<endl;
+        
+        if(p->X500>0 && n1<nbody)
         cout<<"6DOF FNPF: the PTO X 500 is not used with external dynamics (PTO in the external model)"<<endl;
         
-        if(p->X310>0)
+        if(p->X310>0 && n1<nbody)
         cout<<"6DOF FNPF: the mooring X 310 is not used with external dynamics (mooring in the external model)"<<endl;
         
         if(anyfixed)
@@ -131,6 +157,12 @@ void fnpf_6DOF::ext_loads(lexer *p, double t, bool provisional, bool withA)
     
     for(int nb=0; nb<nbody; ++nb)
     fb_obj[nb]->external_fluid_load(p,F[nb]);
+    
+    // the strips of the distributed loads (committed loads only)
+    if(!provisional)
+    for(int nb=0; nb<nbody; ++nb)
+    if(fb_obj[nb]->external_strips_on())
+    pext->fluid_strips(nb,t,fb_obj[nb]->external_strips());
     
     if(withA)
     {
@@ -172,15 +204,16 @@ void fnpf_6DOF::motion_external(lexer *p, fdm_fnpf *c, ghostcell *pgc, int iter)
     double cs, cn;
     ext_stage_nodes(p,iter,cs,cn);
     
+    // only one-way bodies: the external solver steps after the fluid step, with these loads
     if(iter==0)
     {
         ext_loads(p,t0,false,true);
         
-        if(!pc)
+        if(!pc && ext_twoway)
         pext->advance(t0,t1);
     }
     
-    if(iter==1 && pc)
+    if(iter==1 && pc && ext_twoway)
     {
         ext_loads(p,t0 + cs*p->dt,true,false);
         pext->advance(t0,t1);
@@ -190,16 +223,24 @@ void fnpf_6DOF::motion_external(lexer *p, fdm_fnpf *c, ghostcell *pgc, int iter)
     
     for(int nb=0; nb<nbody; ++nb)
     {
-        Eigen::Vector3d xc, v, w;
-        Eigen::Matrix3d R;
-        
-        if(iter==0 && pc)
-        pext->predict(nb,ts,xc,R,v,w);
+        // one-way: the 6DOF kernel moves the body (fixed or prescribed)
+        if(pext->one_way(nb))
+        fb_obj[nb]->solve_eqmotion_fnpf(p,c,pgc,iter,finalize);
         
         else
-        pext->state(nb,ts,xc,R,v,w);
+        {
+            Eigen::Vector3d xc, v, w;
+            Eigen::Matrix3d R;
+            
+            if(iter==0 && pc)
+            pext->predict(nb,ts,xc,R,v,w);
+            
+            else
+            pext->state(nb,ts,xc,R,v,w);
+            
+            fb_obj[nb]->external_set_state(xc,R,v,w);
+        }
         
-        fb_obj[nb]->external_set_state(xc,R,v,w);
         fb_obj[nb]->update_position_fnpf(p,pgc,finalize);
         
         if(finalize)

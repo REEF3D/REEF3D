@@ -37,6 +37,8 @@ Architect: Hans Bihs
 #include"coral/core/coral_points.h"
 #include"coral/pto/coral_pto.h"
 #include"coral/hydro/coral_fluid_load.h"
+#include"coral/hydro/coral_sampled_kinematics.h"
+#include"coral/hydro/coral_member_fluid_load.h"
 #include"coral/mooring/coral_mooring.h"
 #include<cmath>
 #include<fstream>
@@ -167,6 +169,7 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
     std::vector<std::pair<mooring_line*, double>> settles;
     std::map<std::string, beam_section> sections;
     bool gravity_on = true;
+    int fluid_kin_order = -1;            // fluid_kinematics: order of the time polynomial, -1: not used
     double wdepth = -1.0, wramp = 0.0;
     std::vector<item> wave_items;
     for(const item &it : items)
@@ -217,6 +220,11 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
                 s.rIx = it.get("rIx", 0.0); s.rIy = it.get("rIy", 0.0); s.rIz = it.get("rIz", 0.0); s.D = it.get("D", 0.0);
             }
             sections[name] = s;
+        }
+        else if(k=="fluid_kinematics")
+        {
+            fluid_kin_order = (int)it.get("order", 2.0);
+            if(fluid_kin_order < 0 || fluid_kin_order > 2) it.fail("order must be 0, 1 or 2");
         }
         else if(k=="waves")
         {
@@ -281,6 +289,15 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
             else
                 it.fail("unknown wave type '" + type + "'");
         }
+    }
+    // the kinematics of Morison members and mooring lines: CORAL's waves, or the resolved fluid of REEF3D
+    // sampled at their points (with CORAL's waves outside the fluid domain and before the first sample)
+    std::shared_ptr<const wave_kinematics> kin = waves;
+    if(fluid_kin_order >= 0)
+    {
+        fluid_kin = std::make_shared<sampled_kinematics>(waves);
+        fluid_kin->order = fluid_kin_order;
+        kin = fluid_kin;
     }
     // members (nodes are bodies: before the joints and loads), superelements, point masses, soil
     std::map<std::string, std::vector<int>> stations;     // frame member -> node bodies
@@ -601,7 +618,7 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
             else if(type=="dynamic")
             {
                 const double zbed = it.get("seabed", std::min(ea.p(2), eb.p(2)));
-                auto l = std::make_unique<mooring_line>(m, ea, eb, p, (int)it.get("nseg", 20), waves, it.vec("current", Vec3::Zero()),
+                auto l = std::make_unique<mooring_line>(m, ea, eb, p, (int)it.get("nseg", 20), kin, it.vec("current", Vec3::Zero()),
                                                         zbed, it.get("dt_line", 0.0), name);
                 if(it.has("settle"))
                     settles.push_back({l.get(), it.need("settle")});
@@ -676,7 +693,7 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
             else
                 it.fail("unknown member '" + mem + "'");
             if(c.D <= 0.0) it.fail("'D' is required (the section has no diameter)");
-            m.add_load(std::make_unique<member_morison>(pts, elems, c, waves, rho, g, it.vec("current", Vec3::Zero()), it.word(1)));
+            m.add_load(std::make_unique<member_morison>(pts, elems, c, kin, rho, g, it.vec("current", Vec3::Zero()), it.word(1)));
         }
         else if(k=="morison")
         {
@@ -689,7 +706,7 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
             mb.Cm = it.get("Cm", 1.0 + mb.Ca);
             mb.n = (int)it.get("n", 20);
             const int b = body_of(it, it.word("body"));
-            m.add_load(std::make_unique<morison_load>(m, b, std::vector<morison_member>{mb}, waves, rho, it.vec("current", Vec3::Zero()), it.word(1)));
+            m.add_load(std::make_unique<morison_load>(m, b, std::vector<morison_member>{mb}, kin, rho, it.vec("current", Vec3::Zero()), it.word(1)));
         }
         else if(k=="fluid_body")
         {
@@ -697,24 +714,77 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
             fluid_body_spec fb;
             fb.body = body_of(it, it.word(1));
             if(fb.body < 0) it.fail("the ground cannot be a fluid body");
-            fb.n = (int)it.get("n", (double)fluid_bodies.size());
+            fb.n = (int)it.get("n", (double)(fluid_bodies.size() + fluid_members.size()));
             fb.own_mass = it.has("own_mass");
+            fb.one_way = it.has("one_way");
+            fb.excitation = it.has("excitation");
+            if(fb.excitation && !fb.one_way) it.fail("excitation needs one_way");
             for(const auto &o : fluid_bodies)
             {
                 if(o.body == fb.body) it.fail("body '" + it.word(1) + "' is a fluid body twice");
                 if(o.n == fb.n) it.fail("REEF3D body " + std::to_string(fb.n) + " mapped twice");
             }
+            for(const auto &o : fluid_members)
+                if(o.n == fb.n && !fb.one_way) it.fail("REEF3D body " + std::to_string(fb.n) + " is a fluid_member: as fluid_body only one_way");
             fluid_bodies.push_back(fb);
+        }
+        else if(k=="fluid_member")
+        {
+            // distributed one-way loads of a REEF3D 6DOF body on a frame or superelement member
+            const std::string mem = it.word("member");
+            std::shared_ptr<const point_set> pts;
+            std::vector<std::pair<int,int>> elems;
+            if(stations.count(mem))
+            {
+                const member_spec &ms = frame_specs[mem];
+                auto bp = std::make_shared<body_points>();
+                const std::vector<int> &st = stations[mem];
+                const int n = (int)st.size() - 1;
+                for(int i=0; i<=n; ++i)
+                {
+                    bp->add(m, st[i], ms.p1 + (double)i/n*(ms.p2 - ms.p1));
+                    if(i > 0) elems.emplace_back(i-1, i);
+                }
+                pts = bp;
+            }
+            else if(super_of.count(mem))
+            {
+                superelement *se = super_of[mem];
+                pts = std::shared_ptr<const point_set>(std::shared_ptr<const point_set>(), se);
+                const std::vector<int> nd = se->member_nodes(mem);
+                for(size_t i=1; i<nd.size(); ++i) elems.emplace_back(nd[i-1], nd[i]);
+            }
+            else
+                it.fail("unknown member '" + mem + "'");
+            if(elems.empty()) it.fail("member '" + mem + "' has no elements");
+            Vec3 pa, pb, v, a;
+            pts->point_state(m, elems.front().first, pa, v, a);
+            pts->point_state(m, elems.back().second, pb, v, a);
+            const int ns = (int)it.get("strips", (double)(2*elems.size()));
+            auto l = std::make_unique<member_fluid_load>(m, pts, elems, pa, pb, ns, it.word(1));
+            l->order = (int)it.get("order", 2.0);
+            l->excitation = it.has("excitation");
+            fluid_member_spec fm;
+            fm.load = l.get();
+            fm.n = (int)it.get("n", (double)(fluid_bodies.size() + fluid_members.size()));
+            for(const auto &o : fluid_bodies)
+                if(o.n == fm.n && !o.one_way) it.fail("REEF3D body " + std::to_string(fm.n) + " is a two-way fluid_body");
+            for(const auto &o : fluid_members)
+                if(o.n == fm.n) it.fail("REEF3D body " + std::to_string(fm.n) + " mapped twice");
+            fluid_members.push_back(fm);
+            m.add_load(std::move(l));
         }
         else if(k=="fluid_coupling")
         {
             fluid_order = (int)it.get("order", (double)fluid_order);
             if(fluid_order < 0 || fluid_order > 2) it.fail("order must be 0, 1 or 2");
             if(it.has("no_predictor")) fluid_predictor = false;
+            if(it.has("origin")) fluid_origin = it.need_vec("origin");
+            if(it.has("record")) fluid_record = it.word("record");
         }
         else if(k!="gravity" && k!="rho" && k!="time" && k!="output" && k!="waves" && k!="body" && k!="joint"
                 && k!="section" && k!="member" && k!="point_mass" && k!="static" && k!="modes"
-                && k!="superelement" && k!="soil" && k!="soil_layer" && k!="pile" && k!="force")
+                && k!="superelement" && k!="soil" && k!="soil_layer" && k!="pile" && k!="force" && k!="fluid_kinematics")
             it.fail("unknown keyword");
     }
     if(!fluid_bodies.empty())

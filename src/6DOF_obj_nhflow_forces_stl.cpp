@@ -66,6 +66,9 @@ void sixdof_obj_nhflow::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, sli
     A=0.0;
     Xe=Ye=Ze=Ke=Me=Ne=0.0;
     
+    // distributed loads (fluid_member): the hull forces binned along the member, this rank's part
+    external_strips_zero();
+    
     // porous body (X 16): the pressure acts on the solid fraction only.
     // -int_V (1-n) grad p dV = -(1-n_fb) oint p n dA  (divergence theorem, n_fb const inside)
     // -> buoyancy and Froude-Krylov load on the skeleton
@@ -203,6 +206,7 @@ void sixdof_obj_nhflow::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, sli
             const double mx[3] = {0.5*(ax + bx), 0.5*(bx + cx), 0.5*(cx + ax)};
             const double my[3] = {0.5*(ay + by), 0.5*(by + cy), 0.5*(cy + ay)};
             const double mz[3] = {0.5*(az + bz), 0.5*(bz + cz), 0.5*(cz + az)};
+            double pq[3];       // pfac p at the quadrature points, for the strips
             
             // multi-block grid: every quadrature point on the grid of this rank that holds it (amr_point_nhflow)
             if(amr_point_grid)
@@ -216,6 +220,7 @@ void sixdof_obj_nhflow::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, sli
                 const double hsp = MAX(0.0, (p->wd + pl->ccslipol4(dl->eta,mx[q],my[q]) - mz[q])*p->W1*fabs(p->W22));
                 
                 const double w  = A_sub/3.0;
+                pq[q] = pfac*(pval + hsp);
                 const double fx = -pfac*(pval + hsp)*w*nx;
                 const double fy = -pfac*(pval + hsp)*w*ny;
                 const double fz = -pfac*(pval + hsp)*w*nz;
@@ -251,6 +256,7 @@ void sixdof_obj_nhflow::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, sli
                 const double hsp = MAX(0.0, (p->wd + pl->ccslipol4(dl->eta,mx[q],my[q]) - mz[q])*p->W1*fabs(p->W22));
                 
                 const double w  = A_sub/3.0;
+                pq[q] = pfac*(pval + hsp);
                 const double fx = -pfac*(pval + hsp)*w*nx;
                 const double fy = -pfac*(pval + hsp)*w*ny;
                 const double fz = -pfac*(pval + hsp)*w*nz;
@@ -271,6 +277,12 @@ void sixdof_obj_nhflow::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, sli
                 Ze_p += fz;
             }
             
+            if(external_strips_on())
+            {
+                const double ta[3] = {ax,ay,az}, tb[3] = {bx,by,bz}, tc[3] = {cx,cy,cz};
+                external_strips_tri(ta,tb,tc,pq,nx,ny,nz);
+            }
+            
             A += A_sub;
             
             // Viscous forces at the sub-triangle centroid
@@ -287,6 +299,7 @@ void sixdof_obj_nhflow::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, sli
             Xe += Fv_x;
             Ye += Fv_y;
             Ze += Fv_z;
+            external_strips_add(gx,gy,gz,Fv_x,Fv_y,Fv_z);
             Ke += (gy - c_(1))*Fv_z - (gz - c_(2))*Fv_y;
             Me += (gz - c_(2))*Fv_x - (gx - c_(0))*Fv_z;
             Ne += (gx - c_(0))*Fv_y - (gy - c_(1))*Fv_x;

@@ -29,7 +29,7 @@ namespace coral
 {
 
 member_morison::member_morison(std::shared_ptr<const point_set> pts, const std::vector<std::pair<int,int>> &elements,
-                               const member_morison_coef &c, std::shared_ptr<const wave_field> waves, double rho, double g,
+                               const member_morison_coef &c, std::shared_ptr<const wave_kinematics> waves, double rho, double g,
                                const Vec3 &current, const std::string &name)
     : name_(name), pts_(std::move(pts)), elem_(elements), c_(c), waves_(std::move(waves)), rho_(rho), g_(g), current_(current)
 {
@@ -68,7 +68,8 @@ void member_morison::strips(const model &m, double t, Sink sink) const
             // so that the load changes continuously as the surface moves along the member
             double s0 = (double)i/c_.n, s1 = (i + 1.0)/c_.n;
             const Vec3 pm = (1.0 - 0.5*(s0 + s1))*pa + 0.5*(s0 + s1)*pb;
-            const double eta = waves_ ? waves_->elevation(pm(0), pm(1), t) : 0.0;
+            const int ik = (int)ie*c_.n + i;       // index of the strip for a sampled wave source
+            const double eta = waves_ ? waves_->elevation_at(this, ik, pm, t) : 0.0;
             const double z0 = pa(2) + s0*d(2), z1 = pa(2) + s1*d(2);
             if(z0 > eta && z1 > eta)
                 continue;
@@ -85,7 +86,7 @@ void member_morison::strips(const model &m, double t, Sink sink) const
             Vec3 uw = Vec3::Zero(), aw = Vec3::Zero();
             double pr = 0.0;
             if(waves_)
-                waves_->kinematics(p, t, uw, aw, pr);
+                waves_->kinematics_at(this, ik, p, t, uw, aw, pr);
             const Vec3 ur = normal(uw + current_ - us);
             Vec3 f = L*(rho_*A*c_.Cm*normal(aw) - rho_*A*c_.Ca*normal(as) + 0.5*rho_*c_.Cd*c_.D*ur.norm()*ur);
             if(c_.buoyancy)
@@ -102,6 +103,21 @@ void member_morison::eval(const model &m, double t, VecX &f) const
         pts_->add_point_force(m, a, (1.0 - s)*F, f);
         pts_->add_point_force(m, b, s*F, f);
     });
+}
+
+void member_morison::kinematics_points(const model &m, const void *source, std::vector<Vec3> &pts) const
+{
+    // the centres of the whole strips
+    if(waves_.get() != source)
+        return;
+    std::vector<Vec3> P, V, Ac;
+    pts_->point_states(m, pidx_, P, V, Ac);
+    for(size_t ie=0; ie<elem_.size(); ++ie)
+        for(int i=0; i<c_.n; ++i)
+        {
+            const double s = (i + 0.5)/c_.n;
+            pts.push_back((1.0 - s)*P[2*ie] + s*P[2*ie+1]);
+        }
 }
 
 void member_morison::total(const model &m, double t, Vec3 &F, Vec3 &M) const
