@@ -167,6 +167,10 @@ void nhflow_idiff_2D::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow
 	}
 	}
     
+    // A 513 2: neighbour values; at a direct forcing solid (DF < 0 inside the domain) the mirrored value of the
+    // cell, as in the ghost cells of the domain walls (start4V): tangential symmetric, normal antisymmetric.
+    // The forced velocity (0) of the solid cell would make the solid a no-slip wall, the domain walls are slip
+    // walls (wall friction only with A 519 2, nhflow_wall.h).
     if(p->A513==2)
     {
     n=0;
@@ -176,19 +180,19 @@ void nhflow_idiff_2D::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow
         {
             if(p->flag4[Im1JK]<0 || p->DF[Im1JK]<0)
             {
-            d->rhsvec.V[n] -= d->M.s[n]*UH[Im1JK];
+            d->rhsvec.V[n] -= d->M.s[n]*(p->DF[Im1JK]<0 && p->flag4[Im1JK]>0 ? -UH[IJK] : UH[Im1JK]);
             d->M.s[n] = 0.0;
             }
             
             if(p->flag4[Ip1JK]<0 || p->DF[Ip1JK]<0)
             {
-            d->rhsvec.V[n] -= d->M.n[n]*UH[Ip1JK];
+            d->rhsvec.V[n] -= d->M.n[n]*(p->DF[Ip1JK]<0 && p->flag4[Ip1JK]>0 ? -UH[IJK] : UH[Ip1JK]);
             d->M.n[n] = 0.0;
             }
             
             if(p->flag4[IJKm1]<0 || p->DF[IJKm1]<0)
             {
-            d->rhsvec.V[n] -= d->M.b[n]*UH[IJKm1];
+            d->rhsvec.V[n] -= d->M.b[n]*(p->DF[IJKm1]<0 && p->flag4[IJKm1]>0 ? UH[IJK] : UH[IJKm1]);
             d->M.b[n] = 0.0;
             }
             

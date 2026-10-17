@@ -216,6 +216,10 @@ void nhflow_idiff::diff_w(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, s
 	}
     }
     
+    // A 513 2: neighbour values; at a direct forcing solid (DF < 0 inside the domain) the mirrored value of the
+    // cell, as in the ghost cells of the domain walls (start4V): tangential symmetric, normal antisymmetric.
+    // The forced velocity (0) of the solid cell would make the solid a no-slip wall, the domain walls are slip
+    // walls (wall friction only with A 519 2, nhflow_wall.h).
     if(p->A513==2)
     {
     n=0;
@@ -225,37 +229,37 @@ void nhflow_idiff::diff_w(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, s
         {
             if(p->flag4[Im1JK]<0 || p->DF[Im1JK]<0)
             {
-            d->rhsvec.V[n] -= d->M.s[n]*WH[Im1JK];
+            d->rhsvec.V[n] -= d->M.s[n]*(p->DF[Im1JK]<0 && p->flag4[Im1JK]>0 ? WH[IJK] : WH[Im1JK]);
             d->M.s[n] = 0.0;
             }
             
             if(p->flag4[Ip1JK]<0 || p->DF[Ip1JK]<0)
             {
-            d->rhsvec.V[n] -= d->M.n[n]*WH[Ip1JK];
+            d->rhsvec.V[n] -= d->M.n[n]*(p->DF[Ip1JK]<0 && p->flag4[Ip1JK]>0 ? WH[IJK] : WH[Ip1JK]);
             d->M.n[n] = 0.0;
             }
             
             if(p->flag4[IJm1K]<0 || p->DF[IJm1K]<0)
             {
-            d->rhsvec.V[n] -= d->M.e[n]*WH[IJm1K]*p->y_dir;
+            d->rhsvec.V[n] -= d->M.e[n]*(p->DF[IJm1K]<0 && p->flag4[IJm1K]>0 ? WH[IJK] : WH[IJm1K])*p->y_dir;
             d->M.e[n] = 0.0;
             }
             
             if(p->flag4[IJp1K]<0 || p->DF[IJp1K]<0)
             {
-            d->rhsvec.V[n] -= d->M.w[n]*WH[IJp1K]*p->y_dir;
+            d->rhsvec.V[n] -= d->M.w[n]*(p->DF[IJp1K]<0 && p->flag4[IJp1K]>0 ? WH[IJK] : WH[IJp1K])*p->y_dir;
             d->M.w[n] = 0.0;
             }
             
             if(p->flag4[IJKm1]<0 || p->DF[IJKm1]<0)
             {
-            d->rhsvec.V[n] -= d->M.b[n]*WH[IJKm1];
+            d->rhsvec.V[n] -= d->M.b[n]*(p->DF[IJKm1]<0 && p->flag4[IJKm1]>0 ? -WH[IJK] : WH[IJKm1]);
             d->M.b[n] = 0.0;
             }
             
             if(p->flag4[IJKp1]<0 || p->DF[IJKp1]<0)
             {
-            d->rhsvec.V[n] -= d->M.t[n]*WH[IJKp1];
+            d->rhsvec.V[n] -= d->M.t[n]*(p->DF[IJKp1]<0 && p->flag4[IJKp1]>0 ? -WH[IJK] : WH[IJKp1]);
             d->M.t[n] = 0.0;
             }
   
