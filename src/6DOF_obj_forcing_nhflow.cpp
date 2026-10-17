@@ -97,7 +97,9 @@ void sixdof_obj_nhflow::forcing_kernel_nhflow(lexer *p, fdm_nhf *d, ghostcell *p
     // X 15 3: as X 15 1, but only the cells inside the body are forced. A body moving through the
     // grid at speed (towed or self-propelled ship) otherwise pushes the water in the forcing band ahead
     // of the bow up to the body velocity; that water passes under the hull and is carried along with it.
-    if(p->X15==1 || p->X15==3)
+    // X 15 5: as X 15 1 with the sharp switch at FB = 0 (full forcing for FB <= 0, normal-weighted outside),
+    // the forcing before the shell ramp was introduced (9ce616dab)
+    if(p->X15==1 || p->X15==3 || p->X15==5)
     LOOP
     {
         H = Hsolidface_nhflow(p,d,0,0,0);
@@ -139,9 +141,19 @@ void sixdof_obj_nhflow::forcing_kernel_nhflow(lexer *p, fdm_nhf *d, ghostcell *p
         // for cell centres on or next to the surface (a flat side through a row of cell centres):
         // the smallest rotation moves the row partly inside and partly outside, and the jump in
         // the forcing kicks a symmetric hull into sway and yaw.
+        // X 15 5: the sharp switch at FB = 0 (2D cases and grid-aligned hulls, where the kick does not
+        // arise; reproduces the floating-body motions of the code before the ramp)
+        double sb;
+        
+        if(p->X15==5)
+        sb = d->FB[IJK]<=0.0 ? 1.0 : 0.0;
+        
+        else
+        {
         const double dsh = 0.25*Hpsi_nhflow(p,d);
         const double tb = MIN(MAX(0.5*(1.0 - d->FB[IJK]/dsh), 0.0), 1.0);
-        const double sb = tb*tb*(3.0 - 2.0*tb);
+        sb = tb*tb*(3.0 - 2.0*tb);
+        }
         
         FX[IJK] += (sb + (1.0-sb)*fabs(nx))*H*(uf - U[IJK])/(alpha[iter]*p->dt);
         FY[IJK] += (sb + (1.0-sb)*fabs(ny))*H*(vf - V[IJK])/(alpha[iter]*p->dt);
