@@ -1564,12 +1564,148 @@ void cfd_amr::pr_matrix(int s)
         }
     }
 
+    pr_covered_coef();
+
     mg0->coarsen();
     for(int id=0; id<npat; ++id)
     if(lmg_of[id]<0)
     CP(id)->mg->coarsen();
     for(int m=0; m<(int)lmg.size(); ++m)
     pr_level_mg_fill_comp(m);
+}
+
+// the multigrid of a coarser grid under the finer patches: the coupling between two covered cells
+// from the densities of the fine faces at the position of the coarse face (1/rho their mean, area
+// weighted) instead of the density of the coarse face (its level set smeared over the interface
+// band of the coarser level).  The coarse correction of the FAC sweep then sees the free surface as
+// sharp as the finer level does.  The covered rows are not in the composite operator: the
+// preconditioner alone changes
+void cfd_amr::pr_covered_coef()
+{
+    if(p0->F30<=0 || place)
+    return;
+
+    // the face density of grid g at the + face of its local cell I along d
+    auto face_rho = [&](int g, const int *I, int d) -> double
+    {
+        lexer *q = glex(g);
+        field &phi = gfd(g)->phi;
+        int o[3] = {0,0,0};
+        o[d] = 1;
+        const int qa = cix(q,I[0],I[1],I[2]), qb = cix(q,I[0]+o[0],I[1]+o[1],I[2]+o[2]);
+        const double H = heaviside_face(q,phi,0.5*(phi.V[qa]+phi.V[qb]),I[0],I[1],I[2],o[0],o[1],o[2]);
+        return rmix(q,H,0.5*(sval(g,qa)+sval(g,qb)));
+    };
+    auto getc = [](reefmg_core *U, sc_level &L, long lq, int m) -> double
+    {
+        if(U->precision()==32)
+        {
+            float *a[7] = {L.pf.data(),L.nf.data(),L.sf.data(),L.wf.data(),L.ef.data(),L.tf.data(),L.bf.data()};
+            return a[m][lq];
+        }
+        double *a[7] = {L.p.data(),L.n.data(),L.s.data(),L.w.data(),L.e.data(),L.t.data(),L.b.data()};
+        return a[m][lq];
+    };
+    auto setc = [](reefmg_core *U, sc_level &L, long lq, int m, double v)
+    {
+        if(U->precision()==32)
+        {
+            float *a[7] = {L.pf.data(),L.nf.data(),L.sf.data(),L.wf.data(),L.ef.data(),L.tf.data(),L.bf.data()};
+            a[m][lq] = (float)v;
+            return;
+        }
+        double *a[7] = {L.p.data(),L.n.data(),L.s.data(),L.w.data(),L.e.data(),L.t.data(),L.b.data()};
+        a[m][lq] = v;
+    };
+    const int mplus[3] = {1,3,5}, mminus[3] = {2,4,6};      // n s, w e, t b
+
+    for(int g=-1; g<npat; ++g)
+    {
+        const int lc = glevel(g);
+        if(lc>=maxlev)
+        continue;
+        lexer *q = glex(g);
+        reefmg_core *U = (g<0) ? mg0 : CP(g)->mg;
+        sc_level &L = U->fine();
+        const int *ol = (g<0) ? nullptr : CP(g)->olo;
+        const vector<int> &row = (g<0) ? row0 : CP(g)->row;
+        int og[3];
+        goff(g,og);
+        const int nn[3] = {q->knox,q->knoy,q->knoz};
+        int last = -1;      // the fine patch of the last face (the next face mostly in the same one)
+
+        for(int i=0; i<q->knox; ++i)
+        for(int j=0; j<q->knoy; ++j)
+        for(int k=0; k<q->knoz; ++k)
+        {
+            const int I[3] = {i,j,k};
+            const int G[3] = {i+og[0],j+og[1],k+og[2]};
+            if(row[cix(q,i,j,k)]<0 || !covered(lc,G))
+            continue;
+            for(int d=0; d<3; ++d)
+            {
+                if(rr[d]!=2 || I[d]+1>=nn[d])
+                continue;
+                int J[3] = {i,j,k}, GJ[3] = {G[0],G[1],G[2]};
+                J[d] += 1;
+                GJ[d] += 1;
+                if(row[cix(q,J[0],J[1],J[2])]<0 || !covered(lc,GJ))
+                continue;
+
+                // the fine faces at the coarse face: the + faces of the fine cells of the last layer of I
+                double inv = 0.0;
+                int nf = 0;
+                bool ok = true;
+                int a[3], b[3];
+                for(int e=0; e<3; ++e)
+                {
+                    a[e] = G[e]*rr[e];
+                    b[e] = a[e]+rr[e]-1;
+                }
+                a[d] = b[d];
+                int F[3];
+                for(F[0]=a[0]; F[0]<=b[0] && ok; ++F[0])
+                for(F[1]=a[1]; F[1]<=b[1] && ok; ++F[1])
+                for(F[2]=a[2]; F[2]<=b[2] && ok; ++F[2])
+                {
+                    auto holds = [&](int c)
+                    {
+                        const r3patch *P2 = P[c];
+                        return F[0]>=P2->lo[0] && F[0]<=P2->hi[0] && F[1]>=P2->lo[1] && F[1]<=P2->hi[1] && F[2]>=P2->lo[2] && F[2]<=P2->hi[2];
+                    };
+                    int id = (last>=0 && holds(last)) ? last : -1;
+                    if(id<0)
+                    for(int c : lev[lc+1])
+                    if(holds(c))
+                    {
+                        id = c;
+                        break;
+                    }
+                    last = id;
+                    if(id<0)
+                    {
+                        ok = false;
+                        break;
+                    }
+                    const int Fl[3] = {F[0]-P[id]->lo[0],F[1]-P[id]->lo[1],F[2]-P[id]->lo[2]};
+                    inv += 1.0/face_rho(id,Fl,d);
+                    ++nf;
+                }
+                if(!ok || nf==0)
+                continue;
+                inv /= double(nf);
+                const double f = face_rho(g,I,d)*inv;      // the coupling scales with 1/rho
+
+                const long qi = (g<0) ? L.idx(i,j,k) : L.idx(i+ol[0],j+ol[1],k+ol[2]);
+                const long qj = (g<0) ? L.idx(J[0],J[1],J[2]) : L.idx(J[0]+ol[0],J[1]+ol[1],J[2]+ol[2]);
+                const double ci = getc(U,L,qi,mplus[d]), cj = getc(U,L,qj,mminus[d]);
+                setc(U,L,qi,mplus[d],ci*f);
+                setc(U,L,qi,0,getc(U,L,qi,0)+ci-ci*f);
+                setc(U,L,qj,mminus[d],cj*f);
+                setc(U,L,qj,0,getc(U,L,qj,0)+cj-cj*f);
+            }
+        }
+    }
 }
 
 // G 40: the level-0 rows of the coarse cells at the edges of the level-1 patches in the shadows:

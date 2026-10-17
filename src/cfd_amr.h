@@ -409,6 +409,7 @@ private:
     void pr_correct(int s);
     void pr_project(lexer*, ghostcell*, int s);
     void pr_sync(int k);
+    void pr_covered_coef();                              // the coarse couplings under the finer patches from the fine faces
     void pr_halo0(field &f);                             // the halo of a level-0 vector (ranks, periodic edges)
     bool pr_wrap(int id, int d) const;                   // patch id over the whole length of periodic direction d
     // the overlap of the patch multigrids at the sides where a patch of the level is next to it (a
