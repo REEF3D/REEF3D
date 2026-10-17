@@ -21,6 +21,7 @@ Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"cfd_amr.h"
+#include"patchBC_codes.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
@@ -249,8 +250,6 @@ bool cfd_amr::scope(lexer *p, ghostcell *pgc)
     why = "the reinitialisation F 40 3";
     else if(p->mz>1 || p->periodic3>0)
     why = "no partition in z (M 10 with the vertical not split) and no periodic boundary in z (periodic in x and y: C 21, C 22)";
-    else if(p->B440>0 || p->B441>0 || p->B442>0)
-    why = "no patch boundary conditions (B 440-442)";
 
     int bad = (why!=nullptr) ? 1 : 0;
     bad = pgc->globalimax(bad);
@@ -367,14 +366,14 @@ void cfd_amr::hierarchy(bool first)
     for(int n=0; n<P[qi]->pp->gcb4_count; ++n)
     {
         const int g = P[qi]->pp->gcb4[n][4];
-        if(g==1 || g==2 || g==6 || g==7 || g==8)
+        if(g==1 || g==2 || g==6 || g==7 || g==8 || patch_bc(g))
         ++io;
     }
     io = pgc->globalimax(io);
     if(io>0)
     {
         if(p->mpirank==0)
-        cout<<"CFD AMR: a refined region (G 15, G 24-26) reaches an inflow or outflow boundary; keep the boxes away from them"<<endl;
+        cout<<"CFD AMR: a refined region (G 15, G 24-26) reaches an inflow or outflow boundary or a patch boundary condition (B 440-442); keep the boxes away from them"<<endl;
         MPI_Abort(MPI_COMM_WORLD,-3111);
     }
 

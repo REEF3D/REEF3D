@@ -21,6 +21,7 @@ Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"reefamr3d.h"
+#include"patchBC_codes.h"
 #include"lexer.h"
 #include"ghostcell.h"
 #include"grid_helper.h"
@@ -857,6 +858,40 @@ void reefamr3d::mark_tiles(const vector<vector<unsigned char>> *seed)
         }
         return false;
     };
+    // the faces of the patch boundary conditions (B 440-442, the codes of patchBC_ini on the wall faces
+    // of level 0, anywhere in the domain): the tiles whose patch with its margin of 3 fine cells would
+    // reach the fluid cell of such a face stay on level 0 as well
+    vector<vector<char>> pbc(maxlev+1);
+    {
+        int any = 0;
+        for(int n=0; n<p0->gcb4_count; ++n)
+        if(patch_bc(p0->gcb4[n][4]))
+        any = 1;
+        MPI_Allreduce(MPI_IN_PLACE,&any,1,MPI_INT,MPI_MAX,MPI_COMM_WORLD);
+        for(int l=1; l<=maxlev && any; ++l)
+        {
+            pbc[l].assign((size_t)tn[l][0]*tn[l][1]*tn[l][2],0);
+            for(int n=0; n<p0->gcb4_count; ++n)
+            {
+                if(!patch_bc(p0->gcb4[n][4]))
+                continue;
+                int a[3], b[3];
+                for(int d=0; d<3; ++d)
+                {
+                    const int I = p0->gcb4[n][d]+org[d], R = ratio(l,d);
+                    const int m = (rr[d]==2) ? 3 : 0;
+                    a[d] = MAX(I*R-m,0)/tile[d];
+                    b[d] = MIN((I+1)*R-1+m,gn(l,d)-1)/tile[d];
+                }
+                for(int ti=a[0]; ti<=b[0]; ++ti)
+                for(int tj=a[1]; tj<=b[1]; ++tj)
+                for(int tk=a[2]; tk<=b[2]; ++tk)
+                pbc[l][((size_t)ti*tn[l][1] + tj)*tn[l][2] + tk] = 1;
+            }
+            MPI_Allreduce(MPI_IN_PLACE,&pbc[l][0],(int)pbc[l].size(),MPI_CHAR,MPI_MAX,MPI_COMM_WORLD);
+        }
+    }
+
     // forbidden tiles, coarse to fine: at the face, or with their nesting band (nest cells of the
     // coarser level) on a forbidden tile of the coarser level - so the nesting of the tiles left
     // never asks for a forbidden one
@@ -868,7 +903,7 @@ void reefamr3d::mark_tiles(const vector<vector<unsigned char>> *seed)
         for(int tj=0; tj<tn[l][1]; ++tj)
         for(int tk=0; tk<tn[l][2]; ++tk)
         {
-            bool f = io_near(l,ti,tj,tk);
+            bool f = io_near(l,ti,tj,tk) || (!pbc[l].empty() && pbc[l][((size_t)ti*tn[l][1] + tj)*tn[l][2] + tk]);
             if(!f && l>=2)
             {
                 const int t[3] = {ti,tj,tk};
@@ -968,7 +1003,7 @@ void reefamr3d::mark_tiles(const vector<vector<unsigned char>> *seed)
     cout<<"CFD AMR: "<<cleared<<(zone_gen_refine || zone_beach_refine ? " tiles at the in- or outflow edge of the wave zones and " : " tiles in the wave zones and ")
         <<dropped<<" tiles without nesting not refined"<<endl;
     if(myrank==0 && verbose && cleared_io>0)
-    cout<<"CFD AMR: "<<cleared_io<<" tiles at an in- or outflow boundary not refined (the patches keep off it)"<<endl;
+    cout<<"CFD AMR: "<<cleared_io<<" tiles at an in- or outflow boundary or a patch boundary condition (B 440-442) not refined (the patches keep off it)"<<endl;
 
     // the edges of a level must not lie on a partition edge of level 0 (the coarse cell across a
     // patch edge on the rank of the patch): such a level is extended by the tiles across, finest
