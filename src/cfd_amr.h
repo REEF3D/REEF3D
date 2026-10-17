@@ -493,8 +493,8 @@ private:
     void pr_level_mg_fill(int m);
     void pr_level_mg_fill_comp(int m);
     void pr_level_mg_ovrows(int m, double dshift);   // the rows of the overlap cells of a joint multigrid
-    void pr_level_vcycle(int m, int kr, int kz);
-    void pr_level_solve(int l, int kr, int kz);     // the V-cycles of level l: joint or patch-local
+    void pr_level_vcycle(int m, int kr, int kz, int kc=-1);
+    void pr_level_solve(int l, int kr, int kz, int kc=-1);     // the V-cycles of level l: joint or patch-local (the correction added to z, and to kc)
     // the fine level of the multigrid of patch id from its rows (diagonal times dshift), the couplings
     // to the cells around it dropped, G 40: over its box with the overlap (pr_overlap, pr_coef_fill)
     void pr_patch_mg(int id, double dshift);

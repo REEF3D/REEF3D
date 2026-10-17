@@ -1,0 +1,8 @@
+# REEF3D::CORAL model for fnpf_3d_coral_amr(_sub): the point absorber of fnpf_3d_amr_decay_sub on a heave joint
+# Architect: Hans Bihs
+time dt 0.005 end 100
+output dt 0.01 file pa.dat
+body pa mass 1.0 cog 4.99998 1.00004 1.05159
+joint heave prismatic ground pa point 4.99998 1.00004 1.05159 axis 0 0 1
+
+fluid_body pa
