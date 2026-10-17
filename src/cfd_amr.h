@@ -156,6 +156,14 @@ struct cfd_amr_field
 //  patches write onto level 0); the outputs and the loads of the bodies on the rank of the finest
 //  grid at the point (amr_cfd_mine).  G 40 2: the test of it (small units, placed anew).
 //
+//  Periodic boundaries in x and y (C 21, C 22 of DIVEMesh; on one rank or across ranks): a level is
+//  refined alike on both sides of a periodic edge (reefamr3d::mark_tiles), so no patch edge lies on
+//  it; the margin of a patch across it comes from the patches at the other end (the fill plans
+//  wrap the index), the composite solve has the level-0 multigrid periodic, the patches next to
+//  each other across the edge in one joint multigrid (shifted by the length; periodic when it goes
+//  around), a patch over the whole length periodic over itself, the overlap of the multigrids at
+//  the sides to patches of another rank.  Not with G 40 (it falls back to G 40 0) nor in z.
+//
 //  G 7 1, subcycling in time (cfd_amr_sub.cpp): every level its own step, level l+1 two steps per
 //  step of level l; the cells around a patch linear in time between the start and the end of the
 //  step of the coarser level; the projection of a level alone, with the pressure of the coarser
@@ -399,6 +407,12 @@ private:
     void pr_correct(int s);
     void pr_project(lexer*, ghostcell*, int s);
     void pr_sync(int k);
+    void pr_halo0(field &f);                             // the halo of a level-0 vector (ranks, periodic edges)
+    bool pr_wrap(int id, int d) const;                   // patch id over the whole length of periodic direction d
+    // the overlap of the patch multigrids at the sides where a patch of the level is next to it (a
+    // restricted additive Schwarz): G 40 (instead of the joint multigrids of the level); periodic (the
+    // patches not in a joint multigrid)
+    bool pr_ras() const { return place>0 || per[0]>0 || per[1]>0; }
     void pr_level(lexer*, ghostcell*, int l, int s);
     void pr_sync_project(lexer*, ghostcell*);   // G 7 1: the synchronisation projection at the end of the level-0 step
     void pr_components();
@@ -457,12 +471,22 @@ private:
         vector<int> ids;                        // its patches
         int lo[3] = {0,0,0}, n[3] = {0,0,0};    // box: first cell (index of the level), extent
         vector<int> own;                        // per cell of the box: the patch, -1
+        std::map<int,vector<int>> off;          // per patch: the box position of its cell 0 (3); a patch
+                                                // joined across a periodic edge lies past the end of the box
+        bool wrap[3] = {false,false,false};     // the box over the whole length of a periodic direction:
+                                                // the multigrid periodic there
+        int o(int id, int d) const { return off.at(id)[d]; }
+        // periodic: the overlap across the sides where a member meets a patch of another rank (OV
+        // cells of its margin, own -2): the rows and the right-hand side of that patch, from the margin
+        // of the member ovm at index ovq; the correction kept in the members
+        vector<int> ovm, ovq;
     };
     vector<cfd_amr_lmg> lmg;            // the joint multigrids (all levels)
     vector<int> lmg_of;                 // per patch: its joint multigrid, -1 (its own)
     void pr_level_mg_setup();
     void pr_level_mg_fill(int m);
     void pr_level_mg_fill_comp(int m);
+    void pr_level_mg_ovrows(int m, double dshift);   // periodic: the rows of the overlap cells of a joint multigrid
     void pr_level_vcycle(int m, int kr, int kz);
     void pr_level_solve(int l, int kr, int kz);     // the V-cycles of level l: joint or patch-local
     // the fine level of the multigrid of patch id from its rows (diagonal times dshift), the couplings

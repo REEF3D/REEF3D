@@ -86,6 +86,35 @@ bool reefamr3d::in_domain(int l, const int *I) const
     return true;
 }
 
+bool reefamr3d::wrap(int l, const int *I, int *J) const
+{
+    bool in = true;
+    for(int d=0; d<3; ++d)
+    {
+        const int n = gn(l,d);
+        J[d] = I[d];
+        if(per[d] && (J[d]<0 || J[d]>=n))
+        J[d] = ((J[d]%n)+n)%n;
+        if(J[d]<0 || J[d]>=n)
+        in = false;
+    }
+    return in;
+}
+
+bool reefamr3d::wrap_local0(const int *I, int *L) const
+{
+    int J[3];
+    if(!wrap(0,I,J))
+    return false;
+    for(int d=0; d<3; ++d)
+    {
+        L[d] = J[d]-org[d];
+        if(L[d]<0 || L[d]>=kn0[d])
+        return false;
+    }
+    return true;
+}
+
 bool reefamr3d::tile_marked(int l, int ti, int tj, int tk) const
 {
     if(ti<0 || tj<0 || tk<0 || ti>=tn[l][0] || tj>=tn[l][1] || tk>=tn[l][2])
@@ -243,6 +272,10 @@ void reefamr3d::setup_base(lexer *p, ghostcell *pgc)
     rr[2] = (p->k_dir==1 && p->gknoz>1) ? 2 : 1;
 
     gn0[0] = p->gknox; gn0[1] = p->gknoy; gn0[2] = p->gknoz;
+    // periodic boundaries in x and y (1: the direction on one rank, 2: across ranks); not in z
+    per[0] = (rr[0]==2 && p->periodic1>0) ? p->periodic1 : 0;
+    per[1] = (rr[1]==2 && p->periodic2>0) ? p->periodic2 : 0;
+    per[2] = 0;
     org[0] = p->origin_i; org[1] = p->origin_j; org[2] = p->origin_k;
     kn0[0] = p->knox; kn0[1] = p->knoy; kn0[2] = p->knoz;
 
@@ -700,19 +733,35 @@ void reefamr3d::mark_tiles(const vector<vector<unsigned char>> *seed)
         tmask[l] = (*seed)[l];
     }
 
+    // the tiles of the cells lo..hi of level l (clipped to the domain; wrapped across a periodic
+    // edge)
     auto mark_cells = [&](int l, const int *lo, const int *hi)
     {
-        int a[3], b[3];
+        vector<int> t[3];
         for(int d=0; d<3; ++d)
         {
-            a[d] = MAX(lo[d],0)/tile[d];
-            b[d] = MIN(hi[d],gn(l,d)-1)/tile[d];
-            if(lo[d]>hi[d] || hi[d]<0 || lo[d]>gn(l,d)-1)
+            if(lo[d]>hi[d])
             return;
+            const int n = gn(l,d);
+            if(!per[d])
+            {
+                if(hi[d]<0 || lo[d]>n-1)
+                return;
+                for(int u=MAX(lo[d],0)/tile[d]; u<=MIN(hi[d],n-1)/tile[d]; ++u)
+                t[d].push_back(u);
+                continue;
+            }
+            vector<char> on(tn[l][d],0);
+            const int e = MIN(hi[d],lo[d]+n-1);
+            for(int I=lo[d]; I<=e; ++I)
+            on[(((I%n)+n)%n)/tile[d]] = 1;
+            for(int u=0; u<tn[l][d]; ++u)
+            if(on[u])
+            t[d].push_back(u);
         }
-        for(int ti=a[0]; ti<=b[0]; ++ti)
-        for(int tj=a[1]; tj<=b[1]; ++tj)
-        for(int tk=a[2]; tk<=b[2]; ++tk)
+        for(int ti : t[0])
+        for(int tj : t[1])
+        for(int tk : t[2])
         tmask[l][((size_t)ti*tn[l][1] + tj)*tn[l][2] + tk] = 1;
     };
 
@@ -892,15 +941,20 @@ void reefamr3d::mark_tiles(const vector<vector<unsigned char>> *seed)
         int lo[3], hi[3];
         for(int d=0; d<3; ++d)
         {
-            lo[d] = MAX(fdiv(t[d]*tile[d],rr[d]) - (rr[d]==2 ? 1 : 0),0);
-            hi[d] = MIN(fdiv((t[d]+1)*tile[d]-1,rr[d]) + (rr[d]==2 ? 1 : 0),gn(l-1,d)-1);
+            lo[d] = fdiv(t[d]*tile[d],rr[d]) - (rr[d]==2 ? 1 : 0);
+            hi[d] = fdiv((t[d]+1)*tile[d]-1,rr[d]) + (rr[d]==2 ? 1 : 0);
+            if(!per[d])
+            {
+                lo[d] = MAX(lo[d],0);
+                hi[d] = MIN(hi[d],gn(l-1,d)-1);
+            }
         }
         bool ok = true;
-        int I[3];
+        int I[3], J[3];
         for(I[0]=lo[0]; I[0]<=hi[0] && ok; ++I[0])
         for(I[1]=lo[1]; I[1]<=hi[1] && ok; ++I[1])
         for(I[2]=lo[2]; I[2]<=hi[2] && ok; ++I[2])
-        if(!refined(l-1,I))
+        if(!wrap(l-1,I,J) || !refined(l-1,J))
         ok = false;
 
         if(!ok)
@@ -975,16 +1029,59 @@ void reefamr3d::mark_tiles(const vector<vector<unsigned char>> *seed)
         return (int)add.size();
     };
 
+    // a periodic edge: a level is refined on both sides of it alike (the cells next to it on one side
+    // refined iff those on the other side are), so no patch edge lies on it - the margin across it is
+    // filled by the patches at the other end (siblings); returns the tiles to add
+    auto seam = [&](int l, bool fix) -> int
+    {
+        vector<size_t> add;
+        for(int d=0; d<3; ++d)
+        {
+            if(!per[d])
+            continue;
+            const int n = gn(l,d);
+            int I[3], J[3];
+            int lo[3] = {0,0,0}, hi[3];
+            for(int e=0; e<3; ++e)
+            hi[e] = gn(l,e)-1;
+            for(int side=0; side<2; ++side)
+            {
+                lo[d] = hi[d] = (side==0) ? 0 : n-1;
+                for(I[0]=lo[0]; I[0]<=hi[0]; ++I[0])
+                for(I[1]=lo[1]; I[1]<=hi[1]; ++I[1])
+                for(I[2]=lo[2]; I[2]<=hi[2]; ++I[2])
+                {
+                    if(!refined(l,I))
+                    continue;
+                    for(int e=0; e<3; ++e)
+                    J[e] = I[e];
+                    J[d] = (side==0) ? n-1 : 0;
+                    if(!refined(l,J))
+                    add.push_back(((size_t)(J[0]/tile[0])*tn[l][1] + J[1]/tile[1])*tn[l][2] + J[2]/tile[2]);
+                }
+                lo[d] = 0; hi[d] = n-1;
+            }
+        }
+        std::sort(add.begin(),add.end());
+        add.erase(std::unique(add.begin(),add.end()),add.end());
+        if(fix)
+        for(size_t t : add)
+        tmask[l][t] = 1;
+        return (int)add.size();
+    };
+
     // (G 40: the shadows give every level-1 patch its coarse cells, the finer levels are cut at
-    // their units: no extension)
-    int extended = 0;
-    for(int l=maxlev; l>=1 && !place; --l)
+    // their units: no extension at the partition edges)
+    int extended = 0, extended_seam = 0;
+    for(int l=maxlev; l>=1 && (!place || per[0] || per[1]); --l)
     {
         for(int pass=0; pass<64; ++pass)
         {
-            const int n = edges(l,true);
+            const int n = place ? 0 : edges(l,true);
+            const int ns = seam(l,true);
             extended += n;
-            if(n==0)
+            extended_seam += ns;
+            if(n+ns==0)
             break;
         }
 
@@ -1027,15 +1124,18 @@ void reefamr3d::mark_tiles(const vector<vector<unsigned char>> *seed)
         ++bad_zone;
         if(!place)
         bad_edge += edges(l,false);
+        bad_edge += seam(l,false);
     }
 
     if(myrank==0 && verbose && extended>0)
     cout<<"CFD AMR: "<<extended<<" tiles added: the edges of the refined region kept off the partition edges"<<endl;
+    if(myrank==0 && verbose && extended_seam>0)
+    cout<<"CFD AMR: "<<extended_seam<<" tiles added: the refined region alike on both sides of a periodic edge"<<endl;
 
     if(bad_zone>0 || bad_edge>0)
     {
         if(myrank==0)
-        cout<<"CFD AMR: the refined region reaches into a wave zone or an in- or outflow boundary, or keeps an edge on a partition edge; "
+        cout<<"CFD AMR: the refined region reaches into a wave zone or an in- or outflow boundary, or keeps an edge on a partition or periodic edge; "
               "move or resize the boxes G 15 (or the zones, the partition)"<<endl;
         MPI_Abort(MPI_COMM_WORLD,-3102);
     }
@@ -1680,11 +1780,23 @@ void reefamr3d::build_lexer(r3patch &c)
     const r3raw *src = c.shadow ? c.raw : ((place && c.sh>=0) ? P[c.sh]->raw : nullptr);
 
     // level-0 cell below a patch cell (local index of level 0; with src: global)
+    // (past a periodic edge on one rank: the cell at the other end, whose flags are those of the
+    // fluid there; the halo of level 0 has the boundary flags)
+    const bool wrap1 = (per[0]==1 || per[1]==1) && src==nullptr;
     auto below = [&](int ii, int jj, int kk, int *L)
     {
         const int a[3] = {ii,jj,kk};
         for(int d=0; d<3; ++d)
         L[d] = fdiv(c.lo[d]+a[d],R[d]) - (src ? 0 : org[d]);
+        if(wrap1)
+        {
+            int Gb[3], Lw[3];
+            for(int d=0; d<3; ++d)
+            Gb[d] = L[d]+org[d];
+            if(!in_domain(0,Gb) && wrap_local0(Gb,Lw))
+            for(int d=0; d<3; ++d)
+            L[d] = Lw[d];
+        }
     };
 
     for(int ii=-m; ii<pp->knox+m; ++ii)
@@ -2042,18 +2154,19 @@ void reefamr3d::plans()
                 f.s[d] = f.o[d] = 0;
 
                 const int G[3] = {c.lo[0]+ii, c.lo[1]+jj, c.lo[2]+kk};
-                if(!in_domain(l,G))
+                int Gw[3];                  // (across a periodic edge: the cell at the other end)
+                if(!wrap(l,G,Gw))
                 {
                     c.fill.push_back(f);
                     continue;
                 }
 
-                const int gp = gpatch_at(l,G);
+                const int gp = gpatch_at(l,Gw);
                 if(gp>=0)
                 {
                     const r3gpatch &q = GP[gp];
                     for(int d=0; d<3; ++d)
-                    f.s[d] = G[d]-q.lo[d];
+                    f.s[d] = Gw[d]-q.lo[d];
                     if(q.rank==myrank)
                     {
                         f.kind = 0;
@@ -2090,29 +2203,45 @@ void reefamr3d::plans()
                 }
                 else if(l==1)
                 {
+                    // (past a periodic edge on one rank: the cell at the other end, else the halo)
+                    int Lw[3];
+                    const bool moved = (Gw[0]!=G[0] || Gw[1]!=G[1] || Gw[2]!=G[2]);
+                    const bool w = (per[0]==1 || per[1]==1) && moved && wrap_local0(Gp,Lw);
                     f.g = -1;
                     for(int d=0; d<3; ++d)
-                    f.s[d] = Gp[d]-org[d];
+                    f.s[d] = w ? Lw[d] : Gp[d]-org[d];
                 }
                 else
                 {
+                    // the parent's cell, also past a periodic edge (the patch at the other end)
+                    int Gpw[3];
+                    wrap(l-1,Gp,Gpw);
                     int best = -1, bestscore = -1;
-                    for(int g : lev[l-1])
+                    for(int pass=0; pass<2 && best<0; ++pass)
                     {
-                        r3patch &q = *P[g];
-                        int score = 2;
+                        const int *Q = (pass==0) ? Gp : Gpw;
+                        if(pass==1 && Q[0]==Gp[0] && Q[1]==Gp[1] && Q[2]==Gp[2])
+                        break;
+                        for(int g : lev[l-1])
+                        {
+                            r3patch &q = *P[g];
+                            int score = 2;
+                            for(int d=0; d<3; ++d)
+                            {
+                                if(Q[d]<q.lo[d]-q.pp->margin+1 || Q[d]>q.hi[d]+q.pp->margin-1)
+                                score = -1;
+                                else if(score>=0 && (Q[d]<q.lo[d] || Q[d]>q.hi[d]))
+                                score = 1;
+                            }
+                            if(score>bestscore)
+                            {
+                                bestscore = score;
+                                best = g;
+                            }
+                        }
+                        if(best>=0)
                         for(int d=0; d<3; ++d)
-                        {
-                            if(Gp[d]<q.lo[d]-q.pp->margin+1 || Gp[d]>q.hi[d]+q.pp->margin-1)
-                            score = -1;
-                            else if(score>=0 && (Gp[d]<q.lo[d] || Gp[d]>q.hi[d]))
-                            score = 1;
-                        }
-                        if(score>bestscore)
-                        {
-                            bestscore = score;
-                            best = g;
-                        }
+                        Gp[d] = Q[d];
                     }
                     if(best<0)
                     {

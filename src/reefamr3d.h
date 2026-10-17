@@ -160,6 +160,7 @@ public:
     int org[3], kn0[3];             // level-0 box of this rank
     vector<int> rbox;               // level-0 boxes of all ranks: origin, cells (6 per rank)
     int tile[3];                    // tile size in cells of the refined level
+    int per[3] = {0,0,0};           // periodic directions of level 0 (1 on one rank, 2 across ranks; no z)
     vector<vector<int>> tn;         // [l][3] tiles per direction
     vector<vector<unsigned char>> tmask;   // [l] refined tiles of level l (l >= 1)
 
@@ -232,6 +233,10 @@ public:
     int gn(int l, int d) const;                         // global cells of level l
     int ratio(int l, int d) const;                      // rr^l
     bool in_domain(int l, const int *I) const;
+    bool wrap(int l, const int *I, int *J) const;       // J: I with the periodic directions wrapped; false if J is
+                                                        // outside the domain
+    bool wrap_local0(const int *I, int *L) const;       // level-0 cell I (global, may be past a periodic
+                                                        // edge) in the box of this rank: L local; else false
     bool refined(int l, const int *I) const;            // level-l cell in the region of level l (l >= 1)
     bool covered(int l, const int *I) const;            // level-l cell covered by level l+1
     int gpatch_at(int l, const int *I) const;           // global patch whose box holds I, -1

@@ -247,8 +247,8 @@ bool cfd_amr::scope(lexer *p, ghostcell *pgc)
     why = "diffusion D 20 0, 1, 2 (3 in 3D)";
     else if(p->F30>0 && p->F40!=3)
     why = "the reinitialisation F 40 3";
-    else if(p->mz>1 || p->periodic1>0 || p->periodic2>0 || p->periodic3>0)
-    why = "no partition in z (M 10 with the vertical not split) and no periodic boundaries";
+    else if(p->mz>1 || p->periodic3>0)
+    why = "no partition in z (M 10 with the vertical not split) and no periodic boundary in z (periodic in x and y: C 21, C 22)";
     else if(p->B440>0 || p->B441>0 || p->B442>0)
     why = "no patch boundary conditions (B 440-442)";
 
@@ -333,6 +333,12 @@ cfd_amr::cfd_amr(lexer *p, fdm *a, ghostcell *pgc, momentum *pmom, pressure *ppr
     // G 40: the units placed for the load of the ranks (the level-1 patches with the shadows of
     // level 0; G 40 2: the test of it, small pieces placed anew at every regrid)
     place = (p->G40>=1) ? MIN(p->G40,2) : 0;
+    if(place && (p->periodic1>0 || p->periodic2>0))
+    {
+        if(p->mpirank==0)
+        cout<<"CFD AMR: G 40 "<<p->G40<<" with periodic boundaries not available; the patches on the rank of the level-0 cells (G 40 0)"<<endl;
+        place = 0;
+    }
 
     // the hierarchy: static boxes G 15, adaptive with the flags G 24-26 of the initial level 0
     adapt = (p->G24>0.0 || p->G25>0 || p->G26>0.0) ? 1 : 0;
