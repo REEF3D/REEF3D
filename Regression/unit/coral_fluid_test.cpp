@@ -14,6 +14,19 @@
 // CORAL's own time integration; constant loads much worse (a lagged restoring force is a negative
 // damping); the predictor stable at ten steps per period; a body 100 times lighter than its added
 // mass stays stable; the fluid_body and fluid_coupling keywords.
+// Sampled kinematics (src/coral/hydro/coral_sampled_kinematics): the points of Morison members on frame
+// members and bodies and of a dynamic mooring line (kinematics_points); an emulated fluid (linear waves)
+// sampled there once per fluid step: velocity, acceleration (time derivative of the polynomial) and
+// elevation against the waves themselves, the Morison force of a monopile (frame member, fluid_kinematics
+// in the input) against the same model with CORAL's waves (second order in the fluid step); points outside
+// the fluid domain and requests before the first sample take the background waves.
+// One-way loads: fluid_body ... one_way (load at the REEF3D CoG on another body: force and moment),
+// fluid_member (strip forces of a resolved hull along a frame member: element and weight of each strip,
+// total force and moment, the static deflection of a cantilever under a uniform strip load against
+// q L^4/(8 EI), excitation without the first sample, time polynomial).
+// Record and replay (src/coral/io/coral_coupling): a coupling driven by an emulated fluid (kinematics,
+// one-way body loads, strip loads, steps) writes its journal; the replay on a fresh model repeats the
+// time series bit for bit.
 // Architect: Hans Bihs
 #include"coral/core/coral_model.h"
 #include"coral/core/coral_timeint.h"
@@ -22,6 +35,17 @@
 #include"coral/hydro/coral_fluid_load.h"
 #include"coral/io/coral_input.h"
 #include"coral/structure/coral_linear6.h"
+#include"coral/hydro/coral_sampled_kinematics.h"
+#include"coral/hydro/coral_member_fluid_load.h"
+#include"coral/io/coral_coupling.h"
+#include<filesystem>
+#include<fstream>
+#include<sstream>
+#include"coral/core/coral_static.h"
+#include"coral/structure/coral_beam.h"
+#include"coral/hydro/coral_member_morison.h"
+#include"coral/hydro/coral_morison.h"
+#include"coral/mooring/coral_mooring.h"
 #include<cmath>
 #include<cstdio>
 #include<iostream>
@@ -242,12 +266,282 @@ static void test_input()
     check(err, "a body mapped twice is an error");
 }
 
+// one fluid step: sample the emulated fluid (linear waves w) at the points of the sampled source;
+// inside: points with x < xmax only
+static void emulate_sample(const model &m, sampled_kinematics &sk, const wave_field &w, double t, double xmax=1.0e30)
+{
+    std::vector<Vec3> pts;
+    sk.collect(m, pts);
+    std::vector<Vec3> u(pts.size());
+    std::vector<double> eta(pts.size());
+    std::vector<int> in(pts.size());
+    for(size_t q=0; q<pts.size(); ++q)
+    {
+        Vec3 du; double pr;
+        w.kinematics(pts[q], t, u[q], du, pr);
+        eta[q] = w.elevation(pts[q](0), pts[q](1), t);
+        in[q] = pts[q](0) < xmax ? 1 : 0;
+    }
+    sk.add_sample(t, u, eta, in);
+}
+
+static member_morison *find_member_morison(const model &m)
+{
+    for(const auto &l : m.load_list)
+        if(auto *p = dynamic_cast<member_morison*>(l.get()))
+            return p;
+    return nullptr;
+}
+
+static void test_sampled()
+{
+    std::cout<<"sampled kinematics of a resolved fluid"<<std::endl;
+    // monopile D 6 m in 20 m of water, regular wave H 4 m, T 8 s; the same model once with CORAL's
+    // waves and once with fluid_kinematics (the waves of coral.txt are then the background)
+    const std::string base =
+        "rho 1025\nwaves regular H 4 T 8\nwaves depth 20\n"
+        "section pile tube D 6 t 0.06 E 2.1e11 G 8.08e10 rho 7850\n"
+        "member mp p1 0 0 -20 p2 0 0 10 n 10 section pile orient 1 0 0 end1 ground\n"
+        "morison wave member mp Cd 1.0 Ca 1.0 n 4\n";
+    coral_case ca, cb;
+    ca.read_string(base);
+    cb.read_string(base + "fluid_kinematics order 2\n");
+    member_morison *ma = find_member_morison(ca.m), *mb = find_member_morison(cb.m);
+    check(cb.fluid_kin != nullptr && ma != nullptr && mb != nullptr, "fluid_kinematics: the Morison member takes the sampled source");
+    std::vector<Vec3> pts;
+    cb.fluid_kin->collect(cb.m, pts);
+    std::vector<Vec3> pa;
+    mb->kinematics_points(cb.m, ca.waves.get(), pa);
+    check(pts.size() == 40 && pa.empty() && std::fabs(pts[0](2) - (-20.0 + 3.0/8.0)) < 1.0e-12,
+          fmt("points: %.0f strip centres of the member (and none for another source)", (double)pts.size()));
+    // before the first sample: the background waves
+    Vec3 Fa, Ma, Fb, Mb;
+    ma->total(ca.m, 1.3, Fa, Ma);
+    mb->total(cb.m, 1.3, Fb, Mb);
+    check((Fa - Fb).norm() < 1.0e-9*Fa.norm(), "before the first sample: the background waves");
+    // fluid steps of T/40 and T/80: after each sample the force over the last interval
+    const wave_field &w = *ca.waves;
+    double err[2];
+    for(int r=0; r<2; ++r)
+    {
+        const double dt = 8.0/(40.0*(r + 1));
+        sampled_kinematics &sk = *cb.fluid_kin;
+        double e = 0.0, fmax = 0.0;
+        for(int k=0; k<=(int)std::lround(16.0/dt); ++k)
+        {
+            const double tk = k*dt;
+            emulate_sample(cb.m, sk, w, tk);
+            if(k < 2)
+                continue;
+            for(double s : {0.25, 0.5, 0.75, 1.0})
+            {
+                const double t = tk - (1.0 - s)*dt;
+                ma->total(ca.m, t, Fa, Ma);
+                mb->total(cb.m, t, Fb, Mb);
+                e = std::max(e, (Fa - Fb).norm());
+                fmax = std::max(fmax, Fa.norm());
+            }
+        }
+        err[r] = e/fmax;
+    }
+    check(err[1] < 1.0e-3 && err[0]/err[1] > 3.5, fmt("monopile Morison force: max error %.1e (T/80) of the force amplitude, ratio %.1f from T/40 (second order: the acceleration is the time derivative)", err[1], err[0]/err[1]));
+    // velocity, acceleration and elevation at one point between the samples
+    {
+        Vec3 u, du, uw, duw; double pr;
+        const double t = 16.0 - 0.37*0.1;
+        const Vec3 p = pts[30];
+        mb->kinematics_points(cb.m, cb.fluid_kin.get(), pa);
+        cb.fluid_kin->kinematics_at(mb, 30, p, t, u, du, pr);
+        w.kinematics(p, t, uw, duw, pr);
+        const double eu = (u - uw).norm()/2.0, ed = (du - duw).norm()/2.0;
+        const double ee = std::fabs(cb.fluid_kin->elevation_at(mb, 30, p, t) - w.elevation(p(0), p(1), t));
+        check(eu < 1.0e-4 && ed < 2.0e-3 && ee < 1.0e-4, fmt("velocity, acceleration, elevation between the samples (errors %.1e, %.1e, %.1e)", eu, ed, ee));
+    }
+    // points outside the fluid domain: background; without background: still water
+    {
+        model m;
+        rigid_body b;
+        b.name = "buoy"; b.mass = 100.0; b.inertia = Mat3::Identity();
+        m.add_body(b);
+        auto bg = std::make_shared<wave_field>(20.0);
+        bg->add_regular(2.0, 6.0);
+        auto sk = std::make_shared<sampled_kinematics>(bg);
+        morison_member mm;
+        mm.p1 = Vec3(-5.0, 0.0, -6.0); mm.p2 = Vec3(5.0, 0.0, -6.0); mm.D = 0.5; mm.n = 10;
+        m.add_load(std::make_unique<morison_load>(m, 0, std::vector<morison_member>{mm}, sk, 1025.0));
+        mooring_end ea, eb;
+        ea.body = -1; ea.p = Vec3(-30.0, 0.0, -20.0);
+        eb.body = 0; eb.p = Vec3(0.0, 0.0, 0.0);
+        mooring_props mp;
+        mp.L = 40.0; mp.d = 0.1; mp.mass = 20.0; mp.EA = 1.0e8;
+        m.add_load(std::make_unique<mooring_line>(m, ea, eb, mp, 8, sk));
+        std::vector<Vec3> q;
+        sk->collect(m, q);
+        check(q.size() == 10 + 9, fmt("points of a Morison member on a body and of a dynamic line: %.0f", (double)q.size()));
+        // emulated fluid = other waves, in the domain only for x < 0
+        wave_field wf(20.0);
+        wf.add_regular(3.0, 9.0);
+        for(int k=0; k<3; ++k)
+            emulate_sample(m, *sk, wf, k*0.1, 0.0);
+        const void *owner = m.load_list[0].get();
+        Vec3 u, du, ue, due, ub, dub; double pr;
+        sk->kinematics_at(owner, 0, q[0], 0.15, u, du, pr);      // x = -4.5: inside
+        wf.kinematics(q[0], 0.15, ue, due, pr);
+        sk->kinematics_at(owner, 9, q[9], 0.15, ub, dub, pr);    // x = 4.5: outside
+        Vec3 ubg, dubg;
+        bg->kinematics(q[9], 0.15, ubg, dubg, pr);
+        check((u - ue).norm() < 1.0e-4 && (ub - ubg).norm() < 1.0e-12, "inside the fluid domain the samples, outside the background waves");
+        sampled_kinematics none;
+        none.kinematics_at(owner, 0, q[0], 0.1, u, du, pr);
+        check(u.norm() == 0.0 && none.elevation(0.0, 0.0, 0.1) == 0.0, "without samples and background: still water");
+    }
+}
+
+static void test_one_way()
+{
+    std::cout<<"one-way loads: fluid_body ... one_way, fluid_member"<<std::endl;
+    // a rigid body loaded at a point that is not its CoG (one-way load of a fluid body)
+    {
+        model m;
+        rigid_body b;
+        b.name = "tp"; b.mass = 10.0; b.inertia = Mat3::Identity(); b.x = Vec3(1.0, 0.0, 0.0);
+        m.add_body(b);
+        fluid_load fl(m, {0});
+        fl.set_attachment(m, 0, Vec3(1.0, 0.0, 5.0));
+        VecX F(6);
+        F << 100.0, 0.0, 0.0, 0.0, 7.0, 0.0;
+        fl.set_sample(0.0, F);
+        VecX f = VecX::Zero(6);
+        fl.eval(m, 0.0, f);
+        // force 100 N at 5 m above the CoG: moment about the CoG 500 N m (y) plus the 7 N m of the load
+        check(std::fabs(f(0) - 100.0) < 1.0e-12 && std::fabs(f(4) - 507.0) < 1.0e-9, fmt("load at the REEF3D CoG: My about the CORAL CoG %.1f N m (507)", f(4)));
+    }
+    // cantilever of frame elements (fixed at z = -20), a uniform horizontal load of a resolved hull in strips
+    const std::string base =
+        "gravity off\nsection pile tube D 6 t 0.06 E 2.1e11 G 8.08e10 rho 7850\n"
+        "member mp p1 0 0 -20 p2 0 0 10 n 30 section pile orient 1 0 0 end1 ground\n";
+    coral_case c;
+    c.read_string(base + "fluid_member hull member mp n 0 strips 60\n");
+    check(c.fluid_members.size() == 1 && c.fluid_members[0].n == 0 && c.fluid_members[0].load->nstrips() == 60
+          && std::fabs(c.fluid_members[0].load->length() - 30.0) < 1.0e-12, "fluid_member: 60 strips along the 30 m member, 6DOF body 0");
+    member_fluid_load *l = c.fluid_members[0].load;
+    const double q = 2.0e4;                     // N/m
+    VecX F = VecX::Zero(3*60);
+    for(int k=0; k<60; ++k) F(3*k) = q*0.5;     // strips of 0.5 m
+    l->set_sample(0.0, F);
+    Vec3 Ft, Mt;
+    l->total(c.m, 0.0, Ft, Mt);
+    // moment about the origin: the load acts between z = -20 and 10, centre -5
+    check(std::fabs(Ft(0) - 30.0*q) < 1.0e-6 && std::fabs(Mt(1) - (-5.0)*30.0*q) < 1.0e-3,
+          fmt("total %.0f N, moment %.0f N m about the origin", Ft(0), Mt(1)));
+    const static_result sr = static_solve(c.m, 0.0);
+    const int top = c.m.find_body("mp:30");
+    const beam_section s = beam_section::tube(6.0, 0.06, 2.1e11, 8.08e10, 7850.0);
+    const double L = 30.0, wEB = q*L*L*L*L/(8.0*s.EIy), wS = q*L*L/(2.0*s.GAy);
+    const double w = c.m.body(top).x(0);
+    check(sr.converged && std::fabs(w - (wEB + wS)) < 2.0e-3*(wEB + wS), fmt("cantilever tip under the strip load %.5f m vs q L^4/8EI + q L^2/2GA = %.5f m", w, wEB + wS));
+    // excitation and time polynomial
+    coral_case c2;
+    c2.read_string(base + "fluid_member hull member mp strips 2 excitation order 1\n");
+    member_fluid_load *l2 = c2.fluid_members[0].load;
+    VecX a(6), b(6);
+    a << 1, 2, 3, 4, 5, 6;
+    b << 2, 2, 5, 4, 7, 9;
+    l2->set_sample(0.0, a);
+    l2->set_sample(1.0, b);
+    const VecX g = l2->forces(1.5);
+    check(l2->excitation && l2->order == 1 && std::fabs(g(0) - 1.5) < 1.0e-12 && std::fabs(g(5) - 4.5) < 1.0e-12,
+          "excitation: the first sample removed; linear in time");
+}
+
+static void test_replay()
+{
+    std::cout<<"record and replay of the fluid input"<<std::endl;
+    const std::string text =
+        "rho 1025\ntime dt 0.01 end 10\noutput dt 0.05 file cpl.dat\n"
+        "waves regular H 2 T 6\nwaves depth 20\nfluid_kinematics\nfluid_coupling record cpl.jrn origin 0 0 20\n"
+        "section pile tube D 4 t 0.04 E 2.1e11 G 8.08e10 rho 7850\n"
+        "member mp p1 0 0 -20 p2 0 0 10 n 10 section pile orient 1 0 0 end1 ground\n"
+        "morison wave member mp Cd 1 Ca 1 n 2\n"
+        "fluid_member hull member mp n 0 strips 20\n"
+        "body buoy mass 1000 inertia 100 100 100 cog 20 0 0\n"
+        "joint heave prismatic ground buoy point 20 0 0 axis 0 0 1\n"
+        "linear6 spring body buoy point 20 0 0 k 0 0 3e4 0 0 0\n"
+        "fluid_body buoy n 1 one_way\n";
+    namespace fs = std::filesystem;
+    const fs::path d1 = "coral_fluid_test_rec", d2 = "coral_fluid_test_replay";
+    fs::remove_all(d1); fs::remove_all(d2);
+    fs::create_directories(d1); fs::create_directories(d2);
+    std::ostringstream log;
+    {
+        coral_case c;
+        c.read_string(text);
+        coupling cp(c, log, true);
+        cp.record(d1.string());
+        wave_field w(20.0);
+        w.add_regular(2.0, 6.0);
+        auto sample = [&](double t)
+        {
+            std::vector<Vec3> pts;
+            cp.kinematics_points(pts);
+            std::vector<Vec3> u(pts.size());
+            std::vector<double> eta(pts.size());
+            std::vector<int> in(pts.size(), 1);
+            for(size_t q=0; q<pts.size(); ++q)
+            {
+                Vec3 du; double pr;
+                const Vec3 pc = pts[q] - Vec3(0.0, 0.0, 20.0);
+                w.kinematics(pc, t, u[q], du, pr);
+                eta[q] = 20.0 + w.elevation(pc(0), pc(1), t);
+            }
+            cp.kinematics(t, u, eta, in);
+        };
+        sample(0.0);
+        cp.ini(0.0, d1.string());
+        Vec3 a, e; double L; int ns;
+        cp.connect(0, 5.0e5, Vec3(0.0, 0.0, 5.0), Mat3::Identity(), Mat3::Identity());
+        cp.connect(1, 1.0e3, Vec3(20.0, 0.0, 20.0), Mat3::Identity(), Mat3::Identity());
+        const bool st = cp.strips(0, a, e, L, ns);
+        check(st && ns == 20 && std::fabs(L - 30.0) < 1.0e-12 && std::fabs(a(2)) < 1.0e-12 && cp.one_way(1) && cp.one_way(0),
+              "strips of the fluid member in the fluid frame (origin 0 0 20); one-way bodies");
+        const double dt = 0.07;
+        for(int k=0; k<40; ++k)
+        {
+            const double t = k*dt;
+            // FNPF-like: loads of the start of the step, then the fluid step, then the CORAL step
+            VecX Fs = VecX::Zero(3*20);
+            for(int i=0; i<20; ++i) Fs(3*i) = 1.0e4*std::sin(1.3*t + 0.1*i);
+            cp.fluid_strips(0, t, Fs);
+            std::vector<Vec6> F(2, Vec6::Zero());
+            F[1](2) = 5.0e3*std::sin(1.1*t);
+            cp.fluid_loads(t, F, {}, false);
+            sample(t + dt);
+            cp.step_to(t + dt);
+        }
+    }
+    {
+        coral_case c;
+        c.read_string(text);
+        std::ostringstream log2;
+        const long nev = coupling::replay(c, (d1/"cpl.jrn").string(), d2.string(), log2);
+        std::ifstream a1(d1/"cpl.dat"), a2(d2/"cpl.dat");
+        std::stringstream s1, s2;
+        s1<<a1.rdbuf(); s2<<a2.rdbuf();
+        const bool same = s1.str() == s2.str() && s1.str().size() > 1000;
+        check(nev > 100 && same, fmt("replay of %.0f events: time series identical (%.0f bytes)", (double)nev, (double)s1.str().size()));
+    }
+    fs::remove_all(d1); fs::remove_all(d2);
+}
+
 int main()
 {
     test_track();
     test_load();
     test_coupled_heave();
     test_input();
+    test_sampled();
+    test_one_way();
+    test_replay();
     std::cout<<(nfail ? "FAILED: " : "all passed")<<(nfail ? std::to_string(nfail) : "")<<std::endl;
     return nfail ? 1 : 0;
 }

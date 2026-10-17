@@ -1,0 +1,8 @@
+{
+ "description": "REEF3D::CORAL one-way kinematics (Z 40 1, fluid_kinematics): Morison loads on a rigid pile and a flexible pile in the FNPF 2D regular-wave tank of fnpf_2d_regular, the velocity and free surface sampled at the strip centres once per fluid step; REEF3D_CORAL/piles.dat compared.",
+ "base": "fnpf_2d_regular",
+ "ctrl_add": ["Z 40 1"],
+ "files": ["coral.txt"],
+ "tags": ["2d", "fnpf", "coral"],
+ "covers": ["coral_reef3d sampled kinematics", "coral_sampler_fnpf", "CORAL sampled_kinematics, morison_load, member_morison with a sampled source"]
+}
