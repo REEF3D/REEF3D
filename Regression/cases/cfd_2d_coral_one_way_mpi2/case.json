@@ -1,0 +1,8 @@
+{
+ "description": "cfd_2d_coral_one_way on 2 ranks (the held box across the partition edge): the loads and the 10 strips of the STL load integration summed over the ranks.",
+ "solver": "cfd",
+ "np": 2,
+ "base": "cfd_2d_coral_one_way",
+ "tags": ["2d", "6dof", "levelset", "coral", "mpi"],
+ "covers": ["6DOF_cfd_external one-way on several ranks", "fluid_member strips reduced over the ranks"]
+}
