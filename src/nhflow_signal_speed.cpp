@@ -79,8 +79,8 @@ void nhflow_signal_speed::signal_speed_update(lexer* p, ghostcell *pgc, fdm_nhf 
         else
         if((wP==1 && wN==0) || (dfP==1 && dfN<0)) // right dry
         {
-        d->Ss[IJK] = us - cs;
-        d->Sn[IJK] = us + cs;
+        d->Ss[IJK] = us -     cs;
+        d->Sn[IJK] = us + 2.0*cs;
         d->SSx[IJK] = d->Sn[IJK];
         }
         
