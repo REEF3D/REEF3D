@@ -868,6 +868,7 @@
           <File Name="coral/pto/coral_pto_element.h"/>
           <File Name="coral/pto/coral_pto_elements.h"/>
           <File Name="coral/pto/coral_pto_joint.h"/>
+          <File Name="coral/pto/coral_joint_drive.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Soil">
           <File Name="coral/soil/README.md"/>
@@ -2437,6 +2438,7 @@
           <File Name="coral/pto/coral_pto_controller.cpp"/>
           <File Name="coral/pto/coral_pto_elements.cpp"/>
           <File Name="coral/pto/coral_pto_joint.cpp"/>
+          <File Name="coral/pto/coral_joint_drive.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Soil">
           <File Name="coral/soil/coral_soil.cpp"/>

@@ -47,6 +47,9 @@ Architect: Hans Bihs
 //        [v_eps <v>] [F_max <F>] [P_max <P>] [stops <qmin> <qmax> <k_stop> [<c_stop>]]
 //        [latching <t_hold> <c_latch> [<k_latch>]] [declutching <t_hold>]
 //        (elements and controllers of the PTO library, coral/pto/coral_pto_element.h)
+//   drive <name> joint <joint> sine <amplitude> <period> [phase <deg>] [ramp <t>] [q0 <q>] [rotational]
+//        [k <k>] [c <c>]          (prescribed joint motion by a stiff spring-damper, default k 1e7, c 1e4;
+//        forced oscillation in a resolved fluid, coral/pto/coral_joint_drive.h)
 //   spring <name> a <body> <x y z> b <body> <x y z> k <k> [c <c>] [L0 <L>] [T0 <T>] [tension_only]
 //   linear6 <name> body <b> point <x y z> [k <k1..k6>] [c <c1..c6>]       (diagonal stiffness, damping)
 //        [K <36 values>] [C <36 values>]           (full 6x6 matrices, row by row, e.g. coupled springs)
@@ -84,20 +87,22 @@ Architect: Hans Bihs
 //   fluid_body <body> [n <k>] [own_mass] [added_mass <a1 .. a6>] [one_way [excitation]]
 //        (REEF3D with Z 40 1: the body is driven by CORAL, the resolved fluid acts on it; k: number of the
 //        REEF3D 6DOF body (X 20 order, default: the order of the fluid_body lines); mass and inertia are
-//        taken from the REEF3D body unless own_mass; FNPF and NHFLOW, see coral/reef3d.
+//        taken from the REEF3D body unless own_mass; FNPF, NHFLOW and CFD, see coral/reef3d.
 //        added_mass: an artificial added mass (diagonal, surge sway heave roll pitch yaw, global axes about
-//        the CoG) for a fluid without its own (NHFLOW): implicit in CORAL and compensated by the same mass
+//        the CoG) for a fluid without its own (NHFLOW, CFD): implicit in CORAL and compensated by the same mass
 //        times the acceleration the fluid saw; it stabilises the staggered coupling of light bodies. Use it
 //        only where needed: NHFLOW reacts to the body acceleration within a step with much less than the
 //        added mass of the body's motion: half to once that added mass stabilised a box 9 times lighter
 //        than it (validation 08) at a few percent error in the start transient, a quarter did not, and
 //        twice made the 4 kg box unstable too; for bodies not much lighter than their added mass leave it
-//        out (more accurate).
+//        out (more accurate). CFD reacts within a step with about the full added mass: a 1.5 kg box in waves
+//        (added mass about 4 kg) needed about once its added mass in heave and pitch (half of it was
+//        unstable), a 0.3 kg box (added mass 0.37 kg) was stable from zero to once (validation 10).
 //        one_way: REEF3D keeps its body fixed (X 11 0) or prescribed, only its loads act on the CORAL body,
-//        at the REEF3D CoG, which may be any CORAL body (FNPF and NHFLOW); excitation: without the load of
+//        at the REEF3D CoG, which may be any CORAL body (FNPF, NHFLOW and CFD); excitation: without the load of
 //        the start (still water), e.g. with the hydrostatics and radiation of a hydro database)
 //   fluid_member <name> member <m> [n <k>] [strips <ns>] [order <0|1|2>] [excitation]
-//        (REEF3D with Z 40 1, FNPF or NHFLOW: the loads on the hull of the REEF3D 6DOF body k, kept fixed or
+//        (REEF3D with Z 40 1, FNPF, NHFLOW or CFD (X 60 1): the loads on the hull of the REEF3D 6DOF body k, kept fixed or
 //        prescribed there, integrated in ns strips along the frame or superelement member m (default two per
 //        element) and applied along it; order of the time polynomial (2); excitation: without the loads of
 //        the start; see coral/hydro/coral_member_fluid_load.h)

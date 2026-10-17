@@ -36,6 +36,7 @@ Architect: Hans Bihs
 #include"coral/hydro/coral_member_morison.h"
 #include"coral/core/coral_points.h"
 #include"coral/pto/coral_pto.h"
+#include"coral/pto/coral_joint_drive.h"
 #include"coral/hydro/coral_fluid_load.h"
 #include"coral/hydro/coral_sampled_kinematics.h"
 #include"coral/hydro/coral_member_fluid_load.h"
@@ -572,6 +573,24 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
             const int idc = it.find("declutching");
             if(idc >= 0) {s.control = pto_control::declutching; s.t_hold = it.num(idc+1);}
             m.add_load(std::make_unique<pto_load>(*joints[jn], it.has("rotational"), s, name));
+        }
+        else if(k=="drive")
+        {
+            // prescribed motion of a joint coordinate (forced oscillation)
+            const std::string name = it.word(1), jn = it.word("joint");
+            if(!joints.count(jn)) it.fail("unknown joint '" + jn + "'");
+            drive_settings s;
+            const int is = it.find("sine");
+            if(is < 0) it.fail("'sine <amplitude> <period>' is required");
+            s.amp = it.num(is+1);
+            s.period = it.num(is+2);
+            if(s.period <= 0.0) it.fail("the period must be positive");
+            s.q0 = it.get("q0", 0.0);
+            s.phase = it.get("phase", 0.0);
+            s.ramp = it.get("ramp", 0.0);
+            s.k = it.get("k", s.k);
+            s.c = it.get("c", s.c);
+            m.add_load(std::make_unique<joint_drive>(*joints[jn], it.has("rotational"), s, name));
         }
         else if(k=="spring")
         {

@@ -22,6 +22,8 @@ Power take-offs of wave energy converters.
   power limits on the generator, end stops, latching (latch element with damper and optional spring)
   and declutching; absorbed power and energy of the generator
 
+* `coral_joint_drive.h/.cpp`: prescribed motion of a joint coordinate (`drive`), a sine with a start ramp imposed by a stiff spring-damper; forced oscillations of a body in a resolved fluid (added mass and damping for a hydrodynamic database)
+
 ## Planned
 
 * hydraulic PTO: cylinders, accumulators, valves, motor

@@ -23,6 +23,7 @@ Architect: Hans Bihs
 #include"coral/hydro/coral_fluid_load.h"
 #include"coral/core/coral_model.h"
 #include<algorithm>
+#include<cmath>
 
 namespace coral
 {
@@ -82,8 +83,13 @@ VecX fluid_load::force(double t) const
     const int ns = (int)ts_.size();
     if(ns == 0)
         return VecX::Zero(6*nbody());
-    // Lagrange polynomial through the last k samples
-    const int k = std::min(ns, std::max(0, order) + 1);
+    // Lagrange polynomial through the last k samples; beyond a provisional sample inside the step (CFD's
+    // low-storage RK3: its second stage starts at 8/15 dt) at most linear: a parabola through samples
+    // close in time amplifies their noise far beyond them
+    int o = std::max(0, order);
+    if(prov_ && t > ts_.back() + 1.0e-12*std::max(1.0, std::fabs(t)))
+        o = std::min(o, 1);
+    const int k = std::min(ns, o + 1);
     VecX F = VecX::Zero(6*nbody());
     for(int i=ns-k; i<ns; ++i)
     {

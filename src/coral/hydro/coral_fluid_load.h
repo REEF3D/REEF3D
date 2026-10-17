@@ -30,7 +30,8 @@ Architect: Hans Bihs
 //   provisional sample: the fluid load at a later stage time t_p of the same fluid step (computed with
 //     a predicted body pose), replaced by the next committed sample
 // With a provisional sample the CORAL step interpolates instead of extrapolating (predictor-corrector
-// coupling without a re-step of CORAL). The added mass acts on the accelerations of the current
+// coupling without a re-step of CORAL); a provisional sample inside the step (CFD's low-storage RK3: the
+// second stage starts at 8/15 dt) is extrapolated linearly over the rest of it. The added mass acts on the accelerations of the current
 // (trial) state:
 //   F_total(t) = F(t) - A [a_1; alpha_1; ...; a_N; alpha_N]
 // a: acceleration of the CoG, alpha: angular acceleration (global). F is the part of the fluid load
@@ -49,7 +50,7 @@ Architect: Hans Bihs
 // mass (FNPF), other values stay stable over a wide range (0.6 A to 2 A for a body ten times lighter than
 // A, coral_fluid_test) with an error growing with |A - A_s|. NHFLOW reacts within a step with much less
 // than the added mass of the body's oscillation; A_s far above that reaction is unstable as well
-// (validation 08).
+// (validation 08). CFD reacts with about the full added mass: A_s about A (validation 10).
 
 #ifndef CORAL_FLUID_LOAD_H_
 #define CORAL_FLUID_LOAD_H_
