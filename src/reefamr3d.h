@@ -72,6 +72,7 @@ struct r3fill
     int s[3];           // source cell on grid g (kind 1: the parent cell)
     int o[3];           // kind 1: position of the child in the parent (0, 1; 0 in an inactive direction)
     int slot;           // kind 2
+    int depth;          // the distance from the patch (1: next to it, across a face, edge or corner)
 };
 
 // the level-0 cell data of a box (G 40, the shadows): what a patch lexer takes from level 0 below it
@@ -249,7 +250,7 @@ public:
     // kind 1 prolong; served items are kind 0), store(r3patch*, int id, const r3fill&, const
     // double*) puts them into the patch.  Collective: every rank calls it for every level.
     template<class EV, class ST>
-    void fill_run(int l, int nv, EV &&eval, ST &&store)
+    void fill_run(int l, int nv, EV &&eval, ST &&store, int maxdepth=1<<20)
     {
         static const int o0[3] = {0,0,0};
         r3xplan &X = xp[l];
@@ -270,7 +271,7 @@ public:
             r3patch *c = P[id];
             for(const r3fill &f : c->fill)
             {
-                if(f.kind==3)
+                if(f.kind==3 || f.depth>maxdepth)
                 continue;
                 if(f.kind==2)
                 {

@@ -1631,7 +1631,8 @@ void cfd_amr::pr_sync(int k)
 
     pr_halo0(pfield(-1,k));
 
-    fill_all(fs);
+    // (the operator reaches one cell around a patch: the cells next to it)
+    fill_all(fs,1);
 }
 
 // the halo of a level-0 vector: the neighbour ranks, the periodic edges
@@ -1805,12 +1806,25 @@ void cfd_amr::pr_prec(int kr, int kz)
         return;
     }
 
+    // (a patch: its cells and the layer around it, the cells the sweep reads and writes)
     for(int g=-1; g<(int)P.size(); ++g)
     {
         lexer *q = glex(g);
-        const size_t n = (size_t)q->imax*q->jmax*q->kmax;
-        std::fill(pvec(g,kz),pvec(g,kz)+n,0.0);
-        std::fill(pvec(g,KC),pvec(g,KC)+n,0.0);
+        double *z = pvec(g,kz), *c = pvec(g,KC);
+        if(g<0 || g>=npat)
+        {
+            const size_t n = (size_t)q->imax*q->jmax*q->kmax;
+            std::fill(z,z+n,0.0);
+            std::fill(c,c+n,0.0);
+            continue;
+        }
+        for(int i=-1; i<=q->knox; ++i)
+        for(int j=-1; j<=q->knoy; ++j)
+        {
+            const size_t a = cix(q,i,j,-1);
+            std::fill(z+a,z+a+q->knoz+2,0.0);
+            std::fill(c+a,c+a+q->knoz+2,0.0);
+        }
     }
 
     // a level: its multigrid over the patches together (several patches on the rank), else a

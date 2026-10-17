@@ -321,8 +321,9 @@ private:
         std::function<field&(int)> f;      // source (and destination)
         std::function<field&(int)> fd;     // destination, if not f
     };
-    void fill(int l, vector<fspec> &fs, bool siblings_only=false);   // siblings_only: copies from the patches of the same level (kind 0, 2) alone
-    void fill_all(vector<fspec> &fs);
+    void fill(int l, vector<fspec> &fs, bool siblings_only=false, int maxdepth=1<<20);   // siblings_only: copies from the patches of the same level (kind 0, 2) alone;
+                                                                                        // maxdepth: the cells around the patch up to that distance
+    void fill_all(vector<fspec> &fs, int maxdepth=1<<20);
     double prolong(const fspec &F, int g, const int *s, const int *o);
     double prolong_f(field &f, int type, int mode, int g, const int *s, const int *o);
     double cell_slope(field &f, int g, const int *s, int d, int mode);

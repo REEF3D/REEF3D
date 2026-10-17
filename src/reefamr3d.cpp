@@ -2182,6 +2182,12 @@ void reefamr3d::plans()
 
                 r3fill f;
                 f.d[0]=ii; f.d[1]=jj; f.d[2]=kk;
+                f.depth = 0;
+                {
+                    const int a[3] = {ii,jj,kk}, n[3] = {pp->knox,pp->knoy,pp->knoz};
+                    for(int d=0; d<3; ++d)
+                    f.depth = MAX(f.depth, a[d]<0 ? -a[d] : (a[d]>=n[d] ? a[d]-n[d]+1 : 0));
+                }
                 f.kind = 3;
                 f.g = -1;
                 f.slot = -1;

@@ -856,7 +856,7 @@ double cfd_amr::prolong_f(field &f, int type, int mode, int g, const int *s, con
     return T(s);
 }
 
-void cfd_amr::fill(int l, vector<fspec> &fs, bool siblings_only)
+void cfd_amr::fill(int l, vector<fspec> &fs, bool siblings_only, int maxdepth)
 {
     const int nv = (int)fs.size();
 
@@ -895,13 +895,14 @@ void cfd_amr::fill(int l, vector<fspec> &fs, bool siblings_only)
                  return;
                  for(int m=0; m<nv; ++m)
                  D(m,id)(f.d[0],f.d[1],f.d[2]) = v[m];
-             });
+             },
+             maxdepth);
 }
 
-void cfd_amr::fill_all(vector<fspec> &fs)
+void cfd_amr::fill_all(vector<fspec> &fs, int maxdepth)
 {
     for(int l=1; l<=maxlev; ++l)
-    fill(l,fs);
+    fill(l,fs,false,maxdepth);
 }
 
 // density and viscosity of the cells around patch id from its level set (as fluid_update_fsf, with
