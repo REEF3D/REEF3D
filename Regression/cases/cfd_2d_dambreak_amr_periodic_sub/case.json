@@ -1,0 +1,20 @@
+{
+ "base": "cfd_2d_dambreak_amr_periodic",
+ "ctrl_add": [
+  "G 7 1"
+ ],
+ "description": "cfd_2d_dambreak_amr_periodic with subcycling (G 7 1): the level projections and the synchronisation across the periodic edge.",
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "levelset",
+  "amr",
+  "adaptive",
+  "periodic",
+  "subcycling"
+ ],
+ "covers": [
+  "the level multigrids across the periodic edge in the level projections"
+ ]
+}

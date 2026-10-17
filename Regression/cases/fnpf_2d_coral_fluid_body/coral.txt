@@ -1,0 +1,10 @@
+# REEF3D::CORAL model of the FNPF box (fnpf_2d_6dof_box): heave through a prismatic joint, PTO damper and
+# end stops 1 mm below the equilibrium (31 mm below the start) and 5 mm above the start; mass and inertia
+# from REEF3D.
+# Architect: Hans Bihs
+time dt 0.005 end 100
+output dt 0.01 file box.dat
+body box mass 1.0 cog 6.0 0.025 0.53
+joint heave prismatic ground box point 6.0 0.025 0.53 axis 0 0 1
+pto pto joint heave c 30 stops -0.032 0.005 2.0e5 0
+fluid_body box

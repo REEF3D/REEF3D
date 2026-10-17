@@ -1,0 +1,19 @@
+{
+ "base": "cfd_2d_dambreak_amr_periodic",
+ "np": 2,
+ "description": "cfd_2d_dambreak_amr_periodic on 2 ranks: the periodic edge between the ranks (C 21 2 of DIVEMesh): the patches at the two ends on different ranks (remote fills across the edge, the overlap of their multigrids).",
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "levelset",
+  "amr",
+  "adaptive",
+  "periodic",
+  "mpi"
+ ],
+ "covers": [
+  "periodic edge across ranks: remote siblings, gcparax/gcperiodicx of the composite vectors",
+  "the overlap of the joint multigrids at the sides to patches of the other rank"
+ ]
+}
