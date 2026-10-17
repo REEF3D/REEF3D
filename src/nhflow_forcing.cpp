@@ -42,6 +42,12 @@ nhflow_forcing::nhflow_forcing(lexer *p, fdm_nhf *d, ghostcell *pgc) : nhflow_ge
     if(dlm_flag==1)
     dlm_forcing_ini(p,pgc);
     
+    // fixed direct forcing solids are impermeable for the continuity fluxes as well:
+    // the wall states at the forcing faces (A 521 0, nhflow_fsf_f::wetdry_fluxes) leave
+    // the HLL jump term Sn Ss (Dn - Ds), which carries water into and through the solid
+    if(solid_flag==1 && p->A521==0)
+    d->solid_flux = 2;
+    
     prodtree = nullptr;
     if(p->Z20>0)
     prodtree = new rodtree_coupling(p,pgc);
