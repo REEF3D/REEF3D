@@ -262,6 +262,9 @@ public:
     // the floating bodies, X 60 1)
     bool finest_grid(double, double, double, lexer*&, fdm*&) const override;
     bool finest_grid(double, double, double, lexer*&, fdm*&, turbulence*&) const override;
+    bool placed() const override { return place>0; }
+    int finest_level(double, double, double) const override;
+    int finest_id(double, double, double) const;
     void step(lexer*, fdm*, ghostcell*, vrans*, sixdof*);
     void timestep(lexer*, fdm*, ghostcell*);
     void print(lexer*, bool after=false);

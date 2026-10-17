@@ -70,3 +70,21 @@ void amr_points::find(const amr_column_lookup *amr, lexer *p, int n, const doubl
     }
     amr_point_owners(lev.data(),n,mine.data());
 }
+
+void amr_cfd_mine(const amr_grid_lookup *amr, int n, const double *x, const double *y, const double *z, const int *flag, std::vector<char> &mine)
+{
+    mine.assign(n,0);
+    if(amr==nullptr || !amr->placed())
+    {
+        for(int m=0; m<n; ++m)
+        mine[m] = flag[m]>0 ? 1 : 0;
+        return;
+    }
+    std::vector<int> lev(n,-1);
+    for(int m=0; m<n; ++m)
+    {
+        const int l = amr->finest_level(x[m],y[m],z[m]);
+        lev[m] = (l>0) ? l : (flag[m]>0 ? 0 : -1);
+    }
+    amr_point_owners(lev.data(),n,mine.data());
+}

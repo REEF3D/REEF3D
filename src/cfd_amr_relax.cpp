@@ -32,6 +32,7 @@ Architect: Hans Bihs
 #include<cmath>
 #include<mpi.h>
 #include<iostream>
+#include<vector>
 
 //  The relaxation zones of the wave generation (B 98 2) and of the numerical beach (B 99 1/2) on
 //  the CFD patches.  Without it the refinement keeps out of the zones (reefamr3d::mark_tiles) and
@@ -356,8 +357,23 @@ void cfd_amr::reference(lexer *p, ghostcell *pgc)
         return -1.0e20;
     };
 
+    // G 40: the value of the rank of the finest grid at the point (amr_cfd_mine)
+    auto atg = [&](double x, double y, double z) -> double
+    {
+        double v = at(x,y,z);
+        if(place)
+        {
+            const int fl = (x>=p->originx && x<p->endx && y>=p->originy && y<p->endy && z>=p->originz && z<p->endz) ? 1 : 0;
+            std::vector<char> mine;
+            amr_cfd_mine(this,1,&x,&y,&z,&fl,mine);
+            if(!mine[0])
+            v = -1.0e20;
+        }
+        return pgc->globalmax(v);
+    };
+
     if(b30==1)
-    pval = pgc->globalmax(at(p->B32_x,p->B32_y,p->B32_z));
+    pval = atg(p->B32_x,p->B32_y,p->B32_z);
 
     if(b30==2)
     {
@@ -374,7 +390,7 @@ void cfd_amr::reference(lexer *p, ghostcell *pgc)
         zf = pgc->globalmax(zf);
         p->B32_z = zf;
         if(zf>-0.9e20)
-        pval = pgc->globalmax(at(p->B32_x,p->B32_y,zf));
+        pval = atg(p->B32_x,p->B32_y,zf);
     }
 
     if(b30==4)

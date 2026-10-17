@@ -29,6 +29,7 @@ Author: Hans Bihs
 #include<sys/stat.h>
 #include<sys/types.h>
 #include"runlog.h"
+#include<vector>
 
 print_wsf::print_wsf(lexer *p, fdm* a, ghostcell *pgc, int num) : fileFlushMaxCount(100)
 {
@@ -161,8 +162,9 @@ void print_wsf::height_gauge(lexer *p, fdm *a, ghostcell *pgc, field &f)
         }
 
         // CFD mesh refinement: when the finest grid at the free surface of level 0 is a patch, the
-        // free surface of the patch column that holds the gauge (its topmost zero, as above)
-        if(amr!=nullptr && wsf[n]>-1.0e19)
+        // free surface of the patch column that holds the gauge (its topmost zero, as above; with
+        // the placement of the patches, G 40, below on the rank of the patch)
+        if(amr!=nullptr && !amr->placed() && wsf[n]>-1.0e19)
         amr_gauge(p,n);
     }
     
@@ -223,6 +225,22 @@ void print_wsf::height_gauge(lexer *p, fdm *a, ghostcell *pgc, field &f)
     }
 	
     pgc->globalmax(wsf,gauge_num);
+
+    // G 40: the free surface of level 0 on the rank of the finest grid there
+    if(amr!=nullptr && amr->placed())
+    {
+        std::vector<double> z(wsf,wsf+gauge_num);
+        std::vector<char> mine;
+        amr_cfd_mine(amr,gauge_num,x,y,z.data(),flag,mine);
+        for(n=0;n<gauge_num;++n)
+        {
+            if(!mine[n])
+            wsf[n] = -1.0e20;
+            else if(wsf[n]>-1.0e19)
+            amr_gauge(p,n);
+        }
+        pgc->globalmax(wsf,gauge_num);
+    }
 
     // write to file
     gauge_row(p,wsfout,wsf,gauge_num,fileFlushMaxCount);

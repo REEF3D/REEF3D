@@ -465,10 +465,29 @@ bool cfd_amr::finest_grid(double x, double y, double z, lexer *&q, fdm *&a) cons
 
 bool cfd_amr::finest_grid(double x, double y, double z, lexer *&q, fdm *&a, turbulence *&t) const
 {
+    const int id = finest_id(x,y,z);
+    if(id<0)
+    return false;
+    const cfd_amr_patch *c = static_cast<const cfd_amr_patch*>(P[id]);
+    q = c->pp;
+    a = c->a;
+    t = c->pturb;
+    return true;
+}
+
+int cfd_amr::finest_level(double x, double y, double z) const
+{
+    const int id = finest_id(x,y,z);
+    return (id<0) ? 0 : P[id]->lev;
+}
+
+int cfd_amr::finest_id(double x, double y, double z) const
+{
     // a patch whose interior holds the point and whose cells within two cells of it are its own,
     // copies of a patch of the same level (on this rank or another one) or the boundary: not
-    // prolonged from the coarser level (a patch edge to the coarser level).  The patches lie on
-    // the rank of the level-0 cells below them, so the point's rank holds them.
+    // prolonged from the coarser level (a patch edge to the coarser level).  Without G 40 the
+    // patches lie on the rank of the level-0 cells below them, so the point's rank holds them;
+    // with G 40 the rank of the finest grid evaluates the point (amr_cfd_mine)
     auto cell = [](const double *N, int n, double v) -> int
     {
         if(v<N[marge] || v>=N[n+marge])
@@ -506,12 +525,9 @@ bool cfd_amr::finest_grid(double x, double y, double z, lexer *&q, fdm *&a, turb
         if(!ok)
         continue;
 
-        q = pp;
-        a = c->a;
-        t = c->pturb;
-        return true;
+        return id;
     }
-    return false;
+    return -1;
 }
 
 namespace
