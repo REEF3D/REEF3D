@@ -125,6 +125,73 @@ inline T& mcoef_mg(std::vector<T> &n, std::vector<T> &s, std::vector<T> &w, std:
     return dir>0 ? t[q] : b[q];
 }
 
+// G 40: one row of ks_apply on its rank (the other cell on another rank): h 1 the coarse cell c (its
+// coupling towards -dir), h 2 the covered cell c (towards dir)
+void ks_half(reefmg_core *mg, const int *c, int d, int dir, int h, const int *n, double K)
+{
+    for(int e=0; e<3; ++e)
+    if(c[e]<0 || c[e]>=n[e])
+    return;
+    sc_level &L = mg->fine();
+    const long lq = L.idx(c[0],c[1],c[2]);
+    if(!L.act[lq])
+    return;
+    const int s = (h==1) ? -dir : dir;
+    if(mg->precision()==32)
+    {
+        float &a = mcoef_mg(L.nf,L.sf,L.wf,L.ef,L.tf,L.bf,lq,d,s);
+        if(a==0.0f)
+        return;
+        L.pf[lq] += a + (float)K;
+        a = -(float)K;
+    }
+    else
+    {
+        double &a = mcoef_mg(L.n,L.s,L.w,L.e,L.t,L.b,lq,d,s);
+        if(a==0.0)
+        return;
+        L.p[lq] += a + K;
+        a = -K;
+    }
+}
+
+// the couplings of a coarse cell ci of multigrid mg next to a patch to the covered cell across the
+// face (side dir of direction d) from the fine faces: the sum K of their kc (n: the cells of the grid)
+void ks_apply(reefmg_core *mg, const int *ci, int d, int dir, const int *n, double K)
+{
+    int pi[3] = {ci[0],ci[1],ci[2]};
+    pi[d] -= dir;
+    if(pi[d]<0 || pi[d]>=n[d] || ci[d]<0 || ci[d]>=n[d])
+    return;
+
+    sc_level &L = mg->fine();
+    const long lc = L.idx(ci[0],ci[1],ci[2]), lp = L.idx(pi[0],pi[1],pi[2]);
+    if(!L.act[lc] || !L.act[lp])
+    return;
+    if(mg->precision()==32)
+    {
+        float &c = mcoef_mg(L.nf,L.sf,L.wf,L.ef,L.tf,L.bf,lc,d,-dir);
+        float &b = mcoef_mg(L.nf,L.sf,L.wf,L.ef,L.tf,L.bf,lp,d,dir);
+        if(c==0.0f || b==0.0f)
+        return;
+        L.pf[lc] += c + (float)K;
+        L.pf[lp] += b + (float)K;
+        c = -(float)K;
+        b = -(float)K;
+    }
+    else
+    {
+        double &c = mcoef_mg(L.n,L.s,L.w,L.e,L.t,L.b,lc,d,-dir);
+        double &b = mcoef_mg(L.n,L.s,L.w,L.e,L.t,L.b,lp,d,dir);
+        if(c==0.0 || b==0.0)
+        return;
+        L.p[lc] += c + K;
+        L.p[lp] += b + K;
+        c = -K;
+        b = -K;
+    }
+}
+
 enum { NR=REEFAMR_NR, NRH=REEFAMR_NRH, NPV=REEFAMR_NPV, NVV=REEFAMR_NVV, NS=REEFAMR_NS, NT=REEFAMR_NT,
        NPH=REEFAMR_NPH, NSH=REEFAMR_NSH, NVEC=REEFAMR_NVEC };
 }
@@ -167,10 +234,10 @@ void cfd_amr::pr_setup()
     ar.assign(P.size()+1,vector<int>());
     prl = -1;
     prg.clear();
-    for(int g=-1; g<(int)P.size(); ++g)
+    for(int g=-1; g<npat; ++g)
     prg.push_back(g);
 
-    for(int g=-1; g<(int)P.size(); ++g)
+    for(int g=-1; g<npat; ++g)
     {
         lexer *q = glex(g);
         const vector<int> &row = (g<0) ? row0 : CP(g)->row;
@@ -198,9 +265,22 @@ void cfd_amr::pr_setup()
         }
     }
 
-    // the local grid of level lv whose interior holds the global cell I (-1: level 0)
+    // the local grid of level lv whose interior holds the global cell I (-1: level 0; G 40: the
+    // shadow sh of the level-1 patch)
+    int sh = -1;
     auto grid_of = [&](int lv, const int *I, int *loc) -> int
     {
+        if(lv==0 && place)
+        {
+            const r3patch *c = P[sh];
+            for(int d=0; d<3; ++d)
+            {
+                loc[d] = I[d]-c->lo[d];
+                if(loc[d]<0 || loc[d]>=c->n[d])
+                return -2;
+            }
+            return sh;
+        }
         if(lv==0)
         {
             for(int d=0; d<3; ++d)
@@ -224,11 +304,12 @@ void cfd_amr::pr_setup()
     cf.clear();
     int bad = 0;
 
-    for(int id=0; id<(int)P.size(); ++id)
+    for(int id=0; id<npat; ++id)
     {
         cfd_amr_patch *c = CP(id);
         lexer *pp = c->pp;
         const int l = c->lev;
+        sh = c->sh;
 
         for(int i=0; i<pp->knox; ++i)
         for(int j=0; j<pp->knoy; ++j)
@@ -277,6 +358,13 @@ void cfd_amr::pr_setup()
                     F.gc = grid_of(l-1,Cg,cl);
                     if(F.gp<-1 || F.gc<-1)
                     {
+                        if(bad<4)
+                        {
+                            const int gq = gpatch_at(l-1,Cg), gpp = gpatch_at(l-1,Pg);
+                            cout<<"CFD AMR: rank "<<myrank<<": the face "<<d<<" "<<dir<<" of cell ("<<I[0]<<","<<I[1]<<","<<I[2]<<") of the level-"<<l
+                                <<" patch "<<c->gid<<" (unit "<<GP[c->gid].unit<<"): its coarse cell ("<<Cg[0]<<","<<Cg[1]<<","<<Cg[2]<<") in patch "<<gq
+                                <<(gq>=0 ? " of unit " : "")<<(gq>=0 ? GP[gq].unit : -1)<<" on rank "<<(gq>=0 ? GP[gq].rank : -1)<<", its parent in "<<gpp<<endl;
+                        }
                         ++bad;
                         continue;
                     }
@@ -284,7 +372,7 @@ void cfd_amr::pr_setup()
                     lexer *qc = glex(F.gc);
                     F.qp = cix(qp,pl[0],pl[1],pl[2]);
                     F.qc = cix(qc,cl[0],cl[1],cl[2]);
-                    const vector<int> &rowc = (F.gc<0) ? row0 : CP(F.gc)->row;
+                    const vector<int> &rowc = (F.gc<0) ? row0 : CP(F.gc)->row;     // (a shadow: the cells with fluid)
                     F.nc = rowc[F.qc];
                     if(F.nc<0)
                     {
@@ -331,9 +419,11 @@ void cfd_amr::pr_setup()
     bad = pgc0->globalimax(bad);
     if(bad>0)
     {
-        if(myrank==0)
+        if(myrank==0 && !place)
         cout<<"CFD AMR: a patch edge lies on a partition edge of level 0 (the coarse cell across it is on another rank); "
               "move the refinement box (G 15) or change the partition"<<endl;
+        if(myrank==0 && place)
+        cout<<"CFD AMR (G 40): the coarse cell across a patch edge is not on the rank of the patch (the units)"<<endl;
         MPI_Abort(MPI_COMM_WORLD,-3120);
     }
 
@@ -360,18 +450,50 @@ void cfd_amr::pr_setup()
     }
     }
 
-    for(int id=0; id<(int)P.size(); ++id)
+    // G 40: the overlap of the patch multigrids
+    pr_overlap();
+
+    for(int id=0; id<npat; ++id)
     {
         cfd_amr_patch *c = CP(id);
         lexer *pp = c->pp;
-        if(c->mg!=nullptr)
+        bool same = true;
+        for(int d=0; d<3; ++d)
+        if(c->mlo[d]!=c->olo[d] || c->mhi[d]!=c->ohi[d])
+        same = false;
+        if(c->mg!=nullptr && same)
         continue;
+        delete c->mg;
+        for(int d=0; d<3; ++d)
+        {
+            c->mlo[d] = c->olo[d];
+            c->mhi[d] = c->ohi[d];
+        }
+        const int nx = pp->knox+c->olo[0]+c->ohi[0], ny = pp->knoy+c->olo[1]+c->ohi[1], nz = pp->knoz+c->olo[2]+c->ohi[2];
+        // the cell widths of the box with one cell beyond it (the array of the patch: its margin,
+        // the last width repeated beyond)
+        auto widths = [&](const double *DN, int n, int lo, int nb) -> vector<double>
+        {
+            vector<double> w(nb+2);
+            for(int b=0; b<nb+2; ++b)
+            {
+                const int i = MIN(MAX(b-1-lo,-marge),n+marge-1);
+                w[b] = DN[i+marge];
+            }
+            return w;
+        };
+        const vector<double> wx = widths(pp->DXN,pp->knox,c->olo[0],nx), wy = widths(pp->DYN,pp->knoy,c->olo[1],ny);
         c->mg = new reefmg_core;
         c->mg->set_precision(pp->N14==32 ? 32 : 64);
         c->mg->set_fine_operator(&pr_fineop_none);
-        if(!c->mg->setup(MPI_COMM_SELF,pp->knox,pp->knoy,pp->knoz,pp->knox,pp->knoy,0,pp->DXN+marge-1,pp->DYN+marge-1))
+        if(!c->mg->setup(MPI_COMM_SELF,nx,ny,nz,nx,ny,0,wx.data(),wy.data()))
         cout<<"CFD AMR: patch multigrid "<<c->mg->err()<<endl;
     }
+    if(place)
+    for(int id=0; id<npat; ++id)
+    if(CP(id)->kc7.empty())
+    for(int m=0; m<7; ++m)
+    CP(id)->kc7.push_back(new field4(CP(id)->pp));
 
     l0a.clear();
     l0f.clear();
@@ -404,6 +526,10 @@ void cfd_amr::pr_level_mg_setup()
     delete M.mg;
     lmg.clear();
     lmg_of.assign(P.size(),-1);
+
+    // G 40: the patch multigrids with their overlap instead
+    if(place)
+    return;
 
     for(int l=1; l<=maxlev; ++l)
     {
@@ -701,6 +827,13 @@ void cfd_amr::pr_level_vcycle(int m, int kr, int kz)
 
 void cfd_amr::pr_level_solve(int l, int kr, int kz)
 {
+    // G 40: the right-hand side in the overlap of the patch multigrids (the patches next to them)
+    if(place)
+    {
+        vector<fspec> fs;
+        fs.push_back({CELL,2,[this,kr](int g) -> field& { return pfield(g,kr); }});
+        fill(l,fs,true);
+    }
     for(int m=0; m<(int)lmg.size(); ++m)
     if(P[lmg[m].ids[0]]->lev==l)
     pr_level_vcycle(m,kr,kz);
@@ -982,6 +1115,19 @@ double cfd_amr::pr_ps(const cfd_amr_cf &F)
 // transverse directions
 void cfd_amr::pr_predict(int s)
 {
+    // G 40: the coarse data of the faces at the edges of the level-1 patches in the shadows
+    if(place)
+    {
+        vector<std::function<field&(int)>> f;
+        f.push_back([this](int g) -> field& { return gfd(g)->phi; });
+        f.push_back([this](int g) -> field& { return gfd(g)->press; });
+        for(int c=0; c<3; ++c)
+        f.push_back([this,s,c](int g) -> field& { return gmom(g)->amr_velout(gfd(g),c,s); });
+        if(scal)
+        f.push_back([this](int g) -> field& { return sfield(g); });
+        sh_down_f(f);
+    }
+
     pr_weights();
     pr_hydro();
 
@@ -1067,6 +1213,14 @@ void cfd_amr::pr_predict(int s)
             gmom(F.gc)->amr_velout(gfd(F.gc),F.d,s)(c[0],c[1],c[2]) += F.area*F.ustar;
         }
     }
+
+    // G 40: the coarse faces of the shadows onto level 0
+    if(place)
+    for(int d=0; d<3; ++d)
+    {
+        vector<std::function<field&(int)>> f(1,[this,s,d](int g) -> field& { return gmom(g)->amr_velout(gfd(g),d,s); });
+        sh_run(pu_cf[d],f,false);
+    }
 }
 
 // multigrid coefficients from the assembled rows, then the couplings across the patch edges
@@ -1094,34 +1248,12 @@ void cfd_amr::pr_matrix(int s)
     }
 
     // patches: their own matrix (before the couplings across the patch edges below), the couplings
-    // to the cells around the patch dropped
-    for(int id=0; id<(int)P.size(); ++id)
-    {
-        cfd_amr_patch *c = CP(id);
-        lexer *pp = c->pp;
-        sc_level &L = c->mg->fine();
-        pr_clear(L);
-        const matrix_diag &M = c->a->M;
-        const int nx=pp->knox, ny=pp->knoy, nz=pp->knoz;
-
-        for(int i=0; i<nx; ++i)
-        for(int j=0; j<ny; ++j)
-        for(int k=0; k<nz; ++k)
-        {
-            const long q = L.idx(i,j,k);
-            const int r = c->row[cix(pp,i,j,k)];
-            if(r<0)
-            {
-                pr_coef(c->mg,L,q,1.0,0.0,0.0,0.0,0.0,0.0,0.0);
-                continue;
-            }
-            pr_coef(c->mg,L,q,M.p[r],
-                    (i+1<nx) ? M.n[r] : 0.0, (i>0) ? M.s[r] : 0.0,
-                    (j+1<ny) ? M.w[r] : 0.0, (j>0) ? M.e[r] : 0.0,
-                    (k+1<nz) ? M.t[r] : 0.0, (k>0) ? M.b[r] : 0.0);
-            L.act[q] = 1;
-        }
-    }
+    // to the cells around the patch dropped (G 40: those into the overlap kept, the rows of the
+    // patches next to it there)
+    if(place)
+    pr_coef_fill(-1);
+    for(int id=0; id<npat; ++id)
+    pr_patch_mg(id,1.0);
 
     // the faces at the patch edges
     for(cfd_amr_cf &F : cf)
@@ -1142,11 +1274,16 @@ void cfd_amr::pr_matrix(int s)
         Mf.p[F.nf] += cfn + F.kf;
         cfn = 0.0;
 
+        // (G 40: the coarse cell in a shadow; its rank folds the row, sh_folds)
+        if(is_shadow(F.gc))
+        continue;
         matrix_diag &Mc = gfd(F.gc)->M;
         double &ccn = mcoef(Mc,F.nc,F.d,-F.dir);
         Mc.p[F.nc] += ccn;
         ccn = 0.0;
     }
+    if(place)
+    sh_folds();
 
     // the multigrid of a coarser grid (level 0 or a patch with finer patches): a coarse cell next
     // to a patch couples to the covered cell across the face with the couplings of the fine faces
@@ -1160,55 +1297,92 @@ void cfd_amr::pr_matrix(int s)
         if(F.gc==F.gp)
         ks[std::make_tuple(F.gc,F.ci[0],F.ci[1],F.ci[2],F.d,F.dir)] += F.kc;
 
+        // G 40: the keys of the shadows to the ranks of their coarse cells (sh_ks)
+        if(place)
+        {
+            for(vector<double> &v : kval)
+            std::fill(v.begin(),v.end(),0.0);
+            for(const auto &kv : ks)
+            {
+                const int g = std::get<0>(kv.first);
+                if(!is_shadow(g))
+                continue;
+                const int *og = P[g]->lo;
+                const auto key = std::make_tuple(g,std::get<1>(kv.first)+og[0],std::get<2>(kv.first)+og[1],std::get<3>(kv.first)+og[2],
+                                                 std::get<4>(kv.first),std::get<5>(kv.first));
+                kval[g-npat][kidx[key]] = kv.second;
+            }
+            sh_ks();
+        }
+
         for(const auto &kv : ks)
         {
             const int g = std::get<0>(kv.first);
-            const int ci[3] = {std::get<1>(kv.first),std::get<2>(kv.first),std::get<3>(kv.first)};
+            if(is_shadow(g))
+            continue;
+            int ci[3] = {std::get<1>(kv.first),std::get<2>(kv.first),std::get<3>(kv.first)};
             const int d = std::get<4>(kv.first), dir = std::get<5>(kv.first);
-            int pi[3] = {ci[0],ci[1],ci[2]};
-            pi[d] -= dir;
             lexer *q = glex(g);
-            const int n[3] = {q->knox,q->knoy,q->knoz};
-            if(pi[d]<0 || pi[d]>=n[d] || ci[d]<0 || ci[d]>=n[d])
-            continue;
-
-            reefmg_core *mg = (g<0) ? mg0 : CP(g)->mg;
-            sc_level &L = mg->fine();
-            const long lc = L.idx(ci[0],ci[1],ci[2]), lp = L.idx(pi[0],pi[1],pi[2]);
-            if(!L.act[lc] || !L.act[lp])
-            continue;
-            const double K = kv.second;
-            if(mg->precision()==32)
+            int n[3] = {q->knox,q->knoy,q->knoz};
+            if(g>=0)        // (G 40: the overlap of the patch multigrid)
+            for(int e=0; e<3; ++e)
             {
-                float &c = mcoef_mg(L.nf,L.sf,L.wf,L.ef,L.tf,L.bf,lc,d,-dir);
-                float &b = mcoef_mg(L.nf,L.sf,L.wf,L.ef,L.tf,L.bf,lp,d,dir);
-                if(c==0.0f || b==0.0f)
-                continue;
-                L.pf[lc] += c + (float)K;
-                L.pf[lp] += b + (float)K;
-                c = -(float)K;
-                b = -(float)K;
+                ci[e] += CP(g)->olo[e];
+                n[e] += CP(g)->olo[e]+CP(g)->ohi[e];
             }
-            else
-            {
-                double &c = mcoef_mg(L.n,L.s,L.w,L.e,L.t,L.b,lc,d,-dir);
-                double &b = mcoef_mg(L.n,L.s,L.w,L.e,L.t,L.b,lp,d,dir);
-                if(c==0.0 || b==0.0)
-                continue;
-                L.p[lc] += c + K;
-                L.p[lp] += b + K;
-                c = -K;
-                b = -K;
-            }
+            ks_apply((g<0) ? mg0 : CP(g)->mg,ci,d,dir,n,kv.second);
         }
     }
 
     mg0->coarsen();
-    for(int id=0; id<(int)P.size(); ++id)
+    for(int id=0; id<npat; ++id)
     if(lmg_of[id]<0)
     CP(id)->mg->coarsen();
     for(int m=0; m<(int)lmg.size(); ++m)
     pr_level_mg_fill_comp(m);
+}
+
+// G 40: the level-0 rows of the coarse cells at the edges of the level-1 patches in the shadows:
+// their coupling to the covered cell across the face folded into the diagonal (as pr_matrix for a
+// local coarse cell; the composite operator adds the fluxes of the fine faces, pr_apply)
+void cfd_amr::sh_folds()
+{
+    matrix_diag &M = a0->M;
+    for(size_t r=0; r<pu_key.rq.size(); ++r)
+    for(size_t q=0; q<pu_key.rq[r].size(); ++q)
+    {
+        const int n = row0[pu_key.rq[r][q]];
+        if(n<0)
+        continue;
+        const int t = pu_key.rt[r][q];
+        if(t%3==2)
+        continue;
+        const int d = t/6, dir = ((t/3)%2) ? 1 : -1;
+        double &ccn = mcoef(M,n,d,-dir);
+        M.p[n] += ccn;
+        ccn = 0.0;
+    }
+}
+
+// G 40: the couplings of the level-0 multigrid at the edges of the level-1 patches, from the sums of
+// kc of the shadows (collective)
+void cfd_amr::sh_ks()
+{
+    cplan_xfer(pu_key,1,[this](int, int g) -> double* { return kval[g-npat].data(); });
+    const int n[3] = {p0->knox,p0->knoy,p0->knoz};
+    const int jk = p0->jmax*p0->kmax;
+    for(size_t r=0; r<pu_key.rq.size(); ++r)
+    for(size_t q=0; q<pu_key.rq[r].size(); ++q)
+    {
+        const int qq = pu_key.rq[r][q];
+        const int ci[3] = {qq/jk + p0->imin, (qq%jk)/p0->kmax + p0->jmin, qq%p0->kmax + p0->kmin};
+        const int t = pu_key.rt[r][q];
+        const int d = t/6, dir = ((t/3)%2) ? 1 : -1, h = t%3;
+        if(h==0)
+        ks_apply(mg0,ci,d,dir,n,pu_key.rb[r][q]);
+        else
+        ks_half(mg0,ci,d,dir,h,n,pu_key.rb[r][q]);
+    }
 }
 
 // the cells around the patches: the vector of the patch of the same level, or the value of the
@@ -1263,12 +1437,23 @@ void cfd_amr::pr_apply(int kx, int ky)
     if(prl>0)
     return;
 
+    // G 40: the fluxes into the coarse cells of the shadows go to the ranks of those cells
+    const std::function<field&(int)> fy = [this,ky](int g) -> field& { return pfield(g,ky); };
+    if(place)
+    sh_zero(pu_cc,fy);
+
     for(const cfd_amr_cf &F : cf)
     {
         const double xs = pr_xs(F,kx);
         const double xf = pvec(F.pid,kx)[F.qf];
         pvec(F.pid,ky)[F.qf] -= F.kf*xs;
         pvec(F.gc,ky)[F.qc] += F.kc*(xs-xf);
+    }
+
+    if(place)
+    {
+        vector<std::function<field&(int)>> f(1,fy);
+        sh_run(pu_cc,f,true);
     }
 }
 
@@ -1431,6 +1616,13 @@ void cfd_amr::pr_prec(int kr, int kz)
         pgc0->gcparax(p0,pfield(-1,KC),4);
     }
 
+    // G 40: the correction of level 0 in the shadows
+    if(place)
+    {
+        vector<std::function<field&(int)>> f(1,[this](int g) -> field& { return pfield(g,REEFAMR_NVEC); });
+        sh_down_f(f);
+    }
+
     // up
     for(int l=1; l<=maxlev; ++l)
     {
@@ -1482,6 +1674,162 @@ void cfd_amr::pr_prec(int kr, int kz)
     }
 }
 
+// G 40: the overlap of every patch multigrid: OV cells (the cells around the patch) across a side of
+// the patch where it meets a patch of its level (copied from that patch, kind 0 or 2).  The
+// preconditioner is then a restricted additive Schwarz across the cuts between the patches (the
+// right-hand side and the rows in the overlap from the patch there, the correction kept inside
+// the patch): the patch-local V-cycles with zero correction at the cut (block Jacobi) took 60
+// BiCGStab iterations with four units side by side in the dam break, 11 with an overlap of 2
+// cells, 9 with 3 (G 40 0 on four ranks: 10)
+void cfd_amr::pr_overlap()
+{
+    const int OV = 3;
+    for(int id=0; id<npat; ++id)
+    {
+        cfd_amr_patch *c = CP(id);
+        lexer *pp = c->pp;
+        for(int d=0; d<3; ++d)
+        c->olo[d] = c->ohi[d] = 0;
+        if(!place)
+        continue;
+        const int n[3] = {pp->knox,pp->knoy,pp->knoz};
+        for(int d=0; d<3; ++d)
+        {
+            if(rr[d]!=2)
+            continue;
+            for(int side=0; side<2; ++side)
+            {
+                bool sib = false;
+                int a[3] = {0,0,0}, b[3] = {n[0]-1,n[1]-1,n[2]-1};
+                a[d] = b[d] = (side==0) ? -1 : n[d];
+                int I[3];
+                for(I[0]=a[0]; I[0]<=b[0] && !sib; ++I[0])
+                for(I[1]=a[1]; I[1]<=b[1] && !sib; ++I[1])
+                for(I[2]=a[2]; I[2]<=b[2] && !sib; ++I[2])
+                {
+                    const int k = c->mkind[cix(pp,I[0],I[1],I[2])];
+                    if(k==0 || k==2)
+                    sib = true;
+                }
+                if(sib)
+                (side==0 ? c->olo[d] : c->ohi[d]) = OV;
+            }
+        }
+    }
+}
+
+// G 40: the matrix rows of the patches (level l, all for l < 0) in their kc7 fields, filled into the
+// cells around the patches next to them (collective)
+void cfd_amr::pr_coef_fill(int l)
+{
+    for(int lv=1; lv<=maxlev; ++lv)
+    {
+        if(l>=0 && lv!=l)
+        continue;
+        for(int id : lev[lv])
+        {
+            cfd_amr_patch *c = CP(id);
+            lexer *pp = c->pp;
+            const matrix_diag &M = c->a->M;
+            for(field4 *f : c->kc7)
+            std::fill(f->V,f->V+(size_t)pp->imax*pp->jmax*pp->kmax,0.0);
+            for(int i=0; i<pp->knox; ++i)
+            for(int j=0; j<pp->knoy; ++j)
+            for(int k=0; k<pp->knoz; ++k)
+            {
+                const int qq = cix(pp,i,j,k);
+                const int r = c->row[qq];
+                if(r<0)
+                continue;
+                c->kc7[0]->V[qq] = M.p[r]; c->kc7[1]->V[qq] = M.n[r]; c->kc7[2]->V[qq] = M.s[r];
+                c->kc7[3]->V[qq] = M.w[r]; c->kc7[4]->V[qq] = M.e[r]; c->kc7[5]->V[qq] = M.t[r]; c->kc7[6]->V[qq] = M.b[r];
+            }
+        }
+        vector<fspec> fs;
+        for(int m=0; m<7; ++m)
+        fs.push_back({CELL,2,[this,m](int g) -> field& { return *CP(g)->kc7[m]; }});
+        fill(lv,fs,true);
+    }
+}
+
+void cfd_amr::pr_patch_mg(int id, double dshift)
+{
+    cfd_amr_patch *c = CP(id);
+    lexer *pp = c->pp;
+    sc_level &L = c->mg->fine();
+    pr_clear(L);
+    const matrix_diag &M = c->a->M;
+    const int nx=pp->knox, ny=pp->knoy, nz=pp->knoz;
+    const int *ol = c->olo, *oh = c->ohi;
+
+    if(ol[0]+ol[1]+ol[2]+oh[0]+oh[1]+oh[2]==0)
+    {
+        for(int i=0; i<nx; ++i)
+        for(int j=0; j<ny; ++j)
+        for(int k=0; k<nz; ++k)
+        {
+            const long q = L.idx(i,j,k);
+            const int r = c->row[cix(pp,i,j,k)];
+            if(r<0)
+            {
+                pr_coef(c->mg,L,q,1.0,0.0,0.0,0.0,0.0,0.0,0.0);
+                continue;
+            }
+            pr_coef(c->mg,L,q,(dshift==1.0) ? M.p[r] : M.p[r]*dshift,
+                    (i+1<nx) ? M.n[r] : 0.0, (i>0) ? M.s[r] : 0.0,
+                    (j+1<ny) ? M.w[r] : 0.0, (j>0) ? M.e[r] : 0.0,
+                    (k+1<nz) ? M.t[r] : 0.0, (k>0) ? M.b[r] : 0.0);
+            L.act[q] = 1;
+        }
+        return;
+    }
+
+    // with the overlap: the cells of the patch and those of the patches next to it in the box
+    auto in = [&](int i, int j, int k) { return i>=0 && i<nx && j>=0 && j<ny && k>=0 && k<nz; };
+    auto row_o = [&](int i, int j, int k) -> bool     // an overlap cell with a row of the patch there
+    {
+        if(i<-ol[0] || i>=nx+oh[0] || j<-ol[1] || j>=ny+oh[1] || k<-ol[2] || k>=nz+oh[2] || in(i,j,k))
+        return false;
+        const int qq = cix(pp,i,j,k);
+        return (c->mkind[qq]==0 || c->mkind[qq]==2) && pp->flag4[qq]>0;
+    };
+    auto keep = [&](int i, int j, int k) { return in(i,j,k) || row_o(i,j,k); };
+
+    for(int i=-ol[0]; i<nx+oh[0]; ++i)
+    for(int j=-ol[1]; j<ny+oh[1]; ++j)
+    for(int k=-ol[2]; k<nz+oh[2]; ++k)
+    {
+        const long q = L.idx(i+ol[0],j+ol[1],k+ol[2]);
+        const int qq = cix(pp,i,j,k);
+        double cc[7];
+        if(in(i,j,k))
+        {
+            const int r = c->row[qq];
+            if(r<0)
+            {
+                pr_coef(c->mg,L,q,1.0,0.0,0.0,0.0,0.0,0.0,0.0);
+                continue;
+            }
+            cc[0]=M.p[r]; cc[1]=M.n[r]; cc[2]=M.s[r]; cc[3]=M.w[r]; cc[4]=M.e[r]; cc[5]=M.t[r]; cc[6]=M.b[r];
+        }
+        else if(row_o(i,j,k))
+        {
+            for(int m=0; m<7; ++m)
+            cc[m] = c->kc7[m]->V[qq];
+        }
+        else
+        {
+            pr_coef(c->mg,L,q,1.0,0.0,0.0,0.0,0.0,0.0,0.0);
+            continue;
+        }
+        pr_coef(c->mg,L,q,cc[0]*dshift,
+                keep(i+1,j,k) ? cc[1] : 0.0, keep(i-1,j,k) ? cc[2] : 0.0,
+                keep(i,j+1,k) ? cc[3] : 0.0, keep(i,j-1,k) ? cc[4] : 0.0,
+                keep(i,j,k+1) ? cc[5] : 0.0, keep(i,j,k-1) ? cc[6] : 0.0);
+        L.act[q] = 1;
+    }
+}
+
 // patch-local V-cycle with the right-hand side kt on the patch rows, added to z (and to kc)
 void cfd_amr::pr_patch_solve(int id, int kt, int kz, int kc)
 {
@@ -1492,6 +1840,7 @@ void cfd_amr::pr_patch_solve(int id, int kt, int kz, int kc)
     double *z = pvec(id,kz);
     double *cc = (kc>=0) ? pvec(id,kc) : nullptr;
     sc_level &L = c->mg->fine();
+    const int *ol = c->olo, *oh = c->ohi;
 
     std::fill(L.u.begin(),L.u.end(),0.0);
     std::fill(L.f.begin(),L.f.end(),0.0);
@@ -1501,7 +1850,19 @@ void cfd_amr::pr_patch_solve(int id, int kt, int kz, int kc)
     {
         const int qq = cix(pp,i,j,k);
         if(c->row[qq]>=0)
-        L.f[L.idx(i,j,k)] = t[qq];
+        L.f[L.idx(i+ol[0],j+ol[1],k+ol[2])] = t[qq];
+    }
+    // G 40: the overlap (the cells of the patches next to it, their right-hand side filled)
+    if(ol[0]+ol[1]+ol[2]+oh[0]+oh[1]+oh[2]>0)
+    for(int i=-ol[0]; i<pp->knox+oh[0]; ++i)
+    for(int j=-ol[1]; j<pp->knoy+oh[1]; ++j)
+    for(int k=-ol[2]; k<pp->knoz+oh[2]; ++k)
+    {
+        if(i>=0 && i<pp->knox && j>=0 && j<pp->knoy && k>=0 && k<pp->knoz)
+        continue;
+        const int qq = cix(pp,i,j,k);
+        if((c->mkind[qq]==0 || c->mkind[qq]==2) && pp->flag4[qq]>0)
+        L.f[L.idx(i+ol[0],j+ol[1],k+ol[2])] = t[qq];
     }
 
     c->mg->vcycle(0,2,2);
@@ -1513,7 +1874,7 @@ void cfd_amr::pr_patch_solve(int id, int kt, int kz, int kc)
         const int qq = cix(pp,i,j,k);
         if(c->row[qq]<0)
         continue;
-        const double u = L.u[L.idx(i,j,k)];
+        const double u = L.u[L.idx(i+ol[0],j+ol[1],k+ol[2])];
         z[qq] += u;
         if(cc)
         cc[qq] += u;
@@ -1588,7 +1949,7 @@ void cfd_amr::pr_project(lexer *p, ghostcell *pgc, int s)
     pflow0->pressure_io(p,a0,pgc);
     press0->amr_prepare(p,a0,pois0,pgc,u0,v0,w0,alpha);
 
-    for(int id=0; id<(int)P.size(); ++id)
+    for(int id=0; id<npat; ++id)
     {
         cfd_amr_patch *c = CP(id);
         pscope2 ps(pgc,c->a,a0);
@@ -1600,7 +1961,7 @@ void cfd_amr::pr_project(lexer *p, ghostcell *pgc, int s)
     pr_matrix(s);
 
     // right-hand side into NS, A x0 into NVV (x0 = 0: pcorr cleared by pjm_corr::rhs)
-    for(int g=-1; g<(int)P.size(); ++g)
+    for(int g=-1; g<npat; ++g)
     {
         const double *R = gfd(g)->rhsvec.V.data();
         double *b = pvec(g,NS);
@@ -1629,7 +1990,7 @@ void cfd_amr::pr_project(lexer *p, ghostcell *pgc, int s)
     // pressure and velocities of every grid
     press0->amr_finish(p,a0,pgc,u0,v0,w0,alpha);
 
-    for(int id=0; id<(int)P.size(); ++id)
+    for(int id=0; id<npat; ++id)
     {
         cfd_amr_patch *c = CP(id);
         pscope2 ps(pgc,c->a,a0);
@@ -1641,7 +2002,7 @@ void cfd_amr::pr_project(lexer *p, ghostcell *pgc, int s)
     pr_correct(s);
 
     mom0->amr_project_after(p,a0,pgc,u0,v0,w0);
-    for(int id=0; id<(int)P.size(); ++id)
+    for(int id=0; id<npat; ++id)
     {
         cfd_amr_patch *c = CP(id);
         pscope2 ps(pgc,c->a,a0);
@@ -1692,7 +2053,7 @@ void cfd_amr::pr_components()
         if(num[r]<0)
         num[r] = ncomp++;
     }
-    for(int id=0; id<(int)P.size(); ++id)
+    for(int id=0; id<npat; ++id)
     CP(id)->comp = num[root(P[id]->gid)];
 }
 
@@ -1726,6 +2087,19 @@ void cfd_amr::pr_level(lexer *p, ghostcell *pgc, int l, int s)
     // The correction of the coarser level is final (Dirichlet 0): the fine pressure answers the
     // coarse one across the edge, the patch takes its own flux there (the coarser level takes it
     // in the synchronisation at the end of the level-0 step)
+    // G 40: the coarse data of the level-1 edges in the shadows (level 0 at the time of the stage)
+    if(place && l==1)
+    {
+        vector<std::function<field&(int)>> f;
+        f.push_back([this](int g) -> field& { return gfd(g)->phi; });
+        vector<int> ms = {0,1,2,tl_press,tl_phi};
+        if(scal)
+        ms.push_back(tl_s);
+        for(int m : ms)
+        f.push_back([this,m](int g) -> field& { return tsf(g,m); });
+        sh_down_f(f);
+    }
+
     pr_weights();
     pr_hydro(l);
     for(cfd_amr_cf &F : cf)
@@ -1793,34 +2167,14 @@ void cfd_amr::pr_level(lexer *p, ghostcell *pgc, int l, int s)
         Mf.p[F.nf] += cfn + F.kf;
         cfn = 0.0;
     }
+    if(place)
+    pr_coef_fill(l);
     for(int id : lev[l])
     {
         if(lmg_of[id]>=0)
         continue;
-        cfd_amr_patch *c = CP(id);
-        lexer *pp = c->pp;
-        sc_level &L = c->mg->fine();
-        pr_clear(L);
-        const matrix_diag &M = c->a->M;
-        const int nx=pp->knox, ny=pp->knoy, nz=pp->knoz;
-        for(int i=0; i<nx; ++i)
-        for(int j=0; j<ny; ++j)
-        for(int k=0; k<nz; ++k)
-        {
-            const long q = L.idx(i,j,k);
-            const int r = c->row[cix(pp,i,j,k)];
-            if(r<0)
-            {
-                pr_coef(c->mg,L,q,1.0,0.0,0.0,0.0,0.0,0.0,0.0);
-                continue;
-            }
-            pr_coef(c->mg,L,q,M.p[r]*(1.0+1.0e-6),
-                    (i+1<nx) ? M.n[r] : 0.0, (i>0) ? M.s[r] : 0.0,
-                    (j+1<ny) ? M.w[r] : 0.0, (j>0) ? M.e[r] : 0.0,
-                    (k+1<nz) ? M.t[r] : 0.0, (k>0) ? M.b[r] : 0.0);
-            L.act[q] = 1;
-        }
-        c->mg->coarsen();
+        pr_patch_mg(id,1.0+1.0e-6);
+        CP(id)->mg->coarsen();
     }
     for(int m=0; m<(int)lmg.size(); ++m)
     if(P[lmg[m].ids[0]]->lev==l)
@@ -1968,7 +2322,7 @@ void cfd_amr::pr_level(lexer *p, ghostcell *pgc, int l, int s)
     // back to the composite projection
     prl = -1;
     prg.clear();
-    for(int g=-1; g<(int)P.size(); ++g)
+    for(int g=-1; g<npat; ++g)
     prg.push_back(g);
 
     tm[2] += MPI_Wtime()-t0;
@@ -1987,14 +2341,19 @@ void cfd_amr::pr_sync_project(lexer *p, ghostcell *pgc)
     const double alpha = 1.0;
     const double t0 = MPI_Wtime();
 
-    vector<double> dts(P.size());
-    for(int id=0; id<(int)P.size(); ++id)
+    vector<double> dts(npat);
+    for(int id=0; id<npat; ++id)
     {
         dts[id] = CP(id)->pp->dt;
         CP(id)->pp->dt = p->dt;
     }
 
     fill_vel_after(s);
+    if(place)
+    {
+        vector<std::function<field&(int)>> f(1,[this](int g) -> field& { return gfd(g)->phi; });
+        sh_down_f(f);
+    }
     pr_weights();
 
     // the predictor at the faces of the patch edges: their own value; the coarse faces their mean
@@ -2023,13 +2382,19 @@ void cfd_amr::pr_sync_project(lexer *p, ghostcell *pgc)
             gmom(F.gc)->amr_velout(gfd(F.gc),F.d,s)(c[0],c[1],c[2]) += F.area*F.ustar;
         }
     }
+    if(place)
+    for(int d=0; d<3; ++d)
+    {
+        vector<std::function<field&(int)>> f(1,[this,s,d](int g) -> field& { return gmom(g)->amr_velout(gfd(g),d,s); });
+        sh_run(pu_cf[d],f,false);
+    }
 
     field &u0 = mom0->amr_velout(a0,0,s), &v0 = mom0->amr_velout(a0,1,s), &w0 = mom0->amr_velout(a0,2,s);
 
     pflow0->pressure_io(p,a0,pgc);
     press0->amr_prepare(p,a0,pois0,pgc,u0,v0,w0,alpha);
 
-    for(int id=0; id<(int)P.size(); ++id)
+    for(int id=0; id<npat; ++id)
     {
         cfd_amr_patch *c = CP(id);
         pscope2 ps(pgc,c->a,a0);
@@ -2040,7 +2405,7 @@ void cfd_amr::pr_sync_project(lexer *p, ghostcell *pgc)
 
     pr_matrix(s);
 
-    for(int g=-1; g<(int)P.size(); ++g)
+    for(int g=-1; g<npat; ++g)
     {
         const double *R = gfd(g)->rhsvec.V.data();
         double *b = pvec(g,NS);
@@ -2052,9 +2417,9 @@ void cfd_amr::pr_sync_project(lexer *p, ghostcell *pgc)
 
     // the start: the correction of the last synchronisation (the mismatch at the patch edges
     // changes slowly from step to step), as long as the patches are the same
-    if(sync_x_ok && sync_x.size()==P.size()+1)
+    if(sync_x_ok && sync_x.size()==npat+1)
     {
-        for(int g=-1; g<(int)P.size(); ++g)
+        for(int g=-1; g<npat; ++g)
         if(sync_x[g+1].size()==lq[g+1].size())
         {
             double *x = pvec(g,-1);
@@ -2081,8 +2446,8 @@ void cfd_amr::pr_sync_project(lexer *p, ghostcell *pgc)
     int it = reefamr_bicgstab(sp,tol,p->N46,bn,rn,&tm[5],&tm[6]);
     pr_it_sync = it;
 
-    sync_x.assign(P.size()+1,vector<double>());
-    for(int g=-1; g<(int)P.size(); ++g)
+    sync_x.assign(npat+1,vector<double>());
+    for(int g=-1; g<npat; ++g)
     {
         const double *x = pvec(g,-1);
         sync_x[g+1].reserve(lq[g+1].size());
@@ -2094,7 +2459,7 @@ void cfd_amr::pr_sync_project(lexer *p, ghostcell *pgc)
     pr_sync(-1);
 
     press0->amr_finish(p,a0,pgc,u0,v0,w0,alpha);
-    for(int id=0; id<(int)P.size(); ++id)
+    for(int id=0; id<npat; ++id)
     {
         cfd_amr_patch *c = CP(id);
         pscope2 ps(pgc,c->a,a0);
@@ -2115,7 +2480,7 @@ void cfd_amr::pr_sync_project(lexer *p, ghostcell *pgc)
     }
 
     mom0->amr_project_after(p,a0,pgc,u0,v0,w0);
-    for(int id=0; id<(int)P.size(); ++id)
+    for(int id=0; id<npat; ++id)
     {
         cfd_amr_patch *c = CP(id);
         pscope2 ps(pgc,c->a,a0);
@@ -2126,7 +2491,7 @@ void cfd_amr::pr_sync_project(lexer *p, ghostcell *pgc)
 
     restrict_vel(s);
 
-    for(int id=0; id<(int)P.size(); ++id)
+    for(int id=0; id<npat; ++id)
     CP(id)->pp->dt = dts[id];
 
     t_sync += MPI_Wtime()-t0;

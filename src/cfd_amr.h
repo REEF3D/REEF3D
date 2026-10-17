@@ -27,6 +27,8 @@ Architect: Hans Bihs
 #include"amr_grid_lookup.h"
 #include<vector>
 #include<functional>
+#include<map>
+#include<tuple>
 
 class lexer;
 class fdm;
@@ -148,6 +150,12 @@ struct cfd_amr_field
 //  3 (the atmosphere) on all grids.  The probes and wave gauges of the printer (P 51, P 61, P 64)
 //  read the finest grid at their position (finest_grid).
 //
+//  G 40 1, the placement of the patches for the load of the ranks (reefamr3d, cfd_amr_place.cpp):
+//  a level-1 piece with the finer patches inside it (a unit) on any rank, its coarser level a
+//  shadow of the level-0 cells under it and around it (filled from level 0, giving back what the
+//  patches write onto level 0); the outputs and the loads of the bodies on the rank of the finest
+//  grid at the point (amr_cfd_mine).  G 40 2: the test of it (small units, placed anew).
+//
 //  G 7 1, subcycling in time (cfd_amr_sub.cpp): every level its own step, level l+1 two steps per
 //  step of level l; the cells around a patch linear in time between the start and the end of the
 //  step of the coarser level; the projection of a level alone, with the pressure of the coarser
@@ -194,6 +202,13 @@ struct cfd_amr_patch : public r3patch
     // composite pressure
     vector<field4*> kv;
     reefmg_core *mg = nullptr;
+    // G 40: the overlap of the patch multigrid into the patches of the level next to it (cells below
+    // and above per direction; a restricted additive Schwarz across the cuts between the units), the
+    // overlap its multigrid was made with, the matrix rows of the patch (filled into the overlap of
+    // the others)
+    int olo[3] = {0,0,0}, ohi[3] = {0,0,0};
+    int mlo[3] = {0,0,0}, mhi[3] = {0,0,0};
+    vector<field4*> kc7;
 
     // subcycling (G 7 1)
     cfd_amr_tlev *ts = nullptr;
@@ -325,6 +340,7 @@ private:
     void flags(vector<vector<unsigned char>> &seed, bool init);
     bool flagged(int g, int i, int j, int k, int lt, bool init);
     void regrid(lexer*, ghostcell*);
+    void regrid_old(const vector<int> &fresh, vector<vector<char>> &got);   // G 40: from the old patches of all ranks
     void patch_fields_ini(int id);
     void free_patch(cfd_amr_patch*);
 
@@ -446,6 +462,11 @@ private:
     void pr_level_mg_fill_comp(int m);
     void pr_level_vcycle(int m, int kr, int kz);
     void pr_level_solve(int l, int kr, int kz);     // the V-cycles of level l: joint or patch-local
+    // the fine level of the multigrid of patch id from its rows (diagonal times dshift), the couplings
+    // to the cells around it dropped, G 40: over its box with the overlap (pr_overlap, pr_coef_fill)
+    void pr_patch_mg(int id, double dshift);
+    void pr_overlap();
+    void pr_coef_fill(int l);
 
     // wave generation and the numerical beach on the patches (cfd_amr_relax.cpp): the relaxation
     // zones (B 98 2, B 99 1/2) with a wave theory of level 0, evaluated at the cells of the patch
@@ -474,6 +495,25 @@ private:
     double pr_res_last = 0.0;
     long pr_it_total = 0, pr_solves = 0;
     bool pr_ready = false;
+
+    // G 40, the placement of the units (cfd_amr_place.cpp): the copy plans between level 0 and the
+    // shadows of the level-1 patches (reefamr3d: sh_down, all cells of the shadow arrays)
+    r3cplan pu_cell;                    // up: the restriction onto the cells under the level-1 patches (set)
+    r3cplan pu_face[3];                 //     the faces under them (set; the - face at the low edge too)
+    r3cplan pu_cf[3];                   //     the coarse faces at the edges of the level-1 patches (set)
+    r3cplan pu_cc;                      //     the coarse cells at those edges (added: pr_apply, refluxing)
+    r3cplan pu_key;                     //     the coarse cell and side of the faces: the folds of the level-0
+                                        //     rows (pjm_corr), the couplings of the level-0 multigrid (pr_matrix)
+    vector<vector<double>> kval;        // per shadow: the sum of kc of its keys (pu_key order)
+    std::map<std::tuple<int,int,int,int,int,int>,int> kidx;    // (shadow, coarse cell, d, dir) -> its key
+    void sh_plans();
+    void sh_run(r3cplan &X, const vector<std::function<field&(int)>> &f, bool add);
+    void sh_fill_down(const vector<fspec> &fs);    // the sources of a fill of level 1 into the shadows
+    void sh_down_f(const vector<std::function<field&(int)>> &f) { sh_run(sh_down,f,false); }
+    void sh_zero(r3cplan &X, const std::function<field&(int)> &f);  // the sent items of X in f (the shadows)
+    void sh_folds();
+    void sh_ks();
+    bool is_shadow(int g) const { return g>=npat; }
 
     // heat or concentration (cfd_amr_scalar.cpp): a conservative transport of the scalar on all
     // grids (SSP-RK3 in flux form; the diffusion explicit in the stages, D 20 1, or implicit after
@@ -511,6 +551,7 @@ private:
     void sc_step_level(int l, double dt, double th0);  // G 7 1: the grids of level l
     void sc_reflux(int l);              // the flux registers of the patch edges of level l onto level l-1
     void sc_reset(int lfine);
+    void sc_record_shadows(double w, bool diff);    // G 40: the coarse fluxes of level 0 at the level-1 edges
     double sc_total(double &smin, double &smax);
 };
 

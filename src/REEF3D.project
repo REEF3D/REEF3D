@@ -1418,6 +1418,7 @@
       <VirtualDirectory Name="CFD">
         <File Name="cfd_amr.cpp"/>
         <File Name="cfd_amr_press.cpp"/>
+        <File Name="cfd_amr_place.cpp"/>
         <File Name="cfd_amr_print.cpp"/>
         <File Name="cfd_amr_sub.cpp"/>
         <File Name="cfd_amr_regrid.cpp"/>

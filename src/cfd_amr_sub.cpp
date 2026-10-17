@@ -631,7 +631,7 @@ void cfd_amr::volume_correct(lexer *p, ghostcell *pgc)
 // density and viscosity of all grids from the level set (as fluid_update_fsf)
 void cfd_amr::rovisc_all()
 {
-    for(int g=-1; g<(int)P.size(); ++g)
+    for(int g=-1; g<npat; ++g)
     {
         lexer *q = glex(g);
         fdm *a = gfd(g);

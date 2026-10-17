@@ -69,7 +69,7 @@ void cfd_amr::print(lexer *p, bool after)
 
     char name[256];
 
-    for(int id=0; id<(int)P.size(); ++id)
+    for(int id=0; id<npat; ++id)
     {
         cfd_amr_patch *c = CP(id);
         lexer *pp = c->pp;
