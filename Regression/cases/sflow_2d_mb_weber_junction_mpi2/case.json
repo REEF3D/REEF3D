@@ -1,0 +1,14 @@
+{
+ "base": "sflow_2d_mb_weber_junction",
+ "np": 2,
+ "tags": [
+  "2d",
+  "sflow",
+  "curvilinear",
+  "multiblock",
+  "river",
+  "turbulence",
+  "mpi"
+ ],
+ "description": "As sflow_2d_mb_weber_junction on 2 ranks."
+}

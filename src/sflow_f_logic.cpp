@@ -107,6 +107,16 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
     if(p->A260==4)
 	pturb =  new sflow_turb_parabolic(p);
     
+    // curvilinear grids and REEFAMR (G 1 with boxes or flags, multi-block G 50 1): the algebraic eddy viscosity
+    // (A 260 3/4) by each grid in its explicit diffusion (sflow_ediff::own_eddyv), from the state of the stage
+    const int amr_on = ((p->G1>0 && (p->G10>0 || p->G20>0.0 || p->G22>0 || p->G12>0)) || p->geo_mb>0) ? 1 : 0;
+    if((p->geo_curv==1 || amr_on==1) && (p->A260==3 || p->A260==4) && p->A212==1)
+    {
+    delete pturb;
+    pturb = new sflow_turb_void(p);
+    static_cast<sflow_ediff*>(pdiff)->own_eddyv = 1;
+    }
+
     if(p->A260==5)
     {
     if(p->mpirank==0)

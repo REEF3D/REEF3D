@@ -222,7 +222,7 @@ void sflow_amr::ini(lexer *p, fdm2D *b, ghostcell *pgc)
     int ok=1;
     if(p->A220<0 || p->A220>4) ok=0;
     if(p->A210==2) ok=0;
-    if(p->A260!=0) ok=0;
+    if(p->A260!=0 && p->A260!=3 && p->A260!=4) ok=0;   // the algebraic eddy viscosity of every grid (sflow_ediff)
     // sediment transport (S 10 1): bed load, Exner (S 31 1/2, S 32 1/2), sand slide, no fractions (sflow_amr_sed.cpp)
     if(p->S10!=0 && (p->S10!=1 || p->S51>0 || p->S31==3 || p->S32>=3)) ok=0;
     if(p->X10>3) ok=0;
@@ -239,7 +239,7 @@ void sflow_amr::ini(lexer *p, fdm2D *b, ghostcell *pgc)
         if(ok==0)
         {
             if(p->mpirank==0)
-            cout<<"!!! SFLOW multi-block grid: only for A 220 0, A 210 3, A 260 0, S 10 0/1 (S 51 0, S 31 1/2, S 32 1/2), X 10 0/2/3, W 90 0, without G 7 1 !!!"<<endl;
+            cout<<"!!! SFLOW multi-block grid: only for A 220 0, A 210 3, A 260 0/3/4, S 10 0/1 (S 51 0, S 31 1/2, S 32 1/2), X 10 0/2/3, W 90 0, without G 7 1 !!!"<<endl;
             exit(1);
         }
     }
@@ -247,7 +247,7 @@ void sflow_amr::ini(lexer *p, fdm2D *b, ghostcell *pgc)
     if(ok==0)
     {
         if(p->mpirank==0)
-        cout<<"SFLOW AMR (G 1): only for A 220 0-4, A 210 3, A 260 0, S 10 0/1 (S 51 0, S 31 1/2, S 32 1/2), X 10 0-3, W 90 0 and 2D grids -- refinement switched off"<<endl;
+        cout<<"SFLOW AMR (G 1): only for A 220 0-4, A 210 3, A 260 0/3/4, S 10 0/1 (S 51 0, S 31 1/2, S 32 1/2), X 10 0-3, W 90 0 and 2D grids -- refinement switched off"<<endl;
         maxlev=0;
         return;
     }
@@ -361,7 +361,11 @@ void sflow_amr::patch_objects(reefamr_patch *q, ghostcell *pgc)
 
     // diffusion: explicit on the patches (A 212 2 is implicit on level 0 only)
     if(p->A212>=1)
-    c->pdiff = new sflow_ediff(pp);
+    {
+    sflow_ediff *ed = new sflow_ediff(pp);
+    ed->own_eddyv = 1;
+    c->pdiff = ed;
+    }
     else
     c->pdiff = new sflow_diffusion_void(pp);
     if(nh==1)

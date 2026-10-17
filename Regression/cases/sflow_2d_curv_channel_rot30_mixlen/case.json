@@ -1,0 +1,20 @@
+{
+ "base": "sflow_2d_curv_channel_rot30",
+ "ctrl_add": [
+  "A 260 3",
+  "W 2 0.01"
+ ],
+ "tags": [
+  "2d",
+  "sflow",
+  "curvilinear",
+  "wetdry",
+  "river",
+  "turbulence"
+ ],
+ "description": "As sflow_2d_curv_channel_rot30 (river reach with an emerged island, grid rotated by 30 deg) with the horizontal diffusion (A 212 1) of W 2 and the mixing-length eddy viscosity (A 260 3): the stress nu h (grad u + grad u^T) through the faces of the curvilinear cells; rotation-invariant to 1e-10 with A 211 0 (sflow_curvilinear/t9).",
+ "covers": [
+  "sflow_ediff::curv_stress (orthogonal part, non-orthogonal part k.grad u, transposed part, no stress at walls and dry cells)",
+  "sflow_ediff::algebraic_eddyv A 260 3 on the curvilinear grid (own_eddyv)"
+ ]
+}
