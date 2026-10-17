@@ -45,6 +45,10 @@ Architect: Hans Bihs
 //  Bodies are numbered as the solver's 6DOF objects (0 .. N-1). Every rank makes the same calls with the
 //  same (reduced) loads and gets the same states; the external solver needs no communication.
 //
+//  One-way bodies (one_way): the fluid solver keeps moving them itself (fixed, prescribed motion or its
+//  own dynamics) and only hands over their loads, once per fluid step (FNPF: first stage, at t0; NHFLOW:
+//  after the last stage, at t1); the external solver does not return a state for them.
+//
 //  The external solver registers itself (attach); the bodies look it up at their first step.
 
 class sixdof_external
@@ -58,8 +62,9 @@ public:
     static sixdof_external* instance();
     static void attach(sixdof_external*);
     
-    // body n is driven by the external solver
+    // body n is driven by the external solver (two-way), or only its loads go there (one_way)
     virtual bool drives(int n) const = 0;
+    virtual bool one_way(int) const {return false;}
     // once, at the first step: mass, CoG, rotation (body -> inertial) and inertia (about the CoG, body
     // frame) of body n in REEF3D
     virtual void connect(int n, double mass, const Eigen::Vector3d &c, const Eigen::Matrix3d &R, const Eigen::Matrix3d &I) = 0;
@@ -67,6 +72,12 @@ public:
     virtual bool predictor() const = 0;
     
     virtual void fluid_loads(double t, const std::vector<vec6> &F, const std::vector<mat6> &A, bool provisional) = 0;
+    
+    // distributed loads of a one-way body n: its hull forces binned along the axis a + s e, 0 <= s <= L,
+    // in ns strips (false: none); the strip forces (3 per strip, this rank's part of the hull, called on
+    // all ranks) at time t, before fluid_loads of the same time
+    virtual bool strips(int, Eigen::Vector3d&, Eigen::Vector3d&, double&, int&) const {return false;}
+    virtual void fluid_strips(int, double, const std::vector<double>&) {}
     virtual void advance(double t0, double t1) = 0;
     
     // pose and velocity of body n at time t (CoG, rotation body -> inertial, velocity, angular velocity

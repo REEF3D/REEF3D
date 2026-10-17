@@ -127,6 +127,30 @@ public:
     const Eigen::Matrix<double,6,6> &external_added_mass() const {return Aadd_;}
     bool external_added_mass_on() const {return am_on_;}
     bool external_on() const {return ext_on_;}
+    
+    // distributed loads (REEF3D::CORAL fluid_member): the hull forces of the load integration binned
+    // along an axis a + s e, 0 <= s <= L, n strips (this rank's part); points beyond the ends to the end
+    // strips
+    void external_strips_set(const Eigen::Vector3d &a, const Eigen::Vector3d &e, double L, int n);
+    bool external_strips_on() const {return strip_n_>0;}
+    void external_strips_zero();
+    void external_strips_add(double x, double y, double z, double fx, double fy, double fz)
+    {
+        if(strip_n_<=0)
+        return;
+        const double s = (x - strip_a_(0))*strip_e_(0) + (y - strip_a_(1))*strip_e_(1) + (z - strip_a_(2))*strip_e_(2);
+        int k = int(s/strip_L_*strip_n_);
+        k = k<0 ? 0 : (k>=strip_n_ ? strip_n_-1 : k);
+        strip_F_[3*k] += fx;
+        strip_F_[3*k+1] += fy;
+        strip_F_[3*k+2] += fz;
+    }
+    // the pressure force -p n of the flat triangle a b c, p linear through the values pm at the edge
+    // midpoints (ab, bc, ca; the 3-point rule of the load integration), split exactly at the strip
+    // boundaries: the strip loads do not depend on the size of the STL triangles
+    void external_strips_tri(const double a[3], const double b[3], const double c[3], const double pm[3],
+                             double nx, double ny, double nz);
+    const std::vector<double> &external_strips() const {return strip_F_;}
 
     // read-only access for the SFLOW mesh refinement (sflow_amr)
     int amr_tricount() const {return tricount;}
@@ -238,6 +262,14 @@ protected:
     // external dynamics: velocity and angular velocity (inertial) of the external solver
     bool ext_on_ = false;
     Eigen::Vector3d ext_v_ = Eigen::Vector3d::Zero(), ext_w_ = Eigen::Vector3d::Zero();
+    
+    // strips of the distributed loads (external_strips_*); strip_collect_: the load integration of the
+    // body's own loads is running (not an added-mass block)
+    Eigen::Vector3d strip_a_ = Eigen::Vector3d::Zero(), strip_e_ = Eigen::Vector3d::UnitZ();
+    double strip_L_ = 1.0;
+    int strip_n_ = 0;
+    std::vector<double> strip_F_;
+    bool strip_collect_ = false;
     
     int &tricount, &entity_count;   // = geom
     

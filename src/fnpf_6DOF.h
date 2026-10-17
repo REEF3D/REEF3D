@@ -156,6 +156,7 @@ private:
     void ext_stage_nodes(lexer*, int, double&, double&) const;
     sixdof_external *pext = nullptr;
     bool ext_checked = false;
+    bool ext_twoway = false;        // at least one body two-way (the external solver steps inside the step)
 
     // several bodies (X 20): cross added mass A_ij (load on body i from the unit modes of body j),
     // refreshed with the unit-mode solves at the first stage, used in the coupled solve of motion()

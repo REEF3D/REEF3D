@@ -34,6 +34,7 @@ Author: Hans Bihs
 #include"seastate_f.h"
 #include"cfd_amr.h"
 #include"coral/reef3d/coral_reef3d.h"
+#include"coral/reef3d/coral_fluid_sampler.h"
 
 driver::driver(int& argc, char **argv)
 {
@@ -269,6 +270,14 @@ void driver::coral_ini()
     if(p->Z40>0)
     {
         pcoral = new coral_reef3d(p,pgc);
+        
+        // the fluid at points for CORAL's sampled wave kinematics (fluid_kinematics)
+        if(p->A10==3)
+        pcoral->set_sampler(new coral_sampler_fnpf(p,c));
+        
+        if(p->A10==5)
+        pcoral->set_sampler(new coral_sampler_nhflow(p,d));
+        
         pcoral->ini(p,pgc);
     }
 }
