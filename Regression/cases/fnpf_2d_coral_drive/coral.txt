@@ -1,0 +1,8 @@
+# REEF3D::CORAL model for fnpf_2d_coral_drive: the box of fnpf_2d_6dof_box driven in heave, 5 mm at T = 1 s
+# Architect: Hans Bihs
+time dt 0.005 end 100
+output dt 0.01 file box.dat
+body box mass 1.0 cog 6.0 0.025 0.53
+joint heave prismatic ground box point 6.0 0.025 0.53 axis 0 0 1
+fluid_body box
+drive drive joint heave sine 0.005 1.0 ramp 1.0

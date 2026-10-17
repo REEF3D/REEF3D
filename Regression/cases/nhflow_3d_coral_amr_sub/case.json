@@ -1,0 +1,9 @@
+{
+ "description": "nhflow_3d_amr_heave_sub on one rank driven by REEF3D::CORAL (Z 40 1, fluid_body, two-way): with the subcycling of the mesh refinement (G 7 1) each finest step is a CORAL step (predicted pose in the first stage, provisional loads, CORAL step, committed loads), level 0 takes poses predicted from CORAL; REEF3D_NHFLOW_6DOF and REEF3D_CORAL compared.",
+ "base": "nhflow_3d_amr_heave_sub",
+ "np": 1,
+ "ctrl_add": ["Z 40 1"],
+ "files": ["coral.txt"],
+ "tags": ["3d", "nhflow", "amr", "6dof", "subcycling", "coral"],
+ "covers": ["sixdof_nhflow::amr_body_stage, amr_body_loads, ext_predict_copy", "sixdof_obj::amr_save/amr_restore of the external state"]
+}

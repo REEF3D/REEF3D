@@ -1,0 +1,11 @@
+# one-way loads of the held CFD box on a CORAL body and in strips along a clamped beam
+# Architect: Hans Bihs
+gravity off
+time dt 0.005 end 100
+output dt 0.005 file box.dat
+body box mass 1.0 inertia 1 1 1 cog 1.0 0.01 0.525
+joint hold fixed ground box point 1.0 0.01 0.525
+fluid_body box n 0 one_way
+section beam tube D 0.05 t 0.005 E 2.1e11 G 8.08e10 rho 7850
+member beam p1 0.9 0.01 0.525 p2 1.1 0.01 0.525 n 4 section beam orient 0 0 1 end1 ground end2 ground
+fluid_member hull member beam n 0 strips 10
