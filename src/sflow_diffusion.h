@@ -30,6 +30,8 @@ class solver2D;
 class slice;
 class sliceint;
 
+#include<functional>
+
 using namespace std;
 
 // momentum diffusion for the cell-centred HLL scheme
@@ -40,6 +42,9 @@ using namespace std;
 class sflow_diffusion
 {
 public:
+
+    // checkpoints (P 48, I 45): the arrays of the object that carry over to the next step
+    virtual void ckpt_fields(const std::function<void(const char*, char, double*)>&, const std::function<void(const char*, char, int*)>&) {}
     virtual ~sflow_diffusion() = default;    // deleted through the base pointer (AMR patches)
 	virtual void diff_u(lexer*, fdm2D*, ghostcell*, solver2D*, slice&, slice&, slice&, slice&, slice&, double)=0;
 	virtual void diff_v(lexer*, fdm2D*, ghostcell*, solver2D*, slice&, slice&, slice&, slice&, slice&, double)=0;

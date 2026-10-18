@@ -202,10 +202,14 @@ void driver::driver_ini_nhflow()
     if(pnhfamr!=nullptr)
     pnhfamr->sed_attach(psed);
     
+    // the first output (not on a restart, I 45: the outputs continue)
+    if(p->I45!=1)
+    {
     pprint->start(p,d,pgc,pflow,pnhfturb,psed);
     
     if(pnhfamr!=nullptr)
     pnhfamr->print(p,d,pgc);
+    }
 
     // Lagrangian particles ini
     pnhfpart->ini(p,d,pgc);
@@ -216,6 +220,10 @@ void driver::driver_ini_nhflow()
     pnhfturb->ktimesave(p,d,pgc);
     pnhfturb->etimesave(p,d,pgc);
     }
+
+    // restart from the latest checkpoint (I 45), on any decomposition
+    if(p->I45==1)
+    ckpt_read();
 
     p->gctime=0.0;
     p->xtime=0.0;

@@ -63,6 +63,11 @@ public:
     void name_vtp(lexer*, fdm_nhf*, ghostcell*,ofstream&, int*, int &) override final;
     void offset_ParaView_2D(lexer*, int*, int &) override final;
     
+    void ckpt_fields(const std::function<void(const char*, char, double*)> &fd, const std::function<void(const char*, char, int*)> &fi) override
+    {
+        fd("turb_KIN",'C',KIN); fd("turb_EPS",'C',EPS); fi("turb_WETN",'S',WETN);
+        fd("turb_PK",'C',PK); fd("turb_PK0",'C',PK0); fd("turb_PK_b",'C',PK_b);
+    }
     double *KIN,*EPS;
     int *WALLF;
     int *WETN;   // wet state of the column after the last turbulence step (newly wetted columns)

@@ -74,6 +74,8 @@ public:
     std::vector<double> get_blob(const std::string&) const;
     // the rank blobs of all pieces (in rank order of the checkpoint)
     std::vector<std::vector<double>> get_rank_blobs(const std::string&);
+    // the rank blob of piece r (empty: none)
+    std::vector<double> get_rank_blob(const std::string&, int);
     bool get_S(const std::string&, double*);
     bool get_Si(const std::string&, int*);
     bool get_F(const std::string&, double*);

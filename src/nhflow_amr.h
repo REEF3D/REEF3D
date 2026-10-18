@@ -197,9 +197,16 @@ struct nhflow_amr_patch : public reefamr_patch
     vector<double> freg[5][4];
 };
 
+class reefckpt;
+
 class nhflow_amr : public reefamr, public amr_column_lookup, public nhflow_stage_runner, public nhflow_flux_hook, public nhflow_timestep_hook, public sediment_grids
 {
 public:
+    // checkpoints (P 48, I 45; nhflow_amr_ckpt.cpp): the arrays of nhflow_ckpt_fields and of the
+    // turbulence model per patch (reefamr_ckpt.cpp)
+    void ckpt_write(reefckpt&);
+    bool ckpt_read(reefckpt&, std::string&);
+    void flush_outputs() { gaugeout.flush(); logout.flush(); }   // a rebalance stop (G 46)
     // the output on the finest grid (amr_grid_lookup.h): the finest patch of this rank at (x,y)
     int finest_column(double x, double y, lexer *&q, void *&f) const override
     {

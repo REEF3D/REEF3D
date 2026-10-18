@@ -34,6 +34,7 @@ Author: Hans Bihs
 #include<cstdint>
 
 class lexer;
+class reefckpt;
 class fdm2D;
 class ghostcell;
 class slice;
@@ -56,6 +57,8 @@ class vec2D;
 class sixdof_sflow;
 class sflow_amr_ship;
 class solver2D;
+
+#include<functional>
 
 using namespace std;
 
@@ -202,6 +205,13 @@ public:
     void step_end(lexer*, fdm2D*, ghostcell*);
     void timestep(lexer*, fdm2D*, ghostcell*);
     void print(lexer*, fdm2D*, ghostcell*);
+    // checkpoints (P 48, I 45; sflow_amr_ckpt.cpp) and the outputs before a rebalance stop (G 46)
+    void ckpt_write(reefckpt&);
+    bool ckpt_read(reefckpt&, string&);
+    void flush_outputs() { gaugeout.flush(); logout.flush(); }
+    // the arrays of the refinement on level 0 that carry over to the next step (shoreline offsets)
+    void ckpt_fields0(const std::function<void(const char*, char, double*)> &fd, const std::function<void(const char*, char, int*)>&)
+    { if(sfs0!=nullptr) fd("amr_sfs0",'S',sfs0->V); }
     void dump_grids(lexer*);        // REEF3D_AMR_DUMP: every grid of the rank (own cells) to <dir>/amr_r<rank>.bin (tests)
 
     // called by sflow_HLL between flux_bc and the divergence (ipol 1-4)

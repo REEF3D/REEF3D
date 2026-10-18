@@ -20,6 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#include"reefckpt.h"
 #include"nhflow_amr.h"
 #include"nhflow_momentum_SI.h"
 #include"nhflow_amr_fill.h"
@@ -374,7 +375,7 @@ void nhflow_amr::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
     if(p->mpirank==0)
     {
-        logout.open("./REEF3D_NHFLOW_AMR/REEF3D_NHFLOW_AMR_log.dat");
+        if(reefckpt_open(logout,"./REEF3D_NHFLOW_AMR/REEF3D_NHFLOW_AMR_log.dat",p->I45))   // I 45: continued
         logout<<"# count \t simtime \t dt \t patches \t cells \t pressure iterations \t residual \t water volume \t relative change \t layout"<<endl;
     }
 

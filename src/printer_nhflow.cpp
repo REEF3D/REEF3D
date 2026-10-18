@@ -84,8 +84,10 @@ printer_nhflow::printer_nhflow(lexer* p, fdm_nhf *d, ghostcell *pgc)
     printcount=0;
 
     p->Darray(printtime_wT,p->P35);
+    nP35 = p->P35;
     p->Iarray(printfsfiter_wI,p->P184);
     p->Darray(printfsftime_wT,p->P185);
+    nP185 = p->P185;
 
     for(int qn=0; qn<p->P35; ++qn)
         printtime_wT[qn] = p->P35_ts[qn];
@@ -899,4 +901,47 @@ void printer_nhflow::amr_columns(lexer *p, const amr_column_lookup *amr)
     ppressprobe->amr = amr;
     if(p->P65>0)
     pvel->amr = amr;
+}
+
+// checkpoints (P 48, I 45): the file numbers of the outputs and the print windows (P 35, P 185)
+void printer_nhflow::ckpt_state(std::vector<double> &v)
+{
+    v.clear();
+    v.push_back(printcount);
+    v.push_back(pfsf!=nullptr ? pfsf->print_counter() : 0);
+    v.push_back(pbed!=nullptr ? pbed->print_counter() : 0);
+    v.push_back(nP35);
+    for(int qn=0; qn<nP35; ++qn)
+    v.push_back(printtime_wT[qn]);
+    v.push_back(nP185);
+    for(int qn=0; qn<nP185; ++qn)
+    v.push_back(printfsftime_wT[qn]);
+}
+
+void printer_nhflow::ckpt_restore(const std::vector<double> &v)
+{
+    size_t q=0;
+    auto nx = [&]() { return q<v.size() ? v[q++] : 0.0; };
+    printcount = int(nx());
+    const int a = int(nx()), b = int(nx());
+    if(pfsf!=nullptr) pfsf->print_counter() = a;
+    if(pbed!=nullptr) pbed->print_counter() = b;
+    const int n35 = int(nx());
+    for(int qn=0; qn<n35; ++qn)
+    {
+        const double t = nx();
+        if(qn<nP35) printtime_wT[qn] = t;
+    }
+    const int n185 = int(nx());
+    for(int qn=0; qn<n185; ++qn)
+    {
+        const double t = nx();
+        if(qn<nP185) printfsftime_wT[qn] = t;
+    }
+}
+
+void printer_nhflow::flush_outputs()
+{
+    if(pwsf!=nullptr)
+    pwsf->flush_files();
 }

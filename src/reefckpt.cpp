@@ -318,35 +318,42 @@ vector<double> reefckpt::get_blob(const string &name) const
     return it==rbl.end() ? vector<double>() : it->second;
 }
 
+vector<double> reefckpt::get_rank_blob(const string &name, int r)
+{
+    vector<double> res;
+    if(r<0 || r>=(int)box.size())
+    return res;
+    ifstream f(piece_name(dirname,r).c_str(),ios::binary);
+    char pm[8];
+    if(!f || !f.read(pm,8))
+    return res;
+    int hd[8];
+    for(int &v : hd)
+    rd(f,v);
+    while(true)
+    {
+        string nm;
+        if(!rstr(f,nm) || nm=="END")
+        break;
+        int type=0; long long n=0;
+        rd(f,type); rd(f,n);
+        const size_t bytes = (type==TSI || type==TFI || type==TCI) ? sizeof(int) : sizeof(double);
+        if(nm==name && type==TB)
+        {
+            res.resize(n);
+            f.read((char*)res.data(),(streamsize)(n*8));
+            break;
+        }
+        f.seekg((long long)f.tellg() + n*(long long)bytes);
+    }
+    return res;
+}
+
 vector<vector<double>> reefckpt::get_rank_blobs(const string &name)
 {
     vector<vector<double>> res(box.size());
     for(int r=0;r<(int)box.size();++r)
-    {
-        ifstream f(piece_name(dirname,r).c_str(),ios::binary);
-        char pm[8];
-        if(!f || !f.read(pm,8))
-        continue;
-        int hd[8];
-        for(int &v : hd)
-        rd(f,v);
-        while(true)
-        {
-            string nm;
-            if(!rstr(f,nm) || nm=="END")
-            break;
-            int type=0; long long n=0;
-            rd(f,type); rd(f,n);
-            const size_t bytes = (type==TSI || type==TFI || type==TCI) ? sizeof(int) : sizeof(double);
-            if(nm==name && type==TB)
-            {
-                res[r].resize(n);
-                f.read((char*)res[r].data(),(streamsize)(n*8));
-                break;
-            }
-            f.seekg((long long)f.tellg() + n*(long long)bytes);
-        }
-    }
+    res[r] = get_rank_blob(name,r);
     return res;
 }
 

@@ -30,11 +30,14 @@ Author: Hans Bihs
 #include<algorithm>
 #include<limits>
 #include<deque>
+#include<functional>
+#include<string>
 
 class lexer;
 class ghostcell;
 class slice;
 class sixdof_obj;
+class reefckpt;
 
 using namespace std;
 
@@ -212,6 +215,16 @@ public:
     virtual ~reefamr();
 
     int patches_total;
+    // checkpoints (P 48, I 45; reefamr_ckpt.cpp): the patches of this rank with the module's list of
+    // arrays per patch: visit(name, kind S/F/C, double array or nullptr, int array or nullptr)
+    using ckpt_visit = std::function<void(const char*, char, double*, int*)>;
+    using ckpt_fields_fn = std::function<void(reefamr_patch*, const ckpt_visit&)>;
+    void ckpt_write_patches(reefckpt&, const char*, const ckpt_fields_fn&);
+    bool ckpt_read_patches(reefckpt&, const char*, const ckpt_fields_fn&, std::string&);
+    // the layout of the hierarchy (tile maps, hysteresis, placement): write; read sets it up for the
+    // next regrid (ckpt_layout_pending), which the module runs (it rebuilds the patches of the checkpoint)
+    void ckpt_write_layout(reefckpt&);
+    bool ckpt_read_layout(reefckpt&, std::string&);
     // the load map now (a rebalance stop, G 46)
     void write_loadmap(lexer *p) { if(nblk==0 && maxlev>=1 && lmap_steps>0) lmap_write(p); }
 
@@ -863,6 +876,10 @@ private:
     double lw_t0 = 0.0, lw_m0 = 0.0, lw_r0 = 0.0, lw_rm0 = 0.0;
     int lw_c0 = 0;
     vector<double> lbase;                   // x1 of all ranks
+    // restart (I 45): the tile maps of the checkpoint for the next regrid, the ranks of its patches kept
+    vector<vector<unsigned char>> layoutM;
+    bool keep_ranks = false;
+    vector<reefamr_gpatch> GPckpt;          // the patch table of the checkpoint (keep_ranks)
     // load map (G 45): patch cells per level-0 column of the rank box, of the current layout and summed
     // over the steps; written as the work per step of every column for DIVEMesh (M 20 5, M 35 1)
     vector<double> lmap_cur, lmap_acc;

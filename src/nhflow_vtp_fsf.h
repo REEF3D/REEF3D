@@ -39,6 +39,7 @@ using namespace std;
 class nhflow_vtp_fsf : public increment, private vtp3D
 {
 public:
+    int& print_counter() { return printcount; }   // checkpoints (P 48, I 45)
     nhflow_vtp_fsf(lexer*,fdm_nhf*,ghostcell*);
     virtual ~nhflow_vtp_fsf() = default;
 

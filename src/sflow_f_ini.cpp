@@ -40,6 +40,7 @@ Author: Hans Bihs
 #include"sflow_vtp_bed.h"
 #include"6DOF_sflow.h"
 #include"sflow_amr.h"
+#include"reefrun_ckpt.h"
 
 void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
 {
@@ -208,15 +209,22 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
     pprint->amr_columns(pamr);      // the wave gauges and probes on the finest grid
     pamr->sed_attach(psed);
     pamr->timestep(p,b,pgc);
+    if(p->I45!=1)
     pamr->print(p,b,pgc);
     }
+
+    // restart from the latest checkpoint (I 45 1): the state at the end of its step
+    if(p->I45==1)
+    ckpt(p,b,pgc).read();
 
     // print
     log_ini(p);
 	print_debug(p,b,pgc);
+    if(p->I45!=1)
+    {
     pprint->start(p,b,pgc,pflow,pturb,psed);
-
 	pprintbed->start(p,b,pgc,psed);
+    }
 }
 
 void sflow_f::ini_fsf(lexer *p, fdm2D* b, ghostcell* pgc)

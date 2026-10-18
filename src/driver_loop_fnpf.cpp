@@ -44,6 +44,7 @@ Author: Hans Bihs
 #include"coral/reef3d/coral_reef3d.h"
 #include"runlog.h"
 #include"lagoon_output.h"
+#include"reefrun_ckpt.h"
 
 void driver::loop_fnpf()
 {
@@ -113,13 +114,8 @@ void driver::loop_fnpf()
         if(pfice!=nullptr)
         pfice->timestep(p,c,pgc);
 
-        // checkpoint on any decomposition (P 48)
-        if(p->P48>0 && p->count%p->P48==0)
-        fnpf_ckpt_write();
-
-        // rebalance on the measured load (G 46)
-        if(p->G46>0.0)
-        fnpf_rebalance_check();
+        // checkpoint on any decomposition (P 48), rebalance on the measured load (G 46)
+        ckpt().step();
         
 
         // Shell-Printout

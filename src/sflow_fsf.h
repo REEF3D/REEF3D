@@ -29,11 +29,16 @@ class ghostcell;
 class ioflow;
 class slice;
 
+#include<functional>
+
 using namespace std;
 
 class sflow_fsf
 {
 public:    
+
+    // checkpoints (P 48, I 45): the arrays of the object that carry over to the next step
+    virtual void ckpt_fields(const std::function<void(const char*, char, double*)>&, const std::function<void(const char*, char, int*)>&) {}
     virtual ~sflow_fsf() = default;    // deleted through the base pointer (AMR patches)
 	virtual void ini(lexer*, fdm2D*, ghostcell*, ioflow*)=0;
     

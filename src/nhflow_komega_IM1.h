@@ -40,6 +40,12 @@ public:
 	void clearrhs(lexer*,fdm_nhf*);
 
 	double  *KN,*EN;
+    // checkpoints: the arrays of rans_io and the values of the last step
+    void ckpt_fields(const std::function<void(const char*, char, double*)> &fd, const std::function<void(const char*, char, int*)> &fi) override
+    {
+        nhflow_rans_io::ckpt_fields(fd,fi);
+        fd("turb_KN",'C',KN); fd("turb_EN",'C',EN);
+    }
 
 
 private:

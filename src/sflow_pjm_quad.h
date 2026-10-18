@@ -52,6 +52,12 @@ using namespace std;
 class sflow_pjm_quad final : public sflow_pressure_nh, public increment
 {
 public:
+
+    void ckpt_fields(const std::function<void(const char*, char, double*)> &fd, const std::function<void(const char*, char, int*)> &fi) override
+    {
+        fd("pjm_quad_phi",'S',phi.V); fd("pjm_quad_Uest",'S',Uest.V); fd("pjm_quad_Vest",'S',Vest.V);
+        fd("pjm_quad_Ld",'S',Ld.V); fd("pjm_quad_Gx",'S',Gx.V); fd("pjm_quad_Gy",'S',Gy.V);
+    }
     sflow_pjm_quad(lexer*, fdm2D*, ghostcell*, patchBC_interface*);
 	virtual ~sflow_pjm_quad();
 

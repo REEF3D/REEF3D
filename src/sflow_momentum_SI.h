@@ -83,6 +83,27 @@ using namespace std;
 class sflow_momentum_SI final : public sflow_momentum_func
 {
 public:
+
+    void ckpt_restored() override { qini = true; }   // the face discharges of the checkpoint
+    void ckpt_fields(const std::function<void(const char*, char, double*)> &fd, const std::function<void(const char*, char, int*)> &fi) override
+    {
+        fd("momentum_SI_qx",'S',qx.V); fd("momentum_SI_qxn",'S',qxn.V); fd("momentum_SI_qxE",'S',qxE.V);
+        fd("momentum_SI_Hx",'S',Hx.V); fd("momentum_SI_alx",'S',alx.V); fd("momentum_SI_ax",'S',ax.V);
+        fd("momentum_SI_kx",'S',kx.V); fd("momentum_SI_gx0",'S',gx0.V); fd("momentum_SI_qy",'S',qy.V);
+        fd("momentum_SI_qyn",'S',qyn.V); fd("momentum_SI_qyE",'S',qyE.V); fd("momentum_SI_Hy",'S',Hy.V);
+        fd("momentum_SI_aly",'S',aly.V); fd("momentum_SI_ay",'S',ay.V); fd("momentum_SI_ky",'S',ky.V);
+        fd("momentum_SI_gy0",'S',gy0.V); fd("momentum_SI_fxU",'S',fxU.V); fd("momentum_SI_fxV",'S',fxV.V);
+        fd("momentum_SI_fyU",'S',fyU.V); fd("momentum_SI_fyV",'S',fyV.V); fd("momentum_SI_eta0",'S',eta0.V);
+        fd("momentum_SI_WL0",'S',WL0.V); fd("momentum_SI_UH0",'S',UH0.V); fd("momentum_SI_VH0",'S',VH0.V);
+        fd("momentum_SI_UHa",'S',UHa.V); fd("momentum_SI_VHa",'S',VHa.V); fd("momentum_SI_UHb",'S',UHb.V);
+        fd("momentum_SI_VHb",'S',VHb.V); fd("momentum_SI_UHp",'S',UHp.V); fd("momentum_SI_VHp",'S',VHp.V);
+        fd("momentum_SI_WHz",'S',WHz.V); fd("momentum_SI_dUH",'S',dUH.V); fd("momentum_SI_dVH",'S',dVH.V);
+        fd("momentum_SI_etaI",'S',etaI.V); fd("momentum_SI_alc",'S',alc.V); fd("momentum_SI_rhs",'S',rhs.V);
+        fd("momentum_SI_rhsW",'S',rhsW.V);
+        fd("momentum_SI_bdiag",'S',bdiag.V); fd("momentum_SI_tU",'S',tU.V);
+        fd("momentum_SI_tV",'S',tV.V); fd("momentum_SI_tUH",'S',tUH.V); fd("momentum_SI_tVH",'S',tVH.V);
+        fd("momentum_SI_WLk",'S',WLk.V); fd("momentum_SI_etaB",'S',etaB.V);
+    }
 	sflow_momentum_SI(lexer*, fdm2D*, ghostcell*, sflow_HLL*, sflow_signal_speed*, sflow_reconstruct*, sflow_diffusion*, sflow_pressure*,
                         solver2D*, solver2D*, ioflow*, sflow_fsf*, sflow_forcing*, sixdof*);
 	virtual ~sflow_momentum_SI();

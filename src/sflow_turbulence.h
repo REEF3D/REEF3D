@@ -34,12 +34,17 @@ class slice;
 
 #include<fstream>
 
+#include<functional>
+
 using namespace std;
 
 class sflow_turbulence
 {
 
 public:
+
+    // checkpoints (P 48, I 45): the arrays of the object that carry over to the next step
+    virtual void ckpt_fields(const std::function<void(const char*, char, double*)>&, const std::function<void(const char*, char, int*)>&) {}
 	virtual void start(lexer*, fdm2D*, ghostcell*, sflow_convection*, sflow_diffusion*, solver2D*, ioflow*)=0;
 	virtual void ktimesave(lexer*, fdm2D*, ghostcell*)=0;
 	virtual void etimesave(lexer*, fdm2D*, ghostcell*)=0;

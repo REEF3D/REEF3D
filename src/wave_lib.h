@@ -90,6 +90,11 @@ public:
     // by cell index. The defaults simply call the plain functions at the
     // stored coordinates, so every wave type works unchanged;
     // wave_lib_irregular_1st overrides them with precomputed spatial phases.
+    // checkpoints (P 48, I 45): the state of the library that carries over to the next step (cached
+    // evaluation), local to the rank
+    virtual void ckpt_state(std::vector<double>&) {}
+    virtual void ckpt_restore(const std::vector<double>&, size_t&) {}
+
     virtual void wave_cache_points(lexer*, const std::vector<double> &x, const std::vector<double> &y)
     {
         cache_x=x;

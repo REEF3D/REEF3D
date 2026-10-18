@@ -38,6 +38,11 @@ class sflow_turb_io : public sflow_turbulence, public increment
 {
 
 public:
+
+    void ckpt_fields(const std::function<void(const char*, char, double*)> &fd, const std::function<void(const char*, char, int*)> &fi) override
+    {
+        fd("turb_io_kin",'S',kin.V); fd("turb_io_eps",'S',eps.V);
+    }
     sflow_turb_io(lexer*);
 	virtual ~sflow_turb_io();
     

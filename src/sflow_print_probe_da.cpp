@@ -27,6 +27,7 @@ Author: Hans Bihs
 #include"turbulence.h"
 #include<sys/stat.h>
 #include<sys/types.h>
+#include"reefckpt.h"
 
 sflow_print_probe_da::sflow_print_probe_da(lexer *p, fdm2D *b, ghostcell *pgc) : probenum(p->P63)
 {
@@ -48,8 +49,8 @@ sflow_print_probe_da::sflow_print_probe_da(lexer *p, fdm2D *b, ghostcell *pgc) :
 		{
 		sprintf(name,"./REEF3D_SFLOW_ProbePoint/REEF3D-SFLOW-Probe-Point-%i.dat",n+1);
 		
-		pout[n].open(name);
-
+		if(reefckpt_open(pout[n],name,p->I45))   // I 45: continued
+		{
 	    pout[n]<<"Depth Averaged Point Probe ID:  "<<n<<endl<<endl;
 		pout[n]<<"x_coord     y_coord"<<endl;
 		
@@ -58,6 +59,7 @@ sflow_print_probe_da::sflow_print_probe_da(lexer *p, fdm2D *b, ghostcell *pgc) :
 		pout[n]<<endl<<endl;
 		
 		pout[n]<<"t \t Um \t Vm \t Wm \t Pm \t eta \t bed"<<endl;
+		}
         pout[n].close();
         }
     }

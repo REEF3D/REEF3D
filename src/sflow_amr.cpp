@@ -22,6 +22,7 @@ Author: Hans Bihs
 
 #include"sflow_curv.h"
 #include"sflow_amr.h"
+#include"reefckpt.h"
 #include"sflow_boussinesq.h"
 #include"lexer.h"
 #include"fdm2D.h"
@@ -288,7 +289,7 @@ void sflow_amr::ini(lexer *p, fdm2D *b, ghostcell *pgc)
 
     if(p->mpirank==0)
     {
-        logout.open("./REEF3D_SFLOW_AMR/REEF3D_SFLOW_AMR_log.dat");
+        if(reefckpt_open(logout,"./REEF3D_SFLOW_AMR/REEF3D_SFLOW_AMR_log.dat",p->I45))   // I 45: continued
         logout<<"# count \t simtime \t dt \t patches \t cells \t mass \t rel. mass change"<<endl;
     }
 
@@ -2528,11 +2529,13 @@ void sflow_amr::gauges(lexer *p, fdm2D *b, ghostcell *pgc)
     {
         if(!gaugeout.is_open())
         {
-            gaugeout.open("./REEF3D_SFLOW_AMR/REEF3D_SFLOW_AMR_gauges.dat");
+            if(reefckpt_open(gaugeout,"./REEF3D_SFLOW_AMR/REEF3D_SFLOW_AMR_gauges.dat",p->I45))   // I 45: continued
+            {
             gaugeout<<"# simtime";
             for(int k=0; k<ng; ++k)
             gaugeout<<" \t eta("<<p->P51_x[k]<<","<<p->P51_y[k]<<")";
             gaugeout<<" \t levels"<<endl;
+            }
         }
         gaugeout<<setprecision(10)<<p->simtime;
         for(int k=0; k<ng; ++k)

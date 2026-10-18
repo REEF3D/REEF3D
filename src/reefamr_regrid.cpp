@@ -44,8 +44,14 @@ inline int fsh(int a, int l) { return (a>=0) ? (a>>l) : -(((-a)-1)>>l)-1; }
 
 void reefamr::regrid(lexer *p, ghostcell *pgc, bool initial)
 {
+    // restart (I 45): the regrid to the layout of the checkpoint restores the hierarchy only; the
+    // hysteresis ages of the tiles and the regrid count stay those of the checkpoint
+    const bool restore_in = !layoutM.empty();
+    const vector<vector<unsigned char>> tage_ckpt = restore_in ? tage : vector<vector<unsigned char>>();
+    const int regrids_ckpt = regrids;
+
     // the measured cost model (G 41 0): the window since the last regrid is a sample
-    load_window(p,!initial);
+    load_window(p,!initial && !restore_in);
     const bool forced = force_place;
     force_place = false;
 
@@ -274,8 +280,18 @@ void reefamr::regrid(lexer *p, ghostcell *pgc, bool initial)
         M[l][(size_t)ti*gtny[l]+tj]=0;
     }
 
+    // ---- restart (I 45): the tile maps of the checkpoint
+    const bool restoring = !layoutM.empty();
+    if(restoring)
+    {
+        for(int l=1; l<=maxlev && l<(int)layoutM.size(); ++l)
+        if(layoutM[l].size()==M[l].size())
+        M[l] = layoutM[l];
+        layoutM.clear();
+    }
+
     // ---- lazy layout: the tile maps did not change, the hierarchy stays as it is
-    if(par.lazy>0.0 && !initial && !forced)
+    if(par.lazy>0.0 && !initial && !forced && !restoring)
     {
         bool same = true;
         for(int l=1; l<=maxlev && same; ++l)
@@ -452,6 +468,13 @@ void reefamr::regrid(lexer *p, ghostcell *pgc, bool initial)
 
     ++regrids;
     lmap_dirty = true;      // load map (G 45): a new layout
+    keep_ranks = false;
+
+    if(restore_in)
+    {
+        tage = tage_ckpt;
+        regrids = regrids_ckpt;
+    }
 }
 
 // --------------------------------------------------------------------- plans
@@ -1057,7 +1080,7 @@ void reefamr::place_patches(lexer *p, ghostcell *pgc, vector<vector<unsigned cha
         for(int k : ord)
         {
             const piece &c = parts[k];
-            for(const reefamr_gpatch &G : GP)
+            for(const reefamr_gpatch &G : (keep_ranks ? GPckpt : GP))
             if(G.lev==c.lev && G.I0==c.I0 && G.I1==c.I1 && G.J0==c.J0 && G.J1==c.J1)
             {
                 rold[k] = G.rank;
@@ -1080,6 +1103,8 @@ void reefamr::place_patches(lexer *p, ghostcell *pgc, vector<vector<unsigned cha
             mold = MAX(mold,lold[r]);
         }
         fresh = !anyold || (mold-mnew > par.rebalance*mold) || par.place==2;
+        if(keep_ranks && anyold)
+        fresh = false;
     }
     else
     {
@@ -1180,7 +1205,7 @@ void reefamr::place_patches(lexer *p, ghostcell *pgc, vector<vector<unsigned cha
     for(int k : ord)
     {
         const piece &c = parts[k];
-        for(const reefamr_gpatch &G : GP)
+        for(const reefamr_gpatch &G : (keep_ranks ? GPckpt : GP))
         if(G.lev==c.lev && G.I0==c.I0 && G.I1==c.I1 && G.J0==c.J0 && G.J1==c.J1)
         {
             rold[k] = G.rank;
@@ -1200,6 +1225,8 @@ void reefamr::place_patches(lexer *p, ghostcell *pgc, vector<vector<unsigned cha
 
     fresh = !anyold || (mold-mnew > par.rebalance*mold) || par.place==2
          || (lmeas && lmeasL-1.0 > par.rebalance && mnew < mold);
+    if(keep_ranks && anyold)
+    fresh = false;
 
     // predicted work max/mean (for the message)
     double mt=0.0, st=0.0, mo=0.0, so=0.0;

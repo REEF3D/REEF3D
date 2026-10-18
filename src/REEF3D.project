@@ -42,6 +42,7 @@
   <VirtualDirectory Name="HEADERS">
     <VirtualDirectory Name="REEFAMR">
       <File Name="reefckpt.h"/>
+      <File Name="reefrun_ckpt.h"/>
       <File Name="amr_load.h"/>
       <VirtualDirectory Name="CFD">
         <File Name="reefamr3d.h"/>
@@ -53,6 +54,8 @@
       </VirtualDirectory>
       <VirtualDirectory Name="FNPF">
         <File Name="fnpf_ckpt_fields.h"/>
+        <File Name="nhflow_ckpt_fields.h"/>
+        <File Name="sflow_ckpt_fields.h"/>
         <File Name="fnpf_amr_fill.h"/>
         <File Name="fnpf_amr.h"/>
       </VirtualDirectory>
@@ -1407,7 +1410,10 @@
   <VirtualDirectory Name="SOURCES">
     <VirtualDirectory Name="REEFAMR">
       <File Name="reefckpt.cpp"/>
-      <File Name="driver_ckpt_fnpf.cpp"/>
+      <File Name="reefrun_ckpt.cpp"/>
+      <File Name="reefamr_ckpt.cpp"/>
+      <File Name="iowave_ckpt.cpp"/>
+      <File Name="driver_ckpt.cpp"/>
       <File Name="reefamr_load.cpp"/>
       <File Name="amr_load.cpp"/>
       <VirtualDirectory Name="CFD">
@@ -1423,6 +1429,8 @@
         <File Name="sflow_amr_bous.cpp"/>
         <File Name="sflow_amr.cpp"/>
         <File Name="sflow_amr_sed.cpp"/>
+        <File Name="sflow_amr_ckpt.cpp"/>
+        <File Name="sflow_f_ckpt.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="FNPF">
         <File Name="fnpf_6DOF_sub.cpp"/>
@@ -1439,6 +1447,7 @@
         <File Name="nhflow_amr_diff.cpp"/>
         <File Name="nhflow_amr_sub.cpp"/>
         <File Name="nhflow_amr.cpp"/>
+        <File Name="nhflow_amr_ckpt.cpp"/>
         <File Name="nhflow_amr_sed.cpp"/>
         <File Name="nhflow_amr_6dof.cpp"/>
         <File Name="nhflow_amr_si.cpp"/>

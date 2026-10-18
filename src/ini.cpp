@@ -750,7 +750,7 @@ void control::ini_default()
     G43=0;      // int mesh refinement (SFLOW, FNPF, NHFLOW, CFD): load statistics of the ranks every G 43 steps (busy and MPI time, patch and regrid time, predicted and measured load, the measured cost of a patch cell; REEF3D_<M>_AMR/REEF3D_<M>_AMR_load*.dat); 0 off
     G41=1.0;    // double mesh refinement on several ranks (NHFLOW, SFLOW, FNPF, CFD): the work of a patch cell against a level-0 cell in the placement of G 40 1, 2; 0 measured in the run (CFD: the timers of the ranks at every regrid, with a report of the measured load; NHFLOW, SFLOW, FNPF: the measured cost model, the busy time of the ranks fitted to their level-0 cells that are not solid, their patch cells and the parent cells they serve, at every regrid; a static refinement is placed once more at step 15)
     G45=0;      // int NHFLOW, SFLOW and FNPF mesh refinement: the load map every G 45 steps, the work per step of every level-0 column averaged over the run (its level-0 cells that are not solid plus the weight of a patch cell (G 41, or measured) times the patch cells over it), for the weighted partition of DIVEMesh (M 20 5, M 35 1); REEF3D_<M>_AMR/REEF3D_<M>_AMR_loadmap.dat; 0 off
-    G46=0.0;    // double FNPF on several ranks: rebalance when the measured load max/mean of the ranks (busy time, the MPI waits taken out) exceeds G 46: checkpoint, load map, stop with exit code 3; the next start (tools/reef3d_rebalance.sh) decomposes with the weighted partition and the load map and continues (needs DIVEMesh M 50 1, 2); 0 off
+    G46=0.0;    // double SFLOW, FNPF, NHFLOW on several ranks: rebalance when the measured load max/mean of the ranks (busy time, the MPI waits taken out) exceeds G 46: checkpoint, load map, stop with exit code 3; the next start (tools/reef3d_rebalance.sh) decomposes with the weighted partition and the load map and continues (needs DIVEMesh M 50 1, 2); 0 off
     G47=100;    // int G 46: steps between the checks of the load (and at least before the first)
     G44=0.0;    // double NHFLOW, SFLOW and FNPF mesh refinement with G 40 1: weight of the patch phase in the placement (the cost of a placement is the maximum work of the ranks plus G 44 times their maximum patch work); 0 the total work only
     // grid
@@ -808,7 +808,7 @@ void control::ini_default()
 	I40=0;			// int ini from state file
 	I41=0;			// int ID of state file
     I44=0;          // int FNPF state with Fi
-    I45=0;          // int FNPF: 1 restart from the latest checkpoint (REEF3D_Checkpoint/latest, P 48) on any decomposition
+    I45=0;          // int SFLOW, FNPF, NHFLOW: 1 restart from the latest checkpoint (REEF3D_Checkpoint/latest, P 48) on any decomposition
     I50=0;			// double simtime ini
     I55=0.0;        // double reference pressure
 	I56=0;          // int pressure above F56 set to zero
@@ -882,7 +882,7 @@ void control::ini_default()
     P45=2;             // int print into single or continous state file
     P46=0;             // int print state iteration window
     P47=0;             // int print state time window
-    P48=0;             // int FNPF: a checkpoint every P 48 steps (REEF3D_Checkpoint/<count>, for I 45 on any decomposition); 0 off
+    P48=0;             // int SFLOW, FNPF, NHFLOW: a checkpoint every P 48 steps (REEF3D_Checkpoint/<count>, for I 45 on any decomposition); 0 off
     P50=0;				// int wave theory wave gages
 	P51=0;             // int print out wsf
 	P52=0;            // int print out wsfline in x-dir

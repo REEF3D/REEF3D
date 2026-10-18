@@ -20,28 +20,17 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-//  FNPF checkpoints on any decomposition (P 48: write every P 48 steps, I 45 1: restart from the
-//  latest; reefckpt.h).  The state at the end of a step: the counters and times of the run, every
-//  slice of fdm_fnpf, the potential and velocities, the sigma metrics and the flags of the lexer
-//  that change in time (wetting and drying), and the counters of the outputs.  On the same
-//  decomposition the restart continues bitwise; on another one the ghost cells come from the
-//  neighbours' interiors and the domain boundaries of the writing run.
-
-#include"driver.h"
+#include"reefrun_ckpt.h"
+#include"reefckpt.h"
 #include"lexer.h"
 #include"ghostcell.h"
-#include"fdm_fnpf.h"
-#include"printer.h"
-#include"fnpf_amr.h"
-#include"reefckpt.h"
-#include"fnpf_ckpt_fields.h"
+#include"amr_load.h"
+#include"dmpart_api.h"
 #include<iostream>
 #include<iomanip>
 #include<fstream>
 #include<cstdio>
 #include<mpi.h>
-#include"amr_load.h"
-#include"dmpart_api.h"
 
 using namespace std;
 
@@ -56,15 +45,35 @@ void run_scalars(lexer *p, F &&f)
     f("fsfsedprinttime",p->fsfsedprinttime); f("probeprinttime",p->probeprinttime);
     f("stateprinttime",p->stateprinttime); f("exportprinttime",p->exportprinttime); f("wavetime",p->wavetime);
     f("totaltime",p->totaltime); f("gctotaltime",p->gctotaltime); f("Xtotaltime",p->Xtotaltime);
+    // the in- and outflow of the last step (ioflow: the turbulence inflow profile uses Ui before the
+    // momentum step sets it again), the maxima of the last step
+    f("Ui",p->Ui); f("Ua",p->Ua); f("Uo",p->Uo); f("Hi",p->Hi); f("Ho",p->Ho); f("Qi",p->Qi); f("Qo",p->Qo);
+    f("umax",p->umax); f("vmax",p->vmax); f("wmax",p->wmax); f("viscmax",p->viscmax);
+    f("kinmax",p->kinmax); f("epsmax",p->epsmax); f("omegamax",p->omegamax);
+    f("pressmin",p->pressmin); f("pressmax",p->pressmax); f("mindt",p->mindt); f("maxdt",p->maxdt);
+    f("phimean",p->phimean); f("phiout",p->phiout); f("phiin",p->phiin);
 }
 }
 
-void driver::fnpf_ckpt_write()
+reefrun_ckpt::reefrun_ckpt(lexer *pp, ghostcell *ppgc, hooks hh) : p(pp), pgc(ppgc), h(std::move(hh))
 {
-    if(p->X10>0)
+}
+
+void reefrun_ckpt::step()
+{
+    if(p->P48>0 && p->count%p->P48==0)
+    write();
+    if(p->G46>0.0)
+    rebalance_check();
+}
+
+void reefrun_ckpt::write()
+{
+    const string un = h.unsupported ? h.unsupported() : string();
+    if(!un.empty())
     {
         if(p->mpirank==0 && p->count==p->P48)
-        cout<<"P 48: FNPF checkpoints with 6DOF bodies are not there yet -- no checkpoint"<<endl;
+        cout<<"P 48: "<<un<<" -- no checkpoint"<<endl;
         return;
     }
 
@@ -80,16 +89,11 @@ void driver::fnpf_ckpt_write()
     run_scalars(p,[&](const char *n, double &v){ ck.scalar(n,v); });
 
     vector<double> pv;
-    pprint->ckpt_state(pv);
+    if(h.printer_state)
+    h.printer_state(pv);
     ck.blob("printer",pv);
 
-    fnpf_ckpt_fields(p,c,
-        [&](const char *n, char k, double *V){ if(V==nullptr) return; if(k=='S') ck.put_S(n,V); else if(k=='F') ck.put_F(n,V); else ck.put_C(n,V); },
-        [&](const char *n, char k, int *V)   { if(V==nullptr) return; if(k=='S') ck.put_Si(n,V); else if(k=='F') ck.put_Fi(n,V); else ck.put_Ci(n,V); });
-
-    // mesh refinement: the patches (fnpf_amr_ckpt.cpp)
-    if(pfamr!=nullptr)
-    pfamr->ckpt_write(ck);
+    h.write(ck);
 
     ck.write_close(p);
 
@@ -101,13 +105,10 @@ void driver::fnpf_ckpt_write()
     }
 }
 
-void driver::fnpf_ckpt_read()
+void reefrun_ckpt::read()
 {
     reefckpt ck;
-    string msg;
-
-    if(p->X10>0)
-    msg = "FNPF restart with 6DOF bodies is not there yet";
+    string msg = h.unsupported ? h.unsupported() : string();
 
     if(!msg.empty() || !ck.read_open(p,"",msg))
     {
@@ -117,29 +118,10 @@ void driver::fnpf_ckpt_read()
         exit(1);
     }
 
-    bool ok = true;
-    fnpf_ckpt_fields(p,c,
-        [&](const char *n, char k, double *V){ if(V==nullptr || !ck.has(n)) return; ok = (k=='S' ? ck.get_S(n,V) : (k=='F' ? ck.get_F(n,V) : ck.get_C(n,V))) && ok; },
-        [&](const char *n, char k, int *V)   { if(V==nullptr || !ck.has(n)) return; ok = (k=='S' ? ck.get_Si(n,V) : (k=='F' ? ck.get_Fi(n,V) : ck.get_Ci(n,V))) && ok; });
-    ok = ck.has("eta") && ck.has("Fifsf") && ck.has("Fi") && ok;
-
-    // mesh refinement: the patches
-    if(pfamr!=nullptr)
-    {
-        string amsg;
-        if(!pfamr->ckpt_read(ck,amsg))
-        {
-            if(p->mpirank==0)
-            cout<<endl<<"!!! I 45 1: "<<amsg<<" !!!"<<endl<<endl;
-            pgc->final();
-            exit(1);
-        }
-    }
-
-    if(!ok)
+    if(!h.read(ck,msg))
     {
         if(p->mpirank==0)
-        cout<<endl<<"!!! I 45 1: checkpoint "<<ck.folder()<<" incomplete for this case !!!"<<endl<<endl;
+        cout<<endl<<"!!! I 45 1: "<<(msg.empty() ? "checkpoint "+ck.folder()+" incomplete for this case" : msg)<<" !!!"<<endl<<endl;
         pgc->final();
         exit(1);
     }
@@ -151,7 +133,8 @@ void driver::fnpf_ckpt_read()
     p->printcount = int(ck.get_scalar("printcount"));
     p->printcount_sixdof = int(ck.get_scalar("printcount_sixdof"));
     run_scalars(p,[&](const char *n, double &v){ v = ck.get_scalar(n,v); });
-    pprint->ckpt_restore(ck.get_blob("printer"));
+    if(h.printer_restore)
+    h.printer_restore(ck.get_blob("printer"));
 
     // a rebalance restart (G 46): the marker is used up
     if(p->mpirank==0)
@@ -168,8 +151,16 @@ void driver::fnpf_ckpt_read()
 // tools/reef3d_rebalance.sh repeats it) sees the marker: I 45 1 with the weighted partition of the
 // load map (M 41 1).  If the first check after a rebalance restart is not 10 % better than the load
 // that stopped the run, there is no further rebalance in this run.
-void driver::fnpf_rebalance_check()
+void reefrun_ckpt::rebalance_check()
 {
+    const string un = h.unsupported ? h.unsupported() : string();
+    if(!un.empty())
+    {
+        if(p->mpirank==0 && p->count==p->G47)
+        cout<<"G 46: "<<un<<" -- no rebalance"<<endl;
+        return;
+    }
+
     if(p->mpi_size<2 || rebal_off || p->G47<=0 || p->count%p->G47!=0)
     return;
 
@@ -200,10 +191,18 @@ void driver::fnpf_rebalance_check()
     if(L<=p->G46)
     return;
 
+    // not in the last window of the run (N 45 steps, N 41 time): the restart would not pay
+    if(p->count+p->G47>p->N45 || (p->dt>0.0 && p->simtime+p->G47*p->dt>p->N41))
+    {
+        if(p->mpirank==0)
+        cout<<"G 46: the run ends within G 47 steps -- no rebalance"<<endl;
+        return;
+    }
+
     // the load map, and the weighted partition it gives (rank 0, in place): a stop only if that
     // decomposition differs from the present one
-    if(pfamr!=nullptr)
-    pfamr->write_loadmap(p);
+    if(h.loadmap)
+    h.loadmap(p);
 
     int mybox[6] = {p->origin_i,p->origin_j,p->origin_k,p->knox,p->knoy,p->knoz};
     vector<int> now(6*size_t(p->mpi_size));
@@ -232,11 +231,10 @@ void driver::fnpf_rebalance_check()
 
     rebal_L = L;
     ++rebal_n;
-    fnpf_ckpt_write();
+    write();
 
-    pprint->flush_outputs();
-    if(pfamr!=nullptr)
-    pfamr->flush_outputs();
+    if(h.flush)
+    h.flush();
 
     if(p->mpirank==0)
     {

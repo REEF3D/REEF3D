@@ -31,11 +31,18 @@ class solver2D;
 class ioflow;
 class sixdof;
 
+#include<functional>
+
 using namespace std;
 
 class sflow_momentum 
 {
 public:
+
+    // checkpoints (P 48, I 45): the arrays of the object that carry over to the next step
+    virtual void ckpt_fields(const std::function<void(const char*, char, double*)>&, const std::function<void(const char*, char, int*)>&) {}
+    // after a restart from a checkpoint (the state of a step: the start-up of the first step is done)
+    virtual void ckpt_restored() {}
 
 	virtual void start(lexer*, fdm2D*, ghostcell*)=0;
     virtual void ini(lexer*, fdm2D*, ghostcell*)=0;

@@ -213,7 +213,7 @@ void driver::driver_ini_fnpf()
     
     // restart from the latest checkpoint (I 45), on any decomposition; the outputs continue
     if(p->I45==1)
-    fnpf_ckpt_read();
+    ckpt_read();
     
     if(p->I45!=1)
     {

@@ -69,6 +69,7 @@ class nhflow_signal_speed;
 class nhflow_reconstruct;
 class nhflow_fsf_reconstruct;
 class nhflow_turbulence;
+class reefrun_ckpt;
 class nhflow_pressure;
 class nhflow_diffusion;
 class nhflow_forcing;
@@ -90,6 +91,7 @@ class coral_reef3d;
 #include<fstream>
 #include<iomanip>
 #include<vector>
+#include<string>
 
 using namespace std;
 
@@ -125,14 +127,14 @@ public:
 	void driver_ini_cfd();
     void driver_ini_nhflow();
     void driver_ini_fnpf();
-    // checkpoints of FNPF on any decomposition (P 48, I 45; driver_ckpt_fnpf.cpp)
-    void fnpf_ckpt_write();
-    void fnpf_ckpt_read();
-    // rebalance (G 46): the measured load every G 47 steps; above G 46 checkpoint, load map, exit code 3
-    void fnpf_rebalance_check();
-    double rebal_L = 0.0;       // the load max/mean that stopped the run before (restart), 0 none
-    int rebal_n = 0;            // rebalance restarts so far
-    bool rebal_off = false;     // no further rebalance (the last one did not help)
+    // checkpoints of FNPF and NHFLOW on any decomposition (P 48, I 45) and the rebalance (G 46):
+    // the hooks of the modules (driver_ckpt.cpp) for the run part (reefrun_ckpt.h)
+    void ckpt_write();
+    void ckpt_read();
+    std::string ckpt_unsupported();
+    void rebalance_check();
+    reefrun_ckpt& ckpt();
+    reefrun_ckpt *rck = nullptr;
     
 	void log_ini();
 	void mainlog(lexer*);

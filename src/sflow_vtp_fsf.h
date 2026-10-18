@@ -54,6 +54,7 @@ public:
 
     void start(lexer*,fdm2D*,ghostcell*,ioflow*,sflow_turbulence*,sediment*);
     void print2D(lexer*,fdm2D*,ghostcell*,sflow_turbulence*,sediment*);
+    void flush_outputs();   // a rebalance stop (G 46)
 
 private:
     void pvtp(lexer*,fdm2D*,ghostcell*,sflow_turbulence*,sediment*,int);
