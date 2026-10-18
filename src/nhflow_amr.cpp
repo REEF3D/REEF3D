@@ -2607,6 +2607,9 @@ void nhflow_amr::regrid_step(lexer *p, ghostcell *pgc)
         regrid(p,pgc,false);
         tm[7] += MPI_Wtime()-t0;
     }
+
+    // load statistics of the ranks (G 43)
+    load_step(p);
 }
 
 // --------------------------------------------------------------------- floating bodies

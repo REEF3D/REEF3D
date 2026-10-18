@@ -24,6 +24,7 @@ Author: Hans Bihs
 #define REEFAMR_H_
 
 #include"increment.h"
+#include"amr_load.h"
 #include<vector>
 #include<cstddef>
 #include<algorithm>
@@ -246,6 +247,9 @@ protected:
     // ---- hierarchy
     void setup(lexer*, ghostcell*);
     void regrid(lexer*, ghostcell*, bool);
+    // load statistics of the ranks (G 43, amr_load.h): the module calls it once per step
+    void load_step(lexer*);
+    amr_load lstat;
     void free_patches();                    // all patches (module destructor)
     int patch_at(int, int, int);            // level, I, J: interior patch on this rank, -1: level 0 (l==0), -2: none, -3: outside the rank box
     int owner(int, int);                    // rank of the level-0 cell (I,J), -1: outside the domain

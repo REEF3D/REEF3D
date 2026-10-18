@@ -25,6 +25,7 @@ Architect: Hans Bihs
 
 #include"reefamr3d.h"
 #include"amr_grid_lookup.h"
+#include"amr_load.h"
 #include<vector>
 #include<functional>
 #include<map>
@@ -370,6 +371,9 @@ private:
     bool lmeas() const;
     void lbar();
     void measure_load();
+    // load statistics of the ranks (G 43, amr_load.h), once per step
+    void load_step(lexer*);
+    amr_load lstat;
     double ml_t0 = 0.0, ml_tp = 0.0;
     int ml_n = 0;
     void regrid_old(const vector<int> &fresh, vector<vector<char>> &got);   // G 40: from the old patches of all ranks

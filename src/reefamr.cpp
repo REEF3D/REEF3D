@@ -45,13 +45,16 @@ inline bool inarr(const lexer *q, int ii, int jj)
 }
 }
 
+// the time with the comms off is the patch time of the load statistics (G 43)
 reefamr_comms_off::reefamr_comms_off(ghostcell *gg) : g(gg)
 {
     old = g->set_comms(false);
+    amr_clock::patch_begin();
 }
 
 reefamr_comms_off::~reefamr_comms_off()
 {
+    amr_clock::patch_end();
     g->set_comms(old);
 }
 
@@ -1184,4 +1187,50 @@ void reefamr::xrun(reefamr_xplan &X, int nv, int tag)
 
     if(!rq.empty())
     MPI_Waitall((int)rq.size(),&rq[0],MPI_STATUSES_IGNORE);
+}
+
+// --------------------------------------------------------------------- load statistics (G 43)
+//  The counts of this rank for amr_load: level-0 cells (the rank box; multi-block: with the level-0
+//  blocks of the rank), those not solid, the patch cells with their EXT cells and layers, and the
+//  work of the placement model (place_patches: the rank box plus the patch cells).
+void reefamr::load_step(lexer *p)
+{
+    if(p->G43<=0)
+    return;
+
+    if(!lstat.ready())
+    lstat.configure(par.name);
+
+    lstat.step(p,[&]()
+    {
+        amr_load_counts c;
+        const double kz = double(MAX(p->knoz,1));
+        c.n0 = double(NX0)*double(NY0)*kz;
+        c.wpred = c.n0;
+
+        long act=0;
+        for(int ii=0; ii<NX0; ++ii)
+        for(int jj=0; jj<NY0; ++jj)
+        if(flag0(ii+O0i,jj+O0j)>0)
+        ++act;
+        c.n0a = double(act)*kz;
+
+        for(auto q : P)
+        {
+            const double kq = double(MAX(q->pp->knoz,1));
+            if(q->lev==0)
+            {
+                const double n = double(q->nx)*double(q->ny)*kq;
+                c.n0 += n;
+                c.n0a += n;
+                c.wpred += n;
+                continue;
+            }
+            const double n = double(q->nx+2*EXT)*double(q->ny+2*EXT);
+            c.np += n*kq;
+            c.wpred += n*kz*double(vfac.empty() ? 1 : vfac[q->lev]);
+            ++c.npatch;
+        }
+        return c;
+    });
 }

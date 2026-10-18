@@ -44,6 +44,7 @@ inline int fsh(int a, int l) { return (a>=0) ? (a>>l) : -(((-a)-1)>>l)-1; }
 
 void reefamr::regrid(lexer *p, ghostcell *pgc, bool initial)
 {
+    amr_regrid_clock rclock;     // load statistics (G 43)
     const int T = tile;
     const int old_total = patches_total;
 

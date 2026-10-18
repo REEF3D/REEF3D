@@ -376,6 +376,7 @@ void cfd_amr::replace_static(lexer *p, ghostcell *pgc)
 
 void cfd_amr::regrid(lexer *p, ghostcell *pgc, bool replace)
 {
+    amr_regrid_clock rclock;     // load statistics (G 43)
     const double t0 = MPI_Wtime();
 
     vector<r3patch*> gone;

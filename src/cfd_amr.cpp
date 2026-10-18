@@ -1516,6 +1516,45 @@ void cfd_amr::step(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof *p6do
         p->B30 = b30;
         reference(p,pgc);
     }
+
+    // load statistics of the ranks (G 43)
+    load_step(p);
+}
+
+// the counts of this rank for amr_load: level-0 cells, those not solid, the patch cells (G 7 1:
+// times their steps per level-0 step, as in measure_load), the work of the placement model (level 0
+// plus wpatch times the patch cells) and the patch time of the loops over the patches (their work
+// without the fills, and their V-cycles)
+void cfd_amr::load_step(lexer *p)
+{
+    if(p->G43<=0)
+    return;
+
+    if(!lstat.ready())
+    lstat.configure("CFD AMR");
+
+    lstat.step(p,[&]()
+    {
+        amr_load_counts c;
+        c.n0 = double(p0->knox)*p0->knoy*p0->knoz;
+
+        long act=0;
+        for(int i=0; i<p0->knox; ++i)
+        for(int j=0; j<p0->knoy; ++j)
+        for(int k=0; k<p0->knoz; ++k)
+        if(p0->flag4[cix(p0,i,j,k)]>0)
+        ++act;
+        c.n0a = double(act);
+
+        for(int qi=0; qi<npat; ++qi)
+        {
+            c.np += ((p0->G7==1) ? double(1<<P[qi]->lev) : 1.0)*double(P[qi]->n[0])*P[qi]->n[1]*P[qi]->n[2];
+            ++c.npatch;
+        }
+        c.wpred = c.n0 + wpatch*c.np;
+        c.tpatch = wtp + tp[0];
+        return c;
+    });
 }
 
 // G 7 0: all levels with the step of the finest one

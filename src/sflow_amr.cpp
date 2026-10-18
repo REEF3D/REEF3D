@@ -2049,6 +2049,9 @@ void sflow_amr::step_end(lexer *p, fdm2D *b, ghostcell *pgc)
     fill_level0(pgc,0);
     tm[0] += MPI_Wtime()-t0;
     }
+
+    // load statistics of the ranks (G 43)
+    load_step(p);
 }
 
 // --------------------------------------------------------------------- flux matching

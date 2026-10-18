@@ -41,6 +41,7 @@
   <Dependencies/>
   <VirtualDirectory Name="HEADERS">
     <VirtualDirectory Name="REEFAMR">
+      <File Name="amr_load.h"/>
       <VirtualDirectory Name="CFD">
         <File Name="reefamr3d.h"/>
       </VirtualDirectory>
@@ -1393,6 +1394,7 @@
   </VirtualDirectory>
   <VirtualDirectory Name="SOURCES">
     <VirtualDirectory Name="REEFAMR">
+      <File Name="amr_load.cpp"/>
       <VirtualDirectory Name="CFD">
         <File Name="cfd_amr_relax.cpp"/>
         <File Name="reefamr3d.cpp"/>

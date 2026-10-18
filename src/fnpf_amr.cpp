@@ -1001,6 +1001,9 @@ void fnpf_amr::step_end(lexer *p, fdm_fnpf *c, ghostcell *pgc)
         regrid(p,pgc,false);
         tm[4] += MPI_Wtime()-t0;
     }
+
+    // load statistics of the ranks (G 43)
+    load_step(p);
 }
 
 // time step of the finest grid, same CFL as fnpf_timestep

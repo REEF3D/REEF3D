@@ -374,7 +374,7 @@ public:
 
     // Grid Options
     // mesh refinement (SFLOW, FNPF, NHFLOW): G 1-G 40
-    int G1,G2,G3,G4,G5,G6,G7,G10,G11,G12,G22,G23,G30,G31,G40,G50,G51,G52,G53;
+    int G1,G2,G3,G4,G5,G6,G7,G10,G11,G12,G22,G23,G30,G31,G40,G43,G50,G51,G52,G53;
     int G54, *G54_b, *G54_t;     // open boundaries on the blocks 1.. of a multi-block grid: block, type (1 discharge in, 2 level out)
     double *G54_v;               // discharge (m3/s) or water level (m)
     double G12_r,G13_L,G13_a,G20,G21;
