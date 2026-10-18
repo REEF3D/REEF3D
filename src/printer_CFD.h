@@ -23,11 +23,11 @@ Author: Hans Bihs
 #ifndef PRINTER_CFD_H_
 #define PRINTER_CFD_H_
 
-#include"printer.h"
-#include"increment.h"
-#include"field5.h"
+#include "field5.h"
+#include "increment.h"
+#include "printer.h"
 
-#include"vtks.h"
+#include "vtks.h"
 
 class turbulence;
 class heat;
@@ -55,6 +55,7 @@ class probe_vel_theory;
 class exportfile;
 class flowfile_out;
 class print_averaging;
+class lagoon_output;
 
 using namespace std;
 
@@ -62,21 +63,21 @@ class printer_CFD final : public printer, public increment
 {
 
 public:
-    printer_CFD(lexer*,fdm*,ghostcell*);
+    printer_CFD(lexer *, fdm *, ghostcell *);
     virtual ~printer_CFD() = default;
-    void start(lexer*,fdm*,ghostcell*,turbulence*,heat*,ioflow*,expdata*,concentration*,multiphase*,sediment*) override final;
-    void print_stop(lexer*,fdm*,ghostcell*,turbulence*,heat*,ioflow*,expdata*,concentration*,multiphase*,sediment*) override final;
+    void start(lexer *, fdm *, ghostcell *, turbulence *, heat *, ioflow *, expdata *, concentration *, multiphase *, sediment *) override final;
+    void print_stop(lexer *, fdm *, ghostcell *, turbulence *, heat *, ioflow *, expdata *, concentration *, multiphase *, sediment *) override final;
 
 private:
-    void print3D(lexer*,fdm*,ghostcell*,turbulence*,heat*,expdata*,concentration*,multiphase*,sediment*);
-    void parallel(lexer*,fdm*,ghostcell*,turbulence*,heat*,expdata*,concentration*,multiphase*,sediment*,int);
+    void print3D(lexer *, fdm *, ghostcell *, turbulence *, heat *, expdata *, concentration *, multiphase *, sediment *);
+    void parallel(lexer *, fdm *, ghostcell *, turbulence *, heat *, expdata *, concentration *, multiphase *, sediment *, int);
 
     vtk3D *outputFormat;
     bool initial_print = true;
     size_t file_offset = 0;
 
     char name[200];
-    int n,iin,offset[300];
+    int n, iin, offset[300];
     float ffn;
     double *printtime_wT;
     double *printfsftime_wT;
@@ -89,9 +90,9 @@ private:
     vorticity *pvort;
     probe_point *pprobe;
     probe_pressure *ppressprobe;
-	probe_line *pline;
-	
-	gage_discharge_x *pq;
+    probe_line *pline;
+
+    gage_discharge_x *pq;
     gage_discharge_window_x *pqw;
     fsf_vtp *pfsf;
     topo_vtp *ptopo;
@@ -104,6 +105,7 @@ private:
     print_averaging *pmean;
     probe_vel *pvel;
     probe_vel_theory *pveltheo;
+    lagoon_output *plagoon = nullptr;  // P 18: LAGOON store of the volume
 };
 
 #endif

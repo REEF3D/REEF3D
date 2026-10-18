@@ -23,11 +23,11 @@ Author: Hans Bihs
 #ifndef RANS_IO_H_
 #define RANS_IO_H_
 
-#include"turbulence.h"
-#include"field4.h"
-#include"fieldint4.h"
-#include"strain.h"
-#include<fstream>
+#include "field4.h"
+#include "fieldint4.h"
+#include "strain.h"
+#include "turbulence.h"
+#include <fstream>
 
 class lexer;
 class fdm;
@@ -38,47 +38,47 @@ using namespace std;
 class rans_io : public turbulence, public strain
 {
 public:
-    rans_io(lexer*,fdm*);
-	virtual ~rans_io();
+    rans_io(lexer *, fdm *);
+    virtual ~rans_io();
 
-    void print_3D(lexer*, fdm*, ghostcell*, std::vector<char>&, size_t&) override final;
-    void ini(lexer*, fdm*, ghostcell*) override final;
-    void plain_wallfunc(lexer*, fdm*, ghostcell*);
-    void inflow(lexer*, fdm*, ghostcell*);
-    double kinval(int,int,int) override final;
-    double epsval(int,int,int) override final;
-	void gcupdate(lexer*, fdm*, ghostcell*) override final;
-	double ccipol_kinval(lexer*,ghostcell*,double,double,double) override final;
-	double ccipol_epsval(lexer*,ghostcell*,double,double,double) override final;
-    double ccipol_a_kinval(lexer*,ghostcell*,double,double,double) override final;
-	double ccipol_a_epsval(lexer*,ghostcell*,double,double,double) override final;
-    void kinget(int,int,int,double) override final;
-    void epsget(int,int,int,double) override final;
+    void print_3D(lexer *, fdm *, ghostcell *, std::vector<char> &, size_t &) override final;
+    void ini(lexer *, fdm *, ghostcell *) override final;
+    void plain_wallfunc(lexer *, fdm *, ghostcell *);
+    void inflow_turb(lexer *, fdm *, ghostcell *);
+    double fsf_depth(lexer *, fdm *);
+    double kinval(int, int, int) override final;
+    double epsval(int, int, int) override final;
+    void gcupdate(lexer *, fdm *, ghostcell *) override final;
+    double ccipol_kinval(lexer *, ghostcell *, double, double, double) override final;
+    double ccipol_epsval(lexer *, ghostcell *, double, double, double) override final;
+    double ccipol_a_kinval(lexer *, ghostcell *, double, double, double) override final;
+    double ccipol_a_epsval(lexer *, ghostcell *, double, double, double) override final;
+    void kinget(int, int, int, double) override final;
+    void epsget(int, int, int, double) override final;
 
-    void name_ParaView_parallel(lexer*, ofstream&) override final;
-    void name_ParaView(lexer*, std::stringstream&, int*, int &) override final;
-    void offset_ParaView(lexer*, int*, int &) override final;
-    
-    field4 kin,eps,eddyv0;
-	fieldint4 wallf;
-	
-	double const ke_c_1e, ke_c_2e,ke_sigma_k,ke_sigma_e;
-	double const kw_alpha, kw_beta,kw_sigma_k,kw_sigma_w;
-	double const sst_alpha1, sst_alpha2, sst_beta1, sst_beta2, sst_sigma_k1, sst_sigma_k2, sst_sigma_w1, sst_sigma_w2;
+    void name_ParaView_parallel(lexer *, ofstream &) override final;
+    void name_ParaView(lexer *, std::stringstream &, int *, int &) override final;
+    void offset_ParaView(lexer *, int *, int &) override final;
+
+    field4 kin, eps, eddyv0;
+    fieldint4 wallf;
+
+    double const ke_c_1e, ke_c_2e, ke_sigma_k, ke_sigma_e;
+    double const kw_alpha, kw_beta, kw_sigma_k, kw_sigma_w;
+    double const sst_alpha1, sst_alpha2, sst_beta1, sst_beta2, sst_sigma_k1, sst_sigma_k2, sst_sigma_w1, sst_sigma_w2;
 
 private:
-    void tau_calc(fdm*, lexer*, double);
-    void kepsini_default(lexer*,fdm*,ghostcell*);
+    void tau_calc(fdm *, lexer *, double);
+    void kepsini_default(lexer *, fdm *, ghostcell *);
 
-	float ffn;
-	int q,iin;
-	int gcval_kin,gcval_eps,gcval_edv;
+    float ffn;
+    int q, iin;
+    int gcval_kin, gcval_eps, gcval_edv;
 
-	double M,I,tau,H,B,ks,kinbed,uvel,refwalldist,fc;
-	double kinw,epsw;
-	double walld,ddn,depth;
+    double M, I, tau, H, B, ks, kinbed, uvel, refwalldist, fc;
+    double kinw, epsw;
+    double walld, ddn, depth;
 };
 
 #endif
-
 

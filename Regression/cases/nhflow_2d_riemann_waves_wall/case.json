@@ -1,0 +1,18 @@
+{
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 800,
+ "description": "Waves from a Riemann edge in a 300 m channel closed by a wall: the reflected waves leave through the Riemann edge.",
+ "tags": [
+  "quick",
+  "2d",
+  "nhflow",
+  "waves",
+  "iowave",
+  "bc_zone",
+  "background"
+ ],
+ "covers": [
+  "Riemann edge absorbing outgoing waves"
+ ]
+}

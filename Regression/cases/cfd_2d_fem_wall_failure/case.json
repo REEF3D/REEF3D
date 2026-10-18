@@ -1,0 +1,30 @@
+{
+ "base": "cfd_2d_dambreak",
+ "ctrl_add": [
+  "Z 30 1"
+ ],
+ "files": [
+  "fem.dat"
+ ],
+ "np": 1,
+ "steps": 50,
+ "tags": [
+  "2d",
+  "dambreak",
+  "fem",
+  "fsi",
+  "failure"
+ ],
+ "description": "2D water column held by a weak concrete wall that cracks at the base, erodes and breaks off; the broken wall becomes a rigid fragment (fragments rigid) (FEM solid, Z 30). 50 steps: beyond about 55 steps the erosion cascade and the fragment contacts make the run sensitive to round-off (compiler, MPI).",
+ "covers": [
+  "concrete damage + crack band",
+  "element erosion and surface rebuild",
+  "broken-off part becomes a rigid fragment (momentum, time step update, summary)",
+  "debris particles (drag, buoyancy, reaction)",
+  "ground and node-node contact",
+  "N10=1 REEFMG pressure solver"
+ ],
+ "ctrl_set": {
+  "N 10": "1"
+ }
+}

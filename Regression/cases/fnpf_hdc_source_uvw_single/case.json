@@ -1,0 +1,7 @@
+{
+ "base": "fnpf_hdc_source_uvw",
+ "ctrl_add": ["P 45 1"],
+ "description": "fnpf_hdc_source_uvw writing one state file per step (P 45 1): first stage of nhflow_2d_hdc_single.",
+ "tags": ["2d", "fnpf", "waves", "hdc-stage"],
+ "covers": ["fnpf_state single files"]
+}

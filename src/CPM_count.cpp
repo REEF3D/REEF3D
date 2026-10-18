@@ -20,11 +20,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Authors: Alexander Hanke, Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"CPM.h"
-#include"lexer.h"
-#include"fdm.h"
-#include"ghostcell.h"
-#include"sediment_fdm.h"
+#include "CPM.h"
+#include "fdm.h"
+#include "ghostcell.h"
+#include "lexer.h"
+#include "sediment_fdm.h"
 
 void CPM::count_particles(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
 {
@@ -32,25 +32,25 @@ void CPM::count_particles(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
     int active_count = 0;
     int empty_count = 0;
 
-    for(n=0;n<P.index;++n)
+    for(n = 0; n < P.index; ++n)
     {
         ++particle_count;
 
-        if(P.Flag[n]>=ACTIVE)
-        ++active_count;
-            
-        else if(P.Flag[n]==EMPTY)
-        ++empty_count;
+        if(P.Flag[n] >= ACTIVE)
+            ++active_count;
+
+        else if(P.Flag[n] == EMPTY)
+            ++empty_count;
     }
 
     particle_count = pgc->globalsum(particle_count);
     active_count = pgc->globalsum(active_count);
     empty_count = pgc->globalsum(empty_count);
 
-    if(p->mpirank==0)
-    cout<<"Particle_count_global: "<<particle_count<<" Active_count: "<<active_count<<" Empty_count: "<<empty_count<<endl;
+    if(p->mpirank == 0)
+        cout << "Particle_count_global: " << particle_count << " Active_count: " << active_count << " Empty_count: " << empty_count << endl;
 
-    for(n=0;n<P.index_empty;++n)
-    if(P.Empty[P.index_empty]<0)
-    cout<<p->mpirank<<"EMPTY_NEG: "<<P.Empty[P.index_empty]<<endl;
+    for(n = 0; n < P.index_empty; ++n)
+        if(P.Empty[n] < 0 || P.Empty[n] >= P.capacity)
+            cout << p->mpirank << " CPM EMPTY list corrupt: " << P.Empty[n] << endl;
 }

@@ -1,0 +1,6 @@
+{
+ "description": "NHFLOW 3D basin with waves from two edges (iowave redesign, zones with own sources): zone 1 on x- (B 520/521) generates the B 92 wave (linear, T 4) only, zone 2 on y- generates source 2 (linear, T 3, direction 90 deg, B 500/501) only (B 524); beaches on x+ (B 96) and y+ (zone 3). Gauge 1 sits in zone 1 at the x- edge, gauge 2 in zone 2 at the y- edge.",
+ "solver": "nhflow", "np": 2, "steps": 120,
+ "tags": ["quick", "3d", "nhflow", "waves", "iowave", "bc_zone", "wave_field", "mpi"],
+ "covers": ["B 520/521/524 zone input", "per-zone sources in the cached precalc", "zone priority", "beach zone from B 520"]
+}

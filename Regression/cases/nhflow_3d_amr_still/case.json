@@ -1,0 +1,17 @@
+{
+ "description": "NHFLOW AMR static patch over a closed tank with bed ramps under the patch edges (still water must stay still): fill, flux matching, restriction, composite pressure.",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 40,
+ "tags": [
+  "quick",
+  "3d",
+  "nhflow",
+  "amr"
+ ],
+ "covers": [
+  "nhflow_amr fill_stage/flux_hook/restrict",
+  "nhflow_amr_press composite BiCGStab+FAC",
+  "well-balanced bed prolongation"
+ ]
+}

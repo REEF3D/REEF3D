@@ -20,82 +20,81 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"benchmark_vortex3D.h"
-#include"lexer.h"
-#include"fdm.h"
-#include"ghostcell.h"
-#include"convection.h"
+#include "benchmark_vortex3D.h"
+#include "convection.h"
+#include "fdm.h"
+#include "ghostcell.h"
+#include "lexer.h"
 
 benchmark_vortex3D::benchmark_vortex3D(lexer *p, fdm *a)
 {
-    double r,xc,yc,zc,radius;
+    double r, xc, yc, zc, radius;
     double H;
 
     xc = 0.35;
     yc = 0.35;
-	zc = 0.35;
+    zc = 0.35;
     radius = 0.15;
 
     LOOP
-    a->vof(i,j,k)=0.0;
+        a->vof(i, j, k) = 0.0;
 
-	LOOP
-	{
-    r = sqrt( pow(p->pos_x()-xc,2.0) + pow(p->pos_y()-yc,2.0) + pow(p->pos_z()-zc,2.0));
-	if(r<=radius)
-	a->vof(i,j,k)=1.0;
-	}
-
-	
-	if(p->F151==1)
-	LOOP
-    a->phi(i,j,k)*=-1.0;
-	
     LOOP
-	{
-		H=a->vof(i,j,k);
+    {
+        r = sqrt(pow(p->pos_x() - xc, 2.0) + pow(p->pos_y() - yc, 2.0) + pow(p->pos_z() - zc, 2.0));
+        if(r <= radius)
+            a->vof(i, j, k) = 1.0;
+    }
 
-		a->ro(i,j,k)= p->W1*H + p->W3*(1.0-H);
-		a->visc(i,j,k)= p->W2*H + p->W4*(1.0-H);
-	}
+    if(p->F151 == 1)
+        LOOP
+            a->phi(i, j, k) *= -1.0;
+
+    LOOP
+    {
+        H = a->vof(i, j, k);
+
+        a->ro(i, j, k) = p->W1 * H + p->W3 * (1.0 - H);
+        a->visc(i, j, k) = p->W2 * H + p->W4 * (1.0 - H);
+    }
 }
 
 benchmark_vortex3D::~benchmark_vortex3D()
 {
 }
 
-void benchmark_vortex3D::start(lexer* p, fdm *a, ghostcell *pgc, convection *pconvec )
+void benchmark_vortex3D::start(lexer *p, fdm *a, ghostcell *pgc, convection *pconvec)
 {
-    double xc,yc,zc;
+    double xc, yc, zc;
 
     ULOOP
     {
-    xc = p->pos_x() + 0.5*p->DXM;
-    yc = p->pos_y();
-	zc = p->pos_z();
+        xc = p->pos_x() + 0.5 * p->DXM;
+        yc = p->pos_y();
+        zc = p->pos_z();
 
-    a->u(i,j,k) = 2.0* pow(sin(PI*xc),2.0) * sin(2.0*PI*yc) * sin(2.0*PI*zc) * cos((PI*p->simtime)/3.0);
+        a->u(i, j, k) = 2.0 * pow(sin(PI * xc), 2.0) * sin(2.0 * PI * yc) * sin(2.0 * PI * zc) * cos((PI * p->simtime) / 3.0);
     }
 
     VLOOP
     {
-    xc = p->pos_x();
-    yc = p->pos_y() + 0.5*p->DXM;
-	zc = p->pos_z();
+        xc = p->pos_x();
+        yc = p->pos_y() + 0.5 * p->DXM;
+        zc = p->pos_z();
 
-    a->v(i,j,k) = -sin(2.0*PI*xc) * pow(sin(PI*yc),2.0) * sin(2.0*PI*zc) * cos((PI*p->simtime)/3.0);
+        a->v(i, j, k) = -sin(2.0 * PI * xc) * pow(sin(PI * yc), 2.0) * sin(2.0 * PI * zc) * cos((PI * p->simtime) / 3.0);
     }
-	
-	WLOOP
+
+    WLOOP
     {
-    xc = p->pos_x();
-    yc = p->pos_y();
-	zc = p->pos_z() + 0.5*p->DXM;
+        xc = p->pos_x();
+        yc = p->pos_y();
+        zc = p->pos_z() + 0.5 * p->DXM;
 
-    a->w(i,j,k) = -sin(2.0*PI*xc) * sin(2.0*PI*yc) * pow(sin(PI*zc),2.0) * cos((PI*p->simtime)/3.0);
+        a->w(i, j, k) = -sin(2.0 * PI * xc) * sin(2.0 * PI * yc) * pow(sin(PI * zc), 2.0) * cos((PI * p->simtime) / 3.0);
     }
 
-    pgc->start1(p,a->u,10);
-    pgc->start2(p,a->v,11);
-	pgc->start2(p,a->v,12);
+    pgc->start1(p, a->u, 10);
+    pgc->start2(p, a->v, 11);
+    pgc->start3(p, a->w, 12);
 }

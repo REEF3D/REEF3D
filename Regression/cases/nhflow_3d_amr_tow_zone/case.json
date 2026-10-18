@@ -1,0 +1,17 @@
+{
+ "description": "NHFLOW AMR towed box (X 10 2, 2 m/s) with the moving zone and wake wedge (G 12, G 13), a regrid every step (G 2 1, G 5 0): from_old transfer, conservative prolongation, patch deletion.",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 40,
+ "tags": [
+  "3d",
+  "nhflow",
+  "amr",
+  "6dof"
+ ],
+ "covers": [
+  "reefamr regrid/lazy layout",
+  "nhflow_amr regrid_state/from_old/prolong_patch",
+  "G 13 wedge"
+ ]
+}

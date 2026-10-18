@@ -23,17 +23,16 @@ Author: Hans Bihs
 #ifndef REINI_VOID_H_
 #define REINI_VOID_H_
 
-#include"reini.h"
-#include"particle_corr.h"
+#include "reini.h"
 
 using namespace std;
 
 class reini_void final : public reini
 {
 public:
-	reini_void(lexer* p);
-	virtual ~reini_void();
-	void start(fdm*,lexer*,field&,ghostcell*,ioflow*) override final;
+    reini_void(lexer *p);
+    virtual ~reini_void();
+    void start(fdm *, lexer *, field &, ghostcell *, ioflow *) override final;
 };
 
 #endif

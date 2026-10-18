@@ -20,23 +20,41 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"sediment_exner.h"
-#include"lexer.h"
-#include"ghostcell.h"
-#include"bedconc_VR.h"
-#include"topo_relax.h"
-#include"sediment_exnerdisc.h"
-#include"sediment_fdm.h"
+#include "bedconc_VR.h"
+#include "ghostcell.h"
+#include "lexer.h"
+#include "sediment_exner.h"
+#include "sediment_exnerdisc.h"
+#include "sediment_fdm.h"
+#include "sediment_mixture.h"
+#include "topo_relax.h"
 
-double sediment_exner::susp_qb(lexer* p, ghostcell *pgc, sediment_fdm *s)
+double sediment_exner::susp_ED(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
-    double val=0.0;
-    
-    if(p->count>p->S43)
-    val = (-s->ws)*(s->cb(i,j) - s->cbe(i,j)); 
-    
+    double val = 0.0;
+
+    if(p->S62 == 1 && p->count > p->S43)
+        val = (-s->ws) * (s->cb(i, j) - s->cbe(i, j));
+
+    // multi-fraction bed: exchange with the single suspended class weighted by F_k
+    if(frac_k >= 0)
+        val *= (*s->pmix->F[frac_k])(i, j);
+
     // E: cbe
     // D: conc
-    
+
     return val;
+}
+
+void sediment_exner::susp_qs(lexer *p, ghostcell *pgc, sediment_fdm *s)
+{
+    if(frac_k < 0)
+        SEDSLICELOOP
+    s->qb(i, j) += s->qbs(i, j);
+
+    if(frac_k >= 0)
+        SEDSLICELOOP
+    s->qb(i, j) += (*s->pmix->F[frac_k])(i, j) * s->qbs(i, j);
+
+    pgc->gcsl_start4(p, s->qb, 1);
 }

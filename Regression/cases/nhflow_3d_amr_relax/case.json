@@ -1,0 +1,21 @@
+{
+ "base": "nhflow_3d_irregular_decomp",
+ "steps": 30,
+ "ctrl_add": [
+  "G 1 1",
+  "G 10 0.0 60.0 0.0 30.0"
+ ],
+ "description": "NHFLOW 3D static AMR (G 1 1) with a refinement box over the whole domain: only the relaxation zones (B 96 15 15) and the in/outflow band stay unrefined. Guards the zones' no-refinement boxes.",
+ "tags": [
+  "quick",
+  "3d",
+  "nhflow",
+  "waves",
+  "iowave",
+  "amr"
+ ],
+ "covers": [
+  "nhflow_amr fbox from bc_zone",
+  "reefamr ioband"
+ ]
+}

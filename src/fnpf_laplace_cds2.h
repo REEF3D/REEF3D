@@ -23,8 +23,9 @@ Author: Hans Bihs
 #ifndef LAPLACE_FNPF_CDS2_H_
 #define LAPLACE_FNPF_CDS2_H_
 
-#include"fnpf_laplace.h"
-#include"increment.h"
+#include "fnpf_laplace.h"
+#include "increment.h"
+#include <vector>
 
 class fnpf_bed_update;
 
@@ -33,19 +34,23 @@ using namespace std;
 class fnpf_laplace_cds2 final : public fnpf_laplace, public increment
 {
 public:
-    fnpf_laplace_cds2 (lexer*);
-	virtual ~fnpf_laplace_cds2();
+    fnpf_laplace_cds2(lexer *);
+    virtual ~fnpf_laplace_cds2();
 
-    void start(lexer *,fdm_fnpf*,ghostcell*,solver*,fnpf_fsf*,double*,slice&) override final;
-    
+    void start(lexer *, fdm_fnpf *, ghostcell *, solver *, fnpf_fsf *, double *, slice &) override final;
+
+    // mesh refinement (fnpf_amr): assemble M and rhs, but do not solve
+    bool assemble_only = false;
+
 private:
-    
     fnpf_bed_update *pbed;
-    
-    double sigxyz2;
-    double ab,denom;
-    double starttime,endtime;
 
+    double sigxyz2;
+    double ab, denom;
+    double starttime, endtime;
+    int gcval;
+
+    std::vector<double> fold;
 };
 
 #endif

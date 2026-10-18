@@ -20,12 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"picard_f.h"
-#include"lexer.h"
-#include"fdm.h"
-#include"ghostcell.h"
+#include "picard_f.h"
+#include "fdm.h"
+#include "ghostcell.h"
+#include "lexer.h"
 
-picard_f::picard_f(lexer *p) : gradient(p), epsi(p->F45*p->DXM)
+picard_f::picard_f(lexer *p) : gradient(p), epsi(p->F45 * p->DXM), vol1(0.0), vol2(0.0)
 {
 }
 
@@ -33,81 +33,80 @@ picard_f::~picard_f()
 {
 }
 
-void picard_f::volcalc(lexer *p, fdm *a, ghostcell *pgc, field& b)
+void picard_f::volcalc(lexer *p, fdm *a, ghostcell *pgc, field &b)
 {
     double H = 0.0;
-    vol1=0.0;
+    vol1 = 0.0;
 
     LOOP
-	{
-		if(b(i,j,k)>epsi)
-		H=1.0;
+    {
+        if(b(i, j, k) > epsi)
+            H = 1.0;
 
-		if(b(i,j,k)<-epsi)
-		H=0.0;
+        if(b(i, j, k) < -epsi)
+            H = 0.0;
 
-		if(fabs(b(i,j,k))<=epsi)
-		H=0.5*(1.0 + b(i,j,k)/epsi + (1.0/PI)*sin((PI*b(i,j,k))/epsi));
+        if(fabs(b(i, j, k)) <= epsi)
+            H = 0.5 * (1.0 + b(i, j, k) / epsi + (1.0 / PI) * sin((PI * b(i, j, k)) / epsi));
 
-		vol1+=pow(p->DXM, 3.0)*H;
-	}
+        vol1 += pow(p->DXM, 3.0) * H;
+    }
 
-	vol1 = pgc->globalsum(vol1);
+    vol1 = pgc->globalsum(vol1);
 }
 
-void picard_f::volcalc2(lexer *p, fdm *a, ghostcell *pgc, field& b)
+void picard_f::volcalc2(lexer *p, fdm *a, ghostcell *pgc, field &b)
 {
     double H = 0.0;
-    vol2=0.0;
+    vol2 = 0.0;
 
     LOOP
-	{
-		if(b(i,j,k)>epsi)
-		H=1.0;
+    {
+        if(b(i, j, k) > epsi)
+            H = 1.0;
 
-		if(b(i,j,k)<-epsi)
-		H=0.0;
+        if(b(i, j, k) < -epsi)
+            H = 0.0;
 
-		if(fabs(b(i,j,k))<=epsi)
-		H=0.5*(1.0 + b(i,j,k)/epsi + (1.0/PI)*sin((PI*b(i,j,k))/epsi));
+        if(fabs(b(i, j, k)) <= epsi)
+            H = 0.5 * (1.0 + b(i, j, k) / epsi + (1.0 / PI) * sin((PI * b(i, j, k)) / epsi));
 
-		vol2+=pow(p->DXM, 3.0)*H;
-	}
+        vol2 += pow(p->DXM, 3.0) * H;
+    }
 
-	vol2 = pgc->globalsum(vol2);
-
+    vol2 = pgc->globalsum(vol2);
 }
 
-
-void picard_f::correct_ls(lexer *p, fdm *a, ghostcell *pgc, field& b)
+void picard_f::correct_ls(lexer *p, fdm *a, ghostcell *pgc, field &b)
 {
-    double r1,r2;
+    double r1, r2;
     double w;
     double starttime, endtime;
 
-    starttime=pgc->timer();
+    starttime = pgc->timer();
 
-    for(int n=0;n<p->F47;++n)
+    // no reference volume yet (volcalc not called)
+    if(vol1 <= 0.0)
+        return;
+
+    for(int n = 0; n < p->F47; ++n)
     {
 
-    volcalc2(p,a,pgc,b);
+        volcalc2(p, a, pgc, b);
 
-	r1=pow((0.75/PI)*vol1,1.0/3.0);
-	r2=pow((0.75/PI)*vol2,1.0/3.0);
+        r1 = pow((0.75 / PI) * vol1, 1.0 / 3.0);
+        r2 = pow((0.75 / PI) * vol2, 1.0 / 3.0);
 
-    w=r1-r2;
+        w = r1 - r2;
 
-    //if(p->mpirank==0 &&(n==0||n==p->46-1))
-    //cout<<"PICARD: "<<vol1<<" "<<vol2<<" "<<r1<<" "<<r2<<" "<<w<<endl;
+        // if(p->mpirank==0 &&(n==0||n==p->46-1))
+        // cout<<"PICARD: "<<vol1<<" "<<vol2<<" "<<r1<<" "<<r2<<" "<<w<<endl;
 
-    LOOP
-    b(i,j,k)+=w;// *(vol1-vol2);
-
+        LOOP
+            b(i, j, k) += w;  // *(vol1-vol2);
     }
-    endtime=pgc->timer();
+    endtime = pgc->timer();
 
-    //if(p->mpirank==0)
-    //cout<<"PICARD TIME: "<<endtime-starttime<<endl;
-
-
+    // if(p->mpirank==0)
+    // cout<<"PICARD TIME: "<<endtime-starttime<<endl;
 }

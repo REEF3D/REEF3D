@@ -20,110 +20,106 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Tobias Martin
 --------------------------------------------------------------------*/
 
-#include"mooring_Spring.h"
-#include"lexer.h"
-#include"ghostcell.h"
+#include "mooring_Spring.h"
+#include "6DOF_output_dir.h"
+#include "ghostcell.h"
+#include "lexer.h"
 
-mooring_Spring::mooring_Spring(int number):line(number){}
+mooring_Spring::mooring_Spring(int number) : line(number) {}
 
-mooring_Spring::~mooring_Spring(){}
-
+mooring_Spring::~mooring_Spring() {}
 
 void mooring_Spring::initialize(lexer *p, ghostcell *pgc)
-{   
+{
     curr_time = p->simtime;
 
-    dx = p->X311_xe[line] - p->X311_xs[line];			
-    dy = p->X311_ye[line] - p->X311_ys[line];				
-    dz = p->X311_ze[line] - p->X311_zs[line];	
-	L0 = sqrt(dx*dx + dy*dy + dz*dz);	
-   
-	k = p->X312_k[line];
+    dx = p->X311_xe[line] - p->X311_xs[line];
+    dy = p->X311_ye[line] - p->X311_ys[line];
+    dz = p->X311_ze[line] - p->X311_zs[line];
+    L0 = sqrt(dx * dx + dy * dy + dz * dz);
+
+    k = p->X312_k[line];
     T0 = p->X312_T0[line];
     T = T0;
 
-	if(p->mpirank==0)
-	{
-		char str[1000];
-		sprintf(str,"./REEF3D_CFD_6DOF/REEF3D_6DOF_mooring_force_%i.dat",line);
-		eTout.open(str);
-		eTout<<"time \t T"<<endl;	
-	}
-    
-	printtime = 0.0;     
-    
+    if(p->mpirank == 0)
+    {
+        char str[1000];
+        sprintf(str, "%s/REEF3D_6DOF_mooring_force_%i.dat", sixdof_output_dir(p), line);
+        eTout.open(str);
+        eTout << "time \t T" << endl;
+    }
+
+    printtime = 0.0;
+
     // Initialise breaking
     broken = false;
     curr_time = 0.0;
-    breakTension = p->X314 > 0 ? p->X314_T[line]: 0.0;
-    breakTime = p->X315 > 0 ? p->X315_t[line]: 0.0;
+    breakTension = p->X314 > 0 ? p->X314_T[line] : 0.0;
+    breakTime = p->X315 > 0 ? p->X315_t[line] : 0.0;
 
     print(p);
 }
 
-
 void mooring_Spring::start(lexer *p, ghostcell *pgc)
 {
-	//- Calculate distance between start and mooring points
-    dx = p->X311_xe[line] - p->X311_xs[line];			
-    dy = p->X311_ye[line] - p->X311_ys[line];				
-    dz = p->X311_ze[line] - p->X311_zs[line];	
-	L = sqrt(dx*dx + dy*dy + dz*dz);			
-    
+    //- Calculate distance between start and mooring points
+    dx = p->X311_xe[line] - p->X311_xs[line];
+    dy = p->X311_ye[line] - p->X311_ys[line];
+    dz = p->X311_ze[line] - p->X311_zs[line];
+    L = sqrt(dx * dx + dy * dy + dz * dz);
+
     double dL = L - L0;
 
-	//- Calculate tension force in spring
+    //- Calculate tension force in spring
     T = T0;
 
-    if (dL > 0.0)
+    if(dL > 0.0)
     {
-        T = T0 + k*dL;
+        T = T0 + k * dL;
     }
-    else if (dL < 0.0)
+    else if(dL < 0.0)
     {
-        T = MAX(T0 - k*fabs(dL),0.0);
+        T = MAX(T0 - k * fabs(dL), 0.0);
     }
 
-	//- Calculate reaction forces at mooring points	
-    Xme_ = T*fabs(dx/L);
-    Yme_ = T*fabs(dy/L);
-    Zme_ = T*fabs(dz/L);
+    //- Calculate reaction forces at mooring points
+    Xme_ = T * fabs(dx / L);
+    Yme_ = T * fabs(dy / L);
+    Zme_ = T * fabs(dz / L);
 
-	if (dx > 0)	
-	{
-		Xme_ *= -1.0;
-	}
-	if (dy > 0)	
-	{
-		Yme_ *= -1.0;
-	}
-	if (dz > 0)	
-	{
-		Zme_ *= -1.0;
-	}
+    if(dx > 0)
+    {
+        Xme_ *= -1.0;
+    }
+    if(dy > 0)
+    {
+        Yme_ *= -1.0;
+    }
+    if(dz > 0)
+    {
+        Zme_ *= -1.0;
+    }
 
-	//- Print spring
-	print(p);
+    //- Print spring
+    print(p);
 }
 
-
-void mooring_Spring::mooringForces
-(
-	double& Xme, double& Yme, double& Zme
-)
+void mooring_Spring::mooringForces(
+    double &Xme, double &Yme, double &Zme)
 {
     // Tension forces if line is not broken
-    if (broken==false)
+    if(broken == false)
     {
-        Xme = Xme_; 
+        Xme = Xme_;
         Yme = Yme_;
         Zme = Zme_;
     }
 
     // Breakage due to max tension force
-    if (breakTension > 0.0 && fabs(T) >= breakTension)
+    if(breakTension > 0.0 && fabs(T) >= breakTension)
     {
-        Xme = 0.0; 
+        Xme = 0.0;
         Yme = 0.0;
         Zme = 0.0;
 
@@ -131,14 +127,13 @@ void mooring_Spring::mooringForces
     }
 
     // Breakage due to time limit
-    if (breakTime > 0.0 && curr_time >= breakTime)
+    if(breakTime > 0.0 && curr_time >= breakTime)
     {
-        Xme = 0.0; 
+        Xme = 0.0;
         Yme = 0.0;
         Zme = 0.0;
 
         broken = true;
     }
 }
-
 

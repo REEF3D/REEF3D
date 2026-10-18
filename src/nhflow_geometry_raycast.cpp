@@ -20,81 +20,82 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"nhflow_geometry.h"
-#include"lexer.h"
-#include"fdm_nhf.h"
-#include"ghostcell.h"
-#define WLVL (fabs(d->WL(i,j))>0.00005?d->WL(i,j):1.0e20)
+#include "fdm_nhf.h"
+#include "ghostcell.h"
+#include "lexer.h"
+#include "nhflow_geometry.h"
+#define WLVL (fabs(d->WL(i, j)) > 0.00005 ? d->WL(i, j) : 1.0e20)
 
 void nhflow_geometry::ray_cast(lexer *p, fdm_nhf *d, ghostcell *pgc, double *LS)
 {
-    zmin = 1.0e1;
+    zmin = 1.0e8;
     zmax = -1.0e8;
-    
-    LOOP
-    WETDRY
+
+    LOOP WETDRY
     {
-    zmin = MIN(zmin, p->ZSP[IJK]);
-    zmax = MAX(zmax, p->ZSP[IJK]);
+        zmin = MIN(zmin, p->ZSP[IJK]);
+        zmax = MAX(zmax, p->ZSP[IJK]);
     }
-    
+
     LOOP
-	{
-    IO[IJK]=1;
-	LS[IJK]=1.0e8;
-	}
-    
-    	
-    for(int rayiter=0; rayiter<2; ++rayiter)
     {
-        for(int qn=0;qn<entity_sum;++qn)
+        IO[IJK] = 1;
+        LS[IJK] = 1.0e8;
+    }
+
+    // geometry core kernels (geo_raycast)
+    for(int rayiter = 0; rayiter < 2; ++rayiter)
+    {
+        for(int qn = 0; qn < entity_sum; ++qn)
         {
-            if(rayiter==0)
+            if(rayiter == 0)
             {
-            //ray_cast_io_x(p,d,pgc,tstart[qn],tend[qn]);
-            
-            //if(p->j_dir==1)
-            //ray_cast_io_ycorr(p,d,pgc,tstart[qn],tend[qn]);
-            ray_cast_io_zcorr(p,d,pgc,tstart[qn],tend[qn]);
+                const int mode = (qn < int(ent_raymode.size())) ? ent_raymode[qn] : 1;
+
+                georay.sigma_io(p, tri_x, tri_y, tri_z, tstart[qn], tend[qn], DSM, mode, IO, CL, CR);
+
+                if(qn < int(ent_invert.size()) && ent_invert[qn] == 1)
+                    LOOP
+                        IO[IJK] = -IO[IJK];
             }
 
-            if(rayiter==1)
+            if(rayiter == 1)
             {
-            pgc->startintV(p,IO,1);
-            
-            ray_cast_x(p,d,pgc,tstart[qn],tend[qn],LS);
-            if(p->j_dir==1)
-            ray_cast_y(p,d,pgc,tstart[qn],tend[qn],LS);
-            ray_cast_z(p,d,pgc,tstart[qn],tend[qn],LS);
+                pgc->startintV(p, IO, 1);
+
+                georay.sigma_band(p, tri_x, tri_y, tri_z, tstart[qn], tend[qn], NB * DSM, LS);
             }
         }
     }
-    
-    LOOP
-    WETDRY
+
+    // cell centres on the surface (distance at round-off level) get LS = 0 exactly: the parity
+    // test perturbs the ray in a fixed direction, so such cells would be inside on one side of
+    // the solid and outside on the other (asymmetric level set of a symmetric solid)
+    const double ls_eps = 1.0e-10 * DSM;
+
+    LOOP WETDRY
     {
-        if(IO[IJK]==-1)
-        LS[IJK]=-fabs(LS[IJK]);
-        
-        
-        if(IO[IJK]==1)
-        LS[IJK]=fabs(LS[IJK]);
+        if(IO[IJK] == -1)
+            LS[IJK] = -fabs(LS[IJK]);
+
+        if(IO[IJK] == 1)
+            LS[IJK] = fabs(LS[IJK]);
+
+        if(fabs(LS[IJK]) < ls_eps)
+            LS[IJK] = 0.0;
     }
-	
-	LOOP
-    WETDRY
-	{
-		if(LS[IJK]>100.0*DSM)
-		LS[IJK]=100.0*DSM;
-		
-		if(LS[IJK]<-100.0*DSM)
-		LS[IJK]=-100.0*DSM;
-	}
-    
-    LOOP
-    if(p->wet[IJ]==0)
-    LS[IJK]=100.0*DSM;
-    
-    
-	pgc->start5V(p,LS,1); 
+
+    LOOP WETDRY
+    {
+        if(LS[IJK] > 100.0 * DSM)
+            LS[IJK] = 100.0 * DSM;
+
+        if(LS[IJK] < -100.0 * DSM)
+            LS[IJK] = -100.0 * DSM;
+    }
+
+    LOOP if(p->wet[IJ] == 0)
+        LS[IJK] = 100.0 * DSM;
+
+    pgc->start5V(p, LS, 1);
 }

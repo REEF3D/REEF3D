@@ -20,21 +20,22 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Authors: Hans Bihs, Alexander Hanke
 --------------------------------------------------------------------*/
 
-#include"CPM.h"
-#include"lexer.h"
-#include"fdm.h"
-#include"ghostcell.h"
-#include"vrans.h"
-#include"sediment_fdm.h"
+#include "CPM.h"
+#include "fdm.h"
+#include "ghostcell.h"
+#include "lexer.h"
+#include "sediment_fdm.h"
+#include "vrans.h"
 
+// porosity and grain size for the VRANS fluid coupling (S 10 2)
 void CPM::update(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, field &por, field &d50)
 {
-    ALOOP
+    BASELOOP
     {
-        por(i,j,k)=p->S24;
-        d50(i,j,k)=p->S20;
+        por(i, j, k) = 1.0 - MAX(0.0, MIN(Ts(i, j, k), theta_max));
+        d50(i, j, k) = p->S20;
     }
 
-    pgc->start4a(p,por,1);
-    pgc->start4a(p,d50,1);
+    pgc->start4a(p, por, 1);
+    pgc->start4a(p, d50, 1);
 }

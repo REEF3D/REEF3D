@@ -1,0 +1,71 @@
+# Kleefsman et al. (2005) MARIN 3D dam break with box obstacle (SPHERIC Test 2) -- pressure sensor P3
+# Original reference: K.M.T. Kleefsman, G. Fekken, A.E.P. Veldman, B. Iwanowski, B. Buchner, "A Volume-of-Fluid
+#   based simulation method for wave impact problems", J. Comput. Phys. 206(1), 363-393 (2005).
+#   DOI:10.1016/j.jcp.2004.12.007
+# Secondary source (string kleefsman_exp_data_p3 copied verbatim; fetched twice, identical):
+#   PySPH, pysph/examples/db_exp_data.py
+#   https://raw.githubusercontent.com/pypr/pysph/main/pysph/examples/db_exp_data.py
+#   https://github.com/pypr/pysph/blob/master/pysph/examples/db_exp_data.py?plain=1
+# DIGITISED from plots (PySPH module docstring: "The data is extracted from plots"), coarse (~0.42 T spacing
+#   away from impact). NOT the original MARIN time series (that is test_case_2_exp_data.xls inside the SPHERIC zip).
+# Nondimensionalisation -- CAUTION, PySPH is internally inconsistent:
+#   db_exp_data.get_kleefsman_data() comment says "# p/(rho*g*H) v/s t*sqrt(2*g/H)", BUT the example that uses
+#   it (pysph/examples/dam_break_3d.py, https://github.com/pypr/pysph/blob/main/pysph/examples/dam_break_3d.py?plain=1)
+#   scales the simulation with factor_x = np.sqrt(9.81/H), factor_y = 1/(ro*9.81*H) and labels the axis
+#   "t sqrt(g/H)". The plotting usage is taken as authoritative here:
+#   T = t*sqrt(g/H) [-], Pn = p/(rho*g*H) [-], H = 0.55 m (fluid column height), g = 9.81, rho = 1000.
+#   Conversion (NOT applied): t[s] = T/sqrt(9.81/0.55) = T/4.2233 ; p[Pa] = Pn*1000*9.81*0.55 = Pn*5395.5
+# PySPH sensor location docstring: "Pressure probe readings for a probes at (2.42, 0, 0.021), (2.42, 0, 0.101)"
+#   (PySPH coordinate frame; in dam_break_3d.py x_probe = obstacle_center_x - obstacle_length*0.5,
+#    p_z = [0.021, 0.101]) -- i.e. P3 on the upstream (water-facing) box face, see kleefsman_2005_geometry.txt.
+# Rows: 49
+# T        Pn
+0.291 0.007
+0.716 0.005
+1.141 0.005
+1.565 0.004
+1.778 0.596
+1.797 0.744
+1.816 0.945
+1.934 1.217
+1.997 1.107
+2.079 0.981
+2.338 0.92
+2.531 0.776
+2.84 0.684
+3.265 0.693
+3.69 0.677
+4.115 0.61
+4.54 0.579
+4.965 0.511
+5.223 0.454
+5.584 0.412
+6.009 0.397
+6.434 0.377
+6.859 0.4
+7.284 0.405
+7.709 0.409
+8.134 0.42
+8.559 0.432
+8.984 0.432
+9.409 0.42
+9.834 0.403
+10.259 0.377
+10.683 0.349
+11.108 0.319
+11.533 0.289
+11.958 0.263
+12.383 0.241
+12.808 0.221
+13.233 0.215
+13.658 0.204
+14.083 0.215
+14.508 0.205
+14.933 0.2
+15.358 0.184
+15.783 0.159
+16.208 0.151
+16.633 0.14
+17.058 0.137
+17.483 0.131
+17.773 0.122

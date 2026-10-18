@@ -20,12 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"picard_lsm.h"
-#include"lexer.h"
-#include"fdm.h"
-#include"ghostcell.h"
+#include "picard_lsm.h"
+#include "fdm.h"
+#include "ghostcell.h"
+#include "lexer.h"
 
-picard_lsm::picard_lsm(lexer *p) : gradient(p), epsi(p->F45*p->DXM)
+picard_lsm::picard_lsm(lexer *p) : gradient(p), epsi(p->F45 * p->DXM), vol1(0.0), vol2(0.0), inivol(0.0), netvol(0.0), vol_ini(false)
 {
 }
 
@@ -33,84 +33,84 @@ picard_lsm::~picard_lsm()
 {
 }
 
-void picard_lsm::volcalc(lexer *p, fdm *a, ghostcell *pgc, field& b)
+void picard_lsm::volcalc(lexer *p, fdm *a, ghostcell *pgc, field &b)
 {
 
     double H = 0.0;
-    vol1=0.0;
+    vol1 = 0.0;
 
     LOOP
-	{
-		if(b(i,j,k)>epsi)
-		H=1.0;
-
-		if(b(i,j,k)<-epsi)
-		H=0.0;
-
-		if(fabs(b(i,j,k))<=epsi)
-		H=0.5*(1.0 + b(i,j,k)/epsi + (1.0/PI)*sin((PI*b(i,j,k))/epsi));
-
-		vol1+=pow(p->DXM, 3.0)*H;
-	}
-
-	vol1 = pgc->globalsum(vol1);
-
-
-	if(p->count==1)
-	{
-	inivol=vol1;
-	netvol=vol1;
-	}
-}
-
-void picard_lsm::volcalc2(lexer *p, fdm *a, ghostcell *pgc, field& b)
-{
-    double H = 0.0;
-    vol2=0.0;
-
-    LOOP
-	{
-		if(b(i,j,k)>epsi)
-		H=1.0;
-
-		if(b(i,j,k)<-epsi)
-		H=0.0;
-
-		if(fabs(b(i,j,k))<=epsi)
-		H=0.5*(1.0 + b(i,j,k)/epsi + (1.0/PI)*sin((PI*b(i,j,k))/epsi));
-
-		vol2+=pow(p->DXM, 3.0)*H;
-	}
-
-	vol2 = pgc->globalsum(vol2);
-
-}
-
-
-void picard_lsm::correct_ls(lexer *p, fdm *a, ghostcell *pgc, field& b)
-{
-    double r1,r2;
-    double w;
-
-    netvol=netvol + p->Qi*p->dt - p->Qo*p->dt;
-
-    //cout<<p->mpirank<<"  NETVOL: "<<netvol<<"  INIVOL: "<<inivol<<endl;
-
-    for(int n=0;n<p->F47;++n)
     {
+        if(b(i, j, k) > epsi)
+            H = 1.0;
 
-    volcalc2(p,a,pgc,b);
+        if(b(i, j, k) < -epsi)
+            H = 0.0;
 
-	r1=pow((0.75/PI)*netvol,1.0/3.0);
-	r2=pow((0.75/PI)*vol2,1.0/3.0);
+        if(fabs(b(i, j, k)) <= epsi)
+            H = 0.5 * (1.0 + b(i, j, k) / epsi + (1.0 / PI) * sin((PI * b(i, j, k)) / epsi));
 
-    w=r1-r2;
-
-    LOOP
-    b(i,j,k)+=w;
-
+        vol1 += pow(p->DXM, 3.0) * H;
     }
 
+    vol1 = pgc->globalsum(vol1);
 
+    // reference volume from the first call: the time loop can call the
+    // momentum scheme already during the initialisation (count 0), so
+    // count==1 came too late and the correction removed all the water
+    if(!vol_ini)
+    {
+        inivol = vol1;
+        netvol = vol1;
+        vol_ini = true;
+    }
+}
 
+void picard_lsm::volcalc2(lexer *p, fdm *a, ghostcell *pgc, field &b)
+{
+    double H = 0.0;
+    vol2 = 0.0;
+
+    LOOP
+    {
+        if(b(i, j, k) > epsi)
+            H = 1.0;
+
+        if(b(i, j, k) < -epsi)
+            H = 0.0;
+
+        if(fabs(b(i, j, k)) <= epsi)
+            H = 0.5 * (1.0 + b(i, j, k) / epsi + (1.0 / PI) * sin((PI * b(i, j, k)) / epsi));
+
+        vol2 += pow(p->DXM, 3.0) * H;
+    }
+
+    vol2 = pgc->globalsum(vol2);
+}
+
+void picard_lsm::correct_ls(lexer *p, fdm *a, ghostcell *pgc, field &b)
+{
+    double r1, r2;
+    double w;
+
+    if(!vol_ini)
+        return;
+
+    netvol = netvol + p->Qi * p->dt - p->Qo * p->dt;
+
+    // cout<<p->mpirank<<"  NETVOL: "<<netvol<<"  INIVOL: "<<inivol<<endl;
+
+    for(int n = 0; n < p->F47; ++n)
+    {
+
+        volcalc2(p, a, pgc, b);
+
+        r1 = pow((0.75 / PI) * netvol, 1.0 / 3.0);
+        r2 = pow((0.75 / PI) * vol2, 1.0 / 3.0);
+
+        w = r1 - r2;
+
+        LOOP
+            b(i, j, k) += w;
+    }
 }

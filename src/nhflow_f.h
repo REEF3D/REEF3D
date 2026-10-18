@@ -23,23 +23,21 @@ Author: Hans Bihs
 #ifndef NHFLOW_F_H_
 #define NHFLOW_F_H_
 
-#include"nhflow.h"
-#include"increment.h"
+#include "increment.h"
+#include "nhflow.h"
 
 using namespace std;
 
 class nhflow_f final : public nhflow, public increment
 {
-public:    
-    nhflow_f(lexer*, fdm_nhf*, ghostcell*);
-	virtual ~nhflow_f();
+public:
+    nhflow_f(lexer *, fdm_nhf *, ghostcell *);
+    virtual ~nhflow_f();
 
-    void ini(lexer*, fdm_nhf*, ghostcell*, ioflow*) override final;
-    
+    void ini(lexer *, fdm_nhf *, ghostcell *, ioflow *, nhflow_fsf *) override final;
+
 private:
-    int q,margin;
-        
-
+    int q, margin;
 };
 
 #endif

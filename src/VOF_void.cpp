@@ -20,64 +20,53 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author:  Fabian Knoblauch
 --------------------------------------------------------------------*/
 
-#include"VOF_PLIC.h"
-#include"gradient.h"
-#include"initialize.h"
-#include"lexer.h"
-#include"fdm.h"
-#include"ghostcell.h"
-#include"convection.h"
-#include"solver.h"
-#include"ghostcell.h"
-#include"freesurface_header.h"
-#include"ioflow.h"
-#include"fluid_update_vof.h"
-#include"heat.h"
-#include"hires.h"
-#include"weno_hj.h"
-#include"hric.h"
-#include"interpolation.h"
+#include "VOF_PLIC.h"
+#include "convection.h"
+#include "fdm.h"
+#include "fluid_update_vof.h"
+#include "freesurface_header.h"
+#include "ghostcell.h"
+#include "gradient.h"
+#include "heat.h"
+#include "hires.h"
+#include "initialize.h"
+#include "interpolation.h"
+#include "ioflow.h"
+#include "lexer.h"
+#include "solver.h"
 
-VOF_void::VOF_void
-(
-    lexer* p,
+VOF_void::VOF_void(
+    lexer *p,
     fdm *a,
-    ghostcell* pgc,
-    heat *pheat
-):gradient(p),norm_vec(p)
+    ghostcell *pgc,
+    heat *pheat) : gradient(p), norm_vec(p)
 {
-    pupdate = new fluid_update_vof(p,a,pgc);
+    pupdate = new fluid_update_vof(p, a, pgc);
 }
 
 VOF_void::~VOF_void()
 {
 }
 
-
-void VOF_void::update
-(
+void VOF_void::update(
 
     lexer *p,
     fdm *a,
     ghostcell *pgc,
-    field &F
-)
+    field &F)
 {
-    pupdate->start(p,a,pgc,a->u,a->v,a->w);
+    pupdate->start(p, a, pgc, a->u, a->v, a->w);
 }
 
-void VOF_void::start
-(
-    fdm* a,
-    lexer* p,
-    convection* pconvec,
-    solver* psolv,
-    ghostcell* pgc,
-    ioflow* pflow,
-    reini* preini,
-    particle_corr* ppls,
-    field &F
-)
+void VOF_void::start(
+    fdm *a,
+    lexer *p,
+    convection *pconvec,
+    solver *psolv,
+    ghostcell *pgc,
+    ioflow *pflow,
+    reini *preini,
+    field &F)
 {
-    pupdate->start(p,a,pgc,a->u,a->v,a->w);
+    pupdate->start(p, a, pgc, a->u, a->v, a->w);
 }

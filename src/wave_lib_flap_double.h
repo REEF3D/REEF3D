@@ -23,40 +23,44 @@ Author: Hans Bihs
 #ifndef WAVE_LIB_FLAP_DOUBLE_H_
 #define WAVE_LIB_FLAP_DOUBLE_H_
 
-#include"wave_lib_precalc.h"
-#include"wave_lib_parameters.h"
-#include"increment.h"
+#include "increment.h"
+#include "wave_lib_parameters.h"
+#include "wave_lib_precalc.h"
+#include "wave_lib_wavemaker2nd.h"
 
 using namespace std;
 
 class wave_lib_flap_double final : public wave_lib_precalc, public wave_lib_parameters, public increment
 {
 public:
-    wave_lib_flap_double(lexer*, ghostcell*);
-	virtual ~wave_lib_flap_double();
-    
-    double wave_horzvel(lexer*,double,double,double);
-    
-    double wave_u(lexer*,double,double,double) override final;
-    double wave_v(lexer*,double,double,double) override final;
-    double wave_w(lexer*,double,double,double) override final;
-    double wave_eta(lexer*,double,double) override final;
-    double wave_fi(lexer*,double,double,double) override final;
-    
-    
-    void parameters(lexer*,ghostcell*) override final;
-    void wave_prestep(lexer*,ghostcell*) override final;
-    
+    wave_lib_flap_double(lexer *, ghostcell *);
+    virtual ~wave_lib_flap_double();
+
+    double wave_horzvel(lexer *, double, double, double);
+
+    double wave_u(lexer *, double, double, double) override final;
+    double wave_v(lexer *, double, double, double) override final;
+    double wave_w(lexer *, double, double, double) override final;
+    double wave_eta(lexer *, double, double) override final;
+    double wave_fi(lexer *, double, double, double) override final;
+
+    double wave_paddle_Q(lexer *, double) override final;
+
+    void parameters(lexer *, ghostcell *) override final;
+    void wave_prestep(lexer *, ghostcell *) override final;
+
 private:
-	void read(lexer*, ghostcell*);
-	
-	int ptnum;
-	
-	double **kinematics;
-	
-	double ts,te,val;
-	int timecount,timecount_old,timecount_z;
-    double singamma,cosgamma;
+    void read(lexer *, ghostcell *);
+
+    int ptnum;
+
+    double **kinematics;
+
+    double ts, te, val;
+    int timecount, timecount_old, timecount_z;
+    double singamma, cosgamma;
+
+    wave_lib_wavemaker2nd wm2;
 };
 
 #endif

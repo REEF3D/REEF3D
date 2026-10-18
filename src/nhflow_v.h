@@ -23,20 +23,17 @@ Author: Hans Bihs
 #ifndef NHFLOW_V_H_
 #define NHFLOW_V_H_
 
-#include"nhflow.h"
+#include "nhflow.h"
 
 using namespace std;
 
 class nhflow_v final : public nhflow
 {
-public: 
+public:
+    nhflow_v(lexer *, fdm_nhf *, ghostcell *);
+    virtual ~nhflow_v();
 
-    nhflow_v(lexer*, fdm_nhf*, ghostcell*);
-	virtual ~nhflow_v();
-
-    void ini(lexer*, fdm_nhf*, ghostcell*, ioflow*) override final;
-     
-
+    void ini(lexer *, fdm_nhf *, ghostcell *, ioflow *, nhflow_fsf *) override final;
 };
 
 #endif

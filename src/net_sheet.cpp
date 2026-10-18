@@ -20,206 +20,228 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Authors: Tobias Martin, Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"net_sheet.h"
-#include"lexer.h"
-#include"fdm.h"
-#include"fdm_nhf.h"
-#include"ghostcell.h"	
+#include "net_sheet.h"
+#include "fdm.h"
+#include "fdm_nhf.h"
+#include "ghostcell.h"
+#include "lexer.h"
 
-net_sheet::net_sheet(int number, lexer *p):nNet(number){}
+net_sheet::net_sheet(int number, lexer *p) : nNet(number) {}
 
-net_sheet::~net_sheet(){}
-
+net_sheet::~net_sheet() {}
 
 void net_sheet::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc)
-{    
+{
     //- Initialise net model
-    ini(p,pgc);
-    
+    ini(p, pgc);
+
     //- Initialise printing
     printtime = 0.0;
     print(p);
 }
 
 void net_sheet::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
-{    
+{
     //- Initialise net model
-    ini(p,pgc);
-    
+    ini(p, pgc);
+
+    //- NHFLOW: the grid z-range (originz/endz) is the sigma box, not physical z.
+    //  There is no vertical decomposition, so only x/y decide the owning rank.
+    for(int qn = 0; qn < p->mpi_size; qn++)
+    {
+        zstart[qn] = -1.0e20;
+        zend[qn] = 1.0e20;
+    }
+
     //- Initialise printing
     printtime = 0.0;
     print(p);
 }
 
+void net_sheet::updateFluidAcc(lexer *p, bool finalize)
+{
+    // coupledField holds the current stage velocity, coupledFieldn the velocity at t^n
+    if(fluidVelInit_ == false)
+    {
+        fluidAcc_ = MatrixXd::Zero(nK, 3);
+
+        for(int i = 0; i < nK; i++)
+            for(int c = 0; c < 3; c++)
+                coupledFieldn[i][c] = coupledField[i][c];
+
+        fluidVelInit_ = true;
+    }
+
+    if(finalize == true && p->dt > 0.0)
+    {
+        for(int i = 0; i < nK; i++)
+            for(int c = 0; c < 3; c++)
+            {
+                fluidAcc_(i, c) = (coupledField[i][c] - coupledFieldn[i][c]) / p->dt;
+                coupledFieldn[i][c] = coupledField[i][c];
+            }
+    }
+}
+
 void net_sheet::start_cfd(lexer *p, fdm *a, ghostcell *pgc, double alpha, Eigen::Matrix3d &quatRotMat, bool finalize)
 {
-    double starttime1 = pgc->timer();    
-    dt_ = alpha*p->dt;
-
-    //- Store old velocities
-    for (int i = 0; i < nK; i++)
-    {
-        coupledFieldn[i][0] = coupledField[i][0];
-        coupledFieldn[i][1] = coupledField[i][1];
-        coupledFieldn[i][2] = coupledField[i][2];
-    }
+    double starttime1 = pgc->timer();
+    dt_ = p->dt;
 
     //- Get velocities at knots
-    updateField_cfd(p,a,pgc,0);
-    updateField_cfd(p,a,pgc,1);	
-    updateField_cfd(p,a,pgc,2);
-    
+    updateField_cfd(p, a, pgc, 0);
+    updateField_cfd(p, a, pgc, 1);
+    updateField_cfd(p, a, pgc, 2);
+
     //- Get density at knots
-    updateField_cfd(p,a,pgc,3);       
-    
+    updateField_cfd(p, a, pgc, 3);
+
+    //- Fluid acceleration for the inertia force: taken over the full time step in
+    //  the final RK stage and held through the intermediate stages (alpha holds
+    //  the RK weights, not stage time increments, so alpha*dt must not be used)
+    updateFluidAcc(p, finalize);
+
     //- Calculate velocities from rigid body motion
-    for (int knotI = 0; knotI < nK; knotI++)
+    for(int knotI = 0; knotI < nK; knotI++)
     {
-        xdot_(knotI,0) = p->ufbi + (x_(knotI,2) - p->zg)*p->qfbi - (x_(knotI,1) - p->yg)*p->rfbi;
-        xdot_(knotI,1) = p->vfbi + (x_(knotI,0) - p->xg)*p->rfbi - (x_(knotI,2) - p->zg)*p->pfbi;
-        xdot_(knotI,2) = p->wfbi + (x_(knotI,1) - p->yg)*p->pfbi - (x_(knotI,0) - p->xg)*p->qfbi;
+        xdot_(knotI, 0) = p->ufbi + (x_(knotI, 2) - p->zg) * p->qfbi - (x_(knotI, 1) - p->yg) * p->rfbi;
+        xdot_(knotI, 1) = p->vfbi + (x_(knotI, 0) - p->xg) * p->rfbi - (x_(knotI, 2) - p->zg) * p->pfbi;
+        xdot_(knotI, 2) = p->wfbi + (x_(knotI, 1) - p->yg) * p->pfbi - (x_(knotI, 0) - p->xg) * p->qfbi;
     }
-    
+
     //- Calculate force vector
-    forces_knot *= 0.0; 
+    forces_knot *= 0.0;
     gravityForce(p);
     inertiaForce(p);
     dragForce(p);
-    
+
     Fx = 0.0;
     Fy = 0.0;
     Fz = 0.0;
-    for (int knotI = 0; knotI < nK; knotI++)
+    for(int knotI = 0; knotI < nK; knotI++)
     {
-        Fx += forces_knot(knotI, 0); 
-        Fy += forces_knot(knotI, 1); 
-        Fz += forces_knot(knotI, 2); 
+        Fx += forces_knot(knotI, 0);
+        Fy += forces_knot(knotI, 1);
+        Fz += forces_knot(knotI, 2);
     }
 
-	// Update position of triangles
+    // Update position of triangles
     Eigen::Vector3d point;
-	for(int n = 0; n < nK; ++n)
-	{
+    for(int n = 0; n < nK; ++n)
+    {
         for(int q = 0; q < 3; q++)
         {
             // (tri_x0 is initial vector between tri_x and xg)
             point << tri_x0[n][q], tri_y0[n][q], tri_z0[n][q];
-					
-            point = quatRotMat*point;
-        
+
+            point = quatRotMat * point;
+
             tri_x[n][q] = point(0) + p->xg;
             tri_y[n][q] = point(1) + p->yg;
             tri_z[n][q] = point(2) + p->zg;
         }
-        
-        // (x0_ is initial vector between x_ and xg)
-        point = quatRotMat*(x0_.row(n)).transpose();
-    
-        x_(n,0) = point(0) + p->xg;
-        x_(n,1) = point(1) + p->yg;
-        x_(n,2) = point(2) + p->zg;
 
-	}
+        // (x0_ is initial vector between x_ and xg)
+        point = quatRotMat * (x0_.row(n)).transpose();
+
+        x_(n, 0) = point(0) + p->xg;
+        x_(n, 1) = point(1) + p->yg;
+        x_(n, 2) = point(2) + p->zg;
+    }
 
     //- Coupling to vrans model
-    coupling_dlm_cfd(p,a,pgc);
-	
+    coupling_dlm_cfd(p, a, pgc);
+
     //- Build and save net
-    if(finalize==true)
-	print(p);	
+    if(finalize == true)
+        print(p);
 
     //- Print output
-    double endtime1 = pgc->timer() - starttime1; 
-    if (p->mpirank==0)
+    double endtime1 = pgc->timer() - starttime1;
+    if(p->mpirank == 0)
     {
-        cout<<"Net time: "<<endtime1<<endl;    
+        cout << "Net time: " << endtime1 << endl;
     }
 }
 
 void net_sheet::start_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, Eigen::Matrix3d &quatRotMat, bool finalize)
 {
-    double starttime1 = pgc->timer();    
-    dt_ = alpha*p->dt;
-
-    //- Store old velocities
-    for (int i = 0; i < nK; i++)
-    {
-        coupledFieldn[i][0] = coupledField[i][0];
-        coupledFieldn[i][1] = coupledField[i][1];
-        coupledFieldn[i][2] = coupledField[i][2];
-    }
+    double starttime1 = pgc->timer();
+    dt_ = p->dt;
 
     //- Get velocities at knots
-    updateField_nhflow(p,d,pgc,0);
-    updateField_nhflow(p,d,pgc,1);
-    updateField_nhflow(p,d,pgc,2);
-    
+    updateField_nhflow(p, d, pgc, 0);
+    updateField_nhflow(p, d, pgc, 1);
+    updateField_nhflow(p, d, pgc, 2);
+
     //- Get density at knots
-    updateField_nhflow(p,d,pgc,3);       
-    
+    updateField_nhflow(p, d, pgc, 3);
+
+    //- Fluid acceleration for the inertia force: taken over the full time step in
+    //  the final RK stage and held through the intermediate stages (alpha holds
+    //  the RK weights, not stage time increments, so alpha*dt must not be used)
+    updateFluidAcc(p, finalize);
+
     //- Calculate velocities from rigid body motion
-    for (int knotI = 0; knotI < nK; knotI++)
+    for(int knotI = 0; knotI < nK; knotI++)
     {
-        xdot_(knotI,0) = p->ufbi + (x_(knotI,2) - p->zg)*p->qfbi - (x_(knotI,1) - p->yg)*p->rfbi;
-        xdot_(knotI,1) = p->vfbi + (x_(knotI,0) - p->xg)*p->rfbi - (x_(knotI,2) - p->zg)*p->pfbi;
-        xdot_(knotI,2) = p->wfbi + (x_(knotI,1) - p->yg)*p->pfbi - (x_(knotI,0) - p->xg)*p->qfbi;
+        xdot_(knotI, 0) = p->ufbi + (x_(knotI, 2) - p->zg) * p->qfbi - (x_(knotI, 1) - p->yg) * p->rfbi;
+        xdot_(knotI, 1) = p->vfbi + (x_(knotI, 0) - p->xg) * p->rfbi - (x_(knotI, 2) - p->zg) * p->pfbi;
+        xdot_(knotI, 2) = p->wfbi + (x_(knotI, 1) - p->yg) * p->pfbi - (x_(knotI, 0) - p->xg) * p->qfbi;
     }
-    
+
     //- Calculate force vector
-    forces_knot *= 0.0; 
+    forces_knot *= 0.0;
     gravityForce(p);
     inertiaForce(p);
     dragForce(p);
-    
+
     Fx = 0.0;
     Fy = 0.0;
     Fz = 0.0;
-    for (int knotI = 0; knotI < nK; knotI++)
+    for(int knotI = 0; knotI < nK; knotI++)
     {
-        Fx += forces_knot(knotI, 0); 
-        Fy += forces_knot(knotI, 1); 
-        Fz += forces_knot(knotI, 2); 
+        Fx += forces_knot(knotI, 0);
+        Fy += forces_knot(knotI, 1);
+        Fz += forces_knot(knotI, 2);
     }
 
-	// Update position of triangles
+    // Update position of triangles
     Eigen::Vector3d point;
-	for(int n = 0; n < nK; ++n)
-	{
+    for(int n = 0; n < nK; ++n)
+    {
         for(int q = 0; q < 3; q++)
         {
             // (tri_x0 is initial vector between tri_x and xg)
             point << tri_x0[n][q], tri_y0[n][q], tri_z0[n][q];
-					
-            point = quatRotMat*point;
-        
+
+            point = quatRotMat * point;
+
             tri_x[n][q] = point(0) + p->xg;
             tri_y[n][q] = point(1) + p->yg;
             tri_z[n][q] = point(2) + p->zg;
         }
-        
-        // (x0_ is initial vector between x_ and xg)
-        point = quatRotMat*(x0_.row(n)).transpose();
-    
-        x_(n,0) = point(0) + p->xg;
-        x_(n,1) = point(1) + p->yg;
-        x_(n,2) = point(2) + p->zg;
 
-	}
+        // (x0_ is initial vector between x_ and xg)
+        point = quatRotMat * (x0_.row(n)).transpose();
+
+        x_(n, 0) = point(0) + p->xg;
+        x_(n, 1) = point(1) + p->yg;
+        x_(n, 2) = point(2) + p->zg;
+    }
 
     //- Coupling to vrans model
-    coupling_dlm_nhflow(p,d,pgc);
-	
+    coupling_dlm_nhflow(p, d, pgc);
+
     //- Build and save net
-    if(finalize==true)
-	print(p);	
+    if(finalize == true)
+        print(p);
 
     //- Print output
-    double endtime1 = pgc->timer() - starttime1; 
-    if (p->mpirank==0)
+    double endtime1 = pgc->timer() - starttime1;
+    if(p->mpirank == 0)
     {
-        cout<<"Net time: "<<endtime1<<endl;    
+        cout << "Net time: " << endtime1 << endl;
     }
 }
-
-
 

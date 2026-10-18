@@ -23,10 +23,10 @@ Author: Hans Bihs
 #ifndef NHFLOW_HLLYL_H_
 #define NHFLOW_HLLYL_H_
 
-#include"nhflow_convection.h"
-#include"slice1.h"
-#include"slice2.h"
-#include"increment.h"
+#include "increment.h"
+#include "nhflow_convection.h"
+#include "slice1.h"
+#include "slice2.h"
 
 class nhflow_flux_build;
 
@@ -39,31 +39,29 @@ class nhflow_HLLYL final : public nhflow_convection, public increment
 {
 
 public:
+    nhflow_HLLYL(lexer *, ghostcell *, patchBC_interface *);
+    virtual ~nhflow_HLLYL();
 
-	nhflow_HLLYL (lexer*,ghostcell*,patchBC_interface*);
-	virtual ~nhflow_HLLYL();
-
-    void start(lexer*&, fdm_nhf*&, int, slice&, double*) override final;
-    void precalc(lexer*, fdm_nhf*, int, slice&) override final;
+    void start(lexer *&, fdm_nhf *&, int, slice &, double *) override final;
+    void precalc(lexer *, fdm_nhf *, int, slice &) override final;
 
 private:
+    void aij_U(lexer *&, fdm_nhf *&, int);
+    void aij_V(lexer *&, fdm_nhf *&, int);
+    void aij_W(lexer *&, fdm_nhf *&, int, double *);
+    void aij_E(lexer *&, fdm_nhf *&, int);
 
-    void aij_U(lexer*&, fdm_nhf*&, int);
-    void aij_V(lexer*&, fdm_nhf*&, int);
-    void aij_W(lexer*&, fdm_nhf*&, int, double*);
-    void aij_E(lexer*&, fdm_nhf*&, int);
-    
-    void HLL(lexer*&, fdm_nhf*&, double*, double*, double*, double*);
-    void HLL_E(lexer*&, fdm_nhf*&);
-    
-    double limiter(double, double);
-    
-	double dx,dy,dz;
-	double udir,vdir,wdir;
-	double L;
-    double denom,r,val,phi;
+    void HLL(lexer *&, fdm_nhf *&, double *, double *, double *, double *);
+    void HLL_E(lexer *&, fdm_nhf *&);
 
-    double ivel1,ivel2,jvel1,jvel2,kvel1,kvel2;
+    inline double limiter(double, double);
+
+    double dx, dy, dz;
+    double udir, vdir, wdir;
+    double L;
+    double denom, r, val, phi;
+
+    double ivel1, ivel2, jvel1, jvel2, kvel1, kvel2;
 
     ghostcell *pgc;
     patchBC_interface *pBC;

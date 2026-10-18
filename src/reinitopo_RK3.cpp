@@ -20,108 +20,105 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"reinitopo_RK3.h"
-#include"gradient.h"
-#include"lexer.h"
-#include"fdm.h"
-#include"ghostcell.h"
-#include"convection.h"
-#include"ghostcell.h"
-#include"ioflow.h"
-#include"picard_f.h"
-#include"picard_void.h"
-#include"reinidisc_f.h"
-#include"reinidisc_fsf.h"
-#include"reinidisc_fsf_rig.h"
+#include "reinitopo_RK3.h"
+#include "convection.h"
+#include "fdm.h"
+#include "ghostcell.h"
+#include "gradient.h"
+#include "ioflow.h"
+#include "lexer.h"
+#include "picard_f.h"
+#include "picard_void.h"
+#include "reinidisc_f.h"
+#include "reinidisc_fsf.h"
+#include "reinidisc_fsf_rig.h"
 
-reinitopo_RK3::reinitopo_RK3(lexer* p) : epsi(p->F45*p->DXM),f(p),frk1(p),frk2(p),L(p),dt(p)
+reinitopo_RK3::reinitopo_RK3(lexer *p) : epsi(p->F45 * p->DXM), f(p), frk1(p), frk2(p), L(p), dt(p)
 {
 
-	if(p->S50==1)
-	gcval_topo=151;
+    if(p->S50 == 1)
+        gcval_topo = 151;
 
-	if(p->S50==2)
-	gcval_topo=152;
+    if(p->S50 == 2)
+        gcval_topo = 152;
 
-	if(p->S50==3)
-	gcval_topo=153;
-	
-	if(p->S50==4)
-	gcval_topo=150;
+    if(p->S50 == 3)
+        gcval_topo = 153;
 
-	gcval_initopo=150;
-	
-	prdisc = new reinidisc_fsf_rig(p);
+    if(p->S50 == 4)
+        gcval_topo = 150;
 
-    time_preproc(p);    
+    gcval_initopo = 150;
+
+    prdisc = new reinidisc_fsf_rig(p);
+
+    time_preproc(p);
 }
 
 reinitopo_RK3::~reinitopo_RK3()
 {
 }
 
-void reinitopo_RK3::start(lexer* p, fdm* a, ghostcell* pgc, field &f)
-{ 
-	pgc->start4a(p,f,gcval);
-    
-    gcval=gcval_topo;
-	
-	if(p->count==0)
-	{
-    if(p->mpirank==0)
-	cout<<"initializing topo..."<<endl<<endl;
-	reiniter=2*int(p->maxlength/(p->F43*p->DXM));
-    gcval=gcval_initopo;
-	pgc->start4a(p,f,gcval);
-	}
+void reinitopo_RK3::start(lexer *p, fdm *a, ghostcell *pgc, field &f)
+{
+    pgc->start4a(p, f, gcval);
 
-	if(p->count>0)
-	step(p,a);
+    gcval = gcval_topo;
 
-    for(int q=0;q<reiniter;++q)
+    if(p->count == 0)
     {
-	// Step 1
-	prdisc->start(p,a,pgc,f,L,5);
+        if(p->mpirank == 0)
+            cout << "initializing topo..." << endl
+                 << endl;
+        reiniter = 2 * int(p->maxlength / (p->F43 * p->DXM));
+        gcval = gcval_initopo;
+        pgc->start4a(p, f, gcval);
+    }
 
-	ALOOP
-	frk1.V[IJK] = f.V[IJK] + dt.V[IJK]*L.V[IJK];
+    if(p->count > 0)
+        step(p, a);
 
-	pgc->start4a(p,frk1,gcval);
-    
+    for(int q = 0; q < reiniter; ++q)
+    {
+        // Step 1
+        prdisc->start(p, a, pgc, f, L, 5);
 
-    // Step 2
-    prdisc->start(p,a,pgc,frk1,L,5);
+        LOOP
+            frk1.V[IJK] = f.V[IJK] + dt.V[IJK] * L.V[IJK];
 
-	ALOOP
-	frk2.V[IJK]=  0.75*f.V[IJK] + 0.25*frk1.V[IJK] + 0.25*dt.V[IJK]*L.V[IJK];
+        pgc->start4a(p, frk1, gcval);
 
-	pgc->start4a(p,frk2,gcval);
+        // Step 2
+        prdisc->start(p, a, pgc, frk1, L, 5);
 
+        LOOP
+            frk2.V[IJK] = 0.75 * f.V[IJK] + 0.25 * frk1.V[IJK] + 0.25 * dt.V[IJK] * L.V[IJK];
 
-    // Step 3
-    prdisc->start(p,a,pgc,frk2,L,5);
+        pgc->start4a(p, frk2, gcval);
 
-	ALOOP
-	f.V[IJK] = (1.0/3.0)*f.V[IJK] + (2.0/3.0)*frk2.V[IJK] + (2.0/3.0)*dt.V[IJK]*L.V[IJK];
+        // Step 3
+        prdisc->start(p, a, pgc, frk2, L, 5);
 
-	pgc->start4a(p,f,gcval);
-	}
+        LOOP
+            f.V[IJK] = (1.0 / 3.0) * f.V[IJK] + (2.0 / 3.0) * frk2.V[IJK] + (2.0 / 3.0) * dt.V[IJK] * L.V[IJK];
+
+        pgc->start4a(p, f, gcval);
+    }
 }
 
-void reinitopo_RK3::step(lexer* p, fdm *a)
+void reinitopo_RK3::step(lexer *p, fdm *a)
 {
 
-	reiniter=p->S37;
+    reiniter = p->G541;
 }
 
-void reinitopo_RK3::time_preproc(lexer* p)
-{	
-    n=0;
-	ALOOP
-	{
-	dt.V[IJK] = p->F43*MIN3(p->DXP[IP],p->DYP[JP],p->DZP[KP]);
-	++n;
-	}
+void reinitopo_RK3::time_preproc(lexer *p)
+{
+    n = 0;
+    LOOP
+    {
+        dt.V[IJK] = p->F43 * MIN3(p->DXP[IP], p->DYP[JP], p->DZP[KP]);
+        ++n;
+    }
 }
-
 

@@ -23,9 +23,9 @@ Authors: Hans Bihs, Tobias Martin
 #ifndef SIXDOF_CFD_H_
 #define SIXDOF_CFD_H_
 
-#include"6DOF.h"
-#include"6DOF_obj.h"
-#include<vector>
+#include "6DOF.h"
+#include "6DOF_obj_cfd.h"
+#include <vector>
 
 class mooring;
 class ddweno_f_nug;
@@ -35,37 +35,36 @@ using namespace std;
 class sixdof_cfd final : public sixdof, public increment
 {
 public:
-	sixdof_cfd(lexer*, fdm*, ghostcell*);
-	virtual ~sixdof_cfd();
+    sixdof_cfd(lexer *, fdm *, ghostcell *);
+    virtual ~sixdof_cfd();
 
-    void start_cfd(lexer*,fdm*,ghostcell*,int,field&,field&,field&,field&,field&,field&,bool) override final;
-    void start_nhflow(lexer*,fdm_nhf*,ghostcell*,int,double*,double*,double*,double*,double*,double*,slice&,slice&,bool) override final;
-    
-    
-    void start_sflow(lexer*,fdm2D*,ghostcell*,int,slice&,slice&,slice&,slice&,slice&,slice&,slice&,bool) override final;
-    
-    void ini(lexer*,ghostcell*) override final;
-    void initialize(lexer*, fdm*, ghostcell*) override final;
-    void initialize(lexer*, fdm2D*, ghostcell*) override final;
-    void initialize(lexer*, fdm_nhf*, ghostcell*) override final;
-    
-    void isource(lexer*,fdm*,ghostcell*) override final;
-    void jsource(lexer*,fdm*,ghostcell*) override final;
-    void ksource(lexer*,fdm*,ghostcell*) override final;
-    
-    void isource(lexer*,fdm_nhf*,ghostcell*,slice&) override final;
-    void jsource(lexer*,fdm_nhf*,ghostcell*,slice&) override final;
-    void ksource(lexer*,fdm_nhf*,ghostcell*,slice&) override final;
-    
-    void isource2D(lexer*,fdm2D*,ghostcell*) override final;
-    void jsource2D(lexer*,fdm2D*,ghostcell*) override final;
+    void start_cfd(lexer *, fdm *, ghostcell *, int, field &, field &, field &, field &, field &, field &, bool) override final;
+    void start_nhflow(lexer *, fdm_nhf *, ghostcell *, int, double *, double *, double *, double *, double *, double *, slice &, slice &, bool) override final;
+    void start_sflow(lexer *, fdm2D *, ghostcell *, int, slice &, slice &, slice &, slice &, slice &, slice &, slice &, bool) override final;
+
+    void reforce_nhflow(lexer *, fdm_nhf *, ghostcell *, int, double *, double *, double *, double *, double *, double *, slice &, slice &, bool) override final {};
+
+    void ini(lexer *, ghostcell *) override final;
+    void initialize(lexer *, fdm *, ghostcell *) override final;
+    void initialize(lexer *, fdm2D *, ghostcell *) override final;
+    void initialize(lexer *, fdm_nhf *, ghostcell *) override final;
+
+    void isource(lexer *, fdm *, ghostcell *) override final;
+    void jsource(lexer *, fdm *, ghostcell *) override final;
+    void ksource(lexer *, fdm *, ghostcell *) override final;
+
+    void isource(lexer *, fdm_nhf *, ghostcell *, slice &) override final;
+    void jsource(lexer *, fdm_nhf *, ghostcell *, slice &) override final;
+    void ksource(lexer *, fdm_nhf *, ghostcell *, slice &) override final;
+
+    void isource2D(lexer *, fdm2D *, ghostcell *) override final;
+    void jsource2D(lexer *, fdm2D *, ghostcell *) override final;
 
 private:
-   void setup(lexer*,fdm*,ghostcell*);
-   
-    int number6DOF;
-    vector<sixdof_obj*> fb_obj;
+    void setup(lexer *, fdm *, ghostcell *);
 
+    int number6DOF;
+    vector<sixdof_obj_cfd *> fb_obj;
 };
 
 #endif

@@ -1,0 +1,31 @@
+{
+ "base": "cfd_2d_dambreak",
+ "ctrl_add": [
+  "Z 30 1"
+ ],
+ "files": [
+  "fem.dat"
+ ],
+ "np": 1,
+ "steps": 60,
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "fem",
+  "fsi"
+ ],
+ "description": "2D water column held by a C30 concrete wall, accessibility input (material preset, fix base, monitor auto, resolution). Settling under self weight and hydrostatic pressure, hybrid loads, 2 % structural damping, engineering summary.",
+ "covers": [
+  "material presets, fix base, monitor auto, resolution",
+  "surface snapping (box)",
+  "settle with the initial fluid pressure",
+  "Rayleigh frequency + structural damping",
+  "hybrid loads (parcels + filtered pressure correction)",
+  "REEF3D_FEM_summary.txt",
+  "N10=1 REEFMG pressure solver"
+ ],
+ "ctrl_set": {
+  "N 10": "1"
+ }
+}

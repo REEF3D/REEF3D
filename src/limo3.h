@@ -23,8 +23,8 @@ Author: Hans Bihs
 #ifndef LIMO3_H_
 #define LIMO3_H_
 
-#include"fluxlim.h"
-#include"increment.h"
+#include "fluxlim.h"
+#include "increment.h"
 
 using namespace std;
 
@@ -32,27 +32,24 @@ class limo3 final : public fluxlim, public increment
 {
 
 public:
+    limo3(lexer *);
+    virtual ~limo3();
 
-	limo3 (lexer *);
-	virtual ~limo3();
-
-	double iphi(field&,int,int,int,int) override final;
-	double jphi(field&,int,int,int,int) override final;
-	double kphi(field&,int,int,int,int) override final;
+    double iphi(field &, int, int, int, int) override final;
+    double jphi(field &, int, int, int, int) override final;
+    double kphi(field &, int, int, int, int) override final;
 
 private:
-	
-	double max(double,double,double);
-	double max(double,double);
-	double min(double,double,double);
-	double min(double,double);
+    double max(double, double);
+    double min(double, double, double);
+    double min(double, double);
 
-    double ul,ur,vl,vr,wl,wr;
+    double ul, ur, vl, vr, wl, wr;
     double r, phi;
-	double eta,phihat,d1,d2;
-	double dx,dy,dz;
-	const double delta,radius,eps;
-	double L;
+    double eta, phihat, d1, d2;
+    double dx, dy, dz;
+    const double delta, radius, eps;
+    double L;
 };
 
 #endif

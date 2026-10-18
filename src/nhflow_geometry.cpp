@@ -20,56 +20,84 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"nhflow_geometry.h"
-#include"lexer.h"
-#include"fdm_nhf.h"
-#include"ghostcell.h"
-#include"6DOF.h"
-#include"nhflow_reinidisc_fsf.h"
+#include "nhflow_geometry.h"
+#include "6DOF.h"
+#include "fdm_nhf.h"
+#include "geo_mesh.h"
+#include "ghostcell.h"
+#include "lexer.h"
+#include "nhflow_reinidisc_fsf.h"
 
-nhflow_geometry::nhflow_geometry(lexer *p, fdm_nhf *d, ghostcell *pgc) : epsi(1.6)
+nhflow_geometry::nhflow_geometry(lexer *p, fdm_nhf *d, ghostcell *pgc) : georay(p), epsi(1.6)
 {
-    forcing_flag=0;
-    solid_flag=0;
-    floating_flag=0;
-    dlm_flag=0;
-    
-    if(p->A581>0 || p->A583>0 || p->A584>0   || p->A585>0  || p->A586>0 || p->A587>0 || p->A588>0 || p->A589>0 || p->A590>0)
-    {   
-    forcing_flag=1;
-    solid_flag=1;
-    }
-    
-    if(p->X10>0)
-    {
-    forcing_flag=1;
-    floating_flag=1;
-    }
-    
-    if(p->A599==1)
-    {
-    dlm_flag=1;
-    forcing_flag=0;
-    solid_flag=0;
-    floating_flag=0;
-    }
-    
-    // ----
-    if(forcing_flag==1 || p->B200>=1)
-    {
-    p->Iarray(IO,p->imax*p->jmax*(p->kmax+2));
-    p->Iarray(CL,p->imax*p->jmax*(p->kmax+2));
-    p->Iarray(CR,p->imax*p->jmax*(p->kmax+2));
-    
-    p->Darray(FRK1,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(dt,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(L,p->imax*p->jmax*(p->kmax+2));
+    forcing_flag = 0;
+    solid_flag = 0;
+    floating_flag = 0;
+    dlm_flag = 0;
 
-    prdisc = new nhflow_reinidisc_fsf(p);
+    if(p->A581 > 0 || p->A583 > 0 || p->A584 > 0 || p->A585 > 0 || p->A586 > 0 || p->A587 > 0 || p->A588 > 0 || p->A589 > 0 || p->A590 > 0)
+    {
+        forcing_flag = 1;
+        solid_flag = 1;
+    }
+
+    // solids of the grid file as immersed solids (A 580 1)
+    grid_solid_num = 0;
+    grid_solid_tri = 0;
+
+    if(p->A580 == 1 && p->gridgeo != nullptr)
+    {
+        grid_solid_num = p->gridgeo->count(geo_mesh::role_solid);
+        grid_solid_tri = p->gridgeo->tricount(geo_mesh::role_solid);
+    }
+
+    if(grid_solid_num > 0)
+    {
+        forcing_flag = 1;
+        solid_flag = 1;
+    }
+
+    if(p->X10 > 0)
+    {
+        forcing_flag = 1;
+        floating_flag = 1;
+    }
+
+    if(p->A599 == 1)
+    {
+        dlm_flag = 1;
+        forcing_flag = 0;
+        solid_flag = 0;
+        floating_flag = 0;
+    }
+
+    // ----
+    IO = CL = CR = nullptr;
+    FRK1 = dt = L = nullptr;
+    prdisc = nullptr;
+
+    if(forcing_flag == 1 || p->B200 >= 1)
+    {
+        p->Iarray(IO, p->imax * p->jmax * (p->kmax + 2));
+        p->Iarray(CL, p->imax * p->jmax * (p->kmax + 2));
+        p->Iarray(CR, p->imax * p->jmax * (p->kmax + 2));
+
+        p->Darray(FRK1, p->imax * p->jmax * (p->kmax + 2));
+        p->Darray(dt, p->imax * p->jmax * (p->kmax + 2));
+        p->Darray(L, p->imax * p->jmax * (p->kmax + 2));
+
+        prdisc = new nhflow_reinidisc_fsf(p);
     }
 }
 
 nhflow_geometry::~nhflow_geometry()
 {
+    delete[] IO;
+    delete[] CL;
+    delete[] CR;
+    delete[] FRK1;
+    delete[] dt;
+    delete[] L;
+    delete prdisc;
 }
 

@@ -20,22 +20,24 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Authors: Hans Bihs, Alexander Hanke
 --------------------------------------------------------------------*/
 
-#include"CPM.h"
-#include"lexer.h"
-#include"fdm.h"
-#include"ghostcell.h"
-#include"sediment_fdm.h"
-#include"turbulence.h"
+#include "CPM.h"
+#include "fdm.h"
+#include "ghostcell.h"
+#include "lexer.h"
+#include "sediment_fdm.h"
+#include "turbulence.h"
 
 void CPM::move(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbulence *pturb)
 {
-    if(p->Q11==1)
-    plain_RK2(p,a,pgc,s,pturb);
-    
-    
-    if(p->Q10==1 && p->Q11==2)
-    mppic_EE1(p,a,pgc,s,pturb);
-    
-    if(p->Q10==2 && p->Q11==2)
-    mppic_RK2(p,a,pgc,s,pturb);
+    if(p->Q11 == 1)
+        plain_RK2(p, a, pgc, s, pturb);
+
+    if(p->Q11 == 2)
+    {
+        if(p->Q10 == 2)
+            mppic_RK2(p, a, pgc, s, pturb);
+
+        else
+            mppic_EE1(p, a, pgc, s, pturb);
+    }
 }

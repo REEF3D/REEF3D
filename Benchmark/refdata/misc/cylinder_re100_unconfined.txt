@@ -1,0 +1,42 @@
+# Unconfined 2D laminar flow past a circular cylinder, Re = U*D/nu = 100
+#
+# [S1] Strouhal-Reynolds fit (Williamson). Verbatim from Beaudan & Moin (1994), "Numerical Experiments on the Flow Past a
+#      Circular Cylinder at Sub-Critical Reynolds Number", Stanford TF-62, p.2, Eq. (1):
+#      https://web.stanford.edu/group/tfsa/TF_reports/TF-062_Beaudon.pdf
+#   "A least-squares curve-fit of the Strouhal curve for Reynolds numbers between 50 and 180 is given by
+#      St = A/ Re + B + C Re   (1)
+#    where A= -3.3265, B = 0.1816 and C = 1.6 x 10-4 (Williamson 1991)."
+#   Beaudan & Moin cite: Williamson, C.H.K. 1991 "Sinuous and varicose gridlines in the cylinder wake", Phys. Fluids A 3, 1427-1428.
+#   The same coefficients appear in Basilisk sandbox code cylinder-strouhal.c attributed to Williamson (1988)
+#   "Defining a universal and continuous Strouhal-Reynolds number relationship for the laminar vortex shedding of a circular
+#   cylinder", Phys. Fluids 31, 2742-2744: "f(x) = -3.3265/x + 0.1816 + 1.6e-4*x"
+#   https://basilisk.dalembert.upmc.fr/sandbox/ghigo/src/test-navier-stokes/cylinder-strouhal.c?raw=
+#   NOTE: this is an EXPERIMENTAL (parallel-shedding, 3D-span) fit; at Re=100 it evaluates to 0.1643 (computed here, not quoted).
+#   Valid range quoted: 50 <= Re <= 180.
+#
+# [S2] Comparison table at Re = 100, verbatim Table 1 of Qu, Norberg, Davidson, Peng & Wang (2013) "Quantitative numerical
+#      analysis of flow past a circular cylinder at Reynolds number between 50 and 200", J. Fluids Struct. 39, 347-370.
+#      https://publications.lib.chalmers.se/records/fulltext/180053/local_180053.pdf  (fetched twice, identical)
+#   Definitions (Qu et al.): CL' = r.m.s. (standard deviation) of lift coefficient; CD = mean drag; CDp = mean pressure drag;
+#     -Cpb = negative of time-averaged base pressure coefficient at x=0.5,y=0; Lc = wake closure length (2nd zero of u on
+#     centreline); r = CL'/CD' (ratio of rms lift to rms drag).
+#   Domains/blockage as quoted by Qu et al. (D = cylinder diameter units):
+#     Park et al. 1998: "Xu = 50, Xd = 20, D = 100 (polar part)"
+#     Kravchenko & Moin 1998: "O-type zonal mesh of diameter D = 120"
+#     Mittal 2005: "rectangular domain (H = 100, Xu = Xd = 50)"            -> blockage 1/H = 0.01
+#     Stalberg et al. 2006: "far field boundary at 40 diameters away from the cylinder (D = 80)"
+#     Posdziech & Grundmann 2007: values "for H = 140" ("H = 140, Xu = 70, Xd = 50")  -> blockage 1/140
+#     Present D9: H = 120, Xu = Xd = H/2 = 60                                -> blockage 1/120
+#
+# author_year                     -Cpb    CDp     CD      Lc     St      CL'(rms)  r
+Park_et_al_1998                   0.725   0.99    1.33    1.42   0.165   0.235     36.5
+Kravchenko_Moin_1998              0.73    0.99    1.32    1.45   0.164   0.222     -
+Shi_et_al_2004                    -       -       1.318   -      0.1640  -         -
+Mittal_2005                       -       -       1.322   -      0.1644  0.226     35.6
+Stalberg_et_al_2006               -       0.972   1.32    -      0.166   0.233     36.7
+Posdziech_Grundmann_2007          0.709   -       1.325   -      0.1644  0.228     -
+Li_et_al_2009                     0.701   0.995   1.336   -      0.164   -         -
+Qu_et_al_2013_D9                  0.709   0.984   1.319   1.41   0.1648  0.225     36.0
+#
+# Lift AMPLITUDE (peak) values are NOT given in Qu et al. Table 1 (only rms). For a near-sinusoidal lift signal,
+#   amplitude ~= sqrt(2)*rms, but that is a derived estimate, not a quoted value.

@@ -1,0 +1,80 @@
+# Reference: Synolakis, C.E. (1987). The runup of solitary waves. Journal of Fluid Mechanics 185, 523-545 (NTHMP benchmark BP4, solitary wave on a simple 1:19.85 beach).
+# Source repo: https://github.com/fengyanshi/FUNWAVE-TVD  commit b4c322e7582035ee19df8e6409a3dfedaff1cb96, path benchmarks/sph_sol_plane_mea/postprocessing/SW_01_03.mat (variables x1_25, a1_25)
+# Converted .mat -> text (Python repr of stored doubles). The comparison script labBM_04_SW.m is the NTHMP benchmark script ('Solitary Wave on a Simple Beach', 'CASE     H = 0.30').
+# Content: LABORATORY free-surface profile for H/d = 0.30 at nondimensional time t* = 25 (script label 'text(...,'t=25')', t* = t*sqrt(g/d) per NTHMP convention, not stated in script).
+# Columns: (1) x/d (dimensionless; origin at initial shoreline, x positive offshore: slope drawn as 'X=[-10:1: 20]; slp=1/19.85; Y=-slp*X;');
+#          (2) eta/d (dimensionless; plotted with axis limits e.g. '[-2 20 -0.02 0.04]').
+# Sampling: nearly uniform x spacing (~0.07 d) -> probably digitised/re-sampled profiles distributed with the NTHMP benchmark, not raw gauge records -> confidence B.
+-3.069 0.15252
+-2.97 0.14324
+-2.772 0.14721
+-2.178 0.12732
+-2.079 0.13528
+-1.98 0.16313
+-1.287 0.15385
+-1.188 0.14191
+-1.089 0.16976
+-0.495 0.16313
+-0.396 0.16976
+-0.356 0.15517
+-0.297 0.16578
+-0.238 0.187
+0.297 0.18966
+0.396 0.18037
+0.495 0.16313
+0.594 0.17639
+1.089 0.17109
+1.327 0.16578
+1.881 0.16446
+2.178 0.15119
+2.574 0.15915
+2.673 0.13793
+3.069 0.14058
+3.168 0.12865
+3.465 0.1366
+3.564 0.12202
+3.663 0.11273
+3.96 0.11406
+4.059 0.1061
+4.257 0.11538
+4.455 0.09284
+4.554 0.07162
+4.851 0.08753
+4.95 0.09549
+5.248 0.06764
+5.347 0.05305
+5.446 0.06631
+5.743 0.05968
+6.04 0.04775
+6.079 0.03979
+6.535 0.03979
+6.832 0.03316
+7.624 0.01989
+8.119 0.01326
+8.416 0.01061
+9.208 0.00663
+10.0 0.00796
+10.178 0.02255
+10.218 0.00928
+10.693 0.01592
+10.792 0.00531
+10.891 0.00663
+11.188 0.01989
+11.584 0.00531
+11.624 0.01989
+12.079 0.01857
+12.574 0.01326
+12.594 0.00398
+13.069 0.01326
+13.267 0.00133
+13.564 0.01194
+14.059 0.00133
+15.248 0.0
+15.743 -0.00663
+15.941 -0.00265
+16.337 -0.00438
+16.931 0.00531
+17.624 0.00663
+18.119 0.00265
+19.109 0.00928
+19.208 0.00133

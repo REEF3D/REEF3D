@@ -20,18 +20,16 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"nhflow_sigma.h"
-#include"lexer.h"
-#include"fdm_nhf.h"
-#include"ghostcell.h"
-#include"fnpf_ddx_cds2.h"
-#include"fnpf_ddx_cds4.h"
-#include"fnpf_cds2.h"
-#include"fnpf_cds4.h"
+#include "nhflow_sigma.h"
+#include "fdm_nhf.h"
+#include "fnpf_cds2.h"
+#include "fnpf_cds4.h"
+#include "ghostcell.h"
+#include "lexer.h"
 
-#define WLVL (fabs(d->WL(i,j))>1.0e-20?d->WL(i,j):1.0-20)
+#define WLVL (fabs(d->WL(i, j)) > 1.0e-20 ? d->WL(i, j) : 1.0 - 20)
 
-nhflow_sigma::nhflow_sigma(lexer *p) : nhflow_gradient(p),nhflow_filter(p),ef(p),df(p)
+nhflow_sigma::nhflow_sigma(lexer *p) : nhflow_gradient(p), nhflow_filter(p), ef(p), df(p)
 {
 }
 
@@ -42,16 +40,14 @@ nhflow_sigma::~nhflow_sigma()
 void nhflow_sigma::sigma_coord_ini(lexer *p)
 {
     double L, ZN0temp;
-    
-    L = p->ZN[p->knoz+marge] - p->ZN[0+marge];
-    
-    ZN0temp = p->ZN[0+marge];
-    
-    for(k=-marge;k<p->knoz+marge;++k)
+
+    L = p->ZN[p->knoz + marge] - p->ZN[0 + marge];
+
+    ZN0temp = p->ZN[0 + marge];
+
+    for(k = -marge; k < p->knoz + marge; ++k)
     {
-    p->ZN[KP] = (p->ZN[KP]-ZN0temp)/L;
+        p->ZN[KP] = (p->ZN[KP] - ZN0temp) / L;
     }
 }
-
-
 

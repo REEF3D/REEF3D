@@ -20,68 +20,41 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Authors: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"6DOF_motionext_file.h"
-#include"lexer.h"
-#include"fdm.h"
-#include"ghostcell.h"
+#include "6DOF_motionext_file.h"
+#include "fdm.h"
+#include "ghostcell.h"
+#include "lexer.h"
 
 void sixdof_motionext_file::read_format_1(lexer *p, ghostcell *pgc)
 {
     char name[100];
-	double val,val0,val1;
-    double sign,beta,s;
-	int count;
-	
-	sprintf(name,"6DOF_motion.dat");
+    double val, val0, val1;
+    double sign, beta, s;
+    int count;
 
-// open file and count
-	ifstream file(name, ios_base::in);
-	
-	if(!file)
-	cout<<endl<<("no '6DOF_motion.dat' file found")<<endl<<endl;
+    sprintf(name, "6DOF_motion.dat");
 
-    
-    count=0;
-	while(!file.eof())
-	{
-        for(qn=0;qn<colnum;++qn)
-        file>>val;
-	++count;
-	}
-	ptnum=count;
-    
-    //cout<<"6DOF MOTION READ "<<count<<endl;
-    
-	file.close();
-    
-// allocate
-    p->Darray(data,ptnum,colnum);
-    
+    try
+    {
+        auto table = readTable(name, colnum);
+        ptnum = table.size();
 
-// re.open file
-    file.open (name, ios_base::in);
-	
-	if(!file)
-	cout<<endl<<("no '6DOF_motion.dat' file found")<<endl<<endl;
-    
- // read file   
-    rowcount=colcount=0;
-	while(!file.eof())
-	{
-        for(qn=0;qn<colnum;++qn)
-        file>>data[rowcount][qn];
-        
-        ++rowcount;
-	}
-    
+        // copy data directly
+        data = std::move(table);
+    }
+    catch(const std::exception &e)
+    {
+        cout << "Error: " << e.what() << endl;
+        pgc->final(EXIT_FAILURE);
+    }
+
     ts = data[0][0];
-    te = data[ptnum-1][0];
-    
-    //if(p->mpirank==0)
-    //cout<<"6DOF_motion  ts: "<<ts<<" te: "<<te<<endl;
-    
-// add deltas
-    for(qn=0;qn<ptnum;++qn)
-    data[qn][0] += p->X241;
-    
+    te = data[ptnum - 1][0];
+
+    // if(p->mpirank==0)
+    // cout<<"6DOF_motion  ts: "<<ts<<" te: "<<te<<endl;
+
+    // add deltas
+    for(qn = 0; qn < ptnum; ++qn)
+        data[qn][0] += p->X241;
 }

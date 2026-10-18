@@ -1,0 +1,1 @@
+{"description": "NHFLOW 3D channel with a vertical cylinder (A580 1, A584) off the centre line, k-eps, 2 ranks split in y: turbulence across the rank interface (EV0 exchange, y advection of k/eps).", "solver": "nhflow", "np": 2, "steps": 100, "tags": ["nhflow", "turbulence", "mpi", "3d"], "covers": ["EV0 start24V", "nhflow_scalar_advec_CDS2 y flux", "nhflow_idiff cross terms"]}

@@ -20,216 +20,306 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"iowave.h"
-#include"lexer.h"
-#include"fdm_nhf.h"
-#include"ghostcell.h"
+#include "fdm_nhf.h"
+#include "ghostcell.h"
+#include "iowave.h"
+#include "lexer.h"
 
 void iowave::WL_relax(lexer *p, ghostcell *pgc, slice &WL, slice &depth)
 {
-    starttime=pgc->timer();
-    
-	count=0;
+    starttime = pgc->timer();
+
+    count = 0;
     SLICELOOP4
     {
-		dg = distgen(p);
-		db = distbeach(p);
-        
+        dg = distgen(p);
+        db = distbeach(p);
 
-		// Wave Generation
-        if(p->B98==2 && h_switch==1)
+        // Wave Generation
+        if(p->B98 == 2 && h_switch == 1)
         {
             // Zone 1
-            if(dg<1.0e20)
-            { 
-            WETDRYDEEP
-            WL(i,j) = (1.0-relax4_wg(i,j))*ramp(p)*(eta(i,j) + depth(i,j)) + relax4_wg(i,j) * WL(i,j);
-            ++count;
-            }
-		}
-        
-		
-		// Numerical Beach
-		if(p->B99==1 || p->B99==2)
-		{
-            // Zone 2
-            if(db<1.0e20)
+            if(dg < 1.0e20)
             {
-            if(p->wet[IJ]==1)
-            WL(i,j) = (1.0-relax4_nb(i,j))*depth(i,j) + relax4_nb(i,j)*WL(i,j);
+                WETDRYDEEP
+                {
+                    // with a background (B 523): background + ramped waves
+                    const int b = bg_on ? gen_bg(p) : -1;
+
+                    if(b < 0)
+                        WL(i, j) = (1.0 - relax4_wg(i, j)) * ramp(p) * (eta(i, j) + depth(i, j)) + relax4_wg(i, j) * WL(i, j);
+
+                    if(b >= 0)
+                        WL(i, j) = (1.0 - relax4_wg(i, j)) * (depth(i, j) + bgs.eta(b, p->XP[IP], p->YP[JP]) + ramp(p) * eta(i, j)) + relax4_wg(i, j) * WL(i, j);
+                }
+                ++count;
+            }
+        }
+
+        // Numerical Beach
+        if(p->B99 == 1 || p->B99 == 2)
+        {
+            // Zone 2
+            if(db < 1.0e20)
+            {
+                if(p->wet[IJ] == 1)
+                {
+                    // with a background (B 523): relax to the background level instead of still water
+                    const int b = bg_on ? beach_bg(p) : -1;
+
+                    if(b < 0)
+                        WL(i, j) = (1.0 - relax4_nb(i, j)) * depth(i, j) + relax4_nb(i, j) * WL(i, j);
+
+                    if(b >= 0)
+                        WL(i, j) = (1.0 - relax4_nb(i, j)) * (depth(i, j) + bgs.eta(b, p->XP[IP], p->YP[JP])) + relax4_nb(i, j) * WL(i, j);
+                }
             }
         }
     }
-    p->wavecalctime+=pgc->timer()-starttime;
+    p->wavecalctime += pgc->timer() - starttime;
 }
 
 void iowave::U_relax(lexer *p, ghostcell *pgc, double *U, double *UH)
 {
-    starttime=pgc->timer();
-    
-    count=0;
-    LOOP
-    {
-         dg = distgen(p);
-		db = distbeach(p);
-        
-		// Wave Generation
-		if(p->B98==2 && u_switch==1)
-        {
-            // Zone 1
-            if(dg<1.0e20)
-            {
-            WETDRYDEEP
-            {
-            U[IJK]  = (1.0-relax4_wg(i,j))*ramp(p)*uval[count] + relax4_wg(i,j)*U[IJK];
-            UH[IJK] = (1.0-relax4_wg(i,j))*ramp(p)*UHval[count] + relax4_wg(i,j)*UH[IJK];
-            }
-            ++count;
-            }
-		}
-		
-		// Numerical Beach
-        if(p->B99==1||p->B99==2||beach_relax==1)
-		{
-            // Zone 2
-            if(db<1.0e20)
-            {
-            U[IJK] = relax4_nb(i,j)*U[IJK];
-            UH[IJK] = relax4_nb(i,j)*UH[IJK];
-            }
-        }
-    }
-    p->wavecalctime+=pgc->timer()-starttime;
-}
+    starttime = pgc->timer();
 
-void iowave::V_relax(lexer *p, ghostcell *pgc, double *V, double *VH)
-{ 
-    starttime=pgc->timer();
-    
-    count=0;
-    if(p->j_dir==1)
-    LOOP
-    {
-         dg = distgen(p);
-		db = distbeach(p);
-        
-		// Wave Generation
-		if(p->B98==2 && v_switch==1)
-        {
-            // Zone 1
-            if(dg<1.0e20)
-            {
-            WETDRYDEEP
-            {
-            V[IJK]  = (1.0-relax4_wg(i,j))*ramp(p)*vval[count] + relax4_wg(i,j)*V[IJK];
-            VH[IJK] = (1.0-relax4_wg(i,j))*ramp(p)*VHval[count] + relax4_wg(i,j)*VH[IJK];
-            }
-            ++count;
-            }
-		}
-		
-		// Numerical Beach
-		if(p->B99==1||p->B99==2||beach_relax==1)
-		{	
-            // Zone 2
-            if(db<1.0e20)
-            {
-            V[IJK] = relax4_nb(i,j)*V[IJK];
-            VH[IJK] = relax4_nb(i,j)*VH[IJK];
-            }
-            
-        }
-    }
-    p->wavecalctime+=pgc->timer()-starttime;
-}
-
-void iowave::W_relax(lexer *p, ghostcell *pgc, double *W, double *WH)
-{   
-    starttime=pgc->timer();
-    
-    count=0;
+    count = 0;
     LOOP
     {
         dg = distgen(p);
         db = distbeach(p);
-        
-		// Wave Generation
-		if(p->B98==2 && w_switch==1)
+
+        // Wave Generation
+        if(p->B98 == 2 && u_switch == 1)
         {
             // Zone 1
-            if(dg<1.0e20)
+            if(dg < 1.0e20)
             {
-            WETDRYDEEP
-            {
-            W[IJK]  = (1.0-relax4_wg(i,j))*ramp(p)*wval[count] + relax4_wg(i,j)*W[IJK];
-            WH[IJK] = (1.0-relax4_wg(i,j))*ramp(p)*WHval[count] + relax4_wg(i,j)*WH[IJK];
+                WETDRYDEEP
+                {
+                    const int b = bg_on ? gen_bg(p) : -1;
+
+                    if(b < 0)
+                    {
+                        U[IJK] = (1.0 - relax4_wg(i, j)) * ramp(p) * uval[count] + relax4_wg(i, j) * U[IJK];
+                        UH[IJK] = (1.0 - relax4_wg(i, j)) * ramp(p) * UHval[count] + relax4_wg(i, j) * UH[IJK];
+                    }
+
+                    if(b >= 0)
+                    {
+                        double ub, vb;
+                        bgs.vel(b, col_h0[IJ], p->XP[IP], p->YP[JP], ub, vb);
+                        const double ut = ub + ramp(p) * (uval[count] - p->Ui);
+                        const double ht = col_h0[IJ] + bgs.eta(b, p->XP[IP], p->YP[JP]) + ramp(p) * eta(i, j);
+                        U[IJK] = (1.0 - relax4_wg(i, j)) * ut + relax4_wg(i, j) * U[IJK];
+                        UH[IJK] = (1.0 - relax4_wg(i, j)) * ht * ut + relax4_wg(i, j) * UH[IJK];
+                    }
+                }
+                ++count;
             }
-            ++count;
-            }
-		}
-		
-		// Numerical Beach
-        if(p->B99==1||p->B99==2||beach_relax==1)
-		{
+        }
+
+        // Numerical Beach
+        if(p->B99 == 1 || p->B99 == 2 || beach_relax == 1)
+        {
             // Zone 2
-            if(db<1.0e20)
+            if(db < 1.0e20)
             {
-            W[IJK] = relax4_nb(i,j)*W[IJK];
-            WH[IJK] = relax4_nb(i,j)*WH[IJK];
+                // B 97 1: waves on a current, relax to the inflow current instead of to rest
+                if(p->B97 == 1)
+                {
+                    U[IJK] = relax4_nb(i, j) * U[IJK] + (1.0 - relax4_nb(i, j)) * ramp(p) * p->Ui;
+                    UH[IJK] = relax4_nb(i, j) * UH[IJK] + (1.0 - relax4_nb(i, j)) * ramp(p) * p->Ui * p->WL[IJ];
+                }
+
+                const int b = bg_on ? beach_bg(p) : -1;
+
+                if(p->B97 == 0 && b < 0)
+                {
+                    U[IJK] = relax4_nb(i, j) * U[IJK];
+                    UH[IJK] = relax4_nb(i, j) * UH[IJK];
+                }
+
+                // background (B 523): relax to its current
+                if(p->B97 == 0 && b >= 0)
+                {
+                    double ub, vb;
+                    bgs.vel(b, col_h0[IJ], p->XP[IP], p->YP[JP], ub, vb);
+                    U[IJK] = relax4_nb(i, j) * U[IJK] + (1.0 - relax4_nb(i, j)) * ub;
+                    UH[IJK] = relax4_nb(i, j) * UH[IJK] + (1.0 - relax4_nb(i, j)) * ub * (col_h0[IJ] + bgs.eta(b, p->XP[IP], p->YP[JP]));
+                }
             }
         }
     }
-    p->wavecalctime+=pgc->timer()-starttime;		
+    p->wavecalctime += pgc->timer() - starttime;
+}
+
+void iowave::V_relax(lexer *p, ghostcell *pgc, double *V, double *VH)
+{
+    starttime = pgc->timer();
+
+    count = 0;
+    if(p->j_dir == 1)
+        LOOP
+        {
+            dg = distgen(p);
+            db = distbeach(p);
+
+            // Wave Generation
+            if(p->B98 == 2 && v_switch == 1)
+            {
+                // Zone 1
+                if(dg < 1.0e20)
+                {
+                    WETDRYDEEP
+                    {
+                        const int b = bg_on ? gen_bg(p) : -1;
+
+                        if(b < 0)
+                        {
+                            V[IJK] = (1.0 - relax4_wg(i, j)) * ramp(p) * vval[count] + relax4_wg(i, j) * V[IJK];
+                            VH[IJK] = (1.0 - relax4_wg(i, j)) * ramp(p) * VHval[count] + relax4_wg(i, j) * VH[IJK];
+                        }
+
+                        if(b >= 0)
+                        {
+                            double ub, vb;
+                            bgs.vel(b, col_h0[IJ], p->XP[IP], p->YP[JP], ub, vb);
+                            const double vt = vb + ramp(p) * vval[count];
+                            const double ht = col_h0[IJ] + bgs.eta(b, p->XP[IP], p->YP[JP]) + ramp(p) * eta(i, j);
+                            V[IJK] = (1.0 - relax4_wg(i, j)) * vt + relax4_wg(i, j) * V[IJK];
+                            VH[IJK] = (1.0 - relax4_wg(i, j)) * ht * vt + relax4_wg(i, j) * VH[IJK];
+                        }
+                    }
+                    ++count;
+                }
+            }
+
+            // Numerical Beach
+            if(p->B99 == 1 || p->B99 == 2 || beach_relax == 1)
+            {
+                // Zone 2
+                if(db < 1.0e20)
+                {
+                    const int b = bg_on ? beach_bg(p) : -1;
+
+                    if(b < 0)
+                    {
+                        V[IJK] = relax4_nb(i, j) * V[IJK];
+                        VH[IJK] = relax4_nb(i, j) * VH[IJK];
+                    }
+
+                    if(b >= 0)
+                    {
+                        double ub, vb;
+                        bgs.vel(b, col_h0[IJ], p->XP[IP], p->YP[JP], ub, vb);
+                        V[IJK] = relax4_nb(i, j) * V[IJK] + (1.0 - relax4_nb(i, j)) * vb;
+                        VH[IJK] = relax4_nb(i, j) * VH[IJK] + (1.0 - relax4_nb(i, j)) * vb * (col_h0[IJ] + bgs.eta(b, p->XP[IP], p->YP[JP]));
+                    }
+                }
+            }
+        }
+    p->wavecalctime += pgc->timer() - starttime;
+}
+
+void iowave::W_relax(lexer *p, ghostcell *pgc, double *W, double *WH)
+{
+    starttime = pgc->timer();
+
+    count = 0;
+    LOOP
+    {
+        dg = distgen(p);
+        db = distbeach(p);
+
+        // Wave Generation
+        if(p->B98 == 2 && w_switch == 1)
+        {
+            // Zone 1
+            if(dg < 1.0e20)
+            {
+                WETDRYDEEP
+                {
+                    const int b = bg_on ? gen_bg(p) : -1;
+
+                    if(b < 0)
+                    {
+                        W[IJK] = (1.0 - relax4_wg(i, j)) * ramp(p) * wval[count] + relax4_wg(i, j) * W[IJK];
+                        WH[IJK] = (1.0 - relax4_wg(i, j)) * ramp(p) * WHval[count] + relax4_wg(i, j) * WH[IJK];
+                    }
+
+                    if(b >= 0)
+                    {
+                        const double ht = col_h0[IJ] + bgs.eta(b, p->XP[IP], p->YP[JP]) + ramp(p) * eta(i, j);
+                        W[IJK] = (1.0 - relax4_wg(i, j)) * ramp(p) * wval[count] + relax4_wg(i, j) * W[IJK];
+                        WH[IJK] = (1.0 - relax4_wg(i, j)) * ht * ramp(p) * wval[count] + relax4_wg(i, j) * WH[IJK];
+                    }
+                }
+                ++count;
+            }
+        }
+
+        // Numerical Beach
+        if(p->B99 == 1 || p->B99 == 2 || beach_relax == 1)
+        {
+            // Zone 2
+            if(db < 1.0e20)
+            {
+                W[IJK] = relax4_nb(i, j) * W[IJK];
+                WH[IJK] = relax4_nb(i, j) * WH[IJK];
+            }
+        }
+    }
+    p->wavecalctime += pgc->timer() - starttime;
 }
 
 void iowave::P_relax(lexer *p, ghostcell *pgc, double *P)
 {
-    starttime=pgc->timer();
+    starttime = pgc->timer();
     FLOOP
     {
         dg = distgen(p);
         db = distbeach(p);
-        
-        // Numerical Beach
-        if(p->B99==1||p->B99==2||beach_relax==1)
-        {            
-            // Zone 2
-            if(db<1.0e20)
 
-            P[FIJK] = relax4_nb(i,j)*P[FIJK];
+        // Numerical Beach
+        if(p->B99 == 1 || p->B99 == 2 || beach_relax == 1)
+        {
+            // Zone 2
+            if(db < 1.0e20)
+
+                P[FIJK] = relax4_nb(i, j) * P[FIJK];
         }
-    }	
-    p->wavecalctime+=pgc->timer()-starttime;
+    }
+    p->wavecalctime += pgc->timer() - starttime;
 }
 
 void iowave::turb_relax_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double *F)
 {
-    starttime=pgc->timer();
-    
+    starttime = pgc->timer();
+
     LOOP
     {
-        dg = distgen(p);    
+        dg = distgen(p);
         db = distbeach(p);
 
-		// Wave Generation
-		if(p->B98==2 && u_switch==1)
+        // Wave Generation
+        if(p->B98 == 2 && u_switch == 1)
         {
             // Zone 1
-            if(dg<1.0e20)
-            F[IJK] = relax4_wg(i,j)*F[IJK];
+            if(dg < 1.0e20)
+                F[IJK] = relax4_wg(i, j) * F[IJK];
+        }
 
-		}
-        
         // Numerical Beach
-        if(p->B99==1||p->B99==2||beach_relax==1)
-		{
+        if(p->B99 == 1 || p->B99 == 2 || beach_relax == 1)
+        {
             // Zone 2
-            if(db<1.0e20)
+            if(db < 1.0e20)
             {
-            F[IJK] = relax4_nb(i,j)*F[IJK];
+                F[IJK] = relax4_nb(i, j) * F[IJK];
             }
         }
     }
-    
-    p->wavecalctime+=pgc->timer()-starttime;
+
+    p->wavecalctime += pgc->timer() - starttime;
 }

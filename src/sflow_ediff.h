@@ -23,8 +23,8 @@ Author: Hans Bihs
 #ifndef SFLOW_EDIFF_H_
 #define SFLOW_EDIFF_H_
 
-#include"sflow_diffusion.h"
-#include"increment.h"
+#include "increment.h"
+#include "sflow_diffusion.h"
 
 class lexer;
 class fdm2D;
@@ -38,14 +38,19 @@ using namespace std;
 class sflow_ediff final : public sflow_diffusion, public increment
 {
 public:
-	sflow_ediff(lexer*);
-	virtual ~sflow_ediff();
+    sflow_ediff(lexer *);
+    virtual ~sflow_ediff();
 
-	void diff_u(lexer*, fdm2D*, ghostcell*, solver2D*, slice&, slice&, double) override final;
-	void diff_v(lexer*, fdm2D*, ghostcell*, solver2D*, slice&, slice&, double) override final;
-    void diff_w(lexer*, fdm2D*, ghostcell*, solver2D*, slice&, slice&, slice&, double) override final;
-    void diff_scalar(lexer*, fdm2D*, ghostcell*, solver2D*, slice&, double, double) override final;
+    void diff_u(lexer *, fdm2D *, ghostcell *, solver2D *, slice &, slice &, slice &, slice &, slice &, double) override final;
+    void diff_v(lexer *, fdm2D *, ghostcell *, solver2D *, slice &, slice &, slice &, slice &, slice &, double) override final;
+    void diff_w(lexer *, fdm2D *, ghostcell *, solver2D *, slice &, slice &, slice &, slice &, slice &, slice &, double) override final;
+    void diff_scalar(lexer *, fdm2D *, ghostcell *, solver2D *, slice &, double, double) override final;
 
+private:
+    double viscosity(lexer *, fdm2D *);
+    double dxx(lexer *, slice &);
+    double dyy(lexer *, slice &);
+    double dxy(lexer *, slice &);
 };
 
 #endif

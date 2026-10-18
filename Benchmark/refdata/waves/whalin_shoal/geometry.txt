@@ -1,0 +1,14 @@
+# Whalin (1971) semicircular shoal -- GEOMETRY ONLY, NO MEASURED DATA FOUND IN THIS SESSION
+# Original: Whalin, R.W. (1971) The limit of applicability of linear wave refraction theory in a convergence zone.
+#   Research Report H-71-3, U.S. Army WES.  (ERDC library record found, PDF not retrievable:
+#   https://erdc-library.erdc.dren.mil/items/81b728f7-6443-4ef8-e053-411ac80adeb3)
+# [S1] Tavakkol & Lynett, "Celeris: A GPU-accelerated open source software with a Boussinesq-type wave solver ...",
+#   https://arxiv.org/pdf/1611.05984  (PDF text extraction of the equation was partly corrupted; as returned:)
+#   0 <= x < 10.67 - G           : z = 0
+#   10.67 - G <= x < 18.29 - G   : z = (10.67 - G - x)/25      <-- SIGN AS RETURNED; physically the bed rises 1:25 from
+#                                                                0 to 0.3048 m, i.e. likely z = (x - 10.67 + G)/25. VERIFY.
+#   18.29 - G <= x               : z = 0.3048
+#   G(y) = [y(6.096 - y)]^(1/2),  0 <= y <= 6.096
+#   Tank 25.6 m long x 6.096 m wide; water depth from 0.4572 m to 0.1524 m.
+#   Case shown: incident amplitude a = 0.0075 m, T = 2 s; Fig. 8 "symbols are experimental data from Whalin [15]" (plot only).
+# Cases T = 1 s and T = 3 s and the measured 1st/2nd/3rd harmonic amplitudes: NOT found in any fetched source.

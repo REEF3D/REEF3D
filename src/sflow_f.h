@@ -23,11 +23,11 @@ Author: Hans Bihs
 #ifndef SFLOW_F_H_
 #define SFLOW_F_H_
 
-#include"sflow.h"
-#include"increment.h"
-#include<iostream>
-#include<fstream>
-#include<vector>
+#include "increment.h"
+#include "sflow.h"
+#include <fstream>
+#include <iostream>
+#include <vector>
 
 class lexer;
 class fdm2D;
@@ -43,6 +43,9 @@ class sflow_fsf;
 class sflow_vtp_fsf;
 class sflow_vtp_bed;
 class sflow_convection;
+class sflow_HLL;
+class sflow_signal_speed;
+class sflow_reconstruct;
 class sflow_diffusion;
 class sflow_filter;
 class sflow_turbulence;
@@ -51,58 +54,64 @@ class sediment;
 class turbulence;
 class patchBC_interface;
 class sixdof;
+class sflow_amr;
 
 using namespace std;
 
 class sflow_f final : public sflow, public increment
 {
 public:
-	sflow_f(lexer*, fdm2D*,ghostcell*,patchBC_interface*);
-	virtual ~sflow_f();
-	
-	void start(lexer*, fdm2D*, ghostcell*) override final;
-	
+    sflow_f(lexer *, fdm2D *, ghostcell *, patchBC_interface *);
+    virtual ~sflow_f();
+
+    void start(lexer *, fdm2D *, ghostcell *) override final;
+
 private:
-	void logic(lexer*, fdm2D*, ghostcell*);
-	void ini(lexer*, fdm2D*, ghostcell*);
-	void loop(lexer*, fdm2D*, ghostcell*);
-    
-    void ini_fsf(lexer*, fdm2D*, ghostcell*);
-    void ini_fsf_2(lexer*, fdm2D*, ghostcell*);
-	
-	void maxcoor(lexer*, fdm2D*, ghostcell*);
-	
-	void print_debug(lexer*, fdm2D*, ghostcell*);
-    
-    void log_ini(lexer*);
-    void mainlog(lexer*);
-	
-	sflow_timestep *ptime;
-	sflow_momentum *pmom;
-	sflow_pressure *ppress;
+    void logic(lexer *, fdm2D *, ghostcell *);
+    void ini(lexer *, fdm2D *, ghostcell *);
+    void loop(lexer *, fdm2D *, ghostcell *);
+
+    void ini_fsf(lexer *, fdm2D *, ghostcell *);
+    void ini_fsf_2(lexer *, fdm2D *, ghostcell *);
+    void ini_wl(lexer *, fdm2D *, ghostcell *);
+
+    void maxcoor(lexer *, fdm2D *, ghostcell *);
+
+    void print_debug(lexer *, fdm2D *, ghostcell *);
+
+    void log_ini(lexer *);
+    void mainlog(lexer *);
+
+    sflow_timestep *ptime;
+    sflow_momentum *pmom;
+    sflow_pressure *ppress;
     sflow_forcing *psfdf;
-	solver2D *psolv;
-	solver2D *ppoissonsolv;
-	ioflow *pflow;
-	sflow_fsf *pfsf;
-	sflow_vtp_fsf *pprint;
-	sflow_vtp_bed *pprintbed;
-	sflow_convection *pconvec;
-	sflow_diffusion *pdiff;
+    solver2D *psolv;
+    solver2D *ppoissonsolv;
+    ioflow *pflow;
+    sflow_fsf *pfsf;
+    sflow_vtp_fsf *pprint;
+    sflow_vtp_bed *pprintbed;
+    sflow_convection *pconvec;
+    sflow_HLL *phll;
+    sflow_signal_speed *pss;
+    sflow_reconstruct *precon;
+    sflow_diffusion *pdiff;
     sflow_filter *pfilter;
     sflow_turbulence *pturb;
     sediment *psed;
     sflow_potential *potflow;
-    
+
     fdm *aa;
     turbulence *pturbcfd;
-    
+
     patchBC_interface *pBC;
-    
+
     sixdof *p6dof;
-	
-	double starttime, endtime;
-    
+    sflow_amr *pamr = nullptr;
+
+    double starttime, endtime;
+
     ofstream mainlogout;
 };
 

@@ -1,0 +1,6 @@
+# single 3 mm glass bead settling in water (unresolved)
+material 1 2500 0.5 0.5
+wall_material 0.5 0.5
+shape 1 sphere 0.0015
+wall 0 0 1  0 0 0
+particle 1 1  0.05 0.05 0.3

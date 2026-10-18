@@ -20,69 +20,67 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"fnpf_coastline.h"
-#include"lexer.h"
-#include"ghostcell.h"
-#include"slice.h"
+#include "fnpf_coastline.h"
+#include "ghostcell.h"
+#include "lexer.h"
+#include "slice.h"
 
 void fnpf_coastline::reini(lexer *p, ghostcell *pgc, slice &f)
 {
-	if(p->count==0)
-	{
-	reiniter=2*int(p->maxlength/(1.0*p->DXM));
-    
-    if(p->mpirank==0)
-	cout<<"initializing coastline... "<<endl<<endl;
-	}
-
-	if(p->count>0)
-	step(p);
-
-    for(int q=0;q<reiniter;++q)
+    if(p->count == 0)
     {
-	// Step 1
-    disc(p,pgc,f);
-    
-	SLICELOOP4
-	frk1(i,j) = f(i,j) + dt(i,j)*L(i,j);
+        reiniter = 2 * int(p->maxlength / (1.0 * p->DXM));
 
-	pgc->gcsl_start4(p,frk1,50);
-    
+        if(p->mpirank == 0)
+            cout << "initializing coastline... " << endl
+                 << endl;
+    }
 
-    // Step 2
-    disc(p,pgc,frk1);
-    
-	SLICELOOP4
-	frk2(i,j)=  0.75*f(i,j) + 0.25*frk1(i,j) + 0.25*dt(i,j)*L(i,j);
+    if(p->count > 0)
+        step(p);
 
-	pgc->gcsl_start4(p,frk2,50);
+    for(int q = 0; q < reiniter; ++q)
+    {
+        // Step 1
+        disc(p, pgc, f);
 
+        SLICELOOP4
+        frk1(i, j) = f(i, j) + dt(i, j) * L(i, j);
 
-    // Step 3
-    disc(p,pgc,frk2);
-    
-	SLICELOOP4
-	f(i,j) = (1.0/3.0)*f(i,j) + (2.0/3.0)*frk2(i,j) + (2.0/3.0)*dt(i,j)*L(i,j);
+        pgc->gcsl_start4(p, frk1, 50);
 
-	pgc->gcsl_start4(p,f,50);
-	}
-    
-    pgc->gcsl_start4(p,f,50);
+        // Step 2
+        disc(p, pgc, frk1);
+
+        SLICELOOP4
+        frk2(i, j) = 0.75 * f(i, j) + 0.25 * frk1(i, j) + 0.25 * dt(i, j) * L(i, j);
+
+        pgc->gcsl_start4(p, frk2, 50);
+
+        // Step 3
+        disc(p, pgc, frk2);
+
+        SLICELOOP4
+        f(i, j) = (1.0 / 3.0) * f(i, j) + (2.0 / 3.0) * frk2(i, j) + (2.0 / 3.0) * dt(i, j) * L(i, j);
+
+        pgc->gcsl_start4(p, f, 50);
+    }
+
+    pgc->gcsl_start4(p, f, 50);
 }
 
-
-void fnpf_coastline::step(lexer* p)
+void fnpf_coastline::step(lexer *p)
 {
-	reiniter=p->S37;
+    reiniter = p->G541;
 }
 
-void fnpf_coastline::time_preproc(lexer* p)
-{	
-    n=0;
-	SLICELOOP4
-	{
-	dt(i,j) = p->F43*MIN(p->DXP[IP],p->DYP[JP]);
-	++n;
-	}
+void fnpf_coastline::time_preproc(lexer *p)
+{
+    n = 0;
+    SLICELOOP4
+    {
+        dt(i, j) = p->F43 * MIN(p->DXP[IP], p->DYP[JP]);
+        ++n;
+    }
 }
 

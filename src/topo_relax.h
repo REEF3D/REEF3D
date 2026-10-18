@@ -23,7 +23,7 @@ Author: Hans Bihs
 #ifndef TOPO_RELAX_H_
 #define TOPO_RELAX_H_
 
-#include"increment.h"
+#include "increment.h"
 
 class lexer;
 class fdm;
@@ -36,20 +36,18 @@ using namespace std;
 class topo_relax : public increment
 {
 public:
-    topo_relax(lexer*);
+    topo_relax(lexer *);
     virtual ~topo_relax();
 
-	void start(lexer*,ghostcell*,sediment_fdm*);
-    double rf(lexer*,ghostcell*);
+    void start(lexer *, ghostcell *, sediment_fdm *);
+    double rf(lexer *, ghostcell *);
 
 private:
-	double distcalc(lexer*, double, double, double);
-	double r1(lexer*, double, double);
-	
-	double *tan_betaS73,*betaS73,*dist_S73;
-	double val;
-	
+    double distcalc(lexer *, double, double, double);
+    double r1(lexer *, double, double);
 
+    double *tan_betaS73, *betaS73, *dist_S73, *dist_S75;
+    double val;
 };
 
 #endif

@@ -20,51 +20,53 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"net_interface.h"
-#include"lexer.h"
-#include"fdm_nhf.h"
-#include"ghostcell.h"
-#include<sys/stat.h>
+#include "fdm_nhf.h"
+#include "ghostcell.h"
+#include "lexer.h"
+#include "net_interface.h"
+#include <sys/stat.h>
 
-#include"net.h"
-#include"net_void.h"
-#include"net_barDyn.h"
-#include"net_barQuasiStatic.h"
-#include"net_sheet.h"
+#include "net.h"
+#include "net_barDyn.h"
+#include "net_barQuasiStatic.h"
+#include "net_sheet.h"
+#include "net_void.h"
 
 void net_interface::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
-    if (p->X320 == 0)
-    pnet.push_back(new net_void());
-    
+    if(p->X320 == 0)
+        pnet.push_back(new net_void());
+
     else
     {
         pgc->bcast_int(&p->net_count, 1);
-        
-        if(p->mpirank==0)
-        mkdir("./REEF3D_NHFLOW_6DOF_Net",0777);	
+
+        if(p->mpirank == 0)
+            mkdir("./REEF3D_NHFLOW_6DOF_Net", 0777);
 
         else
-        p->X320_type = new int[p->net_count];
+            p->X320_type = new int[p->net_count];
 
-		
-        pnet.reserve(p->net_count);	
-  
-		NETLOOP
-		{
+        pnet.reserve(p->net_count);
+
+        NETLOOP
+        {
             pgc->bcast_int(&p->X320_type[n], 1);
-			
-            if(p->X320_type[n]>10)
-            pnet.push_back(new net_barDyn(n,p));
 
-            else if(p->X320_type[n]<4)
-            pnet.push_back(new net_barQuasiStatic(n,p));
+            if(p->X320_type[n] > 10)
+                pnet.push_back(new net_barDyn(n, p));
+
+            else if(p->X320_type[n] < 4)
+                pnet.push_back(new net_barQuasiStatic(n, p));
 
             else
-            pnet.push_back(new net_sheet(n,p));
+                pnet.push_back(new net_sheet(n, p));
 
-            pnet[n]->initialize_nhflow(p,d,pgc);
-		}
+            pnet[n]->initialize_nhflow(p, d, pgc);
+        }
     }
 
+    // impermeable membranes (closed cages)
+    if(p->X330 > 0)
+        membrane_ini_nhflow(p, d, pgc);
 }

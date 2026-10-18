@@ -17,29 +17,30 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Authors: 
+Authors:
     Csaba Pakozdi, Sébastien Fouques: Routine implementation
     Tobias Martin: Interface implementation
 
-Based on Clamond and Dutykh (2018). Accurate fast computation of steady two-dimensional 
+Based on Clamond and Dutykh (2018). Accurate fast computation of steady two-dimensional
 surface gravity waves in arbitrary depth. Journal of Fluid Mechanics, Vol. 844, pp. 491-518.
 --------------------------------------------------------------------*/
 
 #ifndef WAVE_LIB_SSGW_H_
 #define WAVE_LIB_SSGW_H_
 
-#include"wave_lib_precalc.h"
-#include"wave_lib_parameters.h"
-#include"increment.h"
+#include "increment.h"
+#include "wave_lib_parameters.h"
+#include "wave_lib_precalc.h"
 
 #include <Eigen/Dense>
-#include <unsupported/Eigen/FFT>
-#include <iostream>
-#include <limits>
 #include <cmath>
 #include <complex>
-#include <string>
 #include <fstream>
+#include <iostream>
+#include <limits>
+#include <string>
+#include <unsupported/Eigen/FFT>
+#include <vector>
 
 using namespace std;
 
@@ -47,7 +48,7 @@ struct Parameters
 {
     int N, iter;
     double tol, res;
-    
+
     double phaseVelocity, celerityCs, groupVelocity, BernoulliConstant;
     double waveHeight, creastHeight, troughHeight, waveLength, waveNumber, waterDepth, gravityAcc;
     double Impulse, PotentialEnergy, KineticEnergy, RadiationStress;
@@ -57,37 +58,47 @@ struct Parameters
 class wave_lib_ssgw final : public wave_lib_precalc, public wave_lib_parameters, public increment
 {
 public:
-    wave_lib_ssgw(lexer*, ghostcell*);
-	virtual ~wave_lib_ssgw();
-    
-    double wave_horzvel(lexer*,double,double,double);
-    
-    double wave_u(lexer*,double,double,double) override final;
-    double wave_v(lexer*,double,double,double) override final;
-    double wave_w(lexer*,double,double,double) override final;
-    double wave_eta(lexer*,double,double) override final;
-    double wave_fi(lexer*,double,double,double) override final;
-    
-    void parameters(lexer*,ghostcell*) override final;
-    void wave_prestep(lexer*,ghostcell*) override final;
-    
+    wave_lib_ssgw(lexer *, ghostcell *);
+    virtual ~wave_lib_ssgw();
+
+    double wave_horzvel(lexer *, double, double, double);
+
+    double wave_u(lexer *, double, double, double) override final;
+    double wave_v(lexer *, double, double, double) override final;
+    double wave_w(lexer *, double, double, double) override final;
+    double wave_eta(lexer *, double, double) override final;
+    double wave_fi(lexer *, double, double, double) override final;
+
+    void parameters(lexer *, ghostcell *) override final;
+    void wave_prestep(lexer *, ghostcell *) override final;
+
 private:
-    double singamma,cosgamma;
-    
+    double singamma, cosgamma;
+
     void setWave(double k, double d, double H);
     void getPhysicsParameters();
     bool computeSurfaceVariables();
     void writeResult(const std::string folderName);
-    void computeVelocityField(std::vector<double>& x, std::vector<double>& y, std::vector<double>& u, std::vector<double>& v);
-    void computePotentialField(std::vector<double>& x, std::vector<double>& y, std::vector<double>& phi);
+    void computeVelocityField(std::vector<double> &x, std::vector<double> &y, std::vector<double> &u, std::vector<double> &v);
+    void computePotentialField(std::vector<double> &x, std::vector<double> &y, std::vector<double> &phi);
     Parameters ParameterValue;
     std::vector<double> xs, ys, us, vs, phis;
-    
+
     bool resizing();
     void defineInput2Iteration(double k, double d, double H);
     void PetviashviliIteration();
     double modulo(double, double);
-    
+
+    // interior kinematics (NHFLOW/CFD): wave_lib_ssgw_kinematics.cpp
+    void buildVelocityTable();
+    double waveFrameX(double, double);
+    double surfaceInterp(const std::vector<double> &, double);
+    double tableInterp(const std::vector<double> &, double, double);
+    int Nxt, Nst;
+    double dxt;
+    bool kinematicsReady = false;
+    std::vector<double> etat, Ut, Wt;
+
     int N, iter;
     double tol, err;
     bool allocated, infiniteDepth, surfaceCalculated;
@@ -100,20 +111,20 @@ private:
     Eigen::FFT<double> fft;
 
     double xcurr, xl, xr, yl, yr, fi, eta;
-    
+
     Eigen::VectorXd dummy_real;
     Eigen::VectorXd Upsilon, CYs, C_hat;
-    Eigen::VectorXd S2_hat, Upsilon2,CUpsilon;
-    Eigen::VectorXd CUpsilon2,Cinf_hat,CIC_hat;
-    Eigen::VectorXd L_hat,IL_hat,LUps,Nupsilon;
+    Eigen::VectorXd S2_hat, Upsilon2, CUpsilon;
+    Eigen::VectorXd CUpsilon2, Cinf_hat, CIC_hat;
+    Eigen::VectorXd L_hat, IL_hat, LUps, Nupsilon;
     Eigen::VectorXd IC, ydx, ICydx;
     Eigen::VectorXd U, Xs, Ys;
     Eigen::VectorXd vectorAlpha, vectorK;
-    
+
     Eigen::VectorXcd zs, dzs, ws;
     Eigen::VectorXcd Zs, dZs, dummy_hat, dummy;
-    Eigen::VectorXcd Ys_hat, Upsilon_hat,Upsilon2_hat;
-    Eigen::VectorXcd CUps_hat,Nupsilon_hat,IH_hat;
+    Eigen::VectorXcd Ys_hat, Upsilon_hat, Upsilon2_hat;
+    Eigen::VectorXcd CUps_hat, Nupsilon_hat, IH_hat;
 };
 
 #endif

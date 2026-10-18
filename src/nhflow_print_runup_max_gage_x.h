@@ -23,14 +23,13 @@ Author: Hans Bihs
 #ifndef NHFLOW_PRINT_RUNUP_MAX_GAGE_X_H_
 #define NHFLOW_PRINT_RUNUP_MAX_GAGE_X_H_
 
-#include"increment.h"
-#include<iostream>
-#include<fstream>
+#include "increment.h"
+#include <fstream>
+#include <iostream>
 
 class lexer;
 class fdm_nhf;
 class ghostcell;
-class field;
 class ioflow;
 class slice;
 
@@ -39,28 +38,25 @@ using namespace std;
 class nhflow_print_runup_max_gage_x : public increment
 {
 public:
-    nhflow_print_runup_max_gage_x(lexer*,fdm_nhf*,ghostcell*);
-	virtual ~nhflow_print_runup_max_gage_x();
+    nhflow_print_runup_max_gage_x(lexer *, fdm_nhf *, ghostcell *);
+    virtual ~nhflow_print_runup_max_gage_x();
 
-	void start(lexer*, fdm_nhf*, ghostcell*,ioflow*,slice &f);
-
+    void start(lexer *, fdm_nhf *, ghostcell *, ioflow *, slice &f);
 
 private:
-    void ini_location(lexer*, fdm_nhf*, ghostcell*);
-    void sort(double*, double*, int*, int,int);
+    void ini_location(lexer *, fdm_nhf *, ghostcell *);
+    void sort(double *, double *, int *, int, int);
 
-    double *xloc,**xloc_all;
+    double *xloc, **xloc_all;
     double *yloc;
-    double *zloc,**zloc_all;
+    double *zloc, **zloc_all;
     int *jloc;
-    int n,q;
+    int n, q;
     ofstream wsfout;
     char name[250];
 
     double xcoor;
     double T;
-	
-
 };
 
 #endif

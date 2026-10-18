@@ -1,0 +1,21 @@
+{
+ "base": "nhflow_2d_nwt_stokes5",
+ "ctrl_add": [
+  "B 108 0.0 0.0 -1.0 1.0 20.0",
+  "B 107 200.0 200.0 -1.0 1.0 40.0",
+  "B 107 150.0 150.0 -1.0 1.0 5.0"
+ ],
+ "description": "old input: custom generation zone (B 108, width 20) and two beach zones (B 107, widths 40 and 5, the second inside the domain) instead of the B 96 defaults.",
+ "tags": [
+  "quick",
+  "2d",
+  "nhflow",
+  "waves",
+  "iowave",
+  "legacy"
+ ],
+ "covers": [
+  "B 107/B 108 translation into bc_zone",
+  "averaged beach weights of overlapping zones"
+ ]
+}

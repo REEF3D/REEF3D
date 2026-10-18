@@ -1,0 +1,5 @@
+{"base": "nhflow_3d_ship_box_propeller", "ctrl_set": {"X 11": "1 1 1 0 0 1"},
+ "files": ["ship.dat"],
+ "description": "as nhflow_3d_ship_box_propeller with surge, sway, heave and yaw free: propeller with inflow sampled from the NHFLOW velocity, MMG rudder behind the propeller in zig-zag mode (fast rudder machine so that the rudder reverses within the run), cross-flow drag.",
+ "tags": ["3d", "nhflow", "6dof", "ship", "propeller", "rudder", "mpi"],
+ "covers": ["sixdof_fluid_nhflow::velocity (ccipol4V, MPI)", "ship propeller_inflow sample", "ship_models::rudder_mmg", "ship steering zig-zag, rudder rate", "heading unwrap"]}

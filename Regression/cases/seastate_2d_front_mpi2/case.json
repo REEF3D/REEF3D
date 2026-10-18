@@ -1,0 +1,7 @@
+{
+ "base": "seastate_2d_front",
+ "np": 2,
+ "description": "as seastate_2d_front on 2 MPI ranks (2 iterations per step by default with several ranks).",
+ "tags": ["quick", "2d", "seastate", "mpi"],
+ "covers": ["seastate_exchange in the nonstationary mode", "A 707 default for several ranks"]
+}

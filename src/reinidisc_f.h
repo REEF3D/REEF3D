@@ -23,34 +23,33 @@ Author: Hans Bihs
 #ifndef REINIDISC_F_H_
 #define REINIDISC_F_H_
 
-#include"reinidisc.h"
-#include"ddweno_nug_sf.h"
-#include"field.h"
+#include "ddweno_nug_sf.h"
+#include "field.h"
+#include "reinidisc.h"
 
 class picard;
-class cpt;
 
 using namespace std;
 
 class reinidisc_f final : public reinidisc, public ddweno_nug_sf
 {
 public:
-	reinidisc_f(lexer* p);
-	virtual ~reinidisc_f();
-	void start(lexer*, fdm*, ghostcell*, field&, field&, int) override final;
-	
+    reinidisc_f(lexer *p);
+    virtual ~reinidisc_f();
+    void start(lexer *, fdm *, ghostcell *, field &, field &, int) override final;
+
 private:
-	void disc(lexer*, fdm*, ghostcell*, field&, field&);
-	
-	double xmin,xplus,ymin,yplus,zmin,zplus;
-	double dxmin,dxplus,dymin,dyplus,dzmin,dzplus;
-	double uwx,uwy,uwz,ddt;
-	double lsv,dv,lsSig;
-	
-	double dx, dy, dz, dnorm, sign;
-	double sx,sy,sz,snorm,op;
-	
-	double deltax,denom;
+    void disc(lexer *, fdm *, ghostcell *, field &, field &);
+
+    double xmin, xplus, ymin, yplus, zmin, zplus;
+    double dxmin, dxplus, dymin, dyplus, dzmin, dzplus;
+    double uwx, uwy, uwz, ddt;
+    double lsv, dv, lsSig;
+
+    double dx, dy, dz, dnorm, sign;
+    double sx, sy, sz, snorm, op;
+
+    double deltax, denom;
 };
 
 #endif

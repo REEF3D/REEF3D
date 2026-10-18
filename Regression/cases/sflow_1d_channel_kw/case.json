@@ -1,0 +1,1 @@
+{"description": "as sflow_1d_channel_ke with depth-averaged k-omega (A260 2).", "solver": "sflow", "np": 1, "steps": 400, "tags": ["quick", "sflow", "turbulence"], "covers": ["sflow_turb_kw_IM1", "sflow_ifou", "omega bed source"]}

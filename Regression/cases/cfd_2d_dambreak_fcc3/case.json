@@ -1,0 +1,3 @@
+{"base": "cfd_2d_dambreak", "ctrl_set": {"N 40": "33"},
+ "description": "as cfd_2d_dambreak with N40=33 conservative momentum_FCC3.",
+ "tags": ["2d", "dambreak", "momentum"], "covers": ["N40=33 momentum_FCC3"]}

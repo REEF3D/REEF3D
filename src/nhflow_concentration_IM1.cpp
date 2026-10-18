@@ -20,51 +20,51 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"nhflow_concentration_IM1.h"
-#include"lexer.h"
-#include"fdm_nhf.h"
-#include"ghostcell.h"
-#include"nhflow_scalar_convection.h"
-#include"nhflow_diffusion.h"
-#include"ioflow.h"
-#include"solver.h"
-#include"sediment_fdm.h"
+#include "nhflow_concentration_IM1.h"
+#include "fdm_nhf.h"
+#include "ghostcell.h"
+#include "ioflow.h"
+#include "lexer.h"
+#include "nhflow_diffusion.h"
+#include "nhflow_scalar_convection.h"
+#include "sediment_fdm.h"
+#include "solver.h"
 
-nhflow_concentration_IM1::nhflow_concentration_IM1(lexer* p, fdm_nhf *d, ghostcell *pgc) : nhflow_concentration_io(p,d)
+nhflow_concentration_IM1::nhflow_concentration_IM1(lexer *p, fdm_nhf *d, ghostcell *pgc) : nhflow_concentration_io(p, d)
 {
-	gcval_conc=60;
+    gcval_conc = 60;
 }
 
 nhflow_concentration_IM1::~nhflow_concentration_IM1()
 {
 }
 
-void nhflow_concentration_IM1::start(lexer *p, fdm_nhf *d, nhflow_scalar_convection *pconvec, nhflow_diffusion *pdiff, 
-                                nhflow_turbulence *pturb, solver* psolv, ghostcell* pgc, ioflow* pflow)
+void nhflow_concentration_IM1::start(lexer *p, fdm_nhf *d, nhflow_scalar_convection *pconvec, nhflow_diffusion *pdiff,
+                                     nhflow_turbulence *pturb, solver *psolv, ghostcell *pgc, ioflow *pflow)
 {
-    starttime=pgc->timer();
-    clearrhs(p,d);
-    pconvec->start(p,d,C,4,d->U,d->V,d->W);
-    pdiff->diff_scalar(p,d,pgc,psolv,C,1.0,1.0);
-	concsource(p,d,C);
-	timesource(p,d,C);
-    bcconc_start(p,d,pgc,C);
-    psolv->startV(p,pgc,C,d->rhsvec,d->M,4);
-	pgc->start60V(p,C,gcval_conc);
+    starttime = pgc->timer();
+    clearrhs(p, d);
+    pconvec->start(p, d, C, 4, d->U, d->V, d->omegaF);
+    pdiff->diff_scalar(p, d, pgc, psolv, C, 1.0, 1.0);
+    concsource(p, d, C);
+    timesource(p, d, C);
+    bcconc_start(p, d, pgc, C);
+    psolv->startV(p, pgc, C, d->rhsvec, d->M, 4);
+    pgc->start60V(p, C, gcval_conc);
 }
 
-void nhflow_concentration_IM1::timesource(lexer* p, fdm_nhf *d, double *CN)
+void nhflow_concentration_IM1::timesource(lexer *p, fdm_nhf *d, double *CN)
 {
-    int count=0;
+    int count = 0;
     int q;
 
     LOOP
     {
-        d->M.p[count]+= 1.0/p->dt;
+        d->M.p[count] += 1.0 / p->dt;
 
-        d->rhsvec.V[count] += d->L[IJK] + C[IJK]/p->dt;
+        d->rhsvec.V[count] += d->L[IJK] + C[IJK] / p->dt;
 
-	++count;
+        ++count;
     }
 }
 
@@ -72,81 +72,79 @@ void nhflow_concentration_IM1::ctimesave(lexer *p, fdm_nhf *d)
 {
 }
 
+void nhflow_concentration_IM1::concsource(lexer *p, fdm_nhf *d, double *CONC)
+{ /*
+ double zdist;
 
-void nhflow_concentration_IM1::concsource(lexer* p, fdm_nhf *d, double *CONC)
-{    /*
-    double zdist;
-    
-    count=0;
-    LOOP
-    {   
-        if(k==0)
-        {
-        zdist = p->DZN[KP]*d->WL(i,j);
-        d->rhsvec.V[count]  += (-s->ws)*(s->cb(i,j)-s->cbe(i,j))/(zdist);
-        
-        //d->rhsvec.V[count]  += s->ws*s->cbe(i,j)/(zdist);
-        }
+ count=0;
+ LOOP
+ {
+     if(k==0)
+     {
+     zdist = p->DZN[KP]*d->WL(i,j);
+     d->rhsvec.V[count]  += (-s->ws)*(s->cb(i,j)-s->cbe(i,j))/(zdist);
 
-	++count;
-    }*/
+     //d->rhsvec.V[count]  += s->ws*s->cbe(i,j)/(zdist);
+     }
+
+ ++count;
+ }*/
 }
 
 void nhflow_concentration_IM1::bcconc_start(lexer *p, fdm_nhf *d, ghostcell *pgc, double *CONC)
 {
     double cval;
-    
-        int n=0;
-        LOOP
+
+    int n = 0;
+    LOOP
+    {
+        if((p->flag4[Im1JK] < 0 || p->DF[Im1JK] < 0))
         {
-            if((p->flag4[Im1JK]<0 || p->DF[Im1JK]<0))
-            {
-            d->rhsvec.V[n] -= d->M.s[n]*CONC[IJK];
+            d->rhsvec.V[n] -= d->M.s[n] * CONC[IJK];
             d->M.s[n] = 0.0;
-            }
-            
-            if((p->flag4[Ip1JK]<0 || p->DF[Ip1JK]<0))
-            {
-            d->rhsvec.V[n] -= d->M.n[n]*CONC[IJK];
+        }
+
+        if((p->flag4[Ip1JK] < 0 || p->DF[Ip1JK] < 0))
+        {
+            d->rhsvec.V[n] -= d->M.n[n] * CONC[IJK];
             d->M.n[n] = 0.0;
-            }
-            
-            if(p->j_dir==1)
-            if((p->flag4[IJm1K]<0 || p->DF[IJm1K]<0))
+        }
+
+        if(p->j_dir == 1)
+            if((p->flag4[IJm1K] < 0 || p->DF[IJm1K] < 0))
             {
-            d->rhsvec.V[n] -= d->M.e[n]*CONC[IJK];
-            d->M.e[n] = 0.0;
-            }
-            
-            if(p->j_dir==1)
-            if((p->flag4[IJp1K]<0 || p->DF[IJp1K]<0))
-            {
-            d->rhsvec.V[n] -= d->M.w[n]*CONC[IJK];
-            d->M.w[n] = 0.0;
-            }
-            
-            if(p->flag4[IJKm1]<0 || p->DF[IJKm1]<0)
-            {
-            d->rhsvec.V[n] -= d->M.b[n]*CONC[IJK];
-            d->M.b[n] = 0.0;
-            }
-            
-            if(p->flag4[IJKp1]<0 || p->DF[IJKp1]<0)
-            {
-            d->rhsvec.V[n] -= d->M.t[n]*CONC[IJK];
-            d->M.t[n] = 0.0;
+                d->rhsvec.V[n] -= d->M.e[n] * CONC[IJK];
+                d->M.e[n] = 0.0;
             }
 
-        ++n;
-        }
-        
-        
-    // turn off inside direct forcing body
-        n=0;
-        LOOP
-        {
-            if(p->DF[IJK]<0)
+        if(p->j_dir == 1)
+            if((p->flag4[IJp1K] < 0 || p->DF[IJp1K] < 0))
             {
+                d->rhsvec.V[n] -= d->M.w[n] * CONC[IJK];
+                d->M.w[n] = 0.0;
+            }
+
+        if(p->flag4[IJKm1] < 0 || p->DF[IJKm1] < 0)
+        {
+            d->rhsvec.V[n] -= d->M.b[n] * CONC[IJK];
+            d->M.b[n] = 0.0;
+        }
+
+        if(p->flag4[IJKp1] < 0 || p->DF[IJKp1] < 0)
+        {
+            d->rhsvec.V[n] -= d->M.t[n] * CONC[IJK];
+            d->M.t[n] = 0.0;
+        }
+
+        ++n;
+    }
+
+    // turn off inside direct forcing body
+    n = 0;
+    LOOP
+    {
+        if(p->DF[IJK] < 0)
+        {
             d->M.p[n] = 1.0;
 
             d->M.n[n] = 0.0;
@@ -157,21 +155,20 @@ void nhflow_concentration_IM1::bcconc_start(lexer *p, fdm_nhf *d, ghostcell *pgc
 
             d->M.t[n] = 0.0;
             d->M.b[n] = 0.0;
-            
+
             d->rhsvec.V[n] = 0.0;
-            }
-        ++n;
         }
+        ++n;
+    }
 }
 
-
-void nhflow_concentration_IM1::clearrhs(lexer* p, fdm_nhf *d)
+void nhflow_concentration_IM1::clearrhs(lexer *p, fdm_nhf *d)
 {
-    int n=0;
+    int n = 0;
     LOOP
-    {    
-    d->rhsvec.V[n]=0.0;
-    d->L[IJK]=0.0;
-	++n;
+    {
+        d->rhsvec.V[n] = 0.0;
+        d->L[IJK] = 0.0;
+        ++n;
     }
 }

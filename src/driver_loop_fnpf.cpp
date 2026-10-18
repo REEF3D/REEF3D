@@ -20,124 +20,149 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"driver.h"
-#include"ghostcell.h"
-#include"freesurface_header.h"
-#include"turbulence_header.h"
-#include"momentum_header.h"
-#include"pressure_header.h"
-#include"fdm_header.h"
-#include"sediment_header.h"
-#include"heat_header.h"
-#include"concentration_header.h"
-#include"benchmark_header.h"
-#include"convection_header.h"
-#include"solver_header.h"
-#include"field_header.h"
-#include"6DOF_header.h"
-#include"waves_header.h"
-#include"lexer.h"
-#include"fdm_fnpf.h"
+#include "6DOF_header.h"
+#include "benchmark_header.h"
+#include "concentration_header.h"
+#include "convection_header.h"
+#include "driver.h"
+#include "fdm_fnpf.h"
+#include "fdm_header.h"
+#include "field_header.h"
+#include "fnpf_amr.h"
+#include "fnpf_ice.h"
+#include "freesurface_header.h"
+#include "ghostcell.h"
+#include "heat_header.h"
+#include "lexer.h"
+#include "momentum_header.h"
+#include "pressure_header.h"
+#include "regression_dump.h"
+#include "runlog.h"
+#include "sediment_header.h"
+#include "solver_header.h"
+#include "turbulence_header.h"
+#include "waves_header.h"
 
 void driver::loop_fnpf()
 {
-    if(p->mpirank==0)
-    cout<<"starting mainloop.FNPF"<<endl;
-   
-//-----------MAINLOOP FNPF----------------------------
-    
-	while(p->count<p->N45 && p->simtime<p->N41  && p->sedtime<p->S19)
-	{
+    if(p->mpirank == 0)
+        cout << "starting mainloop.FNPF" << endl;
+
+    //-----------MAINLOOP FNPF----------------------------
+
+    while(p->count < p->N45 && p->simtime < p->N41 && p->sedtime < p->S19)
+    {
         ++p->count;
-        starttime=pgc->timer();
+        starttime = pgc->timer();
 
-        if(p->mpirank==0 && (p->count%p->P12==0))
+        if(p->mpirank == 0 && (p->count % p->P12 == 0))
         {
-        cout<<"------------------------------------"<<endl;
-        cout<<p->count<<endl;
-        
-        cout<<"simtime: "<<setprecision(6)<<p->simtime<<endl;
-        cout<<"timestep: "<<setprecision(4)<<p->dt<<endl;
-        
-		if(p->B90>0 && p->B92<=11)
-		cout<<"t/T: "<<p->simtime/p->wT<<endl;
-        
-        if(p->B90>0 && p->B92>11)
-		cout<<"t/T: "<<p->simtime/p->wTp<<endl;
-        }
-        
-        pflow->wavegen_precalc_fnpf(p,c,pgc);
-        
-        
-        SLICELOOP4
-        c->breaklog(i,j)=0;
+            cout << "------------------------------------" << endl;
+            cout << p->count << endl;
 
+            cout << "simtime: " << setprecision(6) << p->simtime << endl;
+            cout << "timestep: " << setprecision(4) << p->dt << endl;
+
+            if(p->B90 > 0 && p->B92 <= 11)
+                cout << "t/T: " << p->simtime / p->wT << endl;
+
+            if(p->B90 > 0 && p->B92 > 11)
+                cout << "t/T: " << p->simtime / p->wTp << endl;
+        }
+
+        pflow->wavegen_precalc_fnpf(p, c, pgc);
+
+        SLICELOOP4
+        c->breaklog(i, j) = 0;
+
+        // ice floes: footprints and lid parameters at t^n
+        if(pfice != nullptr)
+            pfice->prestep(p, c, pgc);
 
         // FNPF
-		ppfsg->start(p,c,pgc,plapsolv,pfsfdisc,pflow,preini);
-        
+        ppfsg->start(p, c, pgc, plapsolv, pfsfdisc, pflow, preini);
+
+        // ice floes: forces at t^n+1, 6DOF + contact, output
+        if(pfice != nullptr)
+            pfice->poststep(p, c, pgc);
+
         // printer
-        pprint->start(p,c,pgc,pflow);
-        
-        //timestep control
-        p->simtime+=p->dt;
-        pftstep->start(c,p,pgc);
-        
+        pprint->start(p, c, pgc, pflow);
+
+        if(pfamr != nullptr)
+            pfamr->print(p, c, pgc);
+
+        // timestep control
+        p->simtime += p->dt;
+        pftstep->start(c, p, pgc);
+
+        if(pfamr != nullptr)
+            pfamr->timestep(p, c, pgc);
+
+        preg->fnpf_step(p, c, pgc);
+
+        if(pfice != nullptr)
+            pfice->timestep(p, c, pgc);
 
         // Shell-Printout
-        
-        endtime=pgc->timer();
-        
-		p->itertime=endtime-starttime;
-        
+
+        endtime = pgc->timer();
+
+        p->itertime = endtime - starttime;
+
         p->itertime = pgc->globalmax(p->itertime);
         p->gctime = pgc->globalmax(p->gctime);
         p->xtime = pgc->globalmax(p->xtime);
-        
-		p->totaltime+=p->itertime;
-		p->gctotaltime+=p->gctime;
-		p->Xtotaltime+=p->xtime;
-		p->meantime=(p->totaltime/double(p->count));
-		p->gcmeantime=(p->gctotaltime/double(p->count));
-		p->Xmeantime=(p->Xtotaltime/double(p->count));
-		
-        if(p->mpirank==0)
+
+        p->totaltime += p->itertime;
+        p->gctotaltime += p->gctime;
+        p->Xtotaltime += p->xtime;
+        p->meantime = (p->totaltime / double(p->count));
+        p->gcmeantime = (p->gctotaltime / double(p->count));
+        p->Xmeantime = (p->Xtotaltime / double(p->count));
+
+        if(p->mpirank == 0)
         {
-        if(p->count%p->P12==0)
-        {
-        if(p->B90>0)
-		cout<<"wavegentime: "<<setprecision(3)<<p->wavecalctime<<endl;
-		
-		cout<<"laplacetime: "<<setprecision(3)<<p->laplacetime<<"   laplace cost: "<<100.0*p->laplacetime/p->itertime<<" %"<<endl;
-        cout<<"gctime: "<<setprecision(3)<<p->gctime<<"\t average gctime: "<<setprecision(3)<<p->gcmeantime<<endl;
-        cout<<"Xtime: "<<setprecision(3)<<p->xtime<<"\t average Xtime: "<<setprecision(3)<<p->Xmeantime<<endl;		
-		cout<<"total time: "<<setprecision(6)<<p->totaltime<<"   average time: "<<setprecision(3)<<p->meantime<<endl;
-        cout<<"timer per step: "<<setprecision(3)<<p->itertime<<endl;
+            if(p->count % p->P12 == 0)
+            {
+                if(p->B90 > 0)
+                    cout << "wavegentime: " << setprecision(3) << p->wavecalctime << endl;
+
+                cout << "laplacetime: " << setprecision(3) << p->laplacetime << "   laplace cost: " << 100.0 * p->laplacetime / p->itertime << " %" << endl;
+                cout << "gctime: " << setprecision(3) << p->gctime << "\t average gctime: " << setprecision(3) << p->gcmeantime << endl;
+                cout << "Xtime: " << setprecision(3) << p->xtime << "\t average Xtime: " << setprecision(3) << p->Xmeantime << endl;
+                cout << "total time: " << setprecision(6) << p->totaltime << "   average time: " << setprecision(3) << p->meantime << endl;
+                cout << "timer per step: " << setprecision(3) << p->itertime << endl;
+            }
         }
-    
-        }
-    p->gctime=0.0;
-    p->xtime=0.0;
-	p->reinitime=0.0;
-	p->wavecalctime=0.0;
-    p->laplacetime=0.0;
-    
-    stop(p,a,pgc);
-	}
+        p->gctime = 0.0;
+        p->xtime = 0.0;
+        p->reinitime = 0.0;
+        p->wavecalctime = 0.0;
+        p->laplacetime = 0.0;
 
-	if(p->mpirank==0)
-	{
-	cout<<endl<<"******************************"<<endl<<endl;
+        stop(p, a, pgc);
+    }
 
-	cout<<"modelled time: "<<p->simtime<<endl;
-    cout<<"total time: "<<setprecision(6)<<p->totaltime<<"   average time: "<<setprecision(3)<<p->meantime<<endl;
-	cout << endl;
+    if(p->mpirank == 0)
+    {
+        cout << endl
+             << "******************************" << endl
+             << endl;
 
-    mainlogout.close();
-    maxlogout.close();
-    solvlogout.close();
-	}
+        if(p->plog)
+            p->plog->end(p, "finished");
+
+        cout << "modelled time: " << p->simtime << endl;
+        cout << "total time: " << setprecision(6) << p->totaltime << "   average time: " << setprecision(3) << p->meantime << endl;
+        cout << endl;
+
+        mainlogout.close();
+        maxlogout.close();
+        solvlogout.close();
+    }
+
+    preg->fnpf_final(p, c, pgc);
 
     pgc->final();
-    
 }

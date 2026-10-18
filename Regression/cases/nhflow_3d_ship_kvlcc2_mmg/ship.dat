@@ -1,0 +1,23 @@
+# KVLCC2 L7 model, MMG standard method (Yasukawa & Yoshimura 2015), hull loads from MMG only
+# Architect: Hans Bihs
+lpp 7.0
+friction 0
+mmg_hull 0.022 -0.040 0.002 0.011 0.771 -0.315 0.083 -1.607 0.379 -0.391 0.008 -0.137 -0.049 -0.030 -0.294 0.055 -0.013
+mmg_added_mass 0.022 0.223 0.011
+mmg_draft 0.46
+mmg_fluid 0
+propeller -3.61 0.0 -0.23 0.216
+propeller_kt 0.2931 -0.2753 -0.1385
+propeller_kq 0.03 -0.02 -0.01
+propeller_rps 10.4
+propeller_source 0
+propeller_inflow wake 0.40
+propeller_wake_mmg 2.0 1.6 1.1 -0.48
+thrust_deduction 0.220
+rudder -3.75 -0.23 0.0539 2.20826
+rudder_mmg 0.387 0.312 -0.464 1.09 0.50 -0.710 0.395
+rudder_gamma 0.395 0.640
+rudder_falpha 2.747
+rudder_rate 11.90
+rudder_max 35
+rudder_angle zigzag 10 10 0.0

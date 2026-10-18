@@ -23,15 +23,14 @@ Author: Hans Bihs
 #ifndef NHFLOW_SIGMA_H_
 #define NHFLOW_SIGMA_H_
 
-#include"fnpf.h"
-#include"slice4.h"
-#include"nhflow_gradient.h"
-#include"nhflow_filter.h"
+#include "fnpf.h"
+#include "nhflow_filter.h"
+#include "nhflow_gradient.h"
+#include "slice4.h"
 
 class lexer;
 class fdm_nhf;
 class ghostcell;
-class field;
 class nhflow_sigma_data;
 class slice;
 
@@ -40,22 +39,23 @@ using namespace std;
 class nhflow_sigma : public nhflow_gradient, public nhflow_filter
 {
 public:
-	nhflow_sigma(lexer*);
-	virtual ~nhflow_sigma();
-    
-    void sigma_coord_ini(lexer*);
-    void sigma_ini(lexer*, fdm_nhf*, ghostcell*, slice&);
-    void sigma_update(lexer*, fdm_nhf*, ghostcell*, slice&);
-    
-    void omega_update(lexer*,fdm_nhf*,ghostcell*,slice&,double*,double*,double*);
-    
+    nhflow_sigma(lexer *);
+    virtual ~nhflow_sigma();
+
+    void sigma_coord_ini(lexer *);
+    void sigma_ini(lexer *, fdm_nhf *, ghostcell *, slice &);
+    void sigma_update(lexer *, fdm_nhf *, ghostcell *, slice &);
+
+    void omega_update(lexer *, fdm_nhf *, ghostcell *, slice &, double *, double *, double *);
+
+    void bed_acceleration(lexer *, fdm_nhf *, ghostcell *, slice &, double *, double *, double *);
+
 private:
-    
-    slice4 ef,df;
-    
-    void disc_bed(lexer*, fdm_nhf*, ghostcell*);
-    void disc_eta(lexer*, fdm_nhf*, ghostcell*);
-    
+    slice4 ef, df;
+
+    void disc_bed(lexer *, fdm_nhf *, ghostcell *);
+    void disc_eta(lexer *, fdm_nhf *, ghostcell *);
+
     double sig;
 };
 

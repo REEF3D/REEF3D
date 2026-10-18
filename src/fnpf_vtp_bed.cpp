@@ -20,160 +20,168 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"fnpf_vtp_bed.h"
-#include"lexer.h"
-#include"fdm_fnpf.h"
-#include"ghostcell.h"
-#include<sys/stat.h>
-#include<sys/types.h>
+#include "fnpf_vtp_bed.h"
+#include "fdm_fnpf.h"
+#include "ghostcell.h"
+#include "lagoon_output.h"
+#include "lexer.h"
+#include <sys/stat.h>
+#include <sys/types.h>
+
+namespace {
+lagoon_surface *lagoon_bed = nullptr;  // P 18
+}
 
 fnpf_vtp_bed::fnpf_vtp_bed(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
-    if(p->I40==0)
-        p->printtime=0.0;
+    if(p->I40 == 0)
+        p->printtime = 0.0;
 
-    printcount=0;
+    printcount = 0;
 
     // Create Folder
-    if(p->mpirank==0)
-        mkdir("./REEF3D_FNPF_VTP_BED",0777);
+    if(p->mpirank == 0)
+        mkdir("./REEF3D_FNPF_VTP_BED", 0777);
 }
 
-void fnpf_vtp_bed::start(lexer *p, fdm_fnpf *c, ghostcell* pgc, ioflow *pflow)
+void fnpf_vtp_bed::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pflow)
 {
-    print2D(p,c,pgc);
+    print2D(p, c, pgc);
 }
 
-void fnpf_vtp_bed::print2D(lexer *p, fdm_fnpf *c, ghostcell* pgc)
+void fnpf_vtp_bed::print2D(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
-    int num=0;
-    if(p->P15==1)
+    int num = 0;
+    if(p->P15 == 1)
         num = printcount;
-    else if(p->P15==2)
+    else if(p->P15 == 2)
         num = p->count;
 
-    if(p->mpirank==0)
-        pvtp(p,num);
+    if(p->mpirank == 0 && lagoon_output::vtu_files(p))  // P 18 1: the store instead
+        pvtp(p, num);
 
     // offsets
-    n=0;
-    offset[n]=0;
+    n = 0;
+    offset[n] = 0;
     ++n;
 
     // Points
-    offset[n]=offset[n-1]+sizeof(float)*p->pointnum2D*3+sizeof(int);
+    offset[n] = offset[n - 1] + sizeof(float) * p->pointnum2D * 3 + sizeof(int);
     ++n;
 
     // elevation
-    offset[n]=offset[n-1]+sizeof(float)*p->pointnum2D+sizeof(int);
+    offset[n] = offset[n - 1] + sizeof(float) * p->pointnum2D + sizeof(int);
     ++n;
 
     // depth
-    offset[n]=offset[n-1]+sizeof(float)*p->pointnum2D+sizeof(int);
+    offset[n] = offset[n - 1] + sizeof(float) * p->pointnum2D + sizeof(int);
     ++n;
 
     // Cells
-    offset[n]=offset[n-1] + sizeof(int)*p->polygon_sum*3+sizeof(int);
+    offset[n] = offset[n - 1] + sizeof(int) * p->polygon_sum * 3 + sizeof(int);
     ++n;
-    offset[n]=offset[n-1] + sizeof(int)*p->polygon_sum+sizeof(int);
+    offset[n] = offset[n - 1] + sizeof(int) * p->polygon_sum + sizeof(int);
     ++n;
 
     // Open File
     ofstream result;
-    sprintf(name,"./REEF3D_FNPF_VTP_BED/REEF3D-FNPF-BED-%08i-%06i.vtp",num,p->mpirank+1);
+    sprintf(name, "./REEF3D_FNPF_VTP_BED/REEF3D-FNPF-BED-%08i-%06i.vtp", num, p->mpirank + 1);
     result.open(name, ios::binary);
 
-    vtp3D::beginning(p,result,p->pointnum2D,0,0,0,p->polygon_sum);
+    vtp3D::beginning(p, result, p->pointnum2D, 0, 0, 0, p->polygon_sum);
 
-    n=0;
-    vtp3D::points(result,offset,n);
+    n = 0;
+    vtp3D::points(result, offset, n);
 
-    result<<"<PointData>\n";
-    result<<"<DataArray type=\"Float32\" Name=\"elevation\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
+    result << "<PointData>\n";
+    result << "<DataArray type=\"Float32\" Name=\"elevation\" format=\"appended\" offset=\"" << offset[n] << "\"/>\n";
     ++n;
-    result<<"<DataArray type=\"Float32\" Name=\"depth\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
+    result << "<DataArray type=\"Float32\" Name=\"depth\" format=\"appended\" offset=\"" << offset[n] << "\"/>\n";
     ++n;
-    result<<"</PointData>\n";
+    result << "</PointData>\n";
 
-    vtp3D::polys(result,offset,n);
+    vtp3D::polys(result, offset, n);
 
     vtp3D::ending(result);
 
     //----------------------------------------------------------------------------
-    
+
     float ffn;
     int iin;
     //  XYZ
-    iin=sizeof(float)*p->pointnum2D*3;
-    result.write((char*)&iin, sizeof(int));
+    iin = sizeof(float) * p->pointnum2D * 3;
+    result.write((char *)&iin, sizeof(int));
     TPSLICELOOP
     {
-        ffn=float(p->Xout(p->XN[IP1],p->YN[JP1]));
-        result.write((char*)&ffn, sizeof(float));
+        ffn = float(p->Xout(p->XN[IP1], p->YN[JP1]));
+        result.write((char *)&ffn, sizeof(float));
 
-        ffn=float(p->Yout(p->XN[IP1],p->YN[JP1]));
-        result.write((char*)&ffn, sizeof(float));
+        ffn = float(p->Yout(p->XN[IP1], p->YN[JP1]));
+        result.write((char *)&ffn, sizeof(float));
 
-        ffn=float(p->sl_ipol4(c->bed));
-        result.write((char*)&ffn, sizeof(float));
+        ffn = float(p->sl_ipol4(c->bed));
+        result.write((char *)&ffn, sizeof(float));
     }
 
     //  Elevation
-    iin=sizeof(float)*p->pointnum2D;
-    result.write((char*)&iin, sizeof(int));
+    iin = sizeof(float) * p->pointnum2D;
+    result.write((char *)&iin, sizeof(int));
     TPSLICELOOP
     {
-        ffn=float(p->sl_ipol4(c->bed));
-        result.write((char*)&ffn, sizeof(float));
+        ffn = float(p->sl_ipol4(c->bed));
+        result.write((char *)&ffn, sizeof(float));
     }
 
     //  Depth
-    iin=sizeof(float)*p->pointnum2D;
-    result.write((char*)&iin, sizeof(int));
+    iin = sizeof(float) * p->pointnum2D;
+    result.write((char *)&iin, sizeof(int));
     TPSLICELOOP
     {
-        ffn=float(p->sl_ipol4(c->depth));
-        result.write((char*)&ffn, sizeof(float));
+        ffn = float(p->sl_ipol4(c->depth));
+        result.write((char *)&ffn, sizeof(float));
     }
 
     //  Connectivity
-    iin=sizeof(int)*(p->polygon_sum)*3;
-    result.write((char*)&iin, sizeof(int));
+    iin = sizeof(int) * (p->polygon_sum) * 3;
+    result.write((char *)&iin, sizeof(int));
     SLICEBASELOOP
     {
         // Triangle 1
-        iin=int(c->nodeval2D(i-1,j-1))-1;
-        result.write((char*)&iin, sizeof(int));
+        iin = int(c->nodeval2D(i - 1, j - 1)) - 1;
+        result.write((char *)&iin, sizeof(int));
 
-        iin=int(c->nodeval2D(i,j-1))-1;
-        result.write((char*)&iin, sizeof(int));
+        iin = int(c->nodeval2D(i, j - 1)) - 1;
+        result.write((char *)&iin, sizeof(int));
 
-        iin=int(c->nodeval2D(i,j))-1;
-        result.write((char*)&iin, sizeof(int));
+        iin = int(c->nodeval2D(i, j)) - 1;
+        result.write((char *)&iin, sizeof(int));
 
         // Triangle 2
-        iin=int(c->nodeval2D(i-1,j-1))-1;
-        result.write((char*)&iin, sizeof(int));
+        iin = int(c->nodeval2D(i - 1, j - 1)) - 1;
+        result.write((char *)&iin, sizeof(int));
 
-        iin=int(c->nodeval2D(i,j))-1;
-        result.write((char*)&iin, sizeof(int));
+        iin = int(c->nodeval2D(i, j)) - 1;
+        result.write((char *)&iin, sizeof(int));
 
-        iin=int(c->nodeval2D(i-1,j))-1;
-        result.write((char*)&iin, sizeof(int));
+        iin = int(c->nodeval2D(i - 1, j)) - 1;
+        result.write((char *)&iin, sizeof(int));
     }
 
     //  Offset of Connectivity
-    iin=sizeof(int)*(p->polygon_sum);
-    result.write((char*)&iin, sizeof(int));
-    for(n=0;n<p->polygon_sum;++n)
+    iin = sizeof(int) * (p->polygon_sum);
+    result.write((char *)&iin, sizeof(int));
+    for(n = 0; n < p->polygon_sum; ++n)
     {
-        iin=(n+1)*3;
-        result.write((char*)&iin, sizeof(int));
+        iin = (n + 1) * 3;
+        result.write((char *)&iin, sizeof(int));
     }
 
     vtp3D::footer(result);
 
     result.close();
+
+    // P 18: the piece in the LAGOON store (P 18 1: instead of the file, P 18 2: as well)
+    lagoon_surface::piece_written(p, pgc, lagoon_bed, "FNPF", "bed", "REEF3D_FNPF_VTP_BED", name, num);
 
     ++printcount;
 }

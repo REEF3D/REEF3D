@@ -1,0 +1,18 @@
+{
+ "description": "NHFLOW AMR regular waves (full initialisation I 30) through a static patch split at the partition edge x = 12 m: patches on two ranks, face_run, remote fills.",
+ "solver": "nhflow",
+ "np": 2,
+ "steps": 40,
+ "tags": [
+  "3d",
+  "nhflow",
+  "amr",
+  "waves",
+  "mpi"
+ ],
+ "covers": [
+  "reefamr face_run/fill_run remote",
+  "nhflow_amr exchange_fluxes",
+  "2 ranks"
+ ]
+}

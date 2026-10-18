@@ -23,9 +23,9 @@ Author: Hans Bihs
 #ifndef LEVELSET_RK3_H_
 #define LEVELSET_RK3_H_
 
-#include"freesurface.h"
-#include"gradient.h"
-#include"field4.h"
+#include "field4.h"
+#include "freesurface.h"
+#include "gradient.h"
 
 class picard;
 class heat;
@@ -37,20 +37,20 @@ using namespace std;
 class levelset_RK3 final : public freesurface, gradient
 {
 public:
-	levelset_RK3(lexer*, fdm*, ghostcell*, heat*&, concentration*&);
-	virtual ~levelset_RK3();
-	void start(fdm*,lexer*, convection*, solver*, ghostcell*,ioflow*, reini*, particle_corr*,field&) override final;
-    void update(lexer*,fdm*,ghostcell*,field&) override final;
+    levelset_RK3(lexer *, fdm *, ghostcell *, heat *&, concentration *&);
+    virtual ~levelset_RK3();
+    void start(fdm *, lexer *, convection *, solver *, ghostcell *, ioflow *, reini *, field &) override final;
+    void update(lexer *, fdm *, ghostcell *, field &) override final;
 
 private:
     fluid_update *pupdate;
     picard *ppicard;
-    
-    field4 ark1,ark2;
 
-	int gcval_phi;
-    int gcval_u,gcval_v,gcval_w;
-    int gcval_uls,gcval_vls,gcval_wls;
-	double starttime;
+    field4 ark1, ark2;
+
+    int gcval_phi;
+    int gcval_u, gcval_v, gcval_w;
+    int gcval_uls, gcval_vls, gcval_wls;
+    double starttime;
 };
 #endif

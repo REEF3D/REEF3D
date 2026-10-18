@@ -1,0 +1,1 @@
+{"description": "as cfd_2d_channel_kepsilon with k-omega on 2 ranks split in x (inflow on rank 0).", "np": 2, "steps": 300, "tags": ["2d", "inflow", "turbulence", "mpi"], "covers": ["komega_bc::bc_matrix inflow/outflow", "inflow_turb globalmax"]}

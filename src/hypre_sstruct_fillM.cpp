@@ -20,44 +20,44 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"hypre_sstruct.h"
+#ifdef REEF3D_USE_HYPRE  // hypre is opt-in: make HYPRE=1 / cmake -DREEF3D_USE_HYPRE=ON
 
-#ifdef HYPRE_COMPILATION
-#include"lexer.h"
-#include"fdm.h"
-#include"ghostcell.h"
+#include "fdm.h"
+#include "ghostcell.h"
+#include "hypre_sstruct.h"
+#include "lexer.h"
 
-void hypre_sstruct::fill_matrixM(lexer* p, ghostcell* pgc, double *f, double *rhs, double *M)
-{  
-    nentries=15;
-    
-    for (j=0; j< nentries; j++)
-    stencil_indices[j] = j;
+void hypre_sstruct::fill_matrixM(lexer *p, ghostcell *pgc, double *f, double *rhs, double *M)
+{
+    nentries = 15;
 
-	// M
+    for(j = 0; j < nentries; j++)
+        stencil_indices[j] = j;
+
+    // M
     HYPRE_SStructMatrixSetBoxValues(A, part, ilower, iupper, variable, nentries, stencil_indices, M);
     HYPRE_SStructMatrixAssemble(A);
-    
+
     // x
     HYPRE_SStructVectorSetBoxValues(x, part, ilower, iupper, variable, f);
     HYPRE_SStructVectorAssemble(x);
-    
+
     // b
     HYPRE_SStructVectorSetBoxValues(b, part, ilower, iupper, variable, rhs);
     HYPRE_SStructVectorAssemble(b);
 }
 
-void hypre_sstruct::fill_matrixM_2Dvert(lexer* p, ghostcell* pgc, double *f, double *rhs, double *M)
+void hypre_sstruct::fill_matrixM_2Dvert(lexer *p, ghostcell *pgc, double *f, double *rhs, double *M)
 {
-    nentries=9;
-    
-    for (j=0; j< nentries; j++)
-    stencil_indices[j] = j;
+    nentries = 9;
+
+    for(j = 0; j < nentries; j++)
+        stencil_indices[j] = j;
 
     // M
     HYPRE_SStructMatrixSetBoxValues(A, part, ilower, iupper, variable, nentries, stencil_indices, M);
     HYPRE_SStructMatrixAssemble(A);
-    
+
     // x
     HYPRE_SStructVectorSetBoxValues(x, part, ilower, iupper, variable, f);
     HYPRE_SStructVectorAssemble(x);
@@ -69,7 +69,7 @@ void hypre_sstruct::fill_matrixM_2Dvert(lexer* p, ghostcell* pgc, double *f, dou
 
 void hypre_sstruct::fillbackvecM(lexer *p, double *f)
 {
-	HYPRE_SStructVectorGetBoxValues(x, part, ilower, iupper, variable, f);
+    HYPRE_SStructVectorGetBoxValues(x, part, ilower, iupper, variable, f);
 }
 
-#endif
+#endif  // REEF3D_USE_HYPRE

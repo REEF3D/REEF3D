@@ -1,0 +1,17 @@
+{
+ "base": "nhflow_2d_nwt_stokes5",
+ "np": 2,
+ "description": "as nhflow_2d_nwt_stokes5 on 2 MPI ranks (relaxation zones split across ranks).",
+ "tags": [
+  "quick",
+  "2d",
+  "nhflow",
+  "waves",
+  "iowave",
+  "mpi"
+ ],
+ "covers": [
+  "NHFLOW MPI halos",
+  "iowave relaxation across partition edges"
+ ]
+}

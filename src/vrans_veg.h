@@ -23,56 +23,56 @@ Author: Hans Bihs
 #ifndef VRANS_VEG_H_
 #define VRANS_VEG_H_
 
-#include"vrans.h"
-#include"increment.h"
-#include"field1.h"
-#include"field2.h"
-#include"field3.h"
-#include"field4a.h"
+#include "field1.h"
+#include "field2.h"
+#include "field3.h"
+#include "field4a.h"
+#include "increment.h"
+#include "vrans.h"
 
 using namespace std;
 
 class vrans_veg final : public vrans, public increment
 {
 public:
-	vrans_veg(lexer*, ghostcell*);
-	virtual ~vrans_veg();
+    vrans_veg(lexer *, ghostcell *);
+    virtual ~vrans_veg();
 
-	void initialize_cfd(lexer*, fdm*, ghostcell*) override final;	
-	void start(lexer*, fdm*, ghostcell*, int) override final {};
-    void sed_update(lexer*, fdm*, ghostcell*) override final;
-	void sedpart_update(lexer*, fdm*, ghostcell*, field&, field&) override final {};	
-    
-	void u_source(lexer*, fdm*) override final;
-	void v_source(lexer*, fdm*) override final;
-	void w_source(lexer*, fdm*) override final;
-    
-    void ke_source(lexer*, fdm*, field&) override final;
-    void kw_source(lexer*, fdm*, field&) override final;
-    void eps_source(lexer*, fdm*, field&, field&) override final;
-    void omega_source(lexer*, fdm*, field&, field&) override final;
-    
-    void eddyv_func(lexer*, fdm*) override final;
-    
-    void veltimesave(lexer*,fdm*,ghostcell*) override final;
-	
+    void initialize_cfd(lexer *, fdm *, ghostcell *) override final;
+    void start(lexer *, fdm *, ghostcell *, int) override final {};
+    void sed_update(lexer *, fdm *, ghostcell *) override final;
+    void sedpart_update(lexer *, fdm *, ghostcell *, field &, field &) override final {};
+
+    void u_source(lexer *, fdm *) override final;
+    void v_source(lexer *, fdm *) override final;
+    void w_source(lexer *, fdm *) override final;
+
+    void ke_source(lexer *, fdm *, field &) override final;
+    void kw_source(lexer *, fdm *, field &) override final;
+    void eps_source(lexer *, fdm *, field &, field &) override final;
+    void omega_source(lexer *, fdm *, field &, field &) override final;
+
+    void eddyv_func(lexer *, fdm *) override final;
+
+    void veltimesave(lexer *, fdm *, ghostcell *) override final;
+
 private:
-	
-	field4a N,D,Cd;
-    field1 un,unn;
-    field2 vn,vnn;
-    field3 wn,wnn;
-	
-	double Apor(double,double,double,double);
-	double Bpor(double,double,double);
-	
-	int count;
-    
-    double N_val,D_val,Cd_val,Fi,Fd;
-    double porval,partval,alphaval,betaval,viscval;
-	double val;
-	double porousterm;
-	const double Cval;
+    field4a N, D, Cd;
+    field1 un, unn;
+    field2 vn, vnn;
+    field3 wn, wnn;
+
+    double veg_sk(lexer *, fdm *);  // vegetation k source 1/2 Cd a |u|^3 at the cell centre
+    double Apor(double, double, double, double);
+    double Bpor(double, double, double);
+
+    int count;
+
+    double N_val, D_val, Cd_val, Fi, Fd;
+    double porval, partval, alphaval, betaval, viscval;
+    double val;
+    double porousterm;
+    const double Cval;
 };
 
 #endif

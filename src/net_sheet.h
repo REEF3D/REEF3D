@@ -23,120 +23,113 @@ Authors: Tobias Martin, Hans Bihs
 #ifndef NET_SHEET_H_
 #define NET_SHEET_H_
 
-#include"net.h"
-#include"field1.h"
-#include"field2.h"
-#include"field3.h"
-#include"field4a.h"
-#include"fieldint4.h"
-#include"field5.h"
-#include"fieldint5.h"
-#include"vec.h"
-#include<fstream>
-#include<iostream>
-#include<vector>
-#include"boundarycheck.h"
+#include "boundarycheck.h"
+#include "field1.h"
+#include "field2.h"
+#include "field3.h"
+#include "field4a.h"
+#include "field5.h"
+#include "fieldint4.h"
+#include "fieldint5.h"
+#include "net.h"
+#include "vec.h"
+#include <fstream>
+#include <iostream>
+#include <vector>
 
 using namespace std;
 
 class net_sheet final : public net, public boundarycheck
 {
 public:
-	net_sheet(int, lexer*);
-	virtual ~net_sheet();
-    
-	void start_cfd(lexer*, fdm*, ghostcell*, double,Eigen::Matrix3d&, bool) override final;
-    void start_nhflow(lexer*, fdm_nhf*, ghostcell*, double,Eigen::Matrix3d&, bool) override final;
-    
-	void initialize_cfd(lexer*, fdm*, ghostcell*) override final;
-    void initialize_nhflow(lexer*, fdm_nhf*, ghostcell*) override final;
-	void netForces(lexer*, double&, double&, double&, double&, double&, double&) override final;
-    
-    const EigenMat& getLagrangePoints() override final {return lagrangePoints;}
-    const EigenMat& getLagrangeForces() override final {return lagrangeForces;}
-    const EigenMat& getCollarVel() override final {return collarVel;}
-    const EigenMat& getCollarPoints() override final {return collarPoints;}
+    net_sheet(int, lexer *);
+    virtual ~net_sheet();
 
-    
+    void start_cfd(lexer *, fdm *, ghostcell *, double, Eigen::Matrix3d &, bool) override final;
+    void start_nhflow(lexer *, fdm_nhf *, ghostcell *, double, Eigen::Matrix3d &, bool) override final;
+
+    void initialize_cfd(lexer *, fdm *, ghostcell *) override final;
+    void initialize_nhflow(lexer *, fdm_nhf *, ghostcell *) override final;
+    void netForces(lexer *, double &, double &, double &, double &, double &, double &) override final;
+
+    const EigenMat &getLagrangePoints() override final { return lagrangePoints; }
+    const EigenMat &getLagrangeForces() override final { return lagrangeForces; }
+    const EigenMat &getCollarVel() override final { return collarVel; }
+    const EigenMat &getCollarPoints() override final { return collarPoints; }
+
 private:
-    
     // -------------------------------
-	// Runtime
-	void startLoop(lexer*, ghostcell*, int&);
-    void update_velocity_cfd(lexer*, fdm*, ghostcell*);
-    void update_velocity_nhflow(lexer*, fdm_nhf*, ghostcell*);
-    
-    void updateField_cfd(lexer*, fdm*, ghostcell*, int);
-    void updateField_nhflow(lexer*, fdm_nhf*, ghostcell*, int);
-    
-    void coupling_dlm_cfd(lexer*, fdm*, ghostcell*);
-    void coupling_dlm_nhflow(lexer*, fdm_nhf*, ghostcell*);
-    
+    // Runtime
+    void startLoop(lexer *, ghostcell *, int &);
+    void update_velocity_cfd(lexer *, fdm *, ghostcell *);
+    void update_velocity_nhflow(lexer *, fdm_nhf *, ghostcell *);
+
+    void updateField_cfd(lexer *, fdm *, ghostcell *, int);
+    void updateField_nhflow(lexer *, fdm_nhf *, ghostcell *, int);
+
+    void coupling_dlm_cfd(lexer *, fdm *, ghostcell *);
+    void coupling_dlm_nhflow(lexer *, fdm_nhf *, ghostcell *);
+
     // -------------------------------
-    
+
     // Preprocessing
-    void ini(lexer*, ghostcell*); 
-    void rotation_tri(lexer*,double,double,double,double&,double&,double&, const double&, const double&, const double&);
-    
+    void ini(lexer *, ghostcell *);
+    void rotation_tri(lexer *, double, double, double, double &, double &, double &, const double &, const double &, const double &);
 
     typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> MatrixXd;
     typedef Eigen::Matrix<double, 1, Eigen::Dynamic> VectorXd;
     typedef Eigen::Matrix<double, 3, 3> Matrix3d;
     typedef Eigen::Matrix<double, 1, 3> Vector3d;
-    
-    typedef vector<vector<double> > MatrixVd;
-    typedef vector<vector<int> > MatrixVi;
-    
-    
-    void print(lexer*);
-    Eigen::VectorXd timeWeight(lexer*);
-    void gravityForce(lexer*);
-    void dragForce(lexer*);
-    void inertiaForce(lexer*);
-    void screenForceCoeff(lexer*,double&, double&, const double&, const double&, const double&);
-   
 
+    typedef vector<vector<double>> MatrixVd;
+    typedef vector<vector<int>> MatrixVi;
 
-    void triangulation(lexer*, ghostcell*);
-    void create_triangle
-        (
-            MatrixVd&, MatrixVd&, MatrixVd&,
-            const double&,const double&,const double&,
-            const double&,const double&,const double&,const double&,
-            const double&,const double&,const double&,const double&,
-            const double&
-        );
-    
-    
-	// ------ 
-	
-    
-	// Parallelisation
-	int nNet;
-	double *xstart, *xend, *ystart, *yend, *zstart, *zend;
-	
-	// Material constants
-	double rho_c, l_c, d_c;
-	
-	// Mesh
+    void print(lexer *);
+    Eigen::VectorXd timeWeight(lexer *);
+    void gravityForce(lexer *);
+    void dragForce(lexer *);
+    void inertiaForce(lexer *);
+    void screenForceCoeff(lexer *, double &, double &, const double &, const double &, const double &);
+
+    void triangulation(lexer *, ghostcell *);
+    void create_triangle(
+        MatrixVd &, MatrixVd &, MatrixVd &,
+        const double &, const double &, const double &,
+        const double &, const double &, const double &, const double &,
+        const double &, const double &, const double &, const double &,
+        const double &);
+
+    // ------
+
+    // Parallelisation
+    int nNet;
+    double *xstart, *xend, *ystart, *yend, *zstart, *zend;
+
+    // Material constants
+    double rho_c, l_c, d_c;
+
+    // Mesh
     int nK;
     MatrixXd x0_, x_, xdot_;
-    double dt_; 
+    double dt_;
     VectorXd mass_knot, weight_knot, added_mass;
     MatrixXd forces_knot;
-    double **coupledField, **coupledFieldn;
-    
+    double **coupledField, **coupledFieldn;  // fluid velocity (+density) at knots: current stage, t^n
+    MatrixXd fluidAcc_;                      // fluid acceleration at knots over the last full time step
+    bool fluidVelInit_ = false;
+    void updateFluidAcc(lexer *, bool);
+
     // Net mesh
-    int tend;  
+    int tend;
     MatrixVd tri_x, tri_y, tri_z;
     MatrixVd tri_x0, tri_y0, tri_z0;
-    vector<Eigen::Vector3d> lagrangePoints;    
-    vector<Eigen::Vector3d> lagrangeForces;  
-    vector<Eigen::Vector3d> collarVel;    
-    vector<Eigen::Vector3d> collarPoints;    
+    vector<Eigen::Vector3d> lagrangePoints;
+    vector<Eigen::Vector3d> lagrangeForces;
+    vector<Eigen::Vector3d> collarVel;
+    vector<Eigen::Vector3d> collarPoints;
 
-	// Forces
-    double Fx,Fy,Fz;
+    // Forces
+    double Fx, Fy, Fz;
 
     // Knots
     double knot_d;
@@ -144,9 +137,9 @@ private:
     // Probe Points
     Eigen::VectorXi probeKnot;
 
-	// Print
-	char name[100];
-	double printtime;
+    // Print
+    char name[100];
+    double printtime;
 };
 
 #endif

@@ -23,8 +23,8 @@ Author: Hans Bihs
 #ifndef VRANS_NHFLOW_H_
 #define VRANS_NHFLOW_H_
 
-#include"vrans.h"
-#include"increment.h"
+#include "increment.h"
+#include "vrans.h"
 
 class lexer;
 class fdm_nhf;
@@ -36,21 +36,25 @@ using namespace std;
 class vrans_nhflow
 {
 public:
-	virtual void initialize(lexer*, fdm_nhf*, ghostcell*)=0;	
-	virtual void update(lexer*, fdm_nhf*, ghostcell*, double, int)=0;
+    virtual ~vrans_nhflow() {}
 
-	virtual void u_source(lexer*, fdm_nhf*, slice&)=0;
-	virtual void v_source(lexer*, fdm_nhf*, slice&)=0;
-	virtual void w_source(lexer*, fdm_nhf*, slice&)=0;
-    
-    virtual void ke_source(lexer*, fdm_nhf*, field&)=0;
-    virtual void kw_source(lexer*, fdm_nhf*, field&)=0;
-    virtual void eps_source(lexer*, fdm_nhf*, field&, field&)=0;
-    virtual void omega_source(lexer*, fdm_nhf*, field&, field&)=0;
-    
-    virtual void eddyv_func(lexer*, fdm_nhf*)=0;
-    
-    virtual void force_calc(lexer*, fdm_nhf*, ghostcell*, double, int)=0;
+    virtual void initialize(lexer *, fdm_nhf *, ghostcell *) = 0;
+    virtual void update(lexer *, fdm_nhf *, ghostcell *, double, int) = 0;
+
+    virtual void u_source(lexer *, fdm_nhf *, slice &) = 0;
+    virtual void v_source(lexer *, fdm_nhf *, slice &) = 0;
+    virtual void w_source(lexer *, fdm_nhf *, slice &) = 0;
+
+    // porous-media turbulence closure (Nakayama & Kuwahara 1999), B 295 1
+    // arguments: KIN, EPS (epsilon or omega); omega_source also gets beta of the k-omega model
+    virtual void ke_source(lexer *, fdm_nhf *, double *, double *) = 0;
+    virtual void kw_source(lexer *, fdm_nhf *, double *, double *) = 0;
+    virtual void eps_source(lexer *, fdm_nhf *, double *, double *) = 0;
+    virtual void omega_source(lexer *, fdm_nhf *, double *, double *, double) = 0;
+
+    virtual void eddyv_func(lexer *, fdm_nhf *) = 0;
+
+    virtual void force_calc(lexer *, fdm_nhf *, ghostcell *, double, int) = 0;
 };
 
 #endif

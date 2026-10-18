@@ -1,0 +1,63 @@
+# Synolakis (1987) solitary wave on a 1:19.85 plane beach, breaking case H/d = 0.28
+# Free-surface profile at dimensionless time t*sqrt(g/d) = 40
+# SOURCE (secondary): Basilisk test data file 't-40', fetched via https://basilisk.fr/src/test/t-40?raw
+#   (used by https://basilisk.fr/src/test/beach.c: "reproduce this classical test case based on the
+#   experiments of Synolakis, 1987"; A = 0.28, h0 = 1, slope = 1/19.85, G = 1, i.e. all non-dimensional by d and g).
+# Coordinates (beach.c): "the origin is the intersection of the beach with the water level"; bed zb = max(x/19.85, -1),
+#   x positive onshore; t = 0 when the soliton crest is at x = -19.85 - L/2 with L = 2/k*acosh(sqrt(20)),
+#   k = sqrt(3*A/4) (beach.c). Whether this matches Synolakis' own time origin is NOT verified.
+# PROVENANCE WARNING: values appear DIGITIZED from a published figure (quantised eta levels, digitizer
+#   polyline order). The raw file lists points in polyline order with repeats / reversed copies; exact
+#   duplicate (x,eta) pairs were removed and rows sorted by x (stable). No value was changed.
+# columns: x/d[-]  eta/d[-]
+-19.0379 0.0188176
+-18.0673 0.0188176
+-17.5846 0.0188176
+-16.9882 0.0188176
+-16.3772 0.0188176
+-15.8946 0.0188176
+-15.2836 0.0188176
+-14.0766 0.0188176
+-13.5987 0.0270282
+-13.2339 0.0270282
+-12.6234 0.0270282
+-12.1403 0.0360395
+-11.5347 0.0270282
+-11.2978 0.0360395
+-10.6872 0.0270282
+-10.0765 0.0270282
+-9.23376 0.0270282
+-8.27266 0.0270282
+-7.78052 0.0270282
+-6.81932 0.0188176
+-6.0904 0.00162516
+-5.60763 0.0188176
+-5.3614 0.0188176
+-4.7555 0.0188176
+-4.0359 0.0270282
+-3.67618 0.0360395
+-3.18377 0.0360395
+-2.70091 0.0360395
+-2.0903 0.044228
+-1.49393 0.0524313
+-1.12926 0.0786423
+-0.518395 0.0950101
+-0.286495 0.112203
+0.324032 0.129439
+1.17153 0.163016
+1.89574 0.196185
+2.87084 0.2306
+3.46747 0.264182
+3.71353 0.25598
+3.83194 0.272393
+4.31007 0.306785
+4.56077 0.289585
+5.16695 0.340367
+5.40367 0.332173
+6.0142 0.38297
+6.37899 0.365355
+6.61091 0.40017
+7.33514 0.416137
+7.58126 0.441526
+8.06397 0.450531
+8.42844 0.45874

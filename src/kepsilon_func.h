@@ -23,31 +23,29 @@ Author: Hans Bihs
 #ifndef IKEPSILON_H_
 #define IKEPSILON_H_
 
-#include"rans_io.h"
-#include"kepsilon_bc.h"
-#include"vrans.h"
+#include "kepsilon_bc.h"
+#include "rans_io.h"
+#include "vrans.h"
 
 using namespace std;
 
 class kepsilon_func : public rans_io, public kepsilon_bc
 {
 public:
-	kepsilon_func(lexer*,fdm*,ghostcell*);
-	virtual ~kepsilon_func();
-	void isource(lexer*,fdm*) override final;
-	void jsource(lexer*,fdm*) override final;
-	void ksource(lexer*,fdm*) override final;
-	void kinsource(lexer*,fdm*,vrans*);
-	void epssource(lexer*,fdm*,vrans*);
-	void epsfsf(lexer*,fdm*,ghostcell*);
-	void eddyvisc(fdm*,lexer*,ghostcell*,vrans*);
-	void clearfield(lexer*,fdm*,field&);
+    kepsilon_func(lexer *, fdm *, ghostcell *);
+    virtual ~kepsilon_func();
+    void isource(lexer *, fdm *) override final;
+    void jsource(lexer *, fdm *) override final;
+    void ksource(lexer *, fdm *) override final;
+    void kinsource(lexer *, fdm *, vrans *);
+    void epssource(lexer *, fdm *, vrans *);
+    void epsfsf(lexer *, fdm *, ghostcell *, ioflow *);
+    void eddyvisc(fdm *, lexer *, ghostcell *, vrans *);
+    void clearfield(lexer *, fdm *, field &);
 
-	int count,q;
-	double starttime;
+    int count, q;
+    double starttime;
 };
 
 #endif
-
-
 

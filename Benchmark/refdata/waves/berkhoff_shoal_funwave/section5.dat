@@ -1,0 +1,39 @@
+# Reference: Berkhoff, J.C.W., Booy, N. & Radder, A.C. (1982). Verification of numerical wave propagation models for simple harmonic linear water waves. Coastal Engineering 6, 255-279.
+# Source repo: https://github.com/fengyanshi/FUNWAVE-TVD  commit b4c322e7582035ee19df8e6409a3dfedaff1cb96 (2025-01-24)
+# Experiment (from FUNWAVE work/input.txt): regular waves T = 1.0 s ('Tperiod = 1.0'), incident amplitude 0.0232 m ('AMP_WK = 0.0232', i.e. H0 = 46.4 mm), offshore depth 0.45 m ('DEP_WK = 0.45').
+# Bathymetry (input/DEPTH.F, Qin Chen version): plane slope 1:50 rotated 20 deg, elliptic shoal; rotated coords xp,yp; h = 0.45 for yp >= 5.84; h = 0.45-0.02*(5.84-yp) outside ellipse (xp/4)^2+(yp/3)^2 = 1; inside: h = 0.75-0.02*(5.84-yp)-0.5*sqrt(1-(xp/5)^2-(yp/3.75)^2); min depth 0.07 m.
+# Data values: column(s) after the first are wave AMPLITUDE in mm. showheight.m: 'load section1.dat;    %experimental data with amplitude in mm' and plots 'section1(:,2)*2' against model H in mm ('wh(...)*1000', ylabel 'H(mm)'). Wave height H[mm] = 2*value. H/H0 = value/23.2.
+# Observation (not a correction): most values equal 23.2 mm x a ratio given to 2 decimals, suggesting they were converted from tabulated/digitised normalised amplitudes A/A0; a few values deviate by up to ~0.5 of that 0.01 step.
+# Sampling: regular coordinate spacing (0.25/0.5 m); exact origin of these numbers (tabulated vs. digitised from Berkhoff et al. 1982 figures) is not documented in the repo -> confidence B/C.
+# Section 5: transverse line at x = 9 m (wave-propagation direction), showheight.m: '% section 5) x:=9m  	i=440'.
+# Model comparison: 'plot(section5(:,1),section5(:,2)*2,...); plot(y,wh(440+xshift,:)*1000)' with 'y(j)=(j-100)*0.1-0.15' and 'x(i)=(i-260-xshift)*0.05', xshift=4 -> x=0 is the frame origin used by FUNWAVE (shoal centre region; x positive in propagation direction, y transverse, y=0 on the shoal centreline).
+# Columns: (1) y [m] transverse coordinate, same frame as FUNWAVE y (axis label in script says 'x(m)' but it is plotted against model y); (2) wave amplitude a [mm] (H = 2a).
+# FUNWAVE grid actually used: input/depth.txt (200 rows x 600 cols, 'DX = 0.05', 'DY = 0.10', depths to 2 decimals, 0.07..0.45 m); shoal crest (0.13 m) around 1-based i~260-276 on the centre rows, i.e. x~0 in the showheight.m frame. DEPTH.F itself writes a coarser 300x101 grid (dx=0.1, dy=0.2), so depth.txt was produced by a variant of it (copy of DEPTH.F included as FUNWAVE_DEPTH.F).
+-4.75 18.33
+-4.25 14.15
+-3.75 9.74
+-3.25 17.17
+-2.75 16.24
+-2.50 9.74
+-2.25 3.71
+-2.00 6.96
+-1.75 14.15
+-1.5 25.06
+-1.25 34.10
+-1.0 38.74
+-0.75 41.30
+-0.5 42.46
+-0.25 41.99
+0.0 38.28
+0.25 35.26
+0.5 29.46
+0.75 22.04
+1.0 13.22
+1.25 6.26
+1.75 20.42
+2.25 19.95
+2.75 10.90
+3.25 11.83
+3.75 19.72
+4.25 17.63
+4.75 18.10

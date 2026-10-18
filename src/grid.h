@@ -39,46 +39,46 @@ public:
     void gridspacing(ghostcell *pgc);
 
     // Non-Uniform Mesh
-    double *XN,*YN,*ZN; // Nodal coordinates
-    double *XP,*YP,*ZP; // Cell center coordinates
-    double *DXN,*DYN,*DZN; // Nodal grid spacing
-    double *DXP,*DYP,*DZP; // Cell center grid spacing
-    double *ZSN,*ZSP;
-    double DXM,DYD,DXD;
-    double DYM,DZM;
-    
+    double *XN, *YN, *ZN;     // Nodal coordinates
+    double *XP, *YP, *ZP;     // Cell center coordinates
+    double *DXN, *DYN, *DZN;  // Nodal grid spacing
+    double *DXP, *DYP, *DZP;  // Cell center grid spacing
+    double *ZSN, *ZSP;
+    double DXM, DYD, DXD;
+    double DYM, DZM;
+
     // origin and rotation
-    double global_orig_x,global_orig_y;
+    double global_orig_x, global_orig_y;
     double alpha_grid;
 
     // boundary conditions
-    int *IO,*IOSL;
-    int *DF,*DF1,*DF2,*DF3;
+    int *IO, *IOSL;
+    int *DF, *DF1, *DF2, *DF3, *DFF;
     int *DFBED;
 
-    bool i_dir,j_dir,k_dir;
-    double x_dir,y_dir,z_dir;
+    bool i_dir, j_dir, k_dir;
+    double x_dir, y_dir, z_dir;
 
     int **gcin, **gcout;
     int gcin_count, gcout_count;
 
     // maxcoor
-    double xcoormax,xcoormin,ycoormax,ycoormin,zcoormax,zcoormin;
+    double xcoormax, xcoormin, ycoormax, ycoormin, zcoormax, zcoormin;
     double maxlength;
 
-    int knox,knoy,knoz;
+    int knox, knoy, knoz;
     const int margin = 3;
 
-    double originx,originy,originz;
-    double endx,endy,endz;
-    double global_xmin,global_ymin,global_zmin;
-    double global_xmax,global_ymax,global_zmax;
+    double originx, originy, originz;
+    double endx, endy, endz;
+    double global_xmin, global_ymin, global_zmin;
+    double global_xmax, global_ymax, global_zmax;
     int origin_i, origin_j, origin_k;
-    int gknox,gknoy,gknoz;
+    int gknox, gknoy, gknoz;
 
-    int imin,imax,jmin,jmax,kmin,kmax,kmaxF;
+    int imin, imax, jmin, jmax, kmin, kmax, kmaxF;
 
-    double dx,dy,dz;
+    double dx, dy, dz;
 };
 
 #endif

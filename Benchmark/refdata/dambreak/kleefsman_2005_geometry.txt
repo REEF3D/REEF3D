@@ -1,0 +1,64 @@
+# Kleefsman et al. (2005) MARIN 3D dam break with box (SPHERIC Test 2) -- geometry and sensor positions
+# Every number below is quoted from the source named on its line. Sources disagree in places; noted.
+#
+# ---- Source A: ComFLOW page by A.E.P. Veldman (paper co-author), University of Groningen
+#      https://www.math.rug.nl/~veldman/comflow/dambreak.html
+#  Text: tank "3.22 by 1 by 1 meter"; "Behind the door 1.22 by 0.55 meter of water is waiting to flow into
+#        the tank when the door is opened."; door at x = 2 m (water occupies the right end of the tank).
+#  Frame: x along tank, y across (centreline y = 0), z vertical from tank floor.
+#  Box (xmin/xmax, ymin/ymax, zmin/zmax):  0.67/0.83   -0.2/0.2   0.0/0.16
+#  name  x       y       z
+H2       1.0     0.0     0.0-1.0
+H4       2.66    0.0     0.0-1.0
+P1       0.831   -0.026  0.025
+P3       0.831   -0.026  0.099
+P5       0.806   0.026   0.165
+P7       0.733   0.026   0.165
+#  (H1, H3, P2, P4, P6, P8 are not listed on this page.)
+#  Data-file links on that page (http://www.math.rug.nl/~veldman/comflo/dambreak_exp_wh2, _wh4, _pr1, _pr7)
+#  return 404 as of 2026-10-03 (also tried .../comflow/...).
+#
+# ---- Source B: LS-DYNA ICFD example "SPHERIC Test 2" (model input, not experiment documentation)
+#      https://www.dynaexamples.com/icfd/intermediate-examples/dam4
+#      (package https://ftp.lstc.com/anonymous/outgoing/inaki/examples/ICFD_example_dam4.zip, not fetched)
+#  Pressure points as listed on the page (sensor x y z), same frame as A apparently (box face x ~0.82-0.83):
+P1_lsdyna  0.8246  0.0  0.021
+P2_lsdyna  0.8246  0.0  0.061
+P3_lsdyna  0.8246  0.0  0.101
+P4_lsdyna  0.8246  0.0  0.141
+P5_lsdyna  0.8035  0.0  0.1615
+P6_lsdyna  0.7635  0.0  0.1615
+P7_lsdyna  0.7235  0.0  0.1615
+P8_lsdyna  0.6835  0.0  0.1615
+#  NOTE: B gives P1/P3 z = 0.021/0.101 (consistent with PySPH and the SPHERIC figure label "0.021", "0.04"),
+#  whereas A gives z = 0.025/0.099 and y = -/+0.026. Unresolved; check SPHERIC test_case_2_v1p1.pdf Fig. 7.
+#
+# ---- Source C: SPHERIC Test 2 description (R. Issa & D. Violeau), test_case_2_v1p1.pdf
+#      https://9449af45-2363-44f6-8b03-03b6b7c2aee5.usrfiles.com/ugd/9449af_93d8784fff08416ab9a3227af6476b4f.pdf
+#      (listed on https://www.spheric-sph.org/tests/test-02)
+#  Text: "a large tank of 3.22x1x1 m is used with an open roof"; "Behind the door, 0.55 m of water ...";
+#        "The box was also covered by eight pressure sensors, four on the front of the box and four on the top";
+#        "The file test_case_2.xls contains all the experimental data"; "The simulation is continued for 6 s".
+#  Numeric labels read from Fig. 6 (tank) via text extraction, ASSIGNMENT TO DIMENSIONS UNKNOWN:
+#        1.000 1.248 1.228 0.55 0.161 0.403 0.295 0.744 0.496 1.150
+#  Numeric labels from Fig. 7 (box): 0.161 0.021 0.04 0.176 0.403
+#  -> Do NOT use these labels without viewing the figure (the PDF could not be rendered here).
+#
+# ---- Source D: Kleefsman et al. (2005) via academia.edu text
+#      https://www.academia.edu/120884601/A_Volume_of_Fluid_based_simulation_method_for_wave_impact_problems
+#  "A large tank of 3.22 x 1 x 1 m is used with an open roof. The right part of the tank is first closed by a
+#   door. Behind the door 0.55 m of water is waiting to flow into the tank when the door is opened."
+#  "Four vertical height probes have been used; one in the reservoir and the other three in the tank."
+#  Positions are given only graphically (Fig. 17 of the paper).
+#
+# ---- Source E: Whiterose eprint (SPH dam-break paper), https://eprints.whiterose.ac.uk/id/eprint/91322/9/WRRO_91322.pdf
+#  "The initial water column in the reservoir has a dimension of 1.22 m x 1.00 m x 0.55 m."
+#  "a box of size 0.40 m x 0.16 m x 0.16 m is placed at 1.248 m downstream of the gate."
+#
+# Water column length: Sources A and E say 1.22 m (the task brief's 1.228 m was NOT found in any fetched text;
+#  "1.228" appears only as an unassigned figure label in Source C).
+# Box: A gives 0.16 (x) x 0.40 (y) x 0.16 (z) m; C's figure labels 0.161 / 0.403 / 0.176 suggest slightly
+#  different as-built values -- unresolved.
+# Full experimental time series (H1-H4, P1-P8): ONLY in SPHERIC_Test2.zip -> test_case_2_exp_data.xls
+#   https://9449af45-2363-44f6-8b03-03b6b7c2aee5.usrfiles.com/archives/9449af_6ce73873d6d04315853e481c337dbfca.zip
+#   (not downloadable from this sandbox: proxy 403; WebFetch cannot unpack zip/xls).

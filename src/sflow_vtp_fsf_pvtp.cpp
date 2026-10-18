@@ -20,47 +20,50 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"sflow_vtp_fsf.h"
-#include"sflow_turbulence.h"
-#include"lexer.h"
-#include"sediment.h"
+#include "lexer.h"
+#include "runlog.h"
+#include "sediment.h"
+#include "sflow_turbulence.h"
+#include "sflow_vtp_fsf.h"
 
-void sflow_vtp_fsf::pvtp(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence *pturb, sediment *psed, int num)
+void sflow_vtp_fsf::pvtp(lexer *p, fdm2D *b, ghostcell *pgc, sflow_turbulence *pturb, sediment *psed, int num)
 {
-    sprintf(name,"./REEF3D_SFLOW_VTP_FSF/REEF3D-SFLOW-FSF-%08i.pvtp",num);
+    sprintf(name, "./REEF3D_SFLOW_VTP_FSF/REEF3D-SFLOW-FSF-%08i.pvtp", num);
 
     ofstream result;
     result.open(name);
 
-    vtp3D::beginningParallel(p,result);
+    vtp3D::beginningParallel(p, result);
 
     vtp3D::pointsParallel(result);
 
-    result<<"<PPointData>\n";
-    result<<"<PDataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\"/>\n";
-    result<<"<PDataArray type=\"Float32\" Name=\"pressure\"/>\n";
-    result<<"<PDataArray type=\"Float32\" Name=\"eddyv\"/>\n";
-    pturb->name_pvtp(p,b,pgc,result);
-    result<<"<PDataArray type=\"Float32\" Name=\"eta\"/>\n";
-    result<<"<PDataArray type=\"Float32\" Name=\"waterlevel\"/>\n";
-    result<<"<PDataArray type=\"Float32\" Name=\"wetdry\"/>\n";
-    result<<"<PDataArray type=\"Float32\" Name=\"breaking\"/>\n";
-    if(p->P23==1)
-        result<<"<PDataArray type=\"Float32\" Name=\"test\"/>\n";
-    if(p->P28==1)
-        result<<"<PDataArray type=\"Float32\" Name=\"fb\"/>\n";
-    if(p->P110==1)
-        result<<"<PDataArray type=\"Float32\" Name=\"Hs\"/>\n";
-    result<<"</PPointData>\n";
+    result << "<PPointData>\n";
+    result << "<PDataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\"/>\n";
+    result << "<PDataArray type=\"Float32\" Name=\"pressure\"/>\n";
+    result << "<PDataArray type=\"Float32\" Name=\"eddyv\"/>\n";
+    pturb->name_pvtp(p, b, pgc, result);
+    result << "<PDataArray type=\"Float32\" Name=\"eta\"/>\n";
+    result << "<PDataArray type=\"Float32\" Name=\"waterlevel\"/>\n";
+    result << "<PDataArray type=\"Float32\" Name=\"wetdry\"/>\n";
+    result << "<PDataArray type=\"Float32\" Name=\"breaking\"/>\n";
+    if(p->P23 == 1)
+        result << "<PDataArray type=\"Float32\" Name=\"test\"/>\n";
+    if(p->P28 == 1)
+        result << "<PDataArray type=\"Float32\" Name=\"fb\"/>\n";
+    if(p->P110 == 1)
+        result << "<PDataArray type=\"Float32\" Name=\"Hs\"/>\n";
+    result << "</PPointData>\n";
 
     char pname[200];
-    for(n=0; n<p->M10; ++n)
+    for(n = 0; n < p->M10; ++n)
     {
-        sprintf(pname,"REEF3D-SFLOW-FSF-%08i-%06i.vtp",num,n+1);
-        result<<"<Piece Source=\""<<pname<<"\"/>\n";
+        sprintf(pname, "REEF3D-SFLOW-FSF-%08i-%06i.vtp", num, n + 1);
+        result << "<Piece Source=\"" << pname << "\"/>\n";
     }
 
     vtp3D::endingParallel(result);
 
     result.close();
+    if(p->plog)
+        p->plog->written(p, num, "fsf", "free_surface", name, p->M10);
 }

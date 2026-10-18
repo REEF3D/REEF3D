@@ -1,0 +1,1 @@
+{"description": "SFLOW 2D channel with a sloping bank (topography T 62), shoreline along x, constant viscosity W 2 0.01 with implicit horizontal diffusion (A 212 2): free slip at the dry neighbours of the shoreline cells.", "np": 1, "steps": 300, "tags": ["sflow", "wetdry", "diffusion"], "covers": ["sflow_idiff dry neighbours"]}

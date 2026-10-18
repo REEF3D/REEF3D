@@ -20,53 +20,61 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"iowave.h"
-#include"fdm_nhf.h"
-#include"lexer.h"
-#include"ghostcell.h"
+#include "fdm_nhf.h"
+#include "ghostcell.h"
+#include "iowave.h"
+#include "lexer.h"
 
 void iowave::wavegen_precalc_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
-    starttime=pgc->timer();
-    
-    wave_prestep(p,pgc);
-    
-    if(p->B89==0)
+    starttime = pgc->timer();
+
+    // time of this step for wave_prestep (HDC reads its time levels there)
+    p->wavetime = p->simtime;
+    wave_prestep(p, pgc);
+
+    // tidal / current background (B 510-514)
+    nhflow_bg_update(p, d, pgc);
+
+    if(p->B89 == 0)
     {
-        if(p->B98==2)
-        nhflow_precalc_relax(p,d,pgc);
-                
-        if(p->B98==3 || p->B98==4)
-        nhflow_precalc_dirichlet(p,d,pgc);
+        if(p->B98 == 2)
+            nhflow_precalc_relax(p, d, pgc);
+
+        if(p->B98 == 3 || p->B98 == 4)
+            nhflow_precalc_dirichlet(p, d, pgc);
     }
-    
-    if(p->B89==1)
+
+    if(p->B89 == 1)
     {
-        if(p->B98==2)
+        if(p->B98 == 2)
         {
-        nhflow_wavegen_precalc_decomp_time(p,pgc);
-        nhflow_wavegen_precalc_decomp_relax(p,d,pgc);
+            nhflow_wavegen_precalc_decomp_time(p, pgc);
+            nhflow_wavegen_precalc_decomp_relax(p, d, pgc);
         }
-            
-        if(p->B98==3 || p->B98==4)
+
+        if(p->B98 == 3 || p->B98 == 4)
         {
-        nhflow_wavegen_precalc_decomp_time(p,pgc);
-        nhflow_wavegen_precalc_decomp_dirichlet(p,pgc);
+            nhflow_wavegen_precalc_decomp_time(p, pgc);
+            nhflow_wavegen_precalc_decomp_dirichlet(p, pgc);
         }
     }
-    
-    p->wavecalctime+=pgc->timer()-starttime;
-    
+
+    p->wavecalctime += pgc->timer() - starttime;
+
     pgc->gcsync();
 }
 
 void iowave::wavegen_precalc_ini_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
-    wave_prestep(p,pgc);
-    
-    if(p->B98==2)
-    nhflow_precalc_relax_ini(p,d,pgc);
-        
-    if(p->B98==3 || p->B98==4)
-    nhflow_precalc_dirichlet_ini(p,d,pgc);
+    p->wavetime = p->simtime;
+    wave_prestep(p, pgc);
+
+    nhflow_bg_update(p, d, pgc);
+
+    if(p->B98 == 2)
+        nhflow_precalc_relax_ini(p, d, pgc);
+
+    if(p->B98 == 3 || p->B98 == 4)
+        nhflow_precalc_dirichlet_ini(p, d, pgc);
 }

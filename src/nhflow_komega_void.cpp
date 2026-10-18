@@ -20,13 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"nhflow_komega_void.h"
-#include"lexer.h"
-#include"fdm_nhf.h"
-#include"ghostcell.h"
-#include"strain.h"
+#include "nhflow_komega_void.h"
+#include "fdm_nhf.h"
+#include "ghostcell.h"
+#include "lexer.h"
+#include "strain.h"
 
-nhflow_komega_func_void::nhflow_komega_func_void(lexer* p, fdm_nhf* d, ghostcell *pgc)
+nhflow_komega_func_void::nhflow_komega_func_void(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
 }
 
@@ -34,50 +34,49 @@ nhflow_komega_func_void::~nhflow_komega_func_void()
 {
 }
 
-void nhflow_komega_func_void::start(lexer* p, fdm_nhf* d, ghostcell* pgc, nhflow_scalar_convection* pconvec, nhflow_diffusion* pdiff,solver* psolv, ioflow* pflow, vrans* pvrans)
+void nhflow_komega_func_void::start(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_scalar_convection *pconvec, nhflow_diffusion *pdiff, solver *psolv, ioflow *pflow, vrans_nhflow *pvrans)
 {
 }
-void nhflow_komega_func_void::isource(lexer* p, fdm_nhf* d)
+void nhflow_komega_func_void::isource(lexer *p, fdm_nhf *d)
 {
-	LOOP
-	d->F[IJK]=0.0;
-}
-
-void nhflow_komega_func_void::jsource(lexer *p,fdm_nhf* d)
-{
-	LOOP
-	d->G[IJK]=0.0;
+    LOOP
+        d->F[IJK] = 0.0;
 }
 
-void nhflow_komega_func_void::ksource(lexer *p,fdm_nhf* d)
+void nhflow_komega_func_void::jsource(lexer *p, fdm_nhf *d)
 {
-	LOOP
-	d->H[IJK]=0.0;
+    LOOP
+        d->G[IJK] = 0.0;
 }
 
-void nhflow_komega_func_void::ktimesave(lexer *p, fdm_nhf* d, ghostcell *pgc)
+void nhflow_komega_func_void::ksource(lexer *p, fdm_nhf *d)
 {
+    LOOP
+        d->H[IJK] = 0.0;
 }
 
-void nhflow_komega_func_void::etimesave(lexer *p, fdm_nhf* d, ghostcell *pgc)
+void nhflow_komega_func_void::ktimesave(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
 }
 
-void nhflow_komega_func_void::print_3D(lexer* p, fdm_nhf *d, ghostcell *pgc,  std::vector<char> &buffer, size_t &m)
+void nhflow_komega_func_void::etimesave(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
+}
 
+void nhflow_komega_func_void::print_3D(lexer *p, fdm_nhf *d, ghostcell *pgc, std::vector<char> &buffer, size_t &m)
+{
 }
 
 double nhflow_komega_func_void::kinval(int ii, int jj, int kk)
 {
-    double val=0.0;
+    double val = 0.0;
 
     return val;
 }
 
 double nhflow_komega_func_void::epsval(int ii, int jj, int kk)
 {
-    double val=0.0;
+    double val = 0.0;
 
     return val;
 }
@@ -86,7 +85,7 @@ double nhflow_komega_func_void::ccipol_kinval(lexer *p, ghostcell *pgc, double x
 {
     double val;
 
-    val=0.0;
+    val = 0.0;
 
     return val;
 }
@@ -95,7 +94,7 @@ double nhflow_komega_func_void::ccipol_epsval(lexer *p, ghostcell *pgc, double x
 {
     double val;
 
-    val=0.0;
+    val = 0.0;
 
     return val;
 }
@@ -104,7 +103,7 @@ double nhflow_komega_func_void::ccipol_a_kinval(lexer *p, ghostcell *pgc, double
 {
     double val;
 
-    val=0.0;
+    val = 0.0;
 
     return val;
 }
@@ -113,26 +112,24 @@ double nhflow_komega_func_void::ccipol_a_epsval(lexer *p, ghostcell *pgc, double
 {
     double val;
 
-    val=0.0;
+    val = 0.0;
 
     return val;
 }
 
-void nhflow_komega_func_void::kinget(int ii, int jj, int kk,double val)
+void nhflow_komega_func_void::kinget(int ii, int jj, int kk, double val)
 {
-
 }
 
-void nhflow_komega_func_void::epsget(int ii, int jj, int kk,double val)
+void nhflow_komega_func_void::epsget(int ii, int jj, int kk, double val)
 {
-
 }
 
 void nhflow_komega_func_void::gcupdate(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
 }
 
-void nhflow_komega_func_void::ini(lexer* p, fdm_nhf *d, ghostcell* pgc)
+void nhflow_komega_func_void::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
 }
 

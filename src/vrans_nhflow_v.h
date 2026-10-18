@@ -23,8 +23,8 @@ Author: Hans Bihs
 #ifndef VRANS_NHFLOW_V_H_
 #define VRANS_NHFLOW_V_H_
 
-#include"vrans_nhflow.h"
-#include"increment.h"
+#include "increment.h"
+#include "vrans_nhflow.h"
 
 class lexer;
 class fdm_nhf;
@@ -36,26 +36,24 @@ using namespace std;
 class vrans_nhflow_v : public vrans_nhflow
 {
 public:
-    vrans_nhflow_v(lexer*, fdm_nhf*, ghostcell*) {};
-	virtual ~vrans_nhflow_v() {};
-    
-	void initialize(lexer*, fdm_nhf*, ghostcell*) override final {};	
-	void update(lexer*, fdm_nhf*, ghostcell*, double, int) override final {};
+    vrans_nhflow_v(lexer *, fdm_nhf *, ghostcell *) {};
+    virtual ~vrans_nhflow_v() {};
 
-	void u_source(lexer*, fdm_nhf*, slice&) override final {};
-	void v_source(lexer*, fdm_nhf*, slice&) override final {};
-	void w_source(lexer*, fdm_nhf*, slice&) override final {};
-    
-    void ke_source(lexer*, fdm_nhf*, field&) override final {};
-    void kw_source(lexer*, fdm_nhf*, field&) override final {};
-    void eps_source(lexer*, fdm_nhf*, field&, field&) override final {};
-    void omega_source(lexer*, fdm_nhf*, field&, field&) override final {};
-    
-    void eddyv_func(lexer*, fdm_nhf*) override final {};
-    
-    void force_calc(lexer*, fdm_nhf*, ghostcell*, double, int) override final {};
-    
+    void initialize(lexer *, fdm_nhf *, ghostcell *) override final {};
+    void update(lexer *, fdm_nhf *, ghostcell *, double, int) override final {};
 
+    void u_source(lexer *, fdm_nhf *, slice &) override final {};
+    void v_source(lexer *, fdm_nhf *, slice &) override final {};
+    void w_source(lexer *, fdm_nhf *, slice &) override final {};
+
+    void ke_source(lexer *, fdm_nhf *, double *, double *) override final {};
+    void kw_source(lexer *, fdm_nhf *, double *, double *) override final {};
+    void eps_source(lexer *, fdm_nhf *, double *, double *) override final {};
+    void omega_source(lexer *, fdm_nhf *, double *, double *, double) override final {};
+
+    void eddyv_func(lexer *, fdm_nhf *) override final {};
+
+    void force_calc(lexer *, fdm_nhf *, ghostcell *, double, int) override final {};
 };
 
 #endif

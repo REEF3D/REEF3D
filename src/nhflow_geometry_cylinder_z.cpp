@@ -20,105 +20,19 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"nhflow_geometry.h"
-#include"lexer.h"
-#include"fdm_nhf.h"
-#include"ghostcell.h"
+#include "fdm_nhf.h"
+#include "geo_primitive.h"
+#include "ghostcell.h"
+#include "lexer.h"
+#include "nhflow_geometry.h"
 
 void nhflow_geometry::cylinder_z(lexer *p, ghostcell *pgc, int id)
 {
-    double U,ds,phi;
-	double r1,z1,z2;
-    double xm,ym;
-	int snum;
-	
-    
-	xm=cylz_xc[id];
-    ym=cylz_yc[id];
-	
-	z1=cylz_zs[id];
-	z2=cylz_ze[id];
-	
-    r1=cylz_r[id];
+    const int snum = geo_primitive::segments(cylz_r[id], 0.5 * (DSM), 40);
 
-	U = 2.0*PI*r1;
-	ds = 0.5*(DSM);
-    snum = MAX(int(U/ds), 40);
-    
+    tstart[entity_count] = tricount;
 
-// Vertices	
-	ds = (2.0*PI)/double(snum);
-	
-	phi=0.0;
-	
-	tstart[entity_count]=tricount;
-	
+    geo_primitive::cylinder_z(tri_x, tri_y, tri_z, tricount, cylz_xc[id], cylz_yc[id], cylz_zs[id], cylz_ze[id], cylz_r[id], snum);
 
-	for(n=0;n<snum;++n)
-	{
-	//bottom circle	
-	tri_x[tricount][0] = xm;
-	tri_y[tricount][0] = ym;
-	tri_z[tricount][0] = z1;
-	
-	tri_x[tricount][1] = xm + r1*cos(phi);
-	tri_y[tricount][1] = ym + r1*sin(phi);
-	tri_z[tricount][1] = z1;
-	
-	tri_x[tricount][2] = xm + r1*cos(phi+ds);
-	tri_y[tricount][2] = ym + r1*sin(phi+ds);
-	tri_z[tricount][2] = z1;
-	++tricount;
-		
-	//top circle
-	tri_x[tricount][0] = xm;
-	tri_y[tricount][0] = ym;
-	tri_z[tricount][0] = z2;
-	
-	tri_x[tricount][1] = xm + r1*cos(phi);
-	tri_y[tricount][1] = ym + r1*sin(phi);
-	tri_z[tricount][1] = z2;
-	
-	tri_x[tricount][2] = xm + r1*cos(phi+ds);
-	tri_y[tricount][2] = ym + r1*sin(phi+ds);
-	tri_z[tricount][2] = z2;
-	++tricount;
-	
-	//side		
-	// 1st triangle
-	tri_x[tricount][0] = xm + r1*cos(phi);
-	tri_y[tricount][0] = ym + r1*sin(phi);
-	tri_z[tricount][0] = z1;
-	
-	tri_x[tricount][1] = xm + r1*cos(phi+ds);
-	tri_y[tricount][1] = ym + r1*sin(phi+ds);
-	tri_z[tricount][1] = z2;
-	
-	tri_x[tricount][2] = xm + r1*cos(phi+ds);
-	tri_y[tricount][2] = ym + r1*sin(phi+ds);
-	tri_z[tricount][2] = z1;
-
-	++tricount;
-	
-	// 2nd triangle
-	tri_x[tricount][0] = xm + r1*cos(phi);
-	tri_y[tricount][0] = ym + r1*sin(phi);
-	tri_z[tricount][0] = z1;
-	
-	tri_x[tricount][1] = xm + r1*cos(phi+ds);
-	tri_y[tricount][1] = ym + r1*sin(phi+ds);
-	tri_z[tricount][1] = z2;
-	
-	tri_x[tricount][2] = xm + r1*cos(phi);
-	tri_y[tricount][2] = ym + r1*sin(phi);
-	tri_z[tricount][2] = z2;
-	
-	++tricount;
-		
-	phi+=ds;
-	}
-		
-	
-	tend[entity_count]=tricount;
-    
+    tend[entity_count] = tricount;
 }

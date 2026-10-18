@@ -1,0 +1,73 @@
+# Reference: Synolakis, C.E. (1987). The runup of solitary waves. Journal of Fluid Mechanics 185, 523-545 (NTHMP benchmark BP4, solitary wave on a simple 1:19.85 beach).
+# Source repo: https://github.com/fengyanshi/FUNWAVE-TVD  commit b4c322e7582035ee19df8e6409a3dfedaff1cb96, path benchmarks/sph_sol_plane_mea/postprocessing/SW_01_00185.mat (variables x_30, a_30)
+# Converted .mat -> text (Python repr of stored doubles). The comparison script labBM_04_SW.m is the NTHMP benchmark script ('Solitary Wave on a Simple Beach', 'CASE     H = 0.0185').
+# Content: LABORATORY free-surface profile for H/d = 0.0185 at nondimensional time t* = 30 (script label 'text(...,'t=30')', t* = t*sqrt(g/d) per NTHMP convention, not stated in script).
+# Columns: (1) x/d (dimensionless; origin at initial shoreline, x positive offshore: slope drawn as 'X=[-10:1: 20]; slp=1/19.85; Y=-slp*X;');
+#          (2) eta/d (dimensionless; plotted with axis limits e.g. '[-2 20 -0.02 0.04]').
+# Sampling: nearly uniform x spacing (~0.07 d) -> probably digitised/re-sampled profiles distributed with the NTHMP benchmark, not raw gauge records -> confidence B.
+0.0 0.0
+0.073 0.0
+0.145 0.0
+0.218 0.0
+0.291 0.0
+0.364 0.0
+0.436 0.0
+0.509 0.0
+0.582 0.0
+0.655 0.0
+0.727 0.0
+0.8 0.0
+0.873 0.0
+0.945 0.0
+1.018 0.0
+1.091 0.0
+1.164 0.00013
+1.236 0.00013
+1.309 0.00027
+1.382 0.00027
+1.455 0.0004
+1.527 0.00066
+1.673 0.00066
+1.745 0.0008
+1.818 0.00066
+1.891 0.0008
+1.964 0.00093
+2.036 0.00106
+2.255 0.00173
+2.327 0.00133
+2.4 0.00186
+2.473 0.00133
+2.618 0.00199
+2.691 0.00266
+2.764 0.00266
+2.909 0.00266
+3.127 0.00478
+3.418 0.00465
+3.564 0.00598
+3.636 0.00664
+3.927 0.00664
+4.073 0.00797
+4.582 0.0113
+5.091 0.01262
+5.6 0.01528
+6.036 0.01595
+6.109 0.01794
+6.545 0.01767
+6.982 0.01993
+7.055 0.01927
+7.927 0.02193
+9.018 0.02226
+9.964 0.02126
+10.982 0.02033
+12.0 0.01834
+13.018 0.01262
+14.036 0.01063
+15.055 0.01169
+15.709 0.01196
+16.0 0.00691
+16.873 0.00664
+17.018 0.00691
+17.091 0.00731
+19.127 0.00492
+19.709 0.00598
+20.0 0.00532

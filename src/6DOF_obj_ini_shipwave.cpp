@@ -20,108 +20,119 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Tobias Martin
 --------------------------------------------------------------------*/
 
-#include"6DOF_obj.h"
-#include"lexer.h"
-#include"momentum.h"
-#include"ghostcell.h"
-#include<sys/stat.h>
+#include "6DOF_obj.h"
+#include "6DOF_obj_2D.h"
+#include "ghostcell.h"
+#include "lexer.h"
+#include "momentum.h"
+#include <sys/stat.h>
 
-
-void sixdof_obj::initialize_shipwave(lexer *p, ghostcell *pgc, slice &eta, slice &WL)
+sixdof_obj_2D::sixdof_obj_2D(lexer *p, ghostcell *pgc, int number) : sixdof_obj(p, pgc, number),
+                                                                     press(p), lrk1(p), lrk2(p), K(p), dts(p), fs(p), Ls(p), Bs(p),
+                                                                     Rxmin(p), Rxmax(p), Rymin(p), Rymax(p), draft(p),
+                                                                     cl(p), cr(p), fsio(p)
 {
-    if(p->mpirank==0)
-    cout<<"6DOF_obj_ini "<<endl;
-    
+}
+
+sixdof_obj_2D::~sixdof_obj_2D()
+{
+}
+
+void sixdof_obj_2D::initialize_shipwave(lexer *p, ghostcell *pgc, slice &eta, slice &WL)
+{
+    if(p->mpirank == 0)
+        cout << "6DOF_obj_ini " << endl;
+
     // Initialise folder structure
-    if(p->X50==1)
-	print_ini_vtp(p,pgc);
-    
-    if(p->X50==2)
-    print_ini_stl(p,pgc);
-    
+    if(p->X50 == 1)
+        print_ini_vtp(p, pgc);
+
+    if(p->X50 == 2)
+        print_ini_stl(p, pgc);
+
     // Initialise processor boundaries
-    ini_parallel(p,pgc);
-    
+    ini_parallel(p, pgc);
+
     // Initialise objects
-	objects_create(p,pgc);
-    
+    objects_create(p, pgc);
+
     // Initialise fbvel
-	ini_fbvel(p,pgc);
-    
+    ini_fbvel(p, pgc);
+
     // Raycast
-    ray_cast_2D(p,pgc);
-	reini_2D(p,pgc,fs);
-    pgc->gcsl_start4(p,fs,50);
-    
+    ray_cast_2D(p, pgc);
+    reini_2D(p, pgc, fs);
+    pgc->gcsl_start4(p, fs, 50);
+
     // Calculate geometrical properties
-    geometry_parameters_2D(p,pgc);
-    
+    geometry_parameters_2D(p, pgc);
+
     // Initialise position of bodies
-    iniPosition_RBM(p,pgc);
-    
+    iniPosition_RBM(p, pgc);
+
     // Raycast
-    ray_cast_2D(p,pgc);
-	reini_2D(p,pgc,fs);
-    pgc->gcsl_start4(p,fs,50);
-    
+    ray_cast_2D(p, pgc);
+    reini_2D(p, pgc, fs);
+    pgc->gcsl_start4(p, fs, 50);
+
     // Initialise global variables
-	update_fbvel(p,pgc);
-    
-    // Print initial body 
-    if(p->X50==1)
-    print_vtp(p,pgc);
-    
-    if(p->X50==2)
-    print_stl(p,pgc);
-    
+    update_fbvel(p, pgc);
+
+    // Print initial body
+    if(p->X50 == 1)
+        print_vtp(p, pgc);
+
+    if(p->X50 == 2)
+        print_stl(p, pgc);
+
     double H;
-    
-    if(p->X10==3 && p->X207==0)
-    SLICELOOP4
-    {
-    H = Hsolidface_2D(p,0,0);
-    
-    eta(i,j) = -H*draft(i,j);
-    WL(i,j) = MAX(eta(i,j) + p->wd - p->bed[IJ],0.0);
-    }
+
+    if(p->X10 == 3 && p->X207 == 0)
+        SLICELOOP4
+        {
+            H = Hsolidface_2D(p, 0, 0);
+
+            eta(i, j) = -H * draft(i, j);
+            WL(i, j) = MAX(eta(i, j) + p->wd - p->bed[IJ], 0.0);
+        }
 }
 
 double sixdof_obj::ramp_vel(lexer *p)
 {
-    double f=1.0;
-    
-    if(p->X205==1 && p->X206==1 && p->simtime>=p->X206_ts && p->simtime<p->X206_te)
+    double f = 1.0;
+
+    if(p->X205 == 1 && p->X206 == 1 && p->simtime >= p->X206_ts && p->simtime < p->X206_te)
     {
-    f = (p->simtime-p->X206_ts)/(p->X206_te-p->X206_ts);
+        f = (p->simtime - p->X206_ts) / (p->X206_te - p->X206_ts);
     }
-    
-    if(p->X205==2 && p->X206==1 && p->simtime>=p->X206_ts && p->simtime<p->X206_te)
+
+    if(p->X205 == 2 && p->X206 == 1 && p->simtime >= p->X206_ts && p->simtime < p->X206_te)
     {
-    f = (p->simtime-p->X206_ts)/(p->X206_te-p->X206_ts)-(1.0/PI)*sin(PI*(p->simtime-p->X206_ts)/(p->X206_te-p->X206_ts));
+        f = (p->simtime - p->X206_ts) / (p->X206_te - p->X206_ts) - (1.0 / PI) * sin(PI * (p->simtime - p->X206_ts) / (p->X206_te - p->X206_ts));
     }
-    
-    if(p->X206==1 && p->simtime<p->X206_ts)
-    f=0.0;
-    
+
+    if(p->X206 == 1 && p->simtime < p->X206_ts)
+        f = 0.0;
+
     return f;
 }
 
 double sixdof_obj::ramp_draft(lexer *p)
 {
-    double f=1.0;
-    
-    if(p->X205==1 && p->X207==1 && p->simtime>=p->X207_ts && p->simtime<p->X207_te)
+    double f = 1.0;
+
+    if(p->X205 == 1 && p->X207 == 1 && p->simtime >= p->X207_ts && p->simtime < p->X207_te)
     {
-    f = p->simtime/(p->X207_te-p->X207_ts);
+        f = p->simtime / (p->X207_te - p->X207_ts);
     }
-    
-    if(p->X205==2 && p->X207==1 && p->simtime>=p->X207_ts && p->simtime<p->X207_te)
+
+    if(p->X205 == 2 && p->X207 == 1 && p->simtime >= p->X207_ts && p->simtime < p->X207_te)
     {
-    f = p->simtime/(p->X207_te-p->X207_ts) - (1.0/PI)*sin(PI*(p->simtime/(p->X207_te-p->X207_ts)));
+        f = p->simtime / (p->X207_te - p->X207_ts) - (1.0 / PI) * sin(PI * (p->simtime / (p->X207_te - p->X207_ts)));
     }
-    
-    if(p->X207==1 && p->simtime<p->X207_ts)
-    f=0.0;
-    
+
+    if(p->X207 == 1 && p->simtime < p->X207_ts)
+        f = 0.0;
+
     return f;
 }

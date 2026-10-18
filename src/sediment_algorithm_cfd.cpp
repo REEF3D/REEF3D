@@ -20,96 +20,101 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"sediment_f.h"
-#include"sediment_fdm.h"
-#include"lexer.h"
-#include"fdm.h"
-#include"ghostcell.h"
-#include"ioflow.h"
-#include"topo.h"
-#include"reinitopo.h"
-#include"suspended.h"
-#include"bedload.h"
-#include"bedconc_VR.h"
-#include"bedshear.h"
-#include"sandslide.h"
-#include"topo_relax.h"
-#include"bedslope.h"
-#include"bedshear_reduction.h"
-#include"bedload_direction.h"
-#include"sediment_roughness.h"
+#include "bedconc_VR.h"
+#include "bedload.h"
+#include "bedload_direction.h"
+#include "bedshear.h"
+#include "bedshear_reduction.h"
+#include "bedslope.h"
+#include "fdm.h"
+#include "ghostcell.h"
+#include "ioflow.h"
+#include "lexer.h"
+#include "reinitopo.h"
+#include "sandslide.h"
+#include "sediment_f.h"
+#include "sediment_fdm.h"
+#include "sediment_mixture.h"
+#include "sediment_roughness.h"
+#include "suspended.h"
+#include "topo.h"
+#include "topo_relax.h"
 
 void sediment_f::sediment_algorithm_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, reinitopo *preto, solver *psolv)
 {
-    starttime=pgc->timer();
-    
+    starttime = pgc->timer();
+
     ++p->sediter;
-    
+
     // prep CFD -------
-    prep_cfd(p,a,pgc);
-    
+    prep_cfd(p, a, pgc);
+
     // bedslope cds ******
-    pslope->slope_cds(p,pgc,s);
-    
+    pslope->slope_cds(p, pgc, s);
+
     // bedslope reduction ******
-    preduce->start(p,pgc,s);
-    
+    preduce->start(p, pgc, s);
+
     // bed roughness -------
-    pks->start(p,pgc,s,a->WL);
-    
+    pks->start(p, pgc, s, a->WL);
+
     // bedshear stress -------
-	pbedshear->taubed(p,a,pgc,s);
-    pbedshear->taucritbed(p,a,pgc,s);
+    pbedshear->taubed(p, a, pgc, s);
+    pbedshear->taucritbed(p, a, pgc, s);
 
     // bedload *******
-    pbed->start(p,pgc,s);
-    
+    if(s->pmix == nullptr)
+        pbed->start(p, pgc, s);
+
+    if(s->pmix != nullptr)
+        s->pmix->bedload_fractions(p, pgc, s, pbed);
+
     // bedload_direction *******
-    pbeddir->start(p,pgc,s);
-    
+    pbeddir->start(p, pgc, s);
+
     // suspended load -------
-    pcbed->start(p,pgc,s);
-    
+    pcbed->start(p, pgc, s);
+
     // relax  *******
-	prelax->start(p,pgc,s);
-    
-    for(int qqn=0;qqn<p->S27;++qqn)
+    prelax->start(p, pgc, s);
+
+    for(int qqn = 0; qqn < p->S27; ++qqn)
     {
-    // Exner *******
-    ptopo->start(p,pgc,s);
-    
-    // sandslide ********
-    if(p->sediter%p->S94==0)
-    pslide->start(p,pgc,s);
-    
-    // control time step ********
-    p->sedtime+=p->dtsed;
+        // Exner *******
+        ptopo->start(p, pgc, s);
+
+        // sandslide ********
+        if(p->sediter % p->S94 == 0)
+            pslide->start(p, pgc, s);
+
+        // control time step ********
+        p->sedtime += p->dtsed;
     }
-    
+
     // relax  *******
-	prelax->start(p,pgc,s);
-    
+    prelax->start(p, pgc, s);
+
     // update cfd  --------
-    update_cfd(p,a,pgc,pflow,preto);
-    
+    update_cfd(p, a, pgc, pflow, preto);
+
     // sediment print
-    print_probes(p,pgc,s,pflow);
-    
+    print_probes(p, pgc, s, pflow);
+
     // sediment log
     sedimentlog(p);
-    
-    if(p->mpirank==0 && p->count>0)
-    cout<<"Sediment Iter: "<<p->sediter<<" Sediment Timestep: "<<p->dtsed<<"  Sediment Time: "<<setprecision(7)<<p->sedtime<<endl;
 
-	if(p->mpirank==0)
-    cout<<"Sediment CompTime: "<<setprecision(5)<<pgc->timer()-starttime<<endl;
+    if(s->pmix != nullptr)
+        s->pmix->print_log(p, pgc);
+
+    if(p->mpirank == 0 && p->count > 0)
+        cout << "Sediment Iter: " << p->sediter << " Sediment Timestep: " << p->dtsed << "  Sediment Time: " << setprecision(7) << p->sedtime << endl;
+
+    if(p->mpirank == 0)
+        cout << "Sediment CompTime: " << setprecision(5) << pgc->timer() - starttime << endl;
 }
 
 void sediment_f::start_susp(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, solver *psolv)
 {
-    psusp->start(a,p,psuspdisc,psuspdiff,psolv,pgc,pflow,s);
+    psusp->start(a, p, psuspdisc, psuspdiff, psolv, pgc, pflow, s);
 }
-
-
-
 

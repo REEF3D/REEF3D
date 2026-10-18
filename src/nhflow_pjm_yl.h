@@ -23,8 +23,8 @@ Author: Hans Bihs
 #ifndef NHFLOW_PJM_YL_H_
 #define NHFLOW_PJM_YL_H_
 
-#include"nhflow_pressure.h"
-#include"increment.h"
+#include "increment.h"
+#include "nhflow_pressure.h"
 
 class density;
 class solver;
@@ -37,44 +37,38 @@ class nhflow_pjm_yl final : public nhflow_pressure, public increment
 {
 
 public:
+    nhflow_pjm_yl(lexer *, fdm_nhf *, ghostcell *, patchBC_interface *);
+    virtual ~nhflow_pjm_yl();
 
-	nhflow_pjm_yl(lexer*, fdm_nhf*, ghostcell*,patchBC_interface*);
-	virtual ~nhflow_pjm_yl();
+    void start(lexer *, fdm_nhf *, solver *, ghostcell *, ioflow *, slice &, double *, double *, double *, double) override final;
+    void ucorr(lexer *p, fdm_nhf *, slice &, double *, double *, double) override final;
+    void vcorr(lexer *p, fdm_nhf *, slice &, double *, double *, double) override final;
+    void wcorr(lexer *p, fdm_nhf *, slice &, double *, double *, double) override final;
+    void upgrad(lexer *, fdm_nhf *, slice &) override final;
+    void vpgrad(lexer *, fdm_nhf *, slice &) override final;
+    void wpgrad(lexer *, fdm_nhf *, slice &) override final;
 
-	void start(lexer*,fdm_nhf*,solver*,ghostcell*,ioflow*,slice&,double*,double*,double*,double) override final;
-	void ucorr(lexer*p,fdm_nhf*,slice&,double*,double*,double) override final;
-	void vcorr(lexer*p,fdm_nhf*,slice&,double*,double*,double) override final;
-	void wcorr(lexer*p,fdm_nhf*,slice&,double*,double*,double) override final;
-	void upgrad(lexer*,fdm_nhf*,slice&) override final;
-	void vpgrad(lexer*,fdm_nhf*,slice&) override final;
-    void wpgrad(lexer*,fdm_nhf*,slice&) override final;
-    
-    void press_corr(lexer*p,fdm_nhf*,slice&,double*,double*,double);
-    
-    void press_integral(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
-	void vel_setup(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
-    void bedbc(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
+    void press_corr(lexer *p, fdm_nhf *, slice &, double *, double *, double);
+
+    void press_integral(lexer *, fdm_nhf *, ghostcell *, double *, double *, double *, double);
+    void vel_setup(lexer *, fdm_nhf *, ghostcell *, double *, double *, double *, double);
+    void bedbc(lexer *, fdm_nhf *, ghostcell *, double *, double *, double *, double);
 
 private:
-    
-	double starttime,endtime;
+    double starttime, endtime;
     const double teta;
     int check;
-	int count, gcval_press;
-	int gcval_u, gcval_v, gcval_w;
-    int solver_id;
+    int count, gcval_press;
+    int gcval_u, gcval_v, gcval_w;
     double val, denom;
     double gamma;
     double *PCORR;
-    double dPdx,dPdy,dPdz;
+    double dPdx, dPdy, dPdz;
 
     density *pd;
     nhflow_poisson *ppois;
     patchBC_interface *pBC;
-
 };
-
-
 
 #endif
 

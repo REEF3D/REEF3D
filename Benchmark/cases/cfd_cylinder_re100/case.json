@@ -1,0 +1,63 @@
+{
+ "description": "Laminar flow past a circular cylinder at Re = U D / nu = 100 (D = 0.1 m, U = 1 m/s, nu = 1e-3 m2/s), single-phase CFD in 2D, domain 30 D x 16 D (8 D upstream, blockage 6 %, cylinder 0.1 D below the centre line so that the shedding starts), cell-size stretching around the cylinder (D/50 release, D/25 nightly), implicit diffusion with the wall ghost values at the solid (D 22 2: with the default D 22 1 the cylinder wall is free of shear in the implicit diffusion, C_D drops by a third and the wake does not shed). Strouhal number from the lift and mean drag coefficient after the shedding has settled.",
+ "reference": {
+  "short": "Williamson St(Re); Qu et al. (2013)",
+  "citation": "Williamson (1988) St-Re fit as given by Beaudan & Moin (1994) Eq. 1 (50 < Re < 180); mean C_D at Re = 100: Park et al. (1998) 1.33, Posdziech & Grundmann (2007) 1.325, Qu et al. (2013) 1.319 (Qu et al. 2013 J. Fluids Struct. 39, Table 1), see refdata/misc/cylinder_re100_unconfined.txt"
+ },
+ "tags": [
+  "cfd",
+  "analytical",
+  "2d",
+  "single-phase",
+  "quick"
+ ],
+ "np": 4,
+ "time": 50.0,
+ "check": {
+  "type": "vortex_shedding",
+  "U": 1.0,
+  "D": 0.1,
+  "W": 0.002,
+  "nu": 0.001,
+  "rho": 1000.0,
+  "lift": "Fz",
+  "Cd_ref": 1.33,
+  "t_start": 30.0,
+  "t_end": 50.0,
+  "tol_St": 0.05,
+  "tol_Cd": 0.1,
+  "note": "blockage D/H = 1/16 raises St and C_D by a few per cent against the unconfined values"
+ },
+ "levels": {
+  "nightly": {
+   "np": 2,
+   "time": 40.0,
+   "control_set": {
+    "B 1": "0.004",
+    "B 10": "0.0 3.0 0.0 0.004 0.0 1.6",
+    "B 127": "0.004 0.04 0.9 0.4 1.08",
+    "B 129": "0.004 0.04 0.79 0.3 1.08",
+    "M 10": "2"
+   },
+   "ctrl_set": {
+    "M 10": "2",
+    "W 10": "0.0064"
+   },
+   "check": {
+    "type": "vortex_shedding",
+    "U": 1.0,
+    "D": 0.1,
+    "W": 0.004,
+    "nu": 0.001,
+    "rho": 1000.0,
+    "lift": "Fz",
+    "Cd_ref": 1.33,
+    "t_start": 25.0,
+    "t_end": 40.0,
+    "tol_St": 0.08,
+    "tol_Cd": 0.15
+   }
+  },
+  "release": {}
+ }
+}

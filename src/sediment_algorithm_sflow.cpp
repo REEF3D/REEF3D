@@ -20,80 +20,87 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"sediment_f.h"
-#include"sediment_fdm.h"
-#include"lexer.h"
-#include"fdm2D.h"
-#include"ghostcell.h"
-#include"convection.h"
-#include"ioflow.h"
-#include"topo.h"
-#include"reinitopo.h"
-#include"suspended.h"
-#include"bedload.h"
-#include"bedshear.h"
-#include"sandslide.h"
-#include"topo_relax.h"
-#include"bedslope.h"
-#include"bedshear_reduction.h"
-#include"bedload_direction.h"
-#include"sediment_roughness.h"
+#include "bedload.h"
+#include "bedload_direction.h"
+#include "bedshear.h"
+#include "bedshear_reduction.h"
+#include "bedslope.h"
+#include "convection.h"
+#include "fdm2D.h"
+#include "ghostcell.h"
+#include "ioflow.h"
+#include "lexer.h"
+#include "reinitopo.h"
+#include "sandslide.h"
+#include "sediment_f.h"
+#include "sediment_fdm.h"
+#include "sediment_mixture.h"
+#include "sediment_roughness.h"
+#include "suspended.h"
+#include "topo.h"
+#include "topo_relax.h"
 
 void sediment_f::sediment_algorithm_sflow(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *pflow, slice &P, slice &Q)
 {
-    starttime=pgc->timer();
-    
+    starttime = pgc->timer();
+
     ++p->sediter;
-    
+
     // prep SFLOW -------
-    prep_sflow(p,b,pgc,P,Q);
-    
+    prep_sflow(p, b, pgc, P, Q);
+
     // bedslope cds ******
-    pslope->slope_cds(p,pgc,s);
-    
+    pslope->slope_cds(p, pgc, s);
+
     // bedslope reduction ******
-    preduce->start(p,pgc,s);
-    
+    preduce->start(p, pgc, s);
+
     // bed roughness -------
-    pks->start(p,pgc,s,b->hp);
-    
+    pks->start(p, pgc, s, b->hp);
+
     // bedshear stress -------
-	pbedshear->taubed(p,b,pgc,s);
-    pbedshear->taucritbed(p,b,pgc,s);
+    pbedshear->taubed(p, b, pgc, s);
+    pbedshear->taucritbed(p, b, pgc, s);
 
     // bedload *******
-    pbed->start(p,pgc,s);
-    
+    if(s->pmix == nullptr)
+        pbed->start(p, pgc, s);
+
+    if(s->pmix != nullptr)
+        s->pmix->bedload_fractions(p, pgc, s, pbed);
+
     // bedload_direction *******
-    pbeddir->start(p,pgc,s);
-	
+    pbeddir->start(p, pgc, s);
+
     // relax *******
-	prelax->start(p,pgc,s);
-    
+    prelax->start(p, pgc, s);
+
     // Exner *******
-    ptopo->start(p,pgc,s);
-    p->sedtime+=p->dtsed;
-    
+    ptopo->start(p, pgc, s);
+    p->sedtime += p->dtsed;
+
     // sandslide ********
-    if(p->sediter%p->S94==0)
-    pslide->start(p,pgc,s);
-    
+    if(p->sediter % p->S94 == 0)
+        pslide->start(p, pgc, s);
+
     // relax *******
-	prelax->start(p,pgc,s);
-    
+    prelax->start(p, pgc, s);
+
     // update sflow  --------
-    update_sflow(p,b,pgc,pflow);
-    
+    update_sflow(p, b, pgc, pflow);
+
     // sediment print
-    print_probes(p,pgc,s,pflow);
-    
+    print_probes(p, pgc, s, pflow);
+
     // sediment log
     sedimentlog(p);
-    
-    if(p->mpirank==0 && p->count>0)
-    cout<<"Sediment Iter: "<<p->sediter<<" Sediment Timestep: "<<p->dtsed<<"  Total Time: "<<setprecision(7)<<p->sedtime<<endl;
 
-	if(p->mpirank==0)
-    cout<<"Sediment CompTime: "<<setprecision(5)<<pgc->timer()-starttime<<endl;
+    if(s->pmix != nullptr)
+        s->pmix->print_log(p, pgc);
 
+    if(p->mpirank == 0 && p->count > 0)
+        cout << "Sediment Iter: " << p->sediter << " Sediment Timestep: " << p->dtsed << "  Total Time: " << setprecision(7) << p->sedtime << endl;
+
+    if(p->mpirank == 0)
+        cout << "Sediment CompTime: " << setprecision(5) << pgc->timer() - starttime << endl;
 }

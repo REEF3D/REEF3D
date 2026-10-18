@@ -28,7 +28,6 @@ class fdm2D;
 class ghostcell;
 class slice;
 class vec2D;
-class cpt2D;
 class matrix2D;
 
 using namespace std;
@@ -37,8 +36,7 @@ class solver2D
 {
 
 public:
-
-	virtual void start(lexer*,ghostcell*, slice&, matrix2D&, vec2D&, vec2D&, int)=0;
+    virtual void start(lexer *, ghostcell *, slice &, matrix2D &, vec2D &, vec2D &, int) = 0;
 };
 
 #endif

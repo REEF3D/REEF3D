@@ -21,15 +21,15 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"control.h"
+#include "control.h"
 
 void control::ctrlrecv()
 {
     int n;
 
-    int ii,dd;
+    int ii, dd;
 
-    ii=dd=0;
+    ii = dd = 0;
 
     A10 = ictrl[ii];
     ii++;
@@ -58,6 +58,8 @@ void control::ctrlrecv()
     A221 = ictrl[ii];
     ii++;
     A223 = dctrl[dd];
+    dd++;
+    A224 = dctrl[dd];
     dd++;
     A230 = ictrl[ii];
     ii++;
@@ -93,6 +95,42 @@ void control::ctrlrecv()
     dd++;
     A264 = dctrl[dd];
     dd++;
+    G1 = ictrl[ii];
+    ii++;
+    G2 = ictrl[ii];
+    ii++;
+    G3 = ictrl[ii];
+    ii++;
+    G20 = dctrl[dd];
+    dd++;
+    G4 = ictrl[ii];
+    ii++;
+    G10 = ictrl[ii];
+    ii++;
+    G11 = ictrl[ii];
+    ii++;
+    G12 = ictrl[ii];
+    ii++;
+    G12_r = dctrl[dd];
+    dd++;
+    G13_L = dctrl[dd];
+    dd++;
+    G13_a = dctrl[dd];
+    dd++;
+    G5 = ictrl[ii];
+    ii++;
+    G6 = ictrl[ii];
+    ii++;
+    G21 = dctrl[dd];
+    dd++;
+    G30 = ictrl[ii];
+    ii++;
+    G22 = ictrl[ii];
+    ii++;
+    G23 = ictrl[ii];
+    ii++;
+    G40 = ictrl[ii];
+    ii++;
 
     A309 = ictrl[ii];
     ii++;
@@ -104,6 +142,18 @@ void control::ctrlrecv()
     ii++;
     A313 = ictrl[ii];
     ii++;
+    A314 = ictrl[ii];
+    ii++;
+    A315 = ictrl[ii];
+    ii++;
+    A316 = ictrl[ii];
+    ii++;
+    A317 = ictrl[ii];
+    ii++;
+    A318 = ictrl[ii];
+    ii++;
+    A319 = dctrl[dd];
+    dd++;
     A320 = ictrl[ii];
     ii++;
     A321 = ictrl[ii];
@@ -112,7 +162,35 @@ void control::ctrlrecv()
     ii++;
     A323 = ictrl[ii];
     ii++;
+    A324 = ictrl[ii];
+    ii++;
+    A325 = dctrl[dd];
+    dd++;
+    A327 = ictrl[ii];
+    ii++;
+    A328 = ictrl[ii];
+    ii++;
     A329 = ictrl[ii];
+    ii++;
+    A330 = ictrl[ii];
+    ii++;
+    A331 = dctrl[dd];
+    dd++;
+    A332 = ictrl[ii];
+    ii++;
+    A334 = ictrl[ii];
+    ii++;
+    A335 = dctrl[dd];
+    dd++;
+    A336 = ictrl[ii];
+    ii++;
+    A326 = dctrl[dd];
+    dd++;
+    A337 = ictrl[ii];
+    ii++;
+    A338 = ictrl[ii];
+    ii++;
+    A339 = ictrl[ii];
     ii++;
     A340 = dctrl[dd];
     dd++;
@@ -184,6 +262,82 @@ void control::ctrlrecv()
     ii++;
     A374 = ictrl[ii];
     ii++;
+    A375 = dctrl[dd];
+    dd++;
+    A376_s = dctrl[dd];
+    dd++;
+    A376_sc = dctrl[dd];
+    dd++;
+    A376_c = dctrl[dd];
+    dd++;
+    A377 = dctrl[dd];
+    dd++;
+    A378 = ictrl[ii];
+    ii++;
+    A380 = ictrl[ii];
+    ii++;
+    A381 = dctrl[dd];
+    dd++;
+    A382 = dctrl[dd];
+    dd++;
+    A383 = dctrl[dd];
+    dd++;
+    A384_mu = dctrl[dd];
+    dd++;
+    A384_e = dctrl[dd];
+    dd++;
+    A385 = ictrl[ii];
+    ii++;
+    A386 = ictrl[ii];
+    ii++;
+    A387 = dctrl[dd];
+    dd++;
+    A388 = ictrl[ii];
+    ii++;
+    A389 = dctrl[dd];
+    dd++;
+    A390 = ictrl[ii];
+    ii++;
+    A391 = dctrl[dd];
+    dd++;
+    A392_K = dctrl[dd];
+    dd++;
+    A392_C = dctrl[dd];
+    dd++;
+    A393 = dctrl[dd];
+    dd++;
+    A394 = ictrl[ii];
+    ii++;
+    A395_dir = ictrl[ii];
+    ii++;
+    A395_off = ictrl[ii];
+    ii++;
+    A396 = dctrl[dd];
+    dd++;
+    A397_E = dctrl[dd];
+    dd++;
+    A397_nu = dctrl[dd];
+    dd++;
+    A398 = dctrl[dd];
+    dd++;
+    A399_m = dctrl[dd];
+    dd++;
+    A399_A = dctrl[dd];
+    dd++;
+    A399_seed = ictrl[ii];
+    ii++;
+    A400 = ictrl[ii];
+    ii++;
+    A401 = ictrl[ii];
+    ii++;
+    A402_L = dctrl[dd];
+    dd++;
+    A402_C = dctrl[dd];
+    dd++;
+    A402_T = dctrl[dd];
+    dd++;
+    A403 = dctrl[dd];
+    dd++;
 
     A410 = ictrl[ii];
     ii++;
@@ -224,6 +378,12 @@ void control::ctrlrecv()
     ii++;
     A525 = ictrl[ii];
     ii++;
+    A526 = dctrl[dd];
+    dd++;
+    A527 = ictrl[ii];
+    ii++;
+    A528 = dctrl[dd];
+    dd++;
     A531 = dctrl[dd];
     dd++;
     A532 = ictrl[ii];
@@ -292,6 +452,18 @@ void control::ctrlrecv()
     ii++;
     A574 = ictrl[ii];
     ii++;
+    A575 = dctrl[dd];
+    dd++;
+    A576_s = dctrl[dd];
+    dd++;
+    A576_sc = dctrl[dd];
+    dd++;
+    A576_c = dctrl[dd];
+    dd++;
+    A578 = ictrl[ii];
+    ii++;
+    A580 = ictrl[ii];
+    ii++;
     A581 = ictrl[ii];
     ii++;
     A583 = ictrl[ii];
@@ -344,6 +516,52 @@ void control::ctrlrecv()
     ii++;
     A599 = ictrl[ii];
     ii++;
+    A700 = ictrl[ii];
+    ii++;
+    A701 = ictrl[ii];
+    ii++;
+    A702_fmin = dctrl[dd];
+    dd++;
+    A702_fmax = dctrl[dd];
+    dd++;
+    A703 = ictrl[ii];
+    ii++;
+    A704 = ictrl[ii];
+    ii++;
+    A705 = dctrl[dd];
+    dd++;
+    A706 = dctrl[dd];
+    dd++;
+    A707 = ictrl[ii];
+    ii++;
+    A708 = dctrl[dd];
+    dd++;
+    A710 = ictrl[ii];
+    ii++;
+    A711 = ictrl[ii];
+    ii++;
+    A712_xm = ictrl[ii];
+    ii++;
+    A712_xp = ictrl[ii];
+    ii++;
+    A712_ym = ictrl[ii];
+    ii++;
+    A712_yp = ictrl[ii];
+    ii++;
+    A713 = ictrl[ii];
+    ii++;
+    A714 = ictrl[ii];
+    ii++;
+    A720 = ictrl[ii];
+    ii++;
+    A721_us = dctrl[dd];
+    dd++;
+    A721_ue = dctrl[dd];
+    dd++;
+    A721_xs = dctrl[dd];
+    dd++;
+    A721_xe = dctrl[dd];
+    dd++;
 
     B10 = ictrl[ii];
     ii++;
@@ -453,6 +671,8 @@ void control::ctrlrecv()
     dd++;
     B96_2 = dctrl[dd];
     dd++;
+    B97 = ictrl[ii];
+    ii++;
     B98 = ictrl[ii];
     ii++;
     B99 = ictrl[ii];
@@ -472,6 +692,30 @@ void control::ctrlrecv()
     B106 = ictrl[ii];
     ii++;
     B107 = ictrl[ii];
+    ii++;
+    B500 = ictrl[ii];
+    ii++;
+    B501 = ictrl[ii];
+    ii++;
+    B502 = ictrl[ii];
+    ii++;
+    B504 = ictrl[ii];
+    ii++;
+    B520 = ictrl[ii];
+    ii++;
+    B521 = ictrl[ii];
+    ii++;
+    B524 = ictrl[ii];
+    ii++;
+    B510 = ictrl[ii];
+    ii++;
+    B511 = ictrl[ii];
+    ii++;
+    B514 = ictrl[ii];
+    ii++;
+    B515 = ictrl[ii];
+    ii++;
+    B523 = ictrl[ii];
     ii++;
     B110 = ictrl[ii];
     ii++;
@@ -499,6 +743,18 @@ void control::ctrlrecv()
     dd++;
     B118 = dctrl[dd];
     dd++;
+    B113 = ictrl[ii];
+    ii++;
+    B113_J = ictrl[ii];
+    ii++;
+    B114_fmin = dctrl[dd];
+    dd++;
+    B114_fmax = dctrl[dd];
+    dd++;
+    B114_f2min = dctrl[dd];
+    dd++;
+    B119 = ictrl[ii];
+    ii++;
     B120 = dctrl[dd];
     dd++;
     B122 = dctrl[dd];
@@ -669,6 +925,8 @@ void control::ctrlrecv()
     dd++;
     B267 = dctrl[dd];
     dd++;
+    B265 = ictrl[ii];
+    ii++;
     B270 = ictrl[ii];
     ii++;
     B274 = ictrl[ii];
@@ -738,9 +996,9 @@ void control::ctrlrecv()
     ii++;
     C20 = ictrl[ii];
     ii++;
-    C50_1=dctrl[dd];
+    C50_1 = dctrl[dd];
     dd++;
-    C50_2=dctrl[dd];
+    C50_2 = dctrl[dd];
     dd++;
     C51 = dctrl[dd];
     dd++;
@@ -783,6 +1041,8 @@ void control::ctrlrecv()
     ii++;
     D22 = ictrl[ii];
     ii++;
+    D23 = ictrl[ii];
+    ii++;
     D30 = ictrl[ii];
     ii++;
     D31 = ictrl[ii];
@@ -819,8 +1079,6 @@ void control::ctrlrecv()
     F46 = ictrl[ii];
     ii++;
     F47 = ictrl[ii];
-    ii++;
-    F49 = ictrl[ii];
     ii++;
     F50 = ictrl[ii];
     ii++;
@@ -864,6 +1122,8 @@ void control::ctrlrecv()
     dd++;
     F59_r = dctrl[dd];
     dd++;
+    F60_flag = ictrl[ii];
+    ii++;
     F60 = dctrl[dd];
     dd++;
     F61 = dctrl[dd];
@@ -874,6 +1134,14 @@ void control::ctrlrecv()
     dd++;
     F64 = ictrl[ii];
     ii++;
+    F68 = ictrl[ii];
+    ii++;
+    F68_x = dctrl[dd];
+    dd++;
+    F68_y = dctrl[dd];
+    dd++;
+    F68_z = dctrl[dd];
+    dd++;
     F70 = ictrl[ii];
     ii++;
     F71 = ictrl[ii];
@@ -993,27 +1261,29 @@ void control::ctrlrecv()
     F399 = ictrl[ii];
     ii++;
 
-    G1  = ictrl[ii];
+    G501 = ictrl[ii];
     ii++;
-    G2  = ictrl[ii];
+    G502 = ictrl[ii];
     ii++;
-    G5  = ictrl[ii];
+    G505 = ictrl[ii];
     ii++;
-    G10 = ictrl[ii];
+    G510 = ictrl[ii];
     ii++;
-    G11 = ictrl[ii];
+    G511 = ictrl[ii];
     ii++;
-    G12 = ictrl[ii];
+    G512 = ictrl[ii];
     ii++;
-    G20 = ictrl[ii];
+    G520 = ictrl[ii];
     ii++;
-    G21 = ictrl[ii];
+    G521 = ictrl[ii];
     ii++;
-    G22 = ictrl[ii];
+    G522 = ictrl[ii];
     ii++;
-    G30 = ictrl[ii];
+    G530 = ictrl[ii];
     ii++;
-    G40 = ictrl[ii];
+    G540 = ictrl[ii];
+    ii++;
+    G541 = ictrl[ii];
     ii++;
 
     H1 = dctrl[dd];
@@ -1034,9 +1304,9 @@ void control::ctrlrecv()
     ii++;
     H15 = ictrl[ii];
     ii++;
-    H50_1=dctrl[dd];
+    H50_1 = dctrl[dd];
     dd++;
-    H50_2=dctrl[dd];
+    H50_2 = dctrl[dd];
     dd++;
     H51 = dctrl[dd];
     dd++;
@@ -1139,6 +1409,14 @@ void control::ctrlrecv()
     ii++;
     N11 = ictrl[ii];
     ii++;
+    N12 = ictrl[ii];
+    ii++;
+    N13 = ictrl[ii];
+    ii++;
+    N14 = ictrl[ii];
+    ii++;
+    N15 = ictrl[ii];
+    ii++;
     N18 = ictrl[ii];
     ii++;
     N20 = ictrl[ii];
@@ -1187,6 +1465,8 @@ void control::ctrlrecv()
     P15 = ictrl[ii];
     ii++;
     P16 = ictrl[ii];
+    ii++;
+    P18 = ictrl[ii];
     ii++;
     P19 = ictrl[ii];
     ii++;
@@ -1402,6 +1682,8 @@ void control::ctrlrecv()
     ii++;
     P185 = ictrl[ii];
     ii++;
+    P186 = ictrl[ii];
+    ii++;
     P190 = ictrl[ii];
     ii++;
     P191 = ictrl[ii];
@@ -1429,6 +1711,49 @@ void control::ctrlrecv()
     P352 = ictrl[ii];
     ii++;
 
+    E10 = ictrl[ii];
+    ii++;
+    E11 = ictrl[ii];
+    ii++;
+    E12 = dctrl[dd];
+    dd++;
+    E13 = ictrl[ii];
+    ii++;
+    E14 = dctrl[dd];
+    dd++;
+    E15 = dctrl[dd];
+    dd++;
+    E16 = ictrl[ii];
+    ii++;
+    E17 = dctrl[dd];
+    dd++;
+    E18 = dctrl[dd];
+    dd++;
+    E19 = dctrl[dd];
+    dd++;
+    E20 = dctrl[dd];
+    dd++;
+    E21 = ictrl[ii];
+    ii++;
+    E22 = ictrl[ii];
+    ii++;
+    E26 = ictrl[ii];
+    ii++;
+    E27 = ictrl[ii];
+    ii++;
+    E28 = ictrl[ii];
+    ii++;
+    E29 = ictrl[ii];
+    ii++;
+    E23 = dctrl[dd];
+    dd++;
+    E24 = dctrl[dd];
+    dd++;
+    E25 = dctrl[dd];
+    dd++;
+    E30 = dctrl[dd];
+    dd++;
+
     Q10 = ictrl[ii];
     ii++;
     Q11 = ictrl[ii];
@@ -1445,6 +1770,30 @@ void control::ctrlrecv()
     dd++;
     Q17 = dctrl[dd];
     dd++;
+    Q18 = dctrl[dd];
+    dd++;
+    Q19 = ictrl[ii];
+    ii++;
+    Q26 = dctrl[dd];
+    dd++;
+    Q27 = ictrl[ii];
+    ii++;
+    Q28 = ictrl[ii];
+    ii++;
+    Q32 = dctrl[dd];
+    dd++;
+    Q33 = dctrl[dd];
+    dd++;
+    Q34 = dctrl[dd];
+    dd++;
+    Q35 = dctrl[dd];
+    dd++;
+    Q36 = dctrl[dd];
+    dd++;
+    Q37 = dctrl[dd];
+    dd++;
+    Q38 = dctrl[dd];
+    dd++;
     Q20 = ictrl[ii];
     ii++;
     Q22 = dctrl[dd];
@@ -1458,10 +1807,40 @@ void control::ctrlrecv()
     Q29 = ictrl[ii];
     ii++;
     Q30 = dctrl[dd];
+    ++dd;
+    Q45 = dctrl[dd];
+    ++dd;
+    Q53 = dctrl[dd];
+    ++dd;
+    Q54 = dctrl[dd];
+    ++dd;
+    Q55 = dctrl[dd];
+    ++dd;
+    Q56 = dctrl[dd];
     dd++;
     Q41 = dctrl[dd];
     dd++;
     Q43 = ictrl[ii];
+    ii++;
+    Q44 = ictrl[ii];
+    ++ii;
+    Q52 = ictrl[ii];
+    ++ii;
+    Q57 = ictrl[ii];
+    ii++;
+    Q58 = ictrl[ii];
+    ii++;
+    Q59 = dctrl[dd];
+    dd++;
+    Q60 = dctrl[dd];
+    dd++;
+    Q62 = dctrl[dd];
+    dd++;
+    Q63 = dctrl[dd];
+    dd++;
+    Q50 = ictrl[ii];
+    ii++;
+    Q51 = ictrl[ii];
     ii++;
     Q61 = ictrl[ii];
     ii++;
@@ -1562,6 +1941,12 @@ void control::ctrlrecv()
     ii++;
     S37 = ictrl[ii];
     ii++;
+    S38 = ictrl[ii];
+    ii++;
+    S39 = dctrl[dd];
+    dd++;
+    S40 = dctrl[dd];
+    dd++;
     S41 = ictrl[ii];
     ii++;
     S42 = ictrl[ii];
@@ -1578,12 +1963,20 @@ void control::ctrlrecv()
     dd++;
     S48 = dctrl[dd];
     dd++;
+    S49 = ictrl[ii];
+    ii++;
     S50 = ictrl[ii];
     ii++;
     S57 = dctrl[dd];
     dd++;
-    S60 = dctrl[dd];
-    dd++;
+    S60 = ictrl[ii];
+    ii++;
+    S61 = ictrl[ii];
+    ii++;
+    S62 = ictrl[ii];
+    ii++;
+    S66 = ictrl[ii];
+    ii++;
     S71 = dctrl[dd];
     dd++;
     S72 = dctrl[dd];
@@ -1591,6 +1984,8 @@ void control::ctrlrecv()
     S73 = ictrl[ii];
     ii++;
     S74 = ictrl[ii];
+    ii++;
+    S75 = ictrl[ii];
     ii++;
     S77 = ictrl[ii];
     ii++;
@@ -1630,6 +2025,20 @@ void control::ctrlrecv()
     ii++;
     S102 = dctrl[dd];
     dd++;
+    S103 = dctrl[dd];
+    dd++;
+    S51 = ictrl[ii];
+    ii++;
+    S52 = dctrl[dd];
+    dd++;
+    S53 = dctrl[dd];
+    dd++;
+    S54 = ictrl[ii];
+    ii++;
+    S55 = dctrl[dd];
+    dd++;
+    S56 = ictrl[ii];
+    ii++;
 
     T10 = ictrl[ii];
     ii++;
@@ -1641,14 +2050,10 @@ void control::ctrlrecv()
     dd++;
     T31 = dctrl[dd];
     dd++;
-    T32 = dctrl[dd];
-    dd++;
     T33 = ictrl[ii];
     ii++;
     T34 = ictrl[ii];
     ii++;
-    T35 = dctrl[dd];
-    dd++;
     T36 = ictrl[ii];
     ii++;
     T37 = dctrl[dd];
@@ -1668,19 +2073,19 @@ void control::ctrlrecv()
     T45 = ictrl[ii];
     ii++;
 
-    W1  = dctrl[dd];
+    W1 = dctrl[dd];
     dd++;
-    W2  = dctrl[dd];
+    W2 = dctrl[dd];
     dd++;
-    W3  = dctrl[dd];
+    W3 = dctrl[dd];
     dd++;
-    W4  = dctrl[dd];
+    W4 = dctrl[dd];
     dd++;
-    W5  = dctrl[dd];
+    W5 = dctrl[dd];
     dd++;
-    W6  = dctrl[dd];
+    W6 = dctrl[dd];
     dd++;
-    W7  = dctrl[dd];
+    W7 = dctrl[dd];
     dd++;
     W10 = dctrl[dd];
     dd++;
@@ -1823,6 +2228,16 @@ void control::ctrlrecv()
     ii++;
     X15 = ictrl[ii];
     ii++;
+    X16 = ictrl[ii];
+    ii++;
+    X16_n = dctrl[dd];
+    dd++;
+    X16_d50 = dctrl[dd];
+    dd++;
+    X16_alpha = dctrl[dd];
+    dd++;
+    X16_beta = dctrl[dd];
+    dd++;
     X19 = ictrl[ii];
     ii++;
     X20 = ictrl[ii];
@@ -1870,6 +2285,8 @@ void control::ctrlrecv()
     X33 = ictrl[ii];
     ii++;
     X34 = ictrl[ii];
+    ii++;
+    X38 = ictrl[ii];
     ii++;
     X39 = ictrl[ii];
     ii++;
@@ -2067,11 +2484,19 @@ void control::ctrlrecv()
     dd++;
     X183_psi = dctrl[dd];
     dd++;
+    X184 = ictrl[ii];
+    ii++;
     X185 = ictrl[ii];
     ii++;
     X186 = dctrl[dd];
     dd++;
+    X187 = dctrl[dd];
+    dd++;
     X188 = ictrl[ii];
+    ii++;
+    X189 = ictrl[ii];
+    ii++;
+    X190 = ictrl[ii];
     ii++;
     X205 = ictrl[ii];
     ii++;
@@ -2139,6 +2564,10 @@ void control::ctrlrecv()
     dd++;
     X324 = ictrl[ii];
     ii++;
+    X330 = ictrl[ii];
+    ii++;
+    X350 = ictrl[ii];
+    ii++;
     X325_dt = dctrl[dd];
     dd++;
     X325_relX = dctrl[dd];
@@ -2159,6 +2588,42 @@ void control::ctrlrecv()
     dd++;
     X410 = ictrl[ii];
     ii++;
+    X500 = ictrl[ii];
+    ii++;
+    X501 = ictrl[ii];
+    ii++;
+    X502 = ictrl[ii];
+    ii++;
+    X503 = ictrl[ii];
+    ii++;
+    X504 = ictrl[ii];
+    ii++;
+    X501_ax = dctrl[dd];
+    dd++;
+    X501_ay = dctrl[dd];
+    dd++;
+    X501_az = dctrl[dd];
+    dd++;
+    X501_xa = dctrl[dd];
+    dd++;
+    X501_ya = dctrl[dd];
+    dd++;
+    X501_za = dctrl[dd];
+    dd++;
+    X502_B = dctrl[dd];
+    dd++;
+    X503_K = dctrl[dd];
+    dd++;
+    X503_B = dctrl[dd];
+    dd++;
+    X504_qmin = dctrl[dd];
+    dd++;
+    X504_qmax = dctrl[dd];
+    dd++;
+    X504_K = dctrl[dd];
+    dd++;
+    X504_C = dctrl[dd];
+    dd++;
 
     Y1 = ictrl[ii];
     ii++;
@@ -2201,1109 +2666,1243 @@ void control::ctrlrecv()
     dd++;
     Z12_ckz = dctrl[dd];
     dd++;
+    Z20 = ictrl[ii];
+    ii++;
+    Z21 = dctrl[dd];
+    dd++;
+    Z30 = ictrl[ii];
+    ii++;
+    Z31 = dctrl[dd];
+    dd++;
 
     // --------------------------
 
-    if(A581>0)
+    if(A581 > 0)
     {
-        Darray(A581_xs,A581);
-        Darray(A581_xe,A581);
-        Darray(A581_ys,A581);
-        Darray(A581_ye,A581);
-        Darray(A581_zs,A581);
-        Darray(A581_ze,A581);
+        Darray(A581_xs, A581);
+        Darray(A581_xe, A581);
+        Darray(A581_ys, A581);
+        Darray(A581_ye, A581);
+        Darray(A581_zs, A581);
+        Darray(A581_ze, A581);
     }
 
-    if(A583>0)
+    if(A583 > 0)
     {
-        Darray(A583_xc,A583);
-        Darray(A583_zc,A583);
-        Darray(A583_ys,A583);
-        Darray(A583_ye,A583);
-        Darray(A583_r,A583);
+        Darray(A583_xc, A583);
+        Darray(A583_zc, A583);
+        Darray(A583_ys, A583);
+        Darray(A583_ye, A583);
+        Darray(A583_r, A583);
     }
 
-    if(A584>0)
+    if(A584 > 0)
     {
-        Darray(A584_xc,A584);
-        Darray(A584_yc,A584);
-        Darray(A584_zs,A584);
-        Darray(A584_ze,A584);
-        Darray(A584_r,A584);
+        Darray(A584_xc, A584);
+        Darray(A584_yc, A584);
+        Darray(A584_zs, A584);
+        Darray(A584_ze, A584);
+        Darray(A584_r, A584);
     }
 
-    if(A585>0)
+    if(A585 > 0)
     {
-        Darray(A585_xm1,A585);
-        Darray(A585_ym1,A585);
-        Darray(A585_zm1,A585);
-        Darray(A585_r1,A585);
-        Darray(A585_xm2,A585);
-        Darray(A585_ym2,A585);
-        Darray(A585_zm2,A585);
-        Darray(A585_r2,A585);
+        Darray(A585_xm1, A585);
+        Darray(A585_ym1, A585);
+        Darray(A585_zm1, A585);
+        Darray(A585_r1, A585);
+        Darray(A585_xm2, A585);
+        Darray(A585_ym2, A585);
+        Darray(A585_zm2, A585);
+        Darray(A585_r2, A585);
     }
 
-    if(A586>0)
+    if(A586 > 0)
     {
-        Darray(A586_xm,A586);
-        Darray(A586_ym,A586);
-        Darray(A586_zm,A586);
-        Darray(A586_r,A586);
+        Darray(A586_xm, A586);
+        Darray(A586_ym, A586);
+        Darray(A586_zm, A586);
+        Darray(A586_r, A586);
     }
 
-    if(A587>0)
+    if(A587 > 0)
     {
-        Darray(A587_xs,A587);
-        Darray(A587_xe,A587);
-        Darray(A587_ys,A587);
-        Darray(A587_ye,A587);
-        Darray(A587_zs,A587);
-        Darray(A587_ze,A587);
+        Darray(A587_xs, A587);
+        Darray(A587_xe, A587);
+        Darray(A587_ys, A587);
+        Darray(A587_ye, A587);
+        Darray(A587_zs, A587);
+        Darray(A587_ze, A587);
     }
 
-    if(A588>0)
+    if(A588 > 0)
     {
-        Darray(A588_xs,A588);
-        Darray(A588_xe,A588);
-        Darray(A588_ys,A588);
-        Darray(A588_ye,A588);
-        Darray(A588_zs,A588);
-        Darray(A588_ze,A588);
+        Darray(A588_xs, A588);
+        Darray(A588_xe, A588);
+        Darray(A588_ys, A588);
+        Darray(A588_ye, A588);
+        Darray(A588_zs, A588);
+        Darray(A588_ze, A588);
     }
 
-    if(A589>0)
+    if(A589 > 0)
     {
-        Darray(A589_xs,A589);
-        Darray(A589_xe,A589);
-        Darray(A589_ys,A589);
-        Darray(A589_ye,A589);
-        Darray(A589_zs,A589);
-        Darray(A589_ze,A589);
+        Darray(A589_xs, A589);
+        Darray(A589_xe, A589);
+        Darray(A589_ys, A589);
+        Darray(A589_ye, A589);
+        Darray(A589_zs, A589);
+        Darray(A589_ze, A589);
     }
 
-    if(B71>0)
+    if(B71 > 0)
     {
-        Darray(B71_val,B71);
-        Darray(B71_dist,B71);
-        Darray(B71_b,B71);
-        Darray(B71_x,B71);
-        Darray(B71_y,B71);
+        Darray(B71_val, B71);
+        Darray(B71_dist, B71);
+        Darray(B71_b, B71);
+        Darray(B71_x, B71);
+        Darray(B71_y, B71);
     }
 
-    if(B106>0)
+    if(B106 > 0)
     {
-        Darray(B106_b,B106);
-        Darray(B106_x,B106);
-        Darray(B106_y,B106);
+        Darray(B106_b, B106);
+        Darray(B106_x, B106);
+        Darray(B106_y, B106);
     }
 
-    if(B107>0)
+    if(B107 > 0)
     {
-        Darray(B107_xs,B107);
-        Darray(B107_xe,B107);
-        Darray(B107_ys,B107);
-        Darray(B107_ye,B107);
-        Darray(B107_d,B107);
-    }
-
-    if(B108>0)
-    {
-        Darray(B108_xs,B108);
-        Darray(B108_xe,B108);
-        Darray(B108_ys,B108);
-        Darray(B108_ye,B108);
-        Darray(B108_d,B108);
-    }
-    
-    if(B210>0)
-    {
-        Darray(B210_xs,B210);
-        Darray(B210_xe,B210);
-        Darray(B210_ys,B210);
-        Darray(B210_ye,B210);
-        Darray(B210_zs,B210);
-        Darray(B210_ze,B210);
-    }
-    
-    if(B212>0)
-    {
-        Darray(B212_xc,B212);
-        Darray(B212_zc,B212);
-        Darray(B212_ys,B212);
-        Darray(B212_ye,B212);
-        Darray(B212_r,B212);
-    }
-
-    if(B213>0)
-    {
-        Darray(B213_xc,B213);
-        Darray(B213_yc,B213);
-        Darray(B213_zs,B213);
-        Darray(B213_ze,B213);
-        Darray(B213_r,B213);
-    }
-    
-    if(B214>0)
-    {
-        Darray(B214_xm1,B214);
-        Darray(B214_ym1,B214);
-        Darray(B214_zm1,B214);
-        Darray(B214_r1,B214);
-        Darray(B214_xm2,B214);
-        Darray(B214_ym2,B214);
-        Darray(B214_zm2,B214);
-        Darray(B214_r2,B214);
-    }
-    
-    if(B215>0)
-    {
-        Darray(B215_xm,B215);
-        Darray(B215_ym,B215);
-        Darray(B215_zm,B215);
-        Darray(B215_r,B215);
-    }
-    
-    if(B217>0)
-    {
-        Darray(B217_xs,B217);
-        Darray(B217_xe,B217);
-        Darray(B217_ys,B217);
-        Darray(B217_ye,B217);
-        Darray(B217_zs,B217);
-        Darray(B217_ze,B217);
-    }
-    
-    if(B218>0)
-    {
-        Darray(B218_xs,B218);
-        Darray(B218_xe,B218);
-        Darray(B218_ys,B218);
-        Darray(B218_ye,B218);
-        Darray(B218_zs,B218);
-        Darray(B218_ze,B218);
-    }
-    
-    if(B219>0)
-    {
-        Darray(B219_xs,B219);
-        Darray(B219_xe,B219);
-        Darray(B219_ys,B219);
-        Darray(B219_ye,B219);
-        Darray(B219_zs,B219);
-        Darray(B219_ze,B219);
-    }
-    
-    if(B240>0)
-    {    
-        Darray(B240_C,B240);
-        Darray(B240_D,B240);
-        Darray(B240_xs,B240);
-        Darray(B240_xe,B240);
-        Darray(B240_ys,B240);
-        Darray(B240_ye,B240);
-        Darray(B240_zs,B240);
-        Darray(B240_ze,B240);
-    }
-    
-    if(B270>0)
-    {    
-        Darray(B270_xs,B270);
-        Darray(B270_xe,B270);
-        Darray(B270_ys,B270);
-        Darray(B270_ye,B270);
-        Darray(B270_zs,B270);
-        Darray(B270_ze,B270);
-        Darray(B270_n,B270);
-        Darray(B270_d50,B270);
-        Darray(B270_alpha,B270);
-        Darray(B270_beta,B270);
-    }
-    
-    if(B274>0)
-    {
-        Darray(B274_xc,B274);
-        Darray(B274_yc,B274);
-        Darray(B274_zs,B274);
-        Darray(B274_ze,B274);
-        Darray(B274_r,B274);
-        Darray(B274_n,B274);
-        Darray(B274_d50,B274);
-        Darray(B274_alpha,B274);
-        Darray(B274_beta,B274);
-    }
-
-    if(B281>0)
-    {
-        Darray(B281_xs,B281);
-        Darray(B281_xe,B281);
-        Darray(B281_ys,B281);
-        Darray(B281_ye,B281);
-        Darray(B281_zs,B281);
-        Darray(B281_ze,B281);
-        Darray(B281_n,B281);
-        Darray(B281_d50,B281);
-        Darray(B281_alpha,B281);
-        Darray(B281_beta,B281);
-    }
-
-    if(B282>0)
-    {
-        Darray(B282_xs,B282);
-        Darray(B282_xe,B282);
-        Darray(B282_ys,B282);
-        Darray(B282_ye,B282);
-        Darray(B282_zs,B282);
-        Darray(B282_ze,B282);
-        Darray(B282_n,B282);
-        Darray(B282_d50,B282);
-        Darray(B282_alpha,B282);
-        Darray(B282_beta,B282);
-    }
+        Darray(B107_xs, B107);
+        Darray(B107_xe, B107);
+        Darray(B107_ys, B107);
+        Darray(B107_ye, B107);
+        Darray(B107_d, B107);
+    }
+
+    if(B108 > 0)
+    {
+        Darray(B108_xs, B108);
+        Darray(B108_xe, B108);
+        Darray(B108_ys, B108);
+        Darray(B108_ye, B108);
+        Darray(B108_d, B108);
+    }
+
+    if(B500 > 0)
+    {
+        Iarray(B500_id, B500);
+        Iarray(B500_type, B500);
+        Darray(B500_H, B500);
+        Darray(B500_T, B500);
+    }
+
+    if(B501 > 0)
+    {
+        Iarray(B501_id, B501);
+        Darray(B501_dir, B501);
+        Darray(B501_phase, B501);
+        Darray(B501_ts, B501);
+        Darray(B501_te, B501);
+        Darray(B501_tramp, B501);
+    }
+
+    if(B502 > 0)
+    {
+        Iarray(B502_id, B502);
+        Darray(B502_x, B502);
+        Darray(B502_y, B502);
+    }
+
+    if(B504 > 0)
+    {
+        Iarray(B504_id, B504);
+        Iarray(B504_seed, B504);
+    }
+
+    if(B520 > 0)
+    {
+        Iarray(B520_id, B520);
+        Iarray(B520_method, B520);
+        Iarray(B520_prio, B520);
+    }
+
+    if(B521 > 0)
+    {
+        Iarray(B521_id, B521);
+        Iarray(B521_edge, B521);
+        Darray(B521_s0, B521);
+        Darray(B521_s1, B521);
+        Darray(B521_w, B521);
+    }
+
+    if(B524 > 0)
+    {
+        Iarray(B524_id, B524);
+        Iarray(B524_src, B524);
+    }
+
+    if(B510 > 0)
+    {
+        Iarray(B510_id, B510);
+        Iarray(B510_mode, B510);
+        Darray(B510_dir, B510);
+        Darray(B510_tramp, B510);
+    }
+
+    if(B511 > 0)
+    {
+        Iarray(B511_id, B511);
+        Darray(B511_a, B511);
+        Darray(B511_T, B511);
+        Darray(B511_phase, B511);
+    }
+
+    if(B514 > 0)
+    {
+        Iarray(B514_id, B514);
+        Darray(B514_eta0, B514);
+        Darray(B514_U, B514);
+        Darray(B514_V, B514);
+    }
+
+    if(B515 > 0)
+    {
+        Iarray(B515_id, B515);
+        Darray(B515_x0, B515);
+        Darray(B515_y0, B515);
+        Darray(B515_href, B515);
+    }
+
+    if(B523 > 0)
+    {
+        Iarray(B523_id, B523);
+        Iarray(B523_bg, B523);
+    }
+
+    if(B210 > 0)
+    {
+        Darray(B210_xs, B210);
+        Darray(B210_xe, B210);
+        Darray(B210_ys, B210);
+        Darray(B210_ye, B210);
+        Darray(B210_zs, B210);
+        Darray(B210_ze, B210);
+    }
+
+    if(B212 > 0)
+    {
+        Darray(B212_xc, B212);
+        Darray(B212_zc, B212);
+        Darray(B212_ys, B212);
+        Darray(B212_ye, B212);
+        Darray(B212_r, B212);
+    }
+
+    if(B213 > 0)
+    {
+        Darray(B213_xc, B213);
+        Darray(B213_yc, B213);
+        Darray(B213_zs, B213);
+        Darray(B213_ze, B213);
+        Darray(B213_r, B213);
+    }
+
+    if(B214 > 0)
+    {
+        Darray(B214_xm1, B214);
+        Darray(B214_ym1, B214);
+        Darray(B214_zm1, B214);
+        Darray(B214_r1, B214);
+        Darray(B214_xm2, B214);
+        Darray(B214_ym2, B214);
+        Darray(B214_zm2, B214);
+        Darray(B214_r2, B214);
+    }
+
+    if(B215 > 0)
+    {
+        Darray(B215_xm, B215);
+        Darray(B215_ym, B215);
+        Darray(B215_zm, B215);
+        Darray(B215_r, B215);
+    }
+
+    if(B217 > 0)
+    {
+        Darray(B217_xs, B217);
+        Darray(B217_xe, B217);
+        Darray(B217_ys, B217);
+        Darray(B217_ye, B217);
+        Darray(B217_zs, B217);
+        Darray(B217_ze, B217);
+    }
+
+    if(B218 > 0)
+    {
+        Darray(B218_xs, B218);
+        Darray(B218_xe, B218);
+        Darray(B218_ys, B218);
+        Darray(B218_ye, B218);
+        Darray(B218_zs, B218);
+        Darray(B218_ze, B218);
+    }
+
+    if(B219 > 0)
+    {
+        Darray(B219_xs, B219);
+        Darray(B219_xe, B219);
+        Darray(B219_ys, B219);
+        Darray(B219_ye, B219);
+        Darray(B219_zs, B219);
+        Darray(B219_ze, B219);
+    }
+
+    if(B240 > 0)
+    {
+        Darray(B240_C, B240);
+        Darray(B240_D, B240);
+        Darray(B240_xs, B240);
+        Darray(B240_xe, B240);
+        Darray(B240_ys, B240);
+        Darray(B240_ye, B240);
+        Darray(B240_zs, B240);
+        Darray(B240_ze, B240);
+    }
+
+    if(B270 > 0)
+    {
+        Darray(B270_xs, B270);
+        Darray(B270_xe, B270);
+        Darray(B270_ys, B270);
+        Darray(B270_ye, B270);
+        Darray(B270_zs, B270);
+        Darray(B270_ze, B270);
+        Darray(B270_n, B270);
+        Darray(B270_d50, B270);
+        Darray(B270_alpha, B270);
+        Darray(B270_beta, B270);
+    }
+
+    if(B274 > 0)
+    {
+        Darray(B274_xc, B274);
+        Darray(B274_yc, B274);
+        Darray(B274_zs, B274);
+        Darray(B274_ze, B274);
+        Darray(B274_r, B274);
+        Darray(B274_n, B274);
+        Darray(B274_d50, B274);
+        Darray(B274_alpha, B274);
+        Darray(B274_beta, B274);
+    }
+
+    if(B281 > 0)
+    {
+        Darray(B281_xs, B281);
+        Darray(B281_xe, B281);
+        Darray(B281_ys, B281);
+        Darray(B281_ye, B281);
+        Darray(B281_zs, B281);
+        Darray(B281_ze, B281);
+        Darray(B281_n, B281);
+        Darray(B281_d50, B281);
+        Darray(B281_alpha, B281);
+        Darray(B281_beta, B281);
+    }
+
+    if(B282 > 0)
+    {
+        Darray(B282_xs, B282);
+        Darray(B282_xe, B282);
+        Darray(B282_ys, B282);
+        Darray(B282_ye, B282);
+        Darray(B282_zs, B282);
+        Darray(B282_ze, B282);
+        Darray(B282_n, B282);
+        Darray(B282_d50, B282);
+        Darray(B282_alpha, B282);
+        Darray(B282_beta, B282);
+    }
 
-    if(B291>0)
+    if(B291 > 0)
     {
-        Darray(B291_xs,B291);
-        Darray(B291_xe,B291);
-        Darray(B291_ys,B291);
-        Darray(B291_ye,B291);
-        Darray(B291_zs,B291);
-        Darray(B291_ze,B291);
-        Darray(B291_d,B291);
-        Darray(B291_n,B291);
-        Darray(B291_d50,B291);
-        Darray(B291_alpha,B291);
-        Darray(B291_beta,B291);
+        Darray(B291_xs, B291);
+        Darray(B291_xe, B291);
+        Darray(B291_ys, B291);
+        Darray(B291_ye, B291);
+        Darray(B291_zs, B291);
+        Darray(B291_ze, B291);
+        Darray(B291_d, B291);
+        Darray(B291_n, B291);
+        Darray(B291_d50, B291);
+        Darray(B291_alpha, B291);
+        Darray(B291_beta, B291);
     }
 
-    if(B310>0)
+    if(B310 > 0)
     {
-        Darray(B310_xs,B310);
-        Darray(B310_xe,B310);
-        Darray(B310_ys,B310);
-        Darray(B310_ye,B310);
-        Darray(B310_zs,B310);
-        Darray(B310_ze,B310);
-        Darray(B310_N,B310);
-        Darray(B310_D,B310);
-        Darray(B310_Cd,B310);
+        Darray(B310_xs, B310);
+        Darray(B310_xe, B310);
+        Darray(B310_ys, B310);
+        Darray(B310_ye, B310);
+        Darray(B310_zs, B310);
+        Darray(B310_ze, B310);
+        Darray(B310_N, B310);
+        Darray(B310_D, B310);
+        Darray(B310_Cd, B310);
     }
 
-    if(B321>0)
+    if(B321 > 0)
     {
-        Darray(B321_xs,B321);
-        Darray(B321_xe,B321);
-        Darray(B321_ys,B321);
-        Darray(B321_ye,B321);
-        Darray(B321_zs,B321);
-        Darray(B321_ze,B321);
-        Darray(B321_N,B321);
-        Darray(B321_D,B321);
-        Darray(B321_Cd,B321);
+        Darray(B321_xs, B321);
+        Darray(B321_xe, B321);
+        Darray(B321_ys, B321);
+        Darray(B321_ye, B321);
+        Darray(B321_zs, B321);
+        Darray(B321_ze, B321);
+        Darray(B321_N, B321);
+        Darray(B321_D, B321);
+        Darray(B321_Cd, B321);
     }
 
-    if(B322>0)
+    if(B322 > 0)
     {
-        Darray(B322_xs,B322);
-        Darray(B322_xe,B322);
-        Darray(B322_ys,B322);
-        Darray(B322_ye,B322);
-        Darray(B322_zs,B322);
-        Darray(B322_ze,B322);
-        Darray(B322_N,B322);
-        Darray(B322_D,B322);
-        Darray(B322_Cd,B322);
+        Darray(B322_xs, B322);
+        Darray(B322_xe, B322);
+        Darray(B322_ys, B322);
+        Darray(B322_ye, B322);
+        Darray(B322_zs, B322);
+        Darray(B322_ze, B322);
+        Darray(B322_N, B322);
+        Darray(B322_D, B322);
+        Darray(B322_Cd, B322);
     }
 
-    if(B411>0)
+    if(B411 > 0)
     {
-        Iarray(B411_ID,B411);
-        Darray(B411_Q,B411);
+        Iarray(B411_ID, B411);
+        Darray(B411_Q, B411);
     }
 
-    if(B412>0)
+    if(B412 > 0)
     {
-        Iarray(B412_ID,B412);
-        Darray(B412_pressBC,B412);
+        Iarray(B412_ID, B412);
+        Darray(B412_pressBC, B412);
     }
 
-    if(B413>0)
+    if(B413 > 0)
     {
-        Iarray(B413_ID,B413);
-        Darray(B413_h,B413);
+        Iarray(B413_ID, B413);
+        Darray(B413_h, B413);
     }
 
-    if(B414>0)
+    if(B414 > 0)
     {
-        Iarray(B414_ID,B414);
-        Darray(B414_Uio,B414);
+        Iarray(B414_ID, B414);
+        Darray(B414_Uio, B414);
     }
 
-    if(B415>0)
+    if(B415 > 0)
     {
-        Iarray(B415_ID,B415);
-        Darray(B415_U,B415);
-        Darray(B415_V,B415);
-        Darray(B415_W,B415);
+        Iarray(B415_ID, B415);
+        Darray(B415_U, B415);
+        Darray(B415_V, B415);
+        Darray(B415_W, B415);
     }
 
-    if(B416>0)
+    if(B416 > 0)
     {
-        Iarray(B416_ID,B416);
-        Darray(B416_alpha,B416);
+        Iarray(B416_ID, B416);
+        Darray(B416_alpha, B416);
     }
 
-    if(B417>0)
+    if(B417 > 0)
     {
-        Iarray(B417_ID,B417);
-        Darray(B417_Nx,B417);
-        Darray(B417_Ny,B417);
-        Darray(B417_Nz,B417);
+        Iarray(B417_ID, B417);
+        Darray(B417_Nx, B417);
+        Darray(B417_Ny, B417);
+        Darray(B417_Nz, B417);
     }
 
-    if(B418>0)
+    if(B418 > 0)
     {
-        Iarray(B418_ID,B418);
-        Iarray(B418_pio,B418);
+        Iarray(B418_ID, B418);
+        Iarray(B418_pio, B418);
     }
 
-    if(B421>0)
+    if(B421 > 0)
     {
-        Iarray(B421_ID,B421);
-        Iarray(B421_Q,B421);
+        Iarray(B421_ID, B421);
+        Iarray(B421_Q, B421);
     }
 
-    if(B422>0)
+    if(B422 > 0)
     {
-        Iarray(B422_ID,B422);
-        Iarray(B422_FSF,B422);
+        Iarray(B422_ID, B422);
+        Iarray(B422_FSF, B422);
     }
 
-    if(B440>0)
+    if(B440 > 0)
     {
-        Iarray(B440_ID,B440);
-        Iarray(B440_face,B440);
-        Darray(B440_xs,B440);
-        Darray(B440_xe,B440);
-        Darray(B440_ys,B440);
-        Darray(B440_ye,B440);
+        Iarray(B440_ID, B440);
+        Iarray(B440_face, B440);
+        Darray(B440_xs, B440);
+        Darray(B440_xe, B440);
+        Darray(B440_ys, B440);
+        Darray(B440_ye, B440);
     }
 
-    if(B441>0)
+    if(B441 > 0)
     {
-        Iarray(B441_ID,B441);
-        Iarray(B441_face,B441);
-        Darray(B441_xs,B441);
-        Darray(B441_xe,B441);
-        Darray(B441_ys,B441);
-        Darray(B441_ye,B441);
-        Darray(B441_zs,B441);
-        Darray(B441_ze,B441);
+        Iarray(B441_ID, B441);
+        Iarray(B441_face, B441);
+        Darray(B441_xs, B441);
+        Darray(B441_xe, B441);
+        Darray(B441_ys, B441);
+        Darray(B441_ye, B441);
+        Darray(B441_zs, B441);
+        Darray(B441_ze, B441);
     }
 
-    if(B442>0)
+    if(B442 > 0)
     {
-        Iarray(B442_ID,B442);
-        Iarray(B442_face,B442);
-        Darray(B442_xm,B442);
-        Darray(B442_ym,B442);
-        Darray(B442_zm,B442);
-        Darray(B442_r,B442);
+        Iarray(B442_ID, B442);
+        Iarray(B442_face, B442);
+        Darray(B442_xm, B442);
+        Darray(B442_ym, B442);
+        Darray(B442_zm, B442);
+        Darray(B442_r, B442);
     }
 
-    if(C75>0)
+    if(C75 > 0)
     {
-        Darray(C75_x,C75);
-        Darray(C75_z,C75);
+        Darray(C75_x, C75);
+        Darray(C75_z, C75);
 
-        Darray(C75_a,C75);
-        Darray(C75_s,C75);
-        Darray(C75_l,C75);
-        Darray(C75_v,C75);
+        Darray(C75_a, C75);
+        Darray(C75_s, C75);
+        Darray(C75_l, C75);
+        Darray(C75_v, C75);
     }
 
-    if(F70>0)
+    if(F70 > 0)
     {
-        Darray(F70_xs,F70);
-        Darray(F70_xe,F70);
+        Darray(F70_xs, F70);
+        Darray(F70_xe, F70);
 
-        Darray(F70_ys,F70);
-        Darray(F70_ye,F70);
+        Darray(F70_ys, F70);
+        Darray(F70_ye, F70);
 
-        Darray(F70_zs,F70);
-        Darray(F70_ze,F70);
+        Darray(F70_zs, F70);
+        Darray(F70_ze, F70);
     }
 
-    if(F71>0)
+    if(F71 > 0)
     {
-        Darray(F71_xs,F71);
-        Darray(F71_xe,F71);
+        Darray(F71_xs, F71);
+        Darray(F71_xe, F71);
 
-        Darray(F71_ys,F71);
-        Darray(F71_ye,F71);
+        Darray(F71_ys, F71);
+        Darray(F71_ye, F71);
 
-        Darray(F71_zs,F71);
-        Darray(F71_ze,F71);
+        Darray(F71_zs, F71);
+        Darray(F71_ze, F71);
     }
 
-    if(F72>0)
+    if(F72 > 0)
     {
-        Darray(F72_xs,F72);
-        Darray(F72_xe,F72);
+        Darray(F72_xs, F72);
+        Darray(F72_xe, F72);
+
+        Darray(F72_ys, F72);
+        Darray(F72_ye, F72);
 
-        Darray(F72_ys,F72);
-        Darray(F72_ye,F72);
+        Darray(F72_h, F72);
+    }
+
+    if(G10 > 0)
+    {
+        Darray(G10_xs, G10);
+        Darray(G10_xe, G10);
+        Darray(G10_ys, G10);
+        Darray(G10_ye, G10);
+    }
 
-        Darray(F72_h,F72);
+    if(G11 > 0)
+    {
+        Darray(G11_xs, G11);
+        Darray(G11_xe, G11);
+        Darray(G11_ys, G11);
+        Darray(G11_ye, G11);
     }
 
-    if(F112>0)
+    if(F112 > 0)
     {
-        Darray(F112_xs,F112);
-        Darray(F112_xe,F112);
+        Darray(F112_xs, F112);
+        Darray(F112_xe, F112);
 
-        Darray(F112_ys,F112);
-        Darray(F112_ye,F112);
+        Darray(F112_ys, F112);
+        Darray(F112_ye, F112);
 
-        Darray(F112_zs,F112);
-        Darray(F112_ze,F112);
+        Darray(F112_zs, F112);
+        Darray(F112_ze, F112);
     }
 
-    if(F113>0)
+    if(F113 > 0)
     {
-        Darray(F113_xs,F113);
-        Darray(F113_xe,F113);
+        Darray(F113_xs, F113);
+        Darray(F113_xe, F113);
 
-        Darray(F113_ys,F113);
-        Darray(F113_ye,F113);
+        Darray(F113_ys, F113);
+        Darray(F113_ye, F113);
 
-        Darray(F113_zs,F113);
-        Darray(F113_ze,F113);
+        Darray(F113_zs, F113);
+        Darray(F113_ze, F113);
     }
 
-    if(F114>0)
+    if(F114 > 0)
     {
-        Darray(F114_xs,F114);
-        Darray(F114_xe,F114);
+        Darray(F114_xs, F114);
+        Darray(F114_xe, F114);
 
-        Darray(F114_ys,F114);
-        Darray(F114_ye,F114);
+        Darray(F114_ys, F114);
+        Darray(F114_ye, F114);
 
-        Darray(F114_zs,F114);
-        Darray(F114_ze,F114);
+        Darray(F114_zs, F114);
+        Darray(F114_ze, F114);
     }
 
-    if(F115>0)
+    if(F115 > 0)
     {
-        Darray(F115_xs,F115);
-        Darray(F115_xe,F115);
+        Darray(F115_xs, F115);
+        Darray(F115_xe, F115);
 
-        Darray(F115_ys,F115);
-        Darray(F115_ye,F115);
+        Darray(F115_ys, F115);
+        Darray(F115_ye, F115);
 
-        Darray(F115_zs,F115);
-        Darray(F115_ze,F115);
+        Darray(F115_zs, F115);
+        Darray(F115_ze, F115);
     }
 
-    if(F369>0)
+    if(F369 > 0)
     {
-        Darray(F369_x,F369);
-        Darray(F369_z,F369);
+        Darray(F369_x, F369);
+        Darray(F369_z, F369);
 
-        Darray(F369_a,F369);
-        Darray(F369_s,F369);
-        Darray(F369_l,F369);
-        Darray(F369_v,F369);
+        Darray(F369_a, F369);
+        Darray(F369_s, F369);
+        Darray(F369_l, F369);
+        Darray(F369_v, F369);
     }
 
-    if(F370>0)
+    if(F370 > 0)
     {
-        Darray(F370_xs,F370);
-        Darray(F370_xe,F370);
+        Darray(F370_xs, F370);
+        Darray(F370_xe, F370);
 
-        Darray(F370_ys,F370);
-        Darray(F370_ye,F370);
+        Darray(F370_ys, F370);
+        Darray(F370_ye, F370);
 
-        Darray(F370_zs,F370);
-        Darray(F370_ze,F370);
+        Darray(F370_zs, F370);
+        Darray(F370_ze, F370);
     }
 
-    if(F371>0)
+    if(F371 > 0)
     {
-        Darray(F371_xs,F371);
-        Darray(F371_xe,F371);
+        Darray(F371_xs, F371);
+        Darray(F371_xe, F371);
 
-        Darray(F371_ys,F371);
-        Darray(F371_ye,F371);
+        Darray(F371_ys, F371);
+        Darray(F371_ye, F371);
 
-        Darray(F371_zs,F371);
-        Darray(F371_ze,F371);
+        Darray(F371_zs, F371);
+        Darray(F371_ze, F371);
     }
 
-    if(F374>0)
+    if(F374 > 0)
     {
-        Darray(F374_xc,F374);
-        Darray(F374_zc,F374);
-        Darray(F374_r,F374);
+        Darray(F374_xc, F374);
+        Darray(F374_zc, F374);
+        Darray(F374_r, F374);
     }
 
-    if(F375>0)
+    if(F375 > 0)
     {
-        Darray(F375_xc,F375);
-        Darray(F375_zc,F375);
-        Darray(F375_r,F375);
+        Darray(F375_xc, F375);
+        Darray(F375_zc, F375);
+        Darray(F375_r, F375);
     }
 
-    if(F378>0)
+    if(F378 > 0)
     {
-        Darray(F378_xc,F378);
-        Darray(F378_yc,F378);
-        Darray(F378_zc,F378);
-        Darray(F378_r,F378);
+        Darray(F378_xc, F378);
+        Darray(F378_yc, F378);
+        Darray(F378_zc, F378);
+        Darray(F378_r, F378);
     }
 
-    if(F379>0)
+    if(F379 > 0)
     {
-        Darray(F379_xc,F379);
-        Darray(F379_yc,F379);
-        Darray(F379_zc,F379);
-        Darray(F379_r,F379);
+        Darray(F379_xc, F379);
+        Darray(F379_yc, F379);
+        Darray(F379_zc, F379);
+        Darray(F379_r, F379);
     }
 
-    if(F390>0)
+    if(F390 > 0)
     {
-        Darray(F390_xs,F390);
-        Darray(F390_xe,F390);
+        Darray(F390_xs, F390);
+        Darray(F390_xe, F390);
 
-        Darray(F390_ys,F390);
-        Darray(F390_ye,F390);
+        Darray(F390_ys, F390);
+        Darray(F390_ye, F390);
 
-        Darray(F390_zs,F390);
-        Darray(F390_ze,F390);
+        Darray(F390_zs, F390);
+        Darray(F390_ze, F390);
     }
 
-    if(F391>0)
+    if(F391 > 0)
     {
-        Darray(F391_xs,F391);
-        Darray(F391_xe,F391);
+        Darray(F391_xs, F391);
+        Darray(F391_xe, F391);
 
-        Darray(F391_ys,F391);
-        Darray(F391_ye,F391);
+        Darray(F391_ys, F391);
+        Darray(F391_ye, F391);
 
-        Darray(F391_zs,F391);
-        Darray(F391_ze,F391);
+        Darray(F391_zs, F391);
+        Darray(F391_ze, F391);
     }
 
-    if(F394>0)
+    if(F394 > 0)
     {
-        Darray(F394_xc,F394);
-        Darray(F394_zc,F394);
-        Darray(F394_r,F394);
+        Darray(F394_xc, F394);
+        Darray(F394_zc, F394);
+        Darray(F394_r, F394);
     }
 
-    if(F395>0)
+    if(F395 > 0)
     {
-        Darray(F395_xc,F395);
-        Darray(F395_zc,F395);
-        Darray(F395_r,F395);
+        Darray(F395_xc, F395);
+        Darray(F395_zc, F395);
+        Darray(F395_r, F395);
     }
 
-    if(F398>0)
+    if(F398 > 0)
     {
-        Darray(F398_xc,F398);
-        Darray(F398_yc,F398);
-        Darray(F398_zc,F398);
-        Darray(F398_r,F398);
+        Darray(F398_xc, F398);
+        Darray(F398_yc, F398);
+        Darray(F398_zc, F398);
+        Darray(F398_r, F398);
     }
 
-    if(F399>0)
+    if(F399 > 0)
     {
-        Darray(F399_xc,F399);
-        Darray(F399_yc,F399);
-        Darray(F399_zc,F399);
-        Darray(F399_r,F399);
+        Darray(F399_xc, F399);
+        Darray(F399_yc, F399);
+        Darray(F399_zc, F399);
+        Darray(F399_r, F399);
     }
 
-    if(P35>0)
+    if(P35 > 0)
     {
-        Darray(P35_ts,P35);
-        Darray(P35_te,P35);
-        Darray(P35_dt,P35);
+        Darray(P35_ts, P35);
+        Darray(P35_te, P35);
+        Darray(P35_dt, P35);
     }
 
-    if(P50>0)
+    if(P50 > 0)
     {
-        Darray(P50_x,P50);
-        Darray(P50_y,P50);
+        Darray(P50_x, P50);
+        Darray(P50_y, P50);
     }
 
-    if(P51>0)
+    if(P51 > 0)
     {
-        Darray(P51_x,P51);
-        Darray(P51_y,P51);
+        Darray(P51_x, P51);
+        Darray(P51_y, P51);
     }
 
-    if(P52>0)
-        Darray(P52_y,P52);
+    if(P52 > 0)
+        Darray(P52_y, P52);
 
-    if(P56>0)
-        Darray(P56_x,P56);
+    if(P56 > 0)
+        Darray(P56_x, P56);
 
-    if(P58>0)
+    if(P58 > 0)
     {
-        Darray(P58_x,P58);
-        Darray(P58_y,P58);
-        Darray(P58_T,P58);
+        Darray(P58_x, P58);
+        Darray(P58_y, P58);
+        Darray(P58_T, P58);
     }
 
-    if(P61>0)
+    if(P61 > 0)
     {
-        Darray(P61_x,P61);
-        Darray(P61_y,P61);
-        Darray(P61_z,P61);
+        Darray(P61_x, P61);
+        Darray(P61_y, P61);
+        Darray(P61_z, P61);
     }
 
-    if(P62>0)
+    if(P62 > 0)
     {
-        Darray(P62_xs,P62);
-        Darray(P62_xe,P62);
+        Darray(P62_xs, P62);
+        Darray(P62_xe, P62);
 
-        Darray(P62_ys,P62);
-        Darray(P62_ye,P62);
+        Darray(P62_ys, P62);
+        Darray(P62_ye, P62);
 
-        Darray(P62_zs,P62);
-        Darray(P62_ze,P62);
+        Darray(P62_zs, P62);
+        Darray(P62_ze, P62);
     }
 
-    if(P63>0)
+    if(P63 > 0)
     {
-        Darray(P63_x,P63);
-        Darray(P63_y,P63);
+        Darray(P63_x, P63);
+        Darray(P63_y, P63);
     }
 
-    if(P64>0)
+    if(P64 > 0)
     {
-        Darray(P64_x,P64);
-        Darray(P64_y,P64);
-        Darray(P64_z,P64);
+        Darray(P64_x, P64);
+        Darray(P64_y, P64);
+        Darray(P64_z, P64);
     }
 
-    if(P65>0)
+    if(P65 > 0)
     {
-        Darray(P65_x,P65);
-        Darray(P65_y,P65);
-        Darray(P65_z,P65);
+        Darray(P65_x, P65);
+        Darray(P65_y, P65);
+        Darray(P65_z, P65);
     }
 
-    if(P66>0)
+    if(P66 > 0)
     {
-        Darray(P66_x,P66);
-        Darray(P66_y,P66);
-        Darray(P66_z,P66);
+        Darray(P66_x, P66);
+        Darray(P66_y, P66);
+        Darray(P66_z, P66);
     }
 
-    if(P67>0)
+    if(P67 > 0)
     {
-        Darray(P67_x,P67);
-        Darray(P67_y,P67);
+        Darray(P67_x, P67);
+        Darray(P67_y, P67);
     }
 
-    if(P68>0)
+    if(P68 > 0)
     {
-        Darray(P68_x,P68);
-        Darray(P68_y,P68);
+        Darray(P68_x, P68);
+        Darray(P68_y, P68);
     }
 
-    if(P69>0)
+    if(P69 > 0)
     {
-        Darray(P69_x,P69);
-        Darray(P69_y,P69);
+        Darray(P69_x, P69);
+        Darray(P69_y, P69);
     }
 
-    if(P81>0)
+    if(P81 > 0)
     {
-        Darray(P81_xs,P81);
-        Darray(P81_xe,P81);
+        Darray(P81_xs, P81);
+        Darray(P81_xe, P81);
 
-        Darray(P81_ys,P81);
-        Darray(P81_ye,P81);
+        Darray(P81_ys, P81);
+        Darray(P81_ye, P81);
 
-        Darray(P81_zs,P81);
-        Darray(P81_ze,P81);
+        Darray(P81_zs, P81);
+        Darray(P81_ze, P81);
     }
 
-    if(P85>0)
+    if(P85 > 0)
     {
-        Darray(P85_x,P85);
-        Darray(P85_y,P85);
-        Darray(P85_r,P85);
-        Darray(P85_cd,P85);
-        Darray(P85_cm,P85);
+        Darray(P85_x, P85);
+        Darray(P85_y, P85);
+        Darray(P85_r, P85);
+        Darray(P85_cd, P85);
+        Darray(P85_cm, P85);
     }
 
-    if(P88>0)
+    if(P88 > 0)
     {
-        Darray(P88_x,P88);
-        Darray(P88_y,P88);
+        Darray(P88_x, P88);
+        Darray(P88_y, P88);
     }
 
-    if(P121>0)
+    if(P121 > 0)
     {
-        Darray(P121_x,P121);
-        Darray(P121_y,P121);
+        Darray(P121_x, P121);
+        Darray(P121_y, P121);
     }
 
-    if(P123>0)
-        Darray(P123_y,P123);
+    if(P123 > 0)
+        Darray(P123_y, P123);
 
-    if(P124>0)
-        Darray(P124_x,P124);
+    if(P124 > 0)
+        Darray(P124_x, P124);
 
-    if(P125>0)
+    if(P125 > 0)
     {
-        Darray(P125_x,P125);
-        Darray(P125_y,P125);
+        Darray(P125_x, P125);
+        Darray(P125_y, P125);
     }
 
-    if(P133>0)
-        Darray(P133_y,P133);
+    if(P133 > 0)
+        Darray(P133_y, P133);
 
-    if(P134>0)
-        Darray(P134_y,P134);
+    if(P134 > 0)
+        Darray(P134_y, P134);
 
-    if(P140>0)
+    if(P140 > 0)
     {
-        Darray(P140_x,P140);
-        Darray(P140_y,P140);
+        Darray(P140_x, P140);
+        Darray(P140_y, P140);
     }
-    
-    if(P144>0)
+
+    if(P144 > 0)
     {
-        Darray(P144_xs,P144);
-        Darray(P144_xe,P144);
-        Darray(P144_ys,P144);
-        Darray(P144_ye,P144);
-        Iarray(P144_n,P144);
+        Darray(P144_xs, P144);
+        Darray(P144_xe, P144);
+        Darray(P144_ys, P144);
+        Darray(P144_ye, P144);
+        Iarray(P144_n, P144);
     }
 
-    if(P145>0)
+    if(P145 > 0)
     {
-        Darray(P145_xs,P145);
-        Darray(P145_xe,P145);
-        Darray(P145_ys,P145);
-        Darray(P145_ye,P145);
-        Iarray(P145_n,P145);
-        Darray(P145_tbegin,P145);
-        Darray(P145_tend,P145);
+        Darray(P145_xs, P145);
+        Darray(P145_xe, P145);
+        Darray(P145_ys, P145);
+        Darray(P145_ye, P145);
+        Iarray(P145_n, P145);
+        Darray(P145_tbegin, P145);
+        Darray(P145_tend, P145);
     }
 
-    if(P146>0)
+    if(P146 > 0)
     {
-        Darray(P146_y,P146);
-        Darray(P146_tbegin,P146);
-        Darray(P146_tend,P146);
+        Darray(P146_y, P146);
+        Darray(P146_tbegin, P146);
+        Darray(P146_tend, P146);
     }
 
-    if(P147>0)
+    if(P147 > 0)
     {
-        Darray(P147_x,P147);
-        Darray(P147_tbegin,P147);
-        Darray(P147_tend,P147);
+        Darray(P147_x, P147);
+        Darray(P147_tbegin, P147);
+        Darray(P147_tend, P147);
     }
 
-    if(P148>0)
+    if(P148 > 0)
     {
-        Darray(P148_x,P148);
-        Darray(P148_y,P148);
-        Darray(P148_tbegin,P148);
-        Darray(P148_tend,P148);
+        Darray(P148_x, P148);
+        Darray(P148_y, P148);
+        Darray(P148_tbegin, P148);
+        Darray(P148_tend, P148);
     }
 
-    if(P167>0)
-        Darray(P167_x,P167);
+    if(P167 > 0)
+        Darray(P167_x, P167);
+
+    if(P168 > 0)
+    {
+        Darray(P168_x, P168);
+        Darray(P168_zs, P168);
+        Darray(P168_ze, P168);
+    }
 
-    if(P168>0)
+    if(P184 > 0)
     {
-        Darray(P168_x,P168);
-        Darray(P168_zs,P168);
-        Darray(P168_ze,P168);
+        Iarray(P184_its, P184);
+        Iarray(P184_ite, P184);
+        Iarray(P184_dit, P184);
     }
 
-    if(P184>0)
+    if(P185 > 0)
     {
-        Iarray(P184_its,P184);
-        Iarray(P184_ite,P184);
-        Iarray(P184_dit,P184);
+        Darray(P185_ts, P185);
+        Darray(P185_te, P185);
+        Darray(P185_dt, P185);
     }
 
-    if(P185>0)
+    if(P186 > 0)
     {
-        Darray(P185_ts,P185);
-        Darray(P185_te,P185);
-        Darray(P185_dt,P185);
+        Darray(P186_tstart, P186);
+        Darray(P186_tend, P186);
     }
 
-    if(P194>0)
+    if(P194 > 0)
     {
-        Iarray(P194_its,P194);
-        Iarray(P194_ite,P194);
-        Iarray(P194_dit,P194);
+        Iarray(P194_its, P194);
+        Iarray(P194_ite, P194);
+        Iarray(P194_dit, P194);
     }
 
-    if(P195>0)
+    if(P195 > 0)
     {
-        Darray(P195_ts,P195);
-        Darray(P195_te,P195);
-        Darray(P195_dt,P195);
+        Darray(P195_ts, P195);
+        Darray(P195_te, P195);
+        Darray(P195_dt, P195);
     }
 
-    if(P230>0)
+    if(P230 > 0)
     {
-        Darray(P230_x,P230);
+        Darray(P230_x, P230);
     }
 
-    if(P240>0)
+    if(P240 > 0)
     {
-        Darray(P240_x,P240);
+        Darray(P240_x, P240);
     }
 
-    if(P351>0)
+    if(P351 > 0)
     {
-        Darray(P351_x,P351);
-        Darray(P351_y,P351);
+        Darray(P351_x, P351);
+        Darray(P351_y, P351);
     }
 
-    if(P352>0)
+    if(P352 > 0)
     {
-        Darray(P352_x,P352);
-        Darray(P352_y,P352);
+        Darray(P352_x, P352);
+        Darray(P352_y, P352);
     }
 
-    if(Q61>0)
+    if(Q61 > 0)
     {
-        Darray(Q61_x,Q61);
-        Darray(Q61_y,Q61);
-        Darray(Q61_z,Q61);
-        Iarray(Q61_i,Q61);
+        Darray(Q61_x, Q61);
+        Darray(Q61_y, Q61);
+        Darray(Q61_z, Q61);
+        Iarray(Q61_i, Q61);
     }
 
-    if(Q73>0)
+    if(Q73 > 0)
     {
-        Darray(Q73_val,Q73);
-        Darray(Q73_dist,Q73);
-        Darray(Q73_b,Q73);
-        Darray(Q73_x,Q73);
-        Darray(Q73_y,Q73);
+        Darray(Q73_val, Q73);
+        Darray(Q73_dist, Q73);
+        Darray(Q73_b, Q73);
+        Darray(Q73_x, Q73);
+        Darray(Q73_y, Q73);
     }
 
-    if(Q110>0)
+    if(Q110 > 0)
     {
-        Darray(Q110_xs,Q110);
-        Darray(Q110_xe,Q110);
+        Darray(Q110_xs, Q110);
+        Darray(Q110_xe, Q110);
 
-        Darray(Q110_ys,Q110);
-        Darray(Q110_ye,Q110);
+        Darray(Q110_ys, Q110);
+        Darray(Q110_ye, Q110);
 
-        Darray(Q110_zs,Q110);
-        Darray(Q110_ze,Q110);
+        Darray(Q110_zs, Q110);
+        Darray(Q110_ze, Q110);
     }
-    if(Q111>0)
+    if(Q111 > 0)
     {
-        Darray(Q111_xs,Q111);
-        Darray(Q111_xe,Q111);
+        Darray(Q111_xs, Q111);
+        Darray(Q111_xe, Q111);
 
-        Darray(Q111_ys,Q111);
-        Darray(Q111_ye,Q111);
+        Darray(Q111_ys, Q111);
+        Darray(Q111_ye, Q111);
 
-        Darray(Q111_zs,Q111);
-        Darray(Q111_ze,Q111);
+        Darray(Q111_zs, Q111);
+        Darray(Q111_ze, Q111);
+    }
+
+    if(S73 > 0)
+    {
+        Darray(S73_val, S73);
+        Darray(S73_dist, S73);
+        Darray(S73_b, S73);
+        Darray(S73_x, S73);
+        Darray(S73_y, S73);
+    }
+
+    if(S74 > 0)
+    {
+        Darray(S74_xs, S74);
+        Darray(S74_xe, S74);
+        Darray(S74_ys, S74);
+        Darray(S74_ye, S74);
     }
 
-    if(S73>0)
+    if(S75 > 0)
     {
-        Darray(S73_val,S73);
-        Darray(S73_dist,S73);
-        Darray(S73_b,S73);
-        Darray(S73_x,S73);
-        Darray(S73_y,S73);
+        Darray(S75_x, S75);
+        Darray(S75_dist, S75);
     }
 
-    if(S74>0)
+    if(S51 > 0)
     {
-        Darray(S74_xs,S74);
-        Darray(S74_xe,S74);
-        Darray(S74_ys,S74);
-        Darray(S74_ye,S74);
+        Darray(S51_d, S51);
+        Darray(S51_fa, S51);
+        Darray(S51_fs, S51);
     }
 
-    if(W41>0)
+    if(W41 > 0)
     {
-        Darray(W41_xc,W41);
-        Darray(W41_yc,W41);
-        Darray(W41_zs,W41);
-        Darray(W41_ze,W41);
-        Darray(W41_vel,W41);
-        Darray(W41_beta,W41);
+        Darray(W41_xc, W41);
+        Darray(W41_yc, W41);
+        Darray(W41_zs, W41);
+        Darray(W41_ze, W41);
+        Darray(W41_vel, W41);
+        Darray(W41_beta, W41);
     }
 
-    if(X102>0)
+    if(X102 > 0)
     {
-        Darray(X102_u,X102);
-        Darray(X102_v,X102);
-        Darray(X102_w,X102);
+        Darray(X102_u, X102);
+        Darray(X102_v, X102);
+        Darray(X102_w, X102);
     }
 
-    if(X110>0)
+    if(X110 > 0)
     {
-        Darray(X110_xs,X110);
-        Darray(X110_xe,X110);
+        Darray(X110_xs, X110);
+        Darray(X110_xe, X110);
 
-        Darray(X110_ys,X110);
-        Darray(X110_ye,X110);
+        Darray(X110_ys, X110);
+        Darray(X110_ye, X110);
 
-        Darray(X110_zs,X110);
-        Darray(X110_ze,X110);
+        Darray(X110_zs, X110);
+        Darray(X110_ze, X110);
     }
 
-    if(X163>0)
+    if(X163 > 0)
     {
-        Darray(X163_x1,X163);
-        Darray(X163_y1,X163);
-        Darray(X163_z1,X163);
-        Darray(X163_x2,X163);
-        Darray(X163_y2,X163);
-        Darray(X163_z2,X163);
-        Darray(X163_x3,X163);
-        Darray(X163_y3,X163);
-        Darray(X163_z3,X163);
-        Darray(X163_x4,X163);
-        Darray(X163_y4,X163);
-        Darray(X163_z4,X163);
-        Darray(X163_x5,X163);
-        Darray(X163_y5,X163);
-        Darray(X163_z5,X163);
-        Darray(X163_x6,X163);
-        Darray(X163_y6,X163);
-        Darray(X163_z6,X163);
+        Darray(X163_x1, X163);
+        Darray(X163_y1, X163);
+        Darray(X163_z1, X163);
+        Darray(X163_x2, X163);
+        Darray(X163_y2, X163);
+        Darray(X163_z2, X163);
+        Darray(X163_x3, X163);
+        Darray(X163_y3, X163);
+        Darray(X163_z3, X163);
+        Darray(X163_x4, X163);
+        Darray(X163_y4, X163);
+        Darray(X163_z4, X163);
+        Darray(X163_x5, X163);
+        Darray(X163_y5, X163);
+        Darray(X163_z5, X163);
+        Darray(X163_x6, X163);
+        Darray(X163_y6, X163);
+        Darray(X163_z6, X163);
     }
 
-    if(X164>0)
+    if(X164 > 0)
     {
-        Darray(X164_x1,X164);
-        Darray(X164_y1,X164);
-        Darray(X164_z1,X164);
-        Darray(X164_x2,X164);
-        Darray(X164_y2,X164);
-        Darray(X164_z2,X164);
-        Darray(X164_x3,X164);
-        Darray(X164_y3,X164);
-        Darray(X164_z3,X164);
-        Darray(X164_x4,X164);
-        Darray(X164_y4,X164);
-        Darray(X164_z4,X164);
-        Darray(X164_x5,X164);
-        Darray(X164_y5,X164);
-        Darray(X164_z5,X164);
-        Darray(X164_x6,X164);
-        Darray(X164_y6,X164);
-        Darray(X164_z6,X164);
-        Darray(X164_x7,X164);
-        Darray(X164_y7,X164);
-        Darray(X164_z7,X164);
-        Darray(X164_x8,X164);
-        Darray(X164_y8,X164);
-        Darray(X164_z8,X164);
+        Darray(X164_x1, X164);
+        Darray(X164_y1, X164);
+        Darray(X164_z1, X164);
+        Darray(X164_x2, X164);
+        Darray(X164_y2, X164);
+        Darray(X164_z2, X164);
+        Darray(X164_x3, X164);
+        Darray(X164_y3, X164);
+        Darray(X164_z3, X164);
+        Darray(X164_x4, X164);
+        Darray(X164_y4, X164);
+        Darray(X164_z4, X164);
+        Darray(X164_x5, X164);
+        Darray(X164_y5, X164);
+        Darray(X164_z5, X164);
+        Darray(X164_x6, X164);
+        Darray(X164_y6, X164);
+        Darray(X164_z6, X164);
+        Darray(X164_x7, X164);
+        Darray(X164_y7, X164);
+        Darray(X164_z7, X164);
+        Darray(X164_x8, X164);
+        Darray(X164_y8, X164);
+        Darray(X164_z8, X164);
     }
 
-    if(X311>0)
+    if(X311 > 0)
     {
-        Darray(X311_xs,X311);
-        Darray(X311_xe,X311);
-        Darray(X311_ys,X311);
-        Darray(X311_ye,X311);
-        Darray(X311_zs,X311);
-        Darray(X311_ze,X311);
+        Darray(X311_xs, X311);
+        Darray(X311_xe, X311);
+        Darray(X311_ys, X311);
+        Darray(X311_ye, X311);
+        Darray(X311_zs, X311);
+        Darray(X311_ze, X311);
 
-        Darray(X311_w,X311);
-        Darray(X311_rho_c,X311);
-        Darray(X311_EA,X311);
-        Darray(X311_d,X311);
-        Darray(X311_l,X311);
-        Darray(X311_H,X311);
-        Darray(X311_P,X311);
-        Darray(X311_facT,X311);
+        Darray(X311_w, X311);
+        Darray(X311_rho_c, X311);
+        Darray(X311_EA, X311);
+        Darray(X311_d, X311);
+        Darray(X311_l, X311);
+        Darray(X311_H, X311);
+        Darray(X311_P, X311);
+        Darray(X311_facT, X311);
 
-        Darray(X314_T,X311);
-        Darray(X315_t,X311);
+        Darray(X314_T, X311);
+        Darray(X315_t, X311);
     }
 
-    if(X312>0)
+    if(X312 > 0)
     {
-        Darray(X311_xs,X312);
-        Darray(X311_xe,X312);
-        Darray(X311_ys,X312);
-        Darray(X311_ye,X312);
-        Darray(X311_zs,X312);
-        Darray(X311_ze,X312);
-        Darray(X312_k,X312);
-        Darray(X312_T0,X312);
+        Darray(X311_xs, X312);
+        Darray(X311_xe, X312);
+        Darray(X311_ys, X312);
+        Darray(X311_ye, X312);
+        Darray(X311_zs, X312);
+        Darray(X311_ze, X312);
+        Darray(X312_k, X312);
+        Darray(X312_T0, X312);
 
-        Darray(X314_T,X312);
-        Darray(X315_t,X312);
+        Darray(X314_T, X312);
+        Darray(X315_t, X312);
     }
 
-    if(X320>0)
+    if(X320 > 0)
     {
-        Iarray(X320_type,X320);
+        Iarray(X320_type, X320);
     }
 
-    if(X321>0)
+    if(X321 > 0)
     {
-        Darray(X321_Sn,X321);
-        Darray(X321_d,X321);
-        Darray(X321_lambda,X321);
-        Darray(X321_dk,X321);
-        Darray(X321_rho,X321);
-        Darray(X321_nd,X321);
-        Darray(X321_nl,X321);
+        Darray(X321_Sn, X321);
+        Darray(X321_d, X321);
+        Darray(X321_lambda, X321);
+        Darray(X321_dk, X321);
+        Darray(X321_rho, X321);
+        Darray(X321_nd, X321);
+        Darray(X321_nl, X321);
 
-        Darray(X322_D,X321);
-        Darray(X322_L,X321);
-        Darray(X322_x0,X321);
-        Darray(X322_y0,X321);
-        Darray(X322_z0,X321);
-        Darray(X322_phi,X321);
-        Darray(X322_theta,X321);
-        Darray(X322_psi,X321);
+        Darray(X322_D, X321);
+        Darray(X322_L, X321);
+        Darray(X322_x0, X321);
+        Darray(X322_y0, X321);
+        Darray(X322_z0, X321);
+        Darray(X322_phi, X321);
+        Darray(X322_theta, X321);
+        Darray(X322_psi, X321);
     }
 
-    if(X324>0)
+    if(X324 > 0)
     {
-        Darray(X324_x,X324);
-        Darray(X324_y,X324);
-        Darray(X324_z,X324);
+        Darray(X324_x, X324);
+        Darray(X324_y, X324);
+        Darray(X324_z, X324);
     }
 
-    if(Z11>0)
+    if(Z11 > 0)
     {
-        Darray(Z11_x,Z11);
-        Darray(Z11_y,Z11);
-        Darray(Z11_z,Z11);
-        Darray(Z11_l,Z11);
-        Darray(Z11_w,Z11);
-        Darray(Z11_t,Z11);
-        Darray(Z11_rho,Z11);
-        Darray(Z11_e,Z11);
-        Darray(Z11_ix,Z11);
-        Darray(Z11_iy,Z11);
-        Darray(Z11_iz,Z11);
-        Darray(Z11_nu,Z11);
-        Darray(Z11_n,Z11);
+        Darray(Z11_x, Z11);
+        Darray(Z11_y, Z11);
+        Darray(Z11_z, Z11);
+        Darray(Z11_l, Z11);
+        Darray(Z11_w, Z11);
+        Darray(Z11_t, Z11);
+        Darray(Z11_rho, Z11);
+        Darray(Z11_e, Z11);
+        Darray(Z11_ix, Z11);
+        Darray(Z11_iy, Z11);
+        Darray(Z11_iz, Z11);
+        Darray(Z11_nu, Z11);
+        Darray(Z11_n, Z11);
     }
 
     // --------------------------
 
-    for(n=0;n<A581;++n)
+    for(n = 0; n < A581; ++n)
     {
         A581_xs[n] = dctrl[dd];
         dd++;
@@ -3319,7 +3918,7 @@ void control::ctrlrecv()
         dd++;
     }
 
-    for(n=0;n<A583;++n)
+    for(n = 0; n < A583; ++n)
     {
         A583_xc[n] = dctrl[dd];
         dd++;
@@ -3333,7 +3932,7 @@ void control::ctrlrecv()
         dd++;
     }
 
-    for(n=0;n<A584;++n)
+    for(n = 0; n < A584; ++n)
     {
         A584_xc[n] = dctrl[dd];
         dd++;
@@ -3347,7 +3946,7 @@ void control::ctrlrecv()
         dd++;
     }
 
-    for(n=0;n<A585;++n)
+    for(n = 0; n < A585; ++n)
     {
         A585_xm1[n] = dctrl[dd];
         dd++;
@@ -3367,7 +3966,7 @@ void control::ctrlrecv()
         dd++;
     }
 
-    for(n=0;n<A586;++n)
+    for(n = 0; n < A586; ++n)
     {
         A586_xm[n] = dctrl[dd];
         dd++;
@@ -3379,7 +3978,7 @@ void control::ctrlrecv()
         dd++;
     }
 
-    for(n=0;n<A587;++n)
+    for(n = 0; n < A587; ++n)
     {
         A587_xs[n] = dctrl[dd];
         dd++;
@@ -3395,7 +3994,7 @@ void control::ctrlrecv()
         dd++;
     }
 
-    for(n=0;n<A588;++n)
+    for(n = 0; n < A588; ++n)
     {
         A588_xs[n] = dctrl[dd];
         dd++;
@@ -3411,7 +4010,7 @@ void control::ctrlrecv()
         dd++;
     }
 
-    for(n=0;n<A589;++n)
+    for(n = 0; n < A589; ++n)
     {
         A589_xs[n] = dctrl[dd];
         dd++;
@@ -3427,59 +4026,193 @@ void control::ctrlrecv()
         dd++;
     }
 
-    for(n=0;n<B71;++n)
+    for(n = 0; n < B71; ++n)
     {
-        B71_val[n]= dctrl[dd];
+        B71_val[n] = dctrl[dd];
         dd++;
-        B71_dist[n]= dctrl[dd];
+        B71_dist[n] = dctrl[dd];
         dd++;
-        B71_b[n]  = dctrl[dd];
+        B71_b[n] = dctrl[dd];
         dd++;
-        B71_x[n]  = dctrl[dd];
+        B71_x[n] = dctrl[dd];
         dd++;
-        B71_y[n]  = dctrl[dd];
+        B71_y[n] = dctrl[dd];
         dd++;
     }
 
-    for(n=0;n<B106;++n)
+    for(n = 0; n < B106; ++n)
     {
-        B106_b[n]  = dctrl[dd];
+        B106_b[n] = dctrl[dd];
         dd++;
-        B106_x[n]  = dctrl[dd];
+        B106_x[n] = dctrl[dd];
         dd++;
-        B106_y[n]  = dctrl[dd];
+        B106_y[n] = dctrl[dd];
         dd++;
     }
 
-    for(n=0;n<B107;++n)
+    for(n = 0; n < B107; ++n)
     {
-        B107_xs[n]  = dctrl[dd];
+        B107_xs[n] = dctrl[dd];
         dd++;
-        B107_xe[n]  = dctrl[dd];
+        B107_xe[n] = dctrl[dd];
         dd++;
-        B107_ys[n]  = dctrl[dd];
+        B107_ys[n] = dctrl[dd];
         dd++;
-        B107_ye[n]  = dctrl[dd];
+        B107_ye[n] = dctrl[dd];
         dd++;
-        B107_d[n]  = dctrl[dd];
+        B107_d[n] = dctrl[dd];
         dd++;
     }
 
-    for(n=0;n<B108;++n)
+    for(n = 0; n < B108; ++n)
     {
-        B108_xs[n]  = dctrl[dd];
+        B108_xs[n] = dctrl[dd];
         dd++;
-        B108_xe[n]  = dctrl[dd];
+        B108_xe[n] = dctrl[dd];
         dd++;
-        B108_ys[n]  = dctrl[dd];
+        B108_ys[n] = dctrl[dd];
         dd++;
-        B108_ye[n]  = dctrl[dd];
+        B108_ye[n] = dctrl[dd];
         dd++;
-        B108_d[n]  = dctrl[dd];
+        B108_d[n] = dctrl[dd];
         dd++;
     }
-    
-    for(n=0;n<B210;++n)
+
+    for(n = 0; n < B500; ++n)
+    {
+        B500_id[n] = ictrl[ii];
+        ii++;
+        B500_type[n] = ictrl[ii];
+        ii++;
+        B500_H[n] = dctrl[dd];
+        dd++;
+        B500_T[n] = dctrl[dd];
+        dd++;
+    }
+
+    for(n = 0; n < B501; ++n)
+    {
+        B501_id[n] = ictrl[ii];
+        ii++;
+        B501_dir[n] = dctrl[dd];
+        dd++;
+        B501_phase[n] = dctrl[dd];
+        dd++;
+        B501_ts[n] = dctrl[dd];
+        dd++;
+        B501_te[n] = dctrl[dd];
+        dd++;
+        B501_tramp[n] = dctrl[dd];
+        dd++;
+    }
+
+    for(n = 0; n < B502; ++n)
+    {
+        B502_id[n] = ictrl[ii];
+        ii++;
+        B502_x[n] = dctrl[dd];
+        dd++;
+        B502_y[n] = dctrl[dd];
+        dd++;
+    }
+
+    for(n = 0; n < B504; ++n)
+    {
+        B504_id[n] = ictrl[ii];
+        ii++;
+        B504_seed[n] = ictrl[ii];
+        ii++;
+    }
+
+    for(n = 0; n < B520; ++n)
+    {
+        B520_id[n] = ictrl[ii];
+        ii++;
+        B520_method[n] = ictrl[ii];
+        ii++;
+        B520_prio[n] = ictrl[ii];
+        ii++;
+    }
+
+    for(n = 0; n < B521; ++n)
+    {
+        B521_id[n] = ictrl[ii];
+        ii++;
+        B521_edge[n] = ictrl[ii];
+        ii++;
+        B521_s0[n] = dctrl[dd];
+        dd++;
+        B521_s1[n] = dctrl[dd];
+        dd++;
+        B521_w[n] = dctrl[dd];
+        dd++;
+    }
+
+    for(n = 0; n < B524; ++n)
+    {
+        B524_id[n] = ictrl[ii];
+        ii++;
+        B524_src[n] = ictrl[ii];
+        ii++;
+    }
+
+    for(n = 0; n < B510; ++n)
+    {
+        B510_id[n] = ictrl[ii];
+        ii++;
+        B510_mode[n] = ictrl[ii];
+        ii++;
+        B510_dir[n] = dctrl[dd];
+        dd++;
+        B510_tramp[n] = dctrl[dd];
+        dd++;
+    }
+
+    for(n = 0; n < B511; ++n)
+    {
+        B511_id[n] = ictrl[ii];
+        ii++;
+        B511_a[n] = dctrl[dd];
+        dd++;
+        B511_T[n] = dctrl[dd];
+        dd++;
+        B511_phase[n] = dctrl[dd];
+        dd++;
+    }
+
+    for(n = 0; n < B514; ++n)
+    {
+        B514_id[n] = ictrl[ii];
+        ii++;
+        B514_eta0[n] = dctrl[dd];
+        dd++;
+        B514_U[n] = dctrl[dd];
+        dd++;
+        B514_V[n] = dctrl[dd];
+        dd++;
+    }
+
+    for(n = 0; n < B515; ++n)
+    {
+        B515_id[n] = ictrl[ii];
+        ii++;
+        B515_x0[n] = dctrl[dd];
+        dd++;
+        B515_y0[n] = dctrl[dd];
+        dd++;
+        B515_href[n] = dctrl[dd];
+        dd++;
+    }
+
+    for(n = 0; n < B523; ++n)
+    {
+        B523_id[n] = ictrl[ii];
+        ii++;
+        B523_bg[n] = ictrl[ii];
+        ii++;
+    }
+
+    for(n = 0; n < B210; ++n)
     {
         B210_xs[n] = dctrl[dd];
         dd++;
@@ -3495,7 +4228,7 @@ void control::ctrlrecv()
         dd++;
     }
 
-    for(n=0;n<B212;++n)
+    for(n = 0; n < B212; ++n)
     {
         B212_xc[n] = dctrl[dd];
         dd++;
@@ -3508,8 +4241,8 @@ void control::ctrlrecv()
         B212_r[n] = dctrl[dd];
         dd++;
     }
-    
-    for(n=0;n<B213;++n)
+
+    for(n = 0; n < B213; ++n)
     {
         B213_xc[n] = dctrl[dd];
         dd++;
@@ -3522,8 +4255,8 @@ void control::ctrlrecv()
         B213_r[n] = dctrl[dd];
         dd++;
     }
-    
-    for(n=0;n<B214;++n)
+
+    for(n = 0; n < B214; ++n)
     {
         B214_xm1[n] = dctrl[dd];
         dd++;
@@ -3542,8 +4275,8 @@ void control::ctrlrecv()
         B214_r2[n] = dctrl[dd];
         dd++;
     }
-    
-    for(n=0;n<B215;++n)
+
+    for(n = 0; n < B215; ++n)
     {
         B215_xm[n] = dctrl[dd];
         dd++;
@@ -3554,8 +4287,8 @@ void control::ctrlrecv()
         B215_r[n] = dctrl[dd];
         dd++;
     }
-    
-    for(n=0;n<B217;++n)
+
+    for(n = 0; n < B217; ++n)
     {
         B217_xs[n] = dctrl[dd];
         dd++;
@@ -3570,8 +4303,8 @@ void control::ctrlrecv()
         B217_ze[n] = dctrl[dd];
         dd++;
     }
-    
-    for(n=0;n<B218;++n)
+
+    for(n = 0; n < B218; ++n)
     {
         B218_xs[n] = dctrl[dd];
         dd++;
@@ -3586,8 +4319,8 @@ void control::ctrlrecv()
         B218_ze[n] = dctrl[dd];
         dd++;
     }
-    
-    for(n=0;n<B219;++n)
+
+    for(n = 0; n < B219; ++n)
     {
         B219_xs[n] = dctrl[dd];
         dd++;
@@ -3603,11 +4336,11 @@ void control::ctrlrecv()
         dd++;
     }
 
-    for(n=0;n<B240;++n)
+    for(n = 0; n < B240; ++n)
     {
-        B240_C[n]  = dctrl[dd];
+        B240_C[n] = dctrl[dd];
         dd++;
-        B240_D[n]  = dctrl[dd];
+        B240_D[n] = dctrl[dd];
         dd++;
         B240_xs[n] = dctrl[dd];
         dd++;
@@ -3623,7 +4356,7 @@ void control::ctrlrecv()
         dd++;
     }
 
-    for(n=0;n<B270;++n)
+    for(n = 0; n < B270; ++n)
     {
         B270_xs[n] = dctrl[dd];
         dd++;
@@ -3637,17 +4370,17 @@ void control::ctrlrecv()
         dd++;
         B270_ze[n] = dctrl[dd];
         dd++;
-        B270_n[n]  = dctrl[dd];
+        B270_n[n] = dctrl[dd];
         dd++;
-        B270_d50[n]= dctrl[dd];
+        B270_d50[n] = dctrl[dd];
         dd++;
-        B270_alpha[n]= dctrl[dd];
+        B270_alpha[n] = dctrl[dd];
         dd++;
-        B270_beta[n]= dctrl[dd];
+        B270_beta[n] = dctrl[dd];
         dd++;
     }
 
-    for(n=0;n<B274;++n)
+    for(n = 0; n < B274; ++n)
     {
         B274_xc[n] = dctrl[dd];
         dd++;
@@ -3659,17 +4392,17 @@ void control::ctrlrecv()
         dd++;
         B274_r[n] = dctrl[dd];
         dd++;
-        B274_n[n]  = dctrl[dd];
+        B274_n[n] = dctrl[dd];
         dd++;
-        B274_d50[n]= dctrl[dd];
+        B274_d50[n] = dctrl[dd];
         dd++;
-        B274_alpha[n]= dctrl[dd];
+        B274_alpha[n] = dctrl[dd];
         dd++;
-        B274_beta[n]= dctrl[dd];
+        B274_beta[n] = dctrl[dd];
         dd++;
     }
 
-    for(n=0;n<B281;++n)
+    for(n = 0; n < B281; ++n)
     {
         B281_xs[n] = dctrl[dd];
         dd++;
@@ -3683,17 +4416,17 @@ void control::ctrlrecv()
         dd++;
         B281_ze[n] = dctrl[dd];
         dd++;
-        B281_n[n]  = dctrl[dd];
+        B281_n[n] = dctrl[dd];
         dd++;
-        B281_d50[n]= dctrl[dd];
+        B281_d50[n] = dctrl[dd];
         dd++;
-        B281_alpha[n]= dctrl[dd];
+        B281_alpha[n] = dctrl[dd];
         dd++;
-        B281_beta[n]= dctrl[dd];
+        B281_beta[n] = dctrl[dd];
         dd++;
     }
 
-    for(n=0;n<B282;++n)
+    for(n = 0; n < B282; ++n)
     {
         B282_xs[n] = dctrl[dd];
         dd++;
@@ -3707,17 +4440,17 @@ void control::ctrlrecv()
         dd++;
         B282_ze[n] = dctrl[dd];
         dd++;
-        B282_n[n]  = dctrl[dd];
+        B282_n[n] = dctrl[dd];
         dd++;
-        B282_d50[n]= dctrl[dd];
+        B282_d50[n] = dctrl[dd];
         dd++;
-        B282_alpha[n]= dctrl[dd];
+        B282_alpha[n] = dctrl[dd];
         dd++;
-        B282_beta[n]= dctrl[dd];
+        B282_beta[n] = dctrl[dd];
         dd++;
     }
 
-    for(n=0;n<B291;++n)
+    for(n = 0; n < B291; ++n)
     {
         B291_xs[n] = dctrl[dd];
         dd++;
@@ -3733,17 +4466,17 @@ void control::ctrlrecv()
         dd++;
         B291_d[n] = dctrl[dd];
         dd++;
-        B291_n[n]  = dctrl[dd];
+        B291_n[n] = dctrl[dd];
         dd++;
-        B291_d50[n]= dctrl[dd];
+        B291_d50[n] = dctrl[dd];
         dd++;
-        B291_alpha[n]= dctrl[dd];
+        B291_alpha[n] = dctrl[dd];
         dd++;
-        B291_beta[n]= dctrl[dd];
+        B291_beta[n] = dctrl[dd];
         dd++;
     }
 
-    for(n=0;n<B310;++n)
+    for(n = 0; n < B310; ++n)
     {
         B310_xs[n] = dctrl[dd];
         dd++;
@@ -3757,15 +4490,15 @@ void control::ctrlrecv()
         dd++;
         B310_ze[n] = dctrl[dd];
         dd++;
-        B310_N[n]  = dctrl[dd];
+        B310_N[n] = dctrl[dd];
         dd++;
-        B310_D[n]  = dctrl[dd];
+        B310_D[n] = dctrl[dd];
         dd++;
         B310_Cd[n] = dctrl[dd];
         dd++;
     }
 
-    for(n=0;n<B321;++n)
+    for(n = 0; n < B321; ++n)
     {
         B321_xs[n] = dctrl[dd];
         dd++;
@@ -3779,15 +4512,15 @@ void control::ctrlrecv()
         dd++;
         B321_ze[n] = dctrl[dd];
         dd++;
-        B321_N[n]  = dctrl[dd];
+        B321_N[n] = dctrl[dd];
         dd++;
-        B321_D[n]  = dctrl[dd];
+        B321_D[n] = dctrl[dd];
         dd++;
         B321_Cd[n] = dctrl[dd];
         dd++;
     }
 
-    for(n=0;n<B322;++n)
+    for(n = 0; n < B322; ++n)
     {
         B322_xs[n] = dctrl[dd];
         dd++;
@@ -3801,15 +4534,15 @@ void control::ctrlrecv()
         dd++;
         B322_ze[n] = dctrl[dd];
         dd++;
-        B322_N[n]  = dctrl[dd];
+        B322_N[n] = dctrl[dd];
         dd++;
-        B322_D[n]  = dctrl[dd];
+        B322_D[n] = dctrl[dd];
         dd++;
         B322_Cd[n] = dctrl[dd];
         dd++;
     }
 
-    for(n=0;n<B411;++n)
+    for(n = 0; n < B411; ++n)
     {
         B411_ID[n] = ictrl[ii];
         ii++;
@@ -3817,7 +4550,7 @@ void control::ctrlrecv()
         dd++;
     }
 
-    for(n=0;n<B412;++n)
+    for(n = 0; n < B412; ++n)
     {
         B412_ID[n] = ictrl[ii];
         ii++;
@@ -3825,7 +4558,7 @@ void control::ctrlrecv()
         dd++;
     }
 
-    for(n=0;n<B413;++n)
+    for(n = 0; n < B413; ++n)
     {
         B413_ID[n] = ictrl[ii];
         ii++;
@@ -3833,7 +4566,7 @@ void control::ctrlrecv()
         dd++;
     }
 
-    for(n=0;n<B414;++n)
+    for(n = 0; n < B414; ++n)
     {
         B414_ID[n] = ictrl[ii];
         ii++;
@@ -3841,7 +4574,7 @@ void control::ctrlrecv()
         dd++;
     }
 
-    for(n=0;n<B415;++n)
+    for(n = 0; n < B415; ++n)
     {
         B415_ID[n] = ictrl[ii];
         ii++;
@@ -3853,7 +4586,7 @@ void control::ctrlrecv()
         dd++;
     }
 
-    for(n=0;n<B416;++n)
+    for(n = 0; n < B416; ++n)
     {
         B416_ID[n] = ictrl[ii];
         ii++;
@@ -3861,7 +4594,7 @@ void control::ctrlrecv()
         dd++;
     }
 
-    for(n=0;n<B417;++n)
+    for(n = 0; n < B417; ++n)
     {
         B417_ID[n] = ictrl[ii];
         ii++;
@@ -3873,7 +4606,7 @@ void control::ctrlrecv()
         dd++;
     }
 
-    for(n=0;n<B418;++n)
+    for(n = 0; n < B418; ++n)
     {
         B418_ID[n] = ictrl[ii];
         ii++;
@@ -3881,7 +4614,7 @@ void control::ctrlrecv()
         ii++;
     }
 
-    for(n=0;n<B421;++n)
+    for(n = 0; n < B421; ++n)
     {
         B421_ID[n] = ictrl[ii];
         ii++;
@@ -3889,7 +4622,7 @@ void control::ctrlrecv()
         ii++;
     }
 
-    for(n=0;n<B422;++n)
+    for(n = 0; n < B422; ++n)
     {
         B422_ID[n] = ictrl[ii];
         ii++;
@@ -3897,11 +4630,11 @@ void control::ctrlrecv()
         ii++;
     }
 
-    for(n=0;n<B440;++n)
+    for(n = 0; n < B440; ++n)
     {
-        B440_ID[n]  = ictrl[ii];
+        B440_ID[n] = ictrl[ii];
         ii++;
-        B440_face[n]  = ictrl[ii];
+        B440_face[n] = ictrl[ii];
         ii++;
         B440_xs[n] = dctrl[dd];
         dd++;
@@ -3913,11 +4646,11 @@ void control::ctrlrecv()
         dd++;
     }
 
-    for(n=0;n<B441;++n)
+    for(n = 0; n < B441; ++n)
     {
-        B441_ID[n]  = ictrl[ii];
+        B441_ID[n] = ictrl[ii];
         ii++;
-        B441_face[n]  = ictrl[ii];
+        B441_face[n] = ictrl[ii];
         ii++;
         B441_xs[n] = dctrl[dd];
         dd++;
@@ -3933,11 +4666,11 @@ void control::ctrlrecv()
         dd++;
     }
 
-    for(n=0;n<B442;++n)
+    for(n = 0; n < B442; ++n)
     {
-        B442_ID[n]  = ictrl[ii];
+        B442_ID[n] = ictrl[ii];
         ii++;
-        B442_face[n]  = ictrl[ii];
+        B442_face[n] = ictrl[ii];
         ii++;
         B442_xm[n] = dctrl[dd];
         dd++;
@@ -3949,7 +4682,7 @@ void control::ctrlrecv()
         dd++;
     }
 
-    for(n=0;n<C75;++n)
+    for(n = 0; n < C75; ++n)
     {
         C75_x[n] = dctrl[dd];
         dd++;
@@ -3965,7 +4698,7 @@ void control::ctrlrecv()
         dd++;
     }
 
-    for(n=0;n<F70;++n)
+    for(n = 0; n < F70; ++n)
     {
         F70_xs[n] = dctrl[dd];
         dd++;
@@ -3981,7 +4714,7 @@ void control::ctrlrecv()
         dd++;
     }
 
-    for(n=0;n<F71;++n)
+    for(n = 0; n < F71; ++n)
     {
         F71_xs[n] = dctrl[dd];
         dd++;
@@ -3997,7 +4730,7 @@ void control::ctrlrecv()
         dd++;
     }
 
-    for(n=0;n<F72;++n)
+    for(n = 0; n < F72; ++n)
     {
         F72_xs[n] = dctrl[dd];
         dd++;
@@ -4011,7 +4744,31 @@ void control::ctrlrecv()
         dd++;
     }
 
-    for(n=0;n<F112;++n)
+    for(n = 0; n < G10; ++n)
+    {
+        G10_xs[n] = dctrl[dd];
+        dd++;
+        G10_xe[n] = dctrl[dd];
+        dd++;
+        G10_ys[n] = dctrl[dd];
+        dd++;
+        G10_ye[n] = dctrl[dd];
+        dd++;
+    }
+
+    for(n = 0; n < G11; ++n)
+    {
+        G11_xs[n] = dctrl[dd];
+        dd++;
+        G11_xe[n] = dctrl[dd];
+        dd++;
+        G11_ys[n] = dctrl[dd];
+        dd++;
+        G11_ye[n] = dctrl[dd];
+        dd++;
+    }
+
+    for(n = 0; n < F112; ++n)
     {
         F112_xs[n] = dctrl[dd];
         dd++;
@@ -4027,7 +4784,7 @@ void control::ctrlrecv()
         dd++;
     }
 
-    for(n=0;n<F113;++n)
+    for(n = 0; n < F113; ++n)
     {
         F113_xs[n] = dctrl[dd];
         dd++;
@@ -4043,7 +4800,7 @@ void control::ctrlrecv()
         dd++;
     }
 
-    for(n=0;n<F114;++n)
+    for(n = 0; n < F114; ++n)
     {
         F114_xs[n] = dctrl[dd];
         dd++;
@@ -4059,7 +4816,7 @@ void control::ctrlrecv()
         dd++;
     }
 
-    for(n=0;n<F115;++n)
+    for(n = 0; n < F115; ++n)
     {
         F115_xs[n] = dctrl[dd];
         dd++;
@@ -4075,7 +4832,7 @@ void control::ctrlrecv()
         dd++;
     }
 
-    for(n=0;n<F369;++n)
+    for(n = 0; n < F369; ++n)
     {
         F369_x[n] = dctrl[dd];
         dd++;
@@ -4091,7 +4848,7 @@ void control::ctrlrecv()
         dd++;
     }
 
-    for(n=0;n<F370;++n)
+    for(n = 0; n < F370; ++n)
     {
         F370_xs[n] = dctrl[dd];
         dd++;
@@ -4107,7 +4864,7 @@ void control::ctrlrecv()
         dd++;
     }
 
-    for(n=0;n<F371;++n)
+    for(n = 0; n < F371; ++n)
     {
         F371_xs[n] = dctrl[dd];
         dd++;
@@ -4123,7 +4880,7 @@ void control::ctrlrecv()
         dd++;
     }
 
-    for(n=0;n<F374;++n)
+    for(n = 0; n < F374; ++n)
     {
         F374_xc[n] = dctrl[dd];
         dd++;
@@ -4133,7 +4890,7 @@ void control::ctrlrecv()
         dd++;
     }
 
-    for(n=0;n<F375;++n)
+    for(n = 0; n < F375; ++n)
     {
         F375_xc[n] = dctrl[dd];
         dd++;
@@ -4143,7 +4900,7 @@ void control::ctrlrecv()
         dd++;
     }
 
-    for(n=0;n<F378;++n)
+    for(n = 0; n < F378; ++n)
     {
         F378_xc[n] = dctrl[dd];
         dd++;
@@ -4155,7 +4912,7 @@ void control::ctrlrecv()
         dd++;
     }
 
-    for(n=0;n<F379;++n)
+    for(n = 0; n < F379; ++n)
     {
         F379_xc[n] = dctrl[dd];
         dd++;
@@ -4167,7 +4924,7 @@ void control::ctrlrecv()
         dd++;
     }
 
-    for(n=0;n<F390;++n)
+    for(n = 0; n < F390; ++n)
     {
         F390_xs[n] = dctrl[dd];
         dd++;
@@ -4183,7 +4940,7 @@ void control::ctrlrecv()
         dd++;
     }
 
-    for(n=0;n<F391;++n)
+    for(n = 0; n < F391; ++n)
     {
         F391_xs[n] = dctrl[dd];
         dd++;
@@ -4199,7 +4956,7 @@ void control::ctrlrecv()
         dd++;
     }
 
-    for(n=0;n<F394;++n)
+    for(n = 0; n < F394; ++n)
     {
         F394_xc[n] = dctrl[dd];
         dd++;
@@ -4209,7 +4966,7 @@ void control::ctrlrecv()
         dd++;
     }
 
-    for(n=0;n<F395;++n)
+    for(n = 0; n < F395; ++n)
     {
         F395_xc[n] = dctrl[dd];
         dd++;
@@ -4219,7 +4976,7 @@ void control::ctrlrecv()
         dd++;
     }
 
-    for(n=0;n<F398;++n)
+    for(n = 0; n < F398; ++n)
     {
         F398_xc[n] = dctrl[dd];
         dd++;
@@ -4231,7 +4988,7 @@ void control::ctrlrecv()
         dd++;
     }
 
-    for(n=0;n<F399;++n)
+    for(n = 0; n < F399; ++n)
     {
         F399_xc[n] = dctrl[dd];
         dd++;
@@ -4243,7 +5000,7 @@ void control::ctrlrecv()
         dd++;
     }
 
-    for(n=0;n<P35;++n)
+    for(n = 0; n < P35; ++n)
     {
         P35_ts[n] = dctrl[dd];
         dd++;
@@ -4253,7 +5010,7 @@ void control::ctrlrecv()
         dd++;
     }
 
-    for(n=0;n<P50;++n)
+    for(n = 0; n < P50; ++n)
     {
         P50_x[n] = dctrl[dd];
         dd++;
@@ -4261,7 +5018,7 @@ void control::ctrlrecv()
         dd++;
     }
 
-    for(n=0;n<P51;++n)
+    for(n = 0; n < P51; ++n)
     {
         P51_x[n] = dctrl[dd];
         dd++;
@@ -4269,19 +5026,19 @@ void control::ctrlrecv()
         dd++;
     }
 
-    for(n=0;n<P52;++n)
+    for(n = 0; n < P52; ++n)
     {
         P52_y[n] = dctrl[dd];
         dd++;
     }
 
-    for(n=0;n<P56;++n)
+    for(n = 0; n < P56; ++n)
     {
         P56_x[n] = dctrl[dd];
         dd++;
     }
 
-    for(n=0;n<P58;++n)
+    for(n = 0; n < P58; ++n)
     {
         P58_x[n] = dctrl[dd];
         dd++;
@@ -4291,7 +5048,7 @@ void control::ctrlrecv()
         dd++;
     }
 
-    for(n=0;n<P61;++n)
+    for(n = 0; n < P61; ++n)
     {
         P61_x[n] = dctrl[dd];
         dd++;
@@ -4301,7 +5058,7 @@ void control::ctrlrecv()
         dd++;
     }
 
-    for(n=0;n<P62;++n)
+    for(n = 0; n < P62; ++n)
     {
         P62_xs[n] = dctrl[dd];
         dd++;
@@ -4317,7 +5074,7 @@ void control::ctrlrecv()
         dd++;
     }
 
-    for(n=0;n<P63;++n)
+    for(n = 0; n < P63; ++n)
     {
         P63_x[n] = dctrl[dd];
         dd++;
@@ -4325,7 +5082,7 @@ void control::ctrlrecv()
         dd++;
     }
 
-    for(n=0;n<P64;++n)
+    for(n = 0; n < P64; ++n)
     {
         P64_x[n] = dctrl[dd];
         dd++;
@@ -4335,7 +5092,7 @@ void control::ctrlrecv()
         dd++;
     }
 
-    for(n=0;n<P65;++n)
+    for(n = 0; n < P65; ++n)
     {
         P65_x[n] = dctrl[dd];
         dd++;
@@ -4345,7 +5102,7 @@ void control::ctrlrecv()
         dd++;
     }
 
-    for(n=0;n<P66;++n)
+    for(n = 0; n < P66; ++n)
     {
         P66_x[n] = dctrl[dd];
         dd++;
@@ -4355,7 +5112,7 @@ void control::ctrlrecv()
         dd++;
     }
 
-    for(n=0;n<P67;++n)
+    for(n = 0; n < P67; ++n)
     {
         P67_x[n] = dctrl[dd];
         dd++;
@@ -4363,7 +5120,7 @@ void control::ctrlrecv()
         dd++;
     }
 
-    for(n=0;n<P68;++n)
+    for(n = 0; n < P68; ++n)
     {
         P68_x[n] = dctrl[dd];
         dd++;
@@ -4371,7 +5128,7 @@ void control::ctrlrecv()
         dd++;
     }
 
-    for(n=0;n<P69;++n)
+    for(n = 0; n < P69; ++n)
     {
         P69_x[n] = dctrl[dd];
         dd++;
@@ -4379,7 +5136,7 @@ void control::ctrlrecv()
         dd++;
     }
 
-    for(n=0;n<P81;++n)
+    for(n = 0; n < P81; ++n)
     {
         P81_xs[n] = dctrl[dd];
         dd++;
@@ -4395,7 +5152,7 @@ void control::ctrlrecv()
         dd++;
     }
 
-    for(n=0;n<P85;++n)
+    for(n = 0; n < P85; ++n)
     {
         P85_x[n] = dctrl[dd];
         dd++;
@@ -4409,7 +5166,7 @@ void control::ctrlrecv()
         dd++;
     }
 
-    for(n=0;n<P88;++n)
+    for(n = 0; n < P88; ++n)
     {
         P88_x[n] = dctrl[dd];
         dd++;
@@ -4417,7 +5174,7 @@ void control::ctrlrecv()
         dd++;
     }
 
-    for(n=0;n<P121;++n)
+    for(n = 0; n < P121; ++n)
     {
         P121_x[n] = dctrl[dd];
         dd++;
@@ -4425,19 +5182,19 @@ void control::ctrlrecv()
         dd++;
     }
 
-    for(n=0;n<P123;++n)
+    for(n = 0; n < P123; ++n)
     {
         P123_y[n] = dctrl[dd];
         dd++;
     }
 
-    for(n=0;n<P124;++n)
+    for(n = 0; n < P124; ++n)
     {
         P124_x[n] = dctrl[dd];
         dd++;
     }
 
-    for(n=0;n<P125;++n)
+    for(n = 0; n < P125; ++n)
     {
         P125_x[n] = dctrl[dd];
         dd++;
@@ -4445,27 +5202,27 @@ void control::ctrlrecv()
         dd++;
     }
 
-    for(n=0;n<P133;++n)
+    for(n = 0; n < P133; ++n)
     {
         P133_y[n] = dctrl[dd];
         dd++;
     }
 
-    for(n=0;n<P134;++n)
+    for(n = 0; n < P134; ++n)
     {
         P134_y[n] = dctrl[dd];
         dd++;
     }
 
-    for(n=0;n<P140;++n)
+    for(n = 0; n < P140; ++n)
     {
         P140_x[n] = dctrl[dd];
         dd++;
         P140_y[n] = dctrl[dd];
         dd++;
     }
-    
-    for(n=0;n<P144;++n)
+
+    for(n = 0; n < P144; ++n)
     {
         P144_xs[n] = dctrl[dd];
         dd++;
@@ -4479,7 +5236,7 @@ void control::ctrlrecv()
         ii++;
     }
 
-    for(n=0;n<P145;++n)
+    for(n = 0; n < P145; ++n)
     {
         P145_xs[n] = dctrl[dd];
         dd++;
@@ -4497,7 +5254,7 @@ void control::ctrlrecv()
         dd++;
     }
 
-    for(n=0;n<P146;++n)
+    for(n = 0; n < P146; ++n)
     {
         P146_y[n] = dctrl[dd];
         dd++;
@@ -4507,7 +5264,7 @@ void control::ctrlrecv()
         dd++;
     }
 
-    for(n=0;n<P147;++n)
+    for(n = 0; n < P147; ++n)
     {
         P147_x[n] = dctrl[dd];
         dd++;
@@ -4517,7 +5274,7 @@ void control::ctrlrecv()
         dd++;
     }
 
-    for(n=0;n<P148;++n)
+    for(n = 0; n < P148; ++n)
     {
         P148_x[n] = dctrl[dd];
         dd++;
@@ -4529,13 +5286,13 @@ void control::ctrlrecv()
         dd++;
     }
 
-    for(n=0;n<P167;++n)
+    for(n = 0; n < P167; ++n)
     {
         P167_x[n] = dctrl[dd];
         dd++;
     }
 
-    for(n=0;n<P168;++n)
+    for(n = 0; n < P168; ++n)
     {
         P168_x[n] = dctrl[dd];
         dd++;
@@ -4545,7 +5302,7 @@ void control::ctrlrecv()
         dd++;
     }
 
-    for(n=0;n<P184;++n)
+    for(n = 0; n < P184; ++n)
     {
         P184_its[n] = ictrl[ii];
         ii++;
@@ -4555,7 +5312,7 @@ void control::ctrlrecv()
         ii++;
     }
 
-    for(n=0;n<P185;++n)
+    for(n = 0; n < P185; ++n)
     {
         P185_ts[n] = dctrl[dd];
         dd++;
@@ -4565,7 +5322,15 @@ void control::ctrlrecv()
         dd++;
     }
 
-    for(n=0;n<P194;++n)
+    for(n = 0; n < P186; ++n)
+    {
+        P186_tstart[n] = dctrl[dd];
+        dd++;
+        P186_tend[n] = dctrl[dd];
+        dd++;
+    }
+
+    for(n = 0; n < P194; ++n)
     {
         P194_its[n] = ictrl[ii];
         ii++;
@@ -4575,7 +5340,7 @@ void control::ctrlrecv()
         ii++;
     }
 
-    for(n=0;n<P195;++n)
+    for(n = 0; n < P195; ++n)
     {
         P195_ts[n] = dctrl[dd];
         dd++;
@@ -4585,19 +5350,19 @@ void control::ctrlrecv()
         dd++;
     }
 
-    for(n=0;n<P230;++n)
+    for(n = 0; n < P230; ++n)
     {
         P230_x[n] = dctrl[dd];
         dd++;
     }
 
-    for(n=0;n<P240;++n)
+    for(n = 0; n < P240; ++n)
     {
         P240_x[n] = dctrl[dd];
         dd++;
     }
 
-    for(n=0;n<P351;++n)
+    for(n = 0; n < P351; ++n)
     {
         P351_x[n] = dctrl[dd];
         dd++;
@@ -4605,7 +5370,7 @@ void control::ctrlrecv()
         dd++;
     }
 
-    for(n=0;n<P352;++n)
+    for(n = 0; n < P352; ++n)
     {
         P352_x[n] = dctrl[dd];
         dd++;
@@ -4613,7 +5378,7 @@ void control::ctrlrecv()
         dd++;
     }
 
-    for(n=0;n<Q61;++n)
+    for(n = 0; n < Q61; ++n)
     {
         Q61_x[n] = dctrl[dd];
         dd++;
@@ -4625,21 +5390,21 @@ void control::ctrlrecv()
         ii++;
     }
 
-    for(n=0;n<Q73;++n)
+    for(n = 0; n < Q73; ++n)
     {
-        Q73_val[n]= dctrl[dd];
+        Q73_val[n] = dctrl[dd];
         dd++;
-        Q73_dist[n]= dctrl[dd];
+        Q73_dist[n] = dctrl[dd];
         dd++;
-        Q73_b[n]  = dctrl[dd];
+        Q73_b[n] = dctrl[dd];
         dd++;
-        Q73_x[n]  = dctrl[dd];
+        Q73_x[n] = dctrl[dd];
         dd++;
-        Q73_y[n]  = dctrl[dd];
+        Q73_y[n] = dctrl[dd];
         dd++;
     }
 
-    for(n=0;n<Q110;++n)
+    for(n = 0; n < Q110; ++n)
     {
         Q110_xs[n] = dctrl[dd];
         dd++;
@@ -4654,7 +5419,7 @@ void control::ctrlrecv()
         Q110_ze[n] = dctrl[dd];
         dd++;
     }
-    for(n=0;n<Q111;++n)
+    for(n = 0; n < Q111; ++n)
     {
         Q111_xs[n] = dctrl[dd];
         dd++;
@@ -4670,33 +5435,51 @@ void control::ctrlrecv()
         dd++;
     }
 
-    for(n=0;n<S73;++n)
+    for(n = 0; n < S73; ++n)
     {
-        S73_val[n]= dctrl[dd];
+        S73_val[n] = dctrl[dd];
         dd++;
-        S73_dist[n]= dctrl[dd];
+        S73_dist[n] = dctrl[dd];
         dd++;
-        S73_b[n]  = dctrl[dd];
+        S73_b[n] = dctrl[dd];
         dd++;
-        S73_x[n]  = dctrl[dd];
+        S73_x[n] = dctrl[dd];
         dd++;
-        S73_y[n]  = dctrl[dd];
+        S73_y[n] = dctrl[dd];
         dd++;
     }
 
-    for(n=0;n<S74;++n)
+    for(n = 0; n < S74; ++n)
     {
-        S74_xs[n]  = dctrl[dd];
+        S74_xs[n] = dctrl[dd];
         dd++;
-        S74_xe[n]  = dctrl[dd];
+        S74_xe[n] = dctrl[dd];
         dd++;
-        S74_ys[n]  = dctrl[dd];
+        S74_ys[n] = dctrl[dd];
         dd++;
-        S74_ye[n]  = dctrl[dd];
+        S74_ye[n] = dctrl[dd];
         dd++;
     }
 
-    for(n=0;n<W41;++n)
+    for(n = 0; n < S75; ++n)
+    {
+        S75_x[n] = dctrl[dd];
+        dd++;
+        S75_dist[n] = dctrl[dd];
+        dd++;
+    }
+
+    for(n = 0; n < S51; ++n)
+    {
+        S51_d[n] = dctrl[dd];
+        dd++;
+        S51_fa[n] = dctrl[dd];
+        dd++;
+        S51_fs[n] = dctrl[dd];
+        dd++;
+    }
+
+    for(n = 0; n < W41; ++n)
     {
         W41_xc[n] = dctrl[dd];
         dd++;
@@ -4712,7 +5495,7 @@ void control::ctrlrecv()
         dd++;
     }
 
-    for(n=0;n<X102;++n)
+    for(n = 0; n < X102; ++n)
     {
         X102_u[n] = dctrl[dd];
         dd++;
@@ -4722,7 +5505,7 @@ void control::ctrlrecv()
         dd++;
     }
 
-    for(n=0;n<X110;++n)
+    for(n = 0; n < X110; ++n)
     {
         X110_xs[n] = dctrl[dd];
         dd++;
@@ -4738,7 +5521,7 @@ void control::ctrlrecv()
         dd++;
     }
 
-    for(n=0;n<X163;++n)
+    for(n = 0; n < X163; ++n)
     {
         X163_x1[n] = dctrl[dd];
         dd++;
@@ -4778,7 +5561,7 @@ void control::ctrlrecv()
         dd++;
     }
 
-    for(n=0;n<X164;++n)
+    for(n = 0; n < X164; ++n)
     {
         X164_x1[n] = dctrl[dd];
         dd++;
@@ -4830,7 +5613,7 @@ void control::ctrlrecv()
         dd++;
     }
 
-    for(n=0;n<X311;++n)
+    for(n = 0; n < X311; ++n)
     {
         X311_xs[n] = dctrl[dd];
         dd++;
@@ -4862,7 +5645,7 @@ void control::ctrlrecv()
         dd++;
     }
 
-    for(n=0;n<X312;++n)
+    for(n = 0; n < X312; ++n)
     {
         X311_xs[n] = dctrl[dd];
         dd++;
@@ -4882,34 +5665,40 @@ void control::ctrlrecv()
         dd++;
     }
 
-    if (X314 > 0)
+    if(X314 > 0)
     {
-        for(n=0;n<X311;++n)
+        for(n = 0; n < X311; ++n)
         {
             X314_T[n] = dctrl[dd];
             dd++;
         }
-        for(n=0;n<X312;++n)
+        for(n = 0; n < X312; ++n)
         {
             X314_T[n] = dctrl[dd];
             dd++;
         }
     }
-        if (X315 > 0)
+    if(X315 > 0)
     {
-        for(n=0;n<X311;++n)
+        for(n = 0; n < X311; ++n)
         {
             X315_t[n] = dctrl[dd];
             dd++;
         }
-        for(n=0;n<X312;++n)
+        for(n = 0; n < X312; ++n)
         {
             X315_t[n] = dctrl[dd];
             dd++;
         }
     }
 
-    for(n=0;n<X321;++n)
+    for(n = 0; n < X320; ++n)
+    {
+        X320_type[n] = ictrl[ii];
+        ii++;
+    }
+
+    for(n = 0; n < X321; ++n)
     {
         X321_Sn[n] = dctrl[dd];
         dd++;
@@ -4944,7 +5733,7 @@ void control::ctrlrecv()
         dd++;
     }
 
-    for(n=0;n<X324;++n)
+    for(n = 0; n < X324; ++n)
     {
         X324_x[n] = dctrl[dd];
         dd++;
@@ -4954,7 +5743,7 @@ void control::ctrlrecv()
         dd++;
     }
 
-    for(n=0;n<Z11;++n)
+    for(n = 0; n < Z11; ++n)
     {
         Z11_x[n] = dctrl[dd];
         dd++;
@@ -4984,6 +5773,62 @@ void control::ctrlrecv()
         dd++;
     }
 
-    ii_recv=ii;
-    dd_recv=dd;
+    // NHFLOW Lagrangian particles
+    L10 = ictrl[ii];
+    ii++;
+    L11 = ictrl[ii];
+    ii++;
+    L21 = ictrl[ii];
+    ii++;
+    L22 = ictrl[ii];
+    ii++;
+    L23 = ictrl[ii];
+    ii++;
+    L31 = dctrl[dd];
+    dd++;
+    L32 = ictrl[ii];
+    ii++;
+    L33 = dctrl[dd];
+    dd++;
+    L34 = dctrl[dd];
+    dd++;
+    L41 = ictrl[ii];
+    ii++;
+    L41_u = dctrl[dd];
+    dd++;
+    L41_dir = dctrl[dd];
+    dd++;
+    L51 = ictrl[ii];
+    ii++;
+    L52 = ictrl[ii];
+    ii++;
+    L53 = ictrl[ii];
+    ii++;
+    L61 = dctrl[dd];
+    dd++;
+    L62 = ictrl[ii];
+    ii++;
+
+    Darray(L21_val, 9 * L21);
+    Darray(L22_val, 12 * L22);
+    Darray(L23_val, 12 * L23);
+
+    for(n = 0; n < 9 * L21; ++n)
+    {
+        L21_val[n] = dctrl[dd];
+        dd++;
+    }
+    for(n = 0; n < 12 * L22; ++n)
+    {
+        L22_val[n] = dctrl[dd];
+        dd++;
+    }
+    for(n = 0; n < 12 * L23; ++n)
+    {
+        L23_val[n] = dctrl[dd];
+        dd++;
+    }
+
+    ii_recv = ii;
+    dd_recv = dd;
 }

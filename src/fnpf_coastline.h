@@ -23,8 +23,8 @@ Author: Hans Bihs
 #ifndef FNPF_COASTLINE_H_
 #define FNPF_COASTLINE_H_
 
-#include"ddweno_f_nug.h"
-#include"slice4.h"
+#include "ddweno_f_nug.h"
+#include "slice4.h"
 class lexer;
 class fdm_fnpf;
 class slice;
@@ -33,27 +33,27 @@ class ghostcell;
 
 using namespace std;
 
-class fnpf_coastline :  public ddweno_f_nug
+class fnpf_coastline : public ddweno_f_nug
 {
 public:
-    fnpf_coastline(lexer*);
-	virtual ~fnpf_coastline();
+    fnpf_coastline(lexer *);
+    virtual ~fnpf_coastline();
 
-   void start(lexer*,fdm_fnpf*,ghostcell*,slice&,int*,sliceint&);
-   
+    void start(lexer *, fdm_fnpf *, ghostcell *, slice &, int *, sliceint &);
+
 private:
-   void reini(lexer*,ghostcell*,slice&);
-   void disc(lexer*,ghostcell*,slice&);
-   
-   void step(lexer*);
-   void time_preproc(lexer*);
-   
-   slice4 frk1,frk2,L,dt,wet_n;
-   
-   
-   int reiniter,change;
-   
+    void reini(lexer *, ghostcell *, slice &);
+    void fsm(lexer *, ghostcell *, slice &);
+    void isolated(lexer *, fdm_fnpf *, ghostcell *, slice &, int *);
+    void fsm_update(lexer *, int, int);
+    void disc(lexer *, ghostcell *, slice &);
 
+    void step(lexer *);
+    void time_preproc(lexer *);
+
+    slice4 frk1, frk2, L, dt, wet_n, cpx, cpy;
+
+    int reiniter, change;
 };
 
 #endif

@@ -20,21 +20,27 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Authors: Hans Bihs, Alexander Hanke
 --------------------------------------------------------------------*/
 
-#include"sediment_part.h"
-#include"lexer.h"
-#include"bedshear.h"
-#include<sys/stat.h>
+#include "sediment_part.h"
+#include "CPM.h"
+#include "bedshear.h"
+#include "lexer.h"
+#include "momentum_forcing.h"
+#include <sys/stat.h>
 
 sediment_part::sediment_part(lexer *p, fdm *a, ghostcell *pgc, turbulence *ppturb, patchBC_interface *ppBC) : por(p), d50(p)
 {
     pBC = ppBC;
     pturb = ppturb;
 
-    sediment_logic(p,pgc);
+    sediment_logic(p, pgc);
+
+    // two-way coupling: momentum source of the parcels on the fluid
+    if(p->Q50 == 1 && p->Q11 == 2)
+        momentum_forcing::psed = this;
 
     // Create Folder
-    if(p->mpirank==0 && p->Q180>0 && (p->Q181>0||p->Q182>0))
-        mkdir("./REEF3D_CFD_CPM_Particle",0777);
+    if(p->mpirank == 0 && p->Q180 > 0 && (p->Q181 > 0 || p->Q182 > 0))
+        mkdir("./REEF3D_CFD_CPM_Particle", 0777);
 }
 
 sediment_part::~sediment_part()
@@ -62,20 +68,25 @@ void sediment_part::start_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, r
 {
     bool sedcalc = true;
 
-    if((p->S41==1 && p->count>=p->S43) || (p->S41==2 && p->simtime>=p->S45) || (p->S41==3 && p->simtime/p->wT>=p->S47))
+    if((p->S41 == 1 && p->count >= p->S43) || (p->S41 == 2 && p->simtime >= p->S45) || (p->S41 == 3 && p->simtime / p->wT >= p->S47))
     {
-        sediment_algorithm_cfd(p,a,pgc,pflow,preto);
+        sediment_algorithm_cfd(p, a, pgc, pflow, preto);
 
         sedcalc = false;
     }
 
     if(sedcalc)
     {
-        fill_bedk(p,a,pgc);
-        waterlevel(p,a,pgc);
-        pbedshear->taubed(p,a,pgc,s);
+        fill_bedk(p, a, pgc);
+        waterlevel(p, a, pgc);
+        pbedshear->taubed(p, a, pgc, s);
     }
-    
-    print_particles(p,s);
-    
+
+    // two-way coupling once the parcels move (S 41, S 43/S 45: the fluid spins up first)
+    if(!sedcalc)
+        pst->coupling_update(p, a, pgc, s);
+    else
+        pst->coupling_reset(p, pgc);
+
+    print_particles(p, s);
 }

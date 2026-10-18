@@ -23,8 +23,8 @@ Author: Hans Bihs
 #ifndef LEVELSET_RK2_H_
 #define LEVELSET_RK2_H_
 
-#include"freesurface.h"
-#include"gradient.h"
+#include "freesurface.h"
+#include "gradient.h"
 
 class picard;
 class heat;
@@ -36,16 +36,16 @@ using namespace std;
 class levelset_RK2 final : public freesurface, gradient
 {
 public:
-	levelset_RK2(lexer*, fdm*, ghostcell*, heat*&, concentration*&);
-	virtual ~levelset_RK2();
-	void start(fdm*,lexer*, convection*, solver*, ghostcell*,ioflow*, reini*, particle_corr*,field&) override final;
-    void update(lexer*,fdm*,ghostcell*,field&) override final;
+    levelset_RK2(lexer *, fdm *, ghostcell *, heat *&, concentration *&);
+    virtual ~levelset_RK2();
+    void start(fdm *, lexer *, convection *, solver *, ghostcell *, ioflow *, reini *, field &) override final;
+    void update(lexer *, fdm *, ghostcell *, field &) override final;
 
 private:
     fluid_update *pupdate;
     picard *ppicard;
 
-	int gcval_phi;
-	double starttime;
+    int gcval_phi;
+    double starttime;
 };
 #endif

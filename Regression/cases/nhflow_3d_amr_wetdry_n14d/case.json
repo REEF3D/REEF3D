@@ -1,0 +1,18 @@
+{
+ "description": "nhflow_3d_amr_wetdry with the V-cycles of the AMR pressure preconditioner in double (N 14 64); the default (N 14 32) keeps them in float.",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 60,
+ "tags": [
+  "3d",
+  "nhflow",
+  "amr",
+  "wetdry"
+ ],
+ "covers": [
+  "nhflow_amr_press N 14 64 (double V-cycles)",
+  "cached stencils of the composite solve with wet and deep cells"
+ ],
+ "base": "nhflow_3d_amr_wetdry",
+ "ctrl_set": {"N 14": "64"}
+}

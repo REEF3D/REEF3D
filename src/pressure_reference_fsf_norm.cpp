@@ -20,94 +20,58 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"pressure_reference.h"
-#include"lexer.h"
-#include"fdm.h"
-#include"ghostcell.h"
+#include "fdm.h"
+#include "ghostcell.h"
+#include "lexer.h"
+#include "pressure_reference.h"
 
-void pressure_reference::fsf_normalize(lexer*p, fdm* a, ghostcell *pgc)
+void pressure_reference::fsf_normalize(lexer *p, fdm *a, ghostcell *pgc)
 {
     double epsi;
-	double dirac;
+    double dirac;
     double pressval;
     double dirac_sum;
 
-    
     // epsi
-    if(p->j_dir==0)        
-    epsi = 2.1*(1.0/2.0)*(p->DXM+p->DZM);
-        
-    if(p->j_dir==1)
-    epsi = 2.1*(1.0/3.0)*(p->DXM+p->DYM+p->DZM);
+    if(p->j_dir == 0)
+        epsi = 2.1 * (1.0 / 2.0) * (p->DXM + p->DZM);
 
+    if(p->j_dir == 1)
+        epsi = 2.1 * (1.0 / 3.0) * (p->DXM + p->DYM + p->DZM);
 
     // pressval dirac
 
-    pressval=0.0;
-    dirac_sum=0.0;
-	LOOP
-	{
-        if(fabs(a->phi(i,j,k))<epsi)
-        dirac = (0.5/epsi)*(1.0 + cos((PI*a->phi(i,j,k))/epsi));
-            
-        if(fabs(a->phi(i,j,k))>=epsi)
-        dirac=0.0;
-        
-        if(dirac>1.0e-10 && a->phi(i,j,k)<0.0)
+    pressval = 0.0;
+    dirac_sum = 0.0;
+    LOOP
+    {
+        if(fabs(a->phi(i, j, k)) < epsi)
+            dirac = (0.5 / epsi) * (1.0 + cos((PI * a->phi(i, j, k)) / epsi));
+
+        if(fabs(a->phi(i, j, k)) >= epsi)
+            dirac = 0.0;
+
+        if(dirac > 1.0e-10 && a->phi(i, j, k) < 0.0)
         {
-        pressval += dirac*a->press(i,j,k);
-        dirac_sum += dirac;
+            pressval += dirac * a->press(i, j, k);
+            dirac_sum += dirac;
         }
     }
-    
+
     pressval = pgc->globalsum(pressval);
-    
+
     dirac_sum = pgc->globalsum(dirac_sum);
-    
-    if(dirac_sum>0)
-    pressval = pressval/dirac_sum;
-    
-    
-    if(p->B33==1)
-    p->pressgage=pressval;
-    
-    if(p->B33==2)
-    LOOP
-    a->press(i,j,k) -= pressval;
-    
-    
+
+    if(dirac_sum > 0)
+        pressval = pressval / dirac_sum;
+
+    if(p->B33 == 1)
+        p->pressgage = pressval;
+
+    if(p->B33 == 2)
+        LOOP
+            a->press(i, j, k) -= pressval;
+
     // pressval orig
-    /*
-    pressval=0.0;
-    count=0;
-	LOOP
-	{
-        if(fabs(a->phi(i,j,k))<epsi)
-        dirac = (0.5/epsi)*(1.0 + cos((PI*a->phi(i,j,k))/epsi));
-            
-        if(fabs(a->phi(i,j,k))>=epsi)
-        dirac=0.0;
-        
-        if(dirac>1.0e-10 && a->phi(i,j,k)<0.0)
-        {
-        pressval += a->press(i,j,k);
-        ++count;
-        }
-	}
-    
-    pressval = pgc->globalsum(pressval);
-    
-    count = pgc->globalisum(count);
-    
-    if(count>0)
-    pressval = pressval/double(count);
-    
-    LOOP
-    a->press(i,j,k) -= pressval;
-    */
-
 }
-
-
-
 

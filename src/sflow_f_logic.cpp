@@ -20,134 +20,170 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"sflow_f.h"
-#include"sflow_header.h"
+#include "sflow_f.h"
+#include "sflow_header.h"
 
-void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
-{	
-    
+void sflow_f::logic(lexer *p, fdm2D *b, ghostcell *pgc)
+{
+
     // forcing
-    psfdf=new sflow_forcing(p);
-    
-	// timestep
-    if(p->N48==0)
-	ptime = new sflow_fixtimestep(p,b);
-    
-    if(p->N48==1)
-	ptime = new sflow_etimestep(p,b);
-	
-    // convection
-    if(p->A211==0)
-    pconvec = new sflow_voidconv(p);
-        
-    if(p->A211==1)
-    pconvec = new sflow_fou(p);
-        
-    if(p->A211==4)
-    pconvec = new sflow_weno_flux(p);
-        
-    if(p->A211==5)
-    pconvec = new sflow_weno_hj(p);
-        
-         
+    psfdf = new sflow_forcing(p);
+
+    // timestep
+    if(p->N48 == 0)
+        ptime = new sflow_fixtimestep(p, b);
+
+    if(p->N48 == 1)
+        ptime = new sflow_etimestep(p, b);
+
+    // HLL fluxes, signal speeds and reconstruction (A 211: 0 first-order, 1-3 limiter, 4 WENO)
+    phll = new sflow_HLL(p, pgc, pBC);
+
+    pss = new sflow_signal_speed(p);
+
+    if(p->A211 <= 3)
+        precon = new sflow_reconstruct_hires(p, pBC);
+
+    if(p->A211 >= 4)
+        precon = new sflow_reconstruct_weno(p, pBC);
+
+    // scalar convection (turbulence)
+    if(p->A211 <= 3)
+        pconvec = new sflow_fou(p);
+
+    if(p->A211 >= 4)
+        pconvec = new sflow_weno_flux(p);
+
     // filter
     pfilter = new sflow_filter(p);
-	
-	// free surface
-	if(p->A240>=1)
-	pfsf = new sflow_eta(p,b,pgc,pBC);
 
-	// diffusion
-	if(p->A212==0)
-	pdiff =  new sflow_diffusion_void(p);
-	
-	if(p->A212==1)
-	pdiff =  new sflow_ediff(p);
-    
-    if(p->A212==2)
-	pdiff =  new sflow_idiff(p);
-	
-	// pressure
-    if(p->A220==0)
-	ppress = new sflow_hydrostatic(p,b,pBC);
-    
-    if(p->A220==1)
-	ppress = new sflow_pjm_lin(p,b,pBC);
-    
-    if(p->A220==2)
-	ppress = new sflow_pjm_quad(p,b,pBC);
-    
-    if(p->A220==3)
-	ppress = new sflow_pjm_corr_lin(p,b,pBC);
-    
+    // free surface
+    if(p->A240 >= 1)
+        pfsf = new sflow_eta(p, b, pgc, pBC);
+
     // diffusion
-	if(p->A260==0)
-	pturb =  new sflow_turb_void(p);
-    
-    if(p->A260==1)
-	pturb =  new sflow_turb_ke_IM1(p);
-    
-    if(p->A260==2)
-	pturb =  new sflow_turb_kw_IM1(p);
-    
-    if(p->A260==3)
-	pturb =  new sflow_turb_prandtl(p);
-    
-    if(p->A260==4)
-	pturb =  new sflow_turb_parabolic(p);
-    
-    if(p->A260==5)
-	pturb =  new sflow_turb_kw_IM1_v1(p);
-    
+    if(p->A212 == 0)
+        pdiff = new sflow_diffusion_void(p);
+
+    if(p->A212 == 0 && p->A260 > 0 && p->mpirank == 0)
+        cout << "SFLOW warning: turbulence model A 260 " << p->A260 << " with A 212 0 set in ctrl.txt: the eddy viscosity does not enter the momentum equations (leave out A 212 or set 1 or 2)" << endl;
+
+    if(p->A212 == 1)
+        pdiff = new sflow_ediff(p);
+
+    if(p->A212 == 2)
+        pdiff = new sflow_idiff(p);
+
+    // pressure
+    if(p->A220 == 0 || p->A220 == 4)
+        ppress = new sflow_hydrostatic(p, b, pBC);
+
+    if(p->A220 == 1 || p->A220 >= 5)
+        ppress = new sflow_pjm_lin(p, b, pBC);
+
+    if(p->A220 == 2 || p->A220 == 3)
+        ppress = new sflow_pjm_quad(p, b, pgc, pBC);
+
+    if(p->A220 >= 5 && p->mpirank == 0)
+        cout << "A 220 " << p->A220 << " not available with the HLL scheme, using A 220 1" << endl;
+
+    // diffusion
+    if(p->A260 == 0)
+        pturb = new sflow_turb_void(p);
+
+    if(p->A260 == 1)
+        pturb = new sflow_turb_ke_IM1(p);
+
+    if(p->A260 == 2)
+        pturb = new sflow_turb_kw_IM1(p);
+
+    if(p->A260 == 3)
+        pturb = new sflow_turb_prandtl(p);
+
+    if(p->A260 == 4)
+        pturb = new sflow_turb_parabolic(p);
+
+    if(p->A260 == 5)
+    {
+        if(p->mpirank == 0)
+            cout << "SFLOW: A 260 5 (k-omega v1) is no longer available, use A 260 2 (depth-averaged k-omega)" << endl;
+
+        exit(1);
+    }
+
     // Sediment
-    if(p->S10==0)
-    psed = new sediment_void();
+    if(p->S10 == 0)
+        psed = new sediment_void();
 
-    if(p->S10>0)
-    psed = new sediment_f(p,pgc,pturbcfd,pBC);
-	
-	// solver
-	ppoissonsolv = new hypre_struct2D(p,pgc);
-    
-    
-    psolv = new sflow_bicgstab(p,pgc);
-    
-    //IOFlow
-	if(p->B60==0 && p->B90==0)
-	pflow = new ioflow_v(p,pgc,pBC);
+    if(p->S10 > 0)
+        psed = new sediment_f(p, pgc, pturbcfd, pBC);
 
-	if(p->B60>=1)
-	pflow = new ioflow_f(p,pgc,pBC);
+    // solver
+    //  N 10 1: REEFMG, the same multigrid as for FNPF, NHFLOW and CFD, run
+    //  on the slice (reefmg2D); otherwise hypre (N 10 11-19)
+    if(p->N10 == 1)
+        ppoissonsolv = new reefmg2D(p, pgc);
 
-	if(p->B90>=1)
-	pflow= new iowave(p,pgc,pBC);
+#ifdef REEF3D_USE_HYPRE
+    if(p->N10 != 1)
+        ppoissonsolv = new hypre_struct2D(p, pgc);
+#else
+    if(p->N10 != 1)
+        ppoissonsolv = new reefmg2D(p, pgc);
+#endif
 
-	
-	// printer
-	pprint = new sflow_vtp_fsf(p,b,pgc);
-	
-	pprintbed = new sflow_vtp_bed(p);
-    
-    //6DOF
-    if(p->X10<2)
-    p6dof = new sixdof_void(p,pgc);
-    
-    if(p->X10>=2)
-    p6dof = new sixdof_sflow(p,pgc);
-	
-	// momentum
-    if(p->A210==2)
-	pmom = new sflow_momentum_RK2(p,b,pconvec,pdiff,ppress,psolv,ppoissonsolv,pflow,pfsf,psfdf,p6dof);
-    
-	if(p->A210==3)
-	pmom = new sflow_momentum_RK3(p,b,pconvec,pdiff,ppress,psolv,ppoissonsolv,pflow,pfsf,psfdf,p6dof);
-    
-    
-    //Potential Flow Solver
-    if(p->I11==0)
-    potflow = new sflow_potential_v(p);
+    psolv = new sflow_bicgstab(p, pgc);
 
-    if(p->I11==1)
-    potflow = new sflow_potential_f(p);
-    
+    // IOFlow
+    if(p->B60 == 0 && p->B90 == 0)
+        pflow = new ioflow_v(p, pgc, pBC);
+
+    if(p->B60 >= 1)
+        pflow = new ioflow_f(p, pgc, pBC);
+
+    if(p->B90 >= 1)
+        pflow = new iowave(p, pgc, pBC);
+
+    // printer
+    pprint = new sflow_vtp_fsf(p, b, pgc);
+
+    pprintbed = new sflow_vtp_bed(p);
+
+    // 6DOF
+    if(p->X10 < 2)
+        p6dof = new sixdof_void(p, pgc);
+
+    if(p->X10 >= 2)
+        p6dof = new sixdof_sflow(p, pgc);
+
+    // momentum
+    if(p->A210 == 2)
+        pmom = new sflow_momentum_RK2(p, b, pgc, phll, pss, precon, pdiff, ppress, psolv, ppoissonsolv, pflow, pfsf, psfdf, p6dof);
+
+    if(p->A210 != 2)
+        pmom = new sflow_momentum_RK3(p, b, pgc, phll, pss, precon, pdiff, ppress, psolv, ppoissonsolv, pflow, pfsf, psfdf, p6dof);
+
+    // mesh refinement (G 1): static boxes (G 10) and/or flagged regions (G 20, G 22)
+    if(p->G1 > 0 && (p->G10 > 0 || p->G20 > 0.0 || p->G22 > 0 || p->G12 > 0))
+    {
+        sflow_momentum_RK3 *prk3 = dynamic_cast<sflow_momentum_RK3 *>(pmom);
+
+        if(prk3 != nullptr)
+        {
+            pamr = new sflow_amr(p, b, pgc, pBC, p6dof, phll, prk3);
+            prk3->pamr = pamr;
+
+            // non-hydrostatic pressure on the composite grid
+            sflow_pressure_nh *pnh = dynamic_cast<sflow_pressure_nh *>(ppress);
+            if(p->A220 >= 1 && p->A220 <= 3 && pnh != nullptr)
+                pnh->amr = pamr;
+        }
+    }
+
+    // Potential Flow Solver
+    if(p->I11 == 0)
+        potflow = new sflow_potential_v(p);
+
+    if(p->I11 == 1)
+        potflow = new sflow_potential_f(p);
 }

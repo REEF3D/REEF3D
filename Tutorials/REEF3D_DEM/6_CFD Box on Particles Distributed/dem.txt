@@ -1,0 +1,12 @@
+# large box (replicated) on a layer of small spheres (distributed) across the rank boundary, dry
+material 1 2000 0.5 0.0
+wall_material 0.5 0.0
+shape 1 sphere 0.01
+shape 2 box 0.12 0.12 0.03
+wall 0 0 1  0 0 0
+wall 1 0 0  0 0 0
+wall -1 0 0  0.2 0 0
+wall 0 1 0  0 0 0
+wall 0 -1 0  0 0.2 0
+block 1 1  5 5 1  0.06 0.06 0.0101  0.0201 0.0201 0.0
+particle 2 1  0.1 0.1 0.036

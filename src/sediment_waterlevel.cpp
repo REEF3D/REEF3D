@@ -20,31 +20,31 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"sediment_f.h"
-#include"lexer.h"
-#include"fdm.h"
-#include"ghostcell.h"
-#include"sediment_fdm.h"
-#include"topo_relax.h"
-#include"ioflow.h"
-#include"vrans_v.h"
-#include"vrans_f.h"
+#include "fdm.h"
+#include "ghostcell.h"
+#include "ioflow.h"
+#include "lexer.h"
+#include "sediment_f.h"
+#include "sediment_fdm.h"
+#include "topo_relax.h"
+#include "vrans_f.h"
+#include "vrans_v.h"
 
 void sediment_f::waterlevel(lexer *p, fdm *a, ghostcell *pgc)
 {
-    double zval=0.0;
+    double zval = 0.0;
 
     SLICELOOP4
     {
-        zval = s->bedzh(i,j);
+        zval = s->bedzh(i, j);
 
         KLOOP
         PCHECK
-        if(a->phi(i,j,k)>=0.0 && a->phi(i,j,k+1)<0.0)
+        if(a->phi(i, j, k) >= 0.0 && a->phi(i, j, k + 1) < 0.0)
         {
-        zval=MAX(zval,-(a->phi(i-1,j,k)*p->DXM)/(a->phi(i,j,k+1)-a->phi(i,j,k)) + p->pos_z());
+            zval = MAX(zval, -(a->phi(i, j, k) * p->DZP[KP]) / (a->phi(i, j, k + 1) - a->phi(i, j, k)) + p->pos_z());
         }
 
-    s->waterlevel(i,j) = zval-s->bedzh(i,j);
+        s->waterlevel(i, j) = zval - s->bedzh(i, j);
     }
 }

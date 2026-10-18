@@ -1,0 +1,9 @@
+{
+ "description": "Ship module MMG manoeuvring model: KVLCC2 L7 (Yasukawa & Yoshimura 2015) as a box in NHFLOW with surge, sway and yaw free; MMG hull derivatives, added mass solved implicitly by the coupling (body frame -> inertial), MMG propeller wake, rudder with f_alpha and asymmetric gamma_R, fluid loads in surge/sway/yaw masked (mmg_fluid 0), 10/10 zig-zag start, 2 MPI ranks.",
+ "solver": "nhflow",
+ "np": 2,
+ "steps": 80,
+ "files": ["ship.dat"],
+ "tags": ["3d", "nhflow", "6dof", "ship", "mmg", "mpi"],
+ "covers": ["ship_models::mmg_hull", "ship_models::mmg_wake", "sixdof_load::added_mass + apply_added_mass", "sixdof_load::fluid_mask", "rudder_falpha, rudder_gamma", "midship offset (xG)"]
+}

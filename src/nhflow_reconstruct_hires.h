@@ -23,9 +23,9 @@ Author: Hans Bihs
 #ifndef NHFLOW_RECONSTRUCT_HIRES_H_
 #define NHFLOW_RECONSTRUCT_HIRES_H_
 
-#include"nhflow_reconstruct.h"
-#include"nhflow_gradient.h"
-#include"slice4.h"
+#include "nhflow_gradient.h"
+#include "nhflow_reconstruct.h"
+#include "slice4.h"
 
 class lexer;
 class ghostcell;
@@ -38,30 +38,29 @@ using namespace std;
 class nhflow_reconstruct_hires final : public nhflow_reconstruct, public nhflow_gradient
 {
 public:
-	nhflow_reconstruct_hires(lexer*,patchBC_interface*);
-	virtual ~nhflow_reconstruct_hires();
+    nhflow_reconstruct_hires(lexer *, patchBC_interface *);
+    virtual ~nhflow_reconstruct_hires();
 
-    inline void reconstruct_2D_x(lexer*,ghostcell*,fdm_nhf*,slice&,slice&,slice&) override final;
-    inline void reconstruct_2D_y(lexer*,ghostcell*,fdm_nhf*,slice&,slice&,slice&) override final;
-    inline void reconstruct_2D_WL(lexer*,ghostcell*,fdm_nhf*) override final;
-    
-    inline void reconstruct_3D_x(lexer*,ghostcell*,fdm_nhf*,double*,double*,double*) override final;
-    inline void reconstruct_3D_y(lexer*,ghostcell*,fdm_nhf*,double*,double*,double*) override final;
-    inline void reconstruct_3D_z(lexer*,ghostcell*,fdm_nhf*,double*,double*,double*) override final;
-    
-    slice4 dfdx,dfdy;
+    void reconstruct_2D_x(lexer *, ghostcell *, fdm_nhf *, slice &, slice &, slice &) override final;
+    void reconstruct_2D_y(lexer *, ghostcell *, fdm_nhf *, slice &, slice &, slice &) override final;
+    void reconstruct_2D_WL(lexer *, ghostcell *, fdm_nhf *) override final;
+
+    void reconstruct_3D_x(lexer *, ghostcell *, fdm_nhf *, double *, double *, double *) override final;
+    void reconstruct_3D_y(lexer *, ghostcell *, fdm_nhf *, double *, double *, double *) override final;
+    void reconstruct_3D_z(lexer *, ghostcell *, fdm_nhf *, double *, double *, double *) override final;
+
+    slice4 dfdx, dfdy;
     double *DFDX;
-
 
 private:
     inline double limiter(double, double);
 
-    double ivel1,ivel2,jvel1,jvel2;
-    double val,denom;
+    double ivel1, ivel2, jvel1, jvel2;
+    double val, denom;
     double dfdx_min, dfdx_plus, dfdy_min, dfdy_plus, dfdz_min, dfdz_plus;
     int qq;
-    double r, phi,minphi;
-    
+    double r, phi, minphi;
+
     patchBC_interface *pBC;
 };
 

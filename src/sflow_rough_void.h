@@ -23,9 +23,9 @@ Author: Hans Bihs
 #ifndef SFLOW_ROUGH_VOID_H_
 #define SFLOW_ROUGH_VOID_H_
 
-#include"sflow_roughness.h"
-#include"increment.h"
-#include"slice4.h"
+#include "increment.h"
+#include "sflow_roughness.h"
+#include "slice4.h"
 
 using namespace std;
 
@@ -33,12 +33,11 @@ class sflow_rough_void final : public sflow_roughness
 {
 
 public:
-    sflow_rough_void(lexer*);
-	virtual ~sflow_rough_void();
-    
-	void u_source(lexer*, fdm2D*, slice&) override final;
-    void v_source(lexer*, fdm2D*, slice&) override final;
+    sflow_rough_void(lexer *);
+    virtual ~sflow_rough_void();
 
+    void u_source(lexer *, fdm2D *, slice &, slice &, slice &) override final;
+    void v_source(lexer *, fdm2D *, slice &, slice &, slice &) override final;
 };
 
 #endif

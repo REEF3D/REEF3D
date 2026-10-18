@@ -19,13 +19,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Author: Fabian Knoblauch
 --------------------------------------------------------------------*/
-#include"momentum.h"
-#include"momentum_forcing.h"
-#include"bcmom.h"
-#include"field1.h"
-#include"field2.h"
-#include"field3.h"
-#include"field4.h"
+#include "bcmom.h"
+#include "field1.h"
+#include "field2.h"
+#include "field3.h"
+#include "field4.h"
+#include "momentum.h"
+#include "momentum_forcing.h"
 
 class convection;
 class diffusion;
@@ -51,42 +51,39 @@ using namespace std;
 
 class momentum_FC3_PLIC final : public momentum, public momentum_forcing, public bcmom
 {
-    
-public:
-	momentum_FC3_PLIC(lexer*, fdm*, ghostcell*, convection*, diffusion*, pressure*, poisson*, 
-                turbulence*, solver*, solver*, ioflow*, heat*&, concentration*&, reini*, fsi*);
-	virtual ~momentum_FC3_PLIC();
-	void start(lexer*, fdm*, ghostcell*, vrans*,sixdof*) override final;
-    void utimesave(lexer*, fdm*, ghostcell*);
-    void vtimesave(lexer*, fdm*, ghostcell*);
-    void wtimesave(lexer*, fdm*, ghostcell*);
 
-    field1 udiff,urk1,urk2,fx;
-	field2 vdiff,vrk1,vrk2,fy;
-	field3 wdiff,wrk1,wrk2,fz;
+public:
+    momentum_FC3_PLIC(lexer *, fdm *, ghostcell *, convection *, diffusion *, pressure *, poisson *,
+                      turbulence *, solver *, solver *, ioflow *, heat *&, concentration *&, reini *, fsi *);
+    virtual ~momentum_FC3_PLIC();
+    void start(lexer *, fdm *, ghostcell *, vrans *, sixdof *) override final;
+
+    field1 udiff, urk1, urk2, fx;
+    field2 vdiff, vrk1, vrk2, fy;
+    field3 wdiff, wrk1, wrk2, fz;
     field4 VoF, vof_rk1, vof_rk2;
-    
+
 private:
     fluid_update *pupdate;
-    
-	void irhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
-	void jrhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
-	void krhs(lexer*,fdm*,ghostcell*,field&,field&,field&,field&,double);
-    void clear_FGH(lexer*,fdm*);
-	
-	int gcval_u, gcval_v, gcval_w;
-    int gcval_vof, gcval_phi,gcval_ro,gcval_visc;
-	double starttime;
 
-	convection *pconvec;
+    void irhs(lexer *, fdm *, ghostcell *, field &, field &, field &, field &, double);
+    void jrhs(lexer *, fdm *, ghostcell *, field &, field &, field &, field &, double);
+    void krhs(lexer *, fdm *, ghostcell *, field &, field &, field &, field &, double);
+    void clear_FGH(lexer *, fdm *);
+
+    int gcval_u, gcval_v, gcval_w;
+    int gcval_vof, gcval_phi, gcval_ro, gcval_visc;
+    double starttime;
+
+    convection *pconvec;
     convection *pfsfdisc;
-	diffusion *pdiff;
-	pressure *ppress;
-	poisson *ppois;
-	turbulence *pturb;
-	solver *psolv;
+    diffusion *pdiff;
+    pressure *ppress;
+    poisson *ppois;
+    turbulence *pturb;
+    solver *psolv;
     solver *ppoissonsolv;
-	ioflow *pflow;
+    ioflow *pflow;
     nhflow *pnh;
     sixdof *p6dof;
     fsi *pfsi;
@@ -94,7 +91,6 @@ private:
     reini *preini;
     density *pd;
     picard *ppicard;
-    
 };
 
 #endif

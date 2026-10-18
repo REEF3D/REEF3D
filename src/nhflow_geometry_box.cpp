@@ -20,197 +20,26 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"nhflow_geometry.h"
-#include"lexer.h"
-#include"ghostcell.h"
+#include "fdm_nhf.h"
+#include "geo_primitive.h"
+#include "ghostcell.h"
+#include "lexer.h"
+#include "nhflow_geometry.h"
 
 void nhflow_geometry::box(lexer *p, ghostcell *pgc, int id)
 {
     xs = box_xs[id];
     xe = box_xe[id];
-	
+
     ys = box_ys[id];
     ye = box_ye[id];
 
     zs = box_zs[id];
     ze = box_ze[id];
-    
-	// Face 3
-	// Tri 1
-	tstart[entity_count]=tricount;
-	
-	tri_x[tricount][0] = xs;
-	tri_x[tricount][1] = xe;
-	tri_x[tricount][2] = xe;
 
-	tri_y[tricount][0] = ys;
-	tri_y[tricount][1] = ys;
-	tri_y[tricount][2] = ys;
+    tstart[entity_count] = tricount;
 
-	tri_z[tricount][0] = zs;
-	tri_z[tricount][1] = zs;
-	tri_z[tricount][2] = ze;
-	++tricount;
+    geo_primitive::box(tri_x, tri_y, tri_z, tricount, xs, xe, ys, ye, zs, ze);
 
-	// Tri 2
-	tri_x[tricount][0] = xe;
-	tri_x[tricount][1] = xs;
-	tri_x[tricount][2] = xs;
-
-	tri_y[tricount][0] = ys;
-	tri_y[tricount][1] = ys;
-	tri_y[tricount][2] = ys;
-
-	tri_z[tricount][0] = ze;
-	tri_z[tricount][1] = ze;
-	tri_z[tricount][2] = zs;
-	++tricount;
-
-	// Face 4
-	// Tri 3
-	tri_x[tricount][0] = xe;
-	tri_x[tricount][1] = xe;
-	tri_x[tricount][2] = xe;
-
-	tri_y[tricount][0] = ye;
-	tri_y[tricount][1] = ys;
-	tri_y[tricount][2] = ys;
-
-	tri_z[tricount][0] = ze;
-	tri_z[tricount][1] = ze;
-	tri_z[tricount][2] = zs;
-	++tricount;
-
-	// Tri 4
-	tri_x[tricount][0] = xe;
-	tri_x[tricount][1] = xe;
-	tri_x[tricount][2] = xe;
-
-	tri_y[tricount][0] = ye;
-	tri_y[tricount][1] = ye;
-	tri_y[tricount][2] = ys;
-
-	tri_z[tricount][0] = zs;
-	tri_z[tricount][1] = ze;
-	tri_z[tricount][2] = zs;
-	++tricount;
-
-	// Face 1
-	// Tri 5
-	tri_x[tricount][0] = xs;
-	tri_x[tricount][1] = xs;
-	tri_x[tricount][2] = xs;
-
-	tri_y[tricount][0] = ye;
-	tri_y[tricount][1] = ye;
-	tri_y[tricount][2] = ys;
-
-	tri_z[tricount][0] = ze;
-	tri_z[tricount][1] = zs;
-	tri_z[tricount][2] = zs;
-	++tricount;
-
-	// Tri 6
-	tri_x[tricount][0] = xs;
-	tri_x[tricount][1] = xs;
-	tri_x[tricount][2] = xs;
-
-	tri_y[tricount][0] = ys;
-	tri_y[tricount][1] = ye;
-	tri_y[tricount][2] = ys;
-
-	tri_z[tricount][0] = ze;
-	tri_z[tricount][1] = ze;
-	tri_z[tricount][2] = zs;
-	++tricount;
-	
-	// Face 2
-	// Tri 7
-	tri_x[tricount][0] = xe;
-	tri_x[tricount][1] = xe;
-	tri_x[tricount][2] = xs;
-
-	tri_y[tricount][0] = ye;
-	tri_y[tricount][1] = ye;
-	tri_y[tricount][2] = ye;
-
-	tri_z[tricount][0] = ze;
-	tri_z[tricount][1] = zs;
-	tri_z[tricount][2] = zs;
-	++tricount;
-
-	// Tri 8
-	tri_x[tricount][0] = xs;
-	tri_x[tricount][1] = xe;
-	tri_x[tricount][2] = xs;
-
-	tri_y[tricount][0] = ye;
-	tri_y[tricount][1] = ye;
-	tri_y[tricount][2] = ye;
-
-	tri_z[tricount][0] = ze;
-	tri_z[tricount][1] = ze;
-	tri_z[tricount][2] = zs;
-	++tricount;
-
-	// Face 5
-	// Tri 9
-	tri_x[tricount][0] = xe;
-	tri_x[tricount][1] = xe;
-	tri_x[tricount][2] = xs;
-
-	tri_y[tricount][0] = ye;
-	tri_y[tricount][1] = ys;
-	tri_y[tricount][2] = ys;
-
-	tri_z[tricount][0] = zs;
-	tri_z[tricount][1] = zs;
-	tri_z[tricount][2] = zs;
-	++tricount;
-
-	// Tri 10
-	tri_x[tricount][0] = xs;
-	tri_x[tricount][1] = xe;
-	tri_x[tricount][2] = xs;
-
-	tri_y[tricount][0] = ye;
-	tri_y[tricount][1] = ye;
-	tri_y[tricount][2] = ys;
-
-	tri_z[tricount][0] = zs;
-	tri_z[tricount][1] = zs;
-	tri_z[tricount][2] = zs;
-	++tricount;
-
-	// Face 6
-	// Tri 11
-	tri_x[tricount][0] = xs;
-	tri_x[tricount][1] = xe;
-	tri_x[tricount][2] = xe;
-
-	tri_y[tricount][0] = ys;
-	tri_y[tricount][1] = ys;
-	tri_y[tricount][2] = ye;
-
-	tri_z[tricount][0] = ze;
-	tri_z[tricount][1] = ze;
-	tri_z[tricount][2] = ze;
-	++tricount;
-
-	// Tri 12
-	tri_x[tricount][0] = xs;
-	tri_x[tricount][1] = xe;
-	tri_x[tricount][2] = xs;
-
-	tri_y[tricount][0] = ys;
-	tri_y[tricount][1] = ye;
-	tri_y[tricount][2] = ye;
-
-	tri_z[tricount][0] = ze;
-	tri_z[tricount][1] = ze;
-	tri_z[tricount][2] = ze;
-	++tricount;
-	 
-	tend[entity_count]=tricount;
-    
+    tend[entity_count] = tricount;
 }

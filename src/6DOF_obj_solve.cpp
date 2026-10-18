@@ -20,168 +20,132 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Authors: Tobias Martin, Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"6DOF_obj.h"
-#include"lexer.h"
-#include"fdm.h"
-#include"fdm_nhf.h"
-#include"ghostcell.h"
+#include "6DOF_obj.h"
+#include "6DOF_obj_2D.h"
+#include "6DOF_obj_cfd.h"
+#include "6DOF_obj_nhflow.h"
+#include "fdm.h"
+#include "fdm_nhf.h"
+#include "ghostcell.h"
+#include "lexer.h"
 
-void sixdof_obj::solve_eqmotion_cfd(lexer *p, fdm *a, ghostcell *pgc, int iter, bool finalize)
+void sixdof_obj_cfd::solve_eqmotion_cfd(lexer *p, fdm *a, ghostcell *pgc, int iter, bool finalize)
 {
     externalForces_cfd(p, a, pgc, alpha[iter], finalize);
-    
+
+    // load models (ship module) sample the CFD velocity
+    sixdof_fluid_cfd fluid(p, a, pgc);
+    pfluid = &fluid;
+
     update_forces(p);
-    
-    if(p->N40==2 || p->N40==12 || p->N40==22)
-    rk2(p,pgc,iter);
-    
-    if(p->N40==3 || p->N40==13 || p->N40==23 || p->N40==33)
-    rk3(p,pgc,iter);
-   
-    if(p->N40==4 || p->N40==44)
-    rkls3(p,pgc,iter);
+
+    pfluid = nullptr;
+
+    if(p->N40 == 2 || p->N40 == 12 || p->N40 == 22)
+        rk2(p, pgc, iter);
+
+    if(p->N40 == 3 || p->N40 == 13 || p->N40 == 23 || p->N40 == 33)
+        rk3(p, pgc, iter);
+
+    // low-storage RK3: FCLS3 (4, 24), RKLS3_df (14, also N40=13 with X10>0), RKLS3 (44)
+    if(p->N40 == 4 || p->N40 == 14 || p->N40 == 24 || p->N40 == 44)
+        rkls3(p, pgc, iter);
 }
 
-void sixdof_obj::solve_eqmotion_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter, bool finalize)
+void sixdof_obj_nhflow::solve_eqmotion_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter, bool finalize)
 {
     externalForces_nhflow(p, d, pgc, alpha[iter], finalize);
 
+    // load models (ship module) sample the NHFLOW velocity
+    sixdof_fluid_nhflow fluid(p, d, pgc);
+    pfluid = &fluid;
+
     update_forces(p);
-    
-    if(p->A510==2)
-    rk2(p,pgc,iter);
-    
-    if(p->A510==3)
-    rk3(p,pgc,iter);
+
+    pfluid = nullptr;
+
+    // membranes (X 330) attached to the body: added-mass stabilisation of the partitioned coupling
+    if(p->X330 > 0)
+        membrane_stabilisation(p, iter);
+
+    // porous floating body: linearly implicit drag
+    if(p->X16 == 1)
+        porous_damping_nhflow(p, iter);
+
+    if(p->A510 == 2)
+        rk2(p, pgc, iter);
+
+    if(p->A510 == 3)
+        rk3(p, pgc, iter);
 }
 
-void sixdof_obj::solve_eqmotion_sflow(lexer *p, ghostcell *pgc, int iter, bool finalize)
+void sixdof_obj_2D::solve_eqmotion_sflow(lexer *p, ghostcell *pgc, int iter, bool finalize)
 {
     update_forces(p);
-    
-    if(p->A210==2)
-    rk2(p,pgc,iter);
-    
-    if(p->A210==3)
-    rk3(p,pgc,iter);
+
+    if(p->A210 == 2)
+        rk2(p, pgc, iter);
+
+    if(p->A210 == 3)
+        rk3(p, pgc, iter);
 }
 
-void sixdof_obj::solve_eqmotion_oneway_nhflow(lexer *p, ghostcell *pgc, int iter, bool finalize)
+void sixdof_obj_nhflow::solve_eqmotion_oneway_nhflow(lexer *p, ghostcell *pgc, int iter, bool finalize)
 {
-    if(p->A510==2)
-    rk2(p,pgc,iter);
-    
-    if(p->A510==3)
-    rk3(p,pgc,iter);       
+    if(p->A510 == 2)
+        rk2(p, pgc, iter);
+
+    if(p->A510 == 3)
+        rk3(p, pgc, iter);
 }
 
-void sixdof_obj::solve_eqmotion_oneway_sflow(lexer *p, ghostcell *pgc, int iter, bool finalize)
+void sixdof_obj_2D::solve_eqmotion_oneway_sflow(lexer *p, ghostcell *pgc, int iter, bool finalize)
 {
-    if(p->A210==2)
-    rk2(p,pgc,iter);
-    
-    if(p->A210==3)
-    rk3(p,pgc,iter);       
+    if(p->A210 == 2)
+        rk2(p, pgc, iter);
+
+    if(p->A210 == 3)
+        rk3(p, pgc, iter);
 }
-    
+
 void sixdof_obj::rk2(lexer *p, ghostcell *pgc, int iter)
-{   
-    get_trans(p, pgc, dp_, dc_, p_, c_);    
-    get_rot(p, dh_, de_, h_, e_);
-        
-    if(iter==0)
-    {
-        pk_ = p_;
-        ck_ = c_;
-        hk_ = h_;
-        ek_ = e_;
+{
+    get_trans(p, pgc);
+    get_rot(p);
 
-        p_ = pk_ + p->dt*dp_;
-        c_ = ck_ + p->dt*dc_;
-        h_ = hk_ + p->dt*dh_;
-        e_ = ek_ + p->dt*de_;
-    }
-    
-    if(iter==1)
-    {  
-        p_ = 0.5*pk_ + 0.5*p_ + 0.5*p->dt*dp_;
-        c_ = 0.5*ck_ + 0.5*c_ + 0.5*p->dt*dc_;
-        h_ = 0.5*hk_ + 0.5*h_ + 0.5*p->dt*dh_;
-        e_ = 0.5*ek_ + 0.5*e_ + 0.5*p->dt*de_;    
-    }
+    rb.stage_rk2(iter, p->dt);
 }
 
 void sixdof_obj::rk3(lexer *p, ghostcell *pgc, int iter)
-{   
-    get_trans(p, pgc, dp_, dc_, p_, c_);    
-    get_rot(p, dh_, de_, h_, e_);
-        
-    if(iter==0)
-    {
-        pk_ = p_;
-        ck_ = c_;
-        hk_ = h_;
-        ek_ = e_;
-        
-        p_ = pk_ + p->dt*dp_;
-        c_ = ck_ + p->dt*dc_;
-        h_ = hk_ + p->dt*dh_;
-        e_ = ek_ + p->dt*de_;
-    }
-    
-    if(iter==1)
-    {
-        p_ = 0.75*pk_ + 0.25*p_ + 0.25*p->dt*dp_;
-        c_ = 0.75*ck_ + 0.25*c_ + 0.25*p->dt*dc_;
-        h_ = 0.75*hk_ + 0.25*h_ + 0.25*p->dt*dh_;
-        e_ = 0.75*ek_ + 0.25*e_ + 0.25*p->dt*de_;
-    }  
-    
-    if(iter==2)
-    {
-        p_ = (1.0/3.0)*pk_ + (2.0/3.0)*p_ + (2.0/3.0)*p->dt*dp_;
-        c_ = (1.0/3.0)*ck_ + (2.0/3.0)*c_ + (2.0/3.0)*p->dt*dc_;
-        h_ = (1.0/3.0)*hk_ + (2.0/3.0)*h_ + (2.0/3.0)*p->dt*dh_;
-        e_ = (1.0/3.0)*ek_ + (2.0/3.0)*e_ + (2.0/3.0)*p->dt*de_;
-    }
+{
+    get_trans(p, pgc);
+    get_rot(p);
+
+    rb.stage_rk3(iter, p->dt);
 }
 
 void sixdof_obj::rkls3(lexer *p, ghostcell *pgc, int iter)
 {
-    get_trans(p, pgc, dp_, dc_, p_, c_);    
-    get_rot(p, dh_, de_, h_, e_);
+    get_trans(p, pgc);
+    get_rot(p);
 
-    p_ = p_ + gamma[iter]*p->dt*dp_ + zeta[iter]*p->dt*dpk_;
-    c_ = c_ + gamma[iter]*p->dt*dc_ + zeta[iter]*p->dt*dck_;
-    h_ = h_ + gamma[iter]*p->dt*dh_ + zeta[iter]*p->dt*dhk_;
-    e_ = e_ + gamma[iter]*p->dt*de_ + zeta[iter]*p->dt*dek_;
-    
-    dpk_ = dp_;
-    dck_ = dc_;
-    dhk_ = dh_;
-    dek_ = de_;
+    rb.stage_rkls3(iter, gamma[iter], zeta[iter], p->dt);
 }
 
 void sixdof_obj::solve_eqmotion_oneway_onestep(lexer *p, ghostcell *pgc, bool finalize)
 {
-    get_trans(p, pgc, dp_, dc_, p_, c_);    
-    get_rot(p, dh_, de_, h_, e_);
-        
-        pk_ = p_;
-        ck_ = c_;
-        hk_ = h_;
-        ek_ = e_;
+    get_trans(p, pgc);
+    get_rot(p);
 
-        p_ = p_ + p->dt*dp_;
-        c_ = c_ + p->dt*dc_;
-        h_ = h_ + p->dt*dh_;
-        e_ = e_ + p->dt*de_;
-
-        p_ = 0.5*pk_ + 0.5*p_ + 0.5*p->dt*dp_;
-        c_ = 0.5*ck_ + 0.5*c_ + 0.5*p->dt*dc_;
-        h_ = 0.5*hk_ + 0.5*h_ + 0.5*p->dt*dh_;
-        e_ = 0.5*ek_ + 0.5*e_ + 0.5*p->dt*de_;         
+    rb.step_onestep(p->dt);
 }
 
+void sixdof_obj::rk4(lexer *p, ghostcell *pgc, int iter)
+{
+    // classical RK4, stage-synchronous with fnpf_RK4
+    get_trans(p, pgc);
+    get_rot(p);
 
+    rb.stage_rk4(iter, p->dt);
+}
 

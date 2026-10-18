@@ -20,39 +20,36 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"nhflow_forcing.h"
-#include"lexer.h"
-#include"fdm_nhf.h"
-#include"ghostcell.h"
-#include"nhflow_reinidisc_fsf.h"
+#include "fdm_nhf.h"
+#include "ghostcell.h"
+#include "lexer.h"
+#include "nhflow_forcing.h"
+#include "nhflow_reinidisc_fsf.h"
 
 double nhflow_forcing::Hsolidface(lexer *p, fdm_nhf *d, int aa, int bb, int cc)
 {
-    double psi, H, phival_sf,dirac;
-    
-    //if(p->j_dir==0)
-    //psi = p->X41*(1.0/1.0)*(p->DXN[IP]);
-	
-    if(p->j_dir==0)
-    psi = p->X41*(1.0/2.0)*(p->DXN[IP] + p->DZN[KP]*p->WL[IJ]);
-    
-    if(p->j_dir==1)
-    psi = p->X41*(1.0/3.0)*(p->DXN[IP] + p->DYN[JP] + p->DZN[KP]*p->WL[IJ]);
+    double psi, H, phival_sf, dirac;
 
+    // if(p->j_dir==0)
+    // psi = p->X41*(1.0/1.0)*(p->DXN[IP]);
+
+    if(p->j_dir == 0)
+        psi = p->A526 * (1.0 / 1.0) * (p->DXN[IP] + 0.0 * p->DZN[KP] * p->WL[IJ]);
+
+    if(p->j_dir == 1)
+        psi = p->A526 * (1.0 / 2.0) * (p->DXN[IP] + p->DYN[JP] + 0.0 * p->DZN[KP] * p->WL[IJ]);
 
     // Construct solid heaviside function
     phival_sf = d->SOLID[IJK];
-    
-	
+
     if(-phival_sf > psi)
-    H = 1.0;
+        H = 1.0;
 
     if(-phival_sf < -psi)
-    H = 0.0;
+        H = 0.0;
 
-    if(fabs(phival_sf)<=psi)
-    H = 0.5*(1.0 + -phival_sf/psi + (1.0/PI)*sin((PI*-phival_sf)/psi));
-        
+    if(fabs(phival_sf) <= psi)
+        H = 0.5 * (1.0 + -phival_sf / psi + (1.0 / PI) * sin((PI * -phival_sf) / psi));
 
     return H;
 }

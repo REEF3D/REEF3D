@@ -20,104 +20,135 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"iowave.h"
-#include"lexer.h"
-#include"fdm_nhf.h"
-#include"ghostcell.h"
- 
-void iowave::inflow_nhflow(lexer *p, fdm_nhf *d, ghostcell* pgc, double *U, double *V, double *W, double *UH, double *VH, double *WH, slice &WL)
+#include "fdm_nhf.h"
+#include "ghostcell.h"
+#include "iowave.h"
+#include "lexer.h"
+
+void iowave::inflow_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W, double *UH, double *VH, double *WH, slice &WL)
 {
-    if(p->B98==0)
-    nhflow_inflow_plain(p,d,pgc,U,V,W,UH,VH,WH);
-    
-	if(p->B98==3)
-	nhflow_dirichlet_wavegen(p,d,pgc,U,V,W,UH,VH,WH,WL);
-	
-	if(p->B98==4)
-	nhflow_active_wavegen(p,d,pgc,U,V,W,UH,VH,WH,WL);
-    
-	if(p->B99==3||p->B99==4||p->B99==5)
-	nhflow_active_beach(p,d,pgc,U,V,W,UH,VH,WH);
+    if(p->B98 == 0)
+        nhflow_inflow_plain(p, d, pgc, U, V, W, UH, VH, WH);
+
+    if(p->B98 == 3)
+        nhflow_dirichlet_wavegen(p, d, pgc, U, V, W, UH, VH, WH, WL);
+
+    if(p->B98 == 4)
+        nhflow_active_wavegen(p, d, pgc, U, V, W, UH, VH, WH, WL);
+
+    if(p->B99 == 3 || p->B99 == 4 || p->B99 == 5)
+        nhflow_active_beach(p, d, pgc, U, V, W, UH, VH, WH);
+
+    // Riemann / Flather edges (B 520 method 3, 4)
+    nhflow_open_edges(p, d, pgc, U, V, W, UH, VH, WH, WL);
 }
 
-void iowave::rkinflow_nhflow(lexer *p, fdm_nhf *d, ghostcell* pgc, double *U, double *V, double *W, double *UH, double *VH, double *WH, slice &WL)
+void iowave::rkinflow_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W, double *UH, double *VH, double *WH, slice &WL)
 {
-    for(n=0;n<p->gcin_count;n++)
+    for(n = 0; n < p->gcin_count; n++)
     {
-    i=p->gcin[n][0];
-    j=p->gcin[n][1];
-    k=p->gcin[n][2];
+        i = p->gcin[n][0];
+        j = p->gcin[n][1];
+        k = p->gcin[n][2];
 
-        U[Im3JK]=U[Im2JK]=U[Im1JK]=d->U[Im1JK];
-        V[Im3JK]=V[Im2JK]=V[Im1JK]=d->V[Im1JK];
-        W[Im3JK]=W[Im2JK]=W[Im1JK]=d->W[Im1JK];
-        
-        UH[Im3JK]=UH[Im2JK]=UH[Im1JK]=d->UH[Im1JK];
-        VH[Im3JK]=VH[Im2JK]=VH[Im1JK]=d->VH[Im1JK];
-        WH[Im3JK]=WH[Im2JK]=WH[Im1JK]=d->WH[Im1JK];
+        U[Im3JK] = U[Im2JK] = U[Im1JK] = d->U[Im1JK];
+        V[Im3JK] = V[Im2JK] = V[Im1JK] = d->V[Im1JK];
+        W[Im3JK] = W[Im2JK] = W[Im1JK] = d->W[Im1JK];
+
+        UH[Im3JK] = UH[Im2JK] = UH[Im1JK] = d->UH[Im1JK];
+        VH[Im3JK] = VH[Im2JK] = VH[Im1JK] = d->VH[Im1JK];
+        WH[Im3JK] = WH[Im2JK] = WH[Im1JK] = d->WH[Im1JK];
     }
-    
-    if(p->B99==3||p->B99==4||p->B99==5)
-	nhflow_active_beach(p,d,pgc,U,V,W,UH,VH,WH);
+
+    if(p->B99 == 3 || p->B99 == 4 || p->B99 == 5)
+        nhflow_active_beach(p, d, pgc, U, V, W, UH, VH, WH);
+
+    nhflow_open_edges_rk(p, d, U, V, W, UH, VH, WH);
 }
 
-void iowave::rkinflow_nhflow(lexer *p, fdm_nhf *d,ghostcell *pgc, double *F, double *G)
+void iowave::rkinflow_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double *F, double *G)
 {
-    for(n=0;n<p->gcin_count;n++)
+    for(n = 0; n < p->gcin_count; n++)
     {
-    i=p->gcin[n][0];
-    j=p->gcin[n][1];
-    k=p->gcin[n][2];
+        i = p->gcin[n][0];
+        j = p->gcin[n][1];
+        k = p->gcin[n][2];
 
-        F[Im3JK]=F[Im2JK]=F[Im1JK]=G[Im1JK];
-    }
-}
-
-void iowave::nhflow_inflow_plain(lexer *p, fdm_nhf *d, ghostcell* pgc, double *U, double *V, double *W, double *UH, double *VH, double *WH)
-{
-    for(n=0;n<p->gcin_count;n++)
-    {
-    i=p->gcin[n][0];
-    j=p->gcin[n][1];
-    k=p->gcin[n][2];
-
-        U[Im1JK]=p->Ui;
-        U[Im2JK]=p->Ui;
-        U[Im3JK]=p->Ui;
-		
-        V[Im1JK]=0.0;
-        V[Im2JK]=0.0;
-        V[Im3JK]=0.0;
-		
-        W[Im1JK]=0.0;
-        W[Im2JK]=0.0;
-        W[Im3JK]=0.0;
-        
-        UH[Im1JK]=(d->eta(i,j)+d->depth(i,j))*p->Ui;
-        UH[Im2JK]=(d->eta(i,j)+d->depth(i,j))*p->Ui;
-        UH[Im3JK]=(d->eta(i,j)+d->depth(i,j))*p->Ui;
-		
-        VH[Im1JK]=0.0;
-        VH[Im2JK]=0.0;
-        VH[Im3JK]=0.0;
-		
-        WH[Im1JK]=0.0;
-        WH[Im2JK]=0.0;
-        WH[Im3JK]=0.0;
+        F[Im3JK] = F[Im2JK] = F[Im1JK] = G[Im1JK];
     }
 }
 
-void iowave::fsfinflow_nhflow(lexer *p, fdm_nhf* d, ghostcell* pgc, slice &WL)
+void iowave::nhflow_inflow_plain(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W, double *UH, double *VH, double *WH)
 {
-    if(p->B98>=3)
-    for(n=0;n<p->gcslin_count;n++)
+    for(n = 0; n < p->gcin_count; n++)
     {
-    i=p->gcslin[n][0];
-    j=p->gcslin[n][1];
-    
-    WL(i-1,j) = eta(i,j) + d->depth(i,j);
-    WL(i-2,j) = eta(i,j) + d->depth(i,j);
-    WL(i-3,j) = eta(i,j) + d->depth(i,j);
+        i = p->gcin[n][0];
+        j = p->gcin[n][1];
+        k = p->gcin[n][2];
+
+        U[Im1JK] = p->Ui;
+        U[Im2JK] = p->Ui;
+        U[Im3JK] = p->Ui;
+
+        V[Im1JK] = 0.0;
+        V[Im2JK] = 0.0;
+        V[Im3JK] = 0.0;
+
+        W[Im1JK] = 0.0;
+        W[Im2JK] = 0.0;
+        W[Im3JK] = 0.0;
+
+        UH[Im1JK] = (d->eta(i, j) + d->depth(i, j)) * p->Ui;
+        UH[Im2JK] = (d->eta(i, j) + d->depth(i, j)) * p->Ui;
+        UH[Im3JK] = (d->eta(i, j) + d->depth(i, j)) * p->Ui;
+
+        VH[Im1JK] = 0.0;
+        VH[Im2JK] = 0.0;
+        VH[Im3JK] = 0.0;
+
+        WH[Im1JK] = 0.0;
+        WH[Im2JK] = 0.0;
+        WH[Im3JK] = 0.0;
     }
-    
+}
+
+void iowave::fsfinflow_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
+{
+    if(p->B98 >= 3)
+        for(n = 0; n < p->gcslin_count; n++)
+        {
+            i = p->gcslin[n][0];
+            j = p->gcslin[n][1];
+
+            WL(i - 1, j) = eta(i, j) + d->depth(i, j);
+            WL(i - 2, j) = eta(i, j) + d->depth(i, j);
+            WL(i - 3, j) = eta(i, j) + d->depth(i, j);
+        }
+
+    // Riemann / Flather edges (B 520 method 3, 4)
+    nhflow_open_edges_wl(p, d, WL);
+}
+
+void iowave::fsfinflow_flux_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
+{
+    // A515=4, Dirichlet wavemaker (B98=3):
+    // impose the prescribed mass flux exactly at the inflow face, so the
+    // free-surface and omega updates see UH_bc instead of the reconstructed
+    // HLL flux (whose dissipation term S_L*S_R*(D_R-D_L) and one-sided
+    // reconstruction add or remove mass at the boundary)
+    if(p->B98 != 3 || p->A515 != 4)
+        return;
+
+    count = 0;
+    for(n = 0; n < p->gcin_count; ++n)
+    {
+        i = p->gcin[n][0];
+        j = p->gcin[n][1];
+        k = p->gcin[n][2];
+
+        if(p->wet[IJ] == 1)
+            d->FEx[Im1JK] = UHval[count] * ramp(p);
+
+        ++count;
+    }
 }

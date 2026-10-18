@@ -20,53 +20,25 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"potentialfile_out.h"
-#include"lexer.h"
-#include"fdm_fnpf.h"
-#include"ghostcell.h"
-#include<sys/stat.h>
-#include<sys/types.h>
-
+#include "fdm_fnpf.h"
+#include "ghostcell.h"
+#include "lexer.h"
+#include "potentialfile_out.h"
+#include <sys/stat.h>
+#include <sys/types.h>
 
 void potentialfile_out::write_data(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
-    
+
     /*
     bedlevel SWL
     number of vertical points n
     sig_1….sig_n
     t  eta  U1……U2  W1…..W2  	*/
 
-    i=iloc[n];
-    j=0;
+    i = iloc[n];
+    j = 0;
 
-            
     // PRINT DATA
-    /*
-    ffn = float(p->simtime);
-    fileout[n].write((char*)&ffn, sizeof (float));
-    
-    ffn = float(c->eta(i,j));
-    fileout[n].write((char*)&ffn, sizeof (float));
-    
-    for(qn=0;qn<p->knoz;++qn)
-    {
-    ffn = float(c->u(i,j,k));
-    fileout[n].write((char*)&ffn, sizeof (float));
-    }
-    
-    for(qn=0;qn<p->knoz;++qn)
-    {
-    ffn = float(c->w(i,j,k));
-    fileout[n].write((char*)&ffn, sizeof (float));
-    }*/
-    
 }
-
-
-
-
-
-
-
 

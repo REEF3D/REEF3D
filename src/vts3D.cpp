@@ -21,128 +21,129 @@ Author: Alexander Hanke
 --------------------------------------------------------------------*/
 
 #include "vts3D.h"
-#include "lexer.h"
 #include "fdm.h"
 #include "fdm_fnpf.h"
 #include "fdm_nhf.h"
 #include "ghostcell.h"
+#include "lexer.h"
+#include "runlog.h"
 #include <sys/stat.h>
 
 void vts3D::folder(const char *A10)
 {
-    snprintf(pname,sizeof(pname),"./REEF3D_%s_VTS", A10);
-    mkdir(pname,0777);
+    snprintf(pname, sizeof(pname), "./REEF3D_%s_VTS", A10);
+    mkdir(pname, 0777);
 }
 
 void vts3D::fileName(char *name, const unsigned int size, const char *A10, const int num, const int rank)
 {
-    snprintf(name,size,"./REEF3D_%s_VTS/REEF3D-%s-%08i-%06i.vts",A10,A10,num,rank);
+    snprintf(name, size, "./REEF3D_%s_VTS/REEF3D-%s-%08i-%06i.vts", A10, A10, num, rank);
 }
 
 void vts3D::parallelFileName(char *name, const unsigned int size, const char *A10, const int num)
 {
-    snprintf(name,size,"./REEF3D_%s_VTS/REEF3D-%s-%08i.pvts",A10,A10,num);
+    snprintf(name, size, "./REEF3D_%s_VTS/REEF3D-%s-%08i.pvts", A10, A10, num);
 }
 
 void vts3D::extent(lexer *p, ghostcell *pgc)
 {
     int iextent[6];
-    iextent[0]=p->origin_i;
-    iextent[1]=p->origin_i+p->knox;
-    iextent[2]=p->origin_j;
-    iextent[3]=p->origin_j+p->knoy;
-    iextent[4]=p->origin_k;
-    iextent[5]=p->origin_k+p->knoz;
-    
+    iextent[0] = p->origin_i;
+    iextent[1] = p->origin_i + p->knox;
+    iextent[2] = p->origin_j;
+    iextent[3] = p->origin_j + p->knoy;
+    iextent[4] = p->origin_k;
+    iextent[5] = p->origin_k + p->knoz;
+
     if(p->mpirank == 0)
-        piextent = (int *)malloc(p->mpi_size*6*sizeof(int)); 
-    pgc->gather_int(iextent,6,piextent,6);
+        piextent = (int *)malloc(p->mpi_size * 6 * sizeof(int));
+    pgc->gather_int(iextent, 6, piextent, 6);
 }
 
 void vts3D::offset(lexer *p, int *offset, int &n)
 {
     // Points
-    offset[n]=offset[n-1]+3*sizeof(float)*p->pointnum+sizeof(int);
+    offset[n] = offset[n - 1] + 3 * sizeof(float) * p->pointnum + sizeof(int);
     ++n;
 }
 
 void vts3D::beginning(lexer *p, std::ostream &result)
 {
     xmlVersion(result);
-    result<<"<VTKFile type=\"StructuredGrid\" ";
+    result << "<VTKFile type=\"StructuredGrid\" ";
     vtkVersion(result);
-    result<<"<StructuredGrid WholeExtent=\""<<p->origin_i<<" "<<p->origin_i+p->knox<<" "<<p->origin_j<<" "<<p->origin_j+p->knoy<<" "<<p->origin_k<<" "<<p->origin_k+p->knoz<<"\">\n";
-    if(p->P16==1)
-        timeValue(result,p->P34<0.0?p->simtime:p->sedtime);
-    result<<"<Piece Extent=\""<<p->origin_i<<" "<<p->origin_i+p->knox<<" "<<p->origin_j<<" "<<p->origin_j+p->knoy<<" "<<p->origin_k<<" "<<p->origin_k+p->knoz<<"\">\n";
+    result << "<StructuredGrid WholeExtent=\"" << p->origin_i << " " << p->origin_i + p->knox << " " << p->origin_j << " " << p->origin_j + p->knoy << " " << p->origin_k << " " << p->origin_k + p->knoz << "\">\n";
+    if(p->P16 == 1)
+        timeValue(result, p->P34 < 0.0 ? p->simtime : p->sedtime, p->plog ? p->plog->id() : std::string());
+    result << "<Piece Extent=\"" << p->origin_i << " " << p->origin_i + p->knox << " " << p->origin_j << " " << p->origin_j + p->knoy << " " << p->origin_k << " " << p->origin_k + p->knoz << "\">\n";
 }
 
 void vts3D::beginningParallel(lexer *p, std::ostream &result)
 {
     xmlVersion(result);
-    result<<"<VTKFile type=\"PStructuredGrid\" ";
+    result << "<VTKFile type=\"PStructuredGrid\" ";
     vtkVersion(result);
-    result<<"<PStructuredGrid WholeExtent=\"0 "<<p->gknox<<" 0 "<<p->gknoy<<" 0 "<<p->gknoz<<"\" GhostLevel=\"0\" Origin=\"0 0 0\" Spacing=\"1 1 1\">\n";
-    if(p->P16==1)
-        timeValue(result,p->P34<0.0?p->simtime:p->sedtime);
+    result << "<PStructuredGrid WholeExtent=\"0 " << p->gknox << " 0 " << p->gknoy << " 0 " << p->gknoz << "\" GhostLevel=\"0\" Origin=\"0 0 0\" Spacing=\"1 1 1\">\n";
+    if(p->P16 == 1)
+        timeValue(result, p->P34 < 0.0 ? p->simtime : p->sedtime, p->plog ? p->plog->id() : std::string());
 }
 
 void vts3D::ending(std::ostream &result, const int *offset, int &n)
 {
-    result<<"<Points>\n";
-    result<<"<DataArray type=\"Float32\" NumberOfComponents=\"3\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
+    result << "<Points>\n";
+    result << "<DataArray type=\"Float32\" NumberOfComponents=\"3\" format=\"appended\" offset=\"" << offset[n] << "\"/>\n";
     n++;
-    result<<"</Points>\n";
-    result<<"</Piece>\n";
-    result<<"</StructuredGrid>\n";
+    result << "</Points>\n";
+    result << "</Piece>\n";
+    result << "</StructuredGrid>\n";
     appendData(result);
 }
 
 void vts3D::endingParallel(std::ostream &result, const char *A10, const int M10, const int num)
 {
-    result<<"<PPoints>\n";
-    result<<"<PDataArray type=\"Float32\" NumberOfComponents=\"3\"/>\n";
-    result<<"</PPoints>\n";
+    result << "<PPoints>\n";
+    result << "<PDataArray type=\"Float32\" NumberOfComponents=\"3\"/>\n";
+    result << "</PPoints>\n";
 
-    for(int n=0; n<M10; ++n)
+    for(int n = 0; n < M10; ++n)
     {
-        snprintf(pname,sizeof(pname),"REEF3D-%s-%08i-%06i.vts",A10,num,n+1);
-        snprintf(pextent,sizeof(pextent),"%i %i %i %i %i %i",piextent[0+6*n],piextent[1+6*n],piextent[2+6*n],piextent[3+6*n],piextent[4+6*n],piextent[5+6*n]);
-        result<<"<Piece Extent=\""<<pextent<<"\" Source=\""<<pname<<"\"/>\n";
+        snprintf(pname, sizeof(pname), "REEF3D-%s-%08i-%06i.vts", A10, num, n + 1);
+        snprintf(pextent, sizeof(pextent), "%i %i %i %i %i %i", piextent[0 + 6 * n], piextent[1 + 6 * n], piextent[2 + 6 * n], piextent[3 + 6 * n], piextent[4 + 6 * n], piextent[5 + 6 * n]);
+        result << "<Piece Extent=\"" << pextent << "\" Source=\"" << pname << "\"/>\n";
     }
 
-    result<<"</PStructuredGrid>\n";
-    result<<"</VTKFile>"<<flush;
+    result << "</PStructuredGrid>\n";
+    result << "</VTKFile>" << flush;
 }
 
-void vts3D::structureWrite(lexer *p, fdm*, std::vector<char> &buffer, size_t &m)
+void vts3D::structureWrite(lexer *p, fdm *, std::vector<char> &buffer, size_t &m)
 {
     float ffn;
     int iin;
 
     // Coordinates
     // points
-    iin=3*sizeof(float)*p->pointnum;
-    std::memcpy(&buffer[m],&iin,sizeof(int));
-    m+=sizeof(int);
+    iin = 3 * sizeof(float) * p->pointnum;
+    std::memcpy(&buffer[m], &iin, sizeof(int));
+    m += sizeof(int);
     KTLOOP
-        JTLOOP
-            ITLOOP
-            {
-                ffn=float(p->Xout(p->XN[IP],p->YN[JP]));
-                std::memcpy(&buffer[m],&ffn,sizeof(float));
-                m+=sizeof(float);
+    JTLOOP
+    ITLOOP
+    {
+        ffn = float(p->Xout(p->XN[IP], p->YN[JP]));
+        std::memcpy(&buffer[m], &ffn, sizeof(float));
+        m += sizeof(float);
 
-                ffn=float(p->Yout(p->XN[IP],p->YN[JP]));
-                std::memcpy(&buffer[m],&ffn,sizeof(float));
-                m+=sizeof(float);
+        ffn = float(p->Yout(p->XN[IP], p->YN[JP]));
+        std::memcpy(&buffer[m], &ffn, sizeof(float));
+        m += sizeof(float);
 
-                ffn=float(p->ZN[KP]);
-                std::memcpy(&buffer[m],&ffn,sizeof(float));
-                m+=sizeof(float);
-            }
+        ffn = float(p->ZN[KP]);
+        std::memcpy(&buffer[m], &ffn, sizeof(float));
+        m += sizeof(float);
+    }
 
-    vtk3D::structureWriteEnd(buffer,m);
+    vtk3D::structureWriteEnd(buffer, m);
 }
 
 void vts3D::structureWrite(lexer *p, fdm_fnpf *c, std::vector<char> &buffer, size_t &m)
@@ -153,44 +154,43 @@ void vts3D::structureWrite(lexer *p, fdm_fnpf *c, std::vector<char> &buffer, siz
     double zcoor;
 
     //  XYZ
-    iin=3*sizeof(float)*p->pointnum;
-    std::memcpy(&buffer[m],&iin,sizeof(int));
-    m+=sizeof(int);
+    iin = 3 * sizeof(float) * p->pointnum;
+    std::memcpy(&buffer[m], &iin, sizeof(int));
+    m += sizeof(int);
 
-    double theta_y = p->B192_1*(PI/180.0);
-    double omega_y = 2.0*PI*p->B192_2;
+    double theta_y = p->B192_1 * (PI / 180.0);
+    double omega_y = 2.0 * PI * p->B192_2;
     double waterlevel;
 
-    if(p->B192==1 && p->simtime>=p->B194_s && p->simtime<=p->B194_e)
-        phase = omega_y*p->simtime;
+    if(p->B192 == 1 && p->simtime >= p->B194_s && p->simtime <= p->B194_e)
+        phase = omega_y * p->simtime;
 
     TPLOOP
     {
-        waterlevel = p->sl_ipol4eta(p->wet,c->eta,c->bed)+p->wd - p->sl_ipol4(c->bed);
+        waterlevel = p->sl_ipol4eta(p->wet, c->eta, c->bed) + p->wd - p->sl_ipol4(c->bed);
 
-        zcoor = p->ZN[KP1]*waterlevel + p->sl_ipol4(c->bed);
+        zcoor = p->ZN[KP1] * waterlevel + p->sl_ipol4(c->bed);
 
-        if(p->wet[IJ]==0)
-            zcoor=c->bed(i,j);
+        if(p->wet[IJ] == 0)
+            zcoor = c->bed(i, j);
 
-        if(i+p->origin_i==-1 && j+p->origin_j==-1 && p->wet[(0-p->imin)*p->jmax + (0-p->jmin)]==1)
-            zcoor = p->ZN[KP1]*c->WL(i,j) + c->bed(i,j);
+        if(i + p->origin_i == -1 && j + p->origin_j == -1 && p->wet[(0 - p->imin) * p->jmax + (0 - p->jmin)] == 1)
+            zcoor = p->ZN[KP1] * c->WL(i, j) + c->bed(i, j);
 
+        ffn = float((p->XN[IP1] - p->B192_3) * cos(theta_y * sin(phase)) - (zcoor - p->B192_4) * sin(theta_y * sin(phase)) + p->B192_3);
+        std::memcpy(&buffer[m], &ffn, sizeof(float));
+        m += sizeof(float);
 
-        ffn=float( (p->XN[IP1]-p->B192_3)*cos(theta_y*sin(phase)) - (zcoor-p->B192_4)*sin(theta_y*sin(phase)) + p->B192_3);
-        std::memcpy(&buffer[m],&ffn,sizeof(float));
-        m+=sizeof(float);
+        ffn = float(p->YN[JP1]);
+        std::memcpy(&buffer[m], &ffn, sizeof(float));
+        m += sizeof(float);
 
-        ffn=float(p->YN[JP1]);
-        std::memcpy(&buffer[m],&ffn,sizeof(float));
-        m+=sizeof(float);
-
-        ffn=float((p->XN[IP1]-p->B192_3)*sin(theta_y*sin(phase)) + (zcoor-p->B192_4)*cos(theta_y*sin(phase)) + p->B192_4);
-        std::memcpy(&buffer[m],&ffn,sizeof(float));
-        m+=sizeof(float);
+        ffn = float((p->XN[IP1] - p->B192_3) * sin(theta_y * sin(phase)) + (zcoor - p->B192_4) * cos(theta_y * sin(phase)) + p->B192_4);
+        std::memcpy(&buffer[m], &ffn, sizeof(float));
+        m += sizeof(float);
     }
 
-    vtk3D::structureWriteEnd(buffer,m);
+    vtk3D::structureWriteEnd(buffer, m);
 }
 
 void vts3D::structureWrite(lexer *p, fdm_nhf *d, std::vector<char> &buffer, size_t &m)
@@ -200,32 +200,32 @@ void vts3D::structureWrite(lexer *p, fdm_nhf *d, std::vector<char> &buffer, size
     double zcoor;
 
     //  XYZ
-    iin=3*sizeof(float)*p->pointnum;
-    std::memcpy(&buffer[m],&iin,sizeof(int));
-    m+=sizeof(int);
+    iin = 3 * sizeof(float) * p->pointnum;
+    std::memcpy(&buffer[m], &iin, sizeof(int));
+    m += sizeof(int);
     TPLOOP
     {
-        zcoor = p->ZN[KP1]*p->sl_ipol4(d->WL) + p->sl_ipol4(d->bed);
+        zcoor = p->ZN[KP1] * p->sl_ipol4(d->WL) + p->sl_ipol4(d->bed);
 
-        if(p->wet[IJ]==0)
-            zcoor=p->sl_ipol4(d->bed);
-        
-        if(i+p->origin_i==-1 && j+p->origin_j==-1 && p->wet[(0-p->imin)*p->jmax + (0-p->jmin)]==1)
-            zcoor = p->ZN[KP1]*d->WL(i,j) + d->bed(i,j);
+        if(p->wet[IJ] == 0)
+            zcoor = p->sl_ipol4(d->bed);
 
-        // -- 
-        ffn=float(p->XN[IP1]);
-        std::memcpy(&buffer[m],&ffn,sizeof(float));
-        m+=sizeof(float);
+        if(i + p->origin_i == -1 && j + p->origin_j == -1 && p->wet[(0 - p->imin) * p->jmax + (0 - p->jmin)] == 1)
+            zcoor = p->ZN[KP1] * d->WL(i, j) + d->bed(i, j);
 
-        ffn=float(p->YN[JP1]);
-        std::memcpy(&buffer[m],&ffn,sizeof(float));
-        m+=sizeof(float);
+        // --
+        ffn = float(p->XN[IP1]);
+        std::memcpy(&buffer[m], &ffn, sizeof(float));
+        m += sizeof(float);
 
-        ffn=float(zcoor);
-        std::memcpy(&buffer[m],&ffn,sizeof(float));
-        m+=sizeof(float);
+        ffn = float(p->YN[JP1]);
+        std::memcpy(&buffer[m], &ffn, sizeof(float));
+        m += sizeof(float);
+
+        ffn = float(zcoor);
+        std::memcpy(&buffer[m], &ffn, sizeof(float));
+        m += sizeof(float);
     }
 
-    vtk3D::structureWriteEnd(buffer,m);
+    vtk3D::structureWriteEnd(buffer, m);
 }

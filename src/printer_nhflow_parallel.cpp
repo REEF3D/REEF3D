@@ -20,47 +20,50 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"printer_nhflow.h"
-#include"lexer.h"
-#include"fdm.h"
-#include"ghostcell.h"
-#include"sediment.h"
-#include"nhflow_turbulence.h"
+#include "fdm.h"
+#include "ghostcell.h"
+#include "lexer.h"
+#include "nhflow_turbulence.h"
+#include "printer_nhflow.h"
+#include "runlog.h"
+#include "sediment.h"
 
-void printer_nhflow::parallel(lexer *p, fdm_nhf *d, ghostcell* pgc, nhflow_turbulence *pnhfturb, sediment *psed, int num)
+void printer_nhflow::parallel(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_turbulence *pnhfturb, sediment *psed, int num)
 {
-    outputFormat->parallelFileName(name,sizeof(name),"NHFLOW",num);
+    outputFormat->parallelFileName(name, sizeof(name), "NHFLOW", num);
 
     ofstream result;
     result.open(name);
 
-    outputFormat->beginningParallel(p,result);
+    outputFormat->beginningParallel(p, result);
 
-    result<<"<PPointData>\n";
-    result<<"<PDataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\"/>\n";
-    result<<"<PDataArray type=\"Float32\" Name=\"pressure\"/>\n";
-    pnhfturb->name_ParaView_parallel(p,result);
-    if(p->P74==1)
-    result<<"<PDataArray type=\"Float32\" Name=\"omega_sig\"/>\n";
-    result<<"<PDataArray type=\"Float32\" Name=\"elevation\"/>\n";
-    if(p->P23==1)
-    result<<"<PDataArray type=\"Float32\" Name=\"test\"/>\n";
-    if(p->P110==1)
-    result<<"<PDataArray type=\"Float32\" Name=\"Hs\"/>\n";
-    if(p->P25==1)
-    result<<"<PDataArray type=\"Float32\" Name=\"solid\"/>\n";
-    if(p->P25==1 || p->P28==1)
-    result<<"<PDataArray type=\"Float32\" Name=\"Heaviside\"/>\n";
-    if(p->P26==1)
-    result<<"<PDataArray type=\"Float32\" Name=\"ST_conc\"/>\n";
-    if(p->P28==1)
-    result<<"<PDataArray type=\"Float32\" Name=\"floating\"/>\n";
-    if(p->B200==1)
-    result<<"<PDataArray type=\"Float32\" Name=\"porstruc\"/>\n";
+    result << "<PPointData>\n";
+    result << "<PDataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\"/>\n";
+    result << "<PDataArray type=\"Float32\" Name=\"pressure\"/>\n";
+    pnhfturb->name_ParaView_parallel(p, result);
+    if(p->P74 == 1)
+        result << "<PDataArray type=\"Float32\" Name=\"omega_sig\"/>\n";
+    result << "<PDataArray type=\"Float32\" Name=\"elevation\"/>\n";
+    if(p->P23 == 1)
+        result << "<PDataArray type=\"Float32\" Name=\"test\"/>\n";
+    if(p->P110 == 1)
+        result << "<PDataArray type=\"Float32\" Name=\"Hs\"/>\n";
+    if(p->P25 == 1)
+        result << "<PDataArray type=\"Float32\" Name=\"solid\"/>\n";
+    if(p->P25 == 1 || p->P28 == 1)
+        result << "<PDataArray type=\"Float32\" Name=\"Heaviside\"/>\n";
+    if(p->P26 == 1)
+        result << "<PDataArray type=\"Float32\" Name=\"ST_conc\"/>\n";
+    if(p->P28 == 1)
+        result << "<PDataArray type=\"Float32\" Name=\"floating\"/>\n";
+    if(p->B200 == 1)
+        result << "<PDataArray type=\"Float32\" Name=\"porstruc\"/>\n";
 
-    result<<"</PPointData>\n";
+    result << "</PPointData>\n";
 
-    outputFormat->endingParallel(result,"NHFLOW",p->M10,num);
+    outputFormat->endingParallel(result, "NHFLOW", p->M10, num);
 
     result.close();
+    if(p->plog)
+        p->plog->written(p, num, "volume", "volume", name, p->M10);
 }

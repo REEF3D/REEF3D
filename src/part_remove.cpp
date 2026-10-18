@@ -20,12 +20,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Authors: Hans Bihs, Alexander Hanke
 --------------------------------------------------------------------*/
 
-#include"part.h"
-#include"lexer.h"
+#include "lexer.h"
+#include "part.h"
 
 void part::remove(int n)
 {
     Flag[n] = EMPTY;
+    Hop[n] = 0.0;
 
     Empty[index_empty] = n;
     ++index_empty;

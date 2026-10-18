@@ -23,30 +23,27 @@ Author: Hans Bihs
 #ifndef BEDLOAD_EH_H_
 #define BEDLOAD_EH_H_
 
-#include"bedload.h"
-#include"increment.h"
+#include "bedload.h"
+#include "increment.h"
 
 using namespace std;
 
 class bedload_EH final : public bedload, public increment
 {
 public:
-
-    bedload_EH(lexer*);
+    bedload_EH(lexer *);
     virtual ~bedload_EH();
 
-	void start(lexer*, ghostcell*, sediment_fdm*) override final;
+    void start(lexer *, ghostcell *, sediment_fdm *) override final;
 
 private:
-    double rhosed,rhowat,Rstar,Ds;
-    double g,d50;
-    double visc;
-    double kappa,u_plus,ks;
-    double tau_eff, shearvel_eff, shields_eff;
-    double tau_crit, shearvel_crit, shields_crit;
+    double rhosed, rhowat;
+    double g, d50;
+    double kappa, u_plus, ks;
+    double shields_eff;
+    double hields_crit;
     double fh;
 };
 
 #endif
-
 

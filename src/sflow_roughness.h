@@ -29,14 +29,15 @@ class slice;
 
 using namespace std;
 
-class sflow_roughness 
+class sflow_roughness
 {
 
 public:
+    virtual ~sflow_roughness() = default;
 
-	virtual void u_source(lexer*, fdm2D*, slice&)=0;
-    virtual void v_source(lexer*, fdm2D*, slice&)=0;
-
+    // bed friction for the conserved momenta: args U, V, WL (cell centres)
+    virtual void u_source(lexer *, fdm2D *, slice &, slice &, slice &) = 0;
+    virtual void v_source(lexer *, fdm2D *, slice &, slice &, slice &) = 0;
 };
 
 #endif

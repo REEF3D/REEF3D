@@ -20,73 +20,64 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Tobias Martin
 --------------------------------------------------------------------*/
 
-#include<sys/stat.h>
-#include"mooring_Spring.h"
-#include"lexer.h"
-#include"ghostcell.h"
+#include "6DOF_output_dir.h"
+#include "ghostcell.h"
+#include "lexer.h"
+#include "mooring_Spring.h"
+#include "runlog.h"
+#include <sys/stat.h>
 
 void mooring_Spring::print(lexer *p)
 {
-	int num=0;
-	
-	if(p->P15==1)
-    num = p->printcount_sixdof;
+    int num = 0;
 
-    if(p->P15==2)
-    num = p->count;
-	
-	if(num<0)
-	num=0;
-	
-    if (p->mpirank==0)
+    if(p->P15 == 1)
+        num = p->printcount_sixdof;
+
+    if(p->P15 == 2)
+        num = p->count;
+
+    if(num < 0)
+        num = 0;
+
+    if(p->mpirank == 0)
     {
-		eTout<<p->simtime<<" \t "<<T<<endl;	
-    }  
-	
-    if
-	(
-		p->mpirank==0 && (((p->count%p->P20==0) && p->P30<0.0)  
-		|| (p->simtime>printtime && p->P30>0.0)   
-		|| p->count==0)
-	)
-	{
-		printtime+=p->P30;
-		
-        if(p->A10==5)
-		sprintf(name,"./REEF3D_NHFLOW_6DOF_Mooring/REEF3D-Mooring-%08i-%06i.vtk",line,num);
-        
-        if(p->A10==6)
-		sprintf(name,"./REEF3D_CFD_6DOF_Mooring/REEF3D-Mooring-%08i-%06i.vtk",line,num);
+        eTout << p->simtime << " \t " << T << endl;
+    }
 
+    if(
+        p->mpirank == 0 && (((p->count % p->P20 == 0) && p->P30 < 0.0) || (p->simtime > printtime && p->P30 > 0.0) || p->count == 0))
+    {
+        printtime += p->P30;
 
+        sprintf(name, "%s_Mooring/REEF3D-Mooring-%08i-%06i.vtk", sixdof_output_dir(p), line, num);
 
-		// Print results
-		ofstream result;
-		result.open(name, ios::binary);
-		
-		result << "# vtk DataFile Version 2.0" << endl;
-		result << "Mooring line " << line << endl;
-		result << "ASCII \nDATASET POLYDATA" << endl;
-		result << "POINTS " << 2 << " float" <<endl;
+        // Print results
+        ofstream result;
+        result.open(name, ios::binary);
 
-        result<<p->X311_xs[line]<<" "<<p->X311_ys[line]<<" "<<p->X311_zs[line]<<endl;
-        result<<p->X311_xe[line]<<" "<<p->X311_ye[line]<<" "<<p->X311_ze[line]<<endl;
-        
-		
-		result << "\nLINES " << 1 << " " << 3 <<endl;	
-        
-        result<<"2 "<< 0 << " " << 1 << endl;
+        result << "# vtk DataFile Version 2.0" << endl;
+        result << "Mooring line " << line << endl;
+        result << "ASCII \nDATASET POLYDATA" << endl;
+        result << "POINTS " << 2 << " float" << endl;
 
+        result << p->X311_xs[line] << " " << p->X311_ys[line] << " " << p->X311_zs[line] << endl;
+        result << p->X311_xe[line] << " " << p->X311_ye[line] << " " << p->X311_ze[line] << endl;
 
-		result<<"\nPOINT_DATA " << 2 <<endl;
-		result<<"SCALARS Tension float 1 \nLOOKUP_TABLE default"<<endl;
-		
-        result<<T<<endl;
-        result<<T<<endl;
-		
-        
-		result.close();
+        result << "\nLINES " << 1 << " " << 3 << endl;
 
+        result << "2 " << 0 << " " << 1 << endl;
 
-	}
+        result << "\nPOINT_DATA " << 2 << endl;
+        result << "SCALARS Tension float 1 \nLOOKUP_TABLE default" << endl;
+
+        result << T << endl;
+        result << T << endl;
+
+        result.close();
+        char sname[32];
+        snprintf(sname, sizeof(sname), "mooring%i", line);
+        if(p->plog)
+            p->plog->written(p, num, sname, "mooring", name, 0);
+    }
 }

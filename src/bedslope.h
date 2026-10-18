@@ -23,7 +23,8 @@ Author: Hans Bihs
 #ifndef BEDSLOPE_H_
 #define BEDSLOPE_H_
 
-#include"norm_vec.h"
+#include "nhflow_gradient.h"
+#include "norm_vec.h"
 
 class lexer;
 class field;
@@ -33,27 +34,25 @@ class sediment_fdm;
 
 using namespace std;
 
-class bedslope :  public norm_vec
+class bedslope : public norm_vec, nhflow_gradient
 {
 public:
-    bedslope(lexer*);
+    bedslope(lexer *);
     virtual ~bedslope();
-    
-    void slope_analytical(lexer*,ghostcell*,sediment_fdm*);
-    void slope_cds(lexer*,ghostcell*,sediment_fdm*);
-	void slope_weno(lexer*, ghostcell*,sediment_fdm*,field&);
-    
+
+    void slope_analytical(lexer *, ghostcell *, sediment_fdm *);
+    void slope_cds(lexer *, ghostcell *, sediment_fdm *);
+    void slope_weno(lexer *, ghostcell *, sediment_fdm *);
+    void slope_weno_topo(lexer *, ghostcell *, sediment_fdm *, field &);
 
 private:
-
-    double u_abs,u_plus,dist;
+    double u_abs, u_plus, dist;
     double uvel, vvel;
-    double midphi,delta,beta;
+    double midphi, delta, beta;
     double alpha0, teta0;
-    
+
     ddweno_f_nug *pdx;
 };
 
 #endif
-
 

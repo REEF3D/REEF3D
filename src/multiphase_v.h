@@ -32,32 +32,32 @@ class ioflow;
 class reini;
 class field;
 
-#include"multiphase.h"
-#include<fstream>
+#include "multiphase.h"
+#include <fstream>
 
 using namespace std;
 
 class multiphase_v final : public multiphase
 {
 public:
-	multiphase_v();
-	virtual ~multiphase_v();
-	void start(lexer*,fdm*,ghostcell*,convection*,solver*,ioflow*,reini*,particle_corr*) override final;
-	void ini(lexer*,fdm*,ghostcell*,ioflow*,convection*,solver*) override final;
-	void update(lexer*,fdm*,ghostcell*) override final;
-	
-	void print_3D(lexer*, fdm*, ghostcell*, std::vector<char>&, size_t&) override final;
-	void print_file(lexer*, fdm*, ghostcell*) override final;
-    double ls1val(int,int,int) override final;
-    double ls2val(int,int,int) override final;
-	double ccipol_ls1val(lexer*,ghostcell*,double,double,double) override final;
-	double ccipol_ls2val(lexer*,ghostcell*,double,double,double) override final;
-    void ls1get(int,int,int,double) override final;
-    void ls2get(int,int,int,double) override final;
+    multiphase_v();
+    virtual ~multiphase_v();
+    void start(lexer *, fdm *, ghostcell *, convection *, solver *, ioflow *, reini *) override final;
+    void ini(lexer *, fdm *, ghostcell *, ioflow *, convection *, solver *) override final;
+    void update(lexer *, fdm *, ghostcell *) override final;
 
-    void name_ParaView_parallel(lexer*, ofstream&) override final;
-    void name_ParaView(lexer*, std::stringstream&, int*, int &) override final;
-    void offset_ParaView(lexer*, int*, int &) override final;
+    void print_3D(lexer *, fdm *, ghostcell *, std::vector<char> &, size_t &) override final;
+    void print_file(lexer *, fdm *, ghostcell *) override final;
+    double ls1val(int, int, int) override final;
+    double ls2val(int, int, int) override final;
+    double ccipol_ls1val(lexer *, ghostcell *, double, double, double) override final;
+    double ccipol_ls2val(lexer *, ghostcell *, double, double, double) override final;
+    void ls1get(int, int, int, double) override final;
+    void ls2get(int, int, int, double) override final;
+
+    void name_ParaView_parallel(lexer *, ofstream &) override final;
+    void name_ParaView(lexer *, std::stringstream &, int *, int &) override final;
+    void offset_ParaView(lexer *, int *, int &) override final;
 };
 
 #endif

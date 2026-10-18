@@ -20,33 +20,31 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"initialize.h"
-#include"fdm.h"
-#include"lexer.h"
-#include"ghostcell.h"
+#include "fdm.h"
+#include "ghostcell.h"
+#include "initialize.h"
+#include "lexer.h"
 
 void initialize::topoini(lexer *p, fdm *a, ghostcell *pgc)
 {
-    double dx=p->DXM;
+    double dx = p->DXM;
 
-    ALOOP
-	a->topo(i,j,k)=1.0;
-    
-    p->topoforcing=1;
+    LOOP
+        a->topo(i, j, k) = 1.0;
 
+    p->topoforcing = 1;
 
-    if(p->S57>-1.0e20)
+    if(p->S57 > -1.0e20)
     {
-    ALOOP
-    a->topo(i,j,k)=-p->S57+p->ZP[KP];
-    
-    p->toporead=1;
-    p->topoforcing=1;
-    }
-    
-    if(p->S10==2)
-    p->topoforcing=0;
-	
-	pgc->start4a(p,a->topo,150);
+        LOOP
+            a->topo(i, j, k) = -p->S57 + p->ZP[KP];
 
+        p->toporead = 1;
+        p->topoforcing = 1;
+    }
+
+    if(p->S10 == 2)
+        p->topoforcing = 0;
+
+    pgc->start4a(p, a->topo, 150);
 }

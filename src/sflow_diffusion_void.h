@@ -23,7 +23,7 @@ Author: Hans Bihs
 #ifndef SFLOW_DIFFUSION_VOID_H_
 #define SFLOW_DIFFUSION_VOID_H_
 
-#include"sflow_diffusion.h"
+#include "sflow_diffusion.h"
 
 class lexer;
 class fdm2D;
@@ -37,14 +37,13 @@ using namespace std;
 class sflow_diffusion_void final : public sflow_diffusion
 {
 public:
-	sflow_diffusion_void(lexer*);
-	virtual ~sflow_diffusion_void();
+    sflow_diffusion_void(lexer *);
+    virtual ~sflow_diffusion_void();
 
-	void diff_u(lexer*, fdm2D*, ghostcell*, solver2D*, slice&, slice&, double) override final;
-	void diff_v(lexer*, fdm2D*, ghostcell*, solver2D*, slice&, slice&, double) override final;
-    void diff_w(lexer*, fdm2D*, ghostcell*, solver2D*, slice&, slice&, slice&, double) override final;
-    void diff_scalar(lexer*, fdm2D*, ghostcell*, solver2D*, slice&, double, double) override final;
-
+    void diff_u(lexer *, fdm2D *, ghostcell *, solver2D *, slice &, slice &, slice &, slice &, slice &, double) override final;
+    void diff_v(lexer *, fdm2D *, ghostcell *, solver2D *, slice &, slice &, slice &, slice &, slice &, double) override final;
+    void diff_w(lexer *, fdm2D *, ghostcell *, solver2D *, slice &, slice &, slice &, slice &, slice &, slice &, double) override final;
+    void diff_scalar(lexer *, fdm2D *, ghostcell *, solver2D *, slice &, double, double) override final;
 };
 
 #endif

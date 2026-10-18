@@ -20,337 +20,249 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"lexer.h"
-#include<iostream>
-#include<fstream>
-#include<sys/stat.h>
-#include<sys/types.h>
+#include "geo_mesh.h"
+#include "gridfile_v2.h"
+#include "lexer.h"
+#include <fstream>
+#include <iostream>
+#include <sys/stat.h>
+#include <sys/types.h>
+
+// DIVEMesh grid, format v2 (see gridfile_v2.h)
+//
+// per rank: DIVEMesh_Grid/grid-%06i.dat   cell flags, nodes, boundary and parallel surfaces,
+//                                         column flags, geodat bed level, data
+// all ranks: DIVEMesh_Grid/grid-geometry.dat  solid (S) and topo (T) entities as triangles
+//
+// The solid and topo fields, the bed levels and the ghost cell estimates are built by
+// REEF3D from the triangles (lexer::grid_solids, geometry core), not read.
 
 void lexer::read_grid()
 {
-    int i,n;
-    int isurf,jsurf,ksurf,surfside,surfgroup,side1,side2,paraconum;
-    int para_active;
+    int i, j, k, n, q;
     char name[100];
-    int DM_M10;
-    int iin;
-    double ddn;
 
-    gcwall_count=0;
-    gcin_count=0;
-    gcout_count=0;
-    gcfsf_count=0;
-    gcbed_count=0;
-    gcpara1_count=0;
-    gcpara2_count=0;
-    gcpara3_count=0;
-    gcpara4_count=0;
-    gcpara5_count=0;
-    gcpara6_count=0;
-    gcparaco1_count=0;
-    gcparaco2_count=0;
-    gcparaco3_count=0;
-    gcparaco4_count=0;
-    gcparaco5_count=0;
-    gcparaco6_count=0;
-    surf_tot=0;
+    gcwall_count = 0;
+    gcin_count = 0;
+    gcout_count = 0;
+    gcfsf_count = 0;
+    gcbed_count = 0;
+
+    gcpara1_count = gcpara2_count = gcpara3_count = gcpara4_count = gcpara5_count = gcpara6_count = 0;
+    gcparaco1_count = gcparaco2_count = gcparaco3_count = gcparaco4_count = gcparaco5_count = gcparaco6_count = 0;
+
+    surf_tot = 0;
 
     const int padding = 6;
-    sprintf(name,"DIVEMesh_Grid/grid-%0*i.dat",padding,mpirank+1);
+    snprintf(name, sizeof(name), "DIVEMesh_Grid/grid-%0*i.dat", padding, mpirank + 1);
 
-    // open file------------
-    ifstream grid(name, ios_base::binary);
+    gridv2::reader gf;
 
-    if(!grid)
+    if(!gf.open(name, gridv2::magic_grid))
     {
-        if(mpirank==0)
+        cout << endl;
+        cout << "!!! " << gf.error << " !!!" << endl;
+        cout << "!!! the grid has to be generated with DIVEMesh, grid format v2; please check the manual!" << endl
+             << endl
+             << endl
+             << endl;
+        exit(1);
+    }
+
+    gridv2::section sc;
+
+    // --------------------------------------------------------------------------------------------
+    // HEAD
+    if(!gf.find("HEAD", sc))
+        gf.fail(this, "section HEAD missing");
+
+    vector<int> iv;
+    vector<double> dv;
+    sc.get_list(iv, dv);
+    gf.check(sc);
+
+    if(!sc.good || iv.size() < 62 || dv.size() < 19)
+        gf.fail(this, "section HEAD too short");
+
+    q = 0;
+    const int DM_M10 = iv[q++];
+
+    if(mpirank == 0)
+        if(DM_M10 != M10 || M10 != mpi_size || DM_M10 != mpi_size)
         {
-            cout<<endl;
-            cout<<"!!! Could not open DIVEMesh grid file: "<<name<<" !"<<endl;
-            cout<<"!!! please check the manual!"<<endl<<endl<<endl<<endl;
+            cout << endl;
+            cout << "!!! Inconsistent M 10 parameter, needs to be the same in REEF3D and DIVEMesh !" << endl;
+            cout << "mpi_size: " << mpi_size << " REEFD M10: " << M10 << " DIVEMesh M10: " << DM_M10 << endl;
+            cout << "!!! please check the manual!" << endl
+                 << endl
+                 << endl
+                 << endl;
+            exit(1);
         }
-        exit(1);
-    }
 
-    // read grid file-------------
+    knox = iv[q++];
+    knoy = iv[q++];
+    knoz = iv[q++];
 
-    grid.read((char*)&iin, sizeof (int));
-    DM_M10=iin;
+    gknox = iv[q++];
+    gknoy = iv[q++];
+    gknoz = iv[q++];
 
-    if(mpirank==0)
-    if(DM_M10!=M10 || M10!=mpi_size || DM_M10!=mpi_size)
-    {
-        cout<<endl;
-        cout<<"!!! Inconsistent M 10 parameter, needs to be the same in REEF3D and DIVEMesh !"<<endl;
-        cout<<"mpi_size: "<<mpi_size<<" REEFD M10: "<<M10<<" DIVEMesh M10: "<<DM_M10<<endl;
-        cout<<"!!! please check the manual!"<<endl<<endl<<endl<<endl;
+    origin_i = iv[q++];
+    origin_j = iv[q++];
+    origin_k = iv[q++];
 
-        exit(1);
-    }
+    gcwall_count = iv[q++];
 
-    grid.read((char*)&iin, sizeof (int));
-    knox=iin;
-    grid.read((char*)&iin, sizeof (int));
-    knoy=iin;
-    grid.read((char*)&iin, sizeof (int));
-    knoz=iin;
+    gcpara1_count = iv[q++];
+    gcpara2_count = iv[q++];
+    gcpara3_count = iv[q++];
+    gcpara4_count = iv[q++];
+    gcpara5_count = iv[q++];
+    gcpara6_count = iv[q++];
 
-    grid.read((char*)&ddn, sizeof (double));
-    dx=ddn;
+    gcparaco1_count = iv[q++];
+    gcparaco2_count = iv[q++];
+    gcparaco3_count = iv[q++];
+    gcparaco4_count = iv[q++];
+    gcparaco5_count = iv[q++];
+    gcparaco6_count = iv[q++];
 
-    grid.read((char*)&ddn, sizeof (double));
-    DXM=ddn;
-    grid.read((char*)&ddn, sizeof (double));
-    DYM=ddn;
-    grid.read((char*)&ddn, sizeof (double));
-    DZM=ddn;
+    gcslpara1_count = iv[q++];
+    gcslpara2_count = iv[q++];
+    gcslpara3_count = iv[q++];
+    gcslpara4_count = iv[q++];
 
+    gcslparaco1_count = iv[q++];
+    gcslparaco2_count = iv[q++];
+    gcslparaco3_count = iv[q++];
+    gcslparaco4_count = iv[q++];
 
-    grid.read((char*)&ddn, sizeof (double));
-    originx=ddn;
-    grid.read((char*)&ddn, sizeof (double));
-    originy=ddn;
-    grid.read((char*)&ddn, sizeof (double));
-    originz=ddn;
+    nb1 = iv[q++];
+    nb2 = iv[q++];
+    nb3 = iv[q++];
+    nb4 = iv[q++];
+    nb5 = iv[q++];
+    nb6 = iv[q++];
 
-    grid.read((char*)&ddn, sizeof (double));
-    endx=ddn;
-    grid.read((char*)&ddn, sizeof (double));
-    endy=ddn;
-    grid.read((char*)&ddn, sizeof (double));
-    endz=ddn;
+    mx = iv[q++];
+    my = iv[q++];
+    mz = iv[q++];
 
-    grid.read((char*)&ddn, sizeof (double));
-    global_xmin=ddn;
-    grid.read((char*)&ddn, sizeof (double));
-    global_ymin=ddn;
-    grid.read((char*)&ddn, sizeof (double));
-    global_zmin=ddn;
-    grid.read((char*)&ddn, sizeof (double));
-    global_xmax=ddn;
-    grid.read((char*)&ddn, sizeof (double));
-    global_ymax=ddn;
-    grid.read((char*)&ddn, sizeof (double));
-    global_zmax=ddn;
+    bcside1 = iv[q++];
+    bcside2 = iv[q++];
+    bcside3 = iv[q++];
+    bcside4 = iv[q++];
+    bcside5 = iv[q++];
+    bcside6 = iv[q++];
 
-    grid.read((char*)&iin, sizeof (int));
-    gknox=iin;
-    grid.read((char*)&iin, sizeof (int));
-    gknoy=iin;
-    grid.read((char*)&iin, sizeof (int));
-    gknoz=iin;
+    periodic1 = iv[q++];
+    periodic2 = iv[q++];
+    periodic3 = iv[q++];
 
-    grid.read((char*)&iin, sizeof (int));
-    origin_i=iin;
-    grid.read((char*)&iin, sizeof (int));
-    origin_j=iin;
-    grid.read((char*)&iin, sizeof (int));
-    origin_k=iin;
+    periodicX1 = iv[q++];
+    periodicX2 = iv[q++];
+    periodicX3 = iv[q++];
+    periodicX4 = iv[q++];
+    periodicX5 = iv[q++];
+    periodicX6 = iv[q++];
 
-    grid.read((char*)&iin, sizeof (int));
-    gcwall_count=iin;
+    i_dir = iv[q++];
+    j_dir = iv[q++];
+    k_dir = iv[q++];
 
-    grid.read((char*)&iin, sizeof (int));
-    gcpara1_count=iin;
-    grid.read((char*)&iin, sizeof (int));
-    gcpara2_count=iin;
-    grid.read((char*)&iin, sizeof (int));
-    gcpara3_count=iin;
-    grid.read((char*)&iin, sizeof (int));
-    gcpara4_count=iin;
-    grid.read((char*)&iin, sizeof (int));
-    gcpara5_count=iin;
-    grid.read((char*)&iin, sizeof (int));
-    gcpara6_count=iin;
+    P150 = iv[q++];
+    cms_flag = iv[q++];
 
-    grid.read((char*)&iin, sizeof (int));
-    gcparaco1_count=iin;
-    grid.read((char*)&iin, sizeof (int));
-    gcparaco2_count=iin;
-    grid.read((char*)&iin, sizeof (int));
-    gcparaco3_count=iin;
-    grid.read((char*)&iin, sizeof (int));
-    gcparaco4_count=iin;
-    grid.read((char*)&iin, sizeof (int));
-    gcparaco5_count=iin;
-    grid.read((char*)&iin, sizeof (int));
-    gcparaco6_count=iin;
+    const int DM_marge = iv[q++];
+    const int DM_rank = iv[q++];
 
-    grid.read((char*)&iin, sizeof (int));
-    gcslpara1_count=iin;
-    grid.read((char*)&iin, sizeof (int));
-    gcslpara2_count=iin;
-    grid.read((char*)&iin, sizeof (int));
-    gcslpara3_count=iin;
-    grid.read((char*)&iin, sizeof (int));
-    gcslpara4_count=iin;
+    if(DM_marge != marge)
+        gf.fail(this, "node margin of the grid file differs from REEF3D");
 
-    grid.read((char*)&iin, sizeof (int));
-    gcslparaco1_count=iin;
-    grid.read((char*)&iin, sizeof (int));
-    gcslparaco2_count=iin;
-    grid.read((char*)&iin, sizeof (int));
-    gcslparaco3_count=iin;
-    grid.read((char*)&iin, sizeof (int));
-    gcslparaco4_count=iin;
+    if(DM_rank != mpirank + 1)
+        gf.fail(this, "grid file belongs to another rank");
 
-    grid.read((char*)&iin, sizeof (int));
-    nb1=iin;
-    grid.read((char*)&iin, sizeof (int));
-    nb2=iin;
-    grid.read((char*)&iin, sizeof (int));
-    nb3=iin;
-    grid.read((char*)&iin, sizeof (int));
-    nb4=iin;
-    grid.read((char*)&iin, sizeof (int));
-    nb5=iin;
-    grid.read((char*)&iin, sizeof (int));
-    nb6=iin;
+    q = 0;
+    dx = dv[q++];
+    DXM = dv[q++];
+    DYM = dv[q++];
+    DZM = dv[q++];
 
+    originx = dv[q++];
+    originy = dv[q++];
+    originz = dv[q++];
+    endx = dv[q++];
+    endy = dv[q++];
+    endz = dv[q++];
 
-    grid.read((char*)&iin, sizeof (int));
-    mx=iin;
-    grid.read((char*)&iin, sizeof (int));
-    my=iin;
-    grid.read((char*)&iin, sizeof (int));
-    mz=iin;
+    global_xmin = dv[q++];
+    global_ymin = dv[q++];
+    global_zmin = dv[q++];
+    global_xmax = dv[q++];
+    global_ymax = dv[q++];
+    global_zmax = dv[q++];
 
-    grid.read((char*)&iin, sizeof (int));
-    grid.read((char*)&iin, sizeof (int));
-    grid.read((char*)&iin, sizeof (int));
+    global_orig_x = dv[q++];
+    global_orig_y = dv[q++];
+    alpha_grid = dv[q++];
 
-    grid.read((char*)&iin, sizeof (int));
-    bcside1=iin;
-    grid.read((char*)&iin, sizeof (int));
-    bcside2=iin;
-    grid.read((char*)&iin, sizeof (int));
-    bcside3=iin;
-    grid.read((char*)&iin, sizeof (int));
-    bcside4=iin;
-    grid.read((char*)&iin, sizeof (int));
-    bcside5=iin;
-    grid.read((char*)&iin, sizeof (int));
-    bcside6=iin;
+    // --------------------------------------------------------------------------------------------
+    // geometry: all ranks
+    gridgeo = new geo_mesh();
+    gridgeo->read(this, "DIVEMesh_Grid/grid-geometry.dat");
 
-    grid.read((char*)&iin, sizeof (int));
-    periodic1=iin;
-    grid.read((char*)&iin, sizeof (int));
-    periodic2=iin;
-    grid.read((char*)&iin, sizeof (int));
-    periodic3=iin;
+    solidread = gridgeo->solidread;
+    toporead = gridgeo->toporead;
 
-    grid.read((char*)&iin, sizeof (int));
-    periodicX1=iin;
-    grid.read((char*)&iin, sizeof (int));
-    periodicX2=iin;
-    grid.read((char*)&iin, sizeof (int));
-    periodicX3=iin;
-    grid.read((char*)&iin, sizeof (int));
-    periodicX4=iin;
-    grid.read((char*)&iin, sizeof (int));
-    periodicX5=iin;
-    grid.read((char*)&iin, sizeof (int));
-    periodicX6=iin;
+    // estimated by lexer::grid_solids
+    solid_gcb_est = topo_gcb_est = 0;
+    solid_gcbextra_est = topo_gcbextra_est = tot_gcbextra_est = 0;
 
-    grid.read((char*)&iin, sizeof (int));
-    i_dir=iin;
-    grid.read((char*)&iin, sizeof (int));
-    j_dir=iin;
-    grid.read((char*)&iin, sizeof (int));
-    k_dir=iin;
+    gcb1_count = gcb2_count = gcb3_count = gcb4_count = gcb4a_count = gcb_fix = gcb_solid = gcb_topo = gcb_fb = gcwall_count;
 
-    grid.read((char*)&iin, sizeof (int));
-    P150=iin;
-
-    grid.read((char*)&iin, sizeof (int));
-    solidread=iin; // solid
-    grid.read((char*)&iin, sizeof (int));
-    toporead=iin; // topo
-    grid.read((char*)&iin, sizeof (int));
-    solid_gcb_est=iin;
-    grid.read((char*)&iin, sizeof (int));
-    topo_gcb_est=iin;
-
-    grid.read((char*)&iin, sizeof (int));
-    solid_gcbextra_est=iin;
-    grid.read((char*)&iin, sizeof (int));
-    topo_gcbextra_est=iin;
-    grid.read((char*)&iin, sizeof (int));
-    tot_gcbextra_est=iin;
-
-    grid.read((char*)&iin, sizeof (int));
-    grid.read((char*)&iin, sizeof (int));
-    cms_flag=iin;
-    grid.read((char*)&iin, sizeof (int));
-    grid.read((char*)&iin, sizeof (int));
-    grid.read((char*)&iin, sizeof (int));
-    
-    grid.read((char*)&ddn, sizeof (double));
-    global_orig_x=ddn;
-    grid.read((char*)&ddn, sizeof (double));
-    global_orig_y=ddn;
-    grid.read((char*)&ddn, sizeof (double));
-    alpha_grid=ddn;
-    
-    grid.read((char*)&ddn, sizeof (double));
-    grid.read((char*)&ddn, sizeof (double));
-    grid.read((char*)&ddn, sizeof (double));
-
-
-
-    // ---------------------------------------------------------------------------------------------------------------------
-    // ---------------------------------------------------------------------------------------------------------------------
-
-    topo_gcb_est*=4;
-
-    gcb1_count=gcb2_count=gcb3_count=gcb4_count=gcb4a_count=gcb_fix=gcb_solid=gcb_topo=gcb_fb=gcwall_count;
-
-    gcpara_sum=gcpara1_count+gcpara2_count+gcpara3_count+gcpara4_count+gcpara5_count+gcpara6_count;
-    gcparaco_sum=gcparaco1_count+gcparaco2_count+gcparaco3_count+gcparaco4_count+gcparaco5_count+gcparaco6_count;
+    gcpara_sum = gcpara1_count + gcpara2_count + gcpara3_count + gcpara4_count + gcpara5_count + gcpara6_count;
+    gcparaco_sum = gcparaco1_count + gcparaco2_count + gcparaco3_count + gcparaco4_count + gcparaco5_count + gcparaco6_count;
 
     grid::assign_margin();
 
-    Iarray(flag4,imax*jmax*kmax);
+    Iarray(flag4, imax * jmax * kmax);
+    Darray(flag_solid, imax * jmax * kmax);
+    Darray(flag_topo, imax * jmax * kmax);
+    Darray(solidbed, imax * jmax);
+    Darray(topobed, imax * jmax);
+    Darray(geobed, imax * jmax);
+    Darray(bed, imax * jmax);
+    Iarray(wet, imax * jmax);
+    Iarray(wet_n, imax * jmax);
+    Iarray(deep, imax * jmax);
+    Darray(depth, imax * jmax);
+    Darray(WL, imax * jmax);
+    Darray(data, imax * jmax);
+    Iarray(flagslice1, imax * jmax);
+    Iarray(flagslice2, imax * jmax);
+    Iarray(flagslice4, imax * jmax);
 
-    //if(solidread==1)
-    Darray(flag_solid,imax*jmax*kmax);
+    for(n = 0; n < imax * jmax * kmax; ++n)
+        flag4[n] = -1;
 
-    //if(toporead==1)
-    Darray(flag_topo,imax*jmax*kmax);
+    for(n = 0; n < imax * jmax * kmax; ++n)
+        flag_solid[n] = 0.0;
 
-    Darray(solidbed,imax*jmax);
-    Darray(topobed,imax*jmax);
-    Darray(bed,imax*jmax);
-    Iarray(wet,imax*jmax);
-    Iarray(wet_n,imax*jmax);
-    Iarray(deep,imax*jmax);
-    Darray(depth,imax*jmax);
-    Darray(WL,imax*jmax);
-    Darray(data,imax*jmax);
-    Iarray(flagslice1,imax*jmax);
-    Iarray(flagslice2,imax*jmax);
-    Iarray(flagslice4,imax*jmax);
-
-    for(i=0;i<imax*jmax*kmax;++i)
-        flag4[i]=-1;
-
-    for(i=0;i<imax*jmax*kmax;++i)
-        flag_solid[i]=0.0;
-
-    for(i=0;i<imax*jmax;++i)
+    for(n = 0; n < imax * jmax; ++n)
     {
-        flagslice1[i]=-10;
-        flagslice2[i]=-10;
-        flagslice4[i]=-10;
+        flagslice1[n] = -10;
+        flagslice2[n] = -10;
+        flagslice4[n] = -10;
     }
 
-    if(gcb4_count>0)
+    if(gcb4_count > 0)
     {
-        Iarray(gcb1, gcb1_count,6);
-        Iarray(gcb2, gcb2_count,6);
-        Iarray(gcb3, gcb3_count,6);
-        Iarray(gcb4, gcb4_count,6);
-        Iarray(gcb4a, gcb4a_count,6);
+        Iarray(gcb1, gcb1_count, 6);
+        Iarray(gcb2, gcb2_count, 6);
+        Iarray(gcb3, gcb3_count, 6);
+        Iarray(gcb4, gcb4_count, 6);
+        Iarray(gcb4a, gcb4a_count, 6);
 
         Darray(gcd1, gcb1_count);
         Darray(gcd2, gcb2_count);
@@ -359,554 +271,270 @@ void lexer::read_grid()
         Darray(gcd4a, gcb4a_count);
     }
 
-    Iarray(gcpara1, gcpara1_count,16);
-    Iarray(gcpara2, gcpara2_count,16);
-    Iarray(gcpara3, gcpara3_count,16);
-    Iarray(gcpara4, gcpara4_count,16);
-    Iarray(gcpara5, gcpara5_count,16);
-    Iarray(gcpara6, gcpara6_count,16);
+    Iarray(gcpara1, gcpara1_count, 16);
+    Iarray(gcpara2, gcpara2_count, 16);
+    Iarray(gcpara3, gcpara3_count, 16);
+    Iarray(gcpara4, gcpara4_count, 16);
+    Iarray(gcpara5, gcpara5_count, 16);
+    Iarray(gcpara6, gcpara6_count, 16);
 
-    Iarray(gcparaco1, gcparaco1_count,3);
-    Iarray(gcparaco2, gcparaco2_count,3);
-    Iarray(gcparaco3, gcparaco3_count,3);
-    Iarray(gcparaco4, gcparaco4_count,3);
-    Iarray(gcparaco5, gcparaco5_count,3);
-    Iarray(gcparaco6, gcparaco6_count,3);
+    Iarray(gcparaco1, gcparaco1_count, 3);
+    Iarray(gcparaco2, gcparaco2_count, 3);
+    Iarray(gcparaco3, gcparaco3_count, 3);
+    Iarray(gcparaco4, gcparaco4_count, 3);
+    Iarray(gcparaco5, gcparaco5_count, 3);
+    Iarray(gcparaco6, gcparaco6_count, 3);
 
+    gcbsl1_count = gcbsl2_count = gcbsl3_count = gcbsl4_count = gcbsl4a_count = 1;
 
-    // Slice allocation
-    gcbsl1_count=gcbsl2_count=gcbsl3_count=gcbsl4_count=gcbsl4a_count=1;
+    Iarray(gcbsl1, gcbsl1_count, 6);
+    Iarray(gcbsl2, gcbsl2_count, 6);
+    Iarray(gcbsl3, gcbsl3_count, 6);
+    Iarray(gcbsl4, gcbsl4_count, 6);
+    Iarray(gcbsl4a, gcbsl4a_count, 6);
 
-    Iarray(gcbsl1, gcbsl1_count,6);
-    Iarray(gcbsl2, gcbsl2_count,6);
-    Iarray(gcbsl3, gcbsl3_count,6);
-    Iarray(gcbsl4, gcbsl4_count,6);
-    Iarray(gcbsl4a, gcbsl4a_count,6);
+    Iarray(gcslin, gcin_count, 6);
+    Iarray(gcslout, gcout_count, 6);
 
-    Iarray(gcslin, gcin_count,6);
-    Iarray(gcslout, gcout_count,6);
+    Iarray(gcslpara1, gcslpara1_count, 2);
+    Iarray(gcslpara2, gcslpara2_count, 2);
+    Iarray(gcslpara3, gcslpara3_count, 2);
+    Iarray(gcslpara4, gcslpara4_count, 2);
 
-    Iarray(gcslpara1, gcslpara1_count,2);
-    Iarray(gcslpara2, gcslpara2_count,2);
-    Iarray(gcslpara3, gcslpara3_count,2);
-    Iarray(gcslpara4, gcslpara4_count,2);
+    Iarray(gcslparaco1, gcslparaco1_count, 4);
+    Iarray(gcslparaco2, gcslparaco2_count, 4);
+    Iarray(gcslparaco3, gcslparaco3_count, 4);
+    Iarray(gcslparaco4, gcslparaco4_count, 4);
 
-    Iarray(gcslparaco1, gcslparaco1_count,4);
-    Iarray(gcslparaco2, gcslparaco2_count,4);
-    Iarray(gcslparaco3, gcslparaco3_count,4);
-    Iarray(gcslparaco4, gcslparaco4_count,4);
+    Darray(XN, knox + 1 + 4 * marge);
+    Darray(YN, knoy + 1 + 4 * marge);
+    Darray(ZN, knoz + 1 + 4 * marge);
 
-    Darray(XN,knox+1+4*marge);
-    Darray(YN,knoy+1+4*marge);
-    Darray(ZN,knoz+1+4*marge);
-
-
-    // ---------------------------------------------------------------------------------------------------------------------
-    // ---------------------------------------------------------------------------------------------------------------------
-
-    //  Flag
-    for(i=0; i<knox; ++i)
-    for(j=0; j<knoy; ++j)
-    for(k=0; k<knoz; ++k)
+    // --------------------------------------------------------------------------------------------
+    // FLAG
     {
-        grid.read((char*)&iin, sizeof (int));
-        flag4[(i-imin)*jmax*kmax + (j-jmin)*kmax + k-kmin]=iin;
+        vector<int> fl;
+
+        if(!gf.find("FLAG", sc) || !sc.get_rle(fl, size_t(knox) * size_t(knoy) * size_t(knoz)))
+            gf.fail(this, "section FLAG missing or inconsistent");
+
+        size_t m = 0;
+        for(i = 0; i < knox; ++i)
+            for(j = 0; j < knoy; ++j)
+                for(k = 0; k < knoz; ++k)
+                    flag4[(i - imin) * jmax * kmax + (j - jmin) * kmax + k - kmin] = fl[m++];
     }
 
-    // Nodes XYZ
-    for(i=-marge;i<knox+1+marge;++i)
+    // --------------------------------------------------------------------------------------------
+    // NODE
+    if(!gf.find("NODE", sc))
+        gf.fail(this, "section NODE missing");
+
+    for(i = -marge; i < knox + 1 + marge; ++i)
+        XN[IP] = sc.get_double();
+
+    for(j = -marge; j < knoy + 1 + marge; ++j)
+        YN[JP] = sc.get_double();
+
+    for(k = -marge; k < knoz + 1 + marge; ++k)
+        ZN[KP] = sc.get_double();
+
+    if(!sc.good || !sc.done())
+        gf.fail(this, "section NODE inconsistent");
+
+    // --------------------------------------------------------------------------------------------
+    // SURF: boundary surfaces
+    if(!gf.find("SURF", sc))
+        gf.fail(this, "section SURF missing");
+
+    gcin_count = 0;
+    gcout_count = 0;
+
     {
-        grid.read((char*)&ddn, sizeof (double));
-        XN[IP]=ddn;
+        vector<int> tb;
+
+        if(!sc.get_table(tb, gcb4_count, 5))
+            gf.fail(this, "section SURF inconsistent");
+
+        for(n = 0; n < gcb4_count; ++n)
+        {
+            for(q = 0; q < 5; ++q)
+                gcb4[n][q] = tb[5 * n + q];  // i j k side group
+
+            if(gcb4[n][4] == 1 || gcb4[n][4] == 6)
+                ++gcin_count;
+
+            if(gcb4[n][4] == 2 || gcb4[n][4] == 7 || gcb4[n][4] == 8)
+                ++gcout_count;
+        }
     }
 
-    for(j=-marge;j<knoy+1+marge;++j)
+    if(!sc.good || !sc.done())
+        gf.fail(this, "section SURF inconsistent");
+
+    gcin4a_count = gcin_count;
+    gcout4a_count = gcout_count;
+
+    Iarray(gcin, gcin_count, 6);
+    Iarray(gcout, gcout_count, 6);
+
+    Iarray(gcin4a, gcin_count, 6);
+    Iarray(gcout4a, gcout_count, 6);
+
+    // --------------------------------------------------------------------------------------------
+    // PARA: parallel surfaces
     {
-        grid.read((char*)&ddn, sizeof (double));
-        YN[JP]=ddn;
+        int **gcpara[6] = {gcpara1, gcpara2, gcpara3, gcpara4, gcpara5, gcpara6};
+        const int num[6] = {gcpara1_count, gcpara2_count, gcpara3_count, gcpara4_count, gcpara5_count, gcpara6_count};
+
+        if(!gf.find("PARA", sc))
+            gf.fail(this, "section PARA missing");
+
+        vector<int> tb;
+
+        for(int d = 0; d < 6; ++d)
+        {
+            if(!sc.get_table(tb, num[d], 3))
+                gf.fail(this, "section PARA inconsistent");
+
+            for(n = 0; n < num[d]; ++n)
+            {
+                gcpara[d][n][0] = tb[3 * n];
+                gcpara[d][n][1] = tb[3 * n + 1];
+                gcpara[d][n][2] = tb[3 * n + 2];
+                gcpara[d][n][3] = 1;
+            }
+        }
+
+        if(!sc.good || !sc.done())
+            gf.fail(this, "section PARA inconsistent");
     }
 
-    for(k=-marge;k<knoz+1+marge;++k)
+    // PACO: parallel corners
     {
-        grid.read((char*)&ddn, sizeof (double));
-        ZN[KP]=ddn;
+        int **gcparaco[6] = {gcparaco1, gcparaco2, gcparaco3, gcparaco4, gcparaco5, gcparaco6};
+        const int num[6] = {gcparaco1_count, gcparaco2_count, gcparaco3_count, gcparaco4_count, gcparaco5_count, gcparaco6_count};
+
+        if(!gf.find("PACO", sc))
+            gf.fail(this, "section PACO missing");
+
+        vector<int> tb;
+
+        for(int d = 0; d < 6; ++d)
+        {
+            if(!sc.get_table(tb, num[d], 3))
+                gf.fail(this, "section PACO inconsistent");
+
+            for(n = 0; n < num[d]; ++n)
+            {
+                gcparaco[d][n][0] = tb[3 * n];
+                gcparaco[d][n][1] = tb[3 * n + 1];
+                gcparaco[d][n][2] = tb[3 * n + 2];
+            }
+        }
+
+        if(!sc.good || !sc.done())
+            gf.fail(this, "section PACO inconsistent");
     }
 
-    //  Solid
-    if(solidread==1)
-    for(i=0; i<knox; ++i)
-    for(j=0; j<knoy; ++j)
-    for(k=0; k<knoz; ++k)
+    // --------------------------------------------------------------------------------------------
+    // SLFL: column flags
     {
-        grid.read((char*)&ddn, sizeof (double));
-        flag_solid[(i-imin)*jmax*kmax + (j-jmin)*kmax + k-kmin]=ddn;
+        vector<int> fl;
+
+        if(!gf.find("SLFL", sc) || !sc.get_rle(fl, size_t(knox) * size_t(knoy)))
+            gf.fail(this, "section SLFL missing or inconsistent");
+
+        size_t m = 0;
+        for(i = 0; i < knox; ++i)
+            for(j = 0; j < knoy; ++j)
+                flagslice4[(i - imin) * jmax + (j - jmin)] = fl[m++];
     }
 
-    //  Topo
-    if(toporead==1)
-    for(i=0; i<knox; ++i)
-    for(j=0; j<knoy; ++j)
-    for(k=0; k<knoz; ++k)
+    // SLPA: parallel slice surfaces
     {
-        grid.read((char*)&ddn, sizeof (double));
-        flag_topo[(i-imin)*jmax*kmax + (j-jmin)*kmax + k-kmin]=ddn;
+        int **gcslpara[4] = {gcslpara1, gcslpara2, gcslpara3, gcslpara4};
+        const int num[4] = {gcslpara1_count, gcslpara2_count, gcslpara3_count, gcslpara4_count};
+
+        if(!gf.find("SLPA", sc))
+            gf.fail(this, "section SLPA missing");
+
+        vector<int> tb;
+
+        for(int d = 0; d < 4; ++d)
+        {
+            if(!sc.get_table(tb, num[d], 2))
+                gf.fail(this, "section SLPA inconsistent");
+
+            for(n = 0; n < num[d]; ++n)
+            {
+                gcslpara[d][n][0] = tb[2 * n];
+                gcslpara[d][n][1] = tb[2 * n + 1];
+            }
+        }
+
+        if(!sc.good || !sc.done())
+            gf.fail(this, "section SLPA inconsistent");
     }
 
-    // Porous Structure
-
-
-    //  GC Surfaces
-    gcin_count=0;
-    gcout_count=0;
-    for(i=0; i<gcb4_count; ++i)
+    // SLPC: parallel slice corners
     {
-        grid.read((char*)&iin, sizeof (int));
-        isurf=iin;
+        int **gcslparaco[4] = {gcslparaco1, gcslparaco2, gcslparaco3, gcslparaco4};
+        const int num[4] = {gcslparaco1_count, gcslparaco2_count, gcslparaco3_count, gcslparaco4_count};
 
-        grid.read((char*)&iin, sizeof (int));
-        jsurf=iin;
+        if(!gf.find("SLPC", sc))
+            gf.fail(this, "section SLPC missing");
 
-        grid.read((char*)&iin, sizeof (int));
-        ksurf=iin;
+        vector<int> tb;
 
-        grid.read((char*)&iin, sizeof (int));
-        surfside=iin;
+        for(int d = 0; d < 4; ++d)
+        {
+            if(!sc.get_table(tb, num[d], 2))
+                gf.fail(this, "section SLPC inconsistent");
 
-        grid.read((char*)&iin, sizeof (int));
-        surfgroup=iin;
+            for(n = 0; n < num[d]; ++n)
+            {
+                gcslparaco[d][n][0] = tb[2 * n];
+                gcslparaco[d][n][1] = tb[2 * n + 1];
+            }
+        }
 
-        gcb4[i][0]=isurf;
-        gcb4[i][1]=jsurf;
-        gcb4[i][2]=ksurf;
-        gcb4[i][3]=surfside;
-        gcb4[i][4]=surfgroup;
-
-        if(surfgroup==1 || surfgroup==6)
-            ++gcin_count;
-
-        if(surfgroup==2 || surfgroup==7 || surfgroup==8)
-            ++gcout_count;
+        if(!sc.good || !sc.done())
+            gf.fail(this, "section SLPC inconsistent");
     }
 
-    gcin4a_count=gcin_count;
-    gcout4a_count=gcout_count;
+    // --------------------------------------------------------------------------------------------
+    // GEOB: geodat bed level
+    for(n = 0; n < imax * jmax; ++n)
+        geobed[n] = global_zmin;
 
-    Iarray(gcin, gcin_count,6);
-    Iarray(gcout, gcout_count,6);
-
-    Iarray(gcin4a, gcin_count,6);
-    Iarray(gcout4a, gcout_count,6);
-
-//  Para Surfaces
-    for(i=0; i<gcpara1_count; ++i)
+    if(gridgeo->geodat > 0)
     {
-        grid.read((char*)&iin, sizeof (int));
-        isurf=iin;
+        if(!gf.find("GEOB", sc))
+            gf.fail(this, "section GEOB missing");
 
-        grid.read((char*)&iin, sizeof (int));
-        jsurf=iin;
+        for(i = 0; i < knox; ++i)
+            for(j = 0; j < knoy; ++j)
+                geobed[(i - imin) * jmax + (j - jmin)] = sc.get_double();
 
-        grid.read((char*)&iin, sizeof (int));
-        ksurf=iin;
-
-        gcpara1[i][0]=isurf;
-        gcpara1[i][1]=jsurf;
-        gcpara1[i][2]=ksurf;
-        gcpara1[i][3]=1;
+        if(!sc.good || !sc.done())
+            gf.fail(this, "section GEOB inconsistent");
     }
 
-    for(i=0; i<gcpara2_count; ++i)
+    // DATA
+    if(P150 > 0)
     {
-        grid.read((char*)&iin, sizeof (int));
-        isurf=iin;
+        if(!gf.find("DATA", sc))
+            gf.fail(this, "section DATA missing");
 
-        grid.read((char*)&iin, sizeof (int));
-        jsurf=iin;
+        for(i = 0; i < knox; ++i)
+            for(j = 0; j < knoy; ++j)
+                data[(i - imin) * jmax + (j - jmin)] = sc.get_double();
 
-        grid.read((char*)&iin, sizeof (int));
-        ksurf=iin;
-
-        gcpara2[i][0]=isurf;
-        gcpara2[i][1]=jsurf;
-        gcpara2[i][2]=ksurf;
-        gcpara2[i][3]=1;
+        if(!sc.good || !sc.done())
+            gf.fail(this, "section DATA inconsistent");
     }
 
-    for(i=0; i<gcpara3_count; ++i)
-    {
-        grid.read((char*)&iin, sizeof (int));
-        isurf=iin;
-
-        grid.read((char*)&iin, sizeof (int));
-        jsurf=iin;
-
-        grid.read((char*)&iin, sizeof (int));
-        ksurf=iin;
-
-        gcpara3[i][0]=isurf;
-        gcpara3[i][1]=jsurf;
-        gcpara3[i][2]=ksurf;
-        gcpara3[i][3]=1;
-    }
-
-    for(i=0; i<gcpara4_count; ++i)
-    {
-        grid.read((char*)&iin, sizeof (int));
-        isurf=iin;
-
-        grid.read((char*)&iin, sizeof (int));
-        jsurf=iin;
-
-        grid.read((char*)&iin, sizeof (int));
-        ksurf=iin;
-
-        gcpara4[i][0]=isurf;
-        gcpara4[i][1]=jsurf;
-        gcpara4[i][2]=ksurf;
-        gcpara4[i][3]=1;
-    }
-
-    for(i=0; i<gcpara5_count; ++i)
-    {
-        grid.read((char*)&iin, sizeof (int));
-        isurf=iin;
-
-        grid.read((char*)&iin, sizeof (int));
-        jsurf=iin;
-
-        grid.read((char*)&iin, sizeof (int));
-        ksurf=iin;
-
-        gcpara5[i][0]=isurf;
-        gcpara5[i][1]=jsurf;
-        gcpara5[i][2]=ksurf;
-        gcpara5[i][3]=1;
-    }
-
-    for(i=0; i<gcpara6_count; ++i)
-    {
-        grid.read((char*)&iin, sizeof (int));
-        isurf=iin;
-
-        grid.read((char*)&iin, sizeof (int));
-        jsurf=iin;
-
-        grid.read((char*)&iin, sizeof (int));
-        ksurf=iin;
-
-        gcpara6[i][0]=isurf;
-        gcpara6[i][1]=jsurf;
-        gcpara6[i][2]=ksurf;
-        gcpara6[i][3]=1;
-    }
-
-//  Para Corners
-    for(i=0; i<gcparaco1_count; ++i)
-    {
-        grid.read((char*)&iin, sizeof (int));
-        isurf=iin;
-
-        grid.read((char*)&iin, sizeof (int));
-        jsurf=iin;
-
-        grid.read((char*)&iin, sizeof (int));
-        ksurf=iin;
-
-        grid.read((char*)&iin, sizeof (int));
-        side1=iin;
-
-        grid.read((char*)&iin, sizeof (int));
-        side2=iin;
-
-        grid.read((char*)&iin, sizeof (int));
-        paraconum=iin;
-
-        gcparaco1[i][0]=isurf;
-        gcparaco1[i][1]=jsurf;
-        gcparaco1[i][2]=ksurf;
-    }
-
-    for(i=0; i<gcparaco2_count; ++i)
-    {
-        grid.read((char*)&iin, sizeof (int));
-        isurf=iin;
-
-        grid.read((char*)&iin, sizeof (int));
-        jsurf=iin;
-
-        grid.read((char*)&iin, sizeof (int));
-        ksurf=iin;
-
-        grid.read((char*)&iin, sizeof (int));
-        side1=iin;
-
-        grid.read((char*)&iin, sizeof (int));
-        side2=iin;
-
-        grid.read((char*)&iin, sizeof (int));
-        paraconum=iin;
-
-        gcparaco2[i][0]=isurf;
-        gcparaco2[i][1]=jsurf;
-        gcparaco2[i][2]=ksurf;
-    }
-
-    for(i=0; i<gcparaco3_count; ++i)
-    {
-        grid.read((char*)&iin, sizeof (int));
-        isurf=iin;
-
-        grid.read((char*)&iin, sizeof (int));
-        jsurf=iin;
-
-        grid.read((char*)&iin, sizeof (int));
-        ksurf=iin;
-
-        grid.read((char*)&iin, sizeof (int));
-        side1=iin;
-
-        grid.read((char*)&iin, sizeof (int));
-        side2=iin;
-
-        grid.read((char*)&iin, sizeof (int));
-        paraconum=iin;
-
-        gcparaco3[i][0]=isurf;
-        gcparaco3[i][1]=jsurf;
-        gcparaco3[i][2]=ksurf;
-    }
-
-    for(i=0; i<gcparaco4_count; ++i)
-    {
-        grid.read((char*)&iin, sizeof (int));
-        isurf=iin;
-
-        grid.read((char*)&iin, sizeof (int));
-        jsurf=iin;
-
-        grid.read((char*)&iin, sizeof (int));
-        ksurf=iin;
-
-        grid.read((char*)&iin, sizeof (int));
-        side1=iin;
-
-        grid.read((char*)&iin, sizeof (int));
-        side2=iin;
-
-        grid.read((char*)&iin, sizeof (int));
-        paraconum=iin;
-
-        gcparaco4[i][0]=isurf;
-        gcparaco4[i][1]=jsurf;
-        gcparaco4[i][2]=ksurf;
-    }
-
-    for(i=0; i<gcparaco5_count; ++i)
-    {
-        grid.read((char*)&iin, sizeof (int));
-        isurf=iin;
-
-        grid.read((char*)&iin, sizeof (int));
-        jsurf=iin;
-
-        grid.read((char*)&iin, sizeof (int));
-        ksurf=iin;
-
-        grid.read((char*)&iin, sizeof (int));
-        side1=iin;
-
-        grid.read((char*)&iin, sizeof (int));
-        side2=iin;
-
-        grid.read((char*)&iin, sizeof (int));
-        paraconum=iin;
-
-        gcparaco5[i][0]=isurf;
-        gcparaco5[i][1]=jsurf;
-        gcparaco5[i][2]=ksurf;
-    }
-
-    for(i=0; i<gcparaco6_count; ++i)
-    {
-        grid.read((char*)&iin, sizeof (int));
-        isurf=iin;
-
-        grid.read((char*)&iin, sizeof (int));
-        jsurf=iin;
-
-        grid.read((char*)&iin, sizeof (int));
-        ksurf=iin;
-
-        grid.read((char*)&iin, sizeof (int));
-        side1=iin;
-
-        grid.read((char*)&iin, sizeof (int));
-        side2=iin;
-
-        grid.read((char*)&iin, sizeof (int));
-        paraconum=iin;
-
-        gcparaco6[i][0]=isurf;
-        gcparaco6[i][1]=jsurf;
-        gcparaco6[i][2]=ksurf;
-    }
-
-    for(i=0; i<knox; ++i)
-    for(j=0; j<knoy; ++j)
-    {
-        grid.read((char*)&iin, sizeof (int));
-        flagslice4[(i-imin)*jmax + (j-jmin)]=iin;
-    }
-
-    //  Paraslice Surfaces
-    for(i=0; i<gcslpara1_count; ++i)
-    {
-        grid.read((char*)&iin, sizeof (int));
-        isurf=iin;
-
-        grid.read((char*)&iin, sizeof (int));
-        jsurf=iin;
-
-        gcslpara1[i][0]=isurf;
-        gcslpara1[i][1]=jsurf;
-    }
-
-    for(i=0; i<gcslpara2_count; ++i)
-    {
-        grid.read((char*)&iin, sizeof (int));
-        isurf=iin;
-
-        grid.read((char*)&iin, sizeof (int));
-        jsurf=iin;
-
-        gcslpara2[i][0]=isurf;
-        gcslpara2[i][1]=jsurf;
-    }
-
-    for(i=0; i<gcslpara3_count; ++i)
-    {
-        grid.read((char*)&iin, sizeof (int));
-        isurf=iin;
-
-        grid.read((char*)&iin, sizeof (int));
-        jsurf=iin;
-
-        gcslpara3[i][0]=isurf;
-        gcslpara3[i][1]=jsurf;
-    }
-
-    for(i=0; i<gcslpara4_count; ++i)
-    {
-        grid.read((char*)&iin, sizeof (int));
-        isurf=iin;
-
-        grid.read((char*)&iin, sizeof (int));
-        jsurf=iin;
-
-        gcslpara4[i][0]=isurf;
-        gcslpara4[i][1]=jsurf;
-    }
-
-    //  Paraslice Surfaces
-    for(i=0; i<gcslparaco1_count; ++i)
-    {
-        grid.read((char*)&iin, sizeof (int));
-        isurf=iin;
-
-        grid.read((char*)&iin, sizeof (int));
-        jsurf=iin;
-
-        grid.read((char*)&iin, sizeof (int));
-        side1=iin;
-
-        gcslparaco1[i][0]=isurf;
-        gcslparaco1[i][1]=jsurf;
-        gcslparaco1[i][3]=side1;
-    }
-
-    for(i=0; i<gcslparaco2_count; ++i)
-    {
-        grid.read((char*)&iin, sizeof (int));
-        isurf=iin;
-
-        grid.read((char*)&iin, sizeof (int));
-        jsurf=iin;
-
-        grid.read((char*)&iin, sizeof (int));
-        side1=iin;
-
-        gcslparaco2[i][0]=isurf;
-        gcslparaco2[i][1]=jsurf;
-        gcslparaco2[i][3]=side1;
-    }
-
-    for(i=0; i<gcslparaco3_count; ++i)
-    {
-        grid.read((char*)&iin, sizeof (int));
-        isurf=iin;
-
-        grid.read((char*)&iin, sizeof (int));
-        jsurf=iin;
-
-        grid.read((char*)&iin, sizeof (int));
-        side1=iin;
-
-        gcslparaco3[i][0]=isurf;
-        gcslparaco3[i][1]=jsurf;
-        gcslparaco3[i][3]=side1;
-    }
-
-    for(i=0; i<gcslparaco4_count; ++i)
-    {
-        grid.read((char*)&iin, sizeof (int));
-        isurf=iin;
-
-        grid.read((char*)&iin, sizeof (int));
-        jsurf=iin;
-
-        grid.read((char*)&iin, sizeof (int));
-        side1=iin;
-
-        gcslparaco4[i][0]=isurf;
-        gcslparaco4[i][1]=jsurf;
-        gcslparaco4[i][3]=side1;
-    }
-
-
-    // bed
-    for(i=0; i<knox; ++i)
-    for(j=0; j<knoy; ++j)
-    {
-        grid.read((char*)&ddn, sizeof (double));
-        bed[(i-imin)*jmax + (j-jmin)]=ddn;
-    }
-
-    if(solidread>0)
-    for(i=0; i<knox; ++i)
-    for(j=0; j<knoy; ++j)
-    {
-        grid.read((char*)&ddn, sizeof (double));
-        solidbed[(i-imin)*jmax + (j-jmin)]=ddn;
-    }
-
-    if(toporead>0)
-    for(i=0; i<knox; ++i)
-    for(j=0; j<knoy; ++j)
-    {
-        grid.read((char*)&ddn, sizeof (double));
-        topobed[(i-imin)*jmax + (j-jmin)]=ddn;
-    }
-
-    if(P150>0)
-    for(i=0; i<knox; ++i)
-    for(j=0; j<knoy; ++j)
-    {
-        grid.read((char*)&ddn, sizeof (double));
-        data[(i-imin)*jmax + (j-jmin)]=ddn;
-    }
-
-    gcin4a_count=gcin_count;
-    gcout4a_count=gcout_count;
-
-    grid.close();
+    gcin4a_count = gcin_count;
+    gcout4a_count = gcout_count;
 }

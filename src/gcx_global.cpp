@@ -20,63 +20,82 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"ghostcell.h"
-#include"lexer.h"
-#include"time.h"
+#include "ghostcell.h"
+#include "lexer.h"
+#include "time.h"
 
 double ghostcell::globalsum(double sendsum)
 {
-    MPI_Allreduce(&sendsum,&recvsum,1,MPI_DOUBLE,MPI_SUM,mpi_comm);
+    if(local_red)
+        return sendsum;
+    MPI_Allreduce(&sendsum, &recvsum, 1, MPI_DOUBLE, MPI_SUM, mpi_comm);
     return recvsum;
 }
 
 int ghostcell::globalisum(int sendisum)
 {
-    MPI_Allreduce(&sendisum,&recvisum,1,MPI_INT,MPI_SUM,mpi_comm);
+    if(local_red)
+        return sendisum;
+    MPI_Allreduce(&sendisum, &recvisum, 1, MPI_INT, MPI_SUM, mpi_comm);
     return recvisum;
 }
 
 double ghostcell::globalmin(double sendmin)
 {
-    MPI_Allreduce(&sendmin,&recvmin,1,MPI_DOUBLE,MPI_MIN,mpi_comm);
+    if(local_red)
+        return sendmin;
+    MPI_Allreduce(&sendmin, &recvmin, 1, MPI_DOUBLE, MPI_MIN, mpi_comm);
     return recvmin;
+}
+
+void ghostcell::globalmax(double *vals, int num)
+{
+    if(local_red)
+        return;
+    if(num > 0)
+        MPI_Allreduce(MPI_IN_PLACE, vals, num, MPI_DOUBLE, MPI_MAX, mpi_comm);
 }
 
 double ghostcell::globalmax(double sendmax)
 {
-    MPI_Allreduce(&sendmax,&recvmax,1,MPI_DOUBLE,MPI_MAX,mpi_comm);
+    if(local_red)
+        return sendmax;
+    MPI_Allreduce(&sendmax, &recvmax, 1, MPI_DOUBLE, MPI_MAX, mpi_comm);
     return recvmax;
 }
 
 int ghostcell::globalimin(int sendimin)
 {
-    MPI_Allreduce(&sendimin,&recvimin,1,MPI_INT,MPI_MIN,mpi_comm);
+    if(local_red)
+        return sendimin;
+    MPI_Allreduce(&sendimin, &recvimin, 1, MPI_INT, MPI_MIN, mpi_comm);
     return recvimin;
 }
 
 int ghostcell::globalimax(int sendimax)
 {
-    MPI_Allreduce(&sendimax,&recvimax,1,MPI_INT,MPI_MAX,mpi_comm);
+    if(local_red)
+        return sendimax;
+    MPI_Allreduce(&sendimax, &recvimax, 1, MPI_INT, MPI_MAX, mpi_comm);
     return recvimax;
 }
 
 double ghostcell::timesync(double t)
 {
-    MPI_Bcast(&t,1,MPI_DOUBLE,0,mpi_comm);
+    MPI_Bcast(&t, 1, MPI_DOUBLE, 0, mpi_comm);
     return t;
 }
 
-void ghostcell::globalctrl(lexer* p)
+void ghostcell::globalctrl(lexer *p)
 {
-    MPI_Bcast(p->ictrl,p->ctrlsize,MPI_INT,0,mpi_comm);
-    MPI_Bcast(p->dctrl,p->ctrlsize,MPI_DOUBLE,0,mpi_comm);
+    MPI_Bcast(p->ictrl, p->ctrlsize, MPI_INT, 0, mpi_comm);
+    MPI_Bcast(p->dctrl, p->ctrlsize, MPI_DOUBLE, 0, mpi_comm);
 }
 
 double ghostcell::timer()
 {
-    double t=0.0;
-    t=MPI_Wtime();
+    double t = 0.0;
+    t = MPI_Wtime();
     return t;
 }
-
 

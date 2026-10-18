@@ -23,9 +23,9 @@ Author: Hans Bihs
 #ifndef FLOWFILE_IN_H_
 #define FLOWFILE_IN_H_
 
-#include"increment.h"
-#include<iostream>
-#include<fstream>
+#include "increment.h"
+#include <fstream>
+#include <iostream>
 
 class lexer;
 class fdm;
@@ -39,58 +39,52 @@ class flowfile_in : public increment
 {
 
 public:
-	flowfile_in(lexer*,ghostcell*);
-	virtual ~flowfile_in();
-    
-    void flowfile_start(lexer*,fdm*,ghostcell*,turbulence*);
-    void ff_inflow(lexer*,fdm*,ghostcell*,field&,field&,field&);
+    flowfile_in(lexer *, ghostcell *);
+    virtual ~flowfile_in();
 
-    void ff_waterlevel(lexer*,fdm*,ghostcell*,field&);
+    void flowfile_start(lexer *, fdm *, ghostcell *, turbulence *);
+    void ff_inflow(lexer *, fdm *, ghostcell *, field &, field &, field &);
+
+    void ff_waterlevel(lexer *, fdm *, ghostcell *, field &);
 
 private:
-     void filename(lexer*,fdm*,ghostcell*,char*,int);
-    void read0(lexer*,fdm*,ghostcell*,turbulence*);
-    void read1(lexer*,fdm*,ghostcell*,turbulence*);
-     void header_read(lexer*,ghostcell*);
-     double ccipol4(lexer*,double**,double,double,double);
-     double lint4(double**,int&,int&,int&,double,double,double);
-     int conv(double);
-     
-     ifstream headerfile;
-     ifstream flowfile0;
-     ifstream flowfile1;
+    void filename(lexer *, fdm *, ghostcell *, char *, int);
+    void read0(lexer *, fdm *, ghostcell *, turbulence *);
+    void read1(lexer *, fdm *, ghostcell *, turbulence *);
+    void header_read(lexer *, ghostcell *);
+    int conv(double);
+
+    ifstream headerfile;
+    ifstream flowfile0;
+    ifstream flowfile1;
 
     char name[400];
     char name0[400];
     char name1[400];
     int startup;
     float ffn;
-	int iin;
-	double ddn;
-	int printcount,entrycount;
+    int iin;
+    double ddn;
+    int printcount, entrycount;
     int q, count;
-    int q0,q1;
-    double t0,t1,tn;
-    int q0n,q1n;
+    int q0, q1;
+    double t0, t1, tn;
+    int q0n, q1n;
     double deltaT;
     double deltax;
-    int dk,maxk;
-    
-    int Ni,Nj,Nk;
-    double xs,xe,ys,ye,zs,ze;
-    
-    //data
+    int dk, maxk;
+
+    int Ni, Nj, Nk;
+    double xs, xe, ys, ye, zs, ze;
+
+    // data
     int *iter;
     double *simtime;
-    double **X0,**Y0,**Z0;
-    double **X1,**Y1,**Z1;
-    double **U0,**V0,**W0,**P0,**LS0;
-    double **U1,**V1,**W1,**P1,**LS1;
-     
-    
+    double **X0, **Y0, **Z0;
+    double **X1, **Y1, **Z1;
+    double **U0, **V0, **W0, **P0, **LS0;
+    double **U1, **V1, **W1, **P1, **LS1;
 };
 
 #endif
-
-
 

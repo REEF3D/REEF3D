@@ -1,0 +1,57 @@
+# Reference: Synolakis, C.E. (1987). The runup of solitary waves. Journal of Fluid Mechanics 185, 523-545 (NTHMP benchmark BP4, solitary wave on a simple 1:19.85 beach).
+# Source repo: https://github.com/fengyanshi/FUNWAVE-TVD  commit b4c322e7582035ee19df8e6409a3dfedaff1cb96, path benchmarks/sph_sol_plane_mea/postprocessing/SW_01_00185.mat (variables x_40, a_40)
+# Converted .mat -> text (Python repr of stored doubles). The comparison script labBM_04_SW.m is the NTHMP benchmark script ('Solitary Wave on a Simple Beach', 'CASE     H = 0.0185').
+# Content: LABORATORY free-surface profile for H/d = 0.0185 at nondimensional time t* = 40 (script label 'text(...,'t=40')', t* = t*sqrt(g/d) per NTHMP convention, not stated in script).
+# Columns: (1) x/d (dimensionless; origin at initial shoreline, x positive offshore: slope drawn as 'X=[-10:1: 20]; slp=1/19.85; Y=-slp*X;');
+#          (2) eta/d (dimensionless; plotted with axis limits e.g. '[-2 20 -0.02 0.04]').
+# Sampling: nearly uniform x spacing (~0.07 d) -> probably digitised/re-sampled profiles distributed with the NTHMP benchmark, not raw gauge records -> confidence B.
+-0.073 0.00399
+0.145 0.00975
+0.218 0.00997
+0.291 0.0093
+0.436 0.01113
+0.655 0.01495
+0.8 0.01528
+0.873 0.01595
+0.945 0.01794
+1.164 0.01993
+1.236 0.0206
+1.382 0.02093
+1.6 0.02392
+1.673 0.02292
+1.891 0.02392
+1.964 0.02591
+2.109 0.02618
+2.255 0.02724
+2.4 0.02591
+2.618 0.02857
+2.691 0.02658
+2.909 0.02724
+3.127 0.02937
+3.345 0.02724
+3.564 0.02924
+3.855 0.02724
+4.073 0.0295
+4.582 0.02884
+5.018 0.02724
+5.527 0.02658
+6.036 0.02326
+6.109 0.01953
+6.545 0.02126
+6.982 0.01728
+7.055 0.01927
+7.927 0.01435
+9.018 0.0103
+9.964 0.00877
+11.273 0.00664
+12.0 0.00532
+13.018 0.00332
+14.036 0.00359
+15.055 0.00332
+15.709 0.00359
+16.0 0.00199
+16.873 0.00186
+17.091 0.00239
+19.127 0.00186
+19.782 0.00266
+20.0 0.00199

@@ -20,111 +20,118 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Authors: Hans Bihs, Alexander Hanke
 --------------------------------------------------------------------*/
 
-#include"part.h"
-#include"lexer.h"
-#include<cstdint>
-#include<cstring>
-#include<iostream>
+#include "part.h"
+#include "lexer.h"
+#include <cstdint>
+#include <cstring>
+#include <iostream>
 
 part::part(lexer *p, ghostcell *pgc)
 {
-    capacity=1;
-    index=1;
-    index_empty=capacity;
-    //ParcelFactor = p->Q41;
+    capacity = 1;
+    index = 1;
+    index_empty = capacity;
+    // ParcelFactor = p->Q41;
     d50 = p->S20;
     rhosed = p->S22;
 
-    ParcelFactor = (1.0-p->S24)*((p->DXM*p->DXM*p->DXM)/(p->Q24*(1.0/6.0)*pow(p->S20,3.0)*PI));
+    ParcelFactor = (1.0 - p->S24) * ((p->DXM * p->DXM * p->DXM) / (double(MAX(p->Q24, 1)) * (1.0 / 6.0) * pow(p->S20, 3.0) * PI));
 
-    if(p->mpirank==0)
-        cout<<"ParcelFactor: "<<ParcelFactor<<" DXM: "<<p->DXM<<endl;
+    if(p->mpirank == 0)
+        cout << "ParcelFactor: " << ParcelFactor << " DXM: " << p->DXM << endl;
 
     //
-    p->Darray(U,capacity);
-    p->Darray(V,capacity);
-    p->Darray(W,capacity);
+    p->Darray(U, capacity);
+    p->Darray(V, capacity);
+    p->Darray(W, capacity);
 
-    p->Darray(URK1,capacity);
-    p->Darray(VRK1,capacity);
-    p->Darray(WRK1,capacity);
+    p->Darray(URK1, capacity);
+    p->Darray(VRK1, capacity);
+    p->Darray(WRK1, capacity);
 
-    p->Darray(X,capacity);
-    p->Darray(Y,capacity);
-    p->Darray(Z,capacity);
+    p->Darray(X, capacity);
+    p->Darray(Y, capacity);
+    p->Darray(Z, capacity);
 
-    p->Darray(XRK1,capacity);
-    p->Darray(YRK1,capacity);
-    p->Darray(ZRK1,capacity);
+    p->Darray(XRK1, capacity);
+    p->Darray(YRK1, capacity);
+    p->Darray(ZRK1, capacity);
 
-    p->Darray(Uf,capacity);
-    p->Darray(Vf,capacity);
-    p->Darray(Wf,capacity);
+    p->Darray(Uf, capacity);
+    p->Darray(Vf, capacity);
+    p->Darray(Wf, capacity);
 
-    p->Darray(D,capacity);
-    p->Darray(RO,capacity);
+    p->Darray(D, capacity);
+    p->Darray(RO, capacity);
 
-    p->Darray(Test,capacity);
+    p->Darray(Test, capacity);
+    p->Darray(Hop, capacity);
 
-    p->Iarray(Flag,capacity);
-    p->Iarray(Empty,capacity);
+    p->Iarray(Flag, capacity);
+    p->Iarray(Empty, capacity);
+
+    // Empty[0..index_empty-1] holds the free slots
+    Flag[0] = EMPTY;
+    Empty[0] = 0;
 
     // parallel
-    capacity_para=1000;
+    capacity_para = 1000;
 
-    p->Iarray(sendid,6,capacity_para);
+    p->Iarray(sendid, 6, capacity_para);
 
-    p->Darray(send,6,capacity_para);
-    p->Darray(recv,6,capacity_para);
+    p->Darray(send, 6, capacity_para);
+    p->Darray(recv, 6, capacity_para);
 }
 
 part::~part()
 {
     delete[] U;
-    U=nullptr;
+    U = nullptr;
     delete[] V;
-    V=nullptr;
+    V = nullptr;
     delete[] W;
-    W=nullptr;
+    W = nullptr;
 
     delete[] URK1;
-    URK1=nullptr;
+    URK1 = nullptr;
     delete[] VRK1;
-    VRK1=nullptr;
+    VRK1 = nullptr;
     delete[] WRK1;
-    WRK1=nullptr;
+    WRK1 = nullptr;
 
     delete[] X;
-    X=nullptr;
+    X = nullptr;
     delete[] Y;
-    Y=nullptr;
+    Y = nullptr;
     delete[] Z;
-    Z=nullptr;
+    Z = nullptr;
 
     delete[] XRK1;
-    XRK1=nullptr;
+    XRK1 = nullptr;
     delete[] YRK1;
-    YRK1=nullptr;
+    YRK1 = nullptr;
     delete[] ZRK1;
-    ZRK1=nullptr;
+    ZRK1 = nullptr;
 
     delete[] Uf;
-    Uf=nullptr;
+    Uf = nullptr;
     delete[] Vf;
-    Vf=nullptr;
+    Vf = nullptr;
     delete[] Wf;
-    Wf=nullptr;
+    Wf = nullptr;
 
     delete[] D;
-    D=nullptr;
+    D = nullptr;
     delete[] RO;
-    RO=nullptr;
+    RO = nullptr;
 
     delete[] Test;
-    Test=nullptr;
+    Test = nullptr;
+    delete[] Hop;
+    Hop = nullptr;
 
     delete[] Empty;
-    Empty=nullptr;
+    Empty = nullptr;
     delete[] Flag;
-    Flag=nullptr;
+    Flag = nullptr;
 }

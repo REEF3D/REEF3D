@@ -1,0 +1,24 @@
+{
+ "base": "fnpf_2d_regular",
+ "steps": 300,
+ "keep_keys": [
+  "P 40",
+  "P 41",
+  "P 44"
+ ],
+ "ctrl_add": [
+  "P 40 1",
+  "P 41 1",
+  "P 44 1"
+ ],
+ "description": "FNPF 2D regular waves writing state files every step with free surface and velocities (P 40, P 41, P 44 1): first stage of nhflow_2d_hdc.",
+ "tags": [
+  "2d",
+  "fnpf",
+  "waves",
+  "hdc-stage"
+ ],
+ "covers": [
+  "fnpf_state with velocities"
+ ]
+}

@@ -20,210 +20,214 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"nhflow_momentum_func.h"
-#include"lexer.h"
-#include"fdm_nhf.h"
-#include"ghostcell.h"
-#include"nhflow_bcmom.h"
-#include"nhflow_reconstruct.h"
-#include"nhflow_convection.h"
-#include"nhflow_signal_speed.h"
-#include"nhflow_diffusion.h"
-#include"nhflow_pressure.h"
-#include"ioflow.h"
-#include"turbulence.h"
-#include"solver.h"
-#include"nhflow_fsf.h"
-#include"vrans.h"
+#include "nhflow_momentum_func.h"
+#include "6DOF.h"
+#include "fdm_nhf.h"
+#include "ghostcell.h"
+#include "ioflow.h"
+#include "lexer.h"
+#include "nhflow_bcmom.h"
+#include "nhflow_convection.h"
+#include "nhflow_diffusion.h"
+#include "nhflow_forcing.h"
+#include "nhflow_fsf.h"
+#include "nhflow_pressure.h"
+#include "nhflow_reconstruct.h"
+#include "nhflow_signal_speed.h"
+#include "solver.h"
+#include "turbulence.h"
+#include "vrans.h"
 
-#define WLVL (fabs(WL(i,j))>(1.0*p->A544)?WL(i,j):1.0e20)
+#define WLVL (fabs(WL(i, j)) > (1.0 * p->A544) ? WL(i, j) : 1.0e20)
 
 nhflow_momentum_func::nhflow_momentum_func(lexer *p, fdm_nhf *d, ghostcell *pgc)
-                                                    : nhflow_bcmom(p), nhflow_sigma(p)
+    : nhflow_bcmom(p), nhflow_sigma(p)
 {
-	gcval_u=10;
-	gcval_v=11;
-	gcval_w=12;
-    
-    gcval_uh=14;
-	gcval_vh=15;
-	gcval_wh=16;
-   
+    gcval_u = 10;
+    gcval_v = 11;
+    gcval_w = 12;
+
+    gcval_uh = 14;
+    gcval_vh = 15;
+    gcval_wh = 16;
 }
 
 nhflow_momentum_func::~nhflow_momentum_func()
 {
 }
 
-void nhflow_momentum_func::reconstruct(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_fsf *pfsf, nhflow_signal_speed *pss, 
-                                     nhflow_reconstruct *precon, slice &WL, double *U, double *V, double *W, double *UH, double *VH, double *WH)
+void nhflow_momentum_func::reconstruct(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_fsf *pfsf, nhflow_signal_speed *pss,
+                                       nhflow_reconstruct *precon, slice &WL, double *U, double *V, double *W, double *UH, double *VH, double *WH)
 {
-    starttime=pgc->timer();
-    
+    starttime = pgc->timer();
+
     // reconstruct eta
     precon->reconstruct_2D_x(p, pgc, d, d->eta, d->ETAs, d->ETAn);
     precon->reconstruct_2D_y(p, pgc, d, d->eta, d->ETAe, d->ETAw);
     precon->reconstruct_2D_WL(p, pgc, d);
 
-    // reconstruct U 
+    // reconstruct U
+    // Vs,Vn,Ws,Wn,Ue,Uw,We,Ww are only read by the HLLC flux (wave-speed scaling);
+    // HLL (A511=1) and HLLYL (A520=3) never use them -> skip 4 of 12 horizontal reconstructions
+    const bool hllc = (p->A511 == 2 && p->A520 != 3);
+
     precon->reconstruct_3D_x(p, pgc, d, U, d->Us, d->Un);
-    precon->reconstruct_3D_y(p, pgc, d, U, d->Ue, d->Uw);
+    if(hllc)
+        precon->reconstruct_3D_y(p, pgc, d, U, d->Ue, d->Uw);
     precon->reconstruct_3D_z(p, pgc, d, U, d->Ub, d->Ut);
-    
+
     // reconstruct  V
-    precon->reconstruct_3D_x(p, pgc, d, V, d->Vs, d->Vn);
+    if(hllc)
+        precon->reconstruct_3D_x(p, pgc, d, V, d->Vs, d->Vn);
     precon->reconstruct_3D_y(p, pgc, d, V, d->Ve, d->Vw);
     precon->reconstruct_3D_z(p, pgc, d, V, d->Vb, d->Vt);
-    
+
     // reconstruct  W
-    precon->reconstruct_3D_x(p, pgc, d, W, d->Ws, d->Wn);
-    precon->reconstruct_3D_y(p, pgc, d, W, d->We, d->Ww);
+    if(hllc)
+    {
+        precon->reconstruct_3D_x(p, pgc, d, W, d->Ws, d->Wn);
+        precon->reconstruct_3D_y(p, pgc, d, W, d->We, d->Ww);
+    }
     precon->reconstruct_3D_z(p, pgc, d, W, d->Wb, d->Wt);
-    
+
     // reconstruct UH
     precon->reconstruct_3D_x(p, pgc, d, UH, d->UHs, d->UHn);
     precon->reconstruct_3D_y(p, pgc, d, UH, d->UHe, d->UHw);
-    
+
     // reconstruct  VH
     precon->reconstruct_3D_x(p, pgc, d, VH, d->VHs, d->VHn);
     precon->reconstruct_3D_y(p, pgc, d, VH, d->VHe, d->VHw);
-    
+
     // reconstruct  WH
     precon->reconstruct_3D_x(p, pgc, d, WH, d->WHs, d->WHn);
     precon->reconstruct_3D_y(p, pgc, d, WH, d->WHe, d->WHw);
-    
+
     // wetdry
-    pfsf->wetdry_fluxes(p,d,pgc,WL,U,V,W,UH,VH,WH);
-    
+    pfsf->wetdry_fluxes(p, d, pgc, WL, U, V, W, UH, VH, WH);
+
     pss->signal_speed_update(p, pgc, d, d->Us, d->Un, d->Ve, d->Vw, d->Ds, d->Dn, d->De, d->Dw);
-    
-    p->recontime+=pgc->timer()-starttime;
+
+    p->recontime += pgc->timer() - starttime;
 }
 
 void nhflow_momentum_func::velcalc(lexer *p, fdm_nhf *d, ghostcell *pgc, double *UH, double *VH, double *WH, slice &WL, double alpha)
 {
-    // Fr nuber limiter
-    if(p->A532==1)
+    // Froude-number limiters + U=UH/WL + DWDT, fused into one sweep.
+    // Every operation is per cell, so the result is identical to the former
+    // sequence of separate loops (limiter A532, limiter B60, DWDT, U, dry, DWDT).
     LOOP
-    WETDRY
     {
-    UH[IJK] = MIN(UH[IJK], p->A531*WL(i,j)*sqrt(9.81*WL(i,j)));
-    VH[IJK] = MIN(VH[IJK], p->A531*WL(i,j)*sqrt(9.81*WL(i,j)));
-    WH[IJK] = MIN(WH[IJK], p->A531*WL(i,j)*sqrt(9.81*WL(i,j)));      
-    
-    UH[IJK] = MAX(UH[IJK], -p->A531*WL(i,j)*sqrt(9.81*WL(i,j)));
-    VH[IJK] = MAX(VH[IJK], -p->A531*WL(i,j)*sqrt(9.81*WL(i,j)));
-    WH[IJK] = MAX(WH[IJK], -p->A531*WL(i,j)*sqrt(9.81*WL(i,j))); 
-    }
-    
-    if(p->A532==2)
-    LOOP
-    WETDRY
-    if(p->deep[IJ]==0) // if WL < 10.0 * A 544
-    {
-    UH[IJK] = MIN(UH[IJK], p->A531*WL(i,j)*sqrt(9.81*WL(i,j)));
-    VH[IJK] = MIN(VH[IJK], p->A531*WL(i,j)*sqrt(9.81*WL(i,j)));
-    WH[IJK] = MIN(WH[IJK], p->A531*WL(i,j)*sqrt(9.81*WL(i,j)));      
-    
-    UH[IJK] = MAX(UH[IJK], -p->A531*WL(i,j)*sqrt(9.81*WL(i,j)));
-    VH[IJK] = MAX(VH[IJK], -p->A531*WL(i,j)*sqrt(9.81*WL(i,j)));
-    WH[IJK] = MAX(WH[IJK], -p->A531*WL(i,j)*sqrt(9.81*WL(i,j))); 
-    }
-    
-    
-    if(p->B60==1)
-    LOOP
-    if(p->wet[Ip1J]==0 || p->wet[Im1J]==0 || p->wet[IJp1]==0 || p->wet[IJm1]==0 || p->deep[IJ]==0)
-    {
-    UH[IJK] = MIN(UH[IJK], 0.1*p->A531*WL(i,j)*sqrt(9.81*WL(i,j)));
-    VH[IJK] = MIN(VH[IJK], 0.1*p->A531*WL(i,j)*sqrt(9.81*WL(i,j)));
-    WH[IJK] = MIN(WH[IJK], 0.1*p->A531*WL(i,j)*sqrt(9.81*WL(i,j)));      
-    
-    UH[IJK] = MAX(UH[IJK], -0.1*p->A531*WL(i,j)*sqrt(9.81*WL(i,j)));
-    VH[IJK] = MAX(VH[IJK], -0.1*p->A531*WL(i,j)*sqrt(9.81*WL(i,j)));
-    WH[IJK] = MAX(WH[IJK], -0.1*p->A531*WL(i,j)*sqrt(9.81*WL(i,j))); 
-    }
-    
-    LOOP
-    WETDRY
-    {
-    d->DWDT[IJK] = d->W[IJK];
-    }
-    
-    LOOP
-    WETDRY
-    {
-    d->U[IJK] = UH[IJK]/WLVL;
-    d->V[IJK] = VH[IJK]/WLVL;
-    d->W[IJK] = WH[IJK]/WLVL;       
-    }
-    
+        if(p->wet[IJ] == 1 && (p->A532 == 1 || (p->A532 == 2 && p->deep[IJ] == 0)))
+        {
+            const double lim = p->A531 * WL(i, j) * sqrt(9.81 * WL(i, j));
+            UH[IJK] = MIN(UH[IJK], lim);
+            VH[IJK] = MIN(VH[IJK], lim);
+            WH[IJK] = MIN(WH[IJK], lim);
 
-    LOOP
-    if(p->wet[IJ]==0)
-    {
-    d->U[IJK] = 0.0;
-    d->V[IJK] = 0.0;
-    d->W[IJK] = 0.0;
+            const double nlim = -p->A531 * WL(i, j) * sqrt(9.81 * WL(i, j));
+            UH[IJK] = MAX(UH[IJK], nlim);
+            VH[IJK] = MAX(VH[IJK], nlim);
+            WH[IJK] = MAX(WH[IJK], nlim);
+        }
+
+        if(p->B60 == 1)
+            if(p->wet[Ip1J] == 0 || p->wet[Im1J] == 0 || p->wet[IJp1] == 0 || p->wet[IJm1] == 0 || p->deep[IJ] == 0)
+            {
+                const double lim = 0.1 * p->A531 * WL(i, j) * sqrt(9.81 * WL(i, j));
+                UH[IJK] = MIN(UH[IJK], lim);
+                VH[IJK] = MIN(VH[IJK], lim);
+                WH[IJK] = MIN(WH[IJK], lim);
+
+                const double nlim = -0.1 * p->A531 * WL(i, j) * sqrt(9.81 * WL(i, j));
+                UH[IJK] = MAX(UH[IJK], nlim);
+                VH[IJK] = MAX(VH[IJK], nlim);
+                WH[IJK] = MAX(WH[IJK], nlim);
+            }
+
+        if(p->wet[IJ] == 1)
+        {
+            const double wold = d->W[IJK];
+            const double wl = WLVL;
+
+            d->U[IJK] = UH[IJK] / wl;
+            d->V[IJK] = VH[IJK] / wl;
+            d->W[IJK] = WH[IJK] / wl;
+
+            d->DWDT[IJK] = (d->W[IJK] - wold) / (alpha * p->dt);
+        }
+
+        else if(p->wet[IJ] == 0)
+        {
+            d->U[IJK] = 0.0;
+            d->V[IJK] = 0.0;
+            d->W[IJK] = 0.0;
+        }
     }
-    
-    LOOP
-    WETDRY
-    {
-    d->DWDT[IJK] = (d->W[IJK]-d->DWDT[IJK])/(alpha*p->dt);
-    }
-    
-    pgc->start4V(p,d->U,gcval_u);
-    pgc->start4V(p,d->V,gcval_v);
-    pgc->start4V(p,d->W,gcval_w);
+
+    pgc->start4V(p, d->U, gcval_u);
+    pgc->start4V(p, d->V, gcval_v);
+    pgc->start4V(p, d->W, gcval_w);
 }
 
 void nhflow_momentum_func::irhs(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
-	LOOP
-	{
-	d->F[IJK] = (d->F[IJK] + d->Fext[IJK]);
-	d->Fext[IJK]=0.0;
-	}
+    LOOP
+    {
+        d->F[IJK] = (d->F[IJK] + d->Fext[IJK]);
+        d->Fext[IJK] = 0.0;
+    }
 }
 
 void nhflow_momentum_func::jrhs(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     LOOP
-	{
-	d->G[IJK] = (d->G[IJK] + d->Gext[IJK]);
-	d->Gext[IJK]=0.0;
-	}
+    {
+        d->G[IJK] = (d->G[IJK] + d->Gext[IJK]);
+        d->Gext[IJK] = 0.0;
+    }
 }
 
 void nhflow_momentum_func::krhs(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     LOOP
-	{
-	d->H[IJK] = (d->H[IJK] + d->Hext[IJK]);
-	d->Hext[IJK]=0.0;
-	}
+    {
+        d->H[IJK] = (d->H[IJK] + d->Hext[IJK]);
+        d->Hext[IJK] = 0.0;
+    }
 }
 
 void nhflow_momentum_func::clearrhs(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
-	n=0;
-	LOOP
-	{
-	d->rhsvec.V[n]=0.0;
-	++n;
-	}
+    n = 0;
+    LOOP
+    {
+        d->rhsvec.V[n] = 0.0;
+        ++n;
+    }
+}
+
+// stage s: velocities, forcing, pressure projection
+void nhflow_momentum_func::phase_P(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_stage_obj &S, int s)
+{
+    phase_P1(p, d, pgc, S, s);
+
+    // strongly coupled flexible membranes: the projection is repeated until membrane and fluid agree
+    if(p->X330 > 0 && pmfrc != nullptr && pm6dof != nullptr && pm6dof->membrane_iterated())
+        pmfrc->projection(p, d, pgc, pm6dof, S.ppress, S.ppoissonsolv, S.pflow, this, s, stage_alpha(s),
+                          stage_UH(d, s, 0), stage_UH(d, s, 1), stage_UH(d, s, 2), stage_WL(d, s));
+
+    else
+        S.ppress->start(p, d, S.ppoissonsolv, pgc, S.pflow, stage_WL(d, s), stage_UH(d, s, 0), stage_UH(d, s, 1), stage_UH(d, s, 2), stage_alpha(s));
+
+    phase_P2(p, d, pgc, S, s);
 }
 
 void nhflow_momentum_func::inidisc(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_fsf *pfsf)
 {
-    pfsf->wetdry(p,d,pgc,d->U,d->V,d->W,d->WL);
-    sigma_update(p,d,pgc,d->WL);
-    pfsf->kinematic_fsf(p,d,d->U,d->V,d->W,d->eta);
-    pfsf->kinematic_bed(p,d,d->U,d->V,d->W);
-    velcalc(p,d,pgc,d->UH,d->VH,d->WH,d->WL,1.0);
+    pfsf->wetdry(p, d, pgc, d->U, d->V, d->W, d->WL);
+    sigma_update(p, d, pgc, d->WL);
+    pfsf->kinematic_fsf(p, d, d->U, d->V, d->W, d->eta);
+    pfsf->kinematic_bed(p, d, d->U, d->V, d->W);
+    velcalc(p, d, pgc, d->UH, d->VH, d->WH, d->WL, 1.0);
 }
-     
-
-
 

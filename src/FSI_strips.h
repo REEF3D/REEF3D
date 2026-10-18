@@ -23,9 +23,11 @@ Authors: Tobias Martin, Hans Bihs
 #ifndef FSI_STRIPS_H_
 #define FSI_STRIPS_H_
 
-#include"FSI.h"
-#include<vector>
+#include "FSI.h"
+#include "field4.h"
+#include "increment.h"
 #include <Eigen/Dense>
+#include <vector>
 
 class lexer;
 class fdm;
@@ -35,25 +37,26 @@ class turbulence;
 
 using namespace std;
 
-class fsi_strips final : public fsi
+class fsi_strips final : public fsi, public increment
 {
 public:
-	
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
-	
-    fsi_strips(lexer*,ghostcell*);
-	virtual ~fsi_strips();
-	void start(lexer*,fdm*,ghostcell*) override final;
-	void initialize(lexer*,fdm*,ghostcell*,turbulence*) override final;
-    void forcing(lexer*,fdm*,ghostcell*,double,field&,field&,field&,field&,field&,field&,bool) override final;
-    
-    
+
+    fsi_strips(lexer *, ghostcell *);
+    virtual ~fsi_strips();
+    void start(lexer *, fdm *, ghostcell *) override final;
+    void initialize(lexer *, fdm *, ghostcell *, turbulence *) override final;
+    void forcing(lexer *, fdm *, ghostcell *, double, field &, field &, field &, field &, field &, field &, bool) override final;
+
 private:
     int numberStrips;
     double starttime, endtime;
     double starttime0;
-	
-    vector<fsi_strip*> pstrip;
+
+    vector<fsi_strip *> pstrip;
+    vector<double> velbuf;  // packed Lagrangian velocities of all strips, one MPI_Allreduce per call
+    field4 eps0;            // shared RANS forcing field (was one full field4 per strip)
+    turbulence *pturb;
 };
 
 #endif

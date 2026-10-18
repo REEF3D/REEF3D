@@ -23,8 +23,9 @@ Author: Hans Bihs
 #ifndef FNPF_CDS2_WD_H_
 #define FNPF_CDS2_WD_H_
 
-#include"fnpf_convection.h"
-#include"increment.h"
+#include "fnpf_convection.h"
+#include "fnpf_sz_weights.h"
+#include "increment.h"
 
 class fdm_fnpf;
 
@@ -33,21 +34,20 @@ using namespace std;
 class fnpf_cds2_wd final : public fnpf_convection, public increment
 {
 public:
-	fnpf_cds2_wd(lexer*,fdm_fnpf*);
-	virtual ~fnpf_cds2_wd();
+    fnpf_cds2_wd(lexer *, fdm_fnpf *);
+    virtual ~fnpf_cds2_wd();
 
-    double fx(lexer*, field&, double, double) override final;
-	double fy(lexer*, field&, double, double) override final;
-	double fz(lexer*, field&, double, double) override final;
-    
-    double sx(lexer*, slice&, double) override final;
-	double sy(lexer*, slice&, double) override final;
-    double sz(lexer*, double*) override final;
+    double fx(lexer *, field &, double, double) override final;
+    double fy(lexer *, field &, double, double) override final;
+    double fz(lexer *, field &, double, double) override final;
+
+    double sx(lexer *, slice &, double) override final;
+    double sy(lexer *, slice &, double) override final;
+    double sz(lexer *, double *) override final;
 
 private:
+    fnpf_sz_weights szw;
     fdm_fnpf *c;
-   
-
 };
 
 #endif

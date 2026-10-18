@@ -23,65 +23,66 @@ Author: Hans Bihs
 #ifndef WAVE_LIB_HDC_H_
 #define WAVE_LIB_HDC_H_
 
-#include"wave_lib_precalc.h"
-#include"wave_lib_parameters.h"
-#include<fstream>
-#include"increment.h"
+#include "increment.h"
+#include "wave_lib_parameters.h"
+#include "wave_lib_precalc.h"
+#include <fstream>
 
 using namespace std;
 
 class wave_lib_hdc final : public wave_lib_precalc, public wave_lib_parameters, public increment
 {
 public:
-    wave_lib_hdc(lexer*, ghostcell*);
-	virtual ~wave_lib_hdc();
-    
-    double wave_u(lexer*,double,double,double) override final;
-    double wave_v(lexer*,double,double,double) override final;
-    double wave_w(lexer*,double,double,double) override final;
-    double wave_eta(lexer*,double,double) override final;
-    double wave_fi(lexer*,double,double,double) override final;
-    
-    void parameters(lexer*,ghostcell*) override final;
-    void wave_prestep(lexer*,ghostcell*) override final;
-    
+    wave_lib_hdc(lexer *, ghostcell *);
+    virtual ~wave_lib_hdc();
+
+    double wave_u(lexer *, double, double, double) override final;
+    double wave_v(lexer *, double, double, double) override final;
+    double wave_w(lexer *, double, double, double) override final;
+    double wave_eta(lexer *, double, double) override final;
+    double wave_fi(lexer *, double, double, double) override final;
+
+    void parameters(lexer *, ghostcell *) override final;
+    void wave_prestep(lexer *, ghostcell *) override final;
+
 private:
-    
     // functions
-    void wave_prestep_cfd(lexer*,ghostcell*);
-    void wave_prestep_fnpf(lexer*,ghostcell*);
-    
-    void read_header(lexer*,ghostcell*);
-    void read_result_cfd(lexer*,ghostcell*,double**,double***,double***,double***,int);
-    void read_result_fnpf(lexer*,ghostcell*,double**,double**,int);
-    
-    void fill_conti_fnpf(lexer*,ghostcell*);
-    void fill_conti_cfd(lexer*,ghostcell*);
-    
-    void filename_header(lexer*,ghostcell*);
-    void filename_single(lexer*,ghostcell*,int);
-    void filename_continuous(lexer*,ghostcell*);
-    
-    
-    void allocate_fnpf(lexer*,ghostcell*);
-    void allocate_cfd(lexer*,ghostcell*);
-    
-    
-    void time_interpol_fnpf(lexer*);
-    void time_interpol_cfd(lexer*);
-    
+    void wave_prestep_cfd(lexer *, ghostcell *);
+    void wave_prestep_fnpf(lexer *, ghostcell *);
+
+    // time levels q1 <= t < q2 and their data in E1.. / E2..
+    void time_levels(lexer *, ghostcell *, bool);
+    void read_level(lexer *, ghostcell *, bool, int, int);
+
+    void read_header(lexer *, ghostcell *);
+    void read_result_cfd(lexer *, ghostcell *, double **, double ***, double ***, double ***, int);
+    void read_result_fnpf(lexer *, ghostcell *, double **, double **, int);
+
+    void fill_conti_fnpf(lexer *, ghostcell *);
+    void fill_conti_cfd(lexer *, ghostcell *);
+
+    void filename_header(lexer *, ghostcell *);
+    void filename_single(lexer *, ghostcell *, int);
+    void filename_continuous(lexer *, ghostcell *);
+
+    void allocate_fnpf(lexer *, ghostcell *);
+    void allocate_cfd(lexer *, ghostcell *);
+
+    void time_interpol_fnpf(lexer *);
+    void time_interpol_cfd(lexer *);
+
     // interpolation
-    double ccpol3D(lexer*,double***,double,double,double);
-    double ccpol2D(lexer*,double**,double,double);
-    double ccpol2DM(lexer*,double***,double,double);
-    double space_interpol(lexer*,double***,double,double,double);
-    double plane_interpol(lexer*,double**,double,double);
-    
-    int pos_i(lexer*,double);
-    int pos_j(lexer*,double);
-    int pos_k(lexer*,double,int,int);
-    
-    int ihalf(int,int);
+    double ccpol3D(lexer *, double ***, double, double, double);
+    double ccpol2D(lexer *, double **, double, double);
+    double ccpol2DM(lexer *, double ***, double, double);
+    double space_interpol(lexer *, double ***, double, double, double);
+    double plane_interpol(lexer *, double **, double, double);
+
+    int pos_i(lexer *, double);
+    int pos_j(lexer *, double);
+    int pos_k(lexer *, double, int, int);
+
+    int ihalf(int, int);
 
     // arrays
     double *X;
@@ -90,44 +91,43 @@ private:
     double ***Z;
     double **B;
     double *simtime;
-    
-    double ***U1,***U2,***U;
-    double ***V1,***V2,***V;
-    double ***W1,***W2,***W;
-    double **E1,**E2,**E;
-    double **F1,**F2,**F;
-    
-    
-    
+
+    double ***U1, ***U2, ***U;
+    double ***V1, ***V2, ***V;
+    double ***W1, ***W2, ***W;
+    double **E1, **E2, **E;
+    double **F1, **F2, **F;
+
     // variables
-    double t_start,t_end;
+    double t_start, t_end;
     int endseries;
     double val;
-    int q1,q2,q1n,q2n;
-    double t1,t2,tn,deltaT;
-    int Nx,Ny,Nz;
+    int q1, q2, q1n, q2n;
+    double t1, t2, tn, deltaT;
+    int Nx, Ny, Nz;
     int num;
-    
+
     int iin;
     float ffn;
     double ddn;
-	char name[300];
+    char name[300];
     ifstream result;
-    
-    int file_version,file_type,file_conti;
-    int ip1,jp1,kp1;
-    int ii,jj,kk;
-    int iii,jjj,kkk;
-    double xp,yp,zp;
-    double wa,wb,wc;
-    double v1,v2,v3,v4,v5,v6,v7,v8;
-    double x1,x2,x3,x4,y1,y2;
-    
-    double Xstart,Xend,Ystart,Yend;
-    
+
+    int file_version, file_type, file_conti;
+    int ip1, jp1, kp1;
+    int ii, jj, kk;
+    int iii, jjj, kkk;
+    double xp, yp, zp;
+    double wa, wb, wc;
+    double v1, v2, v3, v4, v5, v6, v7, v8;
+    double x1, x2, x3, x4, y1, y2;
+
+    double Xstart, Xend, Ystart, Yend;
 
     int startup;
-    int numiter,diter,jdir;
+    int L1, L2;  // time levels held in E1.. and E2.. (-1: none)
+    int qs;      // continuous file: level of the next record in the stream
+    int numiter, diter, jdir;
     int file_iter;
 };
 

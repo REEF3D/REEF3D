@@ -23,12 +23,16 @@ Author: Hans Bihs
 #ifndef SOLVER_HEADER_H_
 #define SOLVER_HEADER_H_
 
-#include"solver_void.h"
-#include"bicgstab_ijk.h"
-#include"bicgstab_ijk_2D.h"
+#include "bicgstab_ijk.h"
+#include "bicgstab_ijk_2D.h"
+#include "solver_void.h"
 
-#include"hypre_aij.h"
-#include"hypre_struct.h"
-#include"hypre_sstruct.h"
+#include "reefmg.h"
+
+#ifdef REEF3D_USE_HYPRE
+#include "hypre_aij.h"
+#include "hypre_sstruct.h"
+#include "hypre_struct.h"
+#endif
 
 #endif

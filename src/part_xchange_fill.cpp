@@ -20,24 +20,25 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"part.h"
-#include"lexer.h"
-#include"ghostcell.h"
+#include "ghostcell.h"
+#include "lexer.h"
+#include "part.h"
 
 void part::xchange_fill(lexer *p, ghostcell *pgc, int mode, double *F)
 {
-    for(n=0;n<6;++n)
-    for(q=0;q<sendnum[n];++q)
-    send[n][q] = F[sendid[n][q]];
+    for(n = 0; n < 6; ++n)
+        for(q = 0; q < sendnum[n]; ++q)
+            send[n][q] = F[sendid[n][q]];
 }
 
 void part::xchange_fill_flag(lexer *p, ghostcell *pgc, int mode)
 {
-    for(n=0;n<6;++n)
-    for(q=0;q<sendnum[n];++q)
-    {
-    Flag[sendid[n][q]]=EMPTY;
-    Empty[index_empty]=sendid[n][q];
-    ++index_empty;
-    }
+    for(n = 0; n < 6; ++n)
+        for(q = 0; q < sendnum[n]; ++q)
+        {
+            Flag[sendid[n][q]] = EMPTY;
+            Hop[sendid[n][q]] = 0.0;
+            Empty[index_empty] = sendid[n][q];
+            ++index_empty;
+        }
 }

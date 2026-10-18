@@ -20,26 +20,27 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include<sys/stat.h>
-#include<iostream>
-#include<fstream>
-#include"6DOF_obj.h"
-#include"lexer.h"
-#include"fdm.h"
-#include"ghostcell.h"
+#include "6DOF_obj.h"
+#include "fdm.h"
+#include "ghostcell.h"
+#include "lexer.h"
+#include <fstream>
+#include <iostream>
+#include <sys/stat.h>
 
 void sixdof_obj::print_parameter(lexer *p, ghostcell *pgc)
 {
-	if(p->mpirank==0 && p->count%p->X19==0)
+    if(p->mpirank == 0 && p->count % p->X19 == 0)
     {
         ofstream print;
         char str[1000];
-        
-        
-        printpos<<p->simtime<<" \t "<<p->xg<<" \t "<<p->yg<<" \t "<<p->zg<<" \t "<<phi*(180/PI)<<" \t "<<theta*(180/PI)<<" \t "<<psi*(180/PI)<<endl;
 
+        printpos << p->simtime << " \t " << p->xg << " \t " << p->yg << " \t " << p->zg << " \t " << phi * (180 / PI) << " \t " << theta * (180 / PI) << " \t " << psi * (180 / PI) << endl;
 
-        printvel<<p->simtime<<" \t "<<p->ufbi<<" \t "<<p->vfbi<<" \t "<<p->wfbi<<" \t "<<p->pfbi<<" \t "<<p->qfbi<<" \t "<<p->rfbi<<endl;
-
+        printvel << p->simtime << " \t " << p->ufbi << " \t " << p->vfbi << " \t " << p->wfbi << " \t " << p->pfbi << " \t " << p->qfbi << " \t " << p->rfbi << endl;
     }
+
+    // load models (ship module)
+    for(size_t ql = 0; ql < pload.size(); ++ql)
+        pload[ql]->print(p);
 }

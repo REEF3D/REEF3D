@@ -1,0 +1,22 @@
+{
+ "description": "nhflow_3d_amr_tow_zone on 2 ranks with the placement test mode (G 40 2: small pieces, placed anew at every regrid away from the rank below): the zone moves with the towed box, the state of the patches moves between the ranks.",
+ "solver": "nhflow",
+ "np": 2,
+ "steps": 40,
+ "tags": [
+  "3d",
+  "nhflow",
+  "amr",
+  "mpi",
+  "place"
+ ],
+ "covers": [
+  "reefamr old_run remote (migration)",
+  "place 2 test mode",
+  "moving zone with placed patches"
+ ],
+ "base": "nhflow_3d_amr_tow_zone",
+ "ctrl_add": [
+  "G 40 2"
+ ]
+}

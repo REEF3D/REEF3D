@@ -20,25 +20,24 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"driver.h"
-#include"lexer.h"
-#include"fdm.h"
-#include"ghostcell.h"
-#include"grid_helper.h"
+#include "driver.h"
+#include "fdm.h"
+#include "ghostcell.h"
+#include "grid_helper.h"
+#include "lexer.h"
 
 void driver::makegrid(lexer *p, ghostcell *pgc)
 {
     // flag
-    pgc->flagx(p,p->flagsf1);
-    pgc->flagx(p,p->flagsf2);
-    pgc->flagx(p,p->flagsf3);
-    pgc->flagx(p,p->flagsf4);
+    pgc->flagx(p, p->flagsf1);
+    pgc->flagx(p, p->flagsf2);
+    pgc->flagx(p, p->flagsf3);
+    pgc->flagx(p, p->flagsf4);
 
-    pgc->flagx(p,p->flag1);
-    pgc->flagx(p,p->flag2);
-    pgc->flagx(p,p->flag3);
-    pgc->flagx(p,p->flag4);
-    pgc->flagx(p,p->flag);
+    pgc->flagx(p, p->flag1);
+    pgc->flagx(p, p->flag2);
+    pgc->flagx(p, p->flag3);
+    pgc->flagx(p, p->flag4);
     pgc->gcxupdate(p);
 
     p->vecsize(pgc);
@@ -63,6 +62,6 @@ void driver::makegrid(lexer *p, ghostcell *pgc)
 
 void driver::makegrid_cds()
 {
-    pgc->sizeM_update(p,a);
+    pgc->sizeM_update(p, a);
 }
 

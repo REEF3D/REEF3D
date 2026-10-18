@@ -37,56 +37,55 @@ class heat;
 class print_wsf;
 class concentration;
 
-#include"multiphase.h"
-#include"increment.h"
-#include"field4.h"
-#include<fstream>
+#include "field4.h"
+#include "increment.h"
+#include "multiphase.h"
+#include <fstream>
 
 using namespace std;
 
 class multiphase_f final : public multiphase, public increment
 {
 public:
-	multiphase_f(lexer*, fdm*, ghostcell*);
-	virtual ~multiphase_f();
-	void start(lexer*,fdm*,ghostcell*,convection*,solver*,ioflow*,reini*,particle_corr*) override final;
-	void ini(lexer*,fdm*,ghostcell*,ioflow*,convection*,solver*) override final;
-	void update(lexer*,fdm*,ghostcell*) override final;
-	
-	void print_3D(lexer*, fdm*, ghostcell*, std::vector<char>&, size_t&) override final;
-	void print_file(lexer*, fdm*, ghostcell*) override final;
-    double ls1val(int,int,int) override final;
-    double ls2val(int,int,int) override final;
-	double ccipol_ls1val(lexer*,ghostcell*,double,double,double) override final;
-	double ccipol_ls2val(lexer*,ghostcell*,double,double,double) override final;
-    void ls1get(int,int,int,double) override final;
-    void ls2get(int,int,int,double) override final;
+    multiphase_f(lexer *, fdm *, ghostcell *);
+    virtual ~multiphase_f();
+    void start(lexer *, fdm *, ghostcell *, convection *, solver *, ioflow *, reini *) override final;
+    void ini(lexer *, fdm *, ghostcell *, ioflow *, convection *, solver *) override final;
+    void update(lexer *, fdm *, ghostcell *) override final;
 
-    void name_ParaView_parallel(lexer*, ofstream&) override final;
-    void name_ParaView(lexer*, std::stringstream&, int*, int &) override final;
-    void offset_ParaView(lexer*, int*, int &) override final;
-    
-    void logic(lexer*,fdm*,ghostcell*);
-    
-    freesurface *pfsf1,*pfsf2;
+    void print_3D(lexer *, fdm *, ghostcell *, std::vector<char> &, size_t &) override final;
+    void print_file(lexer *, fdm *, ghostcell *) override final;
+    double ls1val(int, int, int) override final;
+    double ls2val(int, int, int) override final;
+    double ccipol_ls1val(lexer *, ghostcell *, double, double, double) override final;
+    double ccipol_ls2val(lexer *, ghostcell *, double, double, double) override final;
+    void ls1get(int, int, int, double) override final;
+    void ls2get(int, int, int, double) override final;
+
+    void name_ParaView_parallel(lexer *, ofstream &) override final;
+    void name_ParaView(lexer *, std::stringstream &, int *, int &) override final;
+    void offset_ParaView(lexer *, int *, int &) override final;
+
+    void logic(lexer *, fdm *, ghostcell *);
+
+    freesurface *pfsf1, *pfsf2;
     reini *preini;
     multiphase_fluid_update *pupdate;
     heat *pheat;
     concentration *pconc;
-    particle_corr *ppls;
     print_wsf *pwsf1;
     print_wsf *pwsf2;
-    
-    field4 ls1,ls2;
-    
+
+    field4 ls1, ls2;
+
     int n;
     int iin;
     float ffn;
     double ddn;
 
 private:
-	double fx(double,double,double,double,double);
-	double fz(double,double,double,double,double);
+    double fx(double, double, double, double, double);
+    double fz(double, double, double, double, double);
 };
 
 #endif

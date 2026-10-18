@@ -1,0 +1,8 @@
+{
+ "description": "CPM MP-PIC sand bed in a periodic channel accelerated from rest (W 20 5), sub-grid bedload layer Q 58 1",
+ "covers": ["CPM sub-grid bedload layer: bed shear per column, pickup from the exposed top layer, hops, deposition, capacity-checked placement",
+            "column bed level for the fluid (topo_column)", "one-sided solid forcing at the CPM bed (S 10 1)",
+            "CPM periodic parcels, packed-bed stress, grid-limited step", "CPM log (REEF3D_CFD_CPM_Particle)"],
+ "np": 1, "steps": 150,
+ "tags": ["quick", "2d", "cpm"]
+}

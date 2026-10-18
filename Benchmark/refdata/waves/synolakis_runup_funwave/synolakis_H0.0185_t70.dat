@@ -1,0 +1,66 @@
+# Reference: Synolakis, C.E. (1987). The runup of solitary waves. Journal of Fluid Mechanics 185, 523-545 (NTHMP benchmark BP4, solitary wave on a simple 1:19.85 beach).
+# Source repo: https://github.com/fengyanshi/FUNWAVE-TVD  commit b4c322e7582035ee19df8e6409a3dfedaff1cb96, path benchmarks/sph_sol_plane_mea/postprocessing/SW_01_00185.mat (variables x_70, a_70)
+# Converted .mat -> text (Python repr of stored doubles). The comparison script labBM_04_SW.m is the NTHMP benchmark script ('Solitary Wave on a Simple Beach', 'CASE     H = 0.0185').
+# Content: LABORATORY free-surface profile for H/d = 0.0185 at nondimensional time t* = 70 (script label 'text(...,'t=70')', t* = t*sqrt(g/d) per NTHMP convention, not stated in script).
+# Columns: (1) x/d (dimensionless; origin at initial shoreline, x positive offshore: slope drawn as 'X=[-10:1: 20]; slp=1/19.85; Y=-slp*X;');
+#          (2) eta/d (dimensionless; plotted with axis limits e.g. '[-2 20 -0.02 0.04]').
+# Sampling: nearly uniform x spacing (~0.07 d) -> probably digitised/re-sampled profiles distributed with the NTHMP benchmark, not raw gauge records -> confidence B.
+0.131 -0.0075
+0.189 -0.00132
+0.218 -0.01191
+0.291 -0.00441
+0.364 -0.00993
+0.378 -0.00882
+0.436 -0.0139
+0.509 -0.01831
+0.64 -0.01037
+0.655 -0.00331
+0.8 -0.00993
+0.916 -0.00596
+0.945 -0.01324
+1.12 -0.00397
+1.164 0.0011
+1.178 -0.00287
+1.309 -0.00066
+1.382 0.0011
+1.455 0.00199
+1.6 0.00221
+1.673 0.00265
+1.745 0.00375
+1.891 0.00706
+2.109 0.00684
+2.255 0.00684
+2.4 0.01103
+2.618 0.00971
+2.691 0.01015
+2.909 0.01235
+3.055 0.01213
+3.345 0.01213
+3.564 0.01324
+3.636 0.01191
+3.884 0.01191
+4.073 0.01213
+4.582 0.01147
+5.018 0.01081
+5.382 0.01125
+6.036 0.00971
+6.109 0.00993
+6.545 0.00882
+6.982 0.01037
+7.055 0.00706
+7.927 0.00882
+9.018 0.00838
+9.964 0.00772
+11.273 0.0075
+12.0 0.0064
+13.018 0.00507
+14.036 0.00529
+15.055 0.00551
+15.709 0.00551
+16.0 0.00353
+16.873 0.00375
+16.945 0.00375
+17.018 0.00419
+19.127 0.00397
+19.782 0.00397
+20.0 0.00463

@@ -23,13 +23,13 @@ Author: Hans Bihs
 #ifndef SFLOW_RHEOLOGY_F_H_
 #define SFLOW_RHEOLOGY_F_H_
 
-#include"sflow_rheology.h"
-#include"increment.h"
-#include"slice4.h"
+#include "increment.h"
+#include "sflow_rheology.h"
+#include "slice4.h"
 
-#define HXIJ (fabs(b->hx(i,j))>1.0e-10?b->hx(i,j):1.0e20)
-#define HYIJ (fabs(b->hy(i,j))>1.0e-10?b->hy(i,j):1.0e20)
-#define HPIJ (fabs(b->hp(i,j))>1.0e-10?b->hp(i,j):1.0e20)
+#define HXIJ (fabs(b->hx(i, j)) > 1.0e-10 ? b->hx(i, j) : 1.0e20)
+#define HYIJ (fabs(b->hy(i, j)) > 1.0e-10 ? b->hy(i, j) : 1.0e20)
+#define HPIJ (fabs(b->hp(i, j)) > 1.0e-10 ? b->hp(i, j) : 1.0e20)
 
 using namespace std;
 
@@ -37,22 +37,22 @@ class sflow_rheology_f final : public sflow_rheology, public increment
 {
 
 public:
-    sflow_rheology_f(lexer*);
-	virtual ~sflow_rheology_f();
-    
-	void u_source(lexer*, fdm2D*, slice&, slice&) override final;
-    void v_source(lexer*, fdm2D*, slice&, slice&) override final;
+    sflow_rheology_f(lexer *);
+    virtual ~sflow_rheology_f();
+
+    void u_source(lexer *, fdm2D *, slice &, slice &, slice &) override final;
+    void v_source(lexer *, fdm2D *, slice &, slice &, slice &) override final;
 
 private:
-    double bingham(lexer*, fdm2D*, double, double, double, double);
-    
-    double cf,manning;
-    
-    double tau_zx,tau_zy,u_abs;
-    double tau0,val;
+    double bingham(lexer *, fdm2D *, double, double, double, double);
+
+    double cf, manning;
+
+    double tau_zx, tau_zy, u_abs;
+    double tau0, val;
     double press;
     double tanphi;
-    double hc,denom;
+    double hc, denom;
 };
 
 #endif

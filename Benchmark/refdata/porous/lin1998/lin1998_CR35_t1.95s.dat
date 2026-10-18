@@ -1,0 +1,42 @@
+# Reference: Lin, P. (1998). Numerical modeling of breaking waves. PhD thesis, Cornell University (dam-break through a porous dam of crushed rock);
+#   used in Liu, P.L.-F., Lin, P., Chang, K.-A. & Sakakiyama, T. (1999). Numerical modeling of wave interaction with porous structures. J. Waterway, Port, Coastal, Ocean Eng. 125(6), 322-330.
+#   olaFlow plot title: 'olaFlow validation. Lin (1998) dam break experiments: crushed rocks, h = 0.35 m.'
+# Source repo: https://github.com/phicau/olaFlow  commit 9879096092a4fc13419a40bbe11c4bd1b87ddd1d, path tutorials/CR35_dambreak/labData/b6.dat (a b6.jpg image of the same panel exists alongside)
+# Content: LAB free-surface profile at t = 1.95 s (plotValidation.py: "times = ['0.00', '0.35', '0.75', '1.15', '1.55', '1.95']", "fileLab = 'b%i.dat' % (i+1)"; b1 = initial condition, drawn as a line).
+# Columns: (1) x [m] horizontal distance from the reservoir end wall; (2) free-surface elevation y [m] above the flume bottom (xlabel('x (m)'), ylabel('y (m)')).
+# Setup (olaFlow case): flume 0 <= x <= 0.89 m (blockMeshDict); reservoir water to z = 0.35 m for x < 0.29 m ('box (-1 -1 -1) (0.29 1 0.35)'); thin water layer z < 0.025 m elsewhere;
+#   porous dam 0.30 <= x <= 0.59 m, full height ('box (0.30 -1 -1) (0.59 1 0.6)'; plot shading 'fill([0.3, 0.3, 0.59, 0.59],[0.0, 0.5, 0.5, 0.0]'); porosityDict: 'D50 2(1 0.0159);' 'porosity 2(1 0.49);'.
+#   (b1.dat itself gives reservoir level 0.35335 m to x = 0.29447 m and downstream level ~0.022 m.)
+# Sampling: irregular x spacing, 5 decimals -> digitised from figures (by olaFlow author, presumably from Lin 1998 / Liu et al. 1999) -> confidence B.
+0.00000 0.20731
+0.02561 0.20943
+0.05000 0.20590
+0.07805 0.20377
+0.10488 0.20236
+0.12927 0.20024
+0.15488 0.19882
+0.18171 0.19882
+0.20854 0.19811
+0.23659 0.19811
+0.25366 0.19458
+0.28902 0.19175
+0.31585 0.20377
+0.34268 0.20731
+0.36829 0.20236
+0.39390 0.19387
+0.45000 0.18255
+0.50488 0.15708
+0.53049 0.14363
+0.57561 0.11321
+0.59024 0.10401
+0.60854 0.08632
+0.63171 0.08561
+0.65000 0.09127
+0.67195 0.08703
+0.69878 0.08632
+0.72561 0.08420
+0.75244 0.08420
+0.77805 0.08561
+0.80732 0.08774
+0.83537 0.08986
+0.88659 0.09481

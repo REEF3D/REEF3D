@@ -20,90 +20,96 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"driver.h"
-#include"lexer.h"
-#include"ghostcell.h"
-#include"freesurface_header.h"
-#include"turbulence_header.h"
-#include"momentum_header.h"
-#include"pressure_header.h"
-#include"fdm_header.h"
-#include"sediment_header.h"
-#include"convection_header.h"
-#include"solver_header.h"
-#include"field_header.h"
-#include"heat_header.h"
-#include"concentration_header.h"
-#include"benchmark_header.h"
-#include"6DOF_header.h"
-#include"waves_header.h"
+#include "6DOF_header.h"
+#include "benchmark_header.h"
+#include "concentration_header.h"
+#include "convection_header.h"
+#include "driver.h"
+#include "fdm_header.h"
+#include "field_header.h"
+#include "fnpf_amr.h"
+#include "freesurface_header.h"
+#include "ghostcell.h"
+#include "heat_header.h"
+#include "lexer.h"
+#include "momentum_header.h"
+#include "pressure_header.h"
+#include "sediment_header.h"
+#include "solver_header.h"
+#include "turbulence_header.h"
+#include "waves_header.h"
 
 void driver::logic_fnpf()
-{    
-    if(p->mpirank==0)
-    cout<<"creating objects"<<endl;
-    
+{
+    if(p->mpirank == 0)
+        cout << "creating objects" << endl;
+
     p->phimean = p->F60;
 
-// time stepping
-	pftstep=new fnpf_timestep(p);
-    
-// Printer
-    pprint = new printer_fnpf(p,c,pgc);
-    
-//IOFlow
-	if(p->B60==0 && p->B90==0 && p->B180==0 )
-	pflow = new ioflow_v(p,pgc,pBC);
+    // time stepping
+    pftstep = new fnpf_timestep(p);
 
-	if(p->B90>=1)
-	pflow= new iowave(p,pgc,pBC);
-    
-//  Laplace Solver	
-	if(p->N10==0)
-	plapsolv = new solver_void(p,a,pgc);
+    // Printer
+    pprint = new printer_fnpf(p, c, pgc);
 
-	if(p->N10==1 && p->j_dir==0)
-	plapsolv = new bicgstab_ijk(p,a,pgc);
-    
-    if(p->N10==1 && p->j_dir==1)
-	plapsolv = new bicgstab_ijk(p,a,pgc);
-	
-	#ifdef HYPRE_COMPILATION
-	if(p->N10>=10 && p->N10<20)
-    plapsolv = new hypre_struct(p,pgc,p->N10,p->N11);
-    #endif
-    
-    #ifdef HYPRE_COMPILATION
-	if(p->N10>=20 && p->N10<30)
-	plapsolv = new hypre_aij(p,a,pgc);
-	#endif
-    
-    #ifdef HYPRE_COMPILATION
-	if(p->N10>=30 && p->N10<40)
-	plapsolv = new hypre_sstruct(p,a,pgc);
-	#endif
-    
-//  Voids
-	pturb = new kepsilon_void(p,a,pgc);
-    
-    pdata = new expdata_void(p,a,pgc);
-    
-    pconc = new concentration_void(p,a,pgc);
-    
-    pheat = new heat_void(p,a,pgc);
-    
+    // IOFlow
+    if(p->B60 == 0 && p->B90 == 0 && p->B180 == 0)
+        pflow = new ioflow_v(p, pgc, pBC);
+
+    if(p->B90 >= 1)
+        pflow = new iowave(p, pgc, pBC);
+
+    //  Laplace Solver
+    if(p->N10 == 0)
+        plapsolv = new solver_void(p, a, pgc);
+
+    if(p->N10 == 1)
+        plapsolv = new reefmg(p, pgc, p->N10, p->N11);
+
+    if(p->N10 == 3 && p->j_dir == 0)
+        plapsolv = new bicgstab_ijk(p, a, pgc);
+
+    if(p->N10 == 3 && p->j_dir == 1)
+        plapsolv = new bicgstab_ijk(p, a, pgc);
+
+#ifdef REEF3D_USE_HYPRE
+    if(p->N10 >= 10 && p->N10 < 20)
+        plapsolv = new hypre_struct(p, pgc, p->N10, p->N11);
+
+    if(p->N10 >= 20 && p->N10 < 30)
+        plapsolv = new hypre_aij(p, a, pgc);
+
+    if(p->N10 >= 30 && p->N10 < 40)
+        plapsolv = new hypre_sstruct(p, a, pgc);
+#endif
+
+    //  Voids
+    pturb = new kepsilon_void(p, a, pgc);
+
+    pdata = new expdata_void(p, a, pgc);
+
+    pconc = new concentration_void(p, a, pgc);
+
+    pheat = new heat_void(p, a, pgc);
+
     psed = new sediment_void();
-    
-    preini = new reini_void(p);
-    
-    pfsfdisc=new convection_void(p);
-    
-//  Wave Models
 
-    if(p->A310==3)
-    ppfsg = new fnpf_RK3(p,c,pgc);
-        
-    if(p->A310==4)
-    ppfsg = new fnpf_RK4(p,c,pgc);
-    
+    preini = new reini_void(p);
+
+    pfsfdisc = new convection_void(p);
+
+    //  Wave Models
+
+    if(p->A310 == 3)
+        ppfsg = new fnpf_RK3(p, c, pgc);
+
+    if(p->A310 == 4)
+        ppfsg = new fnpf_RK4(p, c, pgc);
+
+    //  Mesh refinement
+    if(p->G1 > 0)
+    {
+        pfamr = new fnpf_amr(p, c, pgc);
+        ppfsg->attach_amr(pfamr);
+    }
 }

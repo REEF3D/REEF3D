@@ -20,19 +20,21 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"nhflow_poisson_pcorr.h"
-#include"lexer.h"
-#include"fdm_nhf.h"
-#include"heat.h"
-#include"concentration.h"
-#include"density_f.h"
-#include"density_comp.h"
-#include"density_conc.h"
-#include"density_heat.h"
-#include"density_vof.h"
-#include"vrans.h"
+#include "nhflow_poisson_pcorr.h"
+#include "concentration.h"
+#include "density_comp.h"
+#include "density_conc.h"
+#include "density_f.h"
+#include "density_heat.h"
+#include "density_vof.h"
+#include "fdm_nhf.h"
+#include "heat.h"
+#include "lexer.h"
+#include "nhflow_membrane_beta.h"
+#include "vrans.h"
+#include "vrans_definitions.h"
 
-nhflow_poisson_pcorr::nhflow_poisson_pcorr(lexer *p) 
+nhflow_poisson_pcorr::nhflow_poisson_pcorr(lexer *p)
 {
 }
 
@@ -40,168 +42,180 @@ nhflow_poisson_pcorr::~nhflow_poisson_pcorr()
 {
 }
 
-void nhflow_poisson_pcorr::start(lexer* p, fdm_nhf *d, double *P)
-{	
-    double ab,denom;
-    
-    n=0;
+void nhflow_poisson_pcorr::start(lexer *p, fdm_nhf *d, double *P)
+{
+    double ab, denom;
+    double cP, cN, cS, cW, cE, cT, cB;
+
+    n = 0;
     FBASELOOP
     {
-        d->M.p[n]  =  1.0;
+        d->M.p[n] = 1.0;
 
         d->M.n[n] = 0.0;
         d->M.s[n] = 0.0;
 
         d->M.w[n] = 0.0;
         d->M.e[n] = 0.0;
-        
+
         d->M.t[n] = 0.0;
         d->M.b[n] = 0.0;
-        
-    ++n;
+
+        ++n;
     }
-    
-	n=0;
+
+    n = 0;
     LOOP
-	{
+    {
         WETDRYDEEP
         {
-            sigxyz2 = pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[IJ],2.0);
-            
-            
-            d->M.p[n]  =  (1.0)/(p->W1*p->DXP[IP]*p->DXN[IP])
-                        + (1.0)/(p->W1*p->DXP[IM1]*p->DXN[IP])
-                        
-                        + (1.0)/(p->W1*p->DYP[JP]*p->DYN[JP])*p->y_dir
-                        + (1.0)/(p->W1*p->DYP[JM1]*p->DYN[JP])*p->y_dir
-                        
-                        + (sigxyz2)/(p->W1*p->DZP[KM1]*p->DZN[KP])
-                        + (sigxyz2)/(p->W1*p->DZP[KM1]*p->DZN[KM1]);
+            const double rhs0 = d->rhsvec.V[n];
 
+            sigxyz2 = pow(p->sigx[FIJK], 2.0) + pow(p->sigy[FIJK], 2.0) + pow(p->sigz[IJ], 2.0);
 
-            d->M.n[n] = -(1.0)/(p->W1*p->DXP[IP]*p->DXN[IP]);
-            d->M.s[n] = -(1.0)/(p->W1*p->DXP[IM1]*p->DXN[IP]);
+            // VRANS: variable-coefficient operator div(C grad p) with C = CPORNH, the same factor
+            // that scales the momentum predictor (ucorr/vcorr/wcorr use it too).
+            // Without porosity C = 1 exactly and the operator is unchanged.
+            cP = 0.5 * (CPORNHval(d->POR[IJK]) + CPORNHval(d->POR[IJKm1]));
+            cN = 0.5 * (cP + 0.5 * (CPORNHval(d->POR[Ip1JK]) + CPORNHval(d->POR[Ip1JKm1])));
+            cS = 0.5 * (cP + 0.5 * (CPORNHval(d->POR[Im1JK]) + CPORNHval(d->POR[Im1JKm1])));
+            cW = 0.5 * (cP + 0.5 * (CPORNHval(d->POR[IJp1K]) + CPORNHval(d->POR[IJp1Km1])));
+            cE = 0.5 * (cP + 0.5 * (CPORNHval(d->POR[IJm1K]) + CPORNHval(d->POR[IJm1Km1])));
+            cT = CPORNHval(d->POR[IJK]);
+            cB = CPORNHval(d->POR[IJKm1]);
 
-            d->M.w[n] = -(1.0)/(p->W1*p->DYP[JP]*p->DYN[JP])*p->y_dir;
-            d->M.e[n] = -(1.0)/(p->W1*p->DYP[JM1]*p->DYN[JP])*p->y_dir;
+            d->M.p[n] = cN / (p->W1 * p->DXP[IP] * p->DXN[IP]) + cS / (p->W1 * p->DXP[IM1] * p->DXN[IP])
 
-            d->M.t[n] = - sigxyz2/(p->W1*p->DZP[KM1]*p->DZN[KP])     
-                        - p->sigxx[FIJK]/(p->W1*(p->DZN[KP]+p->DZN[KM1]));
-                        
-            d->M.b[n] = - sigxyz2/(p->W1*p->DZP[KM1]*p->DZN[KM1]) 
-                        + p->sigxx[FIJK]/(p->W1*(p->DZN[KP]+p->DZN[KM1]));
-            
-            
-            d->rhsvec.V[n] +=  2.0*p->sigx[FIJK]*(P[FIp1JKp1] - P[FIm1JKp1] - P[FIp1JKm1] + P[FIm1JKm1])
-                            /(p->W1*(p->DXP[IP]+p->DXP[IM1])*(p->DZN[KP]+p->DZN[KM1]))
-                        
-                            + 2.0*p->sigy[FIJK]*(P[FIJp1Kp1] - P[FIJm1Kp1] - P[FIJp1Km1] + P[FIJm1Km1])
-                            /(p->W1*(p->DYP[JP]+p->DYP[JM1])*(p->DZN[KP]+p->DZN[KM1]))*p->y_dir;
+                        + cW / (p->W1 * p->DYP[JP] * p->DYN[JP]) * p->y_dir + cE / (p->W1 * p->DYP[JM1] * p->DYN[JP]) * p->y_dir
+
+                        + cT * (sigxyz2) / (p->W1 * p->DZP[KM1] * p->DZN[KP]) + cB * (sigxyz2) / (p->W1 * p->DZP[KM1] * p->DZN[KM1]);
+
+            d->M.n[n] = -cN / (p->W1 * p->DXP[IP] * p->DXN[IP]);
+            d->M.s[n] = -cS / (p->W1 * p->DXP[IM1] * p->DXN[IP]);
+
+            d->M.w[n] = -cW / (p->W1 * p->DYP[JP] * p->DYN[JP]) * p->y_dir;
+            d->M.e[n] = -cE / (p->W1 * p->DYP[JM1] * p->DYN[JP]) * p->y_dir;
+
+            d->M.t[n] = -cT * sigxyz2 / (p->W1 * p->DZP[KM1] * p->DZN[KP]) - cP * p->sigxx[FIJK] / (p->W1 * (p->DZN[KP] + p->DZN[KM1]));
+
+            d->M.b[n] = -cB * sigxyz2 / (p->W1 * p->DZP[KM1] * p->DZN[KM1]) + cP * p->sigxx[FIJK] / (p->W1 * (p->DZN[KP] + p->DZN[KM1]));
+
+            d->rhsvec.V[n] += cP * (2.0 * p->sigx[FIJK] * (P[FIp1JKp1] - P[FIm1JKp1] - P[FIp1JKm1] + P[FIm1JKm1]) / (p->W1 * (p->DXP[IP] + p->DXP[IM1]) * (p->DZN[KP] + p->DZN[KM1]))
+
+                                    + 2.0 * p->sigy[FIJK] * (P[FIJp1Kp1] - P[FIJm1Kp1] - P[FIJp1Km1] + P[FIJm1Km1]) / (p->W1 * (p->DYP[JP] + p->DYP[JM1]) * (p->DZN[KP] + p->DZN[KM1])) * p->y_dir);
+
+            // impermeable membranes (X 330): reduced mobility in the membrane layer
+            if(d->MBETA != nullptr)
+                nhflow_membrane_row(p, d, i, j, k, n,
+                                    -cT * sigxyz2 / (p->W1 * p->DZP[KM1] * p->DZN[KP]),
+                                    -cB * sigxyz2 / (p->W1 * p->DZP[KM1] * p->DZN[KM1]),
+                                    cP * p->sigxx[FIJK] / (p->W1 * (p->DZN[KP] + p->DZN[KM1])),
+                                    rhs0);
         }
-        
-        if(p->wet[IJ]==0 || p->deep[IJ]==0 || p->flag7[FIJK]<0)
+
+        if(p->wet[IJ] == 0 || p->deep[IJ] == 0 || p->flag7[FIJK] < 0)
         {
-        d->M.p[n]  =  1.0;
+            d->M.p[n] = 1.0;
 
+            d->M.n[n] = 0.0;
+            d->M.s[n] = 0.0;
 
-        d->M.n[n] = 0.0;
-        d->M.s[n] = 0.0;
+            d->M.w[n] = 0.0;
+            d->M.e[n] = 0.0;
 
-        d->M.w[n] = 0.0;
-        d->M.e[n] = 0.0;
+            d->M.t[n] = 0.0;
+            d->M.b[n] = 0.0;
 
-        d->M.t[n] = 0.0;
-        d->M.b[n] = 0.0;
-        
-        d->rhsvec.V[n] =  0.0;
+            d->rhsvec.V[n] = 0.0;
         }
-	
-	++n;
-	}
-    
-    n=0;
-	LOOP
-	{
-        WETDRYDEEP 
+
+        ++n;
+    }
+
+    n = 0;
+    LOOP
+    {
+        WETDRYDEEP
         {
             // South
-            if((p->flag7[FIm1JK]<0 || p->wet[Im1J]==0 || p->deep[Im1J]==0) && p->IO[Im1JK]==0)
+            if((p->flag7[FIm1JK] < 0 || p->wet[Im1J] == 0 || p->deep[Im1J] == 0) && p->IO[Im1JK] == 0)
             {
-            d->rhsvec.V[n] -= d->M.s[n]*P[FIJK];
-            d->M.s[n] = 0.0;
+                d->rhsvec.V[n] -= d->M.s[n] * P[FIJK];
+                d->M.s[n] = 0.0;
             }
-            
-            
+
             // pcorr inflow
-            if((p->flag7[FIm1JK]<0 || p->wet[Im1J]==0 || p->deep[Im1J]==0) && p->IO[Im1JK]==1 )
+            if((p->flag7[FIm1JK] < 0 || p->wet[Im1J] == 0 || p->deep[Im1J] == 0) && p->IO[Im1JK] == 1)
             {
-                if(p->B76==0 || p->B90==1)
+                if(p->B76 == 0 || p->B90 == 1)
                 {
-                pval=0.0;
-                d->rhsvec.V[n] -= d->M.s[n]*(-d->P[FIJK]+pval);
-                d->M.s[n] = 0.0;
+                    pval = 0.0;
+                    d->rhsvec.V[n] -= d->M.s[n] * (-d->P[FIJK] + pval);
+                    d->M.s[n] = 0.0;
                 }
-                
-                if(p->B76==1 && p->B90==0)
+
+                if(p->B76 == 1 && p->B90 == 0)
                 {
-                pval=d->P[FIJK];
-                
-                d->rhsvec.V[n] -= d->M.s[n]*(-d->P[FIJK]+pval);
-                d->M.s[n] = 0.0;
+                    pval = d->P[FIJK];
+
+                    d->rhsvec.V[n] -= d->M.s[n] * (-d->P[FIJK] + pval);
+                    d->M.s[n] = 0.0;
                 }
             }
-            
+
             // North
-            if((p->flag7[FIp1JK]<0|| p->wet[Ip1J]==0 || p->deep[Ip1J]==0) && p->IO[Ip1JK]==0)
+            if((p->flag7[FIp1JK] < 0 || p->wet[Ip1J] == 0 || p->deep[Ip1J] == 0) && p->IO[Ip1JK] == 0)
             {
-            //d->rhsvec.V[n] -= d->M.n[n]*P[FIJK];
-            d->M.n[n] = 0.0;
+                d->M.n[n] = 0.0;
             }
-            
-            if((p->flag7[FIp1JK]<0) && p->IO[Ip1JK]==2 && p->A520==1)
-            {
-            pval = 0.0;
-            //d->rhsvec.V[n] -= d->M.n[n]*pval;
-            d->M.n[n] = 0.0;
-            }
-            
+
             // pcorr outflow
-            if((p->flag7[FIp1JK]<0) && p->IO[Ip1JK]==2 && p->A520==2)
+            if((p->flag7[FIp1JK] < 0) && p->IO[Ip1JK] == 2)
             {
-            pval = 0.0;
-            d->rhsvec.V[n] -= d->M.n[n]*(-d->P[FIJK]+pval);
-            d->M.n[n] = 0.0;
+                pval = 0.0;
+                d->rhsvec.V[n] -= d->M.n[n] * (-d->P[FIJK] + pval);
+                d->M.n[n] = 0.0;
             }
-            
+
             // East
-            if(p->flag7[FIJm1K]<0  || p->wet[IJm1]==0 || p->deep[IJm1]==0)
+            // solid wall: homogeneous Neumann dp/dn=0 (ghost = cell value), i.e. the
+            // coupling moves onto the diagonal; dry / shallow neighbour: p=0 as before
+            if(p->flag7[FIJm1K] < 0 && p->j_dir == 1)
             {
-            //d->rhsvec.V[n] -= d->M.e[n]*P[FIJK]*p->y_dir;
-            d->M.e[n] = 0.0;
+                d->M.p[n] += d->M.e[n];
+                d->M.e[n] = 0.0;
             }
-            
+
+            if(p->wet[IJm1] == 0 || p->deep[IJm1] == 0)
+            {
+                d->M.e[n] = 0.0;
+            }
+
             // West
-            if(p->flag7[FIJp1K]<0 || p->wet[IJp1]==0 || p->deep[IJp1]==0)
+            if(p->flag7[FIJp1K] < 0 && p->j_dir == 1)
             {
-            //d->rhsvec.V[n] -= d->M.w[n]*P[FIJK]*p->y_dir;
-            d->M.w[n] = 0.0;
+                d->M.p[n] += d->M.w[n];
+                d->M.w[n] = 0.0;
             }
-            
+
+            if(p->wet[IJp1] == 0 || p->deep[IJp1] == 0)
+            {
+                d->M.w[n] = 0.0;
+            }
+
             // BED
-            if(p->flag7[FIJKm1]<0)
+            if(p->flag7[FIJKm1] < 0)
             {
-            //d->rhsvec.V[n] -= d->M.b[n]*P[FIJK];
-            d->M.b[n] = 0.0;
+                d->M.b[n] = 0.0;
             }
-            
+
             // FSFBC
-            if(p->flag7[FIJKp2]<0 && p->flag7[FIJKp1]>0)
+            if(p->flag7[FIJKp2] < 0 && p->flag7[FIJKp1] > 0)
             {
-            d->rhsvec.V[n] -= 0.0; // fsf: p=0
-            d->M.t[n] = 0.0;
+                d->rhsvec.V[n] -= 0.0;  // fsf: p=0
+                d->M.t[n] = 0.0;
             }
-            
         }
-	++n;
-	}
+        ++n;
+    }
 }

@@ -20,140 +20,161 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"driver.h"
-#include"ghostcell.h"
-#include"freesurface_header.h"
-#include"turbulence_header.h"
-#include"momentum_header.h"
-#include"pressure_header.h"
-#include"fdm_header.h"
-#include"sediment_header.h"
-#include"heat_header.h"
-#include"concentration_header.h"
-#include"benchmark_header.h"    
-#include"convection_header.h"
-#include"solver_header.h"
-#include"field_header.h"
-#include"6DOF_header.h"
-#include"nhflow_header.h"
-#include"lexer.h"
-#include"fdm_nhf.h"
+#include "6DOF_header.h"
+#include "benchmark_header.h"
+#include "concentration_header.h"
+#include "convection_header.h"
+#include "dem.h"
+#include "driver.h"
+#include "fdm_header.h"
+#include "fdm_nhf.h"
+#include "field_header.h"
+#include "freesurface_header.h"
+#include "ghostcell.h"
+#include "heat_header.h"
+#include "lexer.h"
+#include "momentum_header.h"
+#include "nhflow_amr.h"
+#include "nhflow_header.h"
+#include "pressure_header.h"
+#include "regression_dump.h"
+#include "runlog.h"
+#include "sediment_header.h"
+#include "solver_header.h"
+#include "turbulence_header.h"
 
 void driver::loop_nhflow()
 {
-    if(p->mpirank==0)
-    cout<<"starting mainloop.NHFLOW"<<endl;
-    
-    //bedslope_test(p,pgc);
-    //ipol_test(p,d,pgc);
-    
-//-----------MAINLOOP NHFLOW----------------------------
-	while(p->count<p->N45 && p->simtime<p->N41  && p->sedtime<p->S19)
-	{		
+    if(p->mpirank == 0)
+        cout << "starting mainloop.NHFLOW" << endl;
+
+    //-----------MAINLOOP NHFLOW----------------------------
+    while(p->count < p->N45 && p->simtime < p->N41 && p->sedtime < p->S19)
+    {
         ++p->count;
-        starttime=pgc->timer();
+        starttime = pgc->timer();
 
-        if(p->mpirank==0 && (p->count%p->P12==0))
+        if(p->mpirank == 0 && (p->count % p->P12 == 0))
         {
-        cout<<"------------------------------------"<<endl;
-        cout<<p->count<<endl;
-        
-        cout<<"simtime: "<<setprecision(6)<<p->simtime<<endl;
-        cout<<"timestep: "<<setprecision(4)<<p->dt<<endl;
-        
-		if(p->B90>0 && p->B92<=11)
-		cout<<"t/T: "<<p->simtime/p->wT<<endl;
-        
-        if(p->B90>0 && p->B92>11)
-		cout<<"t/T: "<<p->simtime/p->wTp<<endl;
-        }
-        
-        pflow->flowfile(p,a,pgc,pturb);
-        pflow->wavegen_precalc_nhflow(p,d,pgc);
-			
-        pnhfturb->start(p,d,pgc,pnhfscalarconvec,pnhfturbdiff,psolv,pflow,pvrans);        
-        
-		// Sediment Computation
-        psed->start_susp_nhflow(p,d,pgc,pflow,psolv);
-        psed->start_nhflow(p,d,pgc,pflow);
-        pnhfsf->depth_update(p,d,pgc,pflow);
-        
-        pnhfmom->start(p,d,pgc,pflow,pss,precon,pnhfconvec,pnhfdiff,
-                       pnhpress,ppoissonsolv,psolv,pnhf,pnhfsf,pnhfturb,pnhfvrans); 
+            cout << "------------------------------------" << endl;
+            cout << p->count << endl;
 
-        //save previous timestep
-        pnhfturb->ktimesave(p,d,pgc);
-        pnhfturb->etimesave(p,d,pgc);
-        //pflow->veltimesave(p,a,pgc,pvrans);
-        
-        //timestep control
-        p->simtime+=p->dt;
-        pnhfstep->start(p,d,pgc);
-        
+            cout << "simtime: " << setprecision(6) << p->simtime << endl;
+            cout << "timestep: " << setprecision(4) << p->dt << endl;
+
+            if(p->B90 > 0 && p->B92 <= 11)
+                cout << "t/T: " << p->simtime / p->wT << endl;
+
+            if(p->B90 > 0 && p->B92 > 11)
+                cout << "t/T: " << p->simtime / p->wTp << endl;
+        }
+
+        pflow->flowfile(p, a, pgc, pturb);
+        pflow->wavegen_precalc_nhflow(p, d, pgc);
+
+        pnhfturb->start(p, d, pgc, pnhfscalarconvec, pnhfturbdiff, psolv, pflow, pnhfvrans);
+
+        // Sediment Computation
+        psed->start_susp_nhflow(p, d, pgc, pflow, psolv);
+        psed->start_nhflow(p, d, pgc, pflow);
+        pnhfsf->depth_update(p, d, pgc, pflow);
+
+        // Lagrangian particles: release, velocity at t^n
+        pnhfpart->step_begin(p, d, pgc);
+
+        // DEM
+        pdem->start_nhflow(p, d, pgc);
+
+        pnhfmom->start(p, d, pgc, pflow, pss, precon, pnhfconvec, pnhfdiff,
+                       pnhpress, ppoissonsolv, psolv, pnhf, pnhfsf, pnhfturb, pnhfvrans);
+
+        // save previous timestep
+        pnhfturb->ktimesave(p, d, pgc);
+        pnhfturb->etimesave(p, d, pgc);
+        // pflow->veltimesave(p,a,pgc,pvrans);
+
+        // timestep control
+        p->simtime += p->dt;
+
+        // Lagrangian particles: Heun corrector with the new field, exchange, output
+        pnhfpart->step_end(p, d, pgc);
+
+        pnhfstep->start(p, d, pgc);
+
         // printer
-        pprint->start(p,d,pgc,pflow,pnhfturb,psed);
+        pprint->start(p, d, pgc, pflow, pnhfturb, psed);
+        preg->nhflow_step(p, d, pgc);
+
+        if(pnhfamr != nullptr)
+            pnhfamr->print(p, d, pgc);
 
         // Shell-Printout
         p->wavecalctime = pgc->globalmax(p->wavecalctime);
-        
-        if(p->mpirank==0)
+
+        if(p->mpirank == 0)
         {
-        endtime=pgc->timer();
-        
-		p->itertime=endtime-starttime;
-		p->totaltime+=p->itertime;
-		p->gctotaltime+=p->gctime;
-		p->Xtotaltime+=p->xtime;
-		p->meantime=(p->totaltime/double(p->count));
-		p->gcmeantime=(p->gctotaltime/double(p->count));
-		p->Xmeantime=(p->Xtotaltime/double(p->count));
-		
-		
-        if(p->count%p->P12==0)
-        {
-        if(p->B90>0)
-		cout<<"wavegentime: "<<setprecision(5)<<p->wavecalctime<<endl;
-		if(p->X10>0)
-        cout<<"fbtime: "<<setprecision(3)<<p->fbtime<<endl;
-        cout<<"poissontime: "<<setprecision(3)<<p->poissontime<<"   matrixtime: "<<setprecision(3)<<p->matrixtime<<"   poisson cost: "<<100.0*p->poissontime/p->itertime<<" %"<<endl;
-        cout<<"gctime: "<<setprecision(3)<<p->gctime<<"\t average gctime: "<<setprecision(3)<<p->gcmeantime<<endl;
-        cout<<"Xtime: "<<setprecision(3)<<p->xtime<<"\t average Xtime: "<<setprecision(3)<<p->Xmeantime<<endl;		
-		cout<<"total time: "<<setprecision(6)<<p->totaltime<<"   average time: "<<setprecision(3)<<p->meantime<<endl;
-        cout<<"timer per step: "<<setprecision(3)<<p->itertime<<endl;
+            endtime = pgc->timer();
+
+            p->itertime = endtime - starttime;
+            p->totaltime += p->itertime;
+            p->gctotaltime += p->gctime;
+            p->Xtotaltime += p->xtime;
+            p->meantime = (p->totaltime / double(p->count));
+            p->gcmeantime = (p->gctotaltime / double(p->count));
+            p->Xmeantime = (p->Xtotaltime / double(p->count));
+
+            if(p->count % p->P12 == 0)
+            {
+                if(p->B90 > 0)
+                    cout << "wavegentime: " << setprecision(5) << p->wavecalctime << endl;
+                if(p->X10 > 0)
+                    cout << "fbtime: " << setprecision(3) << p->fbtime << endl;
+                cout << "poissontime: " << setprecision(3) << p->poissontime << "   matrixtime: " << setprecision(3) << p->matrixtime << "   poisson cost: " << 100.0 * p->poissontime / p->itertime << " %" << endl;
+                cout << "gctime: " << setprecision(3) << p->gctime << "\t average gctime: " << setprecision(3) << p->gcmeantime << endl;
+                cout << "Xtime: " << setprecision(3) << p->xtime << "\t average Xtime: " << setprecision(3) << p->Xmeantime << endl;
+                cout << "total time: " << setprecision(6) << p->totaltime << "   average time: " << setprecision(3) << p->meantime << endl;
+                cout << "timer per step: " << setprecision(3) << p->itertime << endl;
+            }
+
+            // Write log files
+            mainlog(p);
+            maxlog(p);
+            solverlog(p);
         }
 
-        // Write log files
-        mainlog(p);
-        maxlog(p);
-        solverlog(p);
-        }
-        
-    volumelog(p);
-    
-    p->gctime=0.0;
-    p->xtime=0.0;
-	p->reinitime=0.0;
-	p->wavecalctime=0.0;
-	p->field4time=0.0;
-    p->fbtime=0.0;
-    p->matrixtime=0.0;
-    p->poissontime=0.0;
-	
-    stop(p,a,pgc);
-	}
+        volumelog(p);
 
-	if(p->mpirank==0)
-	{
-	cout<<endl<<"******************************"<<endl<<endl;
+        p->gctime = 0.0;
+        p->xtime = 0.0;
+        p->reinitime = 0.0;
+        p->wavecalctime = 0.0;
+        p->field4time = 0.0;
+        p->fbtime = 0.0;
+        p->matrixtime = 0.0;
+        p->poissontime = 0.0;
 
-	cout<<"modelled time: "<<p->simtime<<endl;
-	cout<<endl;
+        stop(p, a, pgc);
+    }
 
-    mainlogout.close();
-    maxlogout.close();
-    vollogout.close();
-    solvlogout.close();
-	}
+    if(p->mpirank == 0)
+    {
+        cout << endl
+             << "******************************" << endl
+             << endl;
+
+        if(p->plog)
+            p->plog->end(p, "finished");
+
+        cout << "modelled time: " << p->simtime << endl;
+        cout << endl;
+
+        mainlogout.close();
+        maxlogout.close();
+        vollogout.close();
+        solvlogout.close();
+    }
+
+    preg->nhflow_final(p, d, pgc);
 
     pgc->final();
 }

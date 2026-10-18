@@ -1,0 +1,14 @@
+# Reference: Lin, P. (1998). Numerical modeling of breaking waves. PhD thesis, Cornell University (dam-break through a porous dam of crushed rock);
+#   used in Liu, P.L.-F., Lin, P., Chang, K.-A. & Sakakiyama, T. (1999). Numerical modeling of wave interaction with porous structures. J. Waterway, Port, Coastal, Ocean Eng. 125(6), 322-330.
+#   olaFlow plot title: 'olaFlow validation. Lin (1998) dam break experiments: crushed rocks, h = 0.35 m.'
+# Source repo: https://github.com/phicau/olaFlow  commit 9879096092a4fc13419a40bbe11c4bd1b87ddd1d, path tutorials/CR35_dambreak/labData/b1.dat (a b1.jpg image of the same panel exists alongside)
+# Content: LAB free-surface profile at t = 0.00 s (plotValidation.py: "times = ['0.00', '0.35', '0.75', '1.15', '1.55', '1.95']", "fileLab = 'b%i.dat' % (i+1)"; b1 = initial condition, drawn as a line).
+# Columns: (1) x [m] horizontal distance from the reservoir end wall; (2) free-surface elevation y [m] above the flume bottom (xlabel('x (m)'), ylabel('y (m)')).
+# Setup (olaFlow case): flume 0 <= x <= 0.89 m (blockMeshDict); reservoir water to z = 0.35 m for x < 0.29 m ('box (-1 -1 -1) (0.29 1 0.35)'); thin water layer z < 0.025 m elsewhere;
+#   porous dam 0.30 <= x <= 0.59 m, full height ('box (0.30 -1 -1) (0.59 1 0.6)'; plot shading 'fill([0.3, 0.3, 0.59, 0.59],[0.0, 0.5, 0.5, 0.0]'); porosityDict: 'D50 2(1 0.0159);' 'porosity 2(1 0.49);'.
+#   (b1.dat itself gives reservoir level 0.35335 m to x = 0.29447 m and downstream level ~0.022 m.)
+# Sampling: irregular x spacing, 5 decimals -> digitised from figures (by olaFlow author, presumably from Lin 1998 / Liu et al. 1999) -> confidence B.
+0.00000 0.35335
+0.29447 0.35335
+0.29447 0.02286
+0.89973 0.02148

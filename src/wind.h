@@ -20,7 +20,6 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-
 #ifndef WIND_H_
 #define WIND_H_
 
@@ -32,17 +31,17 @@ class slice;
 
 using namespace std;
 
-class wind 
+class wind
 {
 public:
-    virtual void wind_forcing_nhf_x(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*,slice&,slice&)=0;
-    virtual void wind_forcing_nhf_y(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*,slice&,slice&)=0;
-    
-    virtual void wind_forcing_fnpf(lexer*, fdm_fnpf*, ghostcell*,slice&,slice&)=0;
+    virtual ~wind() {}
 
-    virtual void wind_forcing_ini(lexer*, ghostcell*)=0;
-    
+    virtual void wind_forcing_nhf_x(lexer *, fdm_nhf *, ghostcell *, double *, double *, double *, slice &, slice &) = 0;
+    virtual void wind_forcing_nhf_y(lexer *, fdm_nhf *, ghostcell *, double *, double *, double *, slice &, slice &) = 0;
 
+    virtual void wind_forcing_fnpf(lexer *, fdm_fnpf *, ghostcell *, slice &, slice &) = 0;
+
+    virtual void wind_forcing_ini(lexer *, ghostcell *) = 0;
 };
 
 #endif

@@ -17,11 +17,11 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-                          
-The solver was written in C++ by Blake Ashby (bmashby@stanford.edu) (version Nov 15, 2002). 
-It is modified for C++ from the code RADAU5 originally written in FORTRAN (version July 9, 
-1996, latest small correction: January 18, 2002) by E. Hairer (ernst.hairer@math.unige.ch) 
-and G. Wanner (gerhard.wanner@math.unige.ch), Universite de Geneve. 
+
+The solver was written in C++ by Blake Ashby (bmashby@stanford.edu) (version Nov 15, 2002).
+It is modified for C++ from the code RADAU5 originally written in FORTRAN (version July 9,
+1996, latest small correction: January 18, 2002) by E. Hairer (ernst.hairer@math.unige.ch)
+and G. Wanner (gerhard.wanner@math.unige.ch), Universite de Geneve.
 
 --------------------------------------------------------------------
 Author: Tobias Martin
@@ -30,11 +30,11 @@ Author: Tobias Martin
 #ifndef BEAM_H_
 #define BEAM_H_
 
-#include"vec.h"
-#include"boundarycheck.h"
-#include<iostream>
-#include<vector>
+#include "boundarycheck.h"
+#include "vec.h"
 #include <Eigen/Dense>
+#include <iostream>
+#include <vector>
 
 class lexer;
 
@@ -43,21 +43,20 @@ using namespace std;
 class beam
 {
 public:
-	
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
 
-    typedef Eigen::Matrix<double,3,Eigen::Dynamic> Matrix3Xd;
-    typedef Eigen::Matrix<double,4,Eigen::Dynamic> Matrix4Xd;
+    typedef Eigen::Matrix<double, 3, Eigen::Dynamic> Matrix3Xd;
+    typedef Eigen::Matrix<double, 4, Eigen::Dynamic> Matrix4Xd;
 
     beam(int);
     ~beam();
-    
+
     void iniMaterial();
-    void meshBeam(const Eigen::VectorXd&, const Eigen::VectorXd&, const Eigen::VectorXd&, const Eigen::Vector3d&);
-    void meshBeam(double, double, double, Eigen::Vector3d&, Eigen::Vector3d&, Eigen::Vector3d&);
-    virtual void setConstantLoads(Matrix3Xd&, Matrix4Xd&, const Matrix3Xd&, const Matrix3Xd&, const Matrix4Xd&, const Matrix4Xd&);
-    virtual void setVariableLoads(Matrix3Xd&, Matrix4Xd&, const Matrix3Xd&, const Matrix3Xd&, const Matrix4Xd&, const Matrix4Xd&, const double);
-    virtual void setFieldBC(Matrix3Xd&, Matrix3Xd&, Matrix4Xd&, Matrix4Xd&, Matrix4Xd&, Matrix3Xd&, Matrix4Xd&, Matrix3Xd&, double, int);
+    void meshBeam(const Eigen::VectorXd &, const Eigen::VectorXd &, const Eigen::VectorXd &, const Eigen::Vector3d &);
+    void meshBeam(double, double, double, Eigen::Vector3d &, Eigen::Vector3d &, Eigen::Vector3d &);
+    virtual void setConstantLoads(Matrix3Xd &, Matrix4Xd &, const Matrix3Xd &, const Matrix3Xd &, const Matrix4Xd &, const Matrix4Xd &);
+    virtual void setVariableLoads(Matrix3Xd &, Matrix4Xd &, const Matrix3Xd &, const Matrix3Xd &, const Matrix4Xd &, const Matrix4Xd &, const double);
+    virtual void setFieldBC(Matrix3Xd &, Matrix3Xd &, Matrix4Xd &, Matrix4Xd &, Matrix4Xd &, Matrix3Xd &, Matrix4Xd &, Matrix3Xd &, double, int);
     void print(lexer *p);
 
     void iniDamping(double, double, double, double, double, double, bool);
@@ -65,42 +64,50 @@ public:
     void iniSolver();
     void Integrate(double, double);
 
-    void getTransPos(Matrix3Xd& c_){c_ = c;};
-    void getTransVel(Matrix3Xd& cdot_){cdot_ = cdot;};
-    void getRotPos(Matrix4Xd& q_){q_ = q;};
-    void getRotVel(Matrix4Xd& qdot_){qdot_ = qdot;};
-    
-    Eigen::Vector3d getOmega(const Eigen::Vector4d&, const Eigen::Vector4d&);
-    Eigen::Vector3d getOmega0(const Eigen::Vector4d&, const Eigen::Vector4d&);
-    Eigen::Vector3d rotVec(const Eigen::Vector3d&, const Eigen::Vector4d&);
+    void getTransPos(Matrix3Xd &c_) { c_ = c; };
+    void getTransVel(Matrix3Xd &cdot_) { cdot_ = cdot; };
+    void getRotPos(Matrix4Xd &q_) { q_ = q; };
+    void getRotVel(Matrix4Xd &qdot_) { qdot_ = qdot; };
 
-    double getTensLoc(int n){return f0.col(n).norm();};
-    Eigen::Vector3d getTensGlob(int n){return R(q.col(n+1))*f0.col(n).tail(3);};
-    
+    Eigen::Vector3d getOmega(const Eigen::Vector4d &, const Eigen::Vector4d &);
+    Eigen::Vector3d getOmega0(const Eigen::Vector4d &, const Eigen::Vector4d &);
+    Eigen::Vector3d rotVec(const Eigen::Vector3d &, const Eigen::Vector4d &);
+
+    double getTensLoc(int n) { return f0.col(n).norm(); };
+    Eigen::Vector3d getTensGlob(int n) { return R(q.col(n + 1)) * f0.col(n).tail(3); };
+
+    // RADAU5 statistics of the last Integrate call
+    void getSolverStats(int &steps, int &rejected, int &nfcn_, int &njac_) const
+    {
+        steps = naccpt;
+        rejected = nrejct;
+        nfcn_ = nfcn;
+        njac_ = njac;
+    };
+
 private:
-
     // Initialisation
     void iniFields();
 
     // Runtime
-    void setState(double*);
-    void setStateDot(double*);
-    void getState(double*);
-    void rhs(Matrix3Xd&, Matrix3Xd&, Matrix4Xd&, Matrix4Xd&, double);
+    void setState(double *);
+    void setStateDot(double *);
+    void getState(double *);
+    void rhs(Matrix3Xd &, Matrix3Xd &, Matrix4Xd &, Matrix4Xd &, double);
     void resetSolver();
 
     // Inner forces and moments
-    Eigen::Vector4d f0_(const Eigen::Vector3d&, const Eigen::Vector3d&, const Eigen::Vector3d&, const Eigen::Vector3d&, const Eigen::Vector3d&, const Eigen::Vector3d&, const Eigen::Vector4d&, const Eigen::Vector4d&, const Eigen::Vector4d&);
-    Eigen::Vector4d m0_(const Eigen::Vector4d&, const Eigen::Vector4d&, const Eigen::Vector4d&, const Eigen::Vector4d&, const Eigen::Vector4d&, const Eigen::Vector4d&);
+    Eigen::Vector4d f0_(const Eigen::Vector3d &, const Eigen::Vector3d &, const Eigen::Vector3d &, const Eigen::Vector3d &, const Eigen::Vector3d &, const Eigen::Vector3d &, const Eigen::Vector4d &, const Eigen::Vector4d &, const Eigen::Vector4d &);
+    Eigen::Vector4d m0_(const Eigen::Vector4d &, const Eigen::Vector4d &, const Eigen::Vector4d &, const Eigen::Vector4d &, const Eigen::Vector4d &, const Eigen::Vector4d &);
 
     // Help routines
-    Eigen::Vector4d qconj(const Eigen::Vector4d&);
-    Eigen::Vector4d qMult(const Eigen::Vector4d&, const Eigen::Vector4d&);
-    Eigen::Vector4d qMult(const Eigen::Vector4d&, const Eigen::Vector4d&, const Eigen::Vector4d&);
-    Eigen::Vector4d qMult(int, const Eigen::Vector3d&, const Eigen::Vector4d&, const Eigen::Vector4d&);
-    Eigen::Matrix3d R(const Eigen::Vector4d&);
-    void calcQ(const Eigen::Vector4d&);
-    void calcInvM(const Eigen::Vector4d&);
+    Eigen::Vector4d qconj(const Eigen::Vector4d &);
+    Eigen::Vector4d qMult(const Eigen::Vector4d &, const Eigen::Vector4d &);
+    Eigen::Vector4d qMult(const Eigen::Vector4d &, const Eigen::Vector4d &, const Eigen::Vector4d &);
+    Eigen::Vector4d qMult(int, const Eigen::Vector3d &, const Eigen::Vector4d &, const Eigen::Vector4d &);
+    Eigen::Matrix3d R(const Eigen::Vector4d &);
+    void calcQ(const Eigen::Vector4d &);
+    void calcInvM(const Eigen::Vector4d &);
 
     // Solver
     int CoreIntegrator(double, double);
@@ -110,14 +117,13 @@ private:
     int DecompComplex();
     int LinearSolve();
     int ErrorEstimate();
-    void Function(double, double*, double*);
-    void Jacobian(double, double*, double**);
+    void Function(double, double *, double *);
+    void Jacobian(double, double *, double **);
     void Mass(double **M);
     int SolutionOutput();
 
-        
-    // ------ 
-       
+    // ------
+
     // Beam number
     int nBeam;
 
@@ -133,15 +139,15 @@ private:
 
     // Fields
     double *y;
-    Matrix3Xd Fext, c, c0, cdot, cdotdot, rhs_cdot, f; 
-    Matrix4Xd Mext, q, q0, qdot, rhs_qdot, f0, m0; 
+    Matrix3Xd Fext, c, c0, cdot, cdotdot, rhs_cdot, f;
+    Matrix4Xd Mext, q, q0, qdot, rhs_qdot, f0, m0;
     Eigen::Vector3d corr_k, mdot;
     Eigen::Vector4d qb, dcdz, dc0dz, dcdotdz, fdot, qmult, fq;
     Eigen::Vector4d dummy;
 
     // Print
-	char name[100];
-	double printtime;
+    char name[100];
+    double printtime;
 
     // Solver
     double **e1, **e2r, **e2i, **fjac, **fmas;
@@ -154,12 +160,16 @@ private:
 
     // Solver routines
     template<class T>
-    inline const T& max_(const T& a, const T& b)
-    { return a > b ? a : b; }
+    inline const T &max_(const T &a, const T &b)
+    {
+        return a > b ? a : b;
+    }
 
     template<class T>
-    inline const T& min_(const T& a, const T& b)
-    { return a < b ? a : b; }
+    inline const T &min_(const T &a, const T &b)
+    {
+        return a < b ? a : b;
+    }
 
     // Matrix Triangularization by Gaussian Elimination
     int dec(const int n, double **A, int *ip);
@@ -179,7 +189,7 @@ private:
 
     // Solution of linear system A*x = b -- complex matrices
     void solc(const int n, double **AR, double **AI, double *br,
-        double *bi, int *ip);
+              double *bi, int *ip);
 
     // Matrix Triangularization by Gaussian Elimination -- Hessenberg, complex
     // matrices
@@ -187,20 +197,20 @@ private:
 
     // Solution of linear system A*x = b -- Hessenberg, complex matrices
     void solhc(const int n, double **AR, double **AI, int lb,
-        double *br, double *bi, int *ip);
+               double *br, double *bi, int *ip);
 
-    //Matrix Triangularization by Gaussian Elimination -- banded matrix
+    // Matrix Triangularization by Gaussian Elimination -- banded matrix
     int decb(const int n, double **A, int ml, int mu, int *ip);
 
     // Solution of linear system A*x = b -- banded matrix
     void solb(const int n, double **A, int ml, int mu, double *b, int *ip);
 
-    //Matrix Triangularization by Gaussian Elimination -- banded, complex matrices
+    // Matrix Triangularization by Gaussian Elimination -- banded, complex matrices
     int decbc(const int n, double **AR, double **AI, int ml, int mu, int *ip);
 
     // Solution of linear system A*x = b -- banded, complex matrices
     void solbc(const int n, double **AR, double **AI, int ml, int mu,
-        double *br, double *bi, int *ip);
+               double *br, double *bi, int *ip);
 
     // reduces a submatrix to upper Hessenberg form
     void elmhes(const int n, int low, int igh, double **A, int *inter);

@@ -23,8 +23,8 @@ Author: Hans Bihs
 #ifndef DDWENO3_F_NUG_H_
 #define DDWENO3_F_NUG_H_
 
-#include"increment.h"
-#include"weno3_nug_func.h"
+#include "increment.h"
+#include "weno3_nug_func.h"
 
 class fdm;
 class field;
@@ -32,41 +32,34 @@ class slice;
 class lexer;
 class ghostcell;
 class vec;
-class cpt;
 
 using namespace std;
 
 class ddweno3_f_nug : public weno3_nug_func
 {
 public:
+    ddweno3_f_nug(lexer *);
+    ~ddweno3_f_nug();
 
-	 ddweno3_f_nug(lexer*);
-	 ~ddweno3_f_nug();
+    double ddwenox(field &, double);
+    double ddwenoy(field &, double);
 
-	 double ddwenox(field&, double);
-	 double ddwenoy(field&, double);
-	 double ddwenoz(field&, double);
-     
-     double dswenox(slice&, double);
-	 double dswenoy(slice&, double);
+    double dswenox(slice &, double);
+    double dswenoy(slice &, double);
 
+    void iqmin(lexer *, field &);
+    void jqmin(lexer *, field &);
+    void iqmax(lexer *, field &);
+    void jqmax(lexer *, field &);
 
-	void iqmin(lexer*, field&);
-	void jqmin(lexer*, field&);
-	void kqmin(lexer*, field&);
-	void iqmax(lexer*, field&);
-	void jqmax(lexer*, field&);
-	void kqmax(lexer*, field&);
-    
-    void isqmin(lexer*, slice&);
-	void jsqmin(lexer*, slice&);
-	void isqmax(lexer*, slice&);
-	void jsqmax(lexer*, slice&);
+    void isqmin(lexer *, slice &);
+    void jsqmin(lexer *, slice &);
+    void isqmax(lexer *, slice &);
+    void jsqmax(lexer *, slice &);
 
-    
     double grad;
-    double *DX,*DY,*DZ;
-    
+    double *DX, *DY, *DZ;
+
 private:
     lexer *p;
 };

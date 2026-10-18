@@ -20,284 +20,297 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"nhflow_sigma.h"
-#include"lexer.h"
-#include"fdm_nhf.h"
-#include"ghostcell.h"
-#include"fnpf_ddx_cds2.h"
-#include"fnpf_ddx_cds4.h"
-#include"fnpf_cds2.h"
-#include"fnpf_cds4.h"
+#include "fdm_nhf.h"
+#include "fnpf_cds2.h"
+#include "fnpf_cds4.h"
+#include "ghostcell.h"
+#include "lexer.h"
+#include "nhflow_sigma.h"
 
-#define WLVL (fabs(WL(i,j))>p->A544?WL(i,j):p->A544)
+#define WLVL (fabs(WL(i, j)) > p->A544 ? WL(i, j) : p->A544)
 
 void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
 {
-    double wl,sigval;
-    double bx,by,ex,ey;
-    
+    double wl, sigval;
+    double bx, by, ex, ey;
+
     SLICELOOP4
-    ef(i,j) = d->eta(i,j);
-    
-    pgc->gcsl_start4(p,ef,1);
-    
-    filter_sg(p,pgc,ef);
-    
-    pgc->gcsl_start4(p,ef,1);
-    
-    
+    ef(i, j) = d->eta(i, j);
+
+    pgc->gcsl_start4(p, ef, 1);
+
+    filter_sg(p, pgc, ef);
+
+    pgc->gcsl_start4(p, ef, 1);
+
     SLICELOOP4
-    df(i,j) = d->depth(i,j);
-    
-    pgc->gcsl_start4(p,df,1);
-    
-    filter_sg(p,pgc,df);
-    
-    pgc->gcsl_start4(p,df,1);
-    
+    df(i, j) = d->depth(i, j);
+
+    pgc->gcsl_start4(p, df, 1);
+
+    filter_sg(p, pgc, df);
+
+    pgc->gcsl_start4(p, df, 1);
+
     // calculate: Ex,Ey,Exx,Eyy
     // 3D
-    if(p->j_dir==1)
-    SLICELOOP4
-    {
-    if(p->A524<=2)
-    {
-    d->Ex(i,j) = sx(d->eta);
-    d->Ey(i,j) = sy(d->eta);
-    }
-    
-    if(p->A524==3)
-    {
-    d->Ex(i,j) = sx(ef);
-    d->Ey(i,j) = sy(ef);
-    }
-    
-    d->Exx(i,j) = sxx(ef);
-    d->Eyy(i,j) = syy(ef);
-    }
-    
-    // 2D
-    if(p->j_dir==0)
-    SLICELOOP4
-    {
-    if(p->A524<=2)
-    d->Ex(i,j) = sx(d->eta);  
+    if(p->j_dir == 1)
+        SLICELOOP4
+        {
+            if(p->A524 <= 2)
+            {
+                d->Ex(i, j) = sx(d->eta);
+                d->Ey(i, j) = sy(d->eta);
+            }
 
-    if(p->A524==3)
-    d->Ex(i,j) = sx(ef);  
-    
-    d->Exx(i,j) = sxx(ef);
-    }
-    
+            if(p->A524 == 3)
+            {
+                d->Ex(i, j) = sx(ef);
+                d->Ey(i, j) = sy(ef);
+            }
+
+            d->Exx(i, j) = sxx(ef);
+            d->Eyy(i, j) = syy(ef);
+        }
+
+    // 2D
+    if(p->j_dir == 0)
+        SLICELOOP4
+        {
+            if(p->A524 <= 2)
+                d->Ex(i, j) = sx(d->eta);
+
+            if(p->A524 == 3)
+                d->Ex(i, j) = sx(ef);
+
+            d->Exx(i, j) = sxx(ef);
+        }
+
     SLICELOOP4
-    if(p->wet[IJ]==0)
+    if(p->wet[IJ] == 0)
     {
-    d->Ex(i,j)=0.0;
-    d->Ey(i,j)=0.0;
+        d->Ex(i, j) = 0.0;
+        d->Ey(i, j) = 0.0;
     }
-        
-    pgc->gcsl_start4(p,d->Ex,1);
-    pgc->gcsl_start4(p,d->Ey,1);
-    
+
+    pgc->gcsl_start4(p, d->Ex, 1);
+    pgc->gcsl_start4(p, d->Ey, 1);
+
     // calculate: Bx,By,Bxx,Byy
     // 3D
-    if(p->j_dir==1)
-    SLICELOOP4
-    {
-    d->Bx(i,j) = sx(d->depth);
-    d->By(i,j) = sy(d->depth);
-    
-    d->Bxx(i,j) = sxx(df);
-    d->Byy(i,j) = syy(df);
-    }
+    if(p->j_dir == 1)
+        SLICELOOP4
+        {
+            d->Bx(i, j) = sx(d->depth);
+            d->By(i, j) = sy(d->depth);
+
+            d->Bxx(i, j) = sxx(df);
+            d->Byy(i, j) = syy(df);
+        }
 
     // 2D
-    if(p->j_dir==0 && p->A312!=1)
-    SLICELOOP4
-    {
-    d->Bx(i,j) = sx(d->depth);    
-    d->Bxx(i,j) = sxx(df);
-    }
-    
-    SLICELOOP4
-    if(p->wet[IJ]==0)
-    {
-    d->Bx(i,j)=0.0;
-    d->By(i,j)=0.0;
-    }
-
-    pgc->gcsl_start4(p,d->Bx,1);
-    pgc->gcsl_start4(p,d->By,1);
-    
-    // -----------------------------------------------------
-    
-    // sigx
-    FLOOP
-    {
-    if(p->wet[IJ]==0)
-    p->sigx[FIJK] = 0.0;
-    
-    if(p->wet[IJ]==1)
-    p->sigx[FIJK] = (1.0 - p->sig[FIJK])*(d->Bx(i,j)/WLVL) - p->sig[FIJK]*(d->Ex(i,j)/WLVL);
-    }
-    
-    // sigy
-    FLOOP
-    {
-    if(p->wet[IJ]==0)
-    p->sigy[FIJK] = 0.0;
-    
-    if(p->wet[IJ]==1)
-    p->sigy[FIJK] = (1.0 - p->sig[FIJK])*(d->By(i,j)/WLVL) - p->sig[FIJK]*(d->Ey(i,j)/WLVL);
-    }    
-    
-    // sigz
-    SLICELOOP4
-    {
-    if(p->wet[IJ]==0)
-    p->sigz[IJ] = 0.0;
-    
-    if(p->wet[IJ]==1)
-    p->sigz[IJ] = 1.0/WLVL;
-    
-    p->WL[IJ] = WL(i,j);
-    }
-
-    // sigt
-    FLOOP
-    p->sigt[FIJK] = -(p->sig[FIJK]/WLVL)*d->detadt(i,j);
-
-    // sigxx
-    FLOOP
-    {
-    p->sigxx[FIJK] = 0.0;
-    
-        if(p->wet[IJ]==1 && p->DF[IJK]>0 && p->DF[IJKm1]>0) 
+    if(p->j_dir == 0)
+        SLICELOOP4
         {
-        p->sigxx[FIJK] = ((1.0 - p->sig[FIJK])/WLVL)*(d->Bxx(i,j) - pow(d->Bx(i,j),2.0)/WLVL) // xx
-        
-                      - (p->sig[FIJK]/WLVL)*(d->Exx(i,j) - pow(d->Ex(i,j),2.0)/WLVL)
-                      
-                      - (p->sigx[FIJK]/WLVL)*(d->Bx(i,j) + d->Ex(i,j))
-                      
-                      - ((1.0 - 2.0*p->sig[FIJK])/pow(WLVL,2.0))*(d->Bx(i,j)*d->Ex(i,j))
-                      
-                      
-                      + ((1.0 - p->sig[FIJK])/WLVL)*(d->Byy(i,j) - pow(d->By(i,j),2.0)/WLVL) // yy
-        
-                      - (p->sig[FIJK]/WLVL)*(d->Eyy(i,j) - pow(d->Ey(i,j),2.0)/WLVL)
-                      
-                      - (p->sigy[FIJK]/WLVL)*(d->By(i,j) + d->Ey(i,j))
-                      
-                      - ((1.0 - 2.0*p->sig[FIJK])/pow(WLVL,2.0))*(d->By(i,j)*d->Ey(i,j));
-                      
+            d->Bx(i, j) = sx(d->depth);
+            d->Bxx(i, j) = sxx(df);
         }
-    
+
+    SLICELOOP4
+    if(p->wet[IJ] == 0)
+    {
+        d->Bx(i, j) = 0.0;
+        d->By(i, j) = 0.0;
     }
-    
+
+    pgc->gcsl_start4(p, d->Bx, 1);
+    pgc->gcsl_start4(p, d->By, 1);
+
+    // -----------------------------------------------------
+
+    // sigx, sigy, sigz, sigt, sigxx in one column sweep.
+    // Same expressions as the former separate FLOOPs; the column constants
+    // (WLVL, B/E slopes and curvatures) are evaluated once per (i,j).
+    SLICELOOP4
+    {
+        if(p->wet[IJ] == 0)
+            p->sigz[IJ] = 0.0;
+
+        if(p->wet[IJ] == 1)
+            p->sigz[IJ] = 1.0 / WLVL;
+
+        p->WL[IJ] = WL(i, j);
+    }
+
+    for(i = 0; i < p->knox; ++i)
+        for(j = 0; j < p->knoy; ++j)
+        {
+            const int wet = p->wet[IJ];
+            const double wl = WLVL;
+            const double bxw = d->Bx(i, j) / wl;
+            const double exw = d->Ex(i, j) / wl;
+            const double byw = d->By(i, j) / wl;
+            const double eyw = d->Ey(i, j) / wl;
+            const double dedt = d->detadt(i, j);
+
+            const double axx = d->Bxx(i, j) - pow(d->Bx(i, j), 2.0) / wl;
+            const double bxx = d->Exx(i, j) - pow(d->Ex(i, j), 2.0) / wl;
+            const double cxx = d->Bx(i, j) + d->Ex(i, j);
+            const double dxx = d->Bx(i, j) * d->Ex(i, j);
+            const double ayy = d->Byy(i, j) - pow(d->By(i, j), 2.0) / wl;
+            const double byy = d->Eyy(i, j) - pow(d->Ey(i, j), 2.0) / wl;
+            const double cyy = d->By(i, j) + d->Ey(i, j);
+            const double dyy = d->By(i, j) * d->Ey(i, j);
+            const double wl2 = pow(wl, 2.0);
+
+            for(k = 0; k < p->knoz + 1; ++k)
+                if(p->flag7[FIJK] > 0)
+                {
+                    const double sig = p->sig[FIJK];
+
+                    // sigx, sigy
+                    if(wet == 0)
+                    {
+                        p->sigx[FIJK] = 0.0;
+                        p->sigy[FIJK] = 0.0;
+                    }
+
+                    if(wet == 1)
+                    {
+                        p->sigx[FIJK] = (1.0 - sig) * bxw - sig * exw;
+                        p->sigy[FIJK] = (1.0 - sig) * byw - sig * eyw;
+                    }
+
+                    // sigt
+                    p->sigt[FIJK] = -(sig / wl) * dedt;
+
+                    // sigxx
+                    p->sigxx[FIJK] = 0.0;
+
+                    if(wet == 1 && d->SOLID[IJK] > 0 && d->SOLID[IJKm1] > 0)
+                    {
+                        const double sigxv = p->sigx[FIJK];
+                        const double sigyv = p->sigy[FIJK];
+
+                        p->sigxx[FIJK] = ((1.0 - sig) / wl) * axx  // xx
+
+                                         - (sig / wl) * bxx
+
+                                         - (sigxv / wl) * cxx
+
+                                         - ((1.0 - 2.0 * sig) / wl2) * dxx
+
+                                         + ((1.0 - sig) / wl) * ayy  // yy
+
+                                         - (sig / wl) * byy
+
+                                         - (sigyv / wl) * cyy
+
+                                         - ((1.0 - 2.0 * sig) / wl2) * dyy;
+                    }
+                }
+        }
+
     // sig BC
     SLICELOOP4
     {
-        k=0;
-        if(p->nb5==-2)
+        k = 0;
+        if(p->nb5 == -2)
         {
             p->sigx[FIJKm1] = p->sigx[FIJK];
             p->sigx[FIJKm2] = p->sigx[FIJK];
             p->sigx[FIJKm3] = p->sigx[FIJK];
         }
-        
-        k=p->knoz;
-        if(p->nb6==-2)
+
+        k = p->knoz;
+        if(p->nb6 == -2)
         {
             p->sigx[FIJKp1] = p->sigx[FIJK];
             p->sigx[FIJKp2] = p->sigx[FIJK];
             p->sigx[FIJKp3] = p->sigx[FIJK];
-        } 
+        }
     }
-    
+
     SLICELOOP4
     {
-        k=0;
-        if(p->nb5==-2)
+        k = 0;
+        if(p->nb5 == -2)
         {
             p->sigy[FIJKm1] = p->sigy[FIJK];
             p->sigy[FIJKm2] = p->sigy[FIJK];
             p->sigy[FIJKm3] = p->sigy[FIJK];
         }
-        
-        k=p->knoz;
-        if(p->nb6==-2)
+
+        k = p->knoz;
+        if(p->nb6 == -2)
         {
             p->sigy[FIJKp1] = p->sigy[FIJK];
             p->sigy[FIJKp2] = p->sigy[FIJK];
             p->sigy[FIJKp3] = p->sigy[FIJK];
-        } 
+        }
     }
-    
+
     SLICELOOP4
     {
-        k=0;
-        if(p->nb5==-2)
+        k = 0;
+        if(p->nb5 == -2)
         {
             p->sigxx[FIJKm1] = p->sigxx[FIJK];
             p->sigxx[FIJKm2] = p->sigxx[FIJK];
             p->sigxx[FIJKm3] = p->sigxx[FIJK];
         }
-        
-        k=p->knoz;
-        if(p->nb6==-2)
+
+        k = p->knoz;
+        if(p->nb6 == -2)
         {
             p->sigxx[FIJKp1] = p->sigxx[FIJK];
             p->sigxx[FIJKp2] = p->sigxx[FIJK];
             p->sigxx[FIJKp3] = p->sigxx[FIJK];
-        } 
+        }
     }
-    
-    
+
     FLOOP
-    p->ZSN[FIJK] = p->ZN[KP]*WL(i,j) + d->bed(i,j);
-    
+    p->ZSN[FIJK] = p->ZN[KP] * WL(i, j) + d->bed(i, j);
+
     LOOP
-    p->ZSP[IJK]  = p->ZP[KP]*WL(i,j) + d->bed(i,j);
-    
-    pgc->start7S(p,p->sigx,1);
-    pgc->start7S(p,p->sigy,1);
-    pgc->start7S(p,p->sigxx,1);
-    pgc->start7S(p,p->sigt,1);
-    pgc->start7S(p,p->ZSN,1);
-    pgc->start5V(p,p->ZSP,1);
+        p->ZSP[IJK] = p->ZP[KP] * WL(i, j) + d->bed(i, j);
+
+    pgc->start7S(p, p->sigx, 1);
+    pgc->start7S(p, p->sigy, 1);
+    pgc->start7S(p, p->sigxx, 1);
+    pgc->start7S(p, p->sigt, 1);
+    pgc->start7S(p, p->ZSN, 1);
+    pgc->start5V(p, p->ZSP, 1);
     pgc->gcslparaxijk(p, p->sigz, 1);
-    
-    
+
     SLICELOOP4
     {
-        k=0;
+        k = 0;
 
-            p->ZSN[FIJKm1] = p->ZN[KM1]*WL(i,j) + d->bed(i,j);
-            p->ZSN[FIJKm2] = p->ZN[KM2]*WL(i,j) + d->bed(i,j);
-            p->ZSN[FIJKm3] = p->ZN[KM3]*WL(i,j) + d->bed(i,j);
-        
-        k=p->knoz;
+        p->ZSN[FIJKm1] = p->ZN[KM1] * WL(i, j) + d->bed(i, j);
+        p->ZSN[FIJKm2] = p->ZN[KM2] * WL(i, j) + d->bed(i, j);
+        p->ZSN[FIJKm3] = p->ZN[KM3] * WL(i, j) + d->bed(i, j);
 
-            p->ZSN[FIJKp1] = p->ZN[KP1]*WL(i,j) + d->bed(i,j);
-            p->ZSN[FIJKp2] = p->ZN[KP2]*WL(i,j) + d->bed(i,j);
-            p->ZSN[FIJKp3] = p->ZN[KP3]*WL(i,j) + d->bed(i,j);
+        k = p->knoz;
+
+        p->ZSN[FIJKp1] = p->ZN[KP1] * WL(i, j) + d->bed(i, j);
+        p->ZSN[FIJKp2] = p->ZN[KP2] * WL(i, j) + d->bed(i, j);
+        p->ZSN[FIJKp3] = p->ZN[KP3] * WL(i, j) + d->bed(i, j);
     }
-    
-    
+
     SLICELOOP4
     {
-        k=0;
+        k = 0;
 
-            p->ZSP[IJKm1] = p->ZP[KM1]*WL(i,j) + d->bed(i,j);
-            p->ZSP[IJKm2] = p->ZP[KM2]*WL(i,j) + d->bed(i,j);
-            p->ZSP[IJKm3] = p->ZP[KM3]*WL(i,j) + d->bed(i,j);
-        
-        k=p->knoz-1;
+        p->ZSP[IJKm1] = p->ZP[KM1] * WL(i, j) + d->bed(i, j);
+        p->ZSP[IJKm2] = p->ZP[KM2] * WL(i, j) + d->bed(i, j);
+        p->ZSP[IJKm3] = p->ZP[KM3] * WL(i, j) + d->bed(i, j);
 
-            p->ZSP[IJKp1] = p->ZP[KP1]*WL(i,j) + d->bed(i,j);
-            p->ZSP[IJKp2] = p->ZP[KP2]*WL(i,j) + d->bed(i,j);
-            p->ZSP[IJKp3] = p->ZP[KP3]*WL(i,j) + d->bed(i,j);
+        k = p->knoz - 1;
+
+        p->ZSP[IJKp1] = p->ZP[KP1] * WL(i, j) + d->bed(i, j);
+        p->ZSP[IJKp2] = p->ZP[KP2] * WL(i, j) + d->bed(i, j);
+        p->ZSP[IJKp3] = p->ZP[KP3] * WL(i, j) + d->bed(i, j);
     }
 }
 

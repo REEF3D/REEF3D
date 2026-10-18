@@ -20,61 +20,56 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#ifdef REEF3D_USE_HYPRE  // hypre is opt-in: make HYPRE=1 / cmake -DREEF3D_USE_HYPRE=ON
+
 #ifndef HYPRE_STRUCT2D_H_
 #define HYPRE_STRUCT2D_H_
 
-#define HYPRE_COMPILATION
-#ifdef  HYPRE_COMPILATION
-
-#include"solver2D.h"
-#include"increment.h"
-#include"vec2D.h"
-#include"_hypre_utilities.h"
-#include"HYPRE_struct_ls.h"
+#include "increment.h"
+#include "solver2D.h"
+#include "vec2D.h"
+#include <HYPRE_struct_ls.h>
+#include <_hypre_utilities.h>
 
 using namespace std;
 
 class hypre_struct2D final : public solver2D, public increment
 {
 public:
+    hypre_struct2D(lexer *, ghostcell *);
+    virtual ~hypre_struct2D();
+    void start(lexer *, ghostcell *, slice &, matrix2D &, vec2D &, vec2D &, int) override final;
 
-	hypre_struct2D(lexer*,ghostcell*);
-	virtual ~hypre_struct2D();
-	void start(lexer*, ghostcell*, slice&, matrix2D&, vec2D&, vec2D&, int) override final;
+    void fillbackvec(lexer *, slice &, vec2D &, int);
 
-	void fillbackvec(lexer*,slice&,vec2D&,int);
-    
-    void make_grid(lexer*, ghostcell*);
-	void fill_matrix(lexer*, ghostcell*, matrix2D&, slice&, vec2D&);
-	
-    void solve(lexer*, ghostcell*);
-    
-	void create_solvers(lexer*,ghostcell*);
-    void delete_solvers(lexer*,ghostcell*);
+    void make_grid(lexer *, ghostcell *);
+    void fill_matrix(lexer *, ghostcell *, matrix2D &, slice &, vec2D &);
+
+    void solve(lexer *, ghostcell *);
+
+    void create_solvers(lexer *, ghostcell *);
+    void delete_solvers(lexer *, ghostcell *);
 
 private:
-    
-// HYPRE 
-	HYPRE_StructGrid     grid;
-	HYPRE_StructStencil  stencil;
-	HYPRE_StructMatrix   A;
-	HYPRE_StructVector   rhs;
-	HYPRE_StructVector   x;
-	HYPRE_StructSolver   solver;
-	HYPRE_StructSolver   precond;
+    // HYPRE
+    HYPRE_StructGrid grid;
+    HYPRE_StructStencil stencil;
+    HYPRE_StructMatrix A;
+    HYPRE_StructVector rhs;
+    HYPRE_StructVector x;
+    HYPRE_StructSolver solver;
+    HYPRE_StructSolver precond;
 
-	int *ilower,*iupper;
+    int *ilower, *iupper;
     double *values;
     int num_iterations;
     double final_res_norm;
-	int stencil_indices[7];
-	int nentries;
-   
-	int numiter,count,q;
+    int stencil_indices[7];
+    int nentries;
 
+    int numiter, count, q;
 };
 
 #endif
 
-#endif
-
+#endif  // REEF3D_USE_HYPRE

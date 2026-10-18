@@ -23,36 +23,38 @@ Author: Hans Bihs
 #ifndef NHFLOW_IKOMEGA_H_
 #define NHFLOW_IKOMEGA_H_
 
-#include"nhflow_rans_io.h"
-#include"nhflow_komega_bc.h"
-#include"ghostcell.h"
-#include"vrans.h"
+#include "ghostcell.h"
+#include "nhflow_komega_bc.h"
+#include "nhflow_rans_io.h"
+#include "vrans.h"
+#include "vrans_nhflow.h"
 
 using namespace std;
 
 class nhflow_komega_func : public nhflow_rans_io, public nhflow_komega_bc
 {
 public:
-	nhflow_komega_func(lexer *, fdm_nhf*, ghostcell*);
-	virtual ~nhflow_komega_func();
-	void isource(lexer*,fdm_nhf*) override final;
-	void jsource(lexer*,fdm_nhf*) override final;
-	void ksource(lexer*,fdm_nhf*) override final;
-	void kinsource(lexer*,fdm_nhf*,vrans*);
-	void epssource(lexer*,fdm_nhf*,vrans*);
-	void epsfsf(lexer*,fdm_nhf*,ghostcell*);
-	void eddyvisc(lexer*,fdm_nhf*,ghostcell*,vrans*);
-	void clearfield(lexer*,fdm_nhf*,double*);
+    nhflow_komega_func(lexer *, fdm_nhf *, ghostcell *);
+    virtual ~nhflow_komega_func();
+    void isource(lexer *, fdm_nhf *) override final;
+    void jsource(lexer *, fdm_nhf *) override final;
+    void ksource(lexer *, fdm_nhf *) override final;
+    void kinsource(lexer *, fdm_nhf *, vrans_nhflow *);
+    void epssource(lexer *, fdm_nhf *, vrans_nhflow *);
+    void epsfsf(lexer *, fdm_nhf *, ghostcell *);
+    void eddyvisc(lexer *, fdm_nhf *, ghostcell *, vrans_nhflow *);
+    void clearfield(lexer *, fdm_nhf *, double *);
 
-	int count,q;
-	double starttime;
-    
+    double sst_walldist(lexer *p, fdm_nhf *d);
+    double sst_F2(lexer *p, fdm_nhf *d, double kval, double wval);
+
+    int count, q;
+    double starttime;
+
 private:
-    double epsi;
-	double dirac;
-    double dxm,f;
+    double dxm, f;
+    double sst_a1;
 };
 
 #endif
-
 

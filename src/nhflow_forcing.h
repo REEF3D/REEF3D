@@ -23,9 +23,9 @@ Author: Hans Bihs
 #ifndef NHFLOW_FORCING_H_
 #define NHFLOW_FORCING_H_
 
-#include"nhflow_geometry.h"
-#include"slice4.h"
-#include"vtp3D.h"
+#include "nhflow_geometry.h"
+#include "slice4.h"
+#include "vtp3D.h"
 
 class lexer;
 class fdm_nhf;
@@ -34,59 +34,77 @@ class slice;
 class sixdof;
 class mooring;
 class fsi;
+class dem;
 class nhflow_reinidisc_fsf;
+class rodtree_coupling;
+class nhflow_pressure;
+class solver;
+class ioflow;
+class nhflow_momentum_func;
 
 using namespace std;
 
 class nhflow_forcing : public nhflow_geometry, private vtp3D
 {
 public:
-	nhflow_forcing(lexer*, fdm_nhf*, ghostcell*);
-	virtual ~nhflow_forcing();
-    
-    void forcing(lexer*, fdm_nhf*, ghostcell*, sixdof *p6dof, 
-                 int, double, double*, double*, double*, slice&, bool);
-    
-    void solid_forcing(lexer*, fdm_nhf*, ghostcell*, double, double*, double*, double*, slice&);
-    void forcing_ini(lexer*, fdm_nhf*, ghostcell*);
-        
-    void reset(lexer*, fdm_nhf*, ghostcell*);
-    
-    double Hsolidface(lexer*, fdm_nhf*, int, int, int);
-    
+    nhflow_forcing(lexer *, fdm_nhf *, ghostcell *);
+    virtual ~nhflow_forcing();
+
+    void forcing(lexer *, fdm_nhf *, ghostcell *, sixdof *p6dof,
+                 int, double, double *, double *, double *, slice &, bool);
+
+    void reforcing(lexer *, fdm_nhf *, ghostcell *, sixdof *p6dof,
+                   int, double, double *, double *, double *, slice &, bool);
+
+    // pressure projection of a RK stage, repeated for strongly coupled membranes (nhflow_momentum_func::phase_P)
+    void projection(lexer *, fdm_nhf *, ghostcell *, sixdof *, nhflow_pressure *, solver *, ioflow *, nhflow_momentum_func *,
+                    int, double, double *, double *, double *, slice &);
+
+    void solid_forcing(lexer *, fdm_nhf *, ghostcell *, double, double *, double *, double *, slice &);
+    void forcing_ini(lexer *, fdm_nhf *, ghostcell *);
+
+    void reset(lexer *, fdm_nhf *, ghostcell *);
+
+    double Hsolidface(lexer *, fdm_nhf *, int, int, int);
+
+    // DEM coupling, set by the NHFLOW driver
+    dem *pdem = nullptr;
+
     // DLM
-    void dlm_forcing(lexer*, fdm_nhf*, ghostcell*, double, double*, double*, double*, slice&);
-    void dlm_forcecalc(lexer*, fdm_nhf*, ghostcell*, double, double*, double*, double*, slice&);
-    void dlm_forcing_ini(lexer*, ghostcell*);
-    double kernel(const double&);
-    
+    void dlm_forcing(lexer *, fdm_nhf *, ghostcell *, double, double *, double *, double *, slice &);
+    void dlm_forcecalc(lexer *, fdm_nhf *, ghostcell *, double, double *, double *, double *, slice &);
+    void dlm_forcing_ini(lexer *, ghostcell *);
+    double kernel(const double &);
+
 private:
-    double *FX,*FY,*FZ;
+    double *FX, *FY, *FZ;
+    double *CUH = nullptr, *CVH, *CWH, *CU, *CV, *CW, *CP;  // projection: predicted state for the coupling iterations
     slice4 fe;
     double starttime;
-    
-        
-    double H,Ht, uf, vf, wf, ef;
+
+    double H, Ht, uf, vf, wf, ef;
     double efc;
-	double nx, ny, nz,norm ;
-	double phival_sf;
+    double nx, ny, nz, norm;
+    double phival_sf;
     double dirac;
-    
-    
+
     // DLM
-    double *EL_L,*EL_dx;
-    double **EL_X,**EL_Y,**EL_Z,**EL_V;
-    double **EL_FX,**EL_FY,**EL_FZ;
+    double *EL_L, *EL_dx;
+    double **EL_X, **EL_Y, **EL_Z, **EL_V;
+    double **EL_FX, **EL_FY, **EL_FZ;
     int **EL_f;
-    
-    int Ne,Np;
-    int ii,jj,kk;
+
+    int Ne, Np;
+    int ii, jj, kk;
     int gcval_eta;
-    double dx,dy,dz;
-    double D,dist;
-    
+    double dx, dy, dz;
+    double D, dist;
+
     int gcval_u, gcval_v, gcval_w;
     int gcval_uh, gcval_vh, gcval_wh;
+
+    // flexible rod trees (Z 20)
+    rodtree_coupling *prodtree;
 };
 
 #endif

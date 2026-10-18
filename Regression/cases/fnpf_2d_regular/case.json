@@ -1,0 +1,18 @@
+{
+ "description": "FNPF 2D regular waves, relaxation generation and beach. Based on tutorial FNPF/9_1.",
+ "solver": "fnpf",
+ "np": 1,
+ "steps": 300,
+ "tags": [
+  "quick",
+  "2d",
+  "fnpf",
+  "waves",
+  "iowave"
+ ],
+ "covers": [
+  "iowave_fnpf_precalc_relax",
+  "iowave_fnpf_relax",
+  "FNPF wave gauges P51"
+ ]
+}

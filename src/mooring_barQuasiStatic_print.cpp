@@ -20,124 +20,118 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Tobias Martin
 --------------------------------------------------------------------*/
 
-#include<sys/stat.h>
-#include"mooring_barQuasiStatic.h"
-#include"lexer.h"
-#include"ghostcell.h"
-
+#include "6DOF_output_dir.h"
+#include "ghostcell.h"
+#include "lexer.h"
+#include "mooring_barQuasiStatic.h"
+#include "runlog.h"
+#include <sys/stat.h>
 
 void mooring_barQuasiStatic::print(lexer *p, ghostcell *pgc)
 {
-	int num=0;
-	
-	if(p->P15==1)
-    num = p->printcount_sixdof;
+    int num = 0;
 
-    if(p->P15==2)
-    num = p->count;
-	
-	if(num<0)
-	num=0;
-	
+    if(p->P15 == 1)
+        num = p->printcount_sixdof;
+
+    if(p->P15 == 2)
+        num = p->count;
+
+    if(num < 0)
+        num = 0;
+
     // Check bottom and switch to catenary if necessary
-    buildLine(p,pgc);
-    checkBottom(p,pgc);
-   
+    buildLine(p, pgc);
+    checkBottom(p, pgc);
 
     // Print tension forces
-    if (p->mpirank==0)
+    if(p->mpirank == 0)
     {
-        if(broken==true)
-		eTout<<p->simtime<<" \t "<<0.0<<endl;
-        
-        if(broken==false)
-		eTout<<p->simtime<<" \t "<<T[sigma+1]<<endl;
+        if(broken == true)
+            eTout << p->simtime << " \t " << 0.0 << endl;
+
+        if(broken == false)
+            eTout << p->simtime << " \t " << T[sigma + 1] << endl;
     }
-    
+
     // Print line
-	if
-	(
-		p->mpirank==0 && (((p->count%p->P20==0) && p->P30<0.0)  
-		|| (p->simtime>printtime && p->P30>0.0)   
-		|| p->count==0)
-	)
-	{
-		printtime+=p->P30;
-		
-        if(p->A10==5)
-        sprintf(name,"./REEF3D_NHFLOW_6DOF_Mooring/REEF3D-Mooring-%08i-%06i.vtk",line,num);
-        
-        if(p->A10==6)
-        sprintf(name,"./REEF3D_CFD_6DOF_Mooring/REEF3D-Mooring-%08i-%06i.vtk",line,num);
+    if(
+        p->mpirank == 0 && (((p->count % p->P20 == 0) && p->P30 < 0.0) || (p->simtime > printtime && p->P30 > 0.0) || p->count == 0))
+    {
+        printtime += p->P30;
 
+        sprintf(name, "%s_Mooring/REEF3D-Mooring-%08i-%06i.vtk", sixdof_output_dir(p), line, num);
 
-		ofstream result;
-		result.open(name, ios::binary);
-		
-		result << "# vtk DataFile Version 2.0" << endl;
-		result << "Mooring line " << line << endl;
-		result << "ASCII \nDATASET POLYDATA" << endl;
-		result << "POINTS " << sigma+2 << " float" <<endl;
-		
-		for(int n=0; n<sigma+2; ++n)
-		{
-			result<<x[n]<<" "<<y[n]<<" "<<z[n]<<endl;
-		}
-		
-		result << "\nLINES " << sigma+1 << " " << (sigma+1)*3 <<endl;	
-		
-		for(int n=0; n<sigma+1; ++n)
-		{
-			result<<"2 "<< n << " " << n+1 << endl;
-		}	
+        ofstream result;
+        result.open(name, ios::binary);
 
-		result<<"\nPOINT_DATA " << sigma+2 <<endl;
-		result<<"SCALARS Tension float 1 \nLOOKUP_TABLE default"<<endl;
-		
-		for(int n=0; n<sigma+2; ++n)
-		{
-			result<<T[n]<<endl;
-		}
-		result.close();
-	}
+        result << "# vtk DataFile Version 2.0" << endl;
+        result << "Mooring line " << line << endl;
+        result << "ASCII \nDATASET POLYDATA" << endl;
+        result << "POINTS " << sigma + 2 << " float" << endl;
+
+        for(int n = 0; n < sigma + 2; ++n)
+        {
+            result << x[n] << " " << y[n] << " " << z[n] << endl;
+        }
+
+        result << "\nLINES " << sigma + 1 << " " << (sigma + 1) * 3 << endl;
+
+        for(int n = 0; n < sigma + 1; ++n)
+        {
+            result << "2 " << n << " " << n + 1 << endl;
+        }
+
+        result << "\nPOINT_DATA " << sigma + 2 << endl;
+        result << "SCALARS Tension float 1 \nLOOKUP_TABLE default" << endl;
+
+        for(int n = 0; n < sigma + 2; ++n)
+        {
+            result << T[n] << endl;
+        }
+        result.close();
+        char sname[32];
+        snprintf(sname, sizeof(sname), "mooring%i", line);
+        if(p->plog)
+            p->plog->written(p, num, sname, "mooring", name, 0);
+    }
 }
-
 
 void mooring_barQuasiStatic::buildLine(lexer *p, ghostcell *pgc)
 {
-	x[0] = p->X311_xs[line];
-	y[0] = p->X311_ys[line];
-	z[0] = p->X311_zs[line];
-	T[0] = fabs(A[0][0]);
+    x[0] = p->X311_xs[line];
+    y[0] = p->X311_ys[line];
+    z[0] = p->X311_zs[line];
+    T[0] = fabs(A[0][0]);
 
-	x[1] = x[0] + 0.5*l[1]*f[0][0];
-	y[1] = y[0] + 0.5*l[1]*f[0][1];
-	z[1] = z[0] + 0.5*l[1]*f[0][2];
+    x[1] = x[0] + 0.5 * l[1] * f[0][0];
+    y[1] = y[0] + 0.5 * l[1] * f[0][1];
+    z[1] = z[0] + 0.5 * l[1] * f[0][2];
 
-	for (int cnt = 2; cnt < sigma+1; cnt++)
-	{
-		x[cnt] = x[cnt-1] + 0.5*(l[cnt] + l[cnt-1])*f[cnt-1][0];
-		y[cnt] = y[cnt-1] + 0.5*(l[cnt] + l[cnt-1])*f[cnt-1][1];
-		z[cnt] = z[cnt-1] + 0.5*(l[cnt] + l[cnt-1])*f[cnt-1][2];
-			
-		T[cnt-1] = fabs(A[cnt-1][cnt-1]);
-	}		
-	x[sigma+1] = x[sigma] + 0.5*(l[sigma])*f[sigma][0];
-	y[sigma+1] = y[sigma] + 0.5*(l[sigma])*f[sigma][1];
-	z[sigma+1] = z[sigma] + 0.5*(l[sigma])*f[sigma][2];
+    for(int cnt = 2; cnt < sigma + 1; cnt++)
+    {
+        x[cnt] = x[cnt - 1] + 0.5 * (l[cnt] + l[cnt - 1]) * f[cnt - 1][0];
+        y[cnt] = y[cnt - 1] + 0.5 * (l[cnt] + l[cnt - 1]) * f[cnt - 1][1];
+        z[cnt] = z[cnt - 1] + 0.5 * (l[cnt] + l[cnt - 1]) * f[cnt - 1][2];
 
-	T[sigma] = T[sigma+1] = fabs(A[sigma-1][sigma]);
+        T[cnt - 1] = fabs(A[cnt - 1][cnt - 1]);
+    }
+    x[sigma + 1] = x[sigma] + 0.5 * (l[sigma]) * f[sigma][0];
+    y[sigma + 1] = y[sigma] + 0.5 * (l[sigma]) * f[sigma][1];
+    z[sigma + 1] = z[sigma] + 0.5 * (l[sigma]) * f[sigma][2];
+
+    T[sigma] = T[sigma + 1] = fabs(A[sigma - 1][sigma]);
 }
-
 
 void mooring_barQuasiStatic::checkBottom(lexer *p, ghostcell *pgc)
 {
-    for(int n=0; n<sigma+2; ++n)
+    for(int n = 0; n < sigma + 2; ++n)
     {
-        if (z[n] < -0.01)
+        if(z[n] < -0.01)
         {
-            if (p->mpirank==0 && broken==false) cout<<"Catenary solution"<<endl;
-            pcatenary->getShape(p,pgc,x,y,z,T);
+            if(p->mpirank == 0 && broken == false)
+                cout << "Catenary solution" << endl;
+            pcatenary->getShape(p, pgc, x, y, z, T);
             break;
         }
     }

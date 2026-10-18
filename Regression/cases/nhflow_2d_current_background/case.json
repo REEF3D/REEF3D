@@ -1,0 +1,19 @@
+{
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 300,
+ "description": "Constant current background (B 514, U 0.5 m/s, spin-up 200 s): Riemann in, Flather out, beach relaxing to the current.",
+ "tags": [
+  "quick",
+  "2d",
+  "nhflow",
+  "tide",
+  "iowave",
+  "bc_zone",
+  "background"
+ ],
+ "covers": [
+  "background_state constant",
+  "beach to current"
+ ]
+}

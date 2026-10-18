@@ -1,0 +1,74 @@
+# Reference: Synolakis, C.E. (1987). The runup of solitary waves. Journal of Fluid Mechanics 185, 523-545 (NTHMP benchmark BP4, solitary wave on a simple 1:19.85 beach).
+# Source repo: https://github.com/fengyanshi/FUNWAVE-TVD  commit b4c322e7582035ee19df8e6409a3dfedaff1cb96, path benchmarks/sph_sol_plane_mea/postprocessing/SW_01_03.mat (variables x1_20, a1_20)
+# Converted .mat -> text (Python repr of stored doubles). The comparison script labBM_04_SW.m is the NTHMP benchmark script ('Solitary Wave on a Simple Beach', 'CASE     H = 0.30').
+# Content: LABORATORY free-surface profile for H/d = 0.30 at nondimensional time t* = 20 (script label 'text(...,'t=20')', t* = t*sqrt(g/d) per NTHMP convention, not stated in script).
+# Columns: (1) x/d (dimensionless; origin at initial shoreline, x positive offshore: slope drawn as 'X=[-10:1: 20]; slp=1/19.85; Y=-slp*X;');
+#          (2) eta/d (dimensionless; plotted with axis limits e.g. '[-2 20 -0.02 0.04]').
+# Sampling: nearly uniform x spacing (~0.07 d) -> probably digitised/re-sampled profiles distributed with the NTHMP benchmark, not raw gauge records -> confidence B.
+0.297 0.0
+0.396 0.0
+0.495 0.0
+0.594 0.0
+1.089 0.0
+1.287 0.0
+1.386 0.0
+1.881 0.0
+1.98 0.0
+2.079 0.0
+2.178 0.0
+2.673 0.01058
+3.069 0.10582
+3.109 0.19444
+3.406 0.2619
+3.525 0.30423
+3.663 0.31746
+3.96 0.28175
+4.059 0.24735
+4.158 0.26984
+4.455 0.21958
+4.554 0.19709
+4.812 0.21825
+4.931 0.19312
+4.97 0.23148
+5.248 0.18519
+5.347 0.15873
+5.446 0.19048
+5.644 0.17063
+6.04 0.15608
+6.139 0.13492
+6.535 0.14815
+6.733 0.13492
+6.871 0.13757
+7.624 0.10053
+7.723 0.10317
+8.119 0.07275
+8.317 0.07937
+8.416 0.08466
+9.208 0.05952
+9.307 0.0582
+10.0 0.03175
+10.099 0.03968
+10.198 0.0463
+10.257 0.02778
+10.673 0.03042
+10.693 0.01587
+10.891 0.01323
+11.188 0.02381
+11.584 0.01455
+11.683 0.02249
+12.079 0.02513
+12.574 0.00661
+12.594 0.01984
+13.069 0.01984
+13.267 0.00529
+13.564 0.02381
+13.96 0.00926
+15.248 0.00397
+15.743 -0.00397
+15.941 -0.00265
+16.337 -0.00397
+16.931 0.00397
+17.624 -0.00132
+18.119 -0.00661
+19.109 -0.00794
+19.208 -0.00132

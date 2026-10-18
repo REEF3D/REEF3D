@@ -20,23 +20,21 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"lexer.h"
-#include"fdm.h"
-#include"ghostcell.h"
-#include"field.h"
-#include"cpt.h"
+#include "fdm.h"
+#include "field.h"
+#include "ghostcell.h"
+#include "lexer.h"
 
-void ghostcell::kinematic_bed(lexer *p,field& f,double dist,int gcv, int bc, int cs)
+void ghostcell::kinematic_bed(lexer *p, field &f, double dist, int gcv, int bc, int cs)
 {
     double wval;
-    
-	wval = -0.5*(a->u(i,j,k)+a->u(i-1,j,k))*((a->bed(i+1,j)-a->bed(i-1,j))/(2.0*p->DXM))
-    
-          -0.5*(a->v(i,j,k)+a->v(i,j-1,k))*((a->bed(i,j+1)-a->bed(i,j-1))/(2.0*p->DXM));
 
-    
-	if(cs==5)
-	for(q=0;q<margin;++q)
-	f(i,j,k-q-1)= wval;
+    wval = -0.5 * (a->u(i, j, k) + a->u(i - 1, j, k)) * ((a->bed(i + 1, j) - a->bed(i - 1, j)) / (2.0 * p->DXM))
+
+           - 0.5 * (a->v(i, j, k) + a->v(i, j - 1, k)) * ((a->bed(i, j + 1) - a->bed(i, j - 1)) / (2.0 * p->DXM));
+
+    if(cs == 5)
+        for(q = 0; q < margin; ++q)
+            f(i, j, k - q - 1) = wval;
 }
 

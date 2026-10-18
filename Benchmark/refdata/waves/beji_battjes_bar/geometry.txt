@@ -1,0 +1,43 @@
+# Submerged trapezoidal bar: Beji & Battjes (1993) / Luth, Klopman & Kitou (1994) / Dingemans (1994)
+# All statements below are quoted (as returned by the fetch tool) from the listed sources; nothing recalled.
+#
+# [S1] Beji, S. & Battjes, J.A. (1993) Experimental investigation of wave propagation over a bar,
+#      Coastal Engineering 19, 151-162.  PDF: http://eng.serdarbeji.com/wp-content/uploads/2014/09/Beji-Battjes-Coastal-Eng-93.pdf
+#   "The flume has an overall length of 37.7 m, width 0.8 m, and height 0.75 m. During the entire set of
+#    experiments the still water level over the horizontal bottom was 0.4 m."
+#   "A submerged trapezoidal bar was constructed, consisting of an upslope of 1:20 and a 2 m horizontal crest
+#    followed by a 1:10 downslope. The height of the horizontal plane section was 0.3 m above the bottom of the
+#    flume. The water depth in the deep region was 0.4 m and reduced to 0.1 m in the shallowest region above
+#    the horizontal part."
+#   Gauge: "placed in the constant-depth section, 6 m from the wave-board and right at the toe of the submerged
+#    trapezoidal bar ... The other gages were placed at 1 m intervals."
+#   Wave heights selected: "2.9 cm, 4.4 cm, 5.4 cm for 0.4 Hz, and 4.1 cm, 5.9 cm, 6.9 cm for 1.0 Hz."
+#   Measured time series are given ONLY as figures (Figs 2-6) in this paper.
+#
+# [S2] Basilisk test http://basilisk.fr/src/test/bar.c (raw: ?raw) -- bathymetry used with the gauge data files:
+#      zb = (x < 6 ? -0.4 : x < 12 ? -0.4 + (x - 6.)/6.*0.3 : x < 14 ? -0.1 :
+#            x < 17 ? -0.1 - (x - 14.)/3.*0.3 : -0.4);          [m]
+#      i.e. toe x=6, crest 12..14 (depth 0.1), lee toe x=17  => upslope 1:20, crest 2 m, downslope 1:10 (consistent with S1)
+#      Period: omega = 2.*pi/2.02 ; inlet forcing amplitude 0.03 (radiation BC) "tune[d] ... to obtain the required
+#      amplitude as measured in the experiment at gauge 4."
+#      Gauges: WG4 10.5, WG5 12.5, WG6 13.5, WG7 14.5, WG8 15.7, WG9 17.3, WG10 19, WG11 21  [m]
+#      "The location of the gauges is difficult to find in the litterature, we used a combination of Yamazaki et al,
+#       2009 and Dingemans, 1994."
+#
+# [S3] Ma, Shi & Kirby (2012) NHWAVE, Ocean Modelling: https://www1.udel.edu/kirby/landslide/models/ma-etal-om12.pdf
+#   "The still water depth is 0.4 m, which is reduced to 0.1 m at the bar. The offshore slope of the bar is 1/20
+#    and the onshore slope is 1/10."  "Periodic waves with period 2.02 s and amplitude 1.0 cm are incident at the
+#    left boundary."  Gauges at x = 10.5, 12.5, 13.5, 14.5, 15.7, 17.3 m (data plotted only, Fig. 7).
+#
+# [S4] Bonneton et al. Green-Naghdi paper, https://arxiv.org/html/1004.3436 (sec. 4.2):
+#   "the free-surface elevation a is 0.01m, the time period T is 2.02s and the initial depth h0 is 0.4m"
+#
+# Summary (confirmed by >=2 sources): h0 = 0.40 m, upslope 1:20, crest depth 0.10 m, crest length 2 m,
+#   downslope 1:10; non-breaking case T = 2.02 s, a = 0.01 m (H = 0.02 m) [S3,S4].
+#
+# x[m]  zb[m]   (vertices of S2 bathymetry; x measured from wave-board per S1 "toe 6 m from the wave-board")
+0.0   -0.40
+6.0   -0.40
+12.0  -0.10
+14.0  -0.10
+17.0  -0.40

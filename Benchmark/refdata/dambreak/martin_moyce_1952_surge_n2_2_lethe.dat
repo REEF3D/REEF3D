@@ -1,0 +1,31 @@
+# Martin & Moyce (1952) collapse of liquid column -- surge-front position (as shipped by Lethe CFD)
+# Original reference (as cited by Lethe): J.C. Martin et al., "Part IV. An experimental study of the collapse
+#   of liquid columns on a rigid horizontal plane", Philos. Trans. R. Soc. Lond. Ser. Math. Phys. Sci.
+#   244 (882), 312-324, Mar. 1952, doi:10.1098/rsta.1952.0006
+# Secondary source (arrays copied verbatim):
+#   Lethe, examples/multiphysics/dam-break/dam-break-2d.py
+#   https://raw.githubusercontent.com/chaos-polymtl/lethe/master/examples/multiphysics/dam-break/dam-break-2d.py
+#   https://github.com/chaos-polymtl/lethe/blob/master/examples/multiphysics/dam-break/dam-break-2d.py?plain=1
+#   Code: "#Experimental data from Martin & Moyce 1952 [1]"
+#         x_exp = [...]  (plotted on x-axis labelled tau), y_exp = [...] (plotted on y-axis labelled delta)
+# Nondimensionalisation used by Lethe for its simulation curve (same axes):
+#   tau   = t*sqrt(2*g/L1)  (L1 = initial column width; Lethe case: width 3.5, height 7 -> n^2 = 2)
+#   delta = x/L1            (x = surge-front position)
+#   NOTE: Lethe adds time_correction = 0.175 to its SIMULATION times (not to x_exp); experimental values unmodified.
+# Which a (1.125 in or 2.25 in) and whether digitised or tabulated is NOT stated by Lethe.
+# Rows: 14
+# tau     delta
+0       1
+0.41    1.11
+0.84    1.23
+1.19    1.44
+1.43    1.67
+1.63    1.89
+1.82    2.11
+1.97    2.33
+2.2     2.56
+2.32    2.78
+2.5     3
+2.64    3.22
+2.82    3.44
+2.96    3.67

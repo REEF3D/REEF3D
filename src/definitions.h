@@ -34,7 +34,7 @@ enum {
     OBJ_FLAG = -20
 };
 
-const double PI = 3.14159265359;
-const double EE = 2.71828182846;
+inline constexpr double PI = 3.14159265359;
+inline constexpr double EE = 2.71828182846;
 
 #endif

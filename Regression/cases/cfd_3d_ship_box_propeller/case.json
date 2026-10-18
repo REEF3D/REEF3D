@@ -1,0 +1,9 @@
+{
+ "description": "Ship module (X 350) in REEF3D::CFD: 3D box barge (draft 0.15 m) floating in a two-phase level-set tank with a body-force propeller at fixed rps behind the stern; actuator disk as momentum source on the staggered velocity points (water part outside the hull), swirl without net force; surge, heave and pitch free, SSP-RK3 (N 40 3), 2 MPI ranks.",
+ "solver": "cfd",
+ "np": 2,
+ "steps": 40,
+ "files": ["ship.dat"],
+ "tags": ["3d", "cfd", "6dof", "ship", "propeller", "mpi"],
+ "covers": ["sixdof_obj_cfd::actuator_forcing (staggered grids, water and body fractions, MPI sums)", "sixdof_actuator_disk::accumulate, swirl_factor, force", "sixdof_fluid_cfd velocity sampling", "ship module in CFD (propeller_source default 1)", "REEF3D_ship output in REEF3D_CFD_6DOF"]
+}

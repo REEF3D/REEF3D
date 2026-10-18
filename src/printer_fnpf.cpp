@@ -20,643 +20,652 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"printer_fnpf.h"
-#include"lexer.h"
-#include"fdm_fnpf.h"
-#include"ghostcell.h"
-#include"fnpf_force_ale.h"
-#include"ioflow.h"
-#include"fnpf_print_wsf.h"
-#include"fnpf_print_wsf_theory.h"
-#include"fnpf_print_wsfline.h"
-#include"fnpf_print_wsfline_y.h"
-#include"fnpf_vtp_fsf.h"
-#include"fnpf_vtp_bed.h"
-#include"fnpf_breaking_log.h"
-#include"fnpf_print_Hs.h"
-#include"fnpf_vel_probe.h"
-#include"fnpf_vel_probe_theory.h"
-#include"fnpf_runup.h"
-#include"potentialfile_out.h"
-#include"fnpf_state.h"
-#include"fnpf_print_kinematics.h"
-#include<sys/stat.h>
-#include<sys/types.h>
-#include<sstream>
-#include<cstdio>
-#include<cstring>
+#include "printer_fnpf.h"
+#include "fdm_fnpf.h"
+#include "fnpf_breaking_log.h"
+#include "fnpf_force_ale.h"
+#include "fnpf_print_Hs.h"
+#include "fnpf_print_kinematics.h"
+#include "fnpf_print_wsf.h"
+#include "fnpf_print_wsf_theory.h"
+#include "fnpf_print_wsfline.h"
+#include "fnpf_print_wsfline_y.h"
+#include "fnpf_runup.h"
+#include "fnpf_state.h"
+#include "fnpf_vel_probe.h"
+#include "fnpf_vel_probe_theory.h"
+#include "fnpf_vtp_bed.h"
+#include "fnpf_vtp_fsf.h"
+#include "ghostcell.h"
+#include "ioflow.h"
+#include "lagoon_output.h"
+#include "lexer.h"
+#include "potentialfile_out.h"
+#include <cstdio>
+#include <cstring>
+#include <sstream>
+#include <sys/stat.h>
+#include <sys/types.h>
 
-printer_fnpf::printer_fnpf(lexer* p, fdm_fnpf *c, ghostcell *pgc)
+printer_fnpf::printer_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
-    switch (p->P10)
+    switch(p->P10)
     {
-        case vtk3D::type::none: case vtk3D::type::vtr:
-            outputFormat = new vtk3D();
-            break;
-        case vtk3D::type::vtu: default:
-            outputFormat = new vtu3D();
-            break;
-        case vtk3D::type::vts:
-            outputFormat = new vts3D();
-            break;
+    case vtk3D::type::none:
+    case vtk3D::type::vtr:
+        outputFormat = new vtk3D();
+        break;
+    case vtk3D::type::vtu:
+    default:
+        outputFormat = new vtu3D();
+        break;
+    case vtk3D::type::vts:
+        outputFormat = new vts3D();
+        break;
     }
 
-    if(p->I40==0)
+    if(p->I40 == 0)
     {
-        p->printtime=0.0;
-        p->sedprinttime=0.0;
-        p->fsfprinttime=0.0;
-        p->probeprinttime=0.0;
-        p->stateprinttime=0.0;
-        p->exportprinttime=0.0;
+        p->printtime = 0.0;
+        p->sedprinttime = 0.0;
+        p->fsfprinttime = 0.0;
+        p->probeprinttime = 0.0;
+        p->stateprinttime = 0.0;
+        p->exportprinttime = 0.0;
     }
 
-    printcount=0;
+    printcount = 0;
 
-    p->Darray(printtime_wT,p->P35);
-    p->Darray(printfsftime_wT,p->P185);
+    p->Darray(printtime_wT, p->P35);
+    p->Darray(printfsftime_wT, p->P185);
 
-    for(int qn=0; qn<p->P35; ++qn)
+    for(int qn = 0; qn < p->P35; ++qn)
         printtime_wT[qn] = p->P35_ts[qn];
 
-    for(int qn=0; qn<p->P185; ++qn)
+    for(int qn = 0; qn < p->P185; ++qn)
         printfsftime_wT[qn] = p->P185_ts[qn];
 
     // Create Folder
-    if(p->mpirank==0)
+    if(p->mpirank == 0)
         outputFormat->folder("FNPF");
 
+    if(p->P18 > 0 && (p->P10 == vtk3D::type::vtu || p->P10 == vtk3D::type::vts))
+        plagoon = new lagoon_output(p, pgc, "FNPF");
 
-    pwsf = new fnpf_print_wsf(p,c);
+    pwsf = new fnpf_print_wsf(p, c);
 
-    pwsf_theory = new fnpf_print_wsf_theory(p,c,pgc);
+    pwsf_theory = new fnpf_print_wsf_theory(p, c, pgc);
 
-    pwsfline = new fnpf_print_wsfline(p,c,pgc);
+    pwsfline = new fnpf_print_wsfline(p, c, pgc);
 
-    pwsfline_y = new fnpf_print_wsfline_y(p,c,pgc);
+    pwsfline_y = new fnpf_print_wsfline_y(p, c, pgc);
 
-    if(p->P65>0)
-        pvel = new fnpf_vel_probe(p,c);
+    if(p->P65 > 0)
+        pvel = new fnpf_vel_probe(p, c);
 
-    if(p->P66>0)
-     pveltheo = new fnpf_vel_probe_theory(p,c);
+    if(p->P66 > 0)
+        pveltheo = new fnpf_vel_probe_theory(p, c);
 
-    if(p->P230>0)
-        ppotentialfile = new potentialfile_out(p,c,pgc);
+    if(p->P230 > 0)
+        ppotentialfile = new potentialfile_out(p, c, pgc);
 
-    if(p->P180==1)
-        pfsf = new fnpf_vtp_fsf(p,c,pgc);
+    if(p->P180 == 1)
+        pfsf = new fnpf_vtp_fsf(p, c, pgc);
 
-    pbed = new fnpf_vtp_bed(p,c,pgc);
+    pbed = new fnpf_vtp_bed(p, c, pgc);
 
-    if(p->P40>0)
-        pstate=new fnpf_state(p,c,pgc);
+    if(p->P40 > 0)
+        pstate = new fnpf_state(p, c, pgc);
 
-    if(p->P59==1)
-        pbreaklog=new fnpf_breaking_log(p,c,pgc);
+    if(p->P59 == 1)
+        pbreaklog = new fnpf_breaking_log(p, c, pgc);
 
-    if(p->P85>0)
+    if(p->P85 > 0)
     {
-        pforce_ale = new fnpf_force_ale*[p->P85];
+        pforce_ale = new fnpf_force_ale *[p->P85];
 
-        for(n=0;n<p->P85;++n)
-            pforce_ale[n] = new fnpf_force_ale(p,c,pgc,n);
+        for(n = 0; n < p->P85; ++n)
+            pforce_ale[n] = new fnpf_force_ale(p, c, pgc, n);
 
-        for(n=0;n<p->P85;++n)
-            pforce_ale[n]->ini(p,c,pgc);
+        for(n = 0; n < p->P85; ++n)
+            pforce_ale[n]->ini(p, c, pgc);
     }
 
-    if(p->P88>0)
+    if(p->P88 > 0)
     {
-        pkin = new fnpf_print_kinematics*[p->P88];
+        pkin = new fnpf_print_kinematics *[p->P88];
 
-        for(n=0;n<p->P88;++n)
-            pkin[n] = new fnpf_print_kinematics(p,c,pgc,n);
+        for(n = 0; n < p->P88; ++n)
+            pkin[n] = new fnpf_print_kinematics(p, c, pgc, n);
 
-        for(n=0;n<p->P88;++n)
-            pkin[n]->ini(p,c,pgc);
+        for(n = 0; n < p->P88; ++n)
+            pkin[n]->ini(p, c, pgc);
     }
 
-    if(p->P110==1)
-        phs = new fnpf_print_Hs(p,c->Hs);
+    if(p->P110 == 1)
+        phs = new fnpf_print_Hs(p, c->Hs);
 
-    if(p->P140>0)
+    if(p->P140 > 0)
     {
-        prunup = new fnpf_runup*[p->P140];
+        prunup = new fnpf_runup *[p->P140];
 
-        for(n=0;n<p->P140;++n)
-            prunup[n]=new fnpf_runup(p,c,pgc,n);
+        for(n = 0; n < p->P140; ++n)
+            prunup[n] = new fnpf_runup(p, c, pgc, n);
 
-        for(n=0;n<p->P140;++n)
-            prunup[n]->ini(p,c,pgc);
+        for(n = 0; n < p->P140; ++n)
+            prunup[n]->ini(p, c, pgc);
     }
 }
 
-void printer_fnpf::start(lexer* p, fdm_fnpf* c,ghostcell* pgc, ioflow *pflow)
+void printer_fnpf::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pflow)
 {
     // Gages
-    if(p->P51>0)
-    pwsf->height_gauge(p,c,pgc,c->eta);
+    if(p->P51 > 0)
+        pwsf->height_gauge(p, c, pgc, c->eta);
 
-    if(p->P50>0)
-    pwsf_theory->height_gauge(p,c,pgc,pflow);
+    if(p->P50 > 0)
+        pwsf_theory->height_gauge(p, c, pgc, pflow);
 
-    if(p->P110==1)
-    phs->start(p,pgc,c->eta,c->Hs);
+    if(p->P110 == 1)
+        phs->start(p, pgc, c->eta, c->Hs);
 
-    if(p->P65>0)
-    pvel->start(p,c,pgc);
+    if(p->P65 > 0)
+        pvel->start(p, c, pgc);
 
-    if(p->P66>0)
-    pveltheo->start(p,c,pgc,pflow);
+    if(p->P66 > 0)
+        pveltheo->start(p, c, pgc, pflow);
 
     // Print out based on iteration
-    if(p->count%p->P20==0 && p->P30<0.0 && p->P34<0.0 && p->P20>0)
+    if(p->count % p->P20 == 0 && p->P30 < 0.0 && p->P34 < 0.0 && p->P20 > 0)
     {
-        print(p,c,pgc);
+        print(p, c, pgc);
     }
 
     // Print out based on time
-    if((p->simtime>p->printtime && p->P30>0.0 && p->P34<0.0) || (p->count==0 &&  p->P30>0.0))
+    if((p->simtime > p->printtime && p->P30 > 0.0 && p->P34 < 0.0) || (p->count == 0 && p->P30 > 0.0))
     {
-        print(p,c,pgc);
+        print(p, c, pgc);
 
-        p->printtime+=p->P30;
+        p->printtime += p->P30;
     }
 
     // Print out based on time interval
-    if(p->P35>0)
-    for(int qn=0; qn<p->P35; ++qn)
-    if(p->simtime>printtime_wT[qn] && p->simtime>=p->P35_ts[qn] && p->simtime<=(p->P35_te[qn]+0.5*p->P35_dt[qn]))
-    {
-        print(p,c,pgc);
+    if(p->P35 > 0)
+        for(int qn = 0; qn < p->P35; ++qn)
+            if(p->simtime > printtime_wT[qn] && p->simtime >= p->P35_ts[qn] && p->simtime <= (p->P35_te[qn] + 0.5 * p->P35_dt[qn]))
+            {
+                print(p, c, pgc);
 
-        printtime_wT[qn]+=p->P35_dt[qn];
-    }
+                printtime_wT[qn] += p->P35_dt[qn];
+            }
 
     // Print FSF
-    if(((p->count%p->P181==0 && p->P182<0.0 && p->P180==1 )|| (p->count==0 &&  p->P182<0.0 && p->P180==1)) && p->P181>0)
+    if(((p->count % p->P181 == 0 && p->P182 < 0.0 && p->P180 == 1) || (p->count == 0 && p->P182 < 0.0 && p->P180 == 1)) && p->P181 > 0)
     {
-        pfsf->start(p,c,pgc);
+        pfsf->start(p, c, pgc);
     }
 
-
-    if((p->simtime>p->fsfprinttime && p->P182>0.0 && p->P180==1) || (p->count==0 &&  p->P182>0.0))
+    if((p->simtime > p->fsfprinttime && p->P182 > 0.0 && p->P180 == 1) || (p->count == 0 && p->P182 > 0.0))
     {
-        pfsf->start(p,c,pgc);
-        p->fsfprinttime+=p->P182;
+        pfsf->start(p, c, pgc);
+        p->fsfprinttime += p->P182;
     }
 
-    if(p->P180==1 && p->P184>0)
-    for(int qn=0; qn<p->P184; ++qn)
-    if(p->count%p->P184_dit[qn]==0 && p->count>=p->P184_its[qn] && p->count<=(p->P184_ite[qn]))
-    {
-        pfsf->start(p,c,pgc);
-    }
+    if(p->P180 == 1 && p->P184 > 0)
+        for(int qn = 0; qn < p->P184; ++qn)
+            if(p->count % p->P184_dit[qn] == 0 && p->count >= p->P184_its[qn] && p->count <= (p->P184_ite[qn]))
+            {
+                pfsf->start(p, c, pgc);
+            }
 
-    if(p->P180==1 && p->P185>0)
-    for(int qn=0; qn<p->P185; ++qn)
-    if(p->simtime>printfsftime_wT[qn] && p->simtime>=p->P185_ts[qn] && p->simtime<=(p->P185_te[qn]+0.5*p->P185_dt[qn]))
-    {
-        pfsf->start(p,c,pgc);
+    if(p->P180 == 1 && p->P185 > 0)
+        for(int qn = 0; qn < p->P185; ++qn)
+            if(p->simtime > printfsftime_wT[qn] && p->simtime >= p->P185_ts[qn] && p->simtime <= (p->P185_te[qn] + 0.5 * p->P185_dt[qn]))
+            {
+                pfsf->start(p, c, pgc);
 
-        printfsftime_wT[qn]+=p->P185_dt[qn];
-    }
+                printfsftime_wT[qn] += p->P185_dt[qn];
+            }
 
     // Print BED
-    if(p->count==0)
-    pbed->start(p,c,pgc,pflow);
-
+    if(p->count == 0)
+        pbed->start(p, c, pgc, pflow);
 
     // Gages
-    if((p->P52>0 && p->count%p->P54==0 && p->P55<0.0) || ((p->P52>0 && p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0)))
-    pwsfline->start(p,c,pgc,pflow,c->eta);
+    if((p->P52 > 0 && p->count % p->P54 == 0 && p->P55 < 0.0) || ((p->P52 > 0 && p->simtime > p->probeprinttime && p->P55 > 0.0) || (p->count == 0 && p->P55 > 0.0)))
+        pwsfline->start(p, c, pgc, pflow, c->eta);
 
-    if((p->P56>0 && p->count%p->P54==0 && p->P55<0.0) || ((p->P56>0 && p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0)))
-    pwsfline_y->start(p,c,pgc,pflow,c->eta);
-
+    if((p->P56 > 0 && p->count % p->P54 == 0 && p->P55 < 0.0) || ((p->P56 > 0 && p->simtime > p->probeprinttime && p->P55 > 0.0) || (p->count == 0 && p->P55 > 0.0)))
+        pwsfline_y->start(p, c, pgc, pflow, c->eta);
 
     // Print state out based on iteration
-    if(p->count%p->P41==0 && p->P42<0.0 && p->P40>0 && (p->P46==0 || (p->count>=p->P46_is && p->count<p->P46_ie)))
+    if(p->count % p->P41 == 0 && p->P42 < 0.0 && p->P40 > 0 && (p->P46 == 0 || (p->count >= p->P46_is && p->count < p->P46_ie)))
     {
-        pstate->write(p,c,pgc);
+        pstate->write(p, c, pgc);
     }
 
     // Print state out based on time
-    if((p->simtime>p->stateprinttime && p->P42>0.0 || (p->count==0 &&  p->P42>0.0)) && p->P40>0 && (p->P47==0 || (p->count>=p->P47_ts && p->count<p->P47_te)))
+    if((p->simtime > p->stateprinttime && p->P42 > 0.0 || (p->count == 0 && p->P42 > 0.0)) && p->P40 > 0 && (p->P47 == 0 || (p->count >= p->P47_ts && p->count < p->P47_te)))
     {
-        pstate->write(p,c,pgc);
+        pstate->write(p, c, pgc);
 
-        p->stateprinttime+=p->P42;
+        p->stateprinttime += p->P42;
     }
 
-    if((p->simtime>p->probeprinttime && p->P55>0.0)  || (p->count==0 &&  p->P55>0.0))
-    p->probeprinttime+=p->P55;
+    if((p->simtime > p->probeprinttime && p->P55 > 0.0) || (p->count == 0 && p->P55 > 0.0))
+        p->probeprinttime += p->P55;
 
-    if(p->P59==1)
-    pbreaklog->write(p,c,pgc);
+    if(p->P59 == 1)
+        pbreaklog->write(p, c, pgc);
 
     // ALE force
-    if(p->count>0 && p->count%p->P80==0)
-    for(n=0;n<p->P85;++n)
-    pforce_ale[n]->start(p,c,pgc);
+    if(p->count > 0 && p->count % p->P80 == 0)
+        for(n = 0; n < p->P85; ++n)
+            pforce_ale[n]->start(p, c, pgc);
 
     // print kinematics
-    if(p->count>0 && p->count%p->P80==0)
-    for(n=0;n<p->P88;++n)
-    pkin[n]->start(p,c,pgc);
+    if(p->count > 0 && p->count % p->P80 == 0)
+        for(n = 0; n < p->P88; ++n)
+            pkin[n]->start(p, c, pgc);
 
     // Runup
-    if(p->count>0)
-    for(n=0;n<p->P140;++n)
-    prunup[n]->start(p,c,pgc);
+    if(p->count > 0)
+        for(n = 0; n < p->P140; ++n)
+            prunup[n]->start(p, c, pgc);
 }
 
-void printer_fnpf::print_stop(lexer* p, fdm_fnpf *c, ghostcell* pgc)
+void printer_fnpf::print_stop(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
-    if(p->P180==1)
-    pfsf->start(p,c,pgc);
+    if(p->P180 == 1)
+        pfsf->start(p, c, pgc);
 
-    print(p,c,pgc);
+    print(p, c, pgc);
+
+    if(plagoon)  // the last output of the LAGOON store is counted
+        plagoon->finish(p, pgc);
 }
 
-void printer_fnpf::print(lexer* p, fdm_fnpf *c, ghostcell* pgc)
+void printer_fnpf::print(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
-    if(p->P10==vtk3D::type::vtu || p->P10==vtk3D::type::vts)
+    if(p->P10 == vtk3D::type::vtu || p->P10 == vtk3D::type::vts)
     {
         SLICELOOP4
         {
-            if(c->breaking(i,j)==1)
-                c->breaking_print(i,j)=1.0;
-            else if(c->breaking(i,j)==0)
-                c->breaking_print(i,j)=0.0;
+            if(c->breaking(i, j) == 1)
+                c->breaking_print(i, j) = 1.0;
+            else if(c->breaking(i, j) == 0)
+                c->breaking_print(i, j) = 0.0;
         }
 
         //
-        pgc->start7V(p,c->Fi,c->bc,250);
-        pgc->gcsl_start4(p,c->WL,50);
-        pgc->gcsl_start4(p,c->bed,50);
-        pgc->gcsl_start4(p,c->breaking_print,50);
-        pgc->start4(p,c->test,1);
+        pgc->start7V(p, c->Fi, c->bc, 250);
+        pgc->gcsl_start4(p, c->WL, 50);
+        pgc->gcsl_start4(p, c->bed, 50);
+        pgc->gcsl_start4(p, c->breaking_print, 50);
+        pgc->start4(p, c->test, 1);
 
-        i=-1;
-        j=-1;
-        if(i+p->origin_i==-1 && j+p->origin_j==-1 )
-            c->WL(i,j) = c->WL(i+1,j+1);
-
+        i = -1;
+        j = -1;
+        if(i + p->origin_i == -1 && j + p->origin_j == -1)
+            c->WL(i, j) = c->WL(i + 1, j + 1);
 
         //----------
 
-        outputFormat->extent(p,pgc);
+        outputFormat->extent(p, pgc);
 
-        int num=0;
-        if(p->P15==1)
+        int num = 0;
+        if(p->P15 == 1)
             num = printcount;
-        else if(p->P15==2)
+        else if(p->P15 == 2)
             num = p->count;
 
-        if(p->mpirank==0)
-            parallel(p,num);
+        if(p->mpirank == 0 && lagoon_output::vtu_files(p))
+            parallel(p, num);
 
         if(initial_print)
         {
-            n=0;
-            offset[n]=0;
+            n = 0;
+            offset[n] = 0;
             ++n;
 
             // velocity
-            offset[n]=offset[n-1]+3*sizeof(float)*p->pointnum+sizeof(int);
+            offset[n] = offset[n - 1] + 3 * sizeof(float) * p->pointnum + sizeof(int);
             ++n;
 
             // scalars
 
             // Fi
-            offset[n]=offset[n-1]+sizeof(float)*p->pointnum+sizeof(int);
+            offset[n] = offset[n - 1] + sizeof(float) * p->pointnum + sizeof(int);
             ++n;
 
             // elevation
-            offset[n]=offset[n-1]+sizeof(float)*p->pointnum+sizeof(int);
+            offset[n] = offset[n - 1] + sizeof(float) * p->pointnum + sizeof(int);
             ++n;
 
             // test
-            if(p->P23==1)
+            if(p->P23 == 1)
             {
-                offset[n]=offset[n-1]+sizeof(float)*p->pointnum+sizeof(int);
+                offset[n] = offset[n - 1] + sizeof(float) * p->pointnum + sizeof(int);
                 ++n;
             }
-            
+
             // breaking
-            if(p->P310==1)
+            if(p->P310 == 1)
             {
-                offset[n]=offset[n-1]+sizeof(float)*p->pointnum+sizeof(int);
+                offset[n] = offset[n - 1] + sizeof(float) * p->pointnum + sizeof(int);
                 ++n;
             }
-            
+
             // breaking viscosity
-            if(p->P311==1)
+            if(p->P311 == 1)
             {
-                offset[n]=offset[n-1]+sizeof(float)*p->pointnum+sizeof(int);
+                offset[n] = offset[n - 1] + sizeof(float) * p->pointnum + sizeof(int);
                 ++n;
             }
 
             // Hs
-            if(p->P110==1)
+            if(p->P110 == 1)
             {
-                offset[n]=offset[n-1]+sizeof(float)*p->pointnum+sizeof(int);
+                offset[n] = offset[n - 1] + sizeof(float) * p->pointnum + sizeof(int);
                 ++n;
             }
 
             // solid
-            if(p->P25==1)
+            if(p->P25 == 1)
             {
-                offset[n]=offset[n-1]+sizeof(float)*p->pointnum+sizeof(int);
+                offset[n] = offset[n - 1] + sizeof(float) * p->pointnum + sizeof(int);
                 ++n;
             }
 
-            outputFormat->offset(p,offset,n);
+            outputFormat->offset(p, offset, n);
 
             initial_print = false;
         }
         //---------------------------------------------
         std::stringstream result;
 
-        outputFormat->beginning(p,result);
+        outputFormat->beginning(p, result);
 
-        n=0;
-        result<<"<PointData>\n";
-        result<<"<DataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
+        n = 0;
+        result << "<PointData>\n";
+        result << "<DataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\" format=\"appended\" offset=\"" << offset[n] << "\"/>\n";
         ++n;
 
-        if(p->A10==3)
+        if(p->A10 == 3)
         {
-            result<<"<DataArray type=\"Float32\" Name=\"Fi\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
+            result << "<DataArray type=\"Float32\" Name=\"Fi\" format=\"appended\" offset=\"" << offset[n] << "\"/>\n";
             ++n;
         }
 
-        result<<"<DataArray type=\"Float32\" Name=\"elevation\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
+        result << "<DataArray type=\"Float32\" Name=\"elevation\" format=\"appended\" offset=\"" << offset[n] << "\"/>\n";
         ++n;
 
-        if(p->P23==1)
+        if(p->P23 == 1)
         {
-            result<<"<DataArray type=\"Float32\" Name=\"test\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
-            ++n;
-        }
-        
-        if(p->P310==1)
-        {
-            result<<"<DataArray type=\"Float32\" Name=\"breaking\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
-            ++n;
-        }
-        
-        if(p->P311==1)
-        {
-            result<<"<DataArray type=\"Float32\" Name=\"vb\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
+            result << "<DataArray type=\"Float32\" Name=\"test\" format=\"appended\" offset=\"" << offset[n] << "\"/>\n";
             ++n;
         }
 
-        if(p->P110==1)
+        if(p->P310 == 1)
         {
-            result<<"<DataArray type=\"Float32\" Name=\"Hs\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
+            result << "<DataArray type=\"Float32\" Name=\"breaking\" format=\"appended\" offset=\"" << offset[n] << "\"/>\n";
             ++n;
         }
 
-        if(p->P25==1)
+        if(p->P311 == 1)
         {
-            result<<"<DataArray type=\"Float32\" Name=\"solid\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
+            result << "<DataArray type=\"Float32\" Name=\"vb\" format=\"appended\" offset=\"" << offset[n] << "\"/>\n";
             ++n;
         }
-        result<<"</PointData>\n";
 
-        outputFormat->ending(result,offset,n);
+        if(p->P110 == 1)
+        {
+            result << "<DataArray type=\"Float32\" Name=\"Hs\" format=\"appended\" offset=\"" << offset[n] << "\"/>\n";
+            ++n;
+        }
+
+        if(p->P25 == 1)
+        {
+            result << "<DataArray type=\"Float32\" Name=\"solid\" format=\"appended\" offset=\"" << offset[n] << "\"/>\n";
+            ++n;
+        }
+        result << "</PointData>\n";
+
+        outputFormat->ending(result, offset, n);
 
         file_offset = result.str().length();
+        const size_t data_start = file_offset;  // the appended data begins here
         const size_t total_size = file_offset + offset[n] + 27;
         buffer.resize(total_size);
         std::memcpy(&buffer[0], result.str().data(), file_offset);
         //----------------------------------------------------------------------------
 
         //  Velocities
-        iin=3*sizeof(float)*p->pointnum;
-        std::memcpy(&buffer[file_offset],&iin,sizeof(int));
-        file_offset+=sizeof(int);
-        if(p->j_dir==1)
-        TPLOOP
-        {
-            // U
-            ffn=float(c->U[FIJKp1]);
-            
-            if(k==-1 && j==-1)
-            ffn=float(c->U[FIJp1Kp1]);
-            
-            if(i==-1 && j==-1 && k==-1)
-            ffn=float(c->U[FIp1Jp1Kp1]);
-            
-            if(i==-1 && j==-1 && k>-1)
-            ffn=float(c->U[FIp1Jp1K]);
-            
-            std::memcpy(&buffer[file_offset],&ffn,sizeof(float));
-            file_offset+=sizeof(float);
-            
-            // V
-            ffn=float(c->V[FIJKp1]);
-            
-            if(k==-1 && j==-1)
-            ffn=float(c->V[FIJp1Kp1]);
-            
-            if(i==-1 && j==-1 && k==-1)
-            ffn=float(c->V[FIp1Jp1Kp1]);
-            
-            if(i==-1 && j==-1 && k>-1)
-            ffn=float(c->V[FIp1Jp1K]);
-            
-            std::memcpy(&buffer[file_offset],&ffn,sizeof(float));
-            file_offset+=sizeof(float);
-            
-            // W
-            ffn=float(c->W[FIJKp1]);
-            
-            if(k==-1 && j==-1)
-            ffn=float(c->W[FIJp1Kp1]);
-            
-            if(i==-1 && j==-1 && k==-1)
-            ffn=float(c->W[FIp1Jp1Kp1]);
-            
-            if(i==-1 && j==-1 && k>-1)
-            ffn=float(c->W[FIp1Jp1K]);
-            
-            std::memcpy(&buffer[file_offset],&ffn,sizeof(float));
-            file_offset+=sizeof(float);
-        }
-        
-        if(p->j_dir==0)
-        TPLOOP
-        {
-            // U
-            if(j==-1)
-            ffn=float(c->U[FIJp1Kp1]);
-            
-            if(j==0)
-            ffn=float(c->U[FIJKp1]);
-            
-            if(k==-1 && j==-1)
-            ffn=float(c->U[FIJp1Kp1]);
-            
-            std::memcpy(&buffer[file_offset],&ffn,sizeof(float));
-            file_offset+=sizeof(float);
-            
-            // V
-            ffn=float(c->V[FIJKp1]);
-            
-            if(k==-1 && j==-1)
-            ffn=float(c->V[FIJp1Kp1]);
-            
-            if(i==-1 && j==-1 && k==-1)
-            ffn=float(c->V[FIp1Jp1Kp1]);
-            
-            if(i==-1 && j==-1 && k>-1)
-            ffn=float(c->V[FIp1Jp1K]);
-            
-            std::memcpy(&buffer[file_offset],&ffn,sizeof(float));
-            file_offset+=sizeof(float);
-            
-            // W
-            ffn=float(c->W[FIJKp1]);
-            
-            if(k==-1 && j==-1)
-            ffn=float(c->W[FIJp1Kp1]);
-            
-            if(i==-1 && j==-1 && k==-1)
-            ffn=float(c->W[FIp1Jp1Kp1]);
-            
-            if(i==-1 && j==-1 && k>-1)
-            ffn=float(c->W[FIp1Jp1K]);
-            
-            std::memcpy(&buffer[file_offset],&ffn,sizeof(float));
-            file_offset+=sizeof(float);
-        }
+        iin = 3 * sizeof(float) * p->pointnum;
+        std::memcpy(&buffer[file_offset], &iin, sizeof(int));
+        file_offset += sizeof(int);
+        if(p->j_dir == 1)
+            TPLOOP
+            {
+                // U
+                ffn = float(c->U[FIJKp1]);
+
+                if(k == -1 && j == -1)
+                    ffn = float(c->U[FIJp1Kp1]);
+
+                if(i == -1 && j == -1 && k == -1)
+                    ffn = float(c->U[FIp1Jp1Kp1]);
+
+                if(i == -1 && j == -1 && k > -1)
+                    ffn = float(c->U[FIp1Jp1K]);
+
+                std::memcpy(&buffer[file_offset], &ffn, sizeof(float));
+                file_offset += sizeof(float);
+
+                // V
+                ffn = float(c->V[FIJKp1]);
+
+                if(k == -1 && j == -1)
+                    ffn = float(c->V[FIJp1Kp1]);
+
+                if(i == -1 && j == -1 && k == -1)
+                    ffn = float(c->V[FIp1Jp1Kp1]);
+
+                if(i == -1 && j == -1 && k > -1)
+                    ffn = float(c->V[FIp1Jp1K]);
+
+                std::memcpy(&buffer[file_offset], &ffn, sizeof(float));
+                file_offset += sizeof(float);
+
+                // W
+                ffn = float(c->W[FIJKp1]);
+
+                if(k == -1 && j == -1)
+                    ffn = float(c->W[FIJp1Kp1]);
+
+                if(i == -1 && j == -1 && k == -1)
+                    ffn = float(c->W[FIp1Jp1Kp1]);
+
+                if(i == -1 && j == -1 && k > -1)
+                    ffn = float(c->W[FIp1Jp1K]);
+
+                std::memcpy(&buffer[file_offset], &ffn, sizeof(float));
+                file_offset += sizeof(float);
+            }
+
+        if(p->j_dir == 0)
+            TPLOOP
+            {
+                // U
+                if(j == -1)
+                    ffn = float(c->U[FIJp1Kp1]);
+
+                if(j == 0)
+                    ffn = float(c->U[FIJKp1]);
+
+                if(k == -1 && j == -1)
+                    ffn = float(c->U[FIJp1Kp1]);
+
+                std::memcpy(&buffer[file_offset], &ffn, sizeof(float));
+                file_offset += sizeof(float);
+
+                // V
+                ffn = float(c->V[FIJKp1]);
+
+                if(k == -1 && j == -1)
+                    ffn = float(c->V[FIJp1Kp1]);
+
+                if(i == -1 && j == -1 && k == -1)
+                    ffn = float(c->V[FIp1Jp1Kp1]);
+
+                if(i == -1 && j == -1 && k > -1)
+                    ffn = float(c->V[FIp1Jp1K]);
+
+                std::memcpy(&buffer[file_offset], &ffn, sizeof(float));
+                file_offset += sizeof(float);
+
+                // W
+                ffn = float(c->W[FIJKp1]);
+
+                if(k == -1 && j == -1)
+                    ffn = float(c->W[FIJp1Kp1]);
+
+                if(i == -1 && j == -1 && k == -1)
+                    ffn = float(c->W[FIp1Jp1Kp1]);
+
+                if(i == -1 && j == -1 && k > -1)
+                    ffn = float(c->W[FIp1Jp1K]);
+
+                std::memcpy(&buffer[file_offset], &ffn, sizeof(float));
+                file_offset += sizeof(float);
+            }
 
         //  Fi
-        iin=sizeof(float)*p->pointnum;
-        std::memcpy(&buffer[file_offset],&iin,sizeof(int));
-        file_offset+=sizeof(int);
-        if(p->j_dir==1)
+        iin = sizeof(float) * p->pointnum;
+        std::memcpy(&buffer[file_offset], &iin, sizeof(int));
+        file_offset += sizeof(int);
+        if(p->j_dir == 1)
             TPLOOP
             {
-                ffn=float(c->Fi[FIJKp1]);
+                ffn = float(c->Fi[FIJKp1]);
 
-                if(k==-1 && j==-1)
-                ffn=float(c->Fi[FIJp1Kp1]);
-                
-                if(i==-1 && j==-1 && k==-1)
-                ffn=float(c->Fi[FIp1Jp1Kp1]);
-                
-                if(i==-1 && j==-1 && k>-1)
-                ffn=float(c->Fi[FIp1Jp1K]);
-            
-                std::memcpy(&buffer[file_offset],&ffn,sizeof(float));
-                file_offset+=sizeof(float);
+                if(k == -1 && j == -1)
+                    ffn = float(c->Fi[FIJp1Kp1]);
+
+                if(i == -1 && j == -1 && k == -1)
+                    ffn = float(c->Fi[FIp1Jp1Kp1]);
+
+                if(i == -1 && j == -1 && k > -1)
+                    ffn = float(c->Fi[FIp1Jp1K]);
+
+                std::memcpy(&buffer[file_offset], &ffn, sizeof(float));
+                file_offset += sizeof(float);
             }
-        else if(p->j_dir==0)
+        else if(p->j_dir == 0)
             TPLOOP
             {
-                if(j==-1)
-                    ffn=float(c->Fi[FIJp1Kp1]);
-                if(j==0)
-                    ffn=float(c->Fi[FIJKp1]);
-                if(k==-1 && j==-1)
-                    ffn=float(c->Fi[FIJp1Kp1]);
-                std::memcpy(&buffer[file_offset],&ffn,sizeof(float));
-                file_offset+=sizeof(float);
+                if(j == -1)
+                    ffn = float(c->Fi[FIJp1Kp1]);
+                if(j == 0)
+                    ffn = float(c->Fi[FIJKp1]);
+                if(k == -1 && j == -1)
+                    ffn = float(c->Fi[FIJp1Kp1]);
+                std::memcpy(&buffer[file_offset], &ffn, sizeof(float));
+                file_offset += sizeof(float);
             }
 
         //  elevation
-        iin=3*sizeof(float)*p->pointnum;
-        std::memcpy(&buffer[file_offset],&iin,sizeof(int));
-        file_offset+=sizeof(int);
+        iin = 3 * sizeof(float) * p->pointnum;
+        std::memcpy(&buffer[file_offset], &iin, sizeof(int));
+        file_offset += sizeof(int);
         TPLOOP
         {
-            ffn=float(p->ZN[KP1]*c->WL(i,j) + c->bed(i,j));
-            std::memcpy(&buffer[file_offset],&ffn,sizeof(float));
-            file_offset+=sizeof(float);
+            ffn = float(p->ZN[KP1] * c->WL(i, j) + c->bed(i, j));
+            std::memcpy(&buffer[file_offset], &ffn, sizeof(float));
+            file_offset += sizeof(float);
         }
 
         //  test
-        if(p->P23==1)
+        if(p->P23 == 1)
         {
-            iin=sizeof(float)*p->pointnum;
-            std::memcpy(&buffer[file_offset],&iin,sizeof(int));
-            file_offset+=sizeof(int);
+            iin = sizeof(float) * p->pointnum;
+            std::memcpy(&buffer[file_offset], &iin, sizeof(int));
+            file_offset += sizeof(int);
             TPLOOP
             {
-                ffn=float(p->ipol4_a(c->test));
-                std::memcpy(&buffer[file_offset],&ffn,sizeof(float));
-                file_offset+=sizeof(float);
+                ffn = float(p->ipol4_a(c->test));
+                std::memcpy(&buffer[file_offset], &ffn, sizeof(float));
+                file_offset += sizeof(float);
             }
         }
-        
+
         // breaking
-        if(p->P310==1)
+        if(p->P310 == 1)
         {
-            iin=sizeof(float)*p->pointnum;
-            std::memcpy(&buffer[file_offset],&iin,sizeof(int));
-            file_offset+=sizeof(int);
+            iin = sizeof(float) * p->pointnum;
+            std::memcpy(&buffer[file_offset], &iin, sizeof(int));
+            file_offset += sizeof(int);
             TPLOOP
             {
-                ffn=float(p->ipol4_a_sliceint(c->breaking));
-                std::memcpy(&buffer[file_offset],&ffn,sizeof(float));
-                file_offset+=sizeof(float);
+                ffn = float(p->ipol4_a_sliceint(c->breaking));
+                std::memcpy(&buffer[file_offset], &ffn, sizeof(float));
+                file_offset += sizeof(float);
             }
         }
-        
+
         // breaking viscosity
-        if(p->P311==1)
+        if(p->P311 == 1)
         {
-            iin=sizeof(float)*p->pointnum;
-            std::memcpy(&buffer[file_offset],&iin,sizeof(int));
-            file_offset+=sizeof(int);
+            iin = sizeof(float) * p->pointnum;
+            std::memcpy(&buffer[file_offset], &iin, sizeof(int));
+            file_offset += sizeof(int);
             TPLOOP
             {
-                ffn=float(p->ipol4_a_slice(c->vb));
-                std::memcpy(&buffer[file_offset],&ffn,sizeof(float));
-                file_offset+=sizeof(float);
+                ffn = float(p->ipol4_a_slice(c->vb));
+                std::memcpy(&buffer[file_offset], &ffn, sizeof(float));
+                file_offset += sizeof(float);
             }
         }
 
         //  Hs
-        if(p->P110==1)
+        if(p->P110 == 1)
         {
-            iin=sizeof(float)*p->pointnum;
-            std::memcpy(&buffer[file_offset],&iin,sizeof(int));
-            file_offset+=sizeof(int);
+            iin = sizeof(float) * p->pointnum;
+            std::memcpy(&buffer[file_offset], &iin, sizeof(int));
+            file_offset += sizeof(int);
             TPLOOP
             {
-                ffn=float(p->sl_ipol4(c->Hs));
-                std::memcpy(&buffer[file_offset],&ffn,sizeof(float));
-                file_offset+=sizeof(float);
+                ffn = float(p->sl_ipol4(c->Hs));
+                std::memcpy(&buffer[file_offset], &ffn, sizeof(float));
+                file_offset += sizeof(float);
             }
         }
 
         //  solid
-        if(p->P25==1)
+        if(p->P25 == 1)
         {
-            iin=sizeof(float)*p->pointnum;
-            std::memcpy(&buffer[file_offset],&iin,sizeof(int));
-            file_offset+=sizeof(int);
+            iin = sizeof(float) * p->pointnum;
+            std::memcpy(&buffer[file_offset], &iin, sizeof(int));
+            file_offset += sizeof(int);
             TPLOOP
             {
-                ffn=float(1.0);
-                std::memcpy(&buffer[file_offset],&ffn,sizeof(float));
-                file_offset+=sizeof(float);
+                ffn = float(1.0);
+                std::memcpy(&buffer[file_offset], &ffn, sizeof(float));
+                file_offset += sizeof(float);
             }
         }
 
-        outputFormat->structureWrite(p,c,buffer,file_offset);
+        outputFormat->structureWrite(p, c, buffer, file_offset);
 
         //---------------------------------------------
 
-        outputFormat->fileName(name,sizeof(name),"FNPF",num,p->mpirank+1);
+        if(plagoon)
+            plagoon->vtu_piece(p, pgc, buffer, data_start, num);
 
-        writeFile(name, total_size);
+        outputFormat->fileName(name, sizeof(name), "FNPF", num, p->mpirank + 1);
+
+        if(lagoon_output::vtu_files(p))
+            writeFile(name, total_size);
 
         ++printcount;
     }

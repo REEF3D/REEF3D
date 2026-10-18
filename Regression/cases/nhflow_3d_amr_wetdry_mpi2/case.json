@@ -1,0 +1,18 @@
+{
+ "description": "nhflow_3d_amr_wetdry_adaptive on 2 ranks (partition edge x = 2 m through the island).",
+ "solver": "nhflow",
+ "np": 2,
+ "steps": 140,
+ "tags": [
+  "3d",
+  "nhflow",
+  "amr",
+  "wetdry",
+  "mpi"
+ ],
+ "covers": [
+  "restrict_flags halo on level 0",
+  "2 ranks"
+ ],
+ "base": "nhflow_3d_amr_wetdry_adaptive"
+}

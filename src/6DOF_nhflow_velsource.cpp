@@ -20,12 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"6DOF_nhflow.h"
-#include"lexer.h"
-#include"fdm.h"
-#include"fdm_nhf.h"
-#include"fdm2D.h"
-#include"ghostcell.h"
+#include "6DOF_nhflow.h"
+#include "fdm.h"
+#include "fdm2D.h"
+#include "fdm_nhf.h"
+#include "ghostcell.h"
+#include "lexer.h"
 
 void sixdof_nhflow::isource(lexer *p, fdm *a, ghostcell *pgc)
 {
@@ -41,38 +41,49 @@ void sixdof_nhflow::ksource(lexer *p, fdm *a, ghostcell *pgc)
 
 void sixdof_nhflow::isource(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
 {
-    if(p->X10==3)
-    LOOP
-    {
-    dfdx_plus = (press(i+1,j)-press(i,j))/p->DXP[IP];
-    dfdx_min  = (press(i,j)-press(i-1,j))/p->DXP[IM1];
-    
-    //dfdx = WL(i,j)*limiter(dfdx_plus,dfdx_min);
-    
-    dfdx = WL(i,j)*(press(i+1,j)-press(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
- 
-    d->F[IJK] += dfdx/p->W1;
-    }
+    // actuator disks of the load models (ship propellers)
+    for(int nb = 0; nb < number6DOF; ++nb)
+        fb_obj[nb]->actuator_source(p, d, pgc, WL, 0, d->F);
+
+    if(p->X10 == 3)
+        LOOP
+        {
+            dfdx_plus = (press(i + 1, j) - press(i, j)) / p->DXP[IP];
+            dfdx_min = (press(i, j) - press(i - 1, j)) / p->DXP[IM1];
+
+            // dfdx = WL(i,j)*limiter(dfdx_plus,dfdx_min);
+
+            dfdx = WL(i, j) * (press(i + 1, j) - press(i - 1, j)) / (p->DXP[IP] + p->DXP[IM1]);
+
+            d->F[IJK] += dfdx / p->W1;
+        }
 }
 
 void sixdof_nhflow::jsource(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
 {
-    if(p->X10==3)
-    LOOP
-    {
-    dfdy_plus = (press(i,j+1)-press(i,j))/p->DYP[JP];
-    dfdy_min  = (press(i,j)-press(i,j-1))/p->DYP[JM1];
-    
-    //dfdy = WL(i,j)*limiter(dfdy_plus,dfdy_min);
-    
-    dfdy = WL(i,j)*(press(i,j+1)-press(i,j-1))/(p->DYP[JP]+p->DYP[JM1]);
-        
-    d->G[IJK] += dfdy/p->W1;
-    }
+    // actuator disks of the load models (ship propellers)
+    for(int nb = 0; nb < number6DOF; ++nb)
+        fb_obj[nb]->actuator_source(p, d, pgc, WL, 1, d->G);
+
+    if(p->X10 == 3)
+        LOOP
+        {
+            dfdy_plus = (press(i, j + 1) - press(i, j)) / p->DYP[JP];
+            dfdy_min = (press(i, j) - press(i, j - 1)) / p->DYP[JM1];
+
+            // dfdy = WL(i,j)*limiter(dfdy_plus,dfdy_min);
+
+            dfdy = WL(i, j) * (press(i, j + 1) - press(i, j - 1)) / (p->DYP[JP] + p->DYP[JM1]);
+
+            d->G[IJK] += dfdy / p->W1;
+        }
 }
 
 void sixdof_nhflow::ksource(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
 {
+    // actuator disks of the load models (ship propellers)
+    for(int nb = 0; nb < number6DOF; ++nb)
+        fb_obj[nb]->actuator_source(p, d, pgc, WL, 2, d->H);
 }
 
 void sixdof_nhflow::isource2D(lexer *p, fdm2D *b, ghostcell *pgc)
@@ -85,11 +96,11 @@ void sixdof_nhflow::jsource2D(lexer *p, fdm2D *b, ghostcell *pgc)
 
 double sixdof_nhflow::limiter(double v1, double v2)
 {
-    r=v2/(fabs(v1)>1.0e-10?v1:1.0e20);
-    
-    phival = (r*r + r)/(r*r+1.0);
-    
-    val = 0.5*phival*(v1+v2);
+    r = v2 / (fabs(v1) > 1.0e-10 ? v1 : 1.0e20);
 
-    return val;	
+    phival = (r * r + r) / (r * r + 1.0);
+
+    val = 0.5 * phival * (v1 + v2);
+
+    return val;
 }

@@ -1,18 +1,34 @@
+# hypre is opt-in, for benchmarking only: make HYPRE=1 builds the hypre solvers N 10 10-39 (needs hypre in HYPRE_DIR).
+# The default build has no hypre dependency; N 10 10-39 then fall back to REEFMG (N 10 1).
+HYPRE        ?= 0
+ifeq ($(HYPRE),1)
+OBJ_DIR      := ./build_hypre
+else
 OBJ_DIR      := ./build
+endif
 APP_DIR      := ./bin
 TARGET       := REEF3D
 APP          := $(APP_DIR)/$(TARGET)
 CXX          := mpicxx
 GIT_BRANCH   := $(shell git rev-parse --abbrev-ref HEAD)
-GIT_COMMIT   := "$(shell git rev-parse --short=7 HEAD)"
-GIT_DIRTY    := "$(shell git diff --quiet --ignore-submodules HEAD -- || echo -dirty)"
+GIT_COMMIT   := $(shell git rev-parse --short=7 HEAD)
+GIT_DIRTY    := $(shell git diff --quiet --ignore-submodules HEAD -- || echo -dirty)
 GIT_VERSION  := $(GIT_COMMIT)$(GIT_DIRTY)
 HYPRE_DIR    := /usr/local/hypre
-EIGEN_DIR    := ThirdParty/eigen-3.3.8 
-CXXFLAGS     := -std=c++17 -DVERSION=\"$(GIT_VERSION)\" -DBRANCH=\"$(GIT_BRANCH)\"
+EIGEN_DIR    := ThirdParty/eigen-5.0.0
+CXXFLAGS     := -std=c++20 -DVERSION=\"$(GIT_VERSION)\" -DBRANCH=\"$(GIT_BRANCH)\"
+ifeq ($(HYPRE),1)
+CXXFLAGS     += -DREEF3D_USE_HYPRE
 LDFLAGS      := -L ${HYPRE_DIR}/lib/ -lHYPRE
 INCLUDE      := -I ${HYPRE_DIR}/include -I ${EIGEN_DIR} -DEIGEN_MPL2_ONLY 
 SRC          := $(wildcard src/*.cpp)
+else
+LDFLAGS      :=
+INCLUDE      := -I ${EIGEN_DIR} -DEIGEN_MPL2_ONLY 
+SRC          := $(filter-out src/hypre_%.cpp,$(wildcard src/*.cpp))
+endif
+# zlib: the LAGOON store output (P 18) compresses its chunks with gzip, in a thread
+LDFLAGS      += -lz -pthread
 OBJECTS      := $(SRC:%.cpp=$(OBJ_DIR)/%.o)
 DEPENDENCIES := $(OBJECTS:.o=.d)
 
@@ -37,9 +53,15 @@ debug: CXXFLAGS += -O0 -g -g3 -Wall
 debug: CXXFLAGS += -DBUILD=\"debug\"
 debug: $(APP)
 
+# Vectorised libm (glibc libmvec) for the irregular-wave component sums (Linux/GCC)
+ifeq ($(shell uname -s),Linux)
+$(OBJ_DIR)/src/wave_lib_irregular_1st.o: CXXFLAGS += -fopenmp-simd -fno-math-errno -DREEF3D_SIMD_MATH
+LDFLAGS += -lmvec
+endif
+
 $(OBJ_DIR)/%.o: %.cpp
 	@mkdir -p $(@D)
-	$(CXX) $(CXXFLAGS) $(INCLUDE) -MMD -c $< -o $@
+	$(CXX) $(CXXFLAGS) $(INCLUDE) -MMD -MP -c $< -o $@
 
 $(APP): $(OBJECTS)
 	@mkdir -p $(@D)

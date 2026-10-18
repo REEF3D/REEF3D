@@ -1,0 +1,21 @@
+{
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 400,
+ "files": [
+  "background-1.dat"
+ ],
+ "description": "Tidal channel with a time-series background (B 510 mode 2, background-1.dat: t eta every 10 s) at the Riemann edge, Flather out.",
+ "tags": [
+  "quick",
+  "2d",
+  "nhflow",
+  "tide",
+  "iowave",
+  "bc_zone",
+  "background"
+ ],
+ "covers": [
+  "time-series background (B 510 mode 2)"
+ ]
+}

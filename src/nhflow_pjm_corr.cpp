@@ -20,338 +20,300 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"nhflow_pjm_corr.h"
-#include"lexer.h"
-#include"fdm_nhf.h"
-#include"ghostcell.h"
-#include"nhflow_poisson_pcorr.h"
-#include"solver.h"
-#include"ioflow.h"
-#include"nhflow_poisson.h"
-#include"density_f.h"
-#include"patchBC_interface.h"
-#include"vrans.h"
+#include "nhflow_pjm_corr.h"
+#include "density_f.h"
+#include "fdm_nhf.h"
+#include "ghostcell.h"
+#include "ioflow.h"
+#include "lexer.h"
+#include "nhflow_membrane_beta.h"
+#include "nhflow_poisson.h"
+#include "nhflow_poisson_pcorr.h"
+#include "patchBC_interface.h"
+#include "solver.h"
+#include "vrans.h"
+#include "vrans_definitions.h"
 
-#define WLVL (fabs(WL(i,j))>(p->A544)?WL(i,j):1.0e20)
+#define WLVL (fabs(WL(i, j)) > (p->A544) ? WL(i, j) : 1.0e20)
 
-nhflow_pjm_corr::nhflow_pjm_corr(lexer* p, fdm_nhf *d, ghostcell *pgc, patchBC_interface *ppBC)
+nhflow_pjm_corr::nhflow_pjm_corr(lexer *p, fdm_nhf *d, ghostcell *pgc, patchBC_interface *ppBC)
 {
     pBC = ppBC;
-    
-	pd = new density_f(p);
+
+    pd = new density_f(p);
 
     ppois = new nhflow_poisson_pcorr(p);
-    
-    p->Darray(PCORR,p->imax*p->jmax*(p->kmax+2));
-    
-    gcval_press=540;
-    
-    solver_id = 8;
-    
-    gamma=0.5;
+
+    p->Darray(PCORR, p->imax * p->jmax * (p->kmax + 2));
+
+    gcval_press = 540;
+
+    gamma = 0.5;
 }
 
 nhflow_pjm_corr::~nhflow_pjm_corr()
 {
+    delete pd;
+    delete ppois;
+    delete[] PCORR;
 }
 
-void nhflow_pjm_corr::start(lexer *p, fdm_nhf *d, solver* psolv, ghostcell* pgc, ioflow *pflow, slice &WL,
-                        double *UH, double *VH, double *WH, double alpha)
+void nhflow_pjm_corr::start(lexer *p, fdm_nhf *d, solver *psolv, ghostcell *pgc, ioflow *pflow, slice &WL,
+                            double *UH, double *VH, double *WH, double alpha)
 {
-    if(p->mpirank==0 && (p->count%p->P12==0))
-    cout<<".";
-    
-        starttime=pgc->timer();
+    if(p->mpirank == 0 && (p->count % p->P12 == 0))
+        cout << ".";
 
-    rhs(p,d,pgc,d->U,d->V,d->W,alpha);
+    starttime = pgc->timer();
 
-    ppois->start(p,d,PCORR);
-    
-        p->matrixtime+=pgc->timer()-starttime;
+    rhs(p, d, pgc, d->U, d->V, d->W, alpha);
 
+    ppois->start(p, d, PCORR);
 
-        starttime=pgc->timer();
+    p->matrixtime += pgc->timer() - starttime;
 
-    psolv->startF(p,pgc,PCORR,d->rhsvec,d->M,solver_id);
+    starttime = pgc->timer();
 
-        endtime=pgc->timer();
-        
-    
-    presscorr(p,d,pgc,WL,d->P,PCORR,alpha);
-    
-    pgc->start7P(p,d->P,gcval_press);
-    pgc->start7P(p,PCORR,gcval_press);
-    
-	ucorr(p,d,WL,UH,PCORR,alpha);
-	vcorr(p,d,WL,VH,PCORR,alpha);
-	wcorr(p,d,WL,WH,PCORR,alpha);
+    psolv->startF(p, pgc, PCORR, d->rhsvec, d->M, 8);
 
-    p->poissoniter=p->solveriter;
+    endtime = pgc->timer();
 
-	p->ptime=endtime-starttime;
-    p->poissontime+=p->ptime;    
+    presscorr(p, d, pgc, WL, d->P, PCORR, alpha);
 
-	if(p->mpirank==0 && p->count%p->P12==0)
-	cout<<"piter: "<<p->solveriter<<"  ptime: "<<setprecision(3)<<p->ptime<<endl;
+    pgc->start7P(p, d->P, gcval_press);
+    pgc->start7P(p, PCORR, gcval_press);
+
+    ucorr(p, d, WL, UH, PCORR, alpha);
+    vcorr(p, d, WL, VH, PCORR, alpha);
+    wcorr(p, d, WL, WH, PCORR, alpha);
+
+    // membranes (X 330): further projection passes, see nhflow_pjm
+    for(int it = 1; it < d->MPROJ; ++it)
+    {
+        nhflow_membrane_velupdate(p, d, pgc, WL, UH, VH, WH);
+
+        rhs(p, d, pgc, d->U, d->V, d->W, alpha);
+        ppois->start(p, d, PCORR);
+        psolv->startF(p, pgc, PCORR, d->rhsvec, d->M, 8);
+        presscorr(p, d, pgc, WL, d->P, PCORR, alpha);
+        pgc->start7P(p, d->P, gcval_press);
+        pgc->start7P(p, PCORR, gcval_press);
+        ucorr(p, d, WL, UH, PCORR, alpha);
+        vcorr(p, d, WL, VH, PCORR, alpha);
+        wcorr(p, d, WL, WH, PCORR, alpha);
+    }
+
+    // membranes (X 330): face corrections of the pressure increment for the Rhie-Chow continuity flux.
+    // The old pressure P^n acts on the cell velocities through the predictor (wide gradient), and the Poisson
+    // right-hand side is the divergence of those cell velocities averaged to the faces. The face field the
+    // compact matrix makes divergence free is therefore avg(U) + avg(dU(PCORR)) - dU_f(PCORR): only the
+    // increment is corrected. With the total pressure the face flux contains avg(G_wide P^n) - G_compact P^n,
+    // a divergence the projection never sees; it moves the free surface of the layer columns in an odd-even
+    // pattern that grows (seen with moving membranes, R_t = R_n and floorpressure 0).
+    if(d->MBETA != nullptr)
+        nhflow_membrane_rc_store(p, d, pgc, PCORR, alpha * p->dt);
+
+    p->poissoniter = p->solveriter;
+
+    p->ptime = endtime - starttime;
+    p->poissontime += p->ptime;
+
+    if(p->mpirank == 0 && p->count % p->P12 == 0)
+        cout << "piter: " << p->solveriter << "  ptime: " << setprecision(3) << p->ptime << endl;
 }
 
-void nhflow_pjm_corr::presscorr(lexer* p, fdm_nhf *d, ghostcell *pgc, slice &WL, double *P, double *PCORR, double alpha)
+// mesh refinement: start() without the solve (the membrane passes X 330 are not supported there)
+double *nhflow_pjm_corr::amr_prepare(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha)
+{
+    rhs(p, d, pgc, d->U, d->V, d->W, alpha);
+    ppois->start(p, d, PCORR);
+
+    return PCORR;
+}
+
+void nhflow_pjm_corr::amr_finish(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL, double *UH, double *VH, double *WH, double alpha)
+{
+    presscorr(p, d, pgc, WL, d->P, PCORR, alpha);
+
+    pgc->start7P(p, d->P, gcval_press);
+    pgc->start7P(p, PCORR, gcval_press);
+
+    ucorr(p, d, WL, UH, PCORR, alpha);
+    vcorr(p, d, WL, VH, PCORR, alpha);
+    wcorr(p, d, WL, WH, PCORR, alpha);
+}
+
+void nhflow_pjm_corr::presscorr(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL, double *P, double *PCORR, double alpha)
 {
     double psi, phival_fb;
-    
-	FLOOP
-    WETDRYDEEP
-    P[FIJK] += PCORR[FIJK];
-    
+
     FLOOP
     WETDRYDEEP
-    {
-    H = Hsolidface_zero(p,d);
-    
-    P[FIJK] = H*P[FIJK];
-    }
+    P[FIJK] += PCORR[FIJK];
 }
 
 void nhflow_pjm_corr::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W, double alpha)
 {
-    double U1,U2,V1,V2,fac;
-    double Um1,Up,Up1;
+    double U1, U2, V1, V2, fac;
+    double Um1, Up, Up1;
     double Vp;
-    double dz1,dz2;
-    double dUdz,dVdz;
-    double z,z0,z1,z2;
-    double f0,f1,f2;
+    double dz1, dz2;
+    double dUdz, dVdz;
+    double z, z0, z1, z2;
+    double f0, f1, f2;
     double dWdz;
-    
-    n=0;
+
+    n = 0;
     FBASELOOP
     {
-	d->rhsvec.V[n]=0.0;
-    PCORR[FIJK]=0.0;
-    ++n;
+        d->rhsvec.V[n] = 0.0;
+        PCORR[FIJK] = 0.0;
+        ++n;
     }
-    
-    pgc->start7P(p,PCORR,gcval_press);
-    
-    n=0;
+
+    pgc->start7P(p, PCORR, gcval_press);
+
+    n = 0;
     LOOP
     {
-
         WETDRYDEEP
         {
-        fac = p->DZN[KM1]/(p->DZN[KP]+p->DZN[KM1]);    
+            fac = p->DZN[KM1] / (p->DZN[KP] + p->DZN[KM1]);
 
-        U1 = (1.0-fac)*U[Im1JK] + fac*U[Im1JKm1]; 
-        U2 = (1.0-fac)*U[Ip1JK] + fac*U[Ip1JKm1]; 
-        
-        V1 = (1.0-fac)*V[IJm1K] + fac*V[IJm1Km1]; 
-        V2 = (1.0-fac)*V[IJp1K] + fac*V[IJp1Km1];   
+            U1 = (1.0 - fac) * U[Im1JK] + fac * U[Im1JKm1];
+            U2 = (1.0 - fac) * U[Ip1JK] + fac * U[Ip1JKm1];
 
-        
-        if(k==0)
+            V1 = (1.0 - fac) * V[IJm1K] + fac * V[IJm1Km1];
+            V2 = (1.0 - fac) * V[IJp1K] + fac * V[IJp1Km1];
+
+            if(k == 0)
+            {
+                fac = MAX((1.0 - p->A522 * fabs(d->Bx(i, j))), 0.0) * p->DZN[KM1] / (p->DZN[KP] + p->DZN[KM1]);
+
+                U1 = (1.0 - fac) * U[Im1JK] + fac * U[Im1JKm1];
+                U2 = (1.0 - fac) * U[Ip1JK] + fac * U[Ip1JKm1];
+
+                fac = MAX((1.0 - p->A522 * fabs(d->By(i, j))), 0.0) * p->DZN[KM1] / (p->DZN[KP] + p->DZN[KM1]);
+
+                V1 = (1.0 - fac) * V[IJm1K] + fac * V[IJm1Km1];
+                V2 = (1.0 - fac) * V[IJp1K] + fac * V[IJp1Km1];
+            }
+
+            dUdz = (U[IJK] - U[IJKm1]) / p->DZP[KM1];
+            dVdz = (V[IJK] - V[IJKm1]) / p->DZP[KM1];
+            dWdz = p->sigz[IJ] * (W[IJK] - W[IJKm1]) / p->DZP[KM1];
+
+            d->rhsvec.V[n] = -((U2 - U1) / (p->DXP[IP] + p->DXP[IM1]) + p->sigx[FIJK] * dUdz
+
+                               + (V2 - V1) / (p->DYP[JP] + p->DYP[JM1]) + p->sigy[FIJK] * dVdz
+
+                               + dWdz) /
+                             (alpha * p->dt);
+        }
+
+        ++n;
+    }
+}
+
+void nhflow_pjm_corr::bedbc(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W, double alpha)
+{
+}
+
+void nhflow_pjm_corr::vel_setup(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W, double alpha)
+{
+}
+
+void nhflow_pjm_corr::ucorr(lexer *p, fdm_nhf *d, slice &WL, double *UH, double *PCORR, double alpha)
+{
+    LOOP WETDRYDEEP
+    {
+        // membranes (X 330): face mobilities in the horizontal gradient, see nhflow_membrane_beta.h
+        if(d->MBETA != nullptr)
+            dPdx = nhflow_membrane_gradx(p, d, PCORR, i, j, k);
+        else
+            dPdx = (0.5 * (PCORR[FIp1JKp1] + PCORR[FIp1JK]) - 0.5 * (PCORR[FIm1JKp1] + PCORR[FIm1JK])) / (p->DXP[IP] + p->DXP[IM1]);
+
+        UH[IJK] -= alpha * p->dt * CPORNH * WL(i, j) * (1.0 / p->W1) *
+
+                   (dPdx
+
+                    + MBETAVAL * 0.5 * (p->sigx[FIJK] + p->sigx[FIJKp1]) * ((PCORR[FIJKp1] - PCORR[FIJK]) / p->DZN[KP]));
+    }
+}
+
+void nhflow_pjm_corr::vcorr(lexer *p, fdm_nhf *d, slice &WL, double *VH, double *PCORR, double alpha)
+{
+    if(p->j_dir == 1)
+        LOOP WETDRYDEEP
         {
-        fac = MAX((1.0 - p->A522*fabs(d->Bx(i,j))),0.0)*p->DZN[KM1]/(p->DZN[KP]+p->DZN[KM1]);
-        
-        U1 = (1.0-fac)*U[Im1JK] + fac*U[Im1JKm1]; 
-        U2 = (1.0-fac)*U[Ip1JK] + fac*U[Ip1JKm1]; 
-        
-        
-        fac = MAX((1.0 - p->A522*fabs(d->By(i,j))),0.0)*p->DZN[KM1]/(p->DZN[KP]+p->DZN[KM1]);
-        
-        V1 = (1.0-fac)*V[IJm1K] + fac*V[IJm1Km1]; 
-        V2 = (1.0-fac)*V[IJp1K] + fac*V[IJp1Km1]; 
+            if(d->MBETA != nullptr)
+                dPdy = nhflow_membrane_grady(p, d, PCORR, i, j, k);
+            else
+                dPdy = (0.5 * (PCORR[FIJp1Kp1] + PCORR[FIJp1K]) - 0.5 * (PCORR[FIJm1Kp1] + PCORR[FIJm1K])) / (p->DYP[JP] + p->DYP[JM1]);
+
+            VH[IJK] -= alpha * p->dt * CPORNH * WL(i, j) * (1.0 / p->W1) *
+
+                       (dPdy
+
+                        + MBETAVAL * 0.5 * (p->sigy[FIJK] + p->sigy[FIJKp1]) * ((PCORR[FIJKp1] - PCORR[FIJK]) / p->DZN[KP]));
         }
-     
-        // dz
-        z0 = p->ZP[KM2];
-        z1 = p->ZP[KM1];
-        z2 = p->ZP[KP];
-        z  = p->ZP[KP] - p->DZN[KP];
-        
-        f0 = U[IJKm2];
-        f1 = U[IJKm1];
-        f2 = U[IJK];
-        
-        Up = f0*(z-z1)*(z-z2)/((z0-z1)*(z0-z2)) + f1*(z-z0)*(z-z2)/((z1-z0)*(z1-z2)) + f2*(z-z0)*(z-z1)/((z2-z0)*(z2-z1));
-        
-        f0 = V[IJKm2];
-        f1 = V[IJKm1];
-        f2 = V[IJK];
-        
-        Vp = f0*(z-z1)*(z-z2)/((z0-z1)*(z0-z2)) + f1*(z-z0)*(z-z2)/((z1-z0)*(z1-z2)) + f2*(z-z0)*(z-z1)/((z2-z0)*(z2-z1));
-        
-        dUdz = (U[IJK] - Up)/p->DZN[KP];
-        dVdz = (V[IJK] - Vp)/p->DZN[KP];
-        dWdz = p->sigz[IJ]*(W[IJK]-W[IJKm1])/p->DZP[KM1];
-        
-        H = Hsolidface(p,d);
-         
-        d->rhsvec.V[n] =      -  H*((U2-U1)/(p->DXP[IP] + p->DXP[IM1])
-                                + p->sigx[FIJK]*dUdz
-                                
-                                + (V2-V1)/(p->DYP[JP] + p->DYP[JM1])
-                                + p->sigy[FIJK]*dVdz
+}
 
-                                + dWdz)/(alpha*p->dt);
+void nhflow_pjm_corr::wcorr(lexer *p, fdm_nhf *d, slice &WL, double *WH, double *PCORR, double alpha)
+{
+    LOOP
+        WETDRYDEEP
+            WH[IJK] -= MBETAVAL * alpha * p->dt * CPORNH * (1.0 / p->W1) * ((PCORR[FIJKp1] - PCORR[FIJK]) / (p->DZN[KP]));
+}
+
+void nhflow_pjm_corr::upgrad(lexer *p, fdm_nhf *d, slice &WL)
+{
+    LOOP
+        WETDRY
+            d->F[IJK] += d->eta(i, j) * fabs(p->W22) *
+                         (d->dfx(i, j) - d->dfx(i - 1, j)) / (p->DXN[IP]);
+
+    LOOP WETDRYDEEP
+    {
+        dPdx = (0.5 * (d->P[FIp1JKp1] + d->P[FIp1JK]) - 0.5 * (d->P[FIm1JKp1] + d->P[FIm1JK])) / (p->DXP[IP] + p->DXP[IM1]);
+
+        d->F[IJK] -= (1.0 / p->W1) * WL(i, j) *
+                     (dPdx + 0.5 * (p->sigx[FIJK] + p->sigx[FIJKp1]) * ((d->P[FIJKp1] - d->P[FIJK]) / p->DZN[KP]));
+    }
+}
+
+void nhflow_pjm_corr::vpgrad(lexer *p, fdm_nhf *d, slice &WL)
+{
+    if(p->j_dir == 1)
+        LOOP
+            WETDRY
+                d->G[IJK] += d->eta(i, j) * fabs(p->W22) *
+                             (d->dfy(i, j) - d->dfy(i, j - 1)) / (p->DYN[JP]);
+
+    if(p->j_dir == 1)
+        LOOP WETDRYDEEP
+        {
+            dPdy = (0.5 * (d->P[FIJp1Kp1] + d->P[FIJp1K]) - 0.5 * (d->P[FIJm1Kp1] + d->P[FIJm1K])) / (p->DYP[JP] + p->DYP[JM1]);
+
+            d->G[IJK] -= (1.0 / p->W1) * WL(i, j) *
+                         (dPdy + 0.5 * (p->sigy[FIJK] + p->sigy[FIJKp1]) * ((d->P[FIJKp1] - d->P[FIJK]) / p->DZN[KP]));
         }
-                            
-    ++n;
-    }
 }
 
-void nhflow_pjm_corr::bedbc(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W,double alpha)
-{
-}
-
-void nhflow_pjm_corr::vel_setup(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W,double alpha)
-{
-}
-
-void nhflow_pjm_corr::ucorr(lexer* p, fdm_nhf *d, slice &WL, double *UH, double *PCORR, double alpha)
-{
-	LOOP
-    WETDRYDEEP
-    {
-	UH[IJK] -= alpha*p->dt*WL(i,j)*(1.0/p->W1)*
-    
-                ((0.5*(PCORR[FIp1JKp1]+PCORR[FIp1JK])-0.5*(PCORR[FIm1JKp1]+PCORR[FIm1JK]))/(p->DXP[IP]+p->DXP[IM1])
-                
-                + 0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*((PCORR[FIJKp1]-PCORR[FIJK])/p->DZN[KP]));
-    }
-}
-
-void nhflow_pjm_corr::vcorr(lexer* p, fdm_nhf *d, slice &WL, double *VH, double *PCORR, double alpha)
-{
-    if(p->j_dir==1)
-    LOOP
-    WETDRYDEEP
-    {
-    VH[IJK] -= alpha*p->dt*WL(i,j)*(1.0/p->W1)*
-    
-                ((0.5*(PCORR[FIJp1Kp1]+PCORR[FIJp1K])-0.5*(PCORR[FIJm1Kp1]+PCORR[FIJm1K]))/(p->DYP[JP]+p->DYP[JM1])
-                
-                + 0.5*(p->sigy[FIJK]+p->sigy[FIJKp1])*((PCORR[FIJKp1]-PCORR[FIJK])/p->DZN[KP]));
-    }
-}
-
-void nhflow_pjm_corr::wcorr(lexer* p, fdm_nhf *d, slice &WL, double *WH, double *PCORR, double alpha)
+void nhflow_pjm_corr::wpgrad(lexer *p, fdm_nhf *d, slice &WL)
 {
     LOOP
-    WETDRYDEEP
-	WH[IJK] -= alpha*p->dt*(1.0/p->W1)*((PCORR[FIJKp1]-PCORR[FIJK])/(p->DZN[KP]));
+        WETDRYDEEP
+            d->H[IJK] -= (1.0 / p->W1) * ((d->P[FIJKp1] - d->P[FIJK]) / (p->DZN[KP]));
 }
 
-void nhflow_pjm_corr::upgrad(lexer*p, fdm_nhf *d, slice &WL)
+double nhflow_pjm_corr::limiter(double v1, double v2)
 {
-    LOOP
-    WETDRY
-    d->F[IJK] += d->eta(i,j)*fabs(p->W22)*
-                (d->dfx(i,j) - d->dfx(i-1,j))/(p->DXN[IP]);
-               
-    LOOP
-    WETDRYDEEP
-    {
-    dPdx = (0.5*(d->P[FIp1JKp1]+d->P[FIp1JK])-0.5*(d->P[FIm1JKp1]+d->P[FIm1JK]))/(p->DXP[IP]+p->DXP[IM1]);
-    
-    d->F[IJK] -= (1.0/p->W1)*WL(i,j)*
-                (dPdx
-                + 0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*((d->P[FIJKp1]-d->P[FIJK])/p->DZN[KP]));
-    }
-}
+    denom = fabs(v1) + fabs(v2);
 
-void nhflow_pjm_corr::vpgrad(lexer*p, fdm_nhf *d, slice &WL)
-{
-    if(p->j_dir==1)
-    LOOP
-    WETDRY
-	d->G[IJK] += d->eta(i,j)*fabs(p->W22)*
-                 (d->dfy(i,j) - d->dfy(i,j-1))/(p->DYN[JP]);
-       
-    if(p->j_dir==1) 
-    LOOP
-    WETDRYDEEP
-    {
-    dPdy = (0.5*(d->P[FIJp1Kp1]+d->P[FIJp1K])-0.5*(d->P[FIJm1Kp1]+d->P[FIJm1K]))/(p->DYP[JP]+p->DYP[JM1]);
-    
-	d->G[IJK] -= (1.0/p->W1)*WL(i,j)*
-                (dPdy
-                + 0.5*(p->sigy[FIJK]+p->sigy[FIJKp1])*((d->P[FIJKp1]-d->P[FIJK])/p->DZN[KP]));
-    }
-}
+    denom = fabs(denom) > 1.0e-10 ? denom : 1.0e10;
 
-void nhflow_pjm_corr::wpgrad(lexer*p, fdm_nhf *d, slice &WL)
-{
-    LOOP
-    WETDRYDEEP
-    d->H[IJK] -= (1.0/p->W1)*((d->P[FIJKp1]-d->P[FIJK])/(p->DZN[KP]));
-}
+    val = (v1 * fabs(v2) + fabs(v1) * v2) / denom;
 
-
-double nhflow_pjm_corr::Hsolidface(lexer *p, fdm_nhf *d)
-{
-    double psi, H, phival_fb,phival_solid,dirac,phival;
-    
-    if (p->j_dir==0)
-    psi = p->X41*(1.0/1.0)*(p->DXN[IP]);
-	
-    if (p->j_dir==1)
-    psi = p->X41*(1.0/2.0)*(p->DXN[IP]+p->DYN[JP]);
-
-
-    // Construct solid heaviside function
-    phival_fb = 0.5*(d->FB[IJK] + d->FB[IJKm1]);
-    phival_solid = 0.5*(d->SOLID[IJK]+d->SOLID[IJKm1]);
-    
-    if(fabs(phival_fb)<fabs(phival_solid))
-    phival = phival_fb;
-    
-    else
-    phival = phival_solid;
-    
-    
-    if(phival > psi)
-    H = 1.0;
-
-    if(phival < -psi)
-    H = 0.0;
-
-    if(fabs(phival)<=psi)
-    H = 0.5*(1.0 + (phival)/psi + (1.0/PI)*sin((PI*(phival))/psi));
-
-
-    return H;
-}
-
-double nhflow_pjm_corr::Hsolidface_zero(lexer *p, fdm_nhf *d)
-{
-    double psi, H, phival_fb,dirac, phival_solid, phival;
-    
-    if (p->j_dir==0)
-    psi = 3.0*p->X41*(1.0/1.0)*(p->DXN[IP]);
-	
-    if (p->j_dir==1)
-    psi = 3.0*p->X41*(1.0/2.0)*(p->DXN[IP]+p->DYN[JP]);
-
-
-    // Construct solid heaviside function
-    phival_fb = 0.5*(d->FB[IJK] + d->FB[IJKm1]);
-    phival_solid = 0.5*(d->SOLID[IJK]+d->SOLID[IJKm1]);
-    
-    if(fabs(phival_fb)<fabs(phival_solid))
-    phival = phival_fb;
-    
-    else
-    phival = phival_solid;
-    
-    //if(phival_fb > psi)
-    H = 1.0;
-
-    if(phival < -psi)
-    H = 0.0;
-
-    //if(fabs(phival_fb)<=psi)
-    //H = 0.5*(1.0 + (phival_fb)/psi + (1.0/PI)*sin((PI*(phival_fb))/psi));
-
-
-    return H;
+    return val;
 }

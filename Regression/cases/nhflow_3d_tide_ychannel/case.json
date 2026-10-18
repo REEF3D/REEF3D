@@ -1,0 +1,8 @@
+{
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 400,
+ "description": "A tidal channel along y: the progressive tide (B 515, direction 90) comes in through a Riemann edge at y- and leaves through a Flather edge at y+.",
+ "tags": ["quick", "3d", "nhflow", "tide", "iowave", "bc_zone", "background"],
+ "covers": ["Riemann edge y-", "Flather edge y+"]
+}

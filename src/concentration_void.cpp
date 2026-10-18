@@ -20,17 +20,17 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"concentration_void.h"
-#include"lexer.h"
-#include"fdm.h"
-#include"ghostcell.h"
-#include"convection.h"
-#include"diffusion.h"
-#include"ioflow.h"
-#include"turbulence.h"
-#include"solver.h"
+#include "concentration_void.h"
+#include "convection.h"
+#include "diffusion.h"
+#include "fdm.h"
+#include "ghostcell.h"
+#include "ioflow.h"
+#include "lexer.h"
+#include "solver.h"
+#include "turbulence.h"
 
-concentration_void::concentration_void(lexer* p, fdm* a, ghostcell *pgc)
+concentration_void::concentration_void(lexer *p, fdm *a, ghostcell *pgc)
 {
 }
 
@@ -38,27 +38,23 @@ concentration_void::~concentration_void()
 {
 }
 
-void concentration_void::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff, turbulence *pturb, solver* psolv, ghostcell* pgc, ioflow* pflow)
+void concentration_void::start(fdm *a, lexer *p, convection *pconvec, diffusion *pdiff, turbulence *pturb, solver *psolv, ghostcell *pgc, ioflow *pflow)
 {
 }
 
-void concentration_void::ttimesave(lexer *p, fdm* a)
+void concentration_void::ttimesave(lexer *p, fdm *a)
 {
 }
 
-void concentration_void::print_3D(lexer *p, fdm *a, ghostcell *pgc,  std::vector<char> &buffer, size_t &m)
+void concentration_void::print_3D(lexer *p, fdm *a, ghostcell *pgc, std::vector<char> &buffer, size_t &m)
 {
 }
 
 double concentration_void::val(int ii, int jj, int kk)
 {
-    double val=0.0;
+    double val = 0.0;
 
     return val;
-}
-
-void concentration_void::concentration_ini(lexer* p, fdm *a, ghostcell* pgc, concentration *pconcentration)
-{
 }
 
 void concentration_void::name_ParaView_parallel(lexer *p, ofstream &result)
@@ -73,6 +69,6 @@ void concentration_void::offset_ParaView(lexer *p, int *offset, int &n)
 {
 }
 
-void concentration_void::ini(lexer* p, fdm *a, ghostcell* pgc,concentration *pconcentration)
+void concentration_void::ini(lexer *p, fdm *a, ghostcell *pgc, concentration *pconcentration)
 {
 }

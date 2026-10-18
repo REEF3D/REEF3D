@@ -20,51 +20,20 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"nhflow_gradient.h"
-#include"fdm_nhf.h"
-#include"lexer.h"
-#include"slice.h"
+#include "fdm_nhf.h"
+#include "lexer.h"
+#include "nhflow_gradient.h"
+#include "slice.h"
 
 double nhflow_gradient::sxx(slice &f)
 {
-    return ((f(i+1,j)-f(i,j))/p->DXP[IP] - (f(i,j)-f(i-1,j))/p->DXP[IM1])/p->DXN[IP];
-    
-    /*return (-f(i+2,j) + 8.0*f(i+1,j) - 8.0*f(i-1,j) + f(i-2,j))
-          /(-p->XP[IP2] + 8.0*p->XP[IP1] - 8.0*p->XP[IM1] + p->XP[IM2]);*7
-    /*
-    dfdx_plus = (f(i+1,j) - f(i,j))/p->DXP[IP];
-    dfdx_min  = (f(i,j) - f(i-1,j))/p->DXP[IM1];
-    
-    grad1 = limiter(dfdx_plus,dfdx_min);
-    
-    dfdx_plus = (f(i,j) - f(i-1,j))/p->DXP[IM1];
-    dfdx_min  = (f(i-1,j) - f(i-2,j))/p->DXP[IM2];
-    
-    grad2 = limiter(dfdx_plus,dfdx_min);
-    
-    grad =  (grad1 - grad2)/p->DXN[IP];
-    
-    return grad;*/
+    return ((f(i + 1, j) - f(i, j)) / p->DXP[IP] - (f(i, j) - f(i - 1, j)) / p->DXP[IM1]) / p->DXN[IP];
 }
 
 double nhflow_gradient::syy(slice &f)
 {
-    return ((f(i,j+1)-f(i,j))/p->DYP[JP] - (f(i,j)-f(i,j-1))/p->DYP[JM1])/p->DYN[JP];  
-    
+    return ((f(i, j + 1) - f(i, j)) / p->DYP[JP] - (f(i, j) - f(i, j - 1)) / p->DYP[JM1]) / p->DYN[JP];
+
     /*return (-f(i,j+2) + 8.0*f(i,j+1) - 8.0*f(i,j-1) + f(i,j-2))
           /(-p->YP[JP2] + 8.0*p->YP[JP1] - 8.0*p->YP[JM1] + p->YP[JM2]);*/
-/*
-    dfdy_plus = (f(i,j+1) - f(i,j))/p->DYP[JP];
-    dfdy_min  = (f(i,j) - f(i,j-1))/p->DYP[JM1];
-    
-    grad = limiter(dfdy_plus,dfdy_min);
-    
-    dfdy_plus = (f(i,j) - f(i,j-1))/p->DYP[JM1];
-    dfdy_min  = (f(i,j-1) - f(i,j-2))/p->DYP[JM2];
-    
-    grad = limiter(dfdy_plus,dfdy_min);
-    
-    grad =  (grad1 - grad2)/p->DYN[JP];
-    
-    return grad;*/
 }

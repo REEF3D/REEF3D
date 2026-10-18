@@ -23,10 +23,10 @@ Author: Hans Bihs
 #ifndef SEDIMENT_EXNER_H_
 #define SEDIMENT_EXNER_H_
 
-#include"topo.h"
-#include"slice4.h"
-#include"vec2D.h"
-#include"matrix2D.h"
+#include "matrix2D.h"
+#include "slice4.h"
+#include "topo.h"
+#include "vec2D.h"
 
 class bedconc;
 class topo_relax;
@@ -39,41 +39,48 @@ using namespace std;
 class sediment_exner final : public topo, public increment
 {
 public:
-	sediment_exner(lexer*, ghostcell*);
-	virtual ~sediment_exner();
-	void start(lexer*, ghostcell*, sediment_fdm*) override final;
-    void start_RK(lexer*, ghostcell*, sediment_fdm*) override final;
-    void  timestep(lexer*,ghostcell*,sediment_fdm*) override final;
+    sediment_exner(lexer *, ghostcell *);
+    virtual ~sediment_exner();
+    void start(lexer *, ghostcell *, sediment_fdm *) override final;
+    void start_RK(lexer *, ghostcell *, sediment_fdm *) override final;
+    void timestep(lexer *, ghostcell *, sediment_fdm *) override final;
 
 private:
-    void topovel1(lexer*,ghostcell*,sediment_fdm*);
-    void topovel2(lexer*,ghostcell*,sediment_fdm*);
-    void topovel3(lexer*,ghostcell*,sediment_fdm*);
-    
-    double ramp_dt(lexer*);
-    void  non_equillibrium_solve(lexer*,ghostcell*,sediment_fdm*);
-    double  susp_qb(lexer*,ghostcell*,sediment_fdm*);
-    
-    void filter(lexer*,ghostcell*,slice&,int,int);   
+    void start_mixture(lexer *, ghostcell *, sediment_fdm *);
+
+    void topovel1(lexer *, ghostcell *, sediment_fdm *);
+    void topovel2(lexer *, ghostcell *, sediment_fdm *);
+    void topovel3(lexer *, ghostcell *, sediment_fdm *);
+
+    double ramp_dt(lexer *);
+    void non_equillibrium_solve(lexer *, ghostcell *, sediment_fdm *);
+    double susp_ED(lexer *, ghostcell *, sediment_fdm *);
+    void susp_qs(lexer *, ghostcell *, sediment_fdm *);
+
+    void filter(lexer *, ghostcell *, slice &, int, int);
     topo_relax *prelax;
     sediment_exnerdisc *pdx;
     solver2D *psolv;
-        vec2D xvec,rhsvec;
+    vec2D xvec, rhsvec;
 
-	matrix2D M;
-    slice4 qbx,qby;
-    
-	int gcval_topo;
-	double starttime;
-    double maxdh,maxvz,maxdhnet,maxvznet;
+    matrix2D M;
+    slice4 qbx, qby;
+    slice4 qbn;
+    slice4 cxn, cyn;
+
+    int gcval_topo;
+    int noneq_ini;
+    int frac_k;
+    double starttime;
+    double maxdh, maxvz, maxdhnet, maxvznet;
     double dtsed0;
-	double vz;
-	double vzmax;
+    double vz;
+    double vzmax;
     double rhosed, rhowat, g, d50;
     double Ls;
     double tau_eff, shearvel_eff, shields_eff;
     double tau_crit, shearvel_crit, shields_crit;
-    
+
     slice4 q0;
 };
 

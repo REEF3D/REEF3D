@@ -1,0 +1,19 @@
+{
+ "description": "FNPF 3D short-crested irregular waves (directional spreading B130=2), relaxation generation and beach. Based on tutorial FNPF/9_6, coarsened.",
+ "solver": "fnpf",
+ "np": 2,
+ "steps": 60,
+ "tags": [
+  "3d",
+  "fnpf",
+  "waves",
+  "iowave",
+  "irregular",
+  "mpi"
+ ],
+ "covers": [
+  "3D FNPF relaxation",
+  "directional spreading",
+  "FNPF MPI 3D"
+ ]
+}

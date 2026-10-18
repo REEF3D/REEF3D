@@ -20,106 +20,99 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"ioflow_f.h"
-#include"lexer.h"
-#include"fdm.h"
-#include"patchBC_interface.h"
+#include "fdm.h"
+#include "ioflow_f.h"
+#include "lexer.h"
+#include "patchBC_interface.h"
 
-void ioflow_f::pressure_io(lexer *p, fdm* a, ghostcell *pgc)
+void ioflow_f::pressure_io(lexer *p, fdm *a, ghostcell *pgc)
 {
-    pressure_inlet(p,a,pgc);
-    pressure_outlet(p,a,pgc);
-    
-    
-    pBC->patchBC_pressure(p,a,pgc,a->press);
+    pressure_inlet(p, a, pgc);
+    pressure_outlet(p, a, pgc);
+
+    pBC->patchBC_pressure(p, a, pgc, a->press);
 }
 
 void ioflow_f::pressure_inlet(lexer *p, fdm *a, ghostcell *pgc)
 {
-    double pval=0.0;
+    double pval = 0.0;
 
-    if(p->B76==0)
-    for(n=0;n<p->gcin_count;n++)
-    {
-    i=p->gcin[n][0];
-    j=p->gcin[n][1];
-    k=p->gcin[n][2];
-		
-		if(a->phi(i,j,k)>=0.0)
-        pval=(p->phimean - p->pos_z())*a->ro(i,j,k)*fabs(p->W22);
-		
-		if(a->phi(i,j,k)<0.0)
-        pval = a->press(i,j,k);
+    if(p->B76 == 0)
+        for(n = 0; n < p->gcin_count; n++)
+        {
+            i = p->gcin[n][0];
+            j = p->gcin[n][1];
+            k = p->gcin[n][2];
 
-        a->press(i-1,j,k)=pval;
-        a->press(i-2,j,k)=pval;
-        a->press(i-3,j,k)=pval;
-    }
-    
-    if(p->B76==3)
-    for(n=0;n<p->gcin_count;n++)
-    {
-    i=p->gcin[n][0];
-    j=p->gcin[n][1];
-    k=p->gcin[n][2];
-    
-		
-		if(a->phi(i,j,k)>=0.0)
-        pval=a->press(i,j,k) + p->Ui*p->DXP[IM1]; 
-		
-		if(a->phi(i,j,k)<0.0)
-        pval = a->press(i,j,k);
-    
-        a->press(i-1,j,k)=pval;
-        a->press(i-2,j,k)=pval;
-        a->press(i-3,j,k)=pval;
-    }
+            if(a->phi(i, j, k) >= 0.0)
+                pval = (p->phimean - p->pos_z()) * a->ro(i, j, k) * fabs(p->W22);
+
+            if(a->phi(i, j, k) < 0.0)
+                pval = a->press(i, j, k);
+
+            a->press(i - 1, j, k) = pval;
+            a->press(i - 2, j, k) = pval;
+            a->press(i - 3, j, k) = pval;
+        }
+
+    if(p->B76 == 3)
+        for(n = 0; n < p->gcin_count; n++)
+        {
+            i = p->gcin[n][0];
+            j = p->gcin[n][1];
+            k = p->gcin[n][2];
+
+            if(a->phi(i, j, k) >= 0.0)
+                pval = a->press(i, j, k) + p->Ui * p->DXP[IM1];
+
+            if(a->phi(i, j, k) < 0.0)
+                pval = a->press(i, j, k);
+
+            a->press(i - 1, j, k) = pval;
+            a->press(i - 2, j, k) = pval;
+            a->press(i - 3, j, k) = pval;
+        }
 }
-
 
 void ioflow_f::pressure_outlet(lexer *p, fdm *a, ghostcell *pgc)
 {
-    double pval=0.0;
+    double pval = 0.0;
     double diff;
-    double eps,H,roval;
-    
+    double eps, H, roval;
+
     /*
     if(p->count!=iter0)
     {
     diff = p->phiout-p->fsfout;
-    
+
     p->fsfoutval -= 0.1*diff;
-    
+
     iter0=p->count;
-    
+
     // cout<<p->mpirank<<" fsfout: "<<p->fsfout<<" diff: "<<diff<<" fsfoutval: "<<p->fsfoutval<<" phiout: "<<p->phiout<<endl;
     }*/
-    
-    
-        for(n=0;n<p->gcout_count;++n)
+
+    for(n = 0; n < p->gcout_count; ++n)
+    {
+        i = p->gcout[n][0];
+        j = p->gcout[n][1];
+        k = p->gcout[n][2];
+        pval = 0.0;
+
+        if(p->B77 == 0)
         {
-        i=p->gcout[n][0];
-        j=p->gcout[n][1];
-        k=p->gcout[n][2];
-        pval=0.0;
-        
-        
-        if(p->B77==0)
-        {
-        pval = a->press(i,j,k); 
-        a->press(i+1,j,k)=pval;
-        a->press(i+2,j,k)=pval;
-        a->press(i+3,j,k)=pval;
+            pval = a->press(i, j, k);
+            a->press(i + 1, j, k) = pval;
+            a->press(i + 2, j, k) = pval;
+            a->press(i + 3, j, k) = pval;
         }
-		
-        
-			if(p->B77==1)
-			{
-                
-                
+
+        if(p->B77 == 1)
+        {
+
             /*
             eps = 2.1*(1.0/3.0)*(p->DXN[IP] + p->DYN[JP] + p->DZN[KP]);
-        
+
             if(a->phi(i,j,k)>eps)
             H=1.0;
 
@@ -128,147 +121,51 @@ void ioflow_f::pressure_outlet(lexer *p, fdm *a, ghostcell *pgc)
 
             if(fabs(a->phi(i,j,k))<=eps)
             H=0.5*(1.0 + a->phi(i,j,k)/eps + (1.0/PI)*sin((PI*a->phi(i,j,k))/eps));
-            
+
             //pval=H*pval + (1.0-H)*a->press(i,j,k);
-            
+
             roval = p->W1*H +   p->W3*(1.0-H);*/
-            
-            
-                if(p->F50==2 || p->F50==3)
-                pval=(p->fsfout - p->pos_z())*a->ro(i,j,k)*fabs(p->W22);
-                
-                if(p->F50==1 || p->F50==4)
-                pval=a->press(i,j,k);
-                
-                pval=a->press(i,j,k);
-            
-			a->press(i+1,j,k)=pval;
-			a->press(i+2,j,k)=pval;
-			a->press(i+3,j,k)=pval;
-			}
-            
-            if(p->B77==2)
-			{
-                pval=a->press(i,j,k);
-            
-			a->press(i+1,j,k)=pval;
-			a->press(i+2,j,k)=pval;
-			a->press(i+3,j,k)=pval;
-			}
-		
-        
-        
-			if(p->B77==10)
-			{
-            eps = 0.6*(1.0/3.0)*(p->DXN[IP] + p->DYN[JP] + p->DZN[KP]);
-        
-            if(a->phi(i,j,k)>eps)
-            H=1.0;
 
-            if(a->phi(i,j,k)<-eps)
-            H=0.0;
+            if(p->F50 == 2 || p->F50 == 3)
+                pval = (p->fsfout - p->pos_z()) * a->ro(i, j, k) * fabs(p->W22);
 
-            if(fabs(a->phi(i,j,k))<=eps)
-            H=0.5*(1.0 + a->phi(i,j,k)/eps + (1.0/PI)*sin((PI*a->phi(i,j,k))/eps));
-        
-            pval=(1.0-H)*a->press(i,j,k);
-            
-			a->press(i+1,j,k)=pval;
-			a->press(i+2,j,k)=pval;
-			a->press(i+3,j,k)=pval;
-			}
+            if(p->F50 == 1 || p->F50 == 4)
+                pval = a->press(i, j, k);
+
+            pval = a->press(i, j, k);
+
+            a->press(i + 1, j, k) = pval;
+            a->press(i + 2, j, k) = pval;
+            a->press(i + 3, j, k) = pval;
         }
-}
 
-void ioflow_f::pressure_wall(lexer *p, fdm *a, ghostcell *pgc)
-{
-    double pval=0.0;
-
-    GC4LOOP
-    if(p->gcb4[n][3]!=5 && p->gcb4[n][3]!=6 && (p->gcb4[n][4] ==3 || p->gcb4[n][4] ==21 || p->gcb4[n][4] ==22))
-    {
-    i=p->gcb4[n][0];
-    j=p->gcb4[n][1];
-    k=p->gcb4[n][2];
-
-
-        if(a->phi(i,j,k)>0.0 || p->I56==0)
+        if(p->B77 == 2)
         {
-        pval=a->phi(i,j,k)*a->ro(i,j,k)*fabs(p->W22);
+            pval = a->press(i, j, k);
 
-            if(p->gcb4[n][3]==1)
-            {
-            a->press(i-1,j,k)=pval;
-            a->press(i-2,j,k)=pval;
-            a->press(i-3,j,k)=pval;
-            }
+            a->press(i + 1, j, k) = pval;
+            a->press(i + 2, j, k) = pval;
+            a->press(i + 3, j, k) = pval;
+        }
 
-            if(p->gcb4[n][3]==2)
-            {
-            a->press(i,j+1,k)=pval;
-            a->press(i,j+2,k)=pval;
-            a->press(i,j+3,k)=pval;
-            }
+        if(p->B77 == 10)
+        {
+            eps = 0.6 * (1.0 / 3.0) * (p->DXN[IP] + p->DYN[JP] + p->DZN[KP]);
 
-            if(p->gcb4[n][3]==3)
-            {
-            a->press(i,j-1,k)=pval;
-            a->press(i,j-2,k)=pval;
-            a->press(i,j-3,k)=pval;
-            }
+            if(a->phi(i, j, k) > eps)
+                H = 1.0;
 
-            if(p->gcb4[n][3]==4)
-            {
-            a->press(i+1,j,k)=pval;
-            a->press(i+2,j,k)=pval;
-            a->press(i+3,j,k)=pval;
-            }
+            if(a->phi(i, j, k) < -eps)
+                H = 0.0;
+
+            if(fabs(a->phi(i, j, k)) <= eps)
+                H = 0.5 * (1.0 + a->phi(i, j, k) / eps + (1.0 / PI) * sin((PI * a->phi(i, j, k)) / eps));
+
+            pval = (1.0 - H) * a->press(i, j, k);
+
+            a->press(i + 1, j, k) = pval;
+            a->press(i + 2, j, k) = pval;
+            a->press(i + 3, j, k) = pval;
         }
     }
-}
-
-void ioflow_f::pressure_bed(lexer *p, fdm *a, ghostcell *pgc)
-{
-    double pval=0.0;
-
-    GC4LOOP
-    if(p->gcb4[n][3]==5)
-    {
-    i=p->gcb4[n][0];
-    j=p->gcb4[n][1];
-    k=p->gcb4[n][2];
-
-
-        if(a->phi(i,j,k)>0.0)
-        {
-        pval=a->phi(i,j,k)*a->ro(i,j,k)*fabs(p->W22);
-
-        a->press(i,j,k-1)=pval;
-        a->press(i,j,k-2)=pval;
-        a->press(i,j,k-3)=pval;
-        }
-    }
-}
-
-double ioflow_f::local_fsf(lexer *p, fdm *a, ghostcell *pgc)
-{
-    double wsf=-1.0e20;
-    int count=0;
-
-        KLOOP
-        PCHECK
-        {
-            if(a->phi(i,j,k)>=0.0 && a->phi(i,j,k+1)<0.0)
-            wsf=MAX(wsf,-(a->phi(i,j,k)*p->DXM)/(a->phi(i,j,k+1)-a->phi(i,j,k)) + p->pos_z());
-
-            if(a->phi(i,j,k)>0.0)
-            ++count;
-        }
-
-    //wsf=pgc->globalmax(wsf);
-
-    if(count==0)
-    wsf=0.0;
-
-    return wsf;
 }

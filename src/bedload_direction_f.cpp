@@ -20,11 +20,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"bedload_direction_f.h"
-#include"lexer.h"
-#include"fdm.h"
-#include"ghostcell.h"
-#include"sediment_fdm.h"
+#include "bedload_direction_f.h"
+#include "fdm.h"
+#include "ghostcell.h"
+#include "lexer.h"
+#include "sediment_fdm.h"
 
 bedload_direction_f::bedload_direction_f(lexer *p)
 {
@@ -35,27 +35,26 @@ bedload_direction_f::~bedload_direction_f()
 {
 }
 
-void bedload_direction_f::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
+void bedload_direction_f::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
-	double cosa, sina;
-    double uvel,vvel,u_abs;
-    double bx0,by0;
-    
-	SEDSLICELOOP
-    {
-        uvel=0.5*(s->P(i,j)+s->P(i-1,j));
-        vvel=0.5*(s->Q(i,j)+s->Q(i,j-1));
-        
-         u_abs = sqrt(uvel*uvel + vvel*vvel);
-		cosa=fabs(u_abs)>1.0e-10?uvel/fabs(u_abs):0.0;
-		sina=fabs(u_abs)>1.0e-10?vvel/fabs(u_abs):0.0;
-        
-        bx0 = (s->bedzh(i+1,j)-s->bedzh(i-1,j))/(p->DXP[IP]+p->DXP[IM1]);
-        by0 = (s->bedzh(i,j+1)-s->bedzh(i,j-1))/(p->DYP[JP]+p->DYP[JM1]);
+    double cosa, sina;
+    double uvel, vvel, u_abs;
+    double bx0, by0;
 
-        s->qbe(i,j) = s->qbe(i,j)*(1.0 - beta*(cosa*bx0 + sina*by0));
-	}
-    
-    pgc->gcsl_start4(p,s->qbe,1);
-    
+    SEDSLICELOOP
+    {
+        uvel = 0.5 * (s->P(i, j) + s->P(i - 1, j));
+        vvel = 0.5 * (s->Q(i, j) + s->Q(i, j - 1));
+
+        u_abs = sqrt(uvel * uvel + vvel * vvel);
+        cosa = fabs(u_abs) > 1.0e-10 ? uvel / fabs(u_abs) : 0.0;
+        sina = fabs(u_abs) > 1.0e-10 ? vvel / fabs(u_abs) : 0.0;
+
+        bx0 = (s->bedzh(i + 1, j) - s->bedzh(i - 1, j)) / (p->DXP[IP] + p->DXP[IM1]);
+        by0 = (s->bedzh(i, j + 1) - s->bedzh(i, j - 1)) / (p->DYP[JP] + p->DYP[JM1]);
+
+        s->qbe(i, j) = s->qbe(i, j) * (1.0 - MIN(1.0, beta * (cosa * bx0 + sina * by0)));
+    }
+
+    pgc->gcsl_start4(p, s->qbe, 1);
 }

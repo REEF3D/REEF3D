@@ -20,23 +20,22 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"increment.h"
-#include"fdm.h"
-#include"fdm2D.h"
+#include "increment.h"
+#include "fdm.h"
+#include "fdm2D.h"
 
 increment::increment()
 {
-	pip=0;
-    marge=5;
+    marge = 5;
 }
 
 increment::~increment()
 {
 }
 
-int increment::i,increment::j,increment::k,increment::n,increment::h,increment::innercounter,increment::pip;
+int increment::i, increment::j, increment::k, increment::n, increment::h, increment::innercounter;
 int increment::marge;
-fdm* increment::aa;
-fdm2D* increment::bb;
+fdm *increment::aa;
+fdm2D *increment::bb;
 
 //,increment::l

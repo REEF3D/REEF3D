@@ -23,8 +23,8 @@ Author: Hans Bihs
 #ifndef MOMENTUM_FORCING_H_
 #define MOMENTUM_FORCING_H_
 
-#include"increment.h"
-#include<vector>
+#include "increment.h"
+#include <vector>
 
 class lexer;
 class fdm;
@@ -35,22 +35,36 @@ class sixdof;
 class vrans;
 class mooring;
 class fsi;
+class rodtree_coupling;
+class fem_coupling;
+class dem;
+class sediment;
 
 using namespace std;
 
 class momentum_forcing : public increment
 {
 public:
-	momentum_forcing(lexer*);
-	virtual ~momentum_forcing();
-	void momentum_forcing_start(fdm*,lexer*,ghostcell*, sixdof*, fsi*,
-                                field&,field&,field&,field&,field&,field&,int,double,bool);
+    momentum_forcing(lexer *);
+    virtual ~momentum_forcing();
+    void momentum_forcing_start(fdm *, lexer *, ghostcell *, sixdof *, fsi *,
+                                field &, field &, field &, field &, field &, field &, int, double, bool);
+
+    // DEM coupling, set by the CFD driver (shared by all momentum schemes)
+    inline static dem *pdem = nullptr;
+    inline static sediment *psed = nullptr;
 
 private:
-	double uplus,ks_plus,dist,ks,ustar;
-	int ii,jj,kk;
-	double value;
-	int gcval_u,gcval_v,gcval_w;
+    double uplus, ks_plus, dist, ks, ustar;
+    int ii, jj, kk;
+    double value;
+    int gcval_u, gcval_v, gcval_w;
     double starttime, endtime;
+
+    // flexible rod trees (Z 20), created on first use
+    rodtree_coupling *prodtree;
+
+    // FEM solid structures (Z 30), created on first use
+    fem_coupling *pfem;
 };
 #endif

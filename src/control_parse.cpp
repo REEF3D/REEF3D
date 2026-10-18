@@ -23,62 +23,62 @@ Author: Hans Bihs
 #include "control.h"
 #include "lexer.h"
 
-void control::parse(lexer* p)
+void control::parse(lexer *p)
 {
-    if(B98==1)
-    B98=2;
-    
-    else if(B98==3 && A10==5)// && p->B92<20 && p->B92>29) 
-    B98=4;
-    
-    else if(B98==5 && A10==5)
-    B98=3;
+    if(B98 == 1)
+        B98 = 2;
 
-    if(X10>0)
-    D22=2;
+    else if(B98 == 3 && A10 == 5)  // && p->B92<20 && p->B92>29)
+        B98 = 4;
 
-    if(F80>0 && F35>0)
-    F35=0;
+    else if(B98 == 5 && A10 == 5)
+        B98 = 3;
 
-    G1=0;
-    if(S10>0 || p->toporead>0 || p->solidread==1)
-    G1=1;
+    if(X10 > 0)
+        D22 = 2;
 
-    if(A10==3 || A10==5)
-    G2=1;
+    if(F80 > 0 && F35 > 0)
+        F35 = 0;
 
-    if(I10==1)
+    G501 = 0;
+    if(S10 > 0 || p->toporead > 0 || p->solidread == 1)
+        G501 = 1;
+
+    if(A10 == 3 || A10 == 5)
+        G502 = 1;
+
+    if(I10 == 1)
     {
-        I11=1;
-        I12=2;
-        I13=1;
+        I11 = 1;
+        I12 = 2;
+        I13 = 1;
     }
-    else if(I10==2)
+    else if(I10 == 2)
     {
-        I11=2;
-        I12=2;
-        I13=1;
-    }
-
-    if(I40>0)
-    {
-        I10=0;
-        I11=0;
-        I12=0;
-        I13=0;
+        I11 = 2;
+        I12 = 2;
+        I13 = 1;
     }
 
-    if(T10==0)
-    I13=0;
+    if(I40 > 0)
+    {
+        I10 = 0;
+        I11 = 0;
+        I12 = 0;
+        I13 = 0;
+    }
 
-    if((N40==3 || N40==23 ) && X10>0)
-    N40=4;
-    else if(N40==13 && X10>0)
-    N40=14;
+    if(T10 == 0)
+        I13 = 0;
 
-    if(S10>=1 || p->toporead==1)
-    P27=1;
-    
-    if(A550>1 || A560>0)
-    A512=2;
+    if((N40 == 3 || N40 == 23) && X10 > 0)
+        N40 = 4;
+    else if(N40 == 13 && X10 > 0)
+        N40 = 14;
+
+    if(S10 >= 1 || p->toporead == 1)
+        P27 = 1;
+
+    if(A550 > 1 || A560 > 0)
+        A512 = 2;
 }

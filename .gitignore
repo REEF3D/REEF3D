@@ -1,26 +1,34 @@
+# Codelite build files
 src/Makefile*
 **/.codelite
-.codelite/.tern-port
-.codelite/REEF3D.tags
-.codelite/refactoring.db
+.DS_Store
+**/.DS_Store
 All
 Release
 Dev
 Debug
+src/*.txt
+src/*.mk
+# GNUMake build files
 bin
-obj
-*.session
-*.db
-*.tags
+build
+build_hypre
+# Ctags files
+src/.ctagsd
+# Temp files
 *.d
 *.o
-*.pyc
-*.json
-src/*.txt
-*.workspace.session
-*.mk
-*.batch_build
-.DS_Store
-tags
-doxydoc*
 *.tmp
+*.pyc
+# IDE files
+*.json
+# MacOS files
+.DS_Store
+
+# regression suite run directories
+tests/regression/runs/
+__pycache__/
+!tests/regression/cases/**/*.json
+!tests/validation/cases/**/*.json
+# benchmark suite case files
+!Benchmark/cases/**/*.json

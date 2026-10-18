@@ -1,0 +1,62 @@
+# Synolakis (1987) solitary wave on a 1:19.85 plane beach, breaking case H/d = 0.28
+# Free-surface profile at dimensionless time t*sqrt(g/d) = 45
+# SOURCE (secondary): Basilisk test data file 't-45', fetched via https://basilisk.fr/src/test/t-45?raw
+#   (used by https://basilisk.fr/src/test/beach.c: "reproduce this classical test case based on the
+#   experiments of Synolakis, 1987"; A = 0.28, h0 = 1, slope = 1/19.85, G = 1, i.e. all non-dimensional by d and g).
+# Coordinates (beach.c): "the origin is the intersection of the beach with the water level"; bed zb = max(x/19.85, -1),
+#   x positive onshore; t = 0 when the soliton crest is at x = -19.85 - L/2 with L = 2/k*acosh(sqrt(20)),
+#   k = sqrt(3*A/4) (beach.c). Whether this matches Synolakis' own time origin is NOT verified.
+# PROVENANCE WARNING: values appear DIGITIZED from a published figure (quantised eta levels, digitizer
+#   polyline order). The raw file lists points in polyline order with repeats / reversed copies; exact
+#   duplicate (x,eta) pairs were removed and rows sorted by x (stable). No value was changed.
+# columns: x/d[-]  eta/d[-]
+-19.2839 0.0210177
+-18.0673 0.0210177
+-17.5846 0.0210177
+-16.9882 0.0128893
+-16.2589 0.0128893
+-15.8946 0.0128893
+-15.2836 0.0128893
+-14.0766 0.0128893
+-13.5987 0.0210177
+-13.3524 0.0210177
+-12.7416 0.0128893
+-12.2587 0.0291608
+-11.7806 0.0210177
+-11.17 0.0291608
+-10.8056 0.0210177
+-10.0765 0.0210177
+-9.23376 0.0210177
+-8.50465 0.0291608
+-7.78052 0.0380839
+-6.93283 0.0291608
+-6.2088 0.0380839
+-5.47971 0.0462343
+-5.11549 0.0462343
+-5.11549 0.0210177
+-4.40039 0.0380839
+-3.90798 0.0210177
+-3.31169 0.0291608
+-2.81913 0.0380839
+-2.0903 0.0291608
+-1.24761 0.0543755
+-0.646402 0.071427
+-0.518395 0.0966435
+0.205897 0.113717
+1.05297 0.156009
+1.77743 0.180797
+2.74326 0.214149
+2.98907 0.231215
+3.46747 0.25643
+3.58578 0.231215
+3.94562 0.25643
+4.44266 0.289797
+5.16695 0.340184
+5.28526 0.314968
+5.88197 0.374346
+6.24618 0.357258
+6.49241 0.390218
+6.97532 0.415414
+7.58126 0.432486
+7.94575 0.440613
+8.42844 0.45769

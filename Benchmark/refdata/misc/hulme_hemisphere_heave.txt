@@ -1,0 +1,50 @@
+# Floating hemisphere (half-submerged sphere, radius a = R) in forced heave, infinite depth
+# Hulme, A. (1982) "The wave forces acting on a floating hemisphere undergoing forced periodic oscillations",
+#   J. Fluid Mech. 121, 443-463, doi:10.1017/S0022112082001980 (abstract: values "presented in tabulated form")
+#   abstract page: https://www.cambridge.org/core/journals/journal-of-fluid-mechanics/article/abs/wave-forces-acting-on-a-floating-hemisphere-undergoing-forced-periodic-oscillations/064D62F979E013F882B127C5944C1B86
+#
+# TABLE SOURCE (secondary, verbatim file): LHEEA (Ecole Centrale Nantes) repo "Hulme_Heaving_Sphere",
+#   https://raw.githubusercontent.com/LHEEA/Hulme_Heaving_Sphere/master/comparison/HulmeResult.dat
+#   file header verbatim: "#   Hulme (1982) Heaving Hemisphere Radiation Force" / "#   kA  A (AddedMass)   B(Damping"
+#   plotted against legend 'Hulme (1982)' in comparison/plotAddedMass.m (xlabel 'ka', ylabels 'a_{33}', 'b_{33}').
+#   Fetched twice with different prompts; both transcriptions identical.
+#
+# NON-DIMENSIONALISATION:
+#   added mass:  A = a33 / (rho*V),  V = (2/3)*pi*a^3   -- verbatim from arXiv math/0110302
+#     ("The added mass coefficients are computed as A'_kk = A_kk/(rho V)", "V = (2/3) pi R^3 is the hemisphere volume");
+#     https://arxiv.org/html/math/0110302 , which also quotes Hulme: A'_33 = 0.830951.. for Ka->0, A'_33 = 0.5 for Ka->inf (its eq. 38).
+#   damping:     B = b33 / (rho*V*omega) -- NOT verified verbatim. The LHEEA Fortran (src/heavingHemiSphere/heavingHemiSphere.inc)
+#     prints labels "Added Mass / rho g V    [-]" and "Damping / rho g V omega [-]" (the 'g' appears to be a label typo:
+#     rho*g*V*omega is not dimensionally consistent with b33). The conventional Hulme definition b33/(rho*V*omega) should be
+#     confirmed against Hulme (1982) Table 1 before use.
+#   kA = K*a = omega^2 a / g (deep water wavenumber times radius).
+#   Note: the kA = 0.0 row added mass 0.8310 matches Hulme's long-wave limit 0.830951 quoted by arXiv math/0110302.
+#
+# columns: kA[-]  A=a33/(rho*(2/3)*pi*a^3)[-]  B=b33/(rho*(2/3)*pi*a^3*omega)[-]
+    0.0     0.8310  0.0000
+   0.05     0.8764  0.1036
+    0.1     0.8627  0.1816
+    0.2     0.7938  0.2793
+    0.3     0.7157  0.3254
+    0.4     0.6452  0.3410
+    0.5     0.5861  0.3391
+    0.6     0.5381  0.3271
+    0.7     0.4999  0.3098
+    0.8     0.4698  0.2899
+    0.9     0.4464  0.2691
+    1.0     0.4284  0.2484
+    1.2     0.4047  0.2096
+    1.4     0.3924  0.1756
+    1.6     0.3871  0.1469
+    1.8     0.3864  0.1229
+    2.0     0.3884  0.1031
+    2.5     0.3988  0.0674
+    3.0     0.4111  0.0452
+    4.0     0.4322  0.0219
+    5.0     0.4471  0.0116
+    6.0     0.4574  0.0066
+    7.0     0.4647  0.0040
+    8.0     0.4700  0.0026
+    9.0     0.4740  0.0017
+    10.0    0.4771  0.0012
+# Asymptote (arXiv math/0110302 eq. 38, quoting Hulme): A -> 0.5 as kA -> infinity.

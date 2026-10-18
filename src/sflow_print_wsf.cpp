@@ -20,53 +20,57 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"sflow_print_wsf.h"
-#include"lexer.h"
-#include"fdm2D.h"
-#include"ghostcell.h"
-#include<sys/stat.h>
-#include<sys/types.h>
+#include "sflow_print_wsf.h"
+#include "fdm2D.h"
+#include "ghostcell.h"
+#include "lexer.h"
+#include "runlog.h"
+#include <sys/stat.h>
+#include <sys/types.h>
 
-sflow_print_wsf::sflow_print_wsf(lexer *p, fdm2D* b) : fileFlushMaxCount(100)
+sflow_print_wsf::sflow_print_wsf(lexer *p, fdm2D *b) : fileFlushMaxCount(100)
 {
 
-	gauge_num = p->P51;
-	x = p->P51_x;
-	y = p->P51_y;
+    gauge_num = p->P51;
+    x = p->P51_x;
+    y = p->P51_y;
 
-	
-	// Create Folder
-	if(p->mpirank==0)
-	mkdir("./REEF3D_SFLOW_WSF",0777);
-	
-    if(p->mpirank==0 && p->P51>0)
+    // Create Folder
+    if(p->mpirank == 0)
+        mkdir("./REEF3D_SFLOW_WSF", 0777);
+
+    if(p->mpirank == 0 && p->P51 > 0)
     {
-    // open file
-	wsfout.open("./REEF3D_SFLOW_WSF/REEF3D-SFLOW-WSF-HG.dat");
+        // open file
+        wsfout.open("./REEF3D_SFLOW_WSF/REEF3D-SFLOW-WSF-HG.dat");
+        if(p->plog)
+            p->plog->table_file(p, "wsf", "gauges", "./REEF3D_SFLOW_WSF/REEF3D-SFLOW-WSF-HG.dat");
 
-    wsfout<<"number of gauges:  "<<gauge_num<<endl<<endl;
-    wsfout<<"x_coord     y_coord"<<endl;
-    for(n=0;n<gauge_num;++n)
-    wsfout<<n+1<<"\t "<<x[n]<<"\t "<<y[n]<<endl;
+        wsfout << "number of gauges:  " << gauge_num << endl
+               << endl;
+        wsfout << "x_coord     y_coord" << endl;
+        for(n = 0; n < gauge_num; ++n)
+            wsfout << n + 1 << "\t " << x[n] << "\t " << y[n] << endl;
 
-    wsfout<<endl<<endl;
+        wsfout << endl
+               << endl;
 
-    wsfout<<"time";
-    for(n=0;n<gauge_num;++n)
-    wsfout<<"\t P"<<n+1;
+        wsfout << "time";
+        for(n = 0; n < gauge_num; ++n)
+            wsfout << "\t P" << n + 1;
 
-    wsfout<<endl<<endl;
+        wsfout << endl
+               << endl;
     }
-	
-	//-------------------
-	
-	
-	p->Iarray(iloc,gauge_num);
-	p->Iarray(jloc,gauge_num);
-	p->Iarray(flag,gauge_num);
-	p->Darray(wsf,gauge_num);
 
-    ini_location(p,b);
+    //-------------------
+
+    p->Iarray(iloc, gauge_num);
+    p->Iarray(jloc, gauge_num);
+    p->Iarray(flag, gauge_num);
+    p->Darray(wsf, gauge_num);
+
+    ini_location(p, b);
 }
 
 sflow_print_wsf::~sflow_print_wsf()
@@ -76,78 +80,75 @@ sflow_print_wsf::~sflow_print_wsf()
 
 void sflow_print_wsf::height_gauge(lexer *p, fdm2D *b, ghostcell *pgc, slice &f)
 {
-    double zval=0.0;
+    double zval = 0.0;
 
-    for(n=0;n<gauge_num;++n)
-    wsf[n]=-1.0e20;
+    for(n = 0; n < gauge_num; ++n)
+        wsf[n] = -1.0e20;
 
-	
-    for(n=0;n<gauge_num;++n)
-    if(flag[n]>0)
-    {
-    zval=0.0;
+    for(n = 0; n < gauge_num; ++n)
+        if(flag[n] > 0)
+        {
+            zval = 0.0;
 
-    i=iloc[n];
-    j=jloc[n];
-	
-			wsf[n] = f(i,j);
+            i = iloc[n];
+            j = jloc[n];
 
-    }
-	
-    for(n=0;n<gauge_num;++n)
-    wsf[n]=pgc->globalmax(wsf[n]);
+            wsf[n] = f(i, j);
+        }
+
+    for(n = 0; n < gauge_num; ++n)
+        wsf[n] = pgc->globalmax(wsf[n]);
 
     // write to file
-    if(p->mpirank==0)
+    if(p->mpirank == 0)
     {
-    wsfout<<setprecision(9)<<p->simtime<<"\t";
-    for(n=0;n<gauge_num;++n)
-    {
-        wsfout<<setprecision(9)<<wsf[n]<<"\t";
-        // flush print to disc limited to prevent data loss for many gauges
-        if(n%fileFlushMaxCount==0&&n!=0)
-            wsfout<<std::flush;
-    }
-    wsfout<<endl;
+        wsfout << setprecision(9) << p->simtime << "\t";
+        for(n = 0; n < gauge_num; ++n)
+        {
+            wsfout << setprecision(9) << wsf[n] << "\t";
+            // flush print to disc limited to prevent data loss for many gauges
+            if(n % fileFlushMaxCount == 0 && n != 0)
+                wsfout << std::flush;
+        }
+        wsfout << endl;
     }
 }
 
 void sflow_print_wsf::ini_location(lexer *p, fdm2D *b)
 {
-    for(n=0;n<gauge_num;++n)
+    for(n = 0; n < gauge_num; ++n)
     {
-    iloc[n]=conv((x[n]-p->originx)/p->DXM);
-    
-    if(p->j_dir==0)
-    jloc[n]=0;
-    
-    if(p->j_dir==1)
-    jloc[n]=conv((y[n]-p->originy)/p->DXM);
+        iloc[n] = conv((x[n] - p->originx) / p->DXM);
 
-    if(iloc[n]>=0 && iloc[n]<p->knox)
-    if(jloc[n]>=0 && jloc[n]<p->knoy)
-    flag[n]=1;
+        if(p->j_dir == 0)
+            jloc[n] = 0;
+
+        if(p->j_dir == 1)
+            jloc[n] = conv((y[n] - p->originy) / p->DXM);
+
+        if(iloc[n] >= 0 && iloc[n] < p->knox)
+            if(jloc[n] >= 0 && jloc[n] < p->knoy)
+                flag[n] = 1;
     }
 }
 
 int sflow_print_wsf::conv(double a)
 {
 
-    int b,c;
-    double d,diff;
+    int b, c;
+    double d, diff;
 
-    c= int( a);
-    d=double(c);
-    diff=a-d;
+    c = int(a);
+    d = double(c);
+    diff = a - d;
 
-    b=c;
+    b = c;
 
-    if(diff>0.5)
-    b=c+1;
+    if(diff > 0.5)
+        b = c + 1;
 
-    if(diff<=-0.5)
-    b=c-1;
+    if(diff <= -0.5)
+        b = c - 1;
 
     return b;
-
 }

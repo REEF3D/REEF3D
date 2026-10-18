@@ -1,0 +1,25 @@
+{
+ "description": "hydrodynamic coupling FNPF -> NHFLOW (FNPF nesting into NHFLOW): fnpf_hdc_source_uvw writes state files with velocities (P 44 1) on 0-40 m, DIVEMesh H 10 4 converts them for the 10-30 m NHFLOW grid, this run reads eta and u, w as wave input (B 92 61) in the relaxation zone. Gauges at 20 m and 25 m follow the FNPF gauges.",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 550,
+ "chain": [
+  {
+   "case": "fnpf_hdc_source_uvw",
+   "copy": [
+    "REEF3D_FNPF_STATE"
+   ]
+  }
+ ],
+ "tags": [
+  "2d",
+  "nhflow",
+  "waves",
+  "iowave",
+  "hdc"
+ ],
+ "covers": [
+  "wave_lib_hdc (NHFLOW)",
+  "DIVEMesh HDC 4 for an NHFLOW grid"
+ ]
+}

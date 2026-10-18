@@ -20,11 +20,11 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"sflow_diffusion_void.h"
-#include"lexer.h"
-#include"fdm2D.h"
+#include "sflow_diffusion_void.h"
+#include "fdm2D.h"
+#include "lexer.h"
 
-sflow_diffusion_void::sflow_diffusion_void(lexer* p)
+sflow_diffusion_void::sflow_diffusion_void(lexer *p)
 {
 }
 
@@ -32,25 +32,30 @@ sflow_diffusion_void::~sflow_diffusion_void()
 {
 }
 
-void sflow_diffusion_void::diff_u(lexer* p, fdm2D *b, ghostcell *pgc, solver2D *psolv, slice &u, slice &v, double alpha)
+void sflow_diffusion_void::diff_u(lexer *p, fdm2D *b, ghostcell *pgc, solver2D *psolv, slice &UHdiff, slice &UH, slice &U, slice &V, slice &WL, double alpha)
 {
+    int i, j;
 
-
+    SLICELOOP4
+    UHdiff(i, j) = UH(i, j);
 }
 
-void sflow_diffusion_void::diff_v(lexer* p, fdm2D *b, ghostcell *pgc, solver2D *psolv, slice &u, slice &v, double alpha)
+void sflow_diffusion_void::diff_v(lexer *p, fdm2D *b, ghostcell *pgc, solver2D *psolv, slice &VHdiff, slice &VH, slice &U, slice &V, slice &WL, double alpha)
 {
+    int i, j;
 
-
+    SLICELOOP4
+    VHdiff(i, j) = VH(i, j);
 }
 
-void sflow_diffusion_void::diff_w(lexer* p, fdm2D *b, ghostcell *pgc, solver2D *psolv, slice &u, slice &v, slice &w, double alpha)
+void sflow_diffusion_void::diff_w(lexer *p, fdm2D *b, ghostcell *pgc, solver2D *psolv, slice &WHdiff, slice &WH, slice &U, slice &V, slice &W, slice &WL, double alpha)
 {
+    int i, j;
 
-
+    SLICELOOP4
+    WHdiff(i, j) = WH(i, j);
 }
 
-void sflow_diffusion_void::diff_scalar(lexer* p, fdm2D *b, ghostcell *pgc, solver2D *psolv, slice &f, double sig, double alpha)
+void sflow_diffusion_void::diff_scalar(lexer *p, fdm2D *b, ghostcell *pgc, solver2D *psolv, slice &f, double sig, double alpha)
 {
-    
 }

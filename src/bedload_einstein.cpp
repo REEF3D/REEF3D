@@ -20,40 +20,52 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"bedload_einstein.h"
-#include"lexer.h"
-#include"ghostcell.h"
-#include"sediment_fdm.h"
+#include "bedload_einstein.h"
+#include "ghostcell.h"
+#include "lexer.h"
+#include "sediment_fdm.h"
 
-bedload_einstein::bedload_einstein(lexer* p)
+bedload_einstein::bedload_einstein(lexer *p)
 {
-    rhosed=p->S22;
-    rhowat=p->W1;
-    g=9.81;
-    d50=p->S20;
-    shields=p->S30;
-    eta=0.053;
-    visc=p->W2;
-    kappa=0.4;
-    ks=2.5*d50;
-    sval=rhosed/rhowat;
+    rhosed = p->S22;
+    g = fabs(p->W22);
+    d50 = p->S20;
 }
 
 bedload_einstein::~bedload_einstein()
 {
 }
 
-void bedload_einstein::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
+void bedload_einstein::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
-    double qb;
+    // Einstein-Brown:  Phi = 2.15*exp(-0.391/theta)  for theta < 0.182
+    //                  Phi = 40*theta^3              for theta >= 0.182
+    double qb, Tb, Rstar;
 
-	SLICELOOP4
+    d50 = s->dk;
+
+    SEDSLICELOOP
     {
+        rhowat = s->ro(i, j);
+        Rstar = (rhosed - rhowat) / rhowat;
 
-        qb = 2.15*exp((-3.91*rhowat*(sval-1.0)*g*d50)/(fabs(s->tau_eff(i,j))>1.0e-20?s->tau_eff(i,j):1.0e20))*sqrt(((p->S22-p->W1)/p->W1)*g*pow(p->S20,3.0));
+        Tb = s->shields_eff(i, j);
 
-        s->qbe(i,j) = qb;
-	}
-    
-    pgc->gcsl_start4(p,s->qbe,1);
+        qb = 0.0;
+
+        if(s->active(i, j) == 1 && Tb > 1.0e-10)
+        {
+            if(Tb < 0.182)
+                qb = 2.15 * exp(-0.391 / Tb);
+
+            if(Tb >= 0.182)
+                qb = 40.0 * Tb * Tb * Tb;
+
+            qb *= sqrt(Rstar * g * d50 * d50 * d50);
+        }
+
+        s->qbe(i, j) = qb;
+    }
+
+    pgc->gcsl_start4(p, s->qbe, 1);
 }

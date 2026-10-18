@@ -1,0 +1,5 @@
+{"base": "nhflow_3d_ship_box_thrust", "ctrl_set": {"X 11": "1 1 1 1 1 1"},
+ "ctrl_add": ["X 101 5.0 0.0 0.0", "X 103 0.0 0.0 0.2"],
+ "files": ["ship.dat"],
+ "description": "as nhflow_3d_ship_box_thrust with all six DOFs free, initial heel and yaw rate: cross-flow drag (strips) and roll damping of the ship module.",
+ "tags": ["3d", "nhflow", "6dof", "ship", "mpi"], "covers": ["ship_models crossflow", "ship_hull draft strips", "ship_models roll_damping", "ship frame transformation"]}

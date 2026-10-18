@@ -23,34 +23,33 @@ Author: Hans Bihs
 #ifndef REINIDISC_FSF_RIG_H_
 #define REINIDISC_FSF_RIG_H_
 
-#include"reinidisc.h"
-#include"ddweno_nug.h"
-#include"vec.h"
+#include "ddweno_nug.h"
+#include "reinidisc.h"
+#include "vec.h"
 
 class picard;
-class cpt;
 
 using namespace std;
 
 class reinidisc_fsf_rig final : public reinidisc, public ddweno_nug
 {
 public:
-	reinidisc_fsf_rig(lexer* p);
-	virtual ~reinidisc_fsf_rig();
-	void start(lexer*, fdm*, ghostcell*, field&, field&, int) override final;
-	
+    reinidisc_fsf_rig(lexer *p);
+    virtual ~reinidisc_fsf_rig();
+    void start(lexer *, fdm *, ghostcell *, field &, field &, int) override final;
+
 private:
-	void disc(lexer*, fdm*, ghostcell*, field&, field&);
-	
-	double xmin,xplus,ymin,yplus,zmin,zplus;
-	double dxmin,dxplus,dymin,dyplus,dzmin,dzplus;
-	double uwx,uwy,uwz,ddt;
-	double lsv,dv,lsSig;
-	
-	double dx, dy, dz, dnorm, sign;
-	double sx,sy,sz,snorm,op;
-	
-	double deltax,denom;
+    void disc(lexer *, fdm *, ghostcell *, field &, field &);
+
+    double xmin, xplus, ymin, yplus, zmin, zplus;
+    double dxmin, dxplus, dymin, dyplus, dzmin, dzplus;
+    double uwx, uwy, uwz, ddt;
+    double lsv, dv, lsSig;
+
+    double dx, dy, dz, dnorm, sign;
+    double sx, sy, sz, snorm, op;
+
+    double deltax, denom;
 };
 
 #endif

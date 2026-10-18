@@ -20,128 +20,127 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"nhflow_profile_u.h"
-#include"lexer.h"
-#include"fdm_nhf.h"
-#include"ghostcell.h"
-#include<sys/stat.h>
-#include<sys/types.h>
+#include "nhflow_profile_u.h"
+#include "fdm_nhf.h"
+#include "ghostcell.h"
+#include "lexer.h"
+#include <sys/stat.h>
+#include <sys/types.h>
 
 nhflow_profile_u::nhflow_profile_u(lexer *p, fdm_nhf *d) : probenum(p->P67)
 {
-    p->Iarray(iloc,probenum);
-    p->Iarray(jloc,probenum);
-    p->Iarray(flag,probenum);
-    
+    p->Iarray(iloc, probenum);
+    p->Iarray(jloc, probenum);
+    p->Iarray(flag, probenum);
+
     // Create Folder
-    if(p->mpirank==0)
-    mkdir("./REEF3D_NHFLOW_U-Profile",0777);
-    
+    if(p->mpirank == 0)
+        mkdir("./REEF3D_NHFLOW_U-Profile", 0777);
+
     pout = new ofstream[probenum];
-    
-    ini_location(p,d);
+
+    ini_location(p, d);
 }
 
 nhflow_profile_u::~nhflow_profile_u()
 {
-    for(n=0;n<probenum;++n)
-    pout[n].close();
-    
-    delete [] pout;
+    for(n = 0; n < probenum; ++n)
+        pout[n].close();
+
+    delete[] pout;
 }
 
 void nhflow_profile_u::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     // prepare
-    if(probenum>0)
+    if(probenum > 0)
     {
-        
+
         // open file
-        for(n=0;n<probenum;++n)
-        if(flag[n]==1)
-        {
-        sprintf(name,"./REEF3D_NHFLOW_U-Profile/REEF3D-NHFLOW-U-Profile-%i-%i.dat",n+1,p->count);
-        
-        pout[n].open(name);
-        
-        //cout<<pout[n].is_open()<<" "<<n+1<<endl;
-        
-        
+        for(n = 0; n < probenum; ++n)
+            if(flag[n] == 1)
+            {
+                sprintf(name, "./REEF3D_NHFLOW_U-Profile/REEF3D-NHFLOW-U-Profile-%i-%i.dat", n + 1, p->count);
 
-        pout[n]<<"U-Profile ID:  "<<n+1<<endl<<endl;
-        pout[n]<<"x_coord     y_coord"<<endl;
-        pout[n]<<n+1<<"\t "<<p->Xout(p->P67_x[n],p->P67_y[n])<<"\t "<<p->Yout(p->P67_x[n],p->P67_y[n])<<"\t "<<endl;
-        pout[n]<<"simtime:  "<<p->simtime<<endl<<endl;
+                pout[n].open(name);
 
-        pout[n]<<endl<<endl;
-        
-        pout[n]<<"z \t U  "<<endl;
-        }
-    
-    
-    // print 
-    double xp,yp;
-    
-    for(n=0;n<probenum;++n)
-    if(flag[n]==1)
-    for(k=0;k<p->knoz;++k)
-    {
-    
-        if(flag[n]>0)
-        {
-        xp=p->P67_x[n];
-        yp=p->P67_y[n];
-        
-        i = iloc[n];
-        j = jloc[n];
-    
-        uval = p->ccipol4V(d->U, d->WL, d->bed, xp, yp, p->ZSP[IJK]);
-        }
- 
-    pout[n]<<setprecision(9)<<p->ZSP[IJK]<<" \t "<<uval<<endl;
-    } 
-    
-    for(n=0;n<probenum;++n)
-    if(flag[n]==1)
-    pout[n].close();
-    
+                // cout<<pout[n].is_open()<<" "<<n+1<<endl;
+
+                pout[n] << "U-Profile ID:  " << n + 1 << endl
+                        << endl;
+                pout[n] << "x_coord     y_coord" << endl;
+                pout[n] << n + 1 << "\t " << p->Xout(p->P67_x[n], p->P67_y[n]) << "\t " << p->Yout(p->P67_x[n], p->P67_y[n]) << "\t " << endl;
+                pout[n] << "simtime:  " << p->simtime << endl
+                        << endl;
+
+                pout[n] << endl
+                        << endl;
+
+                pout[n] << "z \t U  " << endl;
+            }
+
+        // print
+        double xp, yp;
+        double uipol;
+
+        for(n = 0; n < probenum; ++n)
+            if(flag[n] == 1)
+                for(k = 0; k < p->knoz; ++k)
+                {
+
+                    if(flag[n] > 0)
+                    {
+                        xp = p->P67_x[n];
+                        yp = p->P67_y[n];
+
+                        i = iloc[n];
+                        j = jloc[n];
+
+                        uval = d->U[IJK];
+                        uipol = p->ccipol4V(d->U, d->WL, d->bed, xp, yp, p->ZSP[IJK]);
+                    }
+
+                    pout[n] << setprecision(9) << p->ZSP[IJK] << " \t " << uipol << endl;  //<<" :  "<<uipol<<endl;
+                }
+
+        for(n = 0; n < probenum; ++n)
+            if(flag[n] == 1)
+                pout[n].close();
     }
 }
 
 void nhflow_profile_u::ini_location(lexer *p, fdm_nhf *d)
 {
     int check;
-    int ii,jj;
+    int ii, jj;
 
-    for(n=0;n<probenum;++n)
+    for(n = 0; n < probenum; ++n)
     {
-    check=0;
-    
-    iloc[n]=p->posc_i(p->P67_x[n]);
-    
-    if(p->j_dir==0)
-    {
-    jloc[n]=0;
-    j=0;
-    p->P67_y[n] = 0.5*p->YP[JP];
-    }
-    
-    if(p->j_dir==1)
-    jloc[n]=p->posc_j(p->P67_y[n]);
-    
-    
+        check = 0;
 
-    check=0;
-    
-    ii=iloc[n];
-    jj=jloc[n];
+        iloc[n] = p->posc_i(p->P67_x[n]);
 
-    if(ii>=0 && ii<p->knox)
-    if(jj>=0 && jj<p->knoy)
-    check=1;
-    
-    //cout<<p->mpirank<<" PROBE check: "<<check<<" i: "<<iloc[n]<<" j: "<<jloc[n]<<" ZSN: "<<p->ZSN[10+marge]<<endl;
-    if(check==1)
-    flag[n]=1;
+        if(p->j_dir == 0)
+        {
+            jloc[n] = 0;
+            j = 0;
+            p->P67_y[n] = 0.5 * p->YP[JP];
+        }
+
+        if(p->j_dir == 1)
+            jloc[n] = p->posc_j(p->P67_y[n]);
+
+        check = 0;
+
+        ii = iloc[n];
+        jj = jloc[n];
+
+        if(ii >= 0 && ii < p->knox)
+            if(jj >= 0 && jj < p->knoy)
+                check = 1;
+
+        // cout<<p->mpirank<<" PROBE check: "<<check<<" i: "<<iloc[n]<<" j: "<<jloc[n]<<" ZSN: "<<p->ZSN[10+marge]<<endl;
+        if(check == 1)
+            flag[n] = 1;
     }
 }

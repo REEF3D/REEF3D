@@ -20,83 +20,81 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Fabian Knoblauch
 --------------------------------------------------------------------*/
 
-#include"benchmark_disk_xy.h"
-#include"lexer.h"
-#include"fdm.h"
-#include"ghostcell.h"
-#include"convection.h"
+#include "benchmark_disk_xy.h"
+#include "convection.h"
+#include "fdm.h"
+#include "ghostcell.h"
+#include "lexer.h"
 
 benchmark_disk_xy::benchmark_disk_xy(lexer *p, fdm *a)
 {
-    double r,xc,yc,radius;
+    double r, xc, yc, radius;
     double H;
-	double xs,xe,ys,ye;
-	
+    double xs, xe, ys, ye;
+
     xc = 0.0;
     yc = 0.5;
     radius = 0.3;
 
-	xs = -0.05;
-	xe = 0.05;
-	ys = 0.2;
-	ye = 0.7;
+    xs = -0.05;
+    xe = 0.05;
+    ys = 0.2;
+    ye = 0.7;
 
     LOOP
-	{
-		a->vof(i,j,k) = 0.0;
-        a->phi(i,j,k) = -0.5;
-		
-		r = sqrt(pow(p->pos_x() - xc, 2.0) + pow(p->pos_y() - yc, 2.0));
-		if (r <= radius)
-		{
-			a->vof(i,j,k) = 1.0;
-            a->phi(i,j,k) = 0.5;
-		}
+    {
+        a->vof(i, j, k) = 0.0;
+        a->phi(i, j, k) = -0.5;
 
-		if (p->pos_x() >= xs && p->pos_x() < xe && p->pos_y() >= ys && p->pos_y() < ye)
-		{
-			a->vof(i,j,k) = 0.0;
-            a->phi(i,j,k) = -0.5;
-		}
-	}
+        r = sqrt(pow(p->pos_x() - xc, 2.0) + pow(p->pos_y() - yc, 2.0));
+        if(r <= radius)
+        {
+            a->vof(i, j, k) = 1.0;
+            a->phi(i, j, k) = 0.5;
+        }
 
+        if(p->pos_x() >= xs && p->pos_x() < xe && p->pos_y() >= ys && p->pos_y() < ye)
+        {
+            a->vof(i, j, k) = 0.0;
+            a->phi(i, j, k) = -0.5;
+        }
+    }
 
-
-	// Inverse field
-	/*if(p->F151==1)
-	LOOP
+    // Inverse field
+    /*if(p->F151==1)
+    LOOP
     a->phi(i,j,k)*=-1.0;
 
     LOOP
-	{
-		if(a->phi(i,j,k)>=p->F45*p->DXM)
-		H=1.0;
+    {
+        if(a->phi(i,j,k)>=p->F45*p->DXM)
+        H=1.0;
 
-		if(a->phi(i,j,k)<-p->F45*p->DXM)
-		H=0.0;
+        if(a->phi(i,j,k)<-p->F45*p->DXM)
+        H=0.0;
 
-		if(fabs(a->phi(i,j,k))<=p->F45*p->DXM)
-		H=0.5*(1.0 + a->phi(i,j,k)/p->F45*p->DXM + (1.0/PI)*sin((PI*a->phi(i,j,k))/p->F45*p->DXM));
+        if(fabs(a->phi(i,j,k))<=p->F45*p->DXM)
+        H=0.5*(1.0 + a->phi(i,j,k)/p->F45*p->DXM + (1.0/PI)*sin((PI*a->phi(i,j,k))/p->F45*p->DXM));
 
-		a->ro(i,j,k)= p->W1*H + p->W3*(1.0-H);
-		a->visc(i,j,k)= p->W2*H + p->W4*(1.0-H);
-	}    */
+        a->ro(i,j,k)= p->W1*H + p->W3*(1.0-H);
+        a->visc(i,j,k)= p->W2*H + p->W4*(1.0-H);
+    }    */
 }
 
 benchmark_disk_xy::~benchmark_disk_xy()
 {
 }
 
-void benchmark_disk_xy::start(lexer* p, fdm *a, ghostcell *pgc, convection *pconvec )
+void benchmark_disk_xy::start(lexer *p, fdm *a, ghostcell *pgc, convection *pconvec)
 {
     LOOP
     {
-		a->u(i,j,k) = -2.0*PI*p->pos_y();
-		a->v(i,j,k) = 2.0*PI*p->pos_x();
-		a->w(i,j,k) = 0.0;
+        a->u(i, j, k) = -2.0 * PI * p->pos_y();
+        a->v(i, j, k) = 2.0 * PI * p->pos_x();
+        a->w(i, j, k) = 0.0;
     }
 
-    pgc->start1(p,a->u,10);
-    pgc->start2(p,a->v,11);
-	pgc->start2(p,a->w,12);
+    pgc->start1(p, a->u, 10);
+    pgc->start2(p, a->v, 11);
+    pgc->start3(p, a->w, 12);
 }

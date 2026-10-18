@@ -1,0 +1,62 @@
+# Schaefer & Turek (1996) DFG benchmark 2D-2 (unsteady, Re = 100)
+# Schaefer, M., Turek, S. (1996) "Benchmark computations of laminar flow around a cylinder", in: Flow Simulation with
+#   High-Performance Computers II, Notes on Numerical Fluid Mechanics 52, Vieweg. doi:10.1007/978-3-322-89849-4_39
+#   (original PDF at wwwold.mathematik.tu-dortmund.de/lsiii/cms/papers/SchaeferTurek1996.pdf returned 404 -> NOT read)
+#
+# [F] FEATFLOW page (fetched): https://wwwold.mathematik.tu-dortmund.de/~featflow/en/benchmarks/cfdbenchmarking/flow/dfg_benchmark2_re100.html
+#   Domain Omega = [0,2.2] x [0,0.41] \ B_r(0.2,0.2), r = 0.05 (D = 0.1); rho = 1.0; nu = 0.001
+#   Inflow: u(0,y) = (4*U*y*(0.41-y)/0.41^2, 0), U = 1.5 ; no-slip walls & cylinder; do-nothing outflow
+#   U_mean = (2/3)*1.5 = 1.0 ; Re = U_mean*D/nu = 100
+#   C_D = 2*F_D/(U_mean^2 * L), C_L = 2*F_L/(U_mean^2 * L), L = 0.1 ; St = L*f/U_mean ; p_diff = p(0.15,0.2) - p(0.25,0.2)
+#
+# [R] Original 1996 reference intervals (Table 4 of Schaefer & Turek 1996) -- SECONDARY ONLY, from
+#   https://raw.githubusercontent.com/AdebanjiAdelowo/fem-cylinder-flow/main/README.md , which itself warns:
+#   "The comparison intervals ... are the lower/upper bound rows attributed to Tables 3 and 4 of the 1996 paper; they have
+#    been carried since the repository's first commit and were not re-verified against the paper itself."
+#   Treat as UNVERIFIED until checked against the 1996 paper.
+# quantity      lower    upper
+C_D_max         3.2200   3.2400
+C_L_max         0.9900   1.0100
+St              0.2950   0.3050
+Delta_p         2.4600   2.5000
+#   (Delta_p in 2D-2 is defined in the 1996 paper at a specific time instant t0+1/(2f); that definition was NOT read here.)
+#   Same README, 2D-1 (steady, Re=20) intervals: C_D [5.5700,5.5900], C_L [0.0104,0.0110], Delta_p [0.1172,0.1176].
+#   FEATFLOW 2D-1 page (fetched) high-accuracy values (Nabh 1998): C_D = 5.57953523384, C_L = 0.010618948146,
+#   p_diff = 0.11752016697  (https://wwwold.mathematik.tu-dortmund.de/~featflow/en/benchmarks/cfdbenchmarking/flow/dfg_benchmark1_re20.html)
+#
+# [F] FEATFLOW computed reference results for 2D-2 (Q2/P1disc, Crank-Nicolson), transcribed from the page (fetched twice;
+#     overlapping rows identical). Columns: level  dt  min(C_D) max(C_D) mean(C_D) amp(C_D)
+3 1/100 3.0997 3.1626 3.1311 6.292E-02
+3 1/200 3.0993 3.1625 3.1309 6.312E-02
+3 1/400 3.0992 3.1624 3.1308 6.315E-02
+4 1/100 3.1338 3.1964 3.1651 6.252E-02
+4 1/200 3.1333 3.1962 3.1647 6.283E-02
+4 1/400 3.1333 3.1958 3.1645 6.249E-02
+5 1/100 3.1497 3.2124 3.1811 6.269E-02
+5 1/200 3.1494 3.2122 3.1808 6.287E-02
+5 1/400 3.1493 3.2122 3.1807 6.292E-02
+6 1/200 3.1569 3.2200 3.1884 6.310E-02
+# level  dt  min(C_L) max(C_L) mean(C_L) amp(C_L)
+3 1/100 -1.0112 0.9805 -0.0154 1.992E+00
+3 1/200 -1.0159 0.9810 -0.0174 1.997E+00
+3 1/400 -1.0155 0.9805 -0.0175 1.996E+00
+4 1/100 -1.0155 0.9838 -0.0158 1.999E+00
+4 1/200 -1.0182 0.9838 -0.0172 2.002E+00
+4 1/400 -1.0181 0.9835 -0.0173 2.002E+00
+5 1/100 -1.0169 0.9859 -0.0155 2.003E+00
+5 1/200 -1.0211 0.9818 -0.0196 2.003E+00
+5 1/400 -1.0206 0.9860 -0.0173 2.007E+00
+6 1/200 -1.0206 0.9859 -0.0173 2.008E+00
+# level  dt  1/f  St
+3 1/100 3.3000E-01 0.30303
+3 1/200 3.3000E-01 0.30303
+3 1/400 3.3000E-01 0.30303
+4 1/100 3.4000E-01 0.29411
+4 1/200 3.3000E-01 0.30303
+4 1/400 3.3250E-01 0.30075
+5 1/100 3.3000E-01 0.30303
+5 1/200 3.3000E-01 0.30303
+5 1/400 3.3000E-01 0.30303
+6 1/200 3.3125E-01 0.30188
+# Pressure-difference table for 2D-2 was not returned by the fetch; time series are in the page's zip files
+#   (draglift_q2_cn_lv3-6_dt1-4.zip, pressure_q2_cn_lv3-6_dt1-4.zip, 20141124_dfg_bench2_official.zip) -- not downloaded.

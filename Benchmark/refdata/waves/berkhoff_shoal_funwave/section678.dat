@@ -1,0 +1,35 @@
+# Reference: Berkhoff, J.C.W., Booy, N. & Radder, A.C. (1982). Verification of numerical wave propagation models for simple harmonic linear water waves. Coastal Engineering 6, 255-279.
+# Source repo: https://github.com/fengyanshi/FUNWAVE-TVD  commit b4c322e7582035ee19df8e6409a3dfedaff1cb96 (2025-01-24)
+# Experiment (from FUNWAVE work/input.txt): regular waves T = 1.0 s ('Tperiod = 1.0'), incident amplitude 0.0232 m ('AMP_WK = 0.0232', i.e. H0 = 46.4 mm), offshore depth 0.45 m ('DEP_WK = 0.45').
+# Bathymetry (input/DEPTH.F, Qin Chen version): plane slope 1:50 rotated 20 deg, elliptic shoal; rotated coords xp,yp; h = 0.45 for yp >= 5.84; h = 0.45-0.02*(5.84-yp) outside ellipse (xp/4)^2+(yp/3)^2 = 1; inside: h = 0.75-0.02*(5.84-yp)-0.5*sqrt(1-(xp/5)^2-(yp/3.75)^2); min depth 0.07 m.
+# Data values: column(s) after the first are wave AMPLITUDE in mm. showheight.m: 'load section1.dat;    %experimental data with amplitude in mm' and plots 'section1(:,2)*2' against model H in mm ('wh(...)*1000', ylabel 'H(mm)'). Wave height H[mm] = 2*value. H/H0 = value/23.2.
+# Observation (not a correction): most values equal 23.2 mm x a ratio given to 2 decimals, suggesting they were converted from tabulated/digitised normalised amplitudes A/A0; a few values deviate by up to ~0.5 of that 0.01 step.
+# Sampling: regular coordinate spacing (0.25/0.5 m); exact origin of these numbers (tabulated vs. digitised from Berkhoff et al. 1982 figures) is not documented in the repo -> confidence B/C.
+# Sections 6,7,8: lines parallel to the wave direction. showheight.m: '% section 6) y:=-2m 	j=80', '% section 7) y:= 0m 	j=100', '% section 8) y:=+2m 	j=120'.
+# Model comparison: 'plot(-section678(:,1),section678(:,2)*2,...); plot(x,wh(:,80+yshift)*1000)' (cols 3,4 vs j=100,120), x(i)=(i-260-xshift)*0.05.
+# Columns: (1) NEGATIVE of x [m] (x = -col1; x positive in propagation direction, range 0..11 m); (2) amplitude [mm] section 6 (y=-2 m); (3) amplitude [mm] section 7 (y=0 m); (4) amplitude [mm] section 8 (y=+2 m).
+# NOTE: sign convention of y for sections 6/8 relative to Berkhoff's original figure is not verifiable from the repo; FUNWAVE y(j)=(j-100)*0.1-0.15.
+# FUNWAVE grid actually used: input/depth.txt (200 rows x 600 cols, 'DX = 0.05', 'DY = 0.10', depths to 2 decimals, 0.07..0.45 m); shoal crest (0.13 m) around 1-based i~260-276 on the centre rows, i.e. x~0 in the showheight.m frame. DEPTH.F itself writes a coarser 300x101 grid (dx=0.1, dy=0.2), so depth.txt was produced by a variant of it (copy of DEPTH.F included as FUNWAVE_DEPTH.F).
+0.0 21.34 23.90 20.76
+-0.5 25.29 24.59 22.04
+-1.0 25.95 26.91 20.88
+-1.5 25.29 26.22 20.53
+-2.0 25.52 25.52 20.53
+-2.5 20.65 27.38 20.07
+-3.0 20.88 28.07 20.18
+-3.50 20.88 25.96 23.32
+-4.00 14.62 35.26 17.05
+-4.5 15.08 39.44 16.01
+-5.0 13.69 46.86 14.73
+-5.5 12.76 45.01 13.80
+-6.0 14.15 44.78 11.83
+-6.5 11.60 45.94 12.88
+-7.0 9.05 44.31 14.96
+-7.5 7.42 42.69 17.17
+-8.0 5.34 40.14 16.94
+-8.5 3.25 38.51 18.33
+-9.0 6.96 38.28 20.18
+-9.5 13.46 38.98 21.58
+-10.0 17.17 36.89 20.42
+-10.50 21.58 35.50 20.42
+-11.0 25.52 32.48 20.42

@@ -20,154 +20,170 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Tobias Martin
 --------------------------------------------------------------------*/
 
-#include"6DOF_obj.h"
-#include"lexer.h"
-#include"momentum.h"
-#include"fdm.h"
-#include"ghostcell.h"
-#include<sys/stat.h>
-#include"mooring_void.h"
-#include"mooring_barQuasiStatic.h"
-#include"mooring_Catenary.h"
-#include"mooring_Spring.h"
-#include"mooring_dynamic.h"
-#include"net_interface.h"
+#include "6DOF_obj.h"
+#include "6DOF_obj_cfd.h"
+#include "fdm.h"
+#include "ghostcell.h"
+#include "lexer.h"
+#include "momentum.h"
+#include "mooring_Catenary.h"
+#include "mooring_Spring.h"
+#include "mooring_barQuasiStatic.h"
+#include "mooring_dynamic.h"
+#include "mooring_void.h"
+#include "net_interface.h"
+#include "reinidisc_fsf.h"
+#include <sys/stat.h>
 
-void sixdof_obj::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc)
+sixdof_obj_cfd::sixdof_obj_cfd(lexer *p, ghostcell *pgc, int number) : sixdof_obj(p, pgc, number),
+                                                                       cutl(p), cutr(p), fbio(p), f(p), frk1(p), L(p), dt(p),
+                                                                       vertice(p), nodeflag(p), eta(p)
 {
-    if(p->mpirank==0)
-    cout<<"6DOF_df_ini "<<endl;
-    
-    if(p->mpirank==0)
-    mkdir("./REEF3D_CFD_6DOF",0777);
-    
+    prdisc = new reinidisc_fsf(p);
+}
+
+sixdof_obj_cfd::~sixdof_obj_cfd()
+{
+}
+
+void sixdof_obj_cfd::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc)
+{
+    if(p->mpirank == 0)
+        cout << "6DOF_df_ini " << endl;
+
+    if(p->mpirank == 0)
+        mkdir("./REEF3D_CFD_6DOF", 0777);
+
     // Initialise folder structure
-    if(p->X50==1)
-	print_ini_vtp(p,pgc);
-    
-    if(p->X50==2)
-    print_ini_stl(p,pgc);
- 
+    if(p->X50 == 1)
+        print_ini_vtp(p, pgc);
+
+    if(p->X50 == 2)
+        print_ini_stl(p, pgc);
+
     // Initialise processor boundaries
-    ini_parallel(p,pgc);
-    
+    ini_parallel(p, pgc);
+
     // Initialise objects
-	objects_create(p,pgc);
-    
+    objects_create(p, pgc);
+
     // Initialise fbvel
-	ini_fbvel(p,pgc);
-    
+    ini_fbvel(p, pgc);
+
     // Level Set for floating body
-    ray_cast(p,a,pgc);
+    ray_cast(p, a, pgc);
 
-	reini_RK2(p,a,pgc,a->fb);
-    pgc->start4a(p,a->fb,50);
-    
+    reini_RK2(p, a, pgc, a->fb);
+    pgc->start4a(p, a->fb, 50);
+
     // Calculate geometrical properties
-	geometry_parameters(p,a,pgc);
-    
+    geometry_parameters(p, a, pgc);
+
     // Initialise position of bodies
-    iniPosition_RBM(p,pgc);
-	
-	// Recalculate distances
-	ray_cast(p,a,pgc);
-	reini_RK2(p,a,pgc,a->fb);
-    pgc->start4a(p,a->fb,50);
-    
+    iniPosition_RBM(p, pgc);
+
+    // Recalculate distances
+    ray_cast(p, a, pgc);
+    reini_RK2(p, a, pgc, a->fb);
+    pgc->start4a(p, a->fb, 50);
+
     // Initialise global variables
-	update_fbvel(p,pgc);
-   
+    update_fbvel(p, pgc);
+
     // Initialise floating fields
-     ULOOP
-     a->fbh1(i,j,k) = Hsolidface(p,a,1,0,0);
+    ULOOP
+    a->fbh1(i, j, k) = Hsolidface(p, a, 1, 0, 0);
 
-     VLOOP
-     a->fbh2(i,j,k) = Hsolidface(p,a,0,1,0);
+    VLOOP
+    a->fbh2(i, j, k) = Hsolidface(p, a, 0, 1, 0);
 
-     WLOOP
-     a->fbh3(i,j,k) = Hsolidface(p,a,0,0,1);
+    WLOOP
+    a->fbh3(i, j, k) = Hsolidface(p, a, 0, 0, 1);
 
-     LOOP
-     a->fbh4(i,j,k) = Hsolidface(p,a,0,0,0);
+    LOOP
+        a->fbh4(i, j, k) = Hsolidface(p, a, 0, 0, 0);
 
-     pgc->start1(p,a->fbh1,10);
-     pgc->start2(p,a->fbh2,11);
-     pgc->start3(p,a->fbh3,12);
-     pgc->start4(p,a->fbh4,40);
+    pgc->start1(p, a->fbh1, 10);
+    pgc->start2(p, a->fbh2, 11);
+    pgc->start3(p, a->fbh3, 12);
+    pgc->start4(p, a->fbh4, 40);
 
-	// Mooring
-	if(p->X310==0)
-	{
-		pmooring.push_back(new mooring_void());
-	}
-	else
-	{
-		pgc->bcast_int(&p->mooring_count,1);	
-
-		Xme.resize(p->mooring_count);
-		Yme.resize(p->mooring_count);
-		Zme.resize(p->mooring_count);
-		Kme.resize(p->mooring_count);
-		Mme.resize(p->mooring_count);
-		Nme.resize(p->mooring_count);
-
-		if(p->mpirank==0)
-		mkdir("./REEF3D_CFD_6DOF_Mooring",0777);	
-
-		pmooring.reserve(p->mooring_count);
-		X311_xen.resize(p->mooring_count,0.0);
-		X311_yen.resize(p->mooring_count,0.0);
-		X311_zen.resize(p->mooring_count,0.0);
-			
-		for (int i=0; i < p->mooring_count; i++)
-		{
-			if(p->X310==1)
-			{
-				pmooring.push_back(new mooring_Catenary(i));
-			}	
-			else if(p->X310==2)
-			{
-				pmooring.push_back(new mooring_barQuasiStatic(i)); 
-			}	
-			else if(p->X310==3)
-			{
-                pmooring.push_back(new mooring_dynamic(i));
-			}
-			else if(p->X310==4)
-			{
-				pmooring.push_back(new mooring_Spring(i));
-			}
-		
-			X311_xen[i] = p->X311_xe[i] - p->xg;
-			X311_yen[i] = p->X311_ye[i] - p->yg;
-			X311_zen[i] = p->X311_ze[i] - p->zg;
-		
-			pmooring[i]->initialize(p,pgc);
-		}
-	}	
-
-
-    pnetinter->initialize_cfd(p,a,pgc);
-    
-    if(p->X320>0)
+    // Mooring
+    if(p->X310 == 0)
     {
-    Xne.resize(p->net_count);
-    Yne.resize(p->net_count);
-    Zne.resize(p->net_count);
-    Kne.resize(p->net_count);
-    Mne.resize(p->net_count);
-    Nne.resize(p->net_count);
+        pmooring.push_back(new mooring_void());
+    }
+    else
+    {
+        pgc->bcast_int(&p->mooring_count, 1);
+
+        Xme.resize(p->mooring_count);
+        Yme.resize(p->mooring_count);
+        Zme.resize(p->mooring_count);
+        Kme.resize(p->mooring_count);
+        Mme.resize(p->mooring_count);
+        Nme.resize(p->mooring_count);
+
+        if(p->mpirank == 0)
+            mkdir("./REEF3D_CFD_6DOF_Mooring", 0777);
+
+        pmooring.reserve(p->mooring_count);
+        X311_xen.resize(p->mooring_count, 0.0);
+        X311_yen.resize(p->mooring_count, 0.0);
+        X311_zen.resize(p->mooring_count, 0.0);
+
+        for(int i = 0; i < p->mooring_count; i++)
+        {
+            if(p->X310 == 1)
+            {
+                pmooring.push_back(new mooring_Catenary(i));
+            }
+            else if(p->X310 == 2)
+            {
+                pmooring.push_back(new mooring_barQuasiStatic(i));
+            }
+            else if(p->X310 == 3)
+            {
+                pmooring.push_back(new mooring_dynamic(i));
+            }
+            else if(p->X310 == 4)
+            {
+                pmooring.push_back(new mooring_Spring(i));
+            }
+
+            // Fairlead offset in the body frame: mooringForces() applies R_*offset,
+            // so remove the initial rotation (X101) here to avoid rotating twice
+            Eigen::Vector3d fl(p->X311_xe[i] - p->xg, p->X311_ye[i] - p->yg, p->X311_ze[i] - p->zg);
+            fl = R_.transpose() * fl;
+            X311_xen[i] = fl(0);
+            X311_yen[i] = fl(1);
+            X311_zen[i] = fl(2);
+
+            pmooring[i]->initialize(p, pgc);
+        }
     }
 
-    // Print initial body 
-    if(p->X50==1)
-    print_vtp(p,pgc);
-    
-    else if(p->X50==2)
-    print_stl(p,pgc);
-    
+    pnetinter->initialize_cfd(p, a, pgc);
+
+    if(p->X320 > 0)
+    {
+        Xne.resize(p->net_count);
+        Yne.resize(p->net_count);
+        Zne.resize(p->net_count);
+        Kne.resize(p->net_count);
+        Mne.resize(p->net_count);
+        Nne.resize(p->net_count);
+    }
+
+    // Print initial body
+    if(p->X50 == 1)
+        print_vtp(p, pgc);
+
+    else if(p->X50 == 2)
+        print_stl(p, pgc);
+
     // ghostcell update
-    pgc->gcdf_update(p,a);
+    pgc->gcdf_update(p, a);
 }
 
 void sixdof_obj::ini_parallel(lexer *p, ghostcell *pgc)
@@ -178,22 +194,22 @@ void sixdof_obj::ini_parallel(lexer *p, ghostcell *pgc)
     p->Darray(yend, p->mpi_size);
     p->Darray(zstart, p->mpi_size);
     p->Darray(zend, p->mpi_size);
-    
+
     xstart[p->mpirank] = p->originx;
     ystart[p->mpirank] = p->originy;
     zstart[p->mpirank] = p->originz;
     xend[p->mpirank] = p->endx;
     yend[p->mpirank] = p->endy;
     zend[p->mpirank] = p->endz;
-    
-    for (int i = 0; i < p->mpi_size; i++)
+
+    for(int i = 0; i < p->mpi_size; i++)
     {
-        pgc->bcast_double(&xstart[i],1,i);
-        pgc->bcast_double(&xend[i],1,i);
-        pgc->bcast_double(&ystart[i],1,i);
-        pgc->bcast_double(&yend[i],1,i);
-        pgc->bcast_double(&zstart[i],1,i);
-        pgc->bcast_double(&zend[i],1,i);
+        pgc->bcast_double(&xstart[i], 1, i);
+        pgc->bcast_double(&xend[i], 1, i);
+        pgc->bcast_double(&ystart[i], 1, i);
+        pgc->bcast_double(&yend[i], 1, i);
+        pgc->bcast_double(&zstart[i], 1, i);
+        pgc->bcast_double(&zend[i], 1, i);
     }
-}    
+}
 

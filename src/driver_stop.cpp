@@ -20,91 +20,96 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"driver.h"
-#include"lexer.h"
-#include"fdm.h"
-#include"ghostcell.h"
-#include"printer.h"
-#include"waves_header.h"
-#include"nhflow_header.h"
+#include "driver.h"
+#include "fdm.h"
+#include "ghostcell.h"
+#include "lexer.h"
+#include "nhflow_header.h"
+#include "printer.h"
+#include "waves_header.h"
 
 void driver::stop(lexer *p, fdm *a, ghostcell *pgc)
-{	 
-    
-    if(p->A10==4 || p->A10==6)
-    {
-    int check=0;
-    
-    ULOOP
-    if(a->u(i,j,k)!=a->u(i,j,k))
-    check=1;
-    
-    VLOOP
-    if(a->v(i,j,k)!=a->v(i,j,k))
-    check=1;
-    
-    WLOOP
-    if(a->w(i,j,k)!=a->w(i,j,k))
-    check=1;
-    
-    LOOP
-    if(a->press(i,j,k)!=a->press(i,j,k))
-    check=1;
-    
-    if(check==1)
-    {
-    
-        if(p->mpirank==0)
-        cout<<endl<<"!!!  EMERGENCY STOP  --  solver breaking down - NAN values  !!!"<<endl<<endl;
+{
 
-     pprint->print_stop(p,a,pgc,pturb,pheat,pflow,pdata,pconc,pmp,psed);
-     
-     //pgc->final(true);
-    }
-    }
-        
-    if(p->umax>p->N61 || p->vmax>p->N61 || p->wmax>p->N61)
+    if(p->A10 == 6)
     {
-    
-        if(p->mpirank==0)
+        int check = 0;
+
+        ULOOP
+        if(a->u(i, j, k) != a->u(i, j, k))
+            check = 1;
+
+        VLOOP
+        if(a->v(i, j, k) != a->v(i, j, k))
+            check = 1;
+
+        WLOOP
+        if(a->w(i, j, k) != a->w(i, j, k))
+            check = 1;
+
+        LOOP if(a->press(i, j, k) != a->press(i, j, k))
+            check = 1;
+
+        if(check == 1)
         {
-        cout<<endl<<"!!! EMERGENCY STOP  --  velocities exceeding critical value N 61  !!!"<<endl<<endl;
-        
-        cout<<"umax: "<<setprecision(3)<<p->umax<<endl;
-        cout<<"vmax: "<<setprecision(3)<<p->vmax<<endl;
-        cout<<"wmax: "<<setprecision(3)<<p->wmax<<endl;
+
+            if(p->mpirank == 0)
+                cout << endl
+                     << "!!!  EMERGENCY STOP  --  solver breaking down - NAN values  !!!" << endl
+                     << endl;
+
+            pprint->print_stop(p, a, pgc, pturb, pheat, pflow, pdata, pconc, pmp, psed);
+
+            // pgc->final(true);
         }
-    
-        if(p->A10==3)
-        pprint->print_stop(p,c,pgc);
-        
-        if(p->A10==4 || p->A10==6)
-        pprint->print_stop(p,a,pgc,pturb,pheat,pflow,pdata,pconc,pmp,psed);
-        
-        if(p->A10==5)
-        pprint->print_stop(p,d,pgc,pflow,pnhfturb,psed);
-        
+    }
+
+    if(p->umax > p->N61 || p->vmax > p->N61 || p->wmax > p->N61)
+    {
+
+        if(p->mpirank == 0)
+        {
+            cout << endl
+                 << "!!! EMERGENCY STOP  --  velocities exceeding critical value N 61  !!!" << endl
+                 << endl;
+
+            cout << "umax: " << setprecision(3) << p->umax << endl;
+            cout << "vmax: " << setprecision(3) << p->vmax << endl;
+            cout << "wmax: " << setprecision(3) << p->wmax << endl;
+        }
+
+        if(p->A10 == 3)
+            pprint->print_stop(p, c, pgc);
+
+        if(p->A10 == 6)
+            pprint->print_stop(p, a, pgc, pturb, pheat, pflow, pdata, pconc, pmp, psed);
+
+        if(p->A10 == 5)
+            pprint->print_stop(p, d, pgc, pflow, pnhfturb, psed);
+
         pgc->final(true);
     }
-    
+
     // Solver Status
     p->solver_status = pgc->globalimax(p->solver_status);
     p->solver_error = pgc->globalimax(p->solver_error);
-    
-    if(p->solver_error>=1)
-    {
-        if(p->mpirank==0)
-        cout<<endl<<"!!! EMERGENCY STOP  --  HYPRE solver broke down!  !!!     "<<p->solver_error<<endl<<endl;
-        
-        if(p->A10==3)
-        pprint->print_stop(p,c,pgc);
-        
-        if(p->A10==4 || p->A10==5 || p->A10==6)
-        pprint->print_stop(p,a,pgc,pturb,pheat,pflow,pdata,pconc,pmp,psed);
 
-        if(p->A10==5)
-        pprint->print_stop(p,d,pgc,pflow,pnhfturb,psed);
-        
+    if(p->solver_error >= 1)
+    {
+        if(p->mpirank == 0)
+            cout << endl
+                 << "!!! EMERGENCY STOP  --  HYPRE solver broke down!  !!!     " << p->solver_error << endl
+                 << endl;
+
+        if(p->A10 == 3)
+            pprint->print_stop(p, c, pgc);
+
+        if(p->A10 == 5 || p->A10 == 6)
+            pprint->print_stop(p, a, pgc, pturb, pheat, pflow, pdata, pconc, pmp, psed);
+
+        if(p->A10 == 5)
+            pprint->print_stop(p, d, pgc, pflow, pnhfturb, psed);
+
         pgc->final(true);
     }
 }

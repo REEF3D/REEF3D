@@ -1,0 +1,23 @@
+{
+ "base": "fnpf_3d_shortcrested",
+ "steps": 30,
+ "ctrl_add": [
+  "G 1 1",
+  "G 10 0.0 2000.0 0.0 2000.0"
+ ],
+ "description": "FNPF 3D static AMR (G 1 1) with a refinement box over the whole domain: only the relaxation zones (B 96 400 800) and the in/outflow band stay unrefined.",
+ "tags": [
+  "quick",
+  "3d",
+  "fnpf",
+  "waves",
+  "iowave",
+  "amr"
+ ],
+ "covers": [
+  "fnpf_amr fbox from bc_zone"
+ ],
+ "ctrl_set": {
+  "A 350": "0"
+ }
+}

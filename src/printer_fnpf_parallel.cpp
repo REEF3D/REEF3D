@@ -20,35 +20,38 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"printer_fnpf.h"
-#include"lexer.h"
+#include "lexer.h"
+#include "printer_fnpf.h"
+#include "runlog.h"
 
 void printer_fnpf::parallel(lexer *p, int num)
 {
-    outputFormat->parallelFileName(name,sizeof(name),"FNPF",num);
+    outputFormat->parallelFileName(name, sizeof(name), "FNPF", num);
 
     ofstream result;
     result.open(name);
 
-    outputFormat->beginningParallel(p,result);
+    outputFormat->beginningParallel(p, result);
 
-    result<<"<PPointData>\n";
-    result<<"<PDataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\"/>\n";
-    result<<"<PDataArray type=\"Float32\" Name=\"Fi\"/>\n";
-    result<<"<PDataArray type=\"Float32\" Name=\"elevation\"/>\n";
-    if(p->P23==1)
-    result<<"<PDataArray type=\"Float32\" Name=\"test\"/>\n";
-    if(p->P310==1)
-    result<<"<PDataArray type=\"Float32\" Name=\"breaking\"/>\n";
-    if(p->P311==1)
-    result<<"<PDataArray type=\"Float32\" Name=\"vb\"/>\n";
-    if(p->P110==1)
-    result<<"<PDataArray type=\"Float32\" Name=\"Hs\"/>\n";
-    if(p->P25==1)
-    result<<"<PDataArray type=\"Float32\" Name=\"solid\"/>\n";
-    result<<"</PPointData>\n";
+    result << "<PPointData>\n";
+    result << "<PDataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\"/>\n";
+    result << "<PDataArray type=\"Float32\" Name=\"Fi\"/>\n";
+    result << "<PDataArray type=\"Float32\" Name=\"elevation\"/>\n";
+    if(p->P23 == 1)
+        result << "<PDataArray type=\"Float32\" Name=\"test\"/>\n";
+    if(p->P310 == 1)
+        result << "<PDataArray type=\"Float32\" Name=\"breaking\"/>\n";
+    if(p->P311 == 1)
+        result << "<PDataArray type=\"Float32\" Name=\"vb\"/>\n";
+    if(p->P110 == 1)
+        result << "<PDataArray type=\"Float32\" Name=\"Hs\"/>\n";
+    if(p->P25 == 1)
+        result << "<PDataArray type=\"Float32\" Name=\"solid\"/>\n";
+    result << "</PPointData>\n";
 
-    outputFormat->endingParallel(result,"FNPF",p->M10,num);
+    outputFormat->endingParallel(result, "FNPF", p->M10, num);
 
     result.close();
+    if(p->plog)
+        p->plog->written(p, num, "volume", "volume", name, p->M10);
 }

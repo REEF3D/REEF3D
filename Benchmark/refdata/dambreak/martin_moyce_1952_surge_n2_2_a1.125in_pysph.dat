@@ -1,0 +1,26 @@
+# Martin & Moyce (1952) collapse of liquid column -- surge-front position, n^2 = 2, a = 1.125 in
+# Original reference: J.C. Martin & W.J. Moyce, "Part IV. An experimental study of the collapse of liquid
+#   columns on a rigid horizontal plane", Phil. Trans. R. Soc. Lond. A 244, 312-324 (1952).
+# Secondary source (values copied verbatim, string mm_data_1):
+#   PySPH, pysph/examples/db_exp_data.py
+#   https://raw.githubusercontent.com/pypr/pysph/master/pysph/examples/db_exp_data.py
+#   https://github.com/pypr/pysph/blob/master/pysph/examples/db_exp_data.py?plain=1
+# PySPH comment: "This is the data for n^2=2 and a=1.125 from Figure 3."
+# PySPH module docstring: "The data is extracted from plots in the following references" -> DIGITISED from
+#   Martin & Moyce Fig. 3, not tabulated originals.
+# PySPH function get_martin_moyce_1 docstring: "Returns t*sqrt(2*g/a), z/a for the case where a = 1.125 inches"
+# Columns:
+#   T = t*sqrt(2*g/a)   [-]   (a = initial column base width; n^2 = height/width ratio per M&M notation -> H = 2a here)
+#   Z = z/a             [-]   (z = surge-front distance from the back wall)
+# Rows: 10
+# T       Z
+0.849   1.245
+1.212   1.443
+1.602   1.884
+2.283   2.689
+2.950   3.728
+3.598   4.528
+3.905   4.999
+4.592   5.841
+4.961   6.271
+5.316   6.717

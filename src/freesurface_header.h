@@ -23,23 +23,17 @@ Author: Hans Bihs
 #ifndef FREESURFACE_HEADER_H_
 #define FREESURFACE_HEADER_H_
 
-#include"levelset_RK2.h"
-#include"levelset_RK3.h"
-#include"levelset_void.h"
+#include "levelset_RK2.h"
+#include "levelset_RK3.h"
+#include "levelset_void.h"
 
-#include"reini_RK3.h"
-#include"directreini.h"
-#include"reini_void.h"
+#include "reini_RK3.h"
+#include "reini_void.h"
 
-#include"particle_pls.h"
-#include"particle_pls_void.h"
+#include "VOF_PLIC.h"
+#include "VOF_void.h"
 
-#include"VOF_AB.h"
-#include"VOF_RK3.h"
-#include"VOF_PLIC.h"
-#include"VOF_void.h"
-
-#include"multiphase_v.h"
-#include"multiphase_f.h"
+#include "multiphase_f.h"
+#include "multiphase_v.h"
 
 #endif

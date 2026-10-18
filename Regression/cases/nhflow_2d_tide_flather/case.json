@@ -1,0 +1,21 @@
+{
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 400,
+ "description": "NHFLOW channel 3 km, 10 m deep, progressive tide (a 0.25 m, T 600 s, B 510/511) in through a Riemann edge (B 520 method 3) at x-, out through a Flather edge (method 4) with a still-water background at x+.",
+ "tags": [
+  "quick",
+  "2d",
+  "nhflow",
+  "tide",
+  "iowave",
+  "bc_zone",
+  "background"
+ ],
+ "covers": [
+  "background_state harmonic",
+  "Riemann edge x-",
+  "Flather edge x+",
+  "open ghost cells (lexer open_xm/open_xp)"
+ ]
+}

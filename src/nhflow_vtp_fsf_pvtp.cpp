@@ -20,45 +20,77 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"nhflow_vtp_fsf.h"
-#include"lexer.h"
+#include "lexer.h"
+#include "nhflow_vtp_fsf.h"
+#include "runlog.h"
 
 void nhflow_vtp_fsf::pvtp(lexer *p, int num)
 {
-    sprintf(name,"./REEF3D_NHFLOW_VTP_FSF/REEF3D-NHFLOW-FSF-%08i.pvtp",num);
+    sprintf(name, "./REEF3D_NHFLOW_VTP_FSF/REEF3D-NHFLOW-FSF-%08i.pvtp", num);
 
     ofstream result;
     result.open(name);
 
-    vtp3D::beginningParallel(p,result);
+    vtp3D::beginningParallel(p, result);
 
     vtp3D::pointsParallel(result);
 
-    result<<"<PPointData>\n";
-    result<<"<PDataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\"/>\n";
-    result<<"<PDataArray type=\"Float32\" Name=\"eta\"/>\n";
-    result<<"<PDataArray type=\"Float32\" Name=\"WL\"/>\n";
-    result<<"<PDataArray type=\"Float32\" Name=\"breaking\"/>\n";
-    result<<"<PDataArray type=\"Float32\" Name=\"coastline\"/>\n";
-    result<<"<PDataArray type=\"Float32\" Name=\"wetdry\"/>\n";
-    if(p->P23==1)
-        result<<"<PDataArray type=\"Float32\" Name=\"test\"/>\n";
-    if(p->P28==1)
-        result<<"<PDataArray type=\"Float32\" Name=\"fb\"/>\n";
-    if(p->P110==1)
-        result<<"<PDataArray type=\"Float32\" Name=\"Hs\"/>\n";
-    if(p->P131==1)
-        result<<"<PDataArray type=\"Float32\" Name=\"wetdry_max\"/>\n";
-    result<<"</PPointData>\n";
+    result << "<PPointData>\n";
+    result << "<PDataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\"/>\n";
+    result << "<PDataArray type=\"Float32\" Name=\"eta\"/>\n";
+    result << "<PDataArray type=\"Float32\" Name=\"WL\"/>\n";
+    result << "<PDataArray type=\"Float32\" Name=\"breaking\"/>\n";
+    result << "<PDataArray type=\"Float32\" Name=\"coastline\"/>\n";
+    result << "<PDataArray type=\"Float32\" Name=\"wetdry\"/>\n";
+    if(p->P23 == 1)
+        result << "<PDataArray type=\"Float32\" Name=\"test\"/>\n";
+    if(p->P28 == 1)
+        result << "<PDataArray type=\"Float32\" Name=\"fb\"/>\n";
+    if(p->P110 == 1)
+        result << "<PDataArray type=\"Float32\" Name=\"Hs\"/>\n";
+    if(p->P131 == 1)
+        result << "<PDataArray type=\"Float32\" Name=\"wetdry_max\"/>\n";
+    result << "</PPointData>\n";
 
     char pname[200];
-    for(n=0; n<p->M10; ++n)
+    for(n = 0; n < p->M10; ++n)
     {
-        sprintf(pname,"REEF3D-NHFLOW-FSF-%08i-%06i.vtp",num,n+1);
-        result<<"<Piece Source=\""<<pname<<"\"/>\n";
+        sprintf(pname, "REEF3D-NHFLOW-FSF-%08i-%06i.vtp", num, n + 1);
+        result << "<Piece Source=\"" << pname << "\"/>\n";
     }
 
     vtp3D::endingParallel(result);
 
     result.close();
+    if(p->plog)
+        p->plog->written(p, num, "fsf", "free_surface", name, p->M10);
+}
+
+void nhflow_vtp_fsf::pvtp_avg(lexer *p, int num)
+{
+    snprintf(name, sizeof(name), "./REEF3D_NHFLOW_VTP_TIME_AVG_FSF/REEF3D-NHFLOW-FSF-TIMEAVG-%08i.pvtp", num);
+
+    ofstream result;
+    result.open(name);
+
+    vtp3D::beginningParallel(p, result);
+    vtp3D::pointsParallel(result);
+
+    result << "<PPointData>\n";
+    result << "<PDataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\"/>\n";
+    result << "<PDataArray type=\"Float32\" Name=\"eta\"/>\n";
+    result << "<PDataArray type=\"Float32\" Name=\"WL\"/>\n";
+    result << "</PPointData>\n";
+
+    char pname[200];
+    for(n = 0; n < p->M10; ++n)
+    {
+        sprintf(pname, "REEF3D-NHFLOW-FSF-TIMEAVG-%08i-%06i.vtp", num, n + 1);
+        result << "<Piece Source=\"" << pname << "\"/>\n";
+    }
+
+    vtp3D::endingParallel(result);
+    result.close();
+    if(p->plog)
+        p->plog->written(p, num, "fsf_timeavg", "free_surface_mean", name, p->M10);
 }

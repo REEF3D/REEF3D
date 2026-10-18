@@ -1,0 +1,8 @@
+{
+ "base": "nhflow_2d_hdc",
+ "np": 2,
+ "chain": [{"case": "fnpf_hdc_source_uvw", "copy": ["REEF3D_FNPF_STATE"]}],
+ "description": "nhflow_2d_hdc on 2 ranks: DIVEMesh writes one HDC input per subdomain.",
+ "tags": ["2d", "nhflow", "waves", "iowave", "hdc", "mpi"],
+ "covers": ["wave_lib_hdc (NHFLOW) on a decomposed grid"]
+}

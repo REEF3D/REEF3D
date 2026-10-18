@@ -20,16 +20,16 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"fnpf_coastline.h"
-#include"lexer.h"
-#include"fdm_fnpf.h"
-#include"ghostcell.h"
-#include"slice.h"
-#include"sliceint.h"
+#include "fnpf_coastline.h"
+#include "fdm_fnpf.h"
+#include "ghostcell.h"
+#include "lexer.h"
+#include "slice.h"
+#include "sliceint.h"
 
-fnpf_coastline::fnpf_coastline(lexer* p) :  ddweno_f_nug(p), frk1(p),frk2(p),L(p),dt(p),wet_n(p)
+fnpf_coastline::fnpf_coastline(lexer *p) : ddweno_f_nug(p), frk1(p), frk2(p), L(p), dt(p), wet_n(p), cpx(p), cpy(p)
 {
-    time_preproc(p); 
+    time_preproc(p);
 }
 
 fnpf_coastline::~fnpf_coastline()
@@ -38,21 +38,34 @@ fnpf_coastline::~fnpf_coastline()
 
 void fnpf_coastline::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &coastline, int *wet, sliceint &wet_n)
 {
-    if(p->count==0)
+    if(p->count == 0)
     {
         SLICELOOP4
         {
 
-            coastline(i,j)=1.0;
-            
-            if(p->wd - c->bed(i,j) < c->wd_criterion)
-            coastline(i,j)=-1.0;
-   
+            coastline(i, j) = 1.0;
+
+            if(p->wd - c->bed(i, j) < c->wd_criterion)
+                coastline(i, j) = -1.0;
         }
-        reini(p,pgc,coastline);
+        double starttime = pgc->timer();
+
+        // A338: dry out wet pockets not connected to the main water body
+        if(p->A338 == 1)
+            isolated(p, c, pgc, coastline, wet);
+
+        // A339: 1 = fast sweeping (default), 0 = PDE reinitialisation (legacy)
+        if(p->A339 == 1)
+            fsm(p, pgc, coastline);
+
+        if(p->A339 != 1)
+            reini(p, pgc, coastline);
+
+        double endtime = pgc->timer();
+
+        if(p->mpirank == 0)
+            cout << "coastline initialization time: " << endtime - starttime << " s" << endl
+                 << endl;
     }
 }
-
-
-
 

@@ -1,0 +1,39 @@
+{
+ "description": "5th-order Stokes waves (Fenton), H = 1 m, T = 4.5 s, d = 4.01 m (kd ~ 1, H/L ~ 0.04) propagating 100 m in NHFLOW (tutorial NHFLOW/1 extended). The simulated surface elevation must follow the generating theory (P 50) at x = 50..125 m: no loss of height, no phase drift, the crest/trough asymmetry kept.",
+ "reference": {
+  "short": "Fenton (1985) 5th-order Stokes",
+  "citation": "Fenton, J.D. (1985) A fifth-order Stokes theory for steady waves. J. Waterway, Port, Coastal and Ocean Eng. 111(2), 216-234 (the generating theory, B 92 5, recorded with P 50)"
+ },
+ "tags": [
+  "nhflow",
+  "analytical",
+  "2dv",
+  "quick"
+ ],
+ "np": 4,
+ "time": 80.0,
+ "check": {
+  "type": "theory_gauges",
+  "t_start": 50.0,
+  "t_end": 80.0,
+  "tol_rms": 0.1,
+  "tol_height": 0.03
+ },
+ "levels": {
+  "nightly": {
+   "np": 2,
+   "time": 60.0,
+   "control_set": {
+    "B 2": "400 1 8",
+    "M 10": "2"
+   },
+   "check_set": {
+    "t_start": 45.0,
+    "t_end": 60.0,
+    "tol_rms": 0.12,
+    "tol_height": 0.04
+   }
+  },
+  "release": {}
+ }
+}

@@ -1,0 +1,9 @@
+{
+ "description": "Ship module (X 350): NHFLOW 3D box barge accelerated by a constant thrust (ship.dat) with ITTC-1957 friction and form factor; surge, heave and pitch free, 2 MPI ranks.",
+ "solver": "nhflow",
+ "np": 2,
+ "steps": 60,
+ "files": ["ship.dat"],
+ "tags": ["3d", "nhflow", "6dof", "ship", "mpi"],
+ "covers": ["ship (sixdof_load)", "ship_hull wetted surface", "ship_models friction", "thrust with offset", "REEF3D_ship output"]
+}

@@ -23,25 +23,25 @@ Author: Hans Bihs
 #ifndef NHFLOW_LES_SMAGORINSKY_H_
 #define NHFLOW_LES_SMAGORINSKY_H_
 
-#include"nhflow_les_io.h"
+#include "nhflow_les_io.h"
 
 using namespace std;
 
 class nhflow_LES_Smagorinsky final : public nhflow_les_io
 {
 public:
-	nhflow_LES_Smagorinsky(lexer *, fdm_nhf*, ghostcell*);
-	virtual ~nhflow_LES_Smagorinsky();
-	void start(lexer*, fdm_nhf*, ghostcell*, nhflow_scalar_convection*, nhflow_diffusion*, solver*, ioflow*, vrans*) override final;
-	void ktimesave(lexer*, fdm_nhf*, ghostcell*) override final;
-	void etimesave(lexer*, fdm_nhf*, ghostcell*) override final;
-	void timesource(lexer*,fdm_nhf*,double*);
-    void kinupdate(lexer*, fdm_nhf*, ghostcell*);
-	void clearrhs(lexer*,fdm_nhf*);
+    nhflow_LES_Smagorinsky(lexer *, fdm_nhf *, ghostcell *);
+    virtual ~nhflow_LES_Smagorinsky();
+    void start(lexer *, fdm_nhf *, ghostcell *, nhflow_scalar_convection *, nhflow_diffusion *, solver *, ioflow *, vrans_nhflow *) override final;
+    void ktimesave(lexer *, fdm_nhf *, ghostcell *) override final;
+    void etimesave(lexer *, fdm_nhf *, ghostcell *) override final;
+    void timesource(lexer *, fdm_nhf *, double *);
+    void kinupdate(lexer *, fdm_nhf *, ghostcell *);
+    void clearrhs(lexer *, fdm_nhf *);
 
 private:
     int gcval_kin, gcval_eps;
-    int count,q;
+    int count, q;
     double c_sgs;
     double aii;
 };

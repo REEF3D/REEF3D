@@ -1,0 +1,15 @@
+# Ting & Kirby (1994, 1995, 1996) spilling / plunging breakers on a 1:35 slope -- SETUP ONLY, NO MEASURED H / SETUP FOUND
+# Original: Ting, F.C.K. & Kirby, J.T. (1994) Observation of undertow and turbulence in a laboratory surf zone,
+#   Coastal Engineering 24, 51-80 (air-water-vv cites pages 177-204).
+# [S1] Derakhti, Kirby, Shi & Ma (2016, submitted version) https://www1.udel.edu/kirby/papers/derakhti-etal-om15b-submitted.pdf
+#   flume "approximately 40m long, 0.6m wide and 1.0m deep"; 1:35 plane slope; constant depth region 0.4 m;
+#   "x = 0 is the cross-shore location at which d = 0.38m".
+#   Table 1: spilling (TK1) H = 0.125 m, T = 2.0 s, (kH)0 = 0.126 ; plunging (TK2) H = 0.128 m, T = 5.0 s, (kH)0 = 0.015
+#   break points: spilling xb = 6.40 m ; plunging xb = 7.795 m
+# [S2] ERDC air-water-vv docs https://erdc.github.io/air-water-vv/2d/index.html ("Wave breaking - Ting and Kirby (1994)"):
+#   slope 1:35, flume height 1.0 m, h = 0.4 m, L = 40 m, "Wave heights are 0.125 m and 0.128 m, for cases (a) and (b)
+#   respectively, when the wave period in the case (a) is 2.0s and in case (b) is 5.0s"; sketch L1 = 15.0 m, ht = 0.38 m.
+# [S3] ICCE paper https://icce-ojs-tamu.tdl.org/icce/index.php/icce/article/download/7485/pdf_774 (spilling):
+#   "sloping beach of gradient 1/35, the water depth, h, is 0.4m and the origin is located ... 0.7m shoreward of the start
+#    of the slope"; stations x - xb = -0.455, 0.875, 2.095, 3.325 m (x = 5.945, 7.275, 8.495, 9.725 m).
+# Measured wave height and mean water level along the flume: only as figures in all fetched sources; NOT tabulated.

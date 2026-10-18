@@ -23,8 +23,8 @@ Author: Hans Bihs
 #ifndef NHFLOW_RECONSTRUCT_H_
 #define NHFLOW_RECONSTRUCT_H_
 
-#include"increment.h"
-#include"slice4.h"
+#include "increment.h"
+#include "slice4.h"
 
 class lexer;
 class ghostcell;
@@ -37,15 +37,15 @@ using namespace std;
 class nhflow_reconstruct
 {
 public:
+    virtual ~nhflow_reconstruct() {}
 
-    virtual inline void reconstruct_2D_x(lexer*,ghostcell*,fdm_nhf*,slice&,slice&,slice&)=0;
-    virtual inline void reconstruct_2D_y(lexer*,ghostcell*,fdm_nhf*,slice&,slice&,slice&)=0;
-    virtual inline void reconstruct_2D_WL(lexer*,ghostcell*,fdm_nhf*)=0;
-    
-    virtual inline void reconstruct_3D_x(lexer*,ghostcell*,fdm_nhf*,double*,double*,double*)=0;
-    virtual inline void reconstruct_3D_y(lexer*,ghostcell*,fdm_nhf*,double*,double*,double*)=0;
-    virtual inline void reconstruct_3D_z(lexer*,ghostcell*,fdm_nhf*,double*,double*,double*)=0;
+    virtual void reconstruct_2D_x(lexer *, ghostcell *, fdm_nhf *, slice &, slice &, slice &) = 0;
+    virtual void reconstruct_2D_y(lexer *, ghostcell *, fdm_nhf *, slice &, slice &, slice &) = 0;
+    virtual void reconstruct_2D_WL(lexer *, ghostcell *, fdm_nhf *) = 0;
 
+    virtual void reconstruct_3D_x(lexer *, ghostcell *, fdm_nhf *, double *, double *, double *) = 0;
+    virtual void reconstruct_3D_y(lexer *, ghostcell *, fdm_nhf *, double *, double *, double *) = 0;
+    virtual void reconstruct_3D_z(lexer *, ghostcell *, fdm_nhf *, double *, double *, double *) = 0;
 };
 
 #endif

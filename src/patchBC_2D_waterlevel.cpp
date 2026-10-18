@@ -20,121 +20,86 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"patchBC_2D.h"
-#include"lexer.h"
-#include"fdm2D.h"
-#include"ghostcell.h"
-#include"patch_obj.h"
+#include "fdm2D.h"
+#include "ghostcell.h"
+#include "lexer.h"
+#include "patchBC_2D.h"
+#include "patch_obj.h"
 
 void patchBC_2D::patchBC_waterlevel2D(lexer *p, fdm2D *b, ghostcell *pgc, slice &eta)
 {
     // hydrograph interpolation
     // waterlevel
-    for(qq=0;qq<obj_count;++qq)
-    if(patch[qq]->hydroFSF_flag==1)
-    {
-    patch[qq]->waterlevel = patchBC_hydrograph_FSF_ipol(p,pgc,qq,patch[qq]->ID);
-    }
-    
+    for(qq = 0; qq < obj_count; ++qq)
+        if(patch[qq]->hydroFSF_flag == 1)
+        {
+            patch[qq]->waterlevel = patchBC_hydrograph_FSF_ipol(p, pgc, qq, patch[qq]->ID);
+        }
+
     // waterlevel
-    for(qq=0;qq<obj_count;++qq)
-    if(patch[qq]->waterlevel_flag==1)
-    for(n=0;n<patch[qq]->gcb_count;++n)
-    {
-    i=patch[qq]->gcb[n][0];
-    j=patch[qq]->gcb[n][1];
-    
-        if(patch[qq]->gcb[n][3]==1)
-        {
-        //if(p->count<=1)
-        //eta(i,j)   =  patch[qq]->waterlevel-p->wd;
-        
-        eta(i-1,j) =  patch[qq]->waterlevel-p->wd;
-        eta(i-2,j) =  patch[qq]->waterlevel-p->wd;
-        eta(i-3,j) =  patch[qq]->waterlevel-p->wd;
-        
-        //if(p->count<=1)
-        //b->hp(i,j) =  patch[qq]->waterlevel-b->bed(i,j);
-        
-        b->hp(i-1,j) =  patch[qq]->waterlevel-b->bed(i,j);
-        b->hp(i-2,j) =  patch[qq]->waterlevel-b->bed(i,j);
-        b->hp(i-3,j) =  patch[qq]->waterlevel-b->bed(i,j);
-        
-        /*
-        b->hx(i-1,j) =  patch[qq]->waterlevel-b->bed(i,j);
-        b->hx(i-2,j) =  patch[qq]->waterlevel-b->bed(i,j);
-        b->hx(i-3,j) =  patch[qq]->waterlevel-b->bed(i,j);
-        
-        b->hy(i-1,j) =  patch[qq]->waterlevel-b->bed(i,j);
-        b->hy(i-2,j) =  patch[qq]->waterlevel-b->bed(i,j);
-        b->hy(i-3,j) =  patch[qq]->waterlevel-b->bed(i,j);*/
-        }
-        
-        if(patch[qq]->gcb[n][3]==2)
-        {
-        //eta(i,j) =  patch[qq]->waterlevel-p->wd;
-        eta(i,j+1) =  patch[qq]->waterlevel-p->wd;
-        eta(i,j+2) =  patch[qq]->waterlevel-p->wd;
-        eta(i,j+3) =  patch[qq]->waterlevel-p->wd;
-        
-        b->hp(i,j+1) =  patch[qq]->waterlevel-b->bed(i,j);
-        b->hp(i,j+2) =  patch[qq]->waterlevel-b->bed(i,j);
-        b->hp(i,j+3) =  patch[qq]->waterlevel-b->bed(i,j);
-        
-        /*
-        b->hx(i,j+1) =  patch[qq]->waterlevel-b->bed(i,j);
-        b->hx(i,j+2) =  patch[qq]->waterlevel-b->bed(i,j);
-        b->hx(i,j+3) =  patch[qq]->waterlevel-b->bed(i,j);
-        
-        b->hy(i,j)   =  patch[qq]->waterlevel-b->bed(i,j);
-        b->hy(i,j+1) =  patch[qq]->waterlevel-b->bed(i,j);
-        b->hy(i,j+2) =  patch[qq]->waterlevel-b->bed(i,j);*/
-        }
-        
-        if(patch[qq]->gcb[n][3]==3)
-        {
-        //eta(i,j) =  patch[qq]->waterlevel-p->wd;
-        eta(i,j-1) =  patch[qq]->waterlevel-p->wd;
-        eta(i,j-2) =  patch[qq]->waterlevel-p->wd;
-        eta(i,j-3) =  patch[qq]->waterlevel-p->wd;
-        
-        b->hp(i,j-1) =  patch[qq]->waterlevel-b->bed(i,j);
-        b->hp(i,j-2) =  patch[qq]->waterlevel-b->bed(i,j);
-        b->hp(i,j-3) =  patch[qq]->waterlevel-b->bed(i,j);
-        
-        /*b->hx(i,j-1) =  patch[qq]->waterlevel-b->bed(i,j);
-        b->hx(i,j-2) =  patch[qq]->waterlevel-b->bed(i,j);
-        b->hx(i,j-3) =  patch[qq]->waterlevel-b->bed(i,j);
-        
-        b->hy(i,j-1) =  patch[qq]->waterlevel-b->bed(i,j);
-        b->hy(i,j-2) =  patch[qq]->waterlevel-b->bed(i,j);
-        b->hy(i,j-3) =  patch[qq]->waterlevel-b->bed(i,j);*/
-        }
-        
-        if(patch[qq]->gcb[n][3]==4)
-        {
-        //eta(i,j) =  patch[qq]->waterlevel-p->wd;
-        eta(i+1,j) =  patch[qq]->waterlevel-p->wd;
-        eta(i+2,j) =  patch[qq]->waterlevel-p->wd;
-        eta(i+3,j) =  patch[qq]->waterlevel-p->wd;
-        
-        b->hp(i+1,j) =  patch[qq]->waterlevel-b->bed(i,j);
-        b->hp(i+2,j) =  patch[qq]->waterlevel-b->bed(i,j);
-        b->hp(i+3,j) =  patch[qq]->waterlevel-b->bed(i,j);
-        
-        /*
-        b->hx(i,j)   =  patch[qq]->waterlevel-b->bed(i,j);
-        b->hx(i+1,j) =  patch[qq]->waterlevel-b->bed(i,j);
-        b->hx(i+2,j) =  patch[qq]->waterlevel-b->bed(i,j);
-        
-        b->hy(i+1,j) =  patch[qq]->waterlevel-b->bed(i,j);
-        b->hy(i+2,j) =  patch[qq]->waterlevel-b->bed(i,j);
-        b->hy(i+3,j) =  patch[qq]->waterlevel-b->bed(i,j);*/
-        }
-    }
+    for(qq = 0; qq < obj_count; ++qq)
+        if(patch[qq]->waterlevel_flag == 1)
+            for(n = 0; n < patch[qq]->gcb_count; ++n)
+            {
+                i = patch[qq]->gcb[n][0];
+                j = patch[qq]->gcb[n][1];
+
+                if(patch[qq]->gcb[n][3] == 1)
+                {
+                    // if(p->count<=1)
+                    // eta(i,j)   =  patch[qq]->waterlevel-p->wd;
+
+                    eta(i - 1, j) = patch[qq]->waterlevel - p->wd;
+                    eta(i - 2, j) = patch[qq]->waterlevel - p->wd;
+                    eta(i - 3, j) = patch[qq]->waterlevel - p->wd;
+
+                    // if(p->count<=1)
+                    // b->hp(i,j) =  patch[qq]->waterlevel-b->bed(i,j);
+
+                    b->hp(i - 1, j) = patch[qq]->waterlevel - b->bed(i, j);
+                    b->hp(i - 2, j) = patch[qq]->waterlevel - b->bed(i, j);
+                    b->hp(i - 3, j) = patch[qq]->waterlevel - b->bed(i, j);
+                }
+
+                if(patch[qq]->gcb[n][3] == 2)
+                {
+                    // eta(i,j) =  patch[qq]->waterlevel-p->wd;
+                    eta(i, j + 1) = patch[qq]->waterlevel - p->wd;
+                    eta(i, j + 2) = patch[qq]->waterlevel - p->wd;
+                    eta(i, j + 3) = patch[qq]->waterlevel - p->wd;
+
+                    b->hp(i, j + 1) = patch[qq]->waterlevel - b->bed(i, j);
+                    b->hp(i, j + 2) = patch[qq]->waterlevel - b->bed(i, j);
+                    b->hp(i, j + 3) = patch[qq]->waterlevel - b->bed(i, j);
+                }
+
+                if(patch[qq]->gcb[n][3] == 3)
+                {
+                    // eta(i,j) =  patch[qq]->waterlevel-p->wd;
+                    eta(i, j - 1) = patch[qq]->waterlevel - p->wd;
+                    eta(i, j - 2) = patch[qq]->waterlevel - p->wd;
+                    eta(i, j - 3) = patch[qq]->waterlevel - p->wd;
+
+                    b->hp(i, j - 1) = patch[qq]->waterlevel - b->bed(i, j);
+                    b->hp(i, j - 2) = patch[qq]->waterlevel - b->bed(i, j);
+                    b->hp(i, j - 3) = patch[qq]->waterlevel - b->bed(i, j);
+                }
+
+                if(patch[qq]->gcb[n][3] == 4)
+                {
+                    // eta(i,j) =  patch[qq]->waterlevel-p->wd;
+                    eta(i + 1, j) = patch[qq]->waterlevel - p->wd;
+                    eta(i + 2, j) = patch[qq]->waterlevel - p->wd;
+                    eta(i + 3, j) = patch[qq]->waterlevel - p->wd;
+
+                    b->hp(i + 1, j) = patch[qq]->waterlevel - b->bed(i, j);
+                    b->hp(i + 2, j) = patch[qq]->waterlevel - b->bed(i, j);
+                    b->hp(i + 3, j) = patch[qq]->waterlevel - b->bed(i, j);
+                }
+            }
 }
 
 void patchBC_2D::patchBC_waterlevel(lexer *p, fdm *a, ghostcell *pgc, field &phi)
 {
-} 
+}
 

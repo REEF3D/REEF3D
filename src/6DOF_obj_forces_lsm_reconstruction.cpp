@@ -20,68 +20,67 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"6DOF_obj.h"
-#include"lexer.h"
-#include"fdm.h"
+#include "6DOF_obj_cfd.h"
+#include "fdm.h"
+#include "lexer.h"
 
-void sixdof_obj::reconstruct(lexer *p,fdm* a, field& b)
+void sixdof_obj_cfd::reconstruct(lexer *p, fdm *a, field &b)
 {
-    ccptcount=0;
+    ccptcount = 0;
 
-    for(n=0;n<numtri; ++n)
-    confac[n]=-1;
-    facount=ccptcount=0;
+    for(n = 0; n < numtri; ++n)
+        confac[n] = -1;
+    facount = ccptcount = 0;
 
-
-    for(n=0;n<numtri; ++n)
+    for(n = 0; n < numtri; ++n)
     {
-        if((ls[tri[n][0]] >= -zero && ls[tri[n][1]] < zero)  ||  (ls[tri[n][0]] < zero && ls[tri[n][1]] >= -zero))
-        addpoint(p,a,tri[n][0],tri[n][1]);
+        if((ls[tri[n][0]] >= -zero && ls[tri[n][1]] < zero) || (ls[tri[n][0]] < zero && ls[tri[n][1]] >= -zero))
+            addpoint(p, a, tri[n][0], tri[n][1]);
 
-        if((ls[tri[n][0]] >= -zero && ls[tri[n][2]] < zero)  ||  (ls[tri[n][0]] < zero && ls[tri[n][2]] >= -zero))
-        addpoint(p,a,tri[n][0],tri[n][2]);
+        if((ls[tri[n][0]] >= -zero && ls[tri[n][2]] < zero) || (ls[tri[n][0]] < zero && ls[tri[n][2]] >= -zero))
+            addpoint(p, a, tri[n][0], tri[n][2]);
 
-        if((ls[tri[n][0]] >= -zero && ls[tri[n][3]] < zero)  ||  (ls[tri[n][0]] < zero && ls[tri[n][3]] >= -zero))
-        addpoint(p,a,tri[n][0],tri[n][3]);
+        if((ls[tri[n][0]] >= -zero && ls[tri[n][3]] < zero) || (ls[tri[n][0]] < zero && ls[tri[n][3]] >= -zero))
+            addpoint(p, a, tri[n][0], tri[n][3]);
 
-        if((ls[tri[n][1]] >= -zero && ls[tri[n][2]] < zero)  ||  (ls[tri[n][1]] < zero && ls[tri[n][2]] >= -zero))
-        addpoint(p,a,tri[n][1],tri[n][2]);
+        if((ls[tri[n][1]] >= -zero && ls[tri[n][2]] < zero) || (ls[tri[n][1]] < zero && ls[tri[n][2]] >= -zero))
+            addpoint(p, a, tri[n][1], tri[n][2]);
 
-        if((ls[tri[n][1]] >= -zero && ls[tri[n][3]] < zero)  ||  (ls[tri[n][1]] < zero && ls[tri[n][3]] >= -zero))
-        addpoint(p,a,tri[n][1],tri[n][3]);
+        if((ls[tri[n][1]] >= -zero && ls[tri[n][3]] < zero) || (ls[tri[n][1]] < zero && ls[tri[n][3]] >= -zero))
+            addpoint(p, a, tri[n][1], tri[n][3]);
 
-        if((ls[tri[n][2]] >= -zero && ls[tri[n][3]] < zero)  ||  (ls[tri[n][2]] < zero && ls[tri[n][3]] >= -zero))
-        addpoint(p,a,tri[n][2],tri[n][3]);
+        if((ls[tri[n][2]] >= -zero && ls[tri[n][3]] < zero) || (ls[tri[n][2]] < zero && ls[tri[n][3]] >= -zero))
+            addpoint(p, a, tri[n][2], tri[n][3]);
     }
 }
 
-void sixdof_obj::addpoint(lexer *p, fdm *a, int q1, int q2)
+void sixdof_obj_cfd::addpoint(lexer *p, fdm *a, int q1, int q2)
 {
-	// p. 917
-    double dist,xd,dnom;
+    // p. 917
+    double dist, xd, dnom;
 
-    dnom=ls[q2]-ls[q1];
-    dnom=fabs(dnom)>1.0e-20?dnom:1.0e-20;
+    dnom = ls[q2] - ls[q1];
+    dnom = fabs(dnom) > 1.0e-20 ? dnom : 1.0e-20;
 
-    xd = -(ls[q1]/(dnom));
+    xd = -(ls[q1] / (dnom));
 
-    ccpt[ccptcount][0] = (pt[q2][0]-pt[q1][0])*xd + pt[q1][0];
-    ccpt[ccptcount][1] = (pt[q2][1]-pt[q1][1])*xd + pt[q1][1];
-    ccpt[ccptcount][2] = (pt[q2][2]-pt[q1][2])*xd + pt[q1][2];
+    ccpt[ccptcount][0] = (pt[q2][0] - pt[q1][0]) * xd + pt[q1][0];
+    ccpt[ccptcount][1] = (pt[q2][1] - pt[q1][1]) * xd + pt[q1][1];
+    ccpt[ccptcount][2] = (pt[q2][2] - pt[q1][2]) * xd + pt[q1][2];
 
-    if(confac[n]>-1)
-    nn=confac[n];
+    if(confac[n] > -1)
+        nn = confac[n];
 
-    if(confac[n]==-1)
+    if(confac[n] == -1)
     {
-        confac[n]=facount;
-        nn=facount;
+        confac[n] = facount;
+        nn = facount;
         ++facount;
     }
 
     facet[nn][numpt[nn]] = ccptcount;
-    
-	++numpt[nn];
+
+    ++numpt[nn];
     ++numfac[n];
 
     ++ccptcount;

@@ -23,8 +23,8 @@ Author: Hans Bihs
 #ifndef NHFLOW_PJM_H_
 #define NHFLOW_PJM_H_
 
-#include"nhflow_pressure.h"
-#include"increment.h"
+#include "increment.h"
+#include "nhflow_pressure.h"
 
 class density;
 class solver;
@@ -37,40 +37,37 @@ class nhflow_pjm final : public nhflow_pressure, public increment
 {
 
 public:
+    nhflow_pjm(lexer *, fdm_nhf *, ghostcell *, patchBC_interface *);
+    virtual ~nhflow_pjm();
 
-	nhflow_pjm(lexer*, fdm_nhf*, ghostcell*,patchBC_interface*);
-	virtual ~nhflow_pjm();
+    void start(lexer *, fdm_nhf *, solver *, ghostcell *, ioflow *, slice &, double *, double *, double *, double) override final;
+    double *amr_prepare(lexer *, fdm_nhf *, ghostcell *, double) override final;
+    void amr_finish(lexer *, fdm_nhf *, ghostcell *, slice &, double *, double *, double *, double) override final;
+    void ucorr(lexer *p, fdm_nhf *, slice &, double *, double *, double) override final;
+    void vcorr(lexer *p, fdm_nhf *, slice &, double *, double *, double) override final;
+    void wcorr(lexer *p, fdm_nhf *, slice &, double *, double *, double) override final;
+    void upgrad(lexer *, fdm_nhf *, slice &) override final;
+    void vpgrad(lexer *, fdm_nhf *, slice &) override final;
+    void wpgrad(lexer *, fdm_nhf *, slice &) override final;
 
-	void start(lexer*,fdm_nhf*,solver*,ghostcell*,ioflow*,slice&,double*,double*,double*,double) override final;
-	void ucorr(lexer*p,fdm_nhf*,slice&,double*,double*,double) override final;
-	void vcorr(lexer*p,fdm_nhf*,slice&,double*,double*,double) override final;
-	void wcorr(lexer*p,fdm_nhf*,slice&,double*,double*,double) override final;
-	void upgrad(lexer*,fdm_nhf*,slice&) override final;
-	void vpgrad(lexer*,fdm_nhf*,slice&) override final;
-    void wpgrad(lexer*,fdm_nhf*,slice&) override final;
-    
-    void rhs(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
-	void vel_setup(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
-    void bedbc(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double);
+    void rhs(lexer *, fdm_nhf *, ghostcell *, double *, double *, double *, double);
+    void vel_setup(lexer *, fdm_nhf *, ghostcell *, double *, double *, double *, double);
+    void bedbc(lexer *, fdm_nhf *, ghostcell *, double *, double *, double *, double);
 
 private:
-    
-	double starttime,endtime;
+    double starttime, endtime;
     const double teta;
     int check;
-	int count, gcval_press;
-	int gcval_u, gcval_v, gcval_w;
-    int solver_id;
+    int count, gcval_press;
+    int gcval_u, gcval_v, gcval_w;
     double val, denom;
     double gamma;
+    double *P0;
 
     density *pd;
     nhflow_poisson *ppois;
     patchBC_interface *pBC;
-
 };
-
-
 
 #endif
 

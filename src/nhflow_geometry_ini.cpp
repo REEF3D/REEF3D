@@ -20,44 +20,45 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"nhflow_geometry.h"
-#include"lexer.h"
-#include"fdm_nhf.h"
-#include"ghostcell.h"
-#include"6DOF.h"
-#include"nhflow_reinidisc_fsf.h"
+#include "6DOF.h"
+#include "fdm_nhf.h"
+#include "ghostcell.h"
+#include "lexer.h"
+#include "nhflow_geometry.h"
+#include "nhflow_reinidisc_fsf.h"
 
 void nhflow_geometry::geometry_ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     LOOP
-    p->ZSP[IJK]  = p->ZP[KP]*d->WL(i,j) + d->bed(i,j);
-    
-    pgc->start5V(p,p->ZSP,1);
-    
-    
-    //DSM
-    int num=0;
-    DSM=0.0;
-    
-    if(p->j_dir==0)
-    SLICELOOP4
-    {
-    DSM += p->DXN[IP];
-        
-    ++num;
-    }
-    
-    if(p->j_dir==1)
-    SLICELOOP4
-    {
-    DSM += 0.5*(p->DXN[IP] + p->DYN[JP]);
-        
-    ++num;
-    }
-    
-    pgc->globalsum(DSM);
-    pgc->globalisum(num);
-    
-    DSM = DSM/double(num);
+        p->ZSP[IJK] = p->ZP[KP] * d->WL(i, j) + d->bed(i, j);
+
+    pgc->start5V(p, p->ZSP, 1);
+
+    // DSM
+    int num = 0;
+    DSM = 0.0;
+
+    if(p->j_dir == 0)
+        SLICELOOP4
+        {
+            DSM += p->DXN[IP];
+
+            ++num;
+        }
+
+    if(p->j_dir == 1)
+        SLICELOOP4
+        {
+            DSM += 0.5 * (p->DXN[IP] + p->DYN[JP]);
+
+            ++num;
+        }
+
+    DSM = pgc->globalsum(DSM);
+    num = pgc->globalisum(num);
+
+    DSM = DSM / double(num);
+
+    NB = MAX(3.0, 2.0 * p->A526 + 1.0);
 }
 

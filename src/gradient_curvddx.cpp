@@ -20,291 +20,235 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"gradient.h"
-#include"fdm.h"
+#include "fdm.h"
+#include "gradient.h"
 
-//scalar->momentum
+// scalar->momentum
 
 // **********************************************************
 // XDX2
 // **********************************************************
 
-double gradient::xdx(fdm* a, field& f)
+double gradient::xdx(fdm *a, field &f)
 {
-    pip=1;
-	grad = (f(i+1,j,k) - f(i,j,k))/(dx);
-    pip=0;
-	return grad;
+    grad = (f(i + 1, j, k) - f(i, j, k)) / (dx);
+    return grad;
 }
 
-double gradient::xdy(fdm* a, field& f)
+double gradient::xdy(fdm *a, field &f)
 {
-    pip=2;
-	grad = (0.5*(f(i,j+1,k)+f(i+1,j+1,k)) - 0.5*(f(i,j-1,k)+f(i+1,j-1,k)))/(2.0*dx);
-    pip=0;
+    grad = (0.5 * (f(i, j + 1, k) + f(i + 1, j + 1, k)) - 0.5 * (f(i, j - 1, k) + f(i + 1, j - 1, k))) / (2.0 * dx);
 
-	return grad;
+    return grad;
 }
 
-double gradient::xdz(fdm* a, field& f)
+double gradient::xdz(fdm *a, field &f)
 {
-    pip=3;
-	grad = (0.5*(f(i,j,k+1)+f(i+1,j,k+1)) - 0.5*(f(i,j,k-1)+f(i+1,j,k-1)))/(2.0*dx);
-    pip=0;
+    grad = (0.5 * (f(i, j, k + 1) + f(i + 1, j, k + 1)) - 0.5 * (f(i, j, k - 1) + f(i + 1, j, k - 1))) / (2.0 * dx);
 
-	return grad;
+    return grad;
 }
 
 // **********************************************************
 // XDXX2
 // **********************************************************
 
-double gradient::xdxx(fdm* a, field& f)
+double gradient::xdxx(fdm *a, field &f)
 {
-    pip=1;
-	grad = (f(i+2,j,k)-f(i+1,j,k)-f(i,j,k)+f(i-1,j,k))/(2.0*dx*dx);
-    pip=0;
+    grad = (f(i + 2, j, k) - f(i + 1, j, k) - f(i, j, k) + f(i - 1, j, k)) / (2.0 * dx * dx);
 
-	return grad;
+    return grad;
 }
 
-double gradient::xdyy(fdm* a, field& f)
+double gradient::xdyy(fdm *a, field &f)
 {
-    pip=2;
-	grad = (0.5*(f(i,j-1,k)+f(i+1,j-1,k)) - 2.0*0.5*(f(i,j,k)+f(i+1,j,k)) + 0.5*(f(i,j+1,k)+f(i+1,j+1,k)))/(dx*dx);
-    pip=0;
+    grad = (0.5 * (f(i, j - 1, k) + f(i + 1, j - 1, k)) - 2.0 * 0.5 * (f(i, j, k) + f(i + 1, j, k)) + 0.5 * (f(i, j + 1, k) + f(i + 1, j + 1, k))) / (dx * dx);
 
-	return grad;
+    return grad;
 }
 
-double gradient::xdzz(fdm* a, field& f)
+double gradient::xdzz(fdm *a, field &f)
 {
-    pip=3;
-	grad = (0.5*(f(i,j,k-1)+f(i+1,j,k-1)) - 2.0*0.5*(f(i,j,k)+f(i+1,j,k)) + 0.5*(f(i,j,k+1)+f(i+1,j,k+1)))/(dx*dx);
-    pip=0;
+    grad = (0.5 * (f(i, j, k - 1) + f(i + 1, j, k - 1)) - 2.0 * 0.5 * (f(i, j, k) + f(i + 1, j, k)) + 0.5 * (f(i, j, k + 1) + f(i + 1, j, k + 1))) / (dx * dx);
 
-	return grad;
+    return grad;
 }
 
 // **********************************************************
 // XDXY2
 // **********************************************************
 
-double gradient::xdxy(fdm* a, field& f)
+double gradient::xdxy(fdm *a, field &f)
 {
-    pip=1;
-	grad = (f(i+1,j+1,k)-f(i+1,j-1,k)-f(i,j+1,k)+f(i,j-1,k))/(2.0*dx*dx);
-    pip=0;
+    grad = (f(i + 1, j + 1, k) - f(i + 1, j - 1, k) - f(i, j + 1, k) + f(i, j - 1, k)) / (2.0 * dx * dx);
 
-	return grad;
+    return grad;
 }
 
-double gradient::xdxz(fdm* a, field& f)
+double gradient::xdxz(fdm *a, field &f)
 {
-    pip=1;
-	grad = (f(i+1,j,k+1)-f(i+1,j,k-1)-f(i,j,k+1)+f(i,j,k-1))/(2.0*dx*dx);
-    pip=0;
+    grad = (f(i + 1, j, k + 1) - f(i + 1, j, k - 1) - f(i, j, k + 1) + f(i, j, k - 1)) / (2.0 * dx * dx);
 
-	return grad;
+    return grad;
 }
 
-double gradient::xdyz(fdm* a, field& f)
+double gradient::xdyz(fdm *a, field &f)
 {
-    pip=2;
-    grad = (0.5*(f(i,j+1,k+1)+f(i+1,j+1,k+1)) - 0.5*(f(i,j-1,k+1)+f(i+1,j-1,k+1))
+    grad = (0.5 * (f(i, j + 1, k + 1) + f(i + 1, j + 1, k + 1)) - 0.5 * (f(i, j - 1, k + 1) + f(i + 1, j - 1, k + 1))
 
-         -0.5*(f(i,j+1,k-1)+f(i+1,j+1,k-1)) + 0.5*(f(i,j-1,k-1)+f(i+1,j-1,k-1)))/(4.0*dx*dx);
-    pip=0;
+            - 0.5 * (f(i, j + 1, k - 1) + f(i + 1, j + 1, k - 1)) + 0.5 * (f(i, j - 1, k - 1) + f(i + 1, j - 1, k - 1))) /
+           (4.0 * dx * dx);
 
-	return grad;
+    return grad;
 }
 
 // **********************************************************
 // YDX2
 // **********************************************************
 
-double gradient::ydx(fdm* a, field& f)
+double gradient::ydx(fdm *a, field &f)
 {
-    pip=1;
-	grad = (0.5*(f(i+1,j,k)+f(i+1,j+1,k)) - 0.5*(f(i-1,j,k)+f(i-1,j+1,k)))/(2.0*dx);
-    pip=0;
+    grad = (0.5 * (f(i + 1, j, k) + f(i + 1, j + 1, k)) - 0.5 * (f(i - 1, j, k) + f(i - 1, j + 1, k))) / (2.0 * dx);
 
-	return grad;
+    return grad;
 }
 
-double gradient::ydy(fdm* a, field& f)
+double gradient::ydy(fdm *a, field &f)
 {
-    pip=2;
-	grad = (f(i,j+1,k) - f(i,j,k))/(dx);
-    pip=0;
+    grad = (f(i, j + 1, k) - f(i, j, k)) / (dx);
 
-	return grad;
+    return grad;
 }
 
-double gradient::ydz(fdm* a, field& f)
+double gradient::ydz(fdm *a, field &f)
 {
-    pip=3;
-	grad = (0.5*(f(i,j,k+1)+f(i,j+1,k+1)) - 0.5*(f(i,j,k-1)+f(i,j+1,k-1)))/(2.0*dx);
-    pip=0;
+    grad = (0.5 * (f(i, j, k + 1) + f(i, j + 1, k + 1)) - 0.5 * (f(i, j, k - 1) + f(i, j + 1, k - 1))) / (2.0 * dx);
 
-	return grad;
+    return grad;
 }
 
 // **********************************************************
 // YDXX2
 // **********************************************************
 
-double gradient::ydxx(fdm* a, field& f)
+double gradient::ydxx(fdm *a, field &f)
 {
-    pip=1;
-	grad = (0.5*(f(i-1,j,k)+f(i-1,j+1,k)) - 2.0*0.5*(f(i,j,k)+f(i,j+1,k)) + 0.5*(f(i+1,j,k)+f(i+1,j+1,k)))/(dx*dx);
-    pip=0;
+    grad = (0.5 * (f(i - 1, j, k) + f(i - 1, j + 1, k)) - 2.0 * 0.5 * (f(i, j, k) + f(i, j + 1, k)) + 0.5 * (f(i + 1, j, k) + f(i + 1, j + 1, k))) / (dx * dx);
 
-	return grad;
+    return grad;
 }
 
-double gradient::ydyy(fdm* a, field& f)
+double gradient::ydyy(fdm *a, field &f)
 {
-    pip=2;
-	grad = (f(i,j+2,k)-f(i,j+1,k)-f(i,j,k)+f(i,j-1,k))/(2.0*dx*dx);
-    pip=0;
+    grad = (f(i, j + 2, k) - f(i, j + 1, k) - f(i, j, k) + f(i, j - 1, k)) / (2.0 * dx * dx);
 
-	return grad;
+    return grad;
 }
 
-double gradient::ydzz(fdm* a, field& f)
+double gradient::ydzz(fdm *a, field &f)
 {
-    pip=3;
-	grad = (0.5*(f(i,j,k-1)+f(i,j+1,k-1)) - 2.0*0.5*(f(i,j,k)+f(i,j+1,k)) + 0.5*(f(i,j,k+1)+f(i,j+1,k+1)))/(dx*dx);
-    pip=0;
+    grad = (0.5 * (f(i, j, k - 1) + f(i, j + 1, k - 1)) - 2.0 * 0.5 * (f(i, j, k) + f(i, j + 1, k)) + 0.5 * (f(i, j, k + 1) + f(i, j + 1, k + 1))) / (dx * dx);
 
-	return grad;
+    return grad;
 }
 
 // **********************************************************
 // YDXY2
 // **********************************************************
 
-double gradient::ydxy(fdm* a, field& f)
+double gradient::ydxy(fdm *a, field &f)
 {
-    pip=2;
-	grad = (f(i+1,j+1,k)-f(i-1,j+1,k)-f(i+1,j,k)+f(i-1,j,k))/(2.0*dx*dx);
-	pip=0;
+    grad = (f(i + 1, j + 1, k) - f(i - 1, j + 1, k) - f(i + 1, j, k) + f(i - 1, j, k)) / (2.0 * dx * dx);
 
-	return grad;
+    return grad;
 }
 
-double gradient::ydxz(fdm* a, field& f)
+double gradient::ydxz(fdm *a, field &f)
 {
-    pip=1;
-	grad = (0.5*(f(i+1,j,k+1)+f(i+1,j+1,k+1)) - 0.5*(f(i-1,j,k+1)+f(i-1,j+1,k+1))
-	-0.5*(f(i+1,j,k-1)+f(i+1,j+1,k-1)) + 0.5*(f(i-1,j,k-1)+f(i-1,j+1,k-1)))/(4.0*dx*dx);
-	pip=0;
+    grad = (0.5 * (f(i + 1, j, k + 1) + f(i + 1, j + 1, k + 1)) - 0.5 * (f(i - 1, j, k + 1) + f(i - 1, j + 1, k + 1)) - 0.5 * (f(i + 1, j, k - 1) + f(i + 1, j + 1, k - 1)) + 0.5 * (f(i - 1, j, k - 1) + f(i - 1, j + 1, k - 1))) / (4.0 * dx * dx);
 
-	return grad;
+    return grad;
 }
 
-double gradient::ydyz(fdm* a, field& f)
+double gradient::ydyz(fdm *a, field &f)
 {
-    pip=2;
-	grad = (f(i,j+1,k+1)-f(i,j+1,k-1)-f(i,j,k+1)+f(i,j,k-1))/(2.0*dx*dx);
-	pip=0;
+    grad = (f(i, j + 1, k + 1) - f(i, j + 1, k - 1) - f(i, j, k + 1) + f(i, j, k - 1)) / (2.0 * dx * dx);
 
-	return grad;
+    return grad;
 }
 
 // **********************************************************
 // ZX2
 // **********************************************************
 
-double gradient::zdx(fdm* a, field& f)
+double gradient::zdx(fdm *a, field &f)
 {
-    pip=1;
-	grad = (0.5*(f(i+1,j,k)+f(i+1,j,k+1)) - 0.5*(f(i-1,j,k)+f(i-1,j,k+1)))/(2.0*dx);
-    pip=0;
+    grad = (0.5 * (f(i + 1, j, k) + f(i + 1, j, k + 1)) - 0.5 * (f(i - 1, j, k) + f(i - 1, j, k + 1))) / (2.0 * dx);
 
-	return grad;
+    return grad;
 }
 
-double gradient::zdy(fdm* a, field& f)
+double gradient::zdy(fdm *a, field &f)
 {
-    pip=2;
-	grad = (0.5*(f(i,j+1,k)+f(i,j+1,k+1)) - 0.5*(f(i,j-1,k)+f(i,j-1,k+1)))/(2.0*dx);
-    pip=0;
+    grad = (0.5 * (f(i, j + 1, k) + f(i, j + 1, k + 1)) - 0.5 * (f(i, j - 1, k) + f(i, j - 1, k + 1))) / (2.0 * dx);
 
-	return grad;
+    return grad;
 }
 
-
-double gradient::zdz(fdm* a, field& f)
+double gradient::zdz(fdm *a, field &f)
 {
-    pip=3;
-	grad = (f(i,j,k+1) - f(i,j,k))/(dx);
-	pip=0;
+    grad = (f(i, j, k + 1) - f(i, j, k)) / (dx);
 
-	return grad;
+    return grad;
 }
 
 // **********************************************************
 // ZDXX2
 // **********************************************************
 
-double gradient::zdxx(fdm* a, field& f)
+double gradient::zdxx(fdm *a, field &f)
 {
-    pip=1;
-	grad = (0.5*(f(i-1,j,k)+f(i-1,j,k+1)) - 2.0*0.5*(f(i,j,k)+f(i,j,k+1)) + 0.5*(f(i+1,j,k)+f(i+1,j,k+1)))/(dx*dx);
-    pip=0;
+    grad = (0.5 * (f(i - 1, j, k) + f(i - 1, j, k + 1)) - 2.0 * 0.5 * (f(i, j, k) + f(i, j, k + 1)) + 0.5 * (f(i + 1, j, k) + f(i + 1, j, k + 1))) / (dx * dx);
 
-	return grad;
+    return grad;
 }
 
-double gradient::zdyy(fdm* a, field& f)
+double gradient::zdyy(fdm *a, field &f)
 {
-    pip=2;
-	grad = (0.5*(f(i,j-1,k)+f(i,j-1,k+1)) - 2.0*0.5*(f(i,j,k)+f(i,j,k+1)) + 0.5*(f(i,j+1,k)+f(i,j+1,k+1)))/(dx*dx);
-    pip=0;
+    grad = (0.5 * (f(i, j - 1, k) + f(i, j - 1, k + 1)) - 2.0 * 0.5 * (f(i, j, k) + f(i, j, k + 1)) + 0.5 * (f(i, j + 1, k) + f(i, j + 1, k + 1))) / (dx * dx);
 
-	return grad;
+    return grad;
 }
 
-double gradient::zdzz(fdm* a, field& f)
+double gradient::zdzz(fdm *a, field &f)
 {
-    pip=3;
-	grad = (f(i,j,k+2)-f(i,j,k+1)-f(i,j,k)+f(i,j,k-1))/(2.0*dx*dx);
-    pip=0;
+    grad = (f(i, j, k + 2) - f(i, j, k + 1) - f(i, j, k) + f(i, j, k - 1)) / (2.0 * dx * dx);
 
-	return grad;
+    return grad;
 }
 
 // **********************************************************
 // ZDXY2
 // **********************************************************
 
-double gradient::zdxy(fdm* a, field& f)
+double gradient::zdxy(fdm *a, field &f)
 {
 
-	pip=1;
-	grad = (0.5*(f(i+1,j+1,k)+f(i+1,j+1,k+1)) - 0.5*(f(i-1,j+1,k)+f(i-1,j+1,k+1))
-	-0.5*(f(i+1,j-1,k)+f(i+1,j-1,k+1)) + 0.5*(f(i-1,j-1,k)+f(i-1,j-1,k+1)))/(4.0*dx*dx);
-	pip=0;
+    grad = (0.5 * (f(i + 1, j + 1, k) + f(i + 1, j + 1, k + 1)) - 0.5 * (f(i - 1, j + 1, k) + f(i - 1, j + 1, k + 1)) - 0.5 * (f(i + 1, j - 1, k) + f(i + 1, j - 1, k + 1)) + 0.5 * (f(i - 1, j - 1, k) + f(i - 1, j - 1, k + 1))) / (4.0 * dx * dx);
 
-	return grad;
+    return grad;
 }
 
-double gradient::zdxz(fdm* a, field& f)
+double gradient::zdxz(fdm *a, field &f)
 {
-    pip=3;
-	grad = (f(i+1,j,k+1)-f(i-1,j,k+1)-f(i+1,j,k)+f(i-1,j,k))/(2.0*dx*dx);
-	pip=0;
+    grad = (f(i + 1, j, k + 1) - f(i - 1, j, k + 1) - f(i + 1, j, k) + f(i - 1, j, k)) / (2.0 * dx * dx);
 
-	return grad;
+    return grad;
 }
 
-double gradient::zdyz(fdm* a, field& f)
+double gradient::zdyz(fdm *a, field &f)
 {
-    pip=3;
-	grad = (f(i,j+1,k+1)-f(i,j-1,k+1)-f(i,j+1,k)+f(i,j-1,k))/(2.0*dx*dx);
-    pip=0;
+    grad = (f(i, j + 1, k + 1) - f(i, j - 1, k + 1) - f(i, j + 1, k) + f(i, j - 1, k)) / (2.0 * dx * dx);
 
-	return grad;
+    return grad;
 }

@@ -20,42 +20,45 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"topo_vtp.h"
-#include"lexer.h"
-#include"sediment.h"
+#include "lexer.h"
+#include "runlog.h"
+#include "sediment.h"
+#include "topo_vtp.h"
 
-void topo_vtp::pvtp(lexer* p, sediment *psed, int num)
+void topo_vtp::pvtp(lexer *p, sediment *psed, int num)
 {
-    sprintf(name,"./REEF3D_CFD_Topo/REEF3D-CFD-Topo-%08i.pvtp",num);
+    sprintf(name, "./REEF3D_CFD_Topo/REEF3D-CFD-Topo-%08i.pvtp", num);
 
     ofstream result;
     result.open(name);
 
-    vtp3D::beginningParallel(p,result);
+    vtp3D::beginningParallel(p, result);
 
     vtp3D::pointsParallel(result);
 
-    result<<"<PPointData>\n";
-    result<<"<PDataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\"/>\n";
-    result<<"<PDataArray type=\"Float32\" Name=\"elevation\"/>\n";
-    if(p->P76==1)
-        psed->name_ParaView_parallel_bedload(p,result);
-    if(p->P77==1)
-        psed->name_ParaView_parallel_parameter1(p,result);
-    if(p->P78==1)
-        psed->name_ParaView_parallel_parameter2(p,result);
-    if(p->P79>=1)
-        psed->name_ParaView_parallel_bedshear(p,result);
-    result<<"</PPointData>\n";
+    result << "<PPointData>\n";
+    result << "<PDataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\"/>\n";
+    result << "<PDataArray type=\"Float32\" Name=\"elevation\"/>\n";
+    if(p->P76 == 1)
+        psed->name_ParaView_parallel_bedload(p, result);
+    if(p->P77 == 1)
+        psed->name_ParaView_parallel_parameter1(p, result);
+    if(p->P78 == 1)
+        psed->name_ParaView_parallel_parameter2(p, result);
+    if(p->P79 >= 1)
+        psed->name_ParaView_parallel_bedshear(p, result);
+    result << "</PPointData>\n";
 
     char pname[100];
-    for(n=0; n<p->M10; ++n)
+    for(n = 0; n < p->M10; ++n)
     {
-        sprintf(pname,"REEF3D-CFD-Topo-%08i-%06i.vtp",num,n+1);
-        result<<"<Piece Source=\""<<pname<<"\"/>\n";
+        sprintf(pname, "REEF3D-CFD-Topo-%08i-%06i.vtp", num, n + 1);
+        result << "<Piece Source=\"" << pname << "\"/>\n";
     }
 
     vtp3D::endingParallel(result);
 
     result.close();
+    if(p->plog)
+        p->plog->written(p, num, "topo", "bed", name, p->M10);
 }

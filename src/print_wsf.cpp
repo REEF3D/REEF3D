@@ -20,111 +20,123 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"print_wsf.h"
-#include"lexer.h"
-#include"fdm.h"
-#include"ghostcell.h"
-#include<sys/stat.h>
-#include<sys/types.h>
+#include "print_wsf.h"
+#include "fdm.h"
+#include "ghostcell.h"
+#include "lexer.h"
+#include "runlog.h"
+#include <sys/stat.h>
+#include <sys/types.h>
 
-print_wsf::print_wsf(lexer *p, fdm* a, ghostcell *pgc, int num) : fileFlushMaxCount(100)
+print_wsf::print_wsf(lexer *p, fdm *a, ghostcell *pgc, int num) : fileFlushMaxCount(100)
 {
-	gauge_num = p->P51;
-	x = p->P51_x;
-	y = p->P51_y;
-	
-    if(p->P51>0 && num==0)
-	{
-	gauge_num = p->P51;
-	x = p->P51_x;
-	y = p->P51_y;
-	}
-	
-	if(p->P351>0 && num==1)
-	{
-	gauge_num = p->P351;
-	x = p->P351_x;
-	y = p->P351_y;
-	}
-	
-	if(p->P352>0 && num==2)
-	{
-	gauge_num = p->P352;
-	x = p->P352_x;
-	y = p->P352_y;
-	}
-	
-	// Create Folder
-	if(p->mpirank==0)
-	mkdir("./REEF3D_CFD_WSF",0777);
-	
-    if(p->mpirank==0 && p->P51>0 && num==0)
+    gauge_num = p->P51;
+    x = p->P51_x;
+    y = p->P51_y;
+
+    if(p->P51 > 0 && num == 0)
     {
-    // open file
-	wsfout.open("./REEF3D_CFD_WSF/REEF3D-CFD-WSF-HG.dat");
-
-    wsfout<<"number of gauges:  "<<gauge_num<<endl<<endl;
-    wsfout<<"x_coord     y_coord"<<endl;
-    for(n=0;n<gauge_num;++n)
-    wsfout<<n+1<<"\t "<<x[n]<<"\t "<<y[n]<<endl;
-
-    wsfout<<endl<<endl;
-
-    wsfout<<"time";
-    for(n=0;n<gauge_num;++n)
-    wsfout<<"\t P"<<n+1;
-
-    wsfout<<endl<<endl;
+        gauge_num = p->P51;
+        x = p->P51_x;
+        y = p->P51_y;
     }
-	
-	//-------------------
-	
-	if(p->mpirank==0 && p->P351>0 && num==1)
+
+    if(p->P351 > 0 && num == 1)
     {
-    // open file
-	wsfout.open("./REEF3D_CFD_WSF/REEF3D-CFD-WSF-HG-1.dat");
-
-    wsfout<<"number of gauges:  "<<gauge_num<<endl<<endl;
-    wsfout<<"x_coord     y_coord"<<endl;
-    for(n=0;n<gauge_num;++n)
-    wsfout<<n+1<<"\t "<<x[n]<<"\t "<<y[n]<<endl;
-
-    wsfout<<endl<<endl;
-
-    wsfout<<"time";
-    for(n=0;n<gauge_num;++n)
-    wsfout<<"\t P"<<n+1;
-
-    wsfout<<endl<<endl;
+        gauge_num = p->P351;
+        x = p->P351_x;
+        y = p->P351_y;
     }
-	
-	//-------------------
-	
-	if(p->mpirank==0 && p->P352>0 && num==2)
+
+    if(p->P352 > 0 && num == 2)
     {
-    // open file
-	wsfout.open("./REEF3D_CFD_WSF/REEF3D-CFD-WSF-HG-2.dat");
-
-    wsfout<<"number of gauges:  "<<gauge_num<<endl<<endl;
-    wsfout<<"x_coord     y_coord"<<endl;
-    for(n=0;n<gauge_num;++n)
-    wsfout<<n+1<<"\t "<<x[n]<<"\t "<<y[n]<<endl;
-
-    wsfout<<endl<<endl;
-
-    wsfout<<"time";
-    for(n=0;n<gauge_num;++n)
-    wsfout<<"\t P"<<n+1;
-
-    wsfout<<endl<<endl;
+        gauge_num = p->P352;
+        x = p->P352_x;
+        y = p->P352_y;
     }
-	
-	p->Iarray(iloc,gauge_num);
-	p->Iarray(jloc,gauge_num);
-	p->Iarray(flag,gauge_num);
-	p->Darray(wsf,gauge_num);
 
-    ini_location(p,a,pgc);
+    // Create Folder
+    if(p->mpirank == 0)
+        mkdir("./REEF3D_CFD_WSF", 0777);
+
+    if(p->mpirank == 0 && p->P51 > 0 && num == 0)
+    {
+        // open file
+        wsfout.open("./REEF3D_CFD_WSF/REEF3D-CFD-WSF-HG.dat");
+        if(p->plog)
+            p->plog->table_file(p, "wsf", "gauges", "./REEF3D_CFD_WSF/REEF3D-CFD-WSF-HG.dat");
+
+        wsfout << "number of gauges:  " << gauge_num << endl
+               << endl;
+        wsfout << "x_coord     y_coord" << endl;
+        for(n = 0; n < gauge_num; ++n)
+            wsfout << n + 1 << "\t " << x[n] << "\t " << y[n] << endl;
+
+        wsfout << endl
+               << endl;
+
+        wsfout << "time";
+        for(n = 0; n < gauge_num; ++n)
+            wsfout << "\t P" << n + 1;
+
+        wsfout << endl
+               << endl;
+    }
+
+    //-------------------
+
+    if(p->mpirank == 0 && p->P351 > 0 && num == 1)
+    {
+        // open file
+        wsfout.open("./REEF3D_CFD_WSF/REEF3D-CFD-WSF-HG-1.dat");
+
+        wsfout << "number of gauges:  " << gauge_num << endl
+               << endl;
+        wsfout << "x_coord     y_coord" << endl;
+        for(n = 0; n < gauge_num; ++n)
+            wsfout << n + 1 << "\t " << x[n] << "\t " << y[n] << endl;
+
+        wsfout << endl
+               << endl;
+
+        wsfout << "time";
+        for(n = 0; n < gauge_num; ++n)
+            wsfout << "\t P" << n + 1;
+
+        wsfout << endl
+               << endl;
+    }
+
+    //-------------------
+
+    if(p->mpirank == 0 && p->P352 > 0 && num == 2)
+    {
+        // open file
+        wsfout.open("./REEF3D_CFD_WSF/REEF3D-CFD-WSF-HG-2.dat");
+
+        wsfout << "number of gauges:  " << gauge_num << endl
+               << endl;
+        wsfout << "x_coord     y_coord" << endl;
+        for(n = 0; n < gauge_num; ++n)
+            wsfout << n + 1 << "\t " << x[n] << "\t " << y[n] << endl;
+
+        wsfout << endl
+               << endl;
+
+        wsfout << "time";
+        for(n = 0; n < gauge_num; ++n)
+            wsfout << "\t P" << n + 1;
+
+        wsfout << endl
+               << endl;
+    }
+
+    p->Iarray(iloc, gauge_num);
+    p->Iarray(jloc, gauge_num);
+    p->Iarray(flag, gauge_num);
+    p->Darray(wsf, gauge_num);
+
+    ini_location(p, a, pgc);
 }
 
 print_wsf::~print_wsf()
@@ -134,99 +146,98 @@ print_wsf::~print_wsf()
 
 void print_wsf::height_gauge(lexer *p, fdm *a, ghostcell *pgc, field &f)
 {
-    double zval=0.0;
+    double zval = 0.0;
 
-    for(n=0;n<gauge_num;++n)
-    wsf[n]=-1.0e20;
+    for(n = 0; n < gauge_num; ++n)
+        wsf[n] = -1.0e20;
 
-	if(p->A10==6 && p->F80!=4)
-    for(n=0;n<gauge_num;++n)
-    if(flag[n]>0)
-    {
-    zval=0.0;
-
-    i=iloc[n];
-    j=jloc[n];
-	
-        KLOOP
-        PCHECK
-        {
-            if(f(i,j,k)>=0.0 && f(i,j,k+1)<0.0)
-            wsf[n]=MAX(wsf[n],-(f(i,j,k)*p->DZP[KP])/(f(i,j,k+1)-f(i,j,k)) + p->pos_z());
-        }
-    }
-    
-    if(p->A10==6 && p->F80==4)
-    {
-    for(n=0;n<gauge_num;++n)
-    if(flag[n]>0)
-    {
-    zval=0.0;
-
-    i=iloc[n];
-    j=jloc[n];
-	
-        KLOOP
-        {
-            if(f(i,j,k)>p->F94 && f(i,j,k+1)<p->F93)
-                wsf[n]=MAX(wsf[n],p->pos_z()+0.5*p->DZN[KP]);
-            else if(f(i,j,k)<=p->F94 && f(i,j,k)>=p->F93)
+    if(p->A10 == 6 && p->F80 != 4)
+        for(n = 0; n < gauge_num; ++n)
+            if(flag[n] > 0)
             {
-                /*if(a->Alpha(i,j,k)<1E05)
+                zval = 0.0;
+
+                i = iloc[n];
+                j = jloc[n];
+
+                KLOOP
+                PCHECK
                 {
-                    if(a->nZ(i,j,k)>1E-06 || a->nZ(i,j,k)<-1E-06)
+                    if(f(i, j, k) >= 0.0 && f(i, j, k + 1) < 0.0)
+                        wsf[n] = MAX(wsf[n], -(f(i, j, k) * p->DZP[KP]) / (f(i, j, k + 1) - f(i, j, k)) + p->pos_z());
+                }
+            }
+
+    if(p->A10 == 6 && p->F80 == 4)
+    {
+        for(n = 0; n < gauge_num; ++n)
+            if(flag[n] > 0)
+            {
+                zval = 0.0;
+
+                i = iloc[n];
+                j = jloc[n];
+
+                KLOOP
+                {
+                    if(f(i, j, k) > p->F94 && f(i, j, k + 1) < p->F93)
+                        wsf[n] = MAX(wsf[n], p->pos_z() + 0.5 * p->DZN[KP]);
+                    else if(f(i, j, k) <= p->F94 && f(i, j, k) >= p->F93)
                     {
-                        if(fabs(a->Alpha(i,j,k)/a->nZ(i,j,k))<0.5*p->DZN[KP])
-                            wsf[n]=MAX(wsf[n],p->pos_z()+a->Alpha(i,j,k)/a->nZ(i,j,k));
-                        else
+                        /*if(a->Alpha(i,j,k)<1E05)
                         {
-                            if(a->nZ(i,j,k)>0.0)
-                                wsf[n]=MAX(wsf[n],p->pos_z()-0.5*p->DZN[KP]);
+                            if(a->nZ(i,j,k)>1E-06 || a->nZ(i,j,k)<-1E-06)
+                            {
+                                if(fabs(a->Alpha(i,j,k)/a->nZ(i,j,k))<0.5*p->DZN[KP])
+                                    wsf[n]=MAX(wsf[n],p->pos_z()+a->Alpha(i,j,k)/a->nZ(i,j,k));
+                                else
+                                {
+                                    if(a->nZ(i,j,k)>0.0)
+                                        wsf[n]=MAX(wsf[n],p->pos_z()-0.5*p->DZN[KP]);
+                                    else
+                                        wsf[n]=MAX(wsf[n],p->pos_z()+0.5*p->DZN[KP]);
+                                }
+                            }
                             else
                                 wsf[n]=MAX(wsf[n],p->pos_z()+0.5*p->DZN[KP]);
                         }
+                        else
+                        {
+                            cout<<"surface cell in wave gauge does not have a plane"<<endl;*/
+                        wsf[n] = MAX(wsf[n], (p->pos_z() - 0.5 * p->DZN[KP]) + f(i, j, k) * p->DZN[KP]);
+                        // }
                     }
-                    else
-                        wsf[n]=MAX(wsf[n],p->pos_z()+0.5*p->DZN[KP]);
                 }
-                else
-                {
-                    cout<<"surface cell in wave gauge does not have a plane"<<endl;*/
-                    wsf[n]=MAX(wsf[n],(p->pos_z()-0.5*p->DZN[KP])+f(i,j,k)*p->DZN[KP]);
-               // }
             }
-        }
     }
-    }
-    
-    if(p->A10==5 || p->A10==4)
-    for(n=0;n<gauge_num;++n)
-    if(flag[n]>0)
-    {
-    zval=0.0;
 
-    i=iloc[n];
-    j=jloc[n];
-	
-			wsf[n] = a->eta(i,j);
+    if(p->A10 == 5)
+        for(n = 0; n < gauge_num; ++n)
+            if(flag[n] > 0)
+            {
+                zval = 0.0;
 
-    }
-	
-    for(n=0;n<gauge_num;++n)
-    wsf[n]=pgc->globalmax(wsf[n]);
+                i = iloc[n];
+                j = jloc[n];
+
+                wsf[n] = a->eta(i, j);
+            }
+
+    for(n = 0; n < gauge_num; ++n)
+        wsf[n] = pgc->globalmax(wsf[n]);
 
     // write to file
-    if(p->mpirank==0)
+    if(p->mpirank == 0)
     {
-    wsfout<<setprecision(9)<<p->simtime<<"\t";
-    for(n=0;n<gauge_num;++n)
-    {
-        wsfout<<setprecision(9)<<wsf[n]<<"\t";
-        // flush print to disc limited to prevent data loss for many gauges
-        if(n%fileFlushMaxCount==0&&n!=0)
-            wsfout<<std::flush;
-    }
-    wsfout<<endl;
+        wsfout << setprecision(9) << p->simtime << "\t";
+        for(n = 0; n < gauge_num; ++n)
+        {
+            wsfout << setprecision(9) << wsf[n] << "\t";
+            // flush print to disc limited to prevent data loss for many gauges
+            if(n % fileFlushMaxCount == 0 && n != 0)
+                wsfout << std::flush;
+        }
+        wsfout << endl;
     }
 }
 
@@ -238,23 +249,22 @@ void print_wsf::ini_location(lexer *p, fdm *a, ghostcell *pgc)
 {
     int check;
 
-    for(n=0;n<gauge_num;++n)
+    for(n = 0; n < gauge_num; ++n)
     {
-    iloc[n] = p->posc_i(x[n]); 
-    
-    if(p->j_dir==0)
-    jloc[n]=0;
-    
-    if(p->j_dir==1)
-    jloc[n] = p->posc_j(y[n]); 
+        iloc[n] = p->posc_i(x[n]);
 
-    check=ij_boundcheck(p,iloc[n],jloc[n],0);
+        if(p->j_dir == 0)
+            jloc[n] = 0;
 
-    if(check==1)
-    flag[n]=1;
-    
-    //cout<<p->mpirank<<" n: "<<n<<" flag: "<<flag[n]<<" x: "<<x[n]<<" y: "<<y[n]<<" iloc: "<<iloc[n]<<" jloc: "<<jloc[n]<<endl;
+        if(p->j_dir == 1)
+            jloc[n] = p->posc_j(y[n]);
+
+        check = ij_boundcheck(p, iloc[n], jloc[n], 0);
+
+        if(check == 1)
+            flag[n] = 1;
+
+        // cout<<p->mpirank<<" n: "<<n<<" flag: "<<flag[n]<<" x: "<<x[n]<<" y: "<<y[n]<<" iloc: "<<iloc[n]<<" jloc: "<<jloc[n]<<endl;
     }
 }
-
 

@@ -20,68 +20,62 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"vrans_f.h"
-#include"lexer.h"
-#include"fdm.h"
-#include"ghostcell.h"
+#include "fdm.h"
+#include "ghostcell.h"
+#include "lexer.h"
+#include "vrans_f.h"
 
 void vrans_f::sedpart_update(lexer *p, fdm *a, ghostcell *pgc, field &por, field &d50)
 {
-    // Topo
-    ALOOP
-	if(a->topo(i,j,k)<0.0)
-	{
-	a->porosity(i,j,k)= por(i,j,k); //porosity
-	a->porpart(i,j,k) = d50(i,j,k);  //d50
-	alpha(i,j,k) = p->S26_a;  //alpha
-	beta(i,j,k) = p->S26_b;    //beta
-	}
-    
-    
-    pgc->start4a(p,a->porosity,1);
-	pgc->start4a(p,a->porpart,1);
-	pgc->start4a(p,alpha,1);
-	pgc->start4a(p,beta,1);
-    
+    // particle sediment: porosity from the solid volume fraction of the parcels
+    BASELOOP
+    {
+        a->porosity(i, j, k) = por(i, j, k);                   // porosity
+        a->porpart(i, j, k) = d50(i, j, k);                    // d50
+        alpha(i, j, k) = por(i, j, k) < 1.0 ? p->S26_a : 0.0;  // alpha
+        beta(i, j, k) = por(i, j, k) < 1.0 ? p->S26_b : 0.0;   // beta
+    }
+
+    pgc->start4a(p, a->porosity, 1);
+    pgc->start4a(p, a->porpart, 1);
+    pgc->start4a(p, alpha, 1);
+    pgc->start4a(p, beta, 1);
 }
 
 void vrans_f::sed_update(lexer *p, fdm *a, ghostcell *pgc)
 {
-	int qn;
-    double zmin,zmax,slope;
-    double xs,xe;
-    
-    if(p->mpirank==0)
-    cout<<"Update sediment for VRANS"<<endl;
-	
-	ALOOP
-	{
-	a->porosity(i,j,k)=1.0;
-	a->porpart(i,j,k)=0.01;
-	alpha(i,j,k)=0.0;
-	beta(i,j,k)=0.0;
-	}
-	
-	pgc->start4a(p,a->porosity,1);
-	pgc->start4a(p,a->porpart,1);
-	pgc->start4a(p,alpha,1);
-	pgc->start4a(p,beta,1);
-	
-	
-	// Topo
-    ALOOP
-	if(a->topo(i,j,k)<0.0)
-	{
-	a->porosity(i,j,k)= p->S24; //porosity
-	a->porpart(i,j,k) = p->S20;  //d50
-	alpha(i,j,k) = p->S26_a;  //alpha
-	beta(i,j,k) = p->S26_b;    //beta
-	}
-    
-    
-    pgc->start4a(p,a->porosity,1);
-	pgc->start4a(p,a->porpart,1);
-	pgc->start4a(p,alpha,1);
-	pgc->start4a(p,beta,1);
+    int qn;
+    double zmin, zmax, slope;
+    double xs, xe;
+
+    if(p->mpirank == 0)
+        cout << "Update sediment for VRANS" << endl;
+
+    LOOP
+    {
+        a->porosity(i, j, k) = 1.0;
+        a->porpart(i, j, k) = 0.01;
+        alpha(i, j, k) = 0.0;
+        beta(i, j, k) = 0.0;
+    }
+
+    pgc->start4a(p, a->porosity, 1);
+    pgc->start4a(p, a->porpart, 1);
+    pgc->start4a(p, alpha, 1);
+    pgc->start4a(p, beta, 1);
+
+    // Topo
+    LOOP if(a->topo(i, j, k) < 0.0)
+    {
+        a->porosity(i, j, k) = p->S24;  // porosity
+        a->porpart(i, j, k) = p->S20;   // d50
+        alpha(i, j, k) = p->S26_a;      // alpha
+        beta(i, j, k) = p->S26_b;       // beta
+    }
+
+    pgc->start4a(p, a->porosity, 1);
+    pgc->start4a(p, a->porpart, 1);
+    pgc->start4a(p, alpha, 1);
+    pgc->start4a(p, beta, 1);
 }
 

@@ -23,10 +23,10 @@ Author: Hans Bihs
 #ifndef PRINTER_FNPF_H_
 #define PRINTER_FNPF_H_
 
-#include"printer.h"
-#include"increment.h"
+#include "increment.h"
+#include "printer.h"
 
-#include"vtks.h"
+#include "vtks.h"
 
 class fdm_fnpf;
 class fnpf_force_ale;
@@ -45,6 +45,7 @@ class fnpf_vel_probe;
 class fnpf_vel_probe_theory;
 class fnpf_runup;
 class fnpf_print_kinematics;
+class lagoon_output;
 
 using namespace std;
 
@@ -52,23 +53,23 @@ class printer_fnpf final : public printer, public increment
 {
 
 public:
-    printer_fnpf(lexer*,fdm_fnpf*,ghostcell*);
+    printer_fnpf(lexer *, fdm_fnpf *, ghostcell *);
     virtual ~printer_fnpf() = default;
-    void start(lexer*,fdm_fnpf*,ghostcell*,ioflow*) override final;
-    void print_stop(lexer*,fdm_fnpf*,ghostcell*) override final;
+    void start(lexer *, fdm_fnpf *, ghostcell *, ioflow *) override final;
+    void print_stop(lexer *, fdm_fnpf *, ghostcell *) override final;
 
 private:
-    void print(lexer*,fdm_fnpf*,ghostcell*);
-    void parallel(lexer*,int);
+    void print(lexer *, fdm_fnpf *, ghostcell *);
+    void parallel(lexer *, int);
 
     vtk3D *outputFormat;
     bool initial_print = true;
     size_t file_offset = 0;
 
     char name[200];
-    int n,iin,offset[200];
+    int n, iin, offset[200];
     float ffn;
-    int gcval_phi,gcval_phiext;
+    int gcval_phi, gcval_phiext;
     double *printtime_wT;
     double *printfsftime_wT;
 
@@ -89,6 +90,7 @@ private:
     fnpf_vel_probe *pvel;
     fnpf_vel_probe_theory *pveltheo;
     fnpf_print_kinematics **pkin;
+    lagoon_output *plagoon = nullptr;  // P 18: LAGOON store of the volume
 };
 
 #endif

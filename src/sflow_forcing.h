@@ -23,10 +23,10 @@ Author: Hans Bihs
 #ifndef SFLOW_FORCING_H_
 #define SFLOW_FORCING_H_
 
-#include"increment.h"
-#include"slice1.h"
-#include"slice2.h"
-#include"slice4.h"
+#include "increment.h"
+#include "slice1.h"
+#include "slice2.h"
+#include "slice4.h"
 
 class lexer;
 class fdm2D;
@@ -37,30 +37,29 @@ class vrans;
 class mooring;
 class fsi;
 class nhflow_reinidisc_fsf;
-#include<vector>
+#include <vector>
 
 using namespace std;
 
 class sflow_forcing : public increment
 {
 public:
-	sflow_forcing(lexer*);
-	virtual ~sflow_forcing();
-    
-    void forcing(lexer*, fdm2D*, ghostcell*, sixdof *p6dof, 
-                 int, double, slice&, slice&, slice&, slice&, slice&, bool);
-    
-    void forcing_ini(lexer*, fdm2D*, ghostcell*);
-    
+    sflow_forcing(lexer *);
+    virtual ~sflow_forcing();
+
+    // direct forcing of the conserved momenta UH, VH, WH at water depth WL
+    void forcing(lexer *, fdm2D *, ghostcell *, sixdof *p6dof,
+                 int, double, slice &, slice &, slice &, slice &, bool);
+
+    void forcing_ini(lexer *, fdm2D *, ghostcell *);
+
 private:
     slice1 fx;
     slice2 fy;
     slice4 fz;
-    
+
     double uf, vf, wf;
     int forcing_flag;
-
- 
 };
 
 #endif

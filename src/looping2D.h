@@ -24,99 +24,83 @@ Author: Hans Bihs
 #define LOOPING2D_H_
 
 // SLICE CONDITIONS
-#define PSLICECHECK1  if(p->flagslice1[IJ]>0)
-#define PSLICECHECK2  if(p->flagslice2[IJ]>0)
-#define PSLICECHECK4  if(p->flagslice4[IJ]>0)
-#define SSLICECHECK4  if(p->flagslice4[IJ]<0)
+#define PSLICECHECK1 if(p->flagslice1[IJ] > 0)
+#define PSLICECHECK2 if(p->flagslice2[IJ] > 0)
+#define PSLICECHECK4 if(p->flagslice4[IJ] > 0)
+#define SSLICECHECK4 if(p->flagslice4[IJ] < 0)
 
-#define WETDRYCHK if(p->wet[IJ]>0)
-#define SEDSLICECHECK if(p->DFBED[IJ]>0)
-#define SLICEFLEXCHECK  if(flagslice[IJ]>0)
+#define SEDSLICECHECK if(p->DFBED[IJ] > 0)
+#define SLICEFLEXCHECK if(flagslice[IJ] > 0)
 
-#define WETDRY1 if(b->wet1(i,j)==1)
-#define WETDRY2 if(b->wet2(i,j)==1)
-#define WETDRYDEEP1 if(b->wet1(i,j)==1 && b->deep1(i,j)==1)
-#define WETDRYDEEP2 if(b->wet2(i,j)==1 && b->deep2(i,j)==1)
-#define WETDRY if(p->wet[IJ]==1)
-#define WETDRYDEEP if(p->wet[IJ]==1 && p->deep[IJ]==1)
-#define WETDRYDEEPBREAK if(p->wet[IJ]==1 && p->deep[IJ]==1 && d->breaking(i,j)==0)
+#define WETDRY if(p->wet[IJ] == 1)
+#define WETDRYDEEP if(p->wet[IJ] == 1 && p->deep[IJ] == 1)
 
 // SLICE BASE LOOPS
 #define SLICEBASELOOP ILOOP JLOOP
 #define JILOOP JLOOP ILOOP
 
 // SLICE LOOPS
-#define SLICELOOP1 IULOOP JLOOP  PSLICECHECK1
-#define SLICELOOP2 ILOOP JVLOOP  PSLICECHECK2
-#define SLICELOOP4 SLICEBASELOOP  PSLICECHECK4
+#define SLICELOOP1 IULOOP JLOOP PSLICECHECK1
+#define SLICELOOP2 ILOOP JVLOOP PSLICECHECK2
+#define SLICELOOP4 SLICEBASELOOP PSLICECHECK4
 
-#define SEDSLICELOOP SLICEBASELOOP  PSLICECHECK4 SEDSLICECHECK
+#define SEDSLICELOOP SLICEBASELOOP PSLICECHECK4 SEDSLICECHECK
 
 #define TPSLICELOOP ITPLOOP JTPLOOP
-
-#define NSLICELOOP4 for(n=p->sizeS4[0]; n<p->sizeS4[1]; ++n)
 
 #define SLICEFLEXLOOP IFLEXLOOP JFLEXLOOP SLICEFLEXCHECK
 
 // GCBSL
 
-#define GCSLB1 for(n=0;n<p->gcbsl1_count;++n)
-#define GCSLB1CHECK if(p->gcbsl1[n][3]>0)
+#define GCSLB1 for(n = 0; n < p->gcbsl1_count; ++n)
+#define GCSLB1CHECK if(p->gcbsl1[n][3] > 0)
 #define GCSL1LOOP GCSLB1 GCSLB1CHECK
 
-#define QGCSLB1 for(q=0;q<p->gcbsl1_count;++q)
-#define QGCSLB1CHECK if(p->gcbsl1[q][3]>0)
-#define QGCSL1LOOP QGCSLB1 QGCSLB1CHECK
+#define QGCSLB1 for(q = 0; q < p->gcbsl1_count; ++q)
+#define QGCSLB1CHECK if(p->gcbsl1[q][3] > 0)
 
-#define QQGCSLB1 for(qq=0;qq<p->gcbsl1_count;++qq)
-#define QQGCSLB1CHECK if(p->gcbsl1[qq][3]>0)
+#define QQGCSLB1 for(qq = 0; qq < p->gcbsl1_count; ++qq)
+#define QQGCSLB1CHECK if(p->gcbsl1[qq][3] > 0)
 #define QQGCSL1LOOP QQGCSLB1 QQGCSLB1CHECK
 
-
-#define GCSLB2 for(n=0;n<p->gcbsl2_count;++n)
-#define GCSLB2CHECK if(p->gcbsl2[n][3]>0)
+#define GCSLB2 for(n = 0; n < p->gcbsl2_count; ++n)
+#define GCSLB2CHECK if(p->gcbsl2[n][3] > 0)
 #define GCSL2LOOP GCSLB2 GCSLB2CHECK
 
-#define QGCSLB2 for(q=0;q<p->gcbsl2_count;++q)
-#define QGCSLB2CHECK if(p->gcbsl2[q][3]>0)
-#define QGCSL2LOOP QGCSLB2 QGCSLB2CHECK
+#define QGCSLB2 for(q = 0; q < p->gcbsl2_count; ++q)
+#define QGCSLB2CHECK if(p->gcbsl2[q][3] > 0)
 
-#define QQGCSLB2 for(qq=0;qq<p->gcbsl2_count;++qq)
-#define QQGCSLB2CHECK if(p->gcbsl2[qq][3]>0)
+#define QQGCSLB2 for(qq = 0; qq < p->gcbsl2_count; ++qq)
+#define QQGCSLB2CHECK if(p->gcbsl2[qq][3] > 0)
 #define QQGCSL2LOOP QQGCSLB2 QQGCSLB2CHECK
 
-
-#define GCSLB4 for(n=0;n<p->gcbsl4_count;++n)
-#define GCSLB4CHECK if(p->gcbsl4[n][3]>0)
+#define GCSLB4 for(n = 0; n < p->gcbsl4_count; ++n)
+#define GCSLB4CHECK if(p->gcbsl4[n][3] > 0)
 #define GCSL4LOOP GCSLB4 GCSLB4CHECK
 
-#define QGCSLB4 for(q=0;q<p->gcbsl4_count;++q)
-#define QGCSLB4CHECK if(p->gcbsl4[q][3]>0)
-#define QGCSL4LOOP QGCSLB4 QGCSLB4CHECK
+#define QGCSLB4 for(q = 0; q < p->gcbsl4_count; ++q)
+#define QGCSLB4CHECK if(p->gcbsl4[q][3] > 0)
 
-#define QQGCSLB4 for(qq=0;qq<p->gcbsl4_count;++qq)
-#define QQGCSLB4CHECK if(p->gcbsl4[qq][3]>0)
+#define QQGCSLB4 for(qq = 0; qq < p->gcbsl4_count; ++qq)
+#define QQGCSLB4CHECK if(p->gcbsl4[qq][3] > 0)
 #define QQGCSL4LOOP QQGCSLB4 QQGCSLB4CHECK
 
+#define GCSLB4A for(n = 0; n < p->gcbsl4a_count; ++n)
+#define GCSLB4ACHECK if(p->gcbsl4a[n][3] > 0)
 
-#define GCSLB4A for(n=0;n<p->gcbsl4a_count;++n)
-#define GCSLB4ACHECK if(p->gcbsl4a[n][3]>0)
-#define GCSL4ALOOP GCSLB4A GCSLB4ACHECK
+#define QGCSLB4A for(q = 0; q < p->gcbsl4a_count; ++q)
+#define QGCSLB4ACHECK if(p->gcbsl4a[q][3] > 0)
 
-#define QGCSLB4A for(q=0;q<p->gcbsl4a_count;++q)
-#define QGCSLB4ACHECK if(p->gcbsl4a[q][3]>0)
-#define QGCSL4ALOOP QGCSLB4A QGCSLB4ACHECK
-
-#define QQGCSLB4A for(qq=0;qq<p->gcbsl4a_count;++qq)
-#define QQGCSLB4ACHECK if(p->gcbsl4a[qq][3]>0)
+#define QQGCSLB4A for(qq = 0; qq < p->gcbsl4a_count; ++qq)
+#define QQGCSLB4ACHECK if(p->gcbsl4a[qq][3] > 0)
 #define QQGCSL4ALOOP QQGCSLB4A QQGCSLB4ACHECK
 
-#define GCSLDFETA4 for(n=0;n<p->gcsldfeta4_count;++n)
-#define GCSLDFETA4CHECK if(p->gcsldfeta4[n][3]>0)
+#define GCSLDFETA4 for(n = 0; n < p->gcsldfeta4_count; ++n)
+#define GCSLDFETA4CHECK if(p->gcsldfeta4[n][3] > 0)
 #define GCSLDFETA4LOOP GCSLDFETA4 GCSLDFETA4CHECK
 
-#define GCSLDFBED4 for(n=0;n<p->gcsldfbed4_count;++n)
-#define GCSLDFBED4CHECK if(p->gcsldfbed4[n][3]>0)
+#define GCSLDFBED4 for(n = 0; n < p->gcsldfbed4_count; ++n)
+#define GCSLDFBED4CHECK if(p->gcsldfbed4[n][3] > 0)
 #define GCSLDFBED4LOOP GCSLDFBED4 GCSLDFBED4CHECK
 
 #endif

@@ -23,61 +23,74 @@ Author: Hans Bihs
 #ifndef FDM_FNPF_H_
 #define FDM_FNPF_H_
 
-#include"field5.h"
-#include"fieldint5.h"
-#include"slice1.h"
-#include"slice2.h"
-#include"slice4.h"
-#include"sliceint4.h"
-#include"sliceint5.h"
-#include"increment.h"
-#include"vec.h"
-#include"vec2D.h"
-#include"matrix_diag.h"
-#include"matrix2D.h"
-#include"cpt2D.h"
+#include "field5.h"
+#include "fieldint5.h"
+#include "increment.h"
+#include "matrix2D.h"
+#include "matrix_diag.h"
+#include "slice1.h"
+#include "slice2.h"
+#include "slice4.h"
+#include "sliceint4.h"
+#include "sliceint5.h"
+#include "vec.h"
+#include "vec2D.h"
 
 class lexer;
+class fnpf_ice;
 
 using namespace std;
 
 class fdm_fnpf : public increment
 {
 public:
+    fdm_fnpf(lexer *);
 
-    fdm_fnpf(lexer*);
-   
     field5 test;
     fieldint5 nodeval;
-    
-    slice4 eta,eta_n,WL;
-    slice4 bed,depth;
-    slice4 Fifsf,Fz;
+
+    slice4 eta, eta_n, WL;
+    slice4 bed, depth;
+    slice4 Fifsf, Fz;
     slice4 K;
-    sliceint4 etaloc,wet_n,breaking,breaklog,bc;
-    
-    slice4 Fx,Fy;
-    slice4 Ex,Ey;
-    slice4 Exx,Eyy;
-    slice4 Bx,By;
-    slice4 Bxx,Byy;
+    sliceint4 etaloc, wet_n, breaking, breaklog, bc;
+
+    slice4 Fx, Fy;
+    slice4 Ex, Ey;
+    slice4 Exu, Eyu;  // eta gradient for the kinematic FSBC, upwinded by dH/deta_x (A315>=1); equal to Ex,Ey for A315=0
+    slice4 Exx, Eyy;
+    slice4 Bx, By;
+    slice4 Bxx, Byy;
     slice4 coastline;
     slice4 vb;
     slice4 test2D;
     slice4 Hs;
-    
+
     sliceint5 nodeval2D;
     slice4 breaking_print;
-	
+
+    //  Rows the Laplace assembly writes, and rows the 2D damping system
+    //  writes.  Declared before rhsvec/M and xvec/rvec/N so they are
+    //  initialised first and can size them.
+    const int laprows;
+    const int slicerows;
+
     vec rhsvec;
-    vec2D xvec,rvec;
-    double *Fi,*Uin,*Uout,*U,*V,*W;
+    vec2D xvec, rvec;
+    double *Fi, *Uin, *U, *V, *W;
+
+    // resolved 6DOF bodies (X 10 > 0): body id per sigma node (0 = fluid) and the
+    // Neumann data of the staircase body faces, see fnpf_6DOF
+    double *FBF = nullptr, *FBu = nullptr, *FBv = nullptr, *FBw = nullptr;
 
     matrix2D N;
-	matrix_diag M;    
-    
-    double gi,gj,gk;
+    matrix_diag M;
+
+    double gi, gj, gk;
     double wd_criterion;
+
+    // FNPF ice floes (A 380), nullptr when off; read by the dynamic FSBC
+    fnpf_ice *ice = nullptr;
 };
 
 #endif

@@ -20,79 +20,74 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"vrans_nhflow_f.h"
-#include"lexer.h"
-#include"fdm_nhf.h"
-#include"ghostcell.h"
+#include "fdm_nhf.h"
+#include "ghostcell.h"
+#include "lexer.h"
+#include "vrans_nhflow_f.h"
 
 void vrans_nhflow_f::force_calc(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, int val)
 {
-    Fx=Fy=Fz=0.0;
-    
-    FLOOP
-    P[FIJK] = (p->wd + d->eta(i,j) - p->ZSN[FIJK])*p->W1*fabs(p->W22) + d->P[FIJK];
-    
-    // VRANS force
-    if(p->B200>0)
-    LOOP
-	{
-        H = Hporface(p,d,0,0,0);  
-        
-        porval   = d->POR[IJK];
-        partval  = d->PORPART[IJK];
-        alphaval = APOR[IJK];
-        betaval  = BPOR[IJK];
-        viscval  = d->VISC[IJK];
-		
-        
-        Aporval = Apor(porval,partval,alphaval,viscval);
-        Bporval = Bpor(porval,partval,betaval);
-        
-        dV = p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*p->WL[IJ];
-            
+    double rho, cmval;
 
-        Fx += dV*H*(Aporval*d->U[IJK] + Bporval*d->U[IJK]*fabs(d->U[IJK]) 
-        
-                + d->RO[IJK]*p->B260*(d->U[IJK]-UN[IJK])/(alpha*p->dt*PORVALNH)*cmfac
-                
-                - (1.0-PORVALNH)*(((0.5*(P[FIp1JKp1]+P[FIp1JK])-0.5*(P[FIm1JKp1]+P[FIm1JK]))/(p->DXP[IP]+p->DXP[IM1]))
-                
-                + 0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*((P[FIJKp1]-P[FIJK])/p->DZN[KP])));
-        
-        
-        Fy += dV*H*(Aporval*d->V[IJK] + Bporval*d->V[IJK]*fabs(d->V[IJK])
-        
-                + d->RO[IJK]*p->B260*(d->V[IJK]-VN[IJK])/(alpha*p->dt*PORVALNH)*cmfac
-                
-                + (1.0-PORVALNH)*(((0.5*(P[FIJp1Kp1]+P[FIJp1K])-0.5*(P[FIJm1Kp1]+P[FIJm1K]))/(p->DYP[JP]+p->DYP[JM1]))
-                
-                + 0.5*(p->sigy[FIJK]+p->sigy[FIJKp1])*((P[FIJKp1]-P[FIJK])/p->DZN[KP])));
-        
-        
-        Fz += dV*H*(Aporval*d->W[IJK] + Bporval*d->W[IJK]*fabs(d->W[IJK])
-        
-                + d->RO[IJK]*p->B260*(d->W[IJK]-WN[IJK])/(alpha*p->dt*PORVALNH)*cmfac
-                
-                - (1.0-PORVALNH)*((P[FIJKp1]-P[FIJK])/(p->DZN[KP])));
-	}
-    
+    Fx = Fy = Fz = 0.0;
+
+    FLOOP
+    P[FIJK] = (p->wd + d->eta(i, j) - p->ZSN[FIJK]) * p->W1 * fabs(p->W22) + d->P[FIJK];
+
+    // VRANS force on the static structures
+    // F = sum dV [ rho (A u + B |u| u) + rho c du/dt - (1 - n_s) grad p ],  c = gamma (1-n_s)/n_s^2
+    // all terms vanish with (1 - n_s) outside the structure
+    if(p->B200 > 0)
+        LOOP
+        {
+            porous_coeff(p, d);
+
+            if(H < 1.0e-12)
+                continue;
+
+            dV = p->DXN[IP] * p->DYN[JP] * p->DZN[KP] * p->WL[IJ];
+
+            rho = d->RO[IJK];
+
+            cmval = p->B260 * (1.0 - porval) / (porval * porval);
+
+            Fx += dV * (rho * (Aporval * d->U[IJK] + Bporval * d->U[IJK] * fabs(d->U[IJK]))
+
+                        + rho * cmval * (d->U[IJK] - UN[IJK]) / (alpha * p->dt) * cmfac
+
+                        - (1.0 - porval) * (((0.5 * (P[FIp1JKp1] + P[FIp1JK]) - 0.5 * (P[FIm1JKp1] + P[FIm1JK])) / (p->DXP[IP] + p->DXP[IM1]))
+
+                                            + 0.5 * (p->sigx[FIJK] + p->sigx[FIJKp1]) * ((P[FIJKp1] - P[FIJK]) / p->DZN[KP])));
+
+            Fy += dV * (rho * (Aporval * d->V[IJK] + Bporval * d->V[IJK] * fabs(d->V[IJK]))
+
+                        + rho * cmval * (d->V[IJK] - VN[IJK]) / (alpha * p->dt) * cmfac
+
+                        - (1.0 - porval) * (((0.5 * (P[FIJp1Kp1] + P[FIJp1K]) - 0.5 * (P[FIJm1Kp1] + P[FIJm1K])) / (p->DYP[JP] + p->DYP[JM1]))
+
+                                            + 0.5 * (p->sigy[FIJK] + p->sigy[FIJKp1]) * ((P[FIJKp1] - P[FIJK]) / p->DZN[KP])));
+
+            Fz += dV * (rho * (Aporval * d->W[IJK] + Bporval * d->W[IJK] * fabs(d->W[IJK]))
+
+                        + rho * cmval * (d->W[IJK] - WN[IJK]) / (alpha * p->dt) * cmfac
+
+                        - (1.0 - porval) * ((P[FIJKp1] - P[FIJK]) / (p->DZN[KP])));
+        }
+
     Fx = pgc->globalsum(Fx);
     Fy = pgc->globalsum(Fy);
     Fz = pgc->globalsum(Fz);
-    
+
     LOOP
     {
-    UN[IJK] = d->U[IJK];
-    VN[IJK] = d->V[IJK];
-    WN[IJK] = d->W[IJK];
-    cmfac = 1.0;
+        UN[IJK] = d->U[IJK];
+        VN[IJK] = d->V[IJK];
+        WN[IJK] = d->W[IJK];
+        cmfac = 1.0;
     }
-    
+
     // print
-    if(val==1)
-    print_force(p,d,pgc);
-
+    if(val == 1)
+        print_force(p, d, pgc);
 }
-
-
 

@@ -23,8 +23,8 @@ Author: Hans Bihs
 #ifndef NHFLOW_KEPSILON_BC_H_
 #define NHFLOW_KEPSILON_BC_H_
 
-#include"increment.h"
-#include"roughness.h"
+#include "increment.h"
+#include "roughness.h"
 class fdm_nhf;
 class lexer;
 
@@ -33,21 +33,20 @@ using namespace std;
 class nhflow_kepsilon_bc : public roughness
 {
 public:
-	nhflow_kepsilon_bc(lexer*);
-	virtual ~nhflow_kepsilon_bc();
-	void bckepsilon_start(lexer*,fdm_nhf*,double*,double*, int);
-    void bckin_matrix(lexer*,fdm_nhf*,double*,double*);
-    void bcomega_matrix(lexer*,fdm_nhf*,double*,double*);
-	void wall_law_kin(lexer*,fdm_nhf*,double*,double*);
-	void wall_law_omega(lexer*,fdm_nhf*,double*,double*);
+    nhflow_kepsilon_bc(lexer *);
+    virtual ~nhflow_kepsilon_bc();
+    void bckepsilon_start(lexer *, fdm_nhf *, double *, double *, int);
+    void bckin_matrix(lexer *, fdm_nhf *, double *, double *);
+    void bcepsilon_matrix(lexer *, fdm_nhf *, double *, double *);
+    void wall_law_kin(lexer *, fdm_nhf *, double *, double *);
+    void wall_law_epsilon(lexer *, fdm_nhf *, double *, double *);
 
 private:
-	double uplus,ks_plus,dist,ks,ustar,u_abs,eps_star,tau;
-	int ii,jj,kk;
-	int count,q;
-	double fac,value;
-	double kappa;
-
+    double uplus, ks_plus, dist, ks, ustar, u_abs, eps_star, tau;
+    int ii, jj, kk;
+    int count, q;
+    double fac, value;
+    double kappa;
 };
 #endif
 

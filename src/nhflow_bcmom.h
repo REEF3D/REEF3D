@@ -23,12 +23,11 @@ Author: Hans Bihs
 #ifndef BCMOM_NHFLOW_H_
 #define BCMOM_NHFLOW_H_
 
-#include"surftens.h"
-#include"roughness.h"
+#include "roughness.h"
+#include "surftens.h"
 class lexer;
 class fdm_nhf;
 class ghostcell;
-class field;
 class turbulence;
 
 using namespace std;
@@ -36,18 +35,18 @@ using namespace std;
 class nhflow_bcmom : public roughness
 {
 public:
-	nhflow_bcmom(lexer*);
-	virtual ~nhflow_bcmom();
-	void nhflow_bcmom_start(fdm*,lexer*,ghostcell*,turbulence*,field&, int);
-	void roughness_u(lexer*, fdm_nhf*, double*, double*, slice&);
-	void roughness_v(lexer*, fdm_nhf*, double*, double*, slice&);
-	void roughness_w(lexer*, fdm_nhf*, double*, double*, slice&);
+    nhflow_bcmom(lexer *);
+    virtual ~nhflow_bcmom();
+    void roughness_u(lexer *, fdm_nhf *, double *, double *, slice &);
+    void roughness_v(lexer *, fdm_nhf *, double *, double *, slice &);
+    void roughness_w(lexer *, fdm_nhf *, double *, double *, slice &);
+    void wall_friction(lexer *, fdm_nhf *, int, double *, double *, slice &);
 
 private:
-	const double kappa;
-	double uplus,ks_plus,ks,ustar,deltaZ,z0;
-	int ii,jj,kk;
-	double value;
-	int gcval_phi, bckin, wallfunc_type;
+    const double kappa;
+    double uplus, ks_plus, ks, ustar, deltaZ, z0;
+    int ii, jj, kk;
+    double value;
+    int gcval_phi, bckin, wallfunc_type;
 };
 #endif

@@ -23,8 +23,8 @@ Author: Hans Bihs
 #ifndef KEPSILON_BC_H_
 #define KEPSILON_BC_H_
 
-#include"increment.h"
-#include"roughness.h"
+#include "increment.h"
+#include "roughness.h"
 class fdm;
 class lexer;
 class field;
@@ -34,19 +34,23 @@ using namespace std;
 class kepsilon_bc : public increment, public roughness
 {
 public:
-	kepsilon_bc(lexer*);
-	virtual ~kepsilon_bc();
-	void bckeps_start(fdm*,lexer*,field&,field&, int);
-	void wall_law_kin(fdm*,lexer*,field&,field&,int,int,int,int,int,int,double);
-	void wall_law_eps(fdm*,lexer*,field&,field&,int,int,int,int,int,int,double);
+    kepsilon_bc(lexer *);
+    virtual ~kepsilon_bc();
+    void bckeps_start(fdm *, lexer *, field &, field &, int);
+    void bckin_matrix(fdm *, lexer *, field &, field &);
+    void bceps_matrix(fdm *, lexer *, field &, field &);
+    void bc_matrix(fdm *, lexer *, field &);
+    void wall_law_kin(fdm *, lexer *, field &, field &, int, int, int, int, int, int, double);
+    void wall_law_eps(fdm *, lexer *, field &, field &, int, int, int, int, int, int, double);
+    void vrans_wall_law_kin(lexer *, fdm *, field &, field &);
+    void vrans_wall_law_eps(lexer *, fdm *, field &, field &);
 
 private:
-	double uplus,ks_plus,dist,ks,ustar,u_abs,eps_star,tau;
-	int ii,jj,kk;
-	int count,q;
-	double fac,value;
-	const double kappa;
-
+    double uplus, ks_plus, dist, ks, ustar, u_abs, eps_star, tau;
+    int ii, jj, kk;
+    int count, q;
+    double fac, value;
+    const double kappa;
 };
 #endif
 

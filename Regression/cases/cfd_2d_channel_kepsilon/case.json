@@ -1,0 +1,1 @@
+{"description": "CFD 2D open channel, discharge inflow (B60 1, B61 2), k-eps: equilibrium inflow turbulence profile (rans_io::inflow_turb), eps production with eps>=0.", "np": 1, "steps": 300, "tags": ["2d", "inflow", "turbulence"], "covers": ["rans_io::inflow_turb", "kepsilon_bc inflow ghost", "kepsilon_func::epssource bound"]}

@@ -1,0 +1,22 @@
+{
+ "base": "nhflow_2d_nwt_stokes5",
+ "steps": 600,
+ "keep_keys": [
+  "P 40",
+  "P 41"
+ ],
+ "ctrl_add": [
+  "P 40 1",
+  "P 41 1"
+ ],
+ "description": "NHFLOW 2D Stokes 5th waves writing state files every step (P 40, P 41; default P 44 1 includes the pressure): first stage of nhflow_2d_hdc_nhflow.",
+ "tags": [
+  "2d",
+  "nhflow",
+  "waves",
+  "hdc-stage"
+ ],
+ "covers": [
+  "nhflow_state"
+ ]
+}

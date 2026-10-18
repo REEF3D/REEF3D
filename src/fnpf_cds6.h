@@ -23,28 +23,28 @@ Author: Hans Bihs
 #ifndef FNPF_CDS6_H_
 #define FNPF_CDS6_H_
 
-#include"fnpf_convection.h"
-#include"increment.h"
+#include "fnpf_convection.h"
+#include "fnpf_sz_weights.h"
+#include "increment.h"
 
 using namespace std;
 
 class fnpf_cds6 final : public fnpf_convection, public increment
 {
 public:
-	fnpf_cds6(lexer*);
-	virtual ~fnpf_cds6();
+    fnpf_cds6(lexer *);
+    virtual ~fnpf_cds6();
 
-    double fx(lexer*, field&, double, double) override final;
-	double fy(lexer*, field&, double, double) override final;
-	double fz(lexer*, field&, double, double) override final;
-    
-    double sx(lexer*, slice&, double) override final;
-	double sy(lexer*, slice&, double) override final;
-    double sz(lexer*, double*) override final;
+    double fx(lexer *, field &, double, double) override final;
+    double fy(lexer *, field &, double, double) override final;
+    double fz(lexer *, field &, double, double) override final;
+
+    double sx(lexer *, slice &, double) override final;
+    double sy(lexer *, slice &, double) override final;
+    double sz(lexer *, double *) override final;
 
 private:
-	
-
+    fnpf_sz_weights szw;
 };
 
 #endif

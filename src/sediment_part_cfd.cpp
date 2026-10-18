@@ -20,43 +20,56 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Authors: Hans Bihs, Alexander Hanke
 --------------------------------------------------------------------*/
 
-#include"sediment_part.h"
-#include"CPM.h"
-#include"lexer.h"
-#include"ghostcell.h"
-#include"bedshear.h"
-#include"sediment_fdm.h"
-#include"bedslope.h"
-#include"bedshear_reduction.h"
+#include "CPM.h"
+#include "bedshear.h"
+#include "bedshear_reduction.h"
+#include "bedslope.h"
+#include "ghostcell.h"
+#include "lexer.h"
+#include "sediment_fdm.h"
+#include "sediment_part.h"
 
-void sediment_part::sediment_algorithm_cfd(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow, reinitopo* preto)
+void sediment_part::sediment_algorithm_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, reinitopo *preto)
 {
-    double starttime=pgc->timer();
+    double starttime = pgc->timer();
 
     // sediment
-    fill_PQ_cfd(p,a,pgc);
-    pslope->slope_cds(p,pgc,s);
-    pbedshear->taubed(p,a,pgc,s);
-    preduce->start(p,pgc,s);
-    pgc->gcsl_start4(p,s->tau_eff,1);
-    pbedshear->taucritbed(p,a,pgc,s);
-    pgc->gcsl_start4(p,s->tau_crit,1);
+    fill_PQ_cfd(p, a, pgc);
+    pslope->slope_cds(p, pgc, s);
+    pbedshear->taubed(p, a, pgc, s);
+    preduce->start(p, pgc, s);
+    pgc->gcsl_start4(p, s->tau_eff, 1);
+    pbedshear->taucritbed(p, a, pgc, s);
+    pgc->gcsl_start4(p, s->tau_crit, 1);
 
-    pst->timestep(p,pgc);
-    pst->move(p,a,pgc,s,pturb);
-    pst->update(p,a,pgc,s,por,d50);
-    
+    pst->timestep(p, pgc);
+    pst->move(p, a, pgc, s, pturb);
+    pst->sedlog(p, pgc);
 
     /// topo update
-    update_cfd(p,a,pgc,pflow,preto);
+    update_cfd(p, a, pgc, pflow, preto);
 
-    p->sedsimtime=pgc->timer()-starttime;
+    p->sedsimtime = pgc->timer() - starttime;
 
     ++p->sediter;
 }
 
-
-void sediment_part::print_particles(lexer* p, sediment_fdm *s)
+void sediment_part::print_particles(lexer *p, sediment_fdm *s)
 {
-    pst->print_particles(p,s);
+    pst->print_particles(p, s);
+}
+
+void sediment_part::forcing_cfd(lexer *p, fdm *a, ghostcell *pgc, double alpha, field &u, field &v, field &w)
+{
+    pst->fluid_forcing(p, a, pgc, alpha, u, v, w);
+}
+
+void sediment_part::state_write(lexer *p, int num)
+{
+    pst->state_write(p, num);
+}
+
+void sediment_part::state_read(lexer *p, ghostcell *pgc, int num)
+{
+    pst->state_read(p, pgc, num);
 }

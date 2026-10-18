@@ -23,9 +23,9 @@ Author: Hans Bihs
 #ifndef SFLOW_RECONSTRUCT_WENO_H_
 #define SFLOW_RECONSTRUCT_WENO_H_
 
-#include"sflow_reconstruct.h"
-#include"weno_nug_func.h"
-#include"slice4.h"
+#include "sflow_reconstruct.h"
+#include "slice4.h"
+#include "weno_nug_func.h"
 
 class lexer;
 class ghostcell;
@@ -38,26 +38,25 @@ using namespace std;
 class sflow_reconstruct_weno final : public sflow_reconstruct, public weno_nug_func
 {
 public:
-	sflow_reconstruct_weno(lexer*,patchBC_interface*);
-	virtual ~sflow_reconstruct_weno();
+    sflow_reconstruct_weno(lexer *, patchBC_interface *);
+    sflow_reconstruct_weno(lexer *, patchBC_interface *, int);  // own WENO tables (SFLOW AMR patch)
+    virtual ~sflow_reconstruct_weno();
 
-    void reconstruct_x(lexer*,ghostcell*,fdm2D*,slice&,slice&,slice&) override final;
-    void reconstruct_y(lexer*,ghostcell*,fdm2D*,slice&,slice&,slice&) override final;
-    void reconstruct_WL(lexer*,ghostcell*,fdm2D*) override final;
-    
-    slice4 dfdx,dfdy;
+    void reconstruct_x(lexer *, ghostcell *, fdm2D *, slice &, slice &, slice &) override final;
+    void reconstruct_y(lexer *, ghostcell *, fdm2D *, slice &, slice &, slice &) override final;
+    void reconstruct_WL(lexer *, ghostcell *, fdm2D *) override final;
+
+    slice4 dfdx, dfdy;
 
 private:
-    void iqmin(lexer*, slice&);
-    void iqmax(lexer*, slice&);
-    void jqmin(lexer*, slice&);
-    void jqmax(lexer*, slice&);
-    
-    double limiter(double, double);
+    inline void iqmin(lexer *, slice &);
+    inline void iqmax(lexer *, slice &);
+    inline void jqmin(lexer *, slice &);
+    inline void jqmax(lexer *, slice &);
 
-    double ivel1,ivel2,jvel1,jvel2;
+    double ivel1, ivel2, jvel1, jvel2;
     int qq;
-    
+
     patchBC_interface *pBC;
 };
 

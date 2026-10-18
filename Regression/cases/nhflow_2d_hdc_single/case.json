@@ -1,0 +1,7 @@
+{
+ "base": "nhflow_2d_hdc",
+ "chain": [{"case": "fnpf_hdc_source_uvw_single", "copy": ["REEF3D_FNPF_STATE"]}],
+ "description": "nhflow_2d_hdc with one HDC input file per time step (source P 45 1): must give the same result as nhflow_2d_hdc.",
+ "tags": ["2d", "nhflow", "waves", "iowave", "hdc"],
+ "covers": ["wave_lib_hdc single-file input (filename_single of the CFD format)"]
+}

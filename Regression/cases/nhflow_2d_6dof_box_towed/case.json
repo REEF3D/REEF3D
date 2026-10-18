@@ -1,0 +1,4 @@
+{"base": "nhflow_2d_6dof_box", "ctrl_set": {"X 11": "2 0 1 0 1 0"},
+ "ctrl_add": ["X 210 0.3 0.0 0.0", "X 206 0.0 0.5"],
+ "description": "as nhflow_2d_6dof_box, towed in surge (X11 u=2, X210) with velocity ramp (X206), heave and pitch free.",
+ "tags": ["2d", "nhflow", "6dof", "floating"], "covers": ["sixdof_motionext_fixed (translation)", "ramp_vel"]}

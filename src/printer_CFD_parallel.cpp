@@ -20,110 +20,110 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Authors: Hans Bihs, Alexander Hanke
 --------------------------------------------------------------------*/
 
-#include"printer_CFD.h"
-#include<string>
-#include"lexer.h"
-#include"fdm.h"
-#include"ghostcell.h"
-#include"turbulence.h"
-#include"heat.h"
-#include"vorticity.h"
-#include"expdata.h"
-#include"concentration.h"
-#include"multiphase.h"
-#include"sediment.h"
-#include"print_averaging.h"
+#include "concentration.h"
+#include "expdata.h"
+#include "fdm.h"
+#include "ghostcell.h"
+#include "heat.h"
+#include "lexer.h"
+#include "multiphase.h"
+#include "print_averaging.h"
+#include "printer_CFD.h"
+#include "runlog.h"
+#include "sediment.h"
+#include "turbulence.h"
+#include "vorticity.h"
+#include <string>
 
-void printer_CFD::parallel(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, heat *pheat, expdata *pdata, concentration *pconc, multiphase *pmp, sediment *psed, int num)
+void printer_CFD::parallel(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb, heat *pheat, expdata *pdata, concentration *pconc, multiphase *pmp, sediment *psed, int num)
 {
-    outputFormat->parallelFileName(name,sizeof(name),"CFD",num);
+    outputFormat->parallelFileName(name, sizeof(name), "CFD", num);
 
     ofstream result;
     result.open(name);
 
-    outputFormat->beginningParallel(p,result);
+    outputFormat->beginningParallel(p, result);
 
-    result<<"<PPointData>\n";
+    result << "<PPointData>\n";
 
-    result<<"<PDataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\"/>\n";
+    result << "<PDataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\"/>\n";
 
-    pmean->name_ParaView_parallel(p,result);
+    pmean->name_ParaView_parallel(p, result);
 
-    result<<"<PDataArray type=\"Float32\" Name=\"pressure\"/>\n";
+    result << "<PDataArray type=\"Float32\" Name=\"pressure\"/>\n";
 
-    pturb->name_ParaView_parallel(p,result);
+    pturb->name_ParaView_parallel(p, result);
 
-    result<<"<PDataArray type=\"Float32\" Name=\"eddyv\"/>\n";
+    result << "<PDataArray type=\"Float32\" Name=\"eddyv\"/>\n";
 
-    result<<"<PDataArray type=\"Float32\" Name=\"phi\"/>\n";
+    result << "<PDataArray type=\"Float32\" Name=\"phi\"/>\n";
 
-    pheat->name_ParaView_parallel(p,result);
+    pheat->name_ParaView_parallel(p, result);
 
-    pmp->name_ParaView_parallel(p,result);
+    pmp->name_ParaView_parallel(p, result);
 
-    pvort->name_ParaView_parallel(p,result);
+    pvort->name_ParaView_parallel(p, result);
 
-    pdata->name_ParaView_parallel(p,result);
+    pdata->name_ParaView_parallel(p, result);
 
-    pconc->name_ParaView_parallel(p,result);
+    pconc->name_ParaView_parallel(p, result);
 
-    if(p->P24==1 && p->F300==0)
-    result<<"<PDataArray type=\"Float32\" Name=\"rho\"/>\n";
+    if(p->P24 == 1 && p->F300 == 0)
+        result << "<PDataArray type=\"Float32\" Name=\"rho\"/>\n";
 
-    if(p->P71==1)
-    result<<"<PDataArray type=\"Float32\" Name=\"viscosity\"/>\n";
+    if(p->P71 == 1)
+        result << "<PDataArray type=\"Float32\" Name=\"viscosity\"/>\n";
 
-    if(p->P72==1)
-    result<<"<PDataArray type=\"Float32\" Name=\"VOF\"/>\n";
+    if(p->P72 == 1)
+        result << "<PDataArray type=\"Float32\" Name=\"VOF\"/>\n";
 
-    if(p->A10==4)
-    result<<"<PDataArray type=\"Float32\" Name=\"Fi\"/>\n";
+    if(p->P26 == 1)
+        result << "<PDataArray type=\"Float32\" Name=\"ST_conc\"/>\n";
 
-    if(p->P26==1)
-    result<<"<PDataArray type=\"Float32\" Name=\"ST_conc\"/>\n";
+    if(p->P27 == 1)
+        result << "<PDataArray type=\"Float32\" Name=\"topo\"/>\n";
 
-    if(p->P27==1)
-    result<<"<PDataArray type=\"Float32\" Name=\"topo\"/>\n";
+    if(p->P76 == 1)
+        psed->name_ParaView_parallel_bedload(p, result);
 
-    if(p->P76==1)
-    psed->name_ParaView_parallel_bedload(p,result);
+    if(p->P77 == 1)
+        psed->name_ParaView_parallel_parameter1(p, result);
 
-    if(p->P77==1)
-    psed->name_ParaView_parallel_parameter1(p,result);
+    if(p->P78 == 1)
+        psed->name_ParaView_parallel_parameter2(p, result);
 
-    if(p->P78==1)
-    psed->name_ParaView_parallel_parameter2(p,result);
+    if(p->P79 >= 1)
+        psed->name_ParaView_parallel_bedshear(p, result);
 
-    if(p->P79>=1)
-    psed->name_ParaView_parallel_bedshear(p,result);
-    
-    if(p->P250==1)
-    psed->name_ParaView_parallel_CPM(p,result);
+    if(p->P250 == 1)
+        psed->name_ParaView_parallel_CPM(p, result);
 
-    if(p->P23==1)
-    result<<"<PDataArray type=\"Float32\" Name=\"test\"/>\n";
+    if(p->P23 == 1)
+        result << "<PDataArray type=\"Float32\" Name=\"test\"/>\n";
 
-    result<<"<PDataArray type=\"Float32\" Name=\"elevation\"/>\n";
+    result << "<PDataArray type=\"Float32\" Name=\"elevation\"/>\n";
 
-    if(p->P25==1)
-    result<<"<PDataArray type=\"Float32\" Name=\"solid\"/>\n";
+    if(p->P25 == 1)
+        result << "<PDataArray type=\"Float32\" Name=\"solid\"/>\n";
 
-    if(p->P28==1)
-    result<<"<PDataArray type=\"Float32\" Name=\"floating\"/>\n";
+    if(p->P28 == 1)
+        result << "<PDataArray type=\"Float32\" Name=\"floating\"/>\n";
 
-    if(p->P29==1)
-    result<<"<PDataArray type=\"Float32\" Name=\"walldist\"/>\n";
+    if(p->P29 == 1)
+        result << "<PDataArray type=\"Float32\" Name=\"walldist\"/>\n";
 
-    result<<"</PPointData>\n";
+    result << "</PPointData>\n";
 
-    result<<"<PCellData>\n";
+    result << "<PCellData>\n";
 
-    if(p->P72==1)
-    result<<"<PDataArray type=\"Float32\" Name=\"VOF_C\"/>\n";
+    if(p->P72 == 1)
+        result << "<PDataArray type=\"Float32\" Name=\"VOF_C\"/>\n";
 
-    result<<"</PCellData>\n";
+    result << "</PCellData>\n";
 
-    outputFormat->endingParallel(result,"CFD",p->M10,num);
+    outputFormat->endingParallel(result, "CFD", p->M10, num);
 
     result.close();
+    if(p->plog)
+        p->plog->written(p, num, "volume", "volume", name, p->M10);
 }

@@ -1,0 +1,9 @@
+{
+ "description": "NHFLOW 3D flexible membrane bag 'membrane cylcone' with filling 0.98 pumped out of the bag interior over 0.2 s (drain), staggered coupling, compression 0.001; current from a hydrograph inflow ramp (B60=2, hydrograph.dat). Coarse grid.",
+ "solver": "nhflow",
+ "np": 2,
+ "steps": 60,
+ "files": ["membrane.dat", "hydrograph.dat"],
+ "tags": ["3d", "nhflow", "membrane", "flexible", "current", "mpi"],
+ "covers": ["net_membrane filling/drain_nhflow", "compression parameter", "gc_startV inflow/outflow for B60=2 (hydrograph)", "flexible membrane staggered coupling"]
+}

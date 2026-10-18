@@ -23,7 +23,7 @@ Author: Hans Bihs
 #ifndef DRIVER_H_
 #define DRIVER_H_
 
-#include"increment.h"
+#include "increment.h"
 
 class field;
 class printer;
@@ -45,7 +45,6 @@ class ghostcell;
 class timestep;
 class freesurface;
 class reini;
-class particle_corr;
 class sediment;
 class bedload;
 class reinitopo;
@@ -53,12 +52,15 @@ class potential;
 class heat;
 class benchmark;
 class sixdof;
+class dem;
 class fsi;
 class vrans;
 class expdata;
 class concentration;
-class ptf;
 class fnpf;
+class fnpf_ice;
+class fnpf_amr;
+class nhflow_amr;
 class nhflow_fsf;
 class nhflow_convection;
 class nhflow_scalar_convection;
@@ -72,128 +74,121 @@ class nhflow_forcing;
 class nhflow_potential;
 class vrans_nhflow;
 class sflow;
+class seastate;
 class fnpf_timestep;
 class nhflow_timestep;
 class patchBC_interface;
 class nhflow;
 class multiphase;
 class nhflow_momentum;
+class nhflow_particle;
 class momentum_RKLS3_df;
 class momentum_RKLS3_sf;
 class particle_base;
 
-#include<iostream>
-#include<fstream>
-#include<iomanip>
-#include<vector>
+#include <fstream>
+#include <iomanip>
+#include <iostream>
+#include <vector>
 
 using namespace std;
+
+class regression_dump;
 
 class driver : public increment
 {
 public:
+    driver(int &, char **);
+    virtual ~driver();
 
-	driver(int&,char**);
-	virtual ~driver();
-    
     void start();
-    
+
     void cfd_driver();
     void nhflow_driver();
     void fnpf_driver();
-    void ptf_driver();
     void sflow_driver();
-    
-	void loop_cfd(fdm*);
-	void loop_cfd_df(fdm*);
-    void loop_cfd_sf(fdm*);
+    void seastate_driver();
+
+    void loop_cfd(fdm *);
+    void loop_cfd_df(fdm *);
+    void loop_cfd_sf(fdm *);
     void loop_nhflow();
-    void loop_ptf(fdm*);
     void loop_fnpf();
-    
-	void logic_cfd();
-    void logic_ptf();
+
+    void logic_cfd();
     void logic_fnpf();
     void logic_nhflow();
     void logic_sflow();
-    
+
     void patchBC_logic();
-    
-	void driver_ini_cfd();
+
+    void driver_ini_cfd();
     void driver_ini_nhflow();
     void driver_ini_fnpf();
-    void driver_ini_ptf();
-    void driver_ini_sflow();
-    
-	void log_ini();
-	void mainlog(lexer*);
-	void maxlog(lexer*);
-    void volumelog(lexer*);
-	void solverlog(lexer*);
-    
-	void makegrid(lexer*,ghostcell*);
-	void makegrid_cds();
-    void makegrid2D(lexer*,ghostcell*);
-    void makegrid2D_basic(lexer*,ghostcell*);
-    void makegrid2D_cds(lexer*,ghostcell*,fdm2D*);
-    void makegrid_sigma(lexer*,ghostcell*);
-    void makegrid_sigma_cds(lexer*,ghostcell*);  
-    
-	void vec_test(lexer*,fdm*,ghostcell*,field&);
-	void func_test(lexer*,fdm*,ghostcell*,field&);
-    void pos_test(lexer*,fdm*,ghostcell*);
-    void ipol_test(lexer*,fdm*,ghostcell*);
-    void ipol_test(lexer*,fdm_nhf*,ghostcell*);
-    void bedslope_test(lexer*,ghostcell*);
-    double bedslope_angle(lexer*,ghostcell*,double,double);
-	double calc();
-    
-    void stop(lexer*,fdm*,ghostcell*);
 
-	printer* pprint;
-	initialize* pini;
-	diffusion* pdiff;
-	diffusion* pturbdiff;
-	diffusion* pconcdiff;
-	diffusion* psuspdiff;
-	fdm* a;
-    fdm2D* b;
+    void log_ini();
+    void mainlog(lexer *);
+    void maxlog(lexer *);
+    void volumelog(lexer *);
+    void solverlog(lexer *);
+
+    void makegrid(lexer *, ghostcell *);
+    void makegrid_cds();
+    void makegrid2D(lexer *, ghostcell *);
+    void makegrid2D_basic(lexer *, ghostcell *);
+    void makegrid2D_cds(lexer *, ghostcell *, fdm2D *);
+    void makegrid_sigma(lexer *, ghostcell *);
+    void makegrid_sigma_cds(lexer *, ghostcell *);
+
+    void stop(lexer *, fdm *, ghostcell *);
+
+    printer *pprint;
+    regression_dump *preg;
+    initialize *pini;
+    diffusion *pdiff;
+    diffusion *pturbdiff;
+    diffusion *pconcdiff;
+    diffusion *psuspdiff;
+    fdm *a;
+    fdm2D *b;
     fdm_fnpf *c;
     fdm_nhf *d;
-	lexer* p;
-	momentum* pmom;
-	ioflow* pflow;
-	pressure* ppress;
-	poisson* ppois;
-	convection* pconvec;
-	convection* pturbdisc;
-	convection* pfsfdisc;
-    convection* pmpconvec;
-	convection* pconcdisc;
-    convection* pheatdisc;
-	turbulence* pturb;
-	solver* psolv;
-	solver* ppoissonsolv;
-    solver* plapsolv;
-	ghostcell* pgc;
-	timestep* ptstep;
-	freesurface* pfsf;
-	reini* preini;
-	particle_corr* ppls; 
-	sediment* psed;
-	reinitopo* preto;
-    reinitopo* preso;
-	heat* pheat;
-	potential* potflow;
-	benchmark* pbench;
-	fsi* pfsi;
-	vrans* pvrans;
-	expdata *pdata;
-	concentration *pconc;
+    lexer *p;
+    momentum *pmom;
+    ioflow *pflow;
+    pressure *ppress;
+    poisson *ppois;
+    convection *pconvec;
+    convection *pturbdisc;
+    convection *pfsfdisc;
+    convection *pmpconvec;
+    convection *pconcdisc;
+    convection *pheatdisc;
+    turbulence *pturb;
+    solver *psolv;
+    solver *ppoissonsolv;
+    solver *plapsolv;
+    ghostcell *pgc;
+    timestep *ptstep;
+    freesurface *pfsf;
+    reini *preini;
+    sediment *psed;
+    reinitopo *preto;
+    reinitopo *preso;
+    heat *pheat;
+    potential *potflow;
+    benchmark *pbench;
+    fsi *pfsi;
+    vrans *pvrans;
+    expdata *pdata;
+    concentration *pconc;
     fnpf *ppfsg;
-    ptf *pptf;
+    fnpf_ice *pfice = nullptr;
+    fnpf_amr *pfamr = nullptr;
+    nhflow_amr *pnhfamr = nullptr;
     nhflow_fsf *pnhfsf;
     sflow *psflow;
+    seastate *pseastate = nullptr;
     fnpf_timestep *pftstep;
     patchBC_interface *pBC;
     nhflow *pnhf;
@@ -203,16 +198,18 @@ public:
     nhflow_reconstruct *precon;
     nhflow_pressure *pnhpress;
     nhflow_turbulence *pnhfturb;
-    nhflow_diffusion *pnhfdiff,*pnhfturbdiff; 
+    nhflow_diffusion *pnhfdiff, *pnhfturbdiff;
     nhflow_potential *pnhfpot;
     multiphase *pmp;
     nhflow_timestep *pnhfstep;
     nhflow_momentum *pnhfmom;
+    nhflow_particle *pnhfpart;
     nhflow_forcing *pnhfdf;
     vrans_nhflow *pnhfvrans;
     momentum_RKLS3_df *pmom_df;
     momentum_RKLS3_sf *pmom_sf;
     sixdof *p6dof;
+    dem *pdem;
     turbulence *pturbcfd;
 
 private:
@@ -222,8 +219,8 @@ private:
     ofstream maxlogout;
     ofstream vollogout;
     ofstream solvlogout;
-	
-	double nom,val;
+
+    double nom, val;
     char version[100];
 };
 

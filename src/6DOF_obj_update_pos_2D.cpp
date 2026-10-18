@@ -20,58 +20,43 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Authors: Tobias Martin, Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"6DOF_obj.h"
-#include"lexer.h"
-#include"fdm.h"
-#include"ghostcell.h"
+#include "6DOF_obj_2D.h"
+#include "fdm.h"
+#include "ghostcell.h"
+#include "lexer.h"
 
-void sixdof_obj::update_position_2D(lexer *p, ghostcell *pgc, slice &fsglobal)
+void sixdof_obj_2D::update_position_2D(lexer *p, ghostcell *pgc, slice &fsglobal)
 {
     // Calculate new position
-    update_Euler_angles(p,pgc);
-    
-    // Update STL mesh
-    update_trimesh_2D(p,pgc);
+    rb.euler_angles();
 
-    // Update angular velocities 
-    omega_B = I_.inverse()*h_;
-    omega_I = R_*omega_B;
-    
+    // Update STL mesh
+    update_trimesh_2D(p, pgc);
+
+    // Update angular velocities
+    rb.update_omega();
+
     SLICELOOP4
-    fsglobal(i,j) = fs(i,j);
-    
-    pgc->gcsl_start4(p,fsglobal,50);
-    
-    if(p->mpirank==0)
+    fsglobal(i, j) = fs(i, j);
+
+    pgc->gcsl_start4(p, fsglobal, 50);
+
+    if(p->mpirank == 0)
     {
-        cout<<"XG: "<<c_(0)<<" YG: "<<c_(1)<<" ZG: "<<c_(2)<<" phi: "<<phi*(180.0/PI)<<" theta: "<<theta*(180.0/PI)<<" psi: "<<psi*(180.0/PI)<<endl;
-        cout<<"Ue: "<<u_fb(0)<<" Ve: "<< u_fb(1)<<" We: "<< u_fb(2)<<" Pe: "<<omega_I(0)<<" Qe: "<<omega_I(1)<<" Re: "<<omega_I(2)<<endl;
+        cout << "XG: " << c_(0) << " YG: " << c_(1) << " ZG: " << c_(2) << " phi: " << phi * (180.0 / PI) << " theta: " << theta * (180.0 / PI) << " psi: " << psi * (180.0 / PI) << endl;
+        cout << "Ue: " << u_fb(0) << " Ve: " << u_fb(1) << " We: " << u_fb(2) << " Pe: " << omega_I(0) << " Qe: " << omega_I(1) << " Re: " << omega_I(2) << endl;
     }
 }
 
-void sixdof_obj::update_trimesh_2D(lexer *p, ghostcell *pgc)
+void sixdof_obj_2D::update_trimesh_2D(lexer *p, ghostcell *pgc)
 {
-	// Update position of triangles 
-	for(n=0; n<tricount; ++n)
-	{
-        for(int q=0; q<3; q++)
-        {
-            // Update coordinates of triangles 
-            // (tri_x0 is vector between tri_x and xg)
-            Eigen::Vector3d point(tri_x0[n][q], tri_y0[n][q], tri_z0[n][q]);
-					
-            point = R_*point;
-        
-            tri_x[n][q] = point(0) + c_(0);
-            tri_y[n][q] = point(1) + c_(1);
-            tri_z[n][q] = point(2) + c_(2);
-        }
-	}
+    // Update position of triangles
+    geom.transform(R_, c_);
 
     // Update floating level set function
-	ray_cast_2D(p,pgc);
-	reini_2D(p,pgc,fs);
+    ray_cast_2D(p, pgc);
+    reini_2D(p, pgc, fs);
 
-    pgc->gcsl_start4(p,fs,50);  
+    pgc->gcsl_start4(p, fs, 50);
 }
 

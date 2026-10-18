@@ -1,0 +1,35 @@
+{
+ "base": "nhflow_2d_nwt_stokes5",
+ "steps": 200,
+ "ctrl_set": {
+  "B 92": "31",
+  "B 93": "0.2 4.5"
+ },
+ "ctrl_add": [
+  "B 85 2",
+  "B 86 64",
+  "B 87 0.6 3.0",
+  "B 88 3.3",
+  "P 50 10.0 0.005",
+  "P 50 40.0 0.005",
+  "P 50 60.0 0.005",
+  "B 139 16000",
+  "B 500 2 31 0.1 2.5",
+  "B 504 2 4242"
+ ],
+ "description": "NHFLOW, two irregular JONSWAP sources: B 92 31 (Hs 0.2, Tp 4.5, seed B 139) plus wave_field source 2 (Hs 0.1, Tp 2.5, own seed B 504). Checks the per-source lexer context and that the B 92 phases do not depend on other sources.",
+ "tags": [
+  "quick",
+  "2d",
+  "nhflow",
+  "waves",
+  "iowave",
+  "wave_field",
+  "irregular"
+ ],
+ "covers": [
+  "wave_field irregular sources",
+  "per-source random seed",
+  "lexer context swap"
+ ]
+}

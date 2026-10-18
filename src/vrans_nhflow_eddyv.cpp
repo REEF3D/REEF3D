@@ -20,21 +20,24 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"vrans_nhflow_f.h"
-#include"lexer.h"
-#include"fdm.h"
-#include"ghostcell.h"
+#include "fdm_nhf.h"
+#include "ghostcell.h"
+#include "lexer.h"
+#include "vrans_nhflow_f.h"
 
+// B 295 2: suppress the eddy viscosity inside the static porous structures,
+// blended with the structure Heaviside: nu_t -> (1-H) nu_t + H 0.001 nu
 void vrans_nhflow_f::eddyv_func(lexer *p, fdm_nhf *d)
 {
-    /*
-    int count;
+    if(p->B295 == 2)
+        LOOP
+        {
+            H = Hporface(p, d, 0, 0, 0);
 
-    count=0;
-	if(p->B295==2)
-    LOOP
-    if(a->porosity(i,j,k)<1.0)
-    {
-	a->eddyv(i,j,k) = 0.001*a->visc(i,j,k);
-    }*/
+            if(H > 1.0e-12)
+            {
+                d->EV[IJK] = (1.0 - H) * d->EV[IJK] + H * 0.001 * d->VISC[IJK];
+                d->EV0[IJK] = (1.0 - H) * d->EV0[IJK] + H * 0.001 * d->VISC[IJK];
+            }
+        }
 }

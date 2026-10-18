@@ -23,9 +23,9 @@ Author: Hans Bihs
 #ifndef SFLOW_ROUGH_MANNING_H_
 #define SFLOW_ROUGH_MANNING_H_
 
-#include"sflow_roughness.h"
-#include"increment.h"
-#include"slice4.h"
+#include "increment.h"
+#include "sflow_roughness.h"
+#include "slice4.h"
 
 using namespace std;
 
@@ -33,15 +33,14 @@ class sflow_rough_manning final : public sflow_roughness, public increment
 {
 
 public:
-    sflow_rough_manning(lexer*);
-	virtual ~sflow_rough_manning();
-    
-	void u_source(lexer*, fdm2D*, slice&) override final;
-    void v_source(lexer*, fdm2D*, slice&) override final;
+    sflow_rough_manning(lexer *);
+    virtual ~sflow_rough_manning();
+
+    void u_source(lexer *, fdm2D *, slice &, slice &, slice &) override final;
+    void v_source(lexer *, fdm2D *, slice &, slice &, slice &) override final;
 
 private:
-    
-    double cf,manning;
+    double cf, manning;
 };
 
 #endif

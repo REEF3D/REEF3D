@@ -23,7 +23,7 @@ Author: Hans Bihs
 #ifndef LEVELSET_VOID_H_
 #define LEVELSET_VOID_H_
 
-#include"freesurface.h"
+#include "freesurface.h"
 
 class fluid_update;
 class heat;
@@ -34,10 +34,10 @@ using namespace std;
 class levelset_void final : public freesurface
 {
 public:
-	levelset_void(lexer*, fdm*, ghostcell*, heat*&, concentration*&);
-	virtual ~levelset_void();
-	void start(fdm*,lexer*, convection*, solver*, ghostcell*,ioflow*, reini*, particle_corr*,field&) override final;
-    void update(lexer*,fdm*,ghostcell*,field&) override final;
+    levelset_void(lexer *, fdm *, ghostcell *, heat *&, concentration *&);
+    virtual ~levelset_void();
+    void start(fdm *, lexer *, convection *, solver *, ghostcell *, ioflow *, reini *, field &) override final;
+    void update(lexer *, fdm *, ghostcell *, field &) override final;
 
 private:
     fluid_update *pupdate;

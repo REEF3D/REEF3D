@@ -20,49 +20,48 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Tobias Martin
 --------------------------------------------------------------------*/
 
-#include"6DOF_obj.h"
-#include"lexer.h"
-#include"fdm_nhf.h"
-#include"momentum.h"
-#include"ghostcell.h"
-#include<sys/stat.h>
+#include "6DOF_obj_nhflow.h"
+#include "fdm_nhf.h"
+#include "ghostcell.h"
+#include "lexer.h"
+#include "momentum.h"
+#include <sys/stat.h>
 
-void sixdof_obj::initialize_wavemaker(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &eta, slice &WL)
+void sixdof_obj_nhflow::initialize_wavemaker(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &eta, slice &WL)
 {
-    if(p->mpirank==0)
-    cout<<"6DOF_obj_ini_wavemaker "<<p->X172<<endl;
-    
-    if(p->X170==1)
-    read_format_piston(p,pgc);
-    
-    if(p->X171==1)
-    read_format_flap(p,pgc);
-    
-    if(p->X172==1)
-    read_format_flap_double(p,pgc);
-    
+    if(p->mpirank == 0)
+        cout << "6DOF_obj_ini_wavemaker " << p->X172 << endl;
+
+    if(p->X170 == 1)
+        read_format_piston(p, pgc);
+
+    if(p->X171 == 1)
+        read_format_flap(p, pgc);
+
+    if(p->X172 == 1)
+        read_format_flap_double(p, pgc);
+
     // Initialise folder structure
-    if(p->X50==1)
-	print_ini_vtp(p,pgc);
-    
-    if(p->X50==2)
-    print_ini_stl(p,pgc);
-    
+    if(p->X50 == 1)
+        print_ini_vtp(p, pgc);
+
+    if(p->X50 == 2)
+        print_ini_stl(p, pgc);
+
     // Initialise processor boundaries
-    ini_parallel(p,pgc);
-    
+    ini_parallel(p, pgc);
+
     // Initialise objects
-	objects_create(p,pgc);
-    
+    objects_create(p, pgc);
+
     // Recalculate distances
-	ray_cast(p,d,pgc);
-	nhflow_reini_RK2(p,d,pgc,d->FB);
-    
-    // Print initial body 
-    if(p->X50==1)
-    print_vtp(p,pgc);
-    
-    if(p->X50==2)
-    print_stl(p,pgc);
-    
+    ray_cast(p, d, pgc);
+    nhflow_reini_RK2(p, d, pgc, d->FB);
+
+    // Print initial body
+    if(p->X50 == 1)
+        print_vtp(p, pgc);
+
+    if(p->X50 == 2)
+        print_stl(p, pgc);
 }

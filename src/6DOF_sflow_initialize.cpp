@@ -20,20 +20,20 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Authors: Hans Bihs, Tobias Martin
 --------------------------------------------------------------------*/
 
-#include"6DOF_sflow.h"
-#include"lexer.h"
-#include"fdm.h"
-#include"fdm2D.h"
-#include"ghostcell.h"
-   
+#include "6DOF_sflow.h"
+#include "fdm.h"
+#include "fdm2D.h"
+#include "ghostcell.h"
+#include "lexer.h"
+
 void sixdof_sflow::ini(lexer *p, ghostcell *pgc)
 {
 }
 
 void sixdof_sflow::initialize(lexer *p, fdm2D *b, ghostcell *pgc)
 {
-    for (int nb = 0; nb < number6DOF; nb++)
-    fb_obj[nb]->initialize_shipwave(p, pgc,b->eta,b->hp);
+    for(int nb = 0; nb < number6DOF; nb++)
+        fb_obj[nb]->initialize_shipwave(p, pgc, b->eta, b->WL);
 }
 
 void sixdof_sflow::initialize(lexer *p, fdm *a, ghostcell *pgc)
@@ -44,13 +44,12 @@ void sixdof_sflow::initialize(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
 }
 
-
-void sixdof_sflow::start_cfd(lexer* p, fdm* a, ghostcell* pgc, int iter, 
-                                field &uvel, field &vvel, field &wvel, field &fx, field &fy, field &fz, bool finalize)
+void sixdof_sflow::start_cfd(lexer *p, fdm *a, ghostcell *pgc, int iter,
+                             field &uvel, field &vvel, field &wvel, field &fx, field &fy, field &fz, bool finalize)
 {
 }
 
-void sixdof_sflow::start_nhflow(lexer* p, fdm_nhf* d, ghostcell* pgc, int iter, 
-                                        double *U, double *V, double *W, double *FX, double *FY, double *FZ, slice &WL, slice &fe, bool finalize)
+void sixdof_sflow::start_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter,
+                                double *U, double *V, double *W, double *FX, double *FY, double *FZ, slice &WL, slice &fe, bool finalize)
 {
 }

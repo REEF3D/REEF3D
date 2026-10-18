@@ -20,10 +20,10 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"reduction_FD.h"
-#include"lexer.h"
-#include"ghostcell.h"
-#include"sediment_fdm.h"
+#include "reduction_FD.h"
+#include "ghostcell.h"
+#include "lexer.h"
+#include "sediment_fdm.h"
 
 reduction_FD::reduction_FD(lexer *p) : bedslope(p)
 {
@@ -35,33 +35,31 @@ reduction_FD::~reduction_FD()
 
 void reduction_FD::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
-    double r=1.0;
-    
+    double r = 1.0;
+
     SEDSLICELOOP
     {
-    r = cos(s->teta(i,j))*(1.0 - tan(s->teta(i,j))/tan(s->phi(i,j)));
-    
-    r*= cos(s->alpha(i,j))*(1.0 - pow(tan(s->alpha(i,j)),2.0)/pow(tan(s->phi(i,j)),2.0));
-        
+        // longitudinal
+        r = cos(s->teta(i, j)) * (1.0 - tan(s->teta(i, j)) / tan(s->phi(i, j)));
+
+        // transversal
+        r *= cos(s->alpha(i, j)) * sqrt(1.0 - pow(tan(s->alpha(i, j)), 2.0) / pow(tan(s->phi(i, j)), 2.0));
+
         // limiter
-        if( 1.0-s->teta(i,j)/s->phi(i,j) < 0.0 || 1.0-s->alpha(i,j)/s->phi(i,j)< 0.0)
-        if(p->S84==2)
-        r = 0.1/(fabs(s->gamma(i,j)) + 0.0000001)+0.1;
-    
-    
-    r=MAX(r,0.01);
-    r=MIN(r,1.5);
+        if(1.0 - s->teta(i, j) / s->phi(i, j) < 0.0 || 1.0 - s->alpha(i, j) / s->phi(i, j) < 0.0)
+            if(p->S84 == 2)
+                r = 0.1 / (fabs(s->gamma(i, j)) + 0.0000001) + 0.1;
 
-	if(p->pos_x()<p->S71)
-	r=1.0;
+        r = MAX(r, 0.01);
+        r = MIN(r, 1.5);
 
-	if(p->pos_x()>p->S72)
-	r=10.0;
-	
-    s->reduce(i,j)=r;
+        if(p->pos_x() < p->S71)
+            r = 1.0;
+
+        if(p->pos_x() > p->S72)
+            r = 10.0;
+
+        s->reduce(i, j) = r;
     }
 }
-
-
-
 

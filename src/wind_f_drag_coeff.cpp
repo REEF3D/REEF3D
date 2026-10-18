@@ -20,78 +20,78 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"wind_f.h"
-#include"lexer.h"
-#include"fdm_nhf.h"
-#include"ghostcell.h"
-#include"slice.h"
+#include "fdm_nhf.h"
+#include "ghostcell.h"
+#include "lexer.h"
+#include "slice.h"
+#include "wind_f.h"
 
 void wind_f::wind_forcing_drag_coeff_fnpf(lexer *p)
 {
     // Garratt
-    if(p->A370==1)
+    if(p->A370 == 1)
     {
-    if(p->A371_u<41.0)
-    Cd = 0.001 * (0.75+0.067*p->A371_u);
-    
-    if(p->A371_u>=41.0)
-    Cd = 0.001 * (3.5*p->A371_u);
+        if(p->A371_u < 41.0)
+            Cd = 0.001 * (0.75 + 0.067 * p->A371_u);
+
+        if(p->A371_u >= 41.0)
+            Cd = 0.001 * 3.5;  // cap, continuous with linear branch at 41 m/s
     }
 
     // Wu
-    if(p->A370==2)
+    if(p->A370 == 2)
     {
-    if(p->A371_u<7.5)
-    Cd = 1.2875e-3;
-    
-    if(p->A371_u>=7.5)
-    Cd = 0.001 * (0.8 + 0.065*p->A371_u);
+        if(p->A371_u < 7.5)
+            Cd = 1.2875e-3;
+
+        if(p->A371_u >= 7.5)
+            Cd = 0.001 * (0.8 + 0.065 * p->A371_u);
     }
-    
+
     // Smith and Banke
-    if(p->A370==3)
+    if(p->A370 == 3)
     {
-    Cd = 0.001 * (0.63+0.066*p->A371_u);
+        Cd = 0.001 * (0.63 + 0.066 * p->A371_u);
     }
-    
+
     // Zijlema
-    if(p->A370==4)
-    {     
-    Cd = 0.001 * (0.55 + 2.97*(p->A371_u/Uref) - 1.49*pow(p->A371_u/Uref,2.0));
+    if(p->A370 == 4)
+    {
+        Cd = 0.001 * (0.55 + 2.97 * (p->A371_u / Uref) - 1.49 * pow(p->A371_u / Uref, 2.0));
     }
 }
 
 void wind_f::wind_forcing_drag_coeff_nhflow(lexer *p)
 {
     // Garratt
-    if(p->A570==1)
+    if(p->A570 == 1)
     {
-    if(p->A571_u<41.0)
-    Cd = 0.001 * (0.75+0.067*p->A571_u);
-    
-    if(p->A571_u>=41.0)
-    Cd = 0.001 * (3.5*p->A571_u);
+        if(p->A571_u < 41.0)
+            Cd = 0.001 * (0.75 + 0.067 * p->A571_u);
+
+        if(p->A571_u >= 41.0)
+            Cd = 0.001 * 3.5;  // cap, continuous with linear branch at 41 m/s
     }
 
     // Wu
-    if(p->A570==2)
+    if(p->A570 == 2)
     {
-    if(p->A571_u<7.5)
-    Cd = 1.2875e-3;
-    
-    if(p->A571_u>=7.5)
-    Cd = 0.001 * (0.8 + 0.065*p->A571_u);
+        if(p->A571_u < 7.5)
+            Cd = 1.2875e-3;
+
+        if(p->A571_u >= 7.5)
+            Cd = 0.001 * (0.8 + 0.065 * p->A571_u);
     }
-    
+
     // Smith and Banke
-    if(p->A570==3)
+    if(p->A570 == 3)
     {
-    Cd = 0.001 * (0.63+0.066*p->A571_u);
+        Cd = 0.001 * (0.63 + 0.066 * p->A571_u);
     }
-    
+
     // Zijlema
-    if(p->A570==4)
-    {     
-    Cd = 0.001 * (0.55 + 2.97*(p->A571_u/Uref) - 1.49*pow(p->A571_u/Uref,2.0));
+    if(p->A570 == 4)
+    {
+        Cd = 0.001 * (0.55 + 2.97 * (p->A571_u / Uref) - 1.49 * pow(p->A571_u / Uref, 2.0));
     }
 }

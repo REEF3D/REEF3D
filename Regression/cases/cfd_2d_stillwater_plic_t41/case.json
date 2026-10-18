@@ -1,0 +1,1 @@
+{"description": "CFD 2D still water, PLIC VOF (F80 4), k-omega with T41 1: no NaN from the T41 limiter when S = 0.", "np": 1, "steps": 100, "tags": ["2d", "plic", "turbulence"], "covers": ["komega_func_PLIC T41 guard"]}

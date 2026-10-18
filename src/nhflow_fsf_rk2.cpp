@@ -20,118 +20,137 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"nhflow_fsf_f.h"
-#include"lexer.h"
-#include"fdm_nhf.h"
-#include"ghostcell.h"
-#include"ioflow.h"
-#include"patchBC_interface.h"
-#include"vrans.h"
+#include "fdm_nhf.h"
+#include "ghostcell.h"
+#include "ioflow.h"
+#include "lexer.h"
+#include "nhflow_fsf_f.h"
+#include "patchBC_interface.h"
+#include "vrans.h"
 
-nhflow_fsf_f::nhflow_fsf_f(lexer *p, fdm_nhf* d, ghostcell *pgc, ioflow *pflow, patchBC_interface *ppBC) : eps(1.0e-6),P(p),Q(p),K(p)
+nhflow_fsf_f::nhflow_fsf_f(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, patchBC_interface *ppBC) : eps(1.0e-6), P(p), Q(p), K(p)
 {
     pBC = ppBC;
-    
-    p->Iarray(temp,p->imax*p->jmax);
-    
-    if(p->F50==1)
-	gcval_eta = 51;
-    
-    if(p->F50==2)
-	gcval_eta = 52;
-    
-    if(p->F50==3)
-	gcval_eta = 53;
-    
-    if(p->F50==4)
-	gcval_eta = 54;
+
+    p->Iarray(temp, p->imax * p->jmax);
+
+    if(p->F50 == 1)
+        gcval_eta = 51;
+
+    if(p->F50 == 2)
+        gcval_eta = 52;
+
+    if(p->F50 == 3)
+        gcval_eta = 53;
+
+    if(p->F50 == 4)
+        gcval_eta = 54;
 }
 
 nhflow_fsf_f::~nhflow_fsf_f()
 {
+    delete[] temp;
 }
 
-void nhflow_fsf_f::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow)
+void nhflow_fsf_f::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow)
 {
 }
 
-void nhflow_fsf_f::update(lexer *p, fdm_nhf* d, ghostcell *pgc, slice &f)
+void nhflow_fsf_f::update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &f)
 {
 }
 
-void nhflow_fsf_f::rk2_step1(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, double *U, double *V, double *W, slice &WLRK1, slice &WLRK2, double alpha)
+void nhflow_fsf_f::rk2_step1(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, double *U, double *V, double *W, slice &WLRK1, slice &WLRK2, double alpha)
 {
+    pflow->fsfinflow_flux_nhflow(p, d, pgc);
+
     SLICELOOP4
-    K(i,j) = 0.0;
-    
+    K(i, j) = 0.0;
+
     LOOP
-    WETDRY
-    K(i,j) += -p->DZN[KP]*((d->FEx[IJK] - d->FEx[Im1JK])/p->DXN[IP]  + (d->FEy[IJK] - d->FEy[IJm1K])/p->DYN[JP]*p->y_dir)/PORVALNH;
-    
-    
-    SLICELOOP4
-    WLRK1(i,j) = d->WL(i,j) + p->dt*K(i,j);
-    
-     
-    pflow->WL_relax(p,pgc,WLRK1,d->depth);
-    pflow->fsfinflow_nhflow(p,d,pgc,WLRK1);
-    pgc->gcsl_start4(p,WLRK1,gcval_eta);
-    
+        WETDRY
+            K(i, j) += -p->DZN[KP] * ((d->FEx[IJK] - d->FEx[Im1JK]) / p->DXN[IP] + (d->FEy[IJK] - d->FEy[IJm1K]) / p->DYN[JP] * p->y_dir);
+
+    // VRANS: d/dt int_{-h}^{eta} n dz = n(eta) deta/dt -> divide the column divergence by the
+    // porosity of the surface cell, not layer by layer (mass error for vertically varying n)
     SLICELOOP4
     {
-    d->eta_n(i,j) = d->eta(i,j);
-    d->detadt_n(i,j) = d->detadt(i,j);
+        k = p->knoz - 1;
+        K(i, j) /= PORVALNH;
     }
-    
+
     SLICELOOP4
-    d->eta(i,j) = WLRK1(i,j) - d->depth(i,j);
-    
+    WLRK1(i, j) = d->WL(i, j) + p->dt * K(i, j);
+
+    pflow->WL_relax(p, pgc, WLRK1, d->depth);
+    pflow->fsfinflow_nhflow(p, d, pgc, WLRK1);
+    pgc->gcsl_start4(p, WLRK1, gcval_eta);
+
     SLICELOOP4
-    d->detadt(i,j) = K(i,j);
-    
-    pgc->gcsl_start4(p,d->eta,gcval_eta);
-    pgc->gcsl_start4(p,d->detadt,1);
-    
-    pgc->solid_forcing_eta(p,WLRK1);
-    pgc->solid_forcing_eta(p,d->eta);
-    
-    wetdry(p,d,pgc,U,V,W,WLRK1); 
+    {
+        d->eta_n(i, j) = d->eta(i, j);
+        d->detadt_n(i, j) = d->detadt(i, j);
+    }
+
+    SLICELOOP4
+    d->eta(i, j) = WLRK1(i, j) - d->depth(i, j);
+
+    SLICELOOP4
+    d->detadt(i, j) = K(i, j);
+
+    pgc->gcsl_start4(p, d->eta, gcval_eta);
+    pgc->gcsl_start4(p, d->detadt, 1);
+
+    pgc->solid_forcing_eta(p, WLRK1);
+    pgc->solid_forcing_eta(p, d->eta);
+
+    wetdry(p, d, pgc, U, V, W, WLRK1);
 }
 
-void nhflow_fsf_f::rk2_step2(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow, double *U, double *V, double *W, slice &WLRK1, slice &WLRK2, double alpha)
+void nhflow_fsf_f::rk2_step2(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, double *U, double *V, double *W, slice &WLRK1, slice &WLRK2, double alpha)
 {
+    pflow->fsfinflow_flux_nhflow(p, d, pgc);
+
     SLICELOOP4
-    K(i,j) = 0.0;
-    
+    K(i, j) = 0.0;
+
     LOOP
-    WETDRY
-    K(i,j) += -p->DZN[KP]*((d->FEx[IJK] - d->FEx[Im1JK])/p->DXN[IP]  + (d->FEy[IJK] - d->FEy[IJm1K])/p->DYN[JP]*p->y_dir)/PORVALNH;
-    
+        WETDRY
+            K(i, j) += -p->DZN[KP] * ((d->FEx[IJK] - d->FEx[Im1JK]) / p->DXN[IP] + (d->FEy[IJK] - d->FEy[IJm1K]) / p->DYN[JP] * p->y_dir);
+
+    // VRANS: d/dt int_{-h}^{eta} n dz = n(eta) deta/dt -> divide the column divergence by the
+    // porosity of the surface cell, not layer by layer (mass error for vertically varying n)
     SLICELOOP4
-    d->WL(i,j) = 0.5*d->WL(i,j) + 0.5*WLRK1(i,j) + 0.5*p->dt*K(i,j);
-    
-    pflow->WL_relax(p,pgc,d->WL,d->depth);
-    pflow->fsfinflow_nhflow(p,d,pgc,d->WL);
-    pgc->gcsl_start4(p,d->WL,gcval_eta);
-    
+    {
+        k = p->knoz - 1;
+        K(i, j) /= PORVALNH;
+    }
+
     SLICELOOP4
-    d->eta_n(i,j) = d->eta(i,j);
-    
+    d->WL(i, j) = 0.5 * d->WL(i, j) + 0.5 * WLRK1(i, j) + 0.5 * p->dt * K(i, j);
+
+    pflow->WL_relax(p, pgc, d->WL, d->depth);
+    pflow->fsfinflow_nhflow(p, d, pgc, d->WL);
+    pgc->gcsl_start4(p, d->WL, gcval_eta);
+
     SLICELOOP4
-    d->eta(i,j) = d->WL(i,j) - d->depth(i,j);
-    
+    d->eta_n(i, j) = d->eta(i, j);
+
     SLICELOOP4
-    d->detadt_n(i,j) = d->detadt(i,j);
-    
+    d->eta(i, j) = d->WL(i, j) - d->depth(i, j);
+
     SLICELOOP4
-    d->detadt(i,j) = K(i,j);
-    
-    pgc->gcsl_start4(p,d->eta,gcval_eta);
-    pgc->gcsl_start4(p,d->detadt,1);
-    
-    pgc->solid_forcing_eta(p,d->WL);
-    pgc->solid_forcing_eta(p,d->eta);
-    
-    wetdry(p,d,pgc,U,V,W,d->WL); 
+    d->detadt_n(i, j) = d->detadt(i, j);
+
+    SLICELOOP4
+    d->detadt(i, j) = K(i, j);
+
+    pgc->gcsl_start4(p, d->eta, gcval_eta);
+    pgc->gcsl_start4(p, d->detadt, 1);
+
+    pgc->solid_forcing_eta(p, d->WL);
+    pgc->solid_forcing_eta(p, d->eta);
+
+    wetdry(p, d, pgc, U, V, W, d->WL);
 }
 

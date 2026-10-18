@@ -20,94 +20,98 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"sediment_f.h"
-#include"sediment_fdm.h"
-#include"lexer.h"
-#include"fdm_nhf.h"
-#include"ghostcell.h"
-#include"ioflow.h"
-#include"topo.h"
-#include"reinitopo.h"
-#include"nhflow_suspended.h"
-#include"nhflow_diffusion.h"
-#include"nhflow_scalar_convection.h"
-#include"bedload.h"
-#include"bedconc_VR.h"
-#include"bedshear.h"
-#include"sandslide.h"
-#include"topo_relax.h"
-#include"bedslope.h"
-#include"bedshear_reduction.h"
-#include"bedload_direction.h"
-#include"sediment_roughness.h"
+#include "bedconc_VR.h"
+#include "bedload.h"
+#include "bedload_direction.h"
+#include "bedshear.h"
+#include "bedshear_reduction.h"
+#include "bedslope.h"
+#include "fdm_nhf.h"
+#include "ghostcell.h"
+#include "ioflow.h"
+#include "lexer.h"
+#include "nhflow_diffusion.h"
+#include "nhflow_scalar_convection.h"
+#include "nhflow_suspended.h"
+#include "reinitopo.h"
+#include "sandslide.h"
+#include "sediment_f.h"
+#include "sediment_fdm.h"
+#include "sediment_mixture.h"
+#include "sediment_roughness.h"
+#include "topo.h"
+#include "topo_relax.h"
 
 void sediment_f::sediment_algorithm_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow)
 {
-    starttime=pgc->timer();
-    
+    starttime = pgc->timer();
+
     ++p->sediter;
-    
+
     // prep NHFLOW -------
-    prep_nhflow(p,d,pgc);
-    
+    prep_nhflow(p, d, pgc);
+
     // bedslope cds ******
-    pslope->slope_cds(p,pgc,s);
-    
+    pslope->slope_cds(p, pgc, s);
+
     // bedslope reduction ******
-    preduce->start(p,pgc,s);
-    
+    preduce->start(p, pgc, s);
+
     // bed roughness -------
-    pks->start(p,pgc,s,d->WL);
-    
+    pks->start(p, pgc, s, d->WL);
+
     // bedshear stress -------
-	pbedshear->taubed(p,d,pgc,s);
-    pbedshear->taucritbed(p,d,pgc,s);
-    
+    pbedshear->taubed(p, d, pgc, s);
+    pbedshear->taucritbed(p, d, pgc, s);
+
     // bedload *******
-    pbed->start(p,pgc,s);
-    
+    if(s->pmix == nullptr)
+        pbed->start(p, pgc, s);
+
+    if(s->pmix != nullptr)
+        s->pmix->bedload_fractions(p, pgc, s, pbed);
+
     // bedload_direction *******
-    pbeddir->start(p,pgc,s);
-    
+    pbeddir->start(p, pgc, s);
+
     // suspended load -------
-    pcbed->start(p,pgc,s);
-	
+    pcbed->start(p, pgc, s);
+
     // relax *******
-	prelax->start(p,pgc,s);
-    
+    prelax->start(p, pgc, s);
+
     // Exner *******
-    ptopo->start(p,pgc,s);
-    p->sedtime+=p->dtsed;
-    
+    ptopo->start(p, pgc, s);
+    p->sedtime += p->dtsed;
+
     // sandslide ********
-    if(p->sediter%p->S94==0)
-    pslide->start(p,pgc,s);
-    
+    if(p->sediter % p->S94 == 0)
+        pslide->start(p, pgc, s);
+
     // relax *******
-	prelax->start(p,pgc,s);
-    
+    prelax->start(p, pgc, s);
+
     // update sflow  --------
-    update_nhflow(p,d,pgc,pflow);
-    
+    update_nhflow(p, d, pgc, pflow);
+
     // sediment print
-    print_probes(p,pgc,s,pflow);
-    
+    print_probes(p, pgc, s, pflow);
+
     // sediment log
     sedimentlog(p);
-    
-    
-    if(p->mpirank==0 && p->count>0)
-    cout<<"Sediment Iter: "<<p->sediter<<" Sediment Timestep: "<<p->dtsed<<"  Total Time: "<<setprecision(7)<<p->sedtime<<endl;
 
-	if(p->mpirank==0)
-    cout<<"Sediment CompTime: "<<setprecision(5)<<pgc->timer()-starttime<<endl;
+    if(s->pmix != nullptr)
+        s->pmix->print_log(p, pgc);
+
+    if(p->mpirank == 0 && p->count > 0)
+        cout << "Sediment Iter: " << p->sediter << " Sediment Timestep: " << p->dtsed << "  Total Time: " << setprecision(7) << p->sedtime << endl;
+
+    if(p->mpirank == 0)
+        cout << "Sediment CompTime: " << setprecision(5) << pgc->timer() - starttime << endl;
 }
 
 void sediment_f::start_susp_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, solver *psolv)
 {
-    pnhfsusp->start(p,d,pgc,pnhfsuspdisc,pnhfsuspdiff,psolv,pflow,s);
+    pnhfsusp->start(p, d, pgc, pnhfsuspdisc, pnhfsuspdiff, psolv, pflow, s);
 }
-
-
-
 

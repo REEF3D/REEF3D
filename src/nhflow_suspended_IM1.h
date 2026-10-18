@@ -23,33 +23,34 @@ Author: Hans Bihs
 #ifndef NHFLOW_SUSPENDED_IM1_H_
 #define NHFLOW_SUSPENDED_IM1_H_
 
-#include"nhflow_suspended.h"
-#include"increment.h"
+#include "increment.h"
+#include "nhflow_suspended.h"
 
 using namespace std;
 
 class nhflow_suspended_IM1 final : public nhflow_suspended, public increment
 {
 public:
-	nhflow_suspended_IM1(lexer *);
-	virtual ~nhflow_suspended_IM1();
-	void start(lexer*, fdm_nhf*, ghostcell*, nhflow_scalar_convection*, nhflow_diffusion*, solver*, ioflow*, sediment_fdm*) override final;
-	void ctimesave(lexer*, fdm_nhf*) override final;
-    
-    void suspsource(lexer*,fdm_nhf*,double*,sediment_fdm*);
-    void bcsusp_start(lexer*,fdm_nhf*,ghostcell*,sediment_fdm*,double*);
-	void clearrhs(lexer*,fdm_nhf*);
-    void fillconc(lexer*,fdm_nhf*,ghostcell*,sediment_fdm*);
+    nhflow_suspended_IM1(lexer *);
+    virtual ~nhflow_suspended_IM1();
+    void start(lexer *, fdm_nhf *, ghostcell *, nhflow_scalar_convection *, nhflow_diffusion *, solver *, ioflow *, sediment_fdm *) override final;
+    void ctimesave(lexer *, fdm_nhf *) override final;
 
-	int gcval_susp;
+    void suspsource(lexer *, fdm_nhf *, double *, sediment_fdm *);
+    void bcsusp_start(lexer *, fdm_nhf *, ghostcell *, sediment_fdm *, double *);
+    void clearrhs(lexer *, fdm_nhf *);
+    void fillconc(lexer *, fdm_nhf *, ghostcell *, sediment_fdm *);
+
+    int gcval_susp;
 
 private:
-    void timesource(lexer*, fdm_nhf*, double*);
+    void timesource(lexer *, fdm_nhf *, double *);
     double starttime;
-    void fill_wvel(lexer*,fdm_nhf*,ghostcell*,sediment_fdm*); 
+    void fill_wvel(lexer *, fdm_nhf *, ghostcell *, sediment_fdm *);
     double *WVEL;
-    
-    int count,q;
+    double Rouse_formula(lexer *, fdm_nhf *, sediment_fdm *, double);
+
+    int count, q;
 };
 
 #endif

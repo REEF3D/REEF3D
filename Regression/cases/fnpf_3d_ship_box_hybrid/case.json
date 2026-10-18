@@ -1,0 +1,9 @@
+{
+ "description": "Ship module in REEF3D::FNPF: 1 m box barge in regular head waves, all six DOFs free, hybrid MMG (mmg_fluid 2: FNPF ideal-fluid loads + MMG hull derivatives without the Munk moment), approach phase from rest (ramp 1 s, free at 1.5 s), propeller with inflow sampled from the FNPF velocity, MMG rudder to 35 deg, 2 MPI ranks.",
+ "solver": "fnpf",
+ "np": 2,
+ "steps": 120,
+ "files": ["ship.dat"],
+ "tags": ["3d", "fnpf", "6dof", "ship", "mmg", "waves", "mpi"],
+ "covers": ["sixdof_fluid_fnpf velocity sampling", "FNPF psi_0 = chi (body-following time derivative, exact rigid-body Neumann data)", "ship mmg_fluid 2 (hybrid, Munk moment out of N'v)", "ship approach phase (controller, rudder hold)", "REEF3D_ship output in REEF3D_FNPF_6DOF"]
+}

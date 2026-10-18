@@ -1,0 +1,45 @@
+{
+ "description": "Solitary wave H/d = 0.1 (d = 0.5 m) propagating over constant depth with the non-hydrostatic SFLOW (A 220 2), set-up of tutorial 8_3 extended to 40 m: celerity between x = 8 and 24 m against c = sqrt(g(d+H)) and crest height at x = 24 m.",
+ "reference": {
+  "short": "Solitary wave celerity",
+  "citation": "Boussinesq solitary wave, c = sqrt(g (d + H)) (e.g. Synolakis 1987; Laitone 1960)"
+ },
+ "tags": [
+  "sflow",
+  "analytical",
+  "1d",
+  "quick"
+ ],
+ "time": 18.0,
+ "check": {
+  "type": "solitary",
+  "x1": 8.0,
+  "x2": 24.0,
+  "d": 0.5,
+  "H": 0.05,
+  "tol_c": 0.01,
+  "tol_H": 0.03
+ },
+ "levels": {
+  "nightly": {
+   "control_set": {
+    "B 1": "0.02",
+    "B 10": "0.0 40.0 0.0 0.02 0.0 1.0"
+   },
+   "ctrl_set": {
+    "P 51": [
+     "8.0 0.01",
+     "16.0 0.01",
+     "24.0 0.01"
+    ]
+   },
+   "check_set": {
+    "tol_c": 0.01,
+    "tol_H": 0.03
+   }
+  },
+  "release": {
+   "np": 2
+  }
+ }
+}

@@ -20,12 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Authors: Hans Bihs, Tobias Martin
 --------------------------------------------------------------------*/
 
-#include"6DOF_sflow.h"
-#include"lexer.h"
-#include"fdm.h"
-#include"fdm_nhf.h"
-#include"fdm2D.h"
-#include"ghostcell.h"
+#include "6DOF_sflow.h"
+#include "fdm.h"
+#include "fdm2D.h"
+#include "fdm_nhf.h"
+#include "ghostcell.h"
+#include "lexer.h"
 
 void sixdof_sflow::isource(lexer *p, fdm *a, ghostcell *pgc)
 {
@@ -41,27 +41,28 @@ void sixdof_sflow::ksource(lexer *p, fdm *a, ghostcell *pgc)
 
 void sixdof_sflow::isource2D(lexer *p, fdm2D *b, ghostcell *pgc)
 {
-    if(p->X10==3)
-	SLICELOOP1
-    {
-    dfdx = (press(i+1,j)-press(i,j))/(p->DXP[IP]);
-    
-    b->F(i,j) += dfdx/p->W1;
-    }
-    
+    // pressure of the moving body, cell centred source of the conserved momentum
+    if(p->X10 == 3)
+        SLICELOOP4
+        {
+            dfdx = (press(i + 1, j) - press(i - 1, j)) / (p->DXP[IP] + p->DXP[IM1]);
+
+            b->F(i, j) += b->WL(i, j) * dfdx / p->W1;
+        }
+
     SLICELOOP4
-    b->test(i,j) = press(i,j);
+    b->test(i, j) = press(i, j);
 }
 
 void sixdof_sflow::jsource2D(lexer *p, fdm2D *b, ghostcell *pgc)
 {
-    if(p->X10==3)
-	SLICELOOP2
-    {
-    dfdy = (press(i,j+1)-press(i,j))/(p->DYP[JP]);
-    
-    b->G(i,j) += dfdy/p->W1;
-    }
+    if(p->X10 == 3)
+        SLICELOOP4
+        {
+            dfdy = (press(i, j + 1) - press(i, j - 1)) / (p->DYP[JP] + p->DYP[JM1]);
+
+            b->G(i, j) += b->WL(i, j) * dfdy / p->W1;
+        }
 }
 
 void sixdof_sflow::isource(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
@@ -78,11 +79,11 @@ void sixdof_sflow::ksource(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
 
 double sixdof_sflow::limiter(double v1, double v2)
 {
-    r=v2/(fabs(v1)>1.0e-10?v1:1.0e20);
-    
-    phival = (r*r + r)/(r*r+1.0);
-    
-    val = 0.5*phival*(v1+v2);
+    r = v2 / (fabs(v1) > 1.0e-10 ? v1 : 1.0e20);
 
-    return val;	
+    phival = (r * r + r) / (r * r + 1.0);
+
+    val = 0.5 * phival * (v1 + v2);
+
+    return val;
 }

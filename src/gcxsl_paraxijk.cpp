@@ -20,148 +20,152 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"ghostcell.h"
-#include"lexer.h"
-#include"fdm.h"
+#include "fdm.h"
+#include "ghostcell.h"
+#include "lexer.h"
 
-void ghostcell::gcslparaxijk(lexer* p, double *f, int gcv)
+void ghostcell::gcslparaxijk(lexer *p, double *f, int gcv)
 {
-    starttime=timer();
+    // a patch kernel of the mesh refinement runs without the partition exchange (set_comms)
+    if(!do_comms)
+        return;
 
-    paramargin=margin;
+    starttime = timer();
+
+    paramargin = margin;
 
     //  FILL SEND
-    count=0;
-    for(q=0;q<p->gcslpara1_count;++q)
+    count = 0;
+    for(q = 0; q < p->gcslpara1_count; ++q)
     {
-        i=p->gcslpara1[q][0];
-        j=p->gcslpara1[q][1];
+        i = p->gcslpara1[q][0];
+        j = p->gcslpara1[q][1];
 
-        send1[count]=f[IJ];
+        send1[count] = f[IJ];
         ++count;
 
-        send1[count]=f[Ip1J];
+        send1[count] = f[Ip1J];
         ++count;
 
-        send1[count]=f[Ip2J];
+        send1[count] = f[Ip2J];
         ++count;
     }
 
-    count=0;
-    for(q=0;q<p->gcslpara2_count;++q)
+    count = 0;
+    for(q = 0; q < p->gcslpara2_count; ++q)
     {
-        i=p->gcslpara2[q][0];
-        j=p->gcslpara2[q][1];
+        i = p->gcslpara2[q][0];
+        j = p->gcslpara2[q][1];
 
-        send2[count]=f[IJ];
+        send2[count] = f[IJ];
         ++count;
 
-        send2[count]=f[IJm1];
+        send2[count] = f[IJm1];
         ++count;
 
-        send2[count]=f[IJm2];
+        send2[count] = f[IJm2];
         ++count;
     }
 
-    count=0;
-    for(q=0;q<p->gcslpara3_count;++q)
+    count = 0;
+    for(q = 0; q < p->gcslpara3_count; ++q)
     {
-        i=p->gcslpara3[q][0];
-        j=p->gcslpara3[q][1];
+        i = p->gcslpara3[q][0];
+        j = p->gcslpara3[q][1];
 
-        send3[count]=f[IJ];
+        send3[count] = f[IJ];
         ++count;
 
-        send3[count]=f[IJp1];
+        send3[count] = f[IJp1];
         ++count;
 
-        send3[count]=f[IJp2];
+        send3[count] = f[IJp2];
         ++count;
     }
 
-    count=0;
-    for(q=0;q<p->gcslpara4_count;++q)
+    count = 0;
+    for(q = 0; q < p->gcslpara4_count; ++q)
     {
-        i=p->gcslpara4[q][0];
-        j=p->gcslpara4[q][1];
+        i = p->gcslpara4[q][0];
+        j = p->gcslpara4[q][1];
 
-        send4[count]=f[IJ];
+        send4[count] = f[IJ];
         ++count;
 
-        send4[count]=f[Im1J];
+        send4[count] = f[Im1J];
         ++count;
 
-        send4[count]=f[Im2J];
+        send4[count] = f[Im2J];
         ++count;
     }
 
-    Sendrecv_double(p->gcslpara1_count*paramargin,p->gcslpara2_count*paramargin,p->gcslpara3_count*paramargin,p->gcslpara4_count*paramargin,0,0);
+    Sendrecv_double(p->gcslpara1_count * paramargin, p->gcslpara2_count * paramargin, p->gcslpara3_count * paramargin, p->gcslpara4_count * paramargin, 0, 0);
 
     //  FILL RECEIVE
-    count=0;
-    for(q=0;q<p->gcslpara1_count;++q)
+    count = 0;
+    for(q = 0; q < p->gcslpara1_count; ++q)
     {
-        i=p->gcslpara1[q][0];
-        j=p->gcslpara1[q][1];
+        i = p->gcslpara1[q][0];
+        j = p->gcslpara1[q][1];
 
-        f[Im1J]=recv1[count];
+        f[Im1J] = recv1[count];
         ++count;
 
-        f[Im2J]=recv1[count];
+        f[Im2J] = recv1[count];
         ++count;
 
-        f[Im3J]=recv1[count];
+        f[Im3J] = recv1[count];
         ++count;
     }
 
-    count=0;
-    for(q=0;q<p->gcslpara2_count;++q)
+    count = 0;
+    for(q = 0; q < p->gcslpara2_count; ++q)
     {
-        i=p->gcslpara2[q][0];
-        j=p->gcslpara2[q][1];
+        i = p->gcslpara2[q][0];
+        j = p->gcslpara2[q][1];
 
-        f[IJp1]=recv2[count];
+        f[IJp1] = recv2[count];
         ++count;
 
-        f[IJp2]=recv2[count];
+        f[IJp2] = recv2[count];
         ++count;
 
-        f[IJp3]=recv2[count];
+        f[IJp3] = recv2[count];
         ++count;
     }
 
-    count=0;
-    for(q=0;q<p->gcslpara3_count;++q)
+    count = 0;
+    for(q = 0; q < p->gcslpara3_count; ++q)
     {
-        i=p->gcslpara3[q][0];
-        j=p->gcslpara3[q][1];
+        i = p->gcslpara3[q][0];
+        j = p->gcslpara3[q][1];
 
-        f[IJm1]=recv3[count];
+        f[IJm1] = recv3[count];
         ++count;
 
-        f[IJm2]=recv3[count];
+        f[IJm2] = recv3[count];
         ++count;
 
-        f[IJm3]=recv3[count];
+        f[IJm3] = recv3[count];
         ++count;
     }
 
-    count=0;
-    for(q=0;q<p->gcslpara4_count;++q)
+    count = 0;
+    for(q = 0; q < p->gcslpara4_count; ++q)
     {
-        i=p->gcslpara4[q][0];
-        j=p->gcslpara4[q][1];
+        i = p->gcslpara4[q][0];
+        j = p->gcslpara4[q][1];
 
-        f[Ip1J]=recv4[count];
+        f[Ip1J] = recv4[count];
         ++count;
 
-        f[Ip2J]=recv4[count];
+        f[Ip2J] = recv4[count];
         ++count;
 
-        f[Ip3J]=recv4[count];
+        f[Ip3J] = recv4[count];
         ++count;
     }
 
-    endtime=timer();
-    p->xtime+=endtime-starttime;
+    endtime = timer();
+    p->xtime += endtime - starttime;
 }

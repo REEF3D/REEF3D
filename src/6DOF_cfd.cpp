@@ -20,77 +20,81 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Authors: Tobias Martin, Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"6DOF_cfd.h"
-#include"6DOF_obj.h"
-#include"lexer.h"
-#include"fdm.h"
-#include"ghostcell.h"
-#include"ddweno_f_nug.h"
+#include "6DOF_cfd.h"
+#include "6DOF_obj.h"
+#include "ddweno_f_nug.h"
+#include "fdm.h"
+#include "ghostcell.h"
+#include "lexer.h"
 
 sixdof_cfd::sixdof_cfd(lexer *p, fdm *a, ghostcell *pgc)
 {
-    if(p->mpirank==0)
-    cout<<"6DOF startup ..."<<endl;
-    
+    if(p->mpirank == 0)
+        cout << "6DOF startup ..." << endl;
+
     number6DOF = p->X20;
-    
-    for (int nb = 0; nb < number6DOF; nb++)
-    fb_obj.push_back(new sixdof_obj(p,pgc,nb));
+
+    for(int nb = 0; nb < number6DOF; nb++)
+        fb_obj.push_back(new sixdof_obj_cfd(p, pgc, nb));
 }
-    
+
 sixdof_cfd::~sixdof_cfd()
 {
 }
 
-void sixdof_cfd::start_cfd(lexer* p, fdm* a, ghostcell* pgc, int iter, field &uvel, field &vvel, field &wvel, field &fx, field &fy, field &fz, bool finalize)
+void sixdof_cfd::start_cfd(lexer *p, fdm *a, ghostcell *pgc, int iter, field &uvel, field &vvel, field &wvel, field &fx, field &fy, field &fz, bool finalize)
 {
-    setup(p,a,pgc);
-    
-    for (int nb=0; nb<number6DOF;++nb)
+    setup(p, a, pgc);
+
+    for(int nb = 0; nb < number6DOF; ++nb)
     {
         // Calculate forces
-        fb_obj[nb]->hydrodynamic_forces_cfd(p,a,pgc,uvel,vvel,wvel,iter,finalize);
-        
+        fb_obj[nb]->hydrodynamic_forces_cfd(p, a, pgc, uvel, vvel, wvel, iter, finalize);
+
         // Advance body in time
-        fb_obj[nb]->solve_eqmotion_cfd(p,a,pgc,iter,finalize);
-         
+        fb_obj[nb]->solve_eqmotion_cfd(p, a, pgc, iter, finalize);
+
         // Update transformation matrices
         fb_obj[nb]->quat_matrices(p);
-        
+
         // Update position and trimesh
-        fb_obj[nb]->update_position_3D(p,a,pgc,finalize);  //----> main time consumer
+        fb_obj[nb]->update_position_3D(p, a, pgc, finalize);  //----> main time consumer
 
         // Save
-        fb_obj[nb]->update_fbvel(p,pgc);
-        
+        fb_obj[nb]->update_fbvel(p, pgc);
+
         // Update forcing terms
-        fb_obj[nb]->update_forcing(p,a,pgc,uvel,vvel,wvel,fx,fy,fz,iter);
-        
+        fb_obj[nb]->update_forcing(p, a, pgc, uvel, vvel, wvel, fx, fy, fz, iter);
+
         // Print
-        if(finalize==true)
+        if(finalize == true)
         {
-            fb_obj[nb]->saveTimeStep(p,iter);
-            
-            if(p->X50==1)
-            fb_obj[nb]->print_vtp(p,pgc);
-            
-            if(p->X50==2)
-            fb_obj[nb]->print_stl(p,pgc);
-            
-            fb_obj[nb]->print_parameter(p,pgc);
+            fb_obj[nb]->saveTimeStep(p, iter);
+
+            if(p->X50 == 1)
+                fb_obj[nb]->print_vtp(p, pgc);
+
+            if(p->X50 == 2)
+                fb_obj[nb]->print_stl(p, pgc);
+
+            fb_obj[nb]->print_parameter(p, pgc);
         }
     }
-    
+
+    // actuator disks of the load models (ship propellers): momentum source of the fluid, after all
+    // bodies have set their Heaviside fbh1..3 (no source in the forcing zone of any body)
+    for(int nb = 0; nb < number6DOF; ++nb)
+        fb_obj[nb]->actuator_forcing(p, a, pgc, fx, fy, fz);
+
     // ghostcell update
-    pgc->gcdf_update(p,a);
+    pgc->gcdf_update(p, a);
 }
 
 void sixdof_cfd::start_sflow(lexer *p, fdm2D *b, ghostcell *pgc, int iter, slice &fsglobal, slice &P, slice &Q, slice &w, slice &fx, slice &fy, slice &fz, bool finalize)
 {
-    
 }
 
-void sixdof_cfd::start_nhflow(lexer* p, fdm_nhf* d, ghostcell* pgc, int iter, 
-                                        double *U, double *V, double *W, double *FX, double *FY, double *FZ, slice &WL, slice &fe, bool finalize)
+void sixdof_cfd::start_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter,
+                              double *U, double *V, double *W, double *FX, double *FY, double *FZ, slice &WL, slice &fe, bool finalize)
 {
 }

@@ -23,8 +23,8 @@ Author: Hans Bihs
 #ifndef PRESSURE_VOID_H_
 #define PRESSURE_VOID_H_
 
-#include"pressure.h"
-#include"increment.h"
+#include "increment.h"
+#include "pressure.h"
 
 using namespace std;
 
@@ -32,18 +32,17 @@ class pressure_void final : public pressure, public increment
 {
 
 public:
-	pressure_void(lexer* p);
-	virtual ~pressure_void();
+    pressure_void(lexer *p);
+    virtual ~pressure_void();
 
-	void start(fdm*,lexer* p, poisson*, solver*, ghostcell*,ioflow*, field&, field&, field&,double) override final;
-    void ini(lexer*,fdm*,ghostcell*) override final;
-	void rhs(lexer*,fdm*,ghostcell*,field&,field&,field&,double);
-	void ucorr(lexer*p,fdm*,field&,double) override final;
-	void vcorr(lexer*p,fdm*,field&,double) override final;
-	void wcorr(lexer*p,fdm*,field&,double) override final;
-	void upgrad(lexer*,fdm*,slice&,slice&) override final;
-	void vpgrad(lexer*,fdm*,slice&,slice&) override final;
-	void wpgrad(lexer*,fdm*,slice&,slice&) override final;
+    void start(fdm *, lexer *p, poisson *, solver *, ghostcell *, ioflow *, field &, field &, field &, double) override final;
+    void ini(lexer *, fdm *, ghostcell *) override final;
+    void ucorr(lexer *p, fdm *, field &, double) override final;
+    void vcorr(lexer *p, fdm *, field &, double) override final;
+    void wcorr(lexer *p, fdm *, field &, double) override final;
+    void upgrad(lexer *, fdm *, slice &, slice &) override final;
+    void vpgrad(lexer *, fdm *, slice &, slice &) override final;
+    void wpgrad(lexer *, fdm *, slice &, slice &) override final;
 };
 
 #endif

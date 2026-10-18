@@ -20,33 +20,36 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"fsf_vtp.h"
-#include"lexer.h"
+#include "fsf_vtp.h"
+#include "lexer.h"
+#include "runlog.h"
 
-void fsf_vtp::pvtp(lexer* p, int num)
+void fsf_vtp::pvtp(lexer *p, int num)
 {
-    sprintf(name,"./REEF3D_CFD_FSF/REEF3D-CFD-FSF-%08i.pvtp",num);
+    sprintf(name, "./REEF3D_CFD_FSF/REEF3D-CFD-FSF-%08i.pvtp", num);
 
     ofstream result;
     result.open(name);
 
-    vtp3D::beginningParallel(p,result);
+    vtp3D::beginningParallel(p, result);
 
     vtp3D::pointsParallel(result);
 
-    result<<"<PPointData>\n";
-    result<<"<PDataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\"/>\n";
-    result<<"<PDataArray type=\"Float32\" Name=\"elevation\"/>\n";
-    result<<"</PPointData>\n";
+    result << "<PPointData>\n";
+    result << "<PDataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\"/>\n";
+    result << "<PDataArray type=\"Float32\" Name=\"elevation\"/>\n";
+    result << "</PPointData>\n";
 
     char pname[100];
-    for(n=0; n<p->M10; ++n)
+    for(n = 0; n < p->M10; ++n)
     {
-        sprintf(pname,"REEF3D-CFD-FSF-%08i-%06i.vtp",num,n+1);
-        result<<"<Piece Source=\""<<pname<<"\"/>\n";
+        sprintf(pname, "REEF3D-CFD-FSF-%08i-%06i.vtp", num, n + 1);
+        result << "<Piece Source=\"" << pname << "\"/>\n";
     }
 
     vtp3D::endingParallel(result);
 
     result.close();
+    if(p->plog)
+        p->plog->written(p, num, "fsf", "free_surface", name, p->M10);
 }

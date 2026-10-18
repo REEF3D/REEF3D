@@ -20,22 +20,23 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"part.h"
-#include"lexer.h"
-#include"ghostcell.h"
-#include"slice.h"
+#include "ghostcell.h"
+#include "lexer.h"
+#include "part.h"
+#include "slice.h"
 
 void part::xchange_fillback(lexer *p, ghostcell *pgc, double *F)
 {
     index_empty = index_empty0;
 
     // fill recv into F
-    for(n=0;n<6;++n)
-    for(q=0;q<recvnum[n];++q)
-    {
-        F[Empty[index_empty]] = recv[n][q];
-        --index_empty;
-    }
+    // Empty[0..index_empty-1] holds the free slots
+    for(n = 0; n < 6; ++n)
+        for(q = 0; q < recvnum[n]; ++q)
+        {
+            --index_empty;
+            F[Empty[index_empty]] = recv[n][q];
+        }
 }
 
 void part::xchange_fillback_flag(lexer *p, ghostcell *pgc, slice &bedch, int mode)
@@ -43,30 +44,48 @@ void part::xchange_fillback_flag(lexer *p, ghostcell *pgc, slice &bedch, int mod
     index_empty = index_empty0;
 
     // fill recv into F
-    n=0;
-    for(int qn=0;qn<6;++qn)
-    for(q=0;q<recvnum[qn];++q)
-    {
-        n=Empty[index_empty];
-
-        // flag
-        Flag[n] = ACTIVE;
-
-        // bedch
-        if(mode==1)
+    n = 0;
+    for(int qn = 0; qn < 6; ++qn)
+        for(q = 0; q < recvnum[qn]; ++q)
         {
-            i=p->posc_i(XRK1[n]);
-            j=p->posc_j(YRK1[n]);
-        }
-        else if(mode==2)
-        {
-            i=p->posc_i(X[n]);
-            j=p->posc_j(Y[n]);
-        }
+            --index_empty;
+            n = Empty[index_empty];
 
-        bedch(i,j) += ParcelFactor;
+            // flag
+            Flag[n] = ACTIVE;
 
-        --index_empty;
-        ++n;
-    }
+            // parallel periodic boundaries: the parcel crossed the periodic side, move it by the period
+            // (old and new position together, see CPM_periodic.cpp)
+            if(p->periodic1 == 2)
+            {
+                double Lx = p->global_xmax - p->global_xmin;
+                double xt = mode == 1 ? XRK1[n] : X[n];
+                double sh = xt >= p->global_xmax ? -Lx : (xt < p->global_xmin ? Lx : 0.0);
+                X[n] += sh;
+                XRK1[n] += sh;
+            }
+
+            if(p->periodic2 == 2 && p->j_dir == 1)
+            {
+                double Ly = p->global_ymax - p->global_ymin;
+                double yt = mode == 1 ? YRK1[n] : Y[n];
+                double sh = yt >= p->global_ymax ? -Ly : (yt < p->global_ymin ? Ly : 0.0);
+                Y[n] += sh;
+                YRK1[n] += sh;
+            }
+
+            // bedch
+            if(mode == 1)
+            {
+                i = p->posc_i(XRK1[n]);
+                j = p->posc_j(YRK1[n]);
+            }
+            else if(mode == 2)
+            {
+                i = p->posc_i(X[n]);
+                j = p->posc_j(Y[n]);
+            }
+
+            bedch(i, j) += ParcelFactor;
+        }
 }

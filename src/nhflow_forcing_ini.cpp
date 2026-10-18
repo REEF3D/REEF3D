@@ -20,76 +20,77 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"nhflow_forcing.h"
-#include"lexer.h"
-#include"fdm_nhf.h"
-#include"ghostcell.h"
-#include"6DOF.h"
-#include"nhflow_reinidisc_fsf.h"
+#include "6DOF.h"
+#include "fdm_nhf.h"
+#include "ghostcell.h"
+#include "lexer.h"
+#include "nhflow_forcing.h"
+#include "nhflow_reinidisc_fsf.h"
 
 void nhflow_forcing::forcing_ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
-    if(solid_flag==1)
+    if(solid_flag == 1)
     {
-    if(p->mpirank==0)
-    cout<<"Forcing ini "<<endl;
-    
-   
-    
-    // ************************
-    // start raycast
-    geometry_ini(p, d, pgc);
-    objects_create_forcing(p, pgc);
-    ray_cast(p, d, pgc, d->SOLID);
-    reini_RK2(p, d, pgc, d->SOLID);
-    // ************************
-    
-    SLICELOOP4
-	d->depth(i,j) = p->wd - d->bed(i,j);
+        if(p->mpirank == 0)
+            cout << "Forcing ini " << endl;
+
+        // ************************
+        // start raycast
+        geometry_ini(p, d, pgc);
+        objects_create_forcing(p, pgc);
+        ray_cast(p, d, pgc, d->SOLID);
+        reini_RK2(p, d, pgc, d->SOLID);
+        // ************************
+
+        SLICELOOP4
+        d->depth(i, j) = p->wd - d->bed(i, j);
     }
-    
+
     // --------------
     // DF
     LOOP
-    p->DF[IJK]=1;
-    
-    if(solid_flag==1)
-    LOOP
-    if(d->SOLID[IJK]<0.0)
-    p->DF[IJK]=-1;
+        p->DF[IJK] = 1;
 
-    if(floating_flag==1)
-    LOOP
-    if(d->FB[IJK]<0.0)
-    p->DF[IJK]=-1;
-    
-    pgc->startintV(p,p->DF,1);
-    
+    if(solid_flag == 1)
+        LOOP if(d->SOLID[IJK] < 0.0)
+            p->DF[IJK] = -1;
+
+    // a porous floating body (X 16) is fluid for the solver, not a solid
+    if(floating_flag == 1 && p->X16 == 0)
+        LOOP if(d->FB[IJK] < 0.0)
+            p->DF[IJK] = -1;
+
+    pgc->startintV(p, p->DF, 1);
+
     // -------------
-    if(dlm_flag==1)
-    objects_create_forcing(p, pgc);
-    
+    if(dlm_flag == 1)
+        objects_create_forcing(p, pgc);
+
     // DFSL slice
     pgc->gcsldf_update(p);
-    pgc->solid_forcing_eta(p,d->WL);
-    pgc->solid_forcing_eta(p,d->eta);
-    pgc->solid_forcing_bed(p,d->bed);
-    
+    pgc->solid_forcing_eta(p, d->WL);
+    pgc->solid_forcing_eta(p, d->eta);
+    pgc->solid_forcing_bed(p, d->bed);
 }
 
 void nhflow_forcing::reset(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
-    if(forcing_flag==1 || dlm_flag==1)
+    if(forcing_flag == 1 || dlm_flag == 1)
     {
-    LOOP
-    {
-    FX[IJK] = 0.0;   
-    FY[IJK] = 0.0;   
-    FZ[IJK] = 0.0;   
-    d->FHB[IJK] = 0.0;
+        LOOP
+        {
+            FX[IJK] = 0.0;
+            FY[IJK] = 0.0;
+            FZ[IJK] = 0.0;
+            d->FHB[IJK] = 0.0;
+        }
+
+        SLICELOOP4
+        fe(i, j) = 0.0;
     }
 
-    SLICELOOP4
-    fe(i,j) = 0.0;
-    }
+    // porous floating bodies without static VRANS: clear POR, the bodies re-stamp it with MIN
+    if(p->X10 > 0 && p->X16 == 1 && p->B200 == 0)
+        LOOP
+            d->POR[IJK] = 1.0;
 }

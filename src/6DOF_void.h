@@ -23,11 +23,11 @@ Author: Tobias Martin
 #ifndef SIXDOF_VOID_H_
 #define SIXDOF_VOID_H_
 
-#include"6DOF.h"
-#include<vector>
-#include<fstream>
-#include<iostream>
+#include "6DOF.h"
 #include <Eigen/Dense>
+#include <fstream>
+#include <iostream>
+#include <vector>
 
 class lexer;
 class fdm;
@@ -41,45 +41,51 @@ using namespace std;
 class sixdof_void final : public sixdof
 {
 public:
-	sixdof_void(lexer*,ghostcell*);
-	virtual ~sixdof_void();
-    
-    void start_cfd(lexer*,fdm*,ghostcell*,int,field&,field&,field&,field&,field&,field&,bool) override final;
-    void start_nhflow(lexer*,fdm_nhf*,ghostcell*,int,double*,double*,double*,double*,double*,double*,slice&,slice&,bool) override final;
-    
-    void start_sflow(lexer*,fdm2D*,ghostcell*,int,slice&,slice&,slice&,slice&,slice&,slice&,slice&,bool) override final;
-    
-	void ini(lexer*,ghostcell*) override final;
-    void initialize(lexer*, fdm*, ghostcell*) override final;
-    void initialize(lexer*, fdm2D*, ghostcell*) override final;
-    void initialize(lexer*, fdm_nhf*, ghostcell*) override final;
+    sixdof_void(lexer *, ghostcell *);
+    virtual ~sixdof_void();
 
-    
-    void isource(lexer*,fdm*,ghostcell*) override final;
-    void jsource(lexer*,fdm*,ghostcell*) override final;
-    void ksource(lexer*,fdm*,ghostcell*) override final;
-    
-    void isource(lexer*,fdm_nhf*,ghostcell*,slice&) override final;
-    void jsource(lexer*,fdm_nhf*,ghostcell*,slice&) override final;
-    void ksource(lexer*,fdm_nhf*,ghostcell*,slice&) override final;
-    
-    void isource2D(lexer*,fdm2D*,ghostcell*) override final;
-    void jsource2D(lexer*,fdm2D*,ghostcell*) override final;
-    
+    void start_cfd(lexer *, fdm *, ghostcell *, int, field &, field &, field &, field &, field &, field &, bool) override final;
+    void start_nhflow(lexer *, fdm_nhf *, ghostcell *, int, double *, double *, double *, double *, double *, double *, slice &, slice &, bool) override final;
+    void start_sflow(lexer *, fdm2D *, ghostcell *, int, slice &, slice &, slice &, slice &, slice &, slice &, slice &, bool) override final;
+
+    void reforce_nhflow(lexer *, fdm_nhf *, ghostcell *, int, double *, double *, double *, double *, double *, double *, slice &, slice &, bool) override final {};
+
+    void membrane_forcing_nhflow(lexer *, fdm_nhf *, ghostcell *, double, double *, double *, double *, slice &) override final;
+    void membrane_reaction_nhflow(lexer *, fdm_nhf *, ghostcell *, double, slice &, bool) override final;
+    bool membrane_iterated() override final;
+    void membrane_reforce_nhflow(lexer *, fdm_nhf *, ghostcell *, double, double *, double *, double *, slice &) override final;
+    bool membrane_couple_nhflow(lexer *, fdm_nhf *, ghostcell *, int, double, slice &, int) override final;
+
+    void ini(lexer *, ghostcell *) override final;
+    void initialize(lexer *, fdm *, ghostcell *) override final;
+    void initialize(lexer *, fdm2D *, ghostcell *) override final;
+    void initialize(lexer *, fdm_nhf *, ghostcell *) override final;
+
+    void isource(lexer *, fdm *, ghostcell *) override final;
+    void jsource(lexer *, fdm *, ghostcell *) override final;
+    void ksource(lexer *, fdm *, ghostcell *) override final;
+
+    void isource(lexer *, fdm_nhf *, ghostcell *, slice &) override final;
+    void jsource(lexer *, fdm_nhf *, ghostcell *, slice &) override final;
+    void ksource(lexer *, fdm_nhf *, ghostcell *, slice &) override final;
+
+    void isource2D(lexer *, fdm2D *, ghostcell *) override final;
+    void jsource2D(lexer *, fdm2D *, ghostcell *) override final;
+
 private:
     net_interface *pnetinter;
-    
+
     Eigen::Matrix3d quatRotMat;
 
     // Mooring
-	vector<double> X311_xen, X311_yen, X311_zen;
-	vector<mooring*> pmooring;
-    
-	vector<double> Xme, Yme, Zme, Kme, Mme, Nme;    
-	vector<double> Xne, Yne, Zne, Kne, Mne, Nne;    
-    
-    double alpha[3],gamma[3],zeta[3];
-    
+    vector<double> X311_xen, X311_yen, X311_zen;
+    vector<mooring *> pmooring;
+
+    vector<double> Xme, Yme, Zme, Kme, Mme, Nme;
+    vector<double> Xne, Yne, Zne, Kne, Mne, Nne;
+
+    double alpha[3], gamma[3], zeta[3];
+
     double printtime;
 };
 

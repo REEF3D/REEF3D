@@ -1,0 +1,4 @@
+{"base": "cfd_2d_nwt", "ctrl_set": {"T 10": "2", "T 36": "1"},
+ "description": "as cfd_2d_nwt with k-omega (T10=2) and free-surface turbulence damping T36=1.",
+ "tags": ["quick", "2d", "waves", "turbulence"],
+ "covers": ["komega_IM1", "komega_func free-surface omega", "idiff2_scalar", "turbulence convection T12"]}

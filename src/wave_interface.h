@@ -23,73 +23,86 @@ Author: Hans Bihs
 #ifndef WAVE_INTERFACE_H_
 #define WAVE_INTERFACE_H_
 
+#include <vector>
+
 class lexer;
 class fdm;
 class ghostcell;
 class wave_lib;
+class wave_field;
 
 using namespace std;
 
-class wave_interface 
+class wave_interface
 {
 
 public:
-	wave_interface(lexer*, ghostcell*);
-	virtual ~wave_interface();
-	
+    wave_interface(lexer *, ghostcell *);
+    virtual ~wave_interface();
 
-	double wave_u(lexer*,ghostcell*,double,double,double);
-	double wave_v(lexer*,ghostcell*,double,double,double);
-    double wave_w(lexer*,ghostcell*,double,double,double);
-    double wave_h(lexer*,ghostcell*,double,double,double);
-    double wave_fi(lexer*,ghostcell*,double,double,double);
-    double wave_eta(lexer*,ghostcell*,double,double);
-    double wave_um(lexer*,ghostcell*,double,double);
-    double wave_vm(lexer*,ghostcell*,double,double);
-    
-    
+    double wave_u(lexer *, ghostcell *, double, double, double);
+    double wave_v(lexer *, ghostcell *, double, double, double);
+    double wave_w(lexer *, ghostcell *, double, double, double);
+    double wave_h(lexer *, ghostcell *, double, double, double);
+    double wave_fi(lexer *, ghostcell *, double, double, double);
+    double wave_eta(lexer *, ghostcell *, double, double);
+
+    // cached-point evaluation (wave_lib.h): register the generation-zone
+    // cells once, then evaluate by index; same time window and z clamp as above
+    void wave_cache_points(lexer *, ghostcell *, const std::vector<double> &, const std::vector<double> &);
+    double wave_eta_c(lexer *, ghostcell *, int);
+    double wave_fi_c(lexer *, ghostcell *, int, double);
+    void wave_uvw_c(lexer *, ghostcell *, int, double, double &, double &, double &);
+    double wave_um(lexer *, ghostcell *, double, double);
+    double wave_vm(lexer *, ghostcell *, double, double);
+
     // decomp
-    double wave_u_space_sin(lexer*,ghostcell*,double,double,double,int);
-    double wave_u_space_cos(lexer*,ghostcell*,double,double,double,int);
-    double wave_u_time_sin(lexer*,ghostcell*,int);
-    double wave_u_time_cos(lexer*,ghostcell*,int);
-    
-    double wave_v_space_sin(lexer*,ghostcell*,double,double,double,int);
-    double wave_v_space_cos(lexer*,ghostcell*,double,double,double,int);
-    double wave_v_time_sin(lexer*,ghostcell*,int);
-    double wave_v_time_cos(lexer*,ghostcell*,int);
-    
-    double wave_w_space_sin(lexer*,ghostcell*,double,double,double,int);
-    double wave_w_space_cos(lexer*,ghostcell*,double,double,double,int);
-    double wave_w_time_sin(lexer*,ghostcell*,int);
-    double wave_w_time_cos(lexer*,ghostcell*,int);
-    
-    double wave_eta_space_sin(lexer*,ghostcell*,double,double,int);
-    double wave_eta_space_cos(lexer*,ghostcell*,double,double,int);
-    double wave_eta_time_sin(lexer*,ghostcell*,int);
-    double wave_eta_time_cos(lexer*,ghostcell*,int);
-    
-    double wave_fi_space_sin(lexer*,ghostcell*,double,double,double,int);
-    double wave_fi_space_cos(lexer*,ghostcell*,double,double,double,int);
-    double wave_fi_time_sin(lexer*,ghostcell*,int);
-    double wave_fi_time_cos(lexer*,ghostcell*,int);
-    
-    void wave_prestep(lexer*,ghostcell*);
+    double wave_u_space_sin(lexer *, ghostcell *, double, double, double, int);
+    double wave_u_space_cos(lexer *, ghostcell *, double, double, double, int);
+    double wave_u_time_sin(lexer *, ghostcell *, int);
+    double wave_u_time_cos(lexer *, ghostcell *, int);
 
+    double wave_v_space_sin(lexer *, ghostcell *, double, double, double, int);
+    double wave_v_space_cos(lexer *, ghostcell *, double, double, double, int);
+    double wave_v_time_sin(lexer *, ghostcell *, int);
+    double wave_v_time_cos(lexer *, ghostcell *, int);
+
+    double wave_w_space_sin(lexer *, ghostcell *, double, double, double, int);
+    double wave_w_space_cos(lexer *, ghostcell *, double, double, double, int);
+    double wave_w_time_sin(lexer *, ghostcell *, int);
+    double wave_w_time_cos(lexer *, ghostcell *, int);
+
+    double wave_eta_space_sin(lexer *, ghostcell *, double, double, int);
+    double wave_eta_space_cos(lexer *, ghostcell *, double, double, int);
+    double wave_eta_time_sin(lexer *, ghostcell *, int);
+    double wave_eta_time_cos(lexer *, ghostcell *, int);
+
+    double wave_fi_space_sin(lexer *, ghostcell *, double, double, double, int);
+    double wave_fi_space_cos(lexer *, ghostcell *, double, double, double, int);
+    double wave_fi_time_sin(lexer *, ghostcell *, int);
+    double wave_fi_time_cos(lexer *, ghostcell *, int);
+
+    void wave_prestep(lexer *, ghostcell *);
+
+    // sources used by the cached evaluation (wave_eta_c, wave_fi_c, wave_uvw_c):
+    // ids as in B 524 (1: the B 92 wave); nullptr: all sources
+    void select_sources(const std::vector<int> *);
+    bool source_exists(int) const;
+
+    double wave_paddle_Q(lexer *, ghostcell *, double);
 
 private:
-    wave_lib *pwave;
-    
-    
-    int n,m,count;
+    wave_lib *pwave;     // source 1: the B 92 wave, unchanged path
+    wave_field *pfield;  // additional sources (B 500-504), summed on top
+    bool legacy_on;      // the B 92 wave is among the selected sources
+
+    int n, m, count;
     int wtype;
     double wD;
 
-	double starttime,endtime;
+    double starttime, endtime;
     static int printcheck;
-
 };
 
 #endif
-
 

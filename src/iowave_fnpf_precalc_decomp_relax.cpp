@@ -20,79 +20,84 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"iowave.h"
-#include"lexer.h"
-#include"ghostcell.h"
+#include "ghostcell.h"
+#include "iowave.h"
+#include "lexer.h"
 
 void iowave::wavegen_precalc_decomp_relax_fnpf(lexer *p, ghostcell *pgc)
 {
-        /*
-        a: space
-        b: time
-        
-        sin(a + b) = sin(a) cos(b) + cos(a) sin(b)
-        cos(a + b) = cos(a) cos(b) - sin(a) sin(b)
-        */
+    /*
+    a: space
+    b: time
 
-        /*
-         U: cos()
-         V: cos()
-         W: sin()
-         ETA: cos()
-        */
+    sin(a + b) = sin(a) cos(b) + cos(a) sin(b)
+    cos(a + b) = cos(a) cos(b) - sin(a) sin(b)
+    */
+
+    /*
+     U: cos()
+     V: cos()
+     W: sin()
+     ETA: cos()
+    */
 
     int qn;
 
     // pre-calc every iteration
-    count=0;
-    SLICELOOP4
+    count = 0;
+    // only relaxation-zone cells, SLICELOOP4 order (cached geometry)
+    if(!rz4_built)
+        relaxzone4_build(p);
+    for(size_t rzq = 0; rzq < rz4_i.size(); ++rzq)
     {
-		dg = distgen(p);
-		db = distbeach(p);
+        i = rz4_i[rzq];
+        j = rz4_j[rzq];
+        dg = rz4_dg[rzq];
+        db = rz4_db[rzq];
 
-
-        if(p->B98==2 && h_switch==1)
+        if(p->B98 == 2 && h_switch == 1)
         {
             // Zone 1
-            if(dg<1.0e20)
+            if(dg < 1.0e20)
             {
-                eta(i,j) = 0.0;
-                
-                for(qn=0;qn<wave_comp;++qn)
-                {
-                eta(i,j) += etaval_S_cos[count][qn]*etaval_T_cos[qn] - etaval_S_sin[count][qn]*etaval_T_sin[qn];
-                }
-            ++count;
-            }
-		}
-    }
-    pgc->gcsl_start4(p,eta,50);
+                eta(i, j) = 0.0;
 
-    
-    
+                for(qn = 0; qn < wave_comp; ++qn)
+                {
+                    eta(i, j) += etaval_S_cos[count][qn] * etaval_T_cos[qn] - etaval_S_sin[count][qn] * etaval_T_sin[qn];
+                }
+                ++count;
+            }
+        }
+    }
+    pgc->gcsl_start4(p, eta, 50);
+
     // pre-calc every iteration
-    count=0;
-    SLICELOOP4
+    count = 0;
+    // only relaxation-zone cells, SLICELOOP4 order (cached geometry)
+    if(!rz4_built)
+        relaxzone4_build(p);
+    for(size_t rzq = 0; rzq < rz4_i.size(); ++rzq)
     {
-		dg = distgen(p);
-		db = distbeach(p);
-		
-		// Wave Generation
-        if(p->B98==2 && f_switch==1)
+        i = rz4_i[rzq];
+        j = rz4_j[rzq];
+        dg = rz4_dg[rzq];
+        db = rz4_db[rzq];
+
+        // Wave Generation
+        if(p->B98 == 2 && f_switch == 1)
         {
             // Zone 1
-            if(dg<1.0e20)
+            if(dg < 1.0e20)
             {
                 Fifsfval[count] = 0.0;
-                
-                for(qn=0;qn<wave_comp;++qn)
-                Fifsfval[count] += Fifsfval_S_cos[count][qn]*Fifsfval_T_sin[qn] + Fifsfval_S_sin[count][qn]*Fifsfval_T_cos[qn];
 
-            ++count;
+                for(qn = 0; qn < wave_comp; ++qn)
+                    Fifsfval[count] += Fifsfval_S_cos[count][qn] * Fifsfval_T_sin[qn] + Fifsfval_S_sin[count][qn] * Fifsfval_T_cos[qn];
+
+                ++count;
             }
-		}
+        }
     }
-
-    
 }
-    
+

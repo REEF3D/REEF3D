@@ -1,0 +1,34 @@
+# Reference: Briggs, M.J., Synolakis, C.E., Harkins, G.S. & Green, D.R. (1995). Laboratory experiments of tsunami runup on a circular island. Pure Appl. Geophys. 144, 569-593;
+#   also Liu, P.L.-F., Cho, Y.-S., Briggs, M.J., Kanoglu, U. & Synolakis, C.E. (1995) J. Fluid Mech. 302, 259-285. NTHMP benchmark BP6 (2011 Galveston workshop).
+# Source repo: https://github.com/fengyanshi/NHWAVE  commit 286036b49872f7783de8cbcf574b018c314f3ed8 (2016-12-02),
+#   path examples/inundation_benchmarks/Solitary_wave_on_a_conical_island/runup/conical_RU.mat (variables degoc1, roc1, nroc1; radoc1 = angle in rad, not copied)
+#   README: 'conical_RU.mat  Discription: Experimental data.'; NTHMP script labBM_06_RU.m: 'conical_RU.mat (lab.data (experimental) file for the spatial runup on the sloping beach of the conical island.'
+# Converted .mat -> text (Python repr of stored doubles).
+# Case C: A/h = 0.181 (labBM_06_RU.m: 'Case(A)= A/h =0.045, Case(B)= A/h=0.096,and Case(C)= A/h=0.181').
+# Columns: (1) direction around the island [deg] (xlabel('Direction (\circ)')); (2) maximum run-up R [cm] (ylabel('R(cm)')); (3) normalised run-up (variable nroc1; approx. R/32 cm i.e. R/d, given to 2 decimals - normalisation not stated in script).
+# Angle convention: NOT stated in the repo. The data (largest run-up near 247.5-292.5 deg, secondary peak at ~90 deg where sampling is densest) suggest 270 deg = side facing the incident wave and 90 deg = lee side; verify with Briggs et al. (1995) / Liu et al. (1995).
+# Island: tank depth 0.32 m, cone toe radius 3.6 m, height 0.625 m, side slope 1:4 (FUNWAVE conical.m). 24 points, irregular angular spacing (measurement rods), presumably original measurements -> A/B.
+0.0 10.4 0.33
+22.5 6.71 0.21
+45.0 3.92 0.12
+67.5 3.35 0.1
+75.0 5.91 0.18
+80.0 10.02 0.31
+85.0 10.9 0.34
+87.5 11.13 0.35
+90.0 10.9 0.34
+92.5 10.59 0.33
+95.0 10.48 0.33
+100.0 8.8 0.28
+105.0 5.41 0.17
+112.5 4.42 0.14
+135.0 3.81 0.12
+157.5 6.02 0.19
+180.0 10.1 0.32
+202.5 12.95 0.4
+225.0 15.77 0.49
+247.5 17.41 0.54
+270.0 17.49 0.55
+292.5 16.88 0.53
+315.0 15.77 0.49
+337.5 13.41 0.42

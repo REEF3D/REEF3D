@@ -20,12 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"nhflow_v.h"
-#include"lexer.h"
-#include"fdm_nhf.h"
-#include"ghostcell.h"
+#include "nhflow_v.h"
+#include "fdm_nhf.h"
+#include "ghostcell.h"
+#include "lexer.h"
 
-nhflow_v::nhflow_v(lexer *p, fdm_nhf *d, ghostcell *pgc) 
+nhflow_v::nhflow_v(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
 }
 
@@ -33,11 +33,7 @@ nhflow_v::~nhflow_v()
 {
 }
 
-
-void nhflow_v::ini(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow)
+void nhflow_v::ini(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, nhflow_fsf *pnhfsf)
 {
-
 }
-
-
 

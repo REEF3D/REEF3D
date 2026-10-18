@@ -23,10 +23,10 @@ Author: Hans Bihs
 #ifndef PRINTER_NHFLOW_H_
 #define PRINTER_NHFLOW_H_
 
-#include"printer.h"
-#include"increment.h"
+#include "increment.h"
+#include "printer.h"
 
-#include"vtks.h"
+#include "vtks.h"
 
 class fdm_nhf;
 class ioflow;
@@ -54,6 +54,7 @@ class nhflow_print_Hs;
 class nhflow_turbulence;
 class nhflow_force;
 class nhflow_force_ale;
+class lagoon_output;
 class bedshear_probe;
 class bedshear_max;
 
@@ -63,24 +64,24 @@ class printer_nhflow final : public printer, public increment
 {
 
 public:
-    printer_nhflow(lexer*,fdm_nhf*,ghostcell*);
+    printer_nhflow(lexer *, fdm_nhf *, ghostcell *);
     virtual ~printer_nhflow() = default;
-    void start(lexer*,fdm_nhf*,ghostcell*,ioflow*,nhflow_turbulence*,sediment*) override final;
-    void print_stop(lexer*,fdm_nhf*,ghostcell*,ioflow*,nhflow_turbulence*,sediment*) override final;
+    void start(lexer *, fdm_nhf *, ghostcell *, ioflow *, nhflow_turbulence *, sediment *) override final;
+    void print_stop(lexer *, fdm_nhf *, ghostcell *, ioflow *, nhflow_turbulence *, sediment *) override final;
 
 private:
-    void print(lexer*,fdm_nhf*,ghostcell*,nhflow_turbulence*,sediment*);
-    void parallel(lexer*,fdm_nhf*,ghostcell*,nhflow_turbulence*,sediment*,int);
+    void print(lexer *, fdm_nhf *, ghostcell *, nhflow_turbulence *, sediment *);
+    void parallel(lexer *, fdm_nhf *, ghostcell *, nhflow_turbulence *, sediment *, int);
 
     vtk3D *outputFormat;
     bool initial_print = true;
     size_t file_offset = 0;
 
     char name[200];
-    int n,iin,offset[200];
+    int n, iin, offset[200];
     float ffn;
     int jj;
-    int gcval_phi,gcval_phiext;
+    int gcval_phi, gcval_phiext;
     double *printtime_wT;
     double *printfsftime_wT;
     int *printfsfiter_wI;
@@ -109,7 +110,7 @@ private:
     nhflow_print_Hs *phs;
     nhflow_force **pforce;
     nhflow_force_ale **pforce_ale;
-
+    lagoon_output *plagoon = nullptr;  // P 18: LAGOON store of the volume
 };
 
 #endif

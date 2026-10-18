@@ -20,187 +20,131 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"interpolation.h"
-#include"slice.h"
-#include"lexer.h"
+#include "interpolation.h"
+#include "lexer.h"
+#include "slice.h"
 
-double interpolation::ccslipol1(slice& f, double xp, double yp)
+double interpolation::ccslipol1(slice &f, double xp, double yp)
 {
-    ii=i;
-    jj=j;
-    
+    ii = i;
+    jj = j;
+
     i = p->posf_i(xp);
     j = p->posc_j(yp);
-		
-    // wa
-    wa = (p->XN[IP1]-xp)/p->DXP[IP];
-    
-    if((p->XN[IP1]-xp)/p->DXP[IP]<0.0)
-    {
-    wa = (p->XN[IP2]-xp)/p->DXP[IP1];
-    ++i;
-    }
-    
-    if((p->XN[IP1]-xp)/p->DXP[IP]>1.0)
-    {
-    wa = (p->XN[IP]-xp)/p->DXP[IM1];
-    --i;
-    }
-    
-    
-    // wb
-    wb = (p->YP[JP1]-yp)/p->DYN[JP];
-    
-    if((p->YP[JP1]-yp)/p->DYN[JP]<0.0)
-    {
-    wb = (p->YP[JP2]-yp)/p->DYN[JP1];
-    ++j;
-    }
-    
-    if((p->YP[JP1]-yp)/p->DYN[JP]>1.0)
-    {
-    wb = (p->YP[JP]-yp)/p->DYN[JM1];
-    --j;
-    }
-    
-    value = lintsl1(f,i,j,wa,wb);
 
-    i=ii;
-    j=jj;
+    // wa
+    wa = (p->XN[IP1] - xp) / p->DXP[IP];
+
+    if((p->XN[IP1] - xp) / p->DXP[IP] < 0.0)
+    {
+        wa = (p->XN[IP2] - xp) / p->DXP[IP1];
+        ++i;
+    }
+
+    if((p->XN[IP1] - xp) / p->DXP[IP] > 1.0)
+    {
+        wa = (p->XN[IP] - xp) / p->DXP[IM1];
+        --i;
+    }
+
+    // wb
+    wb = (p->YP[JP1] - yp) / p->DYN[JP];
+
+    if((p->YP[JP1] - yp) / p->DYN[JP] < 0.0)
+    {
+        wb = (p->YP[JP2] - yp) / p->DYN[JP1];
+        ++j;
+    }
+
+    if((p->YP[JP1] - yp) / p->DYN[JP] > 1.0)
+    {
+        wb = (p->YP[JP] - yp) / p->DYN[JM1];
+        --j;
+    }
+
+    value = lintsl1(f, i, j, wa, wb);
+
+    i = ii;
+    j = jj;
 
     return value;
 }
 
-double interpolation::ccslipol2(slice& f, double xp, double yp)
+double interpolation::ccslipol2(slice &f, double xp, double yp)
 {
-    ii=i;
-    jj=j;
-    
+    ii = i;
+    jj = j;
+
     i = p->posc_i(xp);
     j = p->posf_j(yp);
-		
+
     // wa
-    wa = (p->XP[IP1]-xp)/p->DXN[IP];
-    
-    if((p->XP[IP1]-xp)/p->DXN[IP]<0.0)
+    wa = (p->XP[IP1] - xp) / p->DXN[IP];
+
+    if((p->XP[IP1] - xp) / p->DXN[IP] < 0.0)
     {
-    wa = (p->XP[IP2]-xp)/p->DXN[IP1];
-    ++i;
+        wa = (p->XP[IP2] - xp) / p->DXN[IP1];
+        ++i;
     }
-    
-    if((p->XP[IP1]-xp)/p->DXN[IP]>1.0)
+
+    if((p->XP[IP1] - xp) / p->DXN[IP] > 1.0)
     {
-    wa = (p->XP[IP]-xp)/p->DXN[IM1];
-    --i;
+        wa = (p->XP[IP] - xp) / p->DXN[IM1];
+        --i;
     }
-    
-    
+
     // wb
-    wb = (p->YN[JP1]-yp)/p->DYP[JP];
-    
-    if((p->YN[JP1]-yp)/p->DYP[JP]<0.0)
+    wb = (p->YN[JP1] - yp) / p->DYP[JP];
+
+    if((p->YN[JP1] - yp) / p->DYP[JP] < 0.0)
     {
-    wb = (p->YN[JP2]-yp)/p->DYP[JP1];
-    ++j;
-    }
-    
-    if((p->YN[JP1]-yp)/p->DYP[JP]>1.0)
-    {
-    wb = (p->YN[JP]-yp)/p->DYP[JM1];
-    --j;
+        wb = (p->YN[JP2] - yp) / p->DYP[JP1];
+        ++j;
     }
 
-    value = lintsl2(f,i,j,wa,wb);
+    if((p->YN[JP1] - yp) / p->DYP[JP] > 1.0)
+    {
+        wb = (p->YN[JP] - yp) / p->DYP[JM1];
+        --j;
+    }
 
-    i=ii;
-    j=jj;
+    value = lintsl2(f, i, j, wa, wb);
+
+    i = ii;
+    j = jj;
 
     return value;
 }
 
-double interpolation::ccslipol4(slice& f, double xp, double yp)
+double interpolation::ccslipol4(slice &f, double xp, double yp)
 {
-    ii=i;
-    jj=j;
-    
+    ii = i;
+    jj = j;
+
     i = p->posf_i(xp);
     j = p->posf_j(yp);
-		
+
     // wa
-    wa = (p->XP[IP1]-xp)/p->DXP[IP];
-    
-    //if(wa<0.0 || wa>1.0)
-    //cout<<"WA: "<<wa<<" xp: "<<xp<<" XP[IP]: "<<p->XP[IP]<<" XP[IP1]: "<<p->XP[IP1]<<" i: "<<i<<endl;
+    wa = (p->XP[IP1] - xp) / p->DXP[IP];
+
+    // if(wa<0.0 || wa>1.0)
+    // cout<<"WA: "<<wa<<" xp: "<<xp<<" XP[IP]: "<<p->XP[IP]<<" XP[IP1]: "<<p->XP[IP1]<<" i: "<<i<<endl;
 
     // wb
-    wb = (p->YP[JP1]-yp)/p->DYP[JP];
-    
-    if(p->j_dir==0)
-    {
-    j=0;
-    value =  lintsl4_2D(f,i,j,wa,wb);
-    }
-    
-    if(p->j_dir==1)
-    value =  lintsl4(f,i,j,wa,wb);
+    wb = (p->YP[JP1] - yp) / p->DYP[JP];
 
-    i=ii;
-    j=jj;
-    
+    if(p->j_dir == 0)
+    {
+        j = 0;
+        value = lintsl4_2D(f, i, j, wa, wb);
+    }
+
+    if(p->j_dir == 1)
+        value = lintsl4(f, i, j, wa, wb);
+
+    i = ii;
+    j = jj;
 
     return value;
 }
-
-/*
-double interpolation::ccslipol4(slice& f, double xp, double yp)
-{
-    ii=i;
-    jj=j;
-    
-    i = p->posc_i(xp);
-    j = p->posc_j(yp);
-    
-    
-		
-    // wa
-    wa = (p->XP[IP1]-xp)/p->DXN[IP];
-    
-    if((p->XP[IP1]-xp)/p->DXN[IP]<0.0)
-    {
-    wa = (p->XP[IP2]-xp)/p->DXN[IP1];
-    ++i;
-    }
-    
-    if((p->XP[IP1]-xp)/p->DXN[IP]>1.0)
-    {
-    wa = (p->XP[IP]-xp)/p->DXN[IM1];
-    --i;
-    }
-    
-
-    // wb
-    wb = (p->YP[JP1]-yp)/p->DYN[JP];
-    
-    if((p->YP[JP1]-yp)/p->DYN[JP]<0.0)
-    {
-    wb = (p->YP[JP2]-yp)/p->DYN[JP1];
-    ++j;
-    }
-    
-    if((p->YP[JP1]-yp)/p->DYN[JP]>1.0)
-    {
-    wb = (p->YP[JP]-yp)/p->DYN[JM1];
-    --j;
-    }
-    
-    
-    value =  lintsl4(f,i,j,wa,wb);
-
-    i=ii;
-    j=jj;
-    
-
-    return value;
-}*/
-
 

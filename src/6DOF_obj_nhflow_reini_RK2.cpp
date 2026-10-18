@@ -20,54 +20,50 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"6DOF_obj.h"
-#include"lexer.h"
-#include"fdm_nhf.h"
-#include"ghostcell.h"
-#include"nhflow_reinidisc_fsf.h"
+#include "6DOF_obj_nhflow.h"
+#include "fdm_nhf.h"
+#include "ghostcell.h"
+#include "lexer.h"
+#include "nhflow_reinidisc_fsf.h"
 
-void sixdof_obj::nhflow_reini_RK2(lexer* p, fdm_nhf* d, ghostcell* pgc, double *F)
-{	
-    if(p->j_dir==0)
-    LOOP
-    WETDRY
-	DTT[IJK] = 0.5*MIN(p->DXP[IP],p->DZP[KP]*d->WL(i,j));
-    
-    if(p->j_dir==1)
-    LOOP
-    WETDRY
-	DTT[IJK] = 0.5*MIN3(p->DXP[IP],p->DYP[JP],p->DZP[KP]*d->WL(i,j));
+void sixdof_obj_nhflow::nhflow_reini_RK2(lexer *p, fdm_nhf *d, ghostcell *pgc, double *F)
+{ /*
+  if(p->j_dir==0)
+  LOOP
+  WETDRY
+  DTT[IJK] = 0.5*MIN(p->DXP[IP],p->DZP[KP]*d->WL(i,j));
 
-	reiniter=5;
-	
-	if(p->count==0 && p->mpirank==0)
-	cout<<endl<<"initializing reini forcing..."<<endl<<endl;
+  if(p->j_dir==1)
+  LOOP
+  WETDRY
+  DTT[IJK] = 0.5*MIN3(p->DXP[IP],p->DYP[JP],p->DZP[KP]*d->WL(i,j));
+
+  reiniter=5;
+
+  if(p->count==0 && p->mpirank==0)
+  cout<<endl<<"initializing reini forcing..."<<endl<<endl;
 
 
-    for(int q=0;q<reiniter;++q)
-	{
-        // Step 1
-		pnhfrdisc->start(p,d,pgc,F,LL);
+  for(int q=0;q<reiniter;++q)
+  {
+      // Step 1
+      pnhfrdisc->start(p,d,pgc,F,LL);
 
-		LOOP
-        WETDRY
-		FRK1[IJK] = F[IJK] + DTT[IJK]*LL[IJK];
+      LOOP
+      WETDRY
+      FRK1[IJK] = F[IJK] + DTT[IJK]*LL[IJK];
 
-         pgc->start5V(p,FRK1,1);
-        
-        
-        // Step 2
-		pnhfrdisc->start(p,d,pgc,FRK1,LL);
+       pgc->start5V(p,FRK1,1);
 
-		LOOP
-        WETDRY
-		F[IJK] = 0.5*F[IJK] + 0.5*FRK1[IJK] + 0.5*DTT[IJK]*LL[IJK];
 
-        pgc->start5V(p,F,1);
-	}
+      // Step 2
+      pnhfrdisc->start(p,d,pgc,FRK1,LL);
+
+      LOOP
+      WETDRY
+      F[IJK] = 0.5*F[IJK] + 0.5*FRK1[IJK] + 0.5*DTT[IJK]*LL[IJK];
+
+      pgc->start5V(p,F,1);
+  }*/
 }
-
-
-
-
 

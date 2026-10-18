@@ -20,44 +20,42 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"hypre_aij.h"
+#ifdef REEF3D_USE_HYPRE  // hypre is opt-in: make HYPRE=1 / cmake -DREEF3D_USE_HYPRE=ON
 
-#ifdef HYPRE_COMPILATION
-#include"lexer.h"
-#include"fdm.h"
-#include"ghostcell.h"
+#include "fdm.h"
+#include "ghostcell.h"
+#include "hypre_aij.h"
+#include "lexer.h"
 
-void hypre_aij::make_grid(lexer* p,ghostcell* pgc)
+void hypre_aij::make_grid(lexer *p, ghostcell *pgc)
 {
     fieldint4 rownum4(p);
-    
-    pgc->rownum4_update(p,rownum4);
-    pgc->gcparaxint(p,rownum4,4);
-        
-     p->range_col4[0]=0;
-    for(n=1;n<=p->M10;++n)
-    p->range_col4[n]=p->range_row4[n]-1;
-    
-        
-    HYPRE_IJMatrixCreate(pgc->mpi_comm, p->range_row4[p->mpirank], p->range_col4[p->mpirank+1], p->range_row4[p->mpirank], p->range_col4[p->mpirank+1], &A);
-	HYPRE_IJMatrixSetObjectType(A, HYPRE_PARCSR);
-	HYPRE_IJMatrixInitialize(A);
 
-	HYPRE_IJVectorCreate(pgc->mpi_comm, p->range_row4[p->mpirank], p->range_col4[p->mpirank+1], &b);
+    pgc->rownum4_update(p, rownum4);
+    pgc->gcparaxint(p, rownum4, 4);
+
+    p->range_col4[0] = 0;
+    for(n = 1; n <= p->M10; ++n)
+        p->range_col4[n] = p->range_row4[n] - 1;
+
+    HYPRE_IJMatrixCreate(pgc->mpi_comm, p->range_row4[p->mpirank], p->range_col4[p->mpirank + 1], p->range_row4[p->mpirank], p->range_col4[p->mpirank + 1], &A);
+    HYPRE_IJMatrixSetObjectType(A, HYPRE_PARCSR);
+    HYPRE_IJMatrixInitialize(A);
+
+    HYPRE_IJVectorCreate(pgc->mpi_comm, p->range_row4[p->mpirank], p->range_col4[p->mpirank + 1], &b);
     HYPRE_IJVectorSetObjectType(b, HYPRE_PARCSR);
     HYPRE_IJVectorInitialize(b);
-	
-	HYPRE_IJVectorCreate(pgc->mpi_comm, p->range_row4[p->mpirank], p->range_col4[p->mpirank+1], &x);
+
+    HYPRE_IJVectorCreate(pgc->mpi_comm, p->range_row4[p->mpirank], p->range_col4[p->mpirank + 1], &x);
     HYPRE_IJVectorSetObjectType(x, HYPRE_PARCSR);
     HYPRE_IJVectorInitialize(x);
 }
 
-void hypre_aij::delete_grid(lexer* p, ghostcell* pgc)
+void hypre_aij::delete_grid(lexer *p, ghostcell *pgc)
 {
     HYPRE_IJMatrixDestroy(A);
     HYPRE_IJVectorDestroy(b);
     HYPRE_IJVectorDestroy(x);
 }
 
-
-#endif
+#endif  // REEF3D_USE_HYPRE

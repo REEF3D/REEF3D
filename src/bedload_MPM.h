@@ -23,8 +23,8 @@ Author: Hans Bihs
 #ifndef BEDLOAD_MPM_H_
 #define BEDLOAD_MPM_H_
 
-#include"bedload.h"
-#include"increment.h"
+#include "bedload.h"
+#include "increment.h"
 
 class turbulence;
 
@@ -33,19 +33,17 @@ using namespace std;
 class bedload_MPM final : public bedload, public increment
 {
 public:
-
-    bedload_MPM(lexer*);
-	virtual ~bedload_MPM();
-	void start(lexer*, ghostcell*, sediment_fdm*) override final;
+    bedload_MPM(lexer *);
+    virtual ~bedload_MPM();
+    void start(lexer *, ghostcell *, sediment_fdm *) override final;
 
 private:
-    double rhosed,rhowat;
-    double g,d50;
-    double shields,eta,visc;
-    double kappa,u_plus,ks;
-    double tau_eff, shearvel_eff, shields_eff;
-    double tau_crit, shearvel_crit, shields_crit;
-
+    double rhosed, rhowat;
+    double g, d50;
+    double shields, eta, visc;
+    double kappa, u_plus, ks;
+    double shields_eff;
+    double shields_crit;
 };
 
 #endif

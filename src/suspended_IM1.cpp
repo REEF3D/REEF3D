@@ -20,145 +20,155 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"suspended_IM1.h"
-#include"lexer.h"
-#include"fdm.h"
-#include"ghostcell.h"
-#include"convection.h"
-#include"diffusion.h"
-#include"ioflow.h"
-#include"solver.h"
-#include"sediment_fdm.h"
+#include "suspended_IM1.h"
+#include "convection.h"
+#include "diffusion.h"
+#include "fdm.h"
+#include "ghostcell.h"
+#include "ioflow.h"
+#include "lexer.h"
+#include "sediment_fdm.h"
+#include "solver.h"
 
-suspended_IM1::suspended_IM1(lexer* p) : concn(p),wvel(p)
+suspended_IM1::suspended_IM1(lexer *p) : concn(p), wvel(p)
 {
-	gcval_susp=60;
+    gcval_susp = 60;
 }
 
 suspended_IM1::~suspended_IM1()
 {
 }
 
-void suspended_IM1::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff, solver* psolv, ghostcell* pgc, ioflow* pflow, sediment_fdm *s)
+void suspended_IM1::start(fdm *a, lexer *p, convection *pconvec, diffusion *pdiff, solver *psolv, ghostcell *pgc, ioflow *pflow, sediment_fdm *s)
 {
-    starttime=pgc->timer();
-    clearrhs(p,a);
-    fill_wvel(p,a,pgc,s);
-    pconvec->start(p,a,a->conc,4,a->u,a->v,wvel);
-	pdiff->idiff_scalar(p,a,pgc,psolv,a->conc,a->eddyv,1.0,1.0);
-	suspsource(p,a,a->conc,s);
-	timesource(p,a,a->conc);
-    bcsusp_start(p,a,pgc,s,a->conc);
-	psolv->start(p,a,pgc,a->conc,a->rhsvec,4);
-	sedfsf(p,a,a->conc);
-	pgc->start4(p,a->conc,gcval_susp);
-    fillconc(p,a,pgc,s);
-	p->susptime=pgc->timer()-starttime;
-	p->suspiter=p->solveriter;
-	if(p->mpirank==0 && (p->count%p->P12==0))
-	cout<<"suspiter: "<<p->suspiter<<"  susptime: "<<setprecision(3)<<p->susptime<<endl;
+    starttime = pgc->timer();
+    clearrhs(p, a);
+    fill_wvel(p, a, pgc, s);
+    pconvec->start(p, a, a->conc, 4, a->u, a->v, wvel);
+    pdiff->idiff_scalar(p, a, pgc, psolv, a->conc, a->eddyv, 1.0, 1.0);
+    suspsource(p, a, a->conc, s);
+    timesource(p, a, a->conc);
+    bcsusp_start(p, a, pgc, s, a->conc);
+    psolv->start(p, a, pgc, a->conc, a->rhsvec, 4);
+    sedfsf(p, a, a->conc);
+    pgc->start4(p, a->conc, gcval_susp);
+    fillconc(p, a, pgc, s);
+    p->susptime = pgc->timer() - starttime;
+    p->suspiter = p->solveriter;
+    if(p->mpirank == 0 && (p->count % p->P12 == 0))
+        cout << "suspiter: " << p->suspiter << "  susptime: " << setprecision(3) << p->susptime << endl;
 }
 
-void suspended_IM1::timesource(lexer* p, fdm* a, field& fn)
+void suspended_IM1::timesource(lexer *p, fdm *a, field &fn)
 {
-    int count=0;
+    int count = 0;
     int q;
 
     LOOP
     {
-        a->M.p[count]+= 1.0/p->dt;
+        a->M.p[count] += 1.0 / p->dt;
 
-        a->rhsvec.V[count] += a->L(i,j,k) + a->conc(i,j,k)/p->dt;
+        a->rhsvec.V[count] += a->L(i, j, k) + a->conc(i, j, k) / p->dt;
 
-	++count;
+        ++count;
     }
 }
 
-void suspended_IM1::ctimesave(lexer *p, fdm* a)
+void suspended_IM1::ctimesave(lexer *p, fdm *a)
 {
     LOOP
-    concn(i,j,k)=a->conc(i,j,k);
+        concn(i, j, k) = a->conc(i, j, k);
 }
 
-void suspended_IM1::fill_wvel(lexer *p, fdm* a, ghostcell *pgc, sediment_fdm *s)
+void suspended_IM1::fill_wvel(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
 {
+    double ws_eff, nval, Re_p;
+
+    Re_p = s->ws * p->S20 / p->W2;
+    nval = (4.7 + 0.41 * pow(Re_p, 0.75)) / (1 + 0.175 * pow(Re_p, 0.75));
+
     WLOOP
-    wvel(i,j,k) = a->w(i,j,k) - s->ws;
-    
-    pgc->start3(p,wvel,12);
+    {
+
+        ws_eff = s->ws * pow(MAX(1.0 - a->conc(i, j, k) / 0.635, 0.0), nval);
+        wvel(i, j, k) = a->w(i, j, k) - ws_eff;
+    }
+
+    pgc->start3(p, wvel, 12);
 }
 
-void suspended_IM1::suspsource(lexer* p,fdm* a,field& conc, sediment_fdm *s)
-{    
+void suspended_IM1::suspsource(lexer *p, fdm *a, field &conc, sediment_fdm *s)
+{
     double zdist;
-    
-    count=0;
+
+    count = 0;
     LOOP
     {
-        if(p->DF[IJK]>0)
-        if(a->topo(i,j,k)>0.0 && a->topo(i,j,k-1)<0.0)
-        {
-        zdist = p->DZN[KP];
-        
-        a->rhsvec.V[count]  += (-s->ws)*(s->cb(i,j)-s->cbe(i,j))/zdist;
-        //a->rhsvec.V[count]  += s->ws*s->cbe(i,j)/(zdist);
-        }
-	++count;
+        if(p->DF[IJK] > 0)
+            if(a->topo(i, j, k) > 0.0 && a->topo(i, j, k - 1) < 0.0)
+            {
+                zdist = p->DZN[KP];
+
+                a->rhsvec.V[count] += (-s->ws) * (-s->cbe(i, j)) / zdist;
+                a->M.p[count] += (s->ws) / zdist;
+
+                // a->rhsvec.V[count]  += s->ws*s->cbe(i,j)/(zdist);
+            }
+        ++count;
     }
 }
 
-void suspended_IM1::bcsusp_start(lexer* p, fdm* a,ghostcell *pgc, sediment_fdm *s, field& conc)
+void suspended_IM1::bcsusp_start(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, field &conc)
 {
     double cval;
-    
-        n=0;
-        LOOP
+
+    n = 0;
+    LOOP
+    {
+        if(p->flag4[Im1JK] < 0 || (p->flagsf4[IJK] > 0 && p->flagsf4[Im1JK] < 0))
         {
-            if(p->flag4[Im1JK]<0 || (p->flagsf4[IJK]>0 && p->flagsf4[Im1JK]<0))
-            {
-            a->rhsvec.V[n] -= a->M.s[n]*conc(i-1,j,k);
+            a->rhsvec.V[n] -= a->M.s[n] * conc(i - 1, j, k);
             a->M.s[n] = 0.0;
-            }
-            
-            if(p->flag4[Ip1JK]<0 || (p->flagsf4[IJK]>0 && p->flagsf4[Ip1JK]<0))
-            {
-            a->rhsvec.V[n] -= a->M.n[n]*conc(i+1,j,k);
+        }
+
+        if(p->flag4[Ip1JK] < 0 || (p->flagsf4[IJK] > 0 && p->flagsf4[Ip1JK] < 0))
+        {
+            a->rhsvec.V[n] -= a->M.n[n] * conc(i + 1, j, k);
             a->M.n[n] = 0.0;
-            }
-            
-            if((p->flag4[IJm1K]<0 || (p->flagsf4[IJK]>0 && p->flagsf4[IJm1K]<0)) && p->j_dir==1)
-            {
-            a->rhsvec.V[n] -= a->M.e[n]*conc(i,j-1,k);
+        }
+
+        if((p->flag4[IJm1K] < 0 || (p->flagsf4[IJK] > 0 && p->flagsf4[IJm1K] < 0)) && p->j_dir == 1)
+        {
+            a->rhsvec.V[n] -= a->M.e[n] * conc(i, j - 1, k);
             a->M.e[n] = 0.0;
-            }
-            
-            if((p->flag4[IJp1K]<0 || (p->flagsf4[IJK]>0 && p->flagsf4[IJp1K]<0)) && p->j_dir==1)
-            {
-            a->rhsvec.V[n] -= a->M.w[n]*conc(i,j+1,k);
+        }
+
+        if((p->flag4[IJp1K] < 0 || (p->flagsf4[IJK] > 0 && p->flagsf4[IJp1K] < 0)) && p->j_dir == 1)
+        {
+            a->rhsvec.V[n] -= a->M.w[n] * conc(i, j + 1, k);
             a->M.w[n] = 0.0;
-            }
-            
-            if(p->flag4[IJKm1]<0 || (p->flagsf4[IJK]>0 && p->flagsf4[IJKm1]<0))
-            {
-            a->rhsvec.V[n] -= a->M.b[n]*conc(i,j,k-1);
+        }
+
+        if(p->flag4[IJKm1] < 0 || (p->flagsf4[IJK] > 0 && p->flagsf4[IJKm1] < 0))
+        {
+            a->rhsvec.V[n] -= a->M.b[n] * conc(i, j, k - 1);
             a->M.b[n] = 0.0;
-            }
-            
-            if(p->flag4[IJKp1]<0 || (p->flagsf4[IJK]>0 && p->flagsf4[IJKp1]<0))
-            {
-            a->rhsvec.V[n] -= a->M.t[n]*conc(i,j,k+1);
+        }
+
+        if(p->flag4[IJKp1] < 0 || (p->flagsf4[IJK] > 0 && p->flagsf4[IJKp1] < 0))
+        {
+            a->rhsvec.V[n] -= a->M.t[n] * conc(i, j, k + 1);
             a->M.t[n] = 0.0;
-            }
+        }
 
         ++n;
-        }
-        
-        
-        n=0;
-        BASELOOP
+    }
+
+    n = 0;
+    BASELOOP
+    {
+        if(p->flagsf4[IJK] < 0)
         {
-            if(p->flagsf4[IJK]<0)
-            {
             a->M.p[n] = 1.0;
 
             a->M.n[n] = 0.0;
@@ -169,53 +179,79 @@ void suspended_IM1::bcsusp_start(lexer* p, fdm* a,ghostcell *pgc, sediment_fdm *
 
             a->M.t[n] = 0.0;
             a->M.b[n] = 0.0;
-            
+
             a->rhsvec.V[n] = 0.0;
-            }
-        ++n;
         }
+        ++n;
+    }
 }
 
-void suspended_IM1::fillconc(lexer* p, fdm* a, ghostcell *pgc, sediment_fdm *s)
+void suspended_IM1::fillconc(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
 {
     GCDF4LOOP
     {
-        i=p->gcdf4[n][0];
-        j=p->gcdf4[n][1];
-        k=p->gcdf4[n][2];
-        
-        s->cb(i,j) = a->conc(i,j,k);
+        i = p->gcdf4[n][0];
+        j = p->gcdf4[n][1];
+        k = p->gcdf4[n][2];
+
+        if(p->S61 == 1)
+            s->cb(i, j) = a->conc(i, j, k);
+
+        if(p->S61 == 2)
+            s->cb(i, j) = Rouse_formula(p, a, s, a->conc(i, j, k));
     }
-    
-    pgc->gcsl_start4(p,s->cb,1);
+
+    pgc->gcsl_start4(p, s->cb, 1);
 }
 
-void suspended_IM1::sedfsf(lexer* p,fdm* a,field& conc)
+double suspended_IM1::Rouse_formula(lexer *p, fdm *a, sediment_fdm *s, double Cc)
 {
-    LOOP
-    if(a->phi(i,j,k)<0.0)
-    conc(i,j,k)=0.0;
+    double Ca;
+    double za, zc, P;
+
+    za = 2.0 * p->S20;
+
+    zc = 0.5 * p->DZN[KP] * p->WL[IJ];
+
+    P = s->ws / (0.4 * (s->shearvel_eff(i, j) > 0.0 ? s->shearvel_eff(i, j) : 1.0e-6));
+
+    P = MAX(P, 0.8);
+    P = MIN(P, 2.5);
+
+    Ca = Cc * pow(((p->WL[IJ] - za) / za) / ((p->WL[IJ] - zc) / zc), P);
+
+    Ca = MIN(Ca, 0.1);
+
+    // cout<<"Cc: "<<Cc<<" Ca: "<<Ca<<" | P: "<<P<<" "<<s->shearvel_eff(i,j)<<endl;
+
+    return Ca;
 }
 
-void suspended_IM1::clearrhs(lexer* p, fdm* a)
+void suspended_IM1::sedfsf(lexer *p, fdm *a, field &conc)
 {
-    n=0;
+    LOOP if(a->phi(i, j, k) < 0.0)
+        conc(i, j, k) = 0.0;
+}
+
+void suspended_IM1::clearrhs(lexer *p, fdm *a)
+{
+    n = 0;
     LOOP
     {
-    a->M.p[n] = 0.0;
+        a->M.p[n] = 0.0;
 
-    a->M.n[n] = 0.0;
-    a->M.s[n] = 0.0;
+        a->M.n[n] = 0.0;
+        a->M.s[n] = 0.0;
 
-    a->M.w[n] = 0.0;
-    a->M.e[n] = 0.0;
+        a->M.w[n] = 0.0;
+        a->M.e[n] = 0.0;
 
-    a->M.t[n] = 0.0;
-    a->M.b[n] = 0.0;
-            
-    a->rhsvec.V[n] = 0.0;
-    a->L(i,j,k)=0.0;
-    
-	++n;
+        a->M.t[n] = 0.0;
+        a->M.b[n] = 0.0;
+
+        a->rhsvec.V[n] = 0.0;
+        a->L(i, j, k) = 0.0;
+
+        ++n;
     }
 }

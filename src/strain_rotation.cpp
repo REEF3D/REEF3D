@@ -20,84 +20,79 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"strain.h"
-#include"lexer.h"
-#include"fdm.h"
-#include"ghostcell.h"
-#include"fieldint.h"
+#include "fdm.h"
+#include "fieldint.h"
+#include "ghostcell.h"
+#include "lexer.h"
+#include "strain.h"
 
 double strain::qij(lexer *p, fdm *a, int ii, int jj)
 {
-	double q=0.0;
+    double q = 0.0;
 
-    if((ii==1 && jj==1) || (ii==2 && jj==2) || (ii==3 && jj==3))
+    if((ii == 1 && jj == 1) || (ii == 2 && jj == 2) || (ii == 3 && jj == 3))
         q = 0.0;
 
-    if(ii==1 && jj==2)
-        q = pudy(p,a) - pvdx(p,a);
+    if(ii == 1 && jj == 2)
+        q = pudy(p, a) - pvdx(p, a);
 
-    if(ii==2 && jj==1)
-        q = -pudy(p,a) + pvdx(p,a);
+    if(ii == 2 && jj == 1)
+        q = -pudy(p, a) + pvdx(p, a);
 
-    if(ii==1 && jj==3)
-        q = pudz(p,a) - pwdx(p,a);
+    if(ii == 1 && jj == 3)
+        q = pudz(p, a) - pwdx(p, a);
 
-    if(ii==3 && jj==1)
-        q = -pudz(p,a) + pwdx(p,a);
+    if(ii == 3 && jj == 1)
+        q = -pudz(p, a) + pwdx(p, a);
 
-    if(ii==2 && jj==3)
-        q = pvdz(p,a) - pwdy(p,a);
+    if(ii == 2 && jj == 3)
+        q = pvdz(p, a) - pwdy(p, a);
 
-    if(ii==3 && jj==2)
-        q = -pvdz(p,a) + pwdy(p,a);
+    if(ii == 3 && jj == 2)
+        q = -pvdz(p, a) + pwdy(p, a);
 
-	return q;
+    return q;
 }
 
 double strain::Qij2(lexer *p, fdm *a)
-{    
-    skewSymmetricStrainRateTensor(p,a->u,a->v,a->w);
-
-    double r = sqrt(r12*r12 + r13*r13 + r23*r23);
-    
-    r=r*r;
-
-	return r;
-}
-
-double strain::rotationterm(lexer *p, fdm *a)
 {
-    return rotationterm(p,a->u,a->v,a->w);
+    skewSymmetricStrainRateTensor(p, a->u, a->v, a->w);
+
+    double r = sqrt(r12 * r12 + r13 * r13 + r23 * r23);
+
+    r = r * r;
+
+    return r;
 }
 
 double strain::rotationterm(lexer *p, field &u, field &v, field &w)
-{    
-    skewSymmetricStrainRateTensor(p,u,v,w);
+{
+    skewSymmetricStrainRateTensor(p, u, v, w);
 
-    double r = sqrt(r12*r12 + r13*r13 + r23*r23);
+    double r = sqrt(r12 * r12 + r13 * r13 + r23 * r23);
 
-	return r;
+    return r;
 }
 
 void strain::skewSymmetricStrainRateTensor(lexer *p, field &u, field &v, field &w)
 {
-    if(p->j_dir==1)
+    if(p->j_dir == 1)
     {
         r11 = 0.0;
         r22 = 0.0;
         r33 = 0.0;
-        r12 = (pudy(p,u) - pvdx(p,v));
-        r13 = (pudz(p,u) - pwdx(p,w));
-        r23 = (pvdz(p,v) - pwdy(p,w));
+        r12 = (pudy(p, u) - pvdx(p, v));
+        r13 = (pudz(p, u) - pwdx(p, w));
+        r23 = (pvdz(p, v) - pwdy(p, w));
     }
-    
-    if(p->j_dir==0)
+
+    if(p->j_dir == 0)
     {
         r11 = 0.0;
         r22 = 0.0;
         r33 = 0.0;
         r12 = 0.0;
-        r13 = (pudz(p,u) - pwdx(p,w)); 
+        r13 = (pudz(p, u) - pwdx(p, w));
         r23 = 0.0;
     }
 }

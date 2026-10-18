@@ -23,8 +23,8 @@ Author: Hans Bihs
 #ifndef NHFLOW_TIMESTEP_H_
 #define NHFLOW_TIMESTEP_H_
 
-#include"timestep.h"
-#include"increment.h"
+#include "increment.h"
+#include "timestep.h"
 
 class fdm_nhf;
 class lexer;
@@ -32,24 +32,34 @@ class ghostcell;
 
 using namespace std;
 
+// mesh refinement (nhflow_amr): the refined patches take part in the time step
+class nhflow_timestep_hook
+{
+public:
+    // maximum over the patch cells on this rank: 0 WL, 1 |U|, 2 |V|, 3 |W|, 4 |omega|
+    virtual double dt_local_max(int) = 0;
+    // smallest horizontal cell size (and dz*WL) of the patch cells on this rank (1: wet cells only)
+    virtual void dt_cell_size(int, double &, double &) = 0;
+};
+
 class nhflow_timestep : public increment
 {
 public:
-	nhflow_timestep(lexer*);
-	virtual ~nhflow_timestep();
-	void start(lexer*,fdm_nhf*,ghostcell*);
-	void ini(lexer*,fdm_nhf*,ghostcell*);
+    nhflow_timestep(lexer *);
+    virtual ~nhflow_timestep();
+    void start(lexer *, fdm_nhf *, ghostcell *);
+    void ini(lexer *, fdm_nhf *, ghostcell *);
 
+    nhflow_timestep_hook *phook = nullptr;
 
 private:
-	double wallu,wallv,wallw;
-	double cu,cv,cw,co;
-	const double epsi;
-	double isor,jsor,ksor;
-	double irsm,jrsm,krsm;
+    double wallu, wallv, wallw;
+    double cu, cv, cw, co;
+    const double epsi;
+    double isor, jsor, ksor;
+    double irsm, jrsm, krsm;
     const double maxtimestep, c0_orig;
-    double dx,dz;
-
+    double dx, dz;
 };
 
 #endif

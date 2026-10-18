@@ -21,65 +21,64 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Elyas Larkermani
 --------------------------------------------------------------------*/
 
-#include"LES_WALE.h"
-#include"LES_filter_box.h"
-#include"LES_filter_f1.h"
-#include"LES_filter_f2.h"
-#include"lexer.h"
-#include"fdm.h"
-#include"ghostcell.h"
-#include"strain.h"
-#include"solver.h"
-#include"diffusion.h"
-#include"ioflow.h"
-#include"convection.h"
+#include "LES_WALE.h"
+#include "LES_filter_box.h"
+#include "LES_filter_f1.h"
+#include "LES_filter_f2.h"
+#include "convection.h"
+#include "diffusion.h"
+#include "fdm.h"
+#include "ghostcell.h"
+#include "ioflow.h"
+#include "lexer.h"
+#include "solver.h"
+#include "strain.h"
 
-LES_WALE::LES_WALE(lexer* p, fdm* a) : LES(p,a)
+LES_WALE::LES_WALE(lexer *p, fdm *a) : LES(p, a)
 {
 
-    gcval_u1=10;
-	gcval_v1=11;
-	gcval_w1=12;
+    gcval_u1 = 10;
+    gcval_v1 = 11;
+    gcval_w1 = 12;
 
-	gcval_sgs=24;
-	c_wale=0.6;
-    
-    if(p->T21==0)
-    pfilter = new LES_filter_box(p,a);
-    
-    if(p->T21==1)
-    pfilter = new LES_filter_f1(p,a);
-    
-    if(p->T21==2)
-    pfilter = new LES_filter_f2(p,a);
+    gcval_sgs = 24;
+    c_wale = 0.6;
+
+    if(p->T21 == 0)
+        pfilter = new LES_filter_box(p, a);
+
+    if(p->T21 == 1)
+        pfilter = new LES_filter_f1(p, a);
+
+    if(p->T21 == 2)
+        pfilter = new LES_filter_f2(p, a);
 }
 
 LES_WALE::~LES_WALE()
 {
 }
 
-void LES_WALE::start(fdm* a, lexer* p, convection* pconvec, diffusion* pdiff,solver* psolv, ghostcell* pgc, ioflow* pflow, vrans* pvrans)
+void LES_WALE::start(fdm *a, lexer *p, convection *pconvec, diffusion *pdiff, solver *psolv, ghostcell *pgc, ioflow *pflow, vrans *pvrans)
 {
-    pfilter->start(p,a,pgc,uprime,vprime,wprime,gcval_u1);
-    pfilter->start(p,a,pgc,uprime,vprime,wprime,gcval_v1);
-    pfilter->start(p,a,pgc,uprime,vprime,wprime,gcval_w1);
+    pfilter->start(p, a, pgc, uprime, vprime, wprime, gcval_u1);
+    pfilter->start(p, a, pgc, uprime, vprime, wprime, gcval_v1);
+    pfilter->start(p, a, pgc, uprime, vprime, wprime, gcval_w1);
 
     LOOP
     {
-        double MagSqrSd = magSqrSd(p,uprime,vprime,wprime);
-        double _denominator = pow(strainterm(p,uprime,vprime,wprime) / sqrt(2.0), 5.0) + pow(fabs(MagSqrSd), 5.0/4.0);
-        a->eddyv(i,j,k) = _denominator==0?0.0:(pow(c_wale,2.0) * pow(p->DXN[IP]*p->DYN[JP]*p->DZN[KP],2.0/3.0) *  (pow(fabs(MagSqrSd), 3.0/2.0) / _denominator));
+        double MagSqrSd = magSqrSd(p, uprime, vprime, wprime);
+        double _denominator = pow(strainterm(p, uprime, vprime, wprime) / sqrt(2.0), 5.0) + pow(fabs(MagSqrSd), 5.0 / 4.0);
+        a->eddyv(i, j, k) = _denominator == 0 ? 0.0 : (pow(c_wale, 2.0) * (p->j_dir == 1 ? pow(p->DXN[IP] * p->DYN[JP] * p->DZN[KP], 2.0 / 3.0) : p->DXN[IP] * p->DZN[KP]) * (pow(fabs(MagSqrSd), 3.0 / 2.0) / _denominator));
     }
 
-    pgc->start4(p,a->eddyv,gcval_sgs);
+    pgc->start4(p, a->eddyv, gcval_sgs);
 }
 
-void LES_WALE::ktimesave(lexer* p, fdm* a, ghostcell *pgc)
+void LES_WALE::ktimesave(lexer *p, fdm *a, ghostcell *pgc)
 {
 }
 
-void LES_WALE::etimesave(lexer* p, fdm* a, ghostcell *pgc)
+void LES_WALE::etimesave(lexer *p, fdm *a, ghostcell *pgc)
 {
 }
-
 

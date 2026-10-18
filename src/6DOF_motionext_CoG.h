@@ -23,9 +23,9 @@ Author: Hans Bihs
 #ifndef SIXDOF_MOTIONEXT_FILE_COG_H_
 #define SIXDOF_MOTIONEXT_FILE_COG_H_
 
-#include"6DOF_motionext.h"
-#include<fstream>
+#include "6DOF_motionext.h"
 #include <Eigen/Dense>
+#include <fstream>
 
 class lexer;
 class fdm;
@@ -40,36 +40,34 @@ class sixdof_motionext_file_CoG final : public sixdof_motionext
 {
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
-    
-    void motionext_trans(lexer*, ghostcell*, Eigen::Vector3d&, Eigen::Vector3d&) override final;
-    void motionext_rot(lexer*, Eigen::Vector3d&, Eigen::Vector3d&, Eigen::Vector4d&, Eigen::Matrix<double, 3, 4>&,  Eigen::Matrix3d&) override final;
 
-    void ini(lexer*,ghostcell*) override final;
-    
-    
-    
-    sixdof_motionext_file_CoG(lexer*, ghostcell*);
-	virtual ~sixdof_motionext_file_CoG();
-    
+    void motionext_trans(lexer *, ghostcell *, Eigen::Vector3d &, Eigen::Vector3d &) override final;
+    void motionext_rot(lexer *, Eigen::Vector3d &, Eigen::Vector3d &, Eigen::Vector4d &, Eigen::Matrix<double, 3, 4> &, Eigen::Matrix3d &) override final;
+
+    void ini(lexer *, ghostcell *) override final;
+
+    sixdof_motionext_file_CoG(lexer *, ghostcell *);
+    virtual ~sixdof_motionext_file_CoG();
+
 private:
-    double ramp_vel(lexer*);
-    double ramp_draft(lexer*);
-    
-    void read_format_1(lexer*,ghostcell*);
-    void read_format_2(lexer*,ghostcell*);
-    
+    double ramp_vel(lexer *);
+    double ramp_draft(lexer *);
+
+    void read_format_1(lexer *, ghostcell *);
+    void read_format_2(lexer *, ghostcell *);
+
     Eigen::Vector3d omega_;
-    
+
     ofstream file;
     char name[200];
-    int qn,count,ptnum;
-    int rowcount,colcount;
+    int qn, count, ptnum;
+    int rowcount, colcount;
     int colnum;
     double val;
-    double **data;
-    double ts,te;
-    int timecount,timecount_old;
-    
+    std::vector<std::vector<double>> data;
+    double ts, te;
+    int timecount, timecount_old;
+
     double Uext, Vext, Wext, Pext, Qext, Rext;
 };
 

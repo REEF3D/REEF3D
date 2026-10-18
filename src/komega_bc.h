@@ -23,8 +23,8 @@ Author: Hans Bihs
 #ifndef KOMEGA_BC_H_
 #define KOMEGA_BC_H_
 
-#include"increment.h"
-#include"roughness.h"
+#include "increment.h"
+#include "roughness.h"
 class fdm;
 class lexer;
 class field;
@@ -34,23 +34,23 @@ using namespace std;
 class komega_bc : public roughness
 {
 public:
-	komega_bc(lexer*);
-	virtual ~komega_bc();
-	void bckomega_start(fdm*,lexer*,field&,field&, int);
-    void bckin_matrix(fdm*,lexer*,field&,field&);
-    void bcomega_matrix(fdm*,lexer*,field&,field&);
-	void wall_law_kin(fdm*,lexer*,field&,field&,int,int,int,int,int,int,double);
-	void wall_law_omega(fdm*,lexer*,field&,field&,int,int,int,int,int,int,double);
-    void vrans_wall_law_kin(lexer*,fdm*,field&,field&);
-    void vrans_wall_law_omega(lexer*,fdm*,field&,field&);
+    komega_bc(lexer *);
+    virtual ~komega_bc();
+    void bckomega_start(fdm *, lexer *, field &, field &, int);
+    void bckin_matrix(fdm *, lexer *, field &, field &);
+    void bcomega_matrix(fdm *, lexer *, field &, field &);
+    void bc_matrix(fdm *, lexer *, field &);
+    void wall_law_kin(fdm *, lexer *, field &, field &, int, int, int, int, int, int, double);
+    void wall_law_omega(fdm *, lexer *, field &, field &, int, int, int, int, int, int, double);
+    void vrans_wall_law_kin(lexer *, fdm *, field &, field &);
+    void vrans_wall_law_omega(lexer *, fdm *, field &, field &);
 
 private:
-	double uplus,ks_plus,dist,ks,ustar,u_abs,eps_star,tau;
-	int ii,jj,kk;
-	int count,q;
-	double fac,value;
-	double kappa;
-
+    double uplus, ks_plus, dist, ks, ustar, u_abs, eps_star, tau;
+    int ii, jj, kk;
+    int count, q;
+    double fac, value;
+    double kappa;
 };
 #endif
 

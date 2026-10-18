@@ -1,0 +1,4 @@
+# box barge held in a current of 0.3 m/s (W 10 0.3 m^3/s over 2 m x 0.5 m), bow against the current
+# Architect: Hans Bihs
+form_factor 0.1
+current 0.3 0.0

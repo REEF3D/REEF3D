@@ -1,0 +1,105 @@
+{
+ "description": "Breaking solitary wave H/d = 0.28 (d = 1 m) on the 1:19.85 beach (Synolakis 1987), NHFLOW with breaking (A 550 1) and wetting/drying: free-surface profiles at t sqrt(g/d) = 10..65 (shoaling, breaking, run-up and run-down) against the measured profiles. The time origin is fitted on the first profile.",
+ "reference": {
+  "short": "Synolakis (1987)",
+  "citation": "Synolakis, C.E. (1987) The runup of solitary waves. J. Fluid Mech. 185, 523-545; run-up law as quoted in Synolakis et al. (2008) PAGEOPH 165 (NOAA NCTR benchmark 'canonical bathymetry')"
+ },
+ "tags": [
+  "nhflow",
+  "experiment",
+  "2dv",
+  "runup",
+  "breaking"
+ ],
+ "np": 4,
+ "time": 40.0,
+ "check": {
+  "type": "profiles",
+  "d": 1.0,
+  "H_over_d": 0.28,
+  "swl": 1.0,
+  "x_shore": 69.85,
+  "profiles": [
+   [
+    10,
+    "waves/synolakis_runup/profile_Hd0.28_t10.txt"
+   ],
+   [
+    15,
+    "waves/synolakis_runup/profile_Hd0.28_t15.txt"
+   ],
+   [
+    20,
+    "waves/synolakis_runup/profile_Hd0.28_t20.txt"
+   ],
+   [
+    25,
+    "waves/synolakis_runup/profile_Hd0.28_t25.txt"
+   ],
+   [
+    30,
+    "waves/synolakis_runup/profile_Hd0.28_t30.txt"
+   ],
+   [
+    35,
+    "waves/synolakis_runup/profile_Hd0.28_t35.txt"
+   ],
+   [
+    40,
+    "waves/synolakis_runup/profile_Hd0.28_t40.txt"
+   ],
+   [
+    45,
+    "waves/synolakis_runup/profile_Hd0.28_t45.txt"
+   ],
+   [
+    50,
+    "waves/synolakis_runup/profile_Hd0.28_t50.txt"
+   ],
+   [
+    55,
+    "waves/synolakis_runup/profile_Hd0.28_t55.txt"
+   ],
+   [
+    60,
+    "waves/synolakis_runup/profile_Hd0.28_t60.txt"
+   ],
+   [
+    65,
+    "waves/synolakis_runup/profile_Hd0.28_t65.txt"
+   ]
+  ],
+  "tol": 0.22
+ },
+ "levels": {
+  "nightly": {
+   "np": 2,
+   "control_set": {
+    "B 1": "0.1",
+    "B 10": "0.0 79 0.0 0.1 0.0 1.6",
+    "S 61": "50.000 79.000 0.0 0.1 0.0 1.4610",
+    "M 10": "2"
+   },
+   "ctrl_set": {
+    "P 52": "0.05",
+    "P 133": "0.05",
+    "P 134": "0.05"
+   },
+   "check_set": {
+    "tol": 0.2
+   }
+  },
+  "release": {
+   "control_set": {
+    "B 1": "0.025",
+    "B 10": "0.0 79 0.0 0.025 0.0 1.6",
+    "S 61": "50.000 79.000 0.0 0.025 0.0 1.4610"
+   },
+   "ctrl_set": {
+    "P 52": "0.0125",
+    "P 133": "0.0125",
+    "P 134": "0.0125"
+   }
+  }
+ }
+}

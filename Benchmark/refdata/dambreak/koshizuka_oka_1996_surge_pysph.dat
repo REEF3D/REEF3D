@@ -1,0 +1,23 @@
+# Koshizuka & Oka (1996) dam-break surge-front position (experimental values as shipped by PySPH)
+# Original reference: S. Koshizuka & Y. Oka, "Moving-Particle Semi-Implicit Method for Fragmentation of
+#   Incompressible fluid", Nucl. Sci. Eng. 123, 421-434 (1996). DOI:10.13182/NSE96-A24205
+# Secondary source (string ko_data copied verbatim):
+#   PySPH, pysph/examples/db_exp_data.py
+#   https://raw.githubusercontent.com/pypr/pysph/master/pysph/examples/db_exp_data.py
+# Digitised from plots (per PySPH module docstring).
+# PySPH get_koshizuka_oka_data(): comment "# z/L vs t*np.sqrt(2*g/L)"; returns (t, z) = columns 1, 2.
+# Columns:
+#   T = t*sqrt(2*g/L)  [-]   (L = initial column width)
+#   Z = z/L            [-]
+# NOTE: PySPH also ships ko_mps_data = K&O's MPS *computed* results -- NOT included here.
+# Rows: 9
+# T       Z
+0.0     1.000
+0.381   1.111
+0.769   1.252
+1.153   1.505
+1.537   1.892
+1.935   2.241
+2.323   2.615
+2.719   3.003
+3.096   3.624

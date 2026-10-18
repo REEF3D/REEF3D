@@ -20,58 +20,59 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"hypre_struct.h"
+#ifdef REEF3D_USE_HYPRE  // hypre is opt-in: make HYPRE=1 / cmake -DREEF3D_USE_HYPRE=ON
 
-#ifdef HYPRE_COMPILATION
-#include"lexer.h"
-#include"fdm.h"
-#include"ghostcell.h"
+#include "fdm.h"
+#include "ghostcell.h"
+#include "hypre_struct.h"
+#include "lexer.h"
 
-void hypre_struct::make_grid(lexer* p, ghostcell* pgc)
+void hypre_struct::make_grid(lexer *p, ghostcell *pgc)
 {
-
     // grid
     ilower[0] = p->origin_i;
     ilower[1] = p->origin_j;
     ilower[2] = p->origin_k;
-    
-    iupper[0] = p->knox+p->origin_i-1;
-    iupper[1] = p->knoy+p->origin_j-1;
-    iupper[2] = p->knoz+p->origin_k-1;
-    
+
+    iupper[0] = p->knox + p->origin_i - 1;
+    iupper[1] = p->knoy + p->origin_j - 1;
+    iupper[2] = p->knoz + p->origin_k - 1;
+
+    if(p->A320 == 2)
+        iupper[2] = p->knoz + p->origin_k;
+
     // periodic BC
-    periodic[0]=0;
-    periodic[1]=0;
-    periodic[2]=0;
-    
-    if(p->periodic1>0)
-    periodic[0]=p->gknox;
-    
-    if(p->periodic2>0)
-    periodic[1]=p->gknoy;
-    
-    if(p->periodic3>0)
-    periodic[2]=p->gknoz;
-    
+    periodic[0] = 0;
+    periodic[1] = 0;
+    periodic[2] = 0;
+
+    if(p->periodic1 > 0)
+        periodic[0] = p->gknox;
+
+    if(p->periodic2 > 0)
+        periodic[1] = p->gknoy;
+
+    if(p->periodic3 > 0)
+        periodic[2] = p->gknoz;
+
     HYPRE_StructGridCreate(pgc->mpi_comm, 3, &grid);
     HYPRE_StructGridSetExtents(grid, ilower, iupper);
-    HYPRE_StructGridSetPeriodic (grid, periodic);
+    HYPRE_StructGridSetPeriodic(grid, periodic);
     HYPRE_StructGridAssemble(grid);
-    
-    
+
     // stencil
     HYPRE_StructStencilCreate(3, 7, &stencil);
 
     int entry;
-    int offsets[7][3] = {{0,0,0}, {-1,0,0}, {1,0,0}, {0,-1,0}, {0,1,0}, {0,0,-1}, {0,0,1}};
+    int offsets[7][3] = {{0, 0, 0}, {-1, 0, 0}, {1, 0, 0}, {0, -1, 0}, {0, 1, 0}, {0, 0, -1}, {0, 0, 1}};
 
-    for (entry=0; entry<7; ++entry)
-    HYPRE_StructStencilSetElement(stencil, entry, offsets[entry]);
-    
+    for(entry = 0; entry < 7; ++entry)
+        HYPRE_StructStencilSetElement(stencil, entry, offsets[entry]);
+
     // matrix
     HYPRE_StructMatrixCreate(pgc->mpi_comm, grid, stencil, &A);
     HYPRE_StructMatrixInitialize(A);
-    
+
     // vec
     HYPRE_StructVectorCreate(pgc->mpi_comm, grid, &b);
     HYPRE_StructVectorCreate(pgc->mpi_comm, grid, &x);
@@ -80,44 +81,46 @@ void hypre_struct::make_grid(lexer* p, ghostcell* pgc)
     HYPRE_StructVectorInitialize(x);
 }
 
-void hypre_struct::make_grid_2Dvert(lexer* p,ghostcell* pgc)
-{    
+void hypre_struct::make_grid_2Dvert(lexer *p, ghostcell *pgc)
+{
     // grid
     ilower[0] = p->origin_i;
     ilower[1] = p->origin_k;
-    
-    iupper[0] = p->knox+p->origin_i-1;
-    iupper[1] = p->knoz+p->origin_k-1;
-    
+
+    iupper[0] = p->knox + p->origin_i - 1;
+    iupper[1] = p->knoz + p->origin_k - 1;
+
+    if(p->A320 == 2)
+        iupper[1] = p->knoz + p->origin_k;
+
     // periodic BC
-    periodic[0]=0;
-    periodic[1]=0;
-    
-    if(p->periodic1>0)
-    periodic[0]=p->gknox;
-    
-    if(p->periodic3>0)
-    periodic[1]=p->gknoz;
-    
+    periodic[0] = 0;
+    periodic[1] = 0;
+
+    if(p->periodic1 > 0)
+        periodic[0] = p->gknox;
+
+    if(p->periodic3 > 0)
+        periodic[1] = p->gknoz;
+
     HYPRE_StructGridCreate(pgc->mpi_comm, 2, &grid);
     HYPRE_StructGridSetExtents(grid, ilower, iupper);
     HYPRE_StructGridSetPeriodic(grid, periodic);
     HYPRE_StructGridAssemble(grid);
-    
-    
+
     // stencil
     HYPRE_StructStencilCreate(2, 5, &stencil);
 
     int entry;
-    int offsets[5][2] = {{0,0}, {-1,0}, {1,0},  {0,-1}, {0,1}};
+    int offsets[5][2] = {{0, 0}, {-1, 0}, {1, 0}, {0, -1}, {0, 1}};
 
-    for (entry=0; entry<5; ++entry)
-    HYPRE_StructStencilSetElement(stencil, entry, offsets[entry]);
-    
+    for(entry = 0; entry < 5; ++entry)
+        HYPRE_StructStencilSetElement(stencil, entry, offsets[entry]);
+
     // matrix
     HYPRE_StructMatrixCreate(pgc->mpi_comm, grid, stencil, &A);
     HYPRE_StructMatrixInitialize(A);
-    
+
     // vec
     HYPRE_StructVectorCreate(pgc->mpi_comm, grid, &b);
     HYPRE_StructVectorCreate(pgc->mpi_comm, grid, &x);
@@ -126,6 +129,108 @@ void hypre_struct::make_grid_2Dvert(lexer* p,ghostcell* pgc)
     HYPRE_StructVectorInitialize(x);
 }
 
-#endif
+// Perm
 
+void hypre_struct::make_grid_perm(lexer *p, ghostcell *pgc)
+{
+    // grid
+    ilower[0] = p->origin_k;
+    ilower[1] = p->origin_j;
+    ilower[2] = p->origin_i;
 
+    iupper[0] = p->knoz + p->origin_k - 1;
+    iupper[1] = p->knoy + p->origin_j - 1;
+    iupper[2] = p->knox + p->origin_i - 1;
+
+    if(p->A320 == 2)
+        iupper[0] = p->knoz + p->origin_k;
+
+    // periodic BC
+    periodic[0] = 0;
+    periodic[1] = 0;
+    periodic[2] = 0;
+
+    if(p->periodic1 > 0)
+        periodic[0] = p->gknoz;
+
+    if(p->periodic2 > 0)
+        periodic[1] = p->gknoy;
+
+    if(p->periodic3 > 0)
+        periodic[2] = p->gknox;
+
+    HYPRE_StructGridCreate(pgc->mpi_comm, 3, &grid);
+    HYPRE_StructGridSetExtents(grid, ilower, iupper);
+    HYPRE_StructGridSetPeriodic(grid, periodic);
+    HYPRE_StructGridAssemble(grid);
+
+    // stencil
+    HYPRE_StructStencilCreate(3, 7, &stencil);
+
+    int entry;
+    int offsets[7][3] = {{0, 0, 0}, {0, 0, -1}, {0, 0, 1}, {0, -1, 0}, {0, 1, 0}, {-1, 0, 0}, {1, 0, 0}};
+
+    for(entry = 0; entry < 7; ++entry)
+        HYPRE_StructStencilSetElement(stencil, entry, offsets[entry]);
+
+    // matrix
+    HYPRE_StructMatrixCreate(pgc->mpi_comm, grid, stencil, &A);
+    HYPRE_StructMatrixInitialize(A);
+
+    // vec
+    HYPRE_StructVectorCreate(pgc->mpi_comm, grid, &b);
+    HYPRE_StructVectorCreate(pgc->mpi_comm, grid, &x);
+
+    HYPRE_StructVectorInitialize(b);
+    HYPRE_StructVectorInitialize(x);
+}
+
+void hypre_struct::make_grid_perm_2Dvert(lexer *p, ghostcell *pgc)
+{
+    // grid
+    ilower[0] = p->origin_k;
+    ilower[1] = p->origin_i;
+
+    iupper[0] = p->knoz + p->origin_k - 1;
+    iupper[1] = p->knox + p->origin_i - 1;
+
+    if(p->A320 == 2)
+        iupper[0] = p->knoz + p->origin_k;
+
+    // periodic BC
+    periodic[0] = 0;
+    periodic[1] = 0;
+
+    if(p->periodic1 > 0)
+        periodic[0] = p->gknoz;
+
+    if(p->periodic3 > 0)
+        periodic[1] = p->gknox;
+
+    HYPRE_StructGridCreate(pgc->mpi_comm, 2, &grid);
+    HYPRE_StructGridSetExtents(grid, ilower, iupper);
+    HYPRE_StructGridSetPeriodic(grid, periodic);
+    HYPRE_StructGridAssemble(grid);
+
+    // stencil
+    HYPRE_StructStencilCreate(2, 5, &stencil);
+
+    int entry;
+    int offsets[5][2] = {{0, 0}, {0, -1}, {0, 1}, {-1, 0}, {1, 0}};
+
+    for(entry = 0; entry < 5; ++entry)
+        HYPRE_StructStencilSetElement(stencil, entry, offsets[entry]);
+
+    // matrix
+    HYPRE_StructMatrixCreate(pgc->mpi_comm, grid, stencil, &A);
+    HYPRE_StructMatrixInitialize(A);
+
+    // vec
+    HYPRE_StructVectorCreate(pgc->mpi_comm, grid, &b);
+    HYPRE_StructVectorCreate(pgc->mpi_comm, grid, &x);
+
+    HYPRE_StructVectorInitialize(b);
+    HYPRE_StructVectorInitialize(x);
+}
+
+#endif  // REEF3D_USE_HYPRE

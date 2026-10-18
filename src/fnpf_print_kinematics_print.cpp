@@ -20,54 +20,45 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"fnpf_print_kinematics.h"
-#include"lexer.h"
-#include"fdm_fnpf.h"
-#include"ghostcell.h"
-#include<sys/stat.h>
-#include<sys/types.h>
+#include "fdm_fnpf.h"
+#include "fnpf_print_kinematics.h"
+#include "ghostcell.h"
+#include "lexer.h"
+#include <sys/stat.h>
+#include <sys/types.h>
 
-void fnpf_print_kinematics::print_ini(lexer* p, fdm_fnpf *c, ghostcell *pgc)
+void fnpf_print_kinematics::print_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
     // open force_ale file
-    sprintf(name,"./REEF3D_FNPF_Kinematics/REEF3D_FNPF-Kinematics-%i.dat",ID+1);
-        
+    sprintf(name, "./REEF3D_FNPF_Kinematics/REEF3D_FNPF-Kinematics-%i.dat", ID + 1);
+
     fout.open(name);
-    
-    /*ddn=p->Xout(p->P88_x[ID]);
-	fout.write((char*)&ddn, sizeof (double));
-    
-    ddn=p->Yout(p->P88_y[ID]);
-	fout.write((char*)&ddn, sizeof (double));
-    
-    iin=p->knoz+1;
-	fout.write((char*)&iin, sizeof (int));*/
-    
-    fout<<p->Xout(p->P88_x[ID],p->P88_y[ID])<<" "<<p->Yout(p->P88_x[ID],p->P88_y[ID])<<" "<<p->knoz+1<<endl;
+
+    fout << p->Xout(p->P88_x[ID], p->P88_y[ID]) << " " << p->Yout(p->P88_x[ID], p->P88_y[ID]) << " " << p->knoz + 1 << endl;
 }
 
-void fnpf_print_kinematics::print_kinematics(lexer* p, fdm_fnpf *c, ghostcell *pgc)
+void fnpf_print_kinematics::print_kinematics(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
     // time
-    ddn=p->simtime;
-	fout.write((char*)&ddn, sizeof (double));
-    
+    ddn = p->simtime;
+    fout.write((char *)&ddn, sizeof(double));
+
     // results: z ; U ; dUdt ; V ; dVdt
-    for(k=0;k<p->knoz+1;++k)
+    for(k = 0; k < p->knoz + 1; ++k)
     {
-    ddn=p->ZSN[FIJK];
-	fout.write((char*)&ddn, sizeof (double));
-    
-    ddn=c->U[FIJK];
-	fout.write((char*)&ddn, sizeof (double));
-    
-    ddn=ax[k];
-	fout.write((char*)&ddn, sizeof (double));
-    
-    ddn=c->V[FIJK];
-	fout.write((char*)&ddn, sizeof (double));
-    
-    ddn=ay[k];
-	fout.write((char*)&ddn, sizeof (double));
+        ddn = p->ZSN[FIJK];
+        fout.write((char *)&ddn, sizeof(double));
+
+        ddn = c->U[FIJK];
+        fout.write((char *)&ddn, sizeof(double));
+
+        ddn = ax[k];
+        fout.write((char *)&ddn, sizeof(double));
+
+        ddn = c->V[FIJK];
+        fout.write((char *)&ddn, sizeof(double));
+
+        ddn = ay[k];
+        fout.write((char *)&ddn, sizeof(double));
     }
 }
