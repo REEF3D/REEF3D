@@ -54,6 +54,7 @@ class solver;
 class vec;
 class matrix_diag;
 class sixdof_obj;
+class nhflow_momentum_SI;
 class ioflow;
 class ioflow_amr_block;
 class patchBC_interface;
@@ -225,12 +226,28 @@ public:
     // the time step of all grids (nhflow_momentum_RK2/RK3::start)
     void step(lexer*, fdm_nhf*, ghostcell*, nhflow_momentum_func*, nhflow_stage_obj&) override;
 
+    // hydrostatic semi-implicit free surface on the multi-block grid (A 534 1, nhflow_amr_si.cpp): the
+    // parts of the step of every block (nhflow_momentum_SI), the cells around the blocks filled in
+    // between, one eta system over the cells of all blocks (BiCGStab with the Jacobi preconditioner)
+    void si_step(lexer*, fdm_nhf*, ghostcell*, nhflow_momentum_func*, nhflow_stage_obj&);
+
+    // vector space of the composite eta solve (reefamr_bicgstab)
+    void si_apply(int, int);
+    void si_prec(int, int);
+    double si_dot(int, int);
+    void si_opstart();
+    void si_op_p(double, double);
+    void si_op_s(double);
+    void si_op_x(double, double);
+    void si_restart();
+
     // face fluxes of grid id (0: level 0, n: patch n-1) before the divergence
     void flux_hook(lexer*, fdm_nhf*, int, int, double*, double*) override;
 
     // time step: patch maxima and cell sizes
     double dt_local_max(int) override;
     void dt_cell_size(int, double&, double&) override;
+    void dt_si_cmin(double, double&, double&) override;
 
     // vector space of the composite pressure solve (nhflow_amr_press.cpp, reefamr_bicgstab)
     void pr_apply(int, int, bool d1=false);
@@ -528,6 +545,22 @@ private:
     fdm_nhf *d0;
     nhflow_momentum_func *mom0;
     nhflow_stage_obj *S0p = nullptr;
+
+    // A 534 1 (nhflow_amr_si.cpp): the grids of the composite eta system (-1 the native grid, then
+    // lev[0]), their own rows (i, j, row of the si_eta2D assembly) and the Krylov vectors per grid
+    std::vector<int> sigrid;
+    std::vector<std::vector<int>> sirow;
+    std::vector<std::vector<slice*>> sivec;
+    nhflow_momentum_SI* gsi(int);
+    bool si_own(int, int, int);
+    void si_setup();
+    template<class F> void si_each(ghostcell*, F);
+    template<class A> void si_fill3(ghostcell*, int, int, A);
+    void si_fillv(ghostcell*, int);
+    void si_fillF(ghostcell*);
+    void si_dirichlet(ghostcell*);
+    void si_solve(lexer*, ghostcell*);
+    ghostcell *sipgc = nullptr;
     ioflow *pflowv;                 // objects shared by all patches (their NHFLOW calls do nothing)
     patchBC_interface *pBCv;
     sediment *psedv;

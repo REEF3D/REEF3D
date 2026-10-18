@@ -1,0 +1,22 @@
+{
+ "description": "NHFLOW hydrostatic semi-implicit (A 534 1) on a multi-block grid (G 50 1): closed basin 2 x 1 km as 4 wavy curvilinear blocks, bed bump across the block corners, initial step of the water level (F 72), 3 sigma layers, non-orthogonal correction A 539 1. One eta system over the blocks (BiCGStab, reefamr_bicgstab). 2, 3 and 4 blocks of the same nodes agree to 1e-11 m with each other (the order of the Krylov sums) and to 6e-6 m with the one-block run (round-off amplified by the upwind face depth at faces with Q = 0); volume to round-off.",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 60,
+ "tags": [
+  "3d",
+  "nhflow",
+  "semi_implicit",
+  "curvilinear",
+  "multiblock"
+ ],
+ "covers": [
+  "nhflow_amr::si_step, si_solve (composite eta system), si_fill3, si_fillv",
+  "nhflow_momentum_SI with block = true",
+  "dt_si_cmin (time step of the blocks)",
+  "cgrad at walls (one-sided)"
+ ],
+ "files": [
+  "blocks.dat"
+ ]
+}

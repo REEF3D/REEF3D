@@ -143,11 +143,11 @@ private:
     slice2 fyU, fyV;
 
     // cell state of the step: t^n, RK stages, predictor UH*, increments, implicit eta,
-    // friction factor alpha_c, right-hand side and reaction term of the eta system
-    slice4 eta0, WL0, UH0, VH0, UHa, VHa, UHb, VHb, UHp, VHp, WHz, dUH, dVH, etaI, alc, rhs, react, rhsW;
+    // friction factor alpha_c, scratch, right-hand side of the eta system
+    slice4 eta0, WL0, UH0, VH0, UHa, VHa, UHb, VHb, UHp, VHp, WHz, dUH, dVH, etaI, alc, rhs, rhsW;
 
-    // wetting and drying: wet pattern of the Newton iteration, implicit diagonal of the open boundaries
-    slice4 pw, bdiag;
+    // implicit diagonal of the open boundaries
+    slice4 bdiag;
 
     // interior copies kept through the ghost cell update (thin solids, see rk_stage)
     slice4 tU, tV, tUH, tVH;

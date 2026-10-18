@@ -42,7 +42,7 @@ sflow_momentum_SI::sflow_momentum_SI(lexer *p, fdm2D *b, ghostcell *pgc, sflow_H
                                       qy(p),qyn(p),qyE(p),Hy(p),aly(p),ay(p),ky(p),gy0(p),
                                       fxU(p),fxV(p),fyU(p),fyV(p),
                                       eta0(p),WL0(p),UH0(p),VH0(p),UHa(p),VHa(p),UHb(p),VHb(p),UHp(p),VHp(p),
-                                      WHz(p),dUH(p),dVH(p),etaI(p),alc(p),rhs(p),react(p),rhsW(p),pw(p),bdiag(p),
+                                      WHz(p),dUH(p),dVH(p),etaI(p),alc(p),rhs(p),rhsW(p),bdiag(p),
                                       tU(p),tV(p),tUH(p),tVH(p),WLk(p),etaB(p)
 {
     check(p);
@@ -900,61 +900,9 @@ void sflow_momentum_SI::eta_solve(lexer *p, fdm2D *b, ghostcell *pgc)
     // initial guess eta^n; wet pattern: all wet (the linear system of P1), then the
     // Newton iteration on WL = max(eta + d, 0) (Casulli 2009), converging from above
     SLICELOOP4
-    {
     etaI(i,j) = eta0(i,j);
-    pw(i,j) = 1.0;
-    }
 
-    wd_iter = 0;
-    wd_cells = 0;
-
-    const int itmax = p->A229==1 ? 20 : 1;
-
-    for(int it=0; it<itmax; ++it)
-    {
-        SLICELOOP4
-        {
-        react(i,j) = pw(i,j) + bdiag(i,j);
-        rhs(i,j) = rhsW(i,j) - pw(i,j)*b->depth(i,j);
-        }
-
-    psi->solve(p,pgc,ppoissonsolv,ax,ay,rhs,etaI,react);
-
-    exchange4(p,pgc,etaI);
-
-    ++wd_iter;
-
-        if(p->A229!=1)
-        break;
-
-        // new wet pattern; a cell without open faces and boundaries stays wet (its row is
-        // WL = rhs >= 0)
-        int change=0;
-
-        SLICELOOP4
-        {
-            const bool coupled = ax(i,j)>0.0 || ax(i-1,j)>0.0 || bdiag(i,j)>0.0
-                              || (p->j_dir==1 && (ay(i,j)>0.0 || ay(i,j-1)>0.0));
-
-            const double pn = (etaI(i,j) + b->depth(i,j)>0.0 || !coupled) ? 1.0 : 0.0;
-
-            if(pn!=pw(i,j))
-            ++change;
-
-        pw(i,j) = pn;
-        }
-
-        change = pgc->globalisum(change);
-
-        if(change==0)
-        break;
-    }
-
-    SLICELOOP4
-    if(pw(i,j)<0.5)
-    ++wd_cells;
-
-    wd_cells = pgc->globalisum(wd_cells);
+    wd_iter = psi->solve_wetdry(p,pgc,ppoissonsolv,ax,ay,rhsW,b->depth,bdiag,etaI,p->A229==1 ? 20 : 1,wd_cells);
 }
 
 void sflow_momentum_SI::face_update(lexer *p, fdm2D *b, ghostcell *pgc)

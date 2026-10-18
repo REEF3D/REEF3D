@@ -26,6 +26,7 @@ Author: Hans Bihs
 #include"increment.h"
 #include"matrix2D.h"
 #include"vec2D.h"
+#include"slice4.h"
 
 class lexer;
 class ghostcell;
@@ -35,7 +36,7 @@ class slice;
 using namespace std;
 
 // Semi-implicit free surface (theta method): the 2D eta system, shared by the
-// semi-implicit SFLOW (A 226 1) and, later, the hydrostatic semi-implicit NHFLOW.
+// semi-implicit SFLOW (A 226 1) and the hydrostatic semi-implicit NHFLOW (A 534 1).
 //
 //   eta^{n+1} - div_h( a_f grad_f eta^{n+1} ) = rhs
 //
@@ -43,6 +44,8 @@ using namespace std;
 //   Ht_f  : conveyance of the face:  SFLOW  H_f/(1 + dt gamma_f)  (implicit bed friction)
 //                                   NHFLOW dz^T A_f^-1 dz          (column operator)
 //   grad_f: compact face gradient (eta_{i+1} - eta_i)/dxp_f, div_h over the cell widths
+//           (curvilinear grid G 50: dxp_f the normal distance of the centres, div_h with the face
+//           lengths over the cell area)
 //
 // The caller supplies the face coefficients (ax on the x-faces, slice1; ay on the
 // y-faces, slice2) and the right-hand side (slice4).  Cells without an open face
@@ -67,6 +70,29 @@ public:
     //  condition with the value of eta in that ghost cell (open water level boundary)
     void solve(lexer*, ghostcell*, solver2D*, slice &ax, slice &ay, slice &rhs, slice &eta, slice &r);
 
+    // wetting and drying (Casulli 2009): the water depth is WL(eta) = max(eta + d, 0), the volume
+    // equation  WL(eta) + bdiag eta - div( a_f grad_f eta ) = rhsW  is solved by a Newton
+    // iteration on the wet pattern pw (1 wet, 0 dry), starting from all wet (the linear system):
+    //     (pw + bdiag) eta - div( a_f grad_f eta ) = rhsW - pw d
+    // a cell without open faces and boundaries stays wet (its row is WL = rhsW >= 0)
+    //  eta    : initial guess on entry, solution on exit (interior cells and MPI halo)
+    //  itmax  : 1 gives the linear system of the fully wet domain
+    //  returns the number of solves; dry: number of dry cells (all ranks)
+    int solve_wetdry(lexer*, ghostcell*, solver2D*, slice &ax, slice &ay, slice &rhsW, slice &depth, slice &bdiag, slice &eta, int itmax, int &dry);
+
+    // the parts of solve / solve_wetdry for a composite solve over several grids (multi-block NHFLOW,
+    // nhflow_amr_si.cpp): the rows M, rhsvec of the system (build), the wet pattern pw (wd_start, the
+    // reaction and right-hand side of the pattern wd_rows, the new pattern wd_update: local changes)
+    void build(lexer*, slice &ax, slice &ay, slice &rhs, slice &eta, slice &r);
+    void wd_start(lexer*);
+    void wd_rows(lexer*, slice &rhsW, slice &depth, slice &bdiag);
+    int wd_update(lexer*, slice &ax, slice &ay, slice &bdiag, slice &eta, slice &depth);
+    const matrix2D& mat() const { return M; }
+    const vec2D& rhsv() const { return rhsvec; }
+    slice& wd_react() { return react; }
+    slice& wd_rhs() { return rhs; }
+    double wd_pattern(int ii, int jj) { return pw(ii,jj); }
+
     int iter;
     double time;
 
@@ -76,6 +102,9 @@ private:
 
     matrix2D M;
     vec2D xvec, rhsvec;
+    
+    // wet pattern, reaction term and right-hand side of the wetting and drying iteration
+    slice4 pw, react, rhs;
 };
 
 #endif

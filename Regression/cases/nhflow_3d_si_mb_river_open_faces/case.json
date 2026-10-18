@@ -1,0 +1,21 @@
+{
+ "description": "NHFLOW hydrostatic semi-implicit on a multi-block river (3 wavy blocks in a row, 1 sigma layer, log-law bed friction): discharge G 54 1 1 through the -i face of block 1, water level G 54 2 2 at the +i face of block 2 (ioflow_amr_block). The steady water level agrees with the one-block run (native B 60 inflow and F 50 2 outflow) to 2e-5 m.",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 200,
+ "tags": [
+  "3d",
+  "nhflow",
+  "semi_implicit",
+  "curvilinear",
+  "multiblock",
+  "river"
+ ],
+ "covers": [
+  "open boundary faces of blocks (bc_setup from ioflow_amr_block ghost cells)",
+  "composite log (Qin, Qout of the blocks)"
+ ],
+ "files": [
+  "blocks.dat"
+ ]
+}

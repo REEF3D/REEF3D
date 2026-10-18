@@ -193,6 +193,12 @@ void control::ini_default()
     A531=3.0;    // double Froude number limiter
     A532=1;      // int  Froude number limiter area
     A533=0;      // int  add veritcal velocity to CFL 
+    A534=0;      // int NHFLOW hydrostatic semi-implicit free surface (theta method), 1 on
+    A535=0.55;   // double NHFLOW semi-implicit: theta
+    A536=0.0;    // double NHFLOW semi-implicit: maximum time step (s), 0: explicit gravity wave limit
+    A537=1;      // int NHFLOW semi-implicit: wetting and drying iteration (Casulli 2009), 0 off
+    A538=0.0;    // double NHFLOW semi-implicit: mass flux dissipation for transcritical flow, 0 off
+    A539=0;      // int NHFLOW semi-implicit, curvilinear grid: non-orthogonal part of the face gradient of eta (explicit, deferred), 1 on
     A540=1;      // int NFHLOW wetdry scheme
     A544=0.001;  // double wetting & drying criterion
     A545=10.0;   // double deep criterion

@@ -100,7 +100,14 @@ void driver::logic_nhflow()
     pnhfsf = new nhflow_fsf_f(p,d,pgc,pflow,pBC);
     
 // time stepping
-    // time stepping
+    // time stepping; hydrostatic semi-implicit free surface (A 534 1): the advective time step
+    if(p->A534==1)
+    {
+    nhflow_momentum_SI::check(p);
+    pnhfstep=new nhflow_timestep_SI(p);
+    }
+    
+    if(p->A534!=1)
 	pnhfstep=new nhflow_timestep(p);
 
 //discretization scheme
@@ -319,11 +326,15 @@ void driver::logic_nhflow()
     psed = new sediment_RK2(p,pgc,pturbcfd,pBC);
       
 //Momentum
-    if(p->A510==2)
+    if(p->A510==2 && p->A534!=1)
 	pnhfmom = new nhflow_momentum_RK2(p,d,pgc,p6dof,pnhfvrans,pnhfdf,psed);
 
-    if(p->A510==3)
+    if(p->A510==3 && p->A534!=1)
 	pnhfmom = new nhflow_momentum_RK3(p,d,pgc,p6dof,pnhfvrans,pnhfdf);    
+    
+    // hydrostatic semi-implicit free surface (A 534 1, theta method)
+    if(p->A534==1)
+	pnhfmom = new nhflow_momentum_SI(p,d,pgc,p6dof,pnhfvrans,pnhfdf);
 
 // mesh refinement (G 1): patches on the NHFLOW grid
     // multi-block grid (G 50 1, DIVEMesh R 20 1): the blocks 1.. are level-0 patches of the hierarchy

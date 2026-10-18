@@ -1,0 +1,21 @@
+{
+ "description": "NHFLOW hydrostatic semi-implicit on a curvilinear grid turned by 30 deg (G 50 2): the river reach of nhflow_3d_curv_river_kepsilon_rot30 (discharge inflow along the face normal, stage outflow, bed friction, k-epsilon). At 600 s the water level agrees with the explicit hydrostatic NHFLOW to 0.14 mm, the velocities to 3 mm/s.",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 300,
+ "tags": [
+  "3d",
+  "nhflow",
+  "semi_implicit",
+  "curvilinear",
+  "turbulence"
+ ],
+ "covers": [
+  "face lengths and normals of the geometry layer",
+  "gravity term of a cell from the open faces (mean normals per index direction)",
+  "si_eta2D on the curvilinear grid"
+ ],
+ "files": [
+  "curvgrid.dat"
+ ]
+}

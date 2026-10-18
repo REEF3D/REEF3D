@@ -32,6 +32,7 @@ Author: Hans Bihs
 
 #include"printer_nhflow.h"
 #include"nhflow_timestep.h"
+#include"nhflow_timestep_SI.h"
 #include"nhflow_momentum.h"
 #include"nhflow_turbulence.h"
 #include"nhflow_komega_void.h"
@@ -54,6 +55,7 @@ Author: Hans Bihs
 
 #include"nhflow_momentum_RK2.h"
 #include"nhflow_momentum_RK3.h"
+#include"nhflow_momentum_SI.h"
 
 #include"nhflow_pjm.h"
 #include"nhflow_pjm_corr.h"

@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"nhflow_amr.h"
+#include"nhflow_momentum_SI.h"
 #include"nhflow_amr_fill.h"
 #include"lexer.h"
 #include"bc_zone.h"
@@ -791,10 +792,12 @@ void nhflow_amr::patch_objects(reefamr_patch *q, ghostcell *pgc)
     c->pfsf = new nhflow_fsf_f(pp,d,pgc,c->pflow,c->pBC);
     c->pdf = new nhflow_forcing(pp,d,pgc);
 
-    if(pp->A510==2)
+    if(pp->A510==2 && pp->A534!=1)
     c->pmom = new nhflow_momentum_RK2(pp,d,pgc,c->p6dof,c->pvrans,c->pdf,c->psed);
-    if(pp->A510==3)
+    if(pp->A510==3 && pp->A534!=1)
     c->pmom = new nhflow_momentum_RK3(pp,d,pgc,c->p6dof,c->pvrans,c->pdf);
+    if(pp->A534==1)
+    c->pmom = new nhflow_momentum_SI(pp,d,pgc,c->p6dof,c->pvrans,c->pdf,true);
     
     // pierced-column water level (X 13): on the patch too, local to it
     if(c->pmom!=nullptr && c->pmom->pfsfbody!=nullptr)
@@ -2369,6 +2372,13 @@ void nhflow_amr::exchange_fluxes(int l)
 // --------------------------------------------------------------------- time stepping
 void nhflow_amr::step(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum_func *mom, nhflow_stage_obj &S0)
 {
+    // A 534 1: hydrostatic semi-implicit free surface, one eta system over the blocks (nhflow_amr_si.cpp)
+    if(p->A534==1)
+    {
+        si_step(p,d,pgc,mom,S0);
+        return;
+    }
+
     const int ns = mom->stages();
 
     if(!active())
