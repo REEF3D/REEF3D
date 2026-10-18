@@ -68,10 +68,12 @@ int position::posf_i(double xs)
          break;   
         }
         
-        // out of bounds
+        // beyond the last cell centre at a wall (ulast 1): the stencil is the last cell and its ghost, as
+        // -1 and 0 at the lower end; knox would give two ghost cells, and the slice interpolation (lintsl4)
+        // no valid value at all inside the last half cell
         if(xs>p->XP[p->knox-p->ulast+marge])
         {
-            ii = p->knox;
+            ii = p->ulast==1 ? p->knox-1 : p->knox;
             
          stop=1;
          break;   
@@ -128,10 +130,12 @@ int position::posf_j(double ys)
          break;   
         }
         
-        // out of bounds
+        // beyond the last cell centre at a wall (vlast 1): the stencil is the last cell and its ghost, as
+        // -1 and 0 at the lower end; knoy would give two ghost cells, and the slice interpolation (lintsl4)
+        // no valid value at all inside the last half cell
         if(ys>p->YP[p->knoy-p->vlast+marge])
         {
-            jj = p->knoy;
+            jj = p->vlast==1 ? p->knoy-1 : p->knoy;
             
             //cout<<"EXIT 0p  "<<p->YP[p->knoy-1]<<endl;
    
