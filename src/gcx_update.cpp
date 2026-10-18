@@ -38,10 +38,10 @@ void ghostcell::gcxupdate(lexer* p)
         if(p->flag1[Im1JK]>=AIR_FLAG && p->flag1[IJK]>=AIR_FLAG)
             p->gcpara1[n][3]=1;
 
-        if(p->flag1[IJK]<AIR_FLAG && p->flag4[IJK]>=AIR_FLAG && p->flag1[Im1JK]>AIR_FLAG && p->flag4[Im1JK]>=AIR_FLAG)
+        if(p->flag1[IJK]<AIR_FLAG && p->flag4(i,j,k)>=AIR_FLAG && p->flag1[Im1JK]>AIR_FLAG && p->flag4(i-1,j,k)>=AIR_FLAG)
             p->gcpara1[n][3]=1;
 
-        if(p->flag1[IJK]>=AIR_FLAG && p->flag4[IJK]>=AIR_FLAG && p->flag1[Im1JK]<AIR_FLAG && p->flag4[Im1JK]>=AIR_FLAG)
+        if(p->flag1[IJK]>=AIR_FLAG && p->flag4(i,j,k)>=AIR_FLAG && p->flag1[Im1JK]<AIR_FLAG && p->flag4(i-1,j,k)>=AIR_FLAG)
             p->gcpara1[n][3]=2;
 
         // 2
@@ -65,17 +65,17 @@ void ghostcell::gcxupdate(lexer* p)
             p->gcpara1[n][5]=1;
 
         // 4
-        if(p->flag4[Im1JK]<AIR_FLAG || p->flag4[IJK]<AIR_FLAG)
+        if(p->flag4(i-1,j,k)<AIR_FLAG || p->flag4(i,j,k)<AIR_FLAG)
             p->gcpara1[n][6]=p->Y74;
 
-        if(p->flag4[Im1JK]>=AIR_FLAG && p->flag4[IJK]>=AIR_FLAG)
+        if(p->flag4(i-1,j,k)>=AIR_FLAG && p->flag4(i,j,k)>=AIR_FLAG)
             p->gcpara1[n][6]=1;
 
         // 4a
-        if(p->flag4[Im1JK]<=SOLID_FLAG || p->flag4[IJK]<=SOLID_FLAG)
+        if(p->flag4(i-1,j,k)<=SOLID_FLAG || p->flag4(i,j,k)<=SOLID_FLAG)
             p->gcpara1[n][7]=p->Y74;
 
-        if(p->flag4[Im1JK]>SOLID_FLAG && p->flag4[IJK]>SOLID_FLAG)
+        if(p->flag4(i-1,j,k)>SOLID_FLAG && p->flag4(i,j,k)>SOLID_FLAG)
             p->gcpara1[n][7]=1;
 
         // 6
@@ -106,10 +106,10 @@ void ghostcell::gcxupdate(lexer* p)
         if(p->flag2[IJp1K]>=AIR_FLAG  && p->flag2[IJK]>=AIR_FLAG)
             p->gcpara2[n][4]=1;
 
-        if(p->flag2[IJK]<AIR_FLAG && p->flag4[IJK]>=AIR_FLAG && p->flag2[IJp1K]>AIR_FLAG && p->flag4[IJp1K]>=AIR_FLAG)
+        if(p->flag2[IJK]<AIR_FLAG && p->flag4(i,j,k)>=AIR_FLAG && p->flag2[IJp1K]>AIR_FLAG && p->flag4(i,j+1,k)>=AIR_FLAG)
             p->gcpara2[n][4]=1;
 
-        if(p->flag2[IJK]>=AIR_FLAG && p->flag4[IJK]>=AIR_FLAG && p->flag2[IJp1K]<AIR_FLAG && p->flag4[IJp1K]>=AIR_FLAG)
+        if(p->flag2[IJK]>=AIR_FLAG && p->flag4(i,j,k)>=AIR_FLAG && p->flag2[IJp1K]<AIR_FLAG && p->flag4(i,j+1,k)>=AIR_FLAG)
             p->gcpara2[n][4]=2;
 
         // 3
@@ -123,17 +123,17 @@ void ghostcell::gcxupdate(lexer* p)
             p->gcpara2[n][5]=1;
 
         // 4
-        if(p->flag4[IJp1K]<AIR_FLAG || p->flag4[IJK]<AIR_FLAG)
+        if(p->flag4(i,j+1,k)<AIR_FLAG || p->flag4(i,j,k)<AIR_FLAG)
             p->gcpara2[n][6]=p->Y74;
 
-        if(p->flag4[IJp1K]>=AIR_FLAG && p->flag4[IJK]>=AIR_FLAG)
+        if(p->flag4(i,j+1,k)>=AIR_FLAG && p->flag4(i,j,k)>=AIR_FLAG)
             p->gcpara2[n][6]=1;
 
         // 4a
-        if(p->flag4[IJp1K]<=SOLID_FLAG || p->flag4[IJK]<=SOLID_FLAG)
+        if(p->flag4(i,j+1,k)<=SOLID_FLAG || p->flag4(i,j,k)<=SOLID_FLAG)
             p->gcpara2[n][7]=p->Y74;
 
-        if(p->flag4[IJp1K]>SOLID_FLAG && p->flag4[IJK]>SOLID_FLAG)
+        if(p->flag4(i,j+1,k)>SOLID_FLAG && p->flag4(i,j,k)>SOLID_FLAG)
             p->gcpara2[n][7]=1;
 
         // 6
@@ -163,10 +163,10 @@ void ghostcell::gcxupdate(lexer* p)
         if(p->flag2[IJm1K]>=AIR_FLAG && p->flag2[IJK]>=AIR_FLAG)
             p->gcpara3[n][4]=1;
 
-        if(p->flag2[IJK]<AIR_FLAG && p->flag4[IJK]>=AIR_FLAG && p->flag2[IJm1K]>AIR_FLAG && p->flag4[IJm1K]>=AIR_FLAG)
+        if(p->flag2[IJK]<AIR_FLAG && p->flag4(i,j,k)>=AIR_FLAG && p->flag2[IJm1K]>AIR_FLAG && p->flag4(i,j-1,k)>=AIR_FLAG)
             p->gcpara3[n][4]=1;
 
-        if(p->flag2[IJK]>=AIR_FLAG && p->flag4[IJK]>=AIR_FLAG && p->flag2[IJm1K]<AIR_FLAG && p->flag4[IJm1K]>=AIR_FLAG)
+        if(p->flag2[IJK]>=AIR_FLAG && p->flag4(i,j,k)>=AIR_FLAG && p->flag2[IJm1K]<AIR_FLAG && p->flag4(i,j-1,k)>=AIR_FLAG)
             p->gcpara3[n][4]=2;
 
         // 3
@@ -180,17 +180,17 @@ void ghostcell::gcxupdate(lexer* p)
             p->gcpara3[n][5]=1;
 
         // 4
-        if(p->flag4[IJm1K]<AIR_FLAG || p->flag4[IJK]<AIR_FLAG)
+        if(p->flag4(i,j-1,k)<AIR_FLAG || p->flag4(i,j,k)<AIR_FLAG)
             p->gcpara3[n][6]=p->Y74;
 
-        if(p->flag4[IJm1K]>=AIR_FLAG && p->flag4[IJK]>=AIR_FLAG)
+        if(p->flag4(i,j-1,k)>=AIR_FLAG && p->flag4(i,j,k)>=AIR_FLAG)
             p->gcpara3[n][6]=1;
 
         // 4a
-        if(p->flag4[IJm1K]<=SOLID_FLAG || p->flag4[IJK]<=SOLID_FLAG)
+        if(p->flag4(i,j-1,k)<=SOLID_FLAG || p->flag4(i,j,k)<=SOLID_FLAG)
             p->gcpara3[n][7]=p->Y74;
 
-        if(p->flag4[IJm1K]>SOLID_FLAG && p->flag4[IJK]>SOLID_FLAG)
+        if(p->flag4(i,j-1,k)>SOLID_FLAG && p->flag4(i,j,k)>SOLID_FLAG)
             p->gcpara3[n][7]=1;
 
         // 6
@@ -210,10 +210,10 @@ void ghostcell::gcxupdate(lexer* p)
         if(p->flag1[Ip1JK]>=AIR_FLAG && p->flag1[IJK]>=AIR_FLAG)
             p->gcpara4[n][3]=1;
 
-        if(p->flag1[IJK]<AIR_FLAG && p->flag4[IJK]>=AIR_FLAG && p->flag1[Ip1JK]>AIR_FLAG && p->flag4[Ip1JK]>=AIR_FLAG)
+        if(p->flag1[IJK]<AIR_FLAG && p->flag4(i,j,k)>=AIR_FLAG && p->flag1[Ip1JK]>AIR_FLAG && p->flag4(i+1,j,k)>=AIR_FLAG)
             p->gcpara4[n][3]=1;
 
-        if(p->flag1[IJK]>=AIR_FLAG && p->flag4[IJK]>=AIR_FLAG && p->flag1[Ip1JK]<AIR_FLAG && p->flag4[Ip1JK]>=AIR_FLAG)
+        if(p->flag1[IJK]>=AIR_FLAG && p->flag4(i,j,k)>=AIR_FLAG && p->flag1[Ip1JK]<AIR_FLAG && p->flag4(i+1,j,k)>=AIR_FLAG)
             p->gcpara4[n][3]=2;
 
         // 2
@@ -237,17 +237,17 @@ void ghostcell::gcxupdate(lexer* p)
             p->gcpara4[n][5]=1;
 
         // 4
-        if(p->flag4[Ip1JK]<AIR_FLAG || p->flag4[IJK]<AIR_FLAG)
+        if(p->flag4(i+1,j,k)<AIR_FLAG || p->flag4(i,j,k)<AIR_FLAG)
             p->gcpara4[n][6]=p->Y74;
 
-        if(p->flag4[Ip1JK]>=AIR_FLAG && p->flag4[IJK]>=AIR_FLAG)
+        if(p->flag4(i+1,j,k)>=AIR_FLAG && p->flag4(i,j,k)>=AIR_FLAG)
             p->gcpara4[n][6]=1;
 
         // 4a
-        if(p->flag4[Ip1JK]<=SOLID_FLAG || p->flag4[IJK]<=SOLID_FLAG)
+        if(p->flag4(i+1,j,k)<=SOLID_FLAG || p->flag4(i,j,k)<=SOLID_FLAG)
             p->gcpara4[n][7]=p->Y74;
 
-        if(p->flag4[Ip1JK]>SOLID_FLAG && p->flag4[IJK]>SOLID_FLAG)
+        if(p->flag4(i+1,j,k)>SOLID_FLAG && p->flag4(i,j,k)>SOLID_FLAG)
             p->gcpara4[n][7]=1;
 
         // 6
@@ -287,24 +287,24 @@ void ghostcell::gcxupdate(lexer* p)
         if(p->flag3[IJKm1]>=AIR_FLAG && p->flag3[IJK]>=AIR_FLAG)
             p->gcpara5[n][5]=1;
 
-        if(p->flag3[IJK]<AIR_FLAG && p->flag4[IJK]>=AIR_FLAG && p->flag3[IJKm1]>AIR_FLAG && p->flag4[IJKm1]>=AIR_FLAG)
+        if(p->flag3[IJK]<AIR_FLAG && p->flag4(i,j,k)>=AIR_FLAG && p->flag3[IJKm1]>AIR_FLAG && p->flag4(i,j,k-1)>=AIR_FLAG)
             p->gcpara5[n][5]=1;
 
-        if(p->flag3[IJK]>=AIR_FLAG && p->flag4[IJK]>=AIR_FLAG && p->flag3[IJKm1]<AIR_FLAG && p->flag4[IJKm1]>=AIR_FLAG)
+        if(p->flag3[IJK]>=AIR_FLAG && p->flag4(i,j,k)>=AIR_FLAG && p->flag3[IJKm1]<AIR_FLAG && p->flag4(i,j,k-1)>=AIR_FLAG)
             p->gcpara5[n][5]=2;
 
         // 4
-        if(p->flag4[IJKm1]<AIR_FLAG || p->flag4[IJK]<AIR_FLAG)
+        if(p->flag4(i,j,k-1)<AIR_FLAG || p->flag4(i,j,k)<AIR_FLAG)
             p->gcpara5[n][6]=p->Y74;
 
-        if(p->flag4[IJKm1]>=AIR_FLAG && p->flag4[IJK]>=AIR_FLAG)
+        if(p->flag4(i,j,k-1)>=AIR_FLAG && p->flag4(i,j,k)>=AIR_FLAG)
             p->gcpara5[n][6]=1;
 
         // 4a
-        if(p->flag4[IJKm1]<=SOLID_FLAG || p->flag4[IJK]<=SOLID_FLAG)
+        if(p->flag4(i,j,k-1)<=SOLID_FLAG || p->flag4(i,j,k)<=SOLID_FLAG)
             p->gcpara5[n][7]=p->Y74;
 
-        if(p->flag4[IJKm1]>SOLID_FLAG && p->flag4[IJK]>SOLID_FLAG)
+        if(p->flag4(i,j,k-1)>SOLID_FLAG && p->flag4(i,j,k)>SOLID_FLAG)
             p->gcpara5[n][7]=1;
 
         // 6
@@ -344,24 +344,24 @@ void ghostcell::gcxupdate(lexer* p)
         if(p->flag3[IJKp1]>=AIR_FLAG && p->flag3[IJK]>=AIR_FLAG)
             p->gcpara6[n][5]=1;
 
-        if(p->flag3[IJK]<AIR_FLAG && p->flag4[IJK]>=AIR_FLAG && p->flag3[IJKp1]>AIR_FLAG && p->flag4[IJKp1]>=AIR_FLAG)
+        if(p->flag3[IJK]<AIR_FLAG && p->flag4(i,j,k)>=AIR_FLAG && p->flag3[IJKp1]>AIR_FLAG && p->flag4(i,j,k+1)>=AIR_FLAG)
             p->gcpara6[n][5]=1;
 
-        if(p->flag3[IJK]>=AIR_FLAG && p->flag4[IJK]>=AIR_FLAG && p->flag3[IJKp1]<AIR_FLAG && p->flag4[IJKp1]>=AIR_FLAG)
+        if(p->flag3[IJK]>=AIR_FLAG && p->flag4(i,j,k)>=AIR_FLAG && p->flag3[IJKp1]<AIR_FLAG && p->flag4(i,j,k+1)>=AIR_FLAG)
             p->gcpara6[n][5]=2;
 
         // 4
-        if(p->flag4[IJKp1]<AIR_FLAG || p->flag4[IJK]<AIR_FLAG)
+        if(p->flag4(i,j,k+1)<AIR_FLAG || p->flag4(i,j,k)<AIR_FLAG)
             p->gcpara6[n][6]=p->Y74;
 
-        if(p->flag4[IJKp1]>=AIR_FLAG && p->flag4[IJK]>=AIR_FLAG)
+        if(p->flag4(i,j,k+1)>=AIR_FLAG && p->flag4(i,j,k)>=AIR_FLAG)
             p->gcpara6[n][6]=1;
 
         // 4a
-        if(p->flag4[IJKp1]<=SOLID_FLAG || p->flag4[IJK]<=SOLID_FLAG)
+        if(p->flag4(i,j,k+1)<=SOLID_FLAG || p->flag4(i,j,k)<=SOLID_FLAG)
             p->gcpara6[n][7]=p->Y74;
 
-        if(p->flag4[IJKp1]>SOLID_FLAG && p->flag4[IJK]>SOLID_FLAG)
+        if(p->flag4(i,j,k+1)>SOLID_FLAG && p->flag4(i,j,k)>SOLID_FLAG)
             p->gcpara6[n][7]=1;
 
         // 6

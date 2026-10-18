@@ -360,7 +360,7 @@ void ioflow_amr_block::turb_relax_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, d
     zone_columns(p,[&](size_t q, double rg, double rb, int zg, int zb)
     {
         for(k=0; k<p->knoz; ++k)
-        if(p->flag4[IJK]>0)
+        if(p->flag4(i,j,k)>0)
         {
             if(zg>=0)
             F[IJK] = rg*F[IJK];
@@ -458,7 +458,7 @@ void ioflow_amr_block::U_relax(lexer *p, ghostcell *pgc, double *U, double *UH)
                 eb = bgs.eta(b,x,y);
             }
             for(k=0; k<p->knoz; ++k)
-            if(p->flag4[IJK]>0)
+            if(p->flag4(i,j,k)>0)
             {
                 const double uw = waves ? pwave->wave_u(p,pgc,xg,yg,p->ZSP[IJK]-p->phimean) : 0.0;
                 if(b<0)
@@ -490,7 +490,7 @@ void ioflow_amr_block::U_relax(lexer *p, ghostcell *pgc, double *U, double *UH)
                 eb = bgs.eta(b,x,y);
             }
             for(k=0; k<p->knoz; ++k)
-            if(p->flag4[IJK]>0)
+            if(p->flag4(i,j,k)>0)
             {
                 if(b<0)
                 {
@@ -548,7 +548,7 @@ void ioflow_amr_block::V_relax(lexer *p, ghostcell *pgc, double *V, double *VH)
                 eb = bgs.eta(b,x,y);
             }
             for(k=0; k<p->knoz; ++k)
-            if(p->flag4[IJK]>0)
+            if(p->flag4(i,j,k)>0)
             {
                 const double vw = waves ? pwave->wave_v(p,pgc,xg,yg,p->ZSP[IJK]-p->phimean) : 0.0;
                 if(b<0)
@@ -580,7 +580,7 @@ void ioflow_amr_block::V_relax(lexer *p, ghostcell *pgc, double *V, double *VH)
                 eb = bgs.eta(b,x,y);
             }
             for(k=0; k<p->knoz; ++k)
-            if(p->flag4[IJK]>0)
+            if(p->flag4(i,j,k)>0)
             {
                 if(b<0)
                 {
@@ -633,7 +633,7 @@ void ioflow_amr_block::W_relax(lexer *p, ghostcell *pgc, double *W, double *WH)
             }
             const double eb = (b>=0) ? bgs.eta(b,x,y) : 0.0;
             for(k=0; k<p->knoz; ++k)
-            if(p->flag4[IJK]>0)
+            if(p->flag4(i,j,k)>0)
             {
                 const double ww = waves ? pwave->wave_w(p,pgc,xg,yg,p->ZSP[IJK]-p->phimean) : 0.0;
                 const double ht = (b<0) ? ew + h0 : h0 + eb + rmp*ew;
@@ -646,7 +646,7 @@ void ioflow_amr_block::W_relax(lexer *p, ghostcell *pgc, double *W, double *WH)
 
         if(zb>=0 && rb<1.0)
         for(k=0; k<p->knoz; ++k)
-        if(p->flag4[IJK]>0)
+        if(p->flag4(i,j,k)>0)
         {
             W[IJK]  = rb*W[IJK];
             WH[IJK] = rb*WH[IJK];

@@ -154,7 +154,7 @@ driver::driver(int& argc, char **argv)
     {
         BASELOOP
         if(p->flagslice4[IJ]<0)
-        p->flag4[IJK]=-10;
+        p->flag4(i,j,k)=-10;
 
         p->flagini();
         pgc->flagfield(p);

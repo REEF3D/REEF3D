@@ -107,7 +107,7 @@ void CPM::seepage_update(lexer *p, fdm *a, ghostcell *pgc)
 
             for(k=p->knoz-1; k>=0; --k)
             {
-                if(p->flag4[IJK]<=OBJ_FLAG)
+                if(p->flag4(i,j,k)<=OBJ_FLAG)
                 continue;
 
                 if(!seep_bed(p,a,i,j,k))

@@ -66,7 +66,7 @@ double fnpf_weno5::fz(lexer *p, field &f, double kvel1, double kvel2)
 {
     grad=0.0;
 
-    if(p->flag4[IJK]>0 && p->flag4[IJKm1]>0 && p->flag4[IJKm2]>0 && p->flag4[IJKm3] && p->flag4[IJKm4]>0 && p->flag4[IJKm5])
+    if(p->flag4(i,j,k)>0 && p->flag4(i,j,k-1)>0 && p->flag4(i,j,k-2)>0 && p->flag4(i,j,k-3) && p->flag4(i,j,k-4)>0 && p->flag4(i,j,k-5))
     {
         if(i+p->origin_i>0)
             grad = (-(49.0/20.0)*f(i,j,k+1) + 6.0*f(i,j,k) - 7.5*f(i,j,k-1) + (20.0/3.0)*f(i,j,k-2) - (15.0/4.0)*f(i,j,k-3) + (6.0/5.0)*f(i,j,k-4) - (1.0/6.0)*f(i,j,k-5))
@@ -77,7 +77,7 @@ double fnpf_weno5::fz(lexer *p, field &f, double kvel1, double kvel2)
 
         return grad;
     }
-    else if(p->flag4[IJK]>0 && p->flag4[IJKm1]>0 && p->flag4[IJKm2]>0 && p->flag4[IJKm3]>0)
+    else if(p->flag4(i,j,k)>0 && p->flag4(i,j,k-1)>0 && p->flag4(i,j,k-2)>0 && p->flag4(i,j,k-3)>0)
     {
         if(i+p->origin_i>0)
             grad = (-(25.0/12.0)*f(i,j,k+1) + 4.0*f(i,j,k) - 3.0*f(i,j,k-1) + (4.0/3.0)*f(i,j,k-2) - 0.25*f(i,j,k-3))
@@ -88,7 +88,7 @@ double fnpf_weno5::fz(lexer *p, field &f, double kvel1, double kvel2)
 
         return grad;
     }
-    else if(p->flag4[IJK]>0 && p->flag4[IJKm1]>0)
+    else if(p->flag4(i,j,k)>0 && p->flag4(i,j,k-1)>0)
     {
         if(i+p->origin_i>0)
             grad = (-1.5*f(i,j,k+1) + 2.0*f(i,j,k) - 0.5*f(i,j,k-1))/(-1.5*p->ZP[KP1] + 2.0*p->ZP[KP] - 0.5*p->ZP[KM1]);

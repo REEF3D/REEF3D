@@ -188,7 +188,7 @@ void dem_f::feedback_cfd(lexer *p, fdm *a, ghostcell *pgc)
             sw[4*n+1] += kernel(relpos(p,p->pos2_x(),p->pos2_y(),p->pos2_z(),B.x).norm(),R)*p->DXN[IP]*p->DYP[JP]*p->DZN[KP];
             if(p->flag3[IJK]>0)
             sw[4*n+2] += kernel(relpos(p,p->pos3_x(),p->pos3_y(),p->pos3_z(),B.x).norm(),R)*p->DXN[IP]*p->DYN[JP]*p->DZP[KP];
-            if(p->flag4[IJK]>0)
+            if(p->flag4(i,j,k)>0)
             sw[4*n+3] += kernel(relpos(p,p->pos_x(),p->pos_y(),p->pos_z(),B.x).norm(),Ra)*p->DXN[IP]*p->DYN[JP]*p->DZN[KP];
         }
     }
@@ -257,7 +257,7 @@ void dem_f::feedback_cfd(lexer *p, fdm *a, ghostcell *pgc)
                 (*Sz)(i,j,k) += core.bodies[n].cpl.Ffp(2)*wk/(ro*sw[4*n+2]);
             }
 
-            if(p->flag4[IJK]>0 && sw[4*n+3]>0.0)
+            if(p->flag4(i,j,k)>0 && sw[4*n+3]>0.0)
             {
                 wk = kernel(relpos(p,p->pos_x(),p->pos_y(),p->pos_z(),B.x).norm(),Ra);
                 (*ALPHA)(i,j,k) += S.volume*wk/sw[4*n+3];
@@ -370,7 +370,7 @@ void dem_f::forcing_cfd(lexer *p, fdm *a, ghostcell *pgc, int iter, double alpha
                 }
             }
 
-            if(finalize && p->flag4[IJK]>0)
+            if(finalize && p->flag4(i,j,k)>0)
             {
                 dem_vec r = relpos(p,p->pos_x(),p->pos_y(),p->pos_z(),B.x);
                 if(r.squaredNorm()<=rlim*rlim)
@@ -508,7 +508,7 @@ void dem_f::internal_cfd(lexer *p, fdm *a, ghostcell *pgc)
         for(j=j0; j<=j1; ++j)
         for(k=k0; k<=k1; ++k)
         {
-            if(p->flag4[IJK]<=0)
+            if(p->flag4(i,j,k)<=0)
             continue;
 
             dem_vec r = relpos(p,p->pos_x(),p->pos_y(),p->pos_z(),B.x);

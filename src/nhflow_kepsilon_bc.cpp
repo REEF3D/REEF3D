@@ -99,42 +99,42 @@ void nhflow_kepsilon_bc::bckin_matrix(lexer *p, fdm_nhf *d, double *KIN, double 
         n=0;
         LOOP
         {
-            if(p->flag4[IJK]>0 && p->DF[IJK]>0)
+            if(p->flag4(i,j,k)>0 && p->DF[IJK]>0)
             {
-            if((p->flag4[Im1JK]<0 || p->DF[Im1JK]<0))
+            if((p->flag4(i-1,j,k)<0 || p->DF[Im1JK]<0))
             {
             if(TURBIN(Im1JK)) d->rhsvec.V[n] -= d->M.s[n]*KIN[Im1JK];   // discharge inflow profile (Dirichlet)
             else d->M.p[n] += d->M.s[n];   // zero gradient, implicit (was lagged)
             d->M.s[n] = 0.0;
             }
             
-            if((p->flag4[Ip1JK]<0 || p->DF[Ip1JK]<0))
+            if((p->flag4(i+1,j,k)<0 || p->DF[Ip1JK]<0))
             {
             d->M.p[n] += d->M.n[n];
             d->M.n[n] = 0.0;
             }
             
             if(p->j_dir==1)
-            if(p->flag4[IJm1K]<0 || p->DF[IJm1K]<0)
+            if(p->flag4(i,j-1,k)<0 || p->DF[IJm1K]<0)
             {
             d->M.p[n] += d->M.e[n];
             d->M.e[n] = 0.0;
             }
             
             if(p->j_dir==1)
-            if(p->flag4[IJp1K]<0 || p->DF[IJp1K]<0)
+            if(p->flag4(i,j+1,k)<0 || p->DF[IJp1K]<0)
             {
             d->M.p[n] += d->M.w[n];
             d->M.w[n] = 0.0;
             }
             
-            if(p->flag4[IJKm1]<0 || p->DF[IJKm1]<0)
+            if(p->flag4(i,j,k-1)<0 || p->DF[IJKm1]<0)
             {
             d->M.p[n] += d->M.b[n];
             d->M.b[n] = 0.0;
             }
             
-            if(p->flag4[IJKp1]<0 || p->DF[IJKp1]<0)
+            if(p->flag4(i,j,k+1)<0 || p->DF[IJKp1]<0)
             {
             d->M.p[n] += d->M.t[n];
             d->M.t[n] = 0.0;
@@ -148,27 +148,27 @@ void nhflow_kepsilon_bc::bckin_matrix(lexer *p, fdm_nhf *d, double *KIN, double 
         n=0;
         LOOP
         {
-            if(p->flag4[IJK]>0 && p->DF[IJK]>0 && p->wet[IJ]==1)
+            if(p->flag4(i,j,k)>0 && p->DF[IJK]>0 && p->wet[IJ]==1)
             {
-            if(p->flag4[Im1JK]>0 && p->DF[Im1JK]>0 && p->wet[Im1J]==0)
+            if(p->flag4(i-1,j,k)>0 && p->DF[Im1JK]>0 && p->wet[Im1J]==0)
             {
             d->M.p[n] += d->M.s[n];
             d->M.s[n] = 0.0;
             }
             
-            if(p->flag4[Ip1JK]>0 && p->DF[Ip1JK]>0 && p->wet[Ip1J]==0)
+            if(p->flag4(i+1,j,k)>0 && p->DF[Ip1JK]>0 && p->wet[Ip1J]==0)
             {
             d->M.p[n] += d->M.n[n];
             d->M.n[n] = 0.0;
             }
             
-            if(p->j_dir==1 && p->flag4[IJm1K]>0 && p->DF[IJm1K]>0 && p->wet[IJm1]==0)
+            if(p->j_dir==1 && p->flag4(i,j-1,k)>0 && p->DF[IJm1K]>0 && p->wet[IJm1]==0)
             {
             d->M.p[n] += d->M.e[n];
             d->M.e[n] = 0.0;
             }
             
-            if(p->j_dir==1 && p->flag4[IJp1K]>0 && p->DF[IJp1K]>0 && p->wet[IJp1]==0)
+            if(p->j_dir==1 && p->flag4(i,j+1,k)>0 && p->DF[IJp1K]>0 && p->wet[IJp1]==0)
             {
             d->M.p[n] += d->M.w[n];
             d->M.w[n] = 0.0;
@@ -210,10 +210,10 @@ void nhflow_kepsilon_bc::bcepsilon_matrix(lexer *p, fdm_nhf *d, double *KIN, dou
         n=0;
         LOOP
         {
-            if(p->flag4[IJK]>0 && p->DF[IJK]>0)
+            if(p->flag4(i,j,k)>0 && p->DF[IJK]>0)
             {
             // s
-            if(p->flag4[Im1JK]<0)
+            if(p->flag4(i-1,j,k)<0)
             {
             if(TURBIN(Im1JK)) d->rhsvec.V[n] -= d->M.s[n]*EPS[Im1JK];   // discharge inflow profile (Dirichlet)
             else d->M.p[n] += d->M.s[n];   // zero gradient, implicit (was lagged)
@@ -228,7 +228,7 @@ void nhflow_kepsilon_bc::bcepsilon_matrix(lexer *p, fdm_nhf *d, double *KIN, dou
             }
             
             // n
-            if(p->flag4[Ip1JK]<0)
+            if(p->flag4(i+1,j,k)<0)
             {
             d->M.p[n] += d->M.n[n];
             d->M.n[n] = 0.0;
@@ -242,7 +242,7 @@ void nhflow_kepsilon_bc::bcepsilon_matrix(lexer *p, fdm_nhf *d, double *KIN, dou
             
             // e
             if(p->j_dir==1)
-            if(p->flag4[IJm1K]<0)
+            if(p->flag4(i,j-1,k)<0)
             {
             d->M.p[n] += d->M.e[n];
             d->M.e[n] = 0.0;
@@ -257,7 +257,7 @@ void nhflow_kepsilon_bc::bcepsilon_matrix(lexer *p, fdm_nhf *d, double *KIN, dou
             
             // w
             if(p->j_dir==1)
-            if(p->flag4[IJp1K]<0)
+            if(p->flag4(i,j+1,k)<0)
             {
             d->M.p[n] += d->M.w[n];
             d->M.w[n] = 0.0;
@@ -271,7 +271,7 @@ void nhflow_kepsilon_bc::bcepsilon_matrix(lexer *p, fdm_nhf *d, double *KIN, dou
             }
             
             // b
-            if(p->flag4[IJKm1]<0)
+            if(p->flag4(i,j,k-1)<0)
             {
             d->M.p[n] += d->M.b[n];
             d->M.b[n] = 0.0;
@@ -284,7 +284,7 @@ void nhflow_kepsilon_bc::bcepsilon_matrix(lexer *p, fdm_nhf *d, double *KIN, dou
             }
             
             // t
-            if(p->flag4[IJKp1]<0)
+            if(p->flag4(i,j,k+1)<0)
             {
             d->M.p[n] += d->M.t[n];
             d->M.t[n] = 0.0;
@@ -305,27 +305,27 @@ void nhflow_kepsilon_bc::bcepsilon_matrix(lexer *p, fdm_nhf *d, double *KIN, dou
         n=0;
         LOOP
         {
-            if(p->flag4[IJK]>0 && p->DF[IJK]>0 && p->wet[IJ]==1)
+            if(p->flag4(i,j,k)>0 && p->DF[IJK]>0 && p->wet[IJ]==1)
             {
-            if(p->flag4[Im1JK]>0 && p->DF[Im1JK]>0 && p->wet[Im1J]==0)
+            if(p->flag4(i-1,j,k)>0 && p->DF[Im1JK]>0 && p->wet[Im1J]==0)
             {
             d->M.p[n] += d->M.s[n];
             d->M.s[n] = 0.0;
             }
             
-            if(p->flag4[Ip1JK]>0 && p->DF[Ip1JK]>0 && p->wet[Ip1J]==0)
+            if(p->flag4(i+1,j,k)>0 && p->DF[Ip1JK]>0 && p->wet[Ip1J]==0)
             {
             d->M.p[n] += d->M.n[n];
             d->M.n[n] = 0.0;
             }
             
-            if(p->j_dir==1 && p->flag4[IJm1K]>0 && p->DF[IJm1K]>0 && p->wet[IJm1]==0)
+            if(p->j_dir==1 && p->flag4(i,j-1,k)>0 && p->DF[IJm1K]>0 && p->wet[IJm1]==0)
             {
             d->M.p[n] += d->M.e[n];
             d->M.e[n] = 0.0;
             }
             
-            if(p->j_dir==1 && p->flag4[IJp1K]>0 && p->DF[IJp1K]>0 && p->wet[IJp1]==0)
+            if(p->j_dir==1 && p->flag4(i,j+1,k)>0 && p->DF[IJp1K]>0 && p->wet[IJp1]==0)
             {
             d->M.p[n] += d->M.w[n];
             d->M.w[n] = 0.0;

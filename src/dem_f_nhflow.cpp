@@ -302,7 +302,7 @@ template<class F> void dem_f::peskin_spread(lexer *p, fdm_nhf *d, const dem_vec 
         for(k=0; k<nk; ++k)
         {
             wz[k] = 0.0;
-            if(p->flag4[IJK]<=0)
+            if(p->flag4(i,j,k)<=0)
             continue;
             double dz = p->DZN[KP]*d->WL(i,j);
             if(dz<=1.0e-12)
@@ -380,7 +380,7 @@ void dem_f::feedback_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
         for(i=i0; i<=i1; ++i)
         for(j=j0; j<=j1; ++j)
         for(k=k0; k<=k1; ++k)
-        if(p->flag4[IJK]>0 && p->wet[IJ]>0)
+        if(p->flag4(i,j,k)>0 && p->wet[IJ]>0)
         {
             double r = relpos(p,p->pos_x(),p->pos_y(),p->pos_z(),B.x).norm();
             double vol = p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*d->WL(i,j);
@@ -449,7 +449,7 @@ void dem_f::feedback_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
             for(i=i0; i<=i1; ++i)
             for(j=j0; j<=j1; ++j)
             for(k=k0; k<=k1; ++k)
-            if(p->flag4[IJK]>0 && p->wet[IJ]>0)
+            if(p->flag4(i,j,k)>0 && p->wet[IJ]>0)
             {
                 double r = relpos(p,p->pos_x(),p->pos_y(),p->pos_z(),B.x).norm();
                 double wk = kernel(r,R);
@@ -594,7 +594,7 @@ void dem_f::forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter, doubl
         for(j=j0; j<=j1; ++j)
         for(k=k0; k<=k1; ++k)
         {
-            if(p->flag4[IJK]<=0 || p->wet[IJ]==0)
+            if(p->flag4(i,j,k)<=0 || p->wet[IJ]==0)
             continue;
 
             dem_vec r = relpos(p,p->pos_x(),p->pos_y(),p->pos_z(),B.x);
@@ -767,7 +767,7 @@ void dem_f::internal_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
         for(j=j0; j<=j1; ++j)
         for(k=k0; k<=k1; ++k)
         {
-            if(p->flag4[IJK]<=0 || p->wet[IJ]==0)
+            if(p->flag4(i,j,k)<=0 || p->wet[IJ]==0)
             continue;
 
             dem_vec r = relpos(p,p->pos_x(),p->pos_y(),p->pos_z(),B.x);

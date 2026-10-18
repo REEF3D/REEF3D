@@ -107,13 +107,13 @@ double interpolation::lint4_2D(field& f, int& i,int& j, int& k, double wa, doubl
     const int jsave=j;   // local: jj is the member in which the ccipol callers keep their own j
     j=0;
 
-    if(p->flag4[IJK]>TOPO_FLAG)
+    if(p->flag4(i,j,k)>TOPO_FLAG)
     v1=f(i,j,k);
-    if(p->flag4[IJKp1]>TOPO_FLAG)
+    if(p->flag4(i,j,k+1)>TOPO_FLAG)
     v2=f(i,j,k+1);
-    if(p->flag4[Ip1JK]>TOPO_FLAG)
+    if(p->flag4(i+1,j,k)>TOPO_FLAG)
     v3=f(i+1,j,k);
-    if(p->flag4[Ip1JKp1]>TOPO_FLAG)
+    if(p->flag4(i+1,j,k+1)>TOPO_FLAG)
     v4=f(i+1,j,k+1);
     j=jsave;
 
