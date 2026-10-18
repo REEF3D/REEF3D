@@ -1347,6 +1347,7 @@
         <File Name="flowfile_in.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="ioFlow">
+        <File Name="arc_sirw.h"/>
         <File Name="ioflow_gcio.h"/>
         <File Name="outflow_pressure.h"/>
         <File Name="iowave.h"/>
@@ -3438,6 +3439,8 @@
           <File Name="ioflow_amr_block.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="ioWave">
+          <File Name="arc_sirw.cpp"/>
+          <File Name="iowave_sirw.cpp"/>
           <File Name="iowave_probes.cpp"/>
           <File Name="iowave_timeseries.cpp"/>
           <File Name="iowave_precalc_decomp_space_dirichlet.cpp"/>
