@@ -469,6 +469,8 @@
           </VirtualDirectory>
           <File Name="sflow_momentum_RK3.h"/>
           <File Name="sflow_momentum_RK2.h"/>
+          <File Name="sflow_momentum_SI.h"/>
+          <File Name="si_eta2D.h"/>
           <File Name="sflow_momentum.h"/>
           <VirtualDirectory Name="BC">
             <File Name="sflow_roughness.h"/>
@@ -501,6 +503,7 @@
             <File Name="sflow_timestep.h"/>
             <File Name="sflow_fixtimestep.h"/>
             <File Name="sflow_etimestep.h"/>
+            <File Name="sflow_timestep_SI.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Flux">
             <File Name="sflow_flux_face_HJ.h"/>
@@ -1973,6 +1976,8 @@
           </VirtualDirectory>
           <File Name="sflow_momentum_RK3.cpp"/>
           <File Name="sflow_momentum_RK2.cpp"/>
+          <File Name="sflow_momentum_SI.cpp"/>
+          <File Name="si_eta2D.cpp"/>
           <VirtualDirectory Name="Roughness">
             <File Name="sflow_rough_void.cpp"/>
             <File Name="sflow_rough_manning.cpp"/>
@@ -2001,6 +2006,7 @@
           <VirtualDirectory Name="Time">
             <File Name="sflow_fixtimestep.cpp"/>
             <File Name="sflow_etimestep.cpp"/>
+            <File Name="sflow_timestep_SI.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Flux">
             <File Name="sflow_flux_face_HJ.cpp"/>
