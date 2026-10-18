@@ -10,19 +10,21 @@
 #include "../../test/sparse_solver.h"
 #include <unsupported/Eigen/IterativeSolvers>
 
-template <typename T>
-void test_idrstabl_T() {
-  IDRSTABL<SparseMatrix<T>, DiagonalPreconditioner<T> > idrstabl_colmajor_diag;
-  IDRSTABL<SparseMatrix<T>, IncompleteLUT<T> > idrstabl_colmajor_ilut;
+template<typename T>
+void test_idrstabl_T()
+{
+    IDRSTABL<SparseMatrix<T>, DiagonalPreconditioner<T>> idrstabl_colmajor_diag;
+    IDRSTABL<SparseMatrix<T>, IncompleteLUT<T>> idrstabl_colmajor_ilut;
 
-  idrstabl_colmajor_diag.setTolerance(NumTraits<T>::epsilon() * 4);
-  idrstabl_colmajor_ilut.setTolerance(NumTraits<T>::epsilon() * 4);
+    idrstabl_colmajor_diag.setTolerance(NumTraits<T>::epsilon() * 4);
+    idrstabl_colmajor_ilut.setTolerance(NumTraits<T>::epsilon() * 4);
 
-  CALL_SUBTEST(check_sparse_square_solving(idrstabl_colmajor_diag));
-  CALL_SUBTEST(check_sparse_square_solving(idrstabl_colmajor_ilut));
+    CALL_SUBTEST(check_sparse_square_solving(idrstabl_colmajor_diag));
+    CALL_SUBTEST(check_sparse_square_solving(idrstabl_colmajor_ilut));
 }
 
-EIGEN_DECLARE_TEST(idrstabl) {
-  CALL_SUBTEST_1((test_idrstabl_T<double>()));
-  CALL_SUBTEST_2((test_idrstabl_T<std::complex<double> >()));
+EIGEN_DECLARE_TEST(idrstabl)
+{
+    CALL_SUBTEST_1((test_idrstabl_T<double>()));
+    CALL_SUBTEST_2((test_idrstabl_T<std::complex<double>>()));
 }
