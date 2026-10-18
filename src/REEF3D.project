@@ -69,7 +69,6 @@
       <File Name="reefamr.h"/>
       <File Name="reefamr_sed.h"/>
       <File Name="reefamr_krylov.h"/>
-      <File Name="reefamr3d.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Solver">
       <VirtualDirectory Name="REEFMG">
@@ -530,6 +529,7 @@
             <File Name="sflow_fou.h"/>
           </VirtualDirectory>
         </VirtualDirectory>
+        <File Name="river_ini.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="NHFLOW">
         <VirtualDirectory Name="Geometry">
@@ -655,6 +655,7 @@
           </VirtualDirectory>
           <VirtualDirectory Name="Timestep">
             <File Name="nhflow_timestep.h"/>
+            <File Name="nhflow_timestep_SI.h"/>
           </VirtualDirectory>
           <File Name="fdm_nhf.h"/>
         </VirtualDirectory>
@@ -683,6 +684,7 @@
           <File Name="nhflow_momentum.h"/>
           <File Name="nhflow_momentum_RK2.h"/>
           <File Name="nhflow_momentum_RK3.h"/>
+          <File Name="nhflow_momentum_SI.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FSF">
           <File Name="nhflow_fsf_body.h"/>
@@ -1315,6 +1317,12 @@
           <File Name="sliceint4.h"/>
           <File Name="sliceint5.h"/>
         </VirtualDirectory>
+        <VirtualDirectory Name="Decomp">
+          <File Name="dmpart_api.h"/>
+          <File Name="dmpart_base.h"/>
+          <File Name="dmpart_decomp.h"/>
+          <File Name="dmpart_looping.h"/>
+        </VirtualDirectory>
       </VirtualDirectory>
       <File Name="lexer.h"/>
       <File Name="driver.h"/>
@@ -1391,6 +1399,7 @@
           <File Name="wave_lib_parameters.h"/>
         </VirtualDirectory>
         <File Name="wave_lib_void.h"/>
+        <File Name="wave_lib_zgroup.h"/>
       </VirtualDirectory>
     </VirtualDirectory>
   </VirtualDirectory>
@@ -1420,6 +1429,7 @@
         <File Name="fnpf_amr_print.cpp"/>
         <File Name="fnpf_amr_lap.cpp"/>
         <File Name="fnpf_amr.cpp"/>
+        <File Name="fnpf_amr_ckpt.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="NHFLOW">
         <File Name="nhflow_amr_block.cpp"/>
@@ -1430,6 +1440,7 @@
         <File Name="nhflow_amr.cpp"/>
         <File Name="nhflow_amr_sed.cpp"/>
         <File Name="nhflow_amr_6dof.cpp"/>
+        <File Name="nhflow_amr_si.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="CFD">
         <File Name="cfd_amr.cpp"/>
@@ -1446,7 +1457,7 @@
       <File Name="reefamr_regrid.cpp"/>
       <File Name="reefamr_block.cpp"/>
       <File Name="reefamr_zone.cpp"/>
-      <File Name="reefamr3d.cpp"/>
+      <File Name="mpi_clock.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Solver">
       <VirtualDirectory Name="REEFMG">
@@ -2214,6 +2225,7 @@
           </VirtualDirectory>
           <VirtualDirectory Name="Timestep">
             <File Name="nhflow_timestep.cpp"/>
+            <File Name="nhflow_timestep_SI.cpp"/>
           </VirtualDirectory>
           <File Name="fdm_nhf.cpp"/>
         </VirtualDirectory>
@@ -2238,6 +2250,7 @@
             <File Name="nhflow_bcmom.cpp"/>
           </VirtualDirectory>
           <File Name="nhflow_momentum_RK3.cpp"/>
+          <File Name="nhflow_momentum_SI.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FSF">
           <File Name="nhflow_fsf_body.cpp"/>
@@ -3331,6 +3344,27 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Solid">
           <File Name="solid.cpp"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Decomp">
+          <File Name="dmpart_build.cpp"/>
+          <File Name="dmpart_decomp.cpp"/>
+          <File Name="dmpart_decomp_analyse.cpp"/>
+          <File Name="dmpart_decomp_correction.cpp"/>
+          <File Name="dmpart_decomp_correction_x.cpp"/>
+          <File Name="dmpart_decomp_correction_y.cpp"/>
+          <File Name="dmpart_decomp_correction_z.cpp"/>
+          <File Name="dmpart_decomp_costfunc.cpp"/>
+          <File Name="dmpart_decomp_count.cpp"/>
+          <File Name="dmpart_decomp_paraslice.cpp"/>
+          <File Name="dmpart_decomp_partition.cpp"/>
+          <File Name="dmpart_decomp_partition_manual.cpp"/>
+          <File Name="dmpart_decomp_partition_weighted.cpp"/>
+          <File Name="dmpart_decomp_periodic.cpp"/>
+          <File Name="dmpart_decomp_periodic_surf.cpp"/>
+          <File Name="dmpart_decomp_periodic_surfco.cpp"/>
+          <File Name="dmpart_decomp_stubs.cpp"/>
+          <File Name="dmpart_decomp_surface.cpp"/>
+          <File Name="dmpart_decomp_surfco.cpp"/>
         </VirtualDirectory>
       </VirtualDirectory>
       <VirtualDirectory Name="Lexer">
