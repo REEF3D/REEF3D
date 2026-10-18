@@ -28,6 +28,12 @@ void iowave::fnpf_precalc_dirichlet(lexer *p, ghostcell *pgc)
 {
     p->wavetime = p->simtime;
     
+    // time levels of the paddle history (A 329 2), once per call: inside the column loop they were shifted per
+    // column, so with more than two columns (3D) the three levels coincided and the 2nd-order slope divided by 0
+    time_1=time_0;
+    time_0=time_n;
+    time_n=p->simtime;
+    
         count=0;
 		for(n=0;n<p->gcslin_count;n++)
         {
@@ -43,9 +49,6 @@ void iowave::fnpf_precalc_dirichlet(lexer *p, ghostcell *pgc)
         
         z = eta(i,j);
         
-        time_1=time_0;
-        time_0=time_n;
-        time_n=p->simtime;
         Fifsfval1[count] = Fifsfval0[count];
         Fifsfval0[count] = Fifsfval[count];
         
