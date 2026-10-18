@@ -244,7 +244,8 @@ void nhflow_poisson::start(lexer* p, fdm_nhf *d, double *P)
             
             if((p->flag7[FIp1JK]<0) && p->IO[Ip1JK]==2)
             {
-            pval = 0.0;
+            // 0, or the non-hydrostatic pressure of the outgoing wave predicted at an absorbing edge (B 99 8)
+            pval = d->Pbc!=nullptr ? d->Pbc[FIp1JK] : 0.0;
             d->rhsvec.V[n] -= d->M.n[n]*pval;
             d->M.n[n] = 0.0;
             }

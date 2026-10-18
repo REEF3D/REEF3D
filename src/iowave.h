@@ -35,6 +35,7 @@ Author: Hans Bihs
 #include"slice4.h"
 #include"sliceint4.h"
 #include"flowfile_in.h"
+#include"arc_sirw.h"
 
 class vec;
 class fdm_fnpf;
@@ -350,6 +351,18 @@ private:
     // short part, absorbed with the linear-theory profile of the peak wave,
     // omega_p cosh(k_p(h+z))/sinh(k_p h) eta_S (exact at the peak frequency)
     bool ab2_in = false, ab2_out = false;
+    
+    // SIRW active absorption (B 98 8 at x-, B 99 8 at x+, FNPF and NHFLOW): two-gauge separation of the wave
+    // travelling towards the boundary (arc_sirw) for the band flow..fhigh; FNPF: its velocity per level plus the
+    // shallow-water velocity of the deviation the prediction does not explain (long waves below the band, errors of
+    // the prediction); NHFLOW: the predicted wave as outside state of an absorbing Riemann edge (iowave_sirw.cpp)
+    bool sirw_in_req = false, sirw_out_req = false;
+    arc_sirw sirw_in, sirw_out;
+    void sirw_ini(lexer*);
+    std::vector<double> sw_l1;
+    std::vector<int> sw_c1;
+    double sw_tau = 0.0;
+    double sw_lowpass(lexer*, int n, double x);
     double ab2_tau_in = 0.0, ab2_tau_out = 0.0, ab2_w = 0.0, ab2_k = 0.0;
     std::vector<double> ab2_lin, ab2_lout, ab2_sin;
     std::vector<int> ab2_cin, ab2_cout;

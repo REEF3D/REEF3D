@@ -226,6 +226,22 @@ double wave_lib_piston::wave_paddle_Q(lexer *p, double z)
     return cosgamma*wm2.paddle_Q(p->wavetime,z);
 }
 
+// active absorption target (FNPF B 98 4/7): linear surface elevation of the paddle signal at x0 from the paddle,
+// tabulated on the first call (and again if x0 changes)
+double wave_lib_piston::wave_eta_arc(lexer *p, double x0)
+{
+    if(setup_done==0 && p->A10!=5)
+    wavemaker_setup(p,nullptr,wdt);
+    
+    if(!wm2.eta_target_ready() || fabs(x0-wm2.eta_target_x0())>1.0e-9)
+    wm2.make_etatable(p,nullptr,kinematics,ptnum,wdt,1,0.0,wdt,x0);
+    
+    if(p->wavetime<ts || p->wavetime>te)
+    return 0.0;
+    
+    return wm2.eta_target(p->wavetime);
+}
+
 void wave_lib_piston::wave_prestep(lexer *p, ghostcell *pgc)
 {
 }

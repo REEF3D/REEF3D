@@ -34,6 +34,10 @@ void iowave::nhflow_active_beach(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U
 		double z=0.0;
 		double fac1,fac,multiplier;
         int aa,bb;
+        
+        // B 99 8: gauges and filter once per step on all ranks (global sums)
+        if(sirw_out.on)
+        sirw_out.update(p,pgc,d->eta,p->simtime);
     
 		
 		// UVEL
@@ -63,6 +67,10 @@ void iowave::nhflow_active_beach(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U
         
         if(p->B99==3)
         Uc=eta_R*sqrt(9.81/p->wd);
+        
+        // B 99 8 (SIRW): the band from the two gauges per level (below), shallow water for what the predicted
+        // outgoing wave does not explain
+        const double eLs = sirw_out.on ? eta_R - sirw_out.eta(p->simtime) : 0.0;
             
             if(p->wet[IJ]==1)
 			KLOOP
@@ -77,6 +85,9 @@ void iowave::nhflow_active_beach(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U
 				if(p->B99==4)
 				Uc=eta_R*p->ww*(cosh(p->wk*(p->wd+z))/sinh(p->wk*p->wd));
                 
+               if(sirw_out.on)
+               Uc = eLs*sqrt(9.81/p->wd) + sirw_out.velocity(p->simtime,p->ZSP[IJK]-p->phimean);
+               
                if(p->B99==5)
                {
                    if(p->pos_z()>p->B123 && wsf>p->B123)

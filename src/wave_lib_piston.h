@@ -46,6 +46,8 @@ public:
     
     
     double wave_paddle_Q(lexer*,double) override final;
+    double wave_eta_arc(lexer*,double) override final;
+    bool wave_arc() override final {return true;}
     void wavemaker_setup(lexer*,ghostcell*,double) override final;
 
     void parameters(lexer*,ghostcell*) override final;

@@ -449,6 +449,9 @@ void control::ini_default()
     B526=0.0;      // double iowave: low-pass time scale of the combined beach B 99 6 (0: peak period of the B 92 wave / 4)
     B527=0.0;      // double iowave: low-pass time scale of the combined generation B 98 6 (0: peak period of the B 92 wave / 4)
     B528=0.0;      // double iowave: reference period of the two-band absorption B 98 7 / B 99 7 (0: peak period of the B 92 wave)
+    B534_d=B534_dx=B534_fl=B534_fh=0.0;   // double iowave: SIRW absorption at x- (B 98 8), 0: automatic from the reference period
+    B535_d=B535_dx=B535_fl=B535_fh=0.0;   // double iowave: SIRW absorption at x+ (B 99 8), 0: automatic from the reference period
+    B536=0;        // int iowave NHFLOW: wavemaker absorption target, 0 shallow water (legacy), 1 linear paddle theory
     B110=0;        // int read wave generation  origin
     B111_zs=0.0;	// double flap start
     B111_ze=0.0;	// double flap end

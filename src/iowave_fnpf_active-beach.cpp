@@ -34,6 +34,10 @@ void iowave::active_beach_fnpf(lexer *p, fdm_fnpf *c, ghostcell* pgc, double *Fi
     // B 99 7: two-band, shallow-water velocity for the low-passed deviation, B 99 4 profile for the rest
     double eta_R,Uc,eta_T,eta_M,hd,z,zabs,wsf,fac,multiplier;
     
+    // B 99 8: gauges and filter once per step on all ranks (global sums)
+    if(sirw_out.on)
+    sirw_out.update(p,pgc,eta,p->simtime);
+    
 		for(n=0;n<p->gcslout_count;++n)
 		{
 		i=p->gcslout[n][0];
@@ -47,6 +51,10 @@ void iowave::active_beach_fnpf(lexer *p, fdm_fnpf *c, ghostcell* pgc, double *Fi
         
         Uc=eta_R*sqrt(9.81/p->wd);
         
+        // B 99 8 (SIRW): shallow-water velocity of what the predicted outgoing wave does not explain (long waves below
+        // the band, errors of the prediction), the band of the gauges per level below
+        const double eLs = sirw_out.on ? eta_R - sirw_out.eta(p->simtime) : 0.0;
+        
         // B 99 7: long and short part of the deviation
         double eL=0.0, eS=0.0;
         if(ab2_out)
@@ -59,7 +67,7 @@ void iowave::active_beach_fnpf(lexer *p, fdm_fnpf *c, ghostcell* pgc, double *Fi
 			{
 				z=p->ZSN[FIJK]-p->phimean;
 				
-				if(p->B99==3)
+				if(p->B99==3 && !sirw_out.on)
 				Uc=eta_R*sqrt(9.81/hd);
 				
 				// was sinh(depth*depth) and the still-water depth in cosh
@@ -83,6 +91,10 @@ void iowave::active_beach_fnpf(lexer *p, fdm_fnpf *c, ghostcell* pgc, double *Fi
                     Uc=0.0;
                 }
 				
+                // B 99 8: band of the gauges with its profile, shallow water for the rest
+                if(sirw_out.on)
+                Uc = eLs*sqrt(9.81/hd) + sirw_out.velocity(p->simtime,z);
+                
                 // B 99 7: shallow-water velocity of the long part, peak-wave profile for the short part
                 if(ab2_out)
                 Uc = eL*sqrt(9.81/hd) + ab2_prof(hd,z)*eS;

@@ -70,6 +70,12 @@ public:
     // second-order moving-paddle BC terms Q = X_z*phi_z - X*phi_xx at x=0
     // for piston/flap wavemakers (z relative to still water level)
     virtual double wave_paddle_Q(lexer*,double) {return 0.0;}
+    
+    // active absorption at the wavemaker (FNPF B 98 4/7): linear surface elevation of the paddle signal at
+    // distance x0 from the paddle (progressive and evanescent modes), the target the computed surface is
+    // compared with; wave_arc(): this wave theory provides it
+    virtual double wave_eta_arc(lexer*,double) {return 0.0;}
+    virtual bool wave_arc() {return false;}
 
     // one-time set-up of the 2nd-order correction (B113) and moving-paddle terms (B119)
     // for piston/flap wavemakers; depth = still-water depth at the paddle

@@ -190,6 +190,9 @@ public:
     double B526;        // iowave: low-pass time scale [s] of the combined beach B 99 6 (0: Tp / 4 of the B 92 wave)
     double B527;        // iowave: low-pass time scale [s] of the combined generation B 98 6 and of B 98 7 (0: Tp / 4 of the B 92 wave)
     double B528;        // iowave: reference (peak) period [s] of the two-band absorption B 98 7 / B 99 7 (0: Tp of the B 92 wave)
+    double B534_d,B534_dx,B534_fl,B534_fh;   // iowave: SIRW absorption at x- (B 98 8): gauge distance, spacing, band [Hz] (0: from B 528)
+    double B535_d,B535_dx,B535_fl,B535_fh;   // iowave: SIRW absorption at x+ (B 99 8): gauge distance, spacing, band [Hz] (0: from B 528)
+    int B536;           // iowave NHFLOW: active absorption target of the piston wavemaker, 0 shallow water (legacy), 1 linear paddle theory
     int *B515_id; double *B515_x0,*B515_y0,*B515_href;
     int *B510_id,*B510_mode; double *B510_dir,*B510_tramp;
     int *B511_id; double *B511_a,*B511_T,*B511_phase;

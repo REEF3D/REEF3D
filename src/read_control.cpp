@@ -1206,6 +1206,15 @@ void control::read_control(lexer* p)
               case 527: control>>B527;
                          clear(c,numint);
                          break;
+              case 534: control>>B534_d>>B534_dx>>B534_fl>>B534_fh;
+                         clear(c,numint);
+                         break;
+              case 535: control>>B535_d>>B535_dx>>B535_fl>>B535_fh;
+                         clear(c,numint);
+                         break;
+              case 536: control>>B536;
+                         clear(c,numint);
+                         break;
               case 528: control>>B528;
                          clear(c,numint);
                          break;
