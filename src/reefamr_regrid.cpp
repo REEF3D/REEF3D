@@ -44,6 +44,11 @@ inline int fsh(int a, int l) { return (a>=0) ? (a>>l) : -(((-a)-1)>>l)-1; }
 
 void reefamr::regrid(lexer *p, ghostcell *pgc, bool initial)
 {
+    // the measured cost model (G 41 0): the window since the last regrid is a sample
+    load_window(p,!initial);
+    const bool forced = force_place;
+    force_place = false;
+
     amr_regrid_clock rclock;     // load statistics (G 43)
     const int T = tile;
     const int old_total = patches_total;
@@ -270,7 +275,7 @@ void reefamr::regrid(lexer *p, ghostcell *pgc, bool initial)
     }
 
     // ---- lazy layout: the tile maps did not change, the hierarchy stays as it is
-    if(par.lazy>0.0 && !initial)
+    if(par.lazy>0.0 && !initial && !forced)
     {
         bool same = true;
         for(int l=1; l<=maxlev && same; ++l)
@@ -833,6 +838,17 @@ void reefamr::build_plans(ghostcell *pgc)
 //  mean work, else on the rank with the least work.  The previous placement is kept (kept boxes on
 //  their rank, new pieces placed as above) unless the new one lowers the predicted maximum work by
 //  more than par.rebalance.  Every rank computes the same placement and makes its own patches.
+//  A patch cell weighs G 41 level-0 cells (default 1).
+//  The measured cost model (G 41 0, reefamr_load.cpp): the work of a rank is its level-0 cells that
+//  are not solid, wp times the cells of its patches and ws times the parent cells it serves to
+//  patches on other ranks (pieces on another rank than the level-0 cells below them; levels above 1
+//  are counted against the level-0 ranks below as well), with wp and ws measured.  A piece goes to
+//  the rank that gives the least maximum work (on a tie the rank of the level-0 cells at its centre;
+//  the service is in the cost, so no preference for that rank beyond it).  G 44 mu > 0: the cost of a placement is the maximum work
+//  plus mu times the maximum patch work (the ranks synchronise between the level-0 and the patch
+//  phases, so the patch work needs a balance of its own).  The new placement replaces the old one
+//  when it lowers that cost by more than par.rebalance, or when the measured imbalance of the last
+//  window is above par.rebalance and the new placement is better at all.
 void reefamr::place_patches(lexer *p, ghostcell *pgc, vector<vector<unsigned char>> &M, vector<reefamr_patch*> &oldP,
                             vector<char> &kept, vector<reefamr_patch*> &newP, vector<vector<int>> &newlev)
 {
@@ -843,9 +859,12 @@ void reefamr::place_patches(lexer *p, ghostcell *pgc, vector<vector<unsigned cha
     struct piece { int lev, I0, I1, J0, J1; double w; int rank; int cx0, cx1, cy0, cy1, blk; };   // cx, cy: clip box (cells)
     vector<piece> pcs;
 
+    // weight of a patch cell (G 41; G 41 0: measured)
+    const bool newmodel = (lmeas || lmu>0.0);
+    const double wpc = lmeas ? lwp : ((p->G41>0.0) ? p->G41 : 1.0);
     auto work = [&](int l, int I0, int I1, int J0, int J1)
     {
-        return double(I1-I0+1+2*EXT)*double(J1-J0+1+2*EXT)*double(p->knoz*vfac[l]);
+        return wpc*double(I1-I0+1+2*EXT)*double(J1-J0+1+2*EXT)*double(p->knoz*vfac[l]);
     };
 
     // rectangles of marked tiles, all levels
@@ -907,9 +926,11 @@ void reefamr::place_patches(lexer *p, ghostcell *pgc, vector<vector<unsigned cha
     // work per rank on level 0 and the mean work per rank
     vector<double> base(np);
     double wtot = 0.0;
+    if(lmeas && (int)lbase.size()!=np)
+    load_base(p);
     for(int r=0; r<np; ++r)
     {
-        base[r] = double(rbx1[r]-rbx0[r]+1)*double(rby1[r]-rby0[r]+1)*double(p->knoz);
+        base[r] = lmeas ? lbase[r] : double(rbx1[r]-rbx0[r]+1)*double(rby1[r]-rby0[r]+1)*double(p->knoz);
         wtot += base[r];
     }
     auto box = [&](const piece &c, int &I0, int &I1, int &J0, int &J1)
@@ -999,36 +1020,162 @@ void reefamr::place_patches(lexer *p, ghostcell *pgc, vector<vector<unsigned cha
         return A.J0<B.J0;
     });
 
-    auto least = [&](const vector<double> &ld)
+    vector<int> rnew(parts.size()), rold(parts.size(),-1);
+    bool anyold = false, fresh = true;
+    double mold=0.0, mnew=0.0;
+
+    if(!newmodel)
     {
-        int r=0;
-        for(int q=1; q<np; ++q)
-        if(ld[q]<ld[r])
-        r=q;
-        return r;
+        auto least = [&](const vector<double> &ld)
+        {
+            int r=0;
+            for(int q=1; q<np; ++q)
+            if(ld[q]<ld[r])
+            r=q;
+            return r;
+        };
+
+        auto greedy = [&](const piece &c, vector<double> &ld)
+        {
+            const int o = owner(((c.I0+c.I1)/2)>>c.lev,((c.J0+c.J1)/2)>>c.lev);
+            if(par.place==1 && o>=0 && ld[o]+c.w<=1.05*wmeanp)
+            return o;
+            return least(ld);
+        };
+
+        // the new placement
+        vector<double> lnew = base;
+        for(int k : ord)
+        {
+            rnew[k] = greedy(parts[k],lnew);
+            lnew[rnew[k]] += parts[k].w;
+        }
+
+        // the previous placement: boxes of the last layout keep their rank
+        vector<double> lold = base;
+        for(int k : ord)
+        {
+            const piece &c = parts[k];
+            for(const reefamr_gpatch &G : GP)
+            if(G.lev==c.lev && G.I0==c.I0 && G.I1==c.I1 && G.J0==c.J0 && G.J1==c.J1)
+            {
+                rold[k] = G.rank;
+                anyold = true;
+                break;
+            }
+            if(rold[k]>=0)
+            lold[rold[k]] += c.w;
+        }
+        for(int k : ord)
+        if(rold[k]<0)
+        {
+            rold[k] = greedy(parts[k],lold);
+            lold[rold[k]] += parts[k].w;
+        }
+
+        for(int r=0; r<np; ++r)
+        {
+            mnew = MAX(mnew,lnew[r]);
+            mold = MAX(mold,lold[r]);
+        }
+        fresh = !anyold || (mold-mnew > par.rebalance*mold) || par.place==2;
+    }
+    else
+    {
+    // service: the parent cells of a piece on the level-0 ranks below it (ws times their cells),
+    // counted against a rank other than the one of the piece
+    vector<vector<pair<int,double>>> svc(parts.size());
+    if(lmeas && lws>0.0)
+    for(size_t k=0; k<parts.size(); ++k)
+    {
+        const piece &c = parts[k];
+        const double kp = double(p->knoz*vfac[c.lev-1]);
+        if(nblk>0 && c.blk>0)
+        {
+            if(blk[c.blk].rank>=0)
+            svc[k].push_back({blk[c.blk].rank, lws*0.25*double(c.I1-c.I0+1)*double(c.J1-c.J0+1)*kp});
+            continue;
+        }
+        for(int r=0; r<np; ++r)
+        {
+            const int a0 = MAX(c.I0,rbx0[r]<<c.lev), a1 = MIN(c.I1,((rbx1[r]+1)<<c.lev)-1);
+            const int b0 = MAX(c.J0,rby0[r]<<c.lev), b1 = MIN(c.J1,((rby1[r]+1)<<c.lev)-1);
+            if(a0<=a1 && b0<=b1)
+            svc[k].push_back({r, lws*0.25*double(a1-a0+1)*double(b1-b0+1)*kp});
+        }
+    }
+
+    // cost of the loads: maximum work + mu maximum patch work
+    auto cost = [&](const vector<double> &tot, const vector<double> &ph)
+    {
+        double mt=0.0, mp=0.0;
+        for(int r=0; r<np; ++r)
+        {
+            mt = MAX(mt,tot[r]);
+            mp = MAX(mp,ph[r]);
+        }
+        return mt + lmu*mp;
     };
 
-    auto greedy = [&](const piece &c, vector<double> &ld)
+    auto put = [&](size_t k, int r, vector<double> &tot, vector<double> &ph)
     {
-        const int o = owner(((c.I0+c.I1)/2)>>c.lev,((c.J0+c.J1)/2)>>c.lev);
-        if(par.place==1 && o>=0 && ld[o]+c.w<=1.05*wmeanp)
+        tot[r] += parts[k].w;
+        ph[r] += parts[k].w;
+        for(auto &s : svc[k])
+        if(s.first!=r)
+        tot[s.first] += s.second;
+    };
+
+    // the rank of the least cost for piece k; the rank of the level-0 cells at its centre when its
+    // cost is within 5 % of the mean work of the best
+    auto choose = [&](size_t k, const vector<double> &tot, const vector<double> &ph)
+    {
+        const piece &c = parts[k];
+        double mt=0.0, mp=0.0;
+        for(int r=0; r<np; ++r)
+        {
+            mt = MAX(mt,tot[r]);
+            mp = MAX(mp,ph[r]);
+        }
+        auto J = [&](int r)
+        {
+            double t = MAX(mt,tot[r]+c.w);
+            for(auto &s : svc[k])
+            if(s.first!=r)
+            t = MAX(t,tot[s.first]+s.second);
+            return t + lmu*MAX(mp,ph[r]+c.w);
+        };
+        int best=0;
+        double jb = J(0);
+        for(int r=1; r<np; ++r)
+        {
+            const double jr = J(r);
+            if(jr<jb)
+            {
+                jb = jr;
+                best = r;
+            }
+        }
+        // the rank of the level-0 cells at the centre: preferred within 5 % of the mean work (fixed
+        // model), on a tie (measured model: the parent service is in the cost)
+        const int o = (nblk>0 && c.blk>0) ? blk[c.blk].rank : owner(((c.I0+c.I1)/2)>>c.lev,((c.J0+c.J1)/2)>>c.lev);
+        const double slack = lmeas ? 1.0e-12*jb : 0.05*wmeanp*(1.0+lmu);
+        if(par.place==1 && o>=0 && o<np && J(o)<=jb+slack)
         return o;
-        return least(ld);
+        return best;
     };
 
     // the new placement
-    vector<int> rnew(parts.size());
-    vector<double> lnew = base;
+    vector<double> tn = base, pn(np,0.0);
     for(int k : ord)
     {
-        rnew[k] = greedy(parts[k],lnew);
-        lnew[rnew[k]] += parts[k].w;
+        rnew[k] = choose(k,tn,pn);
+        put(k,rnew[k],tn,pn);
     }
+    mnew = cost(tn,pn);
 
     // the previous placement: boxes of the last layout keep their rank
-    vector<int> rold(parts.size(),-1);
-    vector<double> lold = base;
-    bool anyold = false;
+    vector<double> to = base, po(np,0.0);
     for(int k : ord)
     {
         const piece &c = parts[k];
@@ -1040,22 +1187,30 @@ void reefamr::place_patches(lexer *p, ghostcell *pgc, vector<vector<unsigned cha
             break;
         }
         if(rold[k]>=0)
-        lold[rold[k]] += c.w;
+        put(k,rold[k],to,po);
     }
     for(int k : ord)
     if(rold[k]<0)
     {
-        rold[k] = greedy(parts[k],lold);
-        lold[rold[k]] += parts[k].w;
+        rold[k] = choose(k,to,po);
+        put(k,rold[k],to,po);
     }
+    mold = cost(to,po);
 
-    double mnew=0.0, mold=0.0;
+    fresh = !anyold || (mold-mnew > par.rebalance*mold) || par.place==2
+         || (lmeas && lmeasL-1.0 > par.rebalance && mnew < mold);
+
+    // predicted work max/mean (for the message)
+    double mt=0.0, st=0.0, mo=0.0, so=0.0;
     for(int r=0; r<np; ++r)
     {
-        mnew = MAX(mnew,lnew[r]);
-        mold = MAX(mold,lold[r]);
+        mt = MAX(mt,tn[r]); st += tn[r];
+        mo = MAX(mo,to[r]); so += to[r];
     }
-    const bool fresh = !anyold || (mold-mnew > par.rebalance*mold) || par.place==2;
+    mnew = (st>0.0) ? mt/(st/np)*wmeanp : mnew;
+    mold = (so>0.0) ? mo/(so/np)*wmeanp : mold;
+    }
+
     const vector<int> &rk = fresh ? rnew : rold;
 
     // my patches, level by level in the order of the pieces (kept: same box, on this rank before)

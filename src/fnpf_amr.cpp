@@ -992,7 +992,8 @@ void fnpf_amr::step_end(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     // the zone around the body moves: new patches every G 2 steps (G 7 1: G 2 counts steps of the
     // finest level)
     const int rint = (sub==1) ? MAX(regrid_int>>maxlev,1) : regrid_int;
-    if(regrid_int>0 && p->count%rint==0)
+    // (replace_due: G 41 0 with a static refinement, the placement once more with the measured model)
+    if((regrid_int>0 && p->count%rint==0) || replace_due(p))
     {
         double t0 = MPI_Wtime();
         Se0 = &c0->eta;

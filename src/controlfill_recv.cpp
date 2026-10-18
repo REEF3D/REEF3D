@@ -151,6 +151,8 @@ void control::ctrlrecv()
     dd++;
     G42 = dctrl[dd];
     dd++;
+    G44 = dctrl[dd];
+    dd++;
     G40 = ictrl[ii];
     ii++;
     G43 = ictrl[ii];

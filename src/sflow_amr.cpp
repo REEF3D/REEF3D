@@ -2031,7 +2031,8 @@ void sflow_amr::step_end(lexer *p, fdm2D *b, ghostcell *pgc)
     // G 7 1: G 2 counts steps of the finest level, as without subcycling (a level-0 step is 2^G1 of them)
     const int rint = (sub==1) ? MAX(regrid_int>>maxlev,1) : regrid_int;
 
-    if(maxlev>=1 && regrid_int>0 && p->count%rint==0)
+    // (replace_due: G 41 0 with a static refinement, the placement once more with the measured model)
+    if(maxlev>=1 && ((regrid_int>0 && p->count%rint==0) || replace_due(p)))
     {
     double t0 = MPI_Wtime();
     regrid(p,pgc,false);

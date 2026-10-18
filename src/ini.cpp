@@ -739,7 +739,8 @@ void control::ini_default()
     G40=0;      // int mesh refinement on several ranks (NHFLOW, SFLOW, FNPF, CFD): 0 patches on the rank of the level-0 cells below, 1 placed for the load of the ranks, 2 test of 1
     G42=0.0;    // double CFD mesh refinement with floating bodies (X 10 1): a patch casts the bodies again when a vertex has moved more than G 42 times its cell size since its last cast (the stages in between keep that level set; their forcing velocity is that of the stage); 0 at every change of the pose
     G43=0;      // int mesh refinement (SFLOW, FNPF, NHFLOW, CFD): load statistics of the ranks every G 43 steps (busy and MPI time, patch and regrid time, predicted and measured load, the measured cost of a patch cell; REEF3D_<M>_AMR/REEF3D_<M>_AMR_load*.dat); 0 off
-    G41=1.0;    // double CFD mesh refinement on several ranks: the work of a patch cell against a level-0 cell in the placement of G 40 1, 2; 0 measured in the run (the timers of the ranks, at every regrid, with a report of the measured load)
+    G41=1.0;    // double mesh refinement on several ranks (NHFLOW, SFLOW, FNPF, CFD): the work of a patch cell against a level-0 cell in the placement of G 40 1, 2; 0 measured in the run (CFD: the timers of the ranks at every regrid, with a report of the measured load; NHFLOW, SFLOW, FNPF: the measured cost model, the busy time of the ranks fitted to their level-0 cells that are not solid, their patch cells and the parent cells they serve, at every regrid; a static refinement is placed once more at step 15)
+    G44=0.0;    // double NHFLOW, SFLOW and FNPF mesh refinement with G 40 1: weight of the patch phase in the placement (the cost of a placement is the maximum work of the ranks plus G 44 times their maximum patch work); 0 the total work only
     // grid
     G502=0;            // int sigma grid
     G505=0;             // int turn of topo and solid cells

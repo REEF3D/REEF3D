@@ -29,6 +29,7 @@ Author: Hans Bihs
 #include<cstddef>
 #include<algorithm>
 #include<limits>
+#include<deque>
 
 class lexer;
 class ghostcell;
@@ -247,9 +248,13 @@ protected:
     // ---- hierarchy
     void setup(lexer*, ghostcell*);
     void regrid(lexer*, ghostcell*, bool);
-    // load statistics of the ranks (G 43, amr_load.h): the module calls it once per step
+    // load statistics of the ranks (G 43, amr_load.h) and the measured cost model of the placement
+    // (G 41 0, reefamr_load.cpp): the module calls load_step once per step
     void load_step(lexer*);
     amr_load lstat;
+    // G 40 1, G 41 0 with a static refinement (no regrid): true at the step when the patches are placed
+    // once more with the measured cost model; the module regrids then
+    bool replace_due(lexer*);
     void free_patches();                    // all patches (module destructor)
     int patch_at(int, int, int);            // level, I, J: interior patch on this rank, -1: level 0 (l==0), -2: none, -3: outside the rank box
     int owner(int, int);                    // rank of the level-0 cell (I,J), -1: outside the domain
@@ -839,6 +844,27 @@ protected:
     vector<vector<int>> frecv;                  // [l]: target grid id+1 and index into rmatch, -1: skip
 
 private:
+    // ---- measured cost model of the placement (G 41 0, reefamr_load.cpp)
+    //  The work of a rank per step: busy = a (x1 + wp x2 + ws x3), x1 the level-0 cells that are not
+    //  solid (with the level-0 blocks of the rank), x2 the cells of its patches (EXT cells and
+    //  layers), x3 the parent blocks it serves to patches on other ranks; busy the wall-clock time
+    //  without the MPI calls and the regrids (amr_clock).  wp and ws are fitted over the ranks and the
+    //  windows between the regrids (ridge towards the last weights).
+    struct lsample { double y, x1, x2, x3; };
+    std::deque<std::vector<lsample>> lwin;  // the last windows, the samples of all ranks
+    bool lmeas = false;                     // G 41 0 with placement on several ranks
+    double lwp = 1.0, lws = 0.0;            // patch cell, served parent block in level-0 cells
+    double lmeasL = 1.0;                    // measured busy max/mean of the last window
+    double lmu = 0.0;                       // G 44: weight of the patch phase in the placement
+    int lfits = 0;
+    bool lw_open = false, lw_first = true, force_place = false;
+    double lw_t0 = 0.0, lw_m0 = 0.0, lw_r0 = 0.0, lw_rm0 = 0.0;
+    int lw_c0 = 0;
+    vector<double> lbase;                   // x1 of all ranks
+    void load_window(lexer*, bool);         // closes the window (true: a sample, the fit), opens the next
+    void load_fit();
+    void load_counts(lexer*, double&, double&, double&);   // x1, x2, x3 of this rank
+    void load_base(lexer*);                 // lbase
     reefamr_patch* make_patch(lexer*, ghostcell*, int, int, int, int, int, int=0);
     void free_patch(reefamr_patch*);
     void build_lexer(lexer*, reefamr_patch&);

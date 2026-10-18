@@ -1394,6 +1394,7 @@
   </VirtualDirectory>
   <VirtualDirectory Name="SOURCES">
     <VirtualDirectory Name="REEFAMR">
+      <File Name="reefamr_load.cpp"/>
       <File Name="amr_load.cpp"/>
       <VirtualDirectory Name="CFD">
         <File Name="cfd_amr_relax.cpp"/>
