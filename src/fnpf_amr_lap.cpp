@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"fnpf_amr.h"
@@ -114,6 +114,22 @@ void fnpf_amr::lap_rows()
     number(p0,rowmap0);
     for(auto q : P)
     number(q->pp,FP(q)->row);
+
+    // the fill entries next to the patch: the columns the rows of the patch reach
+    for(auto q : P)
+    {
+        fnpf_amr_patch *c = FP(q);
+        c->fill1.clear();
+        c->fill2.clear();
+        for(size_t e=0; e<c->fill.size(); ++e)
+        {
+            const reefamr_fill &f = c->fill[e];
+            if(f.di>=EXT-1 && f.di<=EXT+c->nx && f.dj>=EXT-1 && f.dj<=EXT+c->ny)
+            c->fill1.push_back((int)e);
+            if(f.di>=EXT-2 && f.di<=EXT+c->nx+1 && f.dj>=EXT-2 && f.dj<=EXT+c->ny+1)
+            c->fill2.push_back((int)e);
+        }
+    }
 
     lg.assign(P.size()+1,lgrid());
 
@@ -308,7 +324,7 @@ void fnpf_amr::lap_prepare(ghostcell *pgc)
 }
 
 // covered columns, partition halo of level 0, columns around the patches
-void fnpf_amr::lap_sync(int k)
+void fnpf_amr::lap_sync(int k, bool d1)
 {
     auto sel = [&](int g) -> double* { return lvec(g,k); };
 
@@ -324,13 +340,13 @@ void fnpf_amr::lap_sync(int k)
     }
 
     for(int l=MAX(wlo,1); l<=wtop(); ++l)
-    fill_col(l,7600+l,sel);
+    fill_col(l,7600+l,sel,d1);
 }
 
 // y = A x on the leaf unknowns
-void fnpf_amr::lap_apply(int kx, int ky)
+void fnpf_amr::lap_apply(int kx, int ky, bool d1)
 {
-    lap_sync(kx);
+    lap_sync(kx,d1);
 
     for(int g=-1; g<(int)P.size(); ++g)
     {
@@ -495,12 +511,23 @@ void fnpf_amr::lap_prec(int kr, int kz)
 
     auto selz = [&](int g) -> double* { return lvec(g,kz); };
 
-    // 1. pre-smoothing
+    // 1. pre-smoothing (z 0: level 0; the patches and the columns next to them, the cells the
+    //    patch-local cycles read; lap_apply below fills the columns around the patches)
     for(int g=-1; g<(int)P.size(); ++g)
     {
         lexer *q = glex(g);
         double *z = lvec(g,kz);
-        std::fill(z,z+q->imax*q->jmax*(q->kmax+2),0.0);
+        if(g<0)
+        {
+            std::fill(z,z+q->imax*q->jmax*(q->kmax+2),0.0);
+            continue;
+        }
+        for(int ii=EXT-1; ii<=EXT+P[g]->nx; ++ii)
+        for(int jj=EXT-1; jj<=EXT+P[g]->ny; ++jj)
+        {
+            const int a = fidx(q,ii,jj,q->kmin);
+            std::fill(z+a,z+a+q->kmaxF,0.0);
+        }
     }
 
     for(int id=0; id<(int)P.size(); ++id)
@@ -596,7 +623,9 @@ void fnpf_amr::lap_prec(int kr, int kz)
             }
         }
 
-        fill_col(l,7700+l,selz);
+        // (the columns next to the patches, as the patch-local cycles read them; the full fill
+        // below for the next level)
+        fill_col(l,7700+l,selz,true);
 
         // post-smoothing; repeated passes let siblings see each other's corrections through
         // the filled columns
@@ -604,7 +633,7 @@ void fnpf_amr::lap_prec(int kr, int kz)
         for(int pass=0; pass<npass; ++pass)
         {
             if(pass>0)
-            fill_col(l,7700+l,selz);
+            fill_col(l,7700+l,selz,true);
 
             for(int id : lev[l])
             lap_local(id,kr,kz);
@@ -622,7 +651,7 @@ struct lap_space
 {
     static const int B=NS, R=NR, RH=NRH, PV=NPV, VV=NVV, S=NS, T=NT, PH=NPH, SH=NSH;
     fnpf_amr *a;
-    void apply(int x, int y) { a->lap_apply(x,y); }
+    void apply(int x, int y) { a->lap_apply(x,y,true); }
     void prec(int r, int z) { a->lap_prec(r,z); }
     double dot(int x, int y) { return a->lap_dot(x,y); }
     void op_start() { a->lap_start(); }

@@ -1,0 +1,21 @@
+{
+ "base": "cfd_2d_dambreak_amr_periodic_mpi2",
+ "np": 2,
+ "steps": 60,
+ "ctrl_add": [
+  "G 40 1"
+ ],
+ "description": "cfd_2d_dambreak_amr_periodic_mpi2 with G 40 1: the units placed for the load with a periodic edge between the ranks; the shadows take the level-0 cells across the periodic edge from the other end (patch 0076).",
+ "tags": [
+  "2d",
+  "dambreak",
+  "levelset",
+  "amr",
+  "mpi",
+  "periodic"
+ ],
+ "covers": [
+  "reefamr3d::wrap0 (fetch_raw, the down plan of the shadows)",
+  "G 40 1 with periodic boundaries"
+ ]
+}

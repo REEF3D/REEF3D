@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #ifndef FNPF_AMR_FILL_H_
@@ -31,6 +31,12 @@ Author: Hans Bihs
 #include"slice.h"
 #include<cmath>
 #include<limits>
+
+// FIJK of lexer q (inline: the fills, the Laplace rows and vectors take it per node)
+inline int fnpf_amr::fidx(lexer *q, int ii, int jj, int kk) const
+{
+    return (ii-q->imin)*q->jmax*q->kmaxF + (jj-q->jmin)*q->kmaxF + kk - q->kmin;
+}
 
 // --------------------------------------------------------------------- fill, restriction
 // cells around the level-l patches; sel(g,m) gives the slice m of grid g
@@ -57,9 +63,10 @@ inline void fnpf_amr::fill_sl(int l, int ns, int tag, SEL sel)
              });
 }
 
-// columns around the level-l patches; sel(g) gives the Fi-layout array of grid g
+// columns around the level-l patches; sel(g) gives the Fi-layout array of grid g; d1: only the
+// columns next to the patch (fill1, the reach of the Laplace rows)
 template<class SEL>
-inline void fnpf_amr::fill_col(int l, int tag, SEL sel)
+inline void fnpf_amr::fill_col(int l, int tag, SEL sel, bool d1)
 {
     const int knf = p0->knoz*((vref==2) ? (1<<l) : 1);
     const int nv = knf+1;
@@ -68,8 +75,7 @@ inline void fnpf_amr::fill_col(int l, int tag, SEL sel)
     // at the time of the stage output in the unknowns, 0 in the Krylov vectors)
     const bool edge = (lap_edge && l==wlo);
 
-    fill_run(l,nv,tag,
-             [&](const reefamr_fill &f, double *v)
+    auto ev = [&](const reefamr_fill &f, double *v)
              {
                  if(f.kind==1 && edge)
                  for(int kk=0; kk<=knf; ++kk)
@@ -86,8 +92,8 @@ inline void fnpf_amr::fill_col(int l, int tag, SEL sel)
                  else
                  for(int kk=0; kk<=knf; ++kk)
                  v[kk] = 0.0;
-             },
-             [&](reefamr_patch *c, int id, const reefamr_fill &f, const double *w)
+             };
+    auto st = [&](reefamr_patch *c, int id, const reefamr_fill &f, const double *w)
              {
                  lexer *pp = c->pp;
                  double *dst = sel(id);
@@ -100,7 +106,13 @@ inline void fnpf_amr::fill_col(int l, int tag, SEL sel)
                  }
                  for(int kk=0; kk<=knf; ++kk)
                  dst[fidx(pp,f.di,f.dj,kk)] = w[kk];
-             });
+             };
+    // (d1: depth 1 on the finest level of the window; the levels below it two columns deep, as far as
+    // the stencils of the fills of the next finer level reach around their parent columns)
+    if(d1)
+    fill_run_sub(l,nv,tag,ev,st,[&](reefamr_patch *c) -> const vector<int>* { return (l==wtop()) ? &FP(c)->fill1 : &FP(c)->fill2; });
+    else
+    fill_run(l,nv,tag,ev,st);
 }
 
 // restriction of point values to the coarse cell centre between the 2x2 children (i0..i0+1,

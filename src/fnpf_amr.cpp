@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"fnpf_amr.h"
@@ -252,11 +252,6 @@ int fnpf_amr::finest_at(double x, double y)
 }
 
 // --------------------------------------------------------------------- grids
-int fnpf_amr::fidx(lexer *q, int ii, int jj, int kk) const
-{
-    return (ii-q->imin)*q->jmax*q->kmaxF + (jj-q->jmin)*q->kmaxF + kk - q->kmin;
-}
-
 int fnpf_amr::gknoz(int g)
 {
     return glex(g)->knoz;

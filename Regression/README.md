@@ -278,6 +278,7 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `cfd_2d_dambreak_amr4_adapt` | 1 | four adaptive levels (G 1 4, G 24 3) in the dam break, 6 steps: the FAC V-cycle over five grids, every correction passed on into the finer levels, with the interface band and the covered couplings (patch 0068) |
 | `cfd_2d_dambreak_amr4_adapt_sub` | 1 | `cfd_2d_dambreak_amr4_adapt` with G 7 1, 3 steps: the level projections of a level with patches in no joint multigrid, their overlap on one rank (patch 0069); the synchronisation with four levels |
 | `cfd_2d_dambreak_amr_adapt_place_w2` | 2 | `cfd_2d_dambreak_amr_adapt` on 2 ranks with G 40 1 and G 41 2.0: a patch cell counted as two level-0 cells in the placement (patch 0070) |
+| `cfd_2d_dambreak_amr_periodic_place_mpi2` | 2 | `cfd_2d_dambreak_amr_periodic_mpi2` with G 40 1: the units placed for the load with the periodic edge between the ranks, the shadows take the level-0 cells across the periodic edge from the other end (patch 0076) |
 | `nhflow_3d_amr_relax` | 2 | NHFLOW 3D static AMR, refinement box over the domain; relaxation zones stay unrefined (bc_zone boxes) |
 | `fnpf_3d_amr_relax` | 2 | FNPF 3D static AMR, same check |
 | `nhflow_3d_amr_still` | 1 | NHFLOW AMR static patch in a closed tank, bed ramps under the patch edges: still water stays still (fill, flux matching, restriction, composite pressure BiCGStab + FAC) |

@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #ifndef FNPF_AMR_H_
@@ -112,6 +112,8 @@ struct fnpf_amr_patch : public reefamr_patch
     vector<int> row;                // FIJK -> matrix row of the patch assembly, -1 none
     int serial = -1;                // unique number of the patch (body grids follow it)
     reefmg_core *mg = nullptr;      // patch-local multigrid of the preconditioner
+    vector<int> fill1;              // the entries of fill next to the patch (the reach of the Laplace rows)
+    vector<int> fill2;              // the entries of fill within two columns of the patch (the stencils of the prolongation into the next finer level)
 };
 
 class fnpf_amr : public reefamr, public amr_column_lookup
@@ -173,7 +175,7 @@ public:
     int layout() const { return layout_id; }    // changes when the patch set changes
 
     // vector space of the composite Laplace (fnpf_amr_lap.cpp, reefamr_bicgstab)
-    void lap_apply(int, int);
+    void lap_apply(int, int, bool d1=false);
     void lap_prec(int, int);
     void lap_local(int, int, int);
     double lap_dot(int, int);
@@ -213,7 +215,7 @@ private:
 
     lexer* glx(int g) { return glex(g); }
     fdm_fnpf* gfd(int g) { return (g<0) ? c0 : FP(g)->c; }
-    int fidx(lexer*, int, int, int) const;          // FIJK of lexer q
+    inline int fidx(lexer*, int, int, int) const;   // FIJK of lexer q (inline: fnpf_amr_fill.h)
     int gknoz(int g);                                // sigma layers of grid g
 
     // patch lexer: sigma grid, 3D flags, bed array
@@ -234,7 +236,7 @@ private:
 
     // fill and restriction of slices and Fi-layout arrays
     template<class SEL> void fill_sl(int, int, int, SEL);
-    template<class SEL> void fill_col(int, int, SEL);
+    template<class SEL> void fill_col(int, int, SEL, bool d1=false);
     template<class SEL> void restrict_sl(int, SEL);
     bool rcubic(lexer*, int, int);
     template<class F> double rc4(F);
@@ -254,7 +256,7 @@ private:
     vector<double*> ltgt;           // [g+1]: unknowns of the current solve (Fi or psi)
     void lap_core(lexer*, ghostcell*);
     void lap_prepare(ghostcell*);
-    void lap_sync(int);
+    void lap_sync(int, bool d1=false);  // d1: the columns next to the patches only (the operator)
     void lap_rows();
     int lap_layout = -1;
     int lap_wkey = 0;               // level window of the row lists (G 7 1)
