@@ -25,6 +25,9 @@ Architect: Hans Bihs
 #include"coral/io/coral_coupling.h"
 #include"coral/io/coral_input.h"
 #include"coral/core/coral_version.h"
+#include"coral/mooring/coral_mooring.h"
+#include"coral/hydro/coral_morison.h"
+#include"coral/hydro/coral_member_morison.h"
 #include"lexer.h"
 #include"ghostcell.h"
 #include<mpi.h>
@@ -93,6 +96,21 @@ coral_reef3d::coral_reef3d(lexer *p, ghostcell *pgc) : p_(p), pgc_(pgc)
         }
         if(case_->run.static_ini)
             log<<"CORAL: static equilibrium with fluid bodies: the fluid loads are not known yet (zero)"<<std::endl;
+        // the still water level: CORAL's dynamic mooring lines and Morison members take z = 0 of CORAL's frame
+        // (or the waves of coral.txt) unless they sample the resolved fluid (fluid_kinematics)
+        if(p->F60_flag==1 && !case_->fluid_kin)
+        {
+            bool water = false;
+            for(const auto &l : case_->m.load_list)
+                if(dynamic_cast<const coral::mooring_line*>(l.get()) || dynamic_cast<const coral::morison_load*>(l.get())
+                   || dynamic_cast<const coral::member_morison*>(l.get()))
+                    water = true;
+            const double swl = p->F60 - case_->fluid_origin(2);
+            if(water && std::fabs(swl) > 1.0e-6*std::max(1.0, std::fabs(p->F60)))
+                log<<"CORAL: WARNING the still water level of REEF3D (F 60) is at z = "<<swl<<" in CORAL's frame, CORAL's "
+                   <<"dynamic mooring lines and Morison members take z = 0 (or the waves of coral.txt): set fluid_coupling "
+                   <<"origin 0 0 "<<p->F60<<" or use fluid_kinematics"<<std::endl;
+        }
         const coral::Vec3 g(p->W20, p->W21, p->W22);
         if((case_->m.gravity - g).norm() > 1.0e-6*std::max(1.0, g.norm()))
             log<<"CORAL: WARNING gravity "<<case_->m.gravity.transpose()<<" in coral.txt, "<<g.transpose()

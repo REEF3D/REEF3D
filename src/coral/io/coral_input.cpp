@@ -44,6 +44,7 @@ Architect: Hans Bihs
 #include"coral/mooring/coral_mooring.h"
 #include<cmath>
 #include<fstream>
+#include<set>
 #include<sstream>
 #include<stdexcept>
 
@@ -57,14 +58,15 @@ namespace
     {
         int line = 0;
         std::vector<std::string> t;
+        int first = 1;      // first word searched for keys: 2 after the name of a named item (a name may be a key)
 
         [[noreturn]] void fail(const std::string &msg) const
         {
             throw std::runtime_error("CORAL input, line " + std::to_string(line) + " (" + t[0] + "): " + msg);
         }
-        int find(const std::string &key, int from=1) const
+        int find(const std::string &key, int from=-1) const
         {
-            for(int i=from; i<(int)t.size(); ++i)
+            for(int i=(from < 0 ? first : from); i<(int)t.size(); ++i)
                 if(t[i]==key)
                     return i;
             return -1;
@@ -154,8 +156,15 @@ void coral_case::read_string(const std::string &text, const std::string &dir)
 void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>>> &lines, const std::string &dir)
 {
     std::vector<item> items;
+    // items whose second word is a name (of a body, joint, load, ...): keys are searched after it
+    static const std::set<std::string> named = {"body", "joint", "pto", "drive", "spring", "linear6", "force", "drag",
+        "mooring", "morison", "section", "member", "superelement", "pile", "point_mass", "fluid_body", "fluid_member", "hydro"};
     for(const auto &l : lines)
+    {
         items.push_back(item{l.first, l.second});
+        if(!l.second.empty() && named.count(l.second[0]))
+            items.back().first = 2;
+    }
     auto path = [&](const std::string &f) {return (f.empty() || f[0]=='/') ? f : dir + "/" + f;};
     auto body_of = [&](const item &it, const std::string &name) -> int
     {

@@ -62,6 +62,10 @@ Architect: Hans Bihs
 //   mooring <name> <quasi_static|dynamic> a <body> <x y z> b <body> <x y z> L <L> d <d> mass <m/L>
 //        EA <EA> [BA <BA>] [CB <CB>] [Cdn <c>] [Cdt <c>] [Can <c>] [Cat <c>] [kb <k>] [cb <c>] [mu <mu>]
 //        [nseg <n>] [seabed <z>] [dt_line <dt>] [settle <T>] [current <ux uy uz>]
+//        (the names of lines and other loads must not be keywords of the line, e.g. not "d" or "L"; the
+//        dynamic line takes the free surface and kinematics of the waves of coral.txt, of the resolved fluid
+//        with fluid_kinematics, or else still water at z = 0 of CORAL's frame: with REEF3D set
+//        fluid_coupling origin 0 0 <F 60> or fluid_kinematics, CORAL warns otherwise)
 //   morison <name> body <b> p1 <x y z> p2 <x y z> D <D> [Cd <c>] [Ca <c>] [Cm <c>] [n <n>] [current <u v w>]
 //   morison <name> member <m> [D <D>] [Cd <c>] [Ca <c>] [Cm <c>] [n <strips per element>] [current <u v w>]
 //        [no_buoyancy] [flooded <D_inner>]
