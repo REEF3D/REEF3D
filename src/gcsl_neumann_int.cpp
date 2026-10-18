@@ -47,37 +47,21 @@ void ghostcell::gcsl_neumann_int(sliceint &f, int gcv, int bc, int cs)
 
 void ghostcell::gcsl_neumann_V_int(lexer *p,int *f, int gcv, int bc, int cs)
 {
+    // margin cells deep (limited to the solid depth in gcsl_start4Vint)
 	if(cs==1)
 	for(q=0;q<margin;++q)
-    {
-	f[Im1J]=f[IJ];
-    f[Im2J]=f[IJ];
-    f[Im3J]=f[IJ];
-    }
+	f[(i-q-1-p->imin)*p->jmax + (j-p->jmin)]=f[IJ];
 
 	if(cs==2)
 	for(q=0;q<margin;++q)
-	{
-	f[IJp1]=f[IJ];
-    f[IJp2]=f[IJ];
-    f[IJp3]=f[IJ];
-    }
+	f[(i-p->imin)*p->jmax + (j+q+1-p->jmin)]=f[IJ];
 
 	if(cs==3)
 	for(q=0;q<margin;++q)
-	{
-	f[IJm1]=f[IJ];
-    f[IJm2]=f[IJ];
-    f[IJm3]=f[IJ];
-    }
+	f[(i-p->imin)*p->jmax + (j-q-1-p->jmin)]=f[IJ];
 
 	if(cs==4)
 	for(q=0;q<margin;++q)
-	{
-	f[Ip1J]=f[IJ];
-    f[Ip2J]=f[IJ];
-    f[Ip3J]=f[IJ];
-    }
-
+	f[(i+q+1-p->imin)*p->jmax + (j-p->jmin)]=f[IJ];
 }
 

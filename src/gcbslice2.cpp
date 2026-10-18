@@ -46,6 +46,22 @@ void mgcslice2::gcb_seed(lexer *p)
 	
 	p->Iresize(p->gcbsl2,p->gcbsl2_count, count, 6, 6); 
 	
+    // solid depth behind each boundary cell, column [2]: the number of cells (at most 3) in
+    // the direction of the side cs until the next fluid cell. The ghost cell routines write at
+    // most that deep, so a solid one or two cells thick does not overwrite the fluid behind it.
+    // The three ghost layers outside the domain have flagslice2 -10: depth 3 there, as before.
+    auto depth = [p](int ii, int jj, int di, int dj)
+    {
+        int d=0;
+        for(int q=1;q<=3;++q)
+        {
+        if(p->flagslice2[(ii+q*di-p->imin)*p->jmax + (jj+q*dj-p->jmin)]>0)
+        break;
+        ++d;
+        }
+        return d;
+    };
+    
     // find gcbsl
 	count=0;
 	SLICELOOP2
@@ -55,6 +71,7 @@ void mgcslice2::gcb_seed(lexer *p)
         p->gcbsl2[count][0]=i;
         p->gcbsl2[count][1]=j;
         p->gcbsl2[count][3]=1;
+        p->gcbsl2[count][2]=depth(i,j,-1,0);
         p->gcbsl2[count][4]=21;
         ++count;
         }
@@ -64,6 +81,7 @@ void mgcslice2::gcb_seed(lexer *p)
         p->gcbsl2[count][0]=i;
         p->gcbsl2[count][1]=j;
         p->gcbsl2[count][3]=2;
+        p->gcbsl2[count][2]=depth(i,j,0,1);
         p->gcbsl2[count][4]=21;
         ++count;
         }
@@ -73,6 +91,7 @@ void mgcslice2::gcb_seed(lexer *p)
         p->gcbsl2[count][0]=i;
         p->gcbsl2[count][1]=j;
         p->gcbsl2[count][3]=3;
+        p->gcbsl2[count][2]=depth(i,j,0,-1);
         p->gcbsl2[count][4]=21;
         ++count;
         }
@@ -82,6 +101,7 @@ void mgcslice2::gcb_seed(lexer *p)
         p->gcbsl2[count][0]=i;
         p->gcbsl2[count][1]=j;
         p->gcbsl2[count][3]=4;
+        p->gcbsl2[count][2]=depth(i,j,1,0);
         p->gcbsl2[count][4]=21;
         ++count;
         }

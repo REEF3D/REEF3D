@@ -75,7 +75,7 @@ public:
     static double sigma(lexer*, fdm2D*, int i, int j, double c);
 
     // free-slip wall: ghost velocity = interior velocity with the normal component reversed
-    static void wall_mirror(lexer*, slice &u, slice &v, int i, int j, int cs);
+    static void wall_mirror(lexer*, slice &u, slice &v, int i, int j, int cs, int depth=3);
 
     // unit normal and length of face i+1/2 (dir 1) or j+1/2 (dir 2) of cell (i,j)
     static void normal(lexer*, int dir, int i, int j, double &nx, double &ny, double &len);

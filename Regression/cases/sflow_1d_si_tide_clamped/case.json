@@ -1,0 +1,17 @@
+{
+ "description": "SFLOW semi-implicit (A 226 1): 1D tidal channel 20 km, 10 m deep, clamped tidal level (B 520 5, a 0.25 m, T 3 h) at x-, wall at x+, dt 300 s (gravity wave Courant number 30). Over many periods the harmonic amplitude follows the standing-tide solution a cos(k(L-x))/cos(kL) to 1-2 %.",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 120,
+ "tags": [
+  "quick",
+  "1d",
+  "sflow",
+  "semi_implicit"
+ ],
+ "covers": [
+  "iowave clamped level edge as eta Dirichlet in si_eta2D",
+  "open boundary faces (bc_setup)",
+  "SI volume log"
+ ]
+}

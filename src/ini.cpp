@@ -53,6 +53,11 @@ void control::ini_default()
     A248=0;      // int turn on breaking persistence
     A249=0.3;    // double breaking persistence parameter beta
     A250=1.86;   // double viscosity breaking wave
+    A226=0;      // int SFLOW free surface: 0 explicit (HLL), 1 semi-implicit theta method
+    A227=0.55;   // double SFLOW semi-implicit: implicitness theta of the free surface
+    A228=0.0;    // double SFLOW semi-implicit: maximum time step (s), 0 no cap
+    A229=1;      // int SFLOW semi-implicit: wetting and drying iteration (Casulli 2009), 0 off
+    A231=0.0;    // double SFLOW semi-implicit: mass flux dissipation for transcritical flow, 0 off
     A251=0;    // double fsf-slope in x-dir
     A260=0;      // int turbulence model
     A261=0.267;  // double length scale factor

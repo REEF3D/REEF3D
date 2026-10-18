@@ -24,12 +24,26 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"slice.h"
 
+// The distro routines write margin cells deep behind a boundary cell. Per entry the depth is
+// limited to the solid depth of column [2] of the gcbsl lists (gcb_seed; 0: not set, full
+// margin): a solid one or two cells thick inside the domain is filled from both sides, but
+// the fluid cells behind it are not overwritten.
+static inline int gcsl_depth(int d, int m0)
+{
+    return (d>0 && d<m0) ? d : m0;
+}
+
 void ghostcell::gcsl_start1(lexer *p, slice &f, int gcv)
 {
+    const int m0 = margin;
     starttime=timer();
 
     QQGCSL1LOOP
+    {
+    margin = gcsl_depth(p->gcbsl1[qq][2],m0);
     gcsldistro1(p,f,p->gcbsl1[qq][0], p->gcbsl1[qq][1], p->gcbsl1[qq][5], gcv, p->gcbsl1[qq][4], p->gcbsl1[qq][3]);
+    margin = m0;
+    }
 
     endtime=timer();
     p->gctime+=endtime-starttime;
@@ -51,10 +65,15 @@ void ghostcell::gcsl_start1(lexer *p, slice &f, int gcv)
 
 void ghostcell::gcsl_start2(lexer *p, slice &f, int gcv)
 {
+    const int m0 = margin;
     starttime=timer();
 
     QQGCSL2LOOP
+    {
+    margin = gcsl_depth(p->gcbsl2[qq][2],m0);
     gcsldistro2(p,f,p->gcbsl2[qq][0], p->gcbsl2[qq][1], p->gcbsl2[qq][5], gcv, p->gcbsl2[qq][4], p->gcbsl2[qq][3]);
+    margin = m0;
+    }
 
     endtime=timer();
     p->gctime+=endtime-starttime;
@@ -76,9 +95,14 @@ void ghostcell::gcsl_start2(lexer *p, slice &f, int gcv)
 
 void ghostcell::gcsl_start4(lexer *p, slice &f, int gcv)
 {
+    const int m0 = margin;
     starttime=timer();
     QQGCSL4LOOP
+    {
+    margin = gcsl_depth(p->gcbsl4[qq][2],m0);
     gcsldistro4(p,f,p->gcbsl4[qq][0],p->gcbsl4[qq][1], p->gcbsl4[qq][5], gcv, p->gcbsl4[qq][4], p->gcbsl4[qq][3]);
+    margin = m0;
+    }
     endtime=timer();
     p->gctime+=endtime-starttime;
     
@@ -100,9 +124,14 @@ void ghostcell::gcsl_start4(lexer *p, slice &f, int gcv)
 
 void ghostcell::gcsl_start1int(lexer *p, sliceint &f, int gcv)
 {
+    const int m0 = margin;
     starttime=timer();
     QQGCSL1LOOP
+    {
+    margin = gcsl_depth(p->gcbsl1[qq][2],m0);
     gcsldistro1int(p,f,p->gcbsl1[qq][0],p->gcbsl1[qq][1], p->gcbsl1[qq][5], gcv, p->gcbsl1[qq][4], p->gcbsl1[qq][3]);
+    margin = m0;
+    }
     endtime=timer();
     p->gctime+=endtime-starttime;
 
@@ -119,9 +148,14 @@ void ghostcell::gcsl_start1int(lexer *p, sliceint &f, int gcv)
 
 void ghostcell::gcsl_start2int(lexer *p, sliceint &f, int gcv)
 {
+    const int m0 = margin;
     starttime=timer();
     QQGCSL2LOOP
+    {
+    margin = gcsl_depth(p->gcbsl2[qq][2],m0);
     gcsldistro2int(p,f,p->gcbsl2[qq][0],p->gcbsl2[qq][1], p->gcbsl2[qq][5], gcv, p->gcbsl2[qq][4], p->gcbsl2[qq][3]);
+    margin = m0;
+    }
     endtime=timer();
     p->gctime+=endtime-starttime;
 
@@ -138,9 +172,14 @@ void ghostcell::gcsl_start2int(lexer *p, sliceint &f, int gcv)
 
 void ghostcell::gcsl_start4int(lexer *p, sliceint &f, int gcv)
 {
+    const int m0 = margin;
     starttime=timer();
     QQGCSL4LOOP
+    {
+    margin = gcsl_depth(p->gcbsl4[qq][2],m0);
     gcsldistro4int(p,f,p->gcbsl4[qq][0],p->gcbsl4[qq][1], p->gcbsl4[qq][5], gcv, p->gcbsl4[qq][4], p->gcbsl4[qq][3]);
+    margin = m0;
+    }
     endtime=timer();
     p->gctime+=endtime-starttime;
 
@@ -157,9 +196,14 @@ void ghostcell::gcsl_start4int(lexer *p, sliceint &f, int gcv)
 
 void ghostcell::gcsl_start4Vint(lexer *p, int *f, int gcv)
 {
+    const int m0 = margin;
     starttime=timer();
     QQGCSL4LOOP
+    {
+    margin = gcsl_depth(p->gcbsl4[qq][2],m0);
     gcsldistro4Vint(p,f,p->gcbsl4[qq][0],p->gcbsl4[qq][1], p->gcbsl4[qq][5], gcv, p->gcbsl4[qq][4], p->gcbsl4[qq][3]);
+    margin = m0;
+    }
     endtime=timer();
     p->gctime+=endtime-starttime;
 

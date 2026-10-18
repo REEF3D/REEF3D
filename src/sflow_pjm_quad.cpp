@@ -176,7 +176,8 @@ void sflow_pjm_quad::quad_calc(lexer *p, fdm2D *b, ghostcell *pgc, slice &UH, sl
     i = p->gcbsl4[n][0];
     j = p->gcbsl4[n][1];
     
-        for(q=1;q<=3;++q)
+        // the solid depth: not into the fluid behind a thin solid (gcb_seed)
+        for(q=1;q<=((p->gcbsl4[n][2]>0 && p->gcbsl4[n][2]<3) ? p->gcbsl4[n][2] : 3);++q)
         {
         if(p->gcbsl4[n][3]==1)
         {
@@ -608,7 +609,8 @@ void sflow_pjm_quad::quad_calc_curv(lexer *p, fdm2D *b, ghostcell *pgc, slice &U
     i = p->gcbsl4[n][0];
     j = p->gcbsl4[n][1];
     
-        for(q=1;q<=3;++q)
+        // the solid depth: not into the fluid behind a thin solid (gcb_seed)
+        for(q=1;q<=((p->gcbsl4[n][2]>0 && p->gcbsl4[n][2]<3) ? p->gcbsl4[n][2] : 3);++q)
         {
         int a = i, c = j;
         if(p->gcbsl4[n][3]==1) a = i-q;

@@ -694,6 +694,7 @@ void sflow_momentum_func::vel_bc(lexer *p, fdm2D *b, ghostcell *pgc, slice &u, s
     j  = p->gcbsl4[n][1];
     cs = p->gcbsl4[n][3];
     bc = p->gcbsl4[n][4];
+    gd = ghost_depth(p,n);
     
         // iowave Riemann / Flather / clamped edges (B 520 methods 3-6): ghost cells set by ioflow
         if((cs==1 && p->open_xm==1) || (cs==4 && p->open_xp==1) || (cs==3 && p->open_ym==1) || (cs==2 && p->open_yp==1))
@@ -765,7 +766,7 @@ void sflow_momentum_func::wall_bc(lexer *p, slice &u, slice &v, slice &w, int cs
     // free slip: the normal velocity is reversed (curvilinear grid: normal of the wall face)
     if(p->geo_curv==1)
     {
-    sflow_curv::wall_mirror(p,u,v,i,j,cs);
+    sflow_curv::wall_mirror(p,u,v,i,j,cs,gd);
     mirror(p,w,cs,1.0);
     return;
     }
@@ -823,8 +824,9 @@ void sflow_momentum_func::ghostcells(lexer *p, fdm2D *b, ghostcell *pgc, slice &
     i  = p->gcbsl4[n][0];
     j  = p->gcbsl4[n][1];
     cs = p->gcbsl4[n][3];
+    gd = ghost_depth(p,n);
     
-        for(q=1;q<=3;++q)
+        for(q=1;q<=gd;++q)
         {
         int ii=0,jj=0;
         
@@ -856,42 +858,51 @@ void sflow_momentum_func::ghostcells(lexer *p, fdm2D *b, ghostcell *pgc, slice &
     }
 }
 
+// ghost cells written behind boundary entry n: three, or the solid depth when a solid inside the
+// domain is only one or two cells thick (the fluid cells behind it are not overwritten)
+int sflow_momentum_func::ghost_depth(lexer *p, int n)
+{
+    const int d = p->gcbsl4[n][2];
+    
+    return (d>0 && d<3) ? d : 3;
+}
+
 void sflow_momentum_func::mirror(lexer *p, slice &f, int cs, double sgn)
 {
     // symmetric (sgn=1) or antisymmetric (sgn=-1) extension across the boundary face
 	if(cs==1)
-	for(q=0;q<3;++q)
+	for(q=0;q<gd;++q)
 	f(i-q-1,j) = sgn*f(i+q,j);
 	
 	if(cs==2)
-	for(q=0;q<3;++q)
+	for(q=0;q<gd;++q)
 	f(i,j+q+1) = sgn*f(i,j-q);
     
 	if(cs==3)
-	for(q=0;q<3;++q)
+	for(q=0;q<gd;++q)
 	f(i,j-q-1) = sgn*f(i,j+q);
 	
 	if(cs==4)
-	for(q=0;q<3;++q)
+	for(q=0;q<gd;++q)
 	f(i+q+1,j) = sgn*f(i-q,j);
 }
 
 void sflow_momentum_func::neumann(lexer *p, slice &f, int cs)
 {
 	if(cs==1)
-	for(q=0;q<3;++q)
+	for(q=0;q<gd;++q)
 	f(i-q-1,j) = f(i,j);
 	
 	if(cs==2)
-	for(q=0;q<3;++q)
+	for(q=0;q<gd;++q)
 	f(i,j+q+1) = f(i,j);
     
 	if(cs==3)
-	for(q=0;q<3;++q)
+	for(q=0;q<gd;++q)
 	f(i,j-q-1) = f(i,j);
 	
 	if(cs==4)
-	for(q=0;q<3;++q)
+	for(q=0;q<gd;++q)
 	f(i+q+1,j) = f(i,j);
 }
 

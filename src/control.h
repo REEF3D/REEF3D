@@ -54,6 +54,8 @@ public:
     double A261,A262,A263,A264;
     double A222,A223,A224,A247,A249,A244,A251_val;
     double A250;
+    int A226,A229;          // SFLOW semi-implicit free surface
+    double A227,A228,A231;
 
     // FNPF
     int A309,A310,A311,A312,A313,A314,A315,A316,A317,A318,A320,A324,A327,A328,A329,A330,A332,A334,A336,A337,A338,A339,A343,A347,A348;

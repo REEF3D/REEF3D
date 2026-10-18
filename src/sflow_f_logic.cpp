@@ -23,6 +23,8 @@ Author: Hans Bihs
 #include"sflow_f.h"
 #include"sflow_header.h"
 #include"sflow_curv.h"
+#include"sflow_momentum_SI.h"
+#include"sflow_timestep_SI.h"
 
 void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
 {	
@@ -37,8 +39,12 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
     if(p->N48==0)
 	ptime = new sflow_fixtimestep(p,b);
     
-    if(p->N48==1)
+    if(p->N48==1 && p->A226==0)
 	ptime = new sflow_etimestep(p,b);
+    
+    // semi-implicit free surface (A 226 1): advective time step
+    if(p->N48==1 && p->A226==1)
+	ptime = new sflow_timestep_SI(p,b);
 	
     // HLL fluxes, signal speeds and reconstruction (A 211: 0 first-order, 1-3 limiter, 4 WENO)
     phll = new sflow_HLL(p,pgc,pBC);
@@ -173,11 +179,15 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
     p6dof = new sixdof_sflow(p,pgc);
 	
 	// momentum
-    if(p->A210==2)
+    if(p->A210==2 && p->A226==0)
 	pmom = new sflow_momentum_RK2(p,b,pgc,phll,pss,precon,pdiff,ppress,psolv,ppoissonsolv,pflow,pfsf,psfdf,p6dof);
     
-	if(p->A210!=2)
+	if(p->A210!=2 && p->A226==0)
 	pmom = new sflow_momentum_RK3(p,b,pgc,phll,pss,precon,pdiff,ppress,psolv,ppoissonsolv,pflow,pfsf,psfdf,p6dof);
+    
+    // semi-implicit free surface, theta method (A 226 1, A 227), separate from the HLL integrators
+    if(p->A226==1)
+	pmom = new sflow_momentum_SI(p,b,pgc,phll,pss,precon,pdiff,ppress,psolv,ppoissonsolv,pflow,pfsf,psfdf,p6dof);
 
     // mesh refinement (G 1): static boxes (G 10) and/or flagged regions (G 20, G 22)
     if((p->G1>0 && (p->G10>0 || p->G20>0.0 || p->G22>0 || p->G12>0)) || p->geo_mb>0)

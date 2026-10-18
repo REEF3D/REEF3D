@@ -1,0 +1,16 @@
+{
+ "description": "SFLOW semi-implicit (A 226 1): tide (clamped level, a 1.5 m) over a 5 m deep channel and a slope that falls dry; wetting and drying with Manning friction.",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 400,
+ "tags": [
+  "quick",
+  "1d",
+  "sflow",
+  "semi_implicit"
+ ],
+ "covers": [
+  "wetting and drying over a tidal flat",
+  "clamped level edge with friction"
+ ]
+}
