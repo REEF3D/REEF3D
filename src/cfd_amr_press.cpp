@@ -1949,17 +1949,17 @@ double cfd_amr::psi_band(int g)
     return (g<0) ? p0->psi : glex(g)->psi;
 }
 
-// z = M^-1 r: one multiplicative FAC V-cycle over the levels.  Down: on every level, finest first, a
-// V-cycle of the level (patch-local or joint) on the composite residual (the cells under a finer patch
-// take the residual of the finer level); level 0: a V-cycle on the residual left; up: on every level,
-// coarsest first, a V-cycle of the level on the residual left.  Every correction of a level goes at
-// once into the finer levels under it (prolonged level by level, not in the interface band of the
-// coarser level), so that the next residual is that of all corrections so far.  (With the
-// correction of the down sweep kept on its level until the up sweep, the residual of the coarser
-// levels did not see it under the finer patches and their corrections took it again: a static
-// nested box without a density contrast took 4.7, 6.1, 12.3 and 35 BiCGStab iterations with 1, 2, 3
-// and 4 refined levels, four adaptive levels with a free surface 67; with the corrections passed on
-// 4.6-4.8, and 11.)
+// z = M^-1 r: one multiplicative FAC V-cycle over the levels.  Down (G 40 only): on every level,
+// finest first, a V-cycle of the level (patch-local or joint) on the composite residual (the cells
+// under a finer patch take the residual of the finer level); level 0: a V-cycle on the residual
+// left; up: on every level, coarsest first, a V-cycle of the level on the residual left.  Every
+// correction of a level goes at once into the finer levels under it (prolonged level by level, not
+// in the interface band of the coarser level), so that the next residual is that of all
+// corrections so far.  (With the correction of the down sweep kept on its level until the up
+// sweep, the residual of the coarser levels did not see it under the finer patches and their
+// corrections took it again: a static nested box without a density contrast took 4.7, 6.1, 12.3
+// and 35 BiCGStab iterations with 1, 2, 3 and 4 refined levels, four adaptive levels with a free
+// surface 67; with the corrections passed on 4.6-4.8, and 11.)
 void cfd_amr::pr_prec(int kr, int kz)
 {
     const int KT = REEFAMR_NTMP;        // residual
@@ -2089,7 +2089,12 @@ void cfd_amr::pr_prec(int kr, int kz)
         pass_on(l);
     };
 
-    // down (the finest level: z = 0, the residual is r)
+    // down (the finest level: z = 0, the residual is r), only with G 40.  Without the down sweep
+    // (a V(0,2) cycle over the levels) each solve needs 0.5-1 iterations more with one or two levels
+    // but every iteration half the patch V-cycles and composite residuals: the 67 CFD AMR cases 4.5 %
+    // faster, four adaptive levels 8.7 iterations instead of 10.4 (20 -> 12 s).  With G 40 the down
+    // sweep stays (the dam break on 2 and 3 ranks: 7.6 and 8.2 iterations with it, 12 and 14 without)
+    if(place)
     for(int l=maxlev; l>=1; --l)
     {
         if(l<maxlev)
