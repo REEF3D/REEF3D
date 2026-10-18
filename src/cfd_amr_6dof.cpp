@@ -67,8 +67,48 @@ void cfd_amr_6dof::reset_fbh(lexer *p, fdm *a, ghostcell *pgc)
     pgc->start4(p,a->fbh4,40);
 }
 
+// true if every body has the triangles of the last cast on this grid; the current triangles are
+// kept for the next check
+bool cfd_amr_6dof::unchanged()
+{
+    const int nob = b->objects();
+    bool same = ((int)last.size()==nob);
+    if(!same)
+    last.assign(nob,vector<double>());
+
+    for(int nb=0; nb<nob; ++nb)
+    {
+        sixdof_obj_cfd *o = b->object(nb);
+        const int n = o->amr_tricount();
+        vector<double> &v = last[nb];
+        if((int)v.size()!=9*n)
+        {
+            same = false;
+            v.assign(9*n,0.0);
+        }
+        size_t c = 0;
+        for(int d=0; d<3; ++d)
+        {
+            double **t = o->amr_tri(d);
+            for(int q=0; q<n; ++q)
+            for(int e=0; e<3; ++e)
+            {
+                if(v[c]!=t[q][e])
+                {
+                    same = false;
+                    v[c] = t[q][e];
+                }
+                ++c;
+            }
+        }
+    }
+    return same;
+}
+
 void cfd_amr_6dof::body(lexer *p, fdm *a, ghostcell *pgc)
 {
+    unchanged();
+
     for(int nb=0; nb<b->objects(); ++nb)
     cast(p,a,pgc,nb);
 
@@ -81,8 +121,13 @@ void cfd_amr_6dof::start_cfd(lexer *p, fdm *a, ghostcell *pgc, int iter, field &
 {
     reset_fbh(p,a,pgc);
 
+    // the bodies with the triangles of the last cast keep fb (a cast of one body overwrites fb, so
+    // all are cast again when one of them has moved)
+    const bool keep = unchanged();
+
     for(int nb=0; nb<b->objects(); ++nb)
     {
+        if(!keep)
         cast(p,a,pgc,nb);
         b->object(nb)->update_forcing(p,a,pgc,uvel,vvel,wvel,fx,fy,fz,iter);
     }

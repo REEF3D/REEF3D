@@ -27,6 +27,7 @@ Architect: Hans Bihs
 #include"increment.h"
 #include"fieldint5.h"
 #include"field4a.h"
+#include<vector>
 
 class sixdof_cfd;
 class reinidisc_f;
@@ -38,7 +39,9 @@ using namespace std;
 //  motion, before the patches take their stage); a patch casts the hull on its own grid (level set
 //  fb with the cells around the patch, ray-cast and reinitialisation workspace of the patch size)
 //  and adds the direct forcing of the rigid-body velocity, as sixdof_cfd::start_cfd does it on
-//  level 0.  With subcycling (G 7 1) cfd_amr sets the body to the time of the stage first.
+//  level 0.  With subcycling (G 7 1) cfd_amr sets the body to the time of the stage first.  A
+//  stage whose bodies have the triangles of the last cast keeps fb (only the cast writes it): a body
+//  at rest, before the ramp of a prescribed motion, costs no cast.
 
 class cfd_amr_6dof final : public sixdof, public increment
 {
@@ -73,6 +76,7 @@ public:
 
 private:
     void cast(lexer*, fdm*, ghostcell*, int);
+    bool unchanged();
     void reset_fbh(lexer*, fdm*, ghostcell*);
 
     sixdof_cfd *b;
@@ -80,6 +84,7 @@ private:
     field4a frk1, L, dt;
     reinidisc_f *prdisc;
     int box[6];             // the box of the body on the grid (ray_cast_amr)
+    vector<vector<double>> last;    // the triangles of the bodies at the last cast on this grid
 };
 
 #endif
