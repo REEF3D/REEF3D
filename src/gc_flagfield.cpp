@@ -37,7 +37,7 @@ void ghostcell::flagfield(lexer *p)
     p->flag4[i]=OBJ_FLAG;
     }
     
-    flagx(p,p->flag4);
+    flagx(p,p->flag4.data());
     
 	if(p->Y60==1)
     {
@@ -59,7 +59,7 @@ void ghostcell::flagfield(lexer *p)
             p->flag4[IJK]=OBJ_FLAG;
         }
 
-        flagx(p,p->flag4);
+        flagx(p,p->flag4.data());
     }
     
     for(i=0;i<p->imax*p->jmax*p->kmax; ++i)

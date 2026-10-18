@@ -109,7 +109,7 @@ public:
 
     void start(lexer *p, fdm *a, ghostcell *pgc, field &f, vec &rhsvec, int var) override
     {
-        int *flag = p->flag4;
+        int *flag = p->flag4.data();
         int ul=0, vl=0, wl=0;
         if(var==1) { flag = p->flag1; ul = p->ulast; }
         if(var==2) { flag = p->flag2; vl = p->vlast; }
@@ -575,7 +575,7 @@ namespace
 // the cell arrays of a patch lexer (build_lexer, flagini); the lexer has no destructor for them
 void free_lexer_cells(lexer *q)
 {
-    int **ia[] = {&q->flag1,&q->flag2,&q->flag3,&q->flag4,&q->flag5,&q->flagsf4,
+    int **ia[] = {&q->flag1,&q->flag2,&q->flag3,&q->flag5,&q->flagsf4,
                   &q->IO,&q->DF,&q->DF1,&q->DF2,&q->DF3,&q->DFF};
     for(int **a : ia)
     {

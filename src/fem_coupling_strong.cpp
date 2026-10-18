@@ -97,7 +97,7 @@ void fem_coupling::sc_fluid(lexer *p, fdm_nhf *d, bool save)
     cpi(I[ni+1],p->wet,n2);
     cpi(I[ni+2],p->wet_n,n2);
     cpi(I[ni+3],p->deep,n2);
-    cpi(I[ni+4],p->flag4,nd);
+    cpi(I[ni+4],p->flag4.data(),nd);
     cpi(I[ni+5],p->flagslice4,n2);
 }
 

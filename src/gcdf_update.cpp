@@ -71,7 +71,7 @@ void ghostcell::gcdf_update(lexer *p, fdm *a)
     p->flag4[IJK]=-10;
     }
     
-    flagx(p,p->flag4);
+    flagx(p,p->flag4.data());
     
     BASELOOP
     {
