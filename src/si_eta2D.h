@@ -60,10 +60,20 @@ public:
     // eta: initial guess on entry, solution on exit (interior cells, no ghost update)
     void solve(lexer*, ghostcell*, solver2D*, slice &ax, slice &ay, slice &rhs, slice &eta);
 
+    // general form:  r eta - div( a_f grad_f eta ) = rhs
+    //  r      : reaction term per cell (1: wet; 0: dry in the wetting-drying iteration; plus the
+    //           implicit part of a radiating open boundary)
+    //  a face coefficient towards a cell outside the domain (flagslice4 < 0) is a Dirichlet
+    //  condition with the value of eta in that ghost cell (open water level boundary)
+    void solve(lexer*, ghostcell*, solver2D*, slice &ax, slice &ay, slice &rhs, slice &eta, slice &r);
+
     int iter;
     double time;
 
 private:
+    void assemble(lexer*, slice&, slice&, slice&, slice&, double);
+    void run(lexer*, ghostcell*, solver2D*, slice&);
+
     matrix2D M;
     vec2D xvec, rhsvec;
 };

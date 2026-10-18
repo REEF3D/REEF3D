@@ -1,0 +1,16 @@
+{
+ "description": "SFLOW semi-implicit (A 226 1): transcritical flow over a bump with a hydraulic jump (SWASHES: q 0.18 m2/s, h_out 0.33 m) with the mass flux dissipation A 231 1 (jump position as the explicit HLL).",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 1500,
+ "tags": [
+  "quick",
+  "1d",
+  "sflow",
+  "semi_implicit"
+ ],
+ "covers": [
+  "mass flux dissipation (A 231)",
+  "dissipation switch on the Froude number"
+ ]
+}
