@@ -331,13 +331,9 @@ cfd_amr::cfd_amr(lexer *p, fdm *a, ghostcell *pgc, momentum *pmom, pressure *ppr
 
     // G 40: the units placed for the load of the ranks (the level-1 patches with the shadows of
     // level 0; G 40 2: the test of it, small pieces placed anew at every regrid)
+    // (periodic boundaries: the shadows take the level-0 cells across a periodic edge from the other
+    // end, reefamr3d::wrap0)
     place = (p->G40>=1) ? MIN(p->G40,2) : 0;
-    if(place && (p->periodic1>0 || p->periodic2>0))
-    {
-        if(p->mpirank==0)
-        cout<<"CFD AMR: G 40 "<<p->G40<<" with periodic boundaries not available; the patches on the rank of the level-0 cells (G 40 0)"<<endl;
-        place = 0;
-    }
     // G 41: the work of a patch cell in the placement (0: measured, from 1 until the first measurement)
     wpatch = (p->G41>0.0) ? p->G41 : 1.0;
 
@@ -1684,6 +1680,7 @@ void cfd_amr::step_comp(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof 
     // adaptive refinement: regrid every G 2 steps
     if(adapt && p->G2>0 && p->count%p->G2==0)
     regrid(p,pgc);
+    replace_static(p,pgc);
 
     tm[7] += MPI_Wtime()-t0;
 

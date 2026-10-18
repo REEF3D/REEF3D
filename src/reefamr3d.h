@@ -178,6 +178,7 @@ public:
     int npat = 0;                   // P[0..npat-1]: the patches, P[npat..]: the shadows
     vector<int> col0;               // the rank of every level-0 column (I,J)
     int owner0(const int *I) const; // the rank that holds level-0 cell I (clamped into the domain)
+    void wrap0(int *I) const;       // level-0 cell I wrapped across the periodic edges (G 40: the data of a shadow cell)
     r3cplan sh_down;                // level 0 down into the arrays of the shadows (all their cells)
     double load_w(int l) const;     // the work of a cell of level l (G 7 1: the steps of the level; a patch cell wpatch)
     double wpatch = 1.0;            // the work of a patch cell against a level-0 cell (G 41, or measured)
@@ -296,6 +297,10 @@ protected:
     // the plans are new, gone holds the old patches not kept (the caller deletes them), fresh the
     // local ids of the new patches (lexer and module objects made, no data)
     bool rebuild(const vector<vector<unsigned char>> &seed, vector<r3patch*> &gone, vector<int> &fresh);
+    // G 40 1: the units placed anew for the refined region as it is (the weight of a patch cell
+    // measured, G 41 0, with static refinement); false: the same placement
+    bool replace_units(vector<r3patch*> &gone, vector<int> &fresh);
+    bool rebuild_from(const vector<r3gpatch> &GPprev, vector<r3patch*> &gone, vector<int> &fresh);
     vector<r3gpatch> GPold;         // the global list before the last rebuild (its patches: Pold, by lid)
     vector<r3patch*> Pold;          // (valid until the caller deletes gone)
     size_t tid(int l, int ti, int tj, int tk) const { return ((size_t)ti*tn[l][1] + tj)*tn[l][2] + tk; }

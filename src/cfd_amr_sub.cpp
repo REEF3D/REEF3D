@@ -489,6 +489,7 @@ void cfd_amr::step_sub(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof *
 
     if(adapt && p->G2>0 && p->count%p->G2==0)
     regrid(p,pgc);
+    replace_static(p,pgc);
 
     tm[7] += MPI_Wtime()-t0;
 

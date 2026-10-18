@@ -102,6 +102,18 @@ bool reefamr3d::wrap(int l, const int *I, int *J) const
     return in;
 }
 
+// a level-0 cell index wrapped across the periodic edges (the other directions unchanged, also
+// outside the domain): the cell that holds the data of a shadow cell (G 40)
+void reefamr3d::wrap0(int *I) const
+{
+    for(int d=0; d<3; ++d)
+    if(per[d])
+    {
+        const int n = gn(0,d);
+        I[d] = ((I[d]%n)+n)%n;
+    }
+}
+
 bool reefamr3d::wrap_local0(const int *I, int *L) const
 {
     int J[3];
@@ -368,6 +380,21 @@ bool reefamr3d::rebuild(const vector<vector<unsigned char>> &seed, vector<r3patc
     if(tmask==told)
     return false;
 
+    return rebuild_from(GPprev,gone,fresh);
+}
+
+bool reefamr3d::replace_units(vector<r3patch*> &gone, vector<int> &fresh)
+{
+    gone.clear();
+    fresh.clear();
+    const vector<r3gpatch> GPprev = GP;
+    return rebuild_from(GPprev,gone,fresh);
+}
+
+// the patches of the tiles as they are now marked (make_boxes), the old ones of the same box on
+// the same rank kept
+bool reefamr3d::rebuild_from(const vector<r3gpatch> &GPprev, vector<r3patch*> &gone, vector<int> &fresh)
+{
     GPold = GPprev;
     make_boxes();
 
@@ -590,7 +617,8 @@ void reefamr3d::fetch_raw(const vector<int> &ids)
             for(int b=0; b<R.n[1]; ++b)
             for(int e=0; e<R.n[2]; ++e)
             {
-                const int I[3] = {R.lo[0]+a,R.lo[1]+b,R.lo[2]+e};
+                int I[3] = {R.lo[0]+a,R.lo[1]+b,R.lo[2]+e};
+                wrap0(I);
                 const int r = owner0(I);
                 req[r].insert(req[r].end(),I,I+3);
                 back[r].push_back({id,((size_t)a*R.n[1]+b)*R.n[2]+e});
@@ -631,7 +659,8 @@ void reefamr3d::fetch_raw(const vector<int> &ids)
             for(int a=0; a<R.n[0]; ++a)
             for(int b=0; b<R.n[1]; ++b)
             {
-                const int I[3] = {R.lo[0]+a,R.lo[1]+b,0};
+                int I[3] = {R.lo[0]+a,R.lo[1]+b,0};
+                wrap0(I);
                 const int r = owner0(I);
                 req[r].insert(req[r].end(),I,I+2);
                 back[r].push_back({id,(size_t)a*R.n[1]+b});
@@ -2355,7 +2384,8 @@ void reefamr3d::plans()
             for(int j=q->jmin; j<q->jmin+q->jmax; ++j)
             for(int k=q->kmin; k<q->kmin+q->kmax; ++k)
             {
-                const int I[3] = {c->lo[0]+i,c->lo[1]+j,c->lo[2]+k};
+                int I[3] = {c->lo[0]+i,c->lo[1]+j,c->lo[2]+k};
+                wrap0(I);
                 const int r = owner0(I);
                 const int qq = (i-q->imin)*q->jmax*q->kmax + (j-q->jmin)*q->kmax + k-q->kmin;
                 const int e[6] = {id,qq,I[0],I[1],I[2],0};

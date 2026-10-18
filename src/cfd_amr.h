@@ -362,7 +362,8 @@ private:
     vector<vector<int>> tage;       // [l][tile] regrids since the last flag (hysteresis G 5)
     void flags(vector<vector<unsigned char>> &seed, bool init);
     bool flagged(int g, int i, int j, int k, int lt, bool init);
-    void regrid(lexer*, ghostcell*);
+    void regrid(lexer*, ghostcell*, bool replace=false);    // replace: the units placed anew (G 41 0, static refinement)
+    void replace_static(lexer*, ghostcell*);              // G 40 1, G 41 0, static refinement: the weight measured, the units placed anew once
     // G 41 0 (several ranks): the work of the ranks measured since the last regrid, the weight of a
     // patch cell for the placement (wpatch), the report; lbar: a barrier before a level-0 part (the
     // waits for the patches of other ranks not in the level-0 timers)
