@@ -41,6 +41,7 @@
   <Dependencies/>
   <VirtualDirectory Name="HEADERS">
     <VirtualDirectory Name="REEFAMR">
+      <File Name="reefckpt.h"/>
       <File Name="amr_load.h"/>
       <VirtualDirectory Name="CFD">
         <File Name="reefamr3d.h"/>
@@ -51,6 +52,7 @@
         <File Name="sflow_amr.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="FNPF">
+        <File Name="fnpf_ckpt_fields.h"/>
         <File Name="fnpf_amr_fill.h"/>
         <File Name="fnpf_amr.h"/>
       </VirtualDirectory>
@@ -1394,6 +1396,8 @@
   </VirtualDirectory>
   <VirtualDirectory Name="SOURCES">
     <VirtualDirectory Name="REEFAMR">
+      <File Name="reefckpt.cpp"/>
+      <File Name="driver_ckpt_fnpf.cpp"/>
       <File Name="reefamr_load.cpp"/>
       <File Name="amr_load.cpp"/>
       <VirtualDirectory Name="CFD">
