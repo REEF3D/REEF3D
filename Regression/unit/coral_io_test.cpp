@@ -300,6 +300,29 @@ time dt 0.05 end 0
     check(vs.str().find("\n3\n")!=std::string::npos, "VTP: superelement elements (kind 3)");
 }
 
+// names that are also keys of their line (a body "mass", a spring "k", a mooring line "d", a drag "Cd")
+static void test_names_as_keys()
+{
+    std::cout<<"names that are keys"<<std::endl;
+    coral_case c;
+    bool ok = true;
+    try
+    {
+        c.read_string("rho 1000\ntime dt 0.01 end 1\nbody mass mass 2 cog 0 0 -1\nbody L mass 3 cog 0 0 -2\n"
+                      "joint k prismatic ground mass point 0 0 -1 axis 0 0 1\n"
+                      "spring k a ground 0 0 0 b mass 0 0 -1 k 50\n"
+                      "mooring d quasi_static a ground 10 0 -20 b L 0 0 -2 L 25 d 0.1 mass 50 EA 1e8\n"
+                      "drag Cd body L Cd 1 area 2\n", ".");
+    }
+    catch(const std::exception &e)
+    {
+        std::cout<<"  "<<e.what()<<std::endl;
+        ok = false;
+    }
+    check(ok && c.m.nbody()==2 && std::fabs(c.m.body(0).mass - 2.0) < 1e-15 && std::fabs(c.m.body(1).mass - 3.0) < 1e-15
+          && c.m.load_list.size() >= 3, "body 'mass', joint and spring 'k', mooring line 'd', drag 'Cd' read with the right numbers");
+}
+
 int main()
 {
     test_full_model();
@@ -307,6 +330,7 @@ int main()
     test_same_as_code();
     test_structure();
     test_offshore();
+    test_names_as_keys();
     std::cout<<(nfail ? "FAILED: " : "all passed")<<(nfail ? std::to_string(nfail) : "")<<std::endl;
     return nfail ? 1 : 0;
 }

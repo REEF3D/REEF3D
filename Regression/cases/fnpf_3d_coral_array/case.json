@@ -1,0 +1,10 @@
+{
+ "description": "REEF3D::CORAL drives three FNPF point absorbers 1 m apart (X 20 3, Z 40 1, three fluid_body, each on a heave joint with a PTO damper) on a refined mesh (G 1 1, a zone around each body): released 3, 2 and 1 cm above equilibrium; the loads and the added mass with the cross terms of all bodies to CORAL, CORAL's poses back to each body; REEF3D_FNPF_6DOF and REEF3D_CORAL compared.",
+ "solver": "fnpf",
+ "np": 1,
+ "steps": 20,
+ "ctrl_add": ["Z 40 1"],
+ "files": ["coral.txt", "floating.stl", "floating-1.stl", "floating-2.stl"],
+ "tags": ["3d", "fnpf", "amr", "6dof", "floating", "coral"],
+ "covers": ["fnpf_6DOF external dynamics with several bodies and mesh refinement (ext_loads with the cross added mass)"]
+}

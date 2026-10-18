@@ -49,6 +49,19 @@ void reinidisc_f::start(lexer *p, fdm *a, ghostcell *pgc, field &f, field &L, in
     disc(p,a,pgc,f,L);
 }
 
+void reinidisc_f::start_box(lexer *p, fdm *a, ghostcell *pgc, field &f, field &L, const int *b)
+{
+    for(i=b[0]; i<b[1]; ++i)
+    for(j=b[2]; j<b[3]; ++j)
+    for(k=b[4]; k<b[5]; ++k)
+    {
+        L.V[IJK] = 0.0;
+
+        if(p->flag4[IJK]>0)
+        disc(p,a,pgc,f,L);
+    }
+}
+
 void reinidisc_f::disc(lexer *p, fdm *a, ghostcell *pgc, field &f, field &L)
 {
     if(fixed_interface)

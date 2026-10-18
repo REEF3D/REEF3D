@@ -42,8 +42,8 @@ cfd_amr_6dof::~cfd_amr_6dof()
 void cfd_amr_6dof::cast(lexer *p, fdm *a, ghostcell *pgc, int nb)
 {
     sixdof_obj_cfd *o = b->object(nb);
-    o->ray_cast_amr(p,a,pgc,fbio,cutl,cutr);
-    o->reini_amr(p,a,pgc,a->fb,prdisc,frk1,L,dt);
+    o->ray_cast_amr(p,a,pgc,fbio,cutl,cutr,box);
+    o->reini_amr(p,a,pgc,a->fb,prdisc,frk1,L,dt,box);
 }
 
 // the solid Heaviside functions of the stage (sixdof_cfd::setup)

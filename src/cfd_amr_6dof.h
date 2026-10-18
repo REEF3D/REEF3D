@@ -29,7 +29,7 @@ Architect: Hans Bihs
 #include"field4a.h"
 
 class sixdof_cfd;
-class reinidisc;
+class reinidisc_f;
 
 using namespace std;
 
@@ -78,7 +78,8 @@ private:
     sixdof_cfd *b;
     fieldint5 cutl, cutr, fbio;
     field4a frk1, L, dt;
-    reinidisc *prdisc;
+    reinidisc_f *prdisc;
+    int box[6];             // the box of the body on the grid (ray_cast_amr)
 };
 
 #endif
