@@ -309,7 +309,7 @@ void reefamr::lmap_layout(lexer *p)
 
 void reefamr::lmap_step(lexer *p)
 {
-    if(p->G45<=0 || nblk>0 || maxlev<1)
+    if((p->G45<=0 && p->G46<=0.0) || nblk>0 || maxlev<1)
     return;
 
     if(lmap_dirty || lmap_cur.size()!=(size_t)NX0*NY0)
@@ -322,7 +322,7 @@ void reefamr::lmap_step(lexer *p)
     lmap_acc[n] += lmap_cur[n];
     ++lmap_steps;
 
-    if(p->count%p->G45==0)
+    if(p->G45>0 && p->count%p->G45==0)
     lmap_write(p);
 }
 

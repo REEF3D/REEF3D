@@ -59,6 +59,9 @@ public:
     virtual ~printer_fnpf() = default;
     void start(lexer*,fdm_fnpf*,ghostcell*,ioflow*) override final;
     void print_stop(lexer*,fdm_fnpf*,ghostcell*) override final;
+    void ckpt_state(std::vector<double>&) override;
+    void ckpt_restore(const std::vector<double>&) override;
+    void flush_outputs() override;
 
 private:
     void print(lexer*,fdm_fnpf*,ghostcell*);
@@ -76,14 +79,15 @@ private:
     double *printfsftime_wT;
 
     int printcount;
+    int nP35 = 0, nP185 = 0;        // sizes of printtime_wT, printfsftime_wT
 
-    fnpf_print_wsf *pwsf;
+    fnpf_print_wsf *pwsf = nullptr;
     fnpf_print_wsf_theory *pwsf_theory;
     fnpf_print_wsfline *pwsfline;
     fnpf_print_wsfline_y *pwsfline_y;
     potentialfile_out *ppotentialfile;
-    fnpf_vtp_fsf *pfsf;
-    fnpf_vtp_bed *pbed;
+    fnpf_vtp_fsf *pfsf = nullptr;
+    fnpf_vtp_bed *pbed = nullptr;
     fnpf_state *pstate;
     fnpf_breaking_log *pbreaklog;
     fnpf_force_ale **pforce_ale;

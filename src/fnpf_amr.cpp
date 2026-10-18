@@ -20,6 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
+#include"reefckpt.h"
 #include"fnpf_amr.h"
 #include"lexer.h"
 #include"bc_zone.h"
@@ -299,7 +300,7 @@ void fnpf_amr::ini(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 
     if(p->mpirank==0)
     {
-        logout.open("./REEF3D_FNPF_AMR/REEF3D_FNPF_AMR_log.dat");
+        if(reefckpt_open(logout,"./REEF3D_FNPF_AMR/REEF3D_FNPF_AMR_log.dat",p->I45))   // I 45: continued
         logout<<"# count \t simtime \t dt \t patches \t cells \t Laplace iterations (last phi) \t residual \t max phi iterations \t max psi iterations \t solves \t iterations \t layout \t regrids skipped"<<endl;
     }
 

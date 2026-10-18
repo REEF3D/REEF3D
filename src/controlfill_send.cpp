@@ -157,6 +157,10 @@ void control::ctrlsend()
     dd++;
     dctrl[dd] = G44;
     dd++;
+    dctrl[dd] = G46;
+    dd++;
+    ictrl[ii] = G47;
+    ii++;
     ictrl[ii] = G40;
     ii++;
     ictrl[ii] = G43;
@@ -1547,6 +1551,8 @@ void control::ctrlsend()
     ii++;
     ictrl[ii] = I44;
     ii++;
+    ictrl[ii] = I45;
+    ii++;
     dctrl[dd] = I50;
     dd++;
     dctrl[dd] = I55;
@@ -1571,6 +1577,8 @@ void control::ctrlsend()
     ictrl[ii] = M10;
     ii++;
     ictrl[ii] = M40;
+    ii++;
+    ictrl[ii] = M41;
     ii++;
 
     ictrl[ii] = N10;
@@ -1690,6 +1698,8 @@ void control::ctrlsend()
     ictrl[ii] = P46_ie;
     ii++;
     ictrl[ii] = P47;
+    ii++;
+    ictrl[ii] = P48;
     ii++;
     dctrl[dd] = P47_ts;
     dd++;

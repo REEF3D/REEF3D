@@ -380,7 +380,8 @@ public:
     double G12_r,G13_L,G13_a,G20,G21;
     double *G10_xs,*G10_xe,*G10_ys,*G10_ye;
     int G15,G25;
-    double G24,G26,G41,G42,G44;
+    double G24,G26,G41,G42,G44,G46;
+    int G47;
     double *G15_xs,*G15_xe,*G15_ys,*G15_ye,*G15_zs,*G15_ze;
     double *G11_xs,*G11_xe,*G11_ys,*G11_ye;
     // grid
@@ -399,7 +400,7 @@ public:
     double H61_T,H62_T,H63_T,H64_T,H65_T,H66_T;
 
     // Initialize Options
-    int I10,I11,I12,I13,I30,I40,I41,I44,I56;
+    int I10,I11,I12,I13,I30,I40,I41,I44,I45,I56;
     double I21,I50,I55,I58_1,I58_2;
     int I230;
     double I231,I232,I233;
@@ -412,7 +413,7 @@ public:
     double N41,N43,N44,N47,N49,N50,N61;
 
     // MPI Options
-    int M10,M40;
+    int M10,M40,M41;
 
     // Print options
     int P10,P12,P15,P16,P18,P19,P20,P21,P23,P24,P25,P26,P27,P28,P29,P35,P37,P38,P40,P41,P43,P44,P45,P50,P51,P52,P53,P54,P56,P57,P58,P59;
@@ -423,6 +424,7 @@ public:
     double P43_xs,P43_xe,P43_ys,P43_ye;
     int P46,P46_is,P46_ie;
     int P47;
+    int P48;                    // checkpoints every P 48 steps (reefckpt)
     double P47_ts,P47_te;
     double *P50_x,*P50_y;
     double *P51_x,*P51_y;

@@ -125,6 +125,14 @@ public:
 	void driver_ini_cfd();
     void driver_ini_nhflow();
     void driver_ini_fnpf();
+    // checkpoints of FNPF on any decomposition (P 48, I 45; driver_ckpt_fnpf.cpp)
+    void fnpf_ckpt_write();
+    void fnpf_ckpt_read();
+    // rebalance (G 46): the measured load every G 47 steps; above G 46 checkpoint, load map, exit code 3
+    void fnpf_rebalance_check();
+    double rebal_L = 0.0;       // the load max/mean that stopped the run before (restart), 0 none
+    int rebal_n = 0;            // rebalance restarts so far
+    bool rebal_off = false;     // no further rebalance (the last one did not help)
     
 	void log_ini();
 	void mainlog(lexer*);

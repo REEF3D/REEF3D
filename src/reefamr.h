@@ -212,6 +212,8 @@ public:
     virtual ~reefamr();
 
     int patches_total;
+    // the load map now (a rebalance stop, G 46)
+    void write_loadmap(lexer *p) { if(nblk==0 && maxlev>=1 && lmap_steps>0) lmap_write(p); }
 
 protected:
     void configure(const reefamr_param&);

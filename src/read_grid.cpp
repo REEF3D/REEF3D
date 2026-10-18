@@ -69,9 +69,27 @@ void lexer::read_grid()
     
     // the grid of this rank: its file, or decomposed by REEF3D from the global file (M 40)
     struct stat st;
+    
+    // a run stopped to rebalance (G 46): restart from its checkpoint with the weighted partition
+    if(stat("REEF3D_Checkpoint/rebalance",&st)==0)
+    {
+        I45 = 1;
+        M40 = 1;
+        M41 = 1;
+        if(mpirank==0)
+        cout<<"rebalance restart (REEF3D_Checkpoint/rebalance): I 45 1, M 40 1, M 41 1"<<endl;
+    }
+
     const bool rankfile = (stat(name,&st)==0);
     const bool globfile = (stat("DIVEMesh_Grid/grid-global.dat",&st)==0);
     const bool decompose = (M40==1 || !rankfile) && globfile;
+    
+    if(M40==1 && !globfile)
+    {
+        if(mpirank==0)
+        cout<<endl<<"!!! M 40 1 (or a rebalance restart, G 46) needs DIVEMesh_Grid/grid-global.dat: DIVEMesh M 50 1 or 2 !!!"<<endl<<endl;
+        exit(1);
+    }
     bool opened = false;
     
     if(decompose)
@@ -88,7 +106,7 @@ void lexer::read_grid()
             
             cout<<"REEF3D decomposes DIVEMesh_Grid/grid-global.dat for "<<mpi_size<<" ranks (M 40 "<<M40<<")"<<endl;
             
-            if(M10!=mpi_size || !dmpart::build("DIVEMesh_Grid/grid-global.dat",mpi_size,rb,msg))
+            if(M10!=mpi_size || !dmpart::build("DIVEMesh_Grid/grid-global.dat",mpi_size,rb,msg,M41))
             {
                 if(M10!=mpi_size)
                 msg = "M 10 "+to_string(M10)+" is not the number of ranks "+to_string(mpi_size);

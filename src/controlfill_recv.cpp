@@ -153,6 +153,10 @@ void control::ctrlrecv()
     dd++;
     G44 = dctrl[dd];
     dd++;
+    G46 = dctrl[dd];
+    dd++;
+    G47 = ictrl[ii];
+    ii++;
     G40 = ictrl[ii];
     ii++;
     G43 = ictrl[ii];
@@ -1541,6 +1545,8 @@ void control::ctrlrecv()
     ii++;
     I44 = ictrl[ii];
     ii++;
+    I45 = ictrl[ii];
+    ii++;
     I50 = dctrl[dd];
     dd++;
     I55 = dctrl[dd];
@@ -1565,6 +1571,8 @@ void control::ctrlrecv()
     M10 = ictrl[ii];
     ii++;
     M40 = ictrl[ii];
+    ii++;
+    M41 = ictrl[ii];
     ii++;
 
     N10 = ictrl[ii];
@@ -1683,6 +1691,8 @@ void control::ctrlrecv()
     P46_ie = ictrl[ii];
     ii++;
     P47 = ictrl[ii];
+    ii++;
+    P48 = ictrl[ii];
     ii++;
     P47_ts = dctrl[dd];
     dd++;

@@ -22,6 +22,7 @@ Author: Hans Bihs
 
 #include"amr_load.h"
 #include"lexer.h"
+#include"reefckpt.h"
 #include<mpi.h>
 #include<sys/stat.h>
 #include<cmath>
@@ -78,6 +79,30 @@ amr_regrid_clock::~amr_regrid_clock()
             amr_clock::m_patch = amr_clock::mpi;
         }
     }
+}
+
+double amr_window_imbalance()
+{
+    static bool open = false;
+    static double w0 = 0.0, m0 = 0.0;
+
+    const double now = MPI_Wtime();
+    const double busy = (now-w0) - (amr_clock::mpi-m0);
+    const bool first = !open;
+    open = true;
+
+    double mx=0.0, sm=0.0;
+    MPI_Allreduce(&busy,&mx,1,MPI_DOUBLE,MPI_MAX,MPI_COMM_WORLD);
+    MPI_Allreduce(&busy,&sm,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+    int np=1;
+    MPI_Comm_size(MPI_COMM_WORLD,&np);
+
+    w0 = MPI_Wtime();
+    m0 = amr_clock::mpi;
+
+    if(first || sm<=0.0)
+    return 0.0;
+    return mx/(sm/np);
 }
 
 void amr_load::configure(const string &nm)
@@ -225,14 +250,21 @@ void amr_load::report(lexer *p, const amr_load_counts &c, int nsteps)
     if(!sout.is_open())
     {
         mkdir(dir.c_str(),0777);
-        sout.open((dir+"/REEF3D_"+tag+"_load.dat").c_str());
-        rout.open((dir+"/REEF3D_"+tag+"_load_ranks.dat").c_str());
+        // I 45: a restart continues the files
+        const bool h1 = reefckpt_open(sout,(dir+"/REEF3D_"+tag+"_load.dat").c_str(),p->I45);
+        const bool h2 = reefckpt_open(rout,(dir+"/REEF3D_"+tag+"_load_ranks.dat").c_str(),p->I45);
+        if(h1)
+        {
         sout<<"# "<<name<<" load statistics (G 43 "<<p->G43<<"), "<<nr<<" ranks; busy = wall - MPI time per rank"<<endl;
         sout<<"# count \t simtime \t steps \t wall per step [s] \t busy max/mean \t predicted max/mean \t parallel efficiency mean(busy)/wall"
               " \t imbalance loss (max-mean busy)/wall \t MPI share \t patch share \t regrid share \t patch cell cost (fit, level-0 cells)"
               " \t r(predicted,busy) \t slowest rank \t patches \t cells \t patch time max/mean \t level-0 time max/mean"<<endl;
+        }
+        if(h2)
+        {
         rout<<"# "<<name<<" load per rank (G 43 "<<p->G43<<"); times in s over the steps since the last report"<<endl;
         rout<<"# count \t rank \t level-0 cells \t not solid \t patch cells \t patches \t predicted work \t wall \t MPI \t patch \t regrid \t busy \t busy/mean \t level 0 (busy - patch - regrid work)"<<endl;
+        }
     }
 
     sout<<p->count<<" \t "<<setprecision(10)<<p->simtime<<" \t "<<nsteps<<" \t "<<setprecision(5)<<mwall/max(nsteps,1)

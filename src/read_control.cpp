@@ -2007,6 +2007,12 @@ void control::read_control(lexer* p)
                 case 45: control>>G45;
                          clear(c,numint);
                          break;
+                case 46: control>>G46;
+                         clear(c,numint);
+                         break;
+                case 47: control>>G47;
+                         clear(c,numint);
+                         break;
                 case 44: control>>G44;
                          clear(c,numint);
                          break;
@@ -2167,6 +2173,9 @@ void control::read_control(lexer* p)
                 case 41: control>>I41;
                          clear(c,numint);
                          break;
+                case 45: control>>I45;
+                         clear(c,numint);
+                         break;
                 case 44: control>>I44;
                          clear(c,numint);
                          break;
@@ -2265,6 +2274,9 @@ void control::read_control(lexer* p)
                          clear(c,numint);
                          break;
                 case 40: control>>M40;
+                         clear(c,numint);
+                         break;
+                case 41: control>>M41;
                          clear(c,numint);
                          break;
                 }
@@ -2450,6 +2462,9 @@ void control::read_control(lexer* p)
                          break;
                 case 47: control>>P47_ts>>P47_te;
                            P47=1;
+                         clear(c,numint);
+                         break;
+                case 48: control>>P48;
                          clear(c,numint);
                          break;
                 case 50: ++P50;

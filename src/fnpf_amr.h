@@ -116,9 +116,16 @@ struct fnpf_amr_patch : public reefamr_patch
     vector<int> fill2;              // the entries of fill within two columns of the patch (the stencils of the prolongation into the next finer level)
 };
 
+class reefckpt;
+
 class fnpf_amr : public reefamr, public amr_column_lookup
 {
 public:
+    // checkpoints (P 48, I 45; fnpf_amr_ckpt.cpp): the fields of the patches of this rank; the restart
+    // fills the patches of the hierarchy built by ini (any decomposition) from the patches of the checkpoint
+    void ckpt_write(reefckpt&);
+    bool ckpt_read(reefckpt&, std::string&);
+    void flush_outputs() { gaugeout.flush(); logout.flush(); }   // a rebalance stop (G 46)
     // the output on the finest grid (amr_grid_lookup.h): the finest patch of this rank at (x,y)
     int finest_column(double x, double y, lexer *&q, void *&f) const override
     {

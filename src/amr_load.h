@@ -73,6 +73,10 @@ struct amr_clock
     static void patch_end();
 };
 
+// the measured load of the ranks since the last call (collective): busy max/mean, busy = wall - MPI
+// time; 0 at the first call (it opens the window).  The rebalance of G 46.
+double amr_window_imbalance();
+
 // scope of a regrid
 struct amr_regrid_clock
 {

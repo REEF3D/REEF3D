@@ -34,7 +34,10 @@ Author: Hans Bihs
 
 namespace dmpart
 {
-bool build(const char *fname, int nranks, std::vector<std::vector<char>> &rankbuf, std::string &msg);
+// weighted: 1 the weighted partition with the load map (M 20 5, M 35 1) whatever the DIVEMesh keys are
+// boxes: if given, the subdomains (i0, j0, k0, ni, nj, nk per rank); boxes_only: no grid files built
+bool build(const char *fname, int nranks, std::vector<std::vector<char>> &rankbuf, std::string &msg, int weighted=0,
+           std::vector<int> *boxes=nullptr, bool boxes_only=false);
 }
 
 #endif

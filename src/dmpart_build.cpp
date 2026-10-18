@@ -70,7 +70,8 @@ namespace
     };
 }
 
-bool build(const char *fname, int nranks, std::vector<std::vector<char>> &rankbuf, std::string &msg)
+bool build(const char *fname, int nranks, std::vector<std::vector<char>> &rankbuf, std::string &msg, int weighted,
+           std::vector<int> *boxes, bool boxes_only)
 {
     gridv2::reader gf;
 
@@ -124,6 +125,14 @@ bool build(const char *fname, int nranks, std::vector<std::vector<char>> &rankbu
     }
 
     L.M10 = nranks;
+
+    // REEF3D M 41 (rebalance restart, G 46): the weighted partition with the load map
+    if(weighted==1)
+    {
+        L.M20 = 5;
+        L.M35 = 1;
+        L.M30_x = L.M30_y = L.M30_z = 0;
+    }
 
     // a fixed number of subdomains per direction (M 30) has to fit the ranks; M 20 5: else chosen
     if(L.M30_x*L.M30_y*L.M30_z!=nranks)
@@ -250,6 +259,23 @@ bool build(const char *fname, int nranks, std::vector<std::vector<char>> &rankbu
         msg = "the decomposition gives "+std::to_string(A.mx*A.my*A.mz)+" subdomains for "+std::to_string(nranks)+" ranks";
         return false;
     }
+
+    // ---- the subdomains
+    if(boxes!=nullptr)
+    {
+        boxes->assign(6*size_t(nranks),0);
+        for(int aa=1;aa<=A.mx;++aa)
+        for(int bb=1;bb<=A.my;++bb)
+        for(int cc=1;cc<=A.mz;++cc)
+        {
+            const int r = ((aa-1)*A.my + (bb-1))*A.mz + cc - 1;
+            int *b = &(*boxes)[6*size_t(r)];
+            b[0] = A.xnode[aa-1]; b[1] = A.ynode[bb-1]; b[2] = A.znode[cc-1];
+            b[3] = A.xnode[aa]-A.xnode[aa-1]; b[4] = A.ynode[bb]-A.ynode[bb-1]; b[5] = A.znode[cc]-A.znode[cc-1];
+        }
+    }
+    if(boxes_only)
+    return true;
 
     // ---- the grid files of the ranks (print_grid of DIVEMesh)
     dive *a = &A;

@@ -45,6 +45,11 @@ class amr_column_lookup;
 class printer
 {
 public:
+    // checkpoints (P 48, I 45): the counters of the outputs (file numbers, print windows)
+    virtual void ckpt_state(std::vector<double>&) {};
+    virtual void ckpt_restore(const std::vector<double>&) {};
+    // the files written so far are complete (a rebalance stop, G 46)
+    virtual void flush_outputs() {};
     // CFD
     virtual void start(lexer*,fdm*,ghostcell*,turbulence*,heat*,ioflow*,expdata*,concentration*,multiphase*,sediment*) {};
     virtual void print_stop(lexer*,fdm*,ghostcell*,turbulence*,heat*,ioflow*,expdata*,concentration*,multiphase*,sediment*) {};
