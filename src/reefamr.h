@@ -861,6 +861,14 @@ private:
     double lw_t0 = 0.0, lw_m0 = 0.0, lw_r0 = 0.0, lw_rm0 = 0.0;
     int lw_c0 = 0;
     vector<double> lbase;                   // x1 of all ranks
+    // load map (G 45): patch cells per level-0 column of the rank box, of the current layout and summed
+    // over the steps; written as the work per step of every column for DIVEMesh (M 20 5, M 35 1)
+    vector<double> lmap_cur, lmap_acc;
+    long lmap_steps = 0;
+    bool lmap_dirty = true;
+    void lmap_layout(lexer*);
+    void lmap_step(lexer*);
+    void lmap_write(lexer*);
     void load_window(lexer*, bool);         // closes the window (true: a sample, the fit), opens the next
     void load_fit();
     void load_counts(lexer*, double&, double&, double&);   // x1, x2, x3 of this rank

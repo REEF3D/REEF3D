@@ -101,8 +101,8 @@ void reefamr::configure(const reefamr_param &q)
     keep = q.keep;
     EXT = q.ext;
 
-    // measured cost model of the placement (G 41 0) and the weight of the patch phase (G 44)
-    lmeas = (par.place>0 && p0->G41<=0.0 && p0->mpi_size>1);
+    // measured cost model (G 41 0: the placement, the load map) and the weight of the patch phase (G 44)
+    lmeas = (p0->G41<=0.0 && p0->mpi_size>1);
     lmu = MAX(p0->G44,0.0);
 }
 

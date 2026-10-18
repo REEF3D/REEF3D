@@ -2004,6 +2004,9 @@ void control::read_control(lexer* p)
                 case 42: control>>G42;
                          clear(c,numint);
                          break;
+                case 45: control>>G45;
+                         clear(c,numint);
+                         break;
                 case 44: control>>G44;
                          clear(c,numint);
                          break;
@@ -2259,6 +2262,9 @@ void control::read_control(lexer* p)
                 switch(numint)
                 {
                 case 10: control>>M10;
+                         clear(c,numint);
+                         break;
+                case 40: control>>M40;
                          clear(c,numint);
                          break;
                 }

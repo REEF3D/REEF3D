@@ -25,7 +25,7 @@ Author: Hans Bihs
 //  load_step: once per step from the module; the load statistics (G 43, amr_load.h) with the work
 //  predicted by the cost model of the placement.
 //
-//  Measured cost model of the placement (G 40 1 with G 41 0, on several ranks):
+//  Measured cost model (G 41 0, on several ranks; for the placement of G 40 1 and the load map):
 //  the work of a rank per step is modelled as  a (x1 + wp x2 + ws x3)  with
 //    x1  the level-0 cells that are not solid (and the level-0 blocks of the rank),
 //    x2  the cells of its patches with their EXT cells and layers (as in place_patches),
@@ -40,6 +40,13 @@ Author: Hans Bihs
 //  fixed (wp = 1, ws = 0, x1 the solid-free cells).
 //  A static refinement (no regrid) is placed once more at step 15 with the weights measured over
 //  steps 5-15 (replace_due).
+//
+//  Load map (G 45 N): the work per step of every level-0 column, averaged over the steps of the run,
+//    its level-0 cells that are not solid + wp (G 41, or measured) times the patch cells over it
+//  (all levels, their EXT cells spread over the patch, the layers), by location (the rank that holds
+//  a patch does not matter).  Every N steps rank 0 writes REEF3D_<M>_AMR/REEF3D_<M>_AMR_loadmap.dat
+//  (GNX GNY, then a line of GNY values per i) for the weighted partition of DIVEMesh (M 20 5, M 35 1).
+//  Not for multi-block grids.
 
 #include"reefamr.h"
 #include"lexer.h"
@@ -48,6 +55,8 @@ Author: Hans Bihs
 #include<iostream>
 #include<iomanip>
 #include<cmath>
+#include<fstream>
+#include<sys/stat.h>
 
 namespace
 {
@@ -266,8 +275,118 @@ bool reefamr::replace_due(lexer *p)
     return false;
 }
 
+// patch cells per level-0 column of the rank box, current layout (the global patch table)
+void reefamr::lmap_layout(lexer *p)
+{
+    const double kz = double(MAX(p->knoz,1));
+    lmap_cur.assign((size_t)NX0*NY0,0.0);
+
+    for(const reefamr_gpatch &G : GP)
+    {
+        const int l = G.lev;
+        if(l<1)
+        continue;
+        const double nx = G.I1-G.I0+1, ny = G.J1-G.J0+1;
+        const double f = (nx+2*EXT)*(ny+2*EXT)/(nx*ny)*kz*double(vfac.empty() ? 1 : vfac[l]);
+
+        const int a0 = MAX(G.I0>>l,O0i), a1 = MIN(G.I1>>l,O0i+NX0-1);
+        const int b0 = MAX(G.J0>>l,O0j), b1 = MIN(G.J1>>l,O0j+NY0-1);
+        for(int I=a0; I<=a1; ++I)
+        {
+            const int ci = MIN(G.I1,((I+1)<<l)-1) - MAX(G.I0,I<<l) + 1;
+            if(ci<=0)
+            continue;
+            for(int J=b0; J<=b1; ++J)
+            {
+                const int cj = MIN(G.J1,((J+1)<<l)-1) - MAX(G.J0,J<<l) + 1;
+                if(cj>0)
+                lmap_cur[(size_t)(I-O0i)*NY0+(J-O0j)] += f*double(ci)*double(cj);
+            }
+        }
+    }
+    lmap_dirty = false;
+}
+
+void reefamr::lmap_step(lexer *p)
+{
+    if(p->G45<=0 || nblk>0 || maxlev<1)
+    return;
+
+    if(lmap_dirty || lmap_cur.size()!=(size_t)NX0*NY0)
+    lmap_layout(p);
+
+    if(lmap_acc.size()!=lmap_cur.size())
+    lmap_acc.assign(lmap_cur.size(),0.0);
+
+    for(size_t n=0; n<lmap_cur.size(); ++n)
+    lmap_acc[n] += lmap_cur[n];
+    ++lmap_steps;
+
+    if(p->count%p->G45==0)
+    lmap_write(p);
+}
+
+void reefamr::lmap_write(lexer *p)
+{
+    const int np = p->mpi_size;
+    const double kz = double(MAX(p->knoz,1));
+    const double wp = lmeas ? lwp : ((p->G41>0.0) ? p->G41 : 1.0);
+    const double st = double(MAX(lmap_steps,1L));
+
+    // the work per step of the columns of the rank box
+    vector<double> mine((size_t)NX0*NY0);
+    for(int ii=0; ii<NX0; ++ii)
+    for(int jj=0; jj<NY0; ++jj)
+    {
+        const size_t n = (size_t)ii*NY0+jj;
+        mine[n] = ((flag0(ii+O0i,jj+O0j)>0) ? kz : 0.0) + wp*lmap_acc[n]/st;
+    }
+
+    vector<int> cnt(np), off(np,0);
+    for(int r=0; r<np; ++r)
+    cnt[r] = (rbx1[r]-rbx0[r]+1)*(rby1[r]-rby0[r]+1);
+    for(int r=1; r<np; ++r)
+    off[r] = off[r-1]+cnt[r-1];
+    vector<double> all(p->mpirank==0 ? (size_t)(off[np-1]+cnt[np-1]) : 1);
+    MPI_Gatherv(&mine[0],(int)mine.size(),MPI_DOUBLE,&all[0],&cnt[0],&off[0],MPI_DOUBLE,0,MPI_COMM_WORLD);
+
+    if(p->mpirank!=0)
+    return;
+
+    vector<double> map((size_t)GNX*GNY,0.0);
+    for(int r=0; r<np; ++r)
+    {
+        const int ny = rby1[r]-rby0[r]+1;
+        for(int I=rbx0[r]; I<=rbx1[r]; ++I)
+        for(int J=rby0[r]; J<=rby1[r]; ++J)
+        map[(size_t)I*GNY+J] = all[off[r]+(size_t)(I-rbx0[r])*ny+(J-rby0[r])];
+    }
+
+    string tag = par.name;
+    for(auto &ch : tag)
+    if(ch==' ')
+    ch='_';
+    const string dir = "./REEF3D_"+tag;
+    mkdir(dir.c_str(),0777);
+    ofstream out((dir+"/REEF3D_"+tag+"_loadmap.dat").c_str());
+    out<<"# "<<par.name<<" load map (G 45): work per step of every level-0 column in level-0 cells, averaged over "<<lmap_steps
+       <<" steps: the cells that are not solid + "<<wp<<" (a patch cell"<<(lmeas ? ", measured" : "")<<") times the patch cells over it"<<endl;
+    out<<"# for the weighted partition of DIVEMesh: M 20 5, M 35 1 (copy as loadmap.dat or run DIVEMesh in this case folder)"<<endl;
+    out<<GNX<<" "<<GNY<<endl;
+    out<<setprecision(6);
+    for(int I=0; I<GNX; ++I)
+    {
+        for(int J=0; J<GNY; ++J)
+        out<<map[(size_t)I*GNY+J]<<(J+1<GNY ? " " : "");
+        out<<"\n";
+    }
+}
+
 void reefamr::load_step(lexer *p)
 {
+    // load map (G 45)
+    lmap_step(p);
+
     // static refinement with the measured model: the window of the re-placement opens at step 5
     if(lmeas && par.place==1 && regrid_int==0 && maxlev>0 && p->count==5)
     load_window(p,false);

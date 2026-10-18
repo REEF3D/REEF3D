@@ -451,6 +451,7 @@ void reefamr::regrid(lexer *p, ghostcell *pgc, bool initial)
     regrid_finish(pgc,old_total);
 
     ++regrids;
+    lmap_dirty = true;      // load map (G 45): a new layout
 }
 
 // --------------------------------------------------------------------- plans
