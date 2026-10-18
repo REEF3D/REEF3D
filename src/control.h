@@ -380,7 +380,7 @@ public:
     double G12_r,G13_L,G13_a,G20,G21;
     double *G10_xs,*G10_xe,*G10_ys,*G10_ye;
     int G15,G25;
-    double G24,G26,G41;
+    double G24,G26,G41,G42;
     double *G15_xs,*G15_xe,*G15_ys,*G15_ye,*G15_zs,*G15_ze;
     double *G11_xs,*G11_xe,*G11_ys,*G11_ye;
     // grid

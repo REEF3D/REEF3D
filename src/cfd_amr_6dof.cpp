@@ -67,38 +67,54 @@ void cfd_amr_6dof::reset_fbh(lexer *p, fdm *a, ghostcell *pgc)
     pgc->start4(p,a->fbh4,40);
 }
 
-// true if every body has the triangles of the last cast on this grid; the current triangles are
-// kept for the next check
-bool cfd_amr_6dof::unchanged()
+// true if no vertex coordinate of the bodies is further than tol from the triangles of the last cast
+// on this grid (tol 0: the same triangles); otherwise the current triangles are kept for the next
+// check (tol < 0: always)
+bool cfd_amr_6dof::unchanged(double tol)
 {
     const int nob = b->objects();
     bool same = ((int)last.size()==nob);
-    if(!same)
-    last.assign(nob,vector<double>());
 
-    for(int nb=0; nb<nob; ++nb)
+    for(int nb=0; nb<nob && same; ++nb)
     {
         sixdof_obj_cfd *o = b->object(nb);
         const int n = o->amr_tricount();
-        vector<double> &v = last[nb];
+        const vector<double> &v = last[nb];
         if((int)v.size()!=9*n)
         {
             same = false;
-            v.assign(9*n,0.0);
+            break;
         }
         size_t c = 0;
-        for(int d=0; d<3; ++d)
+        for(int d=0; d<3 && same; ++d)
         {
             double **t = o->amr_tri(d);
-            for(int q=0; q<n; ++q)
+            for(int q=0; q<n && same; ++q)
             for(int e=0; e<3; ++e)
             {
-                if(v[c]!=t[q][e])
-                {
-                    same = false;
-                    v[c] = t[q][e];
-                }
+                if(!(fabs(v[c]-t[q][e])<=tol))
+                same = false;
                 ++c;
+            }
+        }
+    }
+
+    if(!same)
+    {
+        last.assign(nob,vector<double>());
+        for(int nb=0; nb<nob; ++nb)
+        {
+            sixdof_obj_cfd *o = b->object(nb);
+            const int n = o->amr_tricount();
+            vector<double> &v = last[nb];
+            v.resize(9*n);
+            size_t c = 0;
+            for(int d=0; d<3; ++d)
+            {
+                double **t = o->amr_tri(d);
+                for(int q=0; q<n; ++q)
+                for(int e=0; e<3; ++e)
+                v[c++] = t[q][e];
             }
         }
     }
@@ -107,7 +123,7 @@ bool cfd_amr_6dof::unchanged()
 
 void cfd_amr_6dof::body(lexer *p, fdm *a, ghostcell *pgc)
 {
-    unchanged();
+    unchanged(-1.0);
 
     for(int nb=0; nb<b->objects(); ++nb)
     cast(p,a,pgc,nb);
@@ -122,8 +138,8 @@ void cfd_amr_6dof::start_cfd(lexer *p, fdm *a, ghostcell *pgc, int iter, field &
     reset_fbh(p,a,pgc);
 
     // the bodies with the triangles of the last cast keep fb (a cast of one body overwrites fb, so
-    // all are cast again when one of them has moved)
-    const bool keep = unchanged();
+    // all are cast again when one of them has moved); G 42: up to that many cells off the last cast
+    const bool keep = unchanged(MAX(p->G42,0.0)*p->DXM);
 
     for(int nb=0; nb<b->objects(); ++nb)
     {

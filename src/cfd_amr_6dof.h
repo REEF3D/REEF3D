@@ -41,7 +41,9 @@ using namespace std;
 //  and adds the direct forcing of the rigid-body velocity, as sixdof_cfd::start_cfd does it on
 //  level 0.  With subcycling (G 7 1) cfd_amr sets the body to the time of the stage first.  A
 //  stage whose bodies have the triangles of the last cast keeps fb (only the cast writes it): a body
-//  at rest, before the ramp of a prescribed motion, costs no cast.
+//  at rest, before the ramp of a prescribed motion, costs no cast.  G 42 > 0: the bodies are cast
+//  again only when a vertex has moved more than G 42 cells since the last cast (a propeller: the
+//  geometry follows the blades within that distance, the forcing velocity is that of the stage).
 
 class cfd_amr_6dof final : public sixdof, public increment
 {
@@ -76,7 +78,7 @@ public:
 
 private:
     void cast(lexer*, fdm*, ghostcell*, int);
-    bool unchanged();
+    bool unchanged(double);
     void reset_fbh(lexer*, fdm*, ghostcell*);
 
     sixdof_cfd *b;
