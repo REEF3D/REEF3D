@@ -54,6 +54,11 @@ Architect: Hans Bihs
 //   linear6 <name> body <b> point <x y z> [k <k1..k6>] [c <c1..c6>]       (diagonal stiffness, damping)
 //        [K <36 values>] [C <36 values>]           (full 6x6 matrices, row by row, e.g. coupled springs)
 //   force <name> body <b> [point <x y z>] [F <fx fy fz>] [M <mx my mz>] [ramp <t>]   (constant load)
+//   drag <name> body <b> [point <x y z>] (Q <q1..q6> | Cd <Cd> area <A> [axis <ex ey ez>]) [rho <rho>]
+//        (quadratic damping F_i = -Q_i |u_i| u_i of the point velocity (default point: the CoG) and the
+//        angular velocity, global axes; with Cd and area along the axis (default z) Q = rho Cd A / 2,
+//        e.g. the viscous drag of a heaving float that a potential-flow fluid (FNPF) leaves out;
+//        channels <name>_Fx .. _Mz, _P; coral/hydro/coral_body_drag.h)
 //   mooring <name> <quasi_static|dynamic> a <body> <x y z> b <body> <x y z> L <L> d <d> mass <m/L>
 //        EA <EA> [BA <BA>] [CB <CB>] [Cdn <c>] [Cdt <c>] [Can <c>] [Cat <c>] [kb <k>] [cb <c>] [mu <mu>]
 //        [nseg <n>] [seabed <z>] [dt_line <dt>] [settle <T>] [current <ux uy uz>]

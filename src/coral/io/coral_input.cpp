@@ -38,6 +38,7 @@ Architect: Hans Bihs
 #include"coral/pto/coral_pto.h"
 #include"coral/pto/coral_joint_drive.h"
 #include"coral/hydro/coral_fluid_load.h"
+#include"coral/hydro/coral_body_drag.h"
 #include"coral/hydro/coral_sampled_kinematics.h"
 #include"coral/hydro/coral_member_fluid_load.h"
 #include"coral/mooring/coral_mooring.h"
@@ -617,6 +618,28 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
                 if(iC >= 0) C(d/6, d%6) = it.num(iC+1+d);
             }
             m.add_load(std::make_unique<linear6>(m, b, it.need_vec("point"), K, C, Vec6::Zero(), it.word(1)));
+        }
+        else if(k=="drag")
+        {
+            // quadratic damping of a body (coral_body_drag.h)
+            const int b = body_of(it, it.word("body"));
+            if(b < 0) it.fail("the ground has no drag");
+            const Vec3 P = it.vec("point", m.body(b).x);
+            const double r = it.get("rho", rho);
+            const int iq = it.find("Q");
+            if(iq >= 0)
+            {
+                Vec6 Q;
+                for(int d=0; d<6; ++d)
+                    Q(d) = it.num(iq+1+d);
+                m.add_load(std::make_unique<body_drag>(m, b, P, Q, it.word(1)));
+            }
+            else
+            {
+                const Vec3 e = it.vec("axis", Vec3(0.0, 0.0, 1.0));
+                if(e.norm() <= 0.0) it.fail("axis must not be zero");
+                m.add_load(std::make_unique<body_drag>(m, b, P, e, 0.5*r*it.need("Cd")*it.need("area"), it.word(1)));
+            }
         }
         else if(k=="mooring")
         {
