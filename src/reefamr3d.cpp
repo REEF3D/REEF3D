@@ -2021,7 +2021,7 @@ void reefamr3d::build_lexer(r3patch &c)
     auto idx = [&](lexer *q, int ii, int jj, int kk) { return (ii-q->imin)*q->jmax*q->kmax + (jj-q->jmin)*q->kmax + kk-q->kmin; };
     auto lij = [&](lexer *q, int ii, int jj) { return (ii-q->imin)*q->jmax + (jj-q->jmin); };
 
-    pp->Iarray(pp->flag4,pp->imax*pp->jmax*pp->kmax);
+    pp->flag4.resize();
     pp->Darray(pp->flag_solid,pp->imax*pp->jmax*pp->kmax);
     pp->Darray(pp->flag_topo,pp->imax*pp->jmax*pp->kmax);
     pp->Darray(pp->solidbed,pp->imax*pp->jmax);
@@ -2290,7 +2290,7 @@ void reefamr3d::build_lexer(r3patch &c)
     pgc0->flagx(pp,pp->flag1);
     pgc0->flagx(pp,pp->flag2);
     pgc0->flagx(pp,pp->flag3);
-    pgc0->flagx(pp,pp->flag4);
+    pgc0->flagx(pp,pp->flag4.data());
     pgc0->gcxupdate(pp);
 
     pp->vecsize(pgc0);

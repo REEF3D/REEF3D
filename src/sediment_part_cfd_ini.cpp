@@ -119,7 +119,7 @@ void sediment_part::topo_flags_off(lexer *p, fdm *a, ghostcell *pgc)
     if(p->mpirank==0)
     cout<<"CPM two-way: "<<nchg<<" topo cells become fluid cells"<<endl;
     
-    pgc->flagx(p,p->flag4);
+    pgc->flagx(p,p->flag4.data());
     
     // face flag: flag(face q,q+e) = flag4(q), -10 if flag4(q)>0 and flag4(q+e)<0
     auto face = [&](int *fl, int ii, int jj, int kk, int di, int dj, int dk)
