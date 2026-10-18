@@ -299,7 +299,7 @@ double sflow_curv::sigma(lexer *p, fdm2D *b, int ii, int jj, double c)
     return s;
 }
 
-void sflow_curv::wall_mirror(lexer *p, slice &u, slice &v, int ii, int jj, int cs)
+void sflow_curv::wall_mirror(lexer *p, slice &u, slice &v, int ii, int jj, int cs, int depth)
 {
     double nx,ny,len,un;
 
@@ -309,7 +309,7 @@ void sflow_curv::wall_mirror(lexer *p, slice &u, slice &v, int ii, int jj, int c
     if(cs==2) normal(p,2,ii,jj,nx,ny,len);
     if(cs==3) normal(p,2,ii,jj-1,nx,ny,len);
 
-    for(int qq=0; qq<3; ++qq)
+    for(int qq=0; qq<depth; ++qq)
     {
         int ai=ii, aj=jj, gi=ii, gj=jj;
 
