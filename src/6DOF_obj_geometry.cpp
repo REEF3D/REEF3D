@@ -27,6 +27,8 @@ Authors: Tobias Martin, Hans Bihs
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 
+// subexpressions f1, f2, f3, g0, g1, g2 of D. Eberly, Polyhedral Mass Properties (Revisited),
+// Geometric Tools, 2002, used by geometry_parameters
 void sixdof_obj::geometry_f(double& w0, double& w1, double& w2, double& f1, double& f2, double& f3, double& g0, double& g1, double& g2)
 {
 	double temp0 = w0 + w1;
