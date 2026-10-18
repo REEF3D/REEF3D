@@ -180,6 +180,12 @@ struct nhflow_amr_patch : public reefamr_patch
     reefmg_core *mg = nullptr;      // patch-local multigrid of the preconditioner
     vector<int> fill1;              // the entries of fill next to the patch (the reach of the pressure rows)
     vector<int> fill2;              // the entries of fill within two columns of the patch (the stencils of the prolongation into the next finer level)
+    // the overlap of the patch multigrid (pr_overlap): columns across the sides x-, x+, y-, y+ where
+    // a patch of the level is next to it; mo: those of the multigrid as built; kc7: the matrix rows
+    // of the patch (p n s w e t b), filled into the columns around it from the patches there
+    int ov[4] = {0,0,0,0};
+    int mo[4] = {-1,-1,-1,-1};
+    vector<double*> kc7;
     double *ptgt = nullptr;         // unknowns of the current solve (P or PCORR)
 
     // composite implicit diffusion (G 31 1): Krylov vectors, cell layout
@@ -368,6 +374,12 @@ private:
     vector<int> pr_l0f;
     struct pact { long lq; int qq, rw; };
     vector<vector<pact>> pr_pa;             // [patch id]: active unknowns of the patch MG
+    vector<vector<pact>> pr_po;             // [patch id]: active overlap cells of the patch MG (qq in the patch arrays)
+    bool pr_ovl = false;                    // some patch of some rank has overlap columns
+    void pr_overlap();                      // the overlap columns of the patches (layout)
+    void pr_kc7_fill();                     // the rows of the patches into the columns around them (siblings)
+    template<class SEL> void pr_fill_sib(int, int, int, SEL);   // a fill from the patches of the level only
+    bool pr_sib(const reefamr_patch*, int, int);                 // column (di,dj) of the patch lies in a patch of its level
     void pr_stencils();
     template<class SEL> void pr_restrict(SEL);
     template<class SEL> void pr_fill(int, int, SEL, bool d1=false);
