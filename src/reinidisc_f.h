@@ -35,6 +35,8 @@ public:
 	reinidisc_f(lexer* p, bool fixed_interface=false);
 	virtual ~reinidisc_f();
 	void start(lexer*, fdm*, ghostcell*, field&, field&, int) override final;
+	// the fluid cells (flag4 > 0) of the box b = is, ie, js, je, ks, ke only; L elsewhere untouched
+	void start_box(lexer*, fdm*, ghostcell*, field&, field&, const int*);
 	
 private:
 	void disc(lexer*, fdm*, ghostcell*, field&, field&);

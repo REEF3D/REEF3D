@@ -737,6 +737,7 @@ void control::ini_default()
     G51=2;      // int NHFLOW multi-block grid (G 50 1, DIVEMesh R 20 1): passes of the block-local V-cycles in the preconditioner of the pressure, the corrections of the neighbour blocks filled in between
     G50=0;      // int curvilinear horizontal grid (SFLOW): 0 Cartesian, 1 nodes of the CURV section of grid-geometry.dat, 2 nodes of curvgrid.dat
     G40=0;      // int mesh refinement on several ranks (NHFLOW, SFLOW, FNPF, CFD): 0 patches on the rank of the level-0 cells below, 1 placed for the load of the ranks, 2 test of 1
+    G42=0.0;    // double CFD mesh refinement with floating bodies (X 10 1): a patch casts the bodies again when a vertex has moved more than G 42 times its cell size since its last cast (the stages in between keep that level set; their forcing velocity is that of the stage); 0 at every change of the pose
     G41=1.0;    // double CFD mesh refinement on several ranks: the work of a patch cell against a level-0 cell in the placement of G 40 1, 2; 0 measured in the run (the timers of the ranks, at every regrid, with a report of the measured load)
     // grid
     G502=0;            // int sigma grid
