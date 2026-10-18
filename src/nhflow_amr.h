@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #ifndef NHFLOW_AMR_H_
@@ -178,6 +178,8 @@ struct nhflow_amr_patch : public reefamr_patch
     vector<double*> kv;             // Krylov vectors, F layout
     vector<int> row;                // FIJK -> matrix row of the patch assembly, -1 none
     reefmg_core *mg = nullptr;      // patch-local multigrid of the preconditioner
+    vector<int> fill1;              // the entries of fill next to the patch (the reach of the pressure rows)
+    vector<int> fill2;              // the entries of fill within two columns of the patch (the stencils of the prolongation into the next finer level)
     double *ptgt = nullptr;         // unknowns of the current solve (P or PCORR)
 
     // composite implicit diffusion (G 31 1): Krylov vectors, cell layout
@@ -225,7 +227,7 @@ public:
     void dt_cell_size(int, double&, double&) override;
 
     // vector space of the composite pressure solve (nhflow_amr_press.cpp, reefamr_bicgstab)
-    void pr_apply(int, int);
+    void pr_apply(int, int, bool d1=false);
     void pr_prec(int, int);
     double pr_dot(int, int);
     void pr_start();
@@ -330,7 +332,7 @@ private:
     double* pvec(int, int);         // grid, vector (-1: the unknowns of the solve)
     void pr_core(lexer*, ghostcell*);
     void pr_prepare(ghostcell*);
-    void pr_sync(int);
+    void pr_sync(int, bool d1=false);   // d1: the columns next to the patches only (the operator)
     void pr_rows();
     int pr_layout = -1;
     struct pgrid
@@ -368,7 +370,7 @@ private:
     vector<vector<pact>> pr_pa;             // [patch id]: active unknowns of the patch MG
     void pr_stencils();
     template<class SEL> void pr_restrict(SEL);
-    template<class SEL> void pr_fill(int, int, SEL);
+    template<class SEL> void pr_fill(int, int, SEL, bool d1=false);
     template<class SEL> void pr_fill0(SEL);  // multi-block: the columns around the blocks and the ring
     int npass0 = 2;                          // multi-block: passes of the block-local V-cycles (G 51)
     // multi-block: coarse space across the blocks (G 53 w): aggregates of w x w columns of every

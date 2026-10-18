@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"nhflow_amr.h"
@@ -117,6 +117,22 @@ void nhflow_amr::pr_rows()
     number(p0,rowmap0);
     for(auto q : P)
     number(q->pp,NP(q)->row);
+
+    // the fill entries next to the patch: the columns the rows of the patch reach
+    for(auto q : P)
+    {
+        nhflow_amr_patch *c = NP(q);
+        c->fill1.clear();
+        c->fill2.clear();
+        for(size_t e=0; e<c->fill.size(); ++e)
+        {
+            const reefamr_fill &f = c->fill[e];
+            if(f.di>=EXT-1 && f.di<=EXT+c->nx && f.dj>=EXT-1 && f.dj<=EXT+c->ny)
+            c->fill1.push_back((int)e);
+            if(f.di>=EXT-2 && f.di<=EXT+c->nx+1 && f.dj>=EXT-2 && f.dj<=EXT+c->ny+1)
+            c->fill2.push_back((int)e);
+        }
+    }
 
     pg.assign(P.size()+1,pgrid());
 
@@ -680,7 +696,7 @@ void nhflow_amr::pr_restrict(SEL sel)
 
 // fill_col with the stencils of the fills from the coarser grid kept for the solve
 template<class SEL>
-void nhflow_amr::pr_fill(int l, int tag, SEL sel)
+void nhflow_amr::pr_fill(int l, int tag, SEL sel, bool d1)
 {
     const int knf = klev(l);
     const int nv = knf+1;
@@ -690,8 +706,7 @@ void nhflow_amr::pr_fill(int l, int tag, SEL sel)
     // unknowns and are 0 in the Krylov vectors
     const bool edge = (pr_edge && l==wlo);
 
-    fill_run(l,nv,tag,
-             [&](const reefamr_fill &f, double *v)
+    auto ev = [&](const reefamr_fill &f, double *v)
              {
                  if(f.kind==0)
                  {
@@ -719,8 +734,8 @@ void nhflow_amr::pr_fill(int l, int tag, SEL sel)
                  else
                  for(int kk=0; kk<=knf; ++kk)
                  v[kk] = 0.0;
-             },
-             [&](reefamr_patch *c, int id, const reefamr_fill &f, const double *w)
+             };
+    auto st = [&](reefamr_patch *c, int id, const reefamr_fill &f, const double *w)
              {
                  lexer *pp = c->pp;
                  double *dst = sel(id);
@@ -733,7 +748,13 @@ void nhflow_amr::pr_fill(int l, int tag, SEL sel)
                  }
                  for(int kk=0; kk<=knf; ++kk)
                  dst[fidx(pp,f.di,f.dj,kk)] = w[kk];
-             });
+             };
+    // (d1: depth 1 on the finest level of the window; the levels below it two columns deep, as far as
+    // the stencils of the fills of the next finer level reach around their parent columns)
+    if(d1)
+    fill_run_sub(l,nv,tag,ev,st,[&](reefamr_patch *c) -> const vector<int>* { return (l==wtop()) ? &NP(c)->fill1 : &NP(c)->fill2; });
+    else
+    fill_run(l,nv,tag,ev,st);
 }
 
 // the coarse correction of vector k into the interior of the level-l patches: from the parent
@@ -776,7 +797,7 @@ void nhflow_amr::pr_prolong(int l, int k)
 }
 
 // covered columns, partition halo of level 0, columns around the patches
-void nhflow_amr::pr_sync(int k)
+void nhflow_amr::pr_sync(int k, bool d1)
 {
     auto sel = [&](int g) -> double* { return pvec(g,k); };
 
@@ -795,7 +816,7 @@ void nhflow_amr::pr_sync(int k)
     }
 
     for(int l=MAX(wlo,1); l<=wtop(); ++l)
-    pr_fill(l,7600+l,sel);
+    pr_fill(l,7600+l,sel,d1);
 }
 
 // multi-block: the columns around the blocks and the ring of level 0 from the cells they stand for,
@@ -843,9 +864,9 @@ void nhflow_amr::pr_fill0(SEL sel)
 }
 
 // y = A x on the leaf unknowns
-void nhflow_amr::pr_apply(int kx, int ky)
+void nhflow_amr::pr_apply(int kx, int ky, bool d1)
 {
-    pr_sync(kx);
+    pr_sync(kx,d1);
 
     for(int g=-1; g<(int)P.size(); ++g)
     {
@@ -1132,7 +1153,9 @@ void nhflow_amr::pr_prec(int kr, int kz)
 
         for(int pass=0; pass<npass; ++pass)
         {
-        pr_fill(l,7700+l,selz);
+        // (the columns next to the patches, as the local residual reads them; the full fill below
+        // for the next level)
+        pr_fill(l,7700+l,selz,true);
 
         // patch-local corrections of the residual left by the coarse correction
         for(int id : lev[l])
@@ -1176,7 +1199,7 @@ struct pr_space
 {
     static const int B=NS, R=NR, RH=NRH, PV=NPV, VV=NVV, S=NS, T=NT, PH=NPH, SH=NSH;
     nhflow_amr *a;
-    void apply(int x, int y) { a->pr_apply(x,y); }
+    void apply(int x, int y) { a->pr_apply(x,y,true); }
     void prec(int r, int z) { a->pr_prec(r,z); }
     double dot(int x, int y) { return a->pr_dot(x,y); }
     void op_start() { a->pr_start(); }
