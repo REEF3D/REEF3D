@@ -410,7 +410,7 @@ void fnpf_theta::robin_build(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psol
     ILOOP
     JLOOP
     KLOOP
-    if(p->flag4[IJK]>0)
+    if(p->flag4(i,j,k)>0)
     {
     L.rid[i*N+k] = n;
     ++n;

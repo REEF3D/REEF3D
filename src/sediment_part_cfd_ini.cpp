@@ -106,9 +106,9 @@ void sediment_part::topo_flags_off(lexer *p, fdm *a, ghostcell *pgc)
     std::vector<int> ci,cj,ck;
     
     BASELOOP
-    if(p->flag4[IJK]<0 && (p->solidread==0 || a->solid(i,j,k)>=psi))
+    if(p->flag4(i,j,k)<0 && (p->solidread==0 || a->solid(i,j,k)>=psi))
     {
-        p->flag4[IJK]=10;
+        p->flag4(i,j,k)=10;
         ci.push_back(i);
         cj.push_back(j);
         ck.push_back(k);
@@ -169,7 +169,7 @@ void sediment_part::topo_flags_off(lexer *p, fdm *a, ghostcell *pgc)
         face(p->flag2,i,j-1,k,0,1,0);
         }
         else
-        p->flag2[IJK] = p->flag4[IJK];
+        p->flag2[IJK] = p->flag4(i,j,k);
         
         face(p->flag3,i,j,k,0,0,1);
         face(p->flag3,i,j,k-1,0,0,1);

@@ -44,19 +44,19 @@ void ghostcell::flagfield(lexer *p)
         LOOP
         {
             if(p->i_dir==1)
-            if(p->flag4[Im1JK]<0
-            && p->flag4[Ip1JK]<0)
-            p->flag4[IJK]=OBJ_FLAG;
+            if(p->flag4(i-1,j,k)<0
+            && p->flag4(i+1,j,k)<0)
+            p->flag4(i,j,k)=OBJ_FLAG;
 
             if(p->j_dir==1)
-            if(p->flag4[IJm1K]<0
-            && p->flag4[IJp1K]<0)
-            p->flag4[IJK]=OBJ_FLAG;
+            if(p->flag4(i,j-1,k)<0
+            && p->flag4(i,j+1,k)<0)
+            p->flag4(i,j,k)=OBJ_FLAG;
 
             if(p->k_dir==1)
-            if(p->flag4[IJKm1]<0
-            && p->flag4[IJKp1]<0)
-            p->flag4[IJK]=OBJ_FLAG;
+            if(p->flag4(i,j,k-1)<0
+            && p->flag4(i,j,k+1)<0)
+            p->flag4(i,j,k)=OBJ_FLAG;
         }
 
         flagx(p,p->flag4.data());

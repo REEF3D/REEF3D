@@ -375,16 +375,16 @@ void nhflow_potential_f::laplace(lexer *p, fdm_nhf *d, ghostcell *pgc)
     n=0;
 	LOOP
 	{
-        if(p->DF[IJK]>0 && p->flag4[IJK]>0 && p->wet[IJ]==1)
+        if(p->DF[IJK]>0 && p->flag4(i,j,k)>0 && p->wet[IJ]==1)
         {
            
-		if((p->flag4[Im1JK]<0 || p->DF[Im1JK]<0 ||  p->wet[Im1J]==0) && BC[Im1JK]==0)
+		if((p->flag4(i-1,j,k)<0 || p->DF[Im1JK]<0 ||  p->wet[Im1J]==0) && BC[Im1JK]==0)
 		{
 		d->M.p[n] += d->M.s[n];
 		d->M.s[n] = 0.0;
 		}
         
-        if((p->flag4[Im1JK]<0 || p->DF[Im1JK]<0) && BC[Im1JK]==1)
+        if((p->flag4(i-1,j,k)<0 || p->DF[Im1JK]<0) && BC[Im1JK]==1)
         {
         // curvilinear grid: the flux Ui through the face (its length over the area of the cell)
         if(p->geo_curv==1)
@@ -395,7 +395,7 @@ void nhflow_potential_f::laplace(lexer *p, fdm_nhf *d, ghostcell *pgc)
         d->M.s[n] = 0.0;
         }
 		
-		if((p->flag4[Ip1JK]<0 || p->DF[Ip1JK]<0 || p->wet[Ip1J]==0) && BC[Ip1JK]==0)
+		if((p->flag4(i+1,j,k)<0 || p->DF[Ip1JK]<0 || p->wet[Ip1J]==0) && BC[Ip1JK]==0)
 		{
 		d->M.p[n] += d->M.n[n];
 		d->M.n[n] = 0.0;
@@ -406,31 +406,31 @@ void nhflow_potential_f::laplace(lexer *p, fdm_nhf *d, ghostcell *pgc)
         // terms sigxx, KBEDBC) is not in conservation form, so inflow = outflow did not make
         // it consistent over real bathymetry: the solve stalled or diverged.  The Dirichlet
         // outflow removes the null space; the outflow profile follows from the potential.
-        if((p->flag4[Ip1JK]<0 || p->DF[Ip1JK]<0) && BC[Ip1JK]==2)
+        if((p->flag4(i+1,j,k)<0 || p->DF[Ip1JK]<0) && BC[Ip1JK]==2)
         {
         d->M.p[n] -= d->M.n[n];
         d->M.n[n] = 0.0;
         }
 		
-		if(p->flag4[IJm1K]<0 || p->DF[IJm1K]<0 || p->wet[IJm1]==0)
+		if(p->flag4(i,j-1,k)<0 || p->DF[IJm1K]<0 || p->wet[IJm1]==0)
 		{
 		d->M.p[n] += d->M.e[n];
 		d->M.e[n] = 0.0;
 		}
 		
-		if(p->flag4[IJp1K]<0 || p->DF[IJp1K]<0 || p->wet[IJp1]==0)
+		if(p->flag4(i,j+1,k)<0 || p->DF[IJp1K]<0 || p->wet[IJp1]==0)
 		{
 		d->M.p[n] += d->M.w[n];
 		d->M.w[n] = 0.0;
 		}
 		
-		if(p->flag4[IJKm1]>0 && p->DF[IJKm1]<0)
+		if(p->flag4(i,j,k-1)>0 && p->DF[IJKm1]<0)
 		{
 		d->M.p[n] += d->M.b[n];
 		d->M.b[n] = 0.0;
 		}
 		
-		if(p->flag4[IJKp1]<0 || p->DF[IJKp1]<0)
+		if(p->flag4(i,j,k+1)<0 || p->DF[IJKp1]<0)
 		{
 		d->M.p[n] += d->M.t[n];
 		d->M.t[n] = 0.0;
@@ -438,7 +438,7 @@ void nhflow_potential_f::laplace(lexer *p, fdm_nhf *d, ghostcell *pgc)
         
         
          // KBEDBC
-            if(p->flag4[IJKm1]<0)
+            if(p->flag4(i,j,k-1)<0)
             {
             sigxyz2 = pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[IJ],2.0);
             
@@ -450,7 +450,7 @@ void nhflow_potential_f::laplace(lexer *p, fdm_nhf *d, ghostcell *pgc)
                 if(p->geo_curv==1)
                 {
                     if(p->wet[Ip1J]==1 && p->wet[Im1J]==1 && p->wet[IJp1]==1 && p->wet[IJm1]==1
-                    && p->flag4[Ip1JK]>0 && p->flag4[Im1JK]>0 && p->flag4[IJp1K]>0 && p->flag4[IJm1K]>0)
+                    && p->flag4(i+1,j,k)>0 && p->flag4(i-1,j,k)>0 && p->flag4(i,j+1,k)>0 && p->flag4(i,j-1,k)>0)
                     {
                     auto xc = [&](int a, int b) { return p->XC2D[(a-p->imin)*p->jmax + (b-p->jmin)]; };
                     auto yc = [&](int a, int b) { return p->YC2D[(a-p->imin)*p->jmax + (b-p->jmin)]; };
@@ -525,22 +525,22 @@ void nhflow_potential_f::ini_bc(lexer *p, fdm_nhf *d, ghostcell *pgc)
     
     LOOP
     {
-        if(p->flag4[Im1JK]<0)
+        if(p->flag4(i-1,j,k)<0)
 		BC[Im1JK]=0;
 		
-		if(p->flag4[Ip1JK]<0)
+		if(p->flag4(i+1,j,k)<0)
 		BC[Ip1JK]=0;
 		
-		if(p->flag4[IJm1K]<0)
+		if(p->flag4(i,j-1,k)<0)
 		BC[IJm1K]=0;
 		
-		if(p->flag4[IJp1K]<0)
+		if(p->flag4(i,j+1,k)<0)
 		BC[IJp1K]=0;
 		
-		if(p->flag4[IJKm1]<0)
+		if(p->flag4(i,j,k-1)<0)
 		BC[IJKm1]=0;
 		
-		if(p->flag4[IJKp1]<0)
+		if(p->flag4(i,j,k+1)<0)
 		BC[IJKp1]=0;
     }
     
@@ -614,10 +614,10 @@ void nhflow_potential_f::curv_ghost(lexer *p)
 
     LOOP
     {
-        if(p->flag4[Im1JK]<0)
+        if(p->flag4(i-1,j,k)<0)
         PSI[Im1JK] = (BC[Im1JK]==1) ? PSI[IJK] - p->Ui*dn(i-1,j) : PSI[IJK];
 
-        if(p->flag4[Ip1JK]<0)
+        if(p->flag4(i+1,j,k)<0)
         PSI[Ip1JK] = (BC[Ip1JK]==2) ? PSI[IJK] + p->Uo*dn(i,j) : PSI[IJK];
     }
 }

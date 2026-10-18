@@ -524,7 +524,7 @@ void nhflow_thinbody::flux_hook(lexer *p, fdm_nhf *d, int id, int ipol, double *
         
         for(k=0; k<p->knoz; ++k)
         {
-            if(p->flag4[IJK]<=0 || p->flag4[Ip1JK]<=0 || p->wet[IJ]==0 || p->wet[Ip1J]==0)
+            if(p->flag4(i,j,k)<=0 || p->flag4(i+1,j,k)<=0 || p->wet[IJ]==0 || p->wet[Ip1J]==0)
             continue;
             
             const bool blk = bx[IJK]>0.5;
@@ -555,8 +555,8 @@ void nhflow_thinbody::flux_hook(lexer *p, fdm_nhf *d, int id, int ipol, double *
                 else
                 {
                     // near the body: HLL with states from the own side, gravity wave speed
-                    const bool om = bx[Im1JK]<0.5 && p->flag4[Im1JK]>0 && p->wet[Im1J]==1;
-                    const bool op = bx[Ip1JK]<0.5 && p->flag4[Ip2JK]>0 && p->wet[Ip2J]==1;
+                    const bool om = bx[Im1JK]<0.5 && p->flag4(i-1,j,k)>0 && p->wet[Im1J]==1;
+                    const bool op = bx[Ip1JK]<0.5 && p->flag4(i+2,j,k)>0 && p->wet[Ip2J]==1;
                     const double dc = (Ub-Ua)/p->DXP[IP];
                     const double UL = Ua + 0.5*p->DXN[IP]*(om ? vl(dc,(Ua-d->U[Im1JK])/p->DXP[IM1]) : 0.0);
                     const double UR = Ub - 0.5*p->DXN[IP1]*(op ? vl((d->U[Ip2JK]-Ub)/p->DXP[IP1],dc) : 0.0);
@@ -588,8 +588,8 @@ void nhflow_thinbody::flux_hook(lexer *p, fdm_nhf *d, int id, int ipol, double *
             }
             
             // states from the cells on either side, slopes not across blocked links
-            const bool om = bx[Im1JK]<0.5 && p->flag4[Im1JK]>0 && p->wet[Im1J]==1;
-            const bool op = bx[Ip1JK]<0.5 && p->flag4[Ip2JK]>0 && p->wet[Ip2J]==1;
+            const bool om = bx[Im1JK]<0.5 && p->flag4(i-1,j,k)>0 && p->wet[Im1J]==1;
+            const bool op = bx[Ip1JK]<0.5 && p->flag4(i+2,j,k)>0 && p->wet[Ip2J]==1;
             
             auto states = [&](const double *F, double &fl, double &fr)
             {
@@ -630,7 +630,7 @@ void nhflow_thinbody::flux_hook(lexer *p, fdm_nhf *d, int id, int ipol, double *
         
         for(k=0; k<p->knoz; ++k)
         {
-            if(p->flag4[IJK]<=0 || p->flag4[IJp1K]<=0 || p->wet[IJ]==0 || p->wet[IJp1]==0)
+            if(p->flag4(i,j,k)<=0 || p->flag4(i,j+1,k)<=0 || p->wet[IJ]==0 || p->wet[IJp1]==0)
             continue;
             
             const bool blk = by[IJK]>0.5;
@@ -659,8 +659,8 @@ void nhflow_thinbody::flux_hook(lexer *p, fdm_nhf *d, int id, int ipol, double *
                 }
                 else
                 {
-                    const bool om = by[IJm1K]<0.5 && p->flag4[IJm1K]>0 && p->wet[IJm1]==1;
-                    const bool op = by[IJp1K]<0.5 && p->flag4[IJp2K]>0 && p->wet[IJp2]==1;
+                    const bool om = by[IJm1K]<0.5 && p->flag4(i,j-1,k)>0 && p->wet[IJm1]==1;
+                    const bool op = by[IJp1K]<0.5 && p->flag4(i,j+2,k)>0 && p->wet[IJp2]==1;
                     const double dc = (Vb-Va)/p->DYP[JP];
                     const double VL = Va + 0.5*p->DYN[JP]*(om ? vl(dc,(Va-d->V[IJm1K])/p->DYP[JM1]) : 0.0);
                     const double VR = Vb - 0.5*p->DYN[JP1]*(op ? vl((d->V[IJp2K]-Vb)/p->DYP[JP1],dc) : 0.0);
@@ -691,8 +691,8 @@ void nhflow_thinbody::flux_hook(lexer *p, fdm_nhf *d, int id, int ipol, double *
                 continue;
             }
             
-            const bool om = by[IJm1K]<0.5 && p->flag4[IJm1K]>0 && p->wet[IJm1]==1;
-            const bool op = by[IJp1K]<0.5 && p->flag4[IJp2K]>0 && p->wet[IJp2]==1;
+            const bool om = by[IJm1K]<0.5 && p->flag4(i,j-1,k)>0 && p->wet[IJm1]==1;
+            const bool op = by[IJp1K]<0.5 && p->flag4(i,j+2,k)>0 && p->wet[IJp2]==1;
             
             auto states = [&](const double *F, double &fl, double &fr)
             {
@@ -1091,14 +1091,14 @@ void nhflow_thinbody::lid_correction(lexer *p, fdm_nhf *d, double *Fx, double *F
     for(i=-1; i<p->knox; ++i)
     for(j=0; j<p->knoy; ++j)
     for(k=0; k<p->knoz; ++k)
-    if((isL(IJK) || isL(Ip1JK)) && bx[IJK]<0.5 && p->flag4[IJK]>0 && p->flag4[Ip1JK]>0 && p->wet[IJ]==1 && p->wet[Ip1J]==1)
+    if((isL(IJK) || isL(Ip1JK)) && bx[IJK]<0.5 && p->flag4(i,j,k)>0 && p->flag4(i+1,j,k)>0 && p->wet[IJ]==1 && p->wet[Ip1J]==1)
     Hx(i,j) += p->DZN[KP]*(cutmode ? 0.5*(axl[IJK]+axh[IJK]) : 1.0);
     
     if(p->j_dir==1)
     for(i=0; i<p->knox; ++i)
     for(j=-1; j<p->knoy; ++j)
     for(k=0; k<p->knoz; ++k)
-    if((isL(IJK) || isL(IJp1K)) && by[IJK]<0.5 && p->flag4[IJK]>0 && p->flag4[IJp1K]>0 && p->wet[IJ]==1 && p->wet[IJp1]==1)
+    if((isL(IJK) || isL(IJp1K)) && by[IJK]<0.5 && p->flag4(i,j,k)>0 && p->flag4(i,j+1,k)>0 && p->wet[IJ]==1 && p->wet[IJp1]==1)
     Hy(i,j) += p->DZN[KP]*(cutmode ? 0.5*(ayl[IJK]+ayh[IJK]) : 1.0);
     
     // in a current (lid_outflow): the edge faces of the footprint through which the lower region takes water in get no
@@ -1267,7 +1267,7 @@ void nhflow_thinbody::lid_correction(lexer *p, fdm_nhf *d, double *Fx, double *F
         const double c = -(ph(i+1,j) - ph(i,j))/p->DXP[IP];
         
         for(k=0; k<p->knoz; ++k)
-        if((isL(IJK) || isL(Ip1JK)) && bx[IJK]<0.5 && p->flag4[IJK]>0 && p->flag4[Ip1JK]>0)
+        if((isL(IJK) || isL(Ip1JK)) && bx[IJK]<0.5 && p->flag4(i,j,k)>0 && p->flag4(i+1,j,k)>0)
         Fx[IJK] += c*(cutmode ? 0.5*(axl[IJK]+axh[IJK]) : 1.0);
     }
     
@@ -1279,7 +1279,7 @@ void nhflow_thinbody::lid_correction(lexer *p, fdm_nhf *d, double *Fx, double *F
         const double c = -(ph(i,j+1) - ph(i,j))/p->DYP[JP];
         
         for(k=0; k<p->knoz; ++k)
-        if((isL(IJK) || isL(IJp1K)) && by[IJK]<0.5 && p->flag4[IJK]>0 && p->flag4[IJp1K]>0)
+        if((isL(IJK) || isL(IJp1K)) && by[IJK]<0.5 && p->flag4(i,j,k)>0 && p->flag4(i,j+1,k)>0)
         Fy[IJK] += c*(cutmode ? 0.5*(ayl[IJK]+ayh[IJK]) : 1.0);
     }
 }
@@ -1469,7 +1469,7 @@ void nhflow_thinbody::cut_faces(lexer *p, fdm_nhf *d, int ipol, double *Fx, doub
         
         for(k=0; k<p->knoz; ++k)
         {
-            if(p->flag4[IJK]<=0 || p->flag4[Ip1JK]<=0 || p->wet[IJ]==0 || p->wet[Ip1J]==0)
+            if(p->flag4(i,j,k)<=0 || p->flag4(i+1,j,k)<=0 || p->wet[IJ]==0 || p->wet[Ip1J]==0)
             continue;
             
             const double A = AX(IJK);
@@ -1482,8 +1482,8 @@ void nhflow_thinbody::cut_faces(lexer *p, fdm_nhf *d, int ipol, double *Fx, doub
             const double hf = 0.5*(d->depth(i,j) + d->depth(i+1,j));
             const double ea = head(p,d,i,j,k), eb = head(p,d,i+1,j,k);
             const double Ua = d->U[IJK], Ub = d->U[Ip1JK];
-            const double wm = (p->flag4[Im1JK]>0 && p->wet[Im1J]==1) ? AX(Im1JK) : 0.0;
-            const double wp = (p->flag4[Ip2JK]>0 && p->wet[Ip2J]==1) ? AX(Ip1JK) : 0.0;
+            const double wm = (p->flag4(i-1,j,k)>0 && p->wet[Im1J]==1) ? AX(Im1JK) : 0.0;
+            const double wp = (p->flag4(i+2,j,k)>0 && p->wet[Ip2J]==1) ? AX(Ip1JK) : 0.0;
             
             auto states = [&](const double *F, double &fl, double &fr)
             {
@@ -1565,7 +1565,7 @@ void nhflow_thinbody::cut_faces(lexer *p, fdm_nhf *d, int ipol, double *Fx, doub
         
         for(k=0; k<p->knoz; ++k)
         {
-            if(p->flag4[IJK]<=0 || p->flag4[IJp1K]<=0 || p->wet[IJ]==0 || p->wet[IJp1]==0)
+            if(p->flag4(i,j,k)<=0 || p->flag4(i,j+1,k)<=0 || p->wet[IJ]==0 || p->wet[IJp1]==0)
             continue;
             
             const double A = AY(IJK);
@@ -1578,8 +1578,8 @@ void nhflow_thinbody::cut_faces(lexer *p, fdm_nhf *d, int ipol, double *Fx, doub
             const double hf = 0.5*(d->depth(i,j) + d->depth(i,j+1));
             const double ea = head(p,d,i,j,k), eb = head(p,d,i,j+1,k);
             const double Va = d->V[IJK], Vb = d->V[IJp1K];
-            const double wm = (p->flag4[IJm1K]>0 && p->wet[IJm1]==1) ? AY(IJm1K) : 0.0;
-            const double wp = (p->flag4[IJp2K]>0 && p->wet[IJp2]==1) ? AY(IJp1K) : 0.0;
+            const double wm = (p->flag4(i,j-1,k)>0 && p->wet[IJm1]==1) ? AY(IJm1K) : 0.0;
+            const double wp = (p->flag4(i,j+2,k)>0 && p->wet[IJp2]==1) ? AY(IJp1K) : 0.0;
             
             auto states = [&](const double *F, double &fl, double &fr)
             {

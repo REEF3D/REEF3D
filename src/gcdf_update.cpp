@@ -65,27 +65,27 @@ void ghostcell::gcdf_update(lexer *p, fdm *a)
     
     
     if( (a->solid(i,j,k)>=psi || p->solidread==0) && (a->topo(i,j,k)>=psi || p->toporead==0))
-    p->flag4[IJK]=10;
+    p->flag4(i,j,k)=10;
     
     if( (a->solid(i,j,k)<psi && p->solidread==1) || (a->topo(i,j,k)<psi && p->toporead==1))
-    p->flag4[IJK]=-10;
+    p->flag4(i,j,k)=-10;
     }
     
     flagx(p,p->flag4.data());
     
     BASELOOP
     {
-    p->flag1[IJK]=p->flag4[IJK];
-    p->flag2[IJK]=p->flag4[IJK];
-    p->flag3[IJK]=p->flag4[IJK];
+    p->flag1[IJK]=p->flag4(i,j,k);
+    p->flag2[IJK]=p->flag4(i,j,k);
+    p->flag3[IJK]=p->flag4(i,j,k);
     
-    if(p->flag4[IJK]>0 && p->flag4[Ip1JK]<0)
+    if(p->flag4(i,j,k)>0 && p->flag4(i+1,j,k)<0)
     p->flag1[IJK]=-10;
     
-    if(p->flag4[IJK]>0 && p->flag4[IJp1K]<0)
+    if(p->flag4(i,j,k)>0 && p->flag4(i,j+1,k)<0)
     p->flag2[IJK]=-10;
     
-    if(p->flag4[IJK]>0 && p->flag4[IJKp1]<0)
+    if(p->flag4(i,j,k)>0 && p->flag4(i,j,k+1)<0)
     p->flag3[IJK]=-10;
     }
     
@@ -134,7 +134,7 @@ void ghostcell::gcdf_update(lexer *p, fdm *a)
     for(i=p->imin; i<p->imin+p->imax; ++i)
     for(j=p->jmin; j<p->jmin+p->jmax; ++j)
     for(k=p->kmin; k<p->kmin+p->kmax; ++k)
-    if(margin(i,j,k) && p->flag4[IJK]>OBJ_FLAG)
+    if(margin(i,j,k) && p->flag4(i,j,k)>OBJ_FLAG)
     {
     if((a->fb(i,j,k)>0.0 || p->X10==0) && (a->solid(i,j,k)>0.0 || p->solidread==0) && (a->topo(i,j,k)>0.0 || p->toporead==0))
     p->flagsf4[IJK]=1;
@@ -286,19 +286,19 @@ void ghostcell::gcdf_update(lexer *p, fdm *a)
     auto flagsf1 = [p](int i, int j, int k) -> int
     {
         int v = p->flagsf4[IJK];
-        return (v>0 && p->flag4[IJK]>OBJ_FLAG && p->flagsf4[Ip1JK]<0) ? -1 : v;
+        return (v>0 && p->flag4(i,j,k)>OBJ_FLAG && p->flagsf4[Ip1JK]<0) ? -1 : v;
     };
 
     auto flagsf2 = [p](int i, int j, int k) -> int
     {
         int v = p->flagsf4[IJK];
-        return (v>0 && p->flag4[IJK]>OBJ_FLAG && p->flagsf4[IJp1K]<0) ? -1 : v;
+        return (v>0 && p->flag4(i,j,k)>OBJ_FLAG && p->flagsf4[IJp1K]<0) ? -1 : v;
     };
 
     auto flagsf3 = [p](int i, int j, int k) -> int
     {
         int v = p->flagsf4[IJK];
-        return (v>0 && p->flag4[IJK]>OBJ_FLAG && p->flagsf4[IJKp1]<0) ? -1 : v;
+        return (v>0 && p->flag4(i,j,k)>OBJ_FLAG && p->flagsf4[IJKp1]<0) ? -1 : v;
     };
 
     gcdf_update_impl(p, flagsf1, p->gcdf1, p->gcdf1_count);

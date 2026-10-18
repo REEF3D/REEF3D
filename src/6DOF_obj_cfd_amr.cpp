@@ -171,7 +171,7 @@ void sixdof_obj_cfd::reini_amr(lexer *p, fdm *a, ghostcell *pgc, field &f, reini
     if(b[1]<=b[0] || b[3]<=b[2] || b[5]<=b[4])
     return;
 
-    #define BOXLOOP for(i=b[0]; i<b[1]; ++i) for(j=b[2]; j<b[3]; ++j) for(k=b[4]; k<b[5]; ++k) if(p->flag4[IJK]>0)
+    #define BOXLOOP for(i=b[0]; i<b[1]; ++i) for(j=b[2]; j<b[3]; ++j) for(k=b[4]; k<b[5]; ++k) if(p->flag4(i,j,k)>0)
 
     BOXLOOP
     {

@@ -48,7 +48,7 @@ void ghostcell::solid_forcing_flag_update(lexer *p, fdm *a)
         for(i=p->imin; i<p->imin+p->imax; ++i)
         for(j=p->jmin; j<p->jmin+p->jmax; ++j)
         for(k=p->kmin; k<p->kmin+p->kmax; ++k)
-        if(margin(i,j,k) && p->flag4[IJK]>OBJ_FLAG)
+        if(margin(i,j,k) && p->flag4(i,j,k)>OBJ_FLAG)
         f();
     };
 

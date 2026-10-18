@@ -106,7 +106,7 @@ void fnpf_sigma::sigma_update(lexer *p, fdm_fnpf *c, ghostcell *pgc, fnpf_fsf *p
             }
             
             for(k=0; k<knoz; ++k)
-            if(p->flag4[IJK]>0)
+            if(p->flag4(i,j,k)>0)
             ZSP[IJK]  = p->ZP[KP]*wl + bd;
         }
     }
