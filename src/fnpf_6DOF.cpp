@@ -175,6 +175,11 @@ void fnpf_6DOF::stage(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, fnpf
             forces_amr(p,c,pgc,psolv,pf,Keta,Kfi,iter);
         }
         
+        // external dynamics: the copy on the poses the external solver predicts
+        if(pext!=nullptr)
+        ext_predict_copy(p,pgc,iter,p->simtime,p->dt);
+        
+        else
         for(int nb=0; nb<nbody; ++nb)
         fb_obj[nb]->amr_predict_fnpf(p,pgc,iter);
         

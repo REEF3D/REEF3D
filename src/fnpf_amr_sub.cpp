@@ -362,7 +362,7 @@ void fnpf_amr::sub_stage(lexer *p, ghostcell *pgc, int l, int k, int s, double d
         if(l==maxlev)
         b->amr_sub_finest(p,c0,pgc,l,s,tsub,dt,!(bfin==0 && s==0),bfin==(1<<maxlev)-1);
         else
-        b->amr_sub_predict(p,pgc,s,dt);
+        b->amr_sub_predict(p,pgc,s,tsub,dt);
     }
 
     t0 = MPI_Wtime();

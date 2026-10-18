@@ -41,7 +41,9 @@ Architect: Hans Bihs
 //  the level-0 step.  Level 0 steps first: at its first stage the loads and the added mass from
 //  the composite solves over all grids (all at the same time), then the stages of a predicted
 //  copy (the loads frozen); the levels in between step with a predicted copy as well.  The
-//  first stage of the first finest step takes the loads of level 0 (the same time).
+//  first stage of the first finest step takes the loads of level 0 (the same time).  External
+//  dynamics (fnpf_6DOF_external.cpp): every finest step is a step of the external solver, the copies
+//  of the coarser levels take the poses it predicts.
 
 void fnpf_6DOF::amr_save()
 {
@@ -55,9 +57,15 @@ void fnpf_6DOF::amr_restore(lexer *p, ghostcell *pgc)
     fb_obj[nb]->amr_restore(p,pgc);
 }
 
-// stage iter of the predicted copy with the step dt of its level
-void fnpf_6DOF::amr_sub_predict(lexer *p, ghostcell *pgc, int iter, double dt)
+// stage iter of the predicted copy with the step dt of its level (from t)
+void fnpf_6DOF::amr_sub_predict(lexer *p, ghostcell *pgc, int iter, double t, double dt)
 {
+    if(pext!=nullptr)
+    {
+    ext_predict_copy(p,pgc,iter,t,dt);
+    return;
+    }
+    
     const double dts = p->dt;
     p->dt = dt;
     
@@ -82,6 +90,15 @@ void fnpf_6DOF::amr_sub_finest(lexer *p, fdm_fnpf *c, ghostcell *pgc, int l, int
     forces_level(p,c,pgc,l);
     
     const bool finalize = (iter == ((p->A310==3) ? 2 : 3));
+    
+    // external dynamics: every finest step is a step of the external solver
+    if(pext!=nullptr)
+    {
+        motion_external(p,c,pgc,iter,last);
+        p->dt = dts;
+        p->simtime = ts;
+        return;
+    }
     
     for(int nb=0; nb<nbody; ++nb)
     {

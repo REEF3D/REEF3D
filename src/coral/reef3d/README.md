@@ -14,6 +14,8 @@ The link between CORAL and REEF3D. The only folder that includes REEF3D headers 
   returns the poses and velocities at the stage times of the fluid from the recorded motion of the step
   (`coral/core/coral_track.h`); mass and inertia come from REEF3D unless `own_mass`; the time series of
   `REEF3D_CORAL/` gets the fluid loads (`fluid_<body>_Fx` .. `Mz`, added-mass part included).
+  FNPF with mesh refinement (G 1): the loads and the added mass of all grids; with subcycling (G 7 1)
+  every finest step is a CORAL step and level 0 moves its copy of the bodies on poses CORAL predicts.
   NHFLOW integrates its loads at the end of each stage and has no instantaneous added mass: the first
   stage takes a predicted pose, its loads go over as provisional before CORAL steps, the loads of the
   step's end are committed; CORAL's artificial added mass (`fluid_body ... added_mass`) keeps light

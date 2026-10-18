@@ -32,6 +32,12 @@ Architect: Hans Bihs
 // its predictor it steps to t^n + dt at once. With the predictor (default) the next stage gets a
 // predicted pose; its loads go over as provisional and the external solver steps then, interpolating
 // the loads over the step. All later stages take the external solver's motion within the step.
+// Mesh refinement (G 1): the loads and the added mass of all grids (forces_amr), as above. With
+// subcycling (G 7 1) every finest step is an external step: its first stage commits the loads of its
+// start (the first finest step those of level 0) with the added mass of the level-0 step, with the
+// predictor its second stage hands over the provisional loads of its patches and the external solver
+// steps; level 0 and the levels in between move their copies of the bodies on poses the external
+// solver predicts (ext_predict_copy).
 // One-way bodies (fluid_body ... one_way) keep the 6DOF kernel's motion (fixed with X 11 0, or prescribed),
 // only their loads of the first stage go to the external solver, which then steps after the fluid step.
 // The PTO (X 500) and the mooring (X 310) of the two-way bodies are not used: they belong to the
@@ -63,15 +69,10 @@ void fnpf_6DOF::ext_connect(lexer *p, ghostcell *pgc)
     if(ndriven==0)
     return;
     
-    if(ndriven<nbody || (amr!=nullptr && (amr_on() || amr_sub())))
+    if(ndriven<nbody)
     {
         if(p->mpirank==0)
-        {
-        if(ndriven<nbody)
         cout<<"6DOF FNPF: "<<ndriven<<" of "<<nbody<<" bodies are driven externally (fluid_body), all or none must be"<<endl;
-        else
-        cout<<"6DOF FNPF: external dynamics (fluid_body) with mesh refinement (G 1) is not supported yet"<<endl;
-        }
         
         pgc->final();
         exit(1);
@@ -193,10 +194,12 @@ void fnpf_6DOF::ext_loads(lexer *p, double t, bool provisional, bool withA)
     pext->fluid_loads(t,F,A,provisional);
 }
 
-void fnpf_6DOF::motion_external(lexer *p, fdm_fnpf *c, ghostcell *pgc, int iter)
+void fnpf_6DOF::motion_external(lexer *p, fdm_fnpf *c, ghostcell *pgc, int iter, bool output)
 {
+    // p->simtime, p->dt: the step of the stage (with subcycling the finest step); output: the last
+    // stage writes the body (with subcycling only that of the last finest step of the level-0 step)
     const int last = (p->A310==3) ? 2 : 3;
-    const bool finalize = (iter==last);
+    const bool finalize = (iter==last) && output;
     const double t0 = p->simtime;
     const double t1 = p->simtime + p->dt;
     const bool pc = pext->predictor();
@@ -246,4 +249,34 @@ void fnpf_6DOF::motion_external(lexer *p, fdm_fnpf *c, ghostcell *pgc, int iter)
         if(finalize)
         fb_obj[nb]->print_fnpf(p,pgc,iter);
     }
+}
+
+// the predicted copy of the coarser levels with subcycling (G 7 1): stage iter of a step of dt from t,
+// the two-way bodies at the pose the external solver predicts for the time of the stage output (the
+// solver has not stepped past t yet), the one-way bodies as the 6DOF kernel's copy
+void fnpf_6DOF::ext_predict_copy(lexer *p, ghostcell *pgc, int iter, double t, double dt)
+{
+    double cs, cn;
+    ext_stage_nodes(p,iter,cs,cn);
+    
+    const double dts = p->dt;
+    p->dt = dt;
+    
+    for(int nb=0; nb<nbody; ++nb)
+    {
+        if(pext->one_way(nb))
+        {
+        fb_obj[nb]->amr_predict_fnpf(p,pgc,iter);
+        continue;
+        }
+        
+        Eigen::Vector3d xc, v, w;
+        Eigen::Matrix3d R;
+        
+        pext->predict(nb,t + cn*dt,xc,R,v,w);
+        fb_obj[nb]->external_set_state(xc,R,v,w);
+        fb_obj[nb]->update_position_fnpf(p,pgc,false);
+    }
+    
+    p->dt = dts;
 }

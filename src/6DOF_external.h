@@ -39,6 +39,9 @@ Architect: Hans Bihs
 //   next stage:   with predictor:    fluid_loads(t_s, F, {}, true) (provisional, at the predicted pose),
 //                                    then advance(t0, t1)
 //   later stages: state(n, t) inside [t0, t1]
+//  With mesh refinement (G 1) the loads and the added mass are those of all grids; with subcycling
+//  (G 7 1) these calls run per step of the finest level, and the coarser levels take predict() for
+//  their copies of the bodies.
 //
 //  NHFLOW (6DOF_nhflow_external.cpp) integrates the loads at the end of each stage instead: the loads of
 //  the initialisation are the first committed sample; per step the first stage takes predict() (or,

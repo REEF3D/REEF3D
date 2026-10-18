@@ -115,7 +115,7 @@ public:
     // between step with a predicted copy
     void amr_save();
     void amr_restore(lexer*, ghostcell*);
-    void amr_sub_predict(lexer*, ghostcell*, int, double);
+    void amr_sub_predict(lexer*, ghostcell*, int, double, double);
     void amr_sub_finest(lexer*, fdm_fnpf*, ghostcell*, int, int, double, double, bool, bool);
     void amr_geometry_level(lexer*, ghostcell*, int);
     void amr_post_solve_level(lexer*, ghostcell*, int);
@@ -151,7 +151,8 @@ private:
     // external dynamics (6DOF_external.h, e.g. REEF3D::CORAL with fluid_body in coral.txt): the
     // bodies follow the external solver, their loads and added mass go to it (fnpf_6DOF_external.cpp)
     void ext_connect(lexer*, ghostcell*);
-    void motion_external(lexer*, fdm_fnpf*, ghostcell*, int);
+    void motion_external(lexer*, fdm_fnpf*, ghostcell*, int, bool output=true);
+    void ext_predict_copy(lexer*, ghostcell*, int, double, double);
     void ext_loads(lexer*, double, bool, bool);
     void ext_stage_nodes(lexer*, int, double&, double&) const;
     sixdof_external *pext = nullptr;
