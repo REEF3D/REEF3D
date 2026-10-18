@@ -28,6 +28,7 @@ Architect: Hans Bihs
 #include"lexer.h"
 #include"ghostcell.h"
 #include<mpi.h>
+#include<algorithm>
 #include<cmath>
 #include<fstream>
 #include<iostream>
@@ -138,6 +139,7 @@ void coral_reef3d::sample_kinematics(double t)
             xyz[3*q+d] = pts[q](d);
     sampler_->sample(xyz, loc);
     MPI_Allreduce(loc.data(), sum.data(), 5*n, MPI_DOUBLE, MPI_SUM, pgc_->mpi_comm);
+    bcast(sum.data(), 5*n);
     std::vector<coral::Vec3> u(n, coral::Vec3::Zero());
     std::vector<double> eta(n, 0.0);
     std::vector<int> in(n, 0);
@@ -188,6 +190,7 @@ void coral_reef3d::step(lexer *p, ghostcell*)
         // the fluid at the end of its step: the CORAL step interpolates the kinematics
         sample_kinematics(t1);
         cp_->step_to(t1);
+        check_ranks("step");
     }
     catch(const std::exception &e)
     {
@@ -222,6 +225,7 @@ void coral_reef3d::fluid_strips(int n, double t, const std::vector<double> &F)
     const int m = (int)F.size();
     std::vector<double> sum(m, 0.0);
     MPI_Allreduce(F.data(), sum.data(), m, MPI_DOUBLE, MPI_SUM, pgc_->mpi_comm);
+    bcast(sum.data(), m);
     coral::VecX Fv(m);
     for(int i=0; i<m; ++i)
         Fv(i) = sum[i];
@@ -230,17 +234,59 @@ void coral_reef3d::fluid_strips(int n, double t, const std::vector<double> &F)
 
 void coral_reef3d::connect(int n, double mass, const Eigen::Vector3d &c, const Eigen::Matrix3d &R, const Eigen::Matrix3d &I)
 {
-    cp_->connect(n, mass, c, R, I);
+    // mass properties of rank 0 on all ranks
+    double v[22];
+    v[0] = mass;
+    for(int i=0; i<3; ++i)
+        v[1+i] = c(i);
+    for(int i=0; i<9; ++i)
+    {
+        v[4+i] = R(i/3, i%3);
+        v[13+i] = I(i/3, i%3);
+    }
+    bcast(v, 22);
+    Eigen::Vector3d cb(v[1], v[2], v[3]);
+    Eigen::Matrix3d Rb, Ib;
+    for(int i=0; i<9; ++i)
+    {
+        Rb(i/3, i%3) = v[4+i];
+        Ib(i/3, i%3) = v[13+i];
+    }
+    cp_->connect(n, v[0], cb, Rb, Ib);
 }
 
 void coral_reef3d::fluid_loads(double t, const std::vector<vec6> &F, const std::vector<mat6> &A, bool provisional)
 {
+    // the loads (summed over the ranks by the fluid solver) and the added mass of rank 0 on all ranks
+    std::vector<vec6> Fb(F);
+    std::vector<mat6> Ab(A);
+    if(p_->mpi_size > 1)
+    {
+        std::vector<double> v;
+        v.reserve(6*Fb.size() + 36*Ab.size() + 1);
+        v.push_back(t);
+        for(const auto &f : Fb)
+            for(int i=0; i<6; ++i)
+                v.push_back(f(i));
+        for(const auto &a : Ab)
+            for(int i=0; i<36; ++i)
+                v.push_back(a(i/6, i%6));
+        bcast(v.data(), (int)v.size());
+        t = v[0];
+        int k = 1;
+        for(auto &f : Fb)
+            for(int i=0; i<6; ++i)
+                f(i) = v[k++];
+        for(auto &a : Ab)
+            for(int i=0; i<36; ++i)
+                a(i/6, i%6) = v[k++];
+    }
     try
     {
         // the kinematics of the same fluid state first
         if(!provisional)
             sample_kinematics(t);
-        cp_->fluid_loads(t, F, A, provisional);
+        cp_->fluid_loads(t, Fb, Ab, provisional);
     }
     catch(const std::exception &e)
     {
@@ -253,6 +299,7 @@ void coral_reef3d::advance(double t0, double t1)
     try
     {
         cp_->advance(t0, t1);
+        check_ranks("advance");
     }
     catch(const std::exception &e)
     {
@@ -268,4 +315,47 @@ void coral_reef3d::predict(int n, double t, Eigen::Vector3d &c, Eigen::Matrix3d 
 void coral_reef3d::state(int n, double t, Eigen::Vector3d &c, Eigen::Matrix3d &R, Eigen::Vector3d &v, Eigen::Vector3d &w)
 {
     cp_->state(n, t, c, R, v, w);
+}
+
+void coral_reef3d::bcast(double *v, int n)
+{
+    if(p_->mpi_size > 1 && n > 0)
+        MPI_Bcast(v, n, MPI_DOUBLE, 0, pgc_->mpi_comm);
+}
+
+void coral_reef3d::check_ranks(const char *where)
+{
+    if(p_->mpi_size < 2)
+        return;
+    // pose and velocities of the bodies and the generalized coordinates: the same on every rank
+    const coral::model &m = case_->m;
+    std::vector<double> v;
+    v.push_back(cp_->time());
+    for(const auto &b : m.bodies)
+    {
+        for(int i=0; i<3; ++i)
+            v.push_back(b.x(i));
+        for(int i=0; i<9; ++i)
+            v.push_back(b.R(i/3, i%3));
+        for(int i=0; i<3; ++i)
+            v.push_back(b.v(i));
+        for(int i=0; i<3; ++i)
+            v.push_back(b.w(i));
+    }
+    for(int i=0; i<m.cq.size(); ++i)
+        v.push_back(m.cq(i));
+    for(int i=0; i<m.cv.size(); ++i)
+        v.push_back(m.cv(i));
+    const int n = (int)v.size();
+    std::vector<double> lo(n), hi(n);
+    MPI_Allreduce(v.data(), lo.data(), n, MPI_DOUBLE, MPI_MIN, pgc_->mpi_comm);
+    MPI_Allreduce(v.data(), hi.data(), n, MPI_DOUBLE, MPI_MAX, pgc_->mpi_comm);
+    double d = 0.0;
+    for(int i=0; i<n; ++i)
+        d = std::max(d, hi[i] - lo[i]);
+    if(d > 0.0 && !rank_diff_told_ && p_->mpirank==0)
+        std::cout<<"CORAL: WARNING the ranks differ in the state of the model after "<<where<<" at t = "<<cp_->time()
+                 <<" (largest difference "<<d<<")"<<std::endl;
+    if(d > 0.0)
+        rank_diff_told_ = true;
 }

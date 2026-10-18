@@ -78,6 +78,12 @@ public:
 private:
     void fail(const std::string&);
     void sample_kinematics(double t);   // the fluid at the points of the sampled kinematics at time t
+    // several ranks: every rank advances the same model; its input from the fluid is broadcast from
+    // rank 0 (bit for bit the same on all ranks), and after each step the state of the model is
+    // compared over the ranks (a warning at the first difference)
+    void bcast(double *v, int n);
+    void check_ranks(const char *where);
+    bool rank_diff_told_ = false;
 
     lexer *p_ = nullptr;
     ghostcell *pgc_ = nullptr;
