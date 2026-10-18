@@ -60,6 +60,32 @@ namespace
 {
 typedef reefamr_comms_off comms_off;
 
+// float coefficients of the V-cycles of the preconditioner: reefmg_core wants the exact fine
+// operator for its own Krylov solver and residual(); the FAC sweep only calls vcycle(), so this
+// one is never used
+struct lap_fineop : public sc_operator
+{
+    void fine_apply(const sc_level&, const double*, double*) override
+    {
+        cout<<"FNPF AMR: fine operator of the preconditioner called"<<endl;
+        MPI_Abort(MPI_COMM_WORLD,-2762);
+    }
+};
+lap_fineop lap_fineop_none;
+
+// coefficients of row lq of the fine level, in the storage precision of the multigrid
+inline void lap_coef(reefmg_core *mg, sc_level &L, long lq, double p, double n, double s, double w, double e, double t, double b)
+{
+    if(mg->precision()==32)
+    {
+        L.pf[lq]=(float)p; L.nf[lq]=(float)n; L.sf[lq]=(float)s; L.wf[lq]=(float)w; L.ef[lq]=(float)e; L.tf[lq]=(float)t; L.bf[lq]=(float)b;
+    }
+    else
+    {
+        L.p[lq]=p; L.n[lq]=n; L.s[lq]=s; L.w[lq]=w; L.e[lq]=e; L.t[lq]=t; L.b[lq]=b;
+    }
+}
+
 enum { NR=REEFAMR_NR, NRH=REEFAMR_NRH, NPV=REEFAMR_NPV, NVV=REEFAMR_NVV, NS=REEFAMR_NS, NT=REEFAMR_NT,
        NPH=REEFAMR_NPH, NSH=REEFAMR_NSH,
        NRP=REEFAMR_NTMP,        // preconditioner: residual after the pre-smoothing, prolonged increment
@@ -208,7 +234,8 @@ void fnpf_amr::lap_prepare(ghostcell *pgc)
             {
                 lexer *pp = c->pp;
                 c->mg = new reefmg_core;
-                c->mg->set_precision(64);
+                c->mg->set_precision(pp->N14==32 ? 32 : 64);     // (N 14, as the uniform solver)
+                c->mg->set_fine_operator(&lap_fineop_none);
                 if(!c->mg->setup(MPI_COMM_SELF,c->nx,c->ny,pp->knoz,c->nx,c->ny,0,pp->DXN+marge+EXT-1,pp->DYN+marge+EXT-1))
                 cout<<"FNPF AMR: patch multigrid "<<c->mg->err()<<endl;
             }
@@ -217,7 +244,8 @@ void fnpf_amr::lap_prepare(ghostcell *pgc)
         if(mg0==nullptr)
         {
             mg0 = new reefmg_core;
-            mg0->set_precision(64);
+            mg0->set_precision(p0->N14==32 ? 32 : 64);
+            mg0->set_fine_operator(&lap_fineop_none);
             if(!mg0->setup(pgc->cart(),p0->knox,p0->knoy,p0->knoz,p0->gknox,p0->gknoy,p0->N13,p0->DXN+marge-1,p0->DYN+marge-1))
             {
                 if(p0->mpirank==0)
@@ -260,6 +288,10 @@ void fnpf_amr::lap_prepare(ghostcell *pgc)
         std::fill(L.n.begin(),L.n.end(),0.0); std::fill(L.s.begin(),L.s.end(),0.0);
         std::fill(L.w.begin(),L.w.end(),0.0); std::fill(L.e.begin(),L.e.end(),0.0);
         std::fill(L.t.begin(),L.t.end(),0.0); std::fill(L.b.begin(),L.b.end(),0.0);
+        std::fill(L.pf.begin(),L.pf.end(),0.0f);
+        std::fill(L.nf.begin(),L.nf.end(),0.0f); std::fill(L.sf.begin(),L.sf.end(),0.0f);
+        std::fill(L.wf.begin(),L.wf.end(),0.0f); std::fill(L.ef.begin(),L.ef.end(),0.0f);
+        std::fill(L.tf.begin(),L.tf.end(),0.0f); std::fill(L.bf.begin(),L.bf.end(),0.0f);
         std::fill(L.u.begin(),L.u.end(),0.0); std::fill(L.f.begin(),L.f.end(),0.0);
         std::fill(L.act.begin(),L.act.end(),0);
     };
@@ -278,10 +310,10 @@ void fnpf_amr::lap_prepare(ghostcell *pgc)
             const int r = rowmap0[fidx(p0,ii,jj,kk)];
             if(r<0)
             {
-                L.p[lq] = 1.0;
+                lap_coef(mg0,L,lq,1.0,0.0,0.0,0.0,0.0,0.0,0.0);
                 continue;
             }
-            L.p[lq]=M.p[r]; L.n[lq]=M.n[r]; L.s[lq]=M.s[r]; L.w[lq]=M.w[r]; L.e[lq]=M.e[r]; L.t[lq]=M.t[r]; L.b[lq]=M.b[r];
+            lap_coef(mg0,L,lq,M.p[r],M.n[r],M.s[r],M.w[r],M.e[r],M.t[r],M.b[r]);
             L.act[lq] = fixed(M,r) ? 0 : 1;
         }
         mg0->coarsen();
@@ -307,16 +339,11 @@ void fnpf_amr::lap_prepare(ghostcell *pgc)
             const int r = c->row[fidx(pp,ii,jj,kk)];
             if(r<0)
             {
-                L.p[lq] = 1.0;
+                lap_coef(c->mg,L,lq,1.0,0.0,0.0,0.0,0.0,0.0,0.0);
                 continue;
             }
-            L.p[lq] = M.p[r];
-            L.n[lq] = (ii+1<EXT+c->nx) ? M.n[r] : 0.0;
-            L.s[lq] = (ii-1>=EXT) ? M.s[r] : 0.0;
-            L.w[lq] = (jj+1<EXT+c->ny) ? M.w[r] : 0.0;
-            L.e[lq] = (jj-1>=EXT) ? M.e[r] : 0.0;
-            L.t[lq] = M.t[r];
-            L.b[lq] = M.b[r];
+            lap_coef(c->mg,L,lq,M.p[r],(ii+1<EXT+c->nx) ? M.n[r] : 0.0,(ii-1>=EXT) ? M.s[r] : 0.0,
+                     (jj+1<EXT+c->ny) ? M.w[r] : 0.0,(jj-1>=EXT) ? M.e[r] : 0.0,M.t[r],M.b[r]);
             L.act[lq] = fixed(M,r) ? 0 : 1;
         }
         c->mg->coarsen();
