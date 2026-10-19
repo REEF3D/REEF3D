@@ -133,6 +133,7 @@ private:
     void mirror(lexer*, slice&, int, double);
     void wall_bc(lexer*, slice&, slice&, slice&, int);   // free-slip wall of boundary cell (i,j), side cs
     void neumann(lexer*, slice&, int);
+    void outflow_clip(lexer*, slice&, slice&);         // outflow ghost cells of boundary cell (i,j): no backflow
 };
 
 #endif

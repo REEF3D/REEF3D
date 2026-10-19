@@ -100,13 +100,21 @@ open(os.path.join(a.case, "control.txt"), "w").write(
     "// Weber et al. (2001) 90 deg junction: the three blocks of blocks.json\nC 11 %d\nC 12 21\nC 13 21\nC 14 %d\nC 15 21\n"
     "C 16 3\n\nB 1 %g\nB 10 %g %g 0.0 %g 0.0 %g\n\nM 10 %d\n\nR 20 1\n" % (c11, c14, dx, 0.0, Lm, W+Lb, H, a.np))
 if a.solver == "sflow":
-    flow = "A 10 2\nA 210 3\nA 211 4\nA 220 0\nA 240 1\nP 181 -1\nP 182 %g\n" % a.out
+    # A 218 1: the bed friction of SFLOW (Manning, n = ks^(1/6)/20); B 50 the ks of the same Chezy at h0 as the log law of
+    # NHFLOW with the Nikuradse roughness --ks (C = 18 log10(12 h0/ks))
+    flow = "A 10 2\nA 210 3\nA 211 4\nA 218 1\nA 220 0\nA 240 1\nP 181 -1\nP 182 %g\n" % a.out
 else:
-    flow = "A 10 5\nA 520 0\nP 10 1\nP 30 %g\n" % a.out
+    # A 519 1: the bed friction of the bottom layer (without it the NHFLOW bed is frictionless, B 50 alone acts only
+    # on the turbulence wall functions); B 61 2: the log-law profile at the discharge inflows (native and G 54)
+    # A 567 3: the free-surface value of epsilon/omega (Celik & Rodi, y' = 0.07 h): without it k-epsilon and k-omega keep
+    # their eddy viscosity up to the surface (zero gradient) and mix the shear layer of the separation over the depth
+    flow = "A 10 5\nA 519 1\nA 520 0\nA 567 3\nB 61 2\nP 10 1\nP 30 %g\n" % a.out
+import math
+ks_b50 = a.ks if a.solver == "nhflow" else (20.0*a.h0**(1.0/6.0)/(18.0*math.log10(12.0*a.h0/a.ks)))**6
 g54 = ("G 54 1 2 %g\nG 54 2 1 %.6f\n" % (a.h0, Qb) if a.layout == "a" else "G 54 1 1 %.6f\nG 54 2 1 %.6f\n" % (Qm, Qb))
 ctrl = ("// Weber et al. (2001) 90 deg junction, q* = %g, layout %s\n" % (a.qstar, a.layout) + flow +
         "B 50 %g\nB 60 1\nW 10 %.6f\nF 50 2\nF 60 %g\nF 62 %g\nG 50 1\n%sN 41 %g\nN 47 0.3\n"
-        "M 10 %d\nW 22 -9.81\n" % (a.ks, Qm, a.h0, a.h0, g54, a.tend, a.np) + a.xctrl.replace(";", "\n") + "\n")
+        "M 10 %d\nW 22 -9.81\n" % (ks_b50, Qm, a.h0, a.h0, g54, a.tend, a.np) + a.xctrl.replace(";", "\n") + "\n")
 open(os.path.join(a.case, "ctrl.txt"), "w").write(ctrl)
 print("W %.4f dx %.5f cells: upstream %d x %d, junction + downstream %d x %d, branch %d x %d (%d); Qm %.4f Qb %.4f"
       % (W, dx, nu, n, n+nd, n, nb, n, (nu+n+nd+nb)*n, Qm, Qb))

@@ -75,6 +75,6 @@ open(os.path.join(a.out, "control.txt"), "w").write(
     "// Nidelva - Trondheim harbour: the multi-block grid of blocks.json (LAGOON: Set-up -> Blocks -> Make grid)\n"
     "C 11 21\nC 12 21\nC 13 21\nC 14 21\nC 15 21\nC 16 3\n\nB 1 3\nB 10 -400 2300 -2200 2000 0.0 15\n\nM 10 2\n\nR 20 1\n")
 open(os.path.join(a.out, "ctrl.txt"), "w").write(
-    "// Nidelva - Trondheim harbour, SFLOW (schematic bed)\nA 10 2\nA 210 3\nA 211 4\nA 220 0\nA 240 1\n"
+    "// Nidelva - Trondheim harbour, SFLOW (schematic bed)\nA 10 2\nA 210 3\nA 211 4\nA 218 1\nA 220 0\nA 240 1\n"
     "B 50 0.05\nF 50 2\nF 60 %g\nG 50 1\nN 41 3600\nN 47 0.3\nM 10 2\nP 181 -1\nP 182 300\nW 22 -9.81\n" % a.wl)
 print("blocks.json: %d corners, %d edges, %d blocks; geo.dat %d points" % (len(vertices), len(edges), len(blocks), X.size))

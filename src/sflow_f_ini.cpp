@@ -196,6 +196,10 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
     //roughness ini
     SLICELOOP4
     b->ks(i,j) = p->B50;
+    
+    // a roughness without bed friction (A 218 0): B 50 then acts only in the turbulence models and the sediment
+    if(p->mpirank==0 && p->A218==0 && p->B50!=0.0001)
+    cout<<"!!! B 50 "<<p->B50<<" is set but A 218 0: no bed friction (A 218 1: Manning, n = ks^(1/6)/20)"<<endl;
 
     pgc->gcsl_start4(p,b->ks,50);
 

@@ -195,7 +195,8 @@ nhflow_amr::nhflow_amr(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum *pm
 
     // implicit diffusion (A 512 2): one composite solve over the leaf cells of all grids (G 31 1,
     // nhflow_amr_diff.cpp), or every grid its own (G 31 0)
-    cdiff = (p->A512==2 && (p->G31==1 || p->geo_mb>0));
+    // (a turbulence model with A 512 0 diffuses implicitly as A 512 2, driver_logic_nhflow)
+    cdiff = ((p->A512==2 || (p->A512==0 && p->A560>0)) && (p->G31==1 || p->geo_mb>0));
     brk_split = (cdiff && p->A550==1);
 
     // subcycling (G 7 1, nhflow_amr_sub.cpp): floating bodies with the zone around the hull (G 12:
@@ -301,7 +302,14 @@ void nhflow_amr::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     if(p->A510!=2 && p->A510!=3) ok=0;
     if(p->A511!=1 && p->A511!=2) ok=0;
     if(p->A520<0 || p->A520>2) ok=0;
-    if(p->A512<0 || p->A512>2 || p->A560!=0) ok=0;
+    if(p->A512<0 || p->A512>2) ok=0;
+    // turbulence (nhflow_amr_turb.cpp): k-epsilon and k-omega on every grid, one time step for all levels, without
+    // the HLES split and QCR
+    if(p->A560!=0 && p->A560!=1 && p->A560!=21 && p->A560!=2 && p->A560!=22) ok=0;
+    if(p->A560!=0 && (p->G7==1 || p->A561!=0 || p->A563!=0.0)) ok=0;
+    // the side-wall friction and wall functions (A 519 2) need the side walls in the boundary lists of the grids; the
+    // patches and the blocks have the bed and the surface only
+    if(p->A519==2) ok=0;
     // breaking (A 550 1): NHFLOW has it in RK2 only; it acts through the implicit diffusion
     // (A 512 2), composite (G 31 1) or per grid (G 31 0)
     if(p->A550!=0 && (p->A550!=1 || p->A510!=2)) ok=0;
@@ -318,18 +326,26 @@ void nhflow_amr::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     if(ok==0 && p->geo_mb>0)
     {
         if(p->mpirank==0)
-        cout<<"!!! NHFLOW multi-block grid: only for A 510 2/3, A 511 1/2, A 520 0/1/2, A 512 0/1/2, A 560 0, B 200 0, S 10 0/1 (S 12 0, S 51 0, S 31 1/2, S 32 1/2), no solids, membranes, nets, DEM, particles, rods or FEM structures !!!"<<endl;
+        cout<<"!!! NHFLOW multi-block grid: only for A 510 2/3, A 511 1/2, A 520 0/1/2, A 512 0/1/2, A 560 0/1/2/21/22 (A 561 0, A 563 0), A 519 0/1, B 200 0, S 10 0/1 (S 12 0, S 51 0, S 31 1/2, S 32 1/2), no solids, membranes, nets, DEM, particles, rods or FEM structures !!!"<<endl;
         exit(1);
     }
 
     if(ok==0)
     {
         if(p->mpirank==0)
-        cout<<"NHFLOW AMR (G 1): only for A 510 2/3, A 511 1/2, A 520 0/1/2, A 512 0/1/2, A 560 0, A 550 0 (1 with A 510 2), B 200 0, S 10 0/1 (S 12 0, S 51 0, S 31 1/2, S 32 1/2), "
+        cout<<"NHFLOW AMR (G 1): only for A 510 2/3, A 511 1/2, A 520 0/1/2, A 512 0/1/2, A 560 0/1/2/21/22 (not with G 7 1, A 561, A 563), A 519 0/1, A 550 0 (1 with A 510 2), B 200 0, S 10 0/1 (S 12 0, S 51 0, S 31 1/2, S 32 1/2), "
             <<"X 10 0/1/2 (X 60 1, X 16 0, A 516 0/1/3), no solids, membranes, nets, DEM, particles, rods or FEM structures, and 3D grids "
             <<"-- refinement switched off"<<endl;
         maxlev=0;
         return;
+    }
+
+    turb = (p->A560!=0) ? 1 : 0;
+    if(turb && tb0==nullptr)
+    {
+        if(p->mpirank==0)
+        cout<<"!!! NHFLOW AMR: the turbulence of level 0 is not attached (nhflow_amr::turb_attach) !!!"<<endl;
+        exit(1);
     }
 
     // boundary types of the bed and the free surface, as level 0 has them
@@ -362,6 +378,9 @@ void nhflow_amr::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
         fill_level0(pgc,-1);
         blocks_sigma(pgc);
         fill_level0(pgc,-1);
+
+        // A 560: the turbulence of the blocks
+        turb_blocks_ini(pgc);
 
         // S 10: the sediment of the blocks starts from their bed
         for(int id : lev[0])
@@ -764,13 +783,15 @@ void nhflow_amr::patch_objects(reefamr_patch *q, ghostcell *pgc)
     // diffusion as on level 0 (A 512 1 explicit, 2 implicit with the breaking viscosity vb), the
     // implicit one with a solver of its own: bicgstab_ijk on the patch, its global sums stay on
     // the patch (pscope)
-    if(pp->A512==1)
+    // (a turbulence model with A 512 0: implicit, as driver_logic_nhflow on level 0)
+    const int a512 = (pp->A512==0 && pp->A560>0) ? 2 : pp->A512;
+    if(a512==1)
     c->pdiff = new nhflow_ediff(pp);
-    else if(pp->A512==2)
+    else if(a512==2)
     c->pdiff = new nhflow_idiff(pp);
     else
     c->pdiff = new nhflow_diff_void(pp);
-    if(pp->A512==2)
+    if(a512==2)
     c->psolv = new bicgstab_ijk(pp,nullptr,pgc);
 
     // the breaking count of a patch is not printed (nhflow_breaking, P 12)
@@ -788,6 +809,9 @@ void nhflow_amr::patch_objects(reefamr_patch *q, ghostcell *pgc)
     if(pp->A520==2)
     c->ppress = new nhflow_pjm_corr(pp,d,pgc,c->pBC);
 
+    if(turb)
+    turb_objects(*c,pgc);
+    else
     c->pturb = new nhflow_komega_func_void(pp,d,pgc);
     c->pvrans = new vrans_nhflow_v(pp,d,pgc);
     c->pfsf = new nhflow_fsf_f(pp,d,pgc,c->pflow,c->pBC);
@@ -869,6 +893,7 @@ void nhflow_amr::patch_delete(reefamr_patch *q)
     delete c->pdf;
     delete c->pfsf;
     delete c->pvrans;
+    turb_free(*c);
     delete c->pturb;
     delete c->ppress;
     delete c->precon;
@@ -2103,6 +2128,9 @@ void nhflow_amr::regrid_state(ghostcell *pgc, vector<reefamr_patch*> &oldP)
         for(int id : lev[l])
         if(P[id]->fresh)
         sed_patch_ini(pgc,*NP(id));
+
+        // A 560: k, epsilon/omega and the eddy viscosity of the fresh patches
+        turb_regrid(pgc,l,oldP);
     }
 }
 
@@ -2148,6 +2176,7 @@ void nhflow_amr::regrid_finish(ghostcell *pgc, int old_total)
 void nhflow_amr::flux_hook(lexer *p, fdm_nhf *d, int id, int ipol, double *Fx, double *Fy)
 {
     const int K = p->knoz;
+
 
     // a patch records its box faces
     if(id>0)
@@ -2421,6 +2450,9 @@ void nhflow_amr::step(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum_func
         c->pmom->step_begin(pp,c->d,pgc,c->S);
     }
     }
+
+    // A 560: the turbulence of the blocks and the patches (level 0 has made its step before the momentum)
+    turb_step(p,pgc);
 
     mom->step_begin(p,d,pgc,S0);
     S0p = &S0;
@@ -2729,6 +2761,14 @@ double nhflow_amr::dt_local_max(int m)
             if(m==4)
             for(int kk=0; kk<=pp->knoz; ++kk)
             r = MAX(r,fabs(d->omegaF[fidx(pp,ii,jj,kk)]));
+
+            // the horizontal speed of a cell (curvilinear grids)
+            if(m==5)
+            for(int kk=0; kk<pp->knoz; ++kk)
+            {
+                const int n = cidx(pp,ii,jj,kk);
+                r = MAX(r,sqrt(d->U[n]*d->U[n] + d->V[n]*d->V[n]));
+            }
         }
     }
     return r;

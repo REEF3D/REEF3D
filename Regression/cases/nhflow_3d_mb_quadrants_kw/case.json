@@ -1,0 +1,19 @@
+{
+ "base": "nhflow_3d_mb_quadrants",
+ "ctrl_add": [
+  "A 560 2"
+ ],
+ "tags": [
+  "3d",
+  "nhflow",
+  "curvilinear",
+  "multiblock",
+  "turbulence",
+  "quick"
+ ],
+ "description": "As nhflow_3d_mb_quadrants (four turned blocks around a vertex, dam break) with k-omega (A 560 2) on every block: the cells around the blocks take k, omega and the eddy viscosity of their neighbours, the ring of the native grid those of the blocks; the implicit diffusion of the turbulence model (A 512 0 -> 2) as one composite solve.  Four blocks = one block to the solver tolerance (nhflow_multiblock/t2 with XCTRL='A 560 2').",
+ "covers": [
+  "nhflow_amr_turb.cpp: turb_objects, turb_fill0, turb_run, turb_save, turb_blocks_ini",
+  "nhflow_amr::patch_objects / ini: A 512 0 with a turbulence model as A 512 2 (cdiff)"
+ ]
+}

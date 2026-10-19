@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"reefamr.h"
+#include<set>
 #include"geo_mesh.h"
 #include"lexer.h"
 #include"ghostcell.h"
@@ -1068,6 +1069,57 @@ void reefamr::build_bc2D(ghostcell *pgc, reefamr_patch &c)
     m1.gcb_seed(pp);
     m2.gcb_seed(pp);
     m4.gcb_seed(pp);
+
+    // multi-block grids: a wall entry of a cell around the grid (filled by a neighbour block) is dropped where its ghost
+    // cells are those of an own cell's wall or own cells.  Such a filled cell can lie next to a wall cell of the same
+    // row (a block face that is a wall up to a vertex and an interface beyond it): its entry would overwrite the wall
+    // ghost cells of the own cell with its value, where the own cell needs its mirror (NHFLOW took the surface of
+    // the branch for the wall ghost cells upstream of the corner of a junction: a jet along the corner, 4 m/s).  A
+    // wall that runs on through an interface keeps the entries of the filled cells: their ghost cells are the corner
+    // beyond both, which no own cell sets (P6b dropped them too, and the cells next to the interface and the wall
+    // took the unmirrored corner: two blocks differed from one block by 1e-3 of the depth in a river reach)
+    if(nblk>0)
+    {
+        auto own = [&](int ii, int jj) { return ii>=EXT && ii<EXT+c.nx && jj>=EXT && jj<EXT+c.ny; };
+        const int di[5] = {0,-1,0,0,1}, dj[5] = {0,0,1,-1,0};       // side cs: 1 -i, 2 +j, 3 -j, 4 +i
+        const int depth = 3;
+        auto key = [&](int ii, int jj) { return (long)(ii+64)*1000000L + (long)(jj+64); };
+        auto filter = [&](int **g, int &cnt)
+        {
+            std::set<long> tgt;
+            for(int n=0; n<cnt; ++n)
+            if(own(g[n][0],g[n][1]))
+            for(int q=1; q<=depth; ++q)
+            tgt.insert(key(g[n][0]+q*di[g[n][3]], g[n][1]+q*dj[g[n][3]]));
+
+            int m=0;
+            for(int n=0; n<cnt; ++n)
+            {
+                bool ok = own(g[n][0],g[n][1]);
+                if(!ok)
+                {
+                    ok = true;
+                    for(int q=1; q<=depth && ok; ++q)
+                    {
+                        const int a = g[n][0]+q*di[g[n][3]], b = g[n][1]+q*dj[g[n][3]];
+                        if(own(a,b) || tgt.count(key(a,b)))
+                        ok = false;
+                    }
+                }
+                if(ok)
+                {
+                    if(m!=n)
+                    for(int q=0; q<6; ++q)
+                    g[m][q] = g[n][q];
+                    ++m;
+                }
+            }
+            cnt = m;
+        };
+        filter(pp->gcbsl1,pp->gcbsl1_count);
+        filter(pp->gcbsl2,pp->gcbsl2_count);
+        filter(pp->gcbsl4,pp->gcbsl4_count);
+    }
 
     pgc->gcsl_setbc1(pp);
     pgc->gcsl_setbc2(pp);

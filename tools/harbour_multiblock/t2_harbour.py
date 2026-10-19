@@ -28,9 +28,9 @@ control = open(os.path.join(d, "control.txt")).read().replace("M 10 NP", "M 10 %
 open(os.path.join(d, "control.txt"), "w").write(control)
 
 if solver == "sflow":
-    flow = "A 10 2\nA 210 3\nA 211 4\nA 220 0\nA 240 1\nP 181 -1\nP 182 %g\n" % out
+    flow = "A 10 2\nA 210 3\nA 211 4\nA 218 1\nA 220 0\nA 240 1\nP 181 -1\nP 182 %g\n" % out
 else:
-    flow = "A 10 5\nA 520 %s\nP 10 1\nP 30 %g\n" % (os.environ.get("A520", "0"), out)
+    flow = "A 10 5\nA 519 1\nA 520 %s\nP 10 1\nP 30 %g\n" % (os.environ.get("A520", "0"), out)
 nhb = json.load(open(os.path.join(d, "grid.json"))).get("harbour_blocks", 1)
 ctrl = (flow + "B 50 0.05\nB 60 1\nW 10 %g\nF 50 2\nF 60 %g\nF 62 %g\nG 50 1\nN 41 %g\nN 47 0.3\nM 10 %d\nW 22 -9.81\n"
         % (Q, WL, WL, tend, np_) + "".join("G 54 %d 2 %g\n" % (b, WL) for b in range(1, nhb+1)))

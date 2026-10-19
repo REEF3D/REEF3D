@@ -1,0 +1,14 @@
+// Weber et al. (2001) 90 deg junction: the three blocks of blocks.json
+C 11 21
+C 12 21
+C 13 21
+C 14 2
+C 15 21
+C 16 3
+
+B 1 0.1524
+B 10 0 21.9456 0.0 4.572 0.0 0.6096
+
+M 10 1
+
+R 20 1

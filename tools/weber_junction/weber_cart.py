@@ -30,9 +30,13 @@ open(os.path.join(a.case, "control.txt"), "w").write(
     "C 15 21\nC 16 3\n\nB 1 %g\nB 10 0.0 %g 0.0 %g 0.0 0.6\n\nS 10 %g %g %g %g -1.0 2.0\nS 10 %g %g %g %g -1.0 2.0\n\n"
     "M 10 %d\n" % (dx, Lm, W+Lb, -1.0, Lu, W, W+Lb+1.0, Lu+W, Lm+1.0, W, W+Lb+1.0, a.np))
 turb = "A 260 %d\n" % a.turb if a.turb else ""
-ctrl = ("// Weber et al. (2001) 90 deg junction, q* = %g, one Cartesian grid\nA 10 2\nA 210 3\nA 211 4\nA 220 0\nA 240 1\n"
+# A 218 1: the bed friction (Manning, n = ks^(1/6)/20); B 50 the ks of the same Chezy at h0 as the log law with the
+# Nikuradse roughness --ks (C = 18 log10(12 h0/ks)), as weber_case.py
+import math
+ks_b50 = (20.0*a.h0**(1.0/6.0)/(18.0*math.log10(12.0*a.h0/a.ks)))**6
+ctrl = ("// Weber et al. (2001) 90 deg junction, q* = %g, one Cartesian grid\nA 10 2\nA 210 3\nA 211 4\nA 218 1\nA 220 0\nA 240 1\n"
         "%sB 50 %g\nB 60 1\nW 10 %.6f\nB 440 1 2 %g %g %g %g\nB 411 1 %.6f\nF 50 2\nF 60 %g\nF 62 %g\nN 41 %g\nN 47 0.3\n"
-        "M 10 %d\nP 181 -1\nP 182 %g\nW 22 -9.81\n" % (a.qstar, turb, a.ks, Qm, Lu-e, Lu+W+e, W+Lb-e, W+Lb+e, -Qb, a.h0,
+        "M 10 %d\nP 181 -1\nP 182 %g\nW 22 -9.81\n" % (a.qstar, turb, ks_b50, Qm, Lu-e, Lu+W+e, W+Lb-e, W+Lb+e, -Qb, a.h0,
                                                      a.h0, a.tend, a.np, a.out) + a.xctrl.replace(";", "\n") + "\n")
 open(os.path.join(a.case, "ctrl.txt"), "w").write(ctrl)
 json.dump({"weber_cart": 1, "qstar": a.qstar, "n": a.n, "dx": dx,

@@ -48,6 +48,9 @@ def amr_grids(d, np_=1):
             for f in ("U", "V", "W", "UH", "VH", "WH"):
                 G[f] = st["g%d_%s" % (g, f)].reshape(nx, ny, nz)
             G["P"] = st["g%d_P" % g].reshape(nx, ny, nz+1)
+            for f in ("EV", "KIN"):           # A 560
+                if "g%d_%s" % (g, f) in st:
+                    G[f] = st["g%d_%s" % (g, f)].reshape(nx, ny, nz)
             out.append(G)
     return out
 
@@ -57,7 +60,9 @@ def level0(grids, gnx, gny, ring=(0, 0, 0, 0)):
     for G in grids:
         if G["id"] != 0:
             continue
-        for f in ("eta", "WL", "bed", "U", "V", "W", "UH", "VH", "WH", "P"):
+        for f in ("eta", "WL", "bed", "U", "V", "W", "UH", "VH", "WH", "P", "EV", "KIN"):
+            if f not in G:
+                continue
             a = G[f]
             if f not in out:
                 out[f] = np.zeros((gnx, gny) + a.shape[2:])

@@ -1452,6 +1452,7 @@
         <File Name="nhflow_amr_press.cpp"/>
         <File Name="nhflow_amr_diff.cpp"/>
         <File Name="nhflow_amr_sub.cpp"/>
+        <File Name="nhflow_amr_turb.cpp"/>
         <File Name="nhflow_amr.cpp"/>
         <File Name="nhflow_amr_ckpt.cpp"/>
         <File Name="nhflow_amr_sed.cpp"/>

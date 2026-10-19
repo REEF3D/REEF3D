@@ -61,6 +61,10 @@ From the 5 m raster of the city (LAGOON map, EPSG:25832, `georef.json`; local fr
 - The bed is SCHEMATIC: the raster has no water depths.  River 4 m in the middle (from the distance to the bank),
   harbour and fjord 8 m at the quays and deeper offshore (up to 25 m), smoothed over 15 m; the datum is moved up
   by the still water level (10 m).  Replace by surveyed depths when available (`bed` in `nidelva_harbour_grid.py`).
+- Bed friction (P6c): `t2_harbour.py` and `nidelva_blocks_json.py` set `A 218 1` (SFLOW, Manning n = ks^(1/6)/20 with
+  `B 50 0.05`: n 0.030) and `A 519 1` (NHFLOW, the log law of the bottom layer).  The P5d runs of this case had no
+  bed friction (REEF3D's defaults `A 218 0`, `A 519 0`; `B 50` alone acts only on turbulence and sediment): their
+  river velocities and the SFLOW/NHFLOW agreement are those of a frictionless river; not rerun yet.
 
 ## Refinement at the shoreline (lake at rest, `Q=0 AMR=1 TEND=300`)
 

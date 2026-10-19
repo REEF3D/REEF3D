@@ -18,7 +18,8 @@ the mean of its four node beds.
   (`B 98 2`, `B 99 1/2`, zones by `B 107` / `B 108` lines in physical coordinates, the wave frame
   by `B 105`), Dirichlet (`B 98 3`) and active generation (`B 98 4`), active absorption (`B 99 3-5`)
 - diffusion (`A 512 1` explicit, `A 512 2` implicit) and turbulence (`A 560 1/21` k-epsilon,
-  `2/22` k-omega, `31` LES), bed friction (`A 519 1`)
+  `2/22` k-omega, `31` LES), bed friction (`A 519 1`); k-epsilon and k-omega also on the patches of the mesh
+  refinement and on multi-block grids (phase P6b, `../nhflow_multiblock/README.md`; not with `G 7 1`)
 - mesh refinement (`G 1`): static boxes (`G 10`, `G 11`, physical coordinates), regridding with the
   surface flags (`G 2`, `G 20`, `G 21`), vertical refinement (`G 6 1`), subcycling (`G 7 1`),
   wetting and drying in the patches (`G 30 1`), the composite pressure and implicit diffusion,

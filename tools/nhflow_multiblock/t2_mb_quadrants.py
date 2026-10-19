@@ -43,10 +43,11 @@ for a520 in schemes:
             print(name, "rc", rc, log_lines(d, "!!!")[:3])
         R[name] = amr_grids(d, npr)
     ref = level0(R["one"], n, n)
-    err = {f: 0.0 for f in FIELDS}
+    flds = FIELDS + tuple(f for f in ("EV", "KIN") if f in ref)
+    err = {f: 0.0 for f in flds}
     for G in R["four"]:
         if G["blk"] == 0 and G["id"] == 0:
-            for f in FIELDS:
+            for f in flds:
                 i0, j0 = G["I0"], G["J0"]
                 for a in range(G["nx"]):
                     for b in range(G["ny"]):
@@ -55,11 +56,11 @@ for a520 in schemes:
                             err[f] = max(err[f], np.abs(G[f][a, b]-ref[f][I0, J0]).max())
             continue
         i0, j0, k = offs[G["blk"]]
-        for f in FIELDS:
+        for f in flds:
             e = max(np.abs(G[f][a, b]-ref[f][gidx(i0, j0, k, a, b)]).max() for a in range(G["nx"]) for b in range(G["ny"]))
             err[f] = max(err[f], e)
     log = open(os.path.join(S4, "runs/t2_four_A%s_np%d" % (a520, np_), "REEF3D_NHFLOW_AMR", "REEF3D_NHFLOW_AMR_log.dat")).read().splitlines()
     m = [l.split() for l in log if l and l[0] != "#"]
     print("A520 %s, %d steps, t %.3f, |eta| %.3f |U| %.3f |P| %.1f: four blocks vs one: %s; volume change %s"
           % (a520, steps, R["one"][0]["simtime"], np.abs(ref["eta"]).max(), np.abs(ref["U"]).max(), np.abs(ref["P"]).max(),
-             "  ".join("%s %.1e" % (f, err[f]) for f in FIELDS), m[-1][-2]))
+             "  ".join("%s %.1e" % (f, err[f]) for f in flds), m[-1][-2]))

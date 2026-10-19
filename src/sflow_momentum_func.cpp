@@ -746,6 +746,7 @@ void sflow_momentum_func::vel_bc(lexer *p, fdm2D *b, ghostcell *pgc, slice &u, s
             neumann(p,u,cs);
             neumann(p,v,cs);
             neumann(p,w,cs);
+            outflow_clip(p,u,v);
             }
             
             if(outflow_flag==0)
@@ -887,6 +888,26 @@ void sflow_momentum_func::mirror(lexer *p, slice &f, int cs, double sgn)
 	f(i+q+1,j) = sgn*f(i-q,j);
 }
 
+// outflow with a water level (B 60 1, F 62; the open face G 54 b 2 of a block): the ghost velocities are zero-gradient
+// while the flow leaves; where it would enter, their normal component is zero (a wall for the backflow). An eddy or a
+// separation that reaches the outlet otherwise draws water and momentum in through it without bound
+void sflow_momentum_func::outflow_clip(lexer *p, slice &u, slice &v)
+{
+    double nx=1.0, ny=0.0, len;
+    if(p->geo_curv==1)
+    sflow_curv::normal(p,1,i,j,nx,ny,len);
+
+    for(q=1;q<=gd;++q)
+    {
+        const double un = u(i+q,j)*nx + v(i+q,j)*ny;
+        if(un<0.0)
+        {
+        u(i+q,j) -= un*nx;
+        v(i+q,j) -= un*ny;
+        }
+    }
+}
+
 void sflow_momentum_func::neumann(lexer *p, slice &f, int cs)
 {
 	if(cs==1)
@@ -954,6 +975,31 @@ void sflow_momentum_func::face_velocities(lexer *p, fdm2D *b, ghostcell *pgc, sl
     }
 
 	pgc->gcsl_start2(p,b->Q,gcval_v);
+
+    // patch in- and outlets (B 440): the normal velocity of the boundary face from the cell and its ghost cell
+    // (the ghost cells of the inlets set by patchBC, of the outlets zero gradient); the wall treatment of
+    // gcsl_start1/2 would leave 0 there: a spurious shear in the production of k-eps / k-omega and no inflow
+    // in the convection of the turbulence and the sediment
+    GCSL4LOOP
+    if(patch_bc(p->gcbsl4[n][4]))
+    {
+    i  = p->gcbsl4[n][0];
+    j  = p->gcbsl4[n][1];
+    int cs = p->gcbsl4[n][3];
+
+        if(cs==1)
+        b->P(i-1,j) = (p->wet[IJ]==1)?0.5*(b->U(i,j) + b->U(i-1,j)):0.0;
+
+        if(cs==4)
+        b->P(i,j) = (p->wet[IJ]==1)?0.5*(b->U(i,j) + b->U(i+1,j)):0.0;
+
+        if(cs==3)
+        b->Q(i,j-1) = (p->wet[IJ]==1)?0.5*(b->V(i,j) + b->V(i,j-1)):0.0;
+
+        if(cs==2)
+        b->Q(i,j) = (p->wet[IJ]==1)?0.5*(b->V(i,j) + b->V(i,j+1)):0.0;
+    }
+
     pgc->gcsl_start4(p,b->ws,gcval_w);
     pgc->gcsl_start1(p,b->hx,gcval_eta);
 	pgc->gcsl_start2(p,b->hy,gcval_eta);

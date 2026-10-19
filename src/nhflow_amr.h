@@ -46,6 +46,7 @@ class nhflow_pressure;
 class nhflow_fsf;
 class nhflow_forcing;
 class nhflow_turbulence;
+class nhflow_scalar_convection;
 class vrans_nhflow;
 class sixdof;
 class sediment;
@@ -158,6 +159,10 @@ struct nhflow_amr_patch : public reefamr_patch
     nhflow_fsf *pfsf = nullptr;
     nhflow_forcing *pdf = nullptr;
     nhflow_turbulence *pturb = nullptr;
+    // A 560: the turbulence of the grid, its scalar convection, diffusion and solver (nhflow_amr_turb.cpp)
+    nhflow_scalar_convection *ptconv = nullptr;
+    nhflow_diffusion *ptdiff = nullptr;
+    solver *ptsolv = nullptr;
     vrans_nhflow *pvrans = nullptr;
     sixdof *p6dof = nullptr;
     sediment *psed = nullptr;
@@ -226,6 +231,8 @@ public:
     void ini(lexer*, fdm_nhf*, ghostcell*);
     // S 10: sediment transport on all grids (nhflow_amr_sed.cpp): the level-0 sediment_f hands its step over
     void sed_attach(sediment*);
+    // A 560: the turbulence of level 0 (the fields of the ring and of the covered cells)
+    void turb_attach(nhflow_turbulence*);
     void sediment_step_nhflow(lexer*, fdm_nhf*, ghostcell*, ioflow*, sediment_f*) override;
     void print(lexer*, fdm_nhf*, ghostcell*);
     bool active() const { return (maxlev>0 && patches_total>0) || nblk>0; }
@@ -538,6 +545,28 @@ private:
     void ring_halo(ghostcell*, int);
     void blocks_phase(ghostcell*, int, int);
     void dump_grids(lexer*);
+
+    // turbulence (A 560 1/21 k-epsilon, 2/22 k-omega) on every grid (nhflow_amr_turb.cpp): every grid steps its own
+    // k and epsilon/omega with the cells around it from its neighbours or from its parent, the covered cells take
+    // the mean of their children
+    int turb = 0;
+    nhflow_turbulence *tb0 = nullptr;
+    long tturb_n = 0;
+    double tturb = 0.0;
+    struct tfields { double *k = nullptr, *e = nullptr, *kn = nullptr, *en = nullptr; };
+    static tfields tget(nhflow_turbulence*);
+    double* tfield(int, int);       // grid, field (0 k, 1 epsilon/omega, 2 EV, 3 EV0, 4 d->KIN)
+    void turb_objects(nhflow_amr_patch&, ghostcell*);
+    void turb_free(nhflow_amr_patch&);
+    void turb_run(ghostcell*, nhflow_amr_patch&);
+    void turb_fill0(ghostcell*);
+    void turb_fill(ghostcell*, int);
+    void turb_restrict();
+    void turb_bc(ghostcell*, int);  // wall ghost cells of the fields of grid g (-1 level 0)
+    void turb_save(ghostcell*, nhflow_amr_patch&);
+    void turb_blocks_ini(ghostcell*);
+    void turb_regrid(ghostcell*, int, vector<reefamr_patch*>&);
+    void turb_step(lexer*, ghostcell*);
     void potential(lexer*, ghostcell*);     // I 11: potential flow initialisation over the blocks
     bool ring0(int ii, int jj) const { return nblk>0 && nring[(ii-p0->imin)*p0->jmax + (jj-p0->jmin)]==1; }
 

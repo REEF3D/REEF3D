@@ -20,6 +20,8 @@ nx = n1 + nb + n2
 g, kappa, A, Bs, Cs = 9.81, 0.4, 9.0, 0.5, 0.3
 espir = float(os.environ.get("ESPIR", "0.4"))     # E_spir 1 gives a point bar above the water (dry inner bank)
 ks = 12.0*h0/np.exp(Cz/np.sqrt(g)/2.5)            # Keulegan: C = sqrt(g) 2.5 ln(12h/ks)
+# the bed friction of SFLOW (A 218 1, P6c; before, the flow had none): Manning n = ks^(1/6)/20 with the ks of C at h0
+ks_m = (20.0*h0**(1.0/6.0)/Cz)**6
 Delta = 2650.0/998.2 - 1.0
 
 # nodes: s along the centre line, n to the left (towards the centre of the bend)
@@ -40,8 +42,8 @@ L = s_n[-1]
 
 bc = "C 11 1\nC 12 21\nC 13 21\nC 14 2\nC 15 21\nC 16 3\n"
 ctl = control(nx, ny, 1, nx*ds, ny*ds, 0.5, bc=bc)
-ctrl = ("A 10 2\nA 210 3\nA 211 4\nA 220 0\nA 240 1\nB 50 %g\nB 60 1\nW 10 %g\nF 60 %g\nF 62 %g\nN 47 0.3\nM 10 1\nP 10 0\nW 22 -9.81\n"
-        % (ks, Q, h0, h0)
+ctrl = ("A 10 2\nA 210 3\nA 211 4\nA 218 1\nA 220 0\nA 240 1\nB 50 %g\nB 60 1\nW 10 %g\nF 60 %g\nF 62 %g\nN 47 0.3\nM 10 1\nP 10 0\nW 22 -9.81\n"
+        % (ks_m, Q, h0, h0)
         + "S 10 1\nS 11 2\nS 16 2\nS 20 %g\nS 21 %g\nS 15 3\nS 17 1.0\nS 35 %s\nS 41 1\nS 43 4000\nS 44 1\nS 31 1\nS 100 0\nS 71 2.0\n"
         % (d50, ks/d50, os.environ.get("MF", "100"))
         + "S 86 %d\nS 87 %g\nS 88 %g\nS 89 %g\nS 95 %d\nS 96 %g\n" % (0 if os.environ.get("NOSLOPE") else 1, A, Bs, Cs,
