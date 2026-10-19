@@ -86,9 +86,18 @@ using namespace std;
 //  aligned with x and y, and the layout is kept while it covers the flagged tiles (lazy layout,
 //  reefamr_param::lazy), so that a moored body does not rebuild its patches every few steps.
 //
+//  Coastline (A 343 1-3): the patches are fully wet; no patch within 4 level-0 cells (A 343 2, 3:
+//  8) of a dry or thin-film cell or of the coastline damping band (cell_unfit), checked at every
+//  regrid; the coastline itself stays on level 0.
+//
+//  Breaking (A 350 1): on every grid as fnpf_RK3: the implicit damping of the stage values with
+//  the breaking viscosity (on a patch: its box, the cells around it held), then the detection; the
+//  cells around a patch take the viscosity of their source grid.
+//
 //  Scope of this version: refinement G 1 levels, G 10 boxes, G 11 boxes without
-//  refinement, G 4 tile width, G 12 zone around the body; RK3 (A 310 3), no wetting-drying
-//  (A 343 0), no breaking (A 350 0), X 10 0 or 1, no ice (A 380 0), A 324 0, A 328 0, 3D grids.
+//  refinement, G 4 tile width, G 12 zone around the body; RK3 (A 310 3), wetting-drying
+//  A 343 0-3 (patches off the coast), breaking A 350 0 or 1, X 10 0 or 1, no ice (A 380 0),
+//  A 324 0, A 328 0, 3D grids.
 //  No refinement in the relaxation zones (B 96) and next to in- and outflow boundaries.
 
 struct fnpf_amr_patch : public reefamr_patch
@@ -103,6 +112,7 @@ struct fnpf_amr_patch : public reefamr_patch
     // RK stage values and tendencies, as fnpf_RK3
     slice4 *erk1 = nullptr, *erk2 = nullptr, *frk1 = nullptr, *frk2 = nullptr;
     slice4 *ek = nullptr, *fk = nullptr;
+    slice4 *en = nullptr;           // eta at the start of the step (breaking detection, A 350 1)
 
     // columns with a solid neighbour (lexer index pairs): wall ghost nodes of Fi
     vector<int> wall;
@@ -215,6 +225,7 @@ protected:
     void regrid_state(ghostcell*, vector<reefamr_patch*>&) override;
     void regrid_finish(ghostcell*, int) override;
     void zone_bodies(vector<sixdof_obj*>&) override;
+    bool cell_unfit(int, int) override;
 
 private:
     fnpf_amr_patch* FP(int n) { return static_cast<fnpf_amr_patch*>(P[n]); }
@@ -332,6 +343,18 @@ private:
     void sub_derived(lexer*, ghostcell*, int, double);
     void lap_prec_win(int, int);
     double rko(int s) const { return (s==1) ? 0.5 : 1.0; }
+
+    // wave breaking on the patches (A 350 1): the implicit damping of the stage
+    // values with the breaking viscosity on the patch box (the cells around it held), detection on
+    // the patch, the viscosity of the cells around the patches from the source grid
+    bool brk = false;
+    void patch_damping(fnpf_amr_patch&, ghostcell*, slice&, int, double);
+    void patch_breaking(int, ghostcell*, int, double);
+    vector<double> dv[6];           // work vectors of the damping solve
+
+    // coastline (A 343 1-3): the patches stay off the dry cells and the coastline band of level 0
+    double dist_coast = 0.0;
+    bool thin_warned = false;
 
     fdm_fnpf *c0;
     fnpf_laplace_cds2 *plap0 = nullptr;

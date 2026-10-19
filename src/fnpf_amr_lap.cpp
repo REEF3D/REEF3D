@@ -746,6 +746,12 @@ void fnpf_amr::lap_solve(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, f
 {
     const double t0 = MPI_Wtime();
 
+    // breaking (A 350 1): detection on the patch stage values, the viscosity of the cells around
+    // the patches from their source grid (level 0 has detected in fnpf_RK3 before this solve,
+    // after the stage values: alpha 1, 1/2, 1)
+    if(brk)
+    patch_breaking(-1,pgc,stg,(stg==1) ? 0.5 : 1.0);
+
     // the patches: free-surface derivatives, sigma grid, boundary conditions
     {
     comms_off guard(pgc);

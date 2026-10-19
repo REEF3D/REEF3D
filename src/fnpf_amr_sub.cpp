@@ -379,6 +379,13 @@ void fnpf_amr::sub_stage(lexer *p, ghostcell *pgc, int l, int k, int s, double d
         lexer *p = pc->pp;
         fdm_fnpf *c = cc;
 
+        if(s==0 && brk)
+        {
+            slice4 &en = *pc->en;
+            SLICELOOP4
+            en(i,j) = c->eta(i,j);
+        }
+
         if(s==0)
         {
             SLICELOOP4
@@ -399,6 +406,14 @@ void fnpf_amr::sub_stage(lexer *p, ghostcell *pgc, int l, int k, int s, double d
             c->eta(i,j) = (1.0/3.0)*c->eta(i,j) + (2.0/3.0)*erk2(i,j) + (2.0/3.0)*p->dt*ek(i,j);
             SLICELOOP4
             c->Fifsf(i,j) = (1.0/3.0)*c->Fifsf(i,j) + (2.0/3.0)*frk2(i,j) + (2.0/3.0)*p->dt*fk(i,j);
+        }
+
+        // breaking: the implicit damping of the stage values (as fnpf_RK3)
+        if(brk)
+        {
+            const double al = (s==0) ? 1.0 : (s==1) ? 0.25 : 2.0/3.0;
+            patch_damping(*pc,pgc,sval(id,s,0),gcval_eta,al);
+            patch_damping(*pc,pgc,sval(id,s,1),gcval_fifsf,al);
         }
         }
 
@@ -433,6 +448,11 @@ void fnpf_amr::sub_stage(lexer *p, ghostcell *pgc, int l, int k, int s, double d
     sub_swap_out(l-1);
 
     tm[0] += MPI_Wtime()-t0;
+
+    // breaking (A 350 1): detection on the stage values of the level-l patches, the viscosity of
+    // the cells around them from their source grid
+    if(brk)
+    patch_breaking(l,pgc,s,(s==1) ? 0.5 : 1.0);
 
     // the Laplace equation of the stage on the level-l patches
     t0 = MPI_Wtime();

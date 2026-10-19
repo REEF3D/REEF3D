@@ -133,6 +133,27 @@ fnpf_amr::fnpf_amr(lexer *p, fdm_fnpf *c, ghostcell *pgc) : reefamr(p,pgc)
     // subcycling (G 7 1, fnpf_amr_sub.cpp): level l takes 2^l steps per level-0 step; bodies with
     // the zone around the hull (G 12: the finest level advances the body), its margin at least
     // 12 level-0 cells (the coarse levels step first with their own coarse picture of the body)
+    // wetting and drying (A 343 1-3): the patches are fully wet. No patch within q.dryband
+    // level-0 cells of a dry cell, a thin-film cell (WL < 10 A 344) or the coastline damping band
+    // (3 times A 341 dx or A 342, as fnpf_fsfbc_wd), checked at every regrid (cell_unfit); a static
+    // box (G 10) loses the tiles there.  The band covers the fills around a patch (EXT fine cells
+    // and the bicubic stencil); with run-up and run-down (A 343 2, 3) it is doubled
+    if(p->A343>=1)
+    {
+        q.dryband = (p->A343>=2) ? 8 : 4;
+
+        double d3 = 0.0;
+        if(p->A341>0.0)
+        d3 = p->A341*0.5*(p->DXD+p->DYD);
+        if(p->A342>0.0)
+        d3 = p->A342;
+        dist_coast = 3.0*d3;
+    }
+
+    // wave breaking (A 350 1): on every grid (detection and the implicit damping with the
+    // breaking viscosity), the cells around a patch take the viscosity of their source grid
+    brk = (p->A350==1);
+
     sub = (p->G7==1 && (p->X10==0 || q.zones)) ? 1 : 0;
     zr_user = q.zr;
     if(sub==1 && q.zones)
@@ -277,8 +298,7 @@ void fnpf_amr::ini(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 
     int ok=1;
     if(p->A310!=3) ok=0;
-    if(p->A343!=0) ok=0;
-    if(p->A350!=0) ok=0;
+    if(p->A350!=0 && p->A350!=1) ok=0;
     if(p->X10!=0 && p->X10!=1) ok=0;
     if(p->A324!=0) ok=0;
     if(p->A328!=0) ok=0;
@@ -289,7 +309,7 @@ void fnpf_amr::ini(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     if(ok==0)
     {
         if(p->mpirank==0)
-        cout<<"FNPF AMR (G 1): only for A 310 3, A 311 other than 3, A 343 0, A 350 0, X 10 0/1, A 324 0, A 328 0, A 380 0 and 3D grids -- refinement switched off"<<endl;
+        cout<<"FNPF AMR (G 1): only for A 310 3, A 311 other than 3, A 350 0/1, X 10 0/1, A 324 0, A 328 0, A 380 0 and 3D grids -- refinement switched off"<<endl;
         maxlev=0;
         return;
     }
@@ -467,13 +487,17 @@ void fnpf_amr::patch_objects(reefamr_patch *q, ghostcell *pgc)
     c->erk1 = new slice4(pp); c->erk2 = new slice4(pp);
     c->frk1 = new slice4(pp); c->frk2 = new slice4(pp);
     c->ek = new slice4(pp); c->fk = new slice4(pp);
+    c->en = new slice4(pp);
 
+    // the patches are fully wet and away from the coastline (A 343: cell_unfit): no coastline
+    // band (the coastline viscosity of A 337 in fnpf_breaking reads c->coastline)
     fdm_fnpf *cc = c->c;
     for(int ii=pp->imin; ii<pp->imin+pp->imax; ++ii)
     for(int jj=pp->jmin; jj<pp->jmin+pp->jmax; ++jj)
     {
         cc->bc(ii,jj) = 0;
         cc->etaloc(ii,jj) = pp->knoz;
+        cc->coastline(ii,jj) = 1.0e20;
         pp->wet[lij(pp,ii,jj)] = 1;
     }
 
@@ -488,7 +512,7 @@ void fnpf_amr::patch_delete(reefamr_patch *q)
     delete [] v;
     delete c->mg;
 
-    delete c->erk1; delete c->erk2; delete c->frk1; delete c->frk2; delete c->ek; delete c->fk;
+    delete c->erk1; delete c->erk2; delete c->frk1; delete c->frk2; delete c->ek; delete c->fk; delete c->en;
     delete c->plap;
     delete c->pbu;
     delete c->pfu;
@@ -923,6 +947,13 @@ void fnpf_amr::stage_surface(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &Se, s
         lexer *p = pc->pp;
         fdm_fnpf *c = cc;
 
+        if(s==0 && brk)
+        {
+            slice4 &en = *pc->en;
+            SLICELOOP4
+            en(i,j) = c->eta(i,j);
+        }
+
         if(s==0)
         {
             SLICELOOP4
@@ -943,6 +974,15 @@ void fnpf_amr::stage_surface(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &Se, s
             c->eta(i,j) = (1.0/3.0)*c->eta(i,j) + (2.0/3.0)*erk2(i,j) + (2.0/3.0)*p->dt*ek(i,j);
             SLICELOOP4
             c->Fifsf(i,j) = (1.0/3.0)*c->Fifsf(i,j) + (2.0/3.0)*frk2(i,j) + (2.0/3.0)*p->dt*fk(i,j);
+        }
+
+        // breaking: the implicit damping of the stage values (as fnpf_RK3, before the wave
+        // generation and the coastline: alpha 1, 1/4, 2/3)
+        if(brk)
+        {
+            const double al = (s==0) ? 1.0 : (s==1) ? 0.25 : 2.0/3.0;
+            patch_damping(*pc,pgc,sval(id,s,0),gcval_eta,al);
+            patch_damping(*pc,pgc,sval(id,s,1),gcval_fifsf,al);
         }
         }
 
@@ -988,6 +1028,31 @@ void fnpf_amr::step_end(lexer *p, fdm_fnpf *c, ghostcell *pgc)
         pc->pbu->bedbc_sig(pc->pp,pc->c,pgc,pc->c->Fi,pc->pf);
         pc->pfu->velcalc_sig(pc->pp,pc->c,pgc,pc->c->Fi);
     }
+    }
+
+    // A 343: the patches are fully wet; a patch that the run-up or the drawdown reaches (a static
+    // box, or between two regrids) has no wetting and drying of its own
+    if(p->A343>=1 && !thin_warned)
+    {
+        int thin = 0;
+        for(auto q : P)
+        {
+            lexer *pp = q->pp;
+            fdm_fnpf *cc = FP(q)->c;
+            for(int ii=EXT; ii<EXT+q->nx; ++ii)
+            for(int jj=EXT; jj<EXT+q->ny; ++jj)
+            if(pp->flagslice4[lij(pp,ii,jj)]>0 && cc->eta(ii,jj)+pp->wd-cc->bed(ii,jj) < 10.0*p->A344)
+            thin = 1;
+        }
+        thin = pgc->globalimax(thin);
+
+        if(thin>0)
+        {
+            thin_warned = true;
+            if(p->mpirank==0)
+            cout<<"FNPF AMR WARNING - a patch has a dry or thin-film cell at t = "<<p->simtime
+                <<" (the patches have no wetting and drying: keep the refinement away from the coast)"<<endl;
+        }
     }
 
     // the zone around the body moves: new patches every G 2 steps (G 7 1: G 2 counts steps of the
@@ -1053,4 +1118,237 @@ void fnpf_amr::timestep(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 
     double dtp = pgc->globalmin(p->N47*cu);
     p->dt = MIN(p->dt,dtp);
+}
+
+// --------------------------------------------------------------------- wetting and drying, breaking
+// A 343 1-3: a level-0 cell that no patch may cover (the band of q.dryband cells around it is kept
+// free as well): dry, thin film (WL < 10 A 344, the cells the coastline viscosity of A 337 and the
+// wet-dry clamp act on) or inside the coastline damping band
+bool fnpf_amr::cell_unfit(int ii, int jj)
+{
+    if(p0->A343==0)
+    return false;
+
+    const int n = lij(p0,ii,jj);
+
+    if(p0->flagslice4[n]<=0)
+    return false;
+
+    if(p0->wet[n]==0 || c0->WL(ii,jj)<10.0*p0->A344)
+    return true;
+
+    if(dist_coast>0.0 && c0->coastline(ii,jj)>=0.0 && c0->coastline(ii,jj)<dist_coast)
+    return true;
+
+    return false;
+}
+
+namespace
+{
+// inside a patch kernel the global reductions return the local value (the patch lies on one rank)
+struct fnpf_amr_local
+{
+    ghostcell *g;
+    bool old;
+    fnpf_amr_local(ghostcell *gg) : g(gg) { old = g->set_local(true); }
+    ~fnpf_amr_local() { g->set_local(old); }
+};
+}
+
+// A 350 1: the implicit damping of a stage value with the breaking viscosity, as
+// fnpf_fsfbc::damping, on the patch box; the cells around it (EXT) are held (Dirichlet), solids
+// as on level 0.  Jacobi-preconditioned BiCGStab on the patch.
+void fnpf_amr::patch_damping(fnpf_amr_patch &pc, ghostcell *pgc, slice &f, int gcval, double alpha)
+{
+    lexer *p = pc.pp;
+    fdm_fnpf *c = pc.c;
+
+    bool on = false;
+    double alpha_eta = 1.0;
+
+    if((gcval==60 || gcval==160) && (p->A357==1 || p->A357==2))
+    on = true;
+
+    if((gcval==55 || gcval==155) && (p->A357==1 || p->A357==3))
+    {
+    on = true;
+    alpha_eta = p->A366;
+    }
+
+    if(!on)
+    return;
+
+    const int i0 = EXT, i1 = EXT+pc.nx, j0 = EXT, j1 = EXT+pc.ny;
+    const int nj = pc.ny;
+    const int N = pc.nx*pc.ny;
+
+    double vbmax = 0.0;
+    for(i=i0; i<i1; ++i)
+    for(j=j0; j<j1; ++j)
+    vbmax = MAX(vbmax,fabs(c->vb(i,j)));
+
+    if(vbmax<=0.0)
+    return;
+
+    vector<double> ap(N,1.0), b(N,0.0), x(N,0.0);
+    vector<double> ac[4];
+    vector<int> nb[4];
+    for(int m=0; m<4; ++m)
+    {
+    ac[m].assign(N,0.0);
+    nb[m].assign(N,-1);
+    }
+
+    const double idt = 1.0/(alpha*p->dt);
+
+    for(i=i0; i<i1; ++i)
+    for(j=j0; j<j1; ++j)
+    {
+        const int q = (i-i0)*nj + (j-j0);
+        x[q] = f(i,j);
+
+        if(p->flagslice4[lij(p,i,j)]<0)
+        {
+        ap[q] = 1.0;
+        b[q] = f(i,j);
+        continue;
+        }
+
+        const double visc = alpha_eta*c->vb(i,j);
+        const double cf[4] = {visc/(p->DXP[IM1]*p->DXN[IP])*p->x_dir,
+                              visc/(p->DXP[IP]*p->DXN[IP])*p->x_dir,
+                              visc/(p->DYP[JM1]*p->DYN[JP])*p->y_dir,
+                              visc/(p->DYP[JP]*p->DYN[JP])*p->y_dir};
+        const int di[4] = {-1,1,0,0}, dj[4] = {0,0,-1,1};
+
+        ap[q] = cf[0]+cf[1]+cf[2]+cf[3] + idt;
+        b[q] = f(i,j)*idt;
+
+        for(int m=0; m<4; ++m)
+        {
+            const int a = i+di[m], d = j+dj[m];
+            const bool inbox = (a>=i0 && a<i1 && d>=j0 && d<j1);
+
+            // solid: the ghost value (as on level 0); outside the box: the cell around the patch
+            if(!inbox || p->flagslice4[lij(p,a,d)]<0)
+            b[q] += cf[m]*f(a,d);
+
+            else
+            {
+            ac[m][q] = -cf[m];
+            nb[m][q] = (a-i0)*nj + (d-j0);
+            }
+        }
+    }
+
+    auto apply = [&](const vector<double> &v, vector<double> &y)
+    {
+        for(int q=0; q<N; ++q)
+        {
+            double s = ap[q]*v[q];
+            for(int m=0; m<4; ++m)
+            if(nb[m][q]>=0)
+            s += ac[m][q]*v[nb[m][q]];
+            y[q] = s;
+        }
+    };
+    auto dot = [&](const vector<double> &u, const vector<double> &v)
+    {
+        double s = 0.0;
+        for(int q=0; q<N; ++q)
+        s += u[q]*v[q];
+        return s;
+    };
+
+    vector<double> r(N), r0(N), pv(N,0.0), v(N,0.0), sv(N), tv(N), y(N), z(N);
+
+    apply(x,r);
+    for(int q=0; q<N; ++q)
+    r[q] = b[q]-r[q];
+    r0 = r;
+
+    const double bn = sqrt(dot(b,b));
+    const double tol = 1.0e-13*bn + 1.0e-300;
+    double rho=1.0, al=1.0, om=1.0;
+
+    for(int it=0; it<500 && sqrt(dot(r,r))>tol; ++it)
+    {
+        const double rho1 = dot(r0,r);
+        if(fabs(rho1)<1.0e-300)
+        break;
+
+        const double beta = (rho1/rho)*(al/om);
+        for(int q=0; q<N; ++q)
+        pv[q] = r[q] + beta*(pv[q] - om*v[q]);
+
+        for(int q=0; q<N; ++q)
+        y[q] = pv[q]/ap[q];
+        apply(y,v);
+
+        al = rho1/dot(r0,v);
+        for(int q=0; q<N; ++q)
+        sv[q] = r[q] - al*v[q];
+
+        for(int q=0; q<N; ++q)
+        z[q] = sv[q]/ap[q];
+        apply(z,tv);
+
+        const double tt = dot(tv,tv);
+        om = (tt>0.0) ? dot(tv,sv)/tt : 0.0;
+
+        for(int q=0; q<N; ++q)
+        {
+        x[q] += al*y[q] + om*z[q];
+        r[q] = sv[q] - om*tv[q];
+        }
+
+        rho = rho1;
+
+        if(om==0.0)
+        break;
+    }
+
+    for(i=i0; i<i1; ++i)
+    for(j=j0; j<j1; ++j)
+    f(i,j) = x[(i-i0)*nj + (j-j0)];
+}
+
+// A 350 1: breaking detection on the stage values of the patches (all levels: l -1, or level l),
+// as fnpf_RK3 does on level 0; the cells around the patches then take the breaking viscosity of
+// their source grid: their surface is the coarse one (interpolated), their own detection would
+// mark breaking there and spread it into the patch (NHFLOW AMR step 7)
+void fnpf_amr::patch_breaking(int l, ghostcell *pgc, int s, double alpha)
+{
+    {
+    comms_off guard(pgc);
+    fnpf_amr_local loc(pgc);
+
+    for(int id=0; id<(int)P.size(); ++id)
+    {
+        if(l>=0 && P[id]->lev!=l)
+        continue;
+
+        fnpf_amr_patch *pc = FP(id);
+        lexer *pp = pc->pp;
+
+        // the breaking count is printed by level 0
+        const int p12 = pp->P12;
+        pp->P12 = 1<<30;
+        pc->pf->breaking(pp,pc->c,pgc,sval(id,s,0),*pc->en,sval(id,s,1),alpha);
+        pp->P12 = p12;
+    }
+    }
+
+    const int la = (l<0) ? 1 : l, lb = (l<0) ? maxlev : l;
+
+    for(int L=la; L<=lb; ++L)
+    fill_run(L,1,7570+L,
+             [&](const reefamr_fill &f, double *v)
+             {
+                 v[0] = (f.kind==0 || f.kind==1) ? gfd(f.g)->vb(f.si,f.sj) : 0.0;
+             },
+             [&](reefamr_patch *c, int id, const reefamr_fill &f, const double *w)
+             {
+                 FP(id)->c->vb(f.di,f.dj) = w[0];
+             });
 }
