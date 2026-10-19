@@ -26,6 +26,7 @@ Author: Ahmet Soydan
 #include"increment.h"
 #include"field4.h"
 #include<fstream>
+#include<map>
 #include<vector>
 
 class lexer;
@@ -74,19 +75,34 @@ class convection;
 //  sphere W 68 x y z r.
 //  Output: alpha_v in the VTU files (the mixture density with P 24 1), REEF3D_CFD_Cavitation/REEF3D-CFD-Cavitation.dat
 //  (time, vapour volume, equivalent radius (3V/4pi)^(1/3), vapour production rate, minimum pressure).
+//  Restart: the checkpoints (P 48, I 45) hold alpha and the other fields of this class (every field
+//  of the run, ckpt_registry), the restart continues bitwise (Regression/validation/cavitation 01);
+//  the state files (P 40, I 40) do not hold alpha.
+//  Mesh refinement (A 10 6, G 1 > 0, G 7 0): one object per grid (of(lexer)), alpha in the registry of
+//  the refinement (filled around the patches, restricted, new patches from their parent), the density
+//  of the patch edges from it (cfd_amr::rmix); the phase-change rows of every grid enter the composite
+//  projection through its pjm_corr. After the step of level 0 the patches level by level
+//  (cfd_amr::cav_step), then the restriction; alpha is not flux-matched at the patch edges.
 
 class cavitation : virtual public increment
 {
 public:
-    cavitation(lexer*, fdm*, ghostcell*);
+    // primary: level 0 (checks, messages, the output file); a patch of the mesh refinement: false
+    cavitation(lexer*, fdm*, ghostcell*, bool primary=true);
     virtual ~cavitation();
 
-    // the one cavitation model of the run, used by the density, the projection and the printer
-    inline static cavitation *active = nullptr;
+    // the cavitation model of the grid of a lexer (level 0, or a patch of the mesh refinement),
+    // used by its density, its projection and the printer; nullptr without one
+    static cavitation* of(const lexer *p)
+    {
+        auto it = grids.find(p);
+        return it==grids.end() ? nullptr : it->second;
+    }
 
     void coefficients(lexer*, fdm*, ghostcell*);    // before the momentum step
     void projection(lexer*, fdm*, double);          // after the Poisson matrix is assembled
     void start(lexer*, fdm*, ghostcell*);           // after the momentum step
+    void properties(lexer*, fdm*, ghostcell*);      // density and viscosity of the cells from alpha
 
     double rho_mix(lexer*, double) const;            // mixture density of a vapour fraction
     double val(int ii, int jj, int kk) { return alpha(ii,jj,kk); }
@@ -99,7 +115,10 @@ public:
     field4 alpha;
 
 private:
-    void properties(lexer*, fdm*, ghostcell*);
+    inline static std::map<const lexer*, cavitation*> grids;
+    const lexer *owner;
+    bool primary;
+
     void transport_step(lexer*, fdm*, ghostcell*, field&, field&, double, double, double);
     void log(lexer*, fdm*, ghostcell*);
 

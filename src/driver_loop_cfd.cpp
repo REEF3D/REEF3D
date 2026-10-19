@@ -102,12 +102,16 @@ void driver::loop_cfd(fdm* a)
         pdem->start_cfd(p,a,pgc);
         if(pcav)
         pcav->coefficients(p,a,pgc);
+        if(pcav && pcfdamr!=nullptr)
+        pcfdamr->cav_coefficients();
         if(pcfdamr!=nullptr)
         pcfdamr->step(p,a,pgc,pvrans,p6dof);
         else
         pmom->start(p,a,pgc,pvrans,p6dof); 
         if(pcav)
         pcav->start(p,a,pgc);
+        if(pcav && pcfdamr!=nullptr)
+        pcfdamr->cav_step();
         pbench->start(p,a,pgc,pconvec);
 		
         //save previous timestep

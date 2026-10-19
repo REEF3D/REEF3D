@@ -124,16 +124,24 @@ field& cfd_amr::sfield(int g)
 
 double cfd_amr::sval(int g, int i, int j, int k)
 {
+    if(cav)
+    return cfield(g)(i,j,k);
     return scal>0 ? sfield(g)(i,j,k) : 0.0;
 }
 
 double cfd_amr::sval(int g, int q)
 {
+    if(cav)
+    return cfield(g).V[q];
     return scal>0 ? sfield(g).V[q] : 0.0;
 }
 
+// the density and viscosity of the mixture; with cavitation s is the vapour fraction of the liquid
+// (as cavitation::rho_mix, cavitation::properties)
 double cfd_amr::rmix(const lexer *q, double H, double s)
 {
+    if(cav)
+    return ((1.0-s)*q->W1 + s*q->W62)*H + q->W3*(1.0-H);
     if(scal==0)
     return q->W1*H + q->W3*(1.0-H);
     if(scal==2)
@@ -145,6 +153,11 @@ double cfd_amr::rmix(const lexer *q, double H, double s)
 
 double cfd_amr::vmix(const lexer *q, double H, double s)
 {
+    if(cav)
+    {
+        const double r = (1.0-s)*q->W1 + s*q->W62;
+        return (((1.0-s)*q->W1*q->W2 + s*q->W62*q->W63)/r)*H + q->W4*(1.0-H);
+    }
     if(scal==0)
     return q->W2*H + q->W4*(1.0-H);
     if(scal==2)

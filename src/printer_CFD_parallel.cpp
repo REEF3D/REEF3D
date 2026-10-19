@@ -69,8 +69,8 @@ void printer_CFD::parallel(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, 
 
     pconc->name_ParaView_parallel(p,result);
 
-    if(cavitation::active!=nullptr)
-    cavitation::active->name_ParaView_parallel(p,result);
+    if(cavitation::of(p)!=nullptr)
+    cavitation::of(p)->name_ParaView_parallel(p,result);
 
     if(p->P24==1 && p->F300==0)
     result<<"<PDataArray type=\"Float32\" Name=\"rho\"/>\n";

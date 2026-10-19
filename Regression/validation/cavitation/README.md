@@ -23,16 +23,25 @@ Setup notes
   with an outlet patch over it, `B 441 id 4 xs xe ys ye zs ze` and `B 412 id 0.0` (pressure
   correction = patch pressure − cell pressure), with `B 60 1`. p_v is relative to it:
   W 61 = -sigma rho U²/2 for the cavitation number sigma = (p_inf - p_v)/(rho U²/2), p_inf = 0.
-  Not suitable: the plain outflow with `B 77 10` (since d9ac54c40 the correction there is
-  outflow pressure − ghost pressure = 0, the level stays free: in case 01 the column then sits at
-  p_v and the layer shrinks at a constant 0.33 m/s), `B 60 0` (no outlet pressure at all) and
-  the gauge `B 30 1` (shifting the level after each projection against the implicit phase-change
-  term diverges at the first step).
+  Alternative without patches (needed with mesh refinement, which does not take B 440-442): the
+  plain outflow `C 14 2`, `B 60 1`, `B 77 10`; with B 77 10 the outflow correction is
+  outflow pressure − cell pressure (Dirichlet, `poisson_pcorr`), case 01 then collapses at
+  0.1835 s (+0.6 %). Not suitable: `B 60 0` (no outlet pressure at all) and the gauge `B 30 1`
+  (shifting the level after each projection against the implicit phase-change term: the vapour
+  vanishes within a few ms).
 - Gravity off (`W 22 0`) unless the hydrostatic pressure is meant to be part of p - p_v.
 - Single phase (`F 30 0`, `F 80 0`); a fluid at rest needs a fixed time step (`N 48 0`, `N 49 dt`).
 - Output: `alpha_v` in the VTU files (`P 24 1` adds the mixture density), and
   `REEF3D_CFD_Cavitation/REEF3D-CFD-Cavitation.dat`: time, vapour volume, equivalent radius
   (3V/4π)^(1/3), vapour production rate, minimum pressure.
+- Restart: the checkpoints (`P 48 n`, restart `I 45 1`) hold alpha_v with every other field; the
+  restart of case 01 from step 100 is bitwise identical to the continuous run, the .dat file is
+  appended. The state files (`P 40`, `I 40`) do not hold alpha_v.
+- Mesh refinement (`A 10 6`, `G 1 > 0`, `G 15` boxes): supported with one time step for all
+  levels (`G 7 0`), the pressure level by `B 77 10` (above). One cavitation object per grid,
+  alpha_v filled around the patches and restricted, the phase-change rows of every grid in the
+  composite projection; alpha_v is not flux-matched at the patch edges. The patches are not in
+  the .dat file (level 0 only, the restricted alpha_v).
 
 ## 01 Collapse of a vapour layer
 
@@ -98,3 +107,29 @@ oscillating at about 0.2 Hz. Measured at K = 0.50: plateau -0.50 over s/d 0.66-0
 closure moves to ≈ 1.4 at K = 0.40). Nose: Cp(0.40) = +0.11 against -0.01 measured, the suction
 develops later. To hit sigma exactly, shift p_v by the upstream pressure of the run:
 W 61 = p_ref - sigma rho U²/2 (here -265.5 for 0.5): `python3 make_case.py 40 128 15 --pref -15.5`.
+
+D/40, all four cases to 15 s with `--pref -15.5` (user, 2026-10-19): actual sigma 0.506, 0.392,
+0.309; the upstream pressure is -12.7, -19.7, -10.9 Pa (no cavitation +3.6). Only sigma 0.4 is
+steady after 10 s (vapour volume 0.366 m³ ± 0.0007); sigma 0.5 (0.16 -> 0.10 m³ from 5 to 15 s) and
+sigma 0.3 (0.99 -> 0.53 m³) still shrink, and both have a mean side force (0.5: Fy -26, Fz -20 N;
+0.3: Fy -50 N; no cavitation and 0.4: a few N), an asymmetric cavity. Drag (6DOF, frontal area)
+Cd 0.33 without cavitation, 0.44-0.48 with. nocav and sigma 0.3 ran with 5e7ceda (before the
+hans_dev 6DOF and flux fixes), sigma 0.5 and 0.4 with 0b88701. Next: all four to 30 s with the
+current code (`python3 make_case.py 40 128 30 --pref -15.5`, VTU frames 20-30 s, 12 h wall time).
+A restart from the state files (P 40/I 40) does not help, they do not hold the vapour fraction;
+the checkpoints (P 48/I 45) do, a run with `P 48` can be continued.
+
+## 03 Vapour layer with mesh refinement
+
+The layer of 01 in 2D (y one cell, dx = 5 mm) with the outflow `B 77 10` instead of the patch,
+fixed dt 2.5e-4 s, 0.25 s. Collapse time against the piston equation (0.1825 s):
+
+| grid | cells | collapse | wall time (1 rank) |
+|---|---|---|---|
+| uniform 5 mm | 1600 | 0.1825 s (+0.0 %) | 7 s |
+| uniform 2.5 mm | 6400 | 0.1827 s (+0.2 %) | 27 s |
+| 5 mm + `G 1 1`, `G 15 0 0.3 0 0.005 0 0.04` (2.5 mm patch over the layer) | 1600 + 1920 | 0.1817 s (−0.4 %) | 22 s |
+
+The same on 2 ranks (the patch on one of them): 0.1817 s. The layer thickness follows the piston
+curve within 0.6 mm in all three. Regression: `Regression/cases/cfd_2d_cavitation_slab_amr`
+(2 ranks, 40 steps).

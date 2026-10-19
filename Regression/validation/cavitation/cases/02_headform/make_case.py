@@ -2,6 +2,11 @@
 # behind the shoulder at zero yaw, Re = U D/nu = 1.36e5, D = 1 m, U = 1 m/s, rho = 1000.
 #
 #   python3 make_case.py [<D/dx> <ranks> <end time> [sigma ...]] [--pref P]
+# VTU frames (P 35) over the last 5 s, the last 10 s for end times of 20 s or more (unsteady
+# cavities); Betzy wall time 6 h up to 15 s, 12 h beyond (sigma 0.3 at D/40: dt 0.0035 s, 2.8 s
+# per step on 128 ranks). No restart: the state files (P 40) do not hold the vapour fraction.
+# VTU frames (P 35) over the last 5 s, the last 10 s for end times of 20 s or more (unsteady cavities);
+# Betzy wall time 6 h up to 15 s, 12 h beyond (sigma 0.3 at D/40: dt 0.0035 s, 2.8 s per step on 128 ranks).
 # Without arguments (e.g. Run in Spyder): D/20 on 8 ranks to 20 s for sigma = none (no
 # cavitation), 0.5, 0.4, 0.3. Writes d<D/dx>/<name>/ with control.txt, ctrl.txt, headform.stl,
 # job.slurm (Betzy); the body file is also written as floating.stl for X 180.
@@ -176,12 +181,12 @@ def make(argv):
             f.write(CONTROL.format(dx=dx, ranks=ranks))
         with open(f"{d}/ctrl.txt", "w") as f:
             # W 10: discharge through the inlet face, U times its area 8 x 8
-            f.write(CTRL.format(tend=tend, tvtu=max(0.0, tend-5.0), ranks=ranks, rho=RHO, nu=NU,
+            f.write(CTRL.format(tend=tend, tvtu=max(0.0, tend-(10.0 if tend >= 20.0 else 5.0)), ranks=ranks, rho=RHO, nu=NU,
                                 q=U*64.0, cav=cav))
         n = stl(f"{d}/floating.stl")
         with open(f"{d}/job.slurm", "w") as f:
             f.write(JOB.format(name=name, res=res, ranks=ranks, nodes=max(1, ranks//128),
-                               tasks=min(ranks, 128), walltime="06:00:00"))
+                               tasks=min(ranks, 128), walltime="06:00:00" if tend <= 15.0 else "12:00:00"))
         print(f"{d}: dx = {dx}, {n} triangles, p_v = {pref - float(sg)*q if cav else 'no cavitation'}")
 
 

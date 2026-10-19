@@ -244,10 +244,14 @@ void poisson_pcorr::start(lexer* p, fdm *a, field &press)
 		}*/
 		
         // outflow (IO 2): the ghost pressure is outflow_pressure(), the value pressure_io has put
-        // into the ghost cells before the projection, so the correction there is its difference
+        // into the ghost cells before the projection, so the correction there is its difference.
+        // B 77 10 (free stream, zero pressure in the liquid): a Dirichlet pressure at the outlet, the
+        // correction is the difference to the cell pressure (as the patch outlets above), so that the
+        // pressure level is held there (the cavitation model, W 60, needs it: p - p_v drives the phase
+        // change; the pressure reference B 30 shifts the level against it)
         if(p->flag4[Ip1JK]<0 && (i+p->origin_i<p->gknox-1 || p->periodic1==0) && p->IO[Ip1JK]==2)
 		{
-		a->rhsvec.V[n] -= a->M.n[n]*(outflow_pressure(p,a,i,j,k) - a->press(i+1,j,k));
+		a->rhsvec.V[n] -= a->M.n[n]*(outflow_pressure(p,a,i,j,k) - (p->B77==10 ? a->press(i,j,k) : a->press(i+1,j,k)));
 		a->M.n[n] = 0.0;
 		}
 

@@ -419,8 +419,8 @@ void printer_CFD::print3D(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, h
             // concentration
             pconc->offset_ParaView(p,offset,n);
             // cavitation
-            if(cavitation::active!=nullptr)
-            cavitation::active->offset_ParaView(p,offset,n);
+            if(cavitation::of(p)!=nullptr)
+            cavitation::of(p)->offset_ParaView(p,offset,n);
             // rho
             if(p->P24==1 && p->F300==0)
             {
@@ -544,8 +544,8 @@ void printer_CFD::print3D(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, h
 
         pconc->name_ParaView(p,result,offset,n);
 
-        if(cavitation::active!=nullptr)
-        cavitation::active->name_ParaView(p,result,offset,n);
+        if(cavitation::of(p)!=nullptr)
+        cavitation::of(p)->name_ParaView(p,result,offset,n);
 
         if(p->P24==1 && p->F300==0)
         {
@@ -710,8 +710,8 @@ void printer_CFD::print3D(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, h
         pconc->print_3D(p,a,pgc,buffer,file_offset);
 
         //  Cavitation
-        if(cavitation::active!=nullptr)
-        cavitation::active->print_3D(p,a,pgc,buffer,file_offset);
+        if(cavitation::of(p)!=nullptr)
+        cavitation::of(p)->print_3D(p,a,pgc,buffer,file_offset);
 
         //  density
         if(p->P24==1 && p->F300==0)

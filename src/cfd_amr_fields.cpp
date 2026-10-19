@@ -28,6 +28,7 @@ Architect: Hans Bihs
 #include"rans_io.h"
 #include"heat_print.h"
 #include"concentration_io.h"
+#include"cavitation.h"
 #include<iostream>
 #include<string>
 #include<mpi.h>
@@ -120,6 +121,24 @@ void cfd_amr::register_fields()
         e.get = [](fdm *a, turbulence*) -> field& { return a->phi; };   // not used (pget, get0)
         e.pget = [this](cfd_amr_patch *c) -> field& { return scal==1 ? static_cast<heat_print*>(c->pheat)->T : static_cast<concentration_io*>(c->pconc)->C; };
         e.get0 = [this]() -> field& { return sfield(-1); };
+        reg.push_back(e);
+    }
+
+    // cavitation (W 60): the vapour fraction of the cavitation object of the grid; filled around the
+    // patches at every stage (the face densities of momentum and projection at the patch edges),
+    // restricted, new patches from their parent; not flux-matched (cfd_amr_cav.cpp)
+    if(cav)
+    {
+        cfd_amr_field e;
+        e.name = "alpha_v";
+        e.type = CELL;
+        e.prolong = 1;
+        e.roles = AF_STATE|AF_TIME|AF_STAGEIN|AF_RSTEP|AF_RSTAGE|AF_BCSTATE|AF_BCINI|AF_BCSTEP;
+        e.gc = 4;
+        e.gcval = 1;
+        e.get = [](fdm *a, turbulence*) -> field& { return a->phi; };   // not used (pget, get0)
+        e.pget = [](cfd_amr_patch *c) -> field& { return c->pcav->alpha; };
+        e.get0 = [this]() -> field& { return cfield(-1); };
         reg.push_back(e);
     }
 

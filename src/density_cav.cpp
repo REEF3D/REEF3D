@@ -36,10 +36,11 @@ density_cav::~density_cav()
 
 double density_cav::roface(lexer *p, fdm *a, int aa, int bb, int cc)
 {
-    if(cavitation::active==nullptr)
+    cavitation *cv = cavitation::of(p);
+    if(cv==nullptr)
     return p->W1;
 
-    const double al = 0.5*(cavitation::active->alpha(i,j,k) + cavitation::active->alpha(i+aa,j+bb,k+cc));
+    const double al = 0.5*(cv->alpha(i,j,k) + cv->alpha(i+aa,j+bb,k+cc));
 
-    return cavitation::active->rho_mix(p,al);
+    return cv->rho_mix(p,al);
 }

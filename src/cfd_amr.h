@@ -46,6 +46,7 @@ class poisson;
 class turbulence;
 class heat;
 class concentration;
+class cavitation;
 class reini;
 class ioflow;
 class patchBC_interface;
@@ -197,6 +198,7 @@ struct cfd_amr_patch : public r3patch
     diffusion *pturbdiff = nullptr;
     heat *pheat = nullptr;
     concentration *pconc = nullptr;
+    cavitation *pcav = nullptr;     // the cavitation model of the patch (W 60, cfd_amr_cav.cpp)
     reini *preini = nullptr;
     patchBC_interface *pBC = nullptr;
     ioflow *pflow = nullptr;
@@ -284,6 +286,10 @@ public:
     bool placed() const override { return place>0; }
     int finest_level(double, double, double) const override;
     int finest_id(double, double, double) const;
+    // cavitation (W 60): the coefficients of the phase change on the patches (level 0: the driver),
+    // and after the step of level 0 the vapour fraction on the patches, then the restriction
+    void cav_coefficients();
+    void cav_step();
     void step(lexer*, fdm*, ghostcell*, vrans*, sixdof*);
     void timestep(lexer*, fdm*, ghostcell*);
     void print(lexer*, ghostcell*, bool after=false);
@@ -595,6 +601,8 @@ private:
     // grids (SSP-RK3 in flux form; the diffusion explicit in the stages, D 20 1, or implicit after
     // them, D 20 2), the fluxes through the faces at the patch edges matched with flux registers
     int scal = 0;                       // 0 none, 1 heat T (H 10), 2 concentration C (C 10)
+    int cav = 0;                        // cavitation (W 60): the vapour fraction on all grids (cfd_amr_cav.cpp)
+    field& cfield(int g);               // the vapour fraction of grid g
     int sc_conv = 0;                    // convection H 15 / C 15: 0 none, 1 first-order upwind, 4 WENO (weno_flux_nug)
     int sc_diff = 0;                    // D 20: 0 none, 1 explicit, 2 implicit
     double sc_sig = 1.0;                // the turbulent Prandtl (Schmidt) number of the eddy viscosity

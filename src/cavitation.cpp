@@ -25,6 +25,7 @@ Author: Ahmet Soydan
 #include"fdm.h"
 #include"ghostcell.h"
 #include"hires.h"
+#include<algorithm>
 #include<cmath>
 #include<cstring>
 #include<iomanip>
@@ -32,19 +33,19 @@ Author: Ahmet Soydan
 #include<sys/stat.h>
 #include<sys/types.h>
 
-cavitation::cavitation(lexer *p, fdm *a, ghostcell *pgc) : alpha(p), Cs(p), Sv(p), Dv(p)
+cavitation::cavitation(lexer *p, fdm *a, ghostcell *pgc, bool prim) : alpha(p), Cs(p), Sv(p), Dv(p), owner(p), primary(prim)
 {
-    if(p->F30>0 || p->F80>0)
+    if(primary && (p->F30>0 || p->F80>0))
     {
         if(p->mpirank==0)
         std::cout<<"W 60: cavitation is single phase, use F 30 0 and F 80 0"<<std::endl;
         pgc->final(true);
     }
 
-    if(p->G1>0)
+    if(primary && p->G1>0 && p->G7==1)
     {
         if(p->mpirank==0)
-        std::cout<<"W 60: cavitation runs on the base grid only, not with mesh refinement (G 1)"<<std::endl;
+        std::cout<<"W 60: cavitation with mesh refinement needs one time step for all levels (G 7 0)"<<std::endl;
         pgc->final(true);
     }
 
@@ -78,10 +79,15 @@ cavitation::cavitation(lexer *p, fdm *a, ghostcell *pgc) : alpha(p), Cs(p), Sv(p
     if(p->W68==1 && (xc-p->W68_x)*(xc-p->W68_x) + (yc-p->W68_y)*(yc-p->W68_y) + (zc-p->W68_z)*(zc-p->W68_z) < p->W68_r*p->W68_r)
     alpha(i,j,k) = 1.0;
     }
+    grids[p] = this;
+
+    // a patch: its fields are set by the refinement (from the parent grid), its boundary values
+    // with the scope of the patch
+    if(!primary)
+    return;
+
     pgc->start4(p,alpha,gcval_alpha);
     properties(p,a,pgc);
-
-    active = this;
 
     if(p->mpirank==0)
     {
@@ -91,7 +97,7 @@ cavitation::cavitation(lexer *p, fdm *a, ghostcell *pgc) : alpha(p), Cs(p), Sv(p
         std::cout<<"cavitation: B 30 shifts the pressure level after each projection; fix the level by an outlet pressure patch (B 412)"<<std::endl;
 
         mkdir("./REEF3D_CFD_Cavitation",0777);
-        const bool restart = p->I40>0;
+        const bool restart = p->I40>0 || p->I45>0;   // state (I 40) or checkpoint (I 45) restart: append
         out.open("./REEF3D_CFD_Cavitation/REEF3D-CFD-Cavitation.dat",restart ? std::ios::app : std::ios::out);
         if(!restart)
         out<<"time \t vapour_volume \t equivalent_radius \t vapour_production \t p_min"<<std::endl;
@@ -100,8 +106,9 @@ cavitation::cavitation(lexer *p, fdm *a, ghostcell *pgc) : alpha(p), Cs(p), Sv(p
 
 cavitation::~cavitation()
 {
-    if(active==this)
-    active = nullptr;
+    auto it = grids.find(owner);
+    if(it!=grids.end() && it->second==this)
+    grids.erase(it);
 }
 
 double cavitation::rho_mix(lexer *p, double al) const
@@ -164,11 +171,11 @@ void cavitation::start(lexer *p, fdm *a, ghostcell *pgc)
     Sv(i,j,k) = Cs(i,j,k)*(pv - a->press(i,j,k));
 
     // divergence of the convection scheme: the scheme applied to a uniform field
+    // (every cell of the array: on a patch of the mesh refinement the cells around it as well)
+    const int na = p->imax*p->jmax*p->kmax;
     {
     field4 one(p);
-    LOOP
-    one(i,j,k) = 1.0;
-    pgc->start4(p,one,gcval_alpha);
+    std::fill(one.V,one.V+na,1.0);
     LOOP
     a->L(i,j,k) = 0.0;
     pconvec->start(p,a,one,4,a->u,a->v,a->w);
@@ -176,13 +183,18 @@ void cavitation::start(lexer *p, fdm *a, ghostcell *pgc)
     Dv(i,j,k) = -a->L(i,j,k);
     }
 
+    // the stage fields start as alpha in every cell of the array: on a patch the cells around it
+    // keep the vapour fraction filled from the coarser grid at the start of the step
     field4 ark1(p),ark2(p);
+    std::copy(alpha.V,alpha.V+na,ark1.V);
+    std::copy(alpha.V,alpha.V+na,ark2.V);
 
     transport_step(p,a,pgc,alpha,ark1,1.0,0.0,1.0);
     transport_step(p,a,pgc,ark1,ark2,0.75,0.25,0.25);
     transport_step(p,a,pgc,ark2,alpha,1.0/3.0,2.0/3.0,2.0/3.0);
 
     properties(p,a,pgc);
+    if(primary)
     log(p,a,pgc);
 }
 

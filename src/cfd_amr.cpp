@@ -75,6 +75,7 @@ Architect: Hans Bihs
 #include"initialize.h"
 #include"reefmg_core.h"
 #include"bc_zone.h"
+#include"cavitation.h"
 #include<cmath>
 #include<iostream>
 #include<iomanip>
@@ -294,6 +295,7 @@ cfd_amr::cfd_amr(lexer *p, fdm *a, ghostcell *pgc, momentum *pmom, pressure *ppr
 
     // heat or concentration: transported by the refinement on all grids (cfd_amr_scalar.cpp)
     scal = (p->H10>0) ? 1 : (p->C10>0 ? 2 : 0);
+    cav = (p->W60>0) ? 1 : 0;
     if(scal)
     {
         sc_conv = (scal==1) ? p->H15 : p->C15;
@@ -600,6 +602,7 @@ void cfd_amr::free_patch(cfd_amr_patch *c)
     delete c->ppoissonsolv;
     delete c->pheat;
     delete c->pconc;
+    delete c->pcav;
     delete c->pturb;
     delete c->pturbdisc;
     delete c->pturbdiff;
@@ -753,6 +756,11 @@ void cfd_amr::patch_objects(r3patch *rp)
     c->pconc = new concentration_RK3(pp,a,pgc);
     else
     c->pconc = new concentration_void(pp,a,pgc);
+
+    // cavitation: the vapour fraction of the patch (its density in momentum_rk, pjm_corr,
+    // poisson_pcorr through cavitation::of(pp)); set from the parent by the refinement
+    if(cav)
+    c->pcav = new cavitation(pp,a,pgc,false);
 
     // turbulence: the model of level 0, its convection (T 12) and diffusion
     if(turb && (pp->T10==1 || pp->T10==21))

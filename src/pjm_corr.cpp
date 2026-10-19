@@ -133,8 +133,8 @@ void pjm_corr::amr_prepare(lexer *p, fdm *a, poisson *ppois, ghostcell *pgc, fie
     comp_terms(p,a,uvel,vvel,wvel,alpha);
 
     // cavitation: the divergence source of the phase change, implicit in the pressure correction
-    if(cavitation::active!=nullptr)
-    cavitation::active->projection(p,a,alpha);
+    if(cavitation *cv = cavitation::of(p))
+    cv->projection(p,a,alpha);
 }
 
 void pjm_corr::amr_finish(lexer *p, fdm *a, ghostcell *pgc, field &uvel, field &vvel, field &wvel, double alpha)

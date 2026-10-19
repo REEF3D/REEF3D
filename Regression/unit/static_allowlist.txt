@@ -55,4 +55,4 @@ weno_nug_func.h | double ***s_cfx,***s_cfy,***s_cfz | coefficient tables shared 
 weno_nug_func.h | double ****s_isfx,****s_isfy,****s_isfz | coefficient tables shared by the instances on the first lexer (the rank grid); an instance on another grid builds its own (own_ini)
 weno_nug_func.h | int iniflag | coefficient tables shared by the instances on the first lexer (the rank grid); an instance on another grid builds its own (own_ini)
 weno_nug_func.h | lexer *s_lexer | coefficient tables shared by the instances on the first lexer (the rank grid); an instance on another grid builds its own (own_ini)
-cavitation.h | cavitation *active = nullptr | the cavitation model of the base grid (W 60); it stops the run with mesh refinement (G 1 > 0, cavitation constructor)
+cavitation.h | std::map<const lexer*, cavitation*> grids | the cavitation object of each grid, keyed by the lexer of the grid (level 0 or a patch); an object enters at construction and leaves at destruction, so a grid finds its own

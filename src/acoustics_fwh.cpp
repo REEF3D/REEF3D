@@ -186,7 +186,7 @@ void acoustics_fwh::ini(lexer *p, fdm *a, ghostcell *pgc)
         
         // restart from a state file (I 40): append to the files of the first run; the signals
         // restart with the first complete sample after the restart time
-        const bool restart = p->I40>0;
+        const bool restart = p->I40>0 || p->I45>0;   // state (I 40) or checkpoint (I 45) restart: append
         
         for(int n=0; n<nobs; ++n)
         {

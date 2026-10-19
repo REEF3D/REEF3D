@@ -1,0 +1,20 @@
+{
+ "description": "Cavitation (W 60 1) with CFD mesh refinement (G 1 1, static box G 15 over the vapour layer and the liquid next to it): collapse of a 0.2 m vapour layer at the closed end of a 1 m channel, p_v = -10 kPa; the pressure level fixed by the outflow pressure B 77 10 (Dirichlet relative to the cell pressure; patch BCs are not allowed with the refinement), fixed dt, 2 MPI ranks. Full run (0.25 s): collapse 0.1817 s against 0.1825 s of the piston equation (5 mm base, 2.5 mm patch).",
+ "np": 2,
+ "steps": 40,
+ "files": [],
+ "tags": [
+  "2d",
+  "cavitation",
+  "amr",
+  "mpi",
+  "quick"
+ ],
+ "covers": [
+  "cavitation per grid (cavitation::of): one object on level 0 and one per patch",
+  "alpha_v in the field registry of the refinement: fill around the patches, restriction, prolongation",
+  "phase-change rows of every grid in the composite projection (pjm_corr::amr_prepare)",
+  "patch-edge mixture density and viscosity (cfd_amr rmix/vmix)",
+  "outflow pressure B 77 10 as the pressure level"
+ ]
+}
