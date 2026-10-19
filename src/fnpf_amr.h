@@ -82,9 +82,11 @@ using namespace std;
 //  rectangle at a body is placed whole (place_whole_zones): the footprint extension and the
 //  interior fill of the body are local to a patch.
 //
-//  Regridding (G 2 steps, default 4) only with the zone around the body (G 12): the zone is
-//  aligned with x and y, and the layout is kept while it covers the flagged tiles (lazy layout,
-//  reefamr_param::lazy), so that a moored body does not rebuild its patches every few steps.
+//  Regridding (G 2 steps, default 4) with the zone around the body (G 12) or the solution-adaptive
+//  flags (tag): surface jump G 20, second difference G 21, the shoreline G 22 (with G 30 1) and the
+//  breaking cells G 23 (with A 350 1).  The zone is aligned with x and y, and the layout is kept
+//  while it covers the flagged tiles (lazy layout, reefamr_param::lazy), so that a moored body does
+//  not rebuild its patches every few steps.
 //
 //  Coastline (A 343 1-3): the patches are fully wet; no patch within 4 level-0 cells (A 343 2, 3:
 //  8) of a dry or thin-film cell or of the coastline damping band (cell_unfit), checked at every
@@ -100,7 +102,7 @@ using namespace std;
 //  grid.
 //
 //  Scope of this version: refinement G 1 levels, G 10 boxes, G 11 boxes without
-//  refinement, G 4 tile width, G 12 zone around the body; RK3 (A 310 3), wetting-drying
+//  refinement, G 4 tile width, G 12 zone around the body, G 20-23 adaptive flags; RK3 (A 310 3), wetting-drying
 //  A 343 0-3 (patches off the coast; A 343 1 with G 30 1 also over it), breaking A 350 0 or 1, X 10 0 or 1, no ice (A 380 0),
 //  A 324 0, A 328 0, 3D grids.
 //  No refinement in the relaxation zones (B 96) and next to in- and outflow boundaries.
@@ -356,6 +358,13 @@ private:
     void patch_damping(fnpf_amr_patch&, ghostcell*, slice&, int, double);
     void patch_breaking(int, ghostcell*, int, double);
     vector<double> dv[6];           // work vectors of the damping solve
+
+    // solution-adaptive refinement (tag): surface jump G 20, second difference G 21, shoreline
+    // G 22 (with G 30 1), breaking G 23 (with A 350 1)
+    bool adaptive = false;
+    double tol_eta = 0.0, tol_curv = 0.0;
+    int nshore = 0;
+    bool flagbreak = false;
 
     // coastline (A 343 1-3): the patches stay off the dry cells and the coastline band of level 0
     double dist_coast = 0.0;

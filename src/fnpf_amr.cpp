@@ -131,8 +131,6 @@ fnpf_amr::fnpf_amr(lexer *p, fdm_fnpf *c, ghostcell *pgc) : reefamr(p,pgc)
     q.zr = p->G12_r;
     q.zL = p->G13_L;
     q.za = p->G13_a;
-    if(q.zones)
-    q.regrid = MAX(p->G2,0);
 
     // the FNPF bodies are moored or oscillate: the zone is aligned with x and y (the heading of
     // the SFLOW ship zone swings with every reversal of the motion), and the layout is kept as
@@ -167,6 +165,32 @@ fnpf_amr::fnpf_amr(lexer *p, fdm_fnpf *c, ghostcell *pgc) : reefamr(p,pgc)
     // wave breaking (A 350 1): on every grid (detection and the implicit damping with the
     // breaking viscosity), the cells around a patch take the viscosity of their source grid
     brk = (p->A350==1);
+
+    // solution-adaptive refinement (as nhflow_amr, tag): a wet cell of level l flags level l+1
+    // where the surface jumps by more than G 20 to a neighbour or its second difference along x or
+    // y exceeds G 21 (m); where it breaks (G 23 1 with A 350 1: the breaking flag of the grid, not
+    // the coastline viscosity); within G 22 cells (1-3) of a dry cell (with G 30 1: the patches
+    // cover the static shoreline).  Without G 30 1 the dryband keeps them off the coast as before
+    tol_eta = MAX(p->G20,0.0);
+    tol_curv = MAX(p->G21,0.0);
+    adaptive = (tol_eta>0.0 || tol_curv>0.0);
+
+    if(wd && p->G22>0)
+    {
+    nshore = MIN(p->G22,3);
+    adaptive = true;
+    }
+
+    if(brk && p->G23==1)
+    {
+    flagbreak = true;
+    adaptive = true;
+    }
+
+    // the zone follows the body, the patches follow the flags: new patches every G 2 steps
+    // (G 2 0: static)
+    if(q.zones || adaptive)
+    q.regrid = MAX(p->G2,0);
 
     sub = (p->G7==1 && (p->X10==0 || q.zones)) ? 1 : 0;
     zr_user = q.zr;
@@ -360,10 +384,12 @@ void fnpf_amr::ini(lexer *p, fdm_fnpf *c, ghostcell *pgc)
         cout<<"FNPF AMR: "<<maxlev<<" level(s), "<<patches_total<<" patch(es), "<<cells_total<<" refined columns";
         if(vref==2)
         cout<<", sigma layers doubled on every level (G 6)";
+        const char *follows = (par.zones && adaptive) ? ", the zone follows the body, the patches the flags"
+                            : (adaptive ? ", the patches follow the flags" : ", the zone follows the body");
         if(regrid_int>0 && sub==0)
-        cout<<", regrid every "<<regrid_int<<" steps (G 2), the zone follows the body";
+        cout<<", regrid every "<<regrid_int<<" steps (G 2)"<<follows;
         if(regrid_int>0 && sub==1)
-        cout<<", regrid every "<<MAX(regrid_int>>maxlev,1)<<" level-0 steps (G 2), the zone follows the body";
+        cout<<", regrid every "<<MAX(regrid_int>>maxlev,1)<<" level-0 steps (G 2)"<<follows;
         if(sub==1)
         cout<<", subcycled (G 7 1: level l takes 2^l steps per level-0 step)";
         cout<<endl;
@@ -375,6 +401,25 @@ void fnpf_amr::ini(lexer *p, fdm_fnpf *c, ghostcell *pgc)
         cout<<"FNPF AMR: the patches stay "<<par.dryband<<" level-0 cells off the coastline (A 343 "<<p->A343<<")"<<endl;
         if(brk)
         cout<<"FNPF AMR: wave breaking on every grid (A 350 1)"<<endl;
+        if(adaptive)
+        {
+            cout<<"FNPF AMR: flags:";
+            if(tol_eta>0.0)
+            cout<<" surface jump > "<<tol_eta<<" m (G 20)";
+            if(tol_curv>0.0)
+            cout<<" second difference > "<<tol_curv<<" m (G 21)";
+            if(nshore>0)
+            cout<<" shoreline, "<<nshore<<" cell(s) (G 22)";
+            if(flagbreak)
+            cout<<" breaking (G 23)";
+            cout<<endl;
+            if(regrid_int==0)
+            cout<<"FNPF AMR: G 2 0 -- the flags are taken once, at the start"<<endl;
+        }
+        if(p->G22>0 && !wd)
+        cout<<"FNPF AMR: G 22 needs A 343 1 with G 30 1 (patches over the coastline) -- ignored"<<endl;
+        if(p->G23==1 && !brk)
+        cout<<"FNPF AMR: G 23 needs A 350 1 -- ignored"<<endl;
         if(sub==1 && par.zones && par.zr>zr_user)
         cout<<"FNPF AMR: G 7 1 with a body: zone margin "<<par.zr<<" m (12 cells of level 0) instead of G 12 "<<zr_user<<endl;
         cout<<"FNPF AMR: refined columns per rank max "<<(long)cmax<<", mean "<<setprecision(4)<<double(cells_total)/p->mpi_size
@@ -573,7 +618,79 @@ void fnpf_amr::patch_delete(reefamr_patch *q)
 
 void fnpf_amr::tag(int l, vector<unsigned char> &M)
 {
-    // static refinement: the boxes (G 10) are marked by the core
+    // the boxes (G 10) and the body zone (G 12) are marked by the core; the solution-adaptive
+    // flags on the end-of-step state of the level-l grids (level 0 under the patches: the
+    // restricted surface and its own breaking detection)
+    if(!adaptive)
+    return;
+
+    const int lf = l+1;
+
+    auto test = [&](lexer *q, fdm_fnpf *d, int ii, int jj)
+    {
+        // a wet cell above the thin film (as the dryband, cell_unfit)
+        auto ok = [&](int a, int b)
+        {
+            const int n = lij(q,a,b);
+            return q->flagslice4[n]>0 && q->wet[n]==1 && d->WL(a,b)>=10.0*q->A344;
+        };
+
+        // breaking (G 23)
+        if(flagbreak && q->flagslice4[lij(q,ii,jj)]>0 && d->breaking(ii,jj)>0)
+        return true;
+
+        // shoreline (G 22): a fluid cell with a cell of the other wet state within nshore cells
+        if(nshore>0 && q->flagslice4[lij(q,ii,jj)]>0)
+        {
+            const int w0 = q->wet[lij(q,ii,jj)];
+            for(int a=-nshore; a<=nshore; ++a)
+            for(int b=-nshore*q->j_dir; b<=nshore*q->j_dir; ++b)
+            {
+                const int n = lij(q,ii+a,jj+b);
+                if(q->flagslice4[n]>0 && q->wet[n]!=w0)
+                return true;
+            }
+        }
+
+        if(!ok(ii,jj))
+        return false;
+
+        const double ec = d->eta(ii,jj);
+
+        if(tol_eta>0.0)
+        {
+            const int di[4]={1,-1,0,0}, dj[4]={0,0,1,-1};
+            for(int k=0; k<4; ++k)
+            if((dj[k]==0 || q->j_dir==1) && ok(ii+di[k],jj+dj[k]) && fabs(d->eta(ii+di[k],jj+dj[k])-ec)>tol_eta)
+            return true;
+        }
+
+        if(tol_curv>0.0)
+        {
+            if(ok(ii+1,jj) && ok(ii-1,jj) && fabs(d->eta(ii+1,jj)-2.0*ec+d->eta(ii-1,jj))>tol_curv)
+            return true;
+            if(q->j_dir==1 && ok(ii,jj+1) && ok(ii,jj-1) && fabs(d->eta(ii,jj+1)-2.0*ec+d->eta(ii,jj-1))>tol_curv)
+            return true;
+        }
+        return false;
+    };
+
+    if(l==0)
+    {
+        for(int ii=0; ii<NX0; ++ii)
+        for(int jj=0; jj<NY0; ++jj)
+        if(test(p0,c0,ii,jj))
+        tag_cell(lf,ii+O0i,jj+O0j,nbuf,M);
+    }
+
+    for(int n : lev[l])
+    {
+        fnpf_amr_patch *pc = FP(n);
+        for(int ii=EXT; ii<EXT+pc->nx; ++ii)
+        for(int jj=EXT; jj<EXT+pc->ny; ++jj)
+        if(test(pc->pp,pc->c,ii,jj))
+        tag_cell(lf,ii-EXT+pc->I0,jj-EXT+pc->J0,nbuf,M);
+    }
 }
 
 // --------------------------------------------------------------------- interpolation

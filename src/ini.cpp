@@ -718,7 +718,7 @@ void control::ini_default()
     // Grid
     // mesh refinement (SFLOW, FNPF, NHFLOW)
     G1=0;       // int SFLOW, FNPF and NHFLOW mesh refinement: number of refined levels
-    G2=4;       // int SFLOW, FNPF, NHFLOW and CFD mesh refinement: regrid interval in time steps (0: static; FNPF: only with G 12, NHFLOW: with G 12, G 20 or G 21; CFD: with G 24, G 25 or G 26)
+    G2=4;       // int SFLOW, FNPF, NHFLOW and CFD mesh refinement: regrid interval in time steps (0: static; FNPF and NHFLOW: with G 12, G 20, G 21, G 22 or G 23; CFD: with G 24, G 25 or G 26)
     G3=2;       // int SFLOW, FNPF, NHFLOW and CFD mesh refinement: buffer cells around flagged cells
     G4=8;       // int SFLOW, FNPF, NHFLOW and CFD mesh refinement: tile size in cells of the refined level
     G5=4;       // int SFLOW, FNPF, NHFLOW and CFD mesh refinement: regrids a refined tile is kept after its last flag (hysteresis)
@@ -731,10 +731,10 @@ void control::ini_default()
     G12_r=0.5;  // double SFLOW, FNPF and NHFLOW mesh refinement: margin around the hull
     G13_L=0.0;  // double SFLOW and NHFLOW mesh refinement: length of the refined wake wedge from the bow (0: off)
     G13_a=19.47;// double SFLOW and NHFLOW mesh refinement: half angle of the wake wedge in degrees
-    G20=0.0;    // double SFLOW and NHFLOW mesh refinement: surface jump between neighbour cells that flags a cell (0: off)
-    G21=0.0;    // double NHFLOW mesh refinement: second difference of the surface along x or y that flags a cell (0: off)
-    G22=0;      // int SFLOW and NHFLOW mesh refinement: flag the shoreline (SFLOW: >0 on; NHFLOW with G 30 1: the cells within this many cells (1-3) of the shoreline); 0 off
-    G23=0;      // int NHFLOW mesh refinement with A 550 1: 1 flags the cells with breaking viscosity (the breaking zone on the finest grid)
+    G20=0.0;    // double SFLOW, FNPF and NHFLOW mesh refinement: surface jump between neighbour cells that flags a cell (0: off)
+    G21=0.0;    // double FNPF and NHFLOW mesh refinement: second difference of the surface along x or y that flags a cell (0: off)
+    G22=0;      // int SFLOW, FNPF and NHFLOW mesh refinement: flag the shoreline (SFLOW: >0 on; NHFLOW and FNPF with G 30 1: the cells within this many cells (1-3) of the shoreline); 0 off
+    G23=0;      // int NHFLOW mesh refinement with A 550 1, FNPF with A 350 1: 1 flags the breaking cells (the breaking zone on the finest grid)
     G24=0.0;    // double CFD mesh refinement: flag the cells with |phi| below this many interface thicknesses (psi of the flagging level); 0 off
     G25=0;      // int CFD mesh refinement: flag the cells within this many cells of a solid, the topography or a floating body; 0 off
     G26=0.0;    // double CFD mesh refinement: flag the cells with a vorticity above this value [1/s]; 0 off
