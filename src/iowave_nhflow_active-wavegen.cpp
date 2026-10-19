@@ -31,6 +31,26 @@ void iowave::nhflow_active_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, double 
         
         double etaval=0.0;
         
+        // B 98 8 (wavemakers; the wave theories generate at a Riemann edge, nhflow_gen_edge): gauges and filter once
+        // per step on all ranks (global sums), non-hydrostatic pressure of the predicted reflected wave at the edge
+        // (Poisson boundary value)
+        if(sirw_in.on)
+        {
+        sirw_in.update(p,pgc,d->eta,p->simtime);
+        
+            if(d->Pbc==nullptr)
+            p->Darray(d->Pbc,p->imax*p->jmax*(p->kmax+2));
+            
+            for(n=0;n<p->gcslin_count;n++)
+            {
+            i=p->gcslin[n][0];
+            j=p->gcslin[n][1];
+            
+                for(k=0; k<=p->knoz; ++k)
+                d->Pbc[FIm1JK] = k<p->knoz ? p->W1*sirw_in.pressure(p->simtime,p->ZN[KP]*d->WL(i,j) + d->bed(i,j) - p->phimean) : 0.0;
+            }
+        }
+        
         // wave theory
         if(p->B92<20 || p->B92>29)
         for(n=0;n<p->gcslin_count;n++)
@@ -144,10 +164,21 @@ void iowave::nhflow_active_wavegen(lexer *p, fdm_nhf *d, ghostcell *pgc, double 
                 // target at this column, ramped like the velocities (it was evaluated at the x of
                 // the last precalc cell and y = 0, without the ramp)
                 eta_T = ramp(p)*wave_eta(p,pgc,xgen(p),ygen(p));
+                
+                // B 536 1: piston wavemaker against the linear surface elevation of the paddle signal at this
+                // cell (progressive and evanescent modes) instead of the shallow-water estimate
+                if(p->B536==1 && p->B92>=20 && p->B92<=29 && wave_arc())
+                eta_T = wave_eta_arc(p,pgc,p->XP[IP]-p->global_xmin);
+                
                 eta_M = d->eta(i,j); 
                 eta_R = eta_T-eta_M;
 				
                 Uc=eta_R*sqrt(9.81/p->wd);
+                
+                // B 98 8 (SIRW): the band from the two gauges, shallow water for the deviation from target and
+                // predicted reflected wave
+                if(sirw_in.on)
+                Uc = (eta_R + sirw_in.eta(p->simtime))*sqrt(9.81/p->wd) + sirw_in.velocity(p->simtime,p->ZSP[IJK]-p->phimean);
                 
                 U[Im1JK] += Uc;
                 U[Im2JK] += Uc;

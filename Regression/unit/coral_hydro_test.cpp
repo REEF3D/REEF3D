@@ -25,6 +25,10 @@
 #include"coral/hydro/coral_radiation.h"
 #include"coral/hydro/coral_hydro_load.h"
 #include"coral/hydro/coral_morison.h"
+#include"coral/hydro/coral_body_drag.h"
+#include"coral/io/coral_input.h"
+#include"coral/structure/coral_linear6.h"
+#include"coral/core/coral_constraint.h"
 #include<iostream>
 #include<fstream>
 #include<string>
@@ -503,6 +507,65 @@ static void test_morison()
     check(std::fabs(mf.bodies[0].x(0) - xex) < 1.0e-9, fmt("added mass of the member: x(1 s) = %.6f m = F0/(2 (m + rho Ca V)) = %.6f m", mf.bodies[0].x(0), xex));
 }
 
+// quadratic damping of a body (drag): a heaving body on a spring released from an offset against the ODE
+// m z'' + Q |z'| z' + k z = 0 (fine RK4); Cd and area of the keyword; a pitch coefficient (moment)
+static void test_drag()
+{
+    std::cout<<"quadratic damping (drag)"<<std::endl;
+    const double mass = 250.0, k = 8000.0, Q = 400.0, z0 = 0.2;
+    model m;
+    rigid_body b;
+    b.mass = mass;
+    b.inertia = Vec3(10, 10, 10).asDiagonal();
+    m.add_body(b);
+    m.gravity = Vec3::Zero();
+    m.add_constraint(std::make_unique<joint>(m, joint_type::prismatic, -1, 0, Vec3::Zero(), Vec3::UnitZ()));
+    Mat6 K = Mat6::Zero();
+    K(2,2) = k;
+    m.add_load(std::make_unique<linear6>(m, 0, Vec3::Zero(), K, Mat6::Zero()));
+    m.add_load(std::make_unique<body_drag>(m, 0, Vec3::Zero(), Vec3::UnitZ(), Q, "drag"));
+    m.bodies[0].x(2) = z0;
+    timeint ti;
+    ti.initialize(m, 0.0);
+    // reference: RK4 with a 100 times smaller step
+    auto rhs = [&](double z, double v) {return (-k*z - Q*std::fabs(v)*v)/mass;};
+    double zr = z0, vr = 0.0, err = 0.0, Ediss = 0.0;
+    const double h = 0.005, hr = h/100.0;
+    for(int i=0; i<int(4.0/h); ++i)
+    {
+        ti.step(m, i*h, h);
+        for(int j=0; j<100; ++j)
+        {
+            const double k1z = vr, k1v = rhs(zr, vr);
+            const double k2z = vr + 0.5*hr*k1v, k2v = rhs(zr + 0.5*hr*k1z, vr + 0.5*hr*k1v);
+            const double k3z = vr + 0.5*hr*k2v, k3v = rhs(zr + 0.5*hr*k2z, vr + 0.5*hr*k2v);
+            const double k4z = vr + hr*k3v, k4v = rhs(zr + hr*k3z, vr + hr*k3v);
+            zr += hr*(k1z + 2*k2z + 2*k3z + k4z)/6.0;
+            vr += hr*(k1v + 2*k2v + 2*k3v + k4v)/6.0;
+            Ediss += hr*Q*std::fabs(vr)*vr*vr;
+        }
+        err = std::max(err, std::fabs(m.bodies[0].x(2) - zr));
+    }
+    check(err < 2.0e-3*z0, fmt("heave decay against m z'' + Q |z'| z' + k z = 0: max error %.1e m (offset %.1f m)", err, z0));
+    const double E = 0.5*k*m.bodies[0].x(2)*m.bodies[0].x(2) + 0.5*mass*m.bodies[0].v.squaredNorm();
+    check(std::fabs((0.5*k*z0*z0 - E) - Ediss) < 0.01*Ediss, fmt("energy lost %.2f J = drag work %.2f J", 0.5*k*z0*z0 - E, Ediss));
+
+    coral_case c;
+    c.read_string("rho 1000\ntime dt 0.01 end 1\nbody b mass 1 inertia 1 1 1 cog 0 0 0\n"
+                  "drag d body b Cd 0.15 area 2.4\ndrag p body b Q 0 0 0 0 7 0\n", ".");
+    const body_drag *dz = nullptr, *dp = nullptr;
+    for(const auto &l : c.m.load_list)
+        if(auto q = dynamic_cast<const body_drag*>(l.get()))
+            (q->name()=="d" ? dz : dp) = q;
+    c.m.bodies[0].v = Vec3(0.3, 0.0, -0.5);
+    c.m.bodies[0].w = Vec3(0.0, 0.2, 0.0);
+    const Vec6 Fz = dz->force(c.m), Fp = dp->force(c.m);
+    const double Fex = 0.5*1000.0*0.15*2.4*0.25;
+    check(dz && dp && std::fabs(Fz(2) - Fex) < 1.0e-12*Fex && Fz(0)==0.0 && Fz.tail<3>().norm()==0.0
+          && std::fabs(dz->power(c.m) + Fex*0.5) < 1.0e-12 && std::fabs(Fp(4) + 7.0*0.04) < 1.0e-14 && Fp.head<3>().norm()==0.0,
+          fmt("keyword drag: Cd A along z (%.2f N up for 0.5 m/s down), power, pitch coefficient", Fz(2)));
+}
+
 int main()
 {
     test_waves();
@@ -514,6 +577,7 @@ int main()
     test_pitch_stiffness();
     test_two_bodies();
     test_morison();
+    test_drag();
     std::cout<<(nfail ? "FAILED: " : "all passed")<<(nfail ? std::to_string(nfail) : "")<<std::endl;
     return nfail ? 1 : 0;
 }

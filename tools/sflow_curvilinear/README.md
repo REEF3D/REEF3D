@@ -26,9 +26,11 @@ face normal, stage outflow (`F 50`, `F 62`), `F 72` boxes in physical coordinate
 mesh refinement (`G 1`: static boxes `G 10` and no-refinement boxes `G 11` in physical
 coordinates (cell centres), regridding `G 2`, subcycling `G 7 1`, placement `G 40 1`, with the
 composite non-hydrostatic and Boussinesq solves), VTP output on the physical nodes, AMR output as
-VTS (structured grids on the physical nodes), AMR gauges (`P 51` with `G 1`) at physical points. Refused with a message:
-`A 220 >= 5`, diffusion and turbulence, wave generation, patch boundary conditions, 6DOF,
-SEASTATE, `I 11`. Sediment transport (`S 10 1`, phase P5a): `../sediment_curvilinear/README.md`. The native probes and other output that use x/y positions still refer to the logical box;
+VTS (structured grids on the physical nodes), AMR gauges (`P 51` with `G 1`) at physical points,
+explicit horizontal diffusion (`A 212 1`, `W 2`) with the algebraic eddy viscosity (`A 260 3` mixing
+length, `A 260 4` parabolic; P6a), also on the patches and the blocks. Refused with a message:
+`A 220 >= 5`, the implicit diffusion `A 212 2`, the turbulence transport models `A 260 1`, `2`,
+wave generation, patch boundary conditions, 6DOF, SEASTATE, `I 11`. Sediment transport (`S 10 1`, phase P5a): `../sediment_curvilinear/README.md`. The native probes and other output that use x/y positions still refer to the logical box;
 the LAGOON print of the AMR hierarchy is not written on curvilinear grids.
 
 Numerics (P1b, P1c):
@@ -66,6 +68,17 @@ Numerics (P1b, P1c):
   - before: 0.1 m/s at a lake at rest with an emerged island where a patch boundary crossed or ran near
     the shoreline (0.7 m/s at a steep quay of the Nidelva - harbour run); now the same as on one level
     (`t8_shoreline_amr.py`)
+- horizontal diffusion (P6a, `sflow_ediff::curv_stress`): the depth-integrated stress nu h (grad u + grad u^T)
+  through the four faces of a cell over its area (finite volume, conservative), nu h of a face the mean of
+  its two cells; the normal derivative from the two centres (as the compact Laplacian of the NH pressure),
+  the non-orthogonal part k.grad u and the transposed part from the face mean of the cell gradients; no
+  stress through walls and towards dry cells (free slip, as the dry neighbours of the Cartesian operator).
+  The Cartesian operator keeps its form h nu (2 u_xx + u_yy + v_xy); on the same nodes the two agree to
+  second order (the effect of the diffusion on a small dam break within 6 %, `t9b`), not to round-off; with
+  large depth gradients the conservative form differs more (the gradient of h nu)
+- eddy viscosity on curvilinear grids and on the grids of REEFAMR (`sflow_ediff::algebraic_eddyv`): every
+  grid computes `A 260 3` / `4` from the state of the stage in its cells and its first ghost layer (both
+  cells of a face of two grids see the same viscosity); the native turbulence module stays void there
 - `A 209 0` is recommended (the default in-place bed smoothing depends on the partition)
 
 Limitation: Boussinesq with mesh refinement on a skewed grid went unstable when the finest cells
@@ -79,6 +92,8 @@ Several blocks (multi-block grid, DIVEMesh `R 20 1`): see `../sflow_multiblock`.
 
 | script | checks |
 |---|---|
+| `t9_diffusion_rotation.py` | horizontal diffusion (`A 212 1`, `W 2`), mixing length (`A 260 3`), parabolic (`A 260 4`): river reach with an emerged island on the logical grid and rotated by 30 deg (`A 211 0`): eta per cell index to 1.0e-10 (as without diffusion); a skewed, wavy grid runs |
+| `t9b_diffusion_cartesian.py` | dam break of T1 with `W 2 0.05`: the effect of the diffusion on eta on the curvilinear and on the Cartesian grid (same nodes) differs by 6 % for a small dam (`HDAM=1.05`), by 54 % for the 2 m dam (the conservative stress with the gradient of h) |
 | `t1_dambreak_rotation.py` | dam break in a closed basin: Cartesian kernels, curvilinear kernels on the same nodes, and on the grid rotated by 90 deg and shifted agree per cell index to round-off (1.8e-15) |
 | `t1b_channel_rotation.py` | river reach with discharge inflow and stage outflow: curvilinear = Cartesian on the same nodes (3.6e-15); rotated by 30 deg at UTM coordinates with an emerging island: equal to truncation level with WENO (the nonlinear weights act on the Cartesian components), to 8e-11 with a linear reconstruction (`A 211 0`) |
 | `t2_lake_at_rest.py`, `t2b_variants.py` | lake at rest on a wavy, skewed grid: velocities 2.5e-15 fully wet; with an emerged island 1e-5 at the shoreline, the same as on the Cartesian grid (wet/dry treatment of SFLOW) |

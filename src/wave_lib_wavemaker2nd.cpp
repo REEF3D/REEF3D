@@ -742,6 +742,68 @@ double wave_lib_wavemaker2nd::paddle_Q(double t, double z) const
     return qa + fl*(qb-qa);
 }
 
+// linear surface elevation of the paddle-generated field at distance x0 from the paddle: for every component
+// the progressive and J evanescent modes, eta = Re sum_m a_m exp(i(omega t - k_m x0)), k_m = -i kappa_m for the
+// evanescent modes (same modal amplitudes as compute_components_multi)
+void wave_lib_wavemaker2nd::compute_eta_x_multi(double g, double h, const std::vector<shape_t> &shp, int J, double fmin, double fmax,
+                       const std::vector<std::vector<double> > &x, double dt, double x0, std::vector<double> &eta)
+{
+    const int npts = int(x[0].size());
+    eta.assign(npts,0.0);
+    if(npts<8)
+    return;
+
+    std::vector<int> cand;
+    std::vector<std::vector<cplx> > X;
+    std::vector<double> amp;
+    int nfft;
+    double dw;
+    const int N = select_components(g,h,fmin,fmax,2147483647,x,dt,nfft,dw,cand,X,amp);
+    if(N==0)
+    return;
+
+    const int P = int(shp.size());
+    std::vector<cplx> Y(nfft,cplx(0.0,0.0));
+
+    for(int n=0; n<N; ++n)
+    {
+        const double w = double(cand[n])*dw;
+        cplx sum(0.0,0.0);
+
+        for(int j=0; j<=J; ++j)
+        {
+            const cplx k  = (j==0) ? cplx(k_prog(w,h,g),0.0) : cplx(0.0,-k_evan(w,h,g,j));
+            const cplx sh = sinh(k*h);
+            const cplx ch = cosh(k*h);
+            const cplx N0 = (2.0*k*h + 2.0*sh*ch)/(4.0*k);
+            cplx XI(0.0,0.0);
+            for(int p=0; p<P; ++p)
+            XI += X[p][n]*If_shape(shp[p],k,h);
+            sum += I_*sh*XI/N0*exp(-I_*k*x0);
+        }
+        Y[cand[n]] = sum;
+    }
+
+    fft(Y,true);
+
+    for(int q=0; q<npts; ++q)
+    eta[q] = Y[q].real();
+}
+
+double wave_lib_wavemaker2nd::eta_target(double t) const
+{
+    if(Ent<2)
+    return 0.0;
+
+    double st = (t-Et0)/Edt;
+    if(st<0.0 || st>double(Ent-1))
+    return 0.0;
+    int q0 = std::min(Ent-2,int(st));
+    double ft = st-double(q0);
+
+    return Etab[q0] + ft*(Etab[q0+1]-Etab[q0]);
+}
+
 #ifndef WM2ND_STANDALONE
 void wave_lib_wavemaker2nd::correct(lexer *p, ghostcell *pgc, double **kin, int ptnum, double h, int shape, double zs, double ze)
 {
@@ -895,5 +957,36 @@ void wave_lib_wavemaker2nd::make_Qtable_impl(lexer *p, ghostcell *pgc, double **
     cout<<"  time: "<<pgc->timer()-starttime<<" s";
     cout<<endl;
     }
+}
+void wave_lib_wavemaker2nd::make_etatable(lexer *p, ghostcell *pgc, double **kin, int ptnum, double h, int shape, double zs, double ze, double x0)
+{
+    const double g = fabs(p->W22)>0.0 ? fabs(p->W22) : 9.81;
+    std::vector<shape_t> shp(1,make_shape(shape,zs,ze));
+    std::vector<std::vector<double> > xu(1);
+
+    const int nu = resample(kin,ptnum,1,Et0,Edt,xu[0]);
+    if(nu<8)
+    return;
+
+    // physical displacement B118*X (velocities are scaled by B118)
+    const double sc = (fabs(p->B118)>1.0e-20) ? p->B118 : 1.0;
+    for(int q=0; q<nu; ++q)
+    xu[0][q] *= sc;
+
+    const double starttime = pgc!=nullptr ? pgc->timer() : 0.0;
+
+    compute_eta_x_multi(g,h,shp,p->B113_J,p->B114_fmin,p->B114_fmax,xu,Edt,x0,Etab);
+    Ent = nu;
+    Ex0 = x0;
+
+    double emax=0.0;
+    for(int q=0; q<Ent; ++q)
+    emax = std::max(emax,fabs(Etab[q]));
+
+    std::cout<<"Wave_Lib: active absorption target (B 98 4/7) at x0 = "<<x0<<" m from the paddle, samples: "<<Ent
+             <<"  evanescent modes: "<<p->B113_J<<"  max |eta_T|: "<<emax<<" m";
+    if(pgc!=nullptr)
+    std::cout<<"  time: "<<pgc->timer()-starttime<<" s";
+    std::cout<<std::endl;
 }
 #endif

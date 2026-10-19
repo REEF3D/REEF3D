@@ -33,6 +33,9 @@ Architect: Hans Bihs
 void sixdof_obj::amr_save()
 {
     rb_amr = rb;
+    ext_on_amr_ = ext_on_;
+    ext_v_amr_ = ext_v_;
+    ext_w_amr_ = ext_w_;
 }
 
 void sixdof_obj::pose_update(lexer *p, ghostcell *pgc)
@@ -46,6 +49,9 @@ void sixdof_obj::pose_update(lexer *p, ghostcell *pgc)
 void sixdof_obj::amr_restore(lexer *p, ghostcell *pgc)
 {
     rb = rb_amr;
+    ext_on_ = ext_on_amr_;
+    ext_v_ = ext_v_amr_;
+    ext_w_ = ext_w_amr_;
     geom.transform(R_,c_);
     update_fbvel(p,pgc);
 }

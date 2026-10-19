@@ -20,6 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#include"reefckpt.h"
 #include"probe_core.h"
 #include"nhflow_print_wsf.h"
 #include"lexer.h"
@@ -44,10 +45,12 @@ nhflow_print_wsf::nhflow_print_wsf(lexer *p, fdm_nhf *d) : fileFlushMaxCount(100
     if(p->mpirank==0 && p->P51>0)
     {
     // open WSF file
-	wsfout.open("./REEF3D_NHFLOW_WSF/REEF3D-NHFLOW-WSF-HG.dat");
+	const bool head = reefckpt_open(wsfout,"./REEF3D_NHFLOW_WSF/REEF3D-NHFLOW-WSF-HG.dat",p->I45);   // I 45: continued
 	if(p->plog)
 	p->plog->table_file(p,"wsf","gauges","./REEF3D_NHFLOW_WSF/REEF3D-NHFLOW-WSF-HG.dat");
 
+    if(head)
+    {
     wsfout<<"number of gauges:  "<<gauge_num<<endl<<endl;
     wsfout<<"x_coord     y_coord"<<endl;
     for(n=0;n<gauge_num;++n)
@@ -60,6 +63,7 @@ nhflow_print_wsf::nhflow_print_wsf(lexer *p, fdm_nhf *d) : fileFlushMaxCount(100
     wsfout<<"\tP"<<n+1;
 
     wsfout<<endl;
+    }
     }
 	
 	//-------------------

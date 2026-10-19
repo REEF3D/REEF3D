@@ -22,17 +22,20 @@ Author: Hans Bihs
 
 #include"interface_width.h"
 #include"picard_lsm.h"
+#include"ckpt_registry.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
 #include"heaviside.h"
 
-picard_lsm::picard_lsm(lexer *p) : gradient(p), vol1(0.0), vol2(0.0), dvol2(0.0), inivol(0.0), netvol(0.0), vol_ini(false)
+picard_lsm::picard_lsm(lexer *p) : gradient(p), vol1(0.0), vol2(0.0), dvol2(0.0)
 {
+    ckid = ckpt_registry::add_raw(p,vs,3,false);
 }
 
 picard_lsm::~picard_lsm()
 {
+    ckpt_registry::remove(ckid);
 }
 
 void picard_lsm::volcalc(lexer *p, fdm *a, ghostcell *pgc, field& b)
@@ -58,7 +61,7 @@ void picard_lsm::volcalc(lexer *p, fdm *a, ghostcell *pgc, field& b)
 	{
 	inivol=vol1;
 	netvol=vol1;
-	vol_ini=true;
+	vol_ini=1.0;
 	}
 }
 

@@ -1,0 +1,19 @@
+{
+ "description": "NHFLOW hydrostatic semi-implicit: 2D vertical river, q = 1 m2/s (B 60 1, log inflow B 61 2), outflow level F 62, log-law bed friction (A 519 1) and k-epsilon (A 560 1) with 10 sigma layers; vertical diffusion and bed friction implicit in the column operator. The steady water level does not depend on dt (dt 1 s and 10 s agree to 0.3 mm) and is within 3 cm of the explicit hydrostatic NHFLOW.",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 200,
+ "tags": [
+  "2d",
+  "nhflow",
+  "semi_implicit",
+  "river",
+  "turbulence"
+ ],
+ "covers": [
+  "column operator (vertical diffusion, bed friction)",
+  "horizontal diffusion of the predictor",
+  "flux inflow face (B 60)",
+  "level outflow face (F 50 2)"
+ ]
+}

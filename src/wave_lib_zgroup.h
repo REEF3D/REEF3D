@@ -270,6 +270,46 @@ struct wave_lib_zgroup
         g.J = J;
         g.mode = mode;
     }
+
+    // checkpoints (P 48, I 45): the state of the groups (the counters decide on the tables)
+    void state(std::vector<double> &v) const
+    {
+        auto vd = [&](const std::vector<double> &a) { v.push_back(double(a.size())); v.insert(v.end(),a.begin(),a.end()); };
+        v.push_back(double(G.size()));
+        for(const grp &g : G)
+        {
+            v.push_back(g.tq); v.push_back(g.nreq); v.push_back(g.nprev); v.push_back(g.npp); v.push_back(g.tt); v.push_back(g.tn);
+            v.push_back(g.zhi); v.push_back(g.phi); v.push_back(g.mode); v.push_back(g.J); v.push_back(g.a); v.push_back(g.b);
+            vd(g.cu); vd(g.cv); vd(g.cw);
+            v.push_back(g.te); v.push_back(g.eta); v.push_back(g.tf); v.push_back(g.zf); v.push_back(g.fi);
+        }
+    }
+    bool restore(const std::vector<double> &v, size_t &k)
+    {
+        auto d = [&]() { return k<v.size() ? v[k++] : 0.0; };
+        auto vd = [&](std::vector<double> &a) { const size_t n=size_t(d()); if(k+n>v.size()) { k=v.size()+1; return; } a.assign(v.begin()+k,v.begin()+k+n); k+=n; };
+        const size_t n = size_t(d());
+        if(n!=G.size())
+        {
+            // not built in the same way (another decomposition): the groups start again
+            for(size_t m=0; m<n && k<=v.size(); ++m)
+            {
+                for(int q=0; q<12; ++q) d();
+                std::vector<double> t; vd(t); vd(t); vd(t);
+                for(int q=0; q<5; ++q) d();
+            }
+            return false;
+        }
+        for(grp &g : G)
+        {
+            g.tq=d(); g.nreq=int(d()); g.nprev=int(d()); g.npp=int(d()); g.tt=d(); g.tn=d();
+            g.zhi=d(); g.phi=d(); g.mode=int(d()); g.J=int(d()); g.a=d(); g.b=d();
+            vd(g.cu); vd(g.cv); vd(g.cw);
+            g.te=d(); g.eta=d(); g.tf=d(); g.zf=d(); g.fi=d();
+        }
+        return k<=v.size();
+    }
+
 };
 
 #endif

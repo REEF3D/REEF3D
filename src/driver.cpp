@@ -34,6 +34,7 @@ Author: Hans Bihs
 #include"seastate_f.h"
 #include"cfd_amr.h"
 #include"coral/reef3d/coral_reef3d.h"
+#include"coral/reef3d/coral_fluid_sampler.h"
 
 driver::driver(int& argc, char **argv)
 {
@@ -43,7 +44,7 @@ driver::driver(int& argc, char **argv)
 	if(p->mpirank==0)
     {
     cout<<endl<<"REEF3D (c) 2008-2026 Hans Bihs"<<endl;
-    sprintf(version,"v_261015");
+    sprintf(version,"v_261018");
     cout<<endl<<":: Open-Source Hydrodynamics" <<endl;
     cout<<endl<<version<<endl;
     cout<<endl<<"github branch: "<<BRANCH<<endl;
@@ -254,6 +255,10 @@ void driver::cfd_driver()
         pprint->amr_probes(pcfdamr);
     }
 
+    // restart from the latest checkpoint (I 45 1): the state at the end of its step
+    if(p->I45==1)
+    ckpt_read();
+
     preg = new regression_dump(p);
     preg->cfd_ini(p,a,pgc,pturb,pconc);
 
@@ -269,6 +274,21 @@ void driver::coral_ini()
     if(p->Z40>0)
     {
         pcoral = new coral_reef3d(p,pgc);
+        
+        // the fluid at points for CORAL's sampled wave kinematics (fluid_kinematics)
+        if(p->A10==3)
+        pcoral->set_sampler(new coral_sampler_fnpf(p,c));
+        
+        if(p->A10==5)
+        pcoral->set_sampler(new coral_sampler_nhflow(p,d));
+        
+        // restart from a checkpoint (I 45 1): the state of CORAL read with the fluid
+        if(p->I45==1)
+        {
+        pcoral->restart(coral_ckpt);
+        coral_ckpt.clear();
+        }
+        
         pcoral->ini(p,pgc);
     }
 }

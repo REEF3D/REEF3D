@@ -20,6 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#include"reefckpt.h"
 #include"nhflow_amr.h"
 #include"nhflow_amr_fill.h"
 #include"lexer.h"
@@ -271,8 +272,8 @@ void nhflow_amr::gauges(lexer *p, fdm_nhf *d, ghostcell *pgc)
     if(p->mpirank==0)
     {
         if(!gaugeout.is_open())
+        if(reefckpt_open(gaugeout,"./REEF3D_NHFLOW_AMR/REEF3D_NHFLOW_AMR_gauges.dat",p->I45))   // I 45: continued
         {
-            gaugeout.open("./REEF3D_NHFLOW_AMR/REEF3D_NHFLOW_AMR_gauges.dat");
             gaugeout<<"# simtime";
             for(int k=0; k<ng; ++k)
             gaugeout<<" \t eta("<<p->P51_x[k]<<","<<p->P51_y[k]<<")";

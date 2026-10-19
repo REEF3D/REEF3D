@@ -328,6 +328,21 @@ double wave_interface::wave_paddle_Q(lexer *p, ghostcell *pgc, double z)
     return val;
 }
 
+double wave_interface::wave_eta_arc(lexer *p, ghostcell *pgc, double x0)
+{
+    double val=0.0;
+
+    if(p->simtime>=p->wts && p->simtime<=p->wte)
+    val = pwave->wave_eta_arc(p,x0);
+
+    return val;
+}
+
+bool wave_interface::wave_arc()
+{
+    return pwave!=nullptr && pwave->wave_arc();
+}
+
 void wave_interface::select_sources(const std::vector<int> *ids)
 {
     legacy_on = true;

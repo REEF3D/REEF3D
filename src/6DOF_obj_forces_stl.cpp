@@ -24,6 +24,8 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
+#include"amr_grid_lookup.h"
+#include<vector>
 #include <math.h>
 
 void sixdof_obj_cfd::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, field& vvel, field& wvel, int iter, bool finalize)
@@ -45,8 +47,28 @@ void sixdof_obj_cfd::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, fi
     Xe=Ye=Ze=Ke=Me=Ne=0.0;
     Xe_p=Ye_p=Ze_p=Xe_v=Ye_v=Ze_v=0.0;
     
+    // distributed loads (REEF3D::CORAL fluid_member): the hull forces binned along the member, this rank's part
+    external_strips_zero();
+    
     // Set new time
     curr_time = p->simtime;
+
+    // the triangles of this rank: in its level-0 box; with the placement of the CFD patches (G 40)
+    // the rank of the finest grid at the triangle
+    std::vector<char> mine;
+    if(amr_loads!=nullptr && amr_loads->placed())
+    {
+        std::vector<double> cx(tricount), cy(tricount), cz(tricount);
+        std::vector<int> fl(tricount);
+        for(int n=0; n<tricount; ++n)
+        {
+            cx[n] = (tri_x[n][0]+tri_x[n][1]+tri_x[n][2])/3.0;
+            cy[n] = (tri_y[n][0]+tri_y[n][1]+tri_y[n][2])/3.0;
+            cz[n] = (tri_z[n][0]+tri_z[n][1]+tri_z[n][2])/3.0;
+            fl[n] = (cx[n]>=p->originx && cx[n]<p->endx && cy[n]>=p->originy && cy[n]<p->endy && cz[n]>=p->originz && cz[n]<p->endz) ? 1 : 0;
+        }
+        amr_cfd_mine(amr_loads,tricount,cx.data(),cy.data(),cz.data(),fl.data(),mine);
+    }
 
 
     for (int n = 0; n < tricount; ++n)
@@ -70,9 +92,9 @@ void sixdof_obj_cfd::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, fi
 		zc = (z0 + z1 + z2)/3.0;
         
         
-		if (xc >= p->originx && xc < p->endx &&
+		if (mine.empty() ? (xc >= p->originx && xc < p->endx &&
 			yc >= p->originy && yc < p->endy &&
-			zc >= p->originz && zc < p->endz)
+			zc >= p->originz && zc < p->endz) : mine[n]!=0)
 		{
             // the grid of the loads: with the mesh refinement the finest grid at the triangle
             // (its pressure, density, viscosity, velocities and spacing), else level 0
@@ -315,6 +337,16 @@ void sixdof_obj_cfd::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, fi
 			Xe += Fx;
 			Ye += Fy;
 			Ze += Fz;
+            
+            // strips: the pressure of the triangle (constant) split at the strip boundaries, the viscous
+            // force at its centre
+            if(external_strips_on())
+            {
+                const double ta[3] = {x0,y0,z0}, tb[3] = {x1,y1,z1}, tc[3] = {x2,y2,z2};
+                const double pm[3] = {p_int,p_int,p_int};
+                external_strips_tri(ta,tb,tc,pm,nx,ny,nz);
+                external_strips_add(xc,yc,zc,Fv_x,Fv_y,Fv_z);
+            }
 
 			Ke += (yc - c_(1))*Fz - (zc - c_(2))*Fy;
 			Me += (zc - c_(2))*Fx - (xc - c_(0))*Fz;

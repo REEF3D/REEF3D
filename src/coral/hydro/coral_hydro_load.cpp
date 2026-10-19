@@ -290,4 +290,32 @@ void hydro_load::channel_values(const model &m, double t, std::vector<double> &v
                 v.push_back((*F)(6*i+d));
 }
 
+// restart from a checkpoint: the radiation memory (velocity history or the states of the state-space
+// model) and the last committed velocity; the caches are filled again
+void hydro_load::save_state(std::vector<double> &v) const
+{
+    state_out o{v};
+    o.vd(th_);
+    o.list(vh_, [&](const VecX &x){o.m(x);});
+    o.list(xs_, [&](const Eigen::VectorXcd &x){o.cx(x);});
+    o.m(v_last_);
+    o.d(t_last_);
+    o.b(started_);
+}
+
+bool hydro_load::load_state(const std::vector<double> &v, size_t &k)
+{
+    state_in in{v, k};
+    in.vd(th_);
+    in.list(vh_, [&](VecX &x){in.m(x);});
+    in.list(xs_, [&](Eigen::VectorXcd &x){in.cx(x);});
+    in.m(v_last_);
+    in.d(t_last_);
+    in.b(started_);
+    cache_t_ = -1.0e300;
+    exc_t_ = -1.0e300;
+    k = in.k;
+    return in.ok;
+}
+
 }

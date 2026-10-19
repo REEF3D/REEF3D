@@ -24,6 +24,7 @@ Architect: Hans Bihs
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
+#include"lagoon_output.h"
 #include<cstdio>
 #include<vector>
 #include<sys/stat.h>
@@ -33,6 +34,8 @@ Architect: Hans Bihs
 //  (.vtr) per patch in REEF3D_CFD_AMR/, and a multiblock file (.vtm) with all patches of the output
 //  (open it next to the level-0 output).  Cell data: level set, pressure, velocity (cell centre), the
 //  level of the patch and a flag for the cells under a finer patch.
+//  P 18: the patches go into the LAGOON store too, as the AMR set cfd_amr of 3D blocks (rank 0
+//  gathers them, lagoon_amr_output); P 18 1: instead of the .vtr and .vtm files.
 
 namespace
 {
@@ -48,7 +51,7 @@ void write_floats(FILE *fp, const std::vector<float> &v)
 }
 }
 
-void cfd_amr::print(lexer *p, bool after)
+void cfd_amr::print(lexer *p, ghostcell *pgc, bool after)
 {
     if(p->P10==0)
     return;
@@ -63,13 +66,20 @@ void cfd_amr::print(lexer *p, bool after)
     // after: called after printer_CFD at the start (its output counter has moved on)
     const int num = (p->P15==2) ? p->count : p->printcount - (after ? 1 : 0);
 
+    // P 18: the patches in the LAGOON store; P 18 1: instead of the .vtr and .vtm files
+    bool stored = false;
+    if(p->P18>0)
+    stored = print_lagoon(p,pgc,num);
+    if(!lagoon_amr_output::files_needed(p,stored))
+    return;
+
     if(myrank==0)
     mkdir("./REEF3D_CFD_AMR",0777);
     MPI_Barrier(MPI_COMM_WORLD);
 
     char name[256];
 
-    for(int id=0; id<(int)P.size(); ++id)
+    for(int id=0; id<npat; ++id)
     {
         cfd_amr_patch *c = CP(id);
         lexer *pp = c->pp;
@@ -151,4 +161,64 @@ void cfd_amr::print(lexer *p, bool after)
             fclose(fp);
         }
     }
+}
+
+// The patches of this rank as 3D blocks for the LAGOON store (cell values as the .vtr files have
+// them: x fastest, then y, then z; the velocity at the cell centres as u, v, w), gathered on rank 0
+// and written to the AMR set cfd_amr of ./REEF3D_CFD.lagoon. True on every rank when the output is
+// in the store.
+bool cfd_amr::print_lagoon(lexer *p, ghostcell *pgc, int num)
+{
+    static lagoon_amr_output *writer = nullptr;
+
+    std::vector<lagoon_amr::field> fields = {{"phi",false}, {"pressure",false}, {"level",true}, {"covered",true},
+                                             {"u",false}, {"v",false}, {"w",false}};
+    if(scal)
+    fields.push_back({scal==1 ? "T" : "C",false});
+
+    std::vector<lagoon_amr::grid> grids;
+    for(int id=0; id<(int)P.size(); ++id)
+    {
+        cfd_amr_patch *c = CP(id);
+        lexer *pp = c->pp;
+        fdm *a = c->a;
+        lagoon_amr::grid g;
+        g.level = c->lev;
+        g.nx = pp->knox;
+        g.ny = pp->knoy;
+        g.nz = pp->knoz;
+        const double *xn[3] = {pp->XN,pp->YN,pp->ZN};
+        std::vector<double> *axes[3] = {&g.x,&g.y,&g.z};
+        const int n3[3] = {g.nx,g.ny,g.nz};
+        for(int d=0; d<3; ++d)
+        for(int q=0; q<=n3[d]; ++q)
+        axes[d]->push_back(xn[d][q+marge]);
+
+        const size_t nc = (size_t)g.nx*g.ny*g.nz;
+        g.values.reserve(fields.size()*nc);
+        auto put = [&](auto fn)
+        {
+            for(int k=0; k<g.nz; ++k)
+            for(int j=0; j<g.ny; ++j)
+            for(int i=0; i<g.nx; ++i)
+            g.values.push_back(fn(i,j,k));
+        };
+        put([&](int i, int j, int k) { return a->phi(i,j,k); });
+        put([&](int i, int j, int k) { return a->press(i,j,k); });
+        put([&](int i, int j, int k) { return double(c->lev); });
+        put([&](int i, int j, int k) { const int I[3] = {i+c->lo[0],j+c->lo[1],k+c->lo[2]}; return covered(c->lev,I) ? 1.0 : 0.0; });
+        put([&](int i, int j, int k) { return 0.5*(a->u(i,j,k)+a->u(i-1,j,k)); });
+        put([&](int i, int j, int k) { return 0.5*(a->v(i,j,k)+a->v(i,j-1,k)); });
+        put([&](int i, int j, int k) { return 0.5*(a->w(i,j,k)+a->w(i,j,k-1)); });
+        if(scal)
+        {
+            field &S = sfield(id);
+            put([&](int i, int j, int k) { return S(i,j,k); });
+        }
+        grids.push_back(std::move(g));
+    }
+
+    if(writer==nullptr)
+    writer = new lagoon_amr_output("CFD",fields);
+    return writer->write(p,pgc,grids,num);
 }

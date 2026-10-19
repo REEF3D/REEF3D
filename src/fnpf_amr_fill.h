@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #ifndef FNPF_AMR_FILL_H_
@@ -31,6 +31,12 @@ Author: Hans Bihs
 #include"slice.h"
 #include<cmath>
 #include<limits>
+
+// FIJK of lexer q (inline: the fills, the Laplace rows and vectors take it per node)
+inline int fnpf_amr::fidx(lexer *q, int ii, int jj, int kk) const
+{
+    return (ii-q->imin)*q->jmax*q->kmaxF + (jj-q->jmin)*q->kmaxF + kk - q->kmin;
+}
 
 // --------------------------------------------------------------------- fill, restriction
 // cells around the level-l patches; sel(g,m) gives the slice m of grid g
@@ -57,9 +63,10 @@ inline void fnpf_amr::fill_sl(int l, int ns, int tag, SEL sel)
              });
 }
 
-// columns around the level-l patches; sel(g) gives the Fi-layout array of grid g
+// columns around the level-l patches; sel(g) gives the Fi-layout array of grid g; d1: only the
+// columns next to the patch (fill1, the reach of the Laplace rows)
 template<class SEL>
-inline void fnpf_amr::fill_col(int l, int tag, SEL sel)
+inline void fnpf_amr::fill_col(int l, int tag, SEL sel, bool d1)
 {
     const int knf = p0->knoz*((vref==2) ? (1<<l) : 1);
     const int nv = knf+1;
@@ -68,8 +75,7 @@ inline void fnpf_amr::fill_col(int l, int tag, SEL sel)
     // at the time of the stage output in the unknowns, 0 in the Krylov vectors)
     const bool edge = (lap_edge && l==wlo);
 
-    fill_run(l,nv,tag,
-             [&](const reefamr_fill &f, double *v)
+    auto ev = [&](const reefamr_fill &f, double *v)
              {
                  if(f.kind==1 && edge)
                  for(int kk=0; kk<=knf; ++kk)
@@ -86,8 +92,8 @@ inline void fnpf_amr::fill_col(int l, int tag, SEL sel)
                  else
                  for(int kk=0; kk<=knf; ++kk)
                  v[kk] = 0.0;
-             },
-             [&](reefamr_patch *c, int id, const reefamr_fill &f, const double *w)
+             };
+    auto st = [&](reefamr_patch *c, int id, const reefamr_fill &f, const double *w)
              {
                  lexer *pp = c->pp;
                  double *dst = sel(id);
@@ -100,7 +106,13 @@ inline void fnpf_amr::fill_col(int l, int tag, SEL sel)
                  }
                  for(int kk=0; kk<=knf; ++kk)
                  dst[fidx(pp,f.di,f.dj,kk)] = w[kk];
-             });
+             };
+    // (d1: depth 1 on the finest level of the window; the levels below it two columns deep, as far as
+    // the stencils of the fills of the next finer level reach around their parent columns)
+    if(d1)
+    fill_run_sub(l,nv,tag,ev,st,[&](reefamr_patch *c) -> const vector<int>* { return (l==wtop()) ? &FP(c)->fill1 : &FP(c)->fill2; });
+    else
+    fill_run(l,nv,tag,ev,st);
 }
 
 // restriction of point values to the coarse cell centre between the 2x2 children (i0..i0+1,
@@ -117,8 +129,11 @@ inline bool fnpf_amr::rcubic(lexer *pp, int i0, int j0)
     return false;
     for(int a=-1; a<=2; ++a)
     for(int b=-1; b<=2; ++b)
-    if(pp->flagslice4[(i0+a-pp->imin)*pp->jmax + (j0+b-pp->jmin)]<0)
+    {
+    const int n = (i0+a-pp->imin)*pp->jmax + (j0+b-pp->jmin);
+    if(pp->flagslice4[n]<0 || (wfill && pp->wet[n]==0))
     return false;
+    }
     return true;
 }
 
@@ -150,18 +165,35 @@ inline void fnpf_amr::restrict_sl(int ns, SEL sel)
                  const int bi = k/nby, bj = k%nby;
                  const int i0 = EXT+2*bi, j0 = EXT+2*bj;
                  const bool hi = (bi>0 && bi<c->nx/2-1 && bj>0 && bj<nby-1) && rcubic(c->pp,i0,j0);
+                 // wfill: the wet children only; none wet: the coarse value stays (NaN)
+                 lexer *pp = c->pp;
+                 double wc[4] = {1.0,1.0,1.0,1.0};
+                 double nw = 4.0;
+                 if(wfill)
+                 {
+                     nw = 0.0;
+                     for(int a=0; a<2; ++a)
+                     for(int b=0; b<2; ++b)
+                     {
+                     wc[2*a+b] = (pp->wet[(i0+a-pp->imin)*pp->jmax + (j0+b-pp->jmin)]==1) ? 1.0 : 0.0;
+                     nw += wc[2*a+b];
+                     }
+                 }
                  for(int m=0; m<ns; ++m)
                  {
                      slice &f = sel(id,m);
-                     if(hi)
+                     if(nw==0.0)
+                     v[m] = std::numeric_limits<double>::quiet_NaN();
+                     else if(hi)
                      v[m] = rc4([&](int a, int b) { return f(i0+a,j0+b); });
                      else
-                     v[m] = 0.25*(f(i0,j0)+f(i0+1,j0)+f(i0,j0+1)+f(i0+1,j0+1));
+                     v[m] = (wc[0]*f(i0,j0)+wc[2]*f(i0+1,j0)+wc[1]*f(i0,j0+1)+wc[3]*f(i0+1,j0+1))/nw;
                  }
              },
              [&](const reefamr_block &B, int key, const double *v)
              {
                  for(int m=0; m<ns; ++m)
+                 if(!std::isnan(v[m]))
                  sel(B.g,m)(B.ic,B.jc) = v[m];
              });
 }
@@ -183,14 +215,29 @@ inline void fnpf_amr::restrict_col(SEL sel)
                      const int i0 = EXT+2*bi, j0 = EXT+2*bj;
                      const bool hi = (bi>0 && bi<c->nx/2-1 && bj>0 && bj<nby-1) && rcubic(pp,i0,j0);
                      const int sI = pp->jmax*pp->kmaxF, sJ = pp->kmaxF;
+                     // wfill: the wet children only; none wet: the coarse column stays (NaN)
+                     double wc[4] = {1.0,1.0,1.0,1.0};
+                     double nw = 4.0;
+                     if(wfill)
+                     {
+                         nw = 0.0;
+                         for(int a=0; a<2; ++a)
+                         for(int b=0; b<2; ++b)
+                         {
+                         wc[2*a+b] = (pp->wet[(i0+a-pp->imin)*pp->jmax + (j0+b-pp->jmin)]==1) ? 1.0 : 0.0;
+                         nw += wc[2*a+b];
+                         }
+                     }
                      for(int K=0; K<=knc; ++K)
                      {
                          const int kf = fz*K;
                          const int n0 = fidx(pp,i0,j0,kf);
-                         if(hi)
+                         if(nw==0.0)
+                         v[K] = std::numeric_limits<double>::quiet_NaN();
+                         else if(hi)
                          v[K] = rc4([&](int a, int b) { return src[n0+a*sI+b*sJ]; });
                          else
-                         v[K] = 0.25*(src[n0] + src[n0+sI] + src[n0+sJ] + src[n0+sI+sJ]);
+                         v[K] = (wc[0]*src[n0] + wc[2]*src[n0+sI] + wc[1]*src[n0+sJ] + wc[3]*src[n0+sI+sJ])/nw;
                      }
                  },
                  [&](const reefamr_block &B, int key, const double *v)
@@ -198,6 +245,7 @@ inline void fnpf_amr::restrict_col(SEL sel)
                      lexer *q = glex(B.g);
                      double *dst = sel(B.g);
                      for(int K=0; K<=knc; ++K)
+                     if(!std::isnan(v[K]))
                      dst[fidx(q,B.ic,B.jc,K)] = v[K];
                  });
     }

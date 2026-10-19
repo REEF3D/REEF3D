@@ -22,6 +22,7 @@ Author: Hans Bihs
 
 #include"sflow_curv.h"
 #include"sflow_amr.h"
+#include"reefckpt.h"
 #include"sflow_boussinesq.h"
 #include"lexer.h"
 #include"fdm2D.h"
@@ -47,6 +48,7 @@ Author: Hans Bihs
 #include"reefmg2D.h"
 #include"vec2D.h"
 #include"ioflow_void.h"
+#include"ioflow_amr_block.h"
 #include<cmath>
 #include<mpi.h>
 #include<iomanip>
@@ -221,7 +223,7 @@ void sflow_amr::ini(lexer *p, fdm2D *b, ghostcell *pgc)
     int ok=1;
     if(p->A220<0 || p->A220>4) ok=0;
     if(p->A210==2) ok=0;
-    if(p->A260!=0) ok=0;
+    if(p->A260!=0 && p->A260!=3 && p->A260!=4) ok=0;   // the algebraic eddy viscosity of every grid (sflow_ediff)
     // sediment transport (S 10 1): bed load, Exner (S 31 1/2, S 32 1/2), sand slide, no fractions (sflow_amr_sed.cpp)
     if(p->S10!=0 && (p->S10!=1 || p->S51>0 || p->S31==3 || p->S32>=3)) ok=0;
     if(p->X10>3) ok=0;
@@ -238,7 +240,7 @@ void sflow_amr::ini(lexer *p, fdm2D *b, ghostcell *pgc)
         if(ok==0)
         {
             if(p->mpirank==0)
-            cout<<"!!! SFLOW multi-block grid: only for A 220 0, A 210 3, A 260 0, S 10 0/1 (S 51 0, S 31 1/2, S 32 1/2), X 10 0/2/3, W 90 0, without G 7 1 !!!"<<endl;
+            cout<<"!!! SFLOW multi-block grid: only for A 220 0, A 210 3, A 260 0/3/4, S 10 0/1 (S 51 0, S 31 1/2, S 32 1/2), X 10 0/2/3, W 90 0, without G 7 1 !!!"<<endl;
             exit(1);
         }
     }
@@ -246,7 +248,7 @@ void sflow_amr::ini(lexer *p, fdm2D *b, ghostcell *pgc)
     if(ok==0)
     {
         if(p->mpirank==0)
-        cout<<"SFLOW AMR (G 1): only for A 220 0-4, A 210 3, A 260 0, S 10 0/1 (S 51 0, S 31 1/2, S 32 1/2), X 10 0-3, W 90 0 and 2D grids -- refinement switched off"<<endl;
+        cout<<"SFLOW AMR (G 1): only for A 220 0-4, A 210 3, A 260 0/3/4, S 10 0/1 (S 51 0, S 31 1/2, S 32 1/2), X 10 0-3, W 90 0 and 2D grids -- refinement switched off"<<endl;
         maxlev=0;
         return;
     }
@@ -287,7 +289,7 @@ void sflow_amr::ini(lexer *p, fdm2D *b, ghostcell *pgc)
 
     if(p->mpirank==0)
     {
-        logout.open("./REEF3D_SFLOW_AMR/REEF3D_SFLOW_AMR_log.dat");
+        if(reefckpt_open(logout,"./REEF3D_SFLOW_AMR/REEF3D_SFLOW_AMR_log.dat",p->I45))   // I 45: continued
         logout<<"# count \t simtime \t dt \t patches \t cells \t mass \t rel. mass change"<<endl;
     }
 
@@ -360,7 +362,11 @@ void sflow_amr::patch_objects(reefamr_patch *q, ghostcell *pgc)
 
     // diffusion: explicit on the patches (A 212 2 is implicit on level 0 only)
     if(p->A212>=1)
-    c->pdiff = new sflow_ediff(pp);
+    {
+    sflow_ediff *ed = new sflow_ediff(pp);
+    ed->own_eddyv = 1;
+    c->pdiff = ed;
+    }
     else
     c->pdiff = new sflow_diffusion_void(pp);
     if(nh==1)
@@ -383,7 +389,26 @@ void sflow_amr::patch_objects(reefamr_patch *q, ghostcell *pgc)
     }
     if(bous==1)
     c->psolv = new sflow_amr_linesolve;
-    c->pmom = new sflow_momentum_RK3(pp,c->b,pgc,c->phll,c->pss,c->precon,c->pdiff,c->ppress,c->psolv,nullptr,pflow_void,c->pfsf,c->psfdf,p6);
+
+    // multi-block: the open faces of a block 1.. (G 54; the lists from build_bc2D)
+    if(c->blk>0 && c->lev==0 && (bopen[0][c->blk]>=0 || bopen[1][c->blk]>=0))
+    {
+        c->pio = new ioflow_amr_block(pp,pgc,pBC);
+        pp->amr_own_io = 1;
+        if(bopen[0][c->blk]>=0)
+        {
+            c->pio->in = 1;
+            c->pio->Q = p->G54_v[bopen[0][c->blk]];
+        }
+        if(bopen[1][c->blk]>=0)
+        {
+            c->pio->out = 1;
+            c->pio->wsf = pp->F62 = p->G54_v[bopen[1][c->blk]];
+        }
+        c->phll->open_io();
+    }
+
+    c->pmom = new sflow_momentum_RK3(pp,c->b,pgc,c->phll,c->pss,c->precon,c->pdiff,c->ppress,c->psolv,nullptr,pflow_of(c),c->pfsf,c->psfdf,p6);
     c->pmom->nh_defer = (nh==1);
     c->pmom->bous_defer = (bous==1);
 
@@ -408,6 +433,11 @@ void sflow_amr::patch_objects(reefamr_patch *q, ghostcell *pgc)
     c->gsf.assign((size_t)pp->imax*pp->jmax,NAN);
 }
 
+ioflow* sflow_amr::pflow_of(sflow_amr_patch *c)
+{
+    return (c->pio!=nullptr) ? static_cast<ioflow*>(c->pio) : pflow_void;
+}
+
 void sflow_amr::patch_delete(reefamr_patch *q)
 {
     sflow_amr_patch *c = SP(q);
@@ -424,6 +454,7 @@ void sflow_amr::patch_delete(reefamr_patch *q)
     c->pp->del_Iarray(c->pp->DFBED,c->pp->imax*c->pp->jmax);
     }
     delete c->pmom;
+    delete c->pio;
     delete c->pship;
     delete c->psolv;
     delete c->psfdf;
@@ -1858,7 +1889,7 @@ void sflow_amr::step_begin(lexer *p, fdm2D *b, ghostcell *pgc)
         c->pp->simtime = p->simtime;
         c->pp->count = p->count;
         c->pp->amr_follow(*p);
-        c->pmom->inflow(c->pp,c->b,pgc,pflow_void);
+        c->pmom->inflow(c->pp,c->b,pgc,pflow_of(c));
     }
 
     // body on the patches: X 10 3 updates the ship pressure once per step (as level 0),
@@ -2001,7 +2032,8 @@ void sflow_amr::step_end(lexer *p, fdm2D *b, ghostcell *pgc)
     // G 7 1: G 2 counts steps of the finest level, as without subcycling (a level-0 step is 2^G1 of them)
     const int rint = (sub==1) ? MAX(regrid_int>>maxlev,1) : regrid_int;
 
-    if(maxlev>=1 && regrid_int>0 && p->count%rint==0)
+    // (replace_due: G 41 0 with a static refinement, the placement once more with the measured model)
+    if(maxlev>=1 && ((regrid_int>0 && p->count%rint==0) || replace_due(p)))
     {
     double t0 = MPI_Wtime();
     regrid(p,pgc,false);
@@ -2019,6 +2051,9 @@ void sflow_amr::step_end(lexer *p, fdm2D *b, ghostcell *pgc)
     fill_level0(pgc,0);
     tm[0] += MPI_Wtime()-t0;
     }
+
+    // load statistics of the ranks (G 43)
+    load_step(p);
 }
 
 // --------------------------------------------------------------------- flux matching
@@ -2494,11 +2529,13 @@ void sflow_amr::gauges(lexer *p, fdm2D *b, ghostcell *pgc)
     {
         if(!gaugeout.is_open())
         {
-            gaugeout.open("./REEF3D_SFLOW_AMR/REEF3D_SFLOW_AMR_gauges.dat");
+            if(reefckpt_open(gaugeout,"./REEF3D_SFLOW_AMR/REEF3D_SFLOW_AMR_gauges.dat",p->I45))   // I 45: continued
+            {
             gaugeout<<"# simtime";
             for(int k=0; k<ng; ++k)
             gaugeout<<" \t eta("<<p->P51_x[k]<<","<<p->P51_y[k]<<")";
             gaugeout<<" \t levels"<<endl;
+            }
         }
         gaugeout<<setprecision(10)<<p->simtime;
         for(int k=0; k<ng; ++k)

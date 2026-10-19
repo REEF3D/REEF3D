@@ -36,9 +36,9 @@ Authors: Hans Bihs, Tobias Martin
 #include"sliceint5.h"
 #include"vtp3D.h"
 #include"geo_raycast.h"
-#include"6DOF_pto.h"
-#include"6DOF_pto_joint.h"
-#include"6DOF_pto_controller.h"
+#include"coral/pto/coral_pto_element.h"
+#include"coral/pto/coral_pto_joint.h"
+#include"coral/pto/coral_pto_controller.h"
 #include"6DOF_rigidbody.h"
 #include"6DOF_geometry.h"
 #include"6DOF_load.h"
@@ -78,7 +78,15 @@ public:
     void amr_save();
     void amr_restore(lexer*, ghostcell*);
     void pose_update(lexer*, ghostcell*);   // Euler angles, trimesh, omega, u_fb from the rigid-body state
+
+    // checkpoints (P 48, I 45; 6DOF_obj_ckpt.cpp): the state of the body at the end of a step (the rigid
+    // body with its history, the loads of the last stage, the print times, the time index of the motion
+    // files, the moorings and the load models); restore sets the pose (trimesh, body velocities) again
+    void ckpt_state(lexer*, std::vector<double>&);
+    bool ckpt_restore(lexer*, ghostcell*, const std::vector<double>&);
     sixdof_rigidbody rb_amr;
+    bool ext_on_amr_ = false;
+    Eigen::Vector3d ext_v_amr_ = Eigen::Vector3d::Zero(), ext_w_amr_ = Eigen::Vector3d::Zero();
     
     // surface geometry: hull triangles and pose transformation (solver independent)
     sixdof_geometry geom;
@@ -118,6 +126,39 @@ public:
     double &Mass_fb;   // = rb.mass
     double Vfb, Rfb;
     
+
+    // external dynamics (6DOF_external.h, e.g. REEF3D::CORAL): pose and velocity from the external
+    // solver, the fluid loads and the added mass to it (6DOF_obj_external.cpp)
+    void external_set_state(const Eigen::Vector3d&, const Eigen::Matrix3d&, const Eigen::Vector3d&, const Eigen::Vector3d&);
+    void external_fluid_load(lexer*, Eigen::Matrix<double,6,1>&) const;
+    void external_properties(double&, Eigen::Vector3d&, Eigen::Matrix3d&, Eigen::Matrix3d&) const;
+    const Eigen::Matrix<double,6,6> &external_added_mass() const {return Aadd_;}
+    bool external_added_mass_on() const {return am_on_;}
+    bool external_on() const {return ext_on_;}
+    
+    // distributed loads (REEF3D::CORAL fluid_member): the hull forces of the load integration binned
+    // along an axis a + s e, 0 <= s <= L, n strips (this rank's part); points beyond the ends to the end
+    // strips
+    void external_strips_set(const Eigen::Vector3d &a, const Eigen::Vector3d &e, double L, int n);
+    bool external_strips_on() const {return strip_n_>0;}
+    void external_strips_zero();
+    void external_strips_add(double x, double y, double z, double fx, double fy, double fz)
+    {
+        if(strip_n_<=0)
+        return;
+        const double s = (x - strip_a_(0))*strip_e_(0) + (y - strip_a_(1))*strip_e_(1) + (z - strip_a_(2))*strip_e_(2);
+        int k = int(s/strip_L_*strip_n_);
+        k = k<0 ? 0 : (k>=strip_n_ ? strip_n_-1 : k);
+        strip_F_[3*k] += fx;
+        strip_F_[3*k+1] += fy;
+        strip_F_[3*k+2] += fz;
+    }
+    // the pressure force -p n of the flat triangle a b c, p linear through the values pm at the edge
+    // midpoints (ab, bc, ca; the 3-point rule of the load integration), split exactly at the strip
+    // boundaries: the strip loads do not depend on the size of the STL triangles
+    void external_strips_tri(const double a[3], const double b[3], const double c[3], const double pm[3],
+                             double nx, double ny, double nz);
+    const std::vector<double> &external_strips() const {return strip_F_;}
 
     // read-only access for the SFLOW mesh refinement (sflow_amr)
     int amr_tricount() const {return tricount;}
@@ -225,6 +266,18 @@ protected:
     double &phi, &theta, &psi;
     
     Eigen::Matrix<double, 6, 1> u_fb;
+    
+    // external dynamics: velocity and angular velocity (inertial) of the external solver
+    bool ext_on_ = false;
+    Eigen::Vector3d ext_v_ = Eigen::Vector3d::Zero(), ext_w_ = Eigen::Vector3d::Zero();
+    
+    // strips of the distributed loads (external_strips_*); strip_collect_: the load integration of the
+    // body's own loads is running (not an added-mass block)
+    Eigen::Vector3d strip_a_ = Eigen::Vector3d::Zero(), strip_e_ = Eigen::Vector3d::UnitZ();
+    double strip_L_ = 1.0;
+    int strip_n_ = 0;
+    std::vector<double> strip_F_;
+    bool strip_collect_ = false;
     
     int &tricount, &entity_count;   // = geom
     
@@ -340,17 +393,18 @@ protected:
     Eigen::Vector3d gyroc_;
     bool fixedc_[6] = {false,false,false,false,false,false};
 
-    // FNPF and NHFLOW: power take-off (X 500 - X 508, 6DOF_obj_pto.cpp)
+    // FNPF and NHFLOW: power take-off (X 500 - X 508, coral/reef3d/coral_sixdof_pto.cpp; elements in coral/pto)
+    template<class P> void ckpt_fields(lexer*, P&);
     void ini_pto(lexer*, ghostcell*);
     void pto_forces(lexer*, ghostcell*, int);
     void pto_implicit(lexer*, Eigen::Matrix<double,6,6>&, Eigen::Matrix<double,6,1>&);
     void pto_stability_check(lexer*);
-    pto_joint_prismatic pto_joint_;
-    pto_composite pto_;
-    std::vector<std::unique_ptr<pto_controller>> pto_ctrl_;
+    coral::pto_joint_prismatic pto_joint_;
+    coral::pto_composite pto_;
+    std::vector<std::unique_ptr<coral::pto_controller>> pto_ctrl_;
     void pto_tuned_passive(lexer*, ghostcell*);
-    pto_state pto_s_;
-    pto_output pto_out_;
+    coral::pto_state pto_s_;
+    coral::pto_output pto_out_;
     bool pto_on_ = false, pto_implicit_ = false, pto_warned_ = false;
     double pto_E_ = 0.0, pto_Estep_ = 0.0;
     int pto_rk_ = 3;   // RK scheme of the body: 2 (NHFLOW A 510 2), 3 (TVD RK3), 4 (FNPF A 310 4)

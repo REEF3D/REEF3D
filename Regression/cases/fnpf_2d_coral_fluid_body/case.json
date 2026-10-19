@@ -1,0 +1,9 @@
+{
+ "description": "FNPF 2D floating box of fnpf_2d_6dof_box driven by REEF3D::CORAL (Z 40 1, fluid_body): heave only through a CORAL prismatic joint with a PTO damper and stiff end stops; the FNPF loads and added mass go to CORAL, which returns the motion at the RK stages (predictor). REEF3D_FNPF_6DOF and REEF3D_CORAL compared.",
+ "base": "fnpf_2d_6dof_box",
+ "ctrl_set": {"X 11": "0 0 1 0 0 0"},
+ "ctrl_add": ["Z 40 1"],
+ "files": ["coral.txt"],
+ "tags": ["2d", "fnpf", "6dof", "floating", "coral"],
+ "covers": ["fnpf_6DOF_external", "sixdof_external", "coral_reef3d fluid bodies", "CORAL fluid_load, body_track, PTO end stops"]
+}

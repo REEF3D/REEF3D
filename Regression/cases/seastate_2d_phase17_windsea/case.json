@@ -1,0 +1,26 @@
+{
+ "base": "seastate_2d_phase16_faces_composite",
+ "ctrl_set": {
+  "A 711": "0",
+  "A 712": "0 0 0 0",
+  "A 730": "1",
+  "A 731": "15.0 0.0",
+  "A 732": "1",
+  "A 701": "24",
+  "A 702": "0.06 1.0",
+  "A 706": "600.0",
+  "A 707": "30",
+  "A 760": null,
+  "A 761": null
+ },
+ "description": "as seastate_2d_phase16_faces_composite with a wind sea (U10 15 m/s towards +x, Komen, DIA), absorbing sides, 30 iterations of the composite sweep (Phase 17).",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate",
+  "amr"
+ ],
+ "covers": [
+  "composite sweep with the source terms of the patches"
+ ]
+}

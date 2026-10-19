@@ -1,0 +1,17 @@
+{
+ "description": "SFLOW semi-implicit (A 226 1): Thacker planar oscillation in a parabolic bowl (a 1000 m, h0 10 m, A 251 tilt), wetting and drying with the Newton iteration on WL = max(eta + d, 0) (A 229 1, Casulli 2009); volume to round-off, eta within 2-4 cm of the analytic solution.",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 450,
+ "tags": [
+  "quick",
+  "1d",
+  "sflow",
+  "semi_implicit"
+ ],
+ "covers": [
+  "wetting and drying iteration (A 229)",
+  "face depth next to dry cells",
+  "old discharge of closed faces"
+ ]
+}

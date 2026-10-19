@@ -36,6 +36,8 @@ class wave_lib_irregular_2nd_b final : public wave_lib_precalc, public wave_lib_
                                public increment
 {
 public:
+    void ckpt_state(std::vector<double> &v) override { zg.state(v); }
+    void ckpt_restore(const std::vector<double> &v, size_t &k) override { zg.restore(v,k); }
     int wave_lexer_fields() const override {return 0;}
     wave_lib_irregular_2nd_b(lexer*, ghostcell*);
 	virtual ~wave_lib_irregular_2nd_b();

@@ -60,6 +60,12 @@ public:
     virtual bool top_phi_nhflow(lexer*,fdm_nhf*,ghostcell*,int,slice&,slice&) {return false;};
     
     virtual void ini(lexer*,ghostcell*)=0;
+
+    // checkpoints (P 48, I 45): the state of the bodies (the same on all ranks); restore false: the
+    // checkpoint does not fit the bodies of this run
+    virtual void ckpt_state(lexer*, std::vector<double>&) {}
+    virtual bool ckpt_restore(lexer*, ghostcell*, const std::vector<double>&) {return true;}
+    virtual double* ckpt_slice() {return nullptr;}     // a slice of the grid kept over the steps (NHFLOW ship-wave pressure patch)
     virtual void initialize(lexer*, fdm*, ghostcell*)=0;
     virtual void initialize(lexer*, fdm2D*, ghostcell*)=0;
     virtual void initialize(lexer*, fdm_nhf*, ghostcell*)=0;

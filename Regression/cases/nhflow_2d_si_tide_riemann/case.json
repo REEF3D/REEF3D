@@ -1,0 +1,18 @@
+{
+ "description": "NHFLOW hydrostatic semi-implicit: the channel of nhflow_2d_tide_riemann (Riemann edges at both ends, background tide), 3 sigma layers, dt 10 s.",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 120,
+ "tags": [
+  "quick",
+  "2d",
+  "nhflow",
+  "semi_implicit",
+  "tide",
+  "iowave"
+ ],
+ "covers": [
+  "Riemann edge as implicit q_in = A - B eta",
+  "layer profile of the radiating faces"
+ ]
+}

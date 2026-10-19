@@ -1,0 +1,31 @@
+{
+ "base": "cfd_3d_dambreak_amr",
+ "np": 2,
+ "steps": 20,
+ "control_add": [
+  "C 21 1",
+  "C 22 1"
+ ],
+ "ctrl_set": {
+  "F 54": "0.18"
+ },
+ "ctrl_add": [
+  "F 51 0.03",
+  "F 52 0.05",
+  "F 55 0.25"
+ ],
+ "description": "3D dam break periodic in x (across the 2 ranks) and y (on each rank): the box at x = 0 gets its counterpart at the other end of x (on the other rank), the patches span y and are periodic over themselves there.",
+ "tags": [
+  "quick",
+  "3d",
+  "dambreak",
+  "levelset",
+  "amr",
+  "periodic",
+  "mpi"
+ ],
+ "covers": [
+  "periodic x across ranks and y on one rank together",
+  "the periodic patch multigrid in y with the overlap in x"
+ ]
+}

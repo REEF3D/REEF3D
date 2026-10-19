@@ -70,6 +70,9 @@ public:
     virtual ~printer_nhflow() = default;
     void start(lexer*,fdm_nhf*,ghostcell*,ioflow*,nhflow_turbulence*,sediment*) override final;
     void print_stop(lexer*,fdm_nhf*,ghostcell*,ioflow*,nhflow_turbulence*,sediment*) override final;
+    void ckpt_state(std::vector<double>&) override;
+    void ckpt_restore(const std::vector<double>&) override;
+    void flush_outputs() override;
 
 private:
     void print(lexer*,fdm_nhf*,ghostcell*,nhflow_turbulence*,sediment*);
@@ -89,8 +92,9 @@ private:
     int *printfsfiter_wI;
 
     int printcount;
+    int nP35 = 0, nP185 = 0;        // sizes of printtime_wT, printfsftime_wT
 
-    nhflow_print_wsf *pwsf;
+    nhflow_print_wsf *pwsf = nullptr;
     nhflow_print_wsf_theory *pwsf_theory;
     nhflow_print_wsfline *pwsfline;
     nhflow_print_wsfline_y *pwsfline_y;
@@ -102,8 +106,8 @@ private:
     nhflow_profile_u *puprofile;
     nhflow_depavg_vel_lineprobe *pdepavgline;
     nhflow_depandtime_avg_vel_lineprobe *pdepandtimeavgline;
-    nhflow_vtp_fsf *pfsf;
-    nhflow_vtp_bed *pbed;
+    nhflow_vtp_fsf *pfsf = nullptr;
+    nhflow_vtp_bed *pbed = nullptr;
     nhflow_state *pstate;
     nhflow_breaking_log *pbreaklog;
     nhflow_probe_vel *pvel;

@@ -24,11 +24,13 @@ Author: Hans Bihs
 #include"probe_pressure.h"
 #include"lexer.h"
 #include"amr_grid_lookup.h"
+#include<vector>
 #include"fdm.h"
 #include"ghostcell.h"
 #include"turbulence.h"
 #include<sys/stat.h>
 #include<sys/types.h>
+#include"reefckpt.h"
 
 probe_pressure::probe_pressure(lexer *p, fdm* a, ghostcell *pgc) : probenum(p->P64)
 {
@@ -45,6 +47,7 @@ probe_pressure::probe_pressure(lexer *p, fdm* a, ghostcell *pgc) : probenum(p->P
 	mkdir("./REEF3D_CFD_PressureProbe",0777);
 	
 	pout = new ofstream[probenum+1];
+    std::vector<char> head(probenum+1,1);
 	
     if(p->mpirank==0 && probenum>0)
     {
@@ -54,13 +57,12 @@ probe_pressure::probe_pressure(lexer *p, fdm* a, ghostcell *pgc) : probenum(p->P
 		sprintf(name,"./REEF3D_CFD_PressureProbe/REEF3D-CFD-Probe-Pressure-%i.dat",n+1);
         
         
-		pout[n].open(name,std::fstream::out);
-        
-        //cout<<pout[n].is_open()<<" "<<n+1<<endl;
+		head[n] = reefckpt_open(pout[n],name,p->I45);   // I 45: continued
 		}
         
         
 		for(n=0;n<probenum;++n)
+		if(head[n])
 		{
 	    pout[n]<<"Point Probe ID:  "<<n+1<<endl<<endl;
 		pout[n]<<"x_coord     y_coord     z_coord"<<endl;
@@ -83,12 +85,17 @@ probe_pressure::~probe_pressure()
 void probe_pressure::start(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb)
 {
 	double xp,yp,zp;
+
+    // the probes of this rank: on its level-0 grid; with the placement of the CFD patches (G 40)
+    // the rank of the finest grid there
+    std::vector<char> mine;
+    amr_cfd_mine(amr,probenum,p->P64_x,p->P64_y,p->P64_z,flag,mine);
 	
 	for(n=0;n<probenum;++n)
 	{
 	uval=vval=wval=pval=kval=eval=edval=-1.0e20;
 	
-		if(flag[n]>0)
+		if(mine[n])
 		{
 		xp=p->P64_x[n];
 		yp=p->P64_y[n];

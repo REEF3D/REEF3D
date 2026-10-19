@@ -34,6 +34,7 @@ wave_lib_piston::wave_lib_piston(lexer *p, ghostcell *pgc) : wave_lib_parameters
     }
 	
     timecount_old=0;
+    wtime_old=0.0;
 	timecount=1;
 	
 	setup_done=0;
@@ -81,6 +82,12 @@ double wave_lib_piston::wave_horzvel(lexer *p, double x, double y, double z)
     
 	while(p->wavetime>kinematics[timecount][0])
 	++timecount;
+
+    // restart
+    if(p->wavetime-wtime_old > 10.0*p->dt)
+    timecount_old = MAX(timecount-1,0);
+
+    wtime_old = p->wavetime;
 	
 	vel = p->B118*(kinematics[timecount][1]-kinematics[timecount_old][1])/(kinematics[timecount][0]-kinematics[timecount_old][0]);
     
@@ -217,6 +224,22 @@ double wave_lib_piston::wave_paddle_Q(lexer *p, double z)
     return 0.0;
     
     return cosgamma*wm2.paddle_Q(p->wavetime,z);
+}
+
+// active absorption target (FNPF B 98 4/7): linear surface elevation of the paddle signal at x0 from the paddle,
+// tabulated on the first call (and again if x0 changes)
+double wave_lib_piston::wave_eta_arc(lexer *p, double x0)
+{
+    if(setup_done==0 && p->A10!=5)
+    wavemaker_setup(p,nullptr,wdt);
+    
+    if(!wm2.eta_target_ready() || fabs(x0-wm2.eta_target_x0())>1.0e-9)
+    wm2.make_etatable(p,nullptr,kinematics,ptnum,wdt,1,0.0,wdt,x0);
+    
+    if(p->wavetime<ts || p->wavetime>te)
+    return 0.0;
+    
+    return wm2.eta_target(p->wavetime);
 }
 
 void wave_lib_piston::wave_prestep(lexer *p, ghostcell *pgc)

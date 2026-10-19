@@ -183,7 +183,8 @@ private:
     // second-order implicit diffusion: implicit weight, accumulation weight of the solved D and
     // whether the accumulated correction is added, per stage
     bool imex;
-    bool imex_valid;            // D(u(n)) of the last step available
+    double imex_valid;          // D(u(n)) of the last step available (1); a double for the checkpoints (ckpt_registry)
+    unsigned long long ckid_imex;
     double imex_g[3], imex_w[3];
     bool imex_use[3];
     field1 *Dtmp;

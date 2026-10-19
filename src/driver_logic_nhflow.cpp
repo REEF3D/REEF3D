@@ -100,7 +100,14 @@ void driver::logic_nhflow()
     pnhfsf = new nhflow_fsf_f(p,d,pgc,pflow,pBC);
     
 // time stepping
-    // time stepping
+    // time stepping; hydrostatic semi-implicit free surface (A 534 1): the advective time step
+    if(p->A534==1)
+    {
+    nhflow_momentum_SI::check(p);
+    pnhfstep=new nhflow_timestep_SI(p);
+    }
+    
+    if(p->A534!=1)
 	pnhfstep=new nhflow_timestep(p);
 
 //discretization scheme
@@ -112,7 +119,7 @@ void driver::logic_nhflow()
 	pnhfconvec = new nhflow_HLL(p,pgc,pBC);
     
     if(p->A511==2 && p->A520!=3)
-	pnhfconvec = new nhflow_HLLC(p,pgc,pBC);
+	pnhfconvec = new nhflow_HLL(p,pgc,pBC);   // HLLC mode inside nhflow_HLL (A 511 2)
     
     if(p->A520==3)
 	pnhfconvec = new nhflow_HLLYL(p,pgc,pBC);
@@ -176,6 +183,24 @@ void driver::logic_nhflow()
     {
         if(p->mpirank==0)
         cout<<endl<<"A 560: unknown NHFLOW turbulence model; use 0 (laminar), 1/21 (k-epsilon), 2/22 (k-omega) or 31 (LES Smagorinsky)."<<endl<<endl;
+        
+        pgc->final(true);
+    }
+    
+    // HLES split (A 561) and QCR (A 563) work with the RANS models (k-epsilon, k-omega) only
+    if((p->A561!=0 || p->A563>0.0) && p->A560!=1 && p->A560!=21 && p->A560!=2 && p->A560!=22)
+    {
+        if(p->mpirank==0)
+        cout<<"A 561 / A 563: need a RANS model (A 560 1, 21, 2 or 22), switched off"<<endl;
+        
+        p->A561=0;
+        p->A563=0.0;
+    }
+    
+    if(p->A561<0 || p->A561>2)
+    {
+        if(p->mpirank==0)
+        cout<<endl<<"A 561: unknown HLES option; use 0 (off), 1 (nu_h = nu_t + nu_sgs) or 2 (nu_h = nu_sgs)."<<endl<<endl;
         
         pgc->final(true);
     }
@@ -301,11 +326,15 @@ void driver::logic_nhflow()
     psed = new sediment_RK2(p,pgc,pturbcfd,pBC);
       
 //Momentum
-    if(p->A510==2)
+    if(p->A510==2 && p->A534!=1)
 	pnhfmom = new nhflow_momentum_RK2(p,d,pgc,p6dof,pnhfvrans,pnhfdf,psed);
 
-    if(p->A510==3)
+    if(p->A510==3 && p->A534!=1)
 	pnhfmom = new nhflow_momentum_RK3(p,d,pgc,p6dof,pnhfvrans,pnhfdf);    
+    
+    // hydrostatic semi-implicit free surface (A 534 1, theta method)
+    if(p->A534==1)
+	pnhfmom = new nhflow_momentum_SI(p,d,pgc,p6dof,pnhfvrans,pnhfdf);
 
 // mesh refinement (G 1): patches on the NHFLOW grid
     // multi-block grid (G 50 1, DIVEMesh R 20 1): the blocks 1.. are level-0 patches of the hierarchy

@@ -86,6 +86,24 @@ static std::vector<lagoon_amr::grid> grids(int t)
     return out;
 }
 
+// a refined block of CFD's volume: a 3D grid, phi and a covered flag per cell
+static lagoon_amr::grid make_block(int level, int rank, double x0, double z0, int nx, int ny, int nz, double d)
+{
+    lagoon_amr::grid g = make_grid(level, rank, x0, 0.0, nx, ny, d);
+    g.nz = nz;
+    g.values.clear();
+    for(int k=0; k<=nz; ++k) g.z.push_back(z0 + d*k);
+    const int n = nx*ny*nz;
+    for(int c=0; c<n; ++c) g.values.push_back(level + 0.001*c);
+    for(int c=0; c<n; ++c) g.values.push_back(double(c%3==0));
+    return g;
+}
+
+static std::vector<lagoon_amr::grid> blocks(int t)
+{
+    return {make_block(1, 0, 1.0 + 0.5*t, 0.5, 4, 2, 3, 0.25), make_block(2, 1, 1.5 + 0.5*t, 0.75, 4, 2, 2, 0.125)};
+}
+
 int main()
 {
     std::cout<<"LAGOON AMR writer"<<std::endl;
@@ -103,7 +121,7 @@ int main()
           "kind and refinement");
     check(attrs.find("\"wetdry\": {\"components\": 1, \"data_type\": \"int32\", \"array\": \"wetdry\"}")!=std::string::npos,
           "an integer field");
-    check(slurp(path + "/zarr.json").find("\"version\": \"0.3\"")!=std::string::npos, "format version 0.3");
+    check(slurp(path + "/zarr.json").find("\"version\": \"0.5\"")!=std::string::npos, "format version 0.5");
     check(slurp(path + "/amr/zarr.json").find("\"node_type\": \"group\"")!=std::string::npos, "the amr group");
     check(slurp(set + "/time/zarr.json").find("\"shape\": [4]")!=std::string::npos, "time counts 4 outputs");
     check(slurp(set + "/grid_end/zarr.json").find("\"shape\": [4]")!=std::string::npos, "grid_end per output");
@@ -153,6 +171,44 @@ int main()
         g[0].values.pop_back();
         check(!bad.output(0.0, 0, g) && !bad.usable(), "a grid with too few values is refused");
         check(!bad.output(0.0, 0, grids(0)), "and the set stops");
+    }
+
+    // CFD's refined blocks of its volume: a set of 3D grids (dims 3), their z and where it ends
+    {
+        std::cout<<"LAGOON AMR writer: the blocks of a volume"<<std::endl;
+        const std::string bpath = "./lagoon_amr_blocks.lagoon";
+        lagoon_amr bw(bpath, "CFD", "cfd_amr", "REEF3D_CFD_AMR", "{\"type\": \"run\", \"run\": \"test\"}",
+                      {{"phi", false}, {"covered", true}});
+        const bool written = bw.output(0.0, 0, blocks(0)) && bw.output(0.1, 1, blocks(1));
+        check(written && bw.usable(), "2 outputs of 2 blocks");
+        const std::string bset = bpath + "/amr/cfd_amr";
+        check(slurp(bset + "/zarr.json").find("\"dims\": 3")!=std::string::npos, "the set says dims 3");
+        check(slurp(bset + "/grids/size/zarr.json").find("\"shape\": [4, 3]")!=std::string::npos, "sizes nx, ny, nz");
+        check(slurp(bset + "/grids/z_end/zarr.json").find("\"shape\": [4]")!=std::string::npos, "where each z ends");
+        check(slurp(bset + "/z/zarr.json").find("\"shape\": [14]")!=std::string::npos, "z of every block (4 + 3, twice)");
+        check(slurp(bset + "/cell_data/phi/zarr.json").find("\"shape\": [80]")!=std::string::npos,
+              "every cell of the blocks (24 + 16, twice)");
+        std::vector<unsigned char> zs = inner(bset + "/z/c/0", 0, lagoon_rows::ROWS, 8);
+        const double *z = reinterpret_cast<const double*>(zs.data());
+        check(z[0]==0.5 && z[3]==1.25 && z[4]==0.75 && z[6]==1.0, "z read back");
+        std::vector<unsigned char> phi = inner(bset + "/cell_data/phi/c/0", 0, lagoon_rows::ROWS, 4);
+        check(reinterpret_cast<const float*>(phi.data())[24 + 3]==float(2 + 0.003), "block values read back");
+
+        std::vector<double> buffer;
+        lagoon_amr::pack(blocks(1), 2, buffer);
+        std::vector<lagoon_amr::grid> back;
+        bool same = lagoon_amr::unpack(buffer.data(), buffer.size(), 2, 3, back) && back.size()==2;
+        for(size_t q=0; same && q<back.size(); ++q)
+        {
+            const lagoon_amr::grid &a = back[q], b = blocks(1)[q];
+            same = a.nz==b.nz && a.z==b.z && a.x==b.x && a.values==b.values && a.rank==3;
+        }
+        check(same, "blocks packed and unpacked with z");
+        check(!lagoon_amr::unpack(buffer.data(), buffer.size() - 1, 2, 0, back), "a cut buffer of blocks is refused");
+
+        std::vector<lagoon_amr::grid> flat = {make_grid(1, 0, 0.0, 0.0, 4, 4, 0.25)};
+        flat[0].values.resize(2*16);
+        check(!bw.output(0.2, 2, flat), "a 2D grid in a set of blocks is refused");
     }
 
     std::cout<<(nfail==0 ? "all passed" : "FAILED")<<std::endl;

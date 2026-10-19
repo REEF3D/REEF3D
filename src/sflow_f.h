@@ -28,6 +28,7 @@ Author: Hans Bihs
 #include<iostream>
 #include<fstream>
 #include<vector>
+#include<string>
 
 class lexer;
 class fdm2D;
@@ -55,6 +56,7 @@ class turbulence;
 class patchBC_interface;
 class sixdof;
 class sflow_amr;
+class reefrun_ckpt;
 
 using namespace std;
 
@@ -80,6 +82,12 @@ private:
 	
 	void print_debug(lexer*, fdm2D*, ghostcell*);
     
+    // checkpoints (P 48, I 45) and the rebalance (G 46): the hooks of SFLOW (sflow_f_ckpt.cpp) for
+    // the run part (reefrun_ckpt.h)
+    std::string ckpt_unsupported(lexer*);
+    reefrun_ckpt& ckpt(lexer*, fdm2D*, ghostcell*);
+    reefrun_ckpt *rck = nullptr;
+
     void log_ini(lexer*);
     void mainlog(lexer*);
 	

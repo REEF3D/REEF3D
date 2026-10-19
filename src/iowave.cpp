@@ -64,11 +64,55 @@ iowave::iowave(lexer *p, ghostcell *pgc, patchBC_interface *ppBC)  : wave_interf
         p->B98 = 4;
         }
         else
+        // FNPF piston wavemaker: two-band absorption against the linear target of the paddle signal; the
+        // reference period B 528 is needed (no wave theory period)
+        if(p->A10==3 && p->B92==21)
+        {
+        p->B98 = 4;
+        ab2_in = p->B528>0.0;
+        
+        if(p->mpirank==0 && !ab2_in)
+        cout<<"iowave: B 98 7 with the piston wavemaker needs the reference period B 528; runs as B 98 4"<<endl;
+        }
+        else
         {
         p->B98 = (p->A10==5 || p->A10==6) ? 4 : 2;
         
         if(p->mpirank==0)
         cout<<"iowave: B 98 7 (two-band active absorption) is available for FNPF with a wave theory; runs as B 98 "<<p->B98<<endl;
+        }
+    }
+    
+    // SIRW absorption (B 98 8 / B 99 8), FNPF and NHFLOW: the solvers see B 98 4 / B 99 3; NHFLOW with a wave
+    // theory generates through an absorbing Riemann edge at x- (nhflow_gen_edge) and runs B 98 2 (no relaxation
+    // zone with B 96 0)
+    if(p->B98==8)
+    {
+        if(p->A10==3 || p->A10==5)
+        {
+        sirw_in_req = true;
+        p->B98 = (p->A10==5 && (p->B92<20 || p->B92>29)) ? 2 : 4;
+        }
+        else
+        {
+        p->B98 = p->A10==6 ? 4 : 2;
+        if(p->mpirank==0)
+        cout<<"iowave: B 98 8 (SIRW absorption) is available for FNPF and NHFLOW; runs as B 98 "<<p->B98<<endl;
+        }
+    }
+    
+    if(p->B99==8)
+    {
+        if(p->A10==3 || p->A10==5)
+        {
+        sirw_out_req = true;
+        p->B99 = 3;
+        }
+        else
+        {
+        p->B99 = 3;
+        if(p->mpirank==0)
+        cout<<"iowave: B 99 8 (SIRW absorption) is available for FNPF and NHFLOW; runs as B 99 3"<<endl;
         }
     }
     
@@ -283,6 +327,7 @@ iowave::iowave(lexer *p, ghostcell *pgc, patchBC_interface *ppBC)  : wave_interf
     bgs.read(p);
     b530_auto(p);
     zones_check(p);
+    sirw_ini(p);
     nhflow_active_beach_edge(p,pgc);
     nhflow_gen_edge(p,pgc);
     

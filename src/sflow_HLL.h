@@ -41,6 +41,9 @@ using namespace std;
 //   ipol 3: WH  -> b->H     ipol 4: continuity -> b->FEx, b->FEy
 // The momentum fluxes contain the hydrostatic part 0.5*g*eta^2 + g*eta*d_face,
 // the matching bed-slope source is added by sflow_pressure::upgrad/vpgrad.
+// A 225 2 (HLLC): the tangential components (VH across x-faces, UH across y-faces, WH across
+// both) are upwinded with the HLL mass flux, see HLLC_x/HLLC_y; continuity and the normal
+// momentum stay HLL. Not on the curvilinear grid (G 50), there HLL is used.
 
 class sflow_HLL final : public increment
 {
@@ -54,6 +57,9 @@ public:
 
     void start(lexer*, fdm2D*, int);
 
+    // the in- and outflow faces (gcslin, gcslout) carry the flux of the ghost state (open faces of a block, G 54)
+    void open_io() { inflow = outflow = 1; }
+
 private:
     void aij_U(lexer*, fdm2D*);
     void aij_V(lexer*, fdm2D*);
@@ -61,11 +67,14 @@ private:
     void aij_E(lexer*, fdm2D*);
 
     void HLL(lexer*, fdm2D*, slice&, slice&, slice&, slice&, slice&, slice&);
+    void HLLC_x(lexer*, fdm2D*, slice&, slice&, slice&);
+    void HLLC_y(lexer*, fdm2D*, slice&, slice&, slice&);
     void flux_bc(lexer*, fdm2D*, int);
     void divergence(lexer*, fdm2D*, slice&);
 
     double denom;
     int inflow, outflow;
+    int hllc;
 
     ghostcell *pgc;
     patchBC_interface *pBC;

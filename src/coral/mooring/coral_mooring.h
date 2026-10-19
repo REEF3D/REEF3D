@@ -40,6 +40,7 @@ Architect: Hans Bihs
 #define CORAL_MOORING_H_
 
 #include"coral/core/coral_load.h"
+#include"coral/core/coral_state.h"
 #include"coral/mooring/coral_catenary.h"
 #include"coral/hydro/coral_waves.h"
 #include<memory>
@@ -73,12 +74,17 @@ namespace coral
     public:
         mooring_qs(const model&, const mooring_end &a, const mooring_end &b, const mooring_props&, const std::string &name="mooring");
         std::string name() const override {return name_;}
+        coupling_kind coupling() const override {return coupling_kind::local;}
+        void coupled_bodies(std::vector<int> &b) const override {b.push_back(ba_); b.push_back(bb_);}
         void eval(const model&, double t, VecX &f) const override;
         void channel_names(std::vector<std::string>&) const override;
         void channel_values(const model&, double t, std::vector<double>&) const override;
 
         // force on end b (global) and on end a for the current positions
         void forces(const model&, Vec3 &Fa, Vec3 &Fb) const;
+        // restart from a checkpoint (coral_state.h)
+        void save_state(std::vector<double>&) const override;
+        bool load_state(const std::vector<double>&, size_t &k) override;
 
     private:
         std::string name_;
@@ -93,13 +99,16 @@ namespace coral
     {
     public:
         mooring_line(const model&, const mooring_end &a, const mooring_end &b, const mooring_props&, int nseg,
-                     std::shared_ptr<const wave_field> waves=nullptr, const Vec3 &current=Vec3::Zero(),
+                     std::shared_ptr<const wave_kinematics> waves=nullptr, const Vec3 &current=Vec3::Zero(),
                      double z_seabed=-1.0e30, double dt_line=0.0, const std::string &name="line");
 
         std::string name() const override {return name_;}
+        coupling_kind coupling() const override {return coupling_kind::local;}
+        void coupled_bodies(std::vector<int> &b) const override {b.push_back(ba_); b.push_back(bb_);}
         void initialize(const model&, double t0) override;
         void eval(const model&, double t, VecX &f) const override;
         void commit(const model&, double t, double dt) override;
+        void kinematics_points(const model&, const void *source, std::vector<Vec3>&) const override;
         void channel_names(std::vector<std::string>&) const override;
         void channel_values(const model&, double t, std::vector<double>&) const override;
 
@@ -112,6 +121,9 @@ namespace coral
 
         // relax the line with the ends fixed (static shape), extra damping, before the run
         void settle(const model&, double t_settle);
+        // restart from a checkpoint (coral_state.h)
+        void save_state(std::vector<double>&) const override;
+        bool load_state(const std::vector<double>&, size_t &k) override;
 
     private:
         struct state {std::vector<Vec3> r, v;};
@@ -127,7 +139,7 @@ namespace coral
         int nseg_;
         double l_;                     // unstretched segment length
         double dt_;
-        std::shared_ptr<const wave_field> waves_;
+        std::shared_ptr<const wave_kinematics> waves_;
         Vec3 current_;
         double zbed_;
         Vec3 g_;

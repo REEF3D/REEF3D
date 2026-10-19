@@ -626,7 +626,7 @@ void sflow_amr::sediment_step_sflow(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *
     {
         sflow_amr_patch *c = SP(id);
         sedscope ss(pgc,c->pp);
-        c->sed->amr_finish_sflow(c->pp,c->b,pgc,pflow_void);
+        c->sed->amr_finish_sflow(c->pp,c->b,pgc,pflow_of(c));
     }
 
     // the cells around the blocks and the ring, the cells around the patches, coarse to fine

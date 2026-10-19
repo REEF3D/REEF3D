@@ -470,6 +470,18 @@ void driver::logic_cfd()
 	pfsfdisc=new hires(p,p->F85);
 
 
+//air compressibility
+    if(p->W32>0 && ((p->D30!=1 && p->D30!=2 && p->D30!=3) || p->F80>0 || p->W30>0))
+    {
+    if(p->mpirank==0)
+    cout<<"W 32 requires D 30 1, 2 or 3 and the level set method (F 80 0), and cannot be combined with W 30"<<endl;
+
+    exit(1);
+    }
+
+    if(p->W32>0 && p->mpirank==0 && (p->B200==1 || (p->B200==0 && p->S10==2 && p->Q10==0) || p->X10>0))
+    cout<<"W 32 is not verified with porous media (B 210 to B 214, S 10 2) or floating bodies (X 10): the compressibility is not scaled by the porosity"<<endl;
+
 //pressure scheme
 	if(p->D30==0)
 	ppress = new pressure_void(p);

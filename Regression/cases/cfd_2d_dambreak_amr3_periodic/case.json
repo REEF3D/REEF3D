@@ -1,0 +1,21 @@
+{
+ "base": "cfd_2d_dambreak_amr_periodic",
+ "steps": 60,
+ "description": "Two adaptive refined levels in the periodic tank: the nesting of level 2 wrapped across the periodic edge, the parents of level-2 margin cells in the level-1 patches at the other end.",
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "levelset",
+  "amr",
+  "adaptive",
+  "periodic"
+ ],
+ "covers": [
+  "wrapped nesting and proper nesting",
+  "parents across the periodic edge (plans, pr_stencils)"
+ ],
+ "ctrl_set": {
+  "G 1": "2"
+ }
+}

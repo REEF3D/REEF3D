@@ -1,0 +1,8 @@
+{
+ "description": "fnpf_3d_amr_coast_wd on 2 ranks (the partition edge crosses the patch).",
+ "solver": "fnpf",
+ "np": 2,
+ "base": "fnpf_3d_amr_coast_wd",
+ "tags": ["3d", "fnpf", "amr", "waves", "breaking", "coastline", "wetdry", "mpi"],
+ "covers": ["the local reductions of the patch breaking and damping on several ranks"]
+}

@@ -32,6 +32,7 @@ namespace coral
     {
     public:
         std::string name() const override {return "gravity";}
+        coupling_kind coupling() const override {return coupling_kind::diagonal;}
         void eval(const model&, double t, VecX &f) const override;
         double potential(const model&) const override;
     };

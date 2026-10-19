@@ -1,3 +1,7 @@
+x added isentropic air compressibility in the continuity equation, W 32 to W 36 (CFD)
+x fixed piston and flap wavemaker velocities in the first time step after a restart
+x fixed atmospheric lid pressure B 31 after a restart with B 30 3
+x fixed the first time step after a restart
 
 
 26.08

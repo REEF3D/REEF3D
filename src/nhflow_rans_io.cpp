@@ -24,13 +24,12 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
+#include"nhflow_wall.h"
 #include<cstring>
 
 nhflow_rans_io::nhflow_rans_io(lexer *p, fdm_nhf *d) : nhflow_strain(p,d),
 									 ke_c_1e(1.44), ke_c_2e(1.92),ke_sigma_k(1.0),ke_sigma_e(1.3),
-									 kw_alpha(5.0/9.0), kw_beta(3.0/40.0),kw_sigma_k(2.0),kw_sigma_w(2.0),
-									 sst_alpha1(5.0/9.0), sst_alpha2(0.44), sst_beta1(3.0/40.0), sst_beta2(0.0828), 
-									 sst_sigma_k1(0.85), sst_sigma_k2(1.0), sst_sigma_w1(0.5), sst_sigma_w2(0.856)
+									 kw_alpha(5.0/9.0), kw_beta(3.0/40.0),kw_sigma_k(2.0),kw_sigma_w(2.0)
 {
     p->Darray(KIN,p->imax*p->jmax*(p->kmax+2));
     p->Darray(EPS,p->imax*p->jmax*(p->kmax+2));
@@ -102,6 +101,31 @@ void nhflow_rans_io::print_3D(lexer* p, fdm_nhf *d, ghostcell *pgc, std::vector<
             
         std::memcpy(&buffer[m],&ffn,sizeof(float));
         m+=sizeof(float);
+    }
+    
+    // eddyv_h: horizontal eddy viscosity of the HLES split (A 561)
+    if(p->A561>0)
+    {
+    iin=4*(p->pointnum);
+    std::memcpy(&buffer[m],&iin,sizeof(int));
+    m+=sizeof(int);
+
+    TPLOOP
+    {
+        if(p->j_dir==0)
+        {
+            jj=j;
+            j=0;
+            ffn=float(0.25*(d->EVH[IJK]+d->EVH[Ip1JK]+d->EVH[IJKp1]+d->EVH[Ip1JKp1]));
+            j=jj;
+        }
+        else if(p->j_dir==1)
+            ffn=float(0.125*(d->EVH[IJK]+d->EVH[Ip1JK]+d->EVH[IJp1K]+d->EVH[Ip1Jp1K]
+                        +d->EVH[IJKp1]+d->EVH[Ip1JKp1]+d->EVH[IJp1Kp1]+d->EVH[Ip1Jp1Kp1]));
+
+        std::memcpy(&buffer[m],&ffn,sizeof(float));
+        m+=sizeof(float);
+    }
     }
 
     // kin
@@ -266,6 +290,9 @@ void nhflow_rans_io::name_ParaView_parallel(lexer *p, ofstream &result)
 {
     result<<"<PDataArray type=\"Float32\" Name=\"eddyv\"/>\n";
     
+    if(p->A561>0)
+    result<<"<PDataArray type=\"Float32\" Name=\"eddyv_h\"/>\n";
+    
     result<<"<PDataArray type=\"Float32\" Name=\"kin\"/>\n";
 	
 	if(p->A560==1 || p->A560==21)
@@ -278,6 +305,11 @@ void nhflow_rans_io::name_ParaView(lexer *p, stringstream &result, int *offset, 
 {
     result<<"<DataArray type=\"Float32\" Name=\"eddyv\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
+    if(p->A561>0)
+    {
+    result<<"<DataArray type=\"Float32\" Name=\"eddyv_h\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
+    ++n;
+    }
     result<<"<DataArray type=\"Float32\" Name=\"kin\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
 	if(p->A560==1 || p->A560==21)
@@ -291,6 +323,11 @@ void nhflow_rans_io::offset_ParaView(lexer *p, int *offset, int &n)
 {
     offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;
+    if(p->A561>0)
+    {
+    offset[n]=offset[n-1]+4*(p->pointnum)+4;
+	++n;
+    }
 	offset[n]=offset[n-1]+4*(p->pointnum)+4;
 	++n;
     offset[n]=offset[n-1]+4*(p->pointnum)+4;
@@ -362,4 +399,138 @@ void nhflow_rans_io::length_limit(lexer *p, fdm_nhf *d, bool komega)
     
     SLICELOOP4
     WETN[IJ] = p->wet[IJ];
+}
+
+// horizontal wall distance for the SST F2 (A 564 2): distance of the cell centre, along its sigma layer, to the nearest
+// x or y wall face with a wall function, i.e. side walls with A 519 2 (solid cells and wall boundaries as in
+// nhflow_wall_faces). Seeded with half a cell at the wall cells and spread by d = min(d, d_nb + dx_nb) over the wet
+// fluid cells, with the MPI exchange in every sweep. Computed once at the first call, so it holds the walls of the
+// initial geometry (moving 6DOF bodies and thin bodies are covered locally in sst_walldist). 1e20 without side walls.
+// On curvilinear grids (G 50) the distance is taken along the computational spacing DXP/DYP.
+void nhflow_rans_io::walldist_h(lexer *p, fdm_nhf *d, ghostcell *pgc)
+{
+    if(WDH!=nullptr)
+    return;
+    
+    const double big = 1.0e20;
+    const int size = p->imax*p->jmax*(p->kmax+2);
+    int w[6];
+    
+    p->Darray(WDH,size);
+    
+    for(int n=0; n<size; ++n)
+    WDH[n] = big;
+    
+    if(p->A519!=2)
+    return;
+    
+    double seeded = 0.0;
+    
+    LOOP
+    if(p->flag4[IJK]>0 && p->DF[IJK]>0)
+    {
+        nhflow_wall_faces(p,i,j,k,w);
+        
+        if(w[0] || w[1])
+        WDH[IJK] = MIN(WDH[IJK], 0.5*p->DXN[IP]);
+        
+        if(w[2] || w[3])
+        WDH[IJK] = MIN(WDH[IJK], 0.5*p->DYN[JP]);
+        
+        if(WDH[IJK]<big)
+        seeded = 1.0;
+    }
+    
+    if(pgc->globalmax(seeded)<0.5)
+    return;
+    
+    const int maxit = p->gknox + p->gknoy + 10;
+    
+    for(int it=0; it<maxit; ++it)
+    {
+        pgc->start4V_par(p,WDH,24);
+        
+        double change = 0.0;
+        
+        LOOP
+        if(p->flag4[IJK]>0 && p->DF[IJK]>0)
+        {
+            double dn = WDH[IJK];
+            
+            if(p->flag4[Im1JK]>0 && p->DF[Im1JK]>0)
+            dn = MIN(dn, WDH[Im1JK] + p->DXP[IM1]);
+            
+            if(p->flag4[Ip1JK]>0 && p->DF[Ip1JK]>0)
+            dn = MIN(dn, WDH[Ip1JK] + p->DXP[IP]);
+            
+            if(p->j_dir==1 && p->flag4[IJm1K]>0 && p->DF[IJm1K]>0)
+            dn = MIN(dn, WDH[IJm1K] + p->DYP[JM1]);
+            
+            if(p->j_dir==1 && p->flag4[IJp1K]>0 && p->DF[IJp1K]>0)
+            dn = MIN(dn, WDH[IJp1K] + p->DYP[JP]);
+            
+            if(dn<WDH[IJK])
+            {
+            change = MAX(change, WDH[IJK]<0.5*big ? WDH[IJK]-dn : 1.0);   // first value: 1
+            WDH[IJK] = dn;
+            }
+        }
+        
+        if(pgc->globalmax(change)<=1.0e-12)
+        break;
+    }
+    
+    pgc->start4V_par(p,WDH,24);
+}
+
+// wall distance for F2: bed, solids (SOLID), side walls (WDH), top walls in the same column (A 519 2) and the
+// walls of the cell itself with a wall function (nhflow_wall.h, incl. thin bodies X 330 'mobility sharp')
+double nhflow_rans_io::sst_walldist(lexer *p, fdm_nhf *d)
+{
+    double y = p->ZSP[IJK] - d->bed(i,j);
+
+    if(d->SOLID[IJK] > 0.0)
+    y = MIN(y, d->SOLID[IJK]);
+    
+    if(WDH!=nullptr)
+    y = MIN(y, WDH[IJK]);
+    
+    // top wall: first solid cell above in the column, distance to its lower face
+    if(p->A519==2)
+    {
+        const int ksave = k;
+        
+        for(k=ksave; k<p->knoz-1; ++k)
+        if(p->flag4[IJKp1]<0 || p->DF[IJKp1]<0)
+        {
+            const double ztop = p->ZN[KP1]*d->WL(i,j) + d->bed(i,j);
+            k = ksave;
+            y = MIN(y, ztop - p->ZSP[IJK]);
+            break;
+        }
+        
+        k = ksave;
+    }
+    
+    double dist,ks,ut;
+    
+    if(nhflow_turb_wall(p,d,i,j,k,dist,ks,ut)==1)
+    y = MIN(y, dist);
+
+    return MAX(y, 1.0e-10);
+}
+
+double nhflow_rans_io::sst_F2(lexer *p, fdm_nhf *d, double kval, double wval)
+{
+    double y = sst_walldist(p,d);
+
+    kval = MAX(kval, 0.0);
+    wval = MAX(wval, 1.0e-20);
+
+    double arg2 = MAX( 2.0*sqrt(kval)/(p->cmu*wval*y),
+                       500.0*d->VISC[IJK]/(y*y*wval) );
+
+    arg2 = MIN(arg2, 25.0);
+
+    return tanh(arg2*arg2);
 }

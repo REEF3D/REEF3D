@@ -29,6 +29,8 @@ Author: Hans Bihs
 #include<sys/stat.h>
 #include<sys/types.h>
 #include"runlog.h"
+#include<vector>
+#include"reefckpt.h"
 
 print_wsf::print_wsf(lexer *p, fdm* a, ghostcell *pgc, int num) : fileFlushMaxCount(100)
 {
@@ -64,10 +66,12 @@ print_wsf::print_wsf(lexer *p, fdm* a, ghostcell *pgc, int num) : fileFlushMaxCo
     if(p->mpirank==0 && p->P51>0 && num==0)
     {
     // open file
-	wsfout.open("./REEF3D_CFD_WSF/REEF3D-CFD-WSF-HG.dat");
+	const bool head = reefckpt_open(wsfout,"./REEF3D_CFD_WSF/REEF3D-CFD-WSF-HG.dat",p->I45);   // I 45: continued
 	if(p->plog)
 	p->plog->table_file(p,"wsf","gauges","./REEF3D_CFD_WSF/REEF3D-CFD-WSF-HG.dat");
 
+    if(head)
+    {
     wsfout<<"number of gauges:  "<<gauge_num<<endl<<endl;
     wsfout<<"x_coord     y_coord"<<endl;
     for(n=0;n<gauge_num;++n)
@@ -80,6 +84,7 @@ print_wsf::print_wsf(lexer *p, fdm* a, ghostcell *pgc, int num) : fileFlushMaxCo
     wsfout<<"\t P"<<n+1;
 
     wsfout<<endl<<endl;
+    }
     }
 	
 	//-------------------
@@ -87,8 +92,10 @@ print_wsf::print_wsf(lexer *p, fdm* a, ghostcell *pgc, int num) : fileFlushMaxCo
 	if(p->mpirank==0 && p->P351>0 && num==1)
     {
     // open file
-	wsfout.open("./REEF3D_CFD_WSF/REEF3D-CFD-WSF-HG-1.dat");
+	const bool head = reefckpt_open(wsfout,"./REEF3D_CFD_WSF/REEF3D-CFD-WSF-HG-1.dat",p->I45);   // I 45: continued
 
+    if(head)
+    {
     wsfout<<"number of gauges:  "<<gauge_num<<endl<<endl;
     wsfout<<"x_coord     y_coord"<<endl;
     for(n=0;n<gauge_num;++n)
@@ -102,14 +109,17 @@ print_wsf::print_wsf(lexer *p, fdm* a, ghostcell *pgc, int num) : fileFlushMaxCo
 
     wsfout<<endl<<endl;
     }
+    }
 	
 	//-------------------
 	
 	if(p->mpirank==0 && p->P352>0 && num==2)
     {
     // open file
-	wsfout.open("./REEF3D_CFD_WSF/REEF3D-CFD-WSF-HG-2.dat");
+	const bool head = reefckpt_open(wsfout,"./REEF3D_CFD_WSF/REEF3D-CFD-WSF-HG-2.dat",p->I45);   // I 45: continued
 
+    if(head)
+    {
     wsfout<<"number of gauges:  "<<gauge_num<<endl<<endl;
     wsfout<<"x_coord     y_coord"<<endl;
     for(n=0;n<gauge_num;++n)
@@ -122,6 +132,7 @@ print_wsf::print_wsf(lexer *p, fdm* a, ghostcell *pgc, int num) : fileFlushMaxCo
     wsfout<<"\t P"<<n+1;
 
     wsfout<<endl<<endl;
+    }
     }
 	
 	p->Iarray(iloc,gauge_num);
@@ -161,8 +172,9 @@ void print_wsf::height_gauge(lexer *p, fdm *a, ghostcell *pgc, field &f)
         }
 
         // CFD mesh refinement: when the finest grid at the free surface of level 0 is a patch, the
-        // free surface of the patch column that holds the gauge (its topmost zero, as above)
-        if(amr!=nullptr && wsf[n]>-1.0e19)
+        // free surface of the patch column that holds the gauge (its topmost zero, as above; with
+        // the placement of the patches, G 40, below on the rank of the patch)
+        if(amr!=nullptr && !amr->placed() && wsf[n]>-1.0e19)
         amr_gauge(p,n);
     }
     
@@ -223,6 +235,22 @@ void print_wsf::height_gauge(lexer *p, fdm *a, ghostcell *pgc, field &f)
     }
 	
     pgc->globalmax(wsf,gauge_num);
+
+    // G 40: the free surface of level 0 on the rank of the finest grid there
+    if(amr!=nullptr && amr->placed())
+    {
+        std::vector<double> z(wsf,wsf+gauge_num);
+        std::vector<char> mine;
+        amr_cfd_mine(amr,gauge_num,x,y,z.data(),flag,mine);
+        for(n=0;n<gauge_num;++n)
+        {
+            if(!mine[n])
+            wsf[n] = -1.0e20;
+            else if(wsf[n]>-1.0e19)
+            amr_gauge(p,n);
+        }
+        pgc->globalmax(wsf,gauge_num);
+    }
 
     // write to file
     gauge_row(p,wsfout,wsf,gauge_num,fileFlushMaxCount);

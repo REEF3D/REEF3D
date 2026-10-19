@@ -1,0 +1,18 @@
+{
+ "description": "CFD 2D wave tank (cfd_2d_nwt) with level set RK3 (F 30 3, N 40 13) and the start-up ramp B 101 1 over two periods. The ramp acts on the wave elevation only: before hans_dev fe03b66a phi_relax scaled the whole level-set target (umax 0.8 m/s in this case).",
+ "np": 1,
+ "steps": 100,
+ "tags": [
+  "quick",
+  "2d",
+  "waves",
+  "levelset",
+  "iowave",
+  "ramp"
+ ],
+ "covers": [
+  "iowave::phi_relax B 101 ramp",
+  "levelset_RK3",
+  "iowave relaxation B98=2/B99=2"
+ ]
+}

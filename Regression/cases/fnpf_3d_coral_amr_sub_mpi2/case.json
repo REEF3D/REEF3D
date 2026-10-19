@@ -1,0 +1,8 @@
+{
+ "description": "fnpf_3d_coral_amr_sub on 2 ranks (the body and its refinement zone across the partition edge): every rank advances the same CORAL model on the loads of rank 0 (broadcast), the state of the model compared over the ranks after each step (the log warns at a difference).",
+ "solver": "fnpf",
+ "np": 2,
+ "base": "fnpf_3d_coral_amr_sub",
+ "tags": ["3d", "fnpf", "amr", "6dof", "floating", "subcycling", "coral", "mpi"],
+ "covers": ["coral_reef3d bcast and check_ranks", "fnpf_6DOF external dynamics on several ranks"]
+}

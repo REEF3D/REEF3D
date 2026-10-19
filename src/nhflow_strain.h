@@ -45,6 +45,7 @@ public:
     void Pk_b_update(lexer*,fdm_nhf*,ghostcell*);
 	void wallf_update(lexer*,fdm_nhf*,ghostcell*,int*);
 	double strainterm(lexer*,fdm_nhf*);
+    double strainterm_v(lexer*,fdm_nhf*);   // vertical shear sqrt((du/dz)^2 + (dv/dz)^2) (A 561 1)
     double strainterm(lexer*,double*,double*,double*);
 	double rotationterm(lexer*,fdm_nhf*);
     double rotationterm(lexer*,double*,double*,double*);
@@ -52,7 +53,20 @@ public:
     double magSqrSd(lexer*,double*,double*,double*);
 	double strainplain(lexer*,fdm_nhf*);
     
+    // HLES split (A 561): horizontal eddy viscosity d->EVH = [nu_t] + (C_s Delta_h)^2 |S_h| + nu_b (A 562)
+    void hles_update(lexer*,fdm_nhf*,ghostcell*);
+    
+    // QCR (A 563, Spalart 2000): extra stress dtau_ij = -C_cr1 (O_ik tau_jk + O_jk tau_ik) of the k-omega/k-eps
+    // Boussinesq stress tau_ij = nu_t (du_i/dx_j + du_j/dx_i), O_ik = (du_i/dx_k - du_k/dx_i)/|grad u|;
+    // qcr_update stores it at the cell centres, qcr_fx/fy/fz give D d(dtau_ij)/dx_j at (i,j,k) for the UH, VH, WH
+    // momentum sources (isource/jsource/ksource)
+    void qcr_update(lexer*,fdm_nhf*,ghostcell*);
+    double qcr_fx(lexer*,fdm_nhf*);
+    double qcr_fy(lexer*,fdm_nhf*);
+    double qcr_fz(lexer*,fdm_nhf*);
+    
 	double *PK,*PK0,*PK_b;
+    double *TQ11,*TQ22,*TQ33,*TQ12,*TQ13,*TQ23;
 
 private:
     double s11,s22,s33,s12,s13,s23;

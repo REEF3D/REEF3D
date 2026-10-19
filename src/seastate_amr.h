@@ -116,6 +116,17 @@ the fine cells on this rank or from the rank of the source patch with
 the fills. The discrete problem no longer depends on where a level is
 cut into patches, so a converged run on several ranks gives the result
 of one rank.
+Pipeline (Phase 17, A 781 1 with A 797 1): the composite sweep over the
+level-0 tiles of all ranks as one dependency graph (seastate_implicit,
+Phase 14). A boundary tile carries the level-0 halo cells, the faces of
+its covered boundary cells and the ring cells (with their faces) of the
+patches of the rank downstream whose sources lie in it; every cell then
+sees its neighbours on all levels as on one rank, and the result is that
+of one rank, bitwise. With the second-order fluxes (A 796 2) the patches
+keep a second ring layer, used where it holds cells of the same level
+not covered by a finer grid (as inside one patch). The level-by-level
+sweeps (A 797 0) are not pipelined (their result depends on the order of
+the patches of a level, which the rank boxes cut).
 Nonstationary runs keep the spectra of the start of the step on every
 grid (N0); stationary runs iterate until the largest relative change
 of Hs on all grids is below A 708.
@@ -176,6 +187,8 @@ struct seastate_amr_patch : public reefamr_patch
     slice4 *wU = nullptr, *wD = nullptr;    // wind field (A 730 2)
     vector<int> ring;                       // fill entries next to the interior (inflow of the sweeps), local sources
     vector<int> ringr;                      // the same, held by other ranks
+    vector<int> ring2, ring2r;              // Phase 17, second-order fluxes (A 796 2): the second layer, local / other ranks
+    vector<int> ringsel;                    // ringr and ring2r: the entries the fills of the level store
 
     // Phase 6b: obstacles and coasts, diffraction (Ca, its gradient; smoothed energy, work slices), vegetation
     seastate_obstacle *pobs = nullptr;
@@ -206,7 +219,7 @@ struct seastate_amr_flink
     int i0,j0,i1,j1;
 };
 
-class seastate_amr : public reefamr
+class seastate_amr : public reefamr, public seastate_kba_extra
 {
 public:
     seastate_amr(lexer*, ghostcell*);
@@ -260,6 +273,15 @@ public:
     // number of steps 0.4 (L/dx)^2 of the patch (A 719 n: n 4^level), at most 400
     void diffraction(lexer*, int mode, int l0, int l1, double smax, double L, double dmin0, slice4 &E0,
                      slice4 &T0);
+
+    // Phase 17: the composite sweep (A 797 1) pipelined across the ranks (A 781 1): the boundary tiles of level 0 also
+    // carry the faces of the covered boundary cells and the ring cells (and their faces) of the patches of the rank
+    // downstream whose sources lie in the tile. Collective; after ini, with the level-0 solver already pipelined
+    void pipeline_setup(lexer*, ghostcell*);
+    bool pipelined() const {return kba;}
+    size_t kba_size(int q, int s, int idx, int tb, bool send) override;
+    void kba_pack(int q, int s, int idx, int tb, float *buf) override;
+    void kba_unpack(int q, int s, int idx, int tb, const float *buf) override;
 
     // finest grid on this rank that holds the point: lexer, field data, cell
     bool locate(double x, double y, lexer *&q, fdm_seastate *&ee, int &ci, int &cj);
@@ -340,6 +362,25 @@ private:
     void remote_faces_plan(ghostcell*);
     void remote_faces(ghostcell*);
     void halo0(lexer*, ghostcell*);             // level-0 halo exchange, then the faces
+
+    // Phase 17: the pipeline (pipeline_setup). Per side of the rank: the ring cells of the patches of this rank whose
+    // source lies on the neighbour rank there (recv), and the sources here for the ring cells of the neighbour (send),
+    // in the same order on both ranks; row: the level-0 row (side 0, 1) or column (side 2, 3) of the cell, local index
+    struct kba_item
+    {
+        int row;
+        bool face;
+        int g = -2, si = 0, sj = 0;             // send: the source cell (grid, local index), g -2: none (zeros)
+        seastate_amr_flink L;                   // send: the two fine cells of the face (L.g -1: the source cell itself)
+        int id = -1, di = 0, dj = 0;            // recv: the ring cell (patch, local index)
+        long key = 0;                           // recv: its face in the faces of patch id
+    };
+    vector<kba_item> ksend[4], krecv[4];
+    vector<unsigned char> kface_send[4], kface_recv[4];   // [side][row]: the boundary (halo) cell of the row has a face
+    bool kba = false;
+    int kpos(int q, int s, int row) const;      // the position along side s in the order of quadrant q
+    // Phase 17: the ring layers around the patch interiors that the sweeps read: 2 with the second-order fluxes (A 796 2)
+    int ring_width() const;
 
     // Phase 16: the faces at the interfaces of the patches of one level (on this rank and across ranks). A ring cell
     // whose source cell (the same cell of a neighbouring patch of the level) is covered by the next finer level is

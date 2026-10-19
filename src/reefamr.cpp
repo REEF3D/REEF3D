@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"reefamr.h"
+#include<set>
 #include"geo_mesh.h"
 #include"lexer.h"
 #include"ghostcell.h"
@@ -45,13 +46,16 @@ inline bool inarr(const lexer *q, int ii, int jj)
 }
 }
 
+// the time with the comms off is the patch time of the load statistics (G 43)
 reefamr_comms_off::reefamr_comms_off(ghostcell *gg) : g(gg)
 {
     old = g->set_comms(false);
+    amr_clock::patch_begin();
 }
 
 reefamr_comms_off::~reefamr_comms_off()
 {
+    amr_clock::patch_end();
     g->set_comms(old);
 }
 
@@ -97,6 +101,10 @@ void reefamr::configure(const reefamr_param &q)
     nest = q.nest;
     keep = q.keep;
     EXT = q.ext;
+
+    // measured cost model (G 41 0: the placement, the load map) and the weight of the patch phase (G 44)
+    lmeas = (p0->G41<=0.0 && p0->mpi_size>1);
+    lmu = MAX(p0->G44,0.0);
 }
 
 // --------------------------------------------------------------------- grids
@@ -1062,9 +1070,75 @@ void reefamr::build_bc2D(ghostcell *pgc, reefamr_patch &c)
     m2.gcb_seed(pp);
     m4.gcb_seed(pp);
 
+    // multi-block grids: a wall entry of a cell around the grid (filled by a neighbour block) is dropped where its ghost
+    // cells are those of an own cell's wall or own cells.  Such a filled cell can lie next to a wall cell of the same
+    // row (a block face that is a wall up to a vertex and an interface beyond it): its entry would overwrite the wall
+    // ghost cells of the own cell with its value, where the own cell needs its mirror (NHFLOW took the surface of
+    // the branch for the wall ghost cells upstream of the corner of a junction: a jet along the corner, 4 m/s).  A
+    // wall that runs on through an interface keeps the entries of the filled cells: their ghost cells are the corner
+    // beyond both, which no own cell sets (P6b dropped them too, and the cells next to the interface and the wall
+    // took the unmirrored corner: two blocks differed from one block by 1e-3 of the depth in a river reach)
+    if(nblk>0)
+    {
+        auto own = [&](int ii, int jj) { return ii>=EXT && ii<EXT+c.nx && jj>=EXT && jj<EXT+c.ny; };
+        const int di[5] = {0,-1,0,0,1}, dj[5] = {0,0,1,-1,0};       // side cs: 1 -i, 2 +j, 3 -j, 4 +i
+        const int depth = 3;
+        auto key = [&](int ii, int jj) { return (long)(ii+64)*1000000L + (long)(jj+64); };
+        auto filter = [&](int **g, int &cnt)
+        {
+            std::set<long> tgt;
+            for(int n=0; n<cnt; ++n)
+            if(own(g[n][0],g[n][1]))
+            for(int q=1; q<=depth; ++q)
+            tgt.insert(key(g[n][0]+q*di[g[n][3]], g[n][1]+q*dj[g[n][3]]));
+
+            int m=0;
+            for(int n=0; n<cnt; ++n)
+            {
+                bool ok = own(g[n][0],g[n][1]);
+                if(!ok)
+                {
+                    ok = true;
+                    for(int q=1; q<=depth && ok; ++q)
+                    {
+                        const int a = g[n][0]+q*di[g[n][3]], b = g[n][1]+q*dj[g[n][3]];
+                        if(own(a,b) || tgt.count(key(a,b)))
+                        ok = false;
+                    }
+                }
+                if(ok)
+                {
+                    if(m!=n)
+                    for(int q=0; q<6; ++q)
+                    g[m][q] = g[n][q];
+                    ++m;
+                }
+            }
+            cnt = m;
+        };
+        filter(pp->gcbsl1,pp->gcbsl1_count);
+        filter(pp->gcbsl2,pp->gcbsl2_count);
+        filter(pp->gcbsl4,pp->gcbsl4_count);
+    }
+
     pgc->gcsl_setbc1(pp);
     pgc->gcsl_setbc2(pp);
     pgc->gcsl_setbc4(pp);
+
+    // multi-block: an open face of a block 1.. (G 54) is the -i (inflow, bc 1) or +i face (outflow, bc 2) of
+    // its level-0 grid, the lists as gcsl_setbc for a native grid whose first cell is the first one of the block
+    if(c.blk>0 && c.lev==0 && (bopen[0][c.blk]>=0 || bopen[1][c.blk]>=0))
+    {
+        const int oi = pp->origin_i, gn = pp->gknox, s1 = pp->bcside1, s4 = pp->bcside4;
+        pp->origin_i = -EXT;
+        pp->gknox = blk[c.blk].ni;
+        pp->bcside1 = (bopen[0][c.blk]>=0) ? 1 : 21;
+        pp->bcside4 = (bopen[1][c.blk]>=0) ? 2 : 21;
+        pgc->gcsl_setbc1(pp);
+        pgc->gcsl_setbc2(pp);
+        pgc->gcsl_setbc4(pp);
+        pp->origin_i = oi; pp->gknox = gn; pp->bcside1 = s1; pp->bcside4 = s4;
+    }
 
     pgc->gcsl_setbcio(pp);
 

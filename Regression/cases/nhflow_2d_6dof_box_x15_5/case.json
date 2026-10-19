@@ -1,0 +1,4 @@
+{"base": "nhflow_2d_6dof_box",
+ "ctrl_add": ["X 15 5"],
+ "description": "as nhflow_2d_6dof_box with X 15 5: X 15 1 forcing with the sharp switch at the hull surface (FB <= 0 full forcing) instead of the shell ramp.",
+ "tags": ["2d", "nhflow", "6dof", "floating"], "covers": ["sixdof_obj_nhflow::forcing_kernel_nhflow X 15 5"]}

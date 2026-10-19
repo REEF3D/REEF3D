@@ -247,6 +247,7 @@ void lagoon_output::write_job(job *j)
     }
     timing.writing += seconds_since(start);
     ++timing.outputs;
+    written = true;
 }
 
 bool lagoon_output::settle(lexer *p, ghostcell *pgc)
@@ -276,6 +277,31 @@ bool lagoon_output::settle(lexer *p, ghostcell *pgc)
     }
     pending = job();
     return true;
+}
+
+bool lagoon_output::waiting() const
+{
+    return usable && !finished && pending.t>=0;
+}
+
+void lagoon_output::poll_all(lexer *p, ghostcell *pgc)
+{
+    if(p->P18<=0)
+        return;
+    // an output pending on this rank is pending on every rank (outputs are made by
+    // all ranks alike): then one reduction says whether every rank has written it
+    bool any = false, done = true;
+    for(lagoon_output *writer : all())
+        if(writer->waiting())
+        {
+            any = true;
+            done = done && writer->written.load();
+        }
+    if(any && pgc->globalmax(done ? 0.0 : 1.0) <= 0.0)
+        for(lagoon_output *writer : all())
+            if(writer->waiting())
+                writer->settle(p, pgc);
+    lagoon_surface::poll_all(p, pgc);
 }
 
 void lagoon_output::finish(lexer *p, ghostcell *pgc)
@@ -334,6 +360,7 @@ void lagoon_output::vtu_piece(lexer *p, ghostcell *pgc, const std::vector<char> 
             const float *values = reinterpret_cast<const float*>(&buffer[data_start + a.offset + sizeof(int)]);
             pending.fields.emplace_back(a.var.name, std::vector<float>(values, values + n*a.var.components));
         }
+        written = false;
         worker = std::thread(&lagoon_output::write_job, this, &pending);
     }
     ++t;
@@ -377,6 +404,26 @@ void lagoon_surface::settle_all(lexer *p, ghostcell *pgc)
     for(lagoon_surface *writer : all())
         if(writer->usable && !writer->finished && writer->pending.t>=0 && writer->pending.iteration<p->count)
             writer->settle(p, pgc);
+}
+
+bool lagoon_surface::waiting() const
+{
+    return usable && !finished && pending.t>=0;
+}
+
+void lagoon_surface::poll_all(lexer *p, ghostcell *pgc)
+{
+    bool any = false, done = true;
+    for(lagoon_surface *writer : all())
+        if(writer->waiting())
+        {
+            any = true;
+            done = done && writer->written.load();
+        }
+    if(any && pgc->globalmax(done ? 0.0 : 1.0) <= 0.0)
+        for(lagoon_surface *writer : all())
+            if(writer->waiting())
+                writer->settle(p, pgc);
 }
 
 void lagoon_surface::finish_all(lexer *p, ghostcell *pgc)
@@ -468,6 +515,7 @@ void lagoon_surface::vtp_piece(lexer *p, ghostcell *pgc, std::string buffer, int
         pending.points = points_offset;
         pending.parsed = parsed;
         pending.buffer = std::move(buffer);
+        written = false;
         worker = std::thread(&lagoon_surface::write_job, this, &pending);
     }
     ++t;
@@ -513,6 +561,7 @@ void lagoon_surface::write_job(job *j)
     j->buffer = std::string();  // the piece is not needed any more
     timing.writing += seconds_since(start);
     ++timing.outputs;
+    written = true;
 }
 
 bool lagoon_surface::settle(lexer *p, ghostcell *pgc)

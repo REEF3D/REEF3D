@@ -76,6 +76,16 @@ void CPM::substep_rk2(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbule
             continue;
         }
         
+        // a grain held at rest by the jammed bed sleeps (as in substep_euler)
+        if(layer && bed_asleep(p,a,n,P.X[n],P.Y[n],P.Z[n]))
+        {
+            P.URK1[n] = P.VRK1[n] = P.WRK1[n] = 0.0;
+            P.XRK1[n] = P.X[n];
+            P.YRK1[n] = P.Y[n];
+            P.ZRK1[n] = P.Z[n];
+            continue;
+        }
+        
         advec_mppic(p, a, P, s, pturb,
                     P.X, P.Y, P.Z, P.U, P.V, P.W,
                     F, G, H, dt);
@@ -117,6 +127,17 @@ void CPM::substep_rk2(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbule
     {
         if(layer && P.Test[n]<0.0)
         continue;
+        
+        // still held at rest at the tentative position: zero velocity, the position of the step start
+        if(layer && bed_asleep(p,a,n,P.XRK1[n],P.YRK1[n],P.ZRK1[n]))
+        {
+            P.U[n] = P.V[n] = P.W[n] = 0.0;
+            P.XRK1[n] = 0.5*P.X[n] + 0.5*P.XRK1[n];
+            P.YRK1[n] = 0.5*P.Y[n] + 0.5*P.YRK1[n];
+            P.ZRK1[n] = 0.5*P.Z[n] + 0.5*P.ZRK1[n];
+            P.URK1[n] = P.VRK1[n] = P.WRK1[n] = 0.0;
+            continue;
+        }
         
         advec_mppic(p, a, P, s, pturb,
                     P.XRK1, P.YRK1, P.ZRK1, P.URK1, P.VRK1, P.WRK1,

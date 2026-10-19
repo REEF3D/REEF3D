@@ -24,9 +24,11 @@ Author: Hans Bihs
 #define INTERFACE_WIDTH_H_
 
 #include<cmath>
+#include<algorithm>
 #include"lexer.h"
 #include"field.h"
 #include"increment.h"
+#include"heaviside.h"
 
 // half width of the smoothed interface (Heaviside / delta) of the level set f in cell (i,j,k):
 // F 45 times the local cell size in the direction of the interface normal,
@@ -61,6 +63,23 @@ inline double interface_width(lexer *p, field &f, int i, int j, int k)
 inline double interface_width_face(lexer *p, field &f, int i, int j, int k, int aa, int bb, int cc)
 {
     return 0.5*(interface_width(p,f,i,j,k) + interface_width(p,f,i+aa,j+bb,k+cc));
+}
+
+// the smoothed step heaviside(x, interface_width_face(..)) of the value x at the face between cell
+// (i,j,k) and (i+aa,j+bb,k+cc) (the mean of the level set there).  The width there is at most F 45
+// times the largest cell size of the two cells (the mean of the widths of the cells, each a weighted
+// mean of the cell sizes), so away from the interface the step is 0 or 1 without computing the
+// width: the same value, for a fraction of the cost (the densities of the faces, every assembly of
+// the pressure matrix and every pressure gradient)
+inline double heaviside_face(lexer *p, field &f, double x, int i, int j, int k, int aa, int bb, int cc)
+{
+    const int marge = increment::marge;
+    double h = std::max(std::max(p->DXN[IP],p->DZN[KP]),std::max(p->DXN[IP+aa],p->DZN[KP+cc]));
+    if(p->j_dir==1)
+    h = std::max(h,std::max(p->DYN[JP],p->DYN[JP+bb]));
+    if(std::fabs(x) > p->F45*h*(1.0+1.0e-9))
+    return x>0.0 ? 1.0 : 0.0;
+    return heaviside(x,interface_width_face(p,f,i,j,k,aa,bb,cc));
 }
 
 #endif

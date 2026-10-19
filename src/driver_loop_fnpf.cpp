@@ -44,6 +44,7 @@ Author: Hans Bihs
 #include"coral/reef3d/coral_reef3d.h"
 #include"runlog.h"
 #include"lagoon_output.h"
+#include"reefrun_ckpt.h"
 
 void driver::loop_fnpf()
 {
@@ -92,6 +93,7 @@ void driver::loop_fnpf()
         
         // printer
         pprint->start(p,c,pgc,pflow);
+        lagoon_output::poll_all(p,pgc);  // outputs of the LAGOON store written by now (P 18)
         
         if(pfamr!=nullptr)
         pfamr->print(p,c,pgc);
@@ -111,6 +113,9 @@ void driver::loop_fnpf()
         
         if(pfice!=nullptr)
         pfice->timestep(p,c,pgc);
+
+        // checkpoint on any decomposition (P 48), rebalance on the measured load (G 46)
+        ckpt().step();
         
 
         // Shell-Printout

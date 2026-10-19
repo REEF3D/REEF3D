@@ -62,6 +62,9 @@ public:
     void start_wavemaker(lexer*,fdm_nhf*,ghostcell*,int,double*,double*,double*,slice&,slice&,bool);
     void start_shipwave(lexer*,fdm_nhf*,ghostcell*,int,bool);
        
+    void ckpt_state(lexer*, std::vector<double>&) override final;
+    bool ckpt_restore(lexer*, ghostcell*, const std::vector<double>&) override final;
+    double* ckpt_slice() override final {return press.V;}
 	void ini(lexer*,ghostcell*) override final;
     void initialize(lexer*, fdm*, ghostcell*) override final;
     void initialize(lexer*, fdm2D*, ghostcell*) override final;
@@ -114,6 +117,26 @@ private:
     bool adv_told = false;
 
     slice4 press;
+    
+    // external solver of the bodies (6DOF_external.h, REEF3D::CORAL fluid_body; 6DOF_nhflow_external.cpp)
+    void ext_connect(lexer*, ghostcell*);
+    
+public:
+    // mesh refinement with subcycling (nhflow_amr_sub.cpp): stage s of the bodies with the step of a level
+    // (p->simtime, p->dt: that step), predict: a coarser level's copy; the loads after stage s of the
+    // finest level (to the external solver)
+    void amr_body_stage(lexer*, fdm_nhf*, ghostcell*, int s, bool predict);
+    void amr_body_loads(lexer*, ghostcell*, int s, int ns);
+    
+private:
+    void ext_stage(lexer*, int);
+    void ext_predict_copy(lexer*, int);
+    void ext_loads(lexer*, double, bool);
+    double ext_node(lexer*, int) const;
+    bool ext_drives(int) const;
+    class sixdof_external *pext = nullptr;
+    bool ext_checked = false;
+    bool ext_twoway = false;
 
 
 };

@@ -47,13 +47,18 @@ Architect: Hans Bihs
 //  The time (simtime, dt, dt_old, count) is copied at the construction and set by the stepping of
 //  the refinement (with subcycling every level has its own step).
 //
+//  IO     the in- and outflow members of RUN (discharge, inflow and outflow velocities, the levels at the
+//         in- and outflow): RUN, except on a block of a multi-block grid with open faces (G 54,
+//         amr_own_io = 1), whose own in- and outflow (ioflow_amr_block) sets them for the block.
+//
 //  The contract check (environment REEF3D_AMR_CHECK=1, set by the regression suite): amr_follow
 //  stops the run when a grid's own objects have changed a RUN member since the last amr_follow
 //  (it belongs to BUILD or OWN then), or when level 0 has changed a ONCE member after the grid was
 //  built (it belongs to RUN).  Without the environment a violation is printed once per member.
 
-#define LEXER_AMR_RUN_D(X) X(Ui) X(Ua) X(Uo) X(Qi) X(Qo) X(Hi) X(Ho) \
-    X(fsfin) X(fsfout) X(fsfinval) X(fsfoutval) X(phiin) X(phiout) X(pressgage) \
+#define LEXER_AMR_IO_D(X) X(Ui) X(Ua) X(Uo) X(Qi) X(Qo) X(Hi) X(Ho) \
+    X(fsfin) X(fsfout) X(fsfinval) X(fsfoutval)
+#define LEXER_AMR_RUN_D(X) X(phiin) X(phiout) X(pressgage) \
     X(wavetime) X(wts) X(wte) X(sedtime) X(sedsimtime) X(sedwavetime) \
     X(wT) X(wV) X(wH) X(wA) X(wL) X(wd) X(ww) X(wk) X(wC) X(wHs) X(wAs) X(wwp) X(ww_s) X(ww_e) X(wTp) X(wLp)
 #define LEXER_AMR_RUN_I(X) X(wN)
@@ -88,7 +93,7 @@ template<class T> bool same(T a, T b)
 void lexer::amr_inherit(const lexer &b)
 {
 #define C(m) m = b.m;
-    LEXER_AMR_RUN_D(C) LEXER_AMR_RUN_I(C)
+    LEXER_AMR_IO_D(C) LEXER_AMR_RUN_D(C) LEXER_AMR_RUN_I(C)
     LEXER_AMR_ONCE_D(C) LEXER_AMR_ONCE_I(C)
     LEXER_AMR_BUILD_D(C) LEXER_AMR_BUILD_I(C)
     LEXER_AMR_TIME_D(C) LEXER_AMR_TIME_I(C)
@@ -151,7 +156,10 @@ void lexer::amr_follow(const lexer &b)
     n = 0;
 #define R(m) { if(have && !same<double>((double)m,amr_last[n])) report(#m,"was changed by the objects of a grid (not a RUN member)"); \
                m = b.m; amr_last[n] = (double)m; ++n; }
-    LEXER_AMR_RUN_D(R) LEXER_AMR_RUN_I(R)
+    // IO: the block's own with open faces (amr_own_io), else RUN
+#define IO(m) { if(amr_own_io==1) ++n; else R(m) }
+    LEXER_AMR_IO_D(IO) LEXER_AMR_RUN_D(R) LEXER_AMR_RUN_I(R)
+#undef IO
 #undef R
 
     // ONCE: changed on level 0 after the grid was built?

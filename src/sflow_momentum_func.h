@@ -121,6 +121,8 @@ protected:
     
 private:
     int q;
+    int gd = 3;     // ghost depth of the current boundary entry: the solid depth, column [2] of gcbsl4 (gcb_seed)
+    int ghost_depth(lexer*, int);
     int df_iter = 0;
     bool df_finalize = false;
     bool bous_solved = false;
@@ -131,6 +133,7 @@ private:
     void mirror(lexer*, slice&, int, double);
     void wall_bc(lexer*, slice&, slice&, slice&, int);   // free-slip wall of boundary cell (i,j), side cs
     void neumann(lexer*, slice&, int);
+    void outflow_clip(lexer*, slice&, slice&);         // outflow ghost cells of boundary cell (i,j): no backflow
 };
 
 #endif

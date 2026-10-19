@@ -39,6 +39,9 @@ using namespace std;
 class sixdof_motionext_file_CoG final : public sixdof_motionext
 {
 public:
+    void ckpt_state(std::vector<double> &v) const override { for(double x : {double(timecount),double(timecount_old),Uext,Vext,Wext,Pext,Qext,Rext}) v.push_back(x); }
+    void ckpt_restore(const std::vector<double> &v, size_t &k) override
+    { if(k+8>v.size()) return; timecount=int(v[k++]); timecount_old=int(v[k++]); Uext=v[k++]; Vext=v[k++]; Wext=v[k++]; Pext=v[k++]; Qext=v[k++]; Rext=v[k++]; }
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
     
     void motionext_trans(lexer*, ghostcell*, Eigen::Vector3d&, Eigen::Vector3d&) override final;

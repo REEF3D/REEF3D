@@ -80,11 +80,10 @@ void nhflow_timestep::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
     LOOP
     sp=MAX(sp,sqrt(d->U[IJK]*d->U[IJK] + d->V[IJK]*d->V[IJK]));
     
+    // (the grids of the mesh refinement and the blocks: the largest speed of a cell, not the speed of the largest
+    // components of two cells, so that blocks and one block take the same step)
     if(phook!=nullptr)
-    {
-    const double pu=phook->dt_local_max(1), pv=phook->dt_local_max(2);
-    sp=MAX(sp,sqrt(pu*pu + pv*pv));
-    }
+    sp=MAX(sp,phook->dt_local_max(5));
     
     sp=pgc->globalmax(sp);
     p->umax=p->vmax=sp;

@@ -79,15 +79,25 @@ its own. `Regression/unit/coral_layering_check.py` checks these rules.
 ## Reuse of existing REEF3D code
 
 CORAL does not copy existing code. The geometrically exact beam (`beam.h`), the dynamic mooring
-lines (`mooring_*`), the PTO elements and controllers (`6DOF_pto_*`) and the 6DOF force
-integration on the body surface (`6DOF_obj_*`) are used through adapters in `reef3d/` until
-they are moved into CORAL. Without CORAL switched on, REEF3D runs as before.
+lines (`mooring_*`) and the 6DOF force integration on the body surface (`6DOF_obj_*`) are used
+through adapters in `reef3d/` until they are moved into CORAL. The 6DOF bodies of FNPF and NHFLOW can be
+driven by CORAL (`fluid_body`): REEF3D keeps the geometry and the loads, CORAL the equations of motion
+(for NHFLOW, which has no instantaneous added mass, with an artificial added mass for light bodies).
+One-way, FNPF and NHFLOW hand their body loads (`fluid_body ... one_way`, `fluid_member`) and the
+resolved velocity and surface at CORAL's points (`fluid_kinematics`) to CORAL, and a journal of
+this input replays a run without the fluid (`fluid_coupling record`, `CORAL coral.txt replay`). Moved so far: the PTO joint,
+elements and controllers of the 6DOF bodies (formerly `6DOF_pto_*`, now `pto/coral_pto_*`; the
+6DOF side of X 500 - X 508 is `reef3d/coral_sixdof_pto.cpp`). Without CORAL switched on, REEF3D
+runs as before.
 
 ## Roadmap
 
 1. Core, rigid bodies, engineering hydrodynamics, hydrodynamic coefficients from REEF3D, PTO and
    mooring. First check: wave energy converters (RM3, OSWEC).
-2. Structure: modal bodies, frame finite elements, eigenanalysis and linearisation, soil.
+2. Structure: co-rotational frames with analytic tangents and sparse solvers, Craig-Bampton
+   superelements, static equilibrium, eigenanalysis and linearisation, soil (API p-y, t-z, Q-z),
+   Morison loads on flexible members; floating-frame superelements and modal bodies to follow.
 3. Wind, aerodynamics and the native controller. Checks: OC3, OC4, IEA 15 MW (fixed and floating).
-4. Strong coupling with the resolved fluid (CFD, NHFLOW, FNPF), flexible immersed geometry.
+4. Coupling with the resolved fluid: CORAL drives the 6DOF bodies (FNPF first, then NHFLOW and CFD),
+   PTO and mooring in CORAL, resolved kinematics for members and lines, flexible immersed geometry.
 5. Load cases and post-processing; vortex wake, wind farms, marine operations.

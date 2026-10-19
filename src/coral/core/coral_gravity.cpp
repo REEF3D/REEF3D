@@ -30,6 +30,12 @@ void gravity_load::eval(const model &m, double, VecX &f) const
 {
     for(int i=0; i<m.nbody(); ++i)
         f.segment<3>(6*i) += m.bodies[i].mass*m.gravity;
+    for(const auto &q : m.point_masses)
+    {
+        const rigid_body &b = m.bodies[q.body];
+        f.segment<3>(6*q.body) += q.mass*m.gravity;
+        f.segment<3>(6*q.body+3) += q.s.cross(b.R.transpose()*(q.mass*m.gravity));
+    }
 }
 
 double gravity_load::potential(const model &m) const
@@ -37,6 +43,8 @@ double gravity_load::potential(const model &m) const
     double e = 0.0;
     for(const auto &b : m.bodies)
         e -= b.mass*m.gravity.dot(b.x);
+    for(const auto &q : m.point_masses)
+        e -= q.mass*m.gravity.dot(m.bodies[q.body].point(q.s));
     return e;
 }
 

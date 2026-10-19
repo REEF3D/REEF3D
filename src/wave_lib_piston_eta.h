@@ -27,11 +27,16 @@ Author: Hans Bihs
 #include"wave_lib_parameters.h"
 #include"increment.h"
 
+#include<vector>
+
 using namespace std;
 
 class wave_lib_piston_eta final : public wave_lib_precalc, public wave_lib_parameters, public increment
 {
 public:
+    // checkpoints (P 48, I 45): the position in the time series of the wavemaker
+    void ckpt_state(std::vector<double> &v) override { v.push_back(double(timecount)); v.push_back(double(timecount_old)); }
+    void ckpt_restore(const std::vector<double> &v, size_t &k) override { if(k+2>v.size()) return; timecount = decltype(timecount)(v[k++]); timecount_old = decltype(timecount_old)(v[k++]); }
     wave_lib_piston_eta(lexer*, ghostcell*);
 	virtual ~wave_lib_piston_eta();
     

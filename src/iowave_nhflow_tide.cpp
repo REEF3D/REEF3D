@@ -188,6 +188,13 @@ void iowave::nhflow_open_edges(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, 
     
     const double g = fabs(p->W22);
     
+    // B 98 8 / B 99 8: gauges and filters once per step on all ranks (global sums)
+    if(sirw_in.on)
+    sirw_in.update(p,pgc,d->eta,p->simtime);
+    
+    if(sirw_out.on)
+    sirw_out.update(p,pgc,d->eta,p->simtime);
+    
     for(int side : {1,2,3,4})
     {
         const bc_zone *z = zones.open_edge(side);
@@ -286,6 +293,43 @@ void iowave::nhflow_open_edges(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, 
             }
         }
         
+        // B 99 8 / B 98 8: the wave towards the edge predicted by the SIRW filters (arc_sirw) is part of the outside
+        // state of the absorbing edge (x+: instead of still water, x-: added to the generated waves), so the edge
+        // is transparent for it and the characteristics absorb only the rest; its non-hydrostatic pressure is the
+        // Dirichlet value of the Poisson equation at the edge (with p = 0 at x+ the edge reflected 16 % at kh 1.2)
+        const arc_sirw *sw = (side==2 && z->id==-99 && sirw_out.on) ? &sirw_out : (side==1 && z->id==-98 && sirw_in.on) ? &sirw_in : nullptr;
+        
+        if(sw!=nullptr)
+        {
+            if(d->Pbc==nullptr)
+            p->Darray(d->Pbc,p->imax*p->jmax*(p->kmax+2));
+            
+            for(int list=0; list<2; ++list)
+            {
+            const int cs = list==0 ? p->gcslin_count : p->gcslout_count;
+            int **gs = list==0 ? p->gcslin : p->gcslout;
+            
+            for(n=0;n<cs;++n)
+            {
+            i=gs[n][0];
+            j=gs[n][1];
+            
+            if(gs[n][3]!=sc)
+            continue;
+            
+                for(k=0; k<=p->knoz; ++k)
+                {
+                    const double pz = p->W1*sw->pressure(p->simtime,p->ZN[KP]*d->WL(i,j) + d->bed(i,j) - p->phimean);
+                    
+                    if(side==2)
+                    d->Pbc[FIp1JK] = k<p->knoz ? pz : 0.0;
+                    else
+                    d->Pbc[FIm1JK] += k<p->knoz ? pz : 0.0;
+                }
+            }
+            }
+        }
+        
         for(int list=0; list<2; ++list)
         {
         const int count = list==0 ? p->gcin_count : p->gcout_count;
@@ -347,6 +391,21 @@ void iowave::nhflow_open_edges(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, 
                 ewc = rw*edge_etaw[IJ];
                 uwc = rw*edge_uw[IJ];
                 vwc = rw*edge_vw[IJ];
+            }
+            
+            // B 99 8 / B 98 8: surface, level and column mean of the velocity of the predicted wave (above)
+            if(sw!=nullptr)
+            {
+                const double t = p->simtime;
+                ewc += sw->eta(t);
+                uwk += sw->velocity(t,p->ZSP[IJK]-p->phimean);
+                
+                const int kk = k;
+                double su = 0.0;
+                for(k=0; k<p->knoz; ++k)
+                su += sw->velocity(t,p->ZSP[IJK]-p->phimean)*p->DZN[KP];
+                k = kk;
+                uwc += su;
             }
             
             double unb = xedge ? nn*(ub + uwc) : nn*(vb + vwc);   // target, normal

@@ -46,13 +46,27 @@ void sixdof_cfd::start_cfd(lexer* p, fdm* a, ghostcell* pgc, int iter, field &uv
 {
     setup(p,a,pgc);
     
+    // external dynamics (REEF3D::CORAL): the bodies are connected before their first stage
+    if(!ext_checked)
+    ext_connect(p,pgc);
+    
+    // the loads of all bodies first: the external solver takes them before it returns the poses
+    if(pext!=nullptr && !amr_predict)
+    {
+        for (int nb=0; nb<number6DOF;++nb)
+        fb_obj[nb]->hydrodynamic_forces_cfd(p,a,pgc,uvel,vvel,wvel,iter,finalize);
+        
+        ext_stage(p,iter);
+    }
+    
     for (int nb=0; nb<number6DOF;++nb)
     {
         // Calculate forces (a predicted copy for the mesh refinement keeps the loads of the finest level)
-        if(!amr_predict)
+        if(!amr_predict && pext==nullptr)
         fb_obj[nb]->hydrodynamic_forces_cfd(p,a,pgc,uvel,vvel,wvel,iter,finalize);
         
-        // Advance body in time
+        // Advance body in time (two-way external bodies: the pose of the external solver, ext_stage)
+        if(!ext_drives(nb))
         fb_obj[nb]->solve_eqmotion_cfd(p,a,pgc,iter,finalize);
          
         // Update transformation matrices
@@ -99,4 +113,35 @@ void sixdof_cfd::start_sflow(lexer *p, fdm2D *b, ghostcell *pgc, int iter, slice
 void sixdof_cfd::start_nhflow(lexer* p, fdm_nhf* d, ghostcell* pgc, int iter, 
                                         double *U, double *V, double *W, double *FX, double *FY, double *FZ, slice &WL, slice &fe, bool finalize)
 {
+}
+
+// checkpoints (P 48, I 45): the bodies one after the other, each with its length
+void sixdof_cfd::ckpt_state(lexer *p, std::vector<double> &v)
+{
+    v.push_back(double(number6DOF));
+    for(int nb=0; nb<number6DOF; ++nb)
+    {
+        std::vector<double> s;
+        fb_obj[nb]->ckpt_state(p,s);
+        v.push_back(double(s.size()));
+        v.insert(v.end(),s.begin(),s.end());
+    }
+}
+
+bool sixdof_cfd::ckpt_restore(lexer *p, ghostcell *pgc, const std::vector<double> &v)
+{
+    size_t k=0;
+    if(v.empty() || int(v[k++])!=number6DOF)
+    return false;
+
+    for(int nb=0; nb<number6DOF; ++nb)
+    {
+        const size_t n = (k<v.size()) ? size_t(v[k++]) : 0;
+        if(n==0 || k+n>v.size())
+        return false;
+        if(!fb_obj[nb]->ckpt_restore(p,pgc,std::vector<double>(v.begin()+k,v.begin()+k+n)))
+        return false;
+        k += n;
+    }
+    return true;
 }

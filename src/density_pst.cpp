@@ -38,7 +38,7 @@ double density_pst::roface(lexer *p, fdm *a, int aa, int bb, int cc)
 {
     phival = 0.5*(a->phi(i,j,k) + a->phi(i+aa,j+bb,k+cc));
 
-    H = heaviside(phival,interface_width_face(p,a->phi,i,j,k,aa,bb,cc));
+    H = heaviside_face(p,a->phi,phival,i,j,k,aa,bb,cc);
     
     roval = p->W1*H + p->W3*(1.0-H);
     
@@ -46,7 +46,7 @@ double density_pst::roface(lexer *p, fdm *a, int aa, int bb, int cc)
     // ----
     topoval = 0.5*(a->topo(i,j,k) + a->topo(i+aa,j+bb,k+cc));
 
-    H = heaviside(topoval,interface_width_face(p,a->topo,i,j,k,aa,bb,cc));
+    H = heaviside_face(p,a->topo,topoval,i,j,k,aa,bb,cc);
     
     roval = roval*H + p->S22*(1.0-H);
 

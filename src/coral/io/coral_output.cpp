@@ -31,9 +31,18 @@ Architect: Hans Bihs
 namespace coral
 {
 
-void time_series::open(const std::string &file, const model &m)
+void time_series::open(const std::string &file, const model &m, bool append)
 {
-    out_.open(file);
+    // a restart continues an existing file (no new header)
+    if(append)
+    {
+        std::ifstream test(file);
+        append = test.good();
+    }
+    if(append)
+        out_.open(file, std::ios::app);
+    else
+        out_.open(file);
     if(!out_)
         throw std::runtime_error("CORAL: cannot write " + file);
     cols_.clear();
@@ -43,6 +52,8 @@ void time_series::open(const std::string &file, const model &m)
             cols_.push_back(b.name + "_" + c);
     for(const auto &l : m.load_list)
         l->channel_names(cols_);
+    if(append)
+        return;
     out_<<"# "<<banner()<<"\n#";
     for(const auto &c : cols_)
         out_<<" "<<c;

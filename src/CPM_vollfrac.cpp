@@ -29,12 +29,12 @@ Authors: Alexander Hanke, Hans Bihs
 // cell centred tri-linear kernel
 // particle contributions to ghost cells at physical boundaries are folded back into the domain,
 // contributions to ghost cells at processor boundaries are summed up by start4a_sum
-void CPM::kernel(lexer *p, double xs, double ys, double zs)
+void CPM::kernel(lexer *p, double xs, double ys, double zs, int q)
 {
     double wx,wy,wz;
     
     // x, posf_i returns knox in the last half cell at the outer boundary
-    i = p->posf_i(xs);
+    i = pfi(p,q,xs);
     
     if(i>=p->knox && p->nb4<0)
     i = p->knox-1;
@@ -59,7 +59,7 @@ void CPM::kernel(lexer *p, double xs, double ys, double zs)
     
     if(p->j_dir==1)
     {
-        j = p->posf_j(ys);
+        j = pfj(p,q,ys);
         
         if(j>=p->knoy && p->nb2<0)
         j = p->knoy-1;
@@ -77,7 +77,7 @@ void CPM::kernel(lexer *p, double xs, double ys, double zs)
     }
     
     // z
-    k = p->posf_k(zs);
+    k = pfk(p,q,zs);
     
     if(k>=p->knoz && p->nb6<0)
     k = p->knoz-1;
@@ -138,7 +138,9 @@ void CPM::volfrac_update(lexer *p, ghostcell *pgc, sediment_fdm *s, double *PX, 
     for(size_t n=0;n<P.index;n++)
     if(P.Flag[n]>=ACTIVE)
     {
-        kernel(p,PX[n],PY[n],PZ[n]);
+        kernel(p,PX[n],PY[n],PZ[n],int(n));
+        
+        const bool still = PU[n]==0.0 && PV[n]==0.0 && PW[n]==0.0;
         
         for(qi=0;qi<2;++qi)
         for(qj=0;qj<2;++qj)
@@ -151,6 +153,11 @@ void CPM::volfrac_update(lexer *p, ghostcell *pgc, sediment_fdm *s, double *PX, 
             // the parcels of the sub-grid bedload layer (Q 58) do not move the pore water of the bed
             double wu = P.Hop[n]>0.0 ? 0.0 : w;
             cellSum(ki[qi],kj[qj],kk[qk]) += w;
+            
+            // a parcel at rest adds nothing to the momentum (the sleeping grains of the bed)
+            if(still)
+            continue;
+            
             Us(ki[qi],kj[qj],kk[qk]) += wu*PU[n];
             Vs(ki[qi],kj[qj],kk[qk]) += wu*PV[n];
             Ws(ki[qi],kj[qj],kk[qk]) += wu*PW[n];

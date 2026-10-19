@@ -49,11 +49,13 @@ public:
     int A10;
 
     // SFLOW
-    int A209,A210,A211,A212,A213,A214,A217,A218,A219,A220,A221,A240,A242,A243,A246,A248;
+    int A209,A210,A211,A212,A213,A214,A225,A217,A218,A219,A220,A221,A240,A242,A243,A246,A248;
     int A251,A260;
     double A261,A262,A263,A264;
     double A222,A223,A224,A247,A249,A244,A251_val;
     double A250;
+    int A226,A229;          // SFLOW semi-implicit free surface
+    double A227,A228,A231;
 
     // FNPF
     int A309,A310,A311,A312,A313,A314,A315,A316,A317,A318,A320,A324,A327,A328,A329,A330,A332,A334,A336,A337,A338,A339,A343,A347,A348;
@@ -82,12 +84,16 @@ public:
     double A522,A526,A528;
     double A531;
     int A532,A533;
+    int A534,A537,A539;          // NHFLOW hydrostatic semi-implicit free surface
+    double A535,A536,A538;
     int A540;
     double A544,A545;
     int A550,A551,A552;
     double A554,A555,A557;
     int A560;
     int A564,A565,A566,A567;
+    int A561;
+    double A562_cs,A562_nub,A563;
     int A570,A573,A574,A578,A580;
     double A568,A571_u,A571_dir,A575,A576_s,A576_sc,A576_c;
     int A572;
@@ -184,6 +190,9 @@ public:
     double B526;        // iowave: low-pass time scale [s] of the combined beach B 99 6 (0: Tp / 4 of the B 92 wave)
     double B527;        // iowave: low-pass time scale [s] of the combined generation B 98 6 and of B 98 7 (0: Tp / 4 of the B 92 wave)
     double B528;        // iowave: reference (peak) period [s] of the two-band absorption B 98 7 / B 99 7 (0: Tp of the B 92 wave)
+    double B534_d,B534_dx,B534_fl,B534_fh;   // iowave: SIRW absorption at x- (B 98 8): gauge distance, spacing, band [Hz] (0: from B 528)
+    double B535_d,B535_dx,B535_fl,B535_fh;   // iowave: SIRW absorption at x+ (B 99 8): gauge distance, spacing, band [Hz] (0: from B 528)
+    int B536;           // iowave NHFLOW: active absorption target of the piston wavemaker, 0 shallow water (legacy), 1 linear paddle theory
     int *B515_id; double *B515_x0,*B515_y0,*B515_href;
     int *B510_id,*B510_mode; double *B510_dir,*B510_tramp;
     int *B511_id; double *B511_a,*B511_T,*B511_phase;
@@ -370,11 +379,14 @@ public:
 
     // Grid Options
     // mesh refinement (SFLOW, FNPF, NHFLOW): G 1-G 40
-    int G1,G2,G3,G4,G5,G6,G7,G10,G11,G12,G22,G23,G30,G31,G40,G50,G51,G52,G53;
+    int G1,G2,G3,G4,G5,G6,G7,G10,G11,G12,G22,G23,G30,G31,G40,G43,G45,G50,G51,G52,G53;
+    int G54, *G54_b, *G54_t;     // open boundaries on the blocks 1.. of a multi-block grid: block, type (1 discharge in, 2 level out)
+    double *G54_v;               // discharge (m3/s) or water level (m)
     double G12_r,G13_L,G13_a,G20,G21;
     double *G10_xs,*G10_xe,*G10_ys,*G10_ye;
     int G15,G25;
-    double G24,G26;
+    double G24,G26,G41,G42,G44,G46;
+    int G47;
     double *G15_xs,*G15_xe,*G15_ys,*G15_ye,*G15_zs,*G15_ze;
     double *G11_xs,*G11_xe,*G11_ys,*G11_ye;
     // grid
@@ -393,7 +405,7 @@ public:
     double H61_T,H62_T,H63_T,H64_T,H65_T,H66_T;
 
     // Initialize Options
-    int I10,I11,I12,I13,I30,I40,I41,I44,I56;
+    int I10,I11,I12,I13,I30,I40,I41,I44,I45,I56;
     double I21,I50,I55,I58_1,I58_2;
     int I230;
     double I231,I232,I233;
@@ -406,7 +418,7 @@ public:
     double N41,N43,N44,N47,N49,N50,N61;
 
     // MPI Options
-    int M10;
+    int M10,M40,M41;
 
     // Print options
     int P10,P12,P15,P16,P18,P19,P20,P21,P23,P24,P25,P26,P27,P28,P29,P35,P37,P38,P40,P41,P43,P44,P45,P50,P51,P52,P53,P54,P56,P57,P58,P59;
@@ -417,6 +429,7 @@ public:
     double P43_xs,P43_xe,P43_ys,P43_ye;
     int P46,P46_is,P46_ie;
     int P47;
+    int P48;                    // checkpoints every P 48 steps (reefckpt)
     double P47_ts,P47_te;
     double *P50_x,*P50_y;
     double *P51_x,*P51_y;
@@ -492,8 +505,8 @@ public:
     double Q32,Q33,Q34,Q35,Q36,Q37,Q38;
 
 
-    double Q25,Q30,Q45,Q53,Q54,Q55,Q56,Q59,Q60,Q62,Q63,Q64,Q65,Q66,Q70;
-    int Q72;
+    double Q25,Q30,Q45,Q53,Q54,Q55,Q56,Q59,Q60,Q62,Q63,Q64,Q65,Q66,Q70,Q75,Q76,Q77;
+    int Q72,Q74;
     double Q41;
     int Q61,*Q61_i;
     double *Q61_x,*Q61_y,*Q61_z;
@@ -538,8 +551,8 @@ public:
     double W1,W2,W3,W4,W5,W6,W7,W10,W_fb;
     int W11,W12,W13,W14,W15,W16;
     double W11_u,W11_v,W11_w,W12_u,W12_v,W12_w,W13_u,W13_v,W13_w,W14_u,W14_v,W14_w,W15_u,W15_v,W15_w,W16_u,W16_v,W16_w;
-    double W20,W21,W22,W31,W29_x,W29_y,W29_z;
-    int W30;
+    double W20,W21,W22,W31,W33,W34,W35,W36,W29_x,W29_y,W29_z;
+    int W30,W32;
     int W41;
     double *W41_xc,*W41_yc,*W41_zs,*W41_ze,*W41_vel,*W41_beta;
     double W50;

@@ -28,11 +28,16 @@ Author: Hans Bihs
 #include"increment.h"
 #include"wave_lib_wavemaker2nd.h"
 
+#include<vector>
+
 using namespace std;
 
 class wave_lib_flap_double final : public wave_lib_precalc, public wave_lib_parameters, public increment
 {
 public:
+    // checkpoints (P 48, I 45): the position in the time series of the wavemaker
+    void ckpt_state(std::vector<double> &v) override { v.push_back(double(timecount)); v.push_back(double(timecount_old)); v.push_back(double(timecount_z)); v.push_back(double(wtime_old)); }
+    void ckpt_restore(const std::vector<double> &v, size_t &k) override { if(k+4>v.size()) return; timecount = decltype(timecount)(v[k++]); timecount_old = decltype(timecount_old)(v[k++]); timecount_z = decltype(timecount_z)(v[k++]); wtime_old = decltype(wtime_old)(v[k++]); }
     wave_lib_flap_double(lexer*, ghostcell*);
 	virtual ~wave_lib_flap_double();
     
@@ -60,6 +65,7 @@ private:
 	
 	double ts,te,val;
 	int timecount,timecount_old,timecount_z;
+    double wtime_old;
     double singamma,cosgamma;
     
     wave_lib_wavemaker2nd wm2;

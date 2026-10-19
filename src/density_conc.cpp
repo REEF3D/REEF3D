@@ -48,7 +48,7 @@ double density_conc::roface(lexer *p, fdm *a, int aa, int bb, int cc)
         concval = 0.5*(pconc->val(i,j,k) + pconc->val(i+aa,j+bb,k+cc));
         
 
-        H = heaviside(phival,interface_width_face(p,a->phi,i,j,k,aa,bb,cc));
+        H = heaviside_face(p,a->phi,phival,i,j,k,aa,bb,cc);
         
         roval = (p->W1+concval*p->C1)*H + (p->W3+concval*p->C3)*(1.0-H);
     

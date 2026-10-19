@@ -24,6 +24,8 @@ Author: Alexander Hanke
 #define SLICE_BASE_H_
 
 #include "lexer.h"
+#include "ckpt_registry.h"
+#include <type_traits>
 
 template<typename T>
 class slice_base
@@ -32,9 +34,11 @@ public:
     slice_base(lexer* p) : imin(p->imin), imax(p->imax), jmin(p->jmin), jmax(p->jmax)
     {
         V = new T[imax*jmax] {};
+        ckid = ckpt_registry::add(p,'S',std::is_same<T,int>::value,V);
     }
     virtual ~slice_base()
     {
+        ckpt_registry::remove(ckid);
         delete [] V;
         V = nullptr;
     }
@@ -50,6 +54,7 @@ public:
     T *V;
 protected:
     const int imin,imax,jmin,jmax;
+    unsigned long long ckid = 0;    // checkpoints (ckpt_registry.h)
 };
 
 #endif

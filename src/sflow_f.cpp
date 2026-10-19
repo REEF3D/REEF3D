@@ -48,6 +48,8 @@ Author: Hans Bihs
 #include<sys/stat.h>
 #include<sys/types.h>
 #include"runlog.h"
+#include"reefckpt.h"
+#include"reefrun_ckpt.h"
 
 sflow_f::sflow_f(lexer *p, fdm2D *b, ghostcell* pgc, patchBC_interface *ppBC)
 {
@@ -162,6 +164,7 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
         
         pprint->start(p,b,pgc,pflow,pturb,psed);
 		pprintbed->start(p,b,pgc,psed);
+        lagoon_output::poll_all(p,pgc);  // outputs of the LAGOON store written by now (P 18)
         rdump.sflow_step(p,b,pgc);
 		
 		p->printouttime=pgc->timer()-ptime;
@@ -233,6 +236,10 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
     pgc->final(true);
     }
     
+    // checkpoint on any decomposition (P 48), rebalance on the measured load (G 46): the state at the
+    // end of the step (Pn, Qn included)
+    ckpt(p,b,pgc).step();
+    
 	}
 
 	// the last outputs of the LAGOON store are counted (P 18)
@@ -290,10 +297,11 @@ void sflow_f::log_ini(lexer *p)
 
     if(p->mpirank==0)
     {
-    mainlogout.open("./REEF3D_SFLOW_Log/REEF3D_SFLOW_mainlog.dat");
-
+    if(reefckpt_open(mainlogout,"./REEF3D_SFLOW_Log/REEF3D_SFLOW_mainlog.dat",p->I45))   // I 45: continued
+    {
     mainlogout<<"number of cells:  "<<p->cellnumtot2D<<endl;
     mainlogout<<"#iteration \t #timestep \t #simtime \t #itertime \t #piter \t #ptime \t #Inflow \t #Outflow "<<endl;
+    }
     }    
 }
 

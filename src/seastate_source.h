@@ -19,9 +19,13 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Architect: Hans Bihs
 --------------------------------------------------------------------
-The DIA, LTA, Battjes-Janssen linearisation and maximum energy of
-seastate_source.cpp are translations of SWAN 41.51 routines,
-Copyright (C) 1993-2024 Delft University of Technology, GNU GPL
+Parts of seastate_source.cpp are C++ translations of routines of
+SWAN 41.51: FAC4WW and SWSNL1 (DIA quadruplets), FAC3WW and SWLTA
+(LTA triads), SWIND5 (Yan wind input) and SWCAP with IWCAP 7 (van der
+Westhuysen whitecapping), SSURF (Newton linearisation of the
+Battjes-Janssen dissipation), SINTGRL (maximum energy with
+Battjes-Janssen breaking) and SVEG (vegetation, one layer).
+SWAN: Copyright (C) 1993-2024 Delft University of Technology, GNU GPL
 version 3 or later (see seastate_source.cpp).
 --------------------------------------------------------------------*/
 

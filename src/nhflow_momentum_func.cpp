@@ -241,7 +241,10 @@ void nhflow_momentum_func::inidisc(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_
     pfsf->kinematic_bed(p,d,d->U,d->V,d->W);
     velcalc(p,d,pgc,d->UH,d->VH,d->WH,d->WL,1.0);
 }
-     
 
-
-
+// checkpoints (P 48, I 45): the arrays of the water level in the pierced columns (X 13)
+void nhflow_momentum_func::fsfbody_ckpt_fields(const std::function<void(const char*, char, double*)> &fd)
+{
+    if(pfsfbody!=nullptr)
+    pfsfbody->ckpt_fields(fd);
+}

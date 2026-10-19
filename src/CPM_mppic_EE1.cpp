@@ -30,6 +30,8 @@ Authors: Hans Bihs, Alexander Hanke
 // grid quantities from the parcels: solid fraction, solid velocity, particle stress and its gradient
 void CPM::grid_update(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, double *PX, double *PY, double *PZ, double *PU, double *PV, double *PW)
 {
+    index_cache(p);
+    
     volfrac_update(p,pgc,s,PX,PY,PZ,PU,PV,PW);
     
     if(p->Q12==1)
@@ -146,6 +148,17 @@ void CPM::substep_euler(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbu
         if(layer && P.Hop[n]>0.0)
         {
             bedload_move(p,a,s,n,dt);
+            continue;
+        }
+        
+        // a grain held at rest by the jammed bed sleeps: the update below would give it zero velocity
+        // and leave it in place (Hjam = 1, no dispersion inside the bed)
+        if(layer && bed_asleep(p,a,n,P.X[n],P.Y[n],P.Z[n]))
+        {
+            P.URK1[n] = P.VRK1[n] = P.WRK1[n] = 0.0;
+            P.XRK1[n] = P.X[n];
+            P.YRK1[n] = P.Y[n];
+            P.ZRK1[n] = P.Z[n];
             continue;
         }
         

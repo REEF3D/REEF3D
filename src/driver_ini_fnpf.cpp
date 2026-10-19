@@ -211,10 +211,17 @@ void driver::driver_ini_fnpf()
     if(pfice!=nullptr)
     pfice->timestep(p,c,pgc);
     
+    // restart from the latest checkpoint (I 45), on any decomposition; the outputs continue
+    if(p->I45==1)
+    ckpt_read();
+    
+    if(p->I45!=1)
+    {
     pprint->start(p,c,pgc,pflow);
     
     if(pfamr!=nullptr)
     pfamr->print(p,c,pgc);
+    }
     
     p->gctime=0.0;
     p->xtime=0.0;

@@ -140,7 +140,7 @@ void ghostcell::start1V(lexer *p, double *f, int gcv)
     int inflow=0;
     int outflow=0;
 
-    if(p->B60>=1)
+    if(p->B60>=1 && p->river_xm==1)
         inflow=1;
 
     if(p->B98>=3)
@@ -149,7 +149,7 @@ void ghostcell::start1V(lexer *p, double *f, int gcv)
     if(p->B99>=3)
         outflow=1;
 
-    if(p->B60>=1)
+    if(p->B60>=1 && p->river_xp==1)
         outflow=1;
 
     // iowave Riemann / Flather edges (B 520 method 3, 4)
@@ -267,13 +267,13 @@ void ghostcell::start2V(lexer *p, double *f, int gcv)
     int inflow=0;
     int outflow=0;
 
-    if(p->B98>=3 || p->B60>=1)
+    if(p->B98>=3 || (p->B60>=1 && p->river_xm==1))
     inflow=1;
 
     if(p->B99>=3)
     outflow=1;
 
-    if(p->B60>=1)
+    if(p->B60>=1 && p->river_xp==1)
     outflow=1;
 
     // 10 U
@@ -410,13 +410,13 @@ void ghostcell::start3V(lexer *p, double *f, int gcv)
     int inflow=0;
     int outflow=0;
 
-    if(p->B98>=3 || p->B60>=1)
+    if(p->B98>=3 || (p->B60>=1 && p->river_xm==1))
     inflow=1;
 
     if(p->B99>=3)
     outflow=1;
 
-    if(p->B60>=1)
+    if(p->B60>=1 && p->river_xp==1)
     outflow=1;
 
     // 10 U
@@ -503,13 +503,13 @@ void ghostcell::start4V(lexer *p, double *f, int gcv)
     int inflow=0;
     int outflow=0;
 
-    if(p->B98>=3 || p->B60>=1)
+    if(p->B98>=3 || (p->B60>=1 && p->river_xm==1))
         inflow=1;
 
     if(p->B99>=3)
         outflow=1;
 
-    if(p->B60>=1)
+    if(p->B60>=1 && p->river_xp==1)
         outflow=2;
 
     // waves on a current with relaxation wave generation (B 98 2, B 60 1): the relaxation zone
@@ -890,13 +890,13 @@ void ghostcell::start20V(lexer *p, double *f, int gcv) //KIN
     int inflow=0;
     int outflow=0;
 
-    if(p->B98>=3 || p->B60>=1)
+    if(p->B98>=3 || (p->B60>=1 && p->river_xm==1))
     inflow=1;
 
     if(p->B99>=3)
     outflow=1;
 
-    if(p->B60>=1)
+    if(p->B60>=1 && p->river_xp==1)
     outflow=2;
 
     starttime=timer();
@@ -1029,13 +1029,13 @@ void ghostcell::start24V(lexer *p, double *f, int gcv) //EDDYV
     int inflow=0;
     int outflow=0;
 
-    if(p->B98>=3 || p->B60>=1)
+    if(p->B98>=3 || (p->B60>=1 && p->river_xm==1))
         inflow=1;
 
     if(p->B99>=3)
         outflow=1;
 
-    if(p->B60>=1)
+    if(p->B60>=1 && p->river_xp==1)
         outflow=2;
 
     starttime=timer();
@@ -1128,13 +1128,13 @@ void ghostcell::start30V(lexer *p, double *f, int gcv) // EPS
     int inflow=0;
     int outflow=0;
 
-    if(p->B98>=3 || p->B60>=1)
+    if(p->B98>=3 || (p->B60>=1 && p->river_xm==1))
         inflow=1;
 
     if(p->B99>=3)
         outflow=1;
 
-    if(p->B60>=1)
+    if(p->B60>=1 && p->river_xp==1)
         outflow=2;
 
     starttime=timer();
@@ -1253,13 +1253,13 @@ void ghostcell::start60V(lexer *p, double *f, int gcv) // EPS
     int inflow=0;
     int outflow=0;
 
-    if(p->B98>=3 || p->B60>=1)
+    if(p->B98>=3 || (p->B60>=1 && p->river_xm==1))
         inflow=1;
 
     if(p->B99>=3)
         outflow=1;
 
-    if(p->B60>=1)
+    if(p->B60>=1 && p->river_xp==1)
         outflow=2;
 
     starttime=timer();

@@ -23,16 +23,28 @@ Architect: Hans Bihs
 #include"coral/io/coral_input.h"
 #include"coral/core/coral_constraint.h"
 #include"coral/core/coral_gravity.h"
+#include"coral/core/coral_force.h"
 #include"coral/core/coral_rotation.h"
 #include"coral/structure/coral_spring.h"
 #include"coral/structure/coral_linear6.h"
+#include"coral/structure/coral_frame.h"
+#include"coral/structure/coral_superelement.h"
+#include"coral/soil/coral_soil.h"
 #include"coral/hydro/coral_hydro_db.h"
 #include"coral/hydro/coral_hydro_load.h"
 #include"coral/hydro/coral_morison.h"
+#include"coral/hydro/coral_member_morison.h"
+#include"coral/core/coral_points.h"
 #include"coral/pto/coral_pto.h"
+#include"coral/pto/coral_joint_drive.h"
+#include"coral/hydro/coral_fluid_load.h"
+#include"coral/hydro/coral_body_drag.h"
+#include"coral/hydro/coral_sampled_kinematics.h"
+#include"coral/hydro/coral_member_fluid_load.h"
 #include"coral/mooring/coral_mooring.h"
 #include<cmath>
 #include<fstream>
+#include<set>
 #include<sstream>
 #include<stdexcept>
 
@@ -46,14 +58,15 @@ namespace
     {
         int line = 0;
         std::vector<std::string> t;
+        int first = 1;      // first word searched for keys: 2 after the name of a named item (a name may be a key)
 
         [[noreturn]] void fail(const std::string &msg) const
         {
             throw std::runtime_error("CORAL input, line " + std::to_string(line) + " (" + t[0] + "): " + msg);
         }
-        int find(const std::string &key, int from=1) const
+        int find(const std::string &key, int from=-1) const
         {
-            for(int i=from; i<(int)t.size(); ++i)
+            for(int i=(from < 0 ? first : from); i<(int)t.size(); ++i)
                 if(t[i]==key)
                     return i;
             return -1;
@@ -143,8 +156,15 @@ void coral_case::read_string(const std::string &text, const std::string &dir)
 void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>>> &lines, const std::string &dir)
 {
     std::vector<item> items;
+    // items whose second word is a name (of a body, joint, load, ...): keys are searched after it
+    static const std::set<std::string> named = {"body", "joint", "pto", "drive", "spring", "linear6", "force", "drag",
+        "mooring", "morison", "section", "member", "superelement", "pile", "point_mass", "fluid_body", "fluid_member", "hydro"};
     for(const auto &l : lines)
+    {
         items.push_back(item{l.first, l.second});
+        if(!l.second.empty() && named.count(l.second[0]))
+            items.back().first = 2;
+    }
     auto path = [&](const std::string &f) {return (f.empty() || f[0]=='/') ? f : dir + "/" + f;};
     auto body_of = [&](const item &it, const std::string &name) -> int
     {
@@ -158,7 +178,9 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
     // pass 1: settings, waves, bodies
     std::vector<std::pair<int, Vec3>> offsets;    // initial displacement of bodies, applied after the set-up
     std::vector<std::pair<mooring_line*, double>> settles;
+    std::map<std::string, beam_section> sections;
     bool gravity_on = true;
+    int fluid_kin_order = -1;            // fluid_kinematics: order of the time polynomial, -1: not used
     double wdepth = -1.0, wramp = 0.0;
     std::vector<item> wave_items;
     for(const item &it : items)
@@ -181,8 +203,39 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
         }
         else if(k=="output")
         {
-            run.out_dt = it.get("dt", 0.0);
-            if(it.has("file")) run.out_file = it.word("file");
+            if(it.t.size() > 1 && it.t[1]=="vtp")
+                run.vtp_dt = it.num(2);
+            else
+            {
+                run.out_dt = it.get("dt", 0.0);
+                if(it.has("file")) run.out_file = it.word("file");
+            }
+        }
+        else if(k=="static")
+            run.static_ini = true;
+        else if(k=="modes")
+        {
+            run.modes = (int)it.num(1);
+            run.modes_damped = it.has("damped");
+        }
+        else if(k=="section")
+        {
+            const std::string name = it.word(1);
+            beam_section s;
+            if(it.t.size() > 2 && it.t[2]=="tube")
+                s = beam_section::tube(it.need("D"), it.need("t"), it.need("E"), it.need("G"), it.need("rho"));
+            else
+            {
+                s.EA = it.need("EA"); s.EIy = it.need("EIy"); s.EIz = it.need("EIz"); s.GJ = it.need("GJ"); s.m = it.need("m");
+                s.GAy = it.get("GAy", 0.0); s.GAz = it.get("GAz", 0.0);
+                s.rIx = it.get("rIx", 0.0); s.rIy = it.get("rIy", 0.0); s.rIz = it.get("rIz", 0.0); s.D = it.get("D", 0.0);
+            }
+            sections[name] = s;
+        }
+        else if(k=="fluid_kinematics")
+        {
+            fluid_kin_order = (int)it.get("order", 2.0);
+            if(fluid_kin_order < 0 || fluid_kin_order > 2) it.fail("order must be 0, 1 or 2");
         }
         else if(k=="waves")
         {
@@ -248,6 +301,178 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
                 it.fail("unknown wave type '" + type + "'");
         }
     }
+    // the kinematics of Morison members and mooring lines: CORAL's waves, or the resolved fluid of REEF3D
+    // sampled at their points (with CORAL's waves outside the fluid domain and before the first sample)
+    std::shared_ptr<const wave_kinematics> kin = waves;
+    if(fluid_kin_order >= 0)
+    {
+        fluid_kin = std::make_shared<sampled_kinematics>(waves);
+        fluid_kin->order = fluid_kin_order;
+        kin = fluid_kin;
+    }
+    // members (nodes are bodies: before the joints and loads), superelements, point masses, soil
+    std::map<std::string, std::vector<int>> stations;     // frame member -> node bodies
+    std::map<std::string, member_spec> frame_specs;
+    std::map<std::string, superelement*> super_of;        // superelement member -> its superelement
+    {
+        auto parse_member = [&](const item &it)
+        {
+            member_spec ms;
+            ms.name = it.word(1);
+            ms.p1 = it.need_vec("p1");
+            ms.p2 = it.need_vec("p2");
+            ms.n = (int)it.get("n", 10);
+            const std::string s1 = it.word("section");
+            if(!sections.count(s1)) it.fail("unknown section '" + s1 + "'");
+            ms.s1 = sections[s1];
+            if(it.has("section2"))
+            {
+                const std::string s2 = it.word("section2");
+                if(!sections.count(s2)) it.fail("unknown section '" + s2 + "'");
+                ms.s2 = sections[s2];
+                ms.tapered = true;
+            }
+            ms.orient = it.vec("orient", Vec3::UnitZ());
+            ms.beta = it.get("beta", 0.0);
+            if(it.has("end1")) ms.body1 = body_of(it, it.word("end1"));
+            if(it.has("end2")) ms.body2 = body_of(it, it.word("end2"));
+            return ms;
+        };
+        // members that belong to a superelement
+        std::map<std::string, std::string> in_super;
+        for(const item &it : items)
+        {
+            if(it.t[0] != "superelement") continue;
+            const int i0 = it.find("members");
+            if(i0 < 0) it.fail("'members' is required");
+            for(int i=i0+1; i<(int)it.t.size() && it.t[i]!="modes" && it.t[i]!="zeta" && it.t[i]!="beta"; ++i)
+            {
+                if(in_super.count(it.t[i])) it.fail("member '" + it.t[i] + "' in two superelements");
+                in_super[it.t[i]] = it.word(1);
+            }
+        }
+        frame_builder fb(m);
+        bool any = false;
+        std::map<std::string, member_spec> super_members;
+        for(const item &it : items)
+        {
+            if(it.t[0] != "member") continue;
+            const member_spec ms = parse_member(it);
+            if(stations.count(ms.name) || super_members.count(ms.name)) it.fail("member '" + ms.name + "' defined twice");
+            if(in_super.count(ms.name))
+            {
+                super_members[ms.name] = ms;
+                continue;
+            }
+            stations[ms.name] = fb.add_member(ms);
+            frame_specs[ms.name] = ms;
+            any = true;
+        }
+        if(any) fb.finish();
+        for(const item &it : items)
+        {
+            if(it.t[0] != "superelement") continue;
+            std::vector<member_spec> list;
+            const int i0 = it.find("members");
+            for(int i=i0+1; i<(int)it.t.size() && it.t[i]!="modes" && it.t[i]!="zeta" && it.t[i]!="beta"; ++i)
+            {
+                if(!super_members.count(it.t[i])) it.fail("unknown member '" + it.t[i] + "'");
+                list.push_back(super_members[it.t[i]]);
+            }
+            try
+            {
+                auto se = std::make_unique<superelement>(m, it.word(1), list, (int)it.get("modes", 10), it.get("zeta", 0.0),
+                                                         it.get("beta", 0.0), gravity_on ? m.gravity : Vec3::Zero());
+                for(const auto &ms : list) super_of[ms.name] = se.get();
+                m.add_load(std::move(se));
+            }
+            catch(const std::exception &e) {it.fail(e.what());}
+        }
+        for(const item &it : items)
+        {
+            if(it.t[0] != "point_mass") continue;
+            const int b = body_of(it, it.word(1));
+            if(b < 0) it.fail("point mass on the ground");
+            Mat3 J = Mat3::Zero();
+            const int ii = it.find("inertia");
+            if(ii >= 0) J = it.vec(ii+1).asDiagonal();
+            if(it.has("at"))
+                m.add_point_mass(b, it.need_vec("at"), it.need("mass"), J);
+            else
+            {
+                m.bodies[b].mass += it.need("mass");
+                m.bodies[b].inertia += J;
+            }
+        }
+        // soil profiles and pile springs
+        std::map<std::string, soil_profile> soils;
+        for(const item &it : items)
+        {
+            if(it.t[0] != "soil") continue;
+            soil_profile sp;
+            sp.name = it.word(1);
+            sp.mudline = it.need("mudline");
+            soils[sp.name] = sp;
+        }
+        for(const item &it : items)
+        {
+            if(it.t[0] != "soil_layer") continue;
+            const std::string sn = it.word(1);
+            if(!soils.count(sn)) it.fail("unknown soil '" + sn + "'");
+            soil_layer l;
+            const std::string type = it.word(2);
+            l.top = it.need("top");
+            l.bottom = it.need("bottom");
+            l.gamma = it.get("gamma", l.gamma);
+            l.cyclic = it.has("cyclic");
+            if(type=="sand")
+            {
+                l.type = soil_layer::kind::sand;
+                l.phi = it.need("phi");
+                l.k = it.get("k", 0.0);
+                l.delta = it.get("delta", -1.0);
+                l.K = it.get("K", l.K);
+                l.Nq = it.get("Nq", l.Nq);
+            }
+            else if(type=="clay")
+            {
+                l.type = soil_layer::kind::clay;
+                l.su_top = it.need("su");
+                l.su_bottom = it.get("su_bottom", -1.0);
+                l.eps50 = it.get("eps50", l.eps50);
+                l.J = it.get("J", l.J);
+                l.residual = it.get("residual", l.residual);
+            }
+            else if(type=="linear")
+            {
+                l.type = soil_layer::kind::linear;
+                l.kh = it.need("kh");
+                l.kv = it.get("kv", 0.0);
+                l.kq = it.get("kq", 0.0);
+            }
+            else
+                it.fail("unknown soil layer type '" + type + "'");
+            if(l.bottom <= l.top) it.fail("bottom must lie below top (depths below the mudline)");
+            soils[sn].layers.push_back(l);
+        }
+        for(const item &it : items)
+        {
+            if(it.t[0] != "pile") continue;
+            const std::string mem = it.word(1), sn = it.word("soil");
+            if(!stations.count(mem)) it.fail("unknown frame member '" + mem + "'");
+            if(!soils.count(sn)) it.fail("unknown soil '" + sn + "'");
+            const bool all = !it.has("py") && !it.has("tz") && !it.has("qz");
+            std::vector<int> nodes;
+            for(int b : stations[mem]) if(b >= 0) nodes.push_back(b);
+            try
+            {
+                add_pile_springs(m, soils[sn], nodes, it.need("D"), all || it.has("py"), all || it.has("tz"),
+                                 all || it.has("qz"), it.has("linear"), "pile:" + mem);
+            }
+            catch(const std::exception &e) {it.fail(e.what());}
+        }
+    }
+
     if(gravity_on && m.nbody() > 0)
         m.add_load(std::make_unique<gravity_load>());
 
@@ -348,10 +573,34 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
                 if(is+4 < (int)it.t.size()) {try {s.c_stop = std::stod(it.t[is+4]);} catch(...) {}}
             }
             const int il = it.find("latching");
-            if(il >= 0) {s.control = pto_control::latching; s.t_hold = it.num(il+1); s.c_latch = it.num(il+2);}
+            if(il >= 0)
+            {
+                s.control = pto_control::latching;
+                s.t_hold = it.num(il+1);
+                s.c_latch = it.num(il+2);
+                if(il+3 < (int)it.t.size()) {try {s.k_latch = std::stod(it.t[il+3]);} catch(...) {}}
+            }
             const int idc = it.find("declutching");
             if(idc >= 0) {s.control = pto_control::declutching; s.t_hold = it.num(idc+1);}
             m.add_load(std::make_unique<pto_load>(*joints[jn], it.has("rotational"), s, name));
+        }
+        else if(k=="drive")
+        {
+            // prescribed motion of a joint coordinate (forced oscillation)
+            const std::string name = it.word(1), jn = it.word("joint");
+            if(!joints.count(jn)) it.fail("unknown joint '" + jn + "'");
+            drive_settings s;
+            const int is = it.find("sine");
+            if(is < 0) it.fail("'sine <amplitude> <period>' is required");
+            s.amp = it.num(is+1);
+            s.period = it.num(is+2);
+            if(s.period <= 0.0) it.fail("the period must be positive");
+            s.q0 = it.get("q0", 0.0);
+            s.phase = it.get("phase", 0.0);
+            s.ramp = it.get("ramp", 0.0);
+            s.k = it.get("k", s.k);
+            s.c = it.get("c", s.c);
+            m.add_load(std::make_unique<joint_drive>(*joints[jn], it.has("rotational"), s, name));
         }
         else if(k=="spring")
         {
@@ -365,13 +614,41 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
         {
             const int b = body_of(it, it.word("body"));
             Mat6 K = Mat6::Zero(), C = Mat6::Zero();
-            const int ik = it.find("k"), ic = it.find("c");
+            const int ik = it.find("k"), ic = it.find("c"), iK = it.find("K"), iC = it.find("C");
             for(int d=0; d<6; ++d)
             {
                 if(ik >= 0) K(d,d) = it.num(ik+1+d);
                 if(ic >= 0) C(d,d) = it.num(ic+1+d);
             }
+            // full matrices, row by row
+            for(int d=0; d<36; ++d)
+            {
+                if(iK >= 0) K(d/6, d%6) = it.num(iK+1+d);
+                if(iC >= 0) C(d/6, d%6) = it.num(iC+1+d);
+            }
             m.add_load(std::make_unique<linear6>(m, b, it.need_vec("point"), K, C, Vec6::Zero(), it.word(1)));
+        }
+        else if(k=="drag")
+        {
+            // quadratic damping of a body (coral_body_drag.h)
+            const int b = body_of(it, it.word("body"));
+            if(b < 0) it.fail("the ground has no drag");
+            const Vec3 P = it.vec("point", m.body(b).x);
+            const double r = it.get("rho", rho);
+            const int iq = it.find("Q");
+            if(iq >= 0)
+            {
+                Vec6 Q;
+                for(int d=0; d<6; ++d)
+                    Q(d) = it.num(iq+1+d);
+                m.add_load(std::make_unique<body_drag>(m, b, P, Q, it.word(1)));
+            }
+            else
+            {
+                const Vec3 e = it.vec("axis", Vec3(0.0, 0.0, 1.0));
+                if(e.norm() <= 0.0) it.fail("axis must not be zero");
+                m.add_load(std::make_unique<body_drag>(m, b, P, e, 0.5*r*it.need("Cd")*it.need("area"), it.word(1)));
+            }
         }
         else if(k=="mooring")
         {
@@ -392,7 +669,7 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
             else if(type=="dynamic")
             {
                 const double zbed = it.get("seabed", std::min(ea.p(2), eb.p(2)));
-                auto l = std::make_unique<mooring_line>(m, ea, eb, p, (int)it.get("nseg", 20), waves, it.vec("current", Vec3::Zero()),
+                auto l = std::make_unique<mooring_line>(m, ea, eb, p, (int)it.get("nseg", 20), kin, it.vec("current", Vec3::Zero()),
                                                         zbed, it.get("dt_line", 0.0), name);
                 if(it.has("settle"))
                     settles.push_back({l.get(), it.need("settle")});
@@ -400,6 +677,74 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
             }
             else
                 it.fail("mooring type must be quasi_static or dynamic");
+        }
+        else if(k=="force")
+        {
+            const int b = body_of(it, it.word("body"));
+            m.add_load(std::make_unique<point_force>(m, b, it.vec("point", m.body(b).x), it.vec("F", Vec3::Zero()),
+                                                     it.vec("M", Vec3::Zero()), it.get("ramp", 0.0), it.word(1)));
+        }
+        else if(k=="morison" && it.has("member"))
+        {
+            // distributed Morison loads on a frame member or a superelement member
+            const std::string mem = it.word("member");
+            member_morison_coef c;
+            c.Cd = it.get("Cd", 1.0);
+            c.Ca = it.get("Ca", 1.0);
+            c.Cm = it.get("Cm", 1.0 + c.Ca);
+            c.n = (int)it.get("n", 2);
+            c.buoyancy = !it.has("no_buoyancy");
+            std::shared_ptr<const point_set> pts;
+            std::vector<std::pair<int,int>> elems;
+            const double g = std::fabs(m.gravity(2)) > 0.0 ? std::fabs(m.gravity(2)) : 9.81;
+            if(stations.count(mem))
+            {
+                const member_spec &ms = frame_specs[mem];
+                c.D = it.get("D", ms.s1.D);
+                auto bp = std::make_shared<body_points>();
+                const std::vector<int> &st = stations[mem];
+                const int n = (int)st.size() - 1;
+                auto on_body = [&](int i) {return (i==0 && ms.body1 > -2) || (i==n && ms.body2 > -2);};
+                for(int i=0; i<=n; ++i)
+                {
+                    bp->add(m, st[i], ms.p1 + (double)i/n*(ms.p2 - ms.p1));
+                    if(i > 0) elems.emplace_back(i-1, i);
+                }
+                pts = bp;
+                // flooded member: the inner water below the still water level as node mass
+                if(it.has("flooded"))
+                {
+                    const double Din = it.need("flooded"), Ai = 0.25*M_PI*Din*Din;
+                    for(int i=0; i<n; ++i)
+                    {
+                        const Vec3 pa = ms.p1 + (double)i/n*(ms.p2 - ms.p1), pb = ms.p1 + (double)(i+1)/n*(ms.p2 - ms.p1);
+                        double f = 0.0;
+                        if(pa(2) <= 0.0 && pb(2) <= 0.0) f = 1.0;
+                        else if(pa(2) < 0.0 || pb(2) < 0.0) f = -std::min(pa(2), pb(2))/std::fabs(pb(2) - pa(2));
+                        const double mw = 0.5*rho*Ai*(pb - pa).norm()*f;
+                        for(int e=0; e<2; ++e)
+                        {
+                            const int b = st[i+e];
+                            if(b < 0 || mw <= 0.0) continue;
+                            if(on_body(i+e)) m.add_point_mass(b, e ? pb : pa, mw);
+                            else m.bodies[b].mass += mw;
+                        }
+                    }
+                }
+            }
+            else if(super_of.count(mem))
+            {
+                superelement *se = super_of[mem];
+                if(it.has("flooded")) it.fail("flooded superelement members: put the inner water into the section mass");
+                c.D = it.get("D", se->member_diameter(mem));
+                pts = std::shared_ptr<const point_set>(std::shared_ptr<const point_set>(), se);     // owned by the model
+                const std::vector<int> nd = se->member_nodes(mem);
+                for(size_t i=1; i<nd.size(); ++i) elems.emplace_back(nd[i-1], nd[i]);
+            }
+            else
+                it.fail("unknown member '" + mem + "'");
+            if(c.D <= 0.0) it.fail("'D' is required (the section has no diameter)");
+            m.add_load(std::make_unique<member_morison>(pts, elems, c, kin, rho, g, it.vec("current", Vec3::Zero()), it.word(1)));
         }
         else if(k=="morison")
         {
@@ -412,10 +757,107 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
             mb.Cm = it.get("Cm", 1.0 + mb.Ca);
             mb.n = (int)it.get("n", 20);
             const int b = body_of(it, it.word("body"));
-            m.add_load(std::make_unique<morison_load>(m, b, std::vector<morison_member>{mb}, waves, rho, it.vec("current", Vec3::Zero()), it.word(1)));
+            m.add_load(std::make_unique<morison_load>(m, b, std::vector<morison_member>{mb}, kin, rho, it.vec("current", Vec3::Zero()), it.word(1)));
         }
-        else if(k!="gravity" && k!="rho" && k!="time" && k!="output" && k!="waves" && k!="body" && k!="joint")
+        else if(k=="fluid_body")
+        {
+            // body driven by the resolved fluid of REEF3D (coral/reef3d): one fluid load for all of them
+            fluid_body_spec fb;
+            fb.body = body_of(it, it.word(1));
+            if(fb.body < 0) it.fail("the ground cannot be a fluid body");
+            fb.n = (int)it.get("n", (double)(fluid_bodies.size() + fluid_members.size()));
+            fb.own_mass = it.has("own_mass");
+            fb.one_way = it.has("one_way");
+            fb.excitation = it.has("excitation");
+            if(fb.excitation && !fb.one_way) it.fail("excitation needs one_way");
+            const int ia = it.find("added_mass");
+            if(ia >= 0)
+            {
+                if(fb.one_way) it.fail("added_mass is for two-way bodies, not one_way");
+                for(int d=0; d<6; ++d)
+                {
+                    fb.added_mass(d) = it.num(ia+1+d);
+                    if(fb.added_mass(d) < 0.0) it.fail("added_mass must not be negative");
+                }
+            }
+            for(const auto &o : fluid_bodies)
+            {
+                if(o.body == fb.body) it.fail("body '" + it.word(1) + "' is a fluid body twice");
+                if(o.n == fb.n) it.fail("REEF3D body " + std::to_string(fb.n) + " mapped twice");
+            }
+            for(const auto &o : fluid_members)
+                if(o.n == fb.n && !fb.one_way) it.fail("REEF3D body " + std::to_string(fb.n) + " is a fluid_member: as fluid_body only one_way");
+            fluid_bodies.push_back(fb);
+        }
+        else if(k=="fluid_member")
+        {
+            // distributed one-way loads of a REEF3D 6DOF body on a frame or superelement member
+            const std::string mem = it.word("member");
+            std::shared_ptr<const point_set> pts;
+            std::vector<std::pair<int,int>> elems;
+            if(stations.count(mem))
+            {
+                const member_spec &ms = frame_specs[mem];
+                auto bp = std::make_shared<body_points>();
+                const std::vector<int> &st = stations[mem];
+                const int n = (int)st.size() - 1;
+                for(int i=0; i<=n; ++i)
+                {
+                    bp->add(m, st[i], ms.p1 + (double)i/n*(ms.p2 - ms.p1));
+                    if(i > 0) elems.emplace_back(i-1, i);
+                }
+                pts = bp;
+            }
+            else if(super_of.count(mem))
+            {
+                superelement *se = super_of[mem];
+                pts = std::shared_ptr<const point_set>(std::shared_ptr<const point_set>(), se);
+                const std::vector<int> nd = se->member_nodes(mem);
+                for(size_t i=1; i<nd.size(); ++i) elems.emplace_back(nd[i-1], nd[i]);
+            }
+            else
+                it.fail("unknown member '" + mem + "'");
+            if(elems.empty()) it.fail("member '" + mem + "' has no elements");
+            Vec3 pa, pb, v, a;
+            pts->point_state(m, elems.front().first, pa, v, a);
+            pts->point_state(m, elems.back().second, pb, v, a);
+            const int ns = (int)it.get("strips", (double)(2*elems.size()));
+            auto l = std::make_unique<member_fluid_load>(m, pts, elems, pa, pb, ns, it.word(1));
+            l->order = (int)it.get("order", 2.0);
+            l->excitation = it.has("excitation");
+            fluid_member_spec fm;
+            fm.load = l.get();
+            fm.n = (int)it.get("n", (double)(fluid_bodies.size() + fluid_members.size()));
+            for(const auto &o : fluid_bodies)
+                if(o.n == fm.n && !o.one_way) it.fail("REEF3D body " + std::to_string(fm.n) + " is a two-way fluid_body");
+            for(const auto &o : fluid_members)
+                if(o.n == fm.n) it.fail("REEF3D body " + std::to_string(fm.n) + " mapped twice");
+            fluid_members.push_back(fm);
+            m.add_load(std::move(l));
+        }
+        else if(k=="fluid_coupling")
+        {
+            fluid_order = (int)it.get("order", (double)fluid_order);
+            if(fluid_order < 0 || fluid_order > 2) it.fail("order must be 0, 1 or 2");
+            if(it.has("no_predictor")) fluid_predictor = false;
+            if(it.has("origin")) fluid_origin = it.need_vec("origin");
+            if(it.has("record")) fluid_record = it.word("record");
+        }
+        else if(k!="gravity" && k!="rho" && k!="time" && k!="output" && k!="waves" && k!="body" && k!="joint"
+                && k!="section" && k!="member" && k!="point_mass" && k!="static" && k!="modes"
+                && k!="superelement" && k!="soil" && k!="soil_layer" && k!="pile" && k!="force" && k!="fluid_kinematics")
             it.fail("unknown keyword");
+    }
+    if(!fluid_bodies.empty())
+    {
+        std::vector<int> b;
+        for(const auto &o : fluid_bodies)
+            b.push_back(o.body);
+        fluid = &static_cast<fluid_load&>(m.add_load(std::make_unique<fluid_load>(m, b, "fluid")));
+        fluid->order = fluid_order;
+        for(int k=0; k<(int)fluid_bodies.size(); ++k)
+            if(fluid_bodies[k].added_mass.any())
+                fluid->set_artificial_added_mass(k, fluid_bodies[k].added_mass.asDiagonal());
     }
 
     // initial displacements (the joints, the reference positions of the loads and the line attachments

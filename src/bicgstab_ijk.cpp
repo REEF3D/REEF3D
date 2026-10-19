@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
+#include"ckpt_registry.h"
 
 bicgstab_ijk::bicgstab_ijk(lexer* p, fdm *a, ghostcell *pgc):epsi(1e-19)
 {
@@ -38,12 +39,18 @@ bicgstab_ijk::bicgstab_ijk(lexer* p, fdm *a, ghostcell *pgc):epsi(1e-19)
     p->Darray(aii,p->imax*p->jmax*p->kmax);
     p->Darray(x,p->imax*p->jmax*p->kmax);
     p->Darray(rhs,p->imax*p->jmax*p->kmax);
+
+    // checkpoints (P 48, I 45): the ghost cells of the work arrays carry over from one solve to the next
+    for(double *w : {sj,rj,r0,vj,tj,pj,ph,sh,aii,x,rhs})
+    ckids.push_back(ckpt_registry::add(p,'C',false,w,true));
 }
 
 bicgstab_ijk::~bicgstab_ijk()
 {
     // the solver of a mesh-refinement patch is deleted with the patch (on level 0 it lives
     // for the whole run)
+    for(auto id : ckids)
+    ckpt_registry::remove(id);
     delete [] sj; delete [] rj; delete [] r0; delete [] vj; delete [] tj; delete [] pj;
     delete [] ph; delete [] sh; delete [] aii; delete [] x; delete [] rhs;
 }

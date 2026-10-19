@@ -483,3 +483,8 @@ void sflow_vtp_fsf::amr_columns(const amr_column_lookup *amr)
     pwsf->amr = amr;
     pprobe->amr = amr;
 }
+
+void sflow_vtp_fsf::flush_outputs()
+{
+    pwsf->flush_files();
+}

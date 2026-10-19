@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #ifndef FNPF_AMR_H_
@@ -82,19 +82,37 @@ using namespace std;
 //  rectangle at a body is placed whole (place_whole_zones): the footprint extension and the
 //  interior fill of the body are local to a patch.
 //
-//  Regridding (G 2 steps, default 4) only with the zone around the body (G 12): the zone is
-//  aligned with x and y, and the layout is kept while it covers the flagged tiles (lazy layout,
-//  reefamr_param::lazy), so that a moored body does not rebuild its patches every few steps.
+//  Regridding (G 2 steps, default 4) with the zone around the body (G 12) or the solution-adaptive
+//  flags (tag): surface jump G 20, second difference G 21, the shoreline G 22 (with G 30 1) and the
+//  breaking cells G 23 (with A 350 1).  The zone is aligned with x and y, and the layout is kept
+//  while it covers the flagged tiles (lazy layout, reefamr_param::lazy), so that a moored body does
+//  not rebuild its patches every few steps.
+//
+//  Coastline (A 343 1-3): the patches are fully wet; no patch within 4 level-0 cells (A 343 2, 3:
+//  8) of a dry or thin-film cell or of the coastline damping band (cell_unfit), checked at every
+//  regrid; the coastline itself stays on level 0.  With A 343 1 and G 30 1 the patches may cover the
+//  static coastline: the patches run fnpf_fsfbc_wd (wet mask and coastline distance from the fine
+//  bed, clamp, coastline relaxation and damping as on level 0), the interpolation from a coarser
+//  grid uses its wet cells only (a dry coarse cell: the mean of its wet neighbours) and the
+//  restriction the wet children only.
+//
+//  Breaking (A 350 1): on every grid as fnpf_RK3: the implicit damping of the stage values with
+//  the breaking viscosity (one system over the patches of a level on all ranks, the cells around
+//  them from the coarser grid hold its damped stage values), then the detection; the cells around
+//  a patch take the viscosity of their source grid.  A new patch takes the viscosity of the old
+//  patches or its parent, and with G 30 1 the coastline distance of the parent where the
+//  coastline may lie outside it.
 //
 //  Scope of this version: refinement G 1 levels, G 10 boxes, G 11 boxes without
-//  refinement, G 4 tile width, G 12 zone around the body; RK3 (A 310 3), no wetting-drying
-//  (A 343 0), no breaking (A 350 0), X 10 0 or 1, no ice (A 380 0), A 324 0, A 328 0, 3D grids.
+//  refinement, G 4 tile width, G 12 zone around the body, G 20-23 adaptive flags; RK3 (A 310 3), wetting-drying
+//  A 343 0-3 (patches off the coast; A 343 1 with G 30 1 also over it), breaking A 350 0 or 1, X 10 0 or 1, no ice (A 380 0),
+//  A 324 0, A 328 0, 3D grids.
 //  No refinement in the relaxation zones (B 96) and next to in- and outflow boundaries.
 
 struct fnpf_amr_patch : public reefamr_patch
 {
     fdm_fnpf *c = nullptr;
-    fnpf_fsfbc *pf = nullptr;
+    fnpf_fsf *pf = nullptr;         // fnpf_fsfbc, or fnpf_fsfbc_wd with the coastline in the patches (wd)
     fnpf_sigma *psig = nullptr;
     fnpf_fsf_update *pfu = nullptr;
     fnpf_bed_update *pbu = nullptr;
@@ -103,6 +121,7 @@ struct fnpf_amr_patch : public reefamr_patch
     // RK stage values and tendencies, as fnpf_RK3
     slice4 *erk1 = nullptr, *erk2 = nullptr, *frk1 = nullptr, *frk2 = nullptr;
     slice4 *ek = nullptr, *fk = nullptr;
+    slice4 *en = nullptr;           // eta at the start of the step (breaking detection, A 350 1)
 
     // columns with a solid neighbour (lexer index pairs): wall ghost nodes of Fi
     vector<int> wall;
@@ -112,11 +131,20 @@ struct fnpf_amr_patch : public reefamr_patch
     vector<int> row;                // FIJK -> matrix row of the patch assembly, -1 none
     int serial = -1;                // unique number of the patch (body grids follow it)
     reefmg_core *mg = nullptr;      // patch-local multigrid of the preconditioner
+    vector<int> fill1;              // the entries of fill next to the patch (the reach of the Laplace rows)
+    vector<int> fill2;              // the entries of fill within two columns of the patch (the stencils of the prolongation into the next finer level)
 };
+
+class reefckpt;
 
 class fnpf_amr : public reefamr, public amr_column_lookup
 {
 public:
+    // checkpoints (P 48, I 45; fnpf_amr_ckpt.cpp): the fields of the patches of this rank; the restart
+    // fills the patches of the hierarchy built by ini (any decomposition) from the patches of the checkpoint
+    void ckpt_write(reefckpt&);
+    bool ckpt_read(reefckpt&, std::string&);
+    void flush_outputs() { gaugeout.flush(); logout.flush(); }   // a rebalance stop (G 46)
     // the output on the finest grid (amr_grid_lookup.h): the finest patch of this rank at (x,y)
     int finest_column(double x, double y, lexer *&q, void *&f) const override
     {
@@ -173,7 +201,7 @@ public:
     int layout() const { return layout_id; }    // changes when the patch set changes
 
     // vector space of the composite Laplace (fnpf_amr_lap.cpp, reefamr_bicgstab)
-    void lap_apply(int, int);
+    void lap_apply(int, int, bool d1=false);
     void lap_prec(int, int);
     void lap_local(int, int, int);
     double lap_dot(int, int);
@@ -206,6 +234,7 @@ protected:
     void regrid_state(ghostcell*, vector<reefamr_patch*>&) override;
     void regrid_finish(ghostcell*, int) override;
     void zone_bodies(vector<sixdof_obj*>&) override;
+    bool cell_unfit(int, int) override;
 
 private:
     fnpf_amr_patch* FP(int n) { return static_cast<fnpf_amr_patch*>(P[n]); }
@@ -213,7 +242,7 @@ private:
 
     lexer* glx(int g) { return glex(g); }
     fdm_fnpf* gfd(int g) { return (g<0) ? c0 : FP(g)->c; }
-    int fidx(lexer*, int, int, int) const;          // FIJK of lexer q
+    inline int fidx(lexer*, int, int, int) const;   // FIJK of lexer q (inline: fnpf_amr_fill.h)
     int gknoz(int g);                                // sigma layers of grid g
 
     // patch lexer: sigma grid, 3D flags, bed array
@@ -234,7 +263,7 @@ private:
 
     // fill and restriction of slices and Fi-layout arrays
     template<class SEL> void fill_sl(int, int, int, SEL);
-    template<class SEL> void fill_col(int, int, SEL);
+    template<class SEL> void fill_col(int, int, SEL, bool d1=false);
     template<class SEL> void restrict_sl(int, SEL);
     bool rcubic(lexer*, int, int);
     template<class F> double rc4(F);
@@ -254,7 +283,7 @@ private:
     vector<double*> ltgt;           // [g+1]: unknowns of the current solve (Fi or psi)
     void lap_core(lexer*, ghostcell*);
     void lap_prepare(ghostcell*);
-    void lap_sync(int);
+    void lap_sync(int, bool d1=false);  // d1: the columns next to the patches only (the operator)
     void lap_rows();
     int lap_layout = -1;
     int lap_wkey = 0;               // level window of the row lists (G 7 1)
@@ -323,6 +352,39 @@ private:
     void sub_derived(lexer*, ghostcell*, int, double);
     void lap_prec_win(int, int);
     double rko(int s) const { return (s==1) ? 0.5 : 1.0; }
+
+    // wave breaking on the patches (A 350 1): the implicit damping of the stage values with the
+    // breaking viscosity, one system over the patches of a level (the cells around them from the
+    // coarser grid held), detection on the patch, the viscosity of the cells around the patches
+    // from the source grid
+    bool brk = false;
+    void level_damping(int, ghostcell*, int, int, int, double);
+    void patch_breaking(int, ghostcell*, int, double);
+
+    // solution-adaptive refinement (tag): surface jump G 20, second difference G 21, shoreline
+    // G 22 (with G 30 1), breaking G 23 (with A 350 1)
+    bool adaptive = false;
+    double tol_eta = 0.0, tol_curv = 0.0;
+    int nshore = 0;
+    bool flagbreak = false;
+
+    // coastline (A 343 1-3): the patches stay off the dry cells and the coastline band of level 0
+    double dist_coast = 0.0;
+    bool thin_warned = false;
+
+    // A 343 1 with G 30 1: the patches may cover the static coastline: fnpf_fsfbc_wd on the patches
+    // (wet mask and coastline distance from the fine bed, the clamp and the coastline relaxation as
+    // on level 0); the interpolation from a coarser grid and the restriction use wet cells only (wfill)
+    bool wd = false;
+    bool wfill = false;
+    void patch_coast(fnpf_amr_patch&, ghostcell*, slice&, slice&);
+    void patch_wd_ini(fnpf_amr_patch&, ghostcell*);
+    void patch_coast_dist(fnpf_amr_patch&, const vector<double>&);
+
+    // the damping and the coastline of the stage values read the cells around a patch: these are
+    // filled with the stage values of the coarser grid first (not the lagged ones of the last fill)
+    bool stage_ring() const { return brk || wd; }
+    void stage_damp_coast(int, ghostcell*, int);
 
     fdm_fnpf *c0;
     fnpf_laplace_cds2 *plap0 = nullptr;

@@ -448,6 +448,24 @@ void sflow_momentum_func::reconstruct(lexer *p, fdm2D *b, ghostcell *pgc, slice 
     precon->reconstruct_y(p, pgc, b, b->U, b->Ue, b->Uw);
     sflow_curv::normal_velocities(p,b);
     }
+    
+    // HLLC (A 225 2): the tangential velocities of the faces (sflow_HLL::HLLC_x/HLLC_y)
+    if(p->A225==2 && p->geo_curv!=1)
+    {
+        if(p->j_dir==1)
+        {
+        precon->reconstruct_x(p, pgc, b, b->V, b->Vs, b->Vn);
+        precon->reconstruct_y(p, pgc, b, b->U, b->Ue, b->Uw);
+        }
+        
+        if(nhp==1 && p->A214==1)
+        {
+        precon->reconstruct_x(p, pgc, b, b->W, b->Ws, b->Wn);
+        
+        if(p->j_dir==1)
+        precon->reconstruct_y(p, pgc, b, b->W, b->We, b->Ww);
+        }
+    }
 
     // conserved variables (Boussinesq: volume flux M instead of V)
     slice &UHf = (bous==1)?b->MX:UH;
@@ -676,6 +694,7 @@ void sflow_momentum_func::vel_bc(lexer *p, fdm2D *b, ghostcell *pgc, slice &u, s
     j  = p->gcbsl4[n][1];
     cs = p->gcbsl4[n][3];
     bc = p->gcbsl4[n][4];
+    gd = ghost_depth(p,n);
     
         // iowave Riemann / Flather / clamped edges (B 520 methods 3-6): ghost cells set by ioflow
         if((cs==1 && p->open_xm==1) || (cs==4 && p->open_xp==1) || (cs==3 && p->open_ym==1) || (cs==2 && p->open_yp==1))
@@ -727,6 +746,7 @@ void sflow_momentum_func::vel_bc(lexer *p, fdm2D *b, ghostcell *pgc, slice &u, s
             neumann(p,u,cs);
             neumann(p,v,cs);
             neumann(p,w,cs);
+            outflow_clip(p,u,v);
             }
             
             if(outflow_flag==0)
@@ -747,7 +767,7 @@ void sflow_momentum_func::wall_bc(lexer *p, slice &u, slice &v, slice &w, int cs
     // free slip: the normal velocity is reversed (curvilinear grid: normal of the wall face)
     if(p->geo_curv==1)
     {
-    sflow_curv::wall_mirror(p,u,v,i,j,cs);
+    sflow_curv::wall_mirror(p,u,v,i,j,cs,gd);
     mirror(p,w,cs,1.0);
     return;
     }
@@ -805,8 +825,9 @@ void sflow_momentum_func::ghostcells(lexer *p, fdm2D *b, ghostcell *pgc, slice &
     i  = p->gcbsl4[n][0];
     j  = p->gcbsl4[n][1];
     cs = p->gcbsl4[n][3];
+    gd = ghost_depth(p,n);
     
-        for(q=1;q<=3;++q)
+        for(q=1;q<=gd;++q)
         {
         int ii=0,jj=0;
         
@@ -838,42 +859,71 @@ void sflow_momentum_func::ghostcells(lexer *p, fdm2D *b, ghostcell *pgc, slice &
     }
 }
 
+// ghost cells written behind boundary entry n: three, or the solid depth when a solid inside the
+// domain is only one or two cells thick (the fluid cells behind it are not overwritten)
+int sflow_momentum_func::ghost_depth(lexer *p, int n)
+{
+    const int d = p->gcbsl4[n][2];
+    
+    return (d>0 && d<3) ? d : 3;
+}
+
 void sflow_momentum_func::mirror(lexer *p, slice &f, int cs, double sgn)
 {
     // symmetric (sgn=1) or antisymmetric (sgn=-1) extension across the boundary face
 	if(cs==1)
-	for(q=0;q<3;++q)
+	for(q=0;q<gd;++q)
 	f(i-q-1,j) = sgn*f(i+q,j);
 	
 	if(cs==2)
-	for(q=0;q<3;++q)
+	for(q=0;q<gd;++q)
 	f(i,j+q+1) = sgn*f(i,j-q);
     
 	if(cs==3)
-	for(q=0;q<3;++q)
+	for(q=0;q<gd;++q)
 	f(i,j-q-1) = sgn*f(i,j+q);
 	
 	if(cs==4)
-	for(q=0;q<3;++q)
+	for(q=0;q<gd;++q)
 	f(i+q+1,j) = sgn*f(i-q,j);
+}
+
+// outflow with a water level (B 60 1, F 62; the open face G 54 b 2 of a block): the ghost velocities are zero-gradient
+// while the flow leaves; where it would enter, their normal component is zero (a wall for the backflow). An eddy or a
+// separation that reaches the outlet otherwise draws water and momentum in through it without bound
+void sflow_momentum_func::outflow_clip(lexer *p, slice &u, slice &v)
+{
+    double nx=1.0, ny=0.0, len;
+    if(p->geo_curv==1)
+    sflow_curv::normal(p,1,i,j,nx,ny,len);
+
+    for(q=1;q<=gd;++q)
+    {
+        const double un = u(i+q,j)*nx + v(i+q,j)*ny;
+        if(un<0.0)
+        {
+        u(i+q,j) -= un*nx;
+        v(i+q,j) -= un*ny;
+        }
+    }
 }
 
 void sflow_momentum_func::neumann(lexer *p, slice &f, int cs)
 {
 	if(cs==1)
-	for(q=0;q<3;++q)
+	for(q=0;q<gd;++q)
 	f(i-q-1,j) = f(i,j);
 	
 	if(cs==2)
-	for(q=0;q<3;++q)
+	for(q=0;q<gd;++q)
 	f(i,j+q+1) = f(i,j);
     
 	if(cs==3)
-	for(q=0;q<3;++q)
+	for(q=0;q<gd;++q)
 	f(i,j-q-1) = f(i,j);
 	
 	if(cs==4)
-	for(q=0;q<3;++q)
+	for(q=0;q<gd;++q)
 	f(i+q+1,j) = f(i,j);
 }
 
@@ -925,6 +975,31 @@ void sflow_momentum_func::face_velocities(lexer *p, fdm2D *b, ghostcell *pgc, sl
     }
 
 	pgc->gcsl_start2(p,b->Q,gcval_v);
+
+    // patch in- and outlets (B 440): the normal velocity of the boundary face from the cell and its ghost cell
+    // (the ghost cells of the inlets set by patchBC, of the outlets zero gradient); the wall treatment of
+    // gcsl_start1/2 would leave 0 there: a spurious shear in the production of k-eps / k-omega and no inflow
+    // in the convection of the turbulence and the sediment
+    GCSL4LOOP
+    if(patch_bc(p->gcbsl4[n][4]))
+    {
+    i  = p->gcbsl4[n][0];
+    j  = p->gcbsl4[n][1];
+    int cs = p->gcbsl4[n][3];
+
+        if(cs==1)
+        b->P(i-1,j) = (p->wet[IJ]==1)?0.5*(b->U(i,j) + b->U(i-1,j)):0.0;
+
+        if(cs==4)
+        b->P(i,j) = (p->wet[IJ]==1)?0.5*(b->U(i,j) + b->U(i+1,j)):0.0;
+
+        if(cs==3)
+        b->Q(i,j-1) = (p->wet[IJ]==1)?0.5*(b->V(i,j) + b->V(i,j-1)):0.0;
+
+        if(cs==2)
+        b->Q(i,j) = (p->wet[IJ]==1)?0.5*(b->V(i,j) + b->V(i,j+1)):0.0;
+    }
+
     pgc->gcsl_start4(p,b->ws,gcval_w);
     pgc->gcsl_start1(p,b->hx,gcval_eta);
 	pgc->gcsl_start2(p,b->hy,gcval_eta);

@@ -38,6 +38,7 @@ class fsf_vtp : public increment, private vtp3D
 {
 
 public:
+    int& print_counter() { return fsfprintcount; }   // checkpoints (P 48, I 45)
     fsf_vtp(lexer*,fdm*,ghostcell*);
     virtual ~fsf_vtp();
     void start(lexer*,fdm*,ghostcell*);

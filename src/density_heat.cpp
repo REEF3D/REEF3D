@@ -75,7 +75,7 @@ double density_heat::roface(lexer *p, fdm *a, int aa, int bb, int cc)
         }
         
     
-        H = heaviside(phival,interface_width_face(p,a->phi,i,j,k,aa,bb,cc));
+        H = heaviside_face(p,a->phi,phival,i,j,k,aa,bb,cc);
         
         roval = ro_1*H + ro_2*(1.0-H);
 

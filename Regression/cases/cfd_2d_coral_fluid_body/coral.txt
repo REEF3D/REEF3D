@@ -1,0 +1,8 @@
+# CORAL model of the box, driven by the CFD fluid
+# Architect: Hans Bihs
+time dt 0.005 end 100
+output dt 0.005 file box.dat
+body box mass 1.0 cog 1.0 0.01 0.525
+joint heave prismatic ground box point 1.0 0.01 0.525 axis 0 0 1
+fluid_body box
+

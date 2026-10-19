@@ -62,7 +62,10 @@ void sflow_curv::check(lexer *p)
 
     refuse(p->j_dir!=1, "a 1D grid (j_dir 0)");
     refuse(p->A220>=5, "the non-hydrostatic pressure A 220 >= 5");
-    refuse(p->A212>0 || p->A260>0, "horizontal diffusion and turbulence (A 212, A 260)");
+    // horizontal diffusion explicit (A 212 1, sflow_ediff::curv_stress) with W 2 and the algebraic eddy viscosity
+    // (A 260 3 mixing length, A 260 4 parabolic); the implicit diffusion and the transport models not yet
+    refuse(p->A212==2, "the implicit horizontal diffusion A 212 2 (use A 212 1)");
+    refuse(p->A260!=0 && p->A260!=3 && p->A260!=4, "the turbulence models A 260 1/2 (A 260 3 and 4 are)");
     refuse(p->B98>=1 || p->B90>=1, "wave generation and absorption (B 90, B 98)");
     refuse(p->B440>0 || p->B441>0 || p->B442>0, "patch boundary conditions (B 440-442)");
     // 6DOF (P5c): prescribed bodies (X 10 2) and the ship pressure patch (X 10 3) with the waterline level set of
@@ -296,7 +299,7 @@ double sflow_curv::sigma(lexer *p, fdm2D *b, int ii, int jj, double c)
     return s;
 }
 
-void sflow_curv::wall_mirror(lexer *p, slice &u, slice &v, int ii, int jj, int cs)
+void sflow_curv::wall_mirror(lexer *p, slice &u, slice &v, int ii, int jj, int cs, int depth)
 {
     double nx,ny,len,un;
 
@@ -306,7 +309,7 @@ void sflow_curv::wall_mirror(lexer *p, slice &u, slice &v, int ii, int jj, int c
     if(cs==2) normal(p,2,ii,jj,nx,ny,len);
     if(cs==3) normal(p,2,ii,jj-1,nx,ny,len);
 
-    for(int qq=0; qq<3; ++qq)
+    for(int qq=0; qq<depth; ++qq)
     {
         int ai=ii, aj=jj, gi=ii, gj=jj;
 

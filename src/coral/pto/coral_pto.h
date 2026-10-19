@@ -20,19 +20,24 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Architect: Hans Bihs
 --------------------------------------------------------------------*/
 // REEF3D::CORAL: power take-off in a joint: axial force (prismatic, cylindrical) or torque about the
-// axis (revolute, cylindrical) between the two bodies of the joint. With q the joint coordinate
-// (zero at creation) and qd its rate:
-//   F = F0 - k (q - q0) - c qd - Fc tanh(qd / v_eps)      (+ end stops)
-// limited to |F| <= F_max and |F qd| <= P_max; absorbed power P = -F qd.
-// End stops: penalty spring k_stop and damper c_stop beyond q_min / q_max.
-// Control: passive; latching (held with c_latch for t_hold after each zero crossing of qd);
-// declutching (free, F = 0 apart from the stops, for t_hold after each zero crossing of qd).
+// axis (revolute, cylindrical) between the two bodies of the joint, built from the elements of the
+// PTO library (coral_pto_element.h). With q the joint coordinate (zero at creation) and qd its rate:
+//   generator  F = F0 - k (q - q0) - c qd - Fc tanh(qd / v_eps),  |F| <= F_max, |F qd| <= P_max
+//   end stops  penalty spring k_stop and damper c_stop beyond q_min / q_max (push only)
+// absorbed power P = -F qd of the generator (the end stops and the latch absorb nothing).
+// Control: passive; latching (a latch element, spring k_latch and damper c_latch at the position of
+// the turn, holds the joint for t_hold after each zero crossing of qd); declutching (generator off,
+// F = 0 apart from the stops, for t_hold after each zero crossing of qd). The crossing times are
+// interpolated between the steps. The controllers act once per converged step (commit).
 // Positive F pushes body b along the axis relative to body a (increases q).
 
 #ifndef CORAL_PTO_H_
 #define CORAL_PTO_H_
 
 #include"coral/core/coral_load.h"
+#include"coral/pto/coral_pto_element.h"
+#include"coral/pto/coral_pto_controller.h"
+#include<memory>
 #include<limits>
 #include<string>
 #include<vector>
@@ -54,7 +59,7 @@ namespace coral
         double k_stop = 0.0, c_stop = 0.0;
         pto_control control = pto_control::passive;
         double t_hold = 0.0;
-        double c_latch = 0.0;
+        double c_latch = 0.0, k_latch = 0.0;
     };
 
     class pto_load : public load
@@ -64,9 +69,14 @@ namespace coral
         pto_load(const joint&, bool rotational, const pto_settings&, const std::string &name="pto");
 
         std::string name() const override {return name_;}
+        coupling_kind coupling() const override {return coupling_kind::local;}
+        void coupled_bodies(std::vector<int>&) const override;
         void initialize(const model&, double t0) override;
         void eval(const model&, double t, VecX &f) const override;
         void commit(const model&, double t, double dt) override;
+        // restart from a checkpoint (coral_state.h)
+        void save_state(std::vector<double>&) const override;
+        bool load_state(const std::vector<double>&, size_t &k) override;
         double potential(const model&) const override;
         void channel_names(std::vector<std::string>&) const override;
         void channel_values(const model&, double t, std::vector<double>&) const override;
@@ -74,21 +84,27 @@ namespace coral
         double coordinate(const model&) const;
         double rate(const model&) const;
         double force(const model&) const;      // force (torque) of the PTO in the current state
-        double power(const model &m) const {return -force(m)*rate(m);}    // absorbed power
+        double force(const model&, double t) const;
+        double power(const model &m) const;    // absorbed power of the generator
         double energy() const {return energy_;}            // absorbed energy so far
         double mean_power(double t) const {return t > t0_ ? energy_/(t - t0_) : 0.0;}
-        bool held() const {return held_;}
+        bool held() const;                     // latched or declutched
+
+        // the elements (built from the settings in initialize())
+        const pto_composite &composite() const {return pto_;}
 
         pto_settings settings;
 
     private:
+        void build();
+        pto_output evaluate(const model&, double t) const;
+
         std::string name_;
         const joint *j_;
         bool rot_;
-        bool held_ = false;          // latched or declutched
-        bool armed_ = true;          // a zero crossing may start the next hold
-        double t_release_ = 0.0;
-        double qd_last_ = 0.0;
+        mutable pto_composite pto_;
+        std::vector<std::unique_ptr<pto_controller>> ctrl_;
+        double t_ = 0.0;             // time of the last converged state
         double P_last_ = 0.0;
         double energy_ = 0.0;
         double t0_ = 0.0;

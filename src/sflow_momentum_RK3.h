@@ -33,6 +33,14 @@ using namespace std;
 class sflow_momentum_RK3 final : public sflow_momentum_func
 {
 public:
+
+    void ckpt_fields(const std::function<void(const char*, char, double*)> &fd, const std::function<void(const char*, char, int*)> &fi) override
+    {
+        fd("momentum_RK3_WLRK1",'S',WLRK1.V); fd("momentum_RK3_WLRK2",'S',WLRK2.V);
+        fd("momentum_RK3_UHRK1",'S',UHRK1.V); fd("momentum_RK3_UHRK2",'S',UHRK2.V);
+        fd("momentum_RK3_VHRK1",'S',VHRK1.V); fd("momentum_RK3_VHRK2",'S',VHRK2.V);
+        fd("momentum_RK3_WHRK1",'S',WHRK1.V); fd("momentum_RK3_WHRK2",'S',WHRK2.V);
+    }
 	sflow_momentum_RK3(lexer*, fdm2D*, ghostcell*, sflow_HLL*, sflow_signal_speed*, sflow_reconstruct*, sflow_diffusion*, sflow_pressure*, 
                         solver2D*, solver2D*, ioflow*, sflow_fsf*, sflow_forcing*, sixdof*);
 	virtual ~sflow_momentum_RK3();

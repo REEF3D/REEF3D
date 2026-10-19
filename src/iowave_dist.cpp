@@ -437,7 +437,7 @@ void iowave::nhflow_active_beach_edge(lexer *p, ghostcell *pgc)
     nhf_active_edge = true;
     
     if(p->mpirank==0)
-    cout<<"iowave: "<<(beach_lp ? "combined beach B 99 6" : (p->B99==3 ? "active beach B 99 3" : "active beach B 99 4"))<<": absorbing Riemann edge at x+ with still water outside"<<endl;
+    cout<<"iowave: "<<(sirw_out.on ? "SIRW beach B 99 8" : beach_lp ? "combined beach B 99 6" : (p->B99==3 ? "active beach B 99 3" : "active beach B 99 4"))<<": absorbing Riemann edge at x+ with "<<(sirw_out.on ? "the predicted outgoing wave" : "still water")<<" outside"<<endl;
 }
 
 // NHFLOW combined generation (B 98 6): a Riemann edge at x- carrying the waves of all sources,
@@ -449,7 +449,7 @@ void iowave::nhflow_gen_edge(lexer *p, ghostcell *pgc)
 {
     nhf_gen_edge = false;
     
-    if(!gen_lp || p->A10!=5)
+    if(!(gen_lp || sirw_in.on) || p->A10!=5 || p->B98!=2)
     return;
     
     int nin = 0;
@@ -482,7 +482,7 @@ void iowave::nhflow_gen_edge(lexer *p, ghostcell *pgc)
     nhf_gen_edge = true;
     
     if(p->mpirank==0)
-    cout<<"iowave: combined generation B 98 6: Riemann edge with the waves at x-"<<endl;
+    cout<<"iowave: "<<(sirw_in.on ? "SIRW generation B 98 8: Riemann edge with the waves and the predicted reflected wave at x-" : "combined generation B 98 6: Riemann edge with the waves at x-")<<endl;
 }
 
 // decomposed precalc (B 89 1) with zone sources (B 524): selects the sources of the relaxation

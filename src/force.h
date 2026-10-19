@@ -43,7 +43,7 @@ public:
 	force(lexer*,fdm*,ghostcell*,int);
 	virtual ~force();
 	void start(lexer*,fdm*,ghostcell*);
-    void ini(lexer*,fdm*,ghostcell*);
+    void ini(lexer*,fdm*,ghostcell*,bool=true);   // false: the surface only (restart from a checkpoint)
 
 private:
 	void triangulation(lexer*, fdm*, ghostcell*, field&);

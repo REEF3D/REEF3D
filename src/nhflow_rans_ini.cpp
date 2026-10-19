@@ -56,10 +56,7 @@ void nhflow_rans_io::ini(lexer* p, fdm_nhf *d, ghostcell* pgc)
     {
     beddist = p->ZSP[IJK] - d->bed(i,j);
     
-    inflow_profile(p, beddist, d->WL(i,j), KIN[IJK], EPS[IJK], d->EV[IJK]);
-    
-    if(p->B11==0)
-    EPS[IJK] = 1.0;
+    inflow_profile(p, beddist, d->WL(i,j), KIN[IJK], EPS[IJK], d->EV[IJK]);   // k, eps/omega and nu_t consistent
     }
     
     // inflow
@@ -75,6 +72,9 @@ void nhflow_rans_io::ini(lexer* p, fdm_nhf *d, ghostcell* pgc)
     d->EV0[IJK] = d->EV[IJK];
     
     pgc->start24V(p,d->EV0,24);
+    
+    // HLES split (A 561): horizontal eddy viscosity before the first momentum step
+    hles_update(p,d,pgc);
     
     LOOP
     if(p->DF[IJK]<0)

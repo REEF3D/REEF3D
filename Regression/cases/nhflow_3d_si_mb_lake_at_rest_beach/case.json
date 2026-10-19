@@ -1,0 +1,21 @@
+{
+ "description": "NHFLOW hydrostatic semi-implicit, lake at rest on a wavy beach (2 curvilinear blocks, the shoreline across the interface, dry cells with the film A 544): velocities stay zero. Covers the wet/dry face rule (a face next to a dry cell opens with the eta of the wet cell) and the wet-only cell gradient of the non-orthogonal correction.",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 40,
+ "tags": [
+  "3d",
+  "nhflow",
+  "semi_implicit",
+  "curvilinear",
+  "multiblock",
+  "wetdry"
+ ],
+ "covers": [
+  "face_depth next to dry cells",
+  "cgrad (wet neighbours only)"
+ ],
+ "files": [
+  "blocks.dat"
+ ]
+}

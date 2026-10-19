@@ -24,15 +24,20 @@ Author: Hans Bihs
 #define REEFAMR_H_
 
 #include"increment.h"
+#include"amr_load.h"
 #include<vector>
 #include<cstddef>
 #include<algorithm>
 #include<limits>
+#include<deque>
+#include<functional>
+#include<string>
 
 class lexer;
 class ghostcell;
 class slice;
 class sixdof_obj;
+class reefckpt;
 
 using namespace std;
 
@@ -210,6 +215,18 @@ public:
     virtual ~reefamr();
 
     int patches_total;
+    // checkpoints (P 48, I 45; reefamr_ckpt.cpp): the patches of this rank with the module's list of
+    // arrays per patch: visit(name, kind S/F/C, double array or nullptr, int array or nullptr)
+    using ckpt_visit = std::function<void(const char*, char, double*, int*)>;
+    using ckpt_fields_fn = std::function<void(reefamr_patch*, const ckpt_visit&)>;
+    void ckpt_write_patches(reefckpt&, const char*, const ckpt_fields_fn&);
+    bool ckpt_read_patches(reefckpt&, const char*, const ckpt_fields_fn&, std::string&);
+    // the layout of the hierarchy (tile maps, hysteresis, placement): write; read sets it up for the
+    // next regrid (ckpt_layout_pending), which the module runs (it rebuilds the patches of the checkpoint)
+    void ckpt_write_layout(reefckpt&);
+    bool ckpt_read_layout(reefckpt&, std::string&);
+    // the load map now (a rebalance stop, G 46)
+    void write_loadmap(lexer *p) { if(nblk==0 && maxlev>=1 && lmap_steps>0) lmap_write(p); }
 
 protected:
     void configure(const reefamr_param&);
@@ -246,6 +263,13 @@ protected:
     // ---- hierarchy
     void setup(lexer*, ghostcell*);
     void regrid(lexer*, ghostcell*, bool);
+    // load statistics of the ranks (G 43, amr_load.h) and the measured cost model of the placement
+    // (G 41 0, reefamr_load.cpp): the module calls load_step once per step
+    void load_step(lexer*);
+    amr_load lstat;
+    // G 40 1, G 41 0 with a static refinement (no regrid): true at the step when the patches are placed
+    // once more with the measured cost model; the module regrids then
+    bool replace_due(lexer*);
     void free_patches();                    // all patches (module destructor)
     int patch_at(int, int, int);            // level, I, J: interior patch on this rank, -1: level 0 (l==0), -2: none, -3: outside the rank box
     int owner(int, int);                    // rank of the level-0 cell (I,J), -1: outside the domain
@@ -626,6 +650,8 @@ protected:
     };
     vector<rblock> blk;                 // empty: one block, the native grid
     int nblk = 0;
+    vector<int> bopen[2];               // G 54: per block the line of its -i face (inflow) [0] / +i face (outflow) [1], -1 none
+    void blocks_open(lexer*);           // the open faces of the blocks 1.. (G 54), checked
     int GNXV = 0, GNYV = 0;             // extent of the level-0 index space with the blocks
     static const int BGAP = 64;         // level-0 cells between the blocks in the index space
     void blocks_setup(lexer*, ghostcell*);
@@ -833,6 +859,39 @@ protected:
     vector<vector<int>> frecv;                  // [l]: target grid id+1 and index into rmatch, -1: skip
 
 private:
+    // ---- measured cost model of the placement (G 41 0, reefamr_load.cpp)
+    //  The work of a rank per step: busy = a (x1 + wp x2 + ws x3), x1 the level-0 cells that are not
+    //  solid (with the level-0 blocks of the rank), x2 the cells of its patches (EXT cells and
+    //  layers), x3 the parent blocks it serves to patches on other ranks; busy the wall-clock time
+    //  without the MPI calls and the regrids (amr_clock).  wp and ws are fitted over the ranks and the
+    //  windows between the regrids (ridge towards the last weights).
+    struct lsample { double y, x1, x2, x3; };
+    std::deque<std::vector<lsample>> lwin;  // the last windows, the samples of all ranks
+    bool lmeas = false;                     // G 41 0 with placement on several ranks
+    double lwp = 1.0, lws = 0.0;            // patch cell, served parent block in level-0 cells
+    double lmeasL = 1.0;                    // measured busy max/mean of the last window
+    double lmu = 0.0;                       // G 44: weight of the patch phase in the placement
+    int lfits = 0;
+    bool lw_open = false, lw_first = true, force_place = false;
+    double lw_t0 = 0.0, lw_m0 = 0.0, lw_r0 = 0.0, lw_rm0 = 0.0;
+    int lw_c0 = 0;
+    vector<double> lbase;                   // x1 of all ranks
+    // restart (I 45): the tile maps of the checkpoint for the next regrid, the ranks of its patches kept
+    vector<vector<unsigned char>> layoutM;
+    bool keep_ranks = false;
+    vector<reefamr_gpatch> GPckpt;          // the patch table of the checkpoint (keep_ranks)
+    // load map (G 45): patch cells per level-0 column of the rank box, of the current layout and summed
+    // over the steps; written as the work per step of every column for DIVEMesh (M 20 5, M 35 1)
+    vector<double> lmap_cur, lmap_acc;
+    long lmap_steps = 0;
+    bool lmap_dirty = true;
+    void lmap_layout(lexer*);
+    void lmap_step(lexer*);
+    void lmap_write(lexer*);
+    void load_window(lexer*, bool);         // closes the window (true: a sample, the fit), opens the next
+    void load_fit();
+    void load_counts(lexer*, double&, double&, double&);   // x1, x2, x3 of this rank
+    void load_base(lexer*);                 // lbase
     reefamr_patch* make_patch(lexer*, ghostcell*, int, int, int, int, int, int=0);
     void free_patch(reefamr_patch*);
     void build_lexer(lexer*, reefamr_patch&);

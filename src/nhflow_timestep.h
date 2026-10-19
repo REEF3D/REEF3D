@@ -40,6 +40,9 @@ public:
     virtual double dt_local_max(int)=0;
     // smallest horizontal cell size (and dz*WL) of the patch cells on this rank (1: wet cells only)
     virtual void dt_cell_size(int, double&, double&)=0;
+    // A 534 1: the smallest cell time scale of the semi-implicit step (advection, horizontal diffusion;
+    // nhflow_timestep_SI) and the largest water depth over the patch cells on this rank
+    virtual void dt_si_cmin(double cfl, double &cmin, double &hmax) {}
 };
 
 class nhflow_timestep : public increment
@@ -47,8 +50,8 @@ class nhflow_timestep : public increment
 public:
 	nhflow_timestep(lexer*);
 	virtual ~nhflow_timestep();
-	void start(lexer*,fdm_nhf*,ghostcell*);
-	void ini(lexer*,fdm_nhf*,ghostcell*);
+	virtual void start(lexer*,fdm_nhf*,ghostcell*);
+	virtual void ini(lexer*,fdm_nhf*,ghostcell*);
     
     nhflow_timestep_hook *phook = nullptr;
 

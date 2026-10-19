@@ -22,6 +22,7 @@ Author: Hans Bihs
 
 #include"momentum_rk.h"
 #include"lexer.h"
+#include"ckpt_registry.h"
 #include"fdm.h"
 #include"ghostcell.h"
 #include"bcmom.h"
@@ -182,7 +183,8 @@ momentum_rk::momentum_rk(lexer *p, fdm *a, ghostcell *pgc, convection *pconvecti
 
     // second-order implicit diffusion
     imex = (p->D20==2 && p->D23==2 && pdiff->apply_available());
-    imex_valid = false;
+    imex_valid = 0.0;
+    ckid_imex = ckpt_registry::add_raw(p,&imex_valid,1);
 
     if(imex)
     {
@@ -241,6 +243,7 @@ momentum_rk::momentum_rk(lexer *p, fdm *a, ghostcell *pgc, convection *pconvecti
 
 momentum_rk::~momentum_rk()
 {
+    ckpt_registry::remove(ckid_imex);
     delete ls;
     delete frk1;
     delete frk2;
@@ -1027,7 +1030,7 @@ void momentum_rk::imex_step_setup(lexer *p)
         }
     }
 
-    imex_valid = (scheme==LOWSTORAGE || stages==2);
+    imex_valid = (scheme==LOWSTORAGE || stages==2) ? 1.0 : 0.0;
 }
 
 // before the implicit solve of stage s: add the accumulated explicit diffusion of earlier stages

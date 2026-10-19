@@ -25,6 +25,7 @@ Author: Hans Bihs
 
 #include"increment.h"
 #include"slice4.h"
+#include<functional>
 #include<vector>
 #include<fstream>
 
@@ -56,6 +57,10 @@ public:
     // mesh refinement patches (nhflow_amr): treated like level 0, local to the patch (no
     // communication, no log); the hull is at the pose of the stage (nhflow_amr_6dof)
     void set_patch() {patch=true;}
+
+    // checkpoints (P 48, I 45): the footprint of the last stage and the harmonic extension (the start
+    // of the next solve)
+    void ckpt_fields(const std::function<void(const char*, char, double*)> &fd) { fd("fsfbody_Hb",'S',Hb.V); fd("fsfbody_etaext",'S',etaext.V); }
 
 private:
     void solve(lexer*, fdm_nhf*, ghostcell*);

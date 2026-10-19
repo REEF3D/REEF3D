@@ -60,6 +60,9 @@ private:
     double *wsf,*deta,*Uhorz;
     int n;
     ofstream wsfout,detaout,Uhorzout;
+public:
+    void flush_files() { wsfout.flush(); detaout.flush(); Uhorzout.flush(); }   // a rebalance stop (G 46)
+private:
     const int fileFlushMaxCount;
     
 

@@ -144,6 +144,8 @@ public:
     // vertical transpose stress and the sigma cross terms, per unit viscosity
     static void diff_div(lexer*, const double *UH, const double *VH);
     static double diff_explicit(lexer*, int comp, int i, int j, int k, const double *UH, const double *VH, const double *WH);
+    // the same with the HLES split (A 561): the horizontal stress parts times visc_h, the vertical transpose times visc_v
+    static double diff_explicit_hv(lexer*, int comp, int i, int j, int k, const double *UH, const double *VH, const double *WH, double visc_h, double visc_v);
     // the non-orthogonal part of the horizontal Laplacian of a cell field at layer k (faces to fluid cells)
     static double kflux3(lexer*, const double *f, int i, int j, int k);
     // horizontal gradient of the sigma derivative (f(k+1) - f(k-1))/(dsig) of a cell field at layer k

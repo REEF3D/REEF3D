@@ -29,6 +29,14 @@ void part::xchange(lexer *p, ghostcell *pgc, slice &bedch, int mode)
     // count send/recv
     xchange_count(p,pgc,mode);
     pgc->gcpartnum(sendnum,recvnum);
+    
+    // nothing leaves any subdomain (the usual case for a resting bed): no transfer
+    int nsend=0;
+    for(q=0;q<6;++q)
+    nsend += sendnum[q];
+    
+    if(pgc->globalisum(nsend)==0)
+    return;
 
     // check send/recv array size
     xchange_resize(p,pgc);

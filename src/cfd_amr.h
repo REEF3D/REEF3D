@@ -25,10 +25,14 @@ Architect: Hans Bihs
 
 #include"reefamr3d.h"
 #include"amr_grid_lookup.h"
+#include"amr_load.h"
 #include<vector>
 #include<functional>
+#include<map>
+#include<tuple>
 
 class lexer;
+class reefckpt;
 class fdm;
 class ghostcell;
 class field;
@@ -148,6 +152,20 @@ struct cfd_amr_field
 //  3 (the atmosphere) on all grids.  The probes and wave gauges of the printer (P 51, P 61, P 64)
 //  read the finest grid at their position (finest_grid).
 //
+//  G 40 1, the placement of the patches for the load of the ranks (reefamr3d, cfd_amr_place.cpp):
+//  a level-1 piece with the finer patches inside it (a unit) on any rank, its coarser level a
+//  shadow of the level-0 cells under it and around it (filled from level 0, giving back what the
+//  patches write onto level 0); the outputs and the loads of the bodies on the rank of the finest
+//  grid at the point (amr_cfd_mine).  G 40 2: the test of it (small units, placed anew).
+//
+//  Periodic boundaries in x and y (C 21, C 22 of DIVEMesh; on one rank or across ranks): a level is
+//  refined alike on both sides of a periodic edge (reefamr3d::mark_tiles), so no patch edge lies on
+//  it; the margin of a patch across it comes from the patches at the other end (the fill plans
+//  wrap the index), the composite solve has the level-0 multigrid periodic, the patches next to
+//  each other across the edge in one joint multigrid (shifted by the length; periodic when it goes
+//  around), a patch over the whole length periodic over itself, the overlap of the multigrids at
+//  the sides to patches of another rank.  Not with G 40 (it falls back to G 40 0) nor in z.
+//
 //  G 7 1, subcycling in time (cfd_amr_sub.cpp): every level its own step, level l+1 two steps per
 //  step of level l; the cells around a patch linear in time between the start and the end of the
 //  step of the coarser level; the projection of a level alone, with the pressure of the coarser
@@ -194,6 +212,13 @@ struct cfd_amr_patch : public r3patch
     // composite pressure
     vector<field4*> kv;
     reefmg_core *mg = nullptr;
+    // G 40: the overlap of the patch multigrid into the patches of the level next to it (cells below
+    // and above per direction; a restricted additive Schwarz across the cuts between the units), the
+    // overlap its multigrid was made with, the matrix rows of the patch (filled into the overlap of
+    // the others)
+    int olo[3] = {0,0,0}, ohi[3] = {0,0,0};
+    int mlo[3] = {0,0,0}, mhi[3] = {0,0,0};
+    vector<field4*> kc7;
 
     // subcycling (G 7 1)
     cfd_amr_tlev *ts = nullptr;
@@ -232,6 +257,15 @@ struct cfd_amr_cf
     double tdel[3];     // offset of the fine cell from the coarse centre (coarse cells), 0: none
 };
 
+// the time of a scope added to a timer
+struct cfd_amr_wclock
+{
+    double &a;
+    double t;
+    explicit cfd_amr_wclock(double &x) : a(x), t(MPI_Wtime()) {}
+    ~cfd_amr_wclock() { a += MPI_Wtime()-t; }
+};
+
 class cfd_amr : public reefamr3d, public amr_grid_lookup
 {
 public:
@@ -247,9 +281,13 @@ public:
     // the floating bodies, X 60 1)
     bool finest_grid(double, double, double, lexer*&, fdm*&) const override;
     bool finest_grid(double, double, double, lexer*&, fdm*&, turbulence*&) const override;
+    bool placed() const override { return place>0; }
+    int finest_level(double, double, double) const override;
+    int finest_id(double, double, double) const;
     void step(lexer*, fdm*, ghostcell*, vrans*, sixdof*);
     void timestep(lexer*, fdm*, ghostcell*);
-    void print(lexer*, bool after=false);
+    void print(lexer*, ghostcell*, bool after=false);
+    bool print_lagoon(lexer*, ghostcell*, int num);    // P 18: the blocks into the LAGOON store
 
     // the composite projection (cfd_amr_press.cpp), public for the vector space of the solver
     void pr_apply(int kx, int ky);
@@ -274,6 +312,7 @@ public:
     double tm[8] = {0,0,0,0,0,0,0,0};
     double tp[4] = {0,0,0,0};
     double t0l[3] = {0,0,0};        // G 7 0: the level-0 parts of tm[0], tm[1], tm[3]
+    double wtp = 0.0;               // the loops over the patches of this rank (their work without the fills)
 
 protected:
     r3patch* patch_new() override;
@@ -294,8 +333,9 @@ private:
         std::function<field&(int)> f;      // source (and destination)
         std::function<field&(int)> fd;     // destination, if not f
     };
-    void fill(int l, vector<fspec> &fs, bool siblings_only=false);   // siblings_only: copies from the patches of the same level (kind 0, 2) alone
-    void fill_all(vector<fspec> &fs);
+    void fill(int l, vector<fspec> &fs, bool siblings_only=false, int maxdepth=1<<20);   // siblings_only: copies from the patches of the same level (kind 0, 2) alone;
+                                                                                        // maxdepth: the cells around the patch up to that distance
+    void fill_all(vector<fspec> &fs, int maxdepth=1<<20);
     double prolong(const fspec &F, int g, const int *s, const int *o);
     double prolong_f(field &f, int type, int mode, int g, const int *s, const int *o);
     double cell_slope(field &f, int g, const int *s, int d, int mode);
@@ -324,7 +364,37 @@ private:
     vector<vector<int>> tage;       // [l][tile] regrids since the last flag (hysteresis G 5)
     void flags(vector<vector<unsigned char>> &seed, bool init);
     bool flagged(int g, int i, int j, int k, int lt, bool init);
-    void regrid(lexer*, ghostcell*);
+    void regrid(lexer*, ghostcell*, bool replace=false);    // replace: the units placed anew (G 41 0, static refinement)
+    vector<vector<unsigned char>> ck_seed;      // restart (I 45): the tile maps of the checkpoint for the regrid
+
+public:
+    // checkpoints (P 48, I 45; cfd_amr_ckpt.cpp): the hierarchy and every array of the patches
+    void ckpt_write(reefckpt&);
+    bool ckpt_read(reefckpt&, std::string&);
+    void write_loadmap(lexer*);
+    void flush_outputs();
+private:
+    void replace_static(lexer*, ghostcell*);              // G 40 1, G 41 0, static refinement: the weight measured, the units placed anew once
+    // G 41 0 (several ranks): the work of the ranks measured since the last regrid, the weight of a
+    // patch cell for the placement (wpatch), the report; lbar: a barrier before a level-0 part (the
+    // waits for the patches of other ranks not in the level-0 timers)
+    bool lmeas() const;
+    void lbar();
+    void measure_load();
+    // load statistics of the ranks (G 43, amr_load.h), once per step
+    void load_step(lexer*);
+    amr_load lstat;
+    // the load map (G 45, G 46): the patch cells per level-0 cell (load_w without wpatch) summed over
+    // the steps of the window of G 46 (G 47 steps), and this rank's level-0 and patch cells in it, for
+    // the weight of a patch cell measured from the busy times of the ranks (cfd_amr_ckpt.cpp)
+    void lmap_step(lexer*);
+    vector<double> lm_cur, lm_acc;
+    long lm_nregrid = -1, lm_steps = 0;
+    int lm_win = -1;
+    double lm_n0 = 0.0, lm_np = 0.0;
+    double ml_t0 = 0.0, ml_tp = 0.0;
+    int ml_n = 0;
+    void regrid_old(const vector<int> &fresh, vector<vector<char>> &got);   // G 40: from the old patches of all ranks
     void patch_fields_ini(int id);
     void free_patch(cfd_amr_patch*);
 
@@ -380,8 +450,20 @@ private:
     void pr_correct(int s);
     void pr_project(lexer*, ghostcell*, int s);
     void pr_sync(int k);
+    void pr_covered_coef();                              // the coarse couplings under the finer patches from the fine faces
+    void pr_halo0(field &f);                             // the halo of a level-0 vector (ranks, periodic edges)
+    bool pr_wrap(int id, int d) const;                   // patch id over the whole length of periodic direction d
+    // the overlap of the patch multigrids at the sides where a patch of the level is next to it that
+    // is not in its joint multigrid (a restricted additive Schwarz; the patches of one rank next to
+    // each other in a joint multigrid, with overlap cells for the sides to other ranks): every run.
+    // Without it the cuts at the rank boxes were a block Jacobi (a 3D band on 3 ranks 60 BiCGStab
+    // iterations, 12 with it), and so were the sides between the patches of one rank in no joint
+    // multigrid (four adaptive levels with G 7 1: the level projections 13.6 iterations, 6.8 with it)
+    bool pr_ras() const { return true; }
+    bool pr_ovl = false;            // some patch multigrid of some rank has overlap cells (the fills of their rows, right-hand sides)
     void pr_level(lexer*, ghostcell*, int l, int s);
     void pr_sync_project(lexer*, ghostcell*);   // G 7 1: the synchronisation projection at the end of the level-0 step
+    double psi_band(int g);                     // the half width of the interface band of grid g
     void pr_components();
     const vector<int>& UQ(int g) { return prl<0 ? lq[g+1] : aq[g+1]; }
     const vector<int>& UR(int g) { return prl<0 ? lr[g+1] : ar[g+1]; }
@@ -438,14 +520,29 @@ private:
         vector<int> ids;                        // its patches
         int lo[3] = {0,0,0}, n[3] = {0,0,0};    // box: first cell (index of the level), extent
         vector<int> own;                        // per cell of the box: the patch, -1
+        std::map<int,vector<int>> off;          // per patch: the box position of its cell 0 (3); a patch
+                                                // joined across a periodic edge lies past the end of the box
+        bool wrap[3] = {false,false,false};     // the box over the whole length of a periodic direction:
+                                                // the multigrid periodic there
+        int o(int id, int d) const { return off.at(id)[d]; }
+        // the overlap (pr_ras): across the sides where a member meets a patch of another rank (OV
+        // cells of its margin, own -2): the rows and the right-hand side of that patch, from the margin
+        // of the member ovm at index ovq; the correction kept in the members
+        vector<int> ovm, ovq;
     };
     vector<cfd_amr_lmg> lmg;            // the joint multigrids (all levels)
     vector<int> lmg_of;                 // per patch: its joint multigrid, -1 (its own)
     void pr_level_mg_setup();
     void pr_level_mg_fill(int m);
     void pr_level_mg_fill_comp(int m);
-    void pr_level_vcycle(int m, int kr, int kz);
-    void pr_level_solve(int l, int kr, int kz);     // the V-cycles of level l: joint or patch-local
+    void pr_level_mg_ovrows(int m, double dshift);   // the rows of the overlap cells of a joint multigrid
+    void pr_level_vcycle(int m, int kr, int kz, int kc=-1);
+    void pr_level_solve(int l, int kr, int kz, int kc=-1);     // the V-cycles of level l: joint or patch-local (the correction added to z, and to kc)
+    // the fine level of the multigrid of patch id from its rows (diagonal times dshift), the couplings
+    // to the cells around it dropped, G 40: over its box with the overlap (pr_overlap, pr_coef_fill)
+    void pr_patch_mg(int id, double dshift);
+    void pr_overlap();
+    void pr_coef_fill(int l);
 
     // wave generation and the numerical beach on the patches (cfd_amr_relax.cpp): the relaxation
     // zones (B 98 2, B 99 1/2) with a wave theory of level 0, evaluated at the cells of the patch
@@ -474,6 +571,25 @@ private:
     double pr_res_last = 0.0;
     long pr_it_total = 0, pr_solves = 0;
     bool pr_ready = false;
+
+    // G 40, the placement of the units (cfd_amr_place.cpp): the copy plans between level 0 and the
+    // shadows of the level-1 patches (reefamr3d: sh_down, all cells of the shadow arrays)
+    r3cplan pu_cell;                    // up: the restriction onto the cells under the level-1 patches (set)
+    r3cplan pu_face[3];                 //     the faces under them (set; the - face at the low edge too)
+    r3cplan pu_cf[3];                   //     the coarse faces at the edges of the level-1 patches (set)
+    r3cplan pu_cc;                      //     the coarse cells at those edges (added: pr_apply, refluxing)
+    r3cplan pu_key;                     //     the coarse cell and side of the faces: the folds of the level-0
+                                        //     rows (pjm_corr), the couplings of the level-0 multigrid (pr_matrix)
+    vector<vector<double>> kval;        // per shadow: the sum of kc of its keys (pu_key order)
+    std::map<std::tuple<int,int,int,int,int,int>,int> kidx;    // (shadow, coarse cell, d, dir) -> its key
+    void sh_plans();
+    void sh_run(r3cplan &X, const vector<std::function<field&(int)>> &f, bool add);
+    void sh_fill_down(const vector<fspec> &fs);    // the sources of a fill of level 1 into the shadows
+    void sh_down_f(const vector<std::function<field&(int)>> &f) { sh_run(sh_down,f,false); }
+    void sh_zero(r3cplan &X, const std::function<field&(int)> &f);  // the sent items of X in f (the shadows)
+    void sh_folds();
+    void sh_ks();
+    bool is_shadow(int g) const { return g>=npat; }
 
     // heat or concentration (cfd_amr_scalar.cpp): a conservative transport of the scalar on all
     // grids (SSP-RK3 in flux form; the diffusion explicit in the stages, D 20 1, or implicit after
@@ -511,6 +627,7 @@ private:
     void sc_step_level(int l, double dt, double th0);  // G 7 1: the grids of level l
     void sc_reflux(int l);              // the flux registers of the patch edges of level l onto level l-1
     void sc_reset(int lfine);
+    void sc_record_shadows(double w, bool diff);    // G 40: the coarse fluxes of level 0 at the level-1 edges
     double sc_total(double &smin, double &smax);
 };
 

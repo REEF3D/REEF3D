@@ -177,12 +177,15 @@ void sixdof_obj_cfd::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc)
     Nne.resize(p->net_count);
     }
 
-    // Print initial body 
+    // Print initial body (not on a restart from a checkpoint, I 45 1: printed already)
+    if(p->I45!=1)
+    {
     if(p->X50==1)
     print_vtp(p,pgc);
     
     else if(p->X50==2)
     print_stl(p,pgc);
+    }
     
     // ghostcell update
     pgc->gcdf_update(p,a);

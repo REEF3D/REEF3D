@@ -1,0 +1,13 @@
+{
+ "description": "fnpf_3d_amr_break with the patch over the static coastline (G 30 1, patch 3-8 m, shoreline at 7 m): wetting and drying, the coastline relaxation and breaking on the patch.",
+ "solver": "fnpf",
+ "np": 1,
+ "base": "fnpf_3d_amr_break",
+ "ctrl_set": {"G 10": "3.0 8.0 0.0 0.4"},
+ "ctrl_add": ["G 30 1"],
+ "tags": ["3d", "fnpf", "amr", "waves", "breaking", "coastline", "wetdry"],
+ "covers": [
+  "fnpf_amr with G 30 1: fnpf_fsfbc_wd on the patches, patch_wd_ini, patch_coast, coastline_vel",
+  "wet-aware prolongation (pweights, rcubic) and restriction of the wet children only"
+ ]
+}

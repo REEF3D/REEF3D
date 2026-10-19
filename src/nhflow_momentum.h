@@ -43,6 +43,8 @@ class sixdof;
 class nhflow_forcing;
 class nhflow_stage_runner;
 
+#include<functional>
+
 using namespace std;
 
 class nhflow_momentum
@@ -55,6 +57,13 @@ public:
     
     // mesh refinement (nhflow_amr): the stages of all grids are run by the AMR module
     virtual void attach_runner(nhflow_stage_runner*) {}
+
+    // checkpoints (P 48, I 45): the arrays of the object that carry over to the next step (the
+    // initial guesses of the implicit diffusion, the stage arrays with their ghost cells)
+    virtual void ckpt_fields(const std::function<void(const char*, char, double*)>&,
+                             const std::function<void(const char*, char, int*)>&) {}
+    // after a restart from a checkpoint (the state of a step: the start-up of the first step is done)
+    virtual void ckpt_restored() {}
 
 };
 

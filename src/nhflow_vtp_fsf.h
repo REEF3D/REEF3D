@@ -32,24 +32,26 @@ class lexer;
 class fdm_nhf;
 class ghostcell;
 class sediment;
+class nhflow_turbulence;
 
 using namespace std;
 
 class nhflow_vtp_fsf : public increment, private vtp3D
 {
 public:
+    int& print_counter() { return printcount; }   // checkpoints (P 48, I 45)
     nhflow_vtp_fsf(lexer*,fdm_nhf*,ghostcell*);
     virtual ~nhflow_vtp_fsf() = default;
 
-    void start(lexer*,fdm_nhf*,ghostcell*,sediment*);
+    void start(lexer*,fdm_nhf*,ghostcell*,sediment*,nhflow_turbulence*);
     void start_avg(lexer*,fdm_nhf*,ghostcell*,sediment*);
     void preproc(lexer*,fdm_nhf*,ghostcell*);
 
 private:
     void initialize_avg_arrays(lexer *p);
-    void print2D(lexer*,fdm_nhf*,ghostcell*,sediment*);
+    void print2D(lexer*,fdm_nhf*,ghostcell*,sediment*,nhflow_turbulence*);
     void print2D_avg(lexer*,fdm_nhf*,ghostcell*,sediment*,int);
-    void pvtp(lexer*,int);
+    void pvtp(lexer*,fdm_nhf*,ghostcell*,nhflow_turbulence*,int);
     void pvtp_avg(lexer*,int);
 
     char name[200];

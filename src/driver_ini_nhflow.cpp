@@ -103,6 +103,10 @@ void driver::driver_ini_nhflow()
     SLICELOOP4
     d->ks(i,j) = p->B50;
     
+    // a roughness without bed friction: B 50 alone acts only in the wall functions of a turbulence model
+    if(p->mpirank==0 && p->A519==0 && p->B50!=0.0001)
+    cout<<"!!! B 50 "<<p->B50<<" is set but A 519 0: no bed friction on the momentum (A 519 1 for the bed)"<<endl;
+    
     if(p->S10>0 && p->S28==0)
     SLICELOOP4
     d->ks(i,j) = p->S20;
@@ -190,7 +194,10 @@ void driver::driver_ini_nhflow()
     // VRANS ini
     pnhfvrans->initialize(p,d,pgc);
     
-    // mesh refinement ini: patches from the initial state
+    // mesh refinement ini: patches from the initial state (A 560: the turbulence of level 0, whose fields the blocks
+    // and the patches exchange with)
+    if(pnhfamr!=nullptr && p->A560!=0)
+    pnhfamr->turb_attach(pnhfturb);
     if(pnhfamr!=nullptr)
     pnhfamr->ini(p,d,pgc);
 
@@ -202,10 +209,14 @@ void driver::driver_ini_nhflow()
     if(pnhfamr!=nullptr)
     pnhfamr->sed_attach(psed);
     
+    // the first output (not on a restart, I 45: the outputs continue)
+    if(p->I45!=1)
+    {
     pprint->start(p,d,pgc,pflow,pnhfturb,psed);
     
     if(pnhfamr!=nullptr)
     pnhfamr->print(p,d,pgc);
+    }
 
     // Lagrangian particles ini
     pnhfpart->ini(p,d,pgc);
@@ -216,6 +227,10 @@ void driver::driver_ini_nhflow()
     pnhfturb->ktimesave(p,d,pgc);
     pnhfturb->etimesave(p,d,pgc);
     }
+
+    // restart from the latest checkpoint (I 45), on any decomposition
+    if(p->I45==1)
+    ckpt_read();
 
     p->gctime=0.0;
     p->xtime=0.0;

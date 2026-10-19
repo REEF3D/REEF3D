@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"nhflow_fsf_body.h"
+#include"reefckpt.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
@@ -484,7 +485,7 @@ void nhflow_fsf_body::print(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
         if(!out.is_open())
         {
         mkdir("./REEF3D_NHFLOW_6DOF",0777);
-        out.open("./REEF3D_NHFLOW_6DOF/REEF3D_6DOF_pierced.dat");
+        if(reefckpt_open(out,"./REEF3D_NHFLOW_6DOF/REEF3D_6DOF_pierced.dat",p->I45))
         out<<"time \t columns \t sweeps \t omega \t dV_core \t dV_trans \t dV_trans_sum \t dV_returned_sum \t V_total \t V_water \t t_step \t t_total"<<endl;
         }
 

@@ -45,6 +45,7 @@ Author: Hans Bihs
 #include"coral/reef3d/coral_reef3d.h"
 #include"runlog.h"
 #include"lagoon_output.h"
+#include"reefrun_ckpt.h"
 
 void driver::loop_nhflow()
 {
@@ -121,10 +122,14 @@ void driver::loop_nhflow()
         
         // printer
         pprint->start(p,d,pgc,pflow,pnhfturb,psed);
+        lagoon_output::poll_all(p,pgc);  // outputs of the LAGOON store written by now (P 18)
         preg->nhflow_step(p,d,pgc);
         
         if(pnhfamr!=nullptr)
         pnhfamr->print(p,d,pgc);
+
+        // checkpoint on any decomposition (P 48), rebalance on the measured load (G 46)
+        ckpt().step();
 
         // Shell-Printout
         p->wavecalctime = pgc->globalmax(p->wavecalctime);

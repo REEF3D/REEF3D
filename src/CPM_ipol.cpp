@@ -22,6 +22,7 @@ Architect: Hans Bihs
 
 #include"CPM.h"
 #include"lexer.h"
+#include<limits>
 
 /*--------------------------------------------------------------------
 interpolation of the cell-centred fields at the parcels with stencil reuse (WP9)
@@ -53,9 +54,9 @@ double CPM::cip4a(lexer *p, field &f, double xp, double yp, double zp)
         s.y = yp;
         s.z = zp;
         
-        s.i = p->posf_i(xp);
-        s.j = p->posf_j(yp);
-        s.k = p->posf_k(zp);
+        s.i = pfi(p,n,xp);
+        s.j = pfj(p,n,yp);
+        s.k = pfk(p,n,zp);
         
         const int ii=s.i, jj=s.j, kk=s.k;
         
@@ -89,4 +90,81 @@ double CPM::cip4a(lexer *p, field &f, double xp, double yp, double zp)
     double y2 = wb*x3 +(1.0-wb)*x4;
 
     return wc*y1 + (1.0-wc)*y2;
+}
+
+/*--------------------------------------------------------------------
+cell indices of the parcel coordinates (item 4 of the performance review, validation 22)
+
+index_cache stores posc_* and posf_* of the parcel coordinates with the coordinate itself; it runs
+at the start of every sub-step and recomputes only the coordinates that changed (in a resting bed
+almost none). pci ... pfk return the stored index when the coordinate is the stored one, otherwise
+they compute it. The index is a function of the coordinate alone, so the results are those of
+posc_* and posf_* whatever the parcel slot q holds (exchanged, removed or added parcels included).
+--------------------------------------------------------------------*/
+void CPM::index_cache(lexer *p)
+{
+    const size_t N = P.index;
+    
+    if(ixX.size()<N)
+    {
+        const double nan = std::numeric_limits<double>::quiet_NaN();
+        ixX.resize(N,nan);  ixY.resize(N,nan);  ixZ.resize(N,nan);
+        ixCi.resize(N,0);   ixCj.resize(N,0);   ixCk.resize(N,0);
+        ixFi.resize(N,0);   ixFj.resize(N,0);   ixFk.resize(N,0);
+    }
+    
+    for(size_t q=0;q<N;++q)
+    if(P.Flag[q]>=ACTIVE)
+    {
+        if(P.X[q]!=ixX[q])
+        {
+            ixX[q] = P.X[q];
+            ixCi[q] = p->posc_i(P.X[q]);
+            ixFi[q] = p->posf_i(P.X[q]);
+        }
+        
+        if(P.Y[q]!=ixY[q])
+        {
+            ixY[q] = P.Y[q];
+            ixCj[q] = p->posc_j(P.Y[q]);
+            ixFj[q] = p->posf_j(P.Y[q]);
+        }
+        
+        if(P.Z[q]!=ixZ[q])
+        {
+            ixZ[q] = P.Z[q];
+            ixCk[q] = p->posc_k(P.Z[q]);
+            ixFk[q] = p->posf_k(P.Z[q]);
+        }
+    }
+}
+
+int CPM::pci(lexer *p, int q, double x)
+{
+    return (q>=0 && size_t(q)<ixX.size() && x==ixX[q]) ? ixCi[q] : p->posc_i(x);
+}
+
+int CPM::pcj(lexer *p, int q, double y)
+{
+    return (q>=0 && size_t(q)<ixY.size() && y==ixY[q]) ? ixCj[q] : p->posc_j(y);
+}
+
+int CPM::pck(lexer *p, int q, double z)
+{
+    return (q>=0 && size_t(q)<ixZ.size() && z==ixZ[q]) ? ixCk[q] : p->posc_k(z);
+}
+
+int CPM::pfi(lexer *p, int q, double x)
+{
+    return (q>=0 && size_t(q)<ixX.size() && x==ixX[q]) ? ixFi[q] : p->posf_i(x);
+}
+
+int CPM::pfj(lexer *p, int q, double y)
+{
+    return (q>=0 && size_t(q)<ixY.size() && y==ixY[q]) ? ixFj[q] : p->posf_j(y);
+}
+
+int CPM::pfk(lexer *p, int q, double z)
+{
+    return (q>=0 && size_t(q)<ixZ.size() && z==ixZ[q]) ? ixFk[q] : p->posf_k(z);
 }

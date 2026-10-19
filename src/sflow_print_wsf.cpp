@@ -28,6 +28,7 @@ Author: Hans Bihs
 #include<sys/stat.h>
 #include<sys/types.h>
 #include"runlog.h"
+#include"reefckpt.h"
 
 sflow_print_wsf::sflow_print_wsf(lexer *p, fdm2D* b) : fileFlushMaxCount(100)
 {
@@ -44,10 +45,12 @@ sflow_print_wsf::sflow_print_wsf(lexer *p, fdm2D* b) : fileFlushMaxCount(100)
     if(p->mpirank==0 && p->P51>0)
     {
     // open file
-	wsfout.open("./REEF3D_SFLOW_WSF/REEF3D-SFLOW-WSF-HG.dat");
+	const bool head = reefckpt_open(wsfout,"./REEF3D_SFLOW_WSF/REEF3D-SFLOW-WSF-HG.dat",p->I45);   // I 45: continued
 	if(p->plog)
 	p->plog->table_file(p,"wsf","gauges","./REEF3D_SFLOW_WSF/REEF3D-SFLOW-WSF-HG.dat");
 
+    if(head)
+    {
     wsfout<<"number of gauges:  "<<gauge_num<<endl<<endl;
     wsfout<<"x_coord     y_coord"<<endl;
     for(n=0;n<gauge_num;++n)
@@ -60,6 +63,7 @@ sflow_print_wsf::sflow_print_wsf(lexer *p, fdm2D* b) : fileFlushMaxCount(100)
     wsfout<<"\t P"<<n+1;
 
     wsfout<<endl<<endl;
+    }
     }
 	
 	//-------------------

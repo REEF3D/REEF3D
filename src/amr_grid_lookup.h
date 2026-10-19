@@ -39,7 +39,19 @@ public:
 
     // the same with the turbulence model of that grid
     virtual bool finest_grid(double x, double y, double z, lexer *&q, fdm *&a, turbulence *&t) const = 0;
+
+    // the placement of the patches (G 40): the finest grid of a point may be on a rank that does
+    // not hold its level-0 cell; the outputs and loads then take the rank of the finest grid
+    // (amr_cfd_mine); finest_level: the level of the grid finest_grid gives here (0: none)
+    virtual bool placed() const { return false; }
+    virtual int finest_level(double x, double y, double z) const { return 0; }
 };
+
+// the points of an output (a load) this rank evaluates: those on its level-0 grid (flag); with the
+// placement of the CFD patches the rank of the finest grid at the point, on level 0 the ranks that
+// hold it (collective when placed)
+#include<vector>
+void amr_cfd_mine(const amr_grid_lookup *amr, int n, const double *x, const double *y, const double *z, const int *flag, std::vector<char> &mine);
 
 // The same for the 2D-column models of the refinement core reefamr (NHFLOW, FNPF, SFLOW): the
 // finest patch of this rank for the output at (x,y), the point two cells inside the cells the

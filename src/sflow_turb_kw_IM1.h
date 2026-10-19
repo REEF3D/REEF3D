@@ -36,6 +36,14 @@ class sflow_turb_kw_IM1 final : public sflow_turb_io
 {
 
 public:
+
+    void ckpt_fields(const std::function<void(const char*, char, double*)> &fd, const std::function<void(const char*, char, int*)> &fi) override
+    {
+        sflow_turb_io::ckpt_fields(fd,fi);
+        fd("turb_kw_IM1_kn",'S',kn.V); fd("turb_kw_IM1_wn",'S',wn.V); fd("turb_kw_IM1_Pk",'S',Pk.V);
+        fd("turb_kw_IM1_S",'S',S.V); fd("turb_kw_IM1_Vw",'S',Vw.V); fd("turb_kw_IM1_Qw",'S',Qw.V);
+        fd("turb_kw_IM1_ustar",'S',ustar.V); fd("turb_kw_IM1_cf",'S',cf.V);
+    }
     sflow_turb_kw_IM1(lexer*);
 	virtual ~sflow_turb_kw_IM1();
     

@@ -27,17 +27,32 @@ Architect: Hans Bihs
 // with trial states (Newton iterations), so eval() must not change the load.
 // commit() is called once per converged step with the converged state; loads with a history
 // (radiation memory, internal states, line dynamics) update it there.
+// kinematics_points(): the points where the load asks a sampled wave source (the resolved fluid of REEF3D)
+// for the kinematics, so that the coupling can sample the fluid there once per fluid step.
+// save_state()/load_state(): the history of the load for a restart (coral_state.h).
+// coupling() tells the Jacobian which bodies the load couples: global (any body may act on any other;
+// the default), local (only the bodies listed by coupled_bodies() and the generalized coordinates
+// listed by coupled_coordinates()), diagonal (each body only on itself, e.g. gravity). Local and
+// diagonal loads let the integrators perturb several bodies at once.
+// has_tangent()/tangent(): a load with an analytic tangent adds cK dF/dq + cC dF/dnu + cM dF/dnu'
+// itself (q: configuration increments as the integrators take them: x += dx global, R = R exp(dtheta)
+// body frame, coordinates += dq; nu: velocities, nu': accelerations); it is then left out of the
+// finite-difference Jacobian and of the colouring.
 
 #ifndef CORAL_LOAD_H_
 #define CORAL_LOAD_H_
 
 #include"coral/core/coral_types.h"
+#include<Eigen/Sparse>
 #include<string>
 #include<vector>
 
 namespace coral
 {
     class model;
+
+    enum class coupling_kind {global, local, diagonal};
+    using triplet = Eigen::Triplet<double>;
 
     class load
     {
@@ -55,12 +70,31 @@ namespace coral
         // converged step from t-dt to t
         virtual void commit(const model&, double /*t*/, double /*dt*/) {}
 
+        // bodies whose state changes the forces of the load on each other
+        virtual coupling_kind coupling() const {return coupling_kind::global;}
+        virtual void coupled_bodies(std::vector<int>&) const {}
+        virtual void coupled_coordinates(std::vector<int>&) const {}
+
+        // analytic tangent (rows and columns: generalized degrees of freedom of the model)
+        virtual bool has_tangent() const {return false;}
+        virtual void tangent(const model&, double /*t*/, double /*cK*/, double /*cC*/, double /*cM*/,
+                             std::vector<triplet>&) const {}
+
+        // points at which the load takes the wave kinematics from source (a wave_kinematics, see
+        // hydro/coral_waves.h), at their current positions, in the order of the indices of its requests;
+        // nothing if the load does not use that source
+        virtual void kinematics_points(const model&, const void* /*source*/, std::vector<Vec3>&) const {}
+
         // potential energy of conservative loads (energy checks), 0 otherwise
         virtual double potential(const model&) const {return 0.0;}
 
         // output channels: names once, values per output
         virtual void channel_names(std::vector<std::string>&) const {}
         virtual void channel_values(const model&, double /*t*/, std::vector<double>&) const {}
+        // the state the load carries from step to step (restart of REEF3D from a checkpoint; loads
+        // without a history have none): appended to the vector, taken back from position k
+        virtual void save_state(std::vector<double>&) const {}
+        virtual bool load_state(const std::vector<double>&, size_t &k) {(void)k; return true;}
     };
 }
 

@@ -55,6 +55,13 @@ public:
     slice& stage_WL(fdm_nhf*,int) override final;
     double* stage_UH(fdm_nhf*,int,int) override final;
 
+    void ckpt_fields(const std::function<void(const char*, char, double*)> &fd, const std::function<void(const char*, char, int*)> &fi) override
+    {
+        fd("mom_UHDIFF",'C',UHDIFF); fd("mom_VHDIFF",'C',VHDIFF); fd("mom_WHDIFF",'C',WHDIFF);
+        fsfbody_ckpt_fields(fd);
+        fd("mom_UHRK1",'C',UHRK1); fd("mom_VHRK1",'C',VHRK1); fd("mom_WHRK1",'C',WHRK1); fd("mom_WLRK1",'S',WLRK1.V);
+    }
+
     double *UHDIFF,*VHDIFF,*WHDIFF;
     double *UHRK1,*VHRK1,*WHRK1;
     

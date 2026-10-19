@@ -11,7 +11,7 @@ the Free Software Foundation; either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful, but WITHOUT
 ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE. d->Se[IJK]e the GNU General Public License
+FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
 You should have received a copy of the GNU General Public License
@@ -79,8 +79,8 @@ void nhflow_signal_speed::signal_speed_update(lexer* p, ghostcell *pgc, fdm_nhf 
         else
         if((wP==1 && wN==0) || (dfP==1 && dfN<0)) // right dry
         {
-        d->Ss[IJK] = us - cs;
-        d->Sn[IJK] = us + cs;
+        d->Ss[IJK] = us -     cs;
+        d->Sn[IJK] = us + 2.0*cs;
         d->SSx[IJK] = d->Sn[IJK];
         }
         

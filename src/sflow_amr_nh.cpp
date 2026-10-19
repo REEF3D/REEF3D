@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"sflow_amr.h"
+#include<cstdlib>
 #include"lexer.h"
 #include"fdm2D.h"
 #include"ghostcell.h"
@@ -798,6 +799,20 @@ void sflow_amr::nh_solve0(lexer *p, fdm2D *b, ghostcell *pgc)
 // the grids as the initial guess, the result in their pressure (with the cells around the patches)
 void sflow_amr::nh_core(lexer *p)
 {
+    // the Krylov vectors start at 0 on every grid (the cells outside the rows of this solve and the
+    // grids outside its window included): the solve does not depend on the vectors of earlier solves,
+    // so a restart from a checkpoint (P 48, I 45) continues it bitwise
+    for(int g=-1; g<(int)P.size(); ++g)
+    {
+        const int nv = (g<0) ? (int)nh0_v.size() : (int)SP(g)->nv.size();
+        lexer *q = glex(g);
+        for(int k=0; k<MIN(nv,(int)NVEC); ++k)
+        {
+            slice &v = nh_vec(g,k);
+            std::fill(v.V,v.V+(size_t)q->imax*q->jmax,0.0);
+        }
+    }
+
     // right-hand side into NS (temporarily), q = 0 rows start at 0
     nh_each([&](int g, nhg &G, int ii, int jj, int c)
     {

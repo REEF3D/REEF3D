@@ -2,8 +2,7 @@
  "base": "seastate_2d_phase16_faces_composite",
  "np": 2,
  "same_as": "seastate_2d_phase16_faces_composite",
- "same_as_rtol": 1e-05,
- "description": "as seastate_2d_phase16_faces_composite on 2 ranks: the remote ring faces with the fills at the start of each quadrant sweep, the level-0 faces after it; the converged result of one rank within 1e-5 (regression.py ranks).",
+ "description": "as seastate_2d_phase16_faces_composite on 2 ranks: the composite sweep pipelined across the ranks (A 781 1, Phase 17): the boundary tiles carry the faces of the covered level-0 cells and the ring cells and ring faces of the patches downstream; bitwise the result of one rank (regression.py ranks; Phase 16: within 1e-5 with the lagged sweeps)",
  "tags": [
   "quick",
   "2d",
@@ -12,6 +11,7 @@
   "mpi"
  ],
  "covers": [
-  "composite sweep with remote ring and level-0 faces"
+  "seastate_amr::kba_pack, kba_unpack (pipelined composite sweep)",
+  "remote ring and level-0 faces"
  ]
 }

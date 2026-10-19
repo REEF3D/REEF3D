@@ -28,6 +28,9 @@ Authors: Tobias Martin, Hans Bihs
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 
+// Mass properties of the closed triangulated surface: volume, centroid and inertia tensor
+// from the surface integrals of D. Eberly, Polyhedral Mass Properties (Revisited),
+// Geometric Tools, 2002 (after B. Mirtich, J. Graphics Tools 1(2), 1996).
 void sixdof_obj_cfd::geometry_parameters(lexer *p, fdm *a, ghostcell *pgc)
 {
     double x0, x1, x2, y0, y1, y2, z0, z1, z2;
@@ -258,6 +261,7 @@ void sixdof_obj_nhflow::geometry_parameters_nhflow(lexer *p, fdm_nhf *d, ghostce
 	}
 }
 
+// surface integrals of D. Eberly, Polyhedral Mass Properties (Revisited), Geometric Tools, 2002
 void sixdof_obj::geometry_parameters_surface(lexer *p, ghostcell *pgc, double Vol_ls)
 {
     // volume, mass, centre of gravity and inertia tensor from the closed surface triangulation

@@ -40,6 +40,7 @@ Author: Hans Bihs
 #include"sflow_vtp_bed.h"
 #include"6DOF_sflow.h"
 #include"sflow_amr.h"
+#include"reefrun_ckpt.h"
 
 void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
 {
@@ -195,6 +196,10 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
     //roughness ini
     SLICELOOP4
     b->ks(i,j) = p->B50;
+    
+    // a roughness without bed friction (A 218 0): B 50 then acts only in the turbulence models and the sediment
+    if(p->mpirank==0 && p->A218==0 && p->B50!=0.0001)
+    cout<<"!!! B 50 "<<p->B50<<" is set but A 218 0: no bed friction (A 218 1: Manning, n = ks^(1/6)/20)"<<endl;
 
     pgc->gcsl_start4(p,b->ks,50);
 
@@ -208,15 +213,22 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
     pprint->amr_columns(pamr);      // the wave gauges and probes on the finest grid
     pamr->sed_attach(psed);
     pamr->timestep(p,b,pgc);
+    if(p->I45!=1)
     pamr->print(p,b,pgc);
     }
 
+    // restart from the latest checkpoint (I 45 1): the state at the end of its step
+    if(p->I45==1)
+    ckpt(p,b,pgc).read();
+
     // print
     log_ini(p);
+    if(p->I45!=1)
+    {
 	print_debug(p,b,pgc);
     pprint->start(p,b,pgc,pflow,pturb,psed);
-
 	pprintbed->start(p,b,pgc,psed);
+    }
 }
 
 void sflow_f::ini_fsf(lexer *p, fdm2D* b, ghostcell* pgc)

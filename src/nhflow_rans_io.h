@@ -63,16 +63,26 @@ public:
     void name_vtp(lexer*, fdm_nhf*, ghostcell*,ofstream&, int*, int &) override final;
     void offset_ParaView_2D(lexer*, int*, int &) override final;
     
+    void ckpt_fields(const std::function<void(const char*, char, double*)> &fd, const std::function<void(const char*, char, int*)> &fi) override
+    {
+        fd("turb_KIN",'C',KIN); fd("turb_EPS",'C',EPS); fi("turb_WETN",'S',WETN);
+        fd("turb_PK",'C',PK); fd("turb_PK0",'C',PK0); fd("turb_PK_b",'C',PK_b);
+    }
     double *KIN,*EPS;
     int *WALLF;
     int *WETN;   // wet state of the column after the last turbulence step (newly wetted columns)
     
     void wetting_ini(lexer*, fdm_nhf*, double*, double*, bool);
     void length_limit(lexer*, fdm_nhf*, bool);
+    
+    // SST/Bradshaw limiter (A 564 2), shared by k-epsilon and k-omega
+    void walldist_h(lexer*, fdm_nhf*, ghostcell*);
+    double sst_walldist(lexer*, fdm_nhf*);
+    double sst_F2(lexer*, fdm_nhf*, double, double);
+    double *WDH = nullptr;   // distance to the nearest side wall with a wall function (A 519 2), walldist_h
 	
 	double const ke_c_1e, ke_c_2e,ke_sigma_k,ke_sigma_e;
 	double const kw_alpha, kw_beta,kw_sigma_k,kw_sigma_w;
-	double const sst_alpha1, sst_alpha2, sst_beta1, sst_beta2, sst_sigma_k1, sst_sigma_k2, sst_sigma_w1, sst_sigma_w2;
 
 private:
     void kepsini_default(lexer*,fdm_nhf*,ghostcell*);

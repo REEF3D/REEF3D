@@ -496,6 +496,13 @@ void cfd_amr::sc_reflux(int l)
     if(off)
     return;
 
+    // G 40: the coarse cells of the shadows collect their difference, added on the ranks that hold
+    // the cells
+    const bool up = (place && l==1);
+    const std::function<field&(int)> fl = [this](int g) -> field& { return *SG(g).L; };
+    if(up)
+    sh_zero(pu_cc,fl);
+
     for(size_t m=0; m<cf.size(); ++m)
     {
         const cfd_amr_cf &F = cf[m];
@@ -503,15 +510,52 @@ void cfd_amr::sc_reflux(int l)
         continue;
         lexer *qc = glex(F.gc);
         const double V = qc->DXN[F.ci[0]+marge]*qc->DYN[F.ci[1]+marge]*qc->DZN[F.ci[2]+marge];
-        sfield(F.gc).V[F.qc] += double(F.dir)*(fr_f[m]-fr_c[m])/V;
+        field &S = (up && is_shadow(F.gc)) ? *SG(F.gc).L : sfield(F.gc);
+        S.V[F.qc] += double(F.dir)*(fr_f[m]-fr_c[m])/V;
     }
+
+    if(up)
+    {
+        vector<std::function<field&(int)>> f(1,[this](int g) -> field& { return g<0 ? sfield(g) : *SG(g).L; });
+        sh_run(pu_cc,f,true);
+    }
+}
+
+// G 40: the coarse fluxes of level 0 through the faces at the edges of the level-1 patches, recorded
+// in the registers from the shadows (diff: the diffusive fluxes of the implicit diffusion)
+void cfd_amr::sc_record_shadows(double w, bool diff)
+{
+    if(!place)
+    return;
+    vector<std::function<field&(int)>> f;
+    if(!diff)
+    {
+        f.push_back([this](int g) -> field& { return *SG(g).fx; });
+        f.push_back([this](int g) -> field& { return *SG(g).fy; });
+        f.push_back([this](int g) -> field& { return *SG(g).fz; });
+    }
+    else
+    {
+        f.push_back([this](int g) -> field& { return sfield(g); });
+        f.push_back([this](int g) -> field& { return gfd(g)->eddyv; });
+        if(scal==1)
+        f.push_back([this](int g) -> field& { return *SG(g).kap; });
+        else
+        f.push_back([this](int g) -> field& { return gfd(g)->visc; });
+    }
+    sh_down_f(f);
+    for(int g=npat; g<(int)P.size(); ++g)
+    if(diff)
+    sc_record_diff(g,w,true,1);
+    else
+    sc_record(g,w,true,1);
 }
 
 // G 7 0: the step of the scalar on all grids (the step of the finest level)
 void cfd_amr::sc_step_comp()
 {
     const double dt = p0->dt;
-    const int ng = (int)P.size();
+    const int ng = npat;
 
     sc_reset(-1);
     for(int g=-1; g<ng; ++g)
@@ -532,6 +576,7 @@ void cfd_amr::sc_step_comp()
             sc_record(g,sc_w[s]*dt,true,lg+1);
             sc_record(g,sc_w[s]*dt,false,lg);
         }
+        sc_record_shadows(sc_w[s]*dt,false);
         for(int g=-1; g<ng; ++g)
         {
             sc_update(g,s,dt);
@@ -552,6 +597,8 @@ void cfd_amr::sc_step_comp()
             sc_record_diff(g,dt,true,l+1);
             sc_record_diff(g,dt,false,l);
         }
+        if(l==0)
+        sc_record_shadows(dt,true);
     }
 
     vector<std::function<field&(int)>> cells, none;
@@ -594,6 +641,8 @@ void cfd_amr::sc_step_level(int l, double dt, double th0)
             sc_record(g,sc_w[s]*dt,true,l+1);
             sc_record(g,sc_w[s]*dt,false,l);
         }
+        if(l==0)
+        sc_record_shadows(sc_w[s]*dt,false);
         for(int g : grids)
         {
             sc_update(g,s,dt);
@@ -615,6 +664,8 @@ void cfd_amr::sc_step_level(int l, double dt, double th0)
             sc_record_diff(g,dt,true,l+1);
             sc_record_diff(g,dt,false,l);
         }
+        if(l==0)
+        sc_record_shadows(dt,true);
     }
 }
 

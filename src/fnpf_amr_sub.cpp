@@ -362,7 +362,7 @@ void fnpf_amr::sub_stage(lexer *p, ghostcell *pgc, int l, int k, int s, double d
         if(l==maxlev)
         b->amr_sub_finest(p,c0,pgc,l,s,tsub,dt,!(bfin==0 && s==0),bfin==(1<<maxlev)-1);
         else
-        b->amr_sub_predict(p,pgc,s,dt);
+        b->amr_sub_predict(p,pgc,s,tsub,dt);
     }
 
     t0 = MPI_Wtime();
@@ -378,6 +378,13 @@ void fnpf_amr::sub_stage(lexer *p, ghostcell *pgc, int l, int k, int s, double d
         slice4 &erk1 = *pc->erk1, &erk2 = *pc->erk2, &frk1 = *pc->frk1, &frk2 = *pc->frk2;
         lexer *p = pc->pp;
         fdm_fnpf *c = cc;
+
+        if(s==0 && brk)
+        {
+            slice4 &en = *pc->en;
+            SLICELOOP4
+            en(i,j) = c->eta(i,j);
+        }
 
         if(s==0)
         {
@@ -400,9 +407,10 @@ void fnpf_amr::sub_stage(lexer *p, ghostcell *pgc, int l, int k, int s, double d
             SLICELOOP4
             c->Fifsf(i,j) = (1.0/3.0)*c->Fifsf(i,j) + (2.0/3.0)*frk2(i,j) + (2.0/3.0)*p->dt*fk(i,j);
         }
+
         }
 
-        if(body!=nullptr)
+        if(body!=nullptr && !stage_ring())
         body->amr_surface(pc->pp,pgc,id,sval(id,s,0),sval(id,s,1));
     }
 
@@ -427,12 +435,30 @@ void fnpf_amr::sub_stage(lexer *p, ghostcell *pgc, int l, int k, int s, double d
         walls_sl(*FP(id),sel(id,1),gcval_fifsf);
     }
 
+    // breaking (implicit damping) and the coastline read the cells around the patch: after the
+    // fill, as fnpf_RK3 (the damping, then the clamp and the coastline relaxation)
+    if(stage_ring())
+    {
+        stage_damp_coast(l,pgc,s);
+
+        for(int id : lev[l])
+        {
+            walls_sl(*FP(id),sel(id,0),gcval_eta);
+            walls_sl(*FP(id),sel(id,1),gcval_fifsf);
+        }
+    }
+
     fill_col(l,7960+l,[&](int g) -> double* { return gfd(g)->Fi; });
 
     if(swap)
     sub_swap_out(l-1);
 
     tm[0] += MPI_Wtime()-t0;
+
+    // breaking (A 350 1): detection on the stage values of the level-l patches, the viscosity of
+    // the cells around them from their source grid
+    if(brk)
+    patch_breaking(l,pgc,s,(s==1) ? 0.5 : 1.0);
 
     // the Laplace equation of the stage on the level-l patches
     t0 = MPI_Wtime();

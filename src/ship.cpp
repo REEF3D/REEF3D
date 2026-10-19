@@ -21,6 +21,7 @@ Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"ship.h"
+#include"reefckpt.h"
 #include"ship_hull.h"
 #include"ship_models.h"
 #include"6DOF_rigidbody.h"
@@ -354,7 +355,9 @@ void ship::read(lexer *p)
 
 void ship::ini(lexer *p, const sixdof_rigidbody &b, const sixdof_geometry &g)
 {
-    // still water level in the body frame of the initial position (level hull)
+    // still water level in the body frame of the initial position (level hull; a restart from a
+    // checkpoint keeps that of the run's start)
+    if(!ck_restored)
     zw = p->F60 - b.c(2);
     
     ship_hull::waterline_extent(g.tri_x0,g.tri_y0,g.tri_z0,g.tricount,zw,xa,xf);
@@ -404,7 +407,8 @@ void ship::ini(lexer *p, const sixdof_rigidbody &b, const sixdof_geometry &g)
     if(prop && blades>0 && lwidth<=0.0)
     lwidth = 2.0*p->DXM;
     
-    // heading
+    // heading (a restart from a checkpoint keeps the unwrapped heading of the checkpoint)
+    if(!ck_restored)
     psi_last = psi_c = b.psi;
     
     if(p->mpirank==0)
@@ -814,7 +818,7 @@ void ship::fluid_mask(double *w) const
 
 void ship::actuator_disks(vector<sixdof_actuator_disk> &d) const
 {
-    if(prop && psource==1 && initialized)
+    if(prop && psource==1 && (initialized || ck_restored))     // (a restart: the disk of the checkpoint)
     d.push_back(disk);
 }
 
@@ -827,7 +831,8 @@ void ship::print(lexer *p)
     {
         char name[1000];
         snprintf(name,sizeof(name),"%s/REEF3D_ship_%i.dat",sixdof_output_dir(p),id);
-        out.open(name);
+        if(reefckpt_open(out,name,p->I45))
+        {
         out<<"time \t u [m/s] \t v [m/s] \t r [rad/s] \t psi [deg] \t Re \t C_F \t X_F [N] \t Y_cf [N] \t N_cf [Nm] \t K_roll [Nm] \t T_const [N]"
            <<" \t n [1/s] \t Va [m/s] \t J \t KT \t KQ \t T [N] \t Q [Nm]"
            <<" \t delta [deg] \t alpha_R [deg] \t U_R [m/s] \t F_N [N] \t X_R [N] \t Y_R [N] \t N_R [Nm]";
@@ -839,6 +844,7 @@ void ship::print(lexer *p)
         out<<" \t N_Munk [Nm] (taken out)";
         
         out<<endl;
+        }
     }
     
     out<<p->simtime<<" \t "<<ub<<" \t "<<vb<<" \t "<<rb_<<" \t "<<psi_c/DEG<<" \t "<<Re<<" \t "<<CF<<" \t "<<XF<<" \t "<<Ycf<<" \t "<<Ncf<<" \t "<<Kroll<<" \t "<<thrust
@@ -852,4 +858,35 @@ void ship::print(lexer *p)
     out<<" \t "<<NM;
     
     out<<endl;
+}
+
+// checkpoints (P 48, I 45): the rudder machine, the autopilot and zig-zag state, the unwrapped heading,
+// the approach phase, the thickness of the actuator disk and the still water level in the body frame
+// (both set at the first load from the position then), and the loads of the last evaluation with the
+// actuator disk (the fluid source of the next stage uses them before the next evaluation)
+void ship::ckpt_state(std::vector<double> &v) const
+{
+    for(double x : {delta,tlast,psi_c,psi_last,psi0,eint,double(zz_sign),zz_started?1.0:0.0,appr_done?1.0:0.0,thick,Xc,Yc,Nc,zw,
+                    Va,J,KT,KQ,Tp,Qp,alphaR,UR,FN,XR,YR,NR,KR,XH,YH,NH,NM,ub,vb,wb,pb,qb,rb_,Re,CF,XF,Ycf,Ncf,Kroll,
+                    disk.centre(0),disk.centre(1),disk.centre(2),disk.axis(0),disk.axis(1),disk.axis(2),
+                    disk.R,disk.Rh,disk.thickness,disk.T,disk.Q,double(disk.sense)})
+    v.push_back(x);
+}
+
+void ship::ckpt_restore(const std::vector<double> &v, size_t &k)
+{
+    if(k+55>v.size())
+    {
+        k = v.size();
+        return;
+    }
+    delta=v[k++]; tlast=v[k++]; psi_c=v[k++]; psi_last=v[k++]; psi0=v[k++]; eint=v[k++];
+    zz_sign=int(v[k++]); zz_started=v[k++]>0.5; appr_done=v[k++]>0.5; thick=v[k++];
+    Xc=v[k++]; Yc=v[k++]; Nc=v[k++]; zw=v[k++];
+    for(double *x : {&Va,&J,&KT,&KQ,&Tp,&Qp,&alphaR,&UR,&FN,&XR,&YR,&NR,&KR,&XH,&YH,&NH,&NM,&ub,&vb,&wb,&pb,&qb,&rb_,
+                     &Re,&CF,&XF,&Ycf,&Ncf,&Kroll,&disk.centre(0),&disk.centre(1),&disk.centre(2),
+                     &disk.axis(0),&disk.axis(1),&disk.axis(2),&disk.R,&disk.Rh,&disk.thickness,&disk.T,&disk.Q})
+    *x = v[k++];
+    disk.sense = int(v[k++]);
+    ck_restored = true;
 }

@@ -23,6 +23,9 @@ Author: Tobias Martin
 #ifndef MOORING_H_
 #define MOORING_H_
 
+#include<vector>
+#include<cstddef>
+
 class lexer;
 class fdm;
 class ghostcell;
@@ -37,6 +40,9 @@ public:
 	virtual void start(lexer*, ghostcell*)=0;
 	virtual void initialize(lexer*, ghostcell*)=0;	
 	virtual void mooringForces(double&, double&, double&)=0;
+    // checkpoints (P 48, I 45): the state of the line (start values of the iteration, broken, print time)
+    virtual void ckpt_state(std::vector<double>&) const {}
+    virtual void ckpt_restore(const std::vector<double>&, size_t&) {}
 };
 
 #endif

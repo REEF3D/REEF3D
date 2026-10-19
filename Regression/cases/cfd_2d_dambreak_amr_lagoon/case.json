@@ -1,0 +1,30 @@
+{
+ "base": "cfd_2d_dambreak",
+ "np": 1,
+ "steps": 80,
+ "ctrl_add": [
+  "G 1 1",
+  "G 15 0.0 0.3 0.0 1.0 0.0 0.4",
+  "P 20 20"
+ ],
+ "ctrl_set": {
+  "P 18": "1"
+ },
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "levelset",
+  "amr",
+  "lagoon"
+ ],
+ "description": "as cfd_2d_dambreak_amr, its volume and its refined patches written to the LAGOON store instead of the VTU, .vtr and .vtm files (P 18 1): REEF3D_CFD.lagoon with the volume and the AMR set cfd_amr of 3D blocks (dims 3); the solution is that of the case without the store.",
+ "covers": [
+  "cfd_amr::print_lagoon, lagoon_amr_output for CFD's blocks",
+  "lagoon_amr with 3D grids (nz, z, z_end)",
+  "P 18 1 without REEF3D_CFD_AMR"
+ ],
+ "keep_keys": [
+  "P 20"
+ ]
+}

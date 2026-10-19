@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"6DOF_nhflow.h"
+#include"6DOF_external.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"fdm_nhf.h"
@@ -57,8 +58,15 @@ void sixdof_nhflow::start_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter,
 {
     starttime = pgc->timer();
     
+    // external dynamics (REEF3D::CORAL): the bodies are connected before their first stage
+    if(!ext_checked)
+    ext_connect(p,pgc);
+    
     if(amr_predict && (p->X10==1 || p->X10==2))
     {
+    if(ext_twoway && !advanced(p,iter))
+    ext_predict_copy(p,iter);
+    
     start_oneway(p,d,pgc,iter,FX,FY,FZ,WL,fe,false);
     p->fbtime+=pgc->timer()-starttime;
     return;
@@ -82,6 +90,10 @@ void sixdof_nhflow::start_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter,
 void sixdof_nhflow::start_twoway(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter, 
                                 double *FX, double *FY, double *FZ, slice &WL, slice &fe, bool finalize)
 {
+    // two-way external dynamics: the poses of the stage come from the external solver
+    if(ext_twoway && !advanced(p,iter))
+    ext_stage(p,iter);
+    
     for (int nb=0; nb<number6DOF;++nb)
     {
         // Calculate forces
@@ -90,6 +102,7 @@ void sixdof_nhflow::start_twoway(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter,
         // Advance body in time (X 13: already done at the start of the stage)
         if(!advanced(p,iter))
         {
+        if(!ext_drives(nb))
         fb_obj[nb]->solve_eqmotion_nhflow(p,d,pgc,iter,finalize);
         
         // Update transformation matrices
@@ -128,6 +141,7 @@ void sixdof_nhflow::start_oneway(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter,
         // Advance body in time (X 13: already done at the start of the stage)
         if(!advanced(p,iter))
         {
+        if(!ext_drives(nb))
         fb_obj[nb]->solve_eqmotion_oneway_nhflow(p,pgc,iter,finalize);
         
         // Update transformation matrices
@@ -282,7 +296,22 @@ void sixdof_nhflow::reforce_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int ite
             fb_obj[nb]->print_parameter(p,pgc,p->simtime+p->dt);
         }*/
     }
+    
+    // external solver (CORAL): with the predictor the loads of the first stage at the predicted pose
+    // (provisional), then the external step; the loads of the end of the step (committed)
+    if(pext!=nullptr)
+    {
+        if(ext_twoway && iter==0 && pext->predictor())
+        {
+            ext_loads(p,p->simtime + ext_node(p,0)*p->dt,true);
+            pext->advance(p->simtime,p->simtime + p->dt);
+        }
+        
+        if(finalize)
+        ext_loads(p,p->simtime + p->dt,false);
+    }
 }
+
 
 void sixdof_nhflow::membrane_forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, 
                                             double *UH, double *VH, double *WH, slice &WL)
@@ -343,14 +372,29 @@ void sixdof_nhflow::advance_stage(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter
     if(advanced(p,iter))
     return;
     
+    if(!ext_checked)
+    ext_connect(p,pgc);
+    
     const int last = (p->A510==2) ? 1 : 2;
+    
+    if(ext_twoway && p->X10==1)
+    {
+        if(amr_predict)
+        ext_predict_copy(p,iter);
+        
+        else
+        ext_stage(p,iter);
+    }
     
     for (int nb=0; nb<number6DOF;++nb)
     {
-        if(amr_predict || p->X10==2)
+        if(ext_drives(nb))
+        {}
+        
+        else if(amr_predict || p->X10==2)
         fb_obj[nb]->solve_eqmotion_oneway_nhflow(p,pgc,iter,false);
         
-        else
+        else if(!ext_drives(nb))
         fb_obj[nb]->solve_eqmotion_nhflow(p,d,pgc,iter,iter==last);
         
         fb_obj[nb]->quat_matrices(p);
@@ -377,5 +421,42 @@ bool sixdof_nhflow::top_phi_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int ite
     
     fb_obj[0]->top_phi_nhflow(p,d,WL,fb_obj[0]->nhflow_nb()*fb_obj[0]->nhflow_dsm(),phi);
     
+    return true;
+}
+
+// checkpoints (P 48, I 45): the bodies one after the other, each with its length, and the stage the
+// bodies were advanced for (X 13)
+void sixdof_nhflow::ckpt_state(lexer *p, std::vector<double> &v)
+{
+    v.push_back(double(number6DOF));
+    for(int nb=0; nb<number6DOF; ++nb)
+    {
+        std::vector<double> s;
+        fb_obj[nb]->ckpt_state(p,s);
+        v.push_back(double(s.size()));
+        v.insert(v.end(),s.begin(),s.end());
+    }
+    v.push_back(double(adv_count)); v.push_back(double(adv_iter)); v.push_back(adv_time);
+}
+
+bool sixdof_nhflow::ckpt_restore(lexer *p, ghostcell *pgc, const std::vector<double> &v)
+{
+    size_t k=0;
+    if(v.empty() || int(v[k++])!=number6DOF)
+    return false;
+
+    for(int nb=0; nb<number6DOF; ++nb)
+    {
+        const size_t n = (k<v.size()) ? size_t(v[k++]) : 0;
+        if(n==0 || k+n>v.size())
+        return false;
+        if(!fb_obj[nb]->ckpt_restore(p,pgc,std::vector<double>(v.begin()+k,v.begin()+k+n)))
+        return false;
+        k += n;
+    }
+    if(k+3<=v.size())
+    {
+        adv_count = int(v[k++]); adv_iter = int(v[k++]); adv_time = v[k++];
+    }
     return true;
 }

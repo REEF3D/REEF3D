@@ -39,6 +39,11 @@ using namespace std;
 class sflow_idiff final : public sflow_diffusion, public increment
 {
 public:
+
+    void ckpt_fields(const std::function<void(const char*, char, double*)> &fd, const std::function<void(const char*, char, int*)> &fi) override
+    {
+        fd("idiff_f",'S',f.V);
+    }
 	sflow_idiff(lexer*);
 	virtual ~sflow_idiff();
 

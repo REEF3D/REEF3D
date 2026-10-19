@@ -41,6 +41,7 @@ class sixdof_obj;
 class sixdof_obj_fnpf;
 class slice;
 class fnpf_amr;
+class sixdof_external;
 
 using namespace std;
 
@@ -114,7 +115,7 @@ public:
     // between step with a predicted copy
     void amr_save();
     void amr_restore(lexer*, ghostcell*);
-    void amr_sub_predict(lexer*, ghostcell*, int, double);
+    void amr_sub_predict(lexer*, ghostcell*, int, double, double);
     void amr_sub_finest(lexer*, fdm_fnpf*, ghostcell*, int, int, double, double, bool, bool);
     void amr_geometry_level(lexer*, ghostcell*, int);
     void amr_post_solve_level(lexer*, ghostcell*, int);
@@ -146,6 +147,17 @@ private:
     
     vector<sixdof_obj_fnpf*> fb_obj;
     int nbody;
+
+    // external dynamics (6DOF_external.h, e.g. REEF3D::CORAL with fluid_body in coral.txt): the
+    // bodies follow the external solver, their loads and added mass go to it (fnpf_6DOF_external.cpp)
+    void ext_connect(lexer*, ghostcell*);
+    void motion_external(lexer*, fdm_fnpf*, ghostcell*, int, bool output=true);
+    void ext_predict_copy(lexer*, ghostcell*, int, double, double);
+    void ext_loads(lexer*, double, bool, bool);
+    void ext_stage_nodes(lexer*, int, double&, double&) const;
+    sixdof_external *pext = nullptr;
+    bool ext_checked = false;
+    bool ext_twoway = false;        // at least one body two-way (the external solver steps inside the step)
 
     // several bodies (X 20): cross added mass A_ij (load on body i from the unit modes of body j),
     // refreshed with the unit-mode solves at the first stage, used in the coupled solve of motion()

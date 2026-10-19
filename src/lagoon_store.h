@@ -319,8 +319,10 @@ public:
         int level = 0;
         int rank = -1;              // the MPI rank that has it
         int nx = 0, ny = 0;         // cells
+        int nz = 0;                 // cells in z: 0 for a 2D grid (a surface's), > 0 for a block of a volume (CFD)
         std::vector<double> x, y;   // nx+1 and ny+1 node coordinates, rising
-        std::vector<double> values; // nx*ny per field (x fastest), the fields one after another
+        std::vector<double> z;      // nz+1 node coordinates of a block, rising
+        std::vector<double> values; // nx*ny(*nz) per field (x fastest, then y, then z), the fields one after another
     };
 
     // key: the AMR set, e.g. "nhflow_amr"; source: "REEF3D_NHFLOW_AMR"
@@ -329,13 +331,14 @@ public:
                const std::vector<field> &fields, int gzip_level=1);
 
     // one output: its grids, level 0 first. False when it could not be written (no more
-    // output to the store then: the .vtr and .vtm files are needed).
+    // output to the store then: the .vtr and .vtm files are needed). The set is of 2D grids
+    // or of 3D blocks (dims 3), as the first output's grids are.
     bool output(double time, long long step, const std::vector<grid> &grids);
 
     bool usable() const { return ok; }
 
-    // grids as doubles for MPI (count, then per grid level, nx, ny, x, y, values) and back;
-    // unpack appends the grids of one rank
+    // grids as doubles for MPI (count, then per grid level, nx, ny, nz, x, y, z, values) and
+    // back; unpack appends the grids of one rank
     static void pack(const std::vector<grid> &grids, int fields, std::vector<double> &out);
     static bool unpack(const double *data, size_t n, int fields, int rank, std::vector<grid> &out);
 
@@ -344,11 +347,12 @@ private:
     std::vector<field> fields;
     int gzip_level;
     bool ok, started;
-    std::vector<lagoon_rows::array> table;  // level, rank, size, x_end, y_end, cell_end
-    std::vector<lagoon_rows::array> nodes;  // x, y
+    int dims;                               // 2: grids of a surface, 3: blocks of a volume
+    std::vector<lagoon_rows::array> table;  // level, rank, size, x_end, y_end, cell_end (, z_end)
+    std::vector<lagoon_rows::array> nodes;  // x, y (, z)
     std::vector<lagoon_rows::array> cells;  // the fields
     std::vector<long long> grid_end;
-    long long x_end, y_end, cell_end;
+    long long x_end, y_end, z_end, cell_end;
     lagoon_store store;
     lagoon_rows rw;
 

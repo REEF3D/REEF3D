@@ -141,6 +141,11 @@ void fnpf_6DOF::stage(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, fnpf
     if(!initialized)
     ini(p,c,pgc);
     
+    // external dynamics: connect once at the first step (the external solver is set up after the
+    // fluid initialisation)
+    if(!ext_checked)
+    ext_connect(p,pgc);
+    
     pvel->velcalc_sig(p,c,pgc,c->Fi);
     pgc->gcparax7(p,c->U,7);
     pgc->gcparax7(p,c->V,7);
@@ -170,6 +175,11 @@ void fnpf_6DOF::stage(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, fnpf
             forces_amr(p,c,pgc,psolv,pf,Keta,Kfi,iter);
         }
         
+        // external dynamics: the copy on the poses the external solver predicts
+        if(pext!=nullptr)
+        ext_predict_copy(p,pgc,iter,p->simtime,p->dt);
+        
+        else
         for(int nb=0; nb<nbody; ++nb)
         fb_obj[nb]->amr_predict_fnpf(p,pgc,iter);
         
@@ -410,6 +420,12 @@ void fnpf_6DOF::forces(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, fnp
 
 void fnpf_6DOF::motion(lexer *p, fdm_fnpf *c, ghostcell *pgc, int iter)
 {
+    if(pext!=nullptr)
+    {
+    motion_external(p,c,pgc,iter);
+    return;
+    }
+    
     // last stage: 2 for RK3 (A 310 3), 3 for RK4 (A 310 4)
     const bool finalize = (iter == ((p->A310==3) ? 2 : 3));
     
@@ -600,6 +616,9 @@ void fnpf_6DOF::footprint(fnpf_6DOF_grid &G, ghostcell *pgc, slice &eta, slice &
         // (smooth hull, Fr 0.14, from about 10 s on). The relaxation of eta alone stabilises it
         // without changing the hull loads noticeably; Fifsf is left alone (relaxing the
         // potential next to the hull changes phi_t and the hull pressure).
+        // On by default (0.5): on fine grids (0.05 m patch or uniform grid at a 1 m float, LUPA)
+        // the columns at the hull also blow up in the first deep wave trough, without forward
+        // speed, and a smaller time step does not help. X 17 0 switches it off.
         if(p->X17>0.0)
         {
             const double w = MIN(p->X17,1.0);

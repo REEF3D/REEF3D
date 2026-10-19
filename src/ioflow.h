@@ -39,6 +39,8 @@ class fdm_nhf;
 class turbulence;
 class patchBC_interface;
 
+#include<vector>
+
 using namespace std;
 
 class ioflow
@@ -128,6 +130,11 @@ public:
 
 
     virtual void ini2D(lexer*,fdm2D*,ghostcell*)=0;
+
+    // checkpoints (P 48, I 45): the state of the boundary conditions that carries over to the next
+    // step, local to the rank (filters and edge values per column), restored on the same decomposition
+    virtual void ckpt_state(lexer*, std::vector<double>&) {}
+    virtual void ckpt_restore(lexer*, const std::vector<double>&) {}
 
     virtual double wave_fsf(lexer*,ghostcell*,double)=0;
     virtual double wave_xvel(lexer*,ghostcell*,double,double,double)=0;

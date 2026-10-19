@@ -1,0 +1,18 @@
+{
+ "description": "NHFLOW hydrostatic semi-implicit: 1.5 m tide (clamped level) over a drying flat, 5 sigma layers, k-epsilon, log-law bed friction; wetting and drying; the time step grows by at most 20 % per step from the explicit initial step.",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 300,
+ "tags": [
+  "2d",
+  "nhflow",
+  "semi_implicit",
+  "wetdry",
+  "turbulence",
+  "tide"
+ ],
+ "covers": [
+  "solve_wetdry with radiating and level faces",
+  "time step growth limit"
+ ]
+}

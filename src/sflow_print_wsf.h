@@ -38,6 +38,7 @@ using namespace std;
 class sflow_print_wsf : public increment
 {
 public:
+    void flush_files() { wsfout.flush(); }   // a rebalance stop (G 46)
     // the mesh refinement: the points read the finest grid (amr_grid_lookup.h), nullptr: level 0
     const amr_column_lookup *amr = nullptr;
 

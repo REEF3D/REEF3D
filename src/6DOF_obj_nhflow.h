@@ -110,7 +110,8 @@ public:
     // mesh refinement with subcycling (nhflow_amr, G 7 1, 6DOF_obj_nhflow_amr.cpp): the finest
     // level advances the body; the coarser levels step before it with a predicted copy
     // (sixdof_obj::amr_save, amr_restore)
-    void amr_stage(lexer*, fdm_nhf*, ghostcell*, int, bool);
+    // external: the pose was set by the external solver (external_set_state), no RK stage
+    void amr_stage(lexer*, fdm_nhf*, ghostcell*, int, bool, bool external=false);
 
 private:
     

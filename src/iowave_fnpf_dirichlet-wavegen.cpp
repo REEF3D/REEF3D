@@ -38,7 +38,22 @@ void iowave::dirichlet_wavegen_fnpf(lexer *p, fdm_fnpf *c, ghostcell* pgc, doubl
     // (free infragravity waves reflected in the domain). Before, B 98 4 ran as B 98 3 (no absorption).
     // B 98 6 (gen_lp) runs as B 98 4 with the edge targets of fnpf_precalc_edge (the relaxation zone
     // in front keeps its own)
-    const bool absorb = p->B98==4 && h_switch==1;
+    const bool absorb_th = p->B98==4 && h_switch==1;
+    
+    // B 98 4/7 with the piston wavemaker (B 92 21): active wave absorption at the paddle (ARC). The deviation
+    // of the computed surface at the first cell from the linear surface elevation of the paddle signal at
+    // that distance (progressive and evanescent modes, wave_lib_wavemaker2nd::make_etatable) is the reflected
+    // wave; it is absorbed with the same paddle velocity correction as for the wave theories (shallow-water
+    // u = -eta_R sqrt(g/h), Schaffer & Klopman 2000, or the two-band version with B 98 7)
+    const bool absorb_wm = p->B98==4 && h_switch==0 && wave_arc();
+    
+    // B 98 8 (SIRW, arc_sirw): the reflected wave of the band from two gauges in front of the paddle, plus the
+    // shallow-water absorption of the long band of the deviation from the target
+    const bool absorb_sw = sirw_in.on;
+    const bool absorb = absorb_th || absorb_wm || absorb_sw;
+    
+    if(absorb_sw)
+    sirw_in.update(p,pgc,etaf,p->simtime);
     
     if((int)ua_edge.size()<p->gcslin_count)
     ua_edge.assign(p->gcslin_count,0.0);
@@ -55,14 +70,26 @@ void iowave::dirichlet_wavegen_fnpf(lexer *p, fdm_fnpf *c, ghostcell* pgc, doubl
         
         ua_edge[n] = 0.0;
         
-        if(absorb && !ab2_in)
-        ua_edge[n] = -(etaf(i,j) - rmp*(gen_lp ? edge_eta[n] : eta(i,j)))*sqrt(9.81/c->depth(i,j));
+        // target: wave theory (ramped) or linear elevation of the paddle signal at the first cell
+        const double etaT = absorb_wm ? wave_eta_arc(p,pgc,p->XP[IP]-p->global_xmin)
+                                      : rmp*(gen_lp ? edge_eta[n] : eta(i,j));
+        
+        if(absorb && !ab2_in && !absorb_sw)
+        ua_edge[n] = -(etaf(i,j) - etaT)*sqrt(9.81/c->depth(i,j));
+        
+        // B 98 8: the band of the gauges per level below; what it does not explain (the deviation from the target
+        // minus the predicted reflected wave: long waves below the band, errors of the prediction) is absorbed
+        // with the shallow-water velocity after a first-order low pass (removes the near field and bound waves
+        // of the generated waves; its phase lag stays below 90 degrees, so the absorption damps at all
+        // frequencies; with a third-order low pass the 2nd and 4th seiche modes of the tank grew)
+        if(absorb_sw && (absorb_th || absorb_wm))
+        ua_edge[n] = -sw_lowpass(p,n,etaf(i,j)-etaT-sirw_in.eta(p->simtime))*sqrt(9.81/c->depth(i,j));
         
         // B 98 7: long part with the shallow-water velocity (here), short part with the peak-wave
         // profile (per level below)
         if(absorb && ab2_in)
         {
-        const double eR = etaf(i,j) - rmp*(gen_lp ? edge_eta[n] : eta(i,j));
+        const double eR = etaf(i,j) - etaT;
         const double eL = ab2_lowpass(p,ab2_lin,ab2_cin,n,eR,ab2_tau_in);
         ua_edge[n] = -eL*sqrt(9.81/c->depth(i,j));
         ab2_sin[n] = eR - eL;
@@ -97,6 +124,10 @@ void iowave::dirichlet_wavegen_fnpf(lexer *p, fdm_fnpf *c, ghostcell* pgc, doubl
         if(absorb && ab2_in)
         us -= ab2_prof(c->depth(i,j),etaf(i,j))*ab2_sin[n];
         
+        // B 98 8: band of the gauges, velocity at the surface
+        if(absorb_sw)
+        us += sirw_in.velocity(p->simtime,etaf(i,j));
+        
         if(p->A329==1)
         {
         Fifsf(i-1,j) = Fifsf(i,j) - us*1.0*p->DXP[IM1];
@@ -125,7 +156,11 @@ void iowave::dirichlet_wavegen_fnpf(lexer *p, fdm_fnpf *c, ghostcell* pgc, doubl
         {
         Uin[FIm1JK] = rmp*(gen_lp ? edge_uin[count] : Uinval[count]) + ua_edge[n]; 
         
-        if(ab2_in && h_switch==1)
+        // B 98 8: band of the gauges, velocity of this level
+        if(absorb_sw)
+        Uin[FIm1JK] += sirw_in.velocity(p->simtime,p->ZSN[FIJK]-p->phimean);
+        
+        if(ab2_in && absorb)
         Uin[FIm1JK] -= ab2_prof(c->depth(i,j),p->ZSN[FIJK]-p->phimean)*ab2_sin[n];
         
         // moving paddle: 2nd-order Taylor terms of the paddle BC about x=0,

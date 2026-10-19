@@ -45,6 +45,7 @@ Author: Hans Bihs
 #include"runlog.h"
 #include"lagoon_output.h"
 #include"cfd_amr.h"
+#include"reefrun_ckpt.h"
 
 
 void driver::loop_cfd(fdm* a)
@@ -127,9 +128,10 @@ void driver::loop_cfd(fdm* a)
         
         // printer
         if(pcfdamr!=nullptr)
-        pcfdamr->print(p);
+        pcfdamr->print(p,pgc);
         pprint->start(p,a,pgc,pturb,pheat,pflow,pdata,pconc,pmp,psed);
         pacoustic->start(p,a,pgc);
+        lagoon_output::poll_all(p,pgc);  // outputs of the LAGOON store written by now (P 18)
         preg->cfd_step(p,a,pgc,pturb,pconc);
 
         // Shell-Printout
@@ -169,6 +171,9 @@ void driver::loop_cfd(fdm* a)
 	p->field4time=0.0;
     
     pgc->gcparax(p,a->press,4);
+
+    // checkpoint on any decomposition (P 48), rebalance on the measured load (G 46)
+    ckpt().step();
     
     stop(p,a,pgc);
 	}

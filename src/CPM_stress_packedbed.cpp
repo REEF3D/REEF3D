@@ -475,9 +475,9 @@ void CPM::friction(lexer *p, fdm *a, double xp, double yp, double zp, double &up
     if(gmag<1.0e-10)
     return;
     
-    i = p->posc_i(xp);
-    j = p->posc_j(yp);
-    k = p->posc_k(zp);
+    i = pci(p,n,xp);
+    j = pcj(p,n,yp);
+    k = pck(p,n,zp);
     
     double h = p->DZN[KP];
     

@@ -23,6 +23,7 @@ Author: Hans Bihs
 #include"part.h"
 #include"lexer.h"
 #include"ghostcell.h"
+#include<limits>
 
 void part::xchange_count(lexer *p, ghostcell *pgc, int mode)
 {
@@ -34,34 +35,51 @@ void part::xchange_count(lexer *p, ghostcell *pgc, int mode)
         recvnum[q]=0;
     }
 
-    // count particles for xchange
-    for(n=0;n<index;++n)
-    if(Flag[n]==ACTIVE)
+    if(xdest.size()<size_t(index))
+    xdest.resize(index);
+    
+    if(xkx.size()<size_t(index))
     {
-        if(mode==1)
+        const double nan = std::numeric_limits<double>::quiet_NaN();
+        xkx.resize(index,nan);  xky.resize(index,nan);  xkz.resize(index,nan);
+        xki.resize(index,0);    xkj.resize(index,0);    xkk.resize(index,0);
+    }
+
+    // count particles for xchange; the target side is kept for xchange_sendid, the cell indices of a
+    // position that did not change since the last call are not searched again (the parcels at rest)
+    for(n=0;n<index;++n)
+    {
+        xdest[n] = 0;
+        
+        if(Flag[n]!=ACTIVE)
+        continue;
+        
+        double xs = mode==1 ? XRK1[n] : X[n];
+        double ys = mode==1 ? YRK1[n] : Y[n];
+        double zs = mode==1 ? ZRK1[n] : Z[n];
+        
+        if(xs==xkx[n] && ys==xky[n] && zs==xkz[n])
         {
-            i=p->posc_i(XRK1[n]);
-            j=p->posc_j(YRK1[n]);
-            k=p->posc_k(ZRK1[n]);
+            i=xki[n];
+            j=xkj[n];
+            k=xkk[n];
         }
-        else if(mode==2)
+        else
         {
-            i=p->posc_i(X[n]);
-            j=p->posc_j(Y[n]);
-            k=p->posc_k(Z[n]);
+            i=p->posc_i(xs);
+            j=p->posc_j(ys);
+            k=p->posc_k(zs);
+            
+            xkx[n]=xs; xky[n]=ys; xkz[n]=zs;
+            xki[n]=i;  xkj[n]=j;  xkk[n]=k;
         }
 
-        if(p->flag5[IJK]==-1)
-            ++sendnum[0];
-        else if(p->flag5[IJK]==-2)
-            ++sendnum[1];
-        else if(p->flag5[IJK]==-3)
-            ++sendnum[2];
-        else if(p->flag5[IJK]==-4)
-            ++sendnum[3];
-        else if(p->flag5[IJK]==-5)
-            ++sendnum[4];
-        else if(p->flag5[IJK]==-6)
-            ++sendnum[5];
+        int f = p->flag5[IJK];
+        
+        if(f<=-1 && f>=-6)
+        {
+            xdest[n] = -f;
+            ++sendnum[-f-1];
+        }
     }
 }

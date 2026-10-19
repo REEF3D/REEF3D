@@ -1,0 +1,20 @@
+{
+ "base": "nhflow_3d_mb_amr",
+ "np": 2,
+ "ctrl_add": [
+  "A 560 1"
+ ],
+ "tags": [
+  "3d",
+  "nhflow",
+  "curvilinear",
+  "multiblock",
+  "amr",
+  "turbulence",
+  "mpi"
+ ],
+ "description": "As nhflow_3d_mb_amr (a refinement box over the vertex of four turned blocks) with k-epsilon (A 560 1) on every block and patch, 2 ranks: the cells around the patches linear from the parent (minmod), the covered cells the mean of their children.",
+ "covers": [
+  "nhflow_amr_turb.cpp: turb_fill (levels 1..), turb_restrict, the ring in the partition halos"
+ ]
+}

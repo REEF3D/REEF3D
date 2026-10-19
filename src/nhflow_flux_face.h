@@ -59,10 +59,14 @@ inline double por_surf_y(lexer *p, fdm_nhf *d, int i, int j)
     return 0.5*(d->POR[IJK] + d->POR[IJp1K]);
 }
 
+// porosity (VRANS, Darcy velocities): the advective flux UH*U/n^2 of the face i+1/2 (j+1/2) is evaluated
+// with the porosity of that face, PORVALNH1 (PORVALNH2), for the left and the right state alike: equal
+// states give equal fluxes, and the porosity gradient acts at the face where it is
+
 // U momentum
 __attribute__((noinline)) inline double U_s(lexer *p, fdm_nhf *d, int i, int j, int k)
 {
-    return d->UHs[IJK]*d->Us[IJK]/(PORVALNH1m*PORVALNH1m)
+    return d->UHs[IJK]*d->Us[IJK]/(PORVALNH1*PORVALNH1)
             + 0.5*fabs(p->W22)*d->ETAs(i,j)*d->ETAs(i,j)
             + fabs(p->W22)*d->ETAs(i,j)*d->dfx(i,j);
 }
@@ -76,7 +80,7 @@ __attribute__((noinline)) inline double U_n(lexer *p, fdm_nhf *d, int i, int j, 
 
 __attribute__((noinline)) inline double U_e(lexer *p, fdm_nhf *d, int i, int j, int k)
 {
-    return d->Ve[IJK]*d->UHe[IJK]/(PORVALNH2m*PORVALNH2m);
+    return d->Ve[IJK]*d->UHe[IJK]/(PORVALNH2*PORVALNH2);
 }
 
 __attribute__((noinline)) inline double U_w(lexer *p, fdm_nhf *d, int i, int j, int k)
@@ -87,7 +91,7 @@ __attribute__((noinline)) inline double U_w(lexer *p, fdm_nhf *d, int i, int j, 
 // V momentum
 __attribute__((noinline)) inline double V_s(lexer *p, fdm_nhf *d, int i, int j, int k)
 {
-    return d->Us[IJK]*d->VHs[IJK]/(PORVALNH1m*PORVALNH1m);
+    return d->Us[IJK]*d->VHs[IJK]/(PORVALNH1*PORVALNH1);
 }
 
 __attribute__((noinline)) inline double V_n(lexer *p, fdm_nhf *d, int i, int j, int k)
@@ -97,7 +101,7 @@ __attribute__((noinline)) inline double V_n(lexer *p, fdm_nhf *d, int i, int j, 
 
 __attribute__((noinline)) inline double V_e(lexer *p, fdm_nhf *d, int i, int j, int k)
 {
-    return d->VHe[IJK]*d->Ve[IJK]/(PORVALNH2m*PORVALNH2m)
+    return d->VHe[IJK]*d->Ve[IJK]/(PORVALNH2*PORVALNH2)
             + 0.5*fabs(p->W22)*d->ETAe(i,j)*d->ETAe(i,j)
             + fabs(p->W22)*d->ETAe(i,j)*d->dfy(i,j);
 }
@@ -112,7 +116,7 @@ __attribute__((noinline)) inline double V_w(lexer *p, fdm_nhf *d, int i, int j, 
 // W momentum
 __attribute__((noinline)) inline double W_s(lexer *p, fdm_nhf *d, int i, int j, int k)
 {
-    return d->Us[IJK]*d->WHs[IJK]/(PORVALNH1m*PORVALNH1m);
+    return d->Us[IJK]*d->WHs[IJK]/(PORVALNH1*PORVALNH1);
 }
 
 __attribute__((noinline)) inline double W_n(lexer *p, fdm_nhf *d, int i, int j, int k)
@@ -122,7 +126,7 @@ __attribute__((noinline)) inline double W_n(lexer *p, fdm_nhf *d, int i, int j, 
 
 __attribute__((noinline)) inline double W_e(lexer *p, fdm_nhf *d, int i, int j, int k)
 {
-    return d->Ve[IJK]*d->WHe[IJK]/(PORVALNH2m*PORVALNH2m);
+    return d->Ve[IJK]*d->WHe[IJK]/(PORVALNH2*PORVALNH2);
 }
 
 __attribute__((noinline)) inline double W_w(lexer *p, fdm_nhf *d, int i, int j, int k)

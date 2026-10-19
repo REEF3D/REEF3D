@@ -1,0 +1,16 @@
+{
+ "base": "seastate_2d_amr_mpi2",
+ "np": 1,
+ "ctrl_add": [
+  "A 797 1"
+ ],
+ "description": "as seastate_2d_amr_mpi2 (nonstationary, wind, the island case) on one rank with the composite sweep (A 797 1): the one-rank twin of seastate_2d_phase7_composite_mpi2 (Phase 17).",
+ "tags": [
+  "2d",
+  "seastate",
+  "amr"
+ ],
+ "covers": [
+  "nonstationary composite sweep (N0 of the patches)"
+ ]
+}

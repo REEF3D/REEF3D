@@ -36,6 +36,7 @@ using namespace std;
 class fnpf_vtp_bed : public increment, private vtp3D
 {
 public:
+    int& print_counter() { return printcount; }   // checkpoints (P 48, I 45)
     fnpf_vtp_bed(lexer*,fdm_fnpf*,ghostcell*);
     virtual ~fnpf_vtp_bed() = default;
 

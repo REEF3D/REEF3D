@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #ifndef NHFLOW_AMR_H_
@@ -46,6 +46,7 @@ class nhflow_pressure;
 class nhflow_fsf;
 class nhflow_forcing;
 class nhflow_turbulence;
+class nhflow_scalar_convection;
 class vrans_nhflow;
 class sixdof;
 class sediment;
@@ -54,7 +55,9 @@ class solver;
 class vec;
 class matrix_diag;
 class sixdof_obj;
+class nhflow_momentum_SI;
 class ioflow;
+class ioflow_amr_block;
 class patchBC_interface;
 class reefmg_core;
 class solver;
@@ -156,12 +159,17 @@ struct nhflow_amr_patch : public reefamr_patch
     nhflow_fsf *pfsf = nullptr;
     nhflow_forcing *pdf = nullptr;
     nhflow_turbulence *pturb = nullptr;
+    // A 560: the turbulence of the grid, its scalar convection, diffusion and solver (nhflow_amr_turb.cpp)
+    nhflow_scalar_convection *ptconv = nullptr;
+    nhflow_diffusion *ptdiff = nullptr;
+    solver *ptsolv = nullptr;
     vrans_nhflow *pvrans = nullptr;
     sixdof *p6dof = nullptr;
     sediment *psed = nullptr;
     sediment_f *sed = nullptr;      // S 10: the sediment transport of the grid (nhflow_amr_sed.cpp)
     vector<double> sedrec[4];       // S 10: Exner face fluxes on the box faces, per side (as rec)
     ioflow *pflow = nullptr;
+    ioflow_amr_block *pio = nullptr;    // multi-block: in- and outflow of a block 1.. through its open faces (G 54)
     patchBC_interface *pBC = nullptr;
     nhflow_stage_obj S;
     vector<int> wfix;               // G 30: flags of the filled cells, kept through wetdry (lexer::wetfix)
@@ -176,6 +184,14 @@ struct nhflow_amr_patch : public reefamr_patch
     vector<double*> kv;             // Krylov vectors, F layout
     vector<int> row;                // FIJK -> matrix row of the patch assembly, -1 none
     reefmg_core *mg = nullptr;      // patch-local multigrid of the preconditioner
+    vector<int> fill1;              // the entries of fill next to the patch (the reach of the pressure rows)
+    vector<int> fill2;              // the entries of fill within two columns of the patch (the stencils of the prolongation into the next finer level)
+    // the overlap of the patch multigrid (pr_overlap): columns across the sides x-, x+, y-, y+ where
+    // a patch of the level is next to it; mo: those of the multigrid as built; kc7: the matrix rows
+    // of the patch (p n s w e t b), filled into the columns around it from the patches there
+    int ov[4] = {0,0,0,0};
+    int mo[4] = {-1,-1,-1,-1};
+    vector<double*> kc7;
     double *ptgt = nullptr;         // unknowns of the current solve (P or PCORR)
 
     // composite implicit diffusion (G 31 1): Krylov vectors, cell layout
@@ -186,9 +202,16 @@ struct nhflow_amr_patch : public reefamr_patch
     vector<double> freg[5][4];
 };
 
+class reefckpt;
+
 class nhflow_amr : public reefamr, public amr_column_lookup, public nhflow_stage_runner, public nhflow_flux_hook, public nhflow_timestep_hook, public sediment_grids
 {
 public:
+    // checkpoints (P 48, I 45; nhflow_amr_ckpt.cpp): the arrays of nhflow_ckpt_fields and of the
+    // turbulence model per patch (reefamr_ckpt.cpp)
+    void ckpt_write(reefckpt&);
+    bool ckpt_read(reefckpt&, std::string&);
+    void flush_outputs() { gaugeout.flush(); logout.flush(); }   // a rebalance stop (G 46)
     // the output on the finest grid (amr_grid_lookup.h): the finest patch of this rank at (x,y)
     int finest_column(double x, double y, lexer *&q, void *&f) const override
     {
@@ -208,6 +231,8 @@ public:
     void ini(lexer*, fdm_nhf*, ghostcell*);
     // S 10: sediment transport on all grids (nhflow_amr_sed.cpp): the level-0 sediment_f hands its step over
     void sed_attach(sediment*);
+    // A 560: the turbulence of level 0 (the fields of the ring and of the covered cells)
+    void turb_attach(nhflow_turbulence*);
     void sediment_step_nhflow(lexer*, fdm_nhf*, ghostcell*, ioflow*, sediment_f*) override;
     void print(lexer*, fdm_nhf*, ghostcell*);
     bool active() const { return (maxlev>0 && patches_total>0) || nblk>0; }
@@ -215,15 +240,31 @@ public:
     // the time step of all grids (nhflow_momentum_RK2/RK3::start)
     void step(lexer*, fdm_nhf*, ghostcell*, nhflow_momentum_func*, nhflow_stage_obj&) override;
 
+    // hydrostatic semi-implicit free surface on the multi-block grid (A 534 1, nhflow_amr_si.cpp): the
+    // parts of the step of every block (nhflow_momentum_SI), the cells around the blocks filled in
+    // between, one eta system over the cells of all blocks (BiCGStab with the Jacobi preconditioner)
+    void si_step(lexer*, fdm_nhf*, ghostcell*, nhflow_momentum_func*, nhflow_stage_obj&);
+
+    // vector space of the composite eta solve (reefamr_bicgstab)
+    void si_apply(int, int);
+    void si_prec(int, int);
+    double si_dot(int, int);
+    void si_opstart();
+    void si_op_p(double, double);
+    void si_op_s(double);
+    void si_op_x(double, double);
+    void si_restart();
+
     // face fluxes of grid id (0: level 0, n: patch n-1) before the divergence
     void flux_hook(lexer*, fdm_nhf*, int, int, double*, double*) override;
 
     // time step: patch maxima and cell sizes
     double dt_local_max(int) override;
     void dt_cell_size(int, double&, double&) override;
+    void dt_si_cmin(double, double&, double&) override;
 
     // vector space of the composite pressure solve (nhflow_amr_press.cpp, reefamr_bicgstab)
-    void pr_apply(int, int);
+    void pr_apply(int, int, bool d1=false);
     void pr_prec(int, int);
     double pr_dot(int, int);
     void pr_start();
@@ -282,6 +323,7 @@ private:
 
     // patch lexer: 3D flags, boundary list, sigma arrays
     void build_lexer3D(nhflow_amr_patch&);
+    void open_lists(nhflow_amr_patch&, bool, bool);     // G 54: the 3D in- and outflow cells of the open faces of a block
     void free_lexer3D(nhflow_amr_patch&);
 
     // interpolation from the coarser grid g: cell (ic,jc), quadrant (ox,oy); the last argument
@@ -327,7 +369,7 @@ private:
     double* pvec(int, int);         // grid, vector (-1: the unknowns of the solve)
     void pr_core(lexer*, ghostcell*);
     void pr_prepare(ghostcell*);
-    void pr_sync(int);
+    void pr_sync(int, bool d1=false);   // d1: the columns next to the patches only (the operator)
     void pr_rows();
     int pr_layout = -1;
     struct pgrid
@@ -363,9 +405,15 @@ private:
     vector<int> pr_l0f;
     struct pact { long lq; int qq, rw; };
     vector<vector<pact>> pr_pa;             // [patch id]: active unknowns of the patch MG
+    vector<vector<pact>> pr_po;             // [patch id]: active overlap cells of the patch MG (qq in the patch arrays)
+    bool pr_ovl = false;                    // some patch of some rank has overlap columns
+    void pr_overlap();                      // the overlap columns of the patches (layout)
+    void pr_kc7_fill();                     // the rows of the patches into the columns around them (siblings)
+    template<class SEL> void pr_fill_sib(int, int, int, SEL);   // a fill from the patches of the level only
+    bool pr_sib(const reefamr_patch*, int, int);                 // column (di,dj) of the patch lies in a patch of its level
     void pr_stencils();
     template<class SEL> void pr_restrict(SEL);
-    template<class SEL> void pr_fill(int, int, SEL);
+    template<class SEL> void pr_fill(int, int, SEL, bool d1=false);
     template<class SEL> void pr_fill0(SEL);  // multi-block: the columns around the blocks and the ring
     int npass0 = 2;                          // multi-block: passes of the block-local V-cycles (G 51)
     // multi-block: coarse space across the blocks (G 53 w): aggregates of w x w columns of every
@@ -497,6 +545,28 @@ private:
     void ring_halo(ghostcell*, int);
     void blocks_phase(ghostcell*, int, int);
     void dump_grids(lexer*);
+
+    // turbulence (A 560 1/21 k-epsilon, 2/22 k-omega) on every grid (nhflow_amr_turb.cpp): every grid steps its own
+    // k and epsilon/omega with the cells around it from its neighbours or from its parent, the covered cells take
+    // the mean of their children
+    int turb = 0;
+    nhflow_turbulence *tb0 = nullptr;
+    long tturb_n = 0;
+    double tturb = 0.0;
+    struct tfields { double *k = nullptr, *e = nullptr, *kn = nullptr, *en = nullptr; };
+    static tfields tget(nhflow_turbulence*);
+    double* tfield(int, int);       // grid, field (0 k, 1 epsilon/omega, 2 EV, 3 EV0, 4 d->KIN)
+    void turb_objects(nhflow_amr_patch&, ghostcell*);
+    void turb_free(nhflow_amr_patch&);
+    void turb_run(ghostcell*, nhflow_amr_patch&);
+    void turb_fill0(ghostcell*);
+    void turb_fill(ghostcell*, int);
+    void turb_restrict();
+    void turb_bc(ghostcell*, int);  // wall ghost cells of the fields of grid g (-1 level 0)
+    void turb_save(ghostcell*, nhflow_amr_patch&);
+    void turb_blocks_ini(ghostcell*);
+    void turb_regrid(ghostcell*, int, vector<reefamr_patch*>&);
+    void turb_step(lexer*, ghostcell*);
     void potential(lexer*, ghostcell*);     // I 11: potential flow initialisation over the blocks
     bool ring0(int ii, int jj) const { return nblk>0 && nring[(ii-p0->imin)*p0->jmax + (jj-p0->jmin)]==1; }
 
@@ -511,6 +581,22 @@ private:
     fdm_nhf *d0;
     nhflow_momentum_func *mom0;
     nhflow_stage_obj *S0p = nullptr;
+
+    // A 534 1 (nhflow_amr_si.cpp): the grids of the composite eta system (-1 the native grid, then
+    // lev[0]), their own rows (i, j, row of the si_eta2D assembly) and the Krylov vectors per grid
+    std::vector<int> sigrid;
+    std::vector<std::vector<int>> sirow;
+    std::vector<std::vector<slice*>> sivec;
+    nhflow_momentum_SI* gsi(int);
+    bool si_own(int, int, int);
+    void si_setup();
+    template<class F> void si_each(ghostcell*, F);
+    template<class A> void si_fill3(ghostcell*, int, int, A);
+    void si_fillv(ghostcell*, int);
+    void si_fillF(ghostcell*);
+    void si_dirichlet(ghostcell*);
+    void si_solve(lexer*, ghostcell*);
+    ghostcell *sipgc = nullptr;
     ioflow *pflowv;                 // objects shared by all patches (their NHFLOW calls do nothing)
     patchBC_interface *pBCv;
     sediment *psedv;

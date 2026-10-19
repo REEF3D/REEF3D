@@ -1,0 +1,29 @@
+{
+ "base": "cfd_2d_dambreak_amr_heat_adapt_mpi2",
+ "np": 2,
+ "control_add": [
+  "C 21 1"
+ ],
+ "ctrl_set": {
+  "F 54": "0.20"
+ },
+ "ctrl_add": [
+  "F 51 0.05"
+ ],
+ "description": "Heat with adaptive refinement, G 7 1, periodic in x on 2 ranks: the scalar fills and the refluxing with the patches across the periodic edge.",
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "levelset",
+  "amr",
+  "adaptive",
+  "periodic",
+  "mpi",
+  "heat"
+ ],
+ "covers": [
+  "cfd_amr_scalar with the periodic edge",
+  "the overlap of the joint multigrids in the level projections"
+ ]
+}

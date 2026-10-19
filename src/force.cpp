@@ -70,12 +70,21 @@ force::~force()
 {
 }
 
-void force::ini(lexer *p, fdm *a, ghostcell *pgc)
+void force::ini(lexer *p, fdm *a, ghostcell *pgc, bool printvtp)
 {
     triangulation(p,a,pgc,a->phi);
 	reconstruct(p,a,a->phi);
 	
+    if(printvtp)
 	print_vtp(p,a,pgc);
+    else
+    {
+    polygon_num=facount;
+    polygon_sum=0;
+    for(n=0;n<polygon_num;++n)
+    polygon_sum+=numpt[n];
+    vertice_num = ccptcount;
+    }
 } 
 
 void force::start(lexer *p, fdm *a, ghostcell *pgc)

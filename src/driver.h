@@ -69,6 +69,7 @@ class nhflow_signal_speed;
 class nhflow_reconstruct;
 class nhflow_fsf_reconstruct;
 class nhflow_turbulence;
+class reefrun_ckpt;
 class nhflow_pressure;
 class nhflow_diffusion;
 class nhflow_forcing;
@@ -90,6 +91,7 @@ class coral_reef3d;
 #include<fstream>
 #include<iomanip>
 #include<vector>
+#include<string>
 
 using namespace std;
 
@@ -127,6 +129,14 @@ public:
 	void driver_ini_cfd();
     void driver_ini_nhflow();
     void driver_ini_fnpf();
+    // checkpoints of FNPF and NHFLOW on any decomposition (P 48, I 45) and the rebalance (G 46):
+    // the hooks of the modules (driver_ckpt.cpp) for the run part (reefrun_ckpt.h)
+    void ckpt_write();
+    void ckpt_read();
+    std::string ckpt_unsupported();
+    void rebalance_check();
+    reefrun_ckpt& ckpt();
+    reefrun_ckpt *rck = nullptr;
     
 	void log_ini();
 	void mainlog(lexer*);
@@ -191,6 +201,7 @@ public:
     fnpf_ice *pfice = nullptr;
     fnpf_amr *pfamr = nullptr;
     coral_reef3d *pcoral = nullptr;   // REEF3D::CORAL structural solver (Z 40)
+    std::vector<double> coral_ckpt;   // its state from the checkpoint (I 45 1), until coral_ini
     nhflow_amr *pnhfamr = nullptr;
     nhflow_fsf *pnhfsf;
     sflow *psflow;

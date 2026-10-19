@@ -28,7 +28,7 @@ namespace coral
 {
 
 morison_load::morison_load(const model &m, int body, const std::vector<morison_member> &members,
-                           std::shared_ptr<const wave_field> waves, double rho, const Vec3 &current, const std::string &name)
+                           std::shared_ptr<const wave_kinematics> waves, double rho, const Vec3 &current, const std::string &name)
     : name_(name), b_(body), waves_(std::move(waves)), rho_(rho), current_(current)
 {
     const rigid_body &b = m.body(body);
@@ -54,17 +54,18 @@ morison_load::morison_load(const model &m, int body, const std::vector<morison_m
 }
 
 // force of one strip at its current position p; false if the strip is out of the water
-bool morison_load::strip_force(const model &m, const strip &s, double t, Vec3 &p, Vec3 &f) const
+bool morison_load::strip_force(const model &m, int index, double t, Vec3 &p, Vec3 &f) const
 {
+    const strip &s = strips_[index];
     const rigid_body &b = m.body(b_);
     p = b.point(s.s);
-    if(p(2) > (waves_ ? waves_->elevation(p(0), p(1), t) : 0.0))
+    if(p(2) > (waves_ ? waves_->elevation_at(this, index, p, t) : 0.0))
         return false;
     const Vec3 e = b.R*s.e;
     Vec3 uw = Vec3::Zero(), aw = Vec3::Zero();
     double pr = 0.0;
     if(waves_)
-        waves_->kinematics(p, t, uw, aw, pr);
+        waves_->kinematics_at(this, index, p, t, uw, aw, pr);
     const Vec3 ub = b.point_velocity(s.s), ab = b.point_acceleration(s.s);
     auto normal = [&](const Vec3 &v) {return Vec3(v - v.dot(e)*e);};
     const Vec3 ur = normal(uw + current_ - ub);
@@ -78,8 +79,8 @@ void morison_load::total(const model &m, double t, Vec3 &F, Vec3 &M) const
     F.setZero();
     M.setZero();
     Vec3 p, f;
-    for(const strip &s : strips_)
-        if(strip_force(m, s, t, p, f))
+    for(int i=0; i<(int)strips_.size(); ++i)
+        if(strip_force(m, i, t, p, f))
         {
             F += f;
             M += p.cross(f);
@@ -91,9 +92,17 @@ void morison_load::eval(const model &m, double t, VecX &fg) const
     if(b_ < 0)
         return;
     Vec3 p, f;
-    for(const strip &s : strips_)
-        if(strip_force(m, s, t, p, f))
+    for(int i=0; i<(int)strips_.size(); ++i)
+        if(strip_force(m, i, t, p, f))
             m.add_force(fg, b_, p, f);
+}
+
+void morison_load::kinematics_points(const model &m, const void *source, std::vector<Vec3> &pts) const
+{
+    if(b_ < 0 || waves_.get() != source)
+        return;
+    for(const strip &s : strips_)
+        pts.push_back(m.body(b_).point(s.s));
 }
 
 void morison_load::channel_names(std::vector<std::string> &c) const

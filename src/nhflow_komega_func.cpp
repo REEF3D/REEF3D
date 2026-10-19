@@ -62,6 +62,11 @@ void nhflow_komega_func::isource(lexer *p, fdm_nhf *d)
     LOOP
 	d->F[IJK] = -(2.0/3.0)*d->WL(i,j)*((p->geo_curv==1 ? curv_kx(p,KIN,i,j,k,1) : (KIN[Ip1JK]-KIN[Im1JK])/(p->DXP[IP]+p->DXP[IM1]))
               + 0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*(KIN[IJKp1]-KIN[IJKm1])/(p->DZP[KP]+p->DZP[KM1]));
+    
+    // QCR extra stress (A 563)
+    if(p->A563>0.0)
+    LOOP
+    d->F[IJK] += qcr_fx(p,d);
 }
 
 void nhflow_komega_func::jsource(lexer *p, fdm_nhf *d)
@@ -74,6 +79,10 @@ void nhflow_komega_func::jsource(lexer *p, fdm_nhf *d)
     LOOP
 	d->G[IJK] = -(2.0/3.0)*d->WL(i,j)*((p->geo_curv==1 ? curv_kx(p,KIN,i,j,k,2) : (KIN[IJp1K]-KIN[IJm1K])/(p->DYP[JP]+p->DYP[JM1]))
               + 0.5*(p->sigy[FIJK]+p->sigy[FIJKp1])*(KIN[IJKp1]-KIN[IJKm1])/(p->DZP[KP]+p->DZP[KM1]))*p->y_dir;
+    
+    if(p->A563>0.0)
+    LOOP
+    d->G[IJK] += qcr_fy(p,d)*p->y_dir;
 }
 
 void nhflow_komega_func::ksource(lexer *p, fdm_nhf *d)
@@ -86,6 +95,10 @@ void nhflow_komega_func::ksource(lexer *p, fdm_nhf *d)
     if(p->T33==1)
     LOOP
 	d->H[IJK] = -(2.0/3.0)*(KIN[IJKp1]-KIN[IJKm1])/(p->DZP[KP]+p->DZP[KM1]);
+    
+    if(p->A563>0.0)
+    LOOP
+    d->H[IJK] += qcr_fz(p,d);
 }
 
 void nhflow_komega_func::eddyvisc(lexer* p, fdm_nhf *d, ghostcell* pgc, vrans_nhflow* pvrans)
@@ -94,11 +107,16 @@ void nhflow_komega_func::eddyvisc(lexer* p, fdm_nhf *d, ghostcell* pgc, vrans_nh
     // A564 0: nu_t = k/omega
     // A564 1: + realizability,  nu_t <= T31 k/S
     // A564 2: + SST/Bradshaw,   nu_t <= a1 k/(F2 S)
+    // SST: distance to the side walls with a wall function for F2 (computed once, nhflow_rans_io::walldist_h)
+    if(p->A564==2)
+    walldist_h(p,d,pgc);
+
     if(p->A560==2 || p->A560==22)
     LOOP
     {
         const double kval = MAX(KIN[IJK],0.0);
-        const double Sval = strainterm(p,d);
+        // HLES split (A 561 1): the limiters with the vertical shear, as the production (Pk_update)
+        const double Sval = (p->A561==1) ? strainterm_v(p,d) : strainterm(p,d);
 
         double ev = EPS[IJK]>1.0e-20 ? kval/EPS[IJK] : 0.0;
 
@@ -242,30 +260,3 @@ void nhflow_komega_func::epsfsf(lexer *p, fdm_nhf *d, ghostcell *pgc)
 	EPS[IJK] = MAX(EPS[IJK], 2.5*pow(p->cmu,-0.25)*pow(fabs(KIN[IJK]),0.5)/(ly>1.0e-20?ly:1.0e-20));
 	}
 }
-
-double nhflow_komega_func::sst_walldist(lexer *p, fdm_nhf *d)
-{
-    double y = p->ZSP[IJK] - d->bed(i,j);
-
-    if(d->SOLID[IJK] > 0.0)
-    y = MIN(y, d->SOLID[IJK]);
-
-    return MAX(y, 1.0e-10);
-}
-
-double nhflow_komega_func::sst_F2(lexer *p, fdm_nhf *d, double kval, double wval)
-{
-    double y = sst_walldist(p,d);
-
-    kval = MAX(kval, 0.0);
-    wval = MAX(wval, 1.0e-20);
-
-    double arg2 = MAX( 2.0*sqrt(kval)/(p->cmu*wval*y),
-                       500.0*d->VISC[IJK]/(y*y*wval) );
-
-    arg2 = MIN(arg2, 25.0);
-
-    return tanh(arg2*arg2);
-}
-
-

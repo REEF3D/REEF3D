@@ -32,9 +32,7 @@ Author: Hans Bihs
 #define PORVALNH  d->POR[IJK]
 
 #define PORVALNH1  (0.5*(d->POR[IJK] + d->POR[Ip1JK]))
-#define PORVALNH1m  (0.5*(d->POR[IJK] + d->POR[Im1JK]))
 #define PORVALNH2  (0.5*(d->POR[IJK] + d->POR[IJp1K]))
-#define PORVALNH2m  (0.5*(d->POR[IJK] + d->POR[IJm1K]))
 #define PORVALNH3  (0.5*(d->POR[IJK] + d->POR[IJKp1]))
 
 // inertia (added mass) factor for porosity n, B 265 0: 1/(1 + C(1-n)/n^2) (van Gent 1995 as above);
@@ -45,28 +43,22 @@ Author: Hans Bihs
 
 #define CPORNH  CPORNHval(PORVALNH)
 
-#define CPORNH1m  CPORNHval(PORVALNH1m)
 #define CPORNH1  CPORNHval(PORVALNH1)
 
-#define CPORNH2m  CPORNHval(PORVALNH2m)
 #define CPORNH2  CPORNHval(PORVALNH2)
 
 /*
 #define PORVALNH  1.0
 
 #define PORVALNH1  1.0
-#define PORVALNH1m  1.0
 #define PORVALNH2  1.0
-#define PORVALNH2m  1.0
 #define PORVALNH3  1.0
 
 #define CPORNHval(n)  1.0
 
 #define CPORNH  1.0
 
-#define CPORNH1m  1.0
 #define CPORNH1  1.0
 
-#define CPORNH2m  1.0
 #define CPORNH2  1.0
 */

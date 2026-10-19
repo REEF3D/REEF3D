@@ -95,7 +95,9 @@ printer_CFD::printer_CFD(lexer* p, fdm *a, ghostcell *pgc)
     p->printcount=0;
 
     p->Darray(printtime_wT,p->P35);
+    nP35=p->P35;
     p->Darray(printfsftime_wT,p->P185);
+    nP185=p->P185;
 
     for(int qn=0; qn<p->P35; ++qn)
     printtime_wT[qn] = p->P35_ts[qn];
@@ -251,9 +253,10 @@ void printer_CFD::start(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, hea
     if(p->P168>0)
     pqw->start(p,a,pgc);
 
-    if((p->count==0 || p->count==p->count_statestart) && p->P81>0)
+    if((p->count==0 || p->count==p->count_statestart || force_ini_pending) && p->P81>0)
     for(n=0;n<p->P81;++n)
-    pforce[n]->ini(p,a,pgc);
+    pforce[n]->ini(p,a,pgc,!force_ini_pending);
+    force_ini_pending=false;
 
     if(p->count>1 && p->P81>0)
     for(n=0;n<p->P81;++n)
@@ -908,4 +911,47 @@ void printer_CFD::amr_probes(const amr_grid_lookup *amr)
     pprobe->amr = amr;
     ppressprobe->amr = amr;
     pwsf->amr = amr;
+}
+
+// checkpoints (P 48, I 45): the times of the next outputs of the windows P 35 and P 185 and the counters of the
+// surface and bed files (the times of the others are in the run scalars of reefrun_ckpt)
+void printer_CFD::ckpt_state(std::vector<double> &v)
+{
+    v.push_back(2.0);
+    v.push_back(pfsf!=nullptr ? pfsf->print_counter() : 0);
+    v.push_back(ptopo!=nullptr ? ptopo->print_counter() : 0);
+    v.push_back(double(nP35));
+    for(int qn=0; qn<nP35; ++qn)
+    v.push_back(printtime_wT[qn]);
+    v.push_back(double(nP185));
+    for(int qn=0; qn<nP185; ++qn)
+    v.push_back(printfsftime_wT[qn]);
+}
+
+void printer_CFD::ckpt_restore(const std::vector<double> &v)
+{
+    force_ini_pending = true;
+    if(v.size()<4 || (int(v[0])!=1 && int(v[0])!=2))
+    return;
+    if(pfsf!=nullptr)
+    pfsf->print_counter() = int(v[1]);
+    if(ptopo!=nullptr)
+    ptopo->print_counter() = int(v[2]);
+    size_t q = 3;
+    const int n = int(v[q++]);
+    for(int qn=0; qn<n && q<v.size(); ++qn, ++q)
+    if(qn<nP35)
+    printtime_wT[qn] = v[q];
+    if(int(v[0])<2 || q>=v.size())
+    return;
+    const int m = int(v[q++]);
+    for(int qn=0; qn<m && q<v.size(); ++qn, ++q)
+    if(qn<nP185)
+    printfsftime_wT[qn] = v[q];
+}
+
+void printer_CFD::flush_outputs()
+{
+    if(pwsf!=nullptr)
+    pwsf->flush_files();
 }

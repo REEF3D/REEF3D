@@ -72,15 +72,27 @@ void CPM::advec_mppic(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulence *pt
         // level are part of the bed surface, they are moved by the layer only (fluid at rest at the
         // grain level); moving grains (suspension, settling, avalanches) see the resolved flow
         // reduced towards the bed, u delta/h
-        if(p->Q58>0)
+        // Q 74 1: the grains of the bed that were not released into the suspension (Hop = 0) see no resolved
+        // flow anywhere: they are moved by the layer, gravity and the packed bed only. Without it a bed grain
+        // more than a cell above the fluid bed (deposited on a crest, lifted by the flow up a lee slope) took
+        // the full resolved drag, a second pickup without a closure and not accelerated by Q 65 (pipeline:
+        // 0.1-0.8 times the flux of the layer on the lee slope and the only flux beyond the crest of the mound,
+        // validations 18 and 21)
+        if(p->Q58>0 && p->Q74==1 && P.Hop[n]==0.0)
+        {
+            uf=vf=wf=0.0;
+            liftx=lifty=liftz=0.0;
+        }
+        
+        else if(p->Q58>0)
         {
             double topo = ptopo(p,a,PX[n],PY[n],PZ[n]);
 
             if(topo>=0.0)
             {
-                i = p->posc_i(PX[n]);
-                j = p->posc_j(PY[n]);
-                k = p->posc_k(PZ[n]);
+                i = pci(p,n,PX[n]);
+                j = pcj(p,n,PY[n]);
+                k = pck(p,n,PZ[n]);
 
                 double h = p->DZN[KP];
 
@@ -164,9 +176,9 @@ void CPM::advec_mppic(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulence *pt
     
     if(p->Q58>0 && p->S10==1)
     {
-        i = p->posc_i(PX[n]);
-        j = p->posc_j(PY[n]);
-        k = p->posc_k(PZ[n]);
+        i = pci(p,n,PX[n]);
+        j = pcj(p,n,PY[n]);
+        k = pck(p,n,PZ[n]);
         
         double psi = p->Q64*p->DZN[KP];
         double phi = ptopo(p,a,PX[n],PY[n],PZ[n]);
@@ -249,9 +261,9 @@ void CPM::nearbed_velocity(lexer *p, fdm *a, double xp, double yp, double zp, do
     if(topo>=0.0)
     return;
     
-    i = p->posc_i(xp);
-    j = p->posc_j(yp);
-    k = p->posc_k(zp);
+    i = pci(p,n,xp);
+    j = pcj(p,n,yp);
+    k = pck(p,n,zp);
     
     double h = p->DZN[KP];
     double delta = -topo;
@@ -400,13 +412,13 @@ void CPM::bagnold_update(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
     for(n=0;n<P.index;++n)
     if(P.Flag[n]==ACTIVE)
     {
-        i = p->posc_i(P.X[n]);
-        j = p->j_dir==1 ? p->posc_j(P.Y[n]) : 0;
+        i = pci(p,n,P.X[n]);
+        j = p->j_dir==1 ? pcj(p,n,P.Y[n]) : 0;
         
         if(i<0 || i>=p->knox || j<0 || j>=p->knoy)
         continue;
         
-        k = p->posc_k(P.Z[n]);
+        k = pck(p,n,P.Z[n]);
         double h = p->DZN[KP];
         
         // grains of the bed below the exposed layer do not count
@@ -474,8 +486,8 @@ double CPM::shelter_factor(lexer *p, sediment_fdm *s, double xp, double yp, doub
     if(p->Q57!=1 || tauG.empty())
     return 1.0;
     
-    int ii = p->posc_i(xp);
-    int jj = p->j_dir==1 ? p->posc_j(yp) : 0;
+    int ii = pci(p,n,xp);
+    int jj = p->j_dir==1 ? pcj(p,n,yp) : 0;
     
     if(ii<0 || ii>=p->knox || jj<0 || jj>=p->knoy)
     return 1.0;
@@ -521,8 +533,8 @@ void CPM::exposure_update(lexer *p, fdm *a)
     for(n=0;n<P.index;++n)
     if(P.Flag[n]>=ACTIVE)
     {
-        i = p->posc_i(P.X[n]);
-        j = p->j_dir==1 ? p->posc_j(P.Y[n]) : 0;
+        i = pci(p,n,P.X[n]);
+        j = p->j_dir==1 ? pcj(p,n,P.Y[n]) : 0;
         
         if(i<0 || i>=p->knox || j<0 || j>=p->knoy)
         continue;

@@ -268,7 +268,8 @@ bool dem_shape::build_mesh(const string &file, double scale, int res)
 
 void dem_shape::mesh_mass_properties(dem_vec &com, dem_mat &J, double &vol)
 {
-    // D. Eberly, Polyhedral Mass Properties (Revisited)
+    // D. Eberly, Polyhedral Mass Properties (Revisited), Geometric Tools, 2002
+    // (after B. Mirtich, J. Graphics Tools 1(2), 1996)
     const double mult[10] = {1.0/6.0,1.0/24.0,1.0/24.0,1.0/24.0,1.0/60.0,1.0/60.0,1.0/60.0,1.0/120.0,1.0/120.0,1.0/120.0};
     double intg[10] = {0,0,0,0,0,0,0,0,0,0};
 

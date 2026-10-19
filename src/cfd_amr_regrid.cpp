@@ -207,19 +207,202 @@ void cfd_amr::flags(vector<vector<unsigned char>> &seed, bool init)
     }
 }
 
-// a new hierarchy from the flags, the data transferred
-void cfd_amr::regrid(lexer *p, ghostcell *pgc)
+// G 40: the state of the cells of the new patches that lie in an old patch of their level, from that
+// patch on its rank (the old placement, GPold); got: per new patch and cell (collective)
+void cfd_amr::regrid_old(const vector<int> &fresh, vector<vector<char>> &got)
 {
-    const double t0 = MPI_Wtime();
+    vector<const cfd_amr_field*> st;
+    for(const cfd_amr_field &e : reg)
+    if(e.roles & AF_STATE)
+    st.push_back(&e);
+    const int nf = (int)st.size();
 
-    vector<vector<unsigned char>> seed;
-    flags(seed,false);
+    vector<vector<int>> glo(maxlev+1);
+    for(size_t g=0; g<GPold.size(); ++g)
+    glo[GPold[g].lev].push_back((int)g);
+
+    vector<vector<int>> req(nranks), back(nranks);
+    for(int id : fresh)
+    {
+        cfd_amr_patch *c = CP(id);
+        got[id].assign((size_t)c->n[0]*c->n[1]*c->n[2],0);
+        int I[3];
+        for(I[0]=c->lo[0]; I[0]<=c->hi[0]; ++I[0])
+        for(I[1]=c->lo[1]; I[1]<=c->hi[1]; ++I[1])
+        for(I[2]=c->lo[2]; I[2]<=c->hi[2]; ++I[2])
+        {
+            int go = -1;
+            for(int g : glo[c->lev])
+            {
+                const r3gpatch &o = GPold[g];
+                if(I[0]>=o.lo[0] && I[0]<=o.hi[0] && I[1]>=o.lo[1] && I[1]<=o.hi[1] && I[2]>=o.lo[2] && I[2]<=o.hi[2])
+                {
+                    go = g;
+                    break;
+                }
+            }
+            if(go<0)
+            continue;
+            const r3gpatch &o = GPold[go];
+            const int li = I[0]-c->lo[0], lj = I[1]-c->lo[1], lk = I[2]-c->lo[2];
+            const int oi = I[0]-o.lo[0], oj = I[1]-o.lo[1], ok = I[2]-o.lo[2];
+            got[id][((size_t)li*c->n[1]+lj)*c->n[2]+lk] = 1;
+            if(o.rank==myrank)
+            {
+                cfd_amr_patch *q = static_cast<cfd_amr_patch*>(Pold[o.lid]);
+                for(const cfd_amr_field *e : st)
+                rfp(*e,c)(li,lj,lk) = rfp(*e,q)(oi,oj,ok);
+                continue;
+            }
+            const int a[4] = {o.lid,oi,oj,ok}, b[4] = {id,li,lj,lk};
+            req[o.rank].insert(req[o.rank].end(),a,a+4);
+            back[o.rank].insert(back[o.rank].end(),b,b+4);
+        }
+    }
+
+    vector<int> sc(nranks), rc(nranks), sd(nranks), rd(nranks);
+    for(int r=0; r<nranks; ++r)
+    sc[r] = (int)req[r].size();
+    MPI_Alltoall(sc.data(),1,MPI_INT,rc.data(),1,MPI_INT,MPI_COMM_WORLD);
+    int ns=0, nr=0;
+    for(int r=0; r<nranks; ++r)
+    {
+        sd[r] = ns; ns += sc[r];
+        rd[r] = nr; nr += rc[r];
+    }
+    vector<int> sb(ns+1), rb(nr+1);
+    for(int r=0; r<nranks; ++r)
+    std::copy(req[r].begin(),req[r].end(),sb.begin()+sd[r]);
+    MPI_Alltoallv(sb.data(),sc.data(),sd.data(),MPI_INT,rb.data(),rc.data(),rd.data(),MPI_INT,MPI_COMM_WORLD);
+
+    vector<double> ab((size_t)(nr/4)*nf+1);
+    for(int m=0; m<nr/4; ++m)
+    {
+        cfd_amr_patch *q = static_cast<cfd_amr_patch*>(Pold[rb[4*m]]);
+        for(int f=0; f<nf; ++f)
+        ab[(size_t)m*nf+f] = rfp(*st[f],q)(rb[4*m+1],rb[4*m+2],rb[4*m+3]);
+    }
+    vector<int> ac(nranks), ad(nranks), bc(nranks), bd(nranks);
+    for(int r=0; r<nranks; ++r)
+    {
+        ac[r] = rc[r]/4*nf; ad[r] = rd[r]/4*nf;
+        bc[r] = sc[r]/4*nf; bd[r] = sd[r]/4*nf;
+    }
+    vector<double> bb((size_t)(ns/4)*nf+1);
+    MPI_Alltoallv(ab.data(),ac.data(),ad.data(),MPI_DOUBLE,bb.data(),bc.data(),bd.data(),MPI_DOUBLE,MPI_COMM_WORLD);
+
+    for(int r=0; r<nranks; ++r)
+    for(size_t m=0; m<back[r].size()/4; ++m)
+    {
+        const int *b = &back[r][4*m];
+        cfd_amr_patch *c = CP(b[0]);
+        const double *v = &bb[(size_t)bd[r]+m*nf];
+        for(int f=0; f<nf; ++f)
+        rfp(*st[f],c)(b[1],b[2],b[3]) = v[f];
+    }
+}
+
+// a new hierarchy from the flags, the data transferred
+// G 41 0 on several ranks: the work of the ranks since the last regrid, from the timers (level 0: its
+// level set, momentum, end of the stages (G 7 1: its step) and the level-0 V-cycles of the composite
+// solves; the patches: the loops over the patches of the rank and their V-cycles, without the fills
+// and the waits).  The work of a patch cell against a level-0 cell (both per step of their level) is
+// the weight wpatch of the patch cells in the placement of G 40 1, 2 (the mean with the last one).
+// The report: the measured work max/mean over the ranks, and the weight.
+bool cfd_amr::lmeas() const
+{
+    return nranks>1 && p0->G41<=0.0;
+}
+
+void cfd_amr::lbar()
+{
+    if(lmeas())
+    MPI_Barrier(MPI_COMM_WORLD);
+}
+
+void cfd_amr::measure_load()
+{
+    if(!lmeas())
+    return;
+
+    const double T0 = t0l[0]+t0l[1]+t0l[2]+tm[4]+tp[1];
+    const double Tp = wtp+tp[0];
+    double n0 = double(p0->knox)*p0->knoy*p0->knoz, np = 0.0;
+    for(int qi=0; qi<npat; ++qi)
+    np += ((p0->G7==1) ? double(1<<P[qi]->lev) : 1.0)*double(P[qi]->n[0])*P[qi]->n[1]*P[qi]->n[2];
+
+    double d[5] = {T0-ml_t0, Tp-ml_tp, n0, np, 0.0};
+    d[4] = d[0]+d[1];
+    ml_t0 = T0;
+    ml_tp = Tp;
+    ++ml_n;
+    double s[5], m[5];
+    MPI_Allreduce(d,s,5,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+    MPI_Allreduce(d,m,5,MPI_DOUBLE,MPI_MAX,MPI_COMM_WORLD);
+
+    // (the first regrid: the timers since the start, with the initialisation)
+    if(ml_n<2 || s[0]<=0.0 || s[2]<=0.0)
+    return;
+
+    double w = -1.0;
+    if(s[1]>0.0 && s[3]>0.0)
+    {
+        w = (s[1]/s[3])/(s[0]/s[2]);
+        w = MIN(MAX(w,0.25),16.0);
+        wpatch = (ml_n==2) ? w : 0.5*(wpatch+w);
+    }
+    if(p0->mpirank==0)
+    {
+        const std::streamsize pr = cout.precision();
+        cout<<"CFD AMR: measured since the last regrid: work max/mean over "<<nranks<<" ranks "<<setprecision(3)<<m[4]/(s[4]/nranks)
+            <<" (level 0 "<<m[0]/(s[0]/nranks)<<", patches "<<(s[1]>0.0 ? m[1]/(s[1]/nranks) : 0.0)<<")";
+        if(w>0.0)
+        cout<<"; a patch cell "<<w<<" level-0 cells, the weight of the placement "<<wpatch;
+        cout<<endl;
+        cout.precision(pr);
+    }
+}
+
+// G 40 1 with G 41 0 and a static refinement (no regrid): the work measured over steps 5-15, then
+// the units placed once more with the measured weight of a patch cell
+void cfd_amr::replace_static(lexer *p, ghostcell *pgc)
+{
+    if(adapt || place!=1 || !lmeas() || (p->count!=5 && p->count!=15))
+    return;
+    measure_load();
+    if(p->count==15)
+    regrid(p,pgc,true);
+}
+
+void cfd_amr::regrid(lexer *p, ghostcell *pgc, bool replace)
+{
+    amr_regrid_clock rclock;     // load statistics (G 43)
+    const double t0 = MPI_Wtime();
 
     vector<r3patch*> gone;
     vector<int> fresh;
     verbose = false;
-    if(!rebuild(seed,gone,fresh))
-    return;
+    if(replace)
+    {
+        if(!replace_units(gone,fresh))
+        return;
+    }
+    else
+    {
+        vector<vector<unsigned char>> seed;
+
+        // restart (I 45): the tile maps of the checkpoint (ckpt_read), no flags, no load sample
+        if(!ck_seed.empty())
+        seed = ck_seed;
+        else
+        {
+        measure_load();
+        flags(seed,false);
+        }
+
+        if(!rebuild(seed,gone,fresh))
+        return;
+    }
     ++nregrid;
 
     vector<char> isfresh(P.size(),0);
@@ -230,6 +413,20 @@ void cfd_amr::regrid(lexer *p, ghostcell *pgc)
     }
 
     vector<fspec> fs = specs(AF_STATE);
+
+    // G 40: the cells of the new patches in an old patch of their level (of any rank)
+    vector<vector<char>> got(P.size());
+    if(place)
+    regrid_old(fresh,got);
+
+    // G 40: the shadows of the level-1 patches (new ones: their porosity as well)
+    if(place)
+    {
+        sh_fill_down(fs);
+        vector<std::function<field&(int)>> por;
+        por.push_back([this](int g) -> field& { return gfd(g)->porosity; });
+        sh_down_f(por);
+    }
 
     for(int l=1; l<=maxlev; ++l)
     {
@@ -246,8 +443,13 @@ void cfd_amr::regrid(lexer *p, ghostcell *pgc)
             {
                 const int li = I[0]-c->lo[0], lj = I[1]-c->lo[1], lk = I[2]-c->lo[2];
 
+                // G 40: from an old patch of the level on any rank (regrid_old)
+                if(place && got[id][((size_t)li*c->n[1]+lj)*c->n[2]+lk])
+                continue;
+
                 // an old patch of the level
                 cfd_amr_patch *o = nullptr;
+                if(!place)
                 for(r3patch *q : gone)
                 if(q->lev==l && I[0]>=q->lo[0] && I[0]<=q->hi[0] && I[1]>=q->lo[1] && I[1]<=q->hi[1] && I[2]>=q->lo[2] && I[2]<=q->hi[2])
                 {
@@ -354,7 +556,7 @@ void cfd_amr::regrid(lexer *p, ghostcell *pgc)
         pturb0->gcupdate(p0,a0,pgc0);
         for(int l=1; l<=maxlev; ++l)
         fill(l,fs);
-        for(int id=0; id<(int)P.size(); ++id)
+        for(int id=0; id<npat; ++id)
         margin_rovisc(id);
     }
 

@@ -406,6 +406,8 @@ void reefamr::blocks_setup(lexer *p, ghostcell *pgc)
         }
     }
 
+    blocks_open(p);
+
     // block 0 with its ring is the native grid
     const rblock &B0 = blk[0];
     if(B0.ni+B0.ring[0]+B0.ring[1]!=GNX || B0.nj+B0.ring[2]+B0.ring[3]!=GNY)
@@ -510,6 +512,46 @@ void reefamr::blocks_setup(lexer *p, ghostcell *pgc)
 }
 
 // tile maps and no-refinement cells over the index space with the blocks; the singular vertices; the
+// open faces of the blocks 1.. (G 54 b t v): t 1 discharge v through the -i face of block b, t 2 water level v at
+// its +i face; the face has no interface, one line per face
+void reefamr::blocks_open(lexer *p)
+{
+    bopen[0].assign(nblk,-1);
+    bopen[1].assign(nblk,-1);
+    int bad=0;
+    for(int n=0; n<p->G54; ++n)
+    {
+        const int b = p->G54_b[n], t = p->G54_t[n];
+        const char *why = nullptr;
+        if(b<1 || b>=nblk)
+        why = "no block 1.. of the grid";
+        else
+        if(t!=1 && t!=2)
+        why = "type 1 (discharge in, -i face) or 2 (water level out, +i face)";
+        else
+        if(bopen[t-1][b]>=0)
+        why = "the face is open already";
+        else
+        for(const rseg &S : blk[b].seg)
+        if(S.face==t-1)
+        why = "the face has an interface";
+
+        if(why!=nullptr)
+        {
+            if(p->mpirank==0)
+            cout<<"!!! "<<par.name<<": G 54 "<<b<<" "<<t<<" "<<p->G54_v[n]<<": "<<why<<" !!!"<<endl;
+            ++bad;
+            continue;
+        }
+        bopen[t-1][b] = n;
+        if(p->mpirank==0)
+        cout<<par.name<<": block "<<b<<(t==1?" inflow ":" outflow ")<<(t==1?"Q = ":"water level ")<<p->G54_v[n]
+            <<(t==1?" m3/s through its -i face":" m at its +i face")<<endl;
+    }
+    if(bad>0)
+    exit(1);
+}
+
 // tiles around every block and the tiles of the cells they stand for (refinement across interfaces)
 void reefamr::blocks_refine_setup(lexer *p)
 {
@@ -551,6 +593,14 @@ void reefamr::blocks_refine_setup(lexer *p)
             F[(size_t)(blk[b].vi+i)*GNYV+(blk[b].vj+j)] = 1;
         }
     }
+
+    // no refinement next to the open faces (G 54), as next to the in- and outflow of the native grid
+    for(int b=1; b<nblk; ++b)
+    for(int t=0; t<2; ++t)
+    if(bopen[t][b]>=0)
+    for(int i=0; i<=std::min(par.ioband,blk[b].ni-1); ++i)
+    for(int j=0; j<blk[b].nj; ++j)
+    F[(size_t)(blk[b].vi+(t==0 ? i : blk[b].ni-1-i))*GNYV+(blk[b].vj+j)] = 1;
 
     // singular vertices: the corner cell beyond both faces is another cell through the one face
     // than through the other (three or five blocks around the node), or only one way reaches it

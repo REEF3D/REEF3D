@@ -27,6 +27,9 @@ Author: Hans Bihs
 #include<fstream>
 #include<sys/stat.h>
 #include<sys/types.h>
+#include<mpi.h>
+#include<iomanip>
+#include"dmpart_api.h"
 
 // DIVEMesh grid, format v2 (see gridfile_v2.h)
 //
@@ -36,6 +39,12 @@ Author: Hans Bihs
 //
 // The solid and topo fields, the bed levels and the ghost cell estimates are built by
 // REEF3D from the triangles (lexer::grid_solids, geometry core), not read.
+//
+// M 40: the grid files of the ranks from the global grid file of DIVEMesh (M 50 1, 2:
+// DIVEMesh_Grid/grid-global.dat): rank 0 decomposes the grid for the M 10 ranks of the run with the
+// decomposition of DIVEMesh (dmpart, the keys of the DIVEMesh control file: M 20, ...) and sends every
+// rank its file in memory, the same file DIVEMesh would write for that number of ranks.
+// M 40 0: the files of the ranks if DIVEMesh wrote them, else the global file; M 40 1: the global file.
 
 void lexer::read_grid()
 {
@@ -58,7 +67,95 @@ void lexer::read_grid()
     
     gridv2::reader gf;
     
-    if(!gf.open(name,gridv2::magic_grid))
+    // the grid of this rank: its file, or decomposed by REEF3D from the global file (M 40)
+    struct stat st;
+    
+    // a run stopped to rebalance (G 46): restart from its checkpoint with the weighted partition
+    if(stat("REEF3D_Checkpoint/rebalance",&st)==0)
+    {
+        I45 = 1;
+        M40 = 1;
+        M41 = 1;
+        if(mpirank==0)
+        cout<<"rebalance restart (REEF3D_Checkpoint/rebalance): I 45 1, M 40 1, M 41 1"<<endl;
+    }
+
+    const bool rankfile = (stat(name,&st)==0);
+    const bool globfile = (stat("DIVEMesh_Grid/grid-global.dat",&st)==0);
+    const bool decompose = (M40==1 || !rankfile) && globfile;
+    
+    if(M40==1 && !globfile)
+    {
+        if(mpirank==0)
+        cout<<endl<<"!!! M 40 1 (or a rebalance restart, G 46) needs DIVEMesh_Grid/grid-global.dat: DIVEMesh M 50 1 or 2 !!!"<<endl<<endl;
+        exit(1);
+    }
+    bool opened = false;
+    
+    if(decompose)
+    {
+        vector<char> mine;
+        long long nb=0;
+        int ok=1;
+        
+        if(mpirank==0)
+        {
+            const double t0 = MPI_Wtime();
+            vector<vector<char>> rb;
+            string msg;
+            
+            cout<<"REEF3D decomposes DIVEMesh_Grid/grid-global.dat for "<<mpi_size<<" ranks (M 40 "<<M40<<")"<<endl;
+            
+            if(M10!=mpi_size || !dmpart::build("DIVEMesh_Grid/grid-global.dat",mpi_size,rb,msg,M41))
+            {
+                if(M10!=mpi_size)
+                msg = "M 10 "+to_string(M10)+" is not the number of ranks "+to_string(mpi_size);
+                cout<<endl<<"!!! decomposition of the global grid file: "<<msg<<" !!!"<<endl<<endl;
+                ok=0;
+            }
+            
+            MPI_Bcast(&ok,1,MPI_INT,0,MPI_COMM_WORLD);
+            
+            if(ok)
+            {
+                for(int r=1; r<mpi_size; ++r)
+                {
+                    nb = (long long)rb[r].size();
+                    MPI_Send(&nb,1,MPI_LONG_LONG,r,4711,MPI_COMM_WORLD);
+                    for(long long off=0; off<nb; off+=1<<30)
+                    MPI_Send(rb[r].data()+off,int(min(nb-off,(long long)1<<30)),MPI_CHAR,r,4712,MPI_COMM_WORLD);
+                }
+                mine = std::move(rb[0]);
+                const streamsize pr = cout.precision();
+                cout<<"decomposition "<<setprecision(3)<<MPI_Wtime()-t0<<" s"<<endl;
+                cout.precision(pr);
+            }
+        }
+        else
+        {
+            MPI_Bcast(&ok,1,MPI_INT,0,MPI_COMM_WORLD);
+            
+            if(ok)
+            {
+                MPI_Recv(&nb,1,MPI_LONG_LONG,0,4711,MPI_COMM_WORLD,MPI_STATUS_IGNORE);
+                mine.resize(size_t(nb));
+                for(long long off=0; off<nb; off+=1<<30)
+                MPI_Recv(mine.data()+off,int(min(nb-off,(long long)1<<30)),MPI_CHAR,0,4712,MPI_COMM_WORLD,MPI_STATUS_IGNORE);
+            }
+        }
+        
+        if(!ok)
+        {
+            MPI_Barrier(MPI_COMM_WORLD);
+            exit(1);
+        }
+        
+        opened = gf.open_buffer(std::move(mine),name,gridv2::magic_grid);
+    }
+    else
+    opened = gf.open(name,gridv2::magic_grid);
+    
+    if(!opened)
     {
         cout<<endl;
         cout<<"!!! "<<gf.error<<" !!!"<<endl;
