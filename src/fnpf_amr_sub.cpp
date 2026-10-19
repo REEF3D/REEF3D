@@ -439,13 +439,7 @@ void fnpf_amr::sub_stage(lexer *p, ghostcell *pgc, int l, int k, int s, double d
     // fill, as fnpf_RK3 (the damping, then the clamp and the coastline relaxation)
     if(stage_ring())
     {
-        for(int id : lev[l])
-        {
-            stage_damp_coast(*FP(id),pgc,id,s);
-
-            if(body!=nullptr)
-            body->amr_surface(FP(id)->pp,pgc,id,sval(id,s,0),sval(id,s,1));
-        }
+        stage_damp_coast(l,pgc,s);
 
         for(int id : lev[l])
         {

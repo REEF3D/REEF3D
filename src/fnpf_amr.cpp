@@ -897,6 +897,9 @@ void fnpf_amr::regrid_state(ghostcell *pgc, vector<reefamr_patch*> &oldP)
     auto sfz  = [&](int g, int m) -> slice& { return gfd(g)->Fz; };
     auto sst  = [&](int g, int m) -> slice& { return sval(g,2,m); };
     auto sfi  = [&](int g) -> double* { return gfd(g)->Fi; };
+    auto scst = [&](int g, int m) -> slice& { return gfd(g)->coastline; };
+    auto svb  = [&](int g, int m) -> slice& { return gfd(g)->vb; };
+    auto fresh = [&](reefamr_patch *c) { return c->fresh; };
 
     for(int l=1; l<=maxlev; ++l)
     {
@@ -929,6 +932,15 @@ void fnpf_amr::regrid_state(ghostcell *pgc, vector<reefamr_patch*> &oldP)
             p->bed[lij(p,ii,jj)] = cc->bed(ii,jj);
         }
 
+        // G 30 1: the coastline distance of the parent grid (geometry: all cells), for the cells of
+        // a new patch whose coastline may lie outside the patch (patch_coast_dist)
+        if(wd)
+        {
+            wfill = false;
+            prolong_interior_sl(l,fresh,1,scst);
+            wfill = wd;
+        }
+
         // surface: prolonged, then the cells of the old patches (on any rank)
         prolong_interior_sl(l,[&](reefamr_patch *c) { return c->fresh; },2,sst);
         prolong_interior_sl(l,[&](reefamr_patch *c) { return c->fresh; },1,sfz);
@@ -950,6 +962,16 @@ void fnpf_amr::regrid_state(ghostcell *pgc, vector<reefamr_patch*> &oldP)
         fill_sl(l,2,7520+l,sst);
         fill_sl(l,1,7530+l,sfz);
 
+        // breaking (A 350 1): the viscosity of the last stage, which damps the first stage of the
+        // next step (the detection comes after the damping): prolonged, then that of the old patches
+        if(brk)
+        {
+            prolong_interior_sl(l,fresh,1,svb);
+            old_run(l,1,7650+l,oldP,
+                    [&](reefamr_patch *o, int io, int jo, double *v) { v[0] = FP(o)->c->vb(io,jo); },
+                    [&](reefamr_patch *q, int id, int ii, int jj, const double *v) { FP(q)->c->vb(ii,jj) = v[0]; });
+        }
+
         for(int id : lev[l])
         if(P[id]->fresh)
         {
@@ -962,9 +984,24 @@ void fnpf_amr::regrid_state(ghostcell *pgc, vector<reefamr_patch*> &oldP)
 
             comms_off guard(pgc);
 
-            // coastline in the patch: wet mask and coastline distance from the fine bed
+            // coastline in the patch: wet mask and coastline distance from the fine bed, the
+            // distance of the parent where the coastline may lie outside the patch
             if(wd)
-            patch_wd_ini(*c,pgc);
+            {
+                vector<double> cpar;
+                cpar.reserve((size_t)c->nx*c->ny);
+                for(int ii=EXT; ii<EXT+c->nx; ++ii)
+                for(int jj=EXT; jj<EXT+c->ny; ++jj)
+                cpar.push_back(cc->coastline(ii,jj));
+
+                patch_wd_ini(*c,pgc);
+                patch_coast_dist(*c,cpar);
+            }
+
+            if(brk)
+            for(int ii=EXT; ii<EXT+c->nx; ++ii)
+            for(int jj=EXT; jj<EXT+c->ny; ++jj)
+            cc->vb(ii,jj) = MAX(cc->vb(ii,jj),0.0);
 
             // sigma grid as fnpf_sigma::sigma_ini (the bed is prolonged, not smoothed again)
             FLOOP
@@ -1171,13 +1208,7 @@ void fnpf_amr::stage_surface(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &Se, s
             walls_sl(*FP(id),sel(id,1),gcval_fifsf);
         }
 
-        for(int id : lev[l])
-        {
-            stage_damp_coast(*FP(id),pgc,id,s);
-
-            if(body!=nullptr)
-            body->amr_surface(FP(id)->pp,pgc,id,sval(id,s,0),sval(id,s,1));
-        }
+        stage_damp_coast(l,pgc,s);
     }
 
     restrict_sl(2,sel);
@@ -1342,177 +1373,317 @@ bool fnpf_amr::cell_unfit(int ii, int jj)
 // A 350 1 and A 343 1 with G 30 1: the implicit damping of the stage values (alpha 1, 1/4, 2/3), then
 // the clamp and the coastline relaxation, in the order of fnpf_RK3; the cells around the patch hold
 // the stage values of the coarser grid (stage_ring)
-void fnpf_amr::stage_damp_coast(fnpf_amr_patch &pc, ghostcell *pgc, int id, int s)
+void fnpf_amr::stage_damp_coast(int l, ghostcell *pgc, int s)
 {
-    comms_off guard(pgc);
-
     if(brk)
     {
         const double al = (s==0) ? 1.0 : (s==1) ? 0.25 : 2.0/3.0;
-        patch_damping(pc,pgc,sval(id,s,0),gcval_eta,al);
-        patch_damping(pc,pgc,sval(id,s,1),gcval_fifsf,al);
+        level_damping(l,pgc,s,0,gcval_eta,al);
+        level_damping(l,pgc,s,1,gcval_fifsf,al);
     }
 
     if(wd)
-    patch_coast(pc,pgc,sval(id,s,0),sval(id,s,1));
+    for(int id : lev[l])
+    {
+        comms_off guard(pgc);
+        patch_coast(*FP(id),pgc,sval(id,s,0),sval(id,s,1));
+    }
+
+    if(body!=nullptr)
+    for(int id : lev[l])
+    body->amr_surface(FP(id)->pp,pgc,id,sval(id,s,0),sval(id,s,1));
 }
 
-// A 350 1: the implicit damping of a stage value with the breaking viscosity, as
-// fnpf_fsfbc::damping, on the patch box; the cells around it (EXT) are held (Dirichlet), solids
-// as on level 0.  Jacobi-preconditioned BiCGStab on the patch.
-void fnpf_amr::patch_damping(fnpf_amr_patch &pc, ghostcell *pgc, slice &f, int gcval, double alpha)
+// A 350 1: the implicit damping of the stage value m (0 eta, 1 Fifsf) of stage s with the breaking
+// viscosity on the patches of level l, as fnpf_fsfbc_wd::damping on level 0: one system over all
+// patches of the level (on any rank), the cells around them from a patch of the same level are
+// unknowns of the system (their values through the fills of the level), those from the coarser
+// grid hold its damped stage value (stage_ring); solids and the edge of the domain without flux
+// (the value of the cell), dry cells (wd) unchanged and without flux.  Jacobi-preconditioned
+// BiCGStab with the reductions over all ranks; a patch cut into pieces (ranks, G 40 1, several
+// patches) is solved as the whole patch.
+void fnpf_amr::level_damping(int l, ghostcell *pgc, int s, int m, int gcval, double alpha)
 {
-    lexer *p = pc.pp;
-    fdm_fnpf *c = pc.c;
-
     bool on = false;
     double alpha_eta = 1.0;
 
-    if((gcval==60 || gcval==160) && (p->A357==1 || p->A357==2))
+    if((gcval==60 || gcval==160) && (p0->A357==1 || p0->A357==2))
     on = true;
 
-    if((gcval==55 || gcval==155) && (p->A357==1 || p->A357==3))
+    if((gcval==55 || gcval==155) && (p0->A357==1 || p0->A357==3))
     {
     on = true;
-    alpha_eta = p->A366;
+    alpha_eta = p0->A366;
     }
 
     if(!on)
     return;
 
-    const int i0 = EXT, i1 = EXT+pc.nx, j0 = EXT, j1 = EXT+pc.ny;
-    const int nj = pc.ny;
-    const int N = pc.nx*pc.ny;
-
     double vbmax = 0.0;
-    for(i=i0; i<i1; ++i)
-    for(j=j0; j<j1; ++j)
-    vbmax = MAX(vbmax,fabs(c->vb(i,j)));
+    for(int id : lev[l])
+    {
+        fnpf_amr_patch *pc = FP(id);
+        for(int ii=EXT; ii<EXT+pc->nx; ++ii)
+        for(int jj=EXT; jj<EXT+pc->ny; ++jj)
+        vbmax = MAX(vbmax,fabs(pc->c->vb(ii,jj)));
+    }
+    vbmax = pgc->globalmax(vbmax);
 
     if(vbmax<=0.0)
     return;
 
-    vector<double> ap(N,1.0), b(N,0.0), x(N,0.0);
-    vector<double> ac[4];
-    vector<int> nb[4];
-    for(int m=0; m<4; ++m)
+    // the system of every patch: interior cells q = (i-EXT)*ny + (j-EXT); a neighbour in the box
+    // (nb), or a cell around the patch that a patch of the same level fills (ri, rj: its value in
+    // the work slices Y, Z)
+    struct sysp
     {
-    ac[m].assign(N,0.0);
-    nb[m].assign(N,-1);
+        int nx, ny;
+        vector<double> ap, b, x, r, r0, pv, v, sv, tv;
+        vector<double> ac[4];
+        vector<int> nb[4], ri[4], rj[4];
+        slice4 *Y = nullptr, *Z = nullptr;
+    };
+    vector<sysp> S(P.size());
+    vector<slice4*> W(P.size(),nullptr);
+
+    for(int id : lev[l])
+    {
+        fnpf_amr_patch *pc = FP(id);
+        S[id].Y = new slice4(pc->pp);
+        S[id].Z = new slice4(pc->pp);
+        W[id] = S[id].Y;
     }
 
-    const double idt = 1.0/(alpha*p->dt);
-
-    for(i=i0; i<i1; ++i)
-    for(j=j0; j<j1; ++j)
+    // which cells around a patch come from a patch of the same level (1) or the coarser grid (0)
+    for(int id : lev[l])
     {
-        const int q = (i-i0)*nj + (j-j0);
-        x[q] = f(i,j);
+        lexer *pp = FP(id)->pp;
+        slice4 &Y = *S[id].Y;
+        for(int ii=0; ii<pp->knox; ++ii)
+        for(int jj=0; jj<pp->knoy; ++jj)
+        Y(ii,jj) = 0.0;
+    }
+    fill_run(l,1,7660+l,
+             [&](const reefamr_fill &f, double *v) { v[0] = (f.kind==0 && f.g>=0 && P[f.g]->lev==l) ? 1.0 : 0.0; },
+             [&](reefamr_patch *c, int id, const reefamr_fill &f, const double *w) { (*S[id].Y)(f.di,f.dj) = w[0]; });
 
-        if(p->flagslice4[lij(p,i,j)]<0 || (wd && p->wet[lij(p,i,j)]==0))
+    for(int id : lev[l])
+    {
+        fnpf_amr_patch *pc = FP(id);
+        lexer *p = pc->pp;
+        fdm_fnpf *c = pc->c;
+        slice &f = sval(id,s,m);
+        slice4 &sib = *S[id].Y;
+        sysp &Q = S[id];
+        comms_off guard(pgc);
+
+        const int i0 = EXT, i1 = EXT+pc->nx, j0 = EXT, j1 = EXT+pc->ny;
+        const int nj = pc->ny;
+        const int N = pc->nx*pc->ny;
+        Q.nx = pc->nx;
+        Q.ny = pc->ny;
+        Q.ap.assign(N,1.0);
+        Q.b.assign(N,0.0);
+        Q.x.assign(N,0.0);
+        for(int d=0; d<4; ++d)
         {
-        ap[q] = 1.0;
-        b[q] = f(i,j);
-        continue;
+            Q.ac[d].assign(N,0.0);
+            Q.nb[d].assign(N,-1);
+            Q.ri[d].assign(N,-1);
+            Q.rj[d].assign(N,-1);
         }
 
-        const double visc = alpha_eta*c->vb(i,j);
-        const double cf[4] = {visc/(p->DXP[IM1]*p->DXN[IP])*p->x_dir,
-                              visc/(p->DXP[IP]*p->DXN[IP])*p->x_dir,
-                              visc/(p->DYP[JM1]*p->DYN[JP])*p->y_dir,
-                              visc/(p->DYP[JP]*p->DYN[JP])*p->y_dir};
-        const int di[4] = {-1,1,0,0}, dj[4] = {0,0,-1,1};
+        const double idt = 1.0/(alpha*p->dt);
 
-        ap[q] = cf[0]+cf[1]+cf[2]+cf[3] + idt;
-        b[q] = f(i,j)*idt;
-
-        for(int m=0; m<4; ++m)
+        for(i=i0; i<i1; ++i)
+        for(j=j0; j<j1; ++j)
         {
-            const int a = i+di[m], d = j+dj[m];
-            const bool inbox = (a>=i0 && a<i1 && d>=j0 && d<j1);
+            const int q = (i-i0)*nj + (j-j0);
+            Q.x[q] = f(i,j);
 
-            // a dry neighbour (wd): no flux (as fnpf_fsfbc_wd::damping)
-            if(wd && p->wet[lij(p,a,d)]==0)
+            if(p->flagslice4[lij(p,i,j)]<0 || (wd && p->wet[lij(p,i,j)]==0))
             {
-            ap[q] -= cf[m];
+            Q.ap[q] = 1.0;
+            Q.b[q] = f(i,j);
             continue;
             }
 
-            // solid and the edge of the domain: no flux, the value of the cell itself (as on level 0)
-            if(p->flagslice4[lij(p,a,d)]<0)
-            b[q] += cf[m]*f(i,j);
+            const double visc = alpha_eta*c->vb(i,j);
+            const double cf[4] = {visc/(p->DXP[IM1]*p->DXN[IP])*p->x_dir,
+                                  visc/(p->DXP[IP]*p->DXN[IP])*p->x_dir,
+                                  visc/(p->DYP[JM1]*p->DYN[JP])*p->y_dir,
+                                  visc/(p->DYP[JP]*p->DYN[JP])*p->y_dir};
+            const int di[4] = {-1,1,0,0}, dj[4] = {0,0,-1,1};
 
-            // outside the box: the cell around the patch (the coarse stage value, stage_ring)
-            else if(!inbox)
-            b[q] += cf[m]*f(a,d);
+            Q.ap[q] = cf[0]+cf[1]+cf[2]+cf[3] + idt;
+            Q.b[q] = f(i,j)*idt;
 
-            else
+            for(int d=0; d<4; ++d)
             {
-            ac[m][q] = -cf[m];
-            nb[m][q] = (a-i0)*nj + (d-j0);
+                if(cf[d]==0.0)
+                continue;
+
+                const int a = i+di[d], e = j+dj[d];
+                const bool inbox = (a>=i0 && a<i1 && e>=j0 && e<j1);
+
+                // a dry neighbour (wd): no flux (as fnpf_fsfbc_wd::damping)
+                if(wd && p->wet[lij(p,a,e)]==0)
+                Q.ap[q] -= cf[d];
+
+                // solid and the edge of the domain: no flux, the value of the cell (as level 0)
+                else if(p->flagslice4[lij(p,a,e)]<0)
+                Q.b[q] += cf[d]*f(i,j);
+
+                else if(inbox)
+                {
+                Q.ac[d][q] = -cf[d];
+                Q.nb[d][q] = (a-i0)*nj + (e-j0);
+                }
+
+                // around the patch, from a patch of the same level: an unknown of the system
+                else if(sib(a,e)>0.5)
+                {
+                Q.ac[d][q] = -cf[d];
+                Q.ri[d][q] = a;
+                Q.rj[d][q] = e;
+                }
+
+                // around the patch, from the coarser grid: its damped stage value
+                else
+                Q.b[q] += cf[d]*f(a,e);
             }
         }
     }
 
-    auto apply = [&](const vector<double> &v, vector<double> &y)
+    // y = A u: u in the interior of the work slices U (W -> U), the cells around the patches from
+    // the patches of the same level (0 from the coarser grid: its part is in b)
+    auto apply = [&](bool z, const vector<vector<double>*> &u, vector<vector<double>*> &y)
     {
-        for(int q=0; q<N; ++q)
+        for(int id : lev[l])
         {
-            double s = ap[q]*v[q];
-            for(int m=0; m<4; ++m)
-            if(nb[m][q]>=0)
-            s += ac[m][q]*v[nb[m][q]];
-            y[q] = s;
+            slice4 &U = z ? *S[id].Z : *S[id].Y;
+            W[id] = &U;
+            const vector<double> &uu = *u[id];
+            const int nj = S[id].ny;
+            for(int ii=0; ii<S[id].nx; ++ii)
+            for(int jj=0; jj<nj; ++jj)
+            U(ii+EXT,jj+EXT) = uu[ii*nj+jj];
+        }
+
+        fill_run(l,1,7670+l,
+                 [&](const reefamr_fill &f, double *v) { v[0] = (f.kind==0 && f.g>=0 && P[f.g]->lev==l) ? (*W[f.g])(f.si,f.sj) : 0.0; },
+                 [&](reefamr_patch *c, int id, const reefamr_fill &f, const double *w) { (*W[id])(f.di,f.dj) = w[0]; });
+
+        for(int id : lev[l])
+        {
+            sysp &Q = S[id];
+            slice4 &U = *W[id];
+            const vector<double> &uu = *u[id];
+            vector<double> &yy = *y[id];
+            const int N = Q.nx*Q.ny;
+            for(int q=0; q<N; ++q)
+            {
+                double t = Q.ap[q]*uu[q];
+                for(int d=0; d<4; ++d)
+                {
+                    if(Q.nb[d][q]>=0)
+                    t += Q.ac[d][q]*uu[Q.nb[d][q]];
+                    else if(Q.ri[d][q]>=0)
+                    t += Q.ac[d][q]*U(Q.ri[d][q],Q.rj[d][q]);
+                }
+                yy[q] = t;
+            }
         }
     };
-    auto dot = [&](const vector<double> &u, const vector<double> &v)
+
+    auto gdot = [&](vector<double> sysp::*a, vector<double> sysp::*b)
     {
-        double s = 0.0;
-        for(int q=0; q<N; ++q)
-        s += u[q]*v[q];
-        return s;
+        double t = 0.0;
+        for(int id : lev[l])
+        {
+            const vector<double> &u = S[id].*a, &w = S[id].*b;
+            for(size_t q=0; q<u.size(); ++q)
+            t += u[q]*w[q];
+        }
+        return pgc->globalsum(t);
     };
 
-    vector<double> r(N), r0(N), pv(N,0.0), v(N,0.0), sv(N), tv(N), y(N), z(N);
+    vector<vector<double>> yv(P.size()), zv(P.size());
+    vector<vector<double>*> pu(P.size(),nullptr), py(P.size(),nullptr);
 
-    apply(x,r);
-    for(int q=0; q<N; ++q)
-    r[q] = b[q]-r[q];
-    r0 = r;
+    for(int id : lev[l])
+    {
+        sysp &Q = S[id];
+        const size_t N = Q.ap.size();
+        Q.r.assign(N,0.0); Q.pv.assign(N,0.0); Q.v.assign(N,0.0); Q.sv.assign(N,0.0); Q.tv.assign(N,0.0);
+        yv[id].assign(N,0.0);
+        zv[id].assign(N,0.0);
+    }
 
-    const double bn = sqrt(dot(b,b));
+    // r = b - A x
+    for(int id : lev[l])
+    {
+        pu[id] = &S[id].x;
+        py[id] = &S[id].r;
+    }
+    apply(false,pu,py);
+    for(int id : lev[l])
+    {
+        sysp &Q = S[id];
+        for(size_t q=0; q<Q.r.size(); ++q)
+        Q.r[q] = Q.b[q]-Q.r[q];
+        Q.r0 = Q.r;
+    }
+
+    const double bn = sqrt(gdot(&sysp::b,&sysp::b));
     const double tol = 1.0e-13*bn + 1.0e-300;
     double rho=1.0, al=1.0, om=1.0;
 
-    for(int it=0; it<500 && sqrt(dot(r,r))>tol; ++it)
+    for(int it=0; it<500 && sqrt(gdot(&sysp::r,&sysp::r))>tol; ++it)
     {
-        const double rho1 = dot(r0,r);
+        const double rho1 = gdot(&sysp::r0,&sysp::r);
         if(fabs(rho1)<1.0e-300)
         break;
 
         const double beta = (rho1/rho)*(al/om);
-        for(int q=0; q<N; ++q)
-        pv[q] = r[q] + beta*(pv[q] - om*v[q]);
-
-        for(int q=0; q<N; ++q)
-        y[q] = pv[q]/ap[q];
-        apply(y,v);
-
-        al = rho1/dot(r0,v);
-        for(int q=0; q<N; ++q)
-        sv[q] = r[q] - al*v[q];
-
-        for(int q=0; q<N; ++q)
-        z[q] = sv[q]/ap[q];
-        apply(z,tv);
-
-        const double tt = dot(tv,tv);
-        om = (tt>0.0) ? dot(tv,sv)/tt : 0.0;
-
-        for(int q=0; q<N; ++q)
+        for(int id : lev[l])
         {
-        x[q] += al*y[q] + om*z[q];
-        r[q] = sv[q] - om*tv[q];
+            sysp &Q = S[id];
+            for(size_t q=0; q<Q.r.size(); ++q)
+            {
+            Q.pv[q] = Q.r[q] + beta*(Q.pv[q] - om*Q.v[q]);
+            yv[id][q] = Q.pv[q]/Q.ap[q];
+            }
+            pu[id] = &yv[id];
+            py[id] = &Q.v;
+        }
+        apply(false,pu,py);
+
+        al = rho1/gdot(&sysp::r0,&sysp::v);
+        for(int id : lev[l])
+        {
+            sysp &Q = S[id];
+            for(size_t q=0; q<Q.r.size(); ++q)
+            {
+            Q.sv[q] = Q.r[q] - al*Q.v[q];
+            zv[id][q] = Q.sv[q]/Q.ap[q];
+            }
+            pu[id] = &zv[id];
+            py[id] = &Q.tv;
+        }
+        apply(true,pu,py);
+
+        const double tt = gdot(&sysp::tv,&sysp::tv);
+        om = (tt>0.0) ? gdot(&sysp::tv,&sysp::sv)/tt : 0.0;
+
+        for(int id : lev[l])
+        {
+            sysp &Q = S[id];
+            for(size_t q=0; q<Q.r.size(); ++q)
+            {
+            Q.x[q] += al*yv[id][q] + om*zv[id][q];
+            Q.r[q] = Q.sv[q] - om*Q.tv[q];
+            }
         }
 
         rho = rho1;
@@ -1521,9 +1692,18 @@ void fnpf_amr::patch_damping(fnpf_amr_patch &pc, ghostcell *pgc, slice &f, int g
         break;
     }
 
-    for(i=i0; i<i1; ++i)
-    for(j=j0; j<j1; ++j)
-    f(i,j) = x[(i-i0)*nj + (j-j0)];
+    for(int id : lev[l])
+    {
+        fnpf_amr_patch *pc = FP(id);
+        slice &f = sval(id,s,m);
+        const int nj = pc->ny;
+        for(int ii=EXT; ii<EXT+pc->nx; ++ii)
+        for(int jj=EXT; jj<EXT+pc->ny; ++jj)
+        f(ii,jj) = S[id].x[(ii-EXT)*nj + (jj-EXT)];
+
+        delete S[id].Y;
+        delete S[id].Z;
+    }
 }
 
 // A 350 1: breaking detection on the stage values of the patches (all levels: l -1, or level l),
@@ -1532,6 +1712,14 @@ void fnpf_amr::patch_damping(fnpf_amr_patch &pc, ghostcell *pgc, slice &f, int g
 // mark breaking there and spread it into the patch (NHFLOW AMR step 7)
 void fnpf_amr::patch_breaking(int l, ghostcell *pgc, int s, double alpha)
 {
+    const int la = (l<0) ? 1 : l, lb = (l<0) ? maxlev : l;
+
+    // the surface slopes of the cells around the patches from their source grid: the detection
+    // spreads a breaking flag by two cells, so it reads the cells around a patch, whose own slopes
+    // there reach beyond the cells the patch computes
+    for(int L=la; L<=lb; ++L)
+    fill_sl(L,2,7680+L,[&](int g, int m) -> slice& { return (m==0) ? static_cast<slice&>(gfd(g)->Ex) : static_cast<slice&>(gfd(g)->Ey); });
+
     {
     comms_off guard(pgc);
     fnpf_amr_local loc(pgc);
@@ -1551,8 +1739,6 @@ void fnpf_amr::patch_breaking(int l, ghostcell *pgc, int s, double alpha)
         pp->P12 = p12;
     }
     }
-
-    const int la = (l<0) ? 1 : l, lb = (l<0) ? maxlev : l;
 
     for(int L=la; L<=lb; ++L)
     fill_run(L,1,7570+L,
@@ -1574,10 +1760,49 @@ void fnpf_amr::patch_wd_ini(fnpf_amr_patch &pc, ghostcell *pgc)
     fdm_fnpf *cc = pc.c;
     fnpf_amr_local loc(pgc);
 
-    const int cnt = pp->count;
+    // isolated wet pockets (A 338) are found on level 0 only: a patch holds a part of the water
+    // body, whose connection may run outside it
+    const int cnt = pp->count, a338 = pp->A338;
     pp->count = 0;
+    pp->A338 = 0;
     pc.pf->wetdry(pp,cc,pgc,cc->eta,cc->Fifsf);
     pp->count = cnt;
+    pp->A338 = a338;
+}
+
+// the coastline distance of a new patch: the patch sees only the coastline inside it and the EXT
+// cells around it (wet mask from the fine bed), so where a cell is farther from the coastline than
+// from the edge of these cells inside the domain, the coastline may lie outside: there the smaller
+// of both distances, the parent's interpolated (cpar, the interior cells in i-major order); the
+// sign (wet or dry) is that of the fine bed.  The coastline bands (a few cells) are exact.
+void fnpf_amr::patch_coast_dist(fnpf_amr_patch &pc, const vector<double> &cpar)
+{
+    lexer *pp = pc.pp;
+    fdm_fnpf *cc = pc.c;
+    const int l = pc.lev;
+    const int nxl = GNX<<l, nyl = GNY<<l;
+    const double dx = pp->DXM;
+    const double ext = EXT*dx;
+
+    size_t q = 0;
+    for(int ii=EXT; ii<EXT+pc.nx; ++ii)
+    for(int jj=EXT; jj<EXT+pc.ny; ++jj, ++q)
+    {
+        const int I = ii-EXT+pc.I0, J = jj-EXT+pc.J0;
+        double e = 1.0e20;
+        if(pc.I0>0)
+        e = MIN(e,(I-pc.I0+0.5)*dx+ext);
+        if(pc.I1<nxl-1)
+        e = MIN(e,(pc.I1-I+0.5)*dx+ext);
+        if(pp->j_dir==1 && pc.J0>0)
+        e = MIN(e,(J-pc.J0+0.5)*dx+ext);
+        if(pp->j_dir==1 && pc.J1<nyl-1)
+        e = MIN(e,(pc.J1-J+0.5)*dx+ext);
+
+        const double d = cc->coastline(ii,jj);
+        if(fabs(d)>e)
+        cc->coastline(ii,jj) = (d>=0.0 ? 1.0 : -1.0)*MIN(fabs(d),fabs(cpar[q]));
+    }
 }
 
 // A 343 1 with G 30 1: the clamp of the thin cells and the coastline relaxation of the stage values

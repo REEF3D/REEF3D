@@ -97,9 +97,11 @@ using namespace std;
 //  restriction the wet children only.
 //
 //  Breaking (A 350 1): on every grid as fnpf_RK3: the implicit damping of the stage values with
-//  the breaking viscosity (on a patch: its box, the cells around it filled with the coarse stage
-//  values first), then the detection; the cells around a patch take the viscosity of their source
-//  grid.
+//  the breaking viscosity (one system over the patches of a level on all ranks, the cells around
+//  them from the coarser grid hold its damped stage values), then the detection; the cells around
+//  a patch take the viscosity of their source grid.  A new patch takes the viscosity of the old
+//  patches or its parent, and with G 30 1 the coastline distance of the parent where the
+//  coastline may lie outside it.
 //
 //  Scope of this version: refinement G 1 levels, G 10 boxes, G 11 boxes without
 //  refinement, G 4 tile width, G 12 zone around the body, G 20-23 adaptive flags; RK3 (A 310 3), wetting-drying
@@ -351,13 +353,13 @@ private:
     void lap_prec_win(int, int);
     double rko(int s) const { return (s==1) ? 0.5 : 1.0; }
 
-    // wave breaking on the patches (A 350 1): the implicit damping of the stage
-    // values with the breaking viscosity on the patch box (the cells around it held), detection on
-    // the patch, the viscosity of the cells around the patches from the source grid
+    // wave breaking on the patches (A 350 1): the implicit damping of the stage values with the
+    // breaking viscosity, one system over the patches of a level (the cells around them from the
+    // coarser grid held), detection on the patch, the viscosity of the cells around the patches
+    // from the source grid
     bool brk = false;
-    void patch_damping(fnpf_amr_patch&, ghostcell*, slice&, int, double);
+    void level_damping(int, ghostcell*, int, int, int, double);
     void patch_breaking(int, ghostcell*, int, double);
-    vector<double> dv[6];           // work vectors of the damping solve
 
     // solution-adaptive refinement (tag): surface jump G 20, second difference G 21, shoreline
     // G 22 (with G 30 1), breaking G 23 (with A 350 1)
@@ -377,11 +379,12 @@ private:
     bool wfill = false;
     void patch_coast(fnpf_amr_patch&, ghostcell*, slice&, slice&);
     void patch_wd_ini(fnpf_amr_patch&, ghostcell*);
+    void patch_coast_dist(fnpf_amr_patch&, const vector<double>&);
 
     // the damping and the coastline of the stage values read the cells around a patch: these are
     // filled with the stage values of the coarser grid first (not the lagged ones of the last fill)
     bool stage_ring() const { return brk || wd; }
-    void stage_damp_coast(fnpf_amr_patch&, ghostcell*, int, int);
+    void stage_damp_coast(int, ghostcell*, int);
 
     fdm_fnpf *c0;
     fnpf_laplace_cds2 *plap0 = nullptr;
