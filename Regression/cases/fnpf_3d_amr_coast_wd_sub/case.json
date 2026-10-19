@@ -1,0 +1,23 @@
+{
+ "description": "fnpf_3d_amr_coast_wd with subcycling (G 7 1).",
+ "solver": "fnpf",
+ "np": 1,
+ "steps": 160,
+ "base": "fnpf_3d_amr_coast_wd",
+ "ctrl_add": [
+  "G 7 1"
+ ],
+ "tags": [
+  "3d",
+  "fnpf",
+  "amr",
+  "waves",
+  "breaking",
+  "coastline",
+  "wetdry",
+  "subcycling"
+ ],
+ "covers": [
+  "fnpf_amr_sub: patch_coast in sub_stage, the wet mask on the level of each substep"
+ ]
+}

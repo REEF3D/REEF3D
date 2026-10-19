@@ -1,0 +1,10 @@
+{
+ "description": "fnpf_3d_amr_break_adapt with subcycling (G 7 1): the regrid every G 2 steps of the finest level.",
+ "solver": "fnpf",
+ "np": 1,
+ "steps": 160,
+ "base": "fnpf_3d_amr_break_adapt",
+ "ctrl_add": ["G 7 1"],
+ "tags": ["3d", "fnpf", "amr", "waves", "breaking", "coastline", "adaptive", "subcycling"],
+ "covers": ["fnpf_amr::tag and the regrid with G 7 1 without a body"]
+}

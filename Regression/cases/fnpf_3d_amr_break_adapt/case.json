@@ -1,0 +1,10 @@
+{
+ "description": "fnpf_3d_amr_break without the static box: the patches follow the breaking cells (G 23 1) and the steep surface (G 20 0.02 m between neighbour cells), new patches every G 2 4 steps.",
+ "solver": "fnpf",
+ "np": 1,
+ "base": "fnpf_3d_amr_break",
+ "ctrl_set": {"G 10": null},
+ "ctrl_add": ["G 23 1", "G 20 0.02", "G 2 4"],
+ "tags": ["3d", "fnpf", "amr", "waves", "breaking", "coastline", "adaptive"],
+ "covers": ["fnpf_amr::tag: the breaking flag (G 23) and the surface jump (G 20)", "regrid of FNPF patches without a body, breaking state of new patches"]
+}
