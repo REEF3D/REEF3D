@@ -408,20 +408,9 @@ void fnpf_amr::sub_stage(lexer *p, ghostcell *pgc, int l, int k, int s, double d
             c->Fifsf(i,j) = (1.0/3.0)*c->Fifsf(i,j) + (2.0/3.0)*frk2(i,j) + (2.0/3.0)*p->dt*fk(i,j);
         }
 
-        // breaking: the implicit damping of the stage values (as fnpf_RK3)
-        if(brk)
-        {
-            const double al = (s==0) ? 1.0 : (s==1) ? 0.25 : 2.0/3.0;
-            patch_damping(*pc,pgc,sval(id,s,0),gcval_eta,al);
-            patch_damping(*pc,pgc,sval(id,s,1),gcval_fifsf,al);
         }
 
-        // coastline in the patch (wd): clamp and coastline relaxation
-        if(wd)
-        patch_coast(*pc,pgc,sval(id,s,0),sval(id,s,1));
-        }
-
-        if(body!=nullptr)
+        if(body!=nullptr && !stage_ring())
         body->amr_surface(pc->pp,pgc,id,sval(id,s,0),sval(id,s,1));
     }
 
@@ -444,6 +433,25 @@ void fnpf_amr::sub_stage(lexer *p, ghostcell *pgc, int l, int k, int s, double d
     {
         walls_sl(*FP(id),sel(id,0),gcval_eta);
         walls_sl(*FP(id),sel(id,1),gcval_fifsf);
+    }
+
+    // breaking (implicit damping) and the coastline read the cells around the patch: after the
+    // fill, as fnpf_RK3 (the damping, then the clamp and the coastline relaxation)
+    if(stage_ring())
+    {
+        for(int id : lev[l])
+        {
+            stage_damp_coast(*FP(id),pgc,id,s);
+
+            if(body!=nullptr)
+            body->amr_surface(FP(id)->pp,pgc,id,sval(id,s,0),sval(id,s,1));
+        }
+
+        for(int id : lev[l])
+        {
+            walls_sl(*FP(id),sel(id,0),gcval_eta);
+            walls_sl(*FP(id),sel(id,1),gcval_fifsf);
+        }
     }
 
     fill_col(l,7960+l,[&](int g) -> double* { return gfd(g)->Fi; });

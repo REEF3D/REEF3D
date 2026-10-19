@@ -1032,25 +1032,36 @@ void fnpf_amr::stage_surface(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &Se, s
             c->Fifsf(i,j) = (1.0/3.0)*c->Fifsf(i,j) + (2.0/3.0)*frk2(i,j) + (2.0/3.0)*p->dt*fk(i,j);
         }
 
-        // breaking: the implicit damping of the stage values (as fnpf_RK3, before the wave
-        // generation and the coastline: alpha 1, 1/4, 2/3)
-        if(brk)
-        {
-            const double al = (s==0) ? 1.0 : (s==1) ? 0.25 : 2.0/3.0;
-            patch_damping(*pc,pgc,sval(id,s,0),gcval_eta,al);
-            patch_damping(*pc,pgc,sval(id,s,1),gcval_fifsf,al);
         }
 
-        // coastline in the patch (wd): clamp and coastline relaxation, as fnpf_RK3
-        if(wd)
-        patch_coast(*pc,pgc,sval(id,s,0),sval(id,s,1));
-        }
-
-        if(body!=nullptr)
+        if(body!=nullptr && !stage_ring())
         body->amr_surface(pc->pp,pgc,id,sval(id,s,0),sval(id,s,1));
     }
 
     auto sel = [&](int g, int m) -> slice& { return sval(g,s,m); };
+
+    // breaking (implicit damping) and the coastline in the patches read the cells around a patch:
+    // these first take the stage values of the coarser grid (damped already, level by level), then
+    // the damping and the coastline of the level, as fnpf_RK3
+    if(stage_ring())
+    for(int l=1; l<=maxlev; ++l)
+    {
+        fill_sl(l,2,7640+l,sel);
+
+        for(int id : lev[l])
+        {
+            walls_sl(*FP(id),sel(id,0),gcval_eta);
+            walls_sl(*FP(id),sel(id,1),gcval_fifsf);
+        }
+
+        for(int id : lev[l])
+        {
+            stage_damp_coast(*FP(id),pgc,id,s);
+
+            if(body!=nullptr)
+            body->amr_surface(FP(id)->pp,pgc,id,sval(id,s,0),sval(id,s,1));
+        }
+    }
 
     restrict_sl(2,sel);
 
@@ -1211,6 +1222,24 @@ bool fnpf_amr::cell_unfit(int ii, int jj)
     return false;
 }
 
+// A 350 1 and A 343 1 with G 30 1: the implicit damping of the stage values (alpha 1, 1/4, 2/3), then
+// the clamp and the coastline relaxation, in the order of fnpf_RK3; the cells around the patch hold
+// the stage values of the coarser grid (stage_ring)
+void fnpf_amr::stage_damp_coast(fnpf_amr_patch &pc, ghostcell *pgc, int id, int s)
+{
+    comms_off guard(pgc);
+
+    if(brk)
+    {
+        const double al = (s==0) ? 1.0 : (s==1) ? 0.25 : 2.0/3.0;
+        patch_damping(pc,pgc,sval(id,s,0),gcval_eta,al);
+        patch_damping(pc,pgc,sval(id,s,1),gcval_fifsf,al);
+    }
+
+    if(wd)
+    patch_coast(pc,pgc,sval(id,s,0),sval(id,s,1));
+}
+
 // A 350 1: the implicit damping of a stage value with the breaking viscosity, as
 // fnpf_fsfbc::damping, on the patch box; the cells around it (EXT) are held (Dirichlet), solids
 // as on level 0.  Jacobi-preconditioned BiCGStab on the patch.
@@ -1292,8 +1321,12 @@ void fnpf_amr::patch_damping(fnpf_amr_patch &pc, ghostcell *pgc, slice &f, int g
             continue;
             }
 
-            // solid: the ghost value (as on level 0); outside the box: the cell around the patch
-            if(!inbox || p->flagslice4[lij(p,a,d)]<0)
+            // solid and the edge of the domain: no flux, the value of the cell itself (as on level 0)
+            if(p->flagslice4[lij(p,a,d)]<0)
+            b[q] += cf[m]*f(i,j);
+
+            // outside the box: the cell around the patch (the coarse stage value, stage_ring)
+            else if(!inbox)
             b[q] += cf[m]*f(a,d);
 
             else

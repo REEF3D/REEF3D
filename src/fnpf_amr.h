@@ -95,8 +95,9 @@ using namespace std;
 //  restriction the wet children only.
 //
 //  Breaking (A 350 1): on every grid as fnpf_RK3: the implicit damping of the stage values with
-//  the breaking viscosity (on a patch: its box, the cells around it held), then the detection; the
-//  cells around a patch take the viscosity of their source grid.
+//  the breaking viscosity (on a patch: its box, the cells around it filled with the coarse stage
+//  values first), then the detection; the cells around a patch take the viscosity of their source
+//  grid.
 //
 //  Scope of this version: refinement G 1 levels, G 10 boxes, G 11 boxes without
 //  refinement, G 4 tile width, G 12 zone around the body; RK3 (A 310 3), wetting-drying
@@ -367,6 +368,11 @@ private:
     bool wfill = false;
     void patch_coast(fnpf_amr_patch&, ghostcell*, slice&, slice&);
     void patch_wd_ini(fnpf_amr_patch&, ghostcell*);
+
+    // the damping and the coastline of the stage values read the cells around a patch: these are
+    // filled with the stage values of the coarser grid first (not the lagged ones of the last fill)
+    bool stage_ring() const { return brk || wd; }
+    void stage_damp_coast(fnpf_amr_patch&, ghostcell*, int, int);
 
     fdm_fnpf *c0;
     fnpf_laplace_cds2 *plap0 = nullptr;
