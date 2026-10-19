@@ -415,6 +415,10 @@ void fnpf_amr::sub_stage(lexer *p, ghostcell *pgc, int l, int k, int s, double d
             patch_damping(*pc,pgc,sval(id,s,0),gcval_eta,al);
             patch_damping(*pc,pgc,sval(id,s,1),gcval_fifsf,al);
         }
+
+        // coastline in the patch (wd): clamp and coastline relaxation
+        if(wd)
+        patch_coast(*pc,pgc,sval(id,s,0),sval(id,s,1));
         }
 
         if(body!=nullptr)

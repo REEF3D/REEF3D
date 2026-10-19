@@ -28,6 +28,7 @@ Architect: Hans Bihs
 #include"ghostcell.h"
 #include"slice4.h"
 #include"fnpf_fsfbc.h"
+#include"fnpf_fsfbc_wd.h"
 #include"fnpf_sigma.h"
 #include"fnpf_fsf_update.h"
 #include"fnpf_bed_update.h"
@@ -47,6 +48,15 @@ Architect: Hans Bihs
 namespace
 {
 inline int lij(const lexer *q, int ii, int jj) { return (ii-q->imin)*q->jmax + (jj-q->jmin); }
+
+// inside a patch kernel the global reductions return the local value (the patch lies on one rank)
+struct fnpf_amr_local
+{
+    ghostcell *g;
+    bool old;
+    fnpf_amr_local(ghostcell *gg) : g(gg) { old = g->set_local(true); }
+    ~fnpf_amr_local() { g->set_local(old); }
+};
 
 typedef reefamr_comms_off comms_off;
 
@@ -138,7 +148,11 @@ fnpf_amr::fnpf_amr(lexer *p, fdm_fnpf *c, ghostcell *pgc) : reefamr(p,pgc)
     // (3 times A 341 dx or A 342, as fnpf_fsfbc_wd), checked at every regrid (cell_unfit); a static
     // box (G 10) loses the tiles there.  The band covers the fills around a patch (EXT fine cells
     // and the bicubic stencil); with run-up and run-down (A 343 2, 3) it is doubled
-    if(p->A343>=1)
+    // G 30 1 with A 343 1: the patches may cover the static coastline (wd, dryband off)
+    wd = (p->A343==1 && p->G30==1);
+    wfill = wd;
+
+    if(p->A343>=1 && !wd)
     {
         q.dryband = (p->A343>=2) ? 8 : 4;
 
@@ -314,6 +328,9 @@ void fnpf_amr::ini(lexer *p, fdm_fnpf *c, ghostcell *pgc)
         return;
     }
 
+    if(p->G30==1 && p->A343>=2 && p->mpirank==0)
+    cout<<"FNPF AMR: G 30 1 (patches over the coastline) only with the static coastline A 343 1 -- the patches stay off the coast"<<endl;
+
     setup(p,pgc);
 
     mkdir("./REEF3D_FNPF_AMR",0777);
@@ -352,6 +369,12 @@ void fnpf_amr::ini(lexer *p, fdm_fnpf *c, ghostcell *pgc)
         cout<<endl;
         if(p->G7==1 && sub==0)
         cout<<"FNPF AMR: G 7 1 (subcycling) with a body needs the zone around the hull (G 12) -- one time step for all levels"<<endl;
+        if(wd)
+        cout<<"FNPF AMR: the patches may cover the static coastline (A 343 1, G 30 1)"<<endl;
+        else if(p->A343>=1)
+        cout<<"FNPF AMR: the patches stay "<<par.dryband<<" level-0 cells off the coastline (A 343 "<<p->A343<<")"<<endl;
+        if(brk)
+        cout<<"FNPF AMR: wave breaking on every grid (A 350 1)"<<endl;
         if(sub==1 && par.zones && par.zr>zr_user)
         cout<<"FNPF AMR: G 7 1 with a body: zone margin "<<par.zr<<" m (12 cells of level 0) instead of G 12 "<<zr_user<<endl;
         cout<<"FNPF AMR: refined columns per rank max "<<(long)cmax<<", mean "<<setprecision(4)<<double(cells_total)/p->mpi_size
@@ -477,6 +500,9 @@ void fnpf_amr::patch_objects(reefamr_patch *q, ghostcell *pgc)
     lexer *pp = c->pp;
 
     c->c = new fdm_fnpf(pp);
+    if(wd)
+    c->pf = new fnpf_fsfbc_wd(pp,c->c,pgc);
+    else
     c->pf = new fnpf_fsfbc(pp,c->c,pgc);
     c->psig = new fnpf_sigma(pp,c->c,pgc);
     c->pfu = new fnpf_fsf_update(pp,c->c,pgc);
@@ -558,10 +584,34 @@ void fnpf_amr::tag(int l, vector<unsigned char> &M)
 // curvatures switched off next to solids
 void fnpf_amr::pweights(lexer *q, int ic, int jc, int ox, int oy, double *w)
 {
-    auto fl = [&](int a, int b) { return q->flagslice4[lij(q,a,b)]>0; };
+    // wfill (coastline in the patches): dry cells of the coarse grid as solids
+    auto fl = [&](int a, int b) { const int n = lij(q,a,b); return q->flagslice4[n]>0 && (!wfill || q->wet[n]==1); };
 
     for(int m=0; m<25; ++m)
     w[m] = 0.0;
+
+    // a dry coarse cell: the mean of its wet neighbours (a wet child at the coastline takes the
+    // water of the coarse grid), its own value where it has none
+    if(wfill && q->flagslice4[lij(q,ic,jc)]>0 && q->wet[lij(q,ic,jc)]==0)
+    {
+        int nw = 0;
+        for(int a=-1; a<=1; ++a)
+        for(int b=-1; b<=1; ++b)
+        if((a!=0 || b!=0) && fl(ic+a,jc+b))
+        ++nw;
+
+        if(nw==0)
+        {
+        w[2*5+2] = 1.0;
+        return;
+        }
+
+        for(int a=-1; a<=1; ++a)
+        for(int b=-1; b<=1; ++b)
+        if((a!=0 || b!=0) && fl(ic+a,jc+b))
+        w[(a+2)*5+(b+2)] = 1.0/double(nw);
+        return;
+    }
 
     if(pord>=4)
     {
@@ -733,9 +783,11 @@ void fnpf_amr::regrid_state(ghostcell *pgc, vector<reefamr_patch*> &oldP)
 
     for(int l=1; l<=maxlev; ++l)
     {
-        // bed
+        // bed (geometry: all cells)
+        wfill = false;
         prolong_interior_sl(l,[&](reefamr_patch *c) { return c->fresh; },1,sbed);
         fill_sl(l,1,7510+l,sbed);
+        wfill = wd;
 
         for(int id : lev[l])
         if(P[id]->fresh)
@@ -792,6 +844,10 @@ void fnpf_amr::regrid_state(ghostcell *pgc, vector<reefamr_patch*> &oldP)
             walls_sl(*c,cc->Fifsf,gcval_fifsf);
 
             comms_off guard(pgc);
+
+            // coastline in the patch: wet mask and coastline distance from the fine bed
+            if(wd)
+            patch_wd_ini(*c,pgc);
 
             // sigma grid as fnpf_sigma::sigma_ini (the bed is prolonged, not smoothed again)
             FLOOP
@@ -984,6 +1040,10 @@ void fnpf_amr::stage_surface(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &Se, s
             patch_damping(*pc,pgc,sval(id,s,0),gcval_eta,al);
             patch_damping(*pc,pgc,sval(id,s,1),gcval_fifsf,al);
         }
+
+        // coastline in the patch (wd): clamp and coastline relaxation, as fnpf_RK3
+        if(wd)
+        patch_coast(*pc,pgc,sval(id,s,0),sval(id,s,1));
         }
 
         if(body!=nullptr)
@@ -1027,12 +1087,20 @@ void fnpf_amr::step_end(lexer *p, fdm_fnpf *c, ghostcell *pgc)
         fnpf_amr_patch *pc = FP(q);
         pc->pbu->bedbc_sig(pc->pp,pc->c,pgc,pc->c->Fi,pc->pf);
         pc->pfu->velcalc_sig(pc->pp,pc->c,pgc,pc->c->Fi);
+
+        if(wd)
+        {
+        fnpf_amr_local loc(pgc);
+        pc->pf->coastline_vel(pc->pp,pc->c,pgc,pc->c->U);
+        pc->pf->coastline_vel(pc->pp,pc->c,pgc,pc->c->V);
+        pc->pf->coastline_vel(pc->pp,pc->c,pgc,pc->c->W);
+        }
     }
     }
 
     // A 343: the patches are fully wet; a patch that the run-up or the drawdown reaches (a static
     // box, or between two regrids) has no wetting and drying of its own
-    if(p->A343>=1 && !thin_warned)
+    if(p->A343>=1 && !wd && !thin_warned)
     {
         int thin = 0;
         for(auto q : P)
@@ -1126,7 +1194,7 @@ void fnpf_amr::timestep(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 // wet-dry clamp act on) or inside the coastline damping band
 bool fnpf_amr::cell_unfit(int ii, int jj)
 {
-    if(p0->A343==0)
+    if(p0->A343==0 || wd)
     return false;
 
     const int n = lij(p0,ii,jj);
@@ -1141,18 +1209,6 @@ bool fnpf_amr::cell_unfit(int ii, int jj)
     return true;
 
     return false;
-}
-
-namespace
-{
-// inside a patch kernel the global reductions return the local value (the patch lies on one rank)
-struct fnpf_amr_local
-{
-    ghostcell *g;
-    bool old;
-    fnpf_amr_local(ghostcell *gg) : g(gg) { old = g->set_local(true); }
-    ~fnpf_amr_local() { g->set_local(old); }
-};
 }
 
 // A 350 1: the implicit damping of a stage value with the breaking viscosity, as
@@ -1207,7 +1263,7 @@ void fnpf_amr::patch_damping(fnpf_amr_patch &pc, ghostcell *pgc, slice &f, int g
         const int q = (i-i0)*nj + (j-j0);
         x[q] = f(i,j);
 
-        if(p->flagslice4[lij(p,i,j)]<0)
+        if(p->flagslice4[lij(p,i,j)]<0 || (wd && p->wet[lij(p,i,j)]==0))
         {
         ap[q] = 1.0;
         b[q] = f(i,j);
@@ -1228,6 +1284,13 @@ void fnpf_amr::patch_damping(fnpf_amr_patch &pc, ghostcell *pgc, slice &f, int g
         {
             const int a = i+di[m], d = j+dj[m];
             const bool inbox = (a>=i0 && a<i1 && d>=j0 && d<j1);
+
+            // a dry neighbour (wd): no flux (as fnpf_fsfbc_wd::damping)
+            if(wd && p->wet[lij(p,a,d)]==0)
+            {
+            ap[q] -= cf[m];
+            continue;
+            }
 
             // solid: the ghost value (as on level 0); outside the box: the cell around the patch
             if(!inbox || p->flagslice4[lij(p,a,d)]<0)
@@ -1351,4 +1414,31 @@ void fnpf_amr::patch_breaking(int l, ghostcell *pgc, int s, double alpha)
              {
                  FP(id)->c->vb(f.di,f.dj) = w[0];
              });
+}
+
+// A 343 1 with G 30 1: the wet mask, the clamp state and the coastline distance of a new patch from
+// its fine bed (fnpf_fsfbc_wd::wetdry with count 0, as at the start of the run on level 0)
+void fnpf_amr::patch_wd_ini(fnpf_amr_patch &pc, ghostcell *pgc)
+{
+    lexer *pp = pc.pp;
+    fdm_fnpf *cc = pc.c;
+    fnpf_amr_local loc(pgc);
+
+    const int cnt = pp->count;
+    pp->count = 0;
+    pc.pf->wetdry(pp,cc,pgc,cc->eta,cc->Fifsf);
+    pp->count = cnt;
+}
+
+// A 343 1 with G 30 1: the clamp of the thin cells and the coastline relaxation of the stage values
+// on a patch, in the order of fnpf_RK3 (after the damping)
+void fnpf_amr::patch_coast(fnpf_amr_patch &pc, ghostcell *pgc, slice &Se, slice &Sf)
+{
+    lexer *pp = pc.pp;
+    fdm_fnpf *cc = pc.c;
+    fnpf_amr_local loc(pgc);
+
+    pc.pf->wetdry(pp,cc,pgc,Se,Sf);
+    pc.pf->coastline_eta(pp,cc,pgc,Se);
+    pc.pf->coastline_fi(pp,cc,pgc,Sf);
 }

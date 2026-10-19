@@ -88,7 +88,11 @@ using namespace std;
 //
 //  Coastline (A 343 1-3): the patches are fully wet; no patch within 4 level-0 cells (A 343 2, 3:
 //  8) of a dry or thin-film cell or of the coastline damping band (cell_unfit), checked at every
-//  regrid; the coastline itself stays on level 0.
+//  regrid; the coastline itself stays on level 0.  With A 343 1 and G 30 1 the patches may cover the
+//  static coastline: the patches run fnpf_fsfbc_wd (wet mask and coastline distance from the fine
+//  bed, clamp, coastline relaxation and damping as on level 0), the interpolation from a coarser
+//  grid uses its wet cells only (a dry coarse cell: the mean of its wet neighbours) and the
+//  restriction the wet children only.
 //
 //  Breaking (A 350 1): on every grid as fnpf_RK3: the implicit damping of the stage values with
 //  the breaking viscosity (on a patch: its box, the cells around it held), then the detection; the
@@ -96,14 +100,14 @@ using namespace std;
 //
 //  Scope of this version: refinement G 1 levels, G 10 boxes, G 11 boxes without
 //  refinement, G 4 tile width, G 12 zone around the body; RK3 (A 310 3), wetting-drying
-//  A 343 0-3 (patches off the coast), breaking A 350 0 or 1, X 10 0 or 1, no ice (A 380 0),
+//  A 343 0-3 (patches off the coast; A 343 1 with G 30 1 also over it), breaking A 350 0 or 1, X 10 0 or 1, no ice (A 380 0),
 //  A 324 0, A 328 0, 3D grids.
 //  No refinement in the relaxation zones (B 96) and next to in- and outflow boundaries.
 
 struct fnpf_amr_patch : public reefamr_patch
 {
     fdm_fnpf *c = nullptr;
-    fnpf_fsfbc *pf = nullptr;
+    fnpf_fsf *pf = nullptr;         // fnpf_fsfbc, or fnpf_fsfbc_wd with the coastline in the patches (wd)
     fnpf_sigma *psig = nullptr;
     fnpf_fsf_update *pfu = nullptr;
     fnpf_bed_update *pbu = nullptr;
@@ -355,6 +359,14 @@ private:
     // coastline (A 343 1-3): the patches stay off the dry cells and the coastline band of level 0
     double dist_coast = 0.0;
     bool thin_warned = false;
+
+    // A 343 1 with G 30 1: the patches may cover the static coastline: fnpf_fsfbc_wd on the patches
+    // (wet mask and coastline distance from the fine bed, the clamp and the coastline relaxation as
+    // on level 0); the interpolation from a coarser grid and the restriction use wet cells only (wfill)
+    bool wd = false;
+    bool wfill = false;
+    void patch_coast(fnpf_amr_patch&, ghostcell*, slice&, slice&);
+    void patch_wd_ini(fnpf_amr_patch&, ghostcell*);
 
     fdm_fnpf *c0;
     fnpf_laplace_cds2 *plap0 = nullptr;

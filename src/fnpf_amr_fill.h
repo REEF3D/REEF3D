@@ -129,8 +129,11 @@ inline bool fnpf_amr::rcubic(lexer *pp, int i0, int j0)
     return false;
     for(int a=-1; a<=2; ++a)
     for(int b=-1; b<=2; ++b)
-    if(pp->flagslice4[(i0+a-pp->imin)*pp->jmax + (j0+b-pp->jmin)]<0)
+    {
+    const int n = (i0+a-pp->imin)*pp->jmax + (j0+b-pp->jmin);
+    if(pp->flagslice4[n]<0 || (wfill && pp->wet[n]==0))
     return false;
+    }
     return true;
 }
 
@@ -162,18 +165,35 @@ inline void fnpf_amr::restrict_sl(int ns, SEL sel)
                  const int bi = k/nby, bj = k%nby;
                  const int i0 = EXT+2*bi, j0 = EXT+2*bj;
                  const bool hi = (bi>0 && bi<c->nx/2-1 && bj>0 && bj<nby-1) && rcubic(c->pp,i0,j0);
+                 // wfill: the wet children only; none wet: the coarse value stays (NaN)
+                 lexer *pp = c->pp;
+                 double wc[4] = {1.0,1.0,1.0,1.0};
+                 double nw = 4.0;
+                 if(wfill)
+                 {
+                     nw = 0.0;
+                     for(int a=0; a<2; ++a)
+                     for(int b=0; b<2; ++b)
+                     {
+                     wc[2*a+b] = (pp->wet[(i0+a-pp->imin)*pp->jmax + (j0+b-pp->jmin)]==1) ? 1.0 : 0.0;
+                     nw += wc[2*a+b];
+                     }
+                 }
                  for(int m=0; m<ns; ++m)
                  {
                      slice &f = sel(id,m);
-                     if(hi)
+                     if(nw==0.0)
+                     v[m] = std::numeric_limits<double>::quiet_NaN();
+                     else if(hi)
                      v[m] = rc4([&](int a, int b) { return f(i0+a,j0+b); });
                      else
-                     v[m] = 0.25*(f(i0,j0)+f(i0+1,j0)+f(i0,j0+1)+f(i0+1,j0+1));
+                     v[m] = (wc[0]*f(i0,j0)+wc[2]*f(i0+1,j0)+wc[1]*f(i0,j0+1)+wc[3]*f(i0+1,j0+1))/nw;
                  }
              },
              [&](const reefamr_block &B, int key, const double *v)
              {
                  for(int m=0; m<ns; ++m)
+                 if(!std::isnan(v[m]))
                  sel(B.g,m)(B.ic,B.jc) = v[m];
              });
 }
@@ -195,14 +215,29 @@ inline void fnpf_amr::restrict_col(SEL sel)
                      const int i0 = EXT+2*bi, j0 = EXT+2*bj;
                      const bool hi = (bi>0 && bi<c->nx/2-1 && bj>0 && bj<nby-1) && rcubic(pp,i0,j0);
                      const int sI = pp->jmax*pp->kmaxF, sJ = pp->kmaxF;
+                     // wfill: the wet children only; none wet: the coarse column stays (NaN)
+                     double wc[4] = {1.0,1.0,1.0,1.0};
+                     double nw = 4.0;
+                     if(wfill)
+                     {
+                         nw = 0.0;
+                         for(int a=0; a<2; ++a)
+                         for(int b=0; b<2; ++b)
+                         {
+                         wc[2*a+b] = (pp->wet[(i0+a-pp->imin)*pp->jmax + (j0+b-pp->jmin)]==1) ? 1.0 : 0.0;
+                         nw += wc[2*a+b];
+                         }
+                     }
                      for(int K=0; K<=knc; ++K)
                      {
                          const int kf = fz*K;
                          const int n0 = fidx(pp,i0,j0,kf);
-                         if(hi)
+                         if(nw==0.0)
+                         v[K] = std::numeric_limits<double>::quiet_NaN();
+                         else if(hi)
                          v[K] = rc4([&](int a, int b) { return src[n0+a*sI+b*sJ]; });
                          else
-                         v[K] = 0.25*(src[n0] + src[n0+sI] + src[n0+sJ] + src[n0+sI+sJ]);
+                         v[K] = (wc[0]*src[n0] + wc[2]*src[n0+sI] + wc[1]*src[n0+sJ] + wc[3]*src[n0+sI+sJ])/nw;
                      }
                  },
                  [&](const reefamr_block &B, int key, const double *v)
@@ -210,6 +245,7 @@ inline void fnpf_amr::restrict_col(SEL sel)
                      lexer *q = glex(B.g);
                      double *dst = sel(B.g);
                      for(int K=0; K<=knc; ++K)
+                     if(!std::isnan(v[K]))
                      dst[fidx(q,B.ic,B.jc,K)] = v[K];
                  });
     }
