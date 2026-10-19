@@ -104,6 +104,9 @@ public:
     virtual bool added_mass(const sixdof_rigidbody&, Eigen::Matrix<double,6,6>&) const {return false;}
     virtual void fluid_mask(double*) const {}
     virtual void print(lexer*) {}
+    // checkpoints (P 48, I 45): the state the model carries from step to step (rudder, autopilot)
+    virtual void ckpt_state(std::vector<double>&) const {}
+    virtual void ckpt_restore(const std::vector<double>&, size_t&) {}
 };
 
 #endif

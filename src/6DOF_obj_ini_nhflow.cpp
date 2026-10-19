@@ -105,12 +105,15 @@ void sixdof_obj_nhflow::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     // Initialise global variables
 	update_fbvel(p,pgc);
 
-    // Print initial body 
+    // Print initial body (not on a restart from a checkpoint, I 45 1: printed already)
+    if(p->I45!=1)
+    {
     if(p->X50==1)
     print_vtp(p,pgc);
     
     if(p->X50==2)
     print_stl(p,pgc);
+    }
 
 	// Mooring
 	if(p->X310==0)

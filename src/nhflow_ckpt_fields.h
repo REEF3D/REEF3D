@@ -64,6 +64,9 @@ void nhflow_ckpt_fields(lexer *p, fdm_nhf *d, FD &&fd, FI &&fi)
     fd("sigz",'S',p->sigz); fd("pWL",'S',p->WL); fd("ZSN",'F',p->ZSN); fd("ZSP",'C',p->ZSP);
     fi("flagslice4",'S',p->flagslice4); fi("flag7",'F',p->flag7); fi("flag4",'C',p->flag4);
     fi("wet",'S',p->wet); fi("lwet_n",'S',p->wet_n); fi("deep",'S',p->deep);
+
+    // the direct-forcing flags of the solids and floating bodies (nhflow_forcing, at the last forcing)
+    fi("DF",'C',p->DF); fi("DFF",'F',p->DFF);
 }
 
 #endif

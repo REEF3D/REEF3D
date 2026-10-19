@@ -78,6 +78,12 @@ public:
     void amr_save();
     void amr_restore(lexer*, ghostcell*);
     void pose_update(lexer*, ghostcell*);   // Euler angles, trimesh, omega, u_fb from the rigid-body state
+
+    // checkpoints (P 48, I 45; 6DOF_obj_ckpt.cpp): the state of the body at the end of a step (the rigid
+    // body with its history, the loads of the last stage, the print times, the time index of the motion
+    // files, the moorings and the load models); restore sets the pose (trimesh, body velocities) again
+    void ckpt_state(lexer*, std::vector<double>&);
+    bool ckpt_restore(lexer*, ghostcell*, const std::vector<double>&);
     sixdof_rigidbody rb_amr;
     bool ext_on_amr_ = false;
     Eigen::Vector3d ext_v_amr_ = Eigen::Vector3d::Zero(), ext_w_amr_ = Eigen::Vector3d::Zero();
@@ -388,6 +394,7 @@ protected:
     bool fixedc_[6] = {false,false,false,false,false,false};
 
     // FNPF and NHFLOW: power take-off (X 500 - X 508, coral/reef3d/coral_sixdof_pto.cpp; elements in coral/pto)
+    template<class P> void ckpt_fields(lexer*, P&);
     void ini_pto(lexer*, ghostcell*);
     void pto_forces(lexer*, ghostcell*, int);
     void pto_implicit(lexer*, Eigen::Matrix<double,6,6>&, Eigen::Matrix<double,6,1>&);

@@ -45,6 +45,9 @@ public:
     virtual void motionext_rot(lexer*, Eigen::Vector3d&, Eigen::Vector3d&, Eigen::Vector4d&, Eigen::Matrix<double, 3, 4>&,  Eigen::Matrix3d&)=0;
 
     virtual void ini(lexer*,ghostcell*)=0;
+    // checkpoints (P 48, I 45): the time index in the motion file and the prescribed velocities
+    virtual void ckpt_state(std::vector<double>&) const {}
+    virtual void ckpt_restore(const std::vector<double>&, size_t&) {}
 
 protected:
     inline std::vector<std::vector<double>> readTable(const std::string& path, size_t M) {

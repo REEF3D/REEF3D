@@ -54,7 +54,7 @@ struct ckpatch
 {
     int shadow, lev, lo[3], hi[3];
     int imin, imax, jmin, jmax, kmin, kmax;
-    double dt_l;
+    double dt_l, dt, dt_old, simtime;    // the step of the level, the time values of the patch lexer
     vector<int> code;
     vector<vector<double>> data;
 };
@@ -124,6 +124,7 @@ void cfd_amr::ckpt_write(reefckpt &ck)
         for(int d=0; d<3; ++d) B.push_back(c->hi[d]);
         B.push_back(q->imin); B.push_back(q->imax); B.push_back(q->jmin); B.push_back(q->jmax); B.push_back(q->kmin); B.push_back(q->kmax);
         B.push_back(c->shadow ? 0.0 : static_cast<cfd_amr_patch*>(c)->dt_l);
+        B.push_back(q->dt); B.push_back(q->dt_old); B.push_back(q->simtime);
         B.push_back(double(e.size()));
         for(const auto &x : e)
         {
@@ -231,7 +232,7 @@ bool cfd_amr::ckpt_read(reefckpt &ck, string &msg)
     for(const auto &bl : ck.get_rank_blobs("cfd_amr_patches"))
     {
         size_t q=0;
-        while(q+18<=bl.size())
+        while(q+21<=bl.size())
         {
             ckpatch c;
             c.shadow = int(bl[q++]); c.lev = int(bl[q++]);
@@ -239,6 +240,7 @@ bool cfd_amr::ckpt_read(reefckpt &ck, string &msg)
             for(int d=0; d<3; ++d) c.hi[d] = int(bl[q++]);
             c.imin = int(bl[q++]); c.imax = int(bl[q++]); c.jmin = int(bl[q++]); c.jmax = int(bl[q++]); c.kmin = int(bl[q++]); c.kmax = int(bl[q++]);
             c.dt_l = bl[q++];
+            c.dt = bl[q++]; c.dt_old = bl[q++]; c.simtime = bl[q++];
             const int ne = int(bl[q++]);
             for(int r=0; r<ne; ++r)
             {
@@ -290,7 +292,11 @@ bool cfd_amr::ckpt_read(reefckpt &ck, string &msg)
         for(const auto &o : cp)
         if(!o.shadow && o.lev==c->lev)
         {
-            static_cast<cfd_amr_patch*>(c)->dt_l = (m!=nullptr) ? m->dt_l : o.dt_l;
+            const ckpatch &src = (m!=nullptr) ? *m : o;
+            static_cast<cfd_amr_patch*>(c)->dt_l = src.dt_l;
+            q->dt = src.dt;
+            q->dt_old = src.dt_old;
+            q->simtime = src.simtime;
             break;
         }
 

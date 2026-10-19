@@ -62,6 +62,9 @@ public:
     void start_wavemaker(lexer*,fdm_nhf*,ghostcell*,int,double*,double*,double*,slice&,slice&,bool);
     void start_shipwave(lexer*,fdm_nhf*,ghostcell*,int,bool);
        
+    void ckpt_state(lexer*, std::vector<double>&) override final;
+    bool ckpt_restore(lexer*, ghostcell*, const std::vector<double>&) override final;
+    double* ckpt_slice() override final {return press.V;}
 	void ini(lexer*,ghostcell*) override final;
     void initialize(lexer*, fdm*, ghostcell*) override final;
     void initialize(lexer*, fdm2D*, ghostcell*) override final;

@@ -115,6 +115,23 @@ public:
 
     void save_history(double);                          // shift n1..n3, argument: stage time step
 
+    // ---- checkpoints (P 48, I 45): the state, history, kinematics and loads (ckpt_pack.h: ckpt_put
+    // writes, ckpt_get reads, in this order)
+    template<class P> void ckpt(P &q)
+    {
+        for(Eigen::Vector3d *a : {&p,&pk,&pn1,&pn2,&pn3,&dp,&dpk,&dpn1,&dpn2,&dpn3,
+                                  &c,&ck,&cn1,&cn2,&cn3,&dc,&dck,&dcn1,&dcn2,&dcn3,
+                                  &h,&hk,&hn1,&hn2,&hn3,&dh,&dhk,&dhn1,&dhn2,&dhn3,
+                                  &omega_B,&omega_I,&F,&M,&rk4_p[0],&rk4_p[1],&rk4_p[2],
+                                  &rk4_c[0],&rk4_c[1],&rk4_c[2],&rk4_h[0],&rk4_h[1],&rk4_h[2]})
+        q.m(*a);
+        for(Eigen::Vector4d *a : {&e,&ek,&en1,&en2,&en3,&de,&dek,&den1,&den2,&den3,&er,&rk4_e[0],&rk4_e[1],&rk4_e[2]})
+        q.m(*a);
+        q.m(E); q.m(G); q.m(Gdot); q.m(R); q.m(Rinv);
+        q.d(phi); q.d(theta); q.d(psi);
+        q.d(dtn1); q.d(dtn2); q.d(dtn3);
+    }
+
 private:
     Eigen::Vector4d er;   // unnormalised quaternion stage value (RK3, RKLS3)
     Eigen::Vector3d rk4_p[3], rk4_c[3], rk4_h[3];

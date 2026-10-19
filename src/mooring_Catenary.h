@@ -41,6 +41,9 @@ using namespace std;
 class mooring_Catenary final : public mooring
 {
 public:
+    void ckpt_state(std::vector<double> &v) const override { for(double x : {FH,FV,FH_0,FV_0,Xme_,Yme_,Zme_,printtime,broken?1.0:0.0,curr_time}) v.push_back(x); }
+    void ckpt_restore(const std::vector<double> &v, size_t &k) override
+    { if(k+10>v.size()) return; FH=v[k++]; FV=v[k++]; FH_0=v[k++]; FV_0=v[k++]; Xme_=v[k++]; Yme_=v[k++]; Zme_=v[k++]; printtime=v[k++]; broken=v[k++]>0.5; curr_time=v[k++]; }
 	mooring_Catenary(int);
 	virtual ~mooring_Catenary();
 	

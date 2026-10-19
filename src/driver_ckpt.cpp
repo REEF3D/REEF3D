@@ -26,8 +26,11 @@ Author: Hans Bihs
 //  the registry ckpt_registry.h), the patches of the mesh refinement and the counters of the outputs.
 //  On the same decomposition the restart continues bitwise; on another one the ghost cells come from
 //  the neighbours' interiors and the domain boundaries of the writing run.
-//  Not there yet (refused with a message): 6DOF bodies; sediment, DEM, FEM or CORAL structures,
-//  SEASTATE; NHFLOW with Lagrangian particles, membranes, multi-block grids; CFD with FSI.
+//  The 6DOF bodies of CFD and NHFLOW: their state as a blob (6DOF_obj_ckpt.cpp), their arrays on the grid
+//  with those of the model.
+//  Not there yet (refused with a message): 6DOF wavemaker objects, quasi-static and dynamic moorings,
+//  nets, power take-off; sediment, DEM, FEM or CORAL structures, SEASTATE; NHFLOW with Lagrangian
+//  particles, membranes, multi-block grids; CFD with FSI.
 
 #include"driver.h"
 #include"lexer.h"
@@ -47,6 +50,7 @@ Author: Hans Bihs
 #include"ioflow.h"
 #include"cfd_ckpt.h"
 #include"cfd_amr.h"
+#include"6DOF.h"
 
 using namespace std;
 
@@ -55,8 +59,18 @@ string driver::ckpt_unsupported()
 {
     if(p->A10!=3 && p->A10!=5 && p->A10!=6)
     return "checkpoints are there for SFLOW, FNPF, NHFLOW and CFD only";
-    if(p->X10>0)
-    return "6DOF bodies are not in the checkpoints yet";
+    // 6DOF: rigid bodies (free, towed; NHFLOW also the ship-wave pressure patch) with spring and
+    // catenary moorings, motion files and the ship load models
+    if(p->X10>0 && p->A10!=6 && p->A10!=5)
+    return "6DOF bodies are in the checkpoints for CFD and NHFLOW only";
+    if(p->X10==4)
+    return "6DOF wavemaker objects (X 10 4) are not in the checkpoints yet";
+    if(p->X10>0 && (p->X310==2 || p->X310==3))
+    return "quasi-static and dynamic mooring lines (X 310 2, 3) are not in the checkpoints yet";
+    if(p->X10>0 && p->X320>0)
+    return "nets (X 320) are not in the checkpoints yet";
+    if(p->X10>0 && p->X500>0)
+    return "the 6DOF power take-off (X 500) is not in the checkpoints yet";
     if(p->A10==6)
     {
         if(p->S10>0) return "CFD sediment is not in the checkpoints yet";
@@ -110,6 +124,15 @@ reefrun_ckpt& driver::ckpt()
             cfd_ckpt_write(p,ck);
             if(pcfdamr!=nullptr)
             pcfdamr->ckpt_write(ck);
+        }
+
+        // the 6DOF bodies (the same on all ranks)
+        if(p->X10>0)
+        {
+            vector<double> sd;
+            p6dof->ckpt_state(p,sd);
+            ck.blob("sixdof",sd);
+            wd("sixdof_slice",'S',p6dof->ckpt_slice());
         }
 
         // the state of the boundary conditions (local to the rank)
@@ -175,6 +198,23 @@ reefrun_ckpt& driver::ckpt()
             if(!aok)
             return false;
             level0();
+        }
+
+        // the 6DOF bodies: their state, the trimesh at the pose (the arrays on the grid are in the fields)
+        if(p->X10>0)
+        {
+            if(!ck.has("sixdof") || !p6dof->ckpt_restore(p,pgc,ck.get_blob("sixdof")))
+            {
+                msg = "the 6DOF bodies of the checkpoint do not fit this run";
+                return false;
+            }
+            rd("sixdof_slice",'S',p6dof->ckpt_slice());
+            if(p->A10==6)
+            pgc->gcdf_update(p,a);
+
+            // NHFLOW: the ghost cells of the water level at the bodies (nhflow_forcing, from DF)
+            if(p->A10==5 && (p->A516==2 || p->A516==4 || p->X240==21 || p->X10==4))
+            pgc->gcsldf_update(p);
         }
 
         // the state of the boundary conditions: on the same decomposition (else they start again)

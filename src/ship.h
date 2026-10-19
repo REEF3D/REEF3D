@@ -126,6 +126,8 @@ public:
     bool added_mass(const sixdof_rigidbody&, Eigen::Matrix<double,6,6>&) const override;
     void fluid_mask(double*) const override;
     void print(lexer*) override;
+    void ckpt_state(std::vector<double>&) const override;
+    void ckpt_restore(const std::vector<double>&, size_t&) override;
     
 private:
     
@@ -137,6 +139,7 @@ private:
     
     const int id;
     bool initialized;
+    bool ck_restored = false;   // restart from a checkpoint: heading and disk thickness of the checkpoint
     
     // hull
     double lpp, S, k, nu, B44, B44q, Cd, thrust, xthrust, zthrust, Ucur[2];

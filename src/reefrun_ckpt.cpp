@@ -52,6 +52,8 @@ void run_scalars(lexer *p, F &&f)
     f("kinmax",p->kinmax); f("epsmax",p->epsmax); f("omegamax",p->omegamax);
     f("pressmin",p->pressmin); f("pressmax",p->pressmax); f("mindt",p->mindt); f("maxdt",p->maxdt);
     f("phimean",p->phimean); f("phiout",p->phiout); f("phiin",p->phiin);
+    // the pressure reference of the last step (B 30; the loads of the 6DOF bodies take it off)
+    f("pressgage",p->pressgage);
 }
 }
 

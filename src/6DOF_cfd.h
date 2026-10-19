@@ -44,6 +44,8 @@ public:
     
     void reforce_nhflow(lexer*,fdm_nhf*,ghostcell*,int,double*,double*,double*,double*,double*,double*,slice&,slice&,bool) override final {};
     
+    void ckpt_state(lexer*, std::vector<double>&) override final;
+    bool ckpt_restore(lexer*, ghostcell*, const std::vector<double>&) override final;
     void ini(lexer*,ghostcell*) override final;
     void initialize(lexer*, fdm*, ghostcell*) override final;
     void initialize(lexer*, fdm2D*, ghostcell*) override final;

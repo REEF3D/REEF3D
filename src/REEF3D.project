@@ -45,6 +45,7 @@
       <File Name="reefrun_ckpt.h"/>
       <File Name="ckpt_registry.h"/>
       <File Name="cfd_ckpt.h"/>
+      <File Name="ckpt_pack.h"/>
       <File Name="amr_load.h"/>
       <VirtualDirectory Name="CFD">
         <File Name="reefamr3d.h"/>
@@ -1415,6 +1416,7 @@
       <File Name="reefrun_ckpt.cpp"/>
       <File Name="ckpt_registry.cpp"/>
       <File Name="cfd_ckpt.cpp"/>
+      <File Name="6DOF_obj_ckpt.cpp"/>
       <File Name="reefamr_ckpt.cpp"/>
       <File Name="iowave_ckpt.cpp"/>
       <File Name="driver_ckpt.cpp"/>

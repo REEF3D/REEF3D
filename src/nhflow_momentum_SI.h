@@ -139,6 +139,7 @@ public:
     // checkpoints (P 48, I 45): the face discharges and the state of the step
     void ckpt_fields(const std::function<void(const char*, char, double*)> &fd, const std::function<void(const char*, char, int*)> &fi) override
     {
+        fsfbody_ckpt_fields(fd);
         fd("si_qx",'S',qx.V); fd("si_qxn",'S',qxn.V); fd("si_qxE",'S',qxE.V); fd("si_Hx",'S',Hx.V);
         fd("si_alx",'S',alx.V); fd("si_gmx",'S',gmx.V); fd("si_ax",'S',ax.V); fd("si_kx",'S',kx.V);
         fd("si_gx0",'S',gx0.V); fd("si_cx0",'S',cx0.V); fd("si_qy",'S',qy.V); fd("si_qyn",'S',qyn.V);

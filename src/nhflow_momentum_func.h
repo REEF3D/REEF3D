@@ -113,6 +113,7 @@ public:
     // water level in the columns pierced by a floating body (X 13 1): level() after the water level update
     // of a stage (phase_F), momentum() before velcalc (phase_P1), print() at the end of the step (phase_P2)
     nhflow_fsf_body *pfsfbody = nullptr;
+    void fsfbody_ckpt_fields(const std::function<void(const char*, char, double*)>&);   // checkpoints: X 13
 	
     
 
