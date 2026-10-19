@@ -157,3 +157,25 @@ See its README.
 - `X 120` (analytic sphere) gives no surface triangles with the current grid code; STL spheres used.
 - `F 30 3` with inflow/outflow and the free surface above the domain (`F 60 10`) gave NaN in the
   first step; 06–10 are single phase.
+
+## KP505 resolved, 5 mm around the rotor (user run 2026-10-16, after hans_dev propeller 01/02)
+
+Uniform 5 mm in x in [-0.1, 0.4], |y|, |z| < 0.16 (B 127-129), 2.25 M cells, N 40 4, 0.8 s (8 rev),
+n = 10 1/s, U = 1.5 m/s, J = 0.6, FW-H box U 20 x in [-0.09, 0.15], |y|, |z| < 0.18, LAGOON output
+(P 18 2) every 5 ms. Window 0.4-0.8 s. Scripts: kp505_analysis.py, kp505_slide_figs.py,
+kp505_lagoon_anim.py, kp505_q_export.py + kp505_q_render.py (pvbatch), lagoon_read.py.
+
+- FW-H against the CFD probes at BPF: 2R in the rotor plane (4 azimuths) and (0.1, 0.2, 0.05):
+  -2 to +2 %, phase within 1 deg; 3R: -11 %, 8 deg; upstream x = -0.3 (0.08 Pa): -40 %.
+  Axisymmetric now: the four rotor-plane points within +-3 % (34 against 17 Pa on the 1 cm grid
+  before the flux fix of hans_dev, propeller 01); mean side force 0.15/-0.07 N (1.4/-3.6 N).
+- 10 m: FW-H 1.75 mPa = Curle of the box force 1.77 mPa (y axis), 0.08/0.11 mPa on the axis. The
+  BPF force behind it is lateral (0.5 N 6DOF, 1.0 N box) and numerical (zero for a symmetric rotor
+  in a uniform inflow), 3.5 times lower than on the 1 cm grid.
+- Forces: surface integral KT = 0.039, 10 KQ = 0.128; momentum balance over the whole cross-section
+  from the LAGOON planes: net axial force on the fluid -23.6 N (body drag, the hub included), swirl
+  flux 9.0 Nm (10 KQ = 0.92); experiment KT = 0.219, 10 KQ = 0.357. The blades accelerate the flow
+  at r = 0.06-0.11 (u up to 2.15 m/s, the rotation sign is right: pitch P/D 0.91 at 0.88R and
+  omega < 0 give an angle of attack of +6.6 deg at 0.8R), but the blade thickness is below a cell,
+  the hub (no shaft) has reverse flow behind it (u = -0.75 m/s on the axis at x = 0.05) and the
+  swirl core is at -1000 Pa. Not resolved at 5 mm: 2 mm (case 16, AMR) and a shaft are next.

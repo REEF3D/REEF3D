@@ -38,16 +38,20 @@ def table(fn, ncol):
         d[v[0]]=v[1:]
     t=sorted(d); return t,[d[x] for x in t]
 
-tf,F = table("REEF3D_CFD_6DOF/REEF3D_6DOF_forces_0.dat",13)
-sel=[k for k,t in enumerate(tf) if T0<=t<=T1]
-mean=lambda i: sum(F[k][i] for k in sel)/len(sel)
-Fx,Fy,Fz,Mx = mean(0),mean(1),mean(2),mean(3)
-KT=-Fx/(rho*n*n*D**4); KQ=Mx/(rho*n*n*D**5)
-print(f"window {T0}..{min(T1,tf[-1]):.4f} s ({len(sel)} steps), n = {n:.3f} 1/s, U = {U} m/s, J = {J:.3f}")
+import os
 e=exp_at(J)
 ex = f"   experiment KT = {e[0]:.3f}, 10 KQ = {e[1]:.3f}" if e else ""
-print(f"6DOF force (surface integral): Fx = {Fx:.3f} N, side force Fy = {Fy:.3f} Fz = {Fz:.3f} N, Mx = {Mx:.4f} Nm")
-print(f"  KT = {KT:.4f}, 10 KQ = {10*KQ:.4f}, eta0 = {J*KT/(2*math.pi*KQ) if KQ else float('nan'):.3f}{ex}")
+print(f"window {T0}..{T1} s, n = {n:.3f} 1/s, U = {U} m/s, J = {J:.3f}{ex}")
+if os.path.exists("REEF3D_CFD_6DOF/REEF3D_6DOF_forces_0.dat"):
+    tf,F = table("REEF3D_CFD_6DOF/REEF3D_6DOF_forces_0.dat",13)
+    sel=[k for k,t in enumerate(tf) if T0<=t<=T1]
+    mean=lambda i: sum(F[k][i] for k in sel)/len(sel)
+    Fx,Fy,Fz,Mx = mean(0),mean(1),mean(2),mean(3)
+    KT=-Fx/(rho*n*n*D**4); KQ=Mx/(rho*n*n*D**5)
+    print(f"6DOF force (surface integral, {len(sel)} steps): Fx = {Fx:.3f} N, side force Fy = {Fy:.3f} Fz = {Fz:.3f} N, Mx = {Mx:.4f} Nm")
+    print(f"  KT = {KT:.4f}, 10 KQ = {10*KQ:.4f}, eta0 = {J*KT/(2*math.pi*KQ) if KQ else float('nan'):.3f}")
+else:
+    print("no REEF3D_CFD_6DOF/REEF3D_6DOF_forces_0.dat: KT, KQ from the surface integral skipped")
 
 tb,B = table("REEF3D_CFD_Acoustics/REEF3D-CFD-FWH-Box.dat",13)
 Fb=[[],[],[]]
