@@ -616,6 +616,9 @@ void fnpf_6DOF::footprint(fnpf_6DOF_grid &G, ghostcell *pgc, slice &eta, slice &
         // (smooth hull, Fr 0.14, from about 10 s on). The relaxation of eta alone stabilises it
         // without changing the hull loads noticeably; Fifsf is left alone (relaxing the
         // potential next to the hull changes phi_t and the hull pressure).
+        // On by default (0.5): on fine grids (0.05 m patch or uniform grid at a 1 m float, LUPA)
+        // the columns at the hull also blow up in the first deep wave trough, without forward
+        // speed, and a smaller time step does not help. X 17 0 switches it off.
         if(p->X17>0.0)
         {
             const double w = MIN(p->X17,1.0);
