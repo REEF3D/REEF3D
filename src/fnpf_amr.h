@@ -122,6 +122,7 @@ struct fnpf_amr_patch : public reefamr_patch
     slice4 *erk1 = nullptr, *erk2 = nullptr, *frk1 = nullptr, *frk2 = nullptr;
     slice4 *ek = nullptr, *fk = nullptr;
     slice4 *en = nullptr;           // eta at the start of the step (breaking detection, A 350 1)
+    vector<int> wfix;               // A 343 2, 3 with G 30 1: the fixed wet flags (lexer::wetfix)
 
     // columns with a solid neighbour (lexer index pairs): wall ghost nodes of Fi
     vector<int> wall;
@@ -379,6 +380,16 @@ private:
     bool wfill = false;
     void patch_coast(fnpf_amr_patch&, ghostcell*, slice&, slice&);
     void patch_wd_ini(fnpf_amr_patch&, ghostcell*);
+
+    // A 343 2, 3 with G 30 1 (dyn): the moving coastline in the patches.  The cells around a patch
+    // take the wet flag of their source cell (fill_wet), dry ones the dry water level (ring_dry);
+    // the covered cells of a coarser grid are wet only if all four children are (restrict_flags);
+    // both keep these flags through the wetting and drying of their grid (lexer::wetfix)
+    bool dyn = false;
+    vector<int> wfix0;
+    void fill_wet(int);
+    void ring_dry(fnpf_amr_patch&, slice&);
+    void restrict_flags(ghostcell*);
     void patch_coast_dist(fnpf_amr_patch&, const vector<double>&);
 
     // the damping and the coastline of the stage values read the cells around a patch: these are

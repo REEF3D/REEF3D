@@ -69,6 +69,11 @@ public:
 
     void coastline_Fz(lexer*,fdm_fnpf*,ghostcell*,slice&);
 
+    // dynamic wetting-drying (A343 2/3) of a grid whose wet flags were set from outside (mesh
+    // refinement: a new patch from the old patches or its water level): the dry cells on the
+    // criterion, the age, the front mask and the connectivity from these flags
+    void wd_reset(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&);
+
 private:
     // coastline damping: c->coastline is fixed after its initialisation, so
     // the cells inside the damping bands and their rb3/rb4/rb5 factors are

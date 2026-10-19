@@ -396,6 +396,12 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
             Mb[n] = 0.0;
             rhs[n] = 0.0;
             
+            // mesh refinement (assemble_only): a dry column keeps its Fi, as in REEFMG, which
+            // leaves the dry columns out of the solve. Fi=0 there would enter the explicit sigma
+            // cross-derivative of the wet front column next to it as a jump of the size of Fi
+            if(assemble_only && wP==0 && flag7[q]>0)
+            rhs[n] = f[q];
+
             if(mix)
             {
             Xnt[n]=Xnb[n]=Xst[n]=Xsb[n]=0.0;
