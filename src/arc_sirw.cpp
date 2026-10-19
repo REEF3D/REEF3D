@@ -303,3 +303,36 @@ double arc_sirw::eta(double t) const
     const double fac = std::min(1.0,std::max(0.0,(t-tcur)/dtf));
     return ycur[nlev] + fac*(ycur[nlev]-yprev[nlev]);
 }
+
+void arc_sirw::ckpt_state(std::vector<double> &v) const
+{
+    v.push_back(double(count_last)); v.push_back(double(head)); v.push_back(double(nsample));
+    v.push_back(tnext); v.push_back(tprev); v.push_back(e1prev); v.push_back(e2prev); v.push_back(tcur);
+    for(const std::vector<double> *a : {&b1,&b2,&ycur,&yprev})
+    {
+        v.push_back(double(a->size()));
+        v.insert(v.end(),a->begin(),a->end());
+    }
+}
+
+void arc_sirw::ckpt_restore(const std::vector<double> &v, size_t &k)
+{
+    if(k+8>v.size())
+    {
+        k = v.size();
+        return;
+    }
+    count_last = int(v[k++]); head = int(v[k++]); nsample = int(v[k++]);
+    tnext = v[k++]; tprev = v[k++]; e1prev = v[k++]; e2prev = v[k++]; tcur = v[k++];
+    for(std::vector<double> *a : {&b1,&b2,&ycur,&yprev})
+    {
+        const size_t n = (k<v.size()) ? size_t(v[k++]) : 0;
+        if(k+n>v.size())
+        {
+            k = v.size();
+            return;
+        }
+        a->assign(v.begin()+k,v.begin()+k+n);
+        k += n;
+    }
+}

@@ -255,6 +255,10 @@ void driver::cfd_driver()
         pprint->amr_probes(pcfdamr);
     }
 
+    // restart from the latest checkpoint (I 45 1): the state at the end of its step
+    if(p->I45==1)
+    ckpt_read();
+
     preg = new regression_dump(p);
     preg->cfd_ini(p,a,pgc,pturb,pconc);
 

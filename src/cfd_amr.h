@@ -32,6 +32,7 @@ Architect: Hans Bihs
 #include<tuple>
 
 class lexer;
+class reefckpt;
 class fdm;
 class ghostcell;
 class field;
@@ -364,6 +365,15 @@ private:
     void flags(vector<vector<unsigned char>> &seed, bool init);
     bool flagged(int g, int i, int j, int k, int lt, bool init);
     void regrid(lexer*, ghostcell*, bool replace=false);    // replace: the units placed anew (G 41 0, static refinement)
+    vector<vector<unsigned char>> ck_seed;      // restart (I 45): the tile maps of the checkpoint for the regrid
+
+public:
+    // checkpoints (P 48, I 45; cfd_amr_ckpt.cpp): the hierarchy and every array of the patches
+    void ckpt_write(reefckpt&);
+    bool ckpt_read(reefckpt&, std::string&);
+    void write_loadmap(lexer*);
+    void flush_outputs();
+private:
     void replace_static(lexer*, ghostcell*);              // G 40 1, G 41 0, static refinement: the weight measured, the units placed anew once
     // G 41 0 (several ranks): the work of the ranks measured since the last regrid, the weight of a
     // patch cell for the placement (wpatch), the report; lbar: a barrier before a level-0 part (the
@@ -374,6 +384,14 @@ private:
     // load statistics of the ranks (G 43, amr_load.h), once per step
     void load_step(lexer*);
     amr_load lstat;
+    // the load map (G 45, G 46): the patch cells per level-0 cell (load_w without wpatch) summed over
+    // the steps of the window of G 46 (G 47 steps), and this rank's level-0 and patch cells in it, for
+    // the weight of a patch cell measured from the busy times of the ranks (cfd_amr_ckpt.cpp)
+    void lmap_step(lexer*);
+    vector<double> lm_cur, lm_acc;
+    long lm_nregrid = -1, lm_steps = 0;
+    int lm_win = -1;
+    double lm_n0 = 0.0, lm_np = 0.0;
     double ml_t0 = 0.0, ml_tp = 0.0;
     int ml_n = 0;
     void regrid_old(const vector<int> &fresh, vector<vector<char>> &got);   // G 40: from the old patches of all ranks

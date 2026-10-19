@@ -81,6 +81,13 @@ amr_regrid_clock::~amr_regrid_clock()
     }
 }
 
+static double amr_window_last_busy = 0.0;
+
+double amr_window_busy()
+{
+    return amr_window_last_busy;
+}
+
 double amr_window_imbalance()
 {
     static bool open = false;
@@ -99,6 +106,7 @@ double amr_window_imbalance()
 
     w0 = MPI_Wtime();
     m0 = amr_clock::mpi;
+    amr_window_last_busy = first ? 0.0 : busy;
 
     if(first || sm<=0.0)
     return 0.0;

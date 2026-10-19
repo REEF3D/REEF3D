@@ -1517,8 +1517,9 @@ void cfd_amr::step(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof *p6do
         reference(p,pgc);
     }
 
-    // load statistics of the ranks (G 43)
+    // load statistics of the ranks (G 43), the load map (G 45, 46)
     load_step(p);
+    lmap_step(p);
 }
 
 // the counts of this rank for amr_load: level-0 cells, those not solid, the patch cells (G 7 1:

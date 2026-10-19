@@ -24,6 +24,8 @@ Author: Hans Bihs, Alexander Hanke
 #define FIELD_BASE_H_
 
 #include "lexer.h"
+#include "ckpt_registry.h"
+#include <type_traits>
 
 template<typename T>
 class field_base
@@ -33,9 +35,12 @@ public:
     field_base(lexer* p, bool allocate=true) : imin(p->imin), imax(p->imax), jmin(p->jmin), jkmax(p->jmax*p->kmax), kmin(p->kmin), kmax(p->kmax)
     {
         V = allocate ? new T[imax*jkmax] {} : nullptr;
+        if(V!=nullptr)
+        ckid = ckpt_registry::add(p,'C',std::is_same<T,int>::value,V);
     }
     virtual ~field_base()
     {
+        ckpt_registry::remove(ckid);
         delete [] V;
         V = nullptr;
     }
@@ -52,6 +57,7 @@ public:
 
 private:
     const int imin,imax,jkmax,jmin,kmin,kmax;
+    unsigned long long ckid = 0;    // checkpoints (ckpt_registry.h)
 };
 
 #endif

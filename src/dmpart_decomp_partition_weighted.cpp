@@ -27,7 +27,9 @@ Author: Hans Bihs
 //    1 for an active cell, M 21 for the others (solid, default 0),
 //    with M 35 1: the load map of a REEF3D run (REEF3D G 45: the work per step of every level-0
 //      column, the patches of the mesh refinement included), spread over the active cells of the
-//      column, read from ./loadmap.dat or ./REEF3D_<NHFLOW|FNPF|SFLOW>_AMR/REEF3D_<..>_AMR_loadmap.dat,
+//      column, read from ./loadmap.dat or ./REEF3D_<NHFLOW|FNPF|SFLOW>_AMR/REEF3D_<..>_AMR_loadmap.dat;
+//      a map of the cells (header nx ny nz: CFD, REEF3D_CFD_AMR/REEF3D_CFD_AMR_loadmap.dat) gives
+//      the work of every active cell,
 //    times the factors of the weight boxes M 34 xs xe ys ye zs ze f (cell centre in the box).
 //  The subdomains per direction: M 30 if given, else as for M 20 1 (M 11-13).
 //  The cuts of one direction for fixed cuts of the others are optimal: the least bottleneck B for
@@ -181,13 +183,14 @@ void decomp::partition_weighted(lexer* p, dive* a)
 
     if(p->M35==1)
     {
-        const char *names[4] = {"./loadmap.dat",
+        const char *names[5] = {"./loadmap.dat",
                                 "./REEF3D_NHFLOW_AMR/REEF3D_NHFLOW_AMR_loadmap.dat",
                                 "./REEF3D_FNPF_AMR/REEF3D_FNPF_AMR_loadmap.dat",
-                                "./REEF3D_SFLOW_AMR/REEF3D_SFLOW_AMR_loadmap.dat"};
+                                "./REEF3D_SFLOW_AMR/REEF3D_SFLOW_AMR_loadmap.dat",
+                                "./REEF3D_CFD_AMR/REEF3D_CFD_AMR_loadmap.dat"};
         ifstream in;
         std::string used;
-        for(int f=0; f<4 && !in.is_open(); ++f)
+        for(int f=0; f<5 && !in.is_open(); ++f)
         {
             in.open(names[f]);
             if(in.is_open())
@@ -202,7 +205,7 @@ void decomp::partition_weighted(lexer* p, dive* a)
         else
         {
             std::string line;
-            int gnx=-1, gny=-1;
+            int gnx=-1, gny=-1, gnz=-1;     // gnz > 0: a map of the cells (CFD), else of the columns
             std::vector<double> map;
             while(std::getline(in,line))
             {
@@ -212,6 +215,8 @@ void decomp::partition_weighted(lexer* p, dive* a)
                 if(gnx<0)
                 {
                     ls>>gnx>>gny;
+                    if(!(ls>>gnz))
+                    gnz=-1;
                     continue;
                 }
                 double v;
@@ -219,7 +224,25 @@ void decomp::partition_weighted(lexer* p, dive* a)
                 map.push_back(v);
             }
 
-            if(gnx!=NX || gny!=NY || (long)map.size()!=(long)NX*NY)
+            // a map of the cells: the work of every cell (the inactive ones keep M 21)
+            if(gnz>0)
+            {
+                if(gnx!=NX || gny!=NY || gnz!=NZ || (long)map.size()!=(long)NX*NY*NZ)
+                {
+                    cout<<"M 35 1: the load map "<<used<<" is "<<gnx<<" x "<<gny<<" x "<<gnz<<" cells, the grid "<<NX<<" x "<<NY<<" x "<<NZ
+                        <<" -- the active cells only"<<endl;
+                    ddout<<"M 35 1: load map does not fit the grid"<<endl;
+                }
+                else
+                {
+                    LOOP
+                    if(a->flag(i,j,k)>0)
+                    W(i,j,k) = map[((size_t)i*NY+j)*NZ+k];
+                    cout<<"M 35 1: load map "<<used<<" ("<<NX<<" x "<<NY<<" x "<<NZ<<" cells)"<<endl;
+                    ddout<<"M 35 1: load map "<<used<<endl;
+                }
+            }
+            else if(gnx!=NX || gny!=NY || (long)map.size()!=(long)NX*NY)
             {
                 cout<<"M 35 1: the load map "<<used<<" is "<<gnx<<" x "<<gny<<" columns ("<<map.size()<<" values), the grid "<<NX<<" x "<<NY
                     <<" -- the active cells only"<<endl;

@@ -20,18 +20,20 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-//  Checkpoints on any decomposition (P 48, I 45) and the rebalance (G 46) of FNPF and NHFLOW: the
+//  Checkpoints on any decomposition (P 48, I 45) and the rebalance (G 46) of FNPF, NHFLOW and CFD: the
 //  state of the modules (the run part: reefrun_ckpt.h).  The arrays of the model (fnpf_ckpt_fields.h,
-//  nhflow_ckpt_fields.h, the momentum and turbulence objects), the patches of the mesh refinement and
-//  the counters of the outputs.  On the same decomposition the restart continues bitwise; on another
-//  one the ghost cells come from the neighbours' interiors and the domain boundaries of the writing run.
-//  Not there yet (refused with a message): 6DOF bodies; NHFLOW with sediment, Lagrangian particles,
-//  DEM, FEM or CORAL structures, SEASTATE, membranes, multi-block grids.
+//  nhflow_ckpt_fields.h, the momentum and turbulence objects; for CFD every field of the run through
+//  the registry ckpt_registry.h), the patches of the mesh refinement and the counters of the outputs.
+//  On the same decomposition the restart continues bitwise; on another one the ghost cells come from
+//  the neighbours' interiors and the domain boundaries of the writing run.
+//  Not there yet (refused with a message): 6DOF bodies; sediment, DEM, FEM or CORAL structures,
+//  SEASTATE; NHFLOW with Lagrangian particles, membranes, multi-block grids; CFD with FSI.
 
 #include"driver.h"
 #include"lexer.h"
 #include"ghostcell.h"
 #include"fdm_fnpf.h"
+#include"fdm.h"
 #include"printer.h"
 #include"fnpf_amr.h"
 #include"reefckpt.h"
@@ -43,16 +45,25 @@ Author: Hans Bihs
 #include"nhflow_turbulence.h"
 #include"nhflow_momentum.h"
 #include"ioflow.h"
+#include"cfd_ckpt.h"
+#include"cfd_amr.h"
 
 using namespace std;
 
 // what the checkpoints do not cover yet, empty: all
 string driver::ckpt_unsupported()
 {
-    if(p->A10!=3 && p->A10!=5)
-    return "checkpoints are there for SFLOW, FNPF and NHFLOW only";
+    if(p->A10!=3 && p->A10!=5 && p->A10!=6)
+    return "checkpoints are there for SFLOW, FNPF, NHFLOW and CFD only";
     if(p->X10>0)
     return "6DOF bodies are not in the checkpoints yet";
+    if(p->A10==6)
+    {
+        if(p->S10>0) return "CFD sediment is not in the checkpoints yet";
+        if(p->E10>0) return "DEM is not in the checkpoints yet";
+        if(p->Z10>0 || p->Z30>0 || p->Z40>0) return "FSI, FEM and CORAL structures are not in the checkpoints yet";
+        if(p->A750>0) return "SEASTATE is not in the checkpoints yet";
+    }
     if(p->A10==5)
     {
         if(p->S10>0) return "NHFLOW sediment is not in the checkpoints yet";
@@ -94,6 +105,12 @@ reefrun_ckpt& driver::ckpt()
             if(pnhfamr!=nullptr)
             pnhfamr->ckpt_write(ck);
         }
+        if(p->A10==6)
+        {
+            cfd_ckpt_write(p,ck);
+            if(pcfdamr!=nullptr)
+            pcfdamr->ckpt_write(ck);
+        }
 
         // the state of the boundary conditions (local to the rank)
         vector<double> io;
@@ -121,6 +138,30 @@ reefrun_ckpt& driver::ckpt()
         level0();
         if(p->A10==5)
         pnhfmom->ckpt_restored();
+        if(p->A10==6)
+        {
+            if(!cfd_ckpt_read(p,ck,msg))
+            return false;
+
+            // mesh refinement: the hierarchy and the patches, then level 0 once more (the regrid to the
+            // layout of the checkpoint restricted its patches)
+            if(pcfdamr!=nullptr)
+            {
+                if(!pcfdamr->ckpt_read(ck,msg))
+                return false;
+                if(!cfd_ckpt_read(p,ck,msg))
+                return false;
+            }
+
+            // the flags of the geometry (direct forcing, wall ghost cells): rebuilt as the first step of
+            // the run did (momentum_forcing, when the geometry changed)
+            if(pgc->geometry_changed(p,a))
+            {
+            pgc->solid_forcing_flag_update(p,a);
+            pgc->gcdf_update(p,a);
+            pgc->gcb_velflagio(p,a);
+            }
+        }
         if(p->A10==3)
         ok = ck.has("eta") && ck.has("Fifsf") && ck.has("Fi") && ok;
         if(p->A10==5)
@@ -152,6 +193,8 @@ reefrun_ckpt& driver::ckpt()
         pfamr->flush_outputs();
         if(pnhfamr!=nullptr)
         pnhfamr->flush_outputs();
+        if(pcfdamr!=nullptr)
+        pcfdamr->flush_outputs();
     };
 
     h.loadmap = [this](lexer *pp)
@@ -160,6 +203,8 @@ reefrun_ckpt& driver::ckpt()
         pfamr->write_loadmap(pp);
         if(pnhfamr!=nullptr)
         pnhfamr->write_loadmap(pp);
+        if(pcfdamr!=nullptr)
+        pcfdamr->write_loadmap(pp);
     };
 
     rck = new reefrun_ckpt(p,pgc,std::move(h));

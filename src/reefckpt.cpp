@@ -217,11 +217,10 @@ bool reefckpt::read_open(lexer *pp, const string &dir, string &msg)
     {
         rd(m,b.oi); rd(m,b.oj); rd(m,b.ok); rd(m,b.ni); rd(m,b.nj); rd(m,b.nk);
         if(b.ok!=0 || b.nk!=GNZ)
-        {
-            msg = "checkpoint decomposition cuts the vertical direction";
-            return false;
-        }
+        zcut = true;
     }
+    if(p->origin_k!=0 || p->knoz!=GNZ)
+    zcut = true;
     int ns=0;
     rd(m,ns);
     for(int q=0;q<ns;++q)
@@ -247,18 +246,14 @@ bool reefckpt::read_open(lexer *pp, const string &dir, string &msg)
     }
 
     // the same decomposition: every rank finds its own box at its rank
-    int ok = (np==p->mpi_size && p->origin_k==0 && box[p->mpirank].oi==p->origin_i && box[p->mpirank].oj==p->origin_j
+    int ok = (np==p->mpi_size && box[p->mpirank].ok==p->origin_k && box[p->mpirank].oi==p->origin_i && box[p->mpirank].oj==p->origin_j
               && box[p->mpirank].ni==p->knox && box[p->mpirank].nj==p->knoy && box[p->mpirank].nk==p->knoz) ? 1 : 0;
     int all=0;
     MPI_Allreduce(&ok,&all,1,MPI_INT,MPI_MIN,MPI_COMM_WORLD);
     same = (all==1);
     mine = same ? p->mpirank : -1;
 
-    if(p->origin_k!=0)
-    {
-        msg = "the decomposition cuts the vertical direction";
-        return false;
-    }
+
 
     // index of every piece file (record offsets)
     pidx.assign(np,{});
@@ -381,6 +376,11 @@ bool reefckpt::get(const string &name, int type, void *V, size_t bytes)
         return (bool)f;
     }
 
+    // another decomposition that cuts the vertical direction (CFD): cell (I,J,K) from the piece
+    // whose interior holds (I,J,K) clamped
+    if(zcut && nk>1)
+    return get3d(name,V,bytes,nk);
+
     // another decomposition: column (I,J) from the piece whose interior holds (I,J) clamped
     const int gi0 = p->origin_i, gj0 = p->origin_j;
     vector<char> loaded(box.size(),0);
@@ -428,6 +428,57 @@ bool reefckpt::get(const string &name, int type, void *V, size_t bytes)
         const long long src = (ri*pjmax + rj)*nk;
         const long long dst = ((long long)(ii-p->imin)*p->jmax + (jj-p->jmin))*nk;
         memcpy((char*)V + dst*(long long)bytes, buf[r].data() + src*(long long)bytes, (size_t)(nk*(long long)bytes));
+    }
+    return true;
+}
+
+bool reefckpt::get3d(const string &name, void *V, size_t bytes, long long nk)
+{
+    const int gi0 = p->origin_i, gj0 = p->origin_j, gk0 = p->origin_k;
+    const long long extra = nk - (p->knoz+2*MARGIN);       // 0: cells, 1: nodes
+    vector<char> loaded(box.size(),0);
+    vector<vector<char>> buf(box.size());
+
+    auto owner = [&](int I, int J, int K)
+    {
+        for(int r=0;r<(int)box.size();++r)
+        if(I>=box[r].oi && I<box[r].oi+box[r].ni && J>=box[r].oj && J<box[r].oj+box[r].nj && K>=box[r].ok && K<box[r].ok+box[r].nk)
+        return r;
+        return -1;
+    };
+
+    for(int ii=p->imin; ii<p->imin+p->imax; ++ii)
+    for(int jj=p->jmin; jj<p->jmin+p->jmax; ++jj)
+    for(long long kk=0; kk<nk; ++kk)
+    {
+        const int I = ii+gi0, J = jj+gj0, K = int(kk)-MARGIN+gk0;
+        const int Ic = min(max(I,0),GNX-1), Jc = min(max(J,0),GNY-1), Kc = min(max(K,0),GNZ-1);
+        const int r = owner(Ic,Jc,Kc);
+        if(r<0)
+        continue;
+
+        const long long pimax = box[r].ni+2*MARGIN, pjmax = box[r].nj+2*MARGIN, pk = box[r].nk+2*MARGIN+extra;
+        if(!loaded[r])
+        {
+            auto it = pidx[r].find(name);
+            if(it==pidx[r].end())
+            return false;
+            const long long n = it->second.second;
+            if(n!=pimax*pjmax*pk)
+            return false;
+            ifstream f(piece_name(dirname,r).c_str(),ios::binary);
+            f.seekg(it->second.first);
+            buf[r].resize((size_t)(n*(long long)bytes));
+            f.read(buf[r].data(),(streamsize)(n*(long long)bytes));
+            loaded[r]=1;
+        }
+
+        const long long ri = (I-box[r].oi)+MARGIN, rj = (J-box[r].oj)+MARGIN, rk = (K-box[r].ok)+MARGIN;
+        if(ri<0 || ri>=pimax || rj<0 || rj>=pjmax || rk<0 || rk>=pk)
+        continue;
+        const long long src = (ri*pjmax + rj)*pk + rk;
+        const long long dst = ((long long)(ii-p->imin)*p->jmax + (jj-p->jmin))*nk + kk;
+        memcpy((char*)V + dst*(long long)bytes, buf[r].data() + src*(long long)bytes, bytes);
     }
     return true;
 }

@@ -36,6 +36,7 @@ using namespace std;
 class topo_vtp : public increment, private vtp3D
 {
 public:
+    int& print_counter() { return topoprintcount; }   // checkpoints (P 48, I 45)
     topo_vtp(lexer*);
     virtual ~topo_vtp() = default;
     void start(lexer*,fdm*,ghostcell*,sediment*);

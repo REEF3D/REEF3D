@@ -389,10 +389,16 @@ void cfd_amr::regrid(lexer *p, ghostcell *pgc, bool replace)
     }
     else
     {
-        measure_load();
-
         vector<vector<unsigned char>> seed;
+
+        // restart (I 45): the tile maps of the checkpoint (ckpt_read), no flags, no load sample
+        if(!ck_seed.empty())
+        seed = ck_seed;
+        else
+        {
+        measure_load();
         flags(seed,false);
+        }
 
         if(!rebuild(seed,gone,fresh))
         return;

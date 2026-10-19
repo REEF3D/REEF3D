@@ -1308,6 +1308,21 @@ void reefamr3d::make_boxes()
     vector<int> cnt(nranks,0);
     for(auto &q : GP)
     q.lid = cnt[q.rank]++;
+    // restart (I 45) on the same decomposition: the ranks of the checkpoint (the same boxes)
+    if(GPforce!=nullptr && GPforce->size()==GP.size())
+    {
+        bool same = true;
+        for(size_t g=0; same && g<GP.size(); ++g)
+        {
+            if(GP[g].lev!=(*GPforce)[g].lev)
+            same = false;
+            for(int d=0; d<3; ++d)
+            if(GP[g].lo[d]!=(*GPforce)[g].lo[d] || GP[g].hi[d]!=(*GPforce)[g].hi[d])
+            same = false;
+        }
+        if(same)
+        GP = *GPforce;
+    }
 }
 
 // G 40: the work of the unit of the level-1 box lo-hi: its cells of all levels (the work per cell of

@@ -168,6 +168,7 @@ public:
     vector<r3patch*> P;             // local patches
     vector<vector<int>> lev;        // [l] local patch ids
     vector<r3gpatch> GP;            // all patches
+    const vector<r3gpatch> *GPforce = nullptr;     // restart (I 45): the patch table of the checkpoint (make_boxes)
     vector<vector<int>> glev;       // [l] global ids
     vector<r3xplan> xp;             // [l] remote fills
     vector<double> gx[3];           // global level-0 nodes, with margin nodes (index + marge)

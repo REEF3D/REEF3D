@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"fdm.h"
+#include"ckpt_registry.h"
 #include"lexer.h"
 
 fdm::fdm(lexer *p, unsigned lean) :
@@ -49,6 +50,11 @@ fdm::fdm(lexer *p, unsigned lean) :
             nX(p,p->F80>0),nY(p,p->F80>0),nZ(p,p->F80>0),Alpha(p,p->F80>0)
             
 {
+    // checkpoints (P 48, I 45): the matrix and the right-hand side of the solvers (entries an
+    // assembly leaves carry over), local to the rank
+    for(std::vector<double> *m : {&M.p,&M.n,&M.s,&M.e,&M.w,&M.t,&M.b,&rhsvec.V})
+    ckids.push_back(ckpt_registry::add_raw(p,m->data(),(long long)m->size()));
+
 	maxF=0.0;
 	maxG=0.0; 
 	maxH=0.0;
@@ -75,3 +81,9 @@ fdm::fdm(lexer *p, unsigned lean) :
 
 
 
+
+fdm::~fdm()
+{
+    for(auto id : ckids)
+    ckpt_registry::remove(id);
+}

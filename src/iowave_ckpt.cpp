@@ -22,9 +22,8 @@ Author: Hans Bihs
 
 //  iowave in checkpoints (P 48, I 45): the state of the wave boundaries that carries over to the next
 //  step, local to the rank (low-pass filters and edge values per column, the waves on the background,
-//  the edge mass balance, the cached evaluation of the irregular waves), restored on the same
-//  decomposition.  The geometry of the zones is built
-//  again from the input.
+//  the edge mass balance, the cached evaluation of the irregular waves, the samples of SIRW absorption),
+//  restored on the same decomposition.  The geometry of the zones is built again from the input.
 
 #include"iowave.h"
 #include"lexer.h"
@@ -97,7 +96,7 @@ static void wave_libs_restore(const wave_interface &w, const std::vector<double>
 void iowave::ckpt_state(lexer *p, std::vector<double> &v)
 {
     ckw w{v};
-    w.d(1.0);   // version
+    w.d(2.0);   // version (2: SIRW)
 
     for(lowpass *l : {&lp_wl,&lp_u,&lp_uh,&lp_v,&lp_vh,&lp_w,&lp_wh,&lp_fifsf,
                       &lpg_eta,&lpg_fifsf,&lpg_wl,&lpg_u,&lpg_uh,&lpg_v,&lpg_vh,&lpg_w,&lpg_wh})
@@ -124,6 +123,12 @@ void iowave::ckpt_state(lexer *p, std::vector<double> &v)
     for(double x : mb_int) w.d(x);
     w.d(double(mb_scount)); w.d(double(mb_stage)); w.d(mb_t); w.d(mb_t0); w.d(mb_V0); w.d(double(mb_n));
 
+    // SIRW active absorption (B 98 8, B 99 8): the gauge samples and filter outputs, its low-pass
+    sirw_in.ckpt_state(v);
+    sirw_out.ckpt_state(v);
+    w.vd(sw_l1);
+    w.vi(sw_c1);
+
     // the wave libraries (cached evaluation of irregular waves)
     wave_libs_state(*this,v);
 }
@@ -134,7 +139,8 @@ void iowave::ckpt_restore(lexer *p, const std::vector<double> &v)
     return;
 
     ckr r{v};
-    if(int(r.d())!=1)
+    const int version = int(r.d());
+    if(version!=1 && version!=2)
     return;
 
     for(lowpass *l : {&lp_wl,&lp_u,&lp_uh,&lp_v,&lp_vh,&lp_w,&lp_wh,&lp_fifsf,
@@ -161,6 +167,14 @@ void iowave::ckpt_restore(lexer *p, const std::vector<double> &v)
     for(double &x : mb_qs) x = r.d();
     for(double &x : mb_int) x = r.d();
     mb_scount = int(r.d()); mb_stage = int(r.d()); mb_t = r.d(); mb_t0 = r.d(); mb_V0 = r.d(); mb_n = int(r.d());
+
+    if(version>=2 && r.ok)
+    {
+        sirw_in.ckpt_restore(v,r.k);
+        sirw_out.ckpt_restore(v,r.k);
+        r.vd(sw_l1);
+        r.vi(sw_c1);
+    }
 
     if(r.ok && r.k<v.size())
     wave_libs_restore(*this,v,r.k);

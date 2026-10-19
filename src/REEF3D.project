@@ -43,6 +43,8 @@
     <VirtualDirectory Name="REEFAMR">
       <File Name="reefckpt.h"/>
       <File Name="reefrun_ckpt.h"/>
+      <File Name="ckpt_registry.h"/>
+      <File Name="cfd_ckpt.h"/>
       <File Name="amr_load.h"/>
       <VirtualDirectory Name="CFD">
         <File Name="reefamr3d.h"/>
@@ -1411,6 +1413,8 @@
     <VirtualDirectory Name="REEFAMR">
       <File Name="reefckpt.cpp"/>
       <File Name="reefrun_ckpt.cpp"/>
+      <File Name="ckpt_registry.cpp"/>
+      <File Name="cfd_ckpt.cpp"/>
       <File Name="reefamr_ckpt.cpp"/>
       <File Name="iowave_ckpt.cpp"/>
       <File Name="driver_ckpt.cpp"/>
@@ -1459,6 +1463,7 @@
         <File Name="cfd_amr_print.cpp"/>
         <File Name="cfd_amr_sub.cpp"/>
         <File Name="cfd_amr_regrid.cpp"/>
+        <File Name="cfd_amr_ckpt.cpp"/>
         <File Name="cfd_amr_6dof.cpp"/>
         <File Name="cfd_amr_fields.cpp"/>
         <File Name="cfd_amr_scalar.cpp"/>

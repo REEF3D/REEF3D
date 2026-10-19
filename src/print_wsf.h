@@ -39,6 +39,7 @@ class amr_grid_lookup;
 class print_wsf : public boundarycheck
 {
 public:
+    void flush_files() { wsfout.flush(); }   // a rebalance stop (G 46)
     print_wsf(lexer*,fdm*,ghostcell*,int);
 	virtual ~print_wsf();
 

@@ -26,6 +26,8 @@ Author: Hans Bihs
 #include"solver.h"
 #include"increment.h"
 
+#include<vector>
+
 using namespace std;
 
 
@@ -62,6 +64,7 @@ public:
 private:
 
 	double *sj,*rj,*r0,*vj,*tj,*pj,*ph,*sh,*x,*rhs,*aii;
+    std::vector<unsigned long long> ckids;     // checkpoints (ckpt_registry.h)
 	
 	int *sizeM,*range;
 

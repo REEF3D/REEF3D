@@ -68,6 +68,7 @@ class fdm : public increment
 public:
 
     fdm(lexer*, unsigned lean=0);
+    ~fdm();
 
 	double gi,gj,gk;
 
@@ -118,6 +119,7 @@ public:
 	vec rhsvec;
 
 	matrix_diag M;
+    std::vector<unsigned long long> ckids;     // checkpoints (ckpt_registry.h)
 
     double maxF,maxG,maxH;
     double wd_criterion;

@@ -36,8 +36,8 @@ Author: Hans Bihs
 //  Reading on the same decomposition takes the own piece as it is (ghost cells included, bitwise).
 //  On another decomposition a cell (I,J) takes its value from the piece whose interior holds
 //  (I,J) clamped to the domain: the interior from its owner, the ghost cells of a boundary from the
-//  piece that set them, the parallel ghost cells from the neighbour's interior.  The decomposition
-//  must not cut the vertical direction (the sigma grids of FNPF, NHFLOW).
+//  piece that set them, the parallel ghost cells from the neighbour's interior.  A decomposition that
+//  cuts the vertical direction (CFD) maps the cells (I,J,K) alike; slices take the column of any piece.
 
 #include<string>
 #include<vector>
@@ -93,6 +93,7 @@ private:
     void put(const std::string&, int, const void*, long long, size_t);
     long long count_of(int) const;
     bool get(const std::string&, int, void*, size_t);
+    bool get3d(const std::string&, void*, size_t, long long);
 
     lexer *p = nullptr;
     std::string dirname;
@@ -109,6 +110,7 @@ private:
     std::vector<int> ptype;
     std::map<std::string,int> rtype;
     bool same = false;
+    bool zcut = false;      // a decomposition (of the checkpoint or of this run) cuts the vertical direction
     int mine = -1;          // the piece of this rank on the same decomposition
     int GNX=0, GNY=0, GNZ=0;
 };

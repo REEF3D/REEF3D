@@ -70,6 +70,10 @@ public:
     // profile), for the shallow-water feedback on the remaining deviation
     double eta(double t) const;
     
+    // checkpoints (P 48, I 45): the samples and the filter outputs (the filters come again from ini)
+    void ckpt_state(std::vector<double>&) const;
+    void ckpt_restore(const std::vector<double>&, size_t&);
+    
     bool on=false;
     double x1=0.0,x2=0.0,flow=0.0,fhigh=0.0,dtf=0.0;
     int M=0;

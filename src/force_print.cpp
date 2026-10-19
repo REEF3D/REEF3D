@@ -26,6 +26,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include<sys/stat.h>
 #include<sys/types.h>
+#include"reefckpt.h"
 
 void force::print_force(lexer* p, fdm *a, ghostcell *pgc)
 {
@@ -52,8 +53,8 @@ void force::print_ini(lexer* p, fdm *a, ghostcell *pgc)
     // open force surf file
 	sprintf(name,"./REEF3D_CFD_Force/REEF3D_CFD_Force-%i.dat",ID+1);
 	
-	fout.open(name);
-
+	if(reefckpt_open(fout,name,p->I45))   // I 45: continued
+    {
     fout<<"x_start xend     y_start y_end     z_start z_end"<<endl;
 
     fout<<p->P81_xs[ID]<<" "<<p->P81_xe[ID]<<" . "<<p->P81_ys[ID]<<" "<<p->P81_ye[ID]<<" . "<<p->P81_zs[ID]<<" "<<p->P81_ze[ID]<<endl;
@@ -64,6 +65,7 @@ void force::print_ini(lexer* p, fdm *a, ghostcell *pgc)
     
 
     fout<<endl;
+    }
 	}
 
     

@@ -43,6 +43,7 @@ Author: Hans Bihs
 #include"runlog.h"
 #include"lagoon_output.h"
 #include"cfd_amr.h"
+#include"reefrun_ckpt.h"
 
 
 void driver::loop_cfd(fdm* a)
@@ -163,6 +164,9 @@ void driver::loop_cfd(fdm* a)
 	p->field4time=0.0;
     
     pgc->gcparax(p,a->press,4);
+
+    // checkpoint on any decomposition (P 48), rebalance on the measured load (G 46)
+    ckpt().step();
     
     stop(p,a,pgc);
 	}

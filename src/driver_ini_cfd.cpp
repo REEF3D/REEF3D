@@ -225,6 +225,8 @@ void driver::driver_ini_cfd()
 
 	pgc->start4(p,a->press,40);
     
+    // the first output (not on a restart, I 45 1: the checkpoint is a state already printed)
+    if(p->I45!=1)
     pprint->start(p,a,pgc,pturb,pheat,pflow,pdata,pconc,pmp,psed);
 
 // ini variables

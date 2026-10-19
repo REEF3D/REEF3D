@@ -30,6 +30,7 @@ Author: Hans Bihs
 #include"turbulence.h"
 #include<sys/stat.h>
 #include<sys/types.h>
+#include"reefckpt.h"
 
 probe_pressure::probe_pressure(lexer *p, fdm* a, ghostcell *pgc) : probenum(p->P64)
 {
@@ -46,6 +47,7 @@ probe_pressure::probe_pressure(lexer *p, fdm* a, ghostcell *pgc) : probenum(p->P
 	mkdir("./REEF3D_CFD_PressureProbe",0777);
 	
 	pout = new ofstream[probenum+1];
+    std::vector<char> head(probenum+1,1);
 	
     if(p->mpirank==0 && probenum>0)
     {
@@ -55,13 +57,12 @@ probe_pressure::probe_pressure(lexer *p, fdm* a, ghostcell *pgc) : probenum(p->P
 		sprintf(name,"./REEF3D_CFD_PressureProbe/REEF3D-CFD-Probe-Pressure-%i.dat",n+1);
         
         
-		pout[n].open(name,std::fstream::out);
-        
-        //cout<<pout[n].is_open()<<" "<<n+1<<endl;
+		head[n] = reefckpt_open(pout[n],name,p->I45);   // I 45: continued
 		}
         
         
 		for(n=0;n<probenum;++n)
+		if(head[n])
 		{
 	    pout[n]<<"Point Probe ID:  "<<n+1<<endl<<endl;
 		pout[n]<<"x_coord     y_coord     z_coord"<<endl;
