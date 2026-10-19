@@ -282,6 +282,13 @@ void driver::coral_ini()
         if(p->A10==5)
         pcoral->set_sampler(new coral_sampler_nhflow(p,d));
         
+        // restart from a checkpoint (I 45 1): the state of CORAL read with the fluid
+        if(p->I45==1)
+        {
+        pcoral->restart(coral_ckpt);
+        coral_ckpt.clear();
+        }
+        
         pcoral->ini(p,pgc);
     }
 }

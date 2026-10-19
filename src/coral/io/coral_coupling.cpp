@@ -21,6 +21,7 @@ Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"coral/io/coral_coupling.h"
+#include"coral/core/coral_state.h"
 #include"coral/core/coral_static.h"
 #include"coral/core/coral_rotation.h"
 #include"coral/linear/coral_modes.h"
@@ -86,6 +87,19 @@ void coupling::record(const std::string &dir)
     if(!out_on_ || c_.fluid_record.empty())
         return;
     const std::string f = dir + "/" + file_name(c_.fluid_record);
+    // a restart continues the journal (the events from the checkpoint on)
+    if(restart_)
+    {
+        std::ifstream test(f, std::ios::binary);
+        if(test.good())
+        {
+            jout_.open(f, std::ios::binary | std::ios::app);
+            if(!jout_)
+                throw std::runtime_error("cannot write the journal " + f);
+            log_<<"CORAL: journal of the fluid input continued in "<<f<<std::endl;
+            return;
+        }
+    }
     jout_.open(f, std::ios::binary);
     if(!jout_)
         throw std::runtime_error("cannot write the journal " + f);
@@ -95,14 +109,16 @@ void coupling::record(const std::string &dir)
 
 void coupling::ini(double t0, const std::string &dir)
 {
+    if(!restart_)
     jrec(J_INI, {t0});
     t_ = t0;
-    if(c_.run.static_ini)
+    // a restart: the state follows (load_state), no static equilibrium and no modes
+    if(c_.run.static_ini && !restart_)
     {
         const static_result sr = static_solve(c_.m, t_);
         log_<<"CORAL static equilibrium: "<<(sr.converged ? "converged" : "NOT converged")<<" after "<<sr.iterations<<" iterations"<<std::endl;
     }
-    if(c_.run.modes > 0)
+    if(c_.run.modes > 0 && !restart_)
     {
         const mode_result mr = modes(c_.m, t_, c_.run.modes, c_.run.modes_damped);
         if(out_on_)
@@ -112,7 +128,8 @@ void coupling::ini(double t0, const std::string &dir)
     if(out_on_)
     {
         out_ = std::make_unique<time_series>();
-        out_->open(dir + "/" + file_name(c_.run.out_file), c_.m);
+        out_->open(dir + "/" + file_name(c_.run.out_file), c_.m, restart_);
+        if(!restart_)
         out_->write(c_.m, t_);
     }
     next_out_ = t_ + c_.run.out_dt;
@@ -233,6 +250,9 @@ bool coupling::strips(int n, Vec3 &a, Vec3 &e, double &L, int &ns) const
 
 void coupling::connect(int n, double mass, const Vec3 &c, const Mat3 &R, const Mat3 &I)
 {
+    // a restart from a checkpoint: connected in the run that wrote it
+    if(restart_)
+        return;
     {
         std::vector<double> v = {(double)n, mass, c(0), c(1), c(2)};
         for(int i=0; i<3; ++i) for(int j=0; j<3; ++j) v.push_back(R(i,j));
@@ -518,6 +538,64 @@ long coupling::replay(coral_case &c, const std::string &journal, const std::stri
         }
     }
     return nev;
+}
+
+// ---- restart from a checkpoint (coral_state.h)
+
+void coupling::flush()
+{
+    if(out_)
+        out_->flush();
+    if(jout_.is_open())
+        jout_.flush();
+}
+
+void coupling::save_state(std::vector<double> &v) const
+{
+    state_out o{v};
+    o.d(1.0);       // version
+    for(double x : {t_, next_out_, t_commit_, t_load_})
+        o.d(x);
+    o.i(nstep_);
+    o.b(am_told_);
+    o.b(fluid_started_);
+    o.m(v_commit_);
+    o.list(F_ref_, [&](const VecX &x){o.m(x);});
+    track_.save_state(v);
+    ti_->save_state(v);
+    c_.m.save_state(v);
+    o.b(c_.fluid_kin != nullptr);
+    if(c_.fluid_kin)
+        c_.fluid_kin->save_state(v);
+}
+
+bool coupling::load_state(const std::vector<double> &v)
+{
+    state_in in{v};
+    double version = 0.0;
+    in.d(version);
+    if(!in.ok || int(version) != 1)
+        return false;
+    in.d(t_); in.d(next_out_); in.d(t_commit_); in.d(t_load_);
+    in.i(nstep_);
+    in.b(am_told_);
+    in.b(fluid_started_);
+    in.m(v_commit_);
+    in.list(F_ref_, [&](VecX &x){in.m(x);});
+    if(!in.ok)
+        return false;
+    size_t k = in.k;
+    if(!track_.load_state(v, k) || !ti_->load_state(c_.m, v, k) || !c_.m.load_state(v, k))
+        return false;
+    state_in in2{v, k};
+    bool kin = false;
+    in2.b(kin);
+    if(!in2.ok || kin != (c_.fluid_kin != nullptr))
+        return false;
+    k = in2.k;
+    if(kin && !c_.fluid_kin->load_state(v, k))
+        return false;
+    return true;
 }
 
 }

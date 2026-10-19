@@ -180,4 +180,30 @@ void pto_load::channel_values(const model &m, double t, std::vector<double> &v) 
     v.push_back(energy_);
 }
 
+// restart from a checkpoint: the time and power of the last converged state, the absorbed energy, the
+// elements (their parameters as the controllers set them) and the controllers
+void pto_load::save_state(std::vector<double> &v) const
+{
+    for(double x : {t_, P_last_, energy_, t0_})
+        v.push_back(x);
+    pto_.save_state(v);
+    v.push_back(double(ctrl_.size()));
+    for(const auto &c : ctrl_)
+        c->save_state(v);
+}
+
+bool pto_load::load_state(const std::vector<double> &v, size_t &k)
+{
+    if(k + 4 > v.size())
+        return false;
+    t_ = v[k++]; P_last_ = v[k++]; energy_ = v[k++]; t0_ = v[k++];
+    pto_.load_state(v, k);
+    if(k >= v.size())
+        return false;
+    const size_t n = size_t(v[k++]);
+    for(size_t q=0; q<n && q<ctrl_.size(); ++q)
+        ctrl_[q]->load_state(v, k);
+    return k <= v.size();
+}
+
 }

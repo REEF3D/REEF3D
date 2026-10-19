@@ -40,6 +40,7 @@ Architect: Hans Bihs
 #define CORAL_MOORING_H_
 
 #include"coral/core/coral_load.h"
+#include"coral/core/coral_state.h"
 #include"coral/mooring/coral_catenary.h"
 #include"coral/hydro/coral_waves.h"
 #include<memory>
@@ -81,6 +82,9 @@ namespace coral
 
         // force on end b (global) and on end a for the current positions
         void forces(const model&, Vec3 &Fa, Vec3 &Fb) const;
+        // restart from a checkpoint (coral_state.h)
+        void save_state(std::vector<double>&) const override;
+        bool load_state(const std::vector<double>&, size_t &k) override;
 
     private:
         std::string name_;
@@ -117,6 +121,9 @@ namespace coral
 
         // relax the line with the ends fixed (static shape), extra damping, before the run
         void settle(const model&, double t_settle);
+        // restart from a checkpoint (coral_state.h)
+        void save_state(std::vector<double>&) const override;
+        bool load_state(const std::vector<double>&, size_t &k) override;
 
     private:
         struct state {std::vector<Vec3> r, v;};

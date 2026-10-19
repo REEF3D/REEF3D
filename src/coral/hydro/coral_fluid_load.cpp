@@ -163,4 +163,29 @@ void fluid_load::channel_values(const model &m, double t, std::vector<double> &v
         v.push_back(F(k));
 }
 
+// restart from a checkpoint: the points of application and the samples of the fluid loads
+void fluid_load::save_state(std::vector<double> &v) const
+{
+    state_out o{v};
+    o.list(s_, [&](const Vec3 &x){o.m(x);});
+    o.vd(ts_);
+    o.list(Fs_, [&](const VecX &x){o.m(x);});
+    o.b(prov_);
+    o.m(A_);
+    o.m(As_);
+}
+
+bool fluid_load::load_state(const std::vector<double> &v, size_t &k)
+{
+    state_in in{v, k};
+    in.list(s_, [&](Vec3 &x){in.m(x);});
+    in.vd(ts_);
+    in.list(Fs_, [&](VecX &x){in.m(x);});
+    in.b(prov_);
+    in.m(A_);
+    in.m(As_);
+    k = in.k;
+    return in.ok;
+}
+
 }

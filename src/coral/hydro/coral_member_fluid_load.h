@@ -32,6 +32,7 @@ Architect: Hans Bihs
 #define CORAL_MEMBER_FLUID_LOAD_H_
 
 #include"coral/core/coral_load.h"
+#include"coral/core/coral_state.h"
 #include"coral/core/coral_points.h"
 #include<memory>
 #include<string>
@@ -62,6 +63,9 @@ namespace coral
 
         // strip forces (3 per strip, global) at the fluid time t
         void set_sample(double t, const VecX &F);
+        // restart from a checkpoint (coral_state.h)
+        void save_state(std::vector<double>&) const override;
+        bool load_state(const std::vector<double>&, size_t &k) override;
         bool has_sample() const {return !ts_.empty();}
         VecX forces(double t) const;
         // total force and moment about the origin (global) at time t

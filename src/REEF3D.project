@@ -830,6 +830,7 @@
           <File Name="coral/core/coral_rotation.h"/>
           <File Name="coral/core/coral_static.h"/>
           <File Name="coral/core/coral_timeint.h"/>
+          <File Name="coral/core/coral_state.h"/>
           <File Name="coral/core/coral_track.h"/>
           <File Name="coral/core/coral_types.h"/>
           <File Name="coral/core/coral_version.h"/>

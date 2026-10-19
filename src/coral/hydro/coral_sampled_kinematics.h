@@ -66,6 +66,9 @@ namespace coral
         const std::shared_ptr<const wave_field> &background() const {return bg_;}
 
         int order = 2;          // polynomial order in time (0, 1, 2)
+        // restart from a checkpoint: the samples (the points are collected again)
+        void save_state(std::vector<double>&) const;
+        bool load_state(const std::vector<double>&, size_t &k);
 
     private:
         struct level {double t; std::vector<Vec3> u; std::vector<double> eta; std::vector<int> in;};

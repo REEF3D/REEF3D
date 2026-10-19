@@ -6,6 +6,7 @@ Core of CORAL: the data types and the multibody machinery every other folder bui
 
 * `coral_types.h`: Eigen types and the index type used across CORAL
 * `coral_version.h/.cpp`: name and version
+* `coral_state.h`: the state of a run as a vector of doubles (`state_out`, `state_in`) for the checkpoints of REEF3D; the model, the integrator, the loads with a history (`save_state`, `load_state` of `load`) and the tracks write and read their part in a fixed order
 * `coral_rotation.h/.cpp`: exponential and logarithm on SO(3), tangent operator, Euler angles
 * `coral_body.h`: rigid body (mass, inertia, configuration x and R, velocities v global and w body frame)
 * `coral_load.h`: the load interface (eval for trial states, commit per converged step) that gravity, structure, hydro, mooring, PTO, aero, soil and ice implement; optional analytic tangent (`has_tangent`, `tangent`: cK dF/dq + cC dF/dnu + cM dF/dnu' as triplets), such loads are left out of the finite-difference Jacobian; `kinematics_points`: the points at which a load needs the kinematics of a given wave source (for a resolved fluid that samples them)

@@ -39,6 +39,7 @@ Architect: Hans Bihs
 #include"6DOF_external.h"
 #include<memory>
 #include<string>
+#include<vector>
 
 class lexer;
 class ghostcell;
@@ -63,6 +64,13 @@ public:
     // sampling of the fluid for fluid_kinematics (set by the driver before ini, FNPF and NHFLOW)
     void set_sampler(coral_fluid_sampler*);
 
+    // checkpoints (P 48, I 45): the state of CORAL, the same on all ranks (that of rank 0 is written);
+    // restart before ini: ini continues the outputs and takes the state instead of setting up
+    void ckpt_state(std::vector<double>&) const;
+    void restart(const std::vector<double>&);
+    // the time series and the journal on disk
+    void flush();
+
     // external dynamics of the 6DOF bodies of the fluid solver (fluid_body, fluid_member)
     bool drives(int n) const override;
     bool one_way(int n) const override;
@@ -77,6 +85,7 @@ public:
 
 private:
     void fail(const std::string&);
+    bool load_state(const std::vector<double>&);
     void sample_kinematics(double t);   // the fluid at the points of the sampled kinematics at time t
     // several ranks: every rank advances the same model; its input from the fluid is broadcast from
     // rank 0 (bit for bit the same on all ranks), and after each step the state of the model is
@@ -91,6 +100,8 @@ private:
     std::unique_ptr<coral::coupling> cp_;
     std::unique_ptr<coral_fluid_sampler> sampler_;
     bool sampler_told_ = false;
+    std::vector<double> restart_state_;
+    bool restart_ = false;
 };
 
 #endif

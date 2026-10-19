@@ -84,6 +84,11 @@ public:
     // stay explicit, where the RK3/RK4 step is exact to its order
     virtual bool stiff() const {return false;}
 
+    // restart from a checkpoint: the force of the last evaluation and the parameters the controllers
+    // change (set_param)
+    virtual void save_state(std::vector<double> &v) const {v.push_back(F_last);}
+    virtual void load_state(const std::vector<double> &v, size_t &k) {if(k<v.size()) F_last = v[k++];}
+
     double F_last=0.0;
 };
 
@@ -197,6 +202,29 @@ public:
     }
 
     const char* name() const override {return "composite";}
+
+    void save_state(std::vector<double> &v) const override
+    {
+        pto_base::save_state(v);
+        for(double x : {gain, t_off0, t_off1, Fmax, Pmax, double(sat_last), double(elem.size())})
+        v.push_back(x);
+        for(const auto &e : elem)
+        e->save_state(v);
+    }
+
+    void load_state(const std::vector<double> &v, size_t &k) override
+    {
+        pto_base::load_state(v,k);
+        if(k+7>v.size())
+        {
+            k = v.size();
+            return;
+        }
+        gain = v[k++]; t_off0 = v[k++]; t_off1 = v[k++]; Fmax = v[k++]; Pmax = v[k++]; sat_last = int(v[k++]);
+        const size_t n = size_t(v[k++]);
+        for(size_t q=0; q<n && q<elem.size(); ++q)
+        elem[q]->load_state(v,k);
+    }
 
     std::vector<std::unique_ptr<pto_base>> elem;
 

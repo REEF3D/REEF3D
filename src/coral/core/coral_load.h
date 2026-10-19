@@ -29,6 +29,7 @@ Architect: Hans Bihs
 // (radiation memory, internal states, line dynamics) update it there.
 // kinematics_points(): the points where the load asks a sampled wave source (the resolved fluid of REEF3D)
 // for the kinematics, so that the coupling can sample the fluid there once per fluid step.
+// save_state()/load_state(): the history of the load for a restart (coral_state.h).
 // coupling() tells the Jacobian which bodies the load couples: global (any body may act on any other;
 // the default), local (only the bodies listed by coupled_bodies() and the generalized coordinates
 // listed by coupled_coordinates()), diagonal (each body only on itself, e.g. gravity). Local and
@@ -90,6 +91,10 @@ namespace coral
         // output channels: names once, values per output
         virtual void channel_names(std::vector<std::string>&) const {}
         virtual void channel_values(const model&, double /*t*/, std::vector<double>&) const {}
+        // the state the load carries from step to step (restart of REEF3D from a checkpoint; loads
+        // without a history have none): appended to the vector, taken back from position k
+        virtual void save_state(std::vector<double>&) const {}
+        virtual bool load_state(const std::vector<double>&, size_t &k) {(void)k; return true;}
     };
 }
 

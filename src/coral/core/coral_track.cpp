@@ -21,6 +21,7 @@ Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"coral/core/coral_track.h"
+#include"coral/core/coral_state.h"
 #include"coral/core/coral_model.h"
 #include"coral/core/coral_rotation.h"
 #include<algorithm>
@@ -78,6 +79,28 @@ body_snapshot body_track::state(int k, double t) const
     q.w = h00*A.w + h10*h*A.alpha + h01*B.w + h11*h*B.alpha;
     q.alpha = d00*A.w + d10*h*A.alpha + d01*B.w + d11*h*B.alpha;
     return q;
+}
+
+void body_track::save_state(std::vector<double> &v) const
+{
+    state_out o{v};
+    o.vd(t_);
+    o.list(s_, [&](const std::vector<body_snapshot> &b)
+    {
+        o.list(b, [&](const body_snapshot &s){o.m(s.x); o.m(s.v); o.m(s.a); o.m(s.R); o.m(s.w); o.m(s.alpha);});
+    });
+}
+
+bool body_track::load_state(const std::vector<double> &v, size_t &k)
+{
+    state_in in{v, k};
+    in.vd(t_);
+    in.list(s_, [&](std::vector<body_snapshot> &b)
+    {
+        in.list(b, [&](body_snapshot &s){in.m(s.x); in.m(s.v); in.m(s.a); in.m(s.R); in.m(s.w); in.m(s.alpha);});
+    });
+    k = in.k;
+    return in.ok;
 }
 
 }

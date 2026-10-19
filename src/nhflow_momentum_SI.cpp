@@ -26,6 +26,7 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 #include"ioflow.h"
+#include"reefckpt.h"
 #include"nhflow_reconstruct.h"
 #include"nhflow_curv.h"
 #include"sflow_curv.h"
@@ -122,9 +123,11 @@ nhflow_momentum_SI::nhflow_momentum_SI(lexer *p, fdm_nhf *d, ghostcell *pgc, six
     cout<<endl;
 
     mkdir("./REEF3D_NHFLOW_Log",0777);
-    silog.open("./REEF3D_NHFLOW_Log/REEF3D_NHFLOW_SI.dat");
-    silog<<"# semi-implicit NHFLOW (A 534 1): volume and open boundary discharges"<<endl;
-    silog<<"# count  simtime  dt  volume  Qin  Qout  relax_volume  eta_iterations  wetdry_iterations  dry_cells"<<endl;
+    if(reefckpt_open(silog,"./REEF3D_NHFLOW_Log/REEF3D_NHFLOW_SI.dat",p->I45))   // I 45: continued
+    {
+        silog<<"# semi-implicit NHFLOW (A 534 1): volume and open boundary discharges"<<endl;
+        silog<<"# count  simtime  dt  volume  Qin  Qout  relax_volume  eta_iterations  wetdry_iterations  dry_cells"<<endl;
+    }
     }
 }
 

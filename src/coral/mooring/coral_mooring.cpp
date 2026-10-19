@@ -391,4 +391,51 @@ void mooring_line::channel_values(const model&, double, std::vector<double> &v) 
     v.push_back(tm);
 }
 
+// ---- restart from a checkpoint: the start values of the catenary iteration; the converged line
+
+void mooring_qs::save_state(std::vector<double> &v) const
+{
+    state_out o{v};
+    o.d(H_);
+    o.d(V_);
+}
+
+bool mooring_qs::load_state(const std::vector<double> &v, size_t &k)
+{
+    state_in in{v, k};
+    in.d(H_);
+    in.d(V_);
+    k = in.k;
+    return in.ok;
+}
+
+void mooring_line::save_state(std::vector<double> &v) const
+{
+    state_out o{v};
+    o.list(r_, [&](const Vec3 &x){o.m(x);});
+    o.list(v_, [&](const Vec3 &x){o.m(x);});
+    o.list(T_, [&](const Vec3 &x){o.m(x);});
+    o.m(ra_);
+    o.m(rb_);
+    o.d(t_);
+    o.m(Fa_);
+    o.m(Fb_);
+}
+
+bool mooring_line::load_state(const std::vector<double> &v, size_t &k)
+{
+    state_in in{v, k};
+    in.list(r_, [&](Vec3 &x){in.m(x);});
+    in.list(v_, [&](Vec3 &x){in.m(x);});
+    in.list(T_, [&](Vec3 &x){in.m(x);});
+    in.m(ra_);
+    in.m(rb_);
+    in.d(t_);
+    in.m(Fa_);
+    in.m(Fb_);
+    cvalid_ = false;
+    k = in.k;
+    return in.ok;
+}
+
 }

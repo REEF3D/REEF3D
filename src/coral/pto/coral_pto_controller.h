@@ -52,6 +52,9 @@ public:
     virtual void update(const pto_ctrl_in&, pto_composite&) = 0;
     virtual const char* name() const = 0;
     virtual double state() const {return 0.0;}
+    // restart from a checkpoint
+    virtual void save_state(std::vector<double>&) const {}
+    virtual void load_state(const std::vector<double>&, size_t&) {}
 };
 
 // sign change of qd between successive calls (zeros of qd are skipped, not counted); the time
@@ -63,6 +66,9 @@ public:
     bool detect(double t, double qd);
     void reset() {sref=0;}
     double t_cross=0.0;
+    void save_state(std::vector<double> &v) const {for(double x : {double(sref), t_last, qd_last, t_cross}) v.push_back(x);}
+    void load_state(const std::vector<double> &v, size_t &k)
+    {if(k+4>v.size()) {k = v.size(); return;} sref = int(v[k++]); t_last = v[k++]; qd_last = v[k++]; t_cross = v[k++];}
 
 private:
     int sref=0;
@@ -76,6 +82,9 @@ public:
     void update(const pto_ctrl_in&, pto_composite&) override;
     const char* name() const override {return "latching";}
     double state() const override {return latched ? 1.0 : 0.0;}
+    void save_state(std::vector<double> &v) const override {v.push_back(t_release); v.push_back(latched ? 1.0 : 0.0); zc.save_state(v);}
+    void load_state(const std::vector<double> &v, size_t &k) override
+    {if(k+2>v.size()) {k = v.size(); return;} t_release = v[k++]; latched = v[k++]>0.5; zc.load_state(v,k);}
 
 private:
     double t_hold, t_release=0.0;
@@ -90,6 +99,9 @@ public:
     void update(const pto_ctrl_in&, pto_composite&) override;
     const char* name() const override {return "declutching";}
     double state() const override {return off ? 1.0 : 0.0;}
+    void save_state(std::vector<double> &v) const override {v.push_back(t_on); v.push_back(off ? 1.0 : 0.0); zc.save_state(v);}
+    void load_state(const std::vector<double> &v, size_t &k) override
+    {if(k+2>v.size()) {k = v.size(); return;} t_on = v[k++]; off = v[k++]>0.5; zc.load_state(v,k);}
 
 private:
     double t_off, t_on=0.0;

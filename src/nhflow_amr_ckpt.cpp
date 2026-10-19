@@ -21,7 +21,8 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 //  NHFLOW mesh refinement in checkpoints (P 48, I 45): the arrays of nhflow_ckpt_fields and of the
-//  turbulence model per patch, written and read by the core (reefamr_ckpt.cpp).
+//  turbulence model per patch (the blocks 1.. of a multi-block grid as well), written and read by the
+//  core (reefamr_ckpt.cpp).
 
 #include"nhflow_amr.h"
 #include"reefckpt.h"
@@ -62,7 +63,7 @@ bool nhflow_amr::ckpt_read(reefckpt &ck, string &msg)
 
     const bool ok = ckpt_read_patches(ck,"nhflow_amr",[&](reefamr_patch *q, const ckpt_visit &v){ patch_fields(NP(q),v); },msg);
     for(auto q : P)
-    if(q->lev>=1 && NP(q)->pmom!=nullptr)
+    if((q->lev>=1 || q->blk>0) && NP(q)->pmom!=nullptr)
     NP(q)->pmom->ckpt_restored();
     return ok;
 }

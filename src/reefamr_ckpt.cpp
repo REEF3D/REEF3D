@@ -22,7 +22,8 @@ Author: Hans Bihs
 
 //  REEFAMR: the patches of the mesh refinement in checkpoints (P 48, I 45), for every module with its
 //  list of arrays per patch (fields(patch, visit): visit(name, kind, double*, int*), kind S slice,
-//  F node field FIJK, C cell field IJK of the patch lexer; a nullptr array is skipped).
+//  F node field FIJK, C cell field IJK of the patch lexer; a nullptr array is skipped).  The blocks
+//  1.. of a multi-block grid (level-0 patches, each whole on one rank) are patches here as well.
 //
 //  Writing: every rank its patches as a rank blob <tag>: per patch its level and box, the ranges of
 //  its lexer and the arrays (ghost and EXT cells included).
@@ -62,7 +63,7 @@ void reefamr::ckpt_write_patches(reefckpt &ck, const char *tag, const ckpt_field
 
     for(auto q : P)
     {
-        if(q->lev<1)
+        if(q->lev<1 && q->blk==0)
         continue;
 
         lexer *pp = q->pp;
@@ -133,7 +134,7 @@ bool reefamr::ckpt_read_patches(reefckpt &ck, const char *tag, const ckpt_fields
     // the patches of this rank
     for(auto q : P)
     {
-        if(q->lev<1)
+        if(q->lev<1 && q->blk==0)
         continue;
 
         lexer *pp = q->pp;

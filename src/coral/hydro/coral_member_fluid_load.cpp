@@ -158,4 +158,23 @@ void member_fluid_load::channel_values(const model &m, double t, std::vector<dou
     for(int i=0; i<3; ++i) v.push_back(M(i));
 }
 
+// restart from a checkpoint: the samples of the strip loads
+void member_fluid_load::save_state(std::vector<double> &v) const
+{
+    state_out o{v};
+    o.vd(ts_);
+    o.list(Fs_, [&](const VecX &x){o.m(x);});
+    o.m(F0_);
+}
+
+bool member_fluid_load::load_state(const std::vector<double> &v, size_t &k)
+{
+    state_in in{v, k};
+    in.vd(ts_);
+    in.list(Fs_, [&](VecX &x){in.m(x);});
+    in.m(F0_);
+    k = in.k;
+    return in.ok;
+}
+
 }

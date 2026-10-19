@@ -105,6 +105,10 @@ namespace coral
         double increment_norm(const VecX &d) const;
 
         double kinetic_energy() const;
+        // restart from a checkpoint: the state of the bodies (and their mass and inertia, which the
+        // fluid solver may set), of the generalized coordinates and of the loads with a history
+        void save_state(std::vector<double>&) const;
+        bool load_state(const std::vector<double>&, size_t &k);
         double potential_energy() const;
 
         Vec3 gravity = Vec3(0.0, 0.0, -9.81);

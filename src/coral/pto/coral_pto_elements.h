@@ -37,6 +37,9 @@ public:
     pto_output force(const pto_state&) override;
     void set_param(const std::string&, double) override;
     const char* name() const override {return "damper";}
+    void save_state(std::vector<double> &v) const override {pto_base::save_state(v); for(double x : {B}) v.push_back(x);}
+    void load_state(const std::vector<double> &v, size_t &k) override
+    {pto_base::load_state(v,k); if(k+1>v.size()) {k = v.size(); return;} B = v[k++];}
 
 private:
     double B;
@@ -52,6 +55,9 @@ public:
     pto_output force(const pto_state&) override;
     void set_param(const std::string&, double) override;
     const char* name() const override {return "spring-damper";}
+    void save_state(std::vector<double> &v) const override {pto_base::save_state(v); for(double x : {K, B, q0, F0}) v.push_back(x);}
+    void load_state(const std::vector<double> &v, size_t &k) override
+    {pto_base::load_state(v,k); if(k+4>v.size()) {k = v.size(); return;} K = v[k++]; B = v[k++]; q0 = v[k++]; F0 = v[k++];}
 
 private:
     double K, B, q0, F0;
@@ -66,6 +72,9 @@ public:
     pto_output force(const pto_state&) override;
     void set_param(const std::string&, double) override;
     const char* name() const override {return "coulomb";}
+    void save_state(std::vector<double> &v) const override {pto_base::save_state(v); for(double x : {Fc, v_eps}) v.push_back(x);}
+    void load_state(const std::vector<double> &v, size_t &k) override
+    {pto_base::load_state(v,k); if(k+2>v.size()) {k = v.size(); return;} Fc = v[k++]; v_eps = v[k++];}
 
 private:
     double Fc, v_eps;
@@ -96,6 +105,9 @@ public:
     pto_output force(const pto_state&) override;
     void set_param(const std::string&, double) override;
     const char* name() const override {return "latch";}
+    void save_state(std::vector<double> &v) const override {pto_base::save_state(v); for(double x : {double(on), q0, t_release, K, C}) v.push_back(x);}
+    void load_state(const std::vector<double> &v, size_t &k) override
+    {pto_base::load_state(v,k); if(k+5>v.size()) {k = v.size(); return;} on = v[k++]>0.5; q0 = v[k++]; t_release = v[k++]; K = v[k++]; C = v[k++];}
     bool useful() const override {return false;}
     bool stiff() const override {return true;}
 

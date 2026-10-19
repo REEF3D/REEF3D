@@ -21,6 +21,7 @@ Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"coral/core/coral_model.h"
+#include"coral/core/coral_state.h"
 #include"coral/core/coral_rotation.h"
 #include<algorithm>
 
@@ -311,6 +312,47 @@ double model::potential_energy() const
     for(const auto &l : load_list)
         e += l->potential(*this);
     return e;
+}
+
+void model::save_state(std::vector<double> &v) const
+{
+    state_out o{v};
+    o.list(bodies, [&](const rigid_body &b){o.d(b.mass); o.m(b.inertia); o.m(b.x); o.m(b.R); o.m(b.v); o.m(b.w); o.m(b.vd); o.m(b.wd);});
+    o.m(cq);
+    o.m(cv);
+    o.m(ca);
+    o.i((long)load_list.size());
+    for(const auto &l : load_list)
+    {
+        std::vector<double> s;
+        l->save_state(s);
+        o.vd(s);
+    }
+}
+
+bool model::load_state(const std::vector<double> &v, size_t &k)
+{
+    state_in in{v, k};
+    if(!in.has(1) || size_t(v[in.k]) != bodies.size())
+        return false;
+    in.list(bodies, [&](rigid_body &b){in.d(b.mass); in.m(b.inertia); in.m(b.x); in.m(b.R); in.m(b.v); in.m(b.w); in.m(b.vd); in.m(b.wd);});
+    in.m(cq);
+    in.m(cv);
+    in.m(ca);
+    int nl = 0;
+    in.i(nl);
+    if(!in.ok || nl != (int)load_list.size())
+        return false;
+    for(auto &l : load_list)
+    {
+        std::vector<double> s;
+        in.vd(s);
+        size_t j = 0;
+        if(!in.ok || !l->load_state(s, j))
+            return false;
+    }
+    k = in.k;
+    return in.ok;
 }
 
 }

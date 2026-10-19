@@ -88,6 +88,14 @@ namespace coral
         long steps() const {return nstep_;}
         bool started() const {return fluid_started_;}
         coral_case &model_case() {return c_;}
+        // restart of REEF3D from a checkpoint: set before ini (the outputs and the journal continue, no
+        // first output and no modes), the state after ini; the bodies of the fluid solver are connected
+        // already (their mass, inertia and points of application are in the state)
+        void set_restart() {restart_ = true;}
+        void save_state(std::vector<double>&) const;
+        bool load_state(const std::vector<double>&);
+        // the time series and the journal on disk (a checkpoint, the stop of a rebalance)
+        void flush();
 
         // replays the journal file on the case, output to dir; returns the number of events
         static long replay(coral_case&, const std::string &journal, const std::string &dir, std::ostream &log);
@@ -114,6 +122,7 @@ namespace coral
         double t_load_ = -1.0e300;
         std::vector<VecX> F_ref_;
         std::ofstream jout_;
+        bool restart_ = false;
     };
 }
 

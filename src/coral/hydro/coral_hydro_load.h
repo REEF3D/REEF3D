@@ -33,6 +33,7 @@ Architect: Hans Bihs
 #define CORAL_HYDRO_LOAD_H_
 
 #include"coral/core/coral_load.h"
+#include"coral/core/coral_state.h"
 #include"coral/hydro/coral_hydro_db.h"
 #include"coral/hydro/coral_radiation.h"
 #include"coral/hydro/coral_waves.h"
@@ -71,6 +72,9 @@ namespace coral
         void initialize(const model&, double t0) override;
         void eval(const model&, double t, VecX &f) const override;
         void commit(const model&, double t, double dt) override;
+        // restart from a checkpoint (coral_state.h)
+        void save_state(std::vector<double>&) const override;
+        bool load_state(const std::vector<double>&, size_t &k) override;
         void channel_names(std::vector<std::string>&) const override;
         void channel_values(const model&, double t, std::vector<double>&) const override;
 

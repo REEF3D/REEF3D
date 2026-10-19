@@ -21,6 +21,7 @@ Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"coral/hydro/coral_sampled_kinematics.h"
+#include"coral/core/coral_state.h"
 #include"coral/core/coral_model.h"
 #include<algorithm>
 
@@ -139,6 +140,34 @@ void sampled_kinematics::kinematics_at(const void *owner, int index, const Vec3 
         du += dw[i]*lev_[i0+i].u[q];
     }
     p_rho = 0.0;
+}
+
+void sampled_kinematics::save_state(std::vector<double> &v) const
+{
+    state_out o{v};
+    o.i(n_);
+    o.list(lev_, [&](const level &l)
+    {
+        o.d(l.t);
+        o.list(l.u, [&](const Vec3 &x){o.m(x);});
+        o.vd(l.eta);
+        o.list(l.in, [&](int x){o.i(x);});
+    });
+}
+
+bool sampled_kinematics::load_state(const std::vector<double> &v, size_t &k)
+{
+    state_in in{v, k};
+    in.i(n_);
+    in.list(lev_, [&](level &l)
+    {
+        in.d(l.t);
+        in.list(l.u, [&](Vec3 &x){in.m(x);});
+        in.vd(l.eta);
+        in.list(l.in, [&](int &x){in.i(x);});
+    });
+    k = in.k;
+    return in.ok;
 }
 
 }

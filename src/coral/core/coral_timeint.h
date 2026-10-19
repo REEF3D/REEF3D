@@ -95,6 +95,10 @@ namespace coral
         double beta() const {return beta_;}
 
         timeint_stats stats;
+        // restart from a checkpoint: the state at t_n and the Jacobian of the modified Newton (its
+        // factorization is computed again from the stored matrix)
+        void save_state(std::vector<double>&) const;
+        bool load_state(const model&, const std::vector<double>&, size_t &k);
 
     private:
         bool converged(const model&, double ddnu, double h) const;

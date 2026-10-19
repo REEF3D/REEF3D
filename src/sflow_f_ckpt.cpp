@@ -25,7 +25,8 @@ Author: Hans Bihs
 //  (sflow_ckpt_fields.h), the arrays of the momentum, turbulence, pressure, diffusion and free-surface
 //  objects, the patches of the mesh refinement and the counters of the outputs.  On the same
 //  decomposition the restart continues bitwise.
-//  Not there yet (refused with a message): 6DOF bodies, sediment, SEASTATE, multi-block grids.
+//  The blocks 1.. of a multi-block grid are patches of the mesh refinement (reefamr_ckpt.cpp).
+//  Not there yet (refused with a message): 6DOF bodies, sediment, SEASTATE.
 
 #include"sflow_f.h"
 #include"lexer.h"
@@ -54,8 +55,6 @@ string sflow_f::ckpt_unsupported(lexer *p)
     return "SFLOW sediment is not in the checkpoints yet";
     if(p->A750>0)
     return "SEASTATE is not in the checkpoints yet";
-    if(p->geo_mb>0)
-    return "multi-block grids are not in the checkpoints yet";
     return "";
 }
 

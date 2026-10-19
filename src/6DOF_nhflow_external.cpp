@@ -144,8 +144,9 @@ void sixdof_nhflow::ext_connect(lexer *p, ghostcell *pgc)
         cout<<"6DOF NHFLOW: the loads of "<<number6DOF<<(number6DOF>1?" bodies go":" body goes")<<" one-way to the external solver"<<endl;
     }
 
-    // the loads of the initialisation (floating bodies, X 10 1): the first committed sample (no strips yet)
-    if(p->X10!=1)
+    // the loads of the initialisation (floating bodies, X 10 1): the first committed sample (no strips yet);
+    // not on a restart from a checkpoint (I 45 1), the external model has its samples
+    if(p->X10!=1 || p->I45==1)
     return;
     
     std::vector<sixdof_external::vec6> F(number6DOF);

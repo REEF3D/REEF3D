@@ -60,6 +60,10 @@ namespace coral
         // body k at time t (clamped to the recorded interval)
         body_snapshot state(int k, double t) const;
 
+        // restart from a checkpoint: the recorded states of the last step
+        void save_state(std::vector<double>&) const;
+        bool load_state(const std::vector<double>&, size_t &k);
+
     private:
         std::vector<int> bodies_;
         std::vector<double> t_;

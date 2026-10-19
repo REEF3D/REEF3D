@@ -27,10 +27,11 @@ Author: Hans Bihs
 //  On the same decomposition the restart continues bitwise; on another one the ghost cells come from
 //  the neighbours' interiors and the domain boundaries of the writing run.
 //  The 6DOF bodies of CFD and NHFLOW: their state as a blob (6DOF_obj_ckpt.cpp), their arrays on the grid
-//  with those of the model.
+//  with those of the model.  REEF3D::CORAL (Z 40): its state as a blob (coral_reef3d::ckpt_state), set
+//  into the model after its set-up (coral_ini).
 //  Not there yet (refused with a message): 6DOF wavemaker objects, quasi-static and dynamic moorings,
-//  nets, power take-off; sediment, DEM, FEM or CORAL structures, SEASTATE; NHFLOW with Lagrangian
-//  particles, membranes, multi-block grids; CFD with FSI.
+//  nets, power take-off; sediment, DEM, FEM structures, SEASTATE; NHFLOW with Lagrangian particles,
+//  membranes; CFD with FSI.
 
 #include"driver.h"
 #include"lexer.h"
@@ -51,6 +52,7 @@ Author: Hans Bihs
 #include"cfd_ckpt.h"
 #include"cfd_amr.h"
 #include"6DOF.h"
+#include"coral/reef3d/coral_reef3d.h"
 
 using namespace std;
 
@@ -75,7 +77,7 @@ string driver::ckpt_unsupported()
     {
         if(p->S10>0) return "CFD sediment is not in the checkpoints yet";
         if(p->E10>0) return "DEM is not in the checkpoints yet";
-        if(p->Z10>0 || p->Z30>0 || p->Z40>0) return "FSI, FEM and CORAL structures are not in the checkpoints yet";
+        if(p->Z10>0 || p->Z30>0) return "FSI and FEM structures are not in the checkpoints yet";
         if(p->A750>0) return "SEASTATE is not in the checkpoints yet";
     }
     if(p->A10==5)
@@ -83,10 +85,9 @@ string driver::ckpt_unsupported()
         if(p->S10>0) return "NHFLOW sediment is not in the checkpoints yet";
         if(p->L10>0) return "NHFLOW Lagrangian particles are not in the checkpoints yet";
         if(p->E10>0) return "DEM is not in the checkpoints yet";
-        if(p->Z30>0 || p->Z40>0) return "FEM and CORAL structures are not in the checkpoints yet";
+        if(p->Z30>0) return "FEM structures are not in the checkpoints yet";
         if(p->A750>0) return "SEASTATE is not in the checkpoints yet";
         if(p->X330>0) return "membranes are not in the checkpoints yet";
-        if(p->geo_mb>0) return "multi-block grids are not in the checkpoints yet";
     }
     return "";
 }
@@ -133,6 +134,15 @@ reefrun_ckpt& driver::ckpt()
             p6dof->ckpt_state(p,sd);
             ck.blob("sixdof",sd);
             wd("sixdof_slice",'S',p6dof->ckpt_slice());
+        }
+
+        // REEF3D::CORAL (the same on all ranks), its outputs on disk up to the checkpoint
+        if(pcoral!=nullptr)
+        {
+            vector<double> cs;
+            pcoral->ckpt_state(cs);
+            ck.blob("coral",cs);
+            pcoral->flush();
         }
 
         // the state of the boundary conditions (local to the rank)
@@ -217,6 +227,17 @@ reefrun_ckpt& driver::ckpt()
             pgc->gcsldf_update(p);
         }
 
+        // REEF3D::CORAL: its state for coral_ini (the model is set up after the fluid)
+        if(p->Z40>0)
+        {
+            if(!ck.has("coral"))
+            {
+                msg = "the checkpoint has no CORAL state (Z 40)";
+                return false;
+            }
+            coral_ckpt = ck.get_blob("coral");
+        }
+
         // the state of the boundary conditions: on the same decomposition (else they start again)
         if(ck.same_decomposition())
         pflow->ckpt_restore(p,ck.get_rank_blob("ioflow",p->mpirank));
@@ -229,6 +250,8 @@ reefrun_ckpt& driver::ckpt()
     h.flush = [this]()
     {
         pprint->flush_outputs();
+        if(pcoral!=nullptr)
+        pcoral->flush();
         if(pfamr!=nullptr)
         pfamr->flush_outputs();
         if(pnhfamr!=nullptr)

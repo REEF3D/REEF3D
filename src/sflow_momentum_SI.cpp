@@ -26,6 +26,7 @@ Author: Hans Bihs
 #include"fdm2D.h"
 #include"ghostcell.h"
 #include"ioflow.h"
+#include"reefckpt.h"
 #include"sflow_fsf.h"
 #include"sflow_reconstruct.h"
 #include"sflow_diffusion.h"
@@ -72,9 +73,11 @@ sflow_momentum_SI::sflow_momentum_SI(lexer *p, fdm2D *b, ghostcell *pgc, sflow_H
     cout<<endl;
 
     mkdir("./REEF3D_SFLOW_Log",0777);
-    silog.open("./REEF3D_SFLOW_Log/REEF3D_SFLOW_SI.dat");
-    silog<<"# semi-implicit SFLOW (A 226 1): volume and open boundary discharges"<<endl;
-    silog<<"# count  simtime  dt  volume  Qin  Qout  relax_volume  eta_iterations  wetdry_iterations  dry_cells"<<endl;
+    if(reefckpt_open(silog,"./REEF3D_SFLOW_Log/REEF3D_SFLOW_SI.dat",p->I45))   // I 45: continued
+    {
+        silog<<"# semi-implicit SFLOW (A 226 1): volume and open boundary discharges"<<endl;
+        silog<<"# count  simtime  dt  volume  Qin  Qout  relax_volume  eta_iterations  wetdry_iterations  dry_cells"<<endl;
+    }
     }
 }
 

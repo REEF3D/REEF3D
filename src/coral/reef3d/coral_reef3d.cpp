@@ -185,6 +185,30 @@ void coral_reef3d::ini(lexer *p, ghostcell*)
 {
     if(p->mpirank==0)
         mkdir("./REEF3D_CORAL", 0777);
+    // restart from a checkpoint: the outputs and the journal continue, then the state of the checkpoint
+    if(restart_)
+    {
+        bool ok = false;
+        try
+        {
+            cp_->set_restart();
+            cp_->record("./REEF3D_CORAL");
+            cp_->ini(p->simtime, "./REEF3D_CORAL");
+            ok = load_state(restart_state_);
+        }
+        catch(const std::exception &e)
+        {
+            fail(e.what());
+        }
+        if(!ok)
+            fail("I 45: the CORAL state of the checkpoint does not fit coral.txt");
+        restart_state_.clear();
+        restart_state_.shrink_to_fit();
+        check_ranks("restart");
+        if(p->mpirank==0)
+            std::cout<<"CORAL: restart at t = "<<cp_->time()<<" after "<<cp_->steps()<<" steps"<<std::endl;
+        return;
+    }
     try
     {
         cp_->record("./REEF3D_CORAL");
@@ -214,6 +238,36 @@ void coral_reef3d::step(lexer *p, ghostcell*)
     {
         fail(e.what());
     }
+}
+
+// ---- checkpoints (P 48, I 45)
+
+void coral_reef3d::ckpt_state(std::vector<double> &v) const
+{
+    v.push_back(1.0);   // version
+    v.push_back(sampler_told_ ? 1.0 : 0.0);
+    v.push_back(rank_diff_told_ ? 1.0 : 0.0);
+    cp_->save_state(v);
+}
+
+void coral_reef3d::restart(const std::vector<double> &v)
+{
+    restart_ = true;
+    restart_state_ = v;
+}
+
+bool coral_reef3d::load_state(const std::vector<double> &v)
+{
+    if(v.size() < 3 || int(v[0]) != 1)
+        return false;
+    sampler_told_ = v[1] > 0.5;
+    rank_diff_told_ = v[2] > 0.5;
+    return cp_->load_state(std::vector<double>(v.begin() + 3, v.end()));
+}
+
+void coral_reef3d::flush()
+{
+    cp_->flush();
 }
 
 // ---- external dynamics of the 6DOF bodies (6DOF_external.h)

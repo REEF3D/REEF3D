@@ -21,6 +21,7 @@ Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"coral/core/coral_timeint.h"
+#include"coral/core/coral_state.h"
 #include"coral/core/coral_model.h"
 #include"coral/core/coral_rotation.h"
 #include"coral/core/coral_fdjac.h"
@@ -395,6 +396,50 @@ VecX timeint::reactions(const model &m) const
     if(lam_.size()==0)
         return VecX::Zero(m.ndof());
     return -G.transpose()*lam_;
+}
+
+void timeint::save_state(std::vector<double> &v) const
+{
+    state_out o{v};
+    o.d(scale_);
+    o.list(xn_, [&](const Vec3 &x){o.m(x);});
+    o.list(Rn_, [&](const Mat3 &x){o.m(x);});
+    o.m(cqn_);
+    o.m(nun_);
+    o.m(dnun_);
+    o.m(an_);
+    o.m(lam_);
+    o.b(jac_ok_);
+    o.d(jac_h_);
+    o.list(T_, [&](const Eigen::Triplet<double> &t){o.i(t.row()); o.i(t.col()); o.d(t.value());});
+    for(long x : {stats.steps, stats.iterations, stats.jacobians, stats.retries, stats.failures})
+        o.i(x);
+    o.d(stats.max_constraint);
+}
+
+bool timeint::load_state(const model &m, const std::vector<double> &v, size_t &k)
+{
+    state_in in{v, k};
+    in.d(scale_);
+    in.list(xn_, [&](Vec3 &x){in.m(x);});
+    in.list(Rn_, [&](Mat3 &x){in.m(x);});
+    in.m(cqn_);
+    in.m(nun_);
+    in.m(dnun_);
+    in.m(an_);
+    in.m(lam_);
+    in.b(jac_ok_);
+    in.d(jac_h_);
+    in.list(T_, [&](Eigen::Triplet<double> &t){const double r = in.next(), c = in.next(), x = in.next(); t = Eigen::Triplet<double>(int(r), int(c), x);});
+    in.i(stats.steps); in.i(stats.iterations); in.i(stats.jacobians); in.i(stats.retries); in.i(stats.failures);
+    in.d(stats.max_constraint);
+    k = in.k;
+    if(!in.ok)
+        return false;
+    // the factorization of the Jacobian in use (the same matrix gives the same factors)
+    if(jac_ok_)
+        jac_ok_ = lu_.compute(m.ndof() + m.ncon(), T_);
+    return true;
 }
 
 }

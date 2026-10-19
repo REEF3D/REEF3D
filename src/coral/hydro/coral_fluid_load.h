@@ -56,6 +56,7 @@ Architect: Hans Bihs
 #define CORAL_FLUID_LOAD_H_
 
 #include"coral/core/coral_load.h"
+#include"coral/core/coral_state.h"
 #include<string>
 #include<vector>
 
@@ -95,6 +96,9 @@ namespace coral
         // point of application of the load of fluid body k (global, now; default its CoG): the loads are
         // about that point (one-way loads of a fluid body on a CORAL body that is not the fluid body itself)
         void set_attachment(const model&, int k, const Vec3 &p);
+        // restart from a checkpoint (coral_state.h)
+        void save_state(std::vector<double>&) const override;
+        bool load_state(const std::vector<double>&, size_t &k) override;
 
         int order = 1;      // polynomial order in time through the samples (0, 1, 2)
 
