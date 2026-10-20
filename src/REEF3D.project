@@ -1459,6 +1459,8 @@
         <File Name="nhflow_amr_sed.cpp"/>
         <File Name="nhflow_amr_6dof.cpp"/>
         <File Name="nhflow_amr_si.cpp"/>
+        <File Name="nhflow_longrun.cpp"/>
+        <File Name="nhflow_longrun.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="CFD">
         <File Name="cfd_amr.cpp"/>
