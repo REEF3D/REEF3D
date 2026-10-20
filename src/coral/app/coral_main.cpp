@@ -38,6 +38,7 @@ Architect: Hans Bihs
 #include<cmath>
 #include<cstdio>
 #include<exception>
+#include<fstream>
 #include<iostream>
 #include<string>
 
@@ -53,7 +54,26 @@ int main(int argc, char **argv)
         if(argc > 3 && std::string(argv[2]) == "replay")
         {
             const auto w0 = std::chrono::steady_clock::now();
-            const long nev = coupling::replay(c, argv[3], ".", std::cout);
+            // output vtp <dt>: the VTP of the structure (lines, members) during the replay
+            const double vdt = c.run.vtp_dt;
+            if(vdt >= 0.0)
+            {
+                mkdir("coral_vtp", 0777);
+                std::ofstream("coral_vtp/times.txt")<<"# file number, time [s]\n";
+            }
+            int nvtp = 0;
+            double tnext = 0.0;
+            auto after = [&](double t)
+            {
+                if(vdt < 0.0 || t < tnext - 1.0e-9)
+                    return;
+                char b[64];
+                std::snprintf(b, sizeof(b), "coral_vtp/structure_%05d.vtp", nvtp++);
+                write_vtp(c.m, b);
+                std::ofstream("coral_vtp/times.txt", std::ios::app)<<nvtp-1<<" "<<t<<"\n";
+                tnext = (vdt > 0.0) ? t + vdt : t;
+            };
+            const long nev = coupling::replay(c, argv[3], ".", std::cout, after);
             const double wall = std::chrono::duration<double>(std::chrono::steady_clock::now() - w0).count();
             std::printf("replay of %s: %ld events, %.2f s\n", argv[3], nev, wall);
             return 0;

@@ -1206,6 +1206,9 @@ void control::read_control(lexer* p)
               case 525: ++B525;
                          clear(c,numint);
                          break;
+              case 522: ++B522;
+                         clear(c,numint);
+                         break;
               case 530: control>>B530>>B530_N;
                          clear(c,numint);
                          break;
@@ -3783,6 +3786,10 @@ void control::read_control(lexer* p)
                          X508=1;
                          clear(c,numint);
                          break;
+                case  510: control>>X510_B>>X510_Fc>>X510_veps;
+                         X510=1;
+                         clear(c,numint);
+                         break;
                 }
                 break;
 
@@ -4002,6 +4009,8 @@ void control::read_control(lexer* p)
     Iarray(B513_profile,B513);
     Darray(B513_par,B513);
     Iarray(B525_id,B525);
+    Iarray(B522_id,B522);
+    Iarray(B522_b,B522);
     Darray(B525_Q,B525);
     Darray(B525_tramp,B525);
     
@@ -4821,6 +4830,7 @@ void control::read_control(lexer* p)
     int countB505=0;
     int countB513=0;
     int countB525=0;
+    int countB522=0;
     int countB202=0;
     int countB210=0;
     int countB212=0;
@@ -5116,6 +5126,10 @@ void control::read_control(lexer* p)
                          break;
                 case 525: control>>B525_id[countB525]>>B525_Q[countB525]>>B525_tramp[countB525];
                          ++countB525;
+                         clear(c,numint);
+                         break;
+                case 522: control>>B522_id[countB522]>>B522_b[countB522];
+                         ++countB522;
                          clear(c,numint);
                          break;
                 case 202: control>>B202_t[countB202]>>B202_n[countB202]>>B202_d50[countB202]>>B202_alpha[countB202]>>B202_beta[countB202];

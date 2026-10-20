@@ -703,9 +703,13 @@ void nhflow_amr::patch_objects(reefamr_patch *q, ghostcell *pgc)
 
     // multi-block: in- and outflow, open edges and wave generation belong to block 0, the faces of
     // the blocks 1.. without an interface are walls; the open faces of a block (G 54) are its in- and
-    // outflow as B 60 1 on the native grid (only these i-faces: river_xm, river_xp)
+    // outflow as B 60 1 on the native grid (only these i-faces: river_xm, river_xp), its edge zones (B 522)
+    // its open edges as the iowave edges of the native grid (open_xm, open_xp)
     const int oin = (c->blk>0 && c->lev==0) ? bopen[0][c->blk] : -1;
     const int oout = (c->blk>0 && c->lev==0) ? bopen[1][c->blk] : -1;
+    const int zin = (c->blk>0 && c->lev==0) ? bzone[0][c->blk] : -1;
+    const int zout = (c->blk>0 && c->lev==0) ? bzone[1][c->blk] : -1;
+    const bool open = oin>=0 || oout>=0 || zin>=0 || zout>=0;
     if(c->blk>0)
     {
         pp->B60 = (oin>=0 || oout>=0) ? 1 : 0;
@@ -713,14 +717,21 @@ void nhflow_amr::patch_objects(reefamr_patch *q, ghostcell *pgc)
         pp->river_xp = (oout>=0) ? 1 : 0;
         pp->B98 = 0;
         pp->B99 = 0;
-        pp->open_xm = pp->open_xp = pp->open_ym = pp->open_yp = 0;
+        pp->open_xm = (zin>=0) ? 1 : 0;
+        pp->open_xp = (zout>=0) ? 1 : 0;
+        pp->open_ym = pp->open_yp = 0;
+        // an edge zone: the non-hydrostatic pressure at the -i edge 0 as at the iowave edges (nhflow_poisson, B 90)
+        if(zin>=0 || zout>=0)
+        pp->B90 = 1;
+        if(c->lev==0)
+        pp->amr_block = c->blk;
     }
 
     build_bc2D(pgc,*c);
     build_lexer3D(*c);
 
-    if(oin>=0 || oout>=0)
-    open_lists(*c,oin>=0,oout>=0);
+    if(open)
+    open_lists(*c,oin>=0 || zin>=0,oout>=0 || zout>=0);
 
     // vectors of the Poisson rows (nhflow_poisson fills them over FBASELOOP and LOOP)
     pp->veclength = pp->imax*pp->jmax*pp->kmaxF;
@@ -748,20 +759,12 @@ void nhflow_amr::patch_objects(reefamr_patch *q, ghostcell *pgc)
 
     c->pBC = pBCv;
     c->pflow = pflowv;
-    if(oin>=0 || oout>=0)
+    if(open)
     {
         c->pio = new ioflow_amr_block(pp,pgc,pBCv);
         pp->amr_own_io = 1;
-        if(oin>=0)
-        {
-            c->pio->in = 1;
-            c->pio->Q = p0->G54_v[oin];
-        }
-        if(oout>=0)
-        {
-            c->pio->out = 1;
-            c->pio->wsf = pp->F62 = p0->G54_v[oout];
-        }
+        c->pio->open_faces(pp,oin,oout);
+        c->pio->open_edges(pp,zin>=0 ? &bzones[zin] : nullptr,zout>=0 ? &bzones[zout] : nullptr,bzbg);
         c->pflow = c->pio;
     }
     // the floating bodies on the patch grid (all calls do nothing without bodies)

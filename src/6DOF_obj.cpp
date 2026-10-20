@@ -69,7 +69,10 @@ sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc, int number) : ddweno_f_nug(p),
     if(p->X350==1)
     pload.push_back(new ship(p,number));
 
-    pnetinter = new net_interface(p,pgc);
+    // nets and membranes (X 320, X 330) act in CFD and NHFLOW only; their interface holds six fields of the whole
+    // grid, which a FNPF body (A 10 3) never uses: with many bodies they were most of the memory (20 FNPF floats,
+    // 3.7 M nodes: 5.5 GB)
+    pnetinter = (p->A10!=3) ? new net_interface(p,pgc) : nullptr;
     
     triangle_token=0;
     printnormal_count=0;

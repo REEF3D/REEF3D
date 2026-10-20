@@ -22,6 +22,7 @@ Author: Hans Bihs
 
 #include"nhflow_momentum_SI.h"
 #include"si_eta2D.h"
+#include"bc_zone.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
@@ -210,7 +211,8 @@ void nhflow_momentum_SI::bc_method(lexer *p)
 
     for(int q=0;q<p->B521;++q)
     for(int qn=0;qn<p->B520;++qn)
-    if(p->B520_id[qn]==p->B521_id[q] && p->B520_method[qn]>=3 && p->B520_method[qn]<=6)
+    if(p->B520_id[qn]==p->B521_id[q] && p->B520_method[qn]>=3 && p->B520_method[qn]<=6
+       && bc_zone_set::zone_block(p,p->B520_id[qn])==p->amr_block)
     {
         const int e = p->B521_edge[q];
 

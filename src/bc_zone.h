@@ -55,6 +55,10 @@ zones given directly (ctrl.txt, repeatable; read into lexer, control.h):
                                its level, a clamped discharge edge its normal current
   B 525 id Q t_ramp            discharge [m3/s] into the domain through a clamped discharge
                                edge, cosine ramp over t_ramp [s]; replaces the background current
+  B 522 id b                   multi-block grid (G 50 1): the zone lies on block b (1..), its B 521
+                               edge is a face of the block (1: -i, 2: +i; the parts of the face
+                               without interface, s0 s1 width unused); methods 3-6 (NHFLOW), kept
+                               apart from the zones of the native grid (bedges, ioflow_amr_block)
 --------------------------------------------------------------------*/
 
 enum class bc_method {relax, beach, riemann, flather, clamp_level, clamp_q};
@@ -76,6 +80,7 @@ public:
     std::vector<int> sources;    // B 524 source ids; empty: all sources
     int bg = 0;                  // B 523 background id; 0: none (still water)
     int edge = 0;                // B 521 edge (1: x-, 2: x+, 3: y-, 4: y+), user zones only
+    int block = 0;               // B 522: the block 1.. of a multi-block grid the zone lies on; 0 the native grid
     bool has_Q = false;          // B 525 given (clamped discharge edge)
     int active = 0;              // NHFLOW active beach B 99 3 / 4 as a Riemann edge at x+ with still
                                  // water outside (the B 99 value; 0: a zone of the user)
@@ -92,6 +97,7 @@ class bc_zone_set
 {
 public:
     static bc_zone_set from_legacy(lexer*, ghostcell*);
+    static bc_zone_set from_input(lexer*);   // the B 520-525 zones only (multi-block: the zones of the blocks)
     
     // the relaxation zone that sets the target at (x,y): highest priority, then
     // first given; nullptr outside all relaxation zones
@@ -118,7 +124,14 @@ public:
     // ranges for old input (unchanged), plus the box of every B 520 zone
     void norefine_boxes(lexer*, std::vector<double>&) const;
 
+    // the edge zone on face e (1: -i, 2: +i) of block b (B 522); nullptr: none
+    const bc_zone* block_edge(int b, int e) const;
+
+    // the block of zone id (B 522), 0: the native grid (the zone's own input, without the checks)
+    static int zone_block(const lexer*, int);
+
     std::vector<bc_zone> relax, beach, edges;
+    std::vector<bc_zone> bedges;     // edge zones on the faces of the blocks 1.. (B 522)
     
 private:
     void read_input(lexer*, ghostcell*);

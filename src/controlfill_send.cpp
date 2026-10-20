@@ -921,6 +921,8 @@ void control::ctrlsend()
     ii++;
     ictrl[ii] = B525;
     ii++;
+    ictrl[ii] = B522;
+    ii++;
     ictrl[ii] = B530;
     ii++;
     ictrl[ii] = B530_N;
@@ -2873,6 +2875,8 @@ void control::ctrlsend()
     ii++;
     ictrl[ii] = X508;
     ii++;
+    ictrl[ii] = X510;
+    ii++;
     dctrl[dd] = X505_Fmax;
     dd++;
     dctrl[dd] = X505_Pmax;
@@ -2888,6 +2892,12 @@ void control::ctrlsend()
     dctrl[dd] = X507_C;
     dd++;
     dctrl[dd] = X508_t;
+    dd++;
+    dctrl[dd] = X510_B;
+    dd++;
+    dctrl[dd] = X510_Fc;
+    dd++;
+    dctrl[dd] = X510_veps;
     dd++;
 
     ictrl[ii] = Y1;
@@ -3265,6 +3275,13 @@ void control::ctrlsend()
         dd++;
         dctrl[dd] = B525_tramp[n];
         dd++;
+    }
+    for(n=0;n<B522;++n)
+    {
+        ictrl[ii] = B522_id[n];
+        ii++;
+        ictrl[ii] = B522_b[n];
+        ii++;
     }
     for(n=0;n<B202;++n)
     {

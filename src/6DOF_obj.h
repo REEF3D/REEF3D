@@ -393,7 +393,7 @@ protected:
     Eigen::Vector3d gyroc_;
     bool fixedc_[6] = {false,false,false,false,false,false};
 
-    // FNPF and NHFLOW: power take-off (X 500 - X 508, coral/reef3d/coral_sixdof_pto.cpp; elements in coral/pto)
+    // FNPF and NHFLOW: power take-off (X 500 - X 508, X 510, coral/reef3d/coral_sixdof_pto.cpp; elements in coral/pto)
     template<class P> void ckpt_fields(lexer*, P&);
     void ini_pto(lexer*, ghostcell*);
     void pto_forces(lexer*, ghostcell*, int);
@@ -409,6 +409,7 @@ protected:
     coral::pto_output pto_out_;
     bool pto_on_ = false, pto_implicit_ = false, pto_warned_ = false;
     double pto_E_ = 0.0, pto_Estep_ = 0.0;
+    double pto_Eloss_ = 0.0, pto_Elossstep_ = 0.0;     // dissipated in the drive-train losses (X 510)
     int pto_rk_ = 3;   // RK scheme of the body: 2 (NHFLOW A 510 2), 3 (TVD RK3), 4 (FNPF A 310 4)
     void pto_rk(int, double&, double&) const;
     ofstream printpto;

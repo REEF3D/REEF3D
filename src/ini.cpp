@@ -443,6 +443,7 @@ void control::ini_default()
     B108=0;        // int read wave generation  origin
     B500=B501=B502=B504=B520=B521=B524=0;   // int iowave redesign: wave sources (B 500-504), zones (B 520-524)
     B525=0;        // int iowave redesign: discharge of a clamped discharge edge (B 525 id Q t_ramp), repeatable
+    B522=0;        // int multi-block grid (G 50 1): zones on a face of a block 1.. (B 522 id b: the B 521 edge of zone id is a face of block b), repeatable
     B513=0;          // int iowave redesign: vertical profile of the background current (B 513 id profile par), repeatable
     B505=0;          // int iowave: frame of a wave source (B 505 id frame; 0: B 92 generation frame, 1: global)
     B510=B511=B514=B523=0;   // int iowave redesign: tidal / current background (B 510-514), zone background (B 523)
@@ -745,7 +746,7 @@ void control::ini_default()
     G30=0;      // int NHFLOW and FNPF mesh refinement: 1 patches may cover dry and shallow cells (wetting and drying in the patches; FNPF: the static coastline A 343 1 or the moving one A 343 2, 3), 0 they keep 4 level-0 cells away
     G31=1;      // int NHFLOW mesh refinement with A 512 2: 1 one implicit diffusion solve over the leaf cells of all grids (composite), 0 every grid solves its own
     G52=0;      // int curvilinear NHFLOW (G 50): 1 the i-walls are slip walls as the j-walls (normal velocity mirrored, the pressure correction Neumann), so that a wall acts the same in any index direction (set on multi-block grids); 0 the Cartesian x-walls
-    G54=0;      // int multi-block grid (G 50 1): number of open boundaries on the blocks 1.. (G 54 b t v: block b, t 1: discharge v in through its -i face, t 2: water level v at its +i face)
+    G54=0;      // int multi-block grid (G 50 1): number of open boundaries on the blocks 1.. (G 54 b t v: block b, t 1: discharge v in through its -i face, t 2: water level v at its +i face, t 3: discharge time series discharge-<v>.dat through the -i face, t 4: water level time series waterlevel-<v>.dat at the +i face)
     G53=4;      // int NHFLOW multi-block grid: coarse space across the blocks in the preconditioner of the composite solves, aggregates of this many columns in i and j (0: off)
     G51=2;      // int NHFLOW multi-block grid (G 50 1, DIVEMesh R 20 1): passes of the block-local V-cycles in the preconditioner of the pressure, the corrections of the neighbour blocks filled in between
     G50=0;      // int curvilinear horizontal grid (SFLOW): 0 Cartesian, 1 nodes of the CURV section of grid-geometry.dat, 2 nodes of curvgrid.dat
@@ -1241,7 +1242,7 @@ void control::ini_default()
     X12=1;      // int turn force calculation on
     X13=0;      // int NHFLOW floating body (X 10 1/2): water level in the pierced columns from the surrounding free surface (harmonic extension, 0 off)
     X14=1;      // int tangential velocity cfd
-    X15=1;      // int tangential velocity nhflow (0 no slip, 1 tangential kept outside the body, 2 normal projection outside, 3 as 1 with the forcing inside the body only and the momentum fluxes at body faces from the fluid side, for bodies moving at speed, 4 normal projection outside ramped over the shell of 1, rotation invariant, 5 as 1 with the sharp switch at the hull surface instead of the shell ramp)
+    X15=1;      // int tangential velocity nhflow (0 no slip, 1 tangential kept outside the body, 2 normal projection outside, 3 as 1 with the forcing inside the body only and the momentum fluxes at body faces from the fluid side, for bodies moving at speed, 4 normal projection outside ramped over the shell of 1, rotation invariant, 5 as 1 with the sharp switch at the hull surface instead of the shell ramp, 6 as 1 with the faces between body and fluid cells as reflective walls moving with the body in the HLL fluxes (mirror state of the fluid side about the body velocity; Cartesian grid, on the curvilinear grid the fluxes of 3), for wave reflection and wave loads, 7 as 6 with the forcing of 3 (inside the body only), for bodies at speed in waves)
     X16=0;          // int porous floating body (NHFLOW)
     X16_n=0.5;      // double porosity of the floating body
     X16_d50=0.01;   // double characteristic grain / element size of the floating body
@@ -1378,6 +1379,9 @@ void control::ini_default()
     X507_K=X507_C=0.0; // double latch stiffness [N/m], damping [N s/m]
     X508=0;         // int PTO declutching
     X508_t=0.0;     // double declutching time [s]
+    X510=0;         // int PTO drive-train losses
+    X510_B=X510_Fc=0.0; // double loss damping [N s/m], loss Coulomb friction [N]
+    X510_veps=0.0;  // double regularisation velocity of the loss friction [m/s], <= 0: 1e-3
 
 	// Developer
 	Y1=0;   // int turn on/off experimental screen force model

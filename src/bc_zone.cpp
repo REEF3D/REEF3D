@@ -155,6 +155,13 @@ bc_zone_set bc_zone_set::from_legacy(lexer *p, ghostcell *pgc)
     return zs;
 }
 
+bc_zone_set bc_zone_set::from_input(lexer *p)
+{
+    bc_zone_set zs;
+    zs.read_input(p,nullptr);
+    return zs;
+}
+
 void bc_zone_set::read_input(lexer *p, ghostcell *pgc)
 {
     // B 520-524 (control.h, read by read_control and sent to all ranks)
@@ -228,6 +235,19 @@ void bc_zone_set::read_input(lexer *p, ghostcell *pgc)
         bgid[q] = p->B523_bg[m];
     }
     
+    std::vector<int> blk(n,0);
+    
+    for(int m=0; m<p->B522; ++m)
+    {
+        int q = find(p->B522_id[m]);
+        if(q<0)
+        fail("B 522 refers to zone "+std::to_string(p->B522_id[m])+", which has no B 520");
+        if(p->B522_b[m]<1)
+        fail("B 522: zone "+std::to_string(p->B522_id[m])+" on block "+std::to_string(p->B522_b[m])+", the blocks are 1.. (block 0 is the native grid, its zones need no B 522)");
+        
+        blk[q] = p->B522_b[m];
+    }
+    
     std::vector<int> hasq(n,0);
     std::vector<double> qv(n,0.0), qr(n,0.0);
     
@@ -257,6 +277,35 @@ void bc_zone_set::read_input(lexer *p, ghostcell *pgc)
         fail("zone "+std::to_string(k)+": the B 521 width must be positive");
         if(m>=3 && bgid[q]==0 && !(m==6 && hasq[q]))
         fail("zone "+std::to_string(k)+": a Riemann, Flather or clamped edge needs a background (B 523); a clamped discharge edge a background or B 525");
+        
+        // a zone on a face of a block 1..: an edge of methods 3-6 on the -i or +i face, the geometry is the
+        // block's (reefamr::blocks_open checks the block and the face)
+        if(blk[q]>0)
+        {
+            if(m<=2)
+            fail("zone "+std::to_string(k)+" on block "+std::to_string(blk[q])+" (B 522): relaxation and beach zones are not available on the blocks 1.., only edges (B 520 methods 3-6)");
+            if(e>2)
+            fail("zone "+std::to_string(k)+" on block "+std::to_string(blk[q])+" (B 522): the B 521 edge is the -i (1) or +i (2) face of the block, the j faces are not available yet");
+            if(!src[q].empty())
+            fail("zone "+std::to_string(k)+" on block "+std::to_string(blk[q])+" (B 522): an edge of a block carries the background only (no B 524 sources)");
+            
+            const bc_method meth = m==3 ? bc_method::riemann : m==4 ? bc_method::flather : m==5 ? bc_method::clamp_level : bc_method::clamp_q;
+            bc_zone z(k, meth, 0.0,0.0,0.0,0.0,0.0, 1.0);
+            z.priority = p->B520_prio[q];
+            z.user = true;
+            z.bg = bgid[q];
+            z.edge = e;
+            z.block = blk[q];
+            z.has_Q = hasq[q]==1;
+            z.Q = qv[q];
+            z.Q_tramp = qr[q];
+            
+            if(block_edge(z.block,e)!=nullptr)
+            fail("zone "+std::to_string(k)+": face "+std::to_string(e)+" of block "+std::to_string(z.block)+" has two edge zones");
+            
+            bedges.push_back(z);
+            continue;
+        }
         
         const double a=s0[q], b=s1[q], w = m<=2 ? width[q] : p->DXM;
         const bool whole = b<=a;
@@ -350,6 +399,24 @@ const bc_zone* bc_zone_set::beach_zone_at(double x0, double y0) const
     best=&z;
 
     return best;
+}
+
+const bc_zone* bc_zone_set::block_edge(int b, int e) const
+{
+    for(const bc_zone &z : bedges)
+    if(z.block==b && z.edge==e)
+    return &z;
+
+    return nullptr;
+}
+
+int bc_zone_set::zone_block(const lexer *p, int id)
+{
+    for(int m=0; m<p->B522; ++m)
+    if(p->B522_id[m]==id)
+    return p->B522_b[m];
+
+    return 0;
 }
 
 const bc_zone* bc_zone_set::open_edge(int e) const

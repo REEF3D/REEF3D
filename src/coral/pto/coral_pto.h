@@ -23,8 +23,11 @@ Architect: Hans Bihs
 // axis (revolute, cylindrical) between the two bodies of the joint, built from the elements of the
 // PTO library (coral_pto_element.h). With q the joint coordinate (zero at creation) and qd its rate:
 //   generator  F = F0 - k (q - q0) - c qd - Fc tanh(qd / v_eps),  |F| <= F_max, |F qd| <= P_max
+//   losses     F = - c_loss qd - Fc_loss tanh(qd / v_eps)   (drive train: belt, bearings, seals)
 //   end stops  penalty spring k_stop and damper c_stop beyond q_min / q_max (push only)
-// absorbed power P = -F qd of the generator (the end stops and the latch absorb nothing).
+// absorbed power P = -F qd of the generator (the end stops and the latch absorb nothing); the
+// losses act on the bodies in every state (also latched or declutched, not limited) and their power
+// is dissipated (P_loss, E_loss), not absorbed.
 // Control: passive; latching (a latch element, spring k_latch and damper c_latch at the position of
 // the turn, holds the joint for t_hold after each zero crossing of qd); declutching (generator off,
 // F = 0 apart from the stops, for t_hold after each zero crossing of qd). The crossing times are
@@ -52,6 +55,7 @@ namespace coral
     {
         double k = 0.0, c = 0.0, q0 = 0.0, F0 = 0.0;
         double coulomb = 0.0, v_eps = 1.0e-3;
+        double c_loss = 0.0, coulomb_loss = 0.0;    // drive-train losses, 0: none
         double F_max = 0.0;          // 0: no force limit
         double P_max = 0.0;          // 0: no power limit
         double q_min = -std::numeric_limits<double>::infinity();
@@ -86,7 +90,10 @@ namespace coral
         double force(const model&) const;      // force (torque) of the PTO in the current state
         double force(const model&, double t) const;
         double power(const model &m) const;    // absorbed power of the generator
+        double loss_power(const model&) const;   // power dissipated in the drive-train losses
         double energy() const {return energy_;}            // absorbed energy so far
+        double loss_energy() const {return energy_loss_;}  // dissipated energy so far
+        bool has_loss() const {return settings.c_loss > 0.0 || settings.coulomb_loss > 0.0;}
         double mean_power(double t) const {return t > t0_ ? energy_/(t - t0_) : 0.0;}
         bool held() const;                     // latched or declutched
 
@@ -107,6 +114,8 @@ namespace coral
         double t_ = 0.0;             // time of the last converged state
         double P_last_ = 0.0;
         double energy_ = 0.0;
+        double Ploss_last_ = 0.0;
+        double energy_loss_ = 0.0;
         double t0_ = 0.0;
     };
 }

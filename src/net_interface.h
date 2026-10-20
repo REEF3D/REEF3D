@@ -80,12 +80,6 @@ private:
     vector<net*> pnet;
     vector<net_membrane*> pmem;
    
-    field1 kernel_x;
-    field2 kernel_y;
-    field3 kernel_z;
-    
-    double *KX,*KY,*KZ;
-   
    double kernel_peskin(const double&);
    
 };

@@ -205,6 +205,8 @@ public:
     int *B513_id,*B513_profile; double *B513_par;    // iowave redesign: vertical profile of the background current (B 513 id profile par), repeatable
     int B525;
     int *B525_id; double *B525_Q,*B525_tramp;    // iowave redesign: discharge of a clamped discharge edge (B 525 id Q t_ramp), repeatable
+    int B522;
+    int *B522_id,*B522_b;     // multi-block grid: zone id on a face of block b (B 522 id b), repeatable
     int B108;
     double *B108_xs,*B108_xe,*B108_ys, *B108_ye, *B108_d;
     int B110;
@@ -381,8 +383,9 @@ public:
     // Grid Options
     // mesh refinement (SFLOW, FNPF, NHFLOW): G 1-G 40
     int G1,G2,G3,G4,G5,G6,G7,G10,G11,G12,G22,G23,G30,G31,G40,G43,G45,G50,G51,G52,G53;
-    int G54, *G54_b, *G54_t;     // open boundaries on the blocks 1.. of a multi-block grid: block, type (1 discharge in, 2 level out)
-    double *G54_v;               // discharge (m3/s) or water level (m)
+    int G54, *G54_b, *G54_t;     // open boundaries on the blocks 1.. of a multi-block grid: block, type (1 discharge in, 2 level out,
+                                 // 3 discharge time series in, 4 level time series out)
+    double *G54_v;               // discharge (m3/s), water level (m) or the id of the time series file (3, 4)
     double G12_r,G13_L,G13_a,G20,G21;
     double *G10_xs,*G10_xe,*G10_ys,*G10_ye;
     int G15,G25;
@@ -662,6 +665,8 @@ public:
     double X506_T,X506_C;
     double X507_t,X507_K,X507_C;
     double X508_t;
+    int X510;
+    double X510_B,X510_Fc,X510_veps;
 
     // FSI
     int Z10,Z11,Z20,Z30,Z40;

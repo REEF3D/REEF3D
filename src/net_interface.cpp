@@ -32,11 +32,11 @@ Author: Hans Bihs
 #include"net_barQuasiStatic.h"
 #include"net_sheet.h"
 
-net_interface::net_interface(lexer *p, ghostcell *pgc) : kernel_x(p),kernel_y(p),kernel_z(p)
+net_interface::net_interface(lexer *p, ghostcell *pgc)
 {
-    p->Darray(KX, p->imax*p->jmax*(p->kmax+2));
-    p->Darray(KY, p->imax*p->jmax*(p->kmax+2));
-    p->Darray(KZ, p->imax*p->jmax*(p->kmax+2));
+    // no grid fields here: every 6DOF body (and sixdof_void) holds a net_interface, also without nets (X 320)
+    // or membranes (X 330). The nets (initialize_cfd/_nhflow) and membranes (membrane_ini_nhflow) allocate
+    // their own storage only when they are switched on.
 }
 
 net_interface::~net_interface()
