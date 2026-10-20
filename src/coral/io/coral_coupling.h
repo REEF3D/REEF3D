@@ -40,6 +40,7 @@ Architect: Hans Bihs
 #include"coral/core/coral_timeint.h"
 #include"coral/core/coral_track.h"
 #include<fstream>
+#include<functional>
 #include<memory>
 #include<ostream>
 #include<string>
@@ -101,8 +102,10 @@ namespace coral
         // the time series and the journal on disk (a checkpoint, the stop of a rebalance)
         void flush();
 
-        // replays the journal file on the case, output to dir; returns the number of events
-        static long replay(coral_case&, const std::string &journal, const std::string &dir, std::ostream &log);
+        // replays the journal file on the case, output to dir; returns the number of events; after(t) is called
+        // after every CORAL step of the replay with the time reached (e.g. the VTP of the structure)
+        static long replay(coral_case&, const std::string &journal, const std::string &dir, std::ostream &log,
+                           const std::function<void(double)> &after = nullptr);
 
     private:
         void advance_to(double t1);

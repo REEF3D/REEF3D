@@ -469,7 +469,8 @@ void coupling::kinematics(double t, const std::vector<Vec3> &u, const std::vecto
 
 // ---- replay
 
-long coupling::replay(coral_case &c, const std::string &journal, const std::string &dir, std::ostream &log)
+long coupling::replay(coral_case &c, const std::string &journal, const std::string &dir, std::ostream &log,
+                      const std::function<void(double)> &after)
 {
     std::ifstream in(journal, std::ios::binary);
     char magic[8];
@@ -539,11 +540,21 @@ long coupling::replay(coral_case &c, const std::string &journal, const std::stri
             break;
         }
         case J_STEPTO:
+        {
+            const long n0 = cp.steps();
             cp.advance_to(v.at(0));
+            if(after && cp.steps() > n0)
+                after(cp.time());
             break;
+        }
         case J_ADVANCE:
+        {
+            const long n0 = cp.steps();
             cp.advance(v.at(0), v.at(1));
+            if(after && cp.steps() > n0)
+                after(cp.time());
             break;
+        }
         default:
             throw std::runtime_error("journal '" + journal + "': unknown event " + std::to_string(tag));
         }
