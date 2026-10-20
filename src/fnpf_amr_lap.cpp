@@ -150,9 +150,9 @@ void fnpf_amr::lap_rows()
         for(size_t e=0; e<c->fill.size(); ++e)
         {
             const reefamr_fill &f = c->fill[e];
-            if(f.di>=EXT-1 && f.di<=EXT+c->nx && f.dj>=EXT-1 && f.dj<=EXT+c->ny)
+            if(f.di>=EXT-1 && f.di<=EXT+c->nx && f.dj>=EY-1 && f.dj<=EY+c->ny)
             c->fill1.push_back((int)e);
-            if(f.di>=EXT-2 && f.di<=EXT+c->nx+1 && f.dj>=EXT-2 && f.dj<=EXT+c->ny+1)
+            if(f.di>=EXT-2 && f.di<=EXT+c->nx+1 && f.dj>=EY-2 && f.dj<=EY+c->ny+1)
             c->fill2.push_back((int)e);
         }
     }
@@ -172,14 +172,14 @@ void fnpf_amr::lap_rows()
 
         int i0,i1,j0,j1;
         if(g<0) { i0=0; i1=NX0-1; j0=0; j1=NY0-1; }
-        else    { i0=EXT; i1=EXT+P[g]->nx-1; j0=EXT; j1=EXT+P[g]->ny-1; }
+        else    { i0=EXT; i1=EXT+P[g]->nx-1; j0=EY; j1=EY+P[g]->ny-1; }
 
         for(int ii=i0; ii<=i1; ++ii)
         for(int jj=j0; jj<=j1; ++jj)
         {
             int I = (g<0) ? ii+O0i : ii-EXT+P[g]->I0;
-            int J = (g<0) ? jj+O0j : jj-EXT+P[g]->J0;
-            const bool covered = (l<wtop() && reefamr::covered(l+1,2*I,2*J));
+            int J = (g<0) ? jj+O0j : jj-EY+P[g]->J0;
+            const bool covered = (l<wtop() && reefamr::covered(l+1,2*I,ychild(J)));
 
             for(int kk=0; kk<q->knoz; ++kk)
             {
@@ -236,7 +236,7 @@ void fnpf_amr::lap_prepare(ghostcell *pgc)
                 c->mg = new reefmg_core;
                 c->mg->set_precision(pp->N14==32 ? 32 : 64);     // (N 14, as the uniform solver)
                 c->mg->set_fine_operator(&lap_fineop_none);
-                if(!c->mg->setup(MPI_COMM_SELF,c->nx,c->ny,pp->knoz,c->nx,c->ny,0,pp->DXN+marge+EXT-1,pp->DYN+marge+EXT-1))
+                if(!c->mg->setup(MPI_COMM_SELF,c->nx,c->ny,pp->knoz,c->nx,c->ny,0,pp->DXN+marge+EXT-1,pp->DYN+marge+EY-1))
                 cout<<"FNPF AMR: patch multigrid "<<c->mg->err()<<endl;
             }
         }
@@ -332,10 +332,10 @@ void fnpf_amr::lap_prepare(ghostcell *pgc)
         const matrix_diag &M = c->c->M;
 
         for(int ii=EXT; ii<EXT+c->nx; ++ii)
-        for(int jj=EXT; jj<EXT+c->ny; ++jj)
+        for(int jj=EY; jj<EY+c->ny; ++jj)
         for(int kk=0; kk<pp->knoz; ++kk)
         {
-            const long lq = L.idx(ii-EXT,jj-EXT,kk);
+            const long lq = L.idx(ii-EXT,jj-EY,kk);
             const int r = c->row[fidx(pp,ii,jj,kk)];
             if(r<0)
             {
@@ -343,7 +343,7 @@ void fnpf_amr::lap_prepare(ghostcell *pgc)
                 continue;
             }
             lap_coef(c->mg,L,lq,M.p[r],(ii+1<EXT+c->nx) ? M.n[r] : 0.0,(ii-1>=EXT) ? M.s[r] : 0.0,
-                     (jj+1<EXT+c->ny) ? M.w[r] : 0.0,(jj-1>=EXT) ? M.e[r] : 0.0,M.t[r],M.b[r]);
+                     (jj+1<EY+c->ny) ? M.w[r] : 0.0,(jj-1>=EY) ? M.e[r] : 0.0,M.t[r],M.b[r]);
             L.act[lq] = fixed(M,r) ? 0 : 1;
         }
         c->mg->coarsen();
@@ -500,10 +500,10 @@ void fnpf_amr::lap_local(int id, int kr, int kz)
     std::fill(L.u.begin(),L.u.end(),0.0);
     std::fill(L.f.begin(),L.f.end(),0.0);
     for(int ii=EXT; ii<EXT+c->nx; ++ii)
-    for(int jj=EXT; jj<EXT+c->ny; ++jj)
+    for(int jj=EY; jj<EY+c->ny; ++jj)
     for(int kk=0; kk<pp->knoz; ++kk)
     {
-        const long lq = L.idx(ii-EXT,jj-EXT,kk);
+        const long lq = L.idx(ii-EXT,jj-EY,kk);
         if(L.act[lq]==0)
         continue;
 
@@ -517,10 +517,10 @@ void fnpf_amr::lap_local(int id, int kr, int kz)
     c->mg->vcycle(0,PSWEEP,PSWEEP);
 
     for(int ii=EXT; ii<EXT+c->nx; ++ii)
-    for(int jj=EXT; jj<EXT+c->ny; ++jj)
+    for(int jj=EY; jj<EY+c->ny; ++jj)
     for(int kk=0; kk<pp->knoz; ++kk)
     {
-        const long lq = L.idx(ii-EXT,jj-EXT,kk);
+        const long lq = L.idx(ii-EXT,jj-EY,kk);
         if(L.act[lq])
         z[fidx(pp,ii,jj,kk)] += L.u[lq];
     }
@@ -558,7 +558,7 @@ void fnpf_amr::lap_prec(int kr, int kz)
             continue;
         }
         for(int ii=EXT-1; ii<=EXT+P[g]->nx; ++ii)
-        for(int jj=EXT-1; jj<=EXT+P[g]->ny; ++jj)
+        for(int jj=EY-1; jj<=EY+P[g]->ny; ++jj)
         {
             const int a = fidx(q,ii,jj,q->kmin);
             std::fill(z+a,z+a+q->kmaxF,0.0);
@@ -650,7 +650,7 @@ void fnpf_amr::lap_prec(int kr, int kz)
             double *z = lvec(id,kz);
             const double *t = lvec(id,NRP);
             for(int ii=EXT; ii<EXT+c->nx; ++ii)
-            for(int jj=EXT; jj<EXT+c->ny; ++jj)
+            for(int jj=EY; jj<EY+c->ny; ++jj)
             for(int kk=0; kk<=pp->knoz; ++kk)
             {
                 const int qq = fidx(pp,ii,jj,kk);

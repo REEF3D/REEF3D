@@ -736,7 +736,7 @@ void fnpf_amr::lap_prec_win(int kr, int kz)
             double *z = lvec(id,kz);
             const double *t = lvec(id,NRP);
             for(int ii=EXT; ii<EXT+c->nx; ++ii)
-            for(int jj=EXT; jj<EXT+c->ny; ++jj)
+            for(int jj=EY; jj<EY+c->ny; ++jj)
             for(int kk=0; kk<=pp->knoz; ++kk)
             {
                 const int qq = fidx(pp,ii,jj,kk);

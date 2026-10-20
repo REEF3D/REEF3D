@@ -156,6 +156,8 @@ void fnpf_amr::gauges(lexer *p, fdm_fnpf *c, ghostcell *pgc)
         if(x>=q->XN[a+marge] && x<q->XN[a+1+marge]) { ii=a; break; }
         for(int a=j0; a<=j1; ++a)
         if(y>=q->YN[a+marge] && y<q->YN[a+1+marge]) { jj=a; break; }
+        if(q->j_dir==0)     // 2D grid: the strip, wherever y is
+        jj = j0;
         return ii>=0 && jj>=0;
     };
 
@@ -163,8 +165,14 @@ void fnpf_amr::gauges(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     auto ipol = [&](lexer *q, slice &f, int ii, int jj, double x, double y)
     {
         int a = (x>=q->XP[ii+marge]) ? ii : ii-1;
-        int b = (y>=q->YP[jj+marge]) ? jj : jj-1;
         double wx = (x-q->XP[a+marge])/(q->XP[a+1+marge]-q->XP[a+marge]);
+        if(q->j_dir==0)     // 2D grid: linear in x
+        {
+            if(q->flagslice4[lij(q,a,jj)]<0 || q->flagslice4[lij(q,a+1,jj)]<0)
+            return f(ii,jj);
+            return (1.0-wx)*f(a,jj) + wx*f(a+1,jj);
+        }
+        int b = (y>=q->YP[jj+marge]) ? jj : jj-1;
         double wy = (y-q->YP[b+marge])/(q->YP[b+1+marge]-q->YP[b+marge]);
         if(q->flagslice4[lij(q,a,b)]<0 || q->flagslice4[lij(q,a+1,b)]<0 || q->flagslice4[lij(q,a,b+1)]<0 || q->flagslice4[lij(q,a+1,b+1)]<0)
         return f(ii,jj);
@@ -181,7 +189,7 @@ void fnpf_amr::gauges(lexer *p, fdm_fnpf *c, ghostcell *pgc)
             val[k]=ipol(p,c->eta,ii,jj,x,y);
         }
         for(auto q : P)
-        if(q->lev>lv[k] && find(q->pp,EXT,EXT+q->nx-1,EXT,EXT+q->ny-1,x,y,ii,jj))
+        if(q->lev>lv[k] && find(q->pp,EXT,EXT+q->nx-1,EY,EY+q->ny-1,x,y,ii,jj))
         {
             lv[k]=q->lev;
             val[k]=ipol(q->pp,FP(q)->c->eta,ii,jj,x,y);
@@ -275,7 +283,7 @@ void fnpf_amr::write_vtr(lexer *p, fnpf_amr_patch &c, int id)
     auto field = [&](const char *nm, slice &f, double shift)
     {
         out<<"<DataArray type=\"Float64\" Name=\""<<nm<<"\" format=\"ascii\">\n";
-        for(int jj=EXT; jj<EXT+c.ny; ++jj)
+        for(int jj=EY; jj<EY+c.ny; ++jj)
         {
             for(int ii=EXT; ii<EXT+c.nx; ++ii)
             out<<setprecision(17)<<f(ii,jj)+shift<<" ";
@@ -294,7 +302,7 @@ void fnpf_amr::write_vtr(lexer *p, fnpf_amr_patch &c, int id)
     out<<"<DataArray type=\"Float64\" Name=\"x\" format=\"ascii\">";
     for(int ii=EXT; ii<=EXT+c.nx; ++ii) out<<setprecision(12)<<pp->XN[ii+m]<<" ";
     out<<"</DataArray>\n<DataArray type=\"Float64\" Name=\"y\" format=\"ascii\">";
-    for(int jj=EXT; jj<=EXT+c.ny; ++jj) out<<setprecision(12)<<pp->YN[jj+m]<<" ";
+    for(int jj=EY; jj<=EY+c.ny; ++jj) out<<setprecision(12)<<pp->YN[jj+m]<<" ";
     out<<"</DataArray>\n<DataArray type=\"Float64\" Name=\"z\" format=\"ascii\">0</DataArray>\n";
     out<<"</Coordinates>\n</Piece>\n</RectilinearGrid>\n</VTKFile>\n";
     out.close();
@@ -333,7 +341,7 @@ bool fnpf_amr::print_lagoon(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     };
     take(p,c,0,0,p->knox,p->knoy,0);
     for(int n=0; n<(int)P.size(); ++n)
-    take(FP(n)->pp,FP(n)->c,EXT,EXT,FP(n)->nx,FP(n)->ny,FP(n)->lev);
+    take(FP(n)->pp,FP(n)->c,EXT,EY,FP(n)->nx,FP(n)->ny,FP(n)->lev);
 
     return writer->write(p,pgc,grids,printcount_amr);
 }

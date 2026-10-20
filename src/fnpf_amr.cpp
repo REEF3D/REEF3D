@@ -312,7 +312,7 @@ int fnpf_amr::finest_at(double x, double y)
         lexer *pp = c->pp;
         if(c->lev<=l)
         continue;
-        if(x>=pp->XN[EXT+marge] && x<pp->XN[EXT+c->nx+marge] && y>=pp->YN[EXT+marge] && y<pp->YN[EXT+c->ny+marge])
+        if(x>=pp->XN[EXT+marge] && x<pp->XN[EXT+c->nx+marge] && (sy==0 || (y>=pp->YN[EY+marge] && y<pp->YN[EY+c->ny+marge])))
         {
             g=n;
             l=c->lev;
@@ -352,12 +352,12 @@ void fnpf_amr::ini(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     if(p->A328!=0) ok=0;
     if(p->A380!=0) ok=0;
     if(p->A311==3) ok=0;
-    if(p->j_dir!=1) ok=0;
+    if(p->j_dir!=1 && (p->geo_mb>0 || p->geo_curv==1)) ok=0;     // 2D grid (one cell in y): Cartesian
 
     if(ok==0)
     {
         if(p->mpirank==0)
-        cout<<"FNPF AMR (G 1): only for A 310 3, A 311 other than 3, A 350 0/1, X 10 0/1, A 324 0, A 328 0, A 380 0 and 3D grids -- refinement switched off"<<endl;
+        cout<<"FNPF AMR (G 1): only for A 310 3, A 311 other than 3, A 350 0/1, X 10 0/1, A 324 0, A 328 0, A 380 0 and on a 2D grid Cartesian -- refinement switched off"<<endl;
         maxlev=0;
         return;
     }
@@ -700,9 +700,9 @@ void fnpf_amr::tag(int l, vector<unsigned char> &M)
     {
         fnpf_amr_patch *pc = FP(n);
         for(int ii=EXT; ii<EXT+pc->nx; ++ii)
-        for(int jj=EXT; jj<EXT+pc->ny; ++jj)
+        for(int jj=EY; jj<EY+pc->ny; ++jj)
         if(test(pc->pp,pc->c,ii,jj))
-        tag_cell(lf,ii-EXT+pc->I0,jj-EXT+pc->J0,nbuf,M);
+        tag_cell(lf,ii-EXT+pc->I0,jj-EY+pc->J0,nbuf,M);
     }
 }
 
@@ -726,7 +726,7 @@ void fnpf_amr::pweights(lexer *q, int ic, int jc, int ox, int oy, double *w)
     {
         int nw = 0;
         for(int a=-1; a<=1; ++a)
-        for(int b=-1; b<=1; ++b)
+        for(int b=-sy; b<=sy; ++b)
         if((a!=0 || b!=0) && fl(ic+a,jc+b))
         ++nw;
 
@@ -737,9 +737,35 @@ void fnpf_amr::pweights(lexer *q, int ic, int jc, int ox, int oy, double *w)
         }
 
         for(int a=-1; a<=1; ++a)
-        for(int b=-1; b<=1; ++b)
+        for(int b=-sy; b<=sy; ++b)
         if((a!=0 || b!=0) && fl(ic+a,jc+b))
         w[(a+2)*5+(b+2)] = 1.0/double(nw);
+        return;
+    }
+
+    // 2D grid (oy 0): cubic in x on the 4 cells around the child centre, else quadratic in x
+    if(oy==0)
+    {
+        const int a0 = (ox>0) ? -1 : -2;
+        bool all = (pord>=4);
+        for(int a=a0; a<a0+4 && all; ++a)
+        if(!fl(ic+a,jc))
+        all=false;
+        if(all)
+        {
+            const double cp[4] = {-0.0546875, 0.8203125, 0.2734375, -0.0390625};
+            for(int a=0; a<4; ++a)
+            w[(a0+a+2)*5+2] = (ox>0) ? cp[a] : cp[3-a];
+            return;
+        }
+        const double x = 0.25*ox;
+        w[2*5+2] = 1.0;
+        if(fl(ic+1,jc) && fl(ic-1,jc))
+        {
+            w[3*5+2] += 0.5*x + 0.5*x*x;
+            w[1*5+2] += -0.5*x + 0.5*x*x;
+            w[2*5+2] -= x*x;
+        }
         return;
     }
 
@@ -1031,7 +1057,7 @@ void fnpf_amr::regrid_state(ghostcell *pgc, vector<reefamr_patch*> &oldP)
                 vector<double> cpar, esave;
                 cpar.reserve((size_t)c->nx*c->ny);
                 for(int ii=EXT; ii<EXT+c->nx; ++ii)
-                for(int jj=EXT; jj<EXT+c->ny; ++jj)
+                for(int jj=EY; jj<EY+c->ny; ++jj)
                 {
                 cpar.push_back(cc->coastline(ii,jj));
                 esave.push_back(cc->eta(ii,jj));
@@ -1049,7 +1075,7 @@ void fnpf_amr::regrid_state(ghostcell *pgc, vector<reefamr_patch*> &oldP)
                     slice4 &wi = *wsl[id+1];
                     size_t q = 0;
                     for(int ii=EXT; ii<EXT+c->nx; ++ii)
-                    for(int jj=EXT; jj<EXT+c->ny; ++jj, ++q)
+                    for(int jj=EY; jj<EY+c->ny; ++jj, ++q)
                     {
                         cc->eta(ii,jj) = esave[q];
                         const int n = lij(p,ii,jj);
@@ -1061,7 +1087,7 @@ void fnpf_amr::regrid_state(ghostcell *pgc, vector<reefamr_patch*> &oldP)
 
             if(brk)
             for(int ii=EXT; ii<EXT+c->nx; ++ii)
-            for(int jj=EXT; jj<EXT+c->ny; ++jj)
+            for(int jj=EY; jj<EY+c->ny; ++jj)
             cc->vb(ii,jj) = MAX(cc->vb(ii,jj),0.0);
         }
 
@@ -1365,7 +1391,7 @@ void fnpf_amr::step_end(lexer *p, fdm_fnpf *c, ghostcell *pgc)
             lexer *pp = q->pp;
             fdm_fnpf *cc = FP(q)->c;
             for(int ii=EXT; ii<EXT+q->nx; ++ii)
-            for(int jj=EXT; jj<EXT+q->ny; ++jj)
+            for(int jj=EY; jj<EY+q->ny; ++jj)
             if(pp->flagslice4[lij(pp,ii,jj)]>0 && cc->eta(ii,jj)+pp->wd-cc->bed(ii,jj) < 10.0*p->A344)
             thin = 1;
         }
@@ -1432,10 +1458,10 @@ void fnpf_amr::timestep(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     {
         lexer *pp = q->pp;
         for(int ii=EXT; ii<EXT+q->nx; ++ii)
-        for(int jj=EXT; jj<EXT+q->ny; ++jj)
+        for(int jj=EY; jj<EY+q->ny; ++jj)
         if(pp->flagslice4[lij(pp,ii,jj)]>0)
         {
-            double dx = sc(q)*MIN(pp->DXN[ii+marge],pp->DYN[jj+marge]);
+            double dx = sc(q)*((pp->j_dir==1) ? MIN(pp->DXN[ii+marge],pp->DYN[jj+marge]) : pp->DXN[ii+marge]);
             cu = MIN(cu, 1.0/((fabs(MAX(p->umax, sqrt(9.81*depthmax)))/dx)));
             cu = MIN(cu, 1.0/((fabs(MAX(p->vmax, sqrt(9.81*depthmax)))/dx)));
         }
@@ -1523,7 +1549,7 @@ void fnpf_amr::level_damping(int l, ghostcell *pgc, int s, int m, int gcval, dou
     {
         fnpf_amr_patch *pc = FP(id);
         for(int ii=EXT; ii<EXT+pc->nx; ++ii)
-        for(int jj=EXT; jj<EXT+pc->ny; ++jj)
+        for(int jj=EY; jj<EY+pc->ny; ++jj)
         vbmax = MAX(vbmax,fabs(pc->c->vb(ii,jj)));
     }
     vbmax = pgc->globalmax(vbmax);
@@ -1576,7 +1602,7 @@ void fnpf_amr::level_damping(int l, ghostcell *pgc, int s, int m, int gcval, dou
         sysp &Q = S[id];
         comms_off guard(pgc);
 
-        const int i0 = EXT, i1 = EXT+pc->nx, j0 = EXT, j1 = EXT+pc->ny;
+        const int i0 = EXT, i1 = EXT+pc->nx, j0 = EY, j1 = EY+pc->ny;
         const int nj = pc->ny;
         const int N = pc->nx*pc->ny;
         Q.nx = pc->nx;
@@ -1663,7 +1689,7 @@ void fnpf_amr::level_damping(int l, ghostcell *pgc, int s, int m, int gcval, dou
             const int nj = S[id].ny;
             for(int ii=0; ii<S[id].nx; ++ii)
             for(int jj=0; jj<nj; ++jj)
-            U(ii+EXT,jj+EXT) = uu[ii*nj+jj];
+            U(ii+EXT,jj+EY) = uu[ii*nj+jj];
         }
 
         fill_run(l,1,7670+l,
@@ -1794,8 +1820,8 @@ void fnpf_amr::level_damping(int l, ghostcell *pgc, int s, int m, int gcval, dou
         slice &f = sval(id,s,m);
         const int nj = pc->ny;
         for(int ii=EXT; ii<EXT+pc->nx; ++ii)
-        for(int jj=EXT; jj<EXT+pc->ny; ++jj)
-        f(ii,jj) = S[id].x[(ii-EXT)*nj + (jj-EXT)];
+        for(int jj=EY; jj<EY+pc->ny; ++jj)
+        f(ii,jj) = S[id].x[(ii-EXT)*nj + (jj-EY)];
 
         delete S[id].Y;
         delete S[id].Z;
@@ -1923,7 +1949,7 @@ void fnpf_amr::restrict_flags(ghostcell *pgc)
         fnpf_amr_patch *c = FP(q);
         lexer *pp = c->pp;
         for(int ii=EXT; ii<EXT+c->nx; ++ii)
-        for(int jj=EXT; jj<EXT+c->ny; ++jj)
+        for(int jj=EY; jj<EY+c->ny; ++jj)
         c->wfix[lij(pp,ii,jj)] = -1;
     }
 
@@ -1932,11 +1958,11 @@ void fnpf_amr::restrict_flags(ghostcell *pgc)
              [&](reefamr_patch *c, int id, int k, double *v)
              {
                  lexer *pp = c->pp;
-                 const int nby = c->ny/2;
-                 const int i0 = EXT+2*(k/nby), j0 = EXT+2*(k%nby);
+                 const int nby = c->ny>>sy;
+                 const int i0 = EXT+2*(k/nby), j0 = EY+ychild(k%nby);
                  int wt = 1;
                  for(int a=0; a<2; ++a)
-                 for(int b=0; b<2; ++b)
+                 for(int b=0; b<=sy; ++b)
                  if(pp->wet[lij(pp,i0+a,j0+b)]!=1)
                  wt = 0;
                  v[0] = wt;
@@ -1969,15 +1995,15 @@ void fnpf_amr::patch_coast_dist(fnpf_amr_patch &pc, const vector<double> &cpar)
     lexer *pp = pc.pp;
     fdm_fnpf *cc = pc.c;
     const int l = pc.lev;
-    const int nxl = GNX<<l, nyl = GNY<<l;
+    const int nxl = GNX<<l, nyl = GNY<<ysh(l);
     const double dx = pp->DXM;
     const double ext = EXT*dx;
 
     size_t q = 0;
     for(int ii=EXT; ii<EXT+pc.nx; ++ii)
-    for(int jj=EXT; jj<EXT+pc.ny; ++jj, ++q)
+    for(int jj=EY; jj<EY+pc.ny; ++jj, ++q)
     {
-        const int I = ii-EXT+pc.I0, J = jj-EXT+pc.J0;
+        const int I = ii-EXT+pc.I0, J = jj-EY+pc.J0;
         double e = 1.0e20;
         if(pc.I0>0)
         e = MIN(e,(I-pc.I0+0.5)*dx+ext);
