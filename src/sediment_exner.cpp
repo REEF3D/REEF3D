@@ -34,10 +34,15 @@ Author: Hans Bihs
 #include"sediment_mixture.h"
 #include<math.h>
 
-sediment_exner::sediment_exner(lexer* p, ghostcell* pgc) : q0(p),xvec(p),rhsvec(p),M(p),qbx(p),qby(p),qbn(p),cxn(p),cyn(p),bK(p),btd(p),bu(p),bv(p),bz(p),bg(p)
+sediment_exner::sediment_exner(lexer* p, ghostcell* pgc) : q0(p),xvec(p),rhsvec(p),M(p),qbx(p),qby(p),qbn(p),cxn(p),cyn(p),bK(p),btd(p),bu(p),bv(p),bz(p),bg(p),lagfix(p),lagval(p),Ie(p),Isp(p),qse(p),qsn(p),qbb(p),lss(p),lsa(p)
 {
     p_S95 = p->S95;
     noneq_ini=0;
+    
+    SLICEBASELOOP
+    {
+    Isp(i,j) = qsn(i,j) = Ie(i,j) = qse(i,j) = qbb(i,j) = lss(i,j) = lsa(i,j) = lagfix(i,j) = lagval(i,j) = 0.0;
+    }
 
 	if(p->S50==1)
 	gcval_topo=151;
@@ -106,6 +111,9 @@ void sediment_exner::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
     if(p->S33>0)
     non_equillibrium_solve(p,pgc,s); 
     
+    // S 64: the suspended part, relaxed (sediment_exner_lag.cpp)
+    susp_split(p,pgc,s);
+    
     qb_clear(p,s);
     
     pgc->gcsl_start4(p,s->qb,1);
@@ -156,6 +164,9 @@ void sediment_exner::start_RK(lexer* p, ghostcell* pgc, sediment_fdm *s)
     // non-eq.
     if(p->S33>0)
     non_equillibrium_solve(p,pgc,s); 
+    
+    // S 64: the suspended part, relaxed (sediment_exner_lag.cpp)
+    susp_split(p,pgc,s);
     
     qb_clear(p,s);
     

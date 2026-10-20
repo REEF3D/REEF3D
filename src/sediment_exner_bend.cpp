@@ -61,35 +61,8 @@ void sediment_exner::bend_prep(lexer *p, ghostcell *pgc, sediment_fdm *s)
         bg(i,j) = (s->guard(i,j)>0.0) ? 1.0 : 0.0;
         }
 
-        const double d = (s->pmix!=nullptr) ? s->dk : p->S20;
+        bend_K(p,pgc,s);
 
-        SEDSLICELOOP
-        {
-            const double theta = MAX(s->shields_eff(i,j),1.0e-6);
-            const double h = MAX(s->waterlevel(i,j),1.0e-4);
-            const double f = p->S87*pow(theta,p->S88)*pow(d/h,p->S89);
-            bK(i,j) = (f>1.0e-10) ? s->qb(i,j)/f : 0.0;
-        }
-
-        bend_rate = 0.0;
-        SEDSLICELOOP
-        {
-            double w1, w2;
-            if(p->geo_curv==1)
-            {
-            w1 = sediment_curv::width(p,1,i,j);
-            w2 = sediment_curv::width(p,2,i,j);
-            }
-            else
-            {
-            w1 = p->DXN[IP];
-            w2 = p->DYN[JP];
-            }
-            const double r = 1.0/(w1*w1) + ((p->j_dir==1 && p->gknoy>1) ? 1.0/(w2*w2) : 0.0);
-            bend_rate = MAX(bend_rate, bK(i,j)*r);
-        }
-
-        pgc->gcsl_start4(p,bK,1);
         pgc->gcsl_start4(p,bz,1);
         pgc->gcsl_start4(p,bg,1);
     }
@@ -170,12 +143,59 @@ void sediment_exner::bend_prep(lexer *p, ghostcell *pgc, sediment_fdm *s)
             const double alpha = MAX(0.0, p->S96*2.0/(kappa*kappa)*(1.0 - sqrt(g)/(kappa*C)));
             const double h = MAX(s->waterlevel(i,j),0.0);
 
+            // S 95 2: the equilibrium intensity, relaxed below (sediment_exner_lag.cpp)
+            if(p->S95==2)
+            Ie(i,j) = h*U*curv;
+            else
             btd(i,j) = MAX(-1.0, MIN(1.0, alpha*h*curv));
+        }
+
+        if(p->S95==2)
+        {
+        SEDSLICELOOP
+        if(sqrt(bu(i,j)*bu(i,j) + bv(i,j)*bv(i,j))<1.0e-4)
+        Ie(i,j) = 0.0;
+        spiral_lag(p,pgc,s);
         }
 
         pgc->gcsl_start4(p,btd,1);
 
     }
+}
+
+// S 86: qb/f(theta) of the slope flux and the largest rate of its explicit diffusion (the time step); again after
+// the lags of the suspended load moved qb (lag_refresh)
+void sediment_exner::bend_K(lexer *p, ghostcell *pgc, sediment_fdm *s)
+{
+    const double d = (s->pmix!=nullptr) ? s->dk : p->S20;
+
+    SEDSLICELOOP
+    {
+        const double theta = MAX(s->shields_eff(i,j),1.0e-6);
+        const double h = MAX(s->waterlevel(i,j),1.0e-4);
+        const double f = p->S87*pow(theta,p->S88)*pow(d/h,p->S89);
+        bK(i,j) = (f>1.0e-10) ? s->qb(i,j)/f : 0.0;
+    }
+
+    bend_rate = 0.0;
+    SEDSLICELOOP
+    {
+        double w1, w2;
+        if(p->geo_curv==1)
+        {
+        w1 = sediment_curv::width(p,1,i,j);
+        w2 = sediment_curv::width(p,2,i,j);
+        }
+        else
+        {
+        w1 = p->DXN[IP];
+        w2 = p->DYN[JP];
+        }
+        const double r = 1.0/(w1*w1) + ((p->j_dir==1 && p->gknoy>1) ? 1.0/(w2*w2) : 0.0);
+        bend_rate = MAX(bend_rate, bK(i,j)*r);
+    }
+
+    pgc->gcsl_start4(p,bK,1);
 }
 
 // the transport direction un/|u| of a face turned to the left by delta (tan(delta) = td), ut the component

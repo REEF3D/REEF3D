@@ -1121,6 +1121,9 @@ void control::ini_default()
     S89=0.3;                // double d/h exponent C_sh of f(theta) (0.3)
     S95=0;                  // int spiral-flow correction of the bed-load direction (depth-averaged SFLOW): 1 tan(delta) = alpha_I h/R_s
     S96=1.0;                // double spiral-flow intensity factor E_spir of alpha_I = E_spir 2/kappa^2 (1 - sqrt(g)/(kappa C))
+    S97=1.0;                // double S 95 2: factor of the adaptation length of the spiral flow L_a = S97 (m-1) h/(2 kappa^2), m = kappa C/sqrt(g)
+    S64=0.0;                // double SFLOW: suspended part f_s of the transport formula, relaxed over L_s = h|U|/(S65 ws) (0: off)
+    S65=1.0;                // double S 64: ratio of the near-bed to the depth-averaged concentration in L_s
     S90=0;                  // int sandslide on/off
     S91=1;                  // int number of sandslide iterations
     S92=1.0;                // double sandslide correction factor

@@ -2210,6 +2210,12 @@ void control::ctrlsend()
     ii++;
     dctrl[dd] = S96;
     dd++;
+    dctrl[dd] = S97;
+    dd++;
+    dctrl[dd] = S64;
+    dd++;
+    dctrl[dd] = S65;
+    dd++;
     ictrl[ii] = S90;
     ii++;
     ictrl[ii] = S91;

@@ -27,6 +27,7 @@ Author: Hans Bihs
 #include"sediment_fdm.h"
 #include"bedshear.h"
 #include"sediment_mixture.h"
+#include"sediment_exner.h"
 #include<cstring>
 
 void sediment_f::name_ParaView_parallel_bedload(lexer *p, ofstream &result)
@@ -36,6 +37,10 @@ void sediment_f::name_ParaView_parallel_bedload(lexer *p, ofstream &result)
     result<<"<PDataArray type=\"Float32\" Name=\"ST_qbs\"/>\n";
     result<<"<PDataArray type=\"Float32\" Name=\"ST_cbe\"/>\n";
     result<<"<PDataArray type=\"Float32\" Name=\"ST_cb\"/>\n";
+    
+    // S 95 2: the spiral-flow intensity (SFLOW)
+    if(p->S95==2)
+    result<<"<PDataArray type=\"Float32\" Name=\"ST_spiral\"/>\n";
     
     // multi-fraction bed
     if(s->pmix!=nullptr)
@@ -62,6 +67,12 @@ void sediment_f::name_ParaView_bedload(lexer *p, ostream &result, int *offset, i
     ++n;
     result<<"<DataArray type=\"Float32\" Name=\"ST_cb\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
+    
+    if(p->S95==2)
+    {
+    result<<"<DataArray type=\"Float32\" Name=\"ST_spiral\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
+    ++n;
+    }
     
     // multi-fraction bed
     if(s->pmix!=nullptr)
@@ -95,6 +106,12 @@ void sediment_f::offset_ParaView_2D_bedload(lexer *p, int *offset, int &n)
 	++n;
     offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
 	++n;
+    
+    if(p->S95==2)
+    {
+    offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
+	++n;
+    }
     
     if(s->pmix!=nullptr)
     for(int q=0;q<s->pmix->nfields();++q)
@@ -298,6 +315,21 @@ void sediment_f::print_2D_bedload(lexer* p, ghostcell *pgc, ofstream &result)
 	result.write((char*)&ffn, sizeof (float));
 	}
     
+    // S 95 2: the spiral-flow intensity
+    if(p->S95==2)
+    {
+    slice4 &sp = exner()->bend_slice(5);
+    pgc->gcsl_start4(p,sp,1);
+    
+	iin=4*(p->pointnum2D);
+    result.write((char*)&iin, sizeof (int));
+	
+	TPSLICELOOP
+	{
+    ffn=float(p->sl_ipol4(sp));
+	result.write((char*)&ffn, sizeof (float));
+	}
+    }
     
     // multi-fraction bed
     if(s->pmix!=nullptr)
