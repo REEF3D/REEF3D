@@ -69,7 +69,10 @@ bool mooring_system::equilibrium(const model &m, double t)
         kmode_ = 0;
     // lines on their own (block-tridiagonal Newton); if that fails (stiff lines whose catenary start has
     // slack segments) or with points, the whole system (compression stage, dynamic relaxation)
-    bool ok = points_.empty() && equilibrium_lines(m, t);
+    bool flat = true;
+    for(const line_t &L : lines_)
+        flat = flat && !L.surf && !L.fbed;
+    bool ok = points_.empty() && flat && equilibrium_lines(m, t);
     if(!ok)
         ok = equilibrium_system(m, t);
     for(auto &x : v_) x.setZero();
@@ -238,8 +241,12 @@ bool mooring_system::point_statics(const model &m)
             const double fs = std::clamp((eta - Q[j](2))/hz + 0.5, 0.0, 1.0);
             Vec3 F = (p.mass - fs*rho*p.volume)*m.gravity;
             const double rc = p.radius >= 0.0 ? p.radius : std::max(rv, 0.05);
-            if(Q[j](2) - rc < Pt.zbed)
-                F(2) += p.kb*(Pt.zbed - Q[j](2) + rc)*M_PI*rc*rc;
+            double zb = Pt.zbed;
+            Vec3 nb = Vec3::UnitZ();
+            if(Pt.surf || Pt.fbed)
+                seabed_at(Pt.idx, Q[j], Pt.surf, Pt.fbed, zb, nb);
+            if(Q[j](2) - rc/nb(2) < zb)
+                F += p.kb*((zb - Q[j](2))*nb(2) + rc)*M_PI*rc*rc*nb;
             R.segment<3>(3*j) += F;
         }
     };
@@ -340,8 +347,13 @@ bool mooring_system::equilibrium_system(const model &m, double t)
             const double wsub = (p.mass - p.rho*0.25*M_PI*p.d*p.d)*m.gravity.norm();
             const double dz = std::max(wsub, 0.0)/(p.kb*p.d);
             for(int i=1; i<L.N; ++i)
-                if(r_[L.off+i](2) <= L.zbed + 1.0e-9*std::max(1.0, std::fabs(L.zbed)))
-                    r_[L.off+i](2) = L.zbed - dz;
+            {
+                double zb = L.zbed;
+                Vec3 nb;
+                if(L.surf || L.fbed) seabed_at(L.off+i, r_[L.off+i], L.surf, L.fbed, zb, nb);
+                if(r_[L.off+i](2) <= zb + 1.0e-9*std::max(1.0, std::fabs(zb)))
+                    r_[L.off+i](2) = zb - dz;
+            }
         }
     }
     // colours: unknowns of one colour have disjoint rows

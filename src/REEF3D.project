@@ -877,6 +877,7 @@
           <File Name="coral/mooring/README.md"/>
           <File Name="coral/mooring/coral_catenary.h"/>
           <File Name="coral/mooring/coral_mooring.h"/>
+          <File Name="coral/mooring/coral_seabed.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="PTO">
           <File Name="coral/pto/README.md"/>
@@ -2484,6 +2485,7 @@
           <File Name="coral/mooring/coral_mooring.cpp"/>
           <File Name="coral/mooring/coral_mooring_setup.cpp"/>
           <File Name="coral/mooring/coral_mooring_static.cpp"/>
+          <File Name="coral/mooring/coral_seabed.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="PTO">
           <File Name="coral/pto/coral_pto.cpp"/>

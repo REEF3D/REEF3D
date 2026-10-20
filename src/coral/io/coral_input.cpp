@@ -42,6 +42,7 @@ Architect: Hans Bihs
 #include"coral/hydro/coral_sampled_kinematics.h"
 #include"coral/hydro/coral_member_fluid_load.h"
 #include"coral/mooring/coral_mooring.h"
+#include"coral/mooring/coral_seabed.h"
 #include<cmath>
 #include<fstream>
 #include<functional>
@@ -499,6 +500,25 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
         joints[name] = &j;
     }
 
+    // bathymetry of the dynamic mooring lines: plane, grid file, or the resolved fluid's bed (with
+    // fluid_kinematics)
+    std::shared_ptr<const seabed_surface> bathy;
+    for(const item &it : items)
+        if(it.t[0]=="bathymetry")
+        {
+            const std::string type = it.word(1);
+            if(type=="plane")
+                bathy = std::make_shared<seabed_plane>(it.num(2), it.t.size() > 3 ? it.num(3) : 0.0, it.t.size() > 4 ? it.num(4) : 0.0);
+            else if(type=="grid")
+                bathy = std::make_shared<seabed_grid>(seabed_grid::read(path(it.word(2))));
+            else if(type=="fluid")
+            {
+                if(!fluid_kin) it.fail("bathymetry fluid needs fluid_kinematics");
+                fluid_bed = true;
+            }
+            else
+                it.fail("bathymetry plane <z0> [<sx> <sy>] | grid <file> | fluid");
+        }
     // line types: properties of mooring lines for 'type' and 'section'
     std::map<std::string, mooring_props> line_types;
     auto read_props = [&](const item &it, mooring_props p, bool need)
@@ -650,6 +670,8 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
     {
         const item &first = *g.lines[0];
         auto sys = std::make_unique<mooring_system>(m, kin, first.vec("current", Vec3::Zero()), first.word(1));
+        if(bathy || fluid_bed)
+            sys->set_seabed(bathy, fluid_bed);
         std::map<std::string, int> pidx;
         // the seabed of the group: the lowest ground end of its lines
         double zsys = -1.0e30;
@@ -681,6 +703,7 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
             if(pp.mass < 0.0 || pp.volume < 0.0 || pp.CdA < 0.0) pi->fail("mass, volume and CdA must not be negative");
             const double zb = pi->has("no_seabed") ? -1.0e30 : pi->get("seabed", zsys);
             pidx[pi->word(1)] = sys->add_point(pi->word(1), pi->vec(2), pp, zb);
+            if(pi->has("seabed")) sys->set_point_flat(pidx[pi->word(1)]);
         }
         double dt = 0.0, settle = 0.0;
         bool exact = false, nostatic = false;
@@ -706,11 +729,15 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
                 ends[0] = ea;
                 ends[sec.size()] = eb;
                 for(size_t q=0; q<J.size(); ++q)
+                {
                     ends[q+1].point = sys->add_point(it.word(1) + ".p" + std::to_string(q+1), J[q], mooring_point_props(), zbed);
+                    if(it.has("seabed")) sys->set_point_flat(ends[q+1].point);
+                }
                 int first = -1, last = -1;
                 for(size_t q=0; q<sec.size(); ++q)
                 {
                     last = sys->add_line(m, it.word(1) + "." + std::to_string(q+1), ends[q], ends[q+1], sec[q].p, sec[q].nseg, zbed);
+                    if(it.has("seabed")) sys->set_line_flat(last);
                     if(q==0) first = last;
                 }
                 // a failure of the line: of the section at that end (the tension: at either end)
@@ -729,6 +756,7 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
             {
                 const int q = sys->add_line(m, it.word(1), ea, eb, sec.size()==1 ? sec[0].p : line_props(it),
                                             sec.size()==1 ? sec[0].nseg : (int)it.get("nseg", 20), zbed);
+                if(it.has("seabed")) sys->set_line_flat(q);
                 bool any = false;
                 const mooring_break b = line_break(it, any);
                 if(any) sys->set_break(q, b);
@@ -930,6 +958,8 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
                                                         zbed, it.get("dt_line", 0.0), name);
                 l->set_exact_kinematics(it.has("exact_kinematics"));
                 l->set_static_start(!it.has("no_static"));
+                if((bathy || fluid_bed) && !it.has("seabed"))
+                    l->set_seabed(bathy, fluid_bed);
                 bool any = false;
                 const mooring_break b = line_break(it, any);
                 if(any) l->set_break(0, b);
@@ -1108,7 +1138,7 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
         else if(k!="gravity" && k!="rho" && k!="time" && k!="output" && k!="waves" && k!="body" && k!="joint"
                 && k!="section" && k!="member" && k!="point_mass" && k!="static" && k!="modes"
                 && k!="superelement" && k!="soil" && k!="soil_layer" && k!="pile" && k!="force" && k!="fluid_kinematics"
-                && k!="point" && k!="line_type")
+                && k!="point" && k!="line_type" && k!="bathymetry")
             it.fail("unknown keyword");
     }
     if(!fluid_bodies.empty())

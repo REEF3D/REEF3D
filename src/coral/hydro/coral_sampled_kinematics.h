@@ -29,7 +29,8 @@ Architect: Hans Bihs
 // the local acceleration is its time derivative. A request at an index of an owner returns the values
 // of that point; points outside the fluid domain, requests before the first sample and requests without
 // an index take the background waves (CORAL's own wave_field, if given) or still water.
-// The dynamic pressure is not sampled (0).
+// The dynamic pressure is not sampled (0). The bed under the points (z) comes with the samples where the fluid
+// has one (bed_at: the last sample, for the seabed of the mooring lines with bathymetry fluid).
 
 #ifndef CORAL_SAMPLED_KINEMATICS_H_
 #define CORAL_SAMPLED_KINEMATICS_H_
@@ -53,12 +54,15 @@ namespace coral
         void kinematics(const Vec3 &p, double t, Vec3 &u, Vec3 &du, double &p_rho) const override;
         double elevation_at(const void *owner, int index, const Vec3 &p, double t) const override;
         void kinematics_at(const void *owner, int index, const Vec3 &p, double t, Vec3 &u, Vec3 &du, double &p_rho) const override;
+        // the bed under the point in the last sample (NaN outside the fluid domain or without bed samples)
+        double bed_at(const void *owner, int index, const Vec3 &p) const override;
 
         // the points of all loads that take their kinematics from here, at their current positions (in
         // sampling order); a change in the number of points drops the earlier samples
         void collect(const model&, std::vector<Vec3> &points);
         // the fluid at time t at the points of the last collect: velocity, surface elevation, inside (0/1)
-        void add_sample(double t, const std::vector<Vec3> &u, const std::vector<double> &eta, const std::vector<int> &inside);
+        void add_sample(double t, const std::vector<Vec3> &u, const std::vector<double> &eta, const std::vector<int> &inside,
+                        const std::vector<double> &bed={});
 
         int npoints() const {return n_;}
         int nsamples() const {return (int)lev_.size();}
@@ -71,7 +75,7 @@ namespace coral
         bool load_state(const std::vector<double>&, size_t &k);
 
     private:
-        struct level {double t; std::vector<Vec3> u; std::vector<double> eta; std::vector<int> in;};
+        struct level {double t; std::vector<Vec3> u; std::vector<double> eta; std::vector<int> in; std::vector<double> bed;};
         // index of (owner, index) in the samples, -1: none
         int find(const void *owner, int index) const;
         // Lagrange weights of the last levels at t and of their time derivative

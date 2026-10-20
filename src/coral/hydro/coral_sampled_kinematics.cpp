@@ -24,6 +24,7 @@ Architect: Hans Bihs
 #include"coral/core/coral_state.h"
 #include"coral/core/coral_model.h"
 #include<algorithm>
+#include<limits>
 
 namespace coral
 {
@@ -61,13 +62,14 @@ void sampled_kinematics::collect(const model &m, std::vector<Vec3> &points)
     n_ = (int)points.size();
 }
 
-void sampled_kinematics::add_sample(double t, const std::vector<Vec3> &u, const std::vector<double> &eta, const std::vector<int> &inside)
+void sampled_kinematics::add_sample(double t, const std::vector<Vec3> &u, const std::vector<double> &eta, const std::vector<int> &inside,
+                                    const std::vector<double> &bed)
 {
-    if((int)u.size() != n_ || (int)eta.size() != n_ || (int)inside.size() != n_)
+    if((int)u.size() != n_ || (int)eta.size() != n_ || (int)inside.size() != n_ || (!bed.empty() && (int)bed.size() != n_))
         return;
     while(!lev_.empty() && lev_.back().t >= t)
         lev_.pop_back();
-    lev_.push_back(level{t, u, eta, inside});
+    lev_.push_back(level{t, u, eta, inside, bed});
     while(lev_.size() > 3)
         lev_.pop_front();
 }
@@ -142,6 +144,14 @@ void sampled_kinematics::kinematics_at(const void *owner, int index, const Vec3 
     p_rho = 0.0;
 }
 
+double sampled_kinematics::bed_at(const void *owner, int index, const Vec3&) const
+{
+    const int q = find(owner, index);
+    if(q < 0 || lev_.empty() || lev_.back().bed.empty())
+        return std::numeric_limits<double>::quiet_NaN();
+    return lev_.back().bed[q];
+}
+
 void sampled_kinematics::save_state(std::vector<double> &v) const
 {
     state_out o{v};
@@ -152,6 +162,7 @@ void sampled_kinematics::save_state(std::vector<double> &v) const
         o.list(l.u, [&](const Vec3 &x){o.m(x);});
         o.vd(l.eta);
         o.list(l.in, [&](int x){o.i(x);});
+        o.vd(l.bed);
     });
 }
 
@@ -165,6 +176,7 @@ bool sampled_kinematics::load_state(const std::vector<double> &v, size_t &k)
         in.list(l.u, [&](Vec3 &x){in.m(x);});
         in.vd(l.eta);
         in.list(l.in, [&](int &x){in.i(x);});
+        in.vd(l.bed);
     });
     k = in.k;
     return in.ok;

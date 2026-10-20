@@ -72,6 +72,8 @@ void mooring_system::break_line(int k, int e, double t)
     point_t P;
     P.name = L.name + (e==0 ? ".a" : ".b");
     P.zbed = L.zbed;
+    P.surf = L.surf;
+    P.fbed = L.fbed;
     P.free_end = true;
     points_.push_back(P);
     pr.push_back(r);
@@ -126,6 +128,8 @@ int mooring_system::add_point(const std::string &name, const Vec3 &p, const moor
     P.name = name;
     P.p = pp;
     P.zbed = z_seabed;
+    P.surf = sb_ && z_seabed > -1.0e29;
+    P.fbed = fbed_ && z_seabed > -1.0e29;
     points_.push_back(P);
     pr.push_back(p);
     layout(lr, pr);
@@ -273,6 +277,8 @@ int mooring_system::add_line(const model &m, const std::string &name, const moor
     L.N = std::max(nseg, 2);
     L.l = p.L/L.N;
     L.zbed = z_seabed;
+    L.surf = sb_ && z_seabed > -1.0e29;
+    L.fbed = fbed_ && z_seabed > -1.0e29;
     const double l_ = L.l;
     const double mn0 = p.mass*l_;
     // explicit RK4: dt from the axial and seabed frequencies and the damping
@@ -322,6 +328,24 @@ int mooring_system::add_line(const model &m, const std::string &name, const moor
     layout(lr, pr);
     update_dt();
     return k;
+}
+
+void mooring_system::set_seabed(std::shared_ptr<const seabed_surface> sb, bool fluid_bed)
+{
+    sb_ = std::move(sb);
+    fbed_ = fluid_bed;
+    for(line_t &L : lines_)
+    {
+        L.surf = sb_ && L.zbed > -1.0e29;
+        L.fbed = fbed_ && L.zbed > -1.0e29;
+    }
+    for(point_t &P : points_)
+    {
+        P.surf = sb_ && P.zbed > -1.0e29;
+        P.fbed = fbed_ && P.zbed > -1.0e29;
+    }
+    ++gen_;
+    cvalid_ = false;
 }
 
 void mooring_system::set_dt_line(double dt)

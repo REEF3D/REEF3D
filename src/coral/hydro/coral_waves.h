@@ -32,6 +32,7 @@ Architect: Hans Bihs
 #define CORAL_WAVES_H_
 
 #include"coral/core/coral_types.h"
+#include<limits>
 #include<vector>
 
 namespace coral
@@ -63,6 +64,8 @@ namespace coral
         virtual double elevation_at(const void*, int, const Vec3 &p, double t) const {return elevation(p(0), p(1), t);}
         virtual void kinematics_at(const void*, int, const Vec3 &p, double t, Vec3 &u, Vec3 &du, double &p_rho) const
         {kinematics(p, t, u, du, p_rho);}
+        // z of the bed under point index of owner (a resolved fluid's bed); NaN: not known
+        virtual double bed_at(const void*, int, const Vec3&) const {return std::numeric_limits<double>::quiet_NaN();}
     };
 
     class wave_field : public wave_kinematics

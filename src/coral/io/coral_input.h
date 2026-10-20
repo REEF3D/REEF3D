@@ -84,6 +84,12 @@ Architect: Hans Bihs
 //        dynamic line takes the free surface and kinematics of the waves of coral.txt, of the resolved fluid
 //        with fluid_kinematics, or else still water at z = 0 of CORAL's frame: with REEF3D set
 //        fluid_coupling origin 0 0 <F 60> or fluid_kinematics, CORAL warns otherwise)
+//   bathymetry plane <z0> [<sx> <sy>] | grid <file> | fluid
+//        (the seabed of the dynamic mooring lines and points that have one, instead of their flat heights, except those
+//        with 'seabed <z>': the plane z0 + sx x + sy y, a grid of heights (header 'nx ny x0 y0 dx dy', then nx*ny heights,
+//        x fastest; bilinear, its edge outside), or the bed of the resolved fluid at the nodes (FNPF, NHFLOW, with
+//        fluid_kinematics; elsewhere the flat height); contact along the normal of the plane or grid, vertical on the
+//        fluid's bed; the quasi-static lines keep their flat seabed)
 //   point <name> <x y z> [mass <m>] [volume <V>] [CdA <A>] [Ca <c>] [radius <r>] [kb <k>] [cb <c>] [mu <mu>] [v_eps <v>]
 //        [seabed <z> | no_seabed]
 //        (a free point of a mooring system: bridle node, clump weight, buoy, junction of two lines; dynamic lines
@@ -208,6 +214,7 @@ namespace coral
         std::vector<fluid_body_spec> fluid_bodies;
         fluid_load *fluid = nullptr;
         std::shared_ptr<sampled_kinematics> fluid_kin;     // fluid_kinematics
+        bool fluid_bed = false;                             // bathymetry fluid: the mooring lines on the fluid's bed
         struct fluid_member_spec {member_fluid_load *load = nullptr; int n = 0;};
         std::vector<fluid_member_spec> fluid_members;       // fluid_member
         Vec3 fluid_origin = Vec3::Zero();

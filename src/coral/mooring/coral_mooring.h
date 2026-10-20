@@ -62,6 +62,7 @@ Architect: Hans Bihs
 #include"coral/core/coral_state.h"
 #include"coral/mooring/coral_catenary.h"
 #include"coral/hydro/coral_waves.h"
+#include"coral/mooring/coral_seabed.h"
 #include<limits>
 #include<memory>
 #include<string>
@@ -174,6 +175,13 @@ namespace coral
                      int nseg, double z_seabed=-1.0e30);
         // sub-step of the explicit scheme (0: automatic, the smallest stable step of the lines and points)
         void set_dt_line(double dt);
+        // the seabed of the lines and points that have one (a flat height above -1e30) is the surface (plane,
+        // grid) instead of their flat heights; fluid_bed: the bed of the resolved fluid at the nodes where the
+        // wave kinematics know it (wave_kinematics::bed_at), else the surface or the flat height (the lines and
+        // points there and those added later); set_line_flat(k): line k keeps its flat seabed
+        void set_seabed(std::shared_ptr<const seabed_surface> s, bool fluid_bed=false);
+        void set_line_flat(int k) {lines_[k].surf = lines_[k].fbed = false;}
+        void set_point_flat(int j) {points_[j].surf = points_[j].fbed = false;}
         // failure of line k (checked at each converged step; channel <line>_broken)
         void set_break(int k, const mooring_break &b) {lines_[k].brk = b; lines_[k].has_break = true;}
         bool line_broken(int k) const {return lines_[k].broken >= 0;}
@@ -230,6 +238,7 @@ namespace coral
             int N = 0;
             double l = 0.0;            // unstretched segment length
             double zbed = -1.0e30;     // flat seabed
+            bool surf = false, fbed = false;               // seabed: the surface, the fluid's bed
             int off = 0;               // first node in the system's node arrays (N + 1 nodes)
             int pt[2] = {-1, -1};      // end on a free point (index), else -1
             int att[2] = {-1, -1};     // end on a body or the ground: attachment index
@@ -250,6 +259,7 @@ namespace coral
             mooring_point_props p;
             int idx = 0;               // node of the point in the node arrays
             double zbed = -1.0e30;     // flat seabed
+            bool surf = false, fbed = false;
             std::vector<std::pair<int,int>> ends;           // attached (line, end)
             bool free_end = false;     // the free end of a broken line (no channels)
         };
@@ -264,10 +274,12 @@ namespace coral
         };
         struct end_motion {Vec3 r0, v0, r1, v1;};          // Hermite data of a body end over the step
         // wave kinematics at the converged nodes at time t (gen: the converged state they belong to)
-        struct node_kin {double t = 0.0; long gen = -1; std::vector<double> eta; std::vector<Vec3> u, du;};
+        struct node_kin {double t = 0.0; long gen = -1; std::vector<double> eta, bed; std::vector<Vec3> u, du;};
 
         const node_kin &kinematics(int slot, double t) const;
         void water(int i, const Vec3 &x, double t, double &eta, Vec3 &u, Vec3 &du) const;
+        // the seabed under node i at x (surface or fluid bed): height and unit normal; false: the flat seabed
+        bool seabed_at(int i, const Vec3 &x, bool surf, bool fbed, double &zb, Vec3 &n) const;
         // accelerations of the inner nodes of line k for the state (its end nodes set), end forces and masses
         void line_accel(const line_t&, const state&, double t, std::vector<Vec3> &a, double extra) const;
         // accelerations of all inner nodes and points; the ends of the lines in s must be set
@@ -295,6 +307,8 @@ namespace coral
         Vec3 current_;
         Vec3 g_;
         double dt_ = 0.0, dt_set_ = 0.0;
+        std::shared_ptr<const seabed_surface> sb_;
+        bool fbed_ = false;
         std::vector<line_t> lines_;
         std::vector<point_t> points_;
         std::vector<attach_t> att_;

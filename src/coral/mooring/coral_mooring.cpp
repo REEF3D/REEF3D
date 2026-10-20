@@ -136,7 +136,35 @@ const mooring_system::node_kin &mooring_system::kinematics(int slot, double t) c
         double pr;
         waves_->kinematics_at(this, i, r_[i], t, k.u[i], k.du[i], pr);
     }
+    if(fbed_)
+    {
+        k.bed.resize(n);
+        for(int i=0; i<n; ++i)
+            k.bed[i] = waves_->bed_at(this, i, r_[i]);
+    }
     return k;
+}
+
+bool mooring_system::seabed_at(int i, const Vec3 &x, bool surf, bool fbed, double &zb, Vec3 &n) const
+{
+    if(fbed && waves_)
+    {
+        const node_kin &k = kin_[0];
+        const double b = (k.gen==gen_ && (int)k.bed.size() > i) ? k.bed[i] : waves_->bed_at(this, i, x);
+        if(std::isfinite(b))
+        {
+            zb = b;
+            n = Vec3::UnitZ();
+            return true;
+        }
+    }
+    if(surf && sb_)
+    {
+        zb = sb_->z(x(0), x(1));
+        n = sb_->normal(x(0), x(1));
+        return true;
+    }
+    return false;
 }
 
 void mooring_system::water(int i, const Vec3 &x, double t, double &eta, Vec3 &u, Vec3 &du) const
@@ -229,8 +257,32 @@ void mooring_system::line_accel(const line_t &L, const state &s, double t, std::
         }
         // seabed: penalty and damping normal to it, Coulomb friction (regularized) with mu across and mu_axial
         // along the line (elliptic limit: F = -Fz (mua^2 va ea + mu^2 vt et) / |(mua va, mu vt)|, the
-        // isotropic Coulomb law for mua = mu)
-        if(x(2) < zbed_)
+        // isotropic Coulomb law for mua = mu); a surface or the fluid's bed: along its normal n, the
+        // penetration (zb - z) n_z, the friction in its tangent plane
+        double zs;
+        Vec3 nb;
+        if((L.surf || L.fbed) && seabed_at(o + node, x, L.surf, L.fbed, zs, nb))
+        {
+            if(x(2) < zs)
+            {
+                const double Fn = std::max(0.0, (p.kb*(zs - x(2))*nb(2) - p.cb*vx.dot(nb))*p.d*ll);
+                F += Fn*nb;
+                const double mua = p.mu_axial >= 0.0 ? p.mu_axial : p.mu;
+                const Vec3 vh = vx - vx.dot(nb)*nb;
+                const double vn = vh.norm();
+                if(Fn > 0.0 && vn > 0.0 && (p.mu > 0.0 || mua > 0.0))
+                {
+                    Vec3 e = q - q.dot(nb)*nb;
+                    const double en = e.norm();
+                    e = en > 1.0e-6 ? Vec3(e/en) : Vec3(vh/vn);
+                    const Vec3 va = vh.dot(e)*e, vt = vh - va;
+                    const double wn = std::sqrt(mua*mua*va.squaredNorm() + p.mu*p.mu*vt.squaredNorm());
+                    if(wn > 0.0)
+                        F -= (Fn*std::tanh(vn/p.v_eps)/wn)*(mua*mua*va + p.mu*p.mu*vt);
+                }
+            }
+        }
+        else if(x(2) < zbed_)
         {
             const double Fz = std::max(0.0, (p.kb*(zbed_ - x(2)) - p.cb*vx(2))*p.d*ll);
             F(2) += Fz;
@@ -304,15 +356,18 @@ void mooring_system::accel(const state &s, double t, std::vector<Vec3> &a, doubl
             if(kmode_==1 || kmode_==2)
                 F += fs*rho*p.volume*(1.0 + p.Ca)*aw;
         }
-        // seabed: contact of the sphere of the contact radius
-        const double zb = P.zbed;
+        // seabed: contact of the sphere of the contact radius (along the normal of a surface or the fluid's bed)
+        double zb = P.zbed;
+        Vec3 nb = Vec3::UnitZ();
+        if(P.surf || P.fbed)
+            seabed_at(i, x, P.surf, P.fbed, zb, nb);
         const double rc = p.radius >= 0.0 ? p.radius : std::max(rv, 0.05);
-        if(x(2) - rc < zb)
+        if(x(2) - rc/nb(2) < zb)
         {
             const double Ac = M_PI*rc*rc;
-            const double Fz = std::max(0.0, (p.kb*(zb - x(2) + rc) - p.cb*vx(2))*Ac);
-            F(2) += Fz;
-            const Vec3 vh(vx(0), vx(1), 0.0);
+            const double Fz = std::max(0.0, (p.kb*((zb - x(2))*nb(2) + rc) - p.cb*vx.dot(nb))*Ac);
+            F += Fz*nb;
+            const Vec3 vh = vx - vx.dot(nb)*nb;
             const double vn = vh.norm();
             if(Fz > 0.0 && vn > 0.0 && p.mu > 0.0)
                 F -= (p.mu*Fz*std::tanh(vn/p.v_eps)/vn)*vh;
