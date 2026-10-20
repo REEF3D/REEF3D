@@ -684,7 +684,7 @@ void fnpf_amr::lap_prec_win(int kr, int kz)
             L.f[lq] = r[fidx(p0,ii,jj,kk)];
         }
 
-        mg0->vcycle(0,1,1);
+        lap_l0solve();
 
         for(int ii=0; ii<p0->knox; ++ii)
         for(int jj=0; jj<p0->knoy; ++jj)

@@ -26,6 +26,7 @@ Architect: Hans Bihs
 #include"reefamr.h"
 #include"amr_grid_lookup.h"
 #include"fnpf_laplace.h"
+#include"reefamr_xzlu.h"
 #include<vector>
 #include<fstream>
 
@@ -132,6 +133,7 @@ struct fnpf_amr_patch : public reefamr_patch
     vector<int> row;                // FIJK -> matrix row of the patch assembly, -1 none
     int serial = -1;                // unique number of the patch (body grids follow it)
     reefmg_core *mg = nullptr;      // patch-local multigrid of the preconditioner
+    reefamr_xzlu xz;                // a 2D grid: the exact patch-local solve instead of the V-cycle
     vector<int> fill1;              // the entries of fill next to the patch (the reach of the Laplace rows)
     vector<int> fill2;              // the entries of fill within two columns of the patch (the stencils of the prolongation into the next finer level)
 };
@@ -301,6 +303,9 @@ private:
     vector<lgrid> lg;               // [g+1]
     vector<double*> kv0;            // level-0 Krylov vectors
     reefmg_core *mg0 = nullptr;     // level-0 multigrid of the preconditioner
+    reefamr_xzlu xz0;               // a 2D grid on one rank: the exact level-0 solve instead of the V-cycle
+    bool xz0on = false;
+    void lap_l0solve();
     vector<int> rowmap0;            // level 0: FIJK -> matrix row
     long lap_it_total, lap_solves;
     int lap_it_last;

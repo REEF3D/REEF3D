@@ -75,6 +75,7 @@
       <File Name="reefamr.h"/>
       <File Name="reefamr_sed.h"/>
       <File Name="reefamr_krylov.h"/>
+      <File Name="reefamr_xzlu.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Solver">
       <VirtualDirectory Name="REEFMG">
