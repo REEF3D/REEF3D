@@ -21,6 +21,7 @@ Author: Tobias Martin
 --------------------------------------------------------------------*/
 
 #include"beam.h"
+#include"ckpt_pack.h"
 
 beam::beam(int number):nBeam(number),iout(0),imas(0),ijac(0)
 {
@@ -170,4 +171,36 @@ void beam::getState(double *state)
         qdot(2,i) = state[index++];
         qdot(3,i) = state[index++];
     }
+}
+
+// checkpoints (P 48, I 45)
+void beam::ckpt_beam_state(std::vector<double> &v) const
+{
+    ckpt_put w{v};
+    w.i(n_dim);
+    w.ad(y,n_dim);
+    for(const Matrix3Xd *a : {&Fext,&c,&cdot,&cdotdot,&rhs_cdot,&f})
+    w.m(*a);
+    for(const Matrix4Xd *a : {&Mext,&q,&qdot,&rhs_qdot,&f0,&m0})
+    w.m(*a);
+    for(double x : {delta_t,hold,xold,x,x_end,xd,printtime})
+    w.d(x);
+}
+
+void beam::ckpt_beam_restore(const std::vector<double> &v, size_t &k)
+{
+    ckpt_get r{v};
+    r.k = k;
+    int n=0;
+    r.i(n);
+    if(!r.ok || n!=n_dim)
+    return;
+    r.ad(y,n_dim);
+    for(Matrix3Xd *a : {&Fext,&c,&cdot,&cdotdot,&rhs_cdot,&f})
+    r.m(*a);
+    for(Matrix4Xd *a : {&Mext,&q,&qdot,&rhs_qdot,&f0,&m0})
+    r.m(*a);
+    for(double *a : {&delta_t,&hold,&xold,&x,&x_end,&xd,&printtime})
+    r.d(*a);
+    k = r.k;
 }

@@ -977,11 +977,21 @@ void fnpf_6DOF::amr_grids(lexer *p, ghostcell *pgc)
     
     amr_layout = amr->layout();
     
-    // psi0 and the unit modes of a fresh grid: prolonged from the coarser grid as the initial
-    // guess of the next psi solves (gp is in patch order, coarse levels first).  Left at zero
-    // they started the composite solves with a jump at the patch edge
-    // (all ranks together, level by level: the parent may be on another rank, G 40)
+    // restart: the grids of the patches of the checkpoint take its arrays, the others are set up
+    // after the bodies (fnpf_6DOF_ckpt.cpp)
+    if(!ckpt_grids)
+    amr_fresh(pgc);
+}
+
+// psi0 and the unit modes of a fresh grid: prolonged from the coarser grid as the initial
+// guess of the next psi solves (gp is in patch order, coarse levels first).  Left at zero
+// they started the composite solves with a jump at the patch edge
+// (all ranks together, level by level: the parent may be on another rank, G 40)
+void fnpf_6DOF::amr_fresh(ghostcell *pgc)
+{
     vector<double*> fg(gp.size()+1);
+    
+    reefamr_comms_off guard(pgc);
     
     if(initialized)
     {

@@ -103,6 +103,11 @@ public:
     double getTensLoc(int n){return f0.col(n).norm();};
     Eigen::Vector3d getTensGlob(int n){return R(q.col(n+1))*f0.col(n).tail(3);};
     
+    // checkpoints (P 48, I 45): the configuration, its rates and inner forces, the state vector of the
+    // integrator and its step size (the other RADAU5 values start again with every Integrate)
+    void ckpt_beam_state(std::vector<double>&) const;
+    void ckpt_beam_restore(const std::vector<double>&, size_t&);
+
     // RADAU5 statistics of the last Integrate call
     void getSolverStats(int& steps, int& rejected, int& nfcn_, int& njac_) const {steps = naccpt; rejected = nrejct; nfcn_ = nfcn; njac_ = njac;};
     

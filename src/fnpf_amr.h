@@ -145,6 +145,7 @@ public:
     // fills the patches of the hierarchy built by ini (any decomposition) from the patches of the checkpoint
     void ckpt_write(reefckpt&);
     bool ckpt_read(reefckpt&, std::string&);
+    void patch_fields(reefamr_patch*, const ckpt_visit&);
     void flush_outputs() { gaugeout.flush(); logout.flush(); }   // a rebalance stop (G 46)
     // the output on the finest grid (amr_grid_lookup.h): the finest patch of this rank at (x,y)
     int finest_column(double x, double y, lexer *&q, void *&f) const override

@@ -125,6 +125,15 @@ public:
     void pre_solve(lexer*, fdm_fnpf*, ghostcell*);
     void post_solve(lexer*, fdm_fnpf*, ghostcell*, double*);
     
+    // checkpoints (P 48, I 45, fnpf_6DOF_ckpt.cpp)
+    void ckpt_state(lexer*, std::vector<double>&) override;
+    bool ckpt_restore(lexer*, ghostcell*, const std::vector<double>&) override;
+    void ckpt_rank_state(std::vector<double>&) override;
+    void ckpt_rank_restore(const std::vector<std::vector<double>>&) override;
+    void ckpt_fields(const ckpt_fd&, const ckpt_fi&) override;
+    void amr_ckpt_fields(lexer*, const ckpt_fd&, const ckpt_fi&) override;
+    void amr_ckpt_grids(lexer*, ghostcell*) override;
+    
     bool initialized;
     
 private:
@@ -141,6 +150,9 @@ private:
     void zero_face(fnpf_6DOF_grid&);
     void exchange_face(fnpf_6DOF_grid&, ghostcell*);
     void free_grid(fnpf_6DOF_grid&);
+    void amr_fresh(ghostcell*);
+    void grid_fields(fnpf_6DOF_grid*, const ckpt_fd&, const ckpt_fi&);
+    bool ckpt_grids = false;        // restart: the body grids of the patches wait for their arrays
     bool amr_on() const;
     bool amr_sub() const;
     void forces_level(lexer*, fdm_fnpf*, ghostcell*, int);

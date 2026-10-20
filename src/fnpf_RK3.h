@@ -48,6 +48,7 @@ public:
     void inidisc_step2(lexer*, fdm_fnpf*, ghostcell*, ioflow*, solver*) override final;
     void ini_wetdry(lexer*, fdm_fnpf*, ghostcell*) override final;
     void attach_amr(fnpf_amr*) override final;
+    fnpf_body* body() override final {return pbody;}
     
 private:
     int gcval,gcval_u,gcval_v,gcval_w;

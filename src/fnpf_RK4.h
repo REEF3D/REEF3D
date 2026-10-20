@@ -45,6 +45,7 @@ public:
     void inidisc_step1(lexer*, fdm_fnpf*, ghostcell*, ioflow*, solver*) override final;
     void inidisc_step2(lexer*, fdm_fnpf*, ghostcell*, ioflow*, solver*) override final;
     void ini_wetdry(lexer*, fdm_fnpf*, ghostcell*) override final;
+    fnpf_body* body() override final {return pbody;}
     
 private:
 

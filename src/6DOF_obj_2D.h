@@ -24,6 +24,7 @@ Authors: Hans Bihs, Tobias Martin
 #define SIXDOF_OBJ_2D_H_
 
 #include"6DOF_obj.h"
+#include<functional>
 
 //  6DOF body on a horizontal (2D) grid: level set of the waterline section and the pressure
 //  patch of the hull (ship waves, X 400) for SFLOW and the NHFLOW ship-wave mode (X 10 3).
@@ -45,6 +46,9 @@ public:
     void solve_eqmotion_sflow(lexer*,ghostcell*,int,bool);
     void solve_eqmotion_oneway_sflow(lexer*,ghostcell*,int,bool);
     slice& amr_fs() {return fs;}
+    // checkpoints (P 48, I 45): the slices of the body on the grid (level set of the waterline
+    // section, draft, pressure patch, their stage values), name with the prefix
+    void ckpt_2D_fields(const char*, const std::function<void(const char*,char,double*)>&, const std::function<void(const char*,char,int*)>&);
 
 protected:
     

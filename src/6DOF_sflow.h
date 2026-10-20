@@ -71,6 +71,13 @@ public:
     void isource2D(lexer*,fdm2D*,ghostcell*) override final;
     void jsource2D(lexer*,fdm2D*,ghostcell*) override final;
 
+    // checkpoints (P 48, I 45): the bodies one after the other, each with its length; the pressure
+    // patch of the ship waves as a slice
+    void ckpt_state(lexer*, std::vector<double>&) override final;
+    bool ckpt_restore(lexer*, ghostcell*, const std::vector<double>&) override final;
+    double* ckpt_slice() override final {return press.V;}
+    void ckpt_fields(const std::function<void(const char*,char,double*)>&, const std::function<void(const char*,char,int*)>&) override final;
+
     // bodies, for the SFLOW mesh refinement
     int objects() const {return number6DOF;}
     sixdof_obj_2D* object(int n) {return fb_obj[n];}

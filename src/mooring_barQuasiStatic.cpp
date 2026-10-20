@@ -23,6 +23,7 @@ Author: Tobias Martin
 #include"mooring_barQuasiStatic.h"
 #include"lexer.h"
 #include"ghostcell.h"
+#include"ckpt_pack.h"
 
 mooring_barQuasiStatic::mooring_barQuasiStatic(int number):line(number){}
 
@@ -292,4 +293,35 @@ void mooring_barQuasiStatic::mooringForces(double& Xme, double& Yme, double& Zme
 
         broken = true;
     }
+}
+
+void mooring_barQuasiStatic::ckpt_state(std::vector<double> &v) const
+{
+    ckpt_put w{v};
+    w.i(sigma);
+    w.vd(l);
+    for(const vector<vector<double>> *a : {&A,&f,&B})
+    for(const vector<double> &e : *a)
+    w.vd(e);
+    for(double x : {Xme_,Yme_,Zme_,printtime,curr_time,dx,dy,dz})
+    w.d(x);
+    w.b(broken);
+}
+
+void mooring_barQuasiStatic::ckpt_restore(const std::vector<double> &v, size_t &k)
+{
+    ckpt_get r{v};
+    r.k = k;
+    int n=0;
+    r.i(n);
+    if(!r.ok || n!=sigma)
+    return;
+    r.vd(l);
+    for(vector<vector<double>> *a : {&A,&f,&B})
+    for(vector<double> &e : *a)
+    r.vd(e);
+    for(double *a : {&Xme_,&Yme_,&Zme_,&printtime,&curr_time,&dx,&dy,&dz})
+    r.d(*a);
+    r.b(broken);
+    k = r.k;
 }

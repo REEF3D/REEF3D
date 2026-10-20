@@ -46,6 +46,9 @@ void fnpf_ckpt_fields(lexer *p, fdm_fnpf *c, FD &&fd, FI &&fi)
     // potential and velocities
     fd("Fi",'F',c->Fi); fd("Uin",'F',c->Uin); fd("U",'F',c->U); fd("V",'F',c->V); fd("W",'F',c->W);
 
+    // resolved bodies (X 10): body nodes and the Neumann data of the body faces (fnpf_6DOF)
+    fd("FBF",'F',c->FBF); fd("FBu",'F',c->FBu); fd("FBv",'F',c->FBv); fd("FBw",'F',c->FBw);
+
     // the sigma grid and the flags of the lexer that change in time (wetting and drying)
     fd("sig",'F',p->sig); fd("sigx",'F',p->sigx); fd("sigy",'F',p->sigy); fd("sigxx",'F',p->sigxx);
     fd("sigz",'S',p->sigz); fd("ZSN",'F',p->ZSN); fd("ZSP",'C',p->ZSP);

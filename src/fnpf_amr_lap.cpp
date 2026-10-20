@@ -421,6 +421,14 @@ void fnpf_amr::lap_start()
             double r = vb[qq] - vv[qq];
             vr[qq] = r; vrh[qq] = r; vp[qq] = 0.0; vv[qq] = 0.0;
         }
+        
+        // the composite residual of the preconditioner: the restriction to level 0 reads entries
+        // the residual of this solve does not write (they held those of an earlier solve, e.g. one
+        // of another level window of the subcycling): the solve did not depend on its own data only,
+        // and a restart from a checkpoint (P 48, I 45) did not continue bitwise
+        lexer *q = glex(g);
+        double *vt = lvec(g,NRP);
+        std::fill(vt,vt+q->imax*q->jmax*(q->kmax+2),0.0);
     }
 }
 

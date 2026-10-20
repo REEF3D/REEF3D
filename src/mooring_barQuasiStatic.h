@@ -48,6 +48,10 @@ public:
 	void start(lexer*, ghostcell*) override final;
 	void initialize(lexer*, ghostcell*) override final;
 	void mooringForces(double&, double&, double&) override final;
+    // checkpoints (P 48, I 45): the start values of the iteration (forces A, directions f, lengths l),
+    // the forces, broken, the print time
+    void ckpt_state(std::vector<double>&) const override;
+    void ckpt_restore(const std::vector<double>&, size_t&) override;
 	
 private:	
 	// Runtime

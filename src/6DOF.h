@@ -24,6 +24,7 @@ Author: Hans Bihs
 #define SIXDOF_H_
 
 #include<vector>
+#include<functional>
 
 class lexer;
 class fdm;
@@ -66,6 +67,8 @@ public:
     virtual void ckpt_state(lexer*, std::vector<double>&) {}
     virtual bool ckpt_restore(lexer*, ghostcell*, const std::vector<double>&) {return true;}
     virtual double* ckpt_slice() {return nullptr;}     // a slice of the grid kept over the steps (NHFLOW ship-wave pressure patch)
+    // the slices of the bodies on a horizontal grid (SFLOW): name, kind S, pointer
+    virtual void ckpt_fields(const std::function<void(const char*,char,double*)>&, const std::function<void(const char*,char,int*)>&) {}
     virtual void initialize(lexer*, fdm*, ghostcell*)=0;
     virtual void initialize(lexer*, fdm2D*, ghostcell*)=0;
     virtual void initialize(lexer*, fdm_nhf*, ghostcell*)=0;

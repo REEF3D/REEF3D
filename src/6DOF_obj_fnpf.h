@@ -90,6 +90,15 @@ public:
     double fnpf_dsm() const {return DSM;}
     bool fnpf_fixed(lexer*);
     void print_force_fnpf(lexer*);
+    // checkpoints (P 48, I 45): the FNPF part of the state (the grid of the running mean of chi of
+    // X 18, the hull loads of the last psi solve, the mean cell size), after that of the kernel
+    // (sixdof_obj::ckpt_state)
+    void ckpt_fnpf_state(std::vector<double>&) const;
+    bool ckpt_fnpf_restore(const std::vector<double>&);
+    // the running means of X 18 are kept by every rank for its columns (rank blob); on another
+    // decomposition the mean over the ranks that hold a value
+    void ckpt_fnpf_rank_state(std::vector<double>&) const;
+    void ckpt_fnpf_rank_restore(const std::vector<std::vector<double>>&);
 
 private:
     

@@ -31,6 +31,7 @@ class convection;
 class ioflow;
 class reini;
 class fnpf_amr;
+class fnpf_body;
 
 using namespace std;
 
@@ -45,6 +46,8 @@ public:
     
     // mesh refinement (G 1): the time stepping couples level 0 with the patches
     virtual void attach_amr(fnpf_amr*) {}
+    // the resolved bodies (X 10), nullptr without (checkpoints)
+    virtual fnpf_body* body() {return nullptr;}
 
 };
 
