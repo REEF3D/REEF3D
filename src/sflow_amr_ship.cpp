@@ -164,7 +164,7 @@ double sflow_amr::fs0_at(sflow_amr_patch &c, int ii, int jj)
     const int jlo = p0->jmin, jhi = p0->jmin+p0->jmax-1;
 
     int ka = fsh_s(ii-EXT+c.I0,l) - O0i;
-    int la = fsh_s(jj-EXT+c.J0,l) - O0j;
+    int la = fsh_s(jj-EY+c.J0,l) - O0j;
     if(x < p0->XP[ka+marge]) --ka;
     if(y < p0->YP[la+marge]) --la;
     int kb = ka+1, lb = la+1;

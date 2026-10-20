@@ -275,10 +275,17 @@ void reefmg2D::vcycle(lexer *p, ghostcell *pgc, slice &z, matrix2D &M, vec2D &r,
         if(p->N13==0)
         mg.set_active_levels(screened_levels(ldx,mg.levels()));
 
+        xzon = exact_line && xz.usable(mg.fine()) && (local || p->mpi_size==1);
+        if(xzon)
+        xz.factor(mg.fine(),mg.precision());
+        else
         mg.coarsen();
     }
 
     //  fill() leaves u = 0 and f = 0 on the rows outside the multigrid
+    if(xzon)
+    xz.solve(mg.fine(),mg.fine().f,mg.fine().u);
+    else
     mg.vcycle(0,presweep,postsweep);
 
     fillback(p,mg,z);

@@ -117,7 +117,7 @@ void sflow_amr::nh_resid(int g, vector<double> &R)
 
     int i0,i1,j0,j1;
     if(g<0) { i0=0; i1=NX0-1; j0=0; j1=NY0-1; }
-    else    { i0=EXT; i1=EXT+P[g]->nx-1; j0=EXT; j1=EXT+P[g]->ny-1; }
+    else    { i0=EXT; i1=EXT+P[g]->nx-1; j0=EY; j1=EY+P[g]->ny-1; }
 
     for(int ii=i0; ii<=i1; ++ii)
     for(int jj=j0; jj<=j1; ++jj)
@@ -249,7 +249,7 @@ void sflow_amr::nh_project(lexer *p, ghostcell *pgc, int l, double dt)
 
             int i0,i1,j0,j1;
             if(g<0) { i0=0; i1=NX0-1; j0=0; j1=NY0-1; }
-            else    { i0=EXT; i1=EXT+P[g]->nx-1; j0=EXT; j1=EXT+P[g]->ny-1; }
+            else    { i0=EXT; i1=EXT+P[g]->nx-1; j0=EY; j1=EY+P[g]->ny-1; }
 
             slice &Pc = pb->press;
             slice &WL = pb->WL;

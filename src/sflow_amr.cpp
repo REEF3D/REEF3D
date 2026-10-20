@@ -209,7 +209,7 @@ sflow_amr::gh sflow_amr::grid(int g)
     }
     sflow_amr_patch *c = SP(g);
     r.q = c->pp; r.b = c->b; r.m = c->pmom;
-    r.oi = c->I0-EXT; r.oj = c->J0-EXT;
+    r.oi = c->I0-EXT; r.oj = c->J0-EY;
     return r;
 }
 
@@ -228,7 +228,7 @@ void sflow_amr::ini(lexer *p, fdm2D *b, ghostcell *pgc)
     if(p->S10!=0 && (p->S10!=1 || p->S51>0 || p->S31==3 || p->S32>=3)) ok=0;
     if(p->X10>3) ok=0;
     if(p->W90!=0) ok=0;
-    if(p->j_dir!=1) ok=0;
+    if(p->j_dir!=1 && (p->geo_mb>0 || p->geo_curv==1)) ok=0;     // 2D grid (one cell in y): Cartesian
 
     // multi-block grid (G 50 1, DIVEMesh R 20 1): hydrostatic, without subcycling; moving bodies X 10 2/3 (P5c: the
     // body on the blocks 1.. as on the patches, sflow_amr_ship.cpp)
@@ -248,7 +248,7 @@ void sflow_amr::ini(lexer *p, fdm2D *b, ghostcell *pgc)
     if(ok==0)
     {
         if(p->mpirank==0)
-        cout<<"SFLOW AMR (G 1): only for A 220 0-4, A 210 3, A 260 0/3/4, S 10 0/1 (S 51 0, S 31 1/2, S 32 1/2), X 10 0-3, W 90 0 and 2D grids -- refinement switched off"<<endl;
+        cout<<"SFLOW AMR (G 1): only for A 220 0-4, A 210 3, A 260 0/3/4, S 10 0/1 (S 51 0, S 31 1/2, S 32 1/2), X 10 0-3, W 90 0, and with one cell in y Cartesian -- refinement switched off"<<endl;
         maxlev=0;
         return;
     }
@@ -523,7 +523,7 @@ void sflow_amr::regrid_static(ghostcell *pgc)
         for(int ii=pp->imin; ii<pp->imin+pp->imax; ++ii)
         for(int jj=pp->jmin; jj<pp->jmin+pp->jmax; ++jj)
         {
-            int I = ii-EXT+c->I0, J = jj-EXT+c->J0;
+            int I = ii-EXT+c->I0, J = jj-EY+c->J0;
 
             // multi-block: the cell an index around a block stands for
             if(nblk>0)
@@ -721,17 +721,17 @@ double sflow_amr::bed_at(int l, int I, int J)
     if(it!=bedmemo.end())
     return it->second;
 
-    int Ic = fsh(I,1), Jc = fsh(J,1);
+    int Ic = fsh(I,1), Jc = fsh(J,sy);
     double bc = bed_at(l-1,Ic,Jc);
 
-    if(flag0(fsh(I,l),fsh(J,l))<0)
+    if(flag0(fsh(I,l),fsh(J,ysh(l)))<0)
     {
         bedmemo[key]=bc;
         return bc;
     }
 
     const int lc = l-1;
-    auto fl = [&](int a, int d) { return flag0(fsh(a,lc),fsh(d,lc)); };
+    auto fl = [&](int a, int d) { return flag0(fsh(a,lc),fsh(d,ysh(lc))); };
 
     double sx=0.0, sy=0.0;
     if(fl(Ic+1,Jc)>0 && fl(Ic-1,Jc)>0)
@@ -740,7 +740,7 @@ double sflow_amr::bed_at(int l, int I, int J)
     sy = mmod(bed_at(lc,Ic,Jc+1)-bc, bc-bed_at(lc,Ic,Jc-1));
 
     double ox = (I-2*Ic==0) ? -0.25 : 0.25;
-    double oy = (J-2*Jc==0) ? -0.25 : 0.25;
+    double oy = (this->sy==0) ? 0.0 : ((J-2*Jc==0) ? -0.25 : 0.25);     // (2D grid: no offset in y; sy here is the slope)
     double r = bc + sx*ox + sy*oy;
 
     // curvilinear grid: the area-weighted mean of the children is the parent bed (the restriction
@@ -835,7 +835,7 @@ void sflow_amr::tag(int l, vector<unsigned char> &M)
         double ec = WL(ii,jj)-bb->depth(ii,jj);
         const int di[4]={1,-1,0,0}, dj[4]={0,0,1,-1};
 
-        for(int k=0; k<4; ++k)
+        for(int k=0; k<2+2*sy; ++k)     // (2D grid: the x neighbours)
         {
             int a=ii+di[k], d=jj+dj[k];
             if(q->flagslice4[lij(q,a,d)]<0)
@@ -865,9 +865,9 @@ void sflow_amr::tag(int l, vector<unsigned char> &M)
         {
             sflow_amr_patch *c = SP(n);
             for(int ii=EXT; ii<EXT+c->nx; ++ii)
-            for(int jj=EXT; jj<EXT+c->ny; ++jj)
+            for(int jj=EY; jj<EY+c->ny; ++jj)
             if(test(c->pp,c->b,c->b->WL,ii,jj))
-            tag_cell(lf,ii-EXT+c->I0,jj-EXT+c->J0,nbuf,M);
+            tag_cell(lf,ii-EXT+c->I0,jj-EY+c->J0,nbuf,M);
         }
         return;
     }
@@ -876,9 +876,9 @@ void sflow_amr::tag(int l, vector<unsigned char> &M)
     {
         sflow_amr_patch *c = SP(n);
         for(int ii=EXT; ii<EXT+c->nx; ++ii)
-        for(int jj=EXT; jj<EXT+c->ny; ++jj)
+        for(int jj=EY; jj<EY+c->ny; ++jj)
         if(test(c->pp,c->b,c->b->WL,ii,jj))
-        tag_cell(lf,ii-EXT+c->I0,jj-EXT+c->J0,nbuf,M);
+        tag_cell(lf,ii-EXT+c->I0,jj-EY+c->J0,nbuf,M);
     }
 }
 
@@ -904,13 +904,13 @@ void sflow_amr::ini_patch_defaults(sflow_amr_patch &c)
         pp->deep[lij(pp,ii,jj)] = 0;
     }
 
-    c.blkold.assign((size_t)(c.nx/2)*(c.ny/2),0);
+    c.blkold.assign((size_t)(c.nx/2)*(c.ny>>sy),0);
 }
 
 // a solid block (its first cell) keeps the defaults
 bool sflow_amr::block_solid(sflow_amr_patch &c, int bi, int bj)
 {
-    return c.pp->flagslice4[lij(c.pp,EXT+2*bi,EXT+2*bj)]<0;
+    return c.pp->flagslice4[lij(c.pp,EXT+2*bi,EY+ychild(bj))]<0;
 }
 
 // the cells of the fresh level-l patches that an old patch held (all four cells of a block lie in
@@ -933,7 +933,7 @@ void sflow_amr::ini_patch_old(int l, vector<reefamr_patch*> &oldP)
             [&](reefamr_patch *q, int id, int ii, int jj, const double *v)
             {
                 sflow_amr_patch &c = *SP(q);
-                const int bi = (ii-EXT)/2, bj = (jj-EXT)/2;
+                const int bi = (ii-EXT)/2, bj = (jj-EY)>>sy;
                 if(block_solid(c,bi,bj))
                 return;
                 lexer *pp = c.pp;
@@ -944,7 +944,7 @@ void sflow_amr::ini_patch_old(int l, vector<reefamr_patch*> &oldP)
                 b->UA(ii,jj) = v[9];  b->VA(ii,jj) = v[10]; b->MX(ii,jj) = v[11]; b->MY(ii,jj) = v[12];
                 pp->wet[lij(pp,ii,jj)] = (int)v[13];
                 pp->deep[lij(pp,ii,jj)] = (int)v[14];
-                c.blkold[(size_t)bi*(c.ny/2)+bj] = 1;
+                c.blkold[(size_t)bi*(c.ny>>sy)+bj] = 1;
             });
 }
 
@@ -962,8 +962,8 @@ void sflow_amr::ini_patch_prolong(int l)
                       gh G = grid(B.g);
                       const int ic = B.ic, jc = B.jc;
                       for(int a=0;a<2;++a)
-                      for(int d=0;d<2;++d)
-                      prolong_parts(B.g,ic,jc,a==0?-1:1,d==0?-1:1,&v[(2*a+d)*NPR]);
+                      for(int d=0;d<=sy;++d)
+                      prolong_parts(B.g,ic,jc,a==0?-1:1,(sy==0) ? 0 : (d==0?-1:1),&v[(2*a+d)*NPR]);
                       double *w = &v[4*NPR];
                       w[0] = G.q->wet[lij(G.q,ic,jc)];
                       w[1] = (*sWL[B.g+1])(ic,jc);
@@ -975,7 +975,7 @@ void sflow_amr::ini_patch_prolong(int l)
                   [&](reefamr_patch *q, int id, int kb, const double *v)
                   {
                       sflow_amr_patch &c = *SP(q);
-                      const int nby = c.ny/2;
+                      const int nby = c.ny>>sy;
                       const int bi = kb/nby, bj = kb%nby;
                       if(block_solid(c,bi,bj) || c.blkold[kb])
                       return;
@@ -988,12 +988,12 @@ void sflow_amr::ini_block(sflow_amr_patch &c, int bi, int bj, const double *pv)
     lexer *pp = c.pp;
     fdm2D *b = c.b;
     const double wd = p0->A244;
-    const int i0 = EXT+2*bi, j0 = EXT+2*bj;
+    const int i0 = EXT+2*bi, j0 = EY+ychild(bj);
     const double *w = &pv[4*NPR];
     double v[NVMAX];
 
     for(int a=0;a<2;++a)
-    for(int d=0;d<2;++d)
+    for(int d=0;d<=sy;++d)
     {
         int ii = i0+a, jj = j0+d;
         prolong_finish(&pv[(2*a+d)*NPR],b->depth(ii,jj),v);
@@ -1006,21 +1006,24 @@ void sflow_amr::ini_block(sflow_amr_patch &c, int bi, int bj, const double *pv)
         pp->wet[lij(pp,ii,jj)]=(int)v[6];
     }
 
-    int nw = pp->wet[lij(pp,i0,j0)] + pp->wet[lij(pp,i0+1,j0)] + pp->wet[lij(pp,i0,j0+1)] + pp->wet[lij(pp,i0+1,j0+1)];
+    // (2D grid: the 2x1 children)
+    const int nch = 2<<sy;
+    int nw = (sy==0) ? pp->wet[lij(pp,i0,j0)] + pp->wet[lij(pp,i0+1,j0)]
+                     : pp->wet[lij(pp,i0,j0)] + pp->wet[lij(pp,i0+1,j0)] + pp->wet[lij(pp,i0,j0+1)] + pp->wet[lij(pp,i0+1,j0+1)];
 
     // curvilinear grid: the volumes of the children (area weighted) sum to the parent's
-    if(nw==4 && (int)w[0]==1 && pp->geo_curv==1)
+    if(nw==nch && (int)w[0]==1 && pp->geo_curv==1)
     {
         double ar[2][2], at=0.0;
         for(int a=0;a<2;++a)
-        for(int d=0;d<2;++d)
+        for(int d=0;d<=sy;++d)
         {
         ar[a][d] = pp->AREA2D[lij(pp,i0+a,j0+d)];
         at += ar[a][d];
         }
         double sw=0.0, su=0.0, sv=0.0, sh=0.0;
         for(int a=0;a<2;++a)
-        for(int d=0;d<2;++d)
+        for(int d=0;d<=sy;++d)
         {
         sw += ar[a][d]*b->WL(i0+a,j0+d);
         su += ar[a][d]*b->UH(i0+a,j0+d);
@@ -1031,12 +1034,32 @@ void sflow_amr::ini_block(sflow_amr_patch &c, int bi, int bj, const double *pv)
         const double fw = at*w[1]/sw;
 
         for(int a=0;a<2;++a)
-        for(int d=0;d<2;++d)
+        for(int d=0;d<=sy;++d)
         {
             b->UH(i0+a,j0+d) += b->WL(i0+a,j0+d)/sw*du;
             b->VH(i0+a,j0+d) += b->WL(i0+a,j0+d)/sw*dv;
             b->WH(i0+a,j0+d) += b->WL(i0+a,j0+d)/sw*dw;
             b->WL(i0+a,j0+d) *= fw;
+        }
+    }
+    else
+    if(nw==nch && (int)w[0]==1 && sy==0)
+    {
+        double sw = b->WL(i0,j0)+b->WL(i0+1,j0);
+        double su = b->UH(i0,j0)+b->UH(i0+1,j0);
+        double sv = b->VH(i0,j0)+b->VH(i0+1,j0);
+        double sh = b->WH(i0,j0)+b->WH(i0+1,j0);
+        double du = 2.0*w[2] - su;
+        double dv = 2.0*w[3] - sv;
+        double dw = 2.0*w[4] - sh;
+        double fw = 2.0*w[1]/sw;
+
+        for(int a=0;a<2;++a)
+        {
+            b->UH(i0+a,j0) += b->WL(i0+a,j0)/sw*du;
+            b->VH(i0+a,j0) += b->WL(i0+a,j0)/sw*dv;
+            b->WH(i0+a,j0) += b->WL(i0+a,j0)/sw*dw;
+            b->WL(i0+a,j0) *= fw;
         }
     }
     else
@@ -1052,7 +1075,7 @@ void sflow_amr::ini_block(sflow_amr_patch &c, int bi, int bj, const double *pv)
         double fw = 4.0*w[1]/sw;
 
         for(int a=0;a<2;++a)
-        for(int d=0;d<2;++d)
+        for(int d=0;d<=sy;++d)
         {
             b->UH(i0+a,j0+d) += b->WL(i0+a,j0+d)/sw*du;
             b->VH(i0+a,j0+d) += b->WL(i0+a,j0+d)/sw*dv;
@@ -1062,7 +1085,7 @@ void sflow_amr::ini_block(sflow_amr_patch &c, int bi, int bj, const double *pv)
     }
 
     for(int a=0;a<2;++a)
-    for(int d=0;d<2;++d)
+    for(int d=0;d<=sy;++d)
     {
         int ii = i0+a, jj = j0+d;
         int wt = pp->wet[lij(pp,ii,jj)];
@@ -1416,7 +1439,7 @@ void sflow_amr::prolong_parts(int g, int ic, int jc, int ox, int oy, double *r)
         return e0;
         double sm = NAN;
         for(int a=-1; a<=1; ++a)
-        for(int d=-1; d<=1; ++d)
+        for(int d=-sy; d<=sy; ++d)
         if(a!=0 || d!=0)
         {
             double en,un,vn,wn; int wtn;
@@ -1466,7 +1489,17 @@ void sflow_amr::prolong_parts(int g, int ic, int jc, int ox, int oy, double *r)
     get(ic,jc-1,eS,uS,vS,wSv,wS);
 
     double sxe=0.0,sye=0.0,sxu=0.0,syu=0.0,sxv=0.0,syv=0.0,sxw=0.0,syw=0.0;
-    if(wE==1 && wW==1 && wN==1 && wS==1)
+    // (2D grid: the slopes in x only, the cells beyond the strip are no neighbours)
+    const bool nbs = (sy==0) ? (wE==1 && wW==1) : (wE==1 && wW==1 && wN==1 && wS==1);
+    if(sy==0 && nbs)
+    {
+        sxe = mmod(eE-e0,e0-eW);
+        sxu = mmod(uE-u0,u0-uW);
+        sxv = mmod(vE-v0,v0-vW);
+        sxw = mmod(wEv-w0v,w0v-wWv);
+    }
+    else
+    if(nbs)
     {
         sxe = mmod(eE-e0,e0-eW); sye = mmod(eN-e0,e0-eS);
         sxu = mmod(uE-u0,u0-uW); syu = mmod(uN-u0,u0-uS);
@@ -1483,7 +1516,7 @@ void sflow_amr::prolong_parts(int g, int ic, int jc, int ox, int oy, double *r)
 
     if(bous==1)
     {
-        bool full = wE==1 && wW==1 && wN==1 && wS==1;
+        const bool full = nbs;
         partb(full ? fx : 0.0, full ? fy : 0.0);
     }
 }
@@ -1697,8 +1730,8 @@ void sflow_amr::restrict_level(lexer *p, int l, int s)
                  slice *WHi,*WHo;
                  c.pmom->stage_io_w(s,b,WHi,WHo);
 
-                 const int nby = c.ny/2;
-                 const int i0 = EXT+2*(k/nby), j0 = EXT+2*(k%nby);
+                 const int nby = c.ny>>sy;
+                 const int i0 = EXT+2*(k/nby), j0 = EY+ychild(k%nby);
 
                  // shoreline: the water surface of the wet children (area weighted on a curvilinear grid)
                  // where some children are dry (or have dry children themselves), NaN otherwise.  The
@@ -1709,7 +1742,7 @@ void sflow_amr::restrict_level(lexer *p, int l, int s)
                  double se=0.0, sa=0.0;
                  int nf=0, nw=0, np=0;
                  for(int a=0;a<2;++a)
-                 for(int d=0;d<2;++d)
+                 for(int d=0;d<=sy;++d)
                  if(pp->flagslice4[lij(pp,i0+a,j0+d)]>0)
                  {
                  ++nf;
@@ -1734,7 +1767,7 @@ void sflow_amr::restrict_level(lexer *p, int l, int s)
                  lexer *pp = c.pp;
                  double w[4], ws=0.0;
                  for(int a=0;a<2;++a)
-                 for(int d=0;d<2;++d)
+                 for(int d=0;d<=sy;++d)
                  {
                  w[2*a+d] = pp->AREA2D[lij(pp,i0+a,j0+d)];
                  ws += w[2*a+d];
@@ -1754,15 +1787,15 @@ void sflow_amr::restrict_level(lexer *p, int l, int s)
                  return;
                  }
 
-                 v[0] = 0.25*((*WLo)(i0,j0)+(*WLo)(i0+1,j0)+(*WLo)(i0,j0+1)+(*WLo)(i0+1,j0+1));
-                 v[1] = 0.25*((*UHo)(i0,j0)+(*UHo)(i0+1,j0)+(*UHo)(i0,j0+1)+(*UHo)(i0+1,j0+1));
-                 v[2] = 0.25*((*VHo)(i0,j0)+(*VHo)(i0+1,j0)+(*VHo)(i0,j0+1)+(*VHo)(i0+1,j0+1));
-                 v[3] = 0.25*((*WHo)(i0,j0)+(*WHo)(i0+1,j0)+(*WHo)(i0,j0+1)+(*WHo)(i0+1,j0+1));
+                 v[0] = (sy==0) ? 0.5*((*WLo)(i0,j0)+(*WLo)(i0+1,j0)) : 0.25*((*WLo)(i0,j0)+(*WLo)(i0+1,j0)+(*WLo)(i0,j0+1)+(*WLo)(i0+1,j0+1));
+                 v[1] = (sy==0) ? 0.5*((*UHo)(i0,j0)+(*UHo)(i0+1,j0)) : 0.25*((*UHo)(i0,j0)+(*UHo)(i0+1,j0)+(*UHo)(i0,j0+1)+(*UHo)(i0+1,j0+1));
+                 v[2] = (sy==0) ? 0.5*((*VHo)(i0,j0)+(*VHo)(i0+1,j0)) : 0.25*((*VHo)(i0,j0)+(*VHo)(i0+1,j0)+(*VHo)(i0,j0+1)+(*VHo)(i0+1,j0+1));
+                 v[3] = (sy==0) ? 0.5*((*WHo)(i0,j0)+(*WHo)(i0+1,j0)) : 0.25*((*WHo)(i0,j0)+(*WHo)(i0+1,j0)+(*WHo)(i0,j0+1)+(*WHo)(i0+1,j0+1));
 
                  // Boussinesq: u_a and M
                  if(bous==1)
                  {
-                 auto avg = [&](slice &f) { return 0.25*(f(i0,j0)+f(i0+1,j0)+f(i0,j0+1)+f(i0+1,j0+1)); };
+                 auto avg = [&](slice &f) { return (sy==0) ? 0.5*(f(i0,j0)+f(i0+1,j0)) : 0.25*(f(i0,j0)+f(i0+1,j0)+f(i0,j0+1)+f(i0+1,j0+1)); };
                  v[4] = avg(b->UA);
                  v[5] = avg(b->VA);
                  v[6] = avg(b->MX);
@@ -1854,7 +1887,7 @@ void sflow_amr::exchange_fluxes(int l)
              {
                  sflow_amr_patch *c = SP(q);
                  for(int ip=0; ip<5; ++ip)
-                 sb[ip] = 0.5*(c->rec[ip][side][r]+c->rec[ip][side][r+1]);
+                 sb[ip] = 0.5*(c->rec[ip][side][r]+c->rec[ip][side][r+fr1(side)]);
              },
              [&](reefamr_match &m, const double *v)
              {
@@ -2067,7 +2100,7 @@ void sflow_amr::hll_hook(lexer *p, fdm2D *b, int ipol, int id)
     {
         sflow_amr_patch &c = *SP(id-1);
         const int il = EXT-1, ih = EXT+c.nx-1;
-        const int jl = EXT-1, jh = EXT+c.ny-1;
+        const int jl = EY-1, jh = EY+c.ny-1;
 
         // shoreline: the boundary faces the fine fluxes of which replace the coarse ones (refluxing).
         //  - no mass flux between a dry cell of the patch and a wet cell beyond its boundary, as between two
@@ -2111,9 +2144,10 @@ void sflow_amr::hll_hook(lexer *p, fdm2D *b, int ipol, int id)
 
             for(int r=0; r<c.ny; ++r)
             {
-                face(1,il,EXT+r,il+1,EXT+r,il,EXT+r);
-                face(1,ih,EXT+r,ih,EXT+r,ih+1,EXT+r);
+                face(1,il,EY+r,il+1,EY+r,il,EY+r);
+                face(1,ih,EY+r,ih,EY+r,ih+1,EY+r);
             }
+            if(sy==1)
             for(int r=0; r<c.nx; ++r)
             {
                 face(2,EXT+r,jl,EXT+r,jl+1,EXT+r,jl);
@@ -2123,8 +2157,8 @@ void sflow_amr::hll_hook(lexer *p, fdm2D *b, int ipol, int id)
 
         for(int r=0; r<c.ny; ++r)
         {
-            c.rec[ipol][0][r] = Fx(il,EXT+r);
-            c.rec[ipol][1][r] = Fx(ih,EXT+r);
+            c.rec[ipol][0][r] = Fx(il,EY+r);
+            c.rec[ipol][1][r] = Fx(ih,EY+r);
         }
         for(int r=0; r<c.nx; ++r)
         {
@@ -2136,8 +2170,8 @@ void sflow_amr::hll_hook(lexer *p, fdm2D *b, int ipol, int id)
         {
             for(int r=0; r<c.ny; ++r)
             {
-                c.rec[0][0][r] = b->dfx(il,EXT+r);
-                c.rec[0][1][r] = b->dfx(ih,EXT+r);
+                c.rec[0][0][r] = b->dfx(il,EY+r);
+                c.rec[0][1][r] = b->dfx(ih,EY+r);
             }
             for(int r=0; r<c.nx; ++r)
             {
@@ -2173,7 +2207,7 @@ void sflow_amr::hll_hook(lexer *p, fdm2D *b, int ipol, int id)
             if(ipol==4)
             {
                 sflow_amr_patch &c = *SP(m.child);
-                double df = 0.5*(c.rec[0][m.side][m.r]+c.rec[0][m.side][m.r+1]);
+                double df = 0.5*(c.rec[0][m.side][m.r]+c.rec[0][m.side][m.r+fr1(m.side)]);
                 if(m.dir==0)
                 b->dfx(m.fi,m.fj) = df;
                 else
@@ -2202,7 +2236,7 @@ void sflow_amr::hll_hook(lexer *p, fdm2D *b, int ipol, int id)
     for(auto &m : match[id])
     {
         sflow_amr_patch &c = *SP(m.child);
-        double val = 0.5*(c.rec[ipol][m.side][m.r]+c.rec[ipol][m.side][m.r+1]);
+        double val = 0.5*(c.rec[ipol][m.side][m.r]+c.rec[ipol][m.side][m.r+fr1(m.side)]);
         if(m.sgn<0)
         val = -val;
 
@@ -2213,7 +2247,7 @@ void sflow_amr::hll_hook(lexer *p, fdm2D *b, int ipol, int id)
 
         if(ipol==4)
         {
-            double df = 0.5*(c.rec[0][m.side][m.r]+c.rec[0][m.side][m.r+1]);
+            double df = 0.5*(c.rec[0][m.side][m.r]+c.rec[0][m.side][m.r+fr1(m.side)]);
             if(m.dir==0)
             b->dfx(m.fi,m.fj) = df;
             else
@@ -2274,7 +2308,7 @@ void sflow_amr::timestep(lexer *p, fdm2D *b, ghostcell *pgc)
         lexer *pp = c->pp;
         fdm2D *pb = c->b;
         for(int ii=EXT; ii<EXT+c->nx; ++ii)
-        for(int jj=EXT; jj<EXT+c->ny; ++jj)
+        for(int jj=EY; jj<EY+c->ny; ++jj)
         if(pp->wet[lij(pp,ii,jj)]==1 && pp->flagslice4[lij(pp,ii,jj)]>0)
         {
             double cc = sqrt(g*MAX(pb->WL(ii,jj),p->A244));
@@ -2313,7 +2347,7 @@ void sflow_amr::timestep(lexer *p, fdm2D *b, ghostcell *pgc)
             lexer *pp = c->pp;
             fdm2D *pb = c->b;
             for(int ii=EXT; ii<EXT+c->nx; ++ii)
-            for(int jj=EXT; jj<EXT+c->ny; ++jj)
+            for(int jj=EY; jj<EY+c->ny; ++jj)
             if(pp->wet[lij(pp,ii,jj)]==1 && pp->flagslice4[lij(pp,ii,jj)]>0)
             {
                 double hh = MAX(pb->WL(ii,jj),p->A244);
@@ -2359,7 +2393,7 @@ double sflow_amr::mass(lexer *p, fdm2D *b, ghostcell *pgc)
         sflow_amr_patch *c = SP(n);
         lexer *pp = c->pp;
         for(int ii=EXT; ii<EXT+c->nx; ++ii)
-        for(int jj=EXT; jj<EXT+c->ny; ++jj)
+        for(int jj=EY; jj<EY+c->ny; ++jj)
         m += c->b->WL(ii,jj)*pp->AREA2D[lij(pp,ii,jj)];
     }
 
@@ -2496,6 +2530,9 @@ void sflow_amr::gauges(lexer *p, fdm2D *b, ghostcell *pgc)
         }
         for(int a=i0; a<=i1; ++a)
         if(x>=q->XN[a+marge] && x<q->XN[a+1+marge]) { ii=a; break; }
+        if(sy==0)
+        jj=j0;      // 2D grid: one cell in y
+        else
         for(int a=j0; a<=j1; ++a)
         if(y>=q->YN[a+marge] && y<q->YN[a+1+marge]) { jj=a; break; }
         return ii>=0 && jj>=0;
@@ -2510,7 +2547,7 @@ void sflow_amr::gauges(lexer *p, fdm2D *b, ghostcell *pgc)
             val[k]=b->eta(ii,jj);
         }
         for(auto c : P)
-        if(c->lev>lv[k] && find(c->pp,EXT,EXT+c->nx-1,EXT,EXT+c->ny-1,p->P51_x[k],p->P51_y[k],ii,jj))
+        if(c->lev>lv[k] && find(c->pp,EXT,EXT+c->nx-1,EY,EY+c->ny-1,p->P51_x[k],p->P51_y[k],ii,jj))
         {
             lv[k]=c->lev;
             val[k]=SP(c)->b->eta(ii,jj);
@@ -2630,7 +2667,7 @@ void sflow_amr::write_vtr(lexer *p, sflow_amr_patch &c, int id)
     auto field = [&](const char *nm, slice &f, double shift)
     {
         out<<"<DataArray type=\"Float64\" Name=\""<<nm<<"\" format=\"ascii\">\n";
-        for(int jj=EXT; jj<EXT+c.ny; ++jj)
+        for(int jj=EY; jj<EY+c.ny; ++jj)
         {
             for(int ii=EXT; ii<EXT+c.nx; ++ii)
             out<<setprecision(17)<<f(ii,jj)+shift<<" ";
@@ -2648,7 +2685,7 @@ void sflow_amr::write_vtr(lexer *p, sflow_amr_patch &c, int id)
     field("w",pb->W,0.0);
 
     out<<"<DataArray type=\"Int32\" Name=\"wetdry\" format=\"ascii\">\n";
-    for(int jj=EXT; jj<EXT+c.ny; ++jj)
+    for(int jj=EY; jj<EY+c.ny; ++jj)
     {
         for(int ii=EXT; ii<EXT+c.nx; ++ii)
         out<<pp->wet[lij(pp,ii,jj)]<<" ";
@@ -2659,7 +2696,7 @@ void sflow_amr::write_vtr(lexer *p, sflow_amr_patch &c, int id)
     if(cv)
     {
     out<<"</CellData>\n<Points>\n<DataArray type=\"Float64\" NumberOfComponents=\"3\" format=\"ascii\">\n";
-    for(int jj=EXT; jj<=EXT+c.ny; ++jj)
+    for(int jj=EY; jj<=EY+c.ny; ++jj)
     for(int ii=EXT; ii<=EXT+c.nx; ++ii)
     out<<setprecision(12)<<pp->XN2D[pp->nij(ii,jj)]<<" "<<pp->YN2D[pp->nij(ii,jj)]<<" 0\n";
     out<<"</DataArray>\n</Points>\n</Piece>\n</StructuredGrid>\n</VTKFile>\n";
@@ -2673,7 +2710,7 @@ void sflow_amr::write_vtr(lexer *p, sflow_amr_patch &c, int id)
     out<<"<DataArray type=\"Float64\" Name=\"x\" format=\"ascii\">";
     for(int ii=EXT; ii<=EXT+c.nx; ++ii) out<<setprecision(12)<<pp->XN[ii+m]<<" ";
     out<<"</DataArray>\n<DataArray type=\"Float64\" Name=\"y\" format=\"ascii\">";
-    for(int jj=EXT; jj<=EXT+c.ny; ++jj) out<<setprecision(12)<<pp->YN[jj+m]<<" ";
+    for(int jj=EY; jj<=EY+c.ny; ++jj) out<<setprecision(12)<<pp->YN[jj+m]<<" ";
     out<<"</DataArray>\n<DataArray type=\"Float64\" Name=\"z\" format=\"ascii\">0</DataArray>\n";
     out<<"</Coordinates>\n</Piece>\n</RectilinearGrid>\n</VTKFile>\n";
     out.close();
@@ -2729,7 +2766,7 @@ bool sflow_amr::print_lagoon(lexer *p, fdm2D *b, ghostcell *pgc)
     };
     take(p,b,0,0,p->knox,p->knoy,0);
     for(int n=0; n<(int)P.size(); ++n)
-    take(SP(n)->pp,SP(n)->b,EXT,EXT,SP(n)->nx,SP(n)->ny,SP(n)->lev);
+    take(SP(n)->pp,SP(n)->b,EXT,EY,SP(n)->nx,SP(n)->ny,SP(n)->lev);
 
     return writer->write(p,pgc,grids,printcount_amr);
 }
