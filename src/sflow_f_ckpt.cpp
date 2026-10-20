@@ -26,7 +26,9 @@ Author: Hans Bihs
 //  objects, the patches of the mesh refinement and the counters of the outputs.  On the same
 //  decomposition the restart continues bitwise.
 //  The blocks 1.. of a multi-block grid are patches of the mesh refinement (reefamr_ckpt.cpp).
-//  Not there yet (refused with a message): 6DOF bodies, sediment, SEASTATE.
+//  The 6DOF bodies (one-way bodies X 10 2, ship waves X 10 3): their state as a blob, the pressure patch
+//  of the ship waves as a slice.
+//  Not there yet (refused with a message): 6DOF wavemaker objects, power take-off, sediment, SEASTATE.
 
 #include"sflow_f.h"
 #include"lexer.h"
@@ -44,13 +46,16 @@ Author: Hans Bihs
 #include"sflow_vtp_bed.h"
 #include"sflow_amr.h"
 #include"ioflow.h"
+#include"6DOF.h"
 
 using namespace std;
 
 string sflow_f::ckpt_unsupported(lexer *p)
 {
-    if(p->X10>0)
-    return "6DOF bodies are not in the checkpoints yet";
+    if(p->X10==4)
+    return "6DOF wavemaker objects (X 10 4) are not in the checkpoints yet";
+    if(p->X10>0 && p->X500>0)
+    return "the 6DOF power take-off (X 500) is not in the checkpoints yet";
     if(p->S10>0)
     return "SFLOW sediment is not in the checkpoints yet";
     if(p->A750>0)
@@ -77,6 +82,9 @@ reefrun_ckpt& sflow_f::ckpt(lexer *p, fdm2D *b, ghostcell *pgc)
         pfsf->ckpt_fields(fd,fi);
         if(pamr!=nullptr)
         pamr->ckpt_fields0(fd,fi);
+        // the 6DOF bodies on the grid
+        if(p->X10>0)
+        p6dof->ckpt_fields(fd,fi);
     };
 
     h.write = [this,p,fields](reefckpt &ck)
@@ -87,13 +95,23 @@ reefrun_ckpt& sflow_f::ckpt(lexer *p, fdm2D *b, ghostcell *pgc)
         if(pamr!=nullptr)
         pamr->ckpt_write(ck);
 
+        // the 6DOF bodies (the same on all ranks) and the pressure patch of the ship waves
+        if(p->X10>0)
+        {
+            vector<double> sd;
+            p6dof->ckpt_state(p,sd);
+            ck.blob("sixdof",sd);
+            if(p6dof->ckpt_slice()!=nullptr)
+            ck.put_S("sixdof_slice",p6dof->ckpt_slice());
+        }
+
         // the state of the boundary conditions (local to the rank)
         vector<double> io;
         pflow->ckpt_state(p,io);
         ck.rank_blob("ioflow",io);
     };
 
-    h.read = [this,p,fields](reefckpt &ck, string &msg)
+    h.read = [this,p,pgc,fields](reefckpt &ck, string &msg)
     {
         bool ok = true;
         std::function<void(const char*,char,double*)> rd = [&](const char *n, char, double *V){ if(V==nullptr || !ck.has(n)) return; ok = ck.get_S(n,V) && ok; };
@@ -110,6 +128,18 @@ reefrun_ckpt& sflow_f::ckpt(lexer *p, fdm2D *b, ghostcell *pgc)
             if(!pamr->ckpt_read(ck,msg))
             return false;
             fields(rd,ri);
+        }
+
+        // the 6DOF bodies: their state, the trimesh at the pose
+        if(p->X10>0)
+        {
+            if(!ck.has("sixdof") || !p6dof->ckpt_restore(p,pgc,ck.get_blob("sixdof")))
+            {
+                msg = "the 6DOF bodies of the checkpoint do not fit this run";
+                return false;
+            }
+            if(p6dof->ckpt_slice()!=nullptr && ck.has("sixdof_slice"))
+            ok = ck.get_S("sixdof_slice",p6dof->ckpt_slice()) && ok;
         }
 
         // the state of the boundary conditions: on the same decomposition (else they start again)

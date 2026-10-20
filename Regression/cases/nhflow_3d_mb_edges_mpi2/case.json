@@ -1,0 +1,37 @@
+{
+ "base": "nhflow_3d_mb_open_faces_mpi2",
+ "description": "The river of nhflow_3d_mb_open_faces_mpi2 (three blocks in a row, non-hydrostatic, two ranks) as a tidal channel: a Riemann edge on the -i face of block 1 with a harmonic tide (zone 1, background 1: 5 mm, 2 s, 0.5 s ramp) and a Flather edge on the +i face of block 2 at still water (zone 2, background 2), the zones placed on the blocks with B 522. The same solution as one block of 48 x 10 cells with the zones on its x- and x+ edges (iowave, DIVEMesh C 11 1, C 14 2), see Dropbox validation 01_block_edges.",
+ "covers": [
+  "B 522 (bc_zone_set: bedges, zone_block; reefamr::blocks_open)",
+  "ioflow_amr_block::open_edges, edges_nhflow (Riemann, Flather), edges_rk, edges_wl",
+  "nhflow_amr::patch_objects: open_xm, open_xp, B 90 of a block with edge zones"
+ ],
+ "ctrl_set": {
+  "W 10": null,
+  "G 54": null,
+  "B 60": null,
+  "F 62": null,
+  "B 510": [
+   "1 1 0.0 0.5",
+   "2 3 0.0 0.0"
+  ],
+  "B 511": "1 0.005 2.0 0.0",
+  "B 514": "2 0.0 0.0 0.0",
+  "B 520": [
+   "1 3 0",
+   "2 4 0"
+  ],
+  "B 521": [
+   "1 1 0.0 0.0 0.0",
+   "2 2 0.0 0.0 0.0"
+  ],
+  "B 522": [
+   "1 1",
+   "2 2"
+  ],
+  "B 523": [
+   "1 1",
+   "2 2"
+  ]
+ }
+}

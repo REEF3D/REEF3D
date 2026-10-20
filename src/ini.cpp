@@ -738,7 +738,7 @@ void control::ini_default()
     G24=0.0;    // double CFD mesh refinement: flag the cells with |phi| below this many interface thicknesses (psi of the flagging level); 0 off
     G25=0;      // int CFD mesh refinement: flag the cells within this many cells of a solid, the topography or a floating body; 0 off
     G26=0.0;    // double CFD mesh refinement: flag the cells with a vorticity above this value [1/s]; 0 off
-    G30=0;      // int NHFLOW and FNPF mesh refinement: 1 patches may cover dry and shallow cells (wetting and drying in the patches; FNPF: the static coastline A 343 1), 0 they keep 4 level-0 cells away
+    G30=0;      // int NHFLOW and FNPF mesh refinement: 1 patches may cover dry and shallow cells (wetting and drying in the patches; FNPF: the static coastline A 343 1 or the moving one A 343 2, 3), 0 they keep 4 level-0 cells away
     G31=1;      // int NHFLOW mesh refinement with A 512 2: 1 one implicit diffusion solve over the leaf cells of all grids (composite), 0 every grid solves its own
     G52=0;      // int curvilinear NHFLOW (G 50): 1 the i-walls are slip walls as the j-walls (normal velocity mirrored, the pressure correction Neumann), so that a wall acts the same in any index direction (set on multi-block grids); 0 the Cartesian x-walls
     G54=0;      // int multi-block grid (G 50 1): number of open boundaries on the blocks 1.. (G 54 b t v: block b, t 1: discharge v in through its -i face, t 2: water level v at its +i face)
@@ -940,6 +940,10 @@ void control::ini_default()
 	P150=0;			  // int number of data points to read from grid file
 	P151=1;			  // int type of data
 	P152=4;			  // int type of boundary condition for data
+    P160=0;            // int NHFLOW long-run statistics (P 160 t0 dt_out): harmonic analysis and time averages
+    P160_ts=0.0;
+    P160_dt=0.0;
+    P161=1.0;          // double NHFLOW long-run statistics: Rayleigh criterion of the constituents
     P166=0;			  // int print discharge to terminal
 	P167=0;			  // int discharge gages in x-direction
     P168=0;			  // int discharge gages in x-direction
@@ -1121,6 +1125,9 @@ void control::ini_default()
     S89=0.3;                // double d/h exponent C_sh of f(theta) (0.3)
     S95=0;                  // int spiral-flow correction of the bed-load direction (depth-averaged SFLOW): 1 tan(delta) = alpha_I h/R_s
     S96=1.0;                // double spiral-flow intensity factor E_spir of alpha_I = E_spir 2/kappa^2 (1 - sqrt(g)/(kappa C))
+    S97=1.0;                // double S 95 2: factor of the adaptation length of the spiral flow L_a = S97 (m-1) h/(2 kappa^2), m = kappa C/sqrt(g)
+    S64=0.0;                // double SFLOW: suspended part f_s of the transport formula, relaxed over L_s = h|U|/(S65 ws) (0: off)
+    S65=1.0;                // double S 64: ratio of the near-bed to the depth-averaged concentration in L_s
     S90=0;                  // int sandslide on/off
     S91=1;                  // int number of sandslide iterations
     S92=1.0;                // double sandslide correction factor

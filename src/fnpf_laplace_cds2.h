@@ -41,6 +41,10 @@ public:
     
     // mesh refinement (fnpf_amr): assemble M and rhs, but do not solve
     bool assemble_only = false;
+
+    // mesh refinement, A 324 > 0: the bed ghost nodes and the halo of f before the next Picard
+    // assembly, as start() does between its own solves
+    void picard_bc(lexer*, fdm_fnpf*, ghostcell*, double*, fnpf_fsf*);
     
 private:
     

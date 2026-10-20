@@ -60,19 +60,22 @@ public:
     
 private:
     // Step 1: Compute local wave steepness S(i,j)
-    void compute_steepness(lexer*, fdm_fnpf*, ghostcell*);
+    void compute_steepness(lexer*, fdm_fnpf*, ghostcell*, slice&);
 
     // Step 2: Compute local phase speed c(i,j)
-    void compute_phase_speed(lexer*, fdm_fnpf*, ghostcell*);
+    void compute_phase_speed(lexer*, fdm_fnpf*, ghostcell*, slice&);
 
     // Step 3: Detect breaking onset/cessation
-    void detect_breaking(lexer*, fdm_fnpf*, ghostcell*);
+    void detect_breaking(lexer*, fdm_fnpf*, ghostcell*, slice&);
 
     // Step 4: Compute eddy viscosity via energy matching
-    void compute_eddy_viscosity(lexer*, fdm_fnpf*, ghostcell*);
+    void compute_eddy_viscosity(lexer*, fdm_fnpf*, ghostcell*, slice&, slice&);
 
     // --- Helper: local wavenumber estimation via zero-crossing ---
-    void compute_local_wavenumber(lexer*, fdm_fnpf*, ghostcell*);
+    void compute_local_wavenumber(lexer*, fdm_fnpf*, ghostcell*, slice&);
+    
+    // stage water depth eta + wd - bed (>= 0.01)
+    double romero_depth(lexer*, fdm_fnpf*, slice&);
 
     // --- Helper: Hilbert-transform-based envelope and phase ---
     void compute_hilbert_steepness(lexer*, fdm_fnpf*, ghostcell*);
@@ -91,7 +94,8 @@ private:
     slice4 B_coeff;
     
     slice4 S_local, b_strength, c_phase, k_local, L_break, B_ramp;
-    slice4 eta_old,brk_flag,k_smooth;
+    slice4 brk_flag,k_smooth;
+    slice4 vb_brk;      // Kennedy: viscosity of the breaking cells before the spreading
     
     int count_n;
     

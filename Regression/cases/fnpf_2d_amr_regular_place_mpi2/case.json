@@ -1,0 +1,21 @@
+{
+ "base": "fnpf_2d_regular",
+ "np": 2,
+ "steps": 400,
+ "ctrl_add": [
+  "G 1 1",
+  "G 10 12.0 28.0 -1.0 1.0",
+  "G 40 1"
+ ],
+ "description": "fnpf_2d_amr_regular on 2 ranks with G 40 1: the patch placed for the load across the rank cut.",
+ "tags": [
+  "2d",
+  "fnpf",
+  "amr",
+  "waves",
+  "mpi"
+ ],
+ "covers": [
+  "reefamr placement with one cell in y"
+ ]
+}

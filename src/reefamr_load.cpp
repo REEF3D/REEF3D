@@ -83,7 +83,7 @@ void reefamr::load_counts(lexer *p, double &x1, double &x2, double &x3)
             x1 += double(q->nx)*double(q->ny)*double(MAX(q->pp->knoz,1));
             continue;
         }
-        x2 += double(q->nx+2*EXT)*double(q->ny+2*EXT)*kz*double(vfac.empty() ? 1 : vfac[q->lev]);
+        x2 += double(q->nx+2*EXT)*double(q->ny+2*EY)*kz*double(vfac.empty() ? 1 : vfac[q->lev]);
     }
 
     for(int l=1; l<=maxlev && l<(int)bsrv.size(); ++l)
@@ -287,10 +287,10 @@ void reefamr::lmap_layout(lexer *p)
         if(l<1)
         continue;
         const double nx = G.I1-G.I0+1, ny = G.J1-G.J0+1;
-        const double f = (nx+2*EXT)*(ny+2*EXT)/(nx*ny)*kz*double(vfac.empty() ? 1 : vfac[l]);
+        const double f = (nx+2*EXT)*(ny+2*EY)/(nx*ny)*kz*double(vfac.empty() ? 1 : vfac[l]);
 
         const int a0 = MAX(G.I0>>l,O0i), a1 = MIN(G.I1>>l,O0i+NX0-1);
-        const int b0 = MAX(G.J0>>l,O0j), b1 = MIN(G.J1>>l,O0j+NY0-1);
+        const int b0 = MAX(G.J0>>ysh(l),O0j), b1 = MIN(G.J1>>ysh(l),O0j+NY0-1);
         for(int I=a0; I<=a1; ++I)
         {
             const int ci = MIN(G.I1,((I+1)<<l)-1) - MAX(G.I0,I<<l) + 1;
@@ -298,7 +298,7 @@ void reefamr::lmap_layout(lexer *p)
             continue;
             for(int J=b0; J<=b1; ++J)
             {
-                const int cj = MIN(G.J1,((J+1)<<l)-1) - MAX(G.J0,J<<l) + 1;
+                const int cj = MIN(G.J1,((J+1)<<ysh(l))-1) - MAX(G.J0,J<<ysh(l)) + 1;
                 if(cj>0)
                 lmap_cur[(size_t)(I-O0i)*NY0+(J-O0j)] += f*double(ci)*double(cj);
             }

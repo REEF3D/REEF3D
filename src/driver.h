@@ -61,6 +61,7 @@ class fnpf;
 class fnpf_ice;
 class fnpf_amr;
 class nhflow_amr;
+class nhflow_longrun;
 class cfd_amr;
 class nhflow_fsf;
 class nhflow_convection;
@@ -203,6 +204,7 @@ public:
     coral_reef3d *pcoral = nullptr;   // REEF3D::CORAL structural solver (Z 40)
     std::vector<double> coral_ckpt;   // its state from the checkpoint (I 45 1), until coral_ini
     nhflow_amr *pnhfamr = nullptr;
+    nhflow_longrun *plongrun = nullptr;
     nhflow_fsf *pnhfsf;
     sflow *psflow;
     seastate *pseastate = nullptr;

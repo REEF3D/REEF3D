@@ -24,6 +24,8 @@ Authors: Hans Bihs, Tobias Martin
 #include"lexer.h"
 #include"fdm2D.h"
 #include"ghostcell.h"
+#include<cstdio>
+#include<string>
    
 sixdof_sflow::sixdof_sflow(lexer *p, ghostcell *pgc) : press(p)
 {
@@ -123,5 +125,63 @@ void sixdof_sflow::start_shipwave(lexer *p, ghostcell *pgc, int iter, slice &fsg
             fb_obj[nb]->print_stl(p,pgc);
             
             fb_obj[nb]->print_parameter(p,pgc);
+    }
+}
+
+// checkpoints (P 48, I 45)
+void sixdof_sflow::ckpt_state(lexer *p, std::vector<double> &v)
+{
+    v.push_back(double(number6DOF));
+    for(int nb=0; nb<number6DOF; ++nb)
+    {
+        std::vector<double> s;
+        fb_obj[nb]->ckpt_state(p,s);
+        v.push_back(double(s.size()));
+        v.insert(v.end(),s.begin(),s.end());
+    }
+}
+
+bool sixdof_sflow::ckpt_restore(lexer *p, ghostcell *pgc, const std::vector<double> &v)
+{
+    size_t k=0;
+    if(v.empty() || int(v[k++])!=number6DOF)
+    return false;
+
+    for(int nb=0; nb<number6DOF; ++nb)
+    {
+        const size_t n = (k<v.size()) ? size_t(v[k++]) : 0;
+        if(n==0 || k+n>v.size())
+        return false;
+        if(!fb_obj[nb]->ckpt_restore(p,pgc,std::vector<double>(v.begin()+k,v.begin()+k+n)))
+        return false;
+        k += n;
+    }
+    return true;
+}
+
+void sixdof_sflow::ckpt_fields(const std::function<void(const char*,char,double*)> &fd, const std::function<void(const char*,char,int*)> &fi)
+{
+    for(int nb=0; nb<number6DOF; ++nb)
+    {
+        char pre[32];
+        snprintf(pre,sizeof(pre),"sixdof%d_",nb);
+        fb_obj[nb]->ckpt_2D_fields(pre,fd,fi);
+    }
+}
+
+void sixdof_obj_2D::ckpt_2D_fields(const char *pre, const std::function<void(const char*,char,double*)> &fd, const std::function<void(const char*,char,int*)> &fi)
+{
+    struct { const char *n; slice4 *s; } sl[] = {{"press",&press},{"lrk1",&lrk1},{"lrk2",&lrk2},{"K",&K},{"dts",&dts},{"fs",&fs},
+        {"Ls",&Ls},{"Bs",&Bs},{"Rxmin",&Rxmin},{"Rxmax",&Rxmax},{"Rymin",&Rymin},{"Rymax",&Rymax},{"draft",&draft}};
+    for(auto &e : sl)
+    {
+        const std::string n = std::string(pre) + e.n;
+        fd(n.c_str(),'S',e.s->V);
+    }
+    struct { const char *n; sliceint5 *s; } si[] = {{"cl",&cl},{"cr",&cr},{"fsio",&fsio}};
+    for(auto &e : si)
+    {
+        const std::string n = std::string(pre) + e.n;
+        fi(n.c_str(),'S',e.s->V);
     }
 }

@@ -334,7 +334,9 @@ void fnpf_amr::sub_stage(lexer *p, ghostcell *pgc, int l, int k, int s, double d
         pp->dt = dt;
         pp->dt_old = dt;
         pp->simtime = tsub;
-        pp->count = p->count;
+        // a step of its own: the flags of the wetting and drying (A 343 2, 3) and of the breaking
+        // detection are set once per step of the level (level-0 step count times 2^l plus k)
+        pp->count = p->count*(1<<l) + k;
         pp->amr_follow(*p);
 
         slice4 &ek = *pc->ek, &fk = *pc->fk;
@@ -439,6 +441,9 @@ void fnpf_amr::sub_stage(lexer *p, ghostcell *pgc, int l, int k, int s, double d
     // fill, as fnpf_RK3 (the damping, then the clamp and the coastline relaxation)
     if(stage_ring())
     {
+        if(dyn)
+        fill_wet(l);
+
         stage_damp_coast(l,pgc,s);
 
         for(int id : lev[l])
@@ -560,6 +565,7 @@ void fnpf_amr::sub_sync(lexer *p, ghostcell *pgc, int l, double theta)
     whi = -1;
     restrict_sl(2,[&](int g, int m) -> slice& { return (m==0) ? static_cast<slice&>(gfd(g)->eta) : static_cast<slice&>(gfd(g)->Fifsf); });
     restrict_col([&](int g) -> double* { return gfd(g)->Fi; });
+    restrict_flags(pgc);
     wlo = 0;
 
     sub_derived(p,pgc,l,theta);
@@ -590,6 +596,9 @@ void fnpf_amr::sub_derived(lexer *p, ghostcell *pgc, int l, double theta)
     if(swap)
     sub_swap_in(l-1,theta);
     fill_sl(l,2,7970+l,[&](int g, int m) -> slice& { return (m==0) ? static_cast<slice&>(gfd(g)->eta) : static_cast<slice&>(gfd(g)->Fifsf); });
+    if(dyn)
+    for(int id : lev[l])
+    ring_dry(*FP(id),FP(id)->c->eta);
     fill_col(l,7975+l,[&](int g) -> double* { return gfd(g)->Fi; });
     if(swap)
     sub_swap_out(l-1);
@@ -727,7 +736,7 @@ void fnpf_amr::lap_prec_win(int kr, int kz)
             double *z = lvec(id,kz);
             const double *t = lvec(id,NRP);
             for(int ii=EXT; ii<EXT+c->nx; ++ii)
-            for(int jj=EXT; jj<EXT+c->ny; ++jj)
+            for(int jj=EY; jj<EY+c->ny; ++jj)
             for(int kk=0; kk<=pp->knoz; ++kk)
             {
                 const int qq = fidx(pp,ii,jj,kk);

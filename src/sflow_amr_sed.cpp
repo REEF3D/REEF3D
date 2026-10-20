@@ -339,6 +339,43 @@ void sflow_amr::sediment_step_sflow(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *
         pb->Q(ii,jj) = (pp->wet[lij(pp,ii,jj)]==1 && pp->wet[lij(pp,ii,jj+1)]==1) ? 0.5*(pb->V(ii,jj)+pb->V(ii,jj+1)) : 0.0;
     }
 
+    // the lags of the bend morphology (S 95 2, S 64, sediment_exner_lag.cpp): the relaxation of every grid holds the
+    // cells around it (filled from their sources) and its covered cells (the mean of their children)
+    const bool lag = (p->S95==2 || p->S64>0.0);
+    if(lag)
+    {
+        for(int g=-1; g<ng; ++g)
+        {
+        lexer *q = grid(g).q;
+        slice4 &fx = gsed(g)->exner()->lagfix;
+        for(int ii=q->imin; ii<q->imin+q->imax; ++ii)
+        for(int jj=q->jmin; jj<q->jmin+q->jmax; ++jj)
+        fx(ii,jj) = 0.0;
+        if(g>=0)
+        for(auto &f : SP(g)->fill)
+        fx(f.di,f.dj) = 1.0;
+        if(g<0 && nblk>0)
+        for(int ii=q->imin; ii<q->imin+q->imax; ++ii)
+        for(int jj=q->jmin; jj<q->jmin+q->jmax; ++jj)
+        if(nring[lij(q,ii,jj)]==1)
+        fx(ii,jj) = 1.0;
+        }
+
+        for(int l=1; l<=maxlev; ++l)
+        {
+        for(int id : lev[l])
+        {
+            reefamr_patch *c = P[id];
+            for(size_t k=0; k<c->rgrid.size(); ++k)
+            if(c->rgrid[k]>=-1)
+            gsed(c->rgrid[k])->exner()->lagfix(c->ric[k],c->rjc[k]) = 1.0;
+        }
+        for(auto &B : bsrv[l])
+        if(B.g>=-1)
+        gsed(B.g)->exner()->lagfix(B.ic,B.jc) = 1.0;
+        }
+    }
+
     // 1. physics of every grid
     s0->amr_physics_sflow(p,b,pgc);
 
@@ -350,65 +387,105 @@ void sflow_amr::sediment_step_sflow(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *
     }
 
     // the covered cells: qb of their children (mean per area): the cells around a patch take qb linear from
-    // the coarser level, with the slopes of its neighbours, covered ones among them
-    for(int l=maxlev; l>=1; --l)
-    block_up(l,sediment_exner::amr_nfield,8040+l,
-             [&](reefamr_patch *q, int id, int k, double *v)
-             {
-                 sediment_f *sf = SP(q)->sed;
-                 const int nby = q->ny/2;
-                 const int i0 = EXT+2*(k/nby), j0 = EXT+2*(k%nby);
-                 double w[4];
-                 cw4(q->pp,i0,j0,w);
-                 for(int n=0; n<sediment_exner::amr_nfield; ++n)
+    // the coarser level, with the slopes of its neighbours, covered ones among them (step 2); again after every
+    // pass of the lags
+    auto sync = [&]()
+    {
+        for(int l=maxlev; l>=1; --l)
+        block_up(l,sediment_exner::amr_nfield,8040+l,
+                 [&](reefamr_patch *q, int id, int k, double *v)
                  {
-                 auto f = [&](int a, int b) { return sf->exner()->amr_field(sf->s,n,a,b); };
-                 v[n] = w[0]*f(i0,j0) + w[1]*f(i0+1,j0) + w[2]*f(i0,j0+1) + w[3]*f(i0+1,j0+1);
-                 }
-             },
-             [&](const reefamr_block &B, int key, const double *v)
-             {
-                 for(int n=0; n<sediment_exner::amr_nfield; ++n)
-                 gsed(B.g)->exner()->amr_field(gsed(B.g)->s,n,B.ic,B.jc) = v[n];
-             });
+                     sediment_f *sf = SP(q)->sed;
+                     const int nby = q->ny/2;
+                     const int i0 = EXT+2*(k/nby), j0 = EXT+2*(k%nby);
+                     double w[4];
+                     cw4(q->pp,i0,j0,w);
+                     for(int n=0; n<sediment_exner::amr_nfield; ++n)
+                     {
+                     auto f = [&](int a, int b) { return sf->exner()->amr_field(sf->s,n,a,b); };
+                     v[n] = w[0]*f(i0,j0) + w[1]*f(i0+1,j0) + w[2]*f(i0,j0+1) + w[3]*f(i0+1,j0+1);
+                     }
+                 },
+                 [&](const reefamr_block &B, int key, const double *v)
+                 {
+                     for(int n=0; n<sediment_exner::amr_nfield; ++n)
+                     gsed(B.g)->exner()->amr_field(gsed(B.g)->s,n,B.ic,B.jc) = v[n];
+                 });
 
-    // 2. qb around the blocks and in the ring of the native grid (multi-block grid), around the patches
-    if(nblk>0)
-    fill_run0(sediment_exner::amr_nfield,7958,
-              [&](const reefamr_fill &f, double *v)
-              {
-                  for(int n=0; n<sediment_exner::amr_nfield; ++n)
-                  v[n] = (f.kind==0) ? gsed(f.g)->exner()->amr_field(gsed(f.g)->s,n,f.si,f.sj) : 0.0;
-              },
-              [&](reefamr_patch *q, int id, const reefamr_fill &f, const double *w)
-              {
-                  for(int n=0; n<sediment_exner::amr_nfield; ++n)
-                  SP(q)->sed->exner()->amr_field(SP(q)->sed->s,n,f.di,f.dj) = w[n];
-              },
-              [&](const reefamr_fill &f, const double *w)
-              {
-                  for(int n=0; n<sediment_exner::amr_nfield; ++n)
-                  s0->exner()->amr_field(s0->s,n,f.di,f.dj) = w[n];
-              });
+        // 2. qb around the blocks and in the ring of the native grid (multi-block grid), around the patches
+        if(nblk>0)
+        fill_run0(sediment_exner::amr_nfield,7958,
+                  [&](const reefamr_fill &f, double *v)
+                  {
+                      for(int n=0; n<sediment_exner::amr_nfield; ++n)
+                      v[n] = (f.kind==0) ? gsed(f.g)->exner()->amr_field(gsed(f.g)->s,n,f.si,f.sj) : 0.0;
+                  },
+                  [&](reefamr_patch *q, int id, const reefamr_fill &f, const double *w)
+                  {
+                      for(int n=0; n<sediment_exner::amr_nfield; ++n)
+                      SP(q)->sed->exner()->amr_field(SP(q)->sed->s,n,f.di,f.dj) = w[n];
+                  },
+                  [&](const reefamr_fill &f, const double *w)
+                  {
+                      for(int n=0; n<sediment_exner::amr_nfield; ++n)
+                      s0->exner()->amr_field(s0->s,n,f.di,f.dj) = w[n];
+                  });
 
-    for(int l=1; l<=maxlev; ++l)
-    fill_run(l,sediment_exner::amr_nfield,7960+l,
-             [&](const reefamr_fill &f, double *v)
-             {
-                 sediment_f *sf = gsed(f.g);
-                 for(int n=0; n<sediment_exner::amr_nfield; ++n)
-                 if(f.kind==0)
-                 v[n] = sf->exner()->amr_field(sf->s,n,f.si,f.sj);
-                 else if(f.kind==1)
-                 v[n] = sed_plin((n==0 ? sf->s->qb : sf->exner()->bend_slice(n)),grid(f.g).q,f.si,f.sj,f.ox,f.oy);
-                 else
-                 v[n] = 0.0;
-             },
-             [&](reefamr_patch *q, int id, const reefamr_fill &f, const double *w)
-             {
-                 for(int n=0; n<sediment_exner::amr_nfield; ++n)
-                 SP(q)->sed->exner()->amr_field(SP(q)->sed->s,n,f.di,f.dj) = w[n];
-             });
+        for(int l=1; l<=maxlev; ++l)
+        fill_run(l,sediment_exner::amr_nfield,7960+l,
+                 [&](const reefamr_fill &f, double *v)
+                 {
+                     sediment_f *sf = gsed(f.g);
+                     for(int n=0; n<sediment_exner::amr_nfield; ++n)
+                     if(f.kind==0)
+                     v[n] = sf->exner()->amr_field(sf->s,n,f.si,f.sj);
+                     else if(f.kind==1)
+                     v[n] = sed_plin((n==0 ? sf->s->qb : sf->exner()->bend_slice(n)),grid(f.g).q,f.si,f.sj,f.ox,f.oy);
+                     else
+                     v[n] = 0.0;
+                 },
+                 [&](reefamr_patch *q, int id, const reefamr_fill &f, const double *w)
+                 {
+                     for(int n=0; n<sediment_exner::amr_nfield; ++n)
+                     SP(q)->sed->exner()->amr_field(SP(q)->sed->s,n,f.di,f.dj) = w[n];
+                 });
+    };
+
+    sync();
+
+    // the lags run on through the interfaces: the relaxations again from the filled cells, until the cells around the
+    // grids no longer move them (the change of the first sweep below the tolerance of the relaxation, 1e-6 of the
+    // largest equilibrium), at most S 49 passes
+    if(lag)
+    {
+        int pass;
+        double res = 0.0;
+        for(pass=1; pass<=MAX(p->S49,1); ++pass)
+        {
+            double d[2] = {0.0,0.0}, f[2] = {0.0,0.0};
+            s0->exner()->lag_refresh(p,pgc,s0->s,d,f);
+            for(int id=0; id<ng; ++id)
+            {
+            sflow_amr_patch *c = SP(id);
+            sedscope ss(pgc,c->pp);
+            c->sed->exner()->lag_refresh(c->pp,pgc,c->sed->s,d,f);
+            }
+            sync();
+
+            res = 0.0;
+            for(int k=0; k<2; ++k)
+            {
+            d[k] = pgc->globalmax(d[k]);
+            f[k] = pgc->globalmax(f[k]);
+            if(f[k]>0.0)
+            res = MAX(res,d[k]/f[k]);
+            }
+            if(res<=sediment_exner::lag_tol)
+            break;
+        }
+        if(p->mpirank==0)
+        cout<<"lags across the grids: passes "<<MIN(pass,MAX(p->S49,1))<<"  change "<<setprecision(3)<<res<<endl;
+    }
 
     // 3. face fluxes, the box faces of the patches, the matched coarse faces
     vector<std::unique_ptr<slice4>> Fx(ng+1), Fy(ng+1), mask(ng+1);

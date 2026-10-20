@@ -52,6 +52,9 @@ public:
 	void start(lexer*, ghostcell*) override final;
 	void initialize(lexer*, ghostcell*) override final;
 	void mooringForces(double&, double&, double&) override final;
+    // checkpoints (P 48, I 45): the beam, the line at the last step, the mooring time, broken
+    void ckpt_state(std::vector<double>&) const override;
+    void ckpt_restore(const std::vector<double>&, size_t&) override;
     
     void setConstantLoads(Matrix3Xd&, Matrix4Xd&, const Matrix3Xd&, const Matrix3Xd&, const Matrix4Xd&, const Matrix4Xd&) override final;
     void setFieldBC(Matrix3Xd&, Matrix3Xd&, Matrix4Xd&, Matrix4Xd&, Matrix4Xd&, Matrix3Xd&, Matrix4Xd&, Matrix3Xd&, double, int) override final;

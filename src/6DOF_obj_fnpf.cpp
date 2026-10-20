@@ -37,6 +37,7 @@ Author: Hans Bihs
 #include"mooring_Catenary.h"
 #include"mooring_Spring.h"
 #include"mooring_dynamic.h"
+#include"ckpt_pack.h"
 
 sixdof_obj_fnpf::sixdof_obj_fnpf(lexer *p, ghostcell *pgc, int number) : sixdof_obj(p,pgc,number)
 {
@@ -145,12 +146,16 @@ void sixdof_obj_fnpf::initialize_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 	}	
     
     // t = 0 frame of the body after the mooring set-up, so both series share the
-    // index of the initial fluid output (printcount_sixdof)
+    // index of the initial fluid output (printcount_sixdof); not on a restart from a checkpoint
+    // (I 45 1: printed already)
+    if(p->I45!=1)
+    {
     if(p->X50==1)
     print_vtp(p,pgc);
     
     if(p->X50==2)
     print_stl(p,pgc);
+    }
     
     Xe=Ye=Ze=Ke=Me=Ne=0.0;
     Xext=Yext=Zext=Kext=Mext=Next=0.0;
@@ -311,4 +316,122 @@ void sixdof_obj_fnpf::print_force_fnpf(lexer *p)
     if(p->mpirank==0)
     printforce<<curr_time<<" \t "<<Xe<<" \t "<<Ye<<" \t "<<Ze<<" \t "<<Ke
     <<" \t "<<Me<<" \t "<<Ne<<" \t "<<Fx<<" \t "<<Fy<<" \t "<<Fz<<" \t "<<0.0<<" \t "<<0.0<<" \t "<<0.0<<endl;
+}
+
+// checkpoints (P 48, I 45)
+void sixdof_obj_fnpf::ckpt_fnpf_state(std::vector<double> &v) const
+{
+    ckpt_put w{v};
+    w.d(2.0);   // version
+    w.i(chim_nx); w.i(chim_ny); w.i(chim_count);
+    for(double x : {chim_x0,chim_y0,chim_h,chim_bx0,chim_bx1,chim_by0,chim_by1,Fx,Fy,Fz,DSM})
+    w.d(x);
+}
+
+bool sixdof_obj_fnpf::ckpt_fnpf_restore(const std::vector<double> &v)
+{
+    ckpt_get r{v};
+    double version=0.0;
+    r.d(version);
+    if(!r.ok || int(version)!=2)
+    return false;
+    r.i(chim_nx); r.i(chim_ny); r.i(chim_count);
+    for(double *x : {&chim_x0,&chim_y0,&chim_h,&chim_bx0,&chim_bx1,&chim_by0,&chim_by1,&Fx,&Fy,&Fz,&DSM})
+    r.d(*x);
+    return r.ok;
+}
+
+void sixdof_obj_fnpf::ckpt_fnpf_rank_state(std::vector<double> &v) const
+{
+    ckpt_put w{v};
+    w.vd(chim_); w.vd(chim2_);
+    w.i(int(chim_lev_.size()));
+    for(const chim_level &g : chim_lev_)
+    {
+        w.vd(g.m1); w.vd(g.m2);
+        w.i(g.nx); w.i(g.ny);
+        w.d(g.x0); w.d(g.y0); w.d(g.h); w.d(g.t);
+    }
+}
+
+void sixdof_obj_fnpf::ckpt_fnpf_rank_restore(const std::vector<std::vector<double>> &all)
+{
+    // the means of the ranks (one: as they were); a value per bin: the mean of the ranks that
+    // hold one
+    std::vector<double> c1, c2;
+    std::vector<chim_level> lv;
+    std::vector<double> n1;
+    std::vector<std::vector<double>> nl;
+    
+    auto merge = [](std::vector<double> &a, std::vector<double> &n, const std::vector<double> &b)
+    {
+        if(b.empty())
+        return;
+        if(a.size()<b.size())
+        {
+            a.resize(b.size(),0.0);
+            n.resize(b.size(),0.0);
+        }
+        for(size_t q=0; q<b.size(); ++q)
+        if(b[q]!=0.0)
+        {
+            a[q] += b[q];
+            n[q] += 1.0;
+        }
+    };
+    
+    std::vector<double> nc2;
+    std::vector<std::vector<double>> nl2;
+    
+    for(const std::vector<double> &v : all)
+    {
+        ckpt_get r{v};
+        std::vector<double> a1, a2;
+        r.vd(a1); r.vd(a2);
+        merge(c1,n1,a1);
+        merge(c2,nc2,a2);
+        int nlev=0;
+        r.i(nlev);
+        if(!r.ok || nlev<0)
+        continue;
+        if((int)lv.size()<nlev)
+        {
+            lv.resize(nlev);
+            nl.resize(nlev);
+            nl2.resize(nlev);
+        }
+        for(int l=0; l<nlev; ++l)
+        {
+            chim_level g;
+            r.vd(g.m1); r.vd(g.m2);
+            r.i(g.nx); r.i(g.ny);
+            r.d(g.x0); r.d(g.y0); r.d(g.h); r.d(g.t);
+            if(!r.ok)
+            break;
+            if(g.nx>0 && lv[l].nx==0)
+            {
+                lv[l].nx = g.nx; lv[l].ny = g.ny; lv[l].x0 = g.x0; lv[l].y0 = g.y0; lv[l].h = g.h; lv[l].t = g.t;
+            }
+            merge(lv[l].m1,nl[l],g.m1);
+            merge(lv[l].m2,nl2[l],g.m2);
+        }
+    }
+    
+    auto mean = [](std::vector<double> &a, const std::vector<double> &n)
+    {
+        for(size_t q=0; q<a.size(); ++q)
+        if(n[q]>1.5)
+        a[q] /= n[q];
+    };
+    mean(c1,n1);
+    mean(c2,nc2);
+    for(size_t l=0; l<lv.size(); ++l)
+    {
+        mean(lv[l].m1,nl[l]);
+        mean(lv[l].m2,nl2[l]);
+    }
+    
+    chim_.swap(c1);
+    chim2_.swap(c2);
+    chim_lev_.swap(lv);
 }

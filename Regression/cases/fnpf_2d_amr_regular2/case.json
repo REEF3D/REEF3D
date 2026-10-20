@@ -1,0 +1,19 @@
+{
+ "base": "fnpf_2d_regular",
+ "np": 1,
+ "steps": 300,
+ "ctrl_add": [
+  "G 1 2",
+  "G 10 12.0 28.0 -1.0 1.0"
+ ],
+ "description": "fnpf_2d_amr_regular with two levels (dx/4 in the box).",
+ "tags": [
+  "2d",
+  "fnpf",
+  "amr",
+  "waves"
+ ],
+ "covers": [
+  "fnpf_amr 2D: two levels, the composite Laplace over three grids"
+ ]
+}

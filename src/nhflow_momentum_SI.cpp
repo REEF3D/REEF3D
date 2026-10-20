@@ -1783,17 +1783,21 @@ void nhflow_momentum_SI::cell_update(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     // cell momentum: the gravity term of the cell is the mean of that of its open faces, H_f times the
     // face gradient (theta weighted), the same in every layer; with H_f instead of the depth of the
-    // cell, a face with a thin water depth (next to a drying cell, where the eta of the Newton
-    // iteration is far below the bed) gives the cell no more momentum than its own discharge gets
+    // cell, a thin face gives the cell no more momentum than its own discharge gets. A face towards a
+    // cell that is dry at the end of the step (eta^{n+1} + d <= A 544: the eta of the Newton iteration
+    // is not a water level there, it may lie far below the bed) does not count: its gradient carries
+    // the drainage of the last film of that cell, not a pressure gradient of the wet cell
     const double dt = p->dt;
     double we,ww,wsum,gu,gv;
+
+    auto wn = [&](int a, int b) { return etaI(a,b) + d->depth(a,b) > p->A544; };
 
     SLICELOOP4
     {
         if(p->wet[IJ]==1)
         {
-        we = Hx(i,j)>0.0 ? 1.0 : 0.0;
-        ww = Hx(i-1,j)>0.0 ? 1.0 : 0.0;
+        we = (Hx(i,j)>0.0 && wn(i+1,j)) ? 1.0 : 0.0;
+        ww = (Hx(i-1,j)>0.0 && wn(i-1,j)) ? 1.0 : 0.0;
         wsum = MAX(we+ww,1.0);
 
         gu = dt*g*(ww*Hx(i-1,j)*(theta*(etaI(i,j) - etaI(i-1,j))/p->DXP[IM1] + (1.0-theta)*gx0(i-1,j))
@@ -1802,8 +1806,8 @@ void nhflow_momentum_SI::cell_update(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
             if(p->j_dir==1)
             {
-            we = Hy(i,j)>0.0 ? 1.0 : 0.0;
-            ww = Hy(i,j-1)>0.0 ? 1.0 : 0.0;
+            we = (Hy(i,j)>0.0 && wn(i,j+1)) ? 1.0 : 0.0;
+            ww = (Hy(i,j-1)>0.0 && wn(i,j-1)) ? 1.0 : 0.0;
             wsum = MAX(we+ww,1.0);
 
             gv = dt*g*(ww*Hy(i,j-1)*(theta*(etaI(i,j) - etaI(i,j-1))/p->DYP[JM1] + (1.0-theta)*gy0(i,j-1))
@@ -1822,7 +1826,11 @@ void nhflow_momentum_SI::cell_update(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
             auto face = [&](int dir, int fi, int fj, double H, double G0, double G1)
             {
-                if(H<=0.0)
+                // the other cell of the face
+                const int oi = dir==1 ? (fi==i ? i+1 : i-1) : i;
+                const int oj = dir==2 ? (fj==j ? j+1 : j-1) : j;
+
+                if(H<=0.0 || !wn(oi,oj))
                 return;
 
                 fnorm(p,dir,fi,fj,nx,ny);
@@ -1885,7 +1893,11 @@ void nhflow_momentum_SI::cell_update(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
             }
 
-        // column: UH = A^-1 (I - dt L_v) UH* - dt g WL G r,  r = A^-1 1
+        // a cell that is dry at the end of the step gets no gravity term (its eta is not a level)
+        if(!wn(i,j))
+        gu = gv = 0.0;
+
+        // column: UH = A^-1 (I - dt L_v) UH* - dt g [H G] r,  r = A^-1 1
         col_nu(p,d,i,j,i,j,wnu.data());
         col_coef(p,d,WL0(i,j),i,j,i,j,wnu.data(),wcu.data(),wcl.data(),wcd.data());
 

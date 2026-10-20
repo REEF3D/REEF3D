@@ -96,6 +96,16 @@ void sediment_f::sediment_logic(lexer *p, ghostcell *pgc, turbulence *pturb)
         cout<<"!!! S 95 (spiral-flow correction) is for SFLOW (A 10 2) only; S 86 and S 95 need S 31 1 or 2 !!!"<<endl;
         exit(1);
     }
+    
+    // the lags of the bend morphology (sediment_exner_lag.cpp): S 95 0, 1 or 2; the suspended part S 64 of the
+    // depth-averaged transport for SFLOW with one fraction, 0 <= S 64 <= 1
+    if(p->S95<0 || p->S95>2 || p->S97<0.0
+       || (p->S64!=0.0 && (p->A10!=2 || p->S51>0 || p->S64<0.0 || p->S64>1.0 || p->S65<=0.0 || p->S31==3)))
+    {
+        if(p->mpirank==0)
+        cout<<"!!! S 95 is 0, 1 or 2 (S 97 >= 0); S 64 (suspended part, 0 .. 1, S 65 > 0) is for SFLOW (A 10 2) with one fraction and S 31 1 or 2 !!!"<<endl;
+        exit(1);
+    }
 
     s = new sediment_fdm(p);
     

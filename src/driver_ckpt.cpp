@@ -27,11 +27,11 @@ Author: Hans Bihs
 //  On the same decomposition the restart continues bitwise; on another one the ghost cells come from
 //  the neighbours' interiors and the domain boundaries of the writing run.
 //  The 6DOF bodies of CFD and NHFLOW: their state as a blob (6DOF_obj_ckpt.cpp), their arrays on the grid
-//  with those of the model.  REEF3D::CORAL (Z 40): its state as a blob (coral_reef3d::ckpt_state), set
-//  into the model after its set-up (coral_ini).
-//  Not there yet (refused with a message): 6DOF wavemaker objects, quasi-static and dynamic moorings,
-//  nets, power take-off; sediment, DEM, FEM structures, SEASTATE; NHFLOW with Lagrangian particles,
-//  membranes; CFD with FSI.
+//  with those of the model; the resolved bodies of FNPF the same way (fnpf_6DOF_ckpt.cpp), their grids
+//  on the patches of the mesh refinement with the patches.  REEF3D::CORAL (Z 40): its state as a blob
+//  (coral_reef3d::ckpt_state), set into the model after its set-up (coral_ini).
+//  Not there yet (refused with a message): 6DOF wavemaker objects, nets, power take-off; sediment, DEM,
+//  FEM structures, SEASTATE; NHFLOW with Lagrangian particles, membranes; CFD with FSI.
 
 #include"driver.h"
 #include"lexer.h"
@@ -40,6 +40,8 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"printer.h"
 #include"fnpf_amr.h"
+#include"fnpf.h"
+#include"fnpf_body.h"
 #include"reefckpt.h"
 #include"reefrun_ckpt.h"
 #include"fnpf_ckpt_fields.h"
@@ -61,14 +63,10 @@ string driver::ckpt_unsupported()
 {
     if(p->A10!=3 && p->A10!=5 && p->A10!=6)
     return "checkpoints are there for SFLOW, FNPF, NHFLOW and CFD only";
-    // 6DOF: rigid bodies (free, towed; NHFLOW also the ship-wave pressure patch) with spring and
-    // catenary moorings, motion files and the ship load models
-    if(p->X10>0 && p->A10!=6 && p->A10!=5)
-    return "6DOF bodies are in the checkpoints for CFD and NHFLOW only";
+    // 6DOF: rigid bodies (free, towed; NHFLOW also the ship-wave pressure patch; FNPF the resolved
+    // bodies with their grids) with all moorings, motion files and the ship load models
     if(p->X10==4)
     return "6DOF wavemaker objects (X 10 4) are not in the checkpoints yet";
-    if(p->X10>0 && (p->X310==2 || p->X310==3))
-    return "quasi-static and dynamic mooring lines (X 310 2, 3) are not in the checkpoints yet";
     if(p->X10>0 && p->X320>0)
     return "nets (X 320) are not in the checkpoints yet";
     if(p->X10>0 && p->X500>0)
@@ -109,6 +107,8 @@ reefrun_ckpt& driver::ckpt()
         if(p->A10==3)
         {
             fnpf_ckpt_fields(p,c,wd,wi);
+            if(ppfsg->body()!=nullptr)
+            ppfsg->body()->ckpt_fields(wd,wi);
             if(pfamr!=nullptr)
             pfamr->ckpt_write(ck);
         }
@@ -127,8 +127,17 @@ reefrun_ckpt& driver::ckpt()
             pcfdamr->ckpt_write(ck);
         }
 
-        // the 6DOF bodies (the same on all ranks)
-        if(p->X10>0)
+        // the 6DOF bodies (the same on all ranks); FNPF: the resolved bodies
+        if(p->X10>0 && p->A10==3 && ppfsg->body()!=nullptr)
+        {
+            vector<double> sd;
+            ppfsg->body()->ckpt_state(p,sd);
+            ck.blob("sixdof",sd);
+            vector<double> sr;
+            ppfsg->body()->ckpt_rank_state(sr);
+            ck.rank_blob("sixdof_rank",sr);
+        }
+        if(p->X10>0 && p->A10!=3)
         {
             vector<double> sd;
             p6dof->ckpt_state(p,sd);
@@ -159,7 +168,11 @@ reefrun_ckpt& driver::ckpt()
         auto level0 = [&]()
         {
             if(p->A10==3)
+            {
             fnpf_ckpt_fields(p,c,rd,ri);
+            if(ppfsg->body()!=nullptr)
+            ppfsg->body()->ckpt_fields(rd,ri);
+            }
             if(p->A10==5)
             {
                 nhflow_ckpt_fields(p,d,rd,ri);
@@ -210,8 +223,25 @@ reefrun_ckpt& driver::ckpt()
             level0();
         }
 
+        // FNPF: the resolved bodies (after the patches: their body grids)
+        if(p->X10>0 && p->A10==3 && ppfsg->body()!=nullptr)
+        {
+            if(!ck.has("sixdof") || !ppfsg->body()->ckpt_restore(p,pgc,ck.get_blob("sixdof")))
+            {
+                msg = "the 6DOF bodies of the checkpoint do not fit this run";
+                return false;
+            }
+            if(ck.has("sixdof_rank"))
+            {
+                if(ck.same_decomposition())
+                ppfsg->body()->ckpt_rank_restore({ck.get_rank_blob("sixdof_rank",p->mpirank)});
+                else
+                ppfsg->body()->ckpt_rank_restore(ck.get_rank_blobs("sixdof_rank"));
+            }
+        }
+
         // the 6DOF bodies: their state, the trimesh at the pose (the arrays on the grid are in the fields)
-        if(p->X10>0)
+        if(p->X10>0 && p->A10!=3)
         {
             if(!ck.has("sixdof") || !p6dof->ckpt_restore(p,pgc,ck.get_blob("sixdof")))
             {

@@ -227,8 +227,16 @@ void fnpf_fsfbc_wd::wetdry_dynamic(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice 
             ++wetage(i,j);
         }
 
+        // mesh refinement (lexer::wetfix >= 0): the cells around a patch and the covered cells
+        // of the coarser grid take the flag of their source cells, no rule here
+        auto fixed = [&](int ii, int jj) { return p->wetfix!=nullptr && p->wetfix[(ii-p->imin)*p->jmax + (jj-p->jmin)]>=0; };
+
         SLICELOOP4
-        if(wetcoast(i,j)==1)
+        if(fixed(i,j))
+        temp[IJ] = p->wetfix[IJ];
+
+        SLICELOOP4
+        if(wetcoast(i,j)==1 && !fixed(i,j))
         {
             if(p->wet[IJ]==0)
             {
@@ -314,7 +322,7 @@ void fnpf_fsfbc_wd::wetdry_dynamic(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice 
         // unless it holds substantial water (> (1+A331)*A344 above the
         // criterion, i.e. it can still rewet a neighbour itself)
         SLICELOOP4
-        if(wetcoast(i,j)==1 && p->wet[IJ]==1 && temp[IJ]==1)
+        if(wetcoast(i,j)==1 && p->wet[IJ]==1 && temp[IJ]==1 && !fixed(i,j))
         {
             int nw=0;
 
@@ -335,7 +343,7 @@ void fnpf_fsfbc_wd::wetdry_dynamic(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice 
         }
 
         SLICELOOP4
-        if(wetcoast(i,j)==1)
+        if(wetcoast(i,j)==1 || fixed(i,j))
         p->wet[IJ] = temp[IJ];
 
         pgc->gcsl_start4Vint(p,p->wet,50);
@@ -366,8 +374,11 @@ void fnpf_fsfbc_wd::wetdry_dynamic(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice 
     SLICELOOP4
     wd_dvol(i,j) = 0.0;
 
+    // mesh refinement: the fixed cells exchange no volume (wd_redistribute)
+    const bool hasfix = (p->wetfix!=nullptr);
+
     SLICELOOP4
-    if(wetcoast(i,j)==1)
+    if(wetcoast(i,j)==1 || (hasfix && p->wetfix[IJ]>=0))
     {
         if(p->wet[IJ]==0)
         {
@@ -377,7 +388,7 @@ void fnpf_fsfbc_wd::wetdry_dynamic(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice 
             // not water (relaxation zone, initial state)
             const double etad = crit - c->depth(i,j);
 
-            if(p->wet_n[IJ]==1)
+            if(p->wet_n[IJ]==1 && !(hasfix && p->wetfix[IJ]>=0))
             wd_dvol(i,j) = etad - eta(i,j);
 
             eta(i,j) = etad;
@@ -386,6 +397,7 @@ void fnpf_fsfbc_wd::wetdry_dynamic(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice 
         {
             // wet but below the criterion (young cell or later RK stage): clamp as for A343 1
             const double etaw = 1.1*crit - c->depth(i,j);
+            if(!(hasfix && p->wetfix[IJ]>=0))
             wd_dvol(i,j) = etaw - eta(i,j);
             eta(i,j) = etaw;
             Fifsf(i,j) = wet_nb_average(p,Fifsf);
@@ -434,19 +446,23 @@ void fnpf_fsfbc_wd::wd_redistribute(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice
     const double crit = c->wd_criterion;
     const bool base = update_base && (&eta != &c->eta);
 
+    // mesh refinement (lexer::wetfix >= 0): the cells around a patch and the covered cells hold
+    // the values of their source grid, they give and take nothing
+    auto donor = [&](int n) { return p->wet[n]==1 && p->flagslice4[n]>0 && (p->wetfix==nullptr || p->wetfix[n]<0); };
+
     SLICELOOP4
     {
         int nw=0;
 
         if(wd_dvol(i,j)!=0.0)
         {
-            if(p->wet[Im1J]==1 && p->flagslice4[Im1J]>0) ++nw;
-            if(p->wet[Ip1J]==1 && p->flagslice4[Ip1J]>0) ++nw;
+            if(donor(Im1J)) ++nw;
+            if(donor(Ip1J)) ++nw;
 
             if(p->j_dir==1)
             {
-                if(p->wet[IJm1]==1 && p->flagslice4[IJm1]>0) ++nw;
-                if(p->wet[IJp1]==1 && p->flagslice4[IJp1]>0) ++nw;
+                if(donor(IJm1)) ++nw;
+                if(donor(IJp1)) ++nw;
             }
         }
 
@@ -457,7 +473,7 @@ void fnpf_fsfbc_wd::wd_redistribute(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice
     pgc->gcsl_start4(p,wd_nwet,50);
 
     SLICELOOP4
-    if(p->wet[IJ]==1)
+    if(donor(IJ))
     {
         double take=0.0;
 
@@ -531,6 +547,11 @@ void fnpf_fsfbc_wd::wd_connect(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &Fif
         wdL(i,j) = 0.0;
 
         if(c->depth(i,j) >= dmax - 1.0e-10*MAX(fabs(dmax),1.0) || i+p->origin_i==0 || i+p->origin_i==p->gknox-1)
+        wdL(i,j) = 1.0;
+
+        // mesh refinement: a wet cell around a patch belongs to the water outside it, which is
+        // taken as the main water body
+        if(p->wetfix!=nullptr && p->wetfix[IJ]==1)
         wdL(i,j) = 1.0;
     }
 
@@ -708,4 +729,40 @@ void fnpf_fsfbc_wd::wd_connect(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &Fif
     wdconn(i,j) = (wdL(i,j)>0.4) ? 1 : 0;
 
     pgc->gcsl_start4int(p,wdconn,50);
+}
+
+// dynamic wetting-drying (A343 2/3) of a grid whose wet flags were set from outside (mesh
+// refinement: a new patch takes the flags of the old patches, elsewhere from its water level):
+// the dry cells on the criterion, the cells may dry at once (age A330), the front mask and the
+// connectivity to the main water body from these flags; the next flag update goes on from here
+void fnpf_fsfbc_wd::wd_reset(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slice &Fifsf)
+{
+    if(p->A343<2)
+    return;
+
+    const double crit = c->wd_criterion;
+
+    SLICELOOP4
+    {
+        p->wet_n[IJ] = p->wet[IJ];
+        wetage(i,j) = p->A330;
+        wdref(i,j) = 0;
+
+        if(p->wet[IJ]==0 && wetcoast(i,j)==1)
+        eta(i,j) = crit - c->depth(i,j);
+
+        c->WL(i,j) = MAX(crit, eta(i,j) + c->depth(i,j));
+    }
+
+    pgc->gcsl_start4Vint(p,p->wet,50);
+    pgc->gcsl_start4(p,eta,gcval_eta);
+
+    wd_front_mask(p,pgc);
+
+    SLICELOOP4
+    wdconn(i,j) = 1;
+
+    wd_connect(p,c,pgc,Fifsf,false);
+
+    wd_flagcount = -1;
 }

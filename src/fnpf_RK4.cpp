@@ -117,6 +117,12 @@ void fnpf_RK4::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     
     // fsfdisc and sigma update
     pf->breaking(p,c,pgc,erk,en,frk,0.5);
+    // A 352: the filter changed eta and Fifsf in place after their halo exchange
+    if(p->A350==1 && p->A352>0)
+    {
+    pgc->gcsl_start4(p,erk,gcval_eta);
+    pgc->gcsl_start4(p,frk,gcval_fifsf);
+    }
     pflow->inflow_fnpf(p,c,pgc,c->Fi,c->Uin,frk,erk);
     pf->fsfdisc(p,c,pgc,erk,frk);
     sigma_update(p,c,pgc,pf,erk);
@@ -167,6 +173,12 @@ void fnpf_RK4::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     
     // fsfdisc and sigma update
     pf->breaking(p,c,pgc,erk,en,frk,0.5);
+    // A 352: the filter changed eta and Fifsf in place after their halo exchange
+    if(p->A350==1 && p->A352>0)
+    {
+    pgc->gcsl_start4(p,erk,gcval_eta);
+    pgc->gcsl_start4(p,frk,gcval_fifsf);
+    }
     pflow->inflow_fnpf(p,c,pgc,c->Fi,c->Uin,frk,erk);
     pf->fsfdisc(p,c,pgc,erk,frk);
     sigma_update(p,c,pgc,pf,erk);
@@ -217,6 +229,12 @@ void fnpf_RK4::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     
     // fsfdisc and sigma update
     pf->breaking(p,c,pgc,erk,en,frk,1.0);
+    // A 352: the filter changed eta and Fifsf in place after their halo exchange
+    if(p->A350==1 && p->A352>0)
+    {
+    pgc->gcsl_start4(p,erk,gcval_eta);
+    pgc->gcsl_start4(p,frk,gcval_fifsf);
+    }
     pflow->inflow_fnpf(p,c,pgc,c->Fi,c->Uin,frk,erk);
     pf->fsfdisc(p,c,pgc,erk,frk);
     sigma_update(p,c,pgc,pf,erk);
@@ -265,6 +283,12 @@ void fnpf_RK4::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     
     // fsfdisc and sigma update
     pf->breaking(p,c,pgc,c->eta,en,c->Fifsf,1.0);
+    // A 352: the filter changed eta and Fifsf in place after their halo exchange
+    if(p->A350==1 && p->A352>0)
+    {
+    pgc->gcsl_start4(p,c->eta,gcval_eta);
+    pgc->gcsl_start4(p,c->Fifsf,gcval_fifsf);
+    }
     pflow->inflow_fnpf(p,c,pgc,c->Fi,c->Uin,c->Fifsf,c->eta);
     pf->fsfdisc(p,c,pgc,c->eta,c->Fifsf);
     sigma_update(p,c,pgc,pf,c->eta);

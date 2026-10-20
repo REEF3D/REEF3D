@@ -56,6 +56,9 @@ class vec;
 class matrix_diag;
 class sixdof_obj;
 class nhflow_momentum_SI;
+class nhflow_longrun;
+class reefmg2D;
+class vec2D;
 class ioflow;
 class ioflow_amr_block;
 class patchBC_interface;
@@ -242,7 +245,7 @@ public:
 
     // hydrostatic semi-implicit free surface on the multi-block grid (A 534 1, nhflow_amr_si.cpp): the
     // parts of the step of every block (nhflow_momentum_SI), the cells around the blocks filled in
-    // between, one eta system over the cells of all blocks (BiCGStab with the Jacobi preconditioner)
+    // between, one eta system over the cells of all blocks (BiCGStab, one REEFMG2D V-cycle per grid as preconditioner)
     void si_step(lexer*, fdm_nhf*, ghostcell*, nhflow_momentum_func*, nhflow_stage_obj&);
 
     // vector space of the composite eta solve (reefamr_bicgstab)
@@ -262,6 +265,9 @@ public:
     double dt_local_max(int) override;
     void dt_cell_size(int, double&, double&) override;
     void dt_si_cmin(double, double&, double&) override;
+
+    // long-run statistics (P 160): the blocks 1.. of a multi-block grid as grids of nhflow_longrun
+    void longrun_grids(nhflow_longrun*);
 
     // vector space of the composite pressure solve (nhflow_amr_press.cpp, reefamr_bicgstab)
     void pr_apply(int, int, bool d1=false);
@@ -597,6 +603,13 @@ private:
     void si_dirichlet(ghostcell*);
     void si_solve(lexer*, ghostcell*);
     ghostcell *sipgc = nullptr;
+    // P7: preconditioner of the composite eta solve, one REEFMG2D V-cycle per grid on its own rows
+    // (the cells around the grid with a zero residual: restricted additive Schwarz)
+    std::vector<reefmg2D*> simg;
+    std::vector<vec2D*> sir;
+    std::vector<slice*> siz;
+    std::vector<int> sinrow;
+    std::vector<char> sirebuild;
     ioflow *pflowv;                 // objects shared by all patches (their NHFLOW calls do nothing)
     patchBC_interface *pBCv;
     sediment *psedv;

@@ -127,8 +127,9 @@ inline bool fnpf_amr::rcubic(lexer *pp, int i0, int j0)
 {
     if(rorder<4)
     return false;
+    const int b0 = (sy==1) ? -1 : 0, b1 = (sy==1) ? 2 : 0;     // (2D grid: x only)
     for(int a=-1; a<=2; ++a)
-    for(int b=-1; b<=2; ++b)
+    for(int b=b0; b<=b1; ++b)
     {
     const int n = (i0+a-pp->imin)*pp->jmax + (j0+b-pp->jmin);
     if(pp->flagslice4[n]<0 || (wfill && pp->wet[n]==0))
@@ -142,6 +143,12 @@ inline double fnpf_amr::rc4(F f)
 {
     const double w[4] = {-1.0/16.0, 9.0/16.0, 9.0/16.0, -1.0/16.0};
     double r = 0.0;
+    if(sy==0)       // 2D grid: cubic in x
+    {
+        for(int a=0; a<4; ++a)
+        r += w[a]*f(a-1,0);
+        return r;
+    }
     for(int a=0; a<4; ++a)
     {
         double ra = 0.0;
@@ -161,19 +168,19 @@ inline void fnpf_amr::restrict_sl(int ns, SEL sel)
     block_up(l,ns,7550+l,
              [&](reefamr_patch *c, int id, int k, double *v)
              {
-                 const int nby = c->ny/2;
+                 const int nby = c->ny>>sy;
                  const int bi = k/nby, bj = k%nby;
-                 const int i0 = EXT+2*bi, j0 = EXT+2*bj;
-                 const bool hi = (bi>0 && bi<c->nx/2-1 && bj>0 && bj<nby-1) && rcubic(c->pp,i0,j0);
+                 const int i0 = EXT+2*bi, j0 = EY+ychild(bj);
+                 const bool hi = (bi>0 && bi<c->nx/2-1 && (sy==0 || (bj>0 && bj<nby-1))) && rcubic(c->pp,i0,j0);
                  // wfill: the wet children only; none wet: the coarse value stays (NaN)
                  lexer *pp = c->pp;
                  double wc[4] = {1.0,1.0,1.0,1.0};
-                 double nw = 4.0;
+                 double nw = (sy==1) ? 4.0 : 2.0;
                  if(wfill)
                  {
                      nw = 0.0;
                      for(int a=0; a<2; ++a)
-                     for(int b=0; b<2; ++b)
+                     for(int b=0; b<=sy; ++b)
                      {
                      wc[2*a+b] = (pp->wet[(i0+a-pp->imin)*pp->jmax + (j0+b-pp->jmin)]==1) ? 1.0 : 0.0;
                      nw += wc[2*a+b];
@@ -186,6 +193,8 @@ inline void fnpf_amr::restrict_sl(int ns, SEL sel)
                      v[m] = std::numeric_limits<double>::quiet_NaN();
                      else if(hi)
                      v[m] = rc4([&](int a, int b) { return f(i0+a,j0+b); });
+                     else if(sy==0)
+                     v[m] = (wc[0]*f(i0,j0)+wc[2]*f(i0+1,j0))/nw;
                      else
                      v[m] = (wc[0]*f(i0,j0)+wc[2]*f(i0+1,j0)+wc[1]*f(i0,j0+1)+wc[3]*f(i0+1,j0+1))/nw;
                  }
@@ -209,20 +218,20 @@ inline void fnpf_amr::restrict_col(SEL sel)
                  {
                      lexer *pp = c->pp;
                      const double *src = sel(id);
-                     const int nby = c->ny/2;
+                     const int nby = c->ny>>sy;
                      const int bi = k/nby, bj = k%nby;
                      const int fz = pp->knoz/knc;
-                     const int i0 = EXT+2*bi, j0 = EXT+2*bj;
-                     const bool hi = (bi>0 && bi<c->nx/2-1 && bj>0 && bj<nby-1) && rcubic(pp,i0,j0);
+                     const int i0 = EXT+2*bi, j0 = EY+ychild(bj);
+                     const bool hi = (bi>0 && bi<c->nx/2-1 && (sy==0 || (bj>0 && bj<nby-1))) && rcubic(pp,i0,j0);
                      const int sI = pp->jmax*pp->kmaxF, sJ = pp->kmaxF;
                      // wfill: the wet children only; none wet: the coarse column stays (NaN)
                      double wc[4] = {1.0,1.0,1.0,1.0};
-                     double nw = 4.0;
+                     double nw = (sy==1) ? 4.0 : 2.0;
                      if(wfill)
                      {
                          nw = 0.0;
                          for(int a=0; a<2; ++a)
-                         for(int b=0; b<2; ++b)
+                         for(int b=0; b<=sy; ++b)
                          {
                          wc[2*a+b] = (pp->wet[(i0+a-pp->imin)*pp->jmax + (j0+b-pp->jmin)]==1) ? 1.0 : 0.0;
                          nw += wc[2*a+b];
@@ -236,6 +245,8 @@ inline void fnpf_amr::restrict_col(SEL sel)
                          v[K] = std::numeric_limits<double>::quiet_NaN();
                          else if(hi)
                          v[K] = rc4([&](int a, int b) { return src[n0+a*sI+b*sJ]; });
+                         else if(sy==0)
+                         v[K] = (wc[0]*src[n0] + wc[2]*src[n0+sI])/nw;
                          else
                          v[K] = (wc[0]*src[n0] + wc[2]*src[n0+sI] + wc[1]*src[n0+sJ] + wc[3]*src[n0+sI+sJ])/nw;
                      }
@@ -255,22 +266,24 @@ inline void fnpf_amr::restrict_col(SEL sel)
 template<class ND, class SEL>
 inline void fnpf_amr::prolong_interior_sl(int l, ND need, int ns, SEL sel)
 {
-    block_down_if(l,4*ns,7570+l,need,
+    // (the children of a block: 2x2, on a 2D grid 2x1 with no offset in y)
+    const int ncy = 1<<sy;
+    block_down_if(l,2*ncy*ns,7570+l,need,
                   [&](const reefamr_block &B, int key, double *v)
                   {
                       for(int a=0; a<2; ++a)
-                      for(int d=0; d<2; ++d)
+                      for(int d=0; d<ncy; ++d)
                       for(int m=0; m<ns; ++m)
-                      v[(2*a+d)*ns+m] = pq(sel(B.g,m),glex(B.g),B.ic,B.jc,a==0?-1:1,d==0?-1:1);
+                      v[(ncy*a+d)*ns+m] = pq(sel(B.g,m),glex(B.g),B.ic,B.jc,a==0?-1:1,(sy==0) ? 0 : (d==0?-1:1));
                   },
                   [&](reefamr_patch *c, int id, int k, const double *v)
                   {
-                      const int nby = c->ny/2;
+                      const int nby = c->ny>>sy;
                       const int bi = k/nby, bj = k%nby;
                       for(int a=0; a<2; ++a)
-                      for(int d=0; d<2; ++d)
+                      for(int d=0; d<ncy; ++d)
                       for(int m=0; m<ns; ++m)
-                      sel(id,m)(EXT+2*bi+a,EXT+2*bj+d) = v[(2*a+d)*ns+m];
+                      sel(id,m)(EXT+2*bi+a,EY+ychild(bj)+d) = v[(ncy*a+d)*ns+m];
                   });
 }
 
@@ -282,23 +295,24 @@ inline void fnpf_amr::prolong_interior_col(int l, ND need, SRC src, DST dst)
     const int knf = klev(l);
     const int nc = knf+1;
 
-    block_down_if(l,4*nc,7580+l,need,
+    const int ncy = 1<<sy;
+    block_down_if(l,2*ncy*nc,7580+l,need,
                   [&](const reefamr_block &B, int key, double *v)
                   {
                       for(int a=0; a<2; ++a)
-                      for(int d=0; d<2; ++d)
-                      pcol(B.g,B.ic,B.jc,a==0?-1:1,d==0?-1:1,src(B.g),knf,&v[(2*a+d)*nc]);
+                      for(int d=0; d<ncy; ++d)
+                      pcol(B.g,B.ic,B.jc,a==0?-1:1,(sy==0) ? 0 : (d==0?-1:1),src(B.g),knf,&v[(ncy*a+d)*nc]);
                   },
                   [&](reefamr_patch *c, int id, int k, const double *v)
                   {
                       lexer *pp = c->pp;
                       double *f = dst(id);
-                      const int nby = c->ny/2;
+                      const int nby = c->ny>>sy;
                       const int bi = k/nby, bj = k%nby;
                       for(int a=0; a<2; ++a)
-                      for(int d=0; d<2; ++d)
+                      for(int d=0; d<ncy; ++d)
                       for(int kk=0; kk<=knf; ++kk)
-                      f[fidx(pp,EXT+2*bi+a,EXT+2*bj+d,kk)] = v[(2*a+d)*nc+kk];
+                      f[fidx(pp,EXT+2*bi+a,EY+ychild(bj)+d,kk)] = v[(ncy*a+d)*nc+kk];
                   });
 }
 

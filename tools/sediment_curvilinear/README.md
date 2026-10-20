@@ -1,4 +1,4 @@
-# Sediment transport on curvilinear grids, mesh refinement and multi-block grids (P5a, P5b): tests
+# Sediment transport on curvilinear grids, mesh refinement and multi-block grids (P5a, P5b, P7): tests
 
 Phase P5a of the multi-block curvilinear concept: the sediment module of REEF3D (`S 10 1`) with
 REEF3D::NHFLOW and REEF3D::SFLOW on curvilinear grids (`G 50 2`, one block from `curvgrid.dat`), on the
@@ -88,6 +88,40 @@ grids, the mesh refinement and multi-block grids (`sediment_exner_bend.cpp`):
   `E_spir 1` and the LFM flume the inner bank falls dry (`tan(delta)` about 0.4, `f` about 0.9); Delft studies use
   `E_spir` of about 0.4-0.5.
 
+## Lags of the bend morphology (P7)
+
+Two steady relaxations along the depth-averaged flow, both off by default (SFLOW; Cartesian and curvilinear grids,
+the mesh refinement and multi-block grids; `sediment_exner_lag.cpp`):
+
+    f + L s.grad(f) = f_e ,    s = (u, v)/|U|
+
+| key | | default |
+|---|---|---|
+| `S 95 2` | spiral flow with adaptation (Kalkwijk & Booij 1986; the form of Delft3D and HEC-RAS 2D): the intensity `I` relaxes towards `I_e = h |U| K_c` (`K_c` the signed curvature of the streamlines) over `L_a = S97 (m-1) h/(2 kappa^2)`, `m = kappa C/sqrt(g)`, `C = sqrt(g) U/u*` from the bed shear (at most 100); the bed load turns by `tan(delta) = alpha_I I/|U|` (`alpha_I` of `S 95 1`).  `S 95 2` with `S 97 0` is `S 95 1` | off |
+| `S 97` | factor of `L_a` | 1.0 |
+| `S 64 f_s` | suspended part of the transport (0..1): the formula (`S 11`) gives the capacity `q_e`; `(1-f_s) q_e` is bed load (equilibrium, or `S 33`), `f_s q_e` suspended load that relaxes over `L_s = h |U|/(S65 w_s)` (Galappatti & Vreugdenhil 1985, depth-averaged; `w_s` the fall velocity, `S 23`/`S 25`) | 0 |
+| `S 65` | `c_a/c_mean`, the near-bed over the depth-averaged concentration of the suspension: shortens `L_s`.  For a Rouse profile with `Z = w_s/(kappa u*)` and `a = 0.05 h`: 2.3 (Z 0.3), 4.2 (Z 0.57, t7), 8.8 (Z 1) | 1.0 |
+
+- First-order upwind along `s` (curvilinear: the contravariant components of `s`), solved in every sediment step to
+  convergence by Gauss-Seidel with alternating sweep directions (as the non-equilibrium bed load `S 33`: at most
+  `S 49` sweeps, the change below 1e-6 of the largest `f_e`), started from the solution of the step before.  The upwind
+  neighbour is a sediment cell (of the grid, the next rank or the cells around the grid): at the inflow, at walls and
+  open edges the cell takes its own `f_e`.  Where `|U| < 1e-4 m/s` `I_e` and `L_a` are 0.
+- The spiral flow (`S 95`) and the transverse slope (`S 86`) turn the total load, bed load plus the lagged suspended
+  load (`qb/f(theta)` of the slope flux from the total; it is computed again after the passes below).  Turning the
+  bed load only (tried in P7) moved the overshoot of t7 far
+  downstream (section 30 against 16, `S 65 1`) or left the bed upstream of the bend and after the overshoot too
+  steep (`S 65 4`).  The Exner fluxes carry bed load plus suspended load: the bed volume stays conserved.  Output:
+  `ST_spiral` (`S 95 2`) and `ST_qbs` (the suspended load) with `P 76 1`.
+- Mesh refinement and multi-block grids: every grid relaxes its own cells and holds the cells around it (filled from
+  their sources: `Isp`, `qsn` are fields 5 and 6 of `amr_field`) and its covered cells (the mean of their children).
+  After the fills the relaxations run again from the filled cells (`lag_refresh`), passes until the cells around the
+  grids no longer move the solution (the change of the first sweep below the tolerance, at most `S 49` passes; the
+  log prints the passes).  Along a river the passes follow the grids downstream (2-4 per step in t9); in recirculating
+  flow with `L` longer than the domain (the dam break of t5 with `L_s` 2 m) up to 150.
+- Refused with a message: `S 64` with NHFLOW (it resolves the suspended load, `S 12`), with the multi-fraction bed
+  (`S 51`) and with `S 31 3`.
+
 ## Tests
 
 Binaries: `REEF3D_BIN`, `DIVEMESH_BIN` (DIVEMesh with `R 20`).  Runs go to `./runs`.
@@ -100,14 +134,45 @@ Binaries: `REEF3D_BIN`, `DIVEMESH_BIN` (DIVEMesh with `R 20`).  Runs go to `./ru
 | `t4_sed_amr.py [steps]` | the dam break of t1 with mesh refinement: static box (`LEV` levels) or patches following the surface (`ADAPT=1`), Cartesian, curvilinear, turned by 90 deg; bed volume over the leaf cells (`SOLVER`, `NP`, `XCTRL`) | leaf volume to 2e-17 of the change for NHFLOW and SFLOW, 1-2 levels, adaptive, 2 ranks, with the sand slide; curvilinear and turned = Cartesian to 1e-17 (SFLOW static `LEV=1`: 1e-4 of the change in the coarse cells next to the coarse-fine face, see the notes) |
 | `t5_sed_mb.py [steps]` | the four turned quadrants of P4 (multi-block grid) against one block: dam break with bed load over a bump (`BUMP`), the filter and the sand slides (`XCTRL "S 90 n"`), a static box over the vertex (`LEV`), several ranks (`NP`), the blocks not turned (`NOTURN`), one block turned (`ROTONE`) | NHFLOW and SFLOW, `LEV` 0 and 1, `S 90 1`-`5`, 1-3 ranks: level 0 and every fine cell to 2e-16 (round-off), the bed volume conserved; SFLOW `LEV=0` against the plain one-block run (no mesh refinement).  NHFLOW with refinement on 2 ranks: as the flow alone (P4, see the notes) |
 | `t6_sed_bend.py [steps]` | P5b: the LFM bend of Delft Hydraulics (180 deg, R 4.25 m, B 1.7 m, h 0.2 m, Q 0.17 m3/s, d50 0.78 mm, Chezy 26.4), SFLOW, curvilinear grid, `S 86 1`, `S 95 1`, `E_spir 0.4`; the transverse slope of the cross-sections against the equilibrium of the model (`DS`, `MF`, `ESPIR`, `NOSPIRAL`, `NOSLOPE`) | `DS=0.2 MF=10` (2760 s flow, morphological factor 10; P6c with the bed friction `A 218 1`, Manning `ks` of the Chezy at `h0`, the P5b runs had none): the transverse slope of the second half of the bend (90-180 deg) is 1.02-1.28 of the equilibrium (mean 1.16; P5b without friction 0.90-1.15, mean 1.05), the outer bank 0.12 m deeper, the point bar 0.09-0.12 m higher; without `S 95` no transverse slope (0.02 of it), without `S 86` the outer bank scours without bound (0.65 m, 7.5 times the slope; P5b)|
-| `t7_talmon_bend.py` | P6c: run 3 of Talmon & de Graaff (1989) in the curved flume of the LFM, TU Delft (`data/talmon1989_run3.json`: 180 deg, R 4.10 m, W 0.5 m, Q 5 l/s, a0 0.051 m, C 19.2, D50 90 um, 75 % suspended): SFLOW, Engelund-Hansen total load as bed load, `S 86`, `S 95` with `E_spir 1`, the measured a/a0 of 48 sections x 9 positions against the depth of the model averaged over the last 300 s (the bed forms and the migrating bars are averaged out in the measurements); `KS`, `DS`, `MF`, `ESPIR`, `TAVG`, `PNG` | `DS=0.05` (10 cells across, 900 s flow, MF 100): the second half of the bend (sections 25-45) within 0.09 a0 rms, outer - inner 0.59 a0 (measured 0.56); the overshoot after the entrance too weak and too early (0.78 a0 at 23 deg against 1.45 a0 at 50 deg: the spiral flow follows the curvature at once, no adaptation length).  `DS=0.025` (20 cells): a second transverse mode (a trough 0.1 m from the inner bank), outer - inner only 0.27 a0: the result depends on the grid; missing physics are the lag of the suspended load (adaptation length h u/ws about 1.3 m, 25 a0) and of the spiral flow |
-| `make_regression_cases.py` | writes the regression cases `*_sed_*` (P5b: `*_sed_*bend*`) | |
+| `t7_talmon_bend.py` | P6c: run 3 of Talmon & de Graaff (1989) in the curved flume of the LFM, TU Delft (`data/talmon1989_run3.json`: 180 deg, R 4.10 m, W 0.5 m, Q 5 l/s, a0 0.051 m, C 19.2, D50 90 um, 75 % suspended): SFLOW, Engelund-Hansen total load as bed load, `S 86`, `S 95` with `E_spir 1`, the measured a/a0 of 48 sections x 9 positions against the depth of the model averaged over the last 300 s (the bed forms and the migrating bars are averaged out in the measurements); `KS`, `DS`, `MF`, `ESPIR`, `TAVG`, `PNG` | `DS=0.05` (10 cells across, 900 s flow, MF 100): the second half of the bend (sections 25-45) within 0.09 a0 rms, outer - inner 0.59 a0 (measured 0.56); the overshoot after the entrance too weak and too early (0.78 a0 at 23 deg against 1.45 a0 at 50 deg: the spiral flow follows the curvature at once, no adaptation length).  `DS=0.025` (20 cells): a second transverse mode (a trough 0.1 m from the inner bank), outer - inner only 0.27 a0: the result depends on the grid; missing physics are the lag of the suspended load (adaptation length h u/ws about 1.3 m, 25 a0) and of the spiral flow; P7 adds them (below) |
+| `t7_compare.py [--grids] [--runs] [--labels] [--png]` | P7: the t7 runs (`runs/t7_talmon<grid><run>/t7.npz`) against the measurements and each other: rms, outer - inner, the deepest point, the difference of the grids; a figure of the outer bank, outer - inner and the inner bank along the sections | see below |
+| `t8_bend_lags.py equiv\|profile [steps]` | P7: the LFM bend of t6 (`DS 0.1`): `equiv` `S 95 2` with `S 97 0` against `S 95 1` after 3000 steps with the bed moving; `profile` the bed held, the spiral intensity `ST_spiral` on the centre line with `S 97 1` against the relaxation of `I_e` (the run with `S 97 0`) by the scheme of the model and by the exact solution (`PNG`) | `equiv`: bed 1.8e-11 (change 0.07 m), the face velocities 1.6e-10 (round-off of `alpha h U K_c/U` against `alpha h K_c`); `profile`: `L_a` 1.48 m (C 26.4, h 0.2 m), model = upwind scheme to 0.4 % of `I_e` max, = exact relaxation to 0.4 %; 63 % of the build-up 2.04 m after the bend entrance (model, scheme, exact; `I_e` itself rises over 1 m), of the decay 2.05 m after the exit (exact 1.95) |
+| `t9_bend_blocks.py [steps]` | P7: the LFM bend as one block and as two blocks along the flow (block 1 the inflow reach with `G 54 1 1 Q`, block 0 the bend and the outflow reach), bed and water level per cell after 1500 steps (500 sediment steps, MF 100): `S 95 1`, `S 95 2`, `S 95 2` + `S 64 0.5`; `CASES`, `NA` | the flow (bed held) 5e-16 m in the water level; `S 95 1` 8e-9 m in the bed (bed change 0.054 m), `S 95 2` with `S 97 0` and `0.1` the same (8e-9), with `S 97 1` 4.6e-6, `S 95 2` + `S 64 0.5` 1.6e-6, 2-4 passes per step; the curvature `I_e` of the first cell at the inflow differs between the native inflow and the open face `G 54` of a block (their ghost velocities), the lag carries it downstream: with `I_e` set to 0 in the first metre (a test build) 9.5e-9 and 2.2e-8.  The bed volume change of both the same to 1e-9.  (Sediment leaves the domain only through the native outflow: an open face `G 54` of a block is closed for the sediment, three blocks with the outflow on block 2 fill its end with sand) |
+| `make_regression_cases.py` | writes the regression cases `*_sed_*` (P5b: `*_sed_*bend*`, P7: `*_sed_*lags*`) | |
 
 P5b with `XCTRL "S 86 1;S 95 1"` (NHFLOW `S 86 1`): t1 Cartesian = curvilinear = turned by 90 deg to round-off (SFLOW
 and NHFLOW, `S 31 1`/`2`, `S 32 1`/`2`, 1 and 4 ranks); t2 bed volume conserved (1e-19) on all grids, also with the
 steep mound and the sand slide; t3 (`SOLVER`, `XCTRL` added) 2 and 4 ranks bit for bit with one rank (NHFLOW `A 509 0`,
 SFLOW `A 209 0`); t4 leaf volume conserved (1e-17) for 1-2 levels, adaptive, 2 ranks, curvilinear = turned; t5 four
 blocks = one block to round-off on 1-3 ranks (NHFLOW with refinement on 2 ranks: as the flow alone).
+
+P7 against Talmon & de Graaff (1989) run 3 (`t7_talmon_bend.py` with `XCTRL "S 95 2;S 64 0.75;S 65 4"`, 75 % of the
+load suspended, `S 65 4` from the Rouse profile of the run (`w_s` 7.3 mm/s, `u*` 0.032 m/s, Z 0.57; `L_s` up to 0.74 m,
+`L_a` up to 0.55 m); `t7_compare.py` for the table and the figures).  The two grids now agree: 10 and 20 cells across
+differ by 0.034 a0 rms (P6c `S 95 1`: 0.12, `S 95 2` alone: 0.15, both with a second transverse mode on 20 cells).
+
+| 10 / 20 cells across | P6c `S 95 1` | `S 95 2` | P7 `S 95 2` + `S 64 0.75` + `S 65 4` | measured |
+|---|---|---|---|---|
+| rms a/a0, all 432 points | 0.149 / 0.208 | 0.150 / 0.247 | 0.090 / 0.097 | |
+| rms, sections 6-24 (overshoot) | 0.195 / 0.266 | 0.194 / 0.296 | 0.076 / 0.082 | |
+| rms, sections 25-45 | 0.089 / 0.160 | 0.117 / 0.212 | 0.111 / 0.118 | |
+| outer - inner, sections 12-18 | 0.53 / 0.28 | 0.78 / 0.24 | 1.25 / 1.16 | 1.25 |
+| outer - inner, sections 25-45 | 0.59 / 0.27 | 0.47 / 0.24 | 0.81 / 0.80 | 0.56 |
+| deepest outer point | 9: 1.48 / 10: 1.27 | 13: 1.55 / 12: 1.47 | 15: 1.65 / 15: 1.59 | 16: 1.73 |
+| inner-bank minimum | | | 14: 0.23 / 14: 0.35 | 15: 0.24 |
+
+The overshoot (position, amplitude, the inner bank) is now right on both grids.  Still off: after it the bed stays too
+steep (outer - inner 0.8 against 0.56 in the second half), the measured trough at sections 25-33 is missing; `S 95 2`
+alone has the trough on 10 cells but not on 20.  The `DS=0.025` run used a build that differed from the final one only in
+the upwind rule at walls (ghost cells beyond a wall were upwind neighbours); on 10 cells the two give the same table.
+
+P7 with `XCTRL "S 95 2;S 64 0.5;S 86 1"` (SFLOW): t1 turned by 90 deg = curvilinear to round-off (5e-16 of the change),
+curvilinear = Cartesian to 1.2e-8 of the change (the tolerance of the relaxations: the two grids stop the sweeps at
+other round-off).  t5 with `S 95 2`, `S 97 0.1`, `S 64 0.5`, 40 steps: four blocks = one block to 3e-9 m (change 1e-3
+m), with a refinement box 5e-8 (both levels), 2 ranks = 1 rank; the bed volume conserved (1e-15).  The dam break
+amplifies the differences of the relaxations (tolerance 1e-6): `S 95 2` with `S 97 1` (`L_a` up to 6 m in a 2 m box,
+recirculating flow) 1e-5 after 60 steps, 1.3e-8 after 20.  Defaults: the 107 cases `sflow_*` and `*sed*` bit for bit
+with P6c.
 
 ## Notes
 

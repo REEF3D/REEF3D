@@ -1,0 +1,21 @@
+{
+ "base": "fnpf_2d_regular",
+ "np": 1,
+ "steps": 200,
+ "ctrl_add": [
+  "G 1 1",
+  "G 10 12.0 28.0 -1.0 1.0",
+  "G 7 1"
+ ],
+ "description": "fnpf_2d_amr_regular with the subcycling of G 7 1.",
+ "tags": [
+  "2d",
+  "fnpf",
+  "amr",
+  "waves",
+  "subcycling"
+ ],
+ "covers": [
+  "fnpf_amr_sub on a 2D grid"
+ ]
+}

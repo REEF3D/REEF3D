@@ -663,14 +663,19 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
             p.BA = it.get("BA", 0.0); p.CB = it.get("CB", 0.0);
             p.Cdn = it.get("Cdn", p.Cdn); p.Cdt = it.get("Cdt", p.Cdt); p.Can = it.get("Can", p.Can); p.Cat = it.get("Cat", p.Cat);
             p.kb = it.get("kb", p.kb); p.cb = it.get("cb", p.cb); p.mu = it.get("mu", 0.0);
+            p.mu_axial = it.get("mu_axial", -1.0); p.v_eps = it.get("v_eps", p.v_eps);
+            if(p.v_eps <= 0.0) it.fail("v_eps must be > 0");
             p.rho = rho;
+            // the seabed: at the ground end (the lower of two), none between two bodies (shared lines)
+            const double zbed = it.has("no_seabed") ? -1.0e30 : it.get("seabed", default_seabed(ea, eb));
             if(type=="quasi_static")
-                m.add_load(std::make_unique<mooring_qs>(m, ea, eb, p, name));
+                m.add_load(std::make_unique<mooring_qs>(m, ea, eb, p, name, zbed));
             else if(type=="dynamic")
             {
-                const double zbed = it.get("seabed", std::min(ea.p(2), eb.p(2)));
                 auto l = std::make_unique<mooring_line>(m, ea, eb, p, (int)it.get("nseg", 20), kin, it.vec("current", Vec3::Zero()),
                                                         zbed, it.get("dt_line", 0.0), name);
+                l->set_exact_kinematics(it.has("exact_kinematics"));
+                l->set_static_start(!it.has("no_static"));
                 if(it.has("settle"))
                     settles.push_back({l.get(), it.need("settle")});
                 m.add_load(std::move(l));

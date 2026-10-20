@@ -60,9 +60,11 @@ public:
     void amr_qb(lexer*, ghostcell*, sediment_fdm*);
     // the cell fields of the Exner step that the cells around the grids take from their sources: qb, and
     // the bend fields qb/f(theta) (S 86), tan(delta) (S 95), the bed of the slope flux and its open flag
-    static const int amr_nfield = 5;
+    // (P7) and the lagged fields the upwind relaxation of a grid starts from at its edges: the spiral-flow
+    // intensity (S 95 2) and the suspended load (S 64)
+    static const int amr_nfield = 7;
     double& amr_field(sediment_fdm*, int n, int ii, int jj);
-    slice4& bend_slice(int n) { return (n==1) ? bK : (n==2 ? btd : (n==3 ? bz : bg)); }
+    slice4& bend_slice(int n) { return (n==1) ? bK : (n==2 ? btd : (n==3 ? bz : (n==4 ? bg : (n==5 ? Isp : qsn)))); }
     void amr_flux(lexer*, ghostcell*, sediment_fdm*, slice&, slice&);
     double amr_vz(lexer*, ghostcell*, sediment_fdm*, slice&, slice&, slice*);
     double amr_vzmax(lexer*, sediment_fdm*, slice*);
@@ -97,6 +99,28 @@ private:
     double bend_td(lexer*,int,int,int);
     static double bend_turn(double un, double ut, double mag, double td);
     slice4 bK,btd,bu,bv,bz,bg;
+    // lags of the bend morphology (sediment_exner_lag.cpp): the steady relaxation f + L s.grad(f) = f_e along the
+    // flow, the spiral-flow intensity (S 95 2: Ie its equilibrium, Isp the lagged one), the suspended load (S 64:
+    // qse its capacity, qsn the lagged one, qbb the bed load), the lengths lss and lsa
+    int relax_along(lexer*,ghostcell*,sediment_fdm*,slice4&,slice4&,slice4&,int&);
+public:
+    void susp_split(lexer*,ghostcell*,sediment_fdm*);
+    void lag_refresh(lexer*,ghostcell*,sediment_fdm*,double*,double*);
+    // the tolerance of the relaxations and of the passes across the grids (relative to the largest equilibrium)
+    static constexpr double lag_tol = 1.0e-6;
+    // mesh refinement and multi-block grids: the cells the relaxation holds (> 0: the cells around the grid, which
+    // take their values from their sources, and the covered cells, which take the mean of their children)
+    slice4 lagfix;
+private:
+    slice4 lagval;
+    void lag_hold(lexer*,ghostcell*,slice4&,int);
+    void susp_apply(lexer*,ghostcell*,sediment_fdm*);
+    void spiral_lag(lexer*,ghostcell*,sediment_fdm*);
+    void spiral_apply(lexer*,ghostcell*,sediment_fdm*);
+    void bend_K(lexer*,ghostcell*,sediment_fdm*);
+    slice4 Ie,Isp,qse,qsn,qbb,lss,lsa;
+    int spiral_ini=0, susp_ini=0, lag_print=1;
+    double lag_d0=0.0, lag_f0=0.0, lag_d[2]={0.0,0.0}, lag_f[2]={0.0,0.0};
     // the largest qb/f (1/dx^2 + 1/dy^2) of the grid (rank-local): the slope flux is an explicit diffusion of the
     // bed, timestep() keeps dtsed below its stability limit; amr_bendrate: that of the other grids
 public:

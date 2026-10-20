@@ -41,6 +41,8 @@ void sediment_exner::amr_qb(lexer *p, ghostcell *pgc, sediment_fdm *s)
     if(p->S33>0)
     non_equillibrium_solve(p,pgc,s);
 
+    susp_split(p,pgc,s);
+
     qb_clear(p,s);
     pgc->gcsl_start4(p,s->qb,1);
 
@@ -60,6 +62,10 @@ double& sediment_exner::amr_field(sediment_fdm *s, int n, int ii, int jj)
     return bz(ii,jj);
     if(n==4)
     return bg(ii,jj);
+    if(n==5)
+    return Isp(ii,jj);
+    if(n==6)
+    return qsn(ii,jj);
     return s->qb(ii,jj);
 }
 

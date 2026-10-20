@@ -1,0 +1,22 @@
+{
+ "base": "fnpf_3d_amr_break",
+ "np": 1,
+ "steps": 320,
+ "ctrl_set": {
+  "A 350": "2",
+  "A 351": "1",
+  "A 365": "1.2"
+ },
+ "description": "fnpf_3d_amr_break with the breaking of Kennedy (A 350 2, onset and cessation from the surface rise rate, A 351 1, A 365 1.2) on every grid (patch 0079).",
+ "tags": [
+  "3d",
+  "fnpf",
+  "amr",
+  "waves",
+  "breaking",
+  "coastline"
+ ],
+ "covers": [
+  "fnpf_amr: breaking_kennedy on the patches"
+ ]
+}

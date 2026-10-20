@@ -34,6 +34,7 @@ class fnpf_amr;
 class sixdof_obj;
 
 #include<vector>
+#include<functional>
 
 // Interface between the FNPF time stepping and resolved bodies.
 // The base class is the "no body" case: every hook is a no-op and the Laplace solver
@@ -77,6 +78,23 @@ public:
     virtual void amr_post_solve(lexer*, fdm_fnpf*, ghostcell*, double*){}
     virtual void amr_surface(lexer*, ghostcell*, int, slice&, slice&){}
     virtual void amr_bodies(std::vector<sixdof_obj*>&){}
+
+    // checkpoints (P 48, I 45): the state of the bodies (the same on all ranks) as a blob, the arrays
+    // of the body on level 0 (ckpt_fields) and on a patch of the mesh refinement (amr_ckpt_fields,
+    // the patch with lexer pp; the same list with nullptr when the patch has no body grid).  On a
+    // restart amr_ckpt_grids makes the body grids of the patches of the checkpoint before their
+    // arrays are read; ckpt_restore sets the bodies and sets up the grids without arrays.
+    typedef std::function<void(const char*,char,double*)> ckpt_fd;
+    typedef std::function<void(const char*,char,int*)> ckpt_fi;
+    virtual void ckpt_state(lexer*, std::vector<double>&){}
+    virtual bool ckpt_restore(lexer*, ghostcell*, const std::vector<double>&){return true;}
+    // the state kept by every rank for its own columns (a rank blob); restore: the blob of this rank
+    // (same decomposition) or those of all ranks of the checkpoint
+    virtual void ckpt_rank_state(std::vector<double>&){}
+    virtual void ckpt_rank_restore(const std::vector<std::vector<double>>&){}
+    virtual void ckpt_fields(const ckpt_fd&, const ckpt_fi&){}
+    virtual void amr_ckpt_fields(lexer*, const ckpt_fd&, const ckpt_fi&){}
+    virtual void amr_ckpt_grids(lexer*, ghostcell*){}
 };
 
 #endif

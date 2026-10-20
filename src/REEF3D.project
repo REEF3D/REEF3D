@@ -1459,6 +1459,8 @@
         <File Name="nhflow_amr_sed.cpp"/>
         <File Name="nhflow_amr_6dof.cpp"/>
         <File Name="nhflow_amr_si.cpp"/>
+        <File Name="nhflow_longrun.cpp"/>
+        <File Name="nhflow_longrun.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="CFD">
         <File Name="cfd_amr.cpp"/>
@@ -2479,6 +2481,7 @@
         <VirtualDirectory Name="Mooring">
           <File Name="coral/mooring/coral_catenary.cpp"/>
           <File Name="coral/mooring/coral_mooring.cpp"/>
+          <File Name="coral/mooring/coral_mooring_static.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="PTO">
           <File Name="coral/pto/coral_pto.cpp"/>
@@ -2754,6 +2757,7 @@
           <File Name="sediment_exner_filter.cpp"/>
           <File Name="sediment_exner_susp_qb.cpp"/>
           <File Name="sediment_exner_noneq.cpp"/>
+          <File Name="sediment_exner_lag.cpp"/>
           <File Name="sediment_exner_topovel.cpp"/>
           <File Name="sediment_exner_timestep.cpp"/>
           <File Name="sediment_exner.cpp"/>
@@ -2838,6 +2842,7 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Interface FNPF">
           <File Name="fnpf_6DOF.cpp"/>
+          <File Name="fnpf_6DOF_ckpt.cpp"/>
           <File Name="fnpf_6DOF_external.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Net Interface">

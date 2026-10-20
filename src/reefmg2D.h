@@ -27,6 +27,7 @@ Author: Hans Bihs
 #include "increment.h"
 #include "reefmg_core.h"
 #include <vector>
+#include <mpi.h>
 
 class lexer;
 class ghostcell;
@@ -62,6 +63,9 @@ class reefmg2D final : public solver2D, public increment, public sc_operator
 public:
 
     reefmg2D(lexer*, ghostcell*);
+    //  local: the grid of this rank alone (a block of a multi-block grid, nhflow_amr_si): a 1 x 1
+    //  topology on MPI_COMM_SELF, no reductions over the ranks; for vcycle() as a preconditioner
+    reefmg2D(lexer*, ghostcell*, bool local);
     virtual ~reefmg2D();
 
     void start(lexer*, ghostcell*, slice&, matrix2D&, vec2D&, vec2D&, int) override final;
@@ -103,6 +107,8 @@ private:
 
     int solve_mode, presweep, postsweep;
     int npx,npy,ndir;
+    bool local = false;
+    MPI_Comm cartc = MPI_COMM_NULL;
     double starttime;
 };
 

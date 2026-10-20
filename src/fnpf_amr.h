@@ -105,8 +105,8 @@ using namespace std;
 //
 //  Scope of this version: refinement G 1 levels, G 10 boxes, G 11 boxes without
 //  refinement, G 4 tile width, G 12 zone around the body, G 20-23 adaptive flags; RK3 (A 310 3), wetting-drying
-//  A 343 0-3 (patches off the coast; A 343 1 with G 30 1 also over it), breaking A 350 0 or 1, X 10 0 or 1, no ice (A 380 0),
-//  A 324 0, A 328 0, 3D grids.
+//  A 343 0-3 (patches off the coast; A 343 1 with G 30 1 also over it), breaking A 350 0-3, X 10 0 or 1, no ice (A 380 0),
+//  A 324 (Picard on the cross-derivatives) and A 328 1 (in the rows), 3D and 2D grids (Cartesian).
 //  No refinement in the relaxation zones (B 96) and next to in- and outflow boundaries.
 
 struct fnpf_amr_patch : public reefamr_patch
@@ -122,6 +122,7 @@ struct fnpf_amr_patch : public reefamr_patch
     slice4 *erk1 = nullptr, *erk2 = nullptr, *frk1 = nullptr, *frk2 = nullptr;
     slice4 *ek = nullptr, *fk = nullptr;
     slice4 *en = nullptr;           // eta at the start of the step (breaking detection, A 350 1)
+    vector<int> wfix;               // A 343 2, 3 with G 30 1: the fixed wet flags (lexer::wetfix)
 
     // columns with a solid neighbour (lexer index pairs): wall ghost nodes of Fi
     vector<int> wall;
@@ -144,6 +145,7 @@ public:
     // fills the patches of the hierarchy built by ini (any decomposition) from the patches of the checkpoint
     void ckpt_write(reefckpt&);
     bool ckpt_read(reefckpt&, std::string&);
+    void patch_fields(reefamr_patch*, const ckpt_visit&);
     void flush_outputs() { gaugeout.flush(); logout.flush(); }   // a rebalance stop (G 46)
     // the output on the finest grid (amr_grid_lookup.h): the finest patch of this rank at (x,y)
     int finest_column(double x, double y, lexer *&q, void *&f) const override
@@ -268,7 +270,7 @@ private:
     bool rcubic(lexer*, int, int);
     template<class F> double rc4(F);
     int rorder = 4;                 // restriction: 2 average of the children, 4 cubic
-    int pord = 4;                   // prolongation: 3 biquadratic, 4 bicubic
+    int pord = 4;                   // prolongation: 3 biquadratic, 4 bicubic (the increment of the preconditioner: 3)
     template<class SEL> void restrict_col(SEL);
     template<class ND, class SEL> void prolong_interior_sl(int, ND, int, SEL);
     template<class ND, class SRC, class DST> void prolong_interior_col(int, ND, SRC, DST);
@@ -282,6 +284,9 @@ private:
     double* lvec(int, int);         // grid, vector (-1: the target of the solve, ltgt)
     vector<double*> ltgt;           // [g+1]: unknowns of the current solve (Fi or psi)
     void lap_core(lexer*, ghostcell*);
+    template<class ASM> void lap_picard(lexer*, fdm_fnpf*, ghostcell*, fnpf_fsf*, ASM);   // A 324: Picard on the cross-derivatives
+    vector<vector<double>> pold;    // A 324: the iterate before the solve, per grid
+    bool lap_mix = false;           // A 328 1 (N 10 1): the cross-derivatives in the rows (lap_apply)
     void lap_prepare(ghostcell*);
     void lap_sync(int, bool d1=false);  // d1: the columns next to the patches only (the operator)
     void lap_rows();
@@ -379,6 +384,16 @@ private:
     bool wfill = false;
     void patch_coast(fnpf_amr_patch&, ghostcell*, slice&, slice&);
     void patch_wd_ini(fnpf_amr_patch&, ghostcell*);
+
+    // A 343 2, 3 with G 30 1 (dyn): the moving coastline in the patches.  The cells around a patch
+    // take the wet flag of their source cell (fill_wet), dry ones the dry water level (ring_dry);
+    // the covered cells of a coarser grid are wet only if all four children are (restrict_flags);
+    // both keep these flags through the wetting and drying of their grid (lexer::wetfix)
+    bool dyn = false;
+    vector<int> wfix0;
+    void fill_wet(int);
+    void ring_dry(fnpf_amr_patch&, slice&);
+    void restrict_flags(ghostcell*);
     void patch_coast_dist(fnpf_amr_patch&, const vector<double>&);
 
     // the damping and the coastline of the stage values read the cells around a patch: these are

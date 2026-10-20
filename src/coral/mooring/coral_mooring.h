@@ -22,19 +22,38 @@ Architect: Hans Bihs
 // REEF3D::CORAL: mooring lines between two attachment points (anchor on the ground: body -1, fairlead
 // on a body; or between two bodies).
 //
-// mooring_qs: quasi-static elastic catenary (coral_catenary) in the vertical plane through both ends,
-// seabed at the height of the lower end; the force follows the current positions instantly.
+// mooring_qs: quasi-static elastic catenary (coral_catenary) in the vertical plane through both ends; the
+// force follows the current positions instantly. The line has a seabed portion (friction CB) only if its
+// lower end is a ground end on the seabed; otherwise (lines between two bodies, an anchor above the
+// seabed, CB < 0) it hangs free between its ends.
+//
+// The seabed of a line (default_seabed): the height of its ground end (the lower one if both are on the
+// ground); a line between two bodies (a shared line, a bridle) has none.
 //
 // mooring_line: dynamic lumped-mass line (MoorDyn type): N segments, the N-1 inner nodes carry mass,
 // added mass (normal and tangential), submerged weight, axial stiffness EA (no compression) and axial
 // damping BA (N s), drag normal and tangential against the water velocity (waves and current),
-// Froude-Krylov inertia of the water, seabed contact (penalty kb [Pa/m], damping cb [Pa s/m],
-// Coulomb friction mu with the regularization velocity v_eps). The inner nodes are advanced with an
-// explicit Runge-Kutta scheme (RK2) and sub-steps inside the step of the multibody system, the end
-// points moving linearly from the converged to the trial positions; eval() integrates from the
-// converged line state (cached per trial state), commit() keeps the converged line. The force on an
-// attached body is the tension of the end segment plus the weight and drag of the end half-segment.
-// The line starts from the catenary profile (no seabed: straight).
+// Froude-Krylov inertia of the water (taken by the submerged fraction of a node's piece of line, linear
+// over its vertical extent, so nodes cross the free surface smoothly), seabed contact (penalty kb [Pa/m],
+// damping cb [Pa s/m], Coulomb friction mu across and mu_axial along the line with the regularization
+// velocity v_eps). The inner nodes are advanced with an
+// explicit Runge-Kutta scheme (RK4) and sub-steps inside the step of the multibody system, the end
+// points moving on cubic Hermite curves from the converged to the trial positions and velocities of the
+// attachment points; eval() integrates from the converged line state (cached per trial state), commit()
+// keeps the converged line. The force on an attached body is the tension of the end segment plus the
+// weight, drag and Froude-Krylov force of the end half-segment, minus its inertia: mass and added mass
+// (normal and tangential, submerged) times the acceleration of the attachment point (as the coupled
+// points of MoorDyn), so the body carries the end node. The line starts from the catenary profile
+// (straight without gravity or for a floating line) and is put into the static equilibrium of its
+// discretization when the run starts (static_start, equilibrium()). A line state that is not finite after a step (an
+// unstable explicit scheme) stops the run with the name of the line. Channels: end forces on the
+// attached bodies, the largest segment tension and the tensions of the end segments (Ta, Tb), with BA.
+//
+// Wave kinematics (free surface, velocity, acceleration) are taken at the converged nodes at the start
+// and at the end of the multibody step and are linear in time in between (the nodes move little against
+// a wave length within a step); exact_kinematics evaluates them at every node position of every
+// Runge-Kutta stage instead (costly with many wave components). settle() relaxes the line in the water
+// at rest (the surface of the start, no wave velocities; the current acts).
 
 #ifndef CORAL_MOORING_H_
 #define CORAL_MOORING_H_
@@ -43,6 +62,7 @@ Architect: Hans Bihs
 #include"coral/core/coral_state.h"
 #include"coral/mooring/coral_catenary.h"
 #include"coral/hydro/coral_waves.h"
+#include<limits>
 #include<memory>
 #include<string>
 #include<vector>
@@ -55,6 +75,10 @@ namespace coral
         Vec3 p = Vec3::Zero();       // global position at creation
     };
 
+    // the seabed height of a line between a and b: the z of its ground end (the lower of two), none
+    // (-1e30) between two bodies
+    double default_seabed(const mooring_end &a, const mooring_end &b);
+
     struct mooring_props
     {
         double L = 0.0;              // unstretched length [m]
@@ -65,14 +89,17 @@ namespace coral
         double CB = 0.0;             // seabed friction of the quasi-static line (< 0: no seabed)
         double Cdn = 1.2, Cdt = 0.05, Can = 1.0, Cat = 0.0;
         double kb = 3.0e6, cb = 3.0e5;     // seabed stiffness [Pa/m], damping [Pa s/m]
-        double mu = 0.0, v_eps = 0.01;     // seabed friction (dynamic line)
+        double mu = 0.0, v_eps = 0.01;     // seabed friction of the dynamic line across it, regularization velocity
+        double mu_axial = -1.0;            // seabed friction along the line (< 0: mu)
         double rho = 1025.0;
     };
 
     class mooring_qs : public load
     {
     public:
-        mooring_qs(const model&, const mooring_end &a, const mooring_end &b, const mooring_props&, const std::string &name="mooring");
+        // z_seabed: NaN for default_seabed
+        mooring_qs(const model&, const mooring_end &a, const mooring_end &b, const mooring_props&, const std::string &name="mooring",
+                   double z_seabed=std::numeric_limits<double>::quiet_NaN());
         std::string name() const override {return name_;}
         coupling_kind coupling() const override {return coupling_kind::local;}
         void coupled_bodies(std::vector<int> &b) const override {b.push_back(ba_); b.push_back(bb_);}
@@ -92,6 +119,7 @@ namespace coral
         Vec3 sa_, sb_;
         mooring_props pr_;
         catenary_line cl_;
+        int bed_end_ = -1;             // 0: a, 1: b is the ground end on the seabed (seabed portion), -1: none
         mutable double H_ = -1.0, V_ = 0.0;
     };
 
@@ -115,22 +143,43 @@ namespace coral
         int nseg() const {return nseg_;}
         double dt_line() const {return dt_;}
         const std::vector<Vec3> &nodes() const {return r_;}     // converged node positions (0 .. N)
-        double tension(int seg) const;                          // converged segment tension
-        // end forces of the converged line (on the attached bodies)
+        double tension(int seg) const;                          // converged segment tension (with the damping BA)
+        // end forces of the converged line on the attached bodies (with the inertia of the end nodes)
         void end_forces(Vec3 &Fa, Vec3 &Fb) const {Fa = Fa_; Fb = Fb_;}
 
-        // relax the line with the ends fixed (static shape), extra damping, before the run
+        // relax the line with the ends fixed (static shape), extra damping, before the run, in the water at
+        // rest
         void settle(const model&, double t_settle);
+        // wave kinematics at every Runge-Kutta stage (true) or once per step at the converged nodes (default)
+        void set_exact_kinematics(bool b) {exact_kin_ = b;}
+        // static equilibrium of the discretized line between the current end positions in the water at rest
+        // at t (Newton with Levenberg-Marquardt damping on the inner nodes, block-tridiagonal Jacobian by
+        // coloured finite differences); true if converged (else the shape is kept). initialize() calls it once (static_start,
+        // default), so the line starts at rest instead of from the continuous catenary, whose chords are
+        // shorter than the segments (a slack line that drops and snaps)
+        bool equilibrium(const model&, double t);
+        void set_static_start(bool b) {static_start_ = b;}
         // restart from a checkpoint (coral_state.h)
         void save_state(std::vector<double>&) const override;
         bool load_state(const std::vector<double>&, size_t &k) override;
 
     private:
         struct state {std::vector<Vec3> r, v;};
+        // wave kinematics at the converged nodes at time t (gen: the converged line they belong to)
+        struct node_kin {double t = 0.0; long gen = -1; std::vector<double> eta; std::vector<Vec3> u, du;};
+        const node_kin &kinematics(int slot, double t) const;
+        // the water at node i, position x, time t, for the integration from t0 to t1
+        void water(int i, const Vec3 &x, double t, double &eta, Vec3 &u, Vec3 &du) const;
         void accel(const state&, const Vec3 &ra, const Vec3 &rb, const Vec3 &va, const Vec3 &vb, double t,
                    std::vector<Vec3> &a, Vec3 &Fa, Vec3 &Fb, double extra_damp) const;
-        void integrate(state&, const Vec3 &ra0, const Vec3 &ra1, const Vec3 &rb0, const Vec3 &rb1,
-                       double t0, double t1, Vec3 &Fa, Vec3 &Fb, double extra_damp) const;
+        // from the converged line at t0 to t1; at_rest: settling in the water at rest
+        struct end_motion {Vec3 r0, v0, r1, v1;};     // Hermite data of an end over the step
+        void integrate(state&, const end_motion &a, const end_motion &b, double t0, double t1, Vec3 &Fa, Vec3 &Fb,
+                       double extra_damp, bool at_rest=false) const;
+        // end masses (mass and added mass of the end half-segments) of the last accel()
+        void end_inertia(Vec3 &Fa, Vec3 &Fb, const Vec3 &aa, const Vec3 &ab) const;
+        // keep the segment tensions of the converged line; throws if the line state is not finite
+        void keep_converged();
 
         std::string name_;
         int ba_, bb_;
@@ -147,8 +196,20 @@ namespace coral
         // converged state: inner nodes (and end positions) at t_
         std::vector<Vec3> r_, v_;
         Vec3 ra_, rb_;
+        Vec3 va_ = Vec3::Zero(), vb_ = Vec3::Zero();
         double t_ = 0.0;
         Vec3 Fa_ = Vec3::Zero(), Fb_ = Vec3::Zero();
+        long gen_ = 0;                 // changes with the converged line
+        bool static_start_ = true;     // initialize(): static equilibrium first (once)
+        bool started_ = false;
+
+        // wave kinematics: per step at the converged nodes (slots: start, end of the step) or exact
+        bool exact_kin_ = false;
+        mutable node_kin kin_[2];
+        mutable int kmode_ = 0;        // 0: no waves, 1: exact, 2: linear between kin_[0] and kin_[1], 3: at rest (kin_[0] surface)
+        mutable double kt0_ = 0.0, kt1_ = 0.0;
+
+        std::vector<Vec3> Tc_;         // segment tensions of the converged line
 
         // work arrays
         mutable std::vector<Vec3> T_;
@@ -156,9 +217,11 @@ namespace coral
         mutable state ws_;
 
         // trial cache
-        mutable Vec3 cra_, crb_;
+        mutable Vec3 cra_, crb_, cva_, cvb_;
         mutable double ct_ = -1.0e300;
         mutable Vec3 cFa_, cFb_;
+        mutable Mat3 Ma_ = Mat3::Zero(), Mb_ = Mat3::Zero();     // end masses of the last accel()
+        mutable Mat3 cMa_ = Mat3::Zero(), cMb_ = Mat3::Zero();   // of the cached trial
         mutable bool cvalid_ = false;
     };
 }

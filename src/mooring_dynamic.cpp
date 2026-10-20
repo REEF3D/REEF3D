@@ -23,6 +23,7 @@ Author: Tobias Martin
 #include"mooring_dynamic.h"
 #include"lexer.h"
 #include"ghostcell.h"
+#include"ckpt_pack.h"
 
 mooring_dynamic::mooring_dynamic(int number):line(number),beam(number)
 {}
@@ -143,4 +144,36 @@ void mooring_dynamic::saveMooringPoint(lexer *p)
     Xme_ = -tension(0);
 	Yme_ = -tension(1);
 	Zme_ = -tension(2);
+}
+
+void mooring_dynamic::ckpt_state(std::vector<double> &v) const
+{
+    ckpt_beam_state(v);
+    ckpt_put w{v};
+    for(const Matrix3Xd *a : {&c_moor,&c_moor_n,&cdot_moor,&cdot_moor_n,&cdotdot_moor})
+    w.m(*a);
+    for(const vector<vector<double>> *a : {&fluid_vel,&fluid_vel_n,&fluid_acc})
+    for(const vector<double> &e : *a)
+    w.vd(e);
+    for(double x : {Xme_,Yme_,Zme_,phi_mooring,t_mooring_n,t_mooring})
+    w.d(x);
+    w.m(fixPoint); w.m(a_O);
+    w.b(broken);
+}
+
+void mooring_dynamic::ckpt_restore(const std::vector<double> &v, size_t &k)
+{
+    ckpt_beam_restore(v,k);
+    ckpt_get r{v};
+    r.k = k;
+    for(Matrix3Xd *a : {&c_moor,&c_moor_n,&cdot_moor,&cdot_moor_n,&cdotdot_moor})
+    r.m(*a);
+    for(vector<vector<double>> *a : {&fluid_vel,&fluid_vel_n,&fluid_acc})
+    for(vector<double> &e : *a)
+    r.vd(e);
+    for(double *a : {&Xme_,&Yme_,&Zme_,&phi_mooring,&t_mooring_n,&t_mooring})
+    r.d(*a);
+    r.m(fixPoint); r.m(a_O);
+    r.b(broken);
+    k = r.k;
 }
