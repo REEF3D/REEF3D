@@ -27,6 +27,7 @@ Architect: Hans Bihs
 #include"reefamr.h"
 #include"seastate_implicit.h"
 #include<fstream>
+#include<functional>
 #include<memory>
 #include<mutex>
 #include<string>
@@ -195,6 +196,9 @@ struct seastate_amr_patch : public reefamr_patch
     seastate_store *dca = nullptr, *dcax = nullptr, *dcay = nullptr;
     slice4 *dS = nullptr, *dT = nullptr, *dK = nullptr, *dC = nullptr, *dE = nullptr;
     slice4 *vN = nullptr;
+
+    // Phase 18: the measured work of the cells [s] (G 45, G 46), nullptr: not measured
+    slice4 *wk = nullptr;
 };
 
 // spectra on the faces of the covered cells of one grid
@@ -289,6 +293,24 @@ public:
     void print(lexer*, ghostcell*);
     void convergence(lexer*, int iteration, double change, double percent);
     void log(lexer*, ghostcell*, int iterations);
+
+    // Phase 18: checkpoints (P 48, I 45; seastate_f_ckpt.cpp) and the measured work of the cells (G 45, G 46).
+    // A patch: its level and box (global indices of the level), the offsets of the box in its arrays (local = global - I0 + ox),
+    // its interior nx x ny, its lexer, field data, solver and covered marks
+    struct gview {int lev, I0, I1, J0, J1, nx, ny, ox, oy; lexer *pp; fdm_seastate *e; seastate_implicit *solv; sliceint4 *cov;};
+    int npatch() const {return (int)P.size();}
+    gview patch_view(int id);
+    // after a restart has set the spectra of the interiors of all grids: the restriction (the faces of the covered cells),
+    // then again (the spectra of the checkpoint once more: its covered cells as they were, bitwise), the level-0 halo with
+    // its faces and the fills of all levels (collective)
+    void restored(lexer*, ghostcell*, const std::function<void()> &again);
+    // the work fields of the patch solvers (before the first sweep, so that the copies for the threads take them)
+    void work_fields();
+    // the work of the patch cells added into the level-0 columns of this rank (col: i*knoy+j of level 0); reset: zero
+    void work_columns(lexer*, vector<double> &col, bool reset);
+    int print_count() const {return printcount_amr;}
+    void print_count(int n) {printcount_amr = n;}
+    void flush_logs() {logout.flush(); convout.flush();}
 
 protected:
     reefamr_patch* patch_new() override;

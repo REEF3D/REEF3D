@@ -81,7 +81,7 @@ void reefrun_ckpt::write()
 
     const double t0 = pgc->timer();
     reefckpt ck;
-    ck.write_open(p,p->count);
+    ck.write_open(p,p->count,sub);
 
     ck.scalar("count",double(p->count));
     ck.scalar("rebal_L",rebal_L);
@@ -98,6 +98,15 @@ void reefrun_ckpt::write()
     h.write(ck);
 
     ck.write_close(p);
+    write_s = pgc->timer()-t0;
+
+    // keep_last: the checkpoint before (written by this run, so by as many ranks) is removed once this one is the latest
+    if(h.keep_last)
+    {
+        if(p->mpirank==0 && !prev.empty() && prev!=ck.folder())
+        reefckpt::remove_folder(prev,p->mpi_size);
+        prev = ck.folder();
+    }
 
     if(p->mpirank==0)
     {
@@ -112,21 +121,23 @@ void reefrun_ckpt::read()
     reefckpt ck;
     string msg = h.unsupported ? h.unsupported() : string();
 
-    if(!msg.empty() || !ck.read_open(p,"",msg))
+    // a failed restart of a rebalance (G 46) removes the marker, so that tools/reef3d_rebalance.sh does not start it again
+    auto fail = [&](const string &m)
     {
         if(p->mpirank==0)
-        cout<<endl<<"!!! I 45 1: "<<msg<<" !!!"<<endl<<endl;
+        {
+            cout<<endl<<"!!! I 45 1: "<<m<<" !!!"<<endl<<endl;
+            remove("REEF3D_Checkpoint/rebalance");
+        }
         pgc->final();
         exit(1);
-    }
+    };
+
+    if(!msg.empty() || !ck.read_open(p,"",msg))
+    fail(msg);
 
     if(!h.read(ck,msg))
-    {
-        if(p->mpirank==0)
-        cout<<endl<<"!!! I 45 1: "<<(msg.empty() ? "checkpoint "+ck.folder()+" incomplete for this case" : msg)<<" !!!"<<endl<<endl;
-        pgc->final();
-        exit(1);
-    }
+    fail(msg.empty() ? "checkpoint "+ck.folder()+" incomplete for this case" : msg);
 
     p->count = int(ck.get_scalar("count"));
     rebal_L = ck.get_scalar("rebal_L");
@@ -152,7 +163,10 @@ void reefrun_ckpt::read()
 // checkpoint, the marker REEF3D_Checkpoint/rebalance, exit code 3.  The next start (the same command,
 // tools/reef3d_rebalance.sh repeats it) sees the marker: I 45 1 with the weighted partition of the
 // load map (M 41 1).  If the first check after a rebalance restart is not 10 % better than the load
-// that stopped the run, there is no further rebalance in this run.
+// that stopped the run, there is no further rebalance in this run.  A module that knows the load of a
+// partition from its load map (hooks.predict: SEASTATE) stops only if the weighted partition is
+// 10 % better than the present one by that map, and (hooks.pays) only if the time it saves over the
+// rest of the run exceeds the cost of the stop, the checkpoint and the new start.
 void reefrun_ckpt::rebalance_check()
 {
     const string un = h.unsupported ? h.unsupported() : string();
@@ -163,10 +177,29 @@ void reefrun_ckpt::rebalance_check()
         return;
     }
 
-    if(p->mpi_size<2 || rebal_off || p->G47<=0 || p->count%p->G47!=0)
+    rebalance(p->G47>0 && p->count%p->G47==0, p->count+p->G47>p->N45 || (p->dt>0.0 && p->simtime+p->G47*p->dt>p->N41));
+}
+
+void reefrun_ckpt::rebalance_check_iter(int k, int kmax)
+{
+    const string un = h.unsupported ? h.unsupported() : string();
+    if(!un.empty())
+    {
+        if(p->mpirank==0 && k==p->G47)
+        cout<<"G 46: "<<un<<" -- no rebalance"<<endl;
+        return;
+    }
+
+    rebalance(p->G47>0 && k%p->G47==0, k+p->G47>kmax);
+}
+
+// due: the check is due now; last: the run (or the iterations of the step) end within G 47
+void reefrun_ckpt::rebalance(bool due, bool last)
+{
+    if(p->mpi_size<2 || rebal_off || !due)
     return;
 
-    const double L = amr_window_imbalance();
+    const double L = h.imbalance ? h.imbalance() : amr_window_imbalance();
     if(L<=0.0)
     return;
 
@@ -194,7 +227,7 @@ void reefrun_ckpt::rebalance_check()
     return;
 
     // not in the last window of the run (N 45 steps, N 41 time): the restart would not pay
-    if(p->count+p->G47>p->N45 || (p->dt>0.0 && p->simtime+p->G47*p->dt>p->N41))
+    if(last)
     {
         if(p->mpirank==0)
         cout<<"G 46: the run ends within G 47 steps -- no rebalance"<<endl;
@@ -209,23 +242,57 @@ void reefrun_ckpt::rebalance_check()
     int mybox[6] = {p->origin_i,p->origin_j,p->origin_k,p->knox,p->knoy,p->knoz};
     vector<int> now(6*size_t(p->mpi_size));
     MPI_Gather(mybox,6,MPI_INT,now.data(),6,MPI_INT,0,MPI_COMM_WORLD);
+    // 1: it differs; 2: it differs, but would not lower the load enough (predict); 3: the restart would not pay (pays)
     int differs = 0;
+    double Lnew = 0.0;
     if(p->mpirank==0)
     {
         vector<vector<char>> rb;
         vector<int> nb;
         string msg;
         if(dmpart::build("DIVEMesh_Grid/grid-global.dat",p->mpi_size,rb,msg,1,&nb,true))
-        differs = (nb!=now) ? 1 : 0;
+        {
+            differs = (nb!=now) ? 1 : 0;
+            if(differs && h.predict)
+            {
+                Lnew = h.predict(nb);
+                if(Lnew>0.9*L)
+                differs = 2;
+            }
+            // 3: the restart would not pay
+            if(differs==1 && h.pays)
+            {
+                string why;
+                if(!h.pays(L,Lnew,why))
+                differs = 3;
+                if(!why.empty())
+                cout<<"G 46: "<<why<<endl;
+            }
+        }
         else
         cout<<"G 46: no rebalance -- "<<msg<<" (needs DIVEMesh M 50 1, 2)"<<endl;
     }
     MPI_Bcast(&differs,1,MPI_INT,0,MPI_COMM_WORLD);
-    if(!differs)
+    if(differs!=1)
     {
-        if(p->mpirank==0)
+        if(p->mpirank==0 && differs==0)
         cout<<"G 46: the weighted partition of the load map is the present one -- no rebalance"<<endl;
+        if(p->mpirank==0 && differs==3)
+        cout<<"G 46: the restart does not pay -- no rebalance"<<endl;
+        if(p->mpirank==0 && differs==2)
+        {
+            const streamsize pr = cout.precision();
+            cout<<"G 46: the weighted partition of the load map would give the load max/mean "<<setprecision(3)<<Lnew
+                <<", less than 10 % below the present one -- no rebalance"<<endl;
+            cout.precision(pr);
+        }
         return;
+    }
+    if(p->mpirank==0 && h.predict)
+    {
+        const streamsize pr = cout.precision();
+        cout<<"G 46: the weighted partition of the load map gives the load max/mean "<<setprecision(3)<<Lnew<<" by the load map"<<endl;
+        cout.precision(pr);
     }
 
     if(p->mpirank==0)

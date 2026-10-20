@@ -14,6 +14,11 @@ while true; do
     if [ ! -f REEF3D_Checkpoint/rebalance ]; then
         exit $rc
     fi
+    # a failure (not the stop of a rebalance: 3, or 0 from an mpirun that does not pass the code on)
+    if [ $rc -ne 0 ] && [ $rc -ne 3 ]; then
+        echo "reef3d_rebalance.sh: REEF3D failed (exit code $rc) -- stopped"
+        exit $rc
+    fi
     n=$((n+1))
     if [ $n -gt $max ]; then
         echo "reef3d_rebalance.sh: more than $max rebalance restarts -- stopped"

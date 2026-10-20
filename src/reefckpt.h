@@ -55,7 +55,8 @@ class reefckpt
 {
 public:
     // ---- writing (all ranks)
-    void write_open(lexer*, int count);
+    // the folder REEF3D_Checkpoint/<count>, with sub > 0 <count>_<sub> (SEASTATE stationary: the iteration in the step)
+    void write_open(lexer*, int count, int sub=0);
     void scalar(const std::string&, double);                     // rank 0's value
     void blob(const std::string&, const std::vector<double>&);   // rank 0's data
     void rank_blob(const std::string&, const std::vector<double>&);   // every rank its own (in its piece)
@@ -84,6 +85,10 @@ public:
     bool get_Ci(const std::string&, int*);
     bool same_decomposition() const { return same; }
     int pieces() const { return (int)box.size(); }
+    // the box of piece r: origin and cells in x and y
+    void piece_box(int r, int &oi, int &oj, int &ni, int &nj) const { oi = box[r].oi; oj = box[r].oj; ni = box[r].ni; nj = box[r].nj; }
+    // removes the checkpoint folder dir written by np ranks (rank 0)
+    static void remove_folder(const std::string &dir, int np);
     std::string folder() const { return dirname; }
 
 private:

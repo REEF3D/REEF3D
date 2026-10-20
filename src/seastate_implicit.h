@@ -317,10 +317,24 @@ public:
     // spectra and the values the boundary tiles carry for the patches (nullptr: none)
     void pipeline_refined(seastate_exchange *ex, seastate_kba_extra *x) {kex = ex; kext = x;}
 
+    // Phase 18: the measured work of the cells (the load map G 45 and the rebalance G 46): the time [s] of every solve of a
+    // cell is added into w(i,j) (nullptr: not measured)
+    void work_field(slice *w) {wfld = w;}
+
+    // Phase 18: checkpoints (P 48, I 45): the active ranges of the spectral sparsity of a cell, as doubles (ranges_size
+    // values; 0 without sparsity); ranges_put sets them (a cell not yet visited: rv 0)
+    int ranges_size() const {return eps>0.0 ? 1+4+4*nsig : 0;}
+    void ranges_get(lexer*, int ci, int cj, double *v);
+    void ranges_put(lexer*, int ci, int cj, const double *v);
+
 private:
 
     void cell(lexer*, fdm_seastate*, int q, int ci, int cj, const float *N0, double rdt,
               const vector<float> &Nb, const int side[4], bool refraction, bool fshift);
+    // the same, its time added into wfld (Phase 18)
+    void cellw(lexer*, fdm_seastate*, int q, int ci, int cj, const float *N0, double rdt,
+               const vector<float> &Nb, const int side[4], bool refraction, bool fshift);
+    slice *wfld = nullptr;
 
     void sweep_threads(lexer*, fdm_seastate*, int q, const seastate_store *N0, double rdt,
                        const vector<float> &Nb, const int side[4], bool refraction, bool fshift);

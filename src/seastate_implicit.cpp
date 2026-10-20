@@ -29,6 +29,7 @@ Architect: Hans Bihs
 #include"seastate_obstacle.h"
 #include"fdm_seastate.h"
 #include"sliceint.h"
+#include"slice.h"
 #include"lexer.h"
 #include"ghostcell.h"
 #include<algorithm>
@@ -275,7 +276,7 @@ void seastate_implicit::sweep(lexer *p, fdm_seastate *e, int q, const seastate_s
             if(second)
             cell_surfbeat(p,e,q,N0,rdt,Nb,side,refraction);
             else
-            cell(p,e,q,i,j,N0!=nullptr ? N0->spec(i,j) : nullptr,rdt,Nb,side,refraction,fshift);
+            cellw(p,e,q,i,j,N0!=nullptr ? N0->spec(i,j) : nullptr,rdt,Nb,side,refraction,fshift);
         }
     }
 }
@@ -583,7 +584,7 @@ void seastate_implicit::sweep_threads(lexer *p, fdm_seastate *e, int q, const se
                 (*visT)(t,ci,cj);
                 }
                 else if(e->wet(ci,cj)==1)
-                s->cell(p,e,q,ci,cj,N0!=nullptr ? N0->spec(ci,cj) : nullptr,rdt,Nb,side,refraction,fshift);
+                s->cellw(p,e,q,ci,cj,N0!=nullptr ? N0->spec(ci,cj) : nullptr,rdt,Nb,side,refraction,fshift);
             }
 
         // Phase 14: the cells at the downstream boundary of the rank for the rank downstream
@@ -727,6 +728,7 @@ void seastate_implicit::copy_config(const seastate_implicit &o)
     nsrcit = o.nsrcit;
     srctol = o.srctol;
     vis = o.vis;
+    wfld = o.wfld;
     visT = o.visT;
     dca = o.dca; dcax = o.dcax; dcay = o.dcay;
     pob = o.pob;
@@ -759,7 +761,55 @@ void seastate_implicit::solve(lexer *p, fdm_seastate *e, int q, int ci, int cj, 
     j = cj;
 
     if(e->wet(i,j)==1)
-    cell(p,e,q,i,j,N0!=nullptr ? N0->spec(i,j) : nullptr,rdt,Nb,side,refraction,fshift);
+    cellw(p,e,q,i,j,N0!=nullptr ? N0->spec(i,j) : nullptr,rdt,Nb,side,refraction,fshift);
+}
+
+// Phase 18: the solve of a cell, its time added into the work field
+void seastate_implicit::cellw(lexer *p, fdm_seastate *e, int q, int ci, int cj, const float *N0c, double rdt,
+                              const vector<float> &Nb, const int side[4], bool refraction, bool fshift)
+{
+    if(wfld==nullptr)
+    {
+    cell(p,e,q,ci,cj,N0c,rdt,Nb,side,refraction,fshift);
+    return;
+    }
+
+    const auto t0 = std::chrono::steady_clock::now();
+    cell(p,e,q,ci,cj,N0c,rdt,Nb,side,refraction,fshift);
+    (*wfld)(ci,cj) += std::chrono::duration<double>(std::chrono::steady_clock::now()-t0).count();
+}
+
+void seastate_implicit::ranges_get(lexer *p, int ci, int cj, double *v)
+{
+    const int n = ranges_size();
+    if(n==0)
+    return;
+    if(rg.empty() || ci<rimin || ci>=rimin+rni || cj<rjmin || cj>=rjmin+rnj)
+    {
+    std::fill(v,v+n,0.0);
+    return;
+    }
+    const size_t c = size_t(ci-rimin)*rnj + (cj-rjmin);
+    v[0] = double(rv[c]);
+    for(int k=0; k<4; ++k)
+    v[1+k] = double(rb[c*4+k]);
+    for(int k=0; k<4*nsig; ++k)
+    v[5+k] = double(rg[c*4*nsig+k]);
+}
+
+void seastate_implicit::ranges_put(lexer *p, int ci, int cj, const double *v)
+{
+    if(ranges_size()==0)
+    return;
+    ranges_alloc(p);
+    if(ci<rimin || ci>=rimin+rni || cj<rjmin || cj>=rjmin+rnj)
+    return;
+    const size_t c = size_t(ci-rimin)*rnj + (cj-rjmin);
+    rv[c] = uint16_t(v[0]);
+    for(int k=0; k<4; ++k)
+    rb[c*4+k] = uint16_t(v[1+k]);
+    for(int k=0; k<4*nsig; ++k)
+    rg[c*4*nsig+k] = uint16_t(v[5+k]);
 }
 
 namespace

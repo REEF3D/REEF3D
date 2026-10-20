@@ -32,6 +32,7 @@ Architect: Hans Bihs
 #include"seastate_amr.h"
 #include"seastate_fas2.h"
 #include"sliceint4.h"
+#include"reefckpt.h"
 #include"lexer.h"
 #include"ghostcell.h"
 #include<algorithm>
@@ -170,6 +171,7 @@ void seastate_f::transport(lexer *p, ghostcell *pgc)
         obstacles(p,pgc);
         psolv->iterate(p,pgc,e,pex,N0,rdt,Nb,side,refraction,fshift);
         ++iter_done;
+        ++wit;
 
         // Phase 12: FAS on the uniform grid (A 758), within the step but not after its last iteration
         if(pfas!=nullptr && iter_done%p->A758_n==0 && it<iter_max-1)
@@ -183,19 +185,26 @@ void seastate_f::transport(lexer *p, ghostcell *pgc)
     const seastate_grid &g = *e->grid;
 
     hs_old.assign(size_t(p->knox)*p->knoy,0.0);
-    std::vector<double> dprev(hs_old.size(),0.0);
+    // Phase 18: a restart within the step (I 45 1) continues at the iteration of the checkpoint with its last changes of Hs
+    if(ss_resume==0 || dprev.size()!=hs_old.size())
+    dprev.assign(hs_old.size(),0.0);
+    iter_done = ss_resume;
+    ss_resume = 0;
+    hconv.clear();
+    hperc.clear();
     const int nth = psolv->thread_count();
 
     hs_cells(p,e,g,hs_old,nth);
     bool stopped = false;
 
-    for(int it=0; it<iter_max; ++it)
+    for(int it=iter_done; it<iter_max; ++it)
     {
     // Phase 6: diffraction parameter and obstacle transmission from the latest spectra (A 718, A 722)
     diffraction(p,pgc);
     obstacles(p,pgc);
     psolv->iterate(p,pgc,e,pex,nullptr,rdt,Nb,side,refraction,fshift);
     ++iter_done;
+    ++wit;
 
     // Phase 12: FAS on the uniform grid (A 758)
     if(pfas!=nullptr && iter_done%p->A758_n==0)
@@ -231,6 +240,8 @@ void seastate_f::transport(lexer *p, ghostcell *pgc)
     nok = pgc->globalsum(nok);
     nall = pgc->globalsum(nall);
     const double percent = nall>0.0 ? 100.0*nok/nall : 100.0;
+    hconv.push_back(conv);
+    hperc.push_back(percent);
 
         // convergence history (rank 0): REEF3D_SEASTATE_Log/REEF3D_SEASTATE_convergence.dat
         if(p->mpirank==0)
@@ -238,7 +249,7 @@ void seastate_f::transport(lexer *p, ghostcell *pgc)
             if(!convlog.is_open())
             {
             mkdir("./REEF3D_SEASTATE_Log",0777);
-            convlog.open("./REEF3D_SEASTATE_Log/REEF3D_SEASTATE_convergence.dat");
+            if(reefckpt_open(convlog,"./REEF3D_SEASTATE_Log/REEF3D_SEASTATE_convergence.dat",restart ? 1 : 0))
             convlog<<"# count \t iteration \t max. relative change of Hs \t percentage of the cells within A 708"<<endl;
             }
         convlog<<p->count<<" \t "<<iter_done<<" \t "<<setprecision(6)<<conv<<" \t "<<percent<<endl;
@@ -256,6 +267,9 @@ void seastate_f::transport(lexer *p, ghostcell *pgc)
         stopped = true;
         break;
         }
+
+    // Phase 18: checkpoint (P 48) and rebalance (G 46) every so many iterations
+    ckpt_iteration(p,iter_done);
     }
 
     // Phase 15: the iterations ran out with cells whose peak lies within a factor 1.5 of the highest frequency: the
@@ -309,6 +323,7 @@ void seastate_f::transport_amr(lexer *p, ghostcell *pgc)
         obstacles(p,pgc);
         pamr->iterate(p,pgc,N0,rdt,Nb,side,refraction,fshift);
         ++iter_done;
+        ++wit;
 
         // FAS coarse-grid correction (A 758) within the step: every A 758 n iterations of the step, not after the
         // last one (the prolonged correction needs an iteration of the fine grids after it, else its error enters
@@ -347,15 +362,22 @@ void seastate_f::transport_amr(lexer *p, ghostcell *pgc)
     std::vector<double> hs, hs0;
     double hmax;
     leaf_hs(hs0,hmax);
-    std::vector<double> dprev(hs0.size(),0.0);
+    // Phase 18: a restart within the step (I 45 1) continues at the iteration of the checkpoint with its last changes of Hs
+    if(ss_resume==0 || dprev.size()!=hs0.size())
+    dprev.assign(hs0.size(),0.0);
+    iter_done = ss_resume;
+    ss_resume = 0;
+    hconv.clear();
+    hperc.clear();
 
-    for(int it=0; it<iter_max; ++it)
+    for(int it=iter_done; it<iter_max; ++it)
     {
     // Phase 6: diffraction, obstacles and coasts on all grids (A 718, A 722 - A 726)
     diffraction(p,pgc);
     obstacles(p,pgc);
     pamr->iterate(p,pgc,nullptr,rdt,Nb,side,refraction,fshift);
     ++iter_done;
+    ++wit;
 
     // FAS coarse-grid correction (A 758): level 0 as the coarse grid of the patches
     if(p->A758_n>0 && iter_done%p->A758_n==0)
@@ -391,11 +413,16 @@ void seastate_f::transport_amr(lexer *p, ghostcell *pgc)
     nall = pgc->globalsum(nall);
 
     pamr->convergence(p,iter_done,conv,nall>0.0 ? 100.0*nok/nall : 100.0);
+    hconv.push_back(conv);
+    hperc.push_back(nall>0.0 ? 100.0*nok/nall : 100.0);
 
         if(conv<p->A708)
         break;
 
         if(p->A709<100.0 && nall>0.0 && 100.0*nok/nall>=p->A709)
         break;
+
+    // Phase 18: checkpoint (P 48) and rebalance (G 46) every so many iterations
+    ckpt_iteration(p,iter_done);
     }
 }
