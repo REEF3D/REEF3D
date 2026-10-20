@@ -2489,7 +2489,8 @@ void sflow_amr::print(lexer *p, fdm2D *b, ghostcell *pgc)
     ++printcount_amr;
 }
 
-// surface elevation at the P 51 gauges from the finest grid that holds them
+// surface elevation at the P 51 gauges from the finest grid that holds them (interpolated between
+// the cell centres, as the WSF file)
 void sflow_amr::gauges(lexer *p, fdm2D *b, ghostcell *pgc)
 {
     const int ng = p->P51;
@@ -2544,13 +2545,13 @@ void sflow_amr::gauges(lexer *p, fdm2D *b, ghostcell *pgc)
         if(find(p,0,NX0-1,0,NY0-1,p->P51_x[k],p->P51_y[k],ii,jj))
         {
             lv[k]=0.0;
-            val[k]=b->eta(ii,jj);
+            val[k]=p->ccslipol4(b->eta,p->P51_x[k],p->P51_y[k]);
         }
         for(auto c : P)
         if(c->lev>lv[k] && find(c->pp,EXT,EXT+c->nx-1,EY,EY+c->ny-1,p->P51_x[k],p->P51_y[k],ii,jj))
         {
             lv[k]=c->lev;
-            val[k]=SP(c)->b->eta(ii,jj);
+            val[k]=c->pp->ccslipol4(SP(c)->b->eta,p->P51_x[k],p->P51_y[k]);
         }
     }
 

@@ -160,15 +160,13 @@ void fnpf_print_wsf::fill_eta(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f)
     i=iloc[n];
     j=jloc[n];
 
+        // interpolated at the gauge between the cell centres (as nhflow_print_wsf): the value of the
+        // cell that holds the gauge lay up to dx/2 away, a phase offset of k dx/2 between grids of
+        // different resolution
         if(amr!=nullptr && ap.f[n]!=nullptr)
-        {
-            lexer *q = ap.q[n];
-            i = q->posc_i(x[n]);
-            j = (q->j_dir==1) ? q->posc_j(y[n]) : 0;
-            wsf[n] = static_cast<fdm_fnpf*>(ap.f[n])->eta(i,j);
-        }
+        wsf[n] = ap.q[n]->ccslipol4(static_cast<fdm_fnpf*>(ap.f[n])->eta, x[n], y[n]);
         else
-			wsf[n] = f(i,j);
+        wsf[n] = p->ccslipol4(f, x[n], y[n]);
 
     }
 	
@@ -190,6 +188,7 @@ void fnpf_print_wsf::ini_location(lexer *p, fdm_fnpf *c)
 {
     for(n=0;n<gauge_num;++n)
     {
+    // the cell that contains the gauge: the rank that writes it
     iloc[n] = p->posc_i(x[n]); 
     
     if(p->j_dir==0)
