@@ -440,6 +440,9 @@ void mooring_line::integrate(state &s, const end_motion &ea, const end_motion &e
 
 void mooring_line::initialize(const model &m, double t0)
 {
+    if(static_start_ && !started_)
+        equilibrium(m, t0);
+    started_ = true;
     t_ = t0;
     const rigid_body &A = m.body(ba_), &B = m.body(bb_);
     ra_ = A.point(sa_);
@@ -604,6 +607,7 @@ bool mooring_line::load_state(const std::vector<double> &v, size_t &k)
     in.m(Fb_);
     in.m(va_);
     in.m(vb_);
+    started_ = true;
     ++gen_;
     cvalid_ = false;
     k = in.k;

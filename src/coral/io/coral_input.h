@@ -63,10 +63,13 @@ Architect: Hans Bihs
 //        EA <EA> [BA <BA>] [CB <CB>] [Cdn <c>] [Cdt <c>] [Can <c>] [Cat <c>] [kb <k>] [cb <c>] [mu <mu>]
 //        [mu_axial <mu>] [v_eps <v>]
 //        [nseg <n>] [seabed <z> | no_seabed] [dt_line <dt>] [settle <T>] [current <ux uy uz>] [exact_kinematics]
+//        [no_static]
 //        (seabed: default the z of the ground end, the lower one if both ends are on the ground; a line between
 //        two bodies (shared line, bridle) has no seabed unless given; the dynamic line takes the wave kinematics at
 //        its converged nodes at the start and end of a step, linear in between (exact_kinematics: at every
-//        Runge-Kutta stage, costly with many wave components); settle: relaxed in the water at rest; seabed
+//        Runge-Kutta stage, costly with many wave components); the dynamic line starts in the static
+//        equilibrium of its segments between the ends at the start (no_static: from the continuous catenary,
+//        whose chords are shorter than the segments); settle: relaxed in the water at rest before; seabed
 //        friction mu across and mu_axial (default mu) along the line, regularized below v_eps (0.01 m/s);
 //        channels <name>_Fa_x .. _Fb_z (forces on the bodies), _Tmax, _Ta, _Tb (end segment tensions); the quasi-static line has a seabed portion
 //        with friction CB only at a ground end on the seabed, else it hangs free between its ends; the names of lines and other loads must not be keywords of the line, e.g. not "d" or "L"; the

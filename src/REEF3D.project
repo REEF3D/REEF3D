@@ -2481,6 +2481,7 @@
         <VirtualDirectory Name="Mooring">
           <File Name="coral/mooring/coral_catenary.cpp"/>
           <File Name="coral/mooring/coral_mooring.cpp"/>
+          <File Name="coral/mooring/coral_mooring_static.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="PTO">
           <File Name="coral/pto/coral_pto.cpp"/>

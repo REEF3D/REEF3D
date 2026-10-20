@@ -44,7 +44,8 @@ Architect: Hans Bihs
 // weight, drag and Froude-Krylov force of the end half-segment, minus its inertia: mass and added mass
 // (normal and tangential, submerged) times the acceleration of the attachment point (as the coupled
 // points of MoorDyn), so the body carries the end node. The line starts from the catenary profile
-// (straight without gravity or for a floating line). A line state that is not finite after a step (an
+// (straight without gravity or for a floating line) and is put into the static equilibrium of its
+// discretization when the run starts (static_start, equilibrium()). A line state that is not finite after a step (an
 // unstable explicit scheme) stops the run with the name of the line. Channels: end forces on the
 // attached bodies, the largest segment tension and the tensions of the end segments (Ta, Tb), with BA.
 //
@@ -151,6 +152,13 @@ namespace coral
         void settle(const model&, double t_settle);
         // wave kinematics at every Runge-Kutta stage (true) or once per step at the converged nodes (default)
         void set_exact_kinematics(bool b) {exact_kin_ = b;}
+        // static equilibrium of the discretized line between the current end positions in the water at rest
+        // at t (Newton with Levenberg-Marquardt damping on the inner nodes, block-tridiagonal Jacobian by
+        // coloured finite differences); true if converged (else the shape is kept). initialize() calls it once (static_start,
+        // default), so the line starts at rest instead of from the continuous catenary, whose chords are
+        // shorter than the segments (a slack line that drops and snaps)
+        bool equilibrium(const model&, double t);
+        void set_static_start(bool b) {static_start_ = b;}
         // restart from a checkpoint (coral_state.h)
         void save_state(std::vector<double>&) const override;
         bool load_state(const std::vector<double>&, size_t &k) override;
@@ -192,6 +200,8 @@ namespace coral
         double t_ = 0.0;
         Vec3 Fa_ = Vec3::Zero(), Fb_ = Vec3::Zero();
         long gen_ = 0;                 // changes with the converged line
+        bool static_start_ = true;     // initialize(): static equilibrium first (once)
+        bool started_ = false;
 
         // wave kinematics: per step at the converged nodes (slots: start, end of the step) or exact
         bool exact_kin_ = false;
