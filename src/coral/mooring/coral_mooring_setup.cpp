@@ -48,6 +48,44 @@ int mooring_system::find_point(const std::string &n) const
 
 // the node layout: the nodes of the lines (N + 1 each) in their order, then the points; the attachments
 // of the body ends; the nodes the scheme advances
+void mooring_system::break_line(int k, int e, double t)
+{
+    line_t &L = lines_[k];
+    const int i = L.off + (e==0 ? 0 : L.N);
+    const Vec3 r = r_[i], v = v_[i];
+    // the end leaves its attachment or point
+    if(L.att[e] >= 0)
+    {
+        const int a = L.att[e];
+        att_.erase(att_.begin() + a);
+        for(line_t &M : lines_)
+            for(int f=0; f<2; ++f)
+                if(M.att[f] > a) --M.att[f];
+        L.att[e] = -1;
+    }
+    std::vector<Vec3> lr(r_.begin(), r_.begin() + (r_.size() - points_.size())), pr, lv(v_.begin(), v_.begin() + (v_.size() - points_.size())), pv;
+    for(const point_t &P : points_)
+    {
+        pr.push_back(r_[P.idx]);
+        pv.push_back(v_[P.idx]);
+    }
+    point_t P;
+    P.name = L.name + (e==0 ? ".a" : ".b");
+    P.zbed = L.zbed;
+    P.free_end = true;
+    points_.push_back(P);
+    pr.push_back(r);
+    pv.push_back(v);
+    L.pt[e] = (int)points_.size() - 1;
+    L.broken = e;
+    L.t_broken = t;
+    layout(lr, pr);
+    // the velocities stay
+    for(size_t q=0; q<lv.size(); ++q) v_[q] = lv[q];
+    for(size_t j=0; j<points_.size(); ++j) v_[points_[j].idx] = pv[j];
+    update_dt();
+}
+
 void mooring_system::layout(const std::vector<Vec3> &line_r, const std::vector<Vec3> &point_r)
 {
     int n = 0;
@@ -434,11 +472,16 @@ void mooring_system::settle(const model &m, double T)
 void mooring_system::channel_names(std::vector<std::string> &c) const
 {
     for(const line_t &L : lines_)
+    {
         for(const char *x : {"Fa_x", "Fa_y", "Fa_z", "Fb_x", "Fb_y", "Fb_z", "Tmax", "Ta", "Tb"})
             c.push_back(L.name + "_" + x);
+        if(L.has_break)
+            c.push_back(L.name + "_broken");
+    }
     for(const point_t &P : points_)
-        for(const char *x : {"x", "y", "z"})
-            c.push_back(P.name + "_" + x);
+        if(!P.free_end)
+            for(const char *x : {"x", "y", "z"})
+                c.push_back(P.name + "_" + x);
 }
 
 void mooring_system::channel_values(const model&, double, std::vector<double> &v) const
@@ -453,9 +496,12 @@ void mooring_system::channel_values(const model&, double, std::vector<double> &v
         v.push_back(tm);
         v.push_back(line_tension((int)k, 0));
         v.push_back(line_tension((int)k, L.N - 1));
+        if(L.has_break)
+            v.push_back(L.broken >= 0 ? 1.0 : 0.0);
     }
     for(const point_t &P : points_)
-        for(int i=0; i<3; ++i) v.push_back(r_[P.idx](i));
+        if(!P.free_end)
+            for(int i=0; i<3; ++i) v.push_back(r_[P.idx](i));
 }
 
 // ---- restart from a checkpoint: the converged nodes, tensions and end forces, the attachments
@@ -463,6 +509,13 @@ void mooring_system::channel_values(const model&, double, std::vector<double> &v
 void mooring_system::save_state(std::vector<double> &v) const
 {
     state_out o{v};
+    // the breaks in their order (they change the layout)
+    std::vector<std::pair<double,int>> br;
+    for(size_t k=0; k<lines_.size(); ++k)
+        if(lines_[k].broken >= 0)
+            br.push_back({lines_[k].t_broken, 2*(int)k + lines_[k].broken});
+    std::sort(br.begin(), br.end());
+    o.list(br, [&](const std::pair<double,int> &b){o.d(b.first); o.i(b.second);});
     o.list(r_, [&](const Vec3 &x){o.m(x);});
     o.list(v_, [&](const Vec3 &x){o.m(x);});
     o.d(t_);
@@ -473,6 +526,15 @@ void mooring_system::save_state(std::vector<double> &v) const
 bool mooring_system::load_state(const std::vector<double> &v, size_t &k)
 {
     state_in in{v, k};
+    std::vector<std::pair<double,int>> br;
+    in.list(br, [&](std::pair<double,int> &b){in.d(b.first); in.i(b.second);});
+    for(const auto &b : br)
+    {
+        const int q = b.second/2, e = b.second%2;
+        if(q < 0 || q >= (int)lines_.size()) {in.ok = false; break;}
+        if(lines_[q].broken < 0)
+            break_line(q, e, b.first);
+    }
     std::vector<Vec3> r, vv;
     in.list(r, [&](Vec3 &x){in.m(x);});
     in.list(vv, [&](Vec3 &x){in.m(x);});

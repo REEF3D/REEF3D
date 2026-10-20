@@ -494,6 +494,24 @@ void mooring_system::commit(const model &m, double t, double)
     v_ = s.v;
     t_ = t;
     keep_converged();
+    // failures: a line lets go at its time or when an end segment reaches its breaking tension
+    for(size_t k=0; k<lines_.size(); ++k)
+    {
+        const line_t &L = lines_[k];
+        if(!L.has_break || L.broken >= 0)
+            continue;
+        int e = -1;
+        if(t >= L.brk.t)
+            e = L.brk.end >= 0 ? L.brk.end : 1;
+        else
+        {
+            const double Ta = line_tension((int)k, 0), Tb = line_tension((int)k, L.N - 1);
+            if(L.brk.end != 1 && Ta >= L.brk.T) e = 0;
+            if(L.brk.end != 0 && Tb >= L.brk.T && (e < 0 || Tb > Ta)) e = 1;
+        }
+        if(e >= 0)
+            break_line((int)k, e, t);
+    }
     ++gen_;
     cvalid_ = false;
 }

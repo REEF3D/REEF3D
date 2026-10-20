@@ -66,10 +66,12 @@ Architect: Hans Bihs
 //        [BA <BA>] [CB <CB>] [Cdn <c>] [Cdt <c>] [Can <c>] [Cat <c>] [kb <k>] [cb <c>] [mu <mu>]
 //        [mu_axial <mu>] [v_eps <v>] (over those of the type)
 //        [nseg <n>] [seabed <z> | no_seabed] [dt_line <dt>] [settle <T>] [current <ux uy uz>] [exact_kinematics]
-//        [no_static]
+//        [no_static] [break_time <t>] [break_tension <T>] [break_end <a|b>]
 //        (sections: a line of several properties in order from a to b, e.g. chain-wire-chain: lines <name>.1 ..
 //        <name>.n joined at points <name>.p1 .. (no mass or volume of their own), started on the catenary of the
-//        whole line; dynamic lines only)
+//        whole line; dynamic lines only; failure: the line lets go of its end at break_time or when the tension of an
+//        end segment reaches break_tension (break_end: that end only; default: b at the time, the end that reaches
+//        the tension), the end then moves free; channel <name>_broken)
 //        (seabed: default the z of the ground end, the lower one if both ends are on the ground; a line between
 //        two bodies (shared line, bridle) has no seabed unless given; the dynamic line takes the wave kinematics at
 //        its converged nodes at the start and end of a step, linear in between (exact_kinematics: at every

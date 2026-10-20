@@ -45,6 +45,7 @@ Architect: Hans Bihs
 #include<cmath>
 #include<fstream>
 #include<functional>
+#include<limits>
 #include<set>
 #include<sstream>
 #include<stdexcept>
@@ -628,6 +629,23 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
         }
         return e;
     };
+    // failure of a dynamic line: break_time <t>, break_tension <T>, break_end <a|b>
+    auto line_break = [&](const item &it, bool &any)
+    {
+        mooring_break b;
+        b.t = it.get("break_time", b.t);
+        b.T = it.get("break_tension", b.T);
+        if(it.has("break_end"))
+        {
+            const std::string e = it.word("break_end");
+            if(e=="a") b.end = 0;
+            else if(e=="b") b.end = 1;
+            else it.fail("break_end must be a or b");
+        }
+        any = it.has("break_time") || it.has("break_tension");
+        if(any && !(b.T > 0.0)) it.fail("break_tension must be > 0");
+        return b;
+    };
     auto build_group = [&](moor_group &g)
     {
         const item &first = *g.lines[0];
@@ -689,13 +707,32 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
                 ends[sec.size()] = eb;
                 for(size_t q=0; q<J.size(); ++q)
                     ends[q+1].point = sys->add_point(it.word(1) + ".p" + std::to_string(q+1), J[q], mooring_point_props(), zbed);
+                int first = -1, last = -1;
                 for(size_t q=0; q<sec.size(); ++q)
-                    sys->add_line(m, it.word(1) + "." + std::to_string(q+1), ends[q], ends[q+1], sec[q].p, sec[q].nseg, zbed);
+                {
+                    last = sys->add_line(m, it.word(1) + "." + std::to_string(q+1), ends[q], ends[q+1], sec[q].p, sec[q].nseg, zbed);
+                    if(q==0) first = last;
+                }
+                // a failure of the line: of the section at that end (the tension: at either end)
+                bool any = false;
+                const mooring_break b = line_break(it, any);
+                if(any)
+                {
+                    mooring_break ba = b, bb = b;
+                    ba.end = 0;
+                    bb.end = 1;
+                    if(b.end != 1) {if(b.end < 0) ba.t = std::numeric_limits<double>::infinity(); sys->set_break(first, ba);}
+                    if(b.end != 0) sys->set_break(last, bb);
+                }
             }
-            else if(sec.size()==1)
-                sys->add_line(m, it.word(1), ea, eb, sec[0].p, sec[0].nseg, zbed);
             else
-                sys->add_line(m, it.word(1), ea, eb, line_props(it), (int)it.get("nseg", 20), zbed);
+            {
+                const int q = sys->add_line(m, it.word(1), ea, eb, sec.size()==1 ? sec[0].p : line_props(it),
+                                            sec.size()==1 ? sec[0].nseg : (int)it.get("nseg", 20), zbed);
+                bool any = false;
+                const mooring_break b = line_break(it, any);
+                if(any) sys->set_break(q, b);
+            }
             const double d = it.get("dt_line", 0.0);
             if(d > 0.0) dt = dt > 0.0 ? std::min(dt, d) : d;
             exact = exact || it.has("exact_kinematics");
@@ -893,6 +930,9 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
                                                         zbed, it.get("dt_line", 0.0), name);
                 l->set_exact_kinematics(it.has("exact_kinematics"));
                 l->set_static_start(!it.has("no_static"));
+                bool any = false;
+                const mooring_break b = line_break(it, any);
+                if(any) l->set_break(0, b);
                 if(it.has("settle"))
                     settles.push_back({l.get(), it.need("settle")});
                 m.add_load(std::move(l));

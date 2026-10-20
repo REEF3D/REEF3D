@@ -144,6 +144,15 @@ namespace coral
         double kb = 3.0e6, cb = 3.0e5, mu = 0.0, v_eps = 0.01;
     };
 
+    // failure of a line: at a time or when the tension of an end segment (with BA) reaches T; the end lets go
+    // of its body or point and becomes a free end (a point without mass of its own)
+    struct mooring_break
+    {
+        double t = std::numeric_limits<double>::infinity();
+        double T = std::numeric_limits<double>::infinity();
+        int end = -1;                // 0: a, 1: b, -1: b for the time, the end that reaches T for the tension
+    };
+
     // REEF3D::CORAL: a mooring system: dynamic lumped-mass lines (MoorDyn type, see above) whose ends sit on
     // bodies (or the ground) or on free points of the system. The inner nodes of all lines and the free
     // points are advanced together with explicit RK4 sub-steps inside the step of the multibody system;
@@ -165,6 +174,10 @@ namespace coral
                      int nseg, double z_seabed=-1.0e30);
         // sub-step of the explicit scheme (0: automatic, the smallest stable step of the lines and points)
         void set_dt_line(double dt);
+        // failure of line k (checked at each converged step; channel <line>_broken)
+        void set_break(int k, const mooring_break &b) {lines_[k].brk = b; lines_[k].has_break = true;}
+        bool line_broken(int k) const {return lines_[k].broken >= 0;}
+        double line_break_time(int k) const {return lines_[k].t_broken;}
 
         std::string name() const override {return name_;}
         coupling_kind coupling() const override {return coupling_kind::local;}
@@ -221,6 +234,10 @@ namespace coral
             int pt[2] = {-1, -1};      // end on a free point (index), else -1
             int att[2] = {-1, -1};     // end on a body or the ground: attachment index
             double dt = 0.0;
+            mooring_break brk;
+            bool has_break = false;
+            int broken = -1;           // the end that let go, -1: intact
+            double t_broken = std::numeric_limits<double>::quiet_NaN();
             std::vector<Vec3> Tc;      // converged segment tensions
             Vec3 Fc[2] = {Vec3::Zero(), Vec3::Zero()};      // converged forces on the ends
             mutable std::vector<Vec3> T;                    // work: segment tensions
@@ -234,6 +251,7 @@ namespace coral
             int idx = 0;               // node of the point in the node arrays
             double zbed = -1.0e30;     // flat seabed
             std::vector<std::pair<int,int>> ends;           // attached (line, end)
+            bool free_end = false;     // the free end of a broken line (no channels)
         };
         struct attach_t
         {
@@ -266,6 +284,8 @@ namespace coral
         bool point_statics(const model&);
         // node layout: the lines' nodes (given), then the points (given)
         void layout(const std::vector<Vec3> &line_r, const std::vector<Vec3> &point_r);
+        // end e of line k lets go: a new free point at the end's converged position and velocity
+        void break_line(int k, int e, double t);
         bool equilibrium_lines(const model&, double t);     // each line on its own (no points)
         double roundoff(const line_t&) const;              // round-off of the accelerations of a line's nodes
         bool equilibrium_system(const model&, double t);    // lines and points together
