@@ -38,16 +38,6 @@ void net_interface::dlm_cfd(lexer *p, fdm *a, ghostcell *pgc, int nNet)
     const EigenMat& lagrangePoints = pnet[nNet]->getLagrangePoints();
     const EigenMat& lagrangeForces = pnet[nNet]->getLagrangeForces();
 
-    ULOOP
-    kernel_x(i,j,k) = 0.0;
-
-    VLOOP
-    kernel_y(i,j,k) = 0.0;
-
-    WLOOP
-    kernel_z(i,j,k) = 0.0;
-    
-
     for (int pI = 0; pI < lagrangePoints.size(); pI++)
     {
         const Eigen::Vector3d& forcesI = lagrangeForces[pI];
