@@ -106,7 +106,7 @@ using namespace std;
 //  Scope of this version: refinement G 1 levels, G 10 boxes, G 11 boxes without
 //  refinement, G 4 tile width, G 12 zone around the body, G 20-23 adaptive flags; RK3 (A 310 3), wetting-drying
 //  A 343 0-3 (patches off the coast; A 343 1 with G 30 1 also over it), breaking A 350 0-3, X 10 0 or 1, no ice (A 380 0),
-//  A 324 0, A 328 0, 3D and 2D grids (Cartesian).
+//  A 324 (Picard on the cross-derivatives) and A 328 1 (in the rows), 3D and 2D grids (Cartesian).
 //  No refinement in the relaxation zones (B 96) and next to in- and outflow boundaries.
 
 struct fnpf_amr_patch : public reefamr_patch
@@ -284,6 +284,9 @@ private:
     double* lvec(int, int);         // grid, vector (-1: the target of the solve, ltgt)
     vector<double*> ltgt;           // [g+1]: unknowns of the current solve (Fi or psi)
     void lap_core(lexer*, ghostcell*);
+    template<class ASM> void lap_picard(lexer*, fdm_fnpf*, ghostcell*, fnpf_fsf*, ASM);   // A 324: Picard on the cross-derivatives
+    vector<vector<double>> pold;    // A 324: the iterate before the solve, per grid
+    bool lap_mix = false;           // A 328 1 (N 10 1): the cross-derivatives in the rows (lap_apply)
     void lap_prepare(ghostcell*);
     void lap_sync(int, bool d1=false);  // d1: the columns next to the patches only (the operator)
     void lap_rows();

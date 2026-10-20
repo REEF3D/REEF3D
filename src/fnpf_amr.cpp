@@ -350,8 +350,6 @@ void fnpf_amr::ini(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     if(p->A310!=3) ok=0;
     if(p->A350<0 || p->A350>3) ok=0;
     if(p->X10!=0 && p->X10!=1) ok=0;
-    if(p->A324!=0) ok=0;
-    if(p->A328!=0) ok=0;
     if(p->A380!=0) ok=0;
     if(p->A311==3) ok=0;
     if(p->j_dir!=1 && (p->geo_mb>0 || p->geo_curv==1)) ok=0;     // 2D grid (one cell in y): Cartesian
@@ -359,12 +357,14 @@ void fnpf_amr::ini(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     if(ok==0)
     {
         if(p->mpirank==0)
-        cout<<"FNPF AMR (G 1): only for A 310 3, A 311 other than 3, A 350 0-3, X 10 0/1, A 324 0, A 328 0, A 380 0 and on a 2D grid Cartesian -- refinement switched off"<<endl;
+        cout<<"FNPF AMR (G 1): only for A 310 3, A 311 other than 3, A 350 0-3, X 10 0/1, A 380 0 and on a 2D grid Cartesian -- refinement switched off"<<endl;
         maxlev=0;
         return;
     }
 
     setup(p,pgc);
+
+    lap_mix = (p->A328==1 && p->N10==1);
 
     mkdir("./REEF3D_FNPF_AMR",0777);
 
