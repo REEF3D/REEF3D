@@ -530,8 +530,9 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
         p.Cdn = it.get("Cdn", p.Cdn); p.Cdt = it.get("Cdt", p.Cdt); p.Can = it.get("Can", p.Can); p.Cat = it.get("Cat", p.Cat);
         p.kb = it.get("kb", p.kb); p.cb = it.get("cb", p.cb); p.mu = it.get("mu", p.mu);
         p.mu_axial = it.get("mu_axial", p.mu_axial); p.v_eps = it.get("v_eps", p.v_eps);
+        p.EI = it.get("EI", p.EI);
         if(p.v_eps <= 0.0) it.fail("v_eps must be > 0");
-        if(p.d <= 0.0 || p.EA <= 0.0 || p.mass < 0.0) it.fail("d and EA must be > 0, mass >= 0");
+        if(p.d <= 0.0 || p.EA <= 0.0 || p.mass < 0.0 || p.EI < 0.0) it.fail("d and EA must be > 0, mass and EI >= 0");
         p.rho = rho;
         return p;
     };
@@ -649,6 +650,23 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
         }
         return e;
     };
+    // bending: clamp_a [<dx dy dz>], clamp_b [...]: the end clamped to its body along the direction (default: the
+    // start tangent of the line there)
+    auto clamps = [&](const item &it, mooring_system &sys, int ka, int kb)
+    {
+        for(int e=0; e<2; ++e)
+        {
+            const int i = it.find(e==0 ? "clamp_a" : "clamp_b");
+            if(i < 0)
+                continue;
+            Vec3 d = Vec3::Zero();
+            auto isnum = [&](int j) {if(j >= (int)it.t.size()) return false; try {size_t n; std::stod(it.t[j], &n); return n==it.t[j].size();} catch(...) {return false;}};
+            if(isnum(i+1) && isnum(i+2) && isnum(i+3))
+                d = it.vec(i+1);
+            try {sys.set_clamp(e==0 ? ka : kb, e, m, d);}
+            catch(const std::exception &x) {it.fail(x.what());}
+        }
+    };
     // failure of a dynamic line: break_time <t>, break_tension <T>, break_end <a|b>
     auto line_break = [&](const item &it, bool &any)
     {
@@ -740,6 +758,7 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
                     if(it.has("seabed")) sys->set_line_flat(last);
                     if(q==0) first = last;
                 }
+                clamps(it, *sys, first, last);
                 // a failure of the line: of the section at that end (the tension: at either end)
                 bool any = false;
                 const mooring_break b = line_break(it, any);
@@ -757,6 +776,7 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
                 const int q = sys->add_line(m, it.word(1), ea, eb, sec.size()==1 ? sec[0].p : line_props(it),
                                             sec.size()==1 ? sec[0].nseg : (int)it.get("nseg", 20), zbed);
                 if(it.has("seabed")) sys->set_line_flat(q);
+                clamps(it, *sys, q, q);
                 bool any = false;
                 const mooring_break b = line_break(it, any);
                 if(any) sys->set_break(q, b);
@@ -960,6 +980,7 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
                 l->set_static_start(!it.has("no_static"));
                 if((bathy || fluid_bed) && !it.has("seabed"))
                     l->set_seabed(bathy, fluid_bed);
+                clamps(it, *l, 0, 0);
                 bool any = false;
                 const mooring_break b = line_break(it, any);
                 if(any) l->set_break(0, b);

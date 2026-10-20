@@ -94,6 +94,7 @@ namespace coral
         double mu = 0.0, v_eps = 0.01;     // seabed friction of the dynamic line across it, regularization velocity
         double mu_axial = -1.0;            // seabed friction along the line (< 0: mu)
         double rho = 1025.0;
+        double EI = 0.0;             // bending stiffness of the dynamic line [N m^2] (0: none, a cable or chain)
     };
 
     class mooring_qs : public load
@@ -181,6 +182,9 @@ namespace coral
         // points there and those added later); set_line_flat(k): line k keeps its flat seabed
         void set_seabed(std::shared_ptr<const seabed_surface> s, bool fluid_bed=false);
         void set_line_flat(int k) {lines_[k].surf = lines_[k].fbed = false;}
+        // bending (EI > 0): end e of line k clamped to its body (or the ground) along the global direction d
+        // into the line (zero: the line's start tangent there); the other ends are pinned
+        void set_clamp(int k, int e, const model&, const Vec3 &d=Vec3::Zero());
         void set_point_flat(int j) {points_[j].surf = points_[j].fbed = false;}
         // failure of line k (checked at each converged step; channel <line>_broken)
         void set_break(int k, const mooring_break &b) {lines_[k].brk = b; lines_[k].has_break = true;}
@@ -252,6 +256,10 @@ namespace coral
             mutable std::vector<Vec3> T;                    // work: segment tensions
             mutable Vec3 F[2];                              // work: end forces of the last accel
             mutable Mat3 M[2];                              // work: end masses of the last accel
+            bool clamp[2] = {false, false};                 // bending: end clamped to its body
+            mutable Vec3 cd[2];                             // work: clamp directions (global) of the stage
+            mutable Vec3 Mb[2] = {Vec3::Zero(), Vec3::Zero()};   // work: bending moments on the bodies
+            mutable std::vector<Vec3> B;                    // work: bending forces
         };
         struct point_t
         {
@@ -271,8 +279,10 @@ namespace coral
             int idx = 0;               // node in the node arrays
             Vec3 r = Vec3::Zero(), v = Vec3::Zero();        // converged
             Vec3 F = Vec3::Zero();     // converged force on the body (with the end inertia)
+            Vec3 ds = Vec3::Zero();    // clamp direction in the body frame (zero: pinned)
+            Vec3 d = Vec3::Zero();     // converged clamp direction (global)
         };
-        struct end_motion {Vec3 r0, v0, r1, v1;};          // Hermite data of a body end over the step
+        struct end_motion {Vec3 r0, v0, r1, v1; Vec3 d0 = Vec3::Zero(), d1 = Vec3::Zero();};   // Hermite data of a body end over the step, clamp directions
         // wave kinematics at the converged nodes at time t (gen: the converged state they belong to)
         struct node_kin {double t = 0.0; long gen = -1; std::vector<double> eta, bed; std::vector<Vec3> u, du;};
 
@@ -334,8 +344,10 @@ namespace coral
 
         // trial cache: time, positions and velocities of the attachments; forces and end masses
         mutable double ct_ = -1.0e300;
-        mutable std::vector<Vec3> cr_, cv_, cF_;
+        mutable std::vector<Vec3> cr_, cv_, cF_, cMb_;
         mutable std::vector<Mat3> cM_;
+        mutable std::vector<Vec3> cd_;     // clamp directions of the cached trial
+        bool clamped_ = false;             // some end is clamped (bending)
         mutable bool cvalid_ = false;
     };
 

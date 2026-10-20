@@ -286,6 +286,8 @@ int mooring_system::add_line(const model &m, const std::string &name, const moor
     if(p.kb > 0.0) dtc = std::min(dtc, 0.5*std::sqrt(mn0/(p.kb*p.d*l_)));
     const double cmax = 2.0*p.BA/l_ + p.cb*p.d*l_;
     if(cmax > 0.0) dtc = std::min(dtc, 0.5*mn0/cmax);
+    // bending: the zig-zag mode of the nodes, omega = 4 sqrt(EI/m)/l^2 (clamped ends: twice the end stiffness)
+    if(p.EI > 0.0 && p.mass > 0.0) dtc = std::min(dtc, 0.25*l_*l_*std::sqrt(p.mass/(2.0*p.EI)));
     L.dt = dtc;
     // the ends: global positions
     const mooring_end *ends[2] = {&a, &b};
@@ -345,6 +347,26 @@ void mooring_system::set_seabed(std::shared_ptr<const seabed_surface> sb, bool f
         P.fbed = fbed_ && P.zbed > -1.0e29;
     }
     ++gen_;
+    cvalid_ = false;
+}
+
+void mooring_system::set_clamp(int k, int e, const model &m, const Vec3 &dir)
+{
+    line_t &L = lines_[k];
+    if(L.att[e] < 0)
+        throw std::runtime_error("coral::mooring_system: line " + L.name + ": only an end on a body or the ground can be clamped");
+    attach_t &a = att_[L.att[e]];
+    Vec3 d = dir;
+    if(d.norm() <= 0.0)
+        d = r_[L.off + (e==0 ? 1 : L.N - 1)] - r_[a.idx];
+    if(d.norm() <= 0.0)
+        throw std::runtime_error("coral::mooring_system: line " + L.name + ": no clamp direction");
+    d.normalize();
+    a.ds = m.body(a.body).R.transpose()*d;
+    a.d = d;
+    L.clamp[e] = true;
+    L.cd[e] = d;
+    clamped_ = true;
     cvalid_ = false;
 }
 
@@ -437,6 +459,8 @@ void mooring_system::initialize(const model &m, double t0)
         a.v = B.point_velocity(a.s);
         r_[a.idx] = a.r;
         v_[a.idx] = a.v;
+        if(!a.ds.isZero())
+            lines_[a.line].cd[a.end] = a.d = B.R*a.ds;
     }
     {
         state p{r_, v_};
@@ -474,6 +498,8 @@ void mooring_system::settle(const model &m, double T)
         a.r = m.body(a.body).point(a.s);
         r_[a.idx] = a.r;
         em.push_back(end_motion{a.r, Vec3::Zero(), a.r, Vec3::Zero()});
+        if(!a.ds.isZero())
+            em.back().d0 = em.back().d1 = a.d = m.body(a.body).R*a.ds;
     }
     ++gen_;
     state s{r_, v_};
@@ -544,7 +570,7 @@ void mooring_system::save_state(std::vector<double> &v) const
     o.list(v_, [&](const Vec3 &x){o.m(x);});
     o.d(t_);
     o.list(lines_, [&](const line_t &L){o.list(L.Tc, [&](const Vec3 &x){o.m(x);}); o.m(L.Fc[0]); o.m(L.Fc[1]);});
-    o.list(att_, [&](const attach_t &a){o.m(a.r); o.m(a.v); o.m(a.F);});
+    o.list(att_, [&](const attach_t &a){o.m(a.r); o.m(a.v); o.m(a.F); o.m(a.d);});
 }
 
 bool mooring_system::load_state(const std::vector<double> &v, size_t &k)
@@ -590,6 +616,7 @@ bool mooring_system::load_state(const std::vector<double> &v, size_t &k)
         in.m(att_[q].r);
         in.m(att_[q].v);
         in.m(att_[q].F);
+        in.m(att_[q].d);
     }
     started_ = true;
     ++gen_;

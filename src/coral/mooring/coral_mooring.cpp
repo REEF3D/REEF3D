@@ -302,6 +302,45 @@ void mooring_system::line_accel(const line_t &L, const state &s, double t, std::
         }
         return F;
     };
+    // bending: energy EI/l (1 - cos phi) at each inner node (phi: the turning angle), EI/(l/2) (1 - cos phi)
+    // between a clamped end's direction and its segment; forces -dE/dx, moments on the clamping bodies
+    const bool bend = p.EI > 0.0;
+    if(bend)
+    {
+        std::vector<Vec3> &B = L.B;
+        B.assign(N+1, Vec3::Zero());
+        const double k = p.EI/l_;
+        for(int i=1; i<N; ++i)
+        {
+            const Vec3 a = R(i) - R(i-1), b = R(i+1) - R(i);
+            const double la = a.norm(), lb = b.norm();
+            if(la <= 0.0 || lb <= 0.0)
+                continue;
+            const Vec3 ta = a/la, tb = b/lb;
+            const double c = ta.dot(tb);
+            const Vec3 dca = (tb - c*ta)/la, dcb = (ta - c*tb)/lb;
+            B[i-1] -= k*dca;
+            B[i] += k*(dca - dcb);
+            B[i+1] += k*dcb;
+        }
+        for(int e=0; e<2; ++e)
+        {
+            L.Mb[e].setZero();
+            if(!L.clamp[e])
+                continue;
+            const int i0 = e==0 ? 0 : N, i1 = e==0 ? 1 : N-1;
+            const Vec3 a = R(i1) - R(i0);
+            const double la = a.norm();
+            if(la <= 0.0)
+                continue;
+            const Vec3 ta = a/la, &d = L.cd[e];
+            const double c = d.dot(ta), k0 = 2.0*k;
+            const Vec3 dc = (d - c*ta)/la;
+            B[i1] += k0*dc;
+            B[i0] -= k0*dc;
+            L.Mb[e] = k0*d.cross(ta);
+        }
+    }
     const double mi = p.mass*l_;
     double an, at;
     for(int i=1; i<N; ++i)
@@ -309,7 +348,9 @@ void mooring_system::line_accel(const line_t &L, const state &s, double t, std::
         Vec3 q = R(i+1) - R(i-1);
         const double qn = q.norm();
         q = qn > 0.0 ? Vec3(q/qn) : Vec3::UnitZ();
-        const Vec3 F = T_[i] - T_[i-1] + external(i, R(i), V(i), q, l_, an, at) - extra*mi*V(i);
+        Vec3 F = T_[i] - T_[i-1] + external(i, R(i), V(i), q, l_, an, at) - extra*mi*V(i);
+        if(bend)
+            F += L.B[i];
         // (m I + an (I - q q^T) + at q q^T)^-1 F
         const double al = mi + an, be = at - an;
         const double fq = F.dot(q);
@@ -325,6 +366,11 @@ void mooring_system::line_accel(const line_t &L, const state &s, double t, std::
     L.M[0] = me*Mat3::Identity() + an*(Mat3::Identity() - qa*qa.transpose()) + at*qa*qa.transpose();
     L.F[1] = -T_[N-1] + external(N, R(N), V(N), qb, 0.5*l_, an, at);
     L.M[1] = me*Mat3::Identity() + an*(Mat3::Identity() - qb*qb.transpose()) + at*qb*qb.transpose();
+    if(bend)
+    {
+        L.F[0] += L.B[0];
+        L.F[1] += L.B[N];
+    }
     a[o].setZero();
     a[o+N].setZero();
 }
@@ -441,6 +487,18 @@ void mooring_system::integrate(state &s, const std::vector<end_motion> &em, doub
             r = (2.0*y3 - 3.0*y2 + 1.0)*e.r0 + T*(y3 - 2.0*y2 + y)*e.v0 + (3.0*y2 - 2.0*y3)*e.r1 + T*(y3 - y2)*e.v1;
             v = (6.0*(y2 - y)/T)*(e.r0 - e.r1) + (3.0*y2 - 4.0*y + 1.0)*e.v0 + (3.0*y2 - 2.0*y)*e.v1;
         }
+        // clamp directions: between the converged and the trial ones
+        for(size_t k=0; k<att_.size(); ++k)
+            if(clamped_)
+            {
+                const line_t &L = lines_[att_[k].line];
+                if(!L.clamp[att_[k].end])
+                    continue;
+                const end_motion &e = em[k];
+                const double y = T > 0.0 ? (tt - t0)/T : 1.0;
+                const Vec3 d = e.d0 + y*(e.d1 - e.d0);
+                L.cd[att_[k].end] = d.norm() > 0.0 ? Vec3(d.normalized()) : e.d1;
+            }
         point_ends(x);
     };
     for(int k=0; k<n; ++k)
@@ -473,6 +531,8 @@ void mooring_system::integrate(state &s, const std::vector<end_motion> &em, doub
     {
         s.r[att_[k].idx] = em[k].r1;
         s.v[att_[k].idx] = em[k].v1;
+        if(clamped_ && lines_[att_[k].line].clamp[att_[k].end])
+            lines_[att_[k].line].cd[att_[k].end] = em[k].d1;
     }
     point_ends(s);
     accel(s, t1, k1, extra);
@@ -490,22 +550,35 @@ void mooring_system::eval(const model &m, double t, VecX &f) const
         v1[k] = B.point_velocity(att_[k].s);
         hit = hit && r1[k]==cr_[k] && v1[k]==cv_[k];
     }
+    if(clamped_)
+        for(size_t k=0; k<na; ++k)
+            hit = hit && (att_[k].ds.isZero() || m.body(att_[k].body).R*att_[k].ds==cd_[k]);
     if(!hit)
     {
         std::vector<end_motion> em(na);
+        cd_.resize(na);
         for(size_t k=0; k<na; ++k)
+        {
             em[k] = end_motion{att_[k].r, att_[k].v, r1[k], v1[k]};
+            if(clamped_ && !att_[k].ds.isZero())
+            {
+                em[k].d0 = att_[k].d;
+                em[k].d1 = cd_[k] = m.body(att_[k].body).R*att_[k].ds;
+            }
+        }
         state s{r_, v_};
         integrate(s, em, t_, t, 0.0);
         cr_ = r1;
         cv_ = v1;
         cF_.resize(na);
         cM_.resize(na);
+        cMb_.resize(na);
         for(size_t k=0; k<na; ++k)
         {
             const line_t &L = lines_[att_[k].line];
             cF_[k] = L.F[att_[k].end];
             cM_[k] = L.M[att_[k].end];
+            cMb_[k] = L.Mb[att_[k].end];
         }
         ct_ = t;
         cvalid_ = true;
@@ -515,6 +588,8 @@ void mooring_system::eval(const model &m, double t, VecX &f) const
     {
         const attach_t &a = att_[k];
         m.add_force(f, a.body, r1[k], cF_[k] - cM_[k]*m.body(a.body).point_acceleration(a.s));
+        if(clamped_ && !a.ds.isZero())
+            m.add_moment(f, a.body, cMb_[k]);
     }
 }
 
@@ -534,6 +609,11 @@ void mooring_system::commit(const model &m, double t, double)
     {
         const rigid_body &B = m.body(att_[k].body);
         em[k] = end_motion{att_[k].r, att_[k].v, B.point(att_[k].s), B.point_velocity(att_[k].s)};
+        if(clamped_ && !att_[k].ds.isZero())
+        {
+            em[k].d0 = att_[k].d;
+            em[k].d1 = B.R*att_[k].ds;
+        }
     }
     state s{r_, v_};
     integrate(s, em, t_, t, 0.0);
@@ -544,6 +624,7 @@ void mooring_system::commit(const model &m, double t, double)
         a.F = L.F[a.end] - L.M[a.end]*m.body(a.body).point_acceleration(a.s);
         a.r = em[k].r1;
         a.v = em[k].v1;
+        a.d = em[k].d1;
     }
     r_ = s.r;
     v_ = s.v;

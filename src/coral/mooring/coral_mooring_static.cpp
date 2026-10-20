@@ -53,6 +53,8 @@ bool mooring_system::equilibrium(const model &m, double t)
         a.r = m.body(a.body).point(a.s);
         a.v.setZero();
         r_[a.idx] = a.r;
+        if(!a.ds.isZero())
+            lines_[a.line].cd[a.end] = a.d = m.body(a.body).R*a.ds;
     }
     for(auto &x : v_) x.setZero();
     state s0{r_, v_};
@@ -71,7 +73,7 @@ bool mooring_system::equilibrium(const model &m, double t)
     // slack segments) or with points, the whole system (compression stage, dynamic relaxation)
     bool flat = true;
     for(const line_t &L : lines_)
-        flat = flat && !L.surf && !L.fbed;
+        flat = flat && !L.surf && !L.fbed && !(L.p.EI > 0.0);
     bool ok = points_.empty() && flat && equilibrium_lines(m, t);
     if(!ok)
         ok = equilibrium_system(m, t);
@@ -312,8 +314,12 @@ bool mooring_system::point_statics(const model &m)
 // lines and points together: sparse Jacobian of the free nodes by coloured finite differences
 bool mooring_system::equilibrium_system(const model &m, double t)
 {
-    // start: the points on the catenaries of their lines
-    point_statics(m);
+    // start: the points on the catenaries of their lines (not with bending: the start shapes stay)
+    bool bend = false;
+    for(const line_t &L : lines_)
+        bend = bend || L.p.EI > 0.0;
+    if(!bend)
+        point_statics(m);
     const int nf = (int)free_.size();
     std::vector<int> pos(r_.size(), -1);           // node -> unknown
     for(int k=0; k<nf; ++k)
@@ -337,6 +343,9 @@ bool mooring_system::equilibrium_system(const model &m, double t)
             // the two nodes of the end segment and act on the point
             const int a = node_of[L.off + i], b = node_of[L.off + i + 1];
             link(a, b);
+            // bending: the turning angle at a node joins its two neighbours
+            if(L.p.EI > 0.0 && i+2 <= L.N)
+                link(a, node_of[L.off + i + 2]);
         }
     // seabed contact: start at the penalty depth (see equilibrium_lines)
     for(const line_t &L : lines_)
@@ -403,7 +412,7 @@ bool mooring_system::equilibrium_system(const model &m, double t)
     const double eps = 1.0e-7*std::max(lmin, 1.0e-3);
     std::vector<Eigen::Triplet<double>> J, Jl;
     linear_solver ls;
-    auto newton = [&]() -> bool
+    auto newton = [&](bool watchdog) -> bool
     {
     bool ok = false;
     // two stages: slack segments resist compression with 1 % of EA (the start shapes have chords shorter
@@ -414,6 +423,12 @@ bool mooring_system::equilibrium_system(const model &m, double t)
     creg_ = stage==0 ? 0.01 : 0.0;
     double r = resid(s, a), lam = -1.0;
     ok = rmax(a) <= tol;
+    // watchdog (if asked): up to 5 full Newton steps in a row may raise the residual (stiff axial springs that
+    // the linearized step stretches, e.g. a bending beam starting straight); the best state is kept
+    state sbest = s;
+    std::vector<Vec3> abest = a;
+    double rbest = r;
+    int nonmono = 0;
     for(int it=0; it<300 && !ok; ++it)
     {
         J.clear();
@@ -462,13 +477,22 @@ bool mooring_system::equilibrium_system(const model &m, double t)
                 for(int i=0; i<nf; ++i)
                     st.r[free_[i]] += dx.segment<3>(3*i);
                 const double rn = resid(st, ap);
-                if(rn < r)
+                const bool watch = watchdog && k==0 && rn >= r && rn < 1.0e12*rbest && nonmono < 5;
+                if(rn < r || watch)
                 {
                     s = st;
                     a = ap;
                     r = rn;
                     lam = std::max(0.1*lam, 1.0e-14*dmax);
                     moved = true;
+                    nonmono = watch ? nonmono + 1 : 0;
+                    if(r < rbest)
+                    {
+                        sbest = s;
+                        abest = a;
+                        rbest = r;
+                        nonmono = 0;
+                    }
                     continue;
                 }
             }
@@ -477,6 +501,12 @@ bool mooring_system::equilibrium_system(const model &m, double t)
         if(!moved)
             break;
         ok = rmax(a) <= tol;
+    }
+    if(r > rbest)
+    {
+        s = sbest;
+        a = abest;
+        r = rbest;
     }
     }
     creg_ = 0.0;
@@ -491,7 +521,10 @@ bool mooring_system::equilibrium_system(const model &m, double t)
     // from there (a short one first: the catenary start shapes have slightly slack segments)
     std::vector<end_motion> em;
     for(const attach_t &at : att_)
+    {
         em.push_back(end_motion{at.r, Vec3::Zero(), at.r, Vec3::Zero()});
+        em.back().d0 = em.back().d1 = at.d;
+    }
     std::vector<double> mw(r_.size(), 0.0);
     for(const line_t &L : lines_)
         for(int i=1; i<L.N; ++i)
@@ -528,13 +561,16 @@ bool mooring_system::equilibrium_system(const model &m, double t)
         }
         for(auto &x : s.v) x.setZero();
     };
-    bool ok = newton();
+    // Newton without the watchdog first (it can throw a nearly converged system far off, e.g. a bridle node
+    // on two taut legs), then with it from the best state; with bending the other way round
+    auto newton2 = [&]() {return newton(bend) || newton(!bend);};
+    bool ok = newton2();
     for(double T_relax : {2.0, 30.0})
     {
         if(ok)
             break;
         relax(T_relax);
-        ok = newton();
+        ok = newton2();
     }
     // not converged (neutral directions, e.g. a line lying slack on a seabed without friction): the relaxed
     // shape, closer to the equilibrium than the start
