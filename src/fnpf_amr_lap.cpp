@@ -606,6 +606,14 @@ void fnpf_amr::lap_prec(int kr, int kz)
             const int a = fidx(q,ii,EY-1,q->kmin);
             std::fill(z+a,z+a+(P[g]->ny+2)*q->kmaxF,0.0);
         }
+
+        // NRP of the patches: the composite residual (step 2) writes the leaf and covered rows
+        // only, but restrict_col reads every child node.  The other nodes (resolved-body and dry
+        // rows) held the increment interpolated in step 4 of the previous sweep, which entered the
+        // covered columns of the coarser grid: the preconditioner changed from one Krylov step to
+        // the next by an error of the size of z/L^2 against r, negligible at model scale (dx 0.1 m)
+        // and dominant at full scale (dx 2.5 m and more), where the psi solves diverged to NaN
+        std::fill(lvec(g,NRP),lvec(g,NRP)+q->imax*q->jmax*(q->kmax+2),0.0);
     }
 
     // (only with a resolved body: without one, the sweep without the pre-smoothing takes as many
