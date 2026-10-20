@@ -17,6 +17,11 @@
 // spring in the CORAL joint PTO.
 // Joint drive (prescribed joint motion, coral_joint_drive): a mass on a spring follows the sine with the
 // ramp, the drive force is the force the motion needs (m q'' + k q), translation and rotation; keyword.
+// Drive-train losses (loss damper and loss Coulomb friction, X 510 / c_loss, coulomb_loss): the decay
+// with the generator and the loss damping, absorbed + dissipated energy = loss of mechanical energy
+// and their ratio c / c_loss, the friction stop with all energy dissipated, the losses not limited
+// and not declutched with the generator, set_param leaves them alone, B_opt with a loss in parallel
+// against the maximum of the generator power, keywords, channels and the checkpoint.
 // Architect: Hans Bihs
 #include"coral/core/coral_model.h"
 #include"coral/core/coral_timeint.h"
@@ -374,6 +379,8 @@ static void test_elements()
     el.push_back(std::make_unique<pto_damper>(300.0));
     el.push_back(std::make_unique<pto_springdamper>(-200.0, 150.0, 0.1, 40.0));
     el.push_back(std::make_unique<pto_coulomb>(80.0, 0.05));
+    el.push_back(std::make_unique<pto_damper>(120.0, true));
+    el.push_back(std::make_unique<pto_coulomb>(30.0, 0.02, true));
     el.push_back(std::make_unique<pto_endstop>(-0.3, 0.3, 1.0e5, 2.0e3));
     auto latch = std::make_unique<pto_latch>(5.0e4, 1.0e3);
     latch->set_param("q0", 0.05);
@@ -604,6 +611,136 @@ static void test_drive()
           && jd->settings.k == 1.0e6 && jd->settings.c == 1.0e3, "keyword drive");
 }
 
+static void test_losses()
+{
+    std::cout<<"drive-train losses"<<std::endl;
+    // decay of a mass on a spring with the generator damping c and the loss damping c_loss: the
+    // decrement of the total damping, the generator absorbs c/(c + c_loss) of the lost energy
+    {
+        const double mass = 10.0, k = 1000.0, c = 20.0, cl = 8.0;
+        pto_settings s;
+        s.c = c;
+        s.c_loss = cl;
+        slider sl(mass, k, s);
+        sl.m.bodies[0].x(0) = 0.1;
+        timeint ti;
+        ti.initialize(sl.m, 0.0);
+        const double E0 = sl.m.kinetic_energy() + sl.m.potential_energy();
+        std::vector<double> peaks;
+        double x1 = 0.1, x2 = 0.1;
+        for(int i=0; i<3000; ++i)
+        {
+            ti.step(sl.m, i*1.0e-3, 1.0e-3);
+            const double x = sl.m.bodies[0].x(0);
+            if(x2 < x1 && x1 > x && x1 > 0.0) peaks.push_back(x1);
+            x2 = x1; x1 = x;
+        }
+        const double E = sl.m.kinetic_energy() + sl.m.potential_energy();
+        const double zeta = (c + cl)/(2.0*std::sqrt(k*mass));
+        const double dec = std::log(peaks[0]/peaks[1]), dex = 2.0*M_PI*zeta/std::sqrt(1.0 - zeta*zeta);
+        check(std::fabs(dec - dex) < 2.0e-3, fmt("decrement with c + c_loss %.5f vs %.5f", dec, dex));
+        const double Ea = sl.pto->energy(), El = sl.pto->loss_energy();
+        check(std::fabs((E0 - E) - (Ea + El)) < 1.0e-4*E0, fmt("absorbed %.6f J + dissipated %.6f J = loss of mechanical energy %.6f J", Ea, El, E0 - E));
+        check(std::fabs(Ea/El - c/cl) < 1.0e-3*c/cl, fmt("absorbed / dissipated %.5f = c / c_loss %.5f", Ea/El, c/cl));
+    }
+    // Coulomb friction as a loss stops the body as the generator friction does, nothing is absorbed
+    {
+        const double mass = 5.0, Fc = 10.0, v0 = 2.0;
+        pto_settings s;
+        s.coulomb_loss = Fc;
+        s.v_eps = 1.0e-4;
+        slider sl(mass, 0.0, s);
+        sl.m.bodies[0].v(0) = v0;
+        timeint ti;
+        ti.initialize(sl.m, 0.0);
+        for(int i=0; i<2000; ++i)
+            ti.step(sl.m, i*1.0e-3, 1.0e-3);
+        const double xs = 0.5*mass*v0*v0/Fc, E0 = 0.5*mass*v0*v0;
+        check(std::fabs(sl.m.bodies[0].x(0) - xs) < 0.002*xs, fmt("loss friction: stopping distance %.4f m vs %.4f m", sl.m.bodies[0].x(0), xs));
+        check(std::fabs(sl.pto->energy()) < 1.0e-12 && std::fabs(sl.pto->loss_energy() - E0) < 0.002*E0,
+              fmt("loss friction: absorbed %.2e J, dissipated %.4f J of %.4f J", sl.pto->energy(), sl.pto->loss_energy(), E0));
+    }
+    // the generator friction (coulomb) still counts as absorbed power
+    {
+        pto_composite c;
+        c.add(std::make_unique<pto_coulomb>(10.0, 1.0e-6));
+        const pto_output o = c.force(pto_state{0.0, 0.5, 0.0});
+        check(std::fabs(o.P - 5.0) < 1.0e-9 && o.P_loss == 0.0, fmt("generator Coulomb friction absorbed: P = %.3f W", o.P));
+    }
+    // composite: the losses act unchanged under the force limit and in the declutching window
+    {
+        pto_composite c;
+        c.add(std::make_unique<pto_damper>(1000.0));
+        c.add(std::make_unique<pto_damper>(200.0, true));
+        c.add(std::make_unique<pto_coulomb>(30.0, 1.0e-6, true));
+        pto_output o = c.force(pto_state{0.0, 0.5, 0.0});
+        check(std::fabs(o.F + 500.0 + 100.0 + 30.0) < 1.0e-9 && std::fabs(o.P - 250.0) < 1.0e-9 && std::fabs(o.P_loss - 65.0) < 1.0e-9
+              && std::fabs(o.dFdqd + 1200.0) < 1.0e-6,
+              fmt("free: F = %.1f N, P = %.1f W, P_loss = %.1f W", o.F, o.P, o.P_loss));
+        c.Fmax = 300.0;
+        o = c.force(pto_state{0.0, 0.5, 0.0});
+        check(std::fabs(o.F + 300.0 + 130.0) < 1.0e-9 && std::fabs(o.P - 150.0) < 1.0e-9 && std::fabs(o.P_loss - 65.0) < 1.0e-9,
+              fmt("force limit on the generator only: F = %.1f N, P_loss = %.1f W", o.F, o.P_loss));
+        c.Fmax = 0.0;
+        c.t_off0 = 1.0; c.t_off1 = 2.0;
+        o = c.force(pto_state{0.0, 0.5, 1.5});
+        check(std::fabs(o.F + 130.0) < 1.0e-9 && o.P == 0.0 && std::fabs(o.P_loss - 65.0) < 1.0e-9, "declutched: the losses still act");
+        c.t_off0 = c.t_off1 = 0.0;
+        check(c.set_param("damper", "B", 0.0) && std::fabs(c.force(pto_state{0.0, 0.5, 0.0}).F + 130.0) < 1.0e-9
+              && c.set_param("loss-damper", "B", 0.0) && std::fabs(c.force(pto_state{0.0, 0.5, 0.0}).F + 30.0) < 1.0e-9,
+              "set_param(\"damper\") leaves the loss damper alone (\"loss-damper\")");
+        pto_endstop st(-0.3, 0.3, 1.0e5, 2.0e3);
+        check(!st.loss() && !st.useful() && pto_damper(1.0, true).loss() && !pto_damper(1.0, true).useful() && pto_damper(1.0).useful(),
+              "loss() and useful() of the elements");
+    }
+    // B_opt with a loss in parallel: the maximum of the generator power 1/2 B |F|^2 / ((B + Br + Bl)^2 + X^2)
+    {
+        const double w = 3.0, m = 250.0, A = 180.0, Br = 120.0, C = 7700.0, Bl = 350.0;
+        const double X = w*(m + A) - C/w;
+        auto P = [&](double B) {return B/((B + Br + Bl)*(B + Br + Bl) + X*X);};
+        double Bbest = 0.0, Pbest = 0.0;
+        for(double B = 0.0; B < 5000.0; B += 0.01)
+            if(P(B) > Pbest) {Pbest = P(B); Bbest = B;}
+        const double Bo = pto_bopt(w, m, A, Br, C, Bl);
+        check(std::fabs(Bo - Bbest) < 0.02 && std::fabs(pto_bopt(w, m, A, Br, C) - std::sqrt(Br*Br + X*X)) < 1.0e-9,
+              fmt("B_opt with B_loss %.2f N s/m = argmax of the generator power %.2f N s/m", Bo, Bbest));
+    }
+    // keywords, channels, checkpoint
+    {
+        coral_case cc;
+        cc.read_string("time dt 0.001 end 1\ngravity off\nbody b mass 10 cog 0 0 0\njoint s prismatic ground b point 0 0 0 axis 1 0 0\n"
+                       "pto p joint s c 20 c_loss 8 coulomb_loss 2 v_eps 0.01\n", ".");
+        pto_load *pl = nullptr;
+        for(auto &l : cc.m.load_list)
+            if(auto p = dynamic_cast<pto_load*>(l.get())) pl = p;
+        check(pl && pl->settings.c == 20.0 && pl->settings.c_loss == 8.0 && pl->settings.coulomb_loss == 2.0 && pl->has_loss(),
+              "keywords c_loss, coulomb_loss");
+        std::vector<std::string> ch;
+        if(pl) pl->channel_names(ch);
+        check(ch.size() == 7 && ch[5] == "p_Ploss" && ch[6] == "p_Eloss", "channels p_Ploss, p_Eloss");
+        pto_settings s0;
+        s0.c = 20.0;
+        slider sl0(10.0, 1000.0, s0);
+        std::vector<std::string> ch0;
+        sl0.pto->channel_names(ch0);
+        check(ch0.size() == 5 && !sl0.pto->has_loss(), "no loss channels without losses");
+        pto_settings s;
+        s.c = 20.0; s.c_loss = 8.0;
+        slider a(10.0, 1000.0, s), b(10.0, 1000.0, s);
+        a.m.bodies[0].x(0) = 0.1;
+        timeint ti;
+        ti.initialize(a.m, 0.0);
+        for(int i=0; i<500; ++i)
+            ti.step(a.m, i*1.0e-3, 1.0e-3);
+        std::vector<double> v;
+        a.pto->save_state(v);
+        size_t k = 0;
+        const bool ok = b.pto->load_state(v, k);
+        check(ok && k == v.size() && b.pto->loss_energy() == a.pto->loss_energy() && b.pto->energy() == a.pto->energy() && a.pto->loss_energy() > 0.0,
+              fmt("checkpoint: dissipated energy %.6f J restored", b.pto->loss_energy()));
+    }
+}
+
 int main()
 {
     test_damper();
@@ -618,6 +755,7 @@ int main()
     test_joint();
     test_latch_spring();
     test_drive();
+    test_losses();
     std::cout<<(nfail ? "FAILED: " : "all passed")<<(nfail ? std::to_string(nfail) : "")<<std::endl;
     return nfail ? 1 : 0;
 }

@@ -1,0 +1,6 @@
+{
+ "description": "3D open-channel flow through a fixed quasi-static net panel (X 320 3, wall net, X 321/X 322; no floating body: sixdof_void with net forces). Inflow (B60=1) / outflow, free surface, laminar, 2 MPI ranks. Net forces are spread onto the CFD grid with the Peskin kernel (net_interface::dlm_cfd).",
+ "np": 2, "steps": 30,
+ "tags": ["3d", "net", "inflow", "mpi"],
+ "covers": ["net_barQuasiStatic wall net", "net_interface::dlm_cfd (Fext/Gext/Hext)", "sixdof_void::start_cfd net forces"]
+}
