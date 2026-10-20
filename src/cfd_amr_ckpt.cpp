@@ -394,7 +394,7 @@ bool cfd_amr::ckpt_read(reefckpt &ck, string &msg)
             size_t q=0;
             const bool ok = S[q++]>0.5;
             const double bref = S[q++];
-            vector<vector<double>> X(size_t(S[q++]));
+            vector<vector<double>> X(static_cast<size_t>(S[q++]));
             bool fit = true;
             for(auto &x : X)
             {
