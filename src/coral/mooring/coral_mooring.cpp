@@ -137,7 +137,8 @@ mooring_line::mooring_line(const model &m, const mooring_end &a, const mooring_e
     (void)mn;
     dt_ = dt_line > 0.0 ? dt_line : dtc;
 
-    // initial shape: catenary between the lower and the upper end (seabed at the lower end)
+    // initial shape: catenary between the lower and the upper end (seabed at the lower end), straight
+    // without gravity or for a line that floats
     const Vec3 pa = a.p, pb = b.p;
     const bool a_low = pa(2) <= pb(2);
     const Vec3 lo = a_low ? pa : pb, up = a_low ? pb : pa;
@@ -150,7 +151,7 @@ mooring_line::mooring_line(const model &m, const mooring_end &a, const mooring_e
     cl.L = p.L;
     cl.EA = p.EA;
     cl.CB = (zbed_ > lo(2) - 1.0e-6*p.L) ? std::max(p.CB, 0.0) : -1.0;
-    cl.w = (p.mass - p.rho*A)*gmag(m);
+    cl.w = (p.mass - p.rho*A)*m.gravity.norm();     // no gravity: straight
     double H = -1.0, V = 0.0;
     const bool ok = cl.w > 0.0 && xF > 1.0e-6*p.L && catenary_solve(cl, xF, zF, H, V);
     r_.assign(nseg_+1, Vec3::Zero());
@@ -321,16 +322,26 @@ void mooring_line::accel(const state &s, const Vec3 &ra, const Vec3 &rb, const V
         const double fq = F.dot(q);
         a[i] = (F - (be/(al + be))*fq*q)/al;
     }
-    // end forces: tension of the end segment, weight and hydrodynamics of the end half-segment
+    // end forces: tension of the end segment, weight and hydrodynamics of the end half-segment; its mass
+    // and added mass (carried by the attached body, end_inertia)
     Vec3 qa = R(1) - R(0), qb = R(N) - R(N-1);
     qa = qa.norm() > 0.0 ? Vec3(qa/qa.norm()) : Vec3::UnitZ();
     qb = qb.norm() > 0.0 ? Vec3(qb/qb.norm()) : Vec3::UnitZ();
+    const double me = 0.5*mi;
     Fa = T_[0] + external(0, ra, va, qa, 0.5*l_, an, at);
+    Ma_ = me*Mat3::Identity() + an*(Mat3::Identity() - qa*qa.transpose()) + at*qa*qa.transpose();
     Fb = -T_[N-1] + external(N, rb, vb, qb, 0.5*l_, an, at);
+    Mb_ = me*Mat3::Identity() + an*(Mat3::Identity() - qb*qb.transpose()) + at*qb*qb.transpose();
 }
 
-void mooring_line::integrate(state &s, const Vec3 &ra0, const Vec3 &ra1, const Vec3 &rb0, const Vec3 &rb1,
-                             double t0, double t1, Vec3 &Fa, Vec3 &Fb, double extra, bool at_rest) const
+void mooring_line::end_inertia(Vec3 &Fa, Vec3 &Fb, const Vec3 &aa, const Vec3 &ab) const
+{
+    Fa -= Ma_*aa;
+    Fb -= Mb_*ab;
+}
+
+void mooring_line::integrate(state &s, const end_motion &ea, const end_motion &eb, double t0, double t1, Vec3 &Fa, Vec3 &Fb,
+                             double extra, bool at_rest) const
 {
     const int N = nseg_;
     const double T = t1 - t0;
@@ -354,28 +365,38 @@ void mooring_line::integrate(state &s, const Vec3 &ra0, const Vec3 &ra1, const V
     }
     const int n = std::max(1, (int)std::ceil(T/dt_ - 1.0e-9));
     const double h = T/n;
-    const Vec3 va = T > 0.0 ? Vec3((ra1 - ra0)/T) : Vec3::Zero();
-    const Vec3 vb = T > 0.0 ? Vec3((rb1 - rb0)/T) : Vec3::Zero();
     std::vector<Vec3> &k1 = w_[0], &k2 = w_[1], &k3 = w_[2], &k4 = w_[3];
     state &s2 = ws_;
     s2 = s;
     std::vector<Vec3> rs(N+1), vs(N+1);
-    auto ends = [&](double tt, Vec3 &ra, Vec3 &rb)
+    // the ends on cubic Hermite curves through the converged and the trial positions and velocities
+    auto hermite = [&](const end_motion &e, double tt, Vec3 &r, Vec3 &v)
     {
-        const double f = T > 0.0 ? (tt - t0)/T : 1.0;
-        ra = ra0 + f*(ra1 - ra0);
-        rb = rb0 + f*(rb1 - rb0);
+        if(T <= 0.0)
+        {
+            r = e.r1;
+            v = e.v1;
+            return;
+        }
+        const double x = (tt - t0)/T, x2 = x*x, x3 = x2*x;
+        r = (2.0*x3 - 3.0*x2 + 1.0)*e.r0 + T*(x3 - 2.0*x2 + x)*e.v0 + (3.0*x2 - 2.0*x3)*e.r1 + T*(x3 - x2)*e.v1;
+        v = (6.0*(x2 - x)/T)*(e.r0 - e.r1) + (3.0*x2 - 4.0*x + 1.0)*e.v0 + (3.0*x2 - 2.0*x)*e.v1;
     };
-    Vec3 ra, rb;
+    Vec3 ra, rb, va, vb;
+    auto ends = [&](double tt)
+    {
+        hermite(ea, tt, ra, va);
+        hermite(eb, tt, rb, vb);
+    };
     for(int k=0; k<n; ++k)
     {
         const double tk = t0 + k*h;
         // RK4 on (r, v) of the inner nodes; the stage velocities are the stage states' v
-        ends(tk, ra, rb);
+        ends(tk);
         accel(s, ra, rb, va, vb, tk, k1, Fa, Fb, extra);
         for(int i=1; i<N; ++i) {s2.r[i] = s.r[i] + 0.5*h*s.v[i]; s2.v[i] = s.v[i] + 0.5*h*k1[i];}
         rs = s.v;
-        ends(tk + 0.5*h, ra, rb);
+        ends(tk + 0.5*h);
         accel(s2, ra, rb, va, vb, tk + 0.5*h, k2, Fa, Fb, extra);
         vs = s2.v;
         for(int i=1; i<N; ++i) {s2.r[i] = s.r[i] + 0.5*h*vs[i]; s2.v[i] = s.v[i] + 0.5*h*k2[i];}
@@ -384,7 +405,7 @@ void mooring_line::integrate(state &s, const Vec3 &ra0, const Vec3 &ra1, const V
         vs = s2.v;
         for(int i=1; i<N; ++i) {s2.r[i] = s.r[i] + h*vs[i]; s2.v[i] = s.v[i] + h*k3[i];}
         for(int i=1; i<N; ++i) rs[i] += 2.0*vs[i];
-        ends(tk + h, ra, rb);
+        ends(tk + h);
         accel(s2, ra, rb, va, vb, tk + h, k4, Fa, Fb, extra);
         for(int i=1; i<N; ++i)
         {
@@ -392,18 +413,23 @@ void mooring_line::integrate(state &s, const Vec3 &ra0, const Vec3 &ra1, const V
             s.v[i] += h/6.0*(k1[i] + 2.0*k2[i] + 2.0*k3[i] + k4[i]);
         }
     }
-    s.r[0] = ra1; s.r[N] = rb1;
-    s.v[0] = va; s.v[N] = vb;
-    accel(s, ra1, rb1, va, vb, t1, k1, Fa, Fb, extra);
+    s.r[0] = ea.r1; s.r[N] = eb.r1;
+    s.v[0] = ea.v1; s.v[N] = eb.v1;
+    accel(s, ea.r1, eb.r1, ea.v1, eb.v1, t1, k1, Fa, Fb, extra);
 }
 
 void mooring_line::initialize(const model &m, double t0)
 {
     t_ = t0;
-    ra_ = m.body(ba_).point(sa_);
-    rb_ = m.body(bb_).point(sb_);
+    const rigid_body &A = m.body(ba_), &B = m.body(bb_);
+    ra_ = A.point(sa_);
+    rb_ = B.point(sb_);
+    va_ = A.point_velocity(sa_);
+    vb_ = B.point_velocity(sb_);
     r_[0] = ra_;
     r_[nseg_] = rb_;
+    v_[0] = va_;
+    v_[nseg_] = vb_;
     ++gen_;
     state s{r_, v_};
     std::vector<Vec3> a;
@@ -416,7 +442,8 @@ void mooring_line::initialize(const model &m, double t0)
     }
     else
         kmode_ = waves_ ? 1 : 0;
-    accel(s, ra_, rb_, Vec3::Zero(), Vec3::Zero(), t0, a, Fa_, Fb_, 0.0);
+    accel(s, ra_, rb_, va_, vb_, t0, a, Fa_, Fb_, 0.0);
+    end_inertia(Fa_, Fb_, A.point_acceleration(sa_), B.point_acceleration(sb_));
     cvalid_ = false;
 }
 
@@ -430,8 +457,11 @@ void mooring_line::settle(const model &m, double T)
     state s{r_, v_};
     // critical-type damping of the slowest pendulum mode of the line, about 1/s; the water at rest (the
     // surface at the start time t_)
-    integrate(s, ra_, ra_, rb_, rb_, t_, t_ + T, Fa_, Fb_, 2.0, true);
+    const end_motion ea{ra_, Vec3::Zero(), ra_, Vec3::Zero()}, eb{rb_, Vec3::Zero(), rb_, Vec3::Zero()};
+    integrate(s, ea, eb, t_, t_ + T, Fa_, Fb_, 2.0, true);
     for(auto &x : s.v) x.setZero();
+    va_.setZero();
+    vb_.setZero();
     r_ = s.r;
     v_ = s.v;
     ++gen_;
@@ -440,18 +470,25 @@ void mooring_line::settle(const model &m, double T)
 
 void mooring_line::eval(const model &m, double t, VecX &f) const
 {
-    const Vec3 ra1 = m.body(ba_).point(sa_), rb1 = m.body(bb_).point(sb_);
-    if(!(cvalid_ && t==ct_ && ra1==cra_ && rb1==crb_))
+    const rigid_body &A = m.body(ba_), &B = m.body(bb_);
+    const Vec3 ra1 = A.point(sa_), rb1 = B.point(sb_);
+    const Vec3 va1 = A.point_velocity(sa_), vb1 = B.point_velocity(sb_);
+    if(!(cvalid_ && t==ct_ && ra1==cra_ && rb1==crb_ && va1==cva_ && vb1==cvb_))
     {
         state s{r_, v_};
-        integrate(s, ra_, ra1, rb_, rb1, t_, t, cFa_, cFb_, 0.0);
+        integrate(s, end_motion{ra_, va_, ra1, va1}, end_motion{rb_, vb_, rb1, vb1}, t_, t, cFa_, cFb_, 0.0);
+        cMa_ = Ma_;
+        cMb_ = Mb_;
         cra_ = ra1;
         crb_ = rb1;
+        cva_ = va1;
+        cvb_ = vb1;
         ct_ = t;
         cvalid_ = true;
     }
-    m.add_force(f, ba_, ra1, cFa_);
-    m.add_force(f, bb_, rb1, cFb_);
+    // the body carries the end node: minus its mass and added mass times the attachment's acceleration
+    m.add_force(f, ba_, ra1, cFa_ - cMa_*A.point_acceleration(sa_));
+    m.add_force(f, bb_, rb1, cFb_ - cMb_*B.point_acceleration(sb_));
 }
 
 void mooring_line::kinematics_points(const model&, const void *source, std::vector<Vec3> &pts) const
@@ -464,13 +501,18 @@ void mooring_line::kinematics_points(const model&, const void *source, std::vect
 
 void mooring_line::commit(const model &m, double t, double)
 {
-    const Vec3 ra1 = m.body(ba_).point(sa_), rb1 = m.body(bb_).point(sb_);
+    const rigid_body &A = m.body(ba_), &B = m.body(bb_);
+    const Vec3 ra1 = A.point(sa_), rb1 = B.point(sb_);
+    const Vec3 va1 = A.point_velocity(sa_), vb1 = B.point_velocity(sb_);
     state s{r_, v_};
-    integrate(s, ra_, ra1, rb_, rb1, t_, t, Fa_, Fb_, 0.0);
+    integrate(s, end_motion{ra_, va_, ra1, va1}, end_motion{rb_, vb_, rb1, vb1}, t_, t, Fa_, Fb_, 0.0);
+    end_inertia(Fa_, Fb_, A.point_acceleration(sa_), B.point_acceleration(sb_));
     r_ = s.r;
     v_ = s.v;
     ra_ = ra1;
     rb_ = rb1;
+    va_ = va1;
+    vb_ = vb1;
     t_ = t;
     ++gen_;
     cvalid_ = false;
@@ -520,6 +562,8 @@ void mooring_line::save_state(std::vector<double> &v) const
     o.d(t_);
     o.m(Fa_);
     o.m(Fb_);
+    o.m(va_);
+    o.m(vb_);
 }
 
 bool mooring_line::load_state(const std::vector<double> &v, size_t &k)
@@ -533,6 +577,8 @@ bool mooring_line::load_state(const std::vector<double> &v, size_t &k)
     in.d(t_);
     in.m(Fa_);
     in.m(Fb_);
+    in.m(va_);
+    in.m(vb_);
     ++gen_;
     cvalid_ = false;
     k = in.k;
