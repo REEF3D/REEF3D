@@ -172,9 +172,11 @@ fnpf_amr::fnpf_amr(lexer *p, fdm_fnpf *c, ghostcell *pgc) : reefamr(p,pgc)
         dist_coast = 3.0*d3;
     }
 
-    // wave breaking (A 350 1): on every grid (detection and the implicit damping with the
-    // breaking viscosity), the cells around a patch take the viscosity of their source grid
-    brk = (p->A350==1);
+    // wave breaking (A 350 1 Baquet, 2 Kennedy, 3 Romero): on every grid (detection and the implicit
+    // damping with the breaking viscosity), the cells around a patch take the viscosity of their source
+    // grid.  The detection runs on every grid with its own state (Kennedy: onset time and flag,
+    // Romero: local wavenumber and onset time), a new patch starts without breaking
+    brk = (p->A350>=1 && p->A350<=3);
 
     // solution-adaptive refinement (as nhflow_amr, tag): a wet cell of level l flags level l+1
     // where the surface jumps by more than G 20 to a neighbour or its second difference along x or
@@ -346,7 +348,7 @@ void fnpf_amr::ini(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 
     int ok=1;
     if(p->A310!=3) ok=0;
-    if(p->A350!=0 && p->A350!=1) ok=0;
+    if(p->A350<0 || p->A350>3) ok=0;
     if(p->X10!=0 && p->X10!=1) ok=0;
     if(p->A324!=0) ok=0;
     if(p->A328!=0) ok=0;
@@ -357,7 +359,7 @@ void fnpf_amr::ini(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     if(ok==0)
     {
         if(p->mpirank==0)
-        cout<<"FNPF AMR (G 1): only for A 310 3, A 311 other than 3, A 350 0/1, X 10 0/1, A 324 0, A 328 0, A 380 0 and on a 2D grid Cartesian -- refinement switched off"<<endl;
+        cout<<"FNPF AMR (G 1): only for A 310 3, A 311 other than 3, A 350 0-3, X 10 0/1, A 324 0, A 328 0, A 380 0 and on a 2D grid Cartesian -- refinement switched off"<<endl;
         maxlev=0;
         return;
     }
@@ -407,7 +409,7 @@ void fnpf_amr::ini(lexer *p, fdm_fnpf *c, ghostcell *pgc)
         else if(p->A343>=1)
         cout<<"FNPF AMR: the patches stay "<<par.dryband<<" level-0 cells off the coastline (A 343 "<<p->A343<<")"<<endl;
         if(brk)
-        cout<<"FNPF AMR: wave breaking on every grid (A 350 1)"<<endl;
+        cout<<"FNPF AMR: wave breaking on every grid (A 350 "<<p->A350<<")"<<endl;
         if(adaptive)
         {
             cout<<"FNPF AMR: flags:";
@@ -426,7 +428,7 @@ void fnpf_amr::ini(lexer *p, fdm_fnpf *c, ghostcell *pgc)
         if(p->G22>0 && !wd)
         cout<<"FNPF AMR: G 22 needs G 30 1 (patches over the coastline) -- ignored"<<endl;
         if(p->G23==1 && !brk)
-        cout<<"FNPF AMR: G 23 needs A 350 1 -- ignored"<<endl;
+        cout<<"FNPF AMR: G 23 needs A 350 1-3 -- ignored"<<endl;
         if(sub==1 && par.zones && par.zr>zr_user)
         cout<<"FNPF AMR: G 7 1 with a body: zone margin "<<par.zr<<" m (12 cells of level 0) instead of G 12 "<<zr_user<<endl;
         cout<<"FNPF AMR: refined columns per rank max "<<(long)cmax<<", mean "<<setprecision(4)<<double(cells_total)/p->mpi_size

@@ -105,7 +105,7 @@ using namespace std;
 //
 //  Scope of this version: refinement G 1 levels, G 10 boxes, G 11 boxes without
 //  refinement, G 4 tile width, G 12 zone around the body, G 20-23 adaptive flags; RK3 (A 310 3), wetting-drying
-//  A 343 0-3 (patches off the coast; A 343 1 with G 30 1 also over it), breaking A 350 0 or 1, X 10 0 or 1, no ice (A 380 0),
+//  A 343 0-3 (patches off the coast; A 343 1 with G 30 1 also over it), breaking A 350 0-3, X 10 0 or 1, no ice (A 380 0),
 //  A 324 0, A 328 0, 3D and 2D grids (Cartesian).
 //  No refinement in the relaxation zones (B 96) and next to in- and outflow boundaries.
 
