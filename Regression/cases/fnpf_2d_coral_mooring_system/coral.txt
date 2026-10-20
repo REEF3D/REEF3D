@@ -1,0 +1,22 @@
+# REEF3D::CORAL model for fnpf_2d_coral_mooring_system: the FNPF box of fnpf_2d_coral_mooring moored by a mooring
+# system: fore a chain-rope-chain line (line types, sections joined at points; the rope damped also when slack,
+# BA_slack), aft two chains through a clump weight (a free point, resting on the bed), and a cable with bending
+# stiffness clamped to the box that lets go of the ground at 1.5 s; the anchors 2 cm above the bed of the FNPF
+# fluid, on which the lines and the clump rest (bathymetry fluid, sampled with the wave kinematics; without it
+# their seabed is at the anchors' height); the chain and the clump with stick-slip seabed friction
+# Architect: Hans Bihs
+fluid_kinematics
+time dt 0.005 end 100
+output dt 0.01 file box.dat
+body box mass 1.0 cog 6.0 0.025 0.5
+joint plane planar ground box point 6.0 0.025 0.5 axis 0 1 0
+bathymetry fluid
+line_type chain d 0.004027 mass 0.1 EA 10000.0 mu 1.0 mu_axial 0.7 mu_static 1.3
+line_type rope d 0.003 mass 0.03 EA 10000.0 BA 2.0 cb 1.0e5 BA_slack
+line_type cable d 0.005 mass 0.08 EA 10000.0 EI 0.002 cb 1.0e5
+mooring fore dynamic a ground 3.6 0.025 0.02 b box 5.6 0.025 0.4 section chain 0.6 3 section rope 1.2 5 section chain 0.4 2
+point clump 7.4 0.025 0.1 mass 0.05 volume 0.00001 CdA 0.0005 Ca 1.0 mu 0.6 mu_static 1.5
+mooring aft1 dynamic a ground 8.4 0.025 0.02 b clump type chain L 1.0 nseg 4
+mooring aft2 dynamic a clump b box 6.4 0.025 0.4 type chain L 1.23 nseg 5
+mooring umb dynamic a box 6.0 0.025 0.4 b ground 6.3 0.025 0.02 type cable L 0.7 nseg 5 clamp_a 0 0 -1 break_time 1.5 break_end b
+fluid_body box

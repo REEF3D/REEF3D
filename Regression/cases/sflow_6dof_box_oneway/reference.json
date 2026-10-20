@@ -63,18 +63,18 @@
    "rows": 63,
    "last": [
     0.730429548,
-    2.75510857e-05,
-    2.61178884e-05
+    3.2168904e-05,
+    3.19968033e-05
    ],
    "colsum": [
     25.02141488125,
-    12.0002426439671,
-    4.000229376770179
+    12.000285099771949,
+    4.000283405893208
    ],
    "colabs": [
     25.02141488125,
-    12.0002426439671,
-    4.000229376770179
+    12.000285099771949,
+    4.000283405893208
    ]
   },
   "REEF3D_SFLOW_6DOF/REEF3D_6DOF_position_0.dat": {
@@ -201,7 +201,7 @@
   0.012380394336472533,
   0.0123889509003447
  ],
- "blessed_from": "/home/claude/build/REEF3D_new33",
- "date": "2026-10-09",
- "note": "references for hans_dev bdafdec (NHFLOW / SFLOW / FNPF / seastate changes since cfd cleanup 85)"
+ "blessed_from": "/root/reg/REEF3D_e7",
+ "date": "2026-10-20",
+ "note": "reefamr 85: FNPF/SFLOW gauges interpolated at the gauge (ccslipol4)"
 }

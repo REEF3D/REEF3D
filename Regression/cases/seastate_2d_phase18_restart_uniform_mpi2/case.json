@@ -1,0 +1,26 @@
+{
+ "base": "seastate_2d_phase18_ckpt_uniform",
+ "np": 2,
+ "same_as": "seastate_2d_phase18_ckpt_uniform",
+ "chain": [
+  {
+   "case": "seastate_2d_phase18_ckpt_uniform",
+   "copy": [
+    "REEF3D_Checkpoint"
+   ]
+  }
+ ],
+ "ctrl_set": {
+  "I 45": "1"
+ },
+ "description": "the restart (I 45 1) of seastate_2d_phase18_ckpt_uniform on 2 ranks (two halo layers, pipelined): bitwise the full run on one rank. Validation in Dropbox SEASTATE/validation/67_rebalance.",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate",
+  "mpi"
+ ],
+ "covers": [
+  "seastate_f::ckpt_read, the level-0 halo after the restart"
+ ]
+}

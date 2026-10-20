@@ -14,15 +14,20 @@
 // seabed (hanging free), wave kinematics once per step against every Runge-Kutta stage, the end nodes'
 // inertia on the bodies (rigid motion of a line) and the step independence of the fairlead tension
 // (Hermite end motion), buoyancy of a line through the free surface, seabed friction along and across,
-// the stop of an unstable line, the start from the static equilibrium of the segments.
+// the stop of an unstable line, the start from the static equilibrium of the segments, mooring systems with
+// free points (clump weight, buoy, bridle: static balance; pendulum period; clump on the seabed), line
+// failure at a time and at a tension, restart after a failure, seabed on a slope, a grid and the bed of a
+// sampled fluid, bending stiffness (cantilever: deflection, clamping moment; frequency of a taut line).
 // Architect: Hans Bihs
 #include"coral/core/coral_model.h"
 #include"coral/core/coral_timeint.h"
+#include"coral/core/coral_constraint.h"
 #include"coral/core/coral_gravity.h"
 #include"coral/structure/coral_linear6.h"
 #include"coral/mooring/coral_catenary.h"
 #include"coral/mooring/coral_mooring.h"
 #include"coral/hydro/coral_waves.h"
+#include"coral/hydro/coral_sampled_kinematics.h"
 #include<iostream>
 #include<stdexcept>
 #include<ctime>
@@ -496,7 +501,10 @@ static void test_surface_friction_guard()
     }
     // (b) a line on the seabed dragged by its ends at 0.5 m/s along and across itself: friction mu_axial
     // 0.5 along, mu 1.0 across, of the submerged weight (no drag); the ends at the depth the seabed penalty
-    // lets the line sink (w / (kb d))
+    // lets the line sink (w / (kb d)). Stick-slip friction (default) and the regularized law (v_eps 0.01 m/s);
+    // across, the pretensioned line rings sideways (+-25 %): the mean of the last 5 s
+    double Fmean[2][2];
+    for(int law=0; law<2; ++law)
     for(int dir=0; dir<2; ++dir)
     {
         mooring_props p = chain();
@@ -504,6 +512,7 @@ static void test_surface_friction_guard()
         p.Cdn = p.Cdt = 0.0;
         p.mu = 1.0;
         p.mu_axial = 0.5;
+        p.v_eps = law==1 ? 0.01 : 0.0;
         const double w = (p.mass - p.rho*0.25*M_PI*p.d*p.d)*9.81, z = -50.0 - w/(p.kb*p.d);
         model m;
         rigid_body b;
@@ -522,6 +531,7 @@ static void test_surface_friction_guard()
         l.initialize(m, 0.0);
         const double U = 0.5, h = 0.05;
         Vec3 Fa, Fb;
+        double Fs = 0.0;
         for(int i=1; i<=400; ++i)
         {
             const double t = i*h;
@@ -531,13 +541,18 @@ static void test_surface_friction_guard()
                 m.bodies[k].v(dir) = U;
             }
             l.commit(m, t, h);
+            l.end_forces(Fa, Fb);
+            if(i > 300) Fs += (Fa(dir) + Fb(dir))/100.0;
         }
-        l.end_forces(Fa, Fb);
+        Fmean[law][dir] = Fs;
         const double mu = dir==0 ? p.mu_axial : p.mu, Fex = -mu*w*p.L;
-        check(std::fabs(Fa(dir) + Fb(dir) - Fex) < 0.01*std::fabs(Fex),
-              fmt(dir==0 ? "dragged along: friction %.1f N vs -mu_axial w L = %.1f N" : "dragged across: friction %.1f N vs -mu w L = %.1f N",
-                  Fa(dir) + Fb(dir), Fex));
+        const char *lw = law==0 ? "stick-slip" : "regularized";
+        check(std::fabs(Fs - Fex) < (dir==0 ? 0.001 : 0.02)*std::fabs(Fex),
+              std::string(lw) + fmt(dir==0 ? ": dragged along: friction %.1f N vs -mu_axial w L = %.1f N" : ": dragged across: friction %.1f N vs -mu w L = %.1f N",
+                  Fs, Fex));
     }
+    check(std::fabs(Fmean[0][1] - Fmean[1][1]) < 0.002*std::fabs(Fmean[1][1]),
+          fmt("dragged across: stick-slip %.1f N, regularized %.1f N", Fmean[0][1], Fmean[1][1]));
     // (c) an explicit line step far too large: the run stops with the name of the line
     {
         model m;
@@ -596,6 +611,711 @@ static void test_static_start()
     }
     check(dev[0] < 0.002, fmt("ends held for 10 s: fairlead tension within %.2f %% of the start", 100.0*dev[0]));
     check(dev[1] > 10.0*dev[0], fmt("(from the continuous catenary: %.1f %%)", 100.0*dev[1]));
+    // a stiff chain (EA 1.5e9 N, 140 kg/m): its catenary start has slack segments that the per-line Newton
+    // cannot leave; the whole-system solve (compression stage, relaxation) finds the equilibrium
+    {
+        model m;
+        mooring_props q = chain();
+        q.d = 0.15; q.mass = 140.0; q.EA = 1.5e9; q.BA = 1.0e6;
+        mooring_end an, fl;
+        an.body = -1; an.p = Vec3(0.0, 0.0, -50.0);
+        fl.body = -1; fl.p = Vec3(100.0, 0.0, -5.0);
+        mooring_line l(m, an, fl, q, 40, nullptr, Vec3::Zero(), -50.0);
+        const bool ok = l.equilibrium(m, 0.0);
+        l.initialize(m, 0.0);
+        Vec3 Fa, Fb;
+        l.end_forces(Fa, Fb);
+        catenary_line cs;
+        cs.L = q.L; cs.EA = q.EA; cs.CB = 0.0;
+        cs.w = (q.mass - q.rho*0.25*M_PI*q.d*q.d)*9.81;
+        double Hs = -1.0, Vs = 0.0;
+        catenary_solve(cs, 100.0, 45.0, Hs, Vs);
+        check(ok && std::fabs(-Fb(0) - Hs) < 0.01*Hs, fmt("stiff chain: static start converged, H %.2f kN (catenary %.2f kN)", -Fb(0)/1e3, Hs/1e3));
+    }
+}
+
+// sum of the converged forces of the lines on their body ends (ground included)
+static Vec3 attachment_sum(const mooring_system &s)
+{
+    Vec3 F = Vec3::Zero();
+    for(int k=0; k<s.nlines(); ++k)
+    {
+        Vec3 Fa, Fb;
+        s.line_end_forces(k, Fa, Fb);
+        // ends on points carry internal forces: only the body ends count (here all ends not on points)
+        F += Fa + Fb;
+    }
+    return F;
+}
+
+static void test_points()
+{
+    std::cout<<"mooring systems: free points (clump weight, buoy, bridle)"<<std::endl;
+    const double g = 9.81, rho = 1025.0;
+    mooring_props p = chain();
+    p.L = 60.0;
+    const double w = (p.mass - rho*0.25*M_PI*p.d*p.d)*g;
+    // (a) a clump weight hanging between two lines from two ground points 80 m apart (no seabed): in the static
+    // equilibrium the ends carry the wet weight of the lines and the clump
+    {
+        model m;
+        mooring_system s(m);
+        mooring_point_props cp;
+        cp.mass = 5000.0;
+        cp.volume = 5000.0/7850.0;
+        const int c = s.add_point("clump", Vec3(40.0, 0.0, -40.0), cp);
+        mooring_end a, b, pc;
+        a.p = Vec3(0.0, 0.0, -10.0);
+        b.p = Vec3(80.0, 0.0, -10.0);
+        pc.point = c;
+        s.add_line(m, "left", a, pc, p, 20);
+        s.add_line(m, "right", pc, b, p, 20);
+        const bool ok = s.equilibrium(m, 0.0);
+        s.initialize(m, 0.0);
+        Vec3 Fa0, Fb0, Fa1, Fb1;
+        s.line_end_forces(0, Fa0, Fb0);
+        s.line_end_forces(1, Fa1, Fb1);
+        const double Wc = (cp.mass - rho*cp.volume)*g, Wt = 2.0*w*p.L + Wc;
+        check(ok && std::fabs(Fa0(2) + Fb1(2) + Wt) < 1.0e-4*Wt && std::fabs(Fa0(0) + Fb1(0)) < 1.0e-6*Wt,
+              fmt("clump: ends carry %.2f kN of %.2f kN wet weight (lines %.2f, clump %.2f kN)", -(Fa0(2) + Fb1(2))/1e3, Wt/1e3, 2.0*w*p.L/1e3, Wc/1e3));
+        check(std::fabs(s.point_position(c)(0) - 40.0) < 1.0e-6, fmt("clump in the middle: x %.6f m, z %.3f m", s.point_position(c)(0), s.point_position(c)(2)));
+        // the point balances the two line ends and its own weight
+        const Vec3 Fp = Fb0 + Fa1 + Vec3(0.0, 0.0, -Wc);
+        check(Fp.norm() < 1.0e-6*Wt, fmt("forces on the clump balance to %.2e N", Fp.norm()));
+    }
+    // (b) a buoy (volume 4 m^3, 500 kg) on a riser from an anchor on the seabed, a second line on to a fixed
+    // point: the ends carry the line weight less the buoy's net buoyancy, the riser lifts off the seabed
+    {
+        model m;
+        mooring_system s(m);
+        mooring_point_props bp;
+        bp.mass = 500.0;
+        bp.volume = 4.0;
+        bp.Ca = 1.0;
+        const int c = s.add_point("buoy", Vec3(10.0, 0.0, -25.0), bp);
+        mooring_end a, b, pc;
+        a.p = Vec3(0.0, 0.0, -50.0);
+        b.p = Vec3(50.0, 0.0, -20.0);
+        pc.point = c;
+        mooring_props q = p;
+        q.L = 30.0;
+        s.add_line(m, "riser", a, pc, q, 15, -50.0);
+        q.L = 42.0;
+        s.add_line(m, "tail", pc, b, q, 15);
+        const bool ok = s.equilibrium(m, 0.0);
+        s.initialize(m, 0.0);
+        Vec3 Fa0, Fb0, Fa1, Fb1;
+        s.line_end_forces(0, Fa0, Fb0);
+        s.line_end_forces(1, Fa1, Fb1);
+        const double Wb = (bp.mass - rho*bp.volume)*g, Wt = w*72.0 + Wb;
+        check(ok && std::fabs(Fa0(2) + Fb1(2) + Wt) < 1.0e-4*std::fabs(w*72.0) && Fa0(2) > 0.0,
+              fmt("buoy: ends carry %.3f kN (lines %.3f kN, buoy %.3f kN), the riser lifts the anchor by %.3f kN", -(Fa0(2) + Fb1(2))/1e3, w*72.0/1e3, Wb/1e3, Fa0(2)/1e3));
+    }
+    // (c) bridle: a body held by two bridle lines to a point and a main line from the point to an anchor; the
+    // forces on the body and the anchor balance the wet weight of the lines
+    {
+        model m;
+        rigid_body b;
+        b.mass = 1.0e5;
+        b.inertia = Vec3(1e7, 1e7, 1e7).asDiagonal();
+        const int ib = m.add_body(b);
+        mooring_system s(m);
+        const int c = s.add_point("bridle", Vec3(-15.0, 0.0, -10.0), mooring_point_props());
+        mooring_end f1, f2, an, pc;
+        f1.body = ib; f1.p = Vec3(-5.0, 4.0, -2.0);
+        f2.body = ib; f2.p = Vec3(-5.0, -4.0, -2.0);
+        an.p = Vec3(-120.0, 0.0, -50.0);
+        pc.point = c;
+        mooring_props q = p;
+        q.L = 12.0;
+        s.add_line(m, "bridle1", f1, pc, q, 6);
+        s.add_line(m, "bridle2", f2, pc, q, 6);
+        q.L = 115.0;
+        s.add_line(m, "main", pc, an, q, 30, -50.0);
+        const bool ok = s.equilibrium(m, 0.0);
+        s.initialize(m, 0.0);
+        Vec3 F = Vec3::Zero(), Fa, Fb;
+        s.line_end_forces(0, Fa, Fb); F += Fa;
+        s.line_end_forces(1, Fa, Fb); F += Fa;
+        s.line_end_forces(2, Fa, Fb); F += Fb;
+        // the seabed carries part of the main line: compare horizontally (no friction), and the bridle point
+        check(ok && std::fabs(F(0)) < 1.0e-4*w*q.L && std::fabs(F(1)) < 1.0e-6*w*q.L,
+              fmt("bridle: horizontal forces on body and anchor balance to %.2e N (body pulled by %.2f kN)", std::hypot(F(0), F(1)), 0.0));
+        std::vector<int> bodies;
+        s.coupled_bodies(bodies);
+        check(bodies.size()==3 && s.npoints()==1 && std::fabs(s.point_position(c)(1)) < 1.0e-6,
+              fmt("bridle point on the symmetry plane (y %.1e m), %.0f attachments", s.point_position(c)(1), (double)bodies.size()));
+    }
+    // (d) pendulum: a 1000 kg clump on a light 10 m line from a fixed point in air: period 2 pi sqrt(L/g)
+    {
+        model m;
+        mooring_system s(m);
+        mooring_point_props cp;
+        cp.mass = 1000.0;
+        mooring_props q = p;
+        q.L = 10.0;
+        q.mass = 1.0;
+        q.d = 0.01;
+        q.EA = 1.0e7;
+        q.BA = 1.0e3;
+        q.rho = 0.0;
+        q.Cdn = q.Cdt = 0.0;
+        const int c = s.add_point("bob", Vec3(1.0, 0.0, -std::sqrt(100.0 - 1.0)), cp);
+        mooring_end top, pc;
+        top.p = Vec3::Zero();
+        pc.point = c;
+        s.add_line(m, "string", top, pc, q, 10);
+        s.set_static_start(false);
+        s.initialize(m, 0.0);
+        double xprev = s.point_position(c)(0);
+        std::vector<double> zc;
+        const double h = 0.01;
+        for(int i=1; i<=1200; ++i)
+        {
+            s.commit(m, i*h, h);
+            const double x = s.point_position(c)(0);
+            if(xprev*x < 0.0)
+                zc.push_back((i - 1)*h + h*xprev/(xprev - x));
+            xprev = x;
+        }
+        const double T = zc.size() >= 3 ? 2.0*(zc.back() - zc.front())/(zc.size() - 1) : 0.0;
+        // the pendulum length to the clump centre with the line's own mass: L_eff from the physical
+        // pendulum of the clump and the uniform line (I/(m r)), small-amplitude correction (1 + th0^2/16)
+        const double ml = q.mass*q.L, I = cp.mass*q.L*q.L + ml*q.L*q.L/3.0, mr = cp.mass*q.L + 0.5*ml*q.L;
+        const double th0 = std::asin(0.1), Tex = 2.0*M_PI*std::sqrt(I/(mr*9.81))*(1.0 + th0*th0/16.0);
+        check(std::fabs(T - Tex) < 0.003*Tex, fmt("pendulum period %.4f s vs %.4f s", T, Tex));
+    }
+    // (e) a clump weight resting on the seabed: contact force = wet weight, sunk by W / (kb pi r^2)
+    {
+        model m;
+        mooring_system s(m);
+        mooring_point_props cp;
+        cp.mass = 8000.0;
+        cp.volume = 1.0;
+        const double rc = std::cbrt(0.75/M_PI);
+        const int c = s.add_point("clump", Vec3(20.0, 0.0, -50.0 + rc), cp, -50.0);
+        mooring_end a, pc;
+        a.p = Vec3(0.0, 0.0, -50.0);
+        pc.point = c;
+        mooring_props q = p;
+        q.L = 25.0;
+        s.add_line(m, "slack", a, pc, q, 10, -50.0);
+        const bool ok = s.equilibrium(m, 0.0);
+        const double Wc = (cp.mass - rho*cp.volume)*g, dz = Wc/(cp.kb*M_PI*rc*rc);
+        check(ok && std::fabs(s.point_position(c)(2) - (-50.0 + rc - dz)) < 0.05*dz,
+              fmt("clump on the seabed: sunk %.4f m (W / (kb pi r^2) = %.4f m)", -50.0 + rc - s.point_position(c)(2), dz));
+    }
+    // (f) the junction of two lines (a point without volume) on the seabed: it has no contact of its own, the
+    // line ends carry it like the line's nodes (sunk by w / (kb d)), and it does not shorten the sub-step
+    {
+        model m;
+        mooring_system s(m), s1(m);
+        const int c = s.add_point("junction", Vec3(20.0, 0.0, -50.0), mooring_point_props(), -50.0);
+        mooring_end a, b, pc;
+        a.p = Vec3(0.0, 0.0, -50.0);
+        b.p = Vec3(40.0, 0.0, -50.0);
+        pc.point = c;
+        mooring_props q = p;
+        q.L = 19.99;       // a little tension: the junction's place along the lines is determined
+        s.add_line(m, "left", a, pc, q, 10, -50.0);
+        s.add_line(m, "right", pc, b, q, 10, -50.0);
+        mooring_end j;
+        j.p = Vec3(20.0, 0.0, -50.0);
+        s1.add_line(m, "left only", a, j, q, 10, -50.0);
+        const bool ok = s.equilibrium(m, 0.0);
+        const double dz = (q.mass - rho*0.25*M_PI*q.d*q.d)*g/(q.kb*q.d), zj = s.point_position(c)(2);
+        check(ok, "junction on the seabed: static equilibrium converged");
+        check(std::fabs(zj - (-50.0 - dz)) < 0.02*dz, fmt("junction on the seabed: sunk %.3e m (w / (kb d) = %.3e m)", -50.0 - zj, dz));
+        check(s.dt_line() == s1.dt_line(), fmt("junction: sub-step %.3e s (of the lines alone %.3e s)", s.dt_line(), s1.dt_line()));
+    }
+}
+
+static void test_break()
+{
+    std::cout<<"line failure"<<std::endl;
+    // (a) a body held in surge by two opposite lines; the right line lets go of the body at t = 4 s: the body
+    // drifts to the left anchor, the broken line no longer acts on it, its free end sinks
+    auto build = [](model &m, std::vector<mooring_line*> &ls, const mooring_break *b)
+    {
+        rigid_body bd;
+        bd.mass = 2.0e5;
+        bd.inertia = Vec3(1e7, 1e7, 1e7).asDiagonal();
+        const int ib = m.add_body(bd);
+        m.add_constraint(std::make_unique<joint>(m, joint_type::prismatic, -1, ib, Vec3::Zero(), Vec3::UnitX()));
+        mooring_props p = chain();
+        for(int k=0; k<2; ++k)
+        {
+            mooring_end an, fl;
+            an.body = -1; an.p = Vec3(k==0 ? -100.0 : 100.0, 0.0, -50.0);
+            fl.body = ib; fl.p = Vec3(k==0 ? -5.0 : 5.0, 0.0, -5.0);
+            auto l = std::make_unique<mooring_line>(m, an, fl, p, 15, nullptr, Vec3::Zero(), -50.0, 0.0, k==0 ? "left" : "right");
+            if(k==1 && b) l->set_break(0, *b);
+            ls.push_back(&static_cast<mooring_line&>(m.add_load(std::move(l))));
+        }
+        return ib;
+    };
+    {
+        model m;
+        std::vector<mooring_line*> ls;
+        mooring_break b;
+        b.t = 4.0;
+        const int ib = build(m, ls, &b);
+        timeint ti;
+        ti.initialize(m, 0.0);
+        double x4 = 0.0, zfree4 = 0.0;
+        bool steps = true;
+        for(int i=0; i<200; ++i)
+        {
+            steps = steps && ti.step(m, i*0.05, 0.05);
+            if(i==79) {x4 = m.bodies[ib].x(0); zfree4 = ls[1]->nodes().back()(2);}
+        }
+        std::vector<int> cb;
+        ls[1]->coupled_bodies(cb);
+        Vec3 Fa, Fb;
+        ls[1]->end_forces(Fa, Fb);
+        check(steps && ls[1]->line_broken(0) && std::fabs(ls[1]->line_break_time(0) - 4.0) < 1.0e-9 && cb.size()==1,
+              fmt("broken at t = %.2f s, the line no longer on the body (%.0f attachment left)", ls[1]->line_break_time(0), (double)cb.size()));
+        check(std::fabs(x4) < 1.0e-3 && m.bodies[ib].x(0) < -0.5 && ls[1]->nodes().back()(2) < zfree4 - 5.0,
+              fmt("body at x %.3f m when it breaks, %.2f m 6 s later; the free end sank %.1f m", x4, m.bodies[ib].x(0), zfree4 - ls[1]->nodes().back()(2)));
+        std::vector<std::string> ch;
+        ls[1]->channel_names(ch);
+        std::vector<double> cv;
+        ls[1]->channel_values(m, 10.0, cv);
+        check(ch.size()==10 && ch[9]=="right_broken" && cv.size()==10 && cv[9]==1.0, "channel right_broken = 1");
+    }
+    // (b) at a tension: the fairlead pulled away at 0.5 m/s, the line breaks at the first step at which the
+    // tension of its end segment reaches 300 kN
+    {
+        model m;
+        rigid_body bd;
+        bd.mass = 1.0;
+        bd.inertia = Mat3::Identity();
+        const int ib = m.add_body(bd);
+        mooring_props p = chain();
+        mooring_end an, fl;
+        an.p = Vec3(-100.0, 0.0, -50.0);
+        fl.body = ib; fl.p = Vec3(0.0, 0.0, -5.0);
+        mooring_line l(m, an, fl, p, 30, nullptr, Vec3::Zero(), -50.0);
+        mooring_break b;
+        b.T = 3.0e5;
+        l.set_break(0, b);
+        l.initialize(m, 0.0);
+        double Tprev = 0.0, Tlast = 0.0, tb = -1.0;
+        const double h = 0.05;
+        for(int i=1; i<=1000 && tb < 0.0; ++i)
+        {
+            m.bodies[ib].x(0) = 0.5*i*h;
+            m.bodies[ib].v(0) = 0.5;
+            Tprev = Tlast;
+            l.commit(m, i*h, h);
+            Tlast = std::max(l.tension(0), l.tension(l.nseg() - 1));
+            if(l.line_broken(0)) tb = i*h;
+        }
+        check(tb > 0.0 && Tprev < b.T && Tlast >= b.T && l.line_break_time(0)==tb,
+              fmt("broke at t = %.2f s at %.1f kN (%.1f kN the step before)", tb, Tlast/1e3, Tprev/1e3));
+    }
+    // (c) restart after the failure: the checkpoint of the broken system continues bitwise as the run itself
+    {
+        model m1, m2;
+        std::vector<mooring_line*> l1, l2;
+        mooring_break b;
+        b.t = 1.0;
+        const int i1 = build(m1, l1, &b);
+        build(m2, l2, &b);
+        timeint t1;
+        t1.initialize(m1, 0.0);
+        for(int i=0; i<40; ++i) t1.step(m1, i*0.05, 0.05);
+        std::vector<double> st;
+        m1.save_state(st);
+        std::vector<double> ts;
+        t1.save_state(ts);
+        timeint t2;
+        t2.initialize(m2, 0.0);
+        size_t k = 0, kt = 0;
+        const bool ok = m2.load_state(st, k) && t2.load_state(m2, ts, kt);
+        for(int i=40; i<80; ++i) {t1.step(m1, i*0.05, 0.05); t2.step(m2, i*0.05, 0.05);}
+        check(ok && l2[1]->line_broken(0) && m2.bodies[i1].x(0)==m1.bodies[i1].x(0) && l2[1]->nodes().back()==l1[1]->nodes().back(),
+              fmt("restart after the failure: body at %.6f m in both runs", m2.bodies[i1].x(0)));
+    }
+}
+
+static void test_bathymetry()
+{
+    std::cout<<"seabed: plane, grid, the bed of a sampled fluid"<<std::endl;
+    // (a) a clump weight on a frictionless 10 % slope, held up the slope by a light taut line parallel to it:
+    // tension W sin(theta), contact force W cos(theta)
+    {
+        model m;
+        mooring_system s(m);
+        const double sl = 0.1, th = std::atan(sl);
+        s.set_seabed(std::make_shared<seabed_plane>(-50.0, sl, 0.0));
+        mooring_point_props cp;
+        cp.mass = 2000.0;
+        cp.radius = 0.3;
+        const double x0 = 20.0;
+        const Vec3 n(-std::sin(th), 0.0, std::cos(th));
+        const Vec3 pc = Vec3(x0, 0.0, -50.0 + sl*x0) + 0.3*n;
+        const int c = s.add_point("clump", pc, cp, -50.0);
+        mooring_props q = chain();
+        q.d = 0.02; q.mass = 0.5; q.EA = 1.0e7; q.BA = 1.0e4; q.L = 30.0;
+        mooring_end top, e;
+        top.p = pc + 30.2*Vec3(std::cos(th), 0.0, std::sin(th));
+        e.point = c;
+        s.add_line(m, "holder", e, top, q, 6, -1.0e30);
+        const bool ok = s.equilibrium(m, 0.0);
+        s.initialize(m, 0.0);
+        Vec3 Fa, Fb;
+        s.line_end_forces(0, Fa, Fb);
+        const double W = cp.mass*9.81, T = -Fb.dot(Vec3(std::cos(th), 0.0, std::sin(th)));
+        // the line's own weight (0.5 kg/m wet) adds a little to the tension at its top
+        check(ok && std::fabs(T - W*std::sin(th)) < 0.01*W*std::sin(th),
+              fmt("on a 10 %% slope: line tension %.1f N vs W sin(theta) = %.1f N", T, W*std::sin(th)));
+    }
+    // (b) a chain on a grid of the same plane gives the same line as on the plane itself
+    {
+        Vec3 F[2];
+        for(int k=0; k<2; ++k)
+        {
+            model m;
+            std::shared_ptr<seabed_surface> sb;
+            if(k==0) sb = std::make_shared<seabed_plane>(-50.0, 0.05, -0.02);
+            else
+            {
+                std::vector<double> z;
+                for(int j=0; j<11; ++j) for(int i=0; i<21; ++i) z.push_back(-50.0 + 0.05*(-150.0 + 10.0*i) - 0.02*(-50.0 + 10.0*j));
+                sb = std::make_shared<seabed_grid>(21, 11, -150.0, -50.0, 10.0, 10.0, z);
+            }
+            mooring_props p = chain();
+            mooring_end an, fl;
+            an.p = Vec3(-100.0, 0.0, -50.0 - 5.0);
+            fl.p = Vec3(0.0, 0.0, -5.0);
+            mooring_line l(m, an, fl, p, 30, nullptr, Vec3::Zero(), -55.0);
+            l.set_seabed(sb);
+            l.initialize(m, 0.0);
+            Vec3 Fa;
+            l.end_forces(Fa, F[k]);
+        }
+        check((F[0] - F[1]).norm() < 1.0e-6*F[0].norm(), fmt("grid of a plane = plane: fairlead force %.4f kN, difference %.1e N", F[0].norm()/1e3, (F[0] - F[1]).norm()));
+    }
+    // (c) the bed of a resolved fluid at the nodes (sampled kinematics): 10 m above the line's flat seabed
+    {
+        model m;
+        auto sk = std::make_shared<sampled_kinematics>();
+        mooring_props p = chain();
+        mooring_end an, fl;
+        an.p = Vec3(-100.0, 0.0, -40.0);
+        fl.p = Vec3(0.0, 0.0, -5.0);
+        auto &l = static_cast<mooring_line&>(m.add_load(std::make_unique<mooring_line>(m, an, fl, p, 30, sk, Vec3::Zero(), -50.0)));
+        l.set_seabed(nullptr, true);
+        std::vector<Vec3> pts;
+        sk->collect(m, pts);
+        const int n = (int)pts.size();
+        sk->add_sample(0.0, std::vector<Vec3>(n, Vec3::Zero()), std::vector<double>(n, 0.0), std::vector<int>(n, 1), std::vector<double>(n, -40.0));
+        l.initialize(m, 0.0);
+        double zmin = 0.0;
+        for(const Vec3 &r : l.nodes()) zmin = std::min(zmin, r(2));
+        check(zmin > -40.01 && zmin < -39.99, fmt("on the fluid's bed at -40 m (flat seabed -50 m): lowest node %.4f m", zmin));
+    }
+}
+
+static void test_bending()
+{
+    std::cout<<"bending stiffness: cantilever, taut line"<<std::endl;
+    // a 10 m cantilever in air (10 kg/m, EI 1e6 N m^2) clamped horizontally at x = 0, its free end on a point
+    // without mass: tip deflection w L^4 / (8 EI), moment on the clamping body w L^2 / 2
+    const double Lb = 10.0, mb = 10.0, EI = 1.0e6, w = mb*9.81;
+    auto build = [&](model &m, mooring_system &s, int body, bool stat)
+    {
+        mooring_props q = chain();
+        q.L = Lb; q.d = 0.05; q.mass = mb; q.EA = 1.0e9; q.BA = 0.0; q.rho = 0.0; q.EI = EI;
+        q.Cdn = q.Cdt = 0.0;
+        const int tip = s.add_point("tip", Vec3(Lb, 0.0, 0.0), mooring_point_props());
+        mooring_end a, b;
+        a.body = body; a.p = Vec3::Zero();
+        b.point = tip;
+        s.add_line(m, "beam", a, b, q, 20);
+        s.set_clamp(0, 0, m, Vec3::UnitX());
+        s.set_static_start(stat);
+        return tip;
+    };
+    {
+        model m;
+        mooring_system s(m);
+        const int tip = build(m, s, -1, true);
+        const bool ok = s.equilibrium(m, 0.0);
+        const double d = -s.point_position(tip)(2), dex = w*std::pow(Lb, 4)/(8.0*EI);
+        check(ok && std::fabs(d - dex) < 0.01*dex, fmt("tip deflection %.5f m vs w L^4/(8 EI) = %.5f m", d, dex));
+    }
+    // a taut line with bending: first natural frequency f_string sqrt(1 + pi^2 EI/(T L^2)) (pinned ends;
+    // a tension-only line cannot carry a free cantilever's compression in motion); excited by a step of one
+    // end, the frequency of the largest response of the middle node
+    for(int k=0; k<2; ++k)
+    {
+        model m;
+        m.gravity = Vec3::Zero();
+        rigid_body bd;
+        bd.mass = 1.0;
+        bd.inertia = Mat3::Identity();
+        const int ib = m.add_body(bd);
+        mooring_system s(m);
+        mooring_props q = chain();
+        q.d = 0.05; q.mass = 10.0; q.EA = 1.0e7; q.BA = 0.0; q.rho = 0.0; q.EI = k==0 ? 0.0 : 1.0e4;
+        q.Cdn = q.Cdt = 0.0;
+        q.L = 10.0/(1.0 + 1.0e4/q.EA);            // pretension 1e4 N over the span of 10 m
+        mooring_end a, b;
+        a.p = Vec3::Zero();
+        b.body = ib; b.p = Vec3(10.0, 0.0, 0.0);
+        s.add_line(m, "string", a, b, q, 20);
+        s.initialize(m, 0.0);
+        const double h = 0.005;
+        std::vector<double> z;
+        for(int i=1; i<=4000; ++i)
+        {
+            m.bodies[ib].x(2) = 0.002;
+            s.commit(m, i*h, h);
+            z.push_back(s.line_nodes(0)[10](2));
+        }
+        double zm = 0.0;
+        for(double x : z) zm += x/z.size();
+        for(double &x : z) x -= zm;
+        double fbest = 0.0, pbest = -1.0;
+        for(double f=1.2; f<=2.2; f+=0.0005)
+        {
+            double c = 0.0, sn = 0.0;
+            for(size_t i=0; i<z.size(); ++i) {c += z[i]*std::cos(2.0*M_PI*f*i*h); sn += z[i]*std::sin(2.0*M_PI*f*i*h);}
+            const double pw = c*c + sn*sn;
+            if(pw > pbest) {pbest = pw; fbest = f;}
+        }
+        // the 20 lumped masses: (1/pi) sqrt(T/(m l^2)) sin(pi/(2 N)) for the string (0.09 % below 1/(2L) sqrt(T/m))
+        const double T = 1.0e4, fs = std::sqrt(T/(q.mass*0.25))*std::sin(M_PI/40.0)/M_PI;
+        const double fex = fs*std::sqrt(1.0 + M_PI*M_PI*q.EI/(T*100.0));
+        check(std::fabs(fbest - fex) < 0.003*fex, fmt(k==0 ? "taut string: first frequency %.4f Hz vs %.4f Hz" : "taut line with EI 1e4 N m^2: first frequency %.4f Hz vs %.4f Hz", fbest, fex));
+    }
+    {
+        model m;
+        rigid_body bd;
+        bd.mass = 1.0e3;
+        bd.inertia = Mat3::Identity()*1.0e3;
+        const int ib = m.add_body(bd);
+        mooring_system s(m);
+        build(m, s, ib, true);
+        s.initialize(m, 0.0);
+        VecX f = VecX::Zero(m.ndof());
+        s.eval(m, 0.0, f);
+        const double My = f(4), Mex = w*Lb*Lb/2.0;
+        check(std::fabs(My - Mex) < 0.01*Mex && std::fabs(f(2) + w*Lb) < 0.01*w*Lb,
+              fmt("clamping body: moment %.1f N m vs w L^2/2 = %.1f N m, force %.1f N", My, Mex, f(2)));
+    }
+}
+
+static void test_damping_law()
+{
+    std::cout<<"axial damping law: taut segments only, or in every segment (BA_slack)"<<std::endl;
+    // (a) a slack straight line of two segments, no gravity, no water, its body end moving at 1 m/s towards the
+    // ground end: with BA_slack the end segment pushes the body away by BA v / l, else nothing
+    for(int law=0; law<2; ++law)
+    {
+        model m;
+        m.gravity = Vec3::Zero();
+        rigid_body b;
+        b.mass = 1.0;
+        b.inertia = Mat3::Identity();
+        b.x = Vec3(9.0, 0.0, 0.0);
+        b.v = Vec3(-1.0, 0.0, 0.0);
+        const int ib = m.add_body(b);
+        mooring_props p = chain();
+        p.L = 10.0;
+        p.EA = 1.0e6;
+        p.BA = 2.0e4;
+        p.rho = 0.0;
+        p.BA_slack = law==1;
+        mooring_end a, e;
+        a.p = Vec3::Zero();
+        e.body = ib; e.p = b.x;
+        mooring_line l(m, a, e, p, 2, nullptr, Vec3::Zero(), -1.0e30);
+        l.set_static_start(false);
+        l.initialize(m, 0.0);
+        Vec3 Fa, Fb;
+        l.end_forces(Fa, Fb);
+        const double Fex = law==1 ? p.BA*1.0/(p.L/2) : 0.0;
+        check(std::fabs(Fb(0) - Fex) < 1.0e-9*p.BA && std::fabs(l.tension(1) + Fex) < 1.0e-9*p.BA,
+              fmt(law==1 ? "BA_slack: a compressed slack segment pushes the body by %.1f N, tension %.1f N (BA v / l = %.1f N)"
+                         : "default: a compressed slack segment, force on the body %.1f N, tension %.1f N (%.1f N)",
+                  Fb(0), l.tension(1), Fex));
+    }
+    // (b) a taut chain without a seabed on a fairlead heaving 0.5 m at T 8 s, all segments taut all the time:
+    // both laws give the same line bit for bit
+    std::vector<double> Tb[2];
+    double Tmin = 1.0e300;
+    for(int law=0; law<2; ++law)
+    {
+        model m;
+        rigid_body b;
+        b.mass = 1.0;
+        b.inertia = Mat3::Identity();
+        b.x = Vec3(0.0, 0.0, -5.0);
+        const int ib = m.add_body(b);
+        mooring_props p = chain();
+        p.L = 109.0;
+        p.BA = 2.0e5;
+        p.BA_slack = law==1;
+        mooring_end a, e;
+        a.p = Vec3(-100.0, 0.0, -50.0);
+        e.body = ib; e.p = b.x;
+        mooring_line l(m, a, e, p, 20, nullptr, Vec3::Zero(), -1.0e30);
+        l.initialize(m, 0.0);
+        const double h = 0.05, w = 2.0*M_PI/8.0;
+        for(int i=1; i<=320; ++i)
+        {
+            const double t = i*h;
+            m.bodies[ib].x(2) = -5.0 + 0.5*std::sin(w*t);
+            m.bodies[ib].v(2) = 0.5*w*std::cos(w*t);
+            m.bodies[ib].vd(2) = -0.5*w*w*std::sin(w*t);
+            l.commit(m, t, h);
+            Tb[law].push_back(l.tension(l.nseg() - 1));
+            if(law==0)
+                for(int j=0; j<l.nseg(); ++j) Tmin = std::min(Tmin, l.tension(j));
+        }
+    }
+    double dmax = 0.0;
+    for(size_t i=0; i<Tb[0].size(); ++i) dmax = std::max(dmax, std::fabs(Tb[0][i] - Tb[1][i]));
+    check(Tmin > 0.0 && dmax == 0.0, fmt("taut line: the laws differ by %.1e N (smallest segment tension %.1f N)", dmax, Tmin));
+}
+
+static void test_stick_slip()
+{
+    std::cout<<"seabed friction: stick-slip"<<std::endl;
+    // (a) a chain lying straight along x on a seabed sloping 1:5 across it (z = -50 + 0.2 y), its ends held by two
+    // bodies: with mu 0.5 > tan(theta) it stays where it lies (stick-slip); the regularized law (v_eps 0.01 m/s)
+    // creeps downhill under the slope component of its weight; without friction it slides down to its sag
+    auto slope = [](double vep, double mu, double T, mooring_system **keep, model *mk) -> double
+    {
+        model local;
+        model &m = mk ? *mk : local;
+        rigid_body b;
+        b.mass = 1.0;
+        b.inertia = Mat3::Identity();
+        b.x = Vec3(0.0, 0.0, -50.0);
+        const int i0 = m.add_body(b);
+        b.x = Vec3(40.0, 0.0, -50.0);
+        const int i1 = m.add_body(b);
+        mooring_props p = chain();
+        p.L = 40.0;
+        p.mu = mu;
+        p.v_eps = vep;
+        auto *s = new mooring_system(m);
+        s->set_seabed(std::make_shared<seabed_plane>(-50.0, 0.0, 0.2));
+        mooring_end a, e;
+        a.body = i0; a.p = Vec3(0.0, 0.0, -50.0);
+        e.body = i1; e.p = Vec3(40.0, 0.0, -50.0);
+        s->add_line(m, "on the slope", a, e, p, 20, -50.0);
+        s->set_static_start(false);      // straight along x where it was laid (the frictionless equilibrium sags)
+        s->initialize(m, 0.0);
+        const double h = 0.05;
+        for(int i=1; i<=(int)std::lround(T/h); ++i)
+            s->commit(m, i*h, h);
+        const double y = s->line_nodes(0)[10](1);
+        if(keep) *keep = s; else delete s;
+        return y;
+    };
+    const double ys = slope(0.0, 0.5, 30.0, nullptr, nullptr), yr = slope(0.01, 0.5, 30.0, nullptr, nullptr),
+                 y0 = slope(0.0, 0.0, 30.0, nullptr, nullptr);
+    check(std::fabs(ys) < 0.005 && yr < -0.05 && y0 < yr,
+          fmt("side slope 1:5, mu 0.5: the middle moves %.4f m in 30 s (regularized %.3f m, frictionless %.3f m)", ys, yr, y0));
+    // (b) a clump weight (2 t, 0.25 m^3, mu 0.6) on a flat seabed pulled by a neutrally buoyant rope from a body
+    // moving at 0.05 m/s: it breaks away at mu_static mu W (1.5) and slides at mu W
+    for(int k=0; k<2; ++k)
+    {
+        const double mus = k==0 ? 1.5 : 1.0;
+        model m;
+        rigid_body b;
+        b.mass = 1.0;
+        b.inertia = Mat3::Identity();
+        mooring_point_props cp;
+        cp.mass = 2000.0;
+        cp.volume = 0.25;
+        cp.mu = 0.6;
+        cp.mu_static = mus;
+        const double rc = std::cbrt(0.75*cp.volume/M_PI), zc = -50.0 + rc;
+        b.x = Vec3(20.0, 0.0, zc);
+        const int ib = m.add_body(b);
+        mooring_system s(m);
+        const int c = s.add_point("clump", Vec3(0.0, 0.0, zc), cp, -50.0);
+        mooring_props q;
+        q.d = 0.05;
+        q.mass = 1025.0*0.25*M_PI*q.d*q.d;      // neutral: straight
+        q.EA = 1.0e6;
+        q.BA = 1.0e3;
+        q.Cdn = q.Cdt = q.Can = 0.0;
+        q.L = 20.0;
+        mooring_end pc, e;
+        pc.point = c;
+        e.body = ib; e.p = b.x;
+        s.add_line(m, "rope", pc, e, q, 10);
+        s.initialize(m, 0.0);
+        const double h = 0.05, U = 0.05, W = (cp.mass - 1025.0*cp.volume)*9.81;
+        double Tmax = 0.0, Tsl = 0.0;
+        int nsl = 0;
+        for(int i=1; i<=1200; ++i)
+        {
+            const double t = i*h;
+            m.bodies[ib].x(0) = 20.0 + U*t;
+            m.bodies[ib].v(0) = U;
+            s.commit(m, t, h);
+            const double T = s.line_tension(0, 0);
+            Tmax = std::max(Tmax, T);
+            if(t > 40.0) {Tsl += T; ++nsl;}
+        }
+        Tsl /= nsl;
+        if(k==0)
+            check(std::fabs(Tmax - mus*cp.mu*W) < 0.03*mus*cp.mu*W && s.point_position(c)(0) > 0.5,
+                  fmt("clump breaks away at %.0f N (mu_static mu W = %.0f N), slides %.2f m", Tmax, mus*cp.mu*W, s.point_position(c)(0)));
+        else
+            check(std::fabs(Tsl - cp.mu*W) < 0.01*cp.mu*W,
+                  fmt("clump sliding: rope tension %.0f N (mu W = %.0f N)", Tsl, cp.mu*W));
+    }
+    // (c) restart: the side-slope chain with one end swept 0.5 m across at T 6 s (sticking and sliding nodes),
+    // saved at 10 s: the restarted run continues bit for bit
+    {
+        auto run = [&](bool restart, std::vector<double> *mid) -> Vec3
+        {
+            model m;
+            mooring_system *s = nullptr;
+            slope(0.0, 0.5, 0.0, &s, &m);
+            const double h = 0.05;
+            std::vector<double> st;
+            for(int i=1; i<=400; ++i)
+            {
+                const double t = i*h;
+                m.bodies[1].x(1) = 0.5*std::sin(2.0*M_PI*t/6.0);
+                m.bodies[1].v(1) = 0.5*2.0*M_PI/6.0*std::cos(2.0*M_PI*t/6.0);
+                s->commit(m, t, h);
+                if(i==200)
+                {
+                    if(!restart) {s->save_state(st); *mid = st;}
+                    else
+                    {
+                        // a fresh system from the checkpoint
+                        model m2;
+                        mooring_system *s2 = nullptr;
+                        slope(0.0, 0.5, 0.0, &s2, &m2);
+                        size_t k = 0;
+                        s2->load_state(*mid, k);
+                        delete s;
+                        s = s2;
+                        m.bodies[1].x(1) = 0.5*std::sin(2.0*M_PI*t/6.0);
+                    }
+                }
+            }
+            const Vec3 r = s->line_nodes(0)[10];
+            delete s;
+            return r;
+        };
+        std::vector<double> mid;
+        const Vec3 r1 = run(false, &mid), r2 = run(true, &mid);
+        check(r1==r2 && mid.size() > 0, fmt("restart with stick-slip anchors: the middle node at y %.6f m in both runs (%.0f values saved)",
+                                            r1(1), (double)mid.size()));
+    }
 }
 
 int main()
@@ -610,6 +1330,12 @@ int main()
     test_end_motion_and_inertia();
     test_surface_friction_guard();
     test_static_start();
+    test_points();
+    test_break();
+    test_bathymetry();
+    test_bending();
+    test_damping_law();
+    test_stick_slip();
     std::cout<<(nfail ? "FAILED: " : "all passed")<<(nfail ? std::to_string(nfail) : "")<<std::endl;
     return nfail ? 1 : 0;
 }

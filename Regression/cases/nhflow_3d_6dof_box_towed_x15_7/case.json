@@ -1,0 +1,4 @@
+{"base": "nhflow_3d_6dof_box", "ctrl_set": {"X 11": "2 0 1 0 1 0", "X 101": "0.0 0.0 0.0"},
+ "ctrl_add": ["X 210 0.5 0.0 0.0", "X 206 0.0 0.5", "X 15 7", "A 511 2"],
+ "description": "as nhflow_3d_6dof_box_towed_x15_3 with X 15 7 and HLLC (A 511 2): forcing inside the body only, the faces between body and fluid cells reflective walls in the HLL/HLLC fluxes, x and y faces (needs patch 0021).",
+ "tags": ["3d", "nhflow", "6dof", "floating", "mpi"], "covers": ["forcing_kernel_nhflow X15=7", "nhflow_HLL hll_sweep_x/y mirror_flux", "nhflow_HLL hllc_sweep_x/y mirror"]}

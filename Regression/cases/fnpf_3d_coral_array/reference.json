@@ -129,17 +129,17 @@
    "last": [
     0.175408731,
     7.74792431e-05,
-    0.00155936738
+    0.00156190222
    ],
    "colsum": [
     4.694882947,
     8.000550464948931,
-    2.014763103030313
+    2.014780685681108
    ],
    "colabs": [
     4.694882947,
     8.000550464948931,
-    2.014763103030313
+    2.014780685681108
    ]
   },
   "REEF3D_FNPF_6DOF/REEF3D_6DOF_forces_0.dat": {
@@ -709,7 +709,7 @@
   0.009578262852211309,
   0.009578262852211309
  ],
- "blessed_from": "/root/reg/REEF3D_r1",
+ "blessed_from": "/root/reg/REEF3D_e7",
  "date": "2026-10-20",
- "note": "Step 27 (patches 0077-0081 on hans_dev 1533be38): the coarse increment of the preconditioner biquadratic (0081, the solver tolerance)"
+ "note": "reefamr 85: FNPF/SFLOW gauges interpolated at the gauge (ccslipol4)"
 }

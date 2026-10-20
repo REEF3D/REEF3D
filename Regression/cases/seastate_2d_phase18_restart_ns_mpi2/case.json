@@ -1,0 +1,26 @@
+{
+ "base": "seastate_2d_phase18_ckpt_ns",
+ "np": 2,
+ "same_as": "seastate_2d_phase18_ckpt_ns",
+ "chain": [
+  {
+   "case": "seastate_2d_phase18_ckpt_ns",
+   "copy": [
+    "REEF3D_Checkpoint"
+   ]
+  }
+ ],
+ "ctrl_set": {
+  "I 45": "1"
+ },
+ "description": "the restart (I 45 1) of seastate_2d_phase18_ckpt_ns after step 4 on 2 ranks (pipelined): bitwise the full run on one rank. Validation in Dropbox SEASTATE/validation/67_rebalance.",
+ "tags": [
+  "2d",
+  "seastate",
+  "amr",
+  "mpi"
+ ],
+ "covers": [
+  "seastate_f::ckpt_read of a nonstationary run, the outputs continued"
+ ]
+}

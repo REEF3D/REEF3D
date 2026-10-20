@@ -1,0 +1,29 @@
+{
+ "base": "seastate_2d_phase18_ckpt",
+ "np": 2,
+ "same_as": "seastate_2d_phase18_ckpt",
+ "chain": [
+  {
+   "case": "seastate_2d_phase18_ckpt",
+   "copy": [
+    "REEF3D_Checkpoint"
+   ]
+  }
+ ],
+ "ctrl_set": {
+  "I 45": "1"
+ },
+ "description": "the restart (I 45 1) of seastate_2d_phase18_ckpt (1 rank) from its latest checkpoint (iteration 28 of the stationary step) on 2 ranks: the spectra of all grids by the global index of the cell, the active ranges of the sparsity and the last changes of Hs; the step continues at iteration 29. Bitwise the full run on one rank. Validation in Dropbox SEASTATE/validation/67_rebalance.",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate",
+  "amr",
+  "mpi"
+ ],
+ "covers": [
+  "seastate_f::ckpt_read on another decomposition",
+  "seastate_amr::restored",
+  "the stationary step continued (ss_resume)"
+ ]
+}

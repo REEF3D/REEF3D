@@ -1,0 +1,25 @@
+{
+ "base": "seastate_2d_phase17_windsea",
+ "np": 2,
+ "same_as": "seastate_2d_phase17_windsea",
+ "control_set": {
+  "M 50": "1"
+ },
+ "ctrl_set": {
+  "G 46": "1.2",
+  "G 47": "5"
+ },
+ "rebalance": 3,
+ "description": "seastate_2d_phase17_windsea on 2 ranks with the rebalance (G 46 1.2, G 47 5, Phase 18): the patches lie on one rank, so the measured work of the cells stops the run after iteration 5 (checkpoint, load map, exit code 3); it continues from the checkpoint on the weighted partition of DIVEMesh_Grid/grid-global.dat (M 50 1) that REEF3D computes from the load map. Bitwise the result of one rank. Validation in Dropbox SEASTATE/validation/67_rebalance.",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate",
+  "amr",
+  "mpi"
+ ],
+ "covers": [
+  "seastate_f::work_imbalance, reefrun_ckpt::rebalance_check_iter",
+  "the rebalance restart with M 41 1 and the SEASTATE load map"
+ ]
+}

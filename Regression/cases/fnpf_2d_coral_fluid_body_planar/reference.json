@@ -56,18 +56,18 @@
    "rows": 203,
    "last": [
     2.23754202,
-    -0.00160602527,
-    0.00878361831
+    -0.0017262502,
+    0.00875215673
    ],
    "colsum": [
     225.8841812728,
-    15.673757464563629,
-    0.49499212490614647
+    15.678967585184097,
+    0.5043325216537942
    ],
    "colabs": [
     225.8841812728,
-    16.23006397646163,
-    0.49499212490614647
+    16.230231704562097,
+    0.5043325216537942
    ]
   },
   "REEF3D_FNPF_6DOF/REEF3D_6DOF_forces_0.dat": {
@@ -448,7 +448,7 @@
   0.01128809102464263,
   0.01128809102464263
  ],
- "blessed_from": "/home/claude/reef3d_reg/new/REEF3D",
- "date": "2026-10-19",
- "note": "X 17 0.5 by default (FNPF: eta relaxation in the free-surface columns next to the footprint)"
+ "blessed_from": "/root/reg/REEF3D_e7",
+ "date": "2026-10-20",
+ "note": "reefamr 85: FNPF/SFLOW gauges interpolated at the gauge (ccslipol4)"
 }

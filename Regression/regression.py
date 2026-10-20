@@ -27,6 +27,9 @@ Typical use
   # case.json against that case of the same run (bitwise; with "same_as_rtol": r, Hs and the spectra within r)
   ./regression.py ranks runs/new
 
+  # checkpoints and restarts: "chain": [{"case": "<case writing checkpoints>", "copy": ["REEF3D_Checkpoint"]}] and
+  # I 45 1 in the restart case; "rebalance": n starts a run again after a rebalance stop (G 46), at most n times
+
 Case selection: --cases <glob> [<glob> ...] and/or --tags <tag> [...] (e.g. --tags quick).
 
 How it works
@@ -106,6 +109,10 @@ BULK_OUTPUT = ["REEF3D_CFD_VTU", "REEF3D_CFD_6DOF_VTP", "REEF3D_CFD_6DOF_Normals
                "REEF3D_DEM_VTP"]
 
 LEVELS = ["identical", "close", "different", "failed"]
+
+# text outputs of measured quantities (the load maps of the rebalance, G 45: wall-clock times): not compared
+def measured(fn):
+    return fn.endswith("_loadmap.dat")
 
 
 # ----------------------------------------------------------------------------------------------
@@ -242,10 +249,15 @@ def run_case(c, args, outroot):
         sinfo = run_case(sc, args, os.path.join(rundir, "_chain"))
         if sinfo["status"] != "ok":
             info = {"case": c["name"], "np": c["np"], "steps": args.steps or c["steps"],
-                    "status": "chain stage %s: %s" % (stage["case"], sinfo["status"])}
+                    "status": "chain stage %s: %s" % (stage["case"], sinfo["status"]), "time_divemesh": 0.0, "time_reef3d": 0.0}
             return finish_run(rundir, info, args)
         for d in stage.get("copy", []):
-            shutil.copytree(os.path.join(rundir, "_chain", stage["case"], d), os.path.join(rundir, d))
+            s = os.path.join(rundir, "_chain", stage["case"], d)
+            if not os.path.isdir(s):
+                info = {"case": c["name"], "np": c["np"], "steps": args.steps or c["steps"],
+                        "status": "chain stage %s: no %s" % (stage["case"], d), "time_divemesh": 0.0, "time_reef3d": 0.0}
+                return finish_run(rundir, info, args)
+            shutil.copytree(s, os.path.join(rundir, d))
     info = {"case": c["name"], "np": c["np"], "steps": args.steps or c["steps"],
             "reef3d": os.path.abspath(args.reef3d), "divemesh": os.path.abspath(args.divemesh),
             "status": "ok", "time_divemesh": 0.0, "time_reef3d": 0.0}
@@ -272,6 +284,17 @@ def run_case(c, args, outroot):
         with open(os.path.join(rundir, "reef3d.log"), "w") as log:
             r = subprocess.run(cmd, cwd=rundir, stdout=log, stderr=subprocess.STDOUT,
                                timeout=args.timeout, env=env)
+        # "rebalance": n -- the run stops to rebalance (G 46: exit code 3 and the marker REEF3D_Checkpoint/rebalance)
+        # and is started again, at most n times, as tools/reef3d_rebalance.sh does
+        nreb, k = int(c.get("rebalance", 0)), 0
+        marker = os.path.join(rundir, "REEF3D_Checkpoint", "rebalance")
+        while nreb > 0 and r.returncode in (0, 3) and os.path.exists(marker) and k < nreb:
+            k += 1
+            with open(os.path.join(rundir, "reef3d_restart%d.log" % k), "w") as log:
+                r = subprocess.run(cmd, cwd=rundir, stdout=log, stderr=subprocess.STDOUT,
+                                   timeout=args.timeout, env=env)
+        if nreb > 0:
+            info["rebalance_restarts"] = k
         if r.returncode != 0:
             info["status"] = "reef3d failed (%d)" % r.returncode
     except subprocess.TimeoutExpired:
@@ -500,6 +523,8 @@ def compare_text(ref_dir, new_dir, rtol, atol):
     level = 0
     for g in TEXT_OUTPUT_GLOBS:
         for fr in sorted(glob.glob(os.path.join(ref_dir, g))):
+            if measured(fr):
+                continue
             rel = os.path.relpath(fr, ref_dir)
             fn = os.path.join(new_dir, rel)
             if not os.path.exists(fn):
@@ -759,6 +784,8 @@ def summarize(rundir):
         agg["l2"] = math.sqrt(agg["l2"])
     for g in TEXT_OUTPUT_GLOBS:
         for fn in sorted(glob.glob(os.path.join(rundir, g))):
+            if measured(fn):
+                continue
             t = read_numeric_table(fn)
             if not t:
                 continue

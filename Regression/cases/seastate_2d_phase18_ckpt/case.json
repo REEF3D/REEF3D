@@ -1,0 +1,22 @@
+{
+ "base": "seastate_2d_phase17_windsea",
+ "ctrl_set": {
+  "A 795": "1.0e-4",
+  "A 796": "2",
+  "A 799": "1",
+  "P 48": "7",
+  "G 45": "1"
+ },
+ "description": "as seastate_2d_phase17_windsea (two levels from the depth criterion, composite sweep, wind sea, 30 iterations) with the spectral sparsity (A 795 1e-4), the second-order fluxes (A 796 2) and the estimated distance of the convergence test (A 799 1); a checkpoint every 7 iterations of the stationary step (P 48 7, Phase 18: the latest after iteration 28) and the load map of the measured work (G 45 1). The full run of the restart cases. Validation in Dropbox SEASTATE/validation/67_rebalance.",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate",
+  "amr"
+ ],
+ "covers": [
+  "seastate_f::ckpt_write (the cell records of all grids)",
+  "reefrun_ckpt sub (stationary checkpoints by iterations)",
+  "seastate_f::loadmap_write, seastate_implicit::cellw"
+ ]
+}
