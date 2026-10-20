@@ -23,21 +23,29 @@ Author: Hans Bihs
 // Romero, Melville & Kleiss (2012) breaking model for FNPF.
 //
 // Physics-based energy dissipation through matching:
-//   rho * c->vb * |grad_H(Fi)|^2 = b(S) * rho * c^5 / (g * L_b)
+//   breaking dissipation per unit area     eps = b(S) * rho * c^5 / (g * L_b)
+//   dissipation of the damping terms       D   = rho * vb * (fe * g * |grad_H(eta)|^2 + ff * k*tanh(kh) * |grad_H(Fi)|^2)
 //
-// => c->vb = b(S) * c^5 / (g * L_b * |grad_H(Fi)|^2)
+// => c->vb = b(S) * c^5 / (g * L_b * (fe * g * |grad_H(eta)|^2 + ff * k*tanh(kh) * |grad_H(Fi)|^2))
 //
-// with b(S) = a * (S - S0)^(5/2)
+// with b(S) = a * (S - S0)^(5/2), fe = A 366 when eta is damped (A 357 1, 3), ff = 1 when Fi is
+// damped (A 357 1, 2). For a linear wave of amplitude A, g|grad eta|^2 + k tanh(kh)|grad Fi|^2
+// = g (kA)^2 at every phase, so with A 357 1 and A 366 1 the matching is phase independent.
+// (The former denominator |grad_H(Fi)|^2 alone has the wrong dimension: vb came out in m/s,
+// 2k times the matched value in deep water.)
 //
 // Three methods for computing local steepness S:
 //   1. Gradient-based:  S = |grad_H(eta)|  (simplest, underestimates)
-//   2. Wavenumber-based: S = 0.5 * k * H_local  (via zero-crossing)
+//   2. Wavenumber-based: S = k * A_rms  (A_rms from a local 5-point stencil)
 //   3. Hilbert-based:   S = k * A  (envelope from Hilbert transform)
 //
 // Two methods for local phase speed:
 //   1. Linear dispersion: c = sqrt(g/k) for deep water,
 //                         c = sqrt(g*tanh(kh)/k) general
 //   2. Crest tracking:    c = dx_crest / dt  (requires time history)
+//
+// All quantities are taken from the stage values (eta, eta_n, Fifsf) passed by the time
+// integrator, the water depth from the bed: h = eta + wd - bed.
 //
 
 #include"fnpf_breaking.h"
@@ -47,40 +55,25 @@ Author: Hans Bihs
 
 void fnpf_breaking::breaking_romero(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slice &eta_n, slice &Fifsf, double alpha)
 {
-
-    // --- Initialize on first call ---
-    if (ini_done == 0)
-    {
-
-
-        ini_done = 1;
-    }
-
-    // --- Step 0: Compute eta_t ---
+    // --- Step 0: Compute eta_t of the stage ---
+    // (was (c->eta - eta_old)/dt with eta_old updated at every call: zero in RK stages 1, 2)
     SLICELOOP4
-    {
-        eta_t(i,j) = (c->eta(i,j) - eta_old(i,j)) / p->dt;
-    }
+    eta_t(i,j) = (eta(i,j) - eta_n(i,j)) / (alpha*p->dt);
+    
     pgc->gcsl_start4(p, eta_t, 1);
 
     // --- Step 1: Local wavenumber and steepness ---
-    compute_local_wavenumber(p, c, pgc);
-    compute_steepness(p, c, pgc);
+    compute_local_wavenumber(p, c, pgc, eta);
+    compute_steepness(p, c, pgc, eta);
 
     // --- Step 2: Local phase speed ---
-    compute_phase_speed(p, c, pgc);
+    compute_phase_speed(p, c, pgc, eta);
 
     // --- Step 3: Detect breaking ---
-    detect_breaking(p, c, pgc);
+    detect_breaking(p, c, pgc, eta);
 
     // --- Step 4: Compute eddy viscosity ---
-    compute_eddy_viscosity(p, c, pgc);
-
-    // --- Store eta for next step ---
-    SLICELOOP4
-    {
-        eta_old(i,j) = c->eta(i,j);
-    }
+    compute_eddy_viscosity(p, c, pgc, eta, Fifsf);
     
     
     SLICELOOP4
@@ -96,14 +89,16 @@ void fnpf_breaking::breaking_romero(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice
     ++count;
     }
     
-    
-    //LOOP
-    //c->test[IJK] = c->vb(i,j);
-    
     count=pgc->globalisum(count);
     
     if(p->mpirank==0 && (p->count%p->P12==0))
     cout<<"breaking: "<<count<<endl;
+}
+
+// local water depth of the stage
+double fnpf_breaking::romero_depth(lexer *p, fdm_fnpf *c, slice &eta)
+{
+    return MAX(eta(i,j) + p->wd - c->bed(i,j), 0.01);
 }
 
 // =====================================================================
@@ -111,7 +106,7 @@ void fnpf_breaking::breaking_romero(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice
 // =====================================================================
 
 void fnpf_breaking::compute_local_wavenumber(lexer *p, fdm_fnpf *c,
-                                                     ghostcell *pgc)
+                                                     ghostcell *pgc, slice &eta)
 {
     // Estimate local wavenumber from the free surface.
     // Method: compute second spatial derivative and use the relation
@@ -125,17 +120,24 @@ void fnpf_breaking::compute_local_wavenumber(lexer *p, fdm_fnpf *c,
     double dy = p->DYM;
     double d2eta_dx2, d2eta_dy2, eta_c;
     double k_est;
+    
+    // upper bound: the shortest wave the grid resolves (was 5.0 1/m, i.e. L > 1.26 m,
+    // which clamped every laboratory-scale wave)
+    const double k_max = PI/dx;
 
     SLICELOOP4
     {
         // Curvature of eta
-        d2eta_dx2 = (c->eta(i + 1, j) - 2.0 * c->eta(i,j) + c->eta(i - 1, j))
+        d2eta_dx2 = (eta(i + 1, j) - 2.0 * eta(i,j) + eta(i - 1, j))
                     / (dx * dx);
 
-        d2eta_dy2 = (c->eta(i, j + 1) - 2.0 * c->eta(i,j) + c->eta(i, j - 1))
+        d2eta_dy2 = 0.0;
+        
+        if(p->j_dir==1)
+        d2eta_dy2 = (eta(i, j + 1) - 2.0 * eta(i,j) + eta(i, j - 1))
                     / (dy * dy);
 
-        eta_c = c->eta(i,j);
+        eta_c = eta(i,j);
 
         // k^2 estimate from curvature/amplitude ratio
         // Only valid where |eta| is not near zero
@@ -143,10 +145,9 @@ void fnpf_breaking::compute_local_wavenumber(lexer *p, fdm_fnpf *c,
         {
             k_est = sqrt(fabs(-(d2eta_dx2 + d2eta_dy2) / eta_c));
 
-            // Sanity bounds: k must be positive and physical
-            // Deep water: k = omega^2/g, for T=2s: k~1.0, T=20s: k~0.01
+            // Sanity bounds: k must be positive and resolved by the grid
             k_est = MAX(k_est, 0.005);
-            k_est = MIN(k_est, 5.0);
+            k_est = MIN(k_est, k_max);
         }
         else
         {
@@ -158,13 +159,18 @@ void fnpf_breaking::compute_local_wavenumber(lexer *p, fdm_fnpf *c,
 
     pgc->gcsl_start4(p, k_local, 1);
 
-    // Smooth the wavenumber field to reduce noise (3-point average)
-    // Apply one pass of spatial smoothing
+    // Smooth the wavenumber field to reduce noise
+    // Apply one pass of spatial smoothing (2D: the y neighbours are the cell itself)
     SLICELOOP4
     {
+        if(p->j_dir==1)
         k_smooth(i,j) = (1.0 / 6.0) * (k_local(i + 1, j) + k_local(i - 1, j)
                         + k_local(i, j + 1) + k_local(i, j - 1))
                         + (2.0 / 6.0) * k_local(i,j);
+        
+        if(p->j_dir==0)
+        k_smooth(i,j) = (1.0 / 6.0) * (k_local(i + 1, j) + k_local(i - 1, j))
+                        + (4.0 / 6.0) * k_local(i,j);
     }
 
     SLICELOOP4
@@ -180,7 +186,7 @@ void fnpf_breaking::compute_local_wavenumber(lexer *p, fdm_fnpf *c,
 // =====================================================================
 
 void fnpf_breaking::compute_steepness(lexer *p, fdm_fnpf *c,
-                                              ghostcell *pgc)
+                                              ghostcell *pgc, slice &eta)
 {
     double dx = p->DXM;
     double dy = p->DYM;
@@ -196,8 +202,11 @@ void fnpf_breaking::compute_steepness(lexer *p, fdm_fnpf *c,
             // Simple but tends to underestimate steepness at crests
             // (where gradient = 0) and overestimate on flanks.
 
-            deta_dx = (c->eta(i + 1, j) - c->eta(i - 1, j)) / (2.0 * dx);
-            deta_dy = (c->eta(i, j + 1) - c->eta(i, j - 1)) / (2.0 * dy);
+            deta_dx = (eta(i + 1, j) - eta(i - 1, j)) / (2.0 * dx);
+            deta_dy = 0.0;
+            
+            if(p->j_dir==1)
+            deta_dy = (eta(i, j + 1) - eta(i, j - 1)) / (2.0 * dy);
 
             S_local(i,j) = sqrt(deta_dx * deta_dx + deta_dy * deta_dy);
         }
@@ -216,14 +225,14 @@ void fnpf_breaking::compute_steepness(lexer *p, fdm_fnpf *c,
 
             k = k_local(i,j);
 
-            // Local RMS amplitude from a 5-point stencil
+            // Local RMS amplitude from a 5-point stencil (5x5 in 3D)
             double eta2_sum = 0.0;
             int count = 0;
 
             for (int di = -2; di <= 2; di++)
-            for (int dj = -2; dj <= 2; dj++)
+            for (int dj = -2*p->j_dir; dj <= 2*p->j_dir; dj++)
             {
-                eta2_sum += c->eta(i + di, j + dj) * c->eta(i + di, j + dj);
+                eta2_sum += eta(i + di, j + dj) * eta(i + di, j + dj);
                 count++;
             }
 
@@ -243,9 +252,9 @@ void fnpf_breaking::compute_steepness(lexer *p, fdm_fnpf *c,
 
             k = k_local(i,j);
 
-            deta_dx = (c->eta(i + 1, j) - c->eta(i - 1, j)) / (2.0 * dx);
+            deta_dx = (eta(i + 1, j) - eta(i - 1, j)) / (2.0 * dx);
 
-            double eta_c = c->eta(i,j);
+            double eta_c = eta(i,j);
             double hilbert_approx = 0.0;
 
             if (k > 1.0e-6)
@@ -270,7 +279,7 @@ void fnpf_breaking::compute_steepness(lexer *p, fdm_fnpf *c,
 // =====================================================================
 
 void fnpf_breaking::compute_phase_speed(lexer *p, fdm_fnpf *c,
-                                                ghostcell *pgc)
+                                                ghostcell *pgc, slice &eta)
 {
     SLICELOOP4
     {
@@ -280,8 +289,7 @@ void fnpf_breaking::compute_phase_speed(lexer *p, fdm_fnpf *c,
             // c = sqrt(g * tanh(k*h) / k)
 
             double k = k_local(i,j);
-            double h_local = p->wd + c->eta(i,j);
-            h_local = MAX(h_local, 0.01);
+            double h_local = romero_depth(p, c, eta);   // was wd + eta: ignored the bed
 
             double kh = k * h_local;
 
@@ -306,7 +314,7 @@ void fnpf_breaking::compute_phase_speed(lexer *p, fdm_fnpf *c,
             // sufficiently large and smooth the result.
 
             double dx = p->DXM;
-            double deta_dx = (c->eta(i + 1, j) - c->eta(i - 1, j)) / (2.0 * dx);
+            double deta_dx = (eta(i + 1, j) - eta(i - 1, j)) / (2.0 * dx);
 
             if (fabs(deta_dx) > 1.0e-4)
             {
@@ -333,14 +341,20 @@ void fnpf_breaking::compute_phase_speed(lexer *p, fdm_fnpf *c,
 // =====================================================================
 
 void fnpf_breaking::detect_breaking(lexer *p, fdm_fnpf *c,
-                                            ghostcell *pgc)
+                                            ghostcell *pgc, slice &eta)
 {
     double h_local;
 
     SLICELOOP4
     {
-        h_local = p->wd + c->eta(i,j);
-        h_local = MAX(h_local, 0.01);
+        // dry cells (A 343 2/3) do not break
+        if(p->wet[IJ]==0)
+        {
+            c->breaking(i,j)= 0;
+            continue;
+        }
+        
+        h_local = romero_depth(p, c, eta);   // was wd + eta: ignored the bed
 
         // --- Primary criterion: steepness exceeds threshold ---
         int steep_trigger = (S_local(i,j) > S0) ? 1 : 0;
@@ -378,20 +392,24 @@ void fnpf_breaking::detect_breaking(lexer *p, fdm_fnpf *c,
 // =====================================================================
 
 void fnpf_breaking::compute_eddy_viscosity(lexer *p, fdm_fnpf *c,
-                                                    ghostcell *pgc)
+                                                    ghostcell *pgc, slice &eta, slice &Fifsf)
 {
     double dx = p->DXM;
     double dy = p->DYM;
     double h_local, k, cp, S, b, Lb;
     double dFidx, dFidy, gradFi2;
-    double T_ramp, dt_break;
+    double detadx, detady, gradE2;
+    double T_ramp, dt_break, diss;
+    
+    // weights of the damped fields in the dissipation of the damping terms (fnpf_fsfbc::damping)
+    const double fe = (p->A357==1 || p->A357==3) ? p->A366 : 0.0;
+    const double ff = (p->A357==1 || p->A357==2) ? 1.0 : 0.0;
 
     SLICELOOP4
     {
         if (c->breaking(i,j)== 1)
         {
-            h_local = p->wd + c->eta(i,j);
-            h_local = MAX(h_local, 0.01);
+            h_local = romero_depth(p, c, eta);   // was wd + eta: ignored the bed
 
             k  = k_local(i,j);
             cp = c_phase(i,j);
@@ -415,10 +433,23 @@ void fnpf_breaking::compute_eddy_viscosity(lexer *p, fdm_fnpf *c,
             Lb = MAX(Lb, dx); // at least one grid cell
             L_break(i,j) = Lb;
 
-            // ---- Surface velocity magnitude from Fi ----
-            dFidx = (c->Fifsf(i + 1, j) - c->Fifsf(i - 1, j)) / (2.0 * dx);
-            dFidy = (c->Fifsf(i, j + 1) - c->Fifsf(i, j - 1)) / (2.0 * dy);
+            // ---- Surface gradients of the stage ----
+            dFidx = (Fifsf(i + 1, j) - Fifsf(i - 1, j)) / (2.0 * dx);
+            detadx = (eta(i + 1, j) - eta(i - 1, j)) / (2.0 * dx);
+            dFidy = 0.0;
+            detady = 0.0;
+            
+            if(p->j_dir==1)
+            {
+            dFidy = (Fifsf(i, j + 1) - Fifsf(i, j - 1)) / (2.0 * dy);
+            detady = (eta(i, j + 1) - eta(i, j - 1)) / (2.0 * dy);
+            }
+            
             gradFi2 = dFidx * dFidx + dFidy * dFidy;
+            gradE2  = detadx * detadx + detady * detady;
+            
+            // dissipation rate of the damping terms per unit viscosity (/rho)
+            diss = fe * 9.81 * gradE2 + ff * k * tanh(k*h_local) * gradFi2;
 
             // ---- Temporal ramp B(t) ----
             // T_ramp = T_star * sqrt(h/g)
@@ -434,22 +465,19 @@ void fnpf_breaking::compute_eddy_viscosity(lexer *p, fdm_fnpf *c,
             B_ramp(i,j) = MAX(B_ramp(i,j), 0.0);
 
             // ---- Eddy viscosity via energy matching ----
-            // c->vb = B(t) * b(S) * c^5 / (g * L_b * |grad_H(Fi)|^2)
-            if (gradFi2 > 1.0e-10 && b > 0.0)
+            // c->vb = B(t) * b(S) * c^5 / (g * L_b * diss)
+            // floor for a very small surface signal: 1e-3 of the phase average of diss for a
+            // linear wave, 0.5*(fe + ff) * g * S^2 (replaces the former fallback
+            // b*c/(2 pi alpha_L S^2), which had the dimension m/s as well)
+            if (b > 0.0 && (fe + ff) > 0.0)
             {
-                c->vb(i,j) = B_ramp(i,j) * b * pow(cp, 5.0)
-                             / (9.81 * Lb * gradFi2);
-            }
-            else if (b > 0.0)
-            {
-                // Fallback when surface velocity is very small:
-                // Use the simplified deep-water expression
-                // c->vb = B(t) * b * c / (2*pi * alpha_L * S^2)
-                if (S > 1.0e-6)
-                    c->vb(i,j) = B_ramp(i,j) * b * cp
-                                 / (2.0 * PI * alpha_L * S * S);
+                diss = MAX(diss, 1.0e-3 * 0.5 * (fe + ff) * 9.81 * S * S);
+                
+                if (diss > 1.0e-12)
+                c->vb(i,j) = B_ramp(i,j) * b * pow(cp, 5.0) / (9.81 * Lb * diss);
+                
                 else
-                    c->vb(i,j) = 0.0;
+                c->vb(i,j) = 0.0;
             }
             else
             {
