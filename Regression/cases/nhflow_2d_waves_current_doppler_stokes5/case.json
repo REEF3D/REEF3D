@@ -1,0 +1,10 @@
+{
+ "base": "nhflow_2d_waves_current_doppler",
+ "ctrl_set": {"B 92": "5", "B 93": "0.3 4.0"},
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 400,
+ "description": "5th-order Stokes waves (H 0.3 m, T 4 s, h 5 m) on a following current (B 514, U 1 m/s, spin-up 30 s) with Doppler (B 530 2 10): iowave re-solves k from the linear Doppler relation, the Stokes library refines it with its own 5th-order dispersion relation (omega = k (c_E + U_n)) and recomputes its coefficients; Riemann edges, generation zone and beach with the background.",
+ "tags": ["quick", "2d", "nhflow", "iowave", "bc_zone", "background", "doppler", "stokes5"],
+ "covers": ["B 530 mode 2 with B 92 5", "wave_lib_Stokes_5th wave_comp_set / wave_comp_update"]
+}

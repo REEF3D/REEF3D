@@ -421,6 +421,7 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `nhflow_3d_tide_ychannel` (+ `_mpi2`) | 1/2 | tidal channel along y: Riemann edge at y- (B 520 method 3), Flather edge at y+ (method 4), progressive background at 90 deg; `_mpi2` splits the ranks in y |
 | `nhflow_3d_tide_oblique` (+ `_mpi2`) | 1/2 | oblique tide (30 deg) in a basin with open edges on all four sides: Riemann at x- and y-, Flather at x+ and y+; `_mpi2` splits the ranks in x |
 | `nhflow_2d_waves_current_doppler` (+ `_mpi2`) | 1/2 | linear waves on a following current (B 514) with Doppler (B 530 2 10): k from omega = sigma + k U, blended during the current spin-up |
+| `nhflow_2d_waves_current_doppler_stokes5` | 1 | 5th-order Stokes waves (B 92 5) on the following current with Doppler (B 530 2 10): the Stokes library refines k with its own dispersion relation omega = k (c_E + U_n) and recomputes its coefficients (needs patch 0001, NHFLOW Wave Current Scour Protection) |
 | `nhflow_2d_waves_setup_heff` | 1 | linear waves on a 1 m set-up (B 514 eta) with B 530 1 10: k on h_eff |
 | `nhflow_2d_tide_waves_doppler` | 1 | `nhflow_2d_tide_waves_beach` with B 530 2 10: k follows the tide level and current |
 | `nhflow_2d_irregular_current_doppler` | 1 | JONSWAP irregular waves (B 92 31, 20 components) on a following current with B 530 2 10: k of every component, cached phases rebuilt |
