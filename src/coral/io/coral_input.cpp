@@ -664,11 +664,12 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
             p.Cdn = it.get("Cdn", p.Cdn); p.Cdt = it.get("Cdt", p.Cdt); p.Can = it.get("Can", p.Can); p.Cat = it.get("Cat", p.Cat);
             p.kb = it.get("kb", p.kb); p.cb = it.get("cb", p.cb); p.mu = it.get("mu", 0.0);
             p.rho = rho;
+            // the seabed: at the ground end (the lower of two), none between two bodies (shared lines)
+            const double zbed = it.has("no_seabed") ? -1.0e30 : it.get("seabed", default_seabed(ea, eb));
             if(type=="quasi_static")
-                m.add_load(std::make_unique<mooring_qs>(m, ea, eb, p, name));
+                m.add_load(std::make_unique<mooring_qs>(m, ea, eb, p, name, zbed));
             else if(type=="dynamic")
             {
-                const double zbed = it.get("seabed", std::min(ea.p(2), eb.p(2)));
                 auto l = std::make_unique<mooring_line>(m, ea, eb, p, (int)it.get("nseg", 20), kin, it.vec("current", Vec3::Zero()),
                                                         zbed, it.get("dt_line", 0.0), name);
                 if(it.has("settle"))

@@ -22,8 +22,13 @@ Architect: Hans Bihs
 // REEF3D::CORAL: mooring lines between two attachment points (anchor on the ground: body -1, fairlead
 // on a body; or between two bodies).
 //
-// mooring_qs: quasi-static elastic catenary (coral_catenary) in the vertical plane through both ends,
-// seabed at the height of the lower end; the force follows the current positions instantly.
+// mooring_qs: quasi-static elastic catenary (coral_catenary) in the vertical plane through both ends; the
+// force follows the current positions instantly. The line has a seabed portion (friction CB) only if its
+// lower end is a ground end on the seabed; otherwise (lines between two bodies, an anchor above the
+// seabed, CB < 0) it hangs free between its ends.
+//
+// The seabed of a line (default_seabed): the height of its ground end (the lower one if both are on the
+// ground); a line between two bodies (a shared line, a bridle) has none.
 //
 // mooring_line: dynamic lumped-mass line (MoorDyn type): N segments, the N-1 inner nodes carry mass,
 // added mass (normal and tangential), submerged weight, axial stiffness EA (no compression) and axial
@@ -43,6 +48,7 @@ Architect: Hans Bihs
 #include"coral/core/coral_state.h"
 #include"coral/mooring/coral_catenary.h"
 #include"coral/hydro/coral_waves.h"
+#include<limits>
 #include<memory>
 #include<string>
 #include<vector>
@@ -54,6 +60,10 @@ namespace coral
         int body = -1;               // -1: ground
         Vec3 p = Vec3::Zero();       // global position at creation
     };
+
+    // the seabed height of a line between a and b: the z of its ground end (the lower of two), none
+    // (-1e30) between two bodies
+    double default_seabed(const mooring_end &a, const mooring_end &b);
 
     struct mooring_props
     {
@@ -72,7 +82,9 @@ namespace coral
     class mooring_qs : public load
     {
     public:
-        mooring_qs(const model&, const mooring_end &a, const mooring_end &b, const mooring_props&, const std::string &name="mooring");
+        // z_seabed: NaN for default_seabed
+        mooring_qs(const model&, const mooring_end &a, const mooring_end &b, const mooring_props&, const std::string &name="mooring",
+                   double z_seabed=std::numeric_limits<double>::quiet_NaN());
         std::string name() const override {return name_;}
         coupling_kind coupling() const override {return coupling_kind::local;}
         void coupled_bodies(std::vector<int> &b) const override {b.push_back(ba_); b.push_back(bb_);}
@@ -92,6 +104,7 @@ namespace coral
         Vec3 sa_, sb_;
         mooring_props pr_;
         catenary_line cl_;
+        int bed_end_ = -1;             // 0: a, 1: b is the ground end on the seabed (seabed portion), -1: none
         mutable double H_ = -1.0, V_ = 0.0;
     };
 

@@ -31,11 +31,26 @@ namespace coral
 
 static double gmag(const model &m) {return m.gravity.norm() > 0.0 ? m.gravity.norm() : 9.81;}
 
+double default_seabed(const mooring_end &a, const mooring_end &b)
+{
+    if(a.body < 0 && b.body < 0) return std::min(a.p(2), b.p(2));
+    if(a.body < 0) return a.p(2);
+    if(b.body < 0) return b.p(2);
+    return -1.0e30;
+}
+
 // ---------------------------------------------------------------- quasi-static
 
-mooring_qs::mooring_qs(const model &m, const mooring_end &a, const mooring_end &b, const mooring_props &p, const std::string &name)
+mooring_qs::mooring_qs(const model &m, const mooring_end &a, const mooring_end &b, const mooring_props &p, const std::string &name,
+                       double z_seabed)
     : name_(name), ba_(a.body), bb_(b.body), pr_(p)
 {
+    // the seabed portion: at a ground end on (or below) the seabed, the lower ground end of two
+    const double zbed = std::isnan(z_seabed) ? default_seabed(a, b) : z_seabed;
+    const double tol = 1.0e-6*std::max(p.L, 1.0);
+    const bool a_bed = a.body < 0 && a.p(2) <= zbed + tol, b_bed = b.body < 0 && b.p(2) <= zbed + tol;
+    if(p.CB >= 0.0 && (a_bed || b_bed))
+        bed_end_ = (a_bed && (!b_bed || a.p(2) <= b.p(2))) ? 0 : 1;
     sa_ = m.body(a.body).to_body(a.p);
     sb_ = m.body(b.body).to_body(b.p);
     cl_.L = p.L;
@@ -56,17 +71,21 @@ void mooring_qs::forces(const model &m, Vec3 &Fa, Vec3 &Fb) const
     dh(2) = 0.0;
     const double xF = dh.norm();
     const Vec3 eh = xF > 0.0 ? Vec3(dh/xF) : Vec3::UnitX();
+    // seabed portion only from the ground end on the seabed while it is the lower end
+    catenary_line cl = cl_;
+    if(bed_end_ < 0 || (bed_end_==0) != a_low)
+        cl.CB = -1.0;
     double H = H_, V = V_;
-    if(!catenary_solve(cl_, xF, zF, H, V))
+    if(!catenary_solve(cl, xF, zF, H, V))
     {
         H = -1.0;
-        if(!catenary_solve(cl_, xF, zF, H, V))
+        if(!catenary_solve(cl, xF, zF, H, V))
             throw std::runtime_error("coral::mooring_qs: no catenary solution for line " + name_);
     }
     H_ = H;
     V_ = V;
     double HA, VA;
-    catenary_anchor(cl_, H, V, HA, VA);
+    catenary_anchor(cl, H, V, HA, VA);
     const Vec3 Fup = -H*eh - V*Vec3::UnitZ();
     const Vec3 Flo = HA*eh + VA*Vec3::UnitZ();
     Fa = a_low ? Flo : Fup;
