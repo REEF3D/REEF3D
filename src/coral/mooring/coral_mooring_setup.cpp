@@ -389,7 +389,9 @@ void mooring_system::update_dt()
         for(const auto &e : P.ends)
             M += 0.5*lines_[e.first].p.mass*lines_[e.first].l;
         const double rv = std::cbrt(0.75*p.volume/M_PI);
-        const double rc = p.radius >= 0.0 ? p.radius : std::max(rv, 0.05);
+        const double rc = p.radius >= 0.0 ? p.radius : rv;
+        if(rc <= 0.0)
+            continue;
         const double Ac = M_PI*rc*rc;
         if(p.kb > 0.0 && M > 0.0)
             dt = std::min(dt, 0.5*std::sqrt(M/(p.kb*Ac)));

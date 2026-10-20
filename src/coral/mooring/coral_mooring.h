@@ -134,15 +134,16 @@ namespace coral
     // a free point of a mooring system (MoorDyn's free points): a bridle node, a clump weight, a buoy, the
     // junction of two lines. Its mass, buoyancy (volume, by the submerged fraction of the volume-equivalent
     // sphere), drag 1/2 rho CdA |u - v| (u - v), added mass rho V Ca and Froude-Krylov force rho V (1 + Ca) du/dt,
-    // seabed contact (penalty kb, damping cb on the contact area pi r^2, friction mu) act together with the
-    // ends of the attached lines (their tension, the weight, drag and added mass of the end half-segments).
+    // seabed contact of a sphere (penalty kb, damping cb on the contact area pi r^2, friction mu; without a
+    // radius or volume none of its own) act together with the ends of the attached lines (their tension, the
+    // weight, drag, added mass and seabed contact of the end half-segments).
     struct mooring_point_props
     {
         double mass = 0.0;           // [kg]
         double volume = 0.0;         // displaced volume [m^3]
         double CdA = 0.0;            // drag coefficient times area [m^2]
         double Ca = 0.0;             // added mass coefficient (of rho V)
-        double radius = -1.0;        // contact radius on the seabed (< 0: of the volume-equivalent sphere, at least 0.05 m)
+        double radius = -1.0;        // contact radius on the seabed (< 0: of the volume-equivalent sphere; 0: none of its own)
         double kb = 3.0e6, cb = 3.0e5, mu = 0.0, v_eps = 0.01;
     };
 

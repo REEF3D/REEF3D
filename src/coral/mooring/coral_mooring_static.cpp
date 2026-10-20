@@ -242,13 +242,28 @@ bool mooring_system::point_statics(const model &m)
             const double rv = std::cbrt(0.75*p.volume/M_PI), hz = std::max(2.0*rv, 0.1);
             const double fs = std::clamp((eta - Q[j](2))/hz + 0.5, 0.0, 1.0);
             Vec3 F = (p.mass - fs*rho*p.volume)*m.gravity;
-            const double rc = p.radius >= 0.0 ? p.radius : std::max(rv, 0.05);
+            const double rc = p.radius >= 0.0 ? p.radius : rv;
             double zb = Pt.zbed;
             Vec3 nb = Vec3::UnitZ();
-            if(Pt.surf || Pt.fbed)
+            if(rc > 0.0 && (Pt.surf || Pt.fbed))
                 seabed_at(Pt.idx, Q[j], Pt.surf, Pt.fbed, zb, nb);
-            if(Q[j](2) - rc/nb(2) < zb)
+            if(rc > 0.0 && Q[j](2) - rc/nb(2) < zb)
                 F += p.kb*((zb - Q[j](2))*nb(2) + rc)*M_PI*rc*rc*nb;
+            // the seabed contact of the end nodes of its lines (their half-segments), as in the dynamics: it
+            // holds a point without a sphere of its own (a junction on the seabed) at the line's depth
+            for(const auto &e : Pt.ends)
+            {
+                const line_t &L = lines_[e.first];
+                if(!(L.p.kb > 0.0) || !(L.zbed > -1.0e29))
+                    continue;
+                double zl = L.zbed;
+                Vec3 nl = Vec3::UnitZ();
+                if(L.surf || L.fbed)
+                    seabed_at(L.off + (e.second==0 ? 0 : L.N), Q[j], L.surf, L.fbed, zl, nl);
+                const double pen = (zl - Q[j](2))*nl(2);
+                if(pen > 0.0)
+                    F += L.p.kb*pen*L.p.d*0.5*L.l*nl;
+            }
             R.segment<3>(3*j) += F;
         }
     };

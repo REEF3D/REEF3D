@@ -402,13 +402,15 @@ void mooring_system::accel(const state &s, double t, std::vector<Vec3> &a, doubl
             if(kmode_==1 || kmode_==2)
                 F += fs*rho*p.volume*(1.0 + p.Ca)*aw;
         }
-        // seabed: contact of the sphere of the contact radius (along the normal of a surface or the fluid's bed)
+        // seabed: contact of the sphere of the contact radius (along the normal of a surface or the fluid's bed);
+        // a point without a radius or volume (a junction, a bridle node) has none of its own, its line ends
+        // touch the seabed like the line's nodes
+        const double rc = p.radius >= 0.0 ? p.radius : rv;
         double zb = P.zbed;
         Vec3 nb = Vec3::UnitZ();
-        if(P.surf || P.fbed)
+        if(rc > 0.0 && (P.surf || P.fbed))
             seabed_at(i, x, P.surf, P.fbed, zb, nb);
-        const double rc = p.radius >= 0.0 ? p.radius : std::max(rv, 0.05);
-        if(x(2) - rc/nb(2) < zb)
+        if(rc > 0.0 && x(2) - rc/nb(2) < zb)
         {
             const double Ac = M_PI*rc*rc;
             const double Fz = std::max(0.0, (p.kb*((zb - x(2))*nb(2) + rc) - p.cb*vx.dot(nb))*Ac);

@@ -97,7 +97,7 @@ Architect: Hans Bihs
 //        (a free point of a mooring system: bridle node, clump weight, buoy, junction of two lines; dynamic lines
 //        end on it with 'a <point>' or 'b <point>' (no coordinates); weight, buoyancy of the submerged volume,
 //        drag 1/2 rho CdA |u - v| (u - v), added mass rho V Ca, seabed contact of a sphere of the radius (default:
-//        volume-equivalent); the lines connected through points form one mooring system (advanced together),
+//        volume-equivalent; without volume or radius only the line ends touch the seabed); the lines connected through points form one mooring system (advanced together),
 //        whose seabed defaults to the lowest ground end of its lines; channels <point>_x, _y, _z)
 //   morison <name> body <b> p1 <x y z> p2 <x y z> D <D> [Cd <c>] [Ca <c>] [Cm <c>] [n <n>] [current <u v w>]
 //   morison <name> member <m> [D <D>] [Cd <c>] [Ca <c>] [Cm <c>] [n <strips per element>] [current <u v w>]
