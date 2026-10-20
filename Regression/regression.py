@@ -110,9 +110,10 @@ BULK_OUTPUT = ["REEF3D_CFD_VTU", "REEF3D_CFD_6DOF_VTP", "REEF3D_CFD_6DOF_Normals
 
 LEVELS = ["identical", "close", "different", "failed"]
 
-# text outputs of measured quantities (the load maps of the rebalance, G 45: wall-clock times): not compared
+# text outputs of measured quantities (the load maps of the rebalance, G 45, and the times of the pipeline: wall-clock
+# times): not compared
 def measured(fn):
-    return fn.endswith("_loadmap.dat")
+    return fn.endswith("_loadmap.dat") or fn.endswith("_pipeline.dat")
 
 
 # ----------------------------------------------------------------------------------------------
