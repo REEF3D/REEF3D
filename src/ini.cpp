@@ -117,6 +117,10 @@ void control::ini_default()
     A362=2;      // int breaking filter inner iter
     A365=1.86;   // double viscosity breaking wave
     A366=1.0;   // double viscosity breaking wave alpha_eta
+    A359=0.85;   // double breaking A350 4: onset threshold of B = u_s/C at the crest
+    A360=8.0;    // double breaking A350 4: termination when the largest front-face slope is below this angle (deg)
+    A364=1.0;    // double breaking A350 4: coefficient of the bore (hydraulic jump) dissipation g C H^3/(4 h_c)
+    A367=1;      // int breaking A350 4: deep-water breaking strength b(Gamma) of Derakhti et al. (2018): 1 on, 0 off
     
     A370=0;      // int wind model
     A371_u=0.0;  // double wind velocity

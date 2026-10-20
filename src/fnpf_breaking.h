@@ -26,6 +26,9 @@ Author: Hans Bihs
 #include"fnpf_fsf.h"
 #include"sliceint4.h"
 #include"slice4.h"
+#include<vector>
+#include<deque>
+#include<fstream>
 
 class fnpf_laplace;
 class field;
@@ -51,10 +54,17 @@ public:
     
     // romero
     void breaking_romero(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&,slice&,double);
+    
+    // A 350 4: crest tracking, onset B = u_s/C (Barthelemy et al. 2018), bore / D18 strength
+    void breaking_barthelemy(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&,slice&,double);
+    void bt_filter(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&,slice&,double);
 
     
     
     void filter(lexer*, fdm_fnpf*,ghostcell*, slice&, int, int);
+    
+    // coastline / wet-dry front viscosity A346 (A343 1/2/3)
+    void coast_viscosity(lexer*, fdm_fnpf*, ghostcell*);
 
     double ivel,jvel,kvel;
     
@@ -112,6 +122,20 @@ private:
     double alpha_L;       // breaking zone width fraction
     double vb_max;      // maximum eddy viscosity limiter
     double eta_t_thresh;  // optional eta_t pre-filter threshold coefficient
+    
+    // A 350 4: tracked crests
+    struct bt_crest
+    {
+        int row=0, id=0, state=0;
+        bool hasC=false;
+        double x=0.0, eta=0.0, us=0.0, wl=0.0, C=0.0, B=0.0, b=0.0, ton=-1.0e20, eps=0.0, nu=0.0, dpn=0.0;
+        std::deque<std::pair<double,double>> xh, Bh;   // (t, x) and (t, B) history
+    };
+    std::vector<bt_crest> bt_crests;
+    int bt_count=0, bt_nextid=0;
+    double bt_time=-1.0e20;
+    double bt_db=-1.0e20;   // still-water depth of the deepest breaking onset (surf zone of the A352 filter)
+    std::ofstream bt_log;
     
     int steep_method;     // steepness computation method
     int cspeed_method;    // phase speed computation method

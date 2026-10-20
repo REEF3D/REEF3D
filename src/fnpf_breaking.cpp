@@ -109,5 +109,8 @@ void fnpf_breaking::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, 
     
     if(p->A350==3)
     breaking_romero(p, c, pgc, eta, eta_n, Fifsf, alpha);
+    
+    if(p->A350==4)
+    breaking_barthelemy(p, c, pgc, eta, eta_n, Fifsf, alpha);
 }
 

@@ -2313,6 +2313,7 @@
           <File Name="fnfp_breaking_baquet_wd.cpp"/>
           <File Name="fnpf_breaking_baquet.cpp"/>
           <File Name="fnpf_breaking_romero.cpp"/>
+          <File Name="fnpf_breaking_barthelemy.cpp"/>
           <File Name="fnpf_breaking_relaxfunc.cpp"/>
           <File Name="fnfp_breaking_kennedy.cpp"/>
           <File Name="fnpf_breaking_filter.cpp"/>
