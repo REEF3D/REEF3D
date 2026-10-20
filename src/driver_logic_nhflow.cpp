@@ -42,6 +42,7 @@ Author: Hans Bihs
 #include"6DOF_nhflow.h"
 #include"dem_header.h"
 #include"nhflow_amr.h"
+#include"nhflow_longrun.h"
 #include<fstream>
 #include<sstream>
 #include<string>
@@ -340,6 +341,10 @@ void driver::logic_nhflow()
     // multi-block grid (G 50 1, DIVEMesh R 20 1): the blocks 1.. are level-0 patches of the hierarchy
     if(p->G1>0 || p->geo_mb>0)
     pnhfamr = new nhflow_amr(p,d,pgc,pnhfmom,pnhfconvec,pnhfstep,p6dof);
+
+// long-run statistics (P 160): harmonic analysis and time averages
+    if(p->P160>0)
+    plongrun = new nhflow_longrun(p);
 
 //Lagrangian particles
     if(p->L10==0)

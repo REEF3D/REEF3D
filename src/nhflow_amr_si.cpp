@@ -23,7 +23,11 @@ Author: Hans Bihs
 #include"nhflow_amr.h"
 #include"nhflow_amr_fill.h"
 #include"nhflow_momentum_SI.h"
+#include"nhflow_longrun.h"
 #include"si_eta2D.h"
+#include"reefmg2D.h"
+#include"vec2D.h"
+#include"matrix2D.h"
 #include"reefamr_krylov.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
@@ -46,7 +50,8 @@ Author: Hans Bihs
 //   per predictor stage:  si_stage_vel, fill U, V, W, si_stage_rhs
 //   si_predictor_end, fill UHD, VHD, si_assemble   the eta system of every block (si_eta2D::build)
 //   si_solve                         one eta system over the own cells of all blocks: BiCGStab
-//                                    (reefamr_bicgstab) with the Jacobi preconditioner; the cells
+//                                    (reefamr_bicgstab), preconditioned by one REEFMG2D V-cycle per
+//                                    grid on its own rows (restricted additive Schwarz); the cells
 //                                    around the blocks and the ring are filled from the vectors in
 //                                    every product (xslice), so a face between two blocks couples
 //                                    them as an interior face; the wetting and drying iteration over
@@ -132,6 +137,8 @@ void nhflow_amr::si_setup()
         ++n;
         }
 
+        sinrow.push_back(n);
+
         for(int v=0; v<SINV; ++v)
         {
         slice *s = new slice4(q);
@@ -140,6 +147,31 @@ void nhflow_amr::si_setup()
         (*s)(ii,jj) = 0.0;
         sivec[gi].push_back(s);
         }
+    }
+
+    // P7: the V-cycle preconditioner of every grid (native: over its ranks; blocks: on their rank)
+    simg.assign(sigrid.size(),nullptr);
+    sir.assign(sigrid.size(),nullptr);
+    siz.assign(sigrid.size(),nullptr);
+    sirebuild.assign(sigrid.size(),1);
+
+    for(size_t gi=0; gi<sigrid.size(); ++gi)
+    {
+        const int g = sigrid[gi];
+        lexer *q = glex(g);
+
+        if(g<0)
+        simg[gi] = new reefmg2D(q,sipgc);
+
+        else
+        {
+            comms_off guard(sipgc);
+            pscope ps(sipgc,NP(g)->d,d0);
+            simg[gi] = new reefmg2D(q,sipgc,true);
+        }
+
+        sir[gi] = new vec2D(q,max(sinrow[gi],1));
+        siz[gi] = new slice4(q);
     }
 }
 
@@ -299,15 +331,36 @@ void nhflow_amr::si_apply(int x, int y)
 
 void nhflow_amr::si_prec(int r, int z)
 {
+    // one V-cycle per grid on the residual of its own rows (zero on the cells around it), the result
+    // on its own rows: restricted additive Schwarz over the grids with a multigrid subdomain solve
     for(size_t gi=0; gi<sigrid.size(); ++gi)
     {
-        const matrix2D &M = gsi(sigrid[gi])->psi->mat();
+        const int g = sigrid[gi];
+        lexer *q = glex(g);
+        matrix2D &M = const_cast<matrix2D&>(gsi(g)->psi->mat());
         slice &R = *sivec[gi][r];
         slice &Z = *sivec[gi][z];
+        vec2D &rv = *sir[gi];
         const vector<int> &w = sirow[gi];
 
-        for(size_t q=0; q<w.size(); q+=3)
-        Z(w[q],w[q+1]) = R(w[q],w[q+1])/M.p[w[q+2]];
+        std::fill(rv.V.begin(),rv.V.end(),0.0);
+        for(size_t k=0; k<w.size(); k+=3)
+        rv.V[w[k+2]] = R(w[k],w[k+1]);
+
+        if(g<0)
+        simg[gi]->vcycle(q,sipgc,*siz[gi],M,rv,sirebuild[gi]);
+
+        else
+        {
+            comms_off guard(sipgc);
+            pscope ps(sipgc,NP(g)->d,d0);
+            simg[gi]->vcycle(q,sipgc,*siz[gi],M,rv,sirebuild[gi]);
+        }
+
+        sirebuild[gi] = 0;
+
+        for(size_t k=0; k<w.size(); k+=3)
+        Z(w[k],w[k+1]) = (*siz[gi])(w[k],w[k+1]);
     }
 }
 
@@ -425,6 +478,10 @@ void nhflow_amr::si_solve(lexer *p, ghostcell *pgc)
             (*sivec[gi][SIX])(w[k],w[k+1]) = m->etaI(w[k],w[k+1]);
             }
         }
+
+        // the matrices changed: the preconditioner coarsens again at its first use (keeping the
+        // hierarchy over the passes of the wetting and drying iteration doubles the iterations)
+        std::fill(sirebuild.begin(),sirebuild.end(),1);
 
         si_apply(SIX,si_space::VV);
 
@@ -668,5 +725,16 @@ void nhflow_amr::dt_si_cmin(double cfl, double &cmin, double &hmax)
                 }
             }
         }
+    }
+}
+
+// long-run statistics (P 160): the blocks 1.. (their own cells)
+void nhflow_amr::longrun_grids(nhflow_longrun *lr)
+{
+    for(int id : lev[0])
+    {
+        nhflow_amr_patch *c = NP(id);
+        reefamr_patch *q = P[id];
+        lr->add_grid(c->pp,c->d,EXT,EXT+q->nx,EXT,EXT+q->ny);
     }
 }

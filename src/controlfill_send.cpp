@@ -1859,6 +1859,14 @@ void control::ctrlsend()
     ii++;
     ictrl[ii] = P152;
     ii++;
+    ictrl[ii] = P160;
+    ii++;
+    dctrl[dd] = P160_ts;
+    dd++;
+    dctrl[dd] = P160_dt;
+    dd++;
+    dctrl[dd] = P161;
+    dd++;
     ictrl[ii] = P166;
     ii++;
     ictrl[ii] = P167;

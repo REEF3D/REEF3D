@@ -940,6 +940,10 @@ void control::ini_default()
 	P150=0;			  // int number of data points to read from grid file
 	P151=1;			  // int type of data
 	P152=4;			  // int type of boundary condition for data
+    P160=0;            // int NHFLOW long-run statistics (P 160 t0 dt_out): harmonic analysis and time averages
+    P160_ts=0.0;
+    P160_dt=0.0;
+    P161=1.0;          // double NHFLOW long-run statistics: Rayleigh criterion of the constituents
     P166=0;			  // int print discharge to terminal
 	P167=0;			  // int discharge gages in x-direction
     P168=0;			  // int discharge gages in x-direction

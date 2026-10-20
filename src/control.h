@@ -431,6 +431,8 @@ public:
     int P47;
     int P48;                    // checkpoints every P 48 steps (reefckpt)
     double P47_ts,P47_te;
+    int P160;
+    double P160_ts,P160_dt,P161;
     double *P50_x,*P50_y;
     double *P51_x,*P51_y;
     double *P52_y,*P56_x;

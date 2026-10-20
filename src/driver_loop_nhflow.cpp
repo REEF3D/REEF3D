@@ -41,6 +41,7 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"seastate_nhflow.h"
 #include"nhflow_amr.h"
+#include"nhflow_longrun.h"
 #include"regression_dump.h"
 #include"coral/reef3d/coral_reef3d.h"
 #include"runlog.h"
@@ -114,6 +115,10 @@ void driver::loop_nhflow()
 
         //timestep control
         p->simtime+=p->dt;
+
+        // long-run statistics (P 160), weight dt of the step just done
+        if(plongrun!=nullptr)
+        plongrun->step(p,d,pgc,pnhfamr);
         
         // Lagrangian particles: Heun corrector with the new field, exchange, output
         pnhfpart->step_end(p,d,pgc);

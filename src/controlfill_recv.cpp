@@ -1852,6 +1852,14 @@ void control::ctrlrecv()
     ii++;
     P152 = ictrl[ii];
     ii++;
+    P160 = ictrl[ii];
+    ii++;
+    P160_ts = dctrl[dd];
+    dd++;
+    P160_dt = dctrl[dd];
+    dd++;
+    P161 = dctrl[dd];
+    dd++;
     P166 = ictrl[ii];
     ii++;
     P167 = ictrl[ii];

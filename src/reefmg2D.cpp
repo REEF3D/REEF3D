@@ -65,8 +65,46 @@ reefmg2D::reefmg2D(lexer *p, ghostcell *pgc)
     topology(p,pgc);
 }
 
+reefmg2D::reefmg2D(lexer *p, ghostcell *pgc, bool loc)
+{
+    solve_mode = 1;
+
+    presweep  = 1;
+    postsweep = 1;
+
+    mg.set_sweepstyle(p->N12==1 ? 1 : 0);
+    mg.set_ordering(p->N12==2 ? 1 : 0);
+    mg.set_precision(p->N14==32 ? 32 : 64);
+    mg.set_agglomeration(0);
+
+    Mcur=0;
+    mg.set_fine_operator(this);
+
+    local = loc;
+
+    if(local)
+    {
+        int dims[2]={1,1}, per[2]={0,0};
+        MPI_Cart_create(MPI_COMM_SELF,2,dims,per,0,&cartc);
+        npx = npy = 1;
+        ndir = (p->knoy>1) ? 2 : 1;
+
+        if(!mg.setup(cartc,p->knox,p->knoy,1,p->knox,p->knoy,p->N13,
+                     p->DXN+p->marge-1, p->DYN+p->marge-1))
+        {
+            cout<<"REEFMG2D (local) "<<mg.err()<<endl;
+            MPI_Abort(MPI_COMM_WORLD,-2765);
+        }
+    }
+
+    else
+    topology(p,pgc);
+}
+
 reefmg2D::~reefmg2D()
 {
+    if(cartc!=MPI_COMM_NULL)
+    MPI_Comm_free(&cartc);
 }
 
 void reefmg2D::topology(lexer *p, ghostcell *pgc)
@@ -432,10 +470,15 @@ double reefmg2D::fill(lexer *p, ghostcell *pgc, reefmg_core &core, slice &f, mat
     if(err)
     p->solver_error=1;
 
+    if(!local)
+    {
     excmax=pgc->globalmax(excmax);
+    ldx=pgc->globalmax(ldx);
+    }
+
     singular=(excmax<1.0e-10);
 
-    return pgc->globalmax(ldx);
+    return ldx;
 }
 
 void reefmg2D::fillback(lexer *p, reefmg_core &core, slice &f)
