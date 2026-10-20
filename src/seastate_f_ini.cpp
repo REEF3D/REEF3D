@@ -246,7 +246,7 @@ void seastate_f::ini_common(lexer *p, ghostcell *pgc, bool coupled_)
     }
         if(p->mpirank==0)
         cout<<"SEASTATE sweeps pipelined across the "<<p->M10<<" ranks (A 781 1)"
-            <<(kba ? ": the result of one rank" : ": not possible, the ranks are not aligned; each rank from the halo of the last exchange")<<endl;
+            <<(kba ? ": the result of one rank; tiles of "+std::to_string(psolv->pipeline_tile(0))+" x "+std::to_string(psolv->pipeline_tile(1))+" cells" : ": not possible, the ranks are not aligned; each rank from the halo of the last exchange")<<endl;
     }
 
     // Phase 12: FAS on a uniform grid (A 758 without mesh refinement): a V-cycle over coarse grids of 2 x 2 cells
@@ -287,7 +287,7 @@ void seastate_f::ini_common(lexer *p, ghostcell *pgc, bool coupled_)
         pamr->pipeline_setup(p,pgc);
             if(p->mpirank==0)
             cout<<"SEASTATE sweeps pipelined across the "<<p->M10<<" ranks (A 781 1) with the composite sweep of the refinement (A 797 1)"
-                <<(kba ? ": the result of one rank" : ": not possible, the ranks are not aligned; each rank from the halo of the last exchange")<<endl;
+                <<(kba ? ": the result of one rank; tiles of "+std::to_string(psolv->pipeline_tile(0))+" x "+std::to_string(psolv->pipeline_tile(1))+" cells" : ": not possible, the ranks are not aligned; each rank from the halo of the last exchange")<<endl;
         }
 
         // the level-by-level sweeps (A 797 0) are not pipelined: their result depends on the order of the patches of a level,

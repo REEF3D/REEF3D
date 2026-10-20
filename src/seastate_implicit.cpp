@@ -35,6 +35,8 @@ Architect: Hans Bihs
 #include<algorithm>
 #include<atomic>
 #include<chrono>
+#include<cstdio>
+#include<cstdlib>
 #include<condition_variable>
 #include<memory>
 #include<mutex>
@@ -44,6 +46,8 @@ Architect: Hans Bihs
 
 namespace
 {
+using kclk = std::chrono::steady_clock;
+
 // Phase 12: persistent worker threads for the threaded sweeps (A 798). A sweep hands a job to the
 // workers and works its own share; the workers stay awake for a short time after a job (the next
 // sweep of a patch follows within microseconds), then sleep until the next one.
@@ -215,8 +219,14 @@ void seastate_implicit::iterate(lexer *p, ghostcell *pgc, fdm_seastate *e, seast
     {
     sweep(p,e,q,N0,rdt,Nb,side,refraction,fshift);
 
-    if(pex!=nullptr)
-    pex->start(p,pgc,*e->N);
+        if(pex!=nullptr)
+        {
+        const auto t0 = kclk::now();
+        pex->start(p,pgc,*e->N);
+        // Phase 19: the halo exchange after a pipelined sweep (it waits for the ranks still in the sweep)
+        if(pipelined_sweep())
+        kst.exch += std::chrono::duration<double>(kclk::now()-t0).count();
+        }
     }
 }
 
@@ -348,8 +358,10 @@ void seastate_implicit::sweep_threads(lexer *p, fdm_seastate *e, int q, const se
     // sweep, and the result is that of the serial sweep. Unlike the cell diagonals (Phase 7b), the tiles keep the
     // upwind neighbours of a cell in the cache of its thread: on the sparse swell spectra the cells took 22 % more time
     // with 2 threads than alone. The thread that finishes a tile goes on with the next tile in j if it is ready
-    const int tb = kba ? ktb : tile_size(ni,nj,nt);
-    const int nI = (ni+tb-1)/tb, nJ = (nj+tb-1)/tb, ntile = nI*nJ;
+    // Phase 19: pipelined, tiles of tbI x tbJ cells: thin across a rank boundary (pipeline)
+    const int tbs = kba ? 16 : tile_size(ni,nj,nt);
+    const int tbI = kba ? ktbI : tbs, tbJ = kba ? ktbJ : tbs;
+    const int nI = (ni+tbI-1)/tbI, nJ = (nj+tbJ-1)/tbJ, ntile = nI*nJ;
 
     // Phase 14: the ranks upstream and downstream of this one in the order of the quadrant (-1: none). A tile at the
     // upstream boundary also waits for the halo cells of its rows (columns) from the rank upstream; a tile at the
@@ -390,14 +402,14 @@ void seastate_implicit::sweep_threads(lexer *p, fdm_seastate *e, int q, const se
 
     auto cell_of = [&](int axis, int idx, int n, int k, bool halo, int &ci, int &cj)
     {
-        const int ii = (axis==0) ? (halo ? -1-n : ni-1-n) : idx*tb+k;
-        const int jj = (axis==0) ? idx*tb+k : (halo ? -1-n : nj-1-n);
+        const int ii = (axis==0) ? (halo ? -1-n : ni-1-n) : idx*tbI+k;
+        const int jj = (axis==0) ? idx*tbJ+k : (halo ? -1-n : nj-1-n);
         ci = ia + (idown ? ni-1-ii : ii);
         cj = ja + (jdown ? nj-1-jj : jj);
     };
     auto length = [&](int axis, int idx)
     {
-        return (axis==0) ? std::min(nj,(idx+1)*tb) - idx*tb : std::min(ni,(idx+1)*tb) - idx*tb;
+        return (axis==0) ? std::min(nj,(idx+1)*tbJ) - idx*tbJ : std::min(ni,(idx+1)*tbI) - idx*tbI;
     };
     // Phase 17: the sides of the rank downstream and upstream of it along an axis (0 i-, 1 i+, 2 j-, 3 j+)
     // (only in the composite sweep, which visits the covered cells; the FAS coarse sweeps of level 0 carry no patches)
@@ -405,7 +417,7 @@ void seastate_implicit::sweep_threads(lexer *p, fdm_seastate *e, int q, const se
     seastate_kba_extra *kx = (kba && visT!=nullptr) ? kext : nullptr;
     auto extra = [&](int axis, int idx, bool send) -> size_t
     {
-        return kx!=nullptr ? kx->kba_size(q,send ? sdn[axis] : sup[axis],idx,tb,send) : 0;
+        return kx!=nullptr ? kx->kba_size(q,send ? sdn[axis] : sup[axis],idx,axis==0 ? tbJ : tbI,send) : 0;
     };
     auto pack = [&](kmsg &m)
     {
@@ -424,7 +436,7 @@ void seastate_implicit::sweep_threads(lexer *p, fdm_seastate *e, int q, const se
         c += nbin;
         }
         if(kx!=nullptr && c<m.buf.size())
-        kx->kba_pack(q,sdn[m.axis],m.idx,tb,&m.buf[c]);
+        kx->kba_pack(q,sdn[m.axis],m.idx,m.axis==0 ? tbJ : tbI,&m.buf[c]);
     };
     auto unpack = [&](kmsg &m)
     {
@@ -441,7 +453,7 @@ void seastate_implicit::sweep_threads(lexer *p, fdm_seastate *e, int q, const se
         c += nbin;
         }
         if(kx!=nullptr && c<m.buf.size())
-        kx->kba_unpack(q,sup[m.axis],m.idx,tb,&m.buf[c]);
+        kx->kba_unpack(q,sup[m.axis],m.idx,m.axis==0 ? tbJ : tbI,&m.buf[c]);
     };
     auto tag = [](int axis, int idx) {return 5000 + 2*idx + axis;};
 
@@ -524,15 +536,41 @@ void seastate_implicit::sweep_threads(lexer *p, fdm_seastate *e, int q, const se
         }
     };
 
+    // Phase 19: the time of the pipelined sweep per thread: the work of the tiles, the waiting for a ready tile before the
+    // first one (the fill of the pipeline) and after it (the polling of the messages in it), the messages that thread 0
+    // posts and tests after each of its tiles
+    const auto ks0 = kclk::now();
+    std::vector<double> tbusy(nt,0.0), tfill(nt,0.0), tidle(nt,0.0);
+    double tcomm = 0.0;
+    auto dsec = [](kclk::duration d) {return std::chrono::duration<double>(d).count();};
+
     auto work = [&](int t)
     {
         seastate_implicit *s = sol[t];
         int k = -1;
+        auto mark = kclk::now();
+        bool first = true;
+        // the time since mark: waiting for a tile
+        auto waited = [&]()
+        {
+            const auto n = kclk::now();
+            (first ? tfill[t] : tidle[t]) += dsec(n-mark);
+            mark = n;
+        };
+        auto pumpt = [&]()
+        {
+            waited();
+            pump();
+            const auto n = kclk::now();
+            tcomm += dsec(n-mark);
+            mark = n;
+        };
 
         for(int spin=0;;)
         {
             if(k<0)
             {
+                // while waiting for a tile: the polling of the messages counts as waiting
                 if(kba && t==0)
                 pump();
 
@@ -560,6 +598,7 @@ void seastate_implicit::sweep_threads(lexer *p, fdm_seastate *e, int q, const se
                     {
                     if(kba && t==0)
                     pump();
+                    waited();
                     break;
                     }
                 if(++spin>2000)
@@ -567,13 +606,16 @@ void seastate_implicit::sweep_threads(lexer *p, fdm_seastate *e, int q, const se
                 continue;
                 }
             spin = 0;
+            waited();
+            first = false;
             }
 
         const int I = k/nJ, J = k%nJ;
-        const int ie = std::min(ni,(I+1)*tb), je = std::min(nj,(J+1)*tb);
+        const int ie = std::min(ni,(I+1)*tbI), je = std::min(nj,(J+1)*tbJ);
+        const auto tw0 = kclk::now();
 
-            for(int ii=I*tb; ii<ie; ++ii)
-            for(int jj=J*tb; jj<je; ++jj)
+            for(int ii=I*tbI; ii<ie; ++ii)
+            for(int jj=J*tbJ; jj<je; ++jj)
             {
             const int ci = ia + (idown ? ni-1-ii : ii);
             const int cj = ja + (jdown ? nj-1-jj : jj);
@@ -600,6 +642,8 @@ void seastate_implicit::sweep_threads(lexer *p, fdm_seastate *e, int q, const se
             if(oj>=0) outbox.push_back(oj);
             }
         }
+        mark = kclk::now();
+        tbusy[t] += dsec(mark-tw0);
 
         int next = -1;
         if(J+1<nJ && npred[k+1].fetch_sub(1,std::memory_order_acq_rel)==1)
@@ -622,7 +666,7 @@ void seastate_implicit::sweep_threads(lexer *p, fdm_seastate *e, int q, const se
 
         // Phase 14: thread 0 posts the messages after every tile
         if(kba && t==0)
-        pump();
+        pumpt();
         }
     };
 
@@ -631,11 +675,24 @@ void seastate_implicit::sweep_threads(lexer *p, fdm_seastate *e, int q, const se
 
     if(kba)
     {
+    const auto kf0 = kclk::now();
     if(nposted!=kout.size())
     pump();
         for(kmsg &m : kout)
         if(m.rq!=MPI_REQUEST_NULL)
         MPI_Wait(&m.rq,MPI_STATUS_IGNORE);
+    const auto kf1 = kclk::now();
+
+    ++kst.sweeps;
+    kst.wall += dsec(kf1-ks0);
+    kst.finish += dsec(kf1-kf0);
+    kst.comm += tcomm;
+        for(int t=0; t<nt; ++t)
+        {
+        kst.busy += tbusy[t];
+        kst.fill += tfill[t];
+        kst.idle += tidle[t];
+        }
     }
 }
 
@@ -670,11 +727,36 @@ bool seastate_implicit::pipeline(lexer *p, ghostcell *pgc)
 
     int tb = tile_size(p->knox,p->knoy,nthreads), tmin = tb;
     MPI_Allreduce(&tb,&tmin,1,MPI_INT,MPI_MIN,pgc->mpi_comm);
+    tmin = std::max(tmin,1);
+
+    // Phase 19: the tiles thin across the rank boundaries. A rank downstream in i starts when the rank upstream has
+    // solved its first strip of tiles (the tile row J = 0 over all its columns), so with nJ tile rows the last of P ranks
+    // in i starts (P - 1)/nJ of a sweep late, and the first one waits as long at the end of the sweep: nJ >= 8 (P - 1)
+    // tile rows keep this below an eighth of a sweep. Along the sweep the tiles keep 16 cells (the cache of the upwind
+    // neighbours). Ranks in i and j: the ranks with origin_j 0 (origin_i 0) of the Cartesian decomposition
+    int cnt[2] = {p->origin_j==0 ? 1 : 0, p->origin_i==0 ? 1 : 0}, P[2] = {1,1};
+    MPI_Allreduce(cnt,P,2,MPI_INT,MPI_SUM,pgc->mpi_comm);
+    int nloc[2] = {p->knox,p->knoy}, nmin[2] = {1,1};
+    MPI_Allreduce(nloc,nmin,2,MPI_INT,MPI_MIN,pgc->mpi_comm);
+    int tI = tmin, tJ = tmin;
+    if(P[0]>1)
+    tJ = std::max(1,std::min(tmin,nmin[1]/(8*(P[0]-1))));
+    if(P[1]>1)
+    tI = std::max(1,std::min(tmin,nmin[0]/(8*(P[1]-1))));
+
+    // validation 68: the tile sizes of the pipeline given as REEF3D_SEASTATE_TILES="tI,tJ" (the same on all ranks)
+    if(const char *ev = std::getenv("REEF3D_SEASTATE_TILES"))
+    {
+    int a = 0, b = 0;
+    if(std::sscanf(ev,"%d,%d",&a,&b)==2 && a>0 && b>0)
+    {tI = a; tJ = b;}
+    }
 
     if(all==1)
     {
     kpgc = pgc;
-    ktb = std::max(tmin,1);
+    ktbI = tI;
+    ktbJ = tJ;
     }
     return all==1;
 }

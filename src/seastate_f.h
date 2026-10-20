@@ -301,6 +301,11 @@ private:
     // last window [s], the bytes of the state in a checkpoint, the iteration of the step (stationary)
     double t_ini = 0.0, busy_max = 0.0, busy_mean = 0.0, state_bytes = 0.0;
     int k_now = 0;
+
+    // Phase 19: the time of the iterations (transport) and their number, the report of the pipelined sweeps
+    double t_trans = 0.0;
+    long n_trans = 0;
+    void pipeline_report(lexer*, ghostcell*);
     std::vector<double> hconv, hperc;       // stationary: the largest change of Hs and the percentage within A 708 per iteration
     double nwin = 0.0, nrun = 0.0;
     int wit = 0;                            // iterations of the open window

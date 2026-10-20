@@ -1723,11 +1723,17 @@ void seastate_amr::composite_sweep(lexer *p, ghostcell *pgc, int q, const seasta
     L0.solv->sweep(p,L0.e,q,N0,rdt,Nb,side,refraction,fshift);
     L0.solv->visit(nullptr);
     L0.solv->visit_threads(nullptr);
+    const double tfill = t1-t0;
     t0 = pgc->timer();
     tm[0] += t0-t1;
 
     halo0(p,pgc);
-    tm[3] += pgc->timer()-t0;
+    const double thalo = pgc->timer()-t0;
+    tm[3] += thalo;
+
+    // Phase 19: the exchanges around a pipelined sweep (the fills of the patches before it, the halo after it)
+    if(kba)
+    L0.solv->pipeline_exchange(tfill+thalo);
 
     ++sweeps;
 }
