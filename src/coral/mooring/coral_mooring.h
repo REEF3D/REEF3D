@@ -35,11 +35,17 @@ Architect: Hans Bihs
 // damping BA (N s), drag normal and tangential against the water velocity (waves and current),
 // Froude-Krylov inertia of the water, seabed contact (penalty kb [Pa/m], damping cb [Pa s/m],
 // Coulomb friction mu with the regularization velocity v_eps). The inner nodes are advanced with an
-// explicit Runge-Kutta scheme (RK2) and sub-steps inside the step of the multibody system, the end
+// explicit Runge-Kutta scheme (RK4) and sub-steps inside the step of the multibody system, the end
 // points moving linearly from the converged to the trial positions; eval() integrates from the
 // converged line state (cached per trial state), commit() keeps the converged line. The force on an
 // attached body is the tension of the end segment plus the weight and drag of the end half-segment.
 // The line starts from the catenary profile (no seabed: straight).
+//
+// Wave kinematics (free surface, velocity, acceleration) are taken at the converged nodes at the start
+// and at the end of the multibody step and are linear in time in between (the nodes move little against
+// a wave length within a step); exact_kinematics evaluates them at every node position of every
+// Runge-Kutta stage instead (costly with many wave components). settle() relaxes the line in the water
+// at rest (the surface of the start, no wave velocities; the current acts).
 
 #ifndef CORAL_MOORING_H_
 #define CORAL_MOORING_H_
@@ -132,18 +138,27 @@ namespace coral
         // end forces of the converged line (on the attached bodies)
         void end_forces(Vec3 &Fa, Vec3 &Fb) const {Fa = Fa_; Fb = Fb_;}
 
-        // relax the line with the ends fixed (static shape), extra damping, before the run
+        // relax the line with the ends fixed (static shape), extra damping, before the run, in the water at
+        // rest
         void settle(const model&, double t_settle);
+        // wave kinematics at every Runge-Kutta stage (true) or once per step at the converged nodes (default)
+        void set_exact_kinematics(bool b) {exact_kin_ = b;}
         // restart from a checkpoint (coral_state.h)
         void save_state(std::vector<double>&) const override;
         bool load_state(const std::vector<double>&, size_t &k) override;
 
     private:
         struct state {std::vector<Vec3> r, v;};
+        // wave kinematics at the converged nodes at time t (gen: the converged line they belong to)
+        struct node_kin {double t = 0.0; long gen = -1; std::vector<double> eta; std::vector<Vec3> u, du;};
+        const node_kin &kinematics(int slot, double t) const;
+        // the water at node i, position x, time t, for the integration from t0 to t1
+        void water(int i, const Vec3 &x, double t, double &eta, Vec3 &u, Vec3 &du) const;
         void accel(const state&, const Vec3 &ra, const Vec3 &rb, const Vec3 &va, const Vec3 &vb, double t,
                    std::vector<Vec3> &a, Vec3 &Fa, Vec3 &Fb, double extra_damp) const;
+        // from the converged line at t0 to t1; at_rest: settling in the water at rest
         void integrate(state&, const Vec3 &ra0, const Vec3 &ra1, const Vec3 &rb0, const Vec3 &rb1,
-                       double t0, double t1, Vec3 &Fa, Vec3 &Fb, double extra_damp) const;
+                       double t0, double t1, Vec3 &Fa, Vec3 &Fb, double extra_damp, bool at_rest=false) const;
 
         std::string name_;
         int ba_, bb_;
@@ -162,6 +177,13 @@ namespace coral
         Vec3 ra_, rb_;
         double t_ = 0.0;
         Vec3 Fa_ = Vec3::Zero(), Fb_ = Vec3::Zero();
+        long gen_ = 0;                 // changes with the converged line
+
+        // wave kinematics: per step at the converged nodes (slots: start, end of the step) or exact
+        bool exact_kin_ = false;
+        mutable node_kin kin_[2];
+        mutable int kmode_ = 0;        // 0: no waves, 1: exact, 2: linear between kin_[0] and kin_[1], 3: at rest (kin_[0] surface)
+        mutable double kt0_ = 0.0, kt1_ = 0.0;
 
         // work arrays
         mutable std::vector<Vec3> T_;

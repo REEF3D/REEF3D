@@ -61,9 +61,11 @@ Architect: Hans Bihs
 //        channels <name>_Fx .. _Mz, _P; coral/hydro/coral_body_drag.h)
 //   mooring <name> <quasi_static|dynamic> a <body> <x y z> b <body> <x y z> L <L> d <d> mass <m/L>
 //        EA <EA> [BA <BA>] [CB <CB>] [Cdn <c>] [Cdt <c>] [Can <c>] [Cat <c>] [kb <k>] [cb <c>] [mu <mu>]
-//        [nseg <n>] [seabed <z> | no_seabed] [dt_line <dt>] [settle <T>] [current <ux uy uz>]
+//        [nseg <n>] [seabed <z> | no_seabed] [dt_line <dt>] [settle <T>] [current <ux uy uz>] [exact_kinematics]
 //        (seabed: default the z of the ground end, the lower one if both ends are on the ground; a line between
-//        two bodies (shared line, bridle) has no seabed unless given; the quasi-static line has a seabed portion
+//        two bodies (shared line, bridle) has no seabed unless given; the dynamic line takes the wave kinematics at
+//        its converged nodes at the start and end of a step, linear in between (exact_kinematics: at every
+//        Runge-Kutta stage, costly with many wave components); settle: relaxed in the water at rest; the quasi-static line has a seabed portion
 //        with friction CB only at a ground end on the seabed, else it hangs free between its ends; the names of lines and other loads must not be keywords of the line, e.g. not "d" or "L"; the
 //        dynamic line takes the free surface and kinematics of the waves of coral.txt, of the resolved fluid
 //        with fluid_kinematics, or else still water at z = 0 of CORAL's frame: with REEF3D set

@@ -181,6 +181,58 @@ mooring_line::mooring_line(const model &m, const mooring_end &a, const mooring_e
     rb_ = pb;
 }
 
+const mooring_line::node_kin &mooring_line::kinematics(int slot, double t) const
+{
+    node_kin &k = kin_[slot];
+    if(k.gen==gen_ && k.t==t)
+        return k;
+    const int n = nseg_ + 1;
+    k.t = t;
+    k.gen = gen_;
+    k.eta.resize(n);
+    k.u.resize(n);
+    k.du.resize(n);
+    for(int i=0; i<n; ++i)
+    {
+        k.eta[i] = waves_->elevation_at(this, i, r_[i], t);
+        double pr;
+        waves_->kinematics_at(this, i, r_[i], t, k.u[i], k.du[i], pr);
+    }
+    return k;
+}
+
+void mooring_line::water(int i, const Vec3 &x, double t, double &eta, Vec3 &u, Vec3 &du) const
+{
+    switch(kmode_)
+    {
+    case 1:
+    {
+        eta = waves_->elevation_at(this, i, x, t);
+        double pr;
+        waves_->kinematics_at(this, i, x, t, u, du, pr);
+        return;
+    }
+    case 2:
+    {
+        const double f = kt1_ > kt0_ ? (t - kt0_)/(kt1_ - kt0_) : 1.0;
+        const node_kin &a = kin_[0], &b = kin_[1];
+        eta = a.eta[i] + f*(b.eta[i] - a.eta[i]);
+        u = a.u[i] + f*(b.u[i] - a.u[i]);
+        du = a.du[i] + f*(b.du[i] - a.du[i]);
+        return;
+    }
+    case 3:
+        eta = kin_[0].eta[i];
+        u.setZero();
+        du.setZero();
+        return;
+    default:
+        eta = 0.0;
+        u.setZero();
+        du.setZero();
+    }
+}
+
 double mooring_line::tension(int j) const
 {
     const double L = (r_[j+1] - r_[j]).norm();
@@ -217,23 +269,18 @@ void mooring_line::accel(const state &s, const Vec3 &ra, const Vec3 &rb, const V
     {
         Vec3 F = p.mass*ll*g;
         an = at = 0.0;
-        const double eta = waves_ ? waves_->elevation_at(this, node, x, t) : 0.0;
+        double eta;
+        Vec3 u, aw;
+        water(node, x, t, eta, u, aw);
         if(x(2) > eta)
             return F;
         F -= p.rho*A*ll*g;
-        Vec3 uw = current_, aw = Vec3::Zero();
-        if(waves_)
-        {
-            Vec3 u, du; double pr;
-            waves_->kinematics_at(this, node, x, t, u, du, pr);
-            uw += u;
-            aw = du;
-        }
+        const Vec3 uw = current_ + u;
         const Vec3 vr = uw - vx;
         const double vq = vr.dot(q);
         const Vec3 vrt = vq*q, vrn = vr - vrt;
         F += 0.5*p.rho*p.d*ll*p.Cdn*vrn.norm()*vrn + 0.5*p.rho*M_PI*p.d*ll*p.Cdt*std::fabs(vq)*vrt;
-        if(waves_)
+        if(kmode_==1 || kmode_==2)
         {
             const Vec3 awt = aw.dot(q)*q, awn = aw - awt;
             F += p.rho*A*ll*((1.0 + p.Can)*awn + (1.0 + p.Cat)*awt);
@@ -283,10 +330,28 @@ void mooring_line::accel(const state &s, const Vec3 &ra, const Vec3 &rb, const V
 }
 
 void mooring_line::integrate(state &s, const Vec3 &ra0, const Vec3 &ra1, const Vec3 &rb0, const Vec3 &rb1,
-                             double t0, double t1, Vec3 &Fa, Vec3 &Fb, double extra) const
+                             double t0, double t1, Vec3 &Fa, Vec3 &Fb, double extra, bool at_rest) const
 {
     const int N = nseg_;
     const double T = t1 - t0;
+    // the water: at rest (settling), exact, or from the converged nodes at t0 and t1
+    if(!waves_)
+        kmode_ = 0;
+    else if(at_rest)
+    {
+        kinematics(0, t0);
+        kmode_ = 3;
+    }
+    else if(exact_kin_)
+        kmode_ = 1;
+    else
+    {
+        kinematics(0, t0);
+        kinematics(1, t1);
+        kt0_ = t0;
+        kt1_ = t1;
+        kmode_ = 2;
+    }
     const int n = std::max(1, (int)std::ceil(T/dt_ - 1.0e-9));
     const double h = T/n;
     const Vec3 va = T > 0.0 ? Vec3((ra1 - ra0)/T) : Vec3::Zero();
@@ -339,8 +404,18 @@ void mooring_line::initialize(const model &m, double t0)
     rb_ = m.body(bb_).point(sb_);
     r_[0] = ra_;
     r_[nseg_] = rb_;
+    ++gen_;
     state s{r_, v_};
     std::vector<Vec3> a;
+    if(waves_ && !exact_kin_)
+    {
+        kinematics(0, t0);
+        kinematics(1, t0);
+        kt0_ = kt1_ = t0;
+        kmode_ = 2;
+    }
+    else
+        kmode_ = waves_ ? 1 : 0;
     accel(s, ra_, rb_, Vec3::Zero(), Vec3::Zero(), t0, a, Fa_, Fb_, 0.0);
     cvalid_ = false;
 }
@@ -349,12 +424,17 @@ void mooring_line::settle(const model &m, double T)
 {
     ra_ = m.body(ba_).point(sa_);
     rb_ = m.body(bb_).point(sb_);
+    r_[0] = ra_;
+    r_[nseg_] = rb_;
+    ++gen_;
     state s{r_, v_};
-    // critical-type damping of the slowest pendulum mode of the line, about 1/s
-    integrate(s, ra_, ra_, rb_, rb_, 0.0, T, Fa_, Fb_, 2.0);
+    // critical-type damping of the slowest pendulum mode of the line, about 1/s; the water at rest (the
+    // surface at the start time t_)
+    integrate(s, ra_, ra_, rb_, rb_, t_, t_ + T, Fa_, Fb_, 2.0, true);
     for(auto &x : s.v) x.setZero();
     r_ = s.r;
     v_ = s.v;
+    ++gen_;
     cvalid_ = false;
 }
 
@@ -392,6 +472,7 @@ void mooring_line::commit(const model &m, double t, double)
     ra_ = ra1;
     rb_ = rb1;
     t_ = t;
+    ++gen_;
     cvalid_ = false;
 }
 
@@ -452,6 +533,7 @@ bool mooring_line::load_state(const std::vector<double> &v, size_t &k)
     in.d(t_);
     in.m(Fa_);
     in.m(Fb_);
+    ++gen_;
     cvalid_ = false;
     k = in.k;
     return in.ok;

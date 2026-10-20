@@ -672,6 +672,7 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
             {
                 auto l = std::make_unique<mooring_line>(m, ea, eb, p, (int)it.get("nseg", 20), kin, it.vec("current", Vec3::Zero()),
                                                         zbed, it.get("dt_line", 0.0), name);
+                l->set_exact_kinematics(it.has("exact_kinematics"));
                 if(it.has("settle"))
                     settles.push_back({l.get(), it.need("settle")});
                 m.add_load(std::move(l));
