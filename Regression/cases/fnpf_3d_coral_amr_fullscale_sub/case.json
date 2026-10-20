@@ -1,0 +1,10 @@
+{
+ "description": "fnpf_3d_coral_amr_fullscale with subcycling (G 7 1): the patch solves on the level window with fixed parent columns (lap_prec_win), at full scale; diverged to NaN at the first step as fnpf_3d_coral_amr_fullscale before the NRP of the window grids was cleared every sweep. REEF3D_FNPF_6DOF and REEF3D_CORAL compared.",
+ "solver": "fnpf",
+ "np": 1,
+ "steps": 20,
+ "base": "fnpf_3d_coral_amr_fullscale",
+ "ctrl_add": ["G 7 1"],
+ "tags": ["3d", "fnpf", "amr", "6dof", "floating", "subcycling", "coral", "fullscale"],
+ "covers": ["fnpf_amr::lap_prec_win with a resolved body at full scale"]
+}

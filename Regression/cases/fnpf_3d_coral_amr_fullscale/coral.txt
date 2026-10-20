@@ -1,0 +1,10 @@
+# REEF3D::CORAL model for fnpf_3d_coral_amr_fullscale: the point absorber of fnpf_3d_coral_amr at
+# full scale (Froude x100: lengths x100, mass x1e6, times x10)
+# cog and joint point: REEF3D's centre of gravity of the remeshed hull (CORAL starts at REEF3D's pose)
+# Architect: Hans Bihs
+time dt 0.05 end 1000
+output dt 0.1 file pa.dat
+body pa mass 1.0 cog 500.004 100.01 105.164
+joint heave prismatic ground pa point 500.004 100.01 105.164 axis 0 0 1
+
+fluid_body pa
