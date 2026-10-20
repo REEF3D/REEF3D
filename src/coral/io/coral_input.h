@@ -59,11 +59,17 @@ Architect: Hans Bihs
 //        angular velocity, global axes; with Cd and area along the axis (default z) Q = rho Cd A / 2,
 //        e.g. the viscous drag of a heaving float that a potential-flow fluid (FNPF) leaves out;
 //        channels <name>_Fx .. _Mz, _P; coral/hydro/coral_body_drag.h)
-//   mooring <name> <quasi_static|dynamic> a <body> <x y z> b <body> <x y z> L <L> d <d> mass <m/L>
-//        EA <EA> [BA <BA>] [CB <CB>] [Cdn <c>] [Cdt <c>] [Can <c>] [Cat <c>] [kb <k>] [cb <c>] [mu <mu>]
-//        [mu_axial <mu>] [v_eps <v>]
+//   line_type <name> d <d> mass <m/L> EA <EA> [BA <BA>] [CB <CB>] [Cdn <c>] [Cdt <c>] [Can <c>] [Cat <c>] [kb <k>] [cb <c>]
+//        [mu <mu>] [mu_axial <mu>] [v_eps <v>]       (properties of mooring lines for 'type' and 'section')
+//   mooring <name> <quasi_static|dynamic> a <body> <x y z> | a <point>  b <body> <x y z> | b <point>
+//        (L <L> d <d> mass <m/L> EA <EA> | type <line type> L <L> | section <line type> <L> <nseg> [section ...])
+//        [BA <BA>] [CB <CB>] [Cdn <c>] [Cdt <c>] [Can <c>] [Cat <c>] [kb <k>] [cb <c>] [mu <mu>]
+//        [mu_axial <mu>] [v_eps <v>] (over those of the type)
 //        [nseg <n>] [seabed <z> | no_seabed] [dt_line <dt>] [settle <T>] [current <ux uy uz>] [exact_kinematics]
 //        [no_static]
+//        (sections: a line of several properties in order from a to b, e.g. chain-wire-chain: lines <name>.1 ..
+//        <name>.n joined at points <name>.p1 .. (no mass or volume of their own), started on the catenary of the
+//        whole line; dynamic lines only)
 //        (seabed: default the z of the ground end, the lower one if both ends are on the ground; a line between
 //        two bodies (shared line, bridle) has no seabed unless given; the dynamic line takes the wave kinematics at
 //        its converged nodes at the start and end of a step, linear in between (exact_kinematics: at every
@@ -76,6 +82,13 @@ Architect: Hans Bihs
 //        dynamic line takes the free surface and kinematics of the waves of coral.txt, of the resolved fluid
 //        with fluid_kinematics, or else still water at z = 0 of CORAL's frame: with REEF3D set
 //        fluid_coupling origin 0 0 <F 60> or fluid_kinematics, CORAL warns otherwise)
+//   point <name> <x y z> [mass <m>] [volume <V>] [CdA <A>] [Ca <c>] [radius <r>] [kb <k>] [cb <c>] [mu <mu>] [v_eps <v>]
+//        [seabed <z> | no_seabed]
+//        (a free point of a mooring system: bridle node, clump weight, buoy, junction of two lines; dynamic lines
+//        end on it with 'a <point>' or 'b <point>' (no coordinates); weight, buoyancy of the submerged volume,
+//        drag 1/2 rho CdA |u - v| (u - v), added mass rho V Ca, seabed contact of a sphere of the radius (default:
+//        volume-equivalent); the lines connected through points form one mooring system (advanced together),
+//        whose seabed defaults to the lowest ground end of its lines; channels <point>_x, _y, _z)
 //   morison <name> body <b> p1 <x y z> p2 <x y z> D <D> [Cd <c>] [Ca <c>] [Cm <c>] [n <n>] [current <u v w>]
 //   morison <name> member <m> [D <D>] [Cd <c>] [Ca <c>] [Cm <c>] [n <strips per element>] [current <u v w>]
 //        [no_buoyancy] [flooded <D_inner>]

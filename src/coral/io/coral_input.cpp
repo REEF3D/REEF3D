@@ -44,6 +44,7 @@ Architect: Hans Bihs
 #include"coral/mooring/coral_mooring.h"
 #include<cmath>
 #include<fstream>
+#include<functional>
 #include<set>
 #include<sstream>
 #include<stdexcept>
@@ -158,7 +159,8 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
     std::vector<item> items;
     // items whose second word is a name (of a body, joint, load, ...): keys are searched after it
     static const std::set<std::string> named = {"body", "joint", "pto", "drive", "spring", "linear6", "force", "drag",
-        "mooring", "morison", "section", "member", "superelement", "pile", "point_mass", "fluid_body", "fluid_member", "hydro"};
+        "mooring", "morison", "section", "member", "superelement", "pile", "point_mass", "fluid_body", "fluid_member", "hydro",
+        "point", "line_type"};
     for(const auto &l : lines)
     {
         items.push_back(item{l.first, l.second});
@@ -177,7 +179,7 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
 
     // pass 1: settings, waves, bodies
     std::vector<std::pair<int, Vec3>> offsets;    // initial displacement of bodies, applied after the set-up
-    std::vector<std::pair<mooring_line*, double>> settles;
+    std::vector<std::pair<mooring_system*, double>> settles;
     std::map<std::string, beam_section> sections;
     bool gravity_on = true;
     int fluid_kin_order = -1;            // fluid_kinematics: order of the time polynomial, -1: not used
@@ -496,6 +498,219 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
         joints[name] = &j;
     }
 
+    // line types: properties of mooring lines for 'type' and 'section'
+    std::map<std::string, mooring_props> line_types;
+    auto read_props = [&](const item &it, mooring_props p, bool need)
+    {
+        if(need || it.has("d")) p.d = need ? it.need("d") : it.get("d", p.d);
+        if(need || it.has("mass")) p.mass = need ? it.need("mass") : it.get("mass", p.mass);
+        if(need || it.has("EA")) p.EA = need ? it.need("EA") : it.get("EA", p.EA);
+        p.BA = it.get("BA", p.BA); p.CB = it.get("CB", p.CB);
+        p.Cdn = it.get("Cdn", p.Cdn); p.Cdt = it.get("Cdt", p.Cdt); p.Can = it.get("Can", p.Can); p.Cat = it.get("Cat", p.Cat);
+        p.kb = it.get("kb", p.kb); p.cb = it.get("cb", p.cb); p.mu = it.get("mu", p.mu);
+        p.mu_axial = it.get("mu_axial", p.mu_axial); p.v_eps = it.get("v_eps", p.v_eps);
+        if(p.v_eps <= 0.0) it.fail("v_eps must be > 0");
+        if(p.d <= 0.0 || p.EA <= 0.0 || p.mass < 0.0) it.fail("d and EA must be > 0, mass >= 0");
+        p.rho = rho;
+        return p;
+    };
+    for(const item &it : items)
+        if(it.t[0]=="line_type")
+        {
+            const std::string n = it.word(1);
+            if(line_types.count(n)) it.fail("line type '" + n + "' is defined twice");
+            line_types[n] = read_props(it, mooring_props(), true);
+        }
+    auto line_type = [&](const item &it, const std::string &n) -> const mooring_props&
+    {
+        const auto q = line_types.find(n);
+        if(q == line_types.end()) it.fail("unknown line type '" + n + "'");
+        return q->second;
+    };
+    // the sections of a line: 'section <type> <L> <nseg>' (in order from a to b)
+    struct line_section {mooring_props p; int nseg;};
+    auto sections_of = [&](const item &it)
+    {
+        std::vector<line_section> v;
+        for(int i=it.find("section"); i >= 0; i=it.find("section", i+1))
+        {
+            line_section q{line_type(it, it.word(i+1)), (int)it.num(i+3)};
+            q.p.L = it.num(i+2);
+            if(q.p.L <= 0.0 || q.nseg < 1) it.fail("section: length > 0 and at least one segment");
+            v.push_back(q);
+        }
+        return v;
+    };
+
+    // mooring systems: the free points (point) and the dynamic lines that end on them, grouped by their
+    // connections (a line of several sections is a group with its junctions as points); a group is built
+    // where its first line stands in the file
+    struct moor_group {std::vector<const item*> lines; std::vector<const item*> points; bool built = false;};
+    std::vector<moor_group> groups;
+    std::map<const item*, int> group_of_line;
+    std::map<std::string, const item*> point_item;
+    {
+        std::vector<const item*> pts;
+        for(const item &it : items)
+            if(it.t[0]=="point")
+            {
+                const std::string n = it.word(1);
+                if(point_item.count(n)) it.fail("point '" + n + "' is defined twice");
+                if(n=="ground" || m.find_body(n) >= 0) it.fail("point '" + n + "': a body has that name");
+                point_item[n] = &it;
+                pts.push_back(&it);
+            }
+        // union-find over the points; the lines join the points they end on
+        std::map<std::string, std::string> parent;
+        std::function<std::string(const std::string&)> root = [&](const std::string &x) -> std::string
+        {
+            return parent[x]==x ? x : (parent[x] = root(parent[x]));
+        };
+        for(const auto &q : point_item) parent[q.first] = q.first;
+        std::vector<std::pair<const item*, std::vector<std::string>>> dl;
+        for(const item &it : items)
+            if(it.t[0]=="mooring" && it.t.size() > 2 && it.t[2]=="dynamic")
+            {
+                std::vector<std::string> pe;
+                for(const char *key : {"a", "b"})
+                {
+                    const int i = it.find(key);
+                    if(i >= 0 && i+1 < (int)it.t.size() && point_item.count(it.t[i+1]))
+                        pe.push_back(it.t[i+1]);
+                }
+                if(sections_of(it).size() > 1)
+                {
+                    // the junctions of the sections: a group of its own (joined with the points at the ends)
+                    const std::string j = "\x01" + it.word(1);
+                    parent[j] = j;
+                    pe.push_back(j);
+                }
+                for(size_t q=1; q<pe.size(); ++q) parent[root(pe[0])] = root(pe[q]);
+                if(!pe.empty()) dl.push_back({&it, pe});
+            }
+        std::map<std::string, int> gid;
+        for(const auto &x : dl)
+        {
+            const std::string r = root(x.second[0]);
+            if(!gid.count(r)) {gid[r] = (int)groups.size(); groups.emplace_back();}
+            groups[gid[r]].lines.push_back(x.first);
+            group_of_line[x.first] = gid[r];
+        }
+        for(const item *it : pts)
+        {
+            const std::string r = root(it->word(1));
+            if(!gid.count(r)) it->fail("point '" + it->word(1) + "' is not an end of a dynamic mooring line");
+            groups[gid[r]].points.push_back(it);
+        }
+    }
+    // the properties of a line: its own keys, over those of 'type <line type>' if given
+    auto line_props = [&](const item &it)
+    {
+        const bool typed = it.has("type");
+        mooring_props p = read_props(it, typed ? line_type(it, it.word("type")) : mooring_props(), !typed);
+        p.L = it.need("L");
+        return p;
+    };
+    // an end 'a <body> <x y z>' or 'a <point>' (point: index in the group's points, else -1)
+    auto line_end = [&](const item &it, const char *key, const std::map<std::string, int> &pidx)
+    {
+        const int i = it.find(key);
+        if(i < 0) it.fail("'a <body> <x y z>' (or 'a <point>') and 'b <body> <x y z>' are required");
+        mooring_end e;
+        const std::string n = it.word(i+1);
+        const auto q = pidx.find(n);
+        if(q != pidx.end())
+            e.point = q->second;
+        else
+        {
+            e.body = body_of(it, n);
+            e.p = it.vec(i+2);
+        }
+        return e;
+    };
+    auto build_group = [&](moor_group &g)
+    {
+        const item &first = *g.lines[0];
+        auto sys = std::make_unique<mooring_system>(m, kin, first.vec("current", Vec3::Zero()), first.word(1));
+        std::map<std::string, int> pidx;
+        // the seabed of the group: the lowest ground end of its lines
+        double zsys = -1.0e30;
+        bool any = false;
+        for(const item *li : g.lines)
+            for(const char *key : {"a", "b"})
+            {
+                const int i = li->find(key);
+                const std::string n = li->word(i+1);
+                if(!point_item.count(n) && body_of(*li, n) < 0)
+                {
+                    const double z = li->num(i+4);
+                    zsys = any ? std::min(zsys, z) : z;
+                    any = true;
+                }
+            }
+        for(const item *pi : g.points)
+        {
+            mooring_point_props pp;
+            pp.mass = pi->get("mass", 0.0);
+            pp.volume = pi->get("volume", 0.0);
+            pp.CdA = pi->get("CdA", 0.0);
+            pp.Ca = pi->get("Ca", 0.0);
+            pp.radius = pi->get("radius", -1.0);
+            pp.kb = pi->get("kb", pp.kb);
+            pp.cb = pi->get("cb", pp.cb);
+            pp.mu = pi->get("mu", 0.0);
+            pp.v_eps = pi->get("v_eps", pp.v_eps);
+            if(pp.mass < 0.0 || pp.volume < 0.0 || pp.CdA < 0.0) pi->fail("mass, volume and CdA must not be negative");
+            const double zb = pi->has("no_seabed") ? -1.0e30 : pi->get("seabed", zsys);
+            pidx[pi->word(1)] = sys->add_point(pi->word(1), pi->vec(2), pp, zb);
+        }
+        double dt = 0.0, settle = 0.0;
+        bool exact = false, nostatic = false;
+        for(const item *li : g.lines)
+        {
+            const item &it = *li;
+            const mooring_end ea = line_end(it, "a", pidx), eb = line_end(it, "b", pidx);
+            const bool ground = (ea.body < 0 && ea.point < 0) || (eb.body < 0 && eb.point < 0);
+            const double zdef = ground ? default_seabed(ea, eb) : zsys;
+            const double zbed = it.has("no_seabed") ? -1.0e30 : it.get("seabed", zdef);
+            if((it.vec("current", Vec3::Zero()) - first.vec("current", Vec3::Zero())).norm() > 0.0)
+                it.fail("the lines of a mooring system take one current (that of " + first.word(1) + ")");
+            const std::vector<line_section> sec = sections_of(it);
+            if(sec.size() > 1)
+            {
+                // junction points between the sections (no mass, volume or drag of their own), the sections
+                // as lines '<name>.1' .. '<name>.n', the junctions '<name>.p1' ..
+                auto pos = [&](const mooring_end &e) {return e.point >= 0 ? sys->point_position(e.point) : e.p;};
+                std::vector<mooring_props> sp;
+                for(const auto &q : sec) sp.push_back(q.p);
+                const std::vector<Vec3> J = mooring_junctions(pos(ea), pos(eb), sp, zbed, m.gravity.norm());
+                std::vector<mooring_end> ends(sec.size() + 1);
+                ends[0] = ea;
+                ends[sec.size()] = eb;
+                for(size_t q=0; q<J.size(); ++q)
+                    ends[q+1].point = sys->add_point(it.word(1) + ".p" + std::to_string(q+1), J[q], mooring_point_props(), zbed);
+                for(size_t q=0; q<sec.size(); ++q)
+                    sys->add_line(m, it.word(1) + "." + std::to_string(q+1), ends[q], ends[q+1], sec[q].p, sec[q].nseg, zbed);
+            }
+            else if(sec.size()==1)
+                sys->add_line(m, it.word(1), ea, eb, sec[0].p, sec[0].nseg, zbed);
+            else
+                sys->add_line(m, it.word(1), ea, eb, line_props(it), (int)it.get("nseg", 20), zbed);
+            const double d = it.get("dt_line", 0.0);
+            if(d > 0.0) dt = dt > 0.0 ? std::min(dt, d) : d;
+            exact = exact || it.has("exact_kinematics");
+            nostatic = nostatic || it.has("no_static");
+            if(it.has("settle")) settle = std::max(settle, it.need("settle"));
+        }
+        sys->set_dt_line(dt);
+        sys->set_exact_kinematics(exact);
+        sys->set_static_start(!nostatic);
+        if(settle > 0.0)
+            settles.push_back({sys.get(), settle});
+        m.add_load(std::move(sys));
+        g.built = true;
+    };
+
     // pass 3: loads in file order
     for(const item &it : items)
     {
@@ -653,26 +868,28 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
         else if(k=="mooring")
         {
             const std::string name = it.word(1), type = it.word(2);
+            if(group_of_line.count(&it))
+            {
+                moor_group &g = groups[group_of_line[&it]];
+                if(!g.built)
+                    build_group(g);
+                continue;
+            }
             const int ia = it.find("a"), ib = it.find("b");
             if(ia < 0 || ib < 0) it.fail("'a <body> <x y z>' and 'b <body> <x y z>' are required");
             mooring_end ea, eb;
             ea.body = body_of(it, it.word(ia+1)); ea.p = it.vec(ia+2);
             eb.body = body_of(it, it.word(ib+1)); eb.p = it.vec(ib+2);
-            mooring_props p;
-            p.L = it.need("L"); p.d = it.need("d"); p.mass = it.need("mass"); p.EA = it.need("EA");
-            p.BA = it.get("BA", 0.0); p.CB = it.get("CB", 0.0);
-            p.Cdn = it.get("Cdn", p.Cdn); p.Cdt = it.get("Cdt", p.Cdt); p.Can = it.get("Can", p.Can); p.Cat = it.get("Cat", p.Cat);
-            p.kb = it.get("kb", p.kb); p.cb = it.get("cb", p.cb); p.mu = it.get("mu", 0.0);
-            p.mu_axial = it.get("mu_axial", -1.0); p.v_eps = it.get("v_eps", p.v_eps);
-            if(p.v_eps <= 0.0) it.fail("v_eps must be > 0");
-            p.rho = rho;
+            const std::vector<line_section> sec = sections_of(it);
+            if(sec.size() > 1) it.fail("a quasi-static line has one section (several: a dynamic line)");
+            const mooring_props p = sec.size()==1 ? sec[0].p : line_props(it);
             // the seabed: at the ground end (the lower of two), none between two bodies (shared lines)
             const double zbed = it.has("no_seabed") ? -1.0e30 : it.get("seabed", default_seabed(ea, eb));
             if(type=="quasi_static")
                 m.add_load(std::make_unique<mooring_qs>(m, ea, eb, p, name, zbed));
             else if(type=="dynamic")
             {
-                auto l = std::make_unique<mooring_line>(m, ea, eb, p, (int)it.get("nseg", 20), kin, it.vec("current", Vec3::Zero()),
+                auto l = std::make_unique<mooring_line>(m, ea, eb, p, sec.size()==1 ? sec[0].nseg : (int)it.get("nseg", 20), kin, it.vec("current", Vec3::Zero()),
                                                         zbed, it.get("dt_line", 0.0), name);
                 l->set_exact_kinematics(it.has("exact_kinematics"));
                 l->set_static_start(!it.has("no_static"));
@@ -850,7 +1067,8 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
         }
         else if(k!="gravity" && k!="rho" && k!="time" && k!="output" && k!="waves" && k!="body" && k!="joint"
                 && k!="section" && k!="member" && k!="point_mass" && k!="static" && k!="modes"
-                && k!="superelement" && k!="soil" && k!="soil_layer" && k!="pile" && k!="force" && k!="fluid_kinematics")
+                && k!="superelement" && k!="soil" && k!="soil_layer" && k!="pile" && k!="force" && k!="fluid_kinematics"
+                && k!="point" && k!="line_type")
             it.fail("unknown keyword");
     }
     if(!fluid_bodies.empty())

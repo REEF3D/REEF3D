@@ -73,6 +73,7 @@ namespace coral
     {
         int body = -1;               // -1: ground
         Vec3 p = Vec3::Zero();       // global position at creation
+        int point = -1;              // >= 0: a free point of the mooring system (body and p unused)
     };
 
     // the seabed height of a line between a and b: the z of its ground end (the lower of two), none
@@ -123,83 +124,166 @@ namespace coral
         mutable double H_ = -1.0, V_ = 0.0;
     };
 
-    class mooring_line : public load
+    // junctions of a line of sections (in order from a to b) between pa and pb: on the catenary of the whole line
+    // (mean weight, series stiffness), the start of the junction points of a multi-section line
+    std::vector<Vec3> mooring_junctions(const Vec3 &pa, const Vec3 &pb, const std::vector<mooring_props> &sections,
+                                        double z_seabed, double g);
+
+    // a free point of a mooring system (MoorDyn's free points): a bridle node, a clump weight, a buoy, the
+    // junction of two lines. Its mass, buoyancy (volume, by the submerged fraction of the volume-equivalent
+    // sphere), drag 1/2 rho CdA |u - v| (u - v), added mass rho V Ca and Froude-Krylov force rho V (1 + Ca) du/dt,
+    // seabed contact (penalty kb, damping cb on the contact area pi r^2, friction mu) act together with the
+    // ends of the attached lines (their tension, the weight, drag and added mass of the end half-segments).
+    struct mooring_point_props
+    {
+        double mass = 0.0;           // [kg]
+        double volume = 0.0;         // displaced volume [m^3]
+        double CdA = 0.0;            // drag coefficient times area [m^2]
+        double Ca = 0.0;             // added mass coefficient (of rho V)
+        double radius = -1.0;        // contact radius on the seabed (< 0: of the volume-equivalent sphere, at least 0.05 m)
+        double kb = 3.0e6, cb = 3.0e5, mu = 0.0, v_eps = 0.01;
+    };
+
+    // REEF3D::CORAL: a mooring system: dynamic lumped-mass lines (MoorDyn type, see above) whose ends sit on
+    // bodies (or the ground) or on free points of the system. The inner nodes of all lines and the free
+    // points are advanced together with explicit RK4 sub-steps inside the step of the multibody system;
+    // the ends on bodies move on Hermite curves between the converged and the trial states of their
+    // attachment points; the bodies carry the end nodes (their mass and added mass times the attachment's
+    // acceleration). A system of one line without points is the mooring_line below.
+    class mooring_system : public load
     {
     public:
-        mooring_line(const model&, const mooring_end &a, const mooring_end &b, const mooring_props&, int nseg,
-                     std::shared_ptr<const wave_kinematics> waves=nullptr, const Vec3 &current=Vec3::Zero(),
-                     double z_seabed=-1.0e30, double dt_line=0.0, const std::string &name="line");
+        mooring_system(const model&, std::shared_ptr<const wave_kinematics> waves=nullptr, const Vec3 &current=Vec3::Zero(),
+                       const std::string &name="mooring");
+
+        // a free point at the global position p over a flat seabed at z_seabed (-1e30: none); returns its index
+        // for mooring_end::point
+        int add_point(const std::string &name, const Vec3 &p, const mooring_point_props&, double z_seabed=-1.0e30);
+        // a line between a and b (an end on a body or the ground: body, global position; on a point:
+        // point); z_seabed: height of a flat seabed under it (-1e30: none); returns the line index
+        int add_line(const model&, const std::string &name, const mooring_end &a, const mooring_end &b, const mooring_props&,
+                     int nseg, double z_seabed=-1.0e30);
+        // sub-step of the explicit scheme (0: automatic, the smallest stable step of the lines and points)
+        void set_dt_line(double dt);
 
         std::string name() const override {return name_;}
         coupling_kind coupling() const override {return coupling_kind::local;}
-        void coupled_bodies(std::vector<int> &b) const override {b.push_back(ba_); b.push_back(bb_);}
+        void coupled_bodies(std::vector<int> &b) const override;
         void initialize(const model&, double t0) override;
         void eval(const model&, double t, VecX &f) const override;
         void commit(const model&, double t, double dt) override;
         void kinematics_points(const model&, const void *source, std::vector<Vec3>&) const override;
         void channel_names(std::vector<std::string>&) const override;
         void channel_values(const model&, double t, std::vector<double>&) const override;
-
-        int nseg() const {return nseg_;}
-        double dt_line() const {return dt_;}
-        const std::vector<Vec3> &nodes() const {return r_;}     // converged node positions (0 .. N)
-        double tension(int seg) const;                          // converged segment tension (with the damping BA)
-        // end forces of the converged line on the attached bodies (with the inertia of the end nodes)
-        void end_forces(Vec3 &Fa, Vec3 &Fb) const {Fa = Fa_; Fb = Fb_;}
-
-        // relax the line with the ends fixed (static shape), extra damping, before the run, in the water at
-        // rest
-        void settle(const model&, double t_settle);
-        // wave kinematics at every Runge-Kutta stage (true) or once per step at the converged nodes (default)
-        void set_exact_kinematics(bool b) {exact_kin_ = b;}
-        // static equilibrium of the discretized line between the current end positions in the water at rest
-        // at t (Newton with Levenberg-Marquardt damping on the inner nodes, block-tridiagonal Jacobian by
-        // coloured finite differences); true if converged (else the shape is kept). initialize() calls it once (static_start,
-        // default), so the line starts at rest instead of from the continuous catenary, whose chords are
-        // shorter than the segments (a slack line that drops and snaps)
-        bool equilibrium(const model&, double t);
-        void set_static_start(bool b) {static_start_ = b;}
         // restart from a checkpoint (coral_state.h)
         void save_state(std::vector<double>&) const override;
         bool load_state(const std::vector<double>&, size_t &k) override;
 
-    private:
+        int nlines() const {return (int)lines_.size();}
+        int npoints() const {return (int)points_.size();}
+        const std::string &line_name(int k) const {return lines_[k].name;}
+        const std::string &point_name(int j) const {return points_[j].name;}
+        int find_point(const std::string&) const;                // -1 if none
+        int line_nseg(int k) const {return lines_[k].N;}
+        // converged node positions of line k (0 .. N)
+        std::vector<Vec3> line_nodes(int k) const;
+        Vec3 point_position(int j) const {return r_[points_[j].idx];}
+        Vec3 point_velocity(int j) const {return v_[points_[j].idx];}
+        double line_tension(int k, int seg) const;               // converged segment tension (with BA)
+        // forces of the converged line k on its ends (on bodies with the inertia of the end nodes)
+        void line_end_forces(int k, Vec3 &Fa, Vec3 &Fb) const {Fa = lines_[k].Fc[0]; Fb = lines_[k].Fc[1];}
+        double dt_line() const {return dt_;}
+
+        // relax the system with the body ends fixed (static shape), extra damping, before the run, in the
+        // water at rest
+        void settle(const model&, double t_settle);
+        // wave kinematics at every Runge-Kutta stage (true) or once per step at the converged nodes (default)
+        void set_exact_kinematics(bool b) {exact_kin_ = b;}
+        // static equilibrium of the discretized lines and the free points between the current body ends in
+        // the water at rest at t (damped Newton on the inner nodes and the points, Jacobian by coloured finite
+        // differences: block-tridiagonal per line without points, sparse with points); true if converged (else
+        // the shape is kept). initialize() calls it once (static_start, default), so the system starts at rest
+        // instead of from the continuous catenaries, whose chords are shorter than the segments (a slack line
+        // that drops and snaps)
+        bool equilibrium(const model&, double t);
+        void set_static_start(bool b) {static_start_ = b;}
+
+    protected:
         struct state {std::vector<Vec3> r, v;};
-        // wave kinematics at the converged nodes at time t (gen: the converged line they belong to)
+        struct line_t
+        {
+            std::string name;
+            mooring_props p;
+            int N = 0;
+            double l = 0.0;            // unstretched segment length
+            double zbed = -1.0e30;     // flat seabed
+            int off = 0;               // first node in the system's node arrays (N + 1 nodes)
+            int pt[2] = {-1, -1};      // end on a free point (index), else -1
+            int att[2] = {-1, -1};     // end on a body or the ground: attachment index
+            double dt = 0.0;
+            std::vector<Vec3> Tc;      // converged segment tensions
+            Vec3 Fc[2] = {Vec3::Zero(), Vec3::Zero()};      // converged forces on the ends
+            mutable std::vector<Vec3> T;                    // work: segment tensions
+            mutable Vec3 F[2];                              // work: end forces of the last accel
+            mutable Mat3 M[2];                              // work: end masses of the last accel
+        };
+        struct point_t
+        {
+            std::string name;
+            mooring_point_props p;
+            int idx = 0;               // node of the point in the node arrays
+            double zbed = -1.0e30;     // flat seabed
+            std::vector<std::pair<int,int>> ends;           // attached (line, end)
+        };
+        struct attach_t
+        {
+            int body = -1;
+            Vec3 s = Vec3::Zero();     // in the body frame
+            int line = 0, end = 0;
+            int idx = 0;               // node in the node arrays
+            Vec3 r = Vec3::Zero(), v = Vec3::Zero();        // converged
+            Vec3 F = Vec3::Zero();     // converged force on the body (with the end inertia)
+        };
+        struct end_motion {Vec3 r0, v0, r1, v1;};          // Hermite data of a body end over the step
+        // wave kinematics at the converged nodes at time t (gen: the converged state they belong to)
         struct node_kin {double t = 0.0; long gen = -1; std::vector<double> eta; std::vector<Vec3> u, du;};
+
         const node_kin &kinematics(int slot, double t) const;
-        // the water at node i, position x, time t, for the integration from t0 to t1
         void water(int i, const Vec3 &x, double t, double &eta, Vec3 &u, Vec3 &du) const;
-        void accel(const state&, const Vec3 &ra, const Vec3 &rb, const Vec3 &va, const Vec3 &vb, double t,
-                   std::vector<Vec3> &a, Vec3 &Fa, Vec3 &Fb, double extra_damp) const;
-        // from the converged line at t0 to t1; at_rest: settling in the water at rest
-        struct end_motion {Vec3 r0, v0, r1, v1;};     // Hermite data of an end over the step
-        void integrate(state&, const end_motion &a, const end_motion &b, double t0, double t1, Vec3 &Fa, Vec3 &Fb,
-                       double extra_damp, bool at_rest=false) const;
-        // end masses (mass and added mass of the end half-segments) of the last accel()
-        void end_inertia(Vec3 &Fa, Vec3 &Fb, const Vec3 &aa, const Vec3 &ab) const;
-        // keep the segment tensions of the converged line; throws if the line state is not finite
+        // accelerations of the inner nodes of line k for the state (its end nodes set), end forces and masses
+        void line_accel(const line_t&, const state&, double t, std::vector<Vec3> &a, double extra) const;
+        // accelerations of all inner nodes and points; the ends of the lines in s must be set
+        void accel(const state&, double t, std::vector<Vec3> &a, double extra) const;
+        // the line end nodes on points take the points' state
+        void point_ends(state&) const;
+        // from the converged state at t0 to t1 with the body ends on Hermite curves (motion per attachment)
+        void integrate(state&, const std::vector<end_motion>&, double t0, double t1, double extra, bool at_rest=false) const;
+        // keep the segment tensions and end forces of the converged state; throws if it is not finite
         void keep_converged();
+        void update_dt();
+        bool line_catenary(const line_t&, const Vec3 &pa, const Vec3 &pb, double g, Vec3 &Fa, Vec3 &Fb, std::vector<Vec3> *nodes) const;
+        // quasi-static positions of the points on the catenaries of their lines (start of equilibrium_system)
+        bool point_statics(const model&);
+        // node layout: the lines' nodes (given), then the points (given)
+        void layout(const std::vector<Vec3> &line_r, const std::vector<Vec3> &point_r);
+        bool equilibrium_lines(const model&, double t);     // each line on its own (no points)
+        double roundoff(const line_t&) const;              // round-off of the accelerations of a line's nodes
+        bool equilibrium_system(const model&, double t);    // lines and points together
 
         std::string name_;
-        int ba_, bb_;
-        Vec3 sa_, sb_;
-        mooring_props pr_;
-        int nseg_;
-        double l_;                     // unstretched segment length
-        double dt_;
         std::shared_ptr<const wave_kinematics> waves_;
         Vec3 current_;
-        double zbed_;
         Vec3 g_;
+        double dt_ = 0.0, dt_set_ = 0.0;
+        std::vector<line_t> lines_;
+        std::vector<point_t> points_;
+        std::vector<attach_t> att_;
+        std::vector<int> free_;        // the nodes advanced by the scheme: inner nodes of the lines, then the points
 
-        // converged state: inner nodes (and end positions) at t_
+        // converged state: all nodes at t_
         std::vector<Vec3> r_, v_;
-        Vec3 ra_, rb_;
-        Vec3 va_ = Vec3::Zero(), vb_ = Vec3::Zero();
         double t_ = 0.0;
-        Vec3 Fa_ = Vec3::Zero(), Fb_ = Vec3::Zero();
-        long gen_ = 0;                 // changes with the converged line
+        long gen_ = 0;                 // changes with the converged state
         bool static_start_ = true;     // initialize(): static equilibrium first (once)
         bool started_ = false;
 
@@ -208,21 +292,33 @@ namespace coral
         mutable node_kin kin_[2];
         mutable int kmode_ = 0;        // 0: no waves, 1: exact, 2: linear between kin_[0] and kin_[1], 3: at rest (kin_[0] surface)
         mutable double kt0_ = 0.0, kt1_ = 0.0;
-
-        std::vector<Vec3> Tc_;         // segment tensions of the converged line
+        mutable double creg_ = 0.0;    // static solve: compression stiffness of slack segments (fraction of EA)
 
         // work arrays
-        mutable std::vector<Vec3> T_;
         mutable std::vector<Vec3> w_[4];
         mutable state ws_;
 
-        // trial cache
-        mutable Vec3 cra_, crb_, cva_, cvb_;
+        // trial cache: time, positions and velocities of the attachments; forces and end masses
         mutable double ct_ = -1.0e300;
-        mutable Vec3 cFa_, cFb_;
-        mutable Mat3 Ma_ = Mat3::Zero(), Mb_ = Mat3::Zero();     // end masses of the last accel()
-        mutable Mat3 cMa_ = Mat3::Zero(), cMb_ = Mat3::Zero();   // of the cached trial
+        mutable std::vector<Vec3> cr_, cv_, cF_;
+        mutable std::vector<Mat3> cM_;
         mutable bool cvalid_ = false;
+    };
+
+    // a single dynamic line between two attachment points: a mooring system of one line (the interface of
+    // the line before the systems)
+    class mooring_line : public mooring_system
+    {
+    public:
+        mooring_line(const model&, const mooring_end &a, const mooring_end &b, const mooring_props&, int nseg,
+                     std::shared_ptr<const wave_kinematics> waves=nullptr, const Vec3 &current=Vec3::Zero(),
+                     double z_seabed=-1.0e30, double dt_line=0.0, const std::string &name="line");
+
+        int nseg() const {return lines_[0].N;}
+        std::vector<Vec3> nodes() const {return line_nodes(0);}  // converged node positions (0 .. N)
+        double tension(int seg) const {return line_tension(0, seg);}
+        // end forces of the converged line on the attached bodies (with the inertia of the end nodes)
+        void end_forces(Vec3 &Fa, Vec3 &Fb) const {line_end_forces(0, Fa, Fb);}
     };
 }
 

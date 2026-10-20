@@ -64,16 +64,19 @@ bool write_vtp(const model &m, const std::string &file)
                 kind.push_back(3);
             }
         }
-        else if(const auto *ml = dynamic_cast<const mooring_line*>(l.get()))
+        else if(const auto *ms = dynamic_cast<const mooring_system*>(l.get()))
         {
-            std::vector<int> ln;
-            for(const Vec3 &p : ml->nodes())
+            for(int k=0; k<ms->nlines(); ++k)
             {
-                ln.push_back((int)pts.size());
-                pts.push_back(p);
+                std::vector<int> ln;
+                for(const Vec3 &p : ms->line_nodes(k))
+                {
+                    ln.push_back((int)pts.size());
+                    pts.push_back(p);
+                }
+                lines.push_back(ln);
+                kind.push_back(2);
             }
-            lines.push_back(ln);
-            kind.push_back(2);
         }
     }
     std::ofstream out(file);

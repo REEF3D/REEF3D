@@ -102,7 +102,7 @@ coral_reef3d::coral_reef3d(lexer *p, ghostcell *pgc) : p_(p), pgc_(pgc)
         {
             bool water = false;
             for(const auto &l : case_->m.load_list)
-                if(dynamic_cast<const coral::mooring_line*>(l.get()) || dynamic_cast<const coral::morison_load*>(l.get())
+                if(dynamic_cast<const coral::mooring_system*>(l.get()) || dynamic_cast<const coral::morison_load*>(l.get())
                    || dynamic_cast<const coral::member_morison*>(l.get()))
                     water = true;
             const double swl = p->F60 - case_->fluid_origin(2);
