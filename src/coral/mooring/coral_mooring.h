@@ -47,7 +47,8 @@ Architect: Hans Bihs
 // (straight without gravity or for a floating line) and is put into the static equilibrium of its
 // discretization when the run starts (static_start, equilibrium()). A line state that is not finite after a step (an
 // unstable explicit scheme) stops the run with the name of the line. Channels: end forces on the
-// attached bodies, the largest segment tension and the tensions of the end segments (Ta, Tb), with BA.
+// attached bodies, the largest segment tension and the tensions of the end segments (Ta, Tb), with BA
+// (negative for a segment that pushes: mooring_props::BA_slack, the damping also in slack segments).
 //
 // Wave kinematics (free surface, velocity, acceleration) are taken at the converged nodes at the start
 // and at the end of the multibody step and are linear in time in between (the nodes move little against
@@ -95,6 +96,10 @@ namespace coral
         double mu_axial = -1.0;            // seabed friction along the line (< 0: mu)
         double rho = 1025.0;
         double EI = 0.0;             // bending stiffness of the dynamic line [N m^2] (0: none, a cable or chain)
+        // axial damping law of the dynamic line: false (default): T = max(0, EA e + BA de/dt) while a segment is
+        // taut, a slack segment carries nothing (a chain or rope never pushes); true: T = max(0, EA e) + BA de/dt in
+        // every segment, also slack and compressed ones (MoorDyn's and MoorDyn-F's law: the damping pushes)
+        bool BA_slack = false;
     };
 
     class mooring_qs : public load
@@ -211,11 +216,12 @@ namespace coral
         const std::string &point_name(int j) const {return points_[j].name;}
         int find_point(const std::string&) const;                // -1 if none
         int line_nseg(int k) const {return lines_[k].N;}
+        const mooring_props &line_props(int k) const {return lines_[k].p;}
         // converged node positions of line k (0 .. N)
         std::vector<Vec3> line_nodes(int k) const;
         Vec3 point_position(int j) const {return r_[points_[j].idx];}
         Vec3 point_velocity(int j) const {return v_[points_[j].idx];}
-        double line_tension(int k, int seg) const;               // converged segment tension (with BA)
+        double line_tension(int k, int seg) const;               // converged segment tension (with BA; < 0: pushes, BA_slack)
         // forces of the converged line k on its ends (on bodies with the inertia of the end nodes)
         void line_end_forces(int k, Vec3 &Fa, Vec3 &Fb) const {Fa = lines_[k].Fc[0]; Fb = lines_[k].Fc[1];}
         double dt_line() const {return dt_;}

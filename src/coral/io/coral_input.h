@@ -60,11 +60,11 @@ Architect: Hans Bihs
 //        e.g. the viscous drag of a heaving float that a potential-flow fluid (FNPF) leaves out;
 //        channels <name>_Fx .. _Mz, _P; coral/hydro/coral_body_drag.h)
 //   line_type <name> d <d> mass <m/L> EA <EA> [BA <BA>] [CB <CB>] [Cdn <c>] [Cdt <c>] [Can <c>] [Cat <c>] [kb <k>] [cb <c>]
-//        [mu <mu>] [mu_axial <mu>] [v_eps <v>] [EI <EI>]       (properties of mooring lines for 'type' and 'section')
+//        [mu <mu>] [mu_axial <mu>] [v_eps <v>] [EI <EI>] [BA_slack]     (properties of mooring lines for 'type' and 'section')
 //   mooring <name> <quasi_static|dynamic> a <body> <x y z> | a <point>  b <body> <x y z> | b <point>
 //        (L <L> d <d> mass <m/L> EA <EA> | type <line type> L <L> | section <line type> <L> <nseg> [section ...])
 //        [BA <BA>] [CB <CB>] [Cdn <c>] [Cdt <c>] [Can <c>] [Cat <c>] [kb <k>] [cb <c>] [mu <mu>]
-//        [mu_axial <mu>] [v_eps <v>] (over those of the type)
+//        [mu_axial <mu>] [v_eps <v>] [BA_slack] (over those of the type)
 //        [nseg <n>] [seabed <z> | no_seabed] [dt_line <dt>] [settle <T>] [current <ux uy uz>] [exact_kinematics]
 //        [no_static] [break_time <t>] [break_tension <T>] [break_end <a|b>] [EI <EI>] [clamp_a [<dx dy dz>]] [clamp_b [...]]
 //        (sections: a line of several properties in order from a to b, e.g. chain-wire-chain: lines <name>.1 ..
@@ -81,7 +81,12 @@ Architect: Hans Bihs
 //        equilibrium of its segments between the ends at the start (no_static: from the continuous catenary,
 //        whose chords are shorter than the segments); settle: relaxed in the water at rest before; seabed
 //        friction mu across and mu_axial (default mu) along the line, regularized below v_eps (0.01 m/s);
-//        channels <name>_Fa_x .. _Fb_z (forces on the bodies), _Tmax, _Ta, _Tb (end segment tensions); the quasi-static line has a seabed portion
+//        BA_slack: the axial damping BA in every segment of the dynamic line, also slack and compressed ones,
+//        T = max(0, EA e) + BA de/dt (MoorDyn's and MoorDyn-F's law: a slack line resists folding up, snap loads
+//        and a falling line as in MoorDyn); default: max(0, EA e + BA de/dt) while a segment is taut, nothing
+//        when slack (a chain or rope never pushes);
+//        channels <name>_Fa_x .. _Fb_z (forces on the bodies), _Tmax, _Ta, _Tb (end segment tensions, negative
+//        for a segment that pushes with BA_slack); the quasi-static line has a seabed portion
 //        with friction CB only at a ground end on the seabed, else it hangs free between its ends; the names of lines and other loads must not be keywords of the line, e.g. not "d" or "L"; the
 //        dynamic line takes the free surface and kinematics of the waves of coral.txt, of the resolved fluid
 //        with fluid_kinematics, or else still water at z = 0 of CORAL's frame: with REEF3D set

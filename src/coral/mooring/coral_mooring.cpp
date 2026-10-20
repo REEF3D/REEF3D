@@ -209,7 +209,7 @@ void mooring_system::line_accel(const line_t &L, const state &s, double t, std::
     auto R = [&](int i) -> const Vec3& {return s.r[o+i];};
     auto V = [&](int i) -> const Vec3& {return s.v[o+i];};
     std::vector<Vec3> &T_ = L.T;
-    // segment tensions (no compression)
+    // segment tensions (no compression; with BA_slack the damping acts in every segment and may push)
     T_.resize(N);
     for(int j=0; j<N; ++j)
     {
@@ -220,10 +220,12 @@ void mooring_system::line_accel(const line_t &L, const state &s, double t, std::
         {
             const Vec3 e = d/Ls;
             const double sr = (V(j+1) - V(j)).dot(e)/l_;
-            Tj = std::max(0.0, p.EA*(Ls/l_ - 1.0) + p.BA*sr)/Ls;
+            Tj = p.BA_slack ? (p.EA*(Ls/l_ - 1.0) + p.BA*sr)/Ls : std::max(0.0, p.EA*(Ls/l_ - 1.0) + p.BA*sr)/Ls;
         }
         else if(creg_ > 0.0 && Ls > 0.0)
             Tj = creg_*p.EA*(Ls/l_ - 1.0)/Ls;      // static solve only: a compressed segment pushes a little
+        else if(p.BA_slack && Ls > 0.0)
+            Tj = p.BA*(V(j+1) - V(j)).dot(d)/(Ls*Ls*l_);
         T_[j] = Tj*d;
     }
     // external forces on a node of length ll (weight, hydrodynamics, seabed); q tangent; added mass

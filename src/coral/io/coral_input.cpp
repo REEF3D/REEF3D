@@ -531,6 +531,7 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
         p.kb = it.get("kb", p.kb); p.cb = it.get("cb", p.cb); p.mu = it.get("mu", p.mu);
         p.mu_axial = it.get("mu_axial", p.mu_axial); p.v_eps = it.get("v_eps", p.v_eps);
         p.EI = it.get("EI", p.EI);
+        if(it.has("BA_slack")) p.BA_slack = true;
         if(p.v_eps <= 0.0) it.fail("v_eps must be > 0");
         if(p.d <= 0.0 || p.EA <= 0.0 || p.mass < 0.0 || p.EI < 0.0) it.fail("d and EA must be > 0, mass and EI >= 0");
         p.rho = rho;

@@ -416,7 +416,11 @@ std::vector<Vec3> mooring_system::line_nodes(int k) const
 double mooring_system::line_tension(int k, int j) const
 {
     const line_t &L = lines_[k];
-    return j >= 0 && j < (int)L.Tc.size() ? L.Tc[j].norm() : 0.0;
+    if(j < 0 || j >= (int)L.Tc.size())
+        return 0.0;
+    // negative: a segment that pushes (BA_slack)
+    const double T = L.Tc[j].norm();
+    return L.Tc[j].dot(r_[L.off+j+1] - r_[L.off+j]) < 0.0 ? -T : T;
 }
 
 void mooring_system::keep_converged()
