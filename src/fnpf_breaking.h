@@ -92,6 +92,7 @@ private:
     
     slice4 S_local, b_strength, c_phase, k_local, L_break, B_ramp;
     slice4 eta_old,brk_flag,k_smooth;
+    slice4 vb_brk;      // Kennedy: viscosity of the breaking cells before the spreading
     
     int count_n;
     

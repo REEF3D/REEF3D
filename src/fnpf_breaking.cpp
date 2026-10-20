@@ -26,7 +26,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 
 fnpf_breaking::fnpf_breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc) : bx(p), by(p), eta_t(p), t_break(p), B_coeff(p),
-                 S_local(p), b_strength(p), c_phase(p), k_local(p), L_break(p), B_ramp(p), eta_old(p), brk_flag(p),k_smooth(p),
+                 S_local(p), b_strength(p), c_phase(p), k_local(p), L_break(p), B_ramp(p), eta_old(p), brk_flag(p),k_smooth(p),vb_brk(p),
                  wdband(p)
 
 {
@@ -64,6 +64,7 @@ fnpf_breaking::fnpf_breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc) : bx(p), by(
         eta_old(i,j)    = c->eta(i,j);
         eta_t(i,j)      = 0.0;
         brk_flag(i,j)   = 0;
+        vb_brk(i,j)     = 0.0;
     }
 
     pgc->gcsl_start4(p, c->vb, 1);
