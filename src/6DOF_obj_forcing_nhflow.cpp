@@ -99,7 +99,8 @@ void sixdof_obj_nhflow::forcing_kernel_nhflow(lexer *p, fdm_nhf *d, ghostcell *p
     // of the bow up to the body velocity; that water passes under the hull and is carried along with it.
     // X 15 5: as X 15 1 with the sharp switch at FB = 0 (full forcing for FB <= 0, normal-weighted outside),
     // the forcing before the shell ramp was introduced (9ce616dab)
-    if(p->X15==1 || p->X15==3 || p->X15==5)
+    // X 15 6 / 7: the forcing of X 15 1 / 3; the body faces are reflective walls in the HLL fluxes (nhflow_HLL.cpp)
+    if(p->X15==1 || p->X15==3 || p->X15==5 || p->X15==6 || p->X15==7)
     LOOP
     {
         H = Hsolidface_nhflow(p,d,0,0,0);
@@ -108,7 +109,7 @@ void sixdof_obj_nhflow::forcing_kernel_nhflow(lexer *p, fdm_nhf *d, ghostcell *p
          
         d->FHB[IJK] = MIN(d->FHB[IJK] + H, 1.0); 
         
-        if(p->X15==3 && d->FB[IJK]>=0.0)
+        if((p->X15==3 || p->X15==7) && d->FB[IJK]>=0.0)
         continue;
         
     // Normal vectors calculation 

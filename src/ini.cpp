@@ -1242,7 +1242,7 @@ void control::ini_default()
     X12=1;      // int turn force calculation on
     X13=0;      // int NHFLOW floating body (X 10 1/2): water level in the pierced columns from the surrounding free surface (harmonic extension, 0 off)
     X14=1;      // int tangential velocity cfd
-    X15=1;      // int tangential velocity nhflow (0 no slip, 1 tangential kept outside the body, 2 normal projection outside, 3 as 1 with the forcing inside the body only and the momentum fluxes at body faces from the fluid side, for bodies moving at speed, 4 normal projection outside ramped over the shell of 1, rotation invariant, 5 as 1 with the sharp switch at the hull surface instead of the shell ramp)
+    X15=1;      // int tangential velocity nhflow (0 no slip, 1 tangential kept outside the body, 2 normal projection outside, 3 as 1 with the forcing inside the body only and the momentum fluxes at body faces from the fluid side, for bodies moving at speed, 4 normal projection outside ramped over the shell of 1, rotation invariant, 5 as 1 with the sharp switch at the hull surface instead of the shell ramp, 6 as 1 with the faces between body and fluid cells as reflective walls moving with the body in the HLL fluxes (mirror state of the fluid side about the body velocity; Cartesian grid, on the curvilinear grid the fluxes of 3), for wave reflection and wave loads, 7 as 6 with the forcing of 3 (inside the body only), for bodies at speed in waves)
     X16=0;          // int porous floating body (NHFLOW)
     X16_n=0.5;      // double porosity of the floating body
     X16_d50=0.01;   // double characteristic grain / element size of the floating body
