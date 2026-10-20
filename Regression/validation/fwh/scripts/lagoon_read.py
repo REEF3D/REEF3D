@@ -4,6 +4,9 @@
 #   s.coords()                   x, y, z of the grid points of the CFD volume
 #   s.volume("pressure", n)      field of output n on the whole grid, shape (z, y, x[, components])
 #   s.body(n)                    vertices (moved by the body motion of output n) and triangles
+#   s.amr_times()                output times of the AMR set (cfd_amr: the CFD mesh refinement)
+#   s.amr(n, ["pressure", ...])  the grids of AMR output n (level 0 of every rank, then the
+#                                patches): dicts with level, rank, x, y, z (nodes), the fields (z, y, x)
 # Arrays: sharded (sharding_indexed: inner chunks, index at the end with crc32c), each inner chunk
 # bytes little endian -> numcodecs.shuffle -> gzip, as REEF3D writes them (lagoon_store.cpp).
 import json, os, zlib
@@ -52,6 +55,33 @@ class zarr_array:
             a = self._decode(open(f, "rb").read(), int(np.prod(self.chunk))).reshape(self.chunk)
             sl = tuple(slice(i*c, min((i+1)*c, s)) for i, c, s in zip(idx, self.chunk, self.shape))
             out[sl] = a[tuple(slice(0, x.stop - x.start) for x in sl)]
+        return out
+
+    def read_range(self, lo, hi):
+        # rows lo to hi of the first dimension (sharded arrays, inner chunks over the first dimension only)
+        rest = tuple(self.shape[1:])
+        out = np.full((hi - lo,) + rest, np.nan if self.dtype.kind == "f" else 0, self.dtype)
+        if hi <= lo:
+            return out
+        S, I = self.chunk[0], self.inner[0]
+        ntot = int(np.prod(self.nin))
+        n_inner = int(np.prod(self.inner))
+        for sh in range(lo//S, (hi - 1)//S + 1):
+            f = self._key([sh] + [0]*len(rest))
+            if not os.path.exists(f):
+                continue
+            b = open(f, "rb").read()
+            idx = np.frombuffer(b[-(16*ntot+4):-4], "<u8").reshape(ntot, 2)
+            for k, mi in enumerate(np.ndindex(*self.nin)):
+                r0 = sh*S + mi[0]*I
+                a0, a1 = max(lo, r0), min(hi, r0 + I, self.shape[0])
+                if a1 <= a0 or any(mi[1:]):
+                    continue
+                off, nb = idx[k]
+                if off == EMPTY:
+                    continue
+                a = self._decode(b[int(off):int(off)+int(nb)], n_inner).reshape(self.inner)
+                out[a0-lo:a1-lo] = a[a0-r0:a1-r0][(slice(None),) + tuple(slice(0, r) for r in rest)]
         return out
 
     def read_time(self, t):
@@ -117,3 +147,35 @@ class lagoon:
                        [2*(qx*qy+qz*w), 1-2*(qx*qx+qz*qz), 2*(qy*qz-qx*w)],
                        [2*(qx*qz-qy*w), 2*(qy*qz+qx*w), 1-2*(qx*qx+qy*qy)]])
         return V @ Rm.T + tr[k], T
+
+    # AMR set (P 18 with mesh refinement): flat arrays, every grid of every output one after another
+    def _amr(self, name, key="cfd_amr"):
+        return zarr_array(os.path.join(self.store, "amr", key, name))
+
+    def amr_times(self, key="cfd_amr"):
+        return self._amr("time", key).read_all()
+
+    def amr(self, n, fields, key="cfd_amr"):
+        ge = self._amr("grid_end", key).read_all()
+        g0, g1 = (int(ge[n-1]) if n > 0 else 0), int(ge[n])
+        lo = max(g0 - 1, 0)
+        lev = self._amr("grids/level", key).read_range(g0, g1)
+        rank = self._amr("grids/rank", key).read_range(g0, g1)
+        ends = {e: self._amr(f"grids/{e}_end", key).read_range(lo, g1).astype(np.int64)
+                for e in ("x", "y", "z", "cell")}
+        if g0 == 0:
+            ends = {e: np.concatenate([[0], v]) for e, v in ends.items()}
+        # node and cell ranges of the grids of this output
+        nodes = {d: self._amr(d, key).read_range(int(ends[d][0]), int(ends[d][-1])) for d in ("x", "y", "z")}
+        c0 = int(ends["cell"][0])
+        vals = {f: self._amr(f"cell_data/{f}", key).read_range(c0, int(ends["cell"][-1])) for f in fields}
+        out = []
+        for g in range(g1 - g0):
+            gr = {"level": int(lev[g]), "rank": int(rank[g])}
+            for d in ("x", "y", "z"):
+                gr[d] = nodes[d][ends[d][g]-ends[d][0]:ends[d][g+1]-ends[d][0]]
+            sh = (len(gr["z"]) - 1, len(gr["y"]) - 1, len(gr["x"]) - 1)
+            for f in fields:
+                gr[f] = vals[f][ends["cell"][g]-c0:ends["cell"][g+1]-c0].reshape(sh)
+            out.append(gr)
+        return out

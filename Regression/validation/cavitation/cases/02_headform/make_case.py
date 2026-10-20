@@ -1,7 +1,7 @@
 # Validation case cavitation 02: hemispherical head form (Rouse & McNown 1948), sheet cavitation
 # behind the shoulder at zero yaw, Re = U D/nu = 1.36e5, D = 1 m, U = 1 m/s, rho = 1000.
 #
-#   python3 make_case.py [<D/dx> <ranks> <end time> [sigma ...]] [--pref P]
+#   python3 make_case.py [<D/dx> <ranks> <end time> [sigma ...]] [--pref P] [--amr]
 # VTU frames (P 35) over the last 5 s, the last 10 s for end times of 20 s or more (unsteady
 # cavities); Betzy wall time 6 h up to 15 s, 12 h beyond (sigma 0.3 at D/40: dt 0.0035 s, 2.8 s
 # per step on 128 ranks). No restart: the state files (P 40) do not hold the vapour fraction.
@@ -22,6 +22,15 @@
 # Grid (B 127-129, cell based): uniform dx in x in [-0.8, 2.5], |y|, |z| < 0.75, growing to 0.25.
 # k-epsilon (T 10 1) with wall functions at the direct-forcing body: laminar runs separate at the
 # shoulder (D/20: reverse flow to s/D = 2, Cp_min -0.34 instead of -0.74).
+# --amr: CFD mesh refinement (G 1 1) in the box G 15 x in [-0.75, 2.45], |y|, |z| < 0.7 (inside the
+# uniform part of the base grid): the nose, the shoulder and the cavities of sigma >= 0.3 at
+# dx/2, the rest of the domain at dx (D/40 + AMR: D/80 at the body, ~3.2 M patch cells). Needs
+# (cfd_amr::scope) N 40 3 instead of 4, no patch boundary: the x+ side the outflow C 14 2 with
+# B 77 10 (pressure 0 there, Dirichlet, as the patch of the uniform runs), the patches placed on
+# the ranks for the load (G 40 1), one time step for all levels (G 7 0, required by W 60). Output
+# into the LAGOON store (P 18 1, the level-0 volume and the patches with alpha_v) instead of the
+# VTU files, every 0.5 s (D/40 + AMR: ~0.2 GB per output); analysis: headform_analysis.py reads the
+# finest patches from the store.
 import math, os, sys
 
 D, U, RHO, RE = 1.0, 1.0, 1000.0, 1.36e5
@@ -30,7 +39,7 @@ NU = U*D/RE
 CONTROL = """C 11 1
 C 12 3
 C 13 3
-C 14 21
+C 14 {c14}
 C 15 3
 C 16 3
 
@@ -49,24 +58,22 @@ M 10 {ranks}
 
 CTRL = """B 60 1
 B 61 1
-B 441 1 4 11.99 12.01 -4.0 4.0 -4.0 4.0
-B 412 1 0.0
-D 10 4
+{outlet}D 10 4
 D 20 2
 D 30 1
 
 F 30 0
 F 40 0
 
-N 40 4
+N 40 {n40}
 N 41 {tend}
 N 47 0.2
 
 M 10 {ranks}
 
 P 10 1
-P 24 1
-P 35 {tvtu} {tend} 0.25
+{p18}P 24 1
+P 35 {tvtu} {tend} {dtv}
 P 64 -3.0 3.0 0.01
 P 64 -3.0 0.01 3.0
 
@@ -81,12 +88,12 @@ X 10 1
 X 11 0 0 0 0 0 0
 X 21 1000.0
 X 180 1
-"""
+{amr}"""
 
 JOB = """#!/bin/bash
 # Betzy: head form {name}, D/{res}, {ranks} ranks. In this directory: control.txt, ctrl.txt,
 # floating.stl (written by make_case.py), REEF3D and DiveMESH built on Betzy. sbatch job.slurm
-#SBATCH --job-name=hf{res}_{name}
+#SBATCH --job-name=hf{res}{tag}_{name}
 #SBATCH --account=nnXXXXk
 #SBATCH --partition=normal
 #SBATCH --nodes={nodes}
@@ -163,6 +170,8 @@ def make(argv):
         k = argv.index("--pref")
         pref = float(argv[k+1])
         argv = argv[:k] + argv[k+2:]
+    amr = "--amr" in argv
+    argv = [a for a in argv if a != "--amr"]
     res = int(argv[0])
     ranks = int(argv[1])
     tend = float(argv[2])
@@ -171,22 +180,27 @@ def make(argv):
     q = 0.5*RHO*U*U
     for sg in sigmas:
         name = "nocav" if sg == "none" else "sigma" + sg
-        d = os.path.join(f"d{res}", name)
+        d = os.path.join(f"d{res}" + ("_amr" if amr else ""), name)
         os.makedirs(d, exist_ok=True)
         # rho_l/rho_v = 1000 (W 62 1, nu_v 1e-5: mu_v as for water vapour): with the real ratio
         # 58000 the D/40 run diverged at t = 3.3 s (lateral velocity 567 m/s in the vapour);
         # at D/20 the two ratios give the same Cp within 0.006 and the same cavity
         cav = "" if sg == "none" else f"W 60 1\nW 61 {pref - float(sg)*q:.1f}\nW 62 1.0\nW 63 1.0e-5\n"
         with open(f"{d}/control.txt", "w") as f:
-            f.write(CONTROL.format(dx=dx, ranks=ranks))
+            f.write(CONTROL.format(dx=dx, ranks=ranks, c14=2 if amr else 21))
         with open(f"{d}/ctrl.txt", "w") as f:
             # W 10: discharge through the inlet face, U times its area 8 x 8
+            outlet = "B 77 10\n" if amr else "B 441 1 4 11.99 12.01 -4.0 4.0 -4.0 4.0\nB 412 1 0.0\n"
+            amrkeys = "G 1 1\nG 7 0\nG 15 -0.75 2.45 -0.7 0.7 -0.7 0.7\nG 40 1\n" if amr else ""
             f.write(CTRL.format(tend=tend, tvtu=max(0.0, tend-(10.0 if tend >= 20.0 else 5.0)), ranks=ranks, rho=RHO, nu=NU,
-                                q=U*64.0, cav=cav))
+                                q=U*64.0, cav=cav, outlet=outlet, dtv=0.5 if amr else 0.25, n40=3 if amr else 4, p18="P 18 1\n" if amr else "",
+                                amr=amrkeys))
         n = stl(f"{d}/floating.stl")
         with open(f"{d}/job.slurm", "w") as f:
+            # AMR: ~3.2 M patch cells at D/40 and half the time step: about 8 times the uniform run
+            wall = ("24:00:00" if tend <= 15.0 else "48:00:00") if amr else ("06:00:00" if tend <= 15.0 else "12:00:00")
             f.write(JOB.format(name=name, res=res, ranks=ranks, nodes=max(1, ranks//128),
-                               tasks=min(ranks, 128), walltime="06:00:00" if tend <= 15.0 else "12:00:00"))
+                               tasks=min(ranks, 128), walltime=wall, tag="amr" if amr else ""))
         print(f"{d}: dx = {dx}, {n} triangles, p_v = {pref - float(sg)*q if cav else 'no cavitation'}")
 
 

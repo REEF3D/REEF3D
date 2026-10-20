@@ -30,10 +30,11 @@ Architect: Hans Bihs
 #include<sys/stat.h>
 #include<sys/types.h>
 
-//  Output of the patches (P 10 > 0): at the output times of printer_CFD, one VTK rectilinear grid
+//  Output of the patches (P 10 > 0): at the output times of printer_CFD (P 20, P 30, P 35), one VTK rectilinear grid
 //  (.vtr) per patch in REEF3D_CFD_AMR/, and a multiblock file (.vtm) with all patches of the output
 //  (open it next to the level-0 output).  Cell data: level set, pressure, velocity (cell centre), the
-//  level of the patch and a flag for the cells under a finer patch.
+//  level of the patch and a flag for the cells under a finer patch; heat or concentration, and the
+//  vapour fraction alpha_v with cavitation (W 60).
 //  P 18: the patches go into the LAGOON store too, as the AMR set cfd_amr of 3D blocks (rank 0
 //  gathers them, lagoon_amr_output); P 18 1: instead of the .vtr and .vtm files.
 
@@ -60,7 +61,22 @@ void cfd_amr::print(lexer *p, ghostcell *pgc, bool after)
     const bool by_time = (p->P30>0.0 && p->P34<0.0 && (p->simtime>p->printtime || p->count==0));
     if(after && p->count!=0)
     return;
-    if(!by_count && !by_time)
+
+    // the time windows P 35 ts te dt, as printer_CFD (the same steps, the same output number)
+    bool by_window = false;
+    if(p->P35>0 && !after)
+    {
+        if(print_wt.empty())
+        print_wt.assign(p->P35_ts,p->P35_ts+p->P35);
+        for(int qn=0; qn<p->P35; ++qn)
+        if(p->simtime>print_wt[qn] && p->simtime>=p->P35_ts[qn] && p->simtime<=(p->P35_te[qn]+0.5*p->P35_dt[qn]))
+        {
+            by_window = true;
+            print_wt[qn]+=p->P35_dt[qn];
+        }
+    }
+
+    if(!by_count && !by_time && !by_window)
     return;
 
     // after: called after printer_CFD at the start (its output counter has moved on)
@@ -119,6 +135,11 @@ void cfd_amr::print(lexer *p, ghostcell *pgc, bool after)
             field &S = sfield(id);
             put(scal==1 ? "T" : "C",[&](int i, int j, int k) { return S(i,j,k); });
         }
+        if(cav)
+        {
+            field &A = cfield(id);
+            put("alpha_v",[&](int i, int j, int k) { return A(i,j,k); });
+        }
 
         size_t m=0;
         for(int k=0; k<nz; ++k)
@@ -175,6 +196,8 @@ bool cfd_amr::print_lagoon(lexer *p, ghostcell *pgc, int num)
                                              {"u",false}, {"v",false}, {"w",false}};
     if(scal)
     fields.push_back({scal==1 ? "T" : "C",false});
+    if(cav)
+    fields.push_back({"alpha_v",false});
 
     std::vector<lagoon_amr::grid> grids;
     for(int id=0; id<(int)P.size(); ++id)
@@ -214,6 +237,11 @@ bool cfd_amr::print_lagoon(lexer *p, ghostcell *pgc, int num)
         {
             field &S = sfield(id);
             put([&](int i, int j, int k) { return S(i,j,k); });
+        }
+        if(cav)
+        {
+            field &A = cfield(id);
+            put([&](int i, int j, int k) { return A(i,j,k); });
         }
         grids.push_back(std::move(g));
     }

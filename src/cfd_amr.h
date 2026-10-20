@@ -603,6 +603,7 @@ private:
     int scal = 0;                       // 0 none, 1 heat T (H 10), 2 concentration C (C 10)
     int cav = 0;                        // cavitation (W 60): the vapour fraction on all grids (cfd_amr_cav.cpp)
     field& cfield(int g);               // the vapour fraction of grid g
+    vector<double> print_wt;            // print: next output time of every P 35 window (as printer_CFD)
     int sc_conv = 0;                    // convection H 15 / C 15: 0 none, 1 first-order upwind, 4 WENO (weno_flux_nug)
     int sc_diff = 0;                    // D 20: 0 none, 1 explicit, 2 implicit
     double sc_sig = 1.0;                // the turbulent Prandtl (Schmidt) number of the eddy viscosity

@@ -12,10 +12,34 @@
 # W 10 over the inlet area; sigma = (p_ref - p_v)/q. Cavity: alpha_v > 0.1 in the band, contiguous
 # from the first cavitating bin. --exp: csv with columns sigma, s/D, Cp (measured), drawn for the
 # sigma closest to each run. Default window: the VTU frames of the last 5 s.
+# Runs with mesh refinement (make_case.py --amr, P 18 1): the cell values of the finest patches from
+# the LAGOON store REEF3D_CFD.lagoon (the bands in the refined box, at the patch spacing dx/2);
+# needs lagoon_read.py (Regression/validation/fwh/scripts, or next to this script).
 import argparse, glob, math, os, sys
 import numpy as np
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(1, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "fwh", "scripts"))
 from reef3d_vtu import steps, read_step
+
+
+def store_frames(run):
+    # AMR runs: (output number, time) of the AMR set and a reader of the finest patches of an output
+    from lagoon_read import lagoon
+    s = lagoon(f"{run}/REEF3D_CFD.lagoon")
+    def read(n):
+        G = s.amr(n, ["pressure", "alpha_v"])
+        top = max(g["level"] for g in G)
+        out = {"points": [], "pressure": [], "alpha_v": []}
+        for g in G:
+            if g["level"] != top:
+                continue
+            c = [0.5*(g[d][1:] + g[d][:-1]) for d in ("x", "y", "z")]
+            Z, Y, X = np.meshgrid(c[2], c[1], c[0], indexing="ij")
+            out["points"].append(np.stack([X.ravel(), Y.ravel(), Z.ravel()], 1))
+            out["pressure"].append(g["pressure"].ravel())
+            out["alpha_v"].append(g["alpha_v"].ravel())
+        return {k: np.concatenate(v) for k, v in out.items()}, top
+    return [(n, t) for n, t in enumerate(s.amr_times())], read
 
 ap = argparse.ArgumentParser()
 ap.add_argument("runs", nargs="*", default=["."])
@@ -50,7 +74,11 @@ for run in args.runs:
     cav = keyword(f"{run}/ctrl.txt", "W 60")
     pv = keyword(f"{run}/ctrl.txt", "W 61")[0] if cav else None
 
-    st = steps(f"{run}/REEF3D_CFD_VTU")
+    amr = os.path.isdir(f"{run}/REEF3D_CFD.lagoon/amr/cfd_amr")
+    if amr:
+        st, read_amr = store_frames(run)
+    else:
+        st = steps(f"{run}/REEF3D_CFD_VTU")
     tmax = st[-1][1]
     t0 = args.t0 if args.t0 is not None else tmax - 5.0
     t1 = args.t1 if args.t1 is not None else tmax
@@ -62,15 +90,20 @@ for run in args.runs:
 
     # band 1 (0.5-1.5 dx) and band 2 (1.5-2.5 dx): sums of p, distance, alpha and counts
     sp = np.zeros((2, len(mid))); sd = np.zeros((2, len(mid))); sa = np.zeros(len(mid)); cnt = np.zeros((2, len(mid)))
+    dxb = dx
     for n, t in st:
-        d = read_step(f"{run}/REEF3D_CFD_VTU", n)
+        if amr:
+            d, top = read_amr(n)
+            dxb = dx/2**top      # bands at the spacing of the finest patches
+        else:
+            d = read_step(f"{run}/REEF3D_CFD_VTU", n)
         P = d["points"]
         x = P[:, 0]; r = np.hypot(P[:, 1], P[:, 2])
         nose = x < 0.0
         dist = np.where(nose, np.hypot(x, r) - R, r - R)
         s = np.where(nose, R*np.arctan2(r, -x), 0.25*math.pi + x)
         for b in (0, 1):
-            m = (dist > (0.5+b)*dx) & (dist < (1.5+b)*dx) & (x < 7.0)
+            m = (dist > (0.5+b)*dxb) & (dist < (1.5+b)*dxb) & (x < 7.0)
             k = np.digitize(s[m], bins) - 1
             ok = (k >= 0) & (k < len(mid))
             np.add.at(sp[b], k[ok], d["pressure"][m][ok])
@@ -97,7 +130,7 @@ for run in args.runs:
         lcav = (mid[c[0]], mid[i])
     imin = np.nanargmin(Cp)
     name = os.path.basename(os.path.abspath(run))
-    print(f"{name}: window {t0:.2f}-{t1:.2f} s ({len(st)} frames), U = {U:.3f}, p_ref = {pref:.2f} Pa, "
+    print(f"{name}: window {t0:.2f}-{t1:.2f} s ({len(st)} frames{', AMR dx %.4g' % dxb if amr else ''}), U = {U:.3f}, p_ref = {pref:.2f} Pa, "
           + (f"sigma = {sigma:.3f}" if sigma is not None else "no cavitation")
           + f", Cp_min = {Cp[imin]:.3f} at s/D = {mid[imin]:.3f} (first band {np.nanmin(Cp1):.3f})"
           + (f", cavity s/D = {lcav[0]:.3f} - {lcav[1]:.3f}" if lcav else ""))

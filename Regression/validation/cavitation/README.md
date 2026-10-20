@@ -114,8 +114,49 @@ steady after 10 s (vapour volume 0.366 m³ ± 0.0007); sigma 0.5 (0.16 -> 0.10 m
 sigma 0.3 (0.99 -> 0.53 m³) still shrink, and both have a mean side force (0.5: Fy -26, Fz -20 N;
 0.3: Fy -50 N; no cavitation and 0.4: a few N), an asymmetric cavity. Drag (6DOF, frontal area)
 Cd 0.33 without cavitation, 0.44-0.48 with. nocav and sigma 0.3 ran with 5e7ceda (before the
-hans_dev 6DOF and flux fixes), sigma 0.5 and 0.4 with 0b88701. Next: all four to 30 s with the
-current code (`python3 make_case.py 40 128 30 --pref -15.5`, VTU frames 20-30 s, 12 h wall time).
+hans_dev 6DOF and flux fixes), sigma 0.5 and 0.4 with 0b88701. 
+D/40 to 30 s, all four with 6dcd406 (user, 2026-10-20), means over 20-30 s:
+
+| | sigma | vapour volume [m³] | Cd | mean Fy, Fz [N] |
+|---|---|---|---|---|
+| no cavitation | | | 0.287 | 0.1, 0.0 |
+| 0.5 | 0.501 | 0.1031 (steady from 15 s) | 0.340 | 0.2, -2.2 |
+| 0.4 | 0.391 | 0.364 (steady from 10 s) | 0.476 | 0.2, -2.0 |
+| 0.3 | 0.307 | 0.762 (steady from 10 s) | 0.449 | -2.5, -3.0 |
+
+All steady and axisymmetric in the mean: the shrinking cavities and the mean side forces of the
+15 s runs were the start-up and the code before the hans_dev flux and 6DOF fixes. With cavitation
+the forces alternate from step to step (lag-1 correlation -0.9 to -0.95, side force 40-60 N rms,
+13 N or less after averaging two steps): a numerical odd-even oscillation in time of the
+implicit phase-change coupling, not shedding; harmless for the means, to be removed before
+pressure signals of cavitating flow are used for acoustics.
+Surface pressure, 20-30 s (40 VTU frames, `headform_analysis.py --t0 20 --t1 30`), against
+Rouse & McNown; closure: s/D where Cp is halfway between -sigma and the recompression peak:
+
+| | Cp_min / plateau CFD | exp. | cavity start CFD | closure CFD | closure exp. |
+|---|---|---|---|---|---|
+| no cavitation | -0.61 at 0.66 | -0.74 at 0.66 | | | |
+| 0.5 | -0.50 | -0.50 | 0.71 | 1.35 | 1.04 |
+| 0.4 | -0.39 | -0.40 | 0.69 | 1.83 | 1.43 |
+| 0.3 | -0.31 | -0.30 | 0.69 | 2.47 | 2.09 |
+
+The cavity holds p_v (plateau at -sigma) and its length grows with falling sigma as measured, but
+it is 0.3-0.4 D too long, starts downstream of the measured one (the plateau of the experiment
+covers s/D 0.54) and closes sharply with a recompression peak of Cp 0.2-0.5 (measured 0.05-0.09,
+the time average of an unsteady closure). Without cavitation the suction peak is 0.13 too weak
+and the recovery behind the shoulder too slow (-0.47 against -0.17 at s/D 0.92): D/40 does not
+resolve the flow at the shoulder, which sets the separation and the cavity detachment.
+Next, the grid at the body: `make_case.py ... --amr` refines the box x in [-0.75, 2.45],
+|y|, |z| < 0.7 (nose, shoulder, the cavities down to sigma 0.3) by one level (G 1 1), written to
+`d<D/dx>_amr/`. The x+ side becomes the outflow `C 14 2` with `B 77 10` (patch boundaries are not
+allowed with the refinement), N 40 3, G 40 1 (the patches placed for the load), G 7 0. Output in
+the LAGOON store (P 18 1) with alpha_v on the patches; `headform_analysis.py` reads the finest
+patches from it (with `lagoon_read.py`). Two runs: D/20 + AMR (D/40 at the body) against the
+uniform D/40 above checks the refinement (`python3 make_case.py 20 64 30 --pref -15.5 --amr`), D/40 +
+AMR (D/80 at the body, ~4.5 M patch cells, dt about half of D/40) is the resolution study
+(`python3 make_case.py 40 256 30 --pref -15.5 --amr`). Local check (D/20 + AMR, sigma 0.4, 8
+ranks): 8 patches, 0.56 M patch cells, load max/mean 1.01, ~7 s per step, dt 0.0064 s.
+
 A restart from the state files (P 40/I 40) does not help, they do not hold the vapour fraction;
 the checkpoints (P 48/I 45) do, a run with `P 48` can be continued.
 
