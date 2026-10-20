@@ -653,9 +653,14 @@ void fnpf_amr::lap_prec(int kr, int kz)
 
         // the increment interpolated into the patch interiors (NRP, from the parent on its rank)
         // and added
+        // (biquadratic: the bicubic stencil gave the same iterations in 3D and more on a 2D grid,
+        // 4.6 against 3.7 with two levels, at 16 instead of 9 coarse columns per fine column)
+        const int pord_keep = pord;
+        pord = 3;
         prolong_interior_col(l,[](reefamr_patch*) { return true; },
                              [&](int g) -> double* { return (g<0) ? lvec(-1,kz) : lvec(g,NPRE); },
                              [&](int id) -> double* { return lvec(id,NRP); });
+        pord = pord_keep;
 
         for(int id : lev[l])
         {

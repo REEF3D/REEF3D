@@ -270,7 +270,7 @@ private:
     bool rcubic(lexer*, int, int);
     template<class F> double rc4(F);
     int rorder = 4;                 // restriction: 2 average of the children, 4 cubic
-    int pord = 4;                   // prolongation: 3 biquadratic, 4 bicubic
+    int pord = 4;                   // prolongation: 3 biquadratic, 4 bicubic (the increment of the preconditioner: 3)
     template<class SEL> void restrict_col(SEL);
     template<class ND, class SEL> void prolong_interior_sl(int, ND, int, SEL);
     template<class ND, class SRC, class DST> void prolong_interior_col(int, ND, SRC, DST);
