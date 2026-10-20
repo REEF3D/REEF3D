@@ -66,6 +66,8 @@ double& sediment_exner::amr_field(sediment_fdm *s, int n, int ii, int jj)
     return Isp(ii,jj);
     if(n==6)
     return qsn(ii,jj);
+    if(n==7)
+    return qbn(ii,jj);
     return s->qb(ii,jj);
 }
 

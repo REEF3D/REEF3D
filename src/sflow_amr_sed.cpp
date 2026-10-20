@@ -138,6 +138,23 @@ void sflow_amr::sed_patch_ini(ghostcell *pgc, sflow_amr_patch &c)
 
     c.sed->ini_sflow(pp,b,pgc);
 
+    // the open faces of a block 1.. (G 54) are open for the sediment as the native in- and outflow: the cells beyond
+    // them carry the sediment flag (their bed load from the boundary ghost values, the face flux upwind)
+    if(c.blk>0 && c.lev==0)
+    for(int t=0; t<2; ++t)
+    if(bopen[t][c.blk]>=0)
+    {
+        const int ia = (t==0) ? pp->imin : EXT+c.nx;
+        const int ie = (t==0) ? EXT : pp->imin+pp->imax;
+        for(int ii=ia; ii<ie; ++ii)
+        for(int jj=EXT; jj<EXT+c.ny; ++jj)
+        {
+        const int q = (ii-pp->imin)*pp->jmax + (jj-pp->jmin);
+        c.sed->dfbed_open.push_back(q);
+        pp->DFBED[q] = 1;
+        }
+    }
+
     for(int ii=pp->imin; ii<pp->imin+pp->imax; ++ii)
     for(int jj=pp->jmin; jj<pp->jmin+pp->jmax; ++jj)
     {
@@ -339,9 +356,10 @@ void sflow_amr::sediment_step_sflow(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *
         pb->Q(ii,jj) = (pp->wet[lij(pp,ii,jj)]==1 && pp->wet[lij(pp,ii,jj+1)]==1) ? 0.5*(pb->V(ii,jj)+pb->V(ii,jj+1)) : 0.0;
     }
 
-    // the lags of the bend morphology (S 95 2, S 64, sediment_exner_lag.cpp): the relaxation of every grid holds the
-    // cells around it (filled from their sources) and its covered cells (the mean of their children)
-    const bool lag = (p->S95==2 || p->S64>0.0);
+    // the lags of the bend morphology (S 95 2, S 64, sediment_exner_lag.cpp) and the non-equilibrium bed load (S 33):
+    // the relaxation of every grid holds the cells around it (filled from their sources) and its covered cells (the
+    // mean of their children)
+    const bool lag = (p->S95==2 || p->S64>0.0 || p->S33>0);
     if(lag)
     {
         for(int g=-1; g<ng; ++g)
@@ -462,7 +480,7 @@ void sflow_amr::sediment_step_sflow(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *
         double res = 0.0;
         for(pass=1; pass<=MAX(p->S49,1); ++pass)
         {
-            double d[2] = {0.0,0.0}, f[2] = {0.0,0.0};
+            double d[3] = {0.0,0.0,0.0}, f[3] = {0.0,0.0,0.0};
             s0->exner()->lag_refresh(p,pgc,s0->s,d,f);
             for(int id=0; id<ng; ++id)
             {
@@ -473,7 +491,7 @@ void sflow_amr::sediment_step_sflow(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *
             sync();
 
             res = 0.0;
-            for(int k=0; k<2; ++k)
+            for(int k=0; k<3; ++k)
             {
             d[k] = pgc->globalmax(d[k]);
             f[k] = pgc->globalmax(f[k]);
