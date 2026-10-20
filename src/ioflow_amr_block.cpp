@@ -258,6 +258,10 @@ void ioflow_amr_block::discharge_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     series_update(p);
 
+    // the backgrounds of the edge zones at the time of the step (iowave::nhflow_bg_update)
+    if(ez[0]>=0 || ez[1]>=0)
+    bgs.update(p,p->simtime);
+
     if(in==1)
     {
     double Qi;
@@ -315,12 +319,18 @@ void ioflow_amr_block::curv_dir(lexer *p, double *U, double *V, double *UH, doub
     }
 }
 
-// as ioflow_f::inflow_plain_nhflow (B 61 1) and inflow_log_nhflow (B 61 2, 4, 5)
+// the discharge through the -i face and the edge zones of the faces
 void ioflow_amr_block::inflow_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W, double *UH, double *VH, double *WH, slice &WL)
 {
-    if(in==0)
-    return;
+    if(in==1)
+    inflow_q(p,d,U,V,W,UH,VH,WH);
 
+    edges_nhflow(p,d,U,V,W,UH,VH,WH);
+}
+
+// as ioflow_f::inflow_plain_nhflow (B 61 1) and inflow_log_nhflow (B 61 2, 4, 5)
+void ioflow_amr_block::inflow_q(lexer *p, fdm_nhf *d, double *U, double *V, double *W, double *UH, double *VH, double *WH)
+{
     if(p->B61==1)
     {
     for(n=0;n<p->gcin_count;n++)
@@ -452,6 +462,8 @@ void ioflow_amr_block::rkinflow_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, dou
         VH[Im3JK]=VH[Im2JK]=VH[Im1JK]=d->VH[Im1JK];
         WH[Im3JK]=WH[Im2JK]=WH[Im1JK]=d->WH[Im1JK];
     }
+
+    edges_rk(p,d,U,V,W,UH,VH,WH);
 }
 
 void ioflow_amr_block::rkinflow_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double *F, double *G)
@@ -528,5 +540,302 @@ void ioflow_amr_block::fsfinflow_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, sl
         d->eta(i+3,j) = WL(i+3,j) - d->depth(i,j);
         }
     }
+    }
+
+    edges_wl(p,d,WL);
+}
+
+// ------------------------------------------------------------------------------------------- NHFLOW edge zones
+// the edge zones of the -i (zm) and +i (zp) faces (B 520 methods 3-6 with B 522 b), as iowave::nhflow_open_edges
+// on the native grid without waves (the zones and the backgrounds are checked by reefamr::blocks_open)
+void ioflow_amr_block::open_edges(lexer *p, const bc_zone *zm, const bc_zone *zp, const background_state &bg)
+{
+    ezone.clear();
+    ez[0] = ez[1] = -1;
+    if(zm!=nullptr)
+    {
+        ez[0] = int(ezone.size());
+        ezone.push_back(*zm);
+    }
+    if(zp!=nullptr)
+    {
+        ez[1] = int(ezone.size());
+        ezone.push_back(*zp);
+    }
+    if(!ezone.empty())
+    {
+        bgs = bg;
+        bgs.update(p,p->simtime);
+    }
+}
+
+// depth average of a layer field in the column (i,j) (iowave::nhflow_col_ubar)
+double ioflow_amr_block::col_ubar(lexer *p, double *F)
+{
+    const int kk = k;
+    double s = 0.0;
+
+    for(k=0; k<p->knoz; ++k)
+    s += F[IJK]*p->DZN[KP];
+
+    k = kk;
+    return s;
+}
+
+// B 513: profile factor of layer kk (iowave::bg_prof)
+double ioflow_amr_block::bg_prof(lexer *p, int b, int kk, double h)
+{
+    double zc=0.0, s=0.0, fk=1.0;
+
+    for(int m=0; m<p->knoz; ++m)
+    {
+        const double dz = p->DZN[m+marge];
+        const double f = bgs.shape(b,zc+0.5*dz,h);
+        s += dz*f;
+
+        if(m==kk)
+        fk = f;
+
+        zc += dz;
+    }
+
+    return s>0.0 ? fk/s : 1.0;
+}
+
+namespace
+{
+// face f (0: -i, 1: +i) of the edge cell (i,j): the face index of the face lists, the inward unit normal, the
+// length and the physical centre (iowave curv_edge_normal, curv_edge_len, curv_edge_centre)
+void edge_face(const lexer *p, int f, int i, int j, double &cx, double &cy, double &len, double &xf, double &yf)
+{
+    const int fi = (f==0) ? i-1 : i;
+    const int q = (fi-p->imin)*p->jmax + (j-p->jmin);
+    const double sg = (f==0) ? 1.0 : -1.0;
+    len = p->LEN1[q];
+    cx = len>0.0 ? sg*p->SX1[q]/len : sg;
+    cy = len>0.0 ? sg*p->SY1[q]/len : 0.0;
+    const int a = p->nij(fi+1,j), c = p->nij(fi+1,j+1);
+    xf = 0.5*(p->XN2D[a] + p->XN2D[c]);
+    yf = 0.5*(p->YN2D[a] + p->YN2D[c]);
+}
+}
+
+// the ghost cells of the edges (iowave::nhflow_open_edges, x edges on the curvilinear grid): the characteristics
+// of the background and the interior (Riemann), Flather, the level of the background (clamped level) or its
+// normal current / the B 525 discharge (clamped discharge)
+void ioflow_amr_block::edges_nhflow(lexer *p, fdm_nhf *d, double *U, double *V, double *W, double *UH, double *VH, double *WH)
+{
+    if(ez[0]<0 && ez[1]<0)
+    return;
+
+    if(edge_h.empty())
+    edge_h.assign(size_t(p->imax)*size_t(p->jmax),0.0);
+
+    const double g = fabs(p->W22);
+
+    for(int f=0; f<2; ++f)
+    {
+        if(ez[f]<0)
+        continue;
+
+        const bc_zone &z = ezone[ez[f]];
+        const int sc = (f==0) ? 1 : 4;
+        const int di = (f==0) ? -1 : 1;
+        const double nn = -double(di);
+        const int b = z.bg>0 ? bgs.index(z.bg) : -1;
+
+        // clamped discharge edge with B 525: normal velocity Q / (sum of h ds along the face), ramped
+        double uq = 0.0;
+        if(z.method==bc_method::clamp_q && z.has_Q)
+        {
+            double area = 0.0;
+            for(int list=0; list<2; ++list)
+            {
+                const int cs = list==0 ? p->gcslin_count : p->gcslout_count;
+                int **gs = list==0 ? p->gcslin : p->gcslout;
+                for(n=0; n<cs; ++n)
+                if(gs[n][3]==sc)
+                {
+                    i = gs[n][0];
+                    j = gs[n][1];
+                    if(p->wet[IJ]==1)
+                    {
+                        double cx,cy,len,xf,yf;
+                        edge_face(p,f,i,j,cx,cy,len,xf,yf);
+                        area += d->WL(i,j)*len;
+                    }
+                }
+            }
+            const double r = (z.Q_tramp>0.0 && p->simtime<z.Q_tramp) ? 0.5*(1.0-cos(PI*fmax(p->simtime,0.0)/z.Q_tramp)) : 1.0;
+            uq = area>1.0e-12 ? r*z.Q/area : 0.0;
+        }
+
+        for(int list=0; list<2; ++list)
+        {
+            const int count = list==0 ? p->gcin_count : p->gcout_count;
+            int **gc = list==0 ? p->gcin : p->gcout;
+
+            for(n=0; n<count; ++n)
+            {
+                i = gc[n][0];
+                j = gc[n][1];
+                k = gc[n][2];
+
+                if(gc[n][3]!=sc)
+                continue;
+
+                const double h0 = d->depth(i,j);
+                const double hi = d->WL(i,j);
+
+                if(p->wet[IJ]==0 || hi<=1.0e-6 || h0<=1.0e-6)
+                continue;
+
+                // background at the centre of the boundary face, the inward normal (cx, cy)
+                double cx,cy,len,xf,yf;
+                edge_face(p,f,i,j,cx,cy,len,xf,yf);
+                const double eb = b>=0 ? bgs.eta(b,xf,yf) : 0.0;
+                double ub=0.0, vb=0.0;
+                if(b>=0)
+                bgs.vel(b,h0,xf,yf,ub,vb);
+
+                const double ui = nn*(col_ubar(p,d->U)*cx + col_ubar(p,d->V)*cy);
+                const double unb = ub*cx + vb*cy;      // target, normal
+                const double uni = nn*ui;              // interior, normal
+                double ung, hg;
+
+                if(z.method==bc_method::riemann)
+                {
+                    const double hb = fmax(h0+eb,1.0e-6);
+                    const double Rin  = unb + 2.0*sqrt(g*hb);
+                    const double Rout = uni - 2.0*sqrt(g*hi);
+
+                    hg  = pow(Rin-Rout,2.0)/(16.0*g);
+                    ung = 0.5*(Rin+Rout);
+                }
+                else
+                if(z.method==bc_method::flather)
+                {
+                    hg = hi;
+                    ung = (ub*cx + vb*cy) - sqrt(g/hi)*((hi-h0) - eb);
+                }
+                else
+                if(z.method==bc_method::clamp_level)
+                {
+                    hg = fmax(h0+eb,1.0e-6);
+                    ung = uni;
+                }
+                else
+                {
+                    hg = hi;
+                    ung = z.has_Q ? uq : (ub*cx + vb*cy);
+                }
+
+                edge_h[IJ] = hg;
+
+                // inflow: tangential velocity of the background, outflow: of the interior; the normal part
+                // from the edge, with the vertical profile of the background current (B 513) at inflow
+                const bool inflow = ung>0.0;
+                const double tx = -cy, ty = cx;
+                const double fp = (inflow && bgs.profiled(b)) ? bg_prof(p,b,k,fmax(h0+eb,1.0e-6)) : 1.0;
+                const double ut = inflow ? (ub*fp)*tx + (vb*fp)*ty : U[IJK]*tx + V[IJK]*ty;
+                const double ug = (ung*fp)*cx + ut*tx;
+                const double vg = (ung*fp)*cy + ut*ty;
+                const double wg = inflow ? 0.0 : W[IJK];
+
+                const int ii=i;
+                for(int q=1; q<=3; ++q)
+                {
+                    i = ii + q*di;
+                    U[IJK] = ug;
+                    V[IJK] = vg;
+                    W[IJK] = wg;
+                    UH[IJK] = hg*ug;
+                    VH[IJK] = hg*vg;
+                    WH[IJK] = hg*wg;
+                }
+                i = ii;
+            }
+        }
+    }
+}
+
+// the ghost cells of the RK arrays from the step's ghost cells (iowave::nhflow_open_edges_rk)
+void ioflow_amr_block::edges_rk(lexer *p, fdm_nhf *d, double *U, double *V, double *W, double *UH, double *VH, double *WH)
+{
+    for(int f=0; f<2; ++f)
+    {
+        if(ez[f]<0)
+        continue;
+
+        const int sc = (f==0) ? 1 : 4;
+        const int di = (f==0) ? -1 : 1;
+
+        for(int list=0; list<2; ++list)
+        {
+            const int count = list==0 ? p->gcin_count : p->gcout_count;
+            int **gc = list==0 ? p->gcin : p->gcout;
+
+            for(n=0; n<count; ++n)
+            {
+                i = gc[n][0];
+                j = gc[n][1];
+                k = gc[n][2];
+
+                if(gc[n][3]!=sc)
+                continue;
+
+                const int ii=i;
+                for(int q=1; q<=3; ++q)
+                {
+                    i = ii + q*di;
+                    U[IJK]=d->U[IJK];
+                    V[IJK]=d->V[IJK];
+                    W[IJK]=d->W[IJK];
+                    UH[IJK]=d->UH[IJK];
+                    VH[IJK]=d->VH[IJK];
+                    WH[IJK]=d->WH[IJK];
+                }
+                i = ii;
+            }
+        }
+    }
+}
+
+// the ghost water level of the edges (iowave::nhflow_open_edges_wl): Riemann, clamped level the depth of the
+// step, Flather, clamped discharge zero gradient
+void ioflow_amr_block::edges_wl(lexer *p, fdm_nhf *d, slice &WL)
+{
+    for(int f=0; f<2; ++f)
+    {
+        if(ez[f]<0)
+        continue;
+
+        const bc_zone &z = ezone[ez[f]];
+        const int sc = (f==0) ? 1 : 4;
+        const int di = (f==0) ? -1 : 1;
+        const bool own_h = z.method==bc_method::riemann || z.method==bc_method::clamp_level;
+
+        for(int list=0; list<2; ++list)
+        {
+            const int count = list==0 ? p->gcslin_count : p->gcslout_count;
+            int **gc = list==0 ? p->gcslin : p->gcslout;
+
+            for(n=0; n<count; ++n)
+            {
+                i = gc[n][0];
+                j = gc[n][1];
+
+                if(gc[n][3]!=sc)
+                continue;
+
+                const double hg = (own_h && !edge_h.empty() && edge_h[IJ]>0.0) ? edge_h[IJ] : WL(i,j);
+
+                for(int q=1; q<=3; ++q)
+                {
+                    WL(i+q*di,j) = hg;
+                    d->eta(i+q*di,j) = hg - d->depth(i,j);
+                }
+            }
+        }
     }
 }

@@ -443,6 +443,7 @@ void control::ini_default()
     B108=0;        // int read wave generation  origin
     B500=B501=B502=B504=B520=B521=B524=0;   // int iowave redesign: wave sources (B 500-504), zones (B 520-524)
     B525=0;        // int iowave redesign: discharge of a clamped discharge edge (B 525 id Q t_ramp), repeatable
+    B522=0;        // int multi-block grid (G 50 1): zones on a face of a block 1.. (B 522 id b: the B 521 edge of zone id is a face of block b), repeatable
     B513=0;          // int iowave redesign: vertical profile of the background current (B 513 id profile par), repeatable
     B505=0;          // int iowave: frame of a wave source (B 505 id frame; 0: B 92 generation frame, 1: global)
     B510=B511=B514=B523=0;   // int iowave redesign: tidal / current background (B 510-514), zone background (B 523)

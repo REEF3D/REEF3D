@@ -205,6 +205,8 @@ public:
     int *B513_id,*B513_profile; double *B513_par;    // iowave redesign: vertical profile of the background current (B 513 id profile par), repeatable
     int B525;
     int *B525_id; double *B525_Q,*B525_tramp;    // iowave redesign: discharge of a clamped discharge edge (B 525 id Q t_ramp), repeatable
+    int B522;
+    int *B522_id,*B522_b;     // multi-block grid: zone id on a face of block b (B 522 id b), repeatable
     int B108;
     double *B108_xs,*B108_xe,*B108_ys, *B108_ye, *B108_d;
     int B110;

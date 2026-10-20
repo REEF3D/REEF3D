@@ -24,6 +24,8 @@ Author: Hans Bihs
 #define IOFLOW_AMR_BLOCK_H_
 
 #include"ioflow_void.h"
+#include"bc_zone.h"
+#include"background_state.h"
 #include<string>
 #include<vector>
 
@@ -33,7 +35,9 @@ Author: Hans Bihs
 // to Q) and the water level at the +i face (start ramp F 64 from F 60).  G 54 types 3 and 4 take Q and the
 // level from a time series file (discharge-<id>.dat, waterlevel-<id>.dat: lines "t value", linear in time,
 // held beyond the ends), as the native hydrograph (B 60 3, 4).  A block lies on one rank: the sums over the
-// face are local.  Everything else as ioflow_v.
+// face are local.  NHFLOW: an edge zone on the -i or +i face (B 520 methods 3-6 with B 522 b: Riemann, Flather,
+// clamped level or discharge edge with its background B 523, B 510-515) sets the ghost cells as the edges of
+// iowave on the native grid (iowave_nhflow_tide.cpp, without waves).  Everything else as ioflow_v.
 class ioflow_amr_block : public ioflow_v
 {
 public:
@@ -48,6 +52,9 @@ public:
     // the open faces of the G 54 lines nin (-i face) and nout (+i face), -1 none: types 1, 2 the constant
     // values, 3, 4 the time series (files checked by reefamr::blocks_open)
     void open_faces(lexer*,int,int);
+
+    // the edge zones of the -i and +i faces (B 522), nullptr none, and the backgrounds (NHFLOW)
+    void open_edges(lexer*,const bc_zone*,const bc_zone*,const background_state&);
 
     // G 54 types 3, 4: the file of a time series and its value at time t
     static std::string series_file(int,int);
@@ -72,7 +79,20 @@ private:
 
     std::vector<double> sq_t, sq_v;     // discharge time series (G 54 type 3)
     std::vector<double> sw_t, sw_v;     // water level time series (G 54 type 4)
+
+    // edge zones (B 522): ez[0] the -i face, ez[1] the +i face
+    void edges_nhflow(lexer*,fdm_nhf*,double*,double*,double*,double*,double*,double*);
+    void edges_rk(lexer*,fdm_nhf*,double*,double*,double*,double*,double*,double*);
+    void edges_wl(lexer*,fdm_nhf*,slice&);
+    double col_ubar(lexer*,double*);
+    double bg_prof(lexer*,int,int,double);
+
+    std::vector<bc_zone> ezone;         // the zones of the faces
+    int ez[2] = {-1,-1};                // their index per face, -1 none
+    background_state bgs;
+    std::vector<double> edge_h;         // the ghost depth of the Riemann / clamped level edges of the step
     void qin_nhflow(lexer*,fdm_nhf*,double&,double&);
+    void inflow_q(lexer*,fdm_nhf*,double*,double*,double*,double*,double*,double*);
     void curv_dir(lexer*,double*,double*,double*,double*);
 
     double Ui = 0.0;        // inflow velocity normal to the -i face (m/s)

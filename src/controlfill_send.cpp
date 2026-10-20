@@ -921,6 +921,8 @@ void control::ctrlsend()
     ii++;
     ictrl[ii] = B525;
     ii++;
+    ictrl[ii] = B522;
+    ii++;
     ictrl[ii] = B530;
     ii++;
     ictrl[ii] = B530_N;
@@ -3265,6 +3267,13 @@ void control::ctrlsend()
         dd++;
         dctrl[dd] = B525_tramp[n];
         dd++;
+    }
+    for(n=0;n<B522;++n)
+    {
+        ictrl[ii] = B522_id[n];
+        ii++;
+        ictrl[ii] = B522_b[n];
+        ii++;
     }
     for(n=0;n<B202;++n)
     {

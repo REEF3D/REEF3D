@@ -1129,15 +1129,18 @@ void reefamr::build_bc2D(ghostcell *pgc, reefamr_patch &c)
     pgc->gcsl_setbc2(pp);
     pgc->gcsl_setbc4(pp);
 
-    // multi-block: an open face of a block 1.. (G 54) is the -i (inflow, bc 1) or +i face (outflow, bc 2) of
-    // its level-0 grid, the lists as gcsl_setbc for a native grid whose first cell is the first one of the block
-    if(c.blk>0 && c.lev==0 && (bopen[0][c.blk]>=0 || bopen[1][c.blk]>=0))
+    // multi-block: an open face of a block 1.. (G 54, an edge zone B 522) is the -i (inflow, bc 1) or +i face
+    // (outflow, bc 2) of its level-0 grid, the lists as gcsl_setbc for a native grid whose first cell is the first
+    // one of the block
+    const bool om = c.blk>0 && c.lev==0 && (bopen[0][c.blk]>=0 || bzone[0][c.blk]>=0);
+    const bool op = c.blk>0 && c.lev==0 && (bopen[1][c.blk]>=0 || bzone[1][c.blk]>=0);
+    if(om || op)
     {
         const int oi = pp->origin_i, gn = pp->gknox, s1 = pp->bcside1, s4 = pp->bcside4;
         pp->origin_i = -EXT;
         pp->gknox = blk[c.blk].ni;
-        pp->bcside1 = (bopen[0][c.blk]>=0) ? 1 : 21;
-        pp->bcside4 = (bopen[1][c.blk]>=0) ? 2 : 21;
+        pp->bcside1 = om ? 1 : 21;
+        pp->bcside4 = op ? 2 : 21;
         pgc->gcsl_setbc1(pp);
         pgc->gcsl_setbc2(pp);
         pgc->gcsl_setbc4(pp);
