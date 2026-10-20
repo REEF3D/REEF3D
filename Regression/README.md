@@ -186,6 +186,8 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `nhflow_2d_irregular_decomp` | 1 | NHFLOW JONSWAP waves, decomposed relaxation precalc (B89=1) |
 | `nhflow_3d_irregular_decomp` | 2 | NHFLOW 3D short-crested waves (B130=2), decomposed precalc, CFL 0.5 |
 | `fnpf_2d_regular` (+ `_mpi2`) | 1/2 | FNPF relaxation generation + beach, regular waves |
+| `fnpf_2d_break_kennedy` | 1 | FNPF Kennedy breaking (A 350 2) on steep deep-water Stokes waves with a low steepness threshold (A 355 0.25): 2D deep-water flag (cleared in the step it was set before fnpf breaking 01, run blew up at t = 13.6 s), two-pass viscosity spreading |
+| `fnpf_2d_break_romero` | 1 | the same waves with the Romero model (A 350 3): stage values, depth from the bed, energy matching with the dissipation of the damping terms (fnpf breaking 02) |
 | `fnpf_2d_coral_point_absorber` | 1 | REEF3D::CORAL inside REEF3D (Z 40 1): point absorber decay (Cummins, tether, PTO) in step with the FNPF run, `REEF3D_CORAL/results.dat` compared (needs patches CORAL/0001-0006) |
 | `fnpf_2d_coral_fluid_body` | 1 | REEF3D::CORAL drives the FNPF box of `fnpf_2d_6dof_box` (Z 40 1, `fluid_body`): heave through a CORAL prismatic joint with PTO damper and stiff end stops, FNPF loads and added mass to CORAL, motion back at the RK stages with the predictor; `REEF3D_FNPF_6DOF/*.dat` and `REEF3D_CORAL/box.dat` compared (needs patches CORAL/0011-0019) |
 | `fnpf_2d_coral_fluid_body_planar` | 1 | the same box in surge, heave and pitch through a CORAL planar joint, fluid loads extrapolated linearly without the predictor (`fluid_coupling order 1 no_predictor`) (needs patches CORAL/0011-0019) |
