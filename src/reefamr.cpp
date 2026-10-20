@@ -101,6 +101,8 @@ void reefamr::configure(const reefamr_param &q)
     nest = q.nest;
     keep = q.keep;
     EXT = q.ext;
+    sy = (p0->j_dir==1) ? 1 : 0;
+    EY = sy*EXT;
 
     // measured cost model (G 41 0: the placement, the load map) and the weight of the patch phase (G 44)
     lmeas = (p0->G41<=0.0 && p0->mpi_size>1);
@@ -116,7 +118,7 @@ void reefamr::goff(int g, int &oi, int &oj)
         return;
     }
     oi = P[g]->I0-EXT;
-    oj = P[g]->J0-EXT;
+    oj = P[g]->J0-EY;
 }
 
 lexer* reefamr::glex(int g)
@@ -223,7 +225,7 @@ int reefamr::holder(int l, int I, int J)
         if(q>=0)
         return GP[q].rank;
         I = fsh(I,1);
-        J = fsh(J,1);
+        J = fsh(J,sy);
     }
     return owner(I,J);
 }
@@ -393,6 +395,8 @@ double reefamr::y0g(int K) const
 // place 1: x (dir 0) or y (dir 1) of global node N of level l, as build_lexer sets the patch nodes
 double reefamr::gnode(int dir, int l, int N)
 {
+    if(dir==1)
+    l = ysh(l);
     const double rl = double(1<<l);
     const int K = fsh(N,l);
     const int r = N-(K<<l);
@@ -424,8 +428,8 @@ int reefamr::finest_rank(double x, double y)
         {
             if(G.lev<=bl)
             continue;
-            const double r = double(1<<G.lev);
-            if(X*r>=double(G.I0) && X*r<double(G.I1+1) && Y*r>=double(G.J0) && Y*r<double(G.J1+1))
+            const double r = double(1<<G.lev), ry = double(1<<ysh(G.lev));
+            if(X*r>=double(G.I0) && X*r<double(G.I1+1) && Y*ry>=double(G.J0) && Y*ry<double(G.J1+1))
             {
                 best = G.rank;
                 bl = G.lev;
@@ -487,9 +491,9 @@ int reefamr::finest_point(double x, double y, int &id) const
             if(pp->j_dir==1 && !(y>=pp->YN[EXT+marge] && y<pp->YN[EXT+c->ny+marge]))
             continue;
             a = int(std::upper_bound(pp->XN+EXT+marge,pp->XN+EXT+c->nx+marge+1,x) - (pp->XN+marge)) - 1;
-            b = (pp->j_dir==1) ? int(std::upper_bound(pp->YN+EXT+marge,pp->YN+EXT+c->ny+marge+1,y) - (pp->YN+marge)) - 1 : EXT;
+            b = (pp->j_dir==1) ? int(std::upper_bound(pp->YN+EXT+marge,pp->YN+EXT+c->ny+marge+1,y) - (pp->YN+marge)) - 1 : EY;
         }
-        if(a<EXT || a>=EXT+c->nx || b<EXT || b>=EXT+c->ny)
+        if(a<EXT || a>=EXT+c->nx || b<EY || b>=EY+c->ny)
         continue;
 
         // the cells within two of it: interior, or not taken from another grid
@@ -567,7 +571,7 @@ void reefamr::setup(lexer *p, ghostcell *pgc)
     for(int l=1; l<=maxlev; ++l)
     {
         gtnx[l] = ((GNX<<l)+tile-1)/tile;
-        gtny[l] = ((GNY<<l)+tile-1)/tile;
+        gtny[l] = ((GNY<<ysh(l))+tile-1)/tile;
     }
     build_tiles();
     build_flags(p);
@@ -698,9 +702,9 @@ void reefamr::tag_cell(int lf, int I, int J, int buf, vector<unsigned char> &M)
 {
     const int T = tile;
     int a0 = MAX((2*(I-buf))/T,0), a1 = MIN((2*(I+buf)+1)/T,gtnx[lf]-1);
-    int d0 = MAX((2*(J-buf))/T,0), d1 = MIN((2*(J+buf)+1)/T,gtny[lf]-1);
+    int d0 = MAX(ychild(J-buf)/T,0), d1 = MIN((ychild(J+buf)+sy)/T,gtny[lf]-1);
     if(2*(I-buf)<0) a0=0;
-    if(2*(J-buf)<0) d0=0;
+    if(ychild(J-buf)<0) d0=0;
     for(int a=a0; a<=a1; ++a)
     for(int d=d0; d<=d1; ++d)
     M[(size_t)a*gtny[lf]+d]=1;
@@ -788,11 +792,11 @@ void reefamr::build_lexer(lexer *p, reefamr_patch &c)
     lexer *pp = c.pp;
     const int ms = pp->margin;   // ghost layers of the slices
     const int m = marge;         // offset of the coordinate arrays (IP = i+marge)
-    const int l = c.lev;
-    const double rl = double(1<<l);
+    const int l = c.lev, ly = ysh(l);
+    const double rl = double(1<<l), rly = double(1<<ly);
 
     pp->knox = c.nx+2*EXT;
-    pp->knoy = c.ny+2*EXT;
+    pp->knoy = c.ny+2*EY;
     pp->knoz = p->knoz;
     pp->imin = -ms;
     pp->jmin = -ms;
@@ -855,10 +859,10 @@ void reefamr::build_lexer(lexer *p, reefamr_patch &c)
     }
     for(int a=0; a<nya; ++a)
     {
-        int N = a-m-EXT+c.J0;
-        int K = fsh(N,l);
-        int r = N-(K<<l);
-        pp->YN[a] = (r==0) ? y0(K) : y0(K) + (y0(K+1)-y0(K))*(double(r)/rl);
+        int N = a-m-EY+c.J0;
+        int K = fsh(N,ly);
+        int r = N-(K<<ly);
+        pp->YN[a] = (r==0) ? y0(K) : y0(K) + (y0(K+1)-y0(K))*(double(r)/rly);
     }
 
     for(int a=0; a<nxa-1; ++a) { pp->XP[a] = 0.5*(pp->XN[a]+pp->XN[a+1]); pp->DXN[a] = pp->XN[a+1]-pp->XN[a]; }
@@ -908,9 +912,9 @@ void reefamr::build_lexer(lexer *p, reefamr_patch &c)
         for(int ii=pp->imin; ii<=pp->imin+pp->imax; ++ii)
         for(int jj=pp->jmin; jj<=pp->jmin+pp->jmax; ++jj)
         {
-            const int NI = ii-EXT+c.I0, NJ = jj-EXT+c.J0;    // global level-l node
-            const int K = fsh(NI,l), L = fsh(NJ,l);
-            const double fr = double(NI-(K<<l))/rl, fs = double(NJ-(L<<l))/rl;
+            const int NI = ii-EXT+c.I0, NJ = jj-EY+c.J0;    // global level-l node
+            const int K = fsh(NI,l), L = fsh(NJ,ly);
+            const double fr = double(NI-(K<<l))/rl, fs = double(NJ-(L<<ly))/rly;
             double x00,y00,x10,y10,x01,y01,x11,y11;
             node0(K,L,x00,y00); node0(K+1,L,x10,y10); node0(K,L+1,x01,y01); node0(K+1,L+1,x11,y11);
 
@@ -928,7 +932,7 @@ void reefamr::build_lexer(lexer *p, reefamr_patch &c)
 
     // mean spacing: exact fraction of level 0, independent of the patch size
     pp->DXM = p->DXM/rl;
-    pp->DYM = pp->DXM;
+    pp->DYM = (sy==1) ? pp->DXM : p->DYM;
     pp->DXD = p->DXD;
     pp->DYD = p->DYD;
 
@@ -944,8 +948,8 @@ void reefamr::build_lexer(lexer *p, reefamr_patch &c)
     for(int ii=pp->imin; ii<pp->imin+pp->imax; ++ii)
     for(int jj=pp->jmin; jj<pp->jmin+pp->jmax; ++jj)
     {
-        int I = ii-EXT+c.I0, J = jj-EXT+c.J0;
-        pp->flagslice4[lij(pp,ii,jj)] = flag0(fsh(I,l),fsh(J,l));
+        int I = ii-EXT+c.I0, J = jj-EY+c.J0;
+        pp->flagslice4[lij(pp,ii,jj)] = flag0(fsh(I,l),fsh(J,ly));
     }
 
     // face flags as mgcslice1/2::makemgc, over the whole array

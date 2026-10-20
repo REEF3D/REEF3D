@@ -55,14 +55,14 @@ nhflow_probe_press::nhflow_probe_press(lexer *p, fdm_nhf *d) : probenum(p->P64)
         
         //cout<<pout[n].is_open()<<" "<<n+1<<endl;
 
-	    pout[n]<<"Vel Probe ID:  "<<n+1<<endl<<endl;
+	    pout[n]<<"Pressure Probe ID:  "<<n+1<<endl<<endl;
 		pout[n]<<"x_coord     y_coord     z_coord"<<endl;
 		
 		pout[n]<<n+1<<"\t "<<p->Xout(p->P64_x[n],p->P64_y[n])<<"\t "<<p->Yout(p->P64_x[n],p->P64_y[n])<<"\t "<<p->P64_z[n]<<endl;
 
 		pout[n]<<endl<<endl;
 		
-		pout[n]<<"t \t U \t V \t W "<<endl;
+		pout[n]<<"t \t P "<<endl;
 		
 		}
     }
@@ -106,8 +106,11 @@ void nhflow_probe_press::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
             g = static_cast<fdm_nhf*>(ap.f[n]);
         }
     
-		pdyn = q->ccipol4V(g->P, g->WL, g->bed, xp, yp, zp);
-         etaval = q->ccslipol4(g->eta,xp,yp);  
+        // the non-hydrostatic pressure P lives on the vertical cell faces (FIJK, kmax+2 levels),
+        // so it is read with the face interpolation ccipol7V as in nhflow_force_forcecalc.cpp;
+        // ccipol4V is for cell-centred arrays (IJK) and reads P with the wrong layout
+		pdyn = q->ccipol7V(g->P, g->WL, g->bed, xp, yp, zp);
+         etaval = q->ccslipol4(g->eta,xp,yp);
          phs = (p->wd + etaval - zp)*p->W1*fabs(p->W22);
          
          pval = pdyn + phs;

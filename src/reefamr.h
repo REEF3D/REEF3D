@@ -584,8 +584,8 @@ protected:
                     for(int I=I0; I<=I1; ++I)
                     for(int J=J0; J<=J1; ++J)
                     {
-                        pack(o,I-o->I0+EXT,J-o->J0+EXT,&v[0]);
-                        unpack(c,id,I-c->I0+EXT,J-c->J0+EXT,&v[0]);
+                        pack(o,I-o->I0+EXT,J-o->J0+EY,&v[0]);
+                        unpack(c,id,I-c->I0+EXT,J-c->J0+EY,&v[0]);
                     }
                     continue;
                 }
@@ -594,7 +594,7 @@ protected:
                 for(int J=J0; J<=J1; ++J)
                 {
                     req[G.rank].push_back(G.lid); req[G.rank].push_back(I); req[G.rank].push_back(J);
-                    dst[G.rank].push_back(id); dst[G.rank].push_back(I-c->I0+EXT); dst[G.rank].push_back(J-c->J0+EXT);
+                    dst[G.rank].push_back(id); dst[G.rank].push_back(I-c->I0+EXT); dst[G.rank].push_back(J-c->J0+EY);
                 }
             }
         }
@@ -612,7 +612,7 @@ protected:
                 for(size_t k=0; k<srv[r].size(); k+=3)
                 {
                     reefamr_patch *o = oldP[srv[r][k]];
-                    pack(o,srv[r][k+1]-o->I0+EXT,srv[r][k+2]-o->J0+EXT,&sb[k/3*nv]);
+                    pack(o,srv[r][k+1]-o->I0+EXT,srv[r][k+2]-o->J0+EY,&sb[k/3*nv]);
                 }
                 X.sbuf.push_back(sb);
             }
@@ -819,6 +819,14 @@ protected:
     vector<int> nlevg;              // patches per level, all ranks
     int maxlev, nest, tile, nbuf, regrid_int, keep;
     int EXT;                        // extra computed cells on each side of a patch
+    // y on a 2D grid (j_dir 0, one cell in y): the levels refine x only, a patch is one cell wide
+    // in y without extra cells there.  sy: the refinement shift in y (1, 0 on a 2D grid), EY: the
+    // extra cells in y (EXT, 0 on a 2D grid)
+    int sy = 1;
+    int EY = 0;
+    int ysh(int l) const { return l*sy; }                                           // y shift from level 0 to level l
+    int ychild(int J) const { return J<<sy; }                                       // first child in y of cell J
+    int yparent(int J) const { return (J>=0) ? (J>>sy) : -(((-J)-1)>>sy)-1; }        // parent in y of cell J
     int regrids;
     int regrids_skipped = 0;        // regrids with an unchanged layout (par.lazy)
     long cells_total;
@@ -829,8 +837,8 @@ protected:
     vector<int> rbx0,rbx1,rby0,rby1;
     int bxlo(int l) const { return O0i<<l; }
     int bxhi(int l) const { return ((O0i+NX0)<<l)-1; }
-    int bylo(int l) const { return O0j<<l; }
-    int byhi(int l) const { return ((O0j+NY0)<<l)-1; }
+    int bylo(int l) const { return O0j<<ysh(l); }
+    int byhi(int l) const { return ((O0j+NY0)<<ysh(l))-1; }
 
     // flux matching entries per target grid (index id+1): local and remote
     vector<vector<reefamr_match>> match;

@@ -105,7 +105,7 @@ void reefamr::regrid(lexer *p, ghostcell *pgc, bool initial)
     auto tile_forbidden = [&](int l, int ti, int tj)
     {
         int a0 = (ti*T)>>l, a1 = (MIN((ti+1)*T,GNXV<<l)-1)>>l;
-        int d0 = (tj*T)>>l, d1 = (MIN((tj+1)*T,GNYV<<l)-1)>>l;
+        int d0 = (tj*T)>>ysh(l), d1 = (MIN((tj+1)*T,GNYV<<ysh(l))-1)>>ysh(l);
         for(int a=a0; a<=a1; ++a)
         for(int d=d0; d<=d1; ++d)
         if(forbid0[(size_t)a*GNYV+d] || (dyn && forbidd[(size_t)a*GNYV+d]))
@@ -131,7 +131,7 @@ void reefamr::regrid(lexer *p, ghostcell *pgc, bool initial)
                 if(nblk>0 && native_ring(I,J))
                 continue;
                 for(int ti=(I<<l)/T; ti<=(((I+1)<<l)-1)/T; ++ti)
-                for(int tj=(J<<l)/T; tj<=(((J+1)<<l)-1)/T; ++tj)
+                for(int tj=(J<<ysh(l))/T; tj<=(((J+1)<<ysh(l))-1)/T; ++tj)
                 M[l][(size_t)ti*gtny[l]+tj]=1;
             }
         }
@@ -150,7 +150,7 @@ void reefamr::regrid(lexer *p, ghostcell *pgc, bool initial)
                 {
                     int I=ii-EXT+c->I0, J=jj-EXT+c->J0;
                     for(int ti=(I<<l)/T; ti<=(((I+1)<<l)-1)/T; ++ti)
-                    for(int tj=(J<<l)/T; tj<=(((J+1)<<l)-1)/T; ++tj)
+                    for(int tj=(J<<ysh(l))/T; tj<=(((J+1)<<ysh(l))-1)/T; ++tj)
                     M[l][(size_t)ti*gtny[l]+tj]=1;
                 }
             }
@@ -166,7 +166,7 @@ void reefamr::regrid(lexer *p, ghostcell *pgc, bool initial)
             if(nblk>0 && native_ring(I,J))
             continue;
             for(int ti=(I<<l)/T; ti<=(((I+1)<<l)-1)/T; ++ti)
-            for(int tj=(J<<l)/T; tj<=(((J+1)<<l)-1)/T; ++tj)
+            for(int tj=(J<<ysh(l))/T; tj<=(((J+1)<<ysh(l))-1)/T; ++tj)
             M[l][(size_t)ti*gtny[l]+tj]=1;
         }
 
@@ -184,7 +184,7 @@ void reefamr::regrid(lexer *p, ghostcell *pgc, bool initial)
                 {
                     int I=ii-EXT+c->I0, J=jj-EXT+c->J0;
                     for(int ti=(I<<l)/T; ti<=(((I+1)<<l)-1)/T; ++ti)
-                    for(int tj=(J<<l)/T; tj<=(((J+1)<<l)-1)/T; ++tj)
+                    for(int tj=(J<<ysh(l))/T; tj<=(((J+1)<<ysh(l))-1)/T; ++tj)
                     M[l][(size_t)ti*gtny[l]+tj]=1;
                 }
             }
@@ -220,9 +220,9 @@ void reefamr::regrid(lexer *p, ghostcell *pgc, bool initial)
         if(M[l+1][(size_t)ti*gtny[l+1]+tj])
         {
             int a0 = (ti*T)/2-nest, a1 = ((ti+1)*T-1)/2+nest;
-            int d0 = (tj*T)/2-nest, d1 = ((tj+1)*T-1)/2+nest;
+            int d0 = ((tj*T)>>sy)-nest, d1 = (((tj+1)*T-1)>>sy)+nest;
             a0 = MAX(a0,0)/T; a1 = MIN(a1,(GNXV<<l)-1)/T;
-            d0 = MAX(d0,0)/T; d1 = MIN(d1,(GNYV<<l)-1)/T;
+            d0 = MAX(d0,0)/T; d1 = MIN(d1,(GNYV<<ysh(l))-1)/T;
             for(int a=a0; a<=a1; ++a)
             for(int d=d0; d<=d1; ++d)
             M[l][(size_t)a*gtny[l]+d]=1;
@@ -267,9 +267,9 @@ void reefamr::regrid(lexer *p, ghostcell *pgc, bool initial)
     if(M[l][(size_t)ti*gtny[l]+tj])
     {
         int a0 = (ti*T)/2-nest, a1 = ((ti+1)*T-1)/2+nest;
-        int d0 = (tj*T)/2-nest, d1 = ((tj+1)*T-1)/2+nest;
+        int d0 = ((tj*T)>>sy)-nest, d1 = (((tj+1)*T-1)>>sy)+nest;
         a0 = MAX(a0,0)/T; a1 = MIN(a1,(GNXV<<(l-1))-1)/T;
-        d0 = MAX(d0,0)/T; d1 = MIN(d1,(GNYV<<(l-1))-1)/T;
+        d0 = MAX(d0,0)/T; d1 = MIN(d1,(GNYV<<ysh(l-1))-1)/T;
         bool ok=true;
         for(int a=a0; a<=a1 && ok; ++a)
         for(int d=d0; d<=d1 && ok; ++d)
@@ -374,7 +374,7 @@ void reefamr::regrid(lexer *p, ghostcell *pgc, bool initial)
                 // only solid cells: no patch
                 int fluid=0;
                 for(int a=(I0>>l); a<=(I1>>l) && fluid==0; ++a)
-                for(int d=(J0>>l); d<=(J1>>l) && fluid==0; ++d)
+                for(int d=(J0>>ysh(l)); d<=(J1>>ysh(l)) && fluid==0; ++d)
                 if(flag0(a,d)>0)
                 fluid=1;
                 if(fluid==0)
@@ -496,11 +496,11 @@ void reefamr::build_plans(ghostcell *pgc)
             f.kind = 0;
             f.g = q;
             f.si = I-P[q]->I0+EXT;
-            f.sj = J-P[q]->J0+EXT;
+            f.sj = J-P[q]->J0+EY;
             return true;
         }
 
-        int Ic = I>>1, Jc = J>>1;
+        int Ic = I>>1, Jc = J>>sy;
         int g = patch_at(l-1,Ic,Jc);
         if(g<-1)
         {
@@ -514,7 +514,7 @@ void reefamr::build_plans(ghostcell *pgc)
         f.si = Ic-oi;
         f.sj = Jc-oj;
         f.ox = (I-2*Ic==0) ? -1 : 1;
-        f.oy = (J-2*Jc==0) ? -1 : 1;
+        f.oy = (sy==0) ? 0 : ((J-2*Jc==0) ? -1 : 1);     // (2D grid: 0, no offset in y)
         return true;
     };
 
@@ -533,13 +533,13 @@ void reefamr::build_plans(ghostcell *pgc)
             for(int ii=pp->imin; ii<pp->imin+pp->imax; ++ii)
             for(int jj=pp->jmin; jj<pp->jmin+pp->jmax; ++jj)
             {
-                if(ii>=EXT && ii<EXT+c->nx && jj>=EXT && jj<EXT+c->ny)
+                if(ii>=EXT && ii<EXT+c->nx && jj>=EY && jj<EY+c->ny)
                 continue;
 
                 if(pp->flagslice4[(ii-pp->imin)*pp->jmax + (jj-pp->jmin)]<0)
                 continue;
 
-                int I = ii-EXT+c->I0, J = jj-EXT+c->J0;
+                int I = ii-EXT+c->I0, J = jj-EY+c->J0;
 
                 // multi-block: beyond a block face the cell it stands for (beyond a wall: none)
                 if(nblk>0)
@@ -628,15 +628,16 @@ void reefamr::build_plans(ghostcell *pgc)
         for(int id : lev[l])
         {
             reefamr_patch *c = P[id];
-            int nb = (c->nx/2)*(c->ny/2);
+            const int nby = c->ny>>sy;
+            int nb = (c->nx/2)*nby;
             c->rgrid.assign(nb,-2); c->ric.assign(nb,0); c->rjc.assign(nb,0);
 
             for(int bi=0; bi<c->nx/2; ++bi)
-            for(int bj=0; bj<c->ny/2; ++bj)
+            for(int bj=0; bj<nby; ++bj)
             {
-                int k = bi*(c->ny/2)+bj;
-                int Ic = (c->I0>>1)+bi, Jc = (c->J0>>1)+bj;
-                if(flag0(fsh(Ic,l-1),fsh(Jc,l-1))<0)
+                int k = bi*nby+bj;
+                int Ic = (c->I0>>1)+bi, Jc = (c->J0>>sy)+bj;
+                if(flag0(fsh(Ic,l-1),fsh(Jc,ysh(l-1)))<0)
                 continue;
                 int o = holder(l-1,Ic,Jc);
                 if(o>=0 && o!=me)
@@ -727,14 +728,15 @@ void reefamr::build_plans(ghostcell *pgc)
 
             for(int side=0; side<4; ++side)
             {
-                int ns = (side<2) ? c->ny/2 : c->nx/2;
+                int ns = (side<2) ? (c->ny>>sy) : c->nx/2;
+                const int rk = (side<2) ? (1<<sy) : 2;     // fine faces per coarse face along the side
                 for(int k=0; k<ns; ++k)
                 {
                     int Ic,Jc,Ii,Ji;     // outside coarse cell, inside coarse cell
-                    if(side==0) { Ic=(c->I0>>1)-1; Jc=(c->J0>>1)+k; Ii=Ic+1; Ji=Jc; }
-                    if(side==1) { Ic=(c->I1>>1)+1; Jc=(c->J0>>1)+k; Ii=Ic-1; Ji=Jc; }
-                    if(side==2) { Ic=(c->I0>>1)+k; Jc=(c->J0>>1)-1; Ii=Ic; Ji=Jc+1; }
-                    if(side==3) { Ic=(c->I0>>1)+k; Jc=(c->J1>>1)+1; Ii=Ic; Ji=Jc-1; }
+                    if(side==0) { Ic=(c->I0>>1)-1; Jc=(c->J0>>sy)+k; Ii=Ic+1; Ji=Jc; }
+                    if(side==1) { Ic=(c->I1>>1)+1; Jc=(c->J0>>sy)+k; Ii=Ic-1; Ji=Jc; }
+                    if(side==2) { Ic=(c->I0>>1)+k; Jc=(c->J0>>sy)-1; Ii=Ic; Ji=Jc+1; }
+                    if(side==3) { Ic=(c->I0>>1)+k; Jc=(c->J1>>sy)+1; Ii=Ic; Ji=Jc-1; }
 
                     // the coarse face as seen from the outside cell: side2 (as side: 1/3 the inside
                     // cell lower), sgn -1 where it points against the fine faces (multi-block: the
@@ -743,7 +745,7 @@ void reefamr::build_plans(ghostcell *pgc)
                     if(nblk>0 && !block_face_map(l-1,c->blk,side,Ic,Jc,Ii,Ji,side2,sgn))
                     continue;
 
-                    if(flag0(fsh(Ic,l-1),fsh(Jc,l-1))<0 || flag0(fsh(Ii,l-1),fsh(Ji,l-1))<0)
+                    if(flag0(fsh(Ic,l-1),fsh(Jc,ysh(l-1)))<0 || flag0(fsh(Ii,l-1),fsh(Ji,ysh(l-1)))<0)
                     continue;
 
                     int o = holder(l-1,Ic,Jc);
@@ -752,7 +754,7 @@ void reefamr::build_plans(ghostcell *pgc)
 
                     if(o==me)
                     {
-                        if(covered(l,2*Ic,2*Jc))
+                        if(covered(l,2*Ic,ychild(Jc)))
                         continue;
 
                         int g = patch_at(l-1,Ic,Jc);
@@ -769,7 +771,7 @@ void reefamr::build_plans(ghostcell *pgc)
                         mt.fj = Jc-oj - (side2==3 ? 1 : 0);
                         mt.child = id;
                         mt.side = side;
-                        mt.r = 2*k;
+                        mt.r = rk*k;
                         mt.sgn = sgn;
                         for(int q=0;q<reefamr_match::NVAL;++q) mt.val[q]=0.0;
                         match[g+1].push_back(mt);
@@ -777,7 +779,7 @@ void reefamr::build_plans(ghostcell *pgc)
                     }
 
                     freq[o].push_back(side2+(sgn<0 ? 4 : 0)); freq[o].push_back(Ic); freq[o].push_back(Jc);
-                    fitems[o].push_back(id); fitems[o].push_back(side); fitems[o].push_back(2*k);
+                    fitems[o].push_back(id); fitems[o].push_back(side); fitems[o].push_back(rk*k);
                 }
             }
         }
@@ -818,7 +820,7 @@ void reefamr::build_plans(ghostcell *pgc)
                 const int sgn = (fsrv[r][k]&4) ? -1 : 1;
                 int tgt=-1, idx=-1;
 
-                if(!covered(l,2*Ic,2*Jc))
+                if(!covered(l,2*Ic,ychild(Jc)))
                 {
                     int g = patch_at(l-1,Ic,Jc);
                     if(g>=-1)
@@ -888,7 +890,7 @@ void reefamr::place_patches(lexer *p, ghostcell *pgc, vector<vector<unsigned cha
     const double wpc = lmeas ? lwp : ((p->G41>0.0) ? p->G41 : 1.0);
     auto work = [&](int l, int I0, int I1, int J0, int J1)
     {
-        return wpc*double(I1-I0+1+2*EXT)*double(J1-J0+1+2*EXT)*double(p->knoz*vfac[l]);
+        return wpc*double(I1-I0+1+2*EXT)*double(J1-J0+1+2*EY)*double(p->knoz*vfac[l]);
     };
 
     // rectangles of marked tiles, all levels
@@ -934,7 +936,7 @@ void reefamr::place_patches(lexer *p, ghostcell *pgc, vector<vector<unsigned cha
         // tile ranges for now; multi-block: one piece per block the rectangle reaches, clipped to it
         for(auto &o : done)
         if(nblk==0)
-        pcs.push_back({l,o.ta,o.tb,o.tj0,o.tj1,0.0,-1,0,(GNX<<l)-1,0,(GNY<<l)-1,0});
+        pcs.push_back({l,o.ta,o.tb,o.tj0,o.tj1,0.0,-1,0,(GNX<<l)-1,0,(GNY<<ysh(l))-1,0});
         else
         for(int b=0; b<nblk; ++b)
         {
@@ -1011,7 +1013,7 @@ void reefamr::place_patches(lexer *p, ghostcell *pgc, vector<vector<unsigned cha
 
             int fluid=0;
             for(int a=(a0>>q.lev); a<=(a1>>q.lev) && fluid==0; ++a)
-            for(int d=(b0>>q.lev); d<=(b1>>q.lev) && fluid==0; ++d)
+            for(int d=(b0>>ysh(q.lev)); d<=(b1>>ysh(q.lev)) && fluid==0; ++d)
             if(flag0(a,d)>0)
             fluid=1;
             if(fluid==0)
@@ -1061,7 +1063,7 @@ void reefamr::place_patches(lexer *p, ghostcell *pgc, vector<vector<unsigned cha
 
         auto greedy = [&](const piece &c, vector<double> &ld)
         {
-            const int o = owner(((c.I0+c.I1)/2)>>c.lev,((c.J0+c.J1)/2)>>c.lev);
+            const int o = owner(((c.I0+c.I1)/2)>>c.lev,((c.J0+c.J1)/2)>>ysh(c.lev));
             if(par.place==1 && o>=0 && ld[o]+c.w<=1.05*wmeanp)
             return o;
             return least(ld);
@@ -1125,7 +1127,7 @@ void reefamr::place_patches(lexer *p, ghostcell *pgc, vector<vector<unsigned cha
         for(int r=0; r<np; ++r)
         {
             const int a0 = MAX(c.I0,rbx0[r]<<c.lev), a1 = MIN(c.I1,((rbx1[r]+1)<<c.lev)-1);
-            const int b0 = MAX(c.J0,rby0[r]<<c.lev), b1 = MIN(c.J1,((rby1[r]+1)<<c.lev)-1);
+            const int b0 = MAX(c.J0,rby0[r]<<ysh(c.lev)), b1 = MIN(c.J1,((rby1[r]+1)<<ysh(c.lev))-1);
             if(a0<=a1 && b0<=b1)
             svc[k].push_back({r, lws*0.25*double(a1-a0+1)*double(b1-b0+1)*kp});
         }
@@ -1184,7 +1186,7 @@ void reefamr::place_patches(lexer *p, ghostcell *pgc, vector<vector<unsigned cha
         }
         // the rank of the level-0 cells at the centre: preferred within 5 % of the mean work (fixed
         // model), on a tie (measured model: the parent service is in the cost)
-        const int o = (nblk>0 && c.blk>0) ? blk[c.blk].rank : owner(((c.I0+c.I1)/2)>>c.lev,((c.J0+c.J1)/2)>>c.lev);
+        const int o = (nblk>0 && c.blk>0) ? blk[c.blk].rank : owner(((c.I0+c.I1)/2)>>c.lev,((c.J0+c.J1)/2)>>ysh(c.lev));
         const double slack = lmeas ? 1.0e-12*jb : 0.05*wmeanp*(1.0+lmu);
         if(par.place==1 && o>=0 && o<np && J(o)<=jb+slack)
         return o;

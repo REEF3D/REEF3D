@@ -44,6 +44,12 @@ fnpf_laplace_cds2::~fnpf_laplace_cds2()
 {
 }
 
+void fnpf_laplace_cds2::picard_bc(lexer *p, fdm_fnpf *c, ghostcell *pgc, double *f, fnpf_fsf *pf)
+{
+    pbed->bedbc_sig(p,c,pgc,f,pf);
+    pgc->start7V(p,f,c->bc,gcval);
+}
+
 void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, fnpf_fsf *pf, double *f, slice &Fifsf)
 {
     p->poissoniter=0;
