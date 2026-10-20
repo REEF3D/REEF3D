@@ -236,8 +236,18 @@ void mooring_line::water(int i, const Vec3 &x, double t, double &eta, Vec3 &u, V
 
 double mooring_line::tension(int j) const
 {
-    const double L = (r_[j+1] - r_[j]).norm();
-    return L > l_ ? pr_.EA*(L/l_ - 1.0) : 0.0;
+    return j >= 0 && j < (int)Tc_.size() ? Tc_[j].norm() : 0.0;
+}
+
+void mooring_line::keep_converged()
+{
+    Tc_ = T_;
+    bool ok = Fa_.allFinite() && Fb_.allFinite();
+    for(int i=0; i<=nseg_ && ok; ++i)
+        ok = r_[i].allFinite() && v_[i].allFinite();
+    if(!ok)
+        throw std::runtime_error("coral::mooring_line " + name_ + ": the line state is not finite (the explicit "
+                                 "scheme became unstable): set a smaller dt_line (now " + std::to_string(dt_) + " s)");
 }
 
 void mooring_line::accel(const state &s, const Vec3 &ra, const Vec3 &rb, const Vec3 &va, const Vec3 &vb, double t,
@@ -273,35 +283,45 @@ void mooring_line::accel(const state &s, const Vec3 &ra, const Vec3 &rb, const V
         double eta;
         Vec3 u, aw;
         water(node, x, t, eta, u, aw);
-        if(x(2) > eta)
-            return F;
-        F -= p.rho*A*ll*g;
-        const Vec3 uw = current_ + u;
-        const Vec3 vr = uw - vx;
-        const double vq = vr.dot(q);
-        const Vec3 vrt = vq*q, vrn = vr - vrt;
-        F += 0.5*p.rho*p.d*ll*p.Cdn*vrn.norm()*vrn + 0.5*p.rho*M_PI*p.d*ll*p.Cdt*std::fabs(vq)*vrt;
-        if(kmode_==1 || kmode_==2)
+        // submerged fraction of the node's piece of line: linear over its vertical extent (at least d), so
+        // a node crossing the free surface takes its buoyancy, drag and added mass gradually
+        const double hz = std::max(p.d, std::fabs(q(2))*ll);
+        const double fs = std::clamp((eta - x(2))/hz + 0.5, 0.0, 1.0);
+        if(fs > 0.0)
         {
-            const Vec3 awt = aw.dot(q)*q, awn = aw - awt;
-            F += p.rho*A*ll*((1.0 + p.Can)*awn + (1.0 + p.Cat)*awt);
+            F -= fs*p.rho*A*ll*g;
+            const Vec3 uw = current_ + u;
+            const Vec3 vr = uw - vx;
+            const double vq = vr.dot(q);
+            const Vec3 vrt = vq*q, vrn = vr - vrt;
+            F += fs*(0.5*p.rho*p.d*ll*p.Cdn*vrn.norm()*vrn + 0.5*p.rho*M_PI*p.d*ll*p.Cdt*std::fabs(vq)*vrt);
+            if(kmode_==1 || kmode_==2)
+            {
+                const Vec3 awt = aw.dot(q)*q, awn = aw - awt;
+                F += fs*p.rho*A*ll*((1.0 + p.Can)*awn + (1.0 + p.Cat)*awt);
+            }
+            an = fs*p.rho*A*ll*p.Can;
+            at = fs*p.rho*A*ll*p.Cat;
         }
-        an = p.rho*A*ll*p.Can;
-        at = p.rho*A*ll*p.Cat;
-        // seabed
+        // seabed: penalty and damping normal to it, Coulomb friction (regularized) with mu across and mu_axial
+        // along the line (elliptic limit: F = -Fz (mua^2 va ea + mu^2 vt et) / |(mua va, mu vt)|, the
+        // isotropic Coulomb law for mua = mu)
         if(x(2) < zbed_)
         {
             const double Fz = std::max(0.0, (p.kb*(zbed_ - x(2)) - p.cb*vx(2))*p.d*ll);
             F(2) += Fz;
-            if(p.mu > 0.0)
+            const double mua = p.mu_axial >= 0.0 ? p.mu_axial : p.mu;
+            const Vec3 vh(vx(0), vx(1), 0.0);
+            const double vn = vh.norm();
+            if(Fz > 0.0 && vn > 0.0 && (p.mu > 0.0 || mua > 0.0))
             {
-                const double vn = std::sqrt(vx(0)*vx(0) + vx(1)*vx(1));
-                if(vn > 0.0)
-                {
-                    const double c = p.mu*Fz*std::tanh(vn/p.v_eps)/vn;
-                    F(0) -= c*vx(0);
-                    F(1) -= c*vx(1);
-                }
+                Vec3 e(q(0), q(1), 0.0);
+                const double en = e.norm();
+                e = en > 1.0e-6 ? Vec3(e/en) : Vec3(vh/vn);
+                const Vec3 va = vh.dot(e)*e, vt = vh - va;
+                const double wn = std::sqrt(mua*mua*va.squaredNorm() + p.mu*p.mu*vt.squaredNorm());
+                if(wn > 0.0)
+                    F -= (Fz*std::tanh(vn/p.v_eps)/wn)*(mua*mua*va + p.mu*p.mu*vt);
             }
         }
         return F;
@@ -444,6 +464,7 @@ void mooring_line::initialize(const model &m, double t0)
         kmode_ = waves_ ? 1 : 0;
     accel(s, ra_, rb_, va_, vb_, t0, a, Fa_, Fb_, 0.0);
     end_inertia(Fa_, Fb_, A.point_acceleration(sa_), B.point_acceleration(sb_));
+    keep_converged();
     cvalid_ = false;
 }
 
@@ -464,6 +485,7 @@ void mooring_line::settle(const model &m, double T)
     vb_.setZero();
     r_ = s.r;
     v_ = s.v;
+    keep_converged();
     ++gen_;
     cvalid_ = false;
 }
@@ -514,13 +536,14 @@ void mooring_line::commit(const model &m, double t, double)
     va_ = va1;
     vb_ = vb1;
     t_ = t;
+    keep_converged();
     ++gen_;
     cvalid_ = false;
 }
 
 void mooring_line::channel_names(std::vector<std::string> &c) const
 {
-    for(const char *x : {"Fa_x", "Fa_y", "Fa_z", "Fb_x", "Fb_y", "Fb_z", "Tmax"})
+    for(const char *x : {"Fa_x", "Fa_y", "Fa_z", "Fb_x", "Fb_y", "Fb_z", "Tmax", "Ta", "Tb"})
         c.push_back(name_ + "_" + x);
 }
 
@@ -531,6 +554,8 @@ void mooring_line::channel_values(const model&, double, std::vector<double> &v) 
     double tm = 0.0;
     for(int j=0; j<nseg_; ++j) tm = std::max(tm, tension(j));
     v.push_back(tm);
+    v.push_back(tension(0));
+    v.push_back(tension(nseg_ - 1));
 }
 
 // ---- restart from a checkpoint: the start values of the catenary iteration; the converged line
@@ -556,7 +581,7 @@ void mooring_line::save_state(std::vector<double> &v) const
     state_out o{v};
     o.list(r_, [&](const Vec3 &x){o.m(x);});
     o.list(v_, [&](const Vec3 &x){o.m(x);});
-    o.list(T_, [&](const Vec3 &x){o.m(x);});
+    o.list(Tc_, [&](const Vec3 &x){o.m(x);});
     o.m(ra_);
     o.m(rb_);
     o.d(t_);
@@ -571,7 +596,7 @@ bool mooring_line::load_state(const std::vector<double> &v, size_t &k)
     state_in in{v, k};
     in.list(r_, [&](Vec3 &x){in.m(x);});
     in.list(v_, [&](Vec3 &x){in.m(x);});
-    in.list(T_, [&](Vec3 &x){in.m(x);});
+    in.list(Tc_, [&](Vec3 &x){in.m(x);});
     in.m(ra_);
     in.m(rb_);
     in.d(t_);

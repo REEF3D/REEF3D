@@ -33,16 +33,20 @@ Architect: Hans Bihs
 // mooring_line: dynamic lumped-mass line (MoorDyn type): N segments, the N-1 inner nodes carry mass,
 // added mass (normal and tangential), submerged weight, axial stiffness EA (no compression) and axial
 // damping BA (N s), drag normal and tangential against the water velocity (waves and current),
-// Froude-Krylov inertia of the water, seabed contact (penalty kb [Pa/m], damping cb [Pa s/m],
-// Coulomb friction mu with the regularization velocity v_eps). The inner nodes are advanced with an
+// Froude-Krylov inertia of the water (taken by the submerged fraction of a node's piece of line, linear
+// over its vertical extent, so nodes cross the free surface smoothly), seabed contact (penalty kb [Pa/m],
+// damping cb [Pa s/m], Coulomb friction mu across and mu_axial along the line with the regularization
+// velocity v_eps). The inner nodes are advanced with an
 // explicit Runge-Kutta scheme (RK4) and sub-steps inside the step of the multibody system, the end
 // points moving on cubic Hermite curves from the converged to the trial positions and velocities of the
 // attachment points; eval() integrates from the converged line state (cached per trial state), commit()
 // keeps the converged line. The force on an attached body is the tension of the end segment plus the
 // weight, drag and Froude-Krylov force of the end half-segment, minus its inertia: mass and added mass
 // (normal and tangential, submerged) times the acceleration of the attachment point (as the coupled
-// points of MoorDyn), so the body carries the end node. The line starts from the catenary profile (no
-// seabed: straight).
+// points of MoorDyn), so the body carries the end node. The line starts from the catenary profile
+// (straight without gravity or for a floating line). A line state that is not finite after a step (an
+// unstable explicit scheme) stops the run with the name of the line. Channels: end forces on the
+// attached bodies, the largest segment tension and the tensions of the end segments (Ta, Tb), with BA.
 //
 // Wave kinematics (free surface, velocity, acceleration) are taken at the converged nodes at the start
 // and at the end of the multibody step and are linear in time in between (the nodes move little against
@@ -84,7 +88,8 @@ namespace coral
         double CB = 0.0;             // seabed friction of the quasi-static line (< 0: no seabed)
         double Cdn = 1.2, Cdt = 0.05, Can = 1.0, Cat = 0.0;
         double kb = 3.0e6, cb = 3.0e5;     // seabed stiffness [Pa/m], damping [Pa s/m]
-        double mu = 0.0, v_eps = 0.01;     // seabed friction (dynamic line)
+        double mu = 0.0, v_eps = 0.01;     // seabed friction of the dynamic line across it, regularization velocity
+        double mu_axial = -1.0;            // seabed friction along the line (< 0: mu)
         double rho = 1025.0;
     };
 
@@ -137,7 +142,7 @@ namespace coral
         int nseg() const {return nseg_;}
         double dt_line() const {return dt_;}
         const std::vector<Vec3> &nodes() const {return r_;}     // converged node positions (0 .. N)
-        double tension(int seg) const;                          // converged segment tension
+        double tension(int seg) const;                          // converged segment tension (with the damping BA)
         // end forces of the converged line on the attached bodies (with the inertia of the end nodes)
         void end_forces(Vec3 &Fa, Vec3 &Fb) const {Fa = Fa_; Fb = Fb_;}
 
@@ -165,6 +170,8 @@ namespace coral
                        double extra_damp, bool at_rest=false) const;
         // end masses (mass and added mass of the end half-segments) of the last accel()
         void end_inertia(Vec3 &Fa, Vec3 &Fb, const Vec3 &aa, const Vec3 &ab) const;
+        // keep the segment tensions of the converged line; throws if the line state is not finite
+        void keep_converged();
 
         std::string name_;
         int ba_, bb_;
@@ -191,6 +198,8 @@ namespace coral
         mutable node_kin kin_[2];
         mutable int kmode_ = 0;        // 0: no waves, 1: exact, 2: linear between kin_[0] and kin_[1], 3: at rest (kin_[0] surface)
         mutable double kt0_ = 0.0, kt1_ = 0.0;
+
+        std::vector<Vec3> Tc_;         // segment tensions of the converged line
 
         // work arrays
         mutable std::vector<Vec3> T_;

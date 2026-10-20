@@ -663,6 +663,8 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
             p.BA = it.get("BA", 0.0); p.CB = it.get("CB", 0.0);
             p.Cdn = it.get("Cdn", p.Cdn); p.Cdt = it.get("Cdt", p.Cdt); p.Can = it.get("Can", p.Can); p.Cat = it.get("Cat", p.Cat);
             p.kb = it.get("kb", p.kb); p.cb = it.get("cb", p.cb); p.mu = it.get("mu", 0.0);
+            p.mu_axial = it.get("mu_axial", -1.0); p.v_eps = it.get("v_eps", p.v_eps);
+            if(p.v_eps <= 0.0) it.fail("v_eps must be > 0");
             p.rho = rho;
             // the seabed: at the ground end (the lower of two), none between two bodies (shared lines)
             const double zbed = it.has("no_seabed") ? -1.0e30 : it.get("seabed", default_seabed(ea, eb));
