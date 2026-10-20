@@ -37,6 +37,8 @@ Architect: Hans Bihs
 #include"6DOF_output_dir.h"
 #include"lexer.h"
 #include"ghostcell.h"
+#include"reefckpt.h"
+#include"ckpt_pack.h"
 #include<cmath>
 
 void sixdof_obj::ini_pto(lexer *p, ghostcell *pgc)
@@ -139,13 +141,16 @@ void sixdof_obj::ini_pto(lexer *p, ghostcell *pgc)
         char str[1000];
         sprintf(str,"%s/REEF3D_6DOF_pto_%i.dat",sixdof_output_dir(p),n6DOF);
 
-        printpto.open(str);
+        // a restart from a checkpoint (I 45 1) continues the file
+        if(reefckpt_open(printpto,str,p->I45))
+        {
         printpto<<"time \t q \t qd \t F_pto \t P_abs \t E_abs \t gain \t latch \t sat";
 
         for(auto &e : pto_.elem)
         printpto<<" \t F_"<<e->name();
 
         printpto<<endl;
+        }
     }
 }
 
@@ -363,4 +368,61 @@ void sixdof_obj::pto_tuned_passive(lexer *p, ghostcell *pgc)
     if(w<tab.wmin() || w>tab.wmax())
     cout<<"6DOF PTO tuned passive: w = "<<w<<" outside the table, end values used"<<endl;
     }
+}
+
+// checkpoints (P 48, I 45): the joint, the state and loads of the last stage, the absorbed energy, the
+// elements (last forces, latch) and the controllers (coral_pto, coral_pto_controller)
+void sixdof_obj::pto_ckpt_state(std::vector<double> &v) const
+{
+    ckpt_put w{v};
+    w.d(1.0);   // version
+    w.b(pto_on_);
+    if(!pto_on_)
+    return;
+    w.m(pto_joint_.a); w.m(pto_joint_.rb); w.m(pto_joint_.x0); w.m(pto_joint_.J);
+    for(double x : {pto_s_.q,pto_s_.qd,pto_s_.t, pto_out_.F,pto_out_.dFdq,pto_out_.dFdqd,pto_out_.P,pto_out_.dFdq_s,pto_out_.dFdqd_s, pto_E_,pto_Estep_})
+    w.d(x);
+    w.b(pto_warned_);
+    std::vector<double> s;
+    pto_.save_state(s);
+    w.vd(s);
+    w.i(int(pto_ctrl_.size()));
+    for(const auto &c : pto_ctrl_)
+    {
+        s.clear();
+        c->save_state(s);
+        w.vd(s);
+    }
+}
+
+bool sixdof_obj::pto_ckpt_restore(const std::vector<double> &v)
+{
+    ckpt_get r{v};
+    double version=0.0;
+    bool on=false;
+    r.d(version);
+    r.b(on);
+    if(!r.ok || int(version)!=1 || on!=pto_on_)
+    return false;
+    if(!pto_on_)
+    return true;
+    r.m(pto_joint_.a); r.m(pto_joint_.rb); r.m(pto_joint_.x0); r.m(pto_joint_.J);
+    for(double *x : {&pto_s_.q,&pto_s_.qd,&pto_s_.t, &pto_out_.F,&pto_out_.dFdq,&pto_out_.dFdqd,&pto_out_.P,&pto_out_.dFdq_s,&pto_out_.dFdqd_s, &pto_E_,&pto_Estep_})
+    r.d(*x);
+    r.b(pto_warned_);
+    std::vector<double> s;
+    r.vd(s);
+    size_t k=0;
+    pto_.load_state(s,k);
+    int nc=0;
+    r.i(nc);
+    if(!r.ok || nc!=(int)pto_ctrl_.size())
+    return false;
+    for(auto &c : pto_ctrl_)
+    {
+        r.vd(s);
+        k=0;
+        c->load_state(s,k);
+    }
+    return r.ok;
 }

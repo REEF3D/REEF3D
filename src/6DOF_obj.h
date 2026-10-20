@@ -399,6 +399,8 @@ protected:
     void pto_forces(lexer*, ghostcell*, int);
     void pto_implicit(lexer*, Eigen::Matrix<double,6,6>&, Eigen::Matrix<double,6,1>&);
     void pto_stability_check(lexer*);
+    void pto_ckpt_state(std::vector<double>&) const;      // checkpoints (P 48, I 45)
+    bool pto_ckpt_restore(const std::vector<double>&);
     coral::pto_joint_prismatic pto_joint_;
     coral::pto_composite pto_;
     std::vector<std::unique_ptr<coral::pto_controller>> pto_ctrl_;

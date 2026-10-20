@@ -28,7 +28,7 @@ Author: Hans Bihs
 //  The blocks 1.. of a multi-block grid are patches of the mesh refinement (reefamr_ckpt.cpp).
 //  The 6DOF bodies (one-way bodies X 10 2, ship waves X 10 3): their state as a blob, the pressure patch
 //  of the ship waves as a slice.
-//  Not there yet (refused with a message): 6DOF wavemaker objects, power take-off, sediment, SEASTATE.
+//  Not there yet (refused with a message): 6DOF wavemaker objects, sediment, SEASTATE.
 
 #include"sflow_f.h"
 #include"lexer.h"
@@ -54,8 +54,6 @@ string sflow_f::ckpt_unsupported(lexer *p)
 {
     if(p->X10==4)
     return "6DOF wavemaker objects (X 10 4) are not in the checkpoints yet";
-    if(p->X10>0 && p->X500>0)
-    return "the 6DOF power take-off (X 500) is not in the checkpoints yet";
     if(p->S10>0)
     return "SFLOW sediment is not in the checkpoints yet";
     if(p->A750>0)
