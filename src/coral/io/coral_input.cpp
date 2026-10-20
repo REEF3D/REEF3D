@@ -863,6 +863,9 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
             s.F0 = it.get("F0", 0.0);
             s.coulomb = it.get("coulomb", 0.0);
             s.v_eps = it.get("v_eps", s.v_eps);
+            s.c_loss = it.get("c_loss", 0.0);
+            s.coulomb_loss = it.get("coulomb_loss", 0.0);
+            if(s.c_loss < 0.0 || s.coulomb_loss < 0.0) it.fail("c_loss and coulomb_loss must be >= 0");
             s.F_max = it.get("F_max", 0.0);
             s.P_max = it.get("P_max", 0.0);
             const int is = it.find("stops");

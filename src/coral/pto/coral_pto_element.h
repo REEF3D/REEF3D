@@ -29,7 +29,7 @@ Architect: Hans Bihs
 #include<cmath>
 
 // REEF3D::CORAL: power take-off (PTO) element library, shared by the REEF3D 6DOF bodies (FNPF and
-// NHFLOW, ctrl.txt X 500 - X 508, coral/reef3d/coral_sixdof_pto.cpp) and CORAL's PTO in a joint.
+// NHFLOW, ctrl.txt X 500 - X 508, X 510, coral/reef3d/coral_sixdof_pto.cpp) and CORAL's PTO in a joint.
 //
 //   joint      (coral_pto_joint.h)      : body state -> PTO coordinate q, qd and the generalised
 //                                         direction J (6), qd = J^T [v; w], load on the body F J
@@ -37,6 +37,12 @@ Architect: Hans Bihs
 //   composite  (this file)              : sum of elements = one PTO
 //   controller (coral_pto_controller.h) : act on the elements via set_param() and on the
 //                                         composite's generator gain, once per time step
+//
+// Three kinds of elements: the generator (useful: damper, spring-damper, Coulomb friction as a
+// generator load), the losses of the drive train (loss: damper and Coulomb friction marked as loss,
+// e.g. belt, bearing and seal friction, X 510) and the stops (end-stops, latch). The losses act on
+// the body like the generator, but they are not scaled or limited with it and their power is not
+// absorbed power (P) but dissipated (P_loss).
 //
 // The Jacobians of stiff elements (end-stops, latch) let the 6DOF step treat them linearly
 // implicit together with the added mass (X 500 2).
@@ -57,6 +63,7 @@ struct pto_output
     double dFdq=0.0;    // stiffness Jacobian
     double dFdqd=0.0;   // damping Jacobian
     double P=0.0;       // absorbed power -F qd of the useful elements
+    double P_loss=0.0;  // power -F qd dissipated in the loss elements (drive-train friction)
     double dFdq_s=0.0;  // part of the Jacobians from stiff elements (implicit with X 500 2)
     double dFdqd_s=0.0;
 };
@@ -77,8 +84,11 @@ public:
 
     virtual const char* name() const = 0;
 
-    // contributes to the absorbed power (end-stops, friction losses do not)
-    virtual bool useful() const {return true;}
+    // drive-train loss: acts on the body, dissipated power in P_loss, not absorbed
+    virtual bool loss() const {return false;}
+
+    // contributes to the absorbed power (end-stops, latch and the loss elements do not)
+    virtual bool useful() const {return !loss();}
 
     // stiff element: its Jacobians go into the linearly implicit step (X 500 2); the others
     // stay explicit, where the RK3/RK4 step is exact to its order
@@ -95,9 +105,10 @@ public:
 class pto_composite : public pto_base
 {
 public:
-    // Sum of the elements. The generator part (useful elements: damper, spring-damper) is
-    // scaled by gain (declutching) and limited by Fmax and Pmax (X 505); the other elements
-    // (end-stops, latch) act unchanged. The element forces in F_last are as delivered.
+    // Sum of the elements. The generator part (useful elements: damper, spring-damper, Coulomb
+    // friction) is scaled by gain (declutching) and limited by Fmax and Pmax (X 505); the other
+    // elements (losses, end-stops, latch) act unchanged. The element forces in F_last are as
+    // delivered.
 
     void add(std::unique_ptr<pto_base> e) {elem.push_back(std::move(e));}
 
@@ -125,6 +136,9 @@ public:
             out.F     += o.F;
             out.dFdq  += o.dFdq;
             out.dFdqd += o.dFdqd;
+
+            if(e->loss())
+            out.P_loss += o.P;
             }
 
             if(e->stiff())

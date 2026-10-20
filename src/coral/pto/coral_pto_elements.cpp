@@ -28,7 +28,7 @@ namespace coral
 
 // --- linear damper ---
 
-pto_damper::pto_damper(double B_) : B(B_)
+pto_damper::pto_damper(double B_, bool loss) : B(B_), loss_(loss)
 {
 }
 
@@ -84,7 +84,7 @@ void pto_springdamper::set_param(const std::string &key, double val)
 
 // --- Coulomb friction ---
 
-pto_coulomb::pto_coulomb(double Fc_, double v_eps_) : Fc(Fc_), v_eps(v_eps_)
+pto_coulomb::pto_coulomb(double Fc_, double v_eps_, bool loss) : Fc(Fc_), v_eps(v_eps_), loss_(loss)
 {
 }
 

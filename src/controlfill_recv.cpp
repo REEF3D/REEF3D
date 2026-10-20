@@ -2866,6 +2866,8 @@ void control::ctrlrecv()
     ii++;
     X508 = ictrl[ii];
     ii++;
+    X510 = ictrl[ii];
+    ii++;
     X505_Fmax = dctrl[dd];
     dd++;
     X505_Pmax = dctrl[dd];
@@ -2881,6 +2883,12 @@ void control::ctrlrecv()
     X507_C = dctrl[dd];
     dd++;
     X508_t = dctrl[dd];
+    dd++;
+    X510_B = dctrl[dd];
+    dd++;
+    X510_Fc = dctrl[dd];
+    dd++;
+    X510_veps = dctrl[dd];
     dd++;
 
     Y1 = ictrl[ii];

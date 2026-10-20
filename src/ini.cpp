@@ -1379,6 +1379,9 @@ void control::ini_default()
     X507_K=X507_C=0.0; // double latch stiffness [N/m], damping [N s/m]
     X508=0;         // int PTO declutching
     X508_t=0.0;     // double declutching time [s]
+    X510=0;         // int PTO drive-train losses
+    X510_B=X510_Fc=0.0; // double loss damping [N s/m], loss Coulomb friction [N]
+    X510_veps=0.0;  // double regularisation velocity of the loss friction [m/s], <= 0: 1e-3
 
 	// Developer
 	Y1=0;   // int turn on/off experimental screen force model

@@ -28,21 +28,23 @@ Architect: Hans Bihs
 namespace coral
 {
 
-// linear damper (X 502): F = -B qd
+// linear damper (X 502): F = -B qd; as a loss (X 510): drive-train damping, not absorbed
 class pto_damper : public pto_base
 {
 public:
-    pto_damper(double);
+    pto_damper(double, bool=false);
 
     pto_output force(const pto_state&) override;
     void set_param(const std::string&, double) override;
-    const char* name() const override {return "damper";}
+    const char* name() const override {return loss_ ? "loss-damper" : "damper";}
+    bool loss() const override {return loss_;}
     void save_state(std::vector<double> &v) const override {pto_base::save_state(v); for(double x : {B}) v.push_back(x);}
     void load_state(const std::vector<double> &v, size_t &k) override
     {pto_base::load_state(v,k); if(k+1>v.size()) {k = v.size(); return;} B = v[k++];}
 
 private:
     double B;
+    bool loss_;
 };
 
 // spring-damper (X 503): F = F0 - K (q - q0) - B qd, K < 0 allowed (reactive control); q0 and the
@@ -63,21 +65,24 @@ private:
     double K, B, q0, F0;
 };
 
-// Coulomb friction, regularised: F = -Fc tanh(qd / v_eps)
+// Coulomb friction, regularised: F = -Fc tanh(qd / v_eps); a generator load (Coulomb damping) or,
+// as a loss (X 510), drive-train friction, not absorbed
 class pto_coulomb : public pto_base
 {
 public:
-    pto_coulomb(double, double);
+    pto_coulomb(double, double, bool=false);
 
     pto_output force(const pto_state&) override;
     void set_param(const std::string&, double) override;
-    const char* name() const override {return "coulomb";}
+    const char* name() const override {return loss_ ? "loss-coulomb" : "coulomb";}
+    bool loss() const override {return loss_;}
     void save_state(std::vector<double> &v) const override {pto_base::save_state(v); for(double x : {Fc, v_eps}) v.push_back(x);}
     void load_state(const std::vector<double> &v, size_t &k) override
     {pto_base::load_state(v,k); if(k+2>v.size()) {k = v.size(); return;} Fc = v[k++]; v_eps = v[k++];}
 
 private:
     double Fc, v_eps;
+    bool loss_;
 };
 
 // end-stops (X 504): penalty spring-damper outside [qmin,qmax], pushes only, no absorbed power

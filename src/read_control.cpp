@@ -3786,6 +3786,10 @@ void control::read_control(lexer* p)
                          X508=1;
                          clear(c,numint);
                          break;
+                case  510: control>>X510_B>>X510_Fc>>X510_veps;
+                         X510=1;
+                         clear(c,numint);
+                         break;
                 }
                 break;
 

@@ -126,8 +126,9 @@ private:
     std::vector<double> w_, A_, B_;
 };
 
-// optimal passive damping of a single-DOF absorber at the frequency w
-double pto_bopt(double w, double m, double A, double Brad, double C);
+// optimal passive damping of a single-DOF absorber at the frequency w; with a linear drive-train
+// loss Bloss in parallel the generator power B |v|^2 is largest at sqrt((Brad + Bloss)^2 + X^2)
+double pto_bopt(double w, double m, double A, double Brad, double C, double Bloss=0.0);
 
 }
 

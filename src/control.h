@@ -665,6 +665,8 @@ public:
     double X506_T,X506_C;
     double X507_t,X507_K,X507_C;
     double X508_t;
+    int X510;
+    double X510_B,X510_Fc,X510_veps;
 
     // FSI
     int Z10,Z11,Z20,Z30,Z40;
