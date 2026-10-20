@@ -1,0 +1,5 @@
+# t (s)  eta (m): the level of the clamped level edge (zone 2, background 2) above F 60
+0.0   0.0
+0.1   0.0
+0.4   0.01
+10.0  0.01

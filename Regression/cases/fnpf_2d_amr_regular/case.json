@@ -1,0 +1,20 @@
+{
+ "base": "fnpf_2d_regular",
+ "np": 1,
+ "steps": 400,
+ "ctrl_add": [
+  "G 1 1",
+  "G 10 12.0 28.0 -1.0 1.0"
+ ],
+ "description": "FNPF AMR on a 2D grid (one cell in y): fnpf_2d_regular with a static patch over 12-28 m, one level; the levels refine x only, the patch is one cell wide in y (patch 0077, 0078).",
+ "tags": [
+  "2d",
+  "fnpf",
+  "amr",
+  "waves"
+ ],
+ "covers": [
+  "reefamr: sy 0, EY 0 (one cell in y)",
+  "fnpf_amr 2D: pweights in x, restriction of 2x1 blocks, gauges"
+ ]
+}

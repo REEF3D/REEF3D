@@ -1,0 +1,18 @@
+{
+ "base": "fnpf_3d_amr_basin",
+ "np": 1,
+ "steps": 40,
+ "ctrl_add": [
+  "A 328 1"
+ ],
+ "description": "fnpf_3d_amr_basin with the sigma cross-derivatives in the rows (A 328 1, N 10 1): the composite operator with the 15-point rows (patch 0080).",
+ "tags": [
+  "3d",
+  "fnpf",
+  "amr",
+  "waves"
+ ],
+ "covers": [
+  "fnpf_amr::lap_apply with the mixed couplings"
+ ]
+}

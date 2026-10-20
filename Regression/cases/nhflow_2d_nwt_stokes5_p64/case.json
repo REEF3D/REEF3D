@@ -1,0 +1,24 @@
+{
+ "base": "nhflow_2d_nwt_stokes5",
+ "ctrl_add": [
+  "P 64 30.0 0.025 0.05",
+  "P 64 30.0 0.025 2.0",
+  "P 64 30.0 0.025 3.9",
+  "P 64 30.0 0.025 4.5"
+ ],
+ "np": 1,
+ "steps": 100,
+ "tags": [
+  "quick",
+  "2d",
+  "nhflow",
+  "waves",
+  "probes"
+ ],
+ "description": "nhflow_2d_nwt_stokes5 with P 64 pressure probes in one column just outside the generation zone: near the bed, mid-depth, near the still water level and above it (the probe reads 0 above the free surface). The probe reads the non-hydrostatic pressure P from the vertical cell faces (ccipol7V) and adds the hydrostatic part of the free surface.",
+ "covers": [
+  "nhflow_probe_press P64",
+  "interpolation ccipol7V (face-stored P)",
+  "probe above the free surface"
+ ]
+}

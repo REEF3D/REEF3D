@@ -1,0 +1,21 @@
+{
+ "base": "fnpf_3d_amr_basin",
+ "np": 2,
+ "steps": 40,
+ "ctrl_add": [
+  "A 324 3",
+  "A 325 0.01",
+  "A 328 1"
+ ],
+ "description": "fnpf_3d_amr_basin_picard with A 328 1 on 2 ranks.",
+ "tags": [
+  "3d",
+  "fnpf",
+  "amr",
+  "waves",
+  "mpi"
+ ],
+ "covers": [
+  "fnpf_amr::lap_picard on several ranks"
+ ]
+}
