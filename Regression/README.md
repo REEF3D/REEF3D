@@ -54,8 +54,8 @@ into the run directory before DIVEMesh; `"keep_keys": ["P 40", "P 41"]` keeps pr
 normally removes (state files for such a stage). A restart from checkpoints is such a chain: the stage
 writes them (P 48), the case copies `REEF3D_Checkpoint` and sets I 45 1. `"rebalance": n` starts a run
 again after a rebalance stop (G 46: exit code 3 and the marker `REEF3D_Checkpoint/rebalance`), at most
-n times, as `tools/reef3d_rebalance.sh` does. The load maps (`*_loadmap.dat`, measured times) are not
-compared.
+n times, as `tools/reef3d_rebalance.sh` does. The load maps (`*_loadmap.dat`) and the reports of the
+SEASTATE pipeline (`*_pipeline.dat`, Phase 19), measured times, are not compared.
 
 Other commands:
 
