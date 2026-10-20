@@ -174,14 +174,14 @@ bool reefamr::ckpt_read_patches(reefckpt &ck, const char *tag, const ckpt_fields
         for(int ii=pp->imin; ii<pp->imin+pp->imax; ++ii)
         for(int jj=pp->jmin; jj<pp->jmin+pp->jmax; ++jj)
         {
-            const int I = ii + q->I0 - EXT, J = jj + q->J0 - EXT;
+            const int I = ii + q->I0 - EXT, J = jj + q->J0 - EY;
             int best = -1;
             for(int s=0; s<(int)cp.size(); ++s)
             {
                 const ckpatch &c = cp[s];
                 if(c.lev!=q->lev || c.kmaxF!=pp->kmaxF || c.kmax!=pp->kmax)
                 continue;
-                const int si = I - c.I0 + EXT, sj = J - c.J0 + EXT;
+                const int si = I - c.I0 + EXT, sj = J - c.J0 + EY;
                 if(si<c.imin || si>=c.imin+c.imax || sj<c.jmin || sj>=c.jmin+c.jmax)
                 continue;
                 const bool inside = (I>=c.I0 && I<=c.I1 && J>=c.J0 && J<=c.J1);
@@ -195,7 +195,7 @@ bool reefamr::ckpt_read_patches(reefckpt &ck, const char *tag, const ckpt_fields
                 const ckpatch &c = cp[best];
                 const long long m = (long long)(ii-pp->imin)*pp->jmax + (jj-pp->jmin);
                 src[m] = best;
-                scol[m] = (long long)((I - c.I0 + EXT) - c.imin)*c.jmax + ((J - c.J0 + EXT) - c.jmin);
+                scol[m] = (long long)((I - c.I0 + EXT) - c.imin)*c.jmax + ((J - c.J0 + EY) - c.jmin);
             }
         }
 
