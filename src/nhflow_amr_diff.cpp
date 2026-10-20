@@ -185,7 +185,7 @@ void nhflow_amr::diff_solve(lexer *p, ghostcell *pgc, int s)
         const int l = (g<0) ? 0 : P[g]->lev;
         int i0,i1,j0,j1;
         if(g<0) { i0=0; i1=NX0-1; j0=0; j1=NY0-1; }
-        else    { i0=EXT; i1=EXT+P[g]->nx-1; j0=EXT; j1=EXT+P[g]->ny-1; }
+        else    { i0=EXT; i1=EXT+P[g]->nx-1; j0=EY; j1=EY+P[g]->ny-1; }
 
         int r=0;
         for(int ii=0; ii<q->knox; ++ii)
@@ -197,8 +197,8 @@ void nhflow_amr::diff_solve(lexer *p, ghostcell *pgc, int s)
             if(box && l<maxlev)
             {
                 const int I = (g<0) ? ii+O0i : ii-EXT+P[g]->I0;
-                const int J = (g<0) ? jj+O0j : jj-EXT+P[g]->J0;
-                cov = covered(l+1,2*I,2*J);
+                const int J = (g<0) ? jj+O0j : jj-EY+P[g]->J0;
+                cov = covered(l+1,2*I,ychild(J));
             }
             for(int kk=0; kk<q->knoz; ++kk)
             {
@@ -343,8 +343,8 @@ void nhflow_amr::df_sync(int k)
                  {
                      lexer *pp = q->pp;
                      const double *f = dvec(id,k);
-                     const int nby = q->ny/2;
-                     const int i0 = EXT+2*(kb/nby), j0 = EXT+2*(kb%nby);
+                     const int nby = q->ny>>sy;
+                     const int i0 = EXT+2*(kb/nby), j0 = EY+ychild(kb%nby);
                      const int fz = pp->knoz/Kc;
                      double w[4];
                      cw4(pp,i0,j0,w);    // curvilinear grid: per area of the children
@@ -354,8 +354,15 @@ void nhflow_amr::df_sync(int k)
                          if(pp->geo_curv==1)
                          {
                          for(int kf=fz*kk; kf<fz*kk+fz; ++kf)
-                         r += w[0]*f[cidx(pp,i0,j0,kf)]+w[1]*f[cidx(pp,i0+1,j0,kf)]+w[2]*f[cidx(pp,i0,j0+1,kf)]+w[3]*f[cidx(pp,i0+1,j0+1,kf)];
+                         r += (sy==0 ? w[0]*f[cidx(pp,i0,j0,kf)]+w[1]*f[cidx(pp,i0+1,j0,kf)] : w[0]*f[cidx(pp,i0,j0,kf)]+w[1]*f[cidx(pp,i0+1,j0,kf)]+w[2]*f[cidx(pp,i0,j0+1,kf)]+w[3]*f[cidx(pp,i0+1,j0+1,kf)]);
                          v[kk] = r/double(fz);
+                         continue;
+                         }
+                         if(sy==0)      // 2D grid: the 2x1 children
+                         {
+                         for(int kf=fz*kk; kf<fz*kk+fz; ++kf)
+                         r += f[cidx(pp,i0,j0,kf)]+f[cidx(pp,i0+1,j0,kf)];
+                         v[kk] = 0.5*r/double(fz);
                          continue;
                          }
                          for(int kf=fz*kk; kf<fz*kk+fz; ++kf)

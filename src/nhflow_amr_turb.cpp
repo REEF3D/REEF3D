@@ -293,8 +293,8 @@ void nhflow_amr::turb_restrict()
                  [&](reefamr_patch *q, int id, int k, double *v)
                  {
                      lexer *pp = q->pp;
-                     const int nby = q->ny/2;
-                     const int i0 = EXT+2*(k/nby), j0 = EXT+2*(k%nby);
+                     const int nby = q->ny>>sy;
+                     const int i0 = EXT+2*(k/nby), j0 = EY+ychild(k%nby);
                      const int fz = pp->knoz/K;
                      double w[4];
                      cw4(pp,i0,j0,w);
@@ -305,7 +305,7 @@ void nhflow_amr::turb_restrict()
                          {
                              double r = 0.0;
                              for(int kf=fz*kk; kf<fz*kk+fz; ++kf)
-                             r += w[0]*f[cidx(pp,i0,j0,kf)]+w[1]*f[cidx(pp,i0+1,j0,kf)]+w[2]*f[cidx(pp,i0,j0+1,kf)]+w[3]*f[cidx(pp,i0+1,j0+1,kf)];
+                             r += (sy==0 ? w[0]*f[cidx(pp,i0,j0,kf)]+w[1]*f[cidx(pp,i0+1,j0,kf)] : w[0]*f[cidx(pp,i0,j0,kf)]+w[1]*f[cidx(pp,i0+1,j0,kf)]+w[2]*f[cidx(pp,i0,j0+1,kf)]+w[3]*f[cidx(pp,i0+1,j0+1,kf)]);
                              v[m*K+kk] = r/double(fz);
                          }
                      }
@@ -381,7 +381,7 @@ void nhflow_amr::turb_regrid(ghostcell *pgc, int l, vector<reefamr_patch*> &oldP
                       const bool ey = ok(B.ic,B.jc+1) && ok(B.ic,B.jc-1);
                       vector<double> uc(Kc);
                       for(int a=0; a<2; ++a)
-                      for(int b=0; b<2; ++b)
+                      for(int b=0; b<=sy; ++b)
                       for(int m=0; m<NTF; ++m)
                       {
                           const double *f = tfield(B.g,m);
@@ -403,10 +403,10 @@ void nhflow_amr::turb_regrid(ghostcell *pgc, int l, vector<reefamr_patch*> &oldP
                       if(!q->fresh)
                       return;
                       lexer *pp = q->pp;
-                      const int nby = q->ny/2;
-                      const int i0 = EXT+2*(k/nby), j0 = EXT+2*(k%nby);
+                      const int nby = q->ny>>sy;
+                      const int i0 = EXT+2*(k/nby), j0 = EY+ychild(k%nby);
                       for(int a=0; a<2; ++a)
-                      for(int b=0; b<2; ++b)
+                      for(int b=0; b<=sy; ++b)
                       for(int m=0; m<NTF; ++m)
                       {
                           double *f = tfield(id,m);
