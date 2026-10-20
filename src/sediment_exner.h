@@ -61,10 +61,10 @@ public:
     // the cell fields of the Exner step that the cells around the grids take from their sources: qb, and
     // the bend fields qb/f(theta) (S 86), tan(delta) (S 95), the bed of the slope flux and its open flag
     // (P7) and the lagged fields the upwind relaxation of a grid starts from at its edges: the spiral-flow
-    // intensity (S 95 2) and the suspended load (S 64)
-    static const int amr_nfield = 7;
+    // intensity (S 95 2), the suspended load (S 64) and (P8a) the non-equilibrium bed load (S 33)
+    static const int amr_nfield = 8;
     double& amr_field(sediment_fdm*, int n, int ii, int jj);
-    slice4& bend_slice(int n) { return (n==1) ? bK : (n==2 ? btd : (n==3 ? bz : (n==4 ? bg : (n==5 ? Isp : qsn)))); }
+    slice4& bend_slice(int n) { return (n==1) ? bK : (n==2 ? btd : (n==3 ? bz : (n==4 ? bg : (n==5 ? Isp : (n==6 ? qsn : qbn))))); }
     void amr_flux(lexer*, ghostcell*, sediment_fdm*, slice&, slice&);
     double amr_vz(lexer*, ghostcell*, sediment_fdm*, slice&, slice&, slice*);
     double amr_vzmax(lexer*, sediment_fdm*, slice*);
@@ -120,7 +120,7 @@ private:
     void bend_K(lexer*,ghostcell*,sediment_fdm*);
     slice4 Ie,Isp,qse,qsn,qbb,lss,lsa;
     int spiral_ini=0, susp_ini=0, lag_print=1;
-    double lag_d0=0.0, lag_f0=0.0, lag_d[2]={0.0,0.0}, lag_f[2]={0.0,0.0};
+    double lag_d0=0.0, lag_f0=0.0, lag_d[3]={0.0,0.0,0.0}, lag_f[3]={0.0,0.0,0.0};
     // the largest qb/f (1/dx^2 + 1/dy^2) of the grid (rank-local): the slope flux is an explicit diffusion of the
     // bed, timestep() keeps dtsed below its stability limit; amr_bendrate: that of the other grids
 public:

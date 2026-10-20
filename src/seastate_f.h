@@ -26,6 +26,7 @@ Architect: Hans Bihs
 #include"seastate.h"
 #include"increment.h"
 #include<fstream>
+#include<string>
 #include<vector>
 
 class fdm_seastate;
@@ -45,6 +46,8 @@ class seastate_bathy;
 class slice4;
 class seastate_obstacle;
 class regression_dump;
+class reefrun_ckpt;
+class reefckpt;
 
 using namespace std;
 
@@ -130,6 +133,20 @@ geographic fluxes (A 796 2), composite sweep across the refinement
 levels (A 797 1); convergence history of stationary runs in
 REEF3D_SEASTATE_Log/REEF3D_SEASTATE_convergence.dat.
 
+Phase 18: checkpoints and the rebalance of stand-alone runs (seastate_f_ckpt.cpp,
+reefrun_ckpt.h): a checkpoint every P 48 steps (stationary: every P 48
+iterations of a step), the restart from the latest on any decomposition
+(I 45 1): the spectra of the cells of all grids by their global index, the
+active ranges of the spectral sparsity (A 795) and the last change of Hs of
+the convergence test (A 799 1); a stationary step continues at the
+iteration of the checkpoint. The measured work of every cell (the time of
+its solves) gives the load of the ranks and the load map
+REEF3D_SEASTATE_Log/REEF3D_SEASTATE_loadmap.dat (G 45) for the weighted
+partition of DIVEMesh (M 20 5, M 35 1); with G 46 the run stops to
+rebalance when the load max/mean of the ranks exceeds G 46 (checked every
+G 47 steps, stationary every G 47 iterations) and continues on the
+weighted partition (tools/reef3d_rebalance.sh, DIVEMesh M 50 1).
+
 Phase 6: phase-decoupled diffraction (A 718, A 719,
 seastate_f_diffraction.cpp), line obstacles (A 722) and, Phase 6b,
 structures (A 725: d'Angremond, per frequency, porous; seastate_structure),
@@ -155,6 +172,9 @@ public:
     void step(lexer*, ghostcell*);
 
     void ini_coupled(lexer*, ghostcell*);
+
+    // Phase 18: the checkpoints (P 48, I 45) and the rebalance (G 46) of a stand-alone run (seastate_f_ckpt.cpp)
+    reefrun_ckpt& ckpt(lexer*, ghostcell*);
     void step_coupled(lexer*, ghostcell*, double dt);
 
     fdm_seastate *e;
@@ -261,6 +281,32 @@ private:
     slice4 *vegN = nullptr;
     seastate_bathy *vegr = nullptr;
     void vegetation_ini(lexer*, ghostcell*);
+
+    // Phase 18: checkpoints and the rebalance (seastate_f_ckpt.cpp)
+    reefrun_ckpt *rck = nullptr;
+    bool restart = false;                   // I 45 1: from a checkpoint
+    int ss_resume = 0;                      // stationary: the iterations done in the step of the checkpoint (continued)
+    std::vector<double> dprev;              // stationary: the last change of Hs of every leaf cell (A 799 1)
+    std::string ckpt_unsupported(lexer*) const;
+    void ckpt_write(lexer*, reefckpt&);
+    bool ckpt_read(lexer*, ghostcell*, reefckpt&, std::string&);
+    void ckpt_iteration(lexer*, int k);     // stationary, after iteration k of the step that did not stop: P 48 and G 46
+    void ckpt_step(lexer*, ghostcell*);     // after the outputs of a step: P 48 and G 46 (nonstationary), G 45
+    // the measured work of the cells [s] (G 45, G 46): level 0 (the patches: seastate_amr), per level-0 column of the rank
+    // the work of the last closed window and of the run, and the iterations in them
+    slice4 *wk0 = nullptr;
+    std::vector<double> wwin, wrun;
+    std::vector<double> lmap0;              // rank 0: the last load map written, all level-0 columns (I*GNY+J)
+    // whether a rebalance pays: the set-up time of the run, the work of the heaviest rank and of the mean rank in the
+    // last window [s], the bytes of the state in a checkpoint, the iteration of the step (stationary)
+    double t_ini = 0.0, busy_max = 0.0, busy_mean = 0.0, state_bytes = 0.0;
+    int k_now = 0;
+    std::vector<double> hconv, hperc;       // stationary: the largest change of Hs and the percentage within A 708 per iteration
+    double nwin = 0.0, nrun = 0.0;
+    int wit = 0;                            // iterations of the open window
+    void work_columns(lexer*, std::vector<double>&, bool reset);
+    double work_imbalance(lexer*, ghostcell*);
+    void loadmap_write(lexer*, const std::vector<double>&, double iterations, const char *what);
 };
 
 #endif

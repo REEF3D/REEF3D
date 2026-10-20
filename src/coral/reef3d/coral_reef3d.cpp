@@ -33,6 +33,7 @@ Architect: Hans Bihs
 #include<mpi.h>
 #include<algorithm>
 #include<cmath>
+#include<limits>
 #include<fstream>
 #include<iostream>
 #include<sstream>
@@ -102,7 +103,7 @@ coral_reef3d::coral_reef3d(lexer *p, ghostcell *pgc) : p_(p), pgc_(pgc)
         {
             bool water = false;
             for(const auto &l : case_->m.load_list)
-                if(dynamic_cast<const coral::mooring_line*>(l.get()) || dynamic_cast<const coral::morison_load*>(l.get())
+                if(dynamic_cast<const coral::mooring_system*>(l.get()) || dynamic_cast<const coral::morison_load*>(l.get())
                    || dynamic_cast<const coral::member_morison*>(l.get()))
                     water = true;
             const double swl = p->F60 - case_->fluid_origin(2);
@@ -151,29 +152,33 @@ void coral_reef3d::sample_kinematics(double t)
     const int n = (int)pts.size();
     if(n == 0)
         return;
-    std::vector<double> xyz(3*n), loc, sum(5*n, 0.0);
+    std::vector<double> xyz(3*n), loc, sum(6*n, 0.0);
     for(int q=0; q<n; ++q)
         for(int d=0; d<3; ++d)
             xyz[3*q+d] = pts[q](d);
     sampler_->sample(xyz, loc);
-    MPI_Allreduce(loc.data(), sum.data(), 5*n, MPI_DOUBLE, MPI_SUM, pgc_->mpi_comm);
-    bcast(sum.data(), 5*n);
+    MPI_Allreduce(loc.data(), sum.data(), 6*n, MPI_DOUBLE, MPI_SUM, pgc_->mpi_comm);
+    bcast(sum.data(), 6*n);
     std::vector<coral::Vec3> u(n, coral::Vec3::Zero());
-    std::vector<double> eta(n, 0.0);
+    std::vector<double> eta(n, 0.0), bed;
     std::vector<int> in(n, 0);
+    // the bed under the points only for the mooring lines with bathymetry fluid
+    if(cp_->wants_bed())
+        bed.assign(n, std::numeric_limits<double>::quiet_NaN());
     int nin = 0;
     for(int q=0; q<n; ++q)
     {
-        const double c = sum[5*q+4];
+        const double c = sum[6*q+4];
         if(c > 0.5)
         {
-            u[q] = coral::Vec3(sum[5*q], sum[5*q+1], sum[5*q+2])/c;
-            eta[q] = sum[5*q+3]/c;
+            u[q] = coral::Vec3(sum[6*q], sum[6*q+1], sum[6*q+2])/c;
+            eta[q] = sum[6*q+3]/c;
             in[q] = 1;
+            if(!bed.empty()) bed[q] = sum[6*q+5]/c;
             ++nin;
         }
     }
-    cp_->kinematics(t, u, eta, in);
+    cp_->kinematics(t, u, eta, in, bed);
     if(!sampler_told_ && p_->mpirank==0)
     {
         std::cout<<"CORAL: fluid kinematics from "<<sampler_->name()<<" at "<<n<<" points ("<<nin<<" in the fluid domain)"<<std::endl;

@@ -324,21 +324,30 @@ void sediment_exner::spiral_apply(lexer *p, ghostcell *pgc, sediment_fdm *s)
 }
 
 // mesh refinement and multi-block grids (sflow_amr::sediment_step_sflow): after the cells around the grids took the
-// lagged fields of their sources, the relaxations again from them, so that the lag runs on through the interfaces
+// lagged fields of their sources, the relaxations again from them, so that the lags run on through the interfaces
 // (passes until the cells around the grids no longer move the solution); d[k], f[k]: the change of the first sweep and
-// the largest equilibrium of the suspended load (k = 0) and of the spiral flow (k = 1)
+// the largest equilibrium of the suspended load (k = 0), the spiral flow (k = 1) and the non-equilibrium bed load
+// (S 33, k = 2): the steps of amr_qb and bend_prep again from the bed load on
 void sediment_exner::lag_refresh(lexer *p, ghostcell *pgc, sediment_fdm *s, double *d, double *f)
 {
     lag_print = 0;
-    lag_d[0] = lag_d[1] = lag_f[0] = lag_f[1] = 0.0;
+    lag_d[0] = lag_d[1] = lag_d[2] = lag_f[0] = lag_f[1] = lag_f[2] = 0.0;
 
-    if(p->S64>0.0)
+    if(p->S33>0 || p->S64>0.0)
     {
-    susp_apply(p,pgc,s);
-    qb_clear(p,s);
+        if(p->S33>0)
+        {
+        non_equillibrium_solve(p,pgc,s);
+        susp_split(p,pgc,s);
+        }
+        else
+        susp_apply(p,pgc,s);
 
-    if(p->S86>0)
-    bend_K(p,pgc,s);
+        qb_clear(p,s);
+        pgc->gcsl_start4(p,s->qb,1);
+
+        if(p->S86>0)
+        bend_K(p,pgc,s);
     }
 
     if(p->S95==2)
@@ -346,7 +355,7 @@ void sediment_exner::lag_refresh(lexer *p, ghostcell *pgc, sediment_fdm *s, doub
 
     lag_print = 1;
 
-    for(int k=0; k<2; ++k)
+    for(int k=0; k<3; ++k)
     {
     d[k] = MAX(d[k],lag_d[k]);
     f[k] = MAX(f[k],lag_f[k]);

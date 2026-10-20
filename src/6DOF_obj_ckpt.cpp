@@ -23,7 +23,7 @@ Author: Hans Bihs
 //  A 6DOF body in checkpoints (P 48, I 45).  The state is the same on all ranks: the rigid body with
 //  its stage values and history (sixdof_rigidbody::ckpt), the loads of the last stage (the explicit
 //  schemes and the fictitious-mass term use them), the body velocities, the print times, and the
-//  state of the motion file, the mooring lines and the load models (ship).  The arrays of the body on
+//  state of the motion file, the mooring lines, the load models (ship) and the power take-off (X 500).  The arrays of the body on
 //  the grid (its level set, Heaviside functions, forcing) are those of the solver's checkpoint.
 //  restore puts the trimesh at the pose (geom.transform) and sets the body velocities of the lexer.
 
@@ -81,6 +81,9 @@ void sixdof_obj::ckpt_state(lexer *p, std::vector<double> &v)
     v.push_back(double(pload.size()));
     for(sixdof_load *l : pload)
     part([&](std::vector<double> &s){ l->ckpt_state(s); });
+
+    // the power take-off (X 500)
+    part([&](std::vector<double> &s){ pto_ckpt_state(s); });
 }
 
 bool sixdof_obj::ckpt_restore(lexer *p, ghostcell *pgc, const std::vector<double> &v)
@@ -123,6 +126,15 @@ bool sixdof_obj::ckpt_restore(lexer *p, ghostcell *pgc, const std::vector<double
     r.i(nl);
     for(int q=0; q<nl && r.ok; ++q)
     part([&](const std::vector<double> &s, size_t &j){ if(q<(int)pload.size()) pload[q]->ckpt_restore(s,j); });
+
+    // the power take-off (X 500; absent in checkpoints written before it was in them)
+    bool pto_ok = true;
+    if(r.ok && r.k<v.size())
+    part([&](const std::vector<double> &s, size_t&){ pto_ok = pto_ckpt_restore(s); });
+    else
+    pto_ok = !pto_on_;
+    if(!pto_ok)
+    return false;
 
     // the pose: trimesh, body velocities and the lexer values of the body (CoG, angles, velocities)
     geom.transform(R_,c_);

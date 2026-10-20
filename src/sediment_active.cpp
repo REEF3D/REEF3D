@@ -167,6 +167,8 @@ void sediment_f::active_sflow(lexer *p, fdm2D *b, ghostcell *pgc)
     p->DFBED[IJ]=-1;
     }
     
+    for(int q : dfbed_open)
+    p->DFBED[q]=1;
     
     dfbed_comms(p,pgc);
 }
@@ -201,6 +203,8 @@ void sediment_f::active_ini_sflow(lexer *p, fdm2D *b, ghostcell *pgc)
     p->DFBED[IJ]=-1;
     }
     
+    for(int q : dfbed_open)
+    p->DFBED[q]=1;
     
     dfbed_comms(p,pgc);
 }

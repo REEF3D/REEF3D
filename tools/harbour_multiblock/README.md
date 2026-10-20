@@ -28,6 +28,11 @@ native in- and outflow with `B 60 1`:
   them; the 3D lists `gcin`, `gcout` and the `IO` marks of the ghost cells (pressure rows) of the open faces
   (`nhflow_amr::open_lists`).
 - No refinement within `ioband` (4) cells of an open face (`reefamr::blocks_refine_setup`).
+- Sediment (P8a): the cells beyond an open face carry the sediment flag, as the ghost cells of the native in- and
+  outflow (`sediment_f::dfbed_open`, kept by `active_sflow`): the bed load leaves through the outflow face with the
+  upwind flux of the last cell (before P8a the face was closed for the sediment and the end of an outflow block
+  filled with sand).  As on the native grid, no sediment enters through an inflow face (its face velocity of the
+  sediment is 0); hold the bed of the inflow reach with `S 71`.
 
 Not with: wave generation on a block (`B 98`), hydrographs (`B 60 2-4`), the potential flow start (`I 11`
 treats the open faces of the blocks as walls).

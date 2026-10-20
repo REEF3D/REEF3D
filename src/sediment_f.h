@@ -28,6 +28,7 @@ Author: Hans Bihs
 #include"slice4.h"
 #include"field4a.h"
 #include"increment.h"
+#include<vector>
 
 class bedload;
 class bedconc;
@@ -78,6 +79,9 @@ public:
     // a grid of the mesh refinement or a block (amrgrid 1): no log, no probes, no messages
     sediment_f(lexer*,ghostcell*,turbulence*,patchBC_interface*,int amrgrid);
 	virtual ~sediment_f();
+    // multi-block grids: the cells beyond the open faces of a block (G 54) carry the sediment flag as the ghost cells
+    // of the native in- and outflow (lexer indices (i - imin)*jmax + j - jmin; active_sflow keeps them open)
+    std::vector<int> dfbed_open;
     
     // CFD interface
     void start_cfd(lexer*, fdm*, ghostcell*, ioflow*, reinitopo*, solver*) override;

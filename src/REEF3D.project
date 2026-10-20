@@ -75,6 +75,7 @@
       <File Name="reefamr.h"/>
       <File Name="reefamr_sed.h"/>
       <File Name="reefamr_krylov.h"/>
+      <File Name="reefamr_xzlu.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Solver">
       <VirtualDirectory Name="REEFMG">
@@ -876,6 +877,7 @@
           <File Name="coral/mooring/README.md"/>
           <File Name="coral/mooring/coral_catenary.h"/>
           <File Name="coral/mooring/coral_mooring.h"/>
+          <File Name="coral/mooring/coral_seabed.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="PTO">
           <File Name="coral/pto/README.md"/>
@@ -2311,6 +2313,7 @@
           <File Name="fnfp_breaking_baquet_wd.cpp"/>
           <File Name="fnpf_breaking_baquet.cpp"/>
           <File Name="fnpf_breaking_romero.cpp"/>
+          <File Name="fnpf_breaking_barthelemy.cpp"/>
           <File Name="fnpf_breaking_relaxfunc.cpp"/>
           <File Name="fnfp_breaking_kennedy.cpp"/>
           <File Name="fnpf_breaking_filter.cpp"/>
@@ -2481,6 +2484,9 @@
         <VirtualDirectory Name="Mooring">
           <File Name="coral/mooring/coral_catenary.cpp"/>
           <File Name="coral/mooring/coral_mooring.cpp"/>
+          <File Name="coral/mooring/coral_mooring_setup.cpp"/>
+          <File Name="coral/mooring/coral_mooring_static.cpp"/>
+          <File Name="coral/mooring/coral_seabed.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="PTO">
           <File Name="coral/pto/coral_pto.cpp"/>

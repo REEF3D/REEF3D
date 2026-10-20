@@ -1,0 +1,10 @@
+{
+ "base": "fnpf_2d_break_kennedy",
+ "description": "FNPF 2D Romero breaking (A 350 3) on the steep deep-water Stokes waves of fnpf_2d_break_kennedy.",
+ "ctrl_set": {"A 350": "3"},
+ "tags": ["2d", "fnpf", "waves", "breaking"],
+ "covers": [
+  "fnpf_breaking::breaking_romero: stage eta_t, local wavenumber, steepness (method 2), phase speed with the bed depth",
+  "fnpf_breaking::compute_eddy_viscosity: energy matching with the dissipation of the damping terms (A 357, A 366)"
+ ]
+}

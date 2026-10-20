@@ -827,6 +827,9 @@ protected:
     int ysh(int l) const { return l*sy; }                                           // y shift from level 0 to level l
     int ychild(int J) const { return J<<sy; }                                       // first child in y of cell J
     int yparent(int J) const { return (J>=0) ? (J>>sy) : -(((-J)-1)>>sy)-1; }        // parent in y of cell J
+    int fr1(int side) const { return (sy==0 && side<2) ? 0 : 1; }                    // the second fine face of a coarse face
+                                                                                     // along a patch side (r+fr1): r itself
+                                                                                     // on the -x/+x sides of a 2D grid
     int regrids;
     int regrids_skipped = 0;        // regrids with an unchanged layout (par.lazy)
     long cells_total;

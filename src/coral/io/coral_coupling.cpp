@@ -40,7 +40,7 @@ namespace coral
 namespace
 {
     // journal events: tag, count, doubles
-    enum jtag {J_KIN = 1, J_INI = 2, J_CONNECT = 3, J_LOADS = 4, J_STRIPS = 5, J_STEPTO = 6, J_ADVANCE = 7};
+    enum jtag {J_KIN = 1, J_INI = 2, J_CONNECT = 3, J_LOADS = 4, J_STRIPS = 5, J_STEPTO = 6, J_ADVANCE = 7, J_KIN_BED = 8};
     const char J_MAGIC[8] = {'C','O','R','A','L','J','1','\n'};
 
     std::string file_name(const std::string &f)
@@ -437,11 +437,13 @@ void coupling::kinematics_points(std::vector<Vec3> &pts) const
         p += c_.fluid_origin;
 }
 
-void coupling::kinematics(double t, const std::vector<Vec3> &u, const std::vector<double> &eta, const std::vector<int> &in)
+void coupling::kinematics(double t, const std::vector<Vec3> &u, const std::vector<double> &eta, const std::vector<int> &in,
+                          const std::vector<double> &bed)
 {
     if(!c_.fluid_kin)
         return;
     const size_t n = u.size();
+    const bool hb = bed.size()==n && n > 0;
     {
         std::vector<double> v = {t, (double)n};
         for(size_t q=0; q<n; ++q)
@@ -449,13 +451,20 @@ void coupling::kinematics(double t, const std::vector<Vec3> &u, const std::vecto
             v.push_back(u[q](0)); v.push_back(u[q](1)); v.push_back(u[q](2));
             v.push_back(eta[q]);
             v.push_back(in[q]);
+            if(hb) v.push_back(bed[q]);
         }
-        jrec(J_KIN, v);
+        jrec(hb ? J_KIN_BED : J_KIN, v);
     }
-    std::vector<double> e(n);
+    std::vector<double> e(n), b;
     for(size_t q=0; q<n; ++q)
         e[q] = eta[q] - c_.fluid_origin(2);
-    c_.fluid_kin->add_sample(t, u, e, in);
+    if(hb)
+    {
+        b.resize(n);
+        for(size_t q=0; q<n; ++q)
+            b[q] = bed[q] - c_.fluid_origin(2);
+    }
+    c_.fluid_kin->add_sample(t, u, e, in, b);
 }
 
 // ---- replay
@@ -487,19 +496,21 @@ long coupling::replay(coral_case &c, const std::string &journal, const std::stri
             cp.ini(v.at(0), dir);
             break;
         case J_KIN:
+        case J_KIN_BED:
         {
-            const int np = (int)v.at(1);
+            const int np = (int)v.at(1), w = tag==J_KIN_BED ? 6 : 5;
             std::vector<Vec3> pts, u(np);
-            std::vector<double> eta(np);
+            std::vector<double> eta(np), bed;
             std::vector<int> ins(np);
             cp.kinematics_points(pts);
             for(int q=0; q<np; ++q)
             {
-                u[q] = Vec3(v.at(2+5*q), v.at(3+5*q), v.at(4+5*q));
-                eta[q] = v.at(5+5*q);
-                ins[q] = (int)v.at(6+5*q);
+                u[q] = Vec3(v.at(2+w*q), v.at(3+w*q), v.at(4+w*q));
+                eta[q] = v.at(5+w*q);
+                ins[q] = (int)v.at(6+w*q);
+                if(w==6) bed.push_back(v.at(7+w*q));
             }
-            cp.kinematics(v[0], u, eta, ins);
+            cp.kinematics(v[0], u, eta, ins, bed);
             break;
         }
         case J_CONNECT:

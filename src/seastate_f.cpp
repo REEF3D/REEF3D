@@ -39,6 +39,7 @@ Architect: Hans Bihs
 #include"ghostcell.h"
 #include"runlog.h"
 #include"seastate_fas2.h"
+#include"reefrun_ckpt.h"
 #include<iostream>
 #include<iomanip>
 
@@ -57,6 +58,8 @@ seastate_f::seastate_f(lexer *p, ghostcell *pgc) : pprint(nullptr), preg(nullptr
 
 seastate_f::~seastate_f()
 {
+    delete rck;
+    delete wk0;
     delete pfas;
     delete pamr;
     delete bathy;
@@ -84,7 +87,20 @@ seastate_f::~seastate_f()
 
 void seastate_f::start(lexer *p, ghostcell *pgc)
 {
+    const double t0 = pgc->timer();
     ini(p,pgc);
+
+    // Phase 18: the checkpoints and the rebalance (P 48, G 46, G 45); I 45 1: from the latest checkpoint, a stationary
+    // step continues at its iteration (the main loop counts it again)
+    if(p->P48>0 || p->G46>0.0 || restart)
+    ckpt(p,pgc);
+    if(restart)
+    {
+    rck->read();
+    if(ss_resume>0)
+    --p->count;
+    }
+    t_ini = pgc->timer()-t0;
 
     preg = new regression_dump(p);
     preg->seastate_ini(p,e,pgc);
@@ -153,6 +169,9 @@ void seastate_f::start(lexer *p, ghostcell *pgc)
             pprint->print2D(p,e,pgc);
             pgc->final(true);
         }
+
+        // Phase 18: checkpoint and rebalance (nonstationary), the load map (G 45)
+        ckpt_step(p,pgc);
     }
 
     if(p->mpirank==0)

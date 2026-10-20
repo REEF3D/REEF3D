@@ -274,6 +274,14 @@ void control::ctrlsend()
     dd++;
     dctrl[dd] = A366;
     dd++;
+    dctrl[dd] = A359;
+    dd++;
+    dctrl[dd] = A360;
+    dd++;
+    dctrl[dd] = A364;
+    dd++;
+    ictrl[ii] = A367;
+    ii++;
     ictrl[ii] = A370;
     ii++;
     dctrl[dd] = A371_u;

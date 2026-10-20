@@ -121,6 +121,12 @@ void fnpf_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     
     // fsfdisc and sigma update
     pf->breaking(p,c,pgc,erk1,en,frk1,1.0);
+    // A 352: the filter changed eta and Fifsf in place after their halo exchange
+    if((p->A350==1 || p->A350==4) && p->A352>0)
+    {
+    pgc->gcsl_start4(p,erk1,gcval_eta);
+    pgc->gcsl_start4(p,frk1,gcval_fifsf);
+    }
     pflow->inflow_fnpf(p,c,pgc,c->Fi,c->Uin,frk1,erk1);
     pf->fsfdisc(p,c,pgc,erk1,frk1);
     sigma_update(p,c,pgc,pf,erk1);
@@ -176,6 +182,12 @@ void fnpf_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     
     // fsfdisc and sigma update
     pf->breaking(p,c,pgc,erk2,en,frk2,0.5);
+    // A 352: the filter changed eta and Fifsf in place after their halo exchange
+    if((p->A350==1 || p->A350==4) && p->A352>0)
+    {
+    pgc->gcsl_start4(p,erk2,gcval_eta);
+    pgc->gcsl_start4(p,frk2,gcval_fifsf);
+    }
     pflow->inflow_fnpf(p,c,pgc,c->Fi,c->Uin,frk2,erk2);
     pf->fsfdisc(p,c,pgc,erk2,frk2);
     sigma_update(p,c,pgc,pf,erk2);
@@ -231,6 +243,12 @@ void fnpf_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     
     // fsfdisc and sigma update
     pf->breaking(p,c,pgc,c->eta,en,c->Fifsf,1.0);
+    // A 352: the filter changed eta and Fifsf in place after their halo exchange
+    if((p->A350==1 || p->A350==4) && p->A352>0)
+    {
+    pgc->gcsl_start4(p,c->eta,gcval_eta);
+    pgc->gcsl_start4(p,c->Fifsf,gcval_fifsf);
+    }
     pflow->inflow_fnpf(p,c,pgc,c->Fi,c->Uin,c->Fifsf,c->eta);
     pf->fsfdisc(p,c,pgc,c->eta,c->Fifsf);
     sigma_update(p,c,pgc,pf,c->eta);

@@ -37,6 +37,7 @@ Architect: Hans Bihs
 #include"lexer.h"
 #include"ghostcell.h"
 #include"runlog.h"
+#include"reefckpt.h"
 #include<algorithm>
 #include<cmath>
 #include<iostream>
@@ -70,6 +71,7 @@ void seastate_f::ini_coupled(lexer *p, ghostcell *pgc)
 void seastate_f::ini_common(lexer *p, ghostcell *pgc, bool coupled_)
 {
     coupled = coupled_;
+    restart = (!coupled && p->I45==1);
 
     check_keys(p,pgc);
 
@@ -140,6 +142,14 @@ void seastate_f::ini_common(lexer *p, ghostcell *pgc, bool coupled_)
     psolv->sparsity(p->A795);
     psolv->geographic_order(p->A796);
     psolv->threads(p->A798);
+
+    // Phase 18: the measured work of the cells for the load map (G 45) and the rebalance (G 46)
+    if(!coupled && (p->G45>0 || p->G46>0.0))
+    {
+    wk0 = new slice4(p);
+    psolv->work_field(wk0);
+    }
+
     if(p->A700==2)
     psolv->source_iterations(p->A738,p->A739);
 
@@ -261,6 +271,9 @@ void seastate_f::ini_common(lexer *p, ghostcell *pgc, bool coupled_)
     seastate_amr::level0 l0 = {e,psolv,pex,psrc,N0,bathy,wser,tref,pobs,vegr};
     pamr->ini(p,pgc,l0);
 
+        if(wk0!=nullptr)
+        pamr->work_fields();
+
         if(wser!=nullptr)
         pamr->wind(tref+p->simtime);
 
@@ -303,8 +316,8 @@ void seastate_f::ini_common(lexer *p, ghostcell *pgc, bool coupled_)
 
     log_ini(p);
 
-    // initial state (coupled: printed by the host after it has added its fields)
-    if(!coupled)
+    // initial state (coupled: printed by the host after it has added its fields; a restart continues the outputs)
+    if(!coupled && !restart)
     {
     const int pc = p->printcount;
     pprint->start(p,e,pgc);
@@ -312,6 +325,7 @@ void seastate_f::ini_common(lexer *p, ghostcell *pgc, bool coupled_)
     pamr->print(p,pgc);
     }
 
+    if(!restart)
     log_step(p);
 
     if(coupled && p->A760>0)
@@ -778,11 +792,13 @@ void seastate_f::log_ini(lexer *p)
     mkdir("./REEF3D_SEASTATE_Log",0777);
 
     const char *path = "./REEF3D_SEASTATE_Log/REEF3D_SEASTATE_integral.dat";
-    integral.open(path);
-
+    // a restart (I 45 1) continues the file
+    if(reefckpt_open(integral,path,restart ? 1 : 0))
+    {
     integral<<"REEF3D::SEASTATE integral wave parameters"<<endl;
     integral<<"active cells: "<<long(cells_active)<<endl;
     integral<<"#iteration \t #simtime \t #E_tot [m^4] \t #Hs_max [m] \t #Hs_mean [m] \t #N_min \t #solver_iterations"<<endl;
+    }
 
     if(p->plog)
     p->plog->table_file(p,"seastate_integral","integral",path);

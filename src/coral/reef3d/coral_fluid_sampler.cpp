@@ -44,7 +44,7 @@ namespace
     void sample_points(lexer *p, slice &WL, slice &bed, const std::vector<double> &xyz, std::vector<double> &out, F vel)
     {
         const int n = (int)xyz.size()/3;
-        out.assign(5*n, 0.0);
+        out.assign(6*n, 0.0);
         for(int q=0; q<n; ++q)
         {
             const double x = xyz[3*q], y = xyz[3*q+1], z = xyz[3*q+2];
@@ -63,11 +63,12 @@ namespace
                     if(u == 0.0 && v == 0.0 && w == 0.0 && zc > zb + wl*(1.0 - f))
                         vel(x, y, zb + wl*(1.0 - f), u, v, w);
             }
-            out[5*q] = u;
-            out[5*q+1] = v;
-            out[5*q+2] = w;
-            out[5*q+3] = zs;
-            out[5*q+4] = 1.0;
+            out[6*q] = u;
+            out[6*q+1] = v;
+            out[6*q+2] = w;
+            out[6*q+3] = zs;
+            out[6*q+4] = 1.0;
+            out[6*q+5] = zb;
         }
     }
 }

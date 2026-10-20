@@ -188,7 +188,9 @@ void sediment_exner::non_equillibrium_solve(lexer* p, ghostcell *pgc, sediment_f
     noneq_ini=1;
     }
 
-    pgc->gcsl_start4(p,qbn,1);
+    // mesh refinement and multi-block grids: the cells around the grid and the covered cells hold their values
+    // (lagfix, sediment_exner_lag.cpp); elsewhere this is the ghost exchange
+    lag_hold(p,pgc,qbn,0);
 
 
     // Gauss-Seidel, alternating sweep directions ----------------------------
@@ -206,7 +208,7 @@ void sediment_exner::non_equillibrium_solve(lexer* p, ghostcell *pgc, sediment_f
             i = xrev?(p->knox-1-ii):ii;
             j = yrev?(p->knoy-1-jj):jj;
 
-            if(p->flagslice4[IJ]>0 && p->DFBED[IJ]>0)
+            if(p->flagslice4[IJ]>0 && p->DFBED[IJ]>0 && lagfix(i,j)<=0.0)
             {
             cx = cxn(i,j);
             cy = cyn(i,j);
@@ -246,9 +248,15 @@ void sediment_exner::non_equillibrium_solve(lexer* p, ghostcell *pgc, sediment_f
             }
         }
 
-        pgc->gcsl_start4(p,qbn,1);
+        lag_hold(p,pgc,qbn,1);
 
         dqmax = pgc->globalmax(dqmax);
+
+        if(iter==0)
+        {
+        lag_d[2] = dqmax;
+        lag_f[2] = qbe_max;
+        }
 
         if(dqmax<=tol*qbe_max)
         {
@@ -261,7 +269,7 @@ void sediment_exner::non_equillibrium_solve(lexer* p, ghostcell *pgc, sediment_f
     SEDSLICELOOP
     s->qb(i,j) = qbn(i,j);
 
-    if(p->mpirank==0)
+    if(p->mpirank==0 && lag_print)
     cout<<"non-eq. bedload  Ls_max: "<<setprecision(4)<<Ls_max<<"  sweeps: "<<iter<<"  dq/qbe_max: "<<setprecision(3)<<(qbe_max>1.0e-20?dqmax/qbe_max:0.0)<<endl;
 }
 
@@ -385,7 +393,9 @@ void sediment_exner::non_equillibrium_solve_curv(lexer* p, ghostcell *pgc, sedim
     noneq_ini=1;
     }
 
-    pgc->gcsl_start4(p,qbn,1);
+    // mesh refinement and multi-block grids: the cells around the grid and the covered cells hold their values
+    // (lagfix, sediment_exner_lag.cpp); elsewhere this is the ghost exchange
+    lag_hold(p,pgc,qbn,0);
 
 
     // Gauss-Seidel, alternating sweep directions ----------------------------
@@ -403,7 +413,7 @@ void sediment_exner::non_equillibrium_solve_curv(lexer* p, ghostcell *pgc, sedim
             i = xrev?(p->knox-1-ii):ii;
             j = yrev?(p->knoy-1-jj):jj;
 
-            if(p->flagslice4[IJ]>0 && p->DFBED[IJ]>0)
+            if(p->flagslice4[IJ]>0 && p->DFBED[IJ]>0 && lagfix(i,j)<=0.0)
             {
             cx = cxn(i,j);
             cy = cyn(i,j);
@@ -443,9 +453,15 @@ void sediment_exner::non_equillibrium_solve_curv(lexer* p, ghostcell *pgc, sedim
             }
         }
 
-        pgc->gcsl_start4(p,qbn,1);
+        lag_hold(p,pgc,qbn,1);
 
         dqmax = pgc->globalmax(dqmax);
+
+        if(iter==0)
+        {
+        lag_d[2] = dqmax;
+        lag_f[2] = qbe_max;
+        }
 
         if(dqmax<=tol*qbe_max)
         {
@@ -458,6 +474,6 @@ void sediment_exner::non_equillibrium_solve_curv(lexer* p, ghostcell *pgc, sedim
     SEDSLICELOOP
     s->qb(i,j) = qbn(i,j);
 
-    if(p->mpirank==0)
+    if(p->mpirank==0 && lag_print)
     cout<<"non-eq. bedload  Ls_max: "<<setprecision(4)<<Ls_max<<"  sweeps: "<<iter<<"  dq/qbe_max: "<<setprecision(3)<<(qbe_max>1.0e-20?dqmax/qbe_max:0.0)<<endl;
 }

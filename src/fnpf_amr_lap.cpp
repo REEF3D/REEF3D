@@ -316,6 +316,11 @@ void fnpf_amr::lap_prepare(ghostcell *pgc)
             lap_coef(mg0,L,lq,M.p[r],M.n[r],M.s[r],M.w[r],M.e[r],M.t[r],M.b[r]);
             L.act[lq] = fixed(M,r) ? 0 : 1;
         }
+        // a 2D grid on one rank: level 0 is one x-z problem, solved exactly (reefamr_xzlu)
+        xz0on = (sy==0 && p0->mpi_size==1);
+        if(xz0on)
+        xz0.factor(L,mg0->precision());
+        else
         mg0->coarsen();
     }
 
@@ -346,6 +351,11 @@ void fnpf_amr::lap_prepare(ghostcell *pgc)
                      (jj+1<EY+c->ny) ? M.w[r] : 0.0,(jj-1>=EY) ? M.e[r] : 0.0,M.t[r],M.b[r]);
             L.act[lq] = fixed(M,r) ? 0 : 1;
         }
+        // a 2D grid: the patch-local problem is an x-z problem, solved exactly (reefamr_xzlu) instead
+        // of the V-cycle
+        if(sy==0)
+        c->xz.factor(L,c->mg->precision());
+        else
         c->mg->coarsen();
     }
 }
@@ -512,8 +522,12 @@ void fnpf_amr::lap_local(int id, int kr, int kz)
     const int sI = pp->jmax*pp->kmaxF;
     const int sJ = pp->kmaxF;
 
+    // (the exact solve of a 2D grid reads f of the active rows only and writes u)
+    if(sy==1)
+    {
     std::fill(L.u.begin(),L.u.end(),0.0);
     std::fill(L.f.begin(),L.f.end(),0.0);
+    }
     for(int ii=EXT; ii<EXT+c->nx; ++ii)
     for(int jj=EY; jj<EY+c->ny; ++jj)
     for(int kk=0; kk<pp->knoz; ++kk)
@@ -529,6 +543,9 @@ void fnpf_amr::lap_local(int id, int kr, int kz)
         L.f[lq] = r[qq] - az;
     }
 
+    if(sy==0)
+    c->xz.solve(L,L.f,L.u);
+    else
     c->mg->vcycle(0,PSWEEP,PSWEEP);
 
     for(int ii=EXT; ii<EXT+c->nx; ++ii)
@@ -539,6 +556,17 @@ void fnpf_amr::lap_local(int id, int kr, int kz)
         if(L.act[lq])
         z[fidx(pp,ii,jj,kk)] += L.u[lq];
     }
+}
+
+// the level-0 cycle of the preconditioner on mg0->fine(): a V-cycle, on a 2D grid on one rank the
+// exact solve
+void fnpf_amr::lap_l0solve()
+{
+    sc_level &L = mg0->fine();
+    if(xz0on)
+    xz0.solve(L,L.f,L.u);
+    else
+    mg0->vcycle(0,1,1);
 }
 
 // z = M^-1 r: one multiplicative FAC sweep
@@ -572,26 +600,40 @@ void fnpf_amr::lap_prec(int kr, int kz)
             std::fill(z,z+q->imax*q->jmax*(q->kmax+2),0.0);
             continue;
         }
+        // (the columns jj of one ii are contiguous: one fill per ii)
         for(int ii=EXT-1; ii<=EXT+P[g]->nx; ++ii)
-        for(int jj=EY-1; jj<=EY+P[g]->ny; ++jj)
         {
-            const int a = fidx(q,ii,jj,q->kmin);
-            std::fill(z+a,z+a+q->kmaxF,0.0);
+            const int a = fidx(q,ii,EY-1,q->kmin);
+            std::fill(z+a,z+a+(P[g]->ny+2)*q->kmaxF,0.0);
         }
     }
 
-    for(int id=0; id<(int)P.size(); ++id)
-    lap_local(id,kr,kz);
+    // (only with a resolved body: without one, the sweep without the pre-smoothing takes as many
+    // or fewer iterations and half the patch-local cycles and no composite residual here)
+    const bool pre = (body!=nullptr);
+    if(pre)
+    {
+        for(int id=0; id<(int)P.size(); ++id)
+        lap_local(id,kr,kz);
 
-    // 2. composite residual (lap_apply also fills the covered columns and the columns around
-    //    the patches of z), z after the pre-smoothing kept in NPRE
-    lap_apply(kz,NRP);
+        // 2. composite residual (lap_apply also fills the covered columns and the columns around
+        //    the patches of z), z after the pre-smoothing kept in NPRE
+        lap_apply(kz,NRP);
+        for(int g=-1; g<(int)P.size(); ++g)
+        {
+            const double *r = lvec(g,kr);
+            double *t = lvec(g,NRP);
+            for(int qq : lg[g+1].lq)
+            t[qq] = r[qq] - t[qq];
+        }
+    }
+    else
     for(int g=-1; g<(int)P.size(); ++g)
     {
         const double *r = lvec(g,kr);
         double *t = lvec(g,NRP);
         for(int qq : lg[g+1].lq)
-        t[qq] = r[qq] - t[qq];
+        t[qq] = r[qq];
     }
 
     for(int id=0; id<(int)P.size(); ++id)
@@ -619,7 +661,7 @@ void fnpf_amr::lap_prec(int kr, int kz)
             L.f[lq] = r[fidx(p0,ii,jj,kk)];
         }
 
-        mg0->vcycle(0,1,1);
+        lap_l0solve();
 
         for(int ii=0; ii<p0->knox; ++ii)
         for(int jj=0; jj<p0->knoy; ++jj)

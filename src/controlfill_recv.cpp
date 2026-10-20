@@ -270,6 +270,14 @@ void control::ctrlrecv()
     dd++;
     A366 = dctrl[dd];
     dd++;
+    A359 = dctrl[dd];
+    dd++;
+    A360 = dctrl[dd];
+    dd++;
+    A364 = dctrl[dd];
+    dd++;
+    A367 = ictrl[ii];
+    ii++;
     A370 = ictrl[ii];
     ii++;
     A371_u = dctrl[dd];

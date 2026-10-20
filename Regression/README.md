@@ -194,6 +194,9 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `nhflow_2d_irregular_decomp` | 1 | NHFLOW JONSWAP waves, decomposed relaxation precalc (B89=1) |
 | `nhflow_3d_irregular_decomp` | 2 | NHFLOW 3D short-crested waves (B130=2), decomposed precalc, CFL 0.5 |
 | `fnpf_2d_regular` (+ `_mpi2`) | 1/2 | FNPF relaxation generation + beach, regular waves |
+| `fnpf_2d_break_kennedy` | 1 | FNPF Kennedy breaking (A 350 2) on steep deep-water Stokes waves with a low steepness threshold (A 355 0.25): 2D deep-water flag (cleared in the step it was set before fnpf breaking 01, run blew up at t = 13.6 s), two-pass viscosity spreading |
+| `fnpf_2d_break_romero` | 1 | the same waves with the Romero model (A 350 3): stage values, depth from the bed, energy matching with the dissipation of the damping terms (fnpf breaking 02) |
+| `fnpf_2d_break_barthelemy` | 1 | FNPF A 350 4 on the Ting & Kirby plunging breaker (nightly grid of the benchmark): crest tracking, onset B = u_s/C > 0.85 (first wave at x = 13.9 m), bore dissipation, per-crest viscosity, coastline viscosity, crest log P 59 |
 | `fnpf_2d_coral_point_absorber` | 1 | REEF3D::CORAL inside REEF3D (Z 40 1): point absorber decay (Cummins, tether, PTO) in step with the FNPF run, `REEF3D_CORAL/results.dat` compared (needs patches CORAL/0001-0006) |
 | `fnpf_2d_coral_fluid_body` | 1 | REEF3D::CORAL drives the FNPF box of `fnpf_2d_6dof_box` (Z 40 1, `fluid_body`): heave through a CORAL prismatic joint with PTO damper and stiff end stops, FNPF loads and added mass to CORAL, motion back at the RK stages with the predictor; `REEF3D_FNPF_6DOF/*.dat` and `REEF3D_CORAL/box.dat` compared (needs patches CORAL/0011-0019) |
 | `fnpf_2d_coral_fluid_body_planar` | 1 | the same box in surge, heave and pitch through a CORAL planar joint, fluid loads extrapolated linearly without the predictor (`fluid_coupling order 1 no_predictor`) (needs patches CORAL/0011-0019) |
@@ -431,6 +434,7 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `nhflow_3d_tide_ychannel` (+ `_mpi2`) | 1/2 | tidal channel along y: Riemann edge at y- (B 520 method 3), Flather edge at y+ (method 4), progressive background at 90 deg; `_mpi2` splits the ranks in y |
 | `nhflow_3d_tide_oblique` (+ `_mpi2`) | 1/2 | oblique tide (30 deg) in a basin with open edges on all four sides: Riemann at x- and y-, Flather at x+ and y+; `_mpi2` splits the ranks in x |
 | `nhflow_2d_waves_current_doppler` (+ `_mpi2`) | 1/2 | linear waves on a following current (B 514) with Doppler (B 530 2 10): k from omega = sigma + k U, blended during the current spin-up |
+| `nhflow_2d_waves_current_doppler_stokes5` | 1 | 5th-order Stokes waves (B 92 5) on the following current with Doppler (B 530 2 10): the Stokes library refines k with its own dispersion relation omega = k (c_E + U_n) and recomputes its coefficients (needs patch 0001, NHFLOW Wave Current Scour Protection) |
 | `nhflow_2d_waves_setup_heff` | 1 | linear waves on a 1 m set-up (B 514 eta) with B 530 1 10: k on h_eff |
 | `nhflow_2d_tide_waves_doppler` | 1 | `nhflow_2d_tide_waves_beach` with B 530 2 10: k follows the tide level and current |
 | `nhflow_2d_irregular_current_doppler` | 1 | JONSWAP irregular waves (B 92 31, 20 components) on a following current with B 530 2 10: k of every component, cached phases rebuilt |

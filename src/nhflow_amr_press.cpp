@@ -104,7 +104,7 @@ double* nhflow_amr::pvec(int g, int k)
 // column (di,dj) (patch lexer index) of patch c lies in a patch of its level (any rank)
 bool nhflow_amr::pr_sib(const reefamr_patch *c, int di, int dj)
 {
-    return covered(c->lev,di-EXT+c->I0,dj-EXT+c->J0);
+    return covered(c->lev,di-EXT+c->I0,dj-EY+c->J0);
 }
 
 // The overlap of the patch multigrids: EXT columns across every side of a patch where a patch of
@@ -219,7 +219,7 @@ void nhflow_amr::pr_kc7_fill()
             for(double *a : c->kc7)
             std::fill(a,a+n,0.0);
             for(int ii=EXT; ii<EXT+c->nx; ++ii)
-            for(int jj=EXT; jj<EXT+c->ny; ++jj)
+            for(int jj=EY; jj<EY+c->ny; ++jj)
             for(int kk=0; kk<pp->knoz; ++kk)
             {
                 const int qq = fidx(pp,ii,jj,kk);
@@ -260,9 +260,9 @@ void nhflow_amr::pr_rows()
         for(size_t e=0; e<c->fill.size(); ++e)
         {
             const reefamr_fill &f = c->fill[e];
-            if(f.di>=EXT-1 && f.di<=EXT+c->nx && f.dj>=EXT-1 && f.dj<=EXT+c->ny)
+            if(f.di>=EXT-1 && f.di<=EXT+c->nx && f.dj>=EY-1 && f.dj<=EY+c->ny)
             c->fill1.push_back((int)e);
-            if(f.di>=EXT-2 && f.di<=EXT+c->nx+1 && f.dj>=EXT-2 && f.dj<=EXT+c->ny+1)
+            if(f.di>=EXT-2 && f.di<=EXT+c->nx+1 && f.dj>=EY-2 && f.dj<=EY+c->ny+1)
             c->fill2.push_back((int)e);
         }
     }
@@ -284,19 +284,19 @@ void nhflow_amr::pr_rows()
 
         int i0,i1,j0,j1;
         if(g<0) { i0=0; i1=NX0-1; j0=0; j1=NY0-1; }
-        else    { i0=EXT; i1=EXT+P[g]->nx-1; j0=EXT; j1=EXT+P[g]->ny-1; }
+        else    { i0=EXT; i1=EXT+P[g]->nx-1; j0=EY; j1=EY+P[g]->ny-1; }
 
         for(int ii=i0; ii<=i1; ++ii)
         for(int jj=j0; jj<=j1; ++jj)
         {
             int I = (g<0) ? ii+O0i : ii-EXT+P[g]->I0;
-            int J = (g<0) ? jj+O0j : jj-EXT+P[g]->J0;
+            int J = (g<0) ? jj+O0j : jj-EY+P[g]->J0;
 
             // multi-block: the ring of the native grid stands for cells of the other blocks
             if(g<0 && nblk>0 && native_ring(I,J))
             continue;
 
-            const bool cov = (l<wtop() && covered(l+1,2*I,2*J));
+            const bool cov = (l<wtop() && covered(l+1,2*I,ychild(J)));
 
             for(int kk=0; kk<q->knoz; ++kk)
             {
@@ -361,7 +361,7 @@ void nhflow_amr::pr_prepare(ghostcell *pgc)
                 c->mg = new reefmg_core;
                 c->mg->set_precision(pp->N14==32 ? 32 : 64);
                 c->mg->set_fine_operator(&pr_fineop_none);
-                if(!c->mg->setup(MPI_COMM_SELF,nx,ny,pp->knoz,nx,ny,0,pp->DXN+marge+EXT-1-o[0],pp->DYN+marge+EXT-1-o[2]))
+                if(!c->mg->setup(MPI_COMM_SELF,nx,ny,pp->knoz,nx,ny,0,pp->DXN+marge+EXT-1-o[0],pp->DYN+marge+EY-1-o[2]))
                 cout<<"NHFLOW AMR: patch multigrid "<<c->mg->err()<<endl;
                 for(int s=0; s<4; ++s)
                 c->mo[s] = o[s];
@@ -454,6 +454,11 @@ void nhflow_amr::pr_prepare(ghostcell *pgc)
             pr_coef(mg0,L,lq,M.p[r],M.n[r],M.s[r],M.w[r],M.e[r],M.t[r],M.b[r]);
             L.act[lq] = fixed(M,r) ? 0 : 1;
         }
+        // a 2D grid on one rank: level 0 is one x-z problem, solved exactly (reefamr_xzlu)
+        xz0on = (sy==0 && p0->mpi_size==1 && nblk==0);
+        if(xz0on)
+        xz0.factor(L,mg0->precision());
+        else
         mg0->coarsen();
     }
 
@@ -478,8 +483,8 @@ void nhflow_amr::pr_prepare(ghostcell *pgc)
         const int *o = c->ov;
         if(o[0]+o[1]+o[2]+o[3]>0)
         {
-            const int i0 = EXT-o[0], i1 = EXT+c->nx+o[1], j0 = EXT-o[2], j1 = EXT+c->ny+o[3];
-            auto in_int = [&](int ii, int jj) { return ii>=EXT && ii<EXT+c->nx && jj>=EXT && jj<EXT+c->ny; };
+            const int i0 = EXT-o[0], i1 = EXT+c->nx+o[1], j0 = EY-o[2], j1 = EY+c->ny+o[3];
+            auto in_int = [&](int ii, int jj) { return ii>=EXT && ii<EXT+c->nx && jj>=EY && jj<EY+c->ny; };
             auto row_o = [&](int ii, int jj) { return ii>=i0 && ii<i1 && jj>=j0 && jj<j1 && !in_int(ii,jj) && pr_sib(c,ii,jj); };
             auto keep = [&](int ii, int jj) { return in_int(ii,jj) || row_o(ii,jj); };
 
@@ -518,15 +523,19 @@ void nhflow_amr::pr_prepare(ghostcell *pgc)
                     L.act[lq] = fx ? 0 : 1;
                 }
             }
+            // a 2D grid: the patch-local problem is an x-z problem, solved exactly (reefamr_xzlu)
+            if(sy==0)
+            c->xz.factor(L,c->mg->precision());
+            else
             c->mg->coarsen();
             continue;
         }
 
         for(int ii=EXT; ii<EXT+c->nx; ++ii)
-        for(int jj=EXT; jj<EXT+c->ny; ++jj)
+        for(int jj=EY; jj<EY+c->ny; ++jj)
         for(int kk=0; kk<pp->knoz; ++kk)
         {
-            const long lq = L.idx(ii-EXT,jj-EXT,kk);
+            const long lq = L.idx(ii-EXT,jj-EY,kk);
             const int r = c->row[fidx(pp,ii,jj,kk)];
             if(r<0)
             {
@@ -536,11 +545,14 @@ void nhflow_amr::pr_prepare(ghostcell *pgc)
             pr_coef(c->mg,L,lq,M.p[r],
                     (ii+1<EXT+c->nx) ? M.n[r] : 0.0,
                     (ii-1>=EXT) ? M.s[r] : 0.0,
-                    (jj+1<EXT+c->ny) ? M.w[r] : 0.0,
-                    (jj-1>=EXT) ? M.e[r] : 0.0,
+                    (jj+1<EY+c->ny) ? M.w[r] : 0.0,
+                    (jj-1>=EY) ? M.e[r] : 0.0,
                     M.t[r],M.b[r]);
             L.act[lq] = fixed(M,r) ? 0 : 1;
         }
+        if(sy==0)
+        c->xz.factor(L,c->mg->precision());
+        else
         c->mg->coarsen();
     }
 
@@ -765,7 +777,7 @@ void nhflow_amr::pr_stencils()
         if(c->lev==0)       // multi-block: the blocks 1.. have no parent
         continue;
         lexer *pp = c->pp;
-        const int nby = c->ny/2;
+        const int nby = c->ny>>sy;
         pr_rbk[id].resize(c->rgrid.size());
 
         for(int bi=0; bi<c->nx/2; ++bi)
@@ -775,7 +787,7 @@ void nhflow_amr::pr_stencils()
             if(c->rgrid[k]==-2)
             continue;
 
-            const int i0 = EXT+2*bi, j0 = EXT+2*bj;
+            const int i0 = EXT+2*bi, j0 = EY+ychild(bj);
 
             bool hi = (bi>0 && bi<c->nx/2-1 && bj>0 && bj<nby-1) && rcubic(pp,i0,j0) && sub==0;
 
@@ -790,7 +802,7 @@ void nhflow_amr::pr_stencils()
 
                 na = 0;
                 for(int a=0; a<2; ++a)
-                for(int b=0; b<2; ++b)
+                for(int b=0; b<=sy; ++b)
                 {
                     wa[2*a+b] = wet_at(pp,i0+a,j0+b,2) ? 1.0 : 0.0;
                     na += (int)wa[2*a+b];
@@ -848,10 +860,10 @@ void nhflow_amr::pr_stencils()
         const sc_level &L = c->mg->fine();
         const int *o = c->ov;
         for(int ii=EXT; ii<EXT+c->nx; ++ii)
-        for(int jj=EXT; jj<EXT+c->ny; ++jj)
+        for(int jj=EY; jj<EY+c->ny; ++jj)
         for(int kk=0; kk<pp->knoz; ++kk)
         {
-            const long lq = L.idx(ii-EXT+o[0],jj-EXT+o[2],kk);
+            const long lq = L.idx(ii-EXT+o[0],jj-EY+o[2],kk);
             if(L.act[lq]==0)
             continue;
             const int qq = fidx(pp,ii,jj,kk);
@@ -860,13 +872,13 @@ void nhflow_amr::pr_stencils()
         // the overlap cells (their right-hand side: the residual of the patch there)
         if(o[0]+o[1]+o[2]+o[3]>0)
         for(int ii=EXT-o[0]; ii<EXT+c->nx+o[1]; ++ii)
-        for(int jj=EXT-o[2]; jj<EXT+c->ny+o[3]; ++jj)
+        for(int jj=EY-o[2]; jj<EY+c->ny+o[3]; ++jj)
         {
-            if(ii>=EXT && ii<EXT+c->nx && jj>=EXT && jj<EXT+c->ny)
+            if(ii>=EXT && ii<EXT+c->nx && jj>=EY && jj<EY+c->ny)
             continue;
             for(int kk=0; kk<pp->knoz; ++kk)
             {
-                const long lq = L.idx(ii-EXT+o[0],jj-EXT+o[2],kk);
+                const long lq = L.idx(ii-EXT+o[0],jj-EY+o[2],kk);
                 if(L.act[lq]==0)
                 continue;
                 pr_po[id].push_back({lq,fidx(pp,ii,jj,kk),-1});
@@ -989,12 +1001,12 @@ void nhflow_amr::pr_prolong(int l, int k)
                {
                    lexer *q = glex(B.g);
                    for(int a=0; a<2; ++a)
-                   for(int d=0; d<2; ++d)
+                   for(int d=0; d<=sy; ++d)
                    {
                        const size_t m = 4*(size_t)key + 2*a+d;
                        if(!pr_pik_ok[l][m])
                        {
-                           pst_make(B.g,B.ic,B.jc,a==0?-1:1,d==0?-1:1,pr_pik[l][m]);
+                           pst_make(B.g,B.ic,B.jc,a==0?-1:1,(sy==0) ? 0 : (d==0?-1:1),pr_pik[l][m]);
                            pr_pik_ok[l][m] = 1;
                        }
                        pst_col(pr_pik[l][m],pvec(B.g,k),q->knoz,knf,&v[(2*a+d)*nc]);
@@ -1003,13 +1015,13 @@ void nhflow_amr::pr_prolong(int l, int k)
                [&](reefamr_patch *c, int id, int kb, const double *v)
                {
                    lexer *pp = c->pp;
-                   const int nby = c->ny/2;
+                   const int nby = c->ny>>sy;
                    const int bi = kb/nby, bj = kb%nby;
                    double *dst = pvec(id,k);
                    for(int a=0; a<2; ++a)
-                   for(int d=0; d<2; ++d)
+                   for(int d=0; d<=sy; ++d)
                    {
-                       const int d0 = fidx(pp,EXT+2*bi+a,EXT+2*bj+d,0);
+                       const int d0 = fidx(pp,EXT+2*bi+a,EY+ychild(bj)+d,0);
                        for(int kk=0; kk<=knf; ++kk)
                        dst[d0+kk] = v[(2*a+d)*nc+kk];
                    }
@@ -1194,6 +1206,9 @@ void nhflow_amr::pr_prec(int kr, int kz)
         for(size_t n=0; n<pr_l0a.size(); ++n)
         L.f[pr_l0a[n]] = r[pr_l0f[n]];
 
+        if(xz0on)
+        xz0.solve(L,L.f,L.u);
+        else
         mg0->vcycle(0,1,1);
 
         for(size_t n=0; n<pr_l0a.size(); ++n)
@@ -1337,6 +1352,9 @@ void nhflow_amr::pr_prec(int kr, int kz)
         for(size_t n=0; n<pr_l0a.size(); ++n)
         L.f[pr_l0a[n]] = r[pr_l0f[n]];
 
+        if(xz0on)
+        xz0.solve(L,L.f,L.u);
+        else
         mg0->vcycle(0,1,1);
 
         for(size_t n=0; n<pr_l0a.size(); ++n)
@@ -1417,6 +1435,9 @@ void nhflow_amr::pr_prec(int kr, int kz)
             for(const pact &A : pr_po[id])
             L.f[A.lq] = t[A.qq];
 
+            if(sy==0)
+            c->xz.solve(L,L.f,L.u);
+            else
             c->mg->vcycle(0,1,1);
 
             for(const pact &A : pr_pa[id])

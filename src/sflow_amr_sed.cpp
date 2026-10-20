@@ -114,7 +114,7 @@ double sflow_amr::sed_plin(slice &f, lexer *q, int ic, int jc, int ox, int oy)
     double sx=0.0, sy=0.0;
     if(fl(ic+1,jc) && fl(ic-1,jc))
     sx = mmod(f(ic+1,jc)-c,c-f(ic-1,jc));
-    if(fl(ic,jc+1) && fl(ic,jc-1))
+    if(oy!=0 && fl(ic,jc+1) && fl(ic,jc-1))
     sy = mmod(f(ic,jc+1)-c,c-f(ic,jc-1));
     return c + 0.25*ox*sx + 0.25*oy*sy;
 }
@@ -137,6 +137,23 @@ void sflow_amr::sed_patch_ini(ghostcell *pgc, sflow_amr_patch &c)
     }
 
     c.sed->ini_sflow(pp,b,pgc);
+
+    // the open faces of a block 1.. (G 54) are open for the sediment as the native in- and outflow: the cells beyond
+    // them carry the sediment flag (their bed load from the boundary ghost values, the face flux upwind)
+    if(c.blk>0 && c.lev==0)
+    for(int t=0; t<2; ++t)
+    if(bopen[t][c.blk]>=0)
+    {
+        const int ia = (t==0) ? pp->imin : EXT+c.nx;
+        const int ie = (t==0) ? EXT : pp->imin+pp->imax;
+        for(int ii=ia; ii<ie; ++ii)
+        for(int jj=EXT; jj<EXT+c.ny; ++jj)
+        {
+        const int q = (ii-pp->imin)*pp->jmax + (jj-pp->jmin);
+        c.sed->dfbed_open.push_back(q);
+        pp->DFBED[q] = 1;
+        }
+    }
 
     for(int ii=pp->imin; ii<pp->imin+pp->imax; ++ii)
     for(int jj=pp->jmin; jj<pp->jmin+pp->jmax; ++jj)
@@ -267,22 +284,22 @@ void sflow_amr::sed_bed_regrid(ghostcell *pgc, int l, vector<reefamr_patch*> &ol
                   {
                       gh G = grid(B.g);
                       for(int a=0; a<2; ++a)
-                      for(int d=0; d<2; ++d)
-                      v[2*a+d] = sed_plin(G.b->bed,G.q,B.ic,B.jc,a==0?-1:1,d==0?-1:1);
+                      for(int d=0; d<=sy; ++d)
+                      v[2*a+d] = sed_plin(G.b->bed,G.q,B.ic,B.jc,a==0?-1:1,(sy==0) ? 0 : (d==0?-1:1));
                       v[4] = G.b->bed(B.ic,B.jc);
                   },
                   [&](reefamr_patch *q, int id, int k, const double *v)
                   {
                       if(!q->fresh)
                       return;
-                      const int nby = q->ny/2;
-                      const int i0 = EXT+2*(k/nby), j0 = EXT+2*(k%nby);
+                      const int nby = q->ny>>sy;
+                      const int i0 = EXT+2*(k/nby), j0 = EY+ychild(k%nby);
                       double w[4];
                       cw4(q->pp,i0,j0,w);
                       const double sh = (q->pp->geo_curv==1) ? v[4] - (w[0]*v[0] + w[1]*v[2] + w[2]*v[1] + w[3]*v[3]) : 0.0;
                       fdm2D *b = SP(q)->b;
                       for(int a=0; a<2; ++a)
-                      for(int d=0; d<2; ++d)
+                      for(int d=0; d<=sy; ++d)
                       b->bed(i0+a,j0+d) = v[2*a+d] + sh;
                   });
 
@@ -339,9 +356,10 @@ void sflow_amr::sediment_step_sflow(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *
         pb->Q(ii,jj) = (pp->wet[lij(pp,ii,jj)]==1 && pp->wet[lij(pp,ii,jj+1)]==1) ? 0.5*(pb->V(ii,jj)+pb->V(ii,jj+1)) : 0.0;
     }
 
-    // the lags of the bend morphology (S 95 2, S 64, sediment_exner_lag.cpp): the relaxation of every grid holds the
-    // cells around it (filled from their sources) and its covered cells (the mean of their children)
-    const bool lag = (p->S95==2 || p->S64>0.0);
+    // the lags of the bend morphology (S 95 2, S 64, sediment_exner_lag.cpp) and the non-equilibrium bed load (S 33):
+    // the relaxation of every grid holds the cells around it (filled from their sources) and its covered cells (the
+    // mean of their children)
+    const bool lag = (p->S95==2 || p->S64>0.0 || p->S33>0);
     if(lag)
     {
         for(int g=-1; g<ng; ++g)
@@ -396,14 +414,14 @@ void sflow_amr::sediment_step_sflow(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *
                  [&](reefamr_patch *q, int id, int k, double *v)
                  {
                      sediment_f *sf = SP(q)->sed;
-                     const int nby = q->ny/2;
-                     const int i0 = EXT+2*(k/nby), j0 = EXT+2*(k%nby);
+                     const int nby = q->ny>>sy;
+                     const int i0 = EXT+2*(k/nby), j0 = EY+ychild(k%nby);
                      double w[4];
                      cw4(q->pp,i0,j0,w);
                      for(int n=0; n<sediment_exner::amr_nfield; ++n)
                      {
                      auto f = [&](int a, int b) { return sf->exner()->amr_field(sf->s,n,a,b); };
-                     v[n] = w[0]*f(i0,j0) + w[1]*f(i0+1,j0) + w[2]*f(i0,j0+1) + w[3]*f(i0+1,j0+1);
+                     v[n] = (sy==0) ? 0.5*(f(i0,j0) + f(i0+1,j0)) : w[0]*f(i0,j0) + w[1]*f(i0+1,j0) + w[2]*f(i0,j0+1) + w[3]*f(i0+1,j0+1);
                      }
                  },
                  [&](const reefamr_block &B, int key, const double *v)
@@ -462,7 +480,7 @@ void sflow_amr::sediment_step_sflow(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *
         double res = 0.0;
         for(pass=1; pass<=MAX(p->S49,1); ++pass)
         {
-            double d[2] = {0.0,0.0}, f[2] = {0.0,0.0};
+            double d[3] = {0.0,0.0,0.0}, f[3] = {0.0,0.0,0.0};
             s0->exner()->lag_refresh(p,pgc,s0->s,d,f);
             for(int id=0; id<ng; ++id)
             {
@@ -473,7 +491,7 @@ void sflow_amr::sediment_step_sflow(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *
             sync();
 
             res = 0.0;
-            for(int k=0; k<2; ++k)
+            for(int k=0; k<3; ++k)
             {
             d[k] = pgc->globalmax(d[k]);
             f[k] = pgc->globalmax(f[k]);
@@ -525,7 +543,7 @@ void sflow_amr::sediment_step_sflow(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *
     {
         sflow_amr_patch &c = *SP(id);
         const int il = EXT-1, ih = EXT+c.nx-1;
-        const int jl = EXT-1, jh = EXT+c.ny-1;
+        const int jl = EY-1, jh = EY+c.ny-1;
         slice4 &fx = *Fx[id+1], &fy = *Fy[id+1];
 
         c.sedrec[0].resize(c.ny);
@@ -535,8 +553,8 @@ void sflow_amr::sediment_step_sflow(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *
 
         for(int r=0; r<c.ny; ++r)
         {
-        c.sedrec[0][r] = fx(il,EXT+r);
-        c.sedrec[1][r] = fx(ih,EXT+r);
+        c.sedrec[0][r] = fx(il,EY+r);
+        c.sedrec[1][r] = fx(ih,EY+r);
         }
         for(int r=0; r<c.nx; ++r)
         {
@@ -554,7 +572,7 @@ void sflow_amr::sediment_step_sflow(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *
                 [&](reefamr_patch *q, int side, int r, double *sb)
                 {
                     sflow_amr_patch *c = SP(q);
-                    sb[0] = 0.5*(c->sedrec[side][r] + c->sedrec[side][r+1]);
+                    sb[0] = 0.5*(c->sedrec[side][r] + c->sedrec[side][r+fr1(side)]);
                 },
                 [&](int tgt, int idx, const double *v)
                 {
@@ -569,7 +587,7 @@ void sflow_amr::sediment_step_sflow(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *
         for(auto &m : match[t])
         {
             sflow_amr_patch &c = *SP(m.child);
-            double val = 0.5*(c.sedrec[m.side][m.r] + c.sedrec[m.side][m.r+1]);
+            double val = 0.5*(c.sedrec[m.side][m.r] + c.sedrec[m.side][m.r+fr1(m.side)]);
             if(m.sgn<0)
             val = -val;
             if(m.dir==0)
@@ -685,11 +703,11 @@ void sflow_amr::sediment_step_sflow(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *
              [&](reefamr_patch *q, int id, int k, double *v)
              {
                  slice4 &bz = SP(q)->sed->s->bedzh;
-                 const int nby = q->ny/2;
-                 const int i0 = EXT+2*(k/nby), j0 = EXT+2*(k%nby);
+                 const int nby = q->ny>>sy;
+                 const int i0 = EXT+2*(k/nby), j0 = EY+ychild(k%nby);
                  double w[4];
                  cw4(q->pp,i0,j0,w);
-                 v[0] = w[0]*bz(i0,j0) + w[1]*bz(i0+1,j0) + w[2]*bz(i0,j0+1) + w[3]*bz(i0+1,j0+1);
+                 v[0] = (sy==0) ? 0.5*(bz(i0,j0) + bz(i0+1,j0)) : w[0]*bz(i0,j0) + w[1]*bz(i0+1,j0) + w[2]*bz(i0,j0+1) + w[3]*bz(i0+1,j0+1);
              },
              [&](const reefamr_block &B, int key, const double *v)
              {

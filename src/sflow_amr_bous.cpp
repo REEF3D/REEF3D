@@ -117,9 +117,9 @@ void sflow_amr::bq_setup()
             continue;
 
             int I = (g<0) ? ii+O0i : ii-EXT+P[g]->I0;
-            int J = (g<0) ? jj+O0j : jj-EXT+P[g]->J0;
+            int J = (g<0) ? jj+O0j : jj-EY+P[g]->J0;
 
-            (*G.act)[c] = (l<wtop() && covered(l+1,2*I,2*J)) ? -1 : 1;
+            (*G.act)[c] = (l<wtop() && covered(l+1,2*I,ychild(J))) ? -1 : 1;
         }
 
         bqgrid &B = (*bqc)[g+1];
@@ -151,7 +151,7 @@ void sflow_amr::bq_setup()
 
     setup(-1,0,NX0-1,0,NY0-1,0);
     for(int n=0; n<(int)P.size(); ++n)
-    setup(n,EXT,EXT+P[n]->nx-1,EXT,EXT+P[n]->ny-1,P[n]->lev);
+    setup(n,EXT,EXT+P[n]->nx-1,EY,EY+P[n]->ny-1,P[n]->lev);
 }
 
 // the cells that the rows reach: covered cells (restriction), partition halo of level 0,
@@ -564,16 +564,17 @@ void sflow_amr::cq_sync(int k)
              [&](reefamr_patch *q, int n, int kk, double *v)
              {
                  sflow_amr_patch *c = SP(q);
-                 const int nby = c->ny/2;
-                 const int i0 = EXT+2*(kk/nby), j0 = EXT+2*(kk%nby);
+                 const int nby = c->ny>>sy;
+                 const int i0 = EXT+2*(kk/nby), j0 = EY+ychild(kk%nby);
                  v[0] = v[1] = 0.0;
+                 const double wc = (sy==0) ? 0.5 : 0.25;      // (2D grid: the 2x1 children)
                  for(int a=0; a<2; ++a)
-                 for(int d=0; d<2; ++d)
+                 for(int d=0; d<=sy; ++d)
                  {
                      double vx,vy;
                      vec(n,i0+a,j0+d,vx,vy);
-                     v[0] += 0.25*vx;
-                     v[1] += 0.25*vy;
+                     v[0] += wc*vx;
+                     v[1] += wc*vy;
                  }
              },
              [&](const reefamr_block &B, int key, const double *v) { put(B.g,B.ic,B.jc,v[0],v[1]); });

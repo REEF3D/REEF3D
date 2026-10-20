@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include<mpi.h>
 #include<sys/stat.h>
+#include<unistd.h>
 #include<cstdio>
 #include<cstring>
 #include<algorithm>
@@ -80,10 +81,13 @@ bool reefckpt_open(ofstream &o, const char *name, int I45)
 
 // ------------------------------------------------------------------------------------------- write
 
-void reefckpt::write_open(lexer *pp, int count)
+void reefckpt::write_open(lexer *pp, int count, int sub)
 {
     p = pp;
     char nm[64];
+    if(sub>0)
+    snprintf(nm,sizeof(nm),"./REEF3D_Checkpoint/%08i_%06i",count,sub);
+    else
     snprintf(nm,sizeof(nm),"./REEF3D_Checkpoint/%08i",count);
     dirname = nm;
     sc.clear();
@@ -180,6 +184,14 @@ void reefckpt::write_close(lexer *pp)
         rename("./REEF3D_Checkpoint/latest.tmp","./REEF3D_Checkpoint/latest");
     }
     MPI_Barrier(MPI_COMM_WORLD);
+}
+
+void reefckpt::remove_folder(const string &dir, int np)
+{
+    for(int r=0; r<np; ++r)
+    remove(piece_name(dir,r).c_str());
+    remove((dir+"/main.dat").c_str());
+    rmdir(dir.c_str());
 }
 
 // -------------------------------------------------------------------------------------------- read

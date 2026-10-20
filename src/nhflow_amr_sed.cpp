@@ -197,14 +197,14 @@ void nhflow_amr::sediment_step_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, iofl
              [&](reefamr_patch *q, int id, int k, double *v)
              {
                  sediment_f *sf = NP(q)->sed;
-                 const int nby = q->ny/2;
-                 const int i0 = EXT+2*(k/nby), j0 = EXT+2*(k%nby);
+                 const int nby = q->ny>>sy;
+                 const int i0 = EXT+2*(k/nby), j0 = EY+ychild(k%nby);
                  double w[4];
                  cw4(q->pp,i0,j0,w);
                  for(int n=0; n<sediment_exner::amr_nfield; ++n)
                  {
                  auto f = [&](int a, int b) { return sf->exner()->amr_field(sf->s,n,a,b); };
-                 v[n] = w[0]*f(i0,j0) + w[1]*f(i0+1,j0) + w[2]*f(i0,j0+1) + w[3]*f(i0+1,j0+1);
+                 v[n] = (sy==0 ? w[0]*f(i0,j0)+w[1]*f(i0+1,j0) : w[0]*f(i0,j0) + w[1]*f(i0+1,j0) + w[2]*f(i0,j0+1) + w[3]*f(i0+1,j0+1));
                  }
              },
              [&](const reefamr_block &B, int key, const double *v)
@@ -292,7 +292,7 @@ void nhflow_amr::sediment_step_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, iofl
     {
         nhflow_amr_patch &c = *NP(id);
         const int il = EXT-1, ih = EXT+c.nx-1;
-        const int jl = EXT-1, jh = EXT+c.ny-1;
+        const int jl = EY-1, jh = EY+c.ny-1;
         slice4 &fx = *Fx[id+1], &fy = *Fy[id+1];
 
         c.sedrec[0].resize(c.ny);
@@ -302,8 +302,8 @@ void nhflow_amr::sediment_step_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, iofl
 
         for(int r=0; r<c.ny; ++r)
         {
-        c.sedrec[0][r] = fx(il,EXT+r);
-        c.sedrec[1][r] = fx(ih,EXT+r);
+        c.sedrec[0][r] = fx(il,EY+r);
+        c.sedrec[1][r] = fx(ih,EY+r);
         }
         for(int r=0; r<c.nx; ++r)
         {
@@ -321,7 +321,7 @@ void nhflow_amr::sediment_step_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, iofl
                 [&](reefamr_patch *q, int side, int r, double *sb)
                 {
                     nhflow_amr_patch *c = NP(q);
-                    sb[0] = 0.5*(c->sedrec[side][r] + c->sedrec[side][r+1]);
+                    sb[0] = 0.5*(c->sedrec[side][r] + c->sedrec[side][r+fr1(side)]);
                 },
                 [&](int tgt, int idx, const double *v)
                 {
@@ -336,7 +336,7 @@ void nhflow_amr::sediment_step_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, iofl
         for(auto &m : match[t])
         {
             nhflow_amr_patch &c = *NP(m.child);
-            double val = 0.5*(c.sedrec[m.side][m.r] + c.sedrec[m.side][m.r+1]);
+            double val = 0.5*(c.sedrec[m.side][m.r] + c.sedrec[m.side][m.r+fr1(m.side)]);
             if(m.sgn<0)
             val = -val;
             if(m.dir==0)
@@ -457,11 +457,11 @@ void nhflow_amr::sediment_step_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, iofl
              [&](reefamr_patch *q, int id, int k, double *v)
              {
                  slice4 &b = NP(q)->sed->s->bedzh;
-                 const int nby = q->ny/2;
-                 const int i0 = EXT+2*(k/nby), j0 = EXT+2*(k%nby);
+                 const int nby = q->ny>>sy;
+                 const int i0 = EXT+2*(k/nby), j0 = EY+ychild(k%nby);
                  double w[4];
                  cw4(q->pp,i0,j0,w);
-                 v[0] = w[0]*b(i0,j0) + w[1]*b(i0+1,j0) + w[2]*b(i0,j0+1) + w[3]*b(i0+1,j0+1);
+                 v[0] = (sy==0 ? w[0]*b(i0,j0)+w[1]*b(i0+1,j0) : w[0]*b(i0,j0) + w[1]*b(i0+1,j0) + w[2]*b(i0,j0+1) + w[3]*b(i0+1,j0+1));
              },
              [&](const reefamr_block &B, int key, const double *v)
              {

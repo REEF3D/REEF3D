@@ -35,6 +35,7 @@ Architect: Hans Bihs
 #include"sliceint4.h"
 #include"lexer.h"
 #include"ghostcell.h"
+#include"reefckpt.h"
 #include<algorithm>
 #include<atomic>
 #include<cmath>
@@ -196,7 +197,7 @@ void seastate_amr::ini(lexer *p, ghostcell *pgc, const level0 &l0)
     cout<<(l==1 ? " (" : ", ")<<"level "<<l<<": "<<nlevg[l];
     cout<<(maxlev>0 ? ")" : "")<<endl;
 
-    logout.open("./REEF3D_SEASTATE_AMR/REEF3D_SEASTATE_AMR_log.dat");
+    if(reefckpt_open(logout,"./REEF3D_SEASTATE_AMR/REEF3D_SEASTATE_AMR_log.dat",p->I45))
     logout<<"# count \t simtime \t patches \t refined cells \t active leaf cells \t iterations \t time sweeps level 0 [s] \t time patches [s] \t time fills [s] \t time restriction [s]"<<endl;
     }
 
@@ -267,6 +268,8 @@ void seastate_amr::patch_delete(reefamr_patch *q)
     delete c->dC;
     delete c->dE;
     delete c->vN;
+    delete c->wk;
+    c->wk = nullptr;
     delete c->res;
     c->res = nullptr;
     c->pobs = nullptr;
@@ -2658,7 +2661,7 @@ void seastate_amr::convergence(lexer *p, int iteration, double change, double pe
 
     if(!convout.is_open())
     {
-    convout.open("./REEF3D_SEASTATE_AMR/REEF3D_SEASTATE_AMR_convergence.dat");
+    if(reefckpt_open(convout,"./REEF3D_SEASTATE_AMR/REEF3D_SEASTATE_AMR_convergence.dat",p->I45))
     convout<<"# count \t iteration \t max. relative change of Hs \t percentage of the leaf cell area within A 708"<<endl;
     }
 
@@ -2685,6 +2688,55 @@ void seastate_amr::log(lexer *p, ghostcell *pgc, int iterations)
     if(p->mpirank==0 && logout.is_open())
     logout<<p->count<<" \t "<<setprecision(10)<<p->simtime<<" \t "<<patches_total<<" \t "<<cells_total<<" \t "<<long(act)<<" \t "<<iterations
           <<" \t "<<setprecision(5)<<t[0]<<" \t "<<t[1]<<" \t "<<t[2]<<" \t "<<t[3]<<endl;
+}
+
+// --------------------------------------------------------------------- Phase 18: checkpoints, measured work
+seastate_amr::gview seastate_amr::patch_view(int id)
+{
+    seastate_amr_patch *c = SP(id);
+    return gview{c->lev,c->I0,c->I1,c->J0,c->J1,c->nx,c->ny,EXT,EY,c->pp,c->e,c->solv,c->cov};
+}
+
+void seastate_amr::restored(lexer *p, ghostcell *pgc, const std::function<void()> &again)
+{
+    restrict_all();
+    again();
+    halo0(p,pgc);
+    for(int l=1; l<=maxlev; ++l)
+    fill_level(l);
+}
+
+void seastate_amr::work_fields()
+{
+    for(auto q : P)
+    {
+    seastate_amr_patch *c = SP(q);
+    if(c->wk==nullptr)
+    c->wk = new slice4(c->pp);
+    std::fill(c->wk->V,c->wk->V+size_t(c->pp->imax)*c->pp->jmax,0.0);
+    c->solv->work_field(c->wk);
+    }
+}
+
+void seastate_amr::work_columns(lexer *p, vector<double> &col, bool reset)
+{
+    col.resize(size_t(p->knox)*p->knoy,0.0);
+
+    for(auto q : P)
+    {
+    seastate_amr_patch *c = SP(q);
+    if(c->wk==nullptr)
+    continue;
+        for(int ii=EXT; ii<EXT+c->nx; ++ii)
+        for(int jj=EY; jj<EY+c->ny; ++jj)
+        {
+        const int i0 = fsh(ii-EXT+c->I0,c->lev) - p->origin_i, j0 = fsh(jj-EY+c->J0,c->lev) - p->origin_j;
+        if(i0>=0 && i0<p->knox && j0>=0 && j0<p->knoy)
+        col[size_t(i0)*p->knoy+j0] += (*c->wk)(ii,jj);
+        if(reset)
+        (*c->wk)(ii,jj) = 0.0;
+        }
+    }
 }
 
 // ASCII VTR per patch (interior cells, cell data), a .vtm per print with all patches of all ranks

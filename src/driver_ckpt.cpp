@@ -30,8 +30,8 @@ Author: Hans Bihs
 //  with those of the model; the resolved bodies of FNPF the same way (fnpf_6DOF_ckpt.cpp), their grids
 //  on the patches of the mesh refinement with the patches.  REEF3D::CORAL (Z 40): its state as a blob
 //  (coral_reef3d::ckpt_state), set into the model after its set-up (coral_ini).
-//  Not there yet (refused with a message): 6DOF wavemaker objects, nets, power take-off; sediment, DEM,
-//  FEM structures, SEASTATE; NHFLOW with Lagrangian particles, membranes; CFD with FSI.
+//  Not there yet (refused with a message): 6DOF wavemaker objects, nets; sediment, DEM, FEM structures,
+//  SEASTATE; NHFLOW with Lagrangian particles, membranes; CFD with FSI.
 
 #include"driver.h"
 #include"lexer.h"
@@ -64,13 +64,12 @@ string driver::ckpt_unsupported()
     if(p->A10!=3 && p->A10!=5 && p->A10!=6)
     return "checkpoints are there for SFLOW, FNPF, NHFLOW and CFD only";
     // 6DOF: rigid bodies (free, towed; NHFLOW also the ship-wave pressure patch; FNPF the resolved
-    // bodies with their grids) with all moorings, motion files and the ship load models
+    // bodies with their grids) with all moorings, motion files, the ship load models and the power
+    // take-off
     if(p->X10==4)
     return "6DOF wavemaker objects (X 10 4) are not in the checkpoints yet";
     if(p->X10>0 && p->X320>0)
     return "nets (X 320) are not in the checkpoints yet";
-    if(p->X10>0 && p->X500>0)
-    return "the 6DOF power take-off (X 500) is not in the checkpoints yet";
     if(p->A10==6)
     {
         if(p->S10>0) return "CFD sediment is not in the checkpoints yet";
