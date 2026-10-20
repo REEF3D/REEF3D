@@ -26,6 +26,8 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 #include"slice.h"
+#include<fstream>
+#include<sstream>
 
 ioflow_amr_block::ioflow_amr_block(lexer *p, ghostcell *pgc, patchBC_interface *ppBC) : ioflow_v(p,pgc,ppBC)
 {
@@ -33,6 +35,98 @@ ioflow_amr_block::ioflow_amr_block(lexer *p, ghostcell *pgc, patchBC_interface *
 
 ioflow_amr_block::~ioflow_amr_block()
 {
+}
+
+// the open faces of the G 54 lines nin (-i face) and nout (+i face), -1 none
+void ioflow_amr_block::open_faces(lexer *p, int nin, int nout)
+{
+    if(nin>=0)
+    {
+        in = 1;
+        Q = p->G54_v[nin];
+        if(p->G54_t[nin]==3)
+        {
+            series_read(series_file(3,int(p->G54_v[nin])),sq_t,sq_v);
+            Q = series_value(sq_t,sq_v,p->simtime);
+        }
+    }
+
+    if(nout>=0)
+    {
+        out = 1;
+        wsf = p->G54_v[nout];
+        if(p->G54_t[nout]==4)
+        {
+            series_read(series_file(4,int(p->G54_v[nout])),sw_t,sw_v);
+            wsf = series_value(sw_t,sw_v,p->simtime);
+        }
+        p->F62 = wsf;
+    }
+}
+
+// G 54 type 3: discharge-<id>.dat, type 4: waterlevel-<id>.dat
+std::string ioflow_amr_block::series_file(int t, int id)
+{
+    return std::string(t==3 ? "discharge-" : "waterlevel-")+std::to_string(id)+".dat";
+}
+
+// lines "t value" ('#' comments, other lines without two numbers are skipped), times increasing; false: no
+// file, no value or the times not increasing
+bool ioflow_amr_block::series_read(const std::string &name, std::vector<double> &t, std::vector<double> &v)
+{
+    t.clear();
+    v.clear();
+    std::ifstream f(name.c_str());
+    if(!f)
+    return false;
+
+    std::string line;
+    while(std::getline(f,line))
+    {
+        const size_t c = line.find('#');
+        if(c!=std::string::npos)
+        line.erase(c);
+        std::istringstream ss(line);
+        double a,b;
+        if(!(ss>>a>>b))
+        continue;
+        if(!t.empty() && a<=t.back())
+        return false;
+        t.push_back(a);
+        v.push_back(b);
+    }
+    return !t.empty();
+}
+
+// linear in time, the first and the last value held beyond the ends
+double ioflow_amr_block::series_value(const std::vector<double> &t, const std::vector<double> &v, double time)
+{
+    if(time<=t.front())
+    return v.front();
+    if(time>=t.back())
+    return v.back();
+
+    size_t a=0, b=t.size()-1;
+    while(b-a>1)
+    {
+        const size_t m = (a+b)/2;
+        if(t[m]<=time)
+        a = m;
+        else
+        b = m;
+    }
+    const double w = (time-t[a])/(t[b]-t[a]);
+    return v[a] + w*(v[b]-v[a]);
+}
+
+// the values of the time series at the time of the step (the start of the step)
+void ioflow_amr_block::series_update(lexer *p)
+{
+    if(!sq_t.empty())
+    Q = series_value(sq_t,sq_v,p->simtime);
+
+    if(!sw_t.empty())
+    wsf = p->F62 = series_value(sw_t,sw_v,p->simtime);
 }
 
 // water level at the +i face: F 64 ramps it from F 60 over the first steps (as ioflow_f with F 62)
@@ -54,6 +148,8 @@ double ioflow_amr_block::level(lexer *p) const
 // as ioflow_f::Qin2D / Qout2D (B 60 1) over the cells of the open faces of the block
 void ioflow_amr_block::discharge2D(lexer *p, fdm2D *b, ghostcell *pgc)
 {
+    series_update(p);
+
     if(in==0)
     return;
 
@@ -160,6 +256,8 @@ void ioflow_amr_block::qin_nhflow(lexer *p, fdm_nhf *d, double &A, double &Qi)
 // as ioflow_f::discharge_nhflow (B 60 1): Ui from the inflow area, Uo the mean outflow velocity (start4V outflow 2)
 void ioflow_amr_block::discharge_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
+    series_update(p);
+
     if(in==1)
     {
     double Qi;

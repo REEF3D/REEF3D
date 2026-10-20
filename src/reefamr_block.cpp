@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"ghostcell.h"
 #include"geo_mesh.h"
+#include"ioflow_amr_block.h"
 #include<algorithm>
 #include<numeric>
 
@@ -513,7 +514,8 @@ void reefamr::blocks_setup(lexer *p, ghostcell *pgc)
 
 // tile maps and no-refinement cells over the index space with the blocks; the singular vertices; the
 // open faces of the blocks 1.. (G 54 b t v): t 1 discharge v through the -i face of block b, t 2 water level v at
-// its +i face; the face has no interface, one line per face
+// its +i face, t 3 and 4 the same from the time series file discharge-<v>.dat or waterlevel-<v>.dat (lines
+// "t value", ioflow_amr_block); the face has no interface, one line per face
 void reefamr::blocks_open(lexer *p)
 {
     bopen[0].assign(nblk,-1);
@@ -522,31 +524,51 @@ void reefamr::blocks_open(lexer *p)
     for(int n=0; n<p->G54; ++n)
     {
         const int b = p->G54_b[n], t = p->G54_t[n];
+        const int f = (t==1 || t==3) ? 0 : 1;
         const char *why = nullptr;
+        string file;
         if(b<1 || b>=nblk)
         why = "no block 1.. of the grid";
         else
-        if(t!=1 && t!=2)
-        why = "type 1 (discharge in, -i face) or 2 (water level out, +i face)";
+        if(t<1 || t>4)
+        why = "type 1 (discharge in, -i face), 2 (water level out, +i face), 3 (discharge time series in) or 4 (water level time series out)";
         else
-        if(bopen[t-1][b]>=0)
+        if(bopen[f][b]>=0)
         why = "the face is open already";
         else
         for(const rseg &S : blk[b].seg)
-        if(S.face==t-1)
+        if(S.face==f)
         why = "the face has an interface";
+
+        // time series: every rank reads the file (the block's rank uses it)
+        vector<double> st, sv;
+        if(why==nullptr && t>=3)
+        {
+            file = ioflow_amr_block::series_file(t,int(p->G54_v[n]));
+            if(p->G54_v[n]<0.0 || p->G54_v[n]!=double(int(p->G54_v[n])))
+            why = "the id of the time series file is a whole number >= 0";
+            else
+            if(!ioflow_amr_block::series_read(file,st,sv))
+            why = "the time series file is missing, has no line \"t value\" or its times do not increase";
+        }
 
         if(why!=nullptr)
         {
             if(p->mpirank==0)
-            cout<<"!!! "<<par.name<<": G 54 "<<b<<" "<<t<<" "<<p->G54_v[n]<<": "<<why<<" !!!"<<endl;
+            cout<<"!!! "<<par.name<<": G 54 "<<b<<" "<<t<<" "<<p->G54_v[n]<<(file.empty() ? "" : " ("+file+")")<<": "<<why<<" !!!"<<endl;
             ++bad;
             continue;
         }
-        bopen[t-1][b] = n;
+        bopen[f][b] = n;
         if(p->mpirank==0)
-        cout<<par.name<<": block "<<b<<(t==1?" inflow ":" outflow ")<<(t==1?"Q = ":"water level ")<<p->G54_v[n]
-            <<(t==1?" m3/s through its -i face":" m at its +i face")<<endl;
+        {
+            cout<<par.name<<": block "<<b<<(f==0?" inflow ":" outflow ");
+            if(t<=2)
+            cout<<(f==0?"Q = ":"water level ")<<p->G54_v[n]<<(f==0?" m3/s":" m");
+            else
+            cout<<(f==0?"Q":"water level")<<" from "<<file<<" ("<<st.size()<<" values, t "<<st.front()<<" .. "<<st.back()<<" s)";
+            cout<<(f==0?" through its -i face":" at its +i face")<<endl;
+        }
     }
     if(bad>0)
     exit(1);

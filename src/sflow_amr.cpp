@@ -395,16 +395,7 @@ void sflow_amr::patch_objects(reefamr_patch *q, ghostcell *pgc)
     {
         c->pio = new ioflow_amr_block(pp,pgc,pBC);
         pp->amr_own_io = 1;
-        if(bopen[0][c->blk]>=0)
-        {
-            c->pio->in = 1;
-            c->pio->Q = p->G54_v[bopen[0][c->blk]];
-        }
-        if(bopen[1][c->blk]>=0)
-        {
-            c->pio->out = 1;
-            c->pio->wsf = pp->F62 = p->G54_v[bopen[1][c->blk]];
-        }
+        c->pio->open_faces(pp,bopen[0][c->blk],bopen[1][c->blk]);
         c->phll->open_io();
     }
 

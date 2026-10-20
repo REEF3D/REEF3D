@@ -752,16 +752,7 @@ void nhflow_amr::patch_objects(reefamr_patch *q, ghostcell *pgc)
     {
         c->pio = new ioflow_amr_block(pp,pgc,pBCv);
         pp->amr_own_io = 1;
-        if(oin>=0)
-        {
-            c->pio->in = 1;
-            c->pio->Q = p0->G54_v[oin];
-        }
-        if(oout>=0)
-        {
-            c->pio->out = 1;
-            c->pio->wsf = pp->F62 = p0->G54_v[oout];
-        }
+        c->pio->open_faces(pp,oin,oout);
         c->pflow = c->pio;
     }
     // the floating bodies on the patch grid (all calls do nothing without bodies)
