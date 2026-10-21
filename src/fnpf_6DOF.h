@@ -174,6 +174,12 @@ private:
     // several bodies (X 20): cross added mass A_ij (load on body i from the unit modes of body j),
     // refreshed with the unit-mode solves at the first stage, used in the coupled solve of motion()
     std::vector<Eigen::Matrix<double,6,6>> Across;
+
+    // X 28: the added mass (unit-mode solves, cross terms) every X 28 steps, earlier when a body has
+    // moved by more than X 29 since (am_due); the step and the poses of the last one
+    bool am_due(lexer*, int);
+    int am_count = -1;
+    std::vector<Eigen::Vector3d> am_c, am_ang;
     void motion_coupled(lexer*, fdm_fnpf*, ghostcell*, int, bool);
     int gcval;
     double *psi0;

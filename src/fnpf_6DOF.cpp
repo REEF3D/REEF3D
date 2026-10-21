@@ -77,6 +77,14 @@ fnpf_6DOF::fnpf_6DOF(lexer *p, fdm_fnpf *c, ghostcell *pgc) : initialized(false)
     if(p->mpirank==0 && nbody>1)
     cout<<"6DOF FNPF: "<<nbody<<" bodies, coupled added mass, psi_0 = phi_t (m-terms neglected)"<<endl;
 
+    if(p->mpirank==0 && p->X28>1)
+    {
+    cout<<"6DOF FNPF: the added mass every "<<p->X28<<" time steps (X 28)";
+    if(p->X29_d>0.0 || p->X29_a>0.0)
+    cout<<", earlier after a motion by more than "<<p->X29_d<<" m or "<<p->X29_a<<" deg (X 29)";
+    cout<<endl;
+    }
+
     gcval = (p->j_dir==0) ? 150 : 250;
     
     const int size = p->imax*p->jmax*(p->kmax+2);
@@ -332,6 +340,43 @@ fnpf_6DOF::~fnpf_6DOF()
     free_grid(G);
 }
 
+// X 28: the added mass (the unit-mode psi solves of the free DOFs, with several bodies the cross terms)
+// at the first stage of the first step and of every X 28-th step after the last one; in between the
+// bodies keep the last one (the loads of psi_0 are new at every stage). X 29: also as soon as a body
+// has moved by more than X29_d [m] or turned by more than X29_a [deg] since. The same decision on all
+// ranks: the poses are those of the body kernel, identical on every rank
+bool fnpf_6DOF::am_due(lexer *p, int iter)
+{
+    if(iter!=0)
+    return false;
+
+    bool due = (p->X28<=1 || am_count<0 || (int)am_c.size()!=nbody || p->count-am_count>=p->X28);
+
+    if(!due && (p->X29_d>0.0 || p->X29_a>0.0))
+    for(int nb=0; nb<nbody; ++nb)
+    {
+        if(p->X29_d>0.0 && (fb_obj[nb]->fnpf_cog()-am_c[nb]).norm()>p->X29_d)
+        due = true;
+
+        if(p->X29_a>0.0 && (fb_obj[nb]->fnpf_angles()-am_ang[nb]).cwiseAbs().maxCoeff()*(180.0/PI)>p->X29_a)
+        due = true;
+    }
+
+    if(due)
+    {
+        am_count = p->count;
+        am_c.resize(nbody);
+        am_ang.resize(nbody);
+        for(int nb=0; nb<nbody; ++nb)
+        {
+            am_c[nb] = fb_obj[nb]->fnpf_cog();
+            am_ang[nb] = fb_obj[nb]->fnpf_angles();
+        }
+    }
+
+    return due;
+}
+
 void fnpf_6DOF::ini(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
     if(nbody>1 && amr_sub())
@@ -376,10 +421,10 @@ void fnpf_6DOF::forces(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, fnp
     
     solve_psi(p,c,pgc,psolv,plap,pf,psi0,psiD);
     
-    // added mass: unit-mode solves of the free DOFs, once per time step (the rows and columns
-    // of fixed or prescribed DOFs are not used in the motion); with several bodies the modes of
-    // body nb also give its cross added mass on all other bodies
-    const bool refresh = (iter==0);
+    // added mass: unit-mode solves of the free DOFs, once per time step, with X 28 every X 28 steps
+    // (am_due; the rows and columns of fixed or prescribed DOFs are not used in the motion); with
+    // several bodies the modes of body nb also give its cross added mass on all other bodies
+    const bool refresh = am_due(p,iter);
     
     if(refresh && nbody>1)
     for(auto &A : Across)
@@ -1199,10 +1244,11 @@ void fnpf_6DOF::forces_amr(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv,
     face(-2,-1);
     solve_psi_amr(p,c,pgc,psolv,pf,-1,true);
     
-    // added mass: unit-mode solves of the free DOFs, once per time step (rows and columns of
-    // fixed or prescribed DOFs are not used in the motion); with several bodies the modes of
-    // body nb also give its cross added mass on all other bodies (one patch per body, G 12)
-    const bool refresh = (iter==0);
+    // added mass: unit-mode solves of the free DOFs, once per time step, with X 28 every X 28 steps
+    // (am_due; rows and columns of fixed or prescribed DOFs are not used in the motion); with several
+    // bodies the modes of body nb also give its cross added mass on all other bodies (one patch per
+    // body, G 12)
+    const bool refresh = am_due(p,iter);
     
     if(refresh && nbody>1)
     for(auto &A : Across)
