@@ -1,0 +1,19 @@
+{
+ "base": "cfd_2d_sediment_flume_susp",
+ "np": 1,
+ "steps": 200,
+ "ctrl_set": {
+  "P 48": "50",
+  "P 49": "0"
+ },
+ "description": "cfd_2d_sediment_flume_susp with a checkpoint every 50 steps, all kept (P 48 50, P 49 0): the uninterrupted run of cfd_2d_sediment_flume_susp_restart.",
+ "tags": [
+  "2d",
+  "cfd",
+  "sediment",
+  "checkpoint"
+ ],
+ "covers": [
+  "sediment_f::ckpt_state (CFD)"
+ ]
+}

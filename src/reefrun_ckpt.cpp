@@ -176,6 +176,10 @@ void run_scalars(lexer *p, F &&f)
     f("phimean",p->phimean); f("phiout",p->phiout); f("phiin",p->phiin);
     // the pressure reference of the last step (B 30; the loads of the 6DOF bodies take it off)
     f("pressgage",p->pressgage);
+    // sediment (S 10): the sediment time and step (S 19, S 29, outputs), the morphological times (S 42),
+    // the bed range and the slide cells of the log
+    f("sedtime",p->sedtime); f("dtsed",p->dtsed); f("sedsimtime",p->sedsimtime); f("sedwavetime",p->sedwavetime);
+    f("bedmin",p->bedmin); f("bedmax",p->bedmax); f("slidecells",p->slidecells);
 }
 }
 
@@ -282,6 +286,7 @@ void reefrun_ckpt::write()
     ck.scalar("rebal_n",double(rebal_n));
     ck.scalar("printcount",double(p->printcount));
     ck.scalar("printcount_sixdof",double(p->printcount_sixdof));
+    ck.scalar("sediter",double(p->sediter));
     run_scalars(p,[&](const char *n, double &v){ ck.scalar(n,v); });
 
     vector<double> pv;
@@ -351,6 +356,7 @@ void reefrun_ckpt::read()
     p->count_statestart = p->count;
     p->printcount = int(ck.get_scalar("printcount"));
     p->printcount_sixdof = int(ck.get_scalar("printcount_sixdof"));
+    p->sediter = int(ck.get_scalar("sediter",p->sediter));
     run_scalars(p,[&](const char *n, double &v){ v = ck.get_scalar(n,v); });
     if(h.printer_restore)
     h.printer_restore(ck.get_blob("printer"));

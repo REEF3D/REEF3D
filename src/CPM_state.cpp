@@ -20,6 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#include"reefckpt.h"
 #include"CPM.h"
 #include"lexer.h"
 #include"ghostcell.h"
@@ -280,7 +281,8 @@ void CPM::sedlog(lexer *p, ghostcell *pgc)
         if(logini==0)
         {
             mkdir("./REEF3D_CFD_CPM_Particle",0777);
-            logout.open("./REEF3D_CFD_CPM_Particle/REEF3D-CFD-CPM-Log.dat");
+            // a restart (I 45): continued from the checkpoint
+            if(reefckpt_open(logout,"./REEF3D_CFD_CPM_Particle/REEF3D-CFD-CPM-Log.dat",p->I45))
             logout<<"time\tparcels\tsediment_volume[m3]\toutflow_volume[m3]\tmoving_volume[m3]\tqx[m2/s]\tqy[m2/s]\tbedload_volume[m3]\tpickups\tdeposits\treleases\ttau_b[Pa]\tqx_bedload[m2/s]\tsuspended_volume[m3]\tsettled_from_suspension"<<endl;
             logini=1;
         }

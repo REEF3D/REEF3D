@@ -34,6 +34,7 @@ enum
 
 #include"increment.h"
 #include<vector>
+#include<functional>
 
 class lexer;
 class ghostcell;
@@ -61,6 +62,14 @@ public:
     void xchange_fill_flag(lexer*, ghostcell*,int);
     void xchange_fillback_flag(lexer*, ghostcell*,slice&,int);
     void xchange_resize(lexer*, ghostcell*, int);
+
+    // checkpoints (P 48, I 45): the parcel slots of the rank as they are (with the free-slot stack, so the
+    // order of the slots and of the sums over them stays); ckpt_set: the parcels of another decomposition
+    void ckpt_state(std::vector<double>&) const;
+    bool ckpt_restore(lexer*, const std::vector<double>&, size_t&);
+    // the parcels (not empty) of a stored part whose position the test keeps, appended to the slots
+    static void ckpt_parcels(const std::vector<double>&, size_t&, const std::function<bool(double,double,double)>&, std::vector<std::vector<double>>&);
+    void ckpt_set(lexer*, const std::vector<std::vector<double>>&);
 
     // data arrays
     double *U,*V,*W;

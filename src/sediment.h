@@ -50,6 +50,18 @@ using namespace std;
 class sediment
 {
 public:
+    virtual ~sediment() = default;
+
+    // checkpoints (P 48, I 45): the scalars of the sediment objects (the same on all ranks, ckpt_state) and of
+    // the rank (ckpt_rank_state: on the same decomposition, or redistributed by the model, CPM), the slices of
+    // the rank NHFLOW does not have in its lists (ckpt_wln); the fields and slices are those of the grid's
+    // registry (ckpt_registry.h)
+    virtual void ckpt_state(lexer*, std::vector<double>&) {}
+    virtual bool ckpt_restore(lexer*, ghostcell*, const std::vector<double>&) {return true;}
+    virtual void ckpt_rank_state(lexer*, std::vector<double>&) {}
+    virtual bool ckpt_rank_restore(lexer*, ghostcell*, const std::vector<std::vector<double>>&, bool) {return true;}
+    virtual double* ckpt_wln() {return nullptr;}
+
 
 	virtual void start_cfd(lexer*, fdm*, ghostcell*, ioflow*, reinitopo*, solver*)=0;
     virtual void ini_cfd(lexer*,fdm*,ghostcell*)=0;

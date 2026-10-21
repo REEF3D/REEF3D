@@ -101,6 +101,11 @@ public:
     void sedlog(lexer*, ghostcell*);
     void ini_fields(lexer*, fdm*, ghostcell*, sediment_fdm*);
     void set_turbulence(turbulence *pt){pturb_=pt;}   // before ini_fields: the k term of the layer (Q 68 1) from the first step on
+
+    // checkpoints (P 48, I 45): the scalars, the random generator and the parcels of the rank (the fields and
+    // slices are in the registry of the grid); another decomposition: the parcels of all pieces by position
+    void ckpt_rank_state(lexer*, std::vector<double>&);
+    bool ckpt_rank_restore(lexer*, ghostcell*, const std::vector<std::vector<double>>&, bool);
     
     // print
     void print_particles(lexer*,sediment_fdm*);

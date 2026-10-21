@@ -74,6 +74,8 @@ void sediment_part::ini_cfd(lexer *p, fdm *a, ghostcell *pgc)
     // shear stress of the start (and of the first bed file after a restart) was without the k term
     pst->set_turbulence(pturb);
     pst->ini_fields(p,a,pgc,s);
+    // a restart (I 45): the particle files continue from the checkpoint
+    if(p->I45!=1)
     pst->print_particles(p,s);
     
     // S 10 2 two-way (Q 50 1): the bed is no solid for the fluid, the fluid flows through

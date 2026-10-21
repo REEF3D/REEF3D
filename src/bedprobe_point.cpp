@@ -20,6 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#include"reefckpt.h"
 #include"bedprobe_point.h"
 #include"lexer.h"
 #include"sediment_fdm.h"
@@ -47,15 +48,11 @@ bedprobe_point::bedprobe_point(lexer *p, ghostcell *pgc, sediment_fdm *s)
     if(p->mpirank==0 && p->P121>0)
     {
     // open file
-    if(p->A10==2)
-	wsfout.open("./REEF3D_SFLOW_Sediment/REEF3D-SFLOW-Sediment-Point.dat");
-    
-    if(p->A10==5)
-	wsfout.open("./REEF3D_NHFLOW_Sediment/REEF3D-NHFLOW-Sediment-Point.dat");
-    
-    if(p->A10==6)
-	wsfout.open("./REEF3D_CFD_Sediment/REEF3D-CFD-Sediment-Point.dat");
-
+    // a restart (I 45): continued from the checkpoint
+    const char *name = p->A10==2 ? "./REEF3D_SFLOW_Sediment/REEF3D-SFLOW-Sediment-Point.dat"
+                     : (p->A10==5 ? "./REEF3D_NHFLOW_Sediment/REEF3D-NHFLOW-Sediment-Point.dat" : "./REEF3D_CFD_Sediment/REEF3D-CFD-Sediment-Point.dat");
+    if(reefckpt_open(wsfout,name,p->I45))
+    {
     wsfout<<"number of gauges:  "<<p->P121<<endl<<endl;
     wsfout<<"x_coord     y_coord"<<endl;
     for(n=0;n<p->P121;++n)
@@ -68,6 +65,7 @@ bedprobe_point::bedprobe_point(lexer *p, ghostcell *pgc, sediment_fdm *s)
     wsfout<<"\t P"<<n+1;
 
     wsfout<<endl<<endl;
+    }
     }
 
     ini_location(p,pgc,s);

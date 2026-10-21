@@ -20,6 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#include"reefckpt.h"
 #include"sediment_mixture.h"
 #include"sediment_curv.h"
 #include"sediment_fdm.h"
@@ -259,8 +260,12 @@ void sediment_mixture::ini(lexer *p, ghostcell *pgc, sediment_fdm *s)
     mkdir("./REEF3D_Log",0777);
     
     // ini() runs twice with a hotstart: a second open() on an open stream fails all later writes
+    // a restart (I 45): continued from the checkpoint
+    bool head = true;
     if(!mixlog.is_open())
-    mixlog.open("./REEF3D_Log/REEF3D_sediment_mixture.dat");
+    head = reefckpt_open(mixlog,"./REEF3D_Log/REEF3D_sediment_mixture.dat",p->I45);
+    if(head)
+    {
     mixlog<<"# multi-fraction sediment bed, bed volume per fraction (incl. pores) and cumulative limiter volume"<<endl;
     mixlog<<"# sediter \t sedtime";
     for(int q=0;q<nf;++q)
@@ -268,6 +273,7 @@ void sediment_mixture::ini(lexer *p, ghostcell *pgc, sediment_fdm *s)
     for(int q=0;q<nf;++q)
     mixlog<<" \t Vlim_"<<q+1;
     mixlog<<endl;
+    }
     }
 }
 

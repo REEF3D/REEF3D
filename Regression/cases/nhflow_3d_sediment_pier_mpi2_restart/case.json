@@ -1,0 +1,29 @@
+{
+ "base": "nhflow_3d_sediment_pier_mpi2_ckpt",
+ "np": 2,
+ "steps": 150,
+ "same_as": "nhflow_3d_sediment_pier_mpi2_ckpt",
+ "chain": [
+  {
+   "case": "nhflow_3d_sediment_pier_mpi2_ckpt",
+   "copy": [
+    "REEF3D_Checkpoint"
+   ]
+  }
+ ],
+ "ctrl_set": {
+  "I 45": "100"
+ },
+ "description": "the restart of nhflow_3d_sediment_pier_mpi2_ckpt from its checkpoint at step 100 (I 45 100): the NHFLOW registry (tag reg) with the sediment slices, the sediment scalars, DFBED; regression.py ranks: the final state bitwise those of the uninterrupted run.",
+ "tags": [
+  "3d",
+  "nhflow",
+  "sediment",
+  "mpi",
+  "checkpoint"
+ ],
+ "covers": [
+  "cfd_ckpt_write/read tag reg (NHFLOW)",
+  "sediment_f::ckpt_state (NHFLOW)"
+ ]
+}

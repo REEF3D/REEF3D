@@ -23,6 +23,9 @@ Author: Hans Bihs
 #ifndef SEDIMENT_EXNER_H_
 #define SEDIMENT_EXNER_H_
 
+#include<vector>
+#include<cstddef>
+
 #include"topo.h"
 #include"slice4.h"
 #include"vec2D.h"
@@ -39,6 +42,10 @@ using namespace std;
 class sediment_exner final : public topo, public increment
 {
 public:
+    // checkpoints (P 48, I 45): the scalars kept over the steps (sediment_f::ckpt_state)
+    void ckpt_state(std::vector<double>&) const;
+    void ckpt_restore(const std::vector<double>&, size_t&);
+
 	sediment_exner(lexer*, ghostcell*);
 	virtual ~sediment_exner();
 	void start(lexer*, ghostcell*, sediment_fdm*) override final;

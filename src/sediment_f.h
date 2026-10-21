@@ -79,6 +79,13 @@ public:
     // a grid of the mesh refinement or a block (amrgrid 1): no log, no probes, no messages
     sediment_f(lexer*,ghostcell*,turbulence*,patchBC_interface*,int amrgrid);
 	virtual ~sediment_f();
+
+    // checkpoints (P 48, I 45), sediment_f.cpp
+    void ckpt_state(lexer*, std::vector<double>&) override;
+    bool ckpt_restore(lexer*, ghostcell*, const std::vector<double>&) override;
+    void ckpt_rank_state(lexer*, std::vector<double>&) override;
+    bool ckpt_rank_restore(lexer*, ghostcell*, const std::vector<std::vector<double>>&, bool) override;
+    double* ckpt_wln() override;
     // multi-block grids: the cells beyond the open faces of a block (G 54) carry the sediment flag as the ghost cells
     // of the native in- and outflow (lexer indices (i - imin)*jmax + j - jmin; active_sflow keeps them open)
     std::vector<int> dfbed_open;

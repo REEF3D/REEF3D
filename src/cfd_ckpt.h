@@ -28,8 +28,9 @@ Author: Hans Bihs
 class lexer;
 class reefckpt;
 
-// CFD in checkpoints (P 48, I 45): the fields and slices of the level-0 grid (cfd_ckpt.cpp)
-void cfd_ckpt_write(lexer*, reefckpt&);
-bool cfd_ckpt_read(lexer*, reefckpt&, std::string&);
+// CFD in checkpoints (P 48, I 45): the fields and slices of the level-0 grid (cfd_ckpt.cpp); NHFLOW and SFLOW
+// with sediment the same for their grid (the slices of the sediment objects), under another tag
+void cfd_ckpt_write(lexer*, reefckpt&, const std::string &tag="cfd");
+bool cfd_ckpt_read(lexer*, reefckpt&, std::string&, const std::string &tag="cfd");
 
 #endif

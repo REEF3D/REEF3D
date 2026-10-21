@@ -146,6 +146,12 @@ private:
     
     void forcing_cfd(lexer*, fdm*, ghostcell*, double, field&, field&, field&) override final;
     
+    // checkpoints (P 48, I 45): the scalars of the bed update and the bed shear, the CPM parcels of the rank
+    void ckpt_state(lexer*, std::vector<double>&) override final;
+    bool ckpt_restore(lexer*, ghostcell*, const std::vector<double>&) override final;
+    void ckpt_rank_state(lexer*, std::vector<double>&) override final;
+    bool ckpt_rank_restore(lexer*, ghostcell*, const std::vector<std::vector<double>>&, bool) override final;
+
     void state_write(lexer*, int) override final;
     void state_read(lexer*, ghostcell*, int) override final;
     void name_ParaView_parallel_CPM(lexer*, ofstream&) override final;

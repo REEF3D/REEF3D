@@ -20,6 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#include"reefckpt.h"
 #include"bedshear_probe.h"
 #include"lexer.h"
 #include"ghostcell.h"
@@ -49,15 +50,11 @@ bedshear_probe::bedshear_probe(lexer *p, ghostcell *pgc)
     if(p->mpirank==0 && p->P125>0)
     {
     // open file
-    if(p->A10==2)
-	bsgout.open("./REEF3D_SFLOW_Sediment/REEF3D-SFLOW-Sediment-Bedshear.dat");
-    
-    if(p->A10==5)
-	bsgout.open("./REEF3D_NHFLOW_Sediment/REEF3D-NHFLOW-Sediment-Bedshear.dat");
-    
-    if(p->A10==6)
-	bsgout.open("./REEF3D_CFD_Sediment/REEF3D-CFD-Sediment-Bedshear.dat");
-
+    // a restart (I 45): continued from the checkpoint
+    const char *name = p->A10==2 ? "./REEF3D_SFLOW_Sediment/REEF3D-SFLOW-Sediment-Bedshear.dat"
+                     : (p->A10==5 ? "./REEF3D_NHFLOW_Sediment/REEF3D-NHFLOW-Sediment-Bedshear.dat" : "./REEF3D_CFD_Sediment/REEF3D-CFD-Sediment-Bedshear.dat");
+    if(reefckpt_open(bsgout,name,p->I45))
+    {
     bsgout<<"number of gauges:  "<<p->P125<<endl<<endl;
     bsgout<<"x_coord     y_coord"<<endl;
     for(n=0;n<p->P125;++n)
@@ -70,6 +67,7 @@ bedshear_probe::bedshear_probe(lexer *p, ghostcell *pgc)
     bsgout<<"\t P"<<n+1;
 
     bsgout<<endl<<endl;
+    }
     }
 	
 
