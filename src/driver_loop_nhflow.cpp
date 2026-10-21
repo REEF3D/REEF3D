@@ -133,9 +133,6 @@ void driver::loop_nhflow()
         if(pnhfamr!=nullptr)
         pnhfamr->print(p,d,pgc);
 
-        // checkpoint on any decomposition (P 48), rebalance on the measured load (G 46)
-        ckpt().step();
-
         // Shell-Printout
         p->wavecalctime = pgc->globalmax(p->wavecalctime);
         
@@ -181,6 +178,10 @@ void driver::loop_nhflow()
     p->fbtime=0.0;
     p->matrixtime=0.0;
     p->poissontime=0.0;
+
+    // checkpoint on any decomposition (P 48), rebalance on the measured load (G 46): after the logs of the
+    // step, so that a restart cuts them back behind this step (reefckpt_open)
+    ckpt().step();
 	
     stop(p,a,pgc);
 	}
