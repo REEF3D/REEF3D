@@ -30,6 +30,7 @@ Author: Hans Bihs
 #include"wave_interface.h"
 #include<sys/stat.h>
 #include<sys/types.h>
+#include"wsfline_ipol.h"
 
 fnpf_print_wsfline_y::fnpf_print_wsfline_y(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
@@ -99,7 +100,7 @@ void fnpf_print_wsfline_y::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *
         i=iloc[q];
 
 
-            pcore->wsf[q][j]=f(i,j)+p->phimean;
+            pcore->wsf[q][j]=wsfline_at_x(p,f,i,j,p->P56_x[q])+p->phimean;
             pcore->loc[q][j]=p->pos_y();
         }
     }

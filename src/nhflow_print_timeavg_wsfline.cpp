@@ -29,6 +29,7 @@ Author: Thomas Becker
 #include<iomanip>
 #include<sys/stat.h>
 #include<sys/types.h>
+#include"wsfline_ipol.h"
 
 nhflow_print_timeavg_wsfline::nhflow_print_timeavg_wsfline(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
@@ -159,7 +160,7 @@ void nhflow_print_timeavg_wsfline::start(lexer *p, fdm_nhf *d, ghostcell *pgc, i
             {
                 flag[q][i] = 1;
                 xloc[q][i] = p->pos_x();
-                wsf[q][i] += effective_dt*(f(i,jloc[q]) + p->phimean);
+                wsf[q][i] += effective_dt*(wsfline_at_y(p,f,i,jloc[q],yline) + p->phimean);
             }
         }
 

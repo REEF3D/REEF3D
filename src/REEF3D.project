@@ -160,6 +160,7 @@
           </VirtualDirectory>
           <VirtualDirectory Name="Print WSF">
             <File Name="wsfline_core.h"/>
+            <File Name="wsfline_ipol.h"/>
             <File Name="print_wsfline_y.h"/>
             <File Name="print_wsfline_x.h"/>
             <File Name="print_wsf_theory.h"/>
