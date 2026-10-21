@@ -91,6 +91,9 @@ void fnpf_6DOF::amr_sub_finest(lexer *p, fdm_fnpf *c, ghostcell *pgc, int l, int
     
     const bool finalize = (iter == ((p->A310==3) ? 2 : 3));
     
+    if(finalize && last)
+    psi_report(p);
+    
     // external dynamics: every finest step is a step of the external solver
     if(pext!=nullptr)
     {
@@ -212,6 +215,7 @@ void fnpf_6DOF::forces_level(lexer *p, fdm_fnpf *c, ghostcell *pgc, int l)
     amr->sub_psi_edges(l,&fs[0]);
     
     amr->lap_solve_psi_level(p,pgc,l,&fs[0],&Ds[0]);
+    psi_count(p->solveriter);
     
     {
     reefamr_comms_off guard(pgc);

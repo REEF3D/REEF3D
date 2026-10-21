@@ -175,6 +175,13 @@ private:
     // refreshed with the unit-mode solves at the first stage, used in the coupled solve of motion()
     std::vector<Eigen::Matrix<double,6,6>> Across;
 
+    // terminal: one line per step with the psi solves of the bodies (pressure, added mass) and their Laplace
+    // iterations (psi_report) instead of the loads and poses of every body
+    int psi_solves = 0, psi_itmax = 0;
+    long long psi_iter = 0;
+    void psi_count(int it) {++psi_solves; psi_iter += it; psi_itmax = it>psi_itmax ? it : psi_itmax;}
+    void psi_report(lexer*);
+
     // X 28: the added mass (unit-mode solves, cross terms) every X 28 steps, earlier when a body has
     // moved by more than X 29 since (am_due); the step and the poses of the last one
     bool am_due(lexer*, int);

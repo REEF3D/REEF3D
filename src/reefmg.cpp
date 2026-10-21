@@ -27,6 +27,7 @@ Author: Hans Bihs
 #include "ghostcell.h"
 #include "vec.h"
 #include "matrix_diag.h"
+#include "solver_print.h"
 #ifdef REEF3D_USE_HYPRE
 #include "hypre_struct.h"
 #endif
@@ -484,7 +485,7 @@ void reefmg::start_solver8(lexer *p, ghostcell *pgc, double *f, vec &rhs,
 
     fillbackvec8(p,f);
 
-    if(p->mpirank==0 && p->count%p->P12==0)
+    if(p->mpirank==0 && p->count%p->P12==0 && !solver_print_quiet())
     cout<<"REEFMG cycles "<<p->solveriter
         <<"  res "<<setprecision(3)<<relres
         <<"  coarsen "<<setprecision(3)<<coarsentime
@@ -813,7 +814,7 @@ void reefmg::start_solver5(lexer *p, ghostcell *pgc, field &f, vec &rhs, matrix_
 
     fillbackvec5(p,f);
 
-    if(p->mpirank==0 && p->count%p->P12==0)
+    if(p->mpirank==0 && p->count%p->P12==0 && !solver_print_quiet())
     cout<<"REEFMG cycles "<<p->solveriter
         <<"  res "<<setprecision(3)<<relres
         <<"  coarsen "<<setprecision(3)<<coarsentime

@@ -32,6 +32,7 @@ Author: Hans Bihs
 #include"fnpf_fsf_update.h"
 #include"fnpf_amr.h"
 #include"reefamr.h"
+#include"solver_print.h"
 #include<functional>
 
 // Laplace solver seen by the time stepping when bodies are present: body geometry on the
@@ -214,6 +215,22 @@ void fnpf_6DOF::stage(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, fnpf
     forces(p,c,pgc,psolv,pf,Keta,Kfi,iter);
     
     motion(p,c,pgc,iter);
+    
+    if(iter == ((p->A310==3) ? 2 : 3))
+    psi_report(p);
+}
+
+// the psi solves of the step (all stages, all grids): their number and Laplace iterations, one line
+void fnpf_6DOF::psi_report(lexer *p)
+{
+    if(p->mpirank==0 && p->count%p->P12==0 && psi_solves>0)
+    cout<<"6DOF: "<<nbody<<" bod"<<(nbody>1 ? "ies" : "y")<<", "<<psi_solves<<" psi solves"
+        <<(am_count==p->count ? " (with the added mass)" : "")
+        <<", iterations "<<psi_iter<<" (max "<<psi_itmax<<")"<<endl;
+
+    psi_solves = 0;
+    psi_iter = 0;
+    psi_itmax = 0;
 }
 
 void fnpf_6DOF::pre_solve(lexer *p, fdm_fnpf *c, ghostcell *pgc)
@@ -549,29 +566,6 @@ void fnpf_6DOF::motion_coupled(lexer *p, fdm_fnpf *c, ghostcell *pgc, int iter, 
         const Eigen::Matrix<double,6,1> a = acc.segment<6>(6*nb);
         fb_obj[nb]->eqmotion_advance_fnpf(p,pgc,iter, has[nb] ? &a : nullptr);
     }
-
-    if(p->mpirank==0 && iter==0 && (p->count%p->P12==0))
-    {
-        double amax=0.0, across=0.0;
-
-        for(int i=0; i<nbody; ++i)
-        for(int j=0; j<nbody; ++j)
-        {
-        const double v = Across[i*nbody+j].cwiseAbs().maxCoeff();
-        across = MAX(across,v);
-        }
-
-        for(int n=0; n<n6; ++n)
-        if(!fixed[n])
-        amax = MAX(amax,fabs(K(n,n)));
-
-        cout<<"6DOF FNPF coupled: max |A_ij| (i!=j) "<<across<<"  max diagonal "<<amax<<endl;
-
-        // heave-heave cross added mass of the first bodies (compare with A_33,ij at infinite frequency)
-        for(int i=0; i<MIN(nbody,4); ++i)
-        for(int j=i+1; j<MIN(nbody,4); ++j)
-        cout<<"A33 cross "<<i<<" "<<j<<": "<<0.5*(Across[i*nbody+j](2,2) + Across[j*nbody+i](2,2))<<endl;
-    }
 }
 
 void fnpf_6DOF::footprint(fnpf_6DOF_grid &G, ghostcell *pgc, slice &eta, slice &Fifsf, int gcval_eta, int gcval_fifsf)
@@ -874,7 +868,10 @@ void fnpf_6DOF::solve_psi(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, 
     double *uin = c->Uin;
     c->Uin = zero;
     
+    solver_print_quiet() = true;
     plap->start(p,c,pgc,psolv,pf,f,D);
+    solver_print_quiet() = false;
+    psi_count(p->poissoniter);
     
     c->Uin = uin;
     
@@ -1167,6 +1164,7 @@ void fnpf_6DOF::solve_psi_amr(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *pso
     c->Uin = zero;
     
     amr->lap_solve_psi(p,c,pgc,psolv,pf,&fs[0],&Ds[0]);
+    psi_count(p->solveriter);
     
     c->Uin = uin;
     
