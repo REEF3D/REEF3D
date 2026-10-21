@@ -29,6 +29,9 @@ Author: Hans Bihs
 #include<cstdio>
 #include<cstring>
 #include<algorithm>
+#include<set>
+#include<iostream>
+#include<map>
 
 using namespace std;
 
@@ -63,14 +66,81 @@ string piece_name(const string &dir, int r)
     snprintf(nm,sizeof(nm),"/piece-%06i.dat",r);
     return dir+nm;
 }
+
+vector<string> files_in(const string &dir)
+{
+    vector<string> names;
+    if(DIR *d = opendir(dir.c_str()))
+    {
+        while(dirent *e = readdir(d))
+        {
+            const string n = e->d_name;
+            if(n!="." && n!="..")
+            names.push_back(n);
+        }
+        closedir(d);
+    }
+    sort(names.begin(),names.end());
+    return names;
+}
+
+// the output files and folders of this process (reefckpt_open, reefckpt_output_dir): their sizes go with
+// every checkpoint (outputs-<rank>.txt)
+set<string> out_files, out_dirs;
+
+// the sizes of the outputs at the checkpoint of the restart (all its tables), read at the first use;
+// there: the checkpoint has the tables (an older one: the files are continued as they are)
+bool sizes_read = false, sizes_there = false;
+map<string,long long> sizes;
+set<string> out_cut;
+
+void read_sizes()
+{
+    if(sizes_read)
+    return;
+    sizes_read = true;
+    const string dir = reefckpt::restart_folder();
+    if(dir.empty())
+    return;
+    for(const string &n : files_in(dir))
+    {
+        if(n.compare(0,8,"outputs-")!=0)
+        continue;
+        sizes_there = true;
+        ifstream t((dir+"/"+n).c_str());
+        long long sz;
+        string name;
+        while(t>>sz && getline(t>>ws,name))
+        sizes[name] = max(sizes[name],sz);
+    }
+}
+
+// a restart: the file cut back to its size at the checkpoint (once per run); false: the checkpoint does not
+// know it, it was written after the checkpoint and starts again
+bool cut(const string &name)
+{
+    read_sizes();
+    if(!sizes_there || out_cut.count(name))
+    return true;
+    out_cut.insert(name);
+    auto it = sizes.find(name);
+    if(it==sizes.end())
+    return false;
+    struct stat st;
+    if(stat(name.c_str(),&st)==0 && (long long)st.st_size>it->second)
+    if(truncate(name.c_str(),(off_t)it->second)!=0)
+    cout<<"I 45: "<<name<<" could not be cut back to the checkpoint"<<endl;
+    return true;
+}
 }
 
 bool reefckpt_open(ofstream &o, const char *name, int I45)
 {
+    out_files.insert(name);
     if(I45==1)
     {
         struct stat st;
-        if(stat(name,&st)==0)
+        if(stat(name,&st)==0 && cut(name))
         {
             o.open(name,ios::app);
             return false;
@@ -78,6 +148,57 @@ bool reefckpt_open(ofstream &o, const char *name, int I45)
     }
     o.open(name);
     return true;
+}
+
+void reefckpt_output_dir(const string &dir, int I45)
+{
+    out_dirs.insert(dir);
+    if(I45!=1)
+    return;
+    read_sizes();
+    if(!sizes_there)
+    return;
+    for(const string &n : files_in(dir))
+    {
+        const string f = dir+"/"+n;
+        struct stat st;
+        if(stat(f.c_str(),&st)!=0 || !S_ISREG(st.st_mode))
+        continue;
+        if(!cut(f))
+        remove(f.c_str());
+    }
+}
+
+string reefckpt::restart_folder()
+{
+    string dir;
+    ifstream l("./REEF3D_Checkpoint/latest");
+    if(l)
+    l>>dir;
+    return dir;
+}
+
+// the sizes of the output files of this rank (flushed by the modules before), with the checkpoint
+void reefckpt::outputs_write()
+{
+    vector<string> names(out_files.begin(),out_files.end());
+    for(const string &d : out_dirs)
+    for(const string &n : files_in(d))
+    names.push_back(d+"/"+n);
+
+    // rank 0 always (the checkpoint has the tables), the others when they write outputs
+    if(names.empty() && p->mpirank>0)
+    return;
+
+    char nm[64];
+    snprintf(nm,sizeof(nm),"/outputs-%06i.txt",p->mpirank);
+    ofstream t((dirname+nm).c_str());
+    for(const string &n : names)
+    {
+        struct stat st;
+        if(stat(n.c_str(),&st)==0 && S_ISREG(st.st_mode))
+        t<<(long long)st.st_size<<" "<<n<<"\n";
+    }
 }
 
 // ------------------------------------------------------------------------------------------- write
@@ -145,6 +266,7 @@ void reefckpt::write_close(lexer *pp)
     const string endtag = "END";
     wstr(out,endtag);
     out.close();
+    outputs_write();
 
     const int np = p->mpi_size;
     int mybox[6] = {p->origin_i,p->origin_j,p->origin_k,p->knox,p->knoy,p->knoz};
@@ -276,8 +398,8 @@ bool reefckpt::read_open(lexer *pp, const string &dir, string &msg)
     dirname = dir;
     if(dirname.empty())
     {
-        ifstream l("./REEF3D_Checkpoint/latest");
-        if(!l || !(l>>dirname))
+        dirname = restart_folder();
+        if(dirname.empty())
         {
             msg = "no checkpoint (REEF3D_Checkpoint/latest missing)";
             return false;

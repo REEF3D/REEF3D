@@ -29,6 +29,7 @@ Author: Hans Bihs
 //  REEF3D_Checkpoint/<count>/piece-%06i   every rank: its arrays with their ghost cells, double/int
 //  REEF3D_Checkpoint/latest               the folder of the last complete checkpoint (written last)
 //  REEF3D_Checkpoint/history              the folders in the order they were written (P 49: the newest kept)
+//  REEF3D_Checkpoint/<count>/outputs-%06i every rank: the sizes of its output files at the checkpoint (restart: cut back)
 //
 //  Arrays are given in the layouts of REEF3D (margin 3 on every side):
 //    S  slice: (i-imin)*jmax + (j-jmin), i in [-3,knox+3), j in [-3,knoy+3)
@@ -49,8 +50,12 @@ class lexer;
 class ghostcell;
 
 // an output file of the run: on a restart from a checkpoint (I 45 1) an existing file is continued
-// (appended); true: a new file, its header is to be written
+// (appended) from its size at the checkpoint, what the stopped run wrote after it is cut off; a file the
+// checkpoint does not know (written after it) starts again; true: a new file, its header is to be written
 bool reefckpt_open(std::ofstream &o, const char *name, int I45);
+// a folder whose files are all outputs of the run (REEF3D_CORAL; the rank that writes them): on a restart
+// (I 45 1) every file is cut back to its size at the checkpoint, a file the checkpoint does not know removed
+void reefckpt_output_dir(const std::string &dir, int I45);
 
 class reefckpt
 {
@@ -90,6 +95,8 @@ public:
     void piece_box(int r, int &oi, int &oj, int &ni, int &nj) const { oi = box[r].oi; oj = box[r].oj; ni = box[r].ni; nj = box[r].nj; }
     // removes the checkpoint folder dir written by np ranks, with every other file in it (rank 0)
     static void remove_folder(const std::string &dir, int np);
+    // the folder of the checkpoint a restart (I 45) reads, empty: none
+    static std::string restart_folder();
     // rank 0, after write_close: dir appended to REEF3D_Checkpoint/history; of the folders there only the
     // newest keep remain, the older ones are removed (never the latest); keep 0: all remain
     static void prune(const std::string &dir, int keep);
@@ -100,6 +107,7 @@ private:
     struct rec { std::string name; int type; long long n; };
 
     void put(const std::string&, int, const void*, long long, size_t);
+    void outputs_write();
     long long count_of(int) const;
     bool get(const std::string&, int, void*, size_t);
     bool get3d(const std::string&, void*, size_t, long long);

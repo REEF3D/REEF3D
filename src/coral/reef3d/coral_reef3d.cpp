@@ -29,6 +29,7 @@ Architect: Hans Bihs
 #include"coral/hydro/coral_morison.h"
 #include"coral/hydro/coral_member_morison.h"
 #include"lexer.h"
+#include"reefckpt.h"
 #include"ghostcell.h"
 #include<mpi.h>
 #include<algorithm>
@@ -188,8 +189,13 @@ void coral_reef3d::sample_kinematics(double t)
 
 void coral_reef3d::ini(lexer *p, ghostcell*)
 {
+    // the outputs of CORAL (rank 0 writes them): their sizes go with every checkpoint; a restart cuts them
+    // back to the checkpoint, so that the rows the stopped run wrote after it do not come twice
     if(p->mpirank==0)
+    {
         mkdir("./REEF3D_CORAL", 0777);
+        reefckpt_output_dir("./REEF3D_CORAL", restart_ ? 1 : 0);
+    }
     // restart from a checkpoint: the outputs and the journal continue, then the state of the checkpoint
     if(restart_)
     {

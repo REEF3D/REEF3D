@@ -114,6 +114,10 @@ void reefrun_ckpt::write()
 
     h.write(ck);
 
+    // the outputs on disk up to the checkpoint: their sizes go with it (a restart cuts them back to these)
+    if(h.flush)
+    h.flush();
+
     ck.write_close(p);
     write_s = pgc->timer()-t0;
 
