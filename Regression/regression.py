@@ -118,6 +118,11 @@ def measured(fn):
     return fn.endswith("_loadmap.dat") or fn.endswith("_pipeline.dat")
 
 
+# columns of text outputs that are measured quantities (wall-clock times): left out of the comparison and
+# of the reference, by the name in the header line of the file
+MEASURED_COLUMNS = {"REEF3D_6DOF_pierced.dat": ["t_step", "t_total"]}
+
+
 # ----------------------------------------------------------------------------------------------
 # case definitions
 # ----------------------------------------------------------------------------------------------
@@ -512,12 +517,16 @@ NUM = re.compile(r"^[-+]?(\d+\.?\d*|\.\d+)([eE][-+]?\d+)?$")
 
 def read_numeric_table(path):
     rows = []
+    drop = MEASURED_COLUMNS.get(os.path.basename(path), [])
+    skip = set()
     with open(path, errors="replace") as f:
         for l in f:
             t = l.split()
             vals = [float(x) for x in t if NUM.match(x)]
             if vals and len(vals) == len(t):
-                rows.append(vals)
+                rows.append([v for k, v in enumerate(vals) if k not in skip])
+            elif drop and t and not skip:
+                skip = {k for k, name in enumerate(t) if name in drop}
     return rows
 
 
@@ -547,6 +556,8 @@ def compare_text(ref_dir, new_dir, rtol, atol):
                 for x, y in zip(ra, rb):
                     maxa = max(maxa, abs(x))
                     maxd = max(maxd, abs(x - y))
+            if maxd == 0.0 and os.path.basename(fr) in MEASURED_COLUMNS:
+                continue        # (only the measured columns differ)
             lv = 1 if maxd <= atol + rtol * maxa else 2
             res["files"][rel] = {"level": LEVELS[lv], "maxdiff": maxd, "maxref": maxa}
             level = max(level, lv)
