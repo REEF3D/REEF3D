@@ -41,6 +41,8 @@ Architect: Hans Bihs
 #include"seastate_fas2.h"
 #include"reefrun_ckpt.h"
 #include<iostream>
+#include<mpi.h>
+#include<sys/stat.h>
 #include<iomanip>
 
 seastate_f::seastate_f(lexer *p, ghostcell *pgc) : pprint(nullptr), preg(nullptr), pex(nullptr), psolv(nullptr), N0(nullptr), psrc(nullptr),
@@ -185,9 +187,52 @@ void seastate_f::start(lexer *p, ghostcell *pgc)
     cout<<endl;
     }
 
+    // Phase 19: the time of the pipelined sweeps per rank
+    if(kba)
+    pipeline_report(p,pgc);
+
     preg->seastate_final(p,e,pgc);
 
     pgc->final();
+}
+
+// Phase 19: the time of the pipelined sweeps of every rank over the run (seastate_implicit::kba_stats), against the time
+// of the iterations (transport): on stdout and in REEF3D_SEASTATE_Log/REEF3D_SEASTATE_pipeline.dat
+void seastate_f::pipeline_report(lexer *p, ghostcell *pgc)
+{
+    const seastate_implicit::kba_stats &s = psolv->pipeline_stats();
+    const int nv = 10;
+    double mine[nv] = {t_trans,double(n_trans),double(s.sweeps),s.wall,s.busy,s.fill,s.idle,s.comm,s.finish,s.exch};
+    std::vector<double> all(size_t(nv)*p->mpi_size,0.0);
+    MPI_Gather(mine,nv,MPI_DOUBLE,all.data(),nv,MPI_DOUBLE,0,MPI_COMM_WORLD);
+
+    if(p->mpirank!=0)
+    return;
+
+    mkdir("./REEF3D_SEASTATE_Log",0777);
+    ofstream out("./REEF3D_SEASTATE_Log/REEF3D_SEASTATE_pipeline.dat");
+    out<<"# SEASTATE pipelined sweeps (A 781 1), tiles of "<<psolv->pipeline_tile(0)<<" x "<<psolv->pipeline_tile(1)<<" cells; per rank [s] over the run:"<<endl;
+    out<<"# the iterations (transport), their number, the sweeps, their wall time, in them the work of the tiles, the waiting before"
+       <<" the first tile (the fill), the waiting between the tiles, the messages, the end of the sweeps (the sends completed); the"
+       <<" exchanges around the sweeps (halo, fills)"<<endl;
+    out<<"# rank \t iterations [s] \t iterations \t sweeps \t sweeps [s] \t work \t fill \t idle \t messages \t end \t exchanges"<<endl;
+    out<<setprecision(6);
+
+    const streamsize pr = cout.precision();
+    cout<<"SEASTATE pipeline (A 781 1), tiles of "<<psolv->pipeline_tile(0)<<" x "<<psolv->pipeline_tile(1)<<" cells: per rank the share of the iterations"<<endl;
+    cout<<"   rank   iterations [s]   sweeps   work   fill   between tiles   messages   end   exchanges"<<endl;
+    for(int r=0; r<p->mpi_size; ++r)
+    {
+        const double *v = &all[size_t(nv)*r];
+        out<<r;
+        for(int k=0; k<nv; ++k)
+        out<<" \t "<<v[k];
+        out<<"\n";
+        const double T = v[0]>0.0 ? v[0] : 1.0;
+        cout<<setprecision(3)<<"   "<<r<<"   "<<v[0]<<"   "<<100.0*v[3]/T<<" %   "<<100.0*v[4]/T<<" %   "<<100.0*v[5]/T<<" %   "
+            <<100.0*v[6]/T<<" %   "<<100.0*v[7]/T<<" %   "<<100.0*v[8]/T<<" %   "<<100.0*v[9]/T<<" %"<<endl;
+    }
+    cout.precision(pr);
 }
 
 void seastate_f::step(lexer *p, ghostcell *pgc)
@@ -201,7 +246,10 @@ void seastate_f::step(lexer *p, ghostcell *pgc)
     if(sb!=nullptr)
     surfbeat_boundary(p,tnew);
 
+    const double tt0 = pgc->timer();
     transport(p,pgc);
+    t_trans += pgc->timer()-tt0;
+    n_trans += iter_done;
 
     if(sb!=nullptr)
     surfbeat_step(p,pgc);

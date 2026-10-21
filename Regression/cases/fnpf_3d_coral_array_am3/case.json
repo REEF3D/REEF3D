@@ -1,0 +1,10 @@
+{
+ "description": "fnpf_3d_coral_array with the added mass every 3 time steps (X 28 3): the unit-mode solves of the three bodies and their cross terms at steps 0, 3, 6, ..., in between CORAL gets the last added mass with the new loads of psi_0.",
+ "solver": "fnpf",
+ "np": 1,
+ "steps": 20,
+ "base": "fnpf_3d_coral_array",
+ "ctrl_add": ["X 28 3"],
+ "tags": ["3d", "fnpf", "amr", "6dof", "floating", "coral"],
+ "covers": ["fnpf_6DOF::am_due (X 28) with several bodies and the cross added mass"]
+}

@@ -1,0 +1,9 @@
+{
+ "description": "NHFLOW 2D wave flume (Stokes 5th, H 0.12 m, T 2 s, h 0.4 m, 10 sigma layers, k-omega), sand bed (Exner x10, S 35 10), bed shear probe P 125: S 16 9 with S 59 2 15 (Soulsby DATA13 wave-current stress only, 15 deg phase lead).",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 300,
+ "tags": ["quick", "2d", "nhflow", "sediment", "waves"],
+ "covers": ["bedshear_nhflow S 16 9 with S 59 2 (tau_wave_current)", "S 59 phase lead in NHFLOW"],
+ "architect": "Hans Bihs"
+}

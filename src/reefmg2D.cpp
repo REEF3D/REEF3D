@@ -275,10 +275,18 @@ void reefmg2D::vcycle(lexer *p, ghostcell *pgc, slice &z, matrix2D &M, vec2D &r,
         if(p->N13==0)
         mg.set_active_levels(screened_levels(ldx,mg.levels()));
 
-        xzon = exact_line && xz.usable(mg.fine()) && (local || p->mpi_size==1);
-        if(xzon)
-        xz.factor(mg.fine(),mg.precision());
+        // (several ranks: collective, the problem of all ranks on every rank)
+        xzon = false;
+        if(exact_line && (local || p->mpi_size==1))
+        {
+            xzon = xz.usable(mg.fine());
+            if(xzon)
+            xz.factor(mg.fine(),mg.precision());
+        }
         else
+        if(exact_line)
+        xzon = xz.factor_mpi(mg.fine(),mg.precision(),MPI_COMM_WORLD,p->origin_i,p->gknox);
+        if(!xzon)
         mg.coarsen();
     }
 

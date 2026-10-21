@@ -213,6 +213,17 @@ seastate_amr): the level-0 tiles visit their covered cells, and the
 boundary tiles carry besides the halo cells what the patches of the rank
 downstream read from the tile (seastate_kba_extra: the faces of the
 covered boundary cells, the ring cells of the patches and their faces).
+Phase 19: the tiles of the pipeline thin across the rank boundaries. A
+rank downstream in i starts a sweep when the rank upstream has solved
+its first strip of tiles (the tile row over all its columns), and the
+rank upstream waits as long at the end: with nJ tile rows the last of P
+ranks in i starts (P - 1)/nJ of a sweep late. The tiles keep 16 cells
+along the sweep (the cache of the upwind neighbours) and get nJ >= 8
+(P - 1) rows across it (the same in j), at most 16 cells. Per rank the
+time of the sweeps (the work of the tiles, the waiting before the first
+tile and between the tiles, the messages, the exchanges around the
+sweeps) is reported at the end of a run (seastate_f::pipeline_report,
+REEF3D_SEASTATE_Log/REEF3D_SEASTATE_pipeline.dat).
 Phase 6 (seastate_obstacle): faces blocked by obstacles, structures or
 reflecting coasts transmit Kt^2 of the inflow (per frequency for the
 structures of A 725) and return Kr^2 of the outflow into the mirrored
@@ -317,6 +328,16 @@ public:
     // spectra and the values the boundary tiles carry for the patches (nullptr: none)
     void pipeline_refined(seastate_exchange *ex, seastate_kba_extra *x) {kex = ex; kext = x;}
 
+    // Phase 19: the time of the pipelined sweeps of this rank [s], summed over the sweeps: their wall time, the work of the
+    // tiles (the threads together), the waiting for a ready tile before the first one (the fill of the pipeline) and after
+    // it (the threads together), the messages of thread 0, the end of a sweep (its sends completed), and the exchanges
+    // around the sweeps (the halo after a sweep, the fills of the patches before one: pipeline_exchange)
+    struct kba_stats {long sweeps = 0; double wall = 0.0, busy = 0.0, fill = 0.0, idle = 0.0, comm = 0.0, finish = 0.0, exch = 0.0;};
+    const kba_stats &pipeline_stats() const {return kst;}
+    void pipeline_exchange(double s) {kst.exch += s;}
+    // Phase 19: the tile size of the pipelined sweeps along i (axis 0) and j (axis 1)
+    int pipeline_tile(int axis) const {return axis==0 ? ktbI : ktbJ;}
+
     // Phase 18: the measured work of the cells (the load map G 45 and the rebalance G 46): the time [s] of every solve of a
     // cell is added into w(i,j) (nullptr: not measured)
     void work_field(slice *w) {wfld = w;}
@@ -335,6 +356,7 @@ private:
     void cellw(lexer*, fdm_seastate*, int q, int ci, int cj, const float *N0, double rdt,
                const vector<float> &Nb, const int side[4], bool refraction, bool fshift);
     slice *wfld = nullptr;
+    kba_stats kst;                      // Phase 19
 
     void sweep_threads(lexer*, fdm_seastate*, int q, const seastate_store *N0, double rdt,
                        const vector<float> &Nb, const int side[4], bool refraction, bool fshift);
@@ -354,7 +376,7 @@ private:
     // Phase 14: pipelined sweeps across the ranks (pipeline): communicator, the tile size of all ranks, the exchange of
     // iterate (halo layers), the first visits of the cells exchanged once
     ghostcell *kpgc = nullptr;
-    int ktb = 16;
+    int ktbI = 16, ktbJ = 16;           // Phase 19: the tile sizes along i and j (pipeline)
     seastate_exchange *kex = nullptr;
     seastate_kba_extra *kext = nullptr;
     bool kfirst = true;

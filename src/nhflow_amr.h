@@ -391,7 +391,7 @@ private:
     vector<pgrid> pg;               // [g+1]
     vector<double*> kv0;            // level-0 Krylov vectors
     reefmg_core *mg0 = nullptr;     // level-0 multigrid of the preconditioner
-    reefamr_xzlu xz0;               // a 2D grid on one rank: the exact level-0 solve instead of the V-cycle
+    reefamr_xzlu xz0;               // a 2D grid: the exact level-0 solve instead of the V-cycle
     bool xz0on = false;
     vector<int> rowmap0;            // level 0: FIJK -> matrix row
     double *ptgt0 = nullptr;

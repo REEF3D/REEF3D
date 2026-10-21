@@ -134,6 +134,7 @@ struct fnpf_amr_patch : public reefamr_patch
     int serial = -1;                // unique number of the patch (body grids follow it)
     reefmg_core *mg = nullptr;      // patch-local multigrid of the preconditioner
     reefamr_xzlu xz;                // a 2D grid: the exact patch-local solve instead of the V-cycle
+    long xzkey[3] = {-1,-1,-1};     // its factorisation: layout, window, step
     vector<int> fill1;              // the entries of fill next to the patch (the reach of the Laplace rows)
     vector<int> fill2;              // the entries of fill within two columns of the patch (the stencils of the prolongation into the next finer level)
 };
@@ -265,6 +266,21 @@ private:
     void pcol(int, int, int, int, int, const double*, int, double*);
     void pweights(lexer*, int, int, int, int, double*);
 
+    // the weights of pcol per grid, coarse cell, quadrant and order (pord), kept until the next regrid: the
+    // nonzero weights as (source offset in the column arrays, weight).  Not with wfill (the wet
+    // cells change) and not with a body (its cells change the flags)
+    struct pwcache
+    {
+        int stamp = -1;             // regrids, and the lexer of the grid (during a regrid the
+        const lexer *q = nullptr;   // index g already names the new patches)
+        vector<int> slot;           // (cell, quadrant) -> its pair in num, -1 not yet
+        vector<int> num;            // pairs: first entry in off/wt, number of weights
+        vector<int> off;
+        vector<double> wt;
+    };
+    vector<pwcache> pwc;            // [g+1]
+    int pw_get(int g, lexer *q, int ic, int jc, int ox, int oy, const int *&offs, const double *&ws);
+
     // fill and restriction of slices and Fi-layout arrays
     template<class SEL> void fill_sl(int, int, int, SEL);
     template<class SEL> void fill_col(int, int, SEL, bool d1=false);
@@ -303,8 +319,11 @@ private:
     vector<lgrid> lg;               // [g+1]
     vector<double*> kv0;            // level-0 Krylov vectors
     reefmg_core *mg0 = nullptr;     // level-0 multigrid of the preconditioner
-    reefamr_xzlu xz0;               // a 2D grid on one rank: the exact level-0 solve instead of the V-cycle
+    reefamr_xzlu xz0;               // a 2D grid: the exact level-0 solve instead of the V-cycle
     bool xz0on = false;
+    long xz0key[3] = {-1,-1,-1};
+    // the factorisations kept for xz_every steps (layout, window and the fixed rows unchanged)
+    bool xz_keep(long *key, bool on, int wkey);
     void lap_l0solve();
     vector<int> rowmap0;            // level 0: FIJK -> matrix row
     long lap_it_total, lap_solves;

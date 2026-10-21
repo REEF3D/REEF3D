@@ -2512,6 +2512,12 @@ void control::ctrlrecv()
     dd++;
     X27 = ictrl[ii];
     ii++;
+    X28 = ictrl[ii];
+    ii++;
+    X29_d = dctrl[dd];
+    dd++;
+    X29_a = dctrl[dd];
+    dd++;
     X31 = ictrl[ii];
     ii++;
     X32 = ictrl[ii];

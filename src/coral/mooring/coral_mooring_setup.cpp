@@ -27,6 +27,7 @@ Architect: Hans Bihs
 #include"coral/core/coral_model.h"
 #include<algorithm>
 #include<cmath>
+#include<limits>
 #include<stdexcept>
 
 namespace coral
@@ -130,6 +131,9 @@ int mooring_system::add_point(const std::string &name, const Vec3 &p, const moor
     P.zbed = z_seabed;
     P.surf = sb_ && z_seabed > -1.0e29;
     P.fbed = fbed_ && z_seabed > -1.0e29;
+    if(pp.mu > 0.0 && !(pp.v_eps > 0.0))
+        stick_ = true;
+    st_ = stick_t();
     points_.push_back(P);
     pr.push_back(p);
     layout(lr, pr);
@@ -288,6 +292,15 @@ int mooring_system::add_line(const model &m, const std::string &name, const moor
     if(cmax > 0.0) dtc = std::min(dtc, 0.5*mn0/cmax);
     // bending: the zig-zag mode of the nodes, omega = 4 sqrt(EI/m)/l^2 (clamped ends: twice the end stiffness)
     if(p.EI > 0.0 && p.mass > 0.0) dtc = std::min(dtc, 0.25*l_*l_*std::sqrt(p.mass/(2.0*p.EI)));
+    // stick-slip friction: the shear spring and damper of the anchors (only where stiffer than the seabed's)
+    const double mua = p.mu_axial >= 0.0 ? p.mu_axial : p.mu;
+    if((p.mu > 0.0 || mua > 0.0) && !(p.v_eps > 0.0))
+    {
+        stick_ = true;
+        if(p.ks > p.kb) dtc = std::min(dtc, 0.5*std::sqrt(mn0/(p.ks*p.d*l_)));
+        if(p.cs > p.cb) dtc = std::min(dtc, 0.5*mn0/(2.0*p.BA/l_ + p.cs*p.d*l_));
+    }
+    st_ = stick_t();
     L.dt = dtc;
     // the ends: global positions
     const mooring_end *ends[2] = {&a, &b};
@@ -393,10 +406,13 @@ void mooring_system::update_dt()
         if(rc <= 0.0)
             continue;
         const double Ac = M_PI*rc*rc;
-        if(p.kb > 0.0 && M > 0.0)
-            dt = std::min(dt, 0.5*std::sqrt(M/(p.kb*Ac)));
-        if(p.cb > 0.0 && M > 0.0)
-            dt = std::min(dt, 0.5*M/(p.cb*Ac));
+        // the stick-slip anchor's shear spring and damper where stiffer than the contact's
+        const bool st = p.mu > 0.0 && !(p.v_eps > 0.0);
+        const double kc = st ? std::max(p.kb, p.ks) : p.kb, cc = st ? std::max(p.cb, p.cs) : p.cb;
+        if(kc > 0.0 && M > 0.0)
+            dt = std::min(dt, 0.5*std::sqrt(M/(kc*Ac)));
+        if(cc > 0.0 && M > 0.0)
+            dt = std::min(dt, 0.5*M/(cc*Ac));
     }
     dt_ = dt_set_ > 0.0 ? dt_set_ : dt;
 }
@@ -520,6 +536,8 @@ void mooring_system::settle(const model &m, double T)
     }
     r_ = s.r;
     v_ = s.v;
+    // the settled shape without stick-slip anchors (the nodes stick where they lie when the run starts)
+    st_ = stick_t();
     keep_converged();
     ++gen_;
     cvalid_ = false;
@@ -577,6 +595,12 @@ void mooring_system::save_state(std::vector<double> &v) const
     o.d(t_);
     o.list(lines_, [&](const line_t &L){o.list(L.Tc, [&](const Vec3 &x){o.m(x);}); o.m(L.Fc[0]); o.m(L.Fc[1]);});
     o.list(att_, [&](const attach_t &a){o.m(a.r); o.m(a.v); o.m(a.F); o.m(a.d);});
+    // stick-slip friction: the anchors and sliding flags
+    if(stick_)
+    {
+        o.list(st_.a, [&](const Vec3 &x){o.m(x);});
+        o.list(st_.slip, [&](signed char c){o.i((int)c);});
+    }
 }
 
 bool mooring_system::load_state(const std::vector<double> &v, size_t &k)
@@ -623,6 +647,13 @@ bool mooring_system::load_state(const std::vector<double> &v, size_t &k)
         in.m(att_[q].v);
         in.m(att_[q].F);
         in.m(att_[q].d);
+    }
+    if(stick_ && in.ok)
+    {
+        in.list(st_.a, [&](Vec3 &x){in.m(x);});
+        in.list(st_.slip, [&](signed char &c){int q = 0; in.i(q); c = (signed char)q;});
+        if(st_.a.size() != st_.slip.size() || st_.a.size() > r_.size())
+            in.ok = false;
     }
     started_ = true;
     ++gen_;

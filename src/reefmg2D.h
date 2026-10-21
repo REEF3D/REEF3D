@@ -76,7 +76,7 @@ public:
     //  refinement).  rebuild: M changed, coarsen again.
     void vcycle(lexer*, ghostcell*, slice&, matrix2D&, vec2D&, bool);
 
-    //  vcycle(): on a grid with one cell in y and one rank (or local), the exact solve of the x line
+    //  vcycle(): on a grid with one cell in y, the exact solve of the x line (several ranks: of all ranks)
     //  (reefamr_xzlu) in place of the V-cycle (SFLOW mesh refinement on a 2D grid)
     void set_exact_line(bool on) { exact_line = on; }
 

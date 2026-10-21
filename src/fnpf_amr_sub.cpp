@@ -637,7 +637,8 @@ void fnpf_amr::lap_prec_win(int kr, int kz)
         lexer *q = glex(g);
         const size_t n = (size_t)q->imax*q->jmax*(q->kmax+2);
         std::fill(lvec(g,kz),lvec(g,kz)+n,0.0);
-        if(!inwin(g))
+        // all grids: below the window scratch; in the window the nodes the residual does not
+        // write (resolved-body and dry rows) held the increment of the previous sweep (lap_prec)
         std::fill(lvec(g,NRP),lvec(g,NRP)+n,0.0);
     }
 

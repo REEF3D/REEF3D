@@ -1571,6 +1571,7 @@
         <File Name="seastate_dispersion.cpp"/>
         <File Name="seastate_vtp.cpp"/>
         <File Name="seastate_f.cpp"/>
+        <File Name="seastate_f_ckpt.cpp"/>
         <File Name="seastate_f_initial.cpp"/>
         <File Name="seastate_f_ini.cpp"/>
         <File Name="seastate_param.cpp"/>
@@ -2484,6 +2485,7 @@
         <VirtualDirectory Name="Mooring">
           <File Name="coral/mooring/coral_catenary.cpp"/>
           <File Name="coral/mooring/coral_mooring.cpp"/>
+          <File Name="coral/mooring/coral_mooring_friction.cpp"/>
           <File Name="coral/mooring/coral_mooring_setup.cpp"/>
           <File Name="coral/mooring/coral_mooring_static.cpp"/>
           <File Name="coral/mooring/coral_seabed.cpp"/>
