@@ -1736,6 +1736,8 @@ void control::ctrlrecv()
     ii++;
     P49 = ictrl[ii];
     ii++;
+    P48_dt = dctrl[dd];
+    dd++;
     P47_ts = dctrl[dd];
     dd++;
     P47_te = dctrl[dd];

@@ -32,6 +32,7 @@ Author: Hans Bihs
 #include<cstdio>
 #include<mpi.h>
 #include<csignal>
+#include<cmath>
 
 using namespace std;
 
@@ -92,7 +93,7 @@ reefrun_ckpt::reefrun_ckpt(lexer *pp, ghostcell *ppgc, hooks hh) : p(pp), pgc(pp
 
 bool reefrun_ckpt::enabled() const
 {
-    return p->P48>0;
+    return p->P48>0 || p->P48_dt>0.0;
 }
 
 int reefrun_ckpt::keep() const
@@ -102,9 +103,31 @@ int reefrun_ckpt::keep() const
     return h.keep_last ? 1 : 2;
 }
 
+// P 48 N dt: the next multiple of dt after the simulated time
+double reefrun_ckpt::next_time() const
+{
+    const double d = p->P48_dt;
+    return (std::floor(p->simtime/d + 1.0e-9) + 1.0)*d;
+}
+
 void reefrun_ckpt::step()
 {
-    if(p->P48>0 && p->count%p->P48==0)
+    bool due = (p->P48>0 && p->count%p->P48==0);
+
+    // P 48 N dt: the first step at or past each multiple of dt (the spacing in simulated time does not
+    // change with the time step)
+    if(p->P48_dt>0.0)
+    {
+        if(next_t<=0.0)
+        next_t = next_time();
+        if(p->simtime >= next_t - 1.0e-9*p->P48_dt)
+        {
+            due = true;
+            next_t = next_time();
+        }
+    }
+
+    if(due)
     write();
     if(enabled())
     signal_stop();
@@ -214,6 +237,7 @@ void reefrun_ckpt::read()
     fail(msg.empty() ? "checkpoint "+ck.folder()+" incomplete for this case" : msg);
 
     p->count = int(ck.get_scalar("count"));
+    next_t = 0.0;
     last_count = p->count;
     last_sub = sub;
     rebal_L = ck.get_scalar("rebal_L");

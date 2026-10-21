@@ -434,6 +434,7 @@ public:
     int P46,P46_is,P46_ie;
     int P47;
     int P48;                    // checkpoints every P 48 steps (reefckpt)
+    double P48_dt;              // and every P48_dt seconds of simulated time (P 48 N dt), 0 off
     int P49;                    // the checkpoints kept (the newest), 0 all, -1 the default of the model
     double P47_ts,P47_te;
     int P160;

@@ -93,6 +93,8 @@ private:
     ghostcell *pgc;
     hooks h;
     bool told = false;          // a case not covered: said at the first checkpoint
+    double next_t = 0.0;        // P 48 N dt: the time of the next checkpoint (0: from the simulated time)
+    double next_time() const;
     int last_count = -1;        // the step (and sub) of the last checkpoint written or read
     int last_sub = -1;
 };

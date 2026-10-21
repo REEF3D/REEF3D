@@ -218,7 +218,7 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
     }
 
     // checkpoints (P 48): a case they do not cover says so now, not only at the first checkpoint
-    if(p->P48>0)
+    if(p->P48>0 || p->P48_dt>0.0)
     ckpt(p,b,pgc);
 
     // restart from the latest checkpoint (I 45 1): the state at the end of its step

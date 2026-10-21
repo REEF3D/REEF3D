@@ -23,6 +23,8 @@ Author: Hans Bihs
 #include "control.h"
 #include "lexer.h"
 #include <fstream>
+#include <sstream>
+#include <string>
 #include <ctype.h>
 
 void control::read_control(lexer* p)
@@ -2507,6 +2509,15 @@ void control::read_control(lexer* p)
                          clear(c,numint);
                          break;
                 case 48: control>>P48;
+                         {
+                         // P 48 N dt: also every dt seconds of simulated time (optional, on the same line)
+                         std::string rest;
+                         std::getline(control,rest);
+                         std::istringstream is(rest);
+                         double dt=0.0;
+                         if(is>>dt)
+                         P48_dt=dt;
+                         }
                          clear(c,numint);
                          break;
                 case 49: control>>P49;

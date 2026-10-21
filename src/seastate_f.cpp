@@ -94,7 +94,7 @@ void seastate_f::start(lexer *p, ghostcell *pgc)
 
     // Phase 18: the checkpoints and the rebalance (P 48, G 46, G 45); I 45 1: from the latest checkpoint, a stationary
     // step continues at its iteration (the main loop counts it again)
-    if(p->P48>0 || p->G46>0.0 || restart)
+    if(p->P48>0 || p->P48_dt>0.0 || p->G46>0.0 || restart)
     ckpt(p,pgc);
     if(restart)
     {
