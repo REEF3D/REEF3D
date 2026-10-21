@@ -79,6 +79,7 @@ private:
     double *printfsftime_wT;
 
     int printcount;
+    bool bed_printed = false;   // the bed of this run (also after a restart, I 45: a new LAGOON store)
     int nP35 = 0, nP185 = 0;        // sizes of printtime_wT, printfsftime_wT
 
     fnpf_print_wsf *pwsf = nullptr;

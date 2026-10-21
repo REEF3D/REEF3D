@@ -293,8 +293,12 @@ void printer_nhflow::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, 
             }
 
     // Print BED
-    if(p->count==0 && p->S10==0)
+    // the fixed bed: at the start, and at the first output of a restart (I 45: a new LAGOON store)
+    if((p->count==0 || !bed_printed) && p->S10==0)
+    {
         pbed->start(p,d,pgc,psed);
+        bed_printed = true;
+    }
 
 
     // Gages
