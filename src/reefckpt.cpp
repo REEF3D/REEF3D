@@ -25,6 +25,7 @@ Author: Hans Bihs
 #include<mpi.h>
 #include<sys/stat.h>
 #include<unistd.h>
+#include<dirent.h>
 #include<cstdio>
 #include<cstring>
 #include<algorithm>
@@ -96,6 +97,10 @@ void reefckpt::write_open(lexer *pp, int count, int sub)
     if(p->mpirank==0)
     {
         mkdir("./REEF3D_Checkpoint",0777);
+        // a folder of an earlier run (a restart from an earlier checkpoint, other ranks): emptied first
+        struct stat st;
+        if(stat(dirname.c_str(),&st)==0)
+        remove_folder(dirname,0);
         mkdir(dirname.c_str(),0777);
     }
     MPI_Barrier(MPI_COMM_WORLD);
@@ -191,7 +196,76 @@ void reefckpt::remove_folder(const string &dir, int np)
     for(int r=0; r<np; ++r)
     remove(piece_name(dir,r).c_str());
     remove((dir+"/main.dat").c_str());
+
+    // the rest (pieces of a run on more ranks, the tables of the outputs)
+    if(DIR *d = opendir(dir.c_str()))
+    {
+        vector<string> names;
+        while(dirent *e = readdir(d))
+        {
+            const string n = e->d_name;
+            if(n!="." && n!="..")
+            names.push_back(dir+"/"+n);
+        }
+        closedir(d);
+        for(const string &n : names)
+        remove(n.c_str());
+    }
     rmdir(dir.c_str());
+}
+
+void reefckpt::prune(const string &dir, int keep)
+{
+    const string hist = "./REEF3D_Checkpoint/history";
+
+    // the folders in the order they were written, each at its last writing
+    vector<string> order;
+    {
+        ifstream h(hist.c_str());
+        string d;
+        while(h>>d)
+        order.push_back(d);
+    }
+    order.push_back(dir);
+    vector<string> uniq;
+    for(size_t n=order.size(); n-->0;)
+    if(find(uniq.begin(),uniq.end(),order[n])==uniq.end())
+    uniq.insert(uniq.begin(),order[n]);
+
+    // the latest is never removed
+    string latest;
+    {
+        ifstream l("./REEF3D_Checkpoint/latest");
+        l>>latest;
+    }
+
+    // the folders still there (removed by hand: forgotten)
+    vector<string> there;
+    for(const string &d : uniq)
+    {
+        struct stat st;
+        if(stat(d.c_str(),&st)==0)
+        there.push_back(d);
+    }
+
+    vector<string> kept;
+    const size_t nkeep = keep>0 ? size_t(keep) : there.size();
+    for(size_t n=0; n<there.size(); ++n)
+    {
+        if(n+nkeep<there.size() && there[n]!=latest)
+        {
+            remove_folder(there[n],0);
+            continue;
+        }
+        kept.push_back(there[n]);
+    }
+
+    {
+        ofstream h((hist+".tmp").c_str());
+        for(const string &d : kept)
+        h<<d<<endl;
+    }
+    rename((hist+".tmp").c_str(),hist.c_str());
 }
 
 // -------------------------------------------------------------------------------------------- read

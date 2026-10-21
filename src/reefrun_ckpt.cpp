@@ -61,6 +61,13 @@ reefrun_ckpt::reefrun_ckpt(lexer *pp, ghostcell *ppgc, hooks hh) : p(pp), pgc(pp
 {
 }
 
+int reefrun_ckpt::keep() const
+{
+    if(p->P49>=0)
+    return p->P49;
+    return h.keep_last ? 1 : 2;
+}
+
 void reefrun_ckpt::step()
 {
     if(p->P48>0 && p->count%p->P48==0)
@@ -100,13 +107,11 @@ void reefrun_ckpt::write()
     ck.write_close(p);
     write_s = pgc->timer()-t0;
 
-    // keep_last: the checkpoint before (written by this run, so by as many ranks) is removed once this one is the latest
-    if(h.keep_last)
-    {
-        if(p->mpirank==0 && !prev.empty() && prev!=ck.folder())
-        reefckpt::remove_folder(prev,p->mpi_size);
-        prev = ck.folder();
-    }
+    // P 49: only the newest checkpoints are kept (REEF3D_Checkpoint/history), the older ones are removed once
+    // this one is the latest; not given: two (one an instability may not have reached yet), keep_last: one;
+    // 0: all (the history is kept all the same)
+    if(p->mpirank==0)
+    reefckpt::prune(ck.folder(),keep());
 
     if(p->mpirank==0)
     {

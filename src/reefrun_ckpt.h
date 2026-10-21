@@ -59,7 +59,7 @@ public:
         // rank 0, after predict: whether the restart pays, the gain of the lower load over the rest of the run against the
         // cost of the stop, the checkpoint and the new start; why: the numbers for the log (empty: always)
         std::function<bool(double L, double Lnew, std::string &why)> pays;
-        // only the latest checkpoint of the run is kept (large states: SEASTATE); the one before is removed
+        // the default of P 49 (not given): only the latest checkpoint is kept (large states: SEASTATE), else the two newest
         bool keep_last = false;
     };
 
@@ -78,12 +78,14 @@ public:
     double write_s = 0.0;       // the time of the last checkpoint written [s], 0 none yet
     int sub = 0;                // SEASTATE stationary: the iteration within the step (folder <count>_<sub>), 0 at the end of a step
 
+    // the checkpoints kept (P 49; the default of the model), 0: all
+    int keep() const;
+
 private:
     void rebalance(bool due, bool last);
     lexer *p;
     ghostcell *pgc;
     hooks h;
-    std::string prev;           // the folder of the last checkpoint written by this run (keep_last)
 };
 
 #endif

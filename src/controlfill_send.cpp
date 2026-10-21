@@ -1741,6 +1741,8 @@ void control::ctrlsend()
     ii++;
     ictrl[ii] = P48;
     ii++;
+    ictrl[ii] = P49;
+    ii++;
     dctrl[dd] = P47_ts;
     dd++;
     dctrl[dd] = P47_te;

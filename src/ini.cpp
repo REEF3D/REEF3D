@@ -887,7 +887,8 @@ void control::ini_default()
     P45=2;             // int print into single or continous state file
     P46=0;             // int print state iteration window
     P47=0;             // int print state time window
-    P48=0;             // int SFLOW, FNPF, NHFLOW, CFD, SEASTATE (stand-alone): a checkpoint every P 48 steps (REEF3D_Checkpoint/<count>, for I 45 on any decomposition); SEASTATE stationary: every P 48 iterations of the step (REEF3D_Checkpoint/<count>_<iteration>), only the latest kept; 0 off
+    P49=-1;            // int the newest P 49 checkpoints are kept (REEF3D_Checkpoint/history), older ones removed; 0: all kept; not given: 2 (SEASTATE 1)
+    P48=0;             // int SFLOW, FNPF, NHFLOW, CFD, SEASTATE (stand-alone): a checkpoint every P 48 steps (REEF3D_Checkpoint/<count>, for I 45 on any decomposition); SEASTATE stationary: every P 48 iterations of the step (REEF3D_Checkpoint/<count>_<iteration>); kept: P 49; 0 off
     P50=0;				// int wave theory wave gages
 	P51=0;             // int print out wsf
 	P52=0;            // int print out wsfline in x-dir

@@ -434,6 +434,7 @@ public:
     int P46,P46_is,P46_ie;
     int P47;
     int P48;                    // checkpoints every P 48 steps (reefckpt)
+    int P49;                    // the checkpoints kept (the newest), 0 all, -1 the default of the model
     double P47_ts,P47_te;
     int P160;
     double P160_ts,P160_dt,P161;
