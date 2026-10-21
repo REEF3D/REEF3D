@@ -2528,6 +2528,8 @@ void control::ctrlrecv()
     dd++;
     X30 = dctrl[dd];
     dd++;
+    X35 = ictrl[ii];
+    ii++;
     X31 = ictrl[ii];
     ii++;
     X32 = ictrl[ii];

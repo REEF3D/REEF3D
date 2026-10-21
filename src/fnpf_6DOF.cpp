@@ -71,6 +71,83 @@ fnpf_psi_tol::~fnpf_psi_tol()
     p->N44 = n44;
 }
 
+// X 35: the initial guess of a psi solve.  A psi solve started from the last solution of its kind
+// (psi_0 of the previous stage, a unit mode of the previous added mass).  With X 35 1 it starts
+// from the linear extrapolation in time of the last two solutions of the same kind: psi_0 of the
+// same stage of the previous two steps (the stages of the SSP schemes are not equally spaced in
+// time, the same stage of consecutive steps is), the unit mode of the previous two added masses,
+// with subcycling psi_0 of the same stage of the previous two finest steps.  The lagged sigma
+// cross-derivatives of the right-hand side (fnpf_laplace_cds2) take the guess as well, so the
+// results change within the solver tolerance (as a tighter N 44 would).  The extrapolation
+// factor is limited to 2 (a time step that grows).  The Dirichlet rows, the bed ghost nodes and
+// the body band are set after the guess by the caller.
+double fnpf_6DOF::psi_time(lexer *p, int slot) const
+{
+    // the time the solution of the slot stands for: the stage time of psi_0 (RK3: 0, 1, 1/2;
+    // RK4: 0, 1/2, 1/2, 1), the step start for the unit modes
+    const int s = (slot>=10) ? slot-10 : (slot<4 ? slot : -1);
+    double c = 0.0;
+    if(s>=0)
+    {
+        if(p->A310==3)
+        c = (s==1) ? 1.0 : (s==2 ? 0.5 : 0.0);
+        else
+        c = (s==3) ? 1.0 : (s>=1 ? 0.5 : 0.0);
+    }
+    return p->simtime + c*p->dt;
+}
+
+void fnpf_6DOF::psi_guess(fnpf_6DOF_grid &G, int slot, double *f, double t)
+{
+    if(G.p->X35!=1 || slot>=(int)G.h1.size() || G.h1[slot]==nullptr)
+    return;
+
+    const double *p1 = G.h1[slot];
+    const double *p2 = G.h2[slot];
+    const int size = G.p->imax*G.p->jmax*(G.p->kmax+2);
+
+    if(p2==nullptr || !(G.ht1[slot]>G.ht2[slot]))
+    {
+        for(int n=0; n<size; ++n)
+        f[n] = p1[n];
+        return;
+    }
+
+    const double a = MIN((t-G.ht1[slot])/(G.ht1[slot]-G.ht2[slot]), 2.0);
+
+    for(int n=0; n<size; ++n)
+    f[n] = p1[n] + a*(p1[n]-p2[n]);
+}
+
+void fnpf_6DOF::psi_record(fnpf_6DOF_grid &G, int slot, const double *f, double t)
+{
+    if(G.p->X35!=1)
+    return;
+
+    if(slot>=(int)G.h1.size())
+    {
+        G.h1.resize(slot+1,nullptr);
+        G.h2.resize(slot+1,nullptr);
+        G.ht1.resize(slot+1,0.0);
+        G.ht2.resize(slot+1,0.0);
+    }
+
+    const int size = G.p->imax*G.p->jmax*(G.p->kmax+2);
+
+    // the older one takes the new solution (no copy of the newer one)
+    double *q = G.h2[slot];
+    if(q==nullptr)
+    q = new double[size];
+
+    for(int n=0; n<size; ++n)
+    q[n] = f[n];
+
+    G.h2[slot] = G.h1[slot];
+    G.ht2[slot] = G.ht1[slot];
+    G.h1[slot] = q;
+    G.ht1[slot] = t;
+}
+
 fnpf_6DOF::fnpf_6DOF(lexer *p, fdm_fnpf *c, ghostcell *pgc) : initialized(false), foot(p), psiD(p), zeroslice(p),
                                                                eta_ext(p), fi_ext(p), amr(nullptr), amr_layout(-1)
 {
@@ -103,6 +180,9 @@ fnpf_6DOF::fnpf_6DOF(lexer *p, fdm_fnpf *c, ghostcell *pgc) : initialized(false)
 
     if(p->mpirank==0 && p->X30!=1.0)
     cout<<"6DOF FNPF: the psi solves of the loads to "<<p->X30<<" x N 44 = "<<p->X30*p->N44<<" (X 30)"<<endl;
+
+    if(p->mpirank==0 && p->X35==1)
+    cout<<"6DOF FNPF: the psi solves start from the extrapolation of the last two of their kind (X 35)"<<endl;
 
     gcval = (p->j_dir==0) ? 150 : 250;
     
@@ -464,7 +544,7 @@ void fnpf_6DOF::forces(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, fnp
     fb_obj[nb]->face_data_fnpf(p,c,pgc,-2,c->FBF,c->FBu,c->FBv,c->FBw);
     exchange_face(g0,pgc);
     
-    solve_psi(p,c,pgc,psolv,plap,pf,psi0,psiD);
+    solve_psi(p,c,pgc,psolv,plap,pf,psi0,psiD,psi_slot(-1,iter,false));
     
     // added mass: unit-mode solves of the free DOFs, once per time step, with X 28 every X 28 steps
     // (am_due; the rows and columns of fixed or prescribed DOFs are not used in the motion); with
@@ -492,7 +572,7 @@ void fnpf_6DOF::forces(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, fnp
             fb_obj[nb]->face_data_fnpf(p,c,pgc,m,c->FBF,c->FBu,c->FBv,c->FBw);
             exchange_face(g0,pgc);
             
-            solve_psi(p,c,pgc,psolv,plap,pf,psi[m],zeroslice);
+            solve_psi(p,c,pgc,psolv,plap,pf,psi[m],zeroslice,psi_slot(m,iter,false));
         }
         
         if(computeA && nbody>1)
@@ -879,9 +959,12 @@ void fnpf_6DOF::extrapolate(fnpf_6DOF_grid &G, ghostcell *pgc, double *f)
 }
 
 void fnpf_6DOF::solve_psi(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, fnpf_laplace *plap, fnpf_fsf *pf,
-                          double *f, slice &D)
+                          double *f, slice &D, int slot)
 {
     const double t0 = MPI_Wtime();
+    const double ts = psi_time(p,slot);
+    
+    psi_guess(g0,slot,f,ts);
 
     // Dirichlet on the free surface outside the footprint
     FFILOOP4
@@ -915,6 +998,8 @@ void fnpf_6DOF::solve_psi(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, 
     const double t1 = MPI_Wtime();
     extrapolate(g0,pgc,f);
     t_band += MPI_Wtime()-t1;
+    
+    psi_record(g0,slot,f,ts);
     t_psi += MPI_Wtime()-t0;
 }
 
@@ -980,6 +1065,9 @@ void fnpf_6DOF::free_grid(fnpf_6DOF_grid &G)
     for(int m=0; m<6; ++m)
     delete [] G.psi[m];
     delete [] G.mark;
+    for(auto q : G.h1) delete [] q;
+    for(auto q : G.h2) delete [] q;
+    G.h1.clear(); G.h2.clear();
     delete G.foot; delete G.psiD; delete G.zeroslice; delete G.eta_ext; delete G.fi_ext;
     delete G.pbed;
     delete G.pvel;
@@ -1154,9 +1242,10 @@ void fnpf_6DOF::amr_surface(lexer *p, ghostcell *pgc, int id, slice &eta, slice 
 
 // psi solve on all grids: m -1 psi_0 with the free-surface data psiD, m >= 0 the unit mode m
 // with homogeneous free-surface data
-void fnpf_6DOF::solve_psi_amr(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, fnpf_fsf *pf, int m, bool withD)
+void fnpf_6DOF::solve_psi_amr(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, fnpf_fsf *pf, int m, bool withD, int slot)
 {
     const double t0 = MPI_Wtime();
+    const double ts = psi_time(p,slot);
     const int ng = 1+(int)gp.size();
     vector<double*> fs(ng);
     vector<slice*> Ds(ng);
@@ -1184,6 +1273,7 @@ void fnpf_6DOF::solve_psi_amr(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *pso
         fnpf_6DOF_grid &G = (g==0) ? g0 : gp[g-1];
         fs[g] = (m<0) ? G.psi0 : G.psi[m];
         Ds[g] = withD ? static_cast<slice*>(G.psiD) : static_cast<slice*>(G.zeroslice);
+        psi_guess(G,slot,fs[g],ts);
     }
     
     prep(g0,fs[0],*Ds[0]);
@@ -1224,6 +1314,10 @@ void fnpf_6DOF::solve_psi_amr(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *pso
     }
     }
     t_band += MPI_Wtime()-t1;
+    
+    for(int g=0; g<ng; ++g)
+    psi_record((g==0) ? g0 : gp[g-1],slot,fs[g],ts);
+    
     t_psi += MPI_Wtime()-t0;
 }
 
@@ -1290,7 +1384,7 @@ void fnpf_6DOF::forces_amr(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv,
     };
     
     face(-2,-1);
-    solve_psi_amr(p,c,pgc,psolv,pf,-1,true);
+    solve_psi_amr(p,c,pgc,psolv,pf,-1,true,psi_slot(-1,iter,false));
     
     // added mass: unit-mode solves of the free DOFs, once per time step, with X 28 every X 28 steps
     // (am_due; rows and columns of fixed or prescribed DOFs are not used in the motion); with several
@@ -1341,7 +1435,7 @@ void fnpf_6DOF::forces_amr(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv,
         if(on[m])
         {
             face(m,nb);
-            solve_psi_amr(p,c,pgc,psolv,pf,m,false);
+            solve_psi_amr(p,c,pgc,psolv,pf,m,false,psi_slot(m,iter,false));
         }
 
         if(computeA && nbody>1)

@@ -88,7 +88,7 @@ void fnpf_6DOF::amr_sub_finest(lexer *p, fdm_fnpf *c, ghostcell *pgc, int l, int
     p->simtime = t;
     
     if(loads)
-    forces_level(p,c,pgc,l);
+    forces_level(p,c,pgc,l,iter);
     
     const bool finalize = (iter == ((p->A310==3) ? 2 : 3));
     
@@ -149,9 +149,11 @@ void fnpf_6DOF::amr_post_solve_level(lexer *p, ghostcell *pgc, int l)
 // the loads of a stage of the finest level l: psi_0 on its patches (free-surface data from their
 // tendencies, the parent columns at phi_t of the parent step), every hull triangle on the
 // finest grid that holds its centroid; the added mass of the start of the level-0 step kept
-void fnpf_6DOF::forces_level(lexer *p, fdm_fnpf *c, ghostcell *pgc, int l)
+void fnpf_6DOF::forces_level(lexer *p, fdm_fnpf *c, ghostcell *pgc, int l, int iter)
 {
     const double t0 = MPI_Wtime();
+    const int slot = psi_slot(-1,iter,true);
+    const double ts = psi_time(p,slot);
 
     amr_grids(p,pgc);
     
@@ -174,6 +176,8 @@ void fnpf_6DOF::forces_level(lexer *p, fdm_fnpf *c, ghostcell *pgc, int l)
         // the velocities of the current state (the quadratic term of the pressure)
         G.pvel->velcalc_sig(G.p,G.c,pgc,G.c->Fi);
         body_velocities(G,pgc);
+        
+        psi_guess(G,slot,G.psi0,ts);
         
         lexer *p = G.p;
         slice4 &D = *G.psiD;
@@ -232,6 +236,7 @@ void fnpf_6DOF::forces_level(lexer *p, fdm_fnpf *c, ghostcell *pgc, int l)
     {
         amr->patch_walls_fi(G.id,G.psi0);
         extrapolate(G,pgc,G.psi0);
+        psi_record(G,slot,G.psi0,ts);
     }
     }
     t_band += MPI_Wtime()-t2;

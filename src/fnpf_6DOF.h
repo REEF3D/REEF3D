@@ -85,6 +85,11 @@ struct fnpf_6DOF_grid
     fnpf_bed_update *pbed = nullptr;
     fnpf_fsf_update *pvel = nullptr;
     slice *Keta = nullptr, *Kfi = nullptr;      // patch: tendencies of the current stage
+    // X 35: the last two solutions of every kind of psi solve (slot: the stage of psi_0, a unit
+    // mode, the stage of a finest-level psi_0) and their times, the initial guess of the next one
+    // of the kind by linear extrapolation (psi_guess, psi_record)
+    std::vector<double*> h1, h2;
+    std::vector<double> ht1, ht2;
 };
 
 // X 30: the tolerance of a psi solve, set for the solve and restored after it (fnpf_6DOF.cpp)
@@ -156,8 +161,14 @@ private:
     void forces_amr(lexer*, fdm_fnpf*, ghostcell*, solver*, fnpf_fsf*, slice&, slice&, int);
     void motion(lexer*, fdm_fnpf*, ghostcell*, int);
     void footprint(fnpf_6DOF_grid&, ghostcell*, slice&, slice&, int, int);
-    void solve_psi(lexer*, fdm_fnpf*, ghostcell*, solver*, fnpf_laplace*, fnpf_fsf*, double*, slice&);
-    void solve_psi_amr(lexer*, fdm_fnpf*, ghostcell*, solver*, fnpf_fsf*, int, bool);
+    void solve_psi(lexer*, fdm_fnpf*, ghostcell*, solver*, fnpf_laplace*, fnpf_fsf*, double*, slice&, int);
+    void solve_psi_amr(lexer*, fdm_fnpf*, ghostcell*, solver*, fnpf_fsf*, int, bool, int);
+    // X 35: the initial guess of a psi solve of kind slot at time t from the last two of the kind
+    // (psi_slot: 0-3 psi_0 of the stage, 4-9 the unit modes, 10-13 psi_0 of a finest-level stage)
+    static int psi_slot(int m, int iter, bool level) { return m>=0 ? 4+m : (level ? 10+iter : iter); }
+    double psi_time(lexer*, int) const;
+    void psi_guess(fnpf_6DOF_grid&, int, double*, double);
+    void psi_record(fnpf_6DOF_grid&, int, const double*, double);
     void zero_face(fnpf_6DOF_grid&);
     void exchange_face(fnpf_6DOF_grid&, ghostcell*);
     void free_grid(fnpf_6DOF_grid&);
@@ -166,7 +177,7 @@ private:
     bool ckpt_grids = false;        // restart: the body grids of the patches wait for their arrays
     bool amr_on() const;
     bool amr_sub() const;
-    void forces_level(lexer*, fdm_fnpf*, ghostcell*, int);
+    void forces_level(lexer*, fdm_fnpf*, ghostcell*, int, int);
     
     vector<sixdof_obj_fnpf*> fb_obj;
     int nbody;

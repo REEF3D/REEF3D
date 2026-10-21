@@ -1255,6 +1255,7 @@ void control::ini_default()
     X16_beta=1.1;   // double quadratic (Forchheimer) resistance coefficient
     X28=1;        // int FNPF: the added mass of the floating bodies (unit-mode psi solves, with several bodies the cross terms) every X28 time steps; in between the last one is used (1: every step)
     X30=1.0;      // double FNPF: tolerance of the psi solves of the body loads (pressure psi_0, added-mass unit modes) as a factor on N 44 (1: as the phi solves)
+    X35=0;        // int FNPF: 1: the psi solves of the body loads start from the linear extrapolation in time of the last two solutions of their kind (psi_0 of the same stage, a unit mode) instead of the last one
     X29_d=X29_a=0.0;  // double FNPF with X28 > 1: the added mass again as soon as a body has moved by more than X29_d [m] or turned by more than X29_a [deg] since it was computed (0: off)
     X27=0;        // int FNPF: a free-surface column with a body node within X27 sigma layers below its free-surface node belongs to the footprint of the body (0: off)
     X17=0.5;        // double FNPF: relaxation of eta in the free-surface columns next to the footprint of a body, once per stage (0: off)
