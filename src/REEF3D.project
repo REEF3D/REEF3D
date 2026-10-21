@@ -87,6 +87,7 @@
         <File Name="solver_void.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Sparse Matrix">
+        <File Name="matrix_diag_hash.h"/>
         <File Name="vec.h"/>
         <File Name="matrix_diag.h"/>
       </VirtualDirectory>

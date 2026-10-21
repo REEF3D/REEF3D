@@ -96,6 +96,9 @@ private:
                                 // consecutive rows, -1 otherwise
     bool fill_ini=false;        // CVAL4 and the zero halo set up (first fill)
     std::vector<int> wetsig;    // p->wet at the last rowmap/colrow0 build
+    bool fill_topo=true;        // the wet/dry pattern changed in the last fill_matrix8
+    unsigned long long mkey=0;  // var 8: hash of the rows of the last coarsen()
+    bool mkey_ok=false;         // (cleared by the other paths that coarsen mg)
     int count;
 
     int solve_mode, presweep, postsweep;
