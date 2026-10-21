@@ -22,6 +22,7 @@ Architect: Hans Bihs
 
 #include"reefckpt.h"
 #include"fnpf_amr.h"
+#include"fnpf_amr_fill.h"
 #include"lexer.h"
 #include"fdm_fnpf.h"
 #include"ghostcell.h"
@@ -34,8 +35,10 @@ Architect: Hans Bihs
 //  grids (REEF3D_FNPF_AMR/*.vtr, indexed by a .vtm per output time; with P 180 1 at the interval
 //  of the free surface output, P 182 / P 181, else at that of the 3D output, P 30 / P 20), the
 //  wave gauges P 51 from the finest grid that holds them (bilinear between the cell centres),
-//  and a log. P 18: the grids also in the LAGOON store (P 18 1: instead of the .vtr and .vtm
-//  files).
+//  and a log. The grids' cell fields: eta, elevation, Fifsf, the velocity at the free surface
+//  u, v, w (the top node of the sigma grid, as REEF3D_FNPF_VTP_FSF's velocity; LAGOON joins them
+//  into the vector, as SFLOW's) and bed. P 18: the grids also in the LAGOON store (P 18 1:
+//  instead of the .vtr and .vtm files).
 
 namespace
 {
@@ -266,10 +269,24 @@ void fnpf_amr::write_vtr0(lexer *p, fdm_fnpf *c)
         }
         out<<"</DataArray>\n";
     };
+    // the velocity at the free surface (the top node of the sigma grid), as REEF3D_FNPF_VTP_FSF
+    auto surface = [&](const char *nm, const double *A)
+    {
+        out<<"<DataArray type=\"Float64\" Name=\""<<nm<<"\" format=\"ascii\">\n";
+        for(int jj=0; jj<ny; ++jj)
+        {
+            for(int ii=0; ii<nx; ++ii)
+            out<<setprecision(17)<<A[fidx(p,ii,jj,p->knoz)]<<" ";
+            out<<"\n";
+        }
+        out<<"</DataArray>\n";
+    };
     field("eta",c->eta,0.0);
     field("elevation",c->eta,p->wd);
     field("Fifsf",c->Fifsf,0.0);
-    field("Fz",c->Fz,0.0);
+    surface("u",c->U);
+    surface("v",c->V);
+    surface("w",c->W);
     field("bed",c->bed,0.0);
 
     out<<"</CellData>\n<Coordinates>\n";
@@ -309,10 +326,24 @@ void fnpf_amr::write_vtr(lexer *p, fnpf_amr_patch &c, int id)
         }
         out<<"</DataArray>\n";
     };
+    // the velocity at the free surface (the top node of the sigma grid), as REEF3D_FNPF_VTP_FSF
+    auto surface = [&](const char *nm, const double *A)
+    {
+        out<<"<DataArray type=\"Float64\" Name=\""<<nm<<"\" format=\"ascii\">\n";
+        for(int jj=EY; jj<EY+c.ny; ++jj)
+        {
+            for(int ii=EXT; ii<EXT+c.nx; ++ii)
+            out<<setprecision(17)<<A[fidx(pp,ii,jj,pp->knoz)]<<" ";
+            out<<"\n";
+        }
+        out<<"</DataArray>\n";
+    };
     field("eta",cc->eta,0.0);
     field("elevation",cc->eta,p->wd);
     field("Fifsf",cc->Fifsf,0.0);
-    field("Fz",cc->Fz,0.0);
+    surface("u",cc->U);
+    surface("v",cc->V);
+    surface("w",cc->W);
     field("bed",cc->bed,0.0);
 
     out<<"</CellData>\n<Coordinates>\n";
@@ -332,7 +363,7 @@ bool fnpf_amr::print_lagoon(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
     static lagoon_amr_output *writer = nullptr;
     if(writer==nullptr)
-    writer = new lagoon_amr_output("FNPF", {{"eta",false}, {"elevation",false}, {"Fifsf",false}, {"Fz",false}, {"bed",false}});
+    writer = new lagoon_amr_output("FNPF", {{"eta",false}, {"elevation",false}, {"Fifsf",false}, {"u",false}, {"v",false}, {"w",false}, {"bed",false}});
 
     const int m = marge;
     vector<lagoon_amr::grid> grids;
@@ -350,10 +381,18 @@ bool fnpf_amr::print_lagoon(lexer *p, fdm_fnpf *c, ghostcell *pgc)
             for(int ii=i0; ii<i0+nx; ++ii)
             g.values.push_back(s(ii,jj)+shift);
         };
+        auto surface = [&](const double *A)   // the velocity at the free surface (top node)
+        {
+            for(int jj=j0; jj<j0+ny; ++jj)
+            for(int ii=i0; ii<i0+nx; ++ii)
+            g.values.push_back(A[fidx(q,ii,jj,q->knoz)]);
+        };
         field(f->eta,0.0);
         field(f->eta,p->wd);
         field(f->Fifsf,0.0);
-        field(f->Fz,0.0);
+        surface(f->U);
+        surface(f->V);
+        surface(f->W);
         field(f->bed,0.0);
         grids.push_back(std::move(g));
     };
