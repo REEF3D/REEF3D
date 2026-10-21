@@ -324,6 +324,17 @@ private:
     long xz0key[3] = {-1,-1,-1};
     // the factorisations kept for xz_every steps (layout, window and the fixed rows unchanged)
     bool xz_keep(long *key, bool on, int wkey);
+    // the solves of a stage share the rows (phi, the psi solves of the body loads, the Picard
+    // passes of A 324): the rows of the last preparation per grid; unchanged on every rank, the
+    // preparation is skipped and the preconditioner kept (lap_same)
+    struct lmrows
+    {
+        int layout = -1, wkey = -1;
+        vector<double> m;           // the 7 coefficients of every row, coefficient by coefficient
+    };
+    vector<lmrows> lmr;             // [g+1]
+    bool lap_same(ghostcell*, int);
+    long lap_kept = 0;              // preparations skipped
     void lap_l0solve();
     vector<int> rowmap0;            // level 0: FIJK -> matrix row
     long lap_it_total, lap_solves;

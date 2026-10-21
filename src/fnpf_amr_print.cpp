@@ -99,6 +99,8 @@ void fnpf_amr::print(lexer *p, fdm_fnpf *c, ghostcell *pgc)
                     <<" s), mean iterations "<<double(lap_it_psi)/lap_solves_psi
                     <<" (phi "<<(nphi>0 ? double(lap_it_total-lap_it_psi)/nphi : 0.0)<<")";
             }
+            if(lap_kept>0)
+            cout<<"; rows and preconditioner kept for "<<lap_kept<<" of "<<lap_solves<<" solves";
             if(regrid_int>0)
             cout<<", regrid "<<tmx[4]<<" s, layouts "<<layout_id<<", regrids skipped "<<regrids_skipped;
             if(lap_restarts>0)

@@ -38,6 +38,7 @@ Architect: Hans Bihs
 #include<mpi.h>
 #include<iomanip>
 #include<algorithm>
+#include<cstring>
 
 //  Composite Laplace equation of REEF3D::FNPF on level 0 and the patches.
 //
@@ -258,6 +259,14 @@ void fnpf_amr::lap_prepare(ghostcell *pgc)
         tm[5] += MPI_Wtime()-ts;
     }
 
+    // the rows of the last preparation: with a body (psi solves) or Picard passes (A 324) a stage
+    // has several solves with the same rows
+    if((body!=nullptr || p0->A324>0) && lap_same(pgc,wkey))
+    {
+        ++lap_kept;
+        return;
+    }
+
     // fixed rows (identity rows of the assembly: nodes inside a resolved body) are no unknowns:
     // they keep their value, and no fluid row couples to them (Neumann faces).  Left in the
     // composite system they took up the coarse correction across the hull and the solve
@@ -374,11 +383,60 @@ void fnpf_amr::lap_prepare(ghostcell *pgc)
     }
 }
 
+// the solves of a stage share the rows: phi, then psi_0 and the unit modes of the body loads
+// (the Neumann data of the body faces enter the right-hand side only), and the Picard passes
+// of A 324.  The 7-point rows of level 0 and of the patches of the window are compared bit
+// for bit with those of the last preparation; unchanged on every rank, the preparation is
+// skipped and the multigrid coefficients, their coarse levels and the x-z factorisations
+// are those of the last solve, the same preconditioner.  With a body on a 2D grid this
+// replaces the factorisation of every solve (xz_keep).  Collective: mg0 and the level-0
+// factorisation are set up by all ranks together, so the decision is the same on all ranks
+bool fnpf_amr::lap_same(ghostcell *pgc, int wkey)
+{
+    if(lmr.size()!=P.size()+1)
+    lmr.assign(P.size()+1,lmrows());
+
+    int same = 1;
+
+    for(int g=-1; g<(int)P.size(); ++g)
+    {
+        if(g>=0 && (P[g]->lev<wlo || P[g]->lev>wtop()))
+        continue;
+
+        const matrix_diag &M = gfd(g)->M;
+        const size_t n = M.p.size();
+        const double *a[7] = {M.p.data(),M.n.data(),M.s.data(),M.w.data(),M.e.data(),M.t.data(),M.b.data()};
+        lmrows &R = lmr[g+1];
+
+        if(R.layout!=layout_id || R.wkey!=wkey || R.m.size()!=7*n)
+        {
+            R.layout = layout_id;
+            R.wkey = wkey;
+            R.m.resize(7*n);
+            same = 0;
+        }
+
+        for(int k=0; k<7; ++k)
+        {
+            double *s = R.m.data() + k*n;
+
+            if(same && memcmp(s,a[k],n*sizeof(double))!=0)
+            same = 0;
+
+            if(!same)
+            memcpy(s,a[k],n*sizeof(double));
+        }
+    }
+
+    return pgc->globalimin(same)==1;
+}
+
 // a 2D grid: the exact factorisation of a grid is kept for the other solves of the step (key: the
 // layout, the window and the step of the factorisation).  The coefficients follow the free
 // surface: the factorisation of the first solve of the step is the preconditioner for its other
 // solves (2D flume, two levels: 0.3 % more iterations, 14 % less time; kept for 4 steps: 1.7 %
-// more iterations and no further gain).  With a body (fixed rows) refactorised every solve
+// more iterations and no further gain).  With a body (fixed rows) refactorised when the rows
+// change (lap_same keeps it for the solves of a stage)
 bool fnpf_amr::xz_keep(long *key, bool on, int wkey)
 {
     if(!on || body!=nullptr)
