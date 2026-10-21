@@ -84,8 +84,9 @@ fnpf_psi_tol::~fnpf_psi_tol()
 double fnpf_6DOF::psi_time(lexer *p, int slot) const
 {
     // the time the solution of the slot stands for: the stage time of psi_0 (RK3: 0, 1, 1/2;
-    // RK4: 0, 1/2, 1/2, 1), the step start for the unit modes
-    const int s = (slot>=10) ? slot-10 : (slot<4 ? slot : -1);
+    // RK4: 0, 1/2, 1/2, 1), the step start for the unit modes (4-9, and 14 on: those of the bodies
+    // 1, 2, ..., psi_slot)
+    const int s = (slot>=10 && slot<14) ? slot-10 : (slot<4 ? slot : -1);
     double c = 0.0;
     if(s>=0)
     {
@@ -225,6 +226,67 @@ fnpf_6DOF::fnpf_6DOF(lexer *p, fdm_fnpf *c, ghostcell *pgc) : initialized(false)
     g0.fi_ext = &fi_ext;
     g0.pbed = pbed;
     g0.pvel = pvel;
+    
+    // several bodies: the unit modes of the bodies 1, 2, ... on level 0 (the free DOFs)
+    if(nbody>1)
+    {
+        g0.psib.assign(6*(nbody-1),nullptr);
+        
+        for(int nb=1; nb<nbody; ++nb)
+        for(int m=0; m<6; ++m)
+        if(psi[m]!=nullptr && !fb_obj[nb]->dof_fixed_fnpf(p,m))
+        p->Darray(g0.psib[6*(nb-1)+m],size);
+    }
+}
+
+double* fnpf_6DOF::mode_array(fnpf_6DOF_grid &G, int nb, int m)
+{
+    if(nb==0 || G.psi[m]==nullptr)
+    return G.psi[m];
+    
+    const int e = 6*(nb-1)+m;
+    
+    if((int)G.psib.size()<=e)
+    G.psib.resize(6*(nbody-1),nullptr);
+    
+    if(G.psib[e]==nullptr)
+    G.p->Darray(G.psib[e],G.p->imax*G.p->jmax*(G.p->kmax+2));
+    
+    return G.psib[e];
+}
+
+// The rotation modes depend on the centre of gravity c: their Neumann data are n.(e_j x (x - c)), so
+// with c' = c + d the solution for the same hull is psi_j - sum_k (e_j x d)_k psi_k (k: the translation
+// modes, Neumann data n_k).  The last solution of mode j (at the c of the last refresh) is corrected
+// with the translation modes of this refresh before the solve, so that its start residual no longer
+// carries the motion of the centre of gravity since then.  Moored cylinder with all six DOFs free
+// (dx 0.08 m, a patch): the start residual of roll and pitch from 2.4e-2 to 1.6e-3 relative.  Needs
+// the translations k with (e_j x d)_k != 0 to be solved; otherwise the last solution is kept as it is.
+void fnpf_6DOF::mode_shift(fnpf_6DOF_grid &G, int nb, int m, double *const *tr, const Eigen::Vector3d &d)
+{
+    if(m<3 || d.squaredNorm()==0.0)
+    return;
+    
+    Eigen::Vector3d e = Eigen::Vector3d::Zero();
+    e(m-3) = 1.0;
+    const Eigen::Vector3d a = e.cross(d);
+    
+    for(int k=0; k<3; ++k)
+    if(a(k)!=0.0 && tr[k]==nullptr)
+    return;
+    
+    double *f = mode_array(G,nb,m);
+    const int size = G.p->imax*G.p->jmax*(G.p->kmax+2);
+    
+    for(int k=0; k<3; ++k)
+    if(a(k)!=0.0)
+    {
+        const double *t = tr[k];
+        const double ak = a(k);
+        
+        for(int n=0; n<size; ++n)
+        f[n] -= ak*t[n];
+    }
 }
 
 fnpf_laplace* fnpf_6DOF::laplace(fnpf_laplace *pl)
@@ -584,7 +646,11 @@ void fnpf_6DOF::forces(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, fnp
     
     // added mass: unit-mode solves of the free DOFs, once per time step, with X 28 every X 28 steps
     // (am_due; the rows and columns of fixed or prescribed DOFs are not used in the motion); with
-    // several bodies the modes of body nb also give its cross added mass on all other bodies
+    // several bodies the modes of body nb also give its cross added mass on all other bodies.  Every
+    // body solves its modes from its own last solution (psib), the rotations moved to the new centre
+    // of gravity (mode_shift; the poses of the last refresh: am_c before am_due)
+    const std::vector<Eigen::Vector3d> c_last = am_c;
+    const bool c_known = (am_count>=0 && (int)c_last.size()==nbody);
     const bool refresh = am_due(p,iter);
     
     if(refresh && nbody>1)
@@ -599,16 +665,19 @@ void fnpf_6DOF::forces(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, fnp
 
         for(int m=0; m<6; ++m)
         if(computeA && psi[m]!=nullptr && !fb_obj[nb]->dof_fixed_fnpf(p,m))
-        pm[m] = psi[m];
+        pm[m] = mode_array(g0,nb,m);
 
         for(int m=0; m<6; ++m)
         if(pm[m]!=nullptr)
         {
+            if(c_known)
+            mode_shift(g0,nb,m,pm,fb_obj[nb]->fnpf_cog()-c_last[nb]);
+            
             zero_face(g0);
             fb_obj[nb]->face_data_fnpf(p,c,pgc,m,c->FBF,c->FBu,c->FBv,c->FBw);
             exchange_face(g0,pgc);
             
-            solve_psi(p,c,pgc,psolv,plap,pf,psi[m],zeroslice,psi_slot(m,iter,false));
+            solve_psi(p,c,pgc,psolv,plap,pf,pm[m],zeroslice,psi_slot(m,iter,false,nb));
         }
         
         if(computeA && nbody>1)
@@ -1148,6 +1217,8 @@ void fnpf_6DOF::free_grid(fnpf_6DOF_grid &G)
     delete [] G.zero;
     for(int m=0; m<6; ++m)
     delete [] G.psi[m];
+    for(double *a : G.psib)
+    delete [] a;
     delete [] G.mark;
     for(auto q : G.h1) delete [] q;
     for(auto q : G.h2) delete [] q;
@@ -1208,6 +1279,10 @@ void fnpf_6DOF::amr_grids(lexer *p, ghostcell *pgc)
         for(int m=0; m<6; ++m)
         if(psi[m]!=nullptr)
         pp->Darray(G.psi[m],size);
+        G.psib.assign(g0.psib.size(),nullptr);
+        for(size_t e=0; e<g0.psib.size(); ++e)
+        if(g0.psib[e]!=nullptr)
+        pp->Darray(G.psib[e],size);
         G.mark = new int[size]();
         G.foot = new slice4(pp);
         G.psiD = new slice4(pp);
@@ -1271,6 +1346,21 @@ void fnpf_6DOF::amr_fresh(ghostcell *pgc)
             amr->prolong_cols(&fg[0],nd);
         }
         
+        // several bodies: the unit modes of the bodies 1, 2, ...
+        for(size_t e=0; e<g0.psib.size(); ++e)
+        {
+            fg[0] = g0.psib[e];
+            vector<char> nd = need;
+            for(size_t k=0; k<gp.size(); ++k)
+            {
+                fg[k+1] = (gp[k].psib.size()>e) ? gp[k].psib[e] : nullptr;
+                if(fg[k+1]==nullptr)
+                nd[k] = 0;
+            }
+            if(fg[0]!=nullptr)
+            amr->prolong_cols(&fg[0],nd);
+        }
+        
         for(auto &G : gp)
         G.fresh = false;
     }
@@ -1324,9 +1414,9 @@ void fnpf_6DOF::amr_surface(lexer *p, ghostcell *pgc, int id, slice &eta, slice 
     }
 }
 
-// psi solve on all grids: m -1 psi_0 with the free-surface data psiD, m >= 0 the unit mode m
-// with homogeneous free-surface data
-void fnpf_6DOF::solve_psi_amr(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, fnpf_fsf *pf, int m, bool withD, int slot)
+// psi solve on all grids: m -1 psi_0 with the free-surface data psiD, m >= 0 the unit mode m of body
+// nb with homogeneous free-surface data
+void fnpf_6DOF::solve_psi_amr(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, fnpf_fsf *pf, int m, bool withD, int slot, int nb)
 {
     const double t0 = MPI_Wtime();
     const double ts = psi_time(p,slot);
@@ -1355,7 +1445,7 @@ void fnpf_6DOF::solve_psi_amr(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *pso
     for(int g=0; g<ng; ++g)
     {
         fnpf_6DOF_grid &G = (g==0) ? g0 : gp[g-1];
-        fs[g] = (m<0) ? G.psi0 : G.psi[m];
+        fs[g] = (m<0) ? G.psi0 : mode_array(G,nb,m);
         Ds[g] = withD ? static_cast<slice*>(G.psiD) : static_cast<slice*>(G.zeroslice);
         psi_guess(G,slot,fs[g],ts);
     }
@@ -1473,22 +1563,26 @@ void fnpf_6DOF::forces_amr(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv,
     // added mass: unit-mode solves of the free DOFs, once per time step, with X 28 every X 28 steps
     // (am_due; rows and columns of fixed or prescribed DOFs are not used in the motion); with several
     // bodies the modes of body nb also give its cross added mass on all other bodies (one patch per
-    // body, G 12)
+    // body, G 12).  Start values as in forces(): each body's own modes, the rotations moved to the new
+    // centre of gravity on every grid
+    const std::vector<Eigen::Vector3d> c_last = am_c;
+    const bool c_known = (am_count>=0 && (int)c_last.size()==nbody);
     const bool refresh = am_due(p,iter);
     
     if(refresh && nbody>1)
     for(auto &A : Across)
     A.setZero();
 
-    // psi arrays of grid G restricted to the solved modes
-    auto modes = [&](fnpf_6DOF_grid &G, const bool *on, double **out)
+    // psi arrays of the modes of body nbm on grid G, restricted to the solved modes
+    auto modes = [&](fnpf_6DOF_grid &G, int nbm, const bool *on, double **out)
     {
         for(int m=0; m<6; ++m)
-        out[m] = on[m] ? G.psi[m] : nullptr;
+        out[m] = on[m] ? mode_array(G,nbm,m) : nullptr;
     };
 
     // hull integral of body nbi over all grids, every triangle on the finest grid that holds its centroid
-    auto hull_sum = [&](int nbi, const bool *on, bool computeA, sixdof_obj_fnpf::fnpf_force_sum &S, bool zero_psi0)
+    // (the unit modes of body nbm)
+    auto hull_sum = [&](int nbi, int nbm, const bool *on, bool computeA, sixdof_obj_fnpf::fnpf_force_sum &S, bool zero_psi0)
     {
         fb_obj[nbi]->forces_fnpf_zero(p,S);
         
@@ -1502,7 +1596,7 @@ void fnpf_6DOF::forces_amr(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv,
             };
             const double del = (g<0) ? 0.5*fb_obj[nbi]->fnpf_dsm() : G.del;
             double *pm[6];
-            modes(G,on,pm);
+            modes(G,nbm,on,pm);
             fb_obj[nbi]->forces_fnpf_sum(G.p,G.c,zero_psi0 ? G.zero : G.psi0,pm,computeA,del,&own,S);
         }
     };
@@ -1518,8 +1612,21 @@ void fnpf_6DOF::forces_amr(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv,
         for(int m=0; m<6; ++m)
         if(on[m])
         {
+            if(c_known && m>=3)
+            {
+                const Eigen::Vector3d d = fb_obj[nb]->fnpf_cog()-c_last[nb];
+                double *tr[3];
+                for(int g=-1; g<(int)gp.size(); ++g)
+                {
+                    fnpf_6DOF_grid &G = (g<0) ? g0 : gp[g];
+                    for(int k=0; k<3; ++k)
+                    tr[k] = on[k] ? mode_array(G,nb,k) : nullptr;
+                    mode_shift(G,nb,m,tr,d);
+                }
+            }
+            
             face(m,nb);
-            solve_psi_amr(p,c,pgc,psolv,pf,m,false,psi_slot(m,iter,false));
+            solve_psi_amr(p,c,pgc,psolv,pf,m,false,psi_slot(m,iter,false,nb),nb);
         }
 
         if(computeA && nbody>1)
@@ -1527,12 +1634,12 @@ void fnpf_6DOF::forces_amr(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv,
         if(nb2!=nb)
         {
             sixdof_obj_fnpf::fnpf_force_sum S2;
-            hull_sum(nb2,on,true,S2,true);
+            hull_sum(nb2,nb,on,true,S2,true);
             fb_obj[nb2]->added_mass_from_sum(pgc,S2,Across[nb2*nbody+nb]);
         }
 
         sixdof_obj_fnpf::fnpf_force_sum S;
-        hull_sum(nb,on,computeA,S,false);
+        hull_sum(nb,nb,on,computeA,S,false);
         
         fb_obj[nb]->forces_fnpf_set(p,pgc,S,computeA);
 

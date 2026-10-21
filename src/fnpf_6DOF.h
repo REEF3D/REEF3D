@@ -77,6 +77,9 @@ struct fnpf_6DOF_grid
     double del = 0.0;               // load sampling distance off the hull
     double *psi0 = nullptr;
     double *psi[6] = {nullptr,nullptr,nullptr,nullptr,nullptr,nullptr};
+    // several bodies (X 20): the unit modes of the bodies 1, 2, ... [6*(nb-1)+m] (body 0: psi), each
+    // body's own last solution as the start value of its next unit-mode solve
+    vector<double*> psib;
     double *zero = nullptr;
     int *mark = nullptr;
     vector<int> todo;               // scratch: the open body nodes (extrapolate, body_velocities), the footprint columns
@@ -163,13 +166,19 @@ private:
     void motion(lexer*, fdm_fnpf*, ghostcell*, int);
     void footprint(fnpf_6DOF_grid&, ghostcell*, slice&, slice&, int, int);
     void solve_psi(lexer*, fdm_fnpf*, ghostcell*, solver*, fnpf_laplace*, fnpf_fsf*, double*, slice&, int);
-    void solve_psi_amr(lexer*, fdm_fnpf*, ghostcell*, solver*, fnpf_fsf*, int, bool, int);
+    void solve_psi_amr(lexer*, fdm_fnpf*, ghostcell*, solver*, fnpf_fsf*, int, bool, int, int nb=0);
     // X 35: the initial guess of a psi solve of kind slot at time t from the last two of the kind
-    // (psi_slot: 0-3 psi_0 of the stage, 4-9 the unit modes, 10-13 psi_0 of a finest-level stage)
-    static int psi_slot(int m, int iter, bool level) { return m>=0 ? 4+m : (level ? 10+iter : iter); }
+    // (psi_slot: 0-3 psi_0 of the stage, 4-9 the unit modes, 10-13 psi_0 of a finest-level stage,
+    // 14 + 6 (nb-1) + m the unit modes of the bodies nb = 1, 2, ...)
+    static int psi_slot(int m, int iter, bool level, int nb=0) { return m>=0 ? (nb==0 ? 4+m : 14+6*(nb-1)+m) : (level ? 10+iter : iter); }
     double psi_time(lexer*, int) const;
     void psi_guess(fnpf_6DOF_grid&, int, double*, double);
     void psi_record(fnpf_6DOF_grid&, int, const double*, double);
+    // the unit mode m of body nb on grid G (allocated when missing)
+    double* mode_array(fnpf_6DOF_grid&, int nb, int m);
+    // start value of the rotation mode m (3-5) of body nb on grid G: its last solution moved to the new
+    // centre of gravity with the translation modes tr of this refresh (d: c now - c of the last one)
+    void mode_shift(fnpf_6DOF_grid&, int nb, int m, double *const *tr, const Eigen::Vector3d &d);
     void zero_face(fnpf_6DOF_grid&);
     void exchange_face(fnpf_6DOF_grid&, ghostcell*);
     void free_grid(fnpf_6DOF_grid&);

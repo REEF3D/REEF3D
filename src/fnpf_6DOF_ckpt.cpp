@@ -39,6 +39,7 @@ Author: Hans Bihs
 #include"reefamr.h"
 #include<cmath>
 #include<limits>
+#include<string>
 
 void fnpf_6DOF::grid_fields(fnpf_6DOF_grid *G, const ckpt_fd &fd, const ckpt_fi &fi)
 {
@@ -47,6 +48,14 @@ void fnpf_6DOF::grid_fields(fnpf_6DOF_grid *G, const ckpt_fd &fd, const ckpt_fi 
     fd("fb_psi0",'F',G!=nullptr ? G->psi0 : nullptr);
     for(int m=0; m<6; ++m)
     fd(pn[m],'F',G!=nullptr ? G->psi[m] : nullptr);
+    // several bodies: the unit modes of the bodies 1, 2, ... (fb_psi_<body>_<mode>)
+    for(int nb=1; nb<nbody; ++nb)
+    for(int m=0; m<6; ++m)
+    {
+        const size_t e = 6*(nb-1)+m;
+        const std::string name = "fb_psi_"+std::to_string(nb)+"_"+std::to_string(m);
+        fd(name.c_str(),'F',(G!=nullptr && G->psib.size()>e) ? G->psib[e] : nullptr);
+    }
     fi("fb_mark",'F',G!=nullptr ? G->mark : nullptr);
     fd("fb_foot",'S',G!=nullptr ? G->foot->V : nullptr);
     fd("fb_psiD",'S',G!=nullptr ? G->psiD->V : nullptr);
