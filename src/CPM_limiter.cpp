@@ -217,6 +217,23 @@ void CPM::limiter(lexer *p, fdm *a, ghostcell *pgc, double *X0, double *Y0, doub
     const int MAXIT = 50;
     int it;
     
+    // the moves of the passes (state 2 or 4), in the order of the parcels
+    std::vector<int> &mv = lm_mv;
+    mv.clear();
+    
+    for(n=0;n<P.index;++n)
+    if(P.Flag[n]==ACTIVE && (state[n]==2 || state[n]==4))
+    mv.push_back(n);
+    
+    // the cells a pass works on: the local targets of the moves and the first layer of cells at the sides
+    // the summing exchange adds to (subdomain and serial periodic sides); the counts of all other cells are
+    // zero, as the fields are, so the passes touch these cells only (the result is that of all cells)
+    limiter_shell(p);
+    
+    const int ny = p->knoy+2, nz = p->knoz+2;
+    auto cid = [&](int ii, int jj, int kk) {return (size_t(ii+1)*ny + jj+1)*nz + kk+1;};
+    std::vector<int> &tc_i = lm_ti, &tc_j = lm_tj, &tc_k = lm_tk;
+    
     for(it=0; it<MAXIT; ++it)
     {
         // the four arrival counts per cell (time bins) are whole numbers: they are counted packed in one
@@ -224,21 +241,33 @@ void CPM::limiter(lexer *p, fdm *a, ghostcell *pgc, double *X0, double *Y0, doub
         // bin and cell), summed to the owner in one exchange and unpacked there (one exchange instead of four)
         const double bw[4] = {1.0, 4096.0, 4096.0*4096.0, 4096.0*4096.0*4096.0};
         
-        for(i=-1;i<p->knox+1;++i)
-        for(j=-1;j<p->knoy+1;++j)
-        for(k=-1;k<p->knoz+1;++k)
-        {
-        Lout(i,j,k) = 0.0;
-        Lin(i,j,k) = 0.0;
-        Lh0(i,j,k) = 0.0;
-        Lloc(i,j,k) = 0.0;
-        }
+        // back to zero: the cells of the moves of the last pass and the side layers of the exchange
+        if(it>0)
+        limiter_clear(p);
         
         // volume leaving (local source) and arriving (any target, summed to the owner);
         // arrivals that can be rejected are counted per arrival time bin, and the local ones per cell
-        for(n=0;n<P.index;++n)
-        if(P.Flag[n]==ACTIVE && (state[n]==2 || state[n]==4))
+        tc_i.clear(); tc_j.clear(); tc_k.clear();
+        
+        for(int qs=0;qs<int(lm_sh_i.size());++qs)
+        if(lm_sh_in[qs])
         {
+            const size_t c = cid(lm_sh_i[qs],lm_sh_j[qs],lm_sh_k[qs]);
+            
+            if(!lm_mark[c])
+            {
+                lm_mark[c]=1;
+                tc_i.push_back(lm_sh_i[qs]); tc_j.push_back(lm_sh_j[qs]); tc_k.push_back(lm_sh_k[qs]);
+            }
+        }
+        
+        for(size_t q=0;q<mv.size();++q)
+        {
+            n = mv[q];
+            
+            if(state[n]!=2 && state[n]!=4)
+            continue;
+            
             if(local(si[n],sj[n],sk[n]))
             Lout(si[n],sj[n],sk[n]) += vpar;
             
@@ -251,13 +280,32 @@ void CPM::limiter(lexer *p, fdm *a, ghostcell *pgc, double *X0, double *Y0, doub
             if(local(ci[n],cj[n],ck[n]))
             Lloc(ci[n],cj[n],ck[n]) += 1.0;
             }
+            
+            if(local(ci[n],cj[n],ck[n]))
+            {
+                const size_t c = cid(ci[n],cj[n],ck[n]);
+                
+                if(!lm_mark[c])
+                {
+                    lm_mark[c]=1;
+                    tc_i.push_back(ci[n]); tc_j.push_back(cj[n]); tc_k.push_back(ck[n]);
+                }
+            }
         }
+        
+        for(size_t q=0;q<tc_i.size();++q)
+        lm_mark[cid(tc_i[q],tc_j[q],tc_k[q])]=0;
         
         pfold(p,Lh0);
         pgc->start4a_sum(p,Lh0,1);
         
-        BASELOOP
+        for(size_t q=0;q<tc_i.size();++q)
         {
+            i=tc_i[q]; j=tc_j[q]; k=tc_k[q];
+            
+            if(p->flag4[IJK]<=OBJ_FLAG)
+            continue;
+            
             long long v = llround(Lh0(i,j,k));
             const long long b1 = 4096;
             Lh0(i,j,k) = double(v%b1);
@@ -275,8 +323,13 @@ void CPM::limiter(lexer *p, fdm *a, ghostcell *pgc, double *X0, double *Y0, doub
         //   Ltc in [-1,NB-1]: arrivals from other ranks, whole bins are rejected
         int nover=0;
         
-        BASELOOP
+        for(size_t q=0;q<tc_i.size();++q)
         {
+            i=tc_i[q]; j=tc_j[q]; k=tc_k[q];
+            
+            if(p->flag4[IJK]<=OBJ_FLAG)
+            continue;
+            
             double V = p->DXN[IP]*p->DYN[JP]*p->DZN[KP];
             // capacity: packing of the contact network theta_0(I) (theta_0 at rest, lower in sheared layers)
             double t0 = p->Q12==2 ? T0e(i,j,k) : theta_0;
@@ -332,9 +385,10 @@ void CPM::limiter(lexer *p, fdm *a, ghostcell *pgc, double *X0, double *Y0, doub
         // reject: bins above the cut-off, exact for cells with local arrivals only
         order.clear();
         
-        for(n=0;n<P.index;++n)
-        if(P.Flag[n]==ACTIVE && state[n]==2)
+        for(size_t q=0;q<mv.size();++q)
+        if(state[mv[q]]==2)
         {
+            n = mv[q];
             double tc = Ltc(ci[n],cj[n],ck[n]);
             
             if(tc>double(NB) && tc<2.0*NB-0.5 && local(ci[n],cj[n],ck[n]))
@@ -368,6 +422,9 @@ void CPM::limiter(lexer *p, fdm *a, ghostcell *pgc, double *X0, double *Y0, doub
     }
     
     nit_step = MAX(nit_step,it);
+    
+    // the counts back to zero for the next call
+    limiter_clear(p);
     
     // still over capacity after MAXIT: back to the start for all limited moves
     if(it==MAXIT)
@@ -489,10 +546,79 @@ void CPM::limiter(lexer *p, fdm *a, ghostcell *pgc, double *X0, double *Y0, doub
             Lloc(i,j,k) += vpar;
             Lloc(si[n],sj[n],sk[n]) -= vpar;
         }
+        
+        for(i=-1;i<p->knox+1;++i)
+        for(j=-1;j<p->knoy+1;++j)
+        for(k=-1;k<p->knoz+1;++k)
+        Lloc(i,j,k) = 0.0;
     }
     
     nrej_step += nrej;
     
+}
+
+// the cells of the sides at which the summing exchange (start4a_sum) and the periodic fold (pfold) add to or
+// write the counts of the grid-limited step: the first layer of cells (lm_sh_in = 1) and the ghost layer (0)
+// at the subdomain sides and the serial periodic sides; the grid is fixed, the lists are built once
+void CPM::limiter_shell(lexer *p)
+{
+    if(lm_sh_ok)
+    return;
+    
+    lm_sh_ok = 1;
+    lm_sh_i.clear(); lm_sh_j.clear(); lm_sh_k.clear(); lm_sh_in.clear();
+    lm_mark.assign(size_t(p->knox+2)*(p->knoy+2)*(p->knoz+2),0);
+    
+    auto add = [&](int ii, int jj, int kk, int in)
+    {
+        lm_sh_i.push_back(ii); lm_sh_j.push_back(jj); lm_sh_k.push_back(kk); lm_sh_in.push_back(in);
+    };
+    
+    const bool xm = p->nb1>=0 || perx==1, xp = p->nb4>=0 || perx==1;
+    const bool ym = p->j_dir==1 && (p->nb3>=0 || pery==1), yp = p->j_dir==1 && (p->nb2>=0 || pery==1);
+    const bool zm = p->nb5>=0, zp = p->nb6>=0;
+    
+    for(int ii=-1;ii<=p->knox;++ii)
+    for(int jj=-1;jj<=p->knoy;++jj)
+    for(int kk=-1;kk<=p->knoz;++kk)
+    {
+        const bool ghost = ii<0 || ii>=p->knox || jj<0 || jj>=p->knoy || kk<0 || kk>=p->knoz;
+        
+        if(ghost)
+        {
+            if((xm && ii==-1) || (xp && ii==p->knox) || (ym && jj==-1) || (yp && jj==p->knoy) || (zm && kk==-1) || (zp && kk==p->knoz))
+            add(ii,jj,kk,0);
+        }
+        else
+        {
+            if((xm && ii==0) || (xp && ii==p->knox-1) || (ym && jj==0) || (yp && jj==p->knoy-1) || (zm && kk==0) || (zp && kk==p->knoz-1))
+            add(ii,jj,kk,1);
+        }
+    }
+}
+
+// the counts of the moves of the last pass and of the side layers back to zero
+void CPM::limiter_clear(lexer *p)
+{
+    auto local = [&](int ii, int jj, int kk) {return ii>=0 && ii<p->knox && jj>=0 && jj<p->knoy && kk>=0 && kk<p->knoz;};
+    
+    for(size_t q=0;q<lm_mv.size();++q)
+    {
+        const int m = lm_mv[q];
+        
+        if(local(lm_si[m],lm_sj[m],lm_sk[m]))
+        Lout(lm_si[m],lm_sj[m],lm_sk[m]) = 0.0;
+        
+        Lin(lm_ci[m],lm_cj[m],lm_ck[m]) = 0.0;
+        Lh0(lm_ci[m],lm_cj[m],lm_ck[m]) = 0.0;
+        Lloc(lm_ci[m],lm_cj[m],lm_ck[m]) = 0.0;
+    }
+    
+    for(size_t q=0;q<lm_sh_i.size();++q)
+    {
+        Lin(lm_sh_i[q],lm_sh_j[q],lm_sh_k[q]) = 0.0;
+        Lh0(lm_sh_i[q],lm_sh_j[q],lm_sh_k[q]) = 0.0;
+    }
 }
 
 // largest occupancy relative to theta_max, diagnostic

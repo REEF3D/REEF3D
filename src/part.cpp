@@ -76,6 +76,7 @@ part::part(lexer *p, ghostcell *pgc)
 
     // parallel
     capacity_para=1000;
+    capacity_buf=1000;
 
     p->Iarray(sendid,6,capacity_para);
 

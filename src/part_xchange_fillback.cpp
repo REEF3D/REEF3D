@@ -25,20 +25,6 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"slice.h"
 
-void part::xchange_fillback(lexer *p, ghostcell *pgc, double *F)
-{
-    index_empty = index_empty0;
-
-    // fill recv into F
-    // Empty[0..index_empty-1] holds the free slots
-    for(n=0;n<6;++n)
-    for(q=0;q<recvnum[n];++q)
-    {
-        --index_empty;
-        F[Empty[index_empty]] = recv[n][q];
-    }
-}
-
 void part::xchange_fillback_flag(lexer *p, ghostcell *pgc, slice &bedch, int mode)
 {
     index_empty = index_empty0;

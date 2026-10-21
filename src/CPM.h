@@ -82,6 +82,11 @@ public:
     void topo_column(lexer*, fdm*, ghostcell*);
     void topo_iso(lexer*, ghostcell*, field&);
     double ptopo(lexer*, fdm*, double, double, double);
+    // ptopo at a parcel position, kept per parcel with the position and the step (the bed level sets do not
+    // change during the sub-steps of a step, the grains at rest ask for the same positions every sub-step)
+    double ptopo_p(lexer*, fdm*, int, double, double, double);
+    std::vector<double> tpX,tpY,tpZ,tpV;
+    std::vector<int> tpS;
     slice4 zbf,blZb,zbt;
     int zbf_ini=0, zbl_ok=0;
     double zbl(sediment_fdm*, int, int);
@@ -193,6 +198,10 @@ private:
     void volfrac_update(lexer*, ghostcell*, sediment_fdm*, double*, double*, double*, double*, double*, double*);
     void smooth(lexer*, ghostcell*, field&, int);
     double kvol(lexer*, int, int, int);
+    double kvol_calc(lexer*, int, int, int);
+    std::vector<double> kvc;   // kvol of the nodes -1 .. kno (the grid is fixed)
+
+
     void kernel(lexer*, double, double, double, int=-1);
     bool wallcell(lexer*, int, int, int);
     
@@ -233,6 +242,12 @@ private:
     std::vector<int> lm_ci,lm_cj,lm_ck,lm_si,lm_sj,lm_sk;
     std::vector<double> lm_t,lm_ub;
     std::vector<char> lm_state;
+    // the moves of the passes and the cells of a pass (CPM_limiter.cpp)
+    std::vector<int> lm_mv,lm_ti,lm_tj,lm_tk,lm_sh_i,lm_sh_j,lm_sh_k;
+    std::vector<char> lm_sh_in,lm_mark;
+    int lm_sh_ok=0;
+    void limiter_shell(lexer*);
+    void limiter_clear(lexer*);
 
     // relax
     void relax_ini(lexer*);
@@ -297,6 +312,14 @@ private:
     // exposure of the parcels of the bed (S 10 1): the top grain layer of each bed column
     void exposure_update(lexer*, fdm*);
     std::vector<double> expo;
+    std::vector<std::vector<int>> bx_cand,bx_mov;
+    std::vector<double> sl_hz;
+    std::vector<int> sl_cn,sl_list;
+    std::vector<size_t> sl_off,sl_head;
+    std::vector<std::vector<double>> bx_rate;
+    std::vector<int> ex_col;
+    std::vector<size_t> ex_off,ex_fill;
+    std::vector<std::pair<double,int>> ex_list;
     double expo_w=-1.0;
     // sub-grid bedload layer (Q 58, S 10 1), see CPM_bedload.cpp
     void bedload_columns(lexer*, fdm*, ghostcell*, sediment_fdm*);

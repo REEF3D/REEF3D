@@ -58,11 +58,9 @@ public:
     void xchange(lexer*, ghostcell*,slice&,int);
     void xchange_count(lexer*, ghostcell*,int);
     void xchange_sendid(lexer*, ghostcell*,int);
-    void xchange_fill(lexer*, ghostcell*, int, double*);
     void xchange_fill_flag(lexer*, ghostcell*,int);
-    void xchange_fillback(lexer*, ghostcell*, double*);
     void xchange_fillback_flag(lexer*, ghostcell*,slice&,int);
-    void xchange_resize(lexer*, ghostcell*);
+    void xchange_resize(lexer*, ghostcell*, int);
 
     // data arrays
     double *U,*V,*W;
@@ -90,7 +88,7 @@ public:
     int index_empty,index_empty0; //
     int numactive,numempty;   // number of active particles
     int capacity; // length of allocated array
-    int capacity_para,maxnum;
+    int capacity_para,capacity_buf,maxnum;
 
     int n,q;
 private:

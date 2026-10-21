@@ -90,6 +90,28 @@ double CPM::ptopo(lexer *p, fdm *a, double xp, double yp, double zp)
     return p->ccipol4_b(a->topo,xp,yp,zp);
 }
 
+double CPM::ptopo_p(lexer *p, fdm *a, int q, double xp, double yp, double zp)
+{
+    if(q<0)
+    return ptopo(p,a,xp,yp,zp);
+    
+    if(size_t(q)>=tpV.size())
+    {
+        const size_t N = MAX(size_t(P.index), size_t(q)+1);
+        tpX.resize(N,0.0); tpY.resize(N,0.0); tpZ.resize(N,0.0); tpV.resize(N,0.0);
+        tpS.resize(N,-1);
+    }
+    
+    if(tpS[q]==p->count && tpX[q]==xp && tpY[q]==yp && tpZ[q]==zp)
+    return tpV[q];
+    
+    const double v = ptopo(p,a,xp,yp,zp);
+    
+    tpX[q]=xp; tpY[q]=yp; tpZ[q]=zp; tpV[q]=v; tpS[q]=p->count;
+    
+    return v;
+}
+
 // bed elevation from the topo level set
 void CPM::bedzh_update(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
 {

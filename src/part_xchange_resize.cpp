@@ -24,9 +24,9 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"ghostcell.h"
 
-void part::xchange_resize(lexer *p, ghostcell *pgc)
+void part::xchange_resize(lexer *p, ghostcell *pgc, int na)
 {
-    // check send / recv size
+    // check send / recv size: sendid holds a parcel per entry, send and recv na values per parcel
     maxnum=0;
 
     for(q=0;q<6;++q)
@@ -37,12 +37,17 @@ void part::xchange_resize(lexer *p, ghostcell *pgc)
 
     if(maxnum>capacity_para)
     {
-        p->Dresize(send,6,6,capacity_para,maxnum);
-        p->Dresize(recv,6,6,capacity_para,maxnum);
-
         p->Iresize(sendid,6,6,capacity_para,maxnum);
 
         capacity_para = maxnum;
+    }
+
+    if(na*maxnum>capacity_buf)
+    {
+        p->Dresize(send,6,6,capacity_buf,na*maxnum);
+        p->Dresize(recv,6,6,capacity_buf,na*maxnum);
+
+        capacity_buf = na*maxnum;
     }
 
     // check arrays

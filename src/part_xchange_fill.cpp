@@ -24,13 +24,6 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"ghostcell.h"
 
-void part::xchange_fill(lexer *p, ghostcell *pgc, int mode, double *F)
-{
-    for(n=0;n<6;++n)
-    for(q=0;q<sendnum[n];++q)
-    send[n][q] = F[sendid[n][q]];
-}
-
 void part::xchange_fill_flag(lexer *p, ghostcell *pgc, int mode)
 {
     for(n=0;n<6;++n)

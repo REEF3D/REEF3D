@@ -306,8 +306,8 @@ void CPM::bedload_slide(lexer *p, fdm *a, sediment_fdm *s)
     const double vpar = P.ParcelFactor*Vp;
     
     // bed level of the columns (updated by the moves) and the bed grains of each column, top first
-    std::vector<double> zc(size_t(p->knox)*nj);
-    std::vector<std::vector<int>> col(size_t(p->knox)*nj);
+    const size_t ncol = size_t(p->knox)*nj;
+    std::vector<double> zc(ncol);
     
     for(i=0;i<p->knox;++i)
     for(j=0;j<nj;++j)
@@ -337,6 +337,19 @@ void CPM::bedload_slide(lexer *p, fdm *a, sediment_fdm *s)
     
     int ic,jc;
     
+    // the cell height at the bed level of each column
+    std::vector<double> &hz = sl_hz;
+    hz.resize(ncol);
+    
+    for(size_t c=0;c<ncol;++c)
+    hz[c] = p->DZN[MAX(0, MIN(p->knoz-1, p->posc_k(zc[c])))+marge];
+    
+    // the grains of the bed surface of each column (within a cell of its bed level), in flat lists in the order
+    // of the parcels, then sorted from the top; a column's list is used from its head on
+    std::vector<int> &cn = sl_cn;
+    cn.assign(P.index,-1);
+    sl_off.assign(ncol+1,0);
+    
     for(n=0;n<P.index;++n)
     if(P.Flag[n]==ACTIVE && P.Hop[n]==0.0)
     {
@@ -345,16 +358,32 @@ void CPM::bedload_slide(lexer *p, fdm *a, sediment_fdm *s)
         if(ic<0 || ic>=p->knox || jc<0 || jc>=nj)
         continue;
         
-        // grains of the bed surface: within a cell below the bed level of the column
-        double zb = zc[size_t(ic)*nj + jc];
-        int kc = MAX(0, MIN(p->knoz-1, p->posc_k(zb)));
+        const size_t c = size_t(ic)*nj + jc;
         
-        if(P.Z[n] > zb - p->DZN[kc+marge] && P.Z[n] < zb + p->DZN[kc+marge])
-        col[size_t(ic)*nj + jc].push_back(n);
+        // grains of the bed surface: within a cell below the bed level of the column
+        double zb = zc[c];
+        
+        if(P.Z[n] > zb - hz[c] && P.Z[n] < zb + hz[c])
+        {
+            cn[n] = int(c);
+            ++sl_off[c+1];
+        }
     }
     
-    for(auto &c : col)
-    std::sort(c.begin(), c.end(), [&](int q1, int q2){return P.Z[q1] > P.Z[q2];});
+    for(size_t c=0;c<ncol;++c)
+    sl_off[c+1] += sl_off[c];
+    
+    sl_list.resize(sl_off[ncol]);
+    sl_head.assign(sl_off.begin(), sl_off.end()-1);
+    
+    for(n=0;n<P.index;++n)
+    if(cn[n]>=0)
+    sl_list[sl_head[cn[n]]++] = int(n);
+    
+    sl_head.assign(sl_off.begin(), sl_off.end()-1);
+    
+    for(size_t c=0;c<ncol;++c)
+    std::sort(sl_list.begin()+sl_off[c], sl_list.begin()+sl_off[c+1], [&](int q1, int q2){return P.Z[q1] > P.Z[q2];});
     
     auto pair = [&](int i1, int j1, int i2, int j2, double dist)
     {
@@ -379,12 +408,12 @@ void CPM::bedload_slide(lexer *p, fdm *a, sediment_fdm *s)
         
         const double Ah = p->DXN[ih+marge]*p->DYN[jh+marge];
         const double Al = p->DXN[il+marge]*p->DYN[jl+marge];
-        auto &top = col[size_t(ih)*nj + jh];
+        const size_t ch = size_t(ih)*nj + jh;
         
-        while(zh - zl > p->Q75*dist && !top.empty())
+        while(zh - zl > p->Q75*dist && sl_head[ch]<sl_off[ch+1])
         {
-            int q = top.front();
-            top.erase(top.begin());
+            int q = sl_list[sl_head[ch]];
+            ++sl_head[ch];
             
             double xs = p->XN[il+marge] + (0.25 + 0.5*double(q%97)/96.0)*p->DXN[il+marge];
             double ys = p->j_dir==1 ? p->YN[jl+marge] + (0.25 + 0.5*double(q%89)/88.0)*p->DYN[jl+marge] : P.Y[q];
@@ -420,8 +449,24 @@ void CPM::bedload_exchange(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, do
     const double vpar = P.ParcelFactor*Vp;
     const bool hasexpo = expo.size()==size_t(P.index);
 
-    std::vector<std::vector<int>> cand(nc), mov(nc);
-    std::vector<std::vector<double>> rate(nc);
+    // per column: the exposed candidates with their pickup rates and the moving parcels (kept between the
+    // sub-steps, emptied here)
+    if(bx_cand.size()!=size_t(nc))
+    {
+        bx_cand.assign(nc,std::vector<int>());
+        bx_mov.assign(nc,std::vector<int>());
+        bx_rate.assign(nc,std::vector<double>());
+    }
+    
+    std::vector<std::vector<int>> &cand = bx_cand, &mov = bx_mov;
+    std::vector<std::vector<double>> &rate = bx_rate;
+    
+    for(int c=0;c<nc;++c)
+    {
+        cand[c].clear();
+        mov[c].clear();
+        rate[c].clear();
+    }
 
     int ic,jc;
     double ub,vb,te;
@@ -774,7 +819,7 @@ bool CPM::bed_asleep(lexer *p, fdm *a, int q, double xp, double yp, double zp)
     k = pck(p,q,zp);
     
     double psi = p->Q64*p->DZN[KP];
-    double phi = ptopo(p,a,xp,yp,zp);
+    double phi = ptopo_p(p,a,q,xp,yp,zp);
     
     if(phi + 1.5*psi <= -0.5*psi)
     {
