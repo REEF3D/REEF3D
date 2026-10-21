@@ -24,6 +24,7 @@ Authors: Tobias Martin, Hans Bihs
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"	
+#include"ckpt_pack.h"
 
 net_barQuasiStatic::net_barQuasiStatic(int number, lexer *p):nNet(number),f_(p),dt(p),frk1(p),frk2(p),L_(p), cutl(p), cutr(p)
 {
@@ -291,4 +292,50 @@ void net_barQuasiStatic::fillRhs_bag(lexer *p)
             index++;
         }
     } 
+}
+
+// checkpoints (P 48, I 45): the bar directions and the system (iterated from the last solution, the
+// tensions), the stretched bar lengths, the knots, the fluid at the knots, the print state
+void net_barQuasiStatic::ckpt_state(std::vector<double> &v) const
+{
+    ckpt_put w{v};
+    for(const MatrixXd *a : {&fi,&A,&B,&Bh})
+    w.md(*a);
+    w.ad(l,nf);
+    for(int n=0; n<nf; ++n)
+    {
+        w.ad(v_t[n],3);
+        w.ad(v_n[n],3);
+    }
+    for(int n=0; n<nK; ++n)
+    {
+        w.ad(K[n],3);
+        w.ad(K_[n],3);
+        w.ad(coupledField[n],4);
+    }
+    for(double x : {printtime,Fx,Fy,Fz})
+    w.d(x);
+}
+
+void net_barQuasiStatic::ckpt_restore(const std::vector<double> &v, size_t &k)
+{
+    ckpt_get r{v};
+    r.k = k;
+    for(MatrixXd *a : {&fi,&A,&B,&Bh})
+    r.md(*a);
+    r.ad(l,nf);
+    for(int n=0; n<nf; ++n)
+    {
+        r.ad(v_t[n],3);
+        r.ad(v_n[n],3);
+    }
+    for(int n=0; n<nK; ++n)
+    {
+        r.ad(K[n],3);
+        r.ad(K_[n],3);
+        r.ad(coupledField[n],4);
+    }
+    for(double *x : {&printtime,&Fx,&Fy,&Fz})
+    r.d(*x);
+    k = r.k;
 }

@@ -1,11 +1,11 @@
 {
- "description": "the restart (I 45 1) of fnpf_3d_coral_amr_fullscale_am4 from its latest checkpoint (step 14): the added mass of the checkpoint (fnpf_6DOF::ckpt_state version 2) until the next one is due; steps 15-20 bitwise those of the full run.",
+ "description": "the restart (I 45 14) of fnpf_3d_coral_amr_fullscale_am4 from its checkpoint at step 14 (the run also writes one at its end, I 45 1 would take that): the added mass of the checkpoint (fnpf_6DOF::ckpt_state version 2) until the next one is due; steps 15-20 bitwise those of the full run.",
  "solver": "fnpf",
  "np": 1,
  "steps": 20,
  "base": "fnpf_3d_coral_amr_fullscale_am4",
  "chain": [{"case": "fnpf_3d_coral_amr_fullscale_am4", "copy": ["REEF3D_Checkpoint"]}],
- "ctrl_set": {"I 45": "1"},
+ "ctrl_set": {"I 45": "14"},
  "tags": ["3d", "fnpf", "amr", "6dof", "floating", "coral", "fullscale", "checkpoint"],
  "covers": ["fnpf_6DOF::ckpt_restore version 2 (the added mass of X 28)"]
 }

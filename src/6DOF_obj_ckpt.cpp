@@ -23,13 +23,15 @@ Author: Hans Bihs
 //  A 6DOF body in checkpoints (P 48, I 45).  The state is the same on all ranks: the rigid body with
 //  its stage values and history (sixdof_rigidbody::ckpt), the loads of the last stage (the explicit
 //  schemes and the fictitious-mass term use them), the body velocities, the print times, and the
-//  state of the motion file, the mooring lines, the load models (ship) and the power take-off (X 500).  The arrays of the body on
+//  state of the motion file, the mooring lines, the load models (ship), the power take-off (X 500) and the
+//  nets (X 320).  The arrays of the body on
 //  the grid (its level set, Heaviside functions, forcing) are those of the solver's checkpoint.
 //  restore puts the trimesh at the pose (geom.transform) and sets the body velocities of the lexer.
 
 #include"6DOF_obj.h"
 #include"6DOF_motionext.h"
 #include"mooring.h"
+#include"net_interface.h"
 #include"lexer.h"
 #include"ghostcell.h"
 #include"ckpt_pack.h"
@@ -84,6 +86,9 @@ void sixdof_obj::ckpt_state(lexer *p, std::vector<double> &v)
 
     // the power take-off (X 500)
     part([&](std::vector<double> &s){ pto_ckpt_state(s); });
+
+    // the nets (X 320)
+    part([&](std::vector<double> &s){ if(pnetinter!=nullptr) pnetinter->ckpt_state(s); });
 }
 
 bool sixdof_obj::ckpt_restore(lexer *p, ghostcell *pgc, const std::vector<double> &v)
@@ -134,6 +139,13 @@ bool sixdof_obj::ckpt_restore(lexer *p, ghostcell *pgc, const std::vector<double
     else
     pto_ok = !pto_on_;
     if(!pto_ok)
+    return false;
+
+    // the nets (X 320; absent in checkpoints written before they were in them: refused with nets)
+    bool net_ok = !(p->X320>0 && pnetinter!=nullptr);
+    if(r.ok && r.k<v.size())
+    part([&](const std::vector<double> &s, size_t&){ net_ok = (pnetinter==nullptr) ? s.empty() : pnetinter->ckpt_restore(s); });
+    if(!net_ok)
     return false;
 
     // the pose: trimesh, body velocities and the lexer values of the body (CoG, angles, velocities)

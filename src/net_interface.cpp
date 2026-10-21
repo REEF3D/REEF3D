@@ -43,3 +43,37 @@ net_interface::~net_interface()
 {
 }
 
+
+void net_interface::ckpt_state(std::vector<double> &v) const
+{
+    v.push_back(double(pnet.size()));
+    for(const net *n : pnet)
+    {
+        std::vector<double> s;
+        n->ckpt_state(s);
+        v.push_back(double(s.size()));
+        v.insert(v.end(),s.begin(),s.end());
+    }
+}
+
+bool net_interface::ckpt_restore(const std::vector<double> &v)
+{
+    if(v.empty() || size_t(v[0])!=pnet.size())
+    return false;
+    size_t k = 1;
+    for(net *n : pnet)
+    {
+        if(k>=v.size())
+        return false;
+        const size_t len = size_t(v[k++]);
+        if(k+len>v.size())
+        return false;
+        const std::vector<double> s(v.begin()+k,v.begin()+k+len);
+        size_t j = 0;
+        n->ckpt_restore(s,j);
+        if(j!=len)
+        return false;
+        k += len;
+    }
+    return k==v.size();
+}

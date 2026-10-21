@@ -20,6 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Tobias Martin
 --------------------------------------------------------------------*/
 
+#include"reefckpt.h"
 #include<sys/stat.h>
 #include"net_barQuasiStatic.h"
 #include"lexer.h"
@@ -133,8 +134,10 @@ void net_barQuasiStatic::bag_ini(lexer *p, ghostcell *pgc)
         if(p->A10==6)
         sprintf(str,"./REEF3D_CFD_6DOF_Net/REEF3D_6DOF_net_max_force_%i.dat",nNet);
         
-        eTout.open(str);
-        eTout<<"time \t Tmax \t Fx \t Fy \t Fz"<<endl;
+        if(reefckpt_open(eTout,str,p->I45))   // I 45: continued from the checkpoint
+        {
+            eTout<<"time \t Tmax \t Fx \t Fy \t Fz"<<endl;
+        }
     }		
     printtime = 0.0;
 

@@ -24,6 +24,7 @@ Authors: Tobias Martin, Hans Bihs
 #define NET_H_
 
 #include<vector>
+#include<cstddef>
 #include <Eigen/Dense>
 
 class lexer;
@@ -51,6 +52,11 @@ public:
     virtual const EigenMat& getLagrangeForces()=0;
     virtual const EigenMat& getCollarVel()=0;
     virtual const EigenMat& getCollarPoints()=0;
+
+    // checkpoints (P 48, I 45): the state of the net over the steps, the same on all ranks (in the blob of
+    // its 6DOF body, net_interface::ckpt_state); restore after the initialisation of the net
+    virtual void ckpt_state(std::vector<double>&) const {}
+    virtual void ckpt_restore(const std::vector<double>&, size_t&) {}
 };
 
 #endif

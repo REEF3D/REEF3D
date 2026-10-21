@@ -42,6 +42,9 @@ struct ckpt_put
     void m(const Eigen::Matrix<T,R,C,O,MR,MC> &a) { for(int n=0; n<a.size(); ++n) v.push_back(double(a.data()[n])); }
     void vd(const std::vector<double> &a) { v.push_back(double(a.size())); v.insert(v.end(),a.begin(),a.end()); }
     void ad(const double *a, int n) { for(int q=0; q<n; ++q) v.push_back(a[q]); }
+    // a dynamic Eigen matrix with its size (taken back resized)
+    template<class T, int R, int C, int O, int MR, int MC>
+    void md(const Eigen::Matrix<T,R,C,O,MR,MC> &a) { v.push_back(double(a.rows())); v.push_back(double(a.cols())); m(a); }
 };
 
 struct ckpt_get
@@ -58,6 +61,15 @@ struct ckpt_get
     void m(Eigen::Matrix<T,R,C,O,MR,MC> &a) { if(has(size_t(a.size()))) for(int n=0; n<a.size(); ++n) a.data()[n] = T(v[k++]); }
     void vd(std::vector<double> &a) { if(!has(1)) return; const size_t n = size_t(v[k++]); if(!has(n)) return; a.assign(v.begin()+k,v.begin()+k+n); k += n; }
     void ad(double *a, int n) { if(has(size_t(n))) for(int q=0; q<n; ++q) a[q] = v[k++]; }
+    template<class T, int R, int C, int O, int MR, int MC>
+    void md(Eigen::Matrix<T,R,C,O,MR,MC> &a)
+    {
+        if(!has(2)) return;
+        const int r = int(v[k++]), c = int(v[k++]);
+        if((R!=Eigen::Dynamic && r!=R) || (C!=Eigen::Dynamic && c!=C)) { ok = false; return; }
+        a.resize(r,c);
+        m(a);
+    }
 };
 
 #endif

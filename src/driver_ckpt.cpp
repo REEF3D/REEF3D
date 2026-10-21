@@ -30,7 +30,9 @@ Author: Hans Bihs
 //  with those of the model; the resolved bodies of FNPF the same way (fnpf_6DOF_ckpt.cpp), their grids
 //  on the patches of the mesh refinement with the patches.  REEF3D::CORAL (Z 40): its state as a blob
 //  (coral_reef3d::ckpt_state), set into the model after its set-up (coral_ini).
-//  Not there yet (refused with a message): 6DOF wavemaker objects, nets; sediment, DEM, FEM structures,
+//  The nets (X 320) are in the blob of their body; without a floating body (X 10 0) the fixed nets and
+//  mooring lines are the blob of sixdof_void.
+//  Not there yet (refused with a message): 6DOF wavemaker objects; sediment, DEM, FEM structures,
 //  SEASTATE; NHFLOW with Lagrangian particles, membranes; CFD with FSI.
 
 #include"driver.h"
@@ -69,8 +71,6 @@ string driver::ckpt_unsupported()
     // take-off
     if(p->X10==4)
     return "6DOF wavemaker objects (X 10 4) are not in the checkpoints yet";
-    if(p->X10>0 && p->X320>0)
-    return "nets (X 320) are not in the checkpoints yet";
     if(p->A10==6)
     {
         if(p->S10>0) return "CFD sediment is not in the checkpoints yet";
@@ -143,6 +143,14 @@ reefrun_ckpt& driver::ckpt()
             p6dof->ckpt_state(p,sd);
             ck.blob("sixdof",sd);
             wd("sixdof_slice",'S',p6dof->ckpt_slice());
+        }
+
+        // without a floating body: the fixed nets (X 320) and mooring lines (X 310) of sixdof_void
+        if(p->X10==0 && p->A10!=3 && (p->X320>0 || p->X310>0))
+        {
+            vector<double> sd;
+            p6dof->ckpt_state(p,sd);
+            ck.blob("sixdof_void",sd);
         }
 
         // REEF3D::CORAL (the same on all ranks), its outputs on disk up to the checkpoint
@@ -255,6 +263,14 @@ reefrun_ckpt& driver::ckpt()
             // NHFLOW: the ghost cells of the water level at the bodies (nhflow_forcing, from DF)
             if(p->A10==5 && (p->A516==2 || p->A516==4 || p->X240==21 || p->X10==4))
             pgc->gcsldf_update(p);
+        }
+
+        // without a floating body: the fixed nets and mooring lines
+        if(p->X10==0 && p->A10!=3 && (p->X320>0 || p->X310>0))
+        if(!ck.has("sixdof_void") || !p6dof->ckpt_restore(p,pgc,ck.get_blob("sixdof_void")))
+        {
+            msg = "the nets (X 320) or mooring lines (X 310) of the checkpoint do not fit this run";
+            return false;
         }
 
         // REEF3D::CORAL: its state for coral_ini (the model is set up after the fluid)

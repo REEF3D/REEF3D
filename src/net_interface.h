@@ -74,8 +74,11 @@ public:
     Eigen::Matrix3d membrane_stiffness_nhflow(lexer*);
     
     typedef vector<Eigen::Vector3d> EigenMat;
-    
-    
+
+    // checkpoints (P 48, I 45): the nets (X 320), each with its length; false: the nets do not fit
+    void ckpt_state(std::vector<double>&) const;
+    bool ckpt_restore(const std::vector<double>&);
+
 private:
     vector<net*> pnet;
     vector<net_membrane*> pmem;
