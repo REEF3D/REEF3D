@@ -393,53 +393,89 @@ void fnpf_6DOF::body_velocities(fnpf_6DOF_grid &G, ghostcell *pgc)
     
     const int maxpass = 4*(p->gknox + p->gknoy + p->gknoz) + 2;
     
+    // the open body nodes: all nodes at the first pass, then the list of those not filled yet (the
+    // order within a pass does not matter: a node takes only the fluid and the nodes of earlier
+    // passes, mark <= pass)
+    vector<int> &todo = G.todo;
+    todo.clear();
+    
     for(int pass=0; pass<maxpass; ++pass)
     {
         int filled=0;
         
-        ILOOP
-        JLOOP
-        FKLOOP
+        auto node = [&]() -> bool
         {
             const int q = FIJK;
             
-            if(p->flag7[q]>0 && FBF[q]>0.5 && mark[q]==0)
+            int nbr[6] = {q-sI, q+sI, q-sJ, q+sJ, q-1, q+1};
+            int nn = 6;
+            
+            if(p->j_dir==0)
             {
-                int nbr[6] = {q-sI, q+sI, q-sJ, q+sJ, q-1, q+1};
-                int nn = 6;
+            nbr[2] = q-1;
+            nbr[3] = q+1;
+            nn = 4;
+            }
+            
+            double su=0.0, sv=0.0, sw=0.0;
+            int cnt=0;
+            
+            for(int m=0; m<nn; ++m)
+            {
+                const int r = nbr[m];
                 
-                if(p->j_dir==0)
+                if(p->flag7[r]>0 && (FBF[r]<0.5 || (mark[r]>0 && mark[r]<=pass)))
                 {
-                nbr[2] = q-1;
-                nbr[3] = q+1;
-                nn = 4;
-                }
-                
-                double su=0.0, sv=0.0, sw=0.0;
-                int cnt=0;
-                
-                for(int m=0; m<nn; ++m)
-                {
-                    const int r = nbr[m];
-                    
-                    if(p->flag7[r]>0 && (FBF[r]<0.5 || (mark[r]>0 && mark[r]<=pass)))
-                    {
-                    su += U[r];
-                    sv += V[r];
-                    sw += W[r];
-                    ++cnt;
-                    }
-                }
-                
-                if(cnt>0)
-                {
-                U[q] = su/double(cnt);
-                V[q] = sv/double(cnt);
-                W[q] = sw/double(cnt);
-                mark[q] = pass+1;
-                ++filled;
+                su += U[r];
+                sv += V[r];
+                sw += W[r];
+                ++cnt;
                 }
             }
+            
+            if(cnt>0)
+            {
+            U[q] = su/double(cnt);
+            V[q] = sv/double(cnt);
+            W[q] = sw/double(cnt);
+            mark[q] = pass+1;
+            ++filled;
+            return true;
+            }
+            return false;
+        };
+        
+        if(pass==0)
+        {
+            ILOOP
+            JLOOP
+            FKLOOP
+            if(p->flag7[FIJK]>0 && FBF[FIJK]>0.5 && mark[FIJK]==0)
+            if(!node())
+            {
+            todo.push_back(i);
+            todo.push_back(j);
+            todo.push_back(k);
+            }
+        }
+        else
+        {
+            size_t w=0;
+            for(size_t n=0; n<todo.size(); n+=3)
+            {
+                i = todo[n];
+                j = todo[n+1];
+                k = todo[n+2];
+                
+                if(!node())
+                {
+                todo[w]   = i;
+                todo[w+1] = j;
+                todo[w+2] = k;
+                w += 3;
+                }
+            }
+            todo.resize(w);
         }
         
         if(G.l0)
@@ -720,13 +756,25 @@ void fnpf_6DOF::footprint(fnpf_6DOF_grid &G, ghostcell *pgc, slice &eta, slice &
         
         const double tol = 1.0e-9*MAX(p->DXM,1.0e-12);
         
+        // the footprint columns in SLICELOOP4 order: the sweeps visit only them
+        vector<int> &fl = G.todo;
+        fl.clear();
+        SLICELOOP4
+        if(foot(i,j)>0.5)
+        {
+        fl.push_back(i);
+        fl.push_back(j);
+        }
+        
         for(int it=0; it<1000; ++it)
         {
             double dmax=0.0;
             
-            SLICELOOP4
-            if(foot(i,j)>0.5)
+            for(size_t n=0; n<fl.size(); n+=2)
             {
+                i = fl[n];
+                j = fl[n+1];
+                
                 double se = eta(i-1,j) + eta(i+1,j);
                 double sf = Fifsf(i-1,j) + Fifsf(i+1,j);
                 double nn = 2.0;
@@ -890,57 +938,93 @@ void fnpf_6DOF::extrapolate(fnpf_6DOF_grid &G, ghostcell *pgc, double *f)
     // nodes without any connection to the fluid keep their value
     const int maxpass = 4*(p->gknox + p->gknoy + p->gknoz) + 2;
     
+    // the open body nodes: all nodes at the first pass, then the list of those not filled yet (the
+    // order within a pass does not matter: a node takes only the fluid and the nodes of earlier
+    // passes, mark <= pass)
+    vector<int> &todo = G.todo;
+    todo.clear();
+    
     for(int pass=0; pass<maxpass; ++pass)
     {
         int filled=0;
         
-        ILOOP
-        JLOOP
-        FKLOOP
+        auto node = [&]() -> bool
         {
             const int q = FIJK;
             
-            if(p->flag7[q]>0 && FBF[q]>0.5 && mark[q]==0)
+            // neighbour and continuation f_q - f_r = V_e*(x_q - x_r) towards it
+            int nbr[6] = {q-sI, q+sI, q-sJ, q+sJ, q-1, q+1};
+            double dv[6] = { FBu[q]*(p->XP[IP]-p->XP[IM1]),
+                            -FBu[q]*(p->XP[IP1]-p->XP[IP]),
+                             FBv[q]*(p->YP[JP]-p->YP[JM1]),
+                            -FBv[q]*(p->YP[JP1]-p->YP[JP]),
+                             FBw[q]*(ZSN[q]-ZSN[q-1]),
+                            -FBw[q]*(ZSN[q+1]-ZSN[q])};
+            const int nn = (p->j_dir==1) ? 6 : 4;
+            
+            if(p->j_dir==0)
             {
-                // neighbour and continuation f_q - f_r = V_e*(x_q - x_r) towards it
-                int nbr[6] = {q-sI, q+sI, q-sJ, q+sJ, q-1, q+1};
-                double dv[6] = { FBu[q]*(p->XP[IP]-p->XP[IM1]),
-                                -FBu[q]*(p->XP[IP1]-p->XP[IP]),
-                                 FBv[q]*(p->YP[JP]-p->YP[JM1]),
-                                -FBv[q]*(p->YP[JP1]-p->YP[JP]),
-                                 FBw[q]*(ZSN[q]-ZSN[q-1]),
-                                -FBw[q]*(ZSN[q+1]-ZSN[q])};
-                const int nn = (p->j_dir==1) ? 6 : 4;
+            nbr[2] = q-1;
+            nbr[3] = q+1;
+            dv[2] = dv[4];
+            dv[3] = dv[5];
+            }
+            
+            double sum=0.0;
+            int cnt=0;
+            
+            for(int m=0; m<nn; ++m)
+            {
+                const int r = nbr[m];
                 
-                if(p->j_dir==0)
+                if(p->flag7[r]>0 && (FBF[r]<0.5 || (mark[r]>0 && mark[r]<=pass)))
                 {
-                nbr[2] = q-1;
-                nbr[3] = q+1;
-                dv[2] = dv[4];
-                dv[3] = dv[5];
-                }
-                
-                double sum=0.0;
-                int cnt=0;
-                
-                for(int m=0; m<nn; ++m)
-                {
-                    const int r = nbr[m];
-                    
-                    if(p->flag7[r]>0 && (FBF[r]<0.5 || (mark[r]>0 && mark[r]<=pass)))
-                    {
-                    sum += f[r] + dv[m];
-                    ++cnt;
-                    }
-                }
-                
-                if(cnt>0)
-                {
-                f[q] = sum/double(cnt);
-                mark[q] = pass+1;
-                ++filled;
+                sum += f[r] + dv[m];
+                ++cnt;
                 }
             }
+            
+            if(cnt>0)
+            {
+            f[q] = sum/double(cnt);
+            mark[q] = pass+1;
+            ++filled;
+            return true;
+            }
+            return false;
+        };
+        
+        if(pass==0)
+        {
+            ILOOP
+            JLOOP
+            FKLOOP
+            if(p->flag7[FIJK]>0 && FBF[FIJK]>0.5 && mark[FIJK]==0)
+            if(!node())
+            {
+            todo.push_back(i);
+            todo.push_back(j);
+            todo.push_back(k);
+            }
+        }
+        else
+        {
+            size_t w=0;
+            for(size_t n=0; n<todo.size(); n+=3)
+            {
+                i = todo[n];
+                j = todo[n+1];
+                k = todo[n+2];
+                
+                if(!node())
+                {
+                todo[w]   = i;
+                todo[w+1] = j;
+                todo[w+2] = k;
+                w += 3;
+                }
+            }
+            todo.resize(w);
         }
         
         // values and fill state of the ghost nodes, so the result does not depend on the

@@ -79,6 +79,7 @@ struct fnpf_6DOF_grid
     double *psi[6] = {nullptr,nullptr,nullptr,nullptr,nullptr,nullptr};
     double *zero = nullptr;
     int *mark = nullptr;
+    vector<int> todo;               // scratch: the open body nodes (extrapolate, body_velocities), the footprint columns
     slice4 *foot = nullptr, *psiD = nullptr, *zeroslice = nullptr, *eta_ext = nullptr, *fi_ext = nullptr;
     bool ext_ini = false;
     int footcount = 0;
