@@ -198,6 +198,23 @@ void driver::logic_nhflow()
         p->A563=0.0;
     }
     
+    // EARSM (A 559): k-omega only; it replaces the QCR (A 563)
+    if(p->A559!=0 && p->A560!=2 && p->A560!=22)
+    {
+        if(p->mpirank==0)
+        cout<<"A 559: EARSM needs k-omega (A 560 2 or 22), switched off"<<endl;
+        
+        p->A559=0;
+    }
+    
+    if(p->A559!=0 && p->A563>0.0)
+    {
+        if(p->mpirank==0)
+        cout<<"A 559: EARSM on, the QCR (A 563) is switched off"<<endl;
+        
+        p->A563=0.0;
+    }
+    
     if(p->A561<0 || p->A561>2)
     {
         if(p->mpirank==0)
