@@ -44,6 +44,7 @@ Architect: Hans Bihs
 class lexer;
 class ghostcell;
 class coral_fluid_sampler;
+class lagoon_particles;
 
 namespace coral
 {
@@ -82,6 +83,9 @@ public:
     void advance(double t0, double t1) override;
     void predict(int n, double t, Eigen::Vector3d &c, Eigen::Matrix3d &R, Eigen::Vector3d &v, Eigen::Vector3d &w) override;
     void state(int n, double t, Eigen::Vector3d &c, Eigen::Matrix3d &R, Eigen::Vector3d &v, Eigen::Vector3d &w) override;
+    // P 18: the mooring lines of coral.txt (dynamic and quasi-static) in the LAGOON store, particles/coral_mooring
+    // (role "mooring", lines, the tension at the points, the line number per line), at the outputs of the bodies
+    void store_output(lexer*, double t, long long step) override;
 
 private:
     void fail(const std::string&);
@@ -102,6 +106,8 @@ private:
     bool sampler_told_ = false;
     std::vector<double> restart_state_;
     bool restart_ = false;
+    std::unique_ptr<lagoon_particles> lagoon_mooring_;
+    bool lagoon_mooring_off_ = false;   // no mooring lines, or the store could not be written
 };
 
 #endif

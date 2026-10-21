@@ -31,6 +31,8 @@ Architect: Hans Bihs
 #include"lexer.h"
 #include"reefckpt.h"
 #include"ghostcell.h"
+#include"lagoon_store.h"
+#include"runlog.h"
 #include<mpi.h>
 #include<algorithm>
 #include<cmath>
@@ -230,6 +232,10 @@ void coral_reef3d::ini(lexer *p, ghostcell*)
     {
         fail(e.what());
     }
+    // P 18: the bodies wrote their first output before CORAL was set up (the fluid's initialisation): the
+    // mooring lines of that output (output number 0)
+    if(p->P18>0 && p->count==0)
+        store_output(p, p->simtime, 0);
 }
 
 void coral_reef3d::step(lexer *p, ghostcell*)
@@ -398,6 +404,82 @@ void coral_reef3d::predict(int n, double t, Eigen::Vector3d &c, Eigen::Matrix3d 
 void coral_reef3d::state(int n, double t, Eigen::Vector3d &c, Eigen::Matrix3d &R, Eigen::Vector3d &v, Eigen::Vector3d &w)
 {
     cp_->state(n, t, c, R, v, w);
+}
+
+// ---- LAGOON store (P 18)
+
+void coral_reef3d::store_output(lexer *p, double t, long long step)
+{
+    if(lagoon_mooring_off_ || p->mpirank!=0)
+        return;
+    // every line as a polyline in the frame of the fluid solver: a dynamic line its nodes (tension: that of the
+    // adjacent segments, their mean inside), a quasi-static one its catenary in 20 segments
+    const coral::model &m = case_->m;
+    const coral::Vec3 o = case_->fluid_origin;
+    std::vector<float> xyz, tension;
+    std::vector<int32_t> connectivity, offsets, line;
+    auto add = [&](const std::vector<coral::Vec3> &x, const std::vector<double> &T)
+    {
+        const int32_t base = int32_t(xyz.size()/3);
+        for(size_t i=0; i<x.size(); ++i)
+        {
+            for(int d=0; d<3; ++d)
+                xyz.push_back(float(x[i](d) + o(d)));
+            tension.push_back(float(T[i]));
+            connectivity.push_back(base + int32_t(i));
+        }
+        offsets.push_back(int32_t(connectivity.size()));
+        line.push_back(int32_t(line.size()));
+    };
+    for(const auto &l : m.load_list)
+    {
+        if(const auto *ms = dynamic_cast<const coral::mooring_system*>(l.get()))
+            for(int k=0; k<ms->nlines(); ++k)
+            {
+                const std::vector<coral::Vec3> x = ms->line_nodes(k);
+                const int N = ms->line_nseg(k);
+                std::vector<double> T(x.size(), 0.0);
+                for(int i=0; i<(int)x.size() && N>0; ++i)
+                {
+                    if(i==0)
+                        T[i] = ms->line_tension(k, 0);
+                    else if(i>=N)
+                        T[i] = ms->line_tension(k, N-1);
+                    else
+                        T[i] = 0.5*(ms->line_tension(k, i-1) + ms->line_tension(k, i));
+                }
+                add(x, T);
+            }
+        else if(const auto *qs = dynamic_cast<const coral::mooring_qs*>(l.get()))
+        {
+            std::vector<coral::Vec3> x;
+            std::vector<double> T;
+            qs->shape(m, 20, x, T);
+            add(x, T);
+        }
+    }
+    if(!lagoon_mooring_)
+    {
+        if(line.empty())
+        {
+            lagoon_mooring_off_ = true;
+            return;
+        }
+        const std::string solver = p->A10==6 ? "CFD" : p->A10==3 ? "FNPF" : p->A10==2 ? "SFLOW" : "NHFLOW";
+        std::string run;
+        if(p->plog)
+            run = "{\"type\": \"run\", \"run\": " + lagoon_store::json_string(p->plog->id()) + "}";
+        lagoon_mooring_ = std::make_unique<lagoon_particles>("./REEF3D_" + solver + ".lagoon", solver, "coral_mooring", "mooring",
+                                                             "REEF3D_CORAL", run,
+                                                             std::vector<lagoon_particles::field>{{"tension", 1, false}}, 1, "lines",
+                                                             std::vector<lagoon_particles::field>{{"line", 1, true}});
+        std::cout<<"CORAL: "<<line.size()<<" mooring line"<<(line.size()>1 ? "s" : "")<<" in the LAGOON store (particles/coral_mooring)"<<std::endl;
+    }
+    if(!lagoon_mooring_->output(t, step, xyz.size()/3, xyz.data(), {tension.data()}, connectivity, offsets, {line.data()}))
+    {
+        lagoon_mooring_off_ = true;
+        std::cout<<"CORAL: WARNING the mooring lines could not be written to the LAGOON store, no more outputs of them"<<std::endl;
+    }
 }
 
 void coral_reef3d::bcast(double *v, int n)

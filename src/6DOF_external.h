@@ -26,6 +26,8 @@ Architect: Hans Bihs
 #include<vector>
 #include<Eigen/Dense>
 
+class lexer;
+
 //  External rigid-body dynamics of the 6DOF bodies (REEF3D::CORAL, coral/reef3d, coral.txt fluid_body).
 //
 //  The fluid solver keeps the geometry, the body boundary conditions and the integration of the loads
@@ -105,6 +107,10 @@ public:
     // in the inertial frame): predicted from the current state (predict) or from the last step (state)
     virtual void predict(int n, double t, Eigen::Vector3d &c, Eigen::Matrix3d &R, Eigen::Vector3d &v, Eigen::Vector3d &w) = 0;
     virtual void state(int n, double t, Eigen::Vector3d &c, Eigen::Matrix3d &R, Eigen::Vector3d &v, Eigen::Vector3d &w) = 0;
+
+    // P 18 (LAGOON store): the external solver's own objects (CORAL: its mooring lines) as an output of the
+    // store, at the outputs of the bodies (rank 0 of the fluid solver, with the bodies' time and output number)
+    virtual void store_output(lexer*, double, long long) {}
 };
 
 #endif

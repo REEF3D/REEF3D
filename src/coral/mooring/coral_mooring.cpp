@@ -94,6 +94,60 @@ void mooring_qs::forces(const model &m, Vec3 &Fa, Vec3 &Fb) const
     Fb = a_low ? Fup : Flo;
 }
 
+void mooring_qs::shape(const model &m, int n, std::vector<Vec3> &x, std::vector<double> &T) const
+{
+    // as forces(), with copies of the start values
+    const Vec3 pa = m.body(ba_).point(sa_), pb = m.body(bb_).point(sb_);
+    const bool a_low = pa(2) <= pb(2);
+    const Vec3 lo = a_low ? pa : pb, up = a_low ? pb : pa;
+    Vec3 dh = up - lo;
+    const double zF = dh(2);
+    dh(2) = 0.0;
+    const double xF = dh.norm();
+    const Vec3 eh = xF > 0.0 ? Vec3(dh/xF) : Vec3::UnitX();
+    catenary_line cl = cl_;
+    if(bed_end_ < 0 || (bed_end_==0) != a_low)
+        cl.CB = -1.0;
+    double H = H_, V = V_;
+    x.clear();
+    T.clear();
+    if(!catenary_solve(cl, xF, zF, H, V))
+    {
+        H = -1.0;
+        if(!catenary_solve(cl, xF, zF, H, V))
+        {
+            x = {pa, pb};
+            T = {0.0, 0.0};
+            return;
+        }
+    }
+    n = std::max(n, 1);
+    const double L = cl.L, w = cl.w;
+    const double LB = (cl.CB < 0.0 && H > 0.0) ? 0.0 : std::max(0.0, L - V/w);
+    for(int i=0; i<=n; ++i)
+    {
+        const double s = L*double(i)/double(n);
+        double xs, zs;
+        catenary_profile(cl, H, V, s, xs, zs);
+        x.push_back(lo + xs*eh + zs*Vec3::UnitZ());
+        // vertical tension: that of the fairlead less the weight of the line above s; on the seabed none, the
+        // horizontal one reduced by the friction
+        double Vs = V - w*(L - s), Hs = std::max(H, 0.0);
+        if(Vs < 0.0 || s < LB)
+        {
+            Vs = 0.0;
+            if(cl.CB > 0.0 && H > 0.0)
+                Hs = std::max(0.0, H - cl.CB*w*(LB - s));
+        }
+        T.push_back(std::sqrt(Hs*Hs + Vs*Vs));
+    }
+    if(!a_low)
+    {
+        std::reverse(x.begin(), x.end());
+        std::reverse(T.begin(), T.end());
+    }
+}
+
 void mooring_qs::eval(const model &m, double, VecX &f) const
 {
     Vec3 Fa, Fb;

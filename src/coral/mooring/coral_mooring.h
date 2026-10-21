@@ -125,6 +125,9 @@ namespace coral
 
         // force on end b (global) and on end a for the current positions
         void forces(const model&, Vec3 &Fa, Vec3 &Fb) const;
+        // the shape of the line for the output (n + 1 points from end a to end b on the catenary of the current
+        // positions) and the tension there; the start values of the line's own solve are not changed
+        void shape(const model&, int n, std::vector<Vec3> &x, std::vector<double> &T) const;
         // restart from a checkpoint (coral_state.h)
         void save_state(std::vector<double>&) const override;
         bool load_state(const std::vector<double>&, size_t &k) override;
