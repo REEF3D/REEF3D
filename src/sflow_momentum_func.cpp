@@ -23,6 +23,7 @@ Author: Hans Bihs
 #include"sflow_curv.h"
 #include"patchBC_codes.h"
 #include"sflow_momentum_func.h"
+#include"gcsl_yskip.h"
 #include"sflow_amr.h"
 #include"lexer.h"
 #include"fdm2D.h"
@@ -688,6 +689,7 @@ void sflow_momentum_func::vel_bc(lexer *p, fdm2D *b, ghostcell *pgc, slice &u, s
     mpi4(p,pgc,w);
     
     // physical boundaries: velocities
+    const bool ysk = gcsl_yskip(p);     // (one cell in y: the y sides skipped, gcsl_yskip.h)
     GCSL4LOOP
     {
     i  = p->gcbsl4[n][0];
@@ -695,6 +697,8 @@ void sflow_momentum_func::vel_bc(lexer *p, fdm2D *b, ghostcell *pgc, slice &u, s
     cs = p->gcbsl4[n][3];
     bc = p->gcbsl4[n][4];
     gd = ghost_depth(p,n);
+    if(ysk && (cs==2 || cs==3))
+    continue;
     
         // iowave Riemann / Flather / clamped edges (B 520 methods 3-6): ghost cells set by ioflow
         if((cs==1 && p->open_xm==1) || (cs==4 && p->open_xp==1) || (cs==3 && p->open_ym==1) || (cs==2 && p->open_yp==1))
@@ -825,12 +829,15 @@ void sflow_momentum_func::ghostcells(lexer *p, fdm2D *b, ghostcell *pgc, slice &
     double *eta = b->eta.V, *dep = b->depth.V, *U = b->U.V, *V = b->V.V, *W = b->W.V;
     double *wl = WL.V, *uh = UH.V, *vh = VH.V, *wh = WH.V;
     double *mx = b->MX.V, *my = b->MY.V;
+    const bool ysk = gcsl_yskip(p);     // (one cell in y: the y sides skipped, gcsl_yskip.h)
     GCSL4LOOP
     {
     i  = p->gcbsl4[n][0];
     j  = p->gcbsl4[n][1];
     cs = p->gcbsl4[n][3];
     gd = ghost_depth(p,n);
+    if(ysk && (cs==2 || cs==3))
+    continue;
     
     const int d = (cs==1) ? -sx : (cs==4) ? sx : (cs==2) ? 1 : -1;
     const long c0 = (long)(i-p->imin)*sx + (j-p->jmin);

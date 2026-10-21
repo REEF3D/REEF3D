@@ -21,6 +21,11 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"sflow_pjm_quad.h"
+#include"gcsl_yskip.h"
+
+// (one cell in y, gcsl_yskip: the y ghost cells are not kept; the y derivatives, 0 on such a grid, are
+// taken as 0)
+#define ysk gcsl_yskip(p)
 #include"lexer.h"
 #include"fdm2D.h" 
 #include"ghostcell.h"
@@ -223,7 +228,7 @@ void sflow_pjm_quad::quad_calc(lexer *p, fdm2D *b, ghostcell *pgc, slice &UH, sl
         
         dudt = (Uest(i,j) - Un(i,j))/(alpha*p->dt)
              + Uest(i,j)*(Uest(i+1,j) - Uest(i-1,j))/dx
-             + Vest(i,j)*(Uest(i,j+1) - Uest(i,j-1))/dy*p->y_dir;
+             + (ysk ? 0.0 : Vest(i,j)*(Uest(i,j+1) - Uest(i,j-1))/dy*p->y_dir);
         
         phi(i,j) = -dudt*dddx - Uest(i,j)*Uest(i,j)*dddxx;
         
@@ -371,10 +376,10 @@ void sflow_pjm_quad::rhs(lexer *p, fdm2D* b, slice &WL, double alpha)
         dy = p->DYP[JP] + p->DYP[JM1];
         
         dudx = (b->U(i+1,j) - b->U(i-1,j))/dx;
-        dvdy = (b->V(i,j+1) - b->V(i,j-1))/dy*p->y_dir;
+        dvdy = ysk ? 0.0 : (b->V(i,j+1) - b->V(i,j-1))/dy*p->y_dir;
         
         dddx = (b->depth(i+1,j) - b->depth(i-1,j))/dx;
-        dddy = (b->depth(i,j+1) - b->depth(i,j-1))/dy*p->y_dir;
+        dddy = ysk ? 0.0 : (b->depth(i,j+1) - b->depth(i,j-1))/dy*p->y_dir;
         
         b->rhsvec.V[n] = -(WL(i,j)*(dudx + dvdy) 
                           + 2.0*(b->W(i,j) + b->U(i,j)*dddx + b->V(i,j)*dddy))/(alpha*p->dt)
@@ -524,7 +529,7 @@ void sflow_pjm_quad::upgrad(lexer*p, fdm2D* b, slice &eta)
         SLICELOOP4
         {
         Gx(i,j) = (eta(i+1,j) - eta(i-1,j))/(p->DXP[IP] + p->DXP[IM1]);
-        Gy(i,j) = (eta(i,j+1) - eta(i,j-1))/(p->DYP[JP] + p->DYP[JM1])*p->y_dir;
+        Gy(i,j) = ysk ? 0.0 : (eta(i,j+1) - eta(i,j-1))/(p->DYP[JP] + p->DYP[JM1])*p->y_dir;
         }
         
         pgc->gcsl_start4(p,Gx,1);
@@ -539,7 +544,7 @@ void sflow_pjm_quad::upgrad(lexer*p, fdm2D* b, slice &eta)
             h = MAX(eta(i,j) + b->depth(i,j),0.0);
             
             Ld(i,j) = h*h*h*((Gx(i+1,j) - Gx(i-1,j))/(p->DXP[IP] + p->DXP[IM1])
-                           + (Gy(i,j+1) - Gy(i,j-1))/(p->DYP[JP] + p->DYP[JM1])*p->y_dir);
+                           + (ysk ? 0.0 : (Gy(i,j+1) - Gy(i,j-1))/(p->DYP[JP] + p->DYP[JM1])*p->y_dir));
             }
         }
         

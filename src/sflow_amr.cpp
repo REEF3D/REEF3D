@@ -22,6 +22,7 @@ Author: Hans Bihs
 
 #include"sflow_curv.h"
 #include"sflow_amr.h"
+#include"gcsl_yskip.h"
 #include"reefckpt.h"
 #include"sflow_boussinesq.h"
 #include"lexer.h"
@@ -590,6 +591,7 @@ void sflow_amr::regrid_static(ghostcell *pgc)
         {
         comms_off guard(pgc);
         pgc->gcsl_start4(pp,pb->depth,50);
+        gcsl_yrows(pp,pb->depth);       // (one cell in y: the y ghost rows, read below)
         }
 
         // face depth as sflow_reconstruct::reconstruct_WL

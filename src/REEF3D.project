@@ -103,6 +103,7 @@
     </VirtualDirectory>
     <VirtualDirectory Name="Ghostcell">
       <File Name="ghostcell.h"/>
+      <File Name="gcsl_yskip.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Hydrodynamics">
       <VirtualDirectory Name="SEASTATE">

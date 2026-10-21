@@ -24,13 +24,17 @@ Author: Hans Bihs
 #include"field.h"
 #include"lexer.h"
 #include"fdm.h"
+#include"gcsl_yskip.h"
 
+// (SFLOW with one cell in y, gcsl_yskip: the y ghost rows of the slices are not kept; the node rows
+// read the cell row 0, which their ghost cells copied)
 double interpolation::sl_ipol1a(slice &f)
 {
     v1=v2=0;
 
-    v1=f(i,j);
-    v2=f(i,j+1);
+    const bool ys = gcsl_yskip(p);
+    v1=f(i,ys?0:j);
+    v2=f(i,ys?0:j+1);
 
     value = 0.5*(v1+v2);
 
@@ -53,13 +57,16 @@ double interpolation::sl_ipol4(slice &f)
 {
     v1=v2=v3=v4=0;
 
-    v1=f(i,j);
+    const bool ys = gcsl_yskip(p);
+    const int j0 = ys ? 0 : j, j1 = ys ? 0 : j+1;
 
-    v2=f(i+1,j);
+    v1=f(i,j0);
 
-    v3=f(i,j+1);
+    v2=f(i+1,j0);
 
-    v4=f(i+1,j+1);
+    v3=f(i,j1);
+
+    v4=f(i+1,j1);
 
     value = 0.25*(v1+v2+v3+v4);
     
@@ -74,6 +81,10 @@ double interpolation::sl_ipol4eta(int *wet,slice &f, slice &bed)
     
     wd_criterion=p->A244;
 
+    // (gcsl_yskip: the cell row 0)
+    const int jsave = j;
+    if(gcsl_yskip(p))
+    j = 0;
     
     v1=v2=v3=v4=0.0;
     
@@ -212,6 +223,7 @@ double interpolation::sl_ipol4eta(int *wet,slice &f, slice &bed)
     value=value-1.0*wd_criterion;
     }
     
+    j = jsave;
     return value;
 }
 
@@ -219,17 +231,20 @@ double interpolation::sl_ipol4eta_wd(int *wet, slice &f, slice &bed)
 {
     v1=v2=v3=v4=0;
 
+    const bool ys = gcsl_yskip(p);
+    const int j0 = ys ? 0 : j, j1 = ys ? 0 : j+1;
+
     if(wet[IJ]==1)
-    v1=f(i,j);
+    v1=f(i,j0);
     
     if(wet[Ip1J]==1)
-    v2=f(i+1,j);
+    v2=f(i+1,j0);
 
     if(wet[IJp1]==1)
-    v3=f(i,j+1);
+    v3=f(i,j1);
 
     if(wet[Ip1Jp1]==1)
-    v4=f(i+1,j+1);
+    v4=f(i+1,j1);
 
     value = 0.25*(v1+v2+v3+v4);
     

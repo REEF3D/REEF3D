@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"slice.h"
 #include"sliceint.h"
+#include"gcsl_yskip.h"
 
 // The distro routines write margin cells deep behind a boundary cell. Per entry the depth is
 // limited to the solid depth of column [2] of the gcbsl lists (gcb_seed; 0: not set, full
@@ -106,9 +107,12 @@ void ghostcell::gcsl_start1(lexer *p, slice &f, int gcv)
 
     // (labels 4 and 5 inline, the others through gcsldistro1)
     gcsl_labels L;
+    const bool ysk = gcsl_yskip(p);     // (SFLOW, one cell in y: the y sides skipped, gcsl_yskip.h)
     QQGCSL1LOOP
     {
     const int ii = p->gcbsl1[qq][0], jj = p->gcbsl1[qq][1], bc = p->gcbsl1[qq][4], cs = p->gcbsl1[qq][3];
+    if(ysk && (cs==2 || cs==3))
+    continue;
     const int mg = gcsl_depth(p->gcbsl1[qq][2],m0);
     const int lab = L.get(bc,cs,[&]{ return gcsleval1(p,gcv,bc,cs); });
     if(lab==4)
@@ -138,6 +142,7 @@ void ghostcell::gcsl_start1(lexer *p, slice &f, int gcv)
 
     if(p->Y40==1 || p->Y40==3)
     dgcslpol1(p,f);
+
 
 }
 
@@ -189,9 +194,12 @@ void ghostcell::gcsl_start4(lexer *p, slice &f, int gcv)
     starttime=timer();
     // (labels 4, 14 and 5 inline, the others through gcsldistro4)
     gcsl_labels L;
+    const bool ysk = gcsl_yskip(p);     // (SFLOW, one cell in y: the y sides skipped, gcsl_yskip.h)
     QQGCSL4LOOP
     {
     const int ii = p->gcbsl4[qq][0], jj = p->gcbsl4[qq][1], bc = p->gcbsl4[qq][4], cs = p->gcbsl4[qq][3];
+    if(ysk && (cs==2 || cs==3))
+    continue;
     const int mg = gcsl_depth(p->gcbsl4[qq][2],m0);
     const int lab = L.get(bc,cs,[&]{ return gcsleval4(p,gcv,bc,cs); });
     if(lab==4 || (lab==14 && (cs==1 || cs==4)))
@@ -222,6 +230,7 @@ void ghostcell::gcsl_start4(lexer *p, slice &f, int gcv)
 
     if(p->Y40==1  || p->Y40==3)
     dgcslpol4(p,f);
+
 }
 
 void ghostcell::gcsl_start1int(lexer *p, sliceint &f, int gcv)
