@@ -31,10 +31,11 @@ Author: Hans Bihs
 #include<cstdio>
 
 //  Output of FNPF AMR: the free surface of level 0 and of every patch as VTK rectilinear
-//  grids (REEF3D_FNPF_AMR/*.vtr, indexed by a .vtm per output time, P 20 / P 30 as the FNPF
-//  output), the wave gauges P 51 from the finest grid that holds them (bilinear between the
-//  cell centres), and a log. P 18: the grids also in the LAGOON store (P 18 1: instead of
-//  the .vtr and .vtm files).
+//  grids (REEF3D_FNPF_AMR/*.vtr, indexed by a .vtm per output time; with P 180 1 at the interval
+//  of the free surface output, P 182 / P 181, else at that of the 3D output, P 30 / P 20), the
+//  wave gauges P 51 from the finest grid that holds them (bilinear between the cell centres),
+//  and a log. P 18: the grids also in the LAGOON store (P 18 1: instead of the .vtr and .vtm
+//  files).
 
 namespace
 {
@@ -46,15 +47,22 @@ void fnpf_amr::print(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     if(maxlev<1)
     return;
 
+    // the grids are the free surface: with P 180 1 at its interval (P 182 in time, P 181 in
+    // iterations, as REEF3D_FNPF_VTP_FSF), else at that of the 3D output (P 30, P 20; P 10)
+    const bool fsf = p->P180==1;
+    const double every = fsf ? p->P182 : p->P30;
+    const int every_it = fsf ? p->P181 : p->P20;
+    const bool on = fsf || p->P10>0;
+
     bool doprint=false;
 
-    if((p->count%p->P20==0 && p->P30<0.0 && p->P10>0 && p->P20>0) || (p->count==0 && p->P30<0.0))
+    if((every_it>0 && p->count%every_it==0 && every<0.0 && on) || (p->count==0 && every<0.0))
     doprint=true;
 
-    if((p->simtime>printtime_amr && p->P30>0.0 && p->P10>0) || (p->count==0 && p->P30>0.0))
+    if((p->simtime>printtime_amr && every>0.0 && on) || (p->count==0 && every>0.0))
     {
         doprint=true;
-        printtime_amr += p->P30;
+        printtime_amr += every;
     }
 
     if(p->P51>0)
