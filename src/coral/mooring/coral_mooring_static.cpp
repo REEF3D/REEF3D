@@ -78,6 +78,8 @@ bool mooring_system::equilibrium(const model &m, double t)
     if(!ok)
         ok = equilibrium_system(m, t);
     for(auto &x : v_) x.setZero();
+    // frictionless equilibrium (friction is indeterminate at rest): the nodes stick where they lie from the start
+    st_ = stick_t();
     ++gen_;
     cvalid_ = false;
     return ok;

@@ -92,8 +92,16 @@ namespace coral
         double CB = 0.0;             // seabed friction of the quasi-static line (< 0: no seabed)
         double Cdn = 1.2, Cdt = 0.05, Can = 1.0, Cat = 0.0;
         double kb = 3.0e6, cb = 3.0e5;     // seabed stiffness [Pa/m], damping [Pa s/m]
-        double mu = 0.0, v_eps = 0.01;     // seabed friction of the dynamic line across it, regularization velocity
-        double mu_axial = -1.0;            // seabed friction along the line (< 0: mu)
+        // seabed friction of the dynamic line (kinetic coefficients): mu across it, mu_axial along it (< 0: mu),
+        // elliptic limit. Stick-slip (v_eps 0, default): each node in contact sticks to an anchor on the seabed
+        // through a shear spring ks and damper cs per contact area (< 0: kb, cb) up to mu_static times the
+        // kinetic limit, then slides at the kinetic limit (the anchor follows) until the spring unloads; a line
+        // stays where it lies under a load below the static limit (no creep). v_eps > 0: the regularized Coulomb
+        // law mu Fn tanh(v / v_eps) without static friction (creeps under any steady load)
+        double mu = 0.0, v_eps = 0.0;
+        double mu_axial = -1.0;
+        double mu_static = 1.0;            // static / kinetic friction (stick-slip)
+        double ks = -1.0, cs = -1.0;       // shear stiffness [Pa/m] and damping [Pa s/m] of the stick (< 0: kb, cb)
         double rho = 1025.0;
         double EI = 0.0;             // bending stiffness of the dynamic line [N m^2] (0: none, a cable or chain)
         // axial damping law of the dynamic line: false (default): T = max(0, EA e + BA de/dt) while a segment is
@@ -149,7 +157,8 @@ namespace coral
         double CdA = 0.0;            // drag coefficient times area [m^2]
         double Ca = 0.0;             // added mass coefficient (of rho V)
         double radius = -1.0;        // contact radius on the seabed (< 0: of the volume-equivalent sphere; 0: none of its own)
-        double kb = 3.0e6, cb = 3.0e5, mu = 0.0, v_eps = 0.01;
+        double kb = 3.0e6, cb = 3.0e5, mu = 0.0, v_eps = 0.0;
+        double mu_static = 1.0, ks = -1.0, cs = -1.0;     // seabed friction as for the lines (isotropic)
     };
 
     // failure of a line: at a time or when the tension of an end segment (with BA) reaches T; the end lets go
@@ -242,6 +251,9 @@ namespace coral
 
     protected:
         struct state {std::vector<Vec3> r, v;};
+        // stick-slip friction: the anchors of the nodes in contact (NaN: none) and their sliding flags. Not part of
+        // state: a larger state changes the compiler's inlining in the sub-step loop (several times slower)
+        struct stick_t {std::vector<Vec3> a; std::vector<signed char> slip;};
         struct line_t
         {
             std::string name;
@@ -298,13 +310,25 @@ namespace coral
         // the seabed under node i at x (surface or fluid bed): height and unit normal; false: the flat seabed
         bool seabed_at(int i, const Vec3 &x, bool surf, bool fbed, double &zb, Vec3 &n) const;
         // accelerations of the inner nodes of line k for the state (its end nodes set), end forces and masses
-        void line_accel(const line_t&, const state&, double t, std::vector<Vec3> &a, double extra) const;
-        // accelerations of all inner nodes and points; the ends of the lines in s must be set
-        void accel(const state&, double t, std::vector<Vec3> &a, double extra) const;
+        void line_accel(const line_t&, const state&, double t, std::vector<Vec3> &a, double extra, bool upd=false) const;
+        // accelerations of all inner nodes and points; the ends of the lines in s must be set; upd: the state ends
+        // a sub-step, the stick-slip anchors and sliding flags (sc_) are updated
+        void accel(const state&, double t, std::vector<Vec3> &a, double extra, bool upd=false) const;
+        // stick-slip friction at node i in contact (normal force Fn, unit normal n, axial direction e or zero for
+        // isotropic, contact area A): the tangential force from its anchor (sc_); upd: stick, slide or set the anchor
+        Vec3 stick_friction(int i, const Vec3 &x, const Vec3 &vx, const Vec3 &n, const Vec3 &e, double Fn, double A,
+                            double ks, double cs, double mu, double mua, double mus, bool upd) const;
+        // the friction of node i of line L in contact (both laws; has: a force, contact: a stick-slip anchor); a node
+        // off the seabed loses its anchor
+        Vec3 seabed_friction(const line_t &L, int i, const Vec3 &x, const Vec3 &vx, const Vec3 &q, const Vec3 &nb,
+                             double Fn, double ll, bool upd, bool &has, bool &contact) const;
+        void lose_anchor(int i) const;
         // the line end nodes on points take the points' state
         void point_ends(state&) const;
         // from the converged state at t0 to t1 with the body ends on Hermite curves (motion per attachment)
-        void integrate(state&, const std::vector<end_motion>&, double t0, double t1, double extra, bool at_rest=false) const;
+        // fs: the stick-slip anchors carried along (nullptr: no stick friction, e.g. settling)
+        void integrate(state&, const std::vector<end_motion>&, double t0, double t1, double extra, bool at_rest=false,
+                       stick_t *fs=nullptr) const;
         // keep the segment tensions and end forces of the converged state; throws if it is not finite
         void keep_converged();
         void update_dt();
@@ -333,6 +357,9 @@ namespace coral
 
         // converged state: all nodes at t_
         std::vector<Vec3> r_, v_;
+        stick_t st_;                   // stick-slip anchors and sliding flags (converged)
+        bool stick_ = false;           // a line or point with stick-slip friction
+        mutable stick_t *sc_ = nullptr;     // the anchors of the running integration (nullptr: none)
         double t_ = 0.0;
         long gen_ = 0;                 // changes with the converged state
         bool static_start_ = true;     // initialize(): static equilibrium first (once)

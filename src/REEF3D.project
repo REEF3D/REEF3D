@@ -2485,6 +2485,7 @@
         <VirtualDirectory Name="Mooring">
           <File Name="coral/mooring/coral_catenary.cpp"/>
           <File Name="coral/mooring/coral_mooring.cpp"/>
+          <File Name="coral/mooring/coral_mooring_friction.cpp"/>
           <File Name="coral/mooring/coral_mooring_setup.cpp"/>
           <File Name="coral/mooring/coral_mooring_static.cpp"/>
           <File Name="coral/mooring/coral_seabed.cpp"/>

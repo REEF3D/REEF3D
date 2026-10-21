@@ -60,11 +60,12 @@ Architect: Hans Bihs
 //        e.g. the viscous drag of a heaving float that a potential-flow fluid (FNPF) leaves out;
 //        channels <name>_Fx .. _Mz, _P; coral/hydro/coral_body_drag.h)
 //   line_type <name> d <d> mass <m/L> EA <EA> [BA <BA>] [CB <CB>] [Cdn <c>] [Cdt <c>] [Can <c>] [Cat <c>] [kb <k>] [cb <c>]
-//        [mu <mu>] [mu_axial <mu>] [v_eps <v>] [EI <EI>] [BA_slack]     (properties of mooring lines for 'type' and 'section')
+//        [mu <mu>] [mu_axial <mu>] [mu_static <r>] [ks <k>] [cs <c>] [v_eps <v>] [EI <EI>] [BA_slack]
+//        (properties of mooring lines for 'type' and 'section')
 //   mooring <name> <quasi_static|dynamic> a <body> <x y z> | a <point>  b <body> <x y z> | b <point>
 //        (L <L> d <d> mass <m/L> EA <EA> | type <line type> L <L> | section <line type> <L> <nseg> [section ...])
 //        [BA <BA>] [CB <CB>] [Cdn <c>] [Cdt <c>] [Can <c>] [Cat <c>] [kb <k>] [cb <c>] [mu <mu>]
-//        [mu_axial <mu>] [v_eps <v>] [BA_slack] (over those of the type)
+//        [mu_axial <mu>] [mu_static <r>] [ks <k>] [cs <c>] [v_eps <v>] [BA_slack] (over those of the type)
 //        [nseg <n>] [seabed <z> | no_seabed] [dt_line <dt>] [settle <T>] [current <ux uy uz>] [exact_kinematics]
 //        [no_static] [break_time <t>] [break_tension <T>] [break_end <a|b>] [EI <EI>] [clamp_a [<dx dy dz>]] [clamp_b [...]]
 //        (sections: a line of several properties in order from a to b, e.g. chain-wire-chain: lines <name>.1 ..
@@ -80,7 +81,15 @@ Architect: Hans Bihs
 //        Runge-Kutta stage, costly with many wave components); the dynamic line starts in the static
 //        equilibrium of its segments between the ends at the start (no_static: from the continuous catenary,
 //        whose chords are shorter than the segments); settle: relaxed in the water at rest before; seabed
-//        friction mu across and mu_axial (default mu) along the line, regularized below v_eps (0.01 m/s);
+//        friction of the dynamic line (default none): kinetic coefficients mu across and mu_axial (default mu) along
+//        the line (elliptic limit), static ones mu_static times them; each node in contact sticks to an anchor
+//        through a shear spring ks [Pa/m] and damper cs [Pa s/m] per contact area (default kb, cb) until the static
+//        limit, then slides at the kinetic one, so a line stays where it lies under a load below the static limit
+//        (on a slope across it, under a steady pull); the static start and settling are frictionless, the nodes stick
+//        where they lie when the run starts. v_eps > 0: the regularized law of 0034 instead, mu Fn tanh(v / v_eps)
+//        without static friction (a line creeps under any steady load). For example studless chain across 1.0,
+//        along 0.69, mu_static 1.33 (the VolturnUS-S baseline of NREL's MoorDyn seabed friction study, 2023); use
+//        values for the soil where known;
 //        BA_slack: the axial damping BA in every segment of the dynamic line, also slack and compressed ones,
 //        T = max(0, EA e) + BA de/dt (MoorDyn's and MoorDyn-F's law: a slack line resists folding up, snap loads
 //        and a falling line as in MoorDyn); default: max(0, EA e + BA de/dt) while a segment is taut, nothing
@@ -97,12 +106,14 @@ Architect: Hans Bihs
 //        x fastest; bilinear, its edge outside), or the bed of the resolved fluid at the nodes (FNPF, NHFLOW, with
 //        fluid_kinematics; elsewhere the flat height); contact along the normal of the plane or grid, vertical on the
 //        fluid's bed; the quasi-static lines keep their flat seabed)
-//   point <name> <x y z> [mass <m>] [volume <V>] [CdA <A>] [Ca <c>] [radius <r>] [kb <k>] [cb <c>] [mu <mu>] [v_eps <v>]
+//   point <name> <x y z> [mass <m>] [volume <V>] [CdA <A>] [Ca <c>] [radius <r>] [kb <k>] [cb <c>] [mu <mu>] [mu_static <r>]
+//        [ks <k>] [cs <c>] [v_eps <v>]
 //        [seabed <z> | no_seabed]
 //        (a free point of a mooring system: bridle node, clump weight, buoy, junction of two lines; dynamic lines
 //        end on it with 'a <point>' or 'b <point>' (no coordinates); weight, buoyancy of the submerged volume,
 //        drag 1/2 rho CdA |u - v| (u - v), added mass rho V Ca, seabed contact of a sphere of the radius (default:
-//        volume-equivalent; without volume or radius only the line ends touch the seabed); the lines connected through points form one mooring system (advanced together),
+//        volume-equivalent; without volume or radius only the line ends touch the seabed; friction mu, mu_static, ks, cs
+//        as for the lines, isotropic); the lines connected through points form one mooring system (advanced together),
 //        whose seabed defaults to the lowest ground end of its lines; channels <point>_x, _y, _z)
 //   morison <name> body <b> p1 <x y z> p2 <x y z> D <D> [Cd <c>] [Ca <c>] [Cm <c>] [n <n>] [current <u v w>]
 //   morison <name> member <m> [D <D>] [Cd <c>] [Ca <c>] [Cm <c>] [n <strips per element>] [current <u v w>]

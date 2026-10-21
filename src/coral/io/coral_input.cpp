@@ -530,9 +530,11 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
         p.Cdn = it.get("Cdn", p.Cdn); p.Cdt = it.get("Cdt", p.Cdt); p.Can = it.get("Can", p.Can); p.Cat = it.get("Cat", p.Cat);
         p.kb = it.get("kb", p.kb); p.cb = it.get("cb", p.cb); p.mu = it.get("mu", p.mu);
         p.mu_axial = it.get("mu_axial", p.mu_axial); p.v_eps = it.get("v_eps", p.v_eps);
+        p.mu_static = it.get("mu_static", p.mu_static); p.ks = it.get("ks", p.ks); p.cs = it.get("cs", p.cs);
+        if(!(p.mu_static > 0.0)) it.fail("mu_static (static / kinetic friction) must be > 0");
         p.EI = it.get("EI", p.EI);
         if(it.has("BA_slack")) p.BA_slack = true;
-        if(p.v_eps <= 0.0) it.fail("v_eps must be > 0");
+        if(p.v_eps < 0.0) it.fail("v_eps must be >= 0 (0: stick-slip friction)");
         if(p.d <= 0.0 || p.EA <= 0.0 || p.mass < 0.0 || p.EI < 0.0) it.fail("d and EA must be > 0, mass and EI >= 0");
         p.rho = rho;
         return p;
@@ -719,6 +721,10 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
             pp.cb = pi->get("cb", pp.cb);
             pp.mu = pi->get("mu", 0.0);
             pp.v_eps = pi->get("v_eps", pp.v_eps);
+            pp.mu_static = pi->get("mu_static", pp.mu_static);
+            pp.ks = pi->get("ks", pp.ks);
+            pp.cs = pi->get("cs", pp.cs);
+            if(pp.v_eps < 0.0 || !(pp.mu_static > 0.0)) pi->fail("v_eps must be >= 0 (0: stick-slip friction), mu_static > 0");
             if(pp.mass < 0.0 || pp.volume < 0.0 || pp.CdA < 0.0) pi->fail("mass, volume and CdA must not be negative");
             const double zb = pi->has("no_seabed") ? -1.0e30 : pi->get("seabed", zsys);
             pidx[pi->word(1)] = sys->add_point(pi->word(1), pi->vec(2), pp, zb);

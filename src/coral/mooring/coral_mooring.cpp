@@ -24,6 +24,7 @@ Architect: Hans Bihs
 #include"coral/core/coral_model.h"
 #include<algorithm>
 #include<cmath>
+#include<limits>
 #include<stdexcept>
 
 namespace coral
@@ -199,7 +200,7 @@ void mooring_system::water(int i, const Vec3 &x, double t, double &eta, Vec3 &u,
     }
 }
 
-void mooring_system::line_accel(const line_t &L, const state &s, double t, std::vector<Vec3> &a, double extra) const
+void mooring_system::line_accel(const line_t &L, const state &s, double t, std::vector<Vec3> &a, double extra, bool upd) const
 {
     const int N = L.N, o = L.off;
     const mooring_props &p = L.p;
@@ -230,6 +231,7 @@ void mooring_system::line_accel(const line_t &L, const state &s, double t, std::
     }
     // external forces on a node of length ll (weight, hydrodynamics, seabed); q tangent; added mass
     // alpha (normal) and beta (tangential)
+    const bool fric = p.mu > 0.0 || p.mu_axial > 0.0;
     auto external = [&](int node, const Vec3 &x, const Vec3 &vx, const Vec3 &q, double ll, double &an, double &at)
     {
         Vec3 F = p.mass*ll*g;
@@ -257,30 +259,21 @@ void mooring_system::line_accel(const line_t &L, const state &s, double t, std::
             an = fs*p.rho*A*ll*p.Can;
             at = fs*p.rho*A*ll*p.Cat;
         }
-        // seabed: penalty and damping normal to it, Coulomb friction (regularized) with mu across and mu_axial
-        // along the line (elliptic limit: F = -Fz (mua^2 va ea + mu^2 vt et) / |(mua va, mu vt)|, the
-        // isotropic Coulomb law for mua = mu); a surface or the fluid's bed: along its normal n, the
-        // penetration (zb - z) n_z, the friction in its tangent plane
+        // seabed: penalty and damping normal to it, friction (seabed_friction); a surface or the fluid's bed:
+        // along its normal n, the penetration (zb - z) n_z, the friction in its tangent plane
         double zs;
         Vec3 nb;
+        bool contact = false, fr = false;
         if((L.surf || L.fbed) && seabed_at(o + node, x, L.surf, L.fbed, zs, nb))
         {
             if(x(2) < zs)
             {
                 const double Fn = std::max(0.0, (p.kb*(zs - x(2))*nb(2) - p.cb*vx.dot(nb))*p.d*ll);
                 F += Fn*nb;
-                const double mua = p.mu_axial >= 0.0 ? p.mu_axial : p.mu;
-                const Vec3 vh = vx - vx.dot(nb)*nb;
-                const double vn = vh.norm();
-                if(Fn > 0.0 && vn > 0.0 && (p.mu > 0.0 || mua > 0.0))
+                if(fric)
                 {
-                    Vec3 e = q - q.dot(nb)*nb;
-                    const double en = e.norm();
-                    e = en > 1.0e-6 ? Vec3(e/en) : Vec3(vh/vn);
-                    const Vec3 va = vh.dot(e)*e, vt = vh - va;
-                    const double wn = std::sqrt(mua*mua*va.squaredNorm() + p.mu*p.mu*vt.squaredNorm());
-                    if(wn > 0.0)
-                        F -= (Fn*std::tanh(vn/p.v_eps)/wn)*(mua*mua*va + p.mu*p.mu*vt);
+                    const Vec3 Ff = seabed_friction(L, o + node, x, vx, q, nb, Fn, ll, upd, fr, contact);
+                    if(fr) F += Ff;
                 }
             }
         }
@@ -288,20 +281,15 @@ void mooring_system::line_accel(const line_t &L, const state &s, double t, std::
         {
             const double Fz = std::max(0.0, (p.kb*(zbed_ - x(2)) - p.cb*vx(2))*p.d*ll);
             F(2) += Fz;
-            const double mua = p.mu_axial >= 0.0 ? p.mu_axial : p.mu;
-            const Vec3 vh(vx(0), vx(1), 0.0);
-            const double vn = vh.norm();
-            if(Fz > 0.0 && vn > 0.0 && (p.mu > 0.0 || mua > 0.0))
+            if(fric)
             {
-                Vec3 e(q(0), q(1), 0.0);
-                const double en = e.norm();
-                e = en > 1.0e-6 ? Vec3(e/en) : Vec3(vh/vn);
-                const Vec3 va = vh.dot(e)*e, vt = vh - va;
-                const double wn = std::sqrt(mua*mua*va.squaredNorm() + p.mu*p.mu*vt.squaredNorm());
-                if(wn > 0.0)
-                    F -= (Fz*std::tanh(vn/p.v_eps)/wn)*(mua*mua*va + p.mu*p.mu*vt);
+                const Vec3 Ff = seabed_friction(L, o + node, x, vx, q, Vec3::UnitZ(), Fz, ll, upd, fr, contact);
+                if(fr) F += Ff;
             }
         }
+        // off the seabed: no anchor
+        if(fric && upd && !contact && sc_)
+            lose_anchor(o + node);
         return F;
     };
     // bending: energy EI/l (1 - cos phi) at each inner node (phi: the turning angle), EI/(l/2) (1 - cos phi)
@@ -377,11 +365,11 @@ void mooring_system::line_accel(const line_t &L, const state &s, double t, std::
     a[o+N].setZero();
 }
 
-void mooring_system::accel(const state &s, double t, std::vector<Vec3> &a, double extra) const
+void mooring_system::accel(const state &s, double t, std::vector<Vec3> &a, double extra, bool upd) const
 {
     a.resize(r_.size());
     for(const line_t &L : lines_)
-        line_accel(L, s, t, a, extra);
+        line_accel(L, s, t, a, extra, upd);
     // free points: own weight, buoyancy, drag, added mass, seabed; the attached line ends
     for(const point_t &P : points_)
     {
@@ -412,6 +400,7 @@ void mooring_system::accel(const state &s, double t, std::vector<Vec3> &a, doubl
         Vec3 nb = Vec3::UnitZ();
         if(rc > 0.0 && (P.surf || P.fbed))
             seabed_at(i, x, P.surf, P.fbed, zb, nb);
+        bool contact = false;
         if(rc > 0.0 && x(2) - rc/nb(2) < zb)
         {
             const double Ac = M_PI*rc*rc;
@@ -419,9 +408,20 @@ void mooring_system::accel(const state &s, double t, std::vector<Vec3> &a, doubl
             F += Fz*nb;
             const Vec3 vh = vx - vx.dot(nb)*nb;
             const double vn = vh.norm();
-            if(Fz > 0.0 && vn > 0.0 && p.mu > 0.0)
-                F -= (p.mu*Fz*std::tanh(vn/p.v_eps)/vn)*vh;
+            if(p.v_eps > 0.0)
+            {
+                if(Fz > 0.0 && vn > 0.0 && p.mu > 0.0)
+                    F -= (p.mu*Fz*std::tanh(vn/p.v_eps)/vn)*vh;
+            }
+            else if(Fz > 0.0 && p.mu > 0.0 && sc_)
+            {
+                F += stick_friction(i, x, vx, nb, Vec3::Zero(), Fz, Ac, p.ks >= 0.0 ? p.ks : p.kb, p.cs >= 0.0 ? p.cs : p.cb,
+                                    p.mu, p.mu, p.mu_static, upd);
+                contact = true;
+            }
         }
+        if(upd && !contact && sc_)
+            lose_anchor(i);
         for(const auto &e : P.ends)
         {
             const line_t &L = lines_[e.first];
@@ -445,7 +445,8 @@ void mooring_system::point_ends(state &s) const
             }
 }
 
-void mooring_system::integrate(state &s, const std::vector<end_motion> &em, double t0, double t1, double extra, bool at_rest) const
+void mooring_system::integrate(state &s, const std::vector<end_motion> &em, double t0, double t1, double extra, bool at_rest,
+                               stick_t *fs) const
 {
     const double T = t1 - t0;
     // the water: at rest (settling), exact, or from the converged nodes at t0 and t1
@@ -469,9 +470,17 @@ void mooring_system::integrate(state &s, const std::vector<end_motion> &em, doub
     const int n = std::max(1, (int)std::ceil(T/dt_ - 1.0e-9));
     const double h = T/n;
     std::vector<Vec3> &k1 = w_[0], &k2 = w_[1], &k3 = w_[2], &k4 = w_[3];
+    const int nn = (int)s.r.size();
+    // stick-slip friction: anchors for all nodes (new ones without), none while settling (in the water at rest)
+    sc_ = nullptr;
+    if(fs && stick_ && !at_rest)
+    {
+        fs->a.resize(nn, Vec3::Constant(std::numeric_limits<double>::quiet_NaN()));
+        fs->slip.resize(nn, 0);
+        sc_ = fs;
+    }
     state &s2 = ws_;
     s2 = s;
-    const int nn = (int)s.r.size();
     std::vector<Vec3> rs(nn), vs(nn);
     // the body ends on cubic Hermite curves through the converged and the trial positions and velocities;
     // the line ends on points take the points' state
@@ -510,7 +519,7 @@ void mooring_system::integrate(state &s, const std::vector<end_motion> &em, doub
         const double tk = t0 + k*h;
         // RK4 on (r, v) of the inner nodes and the points; the stage velocities are the stage states' v
         ends(s, tk);
-        accel(s, tk, k1, extra);
+        accel(s, tk, k1, extra, true);
         for(int i : free_) {s2.r[i] = s.r[i] + 0.5*h*s.v[i]; s2.v[i] = s.v[i] + 0.5*h*k1[i];}
         rs = s.v;
         ends(s2, tk + 0.5*h);
@@ -539,7 +548,8 @@ void mooring_system::integrate(state &s, const std::vector<end_motion> &em, doub
             lines_[att_[k].line].cd[att_[k].end] = em[k].d1;
     }
     point_ends(s);
-    accel(s, t1, k1, extra);
+    accel(s, t1, k1, extra, true);
+    sc_ = nullptr;
 }
 
 void mooring_system::eval(const model &m, double t, VecX &f) const
@@ -571,7 +581,8 @@ void mooring_system::eval(const model &m, double t, VecX &f) const
             }
         }
         state s{r_, v_};
-        integrate(s, em, t_, t, 0.0);
+        stick_t f = st_;
+        integrate(s, em, t_, t, 0.0, false, &f);
         cr_ = r1;
         cv_ = v1;
         cF_.resize(na);
@@ -620,7 +631,7 @@ void mooring_system::commit(const model &m, double t, double)
         }
     }
     state s{r_, v_};
-    integrate(s, em, t_, t, 0.0);
+    integrate(s, em, t_, t, 0.0, false, &st_);
     for(size_t k=0; k<na; ++k)
     {
         attach_t &a = att_[k];
