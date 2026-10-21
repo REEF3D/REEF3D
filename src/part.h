@@ -78,6 +78,10 @@ public:
     // CPM sub-grid bedload layer (Q 58): remaining hop length, > 0 for a parcel in the bedload layer
     double *Hop;
 
+    // CPM parcel weight: the parcel carries Wt times the volume ParcelFactor Vp of a seeded parcel
+    // (merge and split, Q 78); 1 for a parcel that was never merged
+    double *Wt;
+
     int *Empty,*Flag;
 
     double d50,rhosed;

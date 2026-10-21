@@ -2074,6 +2074,8 @@ void control::ctrlsend()
     ii++;
     ictrl[ii] = Q74;
     ii++;
+    ictrl[ii] = Q78;
+    ii++;
     ictrl[ii] = Q51;
     ii++;
     ictrl[ii] = Q61;

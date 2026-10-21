@@ -72,6 +72,6 @@ void part::xchange_fillback_flag(lexer *p, ghostcell *pgc, slice &bedch, int mod
             j=p->posc_j(Y[n]);
         }
 
-        bedch(i,j) += ParcelFactor;
+        bedch(i,j) += ParcelFactor*Wt[n];
     }
 }

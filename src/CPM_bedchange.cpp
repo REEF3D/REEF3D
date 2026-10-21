@@ -179,7 +179,7 @@ void CPM::topo_column(lexer *p, fdm *a, ghostcell *pgc)
         if(sp>0.1*settling_velocity(p,P.D[n]) && ptopo(p,a,P.X[n],P.Y[n],P.Z[n])>=0.0)
         continue;
         
-        occ[(size_t(ic)*p->knoy + jc)*nk + kc] += vpar;
+        occ[(size_t(ic)*p->knoy + jc)*nk + kc] += vpar*P.Wt[n];
     }
 
     for(i=0;i<p->knox;++i)

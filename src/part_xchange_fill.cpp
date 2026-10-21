@@ -31,6 +31,7 @@ void part::xchange_fill_flag(lexer *p, ghostcell *pgc, int mode)
     {
     Flag[sendid[n][q]]=EMPTY;
     Hop[sendid[n][q]]=0.0;
+    Wt[sendid[n][q]]=1.0;
     Empty[index_empty]=sendid[n][q];
     ++index_empty;
     }

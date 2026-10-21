@@ -53,8 +53,8 @@ void CPM::boundcheck(lexer *p, int mode)
         if((PX[n]<p->global_xmin && open_side[0]==1) || (PX[n]>p->global_xmax && open_side[3]==1)
         || (p->j_dir==1 && ((PY[n]<p->global_ymin && open_side[2]==1) || (PY[n]>p->global_ymax && open_side[1]==1))))
         {
+            outvol += vpar*P.Wt[n];
             P.remove(n);
-            outvol += vpar;
             continue;
         }
         

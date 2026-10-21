@@ -29,6 +29,9 @@ Authors: Hans Bihs, Alexander Hanke
 
 void CPM::mppic_RK2(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbulence *pturb)
 {
+    // parcel merge and split (Q 78)
+    parcel_resample(p,a,pgc);
+    
     count_particles(p,a,pgc,s);
 
     pressure_gradient(p,a,pgc,s);

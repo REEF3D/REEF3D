@@ -108,7 +108,7 @@ void CPM::limiter(lexer *p, fdm *a, ghostcell *pgc, double *X0, double *Y0, doub
         k0 = ck_of(n,Z0[n]);
         
         if(local(i0,j0,k0))
-        Locc(i0,j0,k0) += vpar;
+        Locc(i0,j0,k0) += vpar*P.Wt[n];
     }
     
     // requests
@@ -248,7 +248,7 @@ void CPM::limiter(lexer *p, fdm *a, ghostcell *pgc, double *X0, double *Y0, doub
         // volume leaving (local source) and arriving (any target, summed to the owner);
         // arrivals that can be rejected are counted per arrival time bin, and the local ones per cell
         tc_i.clear(); tc_j.clear(); tc_k.clear();
-        
+            
         for(int qs=0;qs<int(lm_sh_i.size());++qs)
         if(lm_sh_in[qs])
         {
@@ -268,17 +268,20 @@ void CPM::limiter(lexer *p, fdm *a, ghostcell *pgc, double *X0, double *Y0, doub
             if(state[n]!=2 && state[n]!=4)
             continue;
             
-            if(local(si[n],sj[n],sk[n]))
-            Lout(si[n],sj[n],sk[n]) += vpar;
+            // the parcel volume, and its weight in the counts (whole numbers: seeded parcels, Q 78)
+            const double wn = P.Wt[n];
             
-            Lin(ci[n],cj[n],ck[n]) += vpar;
+            if(local(si[n],sj[n],sk[n]))
+            Lout(si[n],sj[n],sk[n]) += vpar*wn;
+            
+            Lin(ci[n],cj[n],ck[n]) += vpar*wn;
             
             if(state[n]==2)
             {
-            Lh0(ci[n],cj[n],ck[n]) += bw[bin(tarr[n])];
+            Lh0(ci[n],cj[n],ck[n]) += bw[bin(tarr[n])]*wn;
             
             if(local(ci[n],cj[n],ck[n]))
-            Lloc(ci[n],cj[n],ck[n]) += 1.0;
+            Lloc(ci[n],cj[n],ck[n]) += wn;
             }
             
             if(local(ci[n],cj[n],ck[n]))
@@ -333,7 +336,7 @@ void CPM::limiter(lexer *p, fdm *a, ghostcell *pgc, double *X0, double *Y0, doub
             double V = p->DXN[IP]*p->DYN[JP]*p->DZN[KP];
             // capacity: packing of the contact network theta_0(I) (theta_0 at rest, lower in sheared layers)
             double t0 = p->Q12==2 ? T0e(i,j,k) : theta_0;
-            double cap = MAX((t0 + theta_max - theta_0)*V, t0*V + vpar*(1.0+1.0e-6));
+            double cap = MAX((t0 + theta_max - theta_0)*V, t0*V + vpar*wcell(p,i,j,k)*(1.0+1.0e-6));
             
             if(a->solid(i,j,k)<0.0)
             cap = 0.0;
@@ -416,7 +419,7 @@ void CPM::limiter(lexer *p, fdm *a, ghostcell *pgc, double *X0, double *Y0, doub
             if(E > 1.0e-9*vpar)
             {
                 state[nn]=1;
-                E -= vpar;
+                E -= vpar*P.Wt[nn];
             }
         }
     }
@@ -521,7 +524,7 @@ void CPM::limiter(lexer *p, fdm *a, ghostcell *pgc, double *X0, double *Y0, doub
             int a1=ci_of(n,X1[n]), b1=p->j_dir==1?cj_of(n,Y1[n]):0, c1=ck_of(n,Z1[n]);
             
             if(local(a1,b1,c1))
-            Lloc(a1,b1,c1) += vpar;
+            Lloc(a1,b1,c1) += vpar*P.Wt[n];
         }
         
         for(n=0;n<P.index;++n)
@@ -535,16 +538,17 @@ void CPM::limiter(lexer *p, fdm *a, ghostcell *pgc, double *X0, double *Y0, doub
             i=a1; j=b1; k=c1;
             double V = p->DXN[IP]*p->DYN[JP]*p->DZN[KP];
             double t0 = p->Q12==2 ? T0e(i,j,k) : theta_0;
-            double cap = MAX((t0 + theta_max - theta_0)*V, t0*V + vpar*(1.0+1.0e-6));
+            double cap = MAX((t0 + theta_max - theta_0)*V, t0*V + vpar*wcell(p,i,j,k)*(1.0+1.0e-6));
+            const double vp = vpar*P.Wt[n];
             
-            if(a->solid(i,j,k)<0.0 || Lloc(i,j,k) + vpar > cap)
+            if(a->solid(i,j,k)<0.0 || Lloc(i,j,k) + vp > cap)
             continue;
             
             // just inside the cell above
             Z1[n] = dk>0 ? p->ZN[c1+marge] + 1.0e-3*p->DZN[c1+marge] : p->ZN[c1+1+marge] - 1.0e-3*p->DZN[c1+marge];
             
-            Lloc(i,j,k) += vpar;
-            Lloc(si[n],sj[n],sk[n]) -= vpar;
+            Lloc(i,j,k) += vp;
+            Lloc(si[n],sj[n],sk[n]) -= vp;
         }
         
         for(i=-1;i<p->knox+1;++i)
@@ -637,7 +641,7 @@ double CPM::occupancy_max(lexer *p, ghostcell *pgc)
         k = p->posc_k(P.Z[n]);
         
         if(i>=0 && i<p->knox && j>=0 && j<p->knoy && k>=0 && k<p->knoz)
-        Locc(i,j,k) += vpar;
+        Locc(i,j,k) += vpar*P.Wt[n];
     }
     
     double omax=0.0;

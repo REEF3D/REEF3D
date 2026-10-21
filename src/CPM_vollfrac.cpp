@@ -146,7 +146,7 @@ void CPM::volfrac_update(lexer *p, ghostcell *pgc, sediment_fdm *s, double *PX, 
         for(qj=0;qj<2;++qj)
         for(qk=0;qk<2;++qk)
         {
-            w = P.ParcelFactor*Vp*kw[qi][qj][qk];
+            w = P.ParcelFactor*Vp*P.Wt[n]*kw[qi][qj][qk];
             
             if(w>0.0)
             {

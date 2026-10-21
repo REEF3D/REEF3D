@@ -66,6 +66,8 @@ part::part(lexer *p, ghostcell *pgc)
 
     p->Darray(Test,capacity);
     p->Darray(Hop,capacity);
+    p->Darray(Wt,capacity);
+    Wt[0] = 1.0;
 
     p->Iarray(Flag,capacity);
     p->Iarray(Empty,capacity);
@@ -130,6 +132,8 @@ part::~part()
     Test=nullptr;
     delete[] Hop;
     Hop=nullptr;
+    delete[] Wt;
+    Wt=nullptr;
 
     delete[] Empty;
     Empty=nullptr;

@@ -429,7 +429,7 @@ void CPM::bagnold_update(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
         double sp = sqrt(P.U[n]*P.U[n] + P.V[n]*P.V[n] + P.W[n]*P.W[n]);
         double fm = MIN(1.0, sp/MAX(0.1*ustar,1.0e-10));
         
-        tauG[(i+1)*nj + j+1] += fm*mu_s*vpar*(p->S22 - p->W1)*gmag/(p->DXN[IP]*p->DYN[JP]);
+        tauG[(i+1)*nj + j+1] += fm*mu_s*(vpar*P.Wt[n])*(p->S22 - p->W1)*gmag/(p->DXN[IP]*p->DYN[JP]);
     }
     
     // a parcel stands for many grains and a bed column holds less than one moving parcel
@@ -577,11 +577,12 @@ void CPM::exposure_update(lexer *p, fdm *a)
         for(auto q=b; q!=e && Ve>0.0; ++q)
         {
             int nn = q->second;
-            double f = MIN(1.0, Ve/vpar);
+            const double vp = vpar*P.Wt[nn];
+            double f = MIN(1.0, Ve/vp);
             
             // exposure weight: share of the parcel in the top grain layer
             expo[nn] = f;
-            Ve -= f*vpar;
+            Ve -= f*vp;
         }
     }
 }

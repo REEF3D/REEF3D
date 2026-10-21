@@ -125,7 +125,7 @@ void CPM::coupling_update(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
             
             slip = sqrt((uf-P.U[n])*(uf-P.U[n]) + (vf-P.V[n])*(vf-P.V[n]) + (wf-P.W[n])*(wf-P.W[n]));
             D = drag_model(p,P.D[n],P.RO[n],slip,0.0);
-            double mD = P.RO[n]*vpar*D;
+            double mD = P.RO[n]*(vpar*P.Wt[n])*D;
             
             double kf=1.0, kux=P.U[n], kuy=P.V[n], kuz=P.W[n];
             double xk=P.X[n], yk=P.Y[n], zk=P.Z[n];
@@ -185,7 +185,7 @@ void CPM::coupling_update(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
         D = drag_model(p,P.D[n],P.RO[n],slip,Tsp);
         
         // drag coefficient of the fluid source F/eps, per unit fluid velocity of the solver
-        double mD = P.RO[n]*vpar*D/eps;
+        double mD = P.RO[n]*(vpar*P.Wt[n])*D/eps;
         
         kernel(p,P.X[n],P.Y[n],P.Z[n],n);
         

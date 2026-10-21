@@ -200,7 +200,15 @@ private:
     double kvol(lexer*, int, int, int);
     double kvol_calc(lexer*, int, int, int);
     std::vector<double> kvc;   // kvol of the nodes -1 .. kno (the grid is fixed)
-
+    
+    // parcel merge and split (Q 78), see CPM_resample.cpp
+    void parcel_resample(lexer*, fdm*, ghostcell*);
+    double wcell(lexer*, int, int, int);
+    bool jammed(lexer*, fdm*, int);
+    std::vector<double> wcc;
+    double wcc_vpar=0.0;
+    std::vector<int> rs_list;
+    int rs_nmerge=0, rs_nsplit=0;
     
     // load map (G 45), see CPM_loadmap.cpp: parcel updates per cell, awake flags of the parcels of a sub-step
     std::vector<double> lmS,lmA;
@@ -347,7 +355,7 @@ private:
     bool bedload_nodisp(lexer*, fdm*, int);
     bool bed_asleep(lexer*, fdm*, int, double, double, double);
     int bl_nsleep=0, bl_nupd=0;
-    double bedload_place(lexer*, fdm*, double, double, double, int, int, double, double);
+    double bedload_place(lexer*, fdm*, double, double, double, int, int, double, double, double);
     slice4 blTx,blTy,blGx,blGy,blH,blC,blCs;
     int bl_npick=0, bl_ndep=0, bl_nsus=0, bl_nset=0, bl_nslide=0;
     // hybrid suspension (Q 58 3), see CPM_suspension.cpp: erodible parcels per column, net exchange rate
