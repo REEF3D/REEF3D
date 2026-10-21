@@ -33,6 +33,10 @@ Author: Hans Bihs
 #include<mpi.h>
 #include<csignal>
 #include<cmath>
+#include<map>
+#include<set>
+#include<sstream>
+#include<algorithm>
 
 using namespace std;
 
@@ -55,6 +59,103 @@ void stop_signals_ini()
     sa.sa_flags = SA_RESTART;
     sigaction(SIGTERM,&sa,nullptr);
     sigaction(SIGUSR1,&sa,nullptr);
+}
+
+// the input files of the run, copied into every checkpoint (rank 0): a restart lists what changed
+const char *const INPUTS[] = {"ctrl.txt","control.txt"};
+
+void copy_file(const string &from, const string &to)
+{
+    ifstream i(from.c_str(),ios::binary);
+    if(!i)
+    return;
+    ofstream o(to.c_str(),ios::binary);
+    o<<i.rdbuf();
+}
+
+// the lines of an input file by key (the letter and the number), comments (/) and blank lines left out
+map<string,vector<string>> input_lines(const string &file)
+{
+    map<string,vector<string>> m;
+    ifstream f(file.c_str());
+    string l;
+    while(getline(f,l))
+    {
+        const size_t c = l.find('/');
+        if(c!=string::npos)
+        l.erase(c);
+        istringstream is(l);
+        string a, b, v, rest;
+        if(!(is>>a>>b) || !isalpha((unsigned char)a[0]))
+        continue;
+        while(is>>v)
+        rest += (rest.empty() ? "" : " ")+v;
+        m[a+" "+b].push_back(rest);
+    }
+    for(auto &e : m)
+    sort(e.second.begin(),e.second.end());
+    return m;
+}
+
+// what a change of the setting does on a restart, as far as it was looked at (reefrun_ckpt.h)
+string restart_note(const string &key)
+{
+    const char k = key[0];
+    if(k=='P')
+    return "output";
+    if(key=="M 10")
+    return "ranks: any decomposition";
+    if(key=="N 41" || key=="N 45")
+    return "the end of the run";
+    if(key=="N 47" || key=="N 48" || key=="N 49")
+    return "the time step: used in practice";
+    if(key=="G 45" || key=="G 46" || key=="G 47")
+    return "the rebalance";
+    if(key=="A 10" || key=="X 10" || key=="Z 40")
+    return "the model or its bodies: the restart is refused or does not fit";
+    return "not checked for restarts";
+}
+
+// rank 0, at a restart: the settings of ctrl.txt and control.txt that differ from those of the checkpoint
+void settings_changed(const string &dir)
+{
+    for(const char *in : INPUTS)
+    {
+        const string old = dir+"/"+in;
+        ifstream t(old.c_str());
+        if(!t)
+        continue;
+        const auto a = input_lines(old), b = input_lines(in);
+        vector<string> out;
+        set<string> keys;
+        for(const auto &e : a) keys.insert(e.first);
+        for(const auto &e : b) keys.insert(e.first);
+        for(const string &k : keys)
+        {
+            if(k=="I 45")
+            continue;
+            const auto ia = a.find(k), ib = b.find(k);
+            const vector<string> va = (ia==a.end()) ? vector<string>() : ia->second;
+            const vector<string> vb = (ib==b.end()) ? vector<string>() : ib->second;
+            if(va==vb)
+            continue;
+            string s = "  "+k+": ";
+            if(va.size()==1 && vb.size()==1)
+            s += va[0]+" -> "+vb[0];
+            else if(va.empty())
+            s += "added"+(vb.size()>1 ? " ("+to_string(vb.size())+" lines)" : (vb[0].empty() ? string() : " "+vb[0]));
+            else if(vb.empty())
+            s += "removed";
+            else
+            s += to_string(va.size())+" lines -> "+to_string(vb.size())+" lines";
+            out.push_back(s+"   ["+restart_note(k)+"]");
+        }
+        if(out.empty())
+        continue;
+        cout<<"I 45: "<<in<<" differs from the one of the checkpoint ("<<out.size()<<(out.size()==1 ? " setting" : " settings")<<"):"<<endl;
+        for(const string &s : out)
+        cout<<s<<endl;
+    }
 }
 
 // the scalars of the run
@@ -190,6 +291,11 @@ void reefrun_ckpt::write()
 
     h.write(ck);
 
+    // the input files: a restart lists what changed since
+    if(p->mpirank==0)
+    for(const char *in : INPUTS)
+    copy_file(in,ck.folder()+"/"+in);
+
     // the outputs on disk up to the checkpoint: their sizes go with it (a restart cuts them back to these)
     if(h.flush)
     h.flush();
@@ -257,6 +363,9 @@ void reefrun_ckpt::read()
     // earlier checkpoint, I 45 <count>) are removed first
     if(p->mpirank==0)
     reefckpt::prune(ck.folder(),0);
+
+    if(p->mpirank==0)
+    settings_changed(ck.folder());
 
     if(p->mpirank==0)
     cout<<"restart from checkpoint "<<ck.folder()<<" (I 45): count "<<p->count<<", simtime "<<setprecision(10)<<p->simtime

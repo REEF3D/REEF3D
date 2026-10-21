@@ -29,6 +29,18 @@ Author: Hans Bihs
 //  (sflow_f_ckpt.cpp).  The run part is here: the counters and times of the run, the counters of the
 //  outputs, the rebalance (load map, the weighted partition it gives, checkpoint, the marker
 //  REEF3D_Checkpoint/rebalance, exit code 3; tools/reef3d_rebalance.sh starts again).
+//
+//  Settings on a restart: ctrl.txt and control.txt are copied into every checkpoint, and a restart lists
+//  the settings that differ (I 45 left out) with what is known of them:
+//    P ...                  outputs: safe (a new gauge starts at the restart)
+//    M 10                   any number of ranks (the fields are mapped to the new decomposition)
+//    N 41, N 45             the end of the run: safe
+//    N 47, N 48, N 49       the time step: used in practice (FNPF, a halved N 49 after an instability)
+//    G 45, G 46, G 47       the rebalance: safe
+//    A 10, X 10, Z 40       the model and its bodies: the restart is refused or does not fit
+//    the grid (DIVEMesh)    refused when its size differs; other changes of control.txt are listed only
+//    everything else        not checked: the state comes from the checkpoint; a new setting may act from the
+//                           restart on (read every step) or be ignored (used only at the set-up), or not fit
 
 #include<functional>
 #include<string>
