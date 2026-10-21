@@ -893,7 +893,11 @@ void fnpf_amr::lap_core(lexer *p, ghostcell *pgc)
 
     double bn, rn;
     lap_space sp{this};
-    int it = reefamr_bicgstab(sp,p->N44,p->N46,bn,rn,&tm[2],&tm[3],&lap_restarts,STAGTOL*p->N44,&lap_stalls);
+    // the psi solves of the floating bodies (fnpf_6DOF) stop at the half step once below N 44.  The
+    // phi solves keep the full steps: there an earlier stop changes the iterates within N 44, which
+    // the breaking detection of the AMR breaking cases turns into differences of up to 1e-3
+    const bool half = (lap_kind==1);
+    int it = reefamr_bicgstab(sp,p->N44,p->N46,bn,rn,&tm[2],&tm[3],&lap_restarts,STAGTOL*p->N44,&lap_stalls,half);
 
     const double res = bn>0.0 ? rn/bn : 0.0;
     lap_it_total += it;
