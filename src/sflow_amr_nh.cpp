@@ -114,7 +114,7 @@ void sflow_amr::nh_prepare(ghostcell *pgc, bool assemble)
     {
         nhmg0 = new reefmg2D(p0,pgc0);
         nhr0 = new vec2D(p0,p0->imax*p0->jmax);
-        nhmg0->set_exact_line(sy==0 && nblk==0);     // 2D grid: the exact line solve on one rank
+        nhmg0->set_exact_line(sy==0 && nblk==0);     // 2D grid: the exact line solve
     }
 
     // the level-0 multigrid: rebuilt from the level-0 rows of this solve; a level solve (G 7 1,

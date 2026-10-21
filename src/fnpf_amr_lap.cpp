@@ -316,11 +316,18 @@ void fnpf_amr::lap_prepare(ghostcell *pgc)
             lap_coef(mg0,L,lq,M.p[r],M.n[r],M.s[r],M.w[r],M.e[r],M.t[r],M.b[r]);
             L.act[lq] = fixed(M,r) ? 0 : 1;
         }
-        // a 2D grid on one rank: level 0 is one x-z problem, solved exactly (reefamr_xzlu)
-        xz0on = (sy==0 && p0->mpi_size==1);
-        if(xz0on)
-        xz0.factor(L,mg0->precision());
+        // a 2D grid: level 0 is one x-z problem, solved exactly (reefamr_xzlu; several ranks: the
+        // problem of all ranks on every rank)
+        xz0on = false;
+        if(sy==0 && p0->mpi_size==1)
+        {
+            xz0.factor(L,mg0->precision());
+            xz0on = true;
+        }
         else
+        if(sy==0)
+        xz0on = xz0.factor_mpi(L,mg0->precision(),MPI_COMM_WORLD,p0->origin_i,p0->gknox);
+        if(!xz0on)
         mg0->coarsen();
     }
 
@@ -558,7 +565,7 @@ void fnpf_amr::lap_local(int id, int kr, int kz)
     }
 }
 
-// the level-0 cycle of the preconditioner on mg0->fine(): a V-cycle, on a 2D grid on one rank the
+// the level-0 cycle of the preconditioner on mg0->fine(): a V-cycle, on a 2D grid the
 // exact solve
 void fnpf_amr::lap_l0solve()
 {
