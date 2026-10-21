@@ -2553,6 +2553,8 @@
           <File Name="CPM_wallbc.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Update">
+          <File Name="CPM_loadmap.cpp"/>
+          <File Name="CPM_resample.cpp"/>
           <File Name="CPM_bedchange.cpp"/>
           <File Name="CPM_update.cpp"/>
         </VirtualDirectory>
