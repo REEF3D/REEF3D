@@ -209,9 +209,27 @@ void CPM::topo_column(lexer *p, fdm *a, ghostcell *pgc)
             // the bed ends at the first almost empty cell above it: single parcels resting higher up in
             // the flow (on a structure, in a recirculation, at rest for a moment in the wake) are no bed
             // level; on fine grids two slow parcels fill a cell to theta_bed (a pipeline wake on 2.5 mm
-            // cells gave a bed 7 cm above the real one)
+            // cells gave a bed 7 cm above the real one).
+            // An almost empty cell with a packed cell within the next two cells above it is a cavity in the
+            // bed (the grid-limited step leaves single cells of a scoured bed with one or two parcels), not
+            // its end: the column went on (pipeline, 2.5 mm: single columns of the bed level lay up to 8
+            // cells below their neighbours, under 4-10 packed cells above such a cavity)
             else if(ktop>=0 && oc[k] < 0.25*theta_bed*A*p->DZN[KP])
-            break;
+            {
+                bool cavity=false;
+                
+                for(int kq=k+1; kq<=MIN(k+2,nk-1); ++kq)
+                {
+                    if(p->solidread>0 && a->solid(i,j,kq)<0.0)
+                    break;
+                    
+                    if(oc[kq] >= theta_bed*A*p->DZN[kq+marge])
+                    cavity=true;
+                }
+                
+                if(!cavity)
+                break;
+            }
         }
 
         // the cells below the highest cell of the bed count as full (dilated or loose cells inside
