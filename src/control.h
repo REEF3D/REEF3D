@@ -95,6 +95,7 @@ public:
     int A564,A565,A566,A567;
     int A561;
     double A562_cs,A562_nub,A563;
+    int A559;
     int A570,A573,A574,A578,A580;
     double A568,A571_u,A571_dir,A575,A576_s,A576_sc,A576_c;
     int A572;

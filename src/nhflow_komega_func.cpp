@@ -64,7 +64,8 @@ void nhflow_komega_func::isource(lexer *p, fdm_nhf *d)
               + 0.5*(p->sigx[FIJK]+p->sigx[FIJKp1])*(KIN[IJKp1]-KIN[IJKm1])/(p->DZP[KP]+p->DZP[KM1]));
     
     // QCR extra stress (A 563)
-    if(p->A563>0.0)
+    // QCR (A 563) or EARSM (A 559) extra stress
+    if(TQ11!=nullptr)
     LOOP
     d->F[IJK] += qcr_fx(p,d);
 }
@@ -80,7 +81,8 @@ void nhflow_komega_func::jsource(lexer *p, fdm_nhf *d)
 	d->G[IJK] = -(2.0/3.0)*d->WL(i,j)*((p->geo_curv==1 ? curv_kx(p,KIN,i,j,k,2) : (KIN[IJp1K]-KIN[IJm1K])/(p->DYP[JP]+p->DYP[JM1]))
               + 0.5*(p->sigy[FIJK]+p->sigy[FIJKp1])*(KIN[IJKp1]-KIN[IJKm1])/(p->DZP[KP]+p->DZP[KM1]))*p->y_dir;
     
-    if(p->A563>0.0)
+    // QCR (A 563) or EARSM (A 559) extra stress
+    if(TQ11!=nullptr)
     LOOP
     d->G[IJK] += qcr_fy(p,d)*p->y_dir;
 }
@@ -96,7 +98,8 @@ void nhflow_komega_func::ksource(lexer *p, fdm_nhf *d)
     LOOP
 	d->H[IJK] = -(2.0/3.0)*(KIN[IJKp1]-KIN[IJKm1])/(p->DZP[KP]+p->DZP[KM1]);
     
-    if(p->A563>0.0)
+    // QCR (A 563) or EARSM (A 559) extra stress
+    if(TQ11!=nullptr)
     LOOP
     d->H[IJK] += qcr_fz(p,d);
 }
@@ -108,10 +111,14 @@ void nhflow_komega_func::eddyvisc(lexer* p, fdm_nhf *d, ghostcell* pgc, vrans_nh
     // A564 1: + realizability,  nu_t <= T31 k/S
     // A564 2: + SST/Bradshaw,   nu_t <= a1 k/(F2 S)
     // SST: distance to the side walls with a wall function for F2 (computed once, nhflow_rans_io::walldist_h)
-    if(p->A564==2)
+    // EARSM (A 559): nu_t = -beta1 k tau/2 and the extra anisotropy, instead of the limiters below
+    if(p->A559>0)
+    earsm_update(p,d,pgc,KIN,EPS);
+    
+    if(p->A564==2 && p->A559==0)
     walldist_h(p,d,pgc);
 
-    if(p->A560==2 || p->A560==22)
+    if((p->A560==2 || p->A560==22) && p->A559==0)
     LOOP
     {
         const double kval = MAX(KIN[IJK],0.0);
@@ -154,11 +161,11 @@ void nhflow_komega_func::eddyvisc(lexer* p, fdm_nhf *d, ghostcell* pgc, vrans_nh
     }
 
     // stabilization (Larsen & Fuhrman 2018): nu_t <= k/omega * beta* alpha Omega^2/(lambda2 beta S^2)
-    if(p->A565==0)
+    if(p->A565==0 && p->A559==0)
     LOOP
     d->EV[IJK] = d->EV0[IJK];
 
-    if(p->A565==1)
+    if(p->A565==1 && p->A559==0)
     LOOP
     {
     double Sij2_val = Sij2(p,d);

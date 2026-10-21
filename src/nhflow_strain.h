@@ -61,6 +61,10 @@ public:
     // qcr_update stores it at the cell centres, qcr_fx/fy/fz give D d(dtau_ij)/dx_j at (i,j,k) for the UH, VH, WH
     // momentum sources (isource/jsource/ksource)
     void qcr_update(lexer*,fdm_nhf*,ghostcell*);
+    
+    // EARSM (A 559, Wallin & Johansson 2000) for k-omega: nu_t = -beta1 k tau / 2 into d->EV and d->EV0, the
+    // extra anisotropy -k a_ex_ij into TQ (momentum sources qcr_fx/fy/fz); arguments k and omega
+    void earsm_update(lexer*,fdm_nhf*,ghostcell*,double*,double*);
     double qcr_fx(lexer*,fdm_nhf*);
     double qcr_fy(lexer*,fdm_nhf*);
     double qcr_fz(lexer*,fdm_nhf*);

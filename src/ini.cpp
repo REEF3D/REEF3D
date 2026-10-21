@@ -225,6 +225,7 @@ void control::ini_default()
     A562_cs=0.15;  // double horizontal Smagorinsky constant for A 561
     A562_nub=0.0;  // double background horizontal eddy viscosity for A 561
     A563=0.0;      // double QCR coefficient C_cr1 (0: off, Spalart 2000: 0.3)
+    A559=0;        // int NHFLOW EARSM (Wallin & Johansson 2000) with k-omega (A 560 2/22): 0 off, 1 on
     
     A570=0;      // int wind model
     A571_u=0.0;  // double wind velocity

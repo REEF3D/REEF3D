@@ -34,7 +34,8 @@ nhflow_strain::nhflow_strain(lexer *p, fdm_nhf *d)	: nhflow_gradient(p),epsi(p->
     
     TQ11=TQ22=TQ33=TQ12=TQ13=TQ23=nullptr;
     
-    if(p->A563>0.0)
+    // extra stresses of the QCR (A 563) or the EARSM (A 559)
+    if(p->A563>0.0 || p->A559>0)
     {
     p->Darray(TQ11,p->imax*p->jmax*(p->kmax+2));
     p->Darray(TQ22,p->imax*p->jmax*(p->kmax+2));
@@ -629,4 +630,171 @@ double nhflow_strain::qcr_fz(lexer *p, fdm_nhf *d)
     return 0.0;
     
     return d->WL(i,j)*(dudx(TQ13) + (p->j_dir==1 ? dudy(TQ23) : 0.0) + dudz(TQ33));
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// EARSM (A 559 1), explicit algebraic Reynolds stress model of Wallin & Johansson (2000), J. Fluid Mech. 403
+//   tau = max(1/(Cmu omega), C_tau sqrt(nu/(Cmu k omega))), C_tau = 6
+//   S = tau/2 (grad u + grad u^T),  O = tau/2 (grad u - grad u^T)  (O_ij = tau/2 (du_i/dx_j - du_j/dx_i))
+//   a = b1 S + b3 (O^2 - IIO/3 I) + b4 (S O - O S) + b6 (S O^2 + O^2 S - IIO S - 2/3 IV I) + b9 (O S O^2 - O^2 S O)
+//   N: exact root of the 2D cubic (c1' = 1.8) with the 3D correction, Q = 5/6 (N^2 - 2 IIO)(2 N^2 - IIO)
+//   b1 = -N (2 N^2 - IIO)/Q, b3 = -12 IV/(N Q), b4 = -2 (N^2 - 2 IIO)/Q, b6 = -6 N/Q, b9 = 6/Q
+//   (b1 with this T6 form is the exact solution of N a = -6/5 S + (a O - O a), checked numerically; it gives
+//    Cmu_eff = -b1/2 = 0.089 in equilibrium shear tau*gamma = 3.33. The form b1 = -N(2N^2 - 7 IIO)/Q belongs to
+//    T6 without the -IIO S term; mixing the two doubles nu_t in shear)
+// Reynolds stress u_i u_j = k (a_ij + 2/3 delta_ij):
+//   linear part  -> nu_t = -b1 k tau/2 in the implicit diffusion (d->EV, d->EV0, used for the production too:
+//                   the extra anisotropy is production-free in 2D mean flows)
+//   extra part   -> TQ_ij = -k a_ex_ij, momentum source D d(TQ_ij)/dx_j (qcr_fx/fy/fz), explicit, lagged
+// ---------------------------------------------------------------------------------------------------------------
+void nhflow_strain::earsm_update(lexer *p, fdm_nhf *d, ghostcell *pgc, double *KIN, double *EPS)
+{
+    const double c1 = 1.8;
+    const double ctau = 6.0;
+    double g[3][3],S[3][3],O[3][3],S2[3][3],O2[3][3],SO[3][3],OS[3][3],SO2[3][3],O2S[3][3],OSO2[3][3],O2SO[3][3],T[3][3];
+    double *vel[3] = {d->U,d->V,d->W};
+    
+    auto mul = [](double A[3][3], double B[3][3], double C[3][3])
+    {
+        for(int a=0; a<3; ++a)
+        for(int b=0; b<3; ++b)
+        {
+            C[a][b]=0.0;
+            for(int c=0; c<3; ++c)
+            C[a][b] += A[a][c]*B[c][b];
+        }
+    };
+    
+    LOOP
+    {
+        TQ11[IJK]=TQ22[IJK]=TQ33[IJK]=TQ12[IJK]=TQ13[IJK]=TQ23[IJK]=0.0;
+        
+        const double kval = MAX(KIN[IJK],0.0);
+        const double wval = EPS[IJK];
+        
+        if(p->wet[IJ]==0 || p->DF[IJK]<0 || wval<1.0e-20 || kval<1.0e-20)
+        {
+        d->EV0[IJK] = d->EV[IJK] = 0.0001*d->VISC[IJK];
+        continue;
+        }
+        
+        // turbulent time scale with the Kolmogorov limit
+        const double tau = MAX(1.0/(p->cmu*wval), ctau*sqrt(d->VISC[IJK]/(p->cmu*kval*wval)));
+        
+        for(int a=0; a<3; ++a)
+        {
+            g[a][0] = dudx(vel[a]);
+            g[a][1] = (p->j_dir==1) ? dudy(vel[a]) : 0.0;
+            g[a][2] = dudz(vel[a]);
+        }
+        
+        if(p->j_dir==0)
+        g[1][0] = g[1][2] = 0.0;
+        
+        for(int a=0; a<3; ++a)
+        for(int b=0; b<3; ++b)
+        {
+            S[a][b] = 0.5*tau*(g[a][b] + g[b][a]);
+            O[a][b] = 0.5*tau*(g[a][b] - g[b][a]);
+        }
+        
+        // the strain without the trace (incompressible, discrete divergence is not exactly zero)
+        const double trS = (S[0][0]+S[1][1]+S[2][2])/3.0;
+        S[0][0]-=trS; S[1][1]-=trS; S[2][2]-=trS;
+        
+        mul(S,S,S2);
+        mul(O,O,O2);
+        mul(S,O,SO);
+        mul(O,S,OS);
+        mul(S,O2,SO2);
+        mul(O2,S,O2S);
+        mul(O,SO2,OSO2);   // O S O^2
+        mul(O2S,O,O2SO);   // O^2 S O
+        
+        double IIS=0.0, IIO=0.0, IV=0.0, V=0.0;
+        for(int a=0; a<3; ++a)
+        {
+            IIS += S2[a][a];
+            IIO += O2[a][a];
+            IV  += SO2[a][a];
+            for(int b=0; b<3; ++b)
+            V += S2[a][b]*O2[b][a];
+        }
+        
+        // N: 2D cubic (exact), then the 3D correction
+        const double P1 = (c1*c1/27.0 + 0.45*IIS - (2.0/3.0)*IIO)*c1;
+        const double P2 = P1*P1 - pow(c1*c1/9.0 + 0.9*IIS + (2.0/3.0)*IIO, 3.0);
+        double N;
+        
+        if(P2>=0.0)
+        N = c1/3.0 + cbrt(P1 + sqrt(P2)) + cbrt(P1 - sqrt(P2));
+        
+        else
+        {
+        const double arg = MAX(-1.0, MIN(1.0, P1/sqrt(P1*P1 - P2)));
+        N = c1/3.0 + 2.0*pow(P1*P1 - P2, 1.0/6.0)*cos(acos(arg)/3.0);
+        }
+        
+        const double D = 20.0*pow(N,4.0)*(N - 0.5*c1) - IIO*(10.0*N*N*N + 15.0*c1*N*N) + 10.0*c1*IIO*IIO;
+        
+        if(fabs(D)>1.0e-12)
+        N += 162.0*(IV*IV + (V - 0.5*IIS*IIO)*N*N)/D;
+        
+        N = MAX(N, c1/3.0);
+        
+        const double Q  = (5.0/6.0)*(N*N - 2.0*IIO)*(2.0*N*N - IIO);
+        const double b1 = -N*(2.0*N*N - IIO)/Q;
+        const double b3 = -12.0*IV/(N*Q);
+        const double b4 = -2.0*(N*N - 2.0*IIO)/Q;
+        const double b6 = -6.0*N/Q;
+        const double b9 = 6.0/Q;
+        
+        // extra anisotropy
+        for(int a=0; a<3; ++a)
+        for(int b=0; b<3; ++b)
+        {
+            const double del = (a==b) ? 1.0 : 0.0;
+            
+            T[a][b] = b3*(O2[a][b] - IIO*del/3.0)
+                    + b4*(SO[a][b] - OS[a][b])
+                    + b6*(SO2[a][b] + O2S[a][b] - IIO*S[a][b] - (2.0/3.0)*IV*del)
+                    + b9*(OSO2[a][b] - O2SO[a][b]);
+        }
+        
+        double ev = -0.5*b1*kval*tau;
+        double kf = kval;
+        
+        // URANS filter (A 560 22), as the standard k-omega: on nu_t and the extra stress
+        if(p->A560==22)
+        {
+            double dxm;
+            
+            if(p->j_dir==0)
+            dxm = pow(p->DXN[IP]*p->DZN[KP]*d->WL(i,j), (1.0/2.0));
+
+            else
+            dxm = pow((p->geo_curv==1 ? p->AREA2D[IJ] : p->DXN[IP]*p->DYN[JP])*p->DZN[KP]*d->WL(i,j), (1.0/3.0));
+
+            const double f = MIN(1.0, dxm*p->A568*p->cmu*wval/sqrt(kval));
+            
+            ev *= f;
+            kf *= f;
+        }
+        
+        d->EV0[IJK] = d->EV[IJK] = MAX(ev, 0.0001*d->VISC[IJK]);
+        
+        TQ11[IJK] = -kf*T[0][0];
+        TQ22[IJK] = -kf*T[1][1];
+        TQ33[IJK] = -kf*T[2][2];
+        TQ12[IJK] = -kf*T[0][1];
+        TQ13[IJK] = -kf*T[0][2];
+        TQ23[IJK] = -kf*T[1][2];
+    }
+    
+    pgc->start24V(p,TQ11,24);
+    pgc->start24V(p,TQ22,24);
+    pgc->start24V(p,TQ33,24);
+    pgc->start24V(p,TQ12,24);
+    pgc->start24V(p,TQ13,24);
+    pgc->start24V(p,TQ23,24);
 }
