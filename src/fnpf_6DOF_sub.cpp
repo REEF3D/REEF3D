@@ -218,7 +218,10 @@ void fnpf_6DOF::forces_level(lexer *p, fdm_fnpf *c, ghostcell *pgc, int l)
     amr->sub_psi_edges(l,&fs[0]);
 
     const double t1 = MPI_Wtime();
+    {
+    fnpf_psi_tol tol(p);
     amr->lap_solve_psi_level(p,pgc,l,&fs[0],&Ds[0]);
+    }
     psi_count(p->solveriter);
 
     const double t2 = MPI_Wtime();

@@ -57,6 +57,20 @@ private:
     fnpf_laplace *plap;
 };
 
+// X 30: the psi solves of the loads (the hull pressure from psi_0, the added mass from the unit modes)
+// to X 30 x N 44 instead of the tolerance of the phi solves; the solvers (REEFMG, the composite solve
+// of fnpf_amr) read N 44 at every solve, so it is set for the solve and restored after it (the
+// stagnation stop of the composite solve scales with it)
+fnpf_psi_tol::fnpf_psi_tol(lexer *p) : p(p), n44(p->N44)
+{
+    p->N44 = n44*p->X30;
+}
+
+fnpf_psi_tol::~fnpf_psi_tol()
+{
+    p->N44 = n44;
+}
+
 fnpf_6DOF::fnpf_6DOF(lexer *p, fdm_fnpf *c, ghostcell *pgc) : initialized(false), foot(p), psiD(p), zeroslice(p),
                                                                eta_ext(p), fi_ext(p), amr(nullptr), amr_layout(-1)
 {
@@ -86,6 +100,9 @@ fnpf_6DOF::fnpf_6DOF(lexer *p, fdm_fnpf *c, ghostcell *pgc) : initialized(false)
     cout<<", earlier after a motion by more than "<<p->X29_d<<" m or "<<p->X29_a<<" deg (X 29)";
     cout<<endl;
     }
+
+    if(p->mpirank==0 && p->X30!=1.0)
+    cout<<"6DOF FNPF: the psi solves of the loads to "<<p->X30<<" x N 44 = "<<p->X30*p->N44<<" (X 30)"<<endl;
 
     gcval = (p->j_dir==0) ? 150 : 250;
     
@@ -884,7 +901,10 @@ void fnpf_6DOF::solve_psi(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, 
     c->Uin = zero;
     
     solver_print_quiet() = true;
+    {
+    fnpf_psi_tol tol(p);
     plap->start(p,c,pgc,psolv,pf,f,D);
+    }
     solver_print_quiet() = false;
     psi_count(p->poissoniter);
     
@@ -1182,7 +1202,10 @@ void fnpf_6DOF::solve_psi_amr(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *pso
     double *uin = c->Uin;
     c->Uin = zero;
     
+    {
+    fnpf_psi_tol tol(p);
     amr->lap_solve_psi(p,c,pgc,psolv,pf,&fs[0],&Ds[0]);
+    }
     psi_count(p->solveriter);
     
     c->Uin = uin;

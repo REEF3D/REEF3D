@@ -1,0 +1,4 @@
+{"base": "nhflow_2d_6dof_box", "ctrl_set": {"X 11": "0 0 2 0 0 0"}, "ctrl_add": ["X 240 1"],
+ "files": ["6DOF_motion.dat"],
+ "description": "as nhflow_2d_6dof_box with the heave prescribed from the motion file 6DOF_motion.dat (X 240 1, four columns t, x, y, z: z = 0.01 sin(2 pi t)); surge and pitch fixed (needs patch 0023: four columns).",
+ "tags": ["2d", "nhflow", "6dof", "floating"], "covers": ["sixdof_motionext_file::read_format_1 (X 240 1, colnum 4)", "sixdof_motionext_file::motionext_trans"]}

@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"control.h"
@@ -2534,6 +2534,8 @@ void control::ctrlsend()
     dctrl[dd] = X29_d;
     dd++;
     dctrl[dd] = X29_a;
+    dd++;
+    dctrl[dd] = X30;
     dd++;
     ictrl[ii] = X31;
     ii++;

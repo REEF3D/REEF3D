@@ -87,6 +87,17 @@ struct fnpf_6DOF_grid
     slice *Keta = nullptr, *Kfi = nullptr;      // patch: tendencies of the current stage
 };
 
+// X 30: the tolerance of a psi solve, set for the solve and restored after it (fnpf_6DOF.cpp)
+class fnpf_psi_tol
+{
+public:
+    fnpf_psi_tol(lexer*);
+    ~fnpf_psi_tol();
+private:
+    lexer *p;
+    const double n44;
+};
+
 class fnpf_6DOF : public fnpf_body, public increment
 {
 public:

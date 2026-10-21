@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include "control.h"
@@ -3541,6 +3541,9 @@ void control::read_control(lexer* p)
                          clear(c,numint);
                          break;
                 case  29: control>>X29_d>>X29_a;
+                         clear(c,numint);
+                         break;
+                case  30: control>>X30;
                          clear(c,numint);
                          break;
                 case  31: control>>X31;
