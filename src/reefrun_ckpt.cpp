@@ -31,11 +31,31 @@ Author: Hans Bihs
 #include<fstream>
 #include<cstdio>
 #include<mpi.h>
+#include<csignal>
 
 using namespace std;
 
 namespace
 {
+// SIGTERM, SIGUSR1 (a batch system before the end of the job, a container before its restart): the run
+// writes a checkpoint at the next step boundary and stops (signal_stop)
+volatile sig_atomic_t stop_signal = 0;
+
+extern "C" void on_stop_signal(int s)
+{
+    stop_signal = s;
+}
+
+void stop_signals_ini()
+{
+    struct sigaction sa;
+    sa.sa_handler = on_stop_signal;
+    sigemptyset(&sa.sa_mask);
+    sa.sa_flags = SA_RESTART;
+    sigaction(SIGTERM,&sa,nullptr);
+    sigaction(SIGUSR1,&sa,nullptr);
+}
+
 // the scalars of the run
 template<class F>
 void run_scalars(lexer *p, F &&f)
@@ -63,6 +83,11 @@ reefrun_ckpt::reefrun_ckpt(lexer *pp, ghostcell *ppgc, hooks hh) : p(pp), pgc(pp
     const string un = (enabled() && h.unsupported) ? h.unsupported() : string();
     if(p->mpirank==0 && !un.empty())
     cout<<endl<<"!!! P 48: "<<un<<" -- this run writes no checkpoints !!!"<<endl<<endl;
+
+    // SIGTERM, SIGUSR1: a checkpoint at the next step boundary, then the stop (signal_stop); a case not covered
+    // keeps the default (the signal ends the run)
+    if(enabled() && un.empty())
+    stop_signals_ini();
 }
 
 bool reefrun_ckpt::enabled() const
@@ -81,8 +106,36 @@ void reefrun_ckpt::step()
 {
     if(p->P48>0 && p->count%p->P48==0)
     write();
+    if(enabled())
+    signal_stop();
     if(p->G46>0.0)
     rebalance_check();
+}
+
+void reefrun_ckpt::finish()
+{
+    if(!enabled() || (last_count==p->count && last_sub==sub))
+    return;
+    write();
+}
+
+bool reefrun_ckpt::signal_stop()
+{
+    int s = stop_signal, all = 0;
+    MPI_Allreduce(&s,&all,1,MPI_INT,MPI_MAX,MPI_COMM_WORLD);
+    if(all==0)
+    return false;
+
+    if(p->mpirank==0)
+    cout<<endl<<"signal "<<(all==SIGTERM ? "SIGTERM" : (all==SIGUSR1 ? "SIGUSR1" : to_string(all)))<<": checkpoint at step "<<p->count
+        <<", simtime "<<setprecision(10)<<p->simtime<<" and stop (I 45 1 continues)"<<endl;
+    if(last_count!=p->count || last_sub!=sub)
+    write();
+    if(h.flush)
+    h.flush();
+    MPI_Barrier(MPI_COMM_WORLD);
+    pgc->final();
+    return true;
 }
 
 void reefrun_ckpt::write()
@@ -120,6 +173,8 @@ void reefrun_ckpt::write()
 
     ck.write_close(p);
     write_s = pgc->timer()-t0;
+    last_count = p->count;
+    last_sub = sub;
 
     // P 49: only the newest checkpoints are kept (REEF3D_Checkpoint/history), the older ones are removed once
     // this one is the latest; not given: two (one an instability may not have reached yet), keep_last: one;
@@ -159,6 +214,8 @@ void reefrun_ckpt::read()
     fail(msg.empty() ? "checkpoint "+ck.folder()+" incomplete for this case" : msg);
 
     p->count = int(ck.get_scalar("count"));
+    last_count = p->count;
+    last_sub = sub;
     rebal_L = ck.get_scalar("rebal_L");
     rebal_n = int(ck.get_scalar("rebal_n"));
     p->count_statestart = p->count;

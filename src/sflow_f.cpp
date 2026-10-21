@@ -242,6 +242,9 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
     
 	}
 
+	// a checkpoint at the end of the run (P 48): it can be continued with a later end (I 45 1)
+	ckpt(p,b,pgc).finish();
+
 	// the last outputs of the LAGOON store are counted (P 18)
 	lagoon_output::finish_all(p,pgc);
 

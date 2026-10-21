@@ -203,6 +203,9 @@ void seastate_f::ckpt_iteration(lexer *p, int k)
     k_now = k;
     if(p->P48>0 && k%p->P48==0 && k<iter_max)
     rck->write();
+    // a stop signal (SIGTERM, SIGUSR1): within the step too (a stationary step can be long)
+    if(p->P48>0 && k<iter_max)
+    rck->signal_stop();
     if(p->G46>0.0)
     rck->rebalance_check_iter(k,iter_max);
     rck->sub = 0;

@@ -159,6 +159,9 @@ void driver::loop_fnpf()
     stop(p,a,pgc);
 	}
 
+	// a checkpoint at the end of the run (P 48): it can be continued with a later end (I 45 1)
+	ckpt().finish();
+
 	// the last outputs of the LAGOON store are counted (P 18)
 	lagoon_output::finish_all(p,pgc);
 

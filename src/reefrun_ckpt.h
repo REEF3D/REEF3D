@@ -67,7 +67,11 @@ public:
 
     void write();
     void read();                // I 45 1, exits on a failure
-    void step();                // after the outputs of a step: P 48 and G 46
+    void step();                // after the outputs of a step: P 48, a stop signal and G 46
+    void finish();              // the end of the run: a checkpoint, unless the last step wrote one
+    // SIGTERM or SIGUSR1 to a rank (collective): a checkpoint at this step boundary, then the run stops;
+    // false: no signal
+    bool signal_stop();
     void rebalance_check();
     // the same within a step of k_max iterations (SEASTATE stationary): every G 47 iterations, at iteration k
     void rebalance_check_iter(int k, int kmax);
@@ -89,6 +93,8 @@ private:
     ghostcell *pgc;
     hooks h;
     bool told = false;          // a case not covered: said at the first checkpoint
+    int last_count = -1;        // the step (and sub) of the last checkpoint written or read
+    int last_sub = -1;
 };
 
 #endif
