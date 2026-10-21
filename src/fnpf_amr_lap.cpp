@@ -297,6 +297,7 @@ void fnpf_amr::lap_prepare(ghostcell *pgc)
     };
 
     // level 0: all rows of the rank grid, 7-point part
+    if(!(sy==0 && xz_keep(xz0key,xz0on,wkey)))
     {
         sc_level &L = mg0->fine();
         clear(L);
@@ -329,6 +330,7 @@ void fnpf_amr::lap_prepare(ghostcell *pgc)
         xz0on = xz0.factor_mpi(L,mg0->precision(),MPI_COMM_WORLD,p0->origin_i,p0->gknox);
         if(!xz0on)
         mg0->coarsen();
+        xz0key[0] = layout_id; xz0key[1] = wkey; xz0key[2] = p0->count;
     }
 
     // patches: interior rows, couplings to the cells around the patch dropped
@@ -338,6 +340,8 @@ void fnpf_amr::lap_prepare(ghostcell *pgc)
         continue;
 
         fnpf_amr_patch *c = FP(q);
+        if(sy==0 && xz_keep(c->xzkey,true,wkey))
+        continue;
         lexer *pp = c->pp;
         sc_level &L = c->mg->fine();
         clear(L);
@@ -361,10 +365,25 @@ void fnpf_amr::lap_prepare(ghostcell *pgc)
         // a 2D grid: the patch-local problem is an x-z problem, solved exactly (reefamr_xzlu) instead
         // of the V-cycle
         if(sy==0)
-        c->xz.factor(L,c->mg->precision());
+        {
+            c->xz.factor(L,c->mg->precision());
+            c->xzkey[0] = layout_id; c->xzkey[1] = wkey; c->xzkey[2] = p0->count;
+        }
         else
         c->mg->coarsen();
     }
+}
+
+// a 2D grid: the exact factorisation of a grid is kept for the other solves of the step (key: the
+// layout, the window and the step of the factorisation).  The coefficients follow the free
+// surface: the factorisation of the first solve of the step is the preconditioner for its other
+// solves (2D flume, two levels: 0.3 % more iterations, 14 % less time; kept for 4 steps: 1.7 %
+// more iterations and no further gain).  With a body (fixed rows) refactorised every solve
+bool fnpf_amr::xz_keep(long *key, bool on, int wkey)
+{
+    if(!on || body!=nullptr)
+    return false;
+    return key[0]==layout_id && key[1]==wkey && key[2]==p0->count;
 }
 
 // covered columns, partition halo of level 0, columns around the patches
@@ -651,9 +670,17 @@ void fnpf_amr::lap_prec(int kr, int kz)
         t[qq] = r[qq];
     }
 
+    // (a 2D grid: the rows next to the strip only, the prolongation reads the strip)
     for(int id=0; id<(int)P.size(); ++id)
     {
         lexer *q = glex(id);
+        if(sy==0)
+        for(int ii=q->imin; ii<q->imin+q->imax; ++ii)
+        {
+            const int a = fidx(q,ii,EY-1,q->kmin);
+            std::copy(lvec(id,kz)+a,lvec(id,kz)+a+(P[id]->ny+2)*q->kmaxF,lvec(id,NPRE)+a);
+        }
+        else
         std::copy(lvec(id,kz),lvec(id,kz)+q->imax*q->jmax*(q->kmax+2),lvec(id,NPRE));
     }
 
@@ -703,9 +730,19 @@ void fnpf_amr::lap_prec(int kr, int kz)
             lexer *q = glex(id);
             const double *z = lvec(id,kz);
             double *d = lvec(id,NPRE);
+            if(sy==0)
+            for(int ii=q->imin; ii<q->imin+q->imax; ++ii)
+            {
+                const int a = fidx(q,ii,EY-1,q->kmin), n = (P[id]->ny+2)*q->kmaxF;
+                for(int m=a; m<a+n; ++m)
+                d[m] = z[m] - d[m];
+            }
+            else
+            {
             const int n = q->imax*q->jmax*(q->kmax+2);
             for(int m=0; m<n; ++m)
             d[m] = z[m] - d[m];
+            }
         }
 
         // the increment interpolated into the patch interiors (NRP, from the parent on its rank)
