@@ -1,0 +1,4 @@
+{"base": "nhflow_2d_6dof_box", "ctrl_add": ["X 15 8", "X 19 1"],
+ "description": "as nhflow_2d_6dof_box with X 15 8: the hull as a sharp thin body (blocked links of the body level set in nhflow_thinbody, wall velocity of the rigid body, loads from the outer pressure, added-mass stabilisation, no direct forcing; A 520 switched to 1); patch 0025. Log REEF3D_NHFLOW_6DOF/REEF3D_6DOF_hullbody.dat.",
+ "tags": ["2d", "nhflow", "6dof", "floating"],
+ "covers": ["nhflow_hullbody stage/forces", "nhflow_thinbody with a rigid 6DOF hull", "sixdof_obj_nhflow::hull_stabilisation"]}

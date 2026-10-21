@@ -426,5 +426,5 @@
  ],
  "blessed_from": "/home/claude/work/reef3d_reg/new/REEF3D",
  "date": "2026-10-21",
- "note": "hans_dev cbbb06a89 + patches 0023, 0024; Linux x86_64 gcc 13.3 MPICH 4.2.3, -O2 -ffp-contract=off"
+ "note": "hans_dev cbbb06a89 + patches 0023-0025; Linux x86_64 gcc 13.3 MPICH 4.2.3, -O2 -ffp-contract=off"
 }
