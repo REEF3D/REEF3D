@@ -52,7 +52,8 @@ A case can depend on earlier runs (hydrodynamic coupling): `"chain": [{"case": "
 ["REEF3D_FNPF_STATE"]}]` runs that case first in `<rundir>/_chain` and copies the listed folders
 into the run directory before DIVEMesh; `"keep_keys": ["P 40", "P 41"]` keeps print keys the suite
 normally removes (state files for such a stage). A restart from checkpoints is such a chain: the stage
-writes them (P 48), the case copies `REEF3D_Checkpoint` and sets I 45 1. `"rebalance": n` starts a run
+writes them (P 48), the case copies `REEF3D_Checkpoint` (and the output folders, which the restart cuts back to the
+checkpoint) and sets I 45 1 or I 45 <count>. `"rebalance": n` starts a run
 again after a rebalance stop (G 46: exit code 3 and the marker `REEF3D_Checkpoint/rebalance`), at most
 n times, as `tools/reef3d_rebalance.sh` does. The load maps (`*_loadmap.dat`) and the reports of the
 SEASTATE pipeline (`*_pipeline.dat`, Phase 19), measured times, are not compared.
@@ -67,7 +68,9 @@ Other commands:
 ./regression.py bless DIR [--note "why"]                # store compact references in cases/<case>/reference.json
 ./regression.py check DIR [--rtol 1e-6]                 # check a run against the stored references
 ./regression.py ranks DIR                               # SEASTATE: cases with "same_as" against that case of the run, cell by cell
-                                                        # (bitwise; with "same_as_rtol": Hs and the spectra within that tolerance)
+                                                        # (bitwise; with "same_as_rtol": Hs and the spectra within that tolerance);
+                                                        # other models (a restart against the run it continues): the final state
+                                                        # rank by rank and the text outputs, bitwise or within "same_as_rtol"
 ```
 
 ## Workflow for code changes
@@ -98,6 +101,7 @@ Each case is a directory in `cases/` with a `case.json` and either its own `cont
  "same_as": "<case>",                  // SEASTATE: bitwise the result of that case (other ranks); checked by `ranks`, not inherited
  "same_as_rtol": 1e-5,                 // with same_as: converged runs whose iterations differ (lagged halos): Hs relative to
                                        // itself and the bins relative to the largest bin of the cell within this, not bitwise
+ "same_as_skip": ["REEF3D_FNPF_AMR/*_log.dat"], // with same_as, a restart (not SEASTATE): text outputs not compared
  "rebalance": 3,                       // restarts after a rebalance stop (G 46), at most this many
  "description": "...", "covers": ["code paths this case is meant to exercise"]
 }
@@ -222,6 +226,11 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `fnpf_3d_coral_array_sub` | 1 | `fnpf_3d_coral_array` with subcycling (G 7 1): a CORAL step every finest step, the coarser levels on the predicted poses of all bodies (needs patches CORAL/0011-0030) |
 | `fnpf_3d_coral_amr_fullscale` | 1 | `fnpf_3d_coral_amr` at full scale (Froude x100: dx 8 m, depth 100 m, the point absorber 30 m wide): the composite psi solves (pressure, added mass) with a resolved body on the patches; before patch CORAL/0047 the FAC preconditioner restricted a stale increment at the body nodes of the patches with the residual (small against it at model scale, dominant at full scale) and the psi solves diverged to NaN at the first step (CORAL: time step failed at t = 0); A33 1e6 times that of `fnpf_3d_coral_amr` within 0.6 % (needs patch CORAL/0047) |
 | `fnpf_3d_coral_amr_fullscale_sub` | 1 | `fnpf_3d_coral_amr_fullscale` with subcycling (G 7 1): the window preconditioner (lap_prec_win) at full scale (needs patch CORAL/0047) |
+| `fnpf_3d_coral_array_am3` | 1 | `fnpf_3d_coral_array` with the added mass every 3 time steps (X 28 3): the unit-mode solves of the three bodies and their cross terms at every third step, held in between (needs patch CORAL/0049) |
+| `fnpf_3d_coral_amr_fullscale_am4` | 1 | `fnpf_3d_coral_amr_fullscale` with the added mass every 4 steps (X 28 4), earlier after a motion by more than 0.5 m (X 29 0.5 0), a checkpoint every 7 steps (P 48 7) (needs patch CORAL/0049) |
+| `fnpf_3d_coral_amr_fullscale_am4_restart` | 1 | the restart (I 45 1) of `fnpf_3d_coral_amr_fullscale_am4` from step 14: the added mass of the checkpoint (fnpf_6DOF::ckpt_state version 2) until the next one is due; the final state bitwise that of the full run. The first restart case with mesh refinement under the AMR contract check (needs patches CORAL/0048, 0049) |
+| `fnpf_3d_coral_amr_ckpt` | 1 | `fnpf_3d_coral_amr` with a checkpoint every 5 steps (P 48 5), the newest three kept (P 49 3: steps 10, 15, 20, the last also the checkpoint at the end of the run); the uninterrupted run of the restart cases (needs patches Checkpoints/0001-0008) |
+| `fnpf_3d_coral_amr_restart`, `_restart_mpi2` | 1, 2 | the restart (`chain`) of `_ckpt` from its checkpoint at step 10 (I 45 10, not the latest) with the outputs of the full run copied in (CORAL, 6DOF, wave gauges): they are cut back to step 10 and continued; `ranks`: on 1 rank the final state and every text output bitwise those of the uninterrupted run, on 2 ranks the text outputs within 1e-6 (needs patches Checkpoints/0001-0008) |
 | `nhflow_2d_coral_fluid_body_mpi2` | 2 | `nhflow_2d_coral_fluid_body` on 2 ranks (needs patches CORAL/0011-0028) |
 | `cfd_2d_coral_one_way_mpi2` | 2 | `cfd_2d_coral_one_way` on 2 ranks (the held box across the partition edge): the loads and the 10 strips summed over the ranks (needs patches CORAL/0011-0028) |
 | `fnpf_2d_coral_drag` | 1 | the FNPF box of `fnpf_2d_coral_fluid_body` with CORAL's quadratic drag (`drag ... Cd area`) in place of the PTO: heave decay; `REEF3D_FNPF_6DOF/*.dat` and `REEF3D_CORAL/box.dat` (with the drag channels) compared (needs patches CORAL/0011-0029) |
