@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"reefckpt.h"
@@ -80,17 +80,25 @@ void fnpf_amr::print(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     // the waiting for the patch ranks as Laplace time); doprint is the same on all ranks
     if(doprint)
     {
-        double tmx[6];
-        for(int k=0; k<6; ++k)
+        double tmx[9];
+        for(int k=0; k<9; ++k)
         tmx[k] = tm[k];
-        pgc->globalmax(tmx,6);
+        pgc->globalmax(tmx,9);
         const double cmax = pgc->globalmax(double(cells_local));
 
         if(p->mpirank==0)
         {
             cout<<"FNPF AMR: "<<patches_total<<" patches, "<<cells_total<<" columns (max "<<(long)cmax<<" per rank); max over ranks: patch stages "
-                <<setprecision(4)<<tmx[0]<<" s, Laplace "<<tmx[1]<<" s (preconditioner "<<tmx[2]<<" s, operator "<<tmx[3]<<" s, setup "<<tmx[5]
-                <<" s), mean iterations "<<(lap_solves>0 ? double(lap_it_total)/lap_solves : 0.0);
+                <<setprecision(4)<<tmx[0]<<" s, Laplace "<<tmx[1]<<" s (preconditioner "<<tmx[2]<<" s, operator "<<tmx[3]<<" s, assembly and coarsening "
+                <<tmx[7]<<" s, setup "<<tmx[5]<<" s), mean iterations "<<(lap_solves>0 ? double(lap_it_total)/lap_solves : 0.0);
+            // a body: the psi solves of its loads (pressure, added mass) against the phi solves
+            if(lap_solves_psi>0)
+            {
+                const long nphi = lap_solves-lap_solves_psi;
+                cout<<"; psi solves "<<lap_solves_psi<<" of "<<lap_solves<<": "<<tmx[6]<<" s (assembly and coarsening "<<tmx[8]
+                    <<" s), mean iterations "<<double(lap_it_psi)/lap_solves_psi
+                    <<" (phi "<<(nphi>0 ? double(lap_it_total-lap_it_psi)/nphi : 0.0)<<")";
+            }
             if(regrid_int>0)
             cout<<", regrid "<<tmx[4]<<" s, layouts "<<layout_id<<", regrids skipped "<<regrids_skipped;
             if(lap_restarts>0)

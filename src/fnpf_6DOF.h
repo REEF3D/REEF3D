@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #ifndef FNPF_6DOF_H_
@@ -180,7 +180,10 @@ private:
     int psi_solves = 0, psi_itmax = 0;
     long long psi_iter = 0;
     void psi_count(int it) {++psi_solves; psi_iter += it; psi_itmax = it>psi_itmax ? it : psi_itmax;}
-    void psi_report(lexer*);
+    void psi_report(lexer*, ghostcell*);
+    // the time of the loads since the start (all ranks, the maximum printed): the whole of forces,
+    // forces_amr and forces_level, of it the psi solves, of these the body-band extrapolation
+    double t_loads = 0.0, t_psi = 0.0, t_band = 0.0;
 
     // X 28: the added mass (unit-mode solves, cross terms) every X 28 steps, earlier when a body has
     // moved by more than X 29 since (am_due); the step and the poses of the last one

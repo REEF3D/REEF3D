@@ -230,7 +230,7 @@ fnpf_amr::fnpf_amr(lexer *p, fdm_fnpf *c, ghostcell *pgc) : reefamr(p,pgc)
     lap_it_total = lap_solves = 0;
     lap_it_last = 0;
     lap_res_last = 0.0;
-    for(int k=0; k<6; ++k)
+    for(int k=0; k<9; ++k)
     tm[k] = 0.0;
 }
 

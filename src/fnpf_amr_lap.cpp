@@ -815,7 +815,9 @@ struct lap_space
 // the values in ltgt), then the covered columns, the columns around the patches and the halo
 void fnpf_amr::lap_core(lexer *p, ghostcell *pgc)
 {
+    const double ts = MPI_Wtime();
     lap_prepare(pgc);
+    lap_tsetup(MPI_Wtime()-ts);
 
     // right-hand side into NS
     for(int g=-1; g<(int)P.size(); ++g)
@@ -847,7 +849,11 @@ void fnpf_amr::lap_core(lexer *p, ghostcell *pgc)
         lap_it_phi_max = MAX(lap_it_phi_max,it);
     }
     else
-    lap_it_psi_max = MAX(lap_it_psi_max,it);
+    {
+        lap_it_psi_max = MAX(lap_it_psi_max,it);
+        lap_it_psi += it;
+        ++lap_solves_psi;
+    }
     p->solveriter = it;
     p->final_res = res;
 
@@ -888,7 +894,9 @@ void fnpf_amr::lap_picard(lexer *p, fdm_fnpf *c, ghostcell *pgc, fnpf_fsf *pf, A
             }
         }
 
+        const double ts = MPI_Wtime();
         assemble();
+        lap_tsetup(MPI_Wtime()-ts);
 
         if(nouter>1)
         {
@@ -1024,4 +1032,5 @@ void fnpf_amr::lap_solve_psi(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psol
     lap_kind = 0;
 
     tm[1] += MPI_Wtime()-t0;
+    tm[6] += MPI_Wtime()-t0;
 }

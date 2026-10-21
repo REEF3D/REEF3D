@@ -332,6 +332,9 @@ private:
     int lap_kind = 0;               // solve of lap_core: 0 phi, 1 psi (body loads)
     int lap_it_phi_max = 0, lap_it_psi_max = 0, lap_solves_step = 0;   // this step (log)
     long lap_it_step = 0;
+    long lap_it_psi = 0, lap_solves_psi = 0;    // the psi solves of the body loads (of lap_it_total, lap_solves)
+    // the time of the rows and the preconditioner of a solve (assembly, lap_prepare): tm[7], psi tm[8]
+    void lap_tsetup(double t) { tm[7] += t; if(lap_kind==1) tm[8] += t; }
     int lap_capped = 0;             // solves that reached N 46
     int lap_restarts = 0;           // BiCGStab restarts after stagnation
     int lap_stalls = 0;             // solves stopped after a second stagnation (STAGTOL)
@@ -432,7 +435,10 @@ private:
     int gcval_eta, gcval_fifsf;
     double printtime_amr;
     int printcount_amr;
-    double tm[6];
+    // timings: 0 patch stages, 1 Laplace (all solves), 2 preconditioner, 3 operator, 4 regrid,
+    // 5 setup of a layout, 6 psi solves (of 1), 7 assembly and coarsening of the solves (of 1),
+    // 8 of which psi solves (of 6)
+    double tm[9];
 };
 
 #endif
