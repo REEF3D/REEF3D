@@ -80,12 +80,15 @@ public:
 
     // the checkpoints kept (P 49; the default of the model), 0: all
     int keep() const;
+    // checkpoints are asked for (P 48)
+    bool enabled() const;
 
 private:
     void rebalance(bool due, bool last);
     lexer *p;
     ghostcell *pgc;
     hooks h;
+    bool told = false;          // a case not covered: said at the first checkpoint
 };
 
 #endif

@@ -61,8 +61,9 @@ using namespace std;
 // what the checkpoints do not cover yet, empty: all
 string driver::ckpt_unsupported()
 {
+    // (SFLOW and SEASTATE: their own checks, sflow_f_ckpt.cpp and seastate_f_ckpt.cpp)
     if(p->A10!=3 && p->A10!=5 && p->A10!=6)
-    return "checkpoints are there for SFLOW, FNPF, NHFLOW and CFD only";
+    return "the checkpoints of the driver are there for FNPF, NHFLOW and CFD only";
     // 6DOF: rigid bodies (free, towed; NHFLOW also the ship-wave pressure patch; FNPF the resolved
     // bodies with their grids) with all moorings, motion files, the ship load models and the power
     // take-off

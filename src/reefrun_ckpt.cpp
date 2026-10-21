@@ -59,6 +59,15 @@ void run_scalars(lexer *p, F &&f)
 
 reefrun_ckpt::reefrun_ckpt(lexer *pp, ghostcell *ppgc, hooks hh) : p(pp), pgc(ppgc), h(std::move(hh))
 {
+    // a case the checkpoints do not cover runs on without them: said at the start, not only at the first checkpoint
+    const string un = (enabled() && h.unsupported) ? h.unsupported() : string();
+    if(p->mpirank==0 && !un.empty())
+    cout<<endl<<"!!! P 48: "<<un<<" -- this run writes no checkpoints !!!"<<endl<<endl;
+}
+
+bool reefrun_ckpt::enabled() const
+{
+    return p->P48>0;
 }
 
 int reefrun_ckpt::keep() const
@@ -81,8 +90,9 @@ void reefrun_ckpt::write()
     const string un = h.unsupported ? h.unsupported() : string();
     if(!un.empty())
     {
-        if(p->mpirank==0 && p->count==p->P48)
-        cout<<"P 48: "<<un<<" -- no checkpoint"<<endl;
+        if(p->mpirank==0 && !told)
+        cout<<"!!! P 48: "<<un<<" -- no checkpoint !!!"<<endl;
+        told = true;
         return;
     }
 

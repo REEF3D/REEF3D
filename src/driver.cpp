@@ -93,6 +93,10 @@ driver::driver(int& argc, char **argv)
         pgc->final(true);
     }
 
+    // checkpoints (P 48): a case they do not cover says so now, not only at the first checkpoint (reefrun_ckpt)
+    if((p->A10==3 || p->A10==5 || p->A10==6) && p->P48>0)
+    ckpt();
+
 // 2D Framework - SFLOW
     if(p->A10==2)
     {

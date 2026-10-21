@@ -217,6 +217,10 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
     pamr->print(p,b,pgc);
     }
 
+    // checkpoints (P 48): a case they do not cover says so now, not only at the first checkpoint
+    if(p->P48>0)
+    ckpt(p,b,pgc);
+
     // restart from the latest checkpoint (I 45 1): the state at the end of its step
     if(p->I45==1)
     ckpt(p,b,pgc).read();
