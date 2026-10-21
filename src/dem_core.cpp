@@ -961,3 +961,50 @@ bool dem_core::mine(int a, int b) const
     // distributed - distributed: owner of the lower global id
     return (A.id<B.id ? A.owner : B.owner)==myrank;
 }
+
+// ---------------------------------------------------------------------------------------------
+// checkpoints (P 48, I 45): the warm-start caches, in the order of the keys
+// ---------------------------------------------------------------------------------------------
+
+void dem_core::cache_state(vector<double> &v) const
+{
+    vector<uint64_t> kp, ku;
+    for(const auto &e : cacheP) kp.push_back(e.first);
+    for(const auto &e : cacheU) ku.push_back(e.first);
+    std::sort(kp.begin(),kp.end());
+    std::sort(ku.begin(),ku.end());
+
+    v.push_back(double(kp.size()));
+    for(uint64_t k : kp)
+    {
+        const dem_vec &P = cacheP.at(k);
+        v.push_back(double(k>>32)); v.push_back(double(k&0xffffffffULL));
+        v.push_back(P(0)); v.push_back(P(1)); v.push_back(P(2));
+    }
+    v.push_back(double(ku.size()));
+    for(uint64_t k : ku)
+    {
+        v.push_back(double(k>>32)); v.push_back(double(k&0xffffffffULL));
+        v.push_back(cacheU.at(k));
+    }
+}
+
+void dem_core::cache_restore(const vector<double> &v, size_t &pos)
+{
+    auto key = [&](){ const uint64_t hi = uint64_t(v[pos]), lo = uint64_t(v[pos+1]); pos += 2; return (hi<<32)|lo; };
+    cacheP.clear();
+    cacheU.clear();
+    const size_t np = size_t(v[pos++]);
+    for(size_t n=0; n<np; ++n)
+    {
+        const uint64_t k = key();
+        cacheP[k] = dem_vec(v[pos],v[pos+1],v[pos+2]);
+        pos += 3;
+    }
+    const size_t nu = size_t(v[pos++]);
+    for(size_t n=0; n<nu; ++n)
+    {
+        const uint64_t k = key();
+        cacheU[k] = v[pos++];
+    }
+}

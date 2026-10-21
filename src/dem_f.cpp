@@ -30,6 +30,7 @@ Author: Hans Bihs
 #include<fstream>
 #include<sstream>
 #include<map>
+#include<set>
 #include<random>
 #include<sys/stat.h>
 #include<mpi.h>
@@ -84,6 +85,13 @@ dem_f::dem_f(lexer *p, ghostcell *pgc)
     maxiter_used = 0;
 
     read_input(p,pgc);
+
+    // the arrays on the grid, allocated (zero) before a restart reads the checkpoint (CFD: the registry,
+    // NHFLOW: ckpt_alpha)
+    if(p->A10==6)
+    ini_cfd(p,pgc);
+    if(p->A10==5)
+    ini_nhflow(p,pgc);
 }
 
 dem_f::~dem_f()
@@ -398,6 +406,8 @@ void dem_f::ini(lexer *p, ghostcell *pgc)
 
 void dem_f::ini_cfd(lexer *p, ghostcell *pgc)
 {
+    if(Sx!=nullptr)
+    return;
     Sx = new field1(p);
     Sy = new field2(p);
     Sz = new field3(p);
@@ -415,6 +425,8 @@ void dem_f::ini_cfd(lexer *p, ghostcell *pgc)
 
 void dem_f::ini_nhflow(lexer *p, ghostcell *pgc)
 {
+    if(SX!=nullptr)
+    return;
     p->Darray(SX,p->imax*p->jmax*(p->kmax+2));
     p->Darray(SY,p->imax*p->jmax*(p->kmax+2));
     p->Darray(SZ,p->imax*p->jmax*(p->kmax+2));
@@ -446,6 +458,10 @@ void dem_f::start_cfd(lexer *p, fdm *a, ghostcell *pgc)
         ini(p,pgc);
         ini_cfd(p,pgc);
         initialized = true;
+        // a restart (I 45): the particles of the checkpoint, the outputs continue
+        if(ckpt_pending)
+        ckpt_apply(p,pgc);
+        else
         print(p,pgc);
     }
 
@@ -484,6 +500,10 @@ void dem_f::start_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
         ini(p,pgc);
         ini_nhflow(p,pgc);
         initialized = true;
+        // a restart (I 45): the particles of the checkpoint, the outputs continue
+        if(ckpt_pending)
+        ckpt_apply(p,pgc);
+        else
         print(p,pgc);
     }
 
@@ -911,4 +931,207 @@ void dem_f::run_step(lexer *p, ghostcell *pgc, const dem_core::wallfunc &wf)
         ghost_exchange(p,pgc);
     }
     rebuild_maps();
+}
+
+// ---------------------------------------------------------------------------------------------
+// checkpoints (P 48, I 45)
+// ---------------------------------------------------------------------------------------------
+//  global blob (the same on all ranks): the print state, the last time step, the porosity start (E 28)
+//  rank blob: every particle of the rank as it is at the end of the step (owned, replicated and ghosts,
+//  with the coupling data and the ghost destinations) and the warm-start caches of the contacts.  On the
+//  same decomposition the list is taken as it is (the run continues bitwise); on another one the owned
+//  and replicated particles of all pieces are distributed again by their centroids and the ghosts are
+//  exchanged anew.
+
+void dem_f::ckpt_pack_full(vector<double> &v, const dem_body &B, const vector<int> &dest)
+{
+    pack_body(v,B);
+    dem_writer w(v);
+    w.d(B.tier); w.d(B.owner); w.d(B.ghost?1:0); w.v(B.vs); w.v(B.ws); w.v(B.vps); w.v(B.wps); w.d(B.split);
+    w.v(B.vp); w.v(B.wp); w.v(B.invm); w.m(B.invI); w.m(B.R);
+    w.d(B.cpl.aself); w.v(B.cpl.Aq); w.d(B.cpl.vq);
+    w.d(double(dest.size()));
+    for(int k : dest)
+    w.d(k);
+}
+
+void dem_f::ckpt_unpack_full(dem_reader &r, dem_body &B, vector<int> &dest)
+{
+    unpack_body(r,B);
+    B.tier = r.i(); B.owner = r.i(); B.ghost = r.i()==1; B.vs = r.v(); B.ws = r.v(); B.vps = r.v(); B.wps = r.v(); B.split = r.d();
+    B.vp = r.v(); B.wp = r.v(); B.invm = r.v(); B.invI = r.m(); B.R = r.m();
+    B.cpl.aself = r.d(); B.cpl.Aq = r.v(); B.cpl.vq = r.d();
+    dest.assign(size_t(r.i()),0);
+    for(int &k : dest)
+    k = r.i();
+}
+
+void dem_f::ckpt_state(lexer *p, vector<double> &g, vector<double> &rk)
+{
+    // a checkpoint before the first step: the particles of dem.txt are not set up yet
+    if(!initialized)
+    {
+        g.push_back(0.0);
+        return;
+    }
+
+    g.push_back(1.0);   // version
+    for(double x : {printtime,double(printcount),dt_old,double(porinit),rkwarn?1.0:0.0,double(nsub),double(maxiter_used)})
+    g.push_back(x);
+
+    rk.push_back(double(core.bodies.size()));
+    for(size_t n=0; n<core.bodies.size(); ++n)
+    ckpt_pack_full(rk,core.bodies[n],n<ghostdest.size() ? ghostdest[n] : vector<int>());
+    core.cache_state(rk);
+}
+
+bool dem_f::ckpt_restore(lexer *p, const vector<double> &g, const vector<vector<double>> &ranks, bool same)
+{
+    if(g.empty())
+    return false;
+    // a checkpoint before the first step: the run starts from dem.txt
+    if(g[0]==0.0)
+    return true;
+    if(g[0]!=1.0 || g.size()<8 || ranks.empty())
+    return false;
+
+    ckpt_global = g;
+    ckpt_ranks = ranks;
+    ckpt_same = same;
+    ckpt_pending = true;
+    return true;
+}
+
+void dem_f::ckpt_apply(lexer *p, ghostcell *pgc)
+{
+    ckpt_pending = false;
+
+    printtime = ckpt_global[1];
+    printcount = int(ckpt_global[2]);
+    dt_old = ckpt_global[3];
+    porinit = int(ckpt_global[4]);
+    rkwarn = ckpt_global[5]>0.5;
+    nsub = int(ckpt_global[6]);
+    maxiter_used = int(ckpt_global[7]);
+
+    // the replicated particles after the set-up (tier 1 on this decomposition)
+    std::set<int> tier1;
+    for(auto &B : core.bodies)
+    if(B.tier==1)
+    tier1.insert(B.id);
+
+    if(ckpt_same)
+    {
+        // the list of the rank as it was, the ghosts with their destinations, the caches
+        const vector<double> &v = ckpt_ranks[0];
+        dem_reader r(v,0);
+        const size_t n = size_t(r.i());
+        core.bodies.assign(n,dem_body());
+        ghostdest.assign(n,vector<int>());
+        for(size_t q=0; q<n; ++q)
+        ckpt_unpack_full(r,core.bodies[q],ghostdest[q]);
+        size_t pos = r.pos;
+        core.cache_restore(v,pos);
+        rebuild_maps();
+    }
+    else
+    {
+        // all pieces: the owned particles of every piece, the replicated ones of piece 0
+        std::map<int,dem_body> t1, t0;
+        for(size_t piece=0; piece<ckpt_ranks.size(); ++piece)
+        {
+            const vector<double> &v = ckpt_ranks[piece];
+            if(v.empty())
+            continue;
+            dem_reader r(v,0);
+            const size_t n = size_t(r.i());
+            vector<int> dest;
+            for(size_t q=0; q<n; ++q)
+            {
+                dem_body B;
+                ckpt_unpack_full(r,B,dest);
+                if(B.ghost)
+                continue;
+                if(B.tier==1 && piece!=0)
+                continue;
+                (B.tier==1 ? t1 : t0)[B.id] = B;
+            }
+        }
+
+        // tiers of this decomposition (set-up), owners by the centroid; an inactive particle outside
+        // every subdomain stays with rank 0
+        vector<dem_body> keep;
+        auto put = [&](dem_body B, bool replicated)
+        {
+            B.ghost = false;
+            B.vs = B.v;
+            B.ws = B.w;
+            if(replicated)
+            {
+                B.tier = 1;
+                B.owner = -1;
+                keep.push_back(B);
+                return;
+            }
+            B.tier = 0;
+            int r = find_owner(B.x);
+            if(r<0 && !B.active)
+            r = 0;
+            if(r==myrank)
+            {
+                B.owner = myrank;
+                keep.push_back(B);
+            }
+        };
+        for(auto &e : t1) put(e.second,tier1.count(e.first)>0);
+        for(auto &e : t0) put(e.second,tier1.count(e.first)>0);
+        // replicated first (as the set-up orders them)
+        std::stable_sort(keep.begin(),keep.end(),[](const dem_body &a, const dem_body &b){ return a.tier>b.tier; });
+        core.bodies.swap(keep);
+        ghostdest.clear();
+        rebuild_maps();
+        if(nproc>1)
+        ghost_exchange(p,pgc);
+
+        // the caches of all pieces (looked up by the key of the contact only)
+        vector<double> all;
+        size_t np=0, nu=0;
+        vector<double> cp, cu;
+        for(const vector<double> &v : ckpt_ranks)
+        {
+            if(v.empty())
+            continue;
+            dem_reader r(v,0);
+            const size_t n = size_t(r.i());
+            vector<int> dest;
+            dem_body B;
+            for(size_t q=0; q<n; ++q)
+            ckpt_unpack_full(r,B,dest);
+            size_t pos = r.pos;
+            const size_t a = size_t(v[pos++]);
+            cp.insert(cp.end(),v.begin()+pos,v.begin()+pos+5*a);
+            pos += 5*a;
+            np += a;
+            const size_t b = size_t(v[pos++]);
+            cu.insert(cu.end(),v.begin()+pos,v.begin()+pos+3*b);
+            nu += b;
+        }
+        all.push_back(double(np));
+        all.insert(all.end(),cp.begin(),cp.end());
+        all.push_back(double(nu));
+        all.insert(all.end(),cu.begin(),cu.end());
+        size_t pos = 0;
+        core.cache_restore(all,pos);
+    }
+
+    ckpt_ranks.clear();
+    ckpt_global.clear();
+
+    int nown = 0;
+    for(auto &B : core.bodies)
+    if(!B.ghost && (B.tier==0 || myrank==0))
+    ++nown;
+    nown = pgc->globalisum(nown);
+    if(p->mpirank==0)
+    cout<<"DEM: restart from the checkpoint, "<<nown<<" particles"<<(ckpt_same ? "" : " (distributed again)")<<endl;
 }

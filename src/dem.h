@@ -28,6 +28,8 @@ of arbitrary shape, coupled to REEF3D::CFD and REEF3D::NHFLOW.
 #ifndef DEM_H_
 #define DEM_H_
 
+#include<vector>
+
 class lexer;
 class fdm;
 class fdm_nhf;
@@ -47,6 +49,14 @@ public:
     // fluid forcing inside the momentum RK stages (resolved: direct forcing, unresolved: momentum source)
     virtual void forcing_cfd(lexer*, fdm*, ghostcell*, int, double, field&, field&, field&, bool)=0;
     virtual void forcing_nhflow(lexer*, fdm_nhf*, ghostcell*, int, double, double*, double*, double*, slice&, bool, bool)=0;
+
+    // checkpoints (P 48, I 45): the scalars (the same on all ranks) and the particles of the rank; the
+    // restore is kept and applied at the first step, after the set-up from dem.txt (same: the same
+    // decomposition, ranks: the particles of every piece of the checkpoint)
+    virtual void ckpt_state(lexer*, std::vector<double>&, std::vector<double>&) {}
+    virtual bool ckpt_restore(lexer*, const std::vector<double>&, const std::vector<std::vector<double>>&, bool) {return true;}
+    // NHFLOW: the solid fraction kept over the steps (the CFD fields are in the registry)
+    virtual double* ckpt_alpha() {return nullptr;}
 };
 
 #endif

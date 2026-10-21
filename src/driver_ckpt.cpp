@@ -31,8 +31,8 @@ Author: Hans Bihs
 //  on the patches of the mesh refinement with the patches.  REEF3D::CORAL (Z 40): its state as a blob
 //  (coral_reef3d::ckpt_state), set into the model after its set-up (coral_ini).
 //  The nets (X 320) are in the blob of their body; without a floating body (X 10 0) the fixed nets and
-//  mooring lines are the blob of sixdof_void.
-//  Not there yet (refused with a message): 6DOF wavemaker objects; sediment, DEM, FEM structures,
+//  mooring lines are the blob of sixdof_void.  DEM (E 10): its scalars, the particles of every rank.
+//  Not there yet (refused with a message): 6DOF wavemaker objects; sediment, FEM structures,
 //  SEASTATE; NHFLOW with Lagrangian particles, membranes; CFD with FSI.
 
 #include"driver.h"
@@ -54,6 +54,7 @@ Author: Hans Bihs
 #include"nhflow_momentum.h"
 #include"ioflow.h"
 #include"cfd_ckpt.h"
+#include"dem.h"
 #include"cfd_amr.h"
 #include"6DOF.h"
 #include"coral/reef3d/coral_reef3d.h"
@@ -74,7 +75,6 @@ string driver::ckpt_unsupported()
     if(p->A10==6)
     {
         if(p->S10>0) return "CFD sediment is not in the checkpoints yet";
-        if(p->E10>0) return "DEM is not in the checkpoints yet";
         if(p->Z10>0 || p->Z30>0) return "FSI and FEM structures are not in the checkpoints yet";
         if(p->A750>0) return "SEASTATE is not in the checkpoints yet";
     }
@@ -82,7 +82,6 @@ string driver::ckpt_unsupported()
     {
         if(p->S10>0) return "NHFLOW sediment is not in the checkpoints yet";
         if(p->L10>0) return "NHFLOW Lagrangian particles are not in the checkpoints yet";
-        if(p->E10>0) return "DEM is not in the checkpoints yet";
         if(p->Z30>0) return "FEM structures are not in the checkpoints yet";
         if(p->A750>0) return "SEASTATE is not in the checkpoints yet";
         if(p->X330>0) return "membranes are not in the checkpoints yet";
@@ -117,6 +116,7 @@ reefrun_ckpt& driver::ckpt()
             nhflow_ckpt_fields(p,d,wd,wi);
             pnhfturb->ckpt_fields(wd,wi);
             pnhfmom->ckpt_fields(wd,wi);
+            wd("dem_ALPHAV",'C',pdem->ckpt_alpha());
             if(pnhfamr!=nullptr)
             pnhfamr->ckpt_write(ck);
         }
@@ -162,6 +162,15 @@ reefrun_ckpt& driver::ckpt()
             pcoral->flush();
         }
 
+        // DEM (E 10): the scalars, the particles of the rank
+        if(p->E10>0 && (p->A10==5 || p->A10==6))
+        {
+            vector<double> dg, dr;
+            pdem->ckpt_state(p,dg,dr);
+            ck.blob("dem",dg);
+            ck.rank_blob("dem_rank",dr);
+        }
+
         // the state of the boundary conditions (local to the rank)
         vector<double> io;
         pflow->ckpt_state(p,io);
@@ -186,6 +195,7 @@ reefrun_ckpt& driver::ckpt()
                 nhflow_ckpt_fields(p,d,rd,ri);
                 pnhfturb->ckpt_fields(rd,ri);
                 pnhfmom->ckpt_fields(rd,ri);
+                rd("dem_ALPHAV",'C',pdem->ckpt_alpha());
             }
         };
 
@@ -282,6 +292,18 @@ reefrun_ckpt& driver::ckpt()
                 return false;
             }
             coral_ckpt = ck.get_blob("coral");
+        }
+
+        // DEM (E 10): applied at its first step, after the set-up from dem.txt
+        if(p->E10>0 && (p->A10==5 || p->A10==6))
+        {
+            const vector<vector<double>> dr = ck.same_decomposition() ? vector<vector<double>>{ck.get_rank_blob("dem_rank",p->mpirank)}
+                                                                      : ck.get_rank_blobs("dem_rank");
+            if(!ck.has("dem") || !pdem->ckpt_restore(p,ck.get_blob("dem"),dr,ck.same_decomposition()))
+            {
+                msg = "the checkpoint has no DEM state that fits this run (E 10)";
+                return false;
+            }
         }
 
         // the state of the boundary conditions: on the same decomposition (else they start again)

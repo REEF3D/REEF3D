@@ -28,6 +28,7 @@ Author: Hans Bihs
 #include<cstdio>
 #include<mpi.h>
 #include"runlog.h"
+#include"reefckpt.h"
 #include"lagoon_store.h"
 
 namespace
@@ -224,11 +225,18 @@ void dem_f::print_vtp(lexer *p, const vector<dem_body> &bodies)
 
 void dem_f::print_state(lexer *p, const vector<dem_body> &bodies)
 {
-    ofstream out("./REEF3D_DEM/REEF3D-DEM-state.dat", printcount==0 ? ios::out : ios::app);
+    // a restart (I 45): the file of the checkpoint continues (cut back to it, reefckpt_open)
+    const char *name = "./REEF3D_DEM/REEF3D-DEM-state.dat";
+    ofstream out;
+    bool head = false;
+    if(p->I45==1 || printcount==0)
+    head = reefckpt_open(out,name,p->I45==1 ? 1 : 0);
+    else
+    out.open(name,ios::app);
     if(!out.is_open())
     return;
 
-    if(printcount==0)
+    if(head)
     out<<"# time id x y z qw qx qy qz u v w wx wy wz active resolved Fx Fy Fz ufx ufy ufz"<<endl;
 
     out<<setprecision(10);
