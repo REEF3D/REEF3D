@@ -223,7 +223,7 @@ void reefrun_ckpt::read()
     {
         if(p->mpirank==0)
         {
-            cout<<endl<<"!!! I 45 1: "<<m<<" !!!"<<endl<<endl;
+            cout<<endl<<"!!! I 45: "<<m<<" !!!"<<endl<<endl;
             remove("REEF3D_Checkpoint/rebalance");
         }
         pgc->final();
@@ -252,6 +252,11 @@ void reefrun_ckpt::read()
     // a rebalance restart (G 46): the marker is used up
     if(p->mpirank==0)
     remove("REEF3D_Checkpoint/rebalance");
+
+    // the checkpoint of the restart is the newest of the history (P 49): the ones after it (a restart from an
+    // earlier checkpoint, I 45 <count>) are removed first
+    if(p->mpirank==0)
+    reefckpt::prune(ck.folder(),0);
 
     if(p->mpirank==0)
     cout<<"restart from checkpoint "<<ck.folder()<<" (I 45): count "<<p->count<<", simtime "<<setprecision(10)<<p->simtime

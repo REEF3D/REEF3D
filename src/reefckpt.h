@@ -56,6 +56,9 @@ bool reefckpt_open(std::ofstream &o, const char *name, int I45);
 // a folder whose files are all outputs of the run (REEF3D_CORAL; the rank that writes them): on a restart
 // (I 45 1) every file is cut back to its size at the checkpoint, a file the checkpoint does not know removed
 void reefckpt_output_dir(const std::string &dir, int I45);
+// a restart (I 45 1), at the start: the sizes of the outputs at the checkpoint read now (before a new
+// checkpoint may replace it)
+void reefckpt_outputs_restart();
 
 class reefckpt
 {
@@ -95,8 +98,14 @@ public:
     void piece_box(int r, int &oi, int &oj, int &ni, int &nj) const { oi = box[r].oi; oj = box[r].oj; ni = box[r].ni; nj = box[r].nj; }
     // removes the checkpoint folder dir written by np ranks, with every other file in it (rank 0)
     static void remove_folder(const std::string &dir, int np);
-    // the folder of the checkpoint a restart (I 45) reads, empty: none
+    // the folder of the checkpoint a restart (I 45) reads: REEF3D_Checkpoint/<count> for I 45 <count>,
+    // else the one in REEF3D_Checkpoint/latest; empty: none
     static std::string restart_folder();
+    // I 45 <count> (control::parse; 0: the latest)
+    static void restart_from(int count);
+    // a folder as written: a bare count (00001200, 1200, 1200_5) or a name without the path of the folders
+    // gives ./REEF3D_Checkpoint/<count>
+    static std::string folder_name(const std::string&);
     // rank 0, after write_close: dir appended to REEF3D_Checkpoint/history; of the folders there only the
     // newest keep remain, the older ones are removed (never the latest); keep 0: all remain
     static void prune(const std::string &dir, int keep);

@@ -31,6 +31,7 @@ Author: Hans Bihs
 #include"waves_header.h"
 #include"patchBC.h"
 #include"runlog.h"
+#include"reefckpt.h"
 #include"seastate_f.h"
 #include"cfd_amr.h"
 #include"coral/reef3d/coral_reef3d.h"
@@ -55,6 +56,13 @@ driver::driver(int& argc, char **argv)
     
 	p->lexer_read(pgc);
     p->vellast();
+
+    // I 45 <count>: the restart from REEF3D_Checkpoint/<count> instead of the latest
+    reefckpt::restart_from(p->I45_count);
+
+    // a restart: the sizes of the outputs at its checkpoint (the outputs are cut back to them when opened)
+    if(p->I45==1)
+    reefckpt_outputs_restart();
     
 	pgc->gc_ini(p);
     pgc->gcx_ini(p);

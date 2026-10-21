@@ -813,7 +813,8 @@ void control::ini_default()
 	I40=0;			// int ini from state file
 	I41=0;			// int ID of state file
     I44=0;          // int FNPF state with Fi
-    I45=0;          // int SFLOW, FNPF, NHFLOW, CFD, SEASTATE (stand-alone): 1 restart from the latest checkpoint (REEF3D_Checkpoint/latest, P 48) on any decomposition (SEASTATE stationary: the step continues at the iteration of the checkpoint)
+    I45_count=0;    // int I 45 <count> (count > 1): from the checkpoint REEF3D_Checkpoint/<count> instead of the latest (control::parse)
+    I45=0;          // int SFLOW, FNPF, NHFLOW, CFD, SEASTATE (stand-alone): 1 restart from the latest checkpoint (REEF3D_Checkpoint/latest, P 48; it may hold a bare count) on any decomposition, <count> (> 1) from REEF3D_Checkpoint/<count> (SEASTATE stationary: the step continues at the iteration of the checkpoint)
     I50=0;			// double simtime ini
     I55=0.0;        // double reference pressure
 	I56=0;          // int pressure above F56 set to zero

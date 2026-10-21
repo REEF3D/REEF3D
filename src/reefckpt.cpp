@@ -28,6 +28,7 @@ Author: Hans Bihs
 #include<dirent.h>
 #include<cstdio>
 #include<cstring>
+#include<cstdlib>
 #include<algorithm>
 #include<set>
 #include<iostream>
@@ -169,13 +170,54 @@ void reefckpt_output_dir(const string &dir, int I45)
     }
 }
 
+namespace
+{
+int restart_count = 0;
+}
+
+void reefckpt::restart_from(int count)
+{
+    restart_count = count;
+}
+
+string reefckpt::folder_name(const string &s)
+{
+    if(s.empty())
+    return s;
+
+    // a count, or <count>_<sub> (SEASTATE stationary)
+    const size_t u = s.find('_');
+    const string a = s.substr(0,u), b = (u==string::npos) ? string() : s.substr(u+1);
+    auto digits = [](const string &x){ return !x.empty() && x.find_first_not_of("0123456789")==string::npos; };
+    if(digits(a) && (u==string::npos || digits(b)) && a.size()<=9 && b.size()<=9)
+    {
+        char nm[64];
+        if(u==string::npos)
+        snprintf(nm,sizeof(nm),"./REEF3D_Checkpoint/%08i",atoi(a.c_str()));
+        else
+        snprintf(nm,sizeof(nm),"./REEF3D_Checkpoint/%08i_%06i",atoi(a.c_str()),atoi(b.c_str()));
+        return nm;
+    }
+    if(s.find('/')==string::npos)
+    return "./REEF3D_Checkpoint/"+s;
+    return s;
+}
+
+void reefckpt_outputs_restart()
+{
+    read_sizes();
+}
+
 string reefckpt::restart_folder()
 {
+    if(restart_count>0)
+    return folder_name(to_string(restart_count));
+
     string dir;
     ifstream l("./REEF3D_Checkpoint/latest");
     if(l)
     l>>dir;
-    return dir;
+    return folder_name(dir);
 }
 
 // the sizes of the output files of this rank (flushed by the modules before), with the checkpoint
@@ -360,6 +402,7 @@ void reefckpt::prune(const string &dir, int keep)
         ifstream l("./REEF3D_Checkpoint/latest");
         l>>latest;
     }
+    latest = folder_name(latest);
 
     // the folders still there (removed by hand: forgotten)
     vector<string> there;

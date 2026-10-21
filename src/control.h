@@ -410,6 +410,7 @@ public:
 
     // Initialize Options
     int I10,I11,I12,I13,I30,I40,I41,I44,I45,I56;
+    int I45_count;              // I 45 <count> (> 1): the restart from REEF3D_Checkpoint/<count>, 0 the latest
     double I21,I50,I55,I58_1,I58_2;
     int I230;
     double I231,I232,I233;
