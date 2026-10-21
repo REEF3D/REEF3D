@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"reefckpt.h"
@@ -31,10 +31,11 @@ Author: Hans Bihs
 #include<cstdio>
 
 //  Output of FNPF AMR: the free surface of level 0 and of every patch as VTK rectilinear
-//  grids (REEF3D_FNPF_AMR/*.vtr, indexed by a .vtm per output time, P 20 / P 30 as the FNPF
-//  output), the wave gauges P 51 from the finest grid that holds them (bilinear between the
-//  cell centres), and a log. P 18: the grids also in the LAGOON store (P 18 1: instead of
-//  the .vtr and .vtm files).
+//  grids (REEF3D_FNPF_AMR/*.vtr, indexed by a .vtm per output time; with P 180 1 at the interval
+//  of the free surface output, P 182 / P 181, else at that of the 3D output, P 30 / P 20), the
+//  wave gauges P 51 from the finest grid that holds them (bilinear between the cell centres),
+//  and a log. P 18: the grids also in the LAGOON store (P 18 1: instead of the .vtr and .vtm
+//  files).
 
 namespace
 {
@@ -46,15 +47,22 @@ void fnpf_amr::print(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     if(maxlev<1)
     return;
 
+    // the grids are the free surface: with P 180 1 at its interval (P 182 in time, P 181 in
+    // iterations, as REEF3D_FNPF_VTP_FSF), else at that of the 3D output (P 30, P 20; P 10)
+    const bool fsf = p->P180==1;
+    const double every = fsf ? p->P182 : p->P30;
+    const int every_it = fsf ? p->P181 : p->P20;
+    const bool on = fsf || p->P10>0;
+
     bool doprint=false;
 
-    if((p->count%p->P20==0 && p->P30<0.0 && p->P10>0 && p->P20>0) || (p->count==0 && p->P30<0.0))
+    if((every_it>0 && p->count%every_it==0 && every<0.0 && on) || (p->count==0 && every<0.0))
     doprint=true;
 
-    if((p->simtime>printtime_amr && p->P30>0.0 && p->P10>0) || (p->count==0 && p->P30>0.0))
+    if((p->simtime>printtime_amr && every>0.0 && on) || (p->count==0 && every>0.0))
     {
         doprint=true;
-        printtime_amr += p->P30;
+        printtime_amr += every;
     }
 
     if(p->P51>0)
@@ -72,17 +80,27 @@ void fnpf_amr::print(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     // the waiting for the patch ranks as Laplace time); doprint is the same on all ranks
     if(doprint)
     {
-        double tmx[6];
-        for(int k=0; k<6; ++k)
+        double tmx[9];
+        for(int k=0; k<9; ++k)
         tmx[k] = tm[k];
-        pgc->globalmax(tmx,6);
+        pgc->globalmax(tmx,9);
         const double cmax = pgc->globalmax(double(cells_local));
 
         if(p->mpirank==0)
         {
             cout<<"FNPF AMR: "<<patches_total<<" patches, "<<cells_total<<" columns (max "<<(long)cmax<<" per rank); max over ranks: patch stages "
-                <<setprecision(4)<<tmx[0]<<" s, Laplace "<<tmx[1]<<" s (preconditioner "<<tmx[2]<<" s, operator "<<tmx[3]<<" s, setup "<<tmx[5]
-                <<" s), mean iterations "<<(lap_solves>0 ? double(lap_it_total)/lap_solves : 0.0);
+                <<setprecision(4)<<tmx[0]<<" s, Laplace "<<tmx[1]<<" s (preconditioner "<<tmx[2]<<" s, operator "<<tmx[3]<<" s, assembly and coarsening "
+                <<tmx[7]<<" s, setup "<<tmx[5]<<" s), mean iterations "<<(lap_solves>0 ? double(lap_it_total)/lap_solves : 0.0);
+            // a body: the psi solves of its loads (pressure, added mass) against the phi solves
+            if(lap_solves_psi>0)
+            {
+                const long nphi = lap_solves-lap_solves_psi;
+                cout<<"; psi solves "<<lap_solves_psi<<" of "<<lap_solves<<": "<<tmx[6]<<" s (assembly and coarsening "<<tmx[8]
+                    <<" s), mean iterations "<<double(lap_it_psi)/lap_solves_psi
+                    <<" (phi "<<(nphi>0 ? double(lap_it_total-lap_it_psi)/nphi : 0.0)<<")";
+            }
+            if(lap_kept>0)
+            cout<<"; rows and preconditioner kept for "<<lap_kept<<" of "<<lap_solves<<" solves";
             if(regrid_int>0)
             cout<<", regrid "<<tmx[4]<<" s, layouts "<<layout_id<<", regrids skipped "<<regrids_skipped;
             if(lap_restarts>0)

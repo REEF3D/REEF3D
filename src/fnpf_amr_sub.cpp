@@ -531,6 +531,7 @@ void fnpf_amr::lap_solve_psi_level(lexer *p, ghostcell *pgc, int l, double **f, 
 {
     const double t0 = MPI_Wtime();
 
+    lap_kind = 1;
     {
     comms_off guard(pgc);
     for(int id : lev[l])
@@ -539,12 +540,12 @@ void fnpf_amr::lap_solve_psi_level(lexer *p, ghostcell *pgc, int l, double **f, 
         pc->plap->start(pc->pp,pc->c,pgc,nullptr,pc->pf,f[id+1],*D[id+1]);
     }
     }
+    lap_tsetup(MPI_Wtime()-t0);
 
     ltgt.assign(f,f+P.size()+1);
 
     wlo = whi = l;
     lap_edge = true;
-    lap_kind = 1;
     lap_core(p,pgc);
     lap_kind = 0;
     lap_edge = false;
@@ -552,6 +553,7 @@ void fnpf_amr::lap_solve_psi_level(lexer *p, ghostcell *pgc, int l, double **f, 
     whi = -1;
 
     tm[1] += MPI_Wtime()-t0;
+    tm[6] += MPI_Wtime()-t0;
 }
 
 // after the two steps of level l+1: eta, Fifsf and Fi of the finer levels into their covered

@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"fnpf_6DOF.h"
@@ -34,6 +34,7 @@ Author: Hans Bihs
 #include"reefamr.h"
 #include"solver_print.h"
 #include<functional>
+#include<mpi.h>
 
 // Laplace solver seen by the time stepping when bodies are present: body geometry on the
 // new sigma grid before the phi solve, body-band extrapolation after it.
@@ -217,16 +218,24 @@ void fnpf_6DOF::stage(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, fnpf
     motion(p,c,pgc,iter);
     
     if(iter == ((p->A310==3) ? 2 : 3))
-    psi_report(p);
+    psi_report(p,pgc);
 }
 
-// the psi solves of the step (all stages, all grids): their number and Laplace iterations, one line
-void fnpf_6DOF::psi_report(lexer *p)
+// the psi solves of the step (all stages, all grids): their number and Laplace iterations, and the
+// time of the loads since the start (the maximum over the ranks: rank 0 often holds no patch), one line
+void fnpf_6DOF::psi_report(lexer *p, ghostcell *pgc)
 {
-    if(p->mpirank==0 && p->count%p->P12==0 && psi_solves>0)
-    cout<<"6DOF: "<<nbody<<" bod"<<(nbody>1 ? "ies" : "y")<<", "<<psi_solves<<" psi solves"
-        <<(am_count==p->count ? " (with the added mass)" : "")
-        <<", iterations "<<psi_iter<<" (max "<<psi_itmax<<")"<<endl;
+    if(p->count%p->P12==0)
+    {
+        double t[3] = {t_loads,t_psi,t_band};
+        pgc->globalmax(t,3);
+
+        if(p->mpirank==0 && psi_solves>0)
+        cout<<"6DOF: "<<nbody<<" bod"<<(nbody>1 ? "ies" : "y")<<", "<<psi_solves<<" psi solves"
+            <<(am_count==p->count ? " (with the added mass)" : "")
+            <<", iterations "<<psi_iter<<" (max "<<psi_itmax<<"); loads "<<setprecision(4)<<t[0]
+            <<" s in total (psi solves "<<t[1]<<" s, body band "<<t[2]<<" s)"<<endl;
+    }
 
     psi_solves = 0;
     psi_iter = 0;
@@ -414,9 +423,11 @@ void fnpf_6DOF::ini(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     initialized = true;
 }
 
-void fnpf_6DOF::forces(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, fnpf_fsf *pf, 
+void fnpf_6DOF::forces(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, fnpf_fsf *pf,
                        slice &Keta, slice &Kfi, int iter)
 {
+    const double t0 = MPI_Wtime();
+
     // psi_0: phi_t at fixed z on the free surface, phi_t|z = dFifsf/dt - Fz*deta/dt
     // (one body: + V.grad(phi), the body-following derivative chi, see face_data_fnpf)
     SLICELOOP4
@@ -473,11 +484,13 @@ void fnpf_6DOF::forces(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, fnp
         fb_obj[nb2]->added_mass_block_fnpf(p,c,pgc,zero,pm,Across[nb2*nbody+nb]);
 
         fb_obj[nb]->forces_fnpf(p,c,pgc,psi0,pm,computeA);
-        
+
         // force log: first stage = state at the current time level
         if(iter==0)
         fb_obj[nb]->print_force_fnpf(p);
     }
+
+    t_loads += MPI_Wtime()-t0;
 }
 
 void fnpf_6DOF::motion(lexer *p, fdm_fnpf *c, ghostcell *pgc, int iter)
@@ -848,9 +861,11 @@ void fnpf_6DOF::extrapolate(fnpf_6DOF_grid &G, ghostcell *pgc, double *f)
     }
 }
 
-void fnpf_6DOF::solve_psi(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, fnpf_laplace *plap, fnpf_fsf *pf, 
+void fnpf_6DOF::solve_psi(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, fnpf_laplace *plap, fnpf_fsf *pf,
                           double *f, slice &D)
 {
+    const double t0 = MPI_Wtime();
+
     // Dirichlet on the free surface outside the footprint
     FFILOOP4
     if(foot(i,j)<0.5)
@@ -874,10 +889,13 @@ void fnpf_6DOF::solve_psi(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, 
     psi_count(p->poissoniter);
     
     c->Uin = uin;
-    
+
     pgc->start7V(p,f,c->bc,gcval);
-    
+
+    const double t1 = MPI_Wtime();
     extrapolate(g0,pgc,f);
+    t_band += MPI_Wtime()-t1;
+    t_psi += MPI_Wtime()-t0;
 }
 
 void fnpf_6DOF::zero_face(fnpf_6DOF_grid &G)
@@ -1118,6 +1136,7 @@ void fnpf_6DOF::amr_surface(lexer *p, ghostcell *pgc, int id, slice &eta, slice 
 // with homogeneous free-surface data
 void fnpf_6DOF::solve_psi_amr(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, fnpf_fsf *pf, int m, bool withD)
 {
+    const double t0 = MPI_Wtime();
     const int ng = 1+(int)gp.size();
     vector<double*> fs(ng);
     vector<slice*> Ds(ng);
@@ -1167,21 +1186,29 @@ void fnpf_6DOF::solve_psi_amr(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *pso
     psi_count(p->solveriter);
     
     c->Uin = uin;
-    
+
     pgc->start7V(p,fs[0],c->bc,gcval);
+
+    const double t1 = MPI_Wtime();
     extrapolate(g0,pgc,fs[0]);
-    
+
+    {
     reefamr_comms_off guard(pgc);
     for(size_t n=0; n<gp.size(); ++n)
     {
         amr->patch_walls_fi(gp[n].id,fs[n+1]);
         extrapolate(gp[n],pgc,fs[n+1]);
     }
+    }
+    t_band += MPI_Wtime()-t1;
+    t_psi += MPI_Wtime()-t0;
 }
 
-void fnpf_6DOF::forces_amr(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, fnpf_fsf *pf, 
+void fnpf_6DOF::forces_amr(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, fnpf_fsf *pf,
                            slice &Keta, slice &Kfi, int iter)
 {
+    const double t0 = MPI_Wtime();
+
     amr_grids(p,pgc);
     
     // psi_0: phi_t at fixed z on the free surface, phi_t|z = dFifsf/dt - Fz*deta/dt
@@ -1307,9 +1334,11 @@ void fnpf_6DOF::forces_amr(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv,
         hull_sum(nb,on,computeA,S,false);
         
         fb_obj[nb]->forces_fnpf_set(p,pgc,S,computeA);
-        
+
         // force log: first stage = state at the current time level
         if(iter==0)
         fb_obj[nb]->print_force_fnpf(p);
     }
+
+    t_loads += MPI_Wtime()-t0;
 }
