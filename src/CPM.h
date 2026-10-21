@@ -201,7 +201,19 @@ private:
     double kvol_calc(lexer*, int, int, int);
     std::vector<double> kvc;   // kvol of the nodes -1 .. kno (the grid is fixed)
 
-
+    
+    // load map (G 45), see CPM_loadmap.cpp: parcel updates per cell, awake flags of the parcels of a sub-step
+    std::vector<double> lmS,lmA;
+    std::vector<char> lmAw;
+    double lmTstep=0.0, lmTcpm=0.0, lm_w0=0.0, lm_m0=0.0;
+    long lm_steps=0;
+    int lm_open=0;
+    void loadmap_mark(lexer *p, int q, bool awake) { if(p->G45>0){ if(lmAw.size()<size_t(P.index)) lmAw.resize(P.index,1); lmAw[q]=awake?1:0; } }
+    void loadmap_substep(lexer*);
+    void loadmap_write(lexer*, fdm*, ghostcell*);
+public:
+    void loadmap_step(lexer*, fdm*, ghostcell*, double, double);
+private:
     void kernel(lexer*, double, double, double, int=-1);
     bool wallcell(lexer*, int, int, int);
     

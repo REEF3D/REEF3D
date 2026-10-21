@@ -29,7 +29,8 @@ Author: Hans Bihs
 //      column, the patches of the mesh refinement included), spread over the active cells of the
 //      column, read from ./loadmap.dat or ./REEF3D_<NHFLOW|FNPF|SFLOW>_AMR/REEF3D_<..>_AMR_loadmap.dat
 //      (SEASTATE: ./REEF3D_SEASTATE_Log/REEF3D_SEASTATE_loadmap.dat, its measured work of the cells);
-//      a map of the cells (header nx ny nz: CFD, REEF3D_CFD_AMR/REEF3D_CFD_AMR_loadmap.dat) gives
+//      a map of the cells (header nx ny nz: CFD, REEF3D_CFD_AMR/REEF3D_CFD_AMR_loadmap.dat, or CFD with
+//      CPM, the parcels included, REEF3D_CFD_CPM_Particle/REEF3D_CFD_CPM_loadmap.dat) gives
 //      the work of every active cell,
 //    times the factors of the weight boxes M 34 xs xe ys ye zs ze f (cell centre in the box).
 //  The subdomains per direction: M 30 if given, else as for M 20 1 (M 11-13).
@@ -184,15 +185,16 @@ void decomp::partition_weighted(lexer* p, dive* a)
 
     if(p->M35==1)
     {
-        const char *names[6] = {"./loadmap.dat",
+        const char *names[7] = {"./loadmap.dat",
                                 "./REEF3D_NHFLOW_AMR/REEF3D_NHFLOW_AMR_loadmap.dat",
                                 "./REEF3D_FNPF_AMR/REEF3D_FNPF_AMR_loadmap.dat",
                                 "./REEF3D_SFLOW_AMR/REEF3D_SFLOW_AMR_loadmap.dat",
                                 "./REEF3D_CFD_AMR/REEF3D_CFD_AMR_loadmap.dat",
-                                "./REEF3D_SEASTATE_Log/REEF3D_SEASTATE_loadmap.dat"};
+                                "./REEF3D_SEASTATE_Log/REEF3D_SEASTATE_loadmap.dat",
+                                "./REEF3D_CFD_CPM_Particle/REEF3D_CFD_CPM_loadmap.dat"};
         ifstream in;
         std::string used;
-        for(int f=0; f<6 && !in.is_open(); ++f)
+        for(int f=0; f<7 && !in.is_open(); ++f)
         {
             in.open(names[f]);
             if(in.is_open())
@@ -201,7 +203,7 @@ void decomp::partition_weighted(lexer* p, dive* a)
 
         if(!in.is_open())
         {
-            cout<<"M 35 1: no load map found (loadmap.dat, REEF3D_<M>_AMR/REEF3D_<M>_AMR_loadmap.dat or REEF3D_SEASTATE_Log/REEF3D_SEASTATE_loadmap.dat) -- the active cells only"<<endl;
+            cout<<"M 35 1: no load map found (loadmap.dat, REEF3D_<M>_AMR/REEF3D_<M>_AMR_loadmap.dat, REEF3D_SEASTATE_Log/REEF3D_SEASTATE_loadmap.dat or REEF3D_CFD_CPM_Particle/REEF3D_CFD_CPM_loadmap.dat) -- the active cells only"<<endl;
             ddout<<"M 35 1: no load map found"<<endl;
         }
         else
