@@ -52,7 +52,7 @@ momentum_FCC2_PLIC::momentum_FCC2_PLIC(lexer *p, fdm *a, ghostcell *pgc, convect
                                                     Mx(p),rox(p),My(p),roy(p),Mz(p),roz(p),
                                                     Mx_rk1(p),My_rk1(p),Mz_rk1(p),
                                                     rox_rk1(p),roy_rk1(p),roz_rk1(p),
-                                                    fx(p),fy(p),fz(p),VoF(p),vof_rk1(p)
+                                                    fx(p),fy(p),fz(p),VoF(p),vof_rk1(p),rhostore(p),viscstore(p)
                                                     
 {
 	gcval_u=10;
@@ -223,8 +223,27 @@ void momentum_FCC2_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
    
     clear_FGH(p,a);
     
+    LOOP
+    {
+        rhostore(i,j,k)=a->ro(i,j,k);
+        viscstore(i,j,k)=a->visc(i,j,k);
+    }
+    pupdate->start(p,a,pgc,a->u,a->v,a->w);
+    pgc->start4(p,a->ro,gcval_ro);
+    face_density(p,a,pgc,rox_rk1,roy_rk1,roz_rk1);
+    pgc->start1(p,rox_rk1,gcval_u);
+	pgc->start2(p,roy_rk1,gcval_v);
+	pgc->start3(p,roz_rk1,gcval_w);
+    
+    LOOP
+    {
+        a->ro(i,j,k)=rhostore(i,j,k);
+        a->visc(i,j,k)=viscstore(i,j,k);
+    }
+    pgc->start4(p,a->ro,gcval_ro);
+    pgc->start4(p,a->ro,gcval_visc);
     // advect rho
-    pgc->start1(p,rox,gcval_u);
+   /* pgc->start1(p,rox,gcval_u);
     pgc->start2(p,roy,gcval_v);
     pgc->start3(p,roz,gcval_w);
     
@@ -242,7 +261,7 @@ void momentum_FCC2_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
                 
     WLOOP
 	roz_rk1(i,j,k) = roz(i,j,k)
-				+ p->dt*CPOR3*a->H(i,j,k);
+				+ p->dt*CPOR3*a->H(i,j,k); */
     
     clear_FGH(p,a);
     
@@ -446,7 +465,27 @@ void momentum_FCC2_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
     
     clear_FGH(p,a);
     
-    pgc->start1(p,rox_rk1,gcval_u);
+     LOOP
+    {
+        rhostore(i,j,k)=a->ro(i,j,k);
+        viscstore(i,j,k)=a->visc(i,j,k);
+    }
+    pupdate->start(p,a,pgc,a->u,a->v,a->w);
+    pgc->start4(p,a->ro,gcval_ro);
+    face_density(p,a,pgc,rox,roy,roz);
+    pgc->start1(p,rox,gcval_u);
+	pgc->start2(p,roy,gcval_v);
+	pgc->start3(p,roz,gcval_w);
+    
+    LOOP
+    {
+        a->ro(i,j,k)=rhostore(i,j,k);
+        a->visc(i,j,k)=viscstore(i,j,k);
+    }
+    pgc->start4(p,a->ro,gcval_ro);
+    pgc->start4(p,a->ro,gcval_visc);
+    
+   /* pgc->start1(p,rox_rk1,gcval_u);
 	pgc->start2(p,roy_rk1,gcval_v);
 	pgc->start3(p,roz_rk1,gcval_w);
     
@@ -464,7 +503,7 @@ void momentum_FCC2_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
                 
     WLOOP
 	roz(i,j,k) = 0.5*roz(i,j,k) + 0.5*roz_rk1(i,j,k)
-				+ 0.5*p->dt*CPOR3*a->H(i,j,k);
+				+ 0.5*p->dt*CPOR3*a->H(i,j,k);*/
 
     clear_FGH(p,a);
     

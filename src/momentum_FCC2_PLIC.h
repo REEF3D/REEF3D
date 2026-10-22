@@ -79,6 +79,7 @@ public:
     
     field4 ls,frk1;
     field4 VoF,vof_rk1;
+    field4 rhostore,viscstore;
 
 private:
     fluid_update *pupdate;
