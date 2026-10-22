@@ -171,6 +171,16 @@ fnpf_6DOF::fnpf_6DOF(lexer *p, fdm_fnpf *c, ghostcell *pgc) : initialized(false)
     if(p->mpirank==0 && nbody>1)
     cout<<"6DOF FNPF: "<<nbody<<" bodies, coupled added mass, psi_0 = phi_t (m-terms neglected)"<<endl;
 
+    if(p->mpirank==0 && p->X36==1)
+    {
+        if(p->G1>0 && p->G12>0 && p->G7!=1)
+        cout<<"6DOF FNPF: the unit modes of the added mass of every body on the patches of its zone only (X 36; G 12 "
+            <<p->G12_r<<": psi 0 at their edge, the cross added mass from the bodies inside them)"<<endl;
+        else
+        cout<<"6DOF FNPF: X 36 needs the mesh refinement with the zones around the bodies (G 1, G 12) and no subcycling (G 7 1): "
+              "the unit modes are solved on all grids"<<endl;
+    }
+
     if(p->mpirank==0 && p->X28>1)
     {
     cout<<"6DOF FNPF: the added mass every "<<p->X28<<" time steps (X 28)";
@@ -227,8 +237,10 @@ fnpf_6DOF::fnpf_6DOF(lexer *p, fdm_fnpf *c, ghostcell *pgc) : initialized(false)
     g0.pbed = pbed;
     g0.pvel = pvel;
     
-    // several bodies: the unit modes of the bodies 1, 2, ... on level 0 (the free DOFs)
-    if(nbody>1)
+    // several bodies: the unit modes of the bodies 1, 2, ... on level 0 (the free DOFs; X 36 with mesh
+    // refinement: the unit modes live on the patches of the body's window, level 0 only for a body
+    // without one, allocated then by mode_array)
+    if(nbody>1 && !(p->X36==1 && p->G1>0 && p->G12>0 && p->G7!=1))
     {
         g0.psib.assign(6*(nbody-1),nullptr);
         
@@ -1495,6 +1507,167 @@ void fnpf_6DOF::solve_psi_amr(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *pso
     t_psi += MPI_Wtime()-t0;
 }
 
+// X 36: the unit modes of every body on its own patches.  A unit mode is the potential of a unit
+// acceleration of one hull with psi 0 on the free surface; it decays within a few hull sizes, while a
+// solve on all grids carries level 0 over the whole domain.  The window of body nb is the patches that
+// reach into its zone (the box of its wetted hull grown by G 12, the zone the patches refine); psi is 0
+// on level 0 and the other patches, and so at the edge of the window.  Its cross added mass reaches the
+// bodies whose zones its window reaches; the others take 0 from its modes.  A body without a window
+// (no zone, no patch at it) solves on all grids.  Not with subcycling (G 7 1)
+bool fnpf_6DOF::win_on(lexer *p) const
+{
+    return p->X36==1 && p->G12>0 && p->G7!=1 && amr_on() && !amr_sub();
+}
+
+void fnpf_6DOF::windows(lexer *p, ghostcell *pgc)
+{
+    // the boxes of the patches of all ranks (a window may reach over several ranks)
+    const int np = amr->patches();
+    vector<double> loc(4*np);
+    for(int id=0; id<np; ++id)
+    amr->patch_box(id,loc[4*id],loc[4*id+1],loc[4*id+2],loc[4*id+3]);
+    const int nr = p->mpi_size;
+    vector<int> cnt(nr), dsp(nr,0), first(nr,0);
+    int mine = 4*np;
+    MPI_Allgather(&mine,1,MPI_INT,cnt.data(),1,MPI_INT,pgc->mpi_comm);
+    for(int r=1; r<nr; ++r)
+    dsp[r] = dsp[r-1]+cnt[r-1];
+    for(int r=0; r<nr; ++r)
+    first[r] = dsp[r]/4;
+    const int ntot = (dsp[nr-1]+cnt[nr-1])/4;
+    vector<double> all(4*MAX(ntot,1));
+    MPI_Allgatherv(loc.data(),mine,MPI_DOUBLE,all.data(),cnt.data(),dsp.data(),MPI_DOUBLE,pgc->mpi_comm);
+    const int me = first[p->mpirank];
+
+    vector<double> zb(4*nbody,0.0);
+    vector<char> hz(nbody,0);
+    for(int nb=0; nb<nbody; ++nb)
+    hz[nb] = amr->zone_box(nb,zb[4*nb],zb[4*nb+1],zb[4*nb+2],zb[4*nb+3]) ? 1 : 0;
+
+    const bool yd = (p->j_dir==1);
+    auto meets = [&](int nb, int k)
+    {
+        const double *a = &all[4*k], *b = &zb[4*nb];
+        return hz[nb] && a[0]<b[1] && a[1]>b[0] && (!yd || (a[2]<b[3] && a[3]>b[2]));
+    };
+
+    wout.assign(nbody,vector<char>(np,1));
+    wgp.assign(nbody,vector<char>());
+    wok.assign(nbody,0);
+    wmeet.assign(nbody*nbody,0);
+
+    vector<char> W(ntot);
+    for(int nb=0; nb<nbody; ++nb)
+    {
+        for(int k=0; k<ntot; ++k)
+        {
+            W[k] = meets(nb,k) ? 1 : 0;
+            if(W[k])
+            {
+                wok[nb] = 1;
+                for(int nb2=0; nb2<nbody; ++nb2)
+                if(meets(nb2,k))
+                wmeet[nb*nbody+nb2] = 1;
+            }
+        }
+
+        for(int id=0; id<np; ++id)
+        wout[nb][id] = W[me+id] ? 0 : 1;
+
+        amr->window_gp(W,first,wgp[nb]);
+    }
+
+    int nwin = 0;
+    for(int nb=0; nb<nbody; ++nb)
+    nwin += wok[nb];
+
+    static bool told = false;
+    if(!told && p->mpirank==0)
+    {
+        told = true;
+        cout<<"6DOF FNPF: X 36, "<<nwin<<" of "<<nbody<<" bodies with a window of patches";
+        if(nwin<nbody)
+        cout<<" (the others solve their unit modes on all grids)";
+        cout<<endl;
+    }
+}
+
+// the unit mode m of body nb on the patches of its window (wout[nb]); level 0 and the patches outside
+// hold 0 (their zero arrays, read only)
+void fnpf_6DOF::solve_psi_window(lexer *p, fdm_fnpf *c, ghostcell *pgc, int m, int slot, int nb)
+{
+    const double t0 = MPI_Wtime();
+    const double ts = psi_time(p,slot);
+    const vector<char> &out = wout[nb];
+    const int ng = 1+(int)gp.size();
+    vector<double*> fs(ng);
+    vector<slice*> Ds(ng);
+
+    fs[0] = g0.zero;
+    Ds[0] = g0.zeroslice;
+    for(size_t n=0; n<gp.size(); ++n)
+    {
+        fnpf_6DOF_grid &G = gp[n];
+        Ds[n+1] = G.zeroslice;
+        if(out[G.id])
+        fs[n+1] = G.zero;
+        else
+        {
+            fs[n+1] = mode_array(G,nb,m);
+            psi_guess(G,slot,fs[n+1],ts);
+        }
+    }
+
+    {
+    reefamr_comms_off guard(pgc);
+    for(size_t n=0; n<gp.size(); ++n)
+    if(!out[gp[n].id])
+    {
+        fnpf_6DOF_grid &G = gp[n];
+        lexer *p = G.p;
+        slice4 &foot = *G.foot;
+        double *f = fs[n+1];
+
+        // Dirichlet 0 on the free surface outside the footprint
+        FFILOOP4
+        if(foot(i,j)<0.5)
+        {
+            f[FIJK]   = 0.0;
+            f[FIJKp1] = 0.0;
+            f[FIJKp2] = 0.0;
+            f[FIJKp3] = 0.0;
+        }
+
+        G.pbed->bedbc_sig(p,G.c,pgc,f,G.pf);
+        amr->patch_walls_fi(G.id,f);
+    }
+    }
+
+    {
+    fnpf_psi_tol tol(p);
+    amr->lap_solve_psi_window(p,pgc,&fs[0],&Ds[0],out,wgp[nb],nb);
+    }
+    psi_count(p->solveriter);
+
+    const double t1 = MPI_Wtime();
+    {
+    reefamr_comms_off guard(pgc);
+    for(size_t n=0; n<gp.size(); ++n)
+    if(!out[gp[n].id])
+    {
+        amr->patch_walls_fi(gp[n].id,fs[n+1]);
+        extrapolate(gp[n],pgc,fs[n+1]);
+    }
+    }
+    t_band += MPI_Wtime()-t1;
+
+    for(size_t n=0; n<gp.size(); ++n)
+    if(!out[gp[n].id])
+    psi_record(gp[n],slot,fs[n+1],ts);
+
+    t_psi += MPI_Wtime()-t0;
+}
+
 void fnpf_6DOF::forces_amr(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, fnpf_fsf *pf,
                            slice &Keta, slice &Kfi, int iter)
 {
@@ -1573,11 +1746,21 @@ void fnpf_6DOF::forces_amr(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv,
     for(auto &A : Across)
     A.setZero();
 
-    // psi arrays of the modes of body nbm on grid G, restricted to the solved modes
+    // X 36: the windows of the bodies (the patches of their zones)
+    const bool win = refresh && win_on(p);
+    if(win)
+    windows(p,pgc);
+    auto inwin = [&](int nbm, fnpf_6DOF_grid &G)
+    {
+        return !win || !wok[nbm] || (G.id>=0 && !wout[nbm][G.id]);
+    };
+
+    // psi arrays of the modes of body nbm on grid G, restricted to the solved modes (X 36: 0 outside
+    // the window of body nbm)
     auto modes = [&](fnpf_6DOF_grid &G, int nbm, const bool *on, double **out)
     {
         for(int m=0; m<6; ++m)
-        out[m] = on[m] ? mode_array(G,nbm,m) : nullptr;
+        out[m] = on[m] ? (inwin(nbm,G) ? mode_array(G,nbm,m) : G.zero) : nullptr;
     };
 
     // hull integral of body nbi over all grids, every triangle on the finest grid that holds its centroid
@@ -1619,19 +1802,36 @@ void fnpf_6DOF::forces_amr(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv,
                 for(int g=-1; g<(int)gp.size(); ++g)
                 {
                     fnpf_6DOF_grid &G = (g<0) ? g0 : gp[g];
+                    if(!inwin(nb,G))
+                    continue;
                     for(int k=0; k<3; ++k)
                     tr[k] = on[k] ? mode_array(G,nb,k) : nullptr;
                     mode_shift(G,nb,m,tr,d);
                 }
             }
             
+            if(win && wok[nb])
+            {
+                // the Neumann data of the window's patches only (level 0 holds 0)
+                reefamr_comms_off guard(pgc);
+                for(auto &G : gp)
+                if(inwin(nb,G))
+                {
+                    zero_face(G);
+                    fb_obj[nb]->face_data_fnpf(G.p,G.c,pgc,m,G.c->FBF,G.c->FBu,G.c->FBv,G.c->FBw);
+                }
+            }
+            else
             face(m,nb);
+            if(win && wok[nb])
+            solve_psi_window(p,c,pgc,m,psi_slot(m,iter,false,nb),nb);
+            else
             solve_psi_amr(p,c,pgc,psolv,pf,m,false,psi_slot(m,iter,false,nb),nb);
         }
 
         if(computeA && nbody>1)
         for(int nb2=0; nb2<nbody; ++nb2)
-        if(nb2!=nb)
+        if(nb2!=nb && (!win || !wok[nb] || wmeet[nb*nbody+nb2]))
         {
             sixdof_obj_fnpf::fnpf_force_sum S2;
             hull_sum(nb2,nb,on,true,S2,true);

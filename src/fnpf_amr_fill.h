@@ -80,6 +80,10 @@ inline void fnpf_amr::fill_col(int l, int tag, SEL sel, bool d1)
                  if(f.kind==1 && edge)
                  for(int kk=0; kk<=knf; ++kk)
                  v[kk] = std::numeric_limits<double>::quiet_NaN();
+                 // X 36: a source grid outside the window of the solve (skip) holds 0
+                 else if((f.kind==0 || f.kind==1) && f.g>=0 && skipped(f.g))
+                 for(int kk=0; kk<=knf; ++kk)
+                 v[kk] = 0.0;
                  else if(f.kind==0)
                  {
                      lexer *q = glex(f.g);
@@ -253,6 +257,9 @@ inline void fnpf_amr::restrict_col(SEL sel)
                  },
                  [&](const reefamr_block &B, int key, const double *v)
                  {
+                     // X 36: not into a parent outside the window of the solve (skip)
+                     if(B.g>=0 && skipped(B.g))
+                     return;
                      lexer *q = glex(B.g);
                      double *dst = sel(B.g);
                      for(int K=0; K<=knc; ++K)
@@ -299,6 +306,13 @@ inline void fnpf_amr::prolong_interior_col(int l, ND need, SRC src, DST dst)
     block_down_if(l,2*ncy*nc,7580+l,need,
                   [&](const reefamr_block &B, int key, double *v)
                   {
+                      // X 36: a parent outside the window of the solve (skip) holds 0
+                      if(B.g>=0 && skipped(B.g))
+                      {
+                          for(int n=0; n<2*ncy*nc; ++n)
+                          v[n] = 0.0;
+                          return;
+                      }
                       for(int a=0; a<2; ++a)
                       for(int d=0; d<ncy; ++d)
                       pcol(B.g,B.ic,B.jc,a==0?-1:1,(sy==0) ? 0 : (d==0?-1:1),src(B.g),knf,&v[(ncy*a+d)*nc]);

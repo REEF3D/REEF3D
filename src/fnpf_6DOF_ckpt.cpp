@@ -94,6 +94,28 @@ void fnpf_6DOF::amr_ckpt_grids(lexer *p, ghostcell *pgc)
     ckpt_grids = true;
     amr_layout = -1;
     amr_grids(p,pgc);
+
+    // X 36: the unit modes of the bodies 1, 2, ... live on the patches of their windows only (allocated
+    // at their first solve); their arrays for the checkpoint's values on the patches that reach into
+    // the zone of the body grown by its margin once more (a superset of the windows of the run; the
+    // others stay unallocated)
+    if(p->X36==1 && p->G12>0 && p->G7!=1 && nbody>1 && amr!=nullptr)
+    for(auto &G : gp)
+    {
+        double x0,x1,y0,y1;
+        amr->patch_box(G.id,x0,x1,y0,y1);
+        for(int nb=1; nb<nbody; ++nb)
+        {
+            double a0,a1,b0,b1;
+            if(!amr->zone_box(nb,a0,a1,b0,b1))
+            continue;
+            const double g = p->G12_r;
+            if(x0<a1+g && x1>a0-g && (p->j_dir==0 || (y0<b1+g && y1>b0-g)))
+            for(int m=0; m<6; ++m)
+            if(psi[m]!=nullptr && !fb_obj[nb]->dof_fixed_fnpf(p,m))
+            mode_array(G,nb,m);
+        }
+    }
     
     for(auto &G : gp)
     {

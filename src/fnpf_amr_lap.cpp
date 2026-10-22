@@ -120,6 +120,10 @@ double* fnpf_amr::lvec(int g, int k)
     if(k<0)
     return ltgt[g+1];
 
+    // (X 36: a window solve, its patches; the patches outside are not touched)
+    if(g>=0 && lap_nol0 && !FP(g)->kvw.empty())
+    return FP(g)->kvw[k];
+
     return (g<0) ? kv0[k] : FP(g)->kv[k];
 }
 
@@ -138,14 +142,23 @@ void fnpf_amr::lap_rows()
         row[fidx(q,ii,jj,kk)] = n++;
     };
 
-    number(p0,rowmap0);
-    for(auto q : P)
-    number(q->pp,FP(q)->row);
+    // (X 36, a window without level 0: level 0 keeps its numbering of the layout)
+    if(!(lap_nol0 && rowmap0_layout==layout_id))
+    {
+        number(p0,rowmap0);
+        rowmap0_layout = layout_id;
+    }
+    // (X 36: not the patches outside the window of the solve; a solve on all grids numbers them again)
+    for(int id=0; id<(int)P.size(); ++id)
+    if(!skipped(id))
+    number(P[id]->pp,FP(id)->row);
 
     // the fill entries next to the patch: the columns the rows of the patch reach
-    for(auto q : P)
+    for(int id=0; id<(int)P.size(); ++id)
     {
-        fnpf_amr_patch *c = FP(q);
+        if(skipped(id))
+        continue;
+        fnpf_amr_patch *c = FP(id);
         c->fill1.clear();
         c->fill2.clear();
         for(size_t e=0; e<c->fill.size(); ++e)
@@ -167,8 +180,9 @@ void fnpf_amr::lap_rows()
         lgrid &L = lg[g+1];
         const int l = (g<0) ? 0 : P[g]->lev;
 
-        // G 7 1: the grids of the level window only (wlo..wtop: all levels without subcycling)
-        if(l<wlo || l>wtop())
+        // G 7 1: the grids of the level window only (wlo..wtop: all levels without subcycling); X 36:
+        // not the patches outside the window of the unit-mode solve
+        if(l<wlo || l>wtop() || (g>=0 && skipped(g)))
         continue;
 
         int i0,i1,j0,j1;
@@ -180,7 +194,10 @@ void fnpf_amr::lap_rows()
         {
             int I = (g<0) ? ii+O0i : ii-EXT+P[g]->I0;
             int J = (g<0) ? jj+O0j : jj-EY+P[g]->J0;
-            const bool covered = (l<wtop() && reefamr::covered(l+1,2*I,ychild(J)));
+            // (X 36: covered by a patch of the window only; under a patch outside it the columns are
+            // leaf columns of the window, the hulls there on this grid's resolution)
+            const int gc = (l<wtop()) ? gpatch_at(l+1,2*I,ychild(J)) : -1;
+            const bool covered = (gc>=0 && (skip==nullptr || lap_wgp==nullptr || (*lap_wgp)[gc]));
 
             for(int kk=0; kk<q->knoz; ++kk)
             {
@@ -204,7 +221,7 @@ void fnpf_amr::lap_rows()
 // vectors, multigrids and their coefficients for this solve
 void fnpf_amr::lap_prepare(ghostcell *pgc)
 {
-    const int wkey = wlo*1000 + wtop();
+    const int wkey = wlo*1000 + wtop() + lap_wextra;
     if(lap_layout==layout_id && lap_wkey!=wkey)
     {
         lap_rows();
@@ -305,8 +322,8 @@ void fnpf_amr::lap_prepare(ghostcell *pgc)
         std::fill(L.act.begin(),L.act.end(),0);
     };
 
-    // level 0: all rows of the rank grid, 7-point part
-    if(!(sy==0 && xz_keep(xz0key,xz0on,wkey)))
+    // level 0: all rows of the rank grid, 7-point part (X 36, a window without level 0: none)
+    if(!lap_nol0 && !(sy==0 && xz_keep(xz0key,xz0on,wkey)))
     {
         sc_level &L = mg0->fine();
         clear(L);
@@ -343,9 +360,10 @@ void fnpf_amr::lap_prepare(ghostcell *pgc)
     }
 
     // patches: interior rows, couplings to the cells around the patch dropped
-    for(auto q : P)
+    for(int id=0; id<(int)P.size(); ++id)
     {
-        if(q->lev<wlo || q->lev>wtop())
+        reefamr_patch *q = P[id];
+        if(q->lev<wlo || q->lev>wtop() || skipped(id))
         continue;
 
         fnpf_amr_patch *c = FP(q);
@@ -400,7 +418,11 @@ bool fnpf_amr::lap_same(ghostcell *pgc, int wkey)
 
     for(int g=-1; g<(int)P.size(); ++g)
     {
-        if(g>=0 && (P[g]->lev<wlo || P[g]->lev>wtop()))
+        if(g>=0 && (P[g]->lev<wlo || P[g]->lev>wtop() || skipped(g)))
+        continue;
+
+        // (X 36, a window without level 0: its rows are not part of the solve)
+        if(g<0 && lap_nol0)
         continue;
 
         const matrix_diag &M = gfd(g)->M;
@@ -534,7 +556,10 @@ void fnpf_amr::lap_start()
         // the composite residual of the preconditioner: the restriction to level 0 reads entries
         // the residual of this solve does not write (they held those of an earlier solve, e.g. one
         // of another level window of the subcycling): the solve did not depend on its own data only,
-        // and a restart from a checkpoint (P 48, I 45) did not continue bitwise
+        // and a restart from a checkpoint (P 48, I 45) did not continue bitwise.  (X 36: a window
+        // without level 0 restricts and reads neither level 0 nor the patches outside it)
+        if((g<0 && lap_nol0) || (g>=0 && skipped(g)))
+        continue;
         lexer *q = glex(g);
         double *vt = lvec(g,NRP);
         std::fill(vt,vt+q->imax*q->jmax*(q->kmax+2),0.0);
@@ -1095,4 +1120,98 @@ void fnpf_amr::lap_solve_psi(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psol
 
     tm[1] += MPI_Wtime()-t0;
     tm[6] += MPI_Wtime()-t0;
+}
+
+// X 36: a unit-mode psi solve of one body on the patches of its window (out[id] 1: outside).  Level 0 and
+// the patches outside hold 0: the columns around the level-1 patches of the window are filled from them
+// before the solve (0, a sibling of the window its value) and kept during it (the lowest level of the
+// window, lap_edge), level 0 has no rows, and the preconditioner has no level-0 cycle (lap_prec_win with
+// lap_nol0: the patch-local V-cycles of the window's level-1 patches carry the coarse correction).  The
+// right-hand side and the rows of the window's patches only; the rows and the preconditioner are kept
+// between the solves of the window with the same rows (lap_same, wkey with key)
+void fnpf_amr::lap_solve_psi_window(lexer *p, ghostcell *pgc, double **f, slice **D, const vector<char> &out, const vector<char> &wgp, int key)
+{
+    const double t0 = MPI_Wtime();
+
+    lap_skip = out;
+    skip = &lap_skip;
+    lap_wgp = &wgp;
+
+    // the Krylov vectors of the window's patches (kvw)
+    for(int id=0; id<(int)P.size(); ++id)
+    if(!out[id] && FP(id)->kvw.empty())
+    {
+        lexer *q = FP(id)->pp;
+        const size_t n = (size_t)q->imax*q->jmax*(q->kmax+2);
+        for(int k=0; k<NVEC; ++k)
+        FP(id)->kvw.push_back(new double[n]());
+    }
+
+    lap_kind = 1;
+    {
+    comms_off guard(pgc);
+    for(int id=0; id<(int)P.size(); ++id)
+    if(!lap_skip[id])
+    {
+        fnpf_amr_patch *pc = FP(id);
+        pc->plap->start(pc->pp,pc->c,pgc,nullptr,pc->pf,f[id+1],*D[id+1]);
+    }
+    }
+    lap_tsetup(MPI_Wtime()-t0);
+
+    ltgt.assign(f,f+P.size()+1);
+
+    // psi 0 at the edge of the window
+    if(maxlev>=1)
+    fill_col(1,7995,[&](int g) -> double* { return ltgt[g+1]; });
+
+    wlo = 1;
+    whi = -1;
+    lap_edge = true;
+    lap_nol0 = true;
+    lap_wextra = 100000*(key+1);
+    lap_core(p,pgc);
+    lap_wextra = 0;
+    lap_nol0 = false;
+    lap_edge = false;
+    lap_kind = 0;
+    wlo = 0;
+    whi = -1;
+
+    skip = nullptr;
+    lap_wgp = nullptr;
+
+    tm[1] += MPI_Wtime()-t0;
+    tm[6] += MPI_Wtime()-t0;
+}
+
+void fnpf_amr::window_gp(const vector<char> &win, const vector<int> &first, vector<char> &wgp)
+{
+    wgp.assign(GP.size(),0);
+    for(size_t k=0; k<GP.size(); ++k)
+    {
+        const size_t e = (size_t)first[GP[k].rank] + GP[k].lid;
+        wgp[k] = (e<win.size()) ? win[e] : 0;
+    }
+}
+
+void fnpf_amr::patch_box(int n, double &x0, double &x1, double &y0, double &y1)
+{
+    lexer *pp = P[n]->pp;
+    const int m = marge;
+    x0 = pp->XN[EXT+m];
+    x1 = pp->XN[EXT+P[n]->nx+m];
+    y0 = pp->YN[EY+m];
+    y1 = pp->YN[EY+P[n]->ny+m];
+}
+
+bool fnpf_amr::zone_box(int nb, double &x0, double &x1, double &y0, double &y1)
+{
+    if(nb<0 || nb>=(int)zones.size() || zones[nb].bx0>zones[nb].bx1)
+    return false;
+    x0 = zones[nb].bx0 - par.zr;
+    x1 = zones[nb].bx1 + par.zr;
+    y0 = zones[nb].by0 - par.zr;
+    y1 = zones[nb].by1 + par.zr;
+    return true;
 }

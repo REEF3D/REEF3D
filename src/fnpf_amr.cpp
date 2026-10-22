@@ -594,6 +594,8 @@ void fnpf_amr::patch_delete(reefamr_patch *q)
 {
     fnpf_amr_patch *c = FP(q);
 
+    for(auto v : c->kvw)
+    delete [] v;
     for(auto v : c->kv)
     delete [] v;
     delete c->mg;
