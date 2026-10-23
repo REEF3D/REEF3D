@@ -140,6 +140,14 @@ void cavitation::coefficients(lexer *p, fdm *a, ghostcell *pgc)
             c = Cc*al*std::max(1.0-al,alnuc)*3.0/RB*rate/std::sqrt(std::fabs(dp)+eps);
         }
 
+        // condensation of at most the vapour that is there in one step, |S| dt <= alpha with S
+        // from the pressure at the start of the step: without it traces of vapour in the liquid
+        // behind a cavity (alpha ~ 1e-3, p far above p_v) get the coefficient of a cavity, the
+        // implicit sink pulls their pressure down to p_v for one step, the vapour is gone and the
+        // pressure jumps back, an oscillation of 2 dt in the whole pressure field
+        if(dp>=0.0)
+        c = std::min(c,al/(p->dt*(dp+eps)));
+
         // no phase change in a direct-forcing body
         if(p->X10==1)
         c *= std::max(0.0,1.0-a->fbh4(i,j,k));

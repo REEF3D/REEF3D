@@ -60,7 +60,9 @@ class convection;
 //  the projection by rho_l/rho, up to 6e4 in vapour.
 //
 //  Linearised in the pressure, S = C (p_v - p) with C = alpha(1-alpha) 3/R_B sqrt(2/(3 rho_l))/
-//  sqrt(|p - p_v| + eps), from alpha and p at the start of the time step (coefficients). In each
+//  sqrt(|p - p_v| + eps), from alpha and p at the start of the time step (coefficients); for
+//  condensation C <= alpha/(dt (p - p_v + eps)), at most the vapour there is in one step (else
+//  traces of vapour behind a cavity pull the pressure to p_v every other step). In each
 //  projection of the time step the divergence source is implicit in the new pressure:
 //  (C (rho_l - rho_v)/rho)/(a dt) is added to the diagonal of the Poisson matrix and
 //  (C (rho_l - rho_v)/rho)(p_v - p)/(a dt) to its right-hand side (projection), so that the
