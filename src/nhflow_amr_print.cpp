@@ -32,10 +32,11 @@ Author: Hans Bihs
 #include<cstdio>
 
 //  Output of NHFLOW AMR: the free surface of level 0 and of every patch as VTK rectilinear grids
-//  (REEF3D_NHFLOW_AMR/*.vtr, indexed by a .vtm per output time, P 20 / P 30 as the NHFLOW
-//  output), the wave gauges P 51 from the finest grid that holds them (bilinear between the cell
-//  centres), and a log with the water volume of the leaf cells. P 18: the grids also in the
-//  LAGOON store (P 18 1: instead of the .vtr and .vtm files).
+//  (REEF3D_NHFLOW_AMR/*.vtr, indexed by a .vtm per output time; with P 180 1 at the interval of
+//  the free surface output, P 182 / P 181, else at that of the 3D output, P 30 / P 20), the wave
+//  gauges P 51 from the finest grid that holds them (bilinear between the cell centres), and a log
+//  with the water volume of the leaf cells. P 18: the grids also in the LAGOON store (P 18 1:
+//  instead of the .vtr and .vtm files).
 
 using namespace nhflow_amr_detail;
 
@@ -49,7 +50,7 @@ double nhflow_amr::mass(lexer *p, fdm_nhf *d, ghostcell *pgc)
     {
         if(p->flagslice4[lij(p,ii,jj)]<0 || ring0(ii,jj))
         continue;
-        if(maxlev>=1 && covered(1,2*(ii+O0i),2*(jj+O0j)))
+        if(maxlev>=1 && covered(1,2*(ii+O0i),ychild(jj+O0j)))
         continue;
         if(p->geo_curv==1)
         v += d->WL(ii,jj)*p->AREA2D[lij(p,ii,jj)];
@@ -62,12 +63,12 @@ double nhflow_amr::mass(lexer *p, fdm_nhf *d, ghostcell *pgc)
         lexer *pp = q->pp;
         fdm_nhf *dd = NP(q)->d;
         for(int ii=EXT; ii<EXT+q->nx; ++ii)
-        for(int jj=EXT; jj<EXT+q->ny; ++jj)
+        for(int jj=EY; jj<EY+q->ny; ++jj)
         {
             if(pp->flagslice4[lij(pp,ii,jj)]<0)
             continue;
-            const int I = ii-EXT+q->I0, J = jj-EXT+q->J0;
-            if(q->lev<maxlev && covered(q->lev+1,2*I,2*J))
+            const int I = ii-EXT+q->I0, J = jj-EY+q->J0;
+            if(q->lev<maxlev && covered(q->lev+1,2*I,ychild(J)))
             continue;
             if(pp->geo_curv==1)
             v += dd->WL(ii,jj)*pp->AREA2D[lij(pp,ii,jj)];
@@ -86,15 +87,21 @@ void nhflow_amr::print(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
     dump_grids(p);
 
+    // the grids are the free surface: with P 180 1 at its interval (P 182 in time, P 181 in
+    // iterations, as REEF3D_NHFLOW_VTP_FSF), else at that of the 3D output (P 30, P 20; P 10)
+    const bool fsf = p->P180==1;
+    const double every = fsf ? p->P182 : p->P30;
+    const int every_it = fsf ? p->P181 : p->P20;
+
     bool doprint=false;
 
-    if((p->count%p->P20==0 && p->P30<0.0 && p->P10>0 && p->P20>0) || (p->count==0 && p->P30<0.0))
+    if((every_it>0 && p->count%every_it==0 && every<0.0 && (fsf || p->P10>0)) || (p->count==0 && every<0.0))
     doprint=true;
 
-    if((p->simtime>printtime_amr && p->P30>0.0) || (p->count==0 && p->P30>0.0))
+    if((p->simtime>printtime_amr && every>0.0) || (p->count==0 && every>0.0))
     {
         doprint=true;
-        printtime_amr += p->P30;
+        printtime_amr += every;
     }
 
     if(p->P51>0)
@@ -227,6 +234,8 @@ void nhflow_amr::gauges(lexer *p, fdm_nhf *d, ghostcell *pgc)
         if(x>=q->XN[a+marge] && x<q->XN[a+1+marge]) { ii=a; break; }
         for(int a=j0; a<=j1; ++a)
         if(y>=q->YN[a+marge] && y<q->YN[a+1+marge]) { jj=a; break; }
+        if(q->j_dir==0)     // 2D grid: the strip, wherever y is
+        jj = j0;
         return ii>=0 && jj>=0;
     };
 
@@ -236,8 +245,14 @@ void nhflow_amr::gauges(lexer *p, fdm_nhf *d, ghostcell *pgc)
         return f(ii,jj);
 
         int a = (x>=q->XP[ii+marge]) ? ii : ii-1;
-        int b = (y>=q->YP[jj+marge]) ? jj : jj-1;
         double wx = (x-q->XP[a+marge])/(q->XP[a+1+marge]-q->XP[a+marge]);
+        if(q->j_dir==0)     // 2D grid: linear in x
+        {
+            if(q->flagslice4[lij(q,a,jj)]<0 || q->flagslice4[lij(q,a+1,jj)]<0)
+            return f(ii,jj);
+            return (1.0-wx)*f(a,jj) + wx*f(a+1,jj);
+        }
+        int b = (y>=q->YP[jj+marge]) ? jj : jj-1;
         double wy = (y-q->YP[b+marge])/(q->YP[b+1+marge]-q->YP[b+marge]);
         if(q->flagslice4[lij(q,a,b)]<0 || q->flagslice4[lij(q,a+1,b)]<0 || q->flagslice4[lij(q,a,b+1)]<0 || q->flagslice4[lij(q,a+1,b+1)]<0)
         return f(ii,jj);
@@ -254,7 +269,7 @@ void nhflow_amr::gauges(lexer *p, fdm_nhf *d, ghostcell *pgc)
             val[k]=ipol(p,d->eta,ii,jj,x,y);
         }
         for(auto q : P)
-        if(q->lev>lv[k] && find(q->pp,EXT,EXT+q->nx-1,EXT,EXT+q->ny-1,x,y,ii,jj))
+        if(q->lev>lv[k] && find(q->pp,EXT,EXT+q->nx-1,EY,EY+q->ny-1,x,y,ii,jj))
         {
             lv[k]=q->lev;
             val[k]=ipol(q->pp,NP(q)->d->eta,ii,jj,x,y);
@@ -379,11 +394,11 @@ void nhflow_amr::write_vtr(lexer *p, nhflow_amr_patch &c, int id)
     out<<"<DataArray type=\"Int32\" Name=\"level\" NumberOfTuples=\"1\">"<<c.lev<<"</DataArray></FieldData>\n";
     out<<"<Piece Extent=\"0 "<<c.nx<<" 0 "<<c.ny<<" 0 0\">\n";
     out<<"<CellData Scalars=\"eta\">\n";
-    vtr_fields(out,pp,c.d,EXT,EXT+c.nx,EXT,EXT+c.ny,shore);
+    vtr_fields(out,pp,c.d,EXT,EXT+c.nx,EY,EY+c.ny,shore);
     if(cv)
     {
     out<<"</CellData>\n<Points>\n<DataArray type=\"Float64\" NumberOfComponents=\"3\" format=\"ascii\">\n";
-    for(int jj=EXT; jj<=EXT+c.ny; ++jj)
+    for(int jj=EY; jj<=EY+c.ny; ++jj)
     for(int ii=EXT; ii<=EXT+c.nx; ++ii)
     out<<setprecision(12)<<pp->XN2D[pp->nij(ii,jj)]<<" "<<pp->YN2D[pp->nij(ii,jj)]<<" 0\n";
     out<<"</DataArray>\n</Points>\n</Piece>\n</StructuredGrid>\n</VTKFile>\n";
@@ -395,7 +410,7 @@ void nhflow_amr::write_vtr(lexer *p, nhflow_amr_patch &c, int id)
     out<<"<DataArray type=\"Float64\" Name=\"x\" format=\"ascii\">";
     for(int ii=EXT; ii<=EXT+c.nx; ++ii) out<<setprecision(12)<<pp->XN[ii+m]<<" ";
     out<<"</DataArray>\n<DataArray type=\"Float64\" Name=\"y\" format=\"ascii\">";
-    for(int jj=EXT; jj<=EXT+c.ny; ++jj) out<<setprecision(12)<<pp->YN[jj+m]<<" ";
+    for(int jj=EY; jj<=EY+c.ny; ++jj) out<<setprecision(12)<<pp->YN[jj+m]<<" ";
     out<<"</DataArray>\n<DataArray type=\"Float64\" Name=\"z\" format=\"ascii\">0</DataArray>\n";
     out<<"</Coordinates>\n</Piece>\n</RectilinearGrid>\n</VTKFile>\n";
     out.close();
@@ -429,7 +444,7 @@ bool nhflow_amr::print_lagoon(lexer *p, fdm_nhf *d, ghostcell *pgc)
     };
     take(p,d,0,0,p->knox,p->knoy,0);
     for(int n=0; n<(int)P.size(); ++n)
-    take(NP(n)->pp,NP(n)->d,EXT,EXT,NP(n)->nx,NP(n)->ny,NP(n)->lev);
+    take(NP(n)->pp,NP(n)->d,EXT,EY,NP(n)->nx,NP(n)->ny,NP(n)->lev);
 
     if(writer==nullptr)
     writer = new lagoon_amr_output("NHFLOW",fields);

@@ -197,12 +197,6 @@ void sixdof_obj_nhflow::force_calc_lsm(lexer* p, fdm_nhf *d, ghostcell *pgc, sli
 	Ye += p->W21*Mass_fb;
 	Ze += p->W22*Mass_fb;
     
-    if(p->mpirank==0)
-    {
-    cout<<"Mass_fb: "<<Mass_fb<<" G_fb: "<<9.81*Mass_fb<<endl;
-    cout<<"Fx: "<<Fx<<" Fy: "<<Fy<<" Fz: "<<Fz<<endl;
-    cout<<"Xe: "<<Xe<<" Ye: "<<Ye<<" Ze: "<<Ze<<" Ke: "<<Ke<<" Me: "<<Me<<" Ne: "<<Ne<<endl;
-    }
     
     /*
     // Print results	

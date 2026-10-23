@@ -50,8 +50,10 @@ Author: Hans Bihs
 //  - the non-hydrostatic pressure is one composite solve over the cells of all blocks (and the
 //    patches): the ring and the cells around the blocks are filled from the vectors, the
 //    preconditioner runs a V-cycle per block (nhflow_amr_press.cpp)
-//  - faces of the blocks 1.. without an interface are walls; in- and outflow, open edges and wave
-//    generation belong to block 0
+//  - faces of the blocks 1.. without an interface are walls, except the open faces of G 54 (discharge
+//    or water level, constant or a time series) and the edge zones of B 522 (Riemann, Flather, clamped
+//    level or discharge edges with a background) on their -i and +i faces (ioflow_amr_block); wave
+//    generation and absorption belong to block 0
 
 using namespace nhflow_amr_detail;
 

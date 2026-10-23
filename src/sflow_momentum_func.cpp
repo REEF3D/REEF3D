@@ -23,6 +23,7 @@ Author: Hans Bihs
 #include"sflow_curv.h"
 #include"patchBC_codes.h"
 #include"sflow_momentum_func.h"
+#include"gcsl_yskip.h"
 #include"sflow_amr.h"
 #include"lexer.h"
 #include"fdm2D.h"
@@ -688,6 +689,7 @@ void sflow_momentum_func::vel_bc(lexer *p, fdm2D *b, ghostcell *pgc, slice &u, s
     mpi4(p,pgc,w);
     
     // physical boundaries: velocities
+    const bool ysk = gcsl_yskip(p);     // (one cell in y: the y sides skipped, gcsl_yskip.h)
     GCSL4LOOP
     {
     i  = p->gcbsl4[n][0];
@@ -695,6 +697,8 @@ void sflow_momentum_func::vel_bc(lexer *p, fdm2D *b, ghostcell *pgc, slice &u, s
     cs = p->gcbsl4[n][3];
     bc = p->gcbsl4[n][4];
     gd = ghost_depth(p,n);
+    if(ysk && (cs==2 || cs==3))
+    continue;
     
         // iowave Riemann / Flather / clamped edges (B 520 methods 3-6): ghost cells set by ioflow
         if((cs==1 && p->open_xm==1) || (cs==4 && p->open_xp==1) || (cs==3 && p->open_ym==1) || (cs==2 && p->open_yp==1))
@@ -820,40 +824,39 @@ void sflow_momentum_func::ghostcells(lexer *p, fdm2D *b, ghostcell *pgc, slice &
     }
     
     // physical boundaries: conserved variables from the ghost velocities and water depth
+    // (flat indices: the cells of all slices of the grid share one layout)
+    const int sx = p->jmax;
+    double *eta = b->eta.V, *dep = b->depth.V, *U = b->U.V, *V = b->V.V, *W = b->W.V;
+    double *wl = WL.V, *uh = UH.V, *vh = VH.V, *wh = WH.V;
+    double *mx = b->MX.V, *my = b->MY.V;
+    const bool ysk = gcsl_yskip(p);     // (one cell in y: the y sides skipped, gcsl_yskip.h)
     GCSL4LOOP
     {
     i  = p->gcbsl4[n][0];
     j  = p->gcbsl4[n][1];
     cs = p->gcbsl4[n][3];
     gd = ghost_depth(p,n);
+    if(ysk && (cs==2 || cs==3))
+    continue;
+    
+    const int d = (cs==1) ? -sx : (cs==4) ? sx : (cs==2) ? 1 : -1;
+    const long c0 = (long)(i-p->imin)*sx + (j-p->jmin);
     
         for(q=1;q<=gd;++q)
         {
-        int ii=0,jj=0;
+        const long c = c0 + (long)q*d;
         
-        if(cs==1)
-        ii=-q;
+        wlg = MAX(eta[c] + dep[c], 0.0);
         
-        if(cs==4)
-        ii=q;
-        
-        if(cs==2)
-        jj=q;
-        
-        if(cs==3)
-        jj=-q;
-        
-        wlg = MAX(b->eta(i+ii,j+jj) + b->depth(i+ii,j+jj), 0.0);
-        
-        WL(i+ii,j+jj) = wlg;
-        UH(i+ii,j+jj) = b->U(i+ii,j+jj)*wlg;
-        VH(i+ii,j+jj) = b->V(i+ii,j+jj)*wlg;
-        WH(i+ii,j+jj) = b->W(i+ii,j+jj)*wlg;
+        wl[c] = wlg;
+        uh[c] = U[c]*wlg;
+        vh[c] = V[c]*wlg;
+        wh[c] = W[c]*wlg;
         
             if(bous==1)
             {
-            b->MX(i+ii,j+jj) = b->U(i+ii,j+jj)*wlg;
-            b->MY(i+ii,j+jj) = b->V(i+ii,j+jj)*wlg;
+            mx[c] = U[c]*wlg;
+            my[c] = V[c]*wlg;
             }
         }
     }
@@ -871,21 +874,11 @@ int sflow_momentum_func::ghost_depth(lexer *p, int n)
 void sflow_momentum_func::mirror(lexer *p, slice &f, int cs, double sgn)
 {
     // symmetric (sgn=1) or antisymmetric (sgn=-1) extension across the boundary face
-	if(cs==1)
+    // (ghost q+1 from the cell q inside; d: the step outwards)
+    const int d = (cs==1) ? -p->jmax : (cs==4) ? p->jmax : (cs==2) ? 1 : -1;
+    double *c = &f(i,j);
 	for(q=0;q<gd;++q)
-	f(i-q-1,j) = sgn*f(i+q,j);
-	
-	if(cs==2)
-	for(q=0;q<gd;++q)
-	f(i,j+q+1) = sgn*f(i,j-q);
-    
-	if(cs==3)
-	for(q=0;q<gd;++q)
-	f(i,j-q-1) = sgn*f(i,j+q);
-	
-	if(cs==4)
-	for(q=0;q<gd;++q)
-	f(i+q+1,j) = sgn*f(i-q,j);
+	c[(q+1)*d] = sgn*c[-q*d];
 }
 
 // outflow with a water level (B 60 1, F 62; the open face G 54 b 2 of a block): the ghost velocities are zero-gradient
@@ -910,21 +903,10 @@ void sflow_momentum_func::outflow_clip(lexer *p, slice &u, slice &v)
 
 void sflow_momentum_func::neumann(lexer *p, slice &f, int cs)
 {
-	if(cs==1)
+    const int d = (cs==1) ? -p->jmax : (cs==4) ? p->jmax : (cs==2) ? 1 : -1;
+    double *c = &f(i,j);
 	for(q=0;q<gd;++q)
-	f(i-q-1,j) = f(i,j);
-	
-	if(cs==2)
-	for(q=0;q<gd;++q)
-	f(i,j+q+1) = f(i,j);
-    
-	if(cs==3)
-	for(q=0;q<gd;++q)
-	f(i,j-q-1) = f(i,j);
-	
-	if(cs==4)
-	for(q=0;q<gd;++q)
-	f(i+q+1,j) = f(i,j);
+	c[(q+1)*d] = c[0];
 }
 
 void sflow_momentum_func::face_velocities(lexer *p, fdm2D *b, ghostcell *pgc, slice &WL)

@@ -1,0 +1,15 @@
+{
+ "base": "seastate_2d_phase17_composite_ns",
+ "ctrl_set": {
+  "P 48": "4"
+ },
+ "description": "as seastate_2d_phase17_composite_ns (the island case, nonstationary with wind, 6 steps of 2 iterations, composite sweep, one rank) with a checkpoint every 4 steps (P 48 4, Phase 18). Validation in Dropbox SEASTATE/validation/67_rebalance.",
+ "tags": [
+  "2d",
+  "seastate",
+  "amr"
+ ],
+ "covers": [
+  "seastate_f checkpoints of nonstationary runs"
+ ]
+}

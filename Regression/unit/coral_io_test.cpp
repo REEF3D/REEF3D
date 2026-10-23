@@ -19,6 +19,7 @@
 #include"coral/core/coral_timeint.h"
 #include"coral/hydro/coral_hydro_db.h"
 #include"coral/io/coral_input.h"
+#include"coral/mooring/coral_mooring.h"
 #include"coral/io/coral_output.h"
 #include"coral/io/coral_modes_out.h"
 #include"coral/io/coral_vtp.h"
@@ -323,6 +324,161 @@ static void test_names_as_keys()
           && c.m.load_list.size() >= 3, "body 'mass', joint and spring 'k', mooring line 'd', drag 'Cd' read with the right numbers");
 }
 
+// mooring systems: free points and the lines that end on them, grouped by their connections
+static void test_mooring_points()
+{
+    std::cout<<"mooring points and systems"<<std::endl;
+    coral_case c;
+    bool ok = true;
+    try
+    {
+        c.read_string("time dt 0.05 end 1\n"
+                      "body buoy mass 2e5 inertia 1e7 1e7 1e7 cog 0 0 0\n"
+                      "point bridle -15 0 -10\n"
+                      "point clump -60 0 -45 mass 4000 volume 0.5\n"
+                      "mooring b1 dynamic a buoy -5 4 -2 b bridle L 12 d 0.1 mass 50 EA 1e8 BA 2e5 nseg 6\n"
+                      "mooring b2 dynamic a buoy -5 -4 -2 b bridle L 12 d 0.1 mass 50 EA 1e8 BA 2e5 nseg 6\n"
+                      "mooring main dynamic a bridle b clump L 50 d 0.1 mass 50 EA 1e8 BA 2e5 nseg 10\n"
+                      "mooring tail dynamic a clump b ground -120 0 -50 L 80 d 0.1 mass 50 EA 1e8 BA 2e5 nseg 12\n"
+                      "mooring alone dynamic a ground 120 0 -50 b buoy 5 0 -2 L 135 d 0.1 mass 50 EA 1e8 BA 2e5 nseg 20\n", ".");
+    }
+    catch(const std::exception &e)
+    {
+        std::cout<<"  "<<e.what()<<std::endl;
+        ok = false;
+    }
+    int nsys = 0, nl = 0, np = 0;
+    const mooring_system *sys = nullptr;
+    for(const auto &l : c.m.load_list)
+        if(const auto *s = dynamic_cast<const mooring_system*>(l.get()))
+        {
+            ++nsys;
+            nl += s->nlines();
+            np += s->npoints();
+            if(s->npoints()) sys = s;
+        }
+    check(ok && nsys==2 && nl==5 && np==2 && sys && sys->nlines()==4 && sys->find_point("clump")==1,
+          "two systems: bridle, main and tail with two points; the single line on its own");
+    std::vector<std::string> ch;
+    if(sys) sys->channel_names(ch);
+    check(ch.size()==4*9 + 2*3 && ch[36]=="bridle_x" && ch[0]=="b1_Fa_x", "channels of the lines and the points");
+    // the clump weight rests on the seabed of the group (the anchor height): its centre one radius above it
+    timeint ti(c.run.ti);
+    ti.initialize(c.m, 0.0);
+    bool steps = true;
+    for(int i=0; i<20; ++i)
+        steps = steps && ti.step(c.m, i*0.05, 0.05);
+    char msg[160];
+    std::snprintf(msg, sizeof(msg), "20 steps of the moored buoy: clump at z %.3f m, buoy x %.3f m", sys ? sys->point_position(1)(2) : 0.0, c.m.body(0).x(0));
+    const double rc = std::cbrt(0.75*0.5/M_PI);
+    check(steps && sys && std::fabs(sys->point_position(1)(2) - (-50.0 + rc)) < 0.02 && std::fabs(c.m.body(0).x(0)) < 0.5
+          && std::fabs(c.m.body(0).x(1)) < 1.0e-6, msg);
+    bool err = false;
+    try
+    {
+        coral_case d;
+        d.read_string("time dt 0.05 end 1\npoint lost 0 0 -10\n", ".");
+    }
+    catch(const std::exception &e) {err = std::string(e.what()).find("lost") != std::string::npos;}
+    check(err, "a point without lines is an error");
+}
+
+// line types and lines of several sections (chain - polyester - chain)
+static void test_mooring_sections()
+{
+    std::cout<<"mooring line types and sections"<<std::endl;
+    coral_case c;
+    bool ok = true;
+    try
+    {
+        c.read_string("time dt 0.05 end 1\n"
+                      "line_type chain d 0.15 mass 140 EA 1.5e9 BA 1e6 Cdn 2.4 Cdt 0.4 mu 1.0 mu_axial 0.7 mu_static 1.4 ks 1e6 cs 2e5\n"
+                      "line_type poly d 0.16 mass 22 EA 2e8 BA 1e6 BA_slack\n"
+                      "body fpso mass 1e7 inertia 1e9 1e9 1e9 cog 0 0 0\n"
+                      "mooring leg dynamic a ground -640 0 -200 b fpso -20 0 -10 section chain 150 15 section poly 450 30 section chain 60 6\n"
+                      "mooring opp dynamic a ground 640 0 -200 b fpso 20 0 -10 type chain L 660 nseg 40 BA 2e6 BA_slack\n", ".");
+    }
+    catch(const std::exception &e)
+    {
+        std::cout<<"  "<<e.what()<<std::endl;
+        ok = false;
+    }
+    const mooring_system *leg = nullptr, *opp = nullptr;
+    for(const auto &l : c.m.load_list)
+        if(const auto *s = dynamic_cast<const mooring_system*>(l.get()))
+            (s->npoints() ? leg : opp) = s;
+    check(ok && leg && opp && leg->nlines()==3 && leg->npoints()==2 && leg->line_name(1)=="leg.2" && leg->point_name(0)=="leg.p1"
+          && leg->line_nseg(1)==30, "chain-polyester-chain: three lines leg.1-3, junctions leg.p1, leg.p2");
+    if(!leg || !opp)
+        return;
+    timeint ti(c.run.ti);
+    ti.initialize(c.m, 0.0);
+    // the static start: the horizontal tension is the same all along the line (no friction), the vertical one
+    // grows by the weight of the suspended part
+    Vec3 F1a, F1b, F2a, F2b, F3a, F3b;
+    leg->line_end_forces(0, F1a, F1b);
+    leg->line_end_forces(1, F2a, F2b);
+    leg->line_end_forces(2, F3a, F3b);
+    const double H = F3b(0);
+    char msg[200];
+    std::snprintf(msg, sizeof(msg), "horizontal tension %.2f kN at the fairlead, %.2f kN at the junctions, %.2f kN at the anchor",
+                  -H/1e3, F2b(0)/1e3, F1a(0)/1e3);
+    check(std::fabs(F1a(0) + H) < 1.0e-3*std::fabs(H) && std::fabs(F2a(0) + F1b(0)) < 1.0e-6*std::fabs(H)
+          && std::fabs(F3a(0) + F2b(0)) < 1.0e-6*std::fabs(H), msg);
+    const Vec3 p1 = leg->point_position(0), p2 = leg->point_position(1);
+    std::snprintf(msg, sizeof(msg), "junctions at (%.1f, %.1f) and (%.1f, %.1f) m", p1(0), p1(2), p2(0), p2(2));
+    check(p1(0) > -640.0 && p1(0) < p2(0) && p2(0) < -20.0 && p2(2) > p1(2), msg);
+    std::vector<std::string> ch;
+    opp->channel_names(ch);
+    check(ch[0]=="opp_Fa_x", "a line of one type: a single line");
+    const mooring_props &pc = leg->line_props(0);
+    check(pc.mu==1.0 && pc.mu_axial==0.7 && pc.mu_static==1.4 && pc.ks==1.0e6 && pc.cs==2.0e5 && pc.v_eps==0.0 && opp->line_props(0).mu==1.0
+          && leg->line_props(1).mu==0.0, "stick-slip friction from the line type (mu, mu_axial, mu_static, ks, cs)");
+    check(!leg->line_props(0).BA_slack && leg->line_props(1).BA_slack && !leg->line_props(2).BA_slack && opp->line_props(0).BA_slack,
+          "BA_slack from the line type (the polyester section) and from the line");
+}
+
+// bathymetry: a grid file under a dynamic line
+static void test_bathymetry_input()
+{
+    std::cout<<"bathymetry"<<std::endl;
+    {
+        std::ofstream g("/tmp/coral_io_test_bathy.txt");
+        g<<"# a 2 % slope rising to +x\n3 2 -200 -50 100 100\n";
+        for(int j=0; j<2; ++j) for(int i=0; i<3; ++i) g<<-52.0 + 0.02*(-200.0 + 100.0*i)<<" ";
+        g<<"\n";
+    }
+    coral_case c;
+    bool ok = true;
+    try
+    {
+        c.read_string("time dt 0.05 end 1\nbathymetry grid /tmp/coral_io_test_bathy.txt\n"
+                      "mooring m dynamic a ground -150 0 -55 b ground 0 0 -5 L 190 d 0.1 mass 50 EA 1e8 BA 2e5 nseg 38\n"
+                      "mooring f dynamic a ground -150 10 -55 b ground 0 10 -5 L 190 d 0.1 mass 50 EA 1e8 BA 2e5 nseg 38 seabed -55\n", ".");
+    }
+    catch(const std::exception &e)
+    {
+        std::cout<<"  "<<e.what()<<std::endl;
+        ok = false;
+    }
+    std::vector<mooring_system*> ls;
+    for(auto &l : c.m.load_list)
+        if(auto *s = dynamic_cast<mooring_system*>(l.get())) ls.push_back(s);
+    for(auto *s : ls)
+        s->initialize(c.m, 0.0);
+    // on the slope the lowest nodes lie on it (z = -52 + 0.02 x); the line with 'seabed -55' keeps the flat seabed
+    double dmax = 0.0, zflat = 0.0;
+    if(ls.size()==2)
+    {
+        for(const Vec3 &r : ls[0]->line_nodes(0))
+            if(r(0) < -100.0) dmax = std::max(dmax, std::fabs(r(2) - (-52.0 + 0.02*r(0))));
+        for(const Vec3 &r : ls[1]->line_nodes(0)) zflat = std::min(zflat, r(2));
+    }
+    char msg[160];
+    std::snprintf(msg, sizeof(msg), "nodes near the anchor on the grid's slope to %.4f m; the flat line down to %.3f m", dmax, zflat);
+    check(ok && ls.size()==2 && dmax < 0.01 && zflat < -54.99, msg);
+}
+
 int main()
 {
     test_full_model();
@@ -331,6 +487,9 @@ int main()
     test_structure();
     test_offshore();
     test_names_as_keys();
+    test_mooring_points();
+    test_mooring_sections();
+    test_bathymetry_input();
     std::cout<<(nfail ? "FAILED: " : "all passed")<<(nfail ? std::to_string(nfail) : "")<<std::endl;
     return nfail ? 1 : 0;
 }

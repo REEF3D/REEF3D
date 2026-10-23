@@ -1,0 +1,27 @@
+{
+ "base": "cfd_2d_sediment_flume_susp_ckpt",
+ "np": 1,
+ "steps": 200,
+ "same_as": "cfd_2d_sediment_flume_susp_ckpt",
+ "chain": [
+  {
+   "case": "cfd_2d_sediment_flume_susp_ckpt",
+   "copy": [
+    "REEF3D_Checkpoint"
+   ]
+  }
+ ],
+ "ctrl_set": {
+  "I 45": "150"
+ },
+ "description": "the restart of cfd_2d_sediment_flume_susp_ckpt from its checkpoint at step 150 (I 45 150): the sediment slices and fields in the CFD registry, the scalars of the Exner update, DFBED; regression.py ranks: the final state bitwise those of the uninterrupted run.",
+ "tags": [
+  "2d",
+  "cfd",
+  "sediment",
+  "checkpoint"
+ ],
+ "covers": [
+  "sediment_f::ckpt_state (CFD)"
+ ]
+}

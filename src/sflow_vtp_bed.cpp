@@ -28,6 +28,7 @@ Author: Hans Bihs
 #include"lagoon_output.h"
 #include<sys/stat.h>
 #include<sys/types.h>
+#include"gcsl_yskip.h"
 
 namespace
 {
@@ -77,6 +78,9 @@ void sflow_vtp_bed::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sediment *psed)
     pgc->gcsl_start4(p,b->depth,50);
     pgc->gcsl_start4(p,b->bed,50);
     pgc->gcsl_start4(p,b->test,50);
+    gcsl_yrows(p,b->depth);
+    gcsl_yrows(p,b->bed);
+    gcsl_yrows(p,b->test);
 
     // bednode upate
     TPSLICELOOP

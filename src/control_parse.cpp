@@ -25,6 +25,13 @@ Author: Hans Bihs
 
 void control::parse(lexer* p)
 {
+    // I 45 <count>: the restart from the checkpoint of that step, otherwise as I 45 1
+    if(I45>1)
+    {
+        I45_count=I45;
+        I45=1;
+    }
+
     if(B98==1)
     B98=2;
     

@@ -20,7 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
-// REEF3D::CORAL inside REEF3D: PTO of the 6DOF body of FNPF and NHFLOW (X 500 - X 508): joint, element
+// REEF3D::CORAL inside REEF3D: PTO of the 6DOF body of FNPF and NHFLOW (X 500 - X 510): joint, element
 // set-up, controllers, loads, output. The joint, the elements and the controllers are CORAL's PTO
 // library (coral/pto); this file is the REEF3D side (sixdof_obj, ctrl.txt, output).
 //
@@ -31,12 +31,17 @@ Architect: Hans Bihs
 //          dampers and springs stay explicit (RK3/RK4 accuracy)
 // X 505: generator force and power limits, X 506: tuned passive damping (pto_hydro.dat),
 // X 507: latching, X 508: declutching
+// X 510: drive-train losses (belt, bearings, seals): damper B and Coulomb friction Fc that act on the
+//        body in every state (also latched or declutched, not limited by X 505); their power is
+//        dissipated (P_loss, E_loss in the output), not absorbed. X 506 tunes B_opt with B.
 
 #include"6DOF_obj.h"
 #include"coral/pto/coral_pto_elements.h"
 #include"6DOF_output_dir.h"
 #include"lexer.h"
 #include"ghostcell.h"
+#include"reefckpt.h"
+#include"ckpt_pack.h"
 #include<cmath>
 
 void sixdof_obj::ini_pto(lexer *p, ghostcell *pgc)
@@ -95,6 +100,13 @@ void sixdof_obj::ini_pto(lexer *p, ghostcell *pgc)
     if(p->X504==1)
     pto_.add(std::make_unique<coral::pto_endstop>(p->X504_qmin, p->X504_qmax, p->X504_K, p->X504_C));
 
+    // drive-train losses
+    if(p->X510==1 && p->X510_B>0.0)
+    pto_.add(std::make_unique<coral::pto_damper>(p->X510_B, true));
+
+    if(p->X510==1 && p->X510_Fc>0.0)
+    pto_.add(std::make_unique<coral::pto_coulomb>(p->X510_Fc, p->X510_veps>0.0 ? p->X510_veps : 1.0e-3, true));
+
     // generator limits
     if(p->X505==1)
     {
@@ -113,13 +125,24 @@ void sixdof_obj::ini_pto(lexer *p, ghostcell *pgc)
     pto_ctrl_.push_back(std::make_unique<coral::pto_ctrl_declutching>(p->X508_t));
 
     if(pto_.empty() && p->mpirank==0)
-    cout<<"6DOF PTO: X 500 set but no PTO element (X 502 - X 504, X 506, X 507) given"<<endl;
+    cout<<"6DOF PTO: X 500 set but no PTO element (X 502 - X 504, X 506, X 507, X 510) given"<<endl;
+
+    if(p->X510==1 && (p->X510_B<0.0 || p->X510_Fc<0.0))
+    {
+        if(p->mpirank==0)
+        cout<<"6DOF PTO: X 510 B Fc v_eps: the losses B and Fc must be >= 0"<<endl;
+
+        pgc->final();
+        exit(1);
+    }
 
     if(p->X507==1 && !pto_implicit_ && p->mpirank==0)
     cout<<"6DOF PTO: latching (X 507) with explicit coupling, X 500 2 recommended for a stiff latch"<<endl;
 
     pto_E_ = 0.0;
     pto_Estep_ = 0.0;
+    pto_Eloss_ = 0.0;
+    pto_Elossstep_ = 0.0;
     pto_warned_ = false;
 
     if(p->mpirank==0)
@@ -139,13 +162,19 @@ void sixdof_obj::ini_pto(lexer *p, ghostcell *pgc)
         char str[1000];
         sprintf(str,"%s/REEF3D_6DOF_pto_%i.dat",sixdof_output_dir(p),n6DOF);
 
-        printpto.open(str);
+        // a restart from a checkpoint (I 45 1) continues the file
+        if(reefckpt_open(printpto,str,p->I45))
+        {
         printpto<<"time \t q \t qd \t F_pto \t P_abs \t E_abs \t gain \t latch \t sat";
 
         for(auto &e : pto_.elem)
         printpto<<" \t F_"<<e->name();
 
+        if(p->X510==1)
+        printpto<<" \t P_loss \t E_loss";
+
         printpto<<endl;
+        }
     }
 }
 
@@ -191,9 +220,12 @@ void sixdof_obj::pto_forces(lexer *p, ghostcell*, int iter)
     {
     pto_E_ += pto_Estep_;
     pto_Estep_ = 0.0;
+    pto_Eloss_ += pto_Elossstep_;
+    pto_Elossstep_ = 0.0;
     }
 
     pto_Estep_ += ws*pto_out_.P*p->dt;
+    pto_Elossstep_ += ws*pto_out_.P_loss*p->dt;
 
     // first stage: accepted state at t^n
     if(iter==0)
@@ -217,6 +249,9 @@ void sixdof_obj::pto_forces(lexer *p, ghostcell*, int iter)
 
             for(auto &e : pto_.elem)
             printpto<<" \t "<<e->F_last;
+
+            if(p->X510==1)
+            printpto<<" \t "<<pto_out_.P_loss<<" \t "<<pto_Eloss_;
 
             printpto<<endl;
 
@@ -349,7 +384,9 @@ void sixdof_obj::pto_tuned_passive(lexer *p, ghostcell *pgc)
     const double m = 1.0/J.dot(M.partialPivLu().solve(J));
 
     const double A = tab.A(w), B = tab.B(w);
-    const double Bopt = coral::pto_bopt(w, m, A, B, p->X506_C);
+    // with the drive-train loss damping X 510 B in parallel to the radiation damping
+    const double Bloss = (p->X510==1) ? p->X510_B : 0.0;
+    const double Bopt = coral::pto_bopt(w, m, A, B, p->X506_C, Bloss);
 
     if(!pto_.set_param("damper","B",Bopt))
     {
@@ -358,9 +395,87 @@ void sixdof_obj::pto_tuned_passive(lexer *p, ghostcell *pgc)
 
     if(p->mpirank==0)
     {
-    cout<<"6DOF PTO tuned passive: T "<<T<<" s  m "<<m<<" kg  A "<<A<<" kg  B_rad "<<B<<" kg/s  C "<<p->X506_C<<" N/m  ->  B_opt "<<Bopt<<" N s/m"<<endl;
+    cout<<"6DOF PTO tuned passive: T "<<T<<" s  m "<<m<<" kg  A "<<A<<" kg  B_rad "<<B<<" kg/s  C "<<p->X506_C<<" N/m";
+
+    if(Bloss>0.0)
+    cout<<"  B_loss "<<Bloss<<" N s/m";
+
+    cout<<"  ->  B_opt "<<Bopt<<" N s/m"<<endl;
 
     if(w<tab.wmin() || w>tab.wmax())
     cout<<"6DOF PTO tuned passive: w = "<<w<<" outside the table, end values used"<<endl;
     }
+}
+
+// checkpoints (P 48, I 45): the joint, the state and loads of the last stage, the absorbed energy, the
+// elements (last forces, latch) and the controllers (coral_pto, coral_pto_controller); with drive-train
+// losses (X 510) their power and dissipated energy at the end, so checkpoints without them are unchanged
+static bool pto_has_loss(const coral::pto_composite &c)
+{
+    for(const auto &e : c.elem)
+    if(e->loss())
+    return true;
+
+    return false;
+}
+
+void sixdof_obj::pto_ckpt_state(std::vector<double> &v) const
+{
+    ckpt_put w{v};
+    w.d(1.0);   // version
+    w.b(pto_on_);
+    if(!pto_on_)
+    return;
+    w.m(pto_joint_.a); w.m(pto_joint_.rb); w.m(pto_joint_.x0); w.m(pto_joint_.J);
+    for(double x : {pto_s_.q,pto_s_.qd,pto_s_.t, pto_out_.F,pto_out_.dFdq,pto_out_.dFdqd,pto_out_.P,pto_out_.dFdq_s,pto_out_.dFdqd_s, pto_E_,pto_Estep_})
+    w.d(x);
+    w.b(pto_warned_);
+    std::vector<double> s;
+    pto_.save_state(s);
+    w.vd(s);
+    w.i(int(pto_ctrl_.size()));
+    for(const auto &c : pto_ctrl_)
+    {
+        s.clear();
+        c->save_state(s);
+        w.vd(s);
+    }
+    if(pto_has_loss(pto_))
+    for(double x : {pto_out_.P_loss, pto_Eloss_, pto_Elossstep_})
+    w.d(x);
+}
+
+bool sixdof_obj::pto_ckpt_restore(const std::vector<double> &v)
+{
+    ckpt_get r{v};
+    double version=0.0;
+    bool on=false;
+    r.d(version);
+    r.b(on);
+    if(!r.ok || int(version)!=1 || on!=pto_on_)
+    return false;
+    if(!pto_on_)
+    return true;
+    r.m(pto_joint_.a); r.m(pto_joint_.rb); r.m(pto_joint_.x0); r.m(pto_joint_.J);
+    for(double *x : {&pto_s_.q,&pto_s_.qd,&pto_s_.t, &pto_out_.F,&pto_out_.dFdq,&pto_out_.dFdqd,&pto_out_.P,&pto_out_.dFdq_s,&pto_out_.dFdqd_s, &pto_E_,&pto_Estep_})
+    r.d(*x);
+    r.b(pto_warned_);
+    std::vector<double> s;
+    r.vd(s);
+    size_t k=0;
+    pto_.load_state(s,k);
+    int nc=0;
+    r.i(nc);
+    if(!r.ok || nc!=(int)pto_ctrl_.size())
+    return false;
+    for(auto &c : pto_ctrl_)
+    {
+        r.vd(s);
+        k=0;
+        c->load_state(s,k);
+    }
+    if(pto_has_loss(pto_))
+    for(double *x : {&pto_out_.P_loss, &pto_Eloss_, &pto_Elossstep_})
+    r.d(*x);
+    return r.ok;
 }

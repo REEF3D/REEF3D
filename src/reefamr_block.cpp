@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"ghostcell.h"
 #include"geo_mesh.h"
+#include"ioflow_amr_block.h"
 #include<algorithm>
 #include<numeric>
 
@@ -513,7 +514,8 @@ void reefamr::blocks_setup(lexer *p, ghostcell *pgc)
 
 // tile maps and no-refinement cells over the index space with the blocks; the singular vertices; the
 // open faces of the blocks 1.. (G 54 b t v): t 1 discharge v through the -i face of block b, t 2 water level v at
-// its +i face; the face has no interface, one line per face
+// its +i face, t 3 and 4 the same from the time series file discharge-<v>.dat or waterlevel-<v>.dat (lines
+// "t value", ioflow_amr_block); the face has no interface, one line per face
 void reefamr::blocks_open(lexer *p)
 {
     bopen[0].assign(nblk,-1);
@@ -522,34 +524,112 @@ void reefamr::blocks_open(lexer *p)
     for(int n=0; n<p->G54; ++n)
     {
         const int b = p->G54_b[n], t = p->G54_t[n];
+        const int f = (t==1 || t==3) ? 0 : 1;
         const char *why = nullptr;
+        string file;
         if(b<1 || b>=nblk)
         why = "no block 1.. of the grid";
         else
-        if(t!=1 && t!=2)
-        why = "type 1 (discharge in, -i face) or 2 (water level out, +i face)";
+        if(t<1 || t>4)
+        why = "type 1 (discharge in, -i face), 2 (water level out, +i face), 3 (discharge time series in) or 4 (water level time series out)";
         else
-        if(bopen[t-1][b]>=0)
+        if(bopen[f][b]>=0)
         why = "the face is open already";
         else
         for(const rseg &S : blk[b].seg)
-        if(S.face==t-1)
+        if(S.face==f)
         why = "the face has an interface";
+
+        // time series: every rank reads the file (the block's rank uses it)
+        vector<double> st, sv;
+        if(why==nullptr && t>=3)
+        {
+            file = ioflow_amr_block::series_file(t,int(p->G54_v[n]));
+            if(p->G54_v[n]<0.0 || p->G54_v[n]!=double(int(p->G54_v[n])))
+            why = "the id of the time series file is a whole number >= 0";
+            else
+            if(!ioflow_amr_block::series_read(file,st,sv))
+            why = "the time series file is missing, has no line \"t value\" or its times do not increase";
+        }
 
         if(why!=nullptr)
         {
             if(p->mpirank==0)
-            cout<<"!!! "<<par.name<<": G 54 "<<b<<" "<<t<<" "<<p->G54_v[n]<<": "<<why<<" !!!"<<endl;
+            cout<<"!!! "<<par.name<<": G 54 "<<b<<" "<<t<<" "<<p->G54_v[n]<<(file.empty() ? "" : " ("+file+")")<<": "<<why<<" !!!"<<endl;
             ++bad;
             continue;
         }
-        bopen[t-1][b] = n;
+        bopen[f][b] = n;
         if(p->mpirank==0)
-        cout<<par.name<<": block "<<b<<(t==1?" inflow ":" outflow ")<<(t==1?"Q = ":"water level ")<<p->G54_v[n]
-            <<(t==1?" m3/s through its -i face":" m at its +i face")<<endl;
+        {
+            cout<<par.name<<": block "<<b<<(f==0?" inflow ":" outflow ");
+            if(t<=2)
+            cout<<(f==0?"Q = ":"water level ")<<p->G54_v[n]<<(f==0?" m3/s":" m");
+            else
+            cout<<(f==0?"Q":"water level")<<" from "<<file<<" ("<<st.size()<<" values, t "<<st.front()<<" .. "<<st.back()<<" s)";
+            cout<<(f==0?" through its -i face":" at its +i face")<<endl;
+        }
+    }
+
+    // edge zones on the faces of the blocks (B 520 methods 3-6 with B 522 b, NHFLOW): the -i or +i face of a
+    // block 1.. without interface and without G 54, the background of the zone given (B 510)
+    bzone[0].assign(nblk,-1);
+    bzone[1].assign(nblk,-1);
+    bzones = bc_zone_set::from_input(p).bedges;
+    for(int q=0; q<(int)bzones.size(); ++q)
+    {
+        const bc_zone &z = bzones[q];
+        const int b = z.block, f = z.edge-1;
+        const char *why = nullptr;
+        if(b>=nblk)
+        why = "no block 1.. of the grid";
+        else
+        if(p->A10!=5)
+        why = "edge zones on the blocks are available for NHFLOW (A 10 5) only, so far";
+        else
+        if(bopen[f][b]>=0)
+        why = "the face is open by G 54 already";
+        else
+        for(const rseg &S : blk[b].seg)
+        if(S.face==f)
+        why = "the face has an interface";
+
+        if(why==nullptr && z.bg>0)
+        {
+            bool found = false;
+            for(int m=0; m<p->B510; ++m)
+            if(p->B510_id[m]==z.bg)
+            found = true;
+            if(!found)
+            why = "its background (B 523) has no B 510";
+        }
+
+        if(why!=nullptr)
+        {
+            if(p->mpirank==0)
+            cout<<"!!! "<<par.name<<": zone "<<z.id<<" on face "<<z.edge<<" of block "<<b<<" (B 522): "<<why<<" !!!"<<endl;
+            ++bad;
+            continue;
+        }
+        bzone[f][b] = q;
+        if(p->mpirank==0)
+        {
+            const char *m = z.method==bc_method::riemann ? "Riemann edge" : z.method==bc_method::flather ? "Flather edge"
+                          : z.method==bc_method::clamp_level ? "clamped level edge" : "clamped discharge edge";
+            cout<<par.name<<": block "<<b<<": zone "<<z.id<<", "<<m;
+            if(z.bg>0)
+            cout<<" with background "<<z.bg;
+            if(z.has_Q)
+            cout<<", Q = "<<z.Q<<" m3/s (ramp "<<z.Q_tramp<<" s)";
+            cout<<" on its "<<(f==0 ? "-i" : "+i")<<" face"<<endl;
+        }
     }
     if(bad>0)
     exit(1);
+
+    // the backgrounds of the edges, read on every rank (a missing or broken time series stops all ranks here)
+    if(!bzones.empty())
+    bzbg.read(p);
 }
 
 // tiles around every block and the tiles of the cells they stand for (refinement across interfaces)
@@ -594,10 +674,10 @@ void reefamr::blocks_refine_setup(lexer *p)
         }
     }
 
-    // no refinement next to the open faces (G 54), as next to the in- and outflow of the native grid
+    // no refinement next to the open faces (G 54, the edge zones B 522), as next to the in- and outflow of the native grid
     for(int b=1; b<nblk; ++b)
     for(int t=0; t<2; ++t)
-    if(bopen[t][b]>=0)
+    if(bopen[t][b]>=0 || bzone[t][b]>=0)
     for(int i=0; i<=std::min(par.ioband,blk[b].ni-1); ++i)
     for(int j=0; j<blk[b].nj; ++j)
     F[(size_t)(blk[b].vi+(t==0 ? i : blk[b].ni-1-i))*GNYV+(blk[b].vj+j)] = 1;

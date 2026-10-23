@@ -53,18 +53,18 @@ double code(const ckpt_registry::entry &e)
 }
 }
 
-void cfd_ckpt_write(lexer *p, reefckpt &ck)
+void cfd_ckpt_write(lexer *p, reefckpt &ck, const string &tag)
 {
     const vector<ckpt_registry::entry> e = grid_arrays(p);
 
     vector<double> kinds;
     for(const auto &x : e)
     kinds.push_back(code(x));
-    ck.rank_blob("cfd_kinds",kinds);
+    ck.rank_blob(tag+"_kinds",kinds);
 
     for(size_t n=0; n<e.size(); ++n)
     {
-        const string nm = "cfd"+to_string(n);
+        const string nm = tag+to_string(n);
         if(e[n].kind=='R')
         {
             ck.rank_blob(nm,vector<double>((const double*)e[n].V,(const double*)e[n].V+e[n].n));
@@ -83,12 +83,12 @@ void cfd_ckpt_write(lexer *p, reefckpt &ck)
     }
 }
 
-bool cfd_ckpt_read(lexer *p, reefckpt &ck, string &msg)
+bool cfd_ckpt_read(lexer *p, reefckpt &ck, string &msg, const string &tag)
 {
     const vector<ckpt_registry::entry> e = grid_arrays(p);
 
     // the kinds of the checkpoint (the own piece on the same decomposition, else piece 0)
-    const vector<double> kinds = ck.get_rank_blob("cfd_kinds",ck.same_decomposition() ? p->mpirank : 0);
+    const vector<double> kinds = ck.get_rank_blob(tag+"_kinds",ck.same_decomposition() ? p->mpirank : 0);
 
     int n = (int)min(e.size(),kinds.size());
     int bad = 0;
@@ -111,7 +111,7 @@ bool cfd_ckpt_read(lexer *p, reefckpt &ck, string &msg)
         // the state of a rank (solver work arrays): on the same decomposition only
         if(e[q].local && !ck.same_decomposition())
         continue;
-        const string nm = "cfd"+to_string(q);
+        const string nm = tag+to_string(q);
         if(e[q].kind=='R')
         {
             // (the scalars the same on all ranks: those of piece 0 on another decomposition)

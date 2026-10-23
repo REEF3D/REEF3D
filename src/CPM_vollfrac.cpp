@@ -146,7 +146,7 @@ void CPM::volfrac_update(lexer *p, ghostcell *pgc, sediment_fdm *s, double *PX, 
         for(qj=0;qj<2;++qj)
         for(qk=0;qk<2;++qk)
         {
-            w = P.ParcelFactor*Vp*kw[qi][qj][qk];
+            w = P.ParcelFactor*Vp*P.Wt[n]*kw[qi][qj][qk];
             
             if(w>0.0)
             {
@@ -211,6 +211,27 @@ void CPM::volfrac_update(lexer *p, ghostcell *pgc, sediment_fdm *s, double *PX, 
 // volume instead over-fills the last fine cell at a change 1:2 by 25 % and under-fills the first coarse
 // cell by 12.5 %; the contact pressure then pushes the parcels of the bed out of the fine cell.
 double CPM::kvol(lexer *p, int ii, int jj, int kk)
+{
+    // the grid does not change: the volumes of the nodes -1 .. kno are computed once
+    const int nx = p->knox+2, ny = p->knoy+2, nz = p->knoz+2;
+    
+    if(kvc.size()!=size_t(nx)*ny*nz)
+    {
+        kvc.resize(size_t(nx)*ny*nz);
+        
+        for(int qi=-1;qi<=p->knox;++qi)
+        for(int qj=-1;qj<=p->knoy;++qj)
+        for(int qk=-1;qk<=p->knoz;++qk)
+        kvc[(size_t(qi+1)*ny + qj+1)*nz + qk+1] = kvol_calc(p,qi,qj,qk);
+    }
+    
+    if(ii>=-1 && ii<=p->knox && jj>=-1 && jj<=p->knoy && kk>=-1 && kk<=p->knoz)
+    return kvc[(size_t(ii+1)*ny + jj+1)*nz + kk+1];
+    
+    return kvol_calc(p,ii,jj,kk);
+}
+
+double CPM::kvol_calc(lexer *p, int ii, int jj, int kk)
 {
     auto dir = [&](const double *DN, const double *DP, int q, int nq, bool lo, bool hi) -> double
     {

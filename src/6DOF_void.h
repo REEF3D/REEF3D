@@ -72,6 +72,10 @@ public:
     
     void isource2D(lexer*,fdm2D*,ghostcell*) override final;
     void jsource2D(lexer*,fdm2D*,ghostcell*) override final;
+
+    // checkpoints (P 48, I 45): the fixed nets (X 320) and mooring lines (X 310) without a floating body
+    void ckpt_state(lexer*, std::vector<double>&) override final;
+    bool ckpt_restore(lexer*, ghostcell*, const std::vector<double>&) override final;
     
 private:
     net_interface *pnetinter;

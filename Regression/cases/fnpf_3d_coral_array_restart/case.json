@@ -1,0 +1,19 @@
+{
+ "base": "fnpf_3d_coral_array_ckpt",
+ "same_as": "fnpf_3d_coral_array_ckpt",
+ "chain": [
+  {
+   "case": "fnpf_3d_coral_array_ckpt",
+   "copy": ["REEF3D_Checkpoint", "REEF3D_CORAL", "REEF3D_FNPF_6DOF", "REEF3D_FNPF_AMR", "REEF3D_FNPF_WSF"]
+  }
+ ],
+ "ctrl_set": {
+  "I 45": "10"
+ },
+ "description": "the restart of fnpf_3d_coral_array_ckpt from its checkpoint at step 10 (I 45 10): the unit modes of the three bodies on level 0 and on the patches from the checkpoint (fb_psi_<body>_<mode>), the start values of their next solves; the final state and the text outputs bitwise those of the uninterrupted run (regression.py ranks).",
+ "tags": ["3d", "fnpf", "amr", "6dof", "floating", "coral", "checkpoint"],
+ "covers": [
+  "fnpf_6DOF::grid_fields: fb_psi_<body>_<mode> written and read (several bodies)",
+  "the bitwise restart of FNPF + mesh refinement + CORAL with several bodies"
+ ]
+}

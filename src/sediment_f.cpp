@@ -30,6 +30,10 @@ Author: Hans Bihs
 #include"topo.h"
 #include"bedshear.h"
 #include"patchBC_interface.h"
+#include"sediment_exner.h"
+#include"sediment_mixture.h"
+#include"nhflow_suspended.h"
+#include"ckpt_pack.h"
 
 sediment_f::sediment_f(lexer *p, ghostcell *pgc, turbulence *pturb, patchBC_interface *ppBC)
 {
@@ -177,3 +181,71 @@ void sediment_f::start_sflow(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *pflow, 
 
 
 
+
+// ---------------------------------------------------------------------------------------------
+// checkpoints (P 48, I 45): the scalars of the bed update (sediment_exner), of the wave-averaged bed shear
+// (S 16 9), of the multi-fraction bed (S 51) and of the NHFLOW suspended load; the slices and fields of
+// all sediment objects are in the registry of the grid (CFD: cfd_ckpt; NHFLOW, SFLOW: under the tag "reg")
+// ---------------------------------------------------------------------------------------------
+
+void sediment_f::ckpt_state(lexer *p, std::vector<double> &v)
+{
+    ckpt_put w{v};
+    w.d(1.0);   // version
+    w.i(volume_token); w.d(volume0);
+    std::vector<double> ex;
+    exner()->ckpt_state(ex);
+    w.vd(ex);
+    w.d(*pbedshear->ckpt_tw_old()); w.d(*pbedshear->ckpt_tw_dt()); w.i(*pbedshear->ckpt_tw_count());
+    const int nf = (s->pmix!=nullptr) ? s->pmix->nf : 0;
+    w.i(nf);
+    for(int q=0; q<nf; ++q)
+    w.i(s->pmix->noneq_ini_k[q]);
+    int *wl = (pnhfsusp!=nullptr) ? pnhfsusp->ckpt_wlini() : nullptr;
+    w.i(wl!=nullptr ? *wl : 0);
+}
+
+bool sediment_f::ckpt_restore(lexer *p, ghostcell *pgc, const std::vector<double> &v)
+{
+    ckpt_get r{v};
+    double version=0.0;
+    r.d(version);
+    if(!r.ok || int(version)!=1)
+    return false;
+    r.i(volume_token); r.d(volume0);
+    std::vector<double> ex;
+    r.vd(ex);
+    size_t k=0;
+    exner()->ckpt_restore(ex,k);
+    r.d(*pbedshear->ckpt_tw_old()); r.d(*pbedshear->ckpt_tw_dt()); r.i(*pbedshear->ckpt_tw_count());
+    int nf=0;
+    r.i(nf);
+    if(nf!=((s->pmix!=nullptr) ? s->pmix->nf : 0))
+    return false;
+    for(int q=0; q<nf; ++q)
+    r.i(s->pmix->noneq_ini_k[q]);
+    int wl=0;
+    r.i(wl);
+    if(pnhfsusp!=nullptr && pnhfsusp->ckpt_wlini()!=nullptr)
+    *pnhfsusp->ckpt_wlini() = wl;
+    return r.ok && k==ex.size();
+}
+
+// the rank: the cumulative limiter volume of the multi-fraction bed (its log)
+void sediment_f::ckpt_rank_state(lexer *p, std::vector<double> &v)
+{
+    if(s->pmix!=nullptr)
+    v.assign(s->pmix->ckpt_clip(),s->pmix->ckpt_clip()+s->pmix->nf);
+}
+
+bool sediment_f::ckpt_rank_restore(lexer *p, ghostcell *pgc, const std::vector<std::vector<double>> &v, bool same)
+{
+    if(same && s->pmix!=nullptr && v.size()==1 && (int)v[0].size()==s->pmix->nf)
+    std::copy(v[0].begin(),v[0].end(),s->pmix->ckpt_clip());
+    return true;
+}
+
+double* sediment_f::ckpt_wln()
+{
+    return (pnhfsusp!=nullptr) ? pnhfsusp->ckpt_wln() : nullptr;
+}

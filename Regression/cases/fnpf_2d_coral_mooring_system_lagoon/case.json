@@ -1,0 +1,8 @@
+{
+ "description": "as fnpf_2d_coral_mooring_system, with the LAGOON store instead of the VTP files (P 18 1, the bodies every 0.1 s): REEF3D_FNPF.lagoon with the body (bodies/fnpf_body) and CORAL's mooring lines (particles/coral_mooring: lines, the tension at the points, the line number per line) at the same outputs, from the first one on; the chain-rope-chain sections, the two chains through the clump weight, the cable that lets go at 1.5 s. The solution is that of the case without the store.",
+ "base": "fnpf_2d_coral_mooring_system",
+ "ctrl_set": {"P 18": "1"},
+ "ctrl_add": ["P 182 0.1"],
+ "tags": ["2d", "fnpf", "6dof", "floating", "mooring", "coral", "lagoon"],
+ "covers": ["coral_reef3d::store_output (sixdof_external::store_output from the 6DOF body output)", "mooring_system lines in the LAGOON store"]
+}

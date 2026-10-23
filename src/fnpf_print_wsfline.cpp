@@ -31,6 +31,7 @@ Author: Hans Bihs
 #include<sys/stat.h>
 #include<sys/types.h>
 #include"runlog.h"
+#include"wsfline_ipol.h"
 
 fnpf_print_wsfline::fnpf_print_wsfline(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
@@ -100,7 +101,7 @@ void fnpf_print_wsfline::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pf
         j=jloc[q];
 
 
-            pcore->wsf[q][i]=f(i,j)+p->phimean;
+            pcore->wsf[q][i]=wsfline_at_y(p,f,i,j,p->P52_y[q])+p->phimean;
             pcore->loc[q][i]=p->pos_x();
         }
     }

@@ -28,6 +28,8 @@ Author: Hans Bihs
 //  REEF3D_Checkpoint/<count>/main.dat     rank 0: the boxes of the pieces, named scalars, named blobs
 //  REEF3D_Checkpoint/<count>/piece-%06i   every rank: its arrays with their ghost cells, double/int
 //  REEF3D_Checkpoint/latest               the folder of the last complete checkpoint (written last)
+//  REEF3D_Checkpoint/history              the folders in the order they were written (P 49: the newest kept)
+//  REEF3D_Checkpoint/<count>/outputs-%06i every rank: the sizes of its output files at the checkpoint (restart: cut back)
 //
 //  Arrays are given in the layouts of REEF3D (margin 3 on every side):
 //    S  slice: (i-imin)*jmax + (j-jmin), i in [-3,knox+3), j in [-3,knoy+3)
@@ -48,14 +50,22 @@ class lexer;
 class ghostcell;
 
 // an output file of the run: on a restart from a checkpoint (I 45 1) an existing file is continued
-// (appended); true: a new file, its header is to be written
+// (appended) from its size at the checkpoint, what the stopped run wrote after it is cut off; a file the
+// checkpoint does not know (written after it) starts again; true: a new file, its header is to be written
 bool reefckpt_open(std::ofstream &o, const char *name, int I45);
+// a folder whose files are all outputs of the run (REEF3D_CORAL; the rank that writes them): on a restart
+// (I 45 1) every file is cut back to its size at the checkpoint, a file the checkpoint does not know removed
+void reefckpt_output_dir(const std::string &dir, int I45);
+// a restart (I 45 1), at the start: the sizes of the outputs at the checkpoint read now (before a new
+// checkpoint may replace it)
+void reefckpt_outputs_restart();
 
 class reefckpt
 {
 public:
     // ---- writing (all ranks)
-    void write_open(lexer*, int count);
+    // the folder REEF3D_Checkpoint/<count>, with sub > 0 <count>_<sub> (SEASTATE stationary: the iteration in the step)
+    void write_open(lexer*, int count, int sub=0);
     void scalar(const std::string&, double);                     // rank 0's value
     void blob(const std::string&, const std::vector<double>&);   // rank 0's data
     void rank_blob(const std::string&, const std::vector<double>&);   // every rank its own (in its piece)
@@ -84,6 +94,21 @@ public:
     bool get_Ci(const std::string&, int*);
     bool same_decomposition() const { return same; }
     int pieces() const { return (int)box.size(); }
+    // the box of piece r: origin and cells in x and y
+    void piece_box(int r, int &oi, int &oj, int &ni, int &nj) const { oi = box[r].oi; oj = box[r].oj; ni = box[r].ni; nj = box[r].nj; }
+    // removes the checkpoint folder dir written by np ranks, with every other file in it (rank 0)
+    static void remove_folder(const std::string &dir, int np);
+    // the folder of the checkpoint a restart (I 45) reads: REEF3D_Checkpoint/<count> for I 45 <count>,
+    // else the one in REEF3D_Checkpoint/latest; empty: none
+    static std::string restart_folder();
+    // I 45 <count> (control::parse; 0: the latest)
+    static void restart_from(int count);
+    // a folder as written: a bare count (00001200, 1200, 1200_5) or a name without the path of the folders
+    // gives ./REEF3D_Checkpoint/<count>
+    static std::string folder_name(const std::string&);
+    // rank 0, after write_close: dir appended to REEF3D_Checkpoint/history; of the folders there only the
+    // newest keep remain, the older ones are removed (never the latest); keep 0: all remain
+    static void prune(const std::string &dir, int keep);
     std::string folder() const { return dirname; }
 
 private:
@@ -91,6 +116,7 @@ private:
     struct rec { std::string name; int type; long long n; };
 
     void put(const std::string&, int, const void*, long long, size_t);
+    void outputs_write();
     long long count_of(int) const;
     bool get(const std::string&, int, void*, size_t);
     bool get3d(const std::string&, void*, size_t, long long);

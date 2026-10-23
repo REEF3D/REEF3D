@@ -26,6 +26,7 @@ Architect: Hans Bihs
 #include"reefamr.h"
 #include"amr_grid_lookup.h"
 #include"fnpf_laplace.h"
+#include"reefamr_xzlu.h"
 #include<vector>
 #include<fstream>
 
@@ -129,9 +130,14 @@ struct fnpf_amr_patch : public reefamr_patch
 
     // composite Laplace
     vector<double*> kv;             // Krylov vectors, Fi layout
+    vector<double*> kvw;            // X 36: those of the window solves (the solves on all grids read
+                                    // entries of their vectors that they do not write: the window
+                                    // solves keep theirs apart)
     vector<int> row;                // FIJK -> matrix row of the patch assembly, -1 none
     int serial = -1;                // unique number of the patch (body grids follow it)
     reefmg_core *mg = nullptr;      // patch-local multigrid of the preconditioner
+    reefamr_xzlu xz;                // a 2D grid: the exact patch-local solve instead of the V-cycle
+    long xzkey[3] = {-1,-1,-1};     // its factorisation: layout, window, step
     vector<int> fill1;              // the entries of fill next to the patch (the reach of the Laplace rows)
     vector<int> fill2;              // the entries of fill within two columns of the patch (the stencils of the prolongation into the next finer level)
 };
@@ -181,6 +187,20 @@ public:
     // a psi solve of the body loads on all grids: targets f[g+1] with free-surface data D[g+1];
     // boundary data are set by the caller
     void lap_solve_psi(lexer*, fdm_fnpf*, ghostcell*, solver*, fnpf_fsf*, double**, slice**);
+    // X 36: a unit-mode psi solve of one body on the patches of its window only (out[id] 1: patch id is
+    // outside the window): level 0 and the patches outside hold 0 (their targets f[g+1] are read only),
+    // the columns at the edge of the window are 0.  key: the window (the body), with the layout it keys
+    // the rows and the preconditioner kept between the solves of the same window
+    void lap_solve_psi_window(lexer*, ghostcell*, double**, slice**, const vector<char> &out, const vector<char> &wgp, int key);
+    // X 36: the window flags of the patches of all ranks (index into the global patch table: the
+    // columns of a window patch covered by a finer patch outside the window are leaf columns of the
+    // window); win[first[r]+id]: patch id of rank r in the window
+    void window_gp(const vector<char> &win, const vector<int> &first, vector<char> &wgp);
+    // the interior of patch n (x0, x1, y0, y1)
+    void patch_box(int n, double&, double&, double&, double&);
+    // the refinement zone of body nb (the box of its wetted hull grown by G 12 on every side): false
+    // without one
+    bool zone_box(int nb, double&, double&, double&, double&);
 
     // resolved bodies (fnpf_6DOF) on the hierarchy
     void attach_body(fnpf_body*);
@@ -263,6 +283,21 @@ private:
     void pcol(int, int, int, int, int, const double*, int, double*);
     void pweights(lexer*, int, int, int, int, double*);
 
+    // the weights of pcol per grid, coarse cell, quadrant and order (pord), kept until the next regrid: the
+    // nonzero weights as (source offset in the column arrays, weight).  Not with wfill (the wet
+    // cells change) and not with a body (its cells change the flags)
+    struct pwcache
+    {
+        int stamp = -1;             // regrids, and the lexer of the grid (during a regrid the
+        const lexer *q = nullptr;   // index g already names the new patches)
+        vector<int> slot;           // (cell, quadrant) -> its pair in num, -1 not yet
+        vector<int> num;            // pairs: first entry in off/wt, number of weights
+        vector<int> off;
+        vector<double> wt;
+    };
+    vector<pwcache> pwc;            // [g+1]
+    int pw_get(int g, lexer *q, int ic, int jc, int ox, int oy, const int *&offs, const double *&ws);
+
     // fill and restriction of slices and Fi-layout arrays
     template<class SEL> void fill_sl(int, int, int, SEL);
     template<class SEL> void fill_col(int, int, SEL, bool d1=false);
@@ -301,13 +336,34 @@ private:
     vector<lgrid> lg;               // [g+1]
     vector<double*> kv0;            // level-0 Krylov vectors
     reefmg_core *mg0 = nullptr;     // level-0 multigrid of the preconditioner
+    reefamr_xzlu xz0;               // a 2D grid: the exact level-0 solve instead of the V-cycle
+    bool xz0on = false;
+    long xz0key[3] = {-1,-1,-1};
+    // the factorisations kept for xz_every steps (layout, window and the fixed rows unchanged)
+    bool xz_keep(long *key, bool on, int wkey);
+    // the solves of a stage share the rows (phi, the psi solves of the body loads, the Picard
+    // passes of A 324): the rows of the last preparation per grid; unchanged on every rank, the
+    // preparation is skipped and the preconditioner kept (lap_same)
+    struct lmrows
+    {
+        int layout = -1, wkey = -1;
+        vector<double> m;           // the 7 coefficients of every row, coefficient by coefficient
+    };
+    vector<lmrows> lmr;             // [g+1]
+    bool lap_same(ghostcell*, int);
+    long lap_kept = 0;              // preparations skipped
+    void lap_l0solve();
     vector<int> rowmap0;            // level 0: FIJK -> matrix row
+    int rowmap0_layout = -1;        // the layout rowmap0 was numbered for
     long lap_it_total, lap_solves;
     int lap_it_last;
     double lap_res_last;
     int lap_kind = 0;               // solve of lap_core: 0 phi, 1 psi (body loads)
     int lap_it_phi_max = 0, lap_it_psi_max = 0, lap_solves_step = 0;   // this step (log)
     long lap_it_step = 0;
+    long lap_it_psi = 0, lap_solves_psi = 0;    // the psi solves of the body loads (of lap_it_total, lap_solves)
+    // the time of the rows and the preconditioner of a solve (assembly, lap_prepare): tm[7], psi tm[8]
+    void lap_tsetup(double t) { tm[7] += t; if(lap_kind==1) tm[8] += t; }
     int lap_capped = 0;             // solves that reached N 46
     int lap_restarts = 0;           // BiCGStab restarts after stagnation
     int lap_stalls = 0;             // solves stopped after a second stagnation (STAGTOL)
@@ -326,6 +382,12 @@ private:
     int wtop() const { return whi<0 ? maxlev : whi; }
     bool lap_edge = false;          // window above level 0: the parent columns of its lowest level are fixed
     bool lap_dir = false;           // fill_col of a Krylov vector (the fixed parent columns are 0)
+    // X 36: the window of a unit-mode solve (lap_solve_psi_window): the patches outside it (reefamr::skip),
+    // no level-0 rows and no level-0 cycle in the preconditioner, the key of the window in wkey
+    vector<char> lap_skip;
+    const vector<char> *lap_wgp = nullptr;
+    bool lap_nol0 = false;
+    int lap_wextra = 0;
     int slev = 0;                   // level of the current subcycled step
     int bfin = 0;                   // finest steps done in the level-0 step
     double tsub = 0.0;              // start time of the current step of slev
@@ -408,7 +470,10 @@ private:
     int gcval_eta, gcval_fifsf;
     double printtime_amr;
     int printcount_amr;
-    double tm[6];
+    // timings: 0 patch stages, 1 Laplace (all solves), 2 preconditioner, 3 operator, 4 regrid,
+    // 5 setup of a layout, 6 psi solves (of 1), 7 assembly and coarsening of the solves (of 1),
+    // 8 of which psi solves (of 6)
+    double tm[9];
 };
 
 #endif

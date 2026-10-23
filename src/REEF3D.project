@@ -75,6 +75,7 @@
       <File Name="reefamr.h"/>
       <File Name="reefamr_sed.h"/>
       <File Name="reefamr_krylov.h"/>
+      <File Name="reefamr_xzlu.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Solver">
       <VirtualDirectory Name="REEFMG">
@@ -86,6 +87,7 @@
         <File Name="solver_void.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Sparse Matrix">
+        <File Name="matrix_diag_hash.h"/>
         <File Name="vec.h"/>
         <File Name="matrix_diag.h"/>
       </VirtualDirectory>
@@ -102,6 +104,7 @@
     </VirtualDirectory>
     <VirtualDirectory Name="Ghostcell">
       <File Name="ghostcell.h"/>
+      <File Name="gcsl_yskip.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Hydrodynamics">
       <VirtualDirectory Name="SEASTATE">
@@ -158,6 +161,7 @@
           </VirtualDirectory>
           <VirtualDirectory Name="Print WSF">
             <File Name="wsfline_core.h"/>
+            <File Name="wsfline_ipol.h"/>
             <File Name="print_wsfline_y.h"/>
             <File Name="print_wsfline_x.h"/>
             <File Name="print_wsf_theory.h"/>
@@ -876,6 +880,7 @@
           <File Name="coral/mooring/README.md"/>
           <File Name="coral/mooring/coral_catenary.h"/>
           <File Name="coral/mooring/coral_mooring.h"/>
+          <File Name="coral/mooring/coral_seabed.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="PTO">
           <File Name="coral/pto/README.md"/>
@@ -1569,6 +1574,7 @@
         <File Name="seastate_dispersion.cpp"/>
         <File Name="seastate_vtp.cpp"/>
         <File Name="seastate_f.cpp"/>
+        <File Name="seastate_f_ckpt.cpp"/>
         <File Name="seastate_f_initial.cpp"/>
         <File Name="seastate_f_ini.cpp"/>
         <File Name="seastate_param.cpp"/>
@@ -2311,6 +2317,7 @@
           <File Name="fnfp_breaking_baquet_wd.cpp"/>
           <File Name="fnpf_breaking_baquet.cpp"/>
           <File Name="fnpf_breaking_romero.cpp"/>
+          <File Name="fnpf_breaking_barthelemy.cpp"/>
           <File Name="fnpf_breaking_relaxfunc.cpp"/>
           <File Name="fnfp_breaking_kennedy.cpp"/>
           <File Name="fnpf_breaking_filter.cpp"/>
@@ -2481,7 +2488,10 @@
         <VirtualDirectory Name="Mooring">
           <File Name="coral/mooring/coral_catenary.cpp"/>
           <File Name="coral/mooring/coral_mooring.cpp"/>
+          <File Name="coral/mooring/coral_mooring_friction.cpp"/>
+          <File Name="coral/mooring/coral_mooring_setup.cpp"/>
           <File Name="coral/mooring/coral_mooring_static.cpp"/>
+          <File Name="coral/mooring/coral_seabed.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="PTO">
           <File Name="coral/pto/coral_pto.cpp"/>
@@ -2546,6 +2556,8 @@
           <File Name="CPM_wallbc.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Update">
+          <File Name="CPM_loadmap.cpp"/>
+          <File Name="CPM_resample.cpp"/>
           <File Name="CPM_bedchange.cpp"/>
           <File Name="CPM_update.cpp"/>
         </VirtualDirectory>

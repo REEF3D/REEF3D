@@ -75,6 +75,7 @@ public:
     void flush_outputs() override;
 
 private:
+    bool bed_printed = false;   // the fixed bed of this run (also after a restart, I 45: a new LAGOON store)
     void print(lexer*,fdm_nhf*,ghostcell*,nhflow_turbulence*,sediment*);
     void parallel(lexer*,fdm_nhf*,ghostcell*,nhflow_turbulence*,sediment*,int);
 

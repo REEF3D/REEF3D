@@ -78,8 +78,6 @@ void sixdof_motionext_wavemaker::motionext_trans(lexer *p, ghostcell *pgc, Eigen
             if(p->simtime>=ts && p->simtime<=te)
             Uext = (data[timecount][1]-data[timecount_old][1])/(data[timecount][0]-data[timecount_old][0]);
             
-            if(p->mpirank==0)
-            cout<<"6DOF_motion  Uext "<<Uext<<endl;
             
             dp_(0) = 0.0;
             dc_(0) = Uext*ramp_vel(p);

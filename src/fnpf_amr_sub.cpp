@@ -531,6 +531,7 @@ void fnpf_amr::lap_solve_psi_level(lexer *p, ghostcell *pgc, int l, double **f, 
 {
     const double t0 = MPI_Wtime();
 
+    lap_kind = 1;
     {
     comms_off guard(pgc);
     for(int id : lev[l])
@@ -539,12 +540,12 @@ void fnpf_amr::lap_solve_psi_level(lexer *p, ghostcell *pgc, int l, double **f, 
         pc->plap->start(pc->pp,pc->c,pgc,nullptr,pc->pf,f[id+1],*D[id+1]);
     }
     }
+    lap_tsetup(MPI_Wtime()-t0);
 
     ltgt.assign(f,f+P.size()+1);
 
     wlo = whi = l;
     lap_edge = true;
-    lap_kind = 1;
     lap_core(p,pgc);
     lap_kind = 0;
     lap_edge = false;
@@ -552,6 +553,7 @@ void fnpf_amr::lap_solve_psi_level(lexer *p, ghostcell *pgc, int l, double **f, 
     whi = -1;
 
     tm[1] += MPI_Wtime()-t0;
+    tm[6] += MPI_Wtime()-t0;
 }
 
 // after the two steps of level l+1: eta, Fifsf and Fi of the finer levels into their covered
@@ -629,15 +631,19 @@ void fnpf_amr::lap_prec_win(int kr, int kz)
 {
     const int wl = wlo;
     auto selz = [&](int g) -> double* { return lvec(g,kz); };
-    auto inwin = [&](int g) { const int lg = (g<0) ? 0 : P[g]->lev; return lg>=wl && lg<=wtop(); };
+    auto inwin = [&](int g) { const int lg = (g<0) ? 0 : P[g]->lev; return lg>=wl && lg<=wtop() && (g<0 || !skipped(g)); };
 
     // 1. pre-smoothing on the window patches
     for(int g=-1; g<(int)P.size(); ++g)
     {
+        // (X 36, lap_nol0: level 0 and the patches outside the window are neither read nor written)
+        if((g<0 && lap_nol0) || (g>=0 && skipped(g)))
+        continue;
         lexer *q = glex(g);
         const size_t n = (size_t)q->imax*q->jmax*(q->kmax+2);
         std::fill(lvec(g,kz),lvec(g,kz)+n,0.0);
-        if(!inwin(g))
+        // all grids: below the window scratch; in the window the nodes the residual does not
+        // write (resolved-body and dry rows) held the increment of the previous sweep (lap_prec)
         std::fill(lvec(g,NRP),lvec(g,NRP)+n,0.0);
     }
 
@@ -664,10 +670,13 @@ void fnpf_amr::lap_prec_win(int kr, int kz)
         std::copy(lvec(id,kz),lvec(id,kz)+q->imax*q->jmax*(q->kmax+2),lvec(id,NPRE));
     }
 
-    // 3. restricted down to level 0 through all levels, one level-0 V-cycle
+    // 3. restricted down to level 0 through all levels, one level-0 V-cycle (X 36, lap_nol0: none, the
+    //    patch-local cycles of the lowest level of the window are its coarse correction)
     wlo = 0;
+    if(!lap_nol0)
     restrict_col([&](int g) -> double* { return lvec(g,NRP); });
 
+    if(!lap_nol0)
     {
         sc_level &L = mg0->fine();
         const double *r = lvec(-1,NRP);
@@ -684,7 +693,7 @@ void fnpf_amr::lap_prec_win(int kr, int kz)
             L.f[lq] = r[fidx(p0,ii,jj,kk)];
         }
 
-        mg0->vcycle(0,1,1);
+        lap_l0solve();
 
         for(int ii=0; ii<p0->knox; ++ii)
         for(int jj=0; jj<p0->knoy; ++jj)
@@ -716,6 +725,7 @@ void fnpf_amr::lap_prec_win(int kr, int kz)
 
         if(l>wl)
         for(int id : lev[l-1])
+        if(!skipped(id))
         {
             lexer *q = glex(id);
             const double *z = lvec(id,kz);
@@ -725,11 +735,15 @@ void fnpf_amr::lap_prec_win(int kr, int kz)
             d[m] = z[m] - d[m];
         }
 
+        // (lap_nol0: the lowest level of the window has no coarse increment)
+        if(!(lap_nol0 && l==wl))
+        {
         prolong_interior_col(l,[](reefamr_patch*) { return true; },
                              [&](int g) -> double* { return (g<0 || P[g]->lev<wl) ? lvec(g,kz) : lvec(g,NPRE); },
                              [&](int id) -> double* { return lvec(id,NRP); });
 
         for(int id : lev[l])
+        if(!skipped(id))
         {
             fnpf_amr_patch *c = FP(id);
             lexer *pp = c->pp;
@@ -743,6 +757,7 @@ void fnpf_amr::lap_prec_win(int kr, int kz)
                 z[qq] += t[qq];
             }
         }
+        }
 
         // the window: its lowest level with the fixed parent columns (0 in z)
         wlo = wl;
@@ -750,6 +765,7 @@ void fnpf_amr::lap_prec_win(int kr, int kz)
         fill_col(l,7700+l,selz);
 
         for(int id : lev[l])
+        if(!skipped(id))
         lap_local(id,kr,kz);
 
         if(l<wtop())

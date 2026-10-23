@@ -1,0 +1,11 @@
+{
+ "base": "fnpf_3d_amr_tow_sub",
+ "np": 1,
+ "steps": 12,
+ "ctrl_add": [
+  "X 35 1"
+ ],
+ "description": "fnpf_3d_amr_tow_sub with X 35 1: the psi_0 solves of the finest-level stages (forces_level, subcycling G 7 1) and the composite psi_0 of the level-0 step start from the extrapolation of the last two of their kind (slots 10-12 and 0).",
+ "tags": ["3d", "fnpf", "amr", "6dof", "subcycling"],
+ "covers": ["fnpf_6DOF psi_guess/psi_record with subcycling (forces_level, psi_slot level)"]
+}

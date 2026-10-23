@@ -38,6 +38,7 @@ Architect: Hans Bihs
 #include<mpi.h>
 #include<iomanip>
 #include<algorithm>
+#include<cstring>
 
 //  Composite Laplace equation of REEF3D::FNPF on level 0 and the patches.
 //
@@ -119,6 +120,10 @@ double* fnpf_amr::lvec(int g, int k)
     if(k<0)
     return ltgt[g+1];
 
+    // (X 36: a window solve, its patches; the patches outside are not touched)
+    if(g>=0 && lap_nol0 && !FP(g)->kvw.empty())
+    return FP(g)->kvw[k];
+
     return (g<0) ? kv0[k] : FP(g)->kv[k];
 }
 
@@ -137,14 +142,23 @@ void fnpf_amr::lap_rows()
         row[fidx(q,ii,jj,kk)] = n++;
     };
 
-    number(p0,rowmap0);
-    for(auto q : P)
-    number(q->pp,FP(q)->row);
+    // (X 36, a window without level 0: level 0 keeps its numbering of the layout)
+    if(!(lap_nol0 && rowmap0_layout==layout_id))
+    {
+        number(p0,rowmap0);
+        rowmap0_layout = layout_id;
+    }
+    // (X 36: not the patches outside the window of the solve; a solve on all grids numbers them again)
+    for(int id=0; id<(int)P.size(); ++id)
+    if(!skipped(id))
+    number(P[id]->pp,FP(id)->row);
 
     // the fill entries next to the patch: the columns the rows of the patch reach
-    for(auto q : P)
+    for(int id=0; id<(int)P.size(); ++id)
     {
-        fnpf_amr_patch *c = FP(q);
+        if(skipped(id))
+        continue;
+        fnpf_amr_patch *c = FP(id);
         c->fill1.clear();
         c->fill2.clear();
         for(size_t e=0; e<c->fill.size(); ++e)
@@ -166,8 +180,9 @@ void fnpf_amr::lap_rows()
         lgrid &L = lg[g+1];
         const int l = (g<0) ? 0 : P[g]->lev;
 
-        // G 7 1: the grids of the level window only (wlo..wtop: all levels without subcycling)
-        if(l<wlo || l>wtop())
+        // G 7 1: the grids of the level window only (wlo..wtop: all levels without subcycling); X 36:
+        // not the patches outside the window of the unit-mode solve
+        if(l<wlo || l>wtop() || (g>=0 && skipped(g)))
         continue;
 
         int i0,i1,j0,j1;
@@ -179,7 +194,10 @@ void fnpf_amr::lap_rows()
         {
             int I = (g<0) ? ii+O0i : ii-EXT+P[g]->I0;
             int J = (g<0) ? jj+O0j : jj-EY+P[g]->J0;
-            const bool covered = (l<wtop() && reefamr::covered(l+1,2*I,ychild(J)));
+            // (X 36: covered by a patch of the window only; under a patch outside it the columns are
+            // leaf columns of the window, the hulls there on this grid's resolution)
+            const int gc = (l<wtop()) ? gpatch_at(l+1,2*I,ychild(J)) : -1;
+            const bool covered = (gc>=0 && (skip==nullptr || lap_wgp==nullptr || (*lap_wgp)[gc]));
 
             for(int kk=0; kk<q->knoz; ++kk)
             {
@@ -203,7 +221,7 @@ void fnpf_amr::lap_rows()
 // vectors, multigrids and their coefficients for this solve
 void fnpf_amr::lap_prepare(ghostcell *pgc)
 {
-    const int wkey = wlo*1000 + wtop();
+    const int wkey = wlo*1000 + wtop() + lap_wextra;
     if(lap_layout==layout_id && lap_wkey!=wkey)
     {
         lap_rows();
@@ -258,6 +276,14 @@ void fnpf_amr::lap_prepare(ghostcell *pgc)
         tm[5] += MPI_Wtime()-ts;
     }
 
+    // the rows of the last preparation: with a body (psi solves) or Picard passes (A 324) a stage
+    // has several solves with the same rows
+    if((body!=nullptr || p0->A324>0) && lap_same(pgc,wkey))
+    {
+        ++lap_kept;
+        return;
+    }
+
     // fixed rows (identity rows of the assembly: nodes inside a resolved body) are no unknowns:
     // they keep their value, and no fluid row couples to them (Neumann faces).  Left in the
     // composite system they took up the coarse correction across the hull and the solve
@@ -296,7 +322,8 @@ void fnpf_amr::lap_prepare(ghostcell *pgc)
         std::fill(L.act.begin(),L.act.end(),0);
     };
 
-    // level 0: all rows of the rank grid, 7-point part
+    // level 0: all rows of the rank grid, 7-point part (X 36, a window without level 0: none)
+    if(!lap_nol0 && !(sy==0 && xz_keep(xz0key,xz0on,wkey)))
     {
         sc_level &L = mg0->fine();
         clear(L);
@@ -316,16 +343,32 @@ void fnpf_amr::lap_prepare(ghostcell *pgc)
             lap_coef(mg0,L,lq,M.p[r],M.n[r],M.s[r],M.w[r],M.e[r],M.t[r],M.b[r]);
             L.act[lq] = fixed(M,r) ? 0 : 1;
         }
+        // a 2D grid: level 0 is one x-z problem, solved exactly (reefamr_xzlu; several ranks: the
+        // problem of all ranks on every rank)
+        xz0on = false;
+        if(sy==0 && p0->mpi_size==1)
+        {
+            xz0.factor(L,mg0->precision());
+            xz0on = true;
+        }
+        else
+        if(sy==0)
+        xz0on = xz0.factor_mpi(L,mg0->precision(),MPI_COMM_WORLD,p0->origin_i,p0->gknox);
+        if(!xz0on)
         mg0->coarsen();
+        xz0key[0] = layout_id; xz0key[1] = wkey; xz0key[2] = p0->count;
     }
 
     // patches: interior rows, couplings to the cells around the patch dropped
-    for(auto q : P)
+    for(int id=0; id<(int)P.size(); ++id)
     {
-        if(q->lev<wlo || q->lev>wtop())
+        reefamr_patch *q = P[id];
+        if(q->lev<wlo || q->lev>wtop() || skipped(id))
         continue;
 
         fnpf_amr_patch *c = FP(q);
+        if(sy==0 && xz_keep(c->xzkey,true,wkey))
+        continue;
         lexer *pp = c->pp;
         sc_level &L = c->mg->fine();
         clear(L);
@@ -346,8 +389,81 @@ void fnpf_amr::lap_prepare(ghostcell *pgc)
                      (jj+1<EY+c->ny) ? M.w[r] : 0.0,(jj-1>=EY) ? M.e[r] : 0.0,M.t[r],M.b[r]);
             L.act[lq] = fixed(M,r) ? 0 : 1;
         }
+        // a 2D grid: the patch-local problem is an x-z problem, solved exactly (reefamr_xzlu) instead
+        // of the V-cycle
+        if(sy==0)
+        {
+            c->xz.factor(L,c->mg->precision());
+            c->xzkey[0] = layout_id; c->xzkey[1] = wkey; c->xzkey[2] = p0->count;
+        }
+        else
         c->mg->coarsen();
     }
+}
+
+// the solves of a stage share the rows: phi, then psi_0 and the unit modes of the body loads
+// (the Neumann data of the body faces enter the right-hand side only), and the Picard passes
+// of A 324.  The 7-point rows of level 0 and of the patches of the window are compared bit
+// for bit with those of the last preparation; unchanged on every rank, the preparation is
+// skipped and the multigrid coefficients, their coarse levels and the x-z factorisations
+// are those of the last solve, the same preconditioner.  With a body on a 2D grid this
+// replaces the factorisation of every solve (xz_keep).  Collective: mg0 and the level-0
+// factorisation are set up by all ranks together, so the decision is the same on all ranks
+bool fnpf_amr::lap_same(ghostcell *pgc, int wkey)
+{
+    if(lmr.size()!=P.size()+1)
+    lmr.assign(P.size()+1,lmrows());
+
+    int same = 1;
+
+    for(int g=-1; g<(int)P.size(); ++g)
+    {
+        if(g>=0 && (P[g]->lev<wlo || P[g]->lev>wtop() || skipped(g)))
+        continue;
+
+        // (X 36, a window without level 0: its rows are not part of the solve)
+        if(g<0 && lap_nol0)
+        continue;
+
+        const matrix_diag &M = gfd(g)->M;
+        const size_t n = M.p.size();
+        const double *a[7] = {M.p.data(),M.n.data(),M.s.data(),M.w.data(),M.e.data(),M.t.data(),M.b.data()};
+        lmrows &R = lmr[g+1];
+
+        if(R.layout!=layout_id || R.wkey!=wkey || R.m.size()!=7*n)
+        {
+            R.layout = layout_id;
+            R.wkey = wkey;
+            R.m.resize(7*n);
+            same = 0;
+        }
+
+        for(int k=0; k<7; ++k)
+        {
+            double *s = R.m.data() + k*n;
+
+            if(same && memcmp(s,a[k],n*sizeof(double))!=0)
+            same = 0;
+
+            if(!same)
+            memcpy(s,a[k],n*sizeof(double));
+        }
+    }
+
+    return pgc->globalimin(same)==1;
+}
+
+// a 2D grid: the exact factorisation of a grid is kept for the other solves of the step (key: the
+// layout, the window and the step of the factorisation).  The coefficients follow the free
+// surface: the factorisation of the first solve of the step is the preconditioner for its other
+// solves (2D flume, two levels: 0.3 % more iterations, 14 % less time; kept for 4 steps: 1.7 %
+// more iterations and no further gain).  With a body (fixed rows) refactorised when the rows
+// change (lap_same keeps it for the solves of a stage)
+bool fnpf_amr::xz_keep(long *key, bool on, int wkey)
+{
+    if(!on || body!=nullptr)
+    return false;
+    return key[0]==layout_id && key[1]==wkey && key[2]==p0->count;
 }
 
 // covered columns, partition halo of level 0, columns around the patches
@@ -440,7 +556,10 @@ void fnpf_amr::lap_start()
         // the composite residual of the preconditioner: the restriction to level 0 reads entries
         // the residual of this solve does not write (they held those of an earlier solve, e.g. one
         // of another level window of the subcycling): the solve did not depend on its own data only,
-        // and a restart from a checkpoint (P 48, I 45) did not continue bitwise
+        // and a restart from a checkpoint (P 48, I 45) did not continue bitwise.  (X 36: a window
+        // without level 0 restricts and reads neither level 0 nor the patches outside it)
+        if((g<0 && lap_nol0) || (g>=0 && skipped(g)))
+        continue;
         lexer *q = glex(g);
         double *vt = lvec(g,NRP);
         std::fill(vt,vt+q->imax*q->jmax*(q->kmax+2),0.0);
@@ -512,8 +631,12 @@ void fnpf_amr::lap_local(int id, int kr, int kz)
     const int sI = pp->jmax*pp->kmaxF;
     const int sJ = pp->kmaxF;
 
+    // (the exact solve of a 2D grid reads f of the active rows only and writes u)
+    if(sy==1)
+    {
     std::fill(L.u.begin(),L.u.end(),0.0);
     std::fill(L.f.begin(),L.f.end(),0.0);
+    }
     for(int ii=EXT; ii<EXT+c->nx; ++ii)
     for(int jj=EY; jj<EY+c->ny; ++jj)
     for(int kk=0; kk<pp->knoz; ++kk)
@@ -529,6 +652,9 @@ void fnpf_amr::lap_local(int id, int kr, int kz)
         L.f[lq] = r[qq] - az;
     }
 
+    if(sy==0)
+    c->xz.solve(L,L.f,L.u);
+    else
     c->mg->vcycle(0,PSWEEP,PSWEEP);
 
     for(int ii=EXT; ii<EXT+c->nx; ++ii)
@@ -539,6 +665,17 @@ void fnpf_amr::lap_local(int id, int kr, int kz)
         if(L.act[lq])
         z[fidx(pp,ii,jj,kk)] += L.u[lq];
     }
+}
+
+// the level-0 cycle of the preconditioner on mg0->fine(): a V-cycle, on a 2D grid the
+// exact solve
+void fnpf_amr::lap_l0solve()
+{
+    sc_level &L = mg0->fine();
+    if(xz0on)
+    xz0.solve(L,L.f,L.u);
+    else
+    mg0->vcycle(0,1,1);
 }
 
 // z = M^-1 r: one multiplicative FAC sweep
@@ -572,31 +709,61 @@ void fnpf_amr::lap_prec(int kr, int kz)
             std::fill(z,z+q->imax*q->jmax*(q->kmax+2),0.0);
             continue;
         }
+        // (the columns jj of one ii are contiguous: one fill per ii)
         for(int ii=EXT-1; ii<=EXT+P[g]->nx; ++ii)
-        for(int jj=EY-1; jj<=EY+P[g]->ny; ++jj)
         {
-            const int a = fidx(q,ii,jj,q->kmin);
-            std::fill(z+a,z+a+q->kmaxF,0.0);
+            const int a = fidx(q,ii,EY-1,q->kmin);
+            std::fill(z+a,z+a+(P[g]->ny+2)*q->kmaxF,0.0);
         }
+
+        // NRP of the patches: the composite residual (step 2) writes the leaf and covered rows
+        // only, but restrict_col reads every child node.  The other nodes (resolved-body and dry
+        // rows) held the increment interpolated in step 4 of the previous sweep, which entered the
+        // covered columns of the coarser grid: the preconditioner changed from one Krylov step to
+        // the next by an error of the size of z/L^2 against r, negligible at model scale (dx 0.1 m)
+        // and dominant at full scale (dx 2.5 m and more), where the psi solves diverged to NaN
+        std::fill(lvec(g,NRP),lvec(g,NRP)+q->imax*q->jmax*(q->kmax+2),0.0);
     }
 
-    for(int id=0; id<(int)P.size(); ++id)
-    lap_local(id,kr,kz);
+    // (only with a resolved body: without one, the sweep without the pre-smoothing takes as many
+    // or fewer iterations and half the patch-local cycles and no composite residual here)
+    const bool pre = (body!=nullptr);
+    if(pre)
+    {
+        for(int id=0; id<(int)P.size(); ++id)
+        lap_local(id,kr,kz);
 
-    // 2. composite residual (lap_apply also fills the covered columns and the columns around
-    //    the patches of z), z after the pre-smoothing kept in NPRE
-    lap_apply(kz,NRP);
+        // 2. composite residual (lap_apply also fills the covered columns and the columns around
+        //    the patches of z), z after the pre-smoothing kept in NPRE
+        lap_apply(kz,NRP);
+        for(int g=-1; g<(int)P.size(); ++g)
+        {
+            const double *r = lvec(g,kr);
+            double *t = lvec(g,NRP);
+            for(int qq : lg[g+1].lq)
+            t[qq] = r[qq] - t[qq];
+        }
+    }
+    else
     for(int g=-1; g<(int)P.size(); ++g)
     {
         const double *r = lvec(g,kr);
         double *t = lvec(g,NRP);
         for(int qq : lg[g+1].lq)
-        t[qq] = r[qq] - t[qq];
+        t[qq] = r[qq];
     }
 
+    // (a 2D grid: the rows next to the strip only, the prolongation reads the strip)
     for(int id=0; id<(int)P.size(); ++id)
     {
         lexer *q = glex(id);
+        if(sy==0)
+        for(int ii=q->imin; ii<q->imin+q->imax; ++ii)
+        {
+            const int a = fidx(q,ii,EY-1,q->kmin);
+            std::copy(lvec(id,kz)+a,lvec(id,kz)+a+(P[id]->ny+2)*q->kmaxF,lvec(id,NPRE)+a);
+        }
+        else
         std::copy(lvec(id,kz),lvec(id,kz)+q->imax*q->jmax*(q->kmax+2),lvec(id,NPRE));
     }
 
@@ -619,7 +786,7 @@ void fnpf_amr::lap_prec(int kr, int kz)
             L.f[lq] = r[fidx(p0,ii,jj,kk)];
         }
 
-        mg0->vcycle(0,1,1);
+        lap_l0solve();
 
         for(int ii=0; ii<p0->knox; ++ii)
         for(int jj=0; jj<p0->knoy; ++jj)
@@ -646,9 +813,19 @@ void fnpf_amr::lap_prec(int kr, int kz)
             lexer *q = glex(id);
             const double *z = lvec(id,kz);
             double *d = lvec(id,NPRE);
+            if(sy==0)
+            for(int ii=q->imin; ii<q->imin+q->imax; ++ii)
+            {
+                const int a = fidx(q,ii,EY-1,q->kmin), n = (P[id]->ny+2)*q->kmaxF;
+                for(int m=a; m<a+n; ++m)
+                d[m] = z[m] - d[m];
+            }
+            else
+            {
             const int n = q->imax*q->jmax*(q->kmax+2);
             for(int m=0; m<n; ++m)
             d[m] = z[m] - d[m];
+            }
         }
 
         // the increment interpolated into the patch interiors (NRP, from the parent on its rank)
@@ -721,7 +898,9 @@ struct lap_space
 // the values in ltgt), then the covered columns, the columns around the patches and the halo
 void fnpf_amr::lap_core(lexer *p, ghostcell *pgc)
 {
+    const double ts = MPI_Wtime();
     lap_prepare(pgc);
+    lap_tsetup(MPI_Wtime()-ts);
 
     // right-hand side into NS
     for(int g=-1; g<(int)P.size(); ++g)
@@ -739,7 +918,11 @@ void fnpf_amr::lap_core(lexer *p, ghostcell *pgc)
 
     double bn, rn;
     lap_space sp{this};
-    int it = reefamr_bicgstab(sp,p->N44,p->N46,bn,rn,&tm[2],&tm[3],&lap_restarts,STAGTOL*p->N44,&lap_stalls);
+    // the psi solves of the floating bodies (fnpf_6DOF) stop at the half step once below N 44.  The
+    // phi solves keep the full steps: there an earlier stop changes the iterates within N 44, which
+    // the breaking detection of the AMR breaking cases turns into differences of up to 1e-3
+    const bool half = (lap_kind==1);
+    int it = reefamr_bicgstab(sp,p->N44,p->N46,bn,rn,&tm[2],&tm[3],&lap_restarts,STAGTOL*p->N44,&lap_stalls,half);
 
     const double res = bn>0.0 ? rn/bn : 0.0;
     lap_it_total += it;
@@ -753,7 +936,11 @@ void fnpf_amr::lap_core(lexer *p, ghostcell *pgc)
         lap_it_phi_max = MAX(lap_it_phi_max,it);
     }
     else
-    lap_it_psi_max = MAX(lap_it_psi_max,it);
+    {
+        lap_it_psi_max = MAX(lap_it_psi_max,it);
+        lap_it_psi += it;
+        ++lap_solves_psi;
+    }
     p->solveriter = it;
     p->final_res = res;
 
@@ -794,7 +981,9 @@ void fnpf_amr::lap_picard(lexer *p, fdm_fnpf *c, ghostcell *pgc, fnpf_fsf *pf, A
             }
         }
 
+        const double ts = MPI_Wtime();
         assemble();
+        lap_tsetup(MPI_Wtime()-ts);
 
         if(nouter>1)
         {
@@ -930,4 +1119,99 @@ void fnpf_amr::lap_solve_psi(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psol
     lap_kind = 0;
 
     tm[1] += MPI_Wtime()-t0;
+    tm[6] += MPI_Wtime()-t0;
+}
+
+// X 36: a unit-mode psi solve of one body on the patches of its window (out[id] 1: outside).  Level 0 and
+// the patches outside hold 0: the columns around the level-1 patches of the window are filled from them
+// before the solve (0, a sibling of the window its value) and kept during it (the lowest level of the
+// window, lap_edge), level 0 has no rows, and the preconditioner has no level-0 cycle (lap_prec_win with
+// lap_nol0: the patch-local V-cycles of the window's level-1 patches carry the coarse correction).  The
+// right-hand side and the rows of the window's patches only; the rows and the preconditioner are kept
+// between the solves of the window with the same rows (lap_same, wkey with key)
+void fnpf_amr::lap_solve_psi_window(lexer *p, ghostcell *pgc, double **f, slice **D, const vector<char> &out, const vector<char> &wgp, int key)
+{
+    const double t0 = MPI_Wtime();
+
+    lap_skip = out;
+    skip = &lap_skip;
+    lap_wgp = &wgp;
+
+    // the Krylov vectors of the window's patches (kvw)
+    for(int id=0; id<(int)P.size(); ++id)
+    if(!out[id] && FP(id)->kvw.empty())
+    {
+        lexer *q = FP(id)->pp;
+        const size_t n = (size_t)q->imax*q->jmax*(q->kmax+2);
+        for(int k=0; k<NVEC; ++k)
+        FP(id)->kvw.push_back(new double[n]());
+    }
+
+    lap_kind = 1;
+    {
+    comms_off guard(pgc);
+    for(int id=0; id<(int)P.size(); ++id)
+    if(!lap_skip[id])
+    {
+        fnpf_amr_patch *pc = FP(id);
+        pc->plap->start(pc->pp,pc->c,pgc,nullptr,pc->pf,f[id+1],*D[id+1]);
+    }
+    }
+    lap_tsetup(MPI_Wtime()-t0);
+
+    ltgt.assign(f,f+P.size()+1);
+
+    // psi 0 at the edge of the window
+    if(maxlev>=1)
+    fill_col(1,7995,[&](int g) -> double* { return ltgt[g+1]; });
+
+    wlo = 1;
+    whi = -1;
+    lap_edge = true;
+    lap_nol0 = true;
+    lap_wextra = 100000*(key+1);
+    lap_core(p,pgc);
+    lap_wextra = 0;
+    lap_nol0 = false;
+    lap_edge = false;
+    lap_kind = 0;
+    wlo = 0;
+    whi = -1;
+
+    skip = nullptr;
+    lap_wgp = nullptr;
+
+    tm[1] += MPI_Wtime()-t0;
+    tm[6] += MPI_Wtime()-t0;
+}
+
+void fnpf_amr::window_gp(const vector<char> &win, const vector<int> &first, vector<char> &wgp)
+{
+    wgp.assign(GP.size(),0);
+    for(size_t k=0; k<GP.size(); ++k)
+    {
+        const size_t e = (size_t)first[GP[k].rank] + GP[k].lid;
+        wgp[k] = (e<win.size()) ? win[e] : 0;
+    }
+}
+
+void fnpf_amr::patch_box(int n, double &x0, double &x1, double &y0, double &y1)
+{
+    lexer *pp = P[n]->pp;
+    const int m = marge;
+    x0 = pp->XN[EXT+m];
+    x1 = pp->XN[EXT+P[n]->nx+m];
+    y0 = pp->YN[EY+m];
+    y1 = pp->YN[EY+P[n]->ny+m];
+}
+
+bool fnpf_amr::zone_box(int nb, double &x0, double &x1, double &y0, double &y1)
+{
+    if(nb<0 || nb>=(int)zones.size() || zones[nb].bx0>zones[nb].bx1)
+    return false;
+    x0 = zones[nb].bx0 - par.zr;
+    x1 = zones[nb].bx1 + par.zr;
+    y0 = zones[nb].by0 - par.zr;
+    y1 = zones[nb].by1 + par.zr;
+    return true;
 }

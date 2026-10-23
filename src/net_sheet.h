@@ -56,6 +56,8 @@ public:
     const EigenMat& getLagrangeForces() override final {return lagrangeForces;}
     const EigenMat& getCollarVel() override final {return collarVel;}
     const EigenMat& getCollarPoints() override final {return collarPoints;}
+    void ckpt_state(std::vector<double>&) const override final;
+    void ckpt_restore(const std::vector<double>&, size_t&) override final;
 
     
 private:

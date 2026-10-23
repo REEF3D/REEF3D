@@ -35,6 +35,8 @@ public:
 	virtual ~nhflow_suspended_IM1();
 	void start(lexer*, fdm_nhf*, ghostcell*, nhflow_scalar_convection*, nhflow_diffusion*, solver*, ioflow*, sediment_fdm*) override final;
 	void ctimesave(lexer*, fdm_nhf*) override final;
+    double* ckpt_wln() override final {return WLN;}
+    int* ckpt_wlini() override final {return &wl_ini;}
     
     void suspsource(lexer*,fdm_nhf*,double*,sediment_fdm*);
     void bcsusp_start(lexer*,fdm_nhf*,ghostcell*,sediment_fdm*,double*);

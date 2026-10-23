@@ -26,6 +26,8 @@ Authors: Hans Bihs, Alexander Hanke
 #include"momentum_forcing.h"
 #include"CPM.h"
 #include"suspended.h"
+#include"sediment_exner.h"
+#include"ckpt_pack.h"
 #include<sys/stat.h>
 
 sediment_part::sediment_part(lexer *p, fdm *a, ghostcell *pgc, turbulence *ppturb, patchBC_interface *ppBC) : por(p), d50(p)
@@ -106,4 +108,42 @@ void sediment_part::start_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, r
     
     print_particles(p,s);
     
+}
+
+// checkpoints (P 48, I 45): the scalars of the bed update and of the wave-averaged bed shear (S 16 9);
+// the fields and slices (the CPM fields, the bed) are in the registry of the grid, the parcels in the
+// rank blob (CPM::ckpt_rank_state)
+void sediment_part::ckpt_state(lexer *p, std::vector<double> &v)
+{
+    ckpt_put w{v};
+    w.d(1.0);   // version
+    std::vector<double> ex;
+    static_cast<sediment_exner*>(ptopo)->ckpt_state(ex);
+    w.vd(ex);
+    w.d(*pbedshear->ckpt_tw_old()); w.d(*pbedshear->ckpt_tw_dt()); w.i(*pbedshear->ckpt_tw_count());
+}
+
+bool sediment_part::ckpt_restore(lexer *p, ghostcell *pgc, const std::vector<double> &v)
+{
+    ckpt_get r{v};
+    double version=0.0;
+    r.d(version);
+    if(!r.ok || int(version)!=1)
+    return false;
+    std::vector<double> ex;
+    r.vd(ex);
+    size_t k=0;
+    static_cast<sediment_exner*>(ptopo)->ckpt_restore(ex,k);
+    r.d(*pbedshear->ckpt_tw_old()); r.d(*pbedshear->ckpt_tw_dt()); r.i(*pbedshear->ckpt_tw_count());
+    return r.ok && k==ex.size();
+}
+
+void sediment_part::ckpt_rank_state(lexer *p, std::vector<double> &v)
+{
+    pst->ckpt_rank_state(p,v);
+}
+
+bool sediment_part::ckpt_rank_restore(lexer *p, ghostcell *pgc, const std::vector<std::vector<double>> &v, bool same)
+{
+    return pst->ckpt_rank_restore(p,pgc,v,same);
 }

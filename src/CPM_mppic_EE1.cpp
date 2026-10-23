@@ -106,6 +106,9 @@ double CPM::substep_size(lexer *p, ghostcell *pgc, double trem, int qs)
 
 void CPM::mppic_EE1(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbulence *pturb)
 {
+    // parcel merge and split (Q 78)
+    parcel_resample(p,a,pgc);
+    
     count_particles(p,a,pgc,s);
     
     pressure_gradient(p,a,pgc,s);
@@ -147,6 +150,7 @@ void CPM::substep_euler(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbu
         // sub-grid bedload layer
         if(layer && P.Hop[n]>0.0)
         {
+            loadmap_mark(p,n,true);
             bedload_move(p,a,s,n,dt);
             continue;
         }
@@ -155,12 +159,15 @@ void CPM::substep_euler(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbu
         // and leave it in place (Hjam = 1, no dispersion inside the bed)
         if(layer && bed_asleep(p,a,n,P.X[n],P.Y[n],P.Z[n]))
         {
+            loadmap_mark(p,n,false);
             P.URK1[n] = P.VRK1[n] = P.WRK1[n] = 0.0;
             P.XRK1[n] = P.X[n];
             P.YRK1[n] = P.Y[n];
             P.ZRK1[n] = P.Z[n];
             continue;
         }
+        
+        loadmap_mark(p,n,true);
         
         advec_mppic(p, a, P, s, pturb,
                     P.X, P.Y, P.Z, P.U, P.V, P.W,
@@ -201,6 +208,8 @@ void CPM::substep_euler(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbu
         if(layer)
         bedload_settle(p,a,s,n);
     }
+
+    loadmap_substep(p);
 
     // walls, then grid-limited step
     boundcheck(p,1);

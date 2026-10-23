@@ -88,6 +88,11 @@ public:
     void forces_fnpf_sum(lexer*, fdm_fnpf*, double*, double**, bool, double, const std::function<bool(double,double)>*, fnpf_force_sum&);
     void forces_fnpf_set(lexer*, ghostcell*, fnpf_force_sum&, bool);
     double fnpf_dsm() const {return DSM;}
+    // X 28 > 1 (added mass every X 28 steps): the pose the added mass was computed at (X 29), and the
+    // added mass of a checkpoint
+    Eigen::Vector3d fnpf_cog() const {return c_;}
+    Eigen::Vector3d fnpf_angles() const {return Eigen::Vector3d(phi,theta,psi);}
+    void fnpf_added_mass_restore(const Eigen::Matrix<double,6,6> &A) {Aadd_ = A; am_on_ = true;}
     bool fnpf_fixed(lexer*);
     void print_force_fnpf(lexer*);
     // checkpoints (P 48, I 45): the FNPF part of the state (the grid of the running mean of chi of

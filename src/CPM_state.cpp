@@ -20,6 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#include"reefckpt.h"
 #include"CPM.h"
 #include"lexer.h"
 #include"ghostcell.h"
@@ -47,15 +48,24 @@ void CPM::state_write(lexer *p, int num)
     if(P.Flag[n]>=ACTIVE)
     ++numpt;
     
-    // version 2: the hop length of the bedload layer (Q 58) follows the 8 values of a parcel
-    int version=2;
+    // version 2: the hop length of the bedload layer (Q 58) follows the 8 values of a parcel;
+    // version 3: and the parcel weight (merge and split, Q 78), written only if a parcel of the file has a weight
+    // other than 1 (the files of runs without merged parcels stay as they were)
+    int wtd=0;
+    
+    for(n=0;n<P.index;++n)
+    if(P.Flag[n]>=ACTIVE && P.Wt[n]!=1.0)
+    wtd=1;
+    
+    int version = wtd ? 3 : 2;
     result.write((char*)&version, sizeof(int));
     result.write((char*)&numpt, sizeof(int));
     result.write((char*)&P.ParcelFactor, sizeof(double));
     result.write((char*)&outvol, sizeof(double));
     
-    double val[9];
+    double val[10];
     int flag;
+    const int nwr = version>=3 ? 10 : 9;
 
     for(n=0;n<P.index;++n)
     if(P.Flag[n]>=ACTIVE)
@@ -63,9 +73,10 @@ void CPM::state_write(lexer *p, int num)
         val[0]=P.X[n]; val[1]=P.Y[n]; val[2]=P.Z[n];
         val[3]=P.U[n]; val[4]=P.V[n]; val[5]=P.W[n];
         val[6]=P.D[n]; val[7]=P.RO[n]; val[8]=P.Hop[n];
+        val[9]=P.Wt[n];
         flag=P.Flag[n];
 
-        result.write((char*)val, 9*sizeof(double));
+        result.write((char*)val, nwr*sizeof(double));
         result.write((char*)&flag, sizeof(int));
     }
     
@@ -129,10 +140,11 @@ void CPM::state_read(lexer *p, ghostcell *pgc, int num)
         ++P.index_empty;
     }
     
-    double val[9];
+    double val[10];
     int flag;
-    const int nval = version>=2 ? 9 : 8;
+    const int nval = version>=3 ? 10 : (version>=2 ? 9 : 8);
     val[8]=0.0;
+    val[9]=1.0;
 
     for(int q=0;q<numpt;++q)
     {
@@ -152,6 +164,7 @@ void CPM::state_read(lexer *p, ghostcell *pgc, int num)
         P.RO[n]=val[7];
         P.Flag[n]=flag;
         P.Hop[n]=val[8];
+        P.Wt[n]=val[9];
         
         // fixed parcels are released unless all parcels stay fixed (Q 44 1),
         // the open boundaries fix theirs again below
@@ -184,18 +197,20 @@ void CPM::sedlog(lexer *p, ghostcell *pgc)
     for(n=0;n<P.index;++n)
     if(P.Flag[n]>=ACTIVE)
     {
+        const double vp = vpar*P.Wt[n];
+        
         ++np;
-        vol += vpar;
-        qx += vpar*P.U[n];
-        qy += vpar*P.V[n];
+        vol += vp;
+        qx += vp*P.U[n];
+        qy += vp*P.V[n];
         
         if(P.U[n]*P.U[n] + P.V[n]*P.V[n] + P.W[n]*P.W[n] > 1.0e-6)
-        vmov += vpar;
+        vmov += vp;
         
         if(P.Hop[n]>0.0)
         {
-            vbl += vpar;
-            qbx += vpar*P.U[n];
+            vbl += vp;
+            qbx += vp*P.U[n];
         }
     }
     
@@ -239,6 +254,17 @@ void CPM::sedlog(lexer *p, ghostcell *pgc)
         cout.precision(prec);
     }
     
+    // parcel merge and split (Q 78): since the last line, on the screen
+    if(p->Q78>0)
+    {
+        int nmg = pgc->globalisum(rs_nmerge);
+        int nsp = pgc->globalisum(rs_nsplit);
+        rs_nmerge = rs_nsplit = 0;
+        
+        if(p->mpirank==0)
+        cout<<"CPM merge and split (Q 78): "<<nmg<<" merged, "<<nsp<<" split, "<<np<<" parcels"<<endl;
+    }
+    
     // sand slide (Q 75): moved grains since the last line, on the screen (the log keeps its columns)
     if(p->Q75>0.0 && nsl>0 && p->mpirank==0)
     cout<<"CPM sand slide: "<<nsl<<" parcels"<<endl;
@@ -255,7 +281,8 @@ void CPM::sedlog(lexer *p, ghostcell *pgc)
         if(logini==0)
         {
             mkdir("./REEF3D_CFD_CPM_Particle",0777);
-            logout.open("./REEF3D_CFD_CPM_Particle/REEF3D-CFD-CPM-Log.dat");
+            // a restart (I 45): continued from the checkpoint
+            if(reefckpt_open(logout,"./REEF3D_CFD_CPM_Particle/REEF3D-CFD-CPM-Log.dat",p->I45))
             logout<<"time\tparcels\tsediment_volume[m3]\toutflow_volume[m3]\tmoving_volume[m3]\tqx[m2/s]\tqy[m2/s]\tbedload_volume[m3]\tpickups\tdeposits\treleases\ttau_b[Pa]\tqx_bedload[m2/s]\tsuspended_volume[m3]\tsettled_from_suspension"<<endl;
             logini=1;
         }

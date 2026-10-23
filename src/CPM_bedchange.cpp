@@ -90,6 +90,28 @@ double CPM::ptopo(lexer *p, fdm *a, double xp, double yp, double zp)
     return p->ccipol4_b(a->topo,xp,yp,zp);
 }
 
+double CPM::ptopo_p(lexer *p, fdm *a, int q, double xp, double yp, double zp)
+{
+    if(q<0)
+    return ptopo(p,a,xp,yp,zp);
+    
+    if(size_t(q)>=tpV.size())
+    {
+        const size_t N = MAX(size_t(P.index), size_t(q)+1);
+        tpX.resize(N,0.0); tpY.resize(N,0.0); tpZ.resize(N,0.0); tpV.resize(N,0.0);
+        tpS.resize(N,-1);
+    }
+    
+    if(tpS[q]==p->count && tpX[q]==xp && tpY[q]==yp && tpZ[q]==zp)
+    return tpV[q];
+    
+    const double v = ptopo(p,a,xp,yp,zp);
+    
+    tpX[q]=xp; tpY[q]=yp; tpZ[q]=zp; tpV[q]=v; tpS[q]=p->count;
+    
+    return v;
+}
+
 // bed elevation from the topo level set
 void CPM::bedzh_update(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
 {
@@ -157,7 +179,7 @@ void CPM::topo_column(lexer *p, fdm *a, ghostcell *pgc)
         if(sp>0.1*settling_velocity(p,P.D[n]) && ptopo(p,a,P.X[n],P.Y[n],P.Z[n])>=0.0)
         continue;
         
-        occ[(size_t(ic)*p->knoy + jc)*nk + kc] += vpar;
+        occ[(size_t(ic)*p->knoy + jc)*nk + kc] += vpar*P.Wt[n];
     }
 
     for(i=0;i<p->knox;++i)
@@ -187,9 +209,27 @@ void CPM::topo_column(lexer *p, fdm *a, ghostcell *pgc)
             // the bed ends at the first almost empty cell above it: single parcels resting higher up in
             // the flow (on a structure, in a recirculation, at rest for a moment in the wake) are no bed
             // level; on fine grids two slow parcels fill a cell to theta_bed (a pipeline wake on 2.5 mm
-            // cells gave a bed 7 cm above the real one)
+            // cells gave a bed 7 cm above the real one).
+            // An almost empty cell with a packed cell within the next two cells above it is a cavity in the
+            // bed (the grid-limited step leaves single cells of a scoured bed with one or two parcels), not
+            // its end: the column went on (pipeline, 2.5 mm: single columns of the bed level lay up to 8
+            // cells below their neighbours, under 4-10 packed cells above such a cavity)
             else if(ktop>=0 && oc[k] < 0.25*theta_bed*A*p->DZN[KP])
-            break;
+            {
+                bool cavity=false;
+                
+                for(int kq=k+1; kq<=MIN(k+2,nk-1); ++kq)
+                {
+                    if(p->solidread>0 && a->solid(i,j,kq)<0.0)
+                    break;
+                    
+                    if(oc[kq] >= theta_bed*A*p->DZN[kq+marge])
+                    cavity=true;
+                }
+                
+                if(!cavity)
+                break;
+            }
         }
 
         // the cells below the highest cell of the bed count as full (dilated or loose cells inside

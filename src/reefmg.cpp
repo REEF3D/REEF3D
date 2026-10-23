@@ -27,6 +27,8 @@ Author: Hans Bihs
 #include "ghostcell.h"
 #include "vec.h"
 #include "matrix_diag.h"
+#include "solver_print.h"
+#include "matrix_diag_hash.h"
 #ifdef REEF3D_USE_HYPRE
 #include "hypre_struct.h"
 #endif
@@ -471,8 +473,38 @@ void reefmg::start_solver8(lexer *p, ghostcell *pgc, double *f, vec &rhs,
     //  Coarse operators are rebuilt from the fine coefficients every solve.
     //  This is a sweep over 4/3 of the fine grid with no RAP, so the moving
     //  free surface costs essentially nothing.
+    //  The same rows as the last solve (and the same wet/dry pattern): the
+    //  coarse levels and line factorisations are kept, bit for bit those a
+    //  coarsen() would make.  The psi solves of the FNPF floating bodies
+    //  (fnpf_6DOF: pressure every stage, the unit modes of the added mass)
+    //  have the rows of the phi solve before them: the coarsening was 10-15 %
+    //  of such a 3-cycle solve.  The rows are compared by their hash
+    //  (matrix_diag_hash.h, no copy); the fine level and the Krylov operator
+    //  are filled from the rows every solve as before.  The decision is the
+    //  same on all ranks (the coarse-grid agglomeration is collective).  Only
+    //  where solves with the same rows follow each other: FNPF with resolved
+    //  bodies (X 10 1) or the Picard passes of A 324; otherwise every solve
+    //  has new rows and the hash (about a sixth of a coarsening) is not made.
     starttime=pgc->timer();
-    mg.coarsen();
+    if(p->A10==3 && (p->X10==1 || p->A324>0))
+    {
+        matrix_diag_hash_state H;
+        H.add(M);
+        const unsigned long long h=H.value()^(mixed ? 1ULL : 0ULL);
+
+        int changed=(!mkey_ok || fill_topo || h!=mkey) ? 1 : 0;
+        if(pgc->globalisum(changed)>0)
+        {
+            mg.coarsen();
+            mkey=h;
+            mkey_ok=true;
+        }
+    }
+    else
+    {
+        mg.coarsen();
+        mkey_ok=false;
+    }
     const double coarsentime=pgc->timer()-starttime;
 
     starttime=pgc->timer();
@@ -484,7 +516,7 @@ void reefmg::start_solver8(lexer *p, ghostcell *pgc, double *f, vec &rhs,
 
     fillbackvec8(p,f);
 
-    if(p->mpirank==0 && p->count%p->P12==0)
+    if(p->mpirank==0 && p->count%p->P12==0 && !solver_print_quiet())
     cout<<"REEFMG cycles "<<p->solveriter
         <<"  res "<<setprecision(3)<<relres
         <<"  coarsen "<<setprecision(3)<<coarsentime
@@ -564,6 +596,8 @@ void reefmg::fill_matrix8(lexer *p, double *f, vec &rhs, matrix_diag &M)
     if(!topo)
     for(size_t q=0;q<nsl;++q)
     if(wetsig[q]!=p->wet[q]){topo=true; break;}
+
+    fill_topo=topo;
 
     if(topo)
     {
@@ -802,6 +836,7 @@ void reefmg::start_solver5(lexer *p, ghostcell *pgc, field &f, vec &rhs, matrix_
 
     starttime=pgc->timer();
     mg.coarsen();
+    mkey_ok=false;
     const double coarsentime=pgc->timer()-starttime;
 
     starttime=pgc->timer();
@@ -813,7 +848,7 @@ void reefmg::start_solver5(lexer *p, ghostcell *pgc, field &f, vec &rhs, matrix_
 
     fillbackvec5(p,f);
 
-    if(p->mpirank==0 && p->count%p->P12==0)
+    if(p->mpirank==0 && p->count%p->P12==0 && !solver_print_quiet())
     cout<<"REEFMG cycles "<<p->solveriter
         <<"  res "<<setprecision(3)<<relres
         <<"  coarsen "<<setprecision(3)<<coarsentime

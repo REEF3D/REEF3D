@@ -202,3 +202,56 @@ bool sixdof_void::membrane_couple_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, i
 {
     return pnetinter->membrane_couple_nhflow(p,d,pgc,iter,alpha,WL,it);
 }
+
+// checkpoints (P 48, I 45): without a floating body (X 10 0) the fixed nets (X 320) and mooring lines
+// (X 310) of sixdof_void; their state is the same on all ranks
+void sixdof_void::ckpt_state(lexer *p, std::vector<double> &v)
+{
+    v.push_back(1.0);   // version
+    v.push_back(printtime);
+    auto part = [&](const std::vector<double> &s)
+    {
+        v.push_back(double(s.size()));
+        v.insert(v.end(),s.begin(),s.end());
+    };
+    v.push_back(double(pmooring.size()));
+    for(mooring *m : pmooring)
+    {
+        std::vector<double> s;
+        m->ckpt_state(s);
+        part(s);
+    }
+    std::vector<double> s;
+    pnetinter->ckpt_state(s);
+    part(s);
+}
+
+bool sixdof_void::ckpt_restore(lexer *p, ghostcell *pgc, const std::vector<double> &v)
+{
+    size_t k = 0;
+    auto get = [&](double &x){ if(k>=v.size()) return false; x = v[k++]; return true; };
+    auto part = [&](std::vector<double> &s)
+    {
+        double n=0.0;
+        if(!get(n) || k+size_t(n)>v.size())
+        return false;
+        s.assign(v.begin()+k,v.begin()+k+size_t(n));
+        k += size_t(n);
+        return true;
+    };
+    double version=0.0, nm=0.0;
+    if(!get(version) || int(version)!=1 || !get(printtime) || !get(nm) || size_t(nm)!=pmooring.size())
+    return false;
+    for(mooring *m : pmooring)
+    {
+        std::vector<double> s;
+        if(!part(s))
+        return false;
+        size_t j=0;
+        m->ckpt_restore(s,j);
+    }
+    std::vector<double> s;
+    if(!part(s) || !pnetinter->ckpt_restore(s))
+    return false;
+    return k==v.size();
+}

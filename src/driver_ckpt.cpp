@@ -30,8 +30,12 @@ Author: Hans Bihs
 //  with those of the model; the resolved bodies of FNPF the same way (fnpf_6DOF_ckpt.cpp), their grids
 //  on the patches of the mesh refinement with the patches.  REEF3D::CORAL (Z 40): its state as a blob
 //  (coral_reef3d::ckpt_state), set into the model after its set-up (coral_ini).
-//  Not there yet (refused with a message): 6DOF wavemaker objects, nets, power take-off; sediment, DEM,
-//  FEM structures, SEASTATE; NHFLOW with Lagrangian particles, membranes; CFD with FSI.
+//  The nets (X 320) are in the blob of their body; without a floating body (X 10 0) the fixed nets and
+//  mooring lines are the blob of sixdof_void.  DEM (E 10): its scalars, the particles of every rank.
+//  Sediment (S 10): its slices and fields with those of the grid (the registry, ckpt_registry.h; NHFLOW
+//  under the tag "reg"), its scalars, those of the rank (CPM: the parcels), the sediment cell flags.
+//  Not there yet (refused with a message): 6DOF wavemaker objects; FEM structures, SEASTATE; NHFLOW with
+//  Lagrangian particles, membranes, sediment with mesh refinement or multi-block grids; CFD with FSI.
 
 #include"driver.h"
 #include"lexer.h"
@@ -52,6 +56,8 @@ Author: Hans Bihs
 #include"nhflow_momentum.h"
 #include"ioflow.h"
 #include"cfd_ckpt.h"
+#include"dem.h"
+#include"sediment.h"
 #include"cfd_amr.h"
 #include"6DOF.h"
 #include"coral/reef3d/coral_reef3d.h"
@@ -61,28 +67,23 @@ using namespace std;
 // what the checkpoints do not cover yet, empty: all
 string driver::ckpt_unsupported()
 {
+    // (SFLOW and SEASTATE: their own checks, sflow_f_ckpt.cpp and seastate_f_ckpt.cpp)
     if(p->A10!=3 && p->A10!=5 && p->A10!=6)
-    return "checkpoints are there for SFLOW, FNPF, NHFLOW and CFD only";
+    return "the checkpoints of the driver are there for FNPF, NHFLOW and CFD only";
     // 6DOF: rigid bodies (free, towed; NHFLOW also the ship-wave pressure patch; FNPF the resolved
-    // bodies with their grids) with all moorings, motion files and the ship load models
+    // bodies with their grids) with all moorings, motion files, the ship load models and the power
+    // take-off
     if(p->X10==4)
     return "6DOF wavemaker objects (X 10 4) are not in the checkpoints yet";
-    if(p->X10>0 && p->X320>0)
-    return "nets (X 320) are not in the checkpoints yet";
-    if(p->X10>0 && p->X500>0)
-    return "the 6DOF power take-off (X 500) is not in the checkpoints yet";
     if(p->A10==6)
     {
-        if(p->S10>0) return "CFD sediment is not in the checkpoints yet";
-        if(p->E10>0) return "DEM is not in the checkpoints yet";
         if(p->Z10>0 || p->Z30>0) return "FSI and FEM structures are not in the checkpoints yet";
         if(p->A750>0) return "SEASTATE is not in the checkpoints yet";
     }
     if(p->A10==5)
     {
-        if(p->S10>0) return "NHFLOW sediment is not in the checkpoints yet";
+        if(p->S10>0 && (p->G1>0 || p->geo_mb>0)) return "NHFLOW sediment with mesh refinement or multi-block grids is not in the checkpoints yet";
         if(p->L10>0) return "NHFLOW Lagrangian particles are not in the checkpoints yet";
-        if(p->E10>0) return "DEM is not in the checkpoints yet";
         if(p->Z30>0) return "FEM structures are not in the checkpoints yet";
         if(p->A750>0) return "SEASTATE is not in the checkpoints yet";
         if(p->X330>0) return "membranes are not in the checkpoints yet";
@@ -117,6 +118,7 @@ reefrun_ckpt& driver::ckpt()
             nhflow_ckpt_fields(p,d,wd,wi);
             pnhfturb->ckpt_fields(wd,wi);
             pnhfmom->ckpt_fields(wd,wi);
+            wd("dem_ALPHAV",'C',pdem->ckpt_alpha());
             if(pnhfamr!=nullptr)
             pnhfamr->ckpt_write(ck);
         }
@@ -145,6 +147,14 @@ reefrun_ckpt& driver::ckpt()
             wd("sixdof_slice",'S',p6dof->ckpt_slice());
         }
 
+        // without a floating body: the fixed nets (X 320) and mooring lines (X 310) of sixdof_void
+        if(p->X10==0 && p->A10!=3 && (p->X320>0 || p->X310>0))
+        {
+            vector<double> sd;
+            p6dof->ckpt_state(p,sd);
+            ck.blob("sixdof_void",sd);
+        }
+
         // REEF3D::CORAL (the same on all ranks), its outputs on disk up to the checkpoint
         if(pcoral!=nullptr)
         {
@@ -152,6 +162,33 @@ reefrun_ckpt& driver::ckpt()
             pcoral->ckpt_state(cs);
             ck.blob("coral",cs);
             pcoral->flush();
+        }
+
+        // sediment (S 10): NHFLOW the registry of its grid (the slices of the sediment objects; CFD has them with
+        // its fields), the scalars, those of the rank (CPM: the parcels), the sediment cell flags, the depth of
+        // the NHFLOW suspended load
+        if(p->S10>0 && (p->A10==5 || p->A10==6))
+        {
+            if(p->A10==5)
+            cfd_ckpt_write(p,ck,"reg");
+            vector<double> sv, sr;
+            psed->ckpt_state(p,sv);
+            ck.blob("sediment",sv);
+            psed->ckpt_rank_state(p,sr);
+            ck.rank_blob("sediment_rank",sr);
+            if(p->DFBED!=nullptr)
+            ck.put_Si("DFBED",p->DFBED);
+            if(psed->ckpt_wln()!=nullptr)
+            ck.put_S("sed_WLN",psed->ckpt_wln());
+        }
+
+        // DEM (E 10): the scalars, the particles of the rank
+        if(p->E10>0 && (p->A10==5 || p->A10==6))
+        {
+            vector<double> dg, dr;
+            pdem->ckpt_state(p,dg,dr);
+            ck.blob("dem",dg);
+            ck.rank_blob("dem_rank",dr);
         }
 
         // the state of the boundary conditions (local to the rank)
@@ -178,8 +215,13 @@ reefrun_ckpt& driver::ckpt()
                 nhflow_ckpt_fields(p,d,rd,ri);
                 pnhfturb->ckpt_fields(rd,ri);
                 pnhfmom->ckpt_fields(rd,ri);
+                rd("dem_ALPHAV",'C',pdem->ckpt_alpha());
             }
         };
+
+        // NHFLOW with sediment: the registry of its grid first, the explicit lists after it
+        if(p->S10>0 && p->A10==5 && !cfd_ckpt_read(p,ck,msg,"reg"))
+        return false;
 
         level0();
         if(p->A10==5)
@@ -257,6 +299,14 @@ reefrun_ckpt& driver::ckpt()
             pgc->gcsldf_update(p);
         }
 
+        // without a floating body: the fixed nets and mooring lines
+        if(p->X10==0 && p->A10!=3 && (p->X320>0 || p->X310>0))
+        if(!ck.has("sixdof_void") || !p6dof->ckpt_restore(p,pgc,ck.get_blob("sixdof_void")))
+        {
+            msg = "the nets (X 320) or mooring lines (X 310) of the checkpoint do not fit this run";
+            return false;
+        }
+
         // REEF3D::CORAL: its state for coral_ini (the model is set up after the fluid)
         if(p->Z40>0)
         {
@@ -266,6 +316,39 @@ reefrun_ckpt& driver::ckpt()
                 return false;
             }
             coral_ckpt = ck.get_blob("coral");
+        }
+
+        // sediment (S 10): after the arrays and the flags of the geometry
+        if(p->S10>0 && (p->A10==5 || p->A10==6))
+        {
+            if(!ck.has("sediment") || !psed->ckpt_restore(p,pgc,ck.get_blob("sediment")))
+            {
+                msg = "the checkpoint has no sediment state that fits this run (S 10)";
+                return false;
+            }
+            const vector<vector<double>> sr = ck.same_decomposition() ? vector<vector<double>>{ck.get_rank_blob("sediment_rank",p->mpirank)}
+                                                                      : ck.get_rank_blobs("sediment_rank");
+            if(!psed->ckpt_rank_restore(p,pgc,sr,ck.same_decomposition()))
+            {
+                msg = "the sediment state of the ranks does not fit this run (S 10)";
+                return false;
+            }
+            if(p->DFBED!=nullptr && ck.has("DFBED"))
+            ok = ck.get_Si("DFBED",p->DFBED) && ok;
+            if(psed->ckpt_wln()!=nullptr && ck.has("sed_WLN"))
+            ok = ck.get_S("sed_WLN",psed->ckpt_wln()) && ok;
+        }
+
+        // DEM (E 10): applied at its first step, after the set-up from dem.txt
+        if(p->E10>0 && (p->A10==5 || p->A10==6))
+        {
+            const vector<vector<double>> dr = ck.same_decomposition() ? vector<vector<double>>{ck.get_rank_blob("dem_rank",p->mpirank)}
+                                                                      : ck.get_rank_blobs("dem_rank");
+            if(!ck.has("dem") || !pdem->ckpt_restore(p,ck.get_blob("dem"),dr,ck.same_decomposition()))
+            {
+                msg = "the checkpoint has no DEM state that fits this run (E 10)";
+                return false;
+            }
         }
 
         // the state of the boundary conditions: on the same decomposition (else they start again)

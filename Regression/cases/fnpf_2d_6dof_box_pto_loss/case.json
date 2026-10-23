@@ -1,0 +1,7 @@
+{
+ "description": "fnpf_2d_6dof_box_pto with drive-train losses (X 510 B Fc v_eps: loss damper 15 N s/m and loss Coulomb friction 0.02 N): they act on the box but are not absorbed power; P_loss and E_loss in REEF3D_6DOF_pto_0.dat. The CORAL counterpart is fnpf_2d_coral_fluid_body_loss.",
+ "base": "fnpf_2d_6dof_box_pto",
+ "ctrl_add": ["X 510 15.0 0.02 0.005"],
+ "tags": ["2d", "fnpf", "6dof", "floating", "pto"],
+ "covers": ["coral_sixdof_pto X 510 drive-train losses", "pto_composite loss elements (P_loss)"]
+}

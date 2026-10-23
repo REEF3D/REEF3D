@@ -103,7 +103,7 @@ bool nhflow_amr::si_own(int g, int ii, int jj)
     return !ring0(ii,jj);
 
     reefamr_patch *c = P[g];
-    return ii>=EXT && ii<EXT+c->nx && jj>=EXT && jj<EXT+c->ny;
+    return ii>=EXT && ii<EXT+c->nx && jj>=EY && jj<EY+c->ny;
 }
 
 void nhflow_amr::si_setup()
@@ -684,7 +684,7 @@ void nhflow_amr::dt_si_cmin(double cfl, double &cmin, double &hmax)
         double *EVh = (pp->A561>0) ? dd->EVH : dd->EV;
 
         for(int ii=EXT; ii<EXT+c->nx; ++ii)
-        for(int jj=EXT; jj<EXT+c->ny; ++jj)
+        for(int jj=EY; jj<EY+c->ny; ++jj)
         {
             const int n2 = lij(pp,ii,jj);
 
@@ -735,6 +735,6 @@ void nhflow_amr::longrun_grids(nhflow_longrun *lr)
     {
         nhflow_amr_patch *c = NP(id);
         reefamr_patch *q = P[id];
-        lr->add_grid(c->pp,c->d,EXT,EXT+q->nx,EXT,EXT+q->ny);
+        lr->add_grid(c->pp,c->d,EXT,EXT+q->nx,EY,EY+q->ny);
     }
 }

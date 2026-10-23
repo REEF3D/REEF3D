@@ -25,6 +25,8 @@ Author: Hans Bihs
 
 #include"increment.h"
 #include"amr_load.h"
+#include"bc_zone.h"
+#include"background_state.h"
 #include<vector>
 #include<cstddef>
 #include<algorithm>
@@ -294,6 +296,12 @@ protected:
     void xrun(reefamr_xplan&, int, int);
     void xrun_rev(reefamr_xplan&, int, int);     // the reverse of xrun: rbuf to the receive peers, sbuf from the send peers
 
+    // local patches left out of the fills and the block transfers of their level (fill_run, fill_run_sub,
+    // block_down_if, block_up: the local loops; the items served to other ranks are all evaluated):
+    // nullptr, or a flag per patch (FNPF X 36: the patches outside the window of a unit-mode solve)
+    const vector<char> *skip = nullptr;
+    bool skipped(int id) const { return skip!=nullptr && (*skip)[id]; }
+
     // cells around the level-l patches: eval(const reefamr_fill&, double*) gives nv values of a
     // local source (kind 0, 1, 3), store(reefamr_patch*, int id, const reefamr_fill&, const double*)
     // puts them into the patch
@@ -315,6 +323,8 @@ protected:
         fillv.resize(nv);
         for(int id : lev[l])
         {
+            if(skipped(id))
+            continue;
             reefamr_patch *c = P[id];
             for(auto &f : c->fill)
             {
@@ -349,6 +359,8 @@ protected:
         fillv.resize(nv);
         for(int id : lev[l])
         {
+            if(skipped(id))
+            continue;
             reefamr_patch *c = P[id];
             const vector<int> *E = sel(c);
             if(E==nullptr)
@@ -475,7 +487,7 @@ protected:
         for(int id : lev[l])
         {
             reefamr_patch *c = P[id];
-            const bool nd = need(c);
+            const bool nd = need(c) && !skipped(id);
             for(size_t k=0; k<c->rgrid.size(); ++k)
             if(c->rgrid[k]>=-1)
             {
@@ -493,7 +505,7 @@ protected:
         for(int m=0; m<X.rcount[k]; ++m)
         {
             const int id = bloc[l][2*it], kb = bloc[l][2*it+1];
-            if(need(P[id]))
+            if(need(P[id]) && !skipped(id))
             store(P[id],id,kb,&X.rbuf[k][(size_t)m*nv]);
             ++it;
         }
@@ -514,6 +526,13 @@ protected:
             {
                 const int it = X.sitem[k][m];
                 const int id = bloc[l][2*it], kb = bloc[l][2*it+1];
+                // (a skipped patch sends NaN: the parent keeps its value, restrict_col)
+                if(skipped(id))
+                {
+                    for(int v=0; v<nv; ++v)
+                    sb[m*nv+v] = std::numeric_limits<double>::quiet_NaN();
+                    continue;
+                }
                 compute(P[id],id,kb,&sb[m*nv]);
             }
         }
@@ -525,9 +544,15 @@ protected:
         for(int id : lev[l])
         {
             reefamr_patch *c = P[id];
+            const bool sk = skipped(id);
             for(size_t k=0; k<c->rgrid.size(); ++k)
             if(c->rgrid[k]>=-1)
             {
+                if(sk)
+                {
+                    ++key;
+                    continue;
+                }
                 compute(c,id,(int)k,&blockv[0]);
                 store(reefamr_block{c->rgrid[k],c->ric[k],c->rjc[k]},key++,&blockv[0]);
             }
@@ -651,7 +676,10 @@ protected:
     vector<rblock> blk;                 // empty: one block, the native grid
     int nblk = 0;
     vector<int> bopen[2];               // G 54: per block the line of its -i face (inflow) [0] / +i face (outflow) [1], -1 none
-    void blocks_open(lexer*);           // the open faces of the blocks 1.. (G 54), checked
+    vector<bc_zone> bzones;             // B 522: the edge zones on the faces of the blocks 1..
+    vector<int> bzone[2];               // per block the zone of its -i face [0] / +i face [1] (index in bzones), -1 none
+    background_state bzbg;              // their backgrounds (B 510-515)
+    void blocks_open(lexer*);           // the open faces of the blocks 1.. (G 54) and their edge zones (B 522), checked
     int GNXV = 0, GNYV = 0;             // extent of the level-0 index space with the blocks
     static const int BGAP = 64;         // level-0 cells between the blocks in the index space
     void blocks_setup(lexer*, ghostcell*);
@@ -827,6 +855,9 @@ protected:
     int ysh(int l) const { return l*sy; }                                           // y shift from level 0 to level l
     int ychild(int J) const { return J<<sy; }                                       // first child in y of cell J
     int yparent(int J) const { return (J>=0) ? (J>>sy) : -(((-J)-1)>>sy)-1; }        // parent in y of cell J
+    int fr1(int side) const { return (sy==0 && side<2) ? 0 : 1; }                    // the second fine face of a coarse face
+                                                                                     // along a patch side (r+fr1): r itself
+                                                                                     // on the -x/+x sides of a 2D grid
     int regrids;
     int regrids_skipped = 0;        // regrids with an unchanged layout (par.lazy)
     long cells_total;

@@ -1,0 +1,12 @@
+{
+ "base": "fnpf_3d_coral_array",
+ "ctrl_set": {
+  "P 48": "5",
+  "P 49": "3"
+ },
+ "description": "fnpf_3d_coral_array (three FNPF point absorbers driven by REEF3D::CORAL, a refined zone around each) with a checkpoint every 5 steps (P 48 5, the newest three kept): the uninterrupted run of fnpf_3d_coral_array_restart. Every body solves its unit modes from its own last solution (fnpf_6DOF_grid::psib, in the checkpoint as fb_psi_<body>_<mode>).",
+ "tags": ["3d", "fnpf", "amr", "6dof", "floating", "coral", "checkpoint"],
+ "covers": [
+  "fnpf_6DOF: the unit modes of every body (psib) on level 0 and the patches, grid_fields"
+ ]
+}

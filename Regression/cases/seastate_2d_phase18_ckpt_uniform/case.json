@@ -1,0 +1,18 @@
+{
+ "base": "seastate_2d_phase14_sordup",
+ "ctrl_set": {
+  "A 795": "1.0e-4",
+  "A 799": "1",
+  "A 708": "1.0e-8",
+  "P 48": "2"
+ },
+ "description": "as seastate_2d_phase14_sordup (refraction on a slope, uniform grid, second-order fluxes) with the spectral sparsity (A 795 1e-4) and A 799 1, converged to A 708 1e-8, a checkpoint every 2 iterations (P 48 2, Phase 18). Validation in Dropbox SEASTATE/validation/67_rebalance.",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate"
+ ],
+ "covers": [
+  "seastate_f checkpoints on a uniform grid"
+ ]
+}

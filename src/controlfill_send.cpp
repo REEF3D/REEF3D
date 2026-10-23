@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"control.h"
@@ -274,6 +274,14 @@ void control::ctrlsend()
     dd++;
     dctrl[dd] = A366;
     dd++;
+    dctrl[dd] = A359;
+    dd++;
+    dctrl[dd] = A360;
+    dd++;
+    dctrl[dd] = A364;
+    dd++;
+    ictrl[ii] = A367;
+    ii++;
     ictrl[ii] = A370;
     ii++;
     dctrl[dd] = A371_u;
@@ -468,6 +476,8 @@ void control::ctrlsend()
     dd++;
     dctrl[dd] = A563;
     dd++;
+    ictrl[ii] = A559;
+    ii++;
     ictrl[ii] = A570;
     ii++;
     dctrl[dd] = A571_u;
@@ -912,6 +922,8 @@ void control::ctrlsend()
     ictrl[ii] = B513;
     ii++;
     ictrl[ii] = B525;
+    ii++;
+    ictrl[ii] = B522;
     ii++;
     ictrl[ii] = B530;
     ii++;
@@ -1731,6 +1743,10 @@ void control::ctrlsend()
     ii++;
     ictrl[ii] = P48;
     ii++;
+    ictrl[ii] = P49;
+    ii++;
+    dctrl[dd] = P48_dt;
+    dd++;
     dctrl[dd] = P47_ts;
     dd++;
     dctrl[dd] = P47_te;
@@ -2057,6 +2073,8 @@ void control::ctrlsend()
     ictrl[ii] = Q72;
     ii++;
     ictrl[ii] = Q74;
+    ii++;
+    ictrl[ii] = Q78;
     ii++;
     ictrl[ii] = Q51;
     ii++;
@@ -2565,6 +2583,18 @@ void control::ctrlsend()
     dd++;
     ictrl[ii] = X27;
     ii++;
+    ictrl[ii] = X28;
+    ii++;
+    dctrl[dd] = X29_d;
+    dd++;
+    dctrl[dd] = X29_a;
+    dd++;
+    dctrl[dd] = X30;
+    dd++;
+    ictrl[ii] = X35;
+    ii++;
+    ictrl[ii] = X36;
+    ii++;
     ictrl[ii] = X31;
     ii++;
     ictrl[ii] = X32;
@@ -2919,6 +2949,8 @@ void control::ctrlsend()
     ii++;
     ictrl[ii] = X508;
     ii++;
+    ictrl[ii] = X510;
+    ii++;
     dctrl[dd] = X505_Fmax;
     dd++;
     dctrl[dd] = X505_Pmax;
@@ -2934,6 +2966,12 @@ void control::ctrlsend()
     dctrl[dd] = X507_C;
     dd++;
     dctrl[dd] = X508_t;
+    dd++;
+    dctrl[dd] = X510_B;
+    dd++;
+    dctrl[dd] = X510_Fc;
+    dd++;
+    dctrl[dd] = X510_veps;
     dd++;
 
     ictrl[ii] = Y1;
@@ -3311,6 +3349,13 @@ void control::ctrlsend()
         dd++;
         dctrl[dd] = B525_tramp[n];
         dd++;
+    }
+    for(n=0;n<B522;++n)
+    {
+        ictrl[ii] = B522_id[n];
+        ii++;
+        ictrl[ii] = B522_b[n];
+        ii++;
     }
     for(n=0;n<B202;++n)
     {

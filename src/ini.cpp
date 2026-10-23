@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include "control.h"
@@ -117,6 +117,10 @@ void control::ini_default()
     A362=2;      // int breaking filter inner iter
     A365=1.86;   // double viscosity breaking wave
     A366=1.0;   // double viscosity breaking wave alpha_eta
+    A359=0.85;   // double breaking A350 4: onset threshold of B = u_s/C at the crest
+    A360=8.0;    // double breaking A350 4: termination when the largest front-face slope is below this angle (deg)
+    A364=1.0;    // double breaking A350 4: coefficient of the bore (hydraulic jump) dissipation g C H^3/(4 h_c)
+    A367=1;      // int breaking A350 4: deep-water breaking strength b(Gamma) of Derakhti et al. (2018): 1 on, 0 off
     
     A370=0;      // int wind model
     A371_u=0.0;  // double wind velocity
@@ -221,6 +225,7 @@ void control::ini_default()
     A562_cs=0.15;  // double horizontal Smagorinsky constant for A 561
     A562_nub=0.0;  // double background horizontal eddy viscosity for A 561
     A563=0.0;      // double QCR coefficient C_cr1 (0: off, Spalart 2000: 0.3)
+    A559=0;        // int NHFLOW EARSM (Wallin & Johansson 2000) with k-omega (A 560 2/22): 0 off, 1 on
     
     A570=0;      // int wind model
     A571_u=0.0;  // double wind velocity
@@ -439,6 +444,7 @@ void control::ini_default()
     B108=0;        // int read wave generation  origin
     B500=B501=B502=B504=B520=B521=B524=0;   // int iowave redesign: wave sources (B 500-504), zones (B 520-524)
     B525=0;        // int iowave redesign: discharge of a clamped discharge edge (B 525 id Q t_ramp), repeatable
+    B522=0;        // int multi-block grid (G 50 1): zones on a face of a block 1.. (B 522 id b: the B 521 edge of zone id is a face of block b), repeatable
     B513=0;          // int iowave redesign: vertical profile of the background current (B 513 id profile par), repeatable
     B505=0;          // int iowave: frame of a wave source (B 505 id frame; 0: B 92 generation frame, 1: global)
     B510=B511=B514=B523=0;   // int iowave redesign: tidal / current background (B 510-514), zone background (B 523)
@@ -741,7 +747,7 @@ void control::ini_default()
     G30=0;      // int NHFLOW and FNPF mesh refinement: 1 patches may cover dry and shallow cells (wetting and drying in the patches; FNPF: the static coastline A 343 1 or the moving one A 343 2, 3), 0 they keep 4 level-0 cells away
     G31=1;      // int NHFLOW mesh refinement with A 512 2: 1 one implicit diffusion solve over the leaf cells of all grids (composite), 0 every grid solves its own
     G52=0;      // int curvilinear NHFLOW (G 50): 1 the i-walls are slip walls as the j-walls (normal velocity mirrored, the pressure correction Neumann), so that a wall acts the same in any index direction (set on multi-block grids); 0 the Cartesian x-walls
-    G54=0;      // int multi-block grid (G 50 1): number of open boundaries on the blocks 1.. (G 54 b t v: block b, t 1: discharge v in through its -i face, t 2: water level v at its +i face)
+    G54=0;      // int multi-block grid (G 50 1): number of open boundaries on the blocks 1.. (G 54 b t v: block b, t 1: discharge v in through its -i face, t 2: water level v at its +i face, t 3: discharge time series discharge-<v>.dat through the -i face, t 4: water level time series waterlevel-<v>.dat at the +i face)
     G53=4;      // int NHFLOW multi-block grid: coarse space across the blocks in the preconditioner of the composite solves, aggregates of this many columns in i and j (0: off)
     G51=2;      // int NHFLOW multi-block grid (G 50 1, DIVEMesh R 20 1): passes of the block-local V-cycles in the preconditioner of the pressure, the corrections of the neighbour blocks filled in between
     G50=0;      // int curvilinear horizontal grid (SFLOW): 0 Cartesian, 1 nodes of the CURV section of grid-geometry.dat, 2 nodes of curvgrid.dat
@@ -749,9 +755,9 @@ void control::ini_default()
     G42=0.0;    // double CFD mesh refinement with floating bodies (X 10 1): a patch casts the bodies again when a vertex has moved more than G 42 times its cell size since its last cast (the stages in between keep that level set; their forcing velocity is that of the stage); 0 at every change of the pose
     G43=0;      // int mesh refinement (SFLOW, FNPF, NHFLOW, CFD): load statistics of the ranks every G 43 steps (busy and MPI time, patch and regrid time, predicted and measured load, the measured cost of a patch cell; REEF3D_<M>_AMR/REEF3D_<M>_AMR_load*.dat); 0 off
     G41=1.0;    // double mesh refinement on several ranks (NHFLOW, SFLOW, FNPF, CFD): the work of a patch cell against a level-0 cell in the placement of G 40 1, 2; 0 measured in the run (CFD: the timers of the ranks at every regrid, with a report of the measured load, and for the load map of a rebalance (G 46) the busy times of the ranks fitted to their level-0 and patch cells; NHFLOW, SFLOW, FNPF: the measured cost model, the busy time of the ranks fitted to their level-0 cells that are not solid, their patch cells and the parent cells they serve, at every regrid; a static refinement is placed once more at step 15)
-    G45=0;      // int NHFLOW, SFLOW, FNPF and CFD mesh refinement: the load map every G 45 steps, the work per step of every level-0 column (CFD: cell, averaged over the window of G 47 steps) averaged over the run (its level-0 cells that are not solid plus the weight of a patch cell (G 41, or measured) times the patch cells over it), for the weighted partition of DIVEMesh (M 20 5, M 35 1); REEF3D_<M>_AMR/REEF3D_<M>_AMR_loadmap.dat; 0 off
-    G46=0.0;    // double SFLOW, FNPF, NHFLOW, CFD on several ranks: rebalance when the measured load max/mean of the ranks (busy time, the MPI waits taken out) exceeds G 46: checkpoint, load map, stop with exit code 3; the next start (tools/reef3d_rebalance.sh) decomposes with the weighted partition and the load map and continues (needs DIVEMesh M 50 1, 2); 0 off
-    G47=100;    // int G 46: steps between the checks of the load (and at least before the first)
+    G45=0;      // int NHFLOW, SFLOW, FNPF and CFD mesh refinement: the load map every G 45 steps, the work per step of every level-0 column (CFD: cell, averaged over the window of G 47 steps) averaged over the run (its level-0 cells that are not solid plus the weight of a patch cell (G 41, or measured) times the patch cells over it), for the weighted partition of DIVEMesh (M 20 5, M 35 1); REEF3D_<M>_AMR/REEF3D_<M>_AMR_loadmap.dat; SEASTATE (stand-alone): the measured work of the cells per iteration of every level-0 column [microseconds], the patch cells over it included, REEF3D_SEASTATE_Log/REEF3D_SEASTATE_loadmap.dat; CFD with CPM (no refinement): a map of the cells, 1 per fluid cell plus the measured cost of the parcel updates in the cell, REEF3D_CFD_CPM_Particle/REEF3D_CFD_CPM_loadmap.dat; 0 off
+    G46=0.0;    // double SFLOW, FNPF, NHFLOW, CFD, SEASTATE (stand-alone) on several ranks: rebalance when the measured load max/mean of the ranks (busy time, the MPI waits taken out; SEASTATE: the time of the solves of its cells) exceeds G 46 (SEASTATE: and the weighted partition lowers it by 10 % by its load map): checkpoint, load map, stop with exit code 3; the next start (tools/reef3d_rebalance.sh) decomposes with the weighted partition and the load map and continues (needs DIVEMesh M 50 1, 2); 0 off
+    G47=100;    // int G 46: steps between the checks of the load (and at least before the first); SEASTATE stationary: iterations of the step
     G44=0.0;    // double NHFLOW, SFLOW and FNPF mesh refinement with G 40 1: weight of the patch phase in the placement (the cost of a placement is the maximum work of the ranks plus G 44 times their maximum patch work); 0 the total work only
     // grid
     G502=0;            // int sigma grid
@@ -808,7 +814,8 @@ void control::ini_default()
 	I40=0;			// int ini from state file
 	I41=0;			// int ID of state file
     I44=0;          // int FNPF state with Fi
-    I45=0;          // int SFLOW, FNPF, NHFLOW, CFD: 1 restart from the latest checkpoint (REEF3D_Checkpoint/latest, P 48) on any decomposition
+    I45_count=0;    // int I 45 <count> (count > 1): from the checkpoint REEF3D_Checkpoint/<count> instead of the latest (control::parse)
+    I45=0;          // int SFLOW, FNPF, NHFLOW, CFD, SEASTATE (stand-alone): 1 restart from the latest checkpoint (REEF3D_Checkpoint/latest, P 48; it may hold a bare count) on any decomposition, <count> (> 1) from REEF3D_Checkpoint/<count> (SEASTATE stationary: the step continues at the iteration of the checkpoint)
     I50=0;			// double simtime ini
     I55=0.0;        // double reference pressure
 	I56=0;          // int pressure above F56 set to zero
@@ -882,7 +889,9 @@ void control::ini_default()
     P45=2;             // int print into single or continous state file
     P46=0;             // int print state iteration window
     P47=0;             // int print state time window
-    P48=0;             // int SFLOW, FNPF, NHFLOW, CFD: a checkpoint every P 48 steps (REEF3D_Checkpoint/<count>, for I 45 on any decomposition); 0 off
+    P48_dt=0.0;        // double P 48 N dt: also a checkpoint every dt seconds of simulated time (at the first step at or past each multiple of dt); P 48 0 dt: by time only
+    P49=-1;            // int the newest P 49 checkpoints are kept (REEF3D_Checkpoint/history), older ones removed; 0: all kept; not given: 2 (SEASTATE 1)
+    P48=0;             // int SFLOW, FNPF, NHFLOW, CFD, SEASTATE (stand-alone): a checkpoint every P 48 steps (REEF3D_Checkpoint/<count>, for I 45 on any decomposition); SEASTATE stationary: every P 48 iterations of the step (REEF3D_Checkpoint/<count>_<iteration>); kept: P 49; 0 off
     P50=0;				// int wave theory wave gages
 	P51=0;             // int print out wsf
 	P52=0;            // int print out wsfline in x-dir
@@ -1037,6 +1046,7 @@ void control::ini_default()
     Q75=0.0;            // double bedload layer: sand slide of the bed surface beyond this slope (tan of the angle of repose), 0: off
     Q76=-1.0e20;        // double fixed (non-erodible) parcel bed upstream of x = Q76
     Q77=1.0e20;         // double fixed (non-erodible) parcel bed downstream of x = Q77
+    Q78=0;              // int parcel merge and split: about Q78 parcels per cell; resting grains of the jammed bed (Q 58, S 10 1) merge in pairs in cells that hold more, and split again when they move or reach smaller cells; 0 off
     Q57=1;              // int Bagnold sheltering of the bed by the moving grains (S 10 1): 0 off, 1 on
     Q52=0;              // int turbulent dispersion of the parcels: 0 off, 1 random displacement with the eddy diffusivity
     Q56=0.0;            // double ride-over: blocked grains turn Q56 |u_blocked| upward (tan of the pivot angle), 0: off
@@ -1251,12 +1261,17 @@ void control::ini_default()
     X12=1;      // int turn force calculation on
     X13=0;      // int NHFLOW floating body (X 10 1/2): water level in the pierced columns from the surrounding free surface (harmonic extension, 0 off)
     X14=1;      // int tangential velocity cfd
-    X15=1;      // int tangential velocity nhflow (0 no slip, 1 tangential kept outside the body, 2 normal projection outside, 3 as 1 with the forcing inside the body only and the momentum fluxes at body faces from the fluid side, for bodies moving at speed, 4 normal projection outside ramped over the shell of 1, rotation invariant, 5 as 1 with the sharp switch at the hull surface instead of the shell ramp)
+    X15=1;      // int tangential velocity nhflow (0 no slip, 1 tangential kept outside the body, 2 normal projection outside, 3 as 1 with the forcing inside the body only and the momentum fluxes at body faces from the fluid side, for bodies moving at speed, 4 normal projection outside ramped over the shell of 1, rotation invariant, 5 as 1 with the sharp switch at the hull surface instead of the shell ramp, 6 as 1 with the faces between body and fluid cells as reflective walls moving with the body in the HLL fluxes (mirror state of the fluid side about the body velocity; Cartesian grid, on the curvilinear grid the fluxes of 3), for wave reflection and wave loads, 7 as 6 with the forcing of 3 (inside the body only), for bodies at speed in waves)
     X16=0;          // int porous floating body (NHFLOW)
     X16_n=0.5;      // double porosity of the floating body
     X16_d50=0.01;   // double characteristic grain / element size of the floating body
     X16_alpha=1000.0; // double linear (Darcy) resistance coefficient
     X16_beta=1.1;   // double quadratic (Forchheimer) resistance coefficient
+    X28=1;        // int FNPF: the added mass of the floating bodies (unit-mode psi solves, with several bodies the cross terms) every X28 time steps; in between the last one is used (1: every step)
+    X30=1.0;      // double FNPF: tolerance of the psi solves of the body loads (pressure psi_0, added-mass unit modes) as a factor on N 44 (1: as the phi solves)
+    X35=0;        // int FNPF: 1: the psi solves of the body loads start from the linear extrapolation in time of the last two solutions of their kind (psi_0 of the same stage, a unit mode) instead of the last one
+    X36=0;        // int FNPF with mesh refinement (G 1, the zones G 12): 1: the unit-mode psi solves of the added mass of a body on its own patches only (the patches that reach into its zone, hull box grown by G 12), psi 0 at their edge and on level 0, instead of on all grids; the cross added mass from the bodies inside these patches only
+    X29_d=X29_a=0.0;  // double FNPF with X28 > 1: the added mass again as soon as a body has moved by more than X29_d [m] or turned by more than X29_a [deg] since it was computed (0: off)
     X27=0;        // int FNPF: a free-surface column with a body node within X27 sigma layers below its free-surface node belongs to the footprint of the body (0: off)
     X17=0.5;        // double FNPF: relaxation of eta in the free-surface columns next to the footprint of a body, once per stage (0: off)
     X18=0.0;        // double FNPF: time constant [s] of the running mean of chi at body-fixed points, removed from the psi_0 free-surface data (0: off)
@@ -1388,6 +1403,9 @@ void control::ini_default()
     X507_K=X507_C=0.0; // double latch stiffness [N/m], damping [N s/m]
     X508=0;         // int PTO declutching
     X508_t=0.0;     // double declutching time [s]
+    X510=0;         // int PTO drive-train losses
+    X510_B=X510_Fc=0.0; // double loss damping [N s/m], loss Coulomb friction [N]
+    X510_veps=0.0;  // double regularisation velocity of the loss friction [m/s], <= 0: 1e-3
 
 	// Developer
 	Y1=0;   // int turn on/off experimental screen force model

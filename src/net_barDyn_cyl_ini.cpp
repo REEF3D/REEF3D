@@ -20,6 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Tobias Martin
 --------------------------------------------------------------------*/
 
+#include"reefckpt.h"
 #include<sys/stat.h>
 #include"net_barDyn.h"
 #include"lexer.h"
@@ -523,9 +524,11 @@ void net_barDyn::cyl_ini(lexer *p, ghostcell *pgc)
             char str[1000];
             sprintf(str,"./REEF3D_CFD_6DOF/REEF3D_6DOF_Net_%i_Point_Probe_%i.dat",nNet,pp+1);
             ofstream header_out;
-            header_out.open(str);
-            header_out<<"Knot point probe located near "<<ppI.transpose()<<endl;
-            header_out<<"time [s] \t x [m] \t y [m] \t z [m]"<<endl;
+            if(reefckpt_open(header_out,str,p->I45))   // I 45: continued from the checkpoint
+            {
+                header_out<<"Knot point probe located near "<<ppI.transpose()<<endl;
+                header_out<<"time [s] \t x [m] \t y [m] \t z [m]"<<endl;
+            }
             header_out.close();
         }		
     }
@@ -540,8 +543,10 @@ void net_barDyn::cyl_ini(lexer *p, ghostcell *pgc)
         char str[1000];
         sprintf(str,"./REEF3D_CFD_6DOF/REEF3D_6DOF_Net_Forces_%i.dat",nNet);
         ofstream header_out;
-        header_out.open(str);
-        header_out<<"time [s] \t Ttop [N] \t Fx [N] \t Fy [N] \t Fz [N]"<<endl;
+        if(reefckpt_open(header_out,str,p->I45))   // I 45: continued from the checkpoint
+        {
+            header_out<<"time [s] \t Ttop [N] \t Fx [N] \t Fy [N] \t Fz [N]"<<endl;
+        }
         header_out.close();
     }		
     printtime = 0.0;

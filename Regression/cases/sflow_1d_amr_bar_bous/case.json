@@ -1,0 +1,23 @@
+{
+ "base": "sflow_2d_amr_bar_bous",
+ "description": "sflow_2d_amr_bar_bous (A 220 4) on a 2D grid: u_a of the Boussinesq model on the leaf cells, x-only restriction and prolongation of the line systems.",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 400,
+ "control_set": {
+  "B 10": "0.0 38.0 0.0 0.1 0.0 0.8"
+ },
+ "ctrl_set": {
+  "G 10": "5.0 13.0 -1 1",
+  "G 11": null
+ },
+ "tags": [
+  "1d",
+  "sflow",
+  "amr",
+  "bous"
+ ],
+ "covers": [
+  "sflow_amr_bous on a 2D grid"
+ ]
+}

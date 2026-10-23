@@ -1,0 +1,22 @@
+{
+ "np": 1,
+ "steps": 400,
+ "tags": [
+  "2d",
+  "sflow",
+  "multiblock",
+  "river",
+  "bend",
+  "curvilinear",
+  "sediment"
+ ],
+ "description": "P8a: the LFM bend of sflow_2d_curv_sed_bend_lfm in three blocks along the flow, the discharge on the -i face of block 1 and the water level on the +i face of block 2 (G 54): the open faces pass the sediment as the native in- and outflow (the cells beyond them carry the sediment flag); the non-equilibrium bed load (S 33 4, Ls = h) relaxes across the block interfaces (sediment_curvilinear/t9 LAYOUT=three).",
+ "covers": [
+  "sediment_f::dfbed_open (sflow_amr::sed_patch_ini, active_sflow)",
+  "non_equillibrium_solve with lagfix and lag_hold, qbn filled around the grids (amr_field 7), lag_refresh for S 33"
+ ],
+ "solver": "sflow",
+ "files": [
+  "blocks.dat"
+ ]
+}

@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"fnpf_6DOF.h"
@@ -32,7 +32,9 @@ Author: Hans Bihs
 #include"fnpf_fsf_update.h"
 #include"fnpf_amr.h"
 #include"reefamr.h"
+#include"solver_print.h"
 #include<functional>
+#include<mpi.h>
 
 // Laplace solver seen by the time stepping when bodies are present: body geometry on the
 // new sigma grid before the phi solve, body-band extrapolation after it.
@@ -55,6 +57,98 @@ private:
     fnpf_laplace *plap;
 };
 
+// X 30: the psi solves of the loads (the hull pressure from psi_0, the added mass from the unit modes)
+// to X 30 x N 44 instead of the tolerance of the phi solves; the solvers (REEFMG, the composite solve
+// of fnpf_amr) read N 44 at every solve, so it is set for the solve and restored after it (the
+// stagnation stop of the composite solve scales with it)
+fnpf_psi_tol::fnpf_psi_tol(lexer *p) : p(p), n44(p->N44)
+{
+    p->N44 = n44*p->X30;
+}
+
+fnpf_psi_tol::~fnpf_psi_tol()
+{
+    p->N44 = n44;
+}
+
+// X 35: the initial guess of a psi solve.  A psi solve started from the last solution of its kind
+// (psi_0 of the previous stage, a unit mode of the previous added mass).  With X 35 1 it starts
+// from the linear extrapolation in time of the last two solutions of the same kind: psi_0 of the
+// same stage of the previous two steps (the stages of the SSP schemes are not equally spaced in
+// time, the same stage of consecutive steps is), the unit mode of the previous two added masses,
+// with subcycling psi_0 of the same stage of the previous two finest steps.  The lagged sigma
+// cross-derivatives of the right-hand side (fnpf_laplace_cds2) take the guess as well, so the
+// results change within the solver tolerance (as a tighter N 44 would).  The extrapolation
+// factor is limited to 2 (a time step that grows).  The Dirichlet rows, the bed ghost nodes and
+// the body band are set after the guess by the caller.
+double fnpf_6DOF::psi_time(lexer *p, int slot) const
+{
+    // the time the solution of the slot stands for: the stage time of psi_0 (RK3: 0, 1, 1/2;
+    // RK4: 0, 1/2, 1/2, 1), the step start for the unit modes (4-9, and 14 on: those of the bodies
+    // 1, 2, ..., psi_slot)
+    const int s = (slot>=10 && slot<14) ? slot-10 : (slot<4 ? slot : -1);
+    double c = 0.0;
+    if(s>=0)
+    {
+        if(p->A310==3)
+        c = (s==1) ? 1.0 : (s==2 ? 0.5 : 0.0);
+        else
+        c = (s==3) ? 1.0 : (s>=1 ? 0.5 : 0.0);
+    }
+    return p->simtime + c*p->dt;
+}
+
+void fnpf_6DOF::psi_guess(fnpf_6DOF_grid &G, int slot, double *f, double t)
+{
+    if(G.p->X35!=1 || slot>=(int)G.h1.size() || G.h1[slot]==nullptr)
+    return;
+
+    const double *p1 = G.h1[slot];
+    const double *p2 = G.h2[slot];
+    const int size = G.p->imax*G.p->jmax*(G.p->kmax+2);
+
+    if(p2==nullptr || !(G.ht1[slot]>G.ht2[slot]))
+    {
+        for(int n=0; n<size; ++n)
+        f[n] = p1[n];
+        return;
+    }
+
+    const double a = MIN((t-G.ht1[slot])/(G.ht1[slot]-G.ht2[slot]), 2.0);
+
+    for(int n=0; n<size; ++n)
+    f[n] = p1[n] + a*(p1[n]-p2[n]);
+}
+
+void fnpf_6DOF::psi_record(fnpf_6DOF_grid &G, int slot, const double *f, double t)
+{
+    if(G.p->X35!=1)
+    return;
+
+    if(slot>=(int)G.h1.size())
+    {
+        G.h1.resize(slot+1,nullptr);
+        G.h2.resize(slot+1,nullptr);
+        G.ht1.resize(slot+1,0.0);
+        G.ht2.resize(slot+1,0.0);
+    }
+
+    const int size = G.p->imax*G.p->jmax*(G.p->kmax+2);
+
+    // the older one takes the new solution (no copy of the newer one)
+    double *q = G.h2[slot];
+    if(q==nullptr)
+    q = new double[size];
+
+    for(int n=0; n<size; ++n)
+    q[n] = f[n];
+
+    G.h2[slot] = G.h1[slot];
+    G.ht2[slot] = G.ht1[slot];
+    G.h1[slot] = q;
+    G.ht1[slot] = t;
+}
+
 fnpf_6DOF::fnpf_6DOF(lexer *p, fdm_fnpf *c, ghostcell *pgc) : initialized(false), foot(p), psiD(p), zeroslice(p),
                                                                eta_ext(p), fi_ext(p), amr(nullptr), amr_layout(-1)
 {
@@ -76,6 +170,30 @@ fnpf_6DOF::fnpf_6DOF(lexer *p, fdm_fnpf *c, ghostcell *pgc) : initialized(false)
     
     if(p->mpirank==0 && nbody>1)
     cout<<"6DOF FNPF: "<<nbody<<" bodies, coupled added mass, psi_0 = phi_t (m-terms neglected)"<<endl;
+
+    if(p->mpirank==0 && p->X36==1)
+    {
+        if(p->G1>0 && p->G12>0 && p->G7!=1)
+        cout<<"6DOF FNPF: the unit modes of the added mass of every body on the patches of its zone only (X 36; G 12 "
+            <<p->G12_r<<": psi 0 at their edge, the cross added mass from the bodies inside them)"<<endl;
+        else
+        cout<<"6DOF FNPF: X 36 needs the mesh refinement with the zones around the bodies (G 1, G 12) and no subcycling (G 7 1): "
+              "the unit modes are solved on all grids"<<endl;
+    }
+
+    if(p->mpirank==0 && p->X28>1)
+    {
+    cout<<"6DOF FNPF: the added mass every "<<p->X28<<" time steps (X 28)";
+    if(p->X29_d>0.0 || p->X29_a>0.0)
+    cout<<", earlier after a motion by more than "<<p->X29_d<<" m or "<<p->X29_a<<" deg (X 29)";
+    cout<<endl;
+    }
+
+    if(p->mpirank==0 && p->X30!=1.0)
+    cout<<"6DOF FNPF: the psi solves of the loads to "<<p->X30<<" x N 44 = "<<p->X30*p->N44<<" (X 30)"<<endl;
+
+    if(p->mpirank==0 && p->X35==1)
+    cout<<"6DOF FNPF: the psi solves start from the extrapolation of the last two of their kind (X 35)"<<endl;
 
     gcval = (p->j_dir==0) ? 150 : 250;
     
@@ -118,6 +236,69 @@ fnpf_6DOF::fnpf_6DOF(lexer *p, fdm_fnpf *c, ghostcell *pgc) : initialized(false)
     g0.fi_ext = &fi_ext;
     g0.pbed = pbed;
     g0.pvel = pvel;
+    
+    // several bodies: the unit modes of the bodies 1, 2, ... on level 0 (the free DOFs; X 36 with mesh
+    // refinement: the unit modes live on the patches of the body's window, level 0 only for a body
+    // without one, allocated then by mode_array)
+    if(nbody>1 && !(p->X36==1 && p->G1>0 && p->G12>0 && p->G7!=1))
+    {
+        g0.psib.assign(6*(nbody-1),nullptr);
+        
+        for(int nb=1; nb<nbody; ++nb)
+        for(int m=0; m<6; ++m)
+        if(psi[m]!=nullptr && !fb_obj[nb]->dof_fixed_fnpf(p,m))
+        p->Darray(g0.psib[6*(nb-1)+m],size);
+    }
+}
+
+double* fnpf_6DOF::mode_array(fnpf_6DOF_grid &G, int nb, int m)
+{
+    if(nb==0 || G.psi[m]==nullptr)
+    return G.psi[m];
+    
+    const int e = 6*(nb-1)+m;
+    
+    if((int)G.psib.size()<=e)
+    G.psib.resize(6*(nbody-1),nullptr);
+    
+    if(G.psib[e]==nullptr)
+    G.p->Darray(G.psib[e],G.p->imax*G.p->jmax*(G.p->kmax+2));
+    
+    return G.psib[e];
+}
+
+// The rotation modes depend on the centre of gravity c: their Neumann data are n.(e_j x (x - c)), so
+// with c' = c + d the solution for the same hull is psi_j - sum_k (e_j x d)_k psi_k (k: the translation
+// modes, Neumann data n_k).  The last solution of mode j (at the c of the last refresh) is corrected
+// with the translation modes of this refresh before the solve, so that its start residual no longer
+// carries the motion of the centre of gravity since then.  Moored cylinder with all six DOFs free
+// (dx 0.08 m, a patch): the start residual of roll and pitch from 2.4e-2 to 1.6e-3 relative.  Needs
+// the translations k with (e_j x d)_k != 0 to be solved; otherwise the last solution is kept as it is.
+void fnpf_6DOF::mode_shift(fnpf_6DOF_grid &G, int nb, int m, double *const *tr, const Eigen::Vector3d &d)
+{
+    if(m<3 || d.squaredNorm()==0.0)
+    return;
+    
+    Eigen::Vector3d e = Eigen::Vector3d::Zero();
+    e(m-3) = 1.0;
+    const Eigen::Vector3d a = e.cross(d);
+    
+    for(int k=0; k<3; ++k)
+    if(a(k)!=0.0 && tr[k]==nullptr)
+    return;
+    
+    double *f = mode_array(G,nb,m);
+    const int size = G.p->imax*G.p->jmax*(G.p->kmax+2);
+    
+    for(int k=0; k<3; ++k)
+    if(a(k)!=0.0)
+    {
+        const double *t = tr[k];
+        const double ak = a(k);
+        
+        for(int n=0; n<size; ++n)
+        f[n] -= ak*t[n];
+    }
 }
 
 fnpf_laplace* fnpf_6DOF::laplace(fnpf_laplace *pl)
@@ -206,6 +387,30 @@ void fnpf_6DOF::stage(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, fnpf
     forces(p,c,pgc,psolv,pf,Keta,Kfi,iter);
     
     motion(p,c,pgc,iter);
+    
+    if(iter == ((p->A310==3) ? 2 : 3))
+    psi_report(p,pgc);
+}
+
+// the psi solves of the step (all stages, all grids): their number and Laplace iterations, and the
+// time of the loads since the start (the maximum over the ranks: rank 0 often holds no patch), one line
+void fnpf_6DOF::psi_report(lexer *p, ghostcell *pgc)
+{
+    if(p->count%p->P12==0)
+    {
+        double t[3] = {t_loads,t_psi,t_band};
+        pgc->globalmax(t,3);
+
+        if(p->mpirank==0 && psi_solves>0)
+        cout<<"6DOF: "<<nbody<<" bod"<<(nbody>1 ? "ies" : "y")<<", "<<psi_solves<<" psi solves"
+            <<(am_count==p->count ? " (with the added mass)" : "")
+            <<", iterations "<<psi_iter<<" (max "<<psi_itmax<<"); loads "<<setprecision(4)<<t[0]
+            <<" s in total (psi solves "<<t[1]<<" s, body band "<<t[2]<<" s)"<<endl;
+    }
+
+    psi_solves = 0;
+    psi_iter = 0;
+    psi_itmax = 0;
 }
 
 void fnpf_6DOF::pre_solve(lexer *p, fdm_fnpf *c, ghostcell *pgc)
@@ -262,53 +467,89 @@ void fnpf_6DOF::body_velocities(fnpf_6DOF_grid &G, ghostcell *pgc)
     
     const int maxpass = 4*(p->gknox + p->gknoy + p->gknoz) + 2;
     
+    // the open body nodes: all nodes at the first pass, then the list of those not filled yet (the
+    // order within a pass does not matter: a node takes only the fluid and the nodes of earlier
+    // passes, mark <= pass)
+    vector<int> &todo = G.todo;
+    todo.clear();
+    
     for(int pass=0; pass<maxpass; ++pass)
     {
         int filled=0;
         
-        ILOOP
-        JLOOP
-        FKLOOP
+        auto node = [&]() -> bool
         {
             const int q = FIJK;
             
-            if(p->flag7[q]>0 && FBF[q]>0.5 && mark[q]==0)
+            int nbr[6] = {q-sI, q+sI, q-sJ, q+sJ, q-1, q+1};
+            int nn = 6;
+            
+            if(p->j_dir==0)
             {
-                int nbr[6] = {q-sI, q+sI, q-sJ, q+sJ, q-1, q+1};
-                int nn = 6;
+            nbr[2] = q-1;
+            nbr[3] = q+1;
+            nn = 4;
+            }
+            
+            double su=0.0, sv=0.0, sw=0.0;
+            int cnt=0;
+            
+            for(int m=0; m<nn; ++m)
+            {
+                const int r = nbr[m];
                 
-                if(p->j_dir==0)
+                if(p->flag7[r]>0 && (FBF[r]<0.5 || (mark[r]>0 && mark[r]<=pass)))
                 {
-                nbr[2] = q-1;
-                nbr[3] = q+1;
-                nn = 4;
-                }
-                
-                double su=0.0, sv=0.0, sw=0.0;
-                int cnt=0;
-                
-                for(int m=0; m<nn; ++m)
-                {
-                    const int r = nbr[m];
-                    
-                    if(p->flag7[r]>0 && (FBF[r]<0.5 || (mark[r]>0 && mark[r]<=pass)))
-                    {
-                    su += U[r];
-                    sv += V[r];
-                    sw += W[r];
-                    ++cnt;
-                    }
-                }
-                
-                if(cnt>0)
-                {
-                U[q] = su/double(cnt);
-                V[q] = sv/double(cnt);
-                W[q] = sw/double(cnt);
-                mark[q] = pass+1;
-                ++filled;
+                su += U[r];
+                sv += V[r];
+                sw += W[r];
+                ++cnt;
                 }
             }
+            
+            if(cnt>0)
+            {
+            U[q] = su/double(cnt);
+            V[q] = sv/double(cnt);
+            W[q] = sw/double(cnt);
+            mark[q] = pass+1;
+            ++filled;
+            return true;
+            }
+            return false;
+        };
+        
+        if(pass==0)
+        {
+            ILOOP
+            JLOOP
+            FKLOOP
+            if(p->flag7[FIJK]>0 && FBF[FIJK]>0.5 && mark[FIJK]==0)
+            if(!node())
+            {
+            todo.push_back(i);
+            todo.push_back(j);
+            todo.push_back(k);
+            }
+        }
+        else
+        {
+            size_t w=0;
+            for(size_t n=0; n<todo.size(); n+=3)
+            {
+                i = todo[n];
+                j = todo[n+1];
+                k = todo[n+2];
+                
+                if(!node())
+                {
+                todo[w]   = i;
+                todo[w+1] = j;
+                todo[w+2] = k;
+                w += 3;
+                }
+            }
+            todo.resize(w);
         }
         
         if(G.l0)
@@ -332,6 +573,43 @@ fnpf_6DOF::~fnpf_6DOF()
     free_grid(G);
 }
 
+// X 28: the added mass (the unit-mode psi solves of the free DOFs, with several bodies the cross terms)
+// at the first stage of the first step and of every X 28-th step after the last one; in between the
+// bodies keep the last one (the loads of psi_0 are new at every stage). X 29: also as soon as a body
+// has moved by more than X29_d [m] or turned by more than X29_a [deg] since. The same decision on all
+// ranks: the poses are those of the body kernel, identical on every rank
+bool fnpf_6DOF::am_due(lexer *p, int iter)
+{
+    if(iter!=0)
+    return false;
+
+    bool due = (p->X28<=1 || am_count<0 || (int)am_c.size()!=nbody || p->count-am_count>=p->X28);
+
+    if(!due && (p->X29_d>0.0 || p->X29_a>0.0))
+    for(int nb=0; nb<nbody; ++nb)
+    {
+        if(p->X29_d>0.0 && (fb_obj[nb]->fnpf_cog()-am_c[nb]).norm()>p->X29_d)
+        due = true;
+
+        if(p->X29_a>0.0 && (fb_obj[nb]->fnpf_angles()-am_ang[nb]).cwiseAbs().maxCoeff()*(180.0/PI)>p->X29_a)
+        due = true;
+    }
+
+    if(due)
+    {
+        am_count = p->count;
+        am_c.resize(nbody);
+        am_ang.resize(nbody);
+        for(int nb=0; nb<nbody; ++nb)
+        {
+            am_c[nb] = fb_obj[nb]->fnpf_cog();
+            am_ang[nb] = fb_obj[nb]->fnpf_angles();
+        }
+    }
+
+    return due;
+}
+
 void fnpf_6DOF::ini(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
     if(nbody>1 && amr_sub())
@@ -352,9 +630,11 @@ void fnpf_6DOF::ini(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     initialized = true;
 }
 
-void fnpf_6DOF::forces(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, fnpf_fsf *pf, 
+void fnpf_6DOF::forces(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, fnpf_fsf *pf,
                        slice &Keta, slice &Kfi, int iter)
 {
+    const double t0 = MPI_Wtime();
+
     // psi_0: phi_t at fixed z on the free surface, phi_t|z = dFifsf/dt - Fz*deta/dt
     // (one body: + V.grad(phi), the body-following derivative chi, see face_data_fnpf)
     SLICELOOP4
@@ -374,12 +654,16 @@ void fnpf_6DOF::forces(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, fnp
     fb_obj[nb]->face_data_fnpf(p,c,pgc,-2,c->FBF,c->FBu,c->FBv,c->FBw);
     exchange_face(g0,pgc);
     
-    solve_psi(p,c,pgc,psolv,plap,pf,psi0,psiD);
+    solve_psi(p,c,pgc,psolv,plap,pf,psi0,psiD,psi_slot(-1,iter,false));
     
-    // added mass: unit-mode solves of the free DOFs, once per time step (the rows and columns
-    // of fixed or prescribed DOFs are not used in the motion); with several bodies the modes of
-    // body nb also give its cross added mass on all other bodies
-    const bool refresh = (iter==0);
+    // added mass: unit-mode solves of the free DOFs, once per time step, with X 28 every X 28 steps
+    // (am_due; the rows and columns of fixed or prescribed DOFs are not used in the motion); with
+    // several bodies the modes of body nb also give its cross added mass on all other bodies.  Every
+    // body solves its modes from its own last solution (psib), the rotations moved to the new centre
+    // of gravity (mode_shift; the poses of the last refresh: am_c before am_due)
+    const std::vector<Eigen::Vector3d> c_last = am_c;
+    const bool c_known = (am_count>=0 && (int)c_last.size()==nbody);
+    const bool refresh = am_due(p,iter);
     
     if(refresh && nbody>1)
     for(auto &A : Across)
@@ -393,16 +677,19 @@ void fnpf_6DOF::forces(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, fnp
 
         for(int m=0; m<6; ++m)
         if(computeA && psi[m]!=nullptr && !fb_obj[nb]->dof_fixed_fnpf(p,m))
-        pm[m] = psi[m];
+        pm[m] = mode_array(g0,nb,m);
 
         for(int m=0; m<6; ++m)
         if(pm[m]!=nullptr)
         {
+            if(c_known)
+            mode_shift(g0,nb,m,pm,fb_obj[nb]->fnpf_cog()-c_last[nb]);
+            
             zero_face(g0);
             fb_obj[nb]->face_data_fnpf(p,c,pgc,m,c->FBF,c->FBu,c->FBv,c->FBw);
             exchange_face(g0,pgc);
             
-            solve_psi(p,c,pgc,psolv,plap,pf,psi[m],zeroslice);
+            solve_psi(p,c,pgc,psolv,plap,pf,pm[m],zeroslice,psi_slot(m,iter,false,nb));
         }
         
         if(computeA && nbody>1)
@@ -411,11 +698,13 @@ void fnpf_6DOF::forces(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, fnp
         fb_obj[nb2]->added_mass_block_fnpf(p,c,pgc,zero,pm,Across[nb2*nbody+nb]);
 
         fb_obj[nb]->forces_fnpf(p,c,pgc,psi0,pm,computeA);
-        
+
         // force log: first stage = state at the current time level
         if(iter==0)
         fb_obj[nb]->print_force_fnpf(p);
     }
+
+    t_loads += MPI_Wtime()-t0;
 }
 
 void fnpf_6DOF::motion(lexer *p, fdm_fnpf *c, ghostcell *pgc, int iter)
@@ -504,29 +793,6 @@ void fnpf_6DOF::motion_coupled(lexer *p, fdm_fnpf *c, ghostcell *pgc, int iter, 
         const Eigen::Matrix<double,6,1> a = acc.segment<6>(6*nb);
         fb_obj[nb]->eqmotion_advance_fnpf(p,pgc,iter, has[nb] ? &a : nullptr);
     }
-
-    if(p->mpirank==0 && iter==0 && (p->count%p->P12==0))
-    {
-        double amax=0.0, across=0.0;
-
-        for(int i=0; i<nbody; ++i)
-        for(int j=0; j<nbody; ++j)
-        {
-        const double v = Across[i*nbody+j].cwiseAbs().maxCoeff();
-        across = MAX(across,v);
-        }
-
-        for(int n=0; n<n6; ++n)
-        if(!fixed[n])
-        amax = MAX(amax,fabs(K(n,n)));
-
-        cout<<"6DOF FNPF coupled: max |A_ij| (i!=j) "<<across<<"  max diagonal "<<amax<<endl;
-
-        // heave-heave cross added mass of the first bodies (compare with A_33,ij at infinite frequency)
-        for(int i=0; i<MIN(nbody,4); ++i)
-        for(int j=i+1; j<MIN(nbody,4); ++j)
-        cout<<"A33 cross "<<i<<" "<<j<<": "<<0.5*(Across[i*nbody+j](2,2) + Across[j*nbody+i](2,2))<<endl;
-    }
 }
 
 void fnpf_6DOF::footprint(fnpf_6DOF_grid &G, ghostcell *pgc, slice &eta, slice &Fifsf, int gcval_eta, int gcval_fifsf)
@@ -571,13 +837,25 @@ void fnpf_6DOF::footprint(fnpf_6DOF_grid &G, ghostcell *pgc, slice &eta, slice &
         
         const double tol = 1.0e-9*MAX(p->DXM,1.0e-12);
         
+        // the footprint columns in SLICELOOP4 order: the sweeps visit only them
+        vector<int> &fl = G.todo;
+        fl.clear();
+        SLICELOOP4
+        if(foot(i,j)>0.5)
+        {
+        fl.push_back(i);
+        fl.push_back(j);
+        }
+        
         for(int it=0; it<1000; ++it)
         {
             double dmax=0.0;
             
-            SLICELOOP4
-            if(foot(i,j)>0.5)
+            for(size_t n=0; n<fl.size(); n+=2)
             {
+                i = fl[n];
+                j = fl[n+1];
+                
                 double se = eta(i-1,j) + eta(i+1,j);
                 double sf = Fifsf(i-1,j) + Fifsf(i+1,j);
                 double nn = 2.0;
@@ -741,57 +1019,93 @@ void fnpf_6DOF::extrapolate(fnpf_6DOF_grid &G, ghostcell *pgc, double *f)
     // nodes without any connection to the fluid keep their value
     const int maxpass = 4*(p->gknox + p->gknoy + p->gknoz) + 2;
     
+    // the open body nodes: all nodes at the first pass, then the list of those not filled yet (the
+    // order within a pass does not matter: a node takes only the fluid and the nodes of earlier
+    // passes, mark <= pass)
+    vector<int> &todo = G.todo;
+    todo.clear();
+    
     for(int pass=0; pass<maxpass; ++pass)
     {
         int filled=0;
         
-        ILOOP
-        JLOOP
-        FKLOOP
+        auto node = [&]() -> bool
         {
             const int q = FIJK;
             
-            if(p->flag7[q]>0 && FBF[q]>0.5 && mark[q]==0)
+            // neighbour and continuation f_q - f_r = V_e*(x_q - x_r) towards it
+            int nbr[6] = {q-sI, q+sI, q-sJ, q+sJ, q-1, q+1};
+            double dv[6] = { FBu[q]*(p->XP[IP]-p->XP[IM1]),
+                            -FBu[q]*(p->XP[IP1]-p->XP[IP]),
+                             FBv[q]*(p->YP[JP]-p->YP[JM1]),
+                            -FBv[q]*(p->YP[JP1]-p->YP[JP]),
+                             FBw[q]*(ZSN[q]-ZSN[q-1]),
+                            -FBw[q]*(ZSN[q+1]-ZSN[q])};
+            const int nn = (p->j_dir==1) ? 6 : 4;
+            
+            if(p->j_dir==0)
             {
-                // neighbour and continuation f_q - f_r = V_e*(x_q - x_r) towards it
-                int nbr[6] = {q-sI, q+sI, q-sJ, q+sJ, q-1, q+1};
-                double dv[6] = { FBu[q]*(p->XP[IP]-p->XP[IM1]),
-                                -FBu[q]*(p->XP[IP1]-p->XP[IP]),
-                                 FBv[q]*(p->YP[JP]-p->YP[JM1]),
-                                -FBv[q]*(p->YP[JP1]-p->YP[JP]),
-                                 FBw[q]*(ZSN[q]-ZSN[q-1]),
-                                -FBw[q]*(ZSN[q+1]-ZSN[q])};
-                const int nn = (p->j_dir==1) ? 6 : 4;
+            nbr[2] = q-1;
+            nbr[3] = q+1;
+            dv[2] = dv[4];
+            dv[3] = dv[5];
+            }
+            
+            double sum=0.0;
+            int cnt=0;
+            
+            for(int m=0; m<nn; ++m)
+            {
+                const int r = nbr[m];
                 
-                if(p->j_dir==0)
+                if(p->flag7[r]>0 && (FBF[r]<0.5 || (mark[r]>0 && mark[r]<=pass)))
                 {
-                nbr[2] = q-1;
-                nbr[3] = q+1;
-                dv[2] = dv[4];
-                dv[3] = dv[5];
-                }
-                
-                double sum=0.0;
-                int cnt=0;
-                
-                for(int m=0; m<nn; ++m)
-                {
-                    const int r = nbr[m];
-                    
-                    if(p->flag7[r]>0 && (FBF[r]<0.5 || (mark[r]>0 && mark[r]<=pass)))
-                    {
-                    sum += f[r] + dv[m];
-                    ++cnt;
-                    }
-                }
-                
-                if(cnt>0)
-                {
-                f[q] = sum/double(cnt);
-                mark[q] = pass+1;
-                ++filled;
+                sum += f[r] + dv[m];
+                ++cnt;
                 }
             }
+            
+            if(cnt>0)
+            {
+            f[q] = sum/double(cnt);
+            mark[q] = pass+1;
+            ++filled;
+            return true;
+            }
+            return false;
+        };
+        
+        if(pass==0)
+        {
+            ILOOP
+            JLOOP
+            FKLOOP
+            if(p->flag7[FIJK]>0 && FBF[FIJK]>0.5 && mark[FIJK]==0)
+            if(!node())
+            {
+            todo.push_back(i);
+            todo.push_back(j);
+            todo.push_back(k);
+            }
+        }
+        else
+        {
+            size_t w=0;
+            for(size_t n=0; n<todo.size(); n+=3)
+            {
+                i = todo[n];
+                j = todo[n+1];
+                k = todo[n+2];
+                
+                if(!node())
+                {
+                todo[w]   = i;
+                todo[w+1] = j;
+                todo[w+2] = k;
+                w += 3;
+                }
+            }
+            todo.resize(w);
         }
         
         // values and fill state of the ghost nodes, so the result does not depend on the
@@ -809,9 +1123,14 @@ void fnpf_6DOF::extrapolate(fnpf_6DOF_grid &G, ghostcell *pgc, double *f)
     }
 }
 
-void fnpf_6DOF::solve_psi(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, fnpf_laplace *plap, fnpf_fsf *pf, 
-                          double *f, slice &D)
+void fnpf_6DOF::solve_psi(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, fnpf_laplace *plap, fnpf_fsf *pf,
+                          double *f, slice &D, int slot)
 {
+    const double t0 = MPI_Wtime();
+    const double ts = psi_time(p,slot);
+    
+    psi_guess(g0,slot,f,ts);
+
     // Dirichlet on the free surface outside the footprint
     FFILOOP4
     if(foot(i,j)<0.5)
@@ -829,13 +1148,24 @@ void fnpf_6DOF::solve_psi(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, 
     double *uin = c->Uin;
     c->Uin = zero;
     
+    solver_print_quiet() = true;
+    {
+    fnpf_psi_tol tol(p);
     plap->start(p,c,pgc,psolv,pf,f,D);
+    }
+    solver_print_quiet() = false;
+    psi_count(p->poissoniter);
     
     c->Uin = uin;
-    
+
     pgc->start7V(p,f,c->bc,gcval);
-    
+
+    const double t1 = MPI_Wtime();
     extrapolate(g0,pgc,f);
+    t_band += MPI_Wtime()-t1;
+    
+    psi_record(g0,slot,f,ts);
+    t_psi += MPI_Wtime()-t0;
 }
 
 void fnpf_6DOF::zero_face(fnpf_6DOF_grid &G)
@@ -899,7 +1229,12 @@ void fnpf_6DOF::free_grid(fnpf_6DOF_grid &G)
     delete [] G.zero;
     for(int m=0; m<6; ++m)
     delete [] G.psi[m];
+    for(double *a : G.psib)
+    delete [] a;
     delete [] G.mark;
+    for(auto q : G.h1) delete [] q;
+    for(auto q : G.h2) delete [] q;
+    G.h1.clear(); G.h2.clear();
     delete G.foot; delete G.psiD; delete G.zeroslice; delete G.eta_ext; delete G.fi_ext;
     delete G.pbed;
     delete G.pvel;
@@ -956,6 +1291,10 @@ void fnpf_6DOF::amr_grids(lexer *p, ghostcell *pgc)
         for(int m=0; m<6; ++m)
         if(psi[m]!=nullptr)
         pp->Darray(G.psi[m],size);
+        G.psib.assign(g0.psib.size(),nullptr);
+        for(size_t e=0; e<g0.psib.size(); ++e)
+        if(g0.psib[e]!=nullptr)
+        pp->Darray(G.psib[e],size);
         G.mark = new int[size]();
         G.foot = new slice4(pp);
         G.psiD = new slice4(pp);
@@ -1019,6 +1358,21 @@ void fnpf_6DOF::amr_fresh(ghostcell *pgc)
             amr->prolong_cols(&fg[0],nd);
         }
         
+        // several bodies: the unit modes of the bodies 1, 2, ...
+        for(size_t e=0; e<g0.psib.size(); ++e)
+        {
+            fg[0] = g0.psib[e];
+            vector<char> nd = need;
+            for(size_t k=0; k<gp.size(); ++k)
+            {
+                fg[k+1] = (gp[k].psib.size()>e) ? gp[k].psib[e] : nullptr;
+                if(fg[k+1]==nullptr)
+                nd[k] = 0;
+            }
+            if(fg[0]!=nullptr)
+            amr->prolong_cols(&fg[0],nd);
+        }
+        
         for(auto &G : gp)
         G.fresh = false;
     }
@@ -1072,10 +1426,12 @@ void fnpf_6DOF::amr_surface(lexer *p, ghostcell *pgc, int id, slice &eta, slice 
     }
 }
 
-// psi solve on all grids: m -1 psi_0 with the free-surface data psiD, m >= 0 the unit mode m
-// with homogeneous free-surface data
-void fnpf_6DOF::solve_psi_amr(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, fnpf_fsf *pf, int m, bool withD)
+// psi solve on all grids: m -1 psi_0 with the free-surface data psiD, m >= 0 the unit mode m of body
+// nb with homogeneous free-surface data
+void fnpf_6DOF::solve_psi_amr(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, fnpf_fsf *pf, int m, bool withD, int slot, int nb)
 {
+    const double t0 = MPI_Wtime();
+    const double ts = psi_time(p,slot);
     const int ng = 1+(int)gp.size();
     vector<double*> fs(ng);
     vector<slice*> Ds(ng);
@@ -1101,8 +1457,9 @@ void fnpf_6DOF::solve_psi_amr(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *pso
     for(int g=0; g<ng; ++g)
     {
         fnpf_6DOF_grid &G = (g==0) ? g0 : gp[g-1];
-        fs[g] = (m<0) ? G.psi0 : G.psi[m];
+        fs[g] = (m<0) ? G.psi0 : mode_array(G,nb,m);
         Ds[g] = withD ? static_cast<slice*>(G.psiD) : static_cast<slice*>(G.zeroslice);
+        psi_guess(G,slot,fs[g],ts);
     }
     
     prep(g0,fs[0],*Ds[0]);
@@ -1121,24 +1478,201 @@ void fnpf_6DOF::solve_psi_amr(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *pso
     double *uin = c->Uin;
     c->Uin = zero;
     
+    {
+    fnpf_psi_tol tol(p);
     amr->lap_solve_psi(p,c,pgc,psolv,pf,&fs[0],&Ds[0]);
+    }
+    psi_count(p->solveriter);
     
     c->Uin = uin;
-    
+
     pgc->start7V(p,fs[0],c->bc,gcval);
+
+    const double t1 = MPI_Wtime();
     extrapolate(g0,pgc,fs[0]);
-    
+
+    {
     reefamr_comms_off guard(pgc);
     for(size_t n=0; n<gp.size(); ++n)
     {
         amr->patch_walls_fi(gp[n].id,fs[n+1]);
         extrapolate(gp[n],pgc,fs[n+1]);
     }
+    }
+    t_band += MPI_Wtime()-t1;
+    
+    for(int g=0; g<ng; ++g)
+    psi_record((g==0) ? g0 : gp[g-1],slot,fs[g],ts);
+    
+    t_psi += MPI_Wtime()-t0;
 }
 
-void fnpf_6DOF::forces_amr(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, fnpf_fsf *pf, 
+// X 36: the unit modes of every body on its own patches.  A unit mode is the potential of a unit
+// acceleration of one hull with psi 0 on the free surface; it decays within a few hull sizes, while a
+// solve on all grids carries level 0 over the whole domain.  The window of body nb is the patches that
+// reach into its zone (the box of its wetted hull grown by G 12, the zone the patches refine); psi is 0
+// on level 0 and the other patches, and so at the edge of the window.  Its cross added mass reaches the
+// bodies whose zones its window reaches; the others take 0 from its modes.  A body without a window
+// (no zone, no patch at it) solves on all grids.  Not with subcycling (G 7 1)
+bool fnpf_6DOF::win_on(lexer *p) const
+{
+    return p->X36==1 && p->G12>0 && p->G7!=1 && amr_on() && !amr_sub();
+}
+
+void fnpf_6DOF::windows(lexer *p, ghostcell *pgc)
+{
+    // the boxes of the patches of all ranks (a window may reach over several ranks)
+    const int np = amr->patches();
+    vector<double> loc(4*np);
+    for(int id=0; id<np; ++id)
+    amr->patch_box(id,loc[4*id],loc[4*id+1],loc[4*id+2],loc[4*id+3]);
+    const int nr = p->mpi_size;
+    vector<int> cnt(nr), dsp(nr,0), first(nr,0);
+    int mine = 4*np;
+    MPI_Allgather(&mine,1,MPI_INT,cnt.data(),1,MPI_INT,pgc->mpi_comm);
+    for(int r=1; r<nr; ++r)
+    dsp[r] = dsp[r-1]+cnt[r-1];
+    for(int r=0; r<nr; ++r)
+    first[r] = dsp[r]/4;
+    const int ntot = (dsp[nr-1]+cnt[nr-1])/4;
+    vector<double> all(4*MAX(ntot,1));
+    MPI_Allgatherv(loc.data(),mine,MPI_DOUBLE,all.data(),cnt.data(),dsp.data(),MPI_DOUBLE,pgc->mpi_comm);
+    const int me = first[p->mpirank];
+
+    vector<double> zb(4*nbody,0.0);
+    vector<char> hz(nbody,0);
+    for(int nb=0; nb<nbody; ++nb)
+    hz[nb] = amr->zone_box(nb,zb[4*nb],zb[4*nb+1],zb[4*nb+2],zb[4*nb+3]) ? 1 : 0;
+
+    const bool yd = (p->j_dir==1);
+    auto meets = [&](int nb, int k)
+    {
+        const double *a = &all[4*k], *b = &zb[4*nb];
+        return hz[nb] && a[0]<b[1] && a[1]>b[0] && (!yd || (a[2]<b[3] && a[3]>b[2]));
+    };
+
+    wout.assign(nbody,vector<char>(np,1));
+    wgp.assign(nbody,vector<char>());
+    wok.assign(nbody,0);
+    wmeet.assign(nbody*nbody,0);
+
+    vector<char> W(ntot);
+    for(int nb=0; nb<nbody; ++nb)
+    {
+        for(int k=0; k<ntot; ++k)
+        {
+            W[k] = meets(nb,k) ? 1 : 0;
+            if(W[k])
+            {
+                wok[nb] = 1;
+                for(int nb2=0; nb2<nbody; ++nb2)
+                if(meets(nb2,k))
+                wmeet[nb*nbody+nb2] = 1;
+            }
+        }
+
+        for(int id=0; id<np; ++id)
+        wout[nb][id] = W[me+id] ? 0 : 1;
+
+        amr->window_gp(W,first,wgp[nb]);
+    }
+
+    int nwin = 0;
+    for(int nb=0; nb<nbody; ++nb)
+    nwin += wok[nb];
+
+    static bool told = false;
+    if(!told && p->mpirank==0)
+    {
+        told = true;
+        cout<<"6DOF FNPF: X 36, "<<nwin<<" of "<<nbody<<" bodies with a window of patches";
+        if(nwin<nbody)
+        cout<<" (the others solve their unit modes on all grids)";
+        cout<<endl;
+    }
+}
+
+// the unit mode m of body nb on the patches of its window (wout[nb]); level 0 and the patches outside
+// hold 0 (their zero arrays, read only)
+void fnpf_6DOF::solve_psi_window(lexer *p, fdm_fnpf *c, ghostcell *pgc, int m, int slot, int nb)
+{
+    const double t0 = MPI_Wtime();
+    const double ts = psi_time(p,slot);
+    const vector<char> &out = wout[nb];
+    const int ng = 1+(int)gp.size();
+    vector<double*> fs(ng);
+    vector<slice*> Ds(ng);
+
+    fs[0] = g0.zero;
+    Ds[0] = g0.zeroslice;
+    for(size_t n=0; n<gp.size(); ++n)
+    {
+        fnpf_6DOF_grid &G = gp[n];
+        Ds[n+1] = G.zeroslice;
+        if(out[G.id])
+        fs[n+1] = G.zero;
+        else
+        {
+            fs[n+1] = mode_array(G,nb,m);
+            psi_guess(G,slot,fs[n+1],ts);
+        }
+    }
+
+    {
+    reefamr_comms_off guard(pgc);
+    for(size_t n=0; n<gp.size(); ++n)
+    if(!out[gp[n].id])
+    {
+        fnpf_6DOF_grid &G = gp[n];
+        lexer *p = G.p;
+        slice4 &foot = *G.foot;
+        double *f = fs[n+1];
+
+        // Dirichlet 0 on the free surface outside the footprint
+        FFILOOP4
+        if(foot(i,j)<0.5)
+        {
+            f[FIJK]   = 0.0;
+            f[FIJKp1] = 0.0;
+            f[FIJKp2] = 0.0;
+            f[FIJKp3] = 0.0;
+        }
+
+        G.pbed->bedbc_sig(p,G.c,pgc,f,G.pf);
+        amr->patch_walls_fi(G.id,f);
+    }
+    }
+
+    {
+    fnpf_psi_tol tol(p);
+    amr->lap_solve_psi_window(p,pgc,&fs[0],&Ds[0],out,wgp[nb],nb);
+    }
+    psi_count(p->solveriter);
+
+    const double t1 = MPI_Wtime();
+    {
+    reefamr_comms_off guard(pgc);
+    for(size_t n=0; n<gp.size(); ++n)
+    if(!out[gp[n].id])
+    {
+        amr->patch_walls_fi(gp[n].id,fs[n+1]);
+        extrapolate(gp[n],pgc,fs[n+1]);
+    }
+    }
+    t_band += MPI_Wtime()-t1;
+
+    for(size_t n=0; n<gp.size(); ++n)
+    if(!out[gp[n].id])
+    psi_record(gp[n],slot,fs[n+1],ts);
+
+    t_psi += MPI_Wtime()-t0;
+}
+
+void fnpf_6DOF::forces_amr(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, fnpf_fsf *pf,
                            slice &Keta, slice &Kfi, int iter)
 {
+    const double t0 = MPI_Wtime();
+
     amr_grids(p,pgc);
     
     // psi_0: phi_t at fixed z on the free surface, phi_t|z = dFifsf/dt - Fz*deta/dt
@@ -1197,26 +1731,41 @@ void fnpf_6DOF::forces_amr(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv,
     };
     
     face(-2,-1);
-    solve_psi_amr(p,c,pgc,psolv,pf,-1,true);
+    solve_psi_amr(p,c,pgc,psolv,pf,-1,true,psi_slot(-1,iter,false));
     
-    // added mass: unit-mode solves of the free DOFs, once per time step (rows and columns of
-    // fixed or prescribed DOFs are not used in the motion); with several bodies the modes of
-    // body nb also give its cross added mass on all other bodies (one patch per body, G 12)
-    const bool refresh = (iter==0);
+    // added mass: unit-mode solves of the free DOFs, once per time step, with X 28 every X 28 steps
+    // (am_due; rows and columns of fixed or prescribed DOFs are not used in the motion); with several
+    // bodies the modes of body nb also give its cross added mass on all other bodies (one patch per
+    // body, G 12).  Start values as in forces(): each body's own modes, the rotations moved to the new
+    // centre of gravity on every grid
+    const std::vector<Eigen::Vector3d> c_last = am_c;
+    const bool c_known = (am_count>=0 && (int)c_last.size()==nbody);
+    const bool refresh = am_due(p,iter);
     
     if(refresh && nbody>1)
     for(auto &A : Across)
     A.setZero();
 
-    // psi arrays of grid G restricted to the solved modes
-    auto modes = [&](fnpf_6DOF_grid &G, const bool *on, double **out)
+    // X 36: the windows of the bodies (the patches of their zones)
+    const bool win = refresh && win_on(p);
+    if(win)
+    windows(p,pgc);
+    auto inwin = [&](int nbm, fnpf_6DOF_grid &G)
+    {
+        return !win || !wok[nbm] || (G.id>=0 && !wout[nbm][G.id]);
+    };
+
+    // psi arrays of the modes of body nbm on grid G, restricted to the solved modes (X 36: 0 outside
+    // the window of body nbm)
+    auto modes = [&](fnpf_6DOF_grid &G, int nbm, const bool *on, double **out)
     {
         for(int m=0; m<6; ++m)
-        out[m] = on[m] ? G.psi[m] : nullptr;
+        out[m] = on[m] ? (inwin(nbm,G) ? mode_array(G,nbm,m) : G.zero) : nullptr;
     };
 
     // hull integral of body nbi over all grids, every triangle on the finest grid that holds its centroid
-    auto hull_sum = [&](int nbi, const bool *on, bool computeA, sixdof_obj_fnpf::fnpf_force_sum &S, bool zero_psi0)
+    // (the unit modes of body nbm)
+    auto hull_sum = [&](int nbi, int nbm, const bool *on, bool computeA, sixdof_obj_fnpf::fnpf_force_sum &S, bool zero_psi0)
     {
         fb_obj[nbi]->forces_fnpf_zero(p,S);
         
@@ -1230,7 +1779,7 @@ void fnpf_6DOF::forces_amr(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv,
             };
             const double del = (g<0) ? 0.5*fb_obj[nbi]->fnpf_dsm() : G.del;
             double *pm[6];
-            modes(G,on,pm);
+            modes(G,nbm,on,pm);
             fb_obj[nbi]->forces_fnpf_sum(G.p,G.c,zero_psi0 ? G.zero : G.psi0,pm,computeA,del,&own,S);
         }
     };
@@ -1246,26 +1795,58 @@ void fnpf_6DOF::forces_amr(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv,
         for(int m=0; m<6; ++m)
         if(on[m])
         {
+            if(c_known && m>=3)
+            {
+                const Eigen::Vector3d d = fb_obj[nb]->fnpf_cog()-c_last[nb];
+                double *tr[3];
+                for(int g=-1; g<(int)gp.size(); ++g)
+                {
+                    fnpf_6DOF_grid &G = (g<0) ? g0 : gp[g];
+                    if(!inwin(nb,G))
+                    continue;
+                    for(int k=0; k<3; ++k)
+                    tr[k] = on[k] ? mode_array(G,nb,k) : nullptr;
+                    mode_shift(G,nb,m,tr,d);
+                }
+            }
+            
+            if(win && wok[nb])
+            {
+                // the Neumann data of the window's patches only (level 0 holds 0)
+                reefamr_comms_off guard(pgc);
+                for(auto &G : gp)
+                if(inwin(nb,G))
+                {
+                    zero_face(G);
+                    fb_obj[nb]->face_data_fnpf(G.p,G.c,pgc,m,G.c->FBF,G.c->FBu,G.c->FBv,G.c->FBw);
+                }
+            }
+            else
             face(m,nb);
-            solve_psi_amr(p,c,pgc,psolv,pf,m,false);
+            if(win && wok[nb])
+            solve_psi_window(p,c,pgc,m,psi_slot(m,iter,false,nb),nb);
+            else
+            solve_psi_amr(p,c,pgc,psolv,pf,m,false,psi_slot(m,iter,false,nb),nb);
         }
 
         if(computeA && nbody>1)
         for(int nb2=0; nb2<nbody; ++nb2)
-        if(nb2!=nb)
+        if(nb2!=nb && (!win || !wok[nb] || wmeet[nb*nbody+nb2]))
         {
             sixdof_obj_fnpf::fnpf_force_sum S2;
-            hull_sum(nb2,on,true,S2,true);
+            hull_sum(nb2,nb,on,true,S2,true);
             fb_obj[nb2]->added_mass_from_sum(pgc,S2,Across[nb2*nbody+nb]);
         }
 
         sixdof_obj_fnpf::fnpf_force_sum S;
-        hull_sum(nb,on,computeA,S,false);
+        hull_sum(nb,nb,on,computeA,S,false);
         
         fb_obj[nb]->forces_fnpf_set(p,pgc,S,computeA);
-        
+
         // force log: first stage = state at the current time level
         if(iter==0)
         fb_obj[nb]->print_force_fnpf(p);
     }
+
+    t_loads += MPI_Wtime()-t0;
 }

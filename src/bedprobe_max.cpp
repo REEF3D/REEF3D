@@ -20,6 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#include"reefckpt.h"
 #include"bedprobe_max.h"
 #include"lexer.h"
 #include"sediment_fdm.h"
@@ -43,15 +44,10 @@ bedprobe_max::bedprobe_max(lexer *p, ghostcell *pgc, sediment_fdm *s)
     {
     // open file
     
-    if(p->A10==2)
-	wsfout.open("./REEF3D_SFLOW_Sediment/REEF3D-SFLOW-Sediment-Max.dat");
-    
-    if(p->A10==5)
-	wsfout.open("./REEF3D_NHFLOW_Sediment/REEF3D-NHFLOW-Sediment-Max.dat");
-    
-    if(p->A10==6)
-	wsfout.open("./REEF3D_CFD_Sediment/REEF3D-CFD-Sediment-Max.dat");
-
+    // a restart (I 45): continued from the checkpoint
+    const char *name = p->A10==2 ? "./REEF3D_SFLOW_Sediment/REEF3D-SFLOW-Sediment-Max.dat"
+                     : (p->A10==5 ? "./REEF3D_NHFLOW_Sediment/REEF3D-NHFLOW-Sediment-Max.dat" : "./REEF3D_CFD_Sediment/REEF3D-CFD-Sediment-Max.dat");
+    if(reefckpt_open(wsfout,name,p->I45))
     wsfout<<"time  maximum erosion"<<endl<<endl;
     }
 }

@@ -168,6 +168,7 @@ void CPM::seed_particles(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
 
                 P.Flag[n] = ACTIVE;
                 P.Hop[n] = 0.0;
+                P.Wt[n] = 1.0;
             }
         }
         
@@ -190,6 +191,7 @@ void CPM::seed_particles(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
 
             P.Flag[n] = ACTIVE;
             P.Hop[n] = 0.0;
+            P.Wt[n] = 1.0;
         }
     }
     

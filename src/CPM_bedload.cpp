@@ -244,15 +244,16 @@ void CPM::bedload_occupancy(lexer *p)
         int ic,jc;
         bedload_column(p,P.X[n],P.Y[n],ic,jc,n);
         int kc = MAX(0, MIN(p->knoz-1, pck(p,n,P.Z[n])));
-        Locc(ic,jc,kc) += vpar;
+        Locc(ic,jc,kc) += vpar*P.Wt[n];
     }
 }
 
 // a layer parcel leaves its cell at (x,y,z) and is placed at the level zl of the column (ic,jc):
 // the cell of zl if it has room, else the next cell above with room; returns the new z
-double CPM::bedload_place(lexer *p, fdm *a, double x, double y, double z, int ic, int jc, double zl, double d)
+double CPM::bedload_place(lexer *p, fdm *a, double x, double y, double z, int ic, int jc, double zl, double d, double w)
 {
-    const double vpar = P.ParcelFactor*Vp;
+    const double vbase = P.ParcelFactor*Vp;
+    const double vpar = vbase*w;
     int is,js;
 
     bedload_column(p,x,y,is,js);
@@ -277,7 +278,7 @@ double CPM::bedload_place(lexer *p, fdm *a, double x, double y, double z, int ic
         
         double V = p->DXN[ii+marge]*p->DYN[jj+marge]*p->DZN[kk+marge];
         double t0 = p->Q12==2 ? T0e(ii,jj,kk) : theta_0;
-        double cap = MAX((t0 + theta_max - theta_0)*V, t0*V + vpar*(1.0+1.0e-6));
+        double cap = MAX((t0 + theta_max - theta_0)*V, t0*V + vbase*wcell(p,ii,jj,kk)*(1.0+1.0e-6));
 
         if(Locc(ii,jj,kk) + vpar <= cap)
         break;
@@ -306,8 +307,8 @@ void CPM::bedload_slide(lexer *p, fdm *a, sediment_fdm *s)
     const double vpar = P.ParcelFactor*Vp;
     
     // bed level of the columns (updated by the moves) and the bed grains of each column, top first
-    std::vector<double> zc(size_t(p->knox)*nj);
-    std::vector<std::vector<int>> col(size_t(p->knox)*nj);
+    const size_t ncol = size_t(p->knox)*nj;
+    std::vector<double> zc(ncol);
     
     for(i=0;i<p->knox;++i)
     for(j=0;j<nj;++j)
@@ -337,6 +338,19 @@ void CPM::bedload_slide(lexer *p, fdm *a, sediment_fdm *s)
     
     int ic,jc;
     
+    // the cell height at the bed level of each column
+    std::vector<double> &hz = sl_hz;
+    hz.resize(ncol);
+    
+    for(size_t c=0;c<ncol;++c)
+    hz[c] = p->DZN[MAX(0, MIN(p->knoz-1, p->posc_k(zc[c])))+marge];
+    
+    // the grains of the bed surface of each column (within a cell of its bed level), in flat lists in the order
+    // of the parcels, then sorted from the top; a column's list is used from its head on
+    std::vector<int> &cn = sl_cn;
+    cn.assign(P.index,-1);
+    sl_off.assign(ncol+1,0);
+    
     for(n=0;n<P.index;++n)
     if(P.Flag[n]==ACTIVE && P.Hop[n]==0.0)
     {
@@ -345,16 +359,32 @@ void CPM::bedload_slide(lexer *p, fdm *a, sediment_fdm *s)
         if(ic<0 || ic>=p->knox || jc<0 || jc>=nj)
         continue;
         
-        // grains of the bed surface: within a cell below the bed level of the column
-        double zb = zc[size_t(ic)*nj + jc];
-        int kc = MAX(0, MIN(p->knoz-1, p->posc_k(zb)));
+        const size_t c = size_t(ic)*nj + jc;
         
-        if(P.Z[n] > zb - p->DZN[kc+marge] && P.Z[n] < zb + p->DZN[kc+marge])
-        col[size_t(ic)*nj + jc].push_back(n);
+        // grains of the bed surface: within a cell below the bed level of the column
+        double zb = zc[c];
+        
+        if(P.Z[n] > zb - hz[c] && P.Z[n] < zb + hz[c])
+        {
+            cn[n] = int(c);
+            ++sl_off[c+1];
+        }
     }
     
-    for(auto &c : col)
-    std::sort(c.begin(), c.end(), [&](int q1, int q2){return P.Z[q1] > P.Z[q2];});
+    for(size_t c=0;c<ncol;++c)
+    sl_off[c+1] += sl_off[c];
+    
+    sl_list.resize(sl_off[ncol]);
+    sl_head.assign(sl_off.begin(), sl_off.end()-1);
+    
+    for(n=0;n<P.index;++n)
+    if(cn[n]>=0)
+    sl_list[sl_head[cn[n]]++] = int(n);
+    
+    sl_head.assign(sl_off.begin(), sl_off.end()-1);
+    
+    for(size_t c=0;c<ncol;++c)
+    std::sort(sl_list.begin()+sl_off[c], sl_list.begin()+sl_off[c+1], [&](int q1, int q2){return P.Z[q1] > P.Z[q2];});
     
     auto pair = [&](int i1, int j1, int i2, int j2, double dist)
     {
@@ -379,25 +409,25 @@ void CPM::bedload_slide(lexer *p, fdm *a, sediment_fdm *s)
         
         const double Ah = p->DXN[ih+marge]*p->DYN[jh+marge];
         const double Al = p->DXN[il+marge]*p->DYN[jl+marge];
-        auto &top = col[size_t(ih)*nj + jh];
+        const size_t ch = size_t(ih)*nj + jh;
         
-        while(zh - zl > p->Q75*dist && !top.empty())
+        while(zh - zl > p->Q75*dist && sl_head[ch]<sl_off[ch+1])
         {
-            int q = top.front();
-            top.erase(top.begin());
+            int q = sl_list[sl_head[ch]];
+            ++sl_head[ch];
             
             double xs = p->XN[il+marge] + (0.25 + 0.5*double(q%97)/96.0)*p->DXN[il+marge];
             double ys = p->j_dir==1 ? p->YN[jl+marge] + (0.25 + 0.5*double(q%89)/88.0)*p->DYN[jl+marge] : P.Y[q];
             
-            P.Z[q] = P.ZRK1[q] = bedload_place(p,a,P.X[q],P.Y[q],P.Z[q],il,jl,zlc+0.5*P.D[q],P.D[q]);
+            P.Z[q] = P.ZRK1[q] = bedload_place(p,a,P.X[q],P.Y[q],P.Z[q],il,jl,zlc+0.5*P.D[q],P.D[q],P.Wt[q]);
             P.X[q] = P.XRK1[q] = xs;
             P.Y[q] = P.YRK1[q] = ys;
             P.U[q] = P.V[q] = P.W[q] = 0.0;
             P.URK1[q] = P.VRK1[q] = P.WRK1[q] = 0.0;
             
             // the smoothed level of a column changes by 0.375 of its raw level (weight 0.5 per pass, two passes)
-            zh -= 0.375*vpar/(theta_0*Ah);
-            zl += 0.375*vpar/(theta_0*Al);
+            zh -= 0.375*(vpar*P.Wt[q])/(theta_0*Ah);
+            zl += 0.375*(vpar*P.Wt[q])/(theta_0*Al);
             ++bl_nslide;
         }
     };
@@ -420,8 +450,24 @@ void CPM::bedload_exchange(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, do
     const double vpar = P.ParcelFactor*Vp;
     const bool hasexpo = expo.size()==size_t(P.index);
 
-    std::vector<std::vector<int>> cand(nc), mov(nc);
-    std::vector<std::vector<double>> rate(nc);
+    // per column: the exposed candidates with their pickup rates and the moving parcels (kept between the
+    // sub-steps, emptied here)
+    if(bx_cand.size()!=size_t(nc))
+    {
+        bx_cand.assign(nc,std::vector<int>());
+        bx_mov.assign(nc,std::vector<int>());
+        bx_rate.assign(nc,std::vector<double>());
+    }
+    
+    std::vector<std::vector<int>> &cand = bx_cand, &mov = bx_mov;
+    std::vector<std::vector<double>> &rate = bx_rate;
+    
+    for(int c=0;c<nc;++c)
+    {
+        cand[c].clear();
+        mov[c].clear();
+        rate[c].clear();
+    }
 
     int ic,jc;
     double ub,vb,te;
@@ -449,7 +495,7 @@ void CPM::bedload_exchange(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, do
         continue;
 
         // share of the bed area times V_m* u_b/L
-        double r = expo[n]*vpar/(theta_0*P.D[n]) * (te*P.D[n]/mu_s) * sqrt(ub*ub + vb*vb)/(p->Q62*P.D[n]);
+        double r = expo[n]*(vpar*P.Wt[n])/(theta_0*P.D[n]) * (te*P.D[n]/mu_s) * sqrt(ub*ub + vb*vb)/(p->Q62*P.D[n]);
 
         cand[c].push_back(n);
         rate[c].push_back(r);
@@ -498,7 +544,7 @@ void CPM::bedload_exchange(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, do
 
             // hop length, exponential with the mean Q 62 d
             P.Hop[n] = -p->Q62*P.D[n]*log(MAX(1.0-uni(rng), 1.0e-12));
-            P.Z[n] = bedload_place(p,a,P.X[n],P.Y[n],P.Z[n],i,j,zbl(s,i,j)+0.5*P.D[n],P.D[n]);
+            P.Z[n] = bedload_place(p,a,P.X[n],P.Y[n],P.Z[n],i,j,zbl(s,i,j)+0.5*P.D[n],P.D[n],P.Wt[n]);
             P.U[n] = P.V[n] = P.W[n] = 0.0;
             mov[c].push_back(n);
             ++bl_npick;
@@ -506,7 +552,7 @@ void CPM::bedload_exchange(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, do
             cn.erase(cn.begin()+q);
             rn.erase(rn.begin()+q);
 
-            blC(i,j) -= vpar;
+            blC(i,j) -= vpar*P.Wt[n];
         }
 
         // no grains to pick up: no credit beyond one parcel
@@ -552,11 +598,11 @@ void CPM::bedload_exchange(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, do
                 int is,js;
                 bedload_column(p,P.X[q],P.Y[q],is,js,q);
                 int ks = MAX(0, MIN(p->knoz-1, p->posc_k(P.Z[q])));
-                Locc(is,js,ks) -= vpar;
+                Locc(is,js,ks) -= vpar*P.Wt[q];
+                blCs(i,j) -= vpar*P.Wt[q];
 
                 P.remove(q);
                 ++bl_nsus;
-                blCs(i,j) -= vpar;
             }
 
             // no parcel to give: no credit beyond one parcel
@@ -580,12 +626,13 @@ void CPM::bedload_exchange(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, do
                 P.RO[n] = p->S22;
                 P.Z[n] = zbl(s,i,j) + 0.5*P.D[n];
                 Locc(i,j,MAX(0, MIN(p->knoz-1, p->posc_k(P.Z[n])))) += vpar;
-                P.Z[n] = P.ZRK1[n] = bedload_place(p,a,xs,ys,P.Z[n],i,j,P.Z[n],P.D[n]);
+                P.Z[n] = P.ZRK1[n] = bedload_place(p,a,xs,ys,P.Z[n],i,j,P.Z[n],P.D[n],1.0);
                 P.U[n] = P.V[n] = P.W[n] = 0.0;
                 P.URK1[n] = P.VRK1[n] = P.WRK1[n] = 0.0;
                 P.Uf[n] = P.Vf[n] = P.Wf[n] = 0.0;
                 P.Test[n] = 0.0;
                 P.Hop[n] = 0.0;
+                P.Wt[n] = 1.0;
                 P.Flag[n] = ACTIVE;
 
                 if(size_t(n)<expo.size())
@@ -625,14 +672,14 @@ void CPM::bedload_exchange(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, do
                     double zr = zbl(s,i,j) + ha;
 
                     P.Hop[n] = -1.0;   // in the flow, deposited when it settles back onto the bed
-                    P.Z[n] = bedload_place(p,a,P.X[n],P.Y[n],P.Z[n],i,j,zr,P.D[n]);
+                    P.Z[n] = bedload_place(p,a,P.X[n],P.Y[n],P.Z[n],i,j,zr,P.D[n],P.Wt[n]);
                     P.U[n] = p->ccipol1c(a->u,P.X[n],P.Y[n],zr);
                     P.V[n] = p->j_dir==1 ? p->ccipol2c(a->v,P.X[n],P.Y[n],zr) : 0.0;
                     P.W[n] = 0.0;
                     ++bl_nsus;
 
                     mn.erase(mn.begin()+q);
-                    blCs(i,j) -= vpar;
+                    blCs(i,j) -= vpar*P.Wt[n];
                 }
 
                 blCs(i,j) = MIN(blCs(i,j), vpar);
@@ -695,14 +742,14 @@ void CPM::bedload_move(lexer *p, fdm *a, sediment_fdm *s, int q, double dt)
         zl = MAX(zl, p->ZN[0+marge] + 0.5*P.D[q]);
 
         P.Hop[q] = 0.0;
-        P.ZRK1[q] = bedload_place(p,a,P.X[q],P.Y[q],P.Z[q],ic,jc,zl,P.D[q]);
+        P.ZRK1[q] = bedload_place(p,a,P.X[q],P.Y[q],P.Z[q],ic,jc,zl,P.D[q],P.Wt[q]);
         P.URK1[q] = P.VRK1[q] = P.WRK1[q] = 0.0;
         ++bl_ndep;
     }
     else
     {
         P.Hop[q] -= sp*dt;
-        P.ZRK1[q] = bedload_place(p,a,P.X[q],P.Y[q],P.Z[q],ic,jc,zb + 0.5*P.D[q],P.D[q]);
+        P.ZRK1[q] = bedload_place(p,a,P.X[q],P.Y[q],P.Z[q],ic,jc,zb + 0.5*P.D[q],P.D[q],P.Wt[q]);
         P.URK1[q] = ub;
         P.VRK1[q] = vb;
         P.WRK1[q] = 0.0;
@@ -744,7 +791,7 @@ bool CPM::bedload_settle(lexer *p, fdm *a, sediment_fdm *s, int q)
     if(p->nb5<0)
     zl = MAX(zl, p->ZN[0+marge] + 0.5*P.D[q]);
     
-    P.ZRK1[q] = bedload_place(p,a,P.X[q],P.Y[q],P.Z[q],ic,jc,zl,P.D[q]);
+    P.ZRK1[q] = bedload_place(p,a,P.X[q],P.Y[q],P.Z[q],ic,jc,zl,P.D[q],P.Wt[q]);
     P.URK1[q] = P.VRK1[q] = P.WRK1[q] = 0.0;
     P.Test[q] = -1.0;
     ++bl_ndep;
@@ -774,7 +821,7 @@ bool CPM::bed_asleep(lexer *p, fdm *a, int q, double xp, double yp, double zp)
     k = pck(p,q,zp);
     
     double psi = p->Q64*p->DZN[KP];
-    double phi = ptopo(p,a,xp,yp,zp);
+    double phi = ptopo_p(p,a,q,xp,yp,zp);
     
     if(phi + 1.5*psi <= -0.5*psi)
     {

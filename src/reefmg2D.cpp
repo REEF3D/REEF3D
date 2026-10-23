@@ -275,10 +275,25 @@ void reefmg2D::vcycle(lexer *p, ghostcell *pgc, slice &z, matrix2D &M, vec2D &r,
         if(p->N13==0)
         mg.set_active_levels(screened_levels(ldx,mg.levels()));
 
+        // (several ranks: collective, the problem of all ranks on every rank)
+        xzon = false;
+        if(exact_line && (local || p->mpi_size==1))
+        {
+            xzon = xz.usable(mg.fine());
+            if(xzon)
+            xz.factor(mg.fine(),mg.precision());
+        }
+        else
+        if(exact_line)
+        xzon = xz.factor_mpi(mg.fine(),mg.precision(),MPI_COMM_WORLD,p->origin_i,p->gknox);
+        if(!xzon)
         mg.coarsen();
     }
 
     //  fill() leaves u = 0 and f = 0 on the rows outside the multigrid
+    if(xzon)
+    xz.solve(mg.fine(),mg.fine().f,mg.fine().u);
+    else
     mg.vcycle(0,presweep,postsweep);
 
     fillback(p,mg,z);

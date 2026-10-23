@@ -42,6 +42,11 @@ public:
     bedshear(lexer*,turbulence*);
     virtual ~bedshear();
 
+    // checkpoints (P 48, I 45): the scalars of the wave-averaged bed shear (S 16 9)
+    double* ckpt_tw_old() {return &tw_old;}
+    double* ckpt_tw_dt() {return &tw_dt;}
+    int* ckpt_tw_count() {return &tw_count;}
+
 	void taubed(lexer*, fdm*,ghostcell*,sediment_fdm*);
     void taubed_curv(lexer *p, fdm2D *b, ghostcell *pgc, sediment_fdm *s);     // curvilinear grid (G 50)
 	void taucritbed(lexer*, fdm*,ghostcell*,sediment_fdm*);

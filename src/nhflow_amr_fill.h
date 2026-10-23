@@ -40,6 +40,12 @@ inline int lij(const lexer *q, int ii, int jj) { return (ii-q->imin)*q->jmax + (
 // mean of cell values per area (conservative restriction): their areas over the sum; Cartesian 1/4
 inline void cw4(const lexer *q, int i0, int j0, double *w)
 {
+    if(q->j_dir==0)     // 2D grid: the 2x1 children (a,0), w[0] and w[1]
+    {
+    w[0] = w[1] = 0.5;
+    w[2] = w[3] = 0.0;
+    return;
+    }
     if(q->geo_curv!=1)
     {
     w[0] = w[1] = w[2] = w[3] = 0.25;
@@ -59,18 +65,25 @@ inline double cyc(const lexer *q, int a, int b) { return q->geo_curv==1 ? q->YC2
 // around the 2x2 children, the plain average next to solids
 inline bool rcubic(const lexer *pp, int i0, int j0)
 {
+    const int b0 = (pp->j_dir==1) ? -1 : 0, b1 = (pp->j_dir==1) ? 2 : 0;     // (2D grid: x only)
     for(int a=-1; a<=2; ++a)
-    for(int b=-1; b<=2; ++b)
+    for(int b=b0; b<=b1; ++b)
     if(pp->flagslice4[(i0+a-pp->imin)*pp->jmax + (j0+b-pp->jmin)]<0)
     return false;
     return true;
 }
 
 template<class F>
-inline double rc4(F f)
+inline double rc4(F f, bool x_only=false)
 {
     const double w[4] = {-1.0/16.0, 9.0/16.0, 9.0/16.0, -1.0/16.0};
     double r = 0.0;
+    if(x_only)      // 2D grid: cubic in x
+    {
+        for(int a=0; a<4; ++a)
+        r += w[a]*f(a-1,0);
+        return r;
+    }
     for(int a=0; a<4; ++a)
     {
         double ra = 0.0;
@@ -144,9 +157,9 @@ inline void nhflow_amr::rcol_block(reefamr_patch *c, int k, const double *src, i
     using namespace nhflow_amr_detail;
 
     lexer *pp = c->pp;
-    const int nby = c->ny/2;
+    const int nby = c->ny>>sy;
     const int bi = k/nby, bj = k%nby;
-    const int i0 = EXT+2*bi, j0 = EXT+2*bj;
+    const int i0 = EXT+2*bi, j0 = EY+ychild(bj);
 
     // cubic only on interior blocks: on the edge blocks the 4x4 stencil would read the
     // EXT cells of the patch, which are not unknowns of the composite solve (as fnpf_amr).
@@ -154,24 +167,28 @@ inline void nhflow_amr::rcol_block(reefamr_patch *c, int k, const double *src, i
     // and with subcycling the covered pressure enters the level-0 step and the parent pressure
     // of the fills (placed patches, G 40 2, against one rank: 2.4e-7 m with the cubic blocks,
     // 2e-13 m without; the flume the same to 4 digits)
-    bool hi = (bi>0 && bi<c->nx/2-1 && bj>0 && bj<nby-1) && rcubic(pp,i0,j0) && sub==0;
+    bool hi = (bi>0 && bi<c->nx/2-1 && (sy==0 || (bj>0 && bj<nby-1))) && rcubic(pp,i0,j0) && sub==0;
     const int sI = pp->jmax*pp->kmaxF, sJ = pp->kmaxF;
     const int fz = pp->knoz/Kc;
 
     // G 30: only the children that are unknowns of the pressure (wet and deep); cubic only
     // if the whole 4x4 stencil is; none of them: the coarse column is shallow or dry, P = 0
-    int na = 4;
+    // (2D grid: the 2x1 children, wa[0] and wa[2])
+    const int nch = 2<<sy;
+    int na = nch;
     double wa[4] = {0.25,0.25,0.25,0.25};
+    if(sy==0)
+    wa[0] = wa[2] = 0.5, wa[1] = wa[3] = 0.0;
     if(shore)
     {
         for(int a=-1; a<=2 && hi; ++a)
-        for(int b=-1; b<=2 && hi; ++b)
+        for(int b=-sy; b<=2*sy && hi; ++b)
         if(!wet_at(pp,i0+a,j0+b,2))
         hi = false;
 
         na = 0;
         for(int a=0; a<2; ++a)
-        for(int b=0; b<2; ++b)
+        for(int b=0; b<=sy; ++b)
         {
             wa[2*a+b] = wet_at(pp,i0+a,j0+b,2) ? 1.0 : 0.0;
             na += (int)wa[2*a+b];
@@ -184,9 +201,11 @@ inline void nhflow_amr::rcol_block(reefamr_patch *c, int k, const double *src, i
     {
         const int n0 = fidx(pp,i0,j0,fz*K);
         if(hi)
-        v[K] = rc4([&](int a, int b) { return src[n0+a*sI+b*sJ]; });
+        v[K] = rc4([&](int a, int b) { return src[n0+a*sI+b*sJ]; },sy==0);
         else if(na==4)
         v[K] = 0.25*(src[n0] + src[n0+sI] + src[n0+sJ] + src[n0+sI+sJ]);
+        else if(sy==0)
+        v[K] = (na==2) ? 0.5*(src[n0] + src[n0+sI]) : wa[0]*src[n0] + wa[2]*src[n0+sI];
         else
         v[K] = wa[0]*src[n0] + wa[2]*src[n0+sI] + wa[1]*src[n0+sJ] + wa[3]*src[n0+sI+sJ];
     }

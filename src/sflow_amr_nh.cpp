@@ -114,6 +114,7 @@ void sflow_amr::nh_prepare(ghostcell *pgc, bool assemble)
     {
         nhmg0 = new reefmg2D(p0,pgc0);
         nhr0 = new vec2D(p0,p0->imax*p0->jmax);
+        nhmg0->set_exact_line(sy==0 && nblk==0);     // 2D grid: the exact line solve
     }
 
     // the level-0 multigrid: rebuilt from the level-0 rows of this solve; a level solve (G 7 1,
@@ -173,19 +174,19 @@ void sflow_amr::nh_prepare(ghostcell *pgc, bool assemble)
             continue;
 
             int I = (g<0) ? ii+O0i : ii-EXT+P[g]->I0;
-            int J = (g<0) ? jj+O0j : jj-EXT+P[g]->J0;
+            int J = (g<0) ? jj+O0j : jj-EY+P[g]->J0;
 
             // covered by the next finer level: the average of the children (-1), or (G 7 1, a level
             // solve: the window is that level alone) fixed at the restricted pressure of the
             // finer level (-3), so that the cells next to the patches see the fine pressure as in
             // the composite solve and the covered velocities, the restricted fine ones, do not
             // enter the solve
-            if(l<wtop() && covered(l+1,2*I,2*J))
+            if(l<wtop() && covered(l+1,2*I,ychild(J)))
             {
                 (*G.act)[c] = -1;
                 continue;
             }
-            if(sub==1 && l==wtop() && l<maxlev && covered(l+1,2*I,2*J))
+            if(sub==1 && l==wtop() && l<maxlev && covered(l+1,2*I,ychild(J)))
             {
                 (*G.act)[c] = -3;
                 continue;
@@ -197,7 +198,7 @@ void sflow_amr::nh_prepare(ghostcell *pgc, bool assemble)
 
     rows(-1,0,NX0-1,0,NY0-1,0);
     for(int n=0; n<(int)P.size(); ++n)
-    rows(n,EXT,EXT+P[n]->nx-1,EXT,EXT+P[n]->ny-1,P[n]->lev);
+    rows(n,EXT,EXT+P[n]->nx-1,EY,EY+P[n]->ny-1,P[n]->lev);
 
     // patch multigrids: the patch rows with q = 0 at the patch edge
     for(int n=0; n<(int)P.size(); ++n)
@@ -213,7 +214,7 @@ void sflow_amr::nh_prepare(ghostcell *pgc, bool assemble)
         {
             c->mg = new reefmg_core;
             c->mg->set_precision(64);
-            if(!c->mg->setup(MPI_COMM_SELF,c->nx,c->ny,1,c->nx,c->ny,0,pp->DXN+marge+EXT-1,pp->DYN+marge+EXT-1))
+            if(!c->mg->setup(MPI_COMM_SELF,c->nx,c->ny,1,c->nx,c->ny,0,pp->DXN+marge+EXT-1,pp->DYN+marge+EY-1))
             cout<<"SFLOW AMR: patch multigrid "<<c->mg->err()<<endl;
         }
 
@@ -226,12 +227,12 @@ void sflow_amr::nh_prepare(ghostcell *pgc, bool assemble)
         std::fill(L.act.begin(),L.act.end(),0);
 
         double ldx = 0.0;
-        auto inner = [&](int ii, int jj) { return ii>=EXT && ii<EXT+c->nx && jj>=EXT && jj<EXT+c->ny; };
+        auto inner = [&](int ii, int jj) { return ii>=EXT && ii<EXT+c->nx && jj>=EY && jj<EY+c->ny; };
 
         for(int ii=EXT; ii<EXT+c->nx; ++ii)
-        for(int jj=EXT; jj<EXT+c->ny; ++jj)
+        for(int jj=EY; jj<EY+c->ny; ++jj)
         {
-            long qd = L.idx(ii-EXT,jj-EXT,0);
+            long qd = L.idx(ii-EXT,jj-EY,0);
             int r = c->row[lij(pp,ii,jj)];
 
             if(r<0 || c->act[lij(pp,ii,jj)]==0 || c->act[lij(pp,ii,jj)]==-3 || (M.n[r]==0.0 && M.s[r]==0.0 && M.w[r]==0.0 && M.e[r]==0.0))
@@ -262,6 +263,10 @@ void sflow_amr::nh_prepare(ghostcell *pgc, bool assemble)
 
         int need = 2 + (int)ceil(log2(ldx>1.0 ? ldx : 1.0));
         c->mg->set_active_levels(need);
+        // 2D grid: one cell in y, the patch problem is a line in x, solved exactly (reefamr_xzlu)
+        if(sy==0)
+        c->xz.factor(L,64);
+        else
         c->mg->coarsen();
     }
 }
@@ -275,9 +280,9 @@ void sflow_amr::nh_restrict_vec(int k)
              {
                  sflow_amr_patch *c = SP(q);
                  slice &x = nh_vec(n,k);
-                 const int nby = c->ny/2;
-                 const int i0 = EXT+2*(kk/nby), j0 = EXT+2*(kk%nby);
-                 v[0] = 0.25*(x(i0,j0)+x(i0+1,j0)+x(i0,j0+1)+x(i0+1,j0+1));
+                 const int nby = c->ny>>sy;
+                 const int i0 = EXT+2*(kk/nby), j0 = EY+ychild(kk%nby);
+                 v[0] = (sy==0) ? 0.5*(x(i0,j0)+x(i0+1,j0)) : 0.25*(x(i0,j0)+x(i0+1,j0)+x(i0,j0+1)+x(i0+1,j0+1));
              },
              [&](const reefamr_block &B, int key, const double *v)
              {
@@ -389,7 +394,7 @@ void sflow_amr::nh_apply(int kx, int ky)
         continue;
         lexer *pp = c->pp;
         slice &x = nh_vec(n,kx);
-        const int il=EXT-1, ih=EXT+c->nx-1, jl=EXT-1, jh=EXT+c->ny-1;
+        const int il=EXT-1, ih=EXT+c->nx-1, jl=EY-1, jh=EY+c->ny-1;
 
         c->qrec[0].resize(c->ny); c->qrec[1].resize(c->ny);
         c->qrec[2].resize(c->nx); c->qrec[3].resize(c->nx);
@@ -398,7 +403,7 @@ void sflow_amr::nh_apply(int kx, int ky)
         const bool cv = (pp->geo_curv==1);
         for(int r=0; r<c->ny; ++r)
         {
-            int jj=EXT+r;
+            int jj=EY+r;
             c->qrec[0][r] = (x(il+1,jj)-x(il,jj))/(cv ? sflow_curv::dnorm(pp,1,il,jj) : pp->DXP[il+marge]);
             c->qrec[1][r] = (x(ih+1,jj)-x(ih,jj))/(cv ? sflow_curv::dnorm(pp,1,ih,jj) : pp->DXP[ih+marge]);
         }
@@ -416,7 +421,7 @@ void sflow_amr::nh_apply(int kx, int ky)
              [&](reefamr_patch *q, int side, int r, double *sb)
              {
                  sflow_amr_patch *c = SP(q);
-                 sb[0] = 0.5*(c->qrec[side][r]+c->qrec[side][r+1]);
+                 sb[0] = 0.5*(c->qrec[side][r]+c->qrec[side][r+fr1(side)]);
              },
              [&](reefamr_match &m, const double *v) { m.val[5] = v[0]; });
 
@@ -430,7 +435,7 @@ void sflow_amr::nh_apply(int kx, int ky)
         slice &y = nh_vec(g,ky);
         int i0,i1,j0,j1;
         if(g<0) { i0=0; i1=NX0-1; j0=0; j1=NY0-1; }
-        else    { i0=EXT; i1=EXT+P[g]->nx-1; j0=EXT; j1=EXT+P[g]->ny-1; }
+        else    { i0=EXT; i1=EXT+P[g]->nx-1; j0=EY; j1=EY+P[g]->ny-1; }
 
         for(int ii=i0; ii<=i1; ++ii)
         for(int jj=j0; jj<=j1; ++jj)
@@ -480,7 +485,7 @@ void sflow_amr::nh_apply(int kx, int ky)
         for(auto &m : match[g+1])
         {
             sflow_amr_patch *c = SP(m.child);
-            over(m,0.5*(c->qrec[m.side][m.r]+c->qrec[m.side][m.r+1]));
+            over(m,0.5*(c->qrec[m.side][m.r]+c->qrec[m.side][m.r+fr1(m.side)]));
         }
         for(auto &m : rmatch[g+1])
         over(m,m.val[5]);
@@ -498,7 +503,7 @@ double sflow_amr::nh_dot(int ka, int kb)
         slice &bv = nh_vec(g,kb);
         int i0,i1,j0,j1;
         if(g<0) { i0=0; i1=NX0-1; j0=0; j1=NY0-1; }
-        else    { i0=EXT; i1=EXT+P[g]->nx-1; j0=EXT; j1=EXT+P[g]->ny-1; }
+        else    { i0=EXT; i1=EXT+P[g]->nx-1; j0=EY; j1=EY+P[g]->ny-1; }
 
         for(int ii=i0; ii<=i1; ++ii)
         for(int jj=j0; jj<=j1; ++jj)
@@ -517,7 +522,7 @@ void sflow_amr::nh_prolong(int l, int kz)
         sflow_amr_patch *c = SP(n);
         slice &z = nh_vec(n,kz);
         for(int ii=EXT; ii<EXT+c->nx; ++ii)
-        for(int jj=EXT; jj<EXT+c->ny; ++jj)
+        for(int jj=EY; jj<EY+c->ny; ++jj)
         z(ii,jj) = 0.0;
     }
 
@@ -525,11 +530,11 @@ void sflow_amr::nh_prolong(int l, int kz)
                [&](const reefamr_block &B, int key, double *v)
                {
                    for(int a=0;a<2;++a)
-                   for(int d=0;d<2;++d)
+                   for(int d=0;d<=sy;++d)
                    {
                        reefamr_fill f;
                        f.kind=1; f.g=B.g; f.si=B.ic; f.sj=B.jc;
-                       f.ox = a==0 ? -1 : 1; f.oy = d==0 ? -1 : 1;
+                       f.ox = a==0 ? -1 : 1; f.oy = (sy==0) ? 0 : (d==0 ? -1 : 1);
                        v[2*a+d] = nh_eval(f,kz);
                    }
                },
@@ -537,11 +542,11 @@ void sflow_amr::nh_prolong(int l, int kz)
                {
                    sflow_amr_patch *c = SP(q);
                    slice &z = nh_vec(n,kz);
-                   const int nby = c->ny/2;
+                   const int nby = c->ny>>sy;
                    const int bi = kb/nby, bj = kb%nby;
                    for(int a=0;a<2;++a)
-                   for(int d=0;d<2;++d)
-                   z(EXT+2*bi+a,EXT+2*bj+d) = v[2*a+d];
+                   for(int d=0;d<=sy;++d)
+                   z(EXT+2*bi+a,EY+ychild(bj)+d) = v[2*a+d];
                });
 }
 
@@ -630,9 +635,9 @@ void sflow_amr::nh_prec(int kr, int kz)
             sc_level &L = c->mg->fine();
 
             for(int ii=EXT; ii<EXT+c->nx; ++ii)
-            for(int jj=EXT; jj<EXT+c->ny; ++jj)
+            for(int jj=EY; jj<EY+c->ny; ++jj)
             {
-                long qd = L.idx(ii-EXT,jj-EXT,0);
+                long qd = L.idx(ii-EXT,jj-EY,0);
                 L.u[qd] = 0.0;
                 L.f[qd] = 0.0;
                 if(L.act[qd]==0)
@@ -642,12 +647,15 @@ void sflow_amr::nh_prec(int kr, int kz)
                 L.f[qd] = r(ii,jj) - az;
             }
 
+            if(sy==0)
+            c->xz.solve(L,L.f,L.u);
+            else
             c->mg->vcycle(0,1,1);
 
             for(int ii=EXT; ii<EXT+c->nx; ++ii)
-            for(int jj=EXT; jj<EXT+c->ny; ++jj)
+            for(int jj=EY; jj<EY+c->ny; ++jj)
             {
-                long qd = L.idx(ii-EXT,jj-EXT,0);
+                long qd = L.idx(ii-EXT,jj-EY,0);
                 if(L.act[qd])
                 z(ii,jj) += L.u[qd];
                 else
@@ -669,7 +677,7 @@ void sflow_amr::nh_prec(int kr, int kz)
         slice &r = nh_vec(g,kr);
         int i0,i1,j0,j1;
         if(g<0) { i0=0; i1=NX0-1; j0=0; j1=NY0-1; }
-        else    { i0=EXT; i1=EXT+P[g]->nx-1; j0=EXT; j1=EXT+P[g]->ny-1; }
+        else    { i0=EXT; i1=EXT+P[g]->nx-1; j0=EY; j1=EY+P[g]->ny-1; }
 
         for(int ii=i0; ii<=i1; ++ii)
         for(int jj=j0; jj<=j1; ++jj)
@@ -693,7 +701,7 @@ void sflow_amr::nh_each(F fn)
         lexer *q = G.q;
         int i0,i1,j0,j1;
         if(g<0) { i0=0; i1=NX0-1; j0=0; j1=NY0-1; }
-        else    { i0=EXT; i1=EXT+P[g]->nx-1; j0=EXT; j1=EXT+P[g]->ny-1; }
+        else    { i0=EXT; i1=EXT+P[g]->nx-1; j0=EY; j1=EY+P[g]->ny-1; }
 
         for(int ii=i0; ii<=i1; ++ii)
         for(int jj=j0; jj<=j1; ++jj)

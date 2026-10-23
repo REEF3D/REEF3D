@@ -98,7 +98,21 @@ public:
     void forcing_cfd(lexer*, fdm*, ghostcell*, int, double, field&, field&, field&, bool) override final;
     void forcing_nhflow(lexer*, fdm_nhf*, ghostcell*, int, double, double*, double*, double*, slice&, bool, bool) override final;
 
+    // checkpoints (P 48, I 45), dem_f_ckpt in dem_f.cpp
+    void ckpt_state(lexer*, std::vector<double>&, std::vector<double>&) override final;
+    bool ckpt_restore(lexer*, const std::vector<double>&, const std::vector<std::vector<double>>&, bool) override final;
+    double* ckpt_alpha() override final {return ALPHAV;}
+
 private:
+    // checkpoints: the restore waits for the set-up of the first step (ckpt_apply)
+    void ckpt_apply(lexer*, ghostcell*);
+    void ckpt_pack_full(vector<double>&, const dem_body&, const vector<int>&);
+    void ckpt_unpack_full(dem_reader&, dem_body&, vector<int>&);
+    bool ckpt_pending = false;
+    bool ckpt_same = false;
+    vector<double> ckpt_global;
+    vector<vector<double>> ckpt_ranks;
+
     // setup
     void read_input(lexer*, ghostcell*);
     void ini(lexer*, ghostcell*);

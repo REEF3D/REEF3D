@@ -61,7 +61,8 @@ public:
     int A309,A310,A311,A312,A313,A314,A315,A316,A317,A318,A320,A324,A327,A328,A329,A330,A332,A334,A336,A337,A338,A339,A343,A347,A348;
     double A319,A325,A326,A331,A335,A341,A342,A344,A346,A349;
     int A350,A351,A352,A357,A361,A362;
-    double A354,A355,A356,A365,A366;
+    double A354,A355,A356,A365,A366,A359,A360,A364;
+    int A367;
     int A370,A372,A373,A374,A378;
     double A371_u,A371_dir,A375,A376_s,A376_sc,A376_c,A377;
     double A372_xs,A372_xe,A372_ys,A372_ye;
@@ -94,6 +95,7 @@ public:
     int A564,A565,A566,A567;
     int A561;
     double A562_cs,A562_nub,A563;
+    int A559;
     int A570,A573,A574,A578,A580;
     double A568,A571_u,A571_dir,A575,A576_s,A576_sc,A576_c;
     int A572;
@@ -204,6 +206,8 @@ public:
     int *B513_id,*B513_profile; double *B513_par;    // iowave redesign: vertical profile of the background current (B 513 id profile par), repeatable
     int B525;
     int *B525_id; double *B525_Q,*B525_tramp;    // iowave redesign: discharge of a clamped discharge edge (B 525 id Q t_ramp), repeatable
+    int B522;
+    int *B522_id,*B522_b;     // multi-block grid: zone id on a face of block b (B 522 id b), repeatable
     int B108;
     double *B108_xs,*B108_xe,*B108_ys, *B108_ye, *B108_d;
     int B110;
@@ -380,8 +384,9 @@ public:
     // Grid Options
     // mesh refinement (SFLOW, FNPF, NHFLOW): G 1-G 40
     int G1,G2,G3,G4,G5,G6,G7,G10,G11,G12,G22,G23,G30,G31,G40,G43,G45,G50,G51,G52,G53;
-    int G54, *G54_b, *G54_t;     // open boundaries on the blocks 1.. of a multi-block grid: block, type (1 discharge in, 2 level out)
-    double *G54_v;               // discharge (m3/s) or water level (m)
+    int G54, *G54_b, *G54_t;     // open boundaries on the blocks 1.. of a multi-block grid: block, type (1 discharge in, 2 level out,
+                                 // 3 discharge time series in, 4 level time series out)
+    double *G54_v;               // discharge (m3/s), water level (m) or the id of the time series file (3, 4)
     double G12_r,G13_L,G13_a,G20,G21;
     double *G10_xs,*G10_xe,*G10_ys,*G10_ye;
     int G15,G25;
@@ -406,6 +411,7 @@ public:
 
     // Initialize Options
     int I10,I11,I12,I13,I30,I40,I41,I44,I45,I56;
+    int I45_count;              // I 45 <count> (> 1): the restart from REEF3D_Checkpoint/<count>, 0 the latest
     double I21,I50,I55,I58_1,I58_2;
     int I230;
     double I231,I232,I233;
@@ -430,6 +436,8 @@ public:
     int P46,P46_is,P46_ie;
     int P47;
     int P48;                    // checkpoints every P 48 steps (reefckpt)
+    double P48_dt;              // and every P48_dt seconds of simulated time (P 48 N dt), 0 off
+    int P49;                    // the checkpoints kept (the newest), 0 all, -1 the default of the model
     double P47_ts,P47_te;
     int P160;
     double P160_ts,P160_dt,P161;
@@ -508,7 +516,7 @@ public:
 
 
     double Q25,Q30,Q45,Q53,Q54,Q55,Q56,Q59,Q60,Q62,Q63,Q64,Q65,Q66,Q70,Q75,Q76,Q77;
-    int Q72,Q74;
+    int Q72,Q74,Q78;
     double Q41;
     int Q61,*Q61_i;
     double *Q61_x,*Q61_y,*Q61_z;
@@ -598,7 +606,10 @@ public:
     double X25_Cp,X25_Cq,X25_Cr;
     double X26_Cu,X26_Cv,X26_Cw;
     double X17,X18;
-    int X27;
+    int X27,X28;
+    double X29_d,X29_a;
+    double X30;
+    int X35,X36;
     double X41,X42,X43,X44;
     double X100_x,X100_y,X100_z;
     double X101_phi, X101_theta, X101_psi;
@@ -667,6 +678,8 @@ public:
     double X506_T,X506_C;
     double X507_t,X507_K,X507_C;
     double X508_t;
+    int X510;
+    double X510_B,X510_Fc,X510_veps;
 
     // FSI
     int Z10,Z11,Z20,Z30,Z40;

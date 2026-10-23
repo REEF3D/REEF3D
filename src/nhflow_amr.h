@@ -24,6 +24,7 @@ Architect: Hans Bihs
 #define NHFLOW_AMR_H_
 
 #include"reefamr.h"
+#include"reefamr_xzlu.h"
 #include"amr_grid_lookup.h"
 #include"lexer.h"
 #include"nhflow_momentum_func.h"
@@ -128,7 +129,7 @@ using namespace std;
 //  G 13, G 2, G 5, G 6, G 22, G 23, G 30, G 40), A 510 2/3, A 511 1/2, A 514 all, A 520 0/1/2,
 //  A 512 0/1/2, A 560 0, A 550 0 (A 550 1 with A 510 2), B 200 0, X 10 0/1/2 (X 60 1, X 16 0,
 //  A 516 0/1/3), S 10 0, no solids (A 580 1,
-//  A 581-590), no membranes (X 330), nets (X 320), 3D grids.  Patches stay out of the relaxation
+//  A 581-590), no membranes (X 330), nets (X 320), 3D and 2D grids (Cartesian).  Patches stay out of the relaxation
 //  zones (B 96), the in- and outflow band and, checked at every regrid, 4 level-0 cells away from
 //  dry or shallow cells (they are fully wet; level 0 keeps its wetting and drying).
 //
@@ -187,6 +188,7 @@ struct nhflow_amr_patch : public reefamr_patch
     vector<double*> kv;             // Krylov vectors, F layout
     vector<int> row;                // FIJK -> matrix row of the patch assembly, -1 none
     reefmg_core *mg = nullptr;      // patch-local multigrid of the preconditioner
+    reefamr_xzlu xz;                // a 2D grid: the exact patch-local solve instead of the V-cycle
     vector<int> fill1;              // the entries of fill next to the patch (the reach of the pressure rows)
     vector<int> fill2;              // the entries of fill within two columns of the patch (the stencils of the prolongation into the next finer level)
     // the overlap of the patch multigrid (pr_overlap): columns across the sides x-, x+, y-, y+ where
@@ -389,6 +391,8 @@ private:
     vector<pgrid> pg;               // [g+1]
     vector<double*> kv0;            // level-0 Krylov vectors
     reefmg_core *mg0 = nullptr;     // level-0 multigrid of the preconditioner
+    reefamr_xzlu xz0;               // a 2D grid: the exact level-0 solve instead of the V-cycle
+    bool xz0on = false;
     vector<int> rowmap0;            // level 0: FIJK -> matrix row
     double *ptgt0 = nullptr;
     long pr_it_total = 0, pr_solves = 0;

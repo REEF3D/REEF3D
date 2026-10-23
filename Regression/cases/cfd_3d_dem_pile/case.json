@@ -1,0 +1,17 @@
+{
+ "np": 2,
+ "steps": 30,
+ "files": [
+  "dem.txt"
+ ],
+ "description": "the DEM tutorial 3 (CFD, unresolved coupling E 11 1): 250 particles settle into a pile on 2 ranks, distributed with ghosts across the partition edge.",
+ "tags": [
+  "3d",
+  "cfd",
+  "dem",
+  "mpi"
+ ],
+ "covers": [
+  "dem_f with CFD (unresolved)"
+ ]
+}

@@ -230,7 +230,7 @@ fnpf_amr::fnpf_amr(lexer *p, fdm_fnpf *c, ghostcell *pgc) : reefamr(p,pgc)
     lap_it_total = lap_solves = 0;
     lap_it_last = 0;
     lap_res_last = 0.0;
-    for(int k=0; k<6; ++k)
+    for(int k=0; k<9; ++k)
     tm[k] = 0.0;
 }
 
@@ -594,6 +594,8 @@ void fnpf_amr::patch_delete(reefamr_patch *q)
 {
     fnpf_amr_patch *c = FP(q);
 
+    for(auto v : c->kvw)
+    delete [] v;
     for(auto v : c->kv)
     delete [] v;
     delete c->mg;
@@ -842,6 +844,60 @@ double fnpf_amr::pq(slice &f, lexer *q, int ic, int jc, int ox, int oy)
     return r;
 }
 
+// the cached weights of pcol (see pwcache): their number, or -1 where not cached
+int fnpf_amr::pw_get(int g, lexer *q, int ic, int jc, int ox, int oy, const int *&offs, const double *&ws)
+{
+    if(wfill || body!=nullptr)
+    return -1;
+
+    if((int)pwc.size()<(int)P.size()+1)
+    pwc.resize(P.size()+1);
+    pwcache &C = pwc[g+1];
+    const int stamp = regrids;
+    if(C.stamp!=stamp || C.q!=q)
+    {
+        C.stamp = stamp;
+        C.q = q;
+        C.slot.assign((size_t)q->imax*q->jmax*8,-1);
+        C.num.clear(); C.off.clear(); C.wt.clear();
+    }
+
+    // (pord: the preconditioner prolongs biquadratically, the fills bicubically)
+    const int qd = ((ox>0) ? 1 : 0) + ((oy>0) ? 2 : 0) + ((pord>=4) ? 4 : 0);
+    const long key = (long)lij(q,ic,jc)*8 + qd;
+    if(key<0 || key>=(long)C.slot.size())
+    return -1;
+
+    if(C.slot[key]==-1)
+    {
+        double w[25];
+        pweights(q,ic,jc,ox,oy,w);
+        const int sI = q->jmax*q->kmaxF;
+        const int sJ = q->kmaxF;
+        const int at = (int)C.off.size();
+        int nw = 0;
+        for(int di=-2; di<=2; ++di)
+        for(int dj=-2; dj<=2; ++dj)
+        {
+            const double c = w[(di+2)*5+(dj+2)];
+            if(c==0.0)
+            continue;
+            C.off.push_back(di*sI + dj*sJ);
+            C.wt.push_back(c);
+            ++nw;
+        }
+        C.slot[key] = (int)C.num.size();
+        C.num.push_back(at);
+        C.num.push_back(nw);
+    }
+
+    const int e = C.slot[key];
+    const int at = C.num[e], nw = C.num[e+1];
+    offs = C.off.data() + at;
+    ws = C.wt.data() + at;
+    return nw;
+}
+
 // column of a child of coarse cell (ic,jc) of grid g: nodes 0..knf of the fine column;
 // horizontally biquadratic on the coarse nodes, vertically linear in sigma (the fine nodes
 // subdivide the coarse ones evenly)
@@ -853,13 +909,28 @@ void fnpf_amr::pcol(int g, int ic, int jc, int ox, int oy, const double *src, in
     const int sI = q->jmax*q->kmaxF;
     const int sJ = q->kmaxF;
 
-    double w[25];
-    pweights(q,ic,jc,ox,oy,w);
-
     const double *s[25];
     int nw=0;
     double ww[25];
     const int n0 = fidx(q,ic,jc,0);
+
+    const int *co;
+    const double *cw;
+    const int nc = pw_get(g,q,ic,jc,ox,oy,co,cw);
+    if(nc>=0)
+    {
+        // (the same order of the weights as below)
+        for(int m=0; m<nc; ++m)
+        {
+            s[m] = src + n0 + co[m];
+            ww[m] = cw[m];
+        }
+        nw = nc;
+    }
+    else
+    {
+    double w[25];
+    pweights(q,ic,jc,ox,oy,w);
     for(int di=-2; di<=2; ++di)
     for(int dj=-2; dj<=2; ++dj)
     {
@@ -869,6 +940,7 @@ void fnpf_amr::pcol(int g, int ic, int jc, int ox, int oy, const double *src, in
         s[nw] = src + n0 + di*sI + dj*sJ;
         ww[nw] = c;
         ++nw;
+    }
     }
 
     auto node = [&](int K)

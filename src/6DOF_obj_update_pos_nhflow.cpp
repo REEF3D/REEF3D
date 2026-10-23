@@ -43,11 +43,7 @@ void sixdof_obj_nhflow::update_position_nhflow(lexer *p, fdm_nhf *d, ghostcell *
     
     pgc->gcsl_start4(p,fsglobal,50);
     
-    if(p->mpirank==0 && finalize==true)
-    {
-        cout<<"XG: "<<c_(0)<<" YG: "<<c_(1)<<" ZG: "<<c_(2)<<" phi: "<<phi*(180.0/PI)<<" theta: "<<theta*(180.0/PI)<<" psi: "<<psi*(180.0/PI)<<endl;
-        cout<<"Ue: "<<u_fb(0)<<" Ve: "<< u_fb(1)<<" We: "<< u_fb(2)<<" Pe: "<<omega_I(0)<<" Qe: "<<omega_I(1)<<" Re: "<<omega_I(2)<<endl;
-    }
+    // the pose and velocity: in the 6DOF log files (REEF3D_*_6DOF), no longer on the terminal
 }
 
 void sixdof_obj_nhflow::update_trimesh_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, bool finalize)

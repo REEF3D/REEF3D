@@ -118,7 +118,11 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
 	for(int qn=0; qn<p->A209;++qn)
     {
 	SLICELOOP4
-	b->bed(i,j) = b->bed0(i,j) = 0.5*b->bed(i,j) + 0.125*(b->bed(i-1,j) +b->bed(i+1,j) +b->bed(i,j-1) +b->bed(i,j+1) );
+    {
+    // (one cell in y: the y neighbours are the cell itself, the value of its Neumann ghost cells)
+    const int js = (p->j_dir==1) ? j-1 : j, jn = (p->j_dir==1) ? j+1 : j;
+	b->bed(i,j) = b->bed0(i,j) = 0.5*b->bed(i,j) + 0.125*(b->bed(i-1,j) +b->bed(i+1,j) +b->bed(i,js) +b->bed(i,jn) );
+    }
     
     pgc->gcsl_start4(p,b->bed,50);
     }
@@ -216,6 +220,10 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
     if(p->I45!=1)
     pamr->print(p,b,pgc);
     }
+
+    // checkpoints (P 48): a case they do not cover says so now, not only at the first checkpoint
+    if(p->P48>0 || p->P48_dt>0.0)
+    ckpt(p,b,pgc);
 
     // restart from the latest checkpoint (I 45 1): the state at the end of its step
     if(p->I45==1)

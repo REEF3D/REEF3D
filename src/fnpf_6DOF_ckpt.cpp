@@ -39,6 +39,7 @@ Author: Hans Bihs
 #include"reefamr.h"
 #include<cmath>
 #include<limits>
+#include<string>
 
 void fnpf_6DOF::grid_fields(fnpf_6DOF_grid *G, const ckpt_fd &fd, const ckpt_fi &fi)
 {
@@ -47,6 +48,14 @@ void fnpf_6DOF::grid_fields(fnpf_6DOF_grid *G, const ckpt_fd &fd, const ckpt_fi 
     fd("fb_psi0",'F',G!=nullptr ? G->psi0 : nullptr);
     for(int m=0; m<6; ++m)
     fd(pn[m],'F',G!=nullptr ? G->psi[m] : nullptr);
+    // several bodies: the unit modes of the bodies 1, 2, ... (fb_psi_<body>_<mode>)
+    for(int nb=1; nb<nbody; ++nb)
+    for(int m=0; m<6; ++m)
+    {
+        const size_t e = 6*(nb-1)+m;
+        const std::string name = "fb_psi_"+std::to_string(nb)+"_"+std::to_string(m);
+        fd(name.c_str(),'F',(G!=nullptr && G->psib.size()>e) ? G->psib[e] : nullptr);
+    }
     fi("fb_mark",'F',G!=nullptr ? G->mark : nullptr);
     fd("fb_foot",'S',G!=nullptr ? G->foot->V : nullptr);
     fd("fb_psiD",'S',G!=nullptr ? G->psiD->V : nullptr);
@@ -85,6 +94,28 @@ void fnpf_6DOF::amr_ckpt_grids(lexer *p, ghostcell *pgc)
     ckpt_grids = true;
     amr_layout = -1;
     amr_grids(p,pgc);
+
+    // X 36: the unit modes of the bodies 1, 2, ... live on the patches of their windows only (allocated
+    // at their first solve); their arrays for the checkpoint's values on the patches that reach into
+    // the zone of the body grown by its margin once more (a superset of the windows of the run; the
+    // others stay unallocated)
+    if(p->X36==1 && p->G12>0 && p->G7!=1 && nbody>1 && amr!=nullptr)
+    for(auto &G : gp)
+    {
+        double x0,x1,y0,y1;
+        amr->patch_box(G.id,x0,x1,y0,y1);
+        for(int nb=1; nb<nbody; ++nb)
+        {
+            double a0,a1,b0,b1;
+            if(!amr->zone_box(nb,a0,a1,b0,b1))
+            continue;
+            const double g = p->G12_r;
+            if(x0<a1+g && x1>a0-g && (p->j_dir==0 || (y0<b1+g && y1>b0-g)))
+            for(int m=0; m<6; ++m)
+            if(psi[m]!=nullptr && !fb_obj[nb]->dof_fixed_fnpf(p,m))
+            mode_array(G,nb,m);
+        }
+    }
     
     for(auto &G : gp)
     {
@@ -98,7 +129,7 @@ void fnpf_6DOF::amr_ckpt_grids(lexer *p, ghostcell *pgc)
 
 void fnpf_6DOF::ckpt_state(lexer *p, std::vector<double> &v)
 {
-    v.push_back(1.0);   // version
+    v.push_back(2.0);   // version (2: with the added mass of X 28)
     v.push_back(double(nbody));
     
     for(int nb=0; nb<nbody; ++nb)
@@ -116,6 +147,30 @@ void fnpf_6DOF::ckpt_state(lexer *p, std::vector<double> &v)
     
     v.push_back(double(g0.footcount));
     v.push_back(g0.ext_ini ? 1.0 : 0.0);
+
+    // version 2, X 28: the step and the poses of the last added mass, the added mass of every body and
+    // the cross terms (a restart continues with them until the next one is due, as the run would)
+    const bool am = (am_count>=0 && (int)am_c.size()==nbody);
+    v.push_back(am ? double(am_count) : -1.0);
+    if(am)
+    {
+        for(int nb=0; nb<nbody; ++nb)
+        {
+            for(int d=0; d<3; ++d)
+            v.push_back(am_c[nb](d));
+            for(int d=0; d<3; ++d)
+            v.push_back(am_ang[nb](d));
+            const Eigen::Matrix<double,6,6> &A = fb_obj[nb]->external_added_mass();
+            v.push_back(fb_obj[nb]->external_added_mass_on() ? 1.0 : 0.0);
+            for(int a=0; a<6; ++a)
+            for(int b=0; b<6; ++b)
+            v.push_back(A(a,b));
+        }
+        for(const auto &A : Across)
+        for(int a=0; a<6; ++a)
+        for(int b=0; b<6; ++b)
+        v.push_back(A(a,b));
+    }
 }
 
 bool fnpf_6DOF::ckpt_restore(lexer *p, ghostcell *pgc, const std::vector<double> &v)
@@ -123,7 +178,8 @@ bool fnpf_6DOF::ckpt_restore(lexer *p, ghostcell *pgc, const std::vector<double>
     size_t k=0;
     auto next = [&](){ return k<v.size() ? v[k++] : -1.0; };
     
-    if(int(next())!=1 || int(next())!=nbody)
+    const int version = int(next());
+    if((version!=1 && version!=2) || int(next())!=nbody)
     return false;
     
     for(int nb=0; nb<nbody; ++nb)
@@ -143,6 +199,45 @@ bool fnpf_6DOF::ckpt_restore(lexer *p, ghostcell *pgc, const std::vector<double>
     return false;
     g0.footcount = int(next());
     g0.ext_ini = next()>0.5;
+
+    // version 2: the added mass of X 28 (version 1: computed at the first step)
+    am_count = -1;
+    am_c.clear();
+    am_ang.clear();
+    if(version>=2)
+    {
+        if(k+1>v.size())
+        return false;
+        const int cnt = int(next());
+        if(cnt>=0)
+        {
+            const size_t need = size_t(nbody)*(6+1+36) + Across.size()*36;
+            if(k+need>v.size())
+            return false;
+            am_c.assign(nbody,Eigen::Vector3d::Zero());
+            am_ang.assign(nbody,Eigen::Vector3d::Zero());
+            for(int nb=0; nb<nbody; ++nb)
+            {
+                for(int d=0; d<3; ++d)
+                am_c[nb](d) = next();
+                for(int d=0; d<3; ++d)
+                am_ang[nb](d) = next();
+                const bool on = next()>0.5;
+                Eigen::Matrix<double,6,6> A;
+                for(int a=0; a<6; ++a)
+                for(int b=0; b<6; ++b)
+                A(a,b) = next();
+                if(on)
+                fb_obj[nb]->fnpf_added_mass_restore(A);
+            }
+            for(auto &A : Across)
+            for(int a=0; a<6; ++a)
+            for(int b=0; b<6; ++b)
+            A(a,b) = next();
+            am_count = cnt;
+        }
+    }
+
     initialized = true;
     
     // the body grids of the patches: those with the arrays of the checkpoint as they were, the

@@ -28,7 +28,7 @@ Author: Hans Bihs
 //  The blocks 1.. of a multi-block grid are patches of the mesh refinement (reefamr_ckpt.cpp).
 //  The 6DOF bodies (one-way bodies X 10 2, ship waves X 10 3): their state as a blob, the pressure patch
 //  of the ship waves as a slice.
-//  Not there yet (refused with a message): 6DOF wavemaker objects, power take-off, sediment, SEASTATE.
+//  Not there yet (refused with a message): 6DOF wavemaker objects, sediment, SEASTATE.
 
 #include"sflow_f.h"
 #include"lexer.h"
@@ -47,6 +47,8 @@ Author: Hans Bihs
 #include"sflow_amr.h"
 #include"ioflow.h"
 #include"6DOF.h"
+#include"cfd_ckpt.h"
+#include"sediment.h"
 
 using namespace std;
 
@@ -54,10 +56,8 @@ string sflow_f::ckpt_unsupported(lexer *p)
 {
     if(p->X10==4)
     return "6DOF wavemaker objects (X 10 4) are not in the checkpoints yet";
-    if(p->X10>0 && p->X500>0)
-    return "the 6DOF power take-off (X 500) is not in the checkpoints yet";
-    if(p->S10>0)
-    return "SFLOW sediment is not in the checkpoints yet";
+    if(p->S10>0 && (p->G1>0 || p->geo_mb>0))
+    return "SFLOW sediment with mesh refinement or multi-block grids is not in the checkpoints yet";
     if(p->A750>0)
     return "SEASTATE is not in the checkpoints yet";
     return "";
@@ -105,6 +105,20 @@ reefrun_ckpt& sflow_f::ckpt(lexer *p, fdm2D *b, ghostcell *pgc)
             ck.put_S("sixdof_slice",p6dof->ckpt_slice());
         }
 
+        // sediment (S 10): the registry of the grid (the slices of the sediment objects), the scalars, those
+        // of the rank, the sediment cell flags
+        if(p->S10>0)
+        {
+            cfd_ckpt_write(p,ck,"reg");
+            vector<double> sv, sr;
+            psed->ckpt_state(p,sv);
+            ck.blob("sediment",sv);
+            psed->ckpt_rank_state(p,sr);
+            ck.rank_blob("sediment_rank",sr);
+            if(p->DFBED!=nullptr)
+            ck.put_Si("DFBED",p->DFBED);
+        }
+
         // the state of the boundary conditions (local to the rank)
         vector<double> io;
         pflow->ckpt_state(p,io);
@@ -116,6 +130,10 @@ reefrun_ckpt& sflow_f::ckpt(lexer *p, fdm2D *b, ghostcell *pgc)
         bool ok = true;
         std::function<void(const char*,char,double*)> rd = [&](const char *n, char, double *V){ if(V==nullptr || !ck.has(n)) return; ok = ck.get_S(n,V) && ok; };
         std::function<void(const char*,char,int*)> ri = [&](const char *n, char, int *V){ if(V==nullptr || !ck.has(n)) return; ok = ck.get_Si(n,V) && ok; };
+
+        // sediment: the registry of the grid first, the explicit lists after it
+        if(p->S10>0 && !cfd_ckpt_read(p,ck,msg,"reg"))
+        return false;
 
         fields(rd,ri);
         ok = ck.has("eta") && ck.has("UH") && ck.has("WL") && ok;
@@ -140,6 +158,21 @@ reefrun_ckpt& sflow_f::ckpt(lexer *p, fdm2D *b, ghostcell *pgc)
             }
             if(p6dof->ckpt_slice()!=nullptr && ck.has("sixdof_slice"))
             ok = ck.get_S("sixdof_slice",p6dof->ckpt_slice()) && ok;
+        }
+
+        // sediment (S 10)
+        if(p->S10>0)
+        {
+            if(!ck.has("sediment") || !psed->ckpt_restore(p,pgc,ck.get_blob("sediment")))
+            {
+                msg = "the checkpoint has no sediment state that fits this run (S 10)";
+                return false;
+            }
+            const vector<vector<double>> sr = ck.same_decomposition() ? vector<vector<double>>{ck.get_rank_blob("sediment_rank",p->mpirank)}
+                                                                      : ck.get_rank_blobs("sediment_rank");
+            psed->ckpt_rank_restore(p,pgc,sr,ck.same_decomposition());
+            if(p->DFBED!=nullptr && ck.has("DFBED"))
+            ok = ck.get_Si("DFBED",p->DFBED) && ok;
         }
 
         // the state of the boundary conditions: on the same decomposition (else they start again)

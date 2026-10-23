@@ -22,11 +22,17 @@ Author: Hans Bihs
 
 #include"lexer.h"
 #include"ghostcell.h"
+#include<vector>
+#include<cmath>
+
+static void periodic_ghost_nodes(lexer*, ghostcell*);
 
 void lexer::gridini(ghostcell *pgc)
 {
     if(G502==1)
     grid::sigma_coord_ini();
+    
+    periodic_ghost_nodes(this,pgc);
 
     grid::gridspacing(pgc);
 
@@ -174,4 +180,79 @@ void lexer::gcd_ini(ghostcell *pgc)
             gcd4[q] = 0.5*DZP[KP];
         }
     }
+}
+
+// periodic sides (DIVEMesh C 21, C 22): the ghost nodes beyond a periodic side are the nodes of the cells at the
+// opposite end. The grid file extrapolates them with the edge cell of the own side, so where the two ends have
+// different cell sizes the ghost cells across the periodic side did not have the size of the cells they mirror
+// (a channel with 2.5 mm cells at one end and 5 mm at the other, validation 14). Ends of equal cell size keep the
+// nodes of the grid file.
+static void periodic_ghost_nodes(lexer *p, ghostcell *pgc)
+{
+    auto side = [&](double *N, int kno, int origin, int gkno)
+    {
+        const int m = p->marge;
+        const bool lo = origin==0;
+        const bool hi = origin+kno==gkno;
+        
+        // the cells at the two ends of the domain: the first m (low end) and the last m (high end)
+        std::vector<double> hl(m+1,0.0), hh(m+1,0.0);
+        
+        for(int q=1;q<=m && q<=kno;++q)
+        {
+            if(lo)
+            hl[q] = N[q+p->marge] - N[q-1+p->marge];
+            
+            if(hi)
+            hh[q] = N[kno-q+1+p->marge] - N[kno-q+p->marge];
+        }
+        
+        for(int q=1;q<=m;++q)
+        {
+            hl[q] = pgc->globalmax(hl[q]);
+            hh[q] = pgc->globalmax(hh[q]);
+        }
+        
+        // ghost nodes from the cells of the opposite end, applied only where the two ends differ
+        double dev=0.0, hmin=1.0e20;
+        std::vector<double> gl(m+1), gh(m+1);
+        
+        gl[0] = N[0+p->marge];
+        gh[0] = N[kno+p->marge];
+        
+        for(int q=1;q<=m;++q)
+        {
+            gl[q] = gl[q-1] - hh[q];
+            gh[q] = gh[q-1] + hl[q];
+            hmin = MIN(hmin, MIN(hh[q], hl[q]));
+            
+            if(lo)
+            dev = MAX(dev, fabs(gl[q] - N[-q+p->marge]));
+            
+            if(hi)
+            dev = MAX(dev, fabs(gh[q] - N[kno+q+p->marge]));
+        }
+        
+        dev = pgc->globalmax(dev);
+        
+        if(hmin<=0.0 || dev <= 1.0e-6*hmin)
+        return;
+        
+        if(lo)
+        for(int q=1;q<=m;++q)
+        N[-q+p->marge] = gl[q];
+        
+        if(hi)
+        for(int q=1;q<=m;++q)
+        N[kno+q+p->marge] = gh[q];
+        
+        if(p->mpirank==0)
+        cout<<"periodic side with different end cells: ghost nodes from the opposite end"<<endl;
+    };
+    
+    if(p->periodic1>0)
+    side(p->XN,p->knox,p->origin_i,p->gknox);
+    
+    if(p->periodic2>0 && p->j_dir==1)
+    side(p->YN,p->knoy,p->origin_j,p->gknoy);
 }

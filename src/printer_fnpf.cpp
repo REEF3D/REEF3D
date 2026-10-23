@@ -229,9 +229,13 @@ void printer_fnpf::start(lexer* p, fdm_fnpf* c,ghostcell* pgc, ioflow *pflow)
         printfsftime_wT[qn]+=p->P185_dt[qn];
     }
 
-    // Print BED
-    if(p->count==0)
+    // Print BED: at the start, and at the first output of a restart (I 45: a new LAGOON store, the bed of the
+    // earlier one stays with it)
+    if(p->count==0 || !bed_printed)
+    {
     pbed->start(p,c,pgc,pflow);
+    bed_printed = true;
+    }
 
 
     // Gages

@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"sediment_exner.h"
+#include"ckpt_pack.h"
 #include"lexer.h"
 #include"ghostcell.h"
 #include"sediment_fdm.h"
@@ -366,4 +367,26 @@ void sediment_exner::dry_deposit(lexer *p, sediment_fdm *s)
     SLICEBASELOOP
     if(p->flagslice4[IJ]<0 || p->DFBED[IJ]<0)
     s->dryd(i,j) = 0.0;
+}
+
+// checkpoints (P 48, I 45): the scalars of the bed update kept over the steps (the slices are in the
+// registry of the grid, ckpt_registry.h)
+void sediment_exner::ckpt_state(std::vector<double> &v) const
+{
+    ckpt_put w{v};
+    w.i(noneq_ini); w.i(spiral_ini); w.i(susp_ini); w.i(lag_print);
+    for(double x : {lag_d0,lag_f0,lag_d[0],lag_d[1],lag_d[2],lag_f[0],lag_f[1],lag_f[2],
+                    dtsed0,maxvz_k,simtime_last,morfac,c_U,bend_rate,amr_bendrate})
+    w.d(x);
+}
+
+void sediment_exner::ckpt_restore(const std::vector<double> &v, size_t &k)
+{
+    ckpt_get r{v};
+    r.k = k;
+    r.i(noneq_ini); r.i(spiral_ini); r.i(susp_ini); r.i(lag_print);
+    for(double *x : {&lag_d0,&lag_f0,&lag_d[0],&lag_d[1],&lag_d[2],&lag_f[0],&lag_f[1],&lag_f[2],
+                     &dtsed0,&maxvz_k,&simtime_last,&morfac,&c_U,&bend_rate,&amr_bendrate})
+    r.d(*x);
+    k = r.k;
 }

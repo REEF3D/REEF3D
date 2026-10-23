@@ -24,9 +24,15 @@ Author: Hans Bihs
 #include"lexer.h"
 #include<mpi.h>
 #include<sys/stat.h>
+#include<unistd.h>
+#include<dirent.h>
 #include<cstdio>
 #include<cstring>
+#include<cstdlib>
 #include<algorithm>
+#include<set>
+#include<iostream>
+#include<map>
 
 using namespace std;
 
@@ -61,14 +67,81 @@ string piece_name(const string &dir, int r)
     snprintf(nm,sizeof(nm),"/piece-%06i.dat",r);
     return dir+nm;
 }
+
+vector<string> files_in(const string &dir)
+{
+    vector<string> names;
+    if(DIR *d = opendir(dir.c_str()))
+    {
+        while(dirent *e = readdir(d))
+        {
+            const string n = e->d_name;
+            if(n!="." && n!="..")
+            names.push_back(n);
+        }
+        closedir(d);
+    }
+    sort(names.begin(),names.end());
+    return names;
+}
+
+// the output files and folders of this process (reefckpt_open, reefckpt_output_dir): their sizes go with
+// every checkpoint (outputs-<rank>.txt)
+set<string> out_files, out_dirs;
+
+// the sizes of the outputs at the checkpoint of the restart (all its tables), read at the first use;
+// there: the checkpoint has the tables (an older one: the files are continued as they are)
+bool sizes_read = false, sizes_there = false;
+map<string,long long> sizes;
+set<string> out_cut;
+
+void read_sizes()
+{
+    if(sizes_read)
+    return;
+    sizes_read = true;
+    const string dir = reefckpt::restart_folder();
+    if(dir.empty())
+    return;
+    for(const string &n : files_in(dir))
+    {
+        if(n.compare(0,8,"outputs-")!=0)
+        continue;
+        sizes_there = true;
+        ifstream t((dir+"/"+n).c_str());
+        long long sz;
+        string name;
+        while(t>>sz && getline(t>>ws,name))
+        sizes[name] = max(sizes[name],sz);
+    }
+}
+
+// a restart: the file cut back to its size at the checkpoint (once per run); false: the checkpoint does not
+// know it, it was written after the checkpoint and starts again
+bool cut(const string &name)
+{
+    read_sizes();
+    if(!sizes_there || out_cut.count(name))
+    return true;
+    out_cut.insert(name);
+    auto it = sizes.find(name);
+    if(it==sizes.end())
+    return false;
+    struct stat st;
+    if(stat(name.c_str(),&st)==0 && (long long)st.st_size>it->second)
+    if(truncate(name.c_str(),(off_t)it->second)!=0)
+    cout<<"I 45: "<<name<<" could not be cut back to the checkpoint"<<endl;
+    return true;
+}
 }
 
 bool reefckpt_open(ofstream &o, const char *name, int I45)
 {
+    out_files.insert(name);
     if(I45==1)
     {
         struct stat st;
-        if(stat(name,&st)==0)
+        if(stat(name,&st)==0 && cut(name))
         {
             o.open(name,ios::app);
             return false;
@@ -78,12 +151,107 @@ bool reefckpt_open(ofstream &o, const char *name, int I45)
     return true;
 }
 
+void reefckpt_output_dir(const string &dir, int I45)
+{
+    out_dirs.insert(dir);
+    if(I45!=1)
+    return;
+    read_sizes();
+    if(!sizes_there)
+    return;
+    for(const string &n : files_in(dir))
+    {
+        const string f = dir+"/"+n;
+        struct stat st;
+        if(stat(f.c_str(),&st)!=0 || !S_ISREG(st.st_mode))
+        continue;
+        if(!cut(f))
+        remove(f.c_str());
+    }
+}
+
+namespace
+{
+int restart_count = 0;
+}
+
+void reefckpt::restart_from(int count)
+{
+    restart_count = count;
+}
+
+string reefckpt::folder_name(const string &s)
+{
+    if(s.empty())
+    return s;
+
+    // a count, or <count>_<sub> (SEASTATE stationary)
+    const size_t u = s.find('_');
+    const string a = s.substr(0,u), b = (u==string::npos) ? string() : s.substr(u+1);
+    auto digits = [](const string &x){ return !x.empty() && x.find_first_not_of("0123456789")==string::npos; };
+    if(digits(a) && (u==string::npos || digits(b)) && a.size()<=9 && b.size()<=9)
+    {
+        char nm[64];
+        if(u==string::npos)
+        snprintf(nm,sizeof(nm),"./REEF3D_Checkpoint/%08i",atoi(a.c_str()));
+        else
+        snprintf(nm,sizeof(nm),"./REEF3D_Checkpoint/%08i_%06i",atoi(a.c_str()),atoi(b.c_str()));
+        return nm;
+    }
+    if(s.find('/')==string::npos)
+    return "./REEF3D_Checkpoint/"+s;
+    return s;
+}
+
+void reefckpt_outputs_restart()
+{
+    read_sizes();
+}
+
+string reefckpt::restart_folder()
+{
+    if(restart_count>0)
+    return folder_name(to_string(restart_count));
+
+    string dir;
+    ifstream l("./REEF3D_Checkpoint/latest");
+    if(l)
+    l>>dir;
+    return folder_name(dir);
+}
+
+// the sizes of the output files of this rank (flushed by the modules before), with the checkpoint
+void reefckpt::outputs_write()
+{
+    vector<string> names(out_files.begin(),out_files.end());
+    for(const string &d : out_dirs)
+    for(const string &n : files_in(d))
+    names.push_back(d+"/"+n);
+
+    // rank 0 always (the checkpoint has the tables), the others when they write outputs
+    if(names.empty() && p->mpirank>0)
+    return;
+
+    char nm[64];
+    snprintf(nm,sizeof(nm),"/outputs-%06i.txt",p->mpirank);
+    ofstream t((dirname+nm).c_str());
+    for(const string &n : names)
+    {
+        struct stat st;
+        if(stat(n.c_str(),&st)==0 && S_ISREG(st.st_mode))
+        t<<(long long)st.st_size<<" "<<n<<"\n";
+    }
+}
+
 // ------------------------------------------------------------------------------------------- write
 
-void reefckpt::write_open(lexer *pp, int count)
+void reefckpt::write_open(lexer *pp, int count, int sub)
 {
     p = pp;
     char nm[64];
+    if(sub>0)
+    snprintf(nm,sizeof(nm),"./REEF3D_Checkpoint/%08i_%06i",count,sub);
+    else
     snprintf(nm,sizeof(nm),"./REEF3D_Checkpoint/%08i",count);
     dirname = nm;
     sc.clear();
@@ -92,6 +260,10 @@ void reefckpt::write_open(lexer *pp, int count)
     if(p->mpirank==0)
     {
         mkdir("./REEF3D_Checkpoint",0777);
+        // a folder of an earlier run (a restart from an earlier checkpoint, other ranks): emptied first
+        struct stat st;
+        if(stat(dirname.c_str(),&st)==0)
+        remove_folder(dirname,0);
         mkdir(dirname.c_str(),0777);
     }
     MPI_Barrier(MPI_COMM_WORLD);
@@ -136,6 +308,7 @@ void reefckpt::write_close(lexer *pp)
     const string endtag = "END";
     wstr(out,endtag);
     out.close();
+    outputs_write();
 
     const int np = p->mpi_size;
     int mybox[6] = {p->origin_i,p->origin_j,p->origin_k,p->knox,p->knoy,p->knoz};
@@ -182,6 +355,84 @@ void reefckpt::write_close(lexer *pp)
     MPI_Barrier(MPI_COMM_WORLD);
 }
 
+void reefckpt::remove_folder(const string &dir, int np)
+{
+    for(int r=0; r<np; ++r)
+    remove(piece_name(dir,r).c_str());
+    remove((dir+"/main.dat").c_str());
+
+    // the rest (pieces of a run on more ranks, the tables of the outputs)
+    if(DIR *d = opendir(dir.c_str()))
+    {
+        vector<string> names;
+        while(dirent *e = readdir(d))
+        {
+            const string n = e->d_name;
+            if(n!="." && n!="..")
+            names.push_back(dir+"/"+n);
+        }
+        closedir(d);
+        for(const string &n : names)
+        remove(n.c_str());
+    }
+    rmdir(dir.c_str());
+}
+
+void reefckpt::prune(const string &dir, int keep)
+{
+    const string hist = "./REEF3D_Checkpoint/history";
+
+    // the folders in the order they were written, each at its last writing
+    vector<string> order;
+    {
+        ifstream h(hist.c_str());
+        string d;
+        while(h>>d)
+        order.push_back(d);
+    }
+    order.push_back(dir);
+    vector<string> uniq;
+    for(size_t n=order.size(); n-->0;)
+    if(find(uniq.begin(),uniq.end(),order[n])==uniq.end())
+    uniq.insert(uniq.begin(),order[n]);
+
+    // the latest is never removed
+    string latest;
+    {
+        ifstream l("./REEF3D_Checkpoint/latest");
+        l>>latest;
+    }
+    latest = folder_name(latest);
+
+    // the folders still there (removed by hand: forgotten)
+    vector<string> there;
+    for(const string &d : uniq)
+    {
+        struct stat st;
+        if(stat(d.c_str(),&st)==0)
+        there.push_back(d);
+    }
+
+    vector<string> kept;
+    const size_t nkeep = keep>0 ? size_t(keep) : there.size();
+    for(size_t n=0; n<there.size(); ++n)
+    {
+        if(n+nkeep<there.size() && there[n]!=latest)
+        {
+            remove_folder(there[n],0);
+            continue;
+        }
+        kept.push_back(there[n]);
+    }
+
+    {
+        ofstream h((hist+".tmp").c_str());
+        for(const string &d : kept)
+        h<<d<<endl;
+    }
+    rename((hist+".tmp").c_str(),hist.c_str());
+}
+
 // -------------------------------------------------------------------------------------------- read
 
 bool reefckpt::read_open(lexer *pp, const string &dir, string &msg)
@@ -190,8 +441,8 @@ bool reefckpt::read_open(lexer *pp, const string &dir, string &msg)
     dirname = dir;
     if(dirname.empty())
     {
-        ifstream l("./REEF3D_Checkpoint/latest");
-        if(!l || !(l>>dirname))
+        dirname = restart_folder();
+        if(dirname.empty())
         {
             msg = "no checkpoint (REEF3D_Checkpoint/latest missing)";
             return false;

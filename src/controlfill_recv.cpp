@@ -18,7 +18,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"control.h"
@@ -270,6 +270,14 @@ void control::ctrlrecv()
     dd++;
     A366 = dctrl[dd];
     dd++;
+    A359 = dctrl[dd];
+    dd++;
+    A360 = dctrl[dd];
+    dd++;
+    A364 = dctrl[dd];
+    dd++;
+    A367 = ictrl[ii];
+    ii++;
     A370 = ictrl[ii];
     ii++;
     A371_u = dctrl[dd];
@@ -464,6 +472,8 @@ void control::ctrlrecv()
     dd++;
     A563 = dctrl[dd];
     dd++;
+    A559 = ictrl[ii];
+    ii++;
     A570 = ictrl[ii];
     ii++;
     A571_u = dctrl[dd];
@@ -908,6 +918,8 @@ void control::ctrlrecv()
     B513 = ictrl[ii];
     ii++;
     B525 = ictrl[ii];
+    ii++;
+    B522 = ictrl[ii];
     ii++;
     B530 = ictrl[ii];
     ii++;
@@ -1724,6 +1736,10 @@ void control::ctrlrecv()
     ii++;
     P48 = ictrl[ii];
     ii++;
+    P49 = ictrl[ii];
+    ii++;
+    P48_dt = dctrl[dd];
+    dd++;
     P47_ts = dctrl[dd];
     dd++;
     P47_te = dctrl[dd];
@@ -2049,6 +2065,8 @@ void control::ctrlrecv()
     Q72 = ictrl[ii];
     ii++;
     Q74 = ictrl[ii];
+    ii++;
+    Q78 = ictrl[ii];
     ii++;
     Q51 = ictrl[ii];
     ii++;
@@ -2556,6 +2574,18 @@ void control::ctrlrecv()
     dd++;
     X27 = ictrl[ii];
     ii++;
+    X28 = ictrl[ii];
+    ii++;
+    X29_d = dctrl[dd];
+    dd++;
+    X29_a = dctrl[dd];
+    dd++;
+    X30 = dctrl[dd];
+    dd++;
+    X35 = ictrl[ii];
+    ii++;
+    X36 = ictrl[ii];
+    ii++;
     X31 = ictrl[ii];
     ii++;
     X32 = ictrl[ii];
@@ -2910,6 +2940,8 @@ void control::ctrlrecv()
     ii++;
     X508 = ictrl[ii];
     ii++;
+    X510 = ictrl[ii];
+    ii++;
     X505_Fmax = dctrl[dd];
     dd++;
     X505_Pmax = dctrl[dd];
@@ -2925,6 +2957,12 @@ void control::ctrlrecv()
     X507_C = dctrl[dd];
     dd++;
     X508_t = dctrl[dd];
+    dd++;
+    X510_B = dctrl[dd];
+    dd++;
+    X510_Fc = dctrl[dd];
+    dd++;
+    X510_veps = dctrl[dd];
     dd++;
 
     Y1 = ictrl[ii];
@@ -3198,6 +3236,12 @@ void control::ctrlrecv()
         Iarray(B525_id,B525);
         Darray(B525_Q,B525);
         Darray(B525_tramp,B525);
+    }
+
+    if(B522>0)
+    {
+        Iarray(B522_id,B522);
+        Iarray(B522_b,B522);
     }
     
     if(B202>0)
@@ -4616,6 +4660,14 @@ void control::ctrlrecv()
         dd++;
         B525_tramp[n] = dctrl[dd];
         dd++;
+    }
+
+    for(n=0;n<B522;++n)
+    {
+        B522_id[n] = ictrl[ii];
+        ii++;
+        B522_b[n] = ictrl[ii];
+        ii++;
     }
     
     for(n=0;n<B202;++n)

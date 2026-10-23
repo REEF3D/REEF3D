@@ -25,7 +25,12 @@ Typical use
 
   # SEASTATE on several ranks against one rank, cell by cell: the cases with "same_as": "<case>" in their
   # case.json against that case of the same run (bitwise; with "same_as_rtol": r, Hs and the spectra within r)
+  # a restart (FNPF, NHFLOW, CFD, SFLOW) against the full run it continues: the final state rank by rank and the
+  # text outputs (bitwise; with "same_as_rtol": r, within r)
   ./regression.py ranks runs/new
+
+  # checkpoints and restarts: "chain": [{"case": "<case writing checkpoints>", "copy": ["REEF3D_Checkpoint"]}] and
+  # I 45 1 in the restart case; "rebalance": n starts a run again after a rebalance stop (G 46), at most n times
 
 Case selection: --cases <glob> [<glob> ...] and/or --tags <tag> [...] (e.g. --tags quick).
 
@@ -109,6 +114,16 @@ BULK_OUTPUT = ["REEF3D_CFD_VTU", "REEF3D_CFD_6DOF_VTP", "REEF3D_CFD_6DOF_Normals
 
 LEVELS = ["identical", "close", "different", "failed"]
 
+# text outputs of measured quantities (the load maps of the rebalance, G 45, and the times of the pipeline: wall-clock
+# times): not compared
+def measured(fn):
+    return fn.endswith("_loadmap.dat") or fn.endswith("_pipeline.dat")
+
+
+# columns of text outputs that are measured quantities (wall-clock times): left out of the comparison and
+# of the reference, by the name in the header line of the file
+MEASURED_COLUMNS = {"REEF3D_6DOF_pierced.dat": ["t_step", "t_total"]}
+
 
 # ----------------------------------------------------------------------------------------------
 # case definitions
@@ -140,7 +155,7 @@ def load_case(name, _seen=None):
         for k, v in b.items():
             if k not in ("name", "dir", "base", "control_lines", "ctrl_lines", "files_abs", "files",
                          "control_set", "ctrl_set", "control_add", "ctrl_add", "description", "covers", "same_as",
-                         "same_as_rtol"):
+                         "same_as_rtol", "same_as_skip"):
                 c.setdefault(k, v)
     else:
         control = read_lines(os.path.join(cdir, "control.txt"))
@@ -244,10 +259,15 @@ def run_case(c, args, outroot):
         sinfo = run_case(sc, args, os.path.join(rundir, "_chain"))
         if sinfo["status"] != "ok":
             info = {"case": c["name"], "np": c["np"], "steps": args.steps or c["steps"],
-                    "status": "chain stage %s: %s" % (stage["case"], sinfo["status"])}
+                    "status": "chain stage %s: %s" % (stage["case"], sinfo["status"]), "time_divemesh": 0.0, "time_reef3d": 0.0}
             return finish_run(rundir, info, args)
         for d in stage.get("copy", []):
-            shutil.copytree(os.path.join(rundir, "_chain", stage["case"], d), os.path.join(rundir, d))
+            s = os.path.join(rundir, "_chain", stage["case"], d)
+            if not os.path.isdir(s):
+                info = {"case": c["name"], "np": c["np"], "steps": args.steps or c["steps"],
+                        "status": "chain stage %s: no %s" % (stage["case"], d), "time_divemesh": 0.0, "time_reef3d": 0.0}
+                return finish_run(rundir, info, args)
+            shutil.copytree(s, os.path.join(rundir, d))
     info = {"case": c["name"], "np": c["np"], "steps": args.steps or c["steps"],
             "reef3d": os.path.abspath(args.reef3d), "divemesh": os.path.abspath(args.divemesh),
             "status": "ok", "time_divemesh": 0.0, "time_reef3d": 0.0}
@@ -274,6 +294,17 @@ def run_case(c, args, outroot):
         with open(os.path.join(rundir, "reef3d.log"), "w") as log:
             r = subprocess.run(cmd, cwd=rundir, stdout=log, stderr=subprocess.STDOUT,
                                timeout=args.timeout, env=env)
+        # "rebalance": n -- the run stops to rebalance (G 46: exit code 3 and the marker REEF3D_Checkpoint/rebalance)
+        # and is started again, at most n times, as tools/reef3d_rebalance.sh does
+        nreb, k = int(c.get("rebalance", 0)), 0
+        marker = os.path.join(rundir, "REEF3D_Checkpoint", "rebalance")
+        while nreb > 0 and r.returncode in (0, 3) and os.path.exists(marker) and k < nreb:
+            k += 1
+            with open(os.path.join(rundir, "reef3d_restart%d.log" % k), "w") as log:
+                r = subprocess.run(cmd, cwd=rundir, stdout=log, stderr=subprocess.STDOUT,
+                                   timeout=args.timeout, env=env)
+        if nreb > 0:
+            info["rebalance_restarts"] = k
         if r.returncode != 0:
             info["status"] = "reef3d failed (%d)" % r.returncode
     except subprocess.TimeoutExpired:
@@ -488,12 +519,16 @@ NUM = re.compile(r"^[-+]?(\d+\.?\d*|\.\d+)([eE][-+]?\d+)?$")
 
 def read_numeric_table(path):
     rows = []
+    drop = MEASURED_COLUMNS.get(os.path.basename(path), [])
+    skip = set()
     with open(path, errors="replace") as f:
         for l in f:
             t = l.split()
             vals = [float(x) for x in t if NUM.match(x)]
             if vals and len(vals) == len(t):
-                rows.append(vals)
+                rows.append([v for k, v in enumerate(vals) if k not in skip])
+            elif drop and t and not skip:
+                skip = {k for k, name in enumerate(t) if name in drop}
     return rows
 
 
@@ -502,6 +537,8 @@ def compare_text(ref_dir, new_dir, rtol, atol):
     level = 0
     for g in TEXT_OUTPUT_GLOBS:
         for fr in sorted(glob.glob(os.path.join(ref_dir, g))):
+            if measured(fr):
+                continue
             rel = os.path.relpath(fr, ref_dir)
             fn = os.path.join(new_dir, rel)
             if not os.path.exists(fn):
@@ -521,6 +558,8 @@ def compare_text(ref_dir, new_dir, rtol, atol):
                 for x, y in zip(ra, rb):
                     maxa = max(maxa, abs(x))
                     maxd = max(maxd, abs(x - y))
+            if maxd == 0.0 and os.path.basename(fr) in MEASURED_COLUMNS:
+                continue        # (only the measured columns differ)
             lv = 1 if maxd <= atol + rtol * maxa else 2
             res["files"][rel] = {"level": LEVELS[lv], "maxdiff": maxd, "maxref": maxa}
             level = max(level, lv)
@@ -652,6 +691,41 @@ def merged_by_cell(rundir, names=None):
     return count, cells
 
 
+def same_as_run(da, db, rt, skip=None):
+    """A restart against the full run it continues (FNPF, NHFLOW, CFD, SFLOW): the final state rank by rank
+    (on the same number of ranks; on another decomposition only the final step) and the text outputs
+    (TEXT_OUTPUT_GLOBS: cut back to the checkpoint and continued, the same rows). Bitwise, or with rt within rt
+    (relative to the largest value of the field or file); skip: globs of text outputs not compared (e.g. logs
+    with the number of ranks). (ok, message)"""
+    sa, sb = merged_final_state(da), merged_final_state(db)
+    if sa is None or sb is None:
+        return False, "FAILED (missing state dump)"
+    if sa[0] != sb[0]:
+        return False, "DIFFERENT (final step %d/%d)" % (sa[0], sb[0])
+    tol = rt or 0.0
+    notes = []
+    worst = 0
+    if len(sa[1]) == len(sb[1]):
+        st = compare_states(da, db, tol, 0.0)
+        worst = max(worst, LEVELS.index(st["level"]))
+        bad = [n for n, g in st["fields"].items() if g.get("level") not in ("identical", None)]
+        notes.append("state %s%s" % (st["level"], (" (" + ", ".join(sorted(bad)) + ")") if bad else ""))
+    else:
+        notes.append("state on %d/%d ranks not compared" % (len(sa[1]), len(sb[1])))
+    tx = compare_text(da, db, tol, 0.0)
+    skipped = lambda rel: any(fnmatch.fnmatch(rel, g) for g in (skip or []))
+    files = {k: v for k, v in tx["files"].items() if not skipped(k)}
+    tl = max([LEVELS.index(v["level"]) for v in files.values()] + [0])
+    worst = max(worst, tl)
+    nf = sum(1 for g in TEXT_OUTPUT_GLOBS for fn in glob.glob(os.path.join(da, g))
+             if not measured(fn) and not skipped(os.path.relpath(fn, da)))
+    bad = sorted(k for k, v in files.items() if v["level"] != "identical")
+    notes.append("%d text outputs %s%s" % (nf, LEVELS[tl], (" (" + ", ".join(bad) + ")") if bad else ""))
+    ok = worst == 0 or (rt and worst == 1)
+    head = "bitwise identical" if worst == 0 else ("within rtol %.0e" % rt if ok else "DIFFERENT")
+    return ok, "%s: %s" % (head, "; ".join(notes))
+
+
 def cmd_ranks(args):
     rc = 0
     names = sorted(n for n in os.listdir(args.run) if os.path.isdir(os.path.join(args.run, n)) and n in set(all_case_names()))
@@ -670,8 +744,12 @@ def cmd_ranks(args):
         ra = merged_by_cell(os.path.join(args.run, a), names)
         rb = merged_by_cell(os.path.join(args.run, b))
         if ra is None or rb is None:
-            print("%-48s %-40s FAILED (missing state dump or cell indices)" % (b, "= " + a))
-            rc = 1
+            # not SEASTATE (no cell indices): a restart against the run it continues (FNPF, NHFLOW, CFD, SFLOW)
+            cb = load_case(b)
+            ok, msg = same_as_run(os.path.join(args.run, a), os.path.join(args.run, b), cb.get("same_as_rtol"),
+                                  cb.get("same_as_skip"))
+            rc |= 0 if ok else 1
+            print("%-48s %-40s %s" % (b, "= " + a, msg))
             continue
         if ra[0] != rb[0] or set(ra[1]) != set(rb[1]):
             print("%-48s %-40s DIFFERENT (steps %d/%d, cells %d/%d)" % (b, "= " + a, ra[0], rb[0], len(ra[1]), len(rb[1])))
@@ -761,6 +839,8 @@ def summarize(rundir):
         agg["l2"] = math.sqrt(agg["l2"])
     for g in TEXT_OUTPUT_GLOBS:
         for fn in sorted(glob.glob(os.path.join(rundir, g))):
+            if measured(fn):
+                continue
             t = read_numeric_table(fn)
             if not t:
                 continue

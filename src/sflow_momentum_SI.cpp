@@ -22,6 +22,7 @@ Author: Hans Bihs
 
 #include"sflow_momentum_SI.h"
 #include"si_eta2D.h"
+#include"bc_zone.h"
 #include"lexer.h"
 #include"fdm2D.h"
 #include"ghostcell.h"
@@ -135,7 +136,8 @@ void sflow_momentum_SI::bc_method(lexer *p)
 
     for(int k=0;k<p->B521;++k)
     for(int qn=0;qn<p->B520;++qn)
-    if(p->B520_id[qn]==p->B521_id[k] && p->B520_method[qn]>=3 && p->B520_method[qn]<=6)
+    if(p->B520_id[qn]==p->B521_id[k] && p->B520_method[qn]>=3 && p->B520_method[qn]<=6
+       && bc_zone_set::zone_block(p,p->B520_id[qn])==p->amr_block)
     {
         const int e = p->B521_edge[k];
 

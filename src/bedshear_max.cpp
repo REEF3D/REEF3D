@@ -20,6 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#include"reefckpt.h"
 #include"bedshear_max.h"
 #include"lexer.h"
 #include"ghostcell.h"
@@ -50,12 +51,14 @@ bedshear_max::bedshear_max(lexer *p, ghostcell *pgc)
             snprintf(file,sizeof(file),"./REEF3D_NHFLOW_Sediment/REEF3D-NHFLOW-Sediment-Bedshear-Max.dat");
         else
             snprintf(file,sizeof(file),"./REEF3D_CFD_Sediment/REEF3D-CFD-Sediment-Bedshear-Max.dat");
-	    bsgout.open(file);
-
+        // a restart (I 45): continued from the checkpoint
+        if(reefckpt_open(bsgout,file,p->I45))
+        {
         bsgout<<"time";
         bsgout<<"\t  bedshear max";
 
         bsgout<<endl<<endl;
+        }
     }
 	
 

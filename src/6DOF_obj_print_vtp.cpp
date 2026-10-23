@@ -26,6 +26,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"runlog.h"
 #include"lagoon_store.h"
+#include"6DOF_external.h"
 #include<cctype>
 #include<vector>
 
@@ -172,6 +173,11 @@ void sixdof_obj::print_vtp(lexer *p, ghostcell *pgc)
             const double R[9] = {R_(0,0), R_(0,1), R_(0,2), R_(1,0), R_(1,1), R_(1,2), R_(2,0), R_(2,1), R_(2,2)};
             const double c[3] = {c_(0), c_(1), c_(2)};
             stored = lagoon_body_writer(p)->output(n6DOF, 3*tricount, x0.data(), x.data(), R, c, p->simtime, num);
+
+            // the objects of the external dynamics (REEF3D::CORAL: the mooring lines) with the outputs of the
+            // first body, at its time and output number
+            if(n6DOF==0 && sixdof_external::instance()!=nullptr)
+            sixdof_external::instance()->store_output(p,p->simtime,num);
         }
         if(stored && p->P18==1)
         {

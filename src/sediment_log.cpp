@@ -20,6 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#include"reefckpt.h"
 #include"sediment_f.h"
 #include"lexer.h"
 #include"fdm.h"
@@ -30,10 +31,12 @@ void sediment_f::log_ini(lexer *p)
 {
     if(p->mpirank==0)
     {
-    sedlogout.open("./REEF3D_Log/REEF3D_sedimentlog.dat");
-
+    // a restart (I 45): continued from the checkpoint
+    if(reefckpt_open(sedlogout,"./REEF3D_Log/REEF3D_sedimentlog.dat",p->I45))
+    {
     sedlogout<<"number of cells:  "<<p->cellnumtot<<endl<<endl;
     sedlogout<<"#iteration \t #simtime  \t #dtsed \t| #sedtime \t #sediter \t #slidecells \t| #bedmin \t #bedmax \t|"<<endl;
+    }
     }
     
 }

@@ -429,7 +429,7 @@ void CPM::bagnold_update(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
         double sp = sqrt(P.U[n]*P.U[n] + P.V[n]*P.V[n] + P.W[n]*P.W[n]);
         double fm = MIN(1.0, sp/MAX(0.1*ustar,1.0e-10));
         
-        tauG[(i+1)*nj + j+1] += fm*mu_s*vpar*(p->S22 - p->W1)*gmag/(p->DXN[IP]*p->DYN[JP]);
+        tauG[(i+1)*nj + j+1] += fm*mu_s*(vpar*P.Wt[n])*(p->S22 - p->W1)*gmag/(p->DXN[IP]*p->DYN[JP]);
     }
     
     // a parcel stands for many grains and a bed column holds less than one moving parcel
@@ -526,9 +526,13 @@ void CPM::exposure_update(lexer *p, fdm *a)
     expo.assign(P.index, 0.0);
     
     const int nj = p->knoy+2;
+    const size_t nc = size_t(p->knox+2)*nj;
     const double vpar = P.ParcelFactor*Vp;
     
-    std::vector<std::vector<std::pair<double,int>>> col((p->knox+2)*nj);
+    // the bed parcels of each column (flat lists, in the order of the parcels), then sorted from the top
+    std::vector<int> &cn = ex_col;
+    cn.assign(P.index,-1);
+    ex_off.assign(nc+1,0);
     
     for(n=0;n<P.index;++n)
     if(P.Flag[n]>=ACTIVE)
@@ -539,32 +543,46 @@ void CPM::exposure_update(lexer *p, fdm *a)
         if(i<0 || i>=p->knox || j<0 || j>=p->knoy)
         continue;
         
-        if(ptopo(p,a,P.X[n],P.Y[n],P.Z[n]) >= 0.0 || P.Hop[n]>0.0)
+        if(ptopo_p(p,a,int(n),P.X[n],P.Y[n],P.Z[n]) >= 0.0 || P.Hop[n]>0.0)
         continue;
         
-        col[(i+1)*nj + j+1].push_back(std::make_pair(P.Z[n],int(n)));
+        cn[n] = (i+1)*nj + j+1;
+        ++ex_off[cn[n]+1];
     }
+    
+    for(size_t c=0;c<nc;++c)
+    ex_off[c+1] += ex_off[c];
+    
+    ex_list.resize(ex_off[nc]);
+    ex_fill.assign(ex_off.begin(), ex_off.end()-1);
+    
+    for(n=0;n<P.index;++n)
+    if(cn[n]>=0)
+    ex_list[ex_fill[cn[n]]++] = std::make_pair(P.Z[n],int(n));
     
     for(i=0;i<p->knox;++i)
     for(j=0;j<p->knoy;++j)
     {
-        auto &c = col[(i+1)*nj + j+1];
+        const size_t c = size_t(i+1)*nj + j+1;
+        auto b = ex_list.begin() + ex_off[c];
+        auto e = ex_list.begin() + ex_off[c+1];
         
-        if(c.empty())
+        if(b==e)
         continue;
         
-        std::sort(c.begin(), c.end(), [](const std::pair<double,int> &a1, const std::pair<double,int> &a2){return a1.first>a2.first;});
+        std::sort(b, e, [](const std::pair<double,int> &a1, const std::pair<double,int> &a2){return a1.first>a2.first;});
         
         double Ve = theta_0*p->S20*p->DXN[IP]*p->DYN[JP];
         
-        for(size_t q=0; q<c.size() && Ve>0.0; ++q)
+        for(auto q=b; q!=e && Ve>0.0; ++q)
         {
-            int nn = c[q].second;
-            double f = MIN(1.0, Ve/vpar);
+            int nn = q->second;
+            const double vp = vpar*P.Wt[nn];
+            double f = MIN(1.0, Ve/vp);
             
             // exposure weight: share of the parcel in the top grain layer
             expo[nn] = f;
-            Ve -= f*vpar;
+            Ve -= f*vp;
         }
     }
 }

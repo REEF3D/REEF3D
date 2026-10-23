@@ -51,6 +51,8 @@ void net_barQuasiStatic::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc)
     //- Update porous zone
     coupling_dlm_cfd(p,a,pgc);
 
+    // a restart (I 45): no print at the start, the outputs continue from the checkpoint
+    if(p->I45!=1)
     print(p);
 }
 
@@ -87,5 +89,7 @@ void net_barQuasiStatic::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     //- Update porous zone
     coupling_dlm_nhflow(p,d,pgc);
 
+    // a restart (I 45): no print at the start, the outputs continue from the checkpoint
+    if(p->I45!=1)
     print(p);
 }

@@ -104,6 +104,11 @@ void CPM::print_vtp(lexer* p, sediment_fdm *s)
     ++n;
     offset[n]=offset[n-1]+numpt*sizeof(float)+sizeof(int); //radius
     ++n;
+    if(p->Q78>0)
+    {
+        offset[n]=offset[n-1]+numpt*sizeof(float)+sizeof(int); //weight
+        ++n;
+    }
     offset[n]=offset[n-1]+3*numpt*sizeof(float)+sizeof(int); //fluid velocity
     ++n;
     offset[n]=offset[n-1]+numpt*sizeof(float)+sizeof(int); //bedChange
@@ -145,6 +150,11 @@ void CPM::print_vtp(lexer* p, sediment_fdm *s)
     ++n;
     result<<"<DataArray type=\"Float32\" Name=\"radius\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
+    if(p->Q78>0)
+    {
+        result<<"<DataArray type=\"Float32\" Name=\"weight\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
+        ++n;
+    }
     result<<"<DataArray type=\"Float32\" Name=\"fluid velocity\" NumberOfComponents=\"3\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
     result<<"<DataArray type=\"Float32\" Name=\"bedChange\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
@@ -226,6 +236,21 @@ void CPM::print_vtp(lexer* p, sediment_fdm *s)
             std::memcpy(&buffer[m],&ffn,sizeof(float));
             m+=sizeof(float);
         }
+
+    // weight (merge and split, Q 78)
+    if(p->Q78>0)
+    {
+        iin=numpt*sizeof(float);
+        std::memcpy(&buffer[m],&iin,sizeof(int));
+        m+=sizeof(int);
+        for(n=0;n<P.index;++n)
+            if(P.Flag[n]>0)
+            {
+                ffn=float(P.Wt[n]);
+                std::memcpy(&buffer[m],&ffn,sizeof(float));
+                m+=sizeof(float);
+            }
+    }
 
     // fluid velocities
     iin=3*numpt*sizeof(float);

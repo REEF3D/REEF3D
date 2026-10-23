@@ -127,12 +127,12 @@ void sflow_amr::sub_dfx()
         sflow_amr_patch &c = *SP(q);
         fdm2D *b = c.b;
         const int il = EXT-1, ih = EXT+c.nx-1;
-        const int jl = EXT-1, jh = EXT+c.ny-1;
+        const int jl = EY-1, jh = EY+c.ny-1;
 
         for(int r=0; r<c.ny; ++r)
         {
-            c.rec[0][0][r] = b->dfx(il,EXT+r);
-            c.rec[0][1][r] = b->dfx(ih,EXT+r);
+            c.rec[0][0][r] = b->dfx(il,EY+r);
+            c.rec[0][1][r] = b->dfx(ih,EY+r);
         }
         for(int r=0; r<c.nx; ++r)
         {
@@ -354,7 +354,7 @@ void sflow_amr::sub_reflux(int l)
                 {
                     sflow_amr_patch *c = SP(q);
                     for(int ip=0; ip<5; ++ip)
-                    sb[ip] = 0.5*(c->freg[ip][side][r]+c->freg[ip][side][r+1]);
+                    sb[ip] = 0.5*(c->freg[ip][side][r]+c->freg[ip][side][r+fr1(side)]);
                 },
                 [&](int tgt, int idx, const double *v)
                 {
@@ -414,7 +414,7 @@ void sflow_amr::sub_reflux(int l)
             const reefamr_match &m = match[t][k];
             sflow_amr_patch &c = *SP(m.child);
             for(int ip=0; ip<5; ++ip)
-            d[ip] = 0.5*(c.freg[ip][m.side][m.r]+c.freg[ip][m.side][m.r+1]) - cregL[t][5*k+ip];
+            d[ip] = 0.5*(c.freg[ip][m.side][m.r]+c.freg[ip][m.side][m.r+fr1(m.side)]) - cregL[t][5*k+ip];
             fix(m,d);
         }
 

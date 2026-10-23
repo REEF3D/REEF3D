@@ -1,0 +1,13 @@
+{
+ "base": "fnpf_2d_6dof_box",
+ "np": 1,
+ "steps": 200,
+ "ctrl_add": [
+  "G 1 1",
+  "G 12 0.5",
+  "G 4 4"
+ ],
+ "description": "FNPF AMR with a resolved floating body on a 2D grid: the box of fnpf_2d_6dof_box (surge/heave/pitch free) on a refined mesh, one level, the zone follows the body (G 12). The psi solves of the loads (psi_0 every stage, surge/heave/pitch unit modes every step) are composite solves with the exact x-z factorisation of the preconditioner; the rows and the factorisation of the phi solve of a stage are kept for them (lap_same).",
+ "tags": ["2d", "fnpf", "amr", "6dof", "floating"],
+ "covers": ["fnpf_amr lap_same: rows and preconditioner of a stage kept for the psi solves", "fnpf_amr 2D x-z factorisation with fixed rows (body)", "fnpf_6DOF forces_amr on a 2D grid"]
+}

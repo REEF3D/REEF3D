@@ -1,0 +1,23 @@
+{
+ "base": "nhflow_2d_irregular_current_doppler",
+ "description": "nhflow_2d_irregular_current_doppler with decomposed precalc (B 89 1): waves on the background (B 530 2 10) with the spatial parts of the zone decomposed again whenever B 530 sets a new k (every 10 steps); within 1.0 mm of B 89 0 over 3000 steps (without B 530: 99 mm).",
+ "tags": [
+  "quick",
+  "2d",
+  "nhflow",
+  "iowave",
+  "background",
+  "current",
+  "doppler",
+  "decomp",
+  "irregular"
+ ],
+ "covers": [
+  "B 530 with B 89 1",
+  "iowave::wavegen_precalc_nhflow redecomposition",
+  "wave_lib_irregular_1st space parts with sinhkd"
+ ],
+ "ctrl_set": {
+  "B 89": "1"
+ }
+}

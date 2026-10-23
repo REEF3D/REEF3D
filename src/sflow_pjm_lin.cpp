@@ -29,6 +29,7 @@ Author: Hans Bihs
 #include"patchBC_interface.h"
 #include"sflow_amr.h"
 #include"sflow_curv.h"
+#include"gcsl_yskip.h"
 
 #define HP (WL(i,j)>1.0e-20?WL(i,j):1.0e20)
 
@@ -226,6 +227,7 @@ void sflow_pjm_lin::rhs(lexer *p, fdm2D* b, slice &WL, double alpha)
     return;
     }
 
+    const bool ysk = gcsl_yskip(p);
     n=0;
     SLICELOOP4
     {
@@ -235,10 +237,11 @@ void sflow_pjm_lin::rhs(lexer *p, fdm2D* b, slice &WL, double alpha)
         dy = p->DYP[JP] + p->DYP[JM1];
         
         dudx = (b->U(i+1,j) - b->U(i-1,j))/dx;
-        dvdy = (b->V(i,j+1) - b->V(i,j-1))/dy*p->y_dir;
+        // (one cell in y: the y derivatives are 0, as from the ghost cells; gcsl_yskip leaves those unset)
+        dvdy = ysk ? 0.0 : (b->V(i,j+1) - b->V(i,j-1))/dy*p->y_dir;
         
         dddx = (b->depth(i+1,j) - b->depth(i-1,j))/dx;
-        dddy = (b->depth(i,j+1) - b->depth(i,j-1))/dy*p->y_dir;
+        dddy = ysk ? 0.0 : (b->depth(i,j+1) - b->depth(i,j-1))/dy*p->y_dir;
         
         b->rhsvec.V[n] = -(WL(i,j)*(dudx + dvdy) 
                           + 2.0*(b->W(i,j) + b->U(i,j)*dddx + b->V(i,j)*dddy))/(alpha*p->dt);

@@ -40,6 +40,7 @@ Architect: Hans Bihs
 #include"coral/core/coral_timeint.h"
 #include"coral/core/coral_track.h"
 #include<fstream>
+#include<functional>
 #include<memory>
 #include<ostream>
 #include<string>
@@ -81,8 +82,12 @@ namespace coral
         // sampled kinematics: the points now (fluid frame), then the sample at time t (eta: z of the surface
         // in the fluid frame; inside 0/1)
         bool has_kinematics() const {return c_.fluid_kin != nullptr;}
+        // the mooring lines take the bed of the resolved fluid (bathymetry fluid): the samples carry it
+        bool wants_bed() const {return c_.fluid_bed;}
         void kinematics_points(std::vector<Vec3> &pts) const;
-        void kinematics(double t, const std::vector<Vec3> &u, const std::vector<double> &eta, const std::vector<int> &in);
+        // bed: z of the bed under the points (fluid frame; empty: none)
+        void kinematics(double t, const std::vector<Vec3> &u, const std::vector<double> &eta, const std::vector<int> &in,
+                        const std::vector<double> &bed={});
 
         double time() const {return t_;}
         long steps() const {return nstep_;}
@@ -97,8 +102,10 @@ namespace coral
         // the time series and the journal on disk (a checkpoint, the stop of a rebalance)
         void flush();
 
-        // replays the journal file on the case, output to dir; returns the number of events
-        static long replay(coral_case&, const std::string &journal, const std::string &dir, std::ostream &log);
+        // replays the journal file on the case, output to dir; returns the number of events; after(t) is called
+        // after every CORAL step of the replay with the time reached (e.g. the VTP of the structure)
+        static long replay(coral_case&, const std::string &journal, const std::string &dir, std::ostream &log,
+                           const std::function<void(double)> &after = nullptr);
 
     private:
         void advance_to(double t1);

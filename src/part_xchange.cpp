@@ -38,93 +38,48 @@ void part::xchange(lexer *p, ghostcell *pgc, slice &bedch, int mode)
     if(pgc->globalisum(nsend)==0)
     return;
 
-    // check send/recv array size
-    xchange_resize(p,pgc);
+    // check send/recv array size: the parcel arrays go packed in one exchange
+    const int NA = 20;
+    xchange_resize(p,pgc,NA);
 
     // sendid
     xchange_sendid(p,pgc,mode);
 
-    // xchange part arrays
-    xchange_fill(p,pgc,mode,U);
-    pgc->gcpartx(sendnum,recvnum,send,recv);
-    xchange_fillback(p,pgc,U);
+    // the parcel arrays (after the resize, which may move them)
+    double *arr[NA] = {U,V,W, URK1,VRK1,WRK1, X,Y,Z, XRK1,YRK1,ZRK1, Uf,Vf,Wf, D,RO, Test,Hop, Wt};
 
-    xchange_fill(p,pgc,mode,V);
-    pgc->gcpartx(sendnum,recvnum,send,recv);
-    xchange_fillback(p,pgc,V);
+    for(n=0;n<6;++n)
+    for(q=0;q<sendnum[n];++q)
+    {
+        const int m = sendid[n][q];
+        double *b = &send[n][size_t(q)*NA];
 
-    xchange_fill(p,pgc,mode,W);
-    pgc->gcpartx(sendnum,recvnum,send,recv);
-    xchange_fillback(p,pgc,W);
+        for(int a=0;a<NA;++a)
+        b[a] = arr[a][m];
+    }
 
+    int sn[6], rn[6];
+    for(q=0;q<6;++q)
+    {
+        sn[q] = NA*sendnum[q];
+        rn[q] = NA*recvnum[q];
+    }
 
-    xchange_fill(p,pgc,mode,URK1);
-    pgc->gcpartx(sendnum,recvnum,send,recv);
-    xchange_fillback(p,pgc,URK1);
+    pgc->gcpartx(sn,rn,send,recv);
 
-    xchange_fill(p,pgc,mode,VRK1);
-    pgc->gcpartx(sendnum,recvnum,send,recv);
-    xchange_fillback(p,pgc,VRK1);
+    // received parcels into the free slots, Empty[0..index_empty-1] holds them
+    index_empty = index_empty0;
 
-    xchange_fill(p,pgc,mode,WRK1);
-    pgc->gcpartx(sendnum,recvnum,send,recv);
-    xchange_fillback(p,pgc,WRK1);
+    for(n=0;n<6;++n)
+    for(q=0;q<recvnum[n];++q)
+    {
+        --index_empty;
+        const int m = Empty[index_empty];
+        const double *b = &recv[n][size_t(q)*NA];
 
-
-    xchange_fill(p,pgc,mode,X);
-    pgc->gcpartx(sendnum,recvnum,send,recv);
-    xchange_fillback(p,pgc,X);
-
-    xchange_fill(p,pgc,mode,Y);
-    pgc->gcpartx(sendnum,recvnum,send,recv);
-    xchange_fillback(p,pgc,Y);
-
-    xchange_fill(p,pgc,mode,Z);
-    pgc->gcpartx(sendnum,recvnum,send,recv);
-    xchange_fillback(p,pgc,Z);
-
-
-    xchange_fill(p,pgc,mode,XRK1);
-    pgc->gcpartx(sendnum,recvnum,send,recv);
-    xchange_fillback(p,pgc,XRK1);
-
-    xchange_fill(p,pgc,mode,YRK1);
-    pgc->gcpartx(sendnum,recvnum,send,recv);
-    xchange_fillback(p,pgc,YRK1);
-
-    xchange_fill(p,pgc,mode,ZRK1);
-    pgc->gcpartx(sendnum,recvnum,send,recv);
-    xchange_fillback(p,pgc,ZRK1);
-
-
-    xchange_fill(p,pgc,mode,Uf);
-    pgc->gcpartx(sendnum,recvnum,send,recv);
-    xchange_fillback(p,pgc,Uf);
-
-    xchange_fill(p,pgc,mode,Vf);
-    pgc->gcpartx(sendnum,recvnum,send,recv);
-    xchange_fillback(p,pgc,Vf);
-
-    xchange_fill(p,pgc,mode,Wf);
-    pgc->gcpartx(sendnum,recvnum,send,recv);
-    xchange_fillback(p,pgc,Wf);
-
-
-    xchange_fill(p,pgc,mode,D);
-    pgc->gcpartx(sendnum,recvnum,send,recv);
-    xchange_fillback(p,pgc,D);
-
-    xchange_fill(p,pgc,mode,RO);
-    pgc->gcpartx(sendnum,recvnum,send,recv);
-    xchange_fillback(p,pgc,RO);
-
-    xchange_fill(p,pgc,mode,Test);
-    pgc->gcpartx(sendnum,recvnum,send,recv);
-    xchange_fillback(p,pgc,Test);
-
-    xchange_fill(p,pgc,mode,Hop);
-    pgc->gcpartx(sendnum,recvnum,send,recv);
-    xchange_fillback(p,pgc,Hop);
+        for(int a=0;a<NA;++a)
+        arr[a][m] = b[a];
+    }
 
     // Flag
     xchange_fillback_flag(p,pgc,bedch,mode);

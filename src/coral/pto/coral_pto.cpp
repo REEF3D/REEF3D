@@ -46,6 +46,11 @@ void pto_load::build()
         pto_.add(std::make_unique<pto_springdamper>(s.k, s.c, s.q0, s.F0));
     if(s.coulomb > 0.0)
         pto_.add(std::make_unique<pto_coulomb>(s.coulomb, s.v_eps));
+    // drive-train losses: act on the bodies, not scaled or limited with the generator
+    if(s.c_loss > 0.0)
+        pto_.add(std::make_unique<pto_damper>(s.c_loss, true));
+    if(s.coulomb_loss > 0.0)
+        pto_.add(std::make_unique<pto_coulomb>(s.coulomb_loss, s.v_eps, true));
     pto_.Fmax = s.F_max;
     pto_.Pmax = s.P_max;
     if(s.k_stop > 0.0 || s.c_stop > 0.0)
@@ -99,6 +104,11 @@ double pto_load::power(const model &m) const
     return evaluate(m, t_).P;
 }
 
+double pto_load::loss_power(const model &m) const
+{
+    return evaluate(m, t_).P_loss;
+}
+
 bool pto_load::held() const
 {
     for(const auto &c : ctrl_)
@@ -132,6 +142,7 @@ void pto_load::initialize(const model &m, double t0)
     t_ = t0;
     t0_ = t0;
     energy_ = 0.0;
+    energy_loss_ = 0.0;
     // the controllers see the initial state first (sign of qd for the zero crossings)
     pto_ctrl_in in;
     in.t = t0;
@@ -140,6 +151,7 @@ void pto_load::initialize(const model &m, double t0)
     for(auto &c : ctrl_)
         c->update(in, pto_);
     P_last_ = power(m);
+    Ploss_last_ = loss_power(m);
 }
 
 void pto_load::commit(const model &m, double t, double dt)
@@ -149,6 +161,8 @@ void pto_load::commit(const model &m, double t, double dt)
     t_ = t;
     const double P = power(m);
     energy_ += 0.5*dt*(P + P_last_);
+    const double Pl = loss_power(m);
+    energy_loss_ += 0.5*dt*(Pl + Ploss_last_);
     pto_state st;
     st.q = coordinate(m);
     st.qd = rate(m);
@@ -162,12 +176,16 @@ void pto_load::commit(const model &m, double t, double dt)
     for(auto &c : ctrl_)
         c->update(in, pto_);
     P_last_ = power(m);
+    Ploss_last_ = loss_power(m);
 }
 
 void pto_load::channel_names(std::vector<std::string> &c) const
 {
     for(const char *x : {"q", "qd", "F", "P", "E"})
         c.push_back(name_ + "_" + x);
+    if(has_loss())
+        for(const char *x : {"Ploss", "Eloss"})
+            c.push_back(name_ + "_" + x);
 }
 
 void pto_load::channel_values(const model &m, double t, std::vector<double> &v) const
@@ -178,6 +196,11 @@ void pto_load::channel_values(const model &m, double t, std::vector<double> &v) 
     v.push_back(o.F);
     v.push_back(o.P);
     v.push_back(energy_);
+    if(has_loss())
+    {
+        v.push_back(o.P_loss);
+        v.push_back(energy_loss_);
+    }
 }
 
 // restart from a checkpoint: the time and power of the last converged state, the absorbed energy, the
@@ -190,6 +213,10 @@ void pto_load::save_state(std::vector<double> &v) const
     v.push_back(double(ctrl_.size()));
     for(const auto &c : ctrl_)
         c->save_state(v);
+    // the losses after everything else, so the checkpoints without them stay as they were
+    if(has_loss())
+        for(double x : {Ploss_last_, energy_loss_})
+            v.push_back(x);
 }
 
 bool pto_load::load_state(const std::vector<double> &v, size_t &k)
@@ -203,6 +230,12 @@ bool pto_load::load_state(const std::vector<double> &v, size_t &k)
     const size_t n = size_t(v[k++]);
     for(size_t q=0; q<n && q<ctrl_.size(); ++q)
         ctrl_[q]->load_state(v, k);
+    if(has_loss())
+    {
+        if(k + 2 > v.size())
+            return false;
+        Ploss_last_ = v[k++]; energy_loss_ = v[k++];
+    }
     return k <= v.size();
 }
 

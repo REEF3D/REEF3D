@@ -41,6 +41,10 @@ public:
     virtual ~nhflow_suspended(){}
 	virtual void start(lexer*, fdm_nhf*, ghostcell*, nhflow_scalar_convection*, nhflow_diffusion*, solver*, ioflow*, sediment_fdm*)=0;
     virtual void ctimesave(lexer*, fdm_nhf*)=0;
+
+    // checkpoints (P 48, I 45): the depth of the stored concentration (slice layout) and its flag
+    virtual double* ckpt_wln() {return nullptr;}
+    virtual int* ckpt_wlini() {return nullptr;}
 };
 
 #endif

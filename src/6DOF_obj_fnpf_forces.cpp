@@ -585,14 +585,8 @@ void sixdof_obj_fnpf::forces_fnpf_set(lexer *p, ghostcell *pgc, fnpf_force_sum &
         am_on_ = true;
     }
     
-    if(p->mpirank==0 && (p->count%p->P12==0))
-    {
-    cout<<"Fx: "<<Fx<<" Fy: "<<Fy<<" Fz: "<<Fz<<"  A_tot: "<<Atot<<endl;
-    cout<<"Xe: "<<Xe<<" Ye: "<<Ye<<" Ze: "<<Ze<<" Ke: "<<Ke<<" Me: "<<Me<<" Ne: "<<Ne<<endl;
-    
-    if(computeA)
-    cout<<"A11: "<<Aadd_(0,0)<<" A33: "<<Aadd_(2,2)<<" A55: "<<Aadd_(4,4)<<endl;
-    }
+    // the loads and the added mass: in the 6DOF log files (REEF3D_FNPF_6DOF), no longer on the terminal
+    (void)Atot;
 }
 
 void sixdof_obj_fnpf::added_mass_block_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc, double *zero, double **psi,

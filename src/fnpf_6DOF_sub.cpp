@@ -32,6 +32,7 @@ Architect: Hans Bihs
 #include"fnpf_amr.h"
 #include"reefamr.h"
 #include<functional>
+#include<mpi.h>
 
 //  Resolved bodies on a subcycled FNPF mesh refinement (fnpf_amr, G 7 1).
 //
@@ -87,9 +88,12 @@ void fnpf_6DOF::amr_sub_finest(lexer *p, fdm_fnpf *c, ghostcell *pgc, int l, int
     p->simtime = t;
     
     if(loads)
-    forces_level(p,c,pgc,l);
+    forces_level(p,c,pgc,l,iter);
     
     const bool finalize = (iter == ((p->A310==3) ? 2 : 3));
+    
+    if(finalize && last)
+    psi_report(p,pgc);
     
     // external dynamics: every finest step is a step of the external solver
     if(pext!=nullptr)
@@ -145,8 +149,12 @@ void fnpf_6DOF::amr_post_solve_level(lexer *p, ghostcell *pgc, int l)
 // the loads of a stage of the finest level l: psi_0 on its patches (free-surface data from their
 // tendencies, the parent columns at phi_t of the parent step), every hull triangle on the
 // finest grid that holds its centroid; the added mass of the start of the level-0 step kept
-void fnpf_6DOF::forces_level(lexer *p, fdm_fnpf *c, ghostcell *pgc, int l)
+void fnpf_6DOF::forces_level(lexer *p, fdm_fnpf *c, ghostcell *pgc, int l, int iter)
 {
+    const double t0 = MPI_Wtime();
+    const int slot = psi_slot(-1,iter,true);
+    const double ts = psi_time(p,slot);
+
     amr_grids(p,pgc);
     
     const int ng = 1+(int)gp.size();
@@ -168,6 +176,8 @@ void fnpf_6DOF::forces_level(lexer *p, fdm_fnpf *c, ghostcell *pgc, int l)
         // the velocities of the current state (the quadratic term of the pressure)
         G.pvel->velcalc_sig(G.p,G.c,pgc,G.c->Fi);
         body_velocities(G,pgc);
+        
+        psi_guess(G,slot,G.psi0,ts);
         
         lexer *p = G.p;
         slice4 &D = *G.psiD;
@@ -210,9 +220,15 @@ void fnpf_6DOF::forces_level(lexer *p, fdm_fnpf *c, ghostcell *pgc, int l)
     
     // the columns around the patches: phi_t of the parent step
     amr->sub_psi_edges(l,&fs[0]);
-    
+
+    const double t1 = MPI_Wtime();
+    {
+    fnpf_psi_tol tol(p);
     amr->lap_solve_psi_level(p,pgc,l,&fs[0],&Ds[0]);
-    
+    }
+    psi_count(p->solveriter);
+
+    const double t2 = MPI_Wtime();
     {
     reefamr_comms_off guard(pgc);
     for(auto &G : gp)
@@ -220,9 +236,12 @@ void fnpf_6DOF::forces_level(lexer *p, fdm_fnpf *c, ghostcell *pgc, int l)
     {
         amr->patch_walls_fi(G.id,G.psi0);
         extrapolate(G,pgc,G.psi0);
+        psi_record(G,slot,G.psi0,ts);
     }
     }
-    
+    t_band += MPI_Wtime()-t2;
+    t_psi += MPI_Wtime()-t1;
+
     for(int nb=0; nb<nbody; ++nb)
     {
         sixdof_obj_fnpf::fnpf_force_sum S;
@@ -241,4 +260,6 @@ void fnpf_6DOF::forces_level(lexer *p, fdm_fnpf *c, ghostcell *pgc, int l)
         
         fb_obj[nb]->forces_fnpf_set(p,pgc,S,false);
     }
+
+    t_loads += MPI_Wtime()-t0;
 }

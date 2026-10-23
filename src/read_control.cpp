@@ -17,12 +17,14 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include "control.h"
 #include "lexer.h"
 #include <fstream>
+#include <sstream>
+#include <string>
 #include <ctype.h>
 
 void control::read_control(lexer* p)
@@ -328,6 +330,12 @@ void control::read_control(lexer* p)
                 case 358: retired_key(control,p,c,numint);
                          clear(c,numint);
                          break;
+                case 359: control>>A359;
+                         clear(c,numint);
+                         break;
+                case 360: control>>A360;
+                         clear(c,numint);
+                         break;
                 case 361: control>>A361;
                          clear(c,numint);
                          break;
@@ -337,10 +345,16 @@ void control::read_control(lexer* p)
                 case 363: retired_key(control,p,c,numint);
                          clear(c,numint);
                          break;
+                case 364: control>>A364;
+                         clear(c,numint);
+                         break;
                 case 365: control>>A365;
                          clear(c,numint);
                          break;
                 case 366: control>>A366;
+                         clear(c,numint);
+                         break;
+                case 367: control>>A367;
                          clear(c,numint);
                          break;
                 case 368: retired_key(control,p,c,numint);
@@ -589,6 +603,9 @@ void control::read_control(lexer* p)
                          clear(c,numint);
                          break;
                 case 557: control>>A557;
+                         clear(c,numint);
+                         break;
+                case 559: control>>A559;
                          clear(c,numint);
                          break;
                 case 560: control>>A560;
@@ -1192,6 +1209,9 @@ void control::read_control(lexer* p)
                          clear(c,numint);
                          break;
               case 525: ++B525;
+                         clear(c,numint);
+                         break;
+              case 522: ++B522;
                          clear(c,numint);
                          break;
               case 530: control>>B530>>B530_N;
@@ -2492,6 +2512,18 @@ void control::read_control(lexer* p)
                          clear(c,numint);
                          break;
                 case 48: control>>P48;
+                         {
+                         // P 48 N dt: also every dt seconds of simulated time (optional, on the same line)
+                         std::string rest;
+                         std::getline(control,rest);
+                         std::istringstream is(rest);
+                         double dt=0.0;
+                         if(is>>dt)
+                         P48_dt=dt;
+                         }
+                         clear(c,numint);
+                         break;
+                case 49: control>>P49;
                          clear(c,numint);
                          break;
                 case 50: ++P50;
@@ -2891,6 +2923,9 @@ void control::read_control(lexer* p)
                          clear(c,numint);
                          break;
                 case 77: control>>Q77;
+                         clear(c,numint);
+                         break;
+                case 78: control>>Q78;
                          clear(c,numint);
                          break;
                 case 75: control>>Q75;
@@ -3574,6 +3609,15 @@ void control::read_control(lexer* p)
                 case  27: control>>X27;
                          clear(c,numint);
                          break;
+                case  28: control>>X28;
+                         clear(c,numint);
+                         break;
+                case  29: control>>X29_d>>X29_a;
+                         clear(c,numint);
+                         break;
+                case  30: control>>X30;
+                         clear(c,numint);
+                         break;
                 case  31: control>>X31;
                          clear(c,numint);
                          break;
@@ -3584,6 +3628,12 @@ void control::read_control(lexer* p)
                          clear(c,numint);
                          break;
                 case  34: control>>X34;
+                         clear(c,numint);
+                         break;
+                case  35: control>>X35;
+                         clear(c,numint);
+                         break;
+                case  36: control>>X36;
                          clear(c,numint);
                          break;
                 case  38: control>>X38;
@@ -3843,6 +3893,10 @@ void control::read_control(lexer* p)
                          X508=1;
                          clear(c,numint);
                          break;
+                case  510: control>>X510_B>>X510_Fc>>X510_veps;
+                         X510=1;
+                         clear(c,numint);
+                         break;
                 }
                 break;
 
@@ -4067,6 +4121,8 @@ void control::read_control(lexer* p)
     Iarray(B513_profile,B513);
     Darray(B513_par,B513);
     Iarray(B525_id,B525);
+    Iarray(B522_id,B522);
+    Iarray(B522_b,B522);
     Darray(B525_Q,B525);
     Darray(B525_tramp,B525);
     
@@ -4886,6 +4942,7 @@ void control::read_control(lexer* p)
     int countB505=0;
     int countB513=0;
     int countB525=0;
+    int countB522=0;
     int countB202=0;
     int countB210=0;
     int countB212=0;
@@ -5182,6 +5239,10 @@ void control::read_control(lexer* p)
                          break;
                 case 525: control>>B525_id[countB525]>>B525_Q[countB525]>>B525_tramp[countB525];
                          ++countB525;
+                         clear(c,numint);
+                         break;
+                case 522: control>>B522_id[countB522]>>B522_b[countB522];
+                         ++countB522;
                          clear(c,numint);
                          break;
                 case 202: control>>B202_t[countB202]>>B202_n[countB202]>>B202_d50[countB202]>>B202_alpha[countB202]>>B202_beta[countB202];

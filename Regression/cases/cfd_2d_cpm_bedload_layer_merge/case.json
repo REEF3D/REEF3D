@@ -1,0 +1,8 @@
+{
+ "base": "cfd_2d_cpm_bedload_layer_graded",
+ "ctrl_set": {"Q 78": "9", "G 45": "50"},
+ "tags": ["quick", "2d", "cpm"],
+ "description": "as cfd_2d_cpm_bedload_layer_graded with parcel merge and split (Q 78 9): the resting grains of the jammed bed in the 5 mm cells merge in pairs (18 seeded parcels per cell, target 9), the moving ones split again; the CPM load map every 50 steps (G 45 50)",
+ "covers": ["CPM parcel weights (P.Wt) in the solid fraction, the grid-limited step (weighted arrival counts), the bedload layer, the log",
+            "CPM parcel_resample: merge of jammed grains, split of awake and heavy parcels", "CPM load map (G 45, REEF3D_CFD_CPM_loadmap.dat)"]
+}

@@ -267,6 +267,10 @@ public:
 
     uint64_t make_key(int a, int b, int feature) const;
 
+    // checkpoints: the warm-start caches of the last step (key in two 32-bit halves, then the values)
+    void cache_state(vector<double>&) const;
+    void cache_restore(const vector<double>&, size_t&);
+
     vector<dem_shape> shapes;
     vector<dem_material> mats;
     vector<dem_body> bodies;

@@ -361,13 +361,6 @@ void sixdof_obj_nhflow::force_calc_stl(lexer* p, fdm_nhf *d, ghostcell *pgc, sli
 	Ye += p->W21*Mass_fb;
 	Ze += p->W22*Mass_fb;
     
-    if(p->mpirank==0 && finalize==1 && p->count%p->P12==0)
-    {
-    cout<<"Mass_fb: "<<Mass_fb<<" G_fb: "<<p->W22*Mass_fb<<endl;
-    cout<<"Fx: "<<Fx<<" Fy: "<<Fy<<" Fz: "<<Fz<<endl;
-    cout<<"A_tot: "<<A<<endl;
-    cout<<"Xe: "<<Xe<<" Ye: "<<Ye<<" Ze: "<<Ze<<" Ke: "<<Ke<<" Me: "<<Me<<" Ne: "<<Ne<<endl;
-    }
     
     // Print results	
     if (p->mpirank==0 && finalize==1) 

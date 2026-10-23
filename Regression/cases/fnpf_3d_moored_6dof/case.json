@@ -1,0 +1,19 @@
+{
+ "base": "fnpf_3d_amr_moored_6dof",
+ "ctrl_set": {
+  "G 1": null,
+  "G 12": null,
+  "G 4": null
+ },
+ "description": "fnpf_3d_amr_moored_6dof on the uniform grid (no mesh refinement, REEFMG): the psi solves keep the coarse levels of the phi solve before them (reefmg::start_solver8, the hash of the rows), the rotation modes start from their last solution moved to the new centre of gravity (fnpf_6DOF::mode_shift on level 0); REEF3D_FNPF_6DOF compared.",
+ "tags": [
+  "3d",
+  "fnpf",
+  "6dof",
+  "floating"
+ ],
+ "covers": [
+  "reefmg::start_solver8: coarsen() skipped for the same rows (matrix_diag_hash)",
+  "fnpf_6DOF::mode_shift on level 0 (forces)"
+ ]
+}

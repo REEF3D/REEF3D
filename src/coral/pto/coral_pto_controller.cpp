@@ -191,11 +191,12 @@ double pto_hydro_table::B(double w) const
     return interp(B_,w);
 }
 
-double pto_bopt(double w, double m, double A, double Brad, double C)
+double pto_bopt(double w, double m, double A, double Brad, double C, double Bloss)
 {
     const double X = w*(m + A) - C/w;
+    const double Bd = Brad + Bloss;
 
-    return std::sqrt(Brad*Brad + X*X);
+    return std::sqrt(Bd*Bd + X*X);
 }
 
 }

@@ -1,0 +1,18 @@
+{
+ "base": "nhflow_3d_net_wall",
+ "ctrl_set": {
+  "X 320": "13"
+ },
+ "np": 2,
+ "steps": 30,
+ "description": "nhflow_3d_net_wall with the dynamic bar net (X 320 13, net_barDyn wall): the knots with the third-order time history, the tensions by Newton; the header of its force file in REEF3D_CFD_6DOF, where print() writes it.",
+ "tags": [
+  "3d",
+  "net",
+  "nhflow",
+  "mpi"
+ ],
+ "covers": [
+  "net_barDyn wall net with NHFLOW"
+ ]
+}

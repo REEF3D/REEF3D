@@ -58,13 +58,21 @@ Author: Hans Bihs
 //  happens when the right-hand side is local and the preconditioner exact around it (SFLOW AMR
 //  Boussinesq, u_a of a dam break: the residual of the first iteration lives only at the
 //  coarse-fine boundaries, outside the support of R0).
+//
+//  halfexit: the standard half-step exit (as REEFMG, reefmg_core::solve): if S = R - alp*VV is
+//  already below the tolerance, x += alp*PH (op_x with om 0: R = S) and the second
+//  preconditioner and operator application of the iteration are skipped (one dot product more
+//  per iteration).  The solve then ends with a residual below tol as before, half an iteration
+//  earlier where the preconditioner reduces the residual strongly (FNPF AMR: about 500 per
+//  iteration, the psi solves of a floating body need 1-3 iterations).  Off by default: the other
+//  solves are bitwise unchanged.
 
 // default vector indices (a module may use its own)
 enum { REEFAMR_NR=0, REEFAMR_NRH, REEFAMR_NPV, REEFAMR_NVV, REEFAMR_NS, REEFAMR_NT, REEFAMR_NPH, REEFAMR_NSH, REEFAMR_NTMP, REEFAMR_NVEC };
 
 template<class S>
 int reefamr_bicgstab(S &sp, double tol, int maxiter, double &bn, double &rn, double *tprec=nullptr, double *tapply=nullptr,
-                     int *restarts=nullptr, double stagtol=0.0, int *stalls=nullptr)
+                     int *restarts=nullptr, double stagtol=0.0, int *stalls=nullptr, bool halfexit=false)
 {
     const int RESTART_WIN = 8;
 
@@ -106,6 +114,18 @@ int reefamr_bicgstab(S &sp, double tol, int maxiter, double &bn, double &rn, dou
         alp = rho/sp.dot(S::RH,S::VV);
 
         sp.op_s(alp);
+
+        if(halfexit)
+        {
+            const double sn = sqrt(sp.dot(S::S,S::S));
+            if(sn/bn<=tol)
+            {
+                sp.op_x(alp,0.0);
+                rn = sn;
+                ++it;
+                break;
+            }
+        }
 
         ta = MPI_Wtime();
         sp.prec(S::S,S::SH);

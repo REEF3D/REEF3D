@@ -27,6 +27,7 @@ Author: Hans Bihs
 #include"solver.h"
 #include"fnpf_bed_update.h"
 #include"fnpf_laplace_body_bc.h"
+#include"solver_print.h"
 
 fnpf_laplace_cds2::fnpf_laplace_cds2(lexer *p) 
 {
@@ -455,7 +456,7 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
     
     
     
-	if(p->mpirank==0 && (p->count%p->P12==0))
+	if(p->mpirank==0 && (p->count%p->P12==0) && !solver_print_quiet())
     {
 	cout<<"Fi_iter: "<<p->poissoniter;
     //cout<<" Final_residual: "<<p->final_res;

@@ -31,6 +31,7 @@ Author: Hans Bihs
 #include"waves_header.h"
 #include"patchBC.h"
 #include"runlog.h"
+#include"reefckpt.h"
 #include"seastate_f.h"
 #include"cfd_amr.h"
 #include"coral/reef3d/coral_reef3d.h"
@@ -44,7 +45,7 @@ driver::driver(int& argc, char **argv)
 	if(p->mpirank==0)
     {
     cout<<endl<<"REEF3D (c) 2008-2026 Hans Bihs"<<endl;
-    sprintf(version,"v_261020");
+    sprintf(version,"v_261022");
     cout<<endl<<":: Open-Source Hydrodynamics" <<endl;
     cout<<endl<<version<<endl;
     cout<<endl<<"github branch: "<<BRANCH<<endl;
@@ -55,6 +56,13 @@ driver::driver(int& argc, char **argv)
     
 	p->lexer_read(pgc);
     p->vellast();
+
+    // I 45 <count>: the restart from REEF3D_Checkpoint/<count> instead of the latest
+    reefckpt::restart_from(p->I45_count);
+
+    // a restart: the sizes of the outputs at its checkpoint (the outputs are cut back to them when opened)
+    if(p->I45==1)
+    reefckpt_outputs_restart();
     
 	pgc->gc_ini(p);
     pgc->gcx_ini(p);
@@ -92,6 +100,10 @@ driver::driver(int& argc, char **argv)
 
         pgc->final(true);
     }
+
+    // checkpoints (P 48): a case they do not cover says so now, not only at the first checkpoint (reefrun_ckpt)
+    if((p->A10==3 || p->A10==5 || p->A10==6) && (p->P48>0 || p->P48_dt>0.0))
+    ckpt();
 
 // 2D Framework - SFLOW
     if(p->A10==2)

@@ -294,7 +294,7 @@ void nhflow_amr::sub_dfx()
         nhflow_amr_patch &c = *NP(q);
         fdm_nhf *d = c.d;
         const int il = EXT-1, ih = EXT+c.nx-1;
-        const int jl = EXT-1, jh = EXT+c.ny-1;
+        const int jl = EY-1, jh = EY+c.ny-1;
         const bool fresh = c.rec[0][0].empty();
 
         for(int side=0; side<4; ++side)
@@ -305,8 +305,8 @@ void nhflow_amr::sub_dfx()
 
         for(int r=0; r<c.ny; ++r)
         {
-            c.rec[0][0][r] = fx(il,EXT+r);
-            c.rec[0][1][r] = fx(ih,EXT+r);
+            c.rec[0][0][r] = fx(il,EY+r);
+            c.rec[0][1][r] = fx(ih,EY+r);
         }
         for(int r=0; r<c.nx; ++r)
         {
@@ -702,11 +702,11 @@ void nhflow_amr::sub_reflux(int l)
     rflux[t].assign(rmatch[t].size()*(size_t)NR,0.0);
 
     // the mean of the fine faces r, r+1 in the coarse layer k
-    auto fmean = [&](const vector<double> &R, int r, int k)
+    auto fmean = [&](const vector<double> &R, int side, int r, int k)
     {
         if(fz==1)
-        return 0.5*(R[r*Kf+k]+R[(r+1)*Kf+k]);
-        return 0.25*(R[r*Kf+2*k]+R[r*Kf+2*k+1]+R[(r+1)*Kf+2*k]+R[(r+1)*Kf+2*k+1]);
+        return 0.5*(R[r*Kf+k]+R[(r+fr1(side))*Kf+k]);
+        return 0.25*(R[r*Kf+2*k]+R[r*Kf+2*k+1]+R[(r+fr1(side))*Kf+2*k]+R[(r+fr1(side))*Kf+2*k+1]);
     };
 
     face_run_at(l+1,NR,7280+l+1,
@@ -715,7 +715,7 @@ void nhflow_amr::sub_reflux(int l)
                     nhflow_amr_patch *c = NP(q);
                     for(int ip=1; ip<=4; ++ip)
                     for(int k=0; k<K; ++k)
-                    sb[(ip-1)*K+k] = fmean(c->freg[ip][side],r,k);
+                    sb[(ip-1)*K+k] = fmean(c->freg[ip][side],side,r,k);
                 },
                 [&](int tgt, int idx, const double *v)
                 {
@@ -780,7 +780,7 @@ void nhflow_amr::sub_reflux(int l)
             nhflow_amr_patch *c = NP(m.child);
             for(int ip=1; ip<=4; ++ip)
             for(int k=0; k<K; ++k)
-            dlt[(ip-1)*K+k] = fmean(c->freg[ip][m.side],m.r,k) - cregL[t][(4*n+ip-1)*K+k];
+            dlt[(ip-1)*K+k] = fmean(c->freg[ip][m.side],m.side,m.r,k) - cregL[t][(4*n+ip-1)*K+k];
             fix(m);
         }
 

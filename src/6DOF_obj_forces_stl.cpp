@@ -384,9 +384,6 @@ void sixdof_obj_cfd::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, fi
 
 	// Add gravity force
 	
-    if(p->mpirank==0)
-    cout<<"Hydrodynamic Forces:  Fx_p: "<<Xe_p<<" Fy_p: "<<Ye_p<<" Fz_p: "<<Ze_p<<"  |  Fx_v: "<<Xe_v<<" Fy_v: "<<Ye_v<<" Fz_v: "<<Ze_v<<endl;
-    
 	Xe += a->gi*Mass_fb;
 	Ye += a->gj*Mass_fb;
 	Ze += a->gk*Mass_fb;
@@ -402,6 +399,4 @@ void sixdof_obj_cfd::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, fi
 
     }
 
-	if (p->mpirank==0)
-	cout<<"Xe: "<<Xe<<" Ye: "<<Ye<<" Ze: "<<Ze<<" Ke: "<<Ke<<" Me: "<<Me<<" Ne: "<<Ne<<endl;
 }

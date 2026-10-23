@@ -24,6 +24,7 @@ Author: Hans Bihs
 #define SFLOW_AMR_H_
 
 #include"reefamr.h"
+#include"reefamr_xzlu.h"
 #include"amr_grid_lookup.h"
 #include"sediment_f.h"
 #include"slice4.h"
@@ -142,6 +143,7 @@ struct sflow_amr_patch : public reefamr_patch
     vector<signed char> act;        // -2 no row, -1 covered by a finer patch, 0 q = 0 row, 1 active
     vector<int> row;                // matrix row of a cell (SLICELOOP4 order), -1 none
     reefmg_core *mg = nullptr;      // patch-local multigrid of the preconditioner
+    reefamr_xzlu xz;                // 2D grid: exact solve of the patch line in its place
     vector<double> qrec[4];         // boundary face gradients of q
 
     // moving body on the patch (X 10 2/3)

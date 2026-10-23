@@ -22,8 +22,8 @@ Architect: Hans Bihs
 // REEF3D::CORAL inside REEF3D: sampling of the resolved fluid at points for CORAL's sampled wave
 // kinematics (fluid_kinematics in coral.txt; coral/hydro/coral_sampled_kinematics.h).
 // Each rank fills the points that lie in its own cells (columns of level 0), the caller sums over the
-// ranks. Per point (REEF3D frame): u, v, w, z of the free surface, and 1 if the point was sampled
-// (0 elsewhere). Above the free surface the velocity of the surface is taken, below the bed zero.
+// ranks. Per point (REEF3D frame): u, v, w, z of the free surface, 1 if the point was sampled (0
+// elsewhere), z of the bed. Above the free surface the velocity of the surface is taken, below the bed zero.
 
 #ifndef CORAL_FLUID_SAMPLER_H_
 #define CORAL_FLUID_SAMPLER_H_
@@ -38,7 +38,7 @@ class coral_fluid_sampler
 {
 public:
     virtual ~coral_fluid_sampler() = default;
-    // xyz: 3 per point; out: 5 per point (u, v, w, surface z, sampled), filled for the own points only
+    // xyz: 3 per point; out: 6 per point (u, v, w, surface z, sampled, bed z), filled for the own points only
     virtual void sample(const std::vector<double> &xyz, std::vector<double> &out) = 0;
     virtual const char* name() const = 0;
 };

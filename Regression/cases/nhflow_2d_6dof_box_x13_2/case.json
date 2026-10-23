@@ -1,0 +1,4 @@
+{"base": "nhflow_2d_6dof_box", "ctrl_add": ["X 13 2", "X 19 1"],
+ "description": "as nhflow_2d_6dof_box with X 13 2: the water columns under the hull end at the hull bottom (footprint from the keel ray cast, piezometric head from the depth-integrated continuity of the footprint, hull loads from the column pressures, no direct forcing); prototype of patch 0024. Log REEF3D_NHFLOW_6DOF/REEF3D_6DOF_hull.dat.",
+ "tags": ["2d", "nhflow", "6dof", "floating"],
+ "covers": ["nhflow_fsf_hull level/correct/upgrad/forces", "sixdof_obj_nhflow::keel_nhflow", "sixdof_obj_nhflow::hull_loads_nhflow", "d->zeta in reconstruct and upgrad"]}

@@ -1,0 +1,30 @@
+{
+ "base": "nhflow_3d_dem_boom_mat_ckpt",
+ "np": 2,
+ "steps": 30,
+ "same_as": "nhflow_3d_dem_boom_mat_ckpt",
+ "chain": [
+  {
+   "case": "nhflow_3d_dem_boom_mat_ckpt",
+   "copy": [
+    "REEF3D_Checkpoint",
+    "REEF3D_DEM"
+   ]
+  }
+ ],
+ "ctrl_set": {
+  "I 45": "20"
+ },
+ "description": "the restart of nhflow_3d_dem_boom_mat_ckpt from its checkpoint at step 20 (I 45 20), with its outputs copied in (cut back to step 20 and continued): the DEM parcels on 2 ranks (owned, replicated and ghosts, the warm-start caches, ALPHAV), REEF3D-DEM-state.dat continued; regression.py ranks: the final state and the text outputs bitwise those of the uninterrupted run.",
+ "tags": [
+  "3d",
+  "dem",
+  "nhflow",
+  "mpi",
+  "checkpoint"
+ ],
+ "covers": [
+  "dem_f::ckpt_state / ckpt_apply (same decomposition)",
+  "dem_core::cache_state"
+ ]
+}

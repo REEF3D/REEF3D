@@ -115,6 +115,9 @@ public:
     void print_log_curv(lexer *p, ghostcell *pgc);     // curvilinear grid (G 50)
     int nfields();
 
+    // checkpoints (P 48, I 45): the cumulative limiter volume of the rank (log)
+    double* ckpt_clip() {return clip_k;}
+
     int nf;
     double *d;
     double La;

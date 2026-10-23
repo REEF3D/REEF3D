@@ -167,6 +167,19 @@ case("sflow_2d_curv_sed_bend_lfm_lags", "sflow", control(nxb, nyb, 1, nxb*ds, ny
       "covers": ["sediment_exner_lag: relax_along (upwind along the flow, contravariant on the curvilinear grid, Gauss-Seidel with alternating sweeps), susp_split, spiral_lag, spiral_apply", "qb/f of the slope flux with the lagged suspended load (bend_K)"]},
      G=G9)
 
+# P8a: 14 the coarse LFM bend of case 9 in three blocks along the flow: block 1 the inflow reach (G 54 1 1 Q), block 0 the
+# bend, block 2 the outflow reach with the water level (G 54 2 2 h); the sediment leaves through the open face of block 2
+NA9, NB9 = 40, 20
+blocks9 = [tuple(A[a:b+1].copy() for A in (X9, Y9, Z9)) for a, b in ((NA9, nxb-NB9), (0, NA9), (nxb-NB9, nxb))]
+ctrl14 = ctrl9.replace("G 50 2\n", "G 50 1\nA 209 0\nG 54 1 1 %g\nG 54 2 2 %g\n" % (Q, h0)).replace("S 31 1\n", "S 31 1\nS 33 4\nS 40 1.0\n")
+case("sflow_2d_mb_sed_open_faces_noneq", "sflow",
+     "C 11 21\nC 12 21\nC 13 21\nC 14 21\nC 15 21\nC 16 3\n\nB 1 %g\nB 10 0.0 %g 0.0 %g 0.0 0.5\n\nM 10 1\n\nR 20 1\n" % (ds, nxb*ds, nyb*ds),
+     ctrl14,
+     {"np": 1, "steps": 400, "tags": ["2d", "sflow", "multiblock", "river", "bend"] + tags,
+      "description": "P8a: the LFM bend of sflow_2d_curv_sed_bend_lfm in three blocks along the flow, the discharge on the -i face of block 1 and the water level on the +i face of block 2 (G 54): the open faces pass the sediment as the native in- and outflow (the cells beyond them carry the sediment flag); the non-equilibrium bed load (S 33 4, Ls = h) relaxes across the block interfaces (sediment_curvilinear/t9 LAYOUT=three).",
+      "covers": ["sediment_f::dfbed_open (sflow_amr::sed_patch_ini, active_sflow)", "non_equillibrium_solve with lagfix and lag_hold, qbn filled around the grids (amr_field 7), lag_refresh for S 33"]},
+     blocks=blocks9)
+
 # 10 the four turned quadrants of t5 with SFLOW on three ranks and the bend terms (blocks on other ranks than the cells
 # next to them: the bend fields of the cells around the blocks from their sources)
 n, nz, dx = 40, 6, 0.05
@@ -198,6 +211,13 @@ case("sflow_2d_mb_sed_lags_mpi2", "sflow", mbcontrol.replace("NP", "2"),
      {"np": 2, "steps": 40, "tags": ["2d", "sflow", "multiblock", "mpi", "bend", "lags"] + tags,
       "description": "As sflow_2d_mb_sed_lags_amr without refinement on two ranks: the lagged fields of the blocks on other ranks than the cells next to them (remote fills), the relaxation of the native grid across the ranks (sediment_curvilinear/t5).",
       "covers": ["remote fills of Isp and qsn", "relax_along with the exchange of the ranks, the global change of the passes"]},
+     blocks=quads)
+
+case("sflow_2d_mb_sed_noneq_amr_mpi2", "sflow", mbcontrol.replace("NP", "2"),
+     flow["sflow"] + mb.replace("NP", "2").replace("S 31 1", "S 31 1\nS 33 4\nS 40 2.0") + "G 1 1\nG 2 0\nG 3 2\nG 4 8\nG 10 0.7 1.4 0.7 1.4\n",
+     {"np": 2, "steps": 40, "tags": ["2d", "sflow", "multiblock", "amr", "mpi"] + tags,
+      "description": "P8a: the non-equilibrium bed load (S 33 4, Ls = 2h) on the four turned quadrants of t5 with a refinement box over the vertex, two ranks: the relaxation holds the cells around every grid and its covered cells, passes across the grids; four blocks = one block to the tolerance of the relaxation (sediment_curvilinear/t5).",
+      "covers": ["non_equillibrium_solve_curv with lagfix, the passes of lag_refresh for S 33, remote fills of qbn"]},
      blocks=quads)
 
 # 11 NHFLOW, two levels of patches following the surface, the transverse slope: the slope flux of two patches that meet

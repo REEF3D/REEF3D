@@ -32,14 +32,48 @@ Author: Hans Bihs
 #include"net_barQuasiStatic.h"
 #include"net_sheet.h"
 
-net_interface::net_interface(lexer *p, ghostcell *pgc) : kernel_x(p),kernel_y(p),kernel_z(p)
+net_interface::net_interface(lexer *p, ghostcell *pgc)
 {
-    p->Darray(KX, p->imax*p->jmax*(p->kmax+2));
-    p->Darray(KY, p->imax*p->jmax*(p->kmax+2));
-    p->Darray(KZ, p->imax*p->jmax*(p->kmax+2));
+    // no grid fields here: every 6DOF body (and sixdof_void) holds a net_interface, also without nets (X 320)
+    // or membranes (X 330). The nets (initialize_cfd/_nhflow) and membranes (membrane_ini_nhflow) allocate
+    // their own storage only when they are switched on.
 }
 
 net_interface::~net_interface()
 {
 }
 
+
+void net_interface::ckpt_state(std::vector<double> &v) const
+{
+    v.push_back(double(pnet.size()));
+    for(const net *n : pnet)
+    {
+        std::vector<double> s;
+        n->ckpt_state(s);
+        v.push_back(double(s.size()));
+        v.insert(v.end(),s.begin(),s.end());
+    }
+}
+
+bool net_interface::ckpt_restore(const std::vector<double> &v)
+{
+    if(v.empty() || size_t(v[0])!=pnet.size())
+    return false;
+    size_t k = 1;
+    for(net *n : pnet)
+    {
+        if(k>=v.size())
+        return false;
+        const size_t len = size_t(v[k++]);
+        if(k+len>v.size())
+        return false;
+        const std::vector<double> s(v.begin()+k,v.begin()+k+len);
+        size_t j = 0;
+        n->ckpt_restore(s,j);
+        if(j!=len)
+        return false;
+        k += len;
+    }
+    return k==v.size();
+}

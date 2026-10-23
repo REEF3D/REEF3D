@@ -1,0 +1,24 @@
+{
+ "base": "sflow_2d_amr_bar_nh_sub",
+ "description": "sflow_2d_amr_bar_nh_sub (G 7 1, B 95 -1) on a 2D grid: subcycled levels, level solves and synchronisation projection with x-only refinement.",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 100,
+ "control_set": {
+  "B 10": "0.0 38.0 0.0 0.1 0.0 0.8"
+ },
+ "ctrl_set": {
+  "G 10": "5.0 13.0 -1 1",
+  "G 11": null
+ },
+ "tags": [
+  "1d",
+  "sflow",
+  "amr",
+  "nh",
+  "sub"
+ ],
+ "covers": [
+  "sflow_amr_sub, sflow_amr_subnh on a 2D grid"
+ ]
+}

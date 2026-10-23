@@ -26,6 +26,7 @@ Author: Hans Bihs
 #include "solver2D.h"
 #include "increment.h"
 #include "reefmg_core.h"
+#include "reefamr_xzlu.h"
 #include <vector>
 #include <mpi.h>
 
@@ -75,6 +76,10 @@ public:
     //  refinement).  rebuild: M changed, coarsen again.
     void vcycle(lexer*, ghostcell*, slice&, matrix2D&, vec2D&, bool);
 
+    //  vcycle(): on a grid with one cell in y, the exact solve of the x line (several ranks: of all ranks)
+    //  (reefamr_xzlu) in place of the V-cycle (SFLOW mesh refinement on a 2D grid)
+    void set_exact_line(bool on) { exact_line = on; }
+
     //  exact fine operator for the Krylov iteration in fp32 mode (sc_operator)
     void fine_apply(const sc_level &L,const double *x,double *y) override;
 
@@ -95,6 +100,8 @@ private:
     int  screened_levels(double ldx, int nlev) const;
 
     reefmg_core mg;
+    reefamr_xzlu xz;
+    bool exact_line = false, xzon = false;
 
     matrix2D *Mcur;               // matrix of the current solve (fine_apply)
     std::vector<int> cval;        // slice index IJ -> matrix2D row, -1 if none

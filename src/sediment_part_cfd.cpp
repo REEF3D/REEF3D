@@ -28,10 +28,13 @@ Authors: Hans Bihs, Alexander Hanke
 #include"sediment_fdm.h"
 #include"bedslope.h"
 #include"bedshear_reduction.h"
+#include"amr_load.h"
+#include<mpi.h>
 
 void sediment_part::sediment_algorithm_cfd(lexer* p, fdm* a, ghostcell* pgc, ioflow* pflow, reinitopo* preto)
 {
     double starttime=pgc->timer();
+    const double lm_t0 = MPI_Wtime(), lm_m0 = amr_clock::mpi;
 
     // sediment
     fill_PQ_cfd(p,a,pgc);
@@ -52,6 +55,9 @@ void sediment_part::sediment_algorithm_cfd(lexer* p, fdm* a, ghostcell* pgc, iof
     update_cfd(p,a,pgc,pflow,preto);
 
     p->sedsimtime=pgc->timer()-starttime;
+    
+    // load map (G 45): the busy time of the sediment step
+    pst->loadmap_step(p,a,pgc,MPI_Wtime()-lm_t0,amr_clock::mpi-lm_m0);
 
     ++p->sediter;
 }
