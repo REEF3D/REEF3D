@@ -15,10 +15,12 @@
 # flat back. Surface coordinate from the tip: s = 0.5 theta on the nose, s = pi/4 + x on the
 # cylinder (shoulder at s/D = 0.785). Domain [-4, 12] x [-4, 4]^2, inflow U = 1 at x = -4, the
 # x+ side a wall with an outlet pressure patch p = 0 (B 441, B 412) that fixes the pressure level;
-# p_v = P - sigma rho U^2/2 (W 61), P the expected upstream pressure (default 0): with the outlet at
-# p = 0 the drag lowers the upstream pressure, -15.5 Pa at D/40 (sigma 0.469 instead of 0.5 with
-# P = 0), so --pref -15.5 gives the wanted sigma. The actual sigma follows from the upstream probe
-# (headform_analysis.py).
+# p_v = p_ref - sigma rho U^2/2 at every step with W 69 (cavitation number control): p_ref the
+# pressure at the upstream probe point (-3, 3, 0.01) averaged over tau = 1 s, so that sigma is the
+# wanted one whatever the pressure level (the drag lowers the upstream pressure against the outlet,
+# -15.5 Pa at D/40 with the outlet patch, -3.5 to -5 Pa with the outflow B 77 10 of --amr). W 61 =
+# P - sigma rho U^2/2 is the start value (--pref P, default 0). The actual sigma follows from the
+# upstream probe and the p_v column of the cavitation log (headform_analysis.py).
 # Grid (B 127-129, cell based): uniform dx in x in [-0.8, 2.5], |y|, |z| < 0.75, growing to 0.25.
 # k-epsilon (T 10 1) with wall functions at the direct-forcing body: laminar runs separate at the
 # shoulder (D/20: reverse flow to s/D = 2, Cp_min -0.34 instead of -0.74).
@@ -185,7 +187,8 @@ def make(argv):
         # rho_l/rho_v = 1000 (W 62 1, nu_v 1e-5: mu_v as for water vapour): with the real ratio
         # 58000 the D/40 run diverged at t = 3.3 s (lateral velocity 567 m/s in the vapour);
         # at D/20 the two ratios give the same Cp within 0.006 and the same cavity
-        cav = "" if sg == "none" else f"W 60 1\nW 61 {pref - float(sg)*q:.1f}\nW 62 1.0\nW 63 1.0e-5\n"
+        cav = "" if sg == "none" else (f"W 60 1\nW 61 {pref - float(sg)*q:.1f}\nW 62 1.0\nW 63 1.0e-5\n"
+                                       f"W 69 {float(sg)} {U} -3.0 3.0 0.01 1.0\n")
         with open(f"{d}/control.txt", "w") as f:
             f.write(CONTROL.format(dx=dx, ranks=ranks, c14=2 if amr else 21))
         with open(f"{d}/ctrl.txt", "w") as f:

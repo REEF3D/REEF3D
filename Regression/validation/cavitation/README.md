@@ -17,6 +17,7 @@ Keywords
 | `W 66` | evaporation and condensation coefficients C_v C_c | 1 1 |
 | `W 67` | initial vapour box xs xe ys ye zs ze | |
 | `W 68` | initial vapour sphere x y z r | |
+| `W 69` | cavitation number control sigma U x y z tau: p_v = p_ref - sigma rho U²/2 at every step, p_ref the pressure at (x, y, z) averaged over tau; W 61 the start value | off |
 
 Setup notes
 - The pressure level must be fixed by a Dirichlet boundary: the outlet side a wall `C 14 21`
@@ -29,6 +30,11 @@ Setup notes
   0.1835 s (+0.6 %). Not suitable: `B 60 0` (no outlet pressure at all) and the gauge `B 30 1`
   (shifting the level after each projection against the implicit phase-change term: the vapour
   vanishes within a few ms).
+- With `W 69` the run holds the wanted sigma whatever the pressure level: the drag of the body
+  lowers the upstream pressure against the outlet (head form D/40: -15.5 Pa with the outlet patch,
+  -3.5 to -5 Pa with the outflow B 77 10 of the refined runs), at fixed W 61 sigma was 0.39 and 0.42
+  for the same nominal 0.4. D/10 check (sigma 0.25, tau 1 s): 0.247-0.244 while p_ref drifted from
+  +19 to -4 Pa with the growing cavity. p_v is written as the last column of the cavitation log.
 - Gravity off (`W 22 0`) unless the hydrostatic pressure is meant to be part of p - p_v.
 - Single phase (`F 30 0`, `F 80 0`); a fluid at rest needs a fixed time step (`N 48 0`, `N 49 dt`).
 - Output: `alpha_v` in the VTU files (`P 24 1` adds the mixture density), and

@@ -3456,6 +3456,10 @@ void control::read_control(lexer* p)
                          W68=1;
                          clear(c,numint);
                          break;
+                case 69: control>>W69_sigma>>W69_u>>W69_x>>W69_y>>W69_z>>W69_t;
+                         W69=1;
+                         clear(c,numint);
+                         break;
                 case 90: control>>W90;
                          clear(c,numint);
                          break;

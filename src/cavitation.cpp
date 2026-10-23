@@ -62,6 +62,8 @@ cavitation::cavitation(lexer *p, fdm *a, ghostcell *pgc, bool prim) : alpha(p), 
     eps = 1.0;              // [Pa], regularises 1/sqrt|p - p_v| at p = p_v
     gcval_alpha = 1;
     Smax = 0.0;
+    pref_avg = 0.0;
+    pref_set = false;
 
     pconvec = new hires(p,11);  // van Leer
 
@@ -100,7 +102,7 @@ cavitation::cavitation(lexer *p, fdm *a, ghostcell *pgc, bool prim) : alpha(p), 
         const bool restart = p->I40>0 || p->I45>0;   // state (I 40) or checkpoint (I 45) restart: append
         out.open("./REEF3D_CFD_Cavitation/REEF3D-CFD-Cavitation.dat",restart ? std::ios::app : std::ios::out);
         if(!restart)
-        out<<"time \t vapour_volume \t equivalent_radius \t vapour_production \t p_min"<<std::endl;
+        out<<"time \t vapour_volume \t equivalent_radius \t vapour_production \t p_min"<<(p->W69>0 ? " \t p_v" : "")<<std::endl;
     }
 }
 
@@ -116,8 +118,40 @@ double cavitation::rho_mix(lexer *p, double al) const
     return (1.0-al)*rhol + al*rhov;
 }
 
+void cavitation::sigma_control(lexer *p, fdm *a, ghostcell *pgc)
+{
+    // the pressure at the reference point, on the rank that has it
+    const int ii = p->posc_i(p->W69_x);
+    const int jj = (p->j_dir==1) ? p->posc_j(p->W69_y) : 0;
+    const int kk = p->posc_k(p->W69_z);
+    double pr = -1.0e20;
+    if(ii>=0 && ii<p->knox && jj>=0 && jj<p->knoy && kk>=0 && kk<p->knoz)
+    pr = p->ccipol4a(a->press,p->W69_x,p->W69_y,p->W69_z);
+    pr = pgc->globalmax(pr);
+
+    if(pr<-1.0e19)
+    {
+        if(p->mpirank==0 && !pref_set)
+        std::cout<<"W 69: the reference point is outside the domain, p_v stays W 61"<<std::endl;
+        pref_set = true;
+        return;
+    }
+
+    if(!pref_set)
+    pref_avg = pr;
+    else
+    pref_avg += std::min(1.0,p->dt/std::max(p->W69_t,1.0e-12))*(pr - pref_avg);
+    pref_set = true;
+
+    pv = pref_avg - p->W69_sigma*0.5*rhol*p->W69_u*p->W69_u;
+}
+
 void cavitation::coefficients(lexer *p, fdm *a, ghostcell *pgc)
 {
+    // W 69: p_v follows the reference pressure (level 0; the patches take it from there)
+    if(p->W69>0 && primary)
+    sigma_control(p,a,pgc);
+
     const double rate = std::sqrt(2.0/(3.0*rhol));
 
     LOOP
@@ -258,10 +292,13 @@ void cavitation::log(lexer *p, fdm *a, ghostcell *pgc)
     if(p->mpirank==0)
     {
         const double R = std::cbrt(3.0*V/(4.0*M_PI));
-        out<<std::setprecision(10)<<p->simtime+p->dt<<" \t "<<V<<" \t "<<R<<" \t "<<S<<" \t "<<pmin<<std::endl;
+        out<<std::setprecision(10)<<p->simtime+p->dt<<" \t "<<V<<" \t "<<R<<" \t "<<S<<" \t "<<pmin;
+        if(p->W69>0)
+        out<<" \t "<<pv;
+        out<<std::endl;
 
         if(p->count%p->P12==0)
-        std::cout<<"cavitation: vapour volume "<<V<<" R_eq "<<R<<" production "<<S<<" p_min "<<pmin<<std::endl;
+        std::cout<<"cavitation: vapour volume "<<V<<" R_eq "<<R<<" production "<<S<<" p_min "<<pmin<<" p_v "<<pv<<std::endl;
     }
 }
 

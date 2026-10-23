@@ -9,6 +9,7 @@
 # on the cylinder; the wall pressure is extrapolated linearly from the two bands (the normal
 # pressure gradient rho u^2/R at the curved nose is large: 0.05 D off the wall Cp is ~0.3 higher). Cp = (p - p_ref)/q
 # with p_ref the mean of pressure probe 1 (upstream, P 64) over the window, q = rho U^2/2, U from
+# (p_v: W 61, or with W 69 the mean of the p_v column of REEF3D-CFD-Cavitation.dat over the window)
 # W 10 over the inlet area; sigma = (p_ref - p_v)/q. Cavity: alpha_v > 0.1 in the band, contiguous
 # from the first cavitating bin. --exp: csv with columns sigma, s/D, Cp (measured), drawn for the
 # sigma closest to each run. Default window: the VTU frames of the last 5 s.
@@ -87,6 +88,11 @@ for run in args.runs:
     pr = np.loadtxt(glob.glob(f"{run}/REEF3D_CFD_PressureProbe/*-1.dat")[0], skiprows=6)
     w = (pr[:, 0] >= t0) & (pr[:, 0] <= t1)
     pref = pr[w, 1].mean()
+    # W 69 (cavitation number control): p_v changes with time, its mean over the window from the log
+    if cav and keyword(f"{run}/ctrl.txt", "W 69", 6):
+        cl = np.loadtxt(f"{run}/REEF3D_CFD_Cavitation/REEF3D-CFD-Cavitation.dat", skiprows=1)
+        wc = (cl[:, 0] >= t0) & (cl[:, 0] <= t1)
+        pv = cl[wc, 5].mean()
 
     # band 1 (0.5-1.5 dx) and band 2 (1.5-2.5 dx): sums of p, distance, alpha and counts
     sp = np.zeros((2, len(mid))); sd = np.zeros((2, len(mid))); sa = np.zeros(len(mid)); cnt = np.zeros((2, len(mid)))

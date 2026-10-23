@@ -563,6 +563,8 @@ public:
     double W61,W62,W63,W64,W65,W66_v,W66_c;
     int W67,W68;
     double W67_xs,W67_xe,W67_ys,W67_ye,W67_zs,W67_ze,W68_x,W68_y,W68_z,W68_r;
+    int W69;
+    double W69_sigma,W69_u,W69_x,W69_y,W69_z,W69_t;
     int W90;
     double W95,W96,W97,W98;
     int W101;

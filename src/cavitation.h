@@ -73,6 +73,10 @@ class convection;
 //  The pressure level must be fixed by a Dirichlet boundary: an outlet patch with a pressure
 //  (B 441 on a C 1x 21 wall, B 412 id p). p_v (W 61) is in the same scale: for the cavitation
 //  number sigma = (p_inf - p_v)/(rho U^2/2) with p_inf = 0 at the outlet, W 61 = -sigma rho U^2/2. Single phase only (F 30 0, F 80 0).
+//  Cavitation number control W 69 sigma U x y z tau: p_v = p_ref - sigma rho_l U^2/2 at every step,
+//  p_ref the pressure at the point (x, y, z) (upstream, as the reference of an experiment) averaged
+//  with the time constant tau; W 61 is then only the start value. The level of the pressure then
+//  does not matter (outlet patch, outflow B 77 10, the drag of the body). p_v is in the output file.
 //  Initial vapour (alpha = 1): the cells with the centre in the box W 67 xs xe ys ye zs ze or the
 //  sphere W 68 x y z r.
 //  Output: alpha_v in the VTU files (the mixture density with P 24 1), REEF3D_CFD_Cavitation/REEF3D-CFD-Cavitation.dat
@@ -107,6 +111,8 @@ public:
     void properties(lexer*, fdm*, ghostcell*);      // density and viscosity of the cells from alpha
 
     double rho_mix(lexer*, double) const;            // mixture density of a vapour fraction
+    double vapour_pressure() const { return pv; }
+    void vapour_pressure(double v) { pv = v; }        // a patch of the mesh refinement: p_v of level 0 (W 69)
     double val(int ii, int jj, int kk) { return alpha(ii,jj,kk); }
 
     void name_ParaView_parallel(lexer*, std::ofstream&);
@@ -123,6 +129,7 @@ private:
 
     void transport_step(lexer*, fdm*, ghostcell*, field&, field&, double, double, double);
     void log(lexer*, fdm*, ghostcell*);
+    void sigma_control(lexer*, fdm*, ghostcell*);   // W 69: p_v from the reference pressure
 
     field4 Cs;          // dS/d(p_v - p), the linearised vapour production
     field4 Sv;          // vapour source S of the alpha equation, from the final pressure
@@ -132,6 +139,8 @@ private:
 
     double rhol, rhov, nul, nuv, pv, n0, alnuc, Cv, Cc, eps;
     double Smax;
+    double pref_avg;    // W 69: averaged reference pressure
+    bool pref_set;
     int gcval_alpha;
 };
 

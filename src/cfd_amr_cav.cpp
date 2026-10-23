@@ -78,10 +78,13 @@ void cfd_amr::cav_coefficients()
     if(!cav)
     return;
 
+    // p_v of level 0 (W 69 changes it at every step)
+    const double pv = cavitation::of(p0)->vapour_pressure();
     for(int id=0; id<npat; ++id)
     {
         cfd_amr_patch *c = CP(id);
         pscope ps(pgc0,c->a,a0);
+        c->pcav->vapour_pressure(pv);
         c->pcav->coefficients(c->pp,c->a,pgc0);
     }
 }
