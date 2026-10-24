@@ -202,6 +202,23 @@ Architect: Hans Bihs
 //        (TurbSim full field, frozen: a point at the downwind distance xi from the origin sees the grid at
 //        t + (xi0 - xi)/u_hub; outside the grid its edge, below it the tower points)
 //   wind_probe <name> <x y z> [body <b>]          (output channels <name>_u _v _w _U of the inflow at the point)
+//   rotor <name> hub <x y z> axis <ax ay az> R_hub <r> blade <AeroDyn blade file> airfoils <n> <file 1> .. <file n>
+//        [blades <B>] [structure <ElastoDyn blade file>] [hub_mass <m>] [hub_inertia <J> [<J_across>]] [precone <deg>]
+//        [azimuth <deg>] [ccw] [nacelle <body>] [rpm <rpm>] [pitch <deg> | pitch_file <t deg table>]
+//        [gearbox <N>] [gen_inertia <J_hss>] [shaft <k> <c>] [efficiency <eta>]
+//        [generator none | constant <T> | slip <slope> <rpm_sync> | k_omega2 <K> [<T_max>]]
+//        [no_skew] [no_tip_loss] [no_hub_loss] [no_tangential] [no_induction] [no_drag_induction]
+//        [tower <x y z base> <x y z top> <D_base> <D_top> [tower_body <b>]]
+//        (wind turbine rotor with rigid blades: hub and blades one body (bodies <name>_hub, <name>_gen with the shaft
+//        torsion), turning in the revolute joint <name>_shaft on the nacelle (default the ground) about the axis
+//        pointing downwind, clockwise looking downwind unless ccw; blade 1 up at azimuth 0; the stations of AeroDyn's
+//        blade file at R_hub + BlSpn from the hub centre, airfoils in the order of its BlAFID; the blade mass from
+//        ElastoDyn's blade file (BMassDen); precone positive with the tips downwind; generator torque on the high-speed
+//        shaft (N m, rad/s; rpm_sync of the high-speed shaft), shaft torsion k [N m/rad], c [N m s/rad] on the
+//        low-speed shaft with the generator on a body of its own; quasi-steady blade element momentum with
+//        Prandtl's tip and hub loss, Buhl's correction and the skewed wake; tower potential flow;
+//        channels <name>_azimuth _rpm _T _Q _P _Cp _Ct _lambda _U _yaw _pitch _b<k>_Moop _b<k>_Mip and
+//        <name>_dt_rpm_rotor _rpm_gen _T_gen _P_gen _T_shaft; coral/aero/coral_rotor.h)
 //   static                                       static equilibrium before the time integration
 //   modes <n> [damped]                           linear analysis: the first n modes (modes.dat, mode_shapes.dat)
 //   output vtp <dt>                              VTP of the structure (coral_vtp/)

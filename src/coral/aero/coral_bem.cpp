@@ -127,7 +127,8 @@ double bem_residual(const bem_element &e, double Vx, double Vy, double phi, cons
 bem_result bem_solve(const bem_element &e, double Vx, double Vy, double rho, const bem_options &o, double skew)
 {
     bem_result res;
-    if((o.tip_loss && e.r >= e.R) || (o.hub_loss && e.R_hub > 0.0 && e.r <= e.R_hub))
+    // at the tip or the hub (to rounding: a station placed there in a rotated frame)
+    if((o.tip_loss && e.r >= e.R*(1.0 - 1.0e-12)) || (o.hub_loss && e.R_hub > 0.0 && e.r <= e.R_hub*(1.0 + 1.0e-12)))
     {
         res.phi = std::atan2(Vx, Vy);
         res.alpha = res.phi - e.theta;

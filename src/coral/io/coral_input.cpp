@@ -47,6 +47,7 @@ Architect: Hans Bihs
 #include"coral/wind/coral_wind.h"
 #include"coral/wind/coral_wind_grid.h"
 #include"coral/wind/coral_wind_probe.h"
+#include"coral/aero/coral_rotor.h"
 #include<cmath>
 #include<fstream>
 #include<functional>
@@ -166,7 +167,7 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
     // items whose second word is a name (of a body, joint, load, ...): keys are searched after it
     static const std::set<std::string> named = {"body", "joint", "pto", "drive", "jforce", "spring", "linear6", "force", "drag",
         "mooring", "morison", "section", "member", "superelement", "pile", "point_mass", "fluid_body", "fluid_member", "hydro",
-        "point", "line_type", "wind_probe"};
+        "point", "line_type", "wind_probe", "rotor"};
     for(const auto &l : lines)
     {
         items.push_back(item{l.first, l.second});
@@ -1272,6 +1273,94 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
                 if(o.n == fm.n) it.fail("REEF3D body " + std::to_string(fm.n) + " mapped twice");
             fluid_members.push_back(fm);
             m.add_load(std::move(l));
+        }
+        else if(k=="rotor")
+        {
+            // wind turbine rotor with rigid blades, drivetrain and generator (coral/aero/coral_rotor.h)
+            if(!wind) it.fail("rotor needs a wind inflow (wind ...)");
+            rotor_spec sp;
+            sp.name = it.word(1);
+            sp.B = (int)it.get("blades", 3.0);
+            sp.hub = it.need_vec("hub");
+            sp.axis = it.need_vec("axis");
+            if(sp.axis.norm() <= 0.0) it.fail("axis must not be zero");
+            sp.R_hub = it.need("R_hub");
+            std::string msg;
+            if(!read_aerodyn_blade(path(it.word("blade")), sp.R_hub, sp.stations, msg)) it.fail(msg);
+            const int ia = it.find("airfoils");
+            if(ia < 0) it.fail("'airfoils <n> <file 1> .. <file n>' is required");
+            const int na = (int)it.num(ia+1);
+            for(int q=0; q<na; ++q)
+            {
+                airfoil af;
+                if(!airfoil::read(path(it.word(ia+2+q)), af, msg)) it.fail(msg);
+                sp.airfoils.push_back(af);
+            }
+            if(it.has("structure") && !blade_structure::read(path(it.word("structure")), sp.structure, msg)) it.fail(msg);
+            sp.hub_mass = it.get("hub_mass", 0.0);
+            const int ij = it.find("hub_inertia");
+            if(ij >= 0)
+            {
+                sp.hub_J = it.num(ij+1);
+                double v;
+                if(ij+2 < (int)it.t.size()) {try {size_t n; v = std::stod(it.t[ij+2], &n); if(n==it.t[ij+2].size()) sp.hub_Jt = v;} catch(...) {}}
+            }
+            sp.precone = it.get("precone", 0.0)*deg;
+            sp.azimuth0 = it.get("azimuth", 0.0)*deg;
+            sp.ccw = it.has("ccw");
+            if(it.has("nacelle")) sp.nacelle = body_of(it, it.word("nacelle"));
+            sp.omega0 = it.get("rpm", 0.0)*M_PI/30.0;
+            sp.pitch = it.get("pitch", 0.0)*deg;
+            if(it.has("pitch_file"))
+            {
+                if(!joint_force::read_table(path(it.word("pitch_file")), sp.pitch_t, sp.pitch_v, msg)) it.fail(msg);
+                for(double &x : sp.pitch_v) x *= deg;
+            }
+            sp.dt.N = it.get("gearbox", 1.0);
+            sp.J_gen = it.get("gen_inertia", 0.0);
+            const int is = it.find("shaft");
+            if(is >= 0) {sp.dt.k = it.num(is+1); sp.dt.c = it.num(is+2);}
+            sp.dt.eta = it.get("efficiency", 1.0);
+            const int ig = it.find("generator");
+            if(ig >= 0)
+            {
+                const std::string g = it.word(ig+1);
+                if(g=="none") sp.dt.law = generator_law::none;
+                else if(g=="constant") {sp.dt.law = generator_law::constant; sp.dt.T = it.num(ig+2);}
+                else if(g=="slip") {sp.dt.law = generator_law::slip; sp.dt.slope = it.num(ig+2); sp.dt.omega_sync = it.num(ig+3)*M_PI/30.0;}
+                else if(g=="k_omega2")
+                {
+                    sp.dt.law = generator_law::k_omega2;
+                    sp.dt.K = it.num(ig+2);
+                    double v;
+                    if(ig+3 < (int)it.t.size()) {try {size_t n; v = std::stod(it.t[ig+3], &n); if(n==it.t[ig+3].size()) sp.dt.T = v;} catch(...) {}}
+                }
+                else it.fail("generator must be none, constant <T>, slip <slope> <rpm> or k_omega2 <K> [<T_max>]");
+            }
+            sp.aero.rho = rho_air;
+            sp.aero.skew = !it.has("no_skew");
+            sp.aero.bem.tip_loss = !it.has("no_tip_loss");
+            sp.aero.bem.hub_loss = !it.has("no_hub_loss");
+            sp.aero.bem.tangential = !it.has("no_tangential");
+            sp.aero.bem.induction = !it.has("no_induction");
+            sp.aero.bem.drag_in_induction = !it.has("no_drag_induction");
+            const int it_ = it.find("tower");
+            if(it_ >= 0)
+            {
+                sp.aero.tower = true;
+                sp.aero.tower_base = it.vec(it_+1);
+                sp.aero.tower_top = it.vec(it_+4);
+                sp.aero.D_base = it.num(it_+7);
+                sp.aero.D_top = it.num(it_+8);
+                if(it.has("tower_body")) sp.aero.tower_body = body_of(it, it.word("tower_body"));
+            }
+            try
+            {
+                const rotor_handles h = build_rotor(m, wind, sp);
+                joints[sp.name + "_shaft"] = h.shaft;
+                if(h.gen_joint) joints[sp.name + "_gen_shaft"] = h.gen_joint;
+            }
+            catch(const std::exception &e) {it.fail(e.what());}
         }
         else if(k=="wind_probe")
         {

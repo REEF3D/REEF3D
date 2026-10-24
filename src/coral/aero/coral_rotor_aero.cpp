@@ -1,0 +1,220 @@
+/*--------------------------------------------------------------------
+REEF3D
+Copyright 2008-2026 Hans Bihs
+
+This file is part of REEF3D.
+
+REEF3D is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, see <http://www.gnu.org/licenses/>.
+--------------------------------------------------------------------
+Architect: Hans Bihs
+--------------------------------------------------------------------*/
+
+#include"coral/aero/coral_rotor_aero.h"
+#include"coral/core/coral_constraint.h"
+#include"coral/core/coral_model.h"
+#include<algorithm>
+#include<cmath>
+
+namespace coral
+{
+
+rotor_aero::rotor_aero(const model &m, std::shared_ptr<const wind_inflow> wind, std::vector<airfoil> af, int hub, const Vec3 &H,
+                       const joint &shaft, std::vector<aero_station> st, const std::vector<Vec3> &roots,
+                       const rotor_aero_settings &s, const std::string &name)
+    : name_(name), wind_(std::move(wind)), af_(std::move(af)), hub_(hub), shaft_(&shaft), st_(std::move(st)), set_(s)
+{
+    sH_ = m.body(hub).to_body(H);
+    for(const Vec3 &r : roots)
+        roots_.push_back(m.body(hub).to_body(r));
+    tb_ = m.body(s.tower_body).to_body(s.tower_base);
+    tt_ = m.body(s.tower_body).to_body(s.tower_top);
+    pitch_.assign(std::max(s.B, 1), 0.0);
+}
+
+void rotor_aero::coupled_bodies(std::vector<int> &b) const
+{
+    b.push_back(hub_);
+    if(shaft_->body_a >= 0) b.push_back(shaft_->body_a);
+    for(const aero_station &s : st_)
+        if(std::find(b.begin(), b.end(), s.body)==b.end()) b.push_back(s.body);
+    if(set_.tower && set_.tower_body >= 0 && std::find(b.begin(), b.end(), set_.tower_body)==b.end()) b.push_back(set_.tower_body);
+}
+
+double rotor_aero::pitch(int blade, double t) const
+{
+    if(pt_.empty())
+        return pitch_[blade];
+    if(t <= pt_.front()) return pv_.front();
+    if(t >= pt_.back()) return pv_.back();
+    const size_t k = std::upper_bound(pt_.begin(), pt_.end(), t) - pt_.begin() - 1;
+    return pv_[k] + (t - pt_[k])/(pt_[k+1] - pt_[k])*(pv_[k+1] - pv_[k]);
+}
+
+Vec3 rotor_aero::hub_centre(const model &m) const {return m.body(hub_).point(sH_);}
+
+Vec3 rotor_aero::tower_influence(const model &m, const Vec3 &P, const Vec3 &u) const
+{
+    if(!set_.tower)
+        return Vec3::Zero();
+    const rigid_body &tb = m.body(set_.tower_body);
+    const Vec3 b = tb.point(tb_), top = tb.point(tt_);
+    const Vec3 L = top - b;
+    const double len = L.norm();
+    if(len <= 0.0) return Vec3::Zero();
+    const Vec3 a = L/len;
+    const double z = (P - b).dot(a)/len;
+    if(z < 0.0 || z > 1.0) return Vec3::Zero();
+    const Vec3 un = u - u.dot(a)*a;
+    const double U = un.norm();
+    if(U <= 0.0) return Vec3::Zero();
+    const Vec3 ex = un/U, ey = a.cross(ex);
+    const double rt = 0.5*(set_.D_base + z*(set_.D_top - set_.D_base));
+    if(rt <= 0.0) return Vec3::Zero();
+    const Vec3 d = P - (b + z*len*a);
+    const double x = d.dot(ex)/rt, y = d.dot(ey)/rt;
+    const double q = x*x + y*y;
+    if(q <= 1.0) return Vec3::Zero();
+    return U*(-(x*x - y*y)/(q*q))*ex + U*(-2.0*x*y/(q*q))*ey;
+}
+
+void rotor_aero::station_loads(const model &m, double t, std::vector<station_load> &out) const
+{
+    out.resize(st_.size());
+    const rigid_body &hb = m.body(hub_);
+    const Vec3 H = hb.point(sH_);
+    const Vec3 e = shaft_->axis(m);
+    // inflow at the hub: skew angle and the direction of the cross flow
+    double gam = 0.0;
+    Vec3 cross = Vec3::Zero();
+    if(set_.skew)
+    {
+        const Vec3 Vh = wind_->velocity(H, t) - hb.point_velocity(sH_);
+        const double vn = Vh.dot(e);
+        const Vec3 c = Vh - vn*e;
+        if(c.norm() > 1.0e-9*std::max(Vh.norm(), 1.0e-12))
+        {
+            gam = std::atan2(c.norm(), vn);
+            cross = c.normalized();
+        }
+    }
+    for(size_t i=0; i<st_.size(); ++i)
+    {
+        const aero_station &s = st_[i];
+        const rigid_body &b = m.body(s.body);
+        station_load &o = out[i];
+        o.P = b.point(s.s);
+        const Vec3 n = b.R*s.n0, td = b.R*s.t0;
+        Vec3 u = wind_->velocity(o.P, t);
+        u += tower_influence(m, o.P, u);
+        const Vec3 V = u - b.point_velocity(s.s);
+        const double Vx = V.dot(n), Vy = -V.dot(td);
+        const Vec3 d = o.P - H;
+        const Vec3 dr = d - d.dot(e)*e;
+        bem_element el;
+        el.r = dr.norm(); el.chord = s.chord; el.theta = s.twist + pitch(s.blade, t);
+        el.R = set_.R_tip; el.R_hub = set_.R_hub; el.B = set_.B;
+        el.af = (s.airfoil >= 0 && s.airfoil < (int)af_.size()) ? &af_[s.airfoil] : nullptr;
+        o.bem = bem_solve(el, Vx, Vy, set_.rho, set_.bem);
+        if(gam > 0.0 && o.bem.region != 0 && el.r > 0.0)
+        {
+            const double chi = (0.6*o.bem.a + 1.0)*gam;
+            const double cpsi = dr.dot(cross)/el.r;
+            const double K = 15.0*M_PI/32.0*(el.r/set_.R_tip)*std::tan(0.5*chi)*cpsi;
+            o.bem = bem_solve(el, Vx, Vy, set_.rho, set_.bem, K);
+        }
+        o.F = s.w*(o.bem.fn*n + o.bem.ft*td);
+        o.M = s.w*o.bem.mz*n.cross(td);
+    }
+}
+
+void rotor_aero::eval(const model &m, double t, VecX &f) const
+{
+    std::vector<station_load> L;
+    station_loads(m, t, L);
+    for(size_t i=0; i<st_.size(); ++i)
+    {
+        m.add_force(f, st_[i].body, L[i].P, L[i].F);
+        m.add_moment(f, st_[i].body, L[i].M);
+    }
+}
+
+rotor_aero::rotor_values rotor_aero::values(const model &m, double t, const std::vector<station_load> &L) const
+{
+    rotor_values v{};
+    const Vec3 H = hub_centre(m), e = shaft_->axis(m);
+    for(const station_load &s : L)
+    {
+        v.T += s.F.dot(e);
+        v.Q += ((s.P - H).cross(s.F) + s.M).dot(e);
+    }
+    v.omega = shaft_->rotation_rate(m);
+    v.P = v.Q*v.omega;
+    const Vec3 uh = wind_->velocity(H, t);
+    v.U = uh.norm();
+    const double A = M_PI*set_.R_tip*set_.R_tip;
+    if(v.U > 0.0)
+    {
+        v.Cp = v.P/(0.5*set_.rho*A*v.U*v.U*v.U);
+        v.Ct = v.T/(0.5*set_.rho*A*v.U*v.U);
+        v.lambda = v.omega*set_.R_tip/v.U;
+        v.yaw = std::acos(std::clamp(uh.dot(e)/v.U, -1.0, 1.0));
+    }
+    v.azimuth = shaft_->rotation_coordinate(m);
+    return v;
+}
+
+void rotor_aero::channel_names(std::vector<std::string> &c) const
+{
+    for(const char *x : {"azimuth", "rpm", "T", "Q", "P", "Cp", "Ct", "lambda", "U", "yaw", "pitch"})
+        c.push_back(name_ + "_" + x);
+    for(int k=0; k<set_.B; ++k)
+    {
+        c.push_back(name_ + "_b" + std::to_string(k + 1) + "_Moop");
+        c.push_back(name_ + "_b" + std::to_string(k + 1) + "_Mip");
+    }
+}
+
+void rotor_aero::channel_values(const model &m, double t, std::vector<double> &v) const
+{
+    std::vector<station_load> L;
+    station_loads(m, t, L);
+    const rotor_values r = values(m, t, L);
+    const double deg = 180.0/M_PI;
+    double az = r.azimuth*deg;
+    if(az < 0.0) az += 360.0;
+    for(double x : {az, r.omega*30.0/M_PI, r.T, r.Q, r.P, r.Cp, r.Ct, r.lambda, r.U, r.yaw*deg, pitch(0, t)*deg})
+        v.push_back(x);
+    const rigid_body &hb = m.body(hub_);
+    for(int k=0; k<set_.B; ++k)
+    {
+        const Vec3 root = k < (int)roots_.size() ? hb.point(roots_[k]) : hub_centre(m);
+        Vec3 M = Vec3::Zero(), n = Vec3::Zero(), td = Vec3::Zero(), z = Vec3::Zero();
+        bool first = true;
+        for(size_t i=0; i<st_.size(); ++i)
+        {
+            if(st_[i].blade != k) continue;
+            M += (L[i].P - root).cross(L[i].F) + L[i].M;
+            if(first)
+            {
+                const Mat3 &R = m.body(st_[i].body).R;
+                n = R*st_[i].n0; td = R*st_[i].t0; z = R*st_[i].z0;
+                first = false;
+            }
+        }
+        v.push_back(M.dot(z.cross(n)));     // out of the plane: positive for a downwind thrust
+        v.push_back(M.dot(z.cross(td)));    // in the plane: positive for a driving force
+    }
+}
+
+}
