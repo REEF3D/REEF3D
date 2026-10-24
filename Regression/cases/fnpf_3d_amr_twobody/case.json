@@ -1,5 +1,5 @@
 {
- "description": "Two heaving cylinders (R 1 m, draft 1 m, 4 m apart, X 20 2) on the FNPF hierarchy: base grid 0.5 m, one level (G 1 1) in the zone around each body (G 12 0.75); body 0 released 0.1 m above equilibrium, body 1 at rest (the validation case of REEFAMR validation/44 at its first steps).",
+ "description": "Two heaving cylinders (R 1 m, draft 1 m, 4 m apart, X 20 2) on the FNPF hierarchy: base grid 0.5 m, one level (G 1 1) in the zone around each body (G 12 0.75); body 0 released 0.1 m above equilibrium, body 1 at rest (the validation case of REEFAMR validation/45_fnpf_amr_twobody at its first steps).",
  "solver": "fnpf",
  "np": 1,
  "steps": 20,

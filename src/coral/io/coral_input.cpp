@@ -37,6 +37,7 @@ Architect: Hans Bihs
 #include"coral/core/coral_points.h"
 #include"coral/pto/coral_pto.h"
 #include"coral/pto/coral_joint_drive.h"
+#include"coral/pto/coral_joint_force.h"
 #include"coral/hydro/coral_fluid_load.h"
 #include"coral/hydro/coral_body_drag.h"
 #include"coral/hydro/coral_sampled_kinematics.h"
@@ -160,7 +161,7 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
 {
     std::vector<item> items;
     // items whose second word is a name (of a body, joint, load, ...): keys are searched after it
-    static const std::set<std::string> named = {"body", "joint", "pto", "drive", "spring", "linear6", "force", "drag",
+    static const std::set<std::string> named = {"body", "joint", "pto", "drive", "jforce", "spring", "linear6", "force", "drag",
         "mooring", "morison", "section", "member", "superelement", "pile", "point_mass", "fluid_body", "fluid_member", "hydro",
         "point", "line_type"};
     for(const auto &l : lines)
@@ -911,6 +912,19 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
             s.k = it.get("k", s.k);
             s.c = it.get("c", s.c);
             m.add_load(std::make_unique<joint_drive>(*joints[jn], it.has("rotational"), s, name));
+        }
+        else if(k=="jforce")
+        {
+            // prescribed force along a joint axis from a table t F (system identification)
+            const std::string name = it.word(1), jn = it.word("joint");
+            if(!joints.count(jn)) it.fail("unknown joint '" + jn + "'");
+            jforce_settings s;
+            std::string msg;
+            if(!joint_force::read_table(path(it.word("file")), s.t, s.F, msg)) it.fail(msg);
+            s.scale = it.get("scale", 1.0);
+            s.ramp = it.get("ramp", 0.0);
+            s.periodic = it.has("periodic");
+            m.add_load(std::make_unique<joint_force>(*joints[jn], it.has("rotational"), s, name));
         }
         else if(k=="spring")
         {

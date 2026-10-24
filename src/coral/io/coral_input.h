@@ -50,6 +50,9 @@ Architect: Hans Bihs
 //   drive <name> joint <joint> sine <amplitude> <period> [phase <deg>] [ramp <t>] [q0 <q>] [rotational]
 //        [k <k>] [c <c>]          (prescribed joint motion by a stiff spring-damper, default k 1e7, c 1e4;
 //        forced oscillation in a resolved fluid, coral/pto/coral_joint_drive.h)
+//   jforce <name> joint <joint> file <t F table> [scale <s>] [ramp <t>] [periodic] [rotational]
+//        (prescribed force along the joint axis, or torque about it, interpolated in the table, 0 outside
+//        it unless periodic; system identification with a multisine or chirp force, coral/pto/coral_joint_force.h)
 //   spring <name> a <body> <x y z> b <body> <x y z> k <k> [c <c>] [L0 <L>] [T0 <T>] [tension_only]
 //   linear6 <name> body <b> point <x y z> [k <k1..k6>] [c <c1..c6>]       (diagonal stiffness, damping)
 //        [K <36 values>] [C <36 values>]           (full 6x6 matrices, row by row, e.g. coupled springs)
