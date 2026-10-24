@@ -26,19 +26,27 @@ Author: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 #include"ioflow.h"
+#include"amr_grid_lookup.h"
 #include<sys/stat.h>
 #include<sys/types.h>
 
-force::force(lexer* p, fdm *a, ghostcell *pgc, int qn):vertice(p),nodeflag(p),interfac(1.6),zero(0.0),eta(p),ID(qn)
+force::force(lexer* p, fdm *a, ghostcell *pgc, int qn, bool out):vertice(p),nodeflag(p),interfac(1.6),zero(0.0),eta(p),ID(qn)
 {
 	// Create Folder
-	if(p->mpirank==0)
+	if(p->mpirank==0 && out)
 	mkdir("./REEF3D_SOLID",0777);
 	
     forceprintcount=0;
     
+    tri = facet = nullptr;
+    pt = ccpt = nullptr;
+    ls = nullptr;
+    confac = numfac = numpt = nullptr;
+    numtri_mem = numvert_mem = 0;
+    
     
     // open files
+    if(out)
     print_ini(p,a,pgc);
     
     is = p->posc_i(p->P81_xs[ID]);
@@ -68,6 +76,56 @@ force::force(lexer* p, fdm *a, ghostcell *pgc, int qn):vertice(p),nodeflag(p),in
 
 force::~force()
 {
+    free_arrays();
+}
+
+// the arrays of the triangulation (allocated where it has pieces)
+void force::free_arrays()
+{
+    auto rows_i = [](int **&f, int n) { if(f!=nullptr) { for(int q=0; q<n; ++q) delete [] f[q]; delete [] f; f = nullptr; } };
+    auto rows_d = [](double **&f, int n) { if(f!=nullptr) { for(int q=0; q<n; ++q) delete [] f[q]; delete [] f; f = nullptr; } };
+    
+    rows_i(tri,numtri_mem);
+    rows_d(pt,numvert_mem);
+    rows_i(facet,numtri_mem);
+    rows_d(ccpt,numtri_mem*4);
+    delete [] ls;     ls = nullptr;
+    delete [] confac; confac = nullptr;
+    delete [] numfac; numfac = nullptr;
+    delete [] numpt;  numpt = nullptr;
+}
+
+// CFD mesh refinement: level 0
+void force::amr_level0(const amr_grid_lookup *pamr)
+{
+    amr = pamr;
+    amr_lev = 0;
+}
+
+// CFD mesh refinement: a patch of level lev, the box of its interior (xs, xe, ys, ye, zs, ze)
+void force::amr_patch(const amr_grid_lookup *pamr, int lev, const double *box)
+{
+    amr = pamr;
+    amr_lev = lev;
+    for(int q=0; q<6; ++q)
+    amr_box[q] = box[q];
+}
+
+// the piece of the surface with its centre at (x,y,z) belongs to this grid: the finest grid there
+bool force::amr_own(double x, double y, double z) const
+{
+    const int L = amr->leaf_level(x,y,z);
+    
+    if(amr_lev==0)
+    return L==0;
+    
+    return L==amr_lev && x>=amr_box[0] && x<amr_box[1] && y>=amr_box[2] && y<amr_box[3] && z>=amr_box[4] && z<amr_box[5];
+}
+
+// a patch: its pieces, added to F (Fx, Fy, Fz, area, Ax, Ay, Px), rank-local
+void force::patch_sum(lexer *p, fdm *a, double *F)
+{
+    force_sum(p,a,F);
 }
 
 void force::ini(lexer *p, fdm *a, ghostcell *pgc, bool printvtp)

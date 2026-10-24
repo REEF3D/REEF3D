@@ -65,6 +65,7 @@ class field2;
 class field3;
 class weno_flux_nug;
 class fluid_update_fsf_heat;
+class force;
 
 using namespace std;
 
@@ -151,7 +152,8 @@ struct cfd_amr_field
 //  level 0; the tiles at an in- or outflow boundary stay on level 0 (reefamr3d::mark_tiles); the
 //  pressure reference B 30 1, 2, 4 over all grids at the end of the step (cfd_amr::reference), B 30
 //  3 (the atmosphere) on all grids.  The probes and wave gauges of the printer (P 51, P 61, P 64)
-//  read the finest grid at their position (finest_grid).
+//  read the finest grid at their position (finest_grid), the forces on the solids (P 81) integrate
+//  every piece of the solid surface on the finest grid at its centre (cfd_amr_force.cpp).
 //
 //  G 40 1, the placement of the patches for the load of the ranks (reefamr3d, cfd_amr_place.cpp):
 //  a level-1 piece with the finer patches inside it (a unit) on any rank, its coarser level a
@@ -205,6 +207,8 @@ struct cfd_amr_patch : public r3patch
     momentum_rk *pmom = nullptr;
     cfd_amr_6dof *p6dof = nullptr;  // the floating bodies on the patch (X 10 1)
     cfd_amr_scgrid *sc = nullptr;   // heat, concentration: the work fields
+    vector<force*> forces;          // the forces on the solids (P 81) of the patch: per force box it reaches into
+    vector<char> forces_tri;        // (triangulated)
 
     vector<signed char> mkind;      // per cell of the array: -1 interior, else the fill kind of the cell
     vector<double> edge[3];         // per face of u, v, w: the Dirichlet value of the implicit diffusion at the high patch edges (NaN: none)
@@ -284,6 +288,10 @@ public:
     bool finest_grid(double, double, double, lexer*&, fdm*&, turbulence*&) const override;
     bool placed() const override { return place>0; }
     int finest_level(double, double, double) const override;
+    // the forces on the solids (P 81, cfd_amr_force.cpp): the level of the finest grid at a point (the
+    // tile maps of all levels), the pieces of the surface on the patches of this rank
+    int leaf_level(double, double, double) const override;
+    void solid_forces(int, double*) const override;
     int finest_id(double, double, double) const;
     void step(lexer*, fdm*, ghostcell*, vrans*, sixdof*);
     void timestep(lexer*, fdm*, ghostcell*);
@@ -491,6 +499,8 @@ private:
     int geo_role[2] = {0,0};
     void geom_setup(lexer*);
     void patch_geometry(int id);
+    void patch_forces(int ID, double *F);   // the forces on the solids: the part of the patches of this rank
+    void force_objects(cfd_amr_patch*);     // the force objects of a new patch
     sixdof_cfd *b6 = nullptr;           // the floating bodies (X 10 1): moved on level 0 (G 7 0), by the finest level (G 7 1)
     int bodies = 0;
     // G 7 1: the finest level advances the bodies (amr_stage_cfd, the loads after each of its

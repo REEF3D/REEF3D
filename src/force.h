@@ -33,6 +33,7 @@ Author: Hans Bihs
 class lexer;
 class fdm;
 class ghostcell;
+class amr_grid_lookup;
 
 using namespace std;
 
@@ -40,10 +41,19 @@ class force :  public increment, private vtp3D
 {
 
 public:
-	force(lexer*,fdm*,ghostcell*,int);
+	force(lexer*,fdm*,ghostcell*,int,bool=true);    // false: no output files (a patch of the mesh refinement)
 	virtual ~force();
 	void start(lexer*,fdm*,ghostcell*);
     void ini(lexer*,fdm*,ghostcell*,bool=true);   // false: the surface only (restart from a checkpoint)
+
+    // CFD mesh refinement (cfd_amr_force.cpp): every piece of the solid surface is integrated on the
+    // finest grid at its centre.  Level 0 (amr_level0): its pieces under a patch are left out, the
+    // patches of this rank add theirs (amr_grid_lookup::solid_forces) before the sums over the ranks.
+    // A patch (amr_patch, its level and the box of its interior): its pieces in the box on the finest
+    // grid there, summed into F (Fx, Fy, Fz, area) by patch_sum (rank-local)
+    void amr_level0(const amr_grid_lookup*);
+    void amr_patch(const amr_grid_lookup*, int lev, const double *box);
+    void patch_sum(lexer*,fdm*,double *F);
 
 private:
 	void triangulation(lexer*, fdm*, ghostcell*, field&);
@@ -66,6 +76,13 @@ private:
 	
 	
     void force_calc(lexer*,fdm*,ghostcell*);
+    void force_sum(lexer*,fdm*,double *F);      // this rank's pieces: Fx, Fy, Fz, area; Ax, Ay, Px
+    
+    const amr_grid_lookup *amr = nullptr;
+    int amr_lev = 0;
+    double amr_box[6];
+    bool amr_own(double,double,double) const;
+    void free_arrays();
     
 	void print_force(lexer*,fdm*,ghostcell*);
     void print_ini(lexer*,fdm*,ghostcell*);

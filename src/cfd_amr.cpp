@@ -58,6 +58,7 @@ Architect: Hans Bihs
 #include"rans_io.h"
 #include"6DOF_cfd.h"
 #include"cfd_amr_6dof.h"
+#include"force.h"
 #include"convection_void.h"
 #include"ifou.h"
 #include"iweno_hj_df_nug.h"
@@ -591,6 +592,9 @@ void cfd_amr::free_patch(cfd_amr_patch *c)
     }
 
     // the objects of patch_objects (the base classes have virtual destructors)
+    for(force *f : c->forces)
+    delete f;
+    c->forces.clear();
     delete c->pmom;
     delete c->p6dof;
     delete c->ppress;
@@ -792,6 +796,10 @@ void cfd_amr::patch_objects(r3patch *rp)
 
     if(bodies && !c->shadow)
     c->p6dof = new cfd_amr_6dof(pp,b6);
+
+    // the forces on the solids (P 81): the force objects of the patch (cfd_amr_force.cpp)
+    if(!c->shadow)
+    force_objects(c);
 }
 
 // --------------------------------------------------------------------- fills
