@@ -51,6 +51,8 @@ void nhflow_amr::ckpt_write(reefckpt &ck)
 {
     ckpt_write_layout(ck);
     ckpt_write_patches(ck,"nhflow_amr",[&](reefamr_patch *q, const ckpt_visit &v){ patch_fields(NP(q),v); });
+    // the number of the layout (the log of the refinement, REEF3D_NHFLOW_AMR_log.dat)
+    ck.blob("nhflow_amr_layout_id",vector<double>(1,double(layout_id)));
 }
 
 bool nhflow_amr::ckpt_read(reefckpt &ck, string &msg)
@@ -65,5 +67,13 @@ bool nhflow_amr::ckpt_read(reefckpt &ck, string &msg)
     for(auto q : P)
     if((q->lev>=1 || q->blk>0) && NP(q)->pmom!=nullptr)
     NP(q)->pmom->ckpt_restored();
+
+    // the layout continues the numbering of the run (a checkpoint without it: counted from the restart)
+    if(ck.has("nhflow_amr_layout_id"))
+    {
+        const vector<double> b = ck.get_blob("nhflow_amr_layout_id");
+        if(!b.empty())
+        layout_id = int(b[0]);
+    }
     return ok;
 }
