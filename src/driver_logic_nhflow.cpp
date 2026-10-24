@@ -165,6 +165,15 @@ void driver::logic_nhflow()
 
         p->A520=1;
     }
+    
+    // the hull as a sharp thin body (X 15 8): the same, blocked links of a moving body
+    if(p->X15==8 && p->X10>0 && p->A520==2)
+    {
+        if(p->mpirank==0)
+        cout<<"X 15 8: sharp hull, pressure scheme A 520 2 -> A 520 1 (full projection)"<<endl;
+
+        p->A520=1;
+    }
 
     if(p->A520==0)
 	pnhpress = new nhflow_pjm_hs(p,d,pBC);

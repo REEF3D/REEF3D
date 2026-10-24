@@ -37,6 +37,7 @@ Author: Hans Bihs
 class lexer;
 class nhflow_thinbody;
 class nhflow_fsf_hull;
+class nhflow_hullbody;
 class seastate_nhflow;
 
 using namespace std;
@@ -96,6 +97,7 @@ public:
     slice4 *zeta = nullptr;     // X 13 2: level of the hydrostatic pressure terms (the piezometric head under a floating
                                 //         body, nhflow_fsf_hull), eta where nullptr
     nhflow_fsf_hull *hull = nullptr;   // X 13 2: the hull as the top of the water columns (nhflow_fsf_hull.h)
+    nhflow_hullbody *hullbody = nullptr;   // X 15 8: the hull as a sharp thin body (nhflow_hullbody.h)
     int solid_flux = 0;         // 1: no continuity flux through the faces of cells with p->DF < 0 (FEM structures, Z 30); 2: only p->DF == -1 (direct forcing solids, A 521 0)
     double *PORDEM;         // porosity of the REEF3D::DEM particles (E 28), 1 without
     double *test;

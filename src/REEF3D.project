@@ -699,6 +699,7 @@
         <VirtualDirectory Name="FSF">
           <File Name="nhflow_fsf_body.h"/>
           <File Name="nhflow_fsf_hull.h"/>
+          <File Name="nhflow_hullbody.h"/>
           <VirtualDirectory Name="Breaking">
             <File Name="nhflow_breaking.h"/>
           </VirtualDirectory>
@@ -2286,6 +2287,7 @@
         <VirtualDirectory Name="FSF">
           <File Name="nhflow_fsf_body.cpp"/>
           <File Name="nhflow_fsf_hull.cpp"/>
+          <File Name="nhflow_hullbody.cpp"/>
           <VirtualDirectory Name="Breaking">
             <File Name="nhflow_breaking_filter.cpp"/>
             <File Name="nhflow_breaking.cpp"/>

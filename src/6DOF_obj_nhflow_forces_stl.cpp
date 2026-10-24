@@ -26,6 +26,7 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 #include"nhflow_fsf_hull.h"
+#include"nhflow_hullbody.h"
 
 void sixdof_obj_nhflow::hydrodynamic_forces_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL, bool finalize)
 {
@@ -34,6 +35,13 @@ void sixdof_obj_nhflow::hydrodynamic_forces_nhflow(lexer *p, fdm_nhf *d, ghostce
     if(d->hull!=nullptr)
     {
     d->hull->forces(p,d,pgc,WL,this,finalize);
+    return;
+    }
+    
+    // X 15 8: the hull is a sharp thin body, the loads are the outer pressure on the blocked links
+    if(d->hullbody!=nullptr)
+    {
+    d->hullbody->forces(p,d,pgc,WL,finalize);
     return;
     }
     

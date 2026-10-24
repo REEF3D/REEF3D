@@ -31,6 +31,7 @@ Author: Hans Bihs
 #include"rodtree_coupling.h"
 #include"fem_coupling.h"
 #include"dem.h"
+#include"nhflow_hullbody.h"
 
 nhflow_forcing::nhflow_forcing(lexer *p, fdm_nhf *d, ghostcell *pgc) : nhflow_geometry(p,d,pgc), fe(p)
 {
@@ -118,6 +119,10 @@ void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *p6dof
     
     // 6DOF forcing
     p6dof->start_nhflow(p,d,pgc,iter,d->U,d->V,d->W,FX,FY,FZ,WL,fe,finalize);
+    
+    // X 15 8: the hull as a sharp thin body at the pose of the stage (no direct forcing)
+    if(d->hullbody!=nullptr)
+    d->hullbody->stage(p,d,pgc,alpha,UH,VH,WH,WL);
 
 
     if(forcing_flag==1)

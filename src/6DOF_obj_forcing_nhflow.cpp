@@ -67,7 +67,8 @@ void sixdof_obj_nhflow::forcing_kernel_nhflow(lexer *p, fdm_nhf *d, ghostcell *p
                              double *U, double *V, double *W, double *FX, double *FY, double *FZ, slice &WL, int iter, bool wavemaker)
 {
     // X 13 2: no body cells in the water columns, no direct forcing
-    if(d->hull!=nullptr)
+    // X 15 8: the hull is a sharp thin body (blocked links), no direct forcing
+    if(d->hull!=nullptr || d->hullbody!=nullptr)
     return;
     
     // Calculate forcing fields

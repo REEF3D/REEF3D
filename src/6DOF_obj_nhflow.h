@@ -72,6 +72,8 @@ public:
     void membrane_reforce_nhflow(lexer*,fdm_nhf*,ghostcell*,double,double*,double*,double*,slice&);
     bool membrane_couple_nhflow(lexer*,fdm_nhf*,ghostcell*,int,double,slice&,int);
     void membrane_stabilisation(lexer*,int);
+    void hull_stabilisation(lexer*,int);
+    void coupling_stabilisation(lexer*,int,double,Eigen::Matrix3d,const Eigen::Matrix3d&);
     Eigen::Vector3d umem_n_=Eigen::Vector3d::Zero(), amem_n_=Eigen::Vector3d::Zero();
     double tmem_n_=-1.0;
     Eigen::Vector3d wmem_n_=Eigen::Vector3d::Zero(), almem_n_=Eigen::Vector3d::Zero();
