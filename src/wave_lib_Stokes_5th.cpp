@@ -28,7 +28,18 @@ Author: Hans Bihs
 wave_lib_Stokes_5th::wave_lib_Stokes_5th(lexer *p, ghostcell *pgc) : pshift(p->B120*(PI/180.0))
 {   
     wave_parameters(p,pgc);
+    
+    // waves on a background (B 530): depth of the coefficients, as constructed
+    wdk = wdt;
+    
     parameters(p,pgc);
+    
+    // waves on a background (B 530): intrinsic frequency and height, as constructed
+    wsig = ww;
+    wH0 = wH;
+    waf = 1.0;
+    wkin = wk;
+    wsin = ww;
     
     // ----------
     if(p->mpirank==0)
@@ -763,41 +774,41 @@ void wave_lib_Stokes_5th::parameters(lexer *p, ghostcell *pgc)
     eps = 0.5*wk*wH;
 
 
-    S = 1.0/cosh(2*wk*wdt);
+    S = 1.0/cosh(2*wk*wdk);
     C = 1.0 - S;
 
 
-    a11 = 1.0/sinh(wk*wdt);
+    a11 = 1.0/sinh(wk*wdk);
 
     a22 = 3.0*S*S/(2.0*C*C);
 
-    a31 = (-4.0 - 20.0*S + 10.0*S*S -13.0*S*S*S)/(8.0*sinh(wk*wdt)*C*C*C);
+    a31 = (-4.0 - 20.0*S + 10.0*S*S -13.0*S*S*S)/(8.0*sinh(wk*wdk)*C*C*C);
 
-    a33 = (-2.0*S*S + 11*S*S*S)/(8.0*sinh(wk*wdt)*C*C*C);
+    a33 = (-2.0*S*S + 11*S*S*S)/(8.0*sinh(wk*wdk)*C*C*C);
 
     a42 = (12.0*S - 14.0*S*S - 264.0*S*S*S - 45.0*pow(S,4.0) - 13.0*pow(S,5.0))/(24.0*pow(C,5.0));
 
     a44 = (10.0*S*S*S - 174.0*pow(S,4.0) + 291.0*pow(S,5.0) + 278.0*pow(S,6.0))/(48.0*(3.0 + 2.0*S)*pow(C,5.0));
 
     a51 = (-1184.0 + 32.0*S + 13232.0*S*S + 21712.0*S*S*S + 20940.0*pow(S,4.0) + 12554.0*pow(S,5.0)
-           -500.0*pow(S,6.0) - 3341.0*pow(S,7.0) - 670.0*pow(S,8.0))/(64.0*sinh(wk*wdt)*(3.0 + 2.0*S)*(4.0 + S)*pow(C,6.0));
+           -500.0*pow(S,6.0) - 3341.0*pow(S,7.0) - 670.0*pow(S,8.0))/(64.0*sinh(wk*wdk)*(3.0 + 2.0*S)*(4.0 + S)*pow(C,6.0));
 
     a53 = (4.0*S + 105.0*pow(S,2.0) + 198.0*pow(S,3.0) - 1376.0*pow(S,4.0) - 1302.0*pow(S,5.0) - 117.0*pow(S,6.0) + 58.0*pow(S,7.0))
-          /(32.0*sinh(wk*wdt)*(3.0 + 2.0*S)*pow(C,6.0));
+          /(32.0*sinh(wk*wdk)*(3.0 + 2.0*S)*pow(C,6.0));
 
     a55 = (-6.0*S*S*S + 272.0*pow(S,4.0) - 1552.0*pow(S,5.0) + 852.0*pow(S,6.0) + 2029.0*pow(S,7.0) + 430.0*pow(S,8.0))
-          /(64.0*sinh(wk*wdt)*(3.0 + 2.0*S)*(4.0 + S)*pow(C,6.0));
+          /(64.0*sinh(wk*wdk)*(3.0 + 2.0*S)*(4.0 + S)*pow(C,6.0));
           
 
 
-    b22 = ((cosh(wk*wdt)/sinh(wk*wdt))*(1.0 + 2.0*S))/(2.0*C);
+    b22 = ((cosh(wk*wdk)/sinh(wk*wdk))*(1.0 + 2.0*S))/(2.0*C);
 
     b31 = (-3.0*(1.0 + 3.0*S + 3.0*S*S + 2.0*S*S*S))/(8.0*C*C*C);
 
-    b42 = ((cosh(wk*wdt)/sinh(wk*wdt))*(6.0 - 26.0*S - 182.0*S*S - 204.0*S*S*S - 25.0*pow(S,4.0) + 26*pow(S,5.0)))
+    b42 = ((cosh(wk*wdk)/sinh(wk*wdk))*(6.0 - 26.0*S - 182.0*S*S - 204.0*S*S*S - 25.0*pow(S,4.0) + 26*pow(S,5.0)))
           /(6.0*(3.0 + 2.0*S)*pow(C,4.0));
 
-    b44 = ((cosh(wk*wdt)/sinh(wk*wdt))*(24.0 + 92.0*S + 122.0*S*S + 66.0*S*S*S + 67.0*pow(S,4.0) + 34.0*pow(S,5.0)))
+    b44 = ((cosh(wk*wdk)/sinh(wk*wdk))*(24.0 + 92.0*S + 122.0*S*S + 66.0*S*S*S + 67.0*pow(S,4.0) + 34.0*pow(S,5.0)))
           /(24.0*(3.0 + 2.0*S)*pow(C,4.0));
 
     b53 = (9.0*(132.0 + 17.0*S - 2216.0*S*S - 5897.0*S*S*S - 6292.0*pow(S,4.0) - 2687.0*pow(S,5.0) + 194.0*pow(S,6.0)
@@ -807,16 +818,16 @@ void wave_lib_Stokes_5th::parameters(lexer *p, ghostcell *pgc)
                 + 827.0*pow(S,7.0) + 130.0*pow(S,8.0)))/(384.0*(3.0 + 2.0*S)*(4.0 + S)*pow(C,6.0));
 
 
-    c0 = sqrt(tanh(wk*wdt));
+    c0 = sqrt(tanh(wk*wdk));
 
     c2 = (c0*(2.0 + 7.0*S*S)/(4.0*C*C));
 
     c4 = (c0*(4.0 + 32.0*S - 116.0*S*S - 400.0*S*S*S - 71.0*pow(S,4.0) + 146.0*pow(S,5.0)))/(32.0*pow(C,5.0));
 
 
-    e2 = (tanh(wk*wdt)*(2.0 + 2.0*S + 5.0*S*S))/(4.0*pow(1.0 - S,2.0));
+    e2 = (tanh(wk*wdk)*(2.0 + 2.0*S + 5.0*S*S))/(4.0*pow(1.0 - S,2.0));
 
-    e4 = (tanh(wk*wdt)*(8.0 + 12.0*S - 152.0*S*S - 308.0*pow(S,3.0) - 42.0*pow(S,4.0) + 77.0*pow(S,5.0)))/(32.0*pow(1.0 - S, 5.0));
+    e4 = (tanh(wk*wdk)*(8.0 + 12.0*S - 152.0*S*S - 308.0*pow(S,3.0) - 42.0*pow(S,4.0) + 77.0*pow(S,5.0)))/(32.0*pow(1.0 - S, 5.0));
     
     // coefficients of the harmonics, once (they were recomputed with 10 pow per evaluation;
     // same expressions, so the same values)
@@ -846,3 +857,102 @@ void wave_lib_Stokes_5th::wave_uvw_c(lexer *p, int q, double z, double &u, doubl
 void wave_lib_Stokes_5th::wave_prestep(lexer *p, ghostcell *pgc)
 {
 }
+
+/*--------------------------------------------------------------------
+Waves on the background (iowave B 530)
+
+iowave re-solves k of the component from the linear Doppler relation and
+hands back k and sigma = omega - k U_n. The Stokes waves keep the absolute
+frequency omega in the phase k x - omega t; the coefficients, the orbital
+velocities (Fenton's first definition of the wave speed, zero Eulerian
+mean velocity in the wave) and the surface elevation follow k and the
+depth h_eff. k is refined here with the 5th-order dispersion relation
+
+    omega = k (c_E(k,H,h_eff) + U_n),   c_E = sqrt(g/k) (c0 + eps^2 c2 + eps^4 c4)
+
+with U_n = (omega - sigma)/k of iowave, so that without a current the
+constructed k is recovered. The amplitude factor af scales H (blocked
+waves: af -> 0).
+--------------------------------------------------------------------*/
+void wave_lib_Stokes_5th::wave_comp(int n, double &k, double &omega, double &sigma, double &beta, double &af) const
+{
+    k = wk;
+    omega = ww;
+    sigma = wsig;
+    beta = 0.0;
+    af = waf;
+}
+
+void wave_lib_Stokes_5th::wave_comp_set(int n, double k, double sigma, double af)
+{
+    wkin = k;
+    wsin = sigma;
+    waf = af;
+}
+
+// intrinsic phase speed of 5th-order Stokes waves, Fenton's first definition
+double wave_lib_Stokes_5th::celerity5(double k, double H, double d) const
+{
+    const double ep = 0.5*k*H;
+    const double Sk = 1.0/cosh(2.0*k*d);
+    const double Ck = 1.0 - Sk;
+    const double cc0 = sqrt(tanh(k*d));
+    const double cc2 = cc0*(2.0 + 7.0*Sk*Sk)/(4.0*Ck*Ck);
+    const double cc4 = cc0*(4.0 + 32.0*Sk - 116.0*Sk*Sk - 400.0*Sk*Sk*Sk - 71.0*pow(Sk,4.0) + 146.0*pow(Sk,5.0))/(32.0*pow(Ck,5.0));
+    
+    return sqrt(9.81/k)*(cc0 + ep*ep*cc2 + ep*ep*ep*ep*cc4);
+}
+
+void wave_lib_Stokes_5th::wave_comp_update()
+{
+    if(wkin<=0.0)
+    return;
+    
+    const double un = (ww - wsin)/wkin;
+    const double H = wH0*waf;
+    
+    // omega = k (c_E + U_n): secant iteration from the linear k of iowave
+    auto F = [&](double kk) {return kk*(celerity5(kk,H,wdk) + un) - ww;};
+    
+    double k0 = wkin;
+    double k1 = 1.01*wkin;
+    double f0 = F(k0);
+    double f1 = F(k1);
+    double k = wkin;
+    bool ok = false;
+    
+    for(int q=0; q<50; ++q)
+    {
+        if(fabs(f1-f0)<1.0e-300)
+        break;
+        
+        const double k2 = k1 - f1*(k1-k0)/(f1-f0);
+        
+        if(!(k2>0.0) || !std::isfinite(k2))
+        break;
+        
+        k0 = k1;
+        f0 = f1;
+        k1 = k2;
+        f1 = F(k1);
+        
+        if(fabs(k1-k0)<=1.0e-13*k1)
+        {
+        ok = true;
+        break;
+        }
+    }
+    
+    // no root near the linear k (strong opposing current): keep the linear k of iowave
+    if(ok)
+    k = k1;
+    
+    wk = k;
+    wL = 2.0*PI/wk;
+    wH = H;
+    wa = 0.5*wH;
+    wsig = ww - wk*un;
+    
+    parameters(nullptr,nullptr);
+}
+

@@ -359,7 +359,7 @@ void iowave::zones_check(lexer *p)
             const wave_lib *lib = wave_source_lib(n,id,type,rot);
             
             if((lib==nullptr || lib->wave_ncomp()==0) && !(n==0 && type==0))
-            err = "waves on the background (B 530) work with linear waves (type 2) and spectral irregular waves (type 31) only, so far; source "+std::to_string(id)+" is type "+std::to_string(type);
+            err = "waves on the background (B 530) work with linear waves (type 2), 5th-order Stokes waves (type 5) and spectral irregular waves (type 31) only, so far; source "+std::to_string(id)+" is type "+std::to_string(type);
         }
     }
     
@@ -412,7 +412,7 @@ void iowave::b530_auto(lexer *p)
     }
     
     if(mode>0 && waves && !ok && p->mpirank==0)
-    cout<<"iowave: waves on the background (B 530) stay off: the wave type does not support it (linear 2 and irregular 31 do)"<<endl;
+    cout<<"iowave: waves on the background (B 530) stay off: the wave type does not support it (linear 2, Stokes 5th 5 and irregular 31 do)"<<endl;
     
     if(mode>0 && waves && ok && p->B89==1 && p->mpirank==0)
     cout<<"iowave: waves on the background (B 530) stay off with decomposed precalc (B 89 1)"<<endl;
