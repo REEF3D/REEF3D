@@ -1,0 +1,31 @@
+{
+ "base": "nhflow_3d_amr_heave_sub_ckpt",
+ "same_as": "nhflow_3d_amr_heave_sub_ckpt",
+ "chain": [
+  {
+   "case": "nhflow_3d_amr_heave_sub_ckpt",
+   "copy": [
+    "REEF3D_Checkpoint",
+    "REEF3D_NHFLOW_6DOF",
+    "REEF3D_NHFLOW_AMR",
+    "REEF3D_NHFLOW_WSF"
+   ]
+  }
+ ],
+ "ctrl_set": {
+  "I 45": "20"
+ },
+ "description": "the restart of nhflow_3d_amr_heave_sub_ckpt from step 20 (I 45 20) on the same 2 ranks, with the 6DOF, refinement and wave gauge outputs of the full run copied in: the body zone, the hull on the patches and the subcycled levels continue from the checkpoint; regression.py ranks: the final state and the text outputs bitwise those of the uninterrupted run.",
+ "tags": [
+  "3d",
+  "nhflow",
+  "amr",
+  "6dof",
+  "subcycling",
+  "mpi",
+  "checkpoint"
+ ],
+ "covers": [
+  "the bitwise restart of NHFLOW + mesh refinement + floating body (X 10 1) + subcycling (G 7 1)"
+ ]
+}

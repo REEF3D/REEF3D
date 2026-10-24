@@ -279,6 +279,7 @@ public:
     void pr_p(double, double);
     void pr_s(double);
     void pr_x(double, double);
+    void pr_restart();
 
     // vector space of the composite implicit diffusion (nhflow_amr_diff.cpp, reefamr_bicgstab)
     void df_apply(int, int);
@@ -288,6 +289,7 @@ public:
     void df_p(double, double);
     void df_s(double);
     void df_x(double, double);
+    void df_restart();
 
     // the matrix of a grid as nhflow_idiff assembles it (capture solver of phase_D)
     void df_capture(double*, vec&, matrix_diag&, int);
@@ -398,6 +400,9 @@ private:
     long pr_it_total = 0, pr_solves = 0;
     int pr_it_last = 0;
     double pr_res_last = 0.0;
+    // BiCGStab restarts after a stagnation, solves stopped after a second stagnation below STAGTOL N 44,
+    // solves that reached N 46 (reefamr_krylov.h)
+    int pr_restarts = 0, pr_stalls = 0, pr_capped = 0;
     int layout_id = 0;
 
     // stencils and index lists of the composite solve, rebuilt in pr_prepare: they depend on the
@@ -474,6 +479,7 @@ private:
     nhflow_diffusion *dkeep = nullptr;  // diffusion object of phase_M: keeps UHDIFF ...
     long df_it_total = 0, df_solves = 0;
     int df_it_last = 0;
+    int df_restarts = 0, df_stalls = 0, df_capped = 0;     // as pr_restarts ... (residual N 43)
     double tdiff = 0.0;
 
     // wetting and drying in the patches (G 30 1): wet-aware interpolation, the flags of fresh

@@ -125,6 +125,23 @@ void nhflow_amr::print(lexer *p, fdm_nhf *d, ghostcell *pgc)
     cout<<", diffusion "<<setprecision(4)<<tdiff<<" s, mean iterations "<<(df_solves>0 ? double(df_it_total)/df_solves : 0.0);
     if(p->mpirank==0 && (doprint || p->count%500==0) && regrid_int>0)
     cout<<", regrid "<<setprecision(4)<<tm[7]<<" s, layouts "<<layout_id<<", regrids skipped "<<regrids_skipped;
+    // the safety net of the composite solves (reefamr_krylov.h): restarts after a stagnation, solves
+    // stopped after a second one, solves at N 46
+    if(p->mpirank==0 && (doprint || p->count%500==0))
+    {
+        if(pr_restarts>0)
+        cout<<", pressure: "<<pr_restarts<<" BiCGStab restarts";
+        if(pr_stalls>0)
+        cout<<", "<<pr_stalls<<" pressure solves stopped stagnating below 100 N 44";
+        if(pr_capped>0)
+        cout<<", "<<pr_capped<<" pressure solves at N 46";
+        if(df_restarts>0)
+        cout<<", diffusion: "<<df_restarts<<" BiCGStab restarts";
+        if(df_stalls>0)
+        cout<<", "<<df_stalls<<" diffusion solves stopped stagnating";
+        if(df_capped>0)
+        cout<<", "<<df_capped<<" diffusion solves at N 46";
+    }
     // load per rank (several ranks): the cells computed on the rank (level 0 including its covered
     // columns, the patches without their EXT cells) and the time in the patch stages, max over mean
     // of the ranks - what balancing the patches over the ranks could gain at most
