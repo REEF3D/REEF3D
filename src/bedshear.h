@@ -87,6 +87,10 @@ public:
     // S 16 9: wave friction bed shear stress 0.5 rho fw |u|^2 of the near-bed velocity sample (u,v)
     double tau_wave(lexer*, double, double, double, double);
     void tau_wave_step(lexer*);
+    
+    // S 16 9 with S 59 1: wave and current bed shear stress after Soulsby (1997, DATA13), from the same sample
+    // (u,v) at the height zs above the bed: current from its running mean (log law at zs), waves from tau_wave
+    double tau_wave_current(lexer*, double, double, double, double, double);
 
 
 private:
@@ -104,6 +108,10 @@ private:
     slice4 uw_mean,vw_mean,uw_old,vw_old,uw_hat;
     double tw_old,tw_dt;
     int tw_count;
+    
+    // S 59: time derivative of the oscillatory part (phase lead) and fw of the last tau_wave call
+    slice4 uw_dt,vw_dt;
+    double tw_fw;
 };
 
 #endif

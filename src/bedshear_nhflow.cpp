@@ -94,10 +94,17 @@ void bedshear::taubed(lexer *p, fdm_nhf*d, ghostcell *pgc, sediment_fdm *s)
         tau_eff = density*(uabs*uabs)/(u_plus*u_plus);
         
         // tau_wave updates the running mean: called once (MAX is a macro)
-        if(p->S16==9)
+        if(p->S16==9 && p->S59<1)
         {
         double tau_w = tau_wave(p,U,V,s->ks_eff(i,j),density);
         tau_eff = MAX(tau_eff, tau_w);
+        }
+        
+        // S 59 1: max(tau_log, Soulsby DATA13), S 59 2: Soulsby DATA13
+        if(p->S16==9 && p->S59>=1)
+        {
+        double tau_wc = tau_wave_current(p,U,V,s->ks_eff(i,j),density,dist);
+        tau_eff = p->S59==1 ? MAX(tau_eff, tau_wc) : tau_wc;
         }
         }
         

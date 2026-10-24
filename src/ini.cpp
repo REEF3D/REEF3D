@@ -1112,6 +1112,8 @@ void control::ini_default()
     S50=4;                  // int bc phi, 1: inflow fix or 2: outflow fix, 3: both fix
 	S57=-1.0e20;        // double ini z-dir
     S58=0.0;            // double wave period for the wave friction bed shear stress S 16 9, <=0: period of the wave generation
+    S59=0;              // int S 16 9 combination: 0 max(tau_log, tau_w), 1 max(tau_log, Soulsby DATA13), 2 Soulsby DATA13 (current from the running mean)
+    S59_phi=0.0;        // double S 16 9 phase lead of the wave friction stress in deg
     S61=1;              // int reference height for cb
     S62=1;              // int type of suspended Exner solution
     S63=0.0;            // double S 16 10: reference height of the log law in cells above the bed, 0: first cell centre at least half a cell above the bed
