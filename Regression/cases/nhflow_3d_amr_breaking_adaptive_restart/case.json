@@ -1,0 +1,30 @@
+{
+ "base": "nhflow_3d_amr_breaking_adaptive_ckpt",
+ "same_as": "nhflow_3d_amr_breaking_adaptive_ckpt",
+ "chain": [
+  {
+   "case": "nhflow_3d_amr_breaking_adaptive_ckpt",
+   "copy": [
+    "REEF3D_Checkpoint",
+    "REEF3D_NHFLOW_AMR",
+    "REEF3D_NHFLOW_WSF"
+   ]
+  }
+ ],
+ "ctrl_set": {
+  "I 45": "40"
+ },
+ "description": "the restart of nhflow_3d_amr_breaking_adaptive_ckpt from step 40 (I 45 40): breaking state, breaking viscosity and the wet and deep flags of the patches from the checkpoint; regression.py ranks: the final state and the text outputs bitwise those of the uninterrupted run.",
+ "tags": [
+  "3d",
+  "nhflow",
+  "amr",
+  "breaking",
+  "adaptive",
+  "wetdry",
+  "checkpoint"
+ ],
+ "covers": [
+  "the bitwise restart of NHFLOW + mesh refinement with breaking (A 550 1, G 31 1) and wetting and drying in the patches (G 30 1)"
+ ]
+}

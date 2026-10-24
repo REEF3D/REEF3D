@@ -93,6 +93,8 @@ using namespace std;
 //     (sflow_amr_subnh.cpp, sflow_amr_ship.cpp)
 //   - every G 2 steps the patches are rebuilt from refinement flags (G 20
 //     surface jump, G 22 shoreline, G 10 boxes) with a buffer of G 3 cells.
+//     The shoreline flag marks both sides of a wet-dry change; its buffer is at least the
+//     distance the shoreline can travel until the next regrid (sflow_amr::tag).
 //     Flags mark tiles of G 4 cells on the global index space of each level;
 //     the tile maps are global, so the refined region does not depend on the
 //     domain decomposition.  Marked tiles are merged into rectangles and cut at

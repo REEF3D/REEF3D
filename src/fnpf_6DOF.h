@@ -167,6 +167,17 @@ private:
     void footprint(fnpf_6DOF_grid&, ghostcell*, slice&, slice&, int, int);
     void solve_psi(lexer*, fdm_fnpf*, ghostcell*, solver*, fnpf_laplace*, fnpf_fsf*, double*, slice&, int);
     void solve_psi_amr(lexer*, fdm_fnpf*, ghostcell*, solver*, fnpf_fsf*, int, bool, int, int nb=0);
+    // X 36: the unit mode m of body nb on the patches of its window only (wout[nb]: the patches outside,
+    // 1); the windows of all bodies at an added-mass refresh (windows): per body the patches that reach
+    // into its zone (fnpf_amr::zone_box), whether it has one on some rank (wok; without: the solve on all
+    // grids), and whose zones they reach (wmeet[nb*nbody+nb2]: the cross added mass of nb2 from the modes
+    // of nb, 0 otherwise)
+    void solve_psi_window(lexer*, fdm_fnpf*, ghostcell*, int, int, int);
+    void windows(lexer*, ghostcell*);
+    bool win_on(lexer*) const;
+    vector<vector<char>> wout, wgp;
+    vector<int> wmeet;
+    vector<char> wok;
     // X 35: the initial guess of a psi solve of kind slot at time t from the last two of the kind
     // (psi_slot: 0-3 psi_0 of the stage, 4-9 the unit modes, 10-13 psi_0 of a finest-level stage,
     // 14 + 6 (nb-1) + m the unit modes of the bodies nb = 1, 2, ...)

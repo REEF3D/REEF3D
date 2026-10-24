@@ -1,0 +1,8 @@
+{
+ "description": "fnpf_3d_amr_runup on 2 ranks.",
+ "solver": "fnpf",
+ "np": 2,
+ "base": "fnpf_3d_amr_runup",
+ "tags": ["3d", "fnpf", "amr", "waves", "breaking", "coastline", "wetdry", "runup", "mpi"],
+ "covers": ["the fixed flags of the covered cells and the cells around a patch across ranks"]
+}

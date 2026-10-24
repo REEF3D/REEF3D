@@ -1,0 +1,22 @@
+{
+ "base": "nhflow_3d_amr_adaptive_kw_restart",
+ "np": 2,
+ "same_as": "nhflow_3d_amr_adaptive_kw_ckpt",
+ "same_as_rtol": 1e-06,
+ "same_as_skip": [
+  "REEF3D_NHFLOW_AMR/REEF3D_NHFLOW_AMR_log.dat",
+  "REEF3D_NHFLOW_WSF/REEF3D-NHFLOW-WSF-HG.dat"
+ ],
+ "description": "nhflow_3d_amr_adaptive_kw_restart on 2 ranks: the checkpoint of the one-rank run on another decomposition (the patches cut at the new partition edge). The final state is not compared (other ranks); the gauges of the refinement (REEF3D_NHFLOW_AMR_gauges.dat, read on the finest grid) have the rows of the uninterrupted one-rank run, their values within 1e-6 of its largest value. Not compared: the log of the refinement (pressure iterations) and the P 51 wave gauges, whose first gauge (1, 1) lies on the partition edge of 2 ranks and reads another cell there than on one rank (as the uninterrupted run on 2 ranks; not a restart effect).",
+ "tags": [
+  "3d",
+  "nhflow",
+  "amr",
+  "turbulence",
+  "checkpoint",
+  "mpi"
+ ],
+ "covers": [
+  "the restart of NHFLOW + mesh refinement on another decomposition (reefamr::ckpt_read_patches: patches of any decomposition)"
+ ]
+}

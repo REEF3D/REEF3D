@@ -1,0 +1,13 @@
+{
+ "description": "fnpf_3d_amr_runup with subcycling (G 7 1).",
+ "solver": "fnpf",
+ "np": 1,
+ "steps": 160,
+ "base": "fnpf_3d_amr_coast_wd",
+ "ctrl_set": {"A 343": "2"},
+ "ctrl_add": [
+  "G 7 1"
+ ],
+ "tags": ["3d", "fnpf", "amr", "waves", "breaking", "coastline", "wetdry", "runup", "subcycling"],
+ "covers": ["fnpf_amr_sub: the fixed wet flags on the level of each substep (fill_wet in sub_stage, restrict_flags in sub_sync, ring_dry in sub_derived)"]
+}

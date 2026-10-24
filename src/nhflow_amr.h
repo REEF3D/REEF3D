@@ -189,6 +189,8 @@ struct nhflow_amr_patch : public reefamr_patch
     vector<int> row;                // FIJK -> matrix row of the patch assembly, -1 none
     reefmg_core *mg = nullptr;      // patch-local multigrid of the preconditioner
     reefamr_xzlu xz;                // a 2D grid: the exact patch-local solve instead of the V-cycle
+    long xzkey[3] = {-1,-1,-1};     // its factorisation: layout, level window, step (xz_keep)
+    vector<char> xzact;             // the active rows it was made with
     vector<int> fill1;              // the entries of fill next to the patch (the reach of the pressure rows)
     vector<int> fill2;              // the entries of fill within two columns of the patch (the stencils of the prolongation into the next finer level)
     // the overlap of the patch multigrid (pr_overlap): columns across the sides x-, x+, y-, y+ where
@@ -279,6 +281,7 @@ public:
     void pr_p(double, double);
     void pr_s(double);
     void pr_x(double, double);
+    void pr_restart();
 
     // vector space of the composite implicit diffusion (nhflow_amr_diff.cpp, reefamr_bicgstab)
     void df_apply(int, int);
@@ -288,6 +291,7 @@ public:
     void df_p(double, double);
     void df_s(double);
     void df_x(double, double);
+    void df_restart();
 
     // the matrix of a grid as nhflow_idiff assembles it (capture solver of phase_D)
     void df_capture(double*, vec&, matrix_diag&, int);
@@ -393,11 +397,20 @@ private:
     reefmg_core *mg0 = nullptr;     // level-0 multigrid of the preconditioner
     reefamr_xzlu xz0;               // a 2D grid: the exact level-0 solve instead of the V-cycle
     bool xz0on = false;
+    long xz0key[3] = {-1,-1,-1};    // the level-0 factorisation: layout, level window, step (xz_keep)
+    vector<char> xz0act;            // the active rows it was made with
+    // a 2D grid: the factorisation of a grid made at the first pressure solve of the step is kept for
+    // its other solves while the layout, the level window and the active rows are unchanged
+    bool xz_keep(const long *key, const vector<char> &act0, const sc_level &L, int wkey) const;
+    long xz_kept = 0, xz_made = 0;  // factorisations kept, made (log)
     vector<int> rowmap0;            // level 0: FIJK -> matrix row
     double *ptgt0 = nullptr;
     long pr_it_total = 0, pr_solves = 0;
     int pr_it_last = 0;
     double pr_res_last = 0.0;
+    // BiCGStab restarts after a stagnation, solves stopped after a second stagnation below STAGTOL N 44,
+    // solves that reached N 46 (reefamr_krylov.h)
+    int pr_restarts = 0, pr_stalls = 0, pr_capped = 0;
     int layout_id = 0;
 
     // stencils and index lists of the composite solve, rebuilt in pr_prepare: they depend on the
@@ -474,6 +487,7 @@ private:
     nhflow_diffusion *dkeep = nullptr;  // diffusion object of phase_M: keeps UHDIFF ...
     long df_it_total = 0, df_solves = 0;
     int df_it_last = 0;
+    int df_restarts = 0, df_stalls = 0, df_capped = 0;     // as pr_restarts ... (residual N 43)
     double tdiff = 0.0;
 
     // wetting and drying in the patches (G 30 1): wet-aware interpolation, the flags of fresh

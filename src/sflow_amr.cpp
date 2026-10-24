@@ -817,16 +817,43 @@ double sflow_amr::native_bed(int I, int J)
 void sflow_amr::tag(int l, vector<unsigned char> &M)
 {
     const int lf = l+1;
-    const double hfilm = 3.0*p0->A244;
 
+    // shoreline (G 22): the cells on both sides of a change between wet and dry (the wet flag of the
+    // solver, A 244), however thin the film at the change, if water deeper than 3 A 244 lies within
+    // two cells (films left on a dry slope are not flagged).  Their buffer covers the distance the
+    // shoreline can travel until the next regrid, in level-l cells: per step of the finest level at
+    // most 2 N 47 of its cells (sflow_amr::timestep; 2: one cell in y), over the steps between two
+    // regrids (G 2, under G 7 1 in whole level-0 steps).  At least G 3.
+    const double hfilm = 3.0*p0->A244;
+    int nshore = nbuf;
+    if(shore>0)
+    {
+        const double cfl = (p0->A220==4) ? MIN(p0->N47,0.25) : p0->N47;
+        const int nsteps = (sub==1) ? (MAX(regrid_int>>maxlev,1)<<maxlev) : MAX(regrid_int,1);
+        const double cells = 2.0*cfl*double(nsteps)/double(1<<(maxlev-l));
+        nshore = MAX(nbuf, int(ceil(cells-1.0e-9)));
+    }
+
+    // water deeper than hfilm within two cells of (ii,jj)
+    auto deep_near = [&](lexer *q, slice &WL, int ii, int jj)
+    {
+        for(int a=ii-2; a<=ii+2; ++a)
+        for(int d=jj-2*sy; d<=jj+2*sy; ++d)
+        if(q->flagslice4[lij(q,a,d)]>=0 && q->wet[lij(q,a,d)]==1 && WL(a,d)>hfilm)
+        return true;
+        return false;
+    };
+
+    // 0: no flag, 1: surface jump (G 20), 2: shoreline (G 22)
     auto test = [&](lexer *q, fdm2D *bb, slice &WL, int ii, int jj)
     {
         if(q->flagslice4[lij(q,ii,jj)]<0)
-        return false;
+        return 0;
 
         int wc = q->wet[lij(q,ii,jj)];
         double ec = WL(ii,jj)-bb->depth(ii,jj);
         const int di[4]={1,-1,0,0}, dj[4]={0,0,1,-1};
+        int r = 0;
 
         for(int k=0; k<2+2*sy; ++k)     // (2D grid: the x neighbours)
         {
@@ -836,22 +863,28 @@ void sflow_amr::tag(int l, vector<unsigned char> &M)
 
             int wn = q->wet[lij(q,a,d)];
 
+            if(shore>0 && wc!=wn && deep_near(q,WL,ii,jj))
+            return 2;
+
             if(tol_eta>0.0 && wc==1 && wn==1)
             if(fabs(ec-(WL(a,d)-bb->depth(a,d)))>tol_eta)
-            return true;
-
-            if(shore>0 && wc==1 && wn==0 && WL(ii,jj)>hfilm)
-            return true;
+            r = 1;
         }
-        return false;
+        return r;
+    };
+
+    auto flag = [&](int r, int I, int J)
+    {
+        if(r>0)
+        tag_cell(lf,I,J,(r==2)?nshore:nbuf,M);
     };
 
     if(l==0)
     {
         for(int ii=0; ii<NX0; ++ii)
         for(int jj=0; jj<NY0; ++jj)
-        if((nblk==0 || nring[lij(p0,ii,jj)]==0) && test(p0,b0,b0->WL,ii,jj))
-        tag_cell(lf,ii+O0i,jj+O0j,nbuf,M);
+        if(nblk==0 || nring[lij(p0,ii,jj)]==0)
+        flag(test(p0,b0,b0->WL,ii,jj),ii+O0i,jj+O0j);
 
         // multi-block: the blocks 1.. (level-0 patches)
         for(int n : lev[0])
@@ -859,8 +892,7 @@ void sflow_amr::tag(int l, vector<unsigned char> &M)
             sflow_amr_patch *c = SP(n);
             for(int ii=EXT; ii<EXT+c->nx; ++ii)
             for(int jj=EY; jj<EY+c->ny; ++jj)
-            if(test(c->pp,c->b,c->b->WL,ii,jj))
-            tag_cell(lf,ii-EXT+c->I0,jj-EY+c->J0,nbuf,M);
+            flag(test(c->pp,c->b,c->b->WL,ii,jj),ii-EXT+c->I0,jj-EY+c->J0);
         }
         return;
     }
@@ -870,8 +902,7 @@ void sflow_amr::tag(int l, vector<unsigned char> &M)
         sflow_amr_patch *c = SP(n);
         for(int ii=EXT; ii<EXT+c->nx; ++ii)
         for(int jj=EY; jj<EY+c->ny; ++jj)
-        if(test(c->pp,c->b,c->b->WL,ii,jj))
-        tag_cell(lf,ii-EXT+c->I0,jj-EY+c->J0,nbuf,M);
+        flag(test(c->pp,c->b,c->b->WL,ii,jj),ii-EXT+c->I0,jj-EY+c->J0);
     }
 }
 

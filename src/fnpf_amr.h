@@ -130,6 +130,9 @@ struct fnpf_amr_patch : public reefamr_patch
 
     // composite Laplace
     vector<double*> kv;             // Krylov vectors, Fi layout
+    vector<double*> kvw;            // X 36: those of the window solves (the solves on all grids read
+                                    // entries of their vectors that they do not write: the window
+                                    // solves keep theirs apart)
     vector<int> row;                // FIJK -> matrix row of the patch assembly, -1 none
     int serial = -1;                // unique number of the patch (body grids follow it)
     reefmg_core *mg = nullptr;      // patch-local multigrid of the preconditioner
@@ -184,9 +187,25 @@ public:
     // a psi solve of the body loads on all grids: targets f[g+1] with free-surface data D[g+1];
     // boundary data are set by the caller
     void lap_solve_psi(lexer*, fdm_fnpf*, ghostcell*, solver*, fnpf_fsf*, double**, slice**);
+    // X 36: a unit-mode psi solve of one body on the patches of its window only (out[id] 1: patch id is
+    // outside the window): level 0 and the patches outside hold 0 (their targets f[g+1] are read only),
+    // the columns at the edge of the window are 0.  key: the window (the body), with the layout it keys
+    // the rows and the preconditioner kept between the solves of the same window
+    void lap_solve_psi_window(lexer*, ghostcell*, double**, slice**, const vector<char> &out, const vector<char> &wgp, int key);
+    // X 36: the window flags of the patches of all ranks (index into the global patch table: the
+    // columns of a window patch covered by a finer patch outside the window are leaf columns of the
+    // window); win[first[r]+id]: patch id of rank r in the window
+    void window_gp(const vector<char> &win, const vector<int> &first, vector<char> &wgp);
+    // the interior of patch n (x0, x1, y0, y1)
+    void patch_box(int n, double&, double&, double&, double&);
+    // the refinement zone of body nb (the box of its wetted hull grown by G 12 on every side): false
+    // without one
+    bool zone_box(int nb, double&, double&, double&, double&);
 
-    // resolved bodies (fnpf_6DOF) on the hierarchy
+    // resolved bodies (fnpf_6DOF) on the hierarchy; sizes their hull triangles for the finest level
     void attach_body(fnpf_body*);
+    // the run settings with which ini keeps the refinement on (A 310 3, ...)
+    static bool keys_ok(lexer*);
     int patches() const { return (int)P.size(); }
     lexer* patch_lexer(int n) { return P[n]->pp; }
     fdm_fnpf* patch_fdm(int n) { return FP(n)->c; }
@@ -337,6 +356,7 @@ private:
     long lap_kept = 0;              // preparations skipped
     void lap_l0solve();
     vector<int> rowmap0;            // level 0: FIJK -> matrix row
+    int rowmap0_layout = -1;        // the layout rowmap0 was numbered for
     long lap_it_total, lap_solves;
     int lap_it_last;
     double lap_res_last;
@@ -364,6 +384,12 @@ private:
     int wtop() const { return whi<0 ? maxlev : whi; }
     bool lap_edge = false;          // window above level 0: the parent columns of its lowest level are fixed
     bool lap_dir = false;           // fill_col of a Krylov vector (the fixed parent columns are 0)
+    // X 36: the window of a unit-mode solve (lap_solve_psi_window): the patches outside it (reefamr::skip),
+    // no level-0 rows and no level-0 cycle in the preconditioner, the key of the window in wkey
+    vector<char> lap_skip;
+    const vector<char> *lap_wgp = nullptr;
+    bool lap_nol0 = false;
+    int lap_wextra = 0;
     int slev = 0;                   // level of the current subcycled step
     int bfin = 0;                   // finest steps done in the level-0 step
     double tsub = 0.0;              // start time of the current step of slev

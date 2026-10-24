@@ -296,6 +296,12 @@ protected:
     void xrun(reefamr_xplan&, int, int);
     void xrun_rev(reefamr_xplan&, int, int);     // the reverse of xrun: rbuf to the receive peers, sbuf from the send peers
 
+    // local patches left out of the fills and the block transfers of their level (fill_run, fill_run_sub,
+    // block_down_if, block_up: the local loops; the items served to other ranks are all evaluated):
+    // nullptr, or a flag per patch (FNPF X 36: the patches outside the window of a unit-mode solve)
+    const vector<char> *skip = nullptr;
+    bool skipped(int id) const { return skip!=nullptr && (*skip)[id]; }
+
     // cells around the level-l patches: eval(const reefamr_fill&, double*) gives nv values of a
     // local source (kind 0, 1, 3), store(reefamr_patch*, int id, const reefamr_fill&, const double*)
     // puts them into the patch
@@ -317,6 +323,8 @@ protected:
         fillv.resize(nv);
         for(int id : lev[l])
         {
+            if(skipped(id))
+            continue;
             reefamr_patch *c = P[id];
             for(auto &f : c->fill)
             {
@@ -351,6 +359,8 @@ protected:
         fillv.resize(nv);
         for(int id : lev[l])
         {
+            if(skipped(id))
+            continue;
             reefamr_patch *c = P[id];
             const vector<int> *E = sel(c);
             if(E==nullptr)
@@ -477,7 +487,7 @@ protected:
         for(int id : lev[l])
         {
             reefamr_patch *c = P[id];
-            const bool nd = need(c);
+            const bool nd = need(c) && !skipped(id);
             for(size_t k=0; k<c->rgrid.size(); ++k)
             if(c->rgrid[k]>=-1)
             {
@@ -495,7 +505,7 @@ protected:
         for(int m=0; m<X.rcount[k]; ++m)
         {
             const int id = bloc[l][2*it], kb = bloc[l][2*it+1];
-            if(need(P[id]))
+            if(need(P[id]) && !skipped(id))
             store(P[id],id,kb,&X.rbuf[k][(size_t)m*nv]);
             ++it;
         }
@@ -516,6 +526,13 @@ protected:
             {
                 const int it = X.sitem[k][m];
                 const int id = bloc[l][2*it], kb = bloc[l][2*it+1];
+                // (a skipped patch sends NaN: the parent keeps its value, restrict_col)
+                if(skipped(id))
+                {
+                    for(int v=0; v<nv; ++v)
+                    sb[m*nv+v] = std::numeric_limits<double>::quiet_NaN();
+                    continue;
+                }
                 compute(P[id],id,kb,&sb[m*nv]);
             }
         }
@@ -527,9 +544,15 @@ protected:
         for(int id : lev[l])
         {
             reefamr_patch *c = P[id];
+            const bool sk = skipped(id);
             for(size_t k=0; k<c->rgrid.size(); ++k)
             if(c->rgrid[k]>=-1)
             {
+                if(sk)
+                {
+                    ++key;
+                    continue;
+                }
                 compute(c,id,(int)k,&blockv[0]);
                 store(reefamr_block{c->rgrid[k],c->ric[k],c->rjc[k]},key++,&blockv[0]);
             }
