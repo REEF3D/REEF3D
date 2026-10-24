@@ -13,7 +13,7 @@ Input and output.
 
 ## Planned
 
-* readers of the data formats CORAL uses (airfoil polars, cross-section properties, STL); the wind fields (TurbSim .bts, uniform wind) are read in `wind/`
+* readers of the data formats CORAL uses (cross-section properties, STL); the wind fields (TurbSim .bts, uniform wind) are read in `wind/`, the airfoil polars and AeroDyn blade files in `aero/`
 * mode shapes as VTP animations
 * restart files
 
