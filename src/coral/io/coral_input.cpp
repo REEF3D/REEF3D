@@ -44,6 +44,9 @@ Architect: Hans Bihs
 #include"coral/hydro/coral_member_fluid_load.h"
 #include"coral/mooring/coral_mooring.h"
 #include"coral/mooring/coral_seabed.h"
+#include"coral/wind/coral_wind.h"
+#include"coral/wind/coral_wind_grid.h"
+#include"coral/wind/coral_wind_probe.h"
 #include<cmath>
 #include<fstream>
 #include<functional>
@@ -163,7 +166,7 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
     // items whose second word is a name (of a body, joint, load, ...): keys are searched after it
     static const std::set<std::string> named = {"body", "joint", "pto", "drive", "jforce", "spring", "linear6", "force", "drag",
         "mooring", "morison", "section", "member", "superelement", "pile", "point_mass", "fluid_body", "fluid_member", "hydro",
-        "point", "line_type"};
+        "point", "line_type", "wind_probe"};
     for(const auto &l : lines)
     {
         items.push_back(item{l.first, l.second});
@@ -187,11 +190,17 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
     bool gravity_on = true;
     int fluid_kin_order = -1;            // fluid_kinematics: order of the time polynomial, -1: not used
     double wdepth = -1.0, wramp = 0.0;
-    std::vector<item> wave_items;
+    std::vector<item> wave_items, wind_items;
     for(const item &it : items)
     {
         const std::string &k = it.t[0];
-        if(k=="gravity")
+        if(k=="wind")
+        {
+            if(it.t.size() < 2) it.fail("wind type missing");
+            wind_items.push_back(it);
+        }
+        else if(k=="rho_air") rho_air = it.num(1);
+        else if(k=="gravity")
         {
             if(it.t.size()>1 && it.t[1]=="off") {gravity_on = false; m.gravity = Vec3::Zero();}
             else m.gravity = it.vec(1);
@@ -304,6 +313,98 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
             }
             else
                 it.fail("unknown wave type '" + type + "'");
+        }
+    }
+    // wind inflow: steady or uniform in time (wind steady / wind file) with IEC events and turbulence, or a
+    // TurbSim full field (wind turbsim)
+    if(!wind_items.empty())
+    {
+        const item *base = nullptr, *ts = nullptr, *iec = nullptr, *ev = nullptr, *turb = nullptr;
+        for(const item &it : wind_items)
+        {
+            const std::string &type = it.t[1];
+            const item **slot = type=="steady" || type=="file" ? &base : type=="turbsim" ? &ts : type=="iec" ? &iec
+                                : type=="event" ? &ev : type=="turbulence" ? &turb : nullptr;
+            if(!slot) it.fail("unknown wind type '" + type + "'");
+            if(*slot) it.fail("wind " + type + " given twice (or wind steady and wind file)");
+            *slot = &it;
+        }
+        iec_turbine tc;
+        if(iec)
+        {
+            if(iec->t.size() < 4 || !tc.set_class(iec->t[2], iec->t[3]))
+                iec->fail("wind iec <I|II|III> <A+|A|B|C> z_hub <z> D <D>");
+            tc.z_hub = iec->need("z_hub");
+            tc.D = iec->need("D");
+        }
+        if(ts)
+        {
+            if(base || ev || turb) ts->fail("wind turbsim is a full field: no wind steady, file, event or turbulence with it");
+            auto g = std::make_shared<wind_grid>();
+            std::string msg;
+            if(!g->read_bts(path(ts->word(2)), msg)) ts->fail(msg);
+            g->direction = ts->get("direction", 0.0)*deg;
+            const int io = ts->find("origin");
+            if(io >= 0) g->origin = Vec3(ts->num(io+1), ts->num(io+2), 0.0);
+            g->xi0 = ts->get("x0", 0.0);
+            wind = g;
+        }
+        else
+        {
+            if(!base) wind_items[0].fail("wind steady or wind file is needed (or wind turbsim)");
+            const item &b = *base;
+            const double zr = b.get("z_ref", iec ? tc.z_hub : -1.0);
+            if(zr <= 0.0) b.fail("'z_ref <z>' is required (or wind iec ... z_hub)");
+            auto w = std::make_shared<wind_field>(b.t[1]=="steady" ? b.need("U") : 0.0, zr, b.get("direction", 0.0)*deg);
+            if(b.t[1]=="file")
+            {
+                std::vector<wind_field::series_row> rows;
+                std::string msg;
+                if(!wind_field::read_uniform(path(b.word(2)), rows, msg)) b.fail(msg);
+                w->set_series(rows, b.get("L_ref", iec ? tc.D : 1.0));
+            }
+            if(b.has("shear") && b.has("log")) b.fail("shear (power law) or log, not both");
+            if(b.has("shear")) w->set_power_law(b.need("shear"));
+            if(b.has("log")) w->set_log_law(b.need("log"));
+            w->set_veer(b.get("veer", 0.0)*deg);
+            w->set_upflow(b.get("upflow", 0.0)*deg);
+            w->set_ramp(b.get("ramp", 0.0));
+            const int io = b.find("origin");
+            if(io >= 0) w->set_origin(b.num(io+1), b.num(io+2));
+            const double Vh = w->speed(0.0, iec ? tc.z_hub : zr, 0.0);
+            if(ev)
+            {
+                if(!iec) ev->fail("wind event needs wind iec");
+                const iec_event e = iec_event_from(ev->word(2));
+                if(e==iec_event::none) ev->fail("unknown event '" + ev->word(2) + "' (eog, edc+, edc-, ecd+, ecd-, ews_v+, ews_v-, ews_h+, ews_h-)");
+                w->set_event(e, tc, ev->need("t0"));
+            }
+            if(turb)
+            {
+                const item &u = *turb;
+                if(!iec) u.fail("wind turbulence needs wind iec");
+                if(u.word(2) != "kaimal") u.fail("turbulence model must be kaimal");
+                const std::string tm = u.t.size() > 3 && (u.t[3]=="ntm" || u.t[3]=="etm" || u.t[3]=="ewm") ? u.t[3] : "ntm";
+                const double s1 = tm=="ntm" ? tc.sigma_ntm(Vh) : tm=="etm" ? tc.sigma_etm(Vh) : tc.sigma_ewm(Vh);
+                wind_grid::kaimal_settings ks;
+                ks.ny = (int)u.get("ny", ks.ny); ks.nz = (int)u.get("nz", ks.nz);
+                ks.width = u.get("width", 1.1*tc.D); ks.height = u.get("height", 1.1*tc.D);
+                ks.T = u.get("T", run.t_end + 10.0); ks.dt = u.get("dt", ks.dt);
+                ks.seed = (unsigned)u.get("seed", 1.0);
+                ks.coherence_vw = u.has("coherence_vw");
+                ks.scale_hub = u.has("scale_hub");
+                if(ks.ny < 2 || ks.nz < 2 || ks.dt <= 0.0 || ks.T <= 0.0) u.fail("ny, nz >= 2, dt > 0 and T > 0 needed");
+                if(tc.z_hub - 0.5*ks.height <= 0.0) u.fail("the grid reaches below z = 0 (height)");
+                if(Vh <= 0.0) u.fail("the hub speed must be positive");
+                auto g = std::make_shared<wind_grid>(wind_grid::kaimal(tc, Vh, s1, ks));
+                if(u.has("write"))
+                {
+                    std::string msg;
+                    if(!g->write_bts(path(u.word("write")), "CORAL IEC Kaimal " + tm, msg, w.get())) u.fail(msg);
+                }
+                w->set_turbulence(g);
+            }
+            wind = w;
         }
     }
     // the kinematics of Morison members and mooring lines: CORAL's waves, or the resolved fluid of REEF3D
@@ -1172,6 +1273,12 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
             fluid_members.push_back(fm);
             m.add_load(std::move(l));
         }
+        else if(k=="wind_probe")
+        {
+            if(!wind) it.fail("wind_probe needs a wind inflow (wind ...)");
+            const int b = it.has("body") ? body_of(it, it.word("body")) : -1;
+            m.add_load(std::make_unique<wind_probe>(m, wind, b, it.vec(2), it.word(1)));
+        }
         else if(k=="fluid_coupling")
         {
             fluid_order = (int)it.get("order", (double)fluid_order);
@@ -1183,7 +1290,7 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
         else if(k!="gravity" && k!="rho" && k!="time" && k!="output" && k!="waves" && k!="body" && k!="joint"
                 && k!="section" && k!="member" && k!="point_mass" && k!="static" && k!="modes"
                 && k!="superelement" && k!="soil" && k!="soil_layer" && k!="pile" && k!="force" && k!="fluid_kinematics"
-                && k!="point" && k!="line_type" && k!="bathymetry")
+                && k!="point" && k!="line_type" && k!="bathymetry" && k!="wind" && k!="rho_air")
             it.fail("unknown keyword");
     }
     if(!fluid_bodies.empty())

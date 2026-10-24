@@ -179,6 +179,29 @@ Architect: Hans Bihs
 //        origin: the point of the REEF3D grid that is CORAL's origin (default 0 0 0; e.g. 0 0 <depth> for
 //        CORAL's still water level z = 0 with REEF3D's bed at z = 0); record: a journal of all fluid input
 //        (REEF3D_CORAL/<file>) for the standalone CORAL: CORAL coral.txt replay <file> (io/coral_coupling.h)
+//   rho_air <rho>                                air density for the aerodynamic loads (1.225)
+//   wind steady U <U> [z_ref <z>] [direction <deg>] [shear <alpha> | log <z0>] [veer <deg/m>] [upflow <deg>]
+//        [origin <x y>] [ramp <t>]
+//   wind file <uniform wind file> [z_ref <z>] [L_ref <L>] [shear ...] [veer ...] [origin <x y>] [ramp <t>]
+//        (U at the height z_ref (default: z_hub of wind iec), direction of propagation counterclockwise from +x, power-law
+//        or logarithmic shear, veer: turning of the direction with height, origin: the hub's horizontal position (lateral
+//        shear, events, turbulence); the file: InflowWind's uniform wind, columns t U direction (deg, positive clockwise
+//        from above) [w] [horizontal shear] [shear exponent] [linear vertical shear] [gust], the linear shears per L_ref
+//        (default the rotor diameter of wind iec), linear in time; coral/wind/coral_wind.h)
+//   wind iec <I|II|III> <A+|A|B|C> z_hub <z> D <D>    IEC 61400-1 ed. 3 turbine class: events and turbulence
+//   wind event <eog|edc+|edc-|ecd+|ecd-|ews_v+|ews_v-|ews_h+|ews_h-> t0 <t>
+//        (extreme operating gust, direction change, coherent gust with direction change, vertical or horizontal shear,
+//        from t0, at the hub speed of the steady wind; normal turbulence model sigma_1)
+//   wind turbulence kaimal [ntm|etm|ewm] [ny <n>] [nz <n>] [width <w>] [height <h>] [T <T>] [dt <dt>] [seed <s>]
+//        [coherence_vw] [scale_hub] [write <file.bts>]
+//        (IEC Kaimal turbulence with the exponential coherence (u; v and w too with coherence_vw) on a grid around the
+//        hub, default 15 x 15 points over 1.1 D, T end + 10 s, dt 0.05 s, rounded up to 2^n levels (periodic); frozen and
+//        convected with the hub speed; write: the full field (mean + turbulence) as a TurbSim .bts for other codes;
+//        coral/wind/coral_wind_grid.h)
+//   wind turbsim <file.bts> [direction <deg>] [origin <x y>] [x0 <xi0>]
+//        (TurbSim full field, frozen: a point at the downwind distance xi from the origin sees the grid at
+//        t + (xi0 - xi)/u_hub; outside the grid its edge, below it the tower points)
+//   wind_probe <name> <x y z> [body <b>]          (output channels <name>_u _v _w _U of the inflow at the point)
 //   static                                       static equilibrium before the time integration
 //   modes <n> [damped]                           linear analysis: the first n modes (modes.dat, mode_shapes.dat)
 //   output vtp <dt>                              VTP of the structure (coral_vtp/)
@@ -189,6 +212,7 @@ Architect: Hans Bihs
 #include"coral/core/coral_model.h"
 #include"coral/core/coral_timeint.h"
 #include"coral/hydro/coral_waves.h"
+#include"coral/wind/coral_wind.h"
 #include<map>
 #include<memory>
 #include<string>
@@ -226,6 +250,8 @@ namespace coral
         model m;
         run_settings run;
         std::shared_ptr<wave_field> waves;
+        std::shared_ptr<wind_inflow> wind;
+        double rho_air = 1.225;
         std::map<std::string, joint*> joints;
         double rho = 1025.0;
 
