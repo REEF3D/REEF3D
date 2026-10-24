@@ -603,7 +603,7 @@ public:
     int X27,X28;
     double X29_d,X29_a;
     double X30;
-    int X35,X36;
+    int X35,X36,X37;
     double X41,X42,X43,X44;
     double X100_x,X100_y,X100_z;
     double X101_phi, X101_theta, X101_psi;

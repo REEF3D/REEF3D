@@ -2532,6 +2532,8 @@ void control::ctrlrecv()
     ii++;
     X36 = ictrl[ii];
     ii++;
+    X37 = ictrl[ii];
+    ii++;
     X31 = ictrl[ii];
     ii++;
     X32 = ictrl[ii];
