@@ -1,0 +1,20 @@
+{
+ "base": "cfd_3d_pier_komega_amr",
+ "ctrl_add": [
+  "G 40 1"
+ ],
+ "description": "cfd_3d_pier_komega_amr with the units placed for the load of the 2 ranks (G 40 1): the patches around the pier on the rank of their unit, the level-0 cells under them on the other rank; the pieces of the solid surface on the rank of the finest grid (level 0 leaves out those under the patches on every rank).",
+ "tags": [
+  "quick",
+  "3d",
+  "inflow",
+  "turbulence",
+  "solid",
+  "amr",
+  "mpi"
+ ],
+ "covers": [
+  "cfd_amr::force_objects (no force objects on the shadows), cfd_amr::patch_forces with G 40 1",
+  "cfd_amr::patch_geometry of placed patches"
+ ]
+}

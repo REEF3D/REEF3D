@@ -1,0 +1,31 @@
+{
+ "base": "cfd_2d_dambreak_amr_heat_adapt_place_mpi2_ckpt",
+ "same_as": "cfd_2d_dambreak_amr_heat_adapt_place_mpi2_ckpt",
+ "chain": [
+  {
+   "case": "cfd_2d_dambreak_amr_heat_adapt_place_mpi2_ckpt",
+   "copy": [
+    "REEF3D_Checkpoint",
+    "REEF3D_CFD_WSF",
+    "REEF3D_CFD_ProbePoint"
+   ]
+  }
+ ],
+ "ctrl_set": {
+  "I 45": "40"
+ },
+ "description": "the restart of cfd_2d_dambreak_amr_heat_adapt_place_mpi2_ckpt from step 40 (I 45 40): the placement of the units and the shadows of the checkpoint (GPforce), the heat field and its flux registers of the patches; regression.py ranks: bitwise the uninterrupted run.",
+ "tags": [
+  "2d",
+  "dambreak",
+  "levelset",
+  "amr",
+  "adaptive",
+  "heat",
+  "mpi",
+  "checkpoint"
+ ],
+ "covers": [
+  "cfd_amr::ckpt_read with G 40 1 (the ranks of the units of the checkpoint) and heat"
+ ]
+}

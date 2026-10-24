@@ -76,7 +76,7 @@ inline int lij(const lexer *q, int ii, int jj) { return (ii-q->imin)*q->jmax + (
 typedef reefamr_comms_off comms_off;
 }
 
-sflow_amr::sflow_amr(lexer *p, fdm2D *b, ghostcell *pgc, patchBC_interface *ppBC, sixdof *pp6dof,
+sflow_amr::sflow_amr(lexer *p, fdm2D *b, ghostcell *pgc, patchBC_interface *ppBC, sixdof *pp6dof, ioflow *ppflow,
                      sflow_HLL *pphll, sflow_momentum_RK3 *ppmom) : reefamr(p,pgc), eps(1.0e-6)
 {
     b0 = b;
@@ -156,6 +156,16 @@ sflow_amr::sflow_amr(lexer *p, fdm2D *b, ghostcell *pgc, patchBC_interface *ppBC
         q.fbox.push_back(p->G11_ys[k]); q.fbox.push_back(p->G11_ye[k]);
     }
     q.ioband = 4;
+
+    // no refinement in the relaxation zones of the wave generation and the numerical beach (B 98 2,
+    // B 99 1/2, B 107, B 108, B 520): the patches run without the in- and outflow (pflow_of), so their
+    // cells are not relaxed, and the restriction would replace the relaxed level-0 cells by them
+    if(ppflow!=nullptr)
+    {
+        const size_t n0 = q.fbox.size();
+        ppflow->relax_boxes(p,q.fbox);
+        nrelax = int((q.fbox.size()-n0)/4);
+    }
 
     // refinement around the moving body (G 12 margin, G 13 wake wedge)
     q.zones = (shipmode>0 && p->G12>0);
@@ -325,6 +335,8 @@ void sflow_amr::ini(lexer *p, fdm2D *b, ghostcell *pgc)
         cout<<"SFLOW AMR: moving body X 10 "<<shipmode<<" on the patches"<<(p->G12>0?", refinement around the body (G 12)":"")<<endl;
         if(p->G12>0 && shipmode==0)
         cout<<"SFLOW AMR: G 12 needs a moving body (X 10 2/3) -- ignored"<<endl;
+        if(nrelax>0)
+        cout<<"SFLOW AMR: no refinement in "<<nrelax<<" relaxation zone(s) of the wave generation and the numerical beach"<<endl;
     }
 }
 

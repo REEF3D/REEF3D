@@ -93,6 +93,10 @@ using namespace std;
 //     (sflow_amr_subnh.cpp, sflow_amr_ship.cpp)
 //   - every G 2 steps the patches are rebuilt from refinement flags (G 20
 //     surface jump, G 22 shoreline, G 10 boxes) with a buffer of G 3 cells.
+//     No refinement in the G 11 boxes, next to in- and outflow boundaries and in the
+//     relaxation zones of the wave generation and the numerical beach (ioflow::relax_boxes):
+//     the patches run without the in- and outflow, so the restriction would replace the
+//     relaxed level-0 cells by unrelaxed ones.
 //     The shoreline flag marks both sides of a wet-dry change; its buffer is at least the
 //     distance the shoreline can travel until the next regrid (sflow_amr::tag).
 //     Flags mark tiles of G 4 cells on the global index space of each level;
@@ -199,7 +203,7 @@ public:
     // S 10: sediment transport on all grids (sflow_amr_sed.cpp): the level-0 sediment_f hands its step over
     void sed_attach(sediment*);
     void sediment_step_sflow(lexer*, fdm2D*, ghostcell*, ioflow*, sediment_f*) override;
-    sflow_amr(lexer*, fdm2D*, ghostcell*, patchBC_interface*, sixdof*, sflow_HLL*, sflow_momentum_RK3*);
+    sflow_amr(lexer*, fdm2D*, ghostcell*, patchBC_interface*, sixdof*, ioflow*, sflow_HLL*, sflow_momentum_RK3*);
     virtual ~sflow_amr();
 
     void ini(lexer*, fdm2D*, ghostcell*);
@@ -442,6 +446,7 @@ private:
 
     double tol_eta;
     int shore;
+    int nrelax = 0;                 // relaxation zones kept unrefined (ioflow::relax_boxes)
 
     // cached stage input arrays per grid (index id+1)
     vector<slice*> sWL,sUH,sVH,sWH;

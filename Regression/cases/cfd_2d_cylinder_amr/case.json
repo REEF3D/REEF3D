@@ -1,0 +1,23 @@
+{
+ "base": "cfd_2d_cylinder_singlephase",
+ "np": 1,
+ "steps": 60,
+ "ctrl_add": [
+  "G 1 2",
+  "G 15 0.8 1.4 0.0 0.02 0.3 0.7"
+ ],
+ "description": "cfd_2d_cylinder_singlephase with two refined levels around the cylinder (G 15 box, level 2: 40 cells over the diameter, level 0: 10). The patches cast the cylinder of the grid file at their resolution (the 2D distance to the cut of its triangles with the grid plane), the force on it (P 81) integrates every piece of the surface on the finest grid at its centre: level 0 leaves out its pieces under the box, the patches add theirs.",
+ "tags": [
+  "quick",
+  "2d",
+  "singlephase",
+  "inflow",
+  "solid",
+  "amr"
+ ],
+ "covers": [
+  "cfd_amr::patch_geometry (2D: the cut of the triangles with the grid plane), geo_grid_solids_io",
+  "cfd_amr::leaf_level, cfd_amr::patch_forces, force::amr_own, force::patch_sum",
+  "nested static refinement (G 1 2) around a solid"
+ ]
+}

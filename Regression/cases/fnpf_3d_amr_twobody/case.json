@@ -1,0 +1,9 @@
+{
+ "description": "Two heaving cylinders (R 1 m, draft 1 m, 4 m apart, X 20 2) on the FNPF hierarchy: base grid 0.5 m, one level (G 1 1) in the zone around each body (G 12 0.75); body 0 released 0.1 m above equilibrium, body 1 at rest (the validation case of REEFAMR validation/44 at its first steps).",
+ "solver": "fnpf",
+ "np": 1,
+ "steps": 20,
+ "files": ["floating.stl", "floating-1.stl"],
+ "tags": ["3d", "fnpf", "amr", "6dof", "floating"],
+ "covers": ["fnpf_6DOF::motion_coupled with mesh refinement: the cross added mass from the composite unit-mode solves, both bodies in the patches"]
+}

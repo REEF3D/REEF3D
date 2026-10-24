@@ -82,6 +82,32 @@ double iowave::distbeach_calc(lexer *p)
     return zones.beach_dist(p->pos_x(),p->pos_y());
 }
 
+// the boxes around the zones the relaxation acts on: the generation zones with the relaxation
+// generation (B 98 2, B 98 6), the beach zones with the numerical beach (B 99 1/2, B 107 or B 520
+// beach zones given, B 99 6); the B 107 / B 108 lists hold the B 96 zones when none were given
+void iowave::relax_boxes(lexer *p, std::vector<double> &b) const
+{
+    double xs,xe,ys,ye;
+
+    if(relax_gen)
+    for(const bc_zone &z : zones.relax)
+    if(z.d>0.0)
+    {
+        z.box(xs,xe,ys,ye);
+        b.push_back(xs); b.push_back(xe);
+        b.push_back(ys); b.push_back(ye);
+    }
+
+    if(p->B99==1 || p->B99==2 || beach_relax==1)
+    for(const bc_zone &z : zones.beach)
+    if(z.d>0.0)
+    {
+        z.box(xs,xe,ys,ye);
+        b.push_back(xs); b.push_back(xe);
+        b.push_back(ys); b.push_back(ye);
+    }
+}
+
 // distgen()/distbeach() test every slice cell against all B107/B108 zone
 // polygons. The zones and the grid are fixed, so this is done once here and
 // the per-step relaxation loops visit only the cells that lie in a zone.

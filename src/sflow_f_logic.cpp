@@ -196,7 +196,7 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
     
         if(prk3!=nullptr)
         {
-        pamr = new sflow_amr(p,b,pgc,pBC,p6dof,phll,prk3);
+        pamr = new sflow_amr(p,b,pgc,pBC,p6dof,pflow,phll,prk3);
         prk3->pamr = pamr;
         
         // non-hydrostatic pressure on the composite grid

@@ -1,0 +1,19 @@
+{
+ "base": "cfd_2d_dambreak_amr_adapt_sub",
+ "ctrl_set": {
+  "P 48": "20",
+  "P 49": "0"
+ },
+ "description": "cfd_2d_dambreak_amr_adapt_sub (adaptive CFD mesh refinement at the interface, G 7 1 subcycling, regrid every 2 steps) with a checkpoint every 20 steps, all kept (P 48 20, P 49 0): the uninterrupted run of the restart cases.",
+ "tags": [
+  "2d",
+  "dambreak",
+  "levelset",
+  "amr",
+  "adaptive",
+  "checkpoint"
+ ],
+ "covers": [
+  "cfd_amr::ckpt_write: the hierarchy (cfd_amr_layout) and the arrays of the patches (cfd_amr_patches) with G 7 1"
+ ]
+}
