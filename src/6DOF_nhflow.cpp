@@ -424,6 +424,24 @@ bool sixdof_nhflow::top_phi_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int ite
     return true;
 }
 
+bool sixdof_nhflow::keel_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter, slice &WL, slice &S, slice &cover,
+                                slice &us, slice &vs, slice &ws)
+{
+    if(!advance_early_ok(p))
+    {
+        if(p->mpirank==0)
+        cout<<"NHFLOW 6DOF X 13 2: not available with nets, membranes, ship loads or porous bodies"<<endl;
+        
+        return false;
+    }
+    
+    advance_stage(p,d,pgc,iter);
+    
+    fb_obj[0]->keel_nhflow(p,d,WL,S,cover,us,vs,ws);
+    
+    return true;
+}
+
 // checkpoints (P 48, I 45): the bodies one after the other, each with its length, and the stage the
 // bodies were advanced for (X 13)
 void sixdof_nhflow::ckpt_state(lexer *p, std::vector<double> &v)

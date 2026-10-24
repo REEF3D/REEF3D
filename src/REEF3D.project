@@ -698,6 +698,7 @@
         </VirtualDirectory>
         <VirtualDirectory Name="FSF">
           <File Name="nhflow_fsf_body.h"/>
+          <File Name="nhflow_fsf_hull.h"/>
           <VirtualDirectory Name="Breaking">
             <File Name="nhflow_breaking.h"/>
           </VirtualDirectory>
@@ -2284,6 +2285,7 @@
         </VirtualDirectory>
         <VirtualDirectory Name="FSF">
           <File Name="nhflow_fsf_body.cpp"/>
+          <File Name="nhflow_fsf_hull.cpp"/>
           <VirtualDirectory Name="Breaking">
             <File Name="nhflow_breaking_filter.cpp"/>
             <File Name="nhflow_breaking.cpp"/>
@@ -2937,6 +2939,7 @@
           </VirtualDirectory>
           <VirtualDirectory Name="Forces NHFLOW">
             <File Name="6DOF_obj_nhflow_amr.cpp"/>
+            <File Name="6DOF_obj_nhflow_keel.cpp"/>
             <File Name="6DOF_obj_forcing_nhflow_porous.cpp"/>
             <File Name="6DOF_obj_nhflow_forces_viscous.cpp"/>
             <File Name="6DOF_obj_nhflow_actuator.cpp"/>

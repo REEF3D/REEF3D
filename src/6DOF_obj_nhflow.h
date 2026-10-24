@@ -95,6 +95,12 @@ public:
     // X 13: signed distance of the top cell centre of every column to the hull (negative inside,
     // |phi| <= band), from the current trimesh on the grid of p (level 0 or a patch)
     void top_phi_nhflow(lexer*, fdm_nhf*, slice&, double, slice&);
+    // X 13 2 (nhflow_fsf_hull): keel height (lowest crossing of the vertical ray through the column
+    // centre with the trimesh), cover (1: keel below the water level WL of the column) and the body
+    // velocity at the keel point; the loads of the footprint columns into the body (gravity added,
+    // force file written)
+    void keel_nhflow(lexer*, fdm_nhf*, slice&, slice&, slice&, slice&, slice&, slice&);
+    void hull_loads_nhflow(lexer*, ghostcell*, bool, double, double, double, double, double, double);
     // hr: the spacing of the grid relative to level 0 for the band of the loads (0: DXM of the grid / DXM of level 0;
     // the blocks of a multi-block grid have their own logical DXM)
     struct nhflow_grid { lexer *p; fdm_nhf *d; slice *WL; double hr = 0.0; };

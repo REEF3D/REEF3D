@@ -25,10 +25,18 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
+#include"nhflow_fsf_hull.h"
 
 void sixdof_obj_nhflow::hydrodynamic_forces_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL, bool finalize)
 {
 	// forcecalc
+    // X 13 2: the hull is the top of the water columns, the loads are the column integrals
+    if(d->hull!=nullptr)
+    {
+    d->hull->forces(p,d,pgc,WL,this,finalize);
+    return;
+    }
+    
     // porous body (X 16) always uses the STL integration: the (1-n) scaled envelope pressure
     // plus the volume drag from update_forcing_nhflow_porous()
     if(p->X60==1 || p->X16==1)
