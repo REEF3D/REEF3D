@@ -27,7 +27,8 @@ Architect: Hans Bihs
 //       of the aerodynamics (constant, a table, or set by a controller);
 //   rigid or flexible, on pitch bearings (pitch_joints): one body per blade root in a revolute joint on the hub, turned
 //       by a second-order actuator (coral_pitch_actuator.h, natural frequency and damping ratio), the pitch then in
-//       the geometry;
+//       the geometry; the bearing carries the blade's pitch inertia sum m (0.04^2 + 0.2^2) c^2 (c the chord; with
+//       flexible blades the beams' torsional inertia adds as much, and the actuator is tuned to twice it);
 //   flexible (blade_elements n): n co-rotational beam elements per blade from the root (the hub or the pitch bearing)
 //       to the tip, with the mass and the flap and edge stiffness of the structural table (ElastoDyn's blade file)
 //       oriented by its structural twist; EA = ea_per_mass * mass/length, GJ = gj_factor * EI_flap, rotary inertia per

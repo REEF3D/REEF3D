@@ -128,7 +128,10 @@ rotor_handles build_rotor(model &m, std::shared_ptr<const wind_inflow> wind, con
             pb.x = sp.hub + sp.R_hub*span[k];
             const double mb = std::max(0.01*bs.total_mass(L), 1.0);
             pb.mass = mb;
-            const double jp = std::max(flex ? 0.01*Jp[k] : Jp[k], 1.0);
+            // the blade's pitch inertia on the bearing (with flexible blades the beams carry about as much again in
+            // their torsional inertia; a light bearing on the stiff blade root gave a fast local mode that the Newton
+            // iterations hardly resolved)
+            const double jp = std::max(Jp[k], 1.0);
             pb.inertia = jp*Mat3::Identity();
             root[k] = m.add_body(pb);
             spin(root[k]);
@@ -240,7 +243,7 @@ rotor_handles build_rotor(model &m, std::shared_ptr<const wind_inflow> wind, con
     {
         double jp = 0.0;
         for(double x : Jp) jp += x/sp.B;
-        jp = std::max(jp, 1.0);
+        jp = std::max(flex ? 2.0*jp : jp, 1.0);
         const double w = 2.0*M_PI*sp.pitch_freq;
         std::vector<const joint*> js(h.pitch_joints.begin(), h.pitch_joints.end());
         auto pa = std::make_unique<pitch_actuator>(js, jp*w*w, 2.0*sp.pitch_zeta*jp*w, sp.pitch, sp.name + "_pitch");

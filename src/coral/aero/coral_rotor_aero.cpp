@@ -23,6 +23,7 @@ Architect: Hans Bihs
 #include"coral/aero/coral_rotor_aero.h"
 #include"coral/core/coral_constraint.h"
 #include"coral/core/coral_model.h"
+#include"coral/core/coral_rotation.h"
 #include<algorithm>
 #include<cmath>
 
@@ -160,9 +161,9 @@ void rotor_aero::eval(const model &m, double t, VecX &f) const
     }
 }
 
-void rotor_aero::tangent(const model &m, double t, double, double cC, double, std::vector<triplet> &T) const
+void rotor_aero::tangent(const model &m, double t, double cK, double cC, double, std::vector<triplet> &T) const
 {
-    if(cC==0.0)
+    if(cC==0.0 && cK==0.0)
         return;
     const hub_state h = hub(m, t);
     // the generalized force of one station on its body: [F (global); M about the CoG (body frame)]
@@ -180,8 +181,8 @@ void rotor_aero::tangent(const model &m, double t, double, double cC, double, st
         if(s.body < 0)
             continue;
         const rigid_body &b0 = m.body(s.body);
-        Mat6 Kv = Mat6::Zero();
-        const double ev = 1.0e-6;
+        Mat6 Kv = Mat6::Zero(), Kq = Mat6::Zero();
+        const double ev = 1.0e-6, er = 1.0e-7;
         for(int j=0; j<6; ++j)
         {
             rigid_body vp = b0, vm = b0;
@@ -189,11 +190,19 @@ void rotor_aero::tangent(const model &m, double t, double, double cC, double, st
             else {vp.w(j-3) += ev; vm.w(j-3) -= ev;}
             Kv.col(j) = (gen(vp, s) - gen(vm, s))/(2.0*ev);
         }
+        // rotation about the span: pitch and torsion change the angle of attack (the other rotations, which tilt the
+        // blade against the shaft axis of the nacelle, are left out)
+        {
+            rigid_body rp = b0, rm = b0;
+            rp.R = b0.R*exp_so3(er*s.z0); rm.R = b0.R*exp_so3(-er*s.z0);
+            const Vec6 G = (gen(rp, s) - gen(rm, s))/(2.0*er);
+            Kq.rightCols<3>() = G*s.z0.transpose();
+        }
         const int o = 6*s.body;
         for(int i=0; i<6; ++i)
             for(int j=0; j<6; ++j)
             {
-                const double v = cC*Kv(i, j);
+                const double v = cK*Kq(i, j) + cC*Kv(i, j);
                 if(v != 0.0)
                     T.emplace_back(o + i, o + j, v);
             }

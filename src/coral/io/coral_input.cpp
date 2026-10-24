@@ -48,6 +48,8 @@ Architect: Hans Bihs
 #include"coral/wind/coral_wind_grid.h"
 #include"coral/wind/coral_wind_probe.h"
 #include"coral/aero/coral_rotor.h"
+#include"coral/aero/coral_rotor_tune.h"
+#include"coral/control/coral_turbine_controller.h"
 #include<cmath>
 #include<fstream>
 #include<functional>
@@ -167,7 +169,7 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
     // items whose second word is a name (of a body, joint, load, ...): keys are searched after it
     static const std::set<std::string> named = {"body", "joint", "pto", "drive", "jforce", "spring", "linear6", "force", "drag",
         "mooring", "morison", "section", "member", "superelement", "pile", "point_mass", "fluid_body", "fluid_member", "hydro",
-        "point", "line_type", "wind_probe", "rotor"};
+        "point", "line_type", "wind_probe", "rotor", "controller"};
     for(const auto &l : lines)
     {
         items.push_back(item{l.first, l.second});
@@ -1365,11 +1367,86 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
             try
             {
                 const rotor_handles h = build_rotor(m, wind, sp);
+                rotors[sp.name] = h;
+                rotor_specs_[sp.name] = sp;
                 joints[sp.name + "_shaft"] = h.shaft;
                 if(h.gen_joint) joints[sp.name + "_gen_shaft"] = h.gen_joint;
                 for(size_t q=0; q<h.pitch_joints.size(); ++q) joints[sp.name + "_pitch" + std::to_string(q + 1)] = h.pitch_joints[q];
             }
             catch(const std::exception &e) {it.fail(e.what());}
+        }
+        else if(k=="controller")
+        {
+            const std::string rn = it.word("rotor");
+            if(!rotors.count(rn)) it.fail("unknown rotor '" + rn + "' (the rotor line must come first)");
+            rotor_handles &h = rotors[rn];
+            const rotor_spec &sp = rotor_specs_[rn];
+            const double N = sp.dt.N, rpm = M_PI/30.0;
+            turbine_controller_settings cs;
+            if(it.has("tune"))
+            {
+                const double Pr = it.need("P_rated"), Or = it.need("rpm_rated")*rpm;
+                rotor_def rd;
+                rd.B = sp.B; rd.R_hub = sp.R_hub; rd.R_tip = sp.stations.back().r; rd.stations = sp.stations; rd.airfoils = sp.airfoils;
+                const rotor_tuning tu = tune_rotor(rd, rho_air, Pr, Or, 25.0, sp.aero.bem);
+                if(tu.K*Or*Or*Or >= Pr)
+                    it.fail("the k omega^2 curve reaches the rated power below the rated speed (K Omega_rated^3 = "
+                            + std::to_string(tu.K*Or*Or*Or) + " W at lambda_opt): lower rpm_rated or raise P_rated "
+                            "(the NREL 5 MW: 0.82 of the rated power at the rated speed)");
+                if(it.has("write") && !tu.write(path(it.word("write")))) it.fail("cannot write " + it.word("write"));
+                const double wref = N*Or;
+                cs.w_ref = wref;
+                cs.w_rated = 0.99*wref;
+                cs.w_cutin = 0.571*wref;
+                cs.w_rgn2 = 0.742*wref;
+                cs.P_rated = Pr;
+                cs.K = tu.K/(N*N*N);
+                cs.T_max = 1.1*Pr/cs.w_rated;
+                cs.T_rate = 0.35*Pr/cs.w_rated;
+                cs.theta_K = tu.theta_K;
+                const double J = h.J + sp.J_gen*N*N;
+                turbine_controller_settings::pi_gains(J, Or, N, tu.dPdtheta0, it.get("omega_n", 0.6), it.get("zeta", 0.7), cs.KP, cs.KI);
+            }
+            cs.K = it.get("K", cs.K);
+            cs.w_cutin = it.get("rpm_cutin", cs.w_cutin/rpm)*rpm;
+            cs.w_rgn2 = it.get("rpm_rgn2", cs.w_rgn2/rpm)*rpm;
+            cs.w_rated = it.get("rpm_rated_torque", cs.w_rated/rpm)*rpm;
+            if(!it.has("tune")) cs.P_rated = it.get("P_rated", cs.P_rated);
+            cs.slip = it.get("slip", cs.slip);
+            cs.T_max = it.get("T_max", cs.T_max);
+            cs.T_rate = it.get("T_rate", cs.T_rate);
+            cs.pitch_rgn3 = it.get("pitch_rgn3", cs.pitch_rgn3/deg)*deg;
+            cs.w_ref = it.get("rpm_ref", cs.w_ref/rpm)*rpm;
+            cs.KP = it.get("KP", cs.KP);
+            cs.KI = it.get("KI", cs.KI);
+            cs.theta_K = it.get("theta_K", cs.theta_K/deg)*deg;
+            cs.theta_min = it.get("theta_min", cs.theta_min/deg)*deg;
+            cs.theta_max = it.get("theta_max", cs.theta_max/deg)*deg;
+            cs.theta_rate = it.get("theta_rate", cs.theta_rate/deg)*deg;
+            cs.omega_c = it.get("corner", cs.omega_c/(2.0*M_PI))*2.0*M_PI;
+            cs.dt = it.get("dt", 0.0);
+            cs.pitch_control = !it.has("no_pitch");
+            cs.torque_control = !it.has("no_torque");
+            controller_load::io f;
+            drivetrain *dt = h.drive;
+            if(cs.torque_control) dt->settings.law = generator_law::command;
+            f.speed = [dt](const model &mm) {return dt->omega_hss(mm);};
+            f.torque = [dt](const model &mm) {return dt->generator_torque(mm);};
+            f.set_torque = [dt](double T) {dt->set_torque_command(T);};
+            if(h.pitch)
+            {
+                pitch_actuator *pa = h.pitch;
+                f.pitch = [pa](const model &mm) {return pa->angle(mm, 0);};
+                f.set_pitch = [pa](double th) {pa->set_command_all(th);};
+            }
+            else
+            {
+                rotor_aero *ra = h.aero;
+                const int B = sp.B;
+                f.pitch = [ra](const model&) {return ra->pitch(0, 0.0);};
+                f.set_pitch = [ra, B](double th) {ra->set_pitch_table({}, {}); for(int q=0; q<B; ++q) ra->set_pitch(q, th);};
+            }
+            m.add_load(std::make_unique<controller_load>(cs, f, it.word(1)));
         }
         else if(k=="wind_probe")
         {

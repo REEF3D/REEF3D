@@ -1,0 +1,11 @@
+{
+ "description": "FNPF AMR heave decay of a moored floating cylinder (X 10 1, X 310 4) with the sigma layers doubled on the patch (G 6 1, 12 -> 24 layers), one time step for all levels (G 7 0): the hull triangles sized for the horizontal and vertical spacing of the finest level (amr_hfac, amr_vfac).",
+ "solver": "fnpf",
+ "np": 1,
+ "steps": 20,
+ "base": "fnpf_3d_amr_decay_sub",
+ "ctrl_set": {"G 7": "0"},
+ "ctrl_add": ["G 6 1"],
+ "tags": ["3d", "fnpf", "amr", "6dof", "vref"],
+ "covers": ["fnpf_amr with G 6 1 and a resolved body: the body grids on the 24-layer patch, the composite psi solves across the layer change, sixdof_geometry amr_vfac"]
+}

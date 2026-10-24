@@ -225,6 +225,21 @@ Architect: Hans Bihs
 //        _pitch_b<k>, _pitch_b<k>_T); blade_elements n: flexible blades of n co-rotational beam elements from the
 //        structural table (structure is then required; EA = ea_per_mass m (2e7), GJ = gj_factor EI_flap (0.3), damping
 //        blade_beta (0.0022 s)), nodes <name>_b<k>e<i>:1; coral/aero/coral_rotor.h)
+//   controller <name> rotor <rotor> [tune P_rated <W> rpm_rated <rpm> [omega_n <rad/s>] [zeta <z>] [write <file>]]
+//        [K <N m s^2>] [rpm_cutin <rpm>] [rpm_rgn2 <rpm>] [rpm_rated_torque <rpm>] [P_rated <W>] [slip <%>] [T_max <N m>]
+//        [T_rate <N m/s>] [pitch_rgn3 <deg>] [rpm_ref <rpm>] [KP <s>] [KI <->] [theta_K <deg>] [theta_min <deg>]
+//        [theta_max <deg>] [theta_rate <deg/s>] [corner <Hz>] [dt <s>] [no_pitch] [no_torque]
+//        (wind turbine controller of the NREL 5 MW baseline type on the filtered generator speed: variable-speed
+//        torque (regions 1, 1.5, 2 k omega^2, 2.5, 3 constant power) and gain-scheduled PI collective pitch; speeds and
+//        torque on the generator (high-speed) side, K in N m s^2/rad^2; the defaults are the NREL 5 MW's (DISCON); it sets
+//        the rotor's generator torque and the pitch command of its pitch actuators (or the pitch of rigid blades without
+//        pitch bearings) once per step; tune: the gains for this rotor from CORAL's steady BEM at the rated power and the
+//        rated rotor speed (K from Cp_max and lambda_opt, the PI gains from dP/dtheta for a response at omega_n
+//        (0.6 rad/s) and zeta (0.7) with the rotor's and generator's inertia, theta_K from the fit of dP/dtheta,
+//        rpm_ref = N rpm_rated (the rotor speed), rpm_rated_torque (region 3 of the torque law) 0.99 of it, rpm_cutin, rpm_rgn2 0.57 and 0.74 of rpm_ref
+//        and T_max 1.1 rated torque as the NREL 5 MW; K Omega_rated^3 must stay below P_rated: the baseline torque law
+//        reaches the rated power at the rated speed, not before), given values override; write: the steady operating curve and the
+//        tuning; channels <name>_wf (rpm), _T, _pitch (deg), _region; coral/control/coral_turbine_controller.h)
 //   static                                       static equilibrium before the time integration
 //   modes <n> [damped]                           linear analysis: the first n modes (modes.dat, mode_shapes.dat)
 //   output vtp <dt>                              VTP of the structure (coral_vtp/)
@@ -236,6 +251,7 @@ Architect: Hans Bihs
 #include"coral/core/coral_timeint.h"
 #include"coral/hydro/coral_waves.h"
 #include"coral/wind/coral_wind.h"
+#include"coral/aero/coral_rotor.h"
 #include<map>
 #include<memory>
 #include<string>
@@ -274,6 +290,7 @@ namespace coral
         run_settings run;
         std::shared_ptr<wave_field> waves;
         std::shared_ptr<wind_inflow> wind;
+        std::map<std::string, rotor_handles> rotors;       // rotor <name>
         double rho_air = 1.225;
         std::map<std::string, joint*> joints;
         double rho = 1025.0;
@@ -293,6 +310,7 @@ namespace coral
         bool fluid_predictor = true;
 
     private:
+        std::map<std::string, rotor_spec> rotor_specs_;
         void parse(const std::vector<std::pair<int, std::vector<std::string>>> &lines, const std::string &dir);
     };
 }
