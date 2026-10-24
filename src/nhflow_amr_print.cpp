@@ -141,6 +141,9 @@ void nhflow_amr::print(lexer *p, fdm_nhf *d, ghostcell *pgc)
         cout<<", "<<df_stalls<<" diffusion solves stopped stagnating";
         if(df_capped>0)
         cout<<", "<<df_capped<<" diffusion solves at N 46";
+        // a 2D grid: the x-z factorisations of the pressure kept within the step (xz_keep)
+        if(xz_kept>0)
+        cout<<", 2D factorisations kept "<<xz_kept<<" of "<<(xz_kept+xz_made);
     }
     // load per rank (several ranks): the cells computed on the rank (level 0 including its covered
     // columns, the patches without their EXT cells) and the time in the patch stages, max over mean

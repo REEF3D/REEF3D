@@ -461,19 +461,50 @@ void nhflow_amr::pr_prepare(ghostcell *pgc)
             L.act[lq] = fixed(M,r) ? 0 : 1;
         }
         // a 2D grid: level 0 is one x-z problem, solved exactly (reefamr_xzlu; several ranks: the
-        // problem of all ranks on every rank)
-        xz0on = false;
-        if(sy==0 && nblk==0 && p0->mpi_size==1)
-        {
-            xz0.factor(L,mg0->precision());
-            xz0on = true;
-        }
+        // problem of all ranks on every rank).  The factorisation of the first solve of the step is
+        // kept for its other solves (xz_keep; collective: factor_mpi is made by all ranks together)
+        bool keep = false;
+        if(sy==0 && nblk==0 && xz0on)
+        keep = (pgc0->globalimin(xz_keep(xz0key,xz0act,L,wkey) ? 1 : 0)==1);
+
+        if(keep)
+        ++xz_kept;
         else
-        if(sy==0 && nblk==0)
-        xz0on = xz0.factor_mpi(L,mg0->precision(),MPI_COMM_WORLD,p0->origin_i,p0->gknox);
-        if(!xz0on)
-        mg0->coarsen();
+        {
+            xz0on = false;
+            if(sy==0 && nblk==0 && p0->mpi_size==1)
+            {
+                xz0.factor(L,mg0->precision());
+                xz0on = true;
+            }
+            else
+            if(sy==0 && nblk==0)
+            xz0on = xz0.factor_mpi(L,mg0->precision(),MPI_COMM_WORLD,p0->origin_i,p0->gknox);
+            if(!xz0on)
+            mg0->coarsen();
+            if(xz0on)
+            {
+                ++xz_made;
+                xz0key[0] = layout_id; xz0key[1] = wkey; xz0key[2] = p0->count;
+                xz0act = L.act;
+            }
+        }
     }
+
+    // a 2D grid: the exact patch-local factorisation, kept within the step (xz_keep; patch-local,
+    // MPI_COMM_SELF: the decision of the patch alone)
+    auto patch_xz = [&](nhflow_amr_patch *c, const sc_level &L)
+    {
+        if(xz_keep(c->xzkey,c->xzact,L,wkey))
+        {
+            ++xz_kept;
+            return;
+        }
+        c->xz.factor(L,c->mg->precision());
+        ++xz_made;
+        c->xzkey[0] = layout_id; c->xzkey[1] = wkey; c->xzkey[2] = p0->count;
+        c->xzact = L.act;
+    };
 
     // the overlap: the rows of the patches next to a patch
     if(pr_ovl)
@@ -536,9 +567,10 @@ void nhflow_amr::pr_prepare(ghostcell *pgc)
                     L.act[lq] = fx ? 0 : 1;
                 }
             }
-            // a 2D grid: the patch-local problem is an x-z problem, solved exactly (reefamr_xzlu)
+            // a 2D grid: the patch-local problem is an x-z problem, solved exactly (reefamr_xzlu),
+            // the factorisation of the first solve of the step kept for its other solves (xz_keep)
             if(sy==0)
-            c->xz.factor(L,c->mg->precision());
+            patch_xz(c,L);
             else
             c->mg->coarsen();
             continue;
@@ -564,7 +596,7 @@ void nhflow_amr::pr_prepare(ghostcell *pgc)
             L.act[lq] = fixed(M,r) ? 0 : 1;
         }
         if(sy==0)
-        c->xz.factor(L,c->mg->precision());
+        patch_xz(c,L);
         else
         c->mg->coarsen();
     }
@@ -572,6 +604,16 @@ void nhflow_amr::pr_prepare(ghostcell *pgc)
     pr_stencils();
 
     cs_build(pgc);
+}
+
+// a 2D grid: the exact x-z factorisation of a grid is kept for the other pressure solves of the step
+// (key: the layout, the level window and the step of the factorisation), as the composite Laplace of
+// FNPF AMR.  The coefficients follow the free surface and the sigma grid of the stage: the
+// factorisation of the first solve of the step is the preconditioner of its other solves.  A change
+// of the active rows (wetting and drying: identity rows) refactorises
+bool nhflow_amr::xz_keep(const long *key, const vector<char> &act0, const sc_level &L, int wkey) const
+{
+    return key[0]==layout_id && key[1]==wkey && key[2]==p0->count && act0==L.act;
 }
 
 // ---- multi-block: the coarse space across the blocks (G 53)
