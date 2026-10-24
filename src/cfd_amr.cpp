@@ -272,6 +272,7 @@ cfd_amr::cfd_amr(lexer *p, fdm *a, ghostcell *pgc, momentum *pmom, pressure *ppr
     pturb0 = pturb;
     turb = (p->T10==1 || p->T10==2 || p->T10==21 || p->T10==22) && dynamic_cast<rans_io*>(pturb)!=nullptr ? 1 : 0;
     solids = (p->solidread!=0 || p->toporead!=0) ? 1 : 0;
+    geom_setup(p);
 
     // floating bodies: moved on level 0, the hull and its forcing on every grid
     b6 = (p->X10==1) ? dynamic_cast<sixdof_cfd*>(p6dof) : nullptr;
@@ -1182,6 +1183,11 @@ void cfd_amr::ini(lexer *p, fdm *a, ghostcell *pgc)
                 }
             }
         }
+
+        // the solids and the topography at the resolution of the patches
+        for(int id : lev[l])
+        patch_geometry(id);
+
         fill(l,fs);
 
         // the boundary values: the cells outside the domain are the neighbours of the slopes of

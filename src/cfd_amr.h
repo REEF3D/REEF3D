@@ -139,7 +139,8 @@ struct cfd_amr_field
 //    velocities, level set, pressure onto the cells and faces under a patch
 //
 //  The step size is the minimum of all levels.  Scope of this version: two-phase or single-phase
-//  flow (F 30, N 40 2/3), RANS turbulence, solids and topography, floating bodies (X 10 1), the
+//  flow (F 30, N 40 2/3), RANS turbulence, solids and topography (the entities of the grid file
+//  cast on every patch at its resolution, cfd_amr_geom.cpp), floating bodies (X 10 1), the
 //  porous structures B 200 1 (vrans_f on every patch, the zones at its cells; CPOR n at the faces of
 //  the patch edges); heat or concentration (H 10 3, C 10 3: transported by the refinement on all
 //  grids in flux form, the patch edges with flux registers, cfd_amr_scalar.cpp); no sediment or
@@ -485,6 +486,11 @@ private:
     turbulence *pturb0 = nullptr;
     int turb = 0;                       // RANS on the patches (T 10 1, 2)
     int solids = 0;                     // solids or topography (direct forcing) on the patches
+    // the solids and the topography of the grid file cast on the patches at their resolution
+    // (cfd_amr_geom.cpp): geo_role[0] solids, [1] topography
+    int geo_role[2] = {0,0};
+    void geom_setup(lexer*);
+    void patch_geometry(int id);
     sixdof_cfd *b6 = nullptr;           // the floating bodies (X 10 1): moved on level 0 (G 7 0), by the finest level (G 7 1)
     int bodies = 0;
     // G 7 1: the finest level advances the bodies (amr_stage_cfd, the loads after each of its

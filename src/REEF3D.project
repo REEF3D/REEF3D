@@ -1242,6 +1242,7 @@
         <VirtualDirectory Name="Geo_Core">
           <File Name="geo_mesh.h"/>
           <File Name="geo_raycast.h"/>
+          <File Name="geo_grid_solids.h"/>
           <File Name="geo_primitive.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Grid_File">
@@ -1478,6 +1479,7 @@
         <File Name="cfd_amr_6dof.cpp"/>
         <File Name="cfd_amr_fields.cpp"/>
         <File Name="cfd_amr_scalar.cpp"/>
+        <File Name="cfd_amr_geom.cpp"/>
       </VirtualDirectory>
       <File Name="reefamr.cpp"/>
       <File Name="reefamr_regrid.cpp"/>

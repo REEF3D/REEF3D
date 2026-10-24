@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"geo_mesh.h"
 #include"geo_raycast.h"
+#include"geo_grid_solids.h"
 #include<vector>
 
 // Solids (S) and topography (T) of the grid file, built by the geometry core for all
@@ -42,6 +43,54 @@ Author: Hans Bihs
 
 namespace
 {
+    // inside/outside of the entities of one role on the cells of g: IO -1 inside, 1 outside;
+    // outside: the cells outside the global domain (solid: counted as solid for the crossing check);
+    // g leaves with the ray mode of the last entity (the distances of build_field use it)
+    void role_io(lexer *p, geo_mesh &G, geo_raycast &ray, int role, geo_cart &g,
+                 vector<int> &IO, vector<int> &CL, vector<int> &CR, vector<char> &outside)
+    {
+        int i,j,k,n;
+        const int marge = increment::marge;
+        
+        const int nf = p->imax*p->jmax*p->kmax;
+        
+        IO.assign(nf,1);
+        CL.assign(nf,0);
+        CR.assign(nf,0);
+        
+        // solid: ghost cells outside the global domain count as solid for the crossing check,
+        // entity faces on the domain boundary are no fluid-solid interface; topo: they count
+        // as fluid, the faces on the domain boundary are interfaces (both as in DIVEMesh)
+        outside.assign(nf,0);
+        
+        if(role==geo_mesh::role_solid)
+        for(i=g.is; i<g.ie; ++i)
+        for(j=g.js; j<g.je; ++j)
+        for(k=g.ks; k<g.ke; ++k)
+        if(i+p->origin_i<0 || i+p->origin_i>=p->gknox
+        || j+p->origin_j<0 || j+p->origin_j>=p->gknoy
+        || k+p->origin_k<0 || k+p->origin_k>=p->gknoz)
+        {
+        outside[IJK] = 1;
+        IO[IJK] = -1;
+        }
+        
+        // inside/outside, entity by entity
+        for(const geo_object &ob : G.obj)
+        if(ob.role==role && ob.te>ob.ts)
+        {
+            g.raymode = ob.raymode;
+            
+            for(int dir=0; dir<3; ++dir)
+            ray.cart_io(p,dir,G.tri_x,G.tri_y,G.tri_z,ob.ts,ob.te,g,IO.data(),CL.data(),CR.data());
+            
+            if(ob.invert==1)
+            for(n=0; n<nf; ++n)
+            if(outside[n]==0)
+            IO[n] = -IO[n];
+        }
+    }
+    
     // signed distance field of one role
     bool build_field(lexer *p, geo_mesh &G, geo_raycast &ray, const geo_cart &gx, int role,
                      double *bedrole, vector<double> &phi)
@@ -67,44 +116,15 @@ namespace
         
         if(objects)
         {
-            vector<int> IO(nf,1), CL(nf,0), CR(nf,0);
+            vector<int> IO, CL, CR;
+            vector<char> outside;
             
             for(n=0; n<nf; ++n)
             phi[n] = 1.0e9;
             
-            // solid: ghost cells outside the global domain count as solid for the crossing check,
-            // entity faces on the domain boundary are no fluid-solid interface; topo: they count
-            // as fluid, the faces on the domain boundary are interfaces (both as in DIVEMesh)
-            vector<char> outside(nf,0);
-            
-            if(role==geo_mesh::role_solid)
-            for(i=gx.is; i<gx.ie; ++i)
-            for(j=gx.js; j<gx.je; ++j)
-            for(k=gx.ks; k<gx.ke; ++k)
-            if(i+p->origin_i<0 || i+p->origin_i>=p->gknox
-            || j+p->origin_j<0 || j+p->origin_j>=p->gknoy
-            || k+p->origin_k<0 || k+p->origin_k>=p->gknoz)
-            {
-            outside[IJK] = 1;
-            IO[IJK] = -1;
-            }
-            
             geo_cart g = gx;
             
-            // inside/outside, entity by entity
-            for(const geo_object &ob : G.obj)
-            if(ob.role==role && ob.te>ob.ts)
-            {
-                g.raymode = ob.raymode;
-                
-                for(int dir=0; dir<3; ++dir)
-                ray.cart_io(p,dir,G.tri_x,G.tri_y,G.tri_z,ob.ts,ob.te,g,IO.data(),CL.data(),CR.data());
-                
-                if(ob.invert==1)
-                for(n=0; n<nf; ++n)
-                if(outside[n]==0)
-                IO[n] = -IO[n];
-            }
+            role_io(p,G,ray,role,g,IO,CL,CR,outside);
             
             // distance to the crossings along the grid lines, bed level of the columns
             for(const geo_object &ob : G.obj)
@@ -337,4 +357,34 @@ void lexer::grid_solids(ghostcell *pgc)
     
     cout<<endl;
     }
+}
+
+bool geo_grid_solids_io(lexer *p, int role, const geo_cart &g, vector<int> &IO)
+{
+    if(p->gridgeo==nullptr)
+    return false;
+    
+    geo_mesh &G = *p->gridgeo;
+    
+    bool objects=false;
+    for(const geo_object &ob : G.obj)
+    if(ob.role==role && ob.te>ob.ts)
+    objects=true;
+    
+    if(!objects)
+    return false;
+    
+    geo_raycast ray(p);
+    geo_cart gg = g;
+    vector<int> CL, CR;
+    vector<char> outside;
+    
+    role_io(p,G,ray,role,gg,IO,CL,CR,outside);
+    
+    // outside the global domain: fluid (as grid_solids)
+    for(size_t n=0; n<IO.size(); ++n)
+    if(outside[n]==1)
+    IO[n] = 1;
+    
+    return true;
 }

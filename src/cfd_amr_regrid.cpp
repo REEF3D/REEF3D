@@ -487,6 +487,12 @@ void cfd_amr::regrid(lexer *p, ghostcell *pgc, bool replace)
                 }
             }
         }
+
+        // the solids and the topography at the resolution of the new patches
+        for(int id : lev[l])
+        if(isfresh[id])
+        patch_geometry(id);
+
         fill(l,fs);
 
         // the boundary values of the new patches (the parents of the next level)
