@@ -88,54 +88,65 @@ Vec3 rotor_aero::tower_influence(const model &m, const Vec3 &P, const Vec3 &u) c
     return U*(-(x*x - y*y)/(q*q))*ex + U*(-2.0*x*y/(q*q))*ey;
 }
 
+rotor_aero::hub_state rotor_aero::hub(const model &m, double t) const
+{
+    hub_state h;
+    const rigid_body &hb = m.body(hub_);
+    h.H = hb.point(sH_);
+    h.e = shaft_->axis(m);
+    h.gam = 0.0;
+    h.cross = Vec3::Zero();
+    if(set_.skew)
+    {
+        const Vec3 Vh = wind_->velocity(h.H, t) - hb.point_velocity(sH_);
+        const double vn = Vh.dot(h.e);
+        const Vec3 c = Vh - vn*h.e;
+        if(c.norm() > 1.0e-9*std::max(Vh.norm(), 1.0e-12))
+        {
+            h.gam = std::atan2(c.norm(), vn);
+            h.cross = c.normalized();
+        }
+    }
+    return h;
+}
+
+void rotor_aero::station(const model &m, const rigid_body &b, const aero_station &s, const hub_state &h, double t,
+                         station_load &o) const
+{
+    const Vec3 &e = h.e;
+    o.P = b.point(s.s);
+    const Vec3 z = b.R*s.z0, c = b.R*s.c0;
+    o.n = (e - e.dot(z)*z).normalized();
+    o.t = set_.sense*e.cross(z).normalized();
+    o.theta = std::atan2(-c.dot(o.n), c.dot(o.t)) + pitch(s.blade, t);
+    Vec3 u = wind_->velocity(o.P, t);
+    u += tower_influence(m, o.P, u);
+    const Vec3 V = u - b.point_velocity(s.s);
+    const double Vx = V.dot(o.n), Vy = -V.dot(o.t);
+    const Vec3 d = o.P - h.H;
+    const Vec3 dr = d - d.dot(e)*e;
+    bem_element el;
+    el.r = dr.norm(); el.chord = s.chord; el.theta = o.theta;
+    el.R = set_.R_tip; el.R_hub = set_.R_hub; el.B = set_.B;
+    el.af = (s.airfoil >= 0 && s.airfoil < (int)af_.size()) ? &af_[s.airfoil] : nullptr;
+    o.bem = bem_solve(el, Vx, Vy, set_.rho, set_.bem);
+    if(h.gam > 0.0 && o.bem.region != 0 && el.r > 0.0)
+    {
+        const double chi = (0.6*o.bem.a + 1.0)*h.gam;
+        const double cpsi = dr.dot(h.cross)/el.r;
+        const double K = 15.0*M_PI/32.0*(el.r/set_.R_tip)*std::tan(0.5*chi)*cpsi;
+        o.bem = bem_solve(el, Vx, Vy, set_.rho, set_.bem, K);
+    }
+    o.F = s.w*(o.bem.fn*o.n + o.bem.ft*o.t);
+    o.M = s.w*o.bem.mz*o.t.cross(o.n);
+}
+
 void rotor_aero::station_loads(const model &m, double t, std::vector<station_load> &out) const
 {
     out.resize(st_.size());
-    const rigid_body &hb = m.body(hub_);
-    const Vec3 H = hb.point(sH_);
-    const Vec3 e = shaft_->axis(m);
-    // inflow at the hub: skew angle and the direction of the cross flow
-    double gam = 0.0;
-    Vec3 cross = Vec3::Zero();
-    if(set_.skew)
-    {
-        const Vec3 Vh = wind_->velocity(H, t) - hb.point_velocity(sH_);
-        const double vn = Vh.dot(e);
-        const Vec3 c = Vh - vn*e;
-        if(c.norm() > 1.0e-9*std::max(Vh.norm(), 1.0e-12))
-        {
-            gam = std::atan2(c.norm(), vn);
-            cross = c.normalized();
-        }
-    }
+    const hub_state h = hub(m, t);
     for(size_t i=0; i<st_.size(); ++i)
-    {
-        const aero_station &s = st_[i];
-        const rigid_body &b = m.body(s.body);
-        station_load &o = out[i];
-        o.P = b.point(s.s);
-        const Vec3 n = b.R*s.n0, td = b.R*s.t0;
-        Vec3 u = wind_->velocity(o.P, t);
-        u += tower_influence(m, o.P, u);
-        const Vec3 V = u - b.point_velocity(s.s);
-        const double Vx = V.dot(n), Vy = -V.dot(td);
-        const Vec3 d = o.P - H;
-        const Vec3 dr = d - d.dot(e)*e;
-        bem_element el;
-        el.r = dr.norm(); el.chord = s.chord; el.theta = s.twist + pitch(s.blade, t);
-        el.R = set_.R_tip; el.R_hub = set_.R_hub; el.B = set_.B;
-        el.af = (s.airfoil >= 0 && s.airfoil < (int)af_.size()) ? &af_[s.airfoil] : nullptr;
-        o.bem = bem_solve(el, Vx, Vy, set_.rho, set_.bem);
-        if(gam > 0.0 && o.bem.region != 0 && el.r > 0.0)
-        {
-            const double chi = (0.6*o.bem.a + 1.0)*gam;
-            const double cpsi = dr.dot(cross)/el.r;
-            const double K = 15.0*M_PI/32.0*(el.r/set_.R_tip)*std::tan(0.5*chi)*cpsi;
-            o.bem = bem_solve(el, Vx, Vy, set_.rho, set_.bem, K);
-        }
-        o.F = s.w*(o.bem.fn*n + o.bem.ft*td);
-        o.M = s.w*o.bem.mz*n.cross(td);
-    }
+        station(m, m.body(st_[i].body), st_[i], h, t, out[i]);
 }
 
 void rotor_aero::eval(const model &m, double t, VecX &f) const
@@ -146,6 +157,46 @@ void rotor_aero::eval(const model &m, double t, VecX &f) const
     {
         m.add_force(f, st_[i].body, L[i].P, L[i].F);
         m.add_moment(f, st_[i].body, L[i].M);
+    }
+}
+
+void rotor_aero::tangent(const model &m, double t, double, double cC, double, std::vector<triplet> &T) const
+{
+    if(cC==0.0)
+        return;
+    const hub_state h = hub(m, t);
+    // the generalized force of one station on its body: [F (global); M about the CoG (body frame)]
+    auto gen = [&](const rigid_body &b, const aero_station &s)
+    {
+        station_load o;
+        station(m, b, s, h, t, o);
+        Vec6 g;
+        g.head<3>() = o.F;
+        g.tail<3>() = b.R.transpose()*((o.P - b.x).cross(o.F) + o.M);
+        return g;
+    };
+    for(const aero_station &s : st_)
+    {
+        if(s.body < 0)
+            continue;
+        const rigid_body &b0 = m.body(s.body);
+        Mat6 Kv = Mat6::Zero();
+        const double ev = 1.0e-6;
+        for(int j=0; j<6; ++j)
+        {
+            rigid_body vp = b0, vm = b0;
+            if(j < 3) {vp.v(j) += ev; vm.v(j) -= ev;}
+            else {vp.w(j-3) += ev; vm.w(j-3) -= ev;}
+            Kv.col(j) = (gen(vp, s) - gen(vm, s))/(2.0*ev);
+        }
+        const int o = 6*s.body;
+        for(int i=0; i<6; ++i)
+            for(int j=0; j<6; ++j)
+            {
+                const double v = cC*Kv(i, j);
+                if(v != 0.0)
+                    T.emplace_back(o + i, o + j, v);
+            }
     }
 }
 
@@ -207,8 +258,7 @@ void rotor_aero::channel_values(const model &m, double t, std::vector<double> &v
             M += (L[i].P - root).cross(L[i].F) + L[i].M;
             if(first)
             {
-                const Mat3 &R = m.body(st_[i].body).R;
-                n = R*st_[i].n0; td = R*st_[i].t0; z = R*st_[i].z0;
+                n = L[i].n; td = L[i].t; z = m.body(st_[i].body).R*st_[i].z0;
                 first = false;
             }
         }

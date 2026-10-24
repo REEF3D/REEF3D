@@ -209,8 +209,9 @@ Architect: Hans Bihs
 //        [generator none | constant <T> | slip <slope> <rpm_sync> | k_omega2 <K> [<T_max>]]
 //        [no_skew] [no_tip_loss] [no_hub_loss] [no_tangential] [no_induction] [no_drag_induction]
 //        [tower <x y z base> <x y z top> <D_base> <D_top> [tower_body <b>]]
-//        (wind turbine rotor with rigid blades: hub and blades one body (bodies <name>_hub, <name>_gen with the shaft
-//        torsion), turning in the revolute joint <name>_shaft on the nacelle (default the ground) about the axis
+//        [pitch_joints [pitch_freq <Hz>] [pitch_zeta <z>]] [blade_elements <n> [blade_beta <s>] [ea_per_mass <EA/m>] [gj_factor <f>]]
+//        (wind turbine rotor: hub (body <name>_hub, <name>_gen with the shaft torsion) turning in the revolute joint
+//        <name>_shaft on the nacelle (default the ground) about the axis
 //        pointing downwind, clockwise looking downwind unless ccw; blade 1 up at azimuth 0; the stations of AeroDyn's
 //        blade file at R_hub + BlSpn from the hub centre, airfoils in the order of its BlAFID; the blade mass from
 //        ElastoDyn's blade file (BMassDen); precone positive with the tips downwind; generator torque on the high-speed
@@ -218,7 +219,12 @@ Architect: Hans Bihs
 //        low-speed shaft with the generator on a body of its own; quasi-steady blade element momentum with
 //        Prandtl's tip and hub loss, Buhl's correction and the skewed wake; tower potential flow;
 //        channels <name>_azimuth _rpm _T _Q _P _Cp _Ct _lambda _U _yaw _pitch _b<k>_Moop _b<k>_Mip and
-//        <name>_dt_rpm_rotor _rpm_gen _T_gen _P_gen _T_shaft; coral/aero/coral_rotor.h)
+//        <name>_dt_rpm_rotor _rpm_gen _T_gen _P_gen _T_shaft; blades rigid on the hub unless: pitch_joints: each blade
+//        on a pitch bearing (body <name>_pitch<k>, revolute joint <name>_pitch<k> on the hub, positive towards feather)
+//        driven to the pitch command by a second-order actuator (default 2 Hz, damping 0.7; channels <name>_pitch_cmd,
+//        _pitch_b<k>, _pitch_b<k>_T); blade_elements n: flexible blades of n co-rotational beam elements from the
+//        structural table (structure is then required; EA = ea_per_mass m (2e7), GJ = gj_factor EI_flap (0.3), damping
+//        blade_beta (0.0022 s)), nodes <name>_b<k>e<i>:1; coral/aero/coral_rotor.h)
 //   static                                       static equilibrium before the time integration
 //   modes <n> [damped]                           linear analysis: the first n modes (modes.dat, mode_shapes.dat)
 //   output vtp <dt>                              VTP of the structure (coral_vtp/)

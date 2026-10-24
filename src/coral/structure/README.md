@@ -11,6 +11,7 @@ Structural elements.
 * `coral_superelement.h/.cpp`: Craig-Bampton superelement of linear Timoshenko members (consistent mass, rotary inertia): ends on the ground clamped, ends on rigid bodies are the interface (rigid transition piece), Guyan shapes plus n fixed-interface modes as generalized coordinates, consistent gravity, modal and stiffness-proportional damping, analytic tangent; the nodes are material points (recovered motion for Morison loads, VTP output); fixed reference frame (fixed-bottom substructures)
 
 * `coral_drivetrain.h/.cpp`: drivetrain of a wind turbine: gearbox ratio, generator inertia (on the rotor body, or on a body of its own with the torsion spring and damper of the low-speed shaft), generator torque laws (constant, induction-generator slip, k omega^2 with a cap, a command from a controller), electric power with an efficiency
+* `coral_pitch_actuator.h/.cpp`: blade pitch actuators: second-order drives of the pitch joints to a command (constant, a table in time, or per blade from a controller), stiffness and damping from the blade's pitch inertia, natural frequency and damping ratio
 * `coral_blade_table.h/.cpp`: distributed structural properties of a blade (fraction of the span, pitch axis, structural twist, mass per length, flap and edge stiffness) from ElastoDyn's blade file or a plain table
 
 ## Planned
@@ -18,7 +19,6 @@ Structural elements.
 * nonlinear springs and dampers
 * full 6x6 cross-section stiffness and mass (composite blades, bend–twist coupling), consistent mass
 * modal body and superelements in a floating frame of reference (floating substructures, fast blades and towers)
-* rotor assembly with flexible blades and pitch bearings (the rigid rotor is `aero/coral_rotor`)
 
 ## May include from
 

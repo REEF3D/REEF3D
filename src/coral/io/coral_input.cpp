@@ -1337,6 +1337,14 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
                 }
                 else it.fail("generator must be none, constant <T>, slip <slope> <rpm> or k_omega2 <K> [<T_max>]");
             }
+            sp.pitch_joints = it.has("pitch_joints");
+            sp.pitch_freq = it.get("pitch_freq", sp.pitch_freq);
+            sp.pitch_zeta = it.get("pitch_zeta", sp.pitch_zeta);
+            sp.blade_elements = (int)it.get("blade_elements", 0.0);
+            sp.blade_beta = it.get("blade_beta", sp.blade_beta);
+            sp.ea_per_mass = it.get("ea_per_mass", sp.ea_per_mass);
+            sp.gj_factor = it.get("gj_factor", sp.gj_factor);
+            if(sp.blade_elements < 0) it.fail("blade_elements must not be negative");
             sp.aero.rho = rho_air;
             sp.aero.skew = !it.has("no_skew");
             sp.aero.bem.tip_loss = !it.has("no_tip_loss");
@@ -1359,6 +1367,7 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
                 const rotor_handles h = build_rotor(m, wind, sp);
                 joints[sp.name + "_shaft"] = h.shaft;
                 if(h.gen_joint) joints[sp.name + "_gen_shaft"] = h.gen_joint;
+                for(size_t q=0; q<h.pitch_joints.size(); ++q) joints[sp.name + "_pitch" + std::to_string(q + 1)] = h.pitch_joints[q];
             }
             catch(const std::exception &e) {it.fail(e.what());}
         }
