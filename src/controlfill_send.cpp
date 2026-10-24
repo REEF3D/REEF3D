@@ -175,6 +175,8 @@ void control::ctrlsend()
     ii++;
     ictrl[ii] = G52;
     ii++;
+    ictrl[ii] = G55;
+    ii++;
     ictrl[ii] = G53;
     ii++;
     ictrl[ii] = G54;

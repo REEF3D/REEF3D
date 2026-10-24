@@ -52,6 +52,7 @@ Author: Hans Bihs
 #include"6DOF_obj.h"
 #include"sediment_void.h"
 #include"ioflow_void.h"
+#include"geo_mesh.h"
 #include"ioflow_amr_block.h"
 #include"patchBC_void.h"
 #include"reefmg_core.h"
@@ -724,7 +725,7 @@ void nhflow_amr::patch_objects(reefamr_patch *q, ghostcell *pgc)
         if(zin>=0 || zout>=0)
         pp->B90 = 1;
         if(c->lev==0)
-        pp->amr_block = c->blk;
+        pp->amr_block = p0->gridgeo->blk[c->blk].orig;   // the block of DIVEMesh (G 55: of the piece)
     }
 
     build_bc2D(pgc,*c);

@@ -171,6 +171,8 @@ void control::ctrlrecv()
     ii++;
     G52 = ictrl[ii];
     ii++;
+    G55 = ictrl[ii];
+    ii++;
     G53 = ictrl[ii];
     ii++;
     G54 = ictrl[ii];
