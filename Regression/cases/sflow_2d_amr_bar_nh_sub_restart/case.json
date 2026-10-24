@@ -1,0 +1,31 @@
+{
+ "base": "sflow_2d_amr_bar_nh_sub_ckpt",
+ "same_as": "sflow_2d_amr_bar_nh_sub_ckpt",
+ "chain": [
+  {
+   "case": "sflow_2d_amr_bar_nh_sub_ckpt",
+   "copy": [
+    "REEF3D_Checkpoint",
+    "REEF3D_SFLOW_AMR",
+    "REEF3D_SFLOW_WSF",
+    "REEF3D_SFLOW_ProbePoint",
+    "REEF3D_SFLOW_WSFLINE"
+   ]
+  }
+ ],
+ "ctrl_set": {
+  "I 45": "10"
+ },
+ "description": "the restart of sflow_2d_amr_bar_nh_sub_ckpt from step 10 (I 45 10) with its outputs copied in: the non-hydrostatic bar subcycled (G 7 1, A 220 1, B 95 -1): the level states, the pressure and the synchronisation continue from the checkpoint; regression.py ranks: the final state and the text outputs bitwise those of the uninterrupted run.",
+ "tags": [
+  "2d",
+  "sflow",
+  "amr",
+  "nh",
+  "subcycling",
+  "checkpoint"
+ ],
+ "covers": [
+  "the bitwise restart of SFLOW + mesh refinement: the non-hydrostatic bar subcycled (G 7 1, A 220 1, B 95 -1)"
+ ]
+}

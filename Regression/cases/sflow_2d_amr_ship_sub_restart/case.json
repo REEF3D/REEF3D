@@ -1,0 +1,34 @@
+{
+ "base": "sflow_2d_amr_ship_sub_ckpt",
+ "same_as": "sflow_2d_amr_ship_sub_ckpt",
+ "chain": [
+  {
+   "case": "sflow_2d_amr_ship_sub_ckpt",
+   "copy": [
+    "REEF3D_Checkpoint",
+    "REEF3D_SFLOW_AMR",
+    "REEF3D_SFLOW_WSF",
+    "REEF3D_SFLOW_ProbePoint",
+    "REEF3D_SFLOW_WSFLINE",
+    "REEF3D_SFLOW_6DOF"
+   ]
+  }
+ ],
+ "ctrl_set": {
+  "I 45": "5"
+ },
+ "description": "the restart of sflow_2d_amr_ship_sub_ckpt from step 5 (I 45 5) with its outputs copied in: the towed box (X 10 3) with the body zone (G 12, G 13) and subcycling (G 7 1): the body and its zone continue from the checkpoint; regression.py ranks: the final state and the text outputs bitwise those of the uninterrupted run.",
+ "tags": [
+  "2d",
+  "sflow",
+  "amr",
+  "ship",
+  "6dof",
+  "nh",
+  "subcycling",
+  "checkpoint"
+ ],
+ "covers": [
+  "the bitwise restart of SFLOW + mesh refinement: the towed box (X 10 3) with the body zone (G 12, G 13) and subcycling (G 7 1)"
+ ]
+}

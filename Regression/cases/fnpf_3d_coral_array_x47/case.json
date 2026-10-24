@@ -1,0 +1,10 @@
+{
+ "description": "fnpf_3d_coral_array with the X 17 relaxation off and the sawtooth filter on (X 17 0, X 47 1.0 2): the 5-point Longuet-Higgins-Cokelet filter of eta and Fifsf in the two columns around the footprint of each body, once per stage, on level 0 and the patches.",
+ "solver": "fnpf",
+ "np": 1,
+ "steps": 20,
+ "base": "fnpf_3d_coral_array",
+ "ctrl_add": ["X 17 0.0", "X 47 1.0 2"],
+ "tags": ["3d", "fnpf", "amr", "6dof", "floating", "coral"],
+ "covers": ["fnpf_6DOF::footprint sawtooth filter (X 47) on level 0 and the patches"]
+}

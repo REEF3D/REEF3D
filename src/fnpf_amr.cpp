@@ -276,14 +276,18 @@ void fnpf_amr::attach_body(fnpf_body *b)
     // nhflow_amr and the CFD mesh refinement): every triangle is integrated on the finest grid
     // that holds its centroid, so on a patch the loads are summed over patch-sized triangles.
     // Set here, before fnpf_6DOF::initialize builds them (inidisc_step2, before ini); only when
-    // ini keeps the refinement on.  Horizontal spacings only (as NHFLOW: G 6 does not size them).
+    // ini keeps the refinement on.  With G 6 1 the finest level also has 2^G1 times the sigma
+    // layers: the vertical spacing is scaled as well (amr_vfac), as on a uniform grid with those layers.
     if(body!=nullptr && maxlev>0 && keys_ok(p0))
     {
         vector<sixdof_obj*> obj;
         body->amr_bodies(obj);
 
         for(auto o : obj)
+        {
         o->amr_hfac = 1.0/double(1<<maxlev);
+        o->amr_vfac = (vref==2) ? 1.0/double(1<<maxlev) : 1.0;
+        }
     }
 }
 

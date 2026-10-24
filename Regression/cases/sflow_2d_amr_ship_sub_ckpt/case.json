@@ -1,0 +1,21 @@
+{
+ "base": "sflow_2d_amr_ship_sub",
+ "ctrl_set": {
+  "P 48": "5",
+  "P 49": "0"
+ },
+ "description": "sflow_2d_amr_ship_sub with a checkpoint every 5 steps, all kept (P 48 5, P 49 0): the uninterrupted run of sflow_2d_amr_ship_sub_restart.",
+ "tags": [
+  "2d",
+  "sflow",
+  "amr",
+  "ship",
+  "6dof",
+  "nh",
+  "subcycling",
+  "checkpoint"
+ ],
+ "covers": [
+  "sflow_amr::ckpt_write: the towed box (X 10 3) with the body zone (G 12, G 13) and subcycling (G 7 1)"
+ ]
+}
