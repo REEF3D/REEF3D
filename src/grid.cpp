@@ -23,6 +23,9 @@ Authors: Hans Bihs, Alexander Hanke
 #include "grid.h"
 #include "ghostcell.h"
 #include "resize.h"
+#include <cmath>
+#include <vector>
+#include <algorithm>
 
 void grid::assign_margin()
 {
@@ -101,42 +104,93 @@ void grid::gridspacing(ghostcell *pgc)
     for(k=-marge;k<knoz+marge;++k)
     DZP[KP] = 0.5*(ZN[KP2]+ZN[KP1]) - 0.5*(ZN[KP1]+ZN[KP]);
 
+    // every cell spacing once and summed in the same order whatever the partition: the x spacings
+    // from the ranks at the lower y and z end of the domain, the y spacings from those at the lower
+    // x and z end, the z spacings from those at the lower x and y end, gathered and summed in the
+    // order of their coordinates (a rank holds all cells of the directions that are not split;
+    // summed on every rank, the mean depended on the partition, and partial sums on the rounding)
+    i=j=k=0;
+    const double x0 = pgc->globalmin(XN[IP]);
+    const double y0 = pgc->globalmin(YN[JP]);
+    const double z0 = pgc->globalmin(ZN[KP]);
+    const bool lowx = XN[IP]-x0 <= 1.0e-9*MAX(fabs(x0),1.0);
+    const bool lowy = YN[JP]-y0 <= 1.0e-9*MAX(fabs(y0),1.0);
+    const bool lowz = ZN[KP]-z0 <= 1.0e-9*MAX(fabs(z0),1.0);
+
+    // (direction, coordinate, spacing) of the cells this rank contributes
+    std::vector<double> loc;
+    if(lowy && lowz)
+    for(i=0;i<knox;++i)
+    {
+        loc.push_back(0.0); loc.push_back(XP[IP]); loc.push_back(DXP[IP]);
+    }
+
+    if(j_dir==1 && lowx && lowz)
+    for(j=0;j<knoy;++j)
+    {
+        loc.push_back(1.0); loc.push_back(YP[JP]); loc.push_back(DYP[JP]);
+    }
+
+    if(lowx && lowy)
+    for(k=0;k<knoz;++k)
+    {
+        loc.push_back(2.0); loc.push_back(ZP[KP]); loc.push_back(DZP[KP]);
+    }
+
+    std::vector<double> all;
+    const bool lred = pgc->set_local(false);
+    pgc->set_local(lred);
+    int np=1;
+    if(!lred && pgc->mpi_comm!=MPI_COMM_NULL)
+    MPI_Comm_size(pgc->mpi_comm,&np);
+
+    if(np>1)
+    {
+        int n = int(loc.size());
+        std::vector<int> cnt(np), dsp(np,0);
+        MPI_Allgather(&n,1,MPI_INT,cnt.data(),1,MPI_INT,pgc->mpi_comm);
+        for(int q=1; q<np; ++q)
+        dsp[q] = dsp[q-1]+cnt[q-1];
+        all.resize(dsp[np-1]+cnt[np-1]);
+        MPI_Allgatherv(loc.data(),n,MPI_DOUBLE,all.data(),cnt.data(),dsp.data(),MPI_DOUBLE,pgc->mpi_comm);
+    }
+    else
+    all = loc;
+
+    std::vector<int> ord(all.size()/3);
+    for(size_t q=0; q<ord.size(); ++q)
+    ord[q] = int(q);
+    std::stable_sort(ord.begin(),ord.end(),[&](int u, int w)
+    {
+        if(all[3*u]!=all[3*w])
+        return all[3*u]<all[3*w];
+        return all[3*u+1]<all[3*w+1];
+    });
+
     DXM = DXD = DYD = 0.0;
 
     int count=0;
     int xcount=0;
     int ycount=0;
 
-    for(i=0;i<knox;++i)
+    for(int q : ord)
     {
-        DXM += DXP[IP];
-        DXD += DXP[IP];
+        const double d = all[3*q+2];
+        DXM += d;
         ++count;
+
+        if(all[3*q]==0.0)
+        {
+        DXD += d;
         ++xcount;
-    }
+        }
 
-    if(j_dir==1)
-    for(j=0;j<knoy;++j)
-    {
-        DXM += DYP[JP];
-        DYD += DYP[JP];
-        ++count;
+        if(all[3*q]==1.0)
+        {
+        DYD += d;
         ++ycount;
+        }
     }
-
-    for(k=0;k<knoz;++k)
-    {
-        DXM += DZP[KP];
-        ++count;
-    }
-
-    count = pgc->globalisum(count);
-    xcount = pgc->globalisum(xcount);
-    ycount = pgc->globalisum(ycount);
-
-    DXM = pgc->globalsum(DXM);
-    DXD = pgc->globalsum(DXD);
-    DYD = pgc->globalsum(DYD);
 
     DXM /= double(count);
     DXD /= double(xcount);
