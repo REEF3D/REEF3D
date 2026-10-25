@@ -39,8 +39,10 @@ using namespace std;
 // The 6DOF hull as a sharp thin body (X 15 8, NHFLOW X 10 1/2): a client of nhflow_thinbody.
 // The sides of the cell centres and nodes come from the body level set d->FB, the links between
 // cells on opposite sides are blocked (wall fluxes, wall velocity in the projection, link mobility),
-// the wall velocity is the rigid-body velocity at the face, the loads are the outer pressure on the
-// blocked links. No direct forcing. See nhflow_hullbody.cpp.
+// the wall velocity is the normal part (u_b . n) n of the rigid-body velocity at the face (n the hull
+// normal from the level set), the loads are the outer pressure on the blocked links, each face weighted
+// with (n_face . n) n so that the loads and the wall fluxes do the same work. No direct forcing. See
+// nhflow_hullbody.cpp.
 //
 //   stage()   every RK stage after the body advance and ray cast (nhflow_forcing::forcing)
 //   forces()  from sixdof_obj_nhflow::hydrodynamic_forces_nhflow (after the projection)
@@ -57,6 +59,7 @@ public:
 
 private:
     void body_velocity(double, double, double, double&, double&, double&) const;
+    bool hull_normal(lexer*, fdm_nhf*, int, int, double&, double&, double&) const;
 
     sixdof_obj_nhflow *obj;
     nhflow_thinbody *tb;

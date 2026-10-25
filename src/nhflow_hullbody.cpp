@@ -166,6 +166,45 @@ void nhflow_hullbody::body_velocity(double x, double y, double z, double &u, dou
     w = obj->amr_u(2) + obj->amr_u(3)*(y - cy) - obj->amr_u(4)*(x - cx);
 }
 
+bool nhflow_hullbody::hull_normal(lexer *p, fdm_nhf *d, int q0, int q1, double &nx, double &ny, double &nz) const
+{
+    // unit normal of the hull at the face between the cells q0 and q1 (q0 = q1: at the cell), pointing into
+    // the body: -grad FB (FB > 0 in the water), the gradient averaged over the two cells; false where the
+    // level set has no gradient
+    const int qs[2] = {q0,q1};
+    nx = ny = nz = 0.0;
+
+    for(int c=0; c<2; ++c)
+    {
+        const int q = qs[c];
+        const int ii = q/(p->jmax*p->kmax) + p->imin;
+        const int rem = q - (ii-p->imin)*p->jmax*p->kmax;
+        const int jj = rem/p->kmax + p->jmin;
+        const int kk = rem - (jj-p->jmin)*p->kmax + p->kmin;
+        const int qe = q + p->jmax*p->kmax, qw = q - p->jmax*p->kmax;
+        const int qn = q + p->kmax, qs2 = q - p->kmax;
+        const double wl = p->WL[(ii-p->imin)*p->jmax + (jj-p->jmin)];
+
+        nx += -(d->FB[qe] - d->FB[qw])/(p->DXP[ii+marge] + p->DXP[ii-1+marge]);
+
+        if(p->j_dir==1)
+        ny += -(d->FB[qn] - d->FB[qs2])/(p->DYP[jj+marge] + p->DYP[jj-1+marge]);
+
+        nz += -(d->FB[q+1] - d->FB[q-1])/((p->DZP[kk+marge] + p->DZP[kk-1+marge])*MAX(wl,1.0e-20));
+    }
+
+    const double nn = sqrt(nx*nx + ny*ny + nz*nz);
+
+    if(nn<1.0e-20)
+    return false;
+
+    nx/=nn;
+    ny/=nn;
+    nz/=nn;
+
+    return true;
+}
+
 // ------------------------------------------------------------------ sides, blocked links, wall velocities
 void nhflow_hullbody::stage(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, double *UH, double *VH, double *WH, slice &WL)
 {
@@ -229,8 +268,33 @@ void nhflow_hullbody::stage(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, 
         side0N[FIJK] = tb->sideN[FIJK];
     }
 
-    // blocked links with the wall velocity of the face centre and the link mobility of the projection
+    // blocked links with the wall velocity of the face centre and the link mobility of the projection.
+    // Wall velocity: the normal part (u_b . n) n of the rigid-body velocity at the face, n the hull normal
+    // from the level set (as the sharp membranes). The staircase faces then sweep the volume of the true
+    // surface, and a sloped surface in heave also pushes the water sideways through the vertical faces of
+    // its steps; with the plain velocity components the steps act as horizontal pistons between fixed walls
+    // (hemisphere in forced heave at KR 1: the radiated wave gave a damping of 0.10 against Hulme's 0.25,
+    // with the normal part 0.23)
     auto beta = [&](double l) {return 1.0/(1.0 + a*Rn/MAX(l,1.0e-20));};
+
+    auto normal_vel = [&](int q0, int q1, double x, double y, double z, double &un, double &vn, double &wn)
+    {
+        double nx,ny,nz;
+        double u,v,w;
+        body_velocity(x,y,z,u,v,w);
+
+        if(!hull_normal(p,d,q0,q1,nx,ny,nz))
+        {
+        un=u; vn=v; wn=w;
+        return;
+        }
+
+        const double ub = u*nx + v*ny + w*nz;
+
+        un = ub*nx;
+        vn = ub*ny;
+        wn = ub*nz;
+    };
 
     nbx = nby = nbz = 0;
 
@@ -243,7 +307,7 @@ void nhflow_hullbody::stage(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, 
         // +x link to (i+1,j,k)
         if(tb->sideC[Ip1JK]*s<0.0 && p->flag4[Ip1JK]>0 && p->wet[Ip1J]==1)
         {
-            body_velocity(p->XP[IP]+0.5*p->DXN[IP], p->YP[JP], 0.5*(p->ZSP[IJK]+p->ZSP[Ip1JK]), u,v,w);
+            normal_vel(IJK,Ip1JK, p->XP[IP]+0.5*p->DXN[IP], p->YP[JP], 0.5*(p->ZSP[IJK]+p->ZSP[Ip1JK]), u,v,w);
 
             const double b = beta(p->DXP[IP]);
             d->MBX[IJK] = MIN(d->MBX[IJK],b);
@@ -257,7 +321,7 @@ void nhflow_hullbody::stage(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, 
         // +y link to (i,j+1,k)
         if(p->j_dir==1 && tb->sideC[IJp1K]*s<0.0 && p->flag4[IJp1K]>0 && p->wet[IJp1]==1)
         {
-            body_velocity(p->XP[IP], p->YP[JP]+0.5*p->DYN[JP], 0.5*(p->ZSP[IJK]+p->ZSP[IJp1K]), u,v,w);
+            normal_vel(IJK,IJp1K, p->XP[IP], p->YP[JP]+0.5*p->DYN[JP], 0.5*(p->ZSP[IJK]+p->ZSP[IJp1K]), u,v,w);
 
             const double b = beta(p->DYP[JP]);
             d->MBY[IJK] = MIN(d->MBY[IJK],b);
@@ -271,7 +335,7 @@ void nhflow_hullbody::stage(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, 
         // vertical link through the cell: nodes k and k+1
         if(tb->sideN[FIJK]*tb->sideN[FIJKp1]<0.0)
         {
-            body_velocity(p->XP[IP], p->YP[JP], p->ZSP[IJK], u,v,w);
+            normal_vel(IJK,IJK, p->XP[IP], p->YP[JP], p->ZSP[IJK], u,v,w);
 
             const double b = beta(p->DZN[KP]*WL(i,j));
             d->MBZ[IJK] = MIN(d->MBZ[IJK],b);
@@ -321,10 +385,37 @@ void nhflow_hullbody::forces(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL, bo
         Mz += (x - xc)*fy - (y - yc)*fx;
     };
 
-    // hydrostatic pressure of column (i,j) at height z: rho g (head - z'), z' above the still water level
-    auto phs = [&](int ii, int jj, int kk, double z)
+    // the pressure of the outer cell at the face: the still-water part -rho g z' (z' above the still water
+    // level) and the dynamic part rho g head + P (the head of the column above the still water level, the
+    // non-hydrostatic pressure)
+    auto pstill = [&](int ii, int jj, double z)
     {
-        return rg*(tb->head(p,d,ii,jj,kk) - (z - d->bed(ii,jj) - d->depth(ii,jj)));
+        return -rg*(z - d->bed(ii,jj) - d->depth(ii,jj));
+    };
+    
+    auto pdyn = [&](int ii, int jj, int kk, double pn)
+    {
+        return rg*tb->head(p,d,ii,jj,kk) + pn;
+    };
+    
+    // the force on the blocked face of area A with the face normal nf (unit, into the body): the still-water
+    // pressure on the face itself, ps A nf (the buoyancy of the staircase), the dynamic pressure as
+    // pd A (nf . n) n with n the hull normal of the wall velocity, so that the work of the body against the
+    // dynamic loads equals the work of the wall fluxes on the water (the energy the waves carry away); the
+    // face normal itself where the level set has no gradient. The sum over the staircase of A (nf . n) n is
+    // the surface vector of the true hull, as the sum of A nf is. (The still-water part is conservative and
+    // large: weighted with n it would carry the errors of the normals at the waterline into the heave force.)
+    auto face = [&](int q0, int q1, double x, double y, double z, double ps, double pd, double A, double nfx, double nfy, double nfz)
+    {
+        double nx,ny,nz;
+        
+        if(hull_normal(p,d,q0,q1,nx,ny,nz))
+        {
+            const double f = pd*A*(nfx*nx + nfy*ny + nfz*nz);
+            add(x,y,z,ps*A*nfx + f*nx, ps*A*nfy + f*ny, ps*A*nfz + f*nz);
+        }
+        else
+        add(x,y,z,(ps+pd)*A*nfx,(ps+pd)*A*nfy,(ps+pd)*A*nfz);
     };
     
     LOOP
@@ -336,27 +427,25 @@ void nhflow_hullbody::forces(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL, bo
             const bool outer_i = tb->sideC[IJK]>0.0;
             const int ii = outer_i ? i : i+1;
             const int q = outer_i ? IJK : Ip1JK;
-            const double po = phs(ii,j,k,p->ZSP[q]) + tb->pcell(p,P,ii,j,k);
             const double A = p->DYN[JP]*p->DZN[KP]*WL(ii,j);
-            
-            add(p->XP[IP]+0.5*p->DXN[IP], p->YP[JP], p->ZSP[q], (outer_i ? 1.0 : -1.0)*po*A, 0.0, 0.0);
+
+            face(IJK,Ip1JK, p->XP[IP]+0.5*p->DXN[IP], p->YP[JP], p->ZSP[q], pstill(ii,j,p->ZSP[q]), pdyn(ii,j,k,tb->pcell(p,P,ii,j,k)), A, (outer_i ? 1.0 : -1.0), 0.0, 0.0);
         }
-        
+
         if(p->j_dir==1 && tb->by[IJK]>0.5)
         {
             const bool outer_j = tb->sideC[IJK]>0.0;
             const int jj = outer_j ? j : j+1;
             const int q = outer_j ? IJK : IJp1K;
-            const double po = phs(i,jj,k,p->ZSP[q]) + tb->pcell(p,P,i,jj,k);
             const double A = p->DXN[IP]*p->DZN[KP]*WL(i,jj);
-            
-            add(p->XP[IP], p->YP[JP]+0.5*p->DYN[JP], p->ZSP[q], 0.0, (outer_j ? 1.0 : -1.0)*po*A, 0.0);
+
+            face(IJK,IJp1K, p->XP[IP], p->YP[JP]+0.5*p->DYN[JP], p->ZSP[q], pstill(i,jj,p->ZSP[q]), pdyn(i,jj,k,tb->pcell(p,P,i,jj,k)), A, 0.0, (outer_j ? 1.0 : -1.0), 0.0);
         }
         
         // vertical link through cell k (the surface between the nodes k and k+1): the cell centres below (kb)
-        // and above (ka) the crossing as in nhflow_thinbody::link_force; the hydrostatic pressure at the surface
-        // height (level set interpolated between the two cell centres), the non-hydrostatic pressure of the node
-        // on the outer side
+        // and above (ka) the crossing as in nhflow_thinbody::link_force; the pressure at the surface height
+        // (level set interpolated between the two cell centres), the non-hydrostatic pressure of the node on
+        // the outer side
         if(tb->bz[IJK]>0.5)
         {
             int kb=k-1, ka=k+1;
@@ -387,10 +476,10 @@ void nhflow_hullbody::forces(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL, bo
             const double zs = p->ZSP[qb] + t*(p->ZSP[qa] - p->ZSP[qb]);
             
             if(tb->sideC[qb]>0.0)
-            add(p->XP[IP], p->YP[JP], zs, 0.0, 0.0, (phs(i,j,kb,zs) + P[FIJK])*A);
-            
+            face(IJK,IJK, p->XP[IP], p->YP[JP], zs, pstill(i,j,zs), pdyn(i,j,kb,P[FIJK]), A, 0.0, 0.0, 1.0);
+
             if(tb->sideC[qa]>0.0)
-            add(p->XP[IP], p->YP[JP], zs, 0.0, 0.0, -(phs(i,j,ka,zs) + P[FIJKp1])*A);
+            face(IJK,IJK, p->XP[IP], p->YP[JP], zs, pstill(i,j,zs), pdyn(i,j,ka,P[FIJKp1]), A, 0.0, 0.0, -1.0);
         }
     }
     }
