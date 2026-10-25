@@ -1,0 +1,21 @@
+{
+ "base": "sflow_2d_si_vortex_gahm_mpi2",
+ "description": "sflow_2d_si_vortex_gahm_mpi2 with the symmetric Holland (1980) vortex (W 215 1), the translation in full (W 219 2), Garratt (W 207 1), one rank.",
+ "np": 1,
+ "ctrl_add": [
+  "W 215 1",
+  "W 219 2",
+  "W 207 1"
+ ],
+ "tags": [
+  "2d",
+  "sflow",
+  "semi_implicit",
+  "met",
+  "vortex"
+ ],
+ "covers": [
+  "met_vortex Holland 1980",
+  "W 219 2"
+ ]
+}

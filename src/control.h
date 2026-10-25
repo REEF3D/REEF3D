@@ -586,8 +586,8 @@ public:
     int W110,W111;
     double W112;
     // atmospheric forcing (met_provider, met_forcing)
-    int W200,W205,W207,W208,W210,W211;
-    double W201_u,W201_dir,W202,W203,W204,W205_lon,W205_lat,W205_rot,W206_x,W206_y,W209,W212;
+    int W200,W205,W207,W208,W210,W211,W215,W218,W219;
+    double W201_u,W201_dir,W202,W203,W204,W205_lon,W205_lat,W205_rot,W206_x,W206_y,W209,W212,W213,W214,W216,W217;
 
     // 6DOF
     int X10,X12,X13,X14,X15,X16,X19,X11_u,X11_v,X11_w,X11_p,X11_q,X11_r,X21,X22,X23,X24,X31,X32,X33,X34,X38;

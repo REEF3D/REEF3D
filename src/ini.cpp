@@ -1252,12 +1252,19 @@ void control::ini_default()
     W205=0;          // int geographic frame given (W 205 lon0 lat0 rot)
     W205_lon=W205_lat=W205_rot=0.0;  // double frame: transverse Mercator about lon0, lat0 [deg], x axis rot [deg] from east
     W206_x=W206_y=0.0;  // double model coordinates of (lon0, lat0) [m]
-    W207=1;          // int drag law of the met forcing: 1 Garratt, 2 Wu, 3 Smith and Banke, 4 Zijlema et al.
+    W207=0;          // int drag law of the met forcing: 0 auto (1 for W 200 1/2, 5 for the vortex W 200 3), 1 Garratt, 2 Wu, 3 Smith and Banke, 4 Zijlema et al., 5 Garratt capped at W 213, 6 Zijlema et al. with the floor W 214
     W208=1;          // int air pressure gradient of the met forcing: 0 off, 1 on
     W209=101325.0;   // double reference air pressure of the inverse barometer [Pa]
     W210=1;          // int inverse barometer on the open edges and relaxation zones (B 520): 0 off, 1 on
     W211=0;          // int Coriolis force (SFLOW, NHFLOW): 0 off, 1 f-plane, 2 f per cell from the frame W 205
     W212=0.0;        // double f-plane Coriolis parameter [1/s], 0: 2 Omega sin(lat0) of W 205
+    W213=2.5e-3;     // double cap of the drag coefficient of W 207 5 (saturation, Donelan et al. 2004)
+    W214=1.5e-3;     // double floor of the drag coefficient of W 207 6 beyond the peak of Zijlema et al.
+    W215=2;          // int vortex model of W 200 3: 1 Holland (1980), 2 GAHM, 3 Holland et al. (2010)
+    W216=0.9;        // double vortex: reduction of the gradient wind to 10 m
+    W217=0.8928;     // double vortex: 1-min to 10-min wind averaging factor
+    W218=1;          // int vortex: inflow angle, 0 none, 1 ADCIRC (10 deg inside Rmax to 25 deg beyond 1.2 Rmax)
+    W219=1;          // int vortex: translation, 0 none, 1 scaled by Vg/Vmax (ADCIRC), 2 full
     W_fb=0.0;        // double density of floating body
 
 	// 6DOF

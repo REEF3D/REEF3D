@@ -24,6 +24,8 @@ Architect: Hans Bihs
 #define MET_SOURCE_H_
 
 #include"met_file.h"
+#include"met_frame.h"
+#include"met_vortex.h"
 #include<cmath>
 #include<string>
 
@@ -35,6 +37,9 @@ time t [s since 1970]. No lexer, unit test met_test.cpp.
 
   met_source_uniform  W 200 1: W 201 U10 dir, W 202 pa
   met_source_file     W 200 2: met-forcing.r3m (met_file)
+  met_source_vortex   W 200 3: parametric vortex from met-vortex.trk (met_vortex),
+                      evaluated at the longitude and latitude of the point (frame
+                      W 205), the wind turned from (east, north) to the model axes
 
 Later sources (parametric vortex from a track, blends of sources with a
 radial weight, moving nests) implement the same interface.
@@ -95,6 +100,31 @@ public:
     double first_time() const override {return f.time(0);}
 
     met_file f;
+};
+
+class met_source_vortex final : public met_source
+{
+public:
+    met_source_vortex(const met_frame &fr) : frame(fr) {}
+
+    bool open(const std::string &file, std::string &error) {return v.open(file,error);}
+
+    void at(double t, double x, double y, double &u, double &v_, double &pa) const override
+    {
+    double lon, lat, ue, vn;
+    frame.to_geo(x,y,lon,lat);
+    v.at(t,lon,lat,ue,vn,pa);
+
+    // true north at angle chi from the model x axis, east at chi - 90 deg
+    const double chi = frame.north_geo(lon,lat);
+    u  = ue*std::sin(chi) + vn*std::cos(chi);
+    v_ = -ue*std::cos(chi) + vn*std::sin(chi);
+    }
+
+    double first_time() const override {return v.rec.front().t;}
+
+    met_frame frame;
+    met_vortex v;
 };
 
 #endif

@@ -96,6 +96,7 @@ void met_forcing::update(lexer *p, ghostcell *pgc)
 
     const double r = pm->ramp(p,p->simtime);
     const double ra = r*p->W3/p->W1;
+    const int law = met_drag_law(p->W207,p->W200);
     double u, v, pa, speed;
 
     IMALOOP
@@ -109,8 +110,8 @@ void met_forcing::update(lexer *p, ghostcell *pgc)
     V10(i,j) = v;
     Pa(i,j)  = pa;
 
-    Tx(i,j) = ra*met_drag(p->W207,speed)*speed*u;
-    Ty(i,j) = ra*met_drag(p->W207,speed)*speed*v;
+    Tx(i,j) = ra*met_drag(law,speed,p->W213,p->W214)*speed*u;
+    Ty(i,j) = ra*met_drag(law,speed,p->W213,p->W214)*speed*v;
     }
 
     // kinematic air pressure gradient, central differences (the ghost cells hold the source's values)

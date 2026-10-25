@@ -81,3 +81,13 @@ double met_frame::north(double x, double y) const
 
     return std::atan2(y1-y0, x1-x0);
 }
+
+double met_frame::north_geo(double lon, double lat) const
+{
+    double x0, y0, x1, y1;
+
+    to_model(lon,lat,x0,y0);
+    to_model(lon,lat+1.0e-4,x1,y1);
+
+    return std::atan2(y1-y0, x1-x0);
+}

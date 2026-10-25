@@ -22,6 +22,7 @@ Architect: Hans Bihs
 
 #include"met_provider.h"
 #include"met_source.h"
+#include"met_drag.h"
 #include"lexer.h"
 #include"ghostcell.h"
 #include<cmath>
@@ -100,10 +101,53 @@ met_provider::met_provider(lexer *p, ghostcell *pgc)
         }
     }
 
+    if(p->W200==3)
+    {
+    met_source_vortex *vs = new met_source_vortex(frame);
+    vs->v.par.model = p->W215;
+    vs->v.par.wrf = p->W216;
+    vs->v.par.one2ten = p->W217;
+    vs->v.par.inflow = p->W218;
+    vs->v.par.trans = p->W219;
+
+        if(!vs->open("met-vortex.trk",err))
+        stop(p,pgc,"W 200 3: "+err);
+
+    src = vs;
+
+    const met_vortex &v = vs->v;
+
+    tref = (p->W203>0.0) ? met_datetime(p->W203) : v.rec.front().t;
+
+        if(p->mpirank==0)
+        {
+        const char *mname[4] = {"", "Holland (1980)", "GAHM", "Holland et al. (2010)"};
+        double lon, lat;
+        v.centre(tref,lon,lat);
+
+        std::cout<<"REEF3D met forcing (W 200 3): vortex "<<mname[p->W215]<<" (W 215) from met-vortex.trk, "<<v.rec.size()<<" records "
+                 <<met_date(v.rec.front().t)<<" - "<<met_date(v.rec.back().t)<<", rho_a "<<v.rho<<std::endl;
+        std::cout<<"  Wrf "<<p->W216<<" (W 216), 1-min to 10-min "<<p->W217<<" (W 217), inflow angle "<<(p->W218==1 ? "ADCIRC" : "none")
+                 <<" (W 218), translation "<<(p->W219==1 ? "scaled by Vg/Vmax" : (p->W219==2 ? "full" : "none"))<<" (W 219)"<<std::endl;
+        std::cout<<"  centre at model time 0: lon "<<lon<<", lat "<<lat<<std::endl;
+
+            if(tref + p->N41 < v.rec.front().t || tref > v.rec.back().t)
+            std::cout<<"  warning: the run lies outside the records, the vortex is held at the first or last record"<<std::endl;
+        }
+    }
+
     if(p->mpirank==0)
     {
-    std::cout<<"  model time 0 = "<<met_date(tref)<<(p->W203>0.0 ? " (W 203)" : (p->W200==2 ? " (first record)" : ""))
-             <<", drag law W 207 "<<p->W207;
+    const int law = met_drag_law(p->W207,p->W200);
+
+    std::cout<<"  model time 0 = "<<met_date(tref)<<(p->W203>0.0 ? " (W 203)" : (p->W200>=2 ? " (first record)" : ""))
+             <<", drag law W 207 "<<law<<(p->W207==0 ? " (auto)" : "");
+
+        if(law==5)
+        std::cout<<" (cap "<<p->W213<<", W 213)";
+
+        if(law==6)
+        std::cout<<" (floor "<<p->W214<<", W 214)";
 
         if(p->W204>0.0)
         std::cout<<", ramp "<<p->W204<<" s";
@@ -168,8 +212,8 @@ void met_provider::check(lexer *p, ghostcell *pgc)
 {
     std::string msg;
 
-    if(p->W200<0 || p->W200>2)
-    msg = "W 200: unknown met forcing; use 0 (off), 1 (uniform, W 201, W 202) or 2 (met file met-forcing.r3m).";
+    if(p->W200<0 || p->W200>3)
+    msg = "W 200: unknown met forcing; use 0 (off), 1 (uniform, W 201, W 202), 2 (met file met-forcing.r3m) or 3 (vortex from met-vortex.trk).";
 
     else if(p->W200>0 && p->A10!=2 && p->A10!=5)
     msg = "W 200: the met forcing is for REEF3D::SFLOW (A 10 2) and REEF3D::NHFLOW (A 10 5).";
@@ -180,8 +224,20 @@ void met_provider::check(lexer *p, ghostcell *pgc)
     else if(p->W200>0 && p->G50>0)
     msg = "W 200: the met forcing does not support curvilinear grids (G 50) yet.";
 
-    else if(p->W200>0 && (p->W207<1 || p->W207>4))
-    msg = "W 207: unknown drag law; use 1 (Garratt), 2 (Wu), 3 (Smith and Banke) or 4 (Zijlema et al.).";
+    else if(p->W200>0 && (p->W207<0 || p->W207>6))
+    msg = "W 207: unknown drag law; use 0 (auto), 1 (Garratt), 2 (Wu), 3 (Smith and Banke), 4 (Zijlema et al.), 5 (Garratt capped at W 213) or 6 (Zijlema et al. with the floor W 214).";
+
+    else if(p->W200>0 && (!(p->W213>0.0) || !(p->W214>=0.0)))
+    msg = "W 213, W 214: the cap must be positive, the floor zero or positive.";
+
+    else if(p->W200==3 && p->W205==0)
+    msg = "W 200 3: the vortex is given in longitude and latitude; the frame W 205 (and W 206) places it on the grid.";
+
+    else if(p->W200==3 && (p->W215<1 || p->W215>3))
+    msg = "W 215: unknown vortex model; use 1 (Holland 1980), 2 (GAHM) or 3 (Holland et al. 2010).";
+
+    else if(p->W200==3 && (p->W218<0 || p->W218>1 || p->W219<0 || p->W219>2 || !(p->W216>0.0) || !(p->W217>0.0)))
+    msg = "W 216 - W 219: W 216, W 217 positive, W 218 0 or 1, W 219 0, 1 or 2.";
 
     else if(p->W200==1 && !(p->W201_u>=0.0))
     msg = "W 201: the wind speed must be zero or positive.";

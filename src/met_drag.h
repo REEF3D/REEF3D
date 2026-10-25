@@ -33,13 +33,22 @@ W 207  1  Garratt (1977), capped at 3.5e-3 above 41 m/s (as A 570 1)
        2  Wu (1982)                                        (as A 570 2)
        3  Smith and Banke (1975)                           (as A 570 3)
        4  Zijlema et al. (2012), Uref = 31.5 m/s, >= 0     (as A 570 4)
+       5  Garratt capped at W 213 (default 2.5e-3): the saturation of
+          the drag in hurricane winds (Powell et al. 2003, Donelan et
+          al. 2004), reached at 26.1 m/s; the default of the vortex W 200 3
+       6  Zijlema et al. (2012), beyond its peak (2.03e-3 at 31.4 m/s)
+          not below W 214 (default 1.5e-3): the decline of Powell et
+          al. (2003) without the unphysical zero at 68 m/s
+W 207 0 (default): 1 for W 200 1/2 (as before), 5 for the vortex.
 
-The laws are those of wind_f (A 570), evaluated per cell with the local
-wind speed. Saturating high-wind laws for tropical cyclones follow in a
-later patch.
+Laws 1-4 are those of wind_f (A 570), evaluated per cell with the local
+wind speed.
 --------------------------------------------------------------------*/
 
-inline double met_drag(int law, double U)
+// the law of W 207 (0: auto)
+inline int met_drag_law(int W207, int W200) {return W207>0 ? W207 : (W200==3 ? 5 : 1);}
+
+inline double met_drag(int law, double U, double cap=2.5e-3, double floor=1.5e-3)
 {
     double Cd = 0.0;
 
@@ -57,6 +66,21 @@ inline double met_drag(int law, double U)
     const double x = U/31.5;
     Cd = 0.001*(0.55 + 2.97*x - 1.49*x*x);
     Cd = Cd>0.0 ? Cd : 0.0;
+    }
+
+    if(law==5)
+    {
+    Cd = 0.001*(0.75 + 0.067*U);
+    Cd = Cd<cap ? Cd : cap;
+    }
+
+    if(law==6)
+    {
+    const double x = U/31.5;
+    Cd = 0.001*(0.55 + 2.97*x - 1.49*x*x);
+
+        if(x>2.97/2.98)
+        Cd = Cd>floor ? Cd : floor;
     }
 
     return Cd;

@@ -3,13 +3,18 @@
 // geographic frame (met_frame) against tools/seastate_forcing.py, binary met file reader (met_file): header,
 // file written by tools/met_forcing.py (met_test.r3m), bilinear/linear interpolation exact for linear fields,
 // windows (only the needed part read, the same values), record advance, clamping in space and time, uniform
-// series, moving grids, bad files; uniform and file sources (met_source.h). No MPI, no REEF3D binary.
-// Build:  g++ -O2 -std=c++20 -I../../src met_test.cpp ../../src/met_file.cpp ../../src/met_frame.cpp -o met_test
+// series, moving grids, bad files; uniform and file sources (met_source.h); the high-wind drag laws W 207 5, 6; the
+// parametric vortex (met_vortex: Holland 1980, GAHM, Holland 2010) against tools/met_track.py (met_vortex_ref.txt,
+// met_vortex_nh.trk, met_vortex_sh.trk), its profiles, the vortex source on the model grid. No MPI, no REEF3D binary.
+// Build:  g++ -O2 -std=c++20 -I../../src met_test.cpp ../../src/met_file.cpp ../../src/met_frame.cpp ../../src/met_vortex.cpp -o met_test
 // Run:    ./met_test
 #include"met_drag.h"
 #include"met_file.h"
 #include"met_frame.h"
 #include"met_source.h"
+#include"met_vortex.h"
+#include<sstream>
+#include<map>
 #include<cmath>
 #include<cstdint>
 #include<cstdio>
@@ -346,6 +351,133 @@ static void test_bad_files()
     std::remove("met_test_tmp.r3m");
 }
 
+
+static void test_drag_highwind()
+{
+    std::cout<<"high-wind drag laws (W 207 5, 6)"<<std::endl;
+    bool ok = true;
+    for(double U=0.5; U<90.0; U+=0.5)
+    {
+        const double g = 0.001*(0.75+0.067*U);
+        ok = ok && met_drag(5,U)==std::min(g,2.5e-3) && met_drag(5,U,2.0e-3)==std::min(g,2.0e-3);
+    }
+    check(ok, "W 207 5: Garratt capped at W 213 (2.5e-3 and 2.0e-3), 0.5 - 90 m/s");
+    check(std::fabs(met_drag(5,20.0)-2.09e-3)<1.0e-15 && met_drag(5,30.0)==2.5e-3, "W 207 5: below the cap Garratt, above the cap");
+    double cmax = 0.0, umax = 0.0, cmin = 1.0;
+    bool mono = true;
+    for(double U=20.0; U<90.0; U+=0.1)
+    {
+        const double c = met_drag(6,U);
+        if(c>cmax) {cmax = c; umax = U;}
+        if(U>35.0) cmin = std::min(cmin,c);
+        if(U<31.0) mono = mono && met_drag(6,U+0.1)>=c;
+    }
+    check(std::fabs(cmax-2.03e-3)<2.0e-6 && std::fabs(umax-31.4)<0.2, "W 207 6: peak 2.03e-3 at 31.4 m/s (Zijlema et al.)");
+    check(std::fabs(cmin-1.5e-3)<1.0e-15 && met_drag(6,80.0)==1.5e-3 && met_drag(6,50.0)==met_drag(4,50.0), "W 207 6: not below the floor W 214 beyond the peak, Zijlema above it");
+    check(mono && met_drag(6,10.0)==met_drag(4,10.0), "W 207 6: Zijlema et al. up to the peak");
+    check(met_drag_law(0,1)==1 && met_drag_law(0,2)==1 && met_drag_law(0,3)==5 && met_drag_law(4,3)==4, "W 207 0: law 1 for W 200 1/2, 5 for the vortex, a given law kept");
+}
+
+static void test_vortex()
+{
+    std::cout<<"parametric vortex (W 200 3) against tools/met_track.py"<<std::endl;
+    std::map<std::string,met_vortex> vx;
+    std::string err;
+    for(const char *f : {"met_vortex_nh.trk","met_vortex_sh.trk"})
+    {
+        met_vortex v;
+        const bool ok = v.open(f,err);
+        check(ok && v.rec.size()==5, std::string("open ")+f+(ok ? "" : ": "+err));
+        vx[f] = v;
+    }
+
+    std::ifstream in("met_vortex_ref.txt");
+    std::string line;
+    int n = 0;
+    double eu = 0.0, ep = 0.0;
+    std::map<int,double> em;
+    while(std::getline(in,line))
+    {
+        if(line.empty() || line[0]=='#') continue;
+        std::istringstream ls(line);
+        std::string fn;
+        int model, inflow, trans;
+        double t, lon, lat, u, v, p;
+        ls>>fn>>model>>inflow>>trans>>t>>lon>>lat>>u>>v>>p;
+        met_vortex &V = vx[fn];
+        V.par.model = model;  V.par.inflow = inflow;  V.par.trans = trans;
+        V.par.wrf = 0.9;  V.par.one2ten = 0.8928;
+        double uc, vc, pc;
+        V.at(t,lon,lat,uc,vc,pc);
+        const double e = std::max(std::fabs(uc-u),std::fabs(vc-v));
+        eu = std::max(eu,e);
+        ep = std::max(ep,std::fabs(pc-p));
+        em[model] = std::max(em[model],e);
+        ++n;
+    }
+    check(n==1200, "1200 reference points (2 tracks, NH and SH, models 1-3, inflow and translation options, 4 times)");
+    char buf[160];
+    snprintf(buf,sizeof(buf),"wind = Python to 1e-9 m/s (max %.2e m/s), pressure to 1e-7 Pa (max %.2e Pa)",eu,ep);
+    check(eu<1.0e-9 && ep<1.0e-7, buf);
+
+    // profiles
+    const double f = 2.0*7.2921159e-5*std::sin(26.0*3.14159265358979323846/180.0);
+    double vmx = 0.0, rmx = 0.0;
+    for(double r=5000.0; r<200000.0; r+=10.0)
+    {
+        const double v = met_vortex::gahm(r,50.0,40000.0,1.6,1.03,f);
+        if(v>vmx) {vmx = v; rmx = r;}
+    }
+    check(std::fabs(met_vortex::gahm(40000.0,50.0,40000.0,1.6,1.03,f)-50.0)<1.0e-12, "GAHM: Vg(Rmax) = Vmax exactly");
+    check(std::fabs(rmx-40000.0)<2000.0, "GAHM: the maximum of the profile near Rmax ("+std::to_string(rmx)+" m)");
+    check(std::fabs(met_vortex::holland10(30000.0,45.0,30000.0,1.5,0.8,200000.0)-45.0)<1.0e-12, "Holland 2010: V(Rmax) = Vms");
+    check(met_vortex::fang(10.0,20.0)==5.0 && std::fabs(met_vortex::fang(22.0,20.0)-17.5)<1.0e-12 && met_vortex::fang(30.0,20.0)==25.0, "inflow angle of ADCIRC: 10 r/Rm, 10 + 75 (r/Rm - 1), 25 deg");
+    const double B = 1.4, dp = 5000.0, rho = 1.15;
+    const double vc = std::sqrt(B*dp/rho/std::exp(1.0));
+    check(std::fabs(met_vortex::holland80(30000.0,30000.0,B,dp,rho,0.0)-vc)<1.0e-12, "Holland 1980 without f: Vmax = sqrt(B dp/(rho e)) at Rmax");
+
+    // hemispheres: counter-clockwise in the north, clockwise in the south (no translation, no inflow)
+    met_vortex &N = vx["met_vortex_nh.trk"], &S = vx["met_vortex_sh.trk"];
+    N.par.inflow = 0; N.par.trans = 0; N.par.model = 2;
+    S.par.inflow = 0; S.par.trans = 0; S.par.model = 2;
+    double lon, lat, ue, vn, pa;
+    const met_vortex_rec &rn = N.rec[0], &rs = S.rec[0];
+    // point east of the centre: NH wind to the north, SH to the south
+    N.eval(rn,rn.lon,rn.lat,0.0,0.0,rn.lon+0.5,rn.lat,ue,vn,pa);
+    double ue2, vn2, pa2;
+    S.eval(rs,rs.lon,rs.lat,0.0,0.0,rs.lon+0.5,rs.lat,ue2,vn2,pa2);
+    check(vn>0.0 && std::fabs(ue)<1.0e-2*vn && vn2<0.0 && std::fabs(ue2)<1.0e-2*std::fabs(vn2), "east of the centre: wind to the north (NH), to the south (SH)");
+    check(pa<rn.pn && pa>rn.pc, "pressure between pc and pn");
+    N.eval(rn,rn.lon,rn.lat,0.0,0.0,rn.lon+0.005,rn.lat,ue,vn,pa);
+    check(ue==0.0 && vn==0.0 && pa==rn.pc, "inside 1 km: no wind, pc");
+
+    // the vortex source on a model grid (frame about the track): bitwise the geographic evaluation turned
+    met_frame fr(-86.0,26.0,15.0,0.0,0.0);
+    met_source_vortex src(fr);
+    src.open("met_vortex_nh.trk",err);
+    src.v.par = N.par;
+    double x, y, u, v, p;
+    fr.to_model(-85.3,26.4,x,y);
+    src.at(rn.t+3600.0,x,y,u,v,p);
+    fr.to_geo(x,y,lon,lat);
+    src.v.at(rn.t+3600.0,lon,lat,ue,vn,pa);
+    const double chi = fr.north_geo(lon,lat);
+    check(std::fabs(std::hypot(u,v)-std::hypot(ue,vn))<1.0e-12 && p==pa, "vortex source: speed and pressure kept by the turn to the model axes");
+    check(std::fabs(std::atan2(v,u) - (std::atan2(vn,ue) + chi - 0.5*3.14159265358979323846))<1.0e-9
+          || std::fabs(std::fabs(std::atan2(v,u) - (std::atan2(vn,ue) + chi - 0.5*3.14159265358979323846)) - 2.0*3.14159265358979323846)<1.0e-9,
+          "vortex source: direction turned by the angle of true north in the model frame (rotation 15 deg)");
+
+    // bad tracks
+    {
+    std::ofstream o("met_test_tmp.trk");
+    o<<"REEF3D-MET-TRACK 1 2 1.15\n20181010.000000 1 2 3\n";
+    }
+    met_vortex bad;
+    const bool b1 = !bad.open("met_test_tmp.trk",err);
+    check(b1, "incomplete record refused: "+err);
+    std::remove("met_test_tmp.trk");
+}
+
 int main()
 {
     test_datetime();
@@ -355,6 +487,8 @@ int main()
     test_window();
     test_uniform_and_moving();
     test_bad_files();
+    test_drag_highwind();
+    test_vortex();
 
     std::cout<<std::endl<<(nfail==0 ? "met_test: all passed" : "met_test: "+std::to_string(nfail)+" FAILED")<<std::endl;
     return nfail==0 ? 0 : 1;

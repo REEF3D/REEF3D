@@ -42,6 +42,7 @@ coordinates and back.
   to_geo(x,y,lon,lat)     [m] -> [deg]
   north(x,y)              direction of true north in the model frame
                           [rad, counter-clockwise from the model x axis]
+  north_geo(lon,lat)      the same at a geographic point
 --------------------------------------------------------------------*/
 
 class met_frame
@@ -53,6 +54,7 @@ public:
     void to_model(double lon, double lat, double &x, double &y) const;
     void to_geo(double x, double y, double &lon, double &lat) const;
     double north(double x, double y) const;
+    double north_geo(double lon, double lat) const;     // the same at (lon, lat)
 
     bool set = false;
     double lon0 = 0.0, lat0 = 0.0, rot = 0.0, X0 = 0.0, Y0 = 0.0;   // as given [deg], [m]
