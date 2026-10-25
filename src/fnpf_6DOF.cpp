@@ -187,6 +187,10 @@ fnpf_6DOF::fnpf_6DOF(lexer *p, fdm_fnpf *c, ghostcell *pgc) : initialized(false)
               "the unit modes are solved on all grids"<<endl;
     }
 
+    if(p->mpirank==0 && p->X47>0.0)
+    cout<<"6DOF FNPF: sawtooth filter of eta and Fifsf in "<<MIN(MAX(p->X47_n,1),3)<<" column"<<(MIN(MAX(p->X47_n,1),3)>1?"s":"")
+        <<" around the footprint, weight "<<MIN(p->X47,1.0)<<" (X 47)"<<endl;
+
     if(p->mpirank==0 && p->X28>1)
     {
     cout<<"6DOF FNPF: the added mass every "<<p->X28<<" time steps (X 28)";
@@ -926,11 +930,71 @@ void fnpf_6DOF::footprint(fnpf_6DOF_grid &G, ghostcell *pgc, slice &eta, slice &
                 
                 eta(i,j) = (1.0 - w)*eta_ext(i,j) + w*se/nn;
             }
-            
+
             pgc->gcsl_start4(p,eta,gcval_eta);
         }
+
+        // X 47 w n: sawtooth filter of eta and Fifsf in the free-surface columns within n columns of
+        // the footprint, once per stage,
+        //     f = (1 - w) f + w F(f),   F(f)_i = (-f_{i-2} + 4 f_{i-1} + 10 f_i + 4 f_{i+1} - f_{i+2})/16
+        // (Longuet-Higgins and Cokelet 1976), in x and then in y. F removes the 2-cell mode exactly and
+        // changes a smooth field at 4th order only, so the run-up at the hull and phi_t are kept; the
+        // stencil reads the footprint extension and the free surface alike.
+        // The waterline of a surface-piercing hull feeds the 2-cell mode in the columns at its sides
+        // (the velocity across the waves explodes, umax and wmax follow) in the first deep wave trough:
+        // on a 0.05 m grid at a 1 m float it grows from 0.1 to 10^4 m/s in half a second with X 17 0,
+        // X 17 0.5 holds two floats but not ten (LUPA array, emergency stop at 15 s). X 17 relaxes eta
+        // towards the neighbour mean (2nd order, eta only), its damping of the mode falls with the
+        // grid spacing; the filter's does not.
+        if(p->X47>0.0)
+        {
+            const double w = MIN(p->X47,1.0);
+            const int nb = MIN(MAX(p->X47_n,1),3);       // the ghost margin of the slices
+
+            // the band: free-surface columns with a footprint column within nb columns
+            auto band = [&](int ii, int jj) -> bool
+            {
+                if(foot(ii,jj)>0.5)
+                return false;
+
+                for(int di=-nb; di<=nb; ++di)
+                for(int dj=(p->j_dir==1 ? -nb : 0); dj<=(p->j_dir==1 ? nb : 0); ++dj)
+                if(foot(ii+di,jj+dj)>0.5)
+                return true;
+
+                return false;
+            };
+
+            auto filter = [&](slice &f, slice4 &src, int gcv, bool ydir)
+            {
+                SLICELOOP4
+                src(i,j) = f(i,j);
+
+                pgc->gcsl_start4(p,src,gcv);
+
+                SLICELOOP4
+                if(band(i,j))
+                {
+                    const double F = ydir ? (-src(i,j-2) + 4.0*src(i,j-1) + 10.0*src(i,j) + 4.0*src(i,j+1) - src(i,j+2))/16.0
+                                          : (-src(i-2,j) + 4.0*src(i-1,j) + 10.0*src(i,j) + 4.0*src(i+1,j) - src(i+2,j))/16.0;
+
+                    f(i,j) = (1.0 - w)*src(i,j) + w*F;
+                }
+
+                pgc->gcsl_start4(p,f,gcv);
+            };
+
+            filter(eta,eta_ext,gcval_eta,false);
+            filter(Fifsf,fi_ext,gcval_fifsf,false);
+
+            if(p->j_dir==1)
+            {
+            filter(eta,eta_ext,gcval_eta,true);
+            filter(Fifsf,fi_ext,gcval_fifsf,true);
+            }
+        }
     }
-    
+
     // remember the clean state: extension in the footprint, free surface elsewhere
     SLICELOOP4
     {

@@ -600,6 +600,8 @@ public:
     double X25_Cp,X25_Cq,X25_Cr;
     double X26_Cu,X26_Cv,X26_Cw;
     double X17,X18;
+    double X47;
+    int X47_n;
     int X27,X28;
     double X29_d,X29_a;
     double X30;

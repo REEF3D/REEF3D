@@ -1266,6 +1266,8 @@ void control::ini_default()
     X27=0;        // int FNPF: a free-surface column with a body node within X27 sigma layers below its free-surface node belongs to the footprint of the body (0: off)
     X17=0.5;        // double FNPF: relaxation of eta in the free-surface columns next to the footprint of a body, once per stage (0: off)
     X18=0.0;        // double FNPF: time constant [s] of the running mean of chi at body-fixed points, removed from the psi_0 free-surface data (0: off)
+    X47=0.0;        // double FNPF: weight of the 5-point sawtooth filter (Longuet-Higgins and Cokelet) of eta and Fifsf in the free-surface columns within X47_n columns of the footprint of a body, once per stage (0: off; 1: the filtered value)
+    X47_n=2;        // int FNPF: width of the filtered band at the footprint in columns (X 47)
     X19=1;        // int print out interval 6DOF log files
     X20=1;        // int number of floating body
     X21=1;        // int presribe homogeneous density floating body
