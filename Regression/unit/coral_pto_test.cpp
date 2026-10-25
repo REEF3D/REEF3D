@@ -17,6 +17,9 @@
 // spring in the CORAL joint PTO.
 // Joint drive (prescribed joint motion, coral_joint_drive): a mass on a spring follows the sine with the
 // ramp, the drive force is the force the motion needs (m q'' + k q), translation and rotation; keyword.
+// Joint force (prescribed force from a table, coral_joint_force): a mass on a spring under a sine force
+// from the table against the exact response from rest, translation and rotation; interpolation, ramp,
+// periodic repetition, the table reader and the keyword.
 // Drive-train losses (loss damper and loss Coulomb friction, X 510 / c_loss, coulomb_loss): the decay
 // with the generator and the loss damping, absorbed + dissipated energy = loss of mechanical energy
 // and their ratio c / c_loss, the friction stop with all energy dissipated, the losses not limited
@@ -33,6 +36,7 @@
 #include"coral/pto/coral_pto_joint.h"
 #include"coral/pto/coral_pto_controller.h"
 #include"coral/pto/coral_joint_drive.h"
+#include"coral/pto/coral_joint_force.h"
 #include"coral/io/coral_input.h"
 #include"coral/core/coral_rotation.h"
 #include<fstream>
@@ -611,6 +615,86 @@ static void test_drive()
           && jd->settings.k == 1.0e6 && jd->settings.c == 1.0e3, "keyword drive");
 }
 
+static void test_jforce()
+{
+    std::cout<<"joint force (prescribed force from a table)"<<std::endl;
+    for(bool rot : {false, true})
+    {
+        // m q'' + k q = F0 sin(w t) from rest: q = F0/(k - m w^2) (sin w t - w/wn sin wn t)
+        const double mass = 4.0, kspring = 300.0, F0 = 2.0, w = 5.0, wn = std::sqrt(kspring/mass);
+        model m;
+        rigid_body b;
+        b.mass = mass;
+        b.inertia = Vec3(1, 1, 1).asDiagonal()*mass;
+        m.add_body(b);
+        m.gravity = Vec3::Zero();
+        joint &j = static_cast<joint&>(m.add_constraint(std::make_unique<joint>(m, rot ? joint_type::revolute : joint_type::prismatic,
+                                                                                 -1, 0, Vec3::Zero(), Vec3::UnitX())));
+        Mat6 K = Mat6::Zero();
+        K(rot ? 3 : 0, rot ? 3 : 0) = kspring;
+        m.add_load(std::make_unique<linear6>(m, 0, Vec3::Zero(), K, Mat6::Zero()));
+        jforce_settings s;
+        for(int i=0; i<=6000; ++i)
+        {
+            s.t.push_back(i*1.0e-3);
+            s.F.push_back(F0*std::sin(w*i*1.0e-3));
+        }
+        m.add_load(std::make_unique<joint_force>(j, rot, s, "jf"));
+        timeint ti;
+        ti.initialize(m, 0.0);
+        double eq = 0.0, qmax = 0.0;
+        const double h = 0.002;
+        for(int i=0; i<int(5.0/h); ++i)
+        {
+            ti.step(m, i*h, h);
+            const double t = (i + 1)*h;
+            const double qe = F0/(kspring - mass*w*w)*(std::sin(w*t) - w/wn*std::sin(wn*t));
+            const double q = rot ? j.rotation_coordinate(m) : j.coordinate(m);
+            eq = std::max(eq, std::fabs(q - qe));
+            qmax = std::max(qmax, std::fabs(qe));
+        }
+        check(eq < 0.01*qmax, fmt(rot ? "revolute: max |q - q_exact| %.1e of %.3f" : "prismatic: max |q - q_exact| %.1e m of %.3f", eq, qmax));
+    }
+    // interpolation, scale, ramp, 0 outside the table, periodic repetition
+    {
+        model m;
+        rigid_body b;
+        b.mass = 1.0;
+        m.add_body(b);
+        joint &j = static_cast<joint&>(m.add_constraint(std::make_unique<joint>(m, joint_type::prismatic, -1, 0, Vec3::Zero(), Vec3::UnitZ())));
+        jforce_settings s;
+        s.t = {0.0, 1.0, 2.0};
+        s.F = {0.0, 10.0, 0.0};
+        s.scale = 2.0;
+        joint_force a(j, false, s);
+        s.periodic = true;
+        joint_force p(j, false, s);
+        s.periodic = false;
+        s.ramp = 1.0;
+        joint_force r(j, false, s);
+        const double e = std::fabs(a.force(0.5) - 10.0) + std::fabs(a.force(1.5) - 10.0) + std::fabs(a.force(2.5)) + std::fabs(a.force(-0.1))
+                       + std::fabs(p.force(2.5) - 10.0) + std::fabs(p.force(5.0) - 20.0) + std::fabs(r.force(0.5) - 5.0) + std::fabs(r.force(1.5) - 10.0);
+        check(e < 1.0e-12, fmt("interpolation, scale, ramp, periodic: error %.1e", e));
+    }
+    // the table reader and the keyword
+    {
+        std::ofstream("jforce_test.dat")<<"# t F\n0 0\n0.5 3   # comment\n\n1.0 -2\n";
+        coral_case c;
+        c.read_string("time dt 0.01 end 1\nbody b mass 1 cog 0 0 0\njoint s prismatic ground b point 0 0 0 axis 0 0 1\n"
+                      "jforce f joint s file jforce_test.dat scale 2 ramp 0.5 periodic\n", ".");
+        const joint_force *jf = nullptr;
+        for(const auto &l : c.m.load_list)
+            if(auto p = dynamic_cast<const joint_force*>(l.get())) jf = p;
+        std::ofstream("jforce_test.dat")<<"0 0\n1 2\n1 3\n";
+        std::vector<double> t, F;
+        std::string msg;
+        const bool bad = !joint_force::read_table("jforce_test.dat", t, F, msg);
+        std::remove("jforce_test.dat");
+        check(jf && jf->settings.t.size() == 3 && jf->settings.F[1] == 3.0 && jf->settings.F[2] == -2.0 && jf->settings.scale == 2.0
+              && jf->settings.ramp == 0.5 && jf->settings.periodic && bad, "keyword jforce, table with comments, times must increase");
+    }
+}
+
 static void test_losses()
 {
     std::cout<<"drive-train losses"<<std::endl;
@@ -755,6 +839,7 @@ int main()
     test_joint();
     test_latch_spring();
     test_drive();
+    test_jforce();
     test_losses();
     std::cout<<(nfail ? "FAILED: " : "all passed")<<(nfail ? std::to_string(nfail) : "")<<std::endl;
     return nfail ? 1 : 0;

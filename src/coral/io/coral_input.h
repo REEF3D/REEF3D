@@ -50,10 +50,14 @@ Architect: Hans Bihs
 //   drive <name> joint <joint> sine <amplitude> <period> [phase <deg>] [ramp <t>] [q0 <q>] [rotational]
 //        [k <k>] [c <c>]          (prescribed joint motion by a stiff spring-damper, default k 1e7, c 1e4;
 //        forced oscillation in a resolved fluid, coral/pto/coral_joint_drive.h)
+//   jforce <name> joint <joint> file <t F table> [scale <s>] [ramp <t>] [periodic] [rotational]
+//        (prescribed force along the joint axis, or torque about it, interpolated in the table, 0 outside
+//        it unless periodic; system identification with a multisine or chirp force, coral/pto/coral_joint_force.h)
 //   spring <name> a <body> <x y z> b <body> <x y z> k <k> [c <c>] [L0 <L>] [T0 <T>] [tension_only]
 //   linear6 <name> body <b> point <x y z> [k <k1..k6>] [c <c1..c6>]       (diagonal stiffness, damping)
 //        [K <36 values>] [C <36 values>]           (full 6x6 matrices, row by row, e.g. coupled springs)
-//   force <name> body <b> [point <x y z>] [F <fx fy fz>] [M <mx my mz>] [ramp <t>]   (constant load)
+//   force <name> body <b> [point <x y z>] [F <fx fy fz>] [M <mx my mz>] [ramp <t>] [until <t>]
+//        (constant load; until: released at that time, e.g. a free decay from the equilibrium under the load with static)
 //   drag <name> body <b> [point <x y z>] (Q <q1..q6> | Cd <Cd> area <A> [axis <ex ey ez>]) [rho <rho>]
 //        (quadratic damping F_i = -Q_i |u_i| u_i of the point velocity (default point: the CoG) and the
 //        angular velocity, global axes; with Cd and area along the axis (default z) Q = rho Cd A / 2,
@@ -116,6 +120,13 @@ Architect: Hans Bihs
 //        as for the lines, isotropic); the lines connected through points form one mooring system (advanced together),
 //        whose seabed defaults to the lowest ground end of its lines; channels <point>_x, _y, _z)
 //   morison <name> body <b> p1 <x y z> p2 <x y z> D <D> [Cd <c>] [Ca <c>] [Cm <c>] [n <n>] [current <u v w>]
+//   strip_member <name> body <b> p1 <x y z> p2 <x y z> D <D> [Cd <c>] [Ca <c>] [Cm <c>] [n <n>] [end1] [end2]
+//        [Ca_end <c>] [Cd_end <c>] [no_buoyancy] [current <u v w>] [exact_kinematics]
+//        (strip theory of a rigid floater with nonlinear hydrostatics: buoyancy of the wet part of each strip below the
+//        instantaneous elevation, Morison normal to the member, and at closed ends below the surface (end1, end2) the
+//        waves' dynamic pressure, added mass Ca_end rho D^3/6 and drag along the axis; channels <name>_Fx .. _Mz
+//        (moment about the body's CoG), _V (submerged volume); the wave kinematics at the undisplaced strips once per
+//        time unless exact_kinematics; coral/hydro/coral_strip_hydro.h)
 //   morison <name> member <m> [D <D>] [Cd <c>] [Ca <c>] [Cm <c>] [n <strips per element>] [current <u v w>]
 //        [no_buoyancy] [flooded <D_inner>]
 //        (distributed on a frame or superelement member, buoyancy of the submerged strips; D defaults to
@@ -176,6 +187,67 @@ Architect: Hans Bihs
 //        origin: the point of the REEF3D grid that is CORAL's origin (default 0 0 0; e.g. 0 0 <depth> for
 //        CORAL's still water level z = 0 with REEF3D's bed at z = 0); record: a journal of all fluid input
 //        (REEF3D_CORAL/<file>) for the standalone CORAL: CORAL coral.txt replay <file> (io/coral_coupling.h)
+//   rho_air <rho>                                air density for the aerodynamic loads (1.225)
+//   wind steady U <U> [z_ref <z>] [direction <deg>] [shear <alpha> | log <z0>] [veer <deg/m>] [upflow <deg>]
+//        [origin <x y>] [ramp <t>]
+//   wind file <uniform wind file> [z_ref <z>] [L_ref <L>] [shear ...] [veer ...] [origin <x y>] [ramp <t>]
+//        (U at the height z_ref (default: z_hub of wind iec), direction of propagation counterclockwise from +x, power-law
+//        or logarithmic shear, veer: turning of the direction with height, origin: the hub's horizontal position (lateral
+//        shear, events, turbulence); the file: InflowWind's uniform wind, columns t U direction (deg, positive clockwise
+//        from above) [w] [horizontal shear] [shear exponent] [linear vertical shear] [gust], the linear shears per L_ref
+//        (default the rotor diameter of wind iec), linear in time; coral/wind/coral_wind.h)
+//   wind iec <I|II|III> <A+|A|B|C> z_hub <z> D <D>    IEC 61400-1 ed. 3 turbine class: events and turbulence
+//   wind event <eog|edc+|edc-|ecd+|ecd-|ews_v+|ews_v-|ews_h+|ews_h-> t0 <t>
+//        (extreme operating gust, direction change, coherent gust with direction change, vertical or horizontal shear,
+//        from t0, at the hub speed of the steady wind; normal turbulence model sigma_1)
+//   wind turbulence kaimal [ntm|etm|ewm] [ny <n>] [nz <n>] [width <w>] [height <h>] [T <T>] [dt <dt>] [seed <s>]
+//        [coherence_vw] [scale_hub] [write <file.bts>]
+//        (IEC Kaimal turbulence with the exponential coherence (u; v and w too with coherence_vw) on a grid around the
+//        hub, default 15 x 15 points over 1.1 D, T end + 10 s, dt 0.05 s, rounded up to 2^n levels (periodic); frozen and
+//        convected with the hub speed; write: the full field (mean + turbulence) as a TurbSim .bts for other codes;
+//        coral/wind/coral_wind_grid.h)
+//   wind turbsim <file.bts> [direction <deg>] [origin <x y>] [x0 <xi0>]
+//        (TurbSim full field, frozen: a point at the downwind distance xi from the origin sees the grid at
+//        t + (xi0 - xi)/u_hub; outside the grid its edge, below it the tower points)
+//   wind_probe <name> <x y z> [body <b>]          (output channels <name>_u _v _w _U of the inflow at the point)
+//   rotor <name> hub <x y z> axis <ax ay az> R_hub <r> blade <AeroDyn blade file> airfoils <n> <file 1> .. <file n>
+//        [blades <B>] [structure <ElastoDyn blade file>] [hub_mass <m>] [hub_inertia <J> [<J_across>]] [precone <deg>]
+//        [azimuth <deg>] [ccw] [nacelle <body>] [rpm <rpm>] [pitch <deg> | pitch_file <t deg table>]
+//        [gearbox <N>] [gen_inertia <J_hss>] [shaft <k> <c>] [efficiency <eta>]
+//        [generator none | constant <T> | slip <slope> <rpm_sync> | k_omega2 <K> [<T_max>]]
+//        [no_skew] [no_tip_loss] [no_hub_loss] [no_tangential] [no_induction] [no_drag_induction]
+//        [tower <x y z base> <x y z top> <D_base> <D_top> [tower_body <b>]]
+//        [pitch_joints [pitch_freq <Hz>] [pitch_zeta <z>]] [blade_elements <n> [blade_beta <s>] [ea_per_mass <EA/m>] [gj_factor <f>]]
+//        (wind turbine rotor: hub (body <name>_hub, <name>_gen with the shaft torsion) turning in the revolute joint
+//        <name>_shaft on the nacelle (default the ground) about the axis
+//        pointing downwind, clockwise looking downwind unless ccw; blade 1 up at azimuth 0; the stations of AeroDyn's
+//        blade file at R_hub + BlSpn from the hub centre, airfoils in the order of its BlAFID; the blade mass from
+//        ElastoDyn's blade file (BMassDen); precone positive with the tips downwind; generator torque on the high-speed
+//        shaft (N m, rad/s; rpm_sync of the high-speed shaft), shaft torsion k [N m/rad], c [N m s/rad] on the
+//        low-speed shaft with the generator on a body of its own; quasi-steady blade element momentum with
+//        Prandtl's tip and hub loss, Buhl's correction and the skewed wake; tower potential flow;
+//        channels <name>_azimuth _rpm _T _Q _P _Cp _Ct _lambda _U _yaw _pitch _b<k>_Moop _b<k>_Mip and
+//        <name>_dt_rpm_rotor _rpm_gen _T_gen _P_gen _T_shaft; blades rigid on the hub unless: pitch_joints: each blade
+//        on a pitch bearing (body <name>_pitch<k>, revolute joint <name>_pitch<k> on the hub, positive towards feather)
+//        driven to the pitch command by a second-order actuator (default 2 Hz, damping 0.7; channels <name>_pitch_cmd,
+//        _pitch_b<k>, _pitch_b<k>_T); blade_elements n: flexible blades of n co-rotational beam elements from the
+//        structural table (structure is then required; EA = ea_per_mass m (2e7), GJ = gj_factor EI_flap (0.3), damping
+//        blade_beta (0.0022 s)), nodes <name>_b<k>e<i>:1; coral/aero/coral_rotor.h)
+//   controller <name> rotor <rotor> [tune P_rated <W> rpm_rated <rpm> [omega_n <rad/s>] [zeta <z>] [write <file>]]
+//        [K <N m s^2>] [rpm_cutin <rpm>] [rpm_rgn2 <rpm>] [rpm_rated_torque <rpm>] [P_rated <W>] [slip <%>] [T_max <N m>]
+//        [T_rate <N m/s>] [pitch_rgn3 <deg>] [rpm_ref <rpm>] [KP <s>] [KI <->] [theta_K <deg>] [theta_min <deg>]
+//        [theta_max <deg>] [theta_rate <deg/s>] [corner <Hz>] [dt <s>] [no_pitch] [no_torque]
+//        (wind turbine controller of the NREL 5 MW baseline type on the filtered generator speed: variable-speed
+//        torque (regions 1, 1.5, 2 k omega^2, 2.5, 3 constant power) and gain-scheduled PI collective pitch; speeds and
+//        torque on the generator (high-speed) side, K in N m s^2/rad^2; the defaults are the NREL 5 MW's (DISCON); it sets
+//        the rotor's generator torque and the pitch command of its pitch actuators (or the pitch of rigid blades without
+//        pitch bearings) once per step; tune: the gains for this rotor from CORAL's steady BEM at the rated power and the
+//        rated rotor speed (K from Cp_max and lambda_opt, the PI gains from dP/dtheta for a response at omega_n
+//        (0.6 rad/s) and zeta (0.7) with the rotor's and generator's inertia, theta_K from the fit of dP/dtheta,
+//        rpm_ref = N rpm_rated (the rotor speed), rpm_rated_torque (region 3 of the torque law) 0.99 of it, rpm_cutin, rpm_rgn2 0.57 and 0.74 of rpm_ref
+//        and T_max 1.1 rated torque as the NREL 5 MW; K Omega_rated^3 must stay below P_rated: the baseline torque law
+//        reaches the rated power at the rated speed, not before), given values override; write: the steady operating curve and the
+//        tuning; channels <name>_wf (rpm), _T, _pitch (deg), _region; coral/control/coral_turbine_controller.h)
 //   static                                       static equilibrium before the time integration
 //   modes <n> [damped]                           linear analysis: the first n modes (modes.dat, mode_shapes.dat)
 //   output vtp <dt>                              VTP of the structure (coral_vtp/)
@@ -186,6 +258,8 @@ Architect: Hans Bihs
 #include"coral/core/coral_model.h"
 #include"coral/core/coral_timeint.h"
 #include"coral/hydro/coral_waves.h"
+#include"coral/wind/coral_wind.h"
+#include"coral/aero/coral_rotor.h"
 #include<map>
 #include<memory>
 #include<string>
@@ -223,6 +297,9 @@ namespace coral
         model m;
         run_settings run;
         std::shared_ptr<wave_field> waves;
+        std::shared_ptr<wind_inflow> wind;
+        std::map<std::string, rotor_handles> rotors;       // rotor <name>
+        double rho_air = 1.225;
         std::map<std::string, joint*> joints;
         double rho = 1025.0;
 
@@ -241,6 +318,7 @@ namespace coral
         bool fluid_predictor = true;
 
     private:
+        std::map<std::string, rotor_spec> rotor_specs_;
         void parse(const std::vector<std::pair<int, std::vector<std::string>>> &lines, const std::string &dir);
     };
 }

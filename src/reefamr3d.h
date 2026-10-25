@@ -232,6 +232,11 @@ public:
     // the relaxation zones of the wave generation (B 98 2) and the beach (B 99 1/2) may be refined
     // (the model relaxes its patches there; CFD with a wave theory), else they stay on level 0
     bool zone_gen_refine = false, zone_beach_refine = false;
+    // lazy layout (the CFD body zone, G 12): per level the refined tiles of the last layout are kept
+    // as long as the union with the new tiles has at most lazy times the new ones (0: off), so a zone
+    // that moves a little with the body does not rebuild the patches; tprev: the last layout (rebuild)
+    double lazy = 0.0;
+    const vector<vector<unsigned char>> *tprev = nullptr;
 
     // index helpers
     int gn(int l, int d) const;                         // global cells of level l

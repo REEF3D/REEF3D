@@ -505,7 +505,12 @@ void reefamr::blocks_setup(lexer *p, ghostcell *pgc)
         cout<<par.name<<": multi-block grid, "<<nblk<<" blocks (block 0 the native grid, ring "<<B0.ring[0]<<" "<<B0.ring[1]
             <<" "<<B0.ring[2]<<" "<<B0.ring[3]<<")";
         for(int b=1; b<nblk; ++b)
-        cout<<"; block "<<b<<": "<<blk[b].ni<<" x "<<blk[b].nj<<" on rank "<<blk[b].rank;
+        {
+            cout<<"; block "<<b<<": "<<blk[b].ni<<" x "<<blk[b].nj;
+            if(G->blk[b].orig!=b || G->nblk_orig<nblk)
+            cout<<" (of block "<<G->blk[b].orig<<" at "<<G->blk[b].oi<<" "<<G->blk[b].oj<<")";
+            cout<<" on rank "<<blk[b].rank;
+        }
         cout<<endl;
         if(maxlev>=1 && nsing>0)
         cout<<par.name<<": "<<nsing<<" block corner(s) at singular vertices (not four blocks around the node), no refinement around them"<<endl;
@@ -515,23 +520,29 @@ void reefamr::blocks_setup(lexer *p, ghostcell *pgc)
 // tile maps and no-refinement cells over the index space with the blocks; the singular vertices; the
 // open faces of the blocks 1.. (G 54 b t v): t 1 discharge v through the -i face of block b, t 2 water level v at
 // its +i face, t 3 and 4 the same from the time series file discharge-<v>.dat or waterlevel-<v>.dat (lines
-// "t value", ioflow_amr_block); the face has no interface, one line per face
+// "t value", ioflow_amr_block); the face has no interface, one line per face.  b is the block of DIVEMesh: with
+// G 55 the face belongs to the piece that holds it (geo_mesh::face_piece)
 void reefamr::blocks_open(lexer *p)
 {
     bopen[0].assign(nblk,-1);
     bopen[1].assign(nblk,-1);
+    const geo_mesh *G = p->gridgeo;
     int bad=0;
     for(int n=0; n<p->G54; ++n)
     {
-        const int b = p->G54_b[n], t = p->G54_t[n];
+        const int bo = p->G54_b[n], t = p->G54_t[n];
         const int f = (t==1 || t==3) ? 0 : 1;
+        const int b = G->face_piece(bo,f);
         const char *why = nullptr;
         string file;
-        if(b<1 || b>=nblk)
+        if(bo<1 || bo>=G->nblk_orig)
         why = "no block 1.. of the grid";
         else
         if(t<1 || t>4)
         why = "type 1 (discharge in, -i face), 2 (water level out, +i face), 3 (discharge time series in) or 4 (water level time series out)";
+        else
+        if(b<0)
+        why = "the face is cut into pieces (G 55)";
         else
         if(bopen[f][b]>=0)
         why = "the face is open already";
@@ -555,14 +566,17 @@ void reefamr::blocks_open(lexer *p)
         if(why!=nullptr)
         {
             if(p->mpirank==0)
-            cout<<"!!! "<<par.name<<": G 54 "<<b<<" "<<t<<" "<<p->G54_v[n]<<(file.empty() ? "" : " ("+file+")")<<": "<<why<<" !!!"<<endl;
+            cout<<"!!! "<<par.name<<": G 54 "<<bo<<" "<<t<<" "<<p->G54_v[n]<<(file.empty() ? "" : " ("+file+")")<<": "<<why<<" !!!"<<endl;
             ++bad;
             continue;
         }
         bopen[f][b] = n;
         if(p->mpirank==0)
         {
-            cout<<par.name<<": block "<<b<<(f==0?" inflow ":" outflow ");
+            cout<<par.name<<": block "<<bo;
+            if(b!=bo)
+            cout<<" (piece "<<b<<")";
+            cout<<(f==0?" inflow ":" outflow ");
             if(t<=2)
             cout<<(f==0?"Q = ":"water level ")<<p->G54_v[n]<<(f==0?" m3/s":" m");
             else
@@ -579,13 +593,17 @@ void reefamr::blocks_open(lexer *p)
     for(int q=0; q<(int)bzones.size(); ++q)
     {
         const bc_zone &z = bzones[q];
-        const int b = z.block, f = z.edge-1;
+        const int bo = z.block, f = z.edge-1;
+        const int b = G->face_piece(bo,f);
         const char *why = nullptr;
-        if(b>=nblk)
+        if(bo>=G->nblk_orig)
         why = "no block 1.. of the grid";
         else
         if(p->A10!=5)
         why = "edge zones on the blocks are available for NHFLOW (A 10 5) only, so far";
+        else
+        if(b<0)
+        why = "the face is cut into pieces (G 55)";
         else
         if(bopen[f][b]>=0)
         why = "the face is open by G 54 already";
@@ -607,7 +625,7 @@ void reefamr::blocks_open(lexer *p)
         if(why!=nullptr)
         {
             if(p->mpirank==0)
-            cout<<"!!! "<<par.name<<": zone "<<z.id<<" on face "<<z.edge<<" of block "<<b<<" (B 522): "<<why<<" !!!"<<endl;
+            cout<<"!!! "<<par.name<<": zone "<<z.id<<" on face "<<z.edge<<" of block "<<bo<<" (B 522): "<<why<<" !!!"<<endl;
             ++bad;
             continue;
         }
@@ -616,7 +634,10 @@ void reefamr::blocks_open(lexer *p)
         {
             const char *m = z.method==bc_method::riemann ? "Riemann edge" : z.method==bc_method::flather ? "Flather edge"
                           : z.method==bc_method::clamp_level ? "clamped level edge" : "clamped discharge edge";
-            cout<<par.name<<": block "<<b<<": zone "<<z.id<<", "<<m;
+            cout<<par.name<<": block "<<bo;
+            if(b!=bo)
+            cout<<" (piece "<<b<<")";
+            cout<<": zone "<<z.id<<", "<<m;
             if(z.bg>0)
             cout<<" with background "<<z.bg;
             if(z.has_Q)

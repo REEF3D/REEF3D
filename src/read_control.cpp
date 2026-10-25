@@ -2078,6 +2078,9 @@ void control::read_control(lexer* p)
                 case 52: control>>G52;
                          clear(c,numint);
                          break;
+                case 55: control>>G55;
+                         clear(c,numint);
+                         break;
                 case 53: control>>G53;
                          clear(c,numint);
                          break;
@@ -2928,6 +2931,9 @@ void control::read_control(lexer* p)
                 case 78: control>>Q78;
                          clear(c,numint);
                          break;
+                case 79: control>>Q79;
+                         clear(c,numint);
+                         break;
                 case 75: control>>Q75;
                          clear(c,numint);
                          break;
@@ -3158,6 +3164,9 @@ void control::read_control(lexer* p)
                          clear(c,numint);
                          break;
                 case 58: control>>S58;
+                         clear(c,numint);
+                         break;
+                case 59: control>>S59>>S59_phi;
                          clear(c,numint);
                          break;
                 case 60: retired_key(control,p,c,numint);
@@ -3564,6 +3573,9 @@ void control::read_control(lexer* p)
                 case  36: control>>X36;
                          clear(c,numint);
                          break;
+                case  37: control>>X37;
+                         clear(c,numint);
+                         break;
                 case  38: control>>X38;
                          clear(c,numint);
                          break;
@@ -3589,6 +3601,9 @@ void control::read_control(lexer* p)
                          clear(c,numint);
                          break;
                 case  46: control>>X46;
+                         clear(c,numint);
+                         break;
+                case  47: control>>X47>>X47_n;
                          clear(c,numint);
                          break;
                 case  48: control>>X48;

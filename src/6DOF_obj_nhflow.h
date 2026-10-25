@@ -72,6 +72,8 @@ public:
     void membrane_reforce_nhflow(lexer*,fdm_nhf*,ghostcell*,double,double*,double*,double*,slice&);
     bool membrane_couple_nhflow(lexer*,fdm_nhf*,ghostcell*,int,double,slice&,int);
     void membrane_stabilisation(lexer*,int);
+    void hull_stabilisation(lexer*,int);
+    void coupling_stabilisation(lexer*,int,double,Eigen::Matrix3d,const Eigen::Matrix3d&);
     Eigen::Vector3d umem_n_=Eigen::Vector3d::Zero(), amem_n_=Eigen::Vector3d::Zero();
     double tmem_n_=-1.0;
     Eigen::Vector3d wmem_n_=Eigen::Vector3d::Zero(), almem_n_=Eigen::Vector3d::Zero();
@@ -95,6 +97,12 @@ public:
     // X 13: signed distance of the top cell centre of every column to the hull (negative inside,
     // |phi| <= band), from the current trimesh on the grid of p (level 0 or a patch)
     void top_phi_nhflow(lexer*, fdm_nhf*, slice&, double, slice&);
+    // X 13 2 (nhflow_fsf_hull): keel height (lowest crossing of the vertical ray through the column
+    // centre with the trimesh), cover (1: keel below the water level WL of the column) and the body
+    // velocity at the keel point; the loads of the footprint columns into the body (gravity added,
+    // force file written)
+    void keel_nhflow(lexer*, fdm_nhf*, slice&, slice&, slice&, slice&, slice&, slice&);
+    void hull_loads_nhflow(lexer*, ghostcell*, bool, double, double, double, double, double, double);
     // hr: the spacing of the grid relative to level 0 for the band of the loads (0: DXM of the grid / DXM of level 0;
     // the blocks of a multi-block grid have their own logical DXM)
     struct nhflow_grid { lexer *p; fdm_nhf *d; slice *WL; double hr = 0.0; };

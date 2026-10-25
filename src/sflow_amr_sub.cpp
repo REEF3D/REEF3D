@@ -264,7 +264,14 @@ void sflow_amr::sub_level(lexer *p, ghostcell *pgc, int l, int k, double t, doub
         bous_level(p,pgc,l,k,s);
     }
 
-    // end of the step as for level 0 in sflow_f::mainloop
+    // end of the step as for level 0 in sflow_f::mainloop; the cells around the patches from their
+    // sources first (the wet-dry update reads them, sflow_amr::step_end)
+    t0 = MPI_Wtime();
+    cache_stage(0);
+    tint = 0.5*double(k+1);
+    fill_level(pgc,l,0);
+    tint = -1.0;
+    tm[0] += MPI_Wtime()-t0;
     {
     comms_off guard(pgc);
     for(int n : lev[l])

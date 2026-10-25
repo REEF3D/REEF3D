@@ -53,8 +53,30 @@ static inline double nhflow_wall_drag(double vel, double ut, double dn, double k
     return ut*vel*WLval/(uplus*uplus*dn);
 }
 
+// the bed shear stress point-implicit in time: the explicit drag c |u| u WL with c = 1 / (u+^2 dn) divided by
+// 1 + dt c |u|.  In a thin layer at a wet/dry front (WL of a few cm, dn = DZN WL a few mm) dt c |u| reaches 2-10
+// and the explicit drag reverses the velocity within one step, an oscillation that only the Froude limiter
+// (A 531) stops, at 1-2 m/s in a 2-4 cm layer; the point-implicit drag brings the velocity at most to rest.  In
+// deep water dt c |u| is small and the drag is the explicit one to that order.
+static inline double nhflow_bed_drag(double vel, double ut, double dn, double ks, double WLval, double dt)
+{
+    const double kappa=0.4;
+    double z0 = 0.5*dn;
+    
+    if(ks<=0.0)
+    ks=0.0001;
+    
+    if(30.0*z0<ks)
+    z0=ks/30.0;
+    
+    const double uplus = (1.0/kappa)*MAX(1.0,log(30.0*(z0/ks)));
+    const double c = 1.0/(uplus*uplus*dn);
+    
+    return c*ut*vel*WLval/(1.0 + MAX(dt,0.0)*c*ut);
+}
+
 // comp 0: U into F, 1: V into G, 2: W into H
-// A519 1: bed friction in the bottom cell layer on u and v.
+// A519 1: bed friction in the bottom cell layer on u and v (point-implicit in time, nhflow_bed_drag).
 // A519 2: friction at every wall face (nhflow_wall.h, the same walls as the turbulence wall functions),
 //         on the velocity components tangential to the face; ks = B57 at side and top walls, the bed
 //         roughness d->ks at the bed. Faces add up (corner cells feel both walls).
@@ -73,7 +95,7 @@ void nhflow_bcmom::wall_friction(lexer *p, fdm_nhf *d, int comp, double *VEL, do
     U=d->U[IJK];
     V=d->V[IJK];
     
-    F[IJK] -= nhflow_wall_drag(VEL[IJK], sqrt(U*U + V*V), p->DZN[KP]*WL(i,j), d->ks(i,j), WL(i,j));
+    F[IJK] -= nhflow_bed_drag(VEL[IJK], sqrt(U*U + V*V), p->DZN[KP]*WL(i,j), d->ks(i,j), WL(i,j), p->dt);
     }
     }
     
@@ -100,7 +122,7 @@ void nhflow_bcmom::wall_friction(lexer *p, fdm_nhf *d, int comp, double *VEL, do
         
         // bed: u, v
         if(w[4] && comp!=2)
-        F[IJK] -= nhflow_wall_drag(VEL[IJK], sqrt(U*U + V*V), dz, d->ks(i,j), WL(i,j));
+        F[IJK] -= nhflow_bed_drag(VEL[IJK], sqrt(U*U + V*V), dz, d->ks(i,j), WL(i,j), p->dt);
         
         // solid above: u, v
         if(w[5] && comp!=2)

@@ -1,0 +1,19 @@
+{
+ "base": "sflow_2d_amr_bar_nh",
+ "description": "sflow_2d_amr_bar_nh with the refinement box over the whole flume and without the G 11 boxes: the relaxation zones of the wave generation (B 98 2) and the numerical beach (B 99 1, B 96 5.0 9.5) stay unrefined by themselves (ioflow::relax_boxes).",
+ "ctrl_set": {
+  "G 10": "0.0 38.0 -1 1",
+  "G 11": null
+ },
+ "tags": [
+  "2d",
+  "sflow",
+  "amr",
+  "nh",
+  "waves",
+  "iowave"
+ ],
+ "covers": [
+  "sflow_amr: no refinement in the relaxation zones (iowave::relax_boxes)"
+ ]
+}

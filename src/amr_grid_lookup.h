@@ -45,6 +45,13 @@ public:
     // (amr_cfd_mine); finest_level: the level of the grid finest_grid gives here (0: none)
     virtual bool placed() const { return false; }
     virtual int finest_level(double x, double y, double z) const { return 0; }
+
+    // the forces on the solids (P 81, force): the level of the finest grid at a point, from the
+    // refined regions of all ranks (0: level 0; the same on every rank), and the part of this rank's
+    // patches in force box ID added to F (Fx, Fy, Fz, area, Ax, Ay, Px): every piece of the solid
+    // surface integrated on the finest grid at its centre (cfd_amr_force.cpp)
+    virtual int leaf_level(double x, double y, double z) const { return 0; }
+    virtual void solid_forces(int ID, double *F) const {}
 };
 
 // the points of an output (a load) this rank evaluates: those on its level-0 grid (flag); with the

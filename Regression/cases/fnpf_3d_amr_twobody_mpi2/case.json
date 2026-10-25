@@ -1,0 +1,9 @@
+{
+ "description": "fnpf_3d_amr_twobody on 2 ranks: the rank cut at x = 20 m lies between the bodies.",
+ "solver": "fnpf",
+ "np": 2,
+ "steps": 20,
+ "base": "fnpf_3d_amr_twobody",
+ "tags": ["3d", "fnpf", "amr", "6dof", "floating", "mpi"],
+ "covers": ["the coupled added-mass system of two bodies on different ranks"]
+}

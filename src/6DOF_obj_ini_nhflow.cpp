@@ -25,6 +25,7 @@ Author: Tobias Martin
 #include"momentum.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
+#include"nhflow_hullbody.h"
 #include<sys/stat.h>
 #include"mooring_void.h"
 #include"mooring_barQuasiStatic.h"
@@ -104,6 +105,10 @@ void sixdof_obj_nhflow::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     
     // Initialise global variables
 	update_fbvel(p,pgc);
+    
+    // X 15 8: the hull as a sharp thin body (nhflow_hullbody), the thin-body service with it
+    if(p->X15==8 && d->hullbody==nullptr)
+    d->hullbody = new nhflow_hullbody(p,d,pgc,this);
 
     // Print initial body (not on a restart from a checkpoint, I 45 1: printed already)
     if(p->I45!=1)

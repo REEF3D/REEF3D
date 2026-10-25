@@ -139,6 +139,7 @@ public:
     void ini2D(lexer*,fdm2D*,ghostcell*) override final;
     void ckpt_state(lexer*, std::vector<double>&) override final;
     void ckpt_restore(lexer*, const std::vector<double>&) override final;
+    void relax_boxes(lexer*, std::vector<double>&) const override final;
     
     void vrans_sed_update(lexer*,fdm*,ghostcell*,vrans*) override final;
 

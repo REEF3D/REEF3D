@@ -136,6 +136,10 @@ public:
     virtual void ckpt_state(lexer*, std::vector<double>&) {}
     virtual void ckpt_restore(lexer*, const std::vector<double>&) {}
 
+    // the zones in which the in- and outflow relaxes the solution (wave generation, numerical beach), as
+    // boxes xs,xe,ys,ye appended to b: a mesh refinement whose patches run without it keeps them unrefined
+    virtual void relax_boxes(lexer*, std::vector<double> &b) const {}
+
     virtual double wave_fsf(lexer*,ghostcell*,double)=0;
     virtual double wave_xvel(lexer*,ghostcell*,double,double,double)=0;
     virtual double wave_yvel(lexer*,ghostcell*,double,double,double)=0;

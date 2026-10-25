@@ -1,0 +1,20 @@
+{
+ "base": "fnpf_3d_coral_array",
+ "ctrl_add": [
+  "X 36 1",
+  "X 37 4"
+ ],
+ "description": "fnpf_3d_coral_array (three FNPF point absorbers 1 m apart driven by REEF3D::CORAL, a refined zone around each, G 12 0.3) with the unit modes of the added mass of every body solved on the patches of its zone only (X 36 1): psi 0 on level 0 and on the other patches, no level-0 rows and no level-0 cycle in the preconditioner, calibrated on all grids at the first added mass and every 4 refreshes (X 37 4: the differences of the added mass and the cross terms to the solves on all grids kept and added to the window results). Without the calibration (fnpf_3d_coral_array_x36_nocal) the added mass in heave is 1.7 % low.",
+ "tags": [
+  "3d",
+  "fnpf",
+  "amr",
+  "6dof",
+  "floating",
+  "coral"
+ ],
+ "covers": [
+  "fnpf_6DOF::windows, solve_psi_window, solve_psi_cal and the calibration of X 36 1 (cal_dA, cal_dC; X 37)",
+  "fnpf_amr::lap_solve_psi_window: the patches of a window (reefamr::skip), no level-0 rows and cycle (lap_nol0), the window's own Krylov vectors (kvw), leaf columns under the patches outside the window (lap_wgp)"
+ ]
+}

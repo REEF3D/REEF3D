@@ -1,0 +1,24 @@
+{
+ "base": "nhflow_3d_curv_sed_amr_adaptive",
+ "ctrl_set": {
+  "P 48": "10",
+  "P 49": "0"
+ },
+ "description": "nhflow_3d_curv_sed_amr_adaptive (NHFLOW, bed load on adaptive patches following the surface, a regrid every 4 steps, curvilinear grid turned by 90 deg) with three wave gauges (P 51: the hump, the middle and the far corner; the refinement writes them on the finest grid) and a checkpoint every 10 steps, all kept: the uninterrupted run of the restart cases.",
+ "tags": [
+  "3d",
+  "nhflow",
+  "amr",
+  "curvilinear",
+  "sediment",
+  "checkpoint"
+ ],
+ "covers": [
+  "nhflow_amr::ckpt_write with S 10 and adaptive patches"
+ ],
+ "ctrl_add": [
+  "P 51 998.5 2001.4",
+  "P 51 998.0 2002.6",
+  "P 51 999.4 2003.3"
+ ]
+}

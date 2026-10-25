@@ -171,6 +171,8 @@ void control::ctrlrecv()
     ii++;
     G52 = ictrl[ii];
     ii++;
+    G55 = ictrl[ii];
+    ii++;
     G53 = ictrl[ii];
     ii++;
     G54 = ictrl[ii];
@@ -2068,6 +2070,8 @@ void control::ctrlrecv()
     ii++;
     Q78 = ictrl[ii];
     ii++;
+    Q79 = ictrl[ii];
+    ii++;
     Q51 = ictrl[ii];
     ii++;
     Q61 = ictrl[ii];
@@ -2180,6 +2184,10 @@ void control::ctrlrecv()
     S57 = dctrl[dd];
     dd++;
     S58 = dctrl[dd];
+    dd++;
+    S59 = ictrl[ii];
+    ii++;
+    S59_phi = dctrl[dd];
     dd++;
     S61 = ictrl[ii];
     ii++;
@@ -2528,9 +2536,15 @@ void control::ctrlrecv()
     dd++;
     X30 = dctrl[dd];
     dd++;
+    X47 = dctrl[dd];
+    dd++;
+    X47_n = ictrl[ii];
+    ii++;
     X35 = ictrl[ii];
     ii++;
     X36 = ictrl[ii];
+    ii++;
+    X37 = ictrl[ii];
     ii++;
     X31 = ictrl[ii];
     ii++;

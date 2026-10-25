@@ -82,39 +82,24 @@ void sflow_vtp_bed::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sediment *psed)
     gcsl_yrows(p,b->bed);
     gcsl_yrows(p,b->test);
 
-    // bednode upate
+    // bednode upate: node (i,j) sits at XN[i+1],YN[j+1], i.e. it is shared by cells (i..i+1, j..j+1).
+    // Average over the non-solid ones; outside-domain ghosts carry a negative flag, so domain edges
+    // and corners fall out of the same rule and every rank computes the same value for a shared node.
     TPSLICELOOP
     {
-        b->bednode(i,j) = 0.25*(b->bed(i,j) + b->bed(i+1,j) + b->bed(i,j+1) + b->bed(i,j));
+        double sum=0.0;
+        int count=0;
 
-        if(p->flagslice4[Im1Jm1]<0 && p->flagslice4[Im1J]>0 && p->flagslice4[IJm1]>0 && p->flagslice4[IJ]>0)
-            b->bednode(i,j) = (1.0/3.0)*(b->bed(i+1,j) + b->bed(i,j+1) + b->bed(i,j));
+        for(int q=0;q<2;++q)
+        for(int r=0;r<2;++r)
+        if(p->flagslice4[(i+q-p->imin)*p->jmax + (j+r-p->jmin)]>0)
+        {
+            sum += b->bed(i+q,j+r);
+            ++count;
+        }
 
-        if(p->flagslice4[Im1Jm1]>0 && p->flagslice4[Im1J]<0 && p->flagslice4[IJm1]>0 && p->flagslice4[IJ]>0)
-            b->bednode(i,j) = (1.0/3.0)*(b->bed(i+1,j+1) + b->bed(i,j+1) + b->bed(i,j));
-
-        if(p->flagslice4[Im1Jm1]>0 && p->flagslice4[Im1J]>0 && p->flagslice4[IJm1]<0 && p->flagslice4[IJ]>0)
-            b->bednode(i,j) = (1.0/3.0)*(b->bed(i+1,j+1) + b->bed(i+1,j) + b->bed(i,j));
-
-        if(p->flagslice4[Im1Jm1]>0 && p->flagslice4[Im1J]>0 && p->flagslice4[IJm1]>0 && p->flagslice4[IJ]<0)
-            b->bednode(i,j) = (1.0/3.0)*(b->bed(i+1,j+1) + b->bed(i+1,j) + b->bed(i,j+1));
+        b->bednode(i,j) = (count>0) ? sum/double(count) : 0.25*(b->bed(i,j) + b->bed(i+1,j) + b->bed(i,j+1) + b->bed(i+1,j+1));
     }
-
-    i=-1;
-    j=-1;
-    b->bednode(i,j) = b->bed(i+1,j+1);
-
-    i=p->knox-1;
-    j=-1;
-    b->bednode(i,j) = b->bed(i,j+1);
-
-    i=p->knox-1;
-    j=p->knoy-1;
-    b->bednode(i,j) = b->bed(i,j);
-
-    i=-1;
-    j=p->knoy-1;
-    b->bednode(i,j) = b->bed(i+1,j);
 
     // offsets
     n=0;

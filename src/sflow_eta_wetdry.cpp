@@ -121,29 +121,38 @@ void sflow_eta::wetdry(lexer* p, fdm2D* b, ghostcell* pgc, slice &WL)
     pgc->gcsl_start4Vint(p,p->wet,50);
     
     // avoid isolated wet cells
+    // (from the flags before the pass: drying in place let a cell see the neighbours dried earlier
+    // in the same pass, so the result depended on the loop order and on where the partition and the
+    // patches cut the domain)
     if(p->A243>0)
     {
+        SLICELOOP4
+        temp[IJ] = p->wet[IJ];
+        
         SLICELOOP4
         if(p->wet[IJ]==1)
         {
         if(p->wet[Im1J]==0 && p->flagslice4[Ip1J]<0)
-        p->wet[IJ]=0;
+        temp[IJ]=0;
         
         if(p->wet[Ip1J]==0 && p->flagslice4[Im1J]<0)
-        p->wet[IJ]=0;
+        temp[IJ]=0;
         
         if(p->wet[IJm1]==0 && p->flagslice4[IJp1]<0 && p->j_dir==1)
-        p->wet[IJ]=0;
+        temp[IJ]=0;
         
         if(p->wet[IJp1]==0 && p->flagslice4[IJm1]<0 && p->j_dir==1)
-        p->wet[IJ]=0;
+        temp[IJ]=0;
         
         if(p->wet[Im1J]==0 && p->wet[Ip1J]==0)
-        p->wet[IJ]=0;
+        temp[IJ]=0;
         
         if(p->wet[IJm1]==0 && p->wet[IJp1]==0 && p->j_dir==1)
-        p->wet[IJ]=0;
+        temp[IJ]=0;
         }
+        
+        SLICELOOP4
+        p->wet[IJ] = temp[IJ];
         
         pgc->gcsl_start4Vint(p,p->wet,50);
     }

@@ -33,16 +33,24 @@ Architect: Hans Bihs
 #include"coral/hydro/coral_hydro_db.h"
 #include"coral/hydro/coral_hydro_load.h"
 #include"coral/hydro/coral_morison.h"
+#include"coral/hydro/coral_strip_hydro.h"
 #include"coral/hydro/coral_member_morison.h"
 #include"coral/core/coral_points.h"
 #include"coral/pto/coral_pto.h"
 #include"coral/pto/coral_joint_drive.h"
+#include"coral/pto/coral_joint_force.h"
 #include"coral/hydro/coral_fluid_load.h"
 #include"coral/hydro/coral_body_drag.h"
 #include"coral/hydro/coral_sampled_kinematics.h"
 #include"coral/hydro/coral_member_fluid_load.h"
 #include"coral/mooring/coral_mooring.h"
 #include"coral/mooring/coral_seabed.h"
+#include"coral/wind/coral_wind.h"
+#include"coral/wind/coral_wind_grid.h"
+#include"coral/wind/coral_wind_probe.h"
+#include"coral/aero/coral_rotor.h"
+#include"coral/aero/coral_rotor_tune.h"
+#include"coral/control/coral_turbine_controller.h"
 #include<cmath>
 #include<fstream>
 #include<functional>
@@ -160,9 +168,9 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
 {
     std::vector<item> items;
     // items whose second word is a name (of a body, joint, load, ...): keys are searched after it
-    static const std::set<std::string> named = {"body", "joint", "pto", "drive", "spring", "linear6", "force", "drag",
+    static const std::set<std::string> named = {"body", "joint", "pto", "drive", "jforce", "spring", "linear6", "force", "drag",
         "mooring", "morison", "section", "member", "superelement", "pile", "point_mass", "fluid_body", "fluid_member", "hydro",
-        "point", "line_type"};
+        "point", "line_type", "wind_probe", "rotor", "controller", "strip_member"};
     for(const auto &l : lines)
     {
         items.push_back(item{l.first, l.second});
@@ -186,11 +194,17 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
     bool gravity_on = true;
     int fluid_kin_order = -1;            // fluid_kinematics: order of the time polynomial, -1: not used
     double wdepth = -1.0, wramp = 0.0;
-    std::vector<item> wave_items;
+    std::vector<item> wave_items, wind_items;
     for(const item &it : items)
     {
         const std::string &k = it.t[0];
-        if(k=="gravity")
+        if(k=="wind")
+        {
+            if(it.t.size() < 2) it.fail("wind type missing");
+            wind_items.push_back(it);
+        }
+        else if(k=="rho_air") rho_air = it.num(1);
+        else if(k=="gravity")
         {
             if(it.t.size()>1 && it.t[1]=="off") {gravity_on = false; m.gravity = Vec3::Zero();}
             else m.gravity = it.vec(1);
@@ -303,6 +317,98 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
             }
             else
                 it.fail("unknown wave type '" + type + "'");
+        }
+    }
+    // wind inflow: steady or uniform in time (wind steady / wind file) with IEC events and turbulence, or a
+    // TurbSim full field (wind turbsim)
+    if(!wind_items.empty())
+    {
+        const item *base = nullptr, *ts = nullptr, *iec = nullptr, *ev = nullptr, *turb = nullptr;
+        for(const item &it : wind_items)
+        {
+            const std::string &type = it.t[1];
+            const item **slot = type=="steady" || type=="file" ? &base : type=="turbsim" ? &ts : type=="iec" ? &iec
+                                : type=="event" ? &ev : type=="turbulence" ? &turb : nullptr;
+            if(!slot) it.fail("unknown wind type '" + type + "'");
+            if(*slot) it.fail("wind " + type + " given twice (or wind steady and wind file)");
+            *slot = &it;
+        }
+        iec_turbine tc;
+        if(iec)
+        {
+            if(iec->t.size() < 4 || !tc.set_class(iec->t[2], iec->t[3]))
+                iec->fail("wind iec <I|II|III> <A+|A|B|C> z_hub <z> D <D>");
+            tc.z_hub = iec->need("z_hub");
+            tc.D = iec->need("D");
+        }
+        if(ts)
+        {
+            if(base || ev || turb) ts->fail("wind turbsim is a full field: no wind steady, file, event or turbulence with it");
+            auto g = std::make_shared<wind_grid>();
+            std::string msg;
+            if(!g->read_bts(path(ts->word(2)), msg)) ts->fail(msg);
+            g->direction = ts->get("direction", 0.0)*deg;
+            const int io = ts->find("origin");
+            if(io >= 0) g->origin = Vec3(ts->num(io+1), ts->num(io+2), 0.0);
+            g->xi0 = ts->get("x0", 0.0);
+            wind = g;
+        }
+        else
+        {
+            if(!base) wind_items[0].fail("wind steady or wind file is needed (or wind turbsim)");
+            const item &b = *base;
+            const double zr = b.get("z_ref", iec ? tc.z_hub : -1.0);
+            if(zr <= 0.0) b.fail("'z_ref <z>' is required (or wind iec ... z_hub)");
+            auto w = std::make_shared<wind_field>(b.t[1]=="steady" ? b.need("U") : 0.0, zr, b.get("direction", 0.0)*deg);
+            if(b.t[1]=="file")
+            {
+                std::vector<wind_field::series_row> rows;
+                std::string msg;
+                if(!wind_field::read_uniform(path(b.word(2)), rows, msg)) b.fail(msg);
+                w->set_series(rows, b.get("L_ref", iec ? tc.D : 1.0));
+            }
+            if(b.has("shear") && b.has("log")) b.fail("shear (power law) or log, not both");
+            if(b.has("shear")) w->set_power_law(b.need("shear"));
+            if(b.has("log")) w->set_log_law(b.need("log"));
+            w->set_veer(b.get("veer", 0.0)*deg);
+            w->set_upflow(b.get("upflow", 0.0)*deg);
+            w->set_ramp(b.get("ramp", 0.0));
+            const int io = b.find("origin");
+            if(io >= 0) w->set_origin(b.num(io+1), b.num(io+2));
+            const double Vh = w->speed(0.0, iec ? tc.z_hub : zr, 0.0);
+            if(ev)
+            {
+                if(!iec) ev->fail("wind event needs wind iec");
+                const iec_event e = iec_event_from(ev->word(2));
+                if(e==iec_event::none) ev->fail("unknown event '" + ev->word(2) + "' (eog, edc+, edc-, ecd+, ecd-, ews_v+, ews_v-, ews_h+, ews_h-)");
+                w->set_event(e, tc, ev->need("t0"));
+            }
+            if(turb)
+            {
+                const item &u = *turb;
+                if(!iec) u.fail("wind turbulence needs wind iec");
+                if(u.word(2) != "kaimal") u.fail("turbulence model must be kaimal");
+                const std::string tm = u.t.size() > 3 && (u.t[3]=="ntm" || u.t[3]=="etm" || u.t[3]=="ewm") ? u.t[3] : "ntm";
+                const double s1 = tm=="ntm" ? tc.sigma_ntm(Vh) : tm=="etm" ? tc.sigma_etm(Vh) : tc.sigma_ewm(Vh);
+                wind_grid::kaimal_settings ks;
+                ks.ny = (int)u.get("ny", ks.ny); ks.nz = (int)u.get("nz", ks.nz);
+                ks.width = u.get("width", 1.1*tc.D); ks.height = u.get("height", 1.1*tc.D);
+                ks.T = u.get("T", run.t_end + 10.0); ks.dt = u.get("dt", ks.dt);
+                ks.seed = (unsigned)u.get("seed", 1.0);
+                ks.coherence_vw = u.has("coherence_vw");
+                ks.scale_hub = u.has("scale_hub");
+                if(ks.ny < 2 || ks.nz < 2 || ks.dt <= 0.0 || ks.T <= 0.0) u.fail("ny, nz >= 2, dt > 0 and T > 0 needed");
+                if(tc.z_hub - 0.5*ks.height <= 0.0) u.fail("the grid reaches below z = 0 (height)");
+                if(Vh <= 0.0) u.fail("the hub speed must be positive");
+                auto g = std::make_shared<wind_grid>(wind_grid::kaimal(tc, Vh, s1, ks));
+                if(u.has("write"))
+                {
+                    std::string msg;
+                    if(!g->write_bts(path(u.word("write")), "CORAL IEC Kaimal " + tm, msg, w.get())) u.fail(msg);
+                }
+                w->set_turbulence(g);
+            }
+            wind = w;
         }
     }
     // the kinematics of Morison members and mooring lines: CORAL's waves, or the resolved fluid of REEF3D
@@ -912,6 +1018,19 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
             s.c = it.get("c", s.c);
             m.add_load(std::make_unique<joint_drive>(*joints[jn], it.has("rotational"), s, name));
         }
+        else if(k=="jforce")
+        {
+            // prescribed force along a joint axis from a table t F (system identification)
+            const std::string name = it.word(1), jn = it.word("joint");
+            if(!joints.count(jn)) it.fail("unknown joint '" + jn + "'");
+            jforce_settings s;
+            std::string msg;
+            if(!joint_force::read_table(path(it.word("file")), s.t, s.F, msg)) it.fail(msg);
+            s.scale = it.get("scale", 1.0);
+            s.ramp = it.get("ramp", 0.0);
+            s.periodic = it.has("periodic");
+            m.add_load(std::make_unique<joint_force>(*joints[jn], it.has("rotational"), s, name));
+        }
         else if(k=="spring")
         {
             const int ia = it.find("a"), ib = it.find("b");
@@ -1004,8 +1123,10 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
         else if(k=="force")
         {
             const int b = body_of(it, it.word("body"));
-            m.add_load(std::make_unique<point_force>(m, b, it.vec("point", m.body(b).x), it.vec("F", Vec3::Zero()),
-                                                     it.vec("M", Vec3::Zero()), it.get("ramp", 0.0), it.word(1)));
+            auto pf = std::make_unique<point_force>(m, b, it.vec("point", m.body(b).x), it.vec("F", Vec3::Zero()),
+                                                    it.vec("M", Vec3::Zero()), it.get("ramp", 0.0), it.word(1));
+            pf->until = it.get("until", pf->until);
+            m.add_load(std::move(pf));
         }
         else if(k=="morison" && it.has("member"))
         {
@@ -1068,6 +1189,29 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
                 it.fail("unknown member '" + mem + "'");
             if(c.D <= 0.0) it.fail("'D' is required (the section has no diameter)");
             m.add_load(std::make_unique<member_morison>(pts, elems, c, kin, rho, g, it.vec("current", Vec3::Zero()), it.word(1)));
+        }
+        else if(k=="strip_member")
+        {
+            // strip theory with nonlinear hydrostatics for a rigid floater (coral_strip_hydro.h)
+            strip_member sm;
+            sm.p1 = it.need_vec("p1");
+            sm.p2 = it.need_vec("p2");
+            sm.D = it.need("D");
+            sm.Cd = it.get("Cd", 1.0);
+            sm.Ca = it.get("Ca", 1.0);
+            sm.Cm = it.get("Cm", 1.0 + sm.Ca);
+            sm.n = (int)it.get("n", 20);
+            sm.end1 = it.has("end1");
+            sm.end2 = it.has("end2");
+            sm.Ca_end = it.get("Ca_end", 1.0);
+            sm.Cd_end = it.get("Cd_end", 1.0);
+            sm.buoyancy = !it.has("no_buoyancy");
+            const int b = body_of(it, it.word("body"));
+            if(b < 0) it.fail("strip_member needs a body");
+            const double g = std::fabs(m.gravity(2)) > 0.0 ? std::fabs(m.gravity(2)) : 9.81;
+            auto sh = std::make_unique<strip_hydro>(m, b, std::vector<strip_member>{sm}, kin, rho, g, it.vec("current", Vec3::Zero()), it.word(1));
+            sh->exact_kinematics = it.has("exact_kinematics");
+            m.add_load(std::move(sh));
         }
         else if(k=="morison")
         {
@@ -1158,6 +1302,184 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
             fluid_members.push_back(fm);
             m.add_load(std::move(l));
         }
+        else if(k=="rotor")
+        {
+            // wind turbine rotor with rigid blades, drivetrain and generator (coral/aero/coral_rotor.h)
+            if(!wind) it.fail("rotor needs a wind inflow (wind ...)");
+            rotor_spec sp;
+            sp.name = it.word(1);
+            sp.B = (int)it.get("blades", 3.0);
+            sp.hub = it.need_vec("hub");
+            sp.axis = it.need_vec("axis");
+            if(sp.axis.norm() <= 0.0) it.fail("axis must not be zero");
+            sp.R_hub = it.need("R_hub");
+            std::string msg;
+            if(!read_aerodyn_blade(path(it.word("blade")), sp.R_hub, sp.stations, msg)) it.fail(msg);
+            const int ia = it.find("airfoils");
+            if(ia < 0) it.fail("'airfoils <n> <file 1> .. <file n>' is required");
+            const int na = (int)it.num(ia+1);
+            for(int q=0; q<na; ++q)
+            {
+                airfoil af;
+                if(!airfoil::read(path(it.word(ia+2+q)), af, msg)) it.fail(msg);
+                sp.airfoils.push_back(af);
+            }
+            if(it.has("structure") && !blade_structure::read(path(it.word("structure")), sp.structure, msg)) it.fail(msg);
+            sp.hub_mass = it.get("hub_mass", 0.0);
+            const int ij = it.find("hub_inertia");
+            if(ij >= 0)
+            {
+                sp.hub_J = it.num(ij+1);
+                double v;
+                if(ij+2 < (int)it.t.size()) {try {size_t n; v = std::stod(it.t[ij+2], &n); if(n==it.t[ij+2].size()) sp.hub_Jt = v;} catch(...) {}}
+            }
+            sp.precone = it.get("precone", 0.0)*deg;
+            sp.azimuth0 = it.get("azimuth", 0.0)*deg;
+            sp.ccw = it.has("ccw");
+            if(it.has("nacelle")) sp.nacelle = body_of(it, it.word("nacelle"));
+            sp.omega0 = it.get("rpm", 0.0)*M_PI/30.0;
+            sp.pitch = it.get("pitch", 0.0)*deg;
+            if(it.has("pitch_file"))
+            {
+                if(!joint_force::read_table(path(it.word("pitch_file")), sp.pitch_t, sp.pitch_v, msg)) it.fail(msg);
+                for(double &x : sp.pitch_v) x *= deg;
+            }
+            sp.dt.N = it.get("gearbox", 1.0);
+            sp.J_gen = it.get("gen_inertia", 0.0);
+            const int is = it.find("shaft");
+            if(is >= 0) {sp.dt.k = it.num(is+1); sp.dt.c = it.num(is+2);}
+            sp.dt.eta = it.get("efficiency", 1.0);
+            const int ig = it.find("generator");
+            if(ig >= 0)
+            {
+                const std::string g = it.word(ig+1);
+                if(g=="none") sp.dt.law = generator_law::none;
+                else if(g=="constant") {sp.dt.law = generator_law::constant; sp.dt.T = it.num(ig+2);}
+                else if(g=="slip") {sp.dt.law = generator_law::slip; sp.dt.slope = it.num(ig+2); sp.dt.omega_sync = it.num(ig+3)*M_PI/30.0;}
+                else if(g=="k_omega2")
+                {
+                    sp.dt.law = generator_law::k_omega2;
+                    sp.dt.K = it.num(ig+2);
+                    double v;
+                    if(ig+3 < (int)it.t.size()) {try {size_t n; v = std::stod(it.t[ig+3], &n); if(n==it.t[ig+3].size()) sp.dt.T = v;} catch(...) {}}
+                }
+                else it.fail("generator must be none, constant <T>, slip <slope> <rpm> or k_omega2 <K> [<T_max>]");
+            }
+            sp.pitch_joints = it.has("pitch_joints");
+            sp.pitch_freq = it.get("pitch_freq", sp.pitch_freq);
+            sp.pitch_zeta = it.get("pitch_zeta", sp.pitch_zeta);
+            sp.blade_elements = (int)it.get("blade_elements", 0.0);
+            sp.blade_beta = it.get("blade_beta", sp.blade_beta);
+            sp.ea_per_mass = it.get("ea_per_mass", sp.ea_per_mass);
+            sp.gj_factor = it.get("gj_factor", sp.gj_factor);
+            if(sp.blade_elements < 0) it.fail("blade_elements must not be negative");
+            sp.aero.rho = rho_air;
+            sp.aero.skew = !it.has("no_skew");
+            sp.aero.bem.tip_loss = !it.has("no_tip_loss");
+            sp.aero.bem.hub_loss = !it.has("no_hub_loss");
+            sp.aero.bem.tangential = !it.has("no_tangential");
+            sp.aero.bem.induction = !it.has("no_induction");
+            sp.aero.bem.drag_in_induction = !it.has("no_drag_induction");
+            const int it_ = it.find("tower");
+            if(it_ >= 0)
+            {
+                sp.aero.tower = true;
+                sp.aero.tower_base = it.vec(it_+1);
+                sp.aero.tower_top = it.vec(it_+4);
+                sp.aero.D_base = it.num(it_+7);
+                sp.aero.D_top = it.num(it_+8);
+                if(it.has("tower_body")) sp.aero.tower_body = body_of(it, it.word("tower_body"));
+            }
+            try
+            {
+                const rotor_handles h = build_rotor(m, wind, sp);
+                rotors[sp.name] = h;
+                rotor_specs_[sp.name] = sp;
+                joints[sp.name + "_shaft"] = h.shaft;
+                if(h.gen_joint) joints[sp.name + "_gen_shaft"] = h.gen_joint;
+                for(size_t q=0; q<h.pitch_joints.size(); ++q) joints[sp.name + "_pitch" + std::to_string(q + 1)] = h.pitch_joints[q];
+            }
+            catch(const std::exception &e) {it.fail(e.what());}
+        }
+        else if(k=="controller")
+        {
+            const std::string rn = it.word("rotor");
+            if(!rotors.count(rn)) it.fail("unknown rotor '" + rn + "' (the rotor line must come first)");
+            rotor_handles &h = rotors[rn];
+            const rotor_spec &sp = rotor_specs_[rn];
+            const double N = sp.dt.N, rpm = M_PI/30.0;
+            turbine_controller_settings cs;
+            if(it.has("tune"))
+            {
+                const double Pr = it.need("P_rated"), Or = it.need("rpm_rated")*rpm;
+                rotor_def rd;
+                rd.B = sp.B; rd.R_hub = sp.R_hub; rd.R_tip = sp.stations.back().r; rd.stations = sp.stations; rd.airfoils = sp.airfoils;
+                const rotor_tuning tu = tune_rotor(rd, rho_air, Pr, Or, 25.0, sp.aero.bem);
+                if(tu.K*Or*Or*Or >= Pr)
+                    it.fail("the k omega^2 curve reaches the rated power below the rated speed (K Omega_rated^3 = "
+                            + std::to_string(tu.K*Or*Or*Or) + " W at lambda_opt): lower rpm_rated or raise P_rated "
+                            "(the NREL 5 MW: 0.82 of the rated power at the rated speed)");
+                if(it.has("write") && !tu.write(path(it.word("write")))) it.fail("cannot write " + it.word("write"));
+                const double wref = N*Or;
+                cs.w_ref = wref;
+                cs.w_rated = 0.99*wref;
+                cs.w_cutin = 0.571*wref;
+                cs.w_rgn2 = 0.742*wref;
+                cs.P_rated = Pr;
+                cs.K = tu.K/(N*N*N);
+                cs.T_max = 1.1*Pr/cs.w_rated;
+                cs.T_rate = 0.35*Pr/cs.w_rated;
+                cs.theta_K = tu.theta_K;
+                const double J = h.J + sp.J_gen*N*N;
+                turbine_controller_settings::pi_gains(J, Or, N, tu.dPdtheta0, it.get("omega_n", 0.6), it.get("zeta", 0.7), cs.KP, cs.KI);
+            }
+            cs.K = it.get("K", cs.K);
+            cs.w_cutin = it.get("rpm_cutin", cs.w_cutin/rpm)*rpm;
+            cs.w_rgn2 = it.get("rpm_rgn2", cs.w_rgn2/rpm)*rpm;
+            cs.w_rated = it.get("rpm_rated_torque", cs.w_rated/rpm)*rpm;
+            if(!it.has("tune")) cs.P_rated = it.get("P_rated", cs.P_rated);
+            cs.slip = it.get("slip", cs.slip);
+            cs.T_max = it.get("T_max", cs.T_max);
+            cs.T_rate = it.get("T_rate", cs.T_rate);
+            cs.pitch_rgn3 = it.get("pitch_rgn3", cs.pitch_rgn3/deg)*deg;
+            cs.w_ref = it.get("rpm_ref", cs.w_ref/rpm)*rpm;
+            cs.KP = it.get("KP", cs.KP);
+            cs.KI = it.get("KI", cs.KI);
+            cs.theta_K = it.get("theta_K", cs.theta_K/deg)*deg;
+            cs.theta_min = it.get("theta_min", cs.theta_min/deg)*deg;
+            cs.theta_max = it.get("theta_max", cs.theta_max/deg)*deg;
+            cs.theta_rate = it.get("theta_rate", cs.theta_rate/deg)*deg;
+            cs.omega_c = it.get("corner", cs.omega_c/(2.0*M_PI))*2.0*M_PI;
+            cs.dt = it.get("dt", 0.0);
+            cs.pitch_control = !it.has("no_pitch");
+            cs.torque_control = !it.has("no_torque");
+            controller_load::io f;
+            drivetrain *dt = h.drive;
+            if(cs.torque_control) dt->settings.law = generator_law::command;
+            f.speed = [dt](const model &mm) {return dt->omega_hss(mm);};
+            f.torque = [dt](const model &mm) {return dt->generator_torque(mm);};
+            f.set_torque = [dt](double T) {dt->set_torque_command(T);};
+            if(h.pitch)
+            {
+                pitch_actuator *pa = h.pitch;
+                f.pitch = [pa](const model &mm) {return pa->angle(mm, 0);};
+                f.set_pitch = [pa](double th) {pa->set_command_all(th);};
+            }
+            else
+            {
+                rotor_aero *ra = h.aero;
+                const int B = sp.B;
+                f.pitch = [ra](const model&) {return ra->pitch(0, 0.0);};
+                f.set_pitch = [ra, B](double th) {ra->set_pitch_table({}, {}); for(int q=0; q<B; ++q) ra->set_pitch(q, th);};
+            }
+            m.add_load(std::make_unique<controller_load>(cs, f, it.word(1)));
+        }
+        else if(k=="wind_probe")
+        {
+            if(!wind) it.fail("wind_probe needs a wind inflow (wind ...)");
+            const int b = it.has("body") ? body_of(it, it.word("body")) : -1;
+            m.add_load(std::make_unique<wind_probe>(m, wind, b, it.vec(2), it.word(1)));
+        }
         else if(k=="fluid_coupling")
         {
             fluid_order = (int)it.get("order", (double)fluid_order);
@@ -1169,7 +1491,7 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
         else if(k!="gravity" && k!="rho" && k!="time" && k!="output" && k!="waves" && k!="body" && k!="joint"
                 && k!="section" && k!="member" && k!="point_mass" && k!="static" && k!="modes"
                 && k!="superelement" && k!="soil" && k!="soil_layer" && k!="pile" && k!="force" && k!="fluid_kinematics"
-                && k!="point" && k!="line_type" && k!="bathymetry")
+                && k!="point" && k!="line_type" && k!="bathymetry" && k!="wind" && k!="rho_air")
             it.fail("unknown keyword");
     }
     if(!fluid_bodies.empty())

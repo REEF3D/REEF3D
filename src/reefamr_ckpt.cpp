@@ -37,6 +37,7 @@ Author: Hans Bihs
 #include"reefamr.h"
 #include"reefckpt.h"
 #include"lexer.h"
+#include"geo_mesh.h"
 #include<vector>
 #include<string>
 
@@ -256,6 +257,13 @@ void reefamr::ckpt_write_layout(reefckpt &ck)
         b.push_back(g.lev); b.push_back(g.I0); b.push_back(g.I1); b.push_back(g.J0); b.push_back(g.J1);
         b.push_back(g.rank); b.push_back(g.lid);
     }
+    // multi-block: the blocks (G 55: the pieces), so that a restart finds the same ones
+    b.push_back(double(nblk));
+    for(int q=0; q<nblk; ++q)
+    {
+        const geo_mesh::blk_block &B = p0->gridgeo->blk[q];
+        b.push_back(B.ni); b.push_back(B.nj); b.push_back(B.orig); b.push_back(B.oi); b.push_back(B.oj);
+    }
     ck.blob("amr_layout",b);
 }
 
@@ -302,6 +310,36 @@ bool reefamr::ckpt_read_layout(reefckpt &ck, string &msg)
         msg = "the layout of the mesh refinement in the checkpoint is incomplete";
         return false;
     }
+
+    // multi-block: the same blocks (G 55 cuts them for the number of ranks); a checkpoint without this list
+    // has the blocks of DIVEMesh
+    const bool blist = q<b.size();
+    bool same = true;
+    if(blist)
+    {
+        const int nb = int(nx());
+        same = (nb==nblk);
+        for(int r=0; r<nb; ++r)
+        {
+            int v[5];
+            for(int m=0; m<5; ++m)
+            v[m] = int(nx());
+            if(same)
+            {
+                const geo_mesh::blk_block &B = p0->gridgeo->blk[r];
+                same = v[0]==B.ni && v[1]==B.nj && v[2]==B.orig && v[3]==B.oi && v[4]==B.oj;
+            }
+        }
+    }
+    else
+    if(nblk>0)
+    same = (p0->gridgeo->nblk_orig==nblk);
+    if(!same || q>b.size())
+    {
+        msg = "the checkpoint has other blocks (G 55 cuts the blocks for the number of ranks: restart with the same G 55 and ranks)";
+        return false;
+    }
+
     if(nranks==p0->mpi_size && ck.same_decomposition())
     {
         GPckpt = gp;

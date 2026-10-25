@@ -80,6 +80,7 @@ struct fnpf_6DOF_grid
     // several bodies (X 20): the unit modes of the bodies 1, 2, ... [6*(nb-1)+m] (body 0: psi), each
     // body's own last solution as the start value of its next unit-mode solve
     vector<double*> psib;
+    double *cal[6] = {nullptr,nullptr,nullptr,nullptr,nullptr,nullptr};    // X 36 1: scratch of the calibration
     double *zero = nullptr;
     int *mark = nullptr;
     vector<int> todo;               // scratch: the open body nodes (extrapolate, body_velocities), the footprint columns
@@ -178,6 +179,15 @@ private:
     vector<vector<char>> wout, wgp;
     vector<int> wmeet;
     vector<char> wok;
+    // X 36 1: the calibration of the windows (at the first added mass with windows, after a new layout of
+    // the patches, every X 37 refreshes): every body also solves its unit modes on all grids (solve_psi_cal,
+    // fnpf_6DOF_grid::cal: scratch arrays outside its window), the differences of the added mass (own
+    // block cal_dA, cross blocks cal_dC) to the window solves are kept and added to the window results
+    // until the next calibration
+    void solve_psi_cal(lexer*, fdm_fnpf*, ghostcell*, solver*, fnpf_fsf*, int, int);
+    vector<Eigen::Matrix<double,6,6>> cal_dA, cal_dC;
+    bool cal_have = false, cal_stale = false;
+    int am_refreshes = 0, cal_refresh = -1;
     // X 35: the initial guess of a psi solve of kind slot at time t from the last two of the kind
     // (psi_slot: 0-3 psi_0 of the stage, 4-9 the unit modes, 10-13 psi_0 of a finest-level stage,
     // 14 + 6 (nb-1) + m the unit modes of the bodies nb = 1, 2, ...)

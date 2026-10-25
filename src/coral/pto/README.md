@@ -26,6 +26,7 @@ Power take-offs of wave energy converters.
   `coulomb_loss` (dissipated power and energy in the channels `_Ploss`, `_Eloss`)
 
 * `coral_joint_drive.h/.cpp`: prescribed motion of a joint coordinate (`drive`), a sine with a start ramp imposed by a stiff spring-damper; forced oscillations of a body in a resolved fluid (added mass and damping for a hydrodynamic database)
+* `coral_joint_force.h/.cpp`: prescribed force along a joint axis from a table `t F` (`jforce`), with scale, start ramp and periodic repetition; system identification of a WEC (a multisine force of the PTO motor gives the intrinsic admittance of the relative motion)
 
 ## Planned
 

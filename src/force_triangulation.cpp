@@ -81,6 +81,8 @@ void force::triangulation(lexer *p,fdm* a, ghostcell *pgc, field& f)
     numtri = 6*countM;
     numvert = countM;
 
+    free_arrays();      // a triangulation before (ini again)
+    
     numtri_mem = numtri;
     numvert_mem = numvert;
 

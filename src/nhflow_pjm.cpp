@@ -287,10 +287,13 @@ void nhflow_pjm::upgrad(lexer*p, fdm_nhf *d, slice &WL)
     WETDRY
     d->F[IJK] += nhflow_curv::bedslope(p,d,1,i,j);
     
+    // X 13 2: the level of the hydrostatic terms (d->zeta), eta otherwise
+    slice4 &E = d->zeta!=nullptr ? *d->zeta : d->eta;
+    
     if(p->geo_curv==0)
     LOOP
     WETDRY
-    d->F[IJK] += d->eta(i,j)*fabs(p->W22)*
+    d->F[IJK] += E(i,j)*fabs(p->W22)*
                 (d->dfx(i,j) - d->dfx(i-1,j))/(p->DXN[IP]);
 }
 
@@ -301,10 +304,12 @@ void nhflow_pjm::vpgrad(lexer*p,fdm_nhf *d, slice &WL)
     WETDRY
     d->G[IJK] += nhflow_curv::bedslope(p,d,2,i,j);
     
+    slice4 &E = d->zeta!=nullptr ? *d->zeta : d->eta;
+    
     if(p->geo_curv==0)
     LOOP
     WETDRY
-	d->G[IJK] += d->eta(i,j)*fabs(p->W22)*
+	d->G[IJK] += E(i,j)*fabs(p->W22)*
                  (d->dfy(i,j) - d->dfy(i,j-1))/(p->DYN[JP]);
 }
 

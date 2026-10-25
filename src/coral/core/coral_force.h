@@ -45,6 +45,7 @@ namespace coral
         void eval(const model&, double t, VecX &f) const override;
 
         Vec3 F, M;
+        double until = 1.0e300;     // released (zero) from this time on: free decay from the loaded equilibrium
 
     private:
         std::string name_;

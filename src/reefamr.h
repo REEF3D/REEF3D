@@ -180,6 +180,10 @@ struct reefamr_param
     double zr = 0.0;            // zone: margin around the hull
     double zL = 0.0;            // zone: length of the wake wedge (at most)
     double za = 0.0;            // zone: half angle of the wake wedge in degrees
+    bool ring = false;          // flux matching also on the grids that compute the coarse face in the
+                                // cells around their box (xmatch, xrmatch), not only on the holder of
+                                // the outside coarse cell: their outer cells then see the fine fluxes
+                                // as the holder does (no flux registers)
     bool zalign = false;        // zone: rectangle aligned with x and y around the wetted hull, grown by
                                 // the distance travelled until the next regrid (moored and
                                 // oscillating bodies), instead of aligned with the direction of motion
@@ -408,6 +412,40 @@ protected:
             int tgt = frecv[l][2*it], idx = frecv[l][2*it+1];
             if(tgt>=0)
             unpack(rmatch[tgt][idx],&F.rbuf[k][(size_t)m*nv]);
+            ++it;
+        }
+    }
+
+    // as face_run for the faces of par.ring on other ranks (xrmatch)
+    template<class PK, class UP>
+    void face_run_ring(int l, int nv, int tag, PK &&pack, UP &&unpack)
+    {
+        if(!par.ring)
+        return;
+
+        reefamr_xplan &F = xfplan[l];
+
+        for(size_t k=0; k<F.speer.size(); ++k)
+        {
+            vector<double> &sb = F.sbuf[k];
+            sb.resize(F.sitem[k].size()*nv);
+            for(size_t m=0; m<F.sitem[k].size(); ++m)
+            {
+                int it = F.sitem[k][m];
+                reefamr_patch *c = P[xfsend[l][3*it]];
+                pack(c,xfsend[l][3*it+1],xfsend[l][3*it+2],&sb[m*nv]);
+            }
+        }
+
+        xrun(F,nv,tag);
+
+        size_t it=0;
+        for(size_t k=0; k<F.rpeer.size(); ++k)
+        for(int m=0; m<F.rcount[k]; ++m)
+        {
+            int tgt = xfrecv[l][2*it], idx = xfrecv[l][2*it+1];
+            if(tgt>=0)
+            unpack(xrmatch[tgt][idx],&F.rbuf[k][(size_t)m*nv]);
             ++it;
         }
     }
@@ -896,6 +934,12 @@ protected:
     vector<reefamr_xplan> fplan;
     vector<vector<int>> fsend;                  // [l]: (patch, side, r) triplets
     vector<vector<int>> frecv;                  // [l]: target grid id+1 and index into rmatch, -1: skip
+
+    // par.ring: the same coarse faces on the grids whose cells around the box hold them (local:
+    // xmatch, other ranks: xrmatch through xfplan)
+    vector<vector<reefamr_match>> xmatch, xrmatch;
+    vector<reefamr_xplan> xfplan;
+    vector<vector<int>> xfsend, xfrecv;
 
 private:
     // ---- measured cost model of the placement (G 41 0, reefamr_load.cpp)

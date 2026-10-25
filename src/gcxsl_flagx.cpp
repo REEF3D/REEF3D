@@ -113,4 +113,65 @@ void ghostcell::gcslflagx(lexer* p, int *flag)
         flag[Ip1J]=irecv4[count];
         ++count;
     }
+
+    //  Corners: second hop through the face ghosts filled above, as gcslparacox does for slices.
+    //  Without it the diagonal ghost at an interior partition corner keeps its -10 from read_grid.
+
+    for(n=0;n<p->gcslparaco1_count;++n)
+    {
+        i=p->gcslparaco1[n][0];
+        j=p->gcslparaco1[n][1];
+        isend1[n]=flag[IJ];
+    }
+
+    for(n=0;n<p->gcslparaco2_count;++n)
+    {
+        i=p->gcslparaco2[n][0];
+        j=p->gcslparaco2[n][1];
+        isend2[n]=flag[IJ];
+    }
+
+    for(n=0;n<p->gcslparaco3_count;++n)
+    {
+        i=p->gcslparaco3[n][0];
+        j=p->gcslparaco3[n][1];
+        isend3[n]=flag[IJ];
+    }
+
+    for(n=0;n<p->gcslparaco4_count;++n)
+    {
+        i=p->gcslparaco4[n][0];
+        j=p->gcslparaco4[n][1];
+        isend4[n]=flag[IJ];
+    }
+
+    Sendrecv_int(p->gcslparaco1_count, p->gcslparaco2_count, p->gcslparaco3_count, p->gcslparaco4_count, 0, 0);
+
+    for(n=0;n<p->gcslparaco1_count;++n)
+    {
+        i=p->gcslparaco1[n][0];
+        j=p->gcslparaco1[n][1];
+        flag[Im1J]=irecv1[n];
+    }
+
+    for(n=0;n<p->gcslparaco2_count;++n)
+    {
+        i=p->gcslparaco2[n][0];
+        j=p->gcslparaco2[n][1];
+        flag[IJp1]=irecv2[n];
+    }
+
+    for(n=0;n<p->gcslparaco3_count;++n)
+    {
+        i=p->gcslparaco3[n][0];
+        j=p->gcslparaco3[n][1];
+        flag[IJm1]=irecv3[n];
+    }
+
+    for(n=0;n<p->gcslparaco4_count;++n)
+    {
+        i=p->gcslparaco4[n][0];
+        j=p->gcslparaco4[n][1];
+        flag[Ip1J]=irecv4[n];
+    }
 }

@@ -140,6 +140,7 @@ printer_CFD::printer_CFD(lexer* p, fdm *a, ghostcell *pgc)
     if(p->P81>0)
     {
         pforce = new force*[p->P81];
+        nforce = p->P81;
 
         for(n=0;n<p->P81;++n)
             pforce[n] = new force(p,a,pgc,n);
@@ -894,12 +895,16 @@ void printer_CFD::print3D(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, h
 }
 
 // CFD mesh refinement: the point probes (P 61), pressure probes (P 64) and wave gauges (P 51) read
-// the finest grid at their position
+// the finest grid at their position, the forces on the solids (P 81) integrate every piece of the
+// surface on the finest grid at its centre
 void printer_CFD::amr_probes(const amr_grid_lookup *amr)
 {
     pprobe->amr = amr;
     ppressprobe->amr = amr;
     pwsf->amr = amr;
+    
+    for(int n=0;n<nforce;++n)
+    pforce[n]->amr_level0(amr);
 }
 
 // checkpoints (P 48, I 45): the times of the next outputs of the windows P 35 and P 185 and the counters of the

@@ -1,0 +1,29 @@
+{
+ "base": "cfd_2d_tow_amr_zone_ckpt",
+ "same_as": "cfd_2d_tow_amr_zone_ckpt",
+ "chain": [
+  {
+   "case": "cfd_2d_tow_amr_zone_ckpt",
+   "copy": [
+    "REEF3D_Checkpoint",
+    "REEF3D_CFD_6DOF"
+   ]
+  }
+ ],
+ "ctrl_set": {
+  "I 45": "40"
+ },
+ "description": "the restart of cfd_2d_tow_amr_zone_ckpt from step 40 (I 45 40): the tile maps of the checkpoint without the lazy layout, the start of the body (the length of the wake wedge) from the checkpoint; regression.py ranks: bitwise the uninterrupted run.",
+ "tags": [
+  "2d",
+  "6dof",
+  "floating",
+  "levelset",
+  "amr",
+  "adaptive",
+  "checkpoint"
+ ],
+ "covers": [
+  "cfd_amr::ckpt_read: bz_x0, bz_y0; cfd_amr::regrid without lazy layout on the restart"
+ ]
+}
