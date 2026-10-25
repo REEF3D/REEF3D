@@ -39,6 +39,7 @@ class nhflow_thinbody;
 class nhflow_fsf_hull;
 class nhflow_hullbody;
 class seastate_nhflow;
+class met_forcing;
 
 using namespace std;
 
@@ -137,6 +138,9 @@ public:
     
     // REEF3D::SEASTATE coupling (A 750 1), nullptr without
     seastate_nhflow *wave = nullptr;
+
+    // REEF3D atmospheric forcing (W 200) of this grid, owned by the momentum class (output)
+    met_forcing *met = nullptr;
 };
 
 #endif

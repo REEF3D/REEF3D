@@ -1243,6 +1243,16 @@ void control::ini_default()
     W110=1;          // int add rheology as source term or viscosity
     W111=1;          // int which pressure for MC
     W112=2.1;        // double threshold factor for pressure blening in W111 3
+    W200=0;          // int atmospheric forcing (SFLOW, NHFLOW): 0 off, 1 uniform (W 201, W 202), 2 met file met-forcing.r3m
+    W201_u=0.0;      // double uniform wind speed U10 [m/s]
+    W201_dir=0.0;    // double uniform wind direction [deg], counter-clockwise from the x axis, the direction the wind blows to
+    W202=101325.0;   // double uniform air pressure [Pa]
+    W203=0.0;        // double model start date-time YYYYMMDD.HHMMSS of the met forcing, 0: the first record of the file
+    W204=0.0;        // double ramp time of the met forcing [s]
+    W205=0;          // int geographic frame given (W 205 lon0 lat0 rot)
+    W205_lon=W205_lat=W205_rot=0.0;  // double frame: transverse Mercator about lon0, lat0 [deg], x axis rot [deg] from east
+    W206_x=W206_y=0.0;  // double model coordinates of (lon0, lat0) [m]
+    W207=1;          // int drag law of the met forcing: 1 Garratt, 2 Wu, 3 Smith and Banke, 4 Zijlema et al.
     W_fb=0.0;        // double density of floating body
 
 	// 6DOF

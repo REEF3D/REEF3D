@@ -33,6 +33,7 @@ Author: Hans Bihs
 class si_eta2D;
 class solver2D;
 class wind;
+class met_forcing;
 
 using namespace std;
 
@@ -233,6 +234,7 @@ private:
     int psi_iter;
     double psi_time;
     wind *pwind;
+    met_forcing *pmet = nullptr;     // atmospheric forcing (W 200)
     sixdof *p6dof;
     nhflow_forcing *pnhfdf;
     vrans_nhflow *pvrans;

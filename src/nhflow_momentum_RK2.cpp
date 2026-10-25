@@ -43,6 +43,7 @@ Author: Hans Bihs
 #include"nhflow_fsf_hull.h"
 #include"wind_f.h"
 #include"wind_v.h"
+#include"met_forcing.h"
 #include"sediment_f.h"
 
 #define WLVL (fabs(WL(i,j))>(1.0*p->A544)?WL(i,j):1.0e20)
@@ -82,6 +83,13 @@ nhflow_momentum_RK2::nhflow_momentum_RK2(lexer *p, fdm_nhf *d, ghostcell *pgc, s
     
     if(p->A570>0)
     pwind = new wind_f(p);
+
+    // atmospheric forcing (W 200)
+    if(p->W200>0)
+    {
+    pmet = new met_forcing(p,pgc);
+    d->met = pmet;
+    }
 }
 
 nhflow_momentum_RK2::~nhflow_momentum_RK2()
@@ -93,6 +101,7 @@ nhflow_momentum_RK2::~nhflow_momentum_RK2()
     delete [] VHDIFF;
     delete [] WHDIFF;
     delete pwind;
+    delete pmet;
 }
 
 void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, nhflow_signal_speed *pss, 
@@ -237,6 +246,8 @@ void nhflow_momentum_RK2::phase_M(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_s
     phull->upgrad(p,d,WL);
     p6dof->isource(p,d,pgc,WL);
     pwind->wind_forcing_nhf_x(p,d,pgc,d->U,d->V, d->F, WL, d->eta);
+    if(pmet!=nullptr)
+    pmet->source_nhflow(p,pgc,d->F,0);
     if(d->wave!=nullptr)
     d->wave->u_source(p,d);
     roughness_u(p,d,d->U,d->F,WL);
@@ -270,6 +281,8 @@ void nhflow_momentum_RK2::phase_M(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_s
     ppress->vpgrad(p,d,WL);
     p6dof->jsource(p,d,pgc,WL);
     pwind->wind_forcing_nhf_y(p,d,pgc,d->U,d->V, d->G, WL, d->eta);
+    if(pmet!=nullptr)
+    pmet->source_nhflow(p,pgc,d->G,1);
     if(d->wave!=nullptr)
     d->wave->v_source(p,d);
     roughness_v(p,d,d->V,d->G,WL);

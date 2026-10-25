@@ -1,0 +1,20 @@
+{
+ "base": "nhflow_2d_nwt_stokes5",
+ "description": "Met forcing W 200 1 on NHFLOW Stokes waves: uniform U10 15 m/s along x (W 201), Garratt drag (W 207 1), stress in the top layer: bitwise the result of the wind forcing A 573 1 (nhflow_2d_wind_a573_1).",
+ "ctrl_add": [
+  "W 200 1",
+  "W 201 15.0 0.0"
+ ],
+ "tags": [
+  "quick",
+  "2d",
+  "nhflow",
+  "wind",
+  "met"
+ ],
+ "covers": [
+  "met_provider",
+  "met_source_uniform",
+  "met_forcing::source_nhflow (RK3)"
+ ]
+}

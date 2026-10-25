@@ -23,6 +23,8 @@ Author: Hans Bihs
 #include"sflow_vtp_fsf.h"
 #include"sflow_turbulence.h"
 #include"lexer.h"
+#include"fdm2D.h"
+#include"met_forcing.h"
 #include"sediment.h"
 #include"runlog.h"
 
@@ -52,6 +54,8 @@ void sflow_vtp_fsf::pvtp(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence *p
         result<<"<PDataArray type=\"Float32\" Name=\"fb\"/>\n";
     if(p->P110==1)
         result<<"<PDataArray type=\"Float32\" Name=\"Hs\"/>\n";
+    if(b->met!=nullptr)
+        b->met->name_pvtp(result);
     result<<"</PPointData>\n";
 
     char pname[200];
