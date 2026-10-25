@@ -1,0 +1,17 @@
+{
+ "base": "sflow_2d_si_met_pressure_ib",
+ "description": "sflow_2d_si_met_pressure_ib without the inverse barometer on the edges (W 210 0): the air pressure gradient only.",
+ "ctrl_add": [
+  "W 210 0"
+ ],
+ "tags": [
+  "2d",
+  "sflow",
+  "semi_implicit",
+  "met",
+  "pressure"
+ ],
+ "covers": [
+  "W 210 0"
+ ]
+}

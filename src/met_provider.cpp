@@ -110,6 +110,9 @@ met_provider::met_provider(lexer *p, ghostcell *pgc)
 
     std::cout<<std::endl;
 
+    std::cout<<"  air pressure gradient (W 208) "<<(p->W208==1 ? "on" : "off")<<", inverse barometer on the open edges (W 210) "
+             <<(p->W210==1 ? "on" : "off")<<", reference pressure "<<p->W209<<" Pa (W 209)"<<std::endl;
+
         if(frame.set)
         std::cout<<"  frame (W 205, W 206): transverse Mercator about lon "<<frame.lon0<<", lat "<<frame.lat0<<" deg, x axis "<<frame.rot
                  <<" deg from east, origin at ("<<frame.X0<<", "<<frame.Y0<<") m"<<std::endl;
@@ -151,6 +154,16 @@ double met_provider::ramp(lexer *p, double simtime) const
     return 1.0;
 }
 
+double met_provider::ib(lexer *p, ghostcell *pgc, double x, double y)
+{
+    update(p,pgc,p->simtime);
+
+    double u, v, pa;
+    at(x,y,u,v,pa);
+
+    return -ramp(p,p->simtime)*(pa - p->W209)/(p->W1*std::fabs(p->W22));
+}
+
 void met_provider::check(lexer *p, ghostcell *pgc)
 {
     std::string msg;
@@ -172,6 +185,35 @@ void met_provider::check(lexer *p, ghostcell *pgc)
 
     else if(p->W200==1 && !(p->W201_u>=0.0))
     msg = "W 201: the wind speed must be zero or positive.";
+
+    else if(p->W200>0 && (p->W208<0 || p->W208>1 || p->W210<0 || p->W210>1))
+    msg = "W 208, W 210: 0 (off) or 1 (on).";
+
+    else if(p->W211<0 || p->W211>2)
+    msg = "W 211: unknown Coriolis option; use 0 (off), 1 (f-plane, W 212 or the latitude of W 205) or 2 (f per cell from the frame W 205).";
+
+    else if(p->W211>0 && p->A10!=2 && p->A10!=5)
+    msg = "W 211: the Coriolis force is for REEF3D::SFLOW (A 10 2) and REEF3D::NHFLOW (A 10 5).";
+
+    else if(p->W211>0 && p->G50>0)
+    msg = "W 211: the Coriolis force does not support curvilinear grids (G 50) yet.";
+
+    else if(p->W211==1 && p->W212==0.0 && p->W205==0)
+    msg = "W 211 1: give the Coriolis parameter (W 212) or the frame with the latitude (W 205).";
+
+    else if(p->W211==2 && p->W205==0)
+    msg = "W 211 2: the latitude of every cell needs the frame W 205.";
+
+    if(msg.empty() && p->W211>0 && p->mpirank==0)
+    {
+    const double f0 = p->W212!=0.0 ? p->W212 : 2.0*7.2921159e-5*std::sin(p->W205_lat*3.14159265358979323846/180.0);
+
+        if(p->W211==1)
+        std::cout<<"REEF3D Coriolis force (W 211 1): f-plane, f = "<<f0<<" 1/s"<<(p->W212!=0.0 ? " (W 212)" : " (latitude of W 205)")<<std::endl;
+
+        if(p->W211==2)
+        std::cout<<"REEF3D Coriolis force (W 211 2): f = 2 Omega sin(latitude) of every cell from the frame W 205"<<std::endl;
+    }
 
     if(!msg.empty())
     {

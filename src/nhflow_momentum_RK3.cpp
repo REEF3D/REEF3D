@@ -86,8 +86,8 @@ nhflow_momentum_RK3::nhflow_momentum_RK3(lexer *p, fdm_nhf *d, ghostcell *pgc, s
     if(p->A570>0)
     pwind = new wind_f(p);
 
-    // atmospheric forcing (W 200)
-    if(p->W200>0)
+    // atmospheric forcing (W 200) and Coriolis force (W 211)
+    if(met_forcing::active(p))
     {
     pmet = new met_forcing(p,pgc);
     d->met = pmet;
@@ -278,7 +278,7 @@ void nhflow_momentum_RK3::phase_M(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_s
     p6dof->isource(p,d,pgc,WL);
     pwind->wind_forcing_nhf_x(p,d,pgc,d->U,d->V, d->F, WL, d->eta);
     if(pmet!=nullptr)
-    pmet->source_nhflow(p,pgc,d->F,0);
+    pmet->source_nhflow(p,pgc,d->F,0,WL,UHi,VHi);
     if(d->wave!=nullptr)
     d->wave->u_source(p,d);
     roughness_u(p,d,d->U,d->F,WL);
@@ -318,7 +318,7 @@ void nhflow_momentum_RK3::phase_M(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_s
     p6dof->jsource(p,d,pgc,WL);
     pwind->wind_forcing_nhf_y(p,d,pgc,d->U,d->V, d->G, WL, d->eta);
     if(pmet!=nullptr)
-    pmet->source_nhflow(p,pgc,d->G,1);
+    pmet->source_nhflow(p,pgc,d->G,1,WL,UHi,VHi);
     if(d->wave!=nullptr)
     d->wave->v_source(p,d);
     roughness_v(p,d,d->V,d->G,WL);

@@ -8,6 +8,7 @@ REEF3D atmospheric forcing (W 200 2): writer, reader and converters of the binar
             coordinates; wind vectors turned from (east, north) to the model axes incl. the meridian convergence
   uniform   spatially uniform time series (nx = ny = 1) from a table: time U10 dir [pa]
   analytic  test fields: u10, v10, pa linear in x, y and t (exact under bilinear and linear interpolation)
+  low       air pressure only: a Gaussian low on a background gradient, static or moving (inverse barometer tests)
   info      header and records of a met file
 
 Model coordinates: as tools/seastate_forcing.py, --origin LON0 LAT0 (transverse Mercator on a sphere, the frame of
@@ -244,6 +245,27 @@ def analytic(args):
     print("%s: analytic linear field, %d x %d nodes, %d records" % (args.output, nx, ny, nrec))
 
 
+def low(args):
+    """Air pressure only (no wind): a Gaussian low pa = pref + gx x + gy y - dp exp(-r^2/R^2), its centre
+    moving from (xc, yc) with (vx, vy); for the air pressure gradient and the inverse barometer (W 208, W 210)."""
+    x0, x1, y0, y1 = args.domain
+    nx = int(round((x1 - x0) / args.spacing)) + 1
+    ny = int(round((y1 - y0) / args.spacing)) + 1
+    X, Y = np.meshgrid(x0 + args.spacing * np.arange(nx), y0 + args.spacing * np.arange(ny))
+    t0 = stamp_to_epoch(args.start)
+    nrec = int(round(args.hours * 3600.0 / args.step)) + 1
+    T = [t0 + n * args.step for n in range(nrec)]
+    U = np.zeros((nrec, ny, nx), np.float32)
+    P = np.empty_like(U)
+    for n in range(nrec):
+        t = n * args.step
+        xc, yc = args.centre[0] + args.velocity[0] * t, args.centre[1] + args.velocity[1] * t
+        r2 = (X - xc) ** 2 + (Y - yc) ** 2
+        P[n] = args.pref + args.gradient[0] * X + args.gradient[1] * Y - args.dp * np.exp(-r2 / args.radius ** 2)
+    write_r3m(args.output, x0, y0, args.spacing, args.spacing, T, U, U, P)
+    print("%s: pressure low, %d x %d nodes, %d records, pa %.1f - %.1f Pa" % (args.output, nx, ny, nrec, P.min(), P.max()))
+
+
 def info(args):
     m = read_r3m(args.input)
     print("%s: version %d, %d x %d nodes from (%g, %g) m, spacing %g x %g m, %d records, nvar %d, moving %d"
@@ -299,6 +321,21 @@ def main(argv=None):
     a.add_argument("--hours", type=float, default=6.0)
     a.add_argument("--step", type=float, default=3600.0)
     a.set_defaults(func=analytic)
+
+    l = sub.add_parser("low")
+    l.add_argument("-o", "--output", default="met-forcing.r3m")
+    l.add_argument("--domain", type=float, nargs=4, required=True, metavar=("X0", "X1", "Y0", "Y1"))
+    l.add_argument("--spacing", type=float, required=True)
+    l.add_argument("--dp", type=float, default=3000.0, help="central pressure deficit [Pa]")
+    l.add_argument("--radius", type=float, default=50000.0, help="e-folding radius R [m]")
+    l.add_argument("--centre", type=float, nargs=2, default=(0.0, 0.0), metavar=("XC", "YC"))
+    l.add_argument("--velocity", type=float, nargs=2, default=(0.0, 0.0), metavar=("VX", "VY"))
+    l.add_argument("--gradient", type=float, nargs=2, default=(0.0, 0.0), metavar=("GX", "GY"), help="background gradient [Pa/m]")
+    l.add_argument("--pref", type=float, default=101325.0)
+    l.add_argument("--start", default="20181010.120000")
+    l.add_argument("--hours", type=float, default=6.0)
+    l.add_argument("--step", type=float, default=3600.0)
+    l.set_defaults(func=low)
 
     i = sub.add_parser("info")
     i.add_argument("input")

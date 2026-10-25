@@ -1,0 +1,17 @@
+{
+ "base": "nhflow_3d_channel_walls_kepsilon_mpi2",
+ "description": "NHFLOW channel with walls and k-epsilon (nhflow_3d_channel_walls_kepsilon_mpi2) with a strong f-plane Coriolis force (W 211 1, W 212 0.01 1/s): cross-channel tilt of the surface, explicit RK stages, 2 ranks.",
+ "ctrl_add": [
+  "W 211 1",
+  "W 212 0.01"
+ ],
+ "tags": [
+  "3d",
+  "nhflow",
+  "mpi",
+  "coriolis"
+ ],
+ "covers": [
+  "met_forcing Coriolis (NHFLOW RK)"
+ ]
+}

@@ -3505,6 +3505,21 @@ void control::read_control(lexer* p)
                 case 207: control>>W207;
                          clear(c,numint);
                          break;
+                case 208: control>>W208;
+                         clear(c,numint);
+                         break;
+                case 209: control>>W209;
+                         clear(c,numint);
+                         break;
+                case 210: control>>W210;
+                         clear(c,numint);
+                         break;
+                case 211: control>>W211;
+                         clear(c,numint);
+                         break;
+                case 212: control>>W212;
+                         clear(c,numint);
+                         break;
                 }
                 break;
 

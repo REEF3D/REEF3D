@@ -1253,6 +1253,11 @@ void control::ini_default()
     W205_lon=W205_lat=W205_rot=0.0;  // double frame: transverse Mercator about lon0, lat0 [deg], x axis rot [deg] from east
     W206_x=W206_y=0.0;  // double model coordinates of (lon0, lat0) [m]
     W207=1;          // int drag law of the met forcing: 1 Garratt, 2 Wu, 3 Smith and Banke, 4 Zijlema et al.
+    W208=1;          // int air pressure gradient of the met forcing: 0 off, 1 on
+    W209=101325.0;   // double reference air pressure of the inverse barometer [Pa]
+    W210=1;          // int inverse barometer on the open edges and relaxation zones (B 520): 0 off, 1 on
+    W211=0;          // int Coriolis force (SFLOW, NHFLOW): 0 off, 1 f-plane, 2 f per cell from the frame W 205
+    W212=0.0;        // double f-plane Coriolis parameter [1/s], 0: 2 Omega sin(lat0) of W 205
     W_fb=0.0;        // double density of floating body
 
 	// 6DOF

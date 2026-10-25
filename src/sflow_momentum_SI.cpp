@@ -656,7 +656,7 @@ void sflow_momentum_SI::rk_stage(lexer *p, fdm2D *b, ghostcell *pgc, slice &UHs,
     // sources and diffusion (as the explicit stage, without gravity and bed friction)
     prheo->u_source(p,b,b->U,b->V,WL0);
     if(pmet!=nullptr)
-    pmet->source_sflow(p,pgc,b->F,0);
+    pmet->source_sflow(p,pgc,b->F,0,WL0,UHs,VHs);
     irhs(p,b);
 	pdiff->diff_u(p,b,pgc,psolv,UHDIFF,UHs,b->U,b->V,WL0,alpha);
 
@@ -664,7 +664,7 @@ void sflow_momentum_SI::rk_stage(lexer *p, fdm2D *b, ghostcell *pgc, slice &UHs,
     {
     prheo->v_source(p,b,b->U,b->V,WL0);
     if(pmet!=nullptr)
-    pmet->source_sflow(p,pgc,b->G,1);
+    pmet->source_sflow(p,pgc,b->G,1,WL0,UHs,VHs);
     jrhs(p,b);
     }
     pdiff->diff_v(p,b,pgc,psolv,VHDIFF,VHs,b->U,b->V,WL0,alpha);

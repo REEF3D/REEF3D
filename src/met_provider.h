@@ -26,7 +26,8 @@ Architect: Hans Bihs
 #include"met_frame.h"
 #include<string>
 
-class lexer;
+#include"lexer.h"
+
 class ghostcell;
 class met_source;
 
@@ -44,6 +45,8 @@ evaluates the source per cell (at).
   W 204 T                ramp of the forcing over T s, 0.5 (1 - cos(pi t/T))
   W 205 lon0 lat0 rot    frame, W 206 X0 Y0 (met_frame)
   W 207 law              drag law (met_drag.h)
+  W 209 pref             reference pressure of the inverse barometer [Pa]
+  W 210 1                inverse barometer on the open edges and relaxation zones (ib)
 
 The provider holds no field of a grid, only the source (static data
 of the rank, Regression/unit/static_allowlist.txt).
@@ -58,6 +61,11 @@ public:
     void update(lexer*, ghostcell*, double simtime);
     void at(double x, double y, double &u, double &v, double &pa) const;
     double ramp(lexer*, double simtime) const;
+
+    // inverse barometer level -r (pa - pref)/(rho_w g) at (x,y) and the model time of the grid
+    // (W 210 1; iowave: open edges B 520 3-5, relaxation and beach zones)
+    double ib(lexer*, ghostcell*, double x, double y);
+    static bool ib_on(lexer *p) {return p->W200>0 && p->W210==1 && (p->A10==2 || p->A10==5);}
 
     // checks of the W 200 input, from the driver for every model
     static void check(lexer*, ghostcell*);

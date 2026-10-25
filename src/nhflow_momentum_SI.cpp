@@ -80,8 +80,8 @@ nhflow_momentum_SI::nhflow_momentum_SI(lexer *p, fdm_nhf *d, ghostcell *pgc, six
     if(p->A570>0)
     pwind = new wind_f(p);
 
-    // atmospheric forcing (W 200)
-    if(p->W200>0)
+    // atmospheric forcing (W 200) and Coriolis force (W 211)
+    if(met_forcing::active(p))
     {
     pmet = new met_forcing(p,pgc);
     d->met = pmet;
@@ -1093,14 +1093,14 @@ void nhflow_momentum_SI::si_stage_rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, nhfl
     pflow->isource_nhflow(p,d,pgc,pvrans,WL0);
     pwind->wind_forcing_nhf_x(p,d,pgc,d->U,d->V,d->F,WL0,d->eta);
     if(pmet!=nullptr)
-    pmet->source_nhflow(p,pgc,d->F,0);
+    pmet->source_nhflow(p,pgc,d->F,0,WL0,UHs,VHs);
     irhs(p,d,pgc);
 
     pturb->jsource(p,d);
     pflow->jsource_nhflow(p,d,pgc,pvrans,WL0);
     pwind->wind_forcing_nhf_y(p,d,pgc,d->U,d->V,d->G,WL0,d->eta);
     if(pmet!=nullptr)
-    pmet->source_nhflow(p,pgc,d->G,1);
+    pmet->source_nhflow(p,pgc,d->G,1,WL0,UHs,VHs);
     jrhs(p,d,pgc);
 
     pturb->ksource(p,d);

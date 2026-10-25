@@ -22,38 +22,74 @@ Architect: Hans Bihs
 
 #include"met_forcing.h"
 #include"met_provider.h"
+#include"met_frame.h"
 #include"met_drag.h"
 #include"lexer.h"
 #include"ghostcell.h"
 #include"slice.h"
 #include<cmath>
 #include<algorithm>
+#include<iostream>
 
-met_forcing::met_forcing(lexer *p, ghostcell *pgc) : U10(p), V10(p), Pa(p), Tx(p), Ty(p)
+met_forcing::met_forcing(lexer *p, ghostcell *pgc) : U10(p), V10(p), Pa(p), Tx(p), Ty(p), Gx(p), Gy(p), Fc(p)
 {
+    wind = p->W200>0;
+    pressure = wind && p->W208==1;
+    coriolis = p->W211>0;
+
+    if(wind)
+    {
     pm = met_provider::get(p,pgc);
 
     // box of the cell centres of the grid incl. its ghost cells: the part of the met file the rank reads
     double xs = 1.0e300, xe = -1.0e300, ys = 1.0e300, ye = -1.0e300;
 
-    IMALOOP
-    {
-    xs = std::min(xs,p->XP[IP]);
-    xe = std::max(xe,p->XP[IP]);
-    }
+        IMALOOP
+        {
+        xs = std::min(xs,p->XP[IP]);
+        xe = std::max(xe,p->XP[IP]);
+        }
 
-    JMALOOP
-    {
-    ys = std::min(ys,p->YP[JP]);
-    ye = std::max(ye,p->YP[JP]);
-    }
+        JMALOOP
+        {
+        ys = std::min(ys,p->YP[JP]);
+        ye = std::max(ye,p->YP[JP]);
+        }
 
     pm->window(xs,xe,ys,ye);
+    }
+
+    // Coriolis parameter f = 2 Omega sin(latitude)
+    if(coriolis)
+    {
+    const double Omega = 7.2921159e-5;
+    const double rad = 3.14159265358979323846/180.0;
+    met_frame fr;
+
+        if(p->W205==1)
+        fr = met_frame(p->W205_lon,p->W205_lat,p->W205_rot,p->W206_x,p->W206_y);
+
+    const double f0 = p->W212!=0.0 ? p->W212 : 2.0*Omega*std::sin(p->W205_lat*rad);
+
+        IMALOOP
+        JMALOOP
+        {
+            if(p->W211==1)
+            Fc(i,j) = f0;
+
+            if(p->W211==2)
+            {
+            double lon, lat;
+            fr.to_geo(p->XP[IP],p->YP[JP],lon,lat);
+            Fc(i,j) = 2.0*Omega*std::sin(lat*rad);
+            }
+        }
+    }
 }
 
 void met_forcing::update(lexer *p, ghostcell *pgc)
 {
-    if(has_t && p->simtime==tlast)
+    if(!wind || (has_t && p->simtime==tlast))
     return;
 
     pm->update(p,pgc,p->simtime);
@@ -77,11 +113,23 @@ void met_forcing::update(lexer *p, ghostcell *pgc)
     Ty(i,j) = ra*met_drag(p->W207,speed)*speed*v;
     }
 
+    // kinematic air pressure gradient, central differences (the ghost cells hold the source's values)
+    if(pressure)
+    {
+    const double rp = r/p->W1;
+
+        SLICELOOP4
+        {
+        Gx(i,j) = rp*(Pa(i+1,j) - Pa(i-1,j))/(p->DXP[IP] + p->DXP[IM1]);
+        Gy(i,j) = p->j_dir==1 ? rp*(Pa(i,j+1) - Pa(i,j-1))/(p->DYP[JP] + p->DYP[JM1]) : 0.0;
+        }
+    }
+
     tlast = p->simtime;
     has_t = true;
 }
 
-void met_forcing::source_sflow(lexer *p, ghostcell *pgc, slice &F, int dir)
+void met_forcing::source_sflow(lexer *p, ghostcell *pgc, slice &F, int dir, slice &WL, slice &UH, slice &VH)
 {
     update(p,pgc);
 
@@ -89,13 +137,33 @@ void met_forcing::source_sflow(lexer *p, ghostcell *pgc, slice &F, int dir)
     return;
 
     slice4 &T = (dir==0) ? Tx : Ty;
+    slice4 &G = (dir==0) ? Gx : Gy;
 
+    if(wind)
     SLICELOOP4
     WETDRY
     F(i,j) += T(i,j);
+
+    if(pressure)
+    SLICELOOP4
+    WETDRY
+    F(i,j) -= WL(i,j)*G(i,j);
+
+    if(coriolis)
+    {
+        if(dir==0)
+        SLICELOOP4
+        WETDRY
+        F(i,j) += Fc(i,j)*VH(i,j);
+
+        if(dir==1)
+        SLICELOOP4
+        WETDRY
+        F(i,j) -= Fc(i,j)*UH(i,j);
+    }
 }
 
-void met_forcing::source_nhflow(lexer *p, ghostcell *pgc, double *F, int dir)
+void met_forcing::source_nhflow(lexer *p, ghostcell *pgc, double *F, int dir, slice &WL, double *UH, double *VH)
 {
     update(p,pgc);
 
@@ -103,17 +171,43 @@ void met_forcing::source_nhflow(lexer *p, ghostcell *pgc, double *F, int dir)
     return;
 
     slice4 &T = (dir==0) ? Tx : Ty;
+    slice4 &G = (dir==0) ? Gx : Gy;
 
     // surface stress in the top layer
+    if(wind)
+    {
     k = p->knoz-1;
 
-    SLICELOOP4
+        SLICELOOP4
+        WETDRY
+        F[IJK] += T(i,j)/p->DZN[KP];
+    }
+
+    // air pressure gradient and Coriolis force in every layer
+    if(pressure)
+    LOOP
     WETDRY
-    F[IJK] += T(i,j)/p->DZN[KP];
+    F[IJK] -= WL(i,j)*G(i,j);
+
+    if(coriolis)
+    {
+        if(dir==0)
+        LOOP
+        WETDRY
+        F[IJK] += Fc(i,j)*VH[IJK];
+
+        if(dir==1)
+        LOOP
+        WETDRY
+        F[IJK] -= Fc(i,j)*UH[IJK];
+    }
 }
 
 void met_forcing::offset_vtp(lexer *p, int *offset, int &n)
 {
+    if(!wind)
+    return;
+
     // wind10 (3 components), air_pressure, wind_stress (3 components)
     offset[n]=offset[n-1]+sizeof(float)*(p->pointnum2D)*3+sizeof(int);
     ++n;
@@ -125,6 +219,9 @@ void met_forcing::offset_vtp(lexer *p, int *offset, int &n)
 
 void met_forcing::name_vtp(ofstream &result, int *offset, int &n)
 {
+    if(!wind)
+    return;
+
     result<<"<DataArray type=\"Float32\" Name=\"wind10\" NumberOfComponents=\"3\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
     result<<"<DataArray type=\"Float32\" Name=\"air_pressure\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
@@ -135,6 +232,9 @@ void met_forcing::name_vtp(ofstream &result, int *offset, int &n)
 
 void met_forcing::name_pvtp(ofstream &result)
 {
+    if(!wind)
+    return;
+
     result<<"<PDataArray type=\"Float32\" Name=\"wind10\" NumberOfComponents=\"3\"/>\n";
     result<<"<PDataArray type=\"Float32\" Name=\"air_pressure\"/>\n";
     result<<"<PDataArray type=\"Float32\" Name=\"wind_stress\" NumberOfComponents=\"3\"/>\n";
@@ -142,6 +242,9 @@ void met_forcing::name_pvtp(ofstream &result)
 
 void met_forcing::print_vtp(lexer *p, ofstream &result)
 {
+    if(!wind)
+    return;
+
     int iin;
     float ffn;
 

@@ -1,0 +1,19 @@
+{
+ "base": "sflow_2d_si_tide_oblique",
+ "description": "Coriolis force (W 211 1, f-plane f = 1e-3 1/s, W 212) in the SFLOW semi-implicit oblique tide: f UH, f VH in the Runge-Kutta predictor; without the met forcing (W 200 0).",
+ "ctrl_add": [
+  "W 211 1",
+  "W 212 1.0e-3"
+ ],
+ "tags": [
+  "quick",
+  "2d",
+  "sflow",
+  "semi_implicit",
+  "coriolis"
+ ],
+ "covers": [
+  "met_forcing Coriolis (SFLOW SI)",
+  "met_forcing without a met source"
+ ]
+}

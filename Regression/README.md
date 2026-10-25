@@ -700,6 +700,11 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `sflow_1d_si_met_setup` | 1 | SFLOW semi-implicit wind setup in a closed basin 10 km × 10 m, U10 20 m/s, ramp 1800 s (validated in Dropbox Storm Surge/validation/01_wind_setup) |
 | `sflow_2d_si_met_file` (+ `sflow_2d_met_explicit`) | 1 | met file (linear field, 25 m spacing, 10 min records, W 203, Wu W 207 2) in `sflow_2d_si_basin_bar`, semi-implicit and explicit (A 226 0): x and y stress of the wet cells |
 | `sflow_2d_amr_met` | 1 | `sflow_2d_amr_dambreak` with W 200 1, U10 25 m/s to 45°, Smith and Banke (W 207 3): met_forcing of the patches at every regrid |
+| `sflow_2d_si_met_pressure_ib` (+ `_noib`) | 1 | air pressure of the met forcing (`tools/met_forcing.py low`: a moving Gaussian low on a background gradient, no wind) in `sflow_2d_si_tide_oblique`: pressure gradient W 208 in the SI predictor, inverse barometer W 210 on the Riemann and Flather edges (`iowave::eta_ib`); `_noib` with W 210 0 |
+| `nhflow_2d_si_met_pressure_ib` | 1 | the same in the NHFLOW semi-implicit channel `nhflow_2d_si_tide_riemann`: pressure gradient in every layer, inverse barometer on both Riemann edges |
+| `sflow_2d_si_coriolis` | 1 | Coriolis force W 211 1 (f-plane, W 212 1e-3) in `sflow_2d_si_tide_oblique`, without a met source (W 200 0) |
+| `nhflow_3d_si_coriolis_mpi2` | 2 | `nhflow_3d_si_met_uniform_mpi2` with f of every cell from the frame (W 211 2, W 205 5.9 62.3 20) |
+| `nhflow_3d_channel_coriolis_mpi2`, `sflow_2d_channel_coriolis_mpi2` | 2 | channel flows with a strong f-plane Coriolis force (W 212 0.01): the explicit RK stages of NHFLOW and SFLOW |
 
 Tag `quick` selects a subset that runs in a few minutes. Adding a case: copy a directory, edit,
 run `./regression.py run ... --cases <new>`, check it, then `bless`.
