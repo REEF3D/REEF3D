@@ -11,6 +11,7 @@
 #include"coral/core/coral_timeint.h"
 #include"coral/io/coral_input.h"
 #include"coral/wind/coral_wind.h"
+#include"coral/linear/coral_modes.h"
 #include<cmath>
 #include<cstdio>
 #include<fstream>
@@ -78,6 +79,8 @@ static rotor_spec design(int n=30)
     return sp;
 }
 
+static double sp_twist(const rotor_spec &sp, int i) {return sp.stations[i].twist;}
+
 static rotor_def steady_def(const rotor_spec &sp)
 {
     rotor_def rd;
@@ -130,14 +133,15 @@ static void test_cone()
     h.aero->station_loads(m, 0.0, L);
     // a coned element in tilted wind: Vx = U (cone/tilt), Vy = Omega r cos(cone) +- the in-plane wind, r in the plane
     const aero_station &s = h.aero->stations()[20];
-    const Vec3 P = m.body(h.hub).point(s.s), n = m.body(h.hub).R*s.n0, t = m.body(h.hub).R*s.t0;
+    const Vec3 P = m.body(h.hub).point(s.s), n = L[20].n, t = L[20].t;
     const Vec3 V = Vec3(U0, 0, 0) - m.body(h.hub).point_velocity(s.s);
     const double rr = sp.stations[20].r*std::cos(sp.precone);
     const Vec3 d = P - sp.hub, e = sp.axis.normalized();
-    check(std::fabs((d - d.dot(e)*e).norm() - rr) < 1e-9 && std::fabs(n.dot(e) - std::cos(sp.precone)) < 1e-12 && std::fabs(t.dot(e)) < 1e-12,
-          fmt("blade 1 coned upwind by 2.5 deg: in-plane radius %.4f m, normal tilted by the cone", rr));
+    check(std::fabs((d - d.dot(e)*e).norm() - rr) < 1e-9 && std::fabs(n.dot(e) - std::cos(sp.precone)) < 1e-12 && std::fabs(t.dot(e)) < 1e-12
+          && std::fabs(L[20].theta - sp.stations[20].twist) < 1e-12,
+          fmt("blade 1 coned upwind by 2.5 deg: in-plane radius %.4f m, normal tilted by the cone, theta = twist from the chord", rr));
     bem_element el;
-    el.r = rr; el.chord = s.chord; el.theta = s.twist; el.R = 40*std::cos(sp.precone); el.R_hub = 2*std::cos(sp.precone); el.B = 3;
+    el.r = rr; el.chord = s.chord; el.theta = sp.stations[20].twist; el.R = 40*std::cos(sp.precone); el.R_hub = 2*std::cos(sp.precone); el.B = 3;
     el.af = &sp.airfoils[0];
     bem_options o;
     // the skewed wake from the tilt (5 deg): its factor
@@ -296,6 +300,141 @@ static void test_yaw_tower()
           "potential flow: u 0.75 U two radii upstream, 1.25 U beside, v at 45 deg, nothing above the tower top");
 }
 
+static void test_pitch()
+{
+    std::cout<<"pitch bearings and actuators"<<std::endl;
+    auto w = std::make_shared<wind_field>(U0, 90.0);
+    rotor_spec a = design(), b = design();
+    a.pitch = b.pitch = 5.0*deg;
+    b.pitch_joints = true;
+    model ma, mb;
+    const rotor_handles ha = build_rotor(ma, w, a), hb = build_rotor(mb, w, b);
+    std::vector<station_load> La, Lb;
+    ha.aero->station_loads(ma, 0.0, La); hb.aero->station_loads(mb, 0.0, Lb);
+    const auto va = ha.aero->values(ma, 0.0, La), vb = hb.aero->values(mb, 0.0, Lb);
+    check(hb.pitch_bodies.size()==3 && std::fabs(vb.T/va.T - 1.0) < 1e-10 && std::fabs(vb.Q/va.Q - 1.0) < 1e-10
+          && std::fabs(Lb[20].theta - (sp_twist(b, 20) + 5.0*deg)) < 1e-12,
+          fmt("pitch 5 deg in the geometry (pitch bearings) = in the aerodynamics: thrust %.1f kN, torque %.1f kN m", vb.T/1e3, vb.Q/1e3));
+    check(std::fabs(hb.mass - ha.mass) < 1e-6 && std::fabs(hb.J - ha.J) < 1e-3, "the same rotor mass and inertia");
+    // step of the command from 5 to 10 deg, no aerodynamic load: second-order response, 2 Hz, damping 0.7
+    rotor_spec c = design(10);
+    c.omega0 = 0.0; c.aero.rho = 0.0; c.pitch = 5.0*deg; c.pitch_joints = true;
+    model mc;
+    mc.gravity = Vec3::Zero();
+    const rotor_handles hc = build_rotor(mc, w, c);
+    hc.pitch->set_command_all(10.0*deg);
+    timeint_settings ts;
+    ts.rho_inf = 1.0;
+    timeint ti(ts);
+    ti.initialize(mc, 0.0);
+    double peak = 0.0, tpeak = 0.0;
+    const double dt = 0.002;
+    for(int i=0; i<1000; ++i)
+    {
+        ti.step(mc, i*dt, dt);
+        const double th = hc.pitch->angle(mc, 1);
+        if(th > peak) {peak = th; tpeak = (i + 1)*dt;}
+    }
+    const double z = 0.7, wn = 2*M_PI*2.0, wd = wn*std::sqrt(1 - z*z);
+    const double over = std::exp(-z*M_PI/std::sqrt(1 - z*z));
+    check(std::fabs((peak - 5.0*deg)/(5.0*deg) - (1.0 + over)) < 2e-3 && std::fabs(tpeak - M_PI/wd) < 0.01
+          && std::fabs(hc.pitch->angle(mc, 2) - 10.0*deg) < 1e-5,
+          fmt("command step 5 -> 10 deg: overshoot %.2f %% at %.3f s (second order: %.2f %% at %.3f s), settles at 10 deg",
+              ((peak - 5.0*deg)/(5.0*deg) - 1)*100, tpeak, over*100, M_PI/wd));
+}
+
+// a uniform blade: mass 300 kg/m, EI flap 5e9, edge 1e10
+static blade_structure uniform_blade()
+{
+    blade_structure b;
+    b.frac = {0.0, 1.0};
+    b.mass = {300.0, 300.0};
+    b.EI_flap = {5.0e9, 5.0e9};
+    b.EI_edge = {1.0e10, 1.0e10};
+    b.twist = {0.0, 0.0};
+    b.pitch_axis = {0.25, 0.25};
+    return b;
+}
+
+static void test_flexible()
+{
+    std::cout<<"flexible blades"<<std::endl;
+    auto w = std::make_shared<wind_field>(U0, 90.0);
+    // undeformed: the stations on the nodes give the rigid rotor's loads
+    rotor_spec a = design(), b = design();
+    b.blade_elements = 12;
+    model ma, mb;
+    const rotor_handles ha = build_rotor(ma, w, a), hb = build_rotor(mb, w, b);
+    std::vector<station_load> La, Lb;
+    ha.aero->station_loads(ma, 0.0, La); hb.aero->station_loads(mb, 0.0, Lb);
+    const auto va = ha.aero->values(ma, 0.0, La), vb = hb.aero->values(mb, 0.0, Lb);
+    check(hb.blade_nodes.size()==3 && hb.blade_nodes[0].size()==13 && std::fabs(vb.T/va.T - 1.0) < 1e-10 && std::fabs(vb.Q/va.Q - 1.0) < 1e-10,
+          fmt("12 beam elements per blade: the undeformed rotor's thrust %.1f kN and torque %.1f kN m = the rigid one's", vb.T/1e3, vb.Q/1e3));
+
+    // the uniform cantilever blade at rest: first flap and edge frequencies 3.516/(2 pi) sqrt(EI/(m L^4))
+    rotor_spec u = design(10);
+    u.R_hub = 0.0;
+    for(size_t i=0; i<u.stations.size(); ++i) u.stations[i].r = 40.0*i/(u.stations.size() - 1);
+    u.structure = uniform_blade();
+    u.blade_elements = 20;
+    u.omega0 = 0.0; u.aero.rho = 0.0;
+    model mu;
+    mu.gravity = Vec3::Zero();
+    build_rotor(mu, w, u);
+    const mode_result mr = modes(mu, 0.0, 10);
+    const double ff = 3.516/(2*M_PI)*std::sqrt(5.0e9/(300.0*std::pow(40.0, 4))), fe = ff*std::sqrt(2.0);
+    int nf = 0, ne = 0;
+    double ef = 0.0, ee = 0.0;
+    for(int i=0; i<mr.frequency.size(); ++i)
+    {
+        const double f = mr.frequency(i);
+        if(std::fabs(f/ff - 1.0) < 0.02) {++nf; ef = std::max(ef, std::fabs(f/ff - 1.0));}
+        if(std::fabs(f/fe - 1.0) < 0.02) {++ne; ee = std::max(ee, std::fabs(f/fe - 1.0));}
+    }
+    check(mr.ok && nf==3 && ne >= 2 && ef < 3e-3 && ee < 3e-3,
+          fmt("non-rotating: 3 flap modes at %.4f Hz (%.2f %%), the edge modes at %.4f Hz (%.2f %%; the collective one with the hub)",
+              ff, ef*100, fe, ee*100));
+
+    // spinning at 4 rad/s: the flap frequency in the rotating frame rises to sqrt(w0^2 + 1.193 Omega^2) (Southwell)
+    rotor_spec r = u;
+    r.omega0 = 4.0;
+    model mr2;
+    mr2.gravity = Vec3::Zero();
+    const rotor_handles hr = build_rotor(mr2, w, r);
+    const std::vector<int> &bn = hr.blade_nodes[0];
+    const Vec3 e(1, 0, 0);
+    for(size_t q=1; q<bn.size(); ++q)
+    {
+        const double x = (double)q/(bn.size() - 1);
+        mr2.bodies[bn[q]].v += 0.05*x*x*e;
+    }
+    timeint ti;
+    ti.initialize(mr2, 0.0);
+    const double dt = 0.004;
+    std::vector<double> tip;
+    for(int i=0; i<5000; ++i)
+    {
+        ti.step(mr2, i*dt, dt);
+        tip.push_back((mr2.body(bn.back()).x - mr2.body(hr.hub).x).dot(e));
+    }
+    // frequency from the zero crossings of the flap deflection about its mean
+    double mean = 0.0;
+    for(double x : tip) mean += x/tip.size();
+    double t0 = -1, t1 = -1;
+    int nz = 0;
+    for(size_t i=1; i<tip.size(); ++i)
+        if(tip[i-1] < mean && tip[i] >= mean)
+        {
+            const double tz = (i - 1 + (mean - tip[i-1])/(tip[i] - tip[i-1]))*dt;
+            if(t0 < 0) t0 = tz;
+            t1 = tz; ++nz;
+        }
+    const double fr = (nz - 1)/(t1 - t0);
+    const double w0 = 2*M_PI*ff, fs = std::sqrt(w0*w0 + 1.193*16.0)/(2*M_PI);
+    check(std::fabs(fr/fs - 1.0) < 0.01, fmt("rotating at 4 rad/s: flap at %.4f Hz, Southwell %.4f Hz (%.4f Hz at rest)", fr, fs, ff));
+    check(std::fabs(hr.drive->omega_rotor(mr2) - 4.0) < 0.01, fmt("rotor speed kept: %.4f rad/s", hr.drive->omega_rotor(mr2)));
+}
+
 static void test_input()
 {
     std::cout<<"keyword"<<std::endl;
@@ -360,6 +499,8 @@ int main()
     test_spinup();
     test_torsion();
     test_yaw_tower();
+    test_pitch();
+    test_flexible();
     test_input();
     std::cout<<(nfail ? "FAILED: " : "all passed")<<(nfail ? std::to_string(nfail) : "")<<std::endl;
     return nfail ? 1 : 0;

@@ -1,0 +1,12 @@
+{
+ "np": 2,
+ "steps": 200,
+ "tags": ["3d", "nhflow", "curvilinear", "multiblock", "amr", "mpi"],
+ "description": "G 55 2: the blocks 1.. cut into pieces for the ranks. A closed wavy channel of three blocks of 48 x 12 cells in a row, block 1 turned by 90 deg (cut along its j: more cells in j, no open faces), block 2 by 180 deg (cut along i), dam breaks in blocks 1 and 2, non-hydrostatic, one refinement level in static boxes over the cuts, two ranks: 5 blocks (pieces of 12 x 24 and 24 x 12), the interfaces of the pieces composed with the turned interfaces of DIVEMesh. Without G 55 the same solution to 2e-12 (the pressure solve); hydrostatic to round-off (Dropbox Tagus_NHFLOW_multiblock/validation/03_block_pieces).",
+ "covers": [
+  "geo_mesh::split_blocks (pieces, nodes, interfaces cell by cell, the check), face_piece",
+  "reefamr::blocks_setup with the pieces as blocks: placement, fills, patches across the cuts"
+ ],
+ "solver": "nhflow",
+ "files": ["blocks.dat"]
+}
