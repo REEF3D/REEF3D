@@ -370,6 +370,8 @@ private:
     void fill_velout(int l, int s);
     void fill_vel_after(int s);
     void edge_faces(int l, int s);
+    // the projected pressure around the patches at the end of the step (the outputs read it there)
+    void fill_press_out();
 
     // the hierarchy after setup or a regrid: checks, cell kinds, composite projection, subcycling state
     void hierarchy(bool first);

@@ -98,6 +98,32 @@ void ghostcell::gcdf_update(lexer *p, fdm *a)
     
     flagx(p,p->flagsf4);
     
+    // a patch of the mesh refinement (no partition neighbours: flagx leaves its margin as it is):
+    // the margin cells in the domain take the flag from their own fields, the solid, the
+    // topography and the bodies of the next patch or of the coarser level there, so that a
+    // surface at the edge of the patch is seen from both sides (the direct forcing entries below,
+    // the wall laws of the turbulence models)
+    auto margin = [p](int ii, int jj, int kk)
+    {
+        if(ii>=0 && ii<p->knox && jj>=0 && jj<p->knoy && kk>=0 && kk<p->knoz)
+        return false;
+        return ii+p->origin_i>=0 && ii+p->origin_i<p->gknox && jj+p->origin_j>=0 && jj+p->origin_j<p->gknoy
+            && kk+p->origin_k>=0 && kk+p->origin_k<p->gknoz;
+    };
+
+    if(!do_comms)
+    for(i=p->imin; i<p->imin+p->imax; ++i)
+    for(j=p->jmin; j<p->jmin+p->jmax; ++j)
+    for(k=p->kmin; k<p->kmin+p->kmax; ++k)
+    if(margin(i,j,k) && p->flag4[IJK]>OBJ_FLAG)
+    {
+    if((a->fb(i,j,k)>0.0 || p->X10==0) && (a->solid(i,j,k)>0.0 || p->solidread==0) && (a->topo(i,j,k)>0.0 || p->toporead==0))
+    p->flagsf4[IJK]=1;
+
+    if((a->fb(i,j,k)<0.0 && p->X10==1) || (a->solid(i,j,k)<0.0 && p->solidread==1) || (a->topo(i,j,k)<0.0 && p->toporead==1))
+    p->flagsf4[IJK]=-1;
+    }
+
     BASELOOP
     {
     p->flagsf1[IJK]=p->flagsf4[IJK];
@@ -119,6 +145,26 @@ void ghostcell::gcdf_update(lexer *p, fdm *a)
     flagx(p,p->flagsf3);
     
     
+    if(!do_comms)
+    for(i=p->imin; i<p->imin+p->imax; ++i)
+    for(j=p->jmin; j<p->jmin+p->jmax; ++j)
+    for(k=p->kmin; k<p->kmin+p->kmax; ++k)
+    if(margin(i,j,k) && p->flag4[IJK]>OBJ_FLAG)
+    {
+    p->flagsf1[IJK]=p->flagsf4[IJK];
+    p->flagsf2[IJK]=p->flagsf4[IJK];
+    p->flagsf3[IJK]=p->flagsf4[IJK];
+
+    if(p->flagsf4[IJK]>0 && i+1<p->imin+p->imax && p->flagsf4[Ip1JK]<0)
+    p->flagsf1[IJK]=-1;
+
+    if(p->flagsf4[IJK]>0 && j+1<p->jmin+p->jmax && p->flagsf4[IJp1K]<0)
+    p->flagsf2[IJK]=-1;
+
+    if(p->flagsf4[IJK]>0 && k+1<p->kmin+p->kmax && p->flagsf4[IJKp1]<0)
+    p->flagsf3[IJK]=-1;
+    }
+
     // -----------------------------------------------------------
     // count gcdf entries
     count=0;

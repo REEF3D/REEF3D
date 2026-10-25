@@ -1519,6 +1519,24 @@ void cfd_amr::restrict_scalars(int s)
     pgc0->start4(p0,mom0->amr_phi_out(s),gcval_phi);
 }
 
+// the pressure around the patches of all levels at the end of the step.  The composite projection
+// corrects the pressure of the leaf cells; the cells around the patches keep that of the start of
+// the last stage (fill_stage_in) until the next stage fills them.  The outputs interpolate there
+// next to a patch edge (the probes, the pieces of the solid surface of P 81 at the edge of a
+// patch; with G 40 every cut of the units), so they read the projected pressure.  The next stage
+// fills these cells again before it reads them.
+void cfd_amr::fill_press_out()
+{
+    vector<fspec> fs;
+    for(const cfd_amr_field &e : reg)
+    if(e.name=="press")
+    {
+        const cfd_amr_field *pe = &e;
+        fs.push_back({e.type,e.prolong,[this,pe](int g) -> field& { return rf(*pe,g); }});
+    }
+    fill_all(fs);
+}
+
 void cfd_amr::step(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof *p6dof)
 {
     // the pressure reference (B 30 1, 2, 4) once at the end of the step over all grids; level 0
@@ -1537,6 +1555,8 @@ void cfd_amr::step(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof *p6do
         p->B30 = b30;
         reference(p,pgc);
     }
+
+    fill_press_out();
 
     // load statistics of the ranks (G 43), the load map (G 45, 46)
     load_step(p);
