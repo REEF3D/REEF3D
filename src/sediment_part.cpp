@@ -147,3 +147,10 @@ bool sediment_part::ckpt_rank_restore(lexer *p, ghostcell *pgc, const std::vecto
 {
     return pst->ckpt_rank_restore(p,pgc,v,same);
 }
+
+// G 46: the CPM load map (parcels per cell) for the weighted partition of the restart
+void sediment_part::loadmap(lexer *p, fdm *a, ghostcell *pgc)
+{
+    if(p->A10==6)
+    pst->loadmap_write(p,a,pgc);
+}

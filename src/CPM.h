@@ -215,17 +215,18 @@ private:
     std::vector<int> rs_list;
     int rs_nmerge=0, rs_nsplit=0;
     
-    // load map (G 45), see CPM_loadmap.cpp: parcel updates per cell, awake flags of the parcels of a sub-step
+    // load map (G 45, G 46), see CPM_loadmap.cpp: parcel updates per cell, awake flags of the parcels of a sub-step
     std::vector<double> lmS,lmA;
     std::vector<char> lmAw;
     double lmTstep=0.0, lmTcpm=0.0, lm_w0=0.0, lm_m0=0.0;
     long lm_steps=0;
     int lm_open=0;
-    void loadmap_mark(lexer *p, int q, bool awake) { if(p->G45>0){ if(lmAw.size()<size_t(P.index)) lmAw.resize(P.index,1); lmAw[q]=awake?1:0; } }
+    static bool loadmap_on(lexer *p) { return p->G45>0 || p->G46>0.0; }   // G 45: written every G 45 steps; G 46: at a rebalance
+    void loadmap_mark(lexer *p, int q, bool awake) { if(loadmap_on(p)){ if(lmAw.size()<size_t(P.index)) lmAw.resize(P.index,1); lmAw[q]=awake?1:0; } }
     void loadmap_substep(lexer*);
-    void loadmap_write(lexer*, fdm*, ghostcell*);
 public:
     void loadmap_step(lexer*, fdm*, ghostcell*, double, double);
+    void loadmap_write(lexer*, fdm*, ghostcell*);
 private:
     void kernel(lexer*, double, double, double, int=-1);
     bool wallcell(lexer*, int, int, int);

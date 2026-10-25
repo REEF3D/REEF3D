@@ -61,6 +61,8 @@ public:
     virtual void ckpt_rank_state(lexer*, std::vector<double>&) {}
     virtual bool ckpt_rank_restore(lexer*, ghostcell*, const std::vector<std::vector<double>>&, bool) {return true;}
     virtual double* ckpt_wln() {return nullptr;}
+    // the load map for the weighted partition at a rebalance (G 46; CPM: its parcels per cell), collective
+    virtual void loadmap(lexer*, fdm*, ghostcell*) {}
 
 
 	virtual void start_cfd(lexer*, fdm*, ghostcell*, ioflow*, reinitopo*, solver*)=0;

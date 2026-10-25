@@ -151,6 +151,7 @@ private:
     bool ckpt_restore(lexer*, ghostcell*, const std::vector<double>&) override final;
     void ckpt_rank_state(lexer*, std::vector<double>&) override final;
     bool ckpt_rank_restore(lexer*, ghostcell*, const std::vector<std::vector<double>>&, bool) override final;
+    void loadmap(lexer*, fdm*, ghostcell*) override final;
 
     void state_write(lexer*, int) override final;
     void state_read(lexer*, ghostcell*, int) override final;
