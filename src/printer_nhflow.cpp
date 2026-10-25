@@ -897,7 +897,7 @@ void printer_nhflow::print(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbulen
     }
 }
 
-// the mesh refinement: the wave gauges (P 51) and the probes (P 64, P 65) on the finest grid
+// the mesh refinement: the wave gauges (P 51), the probes (P 64, P 65) and the forces (P 81) on the finest grid
 void printer_nhflow::amr_columns(lexer *p, const amr_column_lookup *amr)
 {
     pwsf->amr = amr;
@@ -905,6 +905,9 @@ void printer_nhflow::amr_columns(lexer *p, const amr_column_lookup *amr)
     ppressprobe->amr = amr;
     if(p->P65>0)
     pvel->amr = amr;
+    // the forces on the solids (P 81) on the finest grid
+    for(int n=0; n<p->P81; ++n)
+    pforce[n]->amr_attach(amr,nullptr);
 }
 
 // checkpoints (P 48, I 45): the file numbers of the outputs and the print windows (P 35, P 185)
