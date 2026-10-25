@@ -1483,6 +1483,7 @@
         <File Name="cfd_amr_scalar.cpp"/>
         <File Name="cfd_amr_geom.cpp"/>
         <File Name="cfd_amr_force.cpp"/>
+        <File Name="cfd_amr_zone.cpp"/>
       </VirtualDirectory>
       <File Name="reefamr.cpp"/>
       <File Name="reefamr_regrid.cpp"/>

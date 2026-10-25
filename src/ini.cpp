@@ -724,7 +724,7 @@ void control::ini_default()
     // Grid
     // mesh refinement (SFLOW, FNPF, NHFLOW)
     G1=0;       // int SFLOW, FNPF and NHFLOW mesh refinement: number of refined levels
-    G2=4;       // int SFLOW, FNPF, NHFLOW and CFD mesh refinement: regrid interval in time steps (0: static; FNPF and NHFLOW: with G 12, G 20, G 21, G 22 or G 23; CFD: with G 24, G 25 or G 26)
+    G2=4;       // int SFLOW, FNPF, NHFLOW and CFD mesh refinement: regrid interval in time steps (0: static; FNPF and NHFLOW: with G 12, G 20, G 21, G 22 or G 23; CFD: with G 12, G 24, G 25 or G 26)
     G3=2;       // int SFLOW, FNPF, NHFLOW and CFD mesh refinement: buffer cells around flagged cells
     G4=8;       // int SFLOW, FNPF, NHFLOW and CFD mesh refinement: tile size in cells of the refined level
     G5=4;       // int SFLOW, FNPF, NHFLOW and CFD mesh refinement: regrids a refined tile is kept after its last flag (hysteresis)
@@ -733,10 +733,10 @@ void control::ini_default()
     G10=0;      // int SFLOW, FNPF and NHFLOW mesh refinement: number of static refinement boxes
     G15=0;      // int CFD mesh refinement: number of static refinement boxes xs xe ys ye zs ze
     G11=0;      // int SFLOW, FNPF and NHFLOW mesh refinement: number of boxes without refinement
-    G12=0;      // int SFLOW, FNPF and NHFLOW mesh refinement: refine around the moving body (SFLOW X 10 2/3, FNPF X 10 1, NHFLOW X 10 1/2)
-    G12_r=0.5;  // double SFLOW, FNPF and NHFLOW mesh refinement: margin around the hull
-    G13_L=0.0;  // double SFLOW and NHFLOW mesh refinement: length of the refined wake wedge from the bow (0: off)
-    G13_a=19.47;// double SFLOW and NHFLOW mesh refinement: half angle of the wake wedge in degrees
+    G12=0;      // int SFLOW, FNPF, NHFLOW and CFD mesh refinement: refine around the moving body (SFLOW X 10 2/3, FNPF X 10 1, NHFLOW X 10 1/2, CFD X 10 1)
+    G12_r=0.5;  // double SFLOW, FNPF, NHFLOW and CFD mesh refinement: margin around the hull
+    G13_L=0.0;  // double SFLOW, NHFLOW and CFD mesh refinement: length of the refined wake wedge from the bow (0: off)
+    G13_a=19.47;// double SFLOW, NHFLOW and CFD mesh refinement: half angle of the wake wedge in degrees
     G20=0.0;    // double SFLOW, FNPF and NHFLOW mesh refinement: surface jump between neighbour cells that flags a cell (0: off)
     G21=0.0;    // double FNPF and NHFLOW mesh refinement: second difference of the surface along x or y that flags a cell (0: off)
     G22=0;      // int SFLOW, FNPF and NHFLOW mesh refinement: flag the shoreline (SFLOW: >0 on; NHFLOW and FNPF with G 30 1: the cells within this many cells (1-3) of the shoreline); 0 off

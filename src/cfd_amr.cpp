@@ -339,8 +339,15 @@ cfd_amr::cfd_amr(lexer *p, fdm *a, ghostcell *pgc, momentum *pmom, pressure *ppr
     // G 41: the work of a patch cell in the placement (0: measured, from 1 until the first measurement)
     wpatch = (p->G41>0.0) ? p->G41 : 1.0;
 
-    // the hierarchy: static boxes G 15, adaptive with the flags G 24-26 of the initial level 0
-    adapt = (p->G24>0.0 || p->G25>0 || p->G26>0.0) ? 1 : 0;
+    // the refinement zone of the floating bodies (G 12 r, G 13 L a): regrids every G 2 steps, the
+    // layout kept while it covers the zone with at most 50 % more tiles (as NHFLOW and FNPF)
+    bzone = (bodies && p->G12>0) ? 1 : 0;
+    if(bzone)
+    lazy = 1.5;
+
+    // the hierarchy: static boxes G 15, adaptive with the flags G 24-26 (and the body zone G 12) of the
+    // initial level 0
+    adapt = (p->G24>0.0 || p->G25>0 || p->G26>0.0 || bzone) ? 1 : 0;
     if(adapt)
     {
         setup_base(p,pgc);

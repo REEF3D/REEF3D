@@ -161,6 +161,13 @@ struct cfd_amr_field
 //  patches write onto level 0); the outputs and the loads of the bodies on the rank of the finest
 //  grid at the point (amr_cfd_mine).  G 40 2: the test of it (small units, placed anew).
 //
+//  G 12 r (with floating bodies X 10 1), the refinement zone of the bodies (cfd_amr_zone.cpp, as
+//  NHFLOW and FNPF): the finest level over a margin r around every body and the distance it travels
+//  until the next regrid, every G 2 steps; G 13 L a: the zone along the direction of motion with a
+//  wake wedge of half angle a and length L at most.  The layout is kept while it covers the zone with
+//  at most 50 % more tiles (lazy layout, reefamr3d::lazy), so a body that moves a little or oscillates
+//  does not rebuild its patches every regrid.
+//
 //  Periodic boundaries in x and y (C 21, C 22 of DIVEMesh; on one rank or across ranks): a level is
 //  refined alike on both sides of a periodic edge (reefamr3d::mark_tiles), so no patch edge lies on
 //  it; the margin of a patch across it comes from the patches at the other end (the fill plans
@@ -372,6 +379,12 @@ private:
     long nregrid = 0;
     vector<vector<int>> tage;       // [l][tile] regrids since the last flag (hysteresis G 5)
     void flags(vector<vector<unsigned char>> &seed, bool init);
+    // the refinement zone of the floating bodies (G 12 r, G 13 L a; cfd_amr_zone.cpp): the tiles of the
+    // finest level in the zone of every body; bz_x0, bz_y0: the centres of the bodies at the start (the
+    // wake wedge reaches back to where the bow has been)
+    int bzone = 0;
+    vector<double> bz_x0, bz_y0;
+    void zone_seed(vector<vector<unsigned char>> &seed);
     bool flagged(int g, int i, int j, int k, int lt, bool init);
     void regrid(lexer*, ghostcell*, bool replace=false);    // replace: the units placed anew (G 41 0, static refinement)
     vector<vector<unsigned char>> ck_seed;      // restart (I 45): the tile maps of the checkpoint for the regrid
