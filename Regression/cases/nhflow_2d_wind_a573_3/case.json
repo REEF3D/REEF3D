@@ -1,0 +1,19 @@
+{
+ "base": "nhflow_2d_nwt_stokes5",
+ "description": "NHFLOW wind forcing on Stokes waves: Miles/Plant surface pressure in phase with the slope (A 573 3, beta A 575 32), Zijlema drag (A 570 4), U10 12 m/s along x, low-pass filter on the slope (A 578 4).",
+ "ctrl_add": [
+  "A 570 4",
+  "A 571 12.0 0.0",
+  "A 573 3"
+ ],
+ "tags": [
+  "2d",
+  "nhflow",
+  "wind"
+ ],
+ "covers": [
+  "wind_f::wind_pressure mode 3",
+  "slope filter",
+  "pressure gradient over the column"
+ ]
+}

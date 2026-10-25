@@ -965,6 +965,14 @@
         <File Name="wind_f.h"/>
         <File Name="wind.h"/>
       </VirtualDirectory>
+      <VirtualDirectory Name="Met">
+        <File Name="met_drag.h"/>
+        <File Name="met_file.h"/>
+        <File Name="met_forcing.h"/>
+        <File Name="met_frame.h"/>
+        <File Name="met_provider.h"/>
+        <File Name="met_source.h"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="Multiphase">
         <VirtualDirectory Name="Fluid Update">
           <File Name="multiphase_fluid_update_rheology.h"/>
@@ -2667,6 +2675,12 @@
         <File Name="wind_f.cpp"/>
         <File Name="wind_f_drag_coeff.cpp"/>
         <File Name="wind_f_fnpf.cpp"/>
+      </VirtualDirectory>
+      <VirtualDirectory Name="Met">
+        <File Name="met_file.cpp"/>
+        <File Name="met_forcing.cpp"/>
+        <File Name="met_frame.cpp"/>
+        <File Name="met_provider.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Multiphase">
         <VirtualDirectory Name="Fluid Update">

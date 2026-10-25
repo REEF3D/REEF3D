@@ -689,6 +689,9 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `nhflow_2d_bore_beach_kepsilon` | 1 | NHFLOW 2D bore running up a dry 1:20 beach, k-ε: newly wetted columns start from the wet neighbours, length-scale limit l ≤ κh |
 | `nhflow_3d_boom_particles_mpi2` | 2 | NHFLOW river plastic interceptor: angled boom (B 350, skirt depth below the moving free surface, normal-only resistance), catamaran hulls and a permeable conveyor as surface-piercing drag boxes (B 351), floating and buoyant particles blocked above the draft and passing under it (L 71), capture zone at the conveyor (L 72), boom/hull force output (REEF3D_NHFLOW_Boom); particles cross the rank interface along the boom (needs River Interceptor patches 0001-0002) |
 | `nhflow_3d_dem_boom_mat` | 1 | NHFLOW + DEM: floating debris parcels (light and heavy) driven against a boom that acts on the flow as B 350 and on the parcels as a fixed DEM box; contact loads on fixed particles (REEF3D_DEM/REEF3D-DEM-Fixed-Loads.dat) and heave/roll damping of floating unresolved particles (E 31) (needs River Interceptor patches 0001-0004) |
+| `nhflow_2d_wind_a573_1` (`_3`, `_4`) | 1 | NHFLOW wind forcing on Stokes waves (A 570-578): surface stress in the top layer (A 573 1, Garratt), Miles/Plant pressure (A 573 3, Zijlema), Jeffreys sheltering on the steep faces (A 573 4, Wu, critical slope 0.05) with a forcing area and cos² decay (A 572, A 574) |
+| `nhflow_3d_si_wind_a573_mpi2` | 2 | `nhflow_3d_si_basin_mpi2` with the NHFLOW wind forcing, U10 20 m/s to 30°: x and y stress in the semi-implicit step |
+| `fnpf_2d_wind_a373_1` (`_4`) | 1 | FNPF wind setup (A 373 1, along-wind potential, h_ref of the wet forcing area) and Jeffreys wind input (A 373 4, critical slope 0.004) on regular waves |
 
 Tag `quick` selects a subset that runs in a few minutes. Adding a case: copy a directory, edit,
 run `./regression.py run ... --cases <new>`, check it, then `bless`.
