@@ -1,0 +1,8 @@
+{
+ "np": 1,
+ "steps": 100,
+ "tags": ["3d", "nhflow", "wetdry"],
+ "description": "Lake at rest with wetting and drying and the default WENO reconstruction (A 514 4): a 2-cell wide creek with 5 cm of water between dry banks 2.5 m above the water (T 10 boxes, A 544 0.01), connected to the deep part. The velocities stay exactly zero; before the WENO face states of eta took the eta of the dry banks into their stencil (0.33 m/s after 100 s, 2.5 m/s in the Tagus estuary at rest).",
+ "covers": ["nhflow_reconstruct_weno::wetdry_x, wetdry_y, slope_wd (eta next to dry cells)"],
+ "solver": "nhflow"
+}

@@ -1,0 +1,11 @@
+{
+ "np": 1,
+ "steps": 200,
+ "tags": ["3d", "nhflow", "semi_implicit", "curvilinear", "multiblock", "river", "tide"],
+ "description": "G 55 4 with open faces on the cut blocks: the wavy channel of three 48 x 12 blocks (blocks 1 and 2 turned by 180 deg), hydrostatic semi-implicit (A 534 1): the discharge G 54 2 1 through the -i face of block 2 (its first piece) and a Riemann edge with a harmonic tide (B 520-523, B 522 1 1) on the +i face of block 1, which is the face of its second piece (piece 3); the blocks with open faces are cut along i. Without G 55 the same solution to 3e-9 (the eta solve).",
+ "covers": [
+  "geo_mesh::face_piece for G 54 and B 522 (reefamr::blocks_open), lexer::amr_block of a piece (nhflow_momentum_SI::bc_method)"
+ ],
+ "solver": "nhflow",
+ "files": ["blocks.dat"]
+}
