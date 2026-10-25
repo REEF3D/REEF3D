@@ -101,6 +101,7 @@
         <File Name="bicgstab_ijk.h"/>
       </VirtualDirectory>
       <File Name="solver.h"/>
+      <File Name="solver_print.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Ghostcell">
       <File Name="ghostcell.h"/>
@@ -848,6 +849,9 @@
           <File Name="coral/structure/coral_linear6.h"/>
           <File Name="coral/structure/coral_spring.h"/>
           <File Name="coral/structure/coral_superelement.h"/>
+          <File Name="coral/structure/coral_blade_table.h"/>
+          <File Name="coral/structure/coral_drivetrain.h"/>
+          <File Name="coral/structure/coral_pitch_actuator.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Linear">
           <File Name="coral/linear/README.md"/>
@@ -855,12 +859,21 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Wind">
           <File Name="coral/wind/README.md"/>
+          <File Name="coral/wind/coral_wind.h"/>
+          <File Name="coral/wind/coral_wind_grid.h"/>
+          <File Name="coral/wind/coral_wind_probe.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Aero">
           <File Name="coral/aero/README.md"/>
+          <File Name="coral/aero/coral_airfoil.h"/>
+          <File Name="coral/aero/coral_bem.h"/>
+          <File Name="coral/aero/coral_rotor.h"/>
+          <File Name="coral/aero/coral_rotor_aero.h"/>
+          <File Name="coral/aero/coral_rotor_tune.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Control">
           <File Name="coral/control/README.md"/>
+          <File Name="coral/control/coral_turbine_controller.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Hydro">
           <File Name="coral/hydro/README.md"/>
@@ -874,6 +887,7 @@
           <File Name="coral/hydro/coral_radiation.h"/>
           <File Name="coral/hydro/coral_sampled_kinematics.h"/>
           <File Name="coral/hydro/coral_waves.h"/>
+          <File Name="coral/hydro/coral_strip_hydro.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Panel">
           <File Name="coral/panel/README.md"/>
@@ -892,6 +906,7 @@
           <File Name="coral/pto/coral_pto_elements.h"/>
           <File Name="coral/pto/coral_pto_joint.h"/>
           <File Name="coral/pto/coral_joint_drive.h"/>
+          <File Name="coral/pto/coral_joint_force.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Soil">
           <File Name="coral/soil/README.md"/>
@@ -2473,13 +2488,28 @@
           <File Name="coral/structure/coral_linear6.cpp"/>
           <File Name="coral/structure/coral_spring.cpp"/>
           <File Name="coral/structure/coral_superelement.cpp"/>
+          <File Name="coral/structure/coral_blade_table.cpp"/>
+          <File Name="coral/structure/coral_drivetrain.cpp"/>
+          <File Name="coral/structure/coral_pitch_actuator.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Linear">
           <File Name="coral/linear/coral_modes.cpp"/>
         </VirtualDirectory>
-        <VirtualDirectory Name="Wind"/>
-        <VirtualDirectory Name="Aero"/>
-        <VirtualDirectory Name="Control"/>
+        <VirtualDirectory Name="Wind">
+          <File Name="coral/wind/coral_wind.cpp"/>
+          <File Name="coral/wind/coral_wind_grid.cpp"/>
+          <File Name="coral/wind/coral_wind_probe.cpp"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Aero">
+          <File Name="coral/aero/coral_airfoil.cpp"/>
+          <File Name="coral/aero/coral_bem.cpp"/>
+          <File Name="coral/aero/coral_rotor.cpp"/>
+          <File Name="coral/aero/coral_rotor_aero.cpp"/>
+          <File Name="coral/aero/coral_rotor_tune.cpp"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Control">
+          <File Name="coral/control/coral_turbine_controller.cpp"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Hydro">
           <File Name="coral/hydro/coral_fluid_load.cpp"/>
           <File Name="coral/hydro/coral_hydro_db.cpp"/>
@@ -2491,6 +2521,7 @@
           <File Name="coral/hydro/coral_radiation.cpp"/>
           <File Name="coral/hydro/coral_sampled_kinematics.cpp"/>
           <File Name="coral/hydro/coral_waves.cpp"/>
+          <File Name="coral/hydro/coral_strip_hydro.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Panel"/>
         <VirtualDirectory Name="Mooring">
@@ -2507,6 +2538,7 @@
           <File Name="coral/pto/coral_pto_elements.cpp"/>
           <File Name="coral/pto/coral_pto_joint.cpp"/>
           <File Name="coral/pto/coral_joint_drive.cpp"/>
+          <File Name="coral/pto/coral_joint_force.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Soil">
           <File Name="coral/soil/coral_soil.cpp"/>
@@ -3325,6 +3357,7 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Geo_Core">
           <File Name="geo_mesh.cpp"/>
+          <File Name="geo_mesh_split.cpp"/>
           <File Name="geo_raycast.cpp"/>
           <File Name="geo_raycast_cart.cpp"/>
           <File Name="geo_raycast_sigma.cpp"/>
