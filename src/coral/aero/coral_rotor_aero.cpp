@@ -112,7 +112,7 @@ rotor_aero::hub_state rotor_aero::hub(const model &m, double t) const
 }
 
 void rotor_aero::station(const model &m, const rigid_body &b, const aero_station &s, const hub_state &h, double t,
-                         station_load &o) const
+                         station_load &o, const Vec3 &dV) const
 {
     const Vec3 &e = h.e;
     o.P = b.point(s.s);
@@ -122,7 +122,7 @@ void rotor_aero::station(const model &m, const rigid_body &b, const aero_station
     o.theta = std::atan2(-c.dot(o.n), c.dot(o.t)) + pitch(s.blade, t);
     Vec3 u = wind_->velocity(o.P, t);
     u += tower_influence(m, o.P, u);
-    const Vec3 V = u - b.point_velocity(s.s);
+    const Vec3 V = u - b.point_velocity(s.s) + dV;
     const double Vx = V.dot(o.n), Vy = -V.dot(o.t);
     const Vec3 d = o.P - h.H;
     const Vec3 dr = d - d.dot(e)*e;
@@ -182,14 +182,29 @@ void rotor_aero::tangent(const model &m, double t, double cK, double cC, double,
             continue;
         const rigid_body &b0 = m.body(s.body);
         Mat6 Kv = Mat6::Zero(), Kq = Mat6::Zero();
-        const double ev = 1.0e-6, er = 1.0e-7;
-        for(int j=0; j<6; ++j)
+        const double ev = 1.0e-5*std::max(1.0, b0.point_velocity(s.s).norm()), er = 1.0e-7;
+        // dF/dV and dM/dV of the station's force and moment by its relative inflow V = u - v_P
+        station_load o0;
+        station(m, b0, s, h, t, o0);
+        Mat3 dF, dM;
+        for(int j=0; j<3; ++j)
         {
-            rigid_body vp = b0, vm = b0;
-            if(j < 3) {vp.v(j) += ev; vm.v(j) -= ev;}
-            else {vp.w(j-3) += ev; vm.w(j-3) -= ev;}
-            Kv.col(j) = (gen(vp, s) - gen(vm, s))/(2.0*ev);
+            Vec3 d = Vec3::Zero(); d(j) = ev;
+            station_load o1;
+            station(m, b0, s, h, t, o1, d);
+            dF.col(j) = (o1.F - o0.F)/ev;
+            dM.col(j) = (o1.M - o0.M)/ev;
         }
+        // v_P = v + R (w x s): dV/dv = -I, dV/dw = R [s]x
+        const Vec3 r = o0.P - b0.x;
+        auto skew = [](const Vec3 &a) {Mat3 S; S << 0, -a(2), a(1), a(2), 0, -a(0), -a(1), a(0), 0; return S;};
+        const Mat3 dVdw = b0.R*skew(s.s);
+        const Mat3 Rt = b0.R.transpose();
+        const Mat3 dGm = Rt*(skew(r)*dF + dM);               // moment (body frame) by V
+        Kv.block<3,3>(0, 0) = -dF;
+        Kv.block<3,3>(3, 0) = -dGm;
+        Kv.block<3,3>(0, 3) = dF*dVdw;
+        Kv.block<3,3>(3, 3) = dGm*dVdw;
         // rotation about the span: pitch and torsion change the angle of attack (the other rotations, which tilt the
         // blade against the shaft axis of the nacelle, are left out)
         {

@@ -33,6 +33,7 @@ Architect: Hans Bihs
 #include"coral/hydro/coral_hydro_db.h"
 #include"coral/hydro/coral_hydro_load.h"
 #include"coral/hydro/coral_morison.h"
+#include"coral/hydro/coral_strip_hydro.h"
 #include"coral/hydro/coral_member_morison.h"
 #include"coral/core/coral_points.h"
 #include"coral/pto/coral_pto.h"
@@ -169,7 +170,7 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
     // items whose second word is a name (of a body, joint, load, ...): keys are searched after it
     static const std::set<std::string> named = {"body", "joint", "pto", "drive", "jforce", "spring", "linear6", "force", "drag",
         "mooring", "morison", "section", "member", "superelement", "pile", "point_mass", "fluid_body", "fluid_member", "hydro",
-        "point", "line_type", "wind_probe", "rotor", "controller"};
+        "point", "line_type", "wind_probe", "rotor", "controller", "strip_member"};
     for(const auto &l : lines)
     {
         items.push_back(item{l.first, l.second});
@@ -1122,8 +1123,10 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
         else if(k=="force")
         {
             const int b = body_of(it, it.word("body"));
-            m.add_load(std::make_unique<point_force>(m, b, it.vec("point", m.body(b).x), it.vec("F", Vec3::Zero()),
-                                                     it.vec("M", Vec3::Zero()), it.get("ramp", 0.0), it.word(1)));
+            auto pf = std::make_unique<point_force>(m, b, it.vec("point", m.body(b).x), it.vec("F", Vec3::Zero()),
+                                                    it.vec("M", Vec3::Zero()), it.get("ramp", 0.0), it.word(1));
+            pf->until = it.get("until", pf->until);
+            m.add_load(std::move(pf));
         }
         else if(k=="morison" && it.has("member"))
         {
@@ -1186,6 +1189,29 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
                 it.fail("unknown member '" + mem + "'");
             if(c.D <= 0.0) it.fail("'D' is required (the section has no diameter)");
             m.add_load(std::make_unique<member_morison>(pts, elems, c, kin, rho, g, it.vec("current", Vec3::Zero()), it.word(1)));
+        }
+        else if(k=="strip_member")
+        {
+            // strip theory with nonlinear hydrostatics for a rigid floater (coral_strip_hydro.h)
+            strip_member sm;
+            sm.p1 = it.need_vec("p1");
+            sm.p2 = it.need_vec("p2");
+            sm.D = it.need("D");
+            sm.Cd = it.get("Cd", 1.0);
+            sm.Ca = it.get("Ca", 1.0);
+            sm.Cm = it.get("Cm", 1.0 + sm.Ca);
+            sm.n = (int)it.get("n", 20);
+            sm.end1 = it.has("end1");
+            sm.end2 = it.has("end2");
+            sm.Ca_end = it.get("Ca_end", 1.0);
+            sm.Cd_end = it.get("Cd_end", 1.0);
+            sm.buoyancy = !it.has("no_buoyancy");
+            const int b = body_of(it, it.word("body"));
+            if(b < 0) it.fail("strip_member needs a body");
+            const double g = std::fabs(m.gravity(2)) > 0.0 ? std::fabs(m.gravity(2)) : 9.81;
+            auto sh = std::make_unique<strip_hydro>(m, b, std::vector<strip_member>{sm}, kin, rho, g, it.vec("current", Vec3::Zero()), it.word(1));
+            sh->exact_kinematics = it.has("exact_kinematics");
+            m.add_load(std::move(sh));
         }
         else if(k=="morison")
         {

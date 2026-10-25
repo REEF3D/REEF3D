@@ -56,7 +56,8 @@ Architect: Hans Bihs
 //   spring <name> a <body> <x y z> b <body> <x y z> k <k> [c <c>] [L0 <L>] [T0 <T>] [tension_only]
 //   linear6 <name> body <b> point <x y z> [k <k1..k6>] [c <c1..c6>]       (diagonal stiffness, damping)
 //        [K <36 values>] [C <36 values>]           (full 6x6 matrices, row by row, e.g. coupled springs)
-//   force <name> body <b> [point <x y z>] [F <fx fy fz>] [M <mx my mz>] [ramp <t>]   (constant load)
+//   force <name> body <b> [point <x y z>] [F <fx fy fz>] [M <mx my mz>] [ramp <t>] [until <t>]
+//        (constant load; until: released at that time, e.g. a free decay from the equilibrium under the load with static)
 //   drag <name> body <b> [point <x y z>] (Q <q1..q6> | Cd <Cd> area <A> [axis <ex ey ez>]) [rho <rho>]
 //        (quadratic damping F_i = -Q_i |u_i| u_i of the point velocity (default point: the CoG) and the
 //        angular velocity, global axes; with Cd and area along the axis (default z) Q = rho Cd A / 2,
@@ -119,6 +120,13 @@ Architect: Hans Bihs
 //        as for the lines, isotropic); the lines connected through points form one mooring system (advanced together),
 //        whose seabed defaults to the lowest ground end of its lines; channels <point>_x, _y, _z)
 //   morison <name> body <b> p1 <x y z> p2 <x y z> D <D> [Cd <c>] [Ca <c>] [Cm <c>] [n <n>] [current <u v w>]
+//   strip_member <name> body <b> p1 <x y z> p2 <x y z> D <D> [Cd <c>] [Ca <c>] [Cm <c>] [n <n>] [end1] [end2]
+//        [Ca_end <c>] [Cd_end <c>] [no_buoyancy] [current <u v w>] [exact_kinematics]
+//        (strip theory of a rigid floater with nonlinear hydrostatics: buoyancy of the wet part of each strip below the
+//        instantaneous elevation, Morison normal to the member, and at closed ends below the surface (end1, end2) the
+//        waves' dynamic pressure, added mass Ca_end rho D^3/6 and drag along the axis; channels <name>_Fx .. _Mz
+//        (moment about the body's CoG), _V (submerged volume); the wave kinematics at the undisplaced strips once per
+//        time unless exact_kinematics; coral/hydro/coral_strip_hydro.h)
 //   morison <name> member <m> [D <D>] [Cd <c>] [Ca <c>] [Cm <c>] [n <strips per element>] [current <u v w>]
 //        [no_buoyancy] [flooded <D_inner>]
 //        (distributed on a frame or superelement member, buoyancy of the submerged strips; D defaults to

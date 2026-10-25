@@ -39,7 +39,8 @@ Architect: Hans Bihs
 // normal to the tower axis U, x along it and y across, scaled by D/2: u = U (1 - (x^2 - y^2)/(x^2 + y^2)^2),
 // v = -2 U x y/(x^2 + y^2)^2 outside the tower, between its base and top.
 // Tangent: the aerodynamic damping, each station's generalized force against the velocity and angular velocity of its
-// own body by central differences (12 station evaluations, not of the whole rotor). The dependence on positions and on
+// own body, from the derivative of its force by its relative inflow (forward differences: 4 station evaluations), and
+// against the rotation of its body about the span (pitch, torsion: 2 evaluations), not of the whole rotor. The dependence on positions and on
 // the hub and the shaft axis is left out (an approximate Jacobian: Newton converges to the same residual). With the
 // position part, a blade turned out of the plane of the (fixed) shaft axis gave a spurious stiffness and Newton needed
 // twice the iterations on a flexible tower; without the whole rotor in the finite-difference Jacobian a turbine on a
@@ -135,7 +136,8 @@ namespace coral
         struct hub_state {Vec3 H, e; double gam; Vec3 cross;};
         hub_state hub(const model&, double t) const;
         // one station on the body b (its state as given)
-        void station(const model&, const rigid_body &b, const aero_station&, const hub_state&, double t, station_load&) const;
+        void station(const model&, const rigid_body &b, const aero_station&, const hub_state&, double t, station_load&,
+                     const Vec3 &dV=Vec3::Zero()) const;
 
         std::string name_;
         std::shared_ptr<const wind_inflow> wind_;
