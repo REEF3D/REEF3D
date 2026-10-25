@@ -96,6 +96,10 @@ sflow_amr::sflow_amr(lexer *p, fdm2D *b, ghostcell *pgc, patchBC_interface *ppBC
     q.tile += q.tile%2;
     q.nest = 3;
     q.keep = MIN(MAX(p->G5,0),250);
+    // the coarse faces next to a finer patch also on the grids that compute them around their box: the
+    // wet-dry update of a stage reads the new state of the cells around the box, which otherwise depended
+    // on which grid holds the face (another partition, another layout of the patches)
+    q.ring = true;
 
     // cells computed beyond the patch box: the wet-dry step of a stage needs the new state
     // two cells further out, the discharge limiter (B 60) three
@@ -116,8 +120,9 @@ sflow_amr::sflow_amr(lexer *p, fdm2D *b, ghostcell *pgc, patchBC_interface *ppBC
     bous = (p->A220==4) ? 1 : 0;
     if(bous==1)
     pmom0->bous_amr = this;
-    NV = bous==1 ? 15 : 11;
-    ISF = NV-1;
+    NV = bous==1 ? 16 : 12;
+    ISF = NV-2;
+    ISC = NV-1;
 
     // the patch arrays reach EXT + margin fine cells beyond the patch: the coarser level has to
     // cover them
@@ -953,7 +958,7 @@ bool sflow_amr::block_solid(sflow_amr_patch &c, int bi, int bj)
 // the same old patch: patch boxes are tile aligned)
 void sflow_amr::ini_patch_old(int l, vector<reefamr_patch*> &oldP)
 {
-    old_run(l,15,7140+l,oldP,
+    old_run(l,16,7140+l,oldP,
             [&](reefamr_patch *q, int io, int jo, double *v)
             {
                 sflow_amr_patch *o = SP(q);
@@ -965,6 +970,9 @@ void sflow_amr::ini_patch_old(int l, vector<reefamr_patch*> &oldP)
                 v[9] = ob->UA(io,jo);  v[10] = ob->VA(io,jo); v[11] = ob->MX(io,jo); v[12] = ob->MY(io,jo);
                 v[13] = qp->wet[lij(qp,io,jo)];
                 v[14] = qp->deep[lij(qp,io,jo)];
+                // shoreline offset of a covered cell, as a patch that is kept holds it (prolongation of
+                // the fresh children)
+                v[15] = o->sfc[lij(qp,io,jo)];
             },
             [&](reefamr_patch *q, int id, int ii, int jj, const double *v)
             {
@@ -980,6 +988,7 @@ void sflow_amr::ini_patch_old(int l, vector<reefamr_patch*> &oldP)
                 b->UA(ii,jj) = v[9];  b->VA(ii,jj) = v[10]; b->MX(ii,jj) = v[11]; b->MY(ii,jj) = v[12];
                 pp->wet[lij(pp,ii,jj)] = (int)v[13];
                 pp->deep[lij(pp,ii,jj)] = (int)v[14];
+                c.sfc[lij(pp,ii,jj)] = v[15];
                 c.blkold[(size_t)bi*(c.ny>>sy)+bj] = 1;
             });
 }
@@ -1649,6 +1658,7 @@ void sflow_amr::eval_fill(const reefamr_fill &f, double *v)
     if(f.kind==1)
     {
         prolong(f.g,f.si,f.sj,f.ox,f.oy,f.aux,v);
+        v[ISC] = NAN;
         return;
     }
 
@@ -1673,6 +1683,9 @@ void sflow_amr::eval_fill(const reefamr_fill &f, double *v)
         v[13] = G.b->MY(f.si,f.sj);
         }
         v[ISF] = NAN;
+        // shoreline: the offset of a covered cell (restriction), so that the prolongation from this grid
+        // sees the same surface around its box as the grid that holds the cell
+        v[ISC] = sfc_of(f.g)[lij(G.q,f.si,f.sj)];
         return;
     }
 
@@ -1681,6 +1694,7 @@ void sflow_amr::eval_fill(const reefamr_fill &f, double *v)
     if(bous==1)
     v[10]=v[11]=v[12]=v[13]=0.0;
     v[ISF] = NAN;
+    v[ISC] = NAN;
 }
 
 // values of a filled cell into patch c (grid id n)
@@ -1707,6 +1721,7 @@ void sflow_amr::store_fill(sflow_amr_patch *c, int n, int ii, int jj, const doub
     b->MY(ii,jj) = w[13];
     }
     c->gsf[lij(pp,ii,jj)] = w[ISF];
+    c->sfc[lij(pp,ii,jj)] = w[ISC];
 }
 
 // cells of the level-l patches outside their interior, then the wall conditions
@@ -1930,6 +1945,20 @@ void sflow_amr::exchange_fluxes(int l)
                  for(int ip=0; ip<5; ++ip)
                  m.val[ip] = v[ip];
              });
+
+    // the same faces for the grids of other ranks that compute them around their box (q.ring)
+    face_run_ring(l,5,7330+l,
+             [&](reefamr_patch *q, int side, int r, double *sb)
+             {
+                 sflow_amr_patch *c = SP(q);
+                 for(int ip=0; ip<5; ++ip)
+                 sb[ip] = 0.5*(c->rec[ip][side][r]+c->rec[ip][side][r+fr1(side)]);
+             },
+             [&](reefamr_match &m, const double *v)
+             {
+                 for(int ip=0; ip<5; ++ip)
+                 m.val[ip] = v[ip];
+             });
 }
 
 // --------------------------------------------------------------------- stages
@@ -2081,6 +2110,18 @@ void sflow_amr::step_end(lexer *p, fdm2D *b, ghostcell *pgc)
     // end of the step as for level 0 in sflow_f::mainloop: breaking flags cleared (A 248 0),
     // water depth and wet-dry state updated
     {
+    // the cells around the patches from their sources first: the wet-dry update of a cell next to
+    // the box reads its neighbours there, which otherwise held the patch's own last stage, so that
+    // the result depended on where the boxes lie (another partition, another layout of the patches)
+    if(patches_total>0)
+    {
+        double t0 = MPI_Wtime();
+        cache_stage(0);
+        for(int l=1; l<=maxlev; ++l)
+        fill_level(pgc,l,0);
+        tm[0] += MPI_Wtime()-t0;
+    }
+
     comms_off guard(pgc);
     for(auto q : P)
     {
@@ -2264,6 +2305,27 @@ void sflow_amr::hll_hook(lexer *p, fdm2D *b, int ipol, int id)
             }
             cregR[id][5*k+ipol] += wdt*(m.dir==0 ? Fx(m.fi,m.fj) : Fy(m.fi,m.fj));
         }
+
+        // the same faces around the box of this grid (q.ring): the fine face depth, no register
+        if(ipol==4 && id<(int)xmatch.size())
+        {
+            for(auto &m : xmatch[id])
+            {
+                sflow_amr_patch &c = *SP(m.child);
+                const double df = 0.5*(c.rec[0][m.side][m.r]+c.rec[0][m.side][m.r+fr1(m.side)]);
+                if(m.dir==0)
+                b->dfx(m.fi,m.fj) = df;
+                else
+                b->dfy(m.fi,m.fj) = df;
+            }
+            for(auto &m : xrmatch[id])
+            {
+                if(m.dir==0)
+                b->dfx(m.fi,m.fj) = m.val[0];
+                else
+                b->dfy(m.fi,m.fj) = m.val[0];
+            }
+        }
         return;
     }
 
@@ -2306,6 +2368,45 @@ void sflow_amr::hll_hook(lexer *p, fdm2D *b, int ipol, int id)
             b->dfx(m.fi,m.fj) = m.val[0];
             else
             b->dfy(m.fi,m.fj) = m.val[0];
+        }
+    }
+
+    // the same coarse faces where this grid computes them around its box (q.ring)
+    if(id<(int)xmatch.size())
+    {
+        for(auto &m : xmatch[id])
+        {
+            sflow_amr_patch &c = *SP(m.child);
+            const double val = 0.5*(c.rec[ipol][m.side][m.r]+c.rec[ipol][m.side][m.r+fr1(m.side)]);
+            if(m.dir==0)
+            Fx(m.fi,m.fj) = val;
+            else
+            Fy(m.fi,m.fj) = val;
+
+            if(ipol==4)
+            {
+                const double df = 0.5*(c.rec[0][m.side][m.r]+c.rec[0][m.side][m.r+fr1(m.side)]);
+                if(m.dir==0)
+                b->dfx(m.fi,m.fj) = df;
+                else
+                b->dfy(m.fi,m.fj) = df;
+            }
+        }
+
+        for(auto &m : xrmatch[id])
+        {
+            if(m.dir==0)
+            Fx(m.fi,m.fj) = m.val[ipol];
+            else
+            Fy(m.fi,m.fj) = m.val[ipol];
+
+            if(ipol==4)
+            {
+                if(m.dir==0)
+                b->dfx(m.fi,m.fj) = m.val[0];
+                else
+                b->dfy(m.fi,m.fj) = m.val[0];
+            }
         }
     }
 }

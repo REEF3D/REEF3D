@@ -464,9 +464,10 @@ private:
     int printcount_amr;
     ofstream logout;
     const double eps;
-    static const int NVMAX = 15;
-    int NV;                         // values per filled cell: WL UH VH eta U V wet deep WH W (+ Boussinesq: UA VA MX MY), the parent surface
-    int ISF;                        // index of the parent surface in the filled values (NV-1)
+    static const int NVMAX = 16;
+    int NV;                         // values per filled cell: WL UH VH eta U V wet deep WH W (+ Boussinesq: UA VA MX MY), the parent surface, the shoreline offset
+    int ISF;                        // index of the parent surface in the filled values (NV-2)
+    int ISC;                        // index of the shoreline offset (sfc) of a cell filled from a grid of its level (NV-1)
     int bous;                       // Boussinesq (A 220 4): UH,VH hold V, u_a and M are filled as well
 };
 
