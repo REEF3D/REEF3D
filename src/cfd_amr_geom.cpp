@@ -49,10 +49,20 @@ Architect: Hans Bihs
 //  As on level 0 a face of a solid on the domain boundary is no fluid-solid interface (the
 //  triangles in a plane of the boundary are left out of the distance of the solids).
 //
+//  The geodat bed (G 9, G 10 of DIVEMesh: the bed level of every level-0 column, GEOB) is a surface
+//  through the centres of the level-0 columns, linear on two triangles per four neighbouring
+//  centres (in 2D a polyline), held level from the outermost centres to the domain boundary and
+//  beyond (as level 0 takes the edge column there).  A cell is in the bed where it lies below that
+//  surface; its distance within the band is the exact distance to the triangles.  Level 0 has the
+//  vertical distance to the bed level of its column, reinitialised, so on a slope or at a step of
+//  the bed the patch is no longer a copy of that.  The bed has no finer data than the level-0
+//  columns: the surface is the one the level-0 columns define, not a finer bathymetry.  The levels of
+//  all columns are gathered once (gbed0), so a patch reads the columns around it on any rank (G 40).
+//  With the entities of the same role the field is the union, the minimum of both, as on level 0.
+//  S 57 (a flat initial bed of the topography) keeps the prolonged field.
+//
 //  The cells around the patch keep what the fills give them (a patch of the same level, or the
-//  coarser level), the cells outside the domain the boundary values (bc_state).  A role with a
-//  geodat bed (G 9, G 10 of DIVEMesh: a bed level per level-0 column) keeps the prolonged field:
-//  the patch has no finer bed data than level 0.
+//  coarser level), the cells outside the domain the boundary values (bc_state).
 
 namespace
 {
@@ -96,10 +106,11 @@ double dist2_seg(double px, double pz, double ax, double az, double bx, double b
 }
 }
 
-// the roles cast on the patches (the constructor): entities of the role, read by the run, no geodat bed
+// the roles cast on the patches (the constructor): the entities of a role read by the run, its geodat bed
 void cfd_amr::geom_setup(lexer *p)
 {
     geo_role[0] = geo_role[1] = 0;
+    geo_bed[0] = geo_bed[1] = 0;
     if(!solids || p->gridgeo==nullptr)
     return;
 
@@ -113,21 +124,38 @@ void cfd_amr::geom_setup(lexer *p)
         if(ob.role==roles[r] && ob.te>ob.ts)
         objects = true;
 
-        if(objects && read[r]!=0)
+        const bool bed = (G.geodat==roles[r]);
+
+        if(read[r]==0 || (!objects && !bed))
+        continue;
+
+        // S 57: a flat initial bed replaces the topography of the grid file on level 0 (geotopo::dat)
+        if(r==1 && p->S57>-1.0e20)
         {
-            if(G.geodat==roles[r])
-            {
-                if(p->mpirank==0)
-                cout<<"CFD AMR: the "<<(r==0 ? "solids" : "topography")<<" with a geodat bed: the patches keep the prolonged distance"<<endl;
-            }
-            else
-            geo_role[r] = 1;
+            if(p->mpirank==0)
+            cout<<"CFD AMR: the topography with S 57: the patches keep the prolonged distance"<<endl;
+            continue;
         }
+
+        geo_role[r] = 1;
+        geo_bed[r] = bed ? 1 : 0;
+    }
+
+    // the geodat bed of all level-0 columns (every column on one rank: no partition in z)
+    if(geo_bed[0]==1 || geo_bed[1]==1)
+    {
+        const size_t n = (size_t)p->gknox*p->gknoy;
+        vector<double> v(n,0.0);
+        for(int i=0; i<p->knox; ++i)
+        for(int j=0; j<p->knoy; ++j)
+        v[(size_t)(i+p->origin_i)*p->gknoy + (j+p->origin_j)] = p->geobed[(i-p->imin)*p->jmax + (j-p->jmin)];
+        gbed0.assign(n,0.0);
+        MPI_Allreduce(v.data(),gbed0.data(),(int)n,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
     }
 }
 
-// the entities on patch id at its resolution (after its state is prolonged or copied, before the fill
-// of its level)
+// the entities and the geodat bed on patch id at its resolution (after its state is prolonged or
+// copied, before the fill of its level)
 void cfd_amr::patch_geometry(int id)
 {
     if((geo_role[0]==0 && geo_role[1]==0) || is_shadow(id))
@@ -172,16 +200,24 @@ void cfd_amr::patch_geometry(int id)
 
     const int roles[2] = {geo_mesh::role_solid, geo_mesh::role_topo};
     vector<int> IO;
-    vector<double> dmin;
+    vector<double> dmin, phi;
+    const double big = 1.0e30;     // no surface within the band
 
     for(int r=0; r<2; ++r)
     {
         if(geo_role[r]==0)
         continue;
 
-        if(!geo_grid_solids_io(pp,roles[r],g,IO))
+        const bool obj = geo_grid_solids_io(pp,roles[r],g,IO);
+        if(!obj && geo_bed[r]==0)
         continue;
 
+        // the signed distance within the band of the patch cells (+-big outside it): the entities,
+        // united with the bed
+        phi.assign(nf,big);
+
+        if(obj)
+        {
         dmin.assign(nf,std::numeric_limits<double>::max());
 
         // the triangles of the role: the cells within the band of each
@@ -258,17 +294,192 @@ void cfd_amr::patch_geometry(int id)
             }
         }
 
-        // the field: the sign of the ray parity; the exact distance in the band, the prolonged one
-        // (at least the band width) outside it
+        // the sign of the ray parity, the exact distance in the band
+        for(int i=0; i<pp->knox; ++i)
+        for(int j=0; j<pp->knoy; ++j)
+        for(int k=0; k<pp->knoz; ++k)
+        {
+            const int q = cq(i,j,k);
+            phi[q] = ((IO[q]==-1) ? -1.0 : 1.0)*((dmin[q]<band2) ? sqrt(dmin[q]) : big);
+        }
+        }
+
+        // the geodat bed
+        if(geo_bed[r]==1)
+        patch_bed(c,band,phi);
+
+        // the field: the distance in the band, the prolonged one (at least the band width) outside it
         field &f = (r==0) ? fa->solid : fa->topo;
         for(int i=0; i<pp->knox; ++i)
         for(int j=0; j<pp->knoy; ++j)
         for(int k=0; k<pp->knoz; ++k)
         {
             const int q = cq(i,j,k);
-            const double s = (IO[q]==-1) ? -1.0 : 1.0;
-            const double d = (dmin[q]<band2) ? sqrt(dmin[q]) : MAX(fabs(f.V[q]),band);
-            f.V[q] = s*d;
+            if(fabs(phi[q])<0.5*big)
+            f.V[q] = phi[q];
+            else
+            f.V[q] = ((phi[q]<0.0) ? -1.0 : 1.0)*MAX(fabs(f.V[q]),band);
+        }
+    }
+}
+
+// the geodat bed on patch c: the surface through the centres of the level-0 columns (two triangles per
+// four centres; 2D: a polyline), held level beyond the outermost centres.  Every interior cell: below
+// the surface inside; within the band the exact distance to it; phi = min(phi, that) (the union)
+void cfd_amr::patch_bed(cfd_amr_patch *c, double band, vector<double> &phi)
+{
+    lexer *pp = c->pp;
+    const int m = marge;
+    const bool d2 = (pp->j_dir==0);
+    const double band2 = band*band;
+    const double big = 1.0e30;
+    const int gny = p0->gknoy;
+
+    auto cq = [&](int i, int j, int k) { return (i-pp->imin)*pp->jmax*pp->kmax + (j-pp->jmin)*pp->kmax + k-pp->kmin; };
+
+    // the vertices along direction d covering [lo,hi]: the level-0 column centres there, one more on
+    // each side, and a vertex far outside where the domain ends (the edge column held)
+    auto axis = [&](int d, double lo, double hi, vector<double> &vx, vector<int> &vi)
+    {
+        const int n = gn0[d];
+        auto ctr = [&](int I) { return 0.5*(gx[d][I+marge]+gx[d][I+1+marge]); };
+        const double far = (hi-lo) + (gx[d][n+marge]-gx[d][marge]) + 1.0;
+        vx.clear();
+        vi.clear();
+        int I0 = 0;
+        while(I0<n-1 && ctr(I0+1)<=lo)
+        ++I0;
+        if(ctr(I0)>lo)
+        {
+            vx.push_back(MIN(lo,ctr(0))-far);
+            vi.push_back(0);
+        }
+        int I = I0;
+        for(; I<n; ++I)
+        {
+            vx.push_back(ctr(I));
+            vi.push_back(I);
+            if(ctr(I)>=hi)
+            break;
+        }
+        if(I==n)
+        {
+            vx.push_back(MAX(hi,ctr(n-1))+far);
+            vi.push_back(n-1);
+        }
+    };
+
+    vector<double> vx, vy;
+    vector<int> vi, vj;
+    axis(0,pp->XN[m]-band,pp->XN[pp->knox+m]+band,vx,vi);
+    if(d2)
+    {
+        vy.assign(1,pp->YP[0+m]);
+        vj.assign(1,0);
+    }
+    else
+    axis(1,pp->YN[m]-band,pp->YN[pp->knoy+m]+band,vy,vj);
+
+    const int nx = (int)vx.size(), ny = (int)vy.size();
+    auto zb = [&](int a, int b) { return gbed0[(size_t)vi[a]*gny + vj[b]]; };
+
+    // the interval of v holding x (the vertices cover the patch)
+    auto locate = [](const vector<double> &v, double x)
+    {
+        int a = 0, b = (int)v.size()-1;
+        while(b-a>1)
+        {
+            const int c = (a+b)/2;
+            if(v[c]<=x)
+            a = c;
+            else
+            b = c;
+        }
+        return a;
+    };
+
+    // the exact distance of the cells within the band of the surface
+    vector<double> d2min((size_t)pp->imax*pp->jmax*pp->kmax,std::numeric_limits<double>::max());
+
+    if(d2)
+    {
+        for(int a=0; a<nx-1; ++a)
+        {
+            const double ax = vx[a], az = zb(a,0), bx = vx[a+1], bz = zb(a+1,0);
+            int is,ie,ks,ke;
+            geo_range(pp->XP,0,pp->knox,MIN(ax,bx)-band,MAX(ax,bx)+band,is,ie);
+            geo_range(pp->ZP,0,pp->knoz,MIN(az,bz)-band,MAX(az,bz)+band,ks,ke);
+            for(int i=is; i<ie; ++i)
+            for(int k=ks; k<ke; ++k)
+            {
+                const double dd = dist2_seg(pp->XP[i+m],pp->ZP[k+m],ax,az,bx,bz);
+                for(int j=0; j<pp->knoy; ++j)
+                {
+                    double &v = d2min[cq(i,j,k)];
+                    v = MIN(v,dd);
+                }
+            }
+        }
+    }
+    else
+    {
+        for(int a=0; a<nx-1; ++a)
+        for(int b=0; b<ny-1; ++b)
+        {
+            // (a,b), (a+1,b), (a+1,b+1) and (a,b), (a+1,b+1), (a,b+1)
+            const double X[4] = {vx[a],vx[a+1],vx[a+1],vx[a]};
+            const double Y[4] = {vy[b],vy[b],vy[b+1],vy[b+1]};
+            const double Z[4] = {zb(a,b),zb(a+1,b),zb(a+1,b+1),zb(a,b+1)};
+            const int T[2][3] = {{0,1,2},{0,2,3}};
+            for(int t=0; t<2; ++t)
+            {
+                const int *v = T[t];
+                int is,ie,js,je,ks,ke;
+                geo_range(pp->XP,0,pp->knox,MIN3(X[v[0]],X[v[1]],X[v[2]])-band,MAX3(X[v[0]],X[v[1]],X[v[2]])+band,is,ie);
+                geo_range(pp->YP,0,pp->knoy,MIN3(Y[v[0]],Y[v[1]],Y[v[2]])-band,MAX3(Y[v[0]],Y[v[1]],Y[v[2]])+band,js,je);
+                geo_range(pp->ZP,0,pp->knoz,MIN3(Z[v[0]],Z[v[1]],Z[v[2]])-band,MAX3(Z[v[0]],Z[v[1]],Z[v[2]])+band,ks,ke);
+                for(int i=is; i<ie; ++i)
+                for(int j=js; j<je; ++j)
+                for(int k=ks; k<ke; ++k)
+                {
+                    const double dd = geo_raycast::dist2_tri(pp->XP[i+m],pp->YP[j+m],pp->ZP[k+m],
+                                                             X[v[0]],Y[v[0]],Z[v[0]],X[v[1]],Y[v[1]],Z[v[1]],X[v[2]],Y[v[2]],Z[v[2]]);
+                    double &w = d2min[cq(i,j,k)];
+                    w = MIN(w,dd);
+                }
+            }
+        }
+    }
+
+    // the sign: below the surface (on the triangle of the cell, the polyline in 2D)
+    for(int i=0; i<pp->knox; ++i)
+    for(int j=0; j<pp->knoy; ++j)
+    {
+        const double x = pp->XP[i+m], y = pp->YP[j+m];
+        const int a = locate(vx,x);
+        double z;
+        if(d2)
+        {
+            const double u = (x-vx[a])/(vx[a+1]-vx[a]);
+            z = zb(a,0) + u*(zb(a+1,0)-zb(a,0));
+        }
+        else
+        {
+            const int b = locate(vy,y);
+            const double u = (x-vx[a])/(vx[a+1]-vx[a]);
+            const double w = (y-vy[b])/(vy[b+1]-vy[b]);
+            if(u>=w)
+            z = zb(a,b) + u*(zb(a+1,b)-zb(a,b)) + w*(zb(a+1,b+1)-zb(a+1,b));
+            else
+            z = zb(a,b) + w*(zb(a,b+1)-zb(a,b)) + u*(zb(a+1,b+1)-zb(a,b+1));
+        }
+
+        for(int k=0; k<pp->knoz; ++k)
+        {
+            const int q = cq(i,j,k);
+            const double s = (pp->ZP[k+m]<z) ? -1.0 : 1.0;
+            const double pb = s*((d2min[q]<band2) ? sqrt(d2min[q]) : big);
+            phi[q] = MIN(phi[q],pb);
         }
     }
 }

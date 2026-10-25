@@ -495,10 +495,14 @@ private:
     int turb = 0;                       // RANS on the patches (T 10 1, 2)
     int solids = 0;                     // solids or topography (direct forcing) on the patches
     // the solids and the topography of the grid file cast on the patches at their resolution
-    // (cfd_amr_geom.cpp): geo_role[0] solids, [1] topography
+    // (cfd_amr_geom.cpp): geo_role[0] solids, [1] topography; geo_bed: the role has the geodat bed
+    // of the grid file, gbed0 its level of all level-0 columns (I*gknoy + J)
     int geo_role[2] = {0,0};
+    int geo_bed[2] = {0,0};
+    vector<double> gbed0;
     void geom_setup(lexer*);
     void patch_geometry(int id);
+    void patch_bed(cfd_amr_patch*, double band, vector<double> &phi);
     void patch_forces(int ID, double *F);   // the forces on the solids: the part of the patches of this rank
     void force_objects(cfd_amr_patch*);     // the force objects of a new patch
     sixdof_cfd *b6 = nullptr;           // the floating bodies (X 10 1): moved on level 0 (G 7 0), by the finest level (G 7 1)
