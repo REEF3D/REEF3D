@@ -972,6 +972,7 @@
         <File Name="met_frame.h"/>
         <File Name="met_provider.h"/>
         <File Name="met_source.h"/>
+        <File Name="met_vortex.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Multiphase">
         <VirtualDirectory Name="Fluid Update">
@@ -2681,6 +2682,7 @@
         <File Name="met_forcing.cpp"/>
         <File Name="met_frame.cpp"/>
         <File Name="met_provider.cpp"/>
+        <File Name="met_vortex.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Multiphase">
         <VirtualDirectory Name="Fluid Update">
