@@ -493,9 +493,17 @@ bed shear stress of a bed column from the flow above the bed level set (S 16 10 
             recirculation, 0.3 rho k its size, validation 16)
   k is the value of the first fluid cell in both sediment models: the Eulerian S 16 2 interpolates k half a
   cell above the bed level, which takes in the cell below the bed where the bed cuts through the cells
+  wall 1 (CPM bedload layer, Q 79 1): the same reference cell, but its distance is measured from the face under the
+            first fluid cell of the direct forcing (topo >= 0 at its centre), the wall of the k-omega wall law of
+            the fluid at the bed (komega_bc, gcdf4 cells: wall distance half a cell). The fluid sees the bed as the
+            faces of its cells: its velocity profile, and the stress it carries, do not change while the bed level
+            set moves inside a cell. The bed shear stress is then that of the fluid: on a fixed or mobile bed in a
+            periodic channel within 0.7 % of the momentum balance on cells of 10 to 1.25 mm, where the distance to
+            the level set (wall 0) gave 2.6-19 % less, depending on the cell size and on where the bed level lies
+            in its cell (validation 26)
 --------------------------------------------------------------------*/
 bool bedshear::column_tau(lexer *p, fdm *a, turbulence *pt, int i, int j, double zbed, double ks, double href, int kmode,
-                          double rho, double &tx, double &ty, double &hcell, bool &rest)
+                          double rho, double &tx, double &ty, double &hcell, bool &rest, int wall)
 {
     int kb = MAX(0,MIN(p->knoz-1, p->posc_k(zbed)));
     double ur=0.0, vr=0.0, zr=0.0;
@@ -504,11 +512,23 @@ bool bedshear::column_tau(lexer *p, fdm *a, turbulence *pt, int i, int j, double
     
     rest=false;
     ks = MAX(ks, 1.0e-6);
+    
+    // wall 1: the wall of the fluid at the bed is the face under its first fluid cell (topo >= 0 at the centre)
+    int kf = kb;
+    
+    while(kf>0 && a->topo(i,j,kf-1)>=0.0)
+    --kf;
+    
+    while(kf+1<p->knoz && a->topo(i,j,kf)<0.0)
+    ++kf;
+    
+    const double zwall = p->ZN[kf+marge];
 
     for(k=kb;k<p->knoz;++k)
     {
         double h = p->DZN[k+marge];
 
+        // the first cell centre at least half a cell above the bed level set
         if(a->topo(i,j,k) >= 0.5*h*(1.0-1.0e-6))
         {
             bool body = p->solidread>0 && a->solid(i,j,k)<0.0;
@@ -522,7 +542,7 @@ bool bedshear::column_tau(lexer *p, fdm *a, turbulence *pt, int i, int j, double
             rest = body;
             ur = body ? 0.0 : 0.5*(a->u(i-1,j,k) + a->u(i,j,k));
             vr = (body || p->j_dir==0) ? 0.0 : 0.5*(a->v(i,j-1,k) + a->v(i,j,k));
-            zr = a->topo(i,j,k);
+            zr = wall==1 ? MAX(p->ZP[k+marge] - zwall, 0.5*p->DZN[k+marge]) : a->topo(i,j,k);
             hcell = h;
             found = true;
             break;
@@ -541,7 +561,7 @@ bool bedshear::column_tau(lexer *p, fdm *a, turbulence *pt, int i, int j, double
     {
         int k0 = k;
         double h = hcell;
-        double zb = p->ZP[k0+marge] - a->topo(i,j,k0);
+        double zb = wall==1 ? zwall : p->ZP[k0+marge] - a->topo(i,j,k0);
         double zref = zb + href*h;
         
         // top of the fluid column above the bed: solid body or free surface

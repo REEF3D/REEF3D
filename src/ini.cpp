@@ -1047,6 +1047,7 @@ void control::ini_default()
     Q75=0.0;            // double bedload layer: sand slide of the bed surface beyond this slope (tan of the angle of repose), 0: off
     Q76=-1.0e20;        // double fixed (non-erodible) parcel bed upstream of x = Q76
     Q77=1.0e20;         // double fixed (non-erodible) parcel bed downstream of x = Q77
+    Q79=1;              // int bedload layer: distance of the log law of the bed shear stress, 1 from the face under the first fluid cell (the wall of the k-omega wall law of the fluid at the bed), 0 from the bed level set (before patch 0039)
     Q78=0;              // int parcel merge and split: about Q78 parcels per cell; resting grains of the jammed bed (Q 58, S 10 1) merge in pairs in cells that hold more, and split again when they move or reach smaller cells; 0 off
     Q57=1;              // int Bagnold sheltering of the bed by the moving grains (S 10 1): 0 off, 1 on
     Q52=0;              // int turbulent dispersion of the parcels: 0 off, 1 random displacement with the eddy diffusivity

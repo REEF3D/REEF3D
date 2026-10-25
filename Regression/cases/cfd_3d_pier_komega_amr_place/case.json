@@ -3,7 +3,7 @@
  "ctrl_add": [
   "G 40 1"
  ],
- "description": "cfd_3d_pier_komega_amr with the units placed for the load of the 2 ranks (G 40 1): the patches around the pier on the rank of their unit, the level-0 cells under them on the other rank; the pieces of the solid surface on the rank of the finest grid (level 0 leaves out those under the patches on every rank).",
+ "description": "cfd_3d_pier_komega_amr with the units placed for the load of the 2 ranks (G 40 1): the patches around the pier on the rank of their unit, the level-0 cells under them on the other rank; the pieces of the solid surface on the rank of the finest grid (level 0 leaves out those under the patches on every rank). The units are cut at the front face of the pier (x 0.4): the fluid cells in front of it on one patch, the pier on the next; the direct forcing flags and the wall law of k-omega across the patch edge, the pressure around the patches at the end of the step (probes, surface pieces at the cut).",
  "tags": [
   "quick",
   "3d",
@@ -15,6 +15,8 @@
  ],
  "covers": [
   "cfd_amr::force_objects (no force objects on the shadows), cfd_amr::patch_forces with G 40 1",
-  "cfd_amr::patch_geometry of placed patches"
+  "cfd_amr::patch_geometry of placed patches",
+  "ghostcell::gcdf_update on a patch: the flags of the cells around it from their own fields (a surface at the patch edge)",
+  "cfd_amr::fill_press_out (the probes and the force pieces next to a patch edge)"
  ]
 }

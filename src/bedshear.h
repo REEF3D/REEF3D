@@ -63,9 +63,11 @@ public:
     // bed shear stress (S 16 10) and the CPM bedload layer (Q 58): log law at the first cell centre at least
     // half a cell above the bed, or href cells above the bed (href > 0); kmode 0: log law, 1: max(log law, 0.3 rho k),
     // 2: two velocity scales sqrt(log law * 0.3 rho k) (rough-wall Launder-Spalding wall function), with k of the
-    // first fluid cell; returns false if the column has no fluid cell above the bed
+    // first fluid cell; returns false if the column has no fluid cell above the bed.
+    // wall 1: the distance of the log law is measured from the face under the first fluid cell (topo >= 0 at its
+    // centre), the wall of the k-omega wall law of the fluid at the direct-forcing bed; wall 0: from the bed level set
     static bool column_tau(lexer*, fdm*, turbulence*, int i, int j, double zbed, double ks, double href, int kmode,
-                           double rho, double &tx, double &ty, double &hcell, bool &rest);
+                           double rho, double &tx, double &ty, double &hcell, bool &rest, int wall=0);
 
     // the same for the NHFLOW sigma grid (S 16 10): the first cell centre is half a cell above the bed, href > 0
     // takes the log law href cells of the first cell above the bed (at most half the water depth)
