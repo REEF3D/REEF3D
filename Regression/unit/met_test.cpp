@@ -5,14 +5,18 @@
 // windows (only the needed part read, the same values), record advance, clamping in space and time, uniform
 // series, moving grids, bad files; uniform and file sources (met_source.h); the high-wind drag laws W 207 5, 6; the
 // parametric vortex (met_vortex: Holland 1980, GAHM, Holland 2010) against tools/met_track.py (met_vortex_ref.txt,
-// met_vortex_nh.trk, met_vortex_sh.trk), its profiles, the vortex source on the model grid. No MPI, no REEF3D binary.
-// Build:  g++ -O2 -std=c++20 -I../../src met_test.cpp ../../src/met_file.cpp ../../src/met_frame.cpp ../../src/met_vortex.cpp -o met_test
+// met_vortex_nh.trk, met_vortex_sh.trk), its profiles, the vortex source on the model grid; the blend W 200 4
+// (met_blend: background, moving nest, vortex) against tools/met_forcing.py (met_blend_ref.txt, met_blend_bg.r3m,
+// met_blend_nest.r3m, written by met_blend_make.py), the same values with rank windows, the layers bitwise at weights
+// 0 and 1, the tapers, the ring pressure read once per record, the environment W 226 (background = vortex + linear field). No MPI, no REEF3D binary.
+// Build:  g++ -O2 -std=c++20 -I../../src met_test.cpp ../../src/met_file.cpp ../../src/met_frame.cpp ../../src/met_vortex.cpp ../../src/met_blend.cpp -o met_test
 // Run:    ./met_test
 #include"met_drag.h"
 #include"met_file.h"
 #include"met_frame.h"
 #include"met_source.h"
 #include"met_vortex.h"
+#include"met_blend.h"
 #include<sstream>
 #include<map>
 #include<cmath>
@@ -478,6 +482,351 @@ static void test_vortex()
     std::remove("met_test_tmp.trk");
 }
 
+// ---------------------------------------------------------------------------------------------
+// blend W 200 4 (met_blend) against tools/met_forcing.py Composite
+// ---------------------------------------------------------------------------------------------
+static met_blend_par blend_variant(char v, met_vortex_par &vp)
+{
+    met_blend_par b;
+    vp = met_vortex_par();
+    b.nest = 1;
+    b.vortex = 1;
+
+    if(v=='B')
+    {
+    b.shape = 2;  b.pressure = 0;  b.basis = 2;  b.r1 = 0.5;  b.r2 = 1.0;  b.vortex_time = 0.0;
+    b.nest_width = 30.0e3;  b.nest_time = 0.0;  b.nest_relative = 1;
+    vp.model = 1;  vp.trans = 2;
+    }
+
+    if(v=='C')
+    {
+    b.nest = 0;  b.basis = 3;  b.r1 = 80.0e3;  b.r2 = 250.0e3;  b.env = 1;
+    vp.model = 3;  vp.inflow = 0;
+    }
+
+    if(v=='D')
+    {
+    b.vortex = 0;  b.nest_relative = 1;  b.nest_width = 20.0e3;
+    }
+
+    return b;
+}
+
+static void test_blend()
+{
+    std::cout<<"blend W 200 4 (met_blend) against tools/met_forcing.py (met_blend_ref.txt)"<<std::endl;
+
+    const met_frame fr(-86.0,26.0,10.0,5000.0,-3000.0);
+    std::string err;
+
+    struct row {char v; double t, x, y, u, v_, pa, wn, wv;};
+    std::vector<row> ref;
+    {
+    std::ifstream in("met_blend_ref.txt");
+    std::string line;
+
+        while(std::getline(in,line))
+        {
+            if(line.empty() || line[0]=='#')
+            continue;
+
+        std::istringstream ls(line);
+        row r;
+        ls>>r.v>>r.t>>r.x>>r.y>>r.u>>r.v_>>r.pa>>r.wn>>r.wv;
+        ref.push_back(r);
+        }
+    }
+    check(ref.size()==1920, "reference: "+std::to_string(ref.size())+" rows (120 points, 4 times, 4 parameter sets)");
+
+    double du = 0.0, dpa = 0.0;
+    int n = 0, nbit = 0;
+
+    for(char var : {'A','B','C','D'})
+    {
+    met_vortex_par vp;
+    met_source_blend src(fr,blend_variant(var,vp));
+    const bool ok = src.open("met_blend_bg.r3m","met_blend_nest.r3m","met_vortex_nh.trk",err);
+    src.vx.par = vp;
+
+        if(!ok)
+        {
+        check(false, "open: "+err);
+        return;
+        }
+
+    double tlast = -1.0;
+
+        for(const row &r : ref)
+        {
+            if(r.v!=var)
+            continue;
+
+            if(r.t!=tlast)
+            {
+            src.advance(r.t,err);
+            tlast = r.t;
+            }
+
+        double u, v, pa;
+        src.at(r.t,r.x,r.y,u,v,pa);
+
+        du = std::max(du, std::max(std::fabs(u-r.u),std::fabs(v-r.v_)));
+        dpa = std::max(dpa, std::fabs(pa-r.pa));
+        nbit += (u==r.u && v==r.v_ && pa==r.pa);
+        ++n;
+        }
+    }
+    char buf[256];
+    snprintf(buf,sizeof(buf),"wind = Python to 1e-9 m/s (max %.2e m/s), pressure to 1e-6 Pa (max %.2e Pa); %d of %d bitwise",du,dpa,nbit,n);
+    check(n==1920 && du<1.0e-9 && dpa<1.0e-6, buf);
+
+    // rank windows: a source that reads only a box gives the same values in the box (ring from the file,
+    // the nest window grown by the move of the storm between two nest records for W 227 1)
+    for(char var : {'A','D'})
+    {
+    met_vortex_par vp;
+    met_source_blend all(fr,blend_variant(var,vp)), part(fr,blend_variant(var,vp));
+    all.vx.par = vp;
+    part.vx.par = vp;
+    all.open("met_blend_bg.r3m","met_blend_nest.r3m","met_vortex_nh.trk",err);
+    part.open("met_blend_bg.r3m","met_blend_nest.r3m","met_vortex_nh.trk",err);
+
+    bool same = true;
+    const double t = met_datetime(20181010.0915);
+    all.advance(t,err);
+
+    // A: a large box; D (nest only): a box of 100 x 50 km on the storm (it moves 60 km between the nest records)
+    double lonc, latc, xs, ys;
+    all.vx.centre(t,lonc,latc);
+    fr.to_model(lonc,latc,xs,ys);
+    const double bx0 = var=='A' ? -100.0e3 : xs - 50.0e3, bx1 = var=='A' ? 150.0e3 : xs + 50.0e3;
+    const double by0 = var=='A' ? 100.0e3 : ys - 25.0e3, by1 = var=='A' ? 400.0e3 : ys + 25.0e3;
+    part.window(bx0,bx1,by0,by1);
+    part.advance(t,err);
+
+        for(double x=bx0; x<=bx1; x+=(bx1-bx0)/20.0)
+        for(double y=by0; y<=by1; y+=(by1-by0)/20.0)
+        {
+        double u1, v1, p1, u2, v2, p2;
+        all.at(t,x,y,u1,v1,p1);
+        part.at(t,x,y,u2,v2,p2);
+        same = same && u1==u2 && v1==v2 && p1==p2;
+        }
+    check(same && all.env.p==part.env.p && all.env.u==part.env.u && all.env.gx==part.env.gx,
+          std::string("parameter set ")+var+(var=='A' ? ": a rank window gives bitwise the same composite (ring read from the file, not the window)"
+                                                      : ": the same with the storm-relative nest (W 227 1, nest window grown by the move of the storm)"));
+    check(part.bg.values_read < all.bg.values_read/4, "the window reads less of the background ("+std::to_string(part.bg.values_read)+" of "
+                                                     +std::to_string(all.bg.values_read)+" values)");
+
+        if(var=='D')
+        continue;
+
+    // the ring pressure is read once per background record
+    const long long s0 = all.ring_samples;
+        for(int k=1; k<=20; ++k)
+        all.advance(t + 60.0*k,err);
+    check(all.ring_samples==s0, "ring pressure: no new reads within the same background records");
+    all.advance(met_datetime(20181010.1430),err);
+    check(all.ring_samples==s0+1, "ring pressure: one new record read when the background moves on");
+    }
+
+    // layers bitwise: W 220 0 0 = the background file; far beyond r2 = the background; inside r1 = the vortex
+    {
+    met_blend_par b;
+    b.nest = 0;  b.vortex = 0;
+    met_source_blend bgo(fr,b);
+    met_source_file fs;
+    bgo.open("met_blend_bg.r3m","","",err);
+    fs.open("met_blend_bg.r3m",err);
+    bool same = true;
+
+        for(double t : {met_datetime(20181009.2), met_datetime(20181010.07), met_datetime(20181010.2)})
+        {
+        bgo.advance(t,err);
+        fs.advance(t,err);
+
+            for(double x=-800.0e3; x<=800.0e3; x+=37.0e3)
+            for(double y=-600.0e3; y<=1000.0e3; y+=41.0e3)
+            {
+            double u1, v1, p1, u2, v2, p2;
+            bgo.at(t,x,y,u1,v1,p1);
+            fs.at(t,x,y,u2,v2,p2);
+            same = same && u1==u2 && v1==v2 && p1==p2;
+            }
+        }
+    check(same, "W 220 0 0: bitwise the met file source (W 200 2)");
+
+    met_vortex_par vp;
+    met_blend_par bv;
+    bv.vortex = 1;  bv.basis = 3;  bv.r1 = 1.0e8;  bv.r2 = 2.0e8;  bv.pressure = 0;  bv.vortex_time = 0.0;
+    met_source_blend vo(fr,bv);
+    met_source_vortex sv(fr);
+    vo.open("met_blend_bg.r3m","","met_vortex_nh.trk",err);
+    sv.open("met_vortex_nh.trk",err);
+    same = true;
+
+        for(double t : {met_datetime(20181010.0), met_datetime(20181010.0730), met_datetime(20181011.0)})
+        {
+        vo.advance(t,err);
+
+            for(double x=-500.0e3; x<=700.0e3; x+=53.0e3)
+            for(double y=-300.0e3; y<=900.0e3; y+=47.0e3)
+            {
+            double u1, v1, p1, u2, v2, p2;
+            vo.at(t,x,y,u1,v1,p1);
+            sv.at(t,x,y,u2,v2,p2);
+            same = same && u1==u2 && v1==v2 && p1==p2;
+            }
+        }
+    check(same, "weight 1 everywhere (r1 = 1e8 m, W 223 0, W 224 0): bitwise the vortex source (W 200 3)");
+
+    vo.advance(met_datetime(20181009.2),err);
+    double u1, v1, p1, u2, v2, p2;
+    vo.at(met_datetime(20181009.2),0.0,0.0,u1,v1,p1);
+    met_source_file fb;
+    fb.open("met_blend_bg.r3m",err);
+    fb.advance(met_datetime(20181009.2),err);
+    fb.at(met_datetime(20181009.2),0.0,0.0,u2,v2,p2);
+    check(u1==u2 && v1==v2 && p1==p2 && vo.wv_t==0.0, "before the first track record: no vortex, the background");
+    }
+
+    // tapers
+    {
+    const double e = 1.0e-6;
+    const double d0 = (met_source_blend::taper(e,1) - met_source_blend::taper(0.0,1))/e;
+    const double d1 = (met_source_blend::taper(1.0,1) - met_source_blend::taper(1.0-e,1))/e;
+    bool mono = true;
+        for(int k=1; k<=100; ++k)
+        mono = mono && met_source_blend::taper(0.01*k,1)>=met_source_blend::taper(0.01*(k-1),1);
+    check(met_source_blend::taper(-0.3,1)==0.0 && met_source_blend::taper(1.7,1)==1.0 && std::fabs(met_source_blend::taper(0.5,1)-0.5)<1.0e-15
+          && d0<1.0e-5 && d1<1.0e-5 && mono, "cosine taper: 0 to 1, monotonic, zero slope at both ends (W 225 1)");
+    check(met_source_blend::taper(0.3,2)==0.3 && met_source_blend::taper(1.2,2)==1.0, "linear taper (W 225 2, ADCIRC NWS 29/30)");
+    check(met_source_blend::taper_time(5.0,10.0,20.0,3.0,1)==0.0 && met_source_blend::taper_time(15.0,10.0,20.0,3.0,1)==1.0
+          && met_source_blend::taper_time(11.5,10.0,20.0,3.0,1)==0.5*(1.0-std::cos(pi*0.5)) && met_source_blend::taper_time(20.0,10.0,20.0,0.0,1)==1.0
+          && met_source_blend::taper_time(20.5,10.0,20.0,0.0,1)==0.0, "taper in time: 0 outside the records, over T after the first and before the last");
+    }
+
+    // the vortex pressure rescaled to the ring: pv' = pb_ring at the ring where the deficit of the vortex is ~0
+    {
+    met_vortex_par vp;
+    met_source_blend a(fr,blend_variant('A',vp));
+    a.open("met_blend_bg.r3m","met_blend_nest.r3m","met_vortex_nh.trk",err);
+    const double t = met_datetime(20181010.12);
+    a.advance(t,err);
+    double sum = 0.0;
+        for(int m=0; m<16; ++m)
+        {
+        double lon2, lat2, x, y, val;
+        met_vortex::destination(a.lonc,a.latc,22.5*m,a.r2m,lon2,lat2);
+        fr.to_model(lon2,lat2,x,y);
+        a.bg.sample(a.bg.nrec>1 ? 3 : 0,2,x,y,val,err);
+        sum += val;
+        }
+    check(std::fabs(a.env.p - sum/16.0)<1.0e-9 && a.env.p<a.pn, "ring pressure: the mean background pressure on the ring r2 at the record time ("
+          +std::to_string(a.env.p)+" Pa, pn of the track "+std::to_string(a.pn)+" Pa)");
+    check(std::fabs(a.r2m - 6.0*a.rmw)<1.0e-6 && std::fabs(a.r1m - 3.0*a.rmw)<1.0e-6, "radii W 222 1 3 6: 3 and 6 rmw");
+    }
+
+    // environment W 226 1: background = the vortex + a field linear in x, y, t -> the environment is the linear field
+    {
+    field F;
+    const double t0 = met_datetime(20181010.0);
+    const std::vector<double> times = {t0, t0+21600.0};
+    met_source_vortex sv(fr);
+    sv.open("met_vortex_nh.trk",err);
+    {
+    std::ofstream out("met_test_env.r3m", std::ios::binary);
+    out.write("REEF3DMT",8);
+    const int nx = 121, ny = 121;
+    const double x0 = -700.0e3, y0 = -500.0e3, dx = 10.0e3;
+    int32_t iv[8] = {1, nx, ny, 3, 0, 2, 0, 0};
+    out.write((char*)iv,sizeof(iv));
+    double dv[13] = {x0, y0, dx, dx, 0.0, 0.0, 0.0, 0.0, 0.0, 600.0, 0.0, 0.0, 0.0};
+    out.write((char*)dv,sizeof(dv));
+        for(double tn : times)
+        {
+        double h[4] = {tn, x0, y0, 0.0};
+        out.write((char*)h,sizeof(h));
+        std::vector<float> a[3];
+            for(auto &q : a)
+            q.resize(size_t(nx)*ny);
+            for(int j=0; j<ny; ++j)
+            for(int i=0; i<nx; ++i)
+            {
+            double u, v, pa, uv, vv, pv;
+            F.at(x0 + i*dx, y0 + j*dx, tn - t0, u, v, pa);
+            sv.at(tn, x0 + i*dx, y0 + j*dx, uv, vv, pv);
+            a[0][j*nx+i] = float(u + uv);
+            a[1][j*nx+i] = float(v + vv);
+            a[2][j*nx+i] = float(pa + pv - 101200.0);
+            }
+            for(auto &q : a)
+            out.write((char*)q.data(), 4*q.size());
+        }
+    }
+    met_blend_par b;
+    b.env = 1;
+    b.vortex_time = 0.0;
+    met_source_blend e(fr,b);
+    e.open("met_test_env.r3m","","met_vortex_nh.trk",err);
+    const double t = t0 + 7200.0;
+    e.advance(t,err);
+
+    // the linear field at the mean of the ring points, linear in time as the ring
+    double mxy[2][2];
+        for(int q=0; q<2; ++q)
+        {
+        double lon, lat, p0, p1, rm, r3;
+        e.vx.state(times[q],lon,lat,p0,p1,rm,r3);
+        mxy[q][0] = mxy[q][1] = 0.0;
+            for(int m=0; m<16; ++m)
+            {
+            double lon2, lat2, x, y;
+            met_vortex::destination(lon,lat,22.5*m,6.0*rm,lon2,lat2);
+            fr.to_model(lon2,lat2,x,y);
+            mxy[q][0] += x/16.0;
+            mxy[q][1] += y/16.0;
+            }
+        }
+    double u0, v0, p0, u1, v1, p1;
+    F.at(mxy[0][0],mxy[0][1],0.0,u0,v0,p0);
+    F.at(mxy[1][0],mxy[1][1],21600.0,u1,v1,p1);
+    const double w = 7200.0/21600.0;
+    const double ue = u0+w*(u1-u0), ve = v0+w*(v1-v0);
+    char buf[300];
+    snprintf(buf,sizeof(buf),"W 226 1, background = vortex + linear field: environment gradient %.6f %.6f Pa/m (linear -0.01 0.02), wind %.3f %.3f m/s (linear %.3f %.3f)",
+             e.env.gx,e.env.gy,e.env.u,e.env.v,ue,ve);
+    check(std::fabs(e.env.gx+0.01)<2.0e-4 && std::fabs(e.env.gy-0.02)<2.0e-4 && std::fabs(e.env.u-ue)<0.05 && std::fabs(e.env.v-ve)<0.05, buf);
+
+    // inside r1 the composite is the vortex plus the environment
+    double x, y, uc, vc, pcmp;
+    fr.to_model(e.lonc+0.4,e.latc+0.2,x,y);
+    e.at(t,x,y,uc,vc,pcmp);
+    met_blend_par b0 = b;
+    b0.env = 0;
+    met_source_blend e0(fr,b0);
+    e0.open("met_test_env.r3m","","met_vortex_nh.trk",err);
+    e0.advance(t,err);
+    double ud, vd, pd;
+    e0.at(t,x,y,ud,vd,pd);
+    check(std::fabs(uc-ud-e.env.u)<1.0e-9 && std::fabs(vc-vd-e.env.v)<1.0e-9
+          && std::fabs(pcmp-pd-(e.env.gx*(x-e.xcm)+e.env.gy*(y-e.ycm)))<1.0e-6, "W 226 1 inside r1: the vortex plus the environment wind and pressure plane");
+    check(std::fabs(e.env.p - e.env.pv - (p0+w*(p1-p0) - 101200.0))<5.0, "W 223 1: background minus vortex on the ring = the linear field ("
+          +std::to_string(e.env.p - e.env.pv)+" Pa)");
+    std::remove("met_test_env.r3m");
+    }
+
+    // bad input
+    {
+    met_blend_par b;
+    b.nest = 1;
+    met_source_blend x(fr,b);
+    const bool refused = !x.open("met_blend_bg.r3m","no_such_nest.r3m","met_vortex_nh.trk",err);
+    check(refused, "missing nest file refused: "+err);
+    }
+}
+
 int main()
 {
     test_datetime();
@@ -489,6 +838,7 @@ int main()
     test_bad_files();
     test_drag_highwind();
     test_vortex();
+    test_blend();
 
     std::cout<<std::endl<<(nfail==0 ? "met_test: all passed" : "met_test: "+std::to_string(nfail)+" FAILED")<<std::endl;
     return nfail==0 ? 0 : 1;

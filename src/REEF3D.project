@@ -966,6 +966,7 @@
         <File Name="wind.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Met">
+        <File Name="met_blend.h"/>
         <File Name="met_drag.h"/>
         <File Name="met_file.h"/>
         <File Name="met_forcing.h"/>
@@ -2678,6 +2679,7 @@
         <File Name="wind_f_fnpf.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Met">
+        <File Name="met_blend.cpp"/>
         <File Name="met_file.cpp"/>
         <File Name="met_forcing.cpp"/>
         <File Name="met_frame.cpp"/>

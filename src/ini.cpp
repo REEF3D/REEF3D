@@ -1246,7 +1246,7 @@ void control::ini_default()
     W110=1;          // int add rheology as source term or viscosity
     W111=1;          // int which pressure for MC
     W112=2.1;        // double threshold factor for pressure blening in W111 3
-    W200=0;          // int atmospheric forcing (SFLOW, NHFLOW): 0 off, 1 uniform (W 201, W 202), 2 met file met-forcing.r3m
+    W200=0;          // int atmospheric forcing (SFLOW, NHFLOW): 0 off, 1 uniform (W 201, W 202), 2 met file met-forcing.r3m, 3 vortex, 4 blend
     W201_u=0.0;      // double uniform wind speed U10 [m/s]
     W201_dir=0.0;    // double uniform wind direction [deg], counter-clockwise from the x axis, the direction the wind blows to
     W202=101325.0;   // double uniform air pressure [Pa]
@@ -1268,6 +1268,18 @@ void control::ini_default()
     W217=0.8928;     // double vortex: 1-min to 10-min wind averaging factor
     W218=1;          // int vortex: inflow angle, 0 none, 1 ADCIRC (10 deg inside Rmax to 25 deg beyond 1.2 Rmax)
     W219=1;          // int vortex: translation, 0 none, 1 scaled by Vg/Vmax (ADCIRC), 2 full
+    W220_n=0;        // int blend W 200 4: nest layer met-nest.r3m, 0 off, 1 on
+    W220_v=1;        // int blend W 200 4: vortex layer met-vortex.trk, 0 off, 1 on
+    W221_w=50000.0;  // double blend: taper width at the edges of the nest [m]
+    W221_t=3600.0;   // double blend: taper after the first and before the last nest record [s]
+    W222=1;          // int blend: basis of the vortex radii, 1 rmw of the track, 2 mean 34 kt radius, 3 metres
+    W222_r1=3.0;     // double blend: pure vortex inside r1
+    W222_r2=6.0;     // double blend: pure background beyond r2
+    W223=1;          // int blend: vortex pressure, 0 as fitted, 1 deficit rescaled to the background on the ring r2
+    W224=21600.0;    // double blend: taper of the vortex after the first and before the last track record [s]
+    W225=1;          // int blend: taper, 1 cosine, 2 linear (ADCIRC NWS 29/30)
+    W226=0;          // int blend: environment, 1 the background minus the vortex on the ring r2 (mean wind, pressure gradient) added to the vortex
+    W227=0;          // int blend: nest in time, 0 linear at fixed points, 1 storm-relative (records shifted with the track centre)
     W_fb=0.0;        // double density of floating body
 
 	// 6DOF

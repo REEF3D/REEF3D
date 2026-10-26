@@ -362,3 +362,45 @@ void met_vortex::at(double t, double lon, double lat, double &ue, double &vn, do
     vn = vn + w*(vb - vn);
     pa = pa + w*(pb - pa);
 }
+
+double met_vortex::r34_mean(const met_vortex_rec &r)
+{
+    double sum = 0.0;
+    int n = 0;
+
+    for(int q=0; q<4; ++q)
+    if(r.R[q][0]>0.0)
+    {
+    sum += r.R[q][0];
+    ++n;
+    }
+
+    return n>0 ? sum/double(n) : 3.0*r.rmw;
+}
+
+void met_vortex::state(double t, double &lon, double &lat, double &pc, double &pn, double &rmw, double &r34) const
+{
+    double w;
+    const int k = bracket(t,w);
+    const met_vortex_rec &a = rec[k];
+    const met_vortex_rec &b = w>0.0 ? rec[k+1] : rec[k];
+
+    lon = a.lon + w*(b.lon - a.lon);
+    lat = a.lat + w*(b.lat - a.lat);
+    pc  = a.pc  + w*(b.pc - a.pc);
+    pn  = a.pn  + w*(b.pn - a.pn);
+    rmw = a.rmw + w*(b.rmw - a.rmw);
+
+    const double ra = r34_mean(a), rb = r34_mean(b);
+    r34 = ra + w*(rb - ra);
+}
+
+void met_vortex::destination(double lon, double lat, double brg, double d, double &lon2, double &lat2)
+{
+    const double p1 = lat*deg, l1 = lon*deg, b = brg*deg, a = d/Rearth;
+    const double p2 = std::asin(std::sin(p1)*std::cos(a) + std::cos(p1)*std::sin(a)*std::cos(b));
+    const double l2 = l1 + std::atan2(std::sin(b)*std::sin(a)*std::cos(p1), std::cos(a) - std::sin(p1)*std::sin(p2));
+
+    lon2 = l2*(180.0/pi);
+    lat2 = p2*(180.0/pi);
+}
