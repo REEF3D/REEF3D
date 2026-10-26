@@ -4,6 +4,9 @@
 # basins (G 1 1, G 10 boxes).  The bed is schematic (see nidelva_harbour_grid.py).
 # usage: python3 t2_harbour.py geo.dat rundir   (environment: SOLVER sflow|nhflow, NP, TEND (s), OUT (s, VTS output),
 #        Q, WL, AMR (1: refinement, AMRBOX the G 10 box), NZ (NHFLOW layers), A520 (NHFLOW pressure), SED (1: bed load with the bend terms),
+#        MF (S 35), SEDSTART (s, flow time before the bed moves), SPIRAL (S 95: 1, or 2 with the lag, SPIRALLAG the S 97 factor),
+#        SUSP (S 64, the suspended part; SUSPCA the S 65 factor), NONEQ (S 33 mode), SUPPLY (the S 76 box xs xe ys ye of the
+#        inflow reach whose bed is held and whose cells carry the bed load into the river; "none": no supply),
 #        XCTRL (;), NOGRID (reuse the grid of rundir))
 import sys, os, re, json, shutil, subprocess
 
@@ -38,9 +41,25 @@ if os.environ.get("AMR"):
     # one level over the lower river, the river mouth and the east end of the canal (AMRBOX: xs xe ys ye)
     ctrl += "G 1 1\nG 2 0\nG 10 %s\n" % os.environ.get("AMRBOX", "1100 1950 -900 1500")
 if os.environ.get("SED"):
-    # bed load (d50 0.5 mm), the morphological factor MF, the bed slope and the spiral flow of the bends (P5b)
-    ctrl += ("S 10 1\nS 11 2\nS 16 2\nS 20 0.0005\nS 21 100\nS 15 3\nS 17 1.0\nS 35 %s\nS 41 1\nS 43 4000\nS 44 1\nS 31 1\n"
-             "S 100 0\nS 71 2.0\nS 86 1\nS 95 1\n" % os.environ.get("MF", "50"))
+    # bed load (d50 0.5 mm), the morphological factor MF, the bed slope (S 86) and the spiral flow of the bends
+    # (S 95 1, or S 95 2 with its adaptation length, P7); the bed moves after SEDSTART s of flow
+    ctrl += ("S 10 1\nS 11 2\nS 16 2\nS 20 0.0005\nS 21 100\nS 15 3\nS 17 1.0\nS 35 %s\nS 41 2\nS 45 %s\nS 44 1\nS 31 1\n"
+             "S 100 0\nS 86 1\nS 95 %s\n" % (os.environ.get("MF", "50"), os.environ.get("SEDSTART", "1200"),
+                                              os.environ.get("SPIRAL", "1")))
+    if os.environ.get("SPIRALLAG"):
+        ctrl += "S 97 %s\n" % os.environ["SPIRALLAG"]
+    if os.environ.get("SUSP"):
+        # the suspended part of the capacity and its lag (P7, Galappatti), S 65 the near-bed concentration factor
+        ctrl += "S 64 %s\nS 65 %s\n" % (os.environ["SUSP"], os.environ.get("SUSPCA", "2.3"))
+    if os.environ.get("NONEQ"):
+        ctrl += "S 33 %s\n" % os.environ["NONEQ"]
+    # sediment supply: no sediment enters through the inflow face; the bed of the first 80 m of the corridor
+    # (rows 0-8 in full, 9-11 in part) is held (S 76) and its cells carry the load of the flow into the river.  The
+    # end of the box lies in a reach of uniform flow: a box ending at a constriction (as "760 1000 -2200 -1900", rows
+    # 0-21, at the 2 m/s of the narrow section 190 m downstream) supplies the load of the constriction
+    sup = os.environ.get("SUPPLY", "850 1000 -2200 -2075")
+    if sup != "none":
+        ctrl += "S 76 %s\n" % sup
 ctrl += os.environ.get("XCTRL", "").replace(";", "\n") + "\n"
 open(os.path.join(d, "ctrl.txt"), "w").write(ctrl)
 

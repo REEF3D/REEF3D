@@ -2218,6 +2218,8 @@ void control::ctrlsend()
     ii++;
     ictrl[ii] = S74;
     ii++;
+    ictrl[ii] = S76;
+    ii++;
     ictrl[ii] = S75;
     ii++;
     ictrl[ii] = S77;
@@ -4731,6 +4733,18 @@ void control::ctrlsend()
         dctrl[dd] = S74_ys[n];
         dd++;
         dctrl[dd] = S74_ye[n];
+        dd++;
+    }
+
+    for(n=0;n<S76;++n)
+    {
+        dctrl[dd] = S76_xs[n];
+        dd++;
+        dctrl[dd] = S76_xe[n];
+        dd++;
+        dctrl[dd] = S76_ys[n];
+        dd++;
+        dctrl[dd] = S76_ye[n];
         dd++;
     }
     

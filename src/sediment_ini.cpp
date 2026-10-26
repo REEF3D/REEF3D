@@ -209,7 +209,12 @@ void sediment_f::ini_guard(lexer *p, ghostcell *pgc)
         s->guard(i,j)=0.0;
         }
     }
-    
-    
+
+    // S 76: fixed-bed zones, the bed is held but the cells keep their bed load (supply)
+    for(n=0;n<p->S76;++n)
+    SLICELOOP4
+    if(p->pos_x()>=p->S76_xs[n] && p->pos_x()<=p->S76_xe[n] && p->pos_y()>=p->S76_ys[n] && p->pos_y()<=p->S76_ye[n])
+    s->guard(i,j)=0.0;
+
     pgc->gcsl_start4(p,s->guard,1);
 }

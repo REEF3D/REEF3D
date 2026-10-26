@@ -1126,6 +1126,7 @@ void control::ini_default()
     S72=1.0e20;          // int x end of erosion
     S73=0;       // double distance for use relaxation method for the sediment bed
     S74=0;           // int no erosion zone
+    S76=0;           // int fixed-bed zones (S 76 xs xe ys ye): the bed held, the cells carry their bed load (supply of a reach)
     S75=0;       // double distance for use relaxation method for the sediment bed
     S77=0;          // int active sediment domain in x-direction
     S77_xs=-1.0e20; // double active sediment domain x_start
