@@ -413,7 +413,7 @@ public:
 
     // Initialize Options
     int I10,I11,I12,I13,I30,I40,I41,I44,I45,I56;
-    double I31,I33;             // I 30 2 (FNPF): exposure mask smoothing length [m], coarse mask cell size [m] (< 0: automatic)
+    double I31,I33,I34,I35;     // I 30 2 (FNPF): exposure mask smoothing length [m], coarse mask cell size [m] (< 0: automatic), diffraction spreading coefficient, angular blur [deg]
     int I32;                    // I 30 2 (FNPF): number of direction bins of the exposure masks
     int I45_count;              // I 45 <count> (> 1): the restart from REEF3D_Checkpoint/<count>, 0 the latest
     double I21,I50,I55,I58_1,I58_2;

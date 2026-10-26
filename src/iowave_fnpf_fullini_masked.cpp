@@ -29,9 +29,13 @@ Author: Hans Bihs
 //  2. the component directions are grouped into I 32 direction bins; for each bin a sweep along the
 //     propagation direction marks the cells that are reachable from the upwave boundary without
 //     crossing land (geometric shadow)
+//     during the sweep the exposure spreads laterally (diffraction): the variance grows with
+//     I 34 * Lp * distance along the ray, so shadow edges and the beams through sounds widen like a
+//     Fresnel zone further downwave and the bins merge into a smooth field
+//     the bin masks are then mixed across neighbouring directions with a Gaussian of width I 35, so
+//     the lee receives a broad directional mix instead of a few beams
 //  3. the masks are smoothed over the wet cells with a normalized Gaussian-like filter of standard
-//     deviation I 31 (diffraction into the shadow edges); land does not pull the masks down along
-//     exposed coastlines
+//     deviation I 31; land does not pull the masks down along exposed coastlines
 //  4. eta, Fifsf and Fi are summed over the components (B 89 decomposition: space part x time part),
 //     each component weighted with the mask of its direction (linear between the two nearest bins)
 //
@@ -82,33 +86,68 @@ struct mask_grid
     }
 };
 
-// geometric exposure for the direction th (rad, global frame): sweep along the dominant axis of the
-// direction; a cell is exposed when it is wet and the upwave point of the ray on the previous line
-// (linear interpolation) is exposed; upwave points outside the domain are exposed (open boundary)
-void exposure_sweep(const mask_grid &g, const std::vector<float> &W, std::vector<float> &L, double th)
+// lateral diffraction spreading of one sweep line: explicit diffusion along the line through wet-wet
+// faces only (no flux into land, so open water stays at 1 and exposed coasts are not pulled down);
+// var is the variance increment of this line in cells^2
+void spread_line(std::vector<double> &v, const std::vector<float> &wet, double var, std::vector<double> &tmp)
+{
+    if(var<=0.0)
+    return;
+    
+    const int n = int(v.size());
+    const int nsub = MAX(1,int(ceil(var/0.8)));
+    const double D = 0.5*var/double(nsub);
+    
+    for(int q=0; q<nsub; ++q)
+    {
+        tmp = v;
+        
+        for(int m=0; m<n-1; ++m)
+        if(wet[m]>0.5f && wet[m+1]>0.5f)
+        {
+            const double F = D*(tmp[m+1]-tmp[m]);
+            v[m] += F;
+            v[m+1] -= F;
+        }
+    }
+}
+
+// exposure for the direction th (rad, global frame): sweep along the dominant axis of the direction;
+// a cell is exposed when it is wet and the upwave point of the ray on the previous line (linear
+// interpolation) is exposed; upwave points outside the domain are exposed (open boundary).
+// Diffraction: on every line the exposure spreads laterally with the variance increment
+// kappa*Lp*ds perpendicular to the ray (ds: path length between two lines), so the shadow edges
+// widen like a Fresnel zone, sigma^2 = kappa*Lp*distance (kappa = 1/(2 pi) matches a knife edge)
+void exposure_sweep(const mask_grid &g, const std::vector<float> &W, std::vector<float> &L, double th,
+                    double kappa, double Lp)
 {
     const double c = cos(th);
     const double s = sin(th);
-
+    
     if(fabs(c)>=fabs(s))
     {
         const int dir = c>0.0 ? 1 : -1;
         const double shift = -(g.dx/g.dy)*s/fabs(c);   // upwave offset in j per line
         const int i0 = dir>0 ? 0 : g.nx-1;
-
+        // perpendicular variance kappa*Lp*dx/|c|, seen along the line (j) stretched by 1/|c|
+        const double var = kappa*Lp*(g.dx/fabs(c))/(c*c)/(g.dy*g.dy);
+        
+        std::vector<double> v(g.ny), tmp(g.ny);
+        std::vector<float> wl(g.ny);
+        
         for(int j=0; j<g.ny; ++j)
         L[g.id(i0,j)] = W[g.id(i0,j)];
-
+        
         for(int n=1; n<g.nx; ++n)
         {
             const int i = i0 + dir*n;
             const int ip = i - dir;
-
+            
             for(int j=0; j<g.ny; ++j)
             {
                 const double js = j + shift;
                 double up = 1.0;
-
+                
                 if(js>=0.0 && js<=double(g.ny-1))
                 {
                     const int ja = std::min(int(js),g.ny-1);
@@ -116,31 +155,41 @@ void exposure_sweep(const mask_grid &g, const std::vector<float> &W, std::vector
                     const double w = js-ja;
                     up = (1.0-w)*L[g.id(ip,ja)] + w*L[g.id(ip,jb)];
                 }
-
-                L[g.id(i,j)] = W[g.id(i,j)]*up;
+                
+                wl[j] = W[g.id(i,j)];
+                v[j] = wl[j]*up;
             }
+            
+            spread_line(v,wl,var,tmp);
+            
+            for(int j=0; j<g.ny; ++j)
+            L[g.id(i,j)] = float(std::min(std::max(v[j],0.0),1.0));
         }
     }
-
+    
     else
     {
         const int dir = s>0.0 ? 1 : -1;
         const double shift = -(g.dy/g.dx)*c/fabs(s);   // upwave offset in i per line
         const int j0 = dir>0 ? 0 : g.ny-1;
-
+        const double var = kappa*Lp*(g.dy/fabs(s))/(s*s)/(g.dx*g.dx);
+        
+        std::vector<double> v(g.nx), tmp(g.nx);
+        std::vector<float> wl(g.nx);
+        
         for(int i=0; i<g.nx; ++i)
         L[g.id(i,j0)] = W[g.id(i,j0)];
-
+        
         for(int n=1; n<g.ny; ++n)
         {
             const int j = j0 + dir*n;
             const int jp = j - dir;
-
+            
             for(int i=0; i<g.nx; ++i)
             {
                 const double is = i + shift;
                 double up = 1.0;
-
+                
                 if(is>=0.0 && is<=double(g.nx-1))
                 {
                     const int ia = std::min(int(is),g.nx-1);
@@ -148,9 +197,15 @@ void exposure_sweep(const mask_grid &g, const std::vector<float> &W, std::vector
                     const double w = is-ia;
                     up = (1.0-w)*L[g.id(ia,jp)] + w*L[g.id(ib,jp)];
                 }
-
-                L[g.id(i,j)] = W[g.id(i,j)]*up;
+                
+                wl[i] = W[g.id(i,j)];
+                v[i] = wl[i]*up;
             }
+            
+            spread_line(v,wl,var,tmp);
+            
+            for(int i=0; i<g.nx; ++i)
+            L[g.id(i,j)] = float(std::min(std::max(v[i],0.0),1.0));
         }
     }
 }
@@ -336,15 +391,11 @@ void iowave::full_initialize_fnpf_masked(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     for(int b=0; b<Nb; ++b)
     thb[b] = Nb==1 ? 0.5*(thmin+thmax) : thmin + b*(thmax-thmin)/double(Nb-1);
 
-    // smoothing length: I 31, automatic 2 peak wave lengths (at least 2 coarse cells)
-    double sig = p->I31;
-
-    if(sig<0.0)
+    // peak wave length from the linear dispersion relation at the wave theory depth (B 94)
+    double Lp = 10.0*dxm;
     {
-        // peak wave length from the linear dispersion relation at the wave theory depth (B 94)
         const double T = p->wTp>0.0 ? p->wTp : p->wT;
         const double d = MAX(p->B94_wdt>0.0 ? p->B94_wdt : p->wd, 0.1);
-        double Lp = 10.0*dxm;
         
         if(T>0.0)
         {
@@ -356,10 +407,17 @@ void iowave::full_initialize_fnpf_masked(lexer *p, fdm_fnpf *c, ghostcell *pgc)
             
             Lp = 2.0*PI/k;
         }
-        
-        sig = 2.0*Lp;
     }
-
+    
+    // final smoothing length: I 31, automatic one peak wave length
+    double sig = p->I31;
+    
+    if(sig<0.0)
+    sig = Lp;
+    
+    // diffraction spreading coefficient: I 34 (0: off)
+    const double kappa = MAX(p->I34,0.0);
+    
     const int hx = sig>0.0 ? MAX(1,int(sig/g.dx+0.5)) : 0;
     const int hy = (sig>0.0 && g.ny>1) ? MAX(1,int(sig/g.dy+0.5)) : 0;
 
@@ -386,12 +444,42 @@ void iowave::full_initialize_fnpf_masked(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 
     double exposed_mean=0.0;
 
+    // angular blur (I 35): the mask of bin b is a Gaussian-weighted mix of the masks of the
+    // neighbouring directions, so diffraction also widens the directional spread behind obstacles
+    // (in the lee all directions get some energy instead of a few beams); rows normalized
+    const double sth = MAX(p->I35,0.0)*PI/180.0;
+    std::vector<double> wab(size_t(Nb)*Nb,0.0);
+
     for(int b=0; b<Nb; ++b)
     {
-        exposure_sweep(g,W,L,thb[b]);
+        double ws=0.0;
+
+        for(int bb=0; bb<Nb; ++bb)
+        {
+            double w = (b==bb) ? 1.0 : 0.0;
+
+            if(sth>0.0 && Nb>1)
+            w = exp(-0.5*pow((thb[b]-thb[bb])/sth,2.0));
+
+            wab[size_t(b)*Nb+bb] = w;
+            ws += w;
+        }
+
+        for(int bb=0; bb<Nb; ++bb)
+        wab[size_t(b)*Nb+bb] /= ws;
+    }
+
+    std::vector<float> mraw(size_t(Nb)*MAX(nloc,1));
+
+    for(int bb=0; bb<Nb; ++bb)
+    {
+        exposure_sweep(g,W,L,thb[bb],kappa,Lp);
         smooth_masked(g,W,L,hx,hy);
 
-        const double eb = esum>0.0 ? ebin[b]/esum : 1.0/double(Nb);
+        // weight of this geometric mask in the energy-weighted mean of the blurred masks
+        double eb=0.0;
+        for(int b=0; b<Nb; ++b)
+        eb += (esum>0.0 ? ebin[b]/esum : 1.0/double(Nb))*wab[size_t(b)*Nb+bb];
 
         for(size_t q=0; q<N; ++q)
         Lmean[q] += float(eb)*L[q];
@@ -399,10 +487,23 @@ void iowave::full_initialize_fnpf_masked(lexer *p, fdm_fnpf *c, ghostcell *pgc)
         int q=0;
         SLICELOOP4
         {
-            mloc[size_t(b)*nloc + q] = float(g.interp(L,p->pos_x(),p->pos_y()));
+            mraw[size_t(bb)*nloc + q] = float(g.interp(L,p->pos_x(),p->pos_y()));
             ++q;
         }
     }
+
+    for(int b=0; b<Nb; ++b)
+    for(int q=0; q<nloc; ++q)
+    {
+        double v=0.0;
+
+        for(int bb=0; bb<Nb; ++bb)
+        v += wab[size_t(b)*Nb+bb]*mraw[size_t(bb)*nloc + q];
+
+        mloc[size_t(b)*nloc + q] = float(v);
+    }
+
+    mraw.clear(); mraw.shrink_to_fit();
 
     // fraction of the wet area that is exposed (energy weighted)
     {
@@ -626,7 +727,8 @@ void iowave::full_initialize_fnpf_masked(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     if(p->mpirank==0)
     {
         cout<<" exposure masks: "<<g.nx<<" x "<<g.ny<<" cells of "<<g.dx<<" m, "<<Nb<<" direction bins ("
-            <<thmin*180.0/PI<<" .. "<<thmax*180.0/PI<<" deg), smoothing "<<sig<<" m"<<endl;
+            <<thmin*180.0/PI<<" .. "<<thmax*180.0/PI<<" deg), Lp "<<Lp<<" m, diffraction kappa "<<kappa
+            <<", angular blur "<<MAX(p->I35,0.0)<<" deg, smoothing "<<sig<<" m"<<endl;
         cout<<" components: "<<(decomp ? nc : 0)<<(decomp ? "" : " (no decomposition, one mask for B 105)")
             <<" . exposed wet area (energy weighted): "<<exposed_mean*100.0<<" %"
             <<" . mask file: REEF3D_FNPF_I30_mask.asc . time: "<<t1-t0<<" s"<<endl;

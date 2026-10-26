@@ -818,9 +818,11 @@ void control::ini_default()
 	I13=0;          // int initialize turbulence
 	I21=0;          // int set phase 2 velocities to zero after potential flow solver
 	I30=0;			// int Fully intialize NWT
-    I31=-1.0;       // double I 30 2: exposure mask smoothing length (< 0: automatic, 2 peak wave lengths)
-    I32=16;         // int I 30 2: number of direction bins of the exposure masks
+    I31=-1.0;       // double I 30 2: exposure mask smoothing length (< 0: automatic, 1 peak wave length)
+    I32=32;         // int I 30 2: number of direction bins of the exposure masks
     I33=-1.0;       // double I 30 2: cell size of the coarse exposure mask grid (< 0: automatic)
+    I35=15.0;       // double I 30 2: angular blur of the exposure masks across directions [deg] (0: off)
+    I34=0.159155;   // double I 30 2: diffraction spreading coefficient, variance = I34*Lp*distance (1/(2 pi); 0: off)
 	I40=0;			// int ini from state file
 	I41=0;			// int ID of state file
     I44=0;          // int FNPF state with Fi
