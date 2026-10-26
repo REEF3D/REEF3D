@@ -55,7 +55,7 @@ if mode == "oscillating":
     with open('6DOF_motion.dat', 'w') as f:
         for i in range(int(2.2/0.0005)+1):
             t = i*0.0005
-            f.write(f"{t:.6f} {X0*(1-math.cos(w*t)):.10e} 0.0\n")
+            f.write(f"{t:.6f} {X0*(1-math.cos(w*t)):.10e} 0.0 0.0\n")
 elif mode == "hub":
     icosphere(0.1, 3, 'floating.stl')
 elif mode == "shedding":
@@ -63,7 +63,7 @@ elif mode == "shedding":
     with open('6DOF_motion.dat', 'w') as f:
         for i in range(4001):
             t = i*0.001
-            f.write(f"{t:.4f} 0.0 {A*0.5*(1-math.cos(2*math.pi*t/4.0)):.10e}\n")
+            f.write(f"{t:.4f} 0.0 {A*0.5*(1-math.cos(2*math.pi*t/4.0)):.10e} 0.0\n")
 else:
     print(__doc__ if __doc__ else "usage: make_inputs.py oscillating|shedding")
     sys.exit(1)

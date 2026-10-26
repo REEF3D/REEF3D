@@ -134,7 +134,7 @@ def make(argv):
     with open(f"{d}/6DOF_motion.dat", "w") as f:
         for i in range(4001):
             t = i*0.001
-            f.write(f"{t:.4f} 0.0 {0.05*0.5*(1-math.cos(2*math.pi*t/4.0)):.10e}\n")
+            f.write(f"{t:.4f} 0.0 {0.05*0.5*(1-math.cos(2*math.pi*t/4.0)):.10e} 0.0\n")
 
     with open(f"{d}/job.slurm", "w") as f:
         f.write(JOB.format(res=res, ranks=ranks, nodes=max(1, ranks//128), tasks=min(ranks, 128),
