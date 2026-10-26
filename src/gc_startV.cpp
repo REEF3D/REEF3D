@@ -1383,8 +1383,7 @@ void ghostcell::startintV(lexer *p, int *f, int gcv)
         f[IJKp1] = f[IJK];
     }
 
-    if(do_comms)
-    gcparaxintV(p, f, gcv);
+    gcparaxintV(p, f);
 }
 
 void ghostcell::startintVF(lexer *p, int *f, int gcv)
