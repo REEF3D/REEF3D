@@ -298,8 +298,8 @@ void met_provider::check(lexer *p, ghostcell *pgc)
     if(p->W200<0 || p->W200>4)
     msg = "W 200: unknown met forcing; use 0 (off), 1 (uniform, W 201, W 202), 2 (met file met-forcing.r3m), 3 (vortex from met-vortex.trk) or 4 (blend of met-forcing.r3m, met-nest.r3m and met-vortex.trk, W 220-225).";
 
-    else if(p->W200>0 && p->A10!=2 && p->A10!=5)
-    msg = "W 200: the met forcing is for REEF3D::SFLOW (A 10 2) and REEF3D::NHFLOW (A 10 5).";
+    else if(p->W200>0 && p->A10!=2 && p->A10!=5 && !(p->A10==7 && p->A730==2))
+    msg = "W 200: the met forcing is for REEF3D::SFLOW (A 10 2), REEF3D::NHFLOW (A 10 5) and the wind of REEF3D::SEASTATE (A 10 7 with A 730 2).";
 
     else if(p->W200>0 && p->A10==5 && p->A570>0)
     msg = "W 200 and A 570: use either the met forcing (W 200) or the NHFLOW wind forcing (A 570-578), not both.";

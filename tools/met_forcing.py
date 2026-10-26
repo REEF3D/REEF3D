@@ -13,6 +13,8 @@ REEF3D atmospheric forcing (W 200 2, 4): writer, reader and converters of the bi
             met-nest.r3m, a moving grid of fixed size in model coordinates (W 200 4, W 220 1 x)
   blend     the composite of W 200 4 (background, nest, vortex; the reference of src/met_blend.cpp) at points or on
             a grid
+  seastate  an old SEASTATE wind file seastate-wind.dat (A 730 2 before P6; text, model coordinates) ->
+            met-forcing.r3m with the same nodes and records (u10, v10; W 200 2 with A 730 2)
   info      header and records of a met file
 
 Model coordinates: as tools/seastate_forcing.py, --origin LON0 LAT0 (transverse Mercator on a sphere, the frame of
@@ -224,6 +226,26 @@ def uniform(args):
     a = lambda x: np.array(x, np.float32).reshape(-1, 1, 1)
     write_r3m(args.output, 0.0, 0.0, 1.0, 1.0, T, a(U), a(V), a(P), avg=args.avg)
     print("%s: uniform series, %d records (%s - %s)" % (args.output, len(T), epoch_to_str(T[0]), epoch_to_str(T[-1])))
+
+
+def seastate(args):
+    """seastate-wind.dat: title line; nx ny; x0 y0 dx dy; per record YYYYMMDD.HHMMSS, u10 (ny lines of nx), v10;
+    '$' starts a comment"""
+    tok = []
+    for line in open(args.input).read().split("\n")[1:]:
+        tok += line.split("$")[0].split()
+    nx, ny = int(tok[0]), int(tok[1])
+    x0, y0, dx, dy = (float(t) for t in tok[2:6])
+    k, T, U, V = 6, [], [], []
+    n = nx * ny
+    while k < len(tok):
+        T.append(stamp_to_epoch(tok[k]))
+        U.append(np.array(tok[k + 1:k + 1 + n], float).reshape(ny, nx))
+        V.append(np.array(tok[k + 1 + n:k + 1 + 2 * n], float).reshape(ny, nx))
+        k += 1 + 2 * n
+    write_r3m(args.output, x0, y0, dx, dy, T, np.array(U), np.array(V), avg=args.avg)
+    print("%s: %d x %d nodes from (%g, %g) m, spacing %g x %g m, %d records (%s - %s), u10 v10 (no pressure)"
+          % (args.output, nx, ny, x0, y0, dx, dy, len(T), epoch_to_str(T[0]), epoch_to_str(T[-1])))
 
 
 def analytic_fields(X, Y, t, c):
@@ -731,6 +753,12 @@ def main(argv=None):
     u.add_argument("-o", "--output", default="met-forcing.r3m")
     u.add_argument("--avg", type=float, default=0.0)
     u.set_defaults(func=uniform)
+
+    s = sub.add_parser("seastate")
+    s.add_argument("input")
+    s.add_argument("-o", "--output", default="met-forcing.r3m")
+    s.add_argument("--avg", type=float, default=0.0)
+    s.set_defaults(func=seastate)
 
     a = sub.add_parser("analytic")
     a.add_argument("-o", "--output", default="met-forcing.r3m")

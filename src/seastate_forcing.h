@@ -56,19 +56,10 @@ seastate_spc_series    nonstationary SWAN 2D spectral file
   N(k,loc)  spectrum of record k = 0, 1, location loc on the model grid
   weight(t) linear time weight of rec[1] (clamped to [0,1])
 
-seastate_wind_series   wind field file (seastate-wind.dat, A 730 2):
-                         line 1   any title
-                         nx ny            nodes of a regular grid
-                         x0 y0 dx dy      node (0,0) and spacing [m]
-                       then for every time:
-                         YYYYMMDD.HHMMSS
-                         u10: ny lines of nx values (j = 0 .. ny-1)
-                         v10: ny lines of nx values
-                       components [m/s] along the model x and y axes;
-                       nx = ny = 1: spatially uniform wind time series.
-                       '$' starts a comment.
-  at(t,x,y,u,v)  bilinear in space (clamped to the grid), linear in
-                 time (clamped to the first and last record)
+The wind field file seastate-wind.dat (A 730 2) is retired (storm surge
+P6): the wind of SEASTATE is that of the REEF3D met forcing W 200
+(met_provider; met-forcing.r3m, tools/met_forcing.py, which converts an
+old seastate-wind.dat with 'met_forcing.py seastate').
 --------------------------------------------------------------------*/
 
 double seastate_datetime(double yyyymmdd_hhmmss);
@@ -100,32 +91,6 @@ private:
     std::vector<std::vector<float>> rec[2];
     double rtime[2] = {0.0, 0.0};
     std::string pending;                              // first key of the next record
-};
-
-class seastate_wind_series
-{
-public:
-    bool open(const std::string &file, std::string &error);
-    bool advance(double t, std::string &error);
-    void at(double t, double x, double y, double &u, double &v) const;
-
-    double time(int k) const {return rtime[k];}
-
-    int nx = 0, ny = 0, records = 0;
-    double x0 = 0.0, y0 = 0.0, dx = 1.0, dy = 1.0;
-
-private:
-    bool read_record(std::vector<double> &u, std::vector<double> &v, double &t, std::string &error);
-    bool token(std::string &tok);
-    void space(const std::vector<double> &a, double x, double y, double &val) const;
-
-    std::ifstream in;
-    std::string file;
-    bool eof = false;
-    std::vector<double> u[2], v[2];
-    double rtime[2] = {0.0, 0.0};
-    std::vector<std::string> buf;                     // tokens of the current line
-    size_t pos = 0;
 };
 
 #endif

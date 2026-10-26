@@ -50,7 +50,7 @@ seastate_f::seastate_f(lexer *p, ghostcell *pgc) : pprint(nullptr), preg(nullptr
                                                   etot(0.0), hsmax(0.0), hsmean(0.0), nmin(0.0), cells_active(0.0),
                                                   starttime(0.0), endtime(0.0),
                                                   sb(nullptr), gin(nullptr), proll(nullptr), tnew(0.0), trep(0.0),
-                                                  bser(nullptr), wser(nullptr), tref(0.0), wU10(nullptr), wdir(nullptr), wUx(nullptr), wUy(nullptr),
+                                                  bser(nullptr), wmet(nullptr), tref(0.0), wU10(nullptr), wdir(nullptr), wUx(nullptr), wUy(nullptr),
                                                   pamr(nullptr), bathy(nullptr)
 {
     side[0]=side[1]=side[2]=side[3]=0;
@@ -73,7 +73,6 @@ seastate_f::~seastate_f()
     delete psrc;
     delete proll;
     delete bser;
-    delete wser;
     delete wU10;
     delete wdir;
     delete wUx;
@@ -240,7 +239,7 @@ void seastate_f::step(lexer *p, ghostcell *pgc)
     // implicit transport in x, y, sigma, theta with the source terms (if any)
     tnew = p->simtime + dtw;
 
-    if(bser!=nullptr || wser!=nullptr)
+    if(bser!=nullptr || wmet!=nullptr)
     forcing_update(p,pgc,tnew);
 
     if(sb!=nullptr)
@@ -287,7 +286,7 @@ void seastate_f::step_coupled(lexer *p, ghostcell *pgc, double dt)
     // the host calls at the start of its step: the wave field is advanced to the host's time
     tnew = p->simtime;
 
-    if(bser!=nullptr || wser!=nullptr)
+    if(bser!=nullptr || wmet!=nullptr)
     forcing_update(p,pgc,tnew);
 
     if(sb!=nullptr)

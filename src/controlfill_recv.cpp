@@ -91,6 +91,8 @@ void control::ctrlrecv()
     ii++;
     A231 = dctrl[dd];
     dd++;
+    A232 = dctrl[dd];
+    dd++;
     A251 = ictrl[ii];
     ii++;
     A251_val = dctrl[dd];
@@ -446,6 +448,8 @@ void control::ctrlrecv()
     ii++;
     A544 = dctrl[dd];
     dd++;
+    A546 = dctrl[dd];
+    dd++;
     A545 = dctrl[dd];
     dd++;
     A550 = ictrl[ii];
@@ -611,6 +615,8 @@ void control::ctrlrecv()
     A721_xe = dctrl[dd];
     dd++;
     A730 = ictrl[ii];
+    ii++;
+    A729 = ictrl[ii];
     ii++;
     A731_u10 = dctrl[dd];
     dd++;
@@ -1846,6 +1852,14 @@ void control::ctrlrecv()
     ii++;
     P111 = dctrl[dd];
     dd++;
+    P112 = ictrl[ii];
+    ii++;
+    P113 = dctrl[dd];
+    dd++;
+    P114 = dctrl[dd];
+    dd++;
+    P115 = ictrl[ii];
+    ii++;
     P121 = ictrl[ii];
     ii++;
     P122 = ictrl[ii];
@@ -3931,6 +3945,12 @@ void control::ctrlrecv()
         Darray(P63_y,P63);
     }
 
+    if(P115>0)
+    {
+        Darray(P115_x,P115);
+        Darray(P115_y,P115);
+    }
+
     if(P64>0)
     {
         Darray(P64_x,P64);
@@ -5681,6 +5701,14 @@ void control::ctrlrecv()
         P63_x[n] = dctrl[dd];
         dd++;
         P63_y[n] = dctrl[dd];
+        dd++;
+    }
+
+    for(n=0;n<P115;++n)
+    {
+        P115_x[n] = dctrl[dd];
+        dd++;
+        P115_y[n] = dctrl[dd];
         dd++;
     }
 

@@ -55,7 +55,7 @@ public:
     double A222,A223,A224,A247,A249,A244,A251_val;
     double A250;
     int A226,A229;          // SFLOW semi-implicit free surface
-    double A227,A228,A231;
+    double A227,A228,A231,A232;
 
     // FNPF
     int A309,A310,A311,A312,A313,A314,A315,A316,A317,A318,A320,A324,A327,A328,A329,A330,A332,A334,A336,A337,A338,A339,A343,A347,A348;
@@ -88,7 +88,7 @@ public:
     int A534,A537,A539;          // NHFLOW hydrostatic semi-implicit free surface
     double A535,A536,A538;
     int A540;
-    double A544,A545;
+    double A544,A545,A546;
     int A550,A551,A552;
     double A554,A555,A557;
     int A560;
@@ -125,7 +125,7 @@ public:
     // Spectral
     int A700,A701,A703,A704,A707,A710,A711,A712_xm,A712_xp,A712_ym,A712_yp,A713,A714,A720;
     double A702_fmin,A702_fmax,A705,A706,A708,A721_us,A721_ue,A721_xs,A721_xe;
-    int A730,A732,A733,A740,A742,A744;
+    int A729,A730,A732,A733,A740,A742,A744;
     double A731_u10,A731_dir,A734,A735,A741_alpha,A741_gamma,A743,A745;
     int A737;
     double A736_cutfr,A736_urcrit,A736_urslim;
@@ -466,6 +466,9 @@ public:
     double P101_xm,P101_ym,P101_zs,P101_ze,P101_r1,P101_r2;
     int P110;
     double P111;
+    int P112,P115;
+    double P113,P114;
+    double *P115_x,*P115_y;
     double *P121_x,*P121_y;
     double *P123_y,*P124_x;
     double *P125_x,*P125_y;

@@ -57,6 +57,7 @@ void control::ini_default()
     A227=0.55;   // double SFLOW semi-implicit: implicitness theta of the free surface
     A228=0.0;    // double SFLOW semi-implicit: maximum time step (s), 0 no cap
     A229=1;      // int SFLOW semi-implicit: wetting and drying iteration (Casulli 2009), 0 off
+    A232=0.05;   // double SFLOW semi-implicit: depth below which the cell velocities of the momentum predictor are desingularised
     A231=0.0;    // double SFLOW semi-implicit: mass flux dissipation for transcritical flow, 0 off
     A251=0;    // double fsf-slope in x-dir
     A260=0;      // int turbulence model
@@ -206,6 +207,7 @@ void control::ini_default()
     A540=1;      // int NFHLOW wetdry scheme
     A544=0.001;  // double wetting & drying criterion
     A545=10.0;   // double deep criterion
+    A546=0.05;   // double NHFLOW semi-implicit: depth below which the cell velocities of the momentum predictor are desingularised
     
     A550=0;      // int turn on breaking (which method)
     A551=3;      // int type of breaking detection (deep / shallow)
@@ -286,7 +288,8 @@ void control::ini_default()
     A720=0;           // int prescribed current (stand-alone runs): 0 none, 1 U linear in x (A 721)
     A721_us=A721_ue=0.0; // double U at xs and at xe [m/s]
     A721_xs=A721_xe=0.0; // double xs, xe [m]
-    A730=0;           // int wind: 0 none, 1 uniform (A 731), 2 field in space and time from seastate-wind.dat
+    A729=0;           // int drag of the wind input: 0 Wu (1982), 1 the met drag law W 207 (W 213, W 214)
+    A730=0;           // int wind: 0 none, 1 uniform (A 731), 2 the met forcing W 200 (uniform, met-forcing.r3m, vortex, blend)
     A731_u10=0.0;     // double wind speed U10 [m/s]
     A731_dir=0.0;     // double wind direction [deg], direction the wind blows to, ccw from +x
     A732=0;           // int deep-water physics: 0 off, 1 Komen (wind input with wind, whitecapping, quadruplets A 733), 2 van der Westhuysen (Yan wind input, saturation-based whitecapping)
@@ -937,6 +940,10 @@ void control::ini_default()
 	P101=0;			  // int print sloshing forces
     P110=0;           // int print significant wave height
     P111=0.0;         // double start averging after transients
+    P112=0;           // int SFLOW maxima of the run (REEF3D_SFLOW_MAX)
+    P113=0.0;         // double SFLOW maxima: start time (after the spin-up)
+    P114=0.05;        // double SFLOW maxima: flooding depth
+    P115=0;           // int SFLOW maxima at points
 	P121=0;             // int bed level gages
 	P122=0;             // int max bed level gages
 	P123=0;             // int topoline in x-direction

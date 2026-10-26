@@ -131,6 +131,9 @@ void control::read_control(lexer* p)
                 case 229: control>>A229;
                          clear(c,numint);
                          break;
+                case 232: control>>A232;
+                         clear(c,numint);
+                         break;
                 case 231: control>>A231;
                          clear(c,numint);
                          break;
@@ -575,6 +578,9 @@ void control::read_control(lexer* p)
                 case 543: retired_key(control,p,c,numint);
                          clear(c,numint);
                          break;
+                case 546: control>>A546;
+                         clear(c,numint);
+                         break;
                 case 544: control>>A544;
                          clear(c,numint);
                          break;
@@ -760,6 +766,9 @@ void control::read_control(lexer* p)
                          clear(c,numint);
                          break;
                 case 721: control>>A721_us>>A721_ue>>A721_xs>>A721_xe;
+                         clear(c,numint);
+                         break;
+                case 729: control>>A729;
                          clear(c,numint);
                          break;
                 case 730: control>>A730;
@@ -2662,6 +2671,18 @@ void control::read_control(lexer* p)
                          clear(c,numint);
                          break;
                 case 111: control>>P111;
+                         clear(c,numint);
+                         break;
+                case 112: control>>P112;
+                         clear(c,numint);
+                         break;
+                case 113: control>>P113;
+                         clear(c,numint);
+                         break;
+                case 114: control>>P114;
+                         clear(c,numint);
+                         break;
+                case 115: ++P115;
                          clear(c,numint);
                          break;
                 case 121: ++P121;
@@ -4660,6 +4681,9 @@ void control::read_control(lexer* p)
     Darray(P63_x,P63);
     Darray(P63_y,P63);
 
+    Darray(P115_x,P115);
+    Darray(P115_y,P115);
+
     Darray(P64_x,P64);
     Darray(P64_y,P64);
     Darray(P64_z,P64);
@@ -5058,6 +5082,7 @@ void control::read_control(lexer* p)
     int countP61=0;
     int countP62=0;
     int countP63=0;
+    int countP115=0;
     int countP64=0;
     int countP65=0;
     int countP66=0;
@@ -5676,6 +5701,11 @@ void control::read_control(lexer* p)
                 case 63: control>>P63_x[countP63]>>P63_y[countP63];
                          p->XYin(P63_x[countP63],P63_y[countP63]);
                          ++countP63;
+                         clear(c,numint);
+                         break;
+                case 115: control>>P115_x[countP115]>>P115_y[countP115];
+                         p->XYin(P115_x[countP115],P115_y[countP115]);
+                         ++countP115;
                          clear(c,numint);
                          break;
                 case 64: control>>P64_x[countP64]>>P64_y[countP64]>>P64_z[countP64];

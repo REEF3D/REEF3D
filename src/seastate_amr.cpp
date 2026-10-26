@@ -29,6 +29,7 @@ Architect: Hans Bihs
 #include"seastate_source.h"
 #include"seastate_bathy.h"
 #include"seastate_forcing.h"
+#include"met_provider.h"
 #include"seastate_obstacle.h"
 #include"fdm_seastate.h"
 #include"slice4.h"
@@ -546,7 +547,7 @@ void seastate_amr::regrid_static(ghostcell*)
     c->solv->threads(p0->A798,64);
     c->solv->source_iterations(p0->A738,p0->A739);
 
-        if(L0.wser!=nullptr)
+        if(L0.wmet!=nullptr)
         {
         c->wU = new slice4(pp);
         c->wD = new slice4(pp);
@@ -2612,7 +2613,8 @@ void seastate_amr::diffraction(lexer*, int mode, int l0, int l1, double smax, do
 
 void seastate_amr::wind(double tf)
 {
-    if(L0.wser==nullptr)
+    // the met provider of the rank has been advanced to the model time tf by seastate_f::forcing_update
+    if(L0.wmet==nullptr)
     return;
 
     const int m = marge;
@@ -2625,8 +2627,8 @@ void seastate_amr::wind(double tf)
         for(int ii=pp->imin; ii<pp->imin+pp->imax; ++ii)
         for(int jj=pp->jmin; jj<pp->jmin+pp->jmax; ++jj)
         {
-        double u, v;
-        L0.wser->at(tf,pp->XP[ii+m],pp->YP[jj+m],u,v);
+        double u, v, pa;
+        L0.wmet->at(pp->XP[ii+m],pp->YP[jj+m],u,v,pa);
         (*c->wU)(ii,jj) = std::sqrt(u*u + v*v);
         (*c->wD)(ii,jj) = std::atan2(v,u);
         }

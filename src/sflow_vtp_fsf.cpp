@@ -34,6 +34,7 @@ Author: Hans Bihs
 #include"sflow_turbulence.h"
 #include"sflow_state.h"
 #include"fnpf_print_Hs.h"
+#include"sflow_print_max.h"
 #include"lagoon_output.h"
 #include<sys/stat.h>
 #include<sys/types.h>
@@ -76,10 +77,18 @@ sflow_vtp_fsf::sflow_vtp_fsf(lexer *p, fdm2D *b, ghostcell *pgc)
 
     if(p->P110==1)
         phs = new fnpf_print_Hs(p,b->Hs);
+
+    // maxima of the run (P 112, P 115)
+    if(sflow_print_max::active(p))
+        pmax = new sflow_print_max(p,b,pgc);
 }
 
 void sflow_vtp_fsf::start(lexer *p, fdm2D* b, ghostcell* pgc, ioflow *pflow, sflow_turbulence *pturb, sediment *psed)
 {
+    // maxima of the run (P 112, P 115): the state at the end of the step
+    if(pmax!=nullptr && p->count>0)
+        pmax->update(p,b,pgc);
+
     // Print out based on iteration
     if((p->count%p->P181==0 && p->P182<0.0 && p->P10>0 && p->P181>0)  || (p->count==0 &&  p->P182<0.0))
     {
@@ -487,6 +496,10 @@ void sflow_vtp_fsf::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence
     lagoon_surface::piece_written(p,pgc,lagoon_free_surface,"SFLOW","free_surface","REEF3D_SFLOW_VTP_FSF",name,num);
 
     ++p->printcount;
+
+    // the maxima so far (P 112, P 115), with every print of the free surface
+    if(pmax!=nullptr)
+        pmax->write(p,b,pgc);
 }
 
 void sflow_vtp_fsf::amr_columns(const amr_column_lookup *amr)
@@ -498,4 +511,16 @@ void sflow_vtp_fsf::amr_columns(const amr_column_lookup *amr)
 void sflow_vtp_fsf::flush_outputs()
 {
     pwsf->flush_files();
+}
+
+void sflow_vtp_fsf::finish(lexer *p, fdm2D *b, ghostcell *pgc)
+{
+    if(pmax!=nullptr)
+        pmax->write(p,b,pgc);
+}
+
+void sflow_vtp_fsf::ckpt_fields(const std::function<void(const char*, char, double*)> &fd, const std::function<void(const char*, char, int*)> &fi)
+{
+    if(pmax!=nullptr)
+        pmax->ckpt_fields(fd,fi);
 }

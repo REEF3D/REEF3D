@@ -584,6 +584,21 @@ static void test_source()
         seastate_source src(sg,sp);
         const double us=seastate_source::ustar_wu(20.0);
         check(close(us,std::sqrt((0.8+0.065*20.0)*1e-3)*20.0,1e-12) && close(seastate_source::ustar_wu(5.0),std::sqrt(1.2875e-3)*5.0,1e-12),"u* with the drag of Wu (1982)");
+        // A 729: the drag of the met forcing; law 2 of met_drag.h is Wu (1982) bit for bit, law 5 caps C_d at W 213
+        {
+            seastate_source_param sq = sp;
+            bool same = true;
+            for(double U : {0.0, 3.0, 7.5, 12.0, 20.0, 35.0, 60.0})
+            {
+                sq.drag = 0; seastate_source s0(sg,sq);
+                sq.drag = 2; seastate_source s2(sg,sq);
+                same = same && s0.ustar_of(U)==seastate_source::ustar_wu(U) && s2.ustar_of(U)==seastate_source::ustar_wu(U);
+            }
+            sq.drag = 5; sq.drag_cap = 2.5e-3;
+            seastate_source s5(sg,sq);
+            check(same && s5.ustar_of(60.0)==std::sqrt(2.5e-3)*60.0 && s5.ustar_of(60.0)<seastate_source::ustar_wu(60.0),
+                  "A 729: u* of the met drag law (W 207 2 = Wu bitwise, W 207 5 capped)");
+        }
         cell_kin ck(sg,1000.0);
         std::vector<float> N0(nb,0.0f);
         src.compute(N0.data(),1000.0,ck.k.data(),ck.cg.data(),P.data(),D.data());
@@ -862,41 +877,8 @@ static void test_forcing()
     ser.advance(ser.time(1)+1e5,err);
     check(ser.weight(ser.time(1)+1e5)==1.0 && ser.records==3,"spectra series: clamped after the last record");
 
-    // wind field: linear in x and y, two times
-    const char *wf = "/tmp/seastate_test_wind.dat";
-    {
-        std::ofstream o(wf);
-        o<<"wind test\n3 2\n100.0 -50.0 200.0 300.0\n";
-        for(int k=0;k<2;++k)
-        {
-            o<<(k==0 ? "20261005.000000" : "20261005.060000")<<"\n";
-            for(int c=0;c<2;++c)
-            for(int jj=0;jj<2;++jj)
-            {
-                for(int ii=0;ii<3;++ii)
-                {
-                    const double x=100.0+200.0*ii, y=-50.0+300.0*jj;
-                    o<<(c==0 ? 5.0+0.01*x+0.002*y+k*4.0 : -3.0+0.004*x-0.01*y)<<" ";
-                }
-                o<<"$ row\n";
-            }
-        }
-    }
-    seastate_wind_series ws;
-    const bool okw = ws.open(wf,err);
-    if(!okw) std::cout<<"        "<<err<<std::endl;
-    double werr=0.0;
-    const double tw = seastate_datetime(20261005.03);
-    ws.advance(tw,err);
-    for(double x : {100.0,230.0,499.0}) for(double y : {-50.0,10.0,250.0})
-    {
-        double u,v; ws.at(tw,x,y,u,v);
-        werr=std::max(werr,std::fabs(u-(5.0+0.01*x+0.002*y+2.0))+std::fabs(v-(-3.0+0.004*x-0.01*y)));
-    }
-    double uc,vc; ws.at(tw,-1000.0,1000.0,uc,vc);
-    std::cout<<"        wind: max. interpolation error "<<werr<<std::endl;
-    check(okw && ws.nx==3 && ws.ny==2 && werr<1e-12,"wind field: bilinear in space and linear in time are exact for a linear field");
-    check(std::fabs(uc-(5.0+0.01*100.0+0.002*250.0+2.0))<1e-12,"wind field: clamped to the grid outside");
+    // the wind field file seastate-wind.dat (A 730 2) is retired: the wind is that of the met forcing W 200
+    // (met_provider, tested in met_test.cpp)
 }
 
 // Phase 5b: bathymetry raster (A 790 1) and the maximum energy of SWAN (A 737 1)

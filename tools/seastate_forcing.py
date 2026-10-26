@@ -6,8 +6,8 @@ REEF3D::SEASTATE forcing converter: NetCDF spectra and wind -> REEF3D input file
   spectra   point spectra E(time, station, frequency, direction) from WW3, NORA3 / NORAC (MET Norway)
             or similar NetCDF files -> seastate-boundary.spc, a nonstationary SWAN 2D spectral file
             in model coordinates (A 711 3)
-  wind      10 m wind u10, v10 on a lon/lat (or projected) grid, e.g. ERA5 or NORA3 atmosphere
-            -> seastate-wind.dat on a regular grid aligned with the model axes (A 730 2)
+  wind      retired (storm surge P6): the wind of SEASTATE (A 730 2) is the REEF3D met forcing W 200;
+            tools/met_forcing.py grid writes met-forcing.r3m with the same frame options
   bathy     bathymetry raster seastate-bathy.dat (A 790 1) from a SWAN bottom file, scattered x y z points
             (as the DIVEMesh geo.dat) or a NetCDF elevation grid (GEBCO, EMODnet)
   point     lon/lat -> model coordinates (to check the set-up)
@@ -42,8 +42,8 @@ raster in model coordinates. SWAN bottom files hold the depth (positive down): z
 Examples
   python3 seastate_forcing.py bathy --swan-bot Sula_bottom_file_2.bot --swan-grid 1249 799 20 20 --idla 4
   python3 seastate_forcing.py spectra ww3_points.nc --origin 5.9 62.3 --rotation 20 -o seastate-boundary.spc
-  python3 seastate_forcing.py wind era5_wind.nc --origin 5.9 62.3 --rotation 20 \\
-          --domain 0 60000 0 40000 --spacing 2000 -o seastate-wind.dat
+  python3 met_forcing.py grid era5_wind.nc --origin 5.9 62.3 --rotation 20 \\
+          --domain 0 60000 0 40000 --spacing 2000 -o met-forcing.r3m        # the wind, A 730 2 with W 200 2
 """
 import argparse
 import datetime as dt
@@ -289,68 +289,14 @@ def spectra(args):
         print("  station %d: lon %.5f lat %.5f -> x %.1f m, y %.1f m" % (s, lon[s], lat[s], x[n], y[n]))
 
 
-# ------------------------------------------------------------------ wind
+# ------------------------------------------------------------------ wind (retired)
 def wind(args):
-    nc = NC(args.input)
-    fr = Frame(args)
-    u = nc.get(args.u)
-    v = nc.get(args.v)
-    dims = nc.dims(args.u)
-    lon = nc.get(args.lon)
-    lat = nc.get(args.lat)
-    times = read_times(nc, args.time)
-    if dims[0] != args.time:
-        sys.exit("%s: the first dimension must be time (%s)" % (args.u, dims))
-    keep = [k for k, t in enumerate(times) if (args.start is None or stamp(t) >= args.start) and (args.end is None or stamp(t) <= args.end)]
-
-    x0, x1, y0, y1 = args.domain
-    nx = int(round((x1 - x0) / args.spacing)) + 1
-    ny = int(round((y1 - y0) / args.spacing)) + 1
-    X, Y = np.meshgrid(x0 + args.spacing * np.arange(nx), y0 + args.spacing * np.arange(ny))
-    LON, LAT = fr.to_geo(X, Y)
-    north = fr.north(LON, LAT)            # true north in the model frame
-
-    if lon.ndim == 1 and lat.ndim == 1:
-        from scipy.interpolate import RegularGridInterpolator
-        la = lat.copy()
-        flip = la[0] > la[-1]
-        lo = lon.copy()
-        lonq = np.where(LON < lo.min(), LON + 360.0, LON) if lo.max() > 180.0 else LON
-
-        def interp(field):
-            fld = field[::-1, :] if flip else field
-            g = RegularGridInterpolator((la[::-1] if flip else la, lo), fld, bounds_error=False, fill_value=None)
-            return g(np.column_stack([LAT.reshape(-1), lonq.reshape(-1)])).reshape(LAT.shape)
-    else:
-        from scipy.interpolate import LinearNDInterpolator, NearestNDInterpolator
-        sx, sy = fr.to_model(lon.reshape(-1), lat.reshape(-1))
-        pts = np.column_stack([sx, sy])
-        from scipy.spatial import Delaunay
-        tri = Delaunay(pts)
-
-        def interp(field):
-            vals = field.reshape(-1)
-            a = LinearNDInterpolator(tri, vals)(X, Y)
-            bad = np.isnan(a)
-            if bad.any():
-                a[bad] = NearestNDInterpolator(pts, vals)(X[bad], Y[bad])
-            return a
-
-    out = open(args.output, "w")
-    out.write("REEF3D-SEASTATE wind field from %s (tools/seastate_forcing.py)\n" % args.input)
-    out.write("%d %d\n%.6f %.6f %.6f %.6f\n" % (nx, ny, x0, y0, args.spacing, args.spacing))
-    for k in keep:
-        ue = interp(u[k])
-        vn = interp(v[k])
-        # (east, north) -> model frame: north points at angle 'north', east at north - 90 deg
-        um = ue * np.sin(north) + vn * np.cos(north)
-        vm = -ue * np.cos(north) + vn * np.sin(north)
-        out.write("%s\n" % stamp(times[k]))
-        for comp in (um, vm):
-            for j in range(ny):
-                out.write(" ".join("%.3f" % val for val in comp[j]) + "\n")
-    out.close()
-    print("%s: %d x %d nodes, spacing %g m, %d times (%s - %s)" % (args.output, nx, ny, args.spacing, len(keep), stamp(times[keep[0]]), stamp(times[keep[-1]])))
+    sys.exit("seastate_forcing.py wind is retired (storm surge P6): the wind of SEASTATE (A 730 2) is the REEF3D met\n"
+             "forcing W 200. Write met-forcing.r3m with the same frame options:\n"
+             "  python3 met_forcing.py grid %s %s --domain X0 X1 Y0 Y1 --spacing D -o met-forcing.r3m\n"
+             "and set W 200 2 (and W 203 for the model start). An existing seastate-wind.dat converts with\n"
+             "  python3 met_forcing.py seastate seastate-wind.dat -o met-forcing.r3m"
+             % (args.input, ("--crs %s --offset X0 Y0" % args.crs) if args.crs else "--origin LON0 LAT0 --rotation ROT"))
 
 
 def write_bathy(path, z, x0, y0, dx, dy, title):
@@ -459,7 +405,7 @@ def main(argv=None):
 
     w = sub.add_parser("wind")
     w.add_argument("input")
-    w.add_argument("-o", "--output", default="seastate-wind.dat")
+    w.add_argument("-o", "--output", default="met-forcing.r3m")
     frame(w)
     w.add_argument("--u", default="u10")
     w.add_argument("--v", default="v10")

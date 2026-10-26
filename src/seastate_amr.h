@@ -41,7 +41,7 @@ class seastate_store;
 class seastate_source;
 class seastate_exchange;
 class seastate_bathy;
-class seastate_wind_series;
+class met_provider;
 class slice4;
 class sliceint4;
 class seastate_obstacle;
@@ -238,7 +238,7 @@ public:
         seastate_source *src;
         seastate_store *N0;
         const seastate_bathy *bathy;
-        seastate_wind_series *wser;
+        met_provider *wmet;                 // the wind of the met forcing (A 730 2)
         double tref;
         seastate_obstacle *pobs = nullptr;      // obstacles and coasts of level 0 (A 722 - A 726)
         const seastate_bathy *veg = nullptr;    // vegetation raster (A 756 1)

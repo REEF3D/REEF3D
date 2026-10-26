@@ -129,6 +129,8 @@ nhflow_momentum_SI::nhflow_momentum_SI(lexer *p, fdm_nhf *d, ghostcell *pgc, six
     if(p->A538>0.0)
     cout<<", mass flux dissipation "<<p->A538;
 
+    cout<<", thin-water velocities below "<<p->A546<<" m (A 546)";
+
     cout<<endl;
 
     mkdir("./REEF3D_NHFLOW_Log",0777);
@@ -1059,13 +1061,30 @@ void nhflow_momentum_SI::si_stage_vel(lexer *p, fdm_nhf *d, ghostcell *pgc, nhfl
     pgc->start4V(p,VHs,gcval_vh);
     pgc->start4V(p,WHs,gcval_wh);
 
+    // below the depth A 546 desingularised (Kurganov and Petrova 2007), as sflow_momentum_SI::rk_stage:
+    // u = sqrt(2) h (uh)/sqrt(h^4 + max(h^4, h_v^4)); a wetting cell gets the momentum of its deep
+    // neighbours with the inflow while its depth is that of t^n
+    const double hv4 = p->A546*p->A546*p->A546*p->A546;
+
     LOOP
     {
         if(p->wet[IJ]==1 && WL0(i,j)>p->A544)
         {
-        d->U[IJK] = UHs[IJK]/WL0(i,j);
-        d->V[IJK] = VHs[IJK]/WL0(i,j)*p->y_dir;
-        d->W[IJK] = WHs[IJK]/WL0(i,j);
+            if(WL0(i,j)>=p->A546)
+            {
+            d->U[IJK] = UHs[IJK]/WL0(i,j);
+            d->V[IJK] = VHs[IJK]/WL0(i,j)*p->y_dir;
+            d->W[IJK] = WHs[IJK]/WL0(i,j);
+            }
+
+            else
+            {
+            const double h = WL0(i,j);
+            const double r = sqrt(2.0)*h/sqrt(h*h*h*h + hv4);
+            d->U[IJK] = r*UHs[IJK];
+            d->V[IJK] = r*VHs[IJK]*p->y_dir;
+            d->W[IJK] = r*WHs[IJK];
+            }
         }
 
         else

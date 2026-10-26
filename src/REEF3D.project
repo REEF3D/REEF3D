@@ -467,6 +467,7 @@
           <File Name="sflow_print_wsfline.h"/>
           <File Name="sflow_print_wsf.h"/>
           <File Name="sflow_print_probe_da.h"/>
+          <File Name="sflow_print_max.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Pressure">
           <File Name="sflow_pressure_nh.h"/>
@@ -2032,6 +2033,7 @@
           </VirtualDirectory>
           <VirtualDirectory Name="Probes">
             <File Name="sflow_print_probe_da.cpp"/>
+            <File Name="sflow_print_max.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Print WSF">
             <File Name="sflow_print_wsf_theory.cpp"/>

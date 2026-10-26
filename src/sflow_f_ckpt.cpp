@@ -80,6 +80,7 @@ reefrun_ckpt& sflow_f::ckpt(lexer *p, fdm2D *b, ghostcell *pgc)
         ppress->ckpt_fields(fd,fi);
         pdiff->ckpt_fields(fd,fi);
         pfsf->ckpt_fields(fd,fi);
+        pprint->ckpt_fields(fd,fi);     // the maxima (P 112, P 115)
         if(pamr!=nullptr)
         pamr->ckpt_fields0(fd,fi);
         // the 6DOF bodies on the grid

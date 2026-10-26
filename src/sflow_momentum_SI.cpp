@@ -72,6 +72,8 @@ sflow_momentum_SI::sflow_momentum_SI(lexer *p, fdm2D *b, ghostcell *pgc, sflow_H
     if(p->A231>0.0)
     cout<<", mass flux dissipation "<<p->A231;
 
+    cout<<", thin-water velocities below "<<p->A232<<" m (A 232)";
+
     cout<<endl;
 
     mkdir("./REEF3D_SFLOW_Log",0777);
@@ -608,13 +610,30 @@ void sflow_momentum_SI::rk_stage(lexer *p, fdm2D *b, ghostcell *pgc, slice &UHs,
 {
     const double alpha = 1.0-a;
 
-    // stage velocities on the depth of t^n
+    // stage velocities on the depth of t^n; below the depth A 232 desingularised (Kurganov and
+    // Petrova 2007): u = sqrt(2) h (uh)/sqrt(h^4 + max(h^4, h_v^4)), continuous at h_v, u -> 0 with h.
+    // A cell that is just wetting (h of a few mm) receives the momentum of its deep neighbours with
+    // the inflow, but its depth is that of t^n: (uh)/h gave hundreds of m/s within the stages, carried
+    // into the face predictor of the next faces (a blow-up of 57 m in the 1 km Michael hindcast)
+    const double hv4 = p->A232*p->A232*p->A232*p->A232;
+
     SLICELOOP4
     {
         if(p->wet[IJ]==1 && WL0(i,j)>p->A244)
         {
-        b->U(i,j) = UHs(i,j)/WL0(i,j);
-        b->V(i,j) = VHs(i,j)/WL0(i,j)*p->y_dir;
+            if(WL0(i,j)>=p->A232)
+            {
+            b->U(i,j) = UHs(i,j)/WL0(i,j);
+            b->V(i,j) = VHs(i,j)/WL0(i,j)*p->y_dir;
+            }
+
+            else
+            {
+            const double h = WL0(i,j);
+            const double r = sqrt(2.0)*h/sqrt(h*h*h*h + hv4);
+            b->U(i,j) = r*UHs(i,j);
+            b->V(i,j) = r*VHs(i,j)*p->y_dir;
+            }
         }
 
         else
@@ -1021,16 +1040,23 @@ void sflow_momentum_SI::eta_update(lexer *p, fdm2D *b, ghostcell *pgc)
 
 void sflow_momentum_SI::cell_update(lexer *p, fdm2D *b, ghostcell *pgc)
 {
-    // cell momentum with the mean of the open face gradients of the cell
+    // cell momentum with the mean of the open face gradients of the cell. A face towards a cell
+    // that is dry at the end of the step (eta^{n+1} + d <= A 244) does not count, as in
+    // nhflow_momentum_SI: the eta of the Newton iteration is not a water level there, its row of the
+    // eta system holds only the coefficient of the thin face (H_f just above A 244), and it can lie
+    // metres below the bed; its gradient gave the wet neighbour a spurious jet of tens of m/s, the
+    // flicker of the gauges near shallow banks (1 km Michael hindcast, validation/09_michael)
     const double dt = p->dt;
     double we,ww,gn,gn1,wsum;
+
+    auto wn = [&](int a, int c) { return etaI(a,c) + b->depth(a,c) > p->A244; };
 
     SLICELOOP4
     {
         if(p->wet[IJ]==1)
         {
-        we = Hx(i,j)>0.0 ? 1.0 : 0.0;
-        ww = Hx(i-1,j)>0.0 ? 1.0 : 0.0;
+        we = (Hx(i,j)>0.0 && wn(i+1,j)) ? 1.0 : 0.0;
+        ww = (Hx(i-1,j)>0.0 && wn(i-1,j)) ? 1.0 : 0.0;
         wsum = MAX(we+ww,1.0);
 
         gn  = (ww*gx0(i-1,j) + we*gx0(i,j))/wsum;
@@ -1042,8 +1068,8 @@ void sflow_momentum_SI::cell_update(lexer *p, fdm2D *b, ghostcell *pgc)
 
             if(p->j_dir==1)
             {
-            we = Hy(i,j)>0.0 ? 1.0 : 0.0;
-            ww = Hy(i,j-1)>0.0 ? 1.0 : 0.0;
+            we = (Hy(i,j)>0.0 && wn(i,j+1)) ? 1.0 : 0.0;
+            ww = (Hy(i,j-1)>0.0 && wn(i,j-1)) ? 1.0 : 0.0;
             wsum = MAX(we+ww,1.0);
 
             gn  = (ww*gy0(i,j-1) + we*gy0(i,j))/wsum;
