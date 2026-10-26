@@ -21,6 +21,7 @@ Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"cfd_amr.h"
+#include"reef3d_mpmd.h"
 #include"patchBC_codes.h"
 #include"lexer.h"
 #include"fdm.h"
@@ -412,10 +413,10 @@ void cfd_amr::hierarchy(bool first)
         double wmax[2], wsum[2];
         const double wt[1] = {w[0]+w[1]};
         double tmax, tsum;
-        MPI_Allreduce(w,wmax,2,MPI_DOUBLE,MPI_MAX,MPI_COMM_WORLD);
-        MPI_Allreduce(w,wsum,2,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
-        MPI_Allreduce(wt,&tmax,1,MPI_DOUBLE,MPI_MAX,MPI_COMM_WORLD);
-        MPI_Allreduce(wt,&tsum,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+        MPI_Allreduce(w,wmax,2,MPI_DOUBLE,MPI_MAX,reef3d_comm());
+        MPI_Allreduce(w,wsum,2,MPI_DOUBLE,MPI_SUM,reef3d_comm());
+        MPI_Allreduce(wt,&tmax,1,MPI_DOUBLE,MPI_MAX,reef3d_comm());
+        MPI_Allreduce(wt,&tsum,1,MPI_DOUBLE,MPI_SUM,reef3d_comm());
         if(p->mpirank==0)
         {
             const std::streamsize pr = cout.precision();
@@ -1347,7 +1348,7 @@ void cfd_amr::timestep(lexer *p, fdm *a, ghostcell *pgc)
     }
 
     double g = -cu;
-    MPI_Allreduce(MPI_IN_PLACE,&g,1,MPI_DOUBLE,MPI_MAX,MPI_COMM_WORLD);
+    MPI_Allreduce(MPI_IN_PLACE,&g,1,MPI_DOUBLE,MPI_MAX,reef3d_comm());
     cu = -g;
 
     // the largest velocity of the level-0 leaf cells (diagnostics)
@@ -1369,16 +1370,16 @@ void cfd_amr::timestep(lexer *p, fdm *a, ghostcell *pgc)
     }
     {
         struct { double v; int r; } in = {v0[0],myrank}, out;
-        MPI_Allreduce(&in,&out,1,MPI_DOUBLE_INT,MPI_MAXLOC,MPI_COMM_WORLD);
-        MPI_Bcast(v0,5,MPI_DOUBLE,out.r,MPI_COMM_WORLD);
+        MPI_Allreduce(&in,&out,1,MPI_DOUBLE_INT,MPI_MAXLOC,reef3d_comm());
+        MPI_Bcast(v0,5,MPI_DOUBLE,out.r,reef3d_comm());
         if(myrank==0 && (p->count%p->P12==0))
         cout<<"CFD AMR: largest velocity on level 0 (leaf cells) "<<setprecision(3)<<v0[0]<<" at ("<<v0[1]<<", "<<v0[2]<<", "<<v0[3]<<")"<<endl;
     }
 
     {
         struct { double v; int r; } in = {vpat[0],myrank}, out;
-        MPI_Allreduce(&in,&out,1,MPI_DOUBLE_INT,MPI_MAXLOC,MPI_COMM_WORLD);
-        MPI_Bcast(vpat,5,MPI_DOUBLE,out.r,MPI_COMM_WORLD);
+        MPI_Allreduce(&in,&out,1,MPI_DOUBLE_INT,MPI_MAXLOC,reef3d_comm());
+        MPI_Bcast(vpat,5,MPI_DOUBLE,out.r,reef3d_comm());
         if(myrank==0 && (p->count%p->P12==0))
         cout<<"CFD AMR: largest velocity on the patches "<<setprecision(3)<<vpat[0]<<" at ("<<vpat[1]<<", "<<vpat[2]<<", "<<vpat[3]<<"), level "<<int(vpat[4])<<endl;
     }

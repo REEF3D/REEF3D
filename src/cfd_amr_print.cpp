@@ -21,6 +21,7 @@ Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"cfd_amr.h"
+#include"reef3d_mpmd.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
@@ -75,7 +76,7 @@ void cfd_amr::print(lexer *p, ghostcell *pgc, bool after)
 
     if(myrank==0)
     mkdir("./REEF3D_CFD_AMR",0777);
-    MPI_Barrier(MPI_COMM_WORLD);
+    MPI_Barrier(reef3d_comm());
 
     char name[256];
 

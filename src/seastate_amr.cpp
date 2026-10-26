@@ -22,6 +22,7 @@ Architect: Hans Bihs
 
 
 #include"seastate_amr.h"
+#include"reef3d_mpmd.h"
 #include"seastate_grid.h"
 #include"seastate_store.h"
 #include"seastate_param.h"
@@ -164,11 +165,11 @@ void seastate_amr::ini(lexer *p, ghostcell *pgc, const level0 &l0)
     const int np = p->mpi_size;
     int nm = int(mine.size());
     vector<int> cnt(np), off(np);
-    MPI_Allgather(&nm,1,MPI_INT,cnt.data(),1,MPI_INT,MPI_COMM_WORLD);
+    MPI_Allgather(&nm,1,MPI_INT,cnt.data(),1,MPI_INT,reef3d_comm());
     int tot=0;
     for(int r=0; r<np; ++r) {off[r]=tot; tot+=cnt[r];}
     vector<double> all(std::max(tot,1));
-    MPI_Allgatherv(mine.data(),nm,MPI_DOUBLE,all.data(),cnt.data(),off.data(),MPI_DOUBLE,MPI_COMM_WORLD);
+    MPI_Allgatherv(mine.data(),nm,MPI_DOUBLE,all.data(),cnt.data(),off.data(),MPI_DOUBLE,reef3d_comm());
 
     bed0.assign(size_t(GNX)*GNY,0.0);
     vector<unsigned char> wet0(size_t(GNX)*GNY,0);
@@ -2815,7 +2816,7 @@ void seastate_amr::print(lexer *p, ghostcell *pgc)
     const int np = p->mpi_size;
     int mine = int(P.size());
     vector<int> cnt(np);
-    MPI_Gather(&mine,1,MPI_INT,cnt.data(),1,MPI_INT,0,MPI_COMM_WORLD);
+    MPI_Gather(&mine,1,MPI_INT,cnt.data(),1,MPI_INT,0,reef3d_comm());
 
     if(p->mpirank==0)
     {

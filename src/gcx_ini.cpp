@@ -21,6 +21,8 @@ Authors: Hans Bihs, Alexander Hanke
 --------------------------------------------------------------------*/
 
 #include"ghostcell.h"
+#include"reef3d_mpmd.h"
+#include"reefcouple.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"fdm_fnpf.h"
@@ -110,6 +112,13 @@ void ghostcell::gcx_ini(lexer* p)
 
 void ghostcell::final(bool error)
 {
+    // coupled run (MPMD): an error ends all models, a normal end closes the coupling first
+    if(error && reef3d_mpmd::napps>1)
+    MPI_Abort(MPI_COMM_WORLD,1);
+    
+    if(!error)
+    reefcouple::finish();
+    
     if(cart_comm != MPI_COMM_NULL)
         MPI_Comm_free(&cart_comm);
     if(mpi_comm != MPI_COMM_NULL)

@@ -21,6 +21,7 @@ Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"seastate_f.h"
+#include"reef3d_mpmd.h"
 #include"fdm_seastate.h"
 #include"seastate_grid.h"
 #include"seastate_store.h"
@@ -203,7 +204,7 @@ void seastate_f::pipeline_report(lexer *p, ghostcell *pgc)
     const int nv = 10;
     double mine[nv] = {t_trans,double(n_trans),double(s.sweeps),s.wall,s.busy,s.fill,s.idle,s.comm,s.finish,s.exch};
     std::vector<double> all(size_t(nv)*p->mpi_size,0.0);
-    MPI_Gather(mine,nv,MPI_DOUBLE,all.data(),nv,MPI_DOUBLE,0,MPI_COMM_WORLD);
+    MPI_Gather(mine,nv,MPI_DOUBLE,all.data(),nv,MPI_DOUBLE,0,reef3d_comm());
 
     if(p->mpirank!=0)
     return;

@@ -45,9 +45,15 @@ Author: Hans Bihs
 #include"runlog.h"
 #include"lagoon_output.h"
 #include"reefrun_ckpt.h"
+#include"reefcouple.h"
+#include"fnpf_couple_send.h"
 
 void driver::loop_fnpf()
 {
+    // runtime coupling: receivers (B 92 62) in the same MPI job get the initial state now
+    if(reefcouple::source())
+    reefcouple::sender = new fnpf_couple_send(p,c,pgc);
+    
     if(p->mpirank==0)
     cout<<"starting mainloop.FNPF"<<endl;
    
@@ -104,6 +110,11 @@ void driver::loop_fnpf()
 
         //timestep control
         p->simtime+=p->dt;
+        
+        // runtime coupling: the state at the new time to the receivers
+        if(reefcouple::sender!=nullptr)
+        reefcouple::sender->send(p,c,pgc);
+        
         pftstep->start(c,p,pgc);
         
         if(pfamr!=nullptr)
@@ -157,6 +168,10 @@ void driver::loop_fnpf()
     p->laplacetime=0.0;
     
     stop(p,a,pgc);
+    
+    // runtime coupling: all receivers have ended
+    if(reefcouple::sender!=nullptr && reefcouple::sender->done())
+    break;
 	}
 
 	// a checkpoint at the end of the run (P 48): it can be continued with a later end (I 45 1)

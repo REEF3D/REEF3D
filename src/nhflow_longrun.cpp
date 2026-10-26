@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"nhflow_longrun.h"
+#include"reef3d_mpmd.h"
 #include"nhflow_amr.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
@@ -296,7 +297,7 @@ void nhflow_longrun::write(lexer *p, ghostcell *pgc)
     // file names
     int ng = (int)G.size();
     vector<int> all(p->mpi_size,0);
-    MPI_Allgather(&ng,1,MPI_INT,&all[0],1,MPI_INT,MPI_COMM_WORLD);
+    MPI_Allgather(&ng,1,MPI_INT,&all[0],1,MPI_INT,reef3d_comm());
 
     vector<double> xe(n), xu(n), xv(n);
 

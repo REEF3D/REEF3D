@@ -838,6 +838,7 @@ void control::ini_default()
     I232=0.0;       // double starting y for flowfile
     I233=0.0;       // double starting z for flowfile
     I241=0.0;       // double delta t for flowfile
+    I242=3;         // int FNPF coupling (B 92 62): time interpolation, 1 linear, 3 cubic
 
     // Numerics
 	N10=1;			// int linear poisson solver: 1 REEFMG; hypre (10-39) only in builds with make HYPRE=1

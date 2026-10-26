@@ -105,6 +105,8 @@
     </VirtualDirectory>
     <VirtualDirectory Name="Ghostcell">
       <File Name="ghostcell.h"/>
+      <File Name="reef3d_mpmd.h"/>
+      <File Name="reefcouple.h"/>
       <File Name="gcsl_yskip.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Hydrodynamics">
@@ -743,6 +745,7 @@
           </VirtualDirectory>
           <VirtualDirectory Name="State">
             <File Name="fnpf_state.h"/>
+            <File Name="fnpf_couple_send.h"/>
             <File Name="potentialfile_out.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="WSF">
@@ -1406,6 +1409,7 @@
         <File Name="wave_lib_eta_series.h"/>
         <File Name="wave_lib_wavemaker2nd.h"/>
         <File Name="wave_lib_hdc.h"/>
+        <File Name="wave_lib_fnpf_couple.h"/>
         <File Name="wave_lib_ssgw.h"/>
         <File Name="wave_lib_flap_eta.h"/>
         <File Name="wave_lib.h"/>
@@ -2414,6 +2418,7 @@
             <File Name="fnpf_state_header.cpp"/>
             <File Name="fnpf_state_filename.cpp"/>
             <File Name="fnpf_state.cpp"/>
+            <File Name="fnpf_couple_send.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="PotentialFile Out">
             <File Name="potentialfile_out_write.cpp"/>
@@ -3291,6 +3296,8 @@
         <File Name="gc_sizeM_update.cpp"/>
       </VirtualDirectory>
       <File Name="ghostcell.cpp"/>
+      <File Name="reef3d_mpmd.cpp"/>
+      <File Name="reefcouple.cpp"/>
       <VirtualDirectory Name="Epol Slice">
         <File Name="gcsl_dgcslini.cpp"/>
         <File Name="gcsl_dgcsl.cpp"/>
@@ -3664,6 +3671,7 @@
         <File Name="wave_lib_ssgw_kinematics.cpp"/>
         <File Name="wave_lib_ssgw_routines.cpp"/>
         <File Name="wave_lib_hdc.cpp"/>
+        <File Name="wave_lib_fnpf_couple.cpp"/>
         <File Name="wave_lib_ssgw.cpp"/>
         <VirtualDirectory Name="HDC">
           <File Name="wave_lib_hdc_read_result_fnpf.cpp"/>

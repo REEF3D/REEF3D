@@ -1633,6 +1633,8 @@ void control::ctrlrecv()
     dd++;
     I241 = dctrl[dd];
     dd++;
+    I242 = ictrl[ii];
+    ii++;
 
     M10 = ictrl[ii];
     ii++;

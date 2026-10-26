@@ -233,8 +233,8 @@ void wave_field::check(lexer *p)
     {
         const int t = s->type;
 
-        if(t==61)
-        err = "source "+std::to_string(s->id)+": HDC coupling (61) is only available as the B 92 wave";
+        if(t==61 || t==62)
+        err = "source "+std::to_string(s->id)+": HDC/FNPF coupling (61, 62) is only available as the B 92 wave";
 
         else
         if(t>=20 && t<30)

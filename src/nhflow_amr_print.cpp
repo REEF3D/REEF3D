@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"reefckpt.h"
+#include"reef3d_mpmd.h"
 #include"nhflow_amr.h"
 #include"nhflow_amr_fill.h"
 #include"lexer.h"
@@ -189,7 +190,7 @@ void nhflow_amr::print(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
     int np = (int)P.size();
     vector<int> all(p->mpi_size,0);
-    MPI_Allgather(&np,1,MPI_INT,&all[0],1,MPI_INT,MPI_COMM_WORLD);
+    MPI_Allgather(&np,1,MPI_INT,&all[0],1,MPI_INT,reef3d_comm());
 
     if(p->mpirank==0)
     {
@@ -297,12 +298,12 @@ void nhflow_amr::gauges(lexer *p, fdm_nhf *d, ghostcell *pgc)
     }
 
     vector<double> lmax(ng);
-    MPI_Allreduce(&lv[0],&lmax[0],ng,MPI_DOUBLE,MPI_MAX,MPI_COMM_WORLD);
+    MPI_Allreduce(&lv[0],&lmax[0],ng,MPI_DOUBLE,MPI_MAX,reef3d_comm());
     for(int k=0; k<ng; ++k)
     if(lv[k]!=lmax[k])
     val[k]=0.0;
     vector<double> vs(ng);
-    MPI_Allreduce(&val[0],&vs[0],ng,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+    MPI_Allreduce(&val[0],&vs[0],ng,MPI_DOUBLE,MPI_SUM,reef3d_comm());
 
     if(p->mpirank==0)
     {

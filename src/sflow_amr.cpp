@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"sflow_curv.h"
+#include"reef3d_mpmd.h"
 #include"sflow_amr.h"
 #include"gcsl_yskip.h"
 #include"reefckpt.h"
@@ -2599,7 +2600,7 @@ void sflow_amr::print(lexer *p, fdm2D *b, ghostcell *pgc)
     // multiblock index: level 0 of every rank + all patches
     int np = (int)P.size();
     vector<int> all(p->mpi_size,0);
-    MPI_Allgather(&np,1,MPI_INT,&all[0],1,MPI_INT,MPI_COMM_WORLD);
+    MPI_Allgather(&np,1,MPI_INT,&all[0],1,MPI_INT,reef3d_comm());
 
     if(p->mpirank==0)
     {
@@ -2693,12 +2694,12 @@ void sflow_amr::gauges(lexer *p, fdm2D *b, ghostcell *pgc)
     }
 
     vector<double> lmax(ng);
-    MPI_Allreduce(&lv[0],&lmax[0],ng,MPI_DOUBLE,MPI_MAX,MPI_COMM_WORLD);
+    MPI_Allreduce(&lv[0],&lmax[0],ng,MPI_DOUBLE,MPI_MAX,reef3d_comm());
     for(int k=0; k<ng; ++k)
     if(lv[k]!=lmax[k])
     val[k]=0.0;
     vector<double> vs(ng);
-    MPI_Allreduce(&val[0],&vs[0],ng,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+    MPI_Allreduce(&val[0],&vs[0],ng,MPI_DOUBLE,MPI_SUM,reef3d_comm());
 
     if(p->mpirank==0)
     {
