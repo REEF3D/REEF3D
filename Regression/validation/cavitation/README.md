@@ -166,6 +166,14 @@ AMR (D/80 at the body, ~4.5 M patch cells, dt about half of D/40) is the resolut
 (`python3 make_case.py 40 256 30 --pref -15.5 --amr`). Local check (D/20 + AMR, sigma 0.4, 8
 ranks): 8 patches, 0.56 M patch cells, load max/mean 1.01, ~7 s per step, dt 0.0064 s.
 
+D/20 + AMR (D/40 at the body), sigma 0.4, with the condensation limit and W 69 (9fe9fa4, user,
+2026-10-26): sigma 0.400 +- 0.001 from 5 s on, vapour volume 0.128 m³ steady from 15 s (+- 0.0002),
+side force rms 0.0 N (no 2 dt oscillation), Cd 0.348. Cp plateau at -sigma from s/D 0.75 to 1.45,
+closure (halfway between -sigma and the recompression peak) s/D 1.57 against 1.43 measured; peak
+Cp +0.04 at 1.72 (measured +0.05 at 1.79). Before the condensation limit: closure 1.83 (uniform D/40,
+sigma 0.39), the spurious pinning of traces of vapour behind the cavity to p_v made it 0.3-0.4 D too
+long.
+
 A restart from the state files (P 40/I 40) does not help, they do not hold the vapour fraction;
 the checkpoints (P 48/I 45) do, a run with `P 48` can be continued.
 
