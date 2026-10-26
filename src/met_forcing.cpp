@@ -80,6 +80,10 @@ met_forcing::met_forcing(lexer *p, ghostcell *pgc) : U10(p), V10(p), Pa(p), Tx(p
             if(p->W211==2)
             {
             double lon, lat;
+            // curvilinear grid (G 50): the physical cell centre (XP, YP are the logical coordinates there)
+            if(p->geo_curv==1)
+            fr.to_geo(p->XC2D[IJ],p->YC2D[IJ],lon,lat);
+            else
             fr.to_geo(p->XP[IP],p->YP[JP],lon,lat);
             Fc(i,j) = 2.0*Omega*std::sin(lat*rad);
             }

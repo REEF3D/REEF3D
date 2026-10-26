@@ -251,9 +251,6 @@ void met_provider::check(lexer *p, ghostcell *pgc)
     else if(p->W211>0 && p->A10!=2 && p->A10!=5)
     msg = "W 211: the Coriolis force is for REEF3D::SFLOW (A 10 2) and REEF3D::NHFLOW (A 10 5).";
 
-    else if(p->W211>0 && p->G50>0)
-    msg = "W 211: the Coriolis force does not support curvilinear grids (G 50) yet.";
-
     else if(p->W211==1 && p->W212==0.0 && p->W205==0)
     msg = "W 211 1: give the Coriolis parameter (W 212) or the frame with the latitude (W 205).";
 
