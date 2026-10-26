@@ -120,6 +120,12 @@ double cavitation::rho_mix(lexer *p, double al) const
 
 void cavitation::sigma_control(lexer *p, fdm *a, ghostcell *pgc)
 {
+    // not before t = tau: the pressure of the start-up (the flow accelerated from rest, ~2 q
+    // upstream) would raise p_v, the growing cavity pushes the water out and keeps the upstream
+    // pressure up, a feedback (head form D/20: 14 m^3 of vapour); after it slow, over tau
+    if(p->simtime<p->W69_t)
+    return;
+
     // the pressure at the reference point, on the rank that has it
     const int ii = p->posc_i(p->W69_x);
     const int jj = (p->j_dir==1) ? p->posc_j(p->W69_y) : 0;

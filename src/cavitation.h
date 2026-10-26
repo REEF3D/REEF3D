@@ -73,10 +73,11 @@ class convection;
 //  The pressure level must be fixed by a Dirichlet boundary: an outlet patch with a pressure
 //  (B 441 on a C 1x 21 wall, B 412 id p). p_v (W 61) is in the same scale: for the cavitation
 //  number sigma = (p_inf - p_v)/(rho U^2/2) with p_inf = 0 at the outlet, W 61 = -sigma rho U^2/2. Single phase only (F 30 0, F 80 0).
-//  Cavitation number control W 69 sigma U x y z tau: p_v = p_ref - sigma rho_l U^2/2 at every step,
+//  Cavitation number control W 69 sigma U x y z tau: from t = tau on p_v = p_ref - sigma rho_l U^2/2,
 //  p_ref the pressure at the point (x, y, z) (upstream, as the reference of an experiment) averaged
-//  with the time constant tau; W 61 is then only the start value. The level of the pressure then
-//  does not matter (outlet patch, outflow B 77 10, the drag of the body). p_v is in the output file.
+//  with the time constant tau; before p_v = W 61, a good estimate. A slow correction of the level
+//  (outlet patch, outflow B 77 10, the drag of the body): a fast one couples with the cavity (its
+//  growth pushes the water out and raises the upstream pressure). p_v is in the output file.
 //  Initial vapour (alpha = 1): the cells with the centre in the box W 67 xs xe ys ye zs ze or the
 //  sphere W 68 x y z r.
 //  Output: alpha_v in the VTU files (the mixture density with P 24 1), REEF3D_CFD_Cavitation/REEF3D-CFD-Cavitation.dat

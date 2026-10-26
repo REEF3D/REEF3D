@@ -15,12 +15,13 @@
 # flat back. Surface coordinate from the tip: s = 0.5 theta on the nose, s = pi/4 + x on the
 # cylinder (shoulder at s/D = 0.785). Domain [-4, 12] x [-4, 4]^2, inflow U = 1 at x = -4, the
 # x+ side a wall with an outlet pressure patch p = 0 (B 441, B 412) that fixes the pressure level;
-# p_v = p_ref - sigma rho U^2/2 at every step with W 69 (cavitation number control): p_ref the
-# pressure at the upstream probe point (-3, 3, 0.01) averaged over tau = 1 s, so that sigma is the
-# wanted one whatever the pressure level (the drag lowers the upstream pressure against the outlet,
-# -15.5 Pa at D/40 with the outlet patch, -3.5 to -5 Pa with the outflow B 77 10 of --amr). W 61 =
-# P - sigma rho U^2/2 is the start value (--pref P, default 0). The actual sigma follows from the
-# upstream probe and the p_v column of the cavitation log (headform_analysis.py).
+# p_v = P - sigma rho U^2/2 (W 61), P the upstream pressure: the drag lowers it against the outlet,
+# -15.5 Pa at D/40 with the outlet patch, -3.5 to -5 Pa with the outflow B 77 10 of --amr (the
+# defaults; --pref P instead). From 5 s on W 69 (cavitation number control) corrects p_v slowly
+# (tau 5 s) to p_ref - sigma rho U^2/2, p_ref at the upstream probe point (-3, 3, 0.01). A fast
+# control (tau 1 s from the start) took the start-up pressure into p_v and the growing cavity kept
+# it up: 14 m^3 of vapour at D/20 + AMR. The actual sigma follows from the upstream probe and the
+# p_v column of the cavitation log (headform_analysis.py).
 # Grid (B 127-129, cell based): uniform dx in x in [-0.8, 2.5], |y|, |z| < 0.75, growing to 0.25.
 # k-epsilon (T 10 1) with wall functions at the direct-forcing body: laminar runs separate at the
 # shoulder (D/20: reverse flow to s/D = 2, Cp_min -0.34 instead of -0.74).
@@ -168,6 +169,7 @@ def stl(fn, nth=72, nphi=24, xend=8.0):
 
 def make(argv):
     pref = 0.0
+    pref_given = "--pref" in argv
     if "--pref" in argv:
         k = argv.index("--pref")
         pref = float(argv[k+1])
@@ -187,8 +189,10 @@ def make(argv):
         # rho_l/rho_v = 1000 (W 62 1, nu_v 1e-5: mu_v as for water vapour): with the real ratio
         # 58000 the D/40 run diverged at t = 3.3 s (lateral velocity 567 m/s in the vapour);
         # at D/20 the two ratios give the same Cp within 0.006 and the same cavity
-        cav = "" if sg == "none" else (f"W 60 1\nW 61 {pref - float(sg)*q:.1f}\nW 62 1.0\nW 63 1.0e-5\n"
-                                       f"W 69 {float(sg)} {U} -3.0 3.0 0.01 1.0\n")
+        # W 61 from the upstream pressure of the set-up, W 69 corrects it slowly from 5 s on
+        p0 = pref if pref_given else (-4.5 if amr else -15.5)
+        cav = "" if sg == "none" else (f"W 60 1\nW 61 {p0 - float(sg)*q:.1f}\nW 62 1.0\nW 63 1.0e-5\n"
+                                       f"W 69 {float(sg)} {U} -3.0 3.0 0.01 5.0\n")
         with open(f"{d}/control.txt", "w") as f:
             f.write(CONTROL.format(dx=dx, ranks=ranks, c14=2 if amr else 21))
         with open(f"{d}/ctrl.txt", "w") as f:
@@ -204,7 +208,7 @@ def make(argv):
             wall = ("24:00:00" if tend <= 15.0 else "48:00:00") if amr else ("06:00:00" if tend <= 15.0 else "12:00:00")
             f.write(JOB.format(name=name, res=res, ranks=ranks, nodes=max(1, ranks//128),
                                tasks=min(ranks, 128), walltime=wall, tag="amr" if amr else ""))
-        print(f"{d}: dx = {dx}, {n} triangles, p_v = {pref - float(sg)*q if cav else 'no cavitation'}")
+        print(f"{d}: dx = {dx}, {n} triangles, p_v = {p0 - float(sg)*q if cav else 'no cavitation'}")
 
 
 if __name__ == "__main__":

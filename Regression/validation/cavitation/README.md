@@ -17,7 +17,7 @@ Keywords
 | `W 66` | evaporation and condensation coefficients C_v C_c | 1 1 |
 | `W 67` | initial vapour box xs xe ys ye zs ze | |
 | `W 68` | initial vapour sphere x y z r | |
-| `W 69` | cavitation number control sigma U x y z tau: p_v = p_ref - sigma rho U²/2 at every step, p_ref the pressure at (x, y, z) averaged over tau; W 61 the start value | off |
+| `W 69` | cavitation number control sigma U x y z tau: from t = tau on p_v = p_ref - sigma rho U²/2, p_ref the pressure at (x, y, z) averaged over tau; before that p_v = W 61 | off |
 
 Setup notes
 - The pressure level must be fixed by a Dirichlet boundary: the outlet side a wall `C 14 21`
@@ -33,8 +33,11 @@ Setup notes
 - With `W 69` the run holds the wanted sigma whatever the pressure level: the drag of the body
   lowers the upstream pressure against the outlet (head form D/40: -15.5 Pa with the outlet patch,
   -3.5 to -5 Pa with the outflow B 77 10 of the refined runs), at fixed W 61 sigma was 0.39 and 0.42
-  for the same nominal 0.4. D/10 check (sigma 0.25, tau 1 s): 0.247-0.244 while p_ref drifted from
-  +19 to -4 Pa with the growing cavity. p_v is written as the last column of the cavitation log.
+  for the same nominal 0.4. The control must be slow and start after the start-up: with tau 1 s
+  from t = 0 (first version) the start-up pressure (+950 Pa upstream at D/20 + AMR) went into p_v,
+  the growing cavity pushed the water out and kept the upstream pressure up, 14 m³ of vapour and a
+  damped oscillation of 7 s. Now from t = tau on, tau 5 s, W 61 a good estimate: D/10 sigma 0.25,
+  0.282 at 5 s, 0.255 at 10 s. p_v is written as the last column of the cavitation log.
 - Gravity off (`W 22 0`) unless the hydrostatic pressure is meant to be part of p - p_v.
 - Single phase (`F 30 0`, `F 80 0`); a fluid at rest needs a fixed time step (`N 48 0`, `N 49 dt`).
 - Output: `alpha_v` in the VTU files (`P 24 1` adds the mixture density), and
