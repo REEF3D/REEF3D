@@ -1,0 +1,20 @@
+{
+ "base": "nhflow_3d_mb_sed_amr",
+ "ctrl_set": {
+  "P 48": "5",
+  "P 49": "0"
+ },
+ "description": "nhflow_3d_mb_sed_amr (NHFLOW, bed load on a multi-block grid of four curvilinear blocks with a refinement level over the vertex) with a checkpoint every 5 steps, all kept (P 48 5, P 49 0): the uninterrupted run of nhflow_3d_mb_sed_amr_restart.",
+ "tags": [
+  "3d",
+  "nhflow",
+  "multiblock",
+  "amr",
+  "curvilinear",
+  "sediment",
+  "checkpoint"
+ ],
+ "covers": [
+  "nhflow_amr::ckpt_write with S 10: the registry slices of the blocks and patches, their sediment scalars (rank blob nhflow_amr_sed)"
+ ]
+}

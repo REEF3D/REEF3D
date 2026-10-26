@@ -35,6 +35,7 @@ class nhflow_momentum_func;
 class nhflow_forcing;
 class sixdof;
 class nhflow_fsf_body;
+class nhflow_fsf_hull;
 
 using namespace std;
 
@@ -113,6 +114,9 @@ public:
     // water level in the columns pierced by a floating body (X 13 1): level() after the water level update
     // of a stage (phase_F), momentum() before velcalc (phase_P1), print() at the end of the step (phase_P2)
     nhflow_fsf_body *pfsfbody = nullptr;
+    // X 13 2 (nhflow_fsf_hull): the hull as the top of the water columns, hooks as pfsfbody plus
+    // upgrad() in the momentum stage and correct() after velcalc of phase_P1
+    nhflow_fsf_hull *phull = nullptr;
     void fsfbody_ckpt_fields(const std::function<void(const char*, char, double*)>&);   // checkpoints: X 13
 	
     

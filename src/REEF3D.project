@@ -101,6 +101,7 @@
         <File Name="bicgstab_ijk.h"/>
       </VirtualDirectory>
       <File Name="solver.h"/>
+      <File Name="solver_print.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Ghostcell">
       <File Name="ghostcell.h"/>
@@ -698,6 +699,8 @@
         </VirtualDirectory>
         <VirtualDirectory Name="FSF">
           <File Name="nhflow_fsf_body.h"/>
+          <File Name="nhflow_fsf_hull.h"/>
+          <File Name="nhflow_hullbody.h"/>
           <VirtualDirectory Name="Breaking">
             <File Name="nhflow_breaking.h"/>
           </VirtualDirectory>
@@ -846,6 +849,9 @@
           <File Name="coral/structure/coral_linear6.h"/>
           <File Name="coral/structure/coral_spring.h"/>
           <File Name="coral/structure/coral_superelement.h"/>
+          <File Name="coral/structure/coral_blade_table.h"/>
+          <File Name="coral/structure/coral_drivetrain.h"/>
+          <File Name="coral/structure/coral_pitch_actuator.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Linear">
           <File Name="coral/linear/README.md"/>
@@ -853,12 +859,21 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Wind">
           <File Name="coral/wind/README.md"/>
+          <File Name="coral/wind/coral_wind.h"/>
+          <File Name="coral/wind/coral_wind_grid.h"/>
+          <File Name="coral/wind/coral_wind_probe.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Aero">
           <File Name="coral/aero/README.md"/>
+          <File Name="coral/aero/coral_airfoil.h"/>
+          <File Name="coral/aero/coral_bem.h"/>
+          <File Name="coral/aero/coral_rotor.h"/>
+          <File Name="coral/aero/coral_rotor_aero.h"/>
+          <File Name="coral/aero/coral_rotor_tune.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Control">
           <File Name="coral/control/README.md"/>
+          <File Name="coral/control/coral_turbine_controller.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Hydro">
           <File Name="coral/hydro/README.md"/>
@@ -872,6 +887,7 @@
           <File Name="coral/hydro/coral_radiation.h"/>
           <File Name="coral/hydro/coral_sampled_kinematics.h"/>
           <File Name="coral/hydro/coral_waves.h"/>
+          <File Name="coral/hydro/coral_strip_hydro.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Panel">
           <File Name="coral/panel/README.md"/>
@@ -890,6 +906,7 @@
           <File Name="coral/pto/coral_pto_elements.h"/>
           <File Name="coral/pto/coral_pto_joint.h"/>
           <File Name="coral/pto/coral_joint_drive.h"/>
+          <File Name="coral/pto/coral_joint_force.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Soil">
           <File Name="coral/soil/README.md"/>
@@ -947,6 +964,15 @@
         <File Name="wind_v.h"/>
         <File Name="wind_f.h"/>
         <File Name="wind.h"/>
+      </VirtualDirectory>
+      <VirtualDirectory Name="Met">
+        <File Name="met_drag.h"/>
+        <File Name="met_file.h"/>
+        <File Name="met_forcing.h"/>
+        <File Name="met_frame.h"/>
+        <File Name="met_provider.h"/>
+        <File Name="met_source.h"/>
+        <File Name="met_vortex.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Multiphase">
         <VirtualDirectory Name="Fluid Update">
@@ -1242,6 +1268,7 @@
         <VirtualDirectory Name="Geo_Core">
           <File Name="geo_mesh.h"/>
           <File Name="geo_raycast.h"/>
+          <File Name="geo_grid_solids.h"/>
           <File Name="geo_primitive.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Grid_File">
@@ -1478,6 +1505,9 @@
         <File Name="cfd_amr_6dof.cpp"/>
         <File Name="cfd_amr_fields.cpp"/>
         <File Name="cfd_amr_scalar.cpp"/>
+        <File Name="cfd_amr_geom.cpp"/>
+        <File Name="cfd_amr_force.cpp"/>
+        <File Name="cfd_amr_zone.cpp"/>
       </VirtualDirectory>
       <File Name="reefamr.cpp"/>
       <File Name="reefamr_regrid.cpp"/>
@@ -2281,6 +2311,8 @@
         </VirtualDirectory>
         <VirtualDirectory Name="FSF">
           <File Name="nhflow_fsf_body.cpp"/>
+          <File Name="nhflow_fsf_hull.cpp"/>
+          <File Name="nhflow_hullbody.cpp"/>
           <VirtualDirectory Name="Breaking">
             <File Name="nhflow_breaking_filter.cpp"/>
             <File Name="nhflow_breaking.cpp"/>
@@ -2465,13 +2497,28 @@
           <File Name="coral/structure/coral_linear6.cpp"/>
           <File Name="coral/structure/coral_spring.cpp"/>
           <File Name="coral/structure/coral_superelement.cpp"/>
+          <File Name="coral/structure/coral_blade_table.cpp"/>
+          <File Name="coral/structure/coral_drivetrain.cpp"/>
+          <File Name="coral/structure/coral_pitch_actuator.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Linear">
           <File Name="coral/linear/coral_modes.cpp"/>
         </VirtualDirectory>
-        <VirtualDirectory Name="Wind"/>
-        <VirtualDirectory Name="Aero"/>
-        <VirtualDirectory Name="Control"/>
+        <VirtualDirectory Name="Wind">
+          <File Name="coral/wind/coral_wind.cpp"/>
+          <File Name="coral/wind/coral_wind_grid.cpp"/>
+          <File Name="coral/wind/coral_wind_probe.cpp"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Aero">
+          <File Name="coral/aero/coral_airfoil.cpp"/>
+          <File Name="coral/aero/coral_bem.cpp"/>
+          <File Name="coral/aero/coral_rotor.cpp"/>
+          <File Name="coral/aero/coral_rotor_aero.cpp"/>
+          <File Name="coral/aero/coral_rotor_tune.cpp"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Control">
+          <File Name="coral/control/coral_turbine_controller.cpp"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Hydro">
           <File Name="coral/hydro/coral_fluid_load.cpp"/>
           <File Name="coral/hydro/coral_hydro_db.cpp"/>
@@ -2483,6 +2530,7 @@
           <File Name="coral/hydro/coral_radiation.cpp"/>
           <File Name="coral/hydro/coral_sampled_kinematics.cpp"/>
           <File Name="coral/hydro/coral_waves.cpp"/>
+          <File Name="coral/hydro/coral_strip_hydro.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Panel"/>
         <VirtualDirectory Name="Mooring">
@@ -2499,6 +2547,7 @@
           <File Name="coral/pto/coral_pto_elements.cpp"/>
           <File Name="coral/pto/coral_pto_joint.cpp"/>
           <File Name="coral/pto/coral_joint_drive.cpp"/>
+          <File Name="coral/pto/coral_joint_force.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Soil">
           <File Name="coral/soil/coral_soil.cpp"/>
@@ -2627,6 +2676,13 @@
         <File Name="wind_f.cpp"/>
         <File Name="wind_f_drag_coeff.cpp"/>
         <File Name="wind_f_fnpf.cpp"/>
+      </VirtualDirectory>
+      <VirtualDirectory Name="Met">
+        <File Name="met_file.cpp"/>
+        <File Name="met_forcing.cpp"/>
+        <File Name="met_frame.cpp"/>
+        <File Name="met_provider.cpp"/>
+        <File Name="met_vortex.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Multiphase">
         <VirtualDirectory Name="Fluid Update">
@@ -2934,6 +2990,7 @@
           </VirtualDirectory>
           <VirtualDirectory Name="Forces NHFLOW">
             <File Name="6DOF_obj_nhflow_amr.cpp"/>
+            <File Name="6DOF_obj_nhflow_keel.cpp"/>
             <File Name="6DOF_obj_forcing_nhflow_porous.cpp"/>
             <File Name="6DOF_obj_nhflow_forces_viscous.cpp"/>
             <File Name="6DOF_obj_nhflow_actuator.cpp"/>
@@ -3316,6 +3373,7 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Geo_Core">
           <File Name="geo_mesh.cpp"/>
+          <File Name="geo_mesh_split.cpp"/>
           <File Name="geo_raycast.cpp"/>
           <File Name="geo_raycast_cart.cpp"/>
           <File Name="geo_raycast_sigma.cpp"/>
@@ -3510,6 +3568,7 @@
           <File Name="background_state.cpp"/>
           <VirtualDirectory Name="SFLOW">
             <File Name="iowave_sflow_tide.cpp"/>
+            <File Name="iowave_met.cpp"/>
             <File Name="iowave_sflow_wavegen.cpp"/>
             <File Name="iowave_sflow_waterlevel.cpp"/>
             <File Name="iowave_sflow_relax.cpp"/>

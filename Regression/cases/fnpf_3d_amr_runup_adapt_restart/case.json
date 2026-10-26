@@ -1,0 +1,33 @@
+{
+ "base": "fnpf_3d_amr_runup_adapt_ckpt",
+ "same_as": "fnpf_3d_amr_runup_adapt_ckpt",
+ "chain": [
+  {
+   "case": "fnpf_3d_amr_runup_adapt_ckpt",
+   "copy": [
+    "REEF3D_Checkpoint",
+    "REEF3D_FNPF_AMR",
+    "REEF3D_FNPF_WSF"
+   ]
+  }
+ ],
+ "ctrl_set": {
+  "I 45": "160"
+ },
+ "description": "the restart of fnpf_3d_amr_runup_adapt_ckpt from step 160 (I 45 160, layout 7 of 22): the adaptive layout, the patch arrays and the number of the layout from the checkpoint; regression.py ranks: the final state and every text output (the refinement log with its layout column included) bitwise those of the uninterrupted run.",
+ "tags": [
+  "3d",
+  "fnpf",
+  "amr",
+  "breaking",
+  "coastline",
+  "wetdry",
+  "runup",
+  "adaptive",
+  "checkpoint"
+ ],
+ "covers": [
+  "fnpf_amr::ckpt_read: fnpf_amr_layout_id",
+  "the bitwise restart of FNPF + adaptive mesh refinement + moving coastline + breaking"
+ ]
+}

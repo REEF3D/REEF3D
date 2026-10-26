@@ -1,0 +1,10 @@
+{
+ "np": 2,
+ "steps": 20,
+ "files": ["geo.dat"],
+ "description": "3D still water over a geodat hill (G 9 1, G 10 1, geo.dat) on 2 ranks, a refined box over the hill: the patches on both ranks cast the bed through the centres of the level-0 columns of both ranks (gbed0, two triangles per four centres, the exact distance in the band). The water stays at rest.",
+ "tags": ["quick", "3d", "levelset", "amr", "topo", "geodat", "mpi"],
+ "covers": [
+  "cfd_amr::patch_bed in 3D (triangulated surface, dist2_tri), the columns of the other rank (gbed0)"
+ ]
+}

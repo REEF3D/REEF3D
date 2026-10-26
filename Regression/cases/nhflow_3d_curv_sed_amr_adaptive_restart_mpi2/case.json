@@ -1,0 +1,22 @@
+{
+ "base": "nhflow_3d_curv_sed_amr_adaptive_restart",
+ "np": 2,
+ "same_as": "nhflow_3d_curv_sed_amr_adaptive_ckpt",
+ "same_as_rtol": 1e-06,
+ "same_as_skip": [
+  "REEF3D_NHFLOW_AMR/REEF3D_NHFLOW_AMR_log.dat"
+ ],
+ "description": "nhflow_3d_curv_sed_amr_adaptive_restart on 2 ranks: the checkpoint of the one-rank run on another decomposition (the patches cut at the partition edge take the slices of the checkpoint patches column by column and the sediment scalars of a checkpoint patch of their level). The wave gauges (P 51 and those of the refinement on the finest grid) within 1e-6 of the largest value of the uninterrupted one-rank run; the log of the refinement (pressure iterations) not compared.",
+ "tags": [
+  "3d",
+  "nhflow",
+  "amr",
+  "curvilinear",
+  "sediment",
+  "checkpoint",
+  "mpi"
+ ],
+ "covers": [
+  "sed_read: the sediment scalars of a patch of another decomposition"
+ ]
+}

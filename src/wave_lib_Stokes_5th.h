@@ -79,7 +79,23 @@ public:
     void parameters(lexer*,ghostcell*) override final;
     void wave_prestep(lexer*,ghostcell*) override final;
     
+    // waves on a background (iowave B 530): k on h_eff and with Doppler
+    int wave_ncomp() const override final {return 1;}
+    void wave_comp(int, double&, double&, double&, double&, double&) const override final;
+    double wave_depth0() const override final {return wdt;}
+    double wave_depth() const override final {return wdk;}
+    void wave_comp_set(int, double, double, double) override final;
+    void wave_depth_set(double h) override final {wdk = h;}
+    void wave_comp_update() override final;
+    
 private:
+    double celerity5(double,double,double) const;
+    
+    double wdk;             // depth of the coefficients (wdt unless iowave B 530 changes it)
+    double wsig;            // intrinsic frequency omega - k U_n
+    double wH0,waf;         // wave height as constructed and the B 530 amplitude factor
+    double wkin,wsin;       // k and sigma handed over by iowave (B 530)
+
     double a11,a22,a31,a33,a42,a44,a51,a53,a55;
     double b22,b31,b42,b44,b53,b55;
     double e2,e4;

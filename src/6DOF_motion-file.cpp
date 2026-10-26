@@ -31,9 +31,11 @@ sixdof_motionext_file::sixdof_motionext_file(lexer *p, ghostcell *pgc)
     
     //cout<<"6DOF MOTION START"<<endl;
     
-    // number of file columns
+    // number of file columns: X 240 1 is the translation format t, x, y, z (user guide); the
+    // columns 1-3 are read by motionext_trans (colnum 3 rejected every 4-column file and read
+    // the z column out of range)
     if(p->X240==1)
-    colnum = 3;
+    colnum = 4;
     
     if(p->X240==2)
     colnum = 4;

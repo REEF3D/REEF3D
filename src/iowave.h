@@ -139,6 +139,7 @@ public:
     void ini2D(lexer*,fdm2D*,ghostcell*) override final;
     void ckpt_state(lexer*, std::vector<double>&) override final;
     void ckpt_restore(lexer*, const std::vector<double>&) override final;
+    void relax_boxes(lexer*, std::vector<double>&) const override final;
     
     void vrans_sed_update(lexer*,fdm*,ghostcell*,vrans*) override final;
 
@@ -316,6 +317,10 @@ private:
     void bg_build(lexer*);
     int gen_bg(lexer*);
     int beach_bg(lexer*);
+    
+    // inverse barometer level of the met forcing (W 200, W 210 1) at (x,y), added to the level the open
+    // edges (B 520 3-5), the relaxation and the beach zones of SFLOW and NHFLOW target (iowave_met.cpp)
+    double eta_ib(lexer*,ghostcell*,double,double);
     void nhflow_bg_update(lexer*,fdm_nhf*,ghostcell*);
     void nhflow_open_edges(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double*,double*,double*,slice&);
     // curvilinear grid (G 50): inward normal, length and centre of the boundary face of an edge cell

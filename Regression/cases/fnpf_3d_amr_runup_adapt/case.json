@@ -1,0 +1,9 @@
+{
+ "description": "fnpf_3d_amr_coast_wd_adapt with the moving coastline (A 343 2): the patches follow the moving shoreline (G 22 2), the breaking cells (G 23 1) and the steep surface (G 20 0.02).",
+ "solver": "fnpf",
+ "np": 1,
+ "base": "fnpf_3d_amr_coast_wd_adapt",
+ "ctrl_set": {"A 343": "2"},
+ "tags": ["3d", "fnpf", "amr", "waves", "breaking", "coastline", "wetdry", "runup", "adaptive"],
+ "covers": ["new patches over the moving coastline: the wet flags of the old patches or the prolonged ones of the parent, fnpf_fsfbc_wd::wd_reset"]
+}

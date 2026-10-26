@@ -1,0 +1,32 @@
+{
+ "base": "sflow_2d_mb_amr_adaptive_ckpt",
+ "same_as": "sflow_2d_mb_amr_adaptive_ckpt",
+ "chain": [
+  {
+   "case": "sflow_2d_mb_amr_adaptive_ckpt",
+   "copy": [
+    "REEF3D_Checkpoint",
+    "REEF3D_SFLOW_AMR",
+    "REEF3D_SFLOW_WSF",
+    "REEF3D_SFLOW_ProbePoint",
+    "REEF3D_SFLOW_WSFLINE"
+   ]
+  }
+ ],
+ "ctrl_set": {
+  "I 45": "20"
+ },
+ "description": "the restart of sflow_2d_mb_amr_adaptive_ckpt from step 20 (I 45 20) with its outputs copied in: the multi-block grid with refinement following the flags: the blocks and the patches continue from the checkpoint; regression.py ranks: the final state and the text outputs bitwise those of the uninterrupted run.",
+ "tags": [
+  "2d",
+  "sflow",
+  "curvilinear",
+  "multiblock",
+  "amr",
+  "adaptive",
+  "checkpoint"
+ ],
+ "covers": [
+  "the bitwise restart of SFLOW + mesh refinement: the multi-block grid with refinement following the flags"
+ ]
+}

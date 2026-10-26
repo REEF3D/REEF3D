@@ -63,9 +63,11 @@ public:
     // bed shear stress (S 16 10) and the CPM bedload layer (Q 58): log law at the first cell centre at least
     // half a cell above the bed, or href cells above the bed (href > 0); kmode 0: log law, 1: max(log law, 0.3 rho k),
     // 2: two velocity scales sqrt(log law * 0.3 rho k) (rough-wall Launder-Spalding wall function), with k of the
-    // first fluid cell; returns false if the column has no fluid cell above the bed
+    // first fluid cell; returns false if the column has no fluid cell above the bed.
+    // wall 1: the distance of the log law is measured from the face under the first fluid cell (topo >= 0 at its
+    // centre), the wall of the k-omega wall law of the fluid at the direct-forcing bed; wall 0: from the bed level set
     static bool column_tau(lexer*, fdm*, turbulence*, int i, int j, double zbed, double ks, double href, int kmode,
-                           double rho, double &tx, double &ty, double &hcell, bool &rest);
+                           double rho, double &tx, double &ty, double &hcell, bool &rest, int wall=0);
 
     // the same for the NHFLOW sigma grid (S 16 10): the first cell centre is half a cell above the bed, href > 0
     // takes the log law href cells of the first cell above the bed (at most half the water depth)
@@ -87,6 +89,10 @@ public:
     // S 16 9: wave friction bed shear stress 0.5 rho fw |u|^2 of the near-bed velocity sample (u,v)
     double tau_wave(lexer*, double, double, double, double);
     void tau_wave_step(lexer*);
+    
+    // S 16 9 with S 59 1: wave and current bed shear stress after Soulsby (1997, DATA13), from the same sample
+    // (u,v) at the height zs above the bed: current from its running mean (log law at zs), waves from tau_wave
+    double tau_wave_current(lexer*, double, double, double, double, double);
 
 
 private:
@@ -104,6 +110,10 @@ private:
     slice4 uw_mean,vw_mean,uw_old,vw_old,uw_hat;
     double tw_old,tw_dt;
     int tw_count;
+    
+    // S 59: time derivative of the oscillatory part (phase lead) and fw of the last tau_wave call
+    slice4 uw_dt,vw_dt;
+    double tw_fw;
 };
 
 #endif

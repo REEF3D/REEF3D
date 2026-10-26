@@ -21,6 +21,7 @@ Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"iowave.h"
+#include"met_provider.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
@@ -357,7 +358,9 @@ void iowave::nhflow_open_edges(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, 
             // curvilinear grid (G 50): the physical centre of the edge face
             if(p->geo_curv==1)
             curv_edge_centre(p,side,i,j,xf,yf);
-            const double eb = b>=0 ? bgs.eta(b,xf,yf) : 0.0;
+            double eb = b>=0 ? bgs.eta(b,xf,yf) : 0.0;
+            if(met_provider::ib_on(p))
+            eb += eta_ib(p,pgc,xf,yf);
             double ub=0.0, vb=0.0;
             if(b>=0)
             bgs.vel(b,h0,xf,yf,ub,vb);
@@ -686,6 +689,8 @@ void iowave::nhflow_wave_background(lexer *p, ghostcell *pgc)
     const double g = fabs(p->W22);
     const bool update = p->count%N==0;
     
+    int msg_n = -1;
+    
     for(int n=0; n<ns; ++n)
     {
         int id, type;
@@ -872,7 +877,7 @@ void iowave::nhflow_wave_background(lexer *p, ghostcell *pgc)
             if(p->mpirank==0 && (p->count==0 || p->count%(100*N)==0))
             {
                 if(nc_==1)
-                cout<<"iowave B 530: source "<<id<<"  k "<<s.k1[0]<<"  L "<<2.0*PI/s.k1[0]<<"  h_eff "<<s.h1<<"  U_n "<<s.u1[0]<<endl;
+                msg_n = n;
                 else
                 cout<<"iowave B 530: source "<<id<<"  "<<nc_<<" components  h_eff "<<s.h1<<"  blocked "<<s.nblock<<endl;
             }
@@ -895,6 +900,19 @@ void iowave::nhflow_wave_background(lexer *p, ghostcell *pgc)
         
         lib->wave_depth_set(s.h0 + (s.h1-s.h0)*fs);
         lib->wave_comp_update();
+        
+        // one component: the target of the blend and the k the library uses now (5th-order Stokes
+        // waves refine k with their own dispersion relation)
+        if(msg_n==n)
+        {
+            double kc, om, sg, b, af;
+            lib->wave_comp(0,kc,om,sg,b,af);
+            
+            cout<<"iowave B 530: source "<<id<<"  k "<<s.k1[0]<<"  L "<<2.0*PI/s.k1[0]<<"  h_eff "<<s.h1<<"  U_n "<<s.u1[0]
+                <<"  (now: k "<<kc<<"  L "<<2.0*PI/kc<<"  T_r "<<2.0*PI/sg<<")"<<endl;
+            
+            msg_n = -1;
+        }
     }
 }
 

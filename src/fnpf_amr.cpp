@@ -37,6 +37,7 @@ Architect: Hans Bihs
 #include"fnpf_amr_fill.h"
 #include"fnpf_body.h"
 #include"fnpf_6DOF.h"
+#include"6DOF_obj.h"
 #include<cmath>
 #include<algorithm>
 #include<mpi.h>
@@ -253,9 +254,41 @@ fnpf_laplace* fnpf_amr::laplace(fnpf_laplace *outer, fnpf_laplace_cds2 *plap0)
     return new fnpf_laplace_amr(this,outer,plap0);
 }
 
+// the run settings with which ini keeps the refinement on
+bool fnpf_amr::keys_ok(lexer *p)
+{
+    int ok=1;
+    if(p->A310!=3) ok=0;
+    if(p->A350<0 || p->A350>3) ok=0;
+    if(p->X10!=0 && p->X10!=1) ok=0;
+    if(p->A380!=0) ok=0;
+    if(p->A311==3) ok=0;
+    if(p->j_dir!=1 && (p->geo_mb>0 || p->geo_curv==1)) ok=0;     // 2D grid (one cell in y): Cartesian
+
+    return ok==1;
+}
+
 void fnpf_amr::attach_body(fnpf_body *b)
 {
     body = (b!=nullptr && b->present()) ? b : nullptr;
+
+    // the hull triangles (X 185) are sized for the finest level (sixdof_obj::amr_hfac, as
+    // nhflow_amr and the CFD mesh refinement): every triangle is integrated on the finest grid
+    // that holds its centroid, so on a patch the loads are summed over patch-sized triangles.
+    // Set here, before fnpf_6DOF::initialize builds them (inidisc_step2, before ini); only when
+    // ini keeps the refinement on.  With G 6 1 the finest level also has 2^G1 times the sigma
+    // layers: the vertical spacing is scaled as well (amr_vfac), as on a uniform grid with those layers.
+    if(body!=nullptr && maxlev>0 && keys_ok(p0))
+    {
+        vector<sixdof_obj*> obj;
+        body->amr_bodies(obj);
+
+        for(auto o : obj)
+        {
+        o->amr_hfac = 1.0/double(1<<maxlev);
+        o->amr_vfac = (vref==2) ? 1.0/double(1<<maxlev) : 1.0;
+        }
+    }
 }
 
 void fnpf_amr::zone_bodies(vector<sixdof_obj*> &obj)
@@ -346,15 +379,7 @@ void fnpf_amr::ini(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     if(maxlev<1)
     return;
 
-    int ok=1;
-    if(p->A310!=3) ok=0;
-    if(p->A350<0 || p->A350>3) ok=0;
-    if(p->X10!=0 && p->X10!=1) ok=0;
-    if(p->A380!=0) ok=0;
-    if(p->A311==3) ok=0;
-    if(p->j_dir!=1 && (p->geo_mb>0 || p->geo_curv==1)) ok=0;     // 2D grid (one cell in y): Cartesian
-
-    if(ok==0)
+    if(!keys_ok(p))
     {
         if(p->mpirank==0)
         cout<<"FNPF AMR (G 1): only for A 310 3, A 311 other than 3, A 350 0-3, X 10 0/1, A 380 0 and on a 2D grid Cartesian -- refinement switched off"<<endl;

@@ -375,7 +375,9 @@ bool reefamr3d::rebuild(const vector<vector<unsigned char>> &seed, vector<r3patc
     const vector<r3gpatch> GPprev = GP;
     const vector<vector<unsigned char>> told = tmask;
 
+    tprev = &told;
     mark_tiles(&seed);
+    tprev = nullptr;
 
     if(tmask==told)
     return false;
@@ -843,6 +845,26 @@ void reefamr3d::mark_tiles(const vector<vector<unsigned char>> *seed)
             hi[d] = fdiv((t[d]+1)*tile[d]-1,rr[d]) + (rr[d]==2 ? nest : 0);
         }
         mark_cells(l,lo,hi);
+    }
+
+    // lazy layout: the tiles of the last layout stay as long as the union with the new ones has at most
+    // lazy times the new tiles (the map is global: all ranks decide alike); the forbidden tiles and the
+    // proper nesting below drop what may not stay
+    if(lazy>0.0 && tprev!=nullptr)
+    for(int l=1; l<=maxlev; ++l)
+    if(l<(int)tprev->size() && (*tprev)[l].size()==tmask[l].size())
+    {
+        const vector<unsigned char> &o = (*tprev)[l];
+        long nnew = 0, nuni = 0;
+        for(size_t t=0; t<o.size(); ++t)
+        {
+            nnew += tmask[l][t] ? 1 : 0;
+            nuni += (tmask[l][t] || o[t]) ? 1 : 0;
+        }
+        if(nnew>0 && double(nuni)<=lazy*double(nnew))
+        for(size_t t=0; t<o.size(); ++t)
+        if(o[t])
+        tmask[l][t] = 1;
     }
 
     // wave generation and absorption zones (relaxation, B 98 2, B 99 1/2) stay on level 0, unless

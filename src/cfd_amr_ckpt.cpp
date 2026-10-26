@@ -108,6 +108,13 @@ void cfd_amr::ckpt_write(reefckpt &ck)
     L.push_back(v);
     L.push_back(wpatch);
     L.push_back(press_step ? 1.0 : 0.0);
+    // the start of the bodies of the zone (G 12)
+    L.push_back(double(bz_x0.size()));
+    for(size_t nb=0; nb<bz_x0.size(); ++nb)
+    {
+        L.push_back(bz_x0[nb]);
+        L.push_back(bz_y0[nb]);
+    }
     ck.blob("cfd_amr_layout",L);
 
     // ---- the arrays of the patches of this rank
@@ -208,6 +215,19 @@ bool cfd_amr::ckpt_read(reefckpt &ck, string &msg)
         msg = "the mesh refinement in the checkpoint is incomplete";
         return false;
     }
+    // the start of the bodies of the zone (G 12; not in older checkpoints)
+    vector<double> ckz;
+    if(k<L.size())
+    {
+        const int nz = int(nx());
+        for(int q=0; q<2*nz; ++q)
+        ckz.push_back(nx());
+    }
+    if(k>L.size())
+    {
+        msg = "the mesh refinement in the checkpoint is incomplete";
+        return false;
+    }
 
     // ---- regrid to the tile maps of the checkpoint (the ranks of its patches on the same decomposition)
     const bool same = ck.same_decomposition() && ckranks==nranks;
@@ -226,6 +246,16 @@ bool cfd_amr::ckpt_read(reefckpt &ck, string &msg)
     wpatch = ck_wpatch;
     if(ck_pstep>=0.0)
     press_step = ck_pstep>0.5;
+    if(!ckz.empty())
+    {
+        bz_x0.resize(ckz.size()/2);
+        bz_y0.resize(ckz.size()/2);
+        for(size_t nb=0; nb<bz_x0.size(); ++nb)
+        {
+            bz_x0[nb] = ckz[2*nb];
+            bz_y0[nb] = ckz[2*nb+1];
+        }
+    }
 
     // ---- the arrays of the patches of all pieces
     vector<ckpatch> cp;

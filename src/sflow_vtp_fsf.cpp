@@ -23,6 +23,7 @@ Author: Hans Bihs
 #include"sflow_vtp_fsf.h"
 #include"lexer.h"
 #include"fdm2D.h"
+#include"met_forcing.h"
 #include"ghostcell.h"
 #include"sediment.h"
 #include"sflow_print_wsf.h"
@@ -238,6 +239,10 @@ void sflow_vtp_fsf::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence
         ++n;
     }
 
+    // atmospheric forcing (W 200)
+    if(b->met!=nullptr)
+        b->met->offset_vtp(p,offset,n);
+
     // Cells
     offset[n]=offset[n-1] + sizeof(int)*p->polygon_sum*3+sizeof(int);
     ++n;
@@ -288,6 +293,8 @@ void sflow_vtp_fsf::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence
         result<<"<DataArray type=\"Float32\" Name=\"Hs\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
         ++n;
     }
+    if(b->met!=nullptr)
+        b->met->name_vtp(result,offset,n);
     result<<"</PointData>\n";
 
     vtp3D::polys(result,offset,n);
@@ -432,6 +439,10 @@ void sflow_vtp_fsf::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence
             result.write((char*)&ffn, sizeof(float));
         }
     }
+
+    //  wind10, air_pressure, wind_stress (W 200)
+    if(b->met!=nullptr)
+        b->met->print_vtp(p,result);
 
     //  Connectivity
     iin=sizeof(int)*p->polygon_sum*3;

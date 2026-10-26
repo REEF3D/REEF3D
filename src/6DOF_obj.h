@@ -170,6 +170,9 @@ public:
     // the hull triangles (X 185) are sized for the horizontal spacing times amr_hfac: the finest
     // level of a refinement zone around the body (set before the initialisation)
     double &amr_hfac;   // = geom.amr_hfac
+    // and for the vertical spacing times amr_vfac: the finest level when it doubles the sigma
+    // layers (FNPF G 6 1)
+    double &amr_vfac;   // = geom.amr_vfac
 
 protected:
 

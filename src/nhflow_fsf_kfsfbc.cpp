@@ -25,6 +25,7 @@ Author: Hans Bihs
 #include"nhflow_curv.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
+#include"nhflow_fsf_hull.h"
 
 void nhflow_fsf_f::kinematic_fsf(lexer *p, fdm_nhf *d, double *U, double *V, double *W, slice &eta)
 {
@@ -61,6 +62,10 @@ void nhflow_fsf_f::kinematic_fsf(lexer *p, fdm_nhf *d, double *U, double *V, dou
             dfdy_min  = (eta(i,j)-eta(i,j-1))/p->DYP[JM1];
     
             detady = limiter(dfdy_plus,dfdy_min);
+            
+            // X 13 2: one-sided slopes at the edge of the hull footprint
+            if(d->hull!=nullptr)
+            d->hull->edge_slope(p,d,i,j,detadx,detady);
         }
         
         

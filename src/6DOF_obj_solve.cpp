@@ -72,6 +72,10 @@ void sixdof_obj_nhflow::solve_eqmotion_nhflow(lexer *p, fdm_nhf *d, ghostcell *p
     if(p->X330>0)
     membrane_stabilisation(p,iter);
     
+    // the hull as a sharp thin body (X 15 8): added-mass stabilisation of the partitioned coupling
+    if(p->X15==8 && d->hullbody!=nullptr)
+    hull_stabilisation(p,iter);
+    
     // porous floating body: linearly implicit drag
     if(p->X16==1)
     porous_damping_nhflow(p,iter);

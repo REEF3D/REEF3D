@@ -1,0 +1,20 @@
+{
+ "base": "nhflow_3d_si_basin_mpi2",
+ "description": "NHFLOW hydrostatic semi-implicit closed basin (nhflow_3d_si_basin_mpi2) with the wind forcing A 570 1, U10 20 m/s to 30 deg, surface stress (A 573 1): x and y stress in the top layer, 2 ranks. The reference of nhflow_3d_si_met_uniform_mpi2 (close, not bitwise: the met forcing splits U10 into components first).",
+ "ctrl_add": [
+  "A 570 1",
+  "A 571 20.0 30.0",
+  "A 573 1"
+ ],
+ "tags": [
+  "3d",
+  "nhflow",
+  "semi_implicit",
+  "mpi",
+  "wind"
+ ],
+ "covers": [
+  "nhflow_momentum_SI::si_stage_rhs wind",
+  "wind_forcing_nhf_y"
+ ]
+}

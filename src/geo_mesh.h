@@ -91,9 +91,20 @@ public:
         int ring[4] = {0,0,0,0};
         vector<blk_seg> seg;
         vector<double> x, y, zb;
+        int orig=0, oi=0, oj=0;     // G 55: the block of DIVEMesh this piece is cut from, its first cell there
     };
     vector<blk_block> blk;
     int blk_ring = 0;
+
+    // G 55 m (geo_mesh_split.cpp): the blocks 1.. of DIVEMesh cut into pieces along i (j for a block wider in j
+    // without open faces) of at most (cells of the blocks 1..) / (m ranks) cells each, at least 16 cells deep;
+    // a piece is a block of its own (the first piece keeps the number of its block, the others follow the
+    // blocks of DIVEMesh), the interfaces between the pieces and to the neighbours rebuilt cell by cell
+    void split_blocks(lexer*);
+    int nblk_orig = 0;              // the blocks of DIVEMesh (blk.size() before the cut)
+    vector<int> orig_ni, orig_nj;   // their sizes
+    // the piece that holds face f (0 -i, 1 +i, 2 -j, 3 +j) of block b of DIVEMesh whole; -1: cut across it
+    int face_piece(int b, int f) const;
 
 private:
     void allocate(int);

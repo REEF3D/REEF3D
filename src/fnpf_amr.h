@@ -202,8 +202,10 @@ public:
     // without one
     bool zone_box(int nb, double&, double&, double&, double&);
 
-    // resolved bodies (fnpf_6DOF) on the hierarchy
+    // resolved bodies (fnpf_6DOF) on the hierarchy; sizes their hull triangles for the finest level
     void attach_body(fnpf_body*);
+    // the run settings with which ini keeps the refinement on (A 310 3, ...)
+    static bool keys_ok(lexer*);
     int patches() const { return (int)P.size(); }
     lexer* patch_lexer(int n) { return P[n]->pp; }
     fdm_fnpf* patch_fdm(int n) { return FP(n)->c; }

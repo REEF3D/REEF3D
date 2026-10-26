@@ -89,6 +89,12 @@ inline void pr_coef(reefmg_core *mg, sc_level &L, long lq, double p, double n, d
 
 enum { NR=REEFAMR_NR, NRH=REEFAMR_NRH, NPV=REEFAMR_NPV, NVV=REEFAMR_NVV, NS=REEFAMR_NS, NT=REEFAMR_NT,
        NPH=REEFAMR_NPH, NSH=REEFAMR_NSH, NVEC=REEFAMR_NVEC };
+
+// safety net of the BiCGStab (reefamr_krylov.h, as the composite Laplace of FNPF AMR): a solve whose
+// residual has not dropped by 5 % over 8 iterations restarts from its current residual (a new shadow
+// residual); stagnating again with the relative residual below STAGTOL*N 44 it stops there instead
+// of running to N 46.  A solve that converges in fewer than 8 iterations is unchanged
+const double STAGTOL = 100.0;
 }
 
 double* nhflow_amr::pvec(int g, int k)
@@ -455,19 +461,50 @@ void nhflow_amr::pr_prepare(ghostcell *pgc)
             L.act[lq] = fixed(M,r) ? 0 : 1;
         }
         // a 2D grid: level 0 is one x-z problem, solved exactly (reefamr_xzlu; several ranks: the
-        // problem of all ranks on every rank)
-        xz0on = false;
-        if(sy==0 && nblk==0 && p0->mpi_size==1)
-        {
-            xz0.factor(L,mg0->precision());
-            xz0on = true;
-        }
+        // problem of all ranks on every rank).  The factorisation of the first solve of the step is
+        // kept for its other solves (xz_keep; collective: factor_mpi is made by all ranks together)
+        bool keep = false;
+        if(sy==0 && nblk==0 && xz0on)
+        keep = (pgc0->globalimin(xz_keep(xz0key,xz0act,L,wkey) ? 1 : 0)==1);
+
+        if(keep)
+        ++xz_kept;
         else
-        if(sy==0 && nblk==0)
-        xz0on = xz0.factor_mpi(L,mg0->precision(),MPI_COMM_WORLD,p0->origin_i,p0->gknox);
-        if(!xz0on)
-        mg0->coarsen();
+        {
+            xz0on = false;
+            if(sy==0 && nblk==0 && p0->mpi_size==1)
+            {
+                xz0.factor(L,mg0->precision());
+                xz0on = true;
+            }
+            else
+            if(sy==0 && nblk==0)
+            xz0on = xz0.factor_mpi(L,mg0->precision(),MPI_COMM_WORLD,p0->origin_i,p0->gknox);
+            if(!xz0on)
+            mg0->coarsen();
+            if(xz0on)
+            {
+                ++xz_made;
+                xz0key[0] = layout_id; xz0key[1] = wkey; xz0key[2] = p0->count;
+                xz0act = L.act;
+            }
+        }
     }
+
+    // a 2D grid: the exact patch-local factorisation, kept within the step (xz_keep; patch-local,
+    // MPI_COMM_SELF: the decision of the patch alone)
+    auto patch_xz = [&](nhflow_amr_patch *c, const sc_level &L)
+    {
+        if(xz_keep(c->xzkey,c->xzact,L,wkey))
+        {
+            ++xz_kept;
+            return;
+        }
+        c->xz.factor(L,c->mg->precision());
+        ++xz_made;
+        c->xzkey[0] = layout_id; c->xzkey[1] = wkey; c->xzkey[2] = p0->count;
+        c->xzact = L.act;
+    };
 
     // the overlap: the rows of the patches next to a patch
     if(pr_ovl)
@@ -530,9 +567,10 @@ void nhflow_amr::pr_prepare(ghostcell *pgc)
                     L.act[lq] = fx ? 0 : 1;
                 }
             }
-            // a 2D grid: the patch-local problem is an x-z problem, solved exactly (reefamr_xzlu)
+            // a 2D grid: the patch-local problem is an x-z problem, solved exactly (reefamr_xzlu),
+            // the factorisation of the first solve of the step kept for its other solves (xz_keep)
             if(sy==0)
-            c->xz.factor(L,c->mg->precision());
+            patch_xz(c,L);
             else
             c->mg->coarsen();
             continue;
@@ -558,7 +596,7 @@ void nhflow_amr::pr_prepare(ghostcell *pgc)
             L.act[lq] = fixed(M,r) ? 0 : 1;
         }
         if(sy==0)
-        c->xz.factor(L,c->mg->precision());
+        patch_xz(c,L);
         else
         c->mg->coarsen();
     }
@@ -566,6 +604,16 @@ void nhflow_amr::pr_prepare(ghostcell *pgc)
     pr_stencils();
 
     cs_build(pgc);
+}
+
+// a 2D grid: the exact x-z factorisation of a grid is kept for the other pressure solves of the step
+// (key: the layout, the level window and the step of the factorisation), as the composite Laplace of
+// FNPF AMR.  The coefficients follow the free surface and the sigma grid of the stage: the
+// factorisation of the first solve of the step is the preconditioner of its other solves.  A change
+// of the active rows (wetting and drying: identity rows) refactorises
+bool nhflow_amr::xz_keep(const long *key, const vector<char> &act0, const sc_level &L, int wkey) const
+{
+    return key[0]==layout_id && key[1]==wkey && key[2]==p0->count && act0==L.act;
 }
 
 // ---- multi-block: the coarse space across the blocks (G 53)
@@ -1192,6 +1240,22 @@ void nhflow_amr::pr_x(double alp, double om)
     }
 }
 
+// restart of the BiCGStab recurrence from the current residual (reefamr_bicgstab)
+void nhflow_amr::pr_restart()
+{
+    for(int g=-1; g<(int)P.size(); ++g)
+    {
+        const double *vr = pvec(g,NR);
+        double *vrh = pvec(g,NRH), *vp = pvec(g,NPV), *vv = pvec(g,NVV);
+        for(int qq : pg[g+1].lq)
+        {
+            vrh[qq] = vr[qq];
+            vp[qq] = 0.0;
+            vv[qq] = 0.0;
+        }
+    }
+}
+
 // z = M^-1 r: one FAC sweep
 void nhflow_amr::pr_prec(int kr, int kz)
 {
@@ -1471,6 +1535,7 @@ struct pr_space
     void op_p(double beta, double om) { a->pr_p(beta,om); }
     void op_s(double alp) { a->pr_s(alp); }
     void op_x(double alp, double om) { a->pr_x(alp,om); }
+    void op_restart() { a->pr_restart(); }
 };
 }
 
@@ -1496,7 +1561,7 @@ void nhflow_amr::pr_core(lexer *p, ghostcell *pgc)
 
     double bn, rn;
     pr_space sp{this};
-    int it = reefamr_bicgstab(sp,p->N44,p->N46,bn,rn,&tm[5],&tm[6]);
+    int it = reefamr_bicgstab(sp,p->N44,p->N46,bn,rn,&tm[5],&tm[6],&pr_restarts,STAGTOL*p->N44,&pr_stalls);
 
     pr_it_last = it;
     pr_it_total += it;
@@ -1505,6 +1570,15 @@ void nhflow_amr::pr_core(lexer *p, ghostcell *pgc)
     p->solveriter = it;
     p->poissoniter = it;
     p->final_res = pr_res_last;
+
+    // the single-grid solvers warn at the iteration limit; a stalled composite solve was silent
+    if(it>=p->N46 && pr_res_last>p->N44)
+    {
+        ++pr_capped;
+        if(p->mpirank==0)
+        cout<<"NHFLOW AMR WARNING - pressure iteration limit N 46 = "<<p->N46<<" reached, res "<<setprecision(3)<<pr_res_last
+            <<" (N 44 = "<<p->N44<<")"<<endl;
+    }
 
     // identity rows of wet but shallow columns: P = 0 as the single-grid solvers leave them
     // (PCORR is 0 there already); dry columns keep their pressure

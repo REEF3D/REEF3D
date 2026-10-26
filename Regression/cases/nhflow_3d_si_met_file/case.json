@@ -1,0 +1,15 @@
+{
+ "base": "nhflow_3d_si_met_file_mpi2",
+ "description": "nhflow_3d_si_met_file_mpi2 on one rank (one window, the whole basin).",
+ "np": 1,
+ "tags": [
+  "3d",
+  "nhflow",
+  "semi_implicit",
+  "wind",
+  "met"
+ ],
+ "covers": [
+  "met_file window of one rank"
+ ]
+}

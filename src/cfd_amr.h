@@ -66,6 +66,7 @@ class field2;
 class field3;
 class weno_flux_nug;
 class fluid_update_fsf_heat;
+class force;
 
 using namespace std;
 
@@ -140,7 +141,8 @@ struct cfd_amr_field
 //    velocities, level set, pressure onto the cells and faces under a patch
 //
 //  The step size is the minimum of all levels.  Scope of this version: two-phase or single-phase
-//  flow (F 30, N 40 2/3), RANS turbulence, solids and topography, floating bodies (X 10 1), the
+//  flow (F 30, N 40 2/3), RANS turbulence, solids and topography (the entities of the grid file
+//  cast on every patch at its resolution, cfd_amr_geom.cpp), floating bodies (X 10 1), the
 //  porous structures B 200 1 (vrans_f on every patch, the zones at its cells; CPOR n at the faces of
 //  the patch edges); heat or concentration (H 10 3, C 10 3: transported by the refinement on all
 //  grids in flux form, the patch edges with flux registers, cfd_amr_scalar.cpp); no sediment or
@@ -151,13 +153,21 @@ struct cfd_amr_field
 //  level 0; the tiles at an in- or outflow boundary stay on level 0 (reefamr3d::mark_tiles); the
 //  pressure reference B 30 1, 2, 4 over all grids at the end of the step (cfd_amr::reference), B 30
 //  3 (the atmosphere) on all grids.  The probes and wave gauges of the printer (P 51, P 61, P 64)
-//  read the finest grid at their position (finest_grid).
+//  read the finest grid at their position (finest_grid), the forces on the solids (P 81) integrate
+//  every piece of the solid surface on the finest grid at its centre (cfd_amr_force.cpp).
 //
 //  G 40 1, the placement of the patches for the load of the ranks (reefamr3d, cfd_amr_place.cpp):
 //  a level-1 piece with the finer patches inside it (a unit) on any rank, its coarser level a
 //  shadow of the level-0 cells under it and around it (filled from level 0, giving back what the
 //  patches write onto level 0); the outputs and the loads of the bodies on the rank of the finest
 //  grid at the point (amr_cfd_mine).  G 40 2: the test of it (small units, placed anew).
+//
+//  G 12 r (with floating bodies X 10 1), the refinement zone of the bodies (cfd_amr_zone.cpp, as
+//  NHFLOW and FNPF): the finest level over a margin r around every body and the distance it travels
+//  until the next regrid, every G 2 steps; G 13 L a: the zone along the direction of motion with a
+//  wake wedge of half angle a and length L at most.  The layout is kept while it covers the zone with
+//  at most 50 % more tiles (lazy layout, reefamr3d::lazy), so a body that moves a little or oscillates
+//  does not rebuild its patches every regrid.
 //
 //  Periodic boundaries in x and y (C 21, C 22 of DIVEMesh; on one rank or across ranks): a level is
 //  refined alike on both sides of a periodic edge (reefamr3d::mark_tiles), so no patch edge lies on
@@ -206,6 +216,8 @@ struct cfd_amr_patch : public r3patch
     momentum_rk *pmom = nullptr;
     cfd_amr_6dof *p6dof = nullptr;  // the floating bodies on the patch (X 10 1)
     cfd_amr_scgrid *sc = nullptr;   // heat, concentration: the work fields
+    vector<force*> forces;          // the forces on the solids (P 81) of the patch: per force box it reaches into
+    vector<char> forces_tri;        // (triangulated)
 
     vector<signed char> mkind;      // per cell of the array: -1 interior, else the fill kind of the cell
     vector<double> edge[3];         // per face of u, v, w: the Dirichlet value of the implicit diffusion at the high patch edges (NaN: none)
@@ -285,6 +297,10 @@ public:
     bool finest_grid(double, double, double, lexer*&, fdm*&, turbulence*&) const override;
     bool placed() const override { return place>0; }
     int finest_level(double, double, double) const override;
+    // the forces on the solids (P 81, cfd_amr_force.cpp): the level of the finest grid at a point (the
+    // tile maps of all levels), the pieces of the surface on the patches of this rank
+    int leaf_level(double, double, double) const override;
+    void solid_forces(int, double*) const override;
     int finest_id(double, double, double) const;
     // cavitation (W 60): the coefficients of the phase change on the patches (level 0: the driver),
     // and after the step of level 0 the vapour fraction on the patches, then the restriction
@@ -360,6 +376,8 @@ private:
     void fill_velout(int l, int s);
     void fill_vel_after(int s);
     void edge_faces(int l, int s);
+    // the projected pressure around the patches at the end of the step (the outputs read it there)
+    void fill_press_out();
 
     // the hierarchy after setup or a regrid: checks, cell kinds, composite projection, subcycling state
     void hierarchy(bool first);
@@ -369,6 +387,12 @@ private:
     long nregrid = 0;
     vector<vector<int>> tage;       // [l][tile] regrids since the last flag (hysteresis G 5)
     void flags(vector<vector<unsigned char>> &seed, bool init);
+    // the refinement zone of the floating bodies (G 12 r, G 13 L a; cfd_amr_zone.cpp): the tiles of the
+    // finest level in the zone of every body; bz_x0, bz_y0: the centres of the bodies at the start (the
+    // wake wedge reaches back to where the bow has been)
+    int bzone = 0;
+    vector<double> bz_x0, bz_y0;
+    void zone_seed(vector<vector<unsigned char>> &seed);
     bool flagged(int g, int i, int j, int k, int lt, bool init);
     void regrid(lexer*, ghostcell*, bool replace=false);    // replace: the units placed anew (G 41 0, static refinement)
     vector<vector<unsigned char>> ck_seed;      // restart (I 45): the tile maps of the checkpoint for the regrid
@@ -491,6 +515,17 @@ private:
     turbulence *pturb0 = nullptr;
     int turb = 0;                       // RANS on the patches (T 10 1, 2)
     int solids = 0;                     // solids or topography (direct forcing) on the patches
+    // the solids and the topography of the grid file cast on the patches at their resolution
+    // (cfd_amr_geom.cpp): geo_role[0] solids, [1] topography; geo_bed: the role has the geodat bed
+    // of the grid file, gbed0 its level of all level-0 columns (I*gknoy + J)
+    int geo_role[2] = {0,0};
+    int geo_bed[2] = {0,0};
+    vector<double> gbed0;
+    void geom_setup(lexer*);
+    void patch_geometry(int id);
+    void patch_bed(cfd_amr_patch*, double band, vector<double> &phi);
+    void patch_forces(int ID, double *F);   // the forces on the solids: the part of the patches of this rank
+    void force_objects(cfd_amr_patch*);     // the force objects of a new patch
     sixdof_cfd *b6 = nullptr;           // the floating bodies (X 10 1): moved on level 0 (G 7 0), by the finest level (G 7 1)
     int bodies = 0;
     // G 7 1: the finest level advances the bodies (amr_stage_cfd, the loads after each of its

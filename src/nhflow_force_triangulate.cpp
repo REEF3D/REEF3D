@@ -36,8 +36,10 @@ void nhflow_force::triangulation(lexer *p, fdm_nhf *d, ghostcell *pgc)
     js = p->posc_j(p->P81_ys[ID]);
     je = p->posc_j(p->P81_ye[ID]);
     
-    ks = p->posf_sig(is,js,p->P81_zs[ID]);
-    ke = p->posf_sig(ie,je,p->P81_ze[ID]);
+    // the columns of the vertical search within the arrays (the box may reach beyond the grid:
+    // a rank or a patch of the mesh refinement holds part of it)
+    ks = p->posf_sig(MAX(MIN(is,p->knox-1),0),MAX(MIN(js,p->knoy-1),0),p->P81_zs[ID]);
+    ke = p->posf_sig(MAX(MIN(ie,p->knox-1),0),MAX(MIN(je,p->knoy-1),0),p->P81_ze[ID]);
     
     //cout<<p->P81_zs[ID]<<" ke: "<<p->P81_ze[ID]<<" ze: "<<ze<<" ks: "<<ks<<" ke: "<<ke<<endl;
     

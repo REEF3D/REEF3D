@@ -1,0 +1,21 @@
+{
+ "base": "nhflow_2d_met_uniform",
+ "description": "nhflow_2d_met_uniform with U10 60 m/s and the drag law W 207 6 (Zijlema et al. with the floor W 214 2.0e-3 beyond its peak).",
+ "ctrl_set": {
+  "W 201": "60.0 0.0"
+ },
+ "ctrl_add": [
+  "W 207 6",
+  "W 214 2.0e-3"
+ ],
+ "tags": [
+  "2d",
+  "nhflow",
+  "wind",
+  "met"
+ ],
+ "covers": [
+  "met_drag law 6",
+  "W 214"
+ ]
+}

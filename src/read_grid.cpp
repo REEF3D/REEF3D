@@ -302,6 +302,10 @@ void lexer::read_grid()
     // geometry: all ranks
     gridgeo = new geo_mesh();
     gridgeo->read(this,"DIVEMesh_Grid/grid-geometry.dat");
+
+    // G 55: the blocks 1.. of a multi-block grid cut into pieces for the ranks
+    if(G50==1)
+    gridgeo->split_blocks(this);
     
     solidread = gridgeo->solidread;
     toporead = gridgeo->toporead;

@@ -66,6 +66,11 @@ private:
     
     inline double limiter(double, double);
 
+    // wetting and drying: the face states of eta whose stencil holds a dry cell (nhflow_reconstruct_hires)
+    void wetdry_x(lexer*, slice&, slice&, slice&);
+    void wetdry_y(lexer*, slice&, slice&, slice&);
+    double slope_wd(lexer*, double, double, double, double, double, int, int);
+
     double ivel1,ivel2,jvel1,jvel2;
     double val,denom;
     double dfdx_min, dfdx_plus, dfdy_min, dfdy_plus, dfdz_min, dfdz_plus;

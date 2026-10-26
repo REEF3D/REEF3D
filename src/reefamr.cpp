@@ -553,6 +553,11 @@ void reefamr::setup(lexer *p, ghostcell *pgc)
     fplan.assign(maxlev+1,reefamr_xplan());
     fsend.assign(maxlev+1,vector<int>());
     frecv.assign(maxlev+1,vector<int>());
+    xfplan.assign(maxlev+1,reefamr_xplan());
+    xfsend.assign(maxlev+1,vector<int>());
+    xfrecv.assign(maxlev+1,vector<int>());
+    xmatch.resize(1);
+    xrmatch.resize(1);
     bup.assign(maxlev+1,reefamr_xplan());
     bdn.assign(maxlev+1,reefamr_xplan());
     bloc.assign(maxlev+1,vector<int>());

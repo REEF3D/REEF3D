@@ -99,7 +99,7 @@ void fnpf_6DOF::amr_ckpt_grids(lexer *p, ghostcell *pgc)
     // at their first solve); their arrays for the checkpoint's values on the patches that reach into
     // the zone of the body grown by its margin once more (a superset of the windows of the run; the
     // others stay unallocated)
-    if(p->X36==1 && p->G12>0 && p->G7!=1 && nbody>1 && amr!=nullptr)
+    if(p->X36>=1 && p->G12>0 && p->G7!=1 && nbody>1 && amr!=nullptr)
     for(auto &G : gp)
     {
         double x0,x1,y0,y1;
@@ -129,7 +129,7 @@ void fnpf_6DOF::amr_ckpt_grids(lexer *p, ghostcell *pgc)
 
 void fnpf_6DOF::ckpt_state(lexer *p, std::vector<double> &v)
 {
-    v.push_back(2.0);   // version (2: with the added mass of X 28)
+    v.push_back(3.0);   // version (2: with the added mass of X 28; 3: with the calibration of X 36 1)
     v.push_back(double(nbody));
     
     for(int nb=0; nb<nbody; ++nb)
@@ -171,6 +171,24 @@ void fnpf_6DOF::ckpt_state(lexer *p, std::vector<double> &v)
         for(int b=0; b<6; ++b)
         v.push_back(A(a,b));
     }
+
+    // version 3, X 36 1: the calibration of the windows (the differences to the solves on all grids, when
+    // the next one is due)
+    v.push_back(cal_have ? 1.0 : 0.0);
+    v.push_back(cal_stale ? 1.0 : 0.0);
+    v.push_back(double(am_refreshes));
+    v.push_back(double(cal_refresh));
+    if(cal_have)
+    {
+        for(const auto &A : cal_dA)
+        for(int a=0; a<6; ++a)
+        for(int b=0; b<6; ++b)
+        v.push_back(A(a,b));
+        for(const auto &A : cal_dC)
+        for(int a=0; a<6; ++a)
+        for(int b=0; b<6; ++b)
+        v.push_back(A(a,b));
+    }
 }
 
 bool fnpf_6DOF::ckpt_restore(lexer *p, ghostcell *pgc, const std::vector<double> &v)
@@ -179,7 +197,7 @@ bool fnpf_6DOF::ckpt_restore(lexer *p, ghostcell *pgc, const std::vector<double>
     auto next = [&](){ return k<v.size() ? v[k++] : -1.0; };
     
     const int version = int(next());
-    if((version!=1 && version!=2) || int(next())!=nbody)
+    if(version<1 || version>3 || int(next())!=nbody)
     return false;
     
     for(int nb=0; nb<nbody; ++nb)
@@ -235,6 +253,38 @@ bool fnpf_6DOF::ckpt_restore(lexer *p, ghostcell *pgc, const std::vector<double>
             for(int b=0; b<6; ++b)
             A(a,b) = next();
             am_count = cnt;
+        }
+    }
+
+    // version 3: the calibration of X 36 1
+    cal_have = cal_stale = false;
+    am_refreshes = 0;
+    cal_refresh = -1;
+    cal_dA.clear();
+    cal_dC.clear();
+    if(version>=3)
+    {
+        if(k+4>v.size())
+        return false;
+        cal_have = next()>0.5;
+        cal_stale = next()>0.5;
+        am_refreshes = int(next());
+        cal_refresh = int(next());
+        if(cal_have)
+        {
+            const size_t need = 36*(size_t(nbody) + size_t(nbody)*nbody);
+            if(k+need>v.size())
+            return false;
+            cal_dA.assign(nbody,Eigen::Matrix<double,6,6>::Zero());
+            cal_dC.assign(nbody*nbody,Eigen::Matrix<double,6,6>::Zero());
+            for(auto &A : cal_dA)
+            for(int a=0; a<6; ++a)
+            for(int b=0; b<6; ++b)
+            A(a,b) = next();
+            for(auto &A : cal_dC)
+            for(int a=0; a<6; ++a)
+            for(int b=0; b<6; ++b)
+            A(a,b) = next();
         }
     }
 

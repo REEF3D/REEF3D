@@ -106,6 +106,23 @@ void sixdof_obj_nhflow::membrane_stabilisation(lexer *p, int iter)
     Eigen::Matrix3d J = pnetinter->membrane_stiffness_nhflow(p);
     const Eigen::Matrix3d Ia = pnetinter->membrane_addedinertia_nhflow(p);
     
+    coupling_stabilisation(p,iter,Ma,J,Ia);
+}
+
+// the hull as a sharp thin body (X 15 8): the hull pressure of the projection carries the added mass of the water,
+// lagged by a stage, as the load of a rigid bag: stabilised with M_a = 2 M (twice the displaced water of a floating
+// body) and I_a = 2 I (world frame), the defaults of the rigid bag
+void sixdof_obj_nhflow::hull_stabilisation(lexer *p, int iter)
+{
+    const double Ma = 2.0*Mass_fb;
+    const Eigen::Matrix3d J = Eigen::Matrix3d::Zero();
+    const Eigen::Matrix3d Ia = 2.0*quatRotMat*I_*quatRotMat.transpose();
+    
+    coupling_stabilisation(p,iter,Ma,J,Ia);
+}
+
+void sixdof_obj_nhflow::coupling_stabilisation(lexer *p, int iter, double Ma, Eigen::Matrix3d J, const Eigen::Matrix3d &Ia)
+{
     if(Ma<=0.0 && J.norm()<=0.0 && Ia.norm()<=0.0)
     return;
     

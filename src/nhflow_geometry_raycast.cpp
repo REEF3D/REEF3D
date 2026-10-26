@@ -28,6 +28,29 @@ Author: Hans Bihs
 
 void nhflow_geometry::ray_cast(lexer *p, fdm_nhf *d, ghostcell *pgc, double *LS)
 {
+    // a patch of the mesh refinement: the bounds of the ray cast are the patch arrays
+    // (amr_ray_box), the extent of the lexer restored at the end
+    struct bounds
+    {
+        lexer *p;
+        bool on;
+        double ox,ex,oy,ey;
+        bounds(lexer *pp, bool o, const double *b) : p(pp), on(o)
+        {
+            if(!on)
+            return;
+            ox=p->originx; ex=p->endx; oy=p->originy; ey=p->endy;
+            p->originx=b[0]; p->endx=b[1]; p->originy=b[2]; p->endy=b[3];
+        }
+        ~bounds()
+        {
+            if(on)
+            {
+            p->originx=ox; p->endx=ex; p->originy=oy; p->endy=ey;
+            }
+        }
+    } bnd(p,amr_grid,amr_bx);
+    
     zmin = 1.0e8;
     zmax = -1.0e8;
     
@@ -108,4 +131,19 @@ void nhflow_geometry::ray_cast(lexer *p, fdm_nhf *d, ghostcell *pgc, double *LS)
     
     
 	pgc->start5V(p,LS,1); 
+}
+
+void nhflow_geometry::entity_box(int n, double *b) const
+{
+    b[0]=b[2]=1.0e20;
+    b[1]=b[3]=-1.0e20;
+    
+    for(int q=tstart[n]; q<tend[n]; ++q)
+    for(int v=0; v<3; ++v)
+    {
+        b[0] = MIN(b[0],tri_x[q][v]);
+        b[1] = MAX(b[1],tri_x[q][v]);
+        b[2] = MIN(b[2],tri_y[q][v]);
+        b[3] = MAX(b[3],tri_y[q][v]);
+    }
 }

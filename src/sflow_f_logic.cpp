@@ -196,7 +196,7 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
     
         if(prk3!=nullptr)
         {
-        pamr = new sflow_amr(p,b,pgc,pBC,p6dof,phll,prk3);
+        pamr = new sflow_amr(p,b,pgc,pBC,p6dof,pflow,phll,prk3);
         prk3->pamr = pamr;
         
         // non-hydrostatic pressure on the composite grid
@@ -208,14 +208,23 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
         }
         }
 
+        // the refinement runs with the RK3 integrator only: say so instead of running the native grid
+        // alone (RK2 A 210 2, the semi-implicit free surface A 226 1)
+        if(prk3==nullptr && p->G1>0 && p->geo_mb==0 && p->mpirank==0)
+        cout<<"SFLOW AMR (G 1): only with A 210 3 and A 226 0 -- refinement switched off"<<endl;
+
         // multi-block grid: the blocks 1.. run in the mesh refinement (RK3 only)
         if(prk3==nullptr && p->geo_mb>0)
         {
             if(p->mpirank==0)
-            cout<<"!!! SFLOW multi-block grid (G 50 1 with DIVEMesh R 20 1): only with A 210 3 !!!"<<endl;
+            cout<<"!!! SFLOW multi-block grid (G 50 1 with DIVEMesh R 20 1): only with A 210 3 and A 226 0 !!!"<<endl;
             exit(1);
         }
     }
+
+    // G 1 without anything to refine: no box (G 10), no flag (G 20, G 22) and no body zone (G 12)
+    if(p->G1>0 && !(p->G10>0 || p->G20>0.0 || p->G22>0 || p->G12>0) && p->geo_mb==0 && p->mpirank==0)
+    cout<<"SFLOW AMR (G 1): no refinement box (G 10), flag (G 20, G 22) or body zone (G 12) given -- refinement switched off"<<endl;
     
     //Potential Flow Solver
     if(p->I11==0)

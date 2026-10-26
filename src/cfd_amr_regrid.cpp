@@ -40,6 +40,7 @@ Architect: Hans Bihs
 //    G 24 n   the interface band: |phi| < n psi (psi of the flagging level)
 //    G 25 n   within n cells of a solid, the topography or a floating body (|solid|, |topo|, |fb| < n dx)
 //    G 26 w   a vorticity |curl u| > w [1/s]
+//    G 12 r   the zone of the floating bodies (cfd_amr_zone.cpp), on the finest level
 //    G 15     boxes, always refined to the finest level
 //  A flagged cell of level l (with a buffer of G 3 cells) marks the tiles of its children on level
 //  l+1; a tile stays refined G 5 regrids after its last flag.  reefamr3d nests the levels, keeps
@@ -184,6 +185,10 @@ void cfd_amr::flags(vector<vector<unsigned char>> &seed, bool init)
             }
         }
     }
+
+    // the refinement zone of the floating bodies (G 12)
+    if(bzone)
+    zone_seed(seed);
 
     for(int l=1; l<=maxlev; ++l)
     if(!seed[l].empty())
@@ -400,7 +405,13 @@ void cfd_amr::regrid(lexer *p, ghostcell *pgc, bool replace)
         flags(seed,false);
         }
 
-        if(!rebuild(seed,gone,fresh))
+        // (restart: the tile maps of the checkpoint as they are, no lazy layout)
+        const double lz = lazy;
+        if(!ck_seed.empty())
+        lazy = 0.0;
+        const bool changed = rebuild(seed,gone,fresh);
+        lazy = lz;
+        if(!changed)
         return;
     }
     ++nregrid;
@@ -487,6 +498,12 @@ void cfd_amr::regrid(lexer *p, ghostcell *pgc, bool replace)
                 }
             }
         }
+
+        // the solids and the topography at the resolution of the new patches
+        for(int id : lev[l])
+        if(isfresh[id])
+        patch_geometry(id);
+
         fill(l,fs);
 
         // the boundary values of the new patches (the parents of the next level)

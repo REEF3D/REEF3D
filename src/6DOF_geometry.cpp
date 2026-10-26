@@ -29,7 +29,7 @@ Author: Hans Bihs
 sixdof_geometry::sixdof_geometry(int number) : id(number), tri_x(nullptr), tri_y(nullptr), tri_z(nullptr),
                                                tri_x0(nullptr), tri_y0(nullptr), tri_z0(nullptr),
                                                tricount(0), entity_count(0), entity_sum(0),
-                                               tstart(nullptr), tend(nullptr), holes_closed(false), amr_hfac(1.0),
+                                               tstart(nullptr), tend(nullptr), holes_closed(false), amr_hfac(1.0), amr_vfac(1.0),
                                                tri_switch(nullptr), tri_switch_local(nullptr),
                                                tricount_local(0), tricount_local_list(nullptr), tricount_local_displ(nullptr),
                                                tricount_switch_total(0), n(0), q(0)

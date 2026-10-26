@@ -25,6 +25,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
+#include"met_forcing.h"
 #include"sediment.h"
 #include<sys/stat.h>
 #include<sys/types.h>
@@ -276,6 +277,10 @@ void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc, sediment *pse
         ++n;
     }
 
+    // atmospheric forcing (W 200)
+    if(d->met!=nullptr)
+        d->met->offset_vtp(p,offset,n);
+
     // eddyv, kin, epsilon/omega of the top layer (k-epsilon, k-omega; none otherwise)
     pnhfturb->offset_ParaView_2D(p,offset,n);
 
@@ -328,6 +333,8 @@ void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc, sediment *pse
         result<<"<DataArray type=\"Float32\" Name=\"wetdry_max\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
         ++n;
     }
+    if(d->met!=nullptr)
+        d->met->name_vtp(result,offset,n);
 
     pnhfturb->name_vtp(p,d,pgc,result,offset,n);
     result<<"</PointData>\n";
@@ -491,6 +498,10 @@ void nhflow_vtp_fsf::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc, sediment *pse
             result.write((char*)&ffn, sizeof(float));
         }
     }
+
+    //  wind10, air_pressure, wind_stress (W 200)
+    if(d->met!=nullptr)
+        d->met->print_vtp(p,result);
 
     //  eddyv, kin, epsilon/omega of the top layer
     pnhfturb->print_2D(p,d,pgc,result,1);

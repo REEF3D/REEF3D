@@ -98,7 +98,7 @@ void sixdof_geometry::geometry_refinement(lexer *p, ghostcell *pgc)
     dxmin = MIN(dxmin,amr_hfac*p->DYN[JP]);
     
     KLOOP
-    dxmin = MIN(dxmin,p->DZN[KP]);
+    dxmin = MIN(dxmin,amr_vfac*p->DZN[KP]);
 
 
 	for (int n = 0; n < tri_x_r.size(); n++)
@@ -144,7 +144,7 @@ void sixdof_geometry::geometry_refinement(lexer *p, ghostcell *pgc)
         if(p->j_dir==1)
         dxmin = MIN(dxmin,amr_hfac*p->DYN[JP]);
         
-        dxmin = MIN(dxmin,p->DZN[KP]);
+        dxmin = MIN(dxmin,amr_vfac*p->DZN[KP]);
         }
         
 		// Check size of triangle and split into 4 triangles if too big

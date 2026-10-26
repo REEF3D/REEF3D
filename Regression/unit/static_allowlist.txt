@@ -34,6 +34,7 @@ lagoon_store.cpp | uint32_t table[256] | CRC table and per-thread deflater (no g
 lagoon_store.cpp | bool ready = false | CRC table and per-thread deflater (no grid data)
 lagoon_store.cpp | deflater d | CRC table and per-thread deflater (no grid data)
 lexer_amr.cpp | bool told[64] = {false} | the AMR contract check: a violation printed once per member
+met_provider.h | met_provider *instance | the met provider of the process (W 200): the source and the start time of the run, shared by all grids; the fields of a grid are in its met_forcing
 momentum_forcing.h | dem *pdem = nullptr | the DEM object of the rank grid; CFD AMR refuses DEM (E 10, cfd_amr::scope)
 momentum_forcing.h | sediment *psed = nullptr | the sediment object of the rank grid; CFD AMR refuses S 10, Q 10 (cfd_amr::scope)
 multiphase_fluid_update_f.h | int iocheck,iter | print throttle of the volume output (not built on patches)

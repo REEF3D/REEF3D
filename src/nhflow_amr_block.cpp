@@ -42,7 +42,8 @@ Author: Hans Bihs
 // multi-block curvilinear concept), the glue of REEFAMR (reefamr_block.cpp) as for SFLOW:
 //  - block 0 is the native grid: its own cells and a ring of cells on every face with an interface
 //    (the cells of the neighbour blocks); blocks 1.. are level-0 patches (lev[0]) with their own
-//    lexer (the block nodes), fdm_nhf and NHFLOW objects, placed on the ranks for the load
+//    lexer (the block nodes), fdm_nhf and NHFLOW objects, placed on the ranks for the load (G 55: the
+//    blocks of DIVEMesh cut into pieces first, every piece a block, geo_mesh_split.cpp)
 //  - before every stage the cells around the blocks and the ring take the stage input of the cells
 //    they stand for (eta, water level, wet and deep, U, V, W, UH, VH, WH per layer, P per node):
 //    the stage of every block then runs as on one grid, velocities are Cartesian components, so the

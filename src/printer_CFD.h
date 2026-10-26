@@ -91,6 +91,7 @@ private:
     print_wsfline_x *pwsfline_x;
     print_wsfline_y *pwsfline_y;
     force **pforce;
+    int nforce = 0;     // P 81
     vorticity *pvort;
     probe_point *pprobe;
     probe_pressure *ppressprobe;

@@ -1,0 +1,19 @@
+{
+ "description": "SFLOW semi-implicit (A 226 1, theta 0.55, dt 30 s) wind setup in a closed 1D basin 10 km, h = 10 m, implicit Manning friction: uniform U10 20 m/s along x (W 200 1), Garratt drag, ramp 1800 s (W 204). Toward the steady setup d(eta)/dx = tau/(rho g (h + eta)) (validated in Dropbox Storm Surge/validation/01_wind_setup).",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 200,
+ "tags": [
+  "quick",
+  "1d",
+  "sflow",
+  "semi_implicit",
+  "closed",
+  "wind",
+  "met"
+ ],
+ "covers": [
+  "met_forcing::source_sflow (SI)",
+  "ramp W 204"
+ ]
+}

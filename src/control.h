@@ -383,7 +383,7 @@ public:
 
     // Grid Options
     // mesh refinement (SFLOW, FNPF, NHFLOW): G 1-G 40
-    int G1,G2,G3,G4,G5,G6,G7,G10,G11,G12,G22,G23,G30,G31,G40,G43,G45,G50,G51,G52,G53;
+    int G1,G2,G3,G4,G5,G6,G7,G10,G11,G12,G22,G23,G30,G31,G40,G43,G45,G50,G51,G52,G53,G55;
     int G54, *G54_b, *G54_t;     // open boundaries on the blocks 1.. of a multi-block grid: block, type (1 discharge in, 2 level out,
                                  // 3 discharge time series in, 4 level time series out)
     double *G54_v;               // discharge (m3/s), water level (m) or the id of the time series file (3, 4)
@@ -516,7 +516,7 @@ public:
 
 
     double Q25,Q30,Q45,Q53,Q54,Q55,Q56,Q59,Q60,Q62,Q63,Q64,Q65,Q66,Q70,Q75,Q76,Q77;
-    int Q72,Q74,Q78;
+    int Q72,Q74,Q78,Q79;
     double Q41;
     int Q61,*Q61_i;
     double *Q61_x,*Q61_y,*Q61_z;
@@ -544,8 +544,8 @@ public:
 
 
     // Sediment Transport
-    int S10,S11,S12,S15,S16,S25,S27,S28,S29,S31,S32,S33,S34,S36,S37,S38,S41,S42,S43,S44,S50,S61,S62,S73,S74,S75,S77,S78,S80,S84,S85,S86,S95,S90,S91,S94,S100,S101,S49,S51,S54,S56;
-    double S13,S14,S17,S18,S19,S20,S21,S22,S23,S24,S26_a,S26_b,S30,S35,S39,S40,S45,S46,S47,S48,S57,S71,S72,S81,S82,S87,S88,S89,S96,S97,S64,S65,S92,S93,S102,S103,S104,S52,S53,S55,S58,S63;
+    int S10,S11,S12,S15,S16,S25,S27,S28,S29,S31,S32,S33,S34,S36,S37,S38,S41,S42,S43,S44,S50,S61,S62,S73,S74,S75,S77,S78,S80,S84,S85,S86,S95,S90,S91,S94,S100,S101,S49,S51,S54,S56,S59;
+    double S13,S14,S17,S18,S19,S20,S21,S22,S23,S24,S26_a,S26_b,S30,S35,S39,S40,S45,S46,S47,S48,S57,S71,S72,S81,S82,S87,S88,S89,S96,S97,S64,S65,S92,S93,S102,S103,S104,S52,S53,S55,S58,S59_phi,S63;
     double S29_ts,S29_te,S29_dts,S29_dte;
     double *S73_val,*S73_dist,*S73_b,*S73_x,*S73_y;
     double *S74_xs,*S74_xe,*S74_ys,*S74_ye;
@@ -591,6 +591,9 @@ public:
     double W108_a_2;
     int W110,W111;
     double W112;
+    // atmospheric forcing (met_provider, met_forcing)
+    int W200,W205,W207,W208,W210,W211,W215,W218,W219;
+    double W201_u,W201_dir,W202,W203,W204,W205_lon,W205_lat,W205_rot,W206_x,W206_y,W209,W212,W213,W214,W216,W217;
 
     // 6DOF
     int X10,X12,X13,X14,X15,X16,X19,X11_u,X11_v,X11_w,X11_p,X11_q,X11_r,X21,X22,X23,X24,X31,X32,X33,X34,X38;
@@ -606,10 +609,12 @@ public:
     double X25_Cp,X25_Cq,X25_Cr;
     double X26_Cu,X26_Cv,X26_Cw;
     double X17,X18;
+    double X47;
+    int X47_n;
     int X27,X28;
     double X29_d,X29_a;
     double X30;
-    int X35,X36;
+    int X35,X36,X37;
     double X41,X42,X43,X44;
     double X100_x,X100_y,X100_z;
     double X101_phi, X101_theta, X101_psi;

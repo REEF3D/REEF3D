@@ -1,3 +1,6 @@
+x added parametric tropical cyclone vortex W 200 3 with W 215 - W 219 (Holland 1980, GAHM as ADCIRC NWS 20, Holland 2010) from a track file met-vortex.trk (tools/met_track.py fits ATCF b-decks and IBTrACS) and high-wind drag laws W 207 5 - 6 with W 213 - W 214, automatic default W 207 0 (SFLOW, NHFLOW)
+x added air pressure gradient W 208, inverse barometer on open edges W 209 - W 210 and Coriolis force W 211 - W 212 (SFLOW, NHFLOW)
+x added atmospheric forcing W 200 - W 207 (SFLOW, NHFLOW): uniform wind or a binary met file (met-forcing.r3m, tools/met_forcing.py) with u10, v10 and air pressure in space and time, read per rank in windows, drag laws W 207, ramp, geographic frame
 x added isentropic air compressibility in the continuity equation, W 32 to W 36 (CFD)
 x fixed piston and flap wavemaker velocities in the first time step after a restart
 x fixed atmospheric lid pressure B 31 after a restart with B 30 3

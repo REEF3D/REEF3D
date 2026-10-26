@@ -301,6 +301,17 @@ void geo_mesh::read(lexer *p, const char *name)
             rd.fail(p,"section BLKS truncated");
         }
 
+        // the blocks of DIVEMesh (G 55 may cut them into pieces, split_blocks)
+        nblk_orig = int(blk.size());
+        orig_ni.assign(blk.size(),0);
+        orig_nj.assign(blk.size(),0);
+        for(size_t q=0; q<blk.size(); ++q)
+        {
+            blk[q].orig = int(q);
+            orig_ni[q] = blk[q].ni;
+            orig_nj[q] = blk[q].nj;
+        }
+
         rd.check(sc);
     }
 

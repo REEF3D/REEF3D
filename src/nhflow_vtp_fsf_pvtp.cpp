@@ -23,6 +23,8 @@ Author: Hans Bihs
 #include"nhflow_vtp_fsf.h"
 #include"nhflow_turbulence.h"
 #include"lexer.h"
+#include"fdm_nhf.h"
+#include"met_forcing.h"
 #include"runlog.h"
 
 void nhflow_vtp_fsf::pvtp(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_turbulence *pnhfturb, int num)
@@ -51,6 +53,8 @@ void nhflow_vtp_fsf::pvtp(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_turbulenc
         result<<"<PDataArray type=\"Float32\" Name=\"Hs\"/>\n";
     if(p->P131==1)
         result<<"<PDataArray type=\"Float32\" Name=\"wetdry_max\"/>\n";
+    if(d->met!=nullptr)
+        d->met->name_pvtp(result);
     pnhfturb->name_pvtp(p,d,pgc,result);
     result<<"</PPointData>\n";
 

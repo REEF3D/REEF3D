@@ -34,7 +34,7 @@ point_force::point_force(const model &m, int b, const Vec3 &p, const Vec3 &F_, c
 
 void point_force::eval(const model &m, double t, VecX &f) const
 {
-    if(b_ < 0)
+    if(b_ < 0 || t >= until)
         return;
     const double r = ramp_ > 0.0 ? std::min(1.0, std::max(0.0, t/ramp_)) : 1.0;
     m.add_force(f, b_, m.body(b_).point(s_), r*F);

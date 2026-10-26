@@ -381,6 +381,9 @@ reefrun_ckpt& driver::ckpt()
         pnhfamr->write_loadmap(pp);
         if(pcfdamr!=nullptr)
         pcfdamr->write_loadmap(pp);
+        // CFD with CPM (no mesh refinement): the parcels per cell (CPM_loadmap.cpp)
+        if(pp->A10==6 && pcfdamr==nullptr && pp->S10>0 && psed!=nullptr)
+        psed->loadmap(pp,a,pgc);
     };
 
     rck = new reefrun_ckpt(p,pgc,std::move(h));

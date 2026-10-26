@@ -60,6 +60,11 @@ public:
     // the caller falls back to d->FB of the last ray cast
     virtual bool top_phi_nhflow(lexer*,fdm_nhf*,ghostcell*,int,slice&,slice&) {return false;};
     
+    // hull as the top of the water columns (X 13 2, nhflow_fsf_hull): keel height S, cover and the
+    // body velocity (us, vs, ws) at the keel point of every column at the pose of stage iter;
+    // false: not available
+    virtual bool keel_nhflow(lexer*,fdm_nhf*,ghostcell*,int,slice&,slice&,slice&,slice&,slice&,slice&) {return false;};
+    
     virtual void ini(lexer*,ghostcell*)=0;
 
     // checkpoints (P 48, I 45): the state of the bodies (the same on all ranks); restore false: the

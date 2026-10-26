@@ -171,15 +171,25 @@ fnpf_6DOF::fnpf_6DOF(lexer *p, fdm_fnpf *c, ghostcell *pgc) : initialized(false)
     if(p->mpirank==0 && nbody>1)
     cout<<"6DOF FNPF: "<<nbody<<" bodies, coupled added mass, psi_0 = phi_t (m-terms neglected)"<<endl;
 
-    if(p->mpirank==0 && p->X36==1)
+    if(p->mpirank==0 && p->X36>=1)
     {
         if(p->G1>0 && p->G12>0 && p->G7!=1)
+        {
         cout<<"6DOF FNPF: the unit modes of the added mass of every body on the patches of its zone only (X 36; G 12 "
-            <<p->G12_r<<": psi 0 at their edge, the cross added mass from the bodies inside them)"<<endl;
+            <<p->G12_r<<": psi 0 at their edge, the cross added mass from the bodies inside them)";
+        if(p->X36==1)
+        cout<<", calibrated on all grids at the first added mass and after a new layout of the patches"
+            <<(p->X37>0 ? " and every X 37 added masses" : "");
+        cout<<endl;
+        }
         else
         cout<<"6DOF FNPF: X 36 needs the mesh refinement with the zones around the bodies (G 1, G 12) and no subcycling (G 7 1): "
               "the unit modes are solved on all grids"<<endl;
     }
+
+    if(p->mpirank==0 && p->X47>0.0)
+    cout<<"6DOF FNPF: sawtooth filter of eta and Fifsf in "<<MIN(MAX(p->X47_n,1),3)<<" column"<<(MIN(MAX(p->X47_n,1),3)>1?"s":"")
+        <<" around the footprint, weight "<<MIN(p->X47,1.0)<<" (X 47)"<<endl;
 
     if(p->mpirank==0 && p->X28>1)
     {
@@ -240,7 +250,7 @@ fnpf_6DOF::fnpf_6DOF(lexer *p, fdm_fnpf *c, ghostcell *pgc) : initialized(false)
     // several bodies: the unit modes of the bodies 1, 2, ... on level 0 (the free DOFs; X 36 with mesh
     // refinement: the unit modes live on the patches of the body's window, level 0 only for a body
     // without one, allocated then by mode_array)
-    if(nbody>1 && !(p->X36==1 && p->G1>0 && p->G12>0 && p->G7!=1))
+    if(nbody>1 && !(p->X36>=1 && p->G1>0 && p->G12>0 && p->G7!=1))
     {
         g0.psib.assign(6*(nbody-1),nullptr);
         
@@ -920,11 +930,71 @@ void fnpf_6DOF::footprint(fnpf_6DOF_grid &G, ghostcell *pgc, slice &eta, slice &
                 
                 eta(i,j) = (1.0 - w)*eta_ext(i,j) + w*se/nn;
             }
-            
+
             pgc->gcsl_start4(p,eta,gcval_eta);
         }
+
+        // X 47 w n: sawtooth filter of eta and Fifsf in the free-surface columns within n columns of
+        // the footprint, once per stage,
+        //     f = (1 - w) f + w F(f),   F(f)_i = (-f_{i-2} + 4 f_{i-1} + 10 f_i + 4 f_{i+1} - f_{i+2})/16
+        // (Longuet-Higgins and Cokelet 1976), in x and then in y. F removes the 2-cell mode exactly and
+        // changes a smooth field at 4th order only, so the run-up at the hull and phi_t are kept; the
+        // stencil reads the footprint extension and the free surface alike.
+        // The waterline of a surface-piercing hull feeds the 2-cell mode in the columns at its sides
+        // (the velocity across the waves explodes, umax and wmax follow) in the first deep wave trough:
+        // on a 0.05 m grid at a 1 m float it grows from 0.1 to 10^4 m/s in half a second with X 17 0,
+        // X 17 0.5 holds two floats but not ten (LUPA array, emergency stop at 15 s). X 17 relaxes eta
+        // towards the neighbour mean (2nd order, eta only), its damping of the mode falls with the
+        // grid spacing; the filter's does not.
+        if(p->X47>0.0)
+        {
+            const double w = MIN(p->X47,1.0);
+            const int nb = MIN(MAX(p->X47_n,1),3);       // the ghost margin of the slices
+
+            // the band: free-surface columns with a footprint column within nb columns
+            auto band = [&](int ii, int jj) -> bool
+            {
+                if(foot(ii,jj)>0.5)
+                return false;
+
+                for(int di=-nb; di<=nb; ++di)
+                for(int dj=(p->j_dir==1 ? -nb : 0); dj<=(p->j_dir==1 ? nb : 0); ++dj)
+                if(foot(ii+di,jj+dj)>0.5)
+                return true;
+
+                return false;
+            };
+
+            auto filter = [&](slice &f, slice4 &src, int gcv, bool ydir)
+            {
+                SLICELOOP4
+                src(i,j) = f(i,j);
+
+                pgc->gcsl_start4(p,src,gcv);
+
+                SLICELOOP4
+                if(band(i,j))
+                {
+                    const double F = ydir ? (-src(i,j-2) + 4.0*src(i,j-1) + 10.0*src(i,j) + 4.0*src(i,j+1) - src(i,j+2))/16.0
+                                          : (-src(i-2,j) + 4.0*src(i-1,j) + 10.0*src(i,j) + 4.0*src(i+1,j) - src(i+2,j))/16.0;
+
+                    f(i,j) = (1.0 - w)*src(i,j) + w*F;
+                }
+
+                pgc->gcsl_start4(p,f,gcv);
+            };
+
+            filter(eta,eta_ext,gcval_eta,false);
+            filter(Fifsf,fi_ext,gcval_fifsf,false);
+
+            if(p->j_dir==1)
+            {
+            filter(eta,eta_ext,gcval_eta,true);
+            filter(Fifsf,fi_ext,gcval_fifsf,true);
+            }
+        }
     }
-    
+
     // remember the clean state: extension in the footprint, free surface elsewhere
     SLICELOOP4
     {
@@ -1231,6 +1301,8 @@ void fnpf_6DOF::free_grid(fnpf_6DOF_grid &G)
     delete [] G.psi[m];
     for(double *a : G.psib)
     delete [] a;
+    for(int m=0; m<6; ++m)
+    delete [] G.cal[m];
     delete [] G.mark;
     for(auto q : G.h1) delete [] q;
     for(auto q : G.h2) delete [] q;
@@ -1313,6 +1385,10 @@ void fnpf_6DOF::amr_grids(lexer *p, ghostcell *pgc)
     for(size_t k=0; k<old.size(); ++k)
     if(!used[k])
     free_grid(old[k]);
+    
+    // X 36 1: a new layout of the patches (not the grids of a restart) changes the windows
+    if(amr_layout>=0 && cal_have)
+    cal_stale = true;
     
     amr_layout = amr->layout();
     
@@ -1516,7 +1592,7 @@ void fnpf_6DOF::solve_psi_amr(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *pso
 // (no zone, no patch at it) solves on all grids.  Not with subcycling (G 7 1)
 bool fnpf_6DOF::win_on(lexer *p) const
 {
-    return p->X36==1 && p->G12>0 && p->G7!=1 && amr_on() && !amr_sub();
+    return p->X36>=1 && p->G12>0 && p->G7!=1 && amr_on() && !amr_sub();
 }
 
 void fnpf_6DOF::windows(lexer *p, ghostcell *pgc)
@@ -1668,6 +1744,91 @@ void fnpf_6DOF::solve_psi_window(lexer *p, fdm_fnpf *c, ghostcell *pgc, int m, i
     t_psi += MPI_Wtime()-t0;
 }
 
+// X 36 1, the calibration: the unit mode m of body nb on all grids, into its arrays on the patches of its
+// window (the start of the window solve that follows) and the scratch arrays cal of level 0 and the other
+// patches (0 at the start); no start values of X 35 (psi_guess, psi_record: the window solves keep theirs)
+void fnpf_6DOF::solve_psi_cal(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, fnpf_fsf *pf, int m, int nb)
+{
+    const double t0 = MPI_Wtime();
+    const int ng = 1+(int)gp.size();
+    vector<double*> fs(ng);
+    vector<slice*> Ds(ng);
+
+    auto scratch = [&](fnpf_6DOF_grid &G) -> double*
+    {
+        const size_t size = (size_t)G.p->imax*G.p->jmax*(G.p->kmax+2);
+        if(G.cal[m]==nullptr)
+        G.cal[m] = new double[size];
+        std::fill(G.cal[m],G.cal[m]+size,0.0);
+        return G.cal[m];
+    };
+
+    for(int g=0; g<ng; ++g)
+    {
+        fnpf_6DOF_grid &G = (g==0) ? g0 : gp[g-1];
+        Ds[g] = G.zeroslice;
+        fs[g] = (g>0 && !wout[nb][G.id]) ? mode_array(G,nb,m) : scratch(G);
+    }
+
+    auto prep = [&](fnpf_6DOF_grid &G, double *f)
+    {
+        lexer *p = G.p;
+        slice4 &foot = *G.foot;
+
+        // Dirichlet 0 on the free surface outside the footprint
+        FFILOOP4
+        if(foot(i,j)<0.5)
+        {
+            f[FIJK]   = 0.0;
+            f[FIJKp1] = 0.0;
+            f[FIJKp2] = 0.0;
+            f[FIJKp3] = 0.0;
+        }
+
+        G.pbed->bedbc_sig(p,G.c,pgc,f,G.l0 ? pf : G.pf);
+    };
+
+    prep(g0,fs[0]);
+    pgc->start7V(p,fs[0],c->bc,gcval);
+
+    {
+    reefamr_comms_off guard(pgc);
+    for(size_t n=0; n<gp.size(); ++n)
+    {
+        prep(gp[n],fs[n+1]);
+        amr->patch_walls_fi(gp[n].id,fs[n+1]);
+    }
+    }
+
+    double *uin = c->Uin;
+    c->Uin = zero;
+
+    {
+    fnpf_psi_tol tol(p);
+    amr->lap_solve_psi(p,c,pgc,psolv,pf,&fs[0],&Ds[0]);
+    }
+    psi_count(p->solveriter);
+
+    c->Uin = uin;
+
+    pgc->start7V(p,fs[0],c->bc,gcval);
+
+    const double t1 = MPI_Wtime();
+    extrapolate(g0,pgc,fs[0]);
+
+    {
+    reefamr_comms_off guard(pgc);
+    for(size_t n=0; n<gp.size(); ++n)
+    {
+        amr->patch_walls_fi(gp[n].id,fs[n+1]);
+        extrapolate(gp[n],pgc,fs[n+1]);
+    }
+    }
+    t_band += MPI_Wtime()-t1;
+
+    t_psi += MPI_Wtime()-t0;
+}
+
 void fnpf_6DOF::forces_amr(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, fnpf_fsf *pf,
                            slice &Keta, slice &Kfi, int iter)
 {
@@ -1746,21 +1907,34 @@ void fnpf_6DOF::forces_amr(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv,
     for(auto &A : Across)
     A.setZero();
 
-    // X 36: the windows of the bodies (the patches of their zones)
+    // X 36: the windows of the bodies (the patches of their zones); X 36 1: the calibration on all grids
+    // (the first added mass with windows, a new layout of the patches, every X 37 refreshes)
     const bool win = refresh && win_on(p);
     if(win)
-    windows(p,pgc);
+    {
+        windows(p,pgc);
+        ++am_refreshes;
+    }
+    const bool cal = win && p->X36==1
+                  && (!cal_have || cal_stale || (p->X37>0 && am_refreshes-cal_refresh>=p->X37));
+    if(cal)
+    {
+        cal_dA.assign(nbody,Eigen::Matrix<double,6,6>::Zero());
+        cal_dC.assign(nbody*nbody,Eigen::Matrix<double,6,6>::Zero());
+    }
+    const bool cal_use = win && p->X36==1 && (cal || cal_have);
+    int cal_nb = -1;            // the body whose modes on all grids the hull integrals take (calibration)
     auto inwin = [&](int nbm, fnpf_6DOF_grid &G)
     {
         return !win || !wok[nbm] || (G.id>=0 && !wout[nbm][G.id]);
     };
 
     // psi arrays of the modes of body nbm on grid G, restricted to the solved modes (X 36: 0 outside
-    // the window of body nbm)
+    // the window of body nbm; the calibration of body nbm: its modes on all grids)
     auto modes = [&](fnpf_6DOF_grid &G, int nbm, const bool *on, double **out)
     {
         for(int m=0; m<6; ++m)
-        out[m] = on[m] ? (inwin(nbm,G) ? mode_array(G,nbm,m) : G.zero) : nullptr;
+        out[m] = on[m] ? (inwin(nbm,G) ? mode_array(G,nbm,m) : (nbm==cal_nb ? G.cal[m] : G.zero)) : nullptr;
     };
 
     // hull integral of body nbi over all grids, every triangle on the finest grid that holds its centroid
@@ -1791,6 +1965,48 @@ void fnpf_6DOF::forces_amr(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv,
         bool on[6];
         for(int m=0; m<6; ++m)
         on[m] = computeA && psi[m]!=nullptr && !fb_obj[nb]->dof_fixed_fnpf(p,m);
+
+        // X 36 1, the calibration: the modes of body nb on all grids first (the window solves start
+        // from them), the added mass (Ag) and the cross terms (Cg) from them
+        const bool calb = cal && computeA && wok[nb];
+        Eigen::Matrix<double,6,6> Ag = Eigen::Matrix<double,6,6>::Zero();
+        vector<Eigen::Matrix<double,6,6>> Cg;
+        if(calb)
+        {
+            for(int m=0; m<6; ++m)
+            if(on[m])
+            {
+                face(m,nb);
+                solve_psi_cal(p,c,pgc,psolv,pf,m,nb);
+            }
+
+            cal_nb = nb;
+            sixdof_obj_fnpf::fnpf_force_sum Sg;
+            hull_sum(nb,nb,on,true,Sg,true);
+            fb_obj[nb]->added_mass_from_sum(pgc,Sg,Ag);
+            Ag = (0.5*(Ag + Ag.transpose())).eval();
+
+            Cg.assign(nbody,Eigen::Matrix<double,6,6>::Zero());
+            for(int nb2=0; nb2<nbody; ++nb2)
+            if(nb2!=nb)
+            {
+                sixdof_obj_fnpf::fnpf_force_sum S2;
+                hull_sum(nb2,nb,on,true,S2,true);
+                fb_obj[nb2]->added_mass_from_sum(pgc,S2,Cg[nb2]);
+            }
+            cal_nb = -1;
+
+            // the scratch arrays back
+            for(int g=-1; g<(int)gp.size(); ++g)
+            {
+                fnpf_6DOF_grid &G = (g<0) ? g0 : gp[g];
+                for(int m=0; m<6; ++m)
+                {
+                    delete [] G.cal[m];
+                    G.cal[m] = nullptr;
+                }
+            }
+        }
 
         for(int m=0; m<6; ++m)
         if(on[m])
@@ -1838,14 +2054,43 @@ void fnpf_6DOF::forces_amr(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv,
             fb_obj[nb2]->added_mass_from_sum(pgc,S2,Across[nb2*nbody+nb]);
         }
 
+        // X 36 1: the cross terms of the calibration less those of the window (the bodies outside the
+        // window: all of them), added to the window's until the next calibration
+        if(computeA && nbody>1 && cal_use && wok[nb])
+        for(int nb2=0; nb2<nbody; ++nb2)
+        if(nb2!=nb)
+        {
+            const int e = nb2*nbody+nb;
+            if(calb)
+            cal_dC[e] = Cg[nb2] - Across[e];
+            Across[e] += cal_dC[e];
+        }
+
         sixdof_obj_fnpf::fnpf_force_sum S;
         hull_sum(nb,nb,on,computeA,S,false);
         
         fb_obj[nb]->forces_fnpf_set(p,pgc,S,computeA);
 
+        // X 36 1: the added mass of the calibration less that of the window, added to the window's until
+        // the next calibration
+        if(computeA && cal_use && wok[nb])
+        {
+            const Eigen::Matrix<double,6,6> Aw = fb_obj[nb]->external_added_mass();
+            if(calb)
+            cal_dA[nb] = Ag - Aw;
+            fb_obj[nb]->fnpf_added_mass_restore(Aw + cal_dA[nb]);
+        }
+
         // force log: first stage = state at the current time level
         if(iter==0)
         fb_obj[nb]->print_force_fnpf(p);
+    }
+
+    if(cal)
+    {
+        cal_have = true;
+        cal_stale = false;
+        cal_refresh = am_refreshes;
     }
 
     t_loads += MPI_Wtime()-t0;

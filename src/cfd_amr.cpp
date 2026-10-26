@@ -58,6 +58,7 @@ Architect: Hans Bihs
 #include"rans_io.h"
 #include"6DOF_cfd.h"
 #include"cfd_amr_6dof.h"
+#include"force.h"
 #include"convection_void.h"
 #include"ifou.h"
 #include"iweno_hj_df_nug.h"
@@ -273,6 +274,7 @@ cfd_amr::cfd_amr(lexer *p, fdm *a, ghostcell *pgc, momentum *pmom, pressure *ppr
     pturb0 = pturb;
     turb = (p->T10==1 || p->T10==2 || p->T10==21 || p->T10==22) && dynamic_cast<rans_io*>(pturb)!=nullptr ? 1 : 0;
     solids = (p->solidread!=0 || p->toporead!=0) ? 1 : 0;
+    geom_setup(p);
 
     // floating bodies: moved on level 0, the hull and its forcing on every grid
     b6 = (p->X10==1) ? dynamic_cast<sixdof_cfd*>(p6dof) : nullptr;
@@ -339,8 +341,15 @@ cfd_amr::cfd_amr(lexer *p, fdm *a, ghostcell *pgc, momentum *pmom, pressure *ppr
     // G 41: the work of a patch cell in the placement (0: measured, from 1 until the first measurement)
     wpatch = (p->G41>0.0) ? p->G41 : 1.0;
 
-    // the hierarchy: static boxes G 15, adaptive with the flags G 24-26 of the initial level 0
-    adapt = (p->G24>0.0 || p->G25>0 || p->G26>0.0) ? 1 : 0;
+    // the refinement zone of the floating bodies (G 12 r, G 13 L a): regrids every G 2 steps, the
+    // layout kept while it covers the zone with at most 50 % more tiles (as NHFLOW and FNPF)
+    bzone = (bodies && p->G12>0) ? 1 : 0;
+    if(bzone)
+    lazy = 1.5;
+
+    // the hierarchy: static boxes G 15, adaptive with the flags G 24-26 (and the body zone G 12) of the
+    // initial level 0
+    adapt = (p->G24>0.0 || p->G25>0 || p->G26>0.0 || bzone) ? 1 : 0;
     if(adapt)
     {
         setup_base(p,pgc);
@@ -592,6 +601,9 @@ void cfd_amr::free_patch(cfd_amr_patch *c)
     }
 
     // the objects of patch_objects (the base classes have virtual destructors)
+    for(force *f : c->forces)
+    delete f;
+    c->forces.clear();
     delete c->pmom;
     delete c->p6dof;
     delete c->ppress;
@@ -799,6 +811,10 @@ void cfd_amr::patch_objects(r3patch *rp)
 
     if(bodies && !c->shadow)
     c->p6dof = new cfd_amr_6dof(pp,b6);
+
+    // the forces on the solids (P 81): the force objects of the patch (cfd_amr_force.cpp)
+    if(!c->shadow)
+    force_objects(c);
 }
 
 // --------------------------------------------------------------------- fills
@@ -1190,6 +1206,11 @@ void cfd_amr::ini(lexer *p, fdm *a, ghostcell *pgc)
                 }
             }
         }
+
+        // the solids and the topography at the resolution of the patches
+        for(int id : lev[l])
+        patch_geometry(id);
+
         fill(l,fs);
 
         // the boundary values: the cells outside the domain are the neighbours of the slopes of
@@ -1506,6 +1527,24 @@ void cfd_amr::restrict_scalars(int s)
     pgc0->start4(p0,mom0->amr_phi_out(s),gcval_phi);
 }
 
+// the pressure around the patches of all levels at the end of the step.  The composite projection
+// corrects the pressure of the leaf cells; the cells around the patches keep that of the start of
+// the last stage (fill_stage_in) until the next stage fills them.  The outputs interpolate there
+// next to a patch edge (the probes, the pieces of the solid surface of P 81 at the edge of a
+// patch; with G 40 every cut of the units), so they read the projected pressure.  The next stage
+// fills these cells again before it reads them.
+void cfd_amr::fill_press_out()
+{
+    vector<fspec> fs;
+    for(const cfd_amr_field &e : reg)
+    if(e.name=="press")
+    {
+        const cfd_amr_field *pe = &e;
+        fs.push_back({e.type,e.prolong,[this,pe](int g) -> field& { return rf(*pe,g); }});
+    }
+    fill_all(fs);
+}
+
 void cfd_amr::step(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof *p6dof)
 {
     // the pressure reference (B 30 1, 2, 4) once at the end of the step over all grids; level 0
@@ -1524,6 +1563,8 @@ void cfd_amr::step(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof *p6do
         p->B30 = b30;
         reference(p,pgc);
     }
+
+    fill_press_out();
 
     // load statistics of the ranks (G 43), the load map (G 45, 46)
     load_step(p);

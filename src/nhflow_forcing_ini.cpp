@@ -31,7 +31,7 @@ void nhflow_forcing::forcing_ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     if(solid_flag==1)
     {
-    if(p->mpirank==0)
+    if(p->mpirank==0 && !amr_grid)
     cout<<"Forcing ini "<<endl;
     
    

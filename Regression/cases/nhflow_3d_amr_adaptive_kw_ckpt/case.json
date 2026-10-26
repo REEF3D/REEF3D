@@ -1,0 +1,18 @@
+{
+ "base": "nhflow_3d_amr_adaptive_kw",
+ "ctrl_set": {
+  "P 48": "10",
+  "P 49": "0"
+ },
+ "description": "nhflow_3d_amr_adaptive_kw (NHFLOW, solution-adaptive refinement with a regrid every step, k-omega on every patch) with a checkpoint every 10 steps, all kept (P 48 10, P 49 0): the uninterrupted run of the restart cases.",
+ "tags": [
+  "3d",
+  "nhflow",
+  "amr",
+  "turbulence",
+  "checkpoint"
+ ],
+ "covers": [
+  "nhflow_amr::ckpt_write: the layout (tile maps, hysteresis) and the arrays of nhflow_ckpt_fields, of the momentum integrator and of the turbulence model per patch"
+ ]
+}

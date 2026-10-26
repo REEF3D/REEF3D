@@ -21,6 +21,7 @@ Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"iowave.h"
+#include"met_provider.h"
 #include"lexer.h"
 #include"fdm2D.h"
 #include"ghostcell.h"
@@ -167,7 +168,9 @@ void iowave::sflow_open_edges(lexer *p, fdm2D *b, ghostcell *pgc, slice &U, slic
             // background at the boundary face
             const double xf = side==1 ? p->XN[IP] : side==2 ? p->XN[IP1] : p->XP[IP];
             const double yf = side==3 ? p->YN[JP] : side==4 ? p->YN[JP1] : p->YP[JP];
-            const double eb = bi>=0 ? bgs.eta(bi,xf,yf) : 0.0;
+            double eb = bi>=0 ? bgs.eta(bi,xf,yf) : 0.0;
+            if(met_provider::ib_on(p))
+            eb += eta_ib(p,pgc,xf,yf);
             double ub=0.0, vb=0.0;
             if(bi>=0)
             bgs.vel(bi,h0,xf,yf,ub,vb);

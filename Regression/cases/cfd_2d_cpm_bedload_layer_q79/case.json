@@ -1,0 +1,15 @@
+{
+ "base": "cfd_2d_cpm_bedload_layer",
+ "ctrl_set": {
+  "Q 79": "0"
+ },
+ "tags": [
+  "quick",
+  "2d",
+  "cpm"
+ ],
+ "description": "as cfd_2d_cpm_bedload_layer with the bed shear stress of the layer from the distance to the bed level set (Q 79 0, the closure before patch 0039)",
+ "covers": [
+  "bedshear::column_tau with wall 0 for the CPM bedload layer"
+ ]
+}

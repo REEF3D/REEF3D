@@ -724,7 +724,7 @@ void control::ini_default()
     // Grid
     // mesh refinement (SFLOW, FNPF, NHFLOW)
     G1=0;       // int SFLOW, FNPF and NHFLOW mesh refinement: number of refined levels
-    G2=4;       // int SFLOW, FNPF, NHFLOW and CFD mesh refinement: regrid interval in time steps (0: static; FNPF and NHFLOW: with G 12, G 20, G 21, G 22 or G 23; CFD: with G 24, G 25 or G 26)
+    G2=4;       // int SFLOW, FNPF, NHFLOW and CFD mesh refinement: regrid interval in time steps (0: static; FNPF and NHFLOW: with G 12, G 20, G 21, G 22 or G 23; CFD: with G 12, G 24, G 25 or G 26)
     G3=2;       // int SFLOW, FNPF, NHFLOW and CFD mesh refinement: buffer cells around flagged cells
     G4=8;       // int SFLOW, FNPF, NHFLOW and CFD mesh refinement: tile size in cells of the refined level
     G5=4;       // int SFLOW, FNPF, NHFLOW and CFD mesh refinement: regrids a refined tile is kept after its last flag (hysteresis)
@@ -733,10 +733,10 @@ void control::ini_default()
     G10=0;      // int SFLOW, FNPF and NHFLOW mesh refinement: number of static refinement boxes
     G15=0;      // int CFD mesh refinement: number of static refinement boxes xs xe ys ye zs ze
     G11=0;      // int SFLOW, FNPF and NHFLOW mesh refinement: number of boxes without refinement
-    G12=0;      // int SFLOW, FNPF and NHFLOW mesh refinement: refine around the moving body (SFLOW X 10 2/3, FNPF X 10 1, NHFLOW X 10 1/2)
-    G12_r=0.5;  // double SFLOW, FNPF and NHFLOW mesh refinement: margin around the hull
-    G13_L=0.0;  // double SFLOW and NHFLOW mesh refinement: length of the refined wake wedge from the bow (0: off)
-    G13_a=19.47;// double SFLOW and NHFLOW mesh refinement: half angle of the wake wedge in degrees
+    G12=0;      // int SFLOW, FNPF, NHFLOW and CFD mesh refinement: refine around the moving body (SFLOW X 10 2/3, FNPF X 10 1, NHFLOW X 10 1/2, CFD X 10 1) and around the fixed solids (NHFLOW A 581-590)
+    G12_r=0.5;  // double SFLOW, FNPF, NHFLOW and CFD mesh refinement: margin around the hull
+    G13_L=0.0;  // double SFLOW, NHFLOW and CFD mesh refinement: length of the refined wake wedge from the bow (0: off)
+    G13_a=19.47;// double SFLOW, NHFLOW and CFD mesh refinement: half angle of the wake wedge in degrees
     G20=0.0;    // double SFLOW, FNPF and NHFLOW mesh refinement: surface jump between neighbour cells that flags a cell (0: off)
     G21=0.0;    // double FNPF and NHFLOW mesh refinement: second difference of the surface along x or y that flags a cell (0: off)
     G22=0;      // int SFLOW, FNPF and NHFLOW mesh refinement: flag the shoreline (SFLOW: >0 on; NHFLOW and FNPF with G 30 1: the cells within this many cells (1-3) of the shoreline); 0 off
@@ -748,6 +748,7 @@ void control::ini_default()
     G31=1;      // int NHFLOW mesh refinement with A 512 2: 1 one implicit diffusion solve over the leaf cells of all grids (composite), 0 every grid solves its own
     G52=0;      // int curvilinear NHFLOW (G 50): 1 the i-walls are slip walls as the j-walls (normal velocity mirrored, the pressure correction Neumann), so that a wall acts the same in any index direction (set on multi-block grids); 0 the Cartesian x-walls
     G54=0;      // int multi-block grid (G 50 1): number of open boundaries on the blocks 1.. (G 54 b t v: block b, t 1: discharge v in through its -i face, t 2: water level v at its +i face, t 3: discharge time series discharge-<v>.dat through the -i face, t 4: water level time series waterlevel-<v>.dat at the +i face)
+    G55=0;      // int multi-block grid (G 50 1): 0 the blocks 1.. of DIVEMesh as they are, m > 0 cut into pieces of at most (cells of the blocks 1..) / (m ranks) cells, so that they spread over the ranks (geo_mesh_split.cpp)
     G53=4;      // int NHFLOW multi-block grid: coarse space across the blocks in the preconditioner of the composite solves, aggregates of this many columns in i and j (0: off)
     G51=2;      // int NHFLOW multi-block grid (G 50 1, DIVEMesh R 20 1): passes of the block-local V-cycles in the preconditioner of the pressure, the corrections of the neighbour blocks filled in between
     G50=0;      // int curvilinear horizontal grid (SFLOW): 0 Cartesian, 1 nodes of the CURV section of grid-geometry.dat, 2 nodes of curvgrid.dat
@@ -1046,6 +1047,7 @@ void control::ini_default()
     Q75=0.0;            // double bedload layer: sand slide of the bed surface beyond this slope (tan of the angle of repose), 0: off
     Q76=-1.0e20;        // double fixed (non-erodible) parcel bed upstream of x = Q76
     Q77=1.0e20;         // double fixed (non-erodible) parcel bed downstream of x = Q77
+    Q79=1;              // int bedload layer: distance of the log law of the bed shear stress, 1 from the face under the first fluid cell (the wall of the k-omega wall law of the fluid at the bed), 0 from the bed level set (before patch 0039)
     Q78=0;              // int parcel merge and split: about Q78 parcels per cell; resting grains of the jammed bed (Q 58, S 10 1) merge in pairs in cells that hold more, and split again when they move or reach smaller cells; 0 off
     Q57=1;              // int Bagnold sheltering of the bed by the moving grains (S 10 1): 0 off, 1 on
     Q52=0;              // int turbulent dispersion of the parcels: 0 off, 1 random displacement with the eddy diffusivity
@@ -1112,6 +1114,8 @@ void control::ini_default()
     S50=4;                  // int bc phi, 1: inflow fix or 2: outflow fix, 3: both fix
 	S57=-1.0e20;        // double ini z-dir
     S58=0.0;            // double wave period for the wave friction bed shear stress S 16 9, <=0: period of the wave generation
+    S59=0;              // int S 16 9 combination: 0 max(tau_log, tau_w), 1 max(tau_log, Soulsby DATA13), 2 Soulsby DATA13 (current from the running mean)
+    S59_phi=0.0;        // double S 16 9 phase lead of the wave friction stress in deg
     S61=1;              // int reference height for cb
     S62=1;              // int type of suspended Exner solution
     S63=0.0;            // double S 16 10: reference height of the log law in cells above the bed, 0: first cell centre at least half a cell above the bed
@@ -1253,6 +1257,28 @@ void control::ini_default()
     W110=1;          // int add rheology as source term or viscosity
     W111=1;          // int which pressure for MC
     W112=2.1;        // double threshold factor for pressure blening in W111 3
+    W200=0;          // int atmospheric forcing (SFLOW, NHFLOW): 0 off, 1 uniform (W 201, W 202), 2 met file met-forcing.r3m
+    W201_u=0.0;      // double uniform wind speed U10 [m/s]
+    W201_dir=0.0;    // double uniform wind direction [deg], counter-clockwise from the x axis, the direction the wind blows to
+    W202=101325.0;   // double uniform air pressure [Pa]
+    W203=0.0;        // double model start date-time YYYYMMDD.HHMMSS of the met forcing, 0: the first record of the file
+    W204=0.0;        // double ramp time of the met forcing [s]
+    W205=0;          // int geographic frame given (W 205 lon0 lat0 rot)
+    W205_lon=W205_lat=W205_rot=0.0;  // double frame: transverse Mercator about lon0, lat0 [deg], x axis rot [deg] from east
+    W206_x=W206_y=0.0;  // double model coordinates of (lon0, lat0) [m]
+    W207=0;          // int drag law of the met forcing: 0 auto (1 for W 200 1/2, 5 for the vortex W 200 3), 1 Garratt, 2 Wu, 3 Smith and Banke, 4 Zijlema et al., 5 Garratt capped at W 213, 6 Zijlema et al. with the floor W 214
+    W208=1;          // int air pressure gradient of the met forcing: 0 off, 1 on
+    W209=101325.0;   // double reference air pressure of the inverse barometer [Pa]
+    W210=1;          // int inverse barometer on the open edges and relaxation zones (B 520): 0 off, 1 on
+    W211=0;          // int Coriolis force (SFLOW, NHFLOW): 0 off, 1 f-plane, 2 f per cell from the frame W 205
+    W212=0.0;        // double f-plane Coriolis parameter [1/s], 0: 2 Omega sin(lat0) of W 205
+    W213=2.5e-3;     // double cap of the drag coefficient of W 207 5 (saturation, Donelan et al. 2004)
+    W214=1.5e-3;     // double floor of the drag coefficient of W 207 6 beyond the peak of Zijlema et al.
+    W215=2;          // int vortex model of W 200 3: 1 Holland (1980), 2 GAHM, 3 Holland et al. (2010)
+    W216=0.9;        // double vortex: reduction of the gradient wind to 10 m
+    W217=0.8928;     // double vortex: 1-min to 10-min wind averaging factor
+    W218=1;          // int vortex: inflow angle, 0 none, 1 ADCIRC (10 deg inside Rmax to 25 deg beyond 1.2 Rmax)
+    W219=1;          // int vortex: translation, 0 none, 1 scaled by Vg/Vmax (ADCIRC), 2 full
     W_fb=0.0;        // double density of floating body
 
 	// 6DOF
@@ -1270,11 +1296,14 @@ void control::ini_default()
     X28=1;        // int FNPF: the added mass of the floating bodies (unit-mode psi solves, with several bodies the cross terms) every X28 time steps; in between the last one is used (1: every step)
     X30=1.0;      // double FNPF: tolerance of the psi solves of the body loads (pressure psi_0, added-mass unit modes) as a factor on N 44 (1: as the phi solves)
     X35=0;        // int FNPF: 1: the psi solves of the body loads start from the linear extrapolation in time of the last two solutions of their kind (psi_0 of the same stage, a unit mode) instead of the last one
-    X36=0;        // int FNPF with mesh refinement (G 1, the zones G 12): 1: the unit-mode psi solves of the added mass of a body on its own patches only (the patches that reach into its zone, hull box grown by G 12), psi 0 at their edge and on level 0, instead of on all grids; the cross added mass from the bodies inside these patches only
+    X36=0;        // int FNPF with mesh refinement (G 1, the zones G 12, not G 7 1): the unit-mode psi solves of the added mass of a body on its own patches only (the patches that reach into its zone, hull box grown by G 12), psi 0 at their edge and on level 0, instead of on all grids: 1 with the calibration (at the first added mass and after a new layout of the patches, every body also on all grids once; the differences of the added mass and of the cross terms are added to the window results), 2 without; the cross added mass from the bodies inside the patches only
+    X37=0;        // int FNPF X 36 1: the calibration also every X 37 added-mass refreshes (0: at the first and after a new layout of the patches only)
     X29_d=X29_a=0.0;  // double FNPF with X28 > 1: the added mass again as soon as a body has moved by more than X29_d [m] or turned by more than X29_a [deg] since it was computed (0: off)
     X27=0;        // int FNPF: a free-surface column with a body node within X27 sigma layers below its free-surface node belongs to the footprint of the body (0: off)
     X17=0.5;        // double FNPF: relaxation of eta in the free-surface columns next to the footprint of a body, once per stage (0: off)
     X18=0.0;        // double FNPF: time constant [s] of the running mean of chi at body-fixed points, removed from the psi_0 free-surface data (0: off)
+    X47=0.0;        // double FNPF: weight of the 5-point sawtooth filter (Longuet-Higgins and Cokelet) of eta and Fifsf in the free-surface columns within X47_n columns of the footprint of a body, once per stage (0: off; 1: the filtered value)
+    X47_n=2;        // int FNPF: width of the filtered band at the footprint in columns (X 47)
     X19=1;        // int print out interval 6DOF log files
     X20=1;        // int number of floating body
     X21=1;        // int presribe homogeneous density floating body

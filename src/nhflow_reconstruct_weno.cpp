@@ -73,6 +73,10 @@ void nhflow_reconstruct_weno::reconstruct_2D_x(lexer* p, ghostcell *pgc, fdm_nhf
             + w3x*(q2 + qfx[IP][uf][5][0]*(q3-q2) - qfx[IP][uf][5][1]*(q1-q2));
 	}
     
+    // wetting and drying: a stencil with a dry cell (eta = film - depth there, metres above the
+    // water level on a bank) takes the limited slope of the wet cells instead (wetdry_x)
+    wetdry_x(p,f,fs,fn);
+    
     //pgc->gcsl_start1(p,fs,1);  // face states are only read at their own face (IJK / (i,j)): no halo/BC needed
     //pgc->gcsl_start1(p,fn,1);  // face states are only read at their own face (IJK / (i,j)): no halo/BC needed
     /*
@@ -139,6 +143,9 @@ void nhflow_reconstruct_weno::reconstruct_2D_y(lexer* p, ghostcell *pgc, fdm_nhf
           
             + w3y*(q2 + qfy[JP][vf][5][0]*(q3-q2) - qfy[JP][vf][5][1]*(q1-q2));
 	}
+    
+    if(p->j_dir==1)
+    wetdry_y(p,f,fe,fw);
     
     //pgc->gcsl_start2(p,fe,1);  // face states are only read at their own face (IJK / (i,j)): no halo/BC needed
     //pgc->gcsl_start2(p,fw,1);  // face states are only read at their own face (IJK / (i,j)): no halo/BC needed
@@ -531,6 +538,66 @@ void nhflow_reconstruct_weno::jqmax_sl(lexer *p, slice& f)
 	q3 = f(i,j+1);
 	q4 = f(i,j+2);
 	q5 = f(i,j+3);
+}
+
+// The face states of eta next to dry cells.  A dry cell holds eta = A 544 - depth: on a bank that is the bank
+// height above the water level, so a five-cell stencil across the shoreline sees a jump of metres and the WENO
+// state of a wet face is off by up to centimetres even with the lake at rest; the hydrostatic pressure of the
+// face (0.5 g eta^2 + g eta d) then drives the water in the shallow cells along the bank (several m/s in the
+// Tagus estuary at rest).  Where the stencil of a face state holds a dry cell (left state i-2..i+2, right state
+// i-1..i+3), the state is the one of nhflow_reconstruct_hires instead: the cell value with the van Leer slope,
+// zero in a dry cell and next to one.  Away from the shore nothing changes.
+double nhflow_reconstruct_weno::slope_wd(lexer *p, double fm, double f0, double fp, double dm, double dp, int ii, int jj)
+{
+    const int q = (ii-p->imin)*p->jmax + (jj-p->jmin);
+    if(p->wet[q]==0 || p->wet[q+p->jmax]==0 || p->wet[q-p->jmax]==0 || (p->j_dir==1 && (p->wet[q+1]==0 || p->wet[q-1]==0)))
+    return 0.0;
+
+    const double v1 = (fp-f0)/dp;
+    const double v2 = (f0-fm)/dm;
+    double d = fabs(v1) + fabs(v2);
+    d = fabs(d)>1.0e-10 ? d : 1.0e10;
+    return (v1*fabs(v2) + fabs(v1)*v2)/d;
+}
+
+void nhflow_reconstruct_weno::wetdry_x(lexer *p, slice &f, slice &fs, slice &fn)
+{
+    auto wetrun = [&](int a, int b)
+    {
+        for(int q=a; q<=b; ++q)
+        if(p->wet[(q-p->imin)*p->jmax + (j-p->jmin)]==0)
+        return false;
+        return true;
+    };
+
+    SLICELOOP1
+    {
+        if(!wetrun(i-2,i+2))
+        fs(i,j) = f(i,j) + 0.5*p->DXP[IM1]*slope_wd(p,f(i-1,j),f(i,j),f(i+1,j),p->DXP[IM1],p->DXP[IP],i,j);
+
+        if(!wetrun(i-1,i+3))
+        fn(i,j) = f(i+1,j) - 0.5*p->DXP[IP]*slope_wd(p,f(i,j),f(i+1,j),f(i+2,j),p->DXP[IP],p->DXP[IP1],i+1,j);
+    }
+}
+
+void nhflow_reconstruct_weno::wetdry_y(lexer *p, slice &f, slice &fe, slice &fw)
+{
+    auto wetrun = [&](int a, int b)
+    {
+        for(int q=a; q<=b; ++q)
+        if(p->wet[(i-p->imin)*p->jmax + (q-p->jmin)]==0)
+        return false;
+        return true;
+    };
+
+    SLICELOOP2
+    {
+        if(!wetrun(j-2,j+2))
+        fe(i,j) = f(i,j) + 0.5*p->DYP[JM1]*slope_wd(p,f(i,j-1),f(i,j),f(i,j+1),p->DYP[JM1],p->DYP[JP],i,j);
+
+        if(!wetrun(j-1,j+3))
+        fw(i,j) = f(i,j+1) - 0.5*p->DYP[JP]*slope_wd(p,f(i,j),f(i,j+1),f(i,j+2),p->DYP[JP],p->DYP[JP1],i,j+1);
+    }
 }
 
 double nhflow_reconstruct_weno::limiter(double v1, double v2)

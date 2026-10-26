@@ -46,6 +46,7 @@ class nhflow_diffusion;
 class nhflow_pressure;
 class nhflow_fsf;
 class nhflow_forcing;
+class nhflow_force;
 class nhflow_turbulence;
 class nhflow_scalar_convection;
 class vrans_nhflow;
@@ -124,12 +125,21 @@ using namespace std;
 //  G 5 hysteresis).  The hierarchy may be empty: the first patches appear with the first flags.
 //  At t = 0 the patches take the initial water level boxes (F 72) on their own grid.
 //
+//  Fixed solids (A 581-590, direct forcing): every grid casts the solids on its own sigma grid and
+//  forces them (the nhflow_forcing of the patch, nhflow_geometry::amr_ray_box), as level 0.  G 12
+//  refines around them: the x-y extent of every solid grown by G 12 is a refinement box to the finest
+//  level (solid_zone).  The forces (P 81, nhflow_force) are integrated on the finest grid: level 0
+//  and every patch that reaches into a force box triangulate the surface of their solid field, every
+//  piece is taken by the grid whose interior holds its centre and that no finer patch covers there
+//  (force_leaf, solid_forces).  Not with subcycling (G 7 1), A 516 2/4 or the solids of the grid
+//  file (A 580 1).
+//
 //  Scope of this version: static refinement boxes, the body zone and the adaptive flags (G 1
 //  levels, G 10 boxes, G 11 boxes without refinement, G 4 tile width, G 3, G 20, G 21, G 12,
 //  G 13, G 2, G 5, G 6, G 22, G 23, G 30, G 40), A 510 2/3, A 511 1/2, A 514 all, A 520 0/1/2,
 //  A 512 0/1/2, A 560 0, A 550 0 (A 550 1 with A 510 2), B 200 0, X 10 0/1/2 (X 60 1, X 16 0,
-//  A 516 0/1/3), S 10 0, no solids (A 580 1,
-//  A 581-590), no membranes (X 330), nets (X 320), 3D and 2D grids (Cartesian).  Patches stay out of the relaxation
+//  A 516 0/1/3), S 10 0, fixed solids A 581-590 (not A 580 1), no membranes (X 330), nets (X 320),
+//  3D and 2D grids (Cartesian).  Patches stay out of the relaxation
 //  zones (B 96), the in- and outflow band and, checked at every regrid, 4 level-0 cells away from
 //  dry or shallow cells (they are fully wet; level 0 keeps its wetting and drying).
 //
@@ -176,6 +186,7 @@ struct nhflow_amr_patch : public reefamr_patch
     ioflow_amr_block *pio = nullptr;    // multi-block: in- and outflow of a block 1.. through its open faces (G 54)
     patchBC_interface *pBC = nullptr;
     nhflow_stage_obj S;
+    vector<nhflow_force*> forces;   // fixed solids: the force objects of the boxes (P 81) the patch reaches into
     vector<int> wfix;               // G 30: flags of the filled cells, kept through wetdry (lexer::wetfix)
     vector<double> vbfill;          // A 550: breaking viscosity of the source of the filled cells (lexer::amrvb)
 
@@ -189,6 +200,8 @@ struct nhflow_amr_patch : public reefamr_patch
     vector<int> row;                // FIJK -> matrix row of the patch assembly, -1 none
     reefmg_core *mg = nullptr;      // patch-local multigrid of the preconditioner
     reefamr_xzlu xz;                // a 2D grid: the exact patch-local solve instead of the V-cycle
+    long xzkey[3] = {-1,-1,-1};     // its factorisation: layout, level window, step (xz_keep)
+    vector<char> xzact;             // the active rows it was made with
     vector<int> fill1;              // the entries of fill next to the patch (the reach of the pressure rows)
     vector<int> fill2;              // the entries of fill within two columns of the patch (the stencils of the prolongation into the next finer level)
     // the overlap of the patch multigrid (pr_overlap): columns across the sides x-, x+, y-, y+ where
@@ -229,6 +242,10 @@ public:
         }
         return L;
     }
+
+    // the forces on the fixed solids (P 81) on the finest grid (amr_grid_lookup.h)
+    bool force_leaf(const void*, double, double) const override;
+    void solid_forces(int, double*) const override;
 
     nhflow_amr(lexer*, fdm_nhf*, ghostcell*, nhflow_momentum*, nhflow_convection*, nhflow_timestep*, sixdof*);
     virtual ~nhflow_amr();
@@ -279,6 +296,7 @@ public:
     void pr_p(double, double);
     void pr_s(double);
     void pr_x(double, double);
+    void pr_restart();
 
     // vector space of the composite implicit diffusion (nhflow_amr_diff.cpp, reefamr_bicgstab)
     void df_apply(int, int);
@@ -288,6 +306,7 @@ public:
     void df_p(double, double);
     void df_s(double);
     void df_x(double, double);
+    void df_restart();
 
     // the matrix of a grid as nhflow_idiff assembles it (capture solver of phase_D)
     void df_capture(double*, vec&, matrix_diag&, int);
@@ -393,11 +412,20 @@ private:
     reefmg_core *mg0 = nullptr;     // level-0 multigrid of the preconditioner
     reefamr_xzlu xz0;               // a 2D grid: the exact level-0 solve instead of the V-cycle
     bool xz0on = false;
+    long xz0key[3] = {-1,-1,-1};    // the level-0 factorisation: layout, level window, step (xz_keep)
+    vector<char> xz0act;            // the active rows it was made with
+    // a 2D grid: the factorisation of a grid made at the first pressure solve of the step is kept for
+    // its other solves while the layout, the level window and the active rows are unchanged
+    bool xz_keep(const long *key, const vector<char> &act0, const sc_level &L, int wkey) const;
+    long xz_kept = 0, xz_made = 0;  // factorisations kept, made (log)
     vector<int> rowmap0;            // level 0: FIJK -> matrix row
     double *ptgt0 = nullptr;
     long pr_it_total = 0, pr_solves = 0;
     int pr_it_last = 0;
     double pr_res_last = 0.0;
+    // BiCGStab restarts after a stagnation, solves stopped after a second stagnation below STAGTOL N 44,
+    // solves that reached N 46 (reefamr_krylov.h)
+    int pr_restarts = 0, pr_stalls = 0, pr_capped = 0;
     int layout_id = 0;
 
     // stencils and index lists of the composite solve, rebuilt in pr_prepare: they depend on the
@@ -474,6 +502,7 @@ private:
     nhflow_diffusion *dkeep = nullptr;  // diffusion object of phase_M: keeps UHDIFF ...
     long df_it_total = 0, df_solves = 0;
     int df_it_last = 0;
+    int df_restarts = 0, df_stalls = 0, df_capped = 0;     // as pr_restarts ... (residual N 43)
     double tdiff = 0.0;
 
     // wetting and drying in the patches (G 30 1): wet-aware interpolation, the flags of fresh
@@ -499,6 +528,13 @@ private:
     int finest_at(double, double);
     void body_patch(ghostcell*, nhflow_amr_patch&);
     void body_loads(lexer*, ghostcell*);
+
+    // fixed solids (A 581-590): the refinement boxes around them (G 12), the solids on the sigma
+    // grid of a fresh patch, the force objects of a patch
+    bool solids = false;
+    void solid_zone(lexer*, ghostcell*);
+    void solid_patch(ghostcell*, nhflow_amr_patch&);
+    void force_objects(nhflow_amr_patch*);
 
     // G 7 1: subcycling (nhflow_amr_sub.cpp)
     int sub = 0;                    // 1: subcycled

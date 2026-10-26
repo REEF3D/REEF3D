@@ -28,6 +28,7 @@ Author: Hans Bihs
 #include"fnpf_cds4.h"
 #include"nhflow_curv.h"
 #include"sflow_curv.h"
+#include"nhflow_fsf_hull.h"
 
 #define WLVL (fabs(WL(i,j))>p->A544?WL(i,j):p->A544)
 
@@ -120,6 +121,10 @@ void nhflow_sigma::sigma_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
     
     d->Exx(i,j) = sxx(ef);
     }
+    
+    // X 13 2: one-sided slopes at the edge of the hull footprint
+    if(d->hull!=nullptr)
+    d->hull->slope(p,d);
     
     SLICELOOP4
     if(p->wet[IJ]==0)

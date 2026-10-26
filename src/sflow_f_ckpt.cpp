@@ -28,7 +28,9 @@ Author: Hans Bihs
 //  The blocks 1.. of a multi-block grid are patches of the mesh refinement (reefamr_ckpt.cpp).
 //  The 6DOF bodies (one-way bodies X 10 2, ship waves X 10 3): their state as a blob, the pressure patch
 //  of the ship waves as a slice.
-//  Not there yet (refused with a message): 6DOF wavemaker objects, sediment, SEASTATE.
+//  Sediment (S 10): the registry of the grid, the scalars of the sediment objects; with the mesh refinement
+//  and on multi-block grids those of the patches and blocks as well (sflow_amr_ckpt.cpp).
+//  Not there yet (refused with a message): 6DOF wavemaker objects, SEASTATE.
 
 #include"sflow_f.h"
 #include"lexer.h"
@@ -56,8 +58,6 @@ string sflow_f::ckpt_unsupported(lexer *p)
 {
     if(p->X10==4)
     return "6DOF wavemaker objects (X 10 4) are not in the checkpoints yet";
-    if(p->S10>0 && (p->G1>0 || p->geo_mb>0))
-    return "SFLOW sediment with mesh refinement or multi-block grids is not in the checkpoints yet";
     if(p->A750>0)
     return "SEASTATE is not in the checkpoints yet";
     return "";
@@ -146,6 +146,10 @@ reefrun_ckpt& sflow_f::ckpt(lexer *p, fdm2D *b, ghostcell *pgc)
             if(!pamr->ckpt_read(ck,msg))
             return false;
             fields(rd,ri);
+
+            // sediment: the arrays of the level-0 sediment as well (the regrid restricted the bed of the patches)
+            if(p->S10>0 && !cfd_ckpt_read(p,ck,msg,"reg"))
+            return false;
         }
 
         // the 6DOF bodies: their state, the trimesh at the pose

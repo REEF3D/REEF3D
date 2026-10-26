@@ -39,6 +39,7 @@ Author: Hans Bihs
 
 class lexer;
 class seastate_sflow;
+class met_forcing;
 
 using namespace std;
 
@@ -129,6 +130,9 @@ public:
 
     // REEF3D::SEASTATE coupling (A 750 1), nullptr otherwise
     seastate_sflow *wave = nullptr;
+
+    // REEF3D atmospheric forcing (W 200) of this grid, owned by the momentum class (output)
+    met_forcing *met = nullptr;
 
 	matrix2D M;
 

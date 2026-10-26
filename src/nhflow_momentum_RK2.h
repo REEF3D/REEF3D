@@ -29,6 +29,7 @@ Author: Hans Bihs
 #include<vector>
 
 class wind;
+class met_forcing;
 class vrans;
 class sediment;
 
@@ -76,6 +77,7 @@ private:
     sixdof *p6dof;
     nhflow_forcing *pnhfdf;
     wind *pwind;
+    met_forcing *pmet = nullptr;     // atmospheric forcing (W 200)
     vrans_nhflow* pvrans;
     sediment *psed;
 };

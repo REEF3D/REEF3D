@@ -1,0 +1,20 @@
+{
+ "description": "NHFLOW AMR regular waves on a fixed vertical cylinder (A 584) with the solid zone (G 12) across the partition edge: direct forcing on every grid, the force (P 81) on the finest grid, 2 ranks.",
+ "solver": "nhflow",
+ "np": 2,
+ "steps": 40,
+ "tags": [
+  "3d",
+  "nhflow",
+  "amr",
+  "solid",
+  "force",
+  "mpi"
+ ],
+ "covers": [
+  "nhflow_amr::solid_zone",
+  "nhflow_amr::solid_patch",
+  "nhflow_amr::force_leaf / solid_forces",
+  "nhflow_force::patch_sum"
+ ]
+}

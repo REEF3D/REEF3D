@@ -85,6 +85,8 @@ public:
     
     // horizontal spacing factor of the triangle sizing (finest level of a mesh refinement zone)
     double amr_hfac;
+    // vertical spacing factor of the triangle sizing (finest level with doubled sigma layers, G 6 1)
+    double amr_vfac;
 
 private:
     // primitives

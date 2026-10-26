@@ -485,6 +485,8 @@ void reefamr::build_plans(ghostcell *pgc)
 
     match.assign(P.size()+1,vector<reefamr_match>());
     rmatch.assign(P.size()+1,vector<reefamr_match>());
+    xmatch.assign(P.size()+1,vector<reefamr_match>());
+    xrmatch.assign(P.size()+1,vector<reefamr_match>());
 
     // local source of a cell (l,I,J) held by this rank: a patch of level l or the coarser level
     int violations=0;
@@ -722,6 +724,11 @@ void reefamr::build_plans(ghostcell *pgc)
         fsend[l].clear();
         vector<vector<int>> fitems(np);
 
+        // par.ring: the requests to the ranks of the grids that compute the face around their box
+        vector<vector<int>> xreq(np), xsrv;
+        xfsend[l].clear();
+        vector<vector<int>> xitems(np);
+
         for(int id : lev[l])
         {
             reefamr_patch *c = P[id];
@@ -751,6 +758,39 @@ void reefamr::build_plans(ghostcell *pgc)
                     int o = holder(l-1,Ic,Jc);
                     if(o<0)
                     continue;
+
+                    // par.ring: the other level-(l-1) patches whose computed cells (box and EXT around
+                    // it) hold both cells of the face (single-block grids)
+                    if(par.ring && l-1>=1 && nblk==0 && !covered(l,2*Ic,ychild(Jc)))
+                    for(size_t q=0; q<GP.size(); ++q)
+                    {
+                        const reefamr_gpatch &G = GP[q];
+                        if(G.lev!=l-1)
+                        continue;
+                        const int a0 = G.I0-EXT, a1 = G.I1+EXT, b0 = G.J0-EY, b1 = G.J1+EY;
+                        if(Ic<a0 || Ic>a1 || Ii<a0 || Ii>a1 || Jc<b0 || Jc>b1 || Ji<b0 || Ji>b1)
+                        continue;
+                        if(Ic>=G.I0 && Ic<=G.I1 && Jc>=G.J0 && Jc<=G.J1)
+                        continue;       // the holder of the outside cell (match, rmatch)
+
+                        if(G.rank==me)
+                        {
+                            reefamr_match mt;
+                            mt.dir = side<2 ? 0 : 1;
+                            mt.fi = Ic-a0 - (side==1 ? 1 : 0);
+                            mt.fj = Jc-b0 - (side==3 ? 1 : 0);
+                            mt.child = id;
+                            mt.side = side;
+                            mt.r = rk*k;
+                            for(int v=0;v<reefamr_match::NVAL;++v) mt.val[v]=0.0;
+                            xmatch[G.lid+1].push_back(mt);
+                        }
+                        else
+                        {
+                            xreq[G.rank].push_back(side); xreq[G.rank].push_back(Ic); xreq[G.rank].push_back(Jc); xreq[G.rank].push_back(G.lid);
+                            xitems[G.rank].push_back(id); xitems[G.rank].push_back(side); xitems[G.rank].push_back(rk*k);
+                        }
+                    }
 
                     if(o==me)
                     {
@@ -845,6 +885,61 @@ void reefamr::build_plans(ghostcell *pgc)
                 }
                 frecv[l].push_back(tgt);
                 frecv[l].push_back(idx);
+            }
+        }
+
+        // par.ring: the same for the grids around whose box the face lies
+        if(par.ring)
+        {
+            xsetup(xreq,xsrv,4);
+
+            reefamr_xplan &X = xfplan[l];
+            X = reefamr_xplan();
+            xfrecv[l].clear();
+
+            for(int r=0; r<np; ++r)
+            if(!xreq[r].empty())
+            {
+                X.speer.push_back(r);
+                vector<int> items;
+                for(size_t k=0; k<xitems[r].size(); k+=3)
+                {
+                    items.push_back((int)xfsend[l].size()/3);
+                    xfsend[l].push_back(xitems[r][k]);
+                    xfsend[l].push_back(xitems[r][k+1]);
+                    xfsend[l].push_back(xitems[r][k+2]);
+                }
+                X.sitem.push_back(items);
+                X.sbuf.push_back(vector<double>());
+            }
+
+            for(int r=0; r<np; ++r)
+            if(!xsrv[r].empty())
+            {
+                X.rpeer.push_back(r);
+                X.rcount.push_back((int)xsrv[r].size()/4);
+
+                for(size_t k=0; k<xsrv[r].size(); k+=4)
+                {
+                    const int side=xsrv[r][k], Ic=xsrv[r][k+1], Jc=xsrv[r][k+2], g=xsrv[r][k+3];
+                    int tgt=-1, idx=-1;
+                    if(g>=0 && g<(int)P.size())
+                    {
+                        reefamr_match mt;
+                        mt.dir = side<2 ? 0 : 1;
+                        mt.fi = Ic-(P[g]->I0-EXT) - (side==1 ? 1 : 0);
+                        mt.fj = Jc-(P[g]->J0-EY) - (side==3 ? 1 : 0);
+                        mt.child = -1;
+                        mt.side = side;
+                        mt.r = 0;
+                        for(int v=0;v<reefamr_match::NVAL;++v) mt.val[v]=0.0;
+                        tgt = g+1;
+                        idx = (int)xrmatch[g+1].size();
+                        xrmatch[g+1].push_back(mt);
+                    }
+                    xfrecv[l].push_back(tgt);
+                    xfrecv[l].push_back(idx);
+                }
             }
         }
     }

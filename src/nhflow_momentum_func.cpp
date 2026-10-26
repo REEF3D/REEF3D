@@ -39,6 +39,7 @@ Author: Hans Bihs
 #include"nhflow_fsf.h"
 #include"vrans.h"
 #include"nhflow_fsf_body.h"
+#include"nhflow_fsf_hull.h"
 
 #define WLVL (fabs(WL(i,j))>(1.0*p->A544)?WL(i,j):1.0e20)
 
@@ -54,11 +55,17 @@ nhflow_momentum_func::nhflow_momentum_func(lexer *p, fdm_nhf *d, ghostcell *pgc)
 	gcval_wh=16;
     
     pfsfbody = new nhflow_fsf_body(p);
+    
+    phull = new nhflow_fsf_hull(p);
+    
+    if(phull->active())
+    d->hull = phull;
 }
 
 nhflow_momentum_func::~nhflow_momentum_func()
 {
     delete pfsfbody;
+    delete phull;
 }
 
 void nhflow_momentum_func::reconstruct(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_fsf *pfsf, nhflow_signal_speed *pss, 
@@ -66,9 +73,11 @@ void nhflow_momentum_func::reconstruct(lexer *p, fdm_nhf *d, ghostcell *pgc, nhf
 {
     starttime=pgc->timer();
     
-    // reconstruct eta
-    precon->reconstruct_2D_x(p, pgc, d, d->eta, d->ETAs, d->ETAn);
-    precon->reconstruct_2D_y(p, pgc, d, d->eta, d->ETAe, d->ETAw);
+    // reconstruct eta (X 13 2: the level of the hydrostatic terms, d->zeta)
+    slice4 &E = d->zeta!=nullptr ? *d->zeta : d->eta;
+    
+    precon->reconstruct_2D_x(p, pgc, d, E, d->ETAs, d->ETAn);
+    precon->reconstruct_2D_y(p, pgc, d, E, d->ETAe, d->ETAw);
     precon->reconstruct_2D_WL(p, pgc, d);
 
     // reconstruct U 

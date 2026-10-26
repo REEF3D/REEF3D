@@ -46,13 +46,15 @@ REEF3D M 41 1), a map of the cells in the format of the load map of the CFD mesh
             validation 22: an awake update costs about three sleeping ones)
 
 Every N steps rank 0 writes ./REEF3D_CFD_CPM_Particle/REEF3D_CFD_CPM_loadmap.dat: GNX GNY GNZ, then the
-cells (i GNY + j) GNZ + k, ten per line. The weighted partition gives the active cells of DIVEMesh this
+cells (i GNY + j) GNZ + k, ten per line. With G 46 (rebalance) the counts are kept without G 45 as well, and the
+map is written when the run stops to rebalance (reefrun_ckpt, the hook loadmap of the driver), from the steps
+since the start of the run; the restart decomposes with it (M 41 1). The weighted partition gives the active cells of DIVEMesh this
 work (the parcels in cells that DIVEMesh counts as solid are not counted). Not for multi-block grids.
 --------------------------------------------------------------------*/
 
 void CPM::loadmap_substep(lexer *p)
 {
-    if(p->G45<=0)
+    if(!loadmap_on(p))
     return;
 
     const size_t nc = size_t(p->knox)*p->knoy*p->knoz;
@@ -80,7 +82,7 @@ void CPM::loadmap_substep(lexer *p)
 
 void CPM::loadmap_step(lexer *p, fdm *a, ghostcell *pgc, double tcpm, double mcpm)
 {
-    if(p->G45<=0)
+    if(!loadmap_on(p))
     return;
 
     const double now = MPI_Wtime();
@@ -98,7 +100,7 @@ void CPM::loadmap_step(lexer *p, fdm *a, ghostcell *pgc, double tcpm, double mcp
     lm_w0 = now;
     lm_m0 = mpi;
 
-    if(lm_steps>0 && p->count%p->G45==0)
+    if(p->G45>0 && lm_steps>0 && p->count%p->G45==0)
     loadmap_write(p,a,pgc);
 }
 
@@ -224,7 +226,7 @@ void CPM::loadmap_write(lexer *p, fdm *a, ghostcell *pgc)
     const double ps = uf>0.0 ? us/uf : 0.0, pa = uf>0.0 ? ua/uf : 0.0;
 
     const streamsize pr = cout.precision();
-    cout<<"CPM load map (G 45): a parcel update costs "<<setprecision(3)<<ps<<" fluid cells, an awake one "<<ps+pa
+    cout<<"CPM load map (G 45, G 46): a parcel update costs "<<setprecision(3)<<ps<<" fluid cells, an awake one "<<ps+pa
         <<(fit ? " (measured)" : " (assumed: three sleeping ones)")<<", CPM "<<int(100.0*sC/MAX(sC+sF,1.0e-20)+0.5)<<" % of the busy time"<<endl;
     cout.precision(pr);
 

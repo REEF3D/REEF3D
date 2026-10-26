@@ -36,7 +36,10 @@ Author: Hans Bihs
 
 class lexer;
 class nhflow_thinbody;
+class nhflow_fsf_hull;
+class nhflow_hullbody;
 class seastate_nhflow;
+class met_forcing;
 
 using namespace std;
 
@@ -92,6 +95,10 @@ public:
     double *MBZ = nullptr;      //   unallocated in the default layer mode (mobilities from MBETA)
     nhflow_thinbody *thinbody = nullptr;   // sharp thin bodies (membrane.dat 'mobility sharp'): wall fluxes, projection
                                            // right-hand side and hydrostatic head below closed floors, nhflow_thinbody.h
+    slice4 *zeta = nullptr;     // X 13 2: level of the hydrostatic pressure terms (the piezometric head under a floating
+                                //         body, nhflow_fsf_hull), eta where nullptr
+    nhflow_fsf_hull *hull = nullptr;   // X 13 2: the hull as the top of the water columns (nhflow_fsf_hull.h)
+    nhflow_hullbody *hullbody = nullptr;   // X 15 8: the hull as a sharp thin body (nhflow_hullbody.h)
     int solid_flux = 0;         // 1: no continuity flux through the faces of cells with p->DF < 0 (FEM structures, Z 30); 2: only p->DF == -1 (direct forcing solids, A 521 0)
     double *PORDEM;         // porosity of the REEF3D::DEM particles (E 28), 1 without
     double *test;
@@ -131,6 +138,9 @@ public:
     
     // REEF3D::SEASTATE coupling (A 750 1), nullptr without
     seastate_nhflow *wave = nullptr;
+
+    // REEF3D atmospheric forcing (W 200) of this grid, owned by the momentum class (output)
+    met_forcing *met = nullptr;
 };
 
 #endif

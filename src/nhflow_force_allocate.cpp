@@ -72,12 +72,13 @@ void nhflow_force::allocate(lexer* p, fdm_nhf *d, ghostcell *pgc)
 
 void nhflow_force::deallocate(lexer* p, fdm_nhf *d, ghostcell *pgc)
 {
-    p->del_Iarray(tri,numtri,4);
-    p->del_Darray(pt,numvert,3);
-    p->del_Darray(ls,numvert);
-    p->del_Iarray(facet,numtri,4);
-    p->del_Iarray(confac,numtri);
-    p->del_Iarray(numfac,numtri);
-	p->del_Iarray(numpt,numtri);
-    p->del_Darray(ccpt,numtri*4,3);
+    // the sizes of the allocation (the triangulation lowers numtri to the cubes it filled)
+    p->del_Iarray(tri,numtri_mem,4);
+    p->del_Darray(pt,numvert_mem,3);
+    p->del_Darray(ls,numvert_mem);
+    p->del_Iarray(facet,numtri_mem,4);
+    p->del_Iarray(confac,numtri_mem);
+    p->del_Iarray(numfac,numtri_mem);
+	p->del_Iarray(numpt,numtri_mem);
+    p->del_Darray(ccpt,numtri_mem*4,3);
 }

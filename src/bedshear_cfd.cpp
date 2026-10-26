@@ -30,7 +30,8 @@ Author: Hans Bihs
 #include"sliceint.h"
 
 
-bedshear::bedshear(lexer *p, turbulence *ppturb) : norm_vec(p), kappa(0.4), uw_mean(p), vw_mean(p), uw_old(p), vw_old(p), uw_hat(p)
+bedshear::bedshear(lexer *p, turbulence *ppturb) : norm_vec(p), kappa(0.4), uw_mean(p), vw_mean(p), uw_old(p), vw_old(p), uw_hat(p),
+                                                    uw_dt(p), vw_dt(p)
 {
     tau=0.0;
     tauc=0.0;
@@ -38,6 +39,7 @@ bedshear::bedshear(lexer *p, turbulence *ppturb) : norm_vec(p), kappa(0.4), uw_m
     tw_old=0.0;
     tw_dt=0.0;
     tw_count=0;
+    tw_fw=0.0;
 }
 
 // S 16 9 ------------------------------------------------------------------------------------------
@@ -50,6 +52,22 @@ bedshear::bedshear(lexer *p, turbulence *ppturb) : norm_vec(p), kappa(0.4), uw_m
 //     Uhat^2 = |u_w|^2 + |du_w/dt|^2/omega^2   (exact for a harmonic motion)
 // and T = S 58 (if > 0) or the period of the wave generation. S 16 9 takes max(tau_log, tau_w):
 // in a current (no wave period, or u_w -> 0) it is S 16 1. Wave-current interaction is not included.
+//
+// S 59 mode phi:
+// mode 2: wave-current interaction after Soulsby (1997, DATA13). The current part is the log law at the
+// sample height with the running mean (the current), tau_c = rho (|u_mean|/u+)^2, the mean stress
+//     tau_m = tau_c [1 + 1.2 (tau_w/(tau_c + tau_w))^3.2],   tau_w = 0.5 rho fw Uhat^2,
+// acts in the direction of the current, and the instantaneous wave stress 0.5 rho fw |u_w*| u_w* is added as
+// a vector: |tau| = |tau_m e_c + tau_w(t)|. The peak is tau_m + tau_w (collinear) as DATA13, the period
+// mean is about tau_m, a current alone gives the log law of S 16 1 (horizontal velocity) and waves alone tau_w.
+// DATA13 assumes that the sample lies above the wave boundary layer and sees the free-stream orbital velocity.
+// When the current boundary layer and the oscillation share the sample (shallow, current-dominated flow), the
+// oscillation at the sample is damped and the log law with the total velocity is the better estimate.
+// mode 1 (recommended) therefore takes max(tau_log, DATA13): the log law where the boundary layer reaches the
+// sample, DATA13 under waves.
+// phi: phase lead of the wave stress over the sample velocity in deg (the bed shear stress of a wave
+// boundary layer leads the free-stream velocity), u_w* = u_w cos(phi) + (du_w/dt) sin(phi)/omega, the
+// harmonic shifted by phi; also used with mode 0.
 void bedshear::tau_wave_step(lexer *p)
 {
     // time since the previous call: the derivative of the sample needs a new time level
@@ -93,6 +111,9 @@ double bedshear::tau_wave(lexer *p, double uvel, double vvel, double ks, double 
         double dvdt = (vw - vw_old(i,j))/tw_dt;
         
         uhat2 += (dudt*dudt + dvdt*dvdt)/(omega*omega);
+        
+        uw_dt(i,j) = dudt;
+        vw_dt(i,j) = dvdt;
         }
         
     uw_hat(i,j) = sqrt(uhat2);
@@ -105,7 +126,71 @@ double bedshear::tau_wave(lexer *p, double uvel, double vvel, double ks, double 
     
     double fw = A>1.0e-12 ? MIN(1.39*pow(A/z0,-0.52), 0.3) : 0.3;
     
+    tw_fw = fw;
+    
+    // S 59: phase lead of the wave stress
+    if(p->S59_phi!=0.0)
+    {
+    const double ph = p->S59_phi*(PI/180.0);
+    const double ul = uw_old(i,j)*cos(ph) + uw_dt(i,j)*sin(ph)/omega;
+    const double vl = vw_old(i,j)*cos(ph) + vw_dt(i,j)*sin(ph)/omega;
+    
+    return 0.5*density*fw*(ul*ul + vl*vl);
+    }
+    
     return 0.5*density*fw*(uw_old(i,j)*uw_old(i,j) + vw_old(i,j)*vw_old(i,j));
+}
+
+double bedshear::tau_wave_current(lexer *p, double uvel, double vvel, double ks, double density, double zs)
+{
+    // updates the running mean, the oscillatory part and fw (once per bed column and step)
+    double tw = tau_wave(p,uvel,vvel,ks,density);
+    
+    double T = p->S58>0.0 ? p->S58 : p->wT;
+    
+    // no wave period: log law of the horizontal sample velocity
+    if(T<=1.0e-10)
+    {
+    const double up = uplus(zs,ks);
+    return density*(uvel*uvel + vvel*vvel)/(up*up);
+    }
+    
+    const double omega = 2.0*PI/T;
+    
+    // current: log law with the running mean
+    const double ub = uw_mean(i,j);
+    const double vb = vw_mean(i,j);
+    const double uc = sqrt(ub*ub + vb*vb);
+    const double up = uplus(zs,ks);
+    const double tau_c = density*uc*uc/(up*up);
+    
+    // waves: amplitude of the wave stress, and the instantaneous wave stress vector (with the phase lead)
+    const double tau_wa = 0.5*density*tw_fw*uw_hat(i,j)*uw_hat(i,j);
+    
+    double ul = uw_old(i,j);
+    double vl = vw_old(i,j);
+    
+    if(p->S59_phi!=0.0)
+    {
+    const double ph = p->S59_phi*(PI/180.0);
+    ul = uw_old(i,j)*cos(ph) + uw_dt(i,j)*sin(ph)/omega;
+    vl = vw_old(i,j)*cos(ph) + vw_dt(i,j)*sin(ph)/omega;
+    }
+    
+    const double ua = sqrt(ul*ul + vl*vl);
+    const double twx = 0.5*density*tw_fw*ua*ul;
+    const double twy = 0.5*density*tw_fw*ua*vl;
+    
+    // DATA13 mean stress in the direction of the current
+    double tau_m = 0.0;
+    
+    if(tau_c>0.0)
+    tau_m = tau_c*(1.0 + 1.2*pow(tau_wa/(tau_c + tau_wa), 3.2));
+    
+    const double tx = (uc>1.0e-12 ? tau_m*ub/uc : 0.0) + twx;
+    const double ty = (uc>1.0e-12 ? tau_m*vb/uc : 0.0) + twy;
+    
+    return sqrt(tx*tx + ty*ty);
 }
 
 bedshear::~bedshear()
@@ -153,10 +238,17 @@ void bedshear::taubed(lexer *p, fdm * a, ghostcell *pgc, sediment_fdm *s)
     tau_eff = density*(u_abs*u_abs)/(u_plus*u_plus);
     
     // tau_wave updates the running mean: called once (MAX is a macro)
-    if(p->S16==9)
+    if(p->S16==9 && p->S59<1)
     {
     double tau_w = tau_wave(p,uvel,vvel,s->ks_eff(i,j),density);
     tau_eff = MAX(tau_eff, tau_w);
+    }
+    
+    // S 59 1: max(tau_log, Soulsby DATA13), S 59 2: Soulsby DATA13
+    if(p->S16==9 && p->S59>=1)
+    {
+    double tau_wc = tau_wave_current(p,uvel,vvel,s->ks_eff(i,j),density,1.6*dist);
+    tau_eff = p->S59==1 ? MAX(tau_eff, tau_wc) : tau_wc;
     }
     }
     
@@ -401,9 +493,17 @@ bed shear stress of a bed column from the flow above the bed level set (S 16 10 
             recirculation, 0.3 rho k its size, validation 16)
   k is the value of the first fluid cell in both sediment models: the Eulerian S 16 2 interpolates k half a
   cell above the bed level, which takes in the cell below the bed where the bed cuts through the cells
+  wall 1 (CPM bedload layer, Q 79 1): the same reference cell, but its distance is measured from the face under the
+            first fluid cell of the direct forcing (topo >= 0 at its centre), the wall of the k-omega wall law of
+            the fluid at the bed (komega_bc, gcdf4 cells: wall distance half a cell). The fluid sees the bed as the
+            faces of its cells: its velocity profile, and the stress it carries, do not change while the bed level
+            set moves inside a cell. The bed shear stress is then that of the fluid: on a fixed or mobile bed in a
+            periodic channel within 0.7 % of the momentum balance on cells of 10 to 1.25 mm, where the distance to
+            the level set (wall 0) gave 2.6-19 % less, depending on the cell size and on where the bed level lies
+            in its cell (validation 26)
 --------------------------------------------------------------------*/
 bool bedshear::column_tau(lexer *p, fdm *a, turbulence *pt, int i, int j, double zbed, double ks, double href, int kmode,
-                          double rho, double &tx, double &ty, double &hcell, bool &rest)
+                          double rho, double &tx, double &ty, double &hcell, bool &rest, int wall)
 {
     int kb = MAX(0,MIN(p->knoz-1, p->posc_k(zbed)));
     double ur=0.0, vr=0.0, zr=0.0;
@@ -412,11 +512,23 @@ bool bedshear::column_tau(lexer *p, fdm *a, turbulence *pt, int i, int j, double
     
     rest=false;
     ks = MAX(ks, 1.0e-6);
+    
+    // wall 1: the wall of the fluid at the bed is the face under its first fluid cell (topo >= 0 at the centre)
+    int kf = kb;
+    
+    while(kf>0 && a->topo(i,j,kf-1)>=0.0)
+    --kf;
+    
+    while(kf+1<p->knoz && a->topo(i,j,kf)<0.0)
+    ++kf;
+    
+    const double zwall = p->ZN[kf+marge];
 
     for(k=kb;k<p->knoz;++k)
     {
         double h = p->DZN[k+marge];
 
+        // the first cell centre at least half a cell above the bed level set
         if(a->topo(i,j,k) >= 0.5*h*(1.0-1.0e-6))
         {
             bool body = p->solidread>0 && a->solid(i,j,k)<0.0;
@@ -430,7 +542,7 @@ bool bedshear::column_tau(lexer *p, fdm *a, turbulence *pt, int i, int j, double
             rest = body;
             ur = body ? 0.0 : 0.5*(a->u(i-1,j,k) + a->u(i,j,k));
             vr = (body || p->j_dir==0) ? 0.0 : 0.5*(a->v(i,j-1,k) + a->v(i,j,k));
-            zr = a->topo(i,j,k);
+            zr = wall==1 ? MAX(p->ZP[k+marge] - zwall, 0.5*p->DZN[k+marge]) : a->topo(i,j,k);
             hcell = h;
             found = true;
             break;
@@ -449,7 +561,7 @@ bool bedshear::column_tau(lexer *p, fdm *a, turbulence *pt, int i, int j, double
     {
         int k0 = k;
         double h = hcell;
-        double zb = p->ZP[k0+marge] - a->topo(i,j,k0);
+        double zb = wall==1 ? zwall : p->ZP[k0+marge] - a->topo(i,j,k0);
         double zref = zb + href*h;
         
         // top of the fluid column above the bed: solid body or free surface

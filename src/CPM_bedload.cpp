@@ -108,23 +108,24 @@ void CPM::bedload_column(lexer *p, double x, double y, int &ic, int &jc, int q)
 }
 
 // bed shear stress vector and bed slope per column
-//   log law of the wall at the centre of the first fluid cell at least 0.5 h above the bed,
-//   with the distance to the bed from the topo level set (consistent with the wall function
-//   of the fluid; the linear interpolation towards the solid cells below must not be used)
+//   log law of the wall at the centre of the first fluid cell at least 0.5 h above the bed, with the distance
+//   from the wall of the fluid's wall law (Q 79 1) or from the topo level set (Q 79 0); the linear
+//   interpolation towards the solid cells below must not be used
 void CPM::bedload_columns(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
 {
     const double ks = MAX(p->S21*p->S20, 1.0e-6);
 
     // the bed shear stress of the column, shared with the Eulerian bed shear stress S 16 10 (bedshear::column_tau):
-    // log law at the first cell centre at least half a cell above the bed, or Q 66 cells above it; Q 68 1:
-    // max(log law, 0.3 rho k) with k of the first fluid cell
+    // log law at the first cell centre at least half a cell above the bed level set, or Q 66 cells above the bed,
+    // the distance measured from the face under the first fluid cell (Q 79 1: the wall of the fluid's k-omega wall
+    // law; Q 79 0: from the bed level set); Q 68 1: max(log law, 0.3 rho k) with k of the first fluid cell
     for(i=0;i<p->knox;++i)
     for(j=0;j<p->knoy;++j)
     {
         double tx=0.0, ty=0.0, hc=0.0;
         bool rest=false;
         
-        bedshear::column_tau(p,a,pturb_,i,j,s->bedzh(i,j),ks,p->Q66,(p->Q68==1||p->Q68==2)?p->Q68:0,p->W1,tx,ty,hc,rest);
+        bedshear::column_tau(p,a,pturb_,i,j,s->bedzh(i,j),ks,p->Q66,(p->Q68==1||p->Q68==2)?p->Q68:0,p->W1,tx,ty,hc,rest,p->Q79==1?1:0);
         
         blTx(i,j) = tx;
         blTy(i,j) = ty;

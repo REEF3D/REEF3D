@@ -61,7 +61,7 @@ public:
     void amr_follow(const lexer &b);
     std::vector<double> amr_last;   // amr_follow: the values it set (the contract check)
     int amr_own_io = 0;             // a block with open faces (G 54): the IO members of the RUN group are its own (lexer_amr.cpp)
-    int amr_block = 0;              // multi-block grid: the block 1.. of a block's level-0 lexer, 0 the native grid (its edge zones, B 522)
+    int amr_block = 0;              // multi-block grid: the block 1.. of DIVEMesh of a block's level-0 lexer (G 55: of its piece), 0 the native grid (its edge zones, B 522)
 	virtual ~lexer();
 
 //-----functions------------------

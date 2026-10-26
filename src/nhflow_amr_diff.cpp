@@ -32,6 +32,7 @@ Architect: Hans Bihs
 #include<cmath>
 #include<mpi.h>
 #include<iostream>
+#include<iomanip>
 
 //  Composite implicit diffusion of REEF3D::NHFLOW on level 0 and the patches (G 31 1, A 512 2).
 //
@@ -139,7 +140,12 @@ struct df_space
     void op_p(double beta, double om) { a->df_p(beta,om); }
     void op_s(double alp) { a->df_s(alp); }
     void op_x(double alp, double om) { a->df_x(alp,om); }
+    void op_restart() { a->df_restart(); }
 };
+
+// safety net of the BiCGStab (reefamr_krylov.h, as the composite pressure): restart after a stagnation,
+// stop after a second one below STAGTOL times the tolerance
+const double STAGTOL = 100.0;
 }
 
 double* nhflow_amr::dvec(int g, int k)
@@ -322,7 +328,16 @@ void nhflow_amr::df_core(lexer *p)
     {
         double bn, rn;
         df_space sp{this};
-        it = reefamr_bicgstab(sp,p->N43*bfull/r0,p->N46,bn,rn);
+        const double tol = p->N43*bfull/r0;
+        it = reefamr_bicgstab(sp,tol,p->N46,bn,rn,nullptr,nullptr,&df_restarts,STAGTOL*tol,&df_stalls);
+
+        if(it>=p->N46 && rn>tol*bn)
+        {
+            ++df_capped;
+            if(p->mpirank==0)
+            cout<<"NHFLOW AMR WARNING - diffusion iteration limit N 46 = "<<p->N46<<" reached, res "<<setprecision(3)<<(bn>0.0 ? rn/bn : 0.0)
+                <<" of the initial residual (tolerance "<<tol<<")"<<endl;
+        }
     }
 
     df_it_last = it;
@@ -564,6 +579,22 @@ void nhflow_amr::df_start()
         {
             double r = vb[qq] - vv[qq];
             vr[qq] = r; vrh[qq] = r; vp[qq] = 0.0; vv[qq] = 0.0;
+        }
+    }
+}
+
+// restart of the BiCGStab recurrence from the current residual (reefamr_bicgstab)
+void nhflow_amr::df_restart()
+{
+    for(int g=-1; g<(int)P.size(); ++g)
+    {
+        const double *vr = dvec(g,DR);
+        double *vrh = dvec(g,DRH), *vp = dvec(g,DPV), *vv = dvec(g,DVV);
+        for(int qq : dg[g+1].lq)
+        {
+            vrh[qq] = vr[qq];
+            vp[qq] = 0.0;
+            vv[qq] = 0.0;
         }
     }
 }
