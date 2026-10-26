@@ -749,6 +749,9 @@ void control::ini_default()
     G52=0;      // int curvilinear NHFLOW (G 50): 1 the i-walls are slip walls as the j-walls (normal velocity mirrored, the pressure correction Neumann), so that a wall acts the same in any index direction (set on multi-block grids); 0 the Cartesian x-walls
     G54=0;      // int multi-block grid (G 50 1): number of open boundaries on the blocks 1.. (G 54 b t v: block b, t 1: discharge v in through its -i face, t 2: water level v at its +i face, t 3: discharge time series discharge-<v>.dat through the -i face, t 4: water level time series waterlevel-<v>.dat at the +i face)
     G55=0;      // int multi-block grid (G 50 1): 0 the blocks 1.. of DIVEMesh as they are, m > 0 cut into pieces of at most (cells of the blocks 1..) / (m ranks) cells, so that they spread over the ranks (geo_mesh_split.cpp)
+    G56=0;      // int multi-block grid (G 50 1): G 56 a dz places the blocks on the ranks and cuts them (G 55) by their load: a wet cell 1, a cell whose bed lies above the still water level (F 60, else F 62 with F 65) + dz the load a (Tagus, SI: a = 0.66 measured); the placement is improved by moves and swaps of blocks between the ranks; 0: by the number of cells, largest block first
+    G56_a=1.0;  // double multi-block grid: G 56 a dz, a
+    G56_z=0.0;  // double multi-block grid: G 56 a dz, dz (m)
     G53=4;      // int NHFLOW multi-block grid: coarse space across the blocks in the preconditioner of the composite solves, aggregates of this many columns in i and j (0: off)
     G51=2;      // int NHFLOW multi-block grid (G 50 1, DIVEMesh R 20 1): passes of the block-local V-cycles in the preconditioner of the pressure, the corrections of the neighbour blocks filled in between
     G50=0;      // int curvilinear horizontal grid (SFLOW): 0 Cartesian, 1 nodes of the CURV section of grid-geometry.dat, 2 nodes of curvgrid.dat

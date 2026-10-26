@@ -391,6 +391,8 @@ public:
     double *G10_xs,*G10_xe,*G10_ys,*G10_ye;
     int G15,G25;
     double G24,G26,G41,G42,G44,G46;
+    int G56;                     // multi-block grid: G 56 a dz given (load-balanced placement of the blocks, the cut of G 55 by load)
+    double G56_a,G56_z;          // the load of a dry cell a, dz (m)
     int G47;
     double *G15_xs,*G15_xe,*G15_ys,*G15_ye,*G15_zs,*G15_ze;
     double *G11_xs,*G11_xe,*G11_ys,*G11_ye;
