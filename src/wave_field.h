@@ -85,6 +85,7 @@ public:
     double dspace(lexer*, int kind, int sc, int n, double x, double y, double z);
     double dtime(lexer*, int kind, int sc, int n);
     bool decomp_use(int n) const {return use(src[dsrc[n]]);}   // component n of a selected source (filter)
+    double decomp_dir(int n) const;  // direction of component n relative to B 105 [rad] (I 30 2)
 
     static bool nonlinear(int);
     bool exists(int) const;

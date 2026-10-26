@@ -78,6 +78,9 @@ void iowave::ini_fnpf(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     if(p->I30==1)
 	full_initialize_fnpf(p,c,pgc);
     
+    if(p->I30==2)
+	full_initialize_fnpf_masked(p,c,pgc);
+    
     SLICELOOP4
     c->WL(i,j) = MAX(c->wd_criterion, c->eta(i,j) + c->depth(i,j));
 }

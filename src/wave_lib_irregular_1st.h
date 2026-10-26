@@ -92,6 +92,7 @@ public:
     int wave_ncomp() const override final {return bg_ok ? bg_n : 0;}
     void wave_comp(int, double&, double&, double&, double&, double&) const override final;
     double wave_depth0() const override final {return wdt;}
+    double wave_comp_dir(int n) const override final;
     double wave_depth() const override final {return bg_h;}
     void wave_comp_set(int, double, double, double) override final;
     void wave_depth_set(double) override final;

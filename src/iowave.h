@@ -129,6 +129,7 @@ public:
     
 	void full_initialize(lexer*,fdm*,ghostcell*);
     void full_initialize_fnpf(lexer*,fdm_fnpf*,ghostcell*);
+    void full_initialize_fnpf_masked(lexer*,fdm_fnpf*,ghostcell*);   // I 30 2, iowave_fnpf_fullini_masked.cpp
 	void active_beach(lexer*,fdm*,ghostcell*,field&,field&,field&);
 	void active_wavegen(lexer*,fdm*,ghostcell*,field&,field&,field&);
 	void dirichlet_wavegen(lexer*,fdm*,ghostcell*,field&,field&,field&);

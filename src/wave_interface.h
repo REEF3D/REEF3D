@@ -92,6 +92,9 @@ public:
     // decomposed precalc (B 89 1): number of components of all sources (the B 92 wave first);
     // components from decomp_L on belong to the additional sources (wave_field)
     int decomp_ncomp(lexer*);
+    // direction (rad, relative to B 105) of decomposed component n: the B 92 wave from its library,
+    // the additional sources along their main direction (I 30 2 exposure masks)
+    double decomp_dir(lexer*,int);
     
     // sources used by the cached evaluation (wave_eta_c, wave_fi_c, wave_uvw_c):
     // ids as in B 524 (1: the B 92 wave); nullptr: all sources

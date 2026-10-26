@@ -496,6 +496,16 @@ int wave_field::decomp_ncomp(int type, int wN)
     return -1;
 }
 
+double wave_field::decomp_dir(int n) const
+{
+    if(n<0 || n>=(int)dsrc.size())
+    return 0.0;
+    
+    const wave_source *s = src[dsrc[n]];
+    
+    return s->rot*(PI/180.0) + (s->lib!=nullptr ? s->lib->wave_comp_dir(dloc[n]) : 0.0);
+}
+
 int wave_field::decomp_build(lexer *p)
 {
     dsrc.clear();

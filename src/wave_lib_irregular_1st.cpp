@@ -777,6 +777,16 @@ void wave_lib_irregular_1st::wave_comp(int n, double &k, double &omega, double &
     af = bg_af[n];
 }
 
+// direction of component n in the wave frame (I 30 2): the same cosbeta/sinbeta as the decomposed
+// space parts use, so the direction matches the evaluated wave
+double wave_lib_irregular_1st::wave_comp_dir(int n) const
+{
+    if(n<0 || n>=Nw)
+    return 0.0;
+    
+    return atan2(sinbeta[n],cosbeta[n]);
+}
+
 void wave_lib_irregular_1st::wave_comp_set(int n, double k, double sigma, double af)
 {
     if(k==ki[n] && sigma==bg_si[n] && af==bg_af[n])

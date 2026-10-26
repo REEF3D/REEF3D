@@ -32,6 +32,10 @@ void control::parse(lexer* p)
         I45=1;
     }
 
+    // I 30 2 (masked full initialization) is FNPF only: the other models use I 30 1
+    if(I30==2 && A10!=3)
+    I30=1;
+
     if(B98==1)
     B98=2;
     
