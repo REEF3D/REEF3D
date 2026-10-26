@@ -81,6 +81,8 @@ TEXT_OUTPUT_GLOBS = [
     "REEF3D_NHFLOW_WSFLINE/*.dat",
     "REEF3D_NHFLOW_6DOF/*.dat",
     "REEF3D_NHFLOW_AMR/*.dat",
+    "REEF3D_NHFLOW_Tidal/*.vts",        # long-run statistics (P 160): the maps (their value rows)
+    "REEF3D_NHFLOW_Tidal/*.txt",
     "REEF3D_NHFLOW_Particles/*.dat",
     "REEF3D_NHFLOW_Boom/*.dat",
     "REEF3D_DEM/*.dat",

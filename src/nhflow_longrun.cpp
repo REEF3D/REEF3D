@@ -26,6 +26,7 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 #include"increment.h"
+#include"reefckpt.h"
 #include<cmath>
 #include<fstream>
 #include<iostream>
@@ -98,6 +99,13 @@ nhflow_longrun::nhflow_longrun(lexer *p) : t0(p->P160_ts), dtout(p->P160_dt), ra
     }
 
     tnext = dtout>0.0 ? t0 + dtout : 1.0e30;
+
+    for(int k=0; k<3*NB+6; ++k)
+    {
+    char nm[16];
+    snprintf(nm,sizeof(nm),"lr_%02d",k);
+    fname.push_back(nm);
+    }
 
     if(p->mpirank==0)
     mkdir("./REEF3D_NHFLOW_Tidal",0777);
@@ -459,4 +467,131 @@ void nhflow_longrun::write(lexer *p, ghostcell *pgc)
     }
 
     ++count;
+}
+
+// ---------------------------------------------------------------------------
+// checkpoints (P 48, I 45)
+// ---------------------------------------------------------------------------
+
+// the sums of every grid component-major (a slice of its lexer per component), copied from the sums or zero
+void nhflow_longrun::pack_all(bool copy)
+{
+    pack.assign(G.size(),vector<double>());
+    for(size_t gi=0; gi<G.size(); ++gi)
+    {
+        const grid &g = G[gi];
+        const size_t nc = (size_t)g.q->imax*g.q->jmax;
+        pack[gi].assign(nc*NV,0.0);
+        if(copy)
+        for(size_t c=0; c<nc; ++c)
+        for(int k=0; k<NV; ++k)
+        pack[gi][(size_t)k*nc + c] = g.s[c*NV + k];
+    }
+}
+
+void nhflow_longrun::unpack_all()
+{
+    for(size_t gi=0; gi<G.size() && gi<pack.size(); ++gi)
+    {
+        grid &g = G[gi];
+        const size_t nc = (size_t)g.q->imax*g.q->jmax;
+        for(size_t c=0; c<nc; ++c)
+        for(int k=0; k<NV; ++k)
+        g.s[c*NV + k] = pack[gi][(size_t)k*nc + c];
+    }
+    pack.clear();
+}
+
+void nhflow_longrun::ckpt_fields(lexer *q, const std::function<void(const char*, char, double*)> &v)
+{
+    for(size_t gi=0; gi<G.size() && gi<pack.size(); ++gi)
+    if(G[gi].q==q)
+    {
+        const size_t nc = (size_t)q->imax*q->jmax;
+        for(int k=0; k<NV; ++k)
+        v(fname[k].c_str(),'S',&pack[gi][(size_t)k*nc]);
+        return;
+    }
+}
+
+// the record: version, started, t0, dt_out, next output, its length, the number of outputs, the basis, then
+// the matrix of the normal equations (the same on all ranks); the sums of the grids when it has started
+void nhflow_longrun::ckpt_write(lexer *p, reefckpt &ck, nhflow_amr *amr)
+{
+    vector<double> b = {1.0, ini ? 1.0 : 0.0, t0, dtout, tnext, Twin, double(count), double(NB), double(NV), rayleigh};
+    b.insert(b.end(),M.begin(),M.end());
+    ck.blob("nhflow_longrun",b);
+
+    if(!ini)
+    return;
+
+    pack_all(true);
+    ckpt_fields(p,[&](const char *n, char, double *V){ ck.put_S(n,V); });
+    if(amr!=nullptr)
+    amr->longrun_ckpt_write(ck,this);
+    pack.clear();
+}
+
+bool nhflow_longrun::ckpt_read(lexer *p, fdm_nhf *d, reefckpt &ck, nhflow_amr *amr, string &msg)
+{
+    // a checkpoint without the statistics (written without P 160): the record starts at the restart
+    if(!ck.has("nhflow_longrun"))
+    {
+        if(p->simtime>t0)
+        {
+            t0 = p->simtime;
+            tnext = dtout>0.0 ? t0 + dtout : 1.0e30;
+        }
+        if(p->mpirank==0)
+        cout<<"NHFLOW P 160: the checkpoint has no long-run statistics, the record starts at t = "<<t0<<" s"<<endl;
+        return true;
+    }
+
+    const vector<double> b = ck.get_blob("nhflow_longrun");
+    if(b.size()<10 || int(b[7])!=NB || int(b[8])!=NV || b.size()!=size_t(10+NB*NB))
+    {
+        msg = "the long-run statistics (P 160) of the checkpoint do not fit this version";
+        return false;
+    }
+
+    // not started at the checkpoint: P 160 of this run
+    if(b[1]<0.5)
+    return true;
+
+    // the record continues from its start; a new dt_out: the next output on its multiples from t0
+    t0 = b[2];
+    Twin = b[5];
+    count = int(b[6]);
+    M.assign(b.begin()+10,b.end());
+    if(fabs(b[3]-dtout)<1.0e-9*MAX(1.0,fabs(dtout)))
+    tnext = b[4];
+    else
+    tnext = dtout>0.0 ? t0 + (floor((p->simtime-t0)/dtout + 1.0e-9) + 1.0)*dtout : 1.0e30;
+
+    // the grids (the patches of the blocks are there), then their sums
+    if(!ini)
+    {
+        add_grid(p,d,0,p->knox,0,p->knoy);
+        if(amr!=nullptr)
+        amr->longrun_grids(this);
+        ini = true;
+    }
+
+    pack_all(false);
+    bool ok = true;
+    ckpt_fields(p,[&](const char *n, char, double *V){ ok = ck.has(n) && ck.get_S(n,V) && ok; });
+    if(ok && amr!=nullptr)
+    ok = amr->longrun_ckpt_read(ck,this,msg);
+    if(!ok)
+    {
+        if(msg.empty())
+        msg = "the long-run statistics (P 160) of the checkpoint are incomplete";
+        pack.clear();
+        return false;
+    }
+    unpack_all();
+
+    if(p->mpirank==0)
+    cout<<"NHFLOW P 160: the record from t = "<<t0<<" s continues ("<<Twin/86400.0<<" days, "<<count<<" outputs so far)"<<endl;
+    return true;
 }

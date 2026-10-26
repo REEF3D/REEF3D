@@ -287,6 +287,9 @@ public:
 
     // long-run statistics (P 160): the blocks 1.. of a multi-block grid as grids of nhflow_longrun
     void longrun_grids(nhflow_longrun*);
+    // their sums in the checkpoints (P 48, I 45), with the patches under the tag "nhflow_longrun"
+    void longrun_ckpt_write(reefckpt&, nhflow_longrun*);
+    bool longrun_ckpt_read(reefckpt&, nhflow_longrun*, std::string&);
 
     // vector space of the composite pressure solve (nhflow_amr_press.cpp, reefamr_bicgstab)
     void pr_apply(int, int, bool d1=false);

@@ -26,6 +26,7 @@ Author: Hans Bihs
 
 #include"nhflow_amr.h"
 #include"reefckpt.h"
+#include"nhflow_longrun.h"
 #include"nhflow_ckpt_fields.h"
 #include"nhflow_turbulence.h"
 #include"nhflow_momentum_func.h"
@@ -76,4 +77,22 @@ bool nhflow_amr::ckpt_read(reefckpt &ck, string &msg)
         layout_id = int(b[0]);
     }
     return ok;
+}
+
+// long-run statistics (P 160): the sums of the blocks with the patches (tag "nhflow_longrun"); the patches
+// that are no grid of the record (refined patches) carry no arrays
+void nhflow_amr::longrun_ckpt_write(reefckpt &ck, nhflow_longrun *lr)
+{
+    ckpt_write_patches(ck,"nhflow_longrun",[&](reefamr_patch *q, const ckpt_visit &v)
+    {
+        lr->ckpt_fields(NP(q)->pp,[&](const char *n, char k, double *V){ v(n,k,V,nullptr); });
+    });
+}
+
+bool nhflow_amr::longrun_ckpt_read(reefckpt &ck, nhflow_longrun *lr, string &msg)
+{
+    return ckpt_read_patches(ck,"nhflow_longrun",[&](reefamr_patch *q, const ckpt_visit &v)
+    {
+        lr->ckpt_fields(NP(q)->pp,[&](const char *n, char k, double *V){ v(n,k,V,nullptr); });
+    },msg);
 }

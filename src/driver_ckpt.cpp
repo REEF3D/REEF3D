@@ -34,6 +34,7 @@ Author: Hans Bihs
 //  mooring lines are the blob of sixdof_void.  DEM (E 10): its scalars, the particles of every rank.
 //  Sediment (S 10): its slices and fields with those of the grid (the registry, ckpt_registry.h; NHFLOW
 //  under the tag "reg"), its scalars, those of the rank (CPM: the parcels), the sediment cell flags.
+//  NHFLOW long-run statistics (P 160): the record and the sums of its grids (nhflow_longrun::ckpt_write).
 //  Not there yet (refused with a message): 6DOF wavemaker objects; FEM structures, SEASTATE; NHFLOW with
 //  Lagrangian particles, membranes, sediment with mesh refinement or multi-block grids; CFD with FSI.
 
@@ -54,6 +55,7 @@ Author: Hans Bihs
 #include"nhflow_amr.h"
 #include"nhflow_turbulence.h"
 #include"nhflow_momentum.h"
+#include"nhflow_longrun.h"
 #include"ioflow.h"
 #include"cfd_ckpt.h"
 #include"dem.h"
@@ -121,6 +123,8 @@ reefrun_ckpt& driver::ckpt()
             wd("dem_ALPHAV",'C',pdem->ckpt_alpha());
             if(pnhfamr!=nullptr)
             pnhfamr->ckpt_write(ck);
+            if(plongrun!=nullptr)
+            plongrun->ckpt_write(p,ck,pnhfamr);
         }
         if(p->A10==6)
         {
@@ -264,6 +268,10 @@ reefrun_ckpt& driver::ckpt()
             return false;
             level0();
         }
+
+        // NHFLOW long-run statistics (P 160): after the patches (the blocks are grids of the record)
+        if(p->A10==5 && plongrun!=nullptr && !plongrun->ckpt_read(p,d,ck,pnhfamr,msg))
+        return false;
 
         // FNPF: the resolved bodies (after the patches: their body grids)
         if(p->X10>0 && p->A10==3 && ppfsg->body()!=nullptr)
