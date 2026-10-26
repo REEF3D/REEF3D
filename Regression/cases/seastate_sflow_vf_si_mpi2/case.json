@@ -1,0 +1,8 @@
+{
+ "base": "seastate_sflow_vf_mpi2",
+ "ctrl_add": ["A 220 0", "A 226 1", "A 227 0.55", "A 228 5.0", "A 229 1"],
+ "description": "seastate_sflow_vf_mpi2 with the semi-implicit SFLOW (A 226 1, dt <= 5 s) on 2 ranks: the vortex force (A 751 2) in the SI predictor and its Stokes mass source -div(M) in the eta system and the volume update, oblique waves with handover.",
+ "steps": 100,
+ "tags": ["quick", "2d", "sflow", "semi_implicit", "seastate", "mpi", "wetdry"],
+ "covers": ["sflow_momentum_SI wave source (A 751 2)", "sflow_momentum_SI Stokes mass source in rhsW and eta_update"]
+}

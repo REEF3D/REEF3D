@@ -189,6 +189,11 @@ public:
     bool surfbeat() const {return sb!=nullptr;}
     const seastate_surfbeat *generator() const {return sb;}
     seastate_roller *roller() {return proll;}
+
+    // wind of every cell (met forcing, A 730 2; nullptr with a uniform wind): speed [m/s], direction the wind
+    // blows to [rad]
+    slice4 *wind_speed() const {return wU10;}
+    slice4 *wind_direction() const {return wdir;}
     bool longwave(lexer*, int j, double t, double &zeta, double &qx, double &qy) const;
 
 private:

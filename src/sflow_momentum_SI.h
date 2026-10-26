@@ -169,6 +169,8 @@ private:
 
     // implicit diagonal of the open boundaries
     slice4 bdiag;
+    slice4 wsrc;        // SEASTATE vortex force (A 751 2): the Stokes mass source -div(M) of the step [m/s]
+    bool mass_source = false;
 
     // interior copies kept through the ghost cell update (thin solids, see rk_stage)
     slice4 tU, tV, tUH, tVH;

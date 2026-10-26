@@ -254,6 +254,10 @@ private:
     // water depth at the end of the step, the start of the next (see start); boundary copies
     slice4 WLk, etaB, WLb;
 
+    // SEASTATE vortex force (A 751 2): the Stokes mass source -div(M) of the step [m/s], in rhsW and eta_update
+    slice4 wsrc;
+    bool mass_source = false;
+
     // layer face discharges: prognostic Q^{n+1}, Q^n, layer transport of the step (theta weighted),
     // column parts Q~ = A^-1 (I - dt L_v) Q^ and r = A^-1 1
     double *Qx, *Qy, *Qxn, *Qyn, *Tx, *Ty, *QAx, *QAy, *Rx, *Ry;

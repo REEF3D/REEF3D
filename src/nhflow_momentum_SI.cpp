@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"nhflow_momentum_SI.h"
+#include"seastate_nhflow.h"
 #include"si_eta2D.h"
 #include"bc_zone.h"
 #include"lexer.h"
@@ -54,7 +55,7 @@ nhflow_momentum_SI::nhflow_momentum_SI(lexer *p, fdm_nhf *d, ghostcell *pgc, six
                                       qx(p),qxn(p),qxE(p),Hx(p),alx(p),gmx(p),ax(p),kx(p),gx0(p),cx0(p),
                                       qy(p),qyn(p),qyE(p),Hy(p),aly(p),gmy(p),ay(p),ky(p),gy0(p),cy0(p),
                                       eta0(p),WL0(p),etaI(p),gmc(p),rhsW(p),bdiag(p),tS(p),tE(p),
-                                      WLk(p),etaB(p),WLb(p)
+                                      WLk(p),etaB(p),WLb(p),wsrc(p)
 {
     check(p);
 
@@ -195,8 +196,11 @@ void nhflow_momentum_SI::check(lexer *p)
     if(p->Z30>0)
     msg("FEM coupling (Z 30) is");
 
-    if(p->A750>0)
-    msg("SEASTATE coupling (A 750) is");
+    // SEASTATE coupling (A 750 1): the wave force in the predictor (the same force in every layer, as the explicit
+    // NHFLOW), the Stokes mass source (A 751 2) in the eta system; surfbeat (A 770 1) needs the host's step for the
+    // wave groups and the long-wave boundary
+    if(p->A750>0 && p->A770==1)
+    msg("SEASTATE surfbeat (A 770 1) is");
 
     if(p->B411>0 || p->B412>0 || p->B413>0 || p->B414>0 || p->B415>0 || p->B416>0 || p->B417>0 || p->B418>0 || p->B421>0 || p->B422>0)
     msg("patch boundary conditions (B 411-422) are");
@@ -1113,6 +1117,8 @@ void nhflow_momentum_SI::si_stage_rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, nhfl
     pwind->wind_forcing_nhf_x(p,d,pgc,d->U,d->V,d->F,WL0,d->eta);
     if(pmet!=nullptr)
     pmet->source_nhflow(p,pgc,d->F,0,WL0,UHs,VHs);
+    if(d->wave!=nullptr)
+    d->wave->u_source(p,d);
     irhs(p,d,pgc);
 
     pturb->jsource(p,d);
@@ -1120,6 +1126,8 @@ void nhflow_momentum_SI::si_stage_rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, nhfl
     pwind->wind_forcing_nhf_y(p,d,pgc,d->U,d->V,d->G,WL0,d->eta);
     if(pmet!=nullptr)
     pmet->source_nhflow(p,pgc,d->G,1,WL0,UHs,VHs);
+    if(d->wave!=nullptr)
+    d->wave->v_source(p,d);
     jrhs(p,d,pgc);
 
     pturb->ksource(p,d);
@@ -1577,6 +1585,21 @@ void nhflow_momentum_SI::si_assemble(lexer *p, fdm_nhf *d, ghostcell *pgc)
     SLICELOOP4
     rhsW(i,j) = WL0(i,j) - dt*(theta*div(p,qxE,qyE) + (1.0-theta)*div(p,qxn,qyn));
 
+    // + dt K: the Stokes mass source of the SEASTATE vortex force (A 751 2), K = -div(M) of the wet cells, held
+    // over the step (also in eta_update)
+    mass_source = (d->wave!=nullptr && p->A751==2);
+
+    if(mass_source)
+    {
+        SLICELOOP4
+        wsrc(i,j) = 0.0;
+
+    d->wave->mass_source(p,d,wsrc);
+
+        SLICELOOP4
+        rhsW(i,j) += dt*wsrc(i,j);
+    }
+
     // initial guess eta^n
     SLICELOOP4
     etaI(i,j) = eta0(i,j);
@@ -1729,7 +1752,12 @@ void nhflow_momentum_SI::eta_update(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow
     for(k=0;k<p->knoz;++k)
     s += p->DZN[KP]*layer_div(p,Tx,Ty);
 
-    d->WL(i,j) = MAX(WL0(i,j) - p->dt*s, 0.0);
+    double w = WL0(i,j) - p->dt*s;
+
+    if(mass_source)
+    w += p->dt*wsrc(i,j);
+
+    d->WL(i,j) = MAX(w, 0.0);
     d->eta(i,j) = d->WL(i,j) - d->depth(i,j);
     d->detadt(i,j) = (d->WL(i,j) - WL0(i,j))/p->dt;
     }
@@ -1789,6 +1817,25 @@ void nhflow_momentum_SI::eta_update(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow
     }
 
     pfsf->wetdry(p,d,pgc,d->UH,d->VH,d->WH,WLb);
+
+    // a dry cell that took water through a flooding face of the step (water depth above the film A 544)
+    // is wet: the explicit rule (A 540 1: wet when a wet neighbour stands higher) keeps such a cell dry
+    // once its level stands above the neighbour's, and the flooding face of the next steps fills it
+    // further (a one-way valve at the shoreline under onshore forcing, e.g. wave setup)
+    {
+    int nw = 0;
+
+    SLICELOOP4
+    if(p->wet[IJ]==0 && p->flagslice4[IJ]>0 && d->WL(i,j)>2.0*p->A544
+       && (p->wetfix==nullptr || p->wetfix[IJ]<0))
+    {
+    p->wet[IJ] = 1;
+    ++nw;
+    }
+
+    if(pgc->globalisum(nw)>0)
+    pgc->gcsl_start4Vint(p,p->wet,50);
+    }
 
     for(i=p->imin; i<p->imin+p->imax; ++i)
     for(j=p->jmin; j<p->jmin+p->jmax; ++j)

@@ -26,6 +26,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm2D.h"
 #include"met_forcing.h"
+#include"seastate_sflow.h"
 #include"ghostcell.h"
 #include"ioflow.h"
 #include"reefckpt.h"
@@ -45,7 +46,7 @@ sflow_momentum_SI::sflow_momentum_SI(lexer *p, fdm2D *b, ghostcell *pgc, sflow_H
                                       qy(p),qyn(p),qyE(p),Hy(p),aly(p),ay(p),ky(p),gy0(p),
                                       fxU(p),fxV(p),fyU(p),fyV(p),
                                       eta0(p),WL0(p),UH0(p),VH0(p),UHa(p),VHa(p),UHb(p),VHb(p),UHp(p),VHp(p),
-                                      WHz(p),dUH(p),dVH(p),etaI(p),alc(p),rhs(p),rhsW(p),bdiag(p),
+                                      WHz(p),dUH(p),dVH(p),etaI(p),alc(p),rhs(p),rhsW(p),bdiag(p),wsrc(p),
                                       tU(p),tV(p),tUH(p),tVH(p),WLk(p),etaB(p)
 {
     check(p);
@@ -118,8 +119,10 @@ void sflow_momentum_SI::check(lexer *p)
     if(p->X10>0)
     msg("6DOF and direct forcing (X 10) are");
 
-    if(p->A750>0)
-    msg("SEASTATE coupling (A 750) is");
+    // SEASTATE coupling (A 750 1): the wave force in the predictor, the Stokes mass source (A 751 2) in the eta
+    // system; surfbeat (A 770 1) needs the host's step for the wave groups and the long-wave boundary
+    if(p->A750>0 && p->A770==1)
+    msg("SEASTATE surfbeat (A 770 1) is");
 
     if(stop==1)
     exit(1);
@@ -676,6 +679,8 @@ void sflow_momentum_SI::rk_stage(lexer *p, fdm2D *b, ghostcell *pgc, slice &UHs,
     prheo->u_source(p,b,b->U,b->V,WL0);
     if(pmet!=nullptr)
     pmet->source_sflow(p,pgc,b->F,0,WL0,UHs,VHs);
+    if(b->wave!=nullptr)
+    b->wave->u_source(p,b);
     irhs(p,b);
 	pdiff->diff_u(p,b,pgc,psolv,UHDIFF,UHs,b->U,b->V,WL0,alpha);
 
@@ -684,6 +689,8 @@ void sflow_momentum_SI::rk_stage(lexer *p, fdm2D *b, ghostcell *pgc, slice &UHs,
     prheo->v_source(p,b,b->U,b->V,WL0);
     if(pmet!=nullptr)
     pmet->source_sflow(p,pgc,b->G,1,WL0,UHs,VHs);
+    if(b->wave!=nullptr)
+    b->wave->v_source(p,b);
     jrhs(p,b);
     }
     pdiff->diff_v(p,b,pgc,psolv,VHDIFF,VHs,b->U,b->V,WL0,alpha);
@@ -926,6 +933,21 @@ void sflow_momentum_SI::eta_solve(lexer *p, fdm2D *b, ghostcell *pgc)
     SLICELOOP4
     rhsW(i,j) = WL0(i,j) - dt*(theta*div(p,qxE,qyE) + (1.0-theta)*div(p,qxn,qyn));
 
+    // + dt K: the Stokes mass source of the SEASTATE vortex force (A 751 2), K = -div(M) of the wet cells, held
+    // over the step (also in eta_update)
+    mass_source = (b->wave!=nullptr && p->A751==2);
+
+    if(mass_source)
+    {
+        SLICELOOP4
+        wsrc(i,j) = 0.0;
+
+    b->wave->mass_source(p,b,wsrc);
+
+        SLICELOOP4
+        rhsW(i,j) += dt*wsrc(i,j);
+    }
+
     // initial guess eta^n; wet pattern: all wet (the linear system of P1), then the
     // Newton iteration on WL = max(eta + d, 0) (Casulli 2009), converging from above
     SLICELOOP4
@@ -982,7 +1004,12 @@ void sflow_momentum_SI::eta_update(lexer *p, fdm2D *b, ghostcell *pgc)
     // WL >= 0 up to round-off
     SLICELOOP4
     {
-    b->WL(i,j) = MAX(WL0(i,j) - p->dt*(theta*div(p,qx,qy) + (1.0-theta)*div(p,qxn,qyn)), 0.0);
+    double w = WL0(i,j) - p->dt*(theta*div(p,qx,qy) + (1.0-theta)*div(p,qxn,qyn));
+
+    if(mass_source)
+    w += p->dt*wsrc(i,j);
+
+    b->WL(i,j) = MAX(w, 0.0);
     b->eta(i,j) = b->WL(i,j) - b->depth(i,j);
     }
 
