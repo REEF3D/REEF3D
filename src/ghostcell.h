@@ -146,7 +146,7 @@ public:
     void gcparax4a(lexer*, field&, int);
     void gcparax4a_sum(lexer*, field&, int);
     void gcparaxV(lexer*, double*, int);
-    void gcparaxintV(lexer*, int*, int);
+    void gcparaxintV(lexer*, int*);
     void gcparaxV1(lexer*, double*, int);
 	void gcparacox(lexer*, field&, int);
     void gcparacoxV(lexer*, double*, int);
