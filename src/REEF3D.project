@@ -3536,6 +3536,7 @@
           <File Name="ioflow_amr_block.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="ioWave">
+          <File Name="iowave_fnpf_fullini_masked.cpp"/>
           <File Name="arc_sirw.cpp"/>
           <File Name="iowave_sirw.cpp"/>
           <File Name="iowave_probes.cpp"/>
