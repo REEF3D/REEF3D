@@ -29,6 +29,8 @@ Author: Hans Bihs
 
 using namespace std;
 
+class ioflow;
+
 class nhflow_breaking : public increment 
 {
 public:
@@ -55,6 +57,13 @@ public:
     sliceint4& brk_flag() { return brkflag; }
 
     void filter(lexer*, fdm_nhf*, ghostcell*, slice&);
+    
+    // A 550 3: eddy viscosity of Kennedy et al. (2000)
+    void breaking_kennedy(lexer*,fdm_nhf*,ghostcell*,slice&);
+    
+    // no detection in the relaxation zones of the wave generation and the numerical beach (ioflow::relax_boxes);
+    // called by the momentum schemes before breaking(), builds the mask once
+    void breaking_zones(lexer*,ioflow*);
 
     
 private:
@@ -63,6 +72,10 @@ private:
     int count_n;
     
     sliceint4 bx,by,bd,brkflag;
+    sliceint4 brkzone;          // 1 in the relaxation zones
+    bool brkzone_built = false;
+    slice4 brkage,brkage_n;     // A 550 3: age of the breaking event, at the end of the stage and of the last time step
+    slice4 brkvb;               // A 550 3: work array of the band
     slice *brk_eta = nullptr, *brk_eta_n = nullptr, *brk_WL = nullptr;
     double brk_alpha = 1.0;
 };

@@ -337,7 +337,8 @@ int nhflow_amr::keys_ok(lexer *p)
     // patches and the blocks have the bed and the surface only
     if(p->A519==2) ok=0;
     // breaking (A 550 1, RK2 and RK3): it acts through the implicit diffusion (A 512 2), composite (G 31 1)
-    // or per grid (G 31 0); on a multi-block grid the blocks break as one grid (breaking_level0)
+    // or per grid (G 31 0); on a multi-block grid the blocks break as one grid (breaking_level0). The eddy viscosity
+    // (A 550 3) is not on the patches
     if(p->A550!=0 && (p->A550!=1 || (p->A510!=2 && p->A510!=3))) ok=0;
     if(p->B200!=0 || p->X330!=0 || p->A599!=0) ok=0;
     // sediment transport (S 10 1): bed load, Exner (S 31 1/2, S 32 1/2), sand slide; no suspended load, no

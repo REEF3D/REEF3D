@@ -96,6 +96,7 @@ public:
     double A604,A605_sig,A605_k0,A606_s,A606_t,A607_s,A607_t,A608;
     int A550,A551,A552;
     double A554,A555,A557;
+    double A501,A502,A503,A504;
     int A560;
     int A564,A565,A566,A567;
     int A561;

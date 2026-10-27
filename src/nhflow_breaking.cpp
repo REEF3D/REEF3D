@@ -24,11 +24,20 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
+#include"ioflow.h"
+#include<vector>
 
-nhflow_breaking::nhflow_breaking(lexer* p, fdm_nhf *d, ghostcell *pgc) : bx(p), by(p), bd(p), brkflag(p), count_n(-1)
+nhflow_breaking::nhflow_breaking(lexer* p, fdm_nhf *d, ghostcell *pgc) : bx(p), by(p), bd(p), brkflag(p), brkzone(p),
+                                                                            brkage(p), brkage_n(p), brkvb(p), count_n(-1)
 {
     SLICELOOP4
+    {
     d->breaking(i,j)=0;
+    brkflag(i,j)=0;
+    brkzone(i,j)=0;
+    brkage(i,j)=0.0;
+    brkage_n(i,j)=0.0;
+    }
 }
 
 nhflow_breaking::~nhflow_breaking()
@@ -39,6 +48,154 @@ void nhflow_breaking::breaking(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &eta,
 {
     if(p->A550==1)
     breaking_baquet(p, d, pgc, eta, eta_n, WL, alpha);
+    
+    if(p->A550==3)
+    breaking_kennedy(p, d, pgc, WL);
+}
+
+// A 550 3: eddy viscosity of Kennedy, Chen, Kirby & Dalrymple (2000), J. Waterway Port Coastal Ocean Eng. 126(1), 39-47,
+// as in FUNWAVE, with deta/dt of the stage (continuity) and the total depth h of the stage water level:
+//
+//   nu_b = B delta_b^2 h deta/dt,   delta_b = A 504 (1.2)
+//   B = 1 for deta/dt >= 2 eta_t*,  deta/dt / eta_t* - 1 for eta_t* < deta/dt < 2 eta_t*,  0 below
+//   eta_t* = eta_t^I + min(t_b/T*, 1) (eta_t^F - eta_t^I),  eta_t^I = A 554 sqrt(g h), eta_t^F = A 501 sqrt(g h),
+//   T* = A 503 sqrt(h/g)
+//
+// t_b is the age of the breaking event in the column: a column with deta/dt > eta_t* takes the largest age of
+// itself and its neighbours at the end of the last time step plus dt, so the event moves with the front and its
+// threshold relaxes from eta_t^I to eta_t^F while it travels; otherwise the age is 0. The viscosity varies
+// continuously with deta/dt (B), so there is no switch of the flow equations and no on/off of a constant viscosity.
+//
+// nu_b is spread (maximum of the neighbours) over a band of A 502 h around the breaking columns, so that it covers
+// the crest behind the front: on the front face alone it smooths the front, which takes away the dissipation of the
+// shock-capturing scheme, while the non-hydrostatic pressure keeps the crest, and the crest peaks (Ting & Kirby).
+// It acts in all layers on all faces of the implicit diffusion (A 512 2, set by A 550 3); with the horizontal faces
+// only, the inner surf zone of Ting & Kirby depended on the number of layers (4: H/h 0.48, 10: 0.59 and noisy).
+// No breaking in the relaxation zones (breaking_zones).
+void nhflow_breaking::breaking_kennedy(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
+{
+    const double g = fabs(p->W22);
+    
+    // new time step: the ages at the end of the last step
+    if(p->count>count_n)
+    {
+    SLICELOOP4
+    brkage_n(i,j) = brkage(i,j);
+    
+    pgc->gcsl_start4(p,brkage_n,1);
+    
+    count_n=p->count;
+    }
+    
+    int count=0;
+    
+    SLICELOOP4
+    {
+    brkage(i,j) = 0.0;
+    brkflag(i,j) = 0;
+    d->vb(i,j) = 0.0;
+    
+        if(p->wet[IJ]==1 && brkzone(i,j)==0 && p->count>1)
+        {
+        const double h = MAX(WL(i,j),0.0);
+        const double c = sqrt(g*h);
+        const double et = d->detadt(i,j);
+        
+        double age = MAX(brkage_n(i,j),MAX(brkage_n(i-1,j),brkage_n(i+1,j)));
+        
+        if(p->j_dir==1)
+        age = MAX(age,MAX(brkage_n(i,j-1),brkage_n(i,j+1)));
+        
+        const double tstar = p->A503*sqrt(h/g);
+        const double etI = p->A554*c;
+        const double etF = p->A501*c;
+        const double ets = (age>0.0 && tstar>0.0) ? etI + MIN(age/tstar,1.0)*(etF - etI) : etI;
+        
+            if(et>ets && ets>0.0)
+            {
+            const double B = (et>=2.0*ets) ? 1.0 : et/ets - 1.0;
+            
+            d->vb(i,j) = B*p->A504*p->A504*h*et;
+            brkage(i,j) = age + p->dt;
+            brkflag(i,j) = 1;
+            ++count;
+            }
+        }
+    }
+    
+    // spread over the band of A 502 h: bd is the width in cells, by marks the band columns
+    int nband=0;
+    
+    SLICELOOP4
+    {
+    double dxl = p->DXN[IP];
+    
+    if(p->j_dir==1)
+    dxl = MIN(dxl,p->DYN[JP]);
+    
+    bd(i,j) = (p->wet[IJ]==1 && brkzone(i,j)==0) ? int(ceil(p->A502*MAX(WL(i,j),0.0)/dxl - 1.0e-9)) : 0;
+    nband = MAX(nband,bd(i,j));
+    }
+    
+    nband = pgc->globalimax(nband);
+    
+    for(int qn=0; qn<nband; ++qn)
+    {
+    pgc->gcsl_start4(p,d->vb,1);
+    
+    SLICELOOP4
+    {
+    brkvb(i,j) = d->vb(i,j);
+    
+        if(qn<bd(i,j))
+        {
+        brkvb(i,j) = MAX(brkvb(i,j),MAX(d->vb(i-1,j),d->vb(i+1,j)));
+        
+        if(p->j_dir==1)
+        brkvb(i,j) = MAX(brkvb(i,j),MAX(d->vb(i,j-1),d->vb(i,j+1)));
+        }
+    }
+    
+    SLICELOOP4
+    d->vb(i,j) = brkvb(i,j);
+    }
+    
+    SLICELOOP4
+    d->breaking(i,j) = brkflag(i,j);
+    
+    pgc->gcsl_start4(p,d->vb,1);
+    pgc->gcsl_start4int(p,d->breaking,50);
+    
+    count=pgc->globalisum(count);
+    
+    if(p->mpirank==0 && (p->count%p->P12==0))
+    cout<<"breaking: "<<count<<endl;
+}
+
+// the relaxation zones of the wave generation and the numerical beach (ioflow::relax_boxes): deta/dt of the
+// continuity is not the change of the relaxed water level there
+void nhflow_breaking::breaking_zones(lexer *p, ioflow *pflow)
+{
+    if(brkzone_built || p->A550<2 || pflow==nullptr)
+    return;
+    
+    // boxes xs, xe, ys, ye
+    std::vector<double> b;
+    pflow->relax_boxes(p,b);
+    
+    SLICELOOP4
+    {
+    const double x = (p->geo_curv==1) ? p->XC2D[(i-p->imin)*p->jmax + (j-p->jmin)] : p->XP[IP];
+    const double y = (p->geo_curv==1) ? p->YC2D[(i-p->imin)*p->jmax + (j-p->jmin)] : p->YP[JP];
+    
+    brkzone(i,j) = 0;
+    
+        for(size_t q=0; q+3<b.size(); q+=4)
+        if(x>=b[q] && x<=b[q+1] && (p->j_dir==0 || (y>=b[q+2] && y<=b[q+3])))
+        brkzone(i,j) = 1;
+    }
+    
+    brkzone_built = true;
 }
 
 void nhflow_breaking::breaking_baquet(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &eta, slice &eta_n, slice &WL, double alpha)

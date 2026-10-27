@@ -201,6 +201,7 @@ void nhflow_momentum_RK3::phase_F(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_s
     pfsfbody->level(p,d,pgc,p6dof,pflow,s,WLRK1,1.0);
     phull->level(p,d,pgc,p6dof,pflow,s,WLRK1,1.0);
     omega_update(p,d,pgc,WLRK1,d->U,d->V,d->W);
+    breaking_zones(p,pflow);
     breaking(p,d,pgc,d->eta,d->eta_n,WLRK1,1.0);
     p->fsftime+=pgc->timer()-starttime;
     }
@@ -222,6 +223,7 @@ void nhflow_momentum_RK3::phase_F(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_s
     pfsfbody->level(p,d,pgc,p6dof,pflow,s,WLRK2,0.25);
     phull->level(p,d,pgc,p6dof,pflow,s,WLRK2,0.25);
     omega_update(p,d,pgc,WLRK2,d->U,d->V,d->W);
+    breaking_zones(p,pflow);
     breaking(p,d,pgc,d->eta,d->eta_n,WLRK2,0.25);
     
     p->fsftime+=pgc->timer()-starttime;
@@ -244,6 +246,7 @@ void nhflow_momentum_RK3::phase_F(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_s
     pfsfbody->level(p,d,pgc,p6dof,pflow,s,d->WL,2.0/3.0);
     phull->level(p,d,pgc,p6dof,pflow,s,d->WL,2.0/3.0);
     omega_update(p,d,pgc,d->WL,d->U,d->V,d->W);
+    breaking_zones(p,pflow);
     breaking(p,d,pgc,d->eta,d->eta_n,d->WL,2.0/3.0);
     
     p->fsftime+=pgc->timer()-starttime;
