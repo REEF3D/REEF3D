@@ -98,19 +98,19 @@
    "rows": 44,
    "last": [
     0.203008789,
-    -0.0162252129,
+    -0.0166825109,
     0.00244832929,
     0.000130165635
    ],
    "colsum": [
     10.076430409453,
-    4.641336396393,
+    4.661707172849,
     3.631174121624786,
     0.00162238290680691
    ],
    "colabs": [
     10.076430409453,
-    4.8089905181470005,
+    4.824453768471,
     3.631174121624786,
     0.00162238290680691
    ]
@@ -208,7 +208,7 @@
   0.00531551728299653,
   0.005322703149787509
  ],
- "blessed_from": "/home/claude/reg/new/REEF3D",
- "date": "2026-10-24",
- "note": "blessed with hans_dev dae651be5 (the NHFLOW sources as ce39a0d47) + REEFAMR/0093-0095"
+ "blessed_from": "/home/claude/build3/stage/REEF3D",
+ "date": "2026-10-27",
+ "note": "re-blessed at hans_dev 9996bd2 + patches 0007-0010: stale or missing at 9996bd2 (identical with and without the patches)"
 }

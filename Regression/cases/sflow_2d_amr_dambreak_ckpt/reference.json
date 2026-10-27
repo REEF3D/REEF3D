@@ -80,8 +80,8 @@
     7.572452906456,
     60.9999997905,
     60.1269221262,
-    59.3178553187,
-    1.5312224469553934,
+    59.3178581538,
+    1.531220563868888,
     1.9580028733292454e-05,
     9.5951580022771e-12,
     0.0,
@@ -95,8 +95,8 @@
     7.572452906456,
     60.9999997905,
     60.1269221262,
-    59.3178553187,
-    1.5312421578375313,
+    59.3178581538,
+    1.531240273855326,
     2.0557368678302317e-05,
     1.07233666399465e-11,
     0.0,
@@ -231,7 +231,7 @@
   0.004210640202610888,
   0.004212153612276331
  ],
- "blessed_from": "/home/claude/reg/new/REEF3D",
- "date": "2026-10-24",
- "note": "REEFAMR/0104: SFLOW AMR checkpoint/restart pairs (sediment on the patches, patch lexers, filled cells, log counters)"
+ "blessed_from": "/home/claude/build3/stage/REEF3D",
+ "date": "2026-10-27",
+ "note": "re-blessed at hans_dev 9996bd2 + patches 0007-0010: stale or missing at 9996bd2 (identical with and without the patches)"
 }
