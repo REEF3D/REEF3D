@@ -211,8 +211,10 @@ bool cfd_amr::scope(lexer *p, ghostcell *pgc)
     why = "the level set (F 30) or single phase flow, no VOF (F 80) or multiphase (F 300)";
     else if(!(p->T10==0 || p->T10==1 || p->T10==2 || p->T10==21 || p->T10==22))
     why = "laminar flow or a RANS model (T 10 0, 1, 2, 21, 22)";
-    else if(p->W30!=0 || p->W32!=0 || p->W90!=0)
-    why = "no compressibility or rheology (W 30, W 32, W 90)";
+    else if(p->W30!=0 || p->W90!=0)
+    why = "no compressibility W 30 or rheology W 90 (the air compressibility W 32 works)";
+    else if(p->W32!=0 && p->G7!=0)
+    why = "the air compressibility W 32 with one time step for all levels, G 7 0 (with subcycling the synchronisation projection does not keep the compression of the air)";
     else if(p->H10!=0 && p->C10!=0)
     why = "heat or concentration, not both (H 10, C 10)";
     else if((p->H10!=0 && p->H10!=3) || (p->C10!=0 && p->C10!=3))

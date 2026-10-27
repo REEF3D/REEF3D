@@ -35,7 +35,7 @@ void pjm_corr::comp_ini(lexer *p)
     exit(1);
     }
 
-    if(p->W32>0 && p->mpirank==0)
+    if(p->W32>0 && p->mpirank==0 && p->amr_patch==0)
     cout<<"air compressibility  gamma: "<<p->W33<<"  band: "<<p->W34<<"  layer: "<<p->W35<<endl;
 }
 
