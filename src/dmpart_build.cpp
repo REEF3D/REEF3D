@@ -70,6 +70,9 @@ namespace
     };
 }
 
+static bool build_from(gridv2::reader &gf, int nranks, std::vector<std::vector<char>> &rankbuf, std::string &msg, int weighted,
+                       std::vector<int> *boxes, bool boxes_only);
+
 bool build(const char *fname, int nranks, std::vector<std::vector<char>> &rankbuf, std::string &msg, int weighted,
            std::vector<int> *boxes, bool boxes_only)
 {
@@ -80,6 +83,24 @@ bool build(const char *fname, int nranks, std::vector<std::vector<char>> &rankbu
         msg = gf.error;
         return false;
     }
+    return build_from(gf,nranks,rankbuf,msg,weighted,boxes,boxes_only);
+}
+
+bool build_mem(std::vector<char> &&glob, int nranks, std::vector<std::vector<char>> &rankbuf, std::string &msg)
+{
+    gridv2::reader gf;
+
+    if(!gf.open_buffer(std::move(glob),"grid in memory",gridv2::magic_glob))
+    {
+        msg = gf.error;
+        return false;
+    }
+    return build_from(gf,nranks,rankbuf,msg,0,nullptr,false);
+}
+
+static bool build_from(gridv2::reader &gf, int nranks, std::vector<std::vector<char>> &rankbuf, std::string &msg, int weighted,
+                       std::vector<int> *boxes, bool boxes_only)
+{
 
     gridv2::section sc;
 

@@ -227,8 +227,8 @@ bool cfd_amr::scope(lexer *p, ghostcell *pgc)
     why = "heat with the material tables, H 3 1";
     else if((p->H10>0 || p->C10>0) && (p->B200!=0 || p->D20>2))
     why = "heat and concentration without porous structures (B 200 0), with the diffusion D 20 0, 1 or 2";
-    else if(p->S10!=0 || p->Q10!=0)
-    why = "no sediment (S 10, Q 10)";
+    else if((p->S10!=0 || p->Q10!=0) && cpm_why(p)!=nullptr)
+    why = cpm_why(p);
     else if(p->E10>0)
     why = "no DEM particles (E 10; momentum_forcing holds the particle forcing of level 0 in a static member)";
     else if(p->X10>1 || p->Z10!=0 || p->Z20!=0 || p->Z30!=0)
@@ -258,8 +258,11 @@ bool cfd_amr::scope(lexer *p, ghostcell *pgc)
 
     if(bad)
     {
-        if(p->mpirank==0)
+        // asked twice with CPM (driver logic_cfd, the sediment of level 0): told once
+        static bool told = false;
+        if(p->mpirank==0 && !told)
         cout<<"CFD AMR (G 1 "<<p->G1<<"): needs "<<(why ? why : "a supported set-up")<<"; running without mesh refinement"<<endl;
+        told = true;
         return false;
     }
     return true;
@@ -1277,6 +1280,10 @@ void cfd_amr::ini(lexer *p, fdm *a, ghostcell *pgc)
         cout<<"CFD AMR: the free surface is close to the top or the bottom of a refined box (z = "<<zb
             <<"); keep them more than the interface thickness ("<<p->psi<<") plus the wave amplitude away from it"<<endl;
     }
+
+    // CPM (S 10 1, Q 10 1): its grid over the boxes G 15, the parcels seeded there, the bed onto the grids
+    if(p->S10==1 && p->Q10>=1)
+    cpm_setup(p,a,pgc);
 
     // the output of the patches at the start (printer_CFD has written level 0)
     print(p,pgc,true);

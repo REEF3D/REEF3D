@@ -66,6 +66,7 @@ class field3;
 class weno_flux_nug;
 class fluid_update_fsf_heat;
 class force;
+struct cfd_amr_cpm;
 
 using namespace std;
 
@@ -144,7 +145,8 @@ struct cfd_amr_field
 //  cast on every patch at its resolution, cfd_amr_geom.cpp), floating bodies (X 10 1), the
 //  porous structures B 200 1 (vrans_f on every patch, the zones at its cells; CPOR n at the faces of
 //  the patch edges); heat or concentration (H 10 3, C 10 3: transported by the refinement on all
-//  grids in flux form, the patch edges with flux registers, cfd_amr_scalar.cpp); no sediment or
+//  grids in flux form, the patch edges with flux registers, cfd_amr_scalar.cpp); sediment with CPM (S 10 1, Q 10 1) on a
+//  grid of the finest level over the boxes G 15 (static refinement, cfd_amr_cpm.cpp), no other sediment model, no
 //  vegetation; the convection schemes D 10
 //  0-8, 10-16, 60 and F 35 1-8, 10-16, the diffusion D 20 0-3; the relaxation zones of the wave
 //  generation and the beach (B 98 2, B 99 1/2) with a wave theory on the patches as on level 0
@@ -319,6 +321,12 @@ public:
     // subcycling (cfd_amr_sub.cpp)
     void step_sub(lexer*, fdm*, ghostcell*, vrans*, sixdof*);
 
+    // CPM on the refinement (cfd_amr_cpm.cpp): the sediment step on the grid of CPM, before the fluid step;
+    // cpm_why: what the run needs for it (nullptr: covered)
+    void cpm_step(lexer*, fdm*, ghostcell*);
+    static const char* cpm_why(lexer*);
+    bool cpm_on() const { return cpm!=nullptr; }
+
     // heat (H 10) or concentration (C 10) on all grids (cfd_amr_scalar.cpp): the driver's objects
     // of level 0 (before ini); true: the refinement transports the scalar on all grids (the driver
     // leaves its step out)
@@ -421,6 +429,14 @@ private:
     void regrid_old(const vector<int> &fresh, vector<vector<char>> &got);   // G 40: from the old patches of all ranks
     void patch_fields_ini(int id);
     void free_patch(cfd_amr_patch*);
+
+    // CPM on the grid of the finest level over the boxes G 15 (cfd_amr_cpm.cpp)
+    cfd_amr_cpm *cpm = nullptr;
+    void cpm_setup(lexer*, fdm*, ghostcell*);
+    void cpm_plans();
+    void cpm_pull(bool ini);
+    void cpm_push();
+    void cpm_bed(lexer*, fdm*);
 
     // the registry of the patch state (cfd_amr_fields.cpp)
     vector<cfd_amr_field> reg;

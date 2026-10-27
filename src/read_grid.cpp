@@ -72,7 +72,7 @@ void lexer::read_grid()
     struct stat st;
     
     // a run stopped to rebalance (G 46): restart from its checkpoint with the weighted partition
-    if(stat("REEF3D_Checkpoint/rebalance",&st)==0)
+    if(!grid_inmem && stat("REEF3D_Checkpoint/rebalance",&st)==0)
     {
         I45 = 1;
         M40 = 1;
@@ -83,9 +83,9 @@ void lexer::read_grid()
 
     const bool rankfile = (stat(name,&st)==0);
     const bool globfile = (stat("DIVEMesh_Grid/grid-global.dat",&st)==0);
-    const bool decompose = (M40==1 || !rankfile) && globfile;
+    const bool decompose = !grid_inmem && (M40==1 || !rankfile) && globfile;
     
-    if(M40==1 && !globfile)
+    if(!grid_inmem && M40==1 && !globfile)
     {
         if(mpirank==0)
         cout<<endl<<"!!! M 40 1 (or a rebalance restart, G 46) needs DIVEMesh_Grid/grid-global.dat: DIVEMesh M 50 1 or 2 !!!"<<endl<<endl;
@@ -153,6 +153,8 @@ void lexer::read_grid()
         
         opened = gf.open_buffer(std::move(mine),name,gridv2::magic_grid);
     }
+    else if(grid_inmem)
+    opened = gf.open_buffer(std::move(grid_mem),"grid in memory",gridv2::magic_grid);
     else
     opened = gf.open(name,gridv2::magic_grid);
     
@@ -302,6 +304,7 @@ void lexer::read_grid()
     // --------------------------------------------------------------------------------------------
     // geometry: all ranks
     gridgeo = new geo_mesh();
+    if(!grid_inmem)
     gridgeo->read(this,"DIVEMesh_Grid/grid-geometry.dat");
 
     // G 55: the blocks 1.. of a multi-block grid cut into pieces for the ranks
