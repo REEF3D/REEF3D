@@ -26,9 +26,11 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"ioflow.h"
 #include<vector>
+#include"breaking_crest3d.h"
 
 nhflow_breaking::nhflow_breaking(lexer* p, fdm_nhf *d, ghostcell *pgc) : bx(p), by(p), bd(p), brkflag(p), brkzone(p),
-                                                                            brkage(p), brkage_n(p), brkvb(p), count_n(-1)
+                                                                            brkage(p), brkage_n(p), brkvb(p), bt_us(p), bt_vs(p), bt_vbs(p), brkseed(p),
+                                                                            brkkseed(p), brkk(p), brkk_n(p), brkr(p), brkr_n(p), count_n(-1)
 {
     SLICELOOP4
     {
@@ -37,11 +39,18 @@ nhflow_breaking::nhflow_breaking(lexer* p, fdm_nhf *d, ghostcell *pgc) : bx(p), 
     brkzone(i,j)=0;
     brkage(i,j)=0.0;
     brkage_n(i,j)=0.0;
+    brkseed(i,j)=0;
+    brkkseed(i,j)=0.0;
+    brkk(i,j)=0.0;
+    brkk_n(i,j)=0.0;
+    brkr(i,j)=0.0;
+    brkr_n(i,j)=0.0;
     }
 }
 
 nhflow_breaking::~nhflow_breaking()
 {
+    delete bt;
 }
 
 void nhflow_breaking::breaking(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &eta, slice &eta_n, slice &WL, double alpha)
@@ -51,6 +60,12 @@ void nhflow_breaking::breaking(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &eta,
     
     if(p->A550==3)
     breaking_kennedy(p, d, pgc, WL);
+    
+    if(p->A550==4)
+    {
+    breaking_barthelemy(p, d, pgc, eta_n);
+    breaking_kennedy(p, d, pgc, WL);
+    }
 }
 
 // A 550 3: eddy viscosity of Kennedy, Chen, Kirby & Dalrymple (2000), J. Waterway Port Coastal Ocean Eng. 126(1), 39-47,
@@ -76,49 +91,107 @@ void nhflow_breaking::breaking_kennedy(lexer *p, fdm_nhf *d, ghostcell *pgc, sli
 {
     const double g = fabs(p->W22);
     
-    // new time step: the ages at the end of the last step
+    // new time step: the ages (and with A 550 4 the wavenumbers) at the end of the last step
     if(p->count>count_n)
     {
     SLICELOOP4
+    {
     brkage_n(i,j) = brkage(i,j);
+    brkk_n(i,j) = brkk(i,j);
+    brkr_n(i,j) = brkr(i,j);
+    }
     
     pgc->gcsl_start4(p,brkage_n,1);
+    pgc->gcsl_start4(p,brkk_n,1);
+    pgc->gcsl_start4(p,brkr_n,1);
     
     count_n=p->count;
     }
     
+    const bool seeded = (p->A550==4);
     int count=0;
     
     SLICELOOP4
     {
     brkage(i,j) = 0.0;
+    brkk(i,j) = 0.0;
+    brkr(i,j) = 0.0;
     brkflag(i,j) = 0;
     d->vb(i,j) = 0.0;
     
         if(p->wet[IJ]==1 && brkzone(i,j)==0 && p->count>1)
         {
         const double h = MAX(WL(i,j),0.0);
-        const double c = sqrt(g*h);
         const double et = d->detadt(i,j);
         
-        double age = MAX(brkage_n(i,j),MAX(brkage_n(i-1,j),brkage_n(i+1,j)));
+        // the largest age of the column and its neighbours, and the wavenumber and initial threshold of that event (A 550 4)
+        double age = brkage_n(i,j);
+        double kw = brkk_n(i,j);
+        double r0 = brkr_n(i,j);
+        
+        auto take = [&](int ii, int jj) { if(brkage_n(ii,jj)>age) { age = brkage_n(ii,jj); kw = brkk_n(ii,jj); r0 = brkr_n(ii,jj); } };
+        take(i-1,j);
+        take(i+1,j);
         
         if(p->j_dir==1)
-        age = MAX(age,MAX(brkage_n(i,j-1),brkage_n(i,j+1)));
+        {
+        take(i,j-1);
+        take(i,j+1);
+        }
         
-        const double tstar = p->A503*sqrt(h/g);
-        const double etI = p->A554*c;
+        // A 550 4: a seeded column starts or continues an event with the wavenumber of the breaking crest; without
+        // an event and without seed no breaking
+        bool seedc = false;
+        
+        if(seeded)
+        {
+            if(brkseed(i,j)==1)
+            {
+                if(age<=0.0 || kw<=0.0)
+                kw = brkkseed(i,j);
+                
+                seedc = true;
+            }
+            else
+            if(age<=0.0)
+            continue;
+        }
+        
+        // length of the wave: h (A 550 3), tanh(k h)/k (A 550 4, deep water 1/k); c = sqrt(g L_k)
+        const double Lk = (seeded && kw>0.0) ? tanh(kw*h)/kw : h;
+        const double c = sqrt(g*Lk);
+        const double tstar = p->A503*sqrt(Lk/g);
+        
+        // initial threshold eta_t^I / c: A 554; a new event of a seed (A 550 4) starts at the deta/dt of the column if
+        // that is larger, so that B starts from 0 and the viscosity grows continuously
+        if(age<=0.0 || r0<=0.0)
+        r0 = (seedc && c>0.0) ? MAX(p->A554, et/c) : p->A554;
+        
+        const double etI = r0*c;
         const double etF = p->A501*c;
+        
         const double ets = (age>0.0 && tstar>0.0) ? etI + MIN(age/tstar,1.0)*(etF - etI) : etI;
         
             if(et>ets && ets>0.0)
             {
             const double B = (et>=2.0*ets) ? 1.0 : et/ets - 1.0;
             
-            d->vb(i,j) = B*p->A504*p->A504*h*et;
+            d->vb(i,j) = B*p->A504*p->A504*Lk*et;
             brkage(i,j) = age + p->dt;
+            brkk(i,j) = kw;
+            brkr(i,j) = r0;
             brkflag(i,j) = 1;
             ++count;
+            }
+            
+            // A 550 4: the event of a seeded column ages also below the threshold, so the threshold relaxes from
+            // eta_t^I at the onset of the crest and the viscosity grows continuously over T*
+            else
+            if(seedc)
+            {
+            brkage(i,j) = age + p->dt;
+            brkk(i,j) = kw;
+            brkr(i,j) = r0;
             }
         }
     }
@@ -139,31 +212,45 @@ void nhflow_breaking::breaking_kennedy(lexer *p, fdm_nhf *d, ghostcell *pgc, sli
     
     nband = pgc->globalimax(nband);
     
+    SLICELOOP4
+    d->vbk(i,j) = brkk(i,j);
+    
     for(int qn=0; qn<nband; ++qn)
     {
     pgc->gcsl_start4(p,d->vb,1);
+    pgc->gcsl_start4(p,d->vbk,1);
     
     SLICELOOP4
     {
     brkvb(i,j) = d->vb(i,j);
+    bt_vbs(i,j) = d->vbk(i,j);
     
         if(qn<bd(i,j))
         {
-        brkvb(i,j) = MAX(brkvb(i,j),MAX(d->vb(i-1,j),d->vb(i+1,j)));
+        auto take = [&](int ii, int jj) { if(d->vb(ii,jj)>brkvb(i,j)) { brkvb(i,j) = d->vb(ii,jj); bt_vbs(i,j) = d->vbk(ii,jj); } };
+        take(i-1,j);
+        take(i+1,j);
         
         if(p->j_dir==1)
-        brkvb(i,j) = MAX(brkvb(i,j),MAX(d->vb(i,j-1),d->vb(i,j+1)));
+        {
+        take(i,j-1);
+        take(i,j+1);
+        }
         }
     }
     
     SLICELOOP4
+    {
     d->vb(i,j) = brkvb(i,j);
+    d->vbk(i,j) = bt_vbs(i,j);
+    }
     }
     
     SLICELOOP4
     d->breaking(i,j) = brkflag(i,j);
     
     pgc->gcsl_start4(p,d->vb,1);
+    pgc->gcsl_start4(p,d->vbk,1);
     pgc->gcsl_start4int(p,d->breaking,50);
     
     count=pgc->globalisum(count);

@@ -30,6 +30,7 @@ Author: Hans Bihs
 using namespace std;
 
 class ioflow;
+class breaking_crest3d;
 
 class nhflow_breaking : public increment 
 {
@@ -61,6 +62,9 @@ public:
     // A 550 3: eddy viscosity of Kennedy et al. (2000)
     void breaking_kennedy(lexer*,fdm_nhf*,ghostcell*,slice&);
     
+    // A 550 4: onset from crest tracking B = u_s/C (Barthelemy et al. 2018), the seed of breaking_kennedy
+    void breaking_barthelemy(lexer*,fdm_nhf*,ghostcell*,slice&);
+    
     // no detection in the relaxation zones of the wave generation and the numerical beach (ioflow::relax_boxes);
     // called by the momentum schemes before breaking(), builds the mask once
     void breaking_zones(lexer*,ioflow*);
@@ -76,6 +80,13 @@ private:
     bool brkzone_built = false;
     slice4 brkage,brkage_n;     // A 550 3: age of the breaking event, at the end of the stage and of the last time step
     slice4 brkvb;               // A 550 3: work array of the band
+    breaking_crest3d *bt = nullptr;   // A 550 4
+    slice4 bt_us, bt_vs;        // A 550 4: horizontal velocity at the surface
+    slice4 bt_vbs;              // A 550 4: viscosity of the tracking (not used)
+    sliceint4 brkseed;          // A 550 4: seeded columns
+    slice4 brkkseed, brkk, brkk_n;   // A 550 4: wavenumber of the seed, of the event, at the end of the last step
+    slice4 brkr, brkr_n;        // A 550 4: initial threshold of the event / c, at the end of the stage and of the last step
+    int bt_count = -1;
     slice *brk_eta = nullptr, *brk_eta_n = nullptr, *brk_WL = nullptr;
     double brk_alpha = 1.0;
 };

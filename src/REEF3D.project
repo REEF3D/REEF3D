@@ -707,6 +707,7 @@
           <File Name="nhflow_hullbody.h"/>
           <VirtualDirectory Name="Breaking">
             <File Name="nhflow_breaking.h"/>
+            <File Name="nhflow_breaking_profile.h"/>
           </VirtualDirectory>
           <File Name="nhflow_fsf_f.h"/>
           <File Name="nhflow_fsf.h"/>
@@ -2329,6 +2330,7 @@
           <VirtualDirectory Name="Breaking">
             <File Name="nhflow_breaking_filter.cpp"/>
             <File Name="nhflow_breaking.cpp"/>
+          <File Name="nhflow_breaking_barthelemy.cpp"/>
           </VirtualDirectory>
           <File Name="nhflow_fsf_coastline.cpp"/>
           <File Name="nhflow_fsf_wetdry_fluxes.cpp"/>
