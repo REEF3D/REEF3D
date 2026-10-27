@@ -35,6 +35,7 @@ void CPM::print_particles(lexer* p, sediment_fdm *s)
 {
     if((p->count%p->Q181==0 || p->count==0) && (p->Q180==1 && p->Q181>0 && p->Q182<0.0))
     {
+        P.number(p);
         print_vtp(p,s);
         print_bed(p,s);
         ++printcount;
@@ -42,6 +43,7 @@ void CPM::print_particles(lexer* p, sediment_fdm *s)
 
     if((p->simtime>printtime || p->count==0) && (p->Q180==1 && p->Q181<0 && p->Q182>0.0))
     {
+        P.number(p);
         print_vtp(p,s);
         print_bed(p,s);
         printtime+=p->Q182;
@@ -113,6 +115,8 @@ void CPM::print_vtp(lexer* p, sediment_fdm *s)
     ++n;
     offset[n]=offset[n-1]+numpt*sizeof(float)+sizeof(int); //bedChange
     ++n;
+    offset[n]=offset[n-1]+numpt*sizeof(int)+sizeof(int); //id
+    ++n;
 
     offset[n]=offset[n-1]+3*numpt*sizeof(float)+sizeof(int); //xyz
     ++n;
@@ -158,6 +162,8 @@ void CPM::print_vtp(lexer* p, sediment_fdm *s)
     result<<"<DataArray type=\"Float32\" Name=\"fluid velocity\" NumberOfComponents=\"3\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
     result<<"<DataArray type=\"Float32\" Name=\"bedChange\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
+    ++n;
+    result<<"<DataArray type=\"Int32\" Name=\"id\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
     result<<"</PointData>\n";
 
@@ -283,6 +289,18 @@ void CPM::print_vtp(lexer* p, sediment_fdm *s)
             ffn=float(p->ccslipol4(s->bedzh,P.X[n],P.Y[n])-p->ccslipol4(s->bedzh0,P.X[n],P.Y[n]));
             std::memcpy(&buffer[m],&ffn,sizeof(float));
             m+=sizeof(float);
+        }
+
+    // id: the parcel's number over the outputs (part::number)
+    iin=numpt*sizeof(int);
+    std::memcpy(&buffer[m],&iin,sizeof(int));
+    m+=sizeof(int);
+    for(n=0;n<P.index;++n)
+        if(P.Flag[n]>0)
+        {
+            iin=int(P.ID[n]);
+            std::memcpy(&buffer[m],&iin,sizeof(int));
+            m+=sizeof(int);
         }
 
     //  XYZ

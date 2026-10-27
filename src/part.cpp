@@ -68,6 +68,7 @@ part::part(lexer *p, ghostcell *pgc)
     p->Darray(Hop,capacity);
     p->Darray(Wt,capacity);
     Wt[0] = 1.0;
+    p->Darray(ID,capacity);
 
     p->Iarray(Flag,capacity);
     p->Iarray(Empty,capacity);
@@ -134,6 +135,8 @@ part::~part()
     Hop=nullptr;
     delete[] Wt;
     Wt=nullptr;
+    delete[] ID;
+    ID=nullptr;
 
     delete[] Empty;
     Empty=nullptr;
@@ -183,6 +186,9 @@ bool part::ckpt_restore(lexer *p, const std::vector<double> &v, size_t &k)
         std::copy(v.begin()+k,v.begin()+k+cap,*a);
         k += cap;
     }
+    // the numbers are not kept: the parcels are numbered again at the next output
+    delete [] ID;
+    ID = new double[cap]();
     delete [] Flag;
     delete [] Empty;
     Flag = new int[cap];
@@ -237,6 +243,7 @@ void part::ckpt_set(lexer *p, const std::vector<std::vector<double>> &parcels)
         double *a[PART_ND] = {PART_ARRAYS};
         for(int c=0; c<PART_ND; ++c)
         a[c][q] = s[c];
+        ID[q] = 0.0;
         Flag[q] = int(s[PART_ND]);
         if(Flag[q]==ACTIVE)
         ++numactive;
@@ -244,3 +251,15 @@ void part::ckpt_set(lexer *p, const std::vector<std::vector<double>> &parcels)
     xdest.clear(); xkx.clear(); xky.clear(); xkz.clear(); xki.clear(); xkj.clear(); xkk.clear();
 }
 #undef PART_ARRAYS
+
+// the parcels without a number get the next ones of the rank: 1 + rank + ranks * k, unique over the ranks
+void part::number(lexer *p)
+{
+    const double ranks = double(p->mpi_size>0 ? p->mpi_size : 1);
+    for(int q=0; q<index; ++q)
+    if(Flag[q]>0 && ID[q]<=0.0)
+    {
+        ID[q] = 1.0 + double(p->mpirank) + ranks*id_next;
+        id_next += 1.0;
+    }
+}
