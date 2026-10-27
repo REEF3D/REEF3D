@@ -304,8 +304,8 @@ void met_provider::check(lexer *p, ghostcell *pgc)
     else if(p->W200>0 && p->A10==5 && p->A570>0)
     msg = "W 200 and A 570: use either the met forcing (W 200) or the NHFLOW wind forcing (A 570-578), not both.";
 
-    else if(p->W200>0 && p->G50>0)
-    msg = "W 200: the met forcing does not support curvilinear grids (G 50) yet.";
+    else if(p->W200>0 && p->G50==2)
+    msg = "W 200: the met forcing supports the curvilinear grids of DIVEMesh (G 50 1), not curvgrid.dat (G 50 2) yet.";
 
     else if(p->W200>0 && (p->W207<0 || p->W207>6))
     msg = "W 207: unknown drag law; use 0 (auto), 1 (Garratt), 2 (Wu), 3 (Smith and Banke), 4 (Zijlema et al.), 5 (Garratt capped at W 213) or 6 (Zijlema et al. with the floor W 214).";

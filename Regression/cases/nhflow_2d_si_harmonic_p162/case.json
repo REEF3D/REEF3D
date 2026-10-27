@@ -1,0 +1,17 @@
+{
+ "base": "nhflow_2d_si_harmonic_p160",
+ "description": "nhflow_2d_si_harmonic_p160 driven by a level time series (B 510 mode 2, background-1.dat) of M2 0.25/61, S2 0.10/89, N2 0.05/44, K1 0.06/52, O1 0.05/310 (m/deg, Greenwich, from 2026-01-19 00:00 UTC), synthesised with UTide's ut_FUV (an independent implementation of the nodal corrections and astronomical arguments), and P 162 2026 1 19 0 0: H = A/f, G = g + V0 + u. At the clamped end H is exact and G lags the input by a constant 5-6 min (M2 2.7, S2 2.8, N2 2.6, K1 1.4, O1 1.5 deg at dt 600 s; 0.3 deg at dt 60 s): about dt/2 in the model, not in the analysis.",
+ "ctrl_set": {
+  "B 510": "1 2 0.0 86400.0",
+  "B 511": null
+ },
+ "ctrl_add": [
+  "P 162 2026 1 19 0 0"
+ ],
+ "files": [
+  "background-1.dat"
+ ],
+ "covers": [
+  "nhflow_longrun: astronomical arguments, nodal f and u, Greenwich phases (P 162)"
+ ]
+}

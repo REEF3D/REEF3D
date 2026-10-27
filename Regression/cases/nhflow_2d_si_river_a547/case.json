@@ -1,0 +1,22 @@
+{
+ "base": "nhflow_2d_si_river_kepsilon",
+ "description": "nhflow_2d_si_river_kepsilon with the algebraic parabolic eddy viscosity (A 547 1 0) instead of k-epsilon: nu_t = c kappa u*_b z'(1 - z'/h), u*_b from the log law of the bed layer. The steady profile is within 1 % of the log law (k-epsilon within about 3 %).",
+ "ctrl_set": {
+  "A 560": null,
+  "A 512": null
+ },
+ "ctrl_add": [
+  "A 547 1.0 0.0"
+ ],
+ "tags": [
+  "2d",
+  "nhflow",
+  "semi_implicit",
+  "river",
+  "turbulence"
+ ],
+ "covers": [
+  "nhflow_momentum_SI::eddy_algebraic",
+  "diffusion time step with A 547"
+ ]
+}

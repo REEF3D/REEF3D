@@ -207,6 +207,9 @@ void control::ini_default()
     A540=1;      // int NFHLOW wetdry scheme
     A544=0.001;  // double wetting & drying criterion
     A545=10.0;   // double deep criterion
+    A547_c=0.0;  // double NHFLOW semi-implicit (A 547 c nu0): algebraic eddy viscosity, nu_t = c kappa u* z (1 - z/h) + nu0 with u* from the log law of the bed layer (A 519 1); vertical in the column operator, horizontal in the predictor; 0 off (A 560 > 0: the turbulence model instead)
+    A547_nu0=0.0;// double NHFLOW semi-implicit: A 547 c nu0, background eddy viscosity (m2/s)
+    A548=0;      // int NHFLOW semi-implicit: still water depth of a face between two wet cells, 0 the mean of the two cells, 1 the smaller one (the higher bed, Stelling and Duinmeijer 2003), 2 the smaller one only where one of the cells holds less than 10 A 544 (shoreline films: no flip-flop over bed steps, the conveyance of the channels kept)
     A546=0.05;   // double NHFLOW semi-implicit: depth below which the cell velocities of the momentum predictor are desingularised
     
     A550=0;      // int turn on breaking (which method)
@@ -752,6 +755,8 @@ void control::ini_default()
     G52=0;      // int curvilinear NHFLOW (G 50): 1 the i-walls are slip walls as the j-walls (normal velocity mirrored, the pressure correction Neumann), so that a wall acts the same in any index direction (set on multi-block grids); 0 the Cartesian x-walls
     G54=0;      // int multi-block grid (G 50 1): number of open boundaries on the blocks 1.. (G 54 b t v: block b, t 1: discharge v in through its -i face, t 2: water level v at its +i face, t 3: discharge time series discharge-<v>.dat through the -i face, t 4: water level time series waterlevel-<v>.dat at the +i face)
     G55=0;      // int multi-block grid (G 50 1): 0 the blocks 1.. of DIVEMesh as they are, m > 0 cut into pieces of at most (cells of the blocks 1..) / (m ranks) cells, so that they spread over the ranks (geo_mesh_split.cpp)
+    G57=0;      // int NHFLOW semi-implicit multi-block grid: coarse space across the grids in the preconditioner of the eta solve, aggregates of G 57 x G 57 columns (two-level: the coarse correction, then the V-cycle of every grid on the remaining residual); 0 off
+    G58=0;      // int multi-block grid (G 55): 1 the blocks without open faces cut into tiles in both index directions (the cuts of all tiles aligned), 0 strips along one direction
     G56=0;      // int multi-block grid (G 50 1): G 56 a dz places the blocks on the ranks and cuts them (G 55) by their load: a wet cell 1, a cell whose bed lies above the still water level (F 60, else F 62 with F 65) + dz the load a (Tagus, SI: a = 0.66 measured); the placement is improved by moves and swaps of blocks between the ranks; 0: by the number of cells, largest block first
     G56_a=1.0;  // double multi-block grid: G 56 a dz, a
     G56_z=0.0;  // double multi-block grid: G 56 a dz, dz (m)
@@ -969,6 +974,8 @@ void control::ini_default()
     P160=0;            // int NHFLOW long-run statistics (P 160 t0 dt_out): harmonic analysis and time averages
     P160_ts=0.0;
     P160_dt=0.0;
+    P162=0;            // int NHFLOW long-run statistics: P 162 year month day hour minute, the start of the run (UTC): nodal corrections (f, u at the middle of the record) and Greenwich phases (V0 at the start) of the constituents
+    P162_y=2000; P162_mo=1; P162_d=1; P162_h=0; P162_mi=0;
     P161=1.0;          // double NHFLOW long-run statistics: Rayleigh criterion of the constituents
     P166=0;			  // int print discharge to terminal
 	P167=0;			  // int discharge gages in x-direction

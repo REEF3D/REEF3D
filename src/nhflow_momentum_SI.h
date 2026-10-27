@@ -185,6 +185,7 @@ private:
 
     void face_depth(lexer*, fdm_nhf*, ghostcell*);
     void friction(lexer*, fdm_nhf*);
+    void eddy_algebraic(lexer*, fdm_nhf*);     // A 547: parabolic eddy viscosity from the bed friction velocity
     void bc_setup(lexer*, fdm_nhf*, ghostcell*);
     void bc_method(lexer*);
     void stage_arrays(int, double*&, double*&, double*&, double*&, double*&, double*&, double&);

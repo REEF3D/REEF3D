@@ -270,6 +270,9 @@ public:
     // vector space of the composite eta solve (reefamr_bicgstab)
     void si_apply(int, int);
     void si_prec(int, int);
+    void si_ras(int, int);
+    void si_cs_build();             // G 57: the coarse space of the eta solve (aggregates over all grids)
+    void si_cs_correct(int, int);
     double si_dot(int, int);
     void si_opstart();
     void si_op_p(double, double);
@@ -653,6 +656,9 @@ private:
     std::vector<slice*> siz;
     std::vector<int> sinrow;
     std::vector<char> sirebuild;
+    // G 57: the coarse space across the grids of the eta solve
+    struct si_cs_impl *sics = nullptr;
+    int sics_n = 0;
     ioflow *pflowv;                 // objects shared by all patches (their NHFLOW calls do nothing)
     patchBC_interface *pBCv;
     sediment *psedv;

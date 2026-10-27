@@ -187,48 +187,71 @@ void geo_mesh::split_blocks(lexer *p)
         const int dir = (B.nj>B.ni && !open(b)) ? 1 : 0;
         const int L = dir ? B.nj : B.ni;
         const long long c = (long long)B.ni*B.nj;
-        int k = wgt ? int(std::ceil(wb[b]/std::max(SW,1.0e-12) - 1.0e-9)) : int((c + S - 1)/S);
-        k = std::min(k,std::max(1,L/MIN));
-        k = std::max(k,1);
+        const int kwant = std::max(1, wgt ? int(std::ceil(wb[b]/std::max(SW,1.0e-12) - 1.0e-9)) : int((c + S - 1)/S));
 
-        // G 56: the cuts where the slices along the cut reach q/k of the load of the block
-        vector<int> cut(k+1,0);
-        cut[k] = L;
-        for(int q=1; q<k; ++q)
-        cut[q] = int((long long)q*L/k);
-        if(wgt && k>1)
+        // the cuts of a direction of length Ln into kn parts: at equal cells, with G 56 where the slices across
+        // that direction reach equal parts of the load of the block; at least MIN cells deep
+        auto cuts = [&](int dn, int Ln, int kn) -> vector<int>
         {
-            vector<double> cum(L+1,0.0);
-            for(int x=0; x<L; ++x)
+            vector<int> cut(kn+1,0);
+            cut[kn] = Ln;
+            for(int q=1; q<kn; ++q)
+            cut[q] = int((long long)q*Ln/kn);
+            if(wgt && kn>1)
             {
-                double w=0.0;
-                const int M = dir ? B.ni : B.nj;
-                for(int y=0; y<M; ++y)
-                w += dir ? blk_cell_load(p,b,y,x) : blk_cell_load(p,b,x,y);
-                cum[x+1] = cum[x] + w;
+                vector<double> cum(Ln+1,0.0);
+                const int Mn = dn ? B.ni : B.nj;
+                for(int x=0; x<Ln; ++x)
+                {
+                    double w=0.0;
+                    for(int y=0; y<Mn; ++y)
+                    w += dn ? blk_cell_load(p,b,y,x) : blk_cell_load(p,b,x,y);
+                    cum[x+1] = cum[x] + w;
+                }
+                for(int q=1; q<kn; ++q)
+                {
+                    const double target = cum[Ln]*double(q)/double(kn);
+                    int x = 0;
+                    while(x<Ln && cum[x+1]<=target)
+                    ++x;
+                    if(x<Ln && target-cum[x] > cum[x+1]-target)
+                    ++x;
+                    cut[q] = std::max(cut[q-1]+MIN, std::min(x, Ln-(kn-q)*MIN));
+                }
             }
-            for(int q=1; q<k; ++q)
-            {
-                const double target = cum[L]*double(q)/double(k);
-                int x = 0;
-                while(x<L && cum[x+1]<=target)
-                ++x;
-                if(x<L && target-cum[x] > cum[x+1]-target)
-                ++x;
-                cut[q] = std::max(cut[q-1]+MIN, std::min(x, L-(k-q)*MIN));
-            }
+            return cut;
+        };
+
+        // strips along dir; G 58 1 (blocks without open faces): tiles in both directions, about square in cells
+        int ki, kj;
+        if(p->G58==1 && !open(b))
+        {
+            const int mi = std::max(1,B.ni/MIN), mj = std::max(1,B.nj/MIN);
+            ki = std::max(1, std::min(mi, int(std::lround(std::sqrt(double(kwant)*B.ni/std::max(B.nj,1))))));
+            kj = std::max(1, std::min(mj, int(std::ceil(double(kwant)/ki - 1.0e-9))));
+            ki = std::max(1, std::min(mi, int(std::ceil(double(kwant)/kj - 1.0e-9))));
         }
-
-        for(int q=0; q<k; ++q)
+        else
         {
-            const int a = cut[q], e = cut[q+1];
+            const int k1 = std::max(1, std::min(kwant, std::max(1,L/MIN)));
+            ki = dir ? 1 : k1;
+            kj = dir ? k1 : 1;
+        }
+        const int k = ki*kj;
+        const vector<int> ci = cuts(0,B.ni,ki), cj = cuts(1,B.nj,kj);
+
+        int q = 0;
+        for(int a=0; a<ki; ++a)
+        for(int e=0; e<kj; ++e)
+        {
             piece P;
             P.id = (q==0) ? b : next++;
-            P.oi = dir ? 0 : a;
-            P.oj = dir ? a : 0;
-            P.ni = dir ? B.ni : e-a;
-            P.nj = dir ? e-a : B.nj;
+            P.oi = ci[a];
+            P.oj = cj[e];
+            P.ni = ci[a+1]-ci[a];
+            P.nj = cj[e+1]-cj[e];
             pc[b].push_back(P);
+            ++q;
         }
         if(k>1)
         any = true;

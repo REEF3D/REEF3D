@@ -48,7 +48,8 @@ using namespace std;
 //    order M2 S2 K1 O1 M4 N2 K2 P1 Q1 MS4 MN4 M6 2N2, a constituent is taken if |f_k - f_l| T >= R for
 //    every constituent l before it (taken or not) and f_k T >= R (separation from the mean).
 //    Output per constituent: amplitude and phase of eta (x = A cos(w t - g), g in degrees, relative to
-//    t = 0 of the run, no nodal corrections), and the tidal current ellipse (major and minor semi-axis,
+//    t = 0 of the run, no nodal corrections; with P 162 (the start date of the run, UTC) the amplitude H = A/f
+//    and the Greenwich phase lag G = g + V0 + u, f and u at the middle of the record), and the tidal current ellipse (major and minor semi-axis,
 //    minor > 0 anticlockwise, inclination of the major axis in degrees from x).
 //  - time averages: eta, depth-averaged u, v (Eulerian residual current), the depth-integrated
 //    transport qx, qy (residual transport), and min/max of eta (wet times), max of the speed, and the

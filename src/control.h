@@ -89,6 +89,8 @@ public:
     double A535,A536,A538;
     int A540;
     double A544,A545,A546;
+    int A548;                    // NHFLOW semi-implicit: still water depth of a face between wet cells, 1 the smaller
+    double A547_c,A547_nu0;      // NHFLOW semi-implicit: algebraic vertical eddy viscosity (A 547 c nu0)
     int A550,A551,A552;
     double A554,A555,A557;
     int A560;
@@ -383,7 +385,7 @@ public:
 
     // Grid Options
     // mesh refinement (SFLOW, FNPF, NHFLOW): G 1-G 40
-    int G1,G2,G3,G4,G5,G6,G7,G10,G11,G12,G22,G23,G30,G31,G40,G43,G45,G50,G51,G52,G53,G55;
+    int G1,G2,G3,G4,G5,G6,G7,G10,G11,G12,G22,G23,G30,G31,G40,G43,G45,G50,G51,G52,G53,G55,G57,G58;
     int G54, *G54_b, *G54_t;     // open boundaries on the blocks 1.. of a multi-block grid: block, type (1 discharge in, 2 level out,
                                  // 3 discharge time series in, 4 level time series out)
     double *G54_v;               // discharge (m3/s), water level (m) or the id of the time series file (3, 4)
@@ -446,6 +448,7 @@ public:
     double P47_ts,P47_te;
     int P160;
     double P160_ts,P160_dt,P161;
+    int P162, P162_y, P162_mo, P162_d, P162_h, P162_mi;   // P 162: the start of the run (UTC) for Greenwich phases
     double *P50_x,*P50_y;
     double *P51_x,*P51_y;
     double *P52_y,*P56_x;

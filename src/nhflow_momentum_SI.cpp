@@ -107,7 +107,7 @@ nhflow_momentum_SI::nhflow_momentum_SI(lexer *p, fdm_nhf *d, ghostcell *pgc, six
     gcval_eta = (p->F50>=1 && p->F50<=4) ? 50+p->F50 : 50;
 
     // vertical diffusion in the column operator: as nhflow_idiff (A 512 2, or A 560 > 0)
-    visc = !(p->A512==0 && p->A560==0);
+    visc = !(p->A512==0 && p->A560==0) || (p->A547_c>0.0 && p->A560==0) || (p->A547_nu0>0.0 && p->A560==0);
 
     wcu.assign(p->knoz,0.0);
     wcd.assign(p->knoz,0.0);
@@ -369,6 +369,10 @@ void nhflow_momentum_SI::si_begin(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_s
 
     // sigma grid of t^n (metrics of the predictor) and the kinematic boundary values
     sigma_update(p,d,pgc,d->WL);
+
+    // A 547: the algebraic eddy viscosity of t^n (without a turbulence model)
+    if(p->A560==0 && (p->A547_c>0.0 || p->A547_nu0>0.0))
+    eddy_algebraic(p,d);
     pfsf->kinematic_fsf(p,d,d->U,d->V,d->W,d->eta);
     pfsf->kinematic_bed(p,d,d->U,d->V,d->W);
 
@@ -495,6 +499,10 @@ void nhflow_momentum_SI::face_depth(lexer *p, fdm_nhf *d, ghostcell *pgc)
     // the face opens when the water of the wet cell stands above the bed of the dry cell (flooding);
     // the film of a dry cell does not flow (its eta is its bed level, a lake at rest stays at rest).
     // Between two dry cells the face is closed.
+    // A 548: between two wet cells the still water depth of the face is the mean of the two (0, default), the
+    // smaller one (the higher bed, Stelling and Duinmeijer 2003) everywhere (1), or only where one of the two
+    // cells holds a film thinner than 10 A 544 (2). The mean gives a face over a bed step the depth of the deep
+    // side, so that a film on the high side drains and floods by turns (flip-flop of shoreline cells).
     double df,eu,h;
 
     SLICELOOP1
@@ -507,7 +515,7 @@ void nhflow_momentum_SI::face_depth(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
         if(wL==1 && wR==1)
         {
-        df = 0.5*(d->depth(i,j) + d->depth(i+1,j));
+        df = (p->A548==1 || (p->A548==2 && MIN(d->WL(i,j),d->WL(i+1,j))<10.0*p->A544)) ? MIN(d->depth(i,j),d->depth(i+1,j)) : 0.5*(d->depth(i,j) + d->depth(i+1,j));
 
         if(qini && qx(i,j)>1.0e-12)
         eu = d->eta(i,j);
@@ -544,7 +552,7 @@ void nhflow_momentum_SI::face_depth(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
         if(wL==1 && wR==1)
         {
-        df = 0.5*(d->depth(i,j) + d->depth(i,j+1));
+        df = (p->A548==1 || (p->A548==2 && MIN(d->WL(i,j),d->WL(i,j+1))<10.0*p->A544)) ? MIN(d->depth(i,j),d->depth(i,j+1)) : 0.5*(d->depth(i,j) + d->depth(i,j+1));
 
         if(qini && qy(i,j)>1.0e-12)
         eu = d->eta(i,j);
@@ -645,6 +653,53 @@ void nhflow_momentum_SI::friction(lexer *p, fdm_nhf *d)
 
     gmc(i,j) = bed_gamma(p,sqrt(un*un + ut*ut),ds0*d->WL(i,j),d->ks(i,j));
     }
+}
+
+void nhflow_momentum_SI::eddy_algebraic(lexer *p, fdm_nhf *d)
+{
+    // A 547 c nu0: nu_t = c kappa (u*_b + u*_s) z' (1 - z'/h) + nu0 at the centre of every layer, z' = sigma h
+    // above the bed (the parabolic profiles of the bed and of the surface boundary layer, Davies 1985);
+    // u*_b = |u_b|/u+ from the log law of the bottom layer (as bed_gamma: u+ = 1/kappa max(1, ln(30 z0/ks)),
+    // z0 = max(dn/2, ks/30)), so that the eddy viscosity belongs to the bed stress of the column operator;
+    // u*_s = sqrt(|tau_s|/rho_w) of the met forcing (W 200, wind stress of the step before), 0 without it.
+    // All columns incl. the ghost cells (each column from its own state), dry columns nu0.
+    const double kappa = 0.4;
+    const int ii=i, jj=j, kk=k;
+
+    for(i=p->imin; i<p->imin+p->imax; ++i)
+    for(j=p->jmin; j<p->jmin+p->jmax; ++j)
+    {
+        const double h = d->WL(i,j);
+        double ustar = 0.0;
+
+        if(h>p->A544 && p->wet[IJ]==1)
+        {
+            k=0;
+            const double dn = p->DZN[KP]*h;
+            double ks = d->ks(i,j);
+            if(ks<=0.0)
+            ks = 0.0001;
+            double z0 = 0.5*dn;
+            if(30.0*z0<ks)
+            z0 = ks/30.0;
+            const double uplus = (1.0/kappa)*MAX(1.0,std::log(30.0*(z0/ks)));
+            const double ub = sqrt(d->U[IJK]*d->U[IJK] + d->V[IJK]*d->V[IJK]*p->y_dir);
+            ustar = ub/uplus;
+
+            if(pmet!=nullptr && pmet->wind)
+            ustar += sqrt(sqrt(pmet->Tx(i,j)*pmet->Tx(i,j) + pmet->Ty(i,j)*pmet->Ty(i,j)));
+        }
+
+        double zs = 0.0;
+        for(k=0; k<p->knoz; ++k)
+        {
+            const double sc = zs + 0.5*p->DZN[KP];
+            zs += p->DZN[KP];
+            d->EV[IJK] = p->A547_c*kappa*ustar*sc*(1.0-sc)*MAX(h,0.0) + p->A547_nu0;
+        }
+    }
+
+    i=ii; j=jj; k=kk;
 }
 
 void nhflow_momentum_SI::col_nu(lexer *p, fdm_nhf *d, int i1, int j1, int i2, int j2, double *nu)

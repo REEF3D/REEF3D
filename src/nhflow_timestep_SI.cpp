@@ -79,7 +79,7 @@ void nhflow_timestep_SI::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
         // the horizontal diffusion of the predictor is explicit (the vertical one implicit):
         // dt <= 0.25/(nu_h (1/dx^2 + 1/dy^2))
-        if(p->A512>0 || p->A560>0)
+        if(p->A512>0 || p->A560>0 || p->A547_c>0.0 || p->A547_nu0>0.0)
         {
         const double visc = d->VISC[IJK] + (p->A561>0 ? d->EVH[IJK] : d->EV[IJK]);
         const double lam = p->geo_curv==1 ? sflow_curv::inv2(p,i,j) : 1.0/(p->DXN[IP]*p->DXN[IP]) + p->y_dir/(p->DYN[JP]*p->DYN[JP]);
