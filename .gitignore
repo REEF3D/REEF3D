@@ -7,6 +7,9 @@ Dev
 Debug
 src/*.txt
 src/*.mk
+# CodeLite precompiled header (built from src/reef3d_pch.h)
+src/reef3d_pch.h.pch
+src/reef3d_pch.h.gch
 # GNUMake build files
 bin
 build
