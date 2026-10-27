@@ -625,13 +625,58 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
             else
                 it.fail("bathymetry plane <z0> [<sx> <sy>] | grid <file> | fluid");
         }
+    // a table file of numbers, ncol per line ('#' comments)
+    auto read_table = [&](const item &it, const std::string &file, int ncol)
+    {
+        std::ifstream f(path(file));
+        if(!f) it.fail("cannot open " + path(file));
+        std::vector<std::vector<double>> rows;
+        std::string l;
+        int ln = 0;
+        while(std::getline(f, l))
+        {
+            ++ln;
+            const size_t c = l.find('#');
+            if(c != std::string::npos) l = l.substr(0, c);
+            std::istringstream ls(l);
+            std::vector<double> r;
+            double x;
+            while(ls >> x) r.push_back(x);
+            if(!ls.eof()) it.fail(file + ", line " + std::to_string(ln) + ": not a number");
+            if(r.empty()) continue;
+            if((int)r.size() != ncol) it.fail(file + ", line " + std::to_string(ln) + ": " + std::to_string(ncol) + " numbers expected");
+            rows.push_back(r);
+        }
+        if(rows.empty()) it.fail(file + " has no data");
+        return rows;
+    };
     // line types: properties of mooring lines for 'type' and 'section'
     std::map<std::string, mooring_props> line_types;
     auto read_props = [&](const item &it, mooring_props p, bool need)
     {
         if(need || it.has("d")) p.d = need ? it.need("d") : it.get("d", p.d);
         if(need || it.has("mass")) p.mass = need ? it.need("mass") : it.get("mass", p.mass);
-        if(need || it.has("EA")) p.EA = need ? it.need("EA") : it.get("EA", p.EA);
+        if(it.has("EA_curve"))
+        {
+            // nonlinear elasticity: strain and tension per line, the strains increasing from >= 0
+            p.EA_strain.clear();
+            p.EA_tension.clear();
+            for(const auto &r : read_table(it, it.word("EA_curve"), 2))
+            {
+                if(!p.EA_strain.empty() && !(r[0] > p.EA_strain.back())) it.fail("EA_curve: the strains must increase");
+                if(r[0] < 0.0 || r[1] < 0.0) it.fail("EA_curve: strains and tensions must not be negative");
+                p.EA_strain.push_back(r[0]);
+                p.EA_tension.push_back(r[1]);
+            }
+            if(p.EA_strain.size() < 2 || !(p.EA_strain.back() > 0.0)) it.fail("EA_curve: at least two points, the last at a strain > 0");
+            p.EA = p.EA_secant();
+        }
+        else if(need || it.has("EA"))
+        {
+            p.EA = need ? it.need("EA") : it.get("EA", p.EA);
+            p.EA_strain.clear();
+            p.EA_tension.clear();
+        }
         p.BA = it.get("BA", p.BA); p.CB = it.get("CB", p.CB);
         p.Cdn = it.get("Cdn", p.Cdn); p.Cdt = it.get("Cdt", p.Cdt); p.Can = it.get("Can", p.Can); p.Cat = it.get("Cat", p.Cat);
         p.kb = it.get("kb", p.kb); p.cb = it.get("cb", p.cb); p.mu = it.get("mu", p.mu);
@@ -793,10 +838,35 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
         if(any && !(b.T > 0.0)) it.fail("break_tension must be > 0");
         return b;
     };
+    // current_profile <file>: heights and velocities 'z ux uy uz' per line, linear in z, the end values outside
+    auto current_profile = [&](const item &it, mooring_system &sys)
+    {
+        if(!it.has("current_profile"))
+            return;
+        std::vector<double> z;
+        std::vector<Vec3> u;
+        for(const auto &r : read_table(it, it.word("current_profile"), 4))
+        {
+            z.push_back(r[0]);
+            u.push_back(Vec3(r[1], r[2], r[3]));
+        }
+        try {sys.set_current_profile(z, u);}
+        catch(const std::exception &x) {it.fail(x.what());}
+    };
+    // outputs <flags>: node positions (p) and segment tensions (t) of the dynamic line
+    auto line_outputs = [&](const item &it, mooring_system &sys, int k0, int k1)
+    {
+        if(!it.has("outputs"))
+            return;
+        const std::string f = it.word("outputs");
+        if(f.find_first_not_of("pt") != std::string::npos) it.fail("outputs: the flags are p (node positions) and t (segment tensions)");
+        for(int k=k0; k<=k1; ++k) sys.set_line_outputs(k, f);
+    };
     auto build_group = [&](moor_group &g)
     {
         const item &first = *g.lines[0];
         auto sys = std::make_unique<mooring_system>(m, kin, first.vec("current", Vec3::Zero()), first.word(1));
+        current_profile(first, *sys);
         if(bathy || fluid_bed)
             sys->set_seabed(bathy, fluid_bed);
         std::map<std::string, int> pidx;
@@ -845,7 +915,8 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
             const bool ground = (ea.body < 0 && ea.point < 0) || (eb.body < 0 && eb.point < 0);
             const double zdef = ground ? default_seabed(ea, eb) : zsys;
             const double zbed = it.has("no_seabed") ? -1.0e30 : it.get("seabed", zdef);
-            if((it.vec("current", Vec3::Zero()) - first.vec("current", Vec3::Zero())).norm() > 0.0)
+            if((it.vec("current", Vec3::Zero()) - first.vec("current", Vec3::Zero())).norm() > 0.0
+               || (it.has("current_profile") && (!first.has("current_profile") || it.word("current_profile") != first.word("current_profile"))))
                 it.fail("the lines of a mooring system take one current (that of " + first.word(1) + ")");
             const std::vector<line_section> sec = sections_of(it);
             if(sec.size() > 1)
@@ -872,6 +943,7 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
                     if(q==0) first = last;
                 }
                 clamps(it, *sys, first, last);
+                line_outputs(it, *sys, first, last);
                 // a failure of the line: of the section at that end (the tension: at either end)
                 bool any = false;
                 const mooring_break b = line_break(it, any);
@@ -890,6 +962,7 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
                                             sec.size()==1 ? sec[0].nseg : (int)it.get("nseg", 20), zbed);
                 if(it.has("seabed")) sys->set_line_flat(q);
                 clamps(it, *sys, q, q);
+                line_outputs(it, *sys, q, q);
                 bool any = false;
                 const mooring_break b = line_break(it, any);
                 if(any) sys->set_break(q, b);
@@ -1107,6 +1180,8 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
                                                         zbed, it.get("dt_line", 0.0), name);
                 l->set_exact_kinematics(it.has("exact_kinematics"));
                 l->set_static_start(!it.has("no_static"));
+                current_profile(it, *l);
+                line_outputs(it, *l, 0, 0);
                 if((bathy || fluid_bed) && !it.has("seabed"))
                     l->set_seabed(bathy, fluid_bed);
                 clamps(it, *l, 0, 0);

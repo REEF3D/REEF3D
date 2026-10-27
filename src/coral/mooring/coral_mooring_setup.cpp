@@ -177,7 +177,7 @@ bool mooring_system::line_catenary(const line_t &L, const Vec3 &pa, const Vec3 &
     const Vec3 eh = xF > 0.0 ? Vec3(dh/xF) : Vec3::UnitX();
     catenary_line cl;
     cl.L = p.L;
-    cl.EA = p.EA;
+    cl.EA = p.EA_secant();
     cl.CB = (L.zbed > lo(2) - 1.0e-6*p.L) ? std::max(p.CB, 0.0) : -1.0;
     cl.w = wn;     // no gravity: straight
     double H = -1.0, V = 0.0;
@@ -229,7 +229,7 @@ std::vector<Vec3> mooring_junctions(const Vec3 &pa, const Vec3 &pb, const std::v
     {
         Lt += p.L;
         wl += (p.mass - p.rho*0.25*M_PI*p.d*p.d)*g*p.L;
-        c += p.L/p.EA;
+        c += p.L/p.EA_secant();
     }
     std::vector<double> sa;          // arc length of the junctions from end a
     double acc = 0.0;
@@ -280,15 +280,18 @@ int mooring_system::add_line(const model &m, const std::string &name, const moor
     L.p = p;
     L.N = std::max(nseg, 2);
     L.l = p.L/L.N;
+    // BA < 0: the damping ratio -BA of the axial mode of a segment, BA = -BA l sqrt(EA m) (MoorDyn's BA/-zeta)
+    if(p.BA < 0.0)
+        L.p.BA = -p.BA*L.l*std::sqrt(p.EA_secant()*p.mass);
     L.zbed = z_seabed;
     L.surf = sb_ && z_seabed > -1.0e29;
     L.fbed = fbed_ && z_seabed > -1.0e29;
     const double l_ = L.l;
     const double mn0 = p.mass*l_;
     // explicit RK4: dt from the axial and seabed frequencies and the damping
-    double dtc = 0.5*std::sqrt(mn0/(p.EA/l_));
+    double dtc = 0.5*std::sqrt(mn0/(p.EA_max()/l_));
     if(p.kb > 0.0) dtc = std::min(dtc, 0.5*std::sqrt(mn0/(p.kb*p.d*l_)));
-    const double cmax = 2.0*p.BA/l_ + p.cb*p.d*l_;
+    const double cmax = 2.0*L.p.BA/l_ + p.cb*p.d*l_;
     if(cmax > 0.0) dtc = std::min(dtc, 0.5*mn0/cmax);
     // bending: the zig-zag mode of the nodes, omega = 4 sqrt(EI/m)/l^2 (clamped ends: twice the end stiffness)
     if(p.EI > 0.0 && p.mass > 0.0) dtc = std::min(dtc, 0.25*l_*l_*std::sqrt(p.mass/(2.0*p.EI)));
@@ -298,7 +301,7 @@ int mooring_system::add_line(const model &m, const std::string &name, const moor
     {
         stick_ = true;
         if(p.ks > p.kb) dtc = std::min(dtc, 0.5*std::sqrt(mn0/(p.ks*p.d*l_)));
-        if(p.cs > p.cb) dtc = std::min(dtc, 0.5*mn0/(2.0*p.BA/l_ + p.cs*p.d*l_));
+        if(p.cs > p.cb) dtc = std::min(dtc, 0.5*mn0/(2.0*L.p.BA/l_ + p.cs*p.d*l_));
     }
     st_ = stick_t();
     L.dt = dtc;
@@ -387,6 +390,33 @@ void mooring_system::set_dt_line(double dt)
 {
     dt_set_ = dt;
     update_dt();
+}
+
+void mooring_system::set_current_profile(const std::vector<double> &z, const std::vector<Vec3> &u)
+{
+    if(z.size() != u.size())
+        throw std::runtime_error("coral::mooring_system " + name_ + ": current profile with " + std::to_string(z.size())
+                                 + " heights and " + std::to_string(u.size()) + " velocities");
+    for(size_t j=1; j<z.size(); ++j)
+        if(!(z[j] > z[j-1]))
+            throw std::runtime_error("coral::mooring_system " + name_ + ": the heights of the current profile must increase");
+    cz_ = z;
+    cu_ = u;
+}
+
+Vec3 mooring_system::current_at(double z) const
+{
+    const size_t n = cz_.size();
+    if(n==0)
+        return current_;
+    if(n==1 || z <= cz_[0])
+        return current_ + cu_[0];
+    if(z >= cz_[n-1])
+        return current_ + cu_[n-1];
+    size_t j = 1;
+    while(z > cz_[j]) ++j;
+    const double f = (z - cz_[j-1])/(cz_[j] - cz_[j-1]);
+    return current_ + cu_[j-1] + f*(cu_[j] - cu_[j-1]);
 }
 
 void mooring_system::update_dt()
@@ -551,6 +581,13 @@ void mooring_system::channel_names(std::vector<std::string> &c) const
             c.push_back(L.name + "_" + x);
         if(L.has_break)
             c.push_back(L.name + "_broken");
+        if(L.out_p)
+            for(int i=0; i<=L.N; ++i)
+                for(const char *x : {"_x", "_y", "_z"})
+                    c.push_back(L.name + "_n" + std::to_string(i) + x);
+        if(L.out_t)
+            for(int j=0; j<L.N; ++j)
+                c.push_back(L.name + "_T" + std::to_string(j));
     }
     for(const point_t &P : points_)
         if(!P.free_end)
@@ -572,6 +609,12 @@ void mooring_system::channel_values(const model&, double, std::vector<double> &v
         v.push_back(line_tension((int)k, L.N - 1));
         if(L.has_break)
             v.push_back(L.broken >= 0 ? 1.0 : 0.0);
+        if(L.out_p)
+            for(int i=0; i<=L.N; ++i)
+                for(int d=0; d<3; ++d) v.push_back(r_[L.off + i](d));
+        if(L.out_t)
+            for(int j=0; j<L.N; ++j)
+                v.push_back(line_tension((int)k, j));
     }
     for(const point_t &P : points_)
         if(!P.free_end)
