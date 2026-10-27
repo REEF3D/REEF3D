@@ -33,10 +33,11 @@ Author: Hans Bihs
 //  The nets (X 320) are in the blob of their body; without a floating body (X 10 0) the fixed nets and
 //  mooring lines are the blob of sixdof_void.  DEM (E 10): its scalars, the particles of every rank.
 //  Sediment (S 10): its slices and fields with those of the grid (the registry, ckpt_registry.h; NHFLOW
-//  under the tag "reg"), its scalars, those of the rank (CPM: the parcels), the sediment cell flags.
+//  under the tag "reg"), its scalars, those of the rank (CPM: the parcels), the sediment cell flags; the
+//  sediment of the patches and blocks of the NHFLOW mesh refinement with them (nhflow_amr_ckpt.cpp).
 //  NHFLOW long-run statistics (P 160): the record and the sums of its grids (nhflow_longrun::ckpt_write).
 //  Not there yet (refused with a message): 6DOF wavemaker objects; FEM structures, SEASTATE; NHFLOW with
-//  Lagrangian particles, membranes, sediment with mesh refinement or multi-block grids; CFD with FSI.
+//  Lagrangian particles, membranes; CFD with FSI.
 
 #include"driver.h"
 #include"lexer.h"
@@ -84,7 +85,6 @@ string driver::ckpt_unsupported()
     }
     if(p->A10==5)
     {
-        if(p->S10>0 && (p->G1>0 || p->geo_mb>0)) return "NHFLOW sediment with mesh refinement or multi-block grids is not in the checkpoints yet";
         if(p->L10>0) return "NHFLOW Lagrangian particles are not in the checkpoints yet";
         if(p->Z30>0) return "FEM structures are not in the checkpoints yet";
         if(p->A750>0) return "SEASTATE is not in the checkpoints yet";
