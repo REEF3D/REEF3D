@@ -1421,6 +1421,7 @@
         <File Name="wave_lib.h"/>
         <File Name="wave_lib_cnoidal_1st.h"/>
         <File Name="wave_lib_cnoidal_5th.h"/>
+        <File Name="wave_lib_steady_fi.h"/>
         <File Name="wave_lib_cnoidal_shallow.h"/>
         <File Name="wave_lib_deep.h"/>
         <File Name="wave_lib_flap.h"/>
@@ -3712,6 +3713,7 @@
         </VirtualDirectory>
         <File Name="wave_lib_cnoidal_1st.cpp"/>
         <File Name="wave_lib_cnoidal_5th.cpp"/>
+        <File Name="wave_lib_steady_fi.cpp"/>
         <File Name="wave_lib_cnoidal_shallow.cpp"/>
         <File Name="wave_lib_deep.cpp"/>
         <File Name="wave_lib_flap.cpp"/>
