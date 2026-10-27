@@ -93,6 +93,9 @@ sflow_amr::sflow_amr(lexer *p, fdm2D *b, ghostcell *pgc, patchBC_interface *ppBC
     q.nbuf = MAX(p->G3,0);
     tol_eta = p->G20;
     shore = p->G22;
+    // second difference of the surface (G 21), breaking (G 23 1 with A 246 1/2): as fnpf_amr
+    tol_curv = MAX(p->G21,0.0);
+    flagbreak = (p->G23==1 && p->A246>=1);
     q.tile = MAX(p->G4,4);
     q.tile += q.tile%2;
     q.nest = 3;
@@ -147,7 +150,7 @@ sflow_amr::sflow_amr(lexer *p, fdm2D *b, ghostcell *pgc, patchBC_interface *ppBC
     }
 
     // boxes only: static patches
-    if(tol_eta<=0.0 && shore==0 && (p->G12==0 || shipmode==0))
+    if(tol_eta<=0.0 && tol_curv<=0.0 && !flagbreak && shore==0 && (p->G12==0 || shipmode==0))
     q.regrid = 0;
 
     // refinement boxes (G 10), no refinement in the G 11 boxes and next to in- and outflow
@@ -343,6 +346,21 @@ void sflow_amr::ini(lexer *p, fdm2D *b, ghostcell *pgc)
         cout<<"SFLOW AMR: G 12 needs a moving body (X 10 2/3) -- ignored"<<endl;
         if(nrelax>0)
         cout<<"SFLOW AMR: no refinement in "<<nrelax<<" relaxation zone(s) of the wave generation and the numerical beach"<<endl;
+        if(tol_eta>0.0 || tol_curv>0.0 || shore>0 || flagbreak)
+        {
+            cout<<"SFLOW AMR: flags:";
+            if(tol_eta>0.0)
+            cout<<" surface jump > "<<tol_eta<<" m (G 20)";
+            if(tol_curv>0.0)
+            cout<<" second difference > "<<tol_curv<<" m (G 21)";
+            if(shore>0)
+            cout<<" shoreline (G 22)";
+            if(flagbreak)
+            cout<<" breaking (G 23)";
+            cout<<endl;
+        }
+        if(p->G23==1 && !flagbreak)
+        cout<<"SFLOW AMR: G 23 needs the breaking detection A 246 1/2 -- ignored"<<endl;
     }
 }
 
@@ -862,7 +880,10 @@ void sflow_amr::tag(int l, vector<unsigned char> &M)
         return false;
     };
 
-    // 0: no flag, 1: surface jump (G 20), 2: shoreline (G 22)
+    // a wet cell (G 21: the three cells of the second difference)
+    auto wetc = [&](lexer *q, int a, int d) { return q->flagslice4[lij(q,a,d)]>=0 && q->wet[lij(q,a,d)]==1; };
+
+    // 0: no flag, 1: surface jump (G 20), second difference (G 21), breaking (G 23), 2: shoreline (G 22)
     auto test = [&](lexer *q, fdm2D *bb, slice &WL, int ii, int jj)
     {
         if(q->flagslice4[lij(q,ii,jj)]<0)
@@ -872,6 +893,21 @@ void sflow_amr::tag(int l, vector<unsigned char> &M)
         double ec = WL(ii,jj)-bb->depth(ii,jj);
         const int di[4]={1,-1,0,0}, dj[4]={0,0,1,-1};
         int r = 0;
+
+        // breaking (G 23): the flag of the grid in the step (breaking_print: A 248 0 clears breaking at
+        // the end of the step, before the regrid of the patches)
+        if(flagbreak && wc==1 && (bb->breaking(ii,jj)>0 || bb->breaking_print(ii,jj)>0.0))
+        r = 1;
+
+        // second difference of the surface along x or y (G 21), between wet cells
+        if(tol_curv>0.0 && wc==1)
+        {
+            auto es = [&](int a, int d) { return WL(a,d)-bb->depth(a,d); };
+            if(wetc(q,ii+1,jj) && wetc(q,ii-1,jj) && fabs(es(ii+1,jj)-2.0*ec+es(ii-1,jj))>tol_curv)
+            r = 1;
+            if(sy==1 && wetc(q,ii,jj+1) && wetc(q,ii,jj-1) && fabs(es(ii,jj+1)-2.0*ec+es(ii,jj-1))>tol_curv)
+            r = 1;
+        }
 
         for(int k=0; k<2+2*sy; ++k)     // (2D grid: the x neighbours)
         {
