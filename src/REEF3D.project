@@ -1229,6 +1229,7 @@
         <File Name="vrans_nhflow.h"/>
         <File Name="vrans_nhflow_f.h"/>
         <File Name="vrans_nhflow_v.h"/>
+        <File Name="nhflow_por_ghost.h"/>
         <File Name="vrans.h"/>
         <File Name="vrans_f.h"/>
         <File Name="vrans_v.h"/>
@@ -3557,6 +3558,7 @@
         <VirtualDirectory Name="Void">
           <File Name="ioflow_void.cpp"/>
           <File Name="ioflow_amr_block.cpp"/>
+          <File Name="ioflow_amr_block_zones.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="ioWave">
           <File Name="iowave_fnpf_fullini_masked.cpp"/>
