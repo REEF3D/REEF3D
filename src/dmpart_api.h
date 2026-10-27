@@ -38,6 +38,8 @@ namespace dmpart
 // boxes: if given, the subdomains (i0, j0, k0, ni, nj, nk per rank); boxes_only: no grid files built
 bool build(const char *fname, int nranks, std::vector<std::vector<char>> &rankbuf, std::string &msg, int weighted=0,
            std::vector<int> *boxes=nullptr, bool boxes_only=false);
+// the same from a global grid file in memory (the box grid of CPM on the mesh refinement, cfd_amr_cpm.cpp)
+bool build_mem(std::vector<char> &&glob, int nranks, std::vector<std::vector<char>> &rankbuf, std::string &msg);
 }
 
 #endif

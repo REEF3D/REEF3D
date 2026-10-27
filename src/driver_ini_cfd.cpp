@@ -62,11 +62,16 @@ void driver::driver_ini_cfd()
     // 6DOF_df and FSI
     // with the mesh refinement the hull triangles (X 185) are sized for the finest level
     // (sixdof_obj::amr_hfac, as nhflow_amr), before the initialisation builds them: sized for
-    // level 0 a propeller of D = 6 level-0 cells came out as 186 triangles on the patches
+    // level 0 a propeller of D = 6 level-0 cells came out as 186 triangles on the patches.  The CFD
+    // patches are refined in the vertical as well (amr_vfac): sized for the level-0 dz the walls
+    // of a box had half the triangles of the uniform grid of the finest cells
     if(p->X10==1 && p->G1>0)
     if(sixdof_cfd *b6 = dynamic_cast<sixdof_cfd*>(p6dof))
     for(int nb=0; nb<b6->objects(); ++nb)
+    {
     b6->object(nb)->amr_hfac = 1.0/double(1<<MAX(p->G1,0));
+    b6->object(nb)->amr_vfac = b6->object(nb)->amr_hfac;
+    }
     
     p6dof->initialize(p, a, pgc);
      

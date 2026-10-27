@@ -111,8 +111,9 @@ using namespace std;
 //  integrated once, every hull triangle on the finest grid at its centroid (pressure, free
 //  surface, shear).  G 12 refines around the wetted hull (margin G 12, rectangle aligned with x
 //  and y; with G 13 L a oriented along the motion plus a wake wedge of length L and half angle
-//  a, as SFLOW); the hull triangles (X 185) are then sized for the finest level, as on a uniform
-//  fine grid.  The zone follows the
+//  a, as SFLOW).  The hull triangles (X 185) are sized for the finest level, as on a uniform fine
+//  grid, whatever puts the patch over the hull (zone, G 10 box, flags): horizontally, and with G 6 1
+//  also vertically.  The zone follows the
 //  body: a regrid every G 2 steps at the end of the step (G 2 0: static), the layout kept
 //  while it covers the flagged tiles with at most 50 % excess, G 5 regrids of hysteresis.  A
 //  fresh patch takes the state of the old patches of its level where they overlap; elsewhere it
@@ -261,6 +262,8 @@ public:
     virtual ~nhflow_amr();
 
     void ini(lexer*, fdm_nhf*, ghostcell*);
+    // the keys the refinement runs with: 1 on, 0 off, -1 off for the sharp hull (X 15 8)
+    int keys_ok(lexer*);
     // S 10: sediment transport on all grids (nhflow_amr_sed.cpp): the level-0 sediment_f hands its step over
     void sed_attach(sediment*);
     // A 560: the turbulence of level 0 (the fields of the ring and of the covered cells)
@@ -661,6 +664,10 @@ private:
     template<class A> void si_fill3(ghostcell*, int, int, A);
     void si_fillv(ghostcell*, int);
     void si_fillF(ghostcell*);
+    void si_tracer(lexer*, ghostcell*);   // tracers (A 600) of all blocks
+    std::vector<double> sitr_dist;
+    std::vector<int> sitr_cell, sitr_grid;
+    bool sitr_mask = false;
     void si_dirichlet(ghostcell*);
     void si_solve(lexer*, ghostcell*);
     ghostcell *sipgc = nullptr;

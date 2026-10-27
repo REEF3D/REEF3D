@@ -85,6 +85,7 @@ TEXT_OUTPUT_GLOBS = [
     "REEF3D_NHFLOW_Tidal/*.txt",
     "REEF3D_NHFLOW_Particles/*.dat",
     "REEF3D_NHFLOW_Boom/*.dat",
+    "REEF3D_NHFLOW_Log/REEF3D_NHFLOW_tracer*.dat",   # tracers (A 600): log and gauges
     "REEF3D_DEM/*.dat",
     "REEF3D_SFLOW_AMR/*.dat",
     "REEF3D_FNPF_AMR/*.dat",

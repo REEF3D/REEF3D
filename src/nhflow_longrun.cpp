@@ -151,7 +151,8 @@ void chol_solve(const vector<double> &L, int n, double *x)
 nhflow_longrun::nhflow_longrun(lexer *p) : t0(p->P160_ts), dtout(p->P160_dt), rayleigh(p->P161)
 {
     NB = 2*NC + 1;
-    NV = 3*NB + 6;
+    NT = p->A534==1 ? (p->A600>=2 ? 2 : (p->A600==1 ? 1 : 0)) : 0;
+    NV = 3*NB + 6 + 5*NT;
     M.assign(NB*NB,0.0);
 
     for(int k=0; k<NC; ++k)
@@ -162,7 +163,7 @@ nhflow_longrun::nhflow_longrun(lexer *p) : t0(p->P160_ts), dtout(p->P160_dt), ra
 
     tnext = dtout>0.0 ? t0 + dtout : 1.0e30;
 
-    for(int k=0; k<3*NB+6; ++k)
+    for(int k=0; k<NV; ++k)
     {
     char nm[16];
     snprintf(nm,sizeof(nm),"lr_%02d",k);
@@ -193,6 +194,12 @@ void nhflow_longrun::add_grid(lexer *q, fdm_nhf *d, int i0, int i1, int j0, int 
     {
     g.s[(size_t)c*NV + b+3] = -1.0e30;      // eta max
     g.s[(size_t)c*NV + b+4] =  1.0e30;      // eta min
+
+        for(int n=0; n<NT; ++n)
+        {
+        g.s[(size_t)c*NV + b+6+5*n+3] = -1.0e30;    // tracer max
+        g.s[(size_t)c*NV + b+6+5*n+4] =  1.0e30;    // tracer min
+        }
     }
 
     G.push_back(g);
@@ -297,6 +304,23 @@ void nhflow_longrun::accumulate(grid &g, const double *phi, double w)
         s[b+3] = max(s[b+3],eta);
         s[b+4] = min(s[b+4],eta);
         s[b+5] = max(s[b+5],sqrt(u*u+v*v));
+
+            // tracers: depth mean, bottom, top
+            for(int nn=0; nn<NT; ++nn)
+            {
+                const double *C = nn==0 ? d->SALT : d->TEMP;
+                double cm = 0.0;
+
+                for(int kk=0; kk<q->knoz; ++kk)
+                cm += q->DZN[kk+m]*C[lijk(q,ii,jj,kk)];
+
+                double *t = &s[b+6+5*nn];
+                t[0] += w*cm;
+                t[1] += w*C[lijk(q,ii,jj,0)];
+                t[2] += w*C[lijk(q,ii,jj,q->knoz-1)];
+                t[3] = max(t[3],cm);
+                t[4] = min(t[4],cm);
+            }
         }
     }
 }
@@ -391,7 +415,7 @@ void nhflow_longrun::write(lexer *p, ghostcell *pgc)
         // the fields of the cells, in the order of the file
         vector<string> fname;
         vector<vector<double>> fval;
-        fval.reserve(10 + 5*nsel);      // field() hands out references into fval
+        fval.reserve(10 + 5*nsel + 5*NT);      // field() hands out references into fval
 
         auto field = [&](const string &nm) -> vector<double>&
         {
@@ -410,6 +434,18 @@ void nhflow_longrun::write(lexer *p, ghostcell *pgc)
         vector<double> &f_emin = field("eta_min");
         vector<double> &f_smax = field("speed_max");
         vector<double> &f_wet = field("wet_fraction");
+
+        // tracers (A 600)
+        vector<vector<double>*> ft;
+        for(int nn=0; nn<NT; ++nn)
+        {
+        const string c = nn==0 ? "salinity" : "temperature";
+        ft.push_back(&field(c+"_mean"));
+        ft.push_back(&field(c+"_bottom_mean"));
+        ft.push_back(&field(c+"_top_mean"));
+        ft.push_back(&field(c+"_max"));
+        ft.push_back(&field(c+"_min"));
+        }
 
         vector<vector<double>*> fc;
         for(int k=0; k<nsel; ++k)
@@ -443,6 +479,17 @@ void nhflow_longrun::write(lexer *p, ghostcell *pgc)
             f_smax[o] = s[b+2]>0.0 ? s[b+5] : nan;
             f_emax[o] = s[b+2]>0.0 ? s[b+3] : nan;
             f_emin[o] = s[b+2]>0.0 ? s[b+4] : nan;
+
+            for(int nn=0; nn<NT; ++nn)
+            if(s[b+2]>0.0)
+            {
+            const double *t = &s[b+6+5*nn];
+            (*ft[5*nn])[o] = t[0]/s[b+2];
+            (*ft[5*nn+1])[o] = t[1]/s[b+2];
+            (*ft[5*nn+2])[o] = t[2]/s[b+2];
+            (*ft[5*nn+3])[o] = t[3];
+            (*ft[5*nn+4])[o] = t[4];
+            }
 
             if(nsel==0)
             continue;

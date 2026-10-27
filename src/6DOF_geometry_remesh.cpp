@@ -37,9 +37,9 @@ Author: Hans Bihs
 // z unless the grid is a single layer. The grid is the global one, assembled from all subdomains, so the result
 // is identical for every decomposition. For sigma grids (NHFLOW, FNPF) the vertical node
 // positions are mapped to the still water column z = zb + sigma*(wd - zb), zb = global_zmin
-// (flat bed assumption under the body).  With mesh refinement (nhflow_amr with G 12, fnpf_amr, the
-// CFD mesh refinement with X 10 1) the horizontal spacings are those of the finest level (amr_hfac), with
-// the sigma layers doubled on every level (fnpf_amr with G 6 1) also the vertical ones (amr_vfac).
+// (flat bed assumption under the body).  With mesh refinement (nhflow_amr, fnpf_amr, the CFD mesh
+// refinement with X 10 1) the horizontal spacings are those of the finest level (amr_hfac), with the sigma
+// layers doubled on every level (nhflow_amr and fnpf_amr with G 6 1) also the vertical ones (amr_vfac).
 //
 // The surface is remeshed on rank 0 and broadcast: the force integration assigns triangles to
 // ranks by their centroid, so all ranks must hold bit-identical triangle lists.

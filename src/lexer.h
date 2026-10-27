@@ -32,6 +32,7 @@ Author: Hans Bihs
 #include"position.h"
 #include"interpolation.h"
 #include<fstream>
+#include<vector>
 #include"looping.h"
 #include<vector>
 #include"grid.h"
@@ -88,6 +89,10 @@ public:
     void makeflag(int*);
 
 	void read_grid();
+    // a grid of this rank given in memory (the box grid of CPM on the mesh refinement, cfd_amr_cpm.cpp): read_grid
+    // takes it instead of the files, and the grid has no geometry entities (its fields are set by its owner)
+    std::vector<char> grid_mem;
+    bool grid_inmem = false;
 	void control_calc();
 	void gridsize();
 	void vecsize(ghostcell*);

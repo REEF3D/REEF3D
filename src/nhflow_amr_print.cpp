@@ -339,6 +339,27 @@ void amr_fields(lexer *q, fdm_nhf *d, bool wet, FIELD field)
     field("bed",[&](int ii, int jj) { return d->bed(ii,jj); });
     field("u_top",[&](int ii, int jj) { return d->U[c3(ii,jj)]; });
     field("v_top",[&](int ii, int jj) { return d->V[c3(ii,jj)]; });
+    // tracers (A 600): depth mean, bottom and top layer
+    for(int tr=0; tr<2; ++tr)
+    {
+        const double *C = tr==0 ? d->SALT : d->TEMP;
+
+        if(C==nullptr)
+        continue;
+
+        auto ck = [&](int ii, int jj, int kk) { return (ii-q->imin)*q->jmax*q->kmax + (jj-q->jmin)*q->kmax + kk-q->kmin; };
+        auto mean = [&](int ii, int jj)
+        {
+            double s=0.0;
+            for(int kk=0; kk<q->knoz; ++kk)
+            s += q->DZN[kk+increment::marge]*C[ck(ii,jj,kk)];
+            return s;
+        };
+
+        field(tr==0 ? "salinity_mean" : "temperature_mean",mean);
+        field(tr==0 ? "salinity_bottom" : "temperature_bottom",[&](int ii, int jj) { return C[ck(ii,jj,0)]; });
+        field(tr==0 ? "salinity_top" : "temperature_top",[&](int ii, int jj) { return C[ck(ii,jj,q->knoz-1)]; });
+    }
     // G 30: the wet flag and the water depth
     if(wet)
     {

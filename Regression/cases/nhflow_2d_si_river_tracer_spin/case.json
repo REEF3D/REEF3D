@@ -1,0 +1,16 @@
+{
+ "description": "NHFLOW hydrostatic semi-implicit river, 1 sigma layer, q = 1 m2/s, 20000 s to steady flow, a checkpoint at the end: the start of nhflow_2d_si_river_tracer.",
+ "solver": "nhflow",
+ "np": 1,
+ "tags": [
+  "2d",
+  "nhflow",
+  "semi_implicit",
+  "river",
+  "checkpoint"
+ ],
+ "covers": [
+  "checkpoint of a run without tracers"
+ ],
+ "time": 20000.0
+}

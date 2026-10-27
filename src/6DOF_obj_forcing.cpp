@@ -41,6 +41,9 @@ void sixdof_obj_cfd::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel
     {
     ULOOP
     {
+        if(amr_cover!=nullptr && amr_cover[IJK])
+        continue;
+
         uf = u_fb(0) + u_fb(4)*(p->pos1_z() - c_(2)) - u_fb(5)*(p->pos1_y() - c_(1));
         
         if(uf!=uf)
@@ -58,6 +61,9 @@ void sixdof_obj_cfd::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel
     }
     VLOOP
     {
+        if(amr_cover!=nullptr && amr_cover[IJK])
+        continue;
+
         vf = u_fb(1) + u_fb(5)*(p->pos2_x() - c_(0)) - u_fb(3)*(p->pos2_z() - c_(2));
         
         if(vf!=vf)
@@ -73,6 +79,9 @@ void sixdof_obj_cfd::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel
     }
     WLOOP
     {
+        if(amr_cover!=nullptr && amr_cover[IJK])
+        continue;
+
         wf = u_fb(2) + u_fb(3)*(p->pos3_y() - c_(1)) - u_fb(4)*(p->pos3_x() - c_(0));
         
         if(wf!=wf)
@@ -88,6 +97,9 @@ void sixdof_obj_cfd::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel
     }
     LOOP
     {
+        if(amr_cover!=nullptr && amr_cover[IJK])
+        continue;
+
         H = Hsolidface(p,a,0,0,0);
         a->fbh4(i,j,k) = min(a->fbh4(i,j,k) + H, 1.0); 
     }
@@ -99,6 +111,12 @@ void sixdof_obj_cfd::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel
 
     LOOP
     {
+        if(amr_cover!=nullptr && amr_cover[IJK])
+        {
+            a->fbh5(i,j,k) = 1.0;
+            continue;
+        }
+
         dirac = 0.0;
         if(fabs(a->fb(i,j,k))<psi)
         dirac = (0.5/psi)*(1.0 + cos((PI*(a->fb(i,j,k)))/psi));
@@ -115,6 +133,9 @@ void sixdof_obj_cfd::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel
         
     ULOOP
     {
+        if(amr_cover!=nullptr && amr_cover[IJK])
+        continue;
+
         uf = u_fb(0) + u_fb(4)*(p->pos1_z() - c_(2)) - u_fb(5)*(p->pos1_y() - c_(1));
         
         if(uf!=uf)
@@ -153,6 +174,9 @@ void sixdof_obj_cfd::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel
     if(p->j_dir==1)
     VLOOP
     {
+        if(amr_cover!=nullptr && amr_cover[IJK])
+        continue;
+
         vf = u_fb(1) + u_fb(5)*(p->pos2_x() - c_(0)) - u_fb(3)*(p->pos2_z() - c_(2));
         
         if(vf!=vf)
@@ -190,6 +214,9 @@ void sixdof_obj_cfd::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel
 	
     WLOOP
     {
+        if(amr_cover!=nullptr && amr_cover[IJK])
+        continue;
+
         wf = u_fb(2) + u_fb(3)*(p->pos3_y() - c_(1)) - u_fb(4)*(p->pos3_x() - c_(0));
         
         if(wf!=wf)
@@ -228,6 +255,9 @@ void sixdof_obj_cfd::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel
     
     LOOP
     {
+        if(amr_cover!=nullptr && amr_cover[IJK])
+        continue;
+
         H = Hsolidface(p,a,0,0,0);
 		Ht = Hsolidface_t(p,a,0,0,0);
         a->fbh4(i,j,k) = min(a->fbh4(i,j,k) + H, 1.0); 
@@ -243,6 +273,12 @@ void sixdof_obj_cfd::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel
     
     LOOP
     {
+        if(amr_cover!=nullptr && amr_cover[IJK])
+        {
+            a->fbh5(i,j,k) = 1.0;
+            continue;
+        }
+
         dirac = 0.0;
         if(fabs(a->fb(i,j,k))<psi)
         dirac = (0.5/psi)*(1.0 + cos((PI*(a->fb(i,j,k)))/psi));

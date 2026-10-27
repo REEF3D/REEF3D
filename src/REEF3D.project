@@ -69,6 +69,7 @@
       </VirtualDirectory>
       <VirtualDirectory Name="CFD">
         <File Name="cfd_amr.h"/>
+        <File Name="cfd_amr_cpm.h"/>
         <File Name="cfd_amr_6dof.h"/>
         <File Name="amr_grid_lookup.h"/>
       </VirtualDirectory>
@@ -1511,6 +1512,7 @@
         <File Name="cfd_amr_6dof.cpp"/>
         <File Name="cfd_amr_fields.cpp"/>
         <File Name="cfd_amr_scalar.cpp"/>
+        <File Name="cfd_amr_cpm.cpp"/>
         <File Name="cfd_amr_geom.cpp"/>
         <File Name="cfd_amr_force.cpp"/>
         <File Name="cfd_amr_zone.cpp"/>

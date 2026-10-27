@@ -209,6 +209,23 @@ void control::ini_default()
     A545=10.0;   // double deep criterion
     A547_c=0.0;  // double NHFLOW semi-implicit (A 547 c nu0): algebraic eddy viscosity, nu_t = c kappa u* z (1 - z/h) + nu0 with u* from the log law of the bed layer (A 519 1); vertical in the column operator, horizontal in the predictor; 0 off (A 560 > 0: the turbulence model instead)
     A547_nu0=0.0;// double NHFLOW semi-implicit: A 547 c nu0, background eddy viscosity (m2/s)
+    A600=0;      // int NHFLOW semi-implicit (A 534 1): tracers, 0 off, 1 salinity, 2 salinity and temperature (nhflow_tracer_SI)
+    A601_s=0.0;  // double NHFLOW tracers: A 601 S T, initial salinity (psu) and temperature (deg C), uniform
+    A601_t=15.0; // double NHFLOW tracers: A 601 S T, initial temperature
+    A602=0;      // int NHFLOW tracers: A 602 x1 y1 S1 x2 y2 S2 given, initial salinity linear between two points (constant beyond them)
+    A602_x1=A602_y1=A602_c1=A602_x2=A602_y2=A602_c2=0.0;
+    A603=0;      // int NHFLOW tracers: A 603 x1 y1 T1 x2 y2 T2 given, initial temperature linear between two points
+    A603_x1=A603_y1=A603_c1=A603_x2=A603_y2=A603_c2=0.0;
+    A604=0.0;    // double NHFLOW tracers: horizontal diffusivity along the sigma layers (m2/s), explicit
+    A605_sig=0.7;// double NHFLOW tracers: A 605 sigma_t K0, vertical diffusivity K_v = EV/sigma_t + K0 (turbulent Schmidt/Prandtl number)
+    A605_k0=0.0; // double NHFLOW tracers: A 605 sigma_t K0, background vertical diffusivity (m2/s)
+    A606_s=0.0;  // double NHFLOW tracers: A 606 S T, inflow values of the discharge boundaries (rivers: B 60, G 54)
+    A606_t=15.0; // double NHFLOW tracers: A 606 S T, inflow temperature of the discharge boundaries
+    A607_s=35.0; // double NHFLOW tracers: A 607 S T, inflow values of the water level and radiating boundaries (sea)
+    A607_t=15.0; // double NHFLOW tracers: A 607 S T, inflow temperature of the sea boundaries
+    A608=0.0;    // double NHFLOW tracers: Thatcher-Harleman return time of the sea boundaries (s), 0 the sea value at once
+    A609=2;      // int NHFLOW tracers: horizontal advection, 1 first-order upwind, 2 TVD van Leer, 3 TVD monotonised central
+    A610=4;      // int NHFLOW tracers: largest number of substeps of a time step (cells beyond it: first-order outflow of the mixed content)
     A548=0;      // int NHFLOW semi-implicit: still water depth of a face between two wet cells, 0 the mean of the two cells, 1 the smaller one (the higher bed, Stelling and Duinmeijer 2003), 2 the smaller one only where one of the cells holds less than 10 A 544 (shoreline films: no flip-flop over bed steps, the conveyance of the channels kept)
     A546=0.05;   // double NHFLOW semi-implicit: depth below which the cell velocities of the momentum predictor are desingularised
     

@@ -98,6 +98,8 @@ void driver::loop_cfd(fdm* a)
         
         psed->start_susp(p,a,pgc,pflow,psolv);
         psed->start_cfd(p,a,pgc,pflow,preto,psolv);
+        if(pcfdamr!=nullptr)
+        pcfdamr->cpm_step(p,a,pgc);
         
         pflow->u_relax(p,a,pgc,a->u);
         pflow->v_relax(p,a,pgc,a->v);

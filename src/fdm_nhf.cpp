@@ -85,6 +85,12 @@ fdm_nhf::fdm_nhf(lexer *p) :  eta(p),etaloc(p),
     
     p->Darray(KIN,p->imax*p->jmax*(p->kmax+2));
     p->Darray(CONC,p->imax*p->jmax*(p->kmax+2));
+
+    // tracers of the semi-implicit NHFLOW (A 600): only when switched on
+    if(p->A600>=1)
+    p->Darray(SALT,p->imax*p->jmax*(p->kmax+2));
+    if(p->A600>=2)
+    p->Darray(TEMP,p->imax*p->jmax*(p->kmax+2));
     
     p->Darray(SOLID,p->imax*p->jmax*(p->kmax+2));
     p->Darray(FB,p->imax*p->jmax*(p->kmax+2));

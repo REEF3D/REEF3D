@@ -107,6 +107,54 @@ void sixdof_obj::update_forces(lexer *p)
     // FNPF: instantaneous added mass (and implicit PTO terms, X 500 2) on the left-hand side
     if(am_on_ || am_load || (pto_on_ && pto_implicit_))
     apply_added_mass(p, am_load ? &A_load : nullptr);
+    else if(am_cfd_>0.0)
+    cfd_added_mass(p);
+}
+
+// CFD: the loads of the fluid contain the reaction of the fluid to the acceleration of the body of
+// the last stage (the pressure of its projection).  For a light body the explicit coupling then
+// oscillates from stage to stage and grows (the loads of the finest grid of the mesh refinement
+// with G 7 0, a box of density 500 in heave: validation 51).  An artificial added mass A on both
+// sides, (M + A) a = F + A a_prev, damps it and is consistent where the acceleration is smooth
+// (a = a_prev): A = am_cfd_ times the mass of the displaced fluid in translation, times the
+// inertia of the body with the density of the fluid in rotation
+void sixdof_obj::cfd_added_mass(lexer *p)
+{
+    const Eigen::Matrix3d II = R_*I_*R_.transpose();
+    const Eigen::Vector3d w = omega_I;
+    const Eigen::Vector3d gyro = w.cross(II*w);
+    const double rf = p->W1;
+    const double rb = (Vfb>0.0) ? Mass_fb/Vfb : rf;
+
+    Eigen::Matrix<double,6,6> A = Eigen::Matrix<double,6,6>::Zero();
+    A.block<3,3>(0,0) = am_cfd_*rf*Vfb*Eigen::Matrix3d::Identity();
+    A.block<3,3>(3,3) = am_cfd_*(rf/rb)*II;
+
+    Eigen::Matrix<double,6,6> L = A;
+    L.block<3,3>(0,0) += Mass_fb*Eigen::Matrix3d::Identity();
+    L.block<3,3>(3,3) += II;
+
+    Eigen::Matrix<double,6,1> r;
+    r.head<3>() = Ffb_;
+    r.tail<3>() = Mfb_ - gyro;
+    r += A*am_prev_;
+
+    bool fixed[6];
+    for(int n=0; n<6; ++n)
+    {
+        fixed[n] = p_fixed_dof(p,n);
+        if(fixed[n])
+        {
+            L.row(n).setZero();
+            L.col(n).setZero();
+            L(n,n) = 1.0;
+            r(n) = 0.0;
+        }
+    }
+
+    const Eigen::Matrix<double,6,1> acc = L.partialPivLu().solve(r);
+    am_prev_ = acc;
+    finish_added_mass(acc,II,gyro,fixed);
 }
 
 void sixdof_obj::apply_added_mass(lexer *p, const Eigen::Matrix<double,6,6> *A_extra)

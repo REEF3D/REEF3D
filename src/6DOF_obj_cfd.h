@@ -70,6 +70,9 @@ public:
     void reini_amr(lexer*, fdm*, ghostcell*, field&, reinidisc_f*, field4a&, field4a&, field4a&, const int*);
     // ... the loads (X 60 1) from the finest grid at each hull triangle (set by cfd_amr, G 7 1)
     const amr_grid_lookup *amr_loads = nullptr;
+    // ... G 7 1: the level-0 cells under the patches (1, per cell of the level-0 arrays): the
+    // predicted copy of level 0 does not force the body there (set by cfd_amr for its step)
+    const char *amr_cover = nullptr;
     // ... G 7 1: stage iter of the body with the step of a level (p->dt): the loads of its last
     // stage, the pose and the body velocities (the hull is cast on the patches, not on level 0)
     void amr_stage_cfd(lexer*, fdm*, ghostcell*, int);

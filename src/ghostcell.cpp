@@ -46,6 +46,19 @@ ghostcell::ghostcell(int& argc, char **argv, lexer *p) : margin(p->margin)
 }
 
 
+ghostcell::ghostcell(lexer *p) : margin(p->margin)
+{
+    MPI_Comm_dup(MPI_COMM_WORLD,&mpi_comm);
+
+    MPI_Comm_rank(mpi_comm,&p->mpirank);
+    MPI_Comm_size(mpi_comm,&p->mpi_size);
+
+    ghostcell::p=p;
+
+    if(p->mpi_size==1)
+    do_comms = false;
+}
+
 void ghostcell::gc_ini(lexer* p)
 {
     paramargin=margin;
