@@ -1,0 +1,9 @@
+{
+ "base": "nhflow_2d_awa",
+ "ctrl_set": {"B 99": "7"},
+ "ctrl_add": ["B 528 4.5"],
+ "steps": 1000,
+ "description": "nhflow_2d_awa with the two-band beach (B 99 7, reference period B 528 4.5 s): the short part of the deviation leaves the Riemann edge at x+ as an outgoing linear peak wave (outside surface, velocity, profile and non-hydrostatic pressure); 1000 steps so that the waves reach the beach.",
+ "tags": ["2d", "nhflow", "iowave", "waves", "riemann", "twoband"],
+ "covers": ["B 99 7 in NHFLOW (ab2_out_nh, ab2_nh_outside)"]
+}

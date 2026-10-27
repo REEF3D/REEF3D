@@ -1,0 +1,7 @@
+{
+ "base": "nhflow_2d_awa",
+ "ctrl_add": ["A 515 2", "B 533 1"],
+ "description": "nhflow_2d_awa with the generating edge over the actual depth (A 515 2) without the mean mass flux of the waves (B 533 1): the return current -M / h of the linear wave, M = g a^2 k / (2 sigma), ramped with the square of the ramp.",
+ "tags": ["quick", "2d", "nhflow", "iowave", "waves"],
+ "covers": ["B 533 1 (nhflow_precalc_dirichlet)", "wave_lib_linear::wave_mass_flux"]
+}

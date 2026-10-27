@@ -532,6 +532,7 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `nhflow_3d_tide_oblique` (+ `_mpi2`) | 1/2 | oblique tide (30 deg) in a basin with open edges on all four sides: Riemann at x- and y-, Flather at x+ and y+; `_mpi2` splits the ranks in x |
 | `nhflow_2d_waves_current_doppler` (+ `_mpi2`) | 1/2 | linear waves on a following current (B 514) with Doppler (B 530 2 10): k from omega = sigma + k U, blended during the current spin-up |
 | `nhflow_2d_waves_current_doppler_stokes5` | 1 | 5th-order Stokes waves (B 92 5) on the following current with Doppler (B 530 2 10): the Stokes library refines k with its own dispersion relation omega = k (c_E + U_n) and recomputes its coefficients (needs patch 0001, NHFLOW Wave Current Scour Protection) |
+| `nhflow_2d_waves_current_doppler_stokes5_b89` | 1 | `nhflow_2d_waves_current_doppler_stokes5` with decomposed precalc (B 89 1): the space parts of the Stokes waves are decomposed again whenever B 530 sets a new k |
 | `nhflow_2d_waves_setup_heff` | 1 | linear waves on a 1 m set-up (B 514 eta) with B 530 1 10: k on h_eff |
 | `nhflow_2d_tide_waves_doppler` | 1 | `nhflow_2d_tide_waves_beach` with B 530 2 10: k follows the tide level and current |
 | `nhflow_2d_irregular_current_doppler` | 1 | JONSWAP irregular waves (B 92 31, 20 components) on a following current with B 530 2 10: k of every component, cached phases rebuilt |
@@ -546,15 +547,20 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `nhflow_2d_current_power_profile` | 1 | the same with the 1/7 power law (B 513 1 2 7) |
 | `nhflow_2d_waves_current_log_profile` | 1 | linear waves on the log-law current: generation zone and beach with the profiled background, B 530 default (mode 2) |
 | `nhflow_2d_awa_b99_4` | 1 | `nhflow_2d_awa` with B 99 4: the NHFLOW active beach (B 99 3 / 4) is an absorbing Riemann edge at x+ with still water outside |
+| `nhflow_2d_awa_theory` | 1 | `nhflow_2d_awa` with B 532 1 (1000 steps): the Riemann edge at x+ with the waves of the theory outside (surface, velocity, non-hydrostatic pressure) |
+| `nhflow_2d_awa_twoband` | 1 | `nhflow_2d_awa` with B 99 7 (B 528 4.5, 1000 steps): two-band Riemann beach, the short part of the deviation leaves as an outgoing peak wave |
+| `nhflow_2d_awa_massflux` | 1 | `nhflow_2d_awa` with A 515 2 and B 533 1: the generating edge over the actual depth without the mean wave mass flux (return current -M / h) |
 | `nhflow_3d_source_global_frame` | 1 | 3D basin, B 105 20 5 3, no B 92 wave; source 2 given in the global frame (B 505 2 1), generated in a B 520 zone at x- |
 | `nhflow_2d_irregular_two_sources_decomp` | 1 | `nhflow_2d_irregular_two_sources` with B 89 1: the components of both sources decomposed (wave_field::dspace / dtime) |
 | `fnpf_2d_irregular_two_sources_decomp` | 1 | `fnpf_2d_irregular_decomp` plus an irregular source 2 (B 500, B 504): B 89 1 with several sources in FNPF |
 | `nhflow_2d_b89_linear_fallback` | 1 | `nhflow_2d_two_sources` (linear) with B 89 1: falls back to B 89 0 with a message, bitwise as `nhflow_2d_two_sources` |
 | `nhflow_2d_irregular_2nd_a` | 1 | NHFLOW 2D, 2nd-order irregular waves A (B 92 32, 32 components) in the relaxation zone: cached-point evaluation of the pair terms (`wave_lib_irregular_2nd_cache.h`) |
 | `nhflow_2d_irregular_2nd_b` | 1 | as above with 2nd-order irregular waves B (B 92 33) |
+| `nhflow_2d_irregular_2nd_b_setdown` | 1 | 2nd-order waves B with B 98 4, B 99 3, B 532 1 and B 531 1 (1200 steps): NHFLOW mean set-down with the beach relative to the theory, A 515 2 set by B 531 |
+| `nhflow_2d_irregular_2nd_b_massflux` | 1 | 2nd-order waves B with B 98 4, B 99 3, A 515 2 and B 533 1 (300 steps): the mean mass flux of the components taken out at the generating edge |
 | `nhflow_3d_irregular_2nd_dir` | 2 | `nhflow_3d_irregular_decomp` with directional 2nd-order irregular waves A and B 89 0 |
 | `fnpf_2d_irregular_2nd_b` | 1 | FNPF 2D, 2nd-order irregular waves B (B 92 33): cached potential (`wave_fi_c`) and eta of the pair terms |
-| `fnpf_2d_irregular_2nd_b_setdown` | 1 | `fnpf_2d_irregular_2nd_b` with B 531 1: mean set-down and return current of zero mass flux in the 2nd-order target (FNPF only; ignored in the other solvers) |
+| `fnpf_2d_irregular_2nd_b_setdown` | 1 | `fnpf_2d_irregular_2nd_b` with B 531 1: mean set-down and return current of zero mass flux in the 2nd-order target (FNPF, or NHFLOW / SFLOW with B 532 1) |
 | `fnpf_2d_irregular_2nd_b_deep` | 1 | `fnpf_2d_irregular_decomp` (600 m, Hs 5 m) with 2nd-order irregular waves B and B 89 0: the corrected second-order theory in deep water (the former coefficients stopped with a HYPRE breakdown) |
 | `nhflow_3d_two_edges_irregular_b89` | 2 | `nhflow_3d_two_edges` with irregular waves and B 89 1: zone sources (B 524) with decomposed precalc |
 | `fnpf_3d_two_edges_irregular_b89` | 2 | as above for FNPF |
@@ -582,6 +588,7 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `nhflow_2d_irregular_2nd_lowrank` | 1 | `nhflow_2d_irregular_2nd_a` with 128 components: the pair sums of the direction from low-rank expansions of their coefficients (`lr_build`, `lr_kin`, `lr_eta` in `wave_lib_irregular_2nd_cache.h`) |
 | `fnpf_2d_irregular_2nd_b_lowrank` | 1 | `fnpf_2d_irregular_2nd_b` with 128 components: eta and the potential of the sum terms low-rank, the potential of the difference terms direct |
 | `fnpf_2d_irregular_2nd_b_twoband_lowrank` | 1 | `fnpf_2d_irregular_2nd_b_twoband` with 128 components: B 98 7 / B 99 7 against the low-rank bound-wave target |
+| `fnpf_2d_irregular_2nd_b_twoband_theory` | 1 | `fnpf_2d_irregular_2nd_b_twoband` with B 532 1 and B 531 1 (2400 steps): the two-band beach absorbs the deviation from the 2nd-order waves at x+ |
 | `nhflow_2d_irregular_2nd_combined_lowrank` | 1 | `nhflow_2d_irregular_2nd_lowrank` with B 98 6 / B 99 6: the low-rank target in the zone-column relaxation and at the generation edge |
 | `nhflow_3d_irregular_2nd_rows` | 2 | NHFLOW 3D, long-crested 2nd-order irregular waves A (128 components) along x: the cells across the crests share their phases, eta once per row, u, v, w from the Chebyshev tables in z of the row (`wave_lib_zgroup.h`) |
 | `nhflow_3d_irregular_rows` | 2 | `nhflow_3d_irregular_2nd_rows` with 1st-order irregular waves (64 components): groups and tables in z in `wave_lib_irregular_1st` |
