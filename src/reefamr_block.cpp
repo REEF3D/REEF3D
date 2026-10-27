@@ -27,6 +27,7 @@ Author: Hans Bihs
 #include"ioflow_amr_block.h"
 #include<algorithm>
 #include<numeric>
+#include<cmath>
 
 // Multi-block level 0 (G 50 1 with the BLKS section of DIVEMesh R 20 1), see reefamr.h.
 //
@@ -667,15 +668,19 @@ void reefamr::blocks_open(lexer *p)
         }
     }
 
-    // edge zones on the faces of the blocks (B 520 methods 3-6 with B 522 b, NHFLOW): the -i or +i face of a
-    // block 1.. without interface and without G 54, the background of the zone given (B 510).  (The j faces: the
-    // block is turned, geo_mesh::turn_blocks.)
+    // zones on the faces of the blocks (B 522 b): edges (B 520 methods 3-6, NHFLOW) on the -i or +i face of a block
+    // 1.. without interface and without G 54; relaxation and beach zones (methods 1, 2, NHFLOW) on the -i or +i face
+    // without interface; the background of the zone given (B 510).  (The j faces: the block is turned,
+    // geo_mesh::turn_blocks.)
     bzone[0].assign(nblk,-1);
     bzone[1].assign(nblk,-1);
+    bzr[0].assign(nblk,-1);
+    bzr[1].assign(nblk,-1);
     bzones = bc_zone_set::from_input(p).bedges;
     for(int q=0; q<(int)bzones.size(); ++q)
     {
         const bc_zone &z = bzones[q];
+        const bool rz = (z.method==bc_method::relax || z.method==bc_method::beach);
         const int bo = z.block, f = (bo>=1 && bo<G->nblk_orig) ? G->face_turned(bo,z.edge-1) : -1;
         const int b = (f==0 || f==1) ? G->face_piece(bo,f) : -1;
         const char *why = nullptr;
@@ -686,13 +691,17 @@ void reefamr::blocks_open(lexer *p)
         why = "the face is not open after turning the block (geo_mesh::turn_blocks)";
         else
         if(p->A10!=5)
-        why = "edge zones on the blocks are available for NHFLOW (A 10 5) only, so far";
+        why = rz ? "relaxation and beach zones on the blocks are available for NHFLOW (A 10 5) only, so far"
+                 : "edge zones on the blocks are available for NHFLOW (A 10 5) only, so far";
         else
         if(b<0)
         why = "the face is cut into pieces (G 55)";
         else
-        if(bopen[f][b]>=0)
+        if(!rz && bopen[f][b]>=0)
         why = "the face is open by G 54 already";
+        else
+        if(z.method==bc_method::relax && f!=0)
+        why = "a relaxation zone lies on the -i face of its block (geo_mesh::turn_blocks)";
         else
         for(const rseg &S : blk[b].seg)
         if(S.face==f)
@@ -715,17 +724,29 @@ void reefamr::blocks_open(lexer *p)
             ++bad;
             continue;
         }
+        if(rz)
+        bzr[f][b] = q;
+        else
         bzone[f][b] = q;
         if(p->mpirank==0)
         {
             const char *m = z.method==bc_method::riemann ? "Riemann edge" : z.method==bc_method::flather ? "Flather edge"
-                          : z.method==bc_method::clamp_level ? "clamped level edge" : "clamped discharge edge";
+                          : z.method==bc_method::clamp_level ? "clamped level edge" : z.method==bc_method::clamp_q ? "clamped discharge edge"
+                          : z.method==bc_method::relax ? "relaxation zone" : "beach zone";
             cout<<par.name<<": block "<<bo;
             if(b!=bo)
             cout<<" (piece "<<b<<")";
             cout<<": zone "<<z.id<<", "<<m;
+            if(rz)
+            cout<<" "<<z.d<<" m wide";
             if(z.bg>0)
             cout<<" with background "<<z.bg;
+            if(!z.sources.empty())
+            {
+            cout<<", waves of the sources";
+            for(int sid : z.sources)
+            cout<<" "<<sid;
+            }
             if(z.has_Q)
             cout<<", Q = "<<z.Q<<" m3/s (ramp "<<z.Q_tramp<<" s)";
             const char *fn[4] = {"-i","+i","-j","+j"};
@@ -792,6 +813,44 @@ void reefamr::blocks_refine_setup(lexer *p)
     for(int i=0; i<=std::min(par.ioband,blk[b].ni-1); ++i)
     for(int j=0; j<blk[b].nj; ++j)
     F[(size_t)(blk[b].vi+(t==0 ? i : blk[b].ni-1-i))*GNYV+(blk[b].vj+j)] = 1;
+
+    // no refinement over the relaxation and beach zones of the blocks (B 522; the cells within the width of the
+    // zone from the face along the grid lines, and the ioband beyond), as over the zones of the native grid
+    for(int b=1; b<nblk; ++b)
+    for(int t=0; t<2; ++t)
+    if(bzr[t][b]>=0)
+    for(int j=0; j<blk[b].nj; ++j)
+    {
+        const double w = bzones[bzr[t][b]].d;
+        double s = 0.0, xo=0.0, yo=0.0;
+        int extra = -1;
+        for(int n=0; n<blk[b].ni && extra<par.ioband; ++n)
+        {
+            const int i = (t==0) ? n : blk[b].ni-1-n;
+            double xc=0.0, yc=0.0, x,y,z;
+            for(int a=0; a<2; ++a)
+            for(int d=0; d<2; ++d)
+            {
+                block_node(b,i+a,j+d,x,y,z);
+                xc += 0.25*x;
+                yc += 0.25*y;
+            }
+            if(n==0)
+            {
+                double x0,y0,z0,x1,y1,z1;
+                block_node(b,t==0 ? 0 : blk[b].ni,j,x0,y0,z0);
+                block_node(b,t==0 ? 0 : blk[b].ni,j+1,x1,y1,z1);
+                xo = 0.5*(x0+x1);
+                yo = 0.5*(y0+y1);
+            }
+            s += sqrt((xc-xo)*(xc-xo) + (yc-yo)*(yc-yo));
+            xo = xc;
+            yo = yc;
+            if(s>=w)
+            ++extra;
+            F[(size_t)(blk[b].vi+i)*GNYV+(blk[b].vj+j)] = 1;
+        }
+    }
 
     // singular vertices: the corner cell beyond both faces is another cell through the one face
     // than through the other (three or five blocks around the node), or only one way reaches it

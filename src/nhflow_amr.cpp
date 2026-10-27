@@ -783,16 +783,19 @@ void nhflow_amr::patch_objects(reefamr_patch *q, ghostcell *pgc)
     nhflow_amr_patch *c = NP(q);
     lexer *pp = c->pp;
 
-    // multi-block: in- and outflow, open edges and wave generation belong to block 0, the faces of
-    // the blocks 1.. without an interface are walls; the open faces of a block (G 54) are its in- and
-    // outflow as B 60 1 on the native grid (only these i-faces: river_xm, river_xp; a block with open j
-    // faces is turned, geo_mesh::turn_blocks), its edge zones (B 522) its open edges as the iowave edges of
-    // the native grid (open_xm, open_xp)
+    // multi-block: the faces of the blocks 1.. without an interface are walls; the open faces of a block (G 54)
+    // are its in- and outflow as B 60 1 on the native grid (only these i-faces: river_xm, river_xp; a block with
+    // open j faces is turned, geo_mesh::turn_blocks), its edge zones (B 522) its open edges as the iowave edges of
+    // the native grid (open_xm, open_xp), its relaxation and beach zones (B 522) those of ioflow_amr_block; the
+    // zones of iowave (B 98, B 99) belong to block 0
     const int oin = (c->blk>0 && c->lev==0) ? bopen[0][c->blk] : -1;
     const int oout = (c->blk>0 && c->lev==0) ? bopen[1][c->blk] : -1;
     const int zin = (c->blk>0 && c->lev==0) ? bzone[0][c->blk] : -1;
     const int zout = (c->blk>0 && c->lev==0) ? bzone[1][c->blk] : -1;
+    const int rin = (c->blk>0 && c->lev==0) ? bzr[0][c->blk] : -1;
+    const int rout = (c->blk>0 && c->lev==0) ? bzr[1][c->blk] : -1;
     const bool open = oin>=0 || oout>=0 || zin>=0 || zout>=0;
+    const bool zoned = open || rin>=0 || rout>=0;
     if(c->blk>0)
     {
         pp->B60 = (oin>=0 || oout>=0) ? 1 : 0;
@@ -803,9 +806,14 @@ void nhflow_amr::patch_objects(reefamr_patch *q, ghostcell *pgc)
         pp->open_xm = (zin>=0) ? 1 : 0;
         pp->open_xp = (zout>=0) ? 1 : 0;
         pp->open_ym = pp->open_yp = 0;
-        // an edge zone: the non-hydrostatic pressure at the -i edge 0 as at the iowave edges (nhflow_poisson, B 90)
-        if(zin>=0 || zout>=0)
+        // an edge zone: the non-hydrostatic pressure at the -i edge 0 as at the iowave edges (nhflow_poisson, B 90);
+        // a relaxation or beach zone: the relaxation of the semi-implicit step (nhflow_momentum_SI::relax)
+        if(zin>=0 || zout>=0 || rin>=0 || rout>=0)
         pp->B90 = 1;
+        // a relaxation zone on the -i face: that face is the generation side of the block as x- of the native grid
+        // with B 98 2 (the velocities zero gradient in the ghost cells, start4V; not a G 52 wall, nhflow_curv::iwall)
+        if(rin>=0 && bzones[rin].method==bc_method::relax)
+        pp->B98 = 2;
         if(c->lev==0)
         pp->amr_block = p0->gridgeo->blk[c->blk].orig;   // the block of DIVEMesh (G 55: of the piece)
         // the blocks of DIVEMesh (the turns of the blocks: the faces of the B 521 edges, nhflow_momentum_SI)
@@ -844,12 +852,15 @@ void nhflow_amr::patch_objects(reefamr_patch *q, ghostcell *pgc)
 
     c->pBC = pBCv;
     c->pflow = pflowv;
-    if(open)
+    if(zoned)
     {
         c->pio = new ioflow_amr_block(pp,pgc,pBCv);
         pp->amr_own_io = 1;
         c->pio->open_faces(pp,oin,oout);
         c->pio->open_edges(pp,zin>=0 ? &bzones[zin] : nullptr,zout>=0 ? &bzones[zout] : nullptr,bzbg);
+        // relaxation and beach zones (B 522 methods 1, 2), the waves with B 90 1 and B 98 2 on level 0
+        c->pio->open_zones(pp,rin>=0 ? &bzones[rin] : nullptr,rout>=0 ? &bzones[rout] : nullptr,bzbg,p0->B90>0 && p0->B98==2,
+                           EXT,blk[c->blk].ni,EXT,blk[c->blk].nj);
         c->pflow = c->pio;
     }
     // the floating bodies on the patch grid (all calls do nothing without bodies)

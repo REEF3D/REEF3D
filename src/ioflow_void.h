@@ -65,11 +65,11 @@ public:
 	void phi_relax(lexer*,ghostcell*,field&) override final;
     void vof_relax(lexer*,fdm*,ghostcell*,field&) override final;
     void turb_relax(lexer*,fdm*,ghostcell*,field&) override final;
-    void U_relax(lexer*,ghostcell*,double*,double*) override final;
-    void V_relax(lexer*,ghostcell*,double*,double*) override final;
-    void W_relax(lexer*,ghostcell*,double*,double*) override final;
-    void P_relax(lexer*,ghostcell*,double*) override final;
-    void WL_relax(lexer*,ghostcell*,slice&,slice&) override final;
+    void U_relax(lexer*,ghostcell*,double*,double*) override;
+    void V_relax(lexer*,ghostcell*,double*,double*) override;
+    void W_relax(lexer*,ghostcell*,double*,double*) override;
+    void P_relax(lexer*,ghostcell*,double*) override;
+    void WL_relax(lexer*,ghostcell*,slice&,slice&) override;
     void fifsf_relax(lexer*, ghostcell*, slice&) override final;
     void eta_relax(lexer*,ghostcell*,slice&) override final;
     void um_relax(lexer*,ghostcell*,slice&,slice&,slice&) override final;

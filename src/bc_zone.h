@@ -59,8 +59,10 @@ zones given directly (ctrl.txt, repeatable; read into lexer, control.h):
                                edge is a face of the block (1: -i, 2: +i, 3: -j, 4: +j; a block with
                                zones on its j faces is turned so that they are its i faces,
                                geo_mesh::turn_blocks; the parts of the face without interface, s0 s1
-                               width unused); methods 3-6 (NHFLOW), kept apart from the zones of the
-                               native grid (bedges, ioflow_amr_block)
+                               unused): an edge (methods 3-6, B 524 waves at a Riemann edge) or a
+                               relaxation / beach zone (1, 2) reaching the B 521 width into the block
+                               from its face (the distance along the grid lines); kept apart from
+                               the zones of the native grid (bedges, ioflow_amr_block)
 --------------------------------------------------------------------*/
 
 enum class bc_method {relax, beach, riemann, flather, clamp_level, clamp_q};
@@ -126,8 +128,10 @@ public:
     // ranges for old input (unchanged), plus the box of every B 520 zone
     void norefine_boxes(lexer*, std::vector<double>&) const;
 
-    // the edge zone on face e (1: -i, 2: +i, 3: -j, 4: +j of DIVEMesh) of block b (B 522); nullptr: none
+    // the edge zone (methods 3-6) and the relaxation or beach zone on face e (1: -i, 2: +i, 3: -j, 4: +j of
+    // DIVEMesh) of block b (B 522); nullptr: none
     const bc_zone* block_edge(int b, int e) const;
+    const bc_zone* block_zone(int b, int e) const;
 
     // the block of zone id (B 522), 0: the native grid (the zone's own input, without the checks)
     static int zone_block(const lexer*, int);

@@ -44,6 +44,9 @@ Architect: Hans Bihs
 //
 // Run as for the blocks of DIVEMesh; the input (G 54 b, B 522 b) keeps the numbers of DIVEMesh (face_piece).
 //
+// The first and the last piece of a block reach at least the width of the relaxation and beach zones on the -i and
+// +i face of the block (B 522), as far as the other pieces stay 16 cells deep (zone_cells).
+//
 // G 56 a dz: the cells count with their load (cell_load): a wet cell 1, a cell whose bed lies above the still
 // water level + dz the load a.  The size limit is then (load of the blocks 1..) / (m ranks), and a block is cut
 // where its slices reach equal parts of its load (at least 16 cells deep), so that the pieces carry about the
@@ -180,6 +183,58 @@ int geo_mesh::seg_check() const
     return bad;
 }
 
+// G 55 with the zones of B 522: the cells of block b (1..) within the width of its relaxation and beach zones from
+// its face f (0 -i, 1 +i), the most over its rows (the distance from the centre of the face along the cell centres)
+int geo_mesh::zone_cells(const lexer *p, int b, int f) const
+{
+    int nz = 0;
+    const blk_block &B = blk[b];
+    const size_t w = size_t(B.ni+1);
+    auto ctr = [&](int ci, int cj, double &x, double &y)
+    {
+        x = 0.25*(B.x[ci+w*cj] + B.x[ci+1+w*cj] + B.x[ci+w*(cj+1)] + B.x[ci+1+w*(cj+1)]);
+        y = 0.25*(B.y[ci+w*cj] + B.y[ci+1+w*cj] + B.y[ci+w*(cj+1)] + B.y[ci+1+w*(cj+1)]);
+    };
+    for(int m=0; m<p->B522; ++m)
+    {
+        if(p->B522_b[m]!=b)
+        continue;
+        int e=0, meth=0;
+        double wz=0.0;
+        for(int q=0; q<p->B521; ++q)
+        if(p->B521_id[q]==p->B522_id[m])
+        {
+            e = p->B521_edge[q];
+            wz = p->B521_w[q];
+        }
+        for(int q=0; q<p->B520; ++q)
+        if(p->B520_id[q]==p->B522_id[m])
+        meth = p->B520_method[q];
+        if((meth!=1 && meth!=2) || e<1 || e>4 || face_turned(b,e-1)!=f)
+        continue;
+
+        for(int cj=0; cj<B.nj; ++cj)
+        {
+            const int K = (f==0) ? 0 : B.ni;
+            double xo = 0.5*(B.x[K+w*cj] + B.x[K+w*(cj+1)]);
+            double yo = 0.5*(B.y[K+w*cj] + B.y[K+w*(cj+1)]);
+            double s = 0.0;
+            for(int n=0; n<B.ni; ++n)
+            {
+                double xc,yc;
+                ctr((f==0) ? n : B.ni-1-n,cj,xc,yc);
+                s += sqrt((xc-xo)*(xc-xo) + (yc-yo)*(yc-yo));
+                xo = xc;
+                yo = yc;
+                if(s>=wz)
+                break;
+                nz = std::max(nz,n+1);
+            }
+        }
+    }
+    return nz;
+}
+
 void geo_mesh::split_blocks(lexer *p)
 {
     const int nb = int(blk.size());
@@ -265,6 +320,20 @@ void geo_mesh::split_blocks(lexer *p)
                     ++x;
                     cut[q] = std::max(cut[q-1]+MIN, std::min(x, Ln-(kn-q)*MIN));
                 }
+            }
+            // the relaxation and beach zones of the -i and +i face (B 522) on the first and the last piece whole,
+            // as far as the pieces stay MIN cells deep
+            if(dn==0 && kn>1)
+            {
+                const int zlo = zone_cells(p,b,0), zhi = zone_cells(p,b,1);
+                if(zlo>cut[1])
+                {
+                    cut[1] = std::min(zlo, Ln-(kn-1)*MIN);
+                    for(int q=2; q<kn; ++q)
+                    cut[q] = std::max(cut[q], cut[q-1]+MIN);
+                }
+                if(Ln-zhi<cut[kn-1])
+                cut[kn-1] = std::max(Ln-zhi, cut[kn-2]+MIN);
             }
             return cut;
         };
@@ -477,15 +546,17 @@ void geo_mesh::split_blocks(lexer *p)
 // ---------------------------------------------------------------------------------------------------------------
 // G 54 and B 522 on any face of a block 1..: the blocks turned by quarter turns of their indices
 //
-// The open faces of a block are its -i face (G 54 discharge in, an edge zone) and its +i face (G 54 water level
-// out, an edge zone): ioflow_amr_block and the boundary lists of the solvers know these two.  An open face on a j
-// face, or a discharge at the +i or a level at the -i face, turns the block so that its open faces become the -i
-// and the +i face.  A quarter turn takes cell (i,j) of a block of ni x nj cells to
+// The open faces of a block are its -i face (G 54 discharge in, a relaxation zone, an edge or beach zone) and its
+// +i face (G 54 water level out, an edge or beach zone): ioflow_amr_block and the boundary lists of the solvers
+// know these two (a relaxation zone generates waves on the -i face as on the x- side of the native grid, B 98 2, and
+// a Riemann edge with the waves of B 524 sources has their non-hydrostatic pressure there).  An open face on a j
+// face, or a discharge / relaxation zone / wave edge at the +i or a level at the -i face, turns the block so that its
+// open faces become the -i and the +i face.  A quarter turn takes cell (i,j) of a block of ni x nj cells to
 // (j, ni-1-i) of the turned block of nj x ni cells: the faces -i, +i, -j, +j become +j, -j, -i, +i, the
 // orientation of the indices is kept (no mirror), and the interface transforms of the block and of its
 // neighbours compose with the turn.  The physical grid is the same; the cells are numbered the other way.
-// Two open faces of a block must be opposite faces (-i/+i or -j/+j) with the discharge on the one and the level
-// on the other, else the block cannot be turned.
+// Two open faces of a block must be opposite faces (-i/+i or -j/+j) with the discharge (or the relaxation zone)
+// on the one and the level on the other, else the block cannot be turned.
 
 namespace
 {
@@ -612,15 +683,24 @@ void geo_mesh::turn_blocks(lexer *p)
     for(int m=0; m<p->B522; ++m)
     {
         const int b = p->B522_b[m];
-        int e = 0;
+        int e = 0, meth = 0;
         for(int q=0; q<p->B521; ++q)
         if(p->B521_id[q]==p->B522_id[m])
         e = p->B521_edge[q];
+        for(int q=0; q<p->B520; ++q)
+        if(p->B520_id[q]==p->B522_id[m])
+        meth = p->B520_method[q];
         if(b<1 || b>=nb || e<1 || e>4)
         continue;
         face[b].push_back(e-1);
-        want[b].push_back(3);
-        what[b].push_back("B 522 zone");
+        // a relaxation zone (wave generation) and a Riemann edge with the waves of sources (B 524) on the -i face, as
+        // the generation zone and the wave edge of the native grid at x- (the non-hydrostatic pressure of the waves)
+        bool src = false;
+        for(int q=0; q<p->B524; ++q)
+        if(p->B524_id[q]==p->B522_id[m])
+        src = true;
+        want[b].push_back((meth==1 || (meth==3 && src)) ? 1 : 3);
+        what[b].push_back(meth==1 ? "B 522 relaxation zone" : (meth==3 && src) ? "B 522 Riemann edge with waves" : "B 522 zone");
     }
 
     int bad = 0;
@@ -653,7 +733,7 @@ void geo_mesh::turn_blocks(lexer *p)
                 cout<<"!!! block "<<b<<": its open faces (G 54, B 522)";
                 for(size_t q=0; q<face[b].size(); ++q)
                 cout<<(q>0 ? ", " : " ")<<fn[face[b][q]]<<" ("<<what[b][q]<<")";
-                cout<<": the block cannot be turned so that they become its -i and +i face (two opposite faces, a discharge on the one, a water level on the other) !!!"<<endl;
+                cout<<": the block cannot be turned so that they become its -i and +i face (two opposite faces; a discharge, a relaxation zone or a Riemann edge with waves on the one, a water level on the other) !!!"<<endl;
             }
             ++bad;
             continue;

@@ -29,6 +29,7 @@ Author: Hans Bihs
 #include"nhflow_momentum_func.h"
 #include"nhflow_fsf.h"
 #include"nhflow_potential_f.h"
+#include"ioflow_amr_block.h"
 #include<cstdlib>
 #include<cstring>
 #include<cstdint>
@@ -52,9 +53,10 @@ Author: Hans Bihs
 //    patches): the ring and the cells around the blocks are filled from the vectors, the
 //    preconditioner runs a V-cycle per block (nhflow_amr_press.cpp)
 //  - faces of the blocks 1.. without an interface are walls, except the open faces of G 54 (discharge
-//    or water level, constant or a time series) and the edge zones of B 522 (Riemann, Flather, clamped
-//    level or discharge edges with a background) on their -i and +i faces (ioflow_amr_block); wave
-//    generation and absorption belong to block 0
+//    or water level, constant or a time series) and the zones of B 522 (Riemann edges, with the waves of
+//    B 524 sources, Flather, clamped level or discharge edges with a background; relaxation and beach
+//    zones) on their -i and +i faces (ioflow_amr_block; a block with such faces on its j faces is turned,
+//    geo_mesh::turn_blocks)
 //  - breaking (A 550 1): block 0 and the blocks run the parts of nhflow_breaking together, the ring and the
 //    cells around the blocks take the detection, the flags and the viscosity of the cells they stand for
 //    (breaking_level0, nhflow_amr_diff.cpp)
@@ -177,6 +179,15 @@ void nhflow_amr::blocks_sigma(ghostcell *pgc)
 
         c->pmom->sigma_ini(pp,d,pgc,d->eta);
         c->pmom->inidisc(pp,d,pgc,c->pfsf);
+
+        // the relaxation zones of the block (B 522) at the start (ioflow_amr_block::zones_ini), the sigma grid of the
+        // surface they set
+        if(c->pio!=nullptr && c->pio->has_zones())
+        {
+            c->pio->zones_ini(pp,d,pgc);
+            c->pmom->sigma_ini(pp,d,pgc,d->eta);
+            c->pmom->inidisc(pp,d,pgc,c->pfsf);
+        }
         c->pfsf->kinematic_fsf(pp,d,d->U,d->V,d->W,d->eta);
 
         // floating bodies: the hull on the sigma grid of the block

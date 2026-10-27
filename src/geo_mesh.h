@@ -127,6 +127,7 @@ public:
 
 private:
     int seg_check() const;                  // interface cells that do not map back
+    int zone_cells(const lexer*, int b, int f) const;   // G 55: the cells of the zones of B 522 at face f of block b
     void turn_block(int b);                 // one quarter turn of block b (1..)
     void allocate(int);
     void release();
