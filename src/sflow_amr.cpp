@@ -427,12 +427,22 @@ void sflow_amr::patch_objects(reefamr_patch *q, ghostcell *pgc)
     if(bous==1)
     c->psolv = new sflow_amr_linesolve;
 
-    // multi-block: the open faces of a block 1.. (G 54; the lists from build_bc2D)
-    if(c->blk>0 && c->lev==0 && (bopen[0][c->blk]>=0 || bopen[1][c->blk]>=0))
+    // multi-block: the open faces of a block 1.. (G 54) and its edge zones (B 522; the lists from build_bc2D); the
+    // iowave edges of level 0 (open_xm .. open_yp) are not the block's
+    const int zin = (c->blk>0 && c->lev==0) ? bzone[0][c->blk] : -1;
+    const int zout = (c->blk>0 && c->lev==0) ? bzone[1][c->blk] : -1;
+    if(c->blk>0)
+    {
+        pp->open_xm = (zin>=0) ? 1 : 0;
+        pp->open_xp = (zout>=0) ? 1 : 0;
+        pp->open_ym = pp->open_yp = 0;
+    }
+    if(c->blk>0 && c->lev==0 && (bopen[0][c->blk]>=0 || bopen[1][c->blk]>=0 || zin>=0 || zout>=0))
     {
         c->pio = new ioflow_amr_block(pp,pgc,pBC);
         pp->amr_own_io = 1;
         c->pio->open_faces(pp,bopen[0][c->blk],bopen[1][c->blk]);
+        c->pio->open_edges(pp,zin>=0 ? &bzones[zin] : nullptr,zout>=0 ? &bzones[zout] : nullptr,bzbg);
         c->phll->open_io();
     }
 

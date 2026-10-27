@@ -42,7 +42,8 @@ Author: Hans Bihs
 // (method 2) on the -i or +i face reaches its B 521 width into the block, measured from the face along the grid
 // lines, and relaxes as the zones of iowave (iowave_nhflow_relax.cpp): a relaxation zone towards its background
 // and, with B 90 1 and B 98 2 on level 0, the waves of its B 524 sources (all sources without B 524); a beach
-// zone towards its background (still water without B 523).  Everything else as ioflow_v.
+// zone towards its background (still water without B 523).  SFLOW: the edge zones as the edges of
+// iowave_sflow_tide.cpp, along the normal of the face.  Everything else as ioflow_v.
 class wave_interface;
 
 class ioflow_amr_block : public ioflow_v
@@ -60,7 +61,7 @@ public:
     // values, 3, 4 the time series (files checked by reefamr::blocks_open)
     void open_faces(lexer*,int,int);
 
-    // the edge zones of the -i and +i faces (B 522), nullptr none, and the backgrounds (NHFLOW)
+    // the edge zones of the -i and +i faces (B 522), nullptr none, and the backgrounds
     void open_edges(lexer*,const bc_zone*,const bc_zone*,const background_state&);
 
     // the relaxation or beach zones of the -i and +i faces (B 522 methods 1, 2), nullptr none, the backgrounds and
@@ -106,6 +107,8 @@ private:
     void edges_nhflow(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double*,double*,double*);
     void edges_rk(lexer*,fdm_nhf*,double*,double*,double*,double*,double*,double*);
     void edges_wl(lexer*,fdm_nhf*,slice&);
+    void edges2D(lexer*,fdm2D*,ghostcell*,slice&,slice&);
+    void edges2D_eta(lexer*,fdm2D*,slice&);
     double col_ubar(lexer*,double*);
     double bg_prof(lexer*,int,int,double);
 
