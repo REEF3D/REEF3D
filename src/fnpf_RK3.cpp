@@ -120,6 +120,7 @@ void fnpf_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     pamr->stage_surface(p,c,pgc,erk1,frk1,0);
     
     // fsfdisc and sigma update
+    pf->breaking_zones(p,pflow);
     pf->breaking(p,c,pgc,erk1,en,frk1,1.0);
     // A 352: the filter changed eta and Fifsf in place after their halo exchange
     if((p->A350==1 || p->A350==4) && p->A352>0)

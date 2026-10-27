@@ -725,6 +725,7 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Breaking">
           <File Name="fnpf_breaking.h"/>
+          <File Name="breaking_crest3d.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Update">
           <File Name="fnpf_fsf_update.h"/>
@@ -2362,6 +2363,7 @@
           <File Name="fnpf_breaking_baquet.cpp"/>
           <File Name="fnpf_breaking_romero.cpp"/>
           <File Name="fnpf_breaking_barthelemy.cpp"/>
+          <File Name="breaking_crest3d.cpp"/>
           <File Name="fnpf_breaking_relaxfunc.cpp"/>
           <File Name="fnfp_breaking_kennedy.cpp"/>
           <File Name="fnpf_breaking_filter.cpp"/>
