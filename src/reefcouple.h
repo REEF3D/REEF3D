@@ -32,22 +32,25 @@ class fnpf_couple_send;
 class wave_lib_fnpf_couple;
 
 /*--------------------------------------------------------------------
-REEF3D runtime coupling FNPF -> CFD / NHFLOW (B 92 62)
+REEF3D runtime coupling FNPF -> CFD / NHFLOW / FNPF (B 92 62), with
+optional feedback to FNPF (I 243 bodies, I 244 overlap box)
 
 The models run side by side in one MPI job (reef3d_mpmd), each with its
 own working directory:
 
   mpirun -np 2 -wdir fnpf REEF3D : -np 8 -wdir cfd REEF3D
 
-  source:    an FNPF model (A 10 3), the lowest app with A 10 3; it
-             needs no coupling key, it sends as soon as a receiver
-             exists
-  receivers: CFD (A 10 6) or NHFLOW (A 10 5) models with the wave type
-             B 92 62; several receivers can share one FNPF source
+  source:    an FNPF model (A 10 3), the lowest app with A 10 3 that is
+             no receiver; it needs no coupling key, it sends as soon as
+             a receiver exists
+  receivers: CFD (A 10 6), NHFLOW (A 10 5) or FNPF (A 10 3, nesting)
+             models with the wave type B 92 62; several receivers can
+             share one FNPF source
 
 The receiver is a wave library (wave_lib_fnpf_couple): the relaxation
-zones, Dirichlet inflow and the full initialisation (I 30 1) of the
-receiver use the FNPF eta and velocities instead of a wave theory.
+zones (B 98 2, B 520 zones on any edge), Dirichlet inflow and the full
+initialisation (I 30 1) of the receiver use the FNPF eta, velocities
+(and Fi for an FNPF receiver) instead of a wave theory.
 
   frame:  receiver point (x,y) -> wave frame of B 105 (angle, origin)
           -> FNPF point (xg + I 231, yg + I 232), z + I 233; the
@@ -60,9 +63,22 @@ receiver use the FNPF eta and velocities instead of a wave theory.
 
 Data exchange: at the start each receiver rank tells the FNPF ranks the
 FNPF index window that covers its subdomain; each FNPF rank then sends
-its part of the window (eta, u, v, w on the sigma nodes) after every
+its part of the window (eta, u, v, w, Fi on the sigma nodes) after every
 FNPF time step, MPI_Issend, at most reefcouple::depth levels ahead of
 the receiver. The receiver interpolates in time between the levels.
+
+Feedback (two-way, CFD and NHFLOW receivers): at the start of each of
+its steps the receiver's rank 0 sends a sample (MPI_Isend) to FNPF
+rank 0:
+  I 243 1   the state of its 6DOF bodies; the FNPF bodies of the same
+            number (X 10) follow them (sixdof_external)
+  I 244 box (CFD) eta and surface velocity at the FNPF columns inside
+            the box xs xe ys ye (receiver frame); FNPF relaxes eta and
+            Fifsf there towards them, ramp width I 245; Fifsf from the
+            surface velocity along FNPF x lines (dPhi/dx = u + w deta/dx)
+FNPF waits at the start of its step for a sample at least as late as
+the level the receiver is waiting for, and extrapolates the last two
+samples to its stage times.
 --------------------------------------------------------------------*/
 
 class reefcouple
@@ -86,12 +102,14 @@ public:
     static wave_lib_fnpf_couple *recv;
 
     // protocol
-    static const int version = 1;
+    static const int version = 2;
     static const int depth = 4;             // levels the source may run ahead
     static const int tag_bed  = 4811;
     static const int tag_data = 4812;
     static const int tag_end  = 4813;
     static const int tag_stop = 4814;
+    static const int tag_fb   = 4815;
+    static const int tag_fbc  = 4816;
 };
 
 #endif

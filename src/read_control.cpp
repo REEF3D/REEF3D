@@ -2302,6 +2302,16 @@ void control::read_control(lexer* p)
                 case 242: control>>I242;
                          clear(c,numint);
                          break;
+                case 243: control>>I243;
+                         clear(c,numint);
+                         break;
+                case 244: control>>I244_xs>>I244_xe>>I244_ys>>I244_ye;
+                         I244=1;
+                         clear(c,numint);
+                         break;
+                case 245: control>>I245;
+                         clear(c,numint);
+                         break;
                 }
                 break;
 

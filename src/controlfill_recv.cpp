@@ -1645,6 +1645,20 @@ void control::ctrlrecv()
     dd++;
     I242 = ictrl[ii];
     ii++;
+    I243 = ictrl[ii];
+    ii++;
+    I244 = ictrl[ii];
+    ii++;
+    I244_xs = dctrl[dd];
+    dd++;
+    I244_xe = dctrl[dd];
+    dd++;
+    I244_ys = dctrl[dd];
+    dd++;
+    I244_ye = dctrl[dd];
+    dd++;
+    I245 = dctrl[dd];
+    dd++;
 
     M10 = ictrl[ii];
     ii++;

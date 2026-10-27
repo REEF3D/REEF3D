@@ -44,6 +44,8 @@ Author: Hans Bihs
 #include"lagoon_output.h"
 #include"cfd_amr.h"
 #include"reefrun_ckpt.h"
+#include"reefcouple.h"
+#include"wave_lib_fnpf_couple.h"
 
 
 void driver::loop_cfd(fdm* a)
@@ -76,6 +78,10 @@ void driver::loop_cfd(fdm* a)
         }
         
         pflow->flowfile(p,a,pgc,pturb);
+        
+        // runtime coupling (B 92 62): feedback to FNPF at the start of the step (I 243, I 244)
+        if(reefcouple::recv!=nullptr)
+        reefcouple::recv->feedback(p,pgc,p6dof,a);
         
         pflow->wavegen_precalc(p,pgc);
 

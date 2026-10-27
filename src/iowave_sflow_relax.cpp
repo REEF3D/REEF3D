@@ -23,6 +23,7 @@ Author: Hans Bihs
 #include"iowave.h"
 #include"lexer.h"
 #include"ghostcell.h"
+#include"fnpf_couple_send.h"
 #include"slice.h"
 #include"met_provider.h"
 
@@ -97,6 +98,10 @@ void iowave::eta_relax(lexer *p, ghostcell *pgc, slice &f)
             }
         }
     }
+    
+    // runtime coupling (FNPF source): towards the receiver in its overlap box (I 244)
+    if(p->A10==3)
+    fnpf_couple_send::relax_eta(p,f);
     
     p->wavecalctime+=pgc->timer()-starttime;
 }

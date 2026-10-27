@@ -88,10 +88,25 @@ void reefcouple::roles(lexer *p, ghostcell *pgc)
     }
     
     for(int a=0; a<napps; ++a)
-    if(recv[a]==1 && model[a]!=6 && model[a]!=5)
+    if(recv[a]==1 && model[a]!=6 && model[a]!=5 && model[a]!=3)
     {
         if(reef3d_mpmd::world_rank==0)
-        cout<<"!!! B 92 62: app "<<a<<" (A 10 "<<model[a]<<") cannot receive, only CFD (A 10 6) and NHFLOW (A 10 5) !!!"<<endl;
+        cout<<"!!! B 92 62: app "<<a<<" (A 10 "<<model[a]<<") cannot receive, only CFD (A 10 6), NHFLOW (A 10 5) and FNPF (A 10 3) !!!"<<endl;
+        MPI_Abort(MPI_COMM_WORLD,1);
+    }
+    
+    // feedback keys: I 244 (overlap box) only for CFD, I 243/I 244 not for an FNPF receiver
+    if(want && p->A10==3 && (p->I243>0 || p->I244>0))
+    {
+        if(p->mpirank==0)
+        cout<<"!!! B 92 62: I 243 / I 244 (feedback) are not available for an FNPF receiver !!!"<<endl;
+        MPI_Abort(MPI_COMM_WORLD,1);
+    }
+    
+    if(want && p->A10==5 && p->I244>0)
+    {
+        if(p->mpirank==0)
+        cout<<"!!! B 92 62: I 244 (overlap box) is available for CFD receivers only !!!"<<endl;
         MPI_Abort(MPI_COMM_WORLD,1);
     }
     

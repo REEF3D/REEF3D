@@ -79,6 +79,10 @@ void driver::loop_fnpf()
 		cout<<"t/T: "<<p->simtime/p->wTp<<endl;
         }
         
+        // runtime coupling: the feedback of the receivers (I 243 bodies, I 244 overlap box) for this step
+        if(reefcouple::sender!=nullptr)
+        reefcouple::sender->pre_step(p,c,pgc);
+        
         pflow->wavegen_precalc_fnpf(p,c,pgc);
         
         

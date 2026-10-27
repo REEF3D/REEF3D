@@ -844,6 +844,10 @@ void control::ini_default()
     I233=0.0;       // double starting z for flowfile
     I241=0.0;       // double delta t for flowfile
     I242=3;         // int FNPF coupling (B 92 62): time interpolation, 1 linear, 3 cubic
+    I243=0;         // int FNPF coupling (B 92 62): the 6DOF bodies of the receiver drive the FNPF bodies (two-way, bodies)
+    I244=0;         // int FNPF coupling (B 92 62): overlap box xs xe ys ye of the receiver, FNPF relaxed towards CFD there (two-way)
+    I244_xs=I244_xe=I244_ys=I244_ye=0.0;
+    I245=0.0;       // double FNPF coupling (B 92 62): ramp width of the I 244 box [m] (0: 1/4 of the smaller box side)
 
     // Numerics
 	N10=1;			// int linear poisson solver: 1 REEFMG; hypre (10-39) only in builds with make HYPRE=1

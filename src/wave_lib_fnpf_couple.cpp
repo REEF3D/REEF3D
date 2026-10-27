@@ -24,6 +24,8 @@ Author: Hans Bihs
 #include"reefcouple.h"
 #include"lexer.h"
 #include"ghostcell.h"
+#include"fdm.h"
+#include"6DOF.h"
 #include<iostream>
 #include<algorithm>
 #include<cmath>
@@ -50,6 +52,16 @@ wave_lib_fnpf_couple::wave_lib_fnpf_couple(lexer *pp, ghostcell *pgc) : wave_lib
     p->B89 = 0;
     
     order = (p->I242==1) ? 1 : 3;
+    
+    // an FNPF receiver (nesting) relaxes Fifsf towards Fi of the source
+    fi = (p->A10==3);
+    
+    // feedback (two-way): bodies (I 243) and overlap box (I 244)
+    nb_fb = (p->I243>0 && p->X10>0) ? std::max(1,p->X20) : 0;
+    fb_on = (nb_fb>0 || p->I244>0);
+    
+    if(p->I243>0 && p->X10==0 && p->mpirank==0)
+    cout<<"B 92 62: I 243 without 6DOF bodies (X 10) is ignored"<<endl;
     
     // frame: wave frame of B 105 (as for the HDC, origin 0,0 unless B 105 is given), then the offsets
     const double g = p->B105_1*(PI/180.0);
@@ -144,24 +156,24 @@ void wave_lib_fnpf_couple::handshake(lexer *p, ghostcell *pgc)
     nwc = nwx*nwy;
     
     // FNPF boxes <-> window
-    int mine[4] = {wi0,wi1,wj0,wj1};
-    std::vector<int> box(4*nfnpf);
-    MPI_Allgather(mine,4,MPI_INT,box.data(),4,MPI_INT,ic);
+    int mine[6] = {wi0,wi1,wj0,wj1,fi ? 1 : 0,0};
+    std::vector<int> box(6*nfnpf);
+    MPI_Allgather(mine,6,MPI_INT,box.data(),6,MPI_INT,ic);
     
     S.clear();
     for(int r=0; r<nfnpf; ++r)
     {
         source s;
         s.rank = r;
-        s.i0 = std::max(box[4*r],wi0);
-        s.i1 = std::min(box[4*r+1],wi1);
-        s.j0 = std::max(box[4*r+2],wj0);
-        s.j1 = std::min(box[4*r+3],wj1);
+        s.i0 = std::max(box[6*r],wi0);
+        s.i1 = std::min(box[6*r+1],wi1);
+        s.j0 = std::max(box[6*r+2],wj0);
+        s.j1 = std::min(box[6*r+3],wj1);
         s.ncol = (s.i1-s.i0)*(s.j1-s.j0);
         
         if(s.i1>s.i0 && s.j1>s.j0)
         {
-        s.buf.resize(1+size_t(s.ncol)*(1+3*nz));
+        s.buf.resize(1+size_t(s.ncol)*(1+(fi ? 4 : 3)*nz));
         S.push_back(s);
         }
     }
@@ -187,13 +199,39 @@ void wave_lib_fnpf_couple::handshake(lexer *p, ghostcell *pgc)
         }
     }
     
+    // feedback configuration to the source: bodies, overlap columns, levels ahead
+    if(p->I244>0)
+    overlap_ini(p);
+    
+    fbsize = 2 + 18*nb_fb + 4*int(oc.size());
+    
+    {
+    const int root = p->mpirank==0 ? MPI_ROOT : MPI_PROC_NULL;
+    int fc[4] = {nb_fb, int(oc.size()), order==3 ? 2 : 1, 0};
+    MPI_Bcast(fc,4,MPI_INT,root,ic);
+    
+    if(!oc.empty())
+    {
+        std::vector<double> cl(3*oc.size());
+        for(size_t q=0; q<oc.size(); ++q)
+        {
+        cl[3*q]   = oc[q].gi;
+        cl[3*q+1] = oc[q].gj;
+        cl[3*q+2] = oc[q].r;
+        }
+        MPI_Bcast(cl.data(),int(cl.size()),MPI_DOUBLE,root,ic);
+    }
+    }
+    
     if(p->mpirank==0)
     {
     cout<<"Wave_Lib: FNPF coupling (B 92 62)"<<endl;
     cout<<" FNPF grid: "<<gx<<" x "<<gy<<" x "<<nz<<" nodes, "<<(jdirF==1 ? "3D" : "2D")<<", wd: "<<wdF<<", t0: "<<t0F<<endl;
     cout<<" receiver: "<<(p->j_dir==1 ? "3D" : "2D")<<", B 105 angle: "<<p->B105_1<<" origin: "<<p->B105_2<<" "<<p->B105_3
         <<", offsets I 231-233: "<<dx0<<" "<<dy0<<" "<<dz0<<", I 241: "<<p->I241<<endl;
-    cout<<" time interpolation: "<<(order==3 ? "cubic" : "linear")<<endl;
+    cout<<" time interpolation: "<<(order==3 ? "cubic" : "linear")<<(fi ? ", with Fi (FNPF receiver)" : "")<<endl;
+    if(fb_on)
+    cout<<" feedback to FNPF: "<<nb_fb<<" bodies (I 243), "<<oc.size()<<" overlap columns (I 244)"<<(order==3 ? "; I 242 1 (linear) gives a shorter lag" : "")<<endl;
     }
     
     if(p->j_dir==1 && jdirF==0 && p->mpirank==0)
@@ -235,6 +273,8 @@ bool wave_lib_fnpf_couple::recv_level()
     L.U.assign(size_t(nwc)*nz,0.0);
     L.V.assign(size_t(nwc)*nz,0.0);
     L.W.assign(size_t(nwc)*nz,0.0);
+    if(fi)
+    L.F.assign(size_t(nwc)*nz,0.0);
     
     for(source &s : S)
     {
@@ -254,6 +294,8 @@ bool wave_lib_fnpf_couple::recv_level()
             L.U[col*nz+k] = b[1+nc+n*nz+k];
             L.V[col*nz+k] = b[1+nc+(nc+n)*nz+k];
             L.W[col*nz+k] = b[1+nc+(2*nc+n)*nz+k];
+            if(fi)
+            L.F[col*nz+k] = b[1+nc+(3*nc+n)*nz+k];
             }
             ++n;
         }
@@ -278,9 +320,20 @@ void wave_lib_fnpf_couple::weights(double t)
     };
     
     // the levels up to t (and one more for cubic)
+    bool told=false;
     while(!ended && ahead()<need)
-    if(!recv_level())
-    break;
+    {
+        // two-way: the source waits for samples; tell it that this model waits for a level at t
+        if(fb_on && !told && p->mpirank==0)
+        {
+        double tw=t;
+        MPI_Send(&tw,1,MPI_DOUBLE,0,reefcouple::tag_fbc,ic);
+        told=true;
+        }
+        
+        if(!recv_level())
+        break;
+    }
     
     // drop the levels no longer needed (one spare for a slightly earlier request)
     int behind = int(lev.size())-ahead();
@@ -522,7 +575,242 @@ double wave_lib_fnpf_couple::wave_w(lexer *p, double x, double y, double z)
 
 double wave_lib_fnpf_couple::wave_fi(lexer *p, double x, double y, double z)
 {
+    if(!fi)
     return 0.0;
+    
+    sync(p);
+    double xf,yf;
+    frame(x,y,xf,yf);
+    return fi_h(locate(xf,yf),z+wdF+dz0);
+}
+
+double wave_lib_fnpf_couple::wave_fi_c(lexer *p, int q, double z)
+{
+    if(!fi)
+    return 0.0;
+    
+    sync(p);
+    return fi_h(cache[q],z+wdF+dz0);
+}
+
+// Fi of the source at zf (absolute FNPF z), as vel_h
+double wave_lib_fnpf_couple::fi_h(const hstencil &h, double zf) const
+{
+    double val=0.0;
+    
+    for(int c=0; c<4; ++c)
+    if(h.w[c]>0.0)
+    {
+        const int col = h.col[c];
+        
+        double e=0.0;
+        for(size_t m=0; m<wl.size(); ++m)
+        e += ww_[m]*lev[wl[m]].E[col];
+        
+        const double depth = std::max(e + wdF - B[col],1.0e-6);
+        
+        double s = (zf-B[col])/depth;
+        s = std::max(ZN.front(),std::min(s,ZN.back()));
+        
+        int k=0;
+        double b=0.0;
+        if(nz>1)
+        {
+            k = int(std::upper_bound(ZN.begin(),ZN.end(),s)-ZN.begin())-1;
+            k = std::max(0,std::min(k,nz-2));
+            b = (s-ZN[k])/(ZN[k+1]-ZN[k]);
+        }
+        const int kp = (nz>1) ? k+1 : k;
+        
+        double fc=0.0;
+        for(size_t m=0; m<wl.size(); ++m)
+        {
+            const level &L = lev[wl[m]];
+            fc += ww_[m]*(L.F[size_t(col)*nz+k]*(1.0-b) + L.F[size_t(col)*nz+kp]*b);
+        }
+        
+        val += h.w[c]*fc;
+    }
+    
+    return val;
+}
+
+// the FNPF columns inside the overlap box I 244 (receiver frame), sorted by j, then i, with the
+// weight of the targets (0 at the box edge, 1 at I 245 inside) and the sampling point in the
+// receiver; FNPF 2D: the line through the box centre, receiver 2D: its y
+void wave_lib_fnpf_couple::overlap_ini(lexer *p)
+{
+    const double xs=p->I244_xs, xe=p->I244_xe, ys=p->I244_ys, ye=p->I244_ye;
+    const bool use_y = (p->j_dir==1 && jdirF==1);
+    const double w = (p->I245>0.0) ? p->I245 : 0.25*(use_y ? std::min(xe-xs,ye-ys) : (xe-xs));
+    
+    // box centre in the FNPF frame (the y of an FNPF 2D line)
+    const double xm = 0.5*(xs+xe), ym = 0.5*(ys+ye);
+    const double ygm = -(xm-p->B105_2)*sg + (ym-p->B105_3)*cg;
+    const double yrec = 0.5*(p->global_ymin + p->global_ymax);
+    
+    oc.clear();
+    for(int gj=0; gj<gy; ++gj)
+    for(int gi=0; gi<gx; ++gi)
+    {
+        // FNPF centre -> wave frame -> receiver frame
+        const double xg = X[gi]-dx0;
+        const double yg = (jdirF==1) ? Y[gj]-dy0 : ygm;
+        double x = p->B105_2 + xg*cg - yg*sg;
+        double y = p->B105_3 + xg*sg + yg*cg;
+        
+        if(p->j_dir==0)
+        y = yrec;
+        
+        if(x<xs || x>xe)
+        continue;
+        if(p->j_dir==1 && (y<ys || y>ye))
+        continue;
+        
+        double d = std::min(x-xs,xe-x);
+        if(use_y)
+        d = std::min(d,std::min(y-ys,ye-y));
+        
+        ocol o;
+        o.gi = gi;
+        o.gj = gj;
+        o.r  = (d>=w) ? 1.0 : 0.5*(1.0-cos(PI*d/w));
+        o.x  = x;
+        o.y  = y;
+        o.own = (x>=p->originx && x<p->endx) && (p->j_dir==0 || (y>=p->originy && y<p->endy));
+        oc.push_back(o);
+    }
+    
+    if(p->mpirank==0)
+    cout<<" overlap box I 244: "<<xs<<" "<<xe<<" "<<ys<<" "<<ye<<", ramp "<<w<<" m, "<<oc.size()<<" FNPF columns"<<endl;
+    
+    if(oc.empty() && p->mpirank==0)
+    cout<<"!!! B 92 62: no FNPF column inside the I 244 box !!!"<<endl;
+}
+
+// CFD free surface at (x,y): the zero crossing of phi in the column, and the velocity half a cell below
+bool wave_lib_fnpf_couple::surface_cfd(lexer *p, fdm *a, double x, double y, double &eta, double &u, double &v, double &w) const
+{
+    const int m = increment::marge;
+    double z0 = p->ZP[m];
+    double f0 = p->ccipol4(a->phi,x,y,z0);
+    
+    for(int k=1; k<p->knoz; ++k)
+    {
+        const double z1 = p->ZP[k+m];
+        const double f1 = p->ccipol4(a->phi,x,y,z1);
+        
+        if(f0>=0.0 && f1<0.0)
+        {
+            const double zs = z0 + f0/(f0-f1)*(z1-z0);
+            const double zv = std::max(zs-0.5*p->DZP[k+m],p->ZP[m]);
+            
+            eta = zs - p->phimean;
+            u = p->ccipol1(a->u,x,y,zv);
+            v = (p->j_dir==1) ? p->ccipol2(a->v,x,y,zv) : 0.0;
+            w = p->ccipol3(a->w,x,y,zv);
+            return true;
+        }
+        
+        z0 = z1;
+        f0 = f1;
+    }
+    
+    return false;
+}
+
+// at the start of the receiver's step: its bodies (I 243) and the free surface in the overlap box
+// (I 244) at time simtime + I 241, in the FNPF frame, to the source's rank 0
+void wave_lib_fnpf_couple::feedback(lexer *p, ghostcell *pgc, sixdof *p6dof, fdm *a)
+{
+    if(!fb_on)
+    return;
+    
+    const int nc = int(oc.size());
+    std::vector<double> b(fbsize,0.0);
+    
+    b[0] = p->simtime + p->I241;
+    b[1] = p->dt;
+    
+    // bodies: CoG, velocity, angular velocity, rotation; receiver frame -> FNPF frame
+    if(nb_fb>0)
+    {
+        const int nbr = (p6dof!=nullptr) ? p6dof->body_count() : 0;
+        
+        for(int n=0; n<nb_fb; ++n)
+        {
+            double sb[18];
+            if(n>=nbr)
+            continue;
+            
+            p6dof->body_state(n,sb);
+            
+            double *o = &b[2+18*n];
+            const double xr = sb[0]-p->B105_2, yr = sb[1]-p->B105_3;
+            o[0] =  xr*cg + yr*sg + dx0;
+            o[1] = -xr*sg + yr*cg + dy0;
+            o[2] = sb[2] - p->phimean + wdF + dz0;
+            
+            for(int vq=0; vq<2; ++vq)
+            {
+            const double vx = sb[3+3*vq], vy = sb[4+3*vq];
+            o[3+3*vq] =  cg*vx + sg*vy;
+            o[4+3*vq] = -sg*vx + cg*vy;
+            o[5+3*vq] = sb[5+3*vq];
+            }
+            
+            // R_F = Rz(-gamma) R
+            for(int q=0; q<3; ++q)
+            {
+            const double r0 = sb[9+q], r1 = sb[12+q], r2 = sb[15+q];
+            o[9+q]  =  cg*r0 + sg*r1;
+            o[12+q] = -sg*r0 + cg*r1;
+            o[15+q] = r2;
+            }
+        }
+    }
+    
+    // overlap box: each rank its columns, summed on rank 0
+    if(nc>0 && a!=nullptr)
+    {
+        const int o = 2 + 18*nb_fb;
+        
+        for(int q=0; q<nc; ++q)
+        if(oc[q].own)
+        {
+            double e,u,v,w;
+            if(surface_cfd(p,a,oc[q].x,oc[q].y,e,u,v,w))
+            {
+            b[o+q]      = e;
+            b[o+nc+q]   =  cg*u + sg*v;
+            b[o+2*nc+q] = -sg*u + cg*v;
+            b[o+3*nc+q] = w;
+            }
+        }
+        
+        if(p->mpirank==0)
+        MPI_Reduce(MPI_IN_PLACE,&b[o],4*nc,MPI_DOUBLE,MPI_SUM,0,pgc->mpi_comm);
+        else
+        MPI_Reduce(&b[o],nullptr,4*nc,MPI_DOUBLE,MPI_SUM,0,pgc->mpi_comm);
+    }
+    
+    if(p->mpirank!=0)
+    return;
+    
+    // non-blocking, the completed sends are released
+    fbbuf.push_back(std::move(b));
+    fbreq.push_back(MPI_REQUEST_NULL);
+    MPI_Isend(fbbuf.back().data(),fbsize,MPI_DOUBLE,0,reefcouple::tag_fb,ic,&fbreq.back());
+    
+    while(!fbreq.empty())
+    {
+        int done=0;
+        MPI_Test(&fbreq.front(),&done,MPI_STATUS_IGNORE);
+        if(!done)
+        break;
+        fbreq.pop_front();
+        fbbuf.pop_front();
+    }
 }
 
 void wave_lib_fnpf_couple::parameters(lexer *p, ghostcell *pgc)
@@ -603,12 +891,12 @@ void wave_lib_fnpf_couple::finish()
     
     finished = true;
     
-    // stop to the source (rank 0 for the model), then everything the source still sends
+    // stop to the source (rank 0 for the model, after its feedback samples), then everything the
+    // source still sends
+    MPI_Request sreq = MPI_REQUEST_NULL;
+    double sv=1.0;
     if(p->mpirank==0)
-    {
-    int v=1;
-    MPI_Send(&v,1,MPI_INT,0,reefcouple::tag_stop,ic);
-    }
+    MPI_Isend(&sv,1,MPI_DOUBLE,0,reefcouple::tag_stop,ic,&sreq);
     
     int open=0;
     for(const source &s : S)
@@ -633,4 +921,14 @@ void wave_lib_fnpf_couple::finish()
         --open;
         }
     }
+    
+    // the feedback samples and the stop are received by the source's rank 0
+    while(!fbreq.empty())
+    {
+    MPI_Wait(&fbreq.front(),MPI_STATUS_IGNORE);
+    fbreq.pop_front();
+    fbbuf.pop_front();
+    }
+    
+    MPI_Wait(&sreq,MPI_STATUS_IGNORE);
 }

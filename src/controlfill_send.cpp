@@ -1651,6 +1651,20 @@ void control::ctrlsend()
     dd++;
     ictrl[ii] = I242;
     ii++;
+    ictrl[ii] = I243;
+    ii++;
+    ictrl[ii] = I244;
+    ii++;
+    dctrl[dd] = I244_xs;
+    dd++;
+    dctrl[dd] = I244_xe;
+    dd++;
+    dctrl[dd] = I244_ys;
+    dd++;
+    dctrl[dd] = I244_ye;
+    dd++;
+    dctrl[dd] = I245;
+    dd++;
 
     ictrl[ii] = M10;
     ii++;

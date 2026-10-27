@@ -29,6 +29,9 @@ Author: Hans Bihs
 #include<vector>
 #include<deque>
 
+class fdm;
+class sixdof;
+
 using namespace std;
 
 // B 92 62: waves from an FNPF model running in the same MPI job (reefcouple), receiver side
@@ -50,7 +53,7 @@ public:
     // cached evaluation in the relaxation zones: the horizontal stencil once
     void wave_cache_points(lexer*, const std::vector<double> &x, const std::vector<double> &y) override final;
     double wave_eta_c(lexer*, int) override final;
-    double wave_fi_c(lexer*, int, double) override final {return 0.0;}
+    double wave_fi_c(lexer*, int, double) override final;
     double wave_u_c(lexer*, int, double) override final;
     double wave_v_c(lexer*, int, double) override final;
     double wave_w_c(lexer*, int, double) override final;
@@ -58,6 +61,9 @@ public:
     
     // end of the receiver: stop to the source, drain its messages
     void finish();
+    
+    // feedback to the source at the start of the step (I 243 bodies, I 244 overlap box with the CFD fdm)
+    void feedback(lexer*, ghostcell*, sixdof*, fdm*);
     
 private:
     // horizontal stencil in the window: up to 4 columns with weights
@@ -78,7 +84,15 @@ private:
     struct level
     {
         double t;
-        std::vector<double> E,U,V,W;
+        std::vector<double> E,U,V,W,F;
+    };
+    
+    // overlap column (I 244): global FNPF indices, weight, sampling point in the receiver frame
+    struct ocol
+    {
+        int gi,gj;
+        double r,x,y;
+        bool own;
     };
     
     void handshake(lexer*, ghostcell*);
@@ -90,6 +104,9 @@ private:
     void frame(double, double, double&, double&) const;
     double eta_h(const hstencil&) const;
     void vel_h(const hstencil&, double, double&, double&, double&) const;
+    double fi_h(const hstencil&, double) const;
+    void overlap_ini(lexer*);
+    bool surface_cfd(lexer*, fdm*, double, double, double&, double&, double&, double&) const;
     void rotate(double, double, double&, double&) const;
     
     MPI_Comm ic;
@@ -119,6 +136,17 @@ private:
     double cg,sg,dx0,dy0,dz0;
     
     std::vector<hstencil> cache;
+    
+    // Fi in the data (FNPF receiver)
+    bool fi = false;
+    
+    // feedback
+    bool fb_on = false;
+    int nb_fb = 0;
+    int fbsize = 0;
+    std::vector<ocol> oc;
+    std::deque<std::vector<double>> fbbuf;
+    std::deque<MPI_Request> fbreq;
     
     int nwarn=0;
 };
