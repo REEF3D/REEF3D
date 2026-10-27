@@ -785,8 +785,9 @@ void nhflow_amr::patch_objects(reefamr_patch *q, ghostcell *pgc)
 
     // multi-block: in- and outflow, open edges and wave generation belong to block 0, the faces of
     // the blocks 1.. without an interface are walls; the open faces of a block (G 54) are its in- and
-    // outflow as B 60 1 on the native grid (only these i-faces: river_xm, river_xp), its edge zones (B 522)
-    // its open edges as the iowave edges of the native grid (open_xm, open_xp)
+    // outflow as B 60 1 on the native grid (only these i-faces: river_xm, river_xp; a block with open j
+    // faces is turned, geo_mesh::turn_blocks), its edge zones (B 522) its open edges as the iowave edges of
+    // the native grid (open_xm, open_xp)
     const int oin = (c->blk>0 && c->lev==0) ? bopen[0][c->blk] : -1;
     const int oout = (c->blk>0 && c->lev==0) ? bopen[1][c->blk] : -1;
     const int zin = (c->blk>0 && c->lev==0) ? bzone[0][c->blk] : -1;
@@ -807,6 +808,8 @@ void nhflow_amr::patch_objects(reefamr_patch *q, ghostcell *pgc)
         pp->B90 = 1;
         if(c->lev==0)
         pp->amr_block = p0->gridgeo->blk[c->blk].orig;   // the block of DIVEMesh (G 55: of the piece)
+        // the blocks of DIVEMesh (the turns of the blocks: the faces of the B 521 edges, nhflow_momentum_SI)
+        pp->gridgeo = p0->gridgeo;
     }
 
     build_bc2D(pgc,*c);

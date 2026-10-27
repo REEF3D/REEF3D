@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"seastate_nhflow.h"
 #include"si_eta2D.h"
 #include"bc_zone.h"
+#include"geo_mesh.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
@@ -235,7 +236,10 @@ void nhflow_momentum_SI::bc_method(lexer *p)
     if(p->B520_id[qn]==p->B521_id[q] && p->B520_method[qn]>=3 && p->B520_method[qn]<=6
        && bc_zone_set::zone_block(p,p->B520_id[qn])==p->amr_block)
     {
-        const int e = p->B521_edge[q];
+        // a zone of a block (B 522): its face after turning the block (geo_mesh::turn_blocks)
+        int e = p->B521_edge[q];
+        if(p->amr_block>0 && p->gridgeo!=nullptr && e>=1 && e<=4)
+        e = p->gridgeo->face_turned(p->amr_block,e-1) + 1;
 
         if(e<1 || e>4)
         continue;

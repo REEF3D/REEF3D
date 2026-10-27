@@ -278,14 +278,12 @@ void bc_zone_set::read_input(lexer *p, ghostcell *pgc)
         if(m>=3 && bgid[q]==0 && !(m==6 && hasq[q]))
         fail("zone "+std::to_string(k)+": a Riemann, Flather or clamped edge needs a background (B 523); a clamped discharge edge a background or B 525");
         
-        // a zone on a face of a block 1..: an edge of methods 3-6 on the -i or +i face, the geometry is the
-        // block's (reefamr::blocks_open checks the block and the face)
+        // a zone on a face of a block 1..: an edge of methods 3-6 on a face (the j faces: the block is turned,
+        // geo_mesh::turn_blocks), the geometry is the block's (reefamr::blocks_open checks the block and the face)
         if(blk[q]>0)
         {
             if(m<=2)
             fail("zone "+std::to_string(k)+" on block "+std::to_string(blk[q])+" (B 522): relaxation and beach zones are not available on the blocks 1.., only edges (B 520 methods 3-6)");
-            if(e>2)
-            fail("zone "+std::to_string(k)+" on block "+std::to_string(blk[q])+" (B 522): the B 521 edge is the -i (1) or +i (2) face of the block, the j faces are not available yet");
             if(!src[q].empty())
             fail("zone "+std::to_string(k)+" on block "+std::to_string(blk[q])+" (B 522): an edge of a block carries the background only (no B 524 sources)");
             

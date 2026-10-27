@@ -592,7 +592,9 @@ void reefamr::blocks_setup(lexer *p, ghostcell *pgc)
 // tile maps and no-refinement cells over the index space with the blocks; the singular vertices; the
 // open faces of the blocks 1.. (G 54 b t v): t 1 discharge v through the -i face of block b, t 2 water level v at
 // its +i face, t 3 and 4 the same from the time series file discharge-<v>.dat or waterlevel-<v>.dat (lines
-// "t value", ioflow_amr_block); the face has no interface, one line per face.  b is the block of DIVEMesh: with
+// "t value", ioflow_amr_block); t 5-8 the same through the -j / at the +j face, t 9-12 through the +i / at the -i
+// face, t 13-16 through the +j / at the -j face (the block is turned so that they are its -i and +i face,
+// geo_mesh::turn_blocks); the face has no interface, one line per face.  b is the block of DIVEMesh: with
 // G 55 the face belongs to the piece that holds it (geo_mesh::face_piece)
 void reefamr::blocks_open(lexer *p)
 {
@@ -603,15 +605,19 @@ void reefamr::blocks_open(lexer *p)
     for(int n=0; n<p->G54; ++n)
     {
         const int bo = p->G54_b[n], t = p->G54_t[n];
-        const int f = (t==1 || t==3) ? 0 : 1;
-        const int b = G->face_piece(bo,f);
+        const int kind = geo_mesh::g54_kind(t);
+        const int f = (kind==1 || kind==3) ? 0 : 1;
+        const int b = (bo>=1 && bo<G->nblk_orig) ? G->face_piece(bo,f) : -1;
         const char *why = nullptr;
         string file;
         if(bo<1 || bo>=G->nblk_orig)
         why = "no block 1.. of the grid";
         else
-        if(t<1 || t>4)
-        why = "type 1 (discharge in, -i face), 2 (water level out, +i face), 3 (discharge time series in) or 4 (water level time series out)";
+        if(kind<1)
+        why = "type 1 (discharge in, -i face), 2 (water level out, +i face), 3 (discharge time series in) or 4 (water level time series out); 5-8 the same on the -j / +j face, 9-12 on the +i / -i face, 13-16 on the +j / -j face";
+        else
+        if(G->face_turned(bo,geo_mesh::g54_face(t))!=f)
+        why = "the face is not open after turning the block (geo_mesh::turn_blocks)";
         else
         if(b<0)
         why = "the face is cut into pieces (G 55)";
@@ -625,9 +631,9 @@ void reefamr::blocks_open(lexer *p)
 
         // time series: every rank reads the file (the block's rank uses it)
         vector<double> st, sv;
-        if(why==nullptr && t>=3)
+        if(why==nullptr && kind>=3)
         {
-            file = ioflow_amr_block::series_file(t,int(p->G54_v[n]));
+            file = ioflow_amr_block::series_file(kind,int(p->G54_v[n]));
             if(p->G54_v[n]<0.0 || p->G54_v[n]!=double(int(p->G54_v[n])))
             why = "the id of the time series file is a whole number >= 0";
             else
@@ -645,31 +651,39 @@ void reefamr::blocks_open(lexer *p)
         bopen[f][b] = n;
         if(p->mpirank==0)
         {
+            const char *fn[4] = {"-i","+i","-j","+j"};
             cout<<par.name<<": block "<<bo;
             if(b!=bo)
             cout<<" (piece "<<b<<")";
             cout<<(f==0?" inflow ":" outflow ");
-            if(t<=2)
+            if(kind<=2)
             cout<<(f==0?"Q = ":"water level ")<<p->G54_v[n]<<(f==0?" m3/s":" m");
             else
             cout<<(f==0?"Q":"water level")<<" from "<<file<<" ("<<st.size()<<" values, t "<<st.front()<<" .. "<<st.back()<<" s)";
-            cout<<(f==0?" through its -i face":" at its +i face")<<endl;
+            cout<<(f==0?" through its ":" at its ")<<fn[geo_mesh::g54_face(t)]<<" face";
+            if(G->face_turned(bo,geo_mesh::g54_face(t))!=geo_mesh::g54_face(t))
+            cout<<" (the "<<fn[f]<<" face of the turned block)";
+            cout<<endl;
         }
     }
 
     // edge zones on the faces of the blocks (B 520 methods 3-6 with B 522 b, NHFLOW): the -i or +i face of a
-    // block 1.. without interface and without G 54, the background of the zone given (B 510)
+    // block 1.. without interface and without G 54, the background of the zone given (B 510).  (The j faces: the
+    // block is turned, geo_mesh::turn_blocks.)
     bzone[0].assign(nblk,-1);
     bzone[1].assign(nblk,-1);
     bzones = bc_zone_set::from_input(p).bedges;
     for(int q=0; q<(int)bzones.size(); ++q)
     {
         const bc_zone &z = bzones[q];
-        const int bo = z.block, f = z.edge-1;
-        const int b = G->face_piece(bo,f);
+        const int bo = z.block, f = (bo>=1 && bo<G->nblk_orig) ? G->face_turned(bo,z.edge-1) : -1;
+        const int b = (f==0 || f==1) ? G->face_piece(bo,f) : -1;
         const char *why = nullptr;
         if(bo>=G->nblk_orig)
         why = "no block 1.. of the grid";
+        else
+        if(f!=0 && f!=1)
+        why = "the face is not open after turning the block (geo_mesh::turn_blocks)";
         else
         if(p->A10!=5)
         why = "edge zones on the blocks are available for NHFLOW (A 10 5) only, so far";
@@ -714,7 +728,11 @@ void reefamr::blocks_open(lexer *p)
             cout<<" with background "<<z.bg;
             if(z.has_Q)
             cout<<", Q = "<<z.Q<<" m3/s (ramp "<<z.Q_tramp<<" s)";
-            cout<<" on its "<<(f==0 ? "-i" : "+i")<<" face"<<endl;
+            const char *fn[4] = {"-i","+i","-j","+j"};
+            cout<<" on its "<<fn[z.edge-1]<<" face";
+            if(f!=z.edge-1)
+            cout<<" (the "<<fn[f]<<" face of the turned block)";
+            cout<<endl;
         }
     }
     if(bad>0)

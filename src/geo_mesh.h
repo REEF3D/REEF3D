@@ -106,6 +106,17 @@ public:
     // the piece that holds face f (0 -i, 1 +i, 2 -j, 3 +j) of block b of DIVEMesh whole; -1: cut across it
     int face_piece(int b, int f) const;
 
+    // G 54 (types 1-16) and B 522 on any face of a block 1.. (geo_mesh_split.cpp): REEF3D opens the -i face of a
+    // block for a discharge and the +i face for a water level (ioflow_amr_block), the edge zones on the -i or +i
+    // face; a block whose open faces are j faces or reversed is turned by quarter turns of its indices (the
+    // nodes and the interfaces, before G 55) so that they become these faces.  blk_turn[b]: the quarter turns of
+    // block b of DIVEMesh (0-3; a turn maps the faces -i, +i, -j, +j to +j, -j, -i, +i)
+    void turn_blocks(lexer*);
+    vector<int> blk_turn;
+    int face_turned(int b, int f) const;    // face f of block b of DIVEMesh (0 -i, 1 +i, 2 -j, 3 +j) after the turns
+    static int g54_kind(int t);             // G 54 type t: 1 discharge, 2 water level, 3 discharge series, 4 level series
+    static int g54_face(int t);             // the face of DIVEMesh of type t (0 -i, 1 +i, 2 -j, 3 +j); -1 bad type
+
     // G 56 a dz (geo_mesh_split.cpp): the load of a cell relative to a wet cell, a when its bed lies above the
     // still water level + dz (F 60, else F 62 with F 65); without G 56 (a = 1) or a still water level every cell 1
     static double load_level(const lexer*);
@@ -115,6 +126,8 @@ public:
     double blk_load(const lexer*, int b) const;
 
 private:
+    int seg_check() const;                  // interface cells that do not map back
+    void turn_block(int b);                 // one quarter turn of block b (1..)
     void allocate(int);
     void release();
 };

@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"ioflow_amr_block.h"
+#include"geo_mesh.h"
 #include"lexer.h"
 #include"fdm2D.h"
 #include"fdm_nhf.h"
@@ -44,7 +45,7 @@ void ioflow_amr_block::open_faces(lexer *p, int nin, int nout)
     {
         in = 1;
         Q = p->G54_v[nin];
-        if(p->G54_t[nin]==3)
+        if(geo_mesh::g54_kind(p->G54_t[nin])==3)
         {
             series_read(series_file(3,int(p->G54_v[nin])),sq_t,sq_v);
             Q = series_value(sq_t,sq_v,p->simtime);
@@ -55,7 +56,7 @@ void ioflow_amr_block::open_faces(lexer *p, int nin, int nout)
     {
         out = 1;
         wsf = p->G54_v[nout];
-        if(p->G54_t[nout]==4)
+        if(geo_mesh::g54_kind(p->G54_t[nout])==4)
         {
             series_read(series_file(4,int(p->G54_v[nout])),sw_t,sw_v);
             wsf = series_value(sw_t,sw_v,p->simtime);
