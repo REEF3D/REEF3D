@@ -89,6 +89,9 @@ void sixdof_obj::ckpt_state(lexer *p, std::vector<double> &v)
 
     // the nets (X 320)
     part([&](std::vector<double> &s){ if(pnetinter!=nullptr) pnetinter->ckpt_state(s); });
+
+    // the acceleration of the last stage of the stabilised CFD coupling (am_cfd_)
+    part([&](std::vector<double> &s){ if(am_cfd_>0.0) s.assign(am_prev_.data(),am_prev_.data()+6); });
 }
 
 bool sixdof_obj::ckpt_restore(lexer *p, ghostcell *pgc, const std::vector<double> &v)
@@ -147,6 +150,11 @@ bool sixdof_obj::ckpt_restore(lexer *p, ghostcell *pgc, const std::vector<double
     part([&](const std::vector<double> &s, size_t&){ net_ok = (pnetinter==nullptr) ? s.empty() : pnetinter->ckpt_restore(s); });
     if(!net_ok)
     return false;
+
+    // the acceleration of the last stage of the stabilised CFD coupling (absent in older
+    // checkpoints: 0)
+    if(r.ok && r.k<v.size())
+    part([&](const std::vector<double> &s, size_t&){ if(s.size()==6) for(int n=0; n<6; ++n) am_prev_(n) = s[n]; });
 
     // the pose: trimesh, body velocities and the lexer values of the body (CoG, angles, velocities)
     geom.transform(R_,c_);

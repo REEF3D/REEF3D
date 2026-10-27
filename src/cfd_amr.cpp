@@ -316,10 +316,19 @@ cfd_amr::cfd_amr(lexer *p, fdm *a, ghostcell *pgc, momentum *pmom, pressure *ppr
     // the pressure reference (B 30)
     b30 = p->B30;
 
-    // G 7 1: the finest level advances the bodies with the loads on the finest grid
-    if(bodies && sub)
+    // the loads of the bodies on the finest grid at each hull triangle.  G 7 1: the finest level
+    // advances the bodies with them.  G 7 0: level 0 advances them, with the loads of the patches
+    // (those of its restricted pressure: the drag of a towed box 13 % below that of the uniform grid
+    // of the finest cells), the coupling stabilised with an artificial added mass of half the
+    // displaced fluid (sixdof_obj::cfd_added_mass): with the loads of the patches alone the
+    // stage-to-stage oscillation of the loads of a light body (heave decay, density 500) grew
+    if(bodies)
     for(int nb=0; nb<b6->objects(); ++nb)
-    b6->object(nb)->amr_loads = this;
+    {
+        b6->object(nb)->amr_loads = this;
+        if(!sub)
+        b6->object(nb)->set_cfd_added_mass(0.5);
+    }
     th_end.assign(maxlev+1,0.0);
     if(mom0->amr_stages()==3)
     {

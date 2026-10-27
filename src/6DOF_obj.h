@@ -76,6 +76,8 @@ public:
     // mesh refinement with subcycling (G 7 1, 6DOF_obj_amr.cpp): the coarser levels step with a
     // predicted copy of the body; the state is saved before and put back after
     void amr_save();
+    // CFD: the artificial added mass of the stabilised coupling, times the displaced fluid (cfd_added_mass)
+    void set_cfd_added_mass(double c) {am_cfd_ = c;}
     void amr_restore(lexer*, ghostcell*);
     void pose_update(lexer*, ghostcell*);   // Euler angles, trimesh, omega, u_fb from the rigid-body state
 
@@ -385,6 +387,13 @@ protected:
     bool p_fixed_dof(lexer*, int);
     Eigen::Matrix<double, 6, 6> Aadd_;
     bool am_on_ = false;
+
+    // CFD: the explicit coupling of a light body stabilised with an artificial added mass A
+    // (am_cfd_ times the displaced fluid, cfd_added_mass): (M + A) a = F + A a_prev, a_prev the
+    // acceleration of the last stage; 0 off (set by cfd_amr, G 7 0)
+    double am_cfd_ = 0.0;
+    Eigen::Matrix<double,6,1> am_prev_ = Eigen::Matrix<double,6,1>::Zero();
+    void cfd_added_mass(lexer*);
 
     // FNPF with several bodies (X 20 > 1): apply_added_mass only assembles the body's block
     // (Lc_, rc_), fnpf_6DOF solves the system of all bodies with the cross added mass and
