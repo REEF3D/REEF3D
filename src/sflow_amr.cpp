@@ -944,6 +944,7 @@ void sflow_amr::ini_patch_defaults(sflow_amr_patch &c)
         b->UA(ii,jj) = b->VA(ii,jj) = b->MX(ii,jj) = b->MY(ii,jj) = 0.0;
         pp->wet[lij(pp,ii,jj)] = 0;
         pp->deep[lij(pp,ii,jj)] = 0;
+        b->breaking(ii,jj) = 0;
     }
 
     c.blkold.assign((size_t)(c.nx/2)*(c.ny>>sy),0);
@@ -959,7 +960,7 @@ bool sflow_amr::block_solid(sflow_amr_patch &c, int bi, int bj)
 // the same old patch: patch boxes are tile aligned)
 void sflow_amr::ini_patch_old(int l, vector<reefamr_patch*> &oldP)
 {
-    old_run(l,16,7140+l,oldP,
+    old_run(l,17,7140+l,oldP,
             [&](reefamr_patch *q, int io, int jo, double *v)
             {
                 sflow_amr_patch *o = SP(q);
@@ -974,6 +975,8 @@ void sflow_amr::ini_patch_old(int l, vector<reefamr_patch*> &oldP)
                 // shoreline offset of a covered cell, as a patch that is kept holds it (prolongation of
                 // the fresh children)
                 v[15] = o->sfc[lij(qp,io,jo)];
+                // breaking with persistence (A 248 1): the flag carries over to the next step
+                v[16] = ob->breaking(io,jo);
             },
             [&](reefamr_patch *q, int id, int ii, int jj, const double *v)
             {
@@ -990,6 +993,8 @@ void sflow_amr::ini_patch_old(int l, vector<reefamr_patch*> &oldP)
                 pp->wet[lij(pp,ii,jj)] = (int)v[13];
                 pp->deep[lij(pp,ii,jj)] = (int)v[14];
                 c.sfc[lij(pp,ii,jj)] = v[15];
+                if(p0->A248==1)
+                b->breaking(ii,jj) = (int)v[16];
                 c.blkold[(size_t)bi*(c.ny>>sy)+bj] = 1;
             });
 }
@@ -999,7 +1004,7 @@ void sflow_amr::ini_patch_old(int l, vector<reefamr_patch*> &oldP)
 // mass and momentum of a fully wet parent restored exactly
 void sflow_amr::ini_patch_prolong(int l)
 {
-    const int nv = 4*NPR+6;
+    const int nv = 4*NPR+7;
 
     block_down_if(l,nv,7160+l,
                   [&](reefamr_patch *q) { return q->fresh; },
@@ -1017,6 +1022,7 @@ void sflow_amr::ini_patch_prolong(int l)
                       w[3] = (*sVH[B.g+1])(ic,jc);
                       w[4] = (*sWH[B.g+1])(ic,jc);
                       w[5] = G.b->press(ic,jc);
+                      w[6] = G.b->breaking(ic,jc);
                   },
                   [&](reefamr_patch *q, int id, int kb, const double *v)
                   {
@@ -1045,6 +1051,9 @@ void sflow_amr::ini_block(sflow_amr_patch &c, int bi, int bj, const double *pv)
         prolong_finish(&pv[(2*a+d)*NPR],b->depth(ii,jj),v);
         b->WL(ii,jj)=v[0]; b->UH(ii,jj)=v[1]; b->VH(ii,jj)=v[2]; b->WH(ii,jj)=v[8];
         b->press(ii,jj) = w[5];
+        // breaking with persistence (A 248 1): the children take the flag of the parent
+        if(p0->A248==1)
+        b->breaking(ii,jj) = (int)w[6];
         if(bous==1)
         {
         b->UA(ii,jj)=v[10]; b->VA(ii,jj)=v[11]; b->MX(ii,jj)=v[12]; b->MY(ii,jj)=v[13];
@@ -1159,7 +1168,6 @@ void sflow_amr::ini_patch_finish(lexer *p, sflow_amr_patch &c)
     {
         b->eta_n(ii,jj) = b->eta(ii,jj);
         b->hp(ii,jj) = b->WL(ii,jj);
-        b->breaking(ii,jj) = 0;
         pp->wet_n[lij(pp,ii,jj)] = pp->wet[lij(pp,ii,jj)];
     }
 

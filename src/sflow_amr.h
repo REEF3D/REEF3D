@@ -92,7 +92,8 @@ using namespace std;
 //     Boussinesq u_a are solved level by level, the body is taken linear in time
 //     (sflow_amr_subnh.cpp, sflow_amr_ship.cpp)
 //   - every G 2 steps the patches are rebuilt from refinement flags (G 20
-//     surface jump, G 22 shoreline, G 10 boxes) with a buffer of G 3 cells.
+//     surface jump, G 22 shoreline, G 10 boxes) with a buffer of G 3 cells.  A fresh patch takes
+//     the breaking flags of the old patch or of its parent with breaking persistence (A 248 1).
 //     No refinement in the G 11 boxes, next to in- and outflow boundaries and in the
 //     relaxation zones of the wave generation and the numerical beach (ioflow::relax_boxes):
 //     the patches run without the in- and outflow, so the restriction would replace the
