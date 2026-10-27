@@ -286,8 +286,14 @@ protected:
     int finest_rank(double, double);        // place 1: rank of the finest grid at (x,y), -1 outside
     // the output on the finest grid (amr_column_lookup): the finest local patch whose interior holds
     // (x,y) with the cells within two of the point's cell its own (interior) or boundary values,
-    // not taken from another grid (fill kinds 0-2); its level (0: none), id its index in P
+    // not taken from another grid (fill kinds 0-2); its level (0: none), id its index in P.  With
+    // fills_current() the cells a patch of the same level fills (a sibling on this rank, kind 0, or
+    // across a partition edge, kind 2 where a level-l patch holds the cell) count as its own: a point
+    // on a partition edge through a patch is read on the patch, not on level 0
     int finest_point(double x, double y, int &id) const;
+    // the cells around the patches that a patch of the same level fills hold the values of the end
+    // of the step when the outputs read them (the module fills them then)
+    virtual bool fills_current() const {return false;}
     int flag0(int, int);                    // level-0 flagslice4 of the global cell (I,J), from the rank box + halo
     void goff(int, int&, int&);             // grid id: local index = global index - offset
     lexer* glex(int);                       // grid id: lexer

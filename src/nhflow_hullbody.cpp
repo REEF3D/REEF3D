@@ -71,8 +71,16 @@ Architect: Hans Bihs
 // Log (rank 0, every X 19 time steps): REEF3D_NHFLOW_6DOF/REEF3D_6DOF_hullbody.dat
 //   time, blocked links (x, y, z), lower cells, inner water volume, Fx, Fy, Fz, Mx, My, Mz of the hull pressure.
 //
+// Mesh refinement (nhflow_amr, G 1 with the zone around the hull, G 12): every grid holds the hull (a patch its own
+// nhflow_hullbody and nhflow_thinbody, amr_patch), the hook of the thin body runs before the flux matching of the
+// hierarchy, the composite projection takes the rows, the right-hand side and the corrections of every grid with the
+// mobilities; the loads are summed over the blocked faces of the leaf grids (loads with the finest grid at the face
+// centre, finish_loads by the hull of level 0). The zone keeps the hull and its band inside the finest level (margin of
+// at least 4 level-0 cells); one time step for all levels (G 7 0); on several ranks placed patches (G 40 1, the zone
+// whole on one rank). A patch rebuilt by a regrid starts its hull afresh (sides from the level set of the stage).
+//
 // Not covered: submerged bodies (the cells inside would be lower cells of their column; keep the direct
-// forcing), porous bodies (X 16), curvilinear grids (G 50), mesh refinement, more than one body.
+// forcing), porous bodies (X 16), curvilinear grids (G 50), more than one body, subcycling (G 7 1).
 
 nhflow_hullbody::nhflow_hullbody(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof_obj_nhflow *pobj)
 {
@@ -214,7 +222,7 @@ void nhflow_hullbody::stage(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, 
     {
         told = true;
 
-        if(p->mpirank==0)
+        if(p->mpirank==0 && !amr_patch)
         cout<<"NHFLOW 6DOF X 15 8: the hull as a sharp thin body (blocked links, wall velocity, loads from the outer pressure)"<<endl;
     }
 
@@ -367,7 +375,19 @@ void nhflow_hullbody::stage(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, 
 // ------------------------------------------------------------------ loads: the outer pressure on the blocked links
 void nhflow_hullbody::forces(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL, bool finalize)
 {
+    double F[6] = {0.0,0.0,0.0,0.0,0.0,0.0};
+    
+    loads(p,d,WL,nullptr,F,nullptr);
+    finish_loads(p,d,pgc,F,finalize,nullptr);
+}
+
+// the loads of the blocked links of this grid and rank, added to F (Fx, Fy, Fz, Mx, My, Mz); with keep only the
+// faces whose centre passes keep(x,y) (mesh refinement: the leaf part of the grid), S[0] += the number of those
+// faces. No collective.
+void nhflow_hullbody::loads(lexer *p, fdm_nhf *d, slice &WL, const std::function<bool(double,double)> *keep, double *F, double *S)
+{
     double Fx=0.0, Fy=0.0, Fz=0.0, Mx=0.0, My=0.0, Mz=0.0;
+    int nf=0;
 
     if(marked)
     {
@@ -377,6 +397,10 @@ void nhflow_hullbody::forces(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL, bo
 
     auto add = [&](double x, double y, double z, double fx, double fy, double fz)
     {
+        if(keep!=nullptr && !(*keep)(x,y))
+        return;
+        
+        ++nf;
         Fx += fx;
         Fy += fy;
         Fz += fz;
@@ -484,28 +508,114 @@ void nhflow_hullbody::forces(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL, bo
     }
     }
     
-    Fp[0] = Fx = pgc->globalsum(Fx);
-    Fp[1] = Fy = pgc->globalsum(Fy);
-    Fp[2] = Fz = pgc->globalsum(Fz);
-    Fp[3] = Mx = pgc->globalsum(Mx);
-    Fp[4] = My = pgc->globalsum(My);
-    Fp[5] = Mz = pgc->globalsum(Mz);
+    F[0] += Fx;
+    F[1] += Fy;
+    F[2] += Fz;
+    F[3] += Mx;
+    F[4] += My;
+    F[5] += Mz;
+    
+    if(S!=nullptr)
+    S[0] += double(nf);
+}
+
+// the loads of all grids and ranks (F: the local sums of loads) into the body; S (mesh refinement): the local
+// sums of the blocked faces, lower cells and inner water volume of the leaf grids for the log, nullptr: this grid
+void nhflow_hullbody::finish_loads(lexer *p, fdm_nhf *d, ghostcell *pgc, const double *F, bool finalize, const double *S)
+{
+    double Fx,Fy,Fz,Mx,My,Mz;
+    
+    Fp[0] = Fx = pgc->globalsum(F[0]);
+    Fp[1] = Fy = pgc->globalsum(F[1]);
+    Fp[2] = Fz = pgc->globalsum(F[2]);
+    Fp[3] = Mx = pgc->globalsum(F[3]);
+    Fp[4] = My = pgc->globalsum(F[4]);
+    Fp[5] = Mz = pgc->globalsum(F[5]);
 
     obj->hull_loads_nhflow(p,pgc,finalize,Fx,Fy,Fz,Mx,My,Mz);
 
     if(finalize)
-    print(p,d,pgc);
+    print(p,d,pgc,S);
+}
+
+// ------------------------------------------------------------------ regrid (mesh refinement)
+int nhflow_hullbody::amr_nstate(lexer *p) const
+{
+    return p->knoz + (p->knoz+1) + tb->amr_nstate(p) + 2*p->knoz;
+}
+
+void nhflow_hullbody::amr_get(lexer *p, fdm_nhf *d, int ii, int jj, double *v)
+{
+    const int K = p->knoz;
+    const int qc = (ii-p->imin)*p->jmax*p->kmax + (jj-p->jmin)*p->kmax - p->kmin;
+    const int qf = (ii-p->imin)*p->jmax*p->kmaxF + (jj-p->jmin)*p->kmaxF - p->kmin;
+    int n=0;
+    
+    for(int kk=0; kk<K; ++kk)
+    v[n++] = side0C[qc+kk];
+    
+    for(int kk=0; kk<=K; ++kk)
+    v[n++] = side0N[qf+kk];
+    
+    tb->amr_get(p,ii,jj,v+n);
+    n += tb->amr_nstate(p);
+    
+    for(int kk=0; kk<K; ++kk)
+    {
+    v[n++] = d->MRCX[qc+kk];
+    v[n++] = d->MRCY[qc+kk];
+    }
+}
+
+void nhflow_hullbody::amr_set(lexer *p, fdm_nhf *d, int ii, int jj, const double *v)
+{
+    const int K = p->knoz;
+    const int qc = (ii-p->imin)*p->jmax*p->kmax + (jj-p->jmin)*p->kmax - p->kmin;
+    const int qf = (ii-p->imin)*p->jmax*p->kmaxF + (jj-p->jmin)*p->kmaxF - p->kmin;
+    int n=0;
+    
+    for(int kk=0; kk<K; ++kk)
+    side0C[qc+kk] = v[n++];
+    
+    for(int kk=0; kk<=K; ++kk)
+    side0N[qf+kk] = v[n++];
+    
+    tb->amr_set(p,ii,jj,v+n);
+    n += tb->amr_nstate(p);
+    
+    for(int kk=0; kk<K; ++kk)
+    {
+    d->MRCX[qc+kk] = v[n++];
+    d->MRCY[qc+kk] = v[n++];
+    }
 }
 
 // ------------------------------------------------------------------ log
-void nhflow_hullbody::print(lexer *p, fdm_nhf *d, ghostcell *pgc)
+void nhflow_hullbody::print(lexer *p, fdm_nhf *d, ghostcell *pgc, const double *S)
 {
     if(p->count%p->X19!=0)
     return;
 
-    const int nx = pgc->globalisum(nbx), ny = pgc->globalisum(nby), nz = pgc->globalisum(nbz);
-    const int nl = tb->nlower(p,pgc);
-    const double vin = tb->inner_volume(p,d);
+    // mesh refinement (S): the blocked faces of the leaf grids in the column of links_z (the split by direction is
+    // not kept), links_x and links_y 0
+    int nx,ny,nz,nl;
+    double vin;
+    
+    if(S==nullptr)
+    {
+    nx = pgc->globalisum(nbx);
+    ny = pgc->globalisum(nby);
+    nz = pgc->globalisum(nbz);
+    nl = tb->nlower(p,pgc);
+    vin = tb->inner_volume(p,d);
+    }
+    else
+    {
+    nx = ny = 0;
+    nz = int(pgc->globalsum(S[0])+0.5);
+    nl = int(pgc->globalsum(S[1])+0.5);
+    vin = pgc->globalsum(S[2]);
+    }
     tsum += pgc->globalmax(tstage);
 
     if(p->mpirank==0)

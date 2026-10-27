@@ -139,7 +139,8 @@ using namespace std;
 //  without refinement, G 4 tile width, G 3, G 20, G 21, G 12, G 13, G 2, G 5, G 6, G 7, G 22, G 23,
 //  G 30, G 31, G 40), A 510 2/3, A 511 1/2, A 514 all, A 519 0/1, A 520 0/1/2, A 512 0/1/2, A 550 0
 //  (A 550 1 with A 510 2), A 560 0/1/2/21/22 (turbulence on every grid, nhflow_amr_turb.cpp; not with
-//  G 7 1, A 561, A 563), B 200 0, X 10 0/1/2 (X 60 1, X 16 0, A 516 0/1/3), S 10 0/1 (bed load on
+//  G 7 1, A 561, A 563), B 200 0, X 10 0/1/2 (X 60 1, X 16 0, A 516 0/1/3; X 15 8, the sharp
+//  hull: on every grid, G 7 0, G 12, A 520 1, one body), S 10 0/1 (bed load on
 //  every grid, nhflow_amr_sed.cpp; S 12 0, S 51 0, S 31 1/2, S 32 1/2), fixed solids A 581-590 (not
 //  with G 7 1 or A 516 2/4; not A 580 1), no membranes (X 330), nets (X 320), DEM (E 10), particles
 //  (L 10), rods or FEM structures (Z 20, Z 30).  Cartesian and curvilinear grids (G 50 2), 2D grids
@@ -391,6 +392,10 @@ private:
 
     // fill, restriction
     void fill_stage(ghostcell*, int, int);
+    // the end of the step: the cells around the patches that a patch of the same level fills take its
+    // end-of-step eta, U, V, W, P (the outputs on the finest grid read them, fills_current)
+    void fill_out(ghostcell*);
+    bool fills_current() const override { return nblk==0; }
     void fill_bed(ghostcell*, int);
     void bc_patch(ghostcell*, nhflow_amr_patch&, int);
     void restrict_surface(int);
@@ -553,6 +558,7 @@ private:
 
     // G 7 1: subcycling (nhflow_amr_sub.cpp)
     int sub = 0;                    // 1: subcycled
+    bool hb = false;                // the hull as a sharp thin body (X 15 8) on every grid
     int hstage = 0;                 // RK stage of the grids running (flux register weights)
     int wlo = 0, whi = -1;          // level window of the restriction and of the composite solve (whi<0: maxlev)
     int wtop() const { return whi<0 ? maxlev : whi; }

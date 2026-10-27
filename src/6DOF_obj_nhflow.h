@@ -107,6 +107,9 @@ public:
     // the blocks of a multi-block grid have their own logical DXM)
     struct nhflow_grid { lexer *p; fdm_nhf *d; slice *WL; double hr = 0.0; };
     std::function<nhflow_grid(double,double)> amr_grid_nhflow;
+    // mesh refinement with the hull as a sharp thin body (X 15 8): every grid of this rank (level 0 and the
+    // patches) with the water level of the loads, for the sum of the hull loads over the leaf grids
+    std::function<void(const std::function<void(const nhflow_grid&)>&)> amr_grids_nhflow;
     // multi-block grid: every quadrature point of a triangle on the grid of this rank that holds it (a hull triangle
     // reaches across the faces of the blocks), the grid of the centroid where none does
     static inline bool amr_point_grid = false;

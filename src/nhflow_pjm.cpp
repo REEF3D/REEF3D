@@ -126,7 +126,8 @@ void nhflow_pjm::start(lexer *p, fdm_nhf *d, solver* psolv, ghostcell* pgc, iofl
 	cout<<"piter: "<<p->solveriter<<"  ptime: "<<setprecision(3)<<p->poissontime<<endl;
 }
 
-// mesh refinement: start() without the solve (the membrane passes X 330 are not supported there)
+// mesh refinement: start() without the solve (the membrane passes X 330 are not supported there; the sharp hull,
+// X 15 8, makes one pass)
 double* nhflow_pjm::amr_prepare(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha)
 {
     FLOOP
@@ -145,6 +146,11 @@ void nhflow_pjm::amr_finish(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL, dou
 	ucorr(p,d,WL,UH,d->P,alpha);
 	vcorr(p,d,WL,VH,d->P,alpha);
 	wcorr(p,d,WL,WH,d->P,alpha);
+    
+    // the hull as a sharp thin body (X 15 8, one projection pass): face corrections for the Rhie-Chow continuity
+    // flux of the next stage, as start()
+    if(d->MBETA!=nullptr)
+    nhflow_membrane_rc_store(p,d,pgc,d->P,alpha*p->dt);
 }
 
 void nhflow_pjm::ucorr(lexer* p, fdm_nhf *d, slice &WL, double *UH, double *P, double alpha)

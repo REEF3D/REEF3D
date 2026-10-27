@@ -49,6 +49,8 @@ Author: Hans Bihs
 #include"nhflow_forcing.h"
 #include"nhflow_force.h"
 #include"nhflow_amr_6dof.h"
+#include"nhflow_hullbody.h"
+#include"nhflow_thinbody.h"
 #include"6DOF_nhflow.h"
 #include"6DOF_obj.h"
 #include"sediment_void.h"
@@ -208,6 +210,18 @@ nhflow_amr::nhflow_amr(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum *pm
     // the finest level advances the body); every grid solves its own implicit diffusion (G 31 1
     // needs all grids at the same time)
     sub = (p->G7==1 && (b6==nullptr || p->G12>0)) ? 1 : 0;
+
+    // the hull as a sharp thin body (X 15 8, nhflow_hullbody): every grid holds the hull (blocked links, wall
+    // velocity, the thin-body service of nhflow_thinbody), the loads are summed over the leaf grids.  The hull
+    // with its band (the local fluxes within two cells, the footprint of the lower cells, the lid correction)
+    // lies inside the finest level: the zone around the hull (G 12) with a margin of at least 4 level-0 cells,
+    // one time step for all levels (G 7 0), on several ranks the zone placed whole (G 40 1)
+    hb = (b6!=nullptr && p->X15==8);
+    if(hb)
+    sub = 0;
+    if(hb)
+    q.place_whole_zones = true;
+
     if(sub==1)
     cdiff = brk_split = false;
 
@@ -220,6 +234,8 @@ nhflow_amr::nhflow_amr(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum *pm
     zr_user = q.zr;
     if(sub==1 && q.zones)
     q.zr = MAX(q.zr, 12.0*p->DXM);
+    if(hb && q.zones)
+    q.zr = MAX(q.zr, 4.0*p->DXM);
 
     // multi-block grid: passes of the block-local V-cycles of level 0 in the preconditioner of the
     // composite pressure (G 51), the corrections of the neighbour blocks filled in between
@@ -335,6 +351,17 @@ void nhflow_amr::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
         if(p->mpirank==0)
         cout<<"!!! NHFLOW multi-block grid: only for A 510 2/3, A 511 1/2, A 520 0/1/2, A 512 0/1/2, A 560 0/1/2/21/22 (A 561 0, A 563 0), A 519 0/1, B 200 0, S 10 0/1 (S 12 0, S 51 0, S 31 1/2, S 32 1/2), no solids, membranes, nets, DEM, particles, rods or FEM structures !!!"<<endl;
         exit(1);
+    }
+
+    // X 15 8 (hb): one body with the zone around it (G 12), the full projection (A 520 1), no multi-block grid, on
+    // several ranks the placed patches (G 40 1, the zone whole on one rank)
+    if(ok==1 && hb && (p->G12<=0 || b6->objects()!=1 || p->A520!=1 || p->geo_mb>0 || (p->mpi_size>1 && p->G40<1)))
+    {
+        if(p->mpirank==0)
+        cout<<"NHFLOW AMR (G 1) with the sharp hull (X 15 8): only for one body with the zone around it (G 12), A 520 1, "
+            <<"Cartesian grids, and on several ranks with placed patches (G 40 1) -- refinement switched off"<<endl;
+        maxlev=0;
+        return;
     }
 
     if(ok==0)
@@ -469,6 +496,15 @@ void nhflow_amr::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
             return false;
         };
 
+        // X 15 8: the hull loads summed over the leaf part of every grid of this rank
+        if(hb)
+        b6->object(0)->amr_grids_nhflow = [this](const std::function<void(const sixdof_obj_nhflow::nhflow_grid&)> &f)
+        {
+            f(sixdof_obj_nhflow::nhflow_grid{glex(-1),d0,(cur_stage<0) ? &d0->WL : stage_out(-1,cur_stage).WL});
+            for(int g=0; g<(int)P.size(); ++g)
+            f(sixdof_obj_nhflow::nhflow_grid{glex(g),NP(g)->d,(cur_stage<0) ? &NP(g)->d->WL : stage_out(g,cur_stage).WL});
+        };
+
         cur_stage = -1;
         body_loads(p,pgc);
     }
@@ -505,8 +541,17 @@ void nhflow_amr::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     if(sub==1)
     cout<<", subcycled (G 7 1: level l takes 2^l steps per level-0 step)";
     cout<<endl;
-    if(p->G7==1 && sub==0)
+    if(p->G7==1 && sub==0 && !hb)
     cout<<"NHFLOW AMR: G 7 1 (subcycling) with floating bodies needs the zone around the hull (G 12) -- one time step for all levels"<<endl;
+    if(hb)
+    {
+    cout<<"NHFLOW AMR: the sharp hull (X 15 8) on every grid, the loads from the finest grid at every blocked face";
+    if(p->G7==1)
+    cout<<"; G 7 1 not with X 15 8 -- one time step for all levels";
+    if(par.zr>zr_user)
+    cout<<"; zone margin "<<par.zr<<" m (4 cells of level 0) instead of G 12 "<<zr_user;
+    cout<<endl;
+    }
     if(sub==1 && par.zones && par.zr>zr_user)
     cout<<"NHFLOW AMR: G 7 1 with bodies: zone margin "<<par.zr<<" m (12 cells of level 0) instead of G 12 "<<zr_user<<endl;
     if(p->G7==1 && sub==1 && p->A512==2 && p->G31==1)
@@ -849,6 +894,15 @@ void nhflow_amr::patch_objects(reefamr_patch *q, ghostcell *pgc)
     if(c->pmom!=nullptr && c->pmom->pfsfbody!=nullptr)
     c->pmom->pfsfbody->set_patch();
 
+    // the hull as a sharp thin body (X 15 8): the patch holds it too, with its thin-body service (stage() from the
+    // forcing of the patch, the flux hook through this class, the projection terms through the patch's rows)
+    if(hb)
+    {
+    d->hullbody = new nhflow_hullbody(pp,d,pgc,b6->object(0));
+    d->hullbody->amr_patch = true;
+    d->thinbody->amr_patch = true;
+    }
+
     c->S = {c->pflow,c->pss,c->precon,c->pconv,c->pdiff,c->ppress,nullptr,c->psolv,nullptr,c->pfsf,c->pturb,c->pvrans};
 
     // breaking with G 31 1: the stage runner runs the parts of the breaking (breaking_patches)
@@ -933,6 +987,16 @@ void nhflow_amr::patch_delete(reefamr_patch *q)
         fdm_nhf *d = c->d;
         lexer *pp = c->pp;
         const int n7 = pp->imax*pp->jmax*(pp->kmax+2);
+
+        // X 15 8: the hull of the patch, its thin-body service and the mobility fields of the projection
+        delete d->hullbody;
+        d->hullbody = nullptr;
+        delete d->thinbody;
+        d->thinbody = nullptr;
+        double **mb[] = {&d->MBETA,&d->MCHI,&d->MRCX,&d->MRCY,&d->MBX,&d->MBY,&d->MBZ};
+        for(auto f : mb)
+        if(*f!=nullptr)
+        pp->del_Darray(*f,n7);
         double **a[] = {&d->U,&d->V,&d->W,&d->omegaF,&d->UH,&d->VH,&d->WH,&d->P,&d->RO,&d->VISC,&d->EV,&d->EV0,
                         &d->F,&d->G,&d->H,&d->L,&d->Fext,&d->Gext,&d->Hext,&d->POR,&d->PORPART,&d->PORDEM,&d->test,
                         &d->KIN,&d->CONC,&d->SOLID,&d->FB,&d->FHB,&d->PORSTRUC,&d->Fx,&d->Fy,&d->Fz,&d->FEx,&d->FEy,
@@ -1398,6 +1462,62 @@ void nhflow_amr::vcell(lexer *qc, const double *c, int nc, int fz, double *f)
 // the cells around the level-l patches with the input of stage s (s<0: end of the step):
 // eta, wet, deep, U, V, W per layer and P per node; water level and momentum follow from the
 // depth of the patch (well balanced)
+// the end of the step: the cells around the level-l patches filled from a patch of the same level (a
+// sibling on this rank, or across a partition edge) take its eta, U, V, W and P of the end of the step,
+// so that an output on the finest grid next to such a cell reads current values (reefamr::finest_point
+// with fills_current).  The cells prolonged from a coarser grid keep theirs.  The next stage fills all
+// of them again (fill_stage), with the same values for these cells
+void nhflow_amr::fill_out(ghostcell *pgc)
+{
+    if(nblk>0)
+    return;
+
+    for(int l=1; l<=maxlev; ++l)
+    {
+        const int K = klev(l);
+        const int nv = 1 + 3*K + K+1;
+
+        fill_run(l,nv,7980+l,
+                 [&](const reefamr_fill &f, double *v)
+                 {
+                     for(int m=0; m<nv; ++m)
+                     v[m] = 0.0;
+                     if(f.kind!=0)
+                     return;
+                     lexer *q = glex(f.g);
+                     fdm_nhf *d = gfd(f.g);
+                     v[0] = d->eta(f.si,f.sj);
+                     for(int k=0; k<K; ++k)
+                     {
+                         const int n = cidx(q,f.si,f.sj,k);
+                         v[1+k] = d->U[n];
+                         v[1+K+k] = d->V[n];
+                         v[1+2*K+k] = d->W[n];
+                     }
+                     for(int k=0; k<=K; ++k)
+                     v[1+3*K+k] = d->P[fidx(q,f.si,f.sj,k)];
+                 },
+                 [&](reefamr_patch *q, int id, const reefamr_fill &f, const double *w)
+                 {
+                     // a cell of a sibling: on this rank (kind 0), or a level-l patch holds it (kind 2)
+                     if(!(f.kind==0 || (f.kind==2 && covered(l,f.di-EXT+q->I0,f.dj-EY+q->J0))))
+                     return;
+                     lexer *pp = q->pp;
+                     fdm_nhf *d = NP(q)->d;
+                     d->eta(f.di,f.dj) = w[0];
+                     for(int k=0; k<K; ++k)
+                     {
+                         const int n = cidx(pp,f.di,f.dj,k);
+                         d->U[n] = w[1+k];
+                         d->V[n] = w[1+K+k];
+                         d->W[n] = w[1+2*K+k];
+                     }
+                     for(int k=0; k<=K; ++k)
+                     d->P[fidx(pp,f.di,f.dj,k)] = w[1+3*K+k];
+                 });
+    }
+}
+
 void nhflow_amr::fill_stage(ghostcell *pgc, int l, int s)
 {
     const int K = klev(l);
@@ -2083,7 +2203,11 @@ void nhflow_amr::regrid_state(ghostcell *pgc, vector<reefamr_patch*> &oldP)
         {
             const int K = klev(l);
             // S 10: and the bed (the last value)
-            const int nv = 3 + 2 + 6*K + K+1 + 1;
+            const int nv0 = 3 + 2 + 6*K + K+1 + 1;
+            // X 15 8: and the state of the hull (nhflow_hullbody::amr_get: sides with their hysteresis, thin body,
+            // Rhie-Chow face corrections), so that a rebuilt patch continues the hull of the old one
+            const int nh = hb ? (K + (K+1) + (K+2) + 2*K) : 0;
+            const int nv = nv0 + nh;
             old_run(l,nv,7630+l,oldP,
                     [&](reefamr_patch *o, int io, int jo, double *v)
                     {
@@ -2107,6 +2231,14 @@ void nhflow_amr::regrid_state(ghostcell *pgc, vector<reefamr_patch*> &oldP)
                         for(int kk=0; kk<=K; ++kk)
                         v[5+6*K+kk] = od->P[fidx(op,io,jo,kk)];
                         v[5+6*K+K+1] = od->bed(io,jo);
+                        if(nh>0)
+                        {
+                        if(od->hullbody!=nullptr)
+                        od->hullbody->amr_get(op,od,io,jo,v+nv0);
+                        else
+                        for(int n=0; n<nh; ++n)
+                        v[nv0+n] = 0.0;
+                        }
                     },
                     [&](reefamr_patch *c, int id, int ii, int jj, const double *v)
                     {
@@ -2139,6 +2271,8 @@ void nhflow_amr::regrid_state(ghostcell *pgc, vector<reefamr_patch*> &oldP)
                         d->depth(ii,jj) = pp->wd - d->bed(ii,jj);
                         pp->bed[lij(pp,ii,jj)] = d->bed(ii,jj);
                         }
+                        if(nh>0 && d->hullbody!=nullptr)
+                        d->hullbody->amr_set(pp,d,ii,jj,v+nv0);
                     });
         }
 
@@ -2235,6 +2369,11 @@ void nhflow_amr::regrid_finish(ghostcell *pgc, int old_total)
 void nhflow_amr::flux_hook(lexer *p, fdm_nhf *d, int id, int ipol, double *Fx, double *Fy)
 {
     const int K = p->knoz;
+
+    // sharp thin bodies (X 15 8 on every grid): their wall and local fluxes first, as the hook they set on a
+    // single grid (driver_ini_nhflow), then the face fluxes of the patch box are recorded and matched
+    if(d->thinbody!=nullptr)
+    d->thinbody->flux_hook(p,d,id,ipol,Fx,Fy);
 
 
     // a patch records its box faces
@@ -2491,6 +2630,7 @@ void nhflow_amr::step(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum_func
     {
         sub_step(p,d,pgc,mom,S0);
         regrid_step(p,pgc);
+        fill_out(pgc);
         return;
     }
 
@@ -2685,6 +2825,13 @@ void nhflow_amr::step(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum_func
     cur_stage = -1;
 
     regrid_step(p,pgc);
+
+    // the cells around the patches filled from a patch of the same level: the end of the step (the output)
+    {
+        const double t0 = MPI_Wtime();
+        fill_out(pgc);
+        tm[0] += MPI_Wtime()-t0;
+    }
 
     // multi-block: the ring and the cells around the blocks from the end of the step (the time step,
     // the output; after a regrid the restricted values)

@@ -43,7 +43,7 @@ double mooring_system::roundoff(const line_t &L) const
     for(int i=0; i<=L.N; ++i)
         X = std::max(X, r_[L.off+i].cwiseAbs().maxCoeff());
     const double m = std::max(L.p.mass*L.l, 1.0e-300);
-    return 1.0e3*std::numeric_limits<double>::epsilon()*X*L.p.EA/(L.l*m);
+    return 1.0e3*std::numeric_limits<double>::epsilon()*X*L.p.EA_max()/(L.l*m);
 }
 
 bool mooring_system::equilibrium(const model &m, double t)
@@ -151,7 +151,7 @@ bool mooring_system::equilibrium_lines(const model &m, double t)
                     }
                 }
             // scale of the Jacobian: its largest diagonal entry, at least the axial stiffness per node mass
-            double dmax = pr_.mass > 0.0 ? pr_.EA/(l_*pr_.mass*l_) : 1.0;
+            double dmax = pr_.mass > 0.0 ? pr_.EA_max()/(l_*pr_.mass*l_) : 1.0;
             for(int i=1; i<N; ++i)
                 dmax = std::max(dmax, D[i].cwiseAbs().maxCoeff());
             if(lam < 0.0)
@@ -451,7 +451,7 @@ bool mooring_system::equilibrium_system(const model &m, double t)
         J.clear();
         double dmax = 1.0;
         for(const line_t &L : lines_)
-            if(L.p.mass > 0.0) dmax = std::max(dmax, L.p.EA/(L.l*L.p.mass*L.l));
+            if(L.p.mass > 0.0) dmax = std::max(dmax, L.p.EA_max()/(L.l*L.p.mass*L.l));
         for(int c=0; c<ncol; ++c)
             for(int d=0; d<3; ++d)
             {

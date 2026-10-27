@@ -100,9 +100,13 @@ void nhflow_thinbody::finish(lexer *p, fdm_nhf *d, ghostcell *pgc)
     pgc->start4V(p,uy,1);
     pgc->start4V(p,uz,1);
     
-    // node sides of the neighbouring subdomains (node links across the subdomain border: node_cut_x/y)
+    // node sides of the neighbouring subdomains (node links across the subdomain border: node_cut_x/y); a patch of
+    // the mesh refinement lies on one rank (amr_patch: no exchange, its lexer has no parallel lists)
+    if(!amr_patch)
+    {
     pgc->gcparax7(p,sideN,7);
     pgc->gcparax7co(p,sideN,7);
+    }
     
     // vertical momentum faces between cell centres on opposite sides; lower cells: odd number of them above the
     // cell in its column (sigma columns are not split between the subdomains)
@@ -289,6 +293,46 @@ double nhflow_thinbody::inner_volume(lexer *p, fdm_nhf *d)
 int nhflow_thinbody::nlower(lexer *p, ghostcell *pgc)
 {
     return pgc->globalisum(nlow);
+}
+
+void nhflow_thinbody::amr_get(lexer *p, int ii, int jj, double *v)
+{
+    for(int kk=0; kk<p->knoz; ++kk)
+    v[kk] = side0[(ii-p->imin)*p->jmax*p->kmax + (jj-p->jmin)*p->kmax + kk-p->kmin];
+    
+    v[p->knoz] = etaL(ii,jj);
+    v[p->knoz+1] = phi(ii,jj);
+}
+
+void nhflow_thinbody::amr_set(lexer *p, int ii, int jj, const double *v)
+{
+    for(int kk=0; kk<p->knoz; ++kk)
+    side0[(ii-p->imin)*p->jmax*p->kmax + (jj-p->jmin)*p->kmax + kk-p->kmin] = v[kk];
+    
+    etaL(ii,jj) = v[p->knoz];
+    phi(ii,jj) = v[p->knoz+1];
+}
+
+int nhflow_thinbody::nlower_local(lexer *p, const std::function<bool(double,double)> &keep)
+{
+    int n=0;
+    
+    LOOP
+    if(p->wet[IJ]==1 && low[IJK]>0.5 && keep(p->XP[IP],p->YP[JP]))
+    ++n;
+    
+    return n;
+}
+
+double nhflow_thinbody::inner_volume_local(lexer *p, fdm_nhf *d, const std::function<bool(double,double)> &keep)
+{
+    double V=0.0;
+    
+    LOOP
+    if(p->wet[IJ]==1 && ((rt(i,j)>0.5) != (low[IJK]>0.5)) && keep(p->XP[IP],p->YP[JP]))
+    V += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*d->WL(i,j);
+    
+    return V;
 }
 
 double nhflow_thinbody::head(lexer *p, fdm_nhf *d, int i, int j, int k)

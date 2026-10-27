@@ -497,12 +497,16 @@ int reefamr::finest_point(double x, double y, int &id) const
         if(a<EXT || a>=EXT+c->nx || b<EY || b>=EY+c->ny)
         continue;
 
-        // the cells within two of it: interior, or not taken from another grid
+        // the cells within two of it: interior, or not taken from another grid (with fills_current: a
+        // cell filled from a patch of the same level is current, as its own)
         bool ok = true;
+        const bool cur = fills_current();
         const int bj = (pp->j_dir==1) ? 2 : 0;
         for(const reefamr_fill &f : c->fill)
         if(f.kind<=2 && f.di>=a-2 && f.di<=a+2 && f.dj>=b-bj && f.dj<=b+bj)
         {
+            if(cur && (f.kind==0 || (f.kind==2 && const_cast<reefamr*>(this)->covered(c->lev,f.di-EXT+c->I0,f.dj-EY+c->J0))))
+            continue;
             ok = false;
             break;
         }
