@@ -174,6 +174,23 @@ Cp +0.04 at 1.72 (measured +0.05 at 1.79). Before the condensation limit: closur
 sigma 0.39), the spurious pinning of traces of vapour behind the cavity to p_v made it 0.3-0.4 D too
 long.
 
+D/20 + AMR, all three sigma (9fe9fa4, user, 2026-10-27), means over 20-30 s; closure = s/D where
+Cp is halfway between -sigma and the recompression peak (sigma 0.5 has no peak: halfway to the
+value at s/D 1.3):
+
+| sigma | closure CFD | measured | uniform D/40 before the condensation limit | vapour [m³] | Cd |
+|---|---|---|---|---|---|
+| 0.500 | 1.14 | 1.04 | 1.35 | 0.008 (alpha_v at the wall <= 0.42) | 0.314 |
+| 0.400 | 1.56 | 1.43 | 1.83 | 0.128 | 0.348 |
+| 0.301 | 2.43 | 2.09 | 2.47 | 0.63, still growing 1 % per s | 0.345 |
+
+The trend with sigma is right and sigma is held to 0.001; the cavities are 0.10, 0.13 and 0.34 D too
+long, the longest the most. The CFD cavities are steady (side force rms 0.1 N) with a sharp closure,
+the measured long cavity closes over s/D 1.8-2.4 (a time average of an unsteady closure: the
+re-entrant jet sheds the rear of the cavity). k-epsilon without a correction for the mixture
+(Reboud et al. 1998: mu_t f(rho), f = rho_v + (1 - alpha)^n (rho_l - rho_v), n = 10) is known to damp
+the re-entrant jet and give too long, steady cavities.
+
 A restart from the state files (P 40/I 40) does not help, they do not hold the vapour fraction;
 the checkpoints (P 48/I 45) do, a run with `P 48` can be continued.
 
