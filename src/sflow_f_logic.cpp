@@ -189,8 +189,8 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
     if(p->A226==1)
 	pmom = new sflow_momentum_SI(p,b,pgc,phll,pss,precon,pdiff,ppress,psolv,ppoissonsolv,pflow,pfsf,psfdf,p6dof);
 
-    // mesh refinement (G 1): static boxes (G 10) and/or flagged regions (G 20, G 22)
-    if((p->G1>0 && (p->G10>0 || p->G20>0.0 || p->G22>0 || p->G12>0)) || p->geo_mb>0)
+    // mesh refinement (G 1): static boxes (G 10) and/or flagged regions (G 20-23)
+    if((p->G1>0 && (p->G10>0 || p->G20>0.0 || p->G21>0.0 || p->G22>0 || p->G23==1 || p->G12>0)) || p->geo_mb>0)
     {
     sflow_momentum_RK3 *prk3 = dynamic_cast<sflow_momentum_RK3*>(pmom);
     
@@ -222,9 +222,9 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
         }
     }
 
-    // G 1 without anything to refine: no box (G 10), no flag (G 20, G 22) and no body zone (G 12)
-    if(p->G1>0 && !(p->G10>0 || p->G20>0.0 || p->G22>0 || p->G12>0) && p->geo_mb==0 && p->mpirank==0)
-    cout<<"SFLOW AMR (G 1): no refinement box (G 10), flag (G 20, G 22) or body zone (G 12) given -- refinement switched off"<<endl;
+    // G 1 without anything to refine: no box (G 10), no flag (G 20-23) and no body zone (G 12)
+    if(p->G1>0 && !(p->G10>0 || p->G20>0.0 || p->G21>0.0 || p->G22>0 || p->G23==1 || p->G12>0) && p->geo_mb==0 && p->mpirank==0)
+    cout<<"SFLOW AMR (G 1): no refinement box (G 10), flag (G 20-23) or body zone (G 12) given -- refinement switched off"<<endl;
     
     //Potential Flow Solver
     if(p->I11==0)

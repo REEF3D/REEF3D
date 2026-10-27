@@ -31,7 +31,8 @@ Architect: Hans Bihs
 #include<sys/stat.h>
 #include<sys/types.h>
 
-//  Output of the patches (P 10 > 0): at the output times of printer_CFD, one VTK rectilinear grid
+//  Output of the patches (P 10 > 0): at the output times of printer_CFD (P 20, P 30 and the time
+//  windows P 35), one VTK rectilinear grid
 //  (.vtr) per patch in REEF3D_CFD_AMR/, and a multiblock file (.vtm) with all patches of the output
 //  (open it next to the level-0 output).  Cell data: level set, pressure, velocity (cell centre), the
 //  level of the patch and a flag for the cells under a finer patch.
@@ -61,7 +62,34 @@ void cfd_amr::print(lexer *p, ghostcell *pgc, bool after)
     const bool by_time = (p->P30>0.0 && p->P34<0.0 && (p->simtime>p->printtime || p->count==0));
     if(after && p->count!=0)
     return;
-    if(!by_count && !by_time)
+
+    // P 35: the time windows ts te dt, the same test as printer_CFD (called before it in the step,
+    // so the output number is that of its level-0 output).  The next output time of a window starts
+    // at ts, after a restart (I 45) at the first window time not before the start.
+    bool by_window = false;
+    if(p->P35>0 && !after)
+    {
+        if((int)p35_next.size()!=p->P35)
+        {
+            p35_next.assign(p->P35,0.0);
+            for(int qn=0; qn<p->P35; ++qn)
+            {
+                p35_next[qn] = p->P35_ts[qn];
+                if(p->P35_dt[qn]>0.0)
+                while(p35_next[qn]<p->simtime)
+                p35_next[qn] += p->P35_dt[qn];
+            }
+        }
+
+        for(int qn=0; qn<p->P35; ++qn)
+        if(p->simtime>p35_next[qn] && p->simtime>=p->P35_ts[qn] && p->simtime<=(p->P35_te[qn]+0.5*p->P35_dt[qn]))
+        {
+            by_window = true;
+            p35_next[qn] += p->P35_dt[qn];
+        }
+    }
+
+    if(!by_count && !by_time && !by_window)
     return;
 
     // after: called after printer_CFD at the start (its output counter has moved on)

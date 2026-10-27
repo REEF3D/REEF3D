@@ -307,9 +307,13 @@ void lexer::read_grid()
     if(!grid_inmem)
     gridgeo->read(this,"DIVEMesh_Grid/grid-geometry.dat");
 
-    // G 55: the blocks 1.. of a multi-block grid cut into pieces for the ranks
+    // G 54, B 522 on the j faces: the blocks turned so that their open faces are the -i and +i face; G 55: the
+    // blocks 1.. of a multi-block grid cut into pieces for the ranks
     if(G50==1)
+    {
+    gridgeo->turn_blocks(this);
     gridgeo->split_blocks(this);
+    }
     
     solidread = gridgeo->solidread;
     toporead = gridgeo->toporead;

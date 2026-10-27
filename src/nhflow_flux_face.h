@@ -45,17 +45,25 @@ Author: Hans Bihs
 
 namespace nhflow_face
 {
-// porosity of the surface cell, averaged to the x- / y-face: storage coefficient of the
+// porosity at the free surface (VRANS, d->PORS), otherwise of the surface cell, averaged to the x- / y-face: storage coefficient of the
 // continuity equation n_s deta/dt + div(Q) = 0 -> the HLL/HLLC jump term is n_s*(D_R - D_L)
 inline double por_surf_x(lexer *p, fdm_nhf *d, int i, int j)
 {
     const int k = p->knoz-1;
+    
+    if(p->B200==1)
+    return 0.5*(d->PORS(i,j) + d->PORS(i+1,j));
+    
     return 0.5*(d->POR[IJK] + d->POR[Ip1JK]);
 }
 
 inline double por_surf_y(lexer *p, fdm_nhf *d, int i, int j)
 {
     const int k = p->knoz-1;
+    
+    if(p->B200==1)
+    return 0.5*(d->PORS(i,j) + d->PORS(i,j+1));
+    
     return 0.5*(d->POR[IJK] + d->POR[IJp1K]);
 }
 

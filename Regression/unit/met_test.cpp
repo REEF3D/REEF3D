@@ -4,6 +4,7 @@
 // file written by tools/met_forcing.py (met_test.r3m), bilinear/linear interpolation exact for linear fields,
 // windows (only the needed part read, the same values), record advance, clamping in space and time, uniform
 // series, moving grids, bad files; uniform and file sources (met_source.h); the high-wind drag laws W 207 5, 6; the
+// wave-dependent drag W 207 7 (met_drag_wave: Guo 2002 dispersion, Taylor and Yelland 2001, Charnock floor, caps); the
 // parametric vortex (met_vortex: Holland 1980, GAHM, Holland 2010) against tools/met_track.py (met_vortex_ref.txt,
 // met_vortex_nh.trk, met_vortex_sh.trk), its profiles, the vortex source on the model grid; the blend W 200 4
 // (met_blend: background, moving nest, vortex) against tools/met_forcing.py (met_blend_ref.txt, met_blend_bg.r3m,
@@ -380,6 +381,52 @@ static void test_drag_highwind()
     check(std::fabs(cmin-1.5e-3)<1.0e-15 && met_drag(6,80.0)==1.5e-3 && met_drag(6,50.0)==met_drag(4,50.0), "W 207 6: not below the floor W 214 beyond the peak, Zijlema above it");
     check(mono && met_drag(6,10.0)==met_drag(4,10.0), "W 207 6: Zijlema et al. up to the peak");
     check(met_drag_law(0,1)==1 && met_drag_law(0,2)==1 && met_drag_law(0,3)==5 && met_drag_law(4,3)==4, "W 207 0: law 1 for W 200 1/2, 5 for the vortex, a given law kept");
+}
+
+static void test_drag_wave()
+{
+    std::cout<<"wave-dependent drag (W 207 7)"<<std::endl;
+    const double pi = 3.14159265358979323846, g = 9.81;
+
+    // Guo (2002) against the dispersion relation, deep to shallow
+    double emax = 0.0;
+    for(double T=2.0; T<=20.0; T+=0.5)
+    for(double d : {0.5, 2.0, 5.0, 20.0, 100.0, 1000.0})
+    {
+        const double w = 2.0*pi/T, k = met_wavenumber(w,d);
+        emax = std::max(emax,std::fabs(g*k*std::tanh(k*d)/(w*w) - 1.0));
+    }
+    check(emax<0.015, "Guo (2002) wave number within 1.5 % of w^2 = g k tanh(kd), T 2-20 s, d 0.5-1000 m (max "+std::to_string(emax)+")");
+    check(std::fabs(met_wavenumber(1.0,0.0)-1.0/g)<1.0e-15, "deep water without a depth: k = w^2/g");
+
+    // Taylor and Yelland (2001) without the floor: z0 = 1200 Hs (Hs/Lp)^4.5, Cd = (0.4/ln(10/z0))^2
+    const double Hs = 10.0, Tp = 13.0, Lp = 2.0*pi/met_wavenumber(2.0*pi/Tp,4000.0);
+    const double z0 = 1200.0*Hs*std::pow(Hs/Lp,4.5), cty = std::pow(0.4/std::log(10.0/z0),2.0);
+    check(std::fabs(met_drag_wave(45.0,Hs,Tp,4000.0,1.0,2.5e-3,false)-cty)<1.0e-15 && std::fabs(cty-2.74e-3)<0.02e-3,
+          "Taylor and Yelland: Hs 10 m, Tp 13 s, deep: Cd = 2.74e-3");
+
+    // the Charnock floor: a fixed point of Cd = (0.4/ln(10 g/(0.011 Cd U^2)))^2 where the waves are not steep
+    bool okc = true;
+    for(double U=5.0; U<=60.0; U+=5.0)
+    {
+        const double c = met_drag_wave(U,0.5,12.0,4000.0,1.0);
+        okc = okc && std::fabs(c - std::pow(0.4/std::log(10.0*g/(0.011*c*U*U)),2.0))<1.0e-8;
+    }
+    check(okc, "Charnock floor (swell 0.5 m, 12 s): the fixed point, 5 - 60 m/s");
+    check(met_drag_wave(40.0,3.0,10.0,5.0)>=met_drag_wave(40.0,3.0,10.0,5.0,3.5e-3,2.5e-3,false), "the floor never lowers the drag");
+
+    // steep young sea in shallow water: above the floor, at the cap
+    check(met_drag_wave(40.0,1.5,4.0,3.0)==3.5e-3 && met_drag_wave(40.0,1.5,4.0,3.0,3.0e-3)==3.0e-3, "steep shallow sea: capped at W 228");
+
+    // no waves: law 5 with the cap W 213
+    check(met_drag_wave(30.0,0.05,8.0,10.0,3.5e-3,2.5e-3)==met_drag(5,30.0,2.5e-3) && met_drag_wave(30.0,2.0,0.0,10.0)==met_drag(5,30.0)
+          && met_drag(7,30.0,2.0e-3)==met_drag(5,30.0,2.0e-3), "no waves (Hs < 0.1 m, no Tp) and law 7 without a sea state: law 5");
+
+    // grows with the steepness at a fixed wind
+    bool mono = true;
+    for(double h=0.5; h<8.0; h+=0.5)
+    mono = mono && met_drag_wave(25.0,h+0.5,8.0,50.0,1.0,2.5e-3,false)>met_drag_wave(25.0,h,8.0,50.0,1.0,2.5e-3,false);
+    check(mono, "Taylor and Yelland: the drag grows with Hs at a fixed Tp (steepness)");
 }
 
 static void test_vortex()
@@ -837,6 +884,7 @@ int main()
     test_uniform_and_moving();
     test_bad_files();
     test_drag_highwind();
+    test_drag_wave();
     test_vortex();
     test_blend();
 

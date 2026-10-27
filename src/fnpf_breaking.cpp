@@ -24,10 +24,11 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm_fnpf.h"
 #include"ghostcell.h"
+#include"breaking_crest3d.h"
 
 fnpf_breaking::fnpf_breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc) : bx(p), by(p), eta_t(p), t_break(p), B_coeff(p),
                  S_local(p), b_strength(p), c_phase(p), k_local(p), L_break(p), B_ramp(p), brk_flag(p),k_smooth(p),vb_brk(p),
-                 wdband(p)
+                 wdband(p), bt_us(p), bt_vs(p), bt_zone(p)
 
 {
     count_n = 0;        // step of the last reset of the breaking flags (breaking_baquet_wd)
@@ -90,6 +91,7 @@ fnpf_breaking::fnpf_breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc) : bx(p), by(
 
 fnpf_breaking::~fnpf_breaking()
 {
+    delete bt;
 }
 
 void fnpf_breaking::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slice &eta_n, slice &Fifsf, double alpha)

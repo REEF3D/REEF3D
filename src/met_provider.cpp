@@ -229,6 +229,10 @@ met_provider::met_provider(lexer *p, ghostcell *pgc)
         if(law==5)
         std::cout<<" (cap "<<p->W213<<", W 213)";
 
+        if(law==7)
+        std::cout<<" (wave-dependent, Taylor and Yelland 2001 with the SEASTATE Hs, Tp"<<(p->W229==1 ? ", Charnock floor" : "")<<", cap "<<p->W228
+                 <<" (W 228); law 5 with the cap "<<p->W213<<" where there are no waves)";
+
         if(law==6)
         std::cout<<" (floor "<<p->W214<<", W 214)";
 
@@ -307,8 +311,14 @@ void met_provider::check(lexer *p, ghostcell *pgc)
     else if(p->W200>0 && p->G50==2)
     msg = "W 200: the met forcing supports the curvilinear grids of DIVEMesh (G 50 1), not curvgrid.dat (G 50 2) yet.";
 
-    else if(p->W200>0 && (p->W207<0 || p->W207>6))
-    msg = "W 207: unknown drag law; use 0 (auto), 1 (Garratt), 2 (Wu), 3 (Smith and Banke), 4 (Zijlema et al.), 5 (Garratt capped at W 213) or 6 (Zijlema et al. with the floor W 214).";
+    else if(p->W200>0 && (p->W207<0 || p->W207>7))
+    msg = "W 207: unknown drag law; use 0 (auto), 1 (Garratt), 2 (Wu), 3 (Smith and Banke), 4 (Zijlema et al.), 5 (Garratt capped at W 213), 6 (Zijlema et al. with the floor W 214) or 7 (wave-dependent, Taylor and Yelland, with the SEASTATE coupling A 750).";
+
+    else if(p->W200>0 && p->W207==7 && p->A10!=7 && p->A750!=1 && p->A750!=2)
+    msg = "W 207 7: the wave-dependent drag needs the sea state of the SEASTATE coupling (A 750 1 or 2) of SFLOW or NHFLOW.";
+
+    else if(p->W200>0 && p->W207==7 && (!(p->W228>0.0) || (p->W229!=0 && p->W229!=1)))
+    msg = "W 228, W 229: the cap of W 207 7 must be positive, the floor 0 (none) or 1 (Charnock).";
 
     else if(p->W200>0 && (!(p->W213>0.0) || !(p->W214>=0.0)))
     msg = "W 213, W 214: the cap must be positive, the floor zero or positive.";

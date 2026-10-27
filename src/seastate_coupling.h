@@ -26,12 +26,14 @@ Architect: Hans Bihs
 
 #include"increment.h"
 #include"slice4.h"
+#include<vector>
 
 class lexer;
 class ghostcell;
 class slice;
 class seastate_f;
 class seastate_source;
+class met_forcing;
 
 using namespace std;
 
@@ -93,6 +95,21 @@ host's time scale.
   differences between wave-active cells, one-sided next to dry cells
   and at the domain edge.
 
+Remote waves (A 750 2): SEASTATE runs as its own model (A 10 7, A 750 2)
+on its own grid, in the same MPI job as the host (reef3d_mpmd, e.g.
+mpirun -np 4 -wdir surge REEF3D : -np 2 -wdir waves REEF3D), the same
+model frame and clock. Every A 706 s of host time the host sends eta,
+WL, U, V (global fields, root to root, seastate_remote) and receives the
+wave force, div(M), Hs, Tp and the wet cells of the wave grid:
+  waves -> host   bilinear between the wet wave cell centres
+  host -> waves   the mean over the host cells inside the wave cell (eta,
+                  U, V over the wet ones, WL over all), bilinear where the
+                  host grid is the coarser one
+The waves lag one interval: the forces the host gets at t_k are those
+of the wave state at t_k, which was computed with the host fields of
+t_(k-1); host and waves compute in parallel. The host ends the run
+(stop message at ghostcell::final).
+
 Long waves at the x- side (surfbeat, A 770 1): absorbing-generating
 boundary (Van Dongeren and Svendsen 1997, as XBeach), the host's ghost
 cells get
@@ -110,9 +127,31 @@ public:
 
     seastate_f *wave() {return pwave;}
 
+    // surfbeat runs (not with remote waves)
+    bool surfbeat() const;
+
+    // remote waves (A 750 2), host side: the stop message at the end of the run (rank 0, not collective)
+    void remote_stop(lexer*);
+
+    // sea state on the host grid (Hs [m], Tp [s]): in-process copies or the remote fields (the wave-dependent
+    // drag W 207 7)
+    slice4 Hsw, Tpw;
+
 protected:
     // wave model set-up; the host then calls forces
     void ini_wave(lexer*, ghostcell*, const char *host);
+
+    // remote waves (A 750 2), host side: exchange of the grids and the first fields; then every A 706 s
+    void remote_ini(lexer*, ghostcell*, slice &eta, slice &WL, slice &U, slice &V);
+    void remote_step(lexer*, ghostcell*, slice &eta, slice &WL, slice &U, slice &V, bool force);
+
+    // remote waves: global cell centres of this model, the fields of this model gathered on its rank 0
+    void centres(lexer*, ghostcell*, std::vector<double> &xs, std::vector<double> &ys);
+    void gather(lexer*, ghostcell*, const std::vector<slice*> &f, std::vector<double> &out, double flag);
+    void exchange(lexer*, ghostcell*, std::vector<double> &out, std::vector<double> &in, int tag_out, int tag_in);
+    void bilinear(const std::vector<double> &xs, const std::vector<double> &ys, double x, double y,
+                  int &a, int &b, double &wx, double &wy) const;
+    bool covers(const std::vector<double> &xs, const std::vector<double> &ys, double x, double y) const;
 
     // a wave step is due at the host's simtime; dt: length of the wave step
     bool due(lexer*, double &dt) const;
@@ -146,6 +185,15 @@ protected:
 
     double tlast, tnext, tprint;
     int nstep;
+
+    // remote waves (A 750 2)
+    bool remote;                            // this object talks to the other app
+    bool host_wind;                         // the host gets a wind stress (the wind input of the dissipation force)
+    std::vector<double> rx, ry;             // global cell centres of the other model
+    std::vector<double> sbuf, rbuf;         // send / receive buffers (header: flag, simtime)
+    double t_wait;                          // rank 0: time spent waiting for the other app [s]
+
+    met_forcing *pmetw = nullptr;           // wave-dependent drag W 207 7: told after every change of Hsw, Tpw
 };
 
 #endif

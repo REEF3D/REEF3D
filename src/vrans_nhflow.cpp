@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"vrans_nhflow_f.h"
+#include"nhflow_por_ghost.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
@@ -126,6 +127,12 @@ void vrans_nhflow_f::update(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, 
     pgc->start5Vfull(p,d->POR,1);
     pgc->start5Vfull(p,d->PORPART,1);
     
+    // below the bed / above the surface of all columns incl. halo and ghost columns (nhflow_por_ghost.h)
+    nhflow_por_ghost(p,d);
+    
+    // porosity at the free surface: storage coefficient of the continuity
+    por_surface(p,d,pgc);
+    
     // print force
     if(p->B208==1)
     force_calc(p, d, pgc, alpha, val);
@@ -142,11 +149,7 @@ void vrans_nhflow_f::layer_prop(lexer *p, fdm_nhf *d)
     
     LOOP
     {
-        if(p->j_dir==0)
-        psi = p->B209*p->DXN[IP];
-        
-        if(p->j_dir==1)
-        psi = p->B209*0.5*(p->DXN[IP]+p->DYN[JP]);
+        psi = porpsi(p,d);
         
         dep = LDEP[IJK];
         
@@ -182,4 +185,58 @@ void vrans_nhflow_f::layer_prop(lexer *p, fdm_nhf *d)
         LALPHA[IJK] = aval;
         LBETA[IJK]  = bval;
     }
+}
+
+// Porosity at the free surface n(eta), the storage coefficient of the continuity
+//   d/dt int_{-h}^{eta} n dz + div(Q) = 0  ->  n(eta) deta/dt + div(Q) = 0   (n static)
+// The surface cell centre lies half a sigma cell below eta. With its porosity, a free surface within
+// dz/2 above the structure surface was stored with n_armour instead of 1 (deta/dt 1/n too large), and
+// the storage jumped when the top cell centre crossed the Heaviside band during run-up and run-down.
+// The static-structure level set is extrapolated from the two top cells to z = eta (vertical slope
+// limited to the distance-function bound |d phi/dz| <= 1), and the factors of porous floating bodies
+// and DEM particles in POR of the top cell are kept.
+void vrans_nhflow_f::por_surface(lexer *p, fdm_nhf *d, ghostcell *pgc)
+{
+    double phit,phib,zt,zb,zs,g,phis,psi,Hs,Ht,nl,nst,nss;
+    
+    SLICELOOP4
+    {
+        k = p->knoz-1;
+        
+        d->PORS(i,j) = d->POR[IJK];
+        
+        if(p->wet[IJ]==0 || p->knoz<2)
+        continue;
+        
+        phit = d->PORSTRUC[IJK];
+        phib = d->PORSTRUC[IJKm1];
+        zt   = p->ZSP[IJK];
+        zb   = p->ZSP[IJKm1];
+        zs   = d->WL(i,j) + d->bed(i,j);
+        
+        g = (phit-phib)/MAX(zt-zb,1.0e-20);
+        g = MAX(-1.0, MIN(1.0, g));
+        
+        phis = phit + g*(zs-zt);
+        
+        psi = porpsi(p,d);
+        
+        Hs = 0.5*(1.0 - phis/psi + (1.0/PI)*sin((PI*(-phis))/psi));
+        
+        if(-phis > psi)
+        Hs = 1.0;
+        
+        if(-phis < -psi)
+        Hs = 0.0;
+        
+        Ht = Hporface(p,d,0,0,0);
+        
+        nl  = (p->B202>0) ? LN[IJK] : p->B201_n;
+        nst = 1.0 - Ht*(1.0-nl);
+        nss = 1.0 - Hs*(1.0-nl);
+        
+        d->PORS(i,j) = d->POR[IJK]*nss/MAX(nst,1.0e-6);
+    }
+    
+    pgc->gcsl_start4(p,d->PORS,50);
 }

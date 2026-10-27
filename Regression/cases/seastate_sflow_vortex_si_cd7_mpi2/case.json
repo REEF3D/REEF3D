@@ -1,0 +1,8 @@
+{
+ "base": "seastate_sflow_vortex_si_mpi2",
+ "ctrl_set": {"W 207": "7", "A 729": "2"},
+ "ctrl_add": ["A 728 4"],
+ "description": "seastate_sflow_vortex_si_mpi2 with the wave-dependent surge drag W 207 7 (Taylor and Yelland 2001 from the coupled Hs, Tp, Charnock floor, cap W 228) and Zijlema drag of its own for the waves (A 729 2, A 728 4); 2 ranks.",
+ "tags": ["2d", "sflow", "semi_implicit", "seastate", "mpi", "met", "vortex"],
+ "covers": ["met_forcing with W 207 7 and the in-process sea state (A 750 1)"]
+}

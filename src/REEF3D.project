@@ -130,6 +130,7 @@
         <File Name="seastate_surfbeat.h"/>
         <File Name="seastate_roller.h"/>
         <File Name="seastate_coupling.h"/>
+        <File Name="seastate_remote.h"/>
         <File Name="seastate_nhflow.h"/>
         <File Name="seastate_forcing.h"/>
         <File Name="seastate_amr.h"/>
@@ -684,6 +685,7 @@
           <File Name="nhflow_pjm.h"/>
           <VirtualDirectory Name="Poisson">
             <File Name="nhflow_poisson_pcorr.h"/>
+            <File Name="nhflow_xwall.h"/>
             <File Name="nhflow_poisson.h"/>
             <File Name="nhflow_poisson_cross.h"/>
           </VirtualDirectory>
@@ -707,6 +709,7 @@
           <File Name="nhflow_hullbody.h"/>
           <VirtualDirectory Name="Breaking">
             <File Name="nhflow_breaking.h"/>
+            <File Name="nhflow_breaking_profile.h"/>
           </VirtualDirectory>
           <File Name="nhflow_fsf_f.h"/>
           <File Name="nhflow_fsf.h"/>
@@ -725,6 +728,7 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Breaking">
           <File Name="fnpf_breaking.h"/>
+          <File Name="breaking_crest3d.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Update">
           <File Name="fnpf_fsf_update.h"/>
@@ -826,6 +830,9 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Multiphysics">
+      <VirtualDirectory Name="Salinity">
+        <File Name="nhflow_tracer_SI.h"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="CORAL">
         <File Name="coral/README.md"/>
         <VirtualDirectory Name="Core">
@@ -1416,6 +1423,7 @@
         <File Name="wave_lib.h"/>
         <File Name="wave_lib_cnoidal_1st.h"/>
         <File Name="wave_lib_cnoidal_5th.h"/>
+        <File Name="wave_lib_steady_fi.h"/>
         <File Name="wave_lib_cnoidal_shallow.h"/>
         <File Name="wave_lib_deep.h"/>
         <File Name="wave_lib_flap.h"/>
@@ -1604,6 +1612,7 @@
           <File Name="seastate_f_surfbeat.cpp"/>
           <File Name="seastate_surfbeat.cpp"/>
           <File Name="seastate_coupling.cpp"/>
+          <File Name="seastate_remote.cpp"/>
           <File Name="seastate_nhflow.cpp"/>
           <File Name="seastate_sflow.cpp"/>
         </VirtualDirectory>
@@ -2325,6 +2334,7 @@
           <VirtualDirectory Name="Breaking">
             <File Name="nhflow_breaking_filter.cpp"/>
             <File Name="nhflow_breaking.cpp"/>
+          <File Name="nhflow_breaking_barthelemy.cpp"/>
           </VirtualDirectory>
           <File Name="nhflow_fsf_coastline.cpp"/>
           <File Name="nhflow_fsf_wetdry_fluxes.cpp"/>
@@ -2359,6 +2369,7 @@
           <File Name="fnpf_breaking_baquet.cpp"/>
           <File Name="fnpf_breaking_romero.cpp"/>
           <File Name="fnpf_breaking_barthelemy.cpp"/>
+          <File Name="breaking_crest3d.cpp"/>
           <File Name="fnpf_breaking_relaxfunc.cpp"/>
           <File Name="fnfp_breaking_kennedy.cpp"/>
           <File Name="fnpf_breaking_filter.cpp"/>
@@ -2487,6 +2498,9 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Multiphysics">
+      <VirtualDirectory Name="Salinity">
+        <File Name="nhflow_tracer_SI.cpp"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="CORAL">
         <VirtualDirectory Name="Core">
           <File Name="coral/core/coral_constraint.cpp"/>
@@ -3702,6 +3716,7 @@
         </VirtualDirectory>
         <File Name="wave_lib_cnoidal_1st.cpp"/>
         <File Name="wave_lib_cnoidal_5th.cpp"/>
+        <File Name="wave_lib_steady_fi.cpp"/>
         <File Name="wave_lib_cnoidal_shallow.cpp"/>
         <File Name="wave_lib_deep.cpp"/>
         <File Name="wave_lib_flap.cpp"/>

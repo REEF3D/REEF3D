@@ -22,10 +22,12 @@ Architect: Hans Bihs
 
 
 #include"seastate_nhflow.h"
+#include"seastate_remote.h"
 #include"seastate_f.h"
 #include"seastate_vtp.h"
 #include"fdm_seastate.h"
 #include"fdm_nhf.h"
+#include"met_forcing.h"
 #include"lexer.h"
 #include"ghostcell.h"
 #include<cmath>
@@ -39,15 +41,37 @@ void seastate_nhflow::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     if(p->G1>0)
     {
         if(p->mpirank==0)
-        cout<<endl<<"SEASTATE input error  --  A 750 1 with NHFLOW: mesh refinement (G 1) is not supported"<<endl<<endl;
+        cout<<endl<<"SEASTATE input error  --  A 750 1/2 with NHFLOW: mesh refinement (G 1) is not supported"<<endl<<endl;
 
         pgc->final(true);
+    }
+
+    // wave-dependent drag of the met forcing (W 207 7): the sea state of the coupling
+    if(p->W207==7 && p->W200>0)
+    {
+        if(d->met!=nullptr)
+        {
+        d->met->waves(p,&Hsw,&Tpw,&d->WL);
+        pmetw = d->met;
+        }
+
+        if(p->mpirank==0)
+        cout<<(d->met!=nullptr ? "W 207 7: wave-dependent drag with the sea state of SEASTATE" : "!!! W 207 7: no met forcing on this grid, the drag stays law 5 !!!")<<endl;
+    }
+
+    // remote waves (A 750 2): SEASTATE is the other app of the MPI job
+    if(p->A750==2)
+    {
+    seastate_remote::link = this;
+    average(p,d);
+    remote_ini(p,pgc,d->eta,d->WL,Ub,Vb);
+    return;
     }
 
     ini_wave(p,pgc,"NHFLOW");
 
     // surfbeat: the x- edge is open, its ghost cells are set here
-    if(pwave->surfbeat())
+    if(surfbeat())
     {
     p->open_xm = 1;
 
@@ -84,6 +108,16 @@ void seastate_nhflow::average(lexer *p, fdm_nhf *d)
 void seastate_nhflow::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     double dt;
+
+    if(remote)
+    {
+        if(!(p->simtime < tnext - 1.0e-9*p->A706))
+        {
+        average(p,d);
+        remote_step(p,pgc,d->eta,d->WL,Ub,Vb,false);
+        }
+    return;
+    }
 
     if(!due(p,dt))
     return;
@@ -134,7 +168,7 @@ void seastate_nhflow::mass_source(lexer *p, fdm_nhf *d, slice &K)
 
 void seastate_nhflow::ghostcells(lexer *p, fdm_nhf *d, double *UH, double *VH, double *WH)
 {
-    if(!pwave->surfbeat() || p->origin_i!=0)
+    if(!surfbeat() || p->origin_i!=0)
     return;
 
     double etag, ug, vg;
@@ -171,7 +205,7 @@ void seastate_nhflow::ghostcells(lexer *p, fdm_nhf *d, double *UH, double *VH, d
 
 void seastate_nhflow::wl_ghostcells(lexer *p, fdm_nhf *d, slice &WL)
 {
-    if(!pwave->surfbeat() || p->origin_i!=0)
+    if(!surfbeat() || p->origin_i!=0)
     return;
 
     i = 0;

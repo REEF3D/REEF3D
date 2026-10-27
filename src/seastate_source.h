@@ -67,7 +67,8 @@ in brackets):
                    B = max(0, 0.25 rho_a/rho_w (28 u_star cos(theta-theta_w)/c - 1)) sig,
                    u_star = sqrt(C_d) U10 with the drag of Wu (1982)     -> P
                    (A 729 1: C_d of the met drag law W 207, met_drag.h, e.g.
-                   capped in hurricane winds as the surge)
+                   capped in hurricane winds as the surge; A 729 2: the
+                   law A 728 of its own, e.g. Zijlema for the waves)
   whitecapping     Komen et al. (1984) (SWCAP): C_ds 2.36e-5,
                    s_PM^2 3.02e-3, p 4, delta 1, mean sig_-10 and
                    k_WAM, spectral tail sig^-4                       -> D
@@ -128,7 +129,7 @@ struct seastate_source_param
     bool wind = false;
     double U10 = 0.0, wdir = 0.0;        // [m/s], direction the wind blows to [rad]
     double Alin = 1.5e-3;                // linear growth coefficient, 0: off
-    int drag = 0;                        // drag of u_star: 0 Wu (1982), else the law of met_drag.h (A 729 1: W 207)
+    int drag = 0;                        // drag of u_star: 0 Wu (1982), else the law of met_drag.h (A 729 1: W 207, A 729 2: A 728)
     double drag_cap = 2.5e-3, drag_floor = 1.5e-3;      // ... its cap and floor (W 213, W 214)
 
     bool komen = false;                  // whitecapping (and exponential wind input with wind)

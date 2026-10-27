@@ -138,8 +138,8 @@ using namespace std;
 //  Scope of this version (checked in ini; otherwise the refinement is switched off with a message):
 //  static refinement boxes, the body zone and the adaptive flags (G 1 levels, G 10 boxes, G 11 boxes
 //  without refinement, G 4 tile width, G 3, G 20, G 21, G 12, G 13, G 2, G 5, G 6, G 7, G 22, G 23,
-//  G 30, G 31, G 40), A 510 2/3, A 511 1/2, A 514 all, A 519 0/1, A 520 0/1/2, A 512 0/1/2, A 550 0
-//  (A 550 1 with A 510 2), A 560 0/1/2/21/22 (turbulence on every grid, nhflow_amr_turb.cpp; not with
+//  G 30, G 31, G 40), A 510 2/3, A 511 1/2, A 514 all, A 519 0/1, A 520 0/1/2, A 512 0/1/2, A 550 0/1
+//  (with A 510 2/3; on a multi-block grid the blocks break as one grid), A 560 0/1/2/21/22 (turbulence on every grid, nhflow_amr_turb.cpp; not with
 //  G 7 1, A 561, A 563), B 200 0, X 10 0/1/2 (X 60 1, X 16 0, A 516 0/1/3; X 15 8, the sharp
 //  hull: on every grid, G 7 0, G 12, A 520 1, one body), S 10 0/1 (bed load on
 //  every grid, nhflow_amr_sed.cpp; S 12 0, S 51 0, S 31 1/2, S 32 1/2), fixed solids A 581-590 (not
@@ -502,6 +502,14 @@ private:
     bool brk_split = false;
     void breaking_patches(ghostcell*);
     void brk_exchange(int, int);
+
+    // breaking on a multi-block grid (A 550 1): block 0 and the blocks 1.. run the three parts after
+    // phase_F of level 0 as well; between them the ring of block 0 and the cells around the blocks take
+    // the detection, the flags and the viscosity of the cells they stand for, so that the blocks break as
+    // one grid (nhflow_amr_diff.cpp)
+    bool brk0 = false;
+    void breaking_level0(ghostcell*, int);
+    void brk_exchange0(ghostcell*, int);
     void df_free();
     void df_core(lexer*);
     void df_sync(int);

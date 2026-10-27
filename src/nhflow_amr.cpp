@@ -199,6 +199,7 @@ nhflow_amr::nhflow_amr(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum *pm
     // (a turbulence model with A 512 0 diffuses implicitly as A 512 2, driver_logic_nhflow)
     cdiff = ((p->A512==2 || (p->A512==0 && p->A560>0)) && (p->G31==1 || p->geo_mb>0));
     brk_split = (cdiff && p->A550==1);
+    brk0 = (p->geo_mb>0 && p->A550==1);
 
     // subcycling (G 7 1, nhflow_amr_sub.cpp): floating bodies with the zone around the hull (G 12:
     // the finest level advances the body); every grid solves its own implicit diffusion (G 31 1
@@ -218,6 +219,11 @@ nhflow_amr::nhflow_amr(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum *pm
 
     if(sub==1)
     cdiff = brk_split = false;
+
+    // multi-block breaking: block 0 runs the parts of the breaking with the blocks (breaking_level0)
+    if(brk0)
+    if(nhflow_breaking *b = dynamic_cast<nhflow_breaking*>(mom0))
+    b->brk_defer = true;
 
     // G 7 1 with bodies: the coarse levels step first with their own coarse picture of the body,
     // and its near field reaches the finest level through the fills and the edge pressure of the
@@ -330,9 +336,10 @@ int nhflow_amr::keys_ok(lexer *p)
     // the side-wall friction and wall functions (A 519 2) need the side walls in the boundary lists of the grids; the
     // patches and the blocks have the bed and the surface only
     if(p->A519==2) ok=0;
-    // breaking (A 550 1): NHFLOW has it in RK2 only; it acts through the implicit diffusion
-    // (A 512 2), composite (G 31 1) or per grid (G 31 0)
-    if(p->A550!=0 && (p->A550!=1 || p->A510!=2)) ok=0;
+    // breaking (A 550 1, RK2 and RK3): it acts through the implicit diffusion (A 512 2), composite (G 31 1)
+    // or per grid (G 31 0); on a multi-block grid the blocks break as one grid (breaking_level0). The eddy viscosity
+    // (A 550 3) is not on the patches
+    if(p->A550!=0 && (p->A550!=1 || (p->A510!=2 && p->A510!=3))) ok=0;
     if(p->B200!=0 || p->X330!=0 || p->A599!=0) ok=0;
     // sediment transport (S 10 1): bed load, Exner (S 31 1/2, S 32 1/2), sand slide; no suspended load, no
     // sediment fractions (nhflow_amr_sed.cpp)
@@ -370,7 +377,7 @@ void nhflow_amr::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     if(ok==0 && p->geo_mb>0)
     {
         if(p->mpirank==0)
-        cout<<"!!! NHFLOW multi-block grid: only for A 510 2/3, A 511 1/2, A 520 0/1/2, A 512 0/1/2, A 560 0/1/2/21/22 (A 561 0, A 563 0), A 519 0/1, B 200 0, S 10 0/1 (S 12 0, S 51 0, S 31 1/2, S 32 1/2), no solids, membranes, nets, DEM, particles, rods or FEM structures !!!"<<endl;
+        cout<<"!!! NHFLOW multi-block grid: only for A 510 2/3, A 511 1/2, A 520 0/1/2, A 512 0/1/2, A 560 0/1/2/21/22 (A 561 0, A 563 0), A 519 0/1, A 550 0/1, B 200 0, S 10 0/1 (S 12 0, S 51 0, S 31 1/2, S 32 1/2), no solids, membranes, nets, DEM, particles, rods or FEM structures !!!"<<endl;
         exit(1);
     }
 
@@ -386,7 +393,7 @@ void nhflow_amr::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     if(ok==0)
     {
         if(p->mpirank==0)
-        cout<<"NHFLOW AMR (G 1): only for A 510 2/3, A 511 1/2, A 520 0/1/2, A 512 0/1/2, A 560 0/1/2/21/22 (not with G 7 1, A 561, A 563), A 519 0/1, A 550 0 (1 with A 510 2), B 200 0, S 10 0/1 (S 12 0, S 51 0, S 31 1/2, S 32 1/2), "
+        cout<<"NHFLOW AMR (G 1): only for A 510 2/3, A 511 1/2, A 520 0/1/2, A 512 0/1/2, A 560 0/1/2/21/22 (not with G 7 1, A 561, A 563), A 519 0/1, A 550 0/1, B 200 0, S 10 0/1 (S 12 0, S 51 0, S 31 1/2, S 32 1/2), "
             <<"X 10 0/1/2 (X 60 1, X 16 0, A 516 0/1/3), fixed solids A 581-590 (not with G 7 1, A 516 2/4), no solids of the grid file (A 580 1), membranes, nets, DEM, particles, rods or FEM structures, and on a 2D grid Cartesian "
             <<"-- refinement switched off"<<endl;
         maxlev=0;
@@ -776,15 +783,19 @@ void nhflow_amr::patch_objects(reefamr_patch *q, ghostcell *pgc)
     nhflow_amr_patch *c = NP(q);
     lexer *pp = c->pp;
 
-    // multi-block: in- and outflow, open edges and wave generation belong to block 0, the faces of
-    // the blocks 1.. without an interface are walls; the open faces of a block (G 54) are its in- and
-    // outflow as B 60 1 on the native grid (only these i-faces: river_xm, river_xp), its edge zones (B 522)
-    // its open edges as the iowave edges of the native grid (open_xm, open_xp)
+    // multi-block: the faces of the blocks 1.. without an interface are walls; the open faces of a block (G 54)
+    // are its in- and outflow as B 60 1 on the native grid (only these i-faces: river_xm, river_xp; a block with
+    // open j faces is turned, geo_mesh::turn_blocks), its edge zones (B 522) its open edges as the iowave edges of
+    // the native grid (open_xm, open_xp), its relaxation and beach zones (B 522) those of ioflow_amr_block; the
+    // zones of iowave (B 98, B 99) belong to block 0
     const int oin = (c->blk>0 && c->lev==0) ? bopen[0][c->blk] : -1;
     const int oout = (c->blk>0 && c->lev==0) ? bopen[1][c->blk] : -1;
     const int zin = (c->blk>0 && c->lev==0) ? bzone[0][c->blk] : -1;
     const int zout = (c->blk>0 && c->lev==0) ? bzone[1][c->blk] : -1;
+    const int rin = (c->blk>0 && c->lev==0) ? bzr[0][c->blk] : -1;
+    const int rout = (c->blk>0 && c->lev==0) ? bzr[1][c->blk] : -1;
     const bool open = oin>=0 || oout>=0 || zin>=0 || zout>=0;
+    const bool zoned = open || rin>=0 || rout>=0;
     if(c->blk>0)
     {
         pp->B60 = (oin>=0 || oout>=0) ? 1 : 0;
@@ -795,11 +806,18 @@ void nhflow_amr::patch_objects(reefamr_patch *q, ghostcell *pgc)
         pp->open_xm = (zin>=0) ? 1 : 0;
         pp->open_xp = (zout>=0) ? 1 : 0;
         pp->open_ym = pp->open_yp = 0;
-        // an edge zone: the non-hydrostatic pressure at the -i edge 0 as at the iowave edges (nhflow_poisson, B 90)
-        if(zin>=0 || zout>=0)
+        // an edge zone: the non-hydrostatic pressure at the -i edge 0 as at the iowave edges (nhflow_poisson, B 90);
+        // a relaxation or beach zone: the relaxation of the semi-implicit step (nhflow_momentum_SI::relax)
+        if(zin>=0 || zout>=0 || rin>=0 || rout>=0)
         pp->B90 = 1;
+        // a relaxation zone on the -i face: that face is the generation side of the block as x- of the native grid
+        // with B 98 2 (the velocities zero gradient in the ghost cells, start4V; not a G 52 wall, nhflow_curv::iwall)
+        if(rin>=0 && bzones[rin].method==bc_method::relax)
+        pp->B98 = 2;
         if(c->lev==0)
         pp->amr_block = p0->gridgeo->blk[c->blk].orig;   // the block of DIVEMesh (G 55: of the piece)
+        // the blocks of DIVEMesh (the turns of the blocks: the faces of the B 521 edges, nhflow_momentum_SI)
+        pp->gridgeo = p0->gridgeo;
     }
 
     build_bc2D(pgc,*c);
@@ -834,12 +852,15 @@ void nhflow_amr::patch_objects(reefamr_patch *q, ghostcell *pgc)
 
     c->pBC = pBCv;
     c->pflow = pflowv;
-    if(open)
+    if(zoned)
     {
         c->pio = new ioflow_amr_block(pp,pgc,pBCv);
         pp->amr_own_io = 1;
         c->pio->open_faces(pp,oin,oout);
         c->pio->open_edges(pp,zin>=0 ? &bzones[zin] : nullptr,zout>=0 ? &bzones[zout] : nullptr,bzbg);
+        // relaxation and beach zones (B 522 methods 1, 2), the waves with B 90 1 and B 98 2 on level 0
+        c->pio->open_zones(pp,rin>=0 ? &bzones[rin] : nullptr,rout>=0 ? &bzones[rout] : nullptr,bzbg,p0->B90>0 && p0->B98==2,
+                           EXT,blk[c->blk].ni,EXT,blk[c->blk].nj);
         c->pflow = c->pio;
     }
     // the floating bodies on the patch grid (all calls do nothing without bodies)
@@ -924,8 +945,9 @@ void nhflow_amr::patch_objects(reefamr_patch *q, ghostcell *pgc)
 
     c->S = {c->pflow,c->pss,c->precon,c->pconv,c->pdiff,c->ppress,nullptr,c->psolv,nullptr,c->pfsf,c->pturb,c->pvrans};
 
-    // breaking with G 31 1: the stage runner runs the parts of the breaking (breaking_patches)
-    if(brk_split)
+    // breaking with G 31 1: the stage runner runs the parts of the breaking (breaking_patches); on a
+    // multi-block grid the blocks 1.. with block 0 (breaking_level0)
+    if(brk_split || (brk0 && c->blk>0 && c->lev==0))
     if(nhflow_breaking *b = dynamic_cast<nhflow_breaking*>(c->pmom))
     b->brk_defer = true;
 
@@ -2710,10 +2732,24 @@ void nhflow_amr::step(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum_func
             tm[2] += MPI_Wtime()-t0;
         }
 
+        if(brk0)
+        {
+        // multi-block breaking: the continuity of level 0, its breaking, then its momentum
+        blocks_phase(pgc,s,0);
+        mom->phase_F(p,d,pgc,S0,s);
+        t0 = MPI_Wtime();
+        breaking_level0(pgc,-1);
+        tm[1] += MPI_Wtime()-t0;
+        blocks_phase(pgc,s,1);
+        mom->phase_M(p,d,pgc,S0,s);
+        }
+        else
+        {
         blocks_phase(pgc,s,0);
         blocks_phase(pgc,s,1);
         mom->phase_F(p,d,pgc,S0,s);
         mom->phase_M(p,d,pgc,S0,s);
+        }
         }
         else
         {

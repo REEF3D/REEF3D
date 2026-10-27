@@ -25,6 +25,7 @@ Architect: Hans Bihs
 
 #include"increment.h"
 #include"slice4.h"
+#include<vector>
 #include"lexer.h"
 #include<fstream>
 
@@ -47,6 +48,8 @@ once per time step at the model time of the start of the step:
   Pa         air pressure at mean sea level [Pa]
   Tx, Ty     kinematic surface stress tau/rho_w = r (rho_a/rho_w) Cd |U10| U10
              [m^2/s^2], Cd = met_drag(W 207, |U10|), r the ramp W 204,
+             W 207 7: Cd = met_drag_wave(|U10|, Hs, Tp, WL) with the sea
+             state of the SEASTATE coupling (waves),
              rho_a = W 3, rho_w = W 1
   Gx, Gy     kinematic air pressure gradient r (dPa/dx, dPa/dy)/rho_w (W 208 1),
              central differences of the cell values
@@ -96,12 +99,24 @@ public:
 
     static bool active(lexer *p) {return p->W200>0 || p->W211>0;}
 
+    // wave-dependent drag (W 207 7): the sea state on this grid (Hs [m], Tp [s]) and the water depth, set by the
+    // SEASTATE coupling (seastate_sflow, seastate_nhflow); without it law 7 is law 5
+    void waves(lexer*, slice *Hs, slice *Tp, slice *WL);
+
+    // after every change of the sea state: the roughness of the waves per cell (Taylor and Yelland)
+    void waves_update(lexer*);
+
     slice4 U10, V10, Pa, Tx, Ty, Gx, Gy, Fc;
 
     bool wind = false, pressure = false, coriolis = false;
 
 private:
     met_provider *pm = nullptr;
+    slice *wHs = nullptr, *wTp = nullptr, *wWL = nullptr;
+    slice4 *z0w = nullptr;                  // W 207 7: roughness of the waves [m], -1 without waves
+    std::vector<double> z0c;                // W 207 7: Charnock roughness, table over the wind speed (step dz0c)
+    static constexpr double dz0c = 0.05;
+    double charnock(double U) const;
     bool has_t = false;
     double tlast = 0.0;
 };
