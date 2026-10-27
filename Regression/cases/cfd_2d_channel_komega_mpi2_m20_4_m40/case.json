@@ -1,0 +1,9 @@
+{
+ "base": "cfd_2d_channel_komega_mpi2",
+ "control_set": {"M 50": "1", "M 20": "4", "M 30": "2 1 1", "M 31": "300"},
+ "ctrl_set": {"M 40": "1"},
+ "same_as": "cfd_2d_channel_komega_mpi2",
+ "description": "as cfd_2d_channel_komega_mpi2_m20_4, decomposed by REEF3D from the global grid of DIVEMesh (M 50 1, M 40 1): bitwise the default partition (needs patch CPM/0041: dmpart::decomp::partition_manual)",
+ "tags": ["2d", "inflow", "turbulence", "mpi"],
+ "covers": ["dmpart::decomp::partition_manual"]
+}

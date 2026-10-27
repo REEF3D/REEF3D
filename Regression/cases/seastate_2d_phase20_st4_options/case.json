@@ -1,0 +1,22 @@
+{
+ "base": "seastate_2d_wind",
+ "ctrl_set": {
+  "A 732": "3"
+ },
+ "ctrl_add": [
+  "A 763 1.52",
+  "A 764 0.0",
+  "A 765 0",
+  "A 766 0"
+ ],
+ "description": "as seastate_2d_phase20_st4 with the options of A 732 3: beta_max 1.52 (A 763), no sheltering (A 764 0), no diagnostic tail (A 765 0), no swell damping (A 766 0). Validation in Dropbox SEASTATE/validation/69_ardhuin_st4.",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate"
+ ],
+ "covers": [
+  "A 763, A 764, A 765, A 766 (read, broadcast, used)",
+  "seastate_st4 without sheltering (TAU_PHI_HF branch)"
+ ]
+}
