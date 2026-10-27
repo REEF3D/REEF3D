@@ -199,6 +199,7 @@ nhflow_amr::nhflow_amr(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum *pm
     // (a turbulence model with A 512 0 diffuses implicitly as A 512 2, driver_logic_nhflow)
     cdiff = ((p->A512==2 || (p->A512==0 && p->A560>0)) && (p->G31==1 || p->geo_mb>0));
     brk_split = (cdiff && p->A550==1);
+    brk0 = (p->geo_mb>0 && p->A550==1);
 
     // subcycling (G 7 1, nhflow_amr_sub.cpp): floating bodies with the zone around the hull (G 12:
     // the finest level advances the body); every grid solves its own implicit diffusion (G 31 1
@@ -218,6 +219,11 @@ nhflow_amr::nhflow_amr(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum *pm
 
     if(sub==1)
     cdiff = brk_split = false;
+
+    // multi-block breaking: block 0 runs the parts of the breaking with the blocks (breaking_level0)
+    if(brk0)
+    if(nhflow_breaking *b = dynamic_cast<nhflow_breaking*>(mom0))
+    b->brk_defer = true;
 
     // G 7 1 with bodies: the coarse levels step first with their own coarse picture of the body,
     // and its near field reaches the finest level through the fills and the edge pressure of the
@@ -330,9 +336,9 @@ int nhflow_amr::keys_ok(lexer *p)
     // the side-wall friction and wall functions (A 519 2) need the side walls in the boundary lists of the grids; the
     // patches and the blocks have the bed and the surface only
     if(p->A519==2) ok=0;
-    // breaking (A 550 1): NHFLOW has it in RK2 only; it acts through the implicit diffusion
-    // (A 512 2), composite (G 31 1) or per grid (G 31 0)
-    if(p->A550!=0 && (p->A550!=1 || p->A510!=2)) ok=0;
+    // breaking (A 550 1, RK2 and RK3): it acts through the implicit diffusion (A 512 2), composite (G 31 1)
+    // or per grid (G 31 0); on a multi-block grid the blocks break as one grid (breaking_level0)
+    if(p->A550!=0 && (p->A550!=1 || (p->A510!=2 && p->A510!=3))) ok=0;
     if(p->B200!=0 || p->X330!=0 || p->A599!=0) ok=0;
     // sediment transport (S 10 1): bed load, Exner (S 31 1/2, S 32 1/2), sand slide; no suspended load, no
     // sediment fractions (nhflow_amr_sed.cpp)
@@ -370,7 +376,7 @@ void nhflow_amr::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     if(ok==0 && p->geo_mb>0)
     {
         if(p->mpirank==0)
-        cout<<"!!! NHFLOW multi-block grid: only for A 510 2/3, A 511 1/2, A 520 0/1/2, A 512 0/1/2, A 560 0/1/2/21/22 (A 561 0, A 563 0), A 519 0/1, B 200 0, S 10 0/1 (S 12 0, S 51 0, S 31 1/2, S 32 1/2), no solids, membranes, nets, DEM, particles, rods or FEM structures !!!"<<endl;
+        cout<<"!!! NHFLOW multi-block grid: only for A 510 2/3, A 511 1/2, A 520 0/1/2, A 512 0/1/2, A 560 0/1/2/21/22 (A 561 0, A 563 0), A 519 0/1, A 550 0/1, B 200 0, S 10 0/1 (S 12 0, S 51 0, S 31 1/2, S 32 1/2), no solids, membranes, nets, DEM, particles, rods or FEM structures !!!"<<endl;
         exit(1);
     }
 
@@ -386,7 +392,7 @@ void nhflow_amr::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     if(ok==0)
     {
         if(p->mpirank==0)
-        cout<<"NHFLOW AMR (G 1): only for A 510 2/3, A 511 1/2, A 520 0/1/2, A 512 0/1/2, A 560 0/1/2/21/22 (not with G 7 1, A 561, A 563), A 519 0/1, A 550 0 (1 with A 510 2), B 200 0, S 10 0/1 (S 12 0, S 51 0, S 31 1/2, S 32 1/2), "
+        cout<<"NHFLOW AMR (G 1): only for A 510 2/3, A 511 1/2, A 520 0/1/2, A 512 0/1/2, A 560 0/1/2/21/22 (not with G 7 1, A 561, A 563), A 519 0/1, A 550 0/1, B 200 0, S 10 0/1 (S 12 0, S 51 0, S 31 1/2, S 32 1/2), "
             <<"X 10 0/1/2 (X 60 1, X 16 0, A 516 0/1/3), fixed solids A 581-590 (not with G 7 1, A 516 2/4), no solids of the grid file (A 580 1), membranes, nets, DEM, particles, rods or FEM structures, and on a 2D grid Cartesian "
             <<"-- refinement switched off"<<endl;
         maxlev=0;
@@ -924,8 +930,9 @@ void nhflow_amr::patch_objects(reefamr_patch *q, ghostcell *pgc)
 
     c->S = {c->pflow,c->pss,c->precon,c->pconv,c->pdiff,c->ppress,nullptr,c->psolv,nullptr,c->pfsf,c->pturb,c->pvrans};
 
-    // breaking with G 31 1: the stage runner runs the parts of the breaking (breaking_patches)
-    if(brk_split)
+    // breaking with G 31 1: the stage runner runs the parts of the breaking (breaking_patches); on a
+    // multi-block grid the blocks 1.. with block 0 (breaking_level0)
+    if(brk_split || (brk0 && c->blk>0 && c->lev==0))
     if(nhflow_breaking *b = dynamic_cast<nhflow_breaking*>(c->pmom))
     b->brk_defer = true;
 
@@ -2710,10 +2717,24 @@ void nhflow_amr::step(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum_func
             tm[2] += MPI_Wtime()-t0;
         }
 
+        if(brk0)
+        {
+        // multi-block breaking: the continuity of level 0, its breaking, then its momentum
+        blocks_phase(pgc,s,0);
+        mom->phase_F(p,d,pgc,S0,s);
+        t0 = MPI_Wtime();
+        breaking_level0(pgc,-1);
+        tm[1] += MPI_Wtime()-t0;
+        blocks_phase(pgc,s,1);
+        mom->phase_M(p,d,pgc,S0,s);
+        }
+        else
+        {
         blocks_phase(pgc,s,0);
         blocks_phase(pgc,s,1);
         mom->phase_F(p,d,pgc,S0,s);
         mom->phase_M(p,d,pgc,S0,s);
+        }
         }
         else
         {

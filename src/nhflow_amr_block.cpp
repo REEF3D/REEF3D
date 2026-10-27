@@ -55,6 +55,9 @@ Author: Hans Bihs
 //    or water level, constant or a time series) and the edge zones of B 522 (Riemann, Flather, clamped
 //    level or discharge edges with a background) on their -i and +i faces (ioflow_amr_block); wave
 //    generation and absorption belong to block 0
+//  - breaking (A 550 1): block 0 and the blocks run the parts of nhflow_breaking together, the ring and the
+//    cells around the blocks take the detection, the flags and the viscosity of the cells they stand for
+//    (breaking_level0, nhflow_amr_diff.cpp)
 
 using namespace nhflow_amr_detail;
 
@@ -70,11 +73,10 @@ void nhflow_amr::blocks_check(lexer *p)
     if(p->G7==1) ok=0;              // subcycling
     if(p->X10>2) ok=0;              // floating (X 10 1) and prescribed (X 10 2) bodies only (P5c)
     if(p->X10>0 && p->G40>0) ok=0;  // bodies: the patches on the rank of the block piece below
-    if(p->A550!=0) ok=0;            // breaking
     if(ok==0)
     {
         if(p->mpirank==0)
-        cout<<"!!! NHFLOW multi-block grid: not with subcycling (G 7 1), the ship pressure X 10 3 (X 10 1/2 without G 40) or breaking (A 550) !!!"<<endl;
+        cout<<"!!! NHFLOW multi-block grid: not with subcycling (G 7 1) or the ship pressure X 10 3 (X 10 1/2 without G 40) !!!"<<endl;
         exit(1);
     }
 }
@@ -401,6 +403,15 @@ void nhflow_amr::dump_grids(lexer *p)
         for(int jj=i0; jj<i0+ny; ++jj)
         for(int kk=0; kk<=q->knoz; ++kk)
         f->push_back(d->P[fidx(q,ii,jj,kk)]);
+
+        // A 550: the breaking viscosity
+        if(p->A550==1)
+        {
+            vector<double> *fv = add("vb");
+            for(int ii=i0; ii<i0+nx; ++ii)
+            for(int jj=i0; jj<i0+ny; ++jj)
+            fv->push_back(d->vb(ii,jj));
+        }
 
         // A 560: the eddy viscosity and k
         // (one field after the other: add() may move the vectors of the fields before)
