@@ -139,22 +139,18 @@ void nhflow_breaking::breaking_kennedy(lexer *p, fdm_nhf *d, ghostcell *pgc, sli
         take(i,j+1);
         }
         
-        // A 550 4: a seeded column starts or continues an event with the wavenumber of the breaking crest; without
-        // an event and without seed no breaking
+        // A 550 4: a seeded column starts or continues an event with the wavenumber of the breaking crest. Columns
+        // without seed start events as in A 550 3 (deta/dt > A 554 c): with the seed as the only onset, the noise of
+        // the crest speed C (B = u_s/C) moved the onset from wave to wave by up to 2.6 m in Ting & Kirby, and the wave
+        // heights around the break point oscillated from gauge to gauge
         bool seedc = false;
-        
-        if(seeded)
+
+        if(seeded && brkseed(i,j)==1)
         {
-            if(brkseed(i,j)==1)
-            {
-                if(age<=0.0 || kw<=0.0)
-                kw = brkkseed(i,j);
-                
-                seedc = true;
-            }
-            else
-            if(age<=0.0)
-            continue;
+            if(age<=0.0 || kw<=0.0)
+            kw = brkkseed(i,j);
+
+            seedc = true;
         }
         
         // length of the wave: h (A 550 3), tanh(k h)/k (A 550 4, deep water 1/k); c = sqrt(g L_k)

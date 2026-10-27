@@ -31,11 +31,13 @@ Architect: Hans Bihs
 //
 // Viscosity (breaking_kennedy with the seed): the eddy viscosity of Kennedy et al. (2000) as in A 550 3, continuous in
 // deta/dt, with three changes:
-//  - an event starts only in a seeded column (no onset from deta/dt > A 554 c). Its initial threshold is the larger of
-//    A 554 c and deta/dt of the column at the start, so B starts from 0, and the event ages in the seeded columns also
-//    below the threshold: the threshold relaxes to eta_t^F = A 501 c over T* from the onset of the crest, and the
-//    viscosity grows continuously (starting with eta_t^F at once radiated short waves offshore in Ting & Kirby).
-//    The event moves with the front through the age carried from the neighbours, as in A 550 3
+//  - an event starts in a seeded column or, as in A 550 3, where deta/dt > A 554 c. In a seeded column its initial
+//    threshold is the larger of A 554 c and deta/dt of the column at the start, so B starts from 0, and the event
+//    ages also below the threshold: the threshold relaxes to eta_t^F = A 501 c over T* from the onset of the crest,
+//    and the viscosity grows continuously (starting with eta_t^F at once radiated short waves offshore in Ting &
+//    Kirby). The event moves with the front through the age carried from the neighbours, as in A 550 3. With the seed
+//    as the only onset, the noise of the crest speed C moved the onset from wave to wave by up to 2.6 m in Ting &
+//    Kirby and the wave heights oscillated from gauge to gauge; the tracking adds the onsets that A 550 3 misses
 //  - the depth h of the formula is the length L_k = tanh(k h)/k of the wave of the event (h in shallow water, 1/k in
 //    deep water), c = sqrt(g L_k) the linear phase speed, T* = A 503 sqrt(L_k/g): nu_b = B delta_b^2 L_k deta/dt
 //  - nu_b f(z) with the depth profile of the orbital velocity f(z) = cosh(k (z - z_b))/cosh(k h)
