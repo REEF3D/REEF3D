@@ -28,6 +28,7 @@ Author: Hans Bihs
 //  on all ranks) on any.
 
 #include"cfd_ckpt.h"
+#include"reef3d_mpmd.h"
 #include"lexer.h"
 #include"reefckpt.h"
 #include"ckpt_registry.h"
@@ -97,8 +98,8 @@ bool cfd_ckpt_read(lexer *p, reefckpt &ck, string &msg, const string &tag)
     bad = 1;
 
     int nall=0, badall=0;
-    MPI_Allreduce(&n,&nall,1,MPI_INT,MPI_MIN,MPI_COMM_WORLD);
-    MPI_Allreduce(&bad,&badall,1,MPI_INT,MPI_MAX,MPI_COMM_WORLD);
+    MPI_Allreduce(&n,&nall,1,MPI_INT,MPI_MIN,reef3d_comm());
+    MPI_Allreduce(&bad,&badall,1,MPI_INT,MPI_MAX,reef3d_comm());
     if(badall || kinds.empty())
     {
         msg = "the arrays of the checkpoint do not match the objects of this run (other keys?)";

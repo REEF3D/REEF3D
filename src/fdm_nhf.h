@@ -104,6 +104,8 @@ public:
     double *test;
     double *KIN;
     double *CONC;
+    double *SALT = nullptr;     // NHFLOW semi-implicit tracers (A 600 1/2): salinity (psu), cell centres
+    double *TEMP = nullptr;     // A 600 2: temperature (deg C)
     
     double *SOLID,*FB,*FHB;
     double *PORSTRUC;

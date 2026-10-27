@@ -21,8 +21,10 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"nhflow_amr.h"
+#include"reef3d_mpmd.h"
 #include"nhflow_amr_fill.h"
 #include"nhflow_momentum_SI.h"
+#include"nhflow_tracer_SI.h"
 #include"nhflow_longrun.h"
 #include"si_eta2D.h"
 #include"reefmg2D.h"
@@ -36,6 +38,9 @@ Author: Hans Bihs
 #include"nhflow_curv.h"
 #include"sflow_curv.h"
 #include<mpi.h>
+#include<map>
+#include<Eigen/Sparse>
+#include<Eigen/SparseLU>
 #include<iomanip>
 
 // Hydrostatic semi-implicit free surface (A 534 1) on the multi-block grid (G 50 1, DIVEMesh R 20 1).
@@ -82,7 +87,11 @@ struct si_space
 };
 
 const int SIX = 9;      // the unknown (eta^{n+1})
-const int SINV = 10;
+const int SIZC = 10;    // G 57: the coarse correction
+const int SIAZ = 11;    // G 57: A times the coarse correction
+const int SIRT = 12;    // G 57: the residual after the coarse correction
+const int SIAG = 13;    // G 57: the aggregate of a cell (-1: none)
+const int SINV = 14;
 }
 
 nhflow_momentum_SI* nhflow_amr::gsi(int g)
@@ -329,7 +338,42 @@ void nhflow_amr::si_apply(int x, int y)
     }
 }
 
+// G 57: the two-level preconditioner, the coarse correction zc = P Ac^-1 R r first, then the V-cycles of the
+// grids on the remaining residual r - A zc: z = zc + RAS(r - A zc); without G 57 the V-cycles alone
 void nhflow_amr::si_prec(int r, int z)
+{
+    if(sics_n<=0)
+    {
+        si_ras(r,z);
+        return;
+    }
+
+    si_cs_correct(r,SIZC);
+    si_apply(SIZC,SIAZ);
+
+    for(size_t gi=0; gi<sigrid.size(); ++gi)
+    {
+        slice &R = *sivec[gi][r];
+        slice &RT = *sivec[gi][SIRT];
+        slice &AZ = *sivec[gi][SIAZ];
+        const vector<int> &w = sirow[gi];
+        for(size_t k=0; k<w.size(); k+=3)
+        RT(w[k],w[k+1]) = R(w[k],w[k+1]) - AZ(w[k],w[k+1]);
+    }
+
+    si_ras(SIRT,z);
+
+    for(size_t gi=0; gi<sigrid.size(); ++gi)
+    {
+        slice &Z = *sivec[gi][z];
+        slice &ZC = *sivec[gi][SIZC];
+        const vector<int> &w = sirow[gi];
+        for(size_t k=0; k<w.size(); k+=3)
+        Z(w[k],w[k+1]) += ZC(w[k],w[k+1]);
+    }
+}
+
+void nhflow_amr::si_ras(int r, int z)
 {
     // one V-cycle per grid on the residual of its own rows (zero on the cells around it), the result
     // on its own rows: restricted additive Schwarz over the grids with a multigrid subdomain solve
@@ -446,6 +490,161 @@ void nhflow_amr::si_restart()
 }
 
 // the eta system of all blocks with the wetting and drying iteration of si_eta2D::solve_wetdry
+// ---- G 57: the coarse space of the eta solve across the grids (native grid and blocks): aggregates of
+// G 57 x G 57 own columns of every grid, the Galerkin operator of the piecewise constant prolongation
+// (the rows summed over the aggregates), factorised on every rank
+struct si_cs_impl
+{
+    Eigen::SparseLU<Eigen::SparseMatrix<double>> lu;
+    vector<double> rl, rc;
+};
+
+void nhflow_amr::si_cs_build()
+{
+    sics_n = 0;
+    const int csw = p0->G57;
+    if(csw<=0 || nblk==0)
+    return;
+
+    if(sics==nullptr)
+    sics = new si_cs_impl;
+
+    // the aggregates of the own rows, numbered over the ranks
+    int nloc = 0;
+    for(size_t gi=0; gi<sigrid.size(); ++gi)
+    {
+        lexer *q = glex(sigrid[gi]);
+        slice &AG = *sivec[gi][SIAG];
+        for(int ii=q->imin; ii<q->imin+q->imax; ++ii)
+        for(int jj=q->jmin; jj<q->jmin+q->jmax; ++jj)
+        AG(ii,jj) = -1.0;
+
+        std::map<long,int> ids;
+        const vector<int> &w = sirow[gi];
+        for(size_t k=0; k<w.size(); k+=3)
+        {
+            const long key = long(w[k]/csw)*100000L + long(w[k+1]/csw);
+            auto it = ids.find(key);
+            if(it==ids.end())
+            it = ids.emplace(key,nloc++).first;
+            AG(w[k],w[k+1]) = it->second;
+        }
+    }
+
+    int off = 0;
+    MPI_Exscan(&nloc,&off,1,MPI_INT,MPI_SUM,reef3d_comm());
+    if(p0->mpirank==0)
+    off = 0;
+    int ntot = 0;
+    MPI_Allreduce(&nloc,&ntot,1,MPI_INT,MPI_SUM,reef3d_comm());
+
+    for(size_t gi=0; gi<sigrid.size(); ++gi)
+    {
+        slice &AG = *sivec[gi][SIAG];
+        const vector<int> &w = sirow[gi];
+        for(size_t k=0; k<w.size(); k+=3)
+        AG(w[k],w[k+1]) += off;
+    }
+
+    // the aggregates of the cells around the blocks, of the ring and of the halo
+    si_fillv(sipgc,SIAG);
+
+    // the coarse operator
+    std::map<std::pair<int,int>,double> T;
+    for(size_t gi=0; gi<sigrid.size(); ++gi)
+    {
+        const matrix2D &M = gsi(sigrid[gi])->psi->mat();
+        slice &AG = *sivec[gi][SIAG];
+        const vector<int> &w = sirow[gi];
+        for(size_t k=0; k<w.size(); k+=3)
+        {
+            const int ii=w[k], jj=w[k+1], n=w[k+2];
+            const int I = int(AG(ii,jj));
+            T[{I,I}] += M.p[n];
+            const double cf[4] = {M.n[n],M.s[n],M.w[n],M.e[n]};
+            const double an[4] = {AG(ii+1,jj),AG(ii-1,jj),AG(ii,jj+1),AG(ii,jj-1)};
+            for(int m=0; m<4; ++m)
+            if(cf[m]!=0.0 && an[m]>=0.0 && an[m]==an[m])
+            T[{I,int(an[m])}] += cf[m];
+        }
+    }
+
+    vector<int> ti, tj;
+    vector<double> tv;
+    for(auto &e : T)
+    {
+        ti.push_back(e.first.first);
+        tj.push_back(e.first.second);
+        tv.push_back(e.second);
+    }
+    const int np = p0->mpi_size;
+    int nt = int(tv.size());
+    vector<int> cnt(np), dsp(np,0);
+    MPI_Allgather(&nt,1,MPI_INT,&cnt[0],1,MPI_INT,reef3d_comm());
+    for(int r=1; r<np; ++r)
+    dsp[r] = dsp[r-1] + cnt[r-1];
+    const int nall = dsp[np-1] + cnt[np-1];
+    vector<int> ai(MAX(nall,1)), aj(MAX(nall,1));
+    vector<double> av(MAX(nall,1));
+    MPI_Allgatherv(ti.data(),nt,MPI_INT,&ai[0],&cnt[0],&dsp[0],MPI_INT,reef3d_comm());
+    MPI_Allgatherv(tj.data(),nt,MPI_INT,&aj[0],&cnt[0],&dsp[0],MPI_INT,reef3d_comm());
+    MPI_Allgatherv(tv.data(),nt,MPI_DOUBLE,&av[0],&cnt[0],&dsp[0],MPI_DOUBLE,reef3d_comm());
+
+    if(ntot==0)
+    return;
+
+    std::vector<Eigen::Triplet<double>> trip;
+    trip.reserve(nall);
+    for(int k=0; k<nall; ++k)
+    trip.emplace_back(ai[k],aj[k],av[k]);
+    Eigen::SparseMatrix<double> Ac(ntot,ntot);
+    Ac.setFromTriplets(trip.begin(),trip.end());
+    Ac.makeCompressed();
+    sics->lu.compute(Ac);
+    if(sics->lu.info()!=Eigen::Success)
+    {
+        if(p0->mpirank==0)
+        cout<<"NHFLOW A 534 1 multi-block: the coarse space of the eta solve (G 57) is singular, off for this solve"<<endl;
+        return;
+    }
+    sics->rl.assign(ntot,0.0);
+    sics->rc.assign(ntot,0.0);
+    sics_n = ntot;
+}
+
+// z = P Ac^-1 R r on the own rows, 0 on all other cells of the grids
+void nhflow_amr::si_cs_correct(int r, int z)
+{
+    std::fill(sics->rl.begin(),sics->rl.end(),0.0);
+
+    for(size_t gi=0; gi<sigrid.size(); ++gi)
+    {
+        slice &R = *sivec[gi][r];
+        slice &AG = *sivec[gi][SIAG];
+        const vector<int> &w = sirow[gi];
+        for(size_t k=0; k<w.size(); k+=3)
+        sics->rl[int(AG(w[k],w[k+1]))] += R(w[k],w[k+1]);
+    }
+
+    MPI_Allreduce(sics->rl.data(),sics->rc.data(),sics_n,MPI_DOUBLE,MPI_SUM,reef3d_comm());
+
+    Eigen::Map<Eigen::VectorXd> rc(sics->rc.data(),sics_n);
+    Eigen::VectorXd zc = sics->lu.solve(rc);
+
+    for(size_t gi=0; gi<sigrid.size(); ++gi)
+    {
+        lexer *q = glex(sigrid[gi]);
+        slice &Z = *sivec[gi][z];
+        slice &AG = *sivec[gi][SIAG];
+        for(int ii=q->imin; ii<q->imin+q->imax; ++ii)
+        for(int jj=q->jmin; jj<q->jmin+q->jmax; ++jj)
+        Z(ii,jj) = 0.0;
+        const vector<int> &w = sirow[gi];
+        for(size_t k=0; k<w.size(); k+=3)
+        Z(w[k],w[k+1]) = zc[int(AG(w[k],w[k+1]))];
+    }
+}
+
 void nhflow_amr::si_solve(lexer *p, ghostcell *pgc)
 {
     const double t0 = pgc->timer();
@@ -482,6 +681,9 @@ void nhflow_amr::si_solve(lexer *p, ghostcell *pgc)
         // the matrices changed: the preconditioner coarsens again at its first use (keeping the
         // hierarchy over the passes of the wetting and drying iteration doubles the iterations)
         std::fill(sirebuild.begin(),sirebuild.end(),1);
+
+        // G 57: the coarse operator of this pass
+        si_cs_build();
 
         si_apply(SIX,si_space::VV);
 
@@ -633,6 +835,10 @@ void nhflow_amr::si_step(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum_f
     fill_level0(pgc,-1);
     si_fillF(pgc);
 
+    // tracers (A 600) with the transport of the step
+    if(p->A600>0)
+    si_tracer(p,pgc);
+
     // the log of all blocks: volume of the own cells, discharges over the open boundaries
     double loc[4] = {0.0,0.0,0.0,0.0}, all[4];
 
@@ -669,6 +875,118 @@ void nhflow_amr::si_step(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum_f
     cout<<"  wetdry iterations "<<m0->wd_iter<<"  dry cells "<<m0->wd_cells;
 
     cout<<endl;
+    }
+}
+
+// tracers (A 600) of all blocks: the substeps of every block in lockstep (the same number on all grids
+// and ranks), the cells around the blocks and the ring filled before each; the log over the own cells,
+// the gauges P 51 from the nearest own cell centre of all grids
+void nhflow_amr::si_tracer(lexer *p, ghostcell *pgc)
+{
+    const int nt = gsi(-1)->ptrc->nt;
+
+    auto arr = [&](int g, int c) -> double* { return nhflow_tracer_SI::field(gfd(g),c); };
+
+    double r = 0.0;
+
+    si_each(pgc,[&](int g, lexer *q, fdm_nhf *dd, nhflow_momentum_SI *m, nhflow_stage_obj &S)
+    {
+        r = max(r,m->ptrc->prepare(q,dd));
+    });
+
+    double rg;
+    MPI_Allreduce(&r,&rg,1,MPI_DOUBLE,MPI_MAX,pgc->mpi_comm);
+    const int ns = nhflow_tracer_SI::substeps(p,rg);
+
+    // the fluid mask around the blocks and in the halo (static, once): filled as a tracer
+    if(!sitr_mask)
+    {
+        si_fill3(pgc,1,7674,[&](int g, int c) -> double* { return gsi(g)->ptrc->mask; });
+        sitr_mask = true;
+    }
+
+    for(int s=0; s<ns; ++s)
+    {
+        si_fill3(pgc,nt,7670,arr);
+
+        si_each(pgc,[&](int g, lexer *q, fdm_nhf *dd, nhflow_momentum_SI *m, nhflow_stage_obj &S)
+        {
+            m->ptrc->flushed(q,dd,s,ns);
+        });
+
+        si_fill3(pgc,nt,7676,[&](int g, int c) -> double* { return gsi(g)->ptrc->Cx[c]; });
+
+        si_each(pgc,[&](int g, lexer *q, fdm_nhf *dd, nhflow_momentum_SI *m, nhflow_stage_obj &S)
+        {
+            m->ptrc->substep(q,dd,s,ns);
+        });
+    }
+
+    si_fill3(pgc,nt,7672,arr);
+
+    si_each(pgc,[&](int g, lexer *q, fdm_nhf *dd, nhflow_momentum_SI *m, nhflow_stage_obj &S)
+    {
+        m->ptrc->ghosts(q,dd);
+    });
+
+    // the log: own cells of all grids
+    nhflow_tracer_SI::stats st;
+    nhflow_tracer_SI::stats_zero(st);
+
+    for(int g : sigrid)
+    gsi(g)->ptrc->sums(glex(g),gfd(g),[&](int ii, int jj){ return si_own(g,ii,jj); },st);
+
+    nhflow_tracer_SI::reduce(p,st);
+    gsi(-1)->ptrc->write_log(p,st,ns,rg);
+
+    // gauges: the nearest own cell centre of the grids of this rank, then over the ranks
+    if(p->P51>0)
+    {
+        const int ng = p->P51;
+
+        if(sitr_dist.empty())
+        {
+            sitr_dist.assign(ng,1.0e30);
+            sitr_cell.assign(ng,-1);
+            sitr_grid.assign(ng,-2);
+
+            for(int g : sigrid)
+            {
+                vector<double> dist;
+                vector<int> cell;
+                gsi(g)->ptrc->gauge_find(glex(g),[&](int ii, int jj){ return si_own(g,ii,jj); },dist,cell);
+
+                for(int k=0; k<ng; ++k)
+                if(cell[k]>=0 && dist[k]<sitr_dist[k])
+                {
+                sitr_dist[k] = dist[k];
+                sitr_cell[k] = cell[k];
+                sitr_grid[k] = g;
+                }
+            }
+        }
+
+        const size_t nv = 3*nt;
+        vector<double> val((size_t)ng*nv,0.0), dist = sitr_dist;
+
+        for(int g : sigrid)
+        {
+            vector<int> cell(ng,-1);
+            for(int k=0; k<ng; ++k)
+            if(sitr_grid[k]==g)
+            cell[k] = sitr_cell[k];
+
+            vector<double> v;
+            gsi(g)->ptrc->gauge_values(glex(g),gfd(g),cell,v);
+
+            for(int k=0; k<ng; ++k)
+            if(sitr_grid[k]==g)
+            for(size_t q=0; q<nv; ++q)
+            val[k*nv+q] = v[k*nv+q];
+        }
+
+        nhflow_tracer_SI::gauge_combine(p,dist,val);
+        nhflow_tracer_SI::gauge_write(p,val);
     }
 }
 
@@ -715,7 +1033,7 @@ void nhflow_amr::dt_si_cmin(double cfl, double &cmin, double &hmax)
                 if(sigma>1.0e-20)
                 cmin = MIN(cmin,1.0/sigma);
 
-                if(pp->A512>0 || pp->A560>0)
+                if(pp->A512>0 || pp->A560>0 || pp->A547_c>0.0 || pp->A547_nu0>0.0)
                 {
                 const double visc = dd->VISC[n] + EVh[n];
                 const double lam = pp->geo_curv==1 ? sflow_curv::inv2(pp,ii,jj)

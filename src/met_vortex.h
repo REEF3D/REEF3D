@@ -100,6 +100,18 @@ public:
     // centre at time t (lon, lat [deg])
     void centre(double t, double &lon, double &lat) const;
 
+    // centre, central and outer pressure [Pa], rmw and the mean 34 kt radius [m] at time t, linear between
+    // the records (blend W 200 4); r34 of a record without 34 kt isotachs: 3 rmw
+    void state(double t, double &lon, double &lat, double &pc, double &pn, double &rmw, double &r34) const;
+    static double r34_mean(const met_vortex_rec &r);
+
+    // point at distance d [m] and bearing brg [deg clockwise from north] from (lon, lat) on the sphere
+    static void destination(double lon, double lat, double brg, double d, double &lon2, double &lat2);
+
+    // first and last time of the track
+    double t_first() const {return rec.front().t;}
+    double t_last() const {return rec.back().t;}
+
     // profiles (public for the unit test)
     static void dist_bearing(double lon1, double lat1, double lon2, double lat2, double &d, double &brg);
     static double fang(double r, double rm);

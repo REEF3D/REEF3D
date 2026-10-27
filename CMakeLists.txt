@@ -142,9 +142,12 @@ set_target_properties(REEF3D PROPERTIES
 
 # ── Compile definitions ───────────────────────────────────────────────────────
 
+# The git version is printed only by driver.cpp and driver_log.cpp: defined for these two files
+# alone, a new commit (re-configure) recompiles them instead of every source
+set_source_files_properties(src/driver.cpp src/driver_log.cpp PROPERTIES
+  COMPILE_DEFINITIONS "VERSION=\"${GIT_VERSION}\";BRANCH=\"${GIT_BRANCH}\"")
+
 target_compile_definitions(REEF3D PRIVATE
-  VERSION="${GIT_VERSION}"
-  BRANCH="${GIT_BRANCH}"
   $<$<CONFIG:Release>:NDEBUG;EIGEN_NO_DEBUG;BUILD="release">
   $<$<CONFIG:Debug>:BUILD="debug">
   $<$<CONFIG:Dev>:BUILD="dev">
@@ -155,12 +158,36 @@ target_compile_definitions(REEF3D PRIVATE
 # CMAKE_CXX_FLAGS_<CONFIG> already covers Dev/All (set above).
 # Generator expressions handle Release and Debug overrides.
 
+# Release LTO: clang uses ThinLTO (parallel, and incremental with the cache on macOS); full LTO
+# (-flto with clang) runs single-threaded over all objects on every link. GCC: -flto=auto.
+option(REEF3D_USE_LTO "Link-time optimisation in Release" ON)
+set(_lto_clang "$<AND:$<CONFIG:Release>,$<BOOL:${REEF3D_USE_LTO}>,$<CXX_COMPILER_ID:Clang,AppleClang>>")
+set(_lto_gnu   "$<AND:$<CONFIG:Release>,$<BOOL:${REEF3D_USE_LTO}>,$<NOT:$<CXX_COMPILER_ID:Clang,AppleClang>>>")
+
 target_compile_options(REEF3D PRIVATE
-  $<$<CONFIG:Release>:-O3;-march=native;-flto;-w>
+  $<$<CONFIG:Release>:-O3;-march=native;-w>
+  $<${_lto_clang}:-flto=thin>
+  $<${_lto_gnu}:-flto=auto>
   $<$<CONFIG:Debug>:-O0;-g;-g3;-Wall>)
 
 target_link_options(REEF3D PRIVATE
-  $<$<CONFIG:Release>:-flto=auto>)
+  $<${_lto_clang}:-flto=thin>
+  $<${_lto_gnu}:-flto=auto>)
+if(APPLE)
+  target_link_options(REEF3D PRIVATE
+    $<${_lto_clang}:-Wl,-cache_path_lto,${CMAKE_BINARY_DIR}/lto-cache>)
+endif()
+
+# ── Precompiled header ───────────────────────────────────────────────────────
+# Standard library, MPI and Eigen (src/reef3d_pch.h): parsing them is ~80% of the compile time
+# of a typical source without it.
+option(REEF3D_USE_PCH "Precompiled header src/reef3d_pch.h" ON)
+if(REEF3D_USE_PCH)
+  target_precompile_headers(REEF3D PRIVATE ${PROJECT_SOURCE_DIR}/src/reef3d_pch.h)
+  # own language flags (-fopenmp-simd, -fno-math-errno): these cannot use the shared PCH
+  set_source_files_properties(src/wave_lib_irregular_1st.cpp src/wave_lib_irregular_2nd_a.cpp
+    src/wave_lib_irregular_2nd_b.cpp PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
+endif()
 
 # ── Link libraries ────────────────────────────────────────────────────────────
 

@@ -124,6 +124,9 @@ the mesh refinement and multi-block grids; `sediment_exner_lag.cpp`):
   `amr_field`), the passes of `lag_refresh` from the bed load on (non-equilibrium, suspended part, `qb/f`).  Before,
   every grid relaxed alone (the cells around it overwritten afterwards): four blocks differed from one by 1e-3 of the
   bed change.  Without the mesh refinement and blocks `S 33` is unchanged (bit for bit).
+- P8b: `S 76 xs xe ys ye` holds the bed of the cells in a box (any number of boxes, physical cell centres) while
+  their load is computed and carried downstream: the sediment supply of an inflow reach on grids where the x
+  window `S 71` does not fit (the Nidelva, `../harbour_multiblock/README.md`).
 - Refused with a message: `S 64` with NHFLOW (it resolves the suspended load, `S 12`), with the multi-fraction bed
   (`S 51`) and with `S 31 3`.
 

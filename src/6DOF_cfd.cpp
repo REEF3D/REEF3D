@@ -145,3 +145,22 @@ bool sixdof_cfd::ckpt_restore(lexer *p, ghostcell *pgc, const std::vector<double
     }
     return true;
 }
+
+// runtime coupling (reefcouple, I 243): CoG, velocity, angular velocity (inertial), rotation of body n
+void sixdof_cfd::body_state(int n, double *s) const
+{
+    const sixdof_rigidbody &b = fb_obj[n]->rb;
+    Eigen::Matrix<double,6,1> u;
+    b.velocity(u);
+    
+    for(int q=0; q<3; ++q)
+    {
+    s[q]   = b.c(q);
+    s[3+q] = u(q);
+    s[6+q] = u(3+q);
+    }
+    
+    for(int r=0; r<3; ++r)
+    for(int q=0; q<3; ++q)
+    s[9+3*r+q] = b.R(r,q);
+}

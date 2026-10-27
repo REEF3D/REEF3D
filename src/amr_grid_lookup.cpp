@@ -21,6 +21,7 @@ Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"amr_grid_lookup.h"
+#include"reef3d_mpmd.h"
 #include<mpi.h>
 #include<vector>
 
@@ -30,14 +31,14 @@ void amr_point_owners(const int *lev, int n, char *mine)
     return;
 
     int rank = 0, size = 1;
-    MPI_Comm_rank(MPI_COMM_WORLD,&rank);
-    MPI_Comm_size(MPI_COMM_WORLD,&size);
+    MPI_Comm_rank(reef3d_comm(),&rank);
+    MPI_Comm_size(reef3d_comm(),&size);
 
     // the key of a point: the level first, the lower rank before the higher one
     std::vector<int> key(n), top(n);
     for(int m=0; m<n; ++m)
     key[m] = (lev[m]<0) ? -1 : lev[m]*size + (size-1-rank);
-    MPI_Allreduce(key.data(),top.data(),n,MPI_INT,MPI_MAX,MPI_COMM_WORLD);
+    MPI_Allreduce(key.data(),top.data(),n,MPI_INT,MPI_MAX,reef3d_comm());
 
     for(int m=0; m<n; ++m)
     {

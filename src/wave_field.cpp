@@ -233,8 +233,8 @@ void wave_field::check(lexer *p)
     {
         const int t = s->type;
 
-        if(t==61)
-        err = "source "+std::to_string(s->id)+": HDC coupling (61) is only available as the B 92 wave";
+        if(t==61 || t==62)
+        err = "source "+std::to_string(s->id)+": HDC/FNPF coupling (61, 62) is only available as the B 92 wave";
 
         else
         if(t>=20 && t<30)
@@ -494,6 +494,16 @@ int wave_field::decomp_ncomp(int type, int wN)
     return wN;
     
     return -1;
+}
+
+double wave_field::decomp_dir(int n) const
+{
+    if(n<0 || n>=(int)dsrc.size())
+    return 0.0;
+    
+    const wave_source *s = src[dsrc[n]];
+    
+    return s->rot*(PI/180.0) + (s->lib!=nullptr ? s->lib->wave_comp_dir(dloc[n]) : 0.0);
 }
 
 int wave_field::decomp_build(lexer *p)

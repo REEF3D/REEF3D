@@ -293,6 +293,8 @@ private:
 
     int printcount;
     double printtime;
+    ghostcell *pgc_print;   // the output's communicator (P 18: the parcels gathered on rank 0 for the LAGOON store)
+    bool print_lagoon(lexer*, sediment_fdm*);
 
     field4a dPx,dPy,dPz;
     field4a dTx,dTy,dTz;

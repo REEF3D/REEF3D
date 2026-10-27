@@ -111,8 +111,9 @@ using namespace std;
 //  integrated once, every hull triangle on the finest grid at its centroid (pressure, free
 //  surface, shear).  G 12 refines around the wetted hull (margin G 12, rectangle aligned with x
 //  and y; with G 13 L a oriented along the motion plus a wake wedge of length L and half angle
-//  a, as SFLOW); the hull triangles (X 185) are then sized for the finest level, as on a uniform
-//  fine grid.  The zone follows the
+//  a, as SFLOW).  The hull triangles (X 185) are sized for the finest level, as on a uniform fine
+//  grid, whatever puts the patch over the hull (zone, G 10 box, flags): horizontally, and with G 6 1
+//  also vertically.  The zone follows the
 //  body: a regrid every G 2 steps at the end of the step (G 2 0: static), the layout kept
 //  while it covers the flagged tiles with at most 50 % excess, G 5 regrids of hysteresis.  A
 //  fresh patch takes the state of the old patches of its level where they overlap; elsewhere it
@@ -134,14 +135,24 @@ using namespace std;
 //  (force_leaf, solid_forces).  Not with subcycling (G 7 1), A 516 2/4 or the solids of the grid
 //  file (A 580 1).
 //
-//  Scope of this version: static refinement boxes, the body zone and the adaptive flags (G 1
-//  levels, G 10 boxes, G 11 boxes without refinement, G 4 tile width, G 3, G 20, G 21, G 12,
-//  G 13, G 2, G 5, G 6, G 22, G 23, G 30, G 40), A 510 2/3, A 511 1/2, A 514 all, A 520 0/1/2,
-//  A 512 0/1/2, A 560 0, A 550 0 (A 550 1 with A 510 2), B 200 0, X 10 0/1/2 (X 60 1, X 16 0,
-//  A 516 0/1/3), S 10 0, fixed solids A 581-590 (not A 580 1), no membranes (X 330), nets (X 320),
-//  3D and 2D grids (Cartesian).  Patches stay out of the relaxation
-//  zones (B 96), the in- and outflow band and, checked at every regrid, 4 level-0 cells away from
-//  dry or shallow cells (they are fully wet; level 0 keeps its wetting and drying).
+//  Scope of this version (checked in ini; otherwise the refinement is switched off with a message):
+//  static refinement boxes, the body zone and the adaptive flags (G 1 levels, G 10 boxes, G 11 boxes
+//  without refinement, G 4 tile width, G 3, G 20, G 21, G 12, G 13, G 2, G 5, G 6, G 7, G 22, G 23,
+//  G 30, G 31, G 40), A 510 2/3, A 511 1/2, A 514 all, A 519 0/1, A 520 0/1/2, A 512 0/1/2, A 550 0/1
+//  (with A 510 2/3; on a multi-block grid the blocks break as one grid), A 560 0/1/2/21/22 (turbulence on every grid, nhflow_amr_turb.cpp; not with
+//  G 7 1, A 561, A 563), B 200 0, X 10 0/1/2 (X 60 1, X 16 0, A 516 0/1/3; X 15 8, the sharp
+//  hull: on every grid, G 7 0, G 12, A 520 1, one body), S 10 0/1 (bed load on
+//  every grid, nhflow_amr_sed.cpp; S 12 0, S 51 0, S 31 1/2, S 32 1/2), fixed solids A 581-590 (not
+//  with G 7 1 or A 516 2/4; not A 580 1), no membranes (X 330), nets (X 320), DEM (E 10), particles
+//  (L 10), rods or FEM structures (Z 20, Z 30).  Cartesian and curvilinear grids (G 50 2), 2D grids
+//  (one cell in y) Cartesian only.  The multi-block grid (G 50 1 with DIVEMesh R 20 1,
+//  nhflow_amr_block.cpp): the blocks 1.. are level-0 patches of the hierarchy, with or without
+//  refinement, not with G 7 1, A 550, X 10 > 2, or bodies with G 40 (nhflow_amr::blocks_check); the
+//  hydrostatic semi-implicit free surface (A 534 1, nhflow_amr_si.cpp) on the multi-block grid
+//  without refinement (A 534 1 with G 1 is refused by nhflow_momentum_SI::check).  Checkpoints
+//  (P 48, I 45): nhflow_amr_ckpt.cpp.  Patches stay out of the relaxation zones (B 96), the in- and
+//  outflow band and, without G 30 1 and checked at every regrid, 4 level-0 cells away from dry or
+//  shallow cells (they are fully wet; level 0 keeps its wetting and drying).
 //
 //  Breaking (A 550 1, RK2): every grid detects breaking; the implicit diffusion with the breaking
 //  viscosity (A 512 2) is one composite solve over the leaf cells of all grids (G 31 1, the
@@ -251,6 +262,8 @@ public:
     virtual ~nhflow_amr();
 
     void ini(lexer*, fdm_nhf*, ghostcell*);
+    // the keys the refinement runs with: 1 on, 0 off, -1 off for the sharp hull (X 15 8)
+    int keys_ok(lexer*);
     // S 10: sediment transport on all grids (nhflow_amr_sed.cpp): the level-0 sediment_f hands its step over
     void sed_attach(sediment*);
     // A 560: the turbulence of level 0 (the fields of the ring and of the covered cells)
@@ -270,6 +283,9 @@ public:
     // vector space of the composite eta solve (reefamr_bicgstab)
     void si_apply(int, int);
     void si_prec(int, int);
+    void si_ras(int, int);
+    void si_cs_build();             // G 57: the coarse space of the eta solve (aggregates over all grids)
+    void si_cs_correct(int, int);
     double si_dot(int, int);
     void si_opstart();
     void si_op_p(double, double);
@@ -287,6 +303,9 @@ public:
 
     // long-run statistics (P 160): the blocks 1.. of a multi-block grid as grids of nhflow_longrun
     void longrun_grids(nhflow_longrun*);
+    // their sums in the checkpoints (P 48, I 45), with the patches under the tag "nhflow_longrun"
+    void longrun_ckpt_write(reefckpt&, nhflow_longrun*);
+    bool longrun_ckpt_read(reefckpt&, nhflow_longrun*, std::string&);
 
     // vector space of the composite pressure solve (nhflow_amr_press.cpp, reefamr_bicgstab)
     void pr_apply(int, int, bool d1=false);
@@ -376,6 +395,10 @@ private:
 
     // fill, restriction
     void fill_stage(ghostcell*, int, int);
+    // the end of the step: the cells around the patches that a patch of the same level fills take its
+    // end-of-step eta, U, V, W, P (the outputs on the finest grid read them, fills_current)
+    void fill_out(ghostcell*);
+    bool fills_current() const override { return nblk==0; }
     void fill_bed(ghostcell*, int);
     void bc_patch(ghostcell*, nhflow_amr_patch&, int);
     void restrict_surface(int);
@@ -479,6 +502,14 @@ private:
     bool brk_split = false;
     void breaking_patches(ghostcell*);
     void brk_exchange(int, int);
+
+    // breaking on a multi-block grid (A 550 1): block 0 and the blocks 1.. run the three parts after
+    // phase_F of level 0 as well; between them the ring of block 0 and the cells around the blocks take
+    // the detection, the flags and the viscosity of the cells they stand for, so that the blocks break as
+    // one grid (nhflow_amr_diff.cpp)
+    bool brk0 = false;
+    void breaking_level0(ghostcell*, int);
+    void brk_exchange0(ghostcell*, int);
     void df_free();
     void df_core(lexer*);
     void df_sync(int);
@@ -538,6 +569,7 @@ private:
 
     // G 7 1: subcycling (nhflow_amr_sub.cpp)
     int sub = 0;                    // 1: subcycled
+    bool hb = false;                // the hull as a sharp thin body (X 15 8) on every grid
     int hstage = 0;                 // RK stage of the grids running (flux register weights)
     int wlo = 0, whi = -1;          // level window of the restriction and of the composite solve (whi<0: maxlev)
     int wtop() const { return whi<0 ? maxlev : whi; }
@@ -640,6 +672,10 @@ private:
     template<class A> void si_fill3(ghostcell*, int, int, A);
     void si_fillv(ghostcell*, int);
     void si_fillF(ghostcell*);
+    void si_tracer(lexer*, ghostcell*);   // tracers (A 600) of all blocks
+    std::vector<double> sitr_dist;
+    std::vector<int> sitr_cell, sitr_grid;
+    bool sitr_mask = false;
     void si_dirichlet(ghostcell*);
     void si_solve(lexer*, ghostcell*);
     ghostcell *sipgc = nullptr;
@@ -650,6 +686,9 @@ private:
     std::vector<slice*> siz;
     std::vector<int> sinrow;
     std::vector<char> sirebuild;
+    // G 57: the coarse space across the grids of the eta solve
+    struct si_cs_impl *sics = nullptr;
+    int sics_n = 0;
     ioflow *pflowv;                 // objects shared by all patches (their NHFLOW calls do nothing)
     patchBC_interface *pBCv;
     sediment *psedv;

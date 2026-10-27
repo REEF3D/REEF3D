@@ -1,0 +1,22 @@
+{
+ "base": "nhflow_2d_si_tidal_flat_kepsilon",
+ "description": "nhflow_2d_si_tidal_flat_kepsilon with uniform salinity 35 and temperature 20 and the same boundary values: the tracers stay uniform to round-off with wetting and drying (min = max in REEF3D_NHFLOW_tracer.dat).",
+ "ctrl_add": [
+  "A 600 2",
+  "A 601 35.0 20.0",
+  "A 606 35.0 20.0",
+  "A 607 35.0 20.0"
+ ],
+ "tags": [
+  "2d",
+  "nhflow",
+  "semi_implicit",
+  "wetdry",
+  "turbulence",
+  "tide",
+  "tracer"
+ ],
+ "covers": [
+  "nhflow_tracer_SI: consistency with the continuity of the layers"
+ ]
+}

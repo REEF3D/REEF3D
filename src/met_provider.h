@@ -36,7 +36,8 @@ REEF3D atmospheric forcing (W 200): the met provider of the rank.
 
 One provider per process, shared by all grids of the rank (level 0, the
 refined patches, the blocks): it owns the source (W 200 1 uniform,
-W 200 2 met file), the model start time and the frame, and advances the
+W 200 2 met file, W 200 3 vortex, W 200 4 blend of a background, a
+nest and a vortex), the model start time and the frame, and advances the
 source once per model time. Every grid has its own met_forcing with the
 fields of its cells; it registers the box of its cells (window) and
 evaluates the source per cell (at).

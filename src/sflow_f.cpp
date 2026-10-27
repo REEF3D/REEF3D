@@ -242,6 +242,9 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
     
 	}
 
+	// the maxima of the run (P 112, P 115)
+	pprint->finish(p,b,pgc);
+
 	// a checkpoint at the end of the run (P 48): it can be continued with a later end (I 45 1)
 	ckpt(p,b,pgc).finish();
 

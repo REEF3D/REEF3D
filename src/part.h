@@ -91,6 +91,12 @@ public:
     // (merge and split, Q 78); 1 for a parcel that was never merged
     double *Wt;
 
+    // the parcel's number, the same over the outputs (its path in LAGOON): given at the output after the
+    // parcel came about (number), carried along to other ranks; 0 while it has none. Not in the checkpoints:
+    // after a restart the parcels are numbered again
+    double *ID;
+    void number(lexer*);
+
     int *Empty,*Flag;
 
     double d50,rhosed;
@@ -105,6 +111,8 @@ public:
 
     int n,q;
 private:
+    double id_next = 0.0;   // ID = 1 + rank + ranks * id_next: unique over the ranks
+
     int sendnum[6],recvnum[6];
     int sendcount[6],recvcount[6];
     int **sendid;

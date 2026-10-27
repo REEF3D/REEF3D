@@ -390,8 +390,8 @@ void printer_nhflow::print(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbulen
 
         SLICELOOP4
         {
-            if(d->breaking(i,j)==1)
-                d->breaking_print(i,j)=1.0;
+            if(d->breaking(i,j)>=1)
+                d->breaking_print(i,j)=double(d->breaking(i,j));
             else if(d->breaking(i,j)==0)
                 d->breaking_print(i,j)=0.0;
         }
@@ -487,6 +487,14 @@ void printer_nhflow::print(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbulen
                 ++n;
             }
 
+            // tracers (A 600): salinity, temperature
+            for(int tr=0; tr<2; ++tr)
+            if((tr==0 ? d->SALT : d->TEMP)!=nullptr)
+            {
+                offset[n]=offset[n-1]+sizeof(float)*p->pointnum+sizeof(int);
+                ++n;
+            }
+
             // floating
             if(p->P28==1)
             {
@@ -563,6 +571,13 @@ void printer_nhflow::print(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbulen
         if(p->P26==1)
         {
             result<<"<DataArray type=\"Float32\" Name=\"ST_conc\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
+            ++n;
+        }
+
+        for(int tr=0; tr<2; ++tr)
+        if((tr==0 ? d->SALT : d->TEMP)!=nullptr)
+        {
+            result<<"<DataArray type=\"Float32\" Name=\""<<(tr==0 ? "salinity" : "temperature")<<"\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
             ++n;
         }
 
@@ -804,6 +819,32 @@ void printer_nhflow::print(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbulen
                 else if(p->j_dir==1)
                     ffn=float(0.125*(d->CONC[IJK]+d->CONC[Ip1JK]+d->CONC[IJp1K]+d->CONC[Ip1Jp1K]
                                 +  d->CONC[IJKp1]+d->CONC[Ip1JKp1]+d->CONC[IJp1Kp1]+d->CONC[Ip1Jp1Kp1]));
+
+                std::memcpy(&buffer[file_offset],&ffn,sizeof(float));
+                file_offset+=sizeof(float);
+            }
+        }
+
+        //  tracers (A 600)
+        for(int tr=0; tr<2; ++tr)
+        if((tr==0 ? d->SALT : d->TEMP)!=nullptr)
+        {
+            const double *C = tr==0 ? d->SALT : d->TEMP;
+            iin=sizeof(float)*p->pointnum;
+            std::memcpy(&buffer[file_offset],&iin,sizeof(int));
+            file_offset+=sizeof(int);
+            TPLOOP
+            {
+                if(p->j_dir==0)
+                {
+                    jj=j;
+                    j=0;
+                    ffn=float(0.25*(C[IJK]+C[Ip1JK]+C[IJKp1]+C[Ip1JKp1]));
+                    j=jj;
+                }
+                else if(p->j_dir==1)
+                    ffn=float(0.125*(C[IJK]+C[Ip1JK]+C[IJp1K]+C[Ip1Jp1K]
+                                +  C[IJKp1]+C[Ip1JKp1]+C[IJp1Kp1]+C[Ip1Jp1Kp1]));
 
                 std::memcpy(&buffer[file_offset],&ffn,sizeof(float));
                 file_offset+=sizeof(float);

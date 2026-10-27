@@ -70,12 +70,15 @@ void seastate_coupling::ini_wave(lexer *p, ghostcell *pgc, const char *host)
     pwave->printer()->add_field("MStx",&Mx);
     pwave->printer()->add_field("MSty",&My);
 
-    // net source terms without wind input for the vortex-force dissipation term
-    // (with the roller, the roller dissipation replaces the breaking dissipation)
+    // net source terms for the vortex-force dissipation term (with the roller, the roller dissipation replaces the
+    // breaking dissipation). The wind input enters when the host gets the full wind stress (met forcing W 200,
+    // NHFLOW wind A 570): the momentum the wind gives to the waves is then taken off the mean flow (the
+    // wave-supported stress) and comes back through the dissipation, else a growing wind sea counts it twice;
+    // without a wind stress on the host it stays out (the waves hand over only what they lose)
     if(p->A751==2 && pwave->source()!=nullptr)
     {
     seastate_source_param prm = pwave->source()->param();
-    prm.wind = false;
+    prm.wind = prm.wind && (p->W200>0 || p->A570>0);
 
     if(pwave->roller()!=nullptr)
     prm.breaking = false;
@@ -248,7 +251,13 @@ void seastate_coupling::forces(lexer *p, ghostcell *pgc, slice &U, slice &V)
     const double d  = e->depth(i,j);
 
         if(vf && pnet!=nullptr)
+        {
+            // the wind of the cell (met forcing)
+            if(pnet->param().wind && pwave->wind_speed()!=nullptr)
+            pnet->set_wind((*pwave->wind_speed())(i,j),(*pwave->wind_direction())(i,j));
+
         pnet->compute(N,d,kc,cc,P.data(),D.data());
+        }
 
         for(int l=0; l<g.nsig; ++l)
         {

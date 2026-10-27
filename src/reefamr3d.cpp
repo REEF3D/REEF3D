@@ -21,6 +21,7 @@ Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"reefamr3d.h"
+#include"reef3d_mpmd.h"
 #include"patchBC_codes.h"
 #include"lexer.h"
 #include"ghostcell.h"
@@ -206,7 +207,7 @@ void reefamr3d::cplan_build(r3cplan &X, bool down, vector<vector<int>> &items)
     vector<int> scnt(nranks,0), rcnt(nranks,0);
     for(int r=0; r<nranks; ++r)
     scnt[r] = (int)items[r].size()/6;
-    MPI_Alltoall(scnt.data(),1,MPI_INT,rcnt.data(),1,MPI_INT,MPI_COMM_WORLD);
+    MPI_Alltoall(scnt.data(),1,MPI_INT,rcnt.data(),1,MPI_INT,reef3d_comm());
 
     // the far side: the level-0 cells and tags of the items of every peer
     vector<int> sc4(nranks), sd4(nranks), rc4(nranks), rd4(nranks);
@@ -221,7 +222,7 @@ void reefamr3d::cplan_build(r3cplan &X, bool down, vector<vector<int>> &items)
     for(int q=0; q<scnt[r]; ++q)
     for(int e=0; e<4; ++e)
     sb[sd4[r]+4*q+e] = items[r][6*q+2+e];
-    MPI_Alltoallv(sb.data(),sc4.data(),sd4.data(),MPI_INT,rb.data(),rc4.data(),rd4.data(),MPI_INT,MPI_COMM_WORLD);
+    MPI_Alltoallv(sb.data(),sc4.data(),sd4.data(),MPI_INT,rb.data(),rc4.data(),rd4.data(),MPI_INT,reef3d_comm());
 
     for(int r=0; r<nranks; ++r)
     {
@@ -297,7 +298,7 @@ void reefamr3d::setup_base(lexer *p, ghostcell *pgc)
     rbox.assign(6*nranks,0);
     {
         int mine[6] = {org[0],org[1],org[2],kn0[0],kn0[1],kn0[2]};
-        MPI_Allgather(mine,6,MPI_INT,&rbox[0],6,MPI_INT,MPI_COMM_WORLD);
+        MPI_Allgather(mine,6,MPI_INT,&rbox[0],6,MPI_INT,reef3d_comm());
     }
 
     for(int d=0; d<3; ++d)
@@ -579,7 +580,7 @@ void reefamr3d::fetch_raw(const vector<int> &ids)
         vector<int> sc(nranks), rc(nranks), sd(nranks), rd(nranks);
         for(int r=0; r<nranks; ++r)
         sc[r] = (int)req[r].size();
-        MPI_Alltoall(sc.data(),1,MPI_INT,rc.data(),1,MPI_INT,MPI_COMM_WORLD);
+        MPI_Alltoall(sc.data(),1,MPI_INT,rc.data(),1,MPI_INT,reef3d_comm());
         int ns=0, nr=0;
         for(int r=0; r<nranks; ++r)
         {
@@ -589,7 +590,7 @@ void reefamr3d::fetch_raw(const vector<int> &ids)
         vector<int> sb(ns+1), rb(nr+1);
         for(int r=0; r<nranks; ++r)
         std::copy(req[r].begin(),req[r].end(),sb.begin()+sd[r]);
-        MPI_Alltoallv(sb.data(),sc.data(),sd.data(),MPI_INT,rb.data(),rc.data(),rd.data(),MPI_INT,MPI_COMM_WORLD);
+        MPI_Alltoallv(sb.data(),sc.data(),sd.data(),MPI_INT,rb.data(),rc.data(),rd.data(),MPI_INT,reef3d_comm());
 
         vector<double> ab((size_t)(nr/sin)*sout+1);
         for(int q=0; q<nr/sin; ++q)
@@ -602,7 +603,7 @@ void reefamr3d::fetch_raw(const vector<int> &ids)
             bc[r] = sc[r]/sin*sout; bd[r] = sd[r]/sin*sout;
         }
         vector<double> bb((size_t)(ns/sin)*sout+1);
-        MPI_Alltoallv(ab.data(),ac.data(),ad.data(),MPI_DOUBLE,bb.data(),bc.data(),bd.data(),MPI_DOUBLE,MPI_COMM_WORLD);
+        MPI_Alltoallv(ab.data(),ac.data(),ad.data(),MPI_DOUBLE,bb.data(),bc.data(),bd.data(),MPI_DOUBLE,reef3d_comm());
         ans.assign(nranks,vector<double>());
         for(int r=0; r<nranks; ++r)
         ans[r].assign(bb.begin()+bd[r],bb.begin()+bd[r]+bc[r]);
@@ -748,7 +749,7 @@ void reefamr3d::global_nodes()
         v[org[d]+i+marge] = xn[d][i+marge];
 
         gx[d].assign(nn,0.0);
-        MPI_Allreduce(&v[0],&gx[d][0],nn,MPI_DOUBLE,MPI_MAX,MPI_COMM_WORLD);
+        MPI_Allreduce(&v[0],&gx[d][0],nn,MPI_DOUBLE,MPI_MAX,reef3d_comm());
     }
 }
 
@@ -895,7 +896,7 @@ void reefamr3d::mark_tiles(const vector<vector<unsigned char>> *seed)
         if(f>=0)
         ioface[f] = 1;
     }
-    MPI_Allreduce(MPI_IN_PLACE,ioface,6,MPI_INT,MPI_MAX,MPI_COMM_WORLD);
+    MPI_Allreduce(MPI_IN_PLACE,ioface,6,MPI_INT,MPI_MAX,reef3d_comm());
     auto io_near = [&](int l, int ti, int tj, int tk) -> bool
     {
         const int t[3] = {ti,tj,tk};
@@ -919,7 +920,7 @@ void reefamr3d::mark_tiles(const vector<vector<unsigned char>> *seed)
         for(int n=0; n<p0->gcb4_count; ++n)
         if(patch_bc(p0->gcb4[n][4]))
         any = 1;
-        MPI_Allreduce(MPI_IN_PLACE,&any,1,MPI_INT,MPI_MAX,MPI_COMM_WORLD);
+        MPI_Allreduce(MPI_IN_PLACE,&any,1,MPI_INT,MPI_MAX,reef3d_comm());
         for(int l=1; l<=maxlev && any; ++l)
         {
             pbc[l].assign((size_t)tn[l][0]*tn[l][1]*tn[l][2],0);
@@ -940,7 +941,7 @@ void reefamr3d::mark_tiles(const vector<vector<unsigned char>> *seed)
                 for(int tk=a[2]; tk<=b[2]; ++tk)
                 pbc[l][((size_t)ti*tn[l][1] + tj)*tn[l][2] + tk] = 1;
             }
-            MPI_Allreduce(MPI_IN_PLACE,&pbc[l][0],(int)pbc[l].size(),MPI_CHAR,MPI_MAX,MPI_COMM_WORLD);
+            MPI_Allreduce(MPI_IN_PLACE,&pbc[l][0],(int)pbc[l].size(),MPI_CHAR,MPI_MAX,reef3d_comm());
         }
     }
 
@@ -2372,7 +2373,7 @@ void reefamr3d::plans()
         for(int r=0; r<nranks; ++r)
         X.rcnt[r] = (int)req[r].size()/4;
 
-        MPI_Alltoall(&X.rcnt[0],1,MPI_INT,&X.scnt[0],1,MPI_INT,MPI_COMM_WORLD);
+        MPI_Alltoall(&X.rcnt[0],1,MPI_INT,&X.scnt[0],1,MPI_INT,reef3d_comm());
 
         X.rdsp.assign(nranks,0);
         X.sdsp.assign(nranks,0);
@@ -2393,7 +2394,7 @@ void reefamr3d::plans()
             c4[r] = 4*X.rcnt[r]; d4[r] = 4*X.rdsp[r];
             c4r[r] = 4*X.scnt[r]; d4r[r] = 4*X.sdsp[r];
         }
-        MPI_Alltoallv(sreq.empty()?nullptr:&sreq[0],&c4[0],&d4[0],MPI_INT,&rreq[0],&c4r[0],&d4r[0],MPI_INT,MPI_COMM_WORLD);
+        MPI_Alltoallv(sreq.empty()?nullptr:&sreq[0],&c4[0],&d4[0],MPI_INT,&rreq[0],&c4r[0],&d4r[0],MPI_INT,reef3d_comm());
 
         X.serve.resize(X.nsend);
         for(int q=0; q<X.nsend; ++q)
@@ -2443,5 +2444,5 @@ void reefamr3d::xrun(r3xplan &X, int nv)
     }
     double dummy = 0.0;
     MPI_Alltoallv(X.sbuf.empty()?&dummy:&X.sbuf[0],&sc[0],&sd[0],MPI_DOUBLE,
-                  X.rbuf.empty()?&dummy:&X.rbuf[0],&rc[0],&rd[0],MPI_DOUBLE,MPI_COMM_WORLD);
+                  X.rbuf.empty()?&dummy:&X.rbuf[0],&rc[0],&rd[0],MPI_DOUBLE,reef3d_comm());
 }

@@ -42,6 +42,7 @@ Author: Hans Bihs
 #include"wave_lib_irregular_2nd_a.h"
 #include"wave_lib_irregular_2nd_b.h"
 #include"wave_lib_hdc.h"
+#include"wave_lib_fnpf_couple.h"
 #include"wave_lib_ssgw.h"
 #include"wave_field.h"
 #include"lexer.h"
@@ -133,6 +134,10 @@ wave_lib* wave_lib_create(lexer *p, ghostcell *pgc, int wtype)
     
     if(wtype==61)
     pwave = new wave_lib_hdc(p,pgc);
+    
+    // FNPF model in the same MPI job (reefcouple)
+    if(wtype==62)
+    pwave = new wave_lib_fnpf_couple(p,pgc);
     
     if(wtype==70)
     pwave = new wave_lib_ssgw(p,pgc);

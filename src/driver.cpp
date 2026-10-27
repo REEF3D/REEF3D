@@ -35,6 +35,7 @@ Author: Hans Bihs
 #include"seastate_f.h"
 #include"met_provider.h"
 #include"cfd_amr.h"
+#include"reefcouple.h"
 #include"coral/reef3d/coral_reef3d.h"
 #include"coral/reef3d/coral_fluid_sampler.h"
 
@@ -56,6 +57,10 @@ driver::driver(int& argc, char **argv)
     pgc->mpi_check(p);
     
 	p->lexer_read(pgc);
+    
+    // coupled run (several models in one MPI job): roles and intercommunicators
+    reefcouple::roles(p,pgc);
+    
     p->vellast();
 
     // I 45 <count>: the restart from REEF3D_Checkpoint/<count> instead of the latest

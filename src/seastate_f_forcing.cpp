@@ -26,6 +26,7 @@ Architect: Hans Bihs
 #include"fdm_seastate.h"
 #include"seastate_grid.h"
 #include"seastate_forcing.h"
+#include"met_provider.h"
 #include"seastate_param.h"
 #include"slice4.h"
 #include"lexer.h"
@@ -38,7 +39,11 @@ Architect: Hans Bihs
 
 /*--------------------------------------------------------------------
 External forcing (A 711 3, A 730 2), see seastate_f.h and
-seastate_forcing.h.
+seastate_forcing.h. The wind field (A 730 2) is that of the REEF3D met
+forcing W 200 (met_provider: uniform W 201, met-forcing.r3m, the vortex
+met-vortex.trk, the blend W 220-227), the same as the surge of a coupled
+SFLOW/NHFLOW run; the 10 m wind at the cell centres, not ramped (W 204
+ramps the surface stress of the hydrodynamics only).
 --------------------------------------------------------------------*/
 
 namespace
@@ -90,13 +95,25 @@ void seastate_f::forcing_ini(lexer *p, ghostcell *pgc)
 
     if(p->A730==2)
     {
-    wser = new seastate_wind_series;
+    wmet = met_provider::get(p,pgc);
 
-        if(!wser->open("seastate-wind.dat",err))
-        stop(p,pgc,"A 730 2: "+err);
+    // the box of the cell centres incl. the ghost cells: the part of the met file the rank reads (the patches of
+    // the mesh refinement lie inside)
+    double xs = 1.0e300, xe = -1.0e300, ys = 1.0e300, ye = -1.0e300;
 
-    if(tfirst<0.0)
-    tfirst = wser->time(0);
+        IMALOOP
+        {
+        xs = std::min(xs,p->XP[IP]);
+        xe = std::max(xe,p->XP[IP]);
+        }
+
+        JMALOOP
+        {
+        ys = std::min(ys,p->YP[JP]);
+        ye = std::max(ye,p->YP[JP]);
+        }
+
+    wmet->window(xs,xe,ys,ye);
 
     wU10 = new slice4(p);
     wdir = new slice4(p);
@@ -104,11 +121,22 @@ void seastate_f::forcing_ini(lexer *p, ghostcell *pgc)
     wUy  = new slice4(p);
     }
 
+    // model time 0: A 780, the first time of the files; with the met forcing that of W 200 (W 203), checked against A 780
     tref = (p->A780>0.0) ? seastate_datetime(p->A780) : std::max(tfirst,0.0);
+
+    // (a uniform wind W 200 1 without W 203 has no date: the files keep theirs)
+    if(wmet!=nullptr && (p->W200>=2 || p->W203>0.0))
+    {
+        if(p->A780>0.0 && std::fabs(seastate_datetime(p->A780) - wmet->tref)>0.5)
+        stop(p,pgc,"A 780 and the met forcing W 200: model time 0 differs ("+date(seastate_datetime(p->A780))+" against "+date(wmet->tref)
+                   +"); set W 203 to the date-time of A 780 or leave A 780 at 0");
+
+    tref = wmet->tref;
+    }
 
     if(p->mpirank==0)
     {
-    cout<<"SEASTATE forcing: model time 0 = "<<date(tref)<<(p->A780>0.0 ? " (A 780)" : " (first time in the files)")<<endl;
+    cout<<"SEASTATE forcing: model time 0 = "<<date(tref)<<((wmet!=nullptr && (p->W200>=2 || p->W203>0.0)) ? " (the met forcing W 200)" : (p->A780>0.0 ? " (A 780)" : " (first time in the files)"))<<endl;
 
         if(bser!=nullptr)
         {
@@ -120,9 +148,8 @@ void seastate_f::forcing_ini(lexer *p, ghostcell *pgc)
         cout<<"first record "<<date(bser->time(0))<<endl;
         }
 
-        if(wser!=nullptr)
-        cout<<"  seastate-wind.dat: "<<wser->nx<<" x "<<wser->ny<<" nodes from ("<<wser->x0<<", "<<wser->y0<<") m, spacing "<<wser->dx<<" x "<<wser->dy
-            <<" m, first record "<<date(wser->time(0))<<endl;
+        if(wmet!=nullptr)
+        cout<<"  wind: the met forcing W 200 "<<p->W200<<" (A 730 2), not ramped"<<endl;
     }
 }
 
@@ -233,16 +260,16 @@ void seastate_f::forcing_update(lexer *p, ghostcell *pgc, double t)
         }
     }
 
-    if(wser!=nullptr)
+    if(wmet!=nullptr)
     {
-        if(!wser->advance(tf,err))
-        stop(p,pgc,"A 730 2: "+err);
+    // model time t of the met forcing (its own model time 0 = tref of SEASTATE)
+    wmet->update(p,pgc,t);
 
         IMALOOP
         JMALOOP
         {
-        double u, v;
-        wser->at(tf,p->XP[IP],p->YP[JP],u,v);
+        double u, v, pa;
+        wmet->at(p->XP[IP],p->YP[JP],u,v,pa);
 
         (*wUx)(i,j)  = u;
         (*wUy)(i,j)  = v;

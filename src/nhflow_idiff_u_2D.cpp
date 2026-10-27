@@ -70,15 +70,18 @@ void nhflow_idiff_2D::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow
             visc_IP = d->VISC[IJK] + d->EV[IJK];
             visc_IPh = d->VISC[IJK] + EVh[IJK];
             
-            visc_IM1 = 0.5*(visc_IPh + d->VISC[Im1JK] + EVh[Im1JK] + d->vb(i-1,j));
-            visc_IP1 = 0.5*(visc_IPh + d->VISC[Ip1JK] + EVh[Ip1JK] + d->vb(i+1,j));
+            visc_IM1 = 0.5*(visc_IPh + d->VISC[Im1JK] + EVh[Im1JK]);
+            visc_IP1 = 0.5*(visc_IPh + d->VISC[Ip1JK] + EVh[Ip1JK]);
             
-            visc_KM1 = 0.5*(visc_IP + d->VISC[IJKm1] + d->EV[IJKm1] + d->vb(i,j));
-            visc_KP1 = 0.5*(visc_IP + d->VISC[IJKp1] + d->EV[IJKp1] + d->vb(i,j));
+            visc_KM1 = 0.5*(visc_IP + d->VISC[IJKm1] + d->EV[IJKm1]);
+            visc_KP1 = 0.5*(visc_IP + d->VISC[IJKp1] + d->EV[IJKp1]);
             
-            visc_KM1h = 0.5*(visc_IPh + d->VISC[IJKm1] + EVh[IJKm1] + d->vb(i,j));
-            visc_KP1h = 0.5*(visc_IPh + d->VISC[IJKp1] + EVh[IJKp1] + d->vb(i,j));
+            visc_KM1h = 0.5*(visc_IPh + d->VISC[IJKm1] + EVh[IJKm1]);
+            visc_KP1h = 0.5*(visc_IPh + d->VISC[IJKp1] + EVh[IJKp1]);
             
+            // breaking viscosity vb (A 550 1): top layer only, face values the mean of the two cells,
+            // so that both cells of a face use the same coefficient; the face to the layer below takes vb/2
+            // from both sides (k = knoz-1 and k = knoz-2)
             if(k==p->knoz-1)
             {
             visc_IP +=  d->vb(i,j);
@@ -87,10 +90,16 @@ void nhflow_idiff_2D::diff_u(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow
             visc_IM1 += 0.5*(d->vb(i,j) + d->vb(i-1,j));
             visc_IP1 += 0.5*(d->vb(i,j) + d->vb(i+1,j));
             
-            visc_KM1 += d->vb(i,j);
+            visc_KM1 += 0.5*d->vb(i,j);
             visc_KP1 += d->vb(i,j);
-            visc_KM1h += d->vb(i,j);
+            visc_KM1h += 0.5*d->vb(i,j);
             visc_KP1h += d->vb(i,j);
+            }
+            
+            if(k==p->knoz-2)
+            {
+            visc_KP1 += 0.5*d->vb(i,j);
+            visc_KP1h += 0.5*d->vb(i,j);
             }
             
             // vertical coefficient at the faces k-1/2 (FIJK) and k+1/2 (FIJKp1)

@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"wave_lib_spectrum.h"
+#include"reef3d_mpmd.h"
 #include"lexer.h"
 #include"ghostcell.h"
 #include<iostream>
@@ -184,7 +185,7 @@ void wave_lib_spectrum::spectrum_file_2d_read(lexer *p)
 		temp_vals[0] = ptnum_freq_2d;
 		temp_vals[1] = ptnum_dir_2d;
 	}
-	MPI_Bcast(temp_vals, 2, MPI_INT, 0, MPI_COMM_WORLD);
+	MPI_Bcast(temp_vals, 2, MPI_INT, 0, reef3d_comm());
 	ptnum_freq_2d = temp_vals[0];
 	ptnum_dir_2d = temp_vals[1];
 
@@ -234,7 +235,7 @@ void wave_lib_spectrum::spectrum_file_2d_read(lexer *p)
 	}
 
 	// MPI: Broadcast all data arrays from rank 0 to all other ranks
-	MPI_Bcast(freq_2d, ptnum_freq_2d, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-	MPI_Bcast(dir_2d, ptnum_dir_2d, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-	MPI_Bcast(spectrum_2d_1d, ptnum_freq_2d * ptnum_dir_2d, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+	MPI_Bcast(freq_2d, ptnum_freq_2d, MPI_DOUBLE, 0, reef3d_comm());
+	MPI_Bcast(dir_2d, ptnum_dir_2d, MPI_DOUBLE, 0, reef3d_comm());
+	MPI_Bcast(spectrum_2d_1d, ptnum_freq_2d * ptnum_dir_2d, MPI_DOUBLE, 0, reef3d_comm());
 }

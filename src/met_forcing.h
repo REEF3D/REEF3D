@@ -50,7 +50,10 @@ once per time step at the model time of the start of the step:
              rho_a = W 3, rho_w = W 1
   Gx, Gy     kinematic air pressure gradient r (dPa/dx, dPa/dy)/rho_w (W 208 1),
              central differences of the cell values
-  Fc         Coriolis parameter f [1/s] (W 211; constant in time)
+  Fc         Coriolis parameter f [1/s] (W 211; constant in time); on
+             curvilinear grids (G 50) from the physical cell centres
+             XC2D, YC2D (the velocities there are Cartesian components,
+             so f k x u needs no further rotation)
 
 Momentum sources of the conserved variables (wet cells):
   SFLOW   d(UH)/dt += Tx - WL Gx + f VH,   d(VH)/dt += Ty - WL Gy - f UH

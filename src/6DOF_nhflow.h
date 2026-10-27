@@ -40,6 +40,10 @@ using namespace std;
 class sixdof_nhflow final : public sixdof, public increment
 {
 public:
+    // runtime coupling (reefcouple, I 243): state of the bodies
+    int body_count() const override {return int(fb_obj.size());}
+    void body_state(int, double*) const override;
+    
 	
     sixdof_nhflow(lexer*, ghostcell*);
     virtual ~sixdof_nhflow();

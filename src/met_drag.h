@@ -39,14 +39,15 @@ W 207  1  Garratt (1977), capped at 3.5e-3 above 41 m/s (as A 570 1)
        6  Zijlema et al. (2012), beyond its peak (2.03e-3 at 31.4 m/s)
           not below W 214 (default 1.5e-3): the decline of Powell et
           al. (2003) without the unphysical zero at 68 m/s
-W 207 0 (default): 1 for W 200 1/2 (as before), 5 for the vortex.
+W 207 0 (default): 1 for W 200 1/2 (as before), 5 for the vortex and the
+          blend (W 200 3, 4).
 
 Laws 1-4 are those of wind_f (A 570), evaluated per cell with the local
 wind speed.
 --------------------------------------------------------------------*/
 
 // the law of W 207 (0: auto)
-inline int met_drag_law(int W207, int W200) {return W207>0 ? W207 : (W200==3 ? 5 : 1);}
+inline int met_drag_law(int W207, int W200) {return W207>0 ? W207 : (W200>=3 ? 5 : 1);}
 
 inline double met_drag(int law, double U, double cap=2.5e-3, double floor=1.5e-3)
 {

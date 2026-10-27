@@ -81,8 +81,11 @@ TEXT_OUTPUT_GLOBS = [
     "REEF3D_NHFLOW_WSFLINE/*.dat",
     "REEF3D_NHFLOW_6DOF/*.dat",
     "REEF3D_NHFLOW_AMR/*.dat",
+    "REEF3D_NHFLOW_Tidal/*.vts",        # long-run statistics (P 160): the maps (their value rows)
+    "REEF3D_NHFLOW_Tidal/*.txt",
     "REEF3D_NHFLOW_Particles/*.dat",
     "REEF3D_NHFLOW_Boom/*.dat",
+    "REEF3D_NHFLOW_Log/REEF3D_NHFLOW_tracer*.dat",   # tracers (A 600): log and gauges
     "REEF3D_DEM/*.dat",
     "REEF3D_SFLOW_AMR/*.dat",
     "REEF3D_FNPF_AMR/*.dat",
@@ -94,6 +97,7 @@ TEXT_OUTPUT_GLOBS = [
     "REEF3D_SFLOW_ProbePoint/*.dat",
     "REEF3D_SFLOW_WSFLINE/*.dat",
     "REEF3D_SFLOW_6DOF/*.dat",
+    "REEF3D_SFLOW_MAX/*.dat",
     "REEF3D_SEASTATE_Log/*.dat",
     "REEF3D_SEASTATE_Spectra/*.dat",
     "REEF3D_CORAL/*.dat",
@@ -513,16 +517,28 @@ def compare_steps(ref_dir, new_dir, rtol):
 
 
 NUM = re.compile(r"^[-+]?(\d+\.?\d*|\.\d+)([eE][-+]?\d+)?$")
+NUM_NAN = re.compile(r"^[-+]?(\d+\.?\d*|\.\d+)([eE][-+]?\d+)?$|^nan$")
+
+# tables with values that may not exist ("nan": the maxima P 115, a point never wet or outside the domain): nan is
+# compared as this number (equal when both are missing, different from any value); in other tables a row with a
+# word that is not a number is not compared, as before
+NAN_TABLES = ("REEF3D_SFLOW_MAX",)
+NAN_AS = -9999.0
+
+
+def number(x):
+    return NAN_AS if x == "nan" else float(x)
 
 
 def read_numeric_table(path):
     rows = []
     drop = MEASURED_COLUMNS.get(os.path.basename(path), [])
     skip = set()
+    num = NUM_NAN if any(k in path for k in NAN_TABLES) else NUM
     with open(path, errors="replace") as f:
         for l in f:
             t = l.split()
-            vals = [float(x) for x in t if NUM.match(x)]
+            vals = [number(x) for x in t if num.match(x)]
             if vals and len(vals) == len(t):
                 rows.append([v for k, v in enumerate(vals) if k not in skip])
             elif drop and t and not skip:

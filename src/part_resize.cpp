@@ -55,6 +55,7 @@ void part::resize(lexer *p, int capacity_new)
         p->Dresize(Test,capacity,capacity_new);
         p->Dresize(Hop,capacity,capacity_new);
         p->Dresize(Wt,capacity,capacity_new);
+        p->Dresize(ID,capacity,capacity_new);
 
         p->Iresize(Flag,capacity,capacity_new);
         p->Iresize(Empty,capacity,capacity_new);
@@ -65,6 +66,7 @@ void part::resize(lexer *p, int capacity_new)
         {
             Flag[n] = EMPTY;
             Wt[n] = 1.0;
+            ID[n] = 0.0;
 
             Empty[index_empty] = n;
             ++index_empty;

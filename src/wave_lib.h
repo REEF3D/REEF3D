@@ -129,6 +129,9 @@ public:
     virtual int wave_ncomp() const {return 0;}
     virtual void wave_comp(int n, double &k, double &omega, double &sigma, double &beta, double &af) const {}
     virtual double wave_depth0() const {return 0.0;}
+    // propagation direction (rad, in the wave frame of B 105) of the decomposed component n (B 89 /
+    // I 30 2); 0 for unidirectional waves
+    virtual double wave_comp_dir(int n) const {return 0.0;}
     virtual double wave_depth() const {return 0.0;}
     virtual void wave_comp_set(int n, double k, double sigma, double af) {}
     virtual void wave_depth_set(double h) {}

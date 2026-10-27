@@ -654,11 +654,17 @@ void nhflow_amr::breaking_patches(ghostcell *pgc)
 {
     for(int part=0; part<3; ++part)
     {
+        // multi-block: level 0 first (block 0, the blocks 1.., their exchange)
+        if(brk0)
+        breaking_level0(pgc,part);
+
         {
         comms_off guard(pgc);
         for(int n=0; n<(int)P.size(); ++n)
         {
             nhflow_amr_patch *c = NP(n);
+            if(brk0 && c->lev==0)
+            continue;
             nhflow_breaking *b = dynamic_cast<nhflow_breaking*>(c->pmom);
             if(b==nullptr)
             continue;
@@ -669,6 +675,107 @@ void nhflow_amr::breaking_patches(ghostcell *pgc)
 
         for(int l=1; l<=maxlev; ++l)
         brk_exchange(l,part);
+    }
+}
+
+// --------------------------------------------------------------------- breaking on a multi-block grid
+// A 550 1 with G 50 1: part 'part' (0 detection, 1 flags, 2 breaking viscosity; -1 all three in turn) of
+// nhflow_breaking on block 0 and the blocks 1.., then the ring of block 0 and the cells around the blocks
+// take the values of the cells they stand for (brk_exchange0).  The detection looks at most two cells
+// beyond a cell, the flags spread two cells and the viscosity is read one cell beyond by the diffusion:
+// the EXT = 3 cells around the blocks and the ring hold what one grid would have there.  (The filter of
+// A 552 runs on every block alone.)
+void nhflow_amr::breaking_level0(ghostcell *pgc, int part)
+{
+    const int p0s = (part<0) ? 0 : part;
+    const int p1s = (part<0) ? 2 : part;
+
+    for(int q=p0s; q<=p1s; ++q)
+    {
+        if(nhflow_breaking *b = dynamic_cast<nhflow_breaking*>(mom0))
+        b->breaking_part(p0,d0,pgc,q);
+
+        {
+        comms_off guard(pgc);
+        for(int id : lev[0])
+        {
+            nhflow_amr_patch *c = NP(id);
+            nhflow_breaking *b = dynamic_cast<nhflow_breaking*>(c->pmom);
+            if(b==nullptr)
+            continue;
+            pscope ps(pgc,c->d,d0);
+            b->breaking_part(c->pp,c->d,pgc,q);
+        }
+        }
+
+        brk_exchange0(pgc,q);
+    }
+}
+
+// values of the ring of block 0 and of the cells around the blocks 1..: 0 detection (bx, by, bd), 1 flags,
+// 2 breaking viscosity; then the partition halos of block 0
+void nhflow_amr::brk_exchange0(ghostcell *pgc, int what)
+{
+    const int nv = (what==0) ? 3 : 1;
+    auto brk = [&](int g) { return dynamic_cast<nhflow_breaking*>(gmom(g)); };
+
+    auto put = [&](int g, const reefamr_fill &f, const double *w)
+    {
+        if(w[0]<0.0)
+        return;
+        nhflow_breaking *b = brk(g);
+        if(b==nullptr)
+        return;
+        if(what==0)
+        {
+            b->brk_bx()(f.di,f.dj) = (int)w[0];
+            b->brk_by()(f.di,f.dj) = (int)w[1];
+            b->brk_bd()(f.di,f.dj) = (int)w[2];
+        }
+        else if(what==1)
+        b->brk_flag()(f.di,f.dj) = (int)w[0];
+        else
+        gfd(g)->vb(f.di,f.dj) = w[0];
+    };
+
+    fill_run0(nv,7870+what,
+              [&](const reefamr_fill &f, double *v)
+              {
+                  nhflow_breaking *b = (f.kind==0) ? brk(f.g) : nullptr;
+                  if(b==nullptr)
+                  {
+                      for(int m=0; m<nv; ++m)
+                      v[m] = -1.0;
+                      return;
+                  }
+                  if(what==0)
+                  {
+                      v[0] = b->brk_bx()(f.si,f.sj);
+                      v[1] = b->brk_by()(f.si,f.sj);
+                      v[2] = b->brk_bd()(f.si,f.sj);
+                  }
+                  else if(what==1)
+                  v[0] = b->brk_flag()(f.si,f.sj);
+                  else
+                  v[0] = gfd(f.g)->vb(f.si,f.sj);
+              },
+              [&](reefamr_patch *q, int id, const reefamr_fill &f, const double *w) { put(id,f,w); },
+              [&](const reefamr_fill &f, const double *w) { put(-1,f,w); });
+
+    // the ring cells in the partition halos of block 0
+    if(p0->mpi_size>1)
+    if(nhflow_breaking *b = brk(-1))
+    {
+        if(what==0)
+        {
+            pgc->gcsl_start4int(p0,b->brk_bx(),50);
+            pgc->gcsl_start4int(p0,b->brk_by(),50);
+            pgc->gcsl_start4int(p0,b->brk_bd(),50);
+        }
+        else if(what==1)
+        pgc->gcsl_start4int(p0,b->brk_flag(),50);
+        else
+        pgc->gcsl_start4(p0,d0->vb,1);
     }
 }
 

@@ -1,4 +1,0 @@
-{"np": 1, "steps": 30,
- "description": "cfd_2d_heave_amr_adapt with subcycling (G 7 1): the patches follow the body (G 25 3, regrid every 2 steps), the finest level advances the body.",
- "tags": ["quick", "2d", "6dof", "floating", "levelset", "amr", "adaptive"],
- "covers": ["regrid with bodies advanced by the patches (the loads on the new patches)", "pr_sync_project after regrids"]}

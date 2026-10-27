@@ -21,6 +21,7 @@ Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"nhflow_amr.h"
+#include"reef3d_mpmd.h"
 #include"nhflow_amr_fill.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
@@ -479,7 +480,7 @@ void nhflow_amr::pr_prepare(ghostcell *pgc)
             }
             else
             if(sy==0 && nblk==0)
-            xz0on = xz0.factor_mpi(L,mg0->precision(),MPI_COMM_WORLD,p0->origin_i,p0->gknox);
+            xz0on = xz0.factor_mpi(L,mg0->precision(),reef3d_comm(),p0->origin_i,p0->gknox);
             if(!xz0on)
             mg0->coarsen();
             if(xz0on)
@@ -667,11 +668,11 @@ void nhflow_amr::cs_build(ghostcell *pgc)
     }
 
     int off = 0;
-    MPI_Exscan(&nloc,&off,1,MPI_INT,MPI_SUM,MPI_COMM_WORLD);
+    MPI_Exscan(&nloc,&off,1,MPI_INT,MPI_SUM,reef3d_comm());
     if(p0->mpirank==0)
     off = 0;
     int ntot = 0;
-    MPI_Allreduce(&nloc,&ntot,1,MPI_INT,MPI_SUM,MPI_COMM_WORLD);
+    MPI_Allreduce(&nloc,&ntot,1,MPI_INT,MPI_SUM,reef3d_comm());
     for(int g : grids)
     for(double &a : cs->agg[g+1])
     if(a>=0.0)
@@ -714,15 +715,15 @@ void nhflow_amr::cs_build(ghostcell *pgc)
     const int np = p0->mpi_size;
     int nt = int(tv.size());
     vector<int> cnt(np), dsp(np,0);
-    MPI_Allgather(&nt,1,MPI_INT,&cnt[0],1,MPI_INT,MPI_COMM_WORLD);
+    MPI_Allgather(&nt,1,MPI_INT,&cnt[0],1,MPI_INT,reef3d_comm());
     for(int r=1; r<np; ++r)
     dsp[r] = dsp[r-1] + cnt[r-1];
     const int nall = dsp[np-1] + cnt[np-1];
     vector<int> ai(MAX(nall,1)), aj(MAX(nall,1));
     vector<double> av(MAX(nall,1));
-    MPI_Allgatherv(ti.data(),nt,MPI_INT,&ai[0],&cnt[0],&dsp[0],MPI_INT,MPI_COMM_WORLD);
-    MPI_Allgatherv(tj.data(),nt,MPI_INT,&aj[0],&cnt[0],&dsp[0],MPI_INT,MPI_COMM_WORLD);
-    MPI_Allgatherv(tv.data(),nt,MPI_DOUBLE,&av[0],&cnt[0],&dsp[0],MPI_DOUBLE,MPI_COMM_WORLD);
+    MPI_Allgatherv(ti.data(),nt,MPI_INT,&ai[0],&cnt[0],&dsp[0],MPI_INT,reef3d_comm());
+    MPI_Allgatherv(tj.data(),nt,MPI_INT,&aj[0],&cnt[0],&dsp[0],MPI_INT,reef3d_comm());
+    MPI_Allgatherv(tv.data(),nt,MPI_DOUBLE,&av[0],&cnt[0],&dsp[0],MPI_DOUBLE,reef3d_comm());
 
     if(ntot==0)
     return;
@@ -763,7 +764,7 @@ void nhflow_amr::cs_correct(int kr, int kz)
         cs->rl[int(A[qq])] += r[qq];
     }
 
-    MPI_Allreduce(cs->rl.data(),cs->rc.data(),cs_n,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+    MPI_Allreduce(cs->rl.data(),cs->rc.data(),cs_n,MPI_DOUBLE,MPI_SUM,reef3d_comm());
 
     Eigen::Map<Eigen::VectorXd> rc(cs->rc.data(),cs_n);
     Eigen::VectorXd zc = cs->lu.solve(rc);

@@ -28,6 +28,7 @@ void part::remove(int n)
     Flag[n] = EMPTY;
     Hop[n] = 0.0;
     Wt[n] = 1.0;
+    ID[n] = 0.0;
 
     Empty[index_empty] = n;
     ++index_empty;

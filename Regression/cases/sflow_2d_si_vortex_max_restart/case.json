@@ -1,0 +1,29 @@
+{
+ "base": "sflow_2d_si_vortex_max_ckpt",
+ "same_as": "sflow_2d_si_vortex_max_ckpt",
+ "chain": [
+  {
+   "case": "sflow_2d_si_vortex_max_ckpt",
+   "copy": [
+    "REEF3D_Checkpoint",
+    "REEF3D_SFLOW_WSF",
+    "REEF3D_SFLOW_MAX"
+   ]
+  }
+ ],
+ "ctrl_set": {
+  "I 45": "30"
+ },
+ "description": "the restart of sflow_2d_si_vortex_max_ckpt from step 30 (I 45 30), after the start of the maxima (P 113 3600 s, step 12): regression.py ranks: the final state and the maxima (REEF3D-SFLOW-MAX-points.dat) bitwise those of the uninterrupted run.",
+ "tags": [
+  "2d",
+  "sflow",
+  "semi_implicit",
+  "mpi",
+  "maxima",
+  "checkpoint"
+ ],
+ "covers": [
+  "the bitwise restart of the maxima (P 112): the fields carried in the checkpoint"
+ ]
+}

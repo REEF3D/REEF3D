@@ -69,11 +69,16 @@ host's time scale.
            transport M enters the continuity:
              dWL/dt + div(WL u) = -div(M)
              F_i = -g sum S_N k_i                 (dissipation and
-                                                  nonlinear transfers,
-                                                  without wind input;
+                                                  nonlinear transfers;
                                                   with the roller the
                                                   roller dissipation
-                                                  instead of breaking)
+                                                  instead of breaking;
+                                                  the wind input only
+                                                  when the host gets
+                                                  the full wind stress,
+                                                  W 200 or A 570: minus
+                                                  the wave-supported
+                                                  stress)
                  + g sum N k sig/sinh(2kd) dd/dx_i (bottom slope)
                  - d/dx_i [g sum E (n - 1/2)]      (wave pressure)
                  + J_i - u_i div(M)                (vortex force)
@@ -83,7 +88,7 @@ host's time scale.
 
   M = g sum E k/sig + 2 g sum R/c (cos, sin)   wave and roller mass flux
   E = sig N dsig dtheta (m^2, per rho g), n = cg/c, S_N = P - D N of the
-  source terms (seastate_source, wind input switched off), R the roller
+  source terms (seastate_source, wind input as above), R the roller
   energy (seastate_roller, A 748). Spatial derivatives: central
   differences between wave-active cells, one-sided next to dry cells
   and at the domain edge.
@@ -132,7 +137,7 @@ protected:
     double ddy(lexer*, slice&, int, int);
 
     seastate_f *pwave;
-    seastate_source *pnet;      // net source terms without wind input (A 751 2)
+    seastate_source *pnet;      // net source terms of the dissipation force (A 751 2)
 
     slice4 Fw,Gw,divM;          // wave force [m^2/s^2] and div(M) [m/s]
     slice4 Sxx,Sxy,Syy;         // radiation stress / (rho) [m^3/s^2]

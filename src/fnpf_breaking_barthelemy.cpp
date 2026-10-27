@@ -50,6 +50,7 @@ Architect: Hans Bihs
 // Ting & Kirby plunging (dx 0.05): onset at x = 13.2-14.6 m each wave (measured breaking point 14.3 m).
 
 #include"fnpf_breaking.h"
+#include"reef3d_mpmd.h"
 #include"lexer.h"
 #include"fdm_fnpf.h"
 #include"ghostcell.h"
@@ -178,9 +179,9 @@ void fnpf_breaking::breaking_barthelemy(lexer *p, fdm_fnpf *c, ghostcell *pgc, s
     const int nv=6;
     int nloc = (int)loc.size();
     int nproc=1;
-    MPI_Comm_size(MPI_COMM_WORLD,&nproc);
+    MPI_Comm_size(reef3d_comm(),&nproc);
     std::vector<int> cnt(nproc), dsp(nproc);
-    MPI_Allgather(&nloc,1,MPI_INT,&cnt[0],1,MPI_INT,MPI_COMM_WORLD);
+    MPI_Allgather(&nloc,1,MPI_INT,&cnt[0],1,MPI_INT,reef3d_comm());
 
     int ntot=0;
     for(int q=0; q<nproc; ++q)
@@ -190,7 +191,7 @@ void fnpf_breaking::breaking_barthelemy(lexer *p, fdm_fnpf *c, ghostcell *pgc, s
     }
 
     std::vector<double> all(MAX(ntot,1));
-    MPI_Allgatherv(loc.data(),nloc,MPI_DOUBLE,&all[0],&cnt[0],&dsp[0],MPI_DOUBLE,MPI_COMM_WORLD);
+    MPI_Allgatherv(loc.data(),nloc,MPI_DOUBLE,&all[0],&cnt[0],&dsp[0],MPI_DOUBLE,reef3d_comm());
 
     struct ext {int row; int type; double x, eta, us, wl;};
     std::vector<ext> E;
@@ -410,8 +411,8 @@ void fnpf_breaking::breaking_barthelemy(lexer *p, fdm_fnpf *c, ghostcell *pgc, s
 
     if(nb>0)
     {
-        MPI_Allreduce(MPI_IN_PLACE,&I[0],nb,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
-        MPI_Allreduce(MPI_IN_PLACE,&smax[0],nb,MPI_DOUBLE,MPI_MAX,MPI_COMM_WORLD);
+        MPI_Allreduce(MPI_IN_PLACE,&I[0],nb,MPI_DOUBLE,MPI_SUM,reef3d_comm());
+        MPI_Allreduce(MPI_IN_PLACE,&smax[0],nb,MPI_DOUBLE,MPI_MAX,reef3d_comm());
     }
 
     const double slope_end = tan(p->A360*PI/180.0);

@@ -1,0 +1,8 @@
+{
+ "base": "nhflow_3d_si_mb_basin_wavy",
+ "description": "nhflow_3d_si_mb_basin_wavy refined 2x in each direction (4 wavy blocks of 80 x 40 cells): the uncut reference of nhflow_3d_si_mb_basin_tiles.",
+ "steps": 60,
+ "files": [
+  "blocks.dat"
+ ]
+}

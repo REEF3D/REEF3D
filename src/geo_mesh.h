@@ -106,6 +106,14 @@ public:
     // the piece that holds face f (0 -i, 1 +i, 2 -j, 3 +j) of block b of DIVEMesh whole; -1: cut across it
     int face_piece(int b, int f) const;
 
+    // G 56 a dz (geo_mesh_split.cpp): the load of a cell relative to a wet cell, a when its bed lies above the
+    // still water level + dz (F 60, else F 62 with F 65); without G 56 (a = 1) or a still water level every cell 1
+    static double load_level(const lexer*);
+    static bool load_weighted(const lexer*);
+    static double cell_load(const lexer*, double zb);
+    double blk_cell_load(const lexer*, int b, int ci, int cj) const;   // blocks 1..: the bed is the mean of the cell's nodes
+    double blk_load(const lexer*, int b) const;
+
 private:
     void allocate(int);
     void release();

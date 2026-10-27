@@ -49,8 +49,8 @@ void background_state::read(lexer *p)
         fail("B 510: background ids start at 1");
         if(index(p->B510_id[n])>=0)
         fail("background "+std::to_string(p->B510_id[n])+" defined twice in B 510");
-        if(p->B510_mode[n]<1 || p->B510_mode[n]>3)
-        fail("B 510 mode is 1 (harmonic), 2 (time series) or 3 (constant)");
+        if(p->B510_mode[n]<1 || p->B510_mode[n]>4)
+        fail("B 510 mode is 1 (harmonic), 2 (time series), 3 (constant) or 4 (time series at points)");
         
         item b;
         b.id = p->B510_id[n];
@@ -110,6 +110,8 @@ void background_state::read(lexer *p)
         fail("B 515 refers to background "+std::to_string(p->B515_id[n])+", which has no B 510");
         if(bg[b].mode==3)
         fail("B 515: background "+std::to_string(p->B515_id[n])+" is constant (B 510 mode 3), it does not travel");
+        if(bg[b].mode==4)
+        fail("B 515: background "+std::to_string(p->B515_id[n])+" is given at points (B 510 mode 4), it varies in space already");
         
         item &it = bg[b];
         it.prog = true;
@@ -173,16 +175,22 @@ void background_state::read(lexer *p)
             
             b.file_uv = (cols==4);
         }
+        
+        // time series at points: background-<id>.dat, "points N", N lines "x y", then the rows
+        if(b.mode==4)
+        read_points(b,"background-"+std::to_string(b.id)+".dat");
     }
     
     if(p->mpirank==0)
     for(const item &b : bg)
     {
-        std::cout<<"background "<<b.id<<": "<<(b.mode==1 ? "harmonic, " : b.mode==2 ? "time series, " : "constant, ");
+        std::cout<<"background "<<b.id<<": "<<(b.mode==1 ? "harmonic, " : b.mode==2 ? "time series, " : b.mode==4 ? "time series at points, " : "constant, ");
         if(b.mode==1)
         std::cout<<b.c.size()<<" constituents, ";
         if(b.mode==2)
         std::cout<<b.ft.size()<<" times "<<b.ft.front()<<" - "<<b.ft.back()<<" s"<<(b.file_uv ? " with U, V, " : ", ");
+        if(b.mode==4)
+        std::cout<<b.px.size()<<" points, "<<b.ft.size()<<" times "<<b.ft.front()<<" - "<<b.ft.back()<<" s"<<(b.file_uv ? " with U, V, " : ", ");
         std::cout<<"eta0 "<<b.eta0<<" U "<<b.U<<" V "<<b.V<<", t_ramp "<<b.tramp;
         if(b.prog)
         std::cout<<", progressive from ("<<b.x0<<", "<<b.y0<<"), h_ref "<<b.href;
@@ -211,6 +219,141 @@ double background_state::interp(const std::vector<double> &t, const std::vector<
     const double w = (tt-t[n-1])/(t[n]-t[n-1]);
     
     return (1.0-w)*f[n-1] + w*f[n];
+}
+
+void background_state::locate(const std::vector<double> &t, double tt, size_t &n, double &w)
+{
+    // the row n and the weight w of row n+1 (held beyond the ends)
+    if(tt<=t.front())
+    {
+    n = 0;
+    w = 0.0;
+    return;
+    }
+    
+    if(tt>=t.back())
+    {
+    n = t.size()-2;
+    w = 1.0;
+    return;
+    }
+    
+    n = size_t(std::upper_bound(t.begin(),t.end(),tt) - t.begin()) - 1;
+    w = (tt-t[n])/(t[n+1]-t[n]);
+}
+
+void background_state::project(const item &b, double x, double y, size_t &q, double &w)
+{
+    // the nearest segment of the polyline: point q and the weight w of point q+1
+    q = 0;
+    w = 0.0;
+    
+    const size_t np = b.px.size();
+    if(np<2)
+    return;
+    
+    double dmin = 1.0e300;
+    for(size_t s=0; s+1<np; ++s)
+    {
+        const double ax = b.px[s+1]-b.px[s];
+        const double ay = b.py[s+1]-b.py[s];
+        const double l2 = ax*ax + ay*ay;
+        double f = l2>0.0 ? ((x-b.px[s])*ax + (y-b.py[s])*ay)/l2 : 0.0;
+        f = fmin(fmax(f,0.0),1.0);
+        const double dx = b.px[s] + f*ax - x;
+        const double dy = b.py[s] + f*ay - y;
+        const double d = dx*dx + dy*dy;
+        
+        if(d<dmin)
+        {
+        dmin = d;
+        q = s;
+        w = f;
+        }
+    }
+}
+
+void background_state::read_points(item &b, const std::string &name) const
+{
+    auto fail = [&](const std::string &msg)
+    {
+        std::cout<<std::endl<<"!!! background: "<<msg<<" !!!"<<std::endl<<std::endl;
+        std::exit(1);
+    };
+    
+    std::ifstream f(name);
+    if(!f)
+    fail("background "+std::to_string(b.id)+" (B 510 mode 4) needs the file "+name);
+    
+    std::string line;
+    int npts = -1, cols = -1;
+    
+    while(std::getline(f,line))
+    {
+        const size_t h = line.find('#');
+        if(h!=std::string::npos)
+        line.erase(h);
+        
+        std::istringstream is(line);
+        
+        // header: "points N"
+        if(npts<0)
+        {
+            std::string key;
+            if(!(is>>key))
+            continue;
+            if(key!="points" || !(is>>npts) || npts<1)
+            fail(name+": the file starts with \"points N\" (N >= 1), then N lines \"x y\"");
+            continue;
+        }
+        
+        std::vector<double> v;
+        double x;
+        while(is>>x)
+        v.push_back(x);
+        
+        if(v.empty())
+        continue;
+        
+        // the points of the polyline
+        if(int(b.px.size())<npts)
+        {
+            if(v.size()!=2)
+            fail(name+": point "+std::to_string(b.px.size()+1)+" needs 2 values (x y)");
+            b.px.push_back(v[0]);
+            b.py.push_back(v[1]);
+            continue;
+        }
+        
+        // the rows: t and per point eta or eta U V
+        if(int(v.size())!=1+npts && int(v.size())!=1+3*npts)
+        fail(name+": each row needs 1 + N (t eta_1 .. eta_N) or 1 + 3N (t eta_1 U_1 V_1 ..) values, N = "+std::to_string(npts));
+        if(cols>=0 && int(v.size())!=cols)
+        fail(name+": all rows need the same number of values");
+        if(!b.ft.empty() && v[0]<=b.ft.back())
+        fail(name+": the times must increase");
+        
+        cols = int(v.size());
+        b.ft.push_back(v[0]);
+        
+        const int m = cols==1+npts ? 1 : 3;
+        for(int q=0; q<npts; ++q)
+        {
+            b.feta.push_back(v[1+m*q]);
+            if(m==3)
+            {
+            b.fu.push_back(v[2+m*q]);
+            b.fv.push_back(v[3+m*q]);
+            }
+        }
+    }
+    
+    if(npts<0 || int(b.px.size())<npts)
+    fail(name+": fewer points than given in \"points N\"");
+    if(b.ft.size()<2)
+    fail(name+": at least two rows are needed");
+    
+    b.file_uv = (cols==1+3*npts);
 }
 
 void background_state::update(lexer *p, double t)
@@ -255,6 +398,32 @@ double background_state::tide(const item &b, double x, double y, double &uf, dou
         }
     }
     
+    if(b.mode==4)
+    {
+        // linear in time between the rows n, n+1 and along the polyline between the points q, q+1
+        const size_t np = b.px.size();
+        size_t n, q;
+        double wt, ws;
+        locate(b.ft,time,n,wt);
+        project(b,x,y,q,ws);
+        const size_t q1 = np>1 ? q+1 : q;
+        
+        auto at = [&](const std::vector<double> &F)
+        {
+            const double f0 = (1.0-ws)*F[n*np+q] + ws*F[n*np+q1];
+            const double f1 = (1.0-ws)*F[(n+1)*np+q] + ws*F[(n+1)*np+q1];
+            return (1.0-wt)*f0 + wt*f1;
+        };
+        
+        e = at(b.feta);
+        
+        if(b.file_uv)
+        {
+        uf = b.r*at(b.fu);
+        vf = b.r*at(b.fv);
+        }
+    }
+    
     return b.r*e;
 }
 
@@ -293,7 +462,7 @@ bool background_state::carries_current(int b) const
     const item &it = bg[b];
     
     // a tide or a time series always drives a current (long wave or file U, V)
-    return it.mode==1 || it.mode==2 || it.U!=0.0 || it.V!=0.0;
+    return it.mode==1 || it.mode==2 || it.mode==4 || it.U!=0.0 || it.V!=0.0;
 }
 
 bool background_state::carries_level(int b) const
@@ -303,7 +472,7 @@ bool background_state::carries_level(int b) const
     
     const item &it = bg[b];
     
-    return it.mode==1 || it.mode==2 || it.eta0!=0.0;
+    return it.mode==1 || it.mode==2 || it.mode==4 || it.eta0!=0.0;
 }
 
 double background_state::shape(int k, double zeta, double h) const

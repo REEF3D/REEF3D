@@ -1,0 +1,20 @@
+{
+ "description": "REEF3D::SEASTATE under the GAHM vortex of sflow_2d_si_vortex_gahm_mpi2 (A 730 2, W 200 3, Vmax 110 kt moving NNE at 6 m/s): wind sea from rest, Komen physics and DIA, the drag of the wind input from the met drag law (A 729 1, W 207 0 -> 5, Garratt capped at 2.5e-3), open sides; 40 x 40 cells of 10 km, 3000 m deep, 2 ranks, 6 h.",
+ "solver": "seastate",
+ "np": 2,
+ "steps": 24,
+ "files": [
+  "met-vortex.trk"
+ ],
+ "tags": [
+  "2d",
+  "seastate",
+  "mpi",
+  "met",
+  "vortex"
+ ],
+ "covers": [
+  "SEASTATE wind of the vortex (A 730 2, W 200 3): the met provider in model time from W 203 / the track",
+  "A 729 1: u* of the met drag law"
+ ]
+}

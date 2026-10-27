@@ -113,8 +113,7 @@ void sflow_print_wsf::height_gauge(lexer *p, fdm2D *b, ghostcell *pgc, slice &f)
 
     }
 	
-    for(n=0;n<gauge_num;++n)
-    wsf[n]=pgc->globalmax(wsf[n]);
+    pgc->globalmax(wsf,gauge_num);   // one reduction for all gauges
 
     // write to file
     gauge_row(p,wsfout,wsf,gauge_num,fileFlushMaxCount);

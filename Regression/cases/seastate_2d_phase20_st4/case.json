@@ -1,0 +1,17 @@
+{
+ "base": "seastate_2d_wind",
+ "ctrl_set": {
+  "A 732": "3"
+ },
+ "description": "as seastate_2d_wind (stationary fetch-limited growth, 40 x 3 cells of 1 km, DIA, limiter) with the physics of Ardhuin et al. (2010) as ecWAM IPHYS 1 (A 732 3, Phase 20): Janssen growth rate with sheltering, swell damping, saturation-based whitecapping, u* from the stress balance with the wave stress (the fixed point per cell), diagnostic f^-5 tail above the cut-off, upper bound FLMAX. Validation in Dropbox SEASTATE/validation/69_ardhuin_st4.",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate"
+ ],
+ "covers": [
+  "seastate_st4 input, swell damping, whitecapping, TAUT_Z0, STRESSO, TAU_PHI_HF, FRCUTINDEX",
+  "diagnostic tail (relaxation), FLMAX bound in seastate_implicit store",
+  "A 732 3"
+ ]
+}

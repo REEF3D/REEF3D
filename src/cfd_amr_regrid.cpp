@@ -21,6 +21,7 @@ Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"cfd_amr.h"
+#include"reef3d_mpmd.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
@@ -192,7 +193,7 @@ void cfd_amr::flags(vector<vector<unsigned char>> &seed, bool init)
 
     for(int l=1; l<=maxlev; ++l)
     if(!seed[l].empty())
-    MPI_Allreduce(MPI_IN_PLACE,seed[l].data(),(int)seed[l].size(),MPI_UNSIGNED_CHAR,MPI_MAX,MPI_COMM_WORLD);
+    MPI_Allreduce(MPI_IN_PLACE,seed[l].data(),(int)seed[l].size(),MPI_UNSIGNED_CHAR,MPI_MAX,reef3d_comm());
 
     // hysteresis: a tile stays refined G 5 regrids after its last flag
     if(tage.empty())
@@ -268,7 +269,7 @@ void cfd_amr::regrid_old(const vector<int> &fresh, vector<vector<char>> &got)
     vector<int> sc(nranks), rc(nranks), sd(nranks), rd(nranks);
     for(int r=0; r<nranks; ++r)
     sc[r] = (int)req[r].size();
-    MPI_Alltoall(sc.data(),1,MPI_INT,rc.data(),1,MPI_INT,MPI_COMM_WORLD);
+    MPI_Alltoall(sc.data(),1,MPI_INT,rc.data(),1,MPI_INT,reef3d_comm());
     int ns=0, nr=0;
     for(int r=0; r<nranks; ++r)
     {
@@ -278,7 +279,7 @@ void cfd_amr::regrid_old(const vector<int> &fresh, vector<vector<char>> &got)
     vector<int> sb(ns+1), rb(nr+1);
     for(int r=0; r<nranks; ++r)
     std::copy(req[r].begin(),req[r].end(),sb.begin()+sd[r]);
-    MPI_Alltoallv(sb.data(),sc.data(),sd.data(),MPI_INT,rb.data(),rc.data(),rd.data(),MPI_INT,MPI_COMM_WORLD);
+    MPI_Alltoallv(sb.data(),sc.data(),sd.data(),MPI_INT,rb.data(),rc.data(),rd.data(),MPI_INT,reef3d_comm());
 
     vector<double> ab((size_t)(nr/4)*nf+1);
     for(int m=0; m<nr/4; ++m)
@@ -294,7 +295,7 @@ void cfd_amr::regrid_old(const vector<int> &fresh, vector<vector<char>> &got)
         bc[r] = sc[r]/4*nf; bd[r] = sd[r]/4*nf;
     }
     vector<double> bb((size_t)(ns/4)*nf+1);
-    MPI_Alltoallv(ab.data(),ac.data(),ad.data(),MPI_DOUBLE,bb.data(),bc.data(),bd.data(),MPI_DOUBLE,MPI_COMM_WORLD);
+    MPI_Alltoallv(ab.data(),ac.data(),ad.data(),MPI_DOUBLE,bb.data(),bc.data(),bd.data(),MPI_DOUBLE,reef3d_comm());
 
     for(int r=0; r<nranks; ++r)
     for(size_t m=0; m<back[r].size()/4; ++m)
@@ -322,7 +323,7 @@ bool cfd_amr::lmeas() const
 void cfd_amr::lbar()
 {
     if(lmeas())
-    MPI_Barrier(MPI_COMM_WORLD);
+    MPI_Barrier(reef3d_comm());
 }
 
 void cfd_amr::measure_load()
@@ -342,8 +343,8 @@ void cfd_amr::measure_load()
     ml_tp = Tp;
     ++ml_n;
     double s[5], m[5];
-    MPI_Allreduce(d,s,5,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
-    MPI_Allreduce(d,m,5,MPI_DOUBLE,MPI_MAX,MPI_COMM_WORLD);
+    MPI_Allreduce(d,s,5,MPI_DOUBLE,MPI_SUM,reef3d_comm());
+    MPI_Allreduce(d,m,5,MPI_DOUBLE,MPI_MAX,reef3d_comm());
 
     // (the first regrid: the timers since the start, with the initialisation)
     if(ml_n<2 || s[0]<=0.0 || s[2]<=0.0)

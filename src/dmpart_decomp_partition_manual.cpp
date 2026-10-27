@@ -63,6 +63,21 @@ void decomp::partition_manual(lexer* p,dive* a)
         a->znode[n]=p->M33[n-1];
         a->zorig[n]=p->ZN[a->znode[n]+marge];
     }
+
+    // the subdomain of every cell, as partition() sets it: the surfaces, the neighbours and the counts of the
+    // decomposition are taken from it (without it the cells kept the subdomain of no partition)
+    MALOOP
+    {
+        a->subgrid(i,j,k)=-1;
+        a->subslice(i,j)=-1;
+    }
+
+    NLOOP
+    SUBLOOP
+    {
+        a->subgrid(i,j,k)=PARANUM;
+        a->subslice(i,j)=PARANUM;
+    }
 }
 
 void decomp::partition_input_check(lexer* p, dive* a)

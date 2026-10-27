@@ -1,0 +1,8 @@
+{
+ "description": "REEF3D::SEASTATE coupled with the hydrostatic semi-implicit NHFLOW (A 534 1, dt <= 5 s), 5 sigma layers, k-epsilon: the plane beach of seastate_sflow_setup (10 m cells) with the vortex force (A 751 2): the wave force in every layer of the SI predictor, the Stokes mass source in the eta system and the volume update; wetting and drying.",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 100,
+ "tags": ["quick", "2d", "nhflow", "semi_implicit", "seastate", "wetdry", "turbulence"],
+ "covers": ["nhflow_momentum_SI wave source (A 750 1)", "nhflow_momentum_SI Stokes mass source (A 751 2)"]
+}

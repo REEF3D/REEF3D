@@ -49,6 +49,8 @@ class ghostcell : public increment
 {
 public:
 	ghostcell(int&,char**,lexer*);
+    // a second ghostcell of the run (MPI initialised): its own communicator, for a second grid (cfd_amr_cpm.cpp)
+    explicit ghostcell(lexer*);
 	virtual ~ghostcell() = default;
 
     void final(bool error=false);

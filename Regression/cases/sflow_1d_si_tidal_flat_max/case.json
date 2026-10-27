@@ -1,0 +1,25 @@
+{
+ "base": "sflow_1d_si_tidal_flat",
+ "ctrl_set": {
+  "P 112": "1",
+  "P 114": "0.05",
+  "P 115": [
+   "3000.0 25.0",
+   "7000.0 25.0",
+   "8000.0 25.0",
+   "9500.0 25.0"
+  ]
+ },
+ "description": "sflow_1d_si_tidal_flat with the maxima of the run (P 112 1, P 115): a point always wet (x = 3 km), one wet at the start that falls dry at low tide (7 km), one dry at the start and flooded at high tide (8 km), one never wet (9.5 km).",
+ "tags": [
+  "quick",
+  "1d",
+  "sflow",
+  "semi_implicit",
+  "maxima"
+ ],
+ "covers": [
+  "sflow_print_max: max_eta, max_depth, flood_duration, first_flood_time and the inundation classes over a tidal flat",
+  "the point table P 115"
+ ]
+}

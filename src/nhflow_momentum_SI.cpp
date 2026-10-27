@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"nhflow_momentum_SI.h"
+#include"seastate_nhflow.h"
 #include"si_eta2D.h"
 #include"bc_zone.h"
 #include"lexer.h"
@@ -44,6 +45,7 @@ Author: Hans Bihs
 #include"wind_f.h"
 #include"wind_v.h"
 #include"met_forcing.h"
+#include"nhflow_tracer_SI.h"
 #include<cstring>
 #include<sys/stat.h>
 #include<sys/types.h>
@@ -54,7 +56,7 @@ nhflow_momentum_SI::nhflow_momentum_SI(lexer *p, fdm_nhf *d, ghostcell *pgc, six
                                       qx(p),qxn(p),qxE(p),Hx(p),alx(p),gmx(p),ax(p),kx(p),gx0(p),cx0(p),
                                       qy(p),qyn(p),qyE(p),Hy(p),aly(p),gmy(p),ay(p),ky(p),gy0(p),cy0(p),
                                       eta0(p),WL0(p),etaI(p),gmc(p),rhsW(p),bdiag(p),tS(p),tE(p),
-                                      WLk(p),etaB(p),WLb(p)
+                                      WLk(p),etaB(p),WLb(p),wsrc(p)
 {
     check(p);
 
@@ -89,6 +91,10 @@ nhflow_momentum_SI::nhflow_momentum_SI(lexer *p, fdm_nhf *d, ghostcell *pgc, six
 
     psi = new si_eta2D(p);
 
+    // tracers (A 600)
+    if(p->A600>0)
+    ptrc = new nhflow_tracer_SI(p,d,this);
+
     // the 2D solver of the eta system: created with the first solve of one grid (new_solver2D); the
     // multi-block grid solves the eta system of all blocks together (nhflow_amr_si.cpp)
     psolv2D = nullptr;
@@ -106,7 +112,7 @@ nhflow_momentum_SI::nhflow_momentum_SI(lexer *p, fdm_nhf *d, ghostcell *pgc, six
     gcval_eta = (p->F50>=1 && p->F50<=4) ? 50+p->F50 : 50;
 
     // vertical diffusion in the column operator: as nhflow_idiff (A 512 2, or A 560 > 0)
-    visc = !(p->A512==0 && p->A560==0);
+    visc = !(p->A512==0 && p->A560==0) || (p->A547_c>0.0 && p->A560==0) || (p->A547_nu0>0.0 && p->A560==0);
 
     wcu.assign(p->knoz,0.0);
     wcd.assign(p->knoz,0.0);
@@ -129,6 +135,8 @@ nhflow_momentum_SI::nhflow_momentum_SI(lexer *p, fdm_nhf *d, ghostcell *pgc, six
     if(p->A538>0.0)
     cout<<", mass flux dissipation "<<p->A538;
 
+    cout<<", thin-water velocities below "<<p->A546<<" m (A 546)";
+
     cout<<endl;
 
     mkdir("./REEF3D_NHFLOW_Log",0777);
@@ -148,6 +156,7 @@ nhflow_momentum_SI::~nhflow_momentum_SI()
     delete [] a;
 
     delete psi;
+    delete ptrc;
 
     if(psolv2D!=nullptr)
     delete psolv2D;
@@ -193,8 +202,11 @@ void nhflow_momentum_SI::check(lexer *p)
     if(p->Z30>0)
     msg("FEM coupling (Z 30) is");
 
-    if(p->A750>0)
-    msg("SEASTATE coupling (A 750) is");
+    // SEASTATE coupling (A 750 1): the wave force in the predictor (the same force in every layer, as the explicit
+    // NHFLOW), the Stokes mass source (A 751 2) in the eta system; surfbeat (A 770 1) needs the host's step for the
+    // wave groups and the long-wave boundary
+    if(p->A750>0 && p->A770==1)
+    msg("SEASTATE surfbeat (A 770 1) is");
 
     if(p->B411>0 || p->B412>0 || p->B413>0 || p->B414>0 || p->B415>0 || p->B416>0 || p->B417>0 || p->B418>0 || p->B421>0 || p->B422>0)
     msg("patch boundary conditions (B 411-422) are");
@@ -294,6 +306,86 @@ void nhflow_momentum_SI::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *ppf
     psi_time = psi->time;
 
     si_end(p,d,pgc,S);
+
+    // tracers (A 600) with the transport of the step
+    if(ptrc!=nullptr)
+    tracer_step(p,d,pgc);
+}
+
+// tracers of one grid (the multi-block grid: nhflow_amr::si_tracer): the substeps with the partition
+// halo between them, the log and the gauges
+void nhflow_momentum_SI::tracer_step(lexer *p, fdm_nhf *d, ghostcell *pgc)
+{
+    const int nt = ptrc->nt;
+
+    double r = ptrc->prepare(p,d);
+    r = pgc->globalmax(r);
+    const int ns = nhflow_tracer_SI::substeps(p,r);
+
+    // the fluid mask of the halo (static, once)
+    if(!trc_mask)
+    {
+    pgc->gcparaxV(p,ptrc->mask,14);
+    pgc->gcparacoxV(p,ptrc->mask,14);
+    trc_mask = true;
+    }
+
+    for(int s=0; s<ns; ++s)
+    {
+        for(int n=0; n<nt; ++n)
+        {
+        pgc->gcparaxV(p,nhflow_tracer_SI::field(d,n),14);
+        pgc->gcparacoxV(p,nhflow_tracer_SI::field(d,n),14);
+        }
+
+        ptrc->flushed(p,d,s,ns);
+
+        for(int n=0; n<nt; ++n)
+        {
+        pgc->gcparaxV(p,ptrc->Cx[n],14);
+        pgc->gcparacoxV(p,ptrc->Cx[n],14);
+        }
+
+        ptrc->substep(p,d,s,ns);
+    }
+
+    for(int n=0; n<nt; ++n)
+    {
+    pgc->gcparaxV(p,nhflow_tracer_SI::field(d,n),14);
+    pgc->gcparacoxV(p,nhflow_tracer_SI::field(d,n),14);
+    }
+
+    ptrc->ghosts(p,d);
+
+    nhflow_tracer_SI::stats st;
+    nhflow_tracer_SI::stats_zero(st);
+    ptrc->sums(p,d,[](int,int){ return true; },st);
+    nhflow_tracer_SI::reduce(p,st);
+    ptrc->write_log(p,st,ns,r);
+
+    if(p->P51>0)
+    {
+        static vector<double> gdist;
+        static vector<int> gcell;
+        static bool found = false;
+
+        if(!found)
+        {
+        ptrc->gauge_find(p,[](int,int){ return true; },gdist,gcell);
+        found = true;
+        }
+
+        vector<double> val, dist = gdist;
+        ptrc->gauge_values(p,d,gcell,val);
+        nhflow_tracer_SI::gauge_combine(p,dist,val);
+        nhflow_tracer_SI::gauge_write(p,val);
+    }
+}
+
+void nhflow_momentum_SI::tracer_ckpt_fields(const std::function<void(const char*, char, double*)> &fd)
+{
+    if(ptrc!=nullptr)
+    ptrc->ckpt_fields(fd);
 }
 
 solver2D* nhflow_momentum_SI::new_solver2D(lexer *p, ghostcell *pgc)
@@ -363,6 +455,10 @@ void nhflow_momentum_SI::si_begin(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_s
 
     // sigma grid of t^n (metrics of the predictor) and the kinematic boundary values
     sigma_update(p,d,pgc,d->WL);
+
+    // A 547: the algebraic eddy viscosity of t^n (without a turbulence model)
+    if(p->A560==0 && (p->A547_c>0.0 || p->A547_nu0>0.0))
+    eddy_algebraic(p,d);
     pfsf->kinematic_fsf(p,d,d->U,d->V,d->W,d->eta);
     pfsf->kinematic_bed(p,d,d->U,d->V,d->W);
 
@@ -489,6 +585,10 @@ void nhflow_momentum_SI::face_depth(lexer *p, fdm_nhf *d, ghostcell *pgc)
     // the face opens when the water of the wet cell stands above the bed of the dry cell (flooding);
     // the film of a dry cell does not flow (its eta is its bed level, a lake at rest stays at rest).
     // Between two dry cells the face is closed.
+    // A 548: between two wet cells the still water depth of the face is the mean of the two (0, default), the
+    // smaller one (the higher bed, Stelling and Duinmeijer 2003) everywhere (1), or only where one of the two
+    // cells holds a film thinner than 10 A 544 (2). The mean gives a face over a bed step the depth of the deep
+    // side, so that a film on the high side drains and floods by turns (flip-flop of shoreline cells).
     double df,eu,h;
 
     SLICELOOP1
@@ -501,7 +601,7 @@ void nhflow_momentum_SI::face_depth(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
         if(wL==1 && wR==1)
         {
-        df = 0.5*(d->depth(i,j) + d->depth(i+1,j));
+        df = (p->A548==1 || (p->A548==2 && MIN(d->WL(i,j),d->WL(i+1,j))<10.0*p->A544)) ? MIN(d->depth(i,j),d->depth(i+1,j)) : 0.5*(d->depth(i,j) + d->depth(i+1,j));
 
         if(qini && qx(i,j)>1.0e-12)
         eu = d->eta(i,j);
@@ -538,7 +638,7 @@ void nhflow_momentum_SI::face_depth(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
         if(wL==1 && wR==1)
         {
-        df = 0.5*(d->depth(i,j) + d->depth(i,j+1));
+        df = (p->A548==1 || (p->A548==2 && MIN(d->WL(i,j),d->WL(i,j+1))<10.0*p->A544)) ? MIN(d->depth(i,j),d->depth(i,j+1)) : 0.5*(d->depth(i,j) + d->depth(i,j+1));
 
         if(qini && qy(i,j)>1.0e-12)
         eu = d->eta(i,j);
@@ -639,6 +739,53 @@ void nhflow_momentum_SI::friction(lexer *p, fdm_nhf *d)
 
     gmc(i,j) = bed_gamma(p,sqrt(un*un + ut*ut),ds0*d->WL(i,j),d->ks(i,j));
     }
+}
+
+void nhflow_momentum_SI::eddy_algebraic(lexer *p, fdm_nhf *d)
+{
+    // A 547 c nu0: nu_t = c kappa (u*_b + u*_s) z' (1 - z'/h) + nu0 at the centre of every layer, z' = sigma h
+    // above the bed (the parabolic profiles of the bed and of the surface boundary layer, Davies 1985);
+    // u*_b = |u_b|/u+ from the log law of the bottom layer (as bed_gamma: u+ = 1/kappa max(1, ln(30 z0/ks)),
+    // z0 = max(dn/2, ks/30)), so that the eddy viscosity belongs to the bed stress of the column operator;
+    // u*_s = sqrt(|tau_s|/rho_w) of the met forcing (W 200, wind stress of the step before), 0 without it.
+    // All columns incl. the ghost cells (each column from its own state), dry columns nu0.
+    const double kappa = 0.4;
+    const int ii=i, jj=j, kk=k;
+
+    for(i=p->imin; i<p->imin+p->imax; ++i)
+    for(j=p->jmin; j<p->jmin+p->jmax; ++j)
+    {
+        const double h = d->WL(i,j);
+        double ustar = 0.0;
+
+        if(h>p->A544 && p->wet[IJ]==1)
+        {
+            k=0;
+            const double dn = p->DZN[KP]*h;
+            double ks = d->ks(i,j);
+            if(ks<=0.0)
+            ks = 0.0001;
+            double z0 = 0.5*dn;
+            if(30.0*z0<ks)
+            z0 = ks/30.0;
+            const double uplus = (1.0/kappa)*MAX(1.0,std::log(30.0*(z0/ks)));
+            const double ub = sqrt(d->U[IJK]*d->U[IJK] + d->V[IJK]*d->V[IJK]*p->y_dir);
+            ustar = ub/uplus;
+
+            if(pmet!=nullptr && pmet->wind)
+            ustar += sqrt(sqrt(pmet->Tx(i,j)*pmet->Tx(i,j) + pmet->Ty(i,j)*pmet->Ty(i,j)));
+        }
+
+        double zs = 0.0;
+        for(k=0; k<p->knoz; ++k)
+        {
+            const double sc = zs + 0.5*p->DZN[KP];
+            zs += p->DZN[KP];
+            d->EV[IJK] = p->A547_c*kappa*ustar*sc*(1.0-sc)*MAX(h,0.0) + p->A547_nu0;
+        }
+    }
+
+    i=ii; j=jj; k=kk;
 }
 
 void nhflow_momentum_SI::col_nu(lexer *p, fdm_nhf *d, int i1, int j1, int i2, int j2, double *nu)
@@ -1059,13 +1206,30 @@ void nhflow_momentum_SI::si_stage_vel(lexer *p, fdm_nhf *d, ghostcell *pgc, nhfl
     pgc->start4V(p,VHs,gcval_vh);
     pgc->start4V(p,WHs,gcval_wh);
 
+    // below the depth A 546 desingularised (Kurganov and Petrova 2007), as sflow_momentum_SI::rk_stage:
+    // u = sqrt(2) h (uh)/sqrt(h^4 + max(h^4, h_v^4)); a wetting cell gets the momentum of its deep
+    // neighbours with the inflow while its depth is that of t^n
+    const double hv4 = p->A546*p->A546*p->A546*p->A546;
+
     LOOP
     {
         if(p->wet[IJ]==1 && WL0(i,j)>p->A544)
         {
-        d->U[IJK] = UHs[IJK]/WL0(i,j);
-        d->V[IJK] = VHs[IJK]/WL0(i,j)*p->y_dir;
-        d->W[IJK] = WHs[IJK]/WL0(i,j);
+            if(WL0(i,j)>=p->A546)
+            {
+            d->U[IJK] = UHs[IJK]/WL0(i,j);
+            d->V[IJK] = VHs[IJK]/WL0(i,j)*p->y_dir;
+            d->W[IJK] = WHs[IJK]/WL0(i,j);
+            }
+
+            else
+            {
+            const double h = WL0(i,j);
+            const double r = sqrt(2.0)*h/sqrt(h*h*h*h + hv4);
+            d->U[IJK] = r*UHs[IJK];
+            d->V[IJK] = r*VHs[IJK]*p->y_dir;
+            d->W[IJK] = r*WHs[IJK];
+            }
         }
 
         else
@@ -1094,6 +1258,8 @@ void nhflow_momentum_SI::si_stage_rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, nhfl
     pwind->wind_forcing_nhf_x(p,d,pgc,d->U,d->V,d->F,WL0,d->eta);
     if(pmet!=nullptr)
     pmet->source_nhflow(p,pgc,d->F,0,WL0,UHs,VHs);
+    if(d->wave!=nullptr)
+    d->wave->u_source(p,d);
     irhs(p,d,pgc);
 
     pturb->jsource(p,d);
@@ -1101,6 +1267,8 @@ void nhflow_momentum_SI::si_stage_rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, nhfl
     pwind->wind_forcing_nhf_y(p,d,pgc,d->U,d->V,d->G,WL0,d->eta);
     if(pmet!=nullptr)
     pmet->source_nhflow(p,pgc,d->G,1,WL0,UHs,VHs);
+    if(d->wave!=nullptr)
+    d->wave->v_source(p,d);
     jrhs(p,d,pgc);
 
     pturb->ksource(p,d);
@@ -1558,6 +1726,21 @@ void nhflow_momentum_SI::si_assemble(lexer *p, fdm_nhf *d, ghostcell *pgc)
     SLICELOOP4
     rhsW(i,j) = WL0(i,j) - dt*(theta*div(p,qxE,qyE) + (1.0-theta)*div(p,qxn,qyn));
 
+    // + dt K: the Stokes mass source of the SEASTATE vortex force (A 751 2), K = -div(M) of the wet cells, held
+    // over the step (also in eta_update)
+    mass_source = (d->wave!=nullptr && p->A751==2);
+
+    if(mass_source)
+    {
+        SLICELOOP4
+        wsrc(i,j) = 0.0;
+
+    d->wave->mass_source(p,d,wsrc);
+
+        SLICELOOP4
+        rhsW(i,j) += dt*wsrc(i,j);
+    }
+
     // initial guess eta^n
     SLICELOOP4
     etaI(i,j) = eta0(i,j);
@@ -1710,7 +1893,12 @@ void nhflow_momentum_SI::eta_update(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow
     for(k=0;k<p->knoz;++k)
     s += p->DZN[KP]*layer_div(p,Tx,Ty);
 
-    d->WL(i,j) = MAX(WL0(i,j) - p->dt*s, 0.0);
+    double w = WL0(i,j) - p->dt*s;
+
+    if(mass_source)
+    w += p->dt*wsrc(i,j);
+
+    d->WL(i,j) = MAX(w, 0.0);
     d->eta(i,j) = d->WL(i,j) - d->depth(i,j);
     d->detadt(i,j) = (d->WL(i,j) - WL0(i,j))/p->dt;
     }
@@ -1770,6 +1958,25 @@ void nhflow_momentum_SI::eta_update(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow
     }
 
     pfsf->wetdry(p,d,pgc,d->UH,d->VH,d->WH,WLb);
+
+    // a dry cell that took water through a flooding face of the step (water depth above the film A 544)
+    // is wet: the explicit rule (A 540 1: wet when a wet neighbour stands higher) keeps such a cell dry
+    // once its level stands above the neighbour's, and the flooding face of the next steps fills it
+    // further (a one-way valve at the shoreline under onshore forcing, e.g. wave setup)
+    {
+    int nw = 0;
+
+    SLICELOOP4
+    if(p->wet[IJ]==0 && p->flagslice4[IJ]>0 && d->WL(i,j)>2.0*p->A544
+       && (p->wetfix==nullptr || p->wetfix[IJ]<0))
+    {
+    p->wet[IJ] = 1;
+    ++nw;
+    }
+
+    if(pgc->globalisum(nw)>0)
+    pgc->gcsl_start4Vint(p,p->wet,50);
+    }
 
     for(i=p->imin; i<p->imin+p->imax; ++i)
     for(j=p->jmin; j<p->jmin+p->jmax; ++j)

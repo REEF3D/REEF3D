@@ -54,6 +54,8 @@ void fnpf_amr::ckpt_write(reefckpt &ck)
 {
     ckpt_write_layout(ck);
     ckpt_write_patches(ck,"fnpf_amr",[&](reefamr_patch *q, const ckpt_visit &v){ patch_fields(q,v); });
+    // the number of the layout (the log of the refinement, REEF3D_FNPF_AMR_log.dat)
+    ck.blob("fnpf_amr_layout_id",vector<double>(1,double(layout_id)));
 }
 
 bool fnpf_amr::ckpt_read(reefckpt &ck, string &msg)
@@ -66,6 +68,15 @@ bool fnpf_amr::ckpt_read(reefckpt &ck, string &msg)
     Sf0 = &c0->Fifsf;
     stg = 2;
     regrid(p0,pgc0,false);
+
+    // the layout continues the numbering of the run (a checkpoint without it: counted from the restart);
+    // before the body grids, which key their set-up with the layout (fnpf_6DOF::amr_grids)
+    if(ck.has("fnpf_amr_layout_id"))
+    {
+        const vector<double> b = ck.get_blob("fnpf_amr_layout_id");
+        if(!b.empty())
+        layout_id = int(b[0]);
+    }
 
     // the body grids of these patches (resolved bodies), their arrays come with the patch
     if(body!=nullptr)

@@ -25,6 +25,7 @@ Author: Hans Bihs
 
 #include"increment.h"
 #include"vtp3D.h"
+#include<functional>
 
 class lexer;
 class amr_column_lookup;
@@ -40,6 +41,7 @@ class sflow_print_probe_da;
 class sflow_turbulence;
 class sflow_state;
 class fnpf_print_Hs;
+class sflow_print_max;
 
 using namespace std;
 
@@ -56,6 +58,10 @@ public:
     void print2D(lexer*,fdm2D*,ghostcell*,sflow_turbulence*,sediment*);
     void flush_outputs();   // a rebalance stop (G 46)
 
+    // the maxima (P 112, P 115): written at the end of the run, in the checkpoints
+    void finish(lexer*,fdm2D*,ghostcell*);
+    void ckpt_fields(const std::function<void(const char*, char, double*)>&, const std::function<void(const char*, char, int*)>&);
+
 private:
     void pvtp(lexer*,fdm2D*,ghostcell*,sflow_turbulence*,sediment*,int);
 
@@ -71,6 +77,7 @@ private:
     sflow_state *pstate;
     sflow_state *pstate_restart;
     fnpf_print_Hs *phs;
+    sflow_print_max *pmax = nullptr;
 };
 
 #endif

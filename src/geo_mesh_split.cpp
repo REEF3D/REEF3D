@@ -25,6 +25,7 @@ Architect: Hans Bihs
 #include<iostream>
 #include<cstdlib>
 #include<algorithm>
+#include<cmath>
 
 // G 55 m: the blocks 1.. of a multi-block grid (G 50 1, DIVEMesh R 20 1) cut into pieces, so that the
 // blocks 1.. spread over the ranks (every block 1.. is a level-0 grid of REEFAMR on one rank,
@@ -41,6 +42,11 @@ Architect: Hans Bihs
 // cells with the same piece and transform form a segment.  A check maps every segment back.
 //
 // Run as for the blocks of DIVEMesh; the input (G 54 b, B 522 b) keeps the numbers of DIVEMesh (face_piece).
+//
+// G 56 a dz: the cells count with their load (cell_load): a wet cell 1, a cell whose bed lies above the still
+// water level + dz the load a.  The size limit is then (load of the blocks 1..) / (m ranks), and a block is cut
+// where its slices reach equal parts of its load (at least 16 cells deep), so that the pieces carry about the
+// same work, not the same number of cells.
 
 namespace
 {
@@ -81,6 +87,52 @@ int geo_mesh::face_piece(int b, int f) const
     return (n==1) ? found : -1;
 }
 
+// G 56 a dz: the still water level the dry cells are measured from: F 60, else F 62 with F 65 (river
+// initialisation), else none (every cell counts 1)
+double geo_mesh::load_level(const lexer *p)
+{
+    if(p->F60>-1.0e19)
+    return p->F60;
+    if(p->F65>0 && p->F62>-1.0e19)
+    return p->F62;
+    return -1.0e20;
+}
+
+bool geo_mesh::load_weighted(const lexer *p)
+{
+    return p->G56==1 && p->G56_a!=1.0 && load_level(p)>-1.0e19;
+}
+
+// the load of a cell with bed level zb, relative to a wet cell
+double geo_mesh::cell_load(const lexer *p, double zb)
+{
+    if(!load_weighted(p))
+    return 1.0;
+    return (zb > load_level(p) + p->G56_z) ? p->G56_a : 1.0;
+}
+
+// the load of cell (ci,cj) of block b (1..): its bed is the mean of its four nodes
+double geo_mesh::blk_cell_load(const lexer *p, int b, int ci, int cj) const
+{
+    const blk_block &B = blk[b];
+    const size_t w = size_t(B.ni+1);
+    const double zb = 0.25*(B.zb[ci+w*cj] + B.zb[ci+1+w*cj] + B.zb[ci+w*(cj+1)] + B.zb[ci+1+w*(cj+1)]);
+    return cell_load(p,zb);
+}
+
+// the load of block b (1..)
+double geo_mesh::blk_load(const lexer *p, int b) const
+{
+    const blk_block &B = blk[b];
+    if(!load_weighted(p))
+    return double(B.ni)*double(B.nj);
+    double w=0.0;
+    for(int cj=0; cj<B.nj; ++cj)
+    for(int ci=0; ci<B.ni; ++ci)
+    w += blk_cell_load(p,b,ci,cj);
+    return w;
+}
+
 void geo_mesh::split_blocks(lexer *p)
 {
     const int nb = int(blk.size());
@@ -98,10 +150,19 @@ void geo_mesh::split_blocks(lexer *p)
         exit(1);
     };
 
+    // G 56: the load of the cells (1 each without it)
+    const bool wgt = load_weighted(p);
     long long tot=0;
+    double wtot=0.0;
+    vector<double> wb(nb,0.0);
     for(int b=1; b<nb; ++b)
-    tot += (long long)blk[b].ni*blk[b].nj;
+    {
+        tot += (long long)blk[b].ni*blk[b].nj;
+        wb[b] = blk_load(p,b);
+        wtot += wb[b];
+    }
     const long long S = std::max(1LL,(tot + (long long)m*np - 1)/((long long)m*np));
+    const double SW = wtot/double((long long)m*np);
 
     // a block with open faces is cut along i only (its -i and +i faces stay whole)
     auto open = [&](int b)
@@ -126,19 +187,71 @@ void geo_mesh::split_blocks(lexer *p)
         const int dir = (B.nj>B.ni && !open(b)) ? 1 : 0;
         const int L = dir ? B.nj : B.ni;
         const long long c = (long long)B.ni*B.nj;
-        int k = int((c + S - 1)/S);
-        k = std::min(k,std::max(1,L/MIN));
-        k = std::max(k,1);
-        for(int q=0; q<k; ++q)
+        const int kwant = std::max(1, wgt ? int(std::ceil(wb[b]/std::max(SW,1.0e-12) - 1.0e-9)) : int((c + S - 1)/S));
+
+        // the cuts of a direction of length Ln into kn parts: at equal cells, with G 56 where the slices across
+        // that direction reach equal parts of the load of the block; at least MIN cells deep
+        auto cuts = [&](int dn, int Ln, int kn) -> vector<int>
         {
-            const int a = int((long long)q*L/k), e = int((long long)(q+1)*L/k);
+            vector<int> cut(kn+1,0);
+            cut[kn] = Ln;
+            for(int q=1; q<kn; ++q)
+            cut[q] = int((long long)q*Ln/kn);
+            if(wgt && kn>1)
+            {
+                vector<double> cum(Ln+1,0.0);
+                const int Mn = dn ? B.ni : B.nj;
+                for(int x=0; x<Ln; ++x)
+                {
+                    double w=0.0;
+                    for(int y=0; y<Mn; ++y)
+                    w += dn ? blk_cell_load(p,b,y,x) : blk_cell_load(p,b,x,y);
+                    cum[x+1] = cum[x] + w;
+                }
+                for(int q=1; q<kn; ++q)
+                {
+                    const double target = cum[Ln]*double(q)/double(kn);
+                    int x = 0;
+                    while(x<Ln && cum[x+1]<=target)
+                    ++x;
+                    if(x<Ln && target-cum[x] > cum[x+1]-target)
+                    ++x;
+                    cut[q] = std::max(cut[q-1]+MIN, std::min(x, Ln-(kn-q)*MIN));
+                }
+            }
+            return cut;
+        };
+
+        // strips along dir; G 58 1 (blocks without open faces): tiles in both directions, about square in cells
+        int ki, kj;
+        if(p->G58==1 && !open(b))
+        {
+            const int mi = std::max(1,B.ni/MIN), mj = std::max(1,B.nj/MIN);
+            ki = std::max(1, std::min(mi, int(std::lround(std::sqrt(double(kwant)*B.ni/std::max(B.nj,1))))));
+            kj = std::max(1, std::min(mj, int(std::ceil(double(kwant)/ki - 1.0e-9))));
+            ki = std::max(1, std::min(mi, int(std::ceil(double(kwant)/kj - 1.0e-9))));
+        }
+        else
+        {
+            const int k1 = std::max(1, std::min(kwant, std::max(1,L/MIN)));
+            ki = dir ? 1 : k1;
+            kj = dir ? k1 : 1;
+        }
+        const int k = ki*kj;
+        const vector<int> ci = cuts(0,B.ni,ki), cj = cuts(1,B.nj,kj);
+
+        int q = 0;
+        for(int a=0; a<ki; ++a)
+        for(int e=0; e<kj; ++e)
+        {
             piece P;
             P.id = (q==0) ? b : next++;
-            P.oi = dir ? 0 : a;
-            P.oj = dir ? a : 0;
-            P.ni = dir ? B.ni : e-a;
-            P.nj = dir ? e-a : B.nj;
+            P.oi = ci[a];
+            P.oj = cj[e];
+            P.ni = ci[a+1]-ci[a];
+            P.nj = cj[e+1]-cj[e];
             pc[b].push_back(P);
+            ++q;
         }
         if(k>1)
         any = true;
@@ -147,7 +260,12 @@ void geo_mesh::split_blocks(lexer *p)
     if(!any)
     {
         if(p->mpirank==0)
+        {
+        if(wgt)
+        cout<<"G 55 "<<m<<": no block 1.. has a load above "<<SW<<" (load of the blocks 1.. / "<<m*np<<", G 56 "<<p->G56_a<<" "<<p->G56_z<<"), the blocks stay whole"<<endl;
+        else
         cout<<"G 55 "<<m<<": no block 1.. has more than "<<S<<" cells (cells of the blocks 1.. / "<<m*np<<"), the blocks stay whole"<<endl;
+        }
         return;
     }
 
@@ -325,6 +443,10 @@ void geo_mesh::split_blocks(lexer *p)
 
     if(p->mpirank==0)
     {
+        if(wgt)
+        cout<<"G 55 "<<m<<": the blocks 1.. cut into pieces of about "<<SW<<" load (G 56 "<<p->G56_a<<" "<<p->G56_z<<": load "
+            <<wtot<<" of "<<tot<<" cells / "<<m*np<<"), "<<nb<<" blocks -> "<<blk.size()<<endl;
+        else
         cout<<"G 55 "<<m<<": the blocks 1.. cut into pieces of at most "<<S<<" cells ("<<tot<<" cells / "<<m*np<<"), "
             <<nb<<" blocks -> "<<blk.size()<<endl;
         for(int b=1; b<nb; ++b)
@@ -332,7 +454,12 @@ void geo_mesh::split_blocks(lexer *p)
         {
             cout<<"  block "<<b<<" ("<<ob[b].ni<<" x "<<ob[b].nj<<"): pieces";
             for(const piece &P : pc[b])
-            cout<<" "<<P.id<<" ("<<P.ni<<" x "<<P.nj<<")";
+            {
+            cout<<" "<<P.id<<" ("<<P.ni<<" x "<<P.nj;
+            if(wgt)
+            cout<<", load "<<blk_load(p,P.id);
+            cout<<")";
+            }
             cout<<endl;
         }
     }

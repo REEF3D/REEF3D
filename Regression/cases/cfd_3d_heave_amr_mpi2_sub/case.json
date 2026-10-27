@@ -1,4 +1,0 @@
-{"np": 2, "steps": 10,
- "description": "3D heave of a floating box (X 110) with CFD mesh refinement and subcycling (G 7 1) on 2 ranks: the rank cut goes through the body and the refined box (one patch on each rank there), a second box on rank 1 only (rank 1 has two patches, rank 0 one).",
- "tags": ["quick", "3d", "6dof", "floating", "levelset", "amr", "mpi"],
- "covers": ["cfd_amr::finest_grid at a patch edge to a patch of another rank (the loads on the patch up to it)", "body_loads: the cells around the patches copied from the patches of the same level before the loads", "the body forcing on the patches without MPI exchange (solid_forcing_flag_update, geometry_changed): ranks with different numbers of patches"]}

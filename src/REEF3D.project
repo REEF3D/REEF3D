@@ -69,6 +69,7 @@
       </VirtualDirectory>
       <VirtualDirectory Name="CFD">
         <File Name="cfd_amr.h"/>
+        <File Name="cfd_amr_cpm.h"/>
         <File Name="cfd_amr_6dof.h"/>
         <File Name="amr_grid_lookup.h"/>
       </VirtualDirectory>
@@ -105,6 +106,8 @@
     </VirtualDirectory>
     <VirtualDirectory Name="Ghostcell">
       <File Name="ghostcell.h"/>
+      <File Name="reef3d_mpmd.h"/>
+      <File Name="reefcouple.h"/>
       <File Name="gcsl_yskip.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="Hydrodynamics">
@@ -467,6 +470,7 @@
           <File Name="sflow_print_wsfline.h"/>
           <File Name="sflow_print_wsf.h"/>
           <File Name="sflow_print_probe_da.h"/>
+          <File Name="sflow_print_max.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Pressure">
           <File Name="sflow_pressure_nh.h"/>
@@ -742,6 +746,7 @@
           </VirtualDirectory>
           <VirtualDirectory Name="State">
             <File Name="fnpf_state.h"/>
+            <File Name="fnpf_couple_send.h"/>
             <File Name="potentialfile_out.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="WSF">
@@ -821,6 +826,9 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Multiphysics">
+      <VirtualDirectory Name="Salinity">
+        <File Name="nhflow_tracer_SI.h"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="CORAL">
         <File Name="coral/README.md"/>
         <VirtualDirectory Name="Core">
@@ -966,12 +974,14 @@
         <File Name="wind.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Met">
+        <File Name="met_blend.h"/>
         <File Name="met_drag.h"/>
         <File Name="met_file.h"/>
         <File Name="met_forcing.h"/>
         <File Name="met_frame.h"/>
         <File Name="met_provider.h"/>
         <File Name="met_source.h"/>
+        <File Name="met_vortex.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Multiphase">
         <VirtualDirectory Name="Fluid Update">
@@ -1403,6 +1413,7 @@
         <File Name="wave_lib_eta_series.h"/>
         <File Name="wave_lib_wavemaker2nd.h"/>
         <File Name="wave_lib_hdc.h"/>
+        <File Name="wave_lib_fnpf_couple.h"/>
         <File Name="wave_lib_ssgw.h"/>
         <File Name="wave_lib_flap_eta.h"/>
         <File Name="wave_lib.h"/>
@@ -1504,6 +1515,7 @@
         <File Name="cfd_amr_6dof.cpp"/>
         <File Name="cfd_amr_fields.cpp"/>
         <File Name="cfd_amr_scalar.cpp"/>
+        <File Name="cfd_amr_cpm.cpp"/>
         <File Name="cfd_amr_geom.cpp"/>
         <File Name="cfd_amr_force.cpp"/>
         <File Name="cfd_amr_zone.cpp"/>
@@ -2030,6 +2042,7 @@
           </VirtualDirectory>
           <VirtualDirectory Name="Probes">
             <File Name="sflow_print_probe_da.cpp"/>
+            <File Name="sflow_print_max.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Print WSF">
             <File Name="sflow_print_wsf_theory.cpp"/>
@@ -2410,6 +2423,7 @@
             <File Name="fnpf_state_header.cpp"/>
             <File Name="fnpf_state_filename.cpp"/>
             <File Name="fnpf_state.cpp"/>
+            <File Name="fnpf_couple_send.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="PotentialFile Out">
             <File Name="potentialfile_out_write.cpp"/>
@@ -2476,6 +2490,9 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Multiphysics">
+      <VirtualDirectory Name="Salinity">
+        <File Name="nhflow_tracer_SI.cpp"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="CORAL">
         <VirtualDirectory Name="Core">
           <File Name="coral/core/coral_constraint.cpp"/>
@@ -2677,10 +2694,12 @@
         <File Name="wind_f_fnpf.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Met">
+        <File Name="met_blend.cpp"/>
         <File Name="met_file.cpp"/>
         <File Name="met_forcing.cpp"/>
         <File Name="met_frame.cpp"/>
         <File Name="met_provider.cpp"/>
+        <File Name="met_vortex.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Multiphase">
         <VirtualDirectory Name="Fluid Update">
@@ -3285,6 +3304,8 @@
         <File Name="gc_sizeM_update.cpp"/>
       </VirtualDirectory>
       <File Name="ghostcell.cpp"/>
+      <File Name="reef3d_mpmd.cpp"/>
+      <File Name="reefcouple.cpp"/>
       <VirtualDirectory Name="Epol Slice">
         <File Name="gcsl_dgcslini.cpp"/>
         <File Name="gcsl_dgcsl.cpp"/>
@@ -3530,6 +3551,7 @@
           <File Name="ioflow_amr_block.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="ioWave">
+          <File Name="iowave_fnpf_fullini_masked.cpp"/>
           <File Name="arc_sirw.cpp"/>
           <File Name="iowave_sirw.cpp"/>
           <File Name="iowave_probes.cpp"/>
@@ -3657,6 +3679,7 @@
         <File Name="wave_lib_ssgw_kinematics.cpp"/>
         <File Name="wave_lib_ssgw_routines.cpp"/>
         <File Name="wave_lib_hdc.cpp"/>
+        <File Name="wave_lib_fnpf_couple.cpp"/>
         <File Name="wave_lib_ssgw.cpp"/>
         <VirtualDirectory Name="HDC">
           <File Name="wave_lib_hdc_read_result_fnpf.cpp"/>
@@ -3737,7 +3760,7 @@
       <ResourceCompiler Options=""/>
     </GlobalSettings>
     <Configuration Name="All" CompilerType="mpicxx" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
-      <Compiler Options="-O3; -w; " C_Options="-O3; -w" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0"/>
+      <Compiler Options="-O3; -w; " C_Options="-O3; -w" Assembler="" Required="yes" PreCompiledHeader="reef3d_pch.h" PCHInCommandLine="yes" PCHFlags="" PCHFlagsPolicy="1"/>
       <Linker Options="" Required="yes"/>
       <ResourceCompiler Options="" Required="no"/>
       <General OutputFile="./All/REEF3D" IntermediateDirectory="./obj" Command="./$(ProjectName)" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
@@ -3774,7 +3797,7 @@
       </Completion>
     </Configuration>
     <Configuration Name="Debug" CompilerType="mpicxx" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
-      <Compiler Options="-O0;-g;-g3;-Wall;" C_Options="" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0">
+      <Compiler Options="-O0;-g;-g3;-Wall;" C_Options="" Assembler="" Required="yes" PreCompiledHeader="reef3d_pch.h" PCHInCommandLine="yes" PCHFlags="" PCHFlagsPolicy="1">
         <IncludePath Value="."/>
       </Compiler>
       <Linker Options="" Required="yes"/>
@@ -3813,7 +3836,7 @@
       </Completion>
     </Configuration>
     <Configuration Name="Dev" CompilerType="mpicxx" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
-      <Compiler Options="-O3; -Wall; -pedantic; -Wpedantic; -Wextra; -Wshadow; -Wcast-align; -Wconversion; -Wsign-conversion; -Wnull-dereference; -Wdouble-promotion; -Wformat=2;" C_Options="-O3; -w" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0"/>
+      <Compiler Options="-O3; -Wall; -pedantic; -Wpedantic; -Wextra; -Wshadow; -Wcast-align; -Wconversion; -Wsign-conversion; -Wnull-dereference; -Wdouble-promotion; -Wformat=2;" C_Options="-O3; -w" Assembler="" Required="yes" PreCompiledHeader="reef3d_pch.h" PCHInCommandLine="yes" PCHFlags="" PCHFlagsPolicy="1"/>
       <Linker Options="" Required="yes"/>
       <ResourceCompiler Options="" Required="no"/>
       <General OutputFile="./Dev/REEF3D" IntermediateDirectory="./obj" Command="./$(ProjectName)" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
@@ -3850,7 +3873,7 @@
       </Completion>
     </Configuration>
     <Configuration Name="Release" CompilerType="mpicxx" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
-      <Compiler Options="-O3; -w; -DNDEBUG; -DEIGEN_NO_DEBUG; -march=native; -flto;" C_Options="-O3; -w" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0"/>
+      <Compiler Options="-O3; -w; -DNDEBUG; -DEIGEN_NO_DEBUG; -march=native; -flto;" C_Options="-O3; -w" Assembler="" Required="yes" PreCompiledHeader="reef3d_pch.h" PCHInCommandLine="yes" PCHFlags="" PCHFlagsPolicy="1"/>
       <Linker Options="-flto" Required="yes"/>
       <ResourceCompiler Options="" Required="no"/>
       <General OutputFile="./Release/REEF3D" IntermediateDirectory="./obj" Command="./$(ProjectName)" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>

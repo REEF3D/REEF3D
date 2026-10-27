@@ -21,6 +21,7 @@ Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"cfd_amr.h"
+#include"reef3d_mpmd.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
@@ -446,12 +447,30 @@ void cfd_amr::step_sub(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof *
     if(scal)
     sc_step_level(0,p->dt,0.0);
 
-    // the bodies: level 0 steps with a predicted copy (the finest level advances them)
+    // the bodies: level 0 steps with a predicted copy (the finest level advances them).  The
+    // copy does not force the body in the level-0 cells under the patches: the hull on the coarse
+    // grid jumps from cell to cell and its pressure (70 Pa from step to step on 0.02 m cells for a
+    // box towed at 1 m/s) reached the patches through the coarse pressure at their edges in the
+    // level projections (a towed box: the drag 5-10 % high, the vertical force 30-40 % off and
+    // jumping; validation 51).  Under the patches the body is that of the finer levels, restricted
+    // at the end of their steps and taken by the synchronisation
     if(bodies)
     {
         for(int nb=0; nb<b6->objects(); ++nb)
         b6->object(nb)->amr_save();
         b6->amr_predict = true;
+
+        cover0.assign((size_t)p->imax*p->jmax*p->kmax,0);
+        for(int i=0; i<p->knox; ++i)
+        for(int j=0; j<p->knoy; ++j)
+        for(int k=0; k<p->knoz; ++k)
+        {
+            const int I[3] = {i+org[0],j+org[1],k+org[2]};
+            if(covered(0,I))
+            cover0[(size_t)(i-p->imin)*p->jmax*p->kmax + (size_t)(j-p->jmin)*p->kmax + (k-p->kmin)] = 1;
+        }
+        for(int nb=0; nb<b6->objects(); ++nb)
+        b6->object(nb)->amr_cover = cover0.data();
     }
     bfin = 0;
 
@@ -472,7 +491,10 @@ void cfd_amr::step_sub(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof *
     {
         b6->amr_predict = false;
         for(int nb=0; nb<b6->objects(); ++nb)
-        b6->object(nb)->amr_restore(p0,pgc0);
+        {
+            b6->object(nb)->amr_cover = nullptr;
+            b6->object(nb)->amr_restore(p0,pgc0);
+        }
     }
 
     advance(1,p->dt,p->simtime);
@@ -601,7 +623,7 @@ void cfd_amr::volume(double &V, double &dV)
         }
     }
     double s[2] = {V,dV};
-    MPI_Allreduce(MPI_IN_PLACE,s,2,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+    MPI_Allreduce(MPI_IN_PLACE,s,2,MPI_DOUBLE,MPI_SUM,reef3d_comm());
     V = s[0];
     dV = s[1];
 }

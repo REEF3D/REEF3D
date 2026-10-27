@@ -32,6 +32,7 @@ Author: Hans Bihs
 //  counters of the refinement (the interval P 182 / P 181 of the log and the grids).
 
 #include"sflow_amr.h"
+#include"reef3d_mpmd.h"
 #include"reefckpt.h"
 #include"sflow_ckpt_fields.h"
 #include"sflow_momentum_RK3.h"
@@ -274,7 +275,7 @@ bool sflow_amr::ckpt_read(reefckpt &ck, string &msg)
         bad = 1;
     }
     int badall = 0;
-    MPI_Allreduce(&bad,&badall,1,MPI_INT,MPI_MAX,MPI_COMM_WORLD);
+    MPI_Allreduce(&bad,&badall,1,MPI_INT,MPI_MAX,reef3d_comm());
     if(badall)
     {
         msg = "the patches of the mesh refinement in the checkpoint do not fit this run (other keys?)";

@@ -23,12 +23,17 @@ Author: Hans Bihs
 #include"grid.h"
 #include<cmath>
 #include<algorithm>
+#include<cstdint>
+#include<cstring>
+#include<unordered_map>
 
 // Physical points on the curvilinear grid (G 50): XP/YP and posc_i/posf_i are the logical box of DIVEMesh
 // there, the physical cell centres and nodes are XC2D/YC2D and XN2D/YN2D. A bucket table over the box of
 // the rank holds three kinds of items: the quadrilaterals of four cell centres (interpolation at a point),
 // the cells as quadrilaterals of their nodes (the cell that holds a point) and the cell centres (the cells
 // near a triangle). The table is built on the first call and freed with the geometry.
+// geo_quad keeps its results for the points it has seen (fixed points: the gauges, probes), up to QMEMO points
+// per grid; the same search, done once (a point outside the centres of the rank scans all quads).
 
 struct geo_locate_cache
 {
@@ -36,6 +41,17 @@ struct geo_locate_cache
     int nbx=1, nby=1;
     double bx0=0.0, bx1=0.0, by0=0.0, by1=0.0;   // box of the nodes of the rank's cells
     std::vector<std::vector<int>> quad, cell, cent;
+
+    // geo_quad: the results of the points seen so far (key: the bits of x and y)
+    struct qres { int key; double fx, fy; bool in; };
+    struct pkey
+    {
+        uint64_t a, b;
+        bool operator==(const pkey &o) const { return a==o.a && b==o.b; }
+    };
+    struct phash { size_t operator()(const pkey &k) const { return std::hash<uint64_t>()(k.a*0x9E3779B97F4A7C15ULL ^ k.b); } };
+    std::unordered_map<pkey,qres,phash> qmemo;
+    static const size_t QMEMO = 4096;
 
     int bucket(double x, double y) const
     {
@@ -172,8 +188,30 @@ bool grid::geo_quad(double x, double y, int &ii, int &jj, double &fx, double &fy
     if(geoloc==nullptr)
     geoloc = geo_build(this);
 
-    const geo_locate_cache &c = *geoloc;
+    geo_locate_cache &c = *geoloc;
     const int W = knoy+2;
+
+    // a point seen before
+    geo_locate_cache::pkey pk;
+    std::memcpy(&pk.a,&x,sizeof(double));
+    std::memcpy(&pk.b,&y,sizeof(double));
+    {
+        auto it = c.qmemo.find(pk);
+        if(it!=c.qmemo.end())
+        {
+            const geo_locate_cache::qres &r = it->second;
+            if(r.key<0)
+            {
+                ii = 0; jj = 0; fx = fy = 0.0;
+                return false;
+            }
+            ii = r.key/W - 1;
+            jj = r.key%W - 1;
+            fx = r.fx;
+            fy = r.fy;
+            return r.in;
+        }
+    }
 
     auto xc = [&](int a, int b) { return XC2D[(a-imin)*jmax + (b-jmin)]; };
     auto yc = [&](int a, int b) { return YC2D[(a-imin)*jmax + (b-jmin)]; };
@@ -216,6 +254,8 @@ bool grid::geo_quad(double x, double y, int &ii, int &jj, double &fx, double &fy
 
     if(best<0)
     {
+        if(c.qmemo.size()<geo_locate_cache::QMEMO)
+        c.qmemo[pk] = {-1,0.0,0.0,false};
         ii = 0; jj = 0; fx = fy = 0.0;
         return false;
     }
@@ -224,6 +264,8 @@ bool grid::geo_quad(double x, double y, int &ii, int &jj, double &fx, double &fy
     jj = best%W - 1;
     fx = std::max(0.0, std::min(1.0, bs));
     fy = std::max(0.0, std::min(1.0, bt));
+    if(c.qmemo.size()<geo_locate_cache::QMEMO)
+    c.qmemo[pk] = {best,fx,fy,bd<=tol};
     return bd<=tol;
 }
 

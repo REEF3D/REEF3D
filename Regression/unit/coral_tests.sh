@@ -14,7 +14,8 @@ for f in $(find ../../src/coral -name '*.cpp' -not -path '*/reef3d/*' -not -path
     echo "$f"
 done | xargs -P "$JOBS" -I{} sh -c 'o="$0/$(basename {} .cpp).o"; '"$CXX $FLAGS"' -c {} -o "$o" || exit 255' "$OBJ" || fail=1
 for t in coral_test coral_hydro_test coral_pto_test coral_mooring_test coral_io_test coral_beam_test coral_linear_test \
-         coral_superelement_test coral_soil_test coral_offshore_test coral_fluid_test coral_wind_test coral_aero_test coral_rotor_test coral_control_test coral_floater_test; do
+         coral_superelement_test coral_soil_test coral_offshore_test coral_fluid_test coral_wind_test coral_aero_test coral_rotor_test coral_control_test coral_floater_test \
+         coral_moordyn_test; do
     if ! $CXX $FLAGS $t.cpp "$OBJ"/*.o -o "$OBJ/$t"; then echo "$t: build failed"; fail=1; continue; fi
     res=$("$OBJ/$t" | tail -1)
     echo "$t: $res"
