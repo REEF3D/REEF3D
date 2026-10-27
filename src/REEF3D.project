@@ -130,6 +130,7 @@
         <File Name="seastate_surfbeat.h"/>
         <File Name="seastate_roller.h"/>
         <File Name="seastate_coupling.h"/>
+        <File Name="seastate_remote.h"/>
         <File Name="seastate_nhflow.h"/>
         <File Name="seastate_forcing.h"/>
         <File Name="seastate_amr.h"/>
@@ -1611,6 +1612,7 @@
           <File Name="seastate_f_surfbeat.cpp"/>
           <File Name="seastate_surfbeat.cpp"/>
           <File Name="seastate_coupling.cpp"/>
+          <File Name="seastate_remote.cpp"/>
           <File Name="seastate_nhflow.cpp"/>
           <File Name="seastate_sflow.cpp"/>
         </VirtualDirectory>

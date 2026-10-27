@@ -1306,7 +1306,7 @@ void control::ini_default()
     W205=0;          // int geographic frame given (W 205 lon0 lat0 rot)
     W205_lon=W205_lat=W205_rot=0.0;  // double frame: transverse Mercator about lon0, lat0 [deg], x axis rot [deg] from east
     W206_x=W206_y=0.0;  // double model coordinates of (lon0, lat0) [m]
-    W207=0;          // int drag law of the met forcing: 0 auto (1 for W 200 1/2, 5 for the vortex W 200 3), 1 Garratt, 2 Wu, 3 Smith and Banke, 4 Zijlema et al., 5 Garratt capped at W 213, 6 Zijlema et al. with the floor W 214
+    W207=0;          // int drag law of the met forcing: 0 auto (1 for W 200 1/2, 5 for the vortex W 200 3), 1 Garratt, 2 Wu, 3 Smith and Banke, 4 Zijlema et al., 5 Garratt capped at W 213, 6 Zijlema et al. with the floor W 214, 7 wave-dependent (Taylor and Yelland 2001, SEASTATE coupling A 750)
     W208=1;          // int air pressure gradient of the met forcing: 0 off, 1 on
     W209=101325.0;   // double reference air pressure of the inverse barometer [Pa]
     W210=1;          // int inverse barometer on the open edges and relaxation zones (B 520): 0 off, 1 on
@@ -1331,6 +1331,8 @@ void control::ini_default()
     W225=1;          // int blend: taper, 1 cosine, 2 linear (ADCIRC NWS 29/30)
     W226=0;          // int blend: environment, 1 the background minus the vortex on the ring r2 (mean wind, pressure gradient) added to the vortex
     W227=0;          // int blend: nest in time, 0 linear at fixed points, 1 storm-relative (records shifted with the track centre)
+    W228=3.5e-3;     // double cap of the drag coefficient of the wave-dependent law W 207 7
+    W229=1;          // int floor of the roughness of W 207 7: 0 none (Taylor and Yelland alone), 1 Charnock (0.011 u*^2/g)
     W_fb=0.0;        // double density of floating body
 
 	// 6DOF

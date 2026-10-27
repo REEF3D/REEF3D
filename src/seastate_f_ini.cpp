@@ -70,6 +70,14 @@ void seastate_f::ini_coupled(lexer *p, ghostcell *pgc)
     ini_common(p,pgc,true);
 }
 
+void seastate_f::ini_remote(lexer *p, ghostcell *pgc)
+{
+    // remote waves (A 750 2): coupled (wave steps, environment and printing by seastate_remote_wave), but on the own
+    // grid of this model: point counts, still water level and bed as stand-alone
+    remote = true;
+    ini_common(p,pgc,true);
+}
+
 void seastate_f::ini_common(lexer *p, ghostcell *pgc, bool coupled_)
 {
     coupled = coupled_;
@@ -79,7 +87,7 @@ void seastate_f::ini_common(lexer *p, ghostcell *pgc, bool coupled_)
 
     dtw = p->A706;
 
-    if(!coupled)
+    if(!coupled || remote)
     {
     p->count=0;
     p->printcount=0;
@@ -375,7 +383,7 @@ void seastate_f::check_keys(lexer *p, ghostcell *pgc)
     else if(p->A729<0 || p->A729>2)
     msg = "A 729: drag of the wind input must be 0 (Wu 1982, as SWAN), 1 (the met drag law W 207 with W 213, W 214) or 2 (its own law A 728)";
     else if(p->A729==1 && (p->W207<0 || p->W207>6 || !(p->W213>0.0) || !(p->W214>=0.0)))
-    msg = "A 729 1: W 207 must be a drag law 0-6, W 213 positive and W 214 not negative";
+    msg = "A 729 1: W 207 must be a drag law 0-6 (the wave-dependent law 7 is the drag of the surge; for the waves use A 729 2), W 213 positive and W 214 not negative";
     else if(p->A785<0 || p->A785>1)
     msg = "A 785: nesting output must be 0 (off) or 1 (the points of seastate-spcout.dat)";
     else if(p->A785==1 && !(p->A786>=0.0))
@@ -426,11 +434,15 @@ void seastate_f::check_keys(lexer *p, ghostcell *pgc)
     msg = "A 736: the triad parameters cutfr (> 1), urcrit (> 0) and urslim (>= 0) are out of range";
     else if(p->A737!=0 && p->A737!=1)
     msg = "A 737: the maximum energy must be 0 (off) or 1 (on)";
+    else if(p->A750<0 || p->A750>2)
+    msg = "A 750: the coupling must be 0 (off), 1 (in-process with SFLOW/NHFLOW) or 2 (remote waves: SEASTATE as its own model next to SFLOW/NHFLOW)";
     else if(p->A750==1 && p->A10!=2 && p->A10!=5)
     msg = "A 750 1: the coupling needs SFLOW (A 10 2) or NHFLOW (A 10 5) as the host model";
-    else if(p->A750==1 && p->A751!=1 && p->A751!=2)
+    else if(p->A750==2 && p->A770==1)
+    msg = "A 750 2: the surfbeat model (A 770 1) runs on the host grid and step (A 750 1)";
+    else if(p->A750>=1 && p->A751!=1 && p->A751!=2)
     msg = "A 751: the wave forcing must be 1 (radiation stress) or 2 (vortex force)";
-    else if(p->A750==1 && (p->A753<0 || p->A753>2))
+    else if(p->A750>=1 && (p->A753<0 || p->A753>2))
     msg = "A 753: the feedback must be 0 (none), 1 (water level) or 2 (water level and currents)";
     else if(!(p->A752>=0.0))
     msg = "A 752: the ramp-up time must not be negative";
@@ -452,7 +464,7 @@ void seastate_f::check_keys(lexer *p, ghostcell *pgc)
     msg = "A 709: the percentage of converged cells must be in (0, 100]";
     else if(p->A790!=0 && p->A790!=1)
     msg = "A 790: the bathymetry raster must be 0 (off) or 1 (seastate-bathy.dat)";
-    else if(p->A790==1 && coupled)
+    else if(p->A790==1 && coupled && !remote)
     msg = "A 790 1: the bathymetry raster is for stand-alone runs (A 10 7); a host model sets the bed";
     else if(p->G1>0 && coupled)
     msg = "G 1: mesh refinement of SEASTATE is for stand-alone runs (A 10 7), not with the coupling (A 750)";
@@ -578,7 +590,7 @@ void seastate_f::check_keys(lexer *p, ghostcell *pgc)
 void seastate_f::environment(lexer *p, ghostcell *pgc)
 {
     // bathymetry from the 2D grid; still water level F 60 (as SFLOW); a coupled host has set it
-    if(!coupled)
+    if(!coupled || remote)
     p->phimean = p->wd = p->F60;
 
     ILOOP
@@ -633,7 +645,7 @@ void seastate_f::environment(lexer *p, ghostcell *pgc)
     // Phase 14: the second halo layer at the rank boundaries for the second-order fluxes (A 796 2, surfbeat A 775 2):
     // bed, depth and wet flag of the neighbour rank. The grid flags mark only the first halo layer, so that the faces
     // next to a rank boundary stayed first order on several ranks
-    if(!coupled && (p->A796==2 || (p->A770==1 && p->A775==2)))
+    if((!coupled || remote) && (p->A796==2 || (p->A770==1 && p->A775==2)))
     seastate_halo2(p,pgc,4,
                    [&](int ii, int jj, double *v) {v[0]=e->bed(ii,jj); v[1]=e->depth(ii,jj); v[2]=e->wet(ii,jj); v[3]=e->wet0(ii,jj);},
                    [&](int ii, int jj, const double *v) {e->bed(ii,jj)=v[0]; e->depth(ii,jj)=v[1]; e->wet(ii,jj)=int(v[2]); e->wet0(ii,jj)=int(v[3]);});

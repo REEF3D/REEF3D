@@ -184,6 +184,9 @@ public:
 
     void ini_coupled(lexer*, ghostcell*);
 
+    // remote waves (A 750 2): SEASTATE as its own model in the MPI job of the host (seastate_remote)
+    void ini_remote(lexer*, ghostcell*);
+
     // Phase 18: the checkpoints (P 48, I 45) and the rebalance (G 46) of a stand-alone run (seastate_f_ckpt.cpp)
     reefrun_ckpt& ckpt(lexer*, ghostcell*);
     void step_coupled(lexer*, ghostcell*, double dt);
@@ -248,6 +251,7 @@ private:
     int iter_max, iter_done;
     double dtw;                 // wave time step (A 706 stand-alone, the coupling interval in coupled runs)
     bool coupled;
+    bool remote = false;                // A 750 2: coupled, on the own grid (seastate_remote_wave)
     bool kba = false;                   // Phase 14: the sweeps pipelined across the ranks (A 781 1)
     double conv;
     std::vector<double> hs_old;

@@ -1,0 +1,10 @@
+{
+ "base": "seastate_sflow_vortex_si_mpi2",
+ "np": 1,
+ "ctrl_set": {"A 750": "2"},
+ "remote": {"case": "seastate_remote_waves_vortex", "dir": "waves"},
+ "description": "seastate_sflow_vortex_si_mpi2 with the waves as their own model (remote waves, A 750 2): SFLOW SI on 40 x 40 cells of 10 km (1 rank) and SEASTATE on 20 x 20 cells of 20 km (1 rank, folder waves) in one MPI job; radiation stress (A 751 1), water level and currents to the waves (A 753 2).",
+ "tags": ["2d", "sflow", "semi_implicit", "seastate", "mpmd", "met", "vortex"],
+ "covers": ["SEASTATE remote waves (A 750 2): roles, set-up exchange, lagged exchange, interpolation both ways, stop at the end",
+            "regression.py MPMD partner (\"remote\")"]
+}

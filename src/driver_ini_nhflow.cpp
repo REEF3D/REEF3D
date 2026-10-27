@@ -171,8 +171,8 @@ void driver::driver_ini_nhflow()
     pflow->discharge_nhflow(p,d,pgc);
     pflow->inflow_nhflow(p,d,pgc,d->U,d->V,d->W,d->UH,d->VH,d->WH,d->WL);
     
-    // REEF3D::SEASTATE coupling (A 750 1)
-    if(p->A750==1)
+    // REEF3D::SEASTATE coupling (A 750 1 in-process, A 750 2 remote waves on their own grid)
+    if(p->A750==1 || p->A750==2)
     {
     d->wave = new seastate_nhflow(p,d,pgc);
     d->wave->ini(p,d,pgc);
