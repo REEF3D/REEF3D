@@ -27,6 +27,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"nhflow_fsf_hull.h"
 #include"nhflow_hullbody.h"
+#include"nhflow_thinbody.h"
 
 void sixdof_obj_nhflow::hydrodynamic_forces_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL, bool finalize)
 {
@@ -39,6 +40,34 @@ void sixdof_obj_nhflow::hydrodynamic_forces_nhflow(lexer *p, fdm_nhf *d, ghostce
     }
     
     // X 15 8: the hull is a sharp thin body, the loads are the outer pressure on the blocked links
+    // mesh refinement: every grid holds the hull, every blocked face counts on the finest grid at its centre
+    // (and with placed patches, G 40 1, on the rank of that grid)
+    if(d->hullbody!=nullptr && amr_grids_nhflow)
+    {
+    double F[6] = {0.0,0.0,0.0,0.0,0.0,0.0};
+    double S[3] = {0.0,0.0,0.0};
+    
+    amr_grids_nhflow([&](const nhflow_grid &g)
+    {
+        if(g.d->hullbody==nullptr)
+        return;
+        
+        const std::function<bool(double,double)> keep = [&](double x, double y)
+        {
+            if(amr_owner_nhflow && !amr_owner_nhflow(x,y))
+            return false;
+            return amr_grid_nhflow(x,y).d==g.d;
+        };
+        
+        g.d->hullbody->loads(g.p,g.d,*g.WL,&keep,F,S);
+        S[1] += double(g.d->hullbody->thinbody()->nlower_local(g.p,keep));
+        S[2] += g.d->hullbody->thinbody()->inner_volume_local(g.p,g.d,keep);
+    });
+    
+    d->hullbody->finish_loads(p,d,pgc,F,finalize,S);
+    return;
+    }
+    
     if(d->hullbody!=nullptr)
     {
     d->hullbody->forces(p,d,pgc,WL,finalize);
