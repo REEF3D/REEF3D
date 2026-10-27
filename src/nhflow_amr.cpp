@@ -1462,6 +1462,62 @@ void nhflow_amr::vcell(lexer *qc, const double *c, int nc, int fz, double *f)
 // the cells around the level-l patches with the input of stage s (s<0: end of the step):
 // eta, wet, deep, U, V, W per layer and P per node; water level and momentum follow from the
 // depth of the patch (well balanced)
+// the end of the step: the cells around the level-l patches filled from a patch of the same level (a
+// sibling on this rank, or across a partition edge) take its eta, U, V, W and P of the end of the step,
+// so that an output on the finest grid next to such a cell reads current values (reefamr::finest_point
+// with fills_current).  The cells prolonged from a coarser grid keep theirs.  The next stage fills all
+// of them again (fill_stage), with the same values for these cells
+void nhflow_amr::fill_out(ghostcell *pgc)
+{
+    if(nblk>0)
+    return;
+
+    for(int l=1; l<=maxlev; ++l)
+    {
+        const int K = klev(l);
+        const int nv = 1 + 3*K + K+1;
+
+        fill_run(l,nv,7980+l,
+                 [&](const reefamr_fill &f, double *v)
+                 {
+                     for(int m=0; m<nv; ++m)
+                     v[m] = 0.0;
+                     if(f.kind!=0)
+                     return;
+                     lexer *q = glex(f.g);
+                     fdm_nhf *d = gfd(f.g);
+                     v[0] = d->eta(f.si,f.sj);
+                     for(int k=0; k<K; ++k)
+                     {
+                         const int n = cidx(q,f.si,f.sj,k);
+                         v[1+k] = d->U[n];
+                         v[1+K+k] = d->V[n];
+                         v[1+2*K+k] = d->W[n];
+                     }
+                     for(int k=0; k<=K; ++k)
+                     v[1+3*K+k] = d->P[fidx(q,f.si,f.sj,k)];
+                 },
+                 [&](reefamr_patch *q, int id, const reefamr_fill &f, const double *w)
+                 {
+                     // a cell of a sibling: on this rank (kind 0), or a level-l patch holds it (kind 2)
+                     if(!(f.kind==0 || (f.kind==2 && covered(l,f.di-EXT+q->I0,f.dj-EY+q->J0))))
+                     return;
+                     lexer *pp = q->pp;
+                     fdm_nhf *d = NP(q)->d;
+                     d->eta(f.di,f.dj) = w[0];
+                     for(int k=0; k<K; ++k)
+                     {
+                         const int n = cidx(pp,f.di,f.dj,k);
+                         d->U[n] = w[1+k];
+                         d->V[n] = w[1+K+k];
+                         d->W[n] = w[1+2*K+k];
+                     }
+                     for(int k=0; k<=K; ++k)
+                     d->P[fidx(pp,f.di,f.dj,k)] = w[1+3*K+k];
+                 });
+    }
+}
+
 void nhflow_amr::fill_stage(ghostcell *pgc, int l, int s)
 {
     const int K = klev(l);
@@ -2574,6 +2630,7 @@ void nhflow_amr::step(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum_func
     {
         sub_step(p,d,pgc,mom,S0);
         regrid_step(p,pgc);
+        fill_out(pgc);
         return;
     }
 
@@ -2768,6 +2825,13 @@ void nhflow_amr::step(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum_func
     cur_stage = -1;
 
     regrid_step(p,pgc);
+
+    // the cells around the patches filled from a patch of the same level: the end of the step (the output)
+    {
+        const double t0 = MPI_Wtime();
+        fill_out(pgc);
+        tm[0] += MPI_Wtime()-t0;
+    }
 
     // multi-block: the ring and the cells around the blocks from the end of the step (the time step,
     // the output; after a regrid the restricted values)

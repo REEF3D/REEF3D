@@ -392,6 +392,10 @@ private:
 
     // fill, restriction
     void fill_stage(ghostcell*, int, int);
+    // the end of the step: the cells around the patches that a patch of the same level fills take its
+    // end-of-step eta, U, V, W, P (the outputs on the finest grid read them, fills_current)
+    void fill_out(ghostcell*);
+    bool fills_current() const override { return nblk==0; }
     void fill_bed(ghostcell*, int);
     void bc_patch(ghostcell*, nhflow_amr_patch&, int);
     void restrict_surface(int);
