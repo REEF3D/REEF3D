@@ -826,6 +826,9 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Multiphysics">
+      <VirtualDirectory Name="Salinity">
+        <File Name="nhflow_tracer_SI.h"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="CORAL">
         <File Name="coral/README.md"/>
         <VirtualDirectory Name="Core">
@@ -2487,6 +2490,9 @@
       </VirtualDirectory>
     </VirtualDirectory>
     <VirtualDirectory Name="Multiphysics">
+      <VirtualDirectory Name="Salinity">
+        <File Name="nhflow_tracer_SI.cpp"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="CORAL">
         <VirtualDirectory Name="Core">
           <File Name="coral/core/coral_constraint.cpp"/>
