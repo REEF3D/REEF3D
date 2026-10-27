@@ -280,6 +280,19 @@ void cavitation::properties(lexer *p, fdm *a, ghostcell *pgc)
     pgc->start4(p,a->visc,1);
 }
 
+void cavitation::turbulence(lexer *p, fdm *a)
+{
+    if(p->W70<=0.0)
+    return;
+
+    LOOP
+    {
+        const double al = alpha(i,j,k);
+        const double f = rhov + std::pow(std::max(1.0-al,0.0),p->W70)*(rhol-rhov);
+        a->eddyv(i,j,k) *= f/rho_mix(p,al);
+    }
+}
+
 void cavitation::log(lexer *p, fdm *a, ghostcell *pgc)
 {
     double V=0.0, S=0.0, pmin=1.0e20;

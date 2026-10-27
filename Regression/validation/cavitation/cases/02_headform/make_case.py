@@ -1,7 +1,7 @@
 # Validation case cavitation 02: hemispherical head form (Rouse & McNown 1948), sheet cavitation
 # behind the shoulder at zero yaw, Re = U D/nu = 1.36e5, D = 1 m, U = 1 m/s, rho = 1000.
 #
-#   python3 make_case.py [<D/dx> <ranks> <end time> [sigma ...]] [--pref P] [--amr]
+#   python3 make_case.py [<D/dx> <ranks> <end time> [sigma ...]] [--pref P] [--amr] [--reboud N]
 # VTU frames (P 35) over the last 5 s, the last 10 s for end times of 20 s or more (unsteady
 # cavities); Betzy wall time 6 h up to 15 s, 12 h beyond (sigma 0.3 at D/40: dt 0.0035 s, 2.8 s
 # per step on 128 ranks). No restart: the state files (P 40) do not hold the vapour fraction.
@@ -25,6 +25,9 @@
 # Grid (B 127-129, cell based): uniform dx in x in [-0.8, 2.5], |y|, |z| < 0.75, growing to 0.25.
 # k-epsilon (T 10 1) with wall functions at the direct-forcing body: laminar runs separate at the
 # shoulder (D/20: reverse flow to s/D = 2, Cp_min -0.34 instead of -0.74).
+# --reboud N: Reboud correction of the eddy viscosity in the mixture (W 70 N, N = 10): k-epsilon
+# damps the re-entrant jet at the closure of the cavity, the cavities are too long and steady
+# (D/20 + AMR: 0.10, 0.13, 0.34 D at sigma 0.5, 0.4, 0.3); written to d<D/dx>[_amr]_reboud/.
 # --amr: CFD mesh refinement (G 1 1) in the box G 15 x in [-0.75, 2.45], |y|, |z| < 0.7 (inside the
 # uniform part of the base grid): the nose, the shoulder and the cavities of sigma >= 0.3 at
 # dx/2, the rest of the domain at dx (D/40 + AMR: D/80 at the body, ~3.2 M patch cells). Needs
@@ -176,6 +179,11 @@ def make(argv):
         argv = argv[:k] + argv[k+2:]
     amr = "--amr" in argv
     argv = [a for a in argv if a != "--amr"]
+    reboud = 0.0
+    if "--reboud" in argv:
+        k = argv.index("--reboud")
+        reboud = float(argv[k+1])
+        argv = argv[:k] + argv[k+2:]
     res = int(argv[0])
     ranks = int(argv[1])
     tend = float(argv[2])
@@ -184,7 +192,7 @@ def make(argv):
     q = 0.5*RHO*U*U
     for sg in sigmas:
         name = "nocav" if sg == "none" else "sigma" + sg
-        d = os.path.join(f"d{res}" + ("_amr" if amr else ""), name)
+        d = os.path.join(f"d{res}" + ("_amr" if amr else "") + ("_reboud" if reboud > 0 else ""), name)
         os.makedirs(d, exist_ok=True)
         # rho_l/rho_v = 1000 (W 62 1, nu_v 1e-5: mu_v as for water vapour): with the real ratio
         # 58000 the D/40 run diverged at t = 3.3 s (lateral velocity 567 m/s in the vapour);
@@ -192,7 +200,8 @@ def make(argv):
         # W 61 from the upstream pressure of the set-up, W 69 corrects it slowly from 5 s on
         p0 = pref if pref_given else (-4.5 if amr else -15.5)
         cav = "" if sg == "none" else (f"W 60 1\nW 61 {p0 - float(sg)*q:.1f}\nW 62 1.0\nW 63 1.0e-5\n"
-                                       f"W 69 {float(sg)} {U} -3.0 3.0 0.01 5.0\n")
+                                       f"W 69 {float(sg)} {U} -3.0 3.0 0.01 5.0\n"
+                                       + (f"W 70 {reboud}\n" if reboud > 0 else ""))
         with open(f"{d}/control.txt", "w") as f:
             f.write(CONTROL.format(dx=dx, ranks=ranks, c14=2 if amr else 21))
         with open(f"{d}/ctrl.txt", "w") as f:

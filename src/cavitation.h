@@ -78,6 +78,10 @@ class convection;
 //  with the time constant tau; before p_v = W 61, a good estimate. A slow correction of the level
 //  (outlet patch, outflow B 77 10, the drag of the body): a fast one couples with the cavity (its
 //  growth pushes the water out and raises the upstream pressure). p_v is in the output file.
+//  Turbulence W 70 n (RANS, T 10 1, 2): Reboud et al. (1998), mu_t = f(rho) C_mu k^2/eps with
+//  f = rho_v + (1 - alpha)^n (rho_l - rho_v) instead of rho (n = 10): the kinematic eddy viscosity
+//  times f/rho, 1 in liquid and vapour, ~0.004 at alpha = 0.5. The mixture (closure of a cavity) then
+//  has little eddy viscosity and the re-entrant jet is not damped (unsteady sheet cavities).
 //  Initial vapour (alpha = 1): the cells with the centre in the box W 67 xs xe ys ye zs ze or the
 //  sphere W 68 x y z r.
 //  Output: alpha_v in the VTU files (the mixture density with P 24 1), REEF3D_CFD_Cavitation/REEF3D-CFD-Cavitation.dat
@@ -110,6 +114,7 @@ public:
     void projection(lexer*, fdm*, double);          // after the Poisson matrix is assembled
     void start(lexer*, fdm*, ghostcell*);           // after the momentum step
     void properties(lexer*, fdm*, ghostcell*);      // density and viscosity of the cells from alpha
+    void turbulence(lexer*, fdm*);                  // W 70: Reboud correction of the eddy viscosity (RANS)
 
     double rho_mix(lexer*, double) const;            // mixture density of a vapour fraction
     double vapour_pressure() const { return pv; }

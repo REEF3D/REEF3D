@@ -20,6 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Authors: Hans Bihs, Fabian Knoblauch
 --------------------------------------------------------------------*/
 
+#include"cavitation.h"
 #include"komega_func_PLIC.h"
 #include"ghostcell.h"
 #include"lexer.h"
@@ -197,6 +198,10 @@ void komega_func_PLIC::eddyvisc(lexer* p, fdm* a, ghostcell* pgc, vrans* pvrans)
         }
     }
         
+    // cavitation (W 70): Reboud correction of the eddy viscosity in the mixture
+    if(cavitation *cv = cavitation::of(p))
+    cv->turbulence(p,a);
+
     pvrans->eddyv_func(p,a);
     
 	pgc->start4(p,eddyv0,24);

@@ -20,6 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#include"cavitation.h"
 #include"kepsilon_func.h"
 #include"ioflow.h"
 #include"ghostcell.h"
@@ -134,6 +135,10 @@ void  kepsilon_func::eddyvisc(fdm* a, lexer* p, ghostcell* pgc, vrans* pvrans)
         }
     }
     
+    // cavitation (W 70): Reboud correction of the eddy viscosity in the mixture
+    if(cavitation *cv = cavitation::of(p))
+    cv->turbulence(p,a);
+
     pvrans->eddyv_func(p,a);
     
 	pgc->start4(p,a->eddyv,24);

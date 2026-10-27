@@ -18,6 +18,7 @@ Keywords
 | `W 67` | initial vapour box xs xe ys ye zs ze | |
 | `W 68` | initial vapour sphere x y z r | |
 | `W 69` | cavitation number control sigma U x y z tau: from t = tau on p_v = p_ref - sigma rho U²/2, p_ref the pressure at (x, y, z) averaged over tau; before that p_v = W 61 | off |
+| `W 70` | Reboud correction of the eddy viscosity (RANS): mu_t with f = rho_v + (1 - alpha)^n (rho_l - rho_v) instead of rho, n (10) | 0 (off) |
 
 Setup notes
 - The pressure level must be fixed by a Dirichlet boundary: the outlet side a wall `C 14 21`

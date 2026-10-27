@@ -2455,6 +2455,8 @@ void control::ctrlrecv()
     dd++;
     W69_t = dctrl[dd];
     dd++;
+    W70 = dctrl[dd];
+    dd++;
     W90 = ictrl[ii];
     ii++;
     W95 = dctrl[dd];

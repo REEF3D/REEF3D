@@ -1232,6 +1232,7 @@ void control::ini_default()
     W68_x=W68_y=W68_z=W68_r=0.0;
     W69=0;           // int cavitation number control W 69 sigma U x y z tau
     W69_sigma=W69_u=W69_x=W69_y=W69_z=W69_t=0.0;
+    W70=0.0;         // double cavitation: Reboud exponent n of the eddy viscosity, 0 off
     W50_air=0;      // int air inflow switch
     W90=0;           // int non-newtownian flow
     W95=0.001;       // double nu_0 maximum kinetic viscosity
