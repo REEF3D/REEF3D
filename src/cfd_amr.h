@@ -681,6 +681,10 @@ private:
     void sc_reset(int lfine);
     void sc_record_shadows(double w, bool diff);    // G 40: the coarse fluxes of level 0 at the level-1 edges
     double sc_total(double &smin, double &smax);
+
+    // the output of the patches in the time windows P 35 (cfd_amr_print.cpp): the next output time of
+    // every window, as printer_CFD::printtime_wT
+    vector<double> p35_next;
 };
 
 #endif
