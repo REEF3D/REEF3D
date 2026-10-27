@@ -31,6 +31,11 @@ Author: Hans Bihs
 
 #define PORVALNH  d->POR[IJK]
 
+// storage coefficient of the continuity n_s deta/dt + div(Q) = 0 (use with k = p->knoz-1):
+// VRANS (B 200 1): the porosity at the free surface z = eta (vrans_nhflow_f::update -> d->PORS),
+// otherwise the porosity of the surface cell (porous floating bodies, DEM)
+#define PORSURFNH  (p->B200==1 ? d->PORS(i,j) : d->POR[IJK])
+
 #define PORVALNH1  (0.5*(d->POR[IJK] + d->POR[Ip1JK]))
 #define PORVALNH2  (0.5*(d->POR[IJK] + d->POR[IJp1K]))
 #define PORVALNH3  (0.5*(d->POR[IJK] + d->POR[IJKp1]))

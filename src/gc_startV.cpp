@@ -851,7 +851,7 @@ void ghostcell::start5Vfull(lexer *p, double *f, int gcv)
         {
         f[Im1JK] = f[IJK];
         f[Im2JK] = f[IJK];
-        f[Im2JK] = f[IJK];
+        f[Im3JK] = f[IJK];
         }
         
         

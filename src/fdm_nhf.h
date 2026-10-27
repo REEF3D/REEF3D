@@ -64,6 +64,7 @@ public:
     slice4 hx,hy;
     slice4 ks;
     slice4 coastline;
+    slice4 PORS;                // VRANS: porosity at the free surface n(eta), storage of the continuity
     slice4 vb;
     slice4 vbk;     // A 550 4: wavenumber of the breaking crest for the depth profile of vb
     slice4 test2D;

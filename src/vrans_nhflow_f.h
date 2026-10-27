@@ -57,6 +57,8 @@ private:
     void print_force(lexer*, fdm_nhf*, ghostcell*);
     
     double Hporface(lexer*, fdm_nhf*, int, int, int);
+    double porpsi(lexer*, fdm_nhf*);
+    void por_surface(lexer*, fdm_nhf*, ghostcell*);
     void porous_coeff(lexer*, fdm_nhf*);
     void layer_prop(lexer*, fdm_nhf*);
     void turb_inf(lexer*, fdm_nhf*, double&, double&);

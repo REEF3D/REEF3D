@@ -22,6 +22,7 @@ Author: Hans Bihs
 
 #include"river_ini.h"
 #include"nhflow_f.h"
+#include"nhflow_por_ghost.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
@@ -162,23 +163,16 @@ void nhflow_f::ini(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, nhflow_f
     
     pgc->start5Vfull(p,d->POR,1);
 
-    // the columns of the partition halo (cells of the neighbour ranks, not the ghost cells beyond the
-    // domain) below the bed and above the surface as start5Vfull sets them for the own columns: the
-    // exchange covers the fluid layers only, and the Poisson rows of the bottom layer next to a partition
-    // edge read POR below the bed of the neighbour column (cN ... of nhflow_poisson), which stayed 0
-    // (coefficient 0 instead of 1): the result depended on the rank layout
-    for(int ii=p->imin; ii<p->imin+p->imax; ++ii)
-    for(int jj=p->jmin; jj<p->jmin+p->jmax; ++jj)
-    {
-        const int c0 = (ii-p->imin)*p->jmax*p->kmax + (jj-p->jmin)*p->kmax - p->kmin;
-        const int I = ii+p->origin_i, J = jj+p->origin_j;
-        if(p->flag4[c0]<0 || (ii>=0 && ii<p->knox && jj>=0 && jj<p->knoy) || I<0 || I>=p->gknox || J<0 || J>=p->gknoy)
-        continue;
-        for(int kk=p->kmin; kk<0; ++kk)
-        d->POR[c0+kk] = d->POR[c0];
-        for(int kk=p->knoz; kk<p->kmin+p->kmax; ++kk)
-        d->POR[c0+kk] = d->POR[c0+p->knoz-1];
-    }
+    // below the bed and above the surface of every column of the array (partition halo, ghost columns
+    // beyond the domain, 2D y-ghost columns): the Poisson rows of the bottom layer read POR below the bed
+    // of the neighbour column (cN ... of nhflow_poisson), see nhflow_por_ghost.h
+    nhflow_por_ghost(p,d);
+    
+    // VRANS: porosity at the free surface (storage of the continuity), set by vrans_nhflow_f::update
+    SLICELOOP4
+    d->PORS(i,j) = 1.0;
+    
+    pgc->gcsl_start4(p,d->PORS,50);
     
     SLICELOOP4
     d->WL(i,j) = d->eta(i,j) + d->depth(i,j);

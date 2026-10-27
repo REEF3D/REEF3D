@@ -79,11 +79,11 @@ void nhflow_fsf_f::rk2_step1(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow
     }
     
     // VRANS: d/dt int_{-h}^{eta} n dz = n(eta) deta/dt -> divide the column divergence by the
-    // porosity of the surface cell, not layer by layer (mass error for vertically varying n)
+    // porosity at the free surface, not layer by layer (mass error for vertically varying n)
     SLICELOOP4
     {
     k = p->knoz-1;
-    K(i,j) /= PORVALNH;
+    K(i,j) /= PORSURFNH;
     }
     
     // REEF3D::SEASTATE: Stokes transport in the continuity (A 751 2)
@@ -139,11 +139,11 @@ void nhflow_fsf_f::rk2_step2(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow* pflow
     }
     
     // VRANS: d/dt int_{-h}^{eta} n dz = n(eta) deta/dt -> divide the column divergence by the
-    // porosity of the surface cell, not layer by layer (mass error for vertically varying n)
+    // porosity at the free surface, not layer by layer (mass error for vertically varying n)
     SLICELOOP4
     {
     k = p->knoz-1;
-    K(i,j) /= PORVALNH;
+    K(i,j) /= PORSURFNH;
     }
     
     // REEF3D::SEASTATE: Stokes transport in the continuity (A 751 2)
