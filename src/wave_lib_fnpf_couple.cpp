@@ -637,7 +637,8 @@ double wave_lib_fnpf_couple::fi_h(const hstencil &h, double zf) const
 
 // the FNPF columns inside the overlap box I 244 (receiver frame), sorted by j, then i, with the
 // weight of the targets (0 at the box edge, 1 at I 245 inside) and the sampling point in the
-// receiver; FNPF 2D: the line through the box centre, receiver 2D: its y
+// receiver; FNPF 2D -> receiver 3D: the column stands for a crest line and is averaged over the points
+// of that line inside the box (spacing DXM); receiver 2D: its y
 void wave_lib_fnpf_couple::overlap_ini(lexer *p)
 {
     const double xs=p->I244_xs, xe=p->I244_xe, ys=p->I244_ys, ye=p->I244_ye;
@@ -662,6 +663,32 @@ void wave_lib_fnpf_couple::overlap_ini(lexer *p)
         if(p->j_dir==0)
         y = yrec;
         
+        ocol o;
+        
+        // crest line of an FNPF 2D column in a 3D receiver: its points inside the box and the domain
+        if(jdirF==0 && p->j_dir==1)
+        {
+            const double big = 4.0*std::max(std::max(xe-xs,ye-ys),p->global_xmax-p->global_xmin+p->global_ymax-p->global_ymin);
+            const double h = p->DXM;
+            for(double t=-big; t<=big; t+=h)
+            {
+                const double xl = p->B105_2 + xg*cg - (ygm+t)*sg;
+                const double yl = p->B105_3 + xg*sg + (ygm+t)*cg;
+                if(xl<xs || xl>xe || yl<ys || yl>ye)
+                continue;
+                if(xl<p->global_xmin || xl>p->global_xmax || yl<p->global_ymin || yl>p->global_ymax)
+                continue;
+                o.sx.push_back(xl);
+                o.sy.push_back(yl);
+                o.sown.push_back((xl>=p->originx && xl<p->endx && yl>=p->originy && yl<p->endy) ? 1 : 0);
+            }
+            if(o.sx.empty())
+            continue;
+            
+            x = 0.5*(o.sx.front()+o.sx.back());
+            y = 0.5*(o.sy.front()+o.sy.back());
+        }
+        
         if(x<xs || x>xe)
         continue;
         if(p->j_dir==1 && (y<ys || y>ye))
@@ -670,8 +697,7 @@ void wave_lib_fnpf_couple::overlap_ini(lexer *p)
         double d = std::min(x-xs,xe-x);
         if(use_y)
         d = std::min(d,std::min(y-ys,ye-y));
-        
-        ocol o;
+
         o.gi = gi;
         o.gj = gj;
         o.r  = (d>=w) ? 1.0 : 0.5*(1.0-cos(PI*d/w));
@@ -682,7 +708,8 @@ void wave_lib_fnpf_couple::overlap_ini(lexer *p)
     }
     
     if(p->mpirank==0)
-    cout<<" overlap box I 244: "<<xs<<" "<<xe<<" "<<ys<<" "<<ye<<", ramp "<<w<<" m, "<<oc.size()<<" FNPF columns"<<endl;
+    cout<<" overlap box I 244: "<<xs<<" "<<xe<<" "<<ys<<" "<<ye<<", ramp "<<w<<" m, "<<oc.size()<<" FNPF columns"
+        <<((jdirF==0 && p->j_dir==1) ? " (FNPF 2D: averaged along the crest lines in the box)" : "")<<endl;
     
     if(oc.empty() && p->mpirank==0)
     cout<<"!!! B 92 62: no FNPF column inside the I 244 box !!!"<<endl;
@@ -776,15 +803,38 @@ void wave_lib_fnpf_couple::feedback(lexer *p, ghostcell *pgc, sixdof *p6dof, fdm
         const int o = 2 + 18*nb_fb;
         
         for(int q=0; q<nc; ++q)
-        if(oc[q].own)
         {
-            double e,u,v,w;
-            if(surface_cfd(p,a,oc[q].x,oc[q].y,e,u,v,w))
+            const ocol &c = oc[q];
+            
+            // FNPF 2D -> 3D: the mean along the crest line
+            if(!c.sx.empty())
             {
-            b[o+q]      = e;
-            b[o+nc+q]   =  cg*u + sg*v;
-            b[o+2*nc+q] = -sg*u + cg*v;
-            b[o+3*nc+q] = w;
+                const double f = 1.0/double(c.sx.size());
+                for(size_t n=0; n<c.sx.size(); ++n)
+                if(c.sown[n])
+                {
+                    double e,u,v,w;
+                    if(surface_cfd(p,a,c.sx[n],c.sy[n],e,u,v,w))
+                    {
+                    b[o+q]      += f*e;
+                    b[o+nc+q]   += f*( cg*u + sg*v);
+                    b[o+2*nc+q] += f*(-sg*u + cg*v);
+                    b[o+3*nc+q] += f*w;
+                    }
+                }
+                continue;
+            }
+            
+            if(c.own)
+            {
+                double e,u,v,w;
+                if(surface_cfd(p,a,c.x,c.y,e,u,v,w))
+                {
+                b[o+q]      = e;
+                b[o+nc+q]   =  cg*u + sg*v;
+                b[o+2*nc+q] = -sg*u + cg*v;
+                b[o+3*nc+q] = w;
+                }
             }
         }
         

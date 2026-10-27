@@ -27,6 +27,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"ghostcell.h"
 #include<iostream>
+#include<string>
 
 MPI_Comm reefcouple::src_ic = MPI_COMM_NULL;
 std::vector<MPI_Comm> reefcouple::recv_ic;
@@ -54,45 +55,91 @@ void reefcouple::roles(lexer *p, ghostcell *pgc)
         return;
     }
     
-    // model and role of every app (rank 0 of each app speaks for it)
-    int mine[2] = {p->A10, want ? 1 : 0};
-    std::vector<int> all(2*reef3d_mpmd::world_size);
-    MPI_Allgather(mine,2,MPI_INT,all.data(),2,MPI_INT,MPI_COMM_WORLD);
+    // model, role and chosen source (I 246) of every app (rank 0 of each app speaks for it)
+    int mine[3] = {p->A10, want ? 1 : 0, p->I246};
+    std::vector<int> all(3*reef3d_mpmd::world_size);
+    MPI_Allgather(mine,3,MPI_INT,all.data(),3,MPI_INT,MPI_COMM_WORLD);
     
-    std::vector<int> model(napps), recv(napps);
+    std::vector<int> model(napps), recv(napps), wsrc(napps), src(napps,-1);
     for(int a=0; a<napps; ++a)
     {
-        model[a] = all[2*reef3d_mpmd::leader[a]];
-        recv[a]  = all[2*reef3d_mpmd::leader[a]+1];
+        model[a] = all[3*reef3d_mpmd::leader[a]];
+        recv[a]  = all[3*reef3d_mpmd::leader[a]+1];
+        wsrc[a]  = all[3*reef3d_mpmd::leader[a]+2];
     }
     
-    // the source: the lowest FNPF app that is no receiver
-    int src=-1;
+    auto fail = [&](const std::string &msg)
+    {
+        if(reef3d_mpmd::world_rank==0)
+        cout<<"!!! "<<msg<<" !!!"<<endl;
+        MPI_Abort(MPI_COMM_WORLD,1);
+    };
+    
+    // default source: the lowest FNPF app that is no receiver
+    int dsrc=-1;
     for(int a=0; a<napps; ++a)
     if(model[a]==3 && recv[a]==0)
     {
-    src=a;
+    dsrc=a;
     break;
     }
     
     int nrecv=0;
     for(int a=0; a<napps; ++a)
-    nrecv += recv[a];
+    if(recv[a]==1)
+    {
+        ++nrecv;
+        
+        if(model[a]!=6 && model[a]!=5 && model[a]!=3)
+        fail("B 92 62: app "+std::to_string(a)+" (A 10 "+std::to_string(model[a])+") cannot receive, only CFD (A 10 6), NHFLOW (A 10 5) and FNPF (A 10 3)");
+        
+        src[a] = (wsrc[a]>=0) ? wsrc[a] : dsrc;
+        
+        if(src[a]<0)
+        fail("B 92 62: no FNPF model (A 10 3) in the job to receive from (app "+std::to_string(a)+")");
+        if(src[a]>=napps)
+        fail("I 246 "+std::to_string(src[a])+" of app "+std::to_string(a)+": the job has the apps 0.."+std::to_string(napps-1));
+        if(src[a]==a)
+        fail("I 246 of app "+std::to_string(a)+": a model cannot receive from itself");
+        if(model[src[a]]!=3)
+        fail("I 246 of app "+std::to_string(a)+": app "+std::to_string(src[a])+" is no FNPF model (A 10 3)");
+    }
+    
+    // no cycles in the chains (an FNPF receiver can send on)
+    for(int a=0; a<napps; ++a)
+    if(recv[a]==1)
+    {
+        int b=src[a], n=0;
+        while(b>=0 && recv[b]==1 && n<=napps)
+        {
+            if(b==a)
+            fail("B 92 62 / I 246: the coupling chain of app "+std::to_string(a)+" is a cycle");
+            b=src[b];
+            ++n;
+        }
+    }
+    
+    bool issrc=false;
+    for(int a=0; a<napps; ++a)
+    if(recv[a]==1 && src[a]==me)
+    issrc=true;
     
     if(reef3d_mpmd::world_rank==0)
     {
         cout<<endl<<"REEF3D coupled run: "<<napps<<" models"<<endl;
         for(int a=0; a<napps; ++a)
-        cout<<"  app "<<a<<": A 10 "<<model[a]<<(a==src && nrecv>0 ? "  FNPF source" : "")<<(recv[a] ? "  receiver (B 92 62)" : "")<<endl;
+        {
+            bool s=false;
+            for(int r=0; r<napps; ++r)
+            if(recv[r]==1 && src[r]==a)
+            s=true;
+            
+            cout<<"  app "<<a<<": A 10 "<<model[a]<<(s ? "  FNPF source" : "");
+            if(recv[a]==1)
+            cout<<"  receiver (B 92 62) of app "<<src[a];
+            cout<<endl;
+        }
         cout<<endl;
-    }
-    
-    for(int a=0; a<napps; ++a)
-    if(recv[a]==1 && model[a]!=6 && model[a]!=5 && model[a]!=3)
-    {
-        if(reef3d_mpmd::world_rank==0)
-        cout<<"!!! B 92 62: app "<<a<<" (A 10 "<<model[a]<<") cannot receive, only CFD (A 10 6), NHFLOW (A 10 5) and FNPF (A 10 3) !!!"<<endl;
-        MPI_Abort(MPI_COMM_WORLD,1);
     }
     
     // feedback keys: I 244 (overlap box) only for CFD, I 243/I 244 not for an FNPF receiver
@@ -110,29 +157,23 @@ void reefcouple::roles(lexer *p, ghostcell *pgc)
         MPI_Abort(MPI_COMM_WORLD,1);
     }
     
-    if(nrecv>0 && src<0)
-    {
-        if(reef3d_mpmd::world_rank==0)
-        cout<<"!!! B 92 62: no FNPF model (A 10 3) in the job to receive from !!!"<<endl;
-        MPI_Abort(MPI_COMM_WORLD,1);
-    }
-    
     if(nrecv==0)
     return;
     
     // the rebalance stop (G 46) would end one model of the pair: off in coupled models
-    if((me==src || recv[me]==1) && p->G46>0.0)
+    if((issrc || recv[me]==1) && p->G46>0.0)
     {
         if(p->mpirank==0)
         cout<<"coupled run: G 46 (rebalance stop) is switched off"<<endl;
         p->G46 = 0.0;
     }
     
-    // intercommunicators, source <-> each receiver in ascending order
-    if(me==src)
+    // intercommunicators source <-> receiver, all pairs in the order of the receivers: every app
+    // takes its pairs in the same global order (a model in a chain is receiver and source)
+    for(int a=0; a<napps; ++a)
+    if(recv[a]==1)
     {
-        for(int a=0; a<napps; ++a)
-        if(recv[a]==1)
+        if(me==src[a])
         {
             MPI_Comm ic;
             MPI_Intercomm_create(reef3d_comm(),0,MPI_COMM_WORLD,reef3d_mpmd::leader[a],4700+a,&ic);
@@ -140,10 +181,10 @@ void reefcouple::roles(lexer *p, ghostcell *pgc)
             recv_app.push_back(a);
             recv_model.push_back(model[a]);
         }
+        
+        if(me==a)
+        MPI_Intercomm_create(reef3d_comm(),0,MPI_COMM_WORLD,reef3d_mpmd::leader[src[a]],4700+a,&src_ic);
     }
-    
-    if(recv[me]==1)
-    MPI_Intercomm_create(reef3d_comm(),0,MPI_COMM_WORLD,reef3d_mpmd::leader[src],4700+me,&src_ic);
 }
 
 void reefcouple::finish()

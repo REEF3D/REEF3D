@@ -40,9 +40,11 @@ own working directory:
 
   mpirun -np 2 -wdir fnpf REEF3D : -np 8 -wdir cfd REEF3D
 
-  source:    an FNPF model (A 10 3), the lowest app with A 10 3 that is
+  source:    an FNPF model (A 10 3): the one the receiver names with
+             I 246 <app>, by default the lowest app with A 10 3 that is
              no receiver; it needs no coupling key, it sends as soon as
-             a receiver exists
+             a receiver exists. An FNPF receiver can be a source itself
+             (chain: regional FNPF -> local FNPF -> CFD, I 246 in the CFD)
   receivers: CFD (A 10 6), NHFLOW (A 10 5) or FNPF (A 10 3, nesting)
              models with the wave type B 92 62; several receivers can
              share one FNPF source

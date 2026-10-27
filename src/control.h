@@ -426,6 +426,7 @@ public:
     int I242;
     int I243,I244;
     double I244_xs,I244_xe,I244_ys,I244_ye,I245;
+    int I246;
 
     // Numerical Options
     int N10,N11,N12,N13,N14,N15,N18,N40,N45,N46,N48;

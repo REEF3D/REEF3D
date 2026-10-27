@@ -93,6 +93,9 @@ private:
         int gi,gj;
         double r,x,y;
         bool own;
+        // FNPF 2D -> receiver 3D: the column stands for a crest line, averaged over the box
+        std::vector<double> sx,sy;
+        std::vector<char> sown;
     };
     
     void handshake(lexer*, ghostcell*);

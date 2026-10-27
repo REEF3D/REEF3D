@@ -1659,6 +1659,8 @@ void control::ctrlrecv()
     dd++;
     I245 = dctrl[dd];
     dd++;
+    I246 = ictrl[ii];
+    ii++;
 
     M10 = ictrl[ii];
     ii++;
