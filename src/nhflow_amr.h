@@ -134,14 +134,23 @@ using namespace std;
 //  (force_leaf, solid_forces).  Not with subcycling (G 7 1), A 516 2/4 or the solids of the grid
 //  file (A 580 1).
 //
-//  Scope of this version: static refinement boxes, the body zone and the adaptive flags (G 1
-//  levels, G 10 boxes, G 11 boxes without refinement, G 4 tile width, G 3, G 20, G 21, G 12,
-//  G 13, G 2, G 5, G 6, G 22, G 23, G 30, G 40), A 510 2/3, A 511 1/2, A 514 all, A 520 0/1/2,
-//  A 512 0/1/2, A 560 0, A 550 0 (A 550 1 with A 510 2), B 200 0, X 10 0/1/2 (X 60 1, X 16 0,
-//  A 516 0/1/3), S 10 0, fixed solids A 581-590 (not A 580 1), no membranes (X 330), nets (X 320),
-//  3D and 2D grids (Cartesian).  Patches stay out of the relaxation
-//  zones (B 96), the in- and outflow band and, checked at every regrid, 4 level-0 cells away from
-//  dry or shallow cells (they are fully wet; level 0 keeps its wetting and drying).
+//  Scope of this version (checked in ini; otherwise the refinement is switched off with a message):
+//  static refinement boxes, the body zone and the adaptive flags (G 1 levels, G 10 boxes, G 11 boxes
+//  without refinement, G 4 tile width, G 3, G 20, G 21, G 12, G 13, G 2, G 5, G 6, G 7, G 22, G 23,
+//  G 30, G 31, G 40), A 510 2/3, A 511 1/2, A 514 all, A 519 0/1, A 520 0/1/2, A 512 0/1/2, A 550 0
+//  (A 550 1 with A 510 2), A 560 0/1/2/21/22 (turbulence on every grid, nhflow_amr_turb.cpp; not with
+//  G 7 1, A 561, A 563), B 200 0, X 10 0/1/2 (X 60 1, X 16 0, A 516 0/1/3), S 10 0/1 (bed load on
+//  every grid, nhflow_amr_sed.cpp; S 12 0, S 51 0, S 31 1/2, S 32 1/2), fixed solids A 581-590 (not
+//  with G 7 1 or A 516 2/4; not A 580 1), no membranes (X 330), nets (X 320), DEM (E 10), particles
+//  (L 10), rods or FEM structures (Z 20, Z 30).  Cartesian and curvilinear grids (G 50 2), 2D grids
+//  (one cell in y) Cartesian only.  The multi-block grid (G 50 1 with DIVEMesh R 20 1,
+//  nhflow_amr_block.cpp): the blocks 1.. are level-0 patches of the hierarchy, with or without
+//  refinement, not with G 7 1, A 550, X 10 > 2, or bodies with G 40 (nhflow_amr::blocks_check); the
+//  hydrostatic semi-implicit free surface (A 534 1, nhflow_amr_si.cpp) on the multi-block grid
+//  without refinement (A 534 1 with G 1 is refused by nhflow_momentum_SI::check).  Checkpoints
+//  (P 48, I 45): nhflow_amr_ckpt.cpp.  Patches stay out of the relaxation zones (B 96), the in- and
+//  outflow band and, without G 30 1 and checked at every regrid, 4 level-0 cells away from dry or
+//  shallow cells (they are fully wet; level 0 keeps its wetting and drying).
 //
 //  Breaking (A 550 1, RK2): every grid detects breaking; the implicit diffusion with the breaking
 //  viscosity (A 512 2) is one composite solve over the leaf cells of all grids (G 31 1, the
