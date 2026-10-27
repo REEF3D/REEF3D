@@ -183,12 +183,6 @@ nhflow_amr::nhflow_amr(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum *pm
     q.lazy = 1.5;
     }
 
-    // the zone holds the hull: its triangles are sized for the finest level (sixdof_obj::amr_hfac,
-    // before the 6DOF initialisation builds them), as on the uniform fine grid
-    if(q.zones)
-    for(int nb=0; nb<b6->objects(); ++nb)
-    b6->object(nb)->amr_hfac = 1.0/double(1<<MAX(p->G1,0));
-
     // vertical refinement (G 6 1): every level doubles the sigma layers of its parent, the
     // coarse nodes are nodes of the fine grid
     vr = (p->G6==1) ? 2 : 1;
@@ -243,6 +237,18 @@ nhflow_amr::nhflow_amr(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum *pm
     csw = MAX(p->G53,0);
 
     configure(q);
+
+    // the hull triangles (X 185) are sized for the finest level (before the 6DOF initialisation builds
+    // them), as on the uniform fine grid: horizontally (sixdof_obj::amr_hfac) whenever the refinement stays
+    // on, since every triangle is sampled on the finest grid at its centroid, whether the zone (G 12), a box
+    // (G 10) or the adaptive flags put a patch over the hull; vertically (amr_vfac) with the sigma layers
+    // doubled on every level (G 6 1), as fnpf_amr
+    if(b6!=nullptr && p->G1>0 && keys_ok(p)==1)
+    for(int nb=0; nb<b6->objects(); ++nb)
+    {
+    b6->object(nb)->amr_hfac = 1.0/double(1<<p->G1);
+    b6->object(nb)->amr_vfac = (vr==2) ? 1.0/double(1<<p->G1) : 1.0;
+    }
 
     if(p->F50==1) gcval_eta = 51;
     if(p->F50==2) gcval_eta = 52;
@@ -307,17 +313,10 @@ nhflow_amr::stg nhflow_amr::stage_out(int g, int s)
     return {&m->stage_WL(d,s),m->stage_UH(d,s,0),m->stage_UH(d,s,1),m->stage_UH(d,s,2)};
 }
 
-// --------------------------------------------------------------------- setup
-void nhflow_amr::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
+// the keys the refinement runs with: 1 on, 0 off, -1 off for the sharp hull (X 15 8). The constructor sizes the
+// hull triangles with it, before ini switches the refinement off with a message
+int nhflow_amr::keys_ok(lexer *p)
 {
-    if(maxlev<1 && p->geo_mb==0)
-    return;
-
-    // multi-block grid (G 50 1, DIVEMesh R 20 1): the blocks run on the hierarchy, with or without
-    // refinement
-    if(p->geo_mb>0)
-    blocks_check(p);
-
     int ok=1;
     if(mom0==nullptr) ok=0;
     if(p->A510!=2 && p->A510!=3) ok=0;
@@ -346,6 +345,28 @@ void nhflow_amr::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     if(p->E10>0 || p->L10>0 || p->Z20>0 || p->Z30>0) ok=0;
     if(p->j_dir!=1 && (p->geo_mb>0 || p->geo_curv==1)) ok=0;     // 2D grid (one cell in y): Cartesian
 
+    // X 15 8 (hb): one body with the zone around it (G 12), the full projection (A 520 1), no multi-block grid, on
+    // several ranks the placed patches (G 40 1, the zone whole on one rank)
+    if(ok==1 && hb && (p->G12<=0 || b6->objects()!=1 || p->A520!=1 || p->geo_mb>0 || (p->mpi_size>1 && p->G40<1)))
+    ok=-1;
+
+    return ok;
+}
+
+// --------------------------------------------------------------------- setup
+void nhflow_amr::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
+{
+    if(maxlev<1 && p->geo_mb==0)
+    return;
+
+    // multi-block grid (G 50 1, DIVEMesh R 20 1): the blocks run on the hierarchy, with or without
+    // refinement
+    if(p->geo_mb>0)
+    blocks_check(p);
+
+    // the keys (keys_ok): 0 refinement off, -1 off for the sharp hull (X 15 8)
+    int ok = keys_ok(p);
+
     if(ok==0 && p->geo_mb>0)
     {
         if(p->mpirank==0)
@@ -353,9 +374,7 @@ void nhflow_amr::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
         exit(1);
     }
 
-    // X 15 8 (hb): one body with the zone around it (G 12), the full projection (A 520 1), no multi-block grid, on
-    // several ranks the placed patches (G 40 1, the zone whole on one rank)
-    if(ok==1 && hb && (p->G12<=0 || b6->objects()!=1 || p->A520!=1 || p->geo_mb>0 || (p->mpi_size>1 && p->G40<1)))
+    if(ok==-1)
     {
         if(p->mpirank==0)
         cout<<"NHFLOW AMR (G 1) with the sharp hull (X 15 8): only for one body with the zone around it (G 12), A 520 1, "
