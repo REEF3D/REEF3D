@@ -111,6 +111,14 @@ void driver::logic_nhflow()
     if(p->A534!=1)
 	pnhfstep=new nhflow_timestep(p);
 
+    // tracers (A 600): the semi-implicit path only
+    if(p->A600>0 && p->A534!=1)
+    {
+        if(p->mpirank==0)
+        cout<<"!!! NHFLOW tracers (A 600) need the hydrostatic semi-implicit free surface (A 534 1) !!!"<<endl;
+        exit(1);
+    }
+
 //discretization scheme
     // signal speed
     pss = new nhflow_signal_speed(p);

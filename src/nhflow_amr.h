@@ -664,6 +664,10 @@ private:
     template<class A> void si_fill3(ghostcell*, int, int, A);
     void si_fillv(ghostcell*, int);
     void si_fillF(ghostcell*);
+    void si_tracer(lexer*, ghostcell*);   // tracers (A 600) of all blocks
+    std::vector<double> sitr_dist;
+    std::vector<int> sitr_cell, sitr_grid;
+    bool sitr_mask = false;
     void si_dirichlet(ghostcell*);
     void si_solve(lexer*, ghostcell*);
     ghostcell *sipgc = nullptr;

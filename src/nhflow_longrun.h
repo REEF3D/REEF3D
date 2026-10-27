@@ -54,6 +54,8 @@ using namespace std;
 //  - time averages: eta, depth-averaged u, v (Eulerian residual current), the depth-integrated
 //    transport qx, qy (residual transport), and min/max of eta (wet times), max of the speed, and the
 //    fraction of the time the column is wet (inundation frequency).
+//  - tracers (A 600, salinity and temperature): over the wet times the mean of the depth mean, of the
+//    bottom and of the top layer, and max/min of the depth mean.
 //
 // Dry columns: eta is their bed level, u = v = 0 (part of the fit as such); use wet_fraction to judge
 // intertidal columns. Grids: the native grid of the rank (incl. the ring of a multi-block grid) and the
@@ -107,6 +109,7 @@ private:
     int count = 0;
     int NB;                         // basis size 2 NC + 1
     int NV;                         // sums per column
+    int NT;                         // tracers (A 600): 5 sums each
     vector<double> M;               // NB x NB, integral phi phi^T dt
     vector<double> omega;           // rad/s
     vector<string> name;

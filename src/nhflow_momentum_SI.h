@@ -31,6 +31,7 @@ Author: Hans Bihs
 #include<fstream>
 
 class si_eta2D;
+class nhflow_tracer_SI;
 class solver2D;
 class wind;
 class met_forcing;
@@ -124,6 +125,12 @@ public:
     bool patch;             // a block 1.. of a multi-block grid (no log file, no global output)
 
     friend class nhflow_amr;
+    friend class nhflow_tracer_SI;
+
+    // tracers (A 600): salinity, temperature (nhflow_tracer_SI), after the momentum step
+    nhflow_tracer_SI *ptrc = nullptr;
+    bool trc_mask = false;
+    void tracer_step(lexer*, fdm_nhf*, ghostcell*);
 
     // the stage interface of the mesh refinement (nhflow_amr) is not used: one theta step
     int stages() const override final { return 1; }
@@ -156,9 +163,11 @@ public:
         fd("si_VHb",'C',VHb); fd("si_WHb",'C',WHb); fd("si_UHp",'C',UHp); fd("si_VHp",'C',VHp);
         fd("si_WHp",'C',WHp); fd("si_UHD",'C',UHD); fd("si_VHD",'C',VHD); fd("si_WHD",'C',WHD);
         fd("si_dUH",'C',dUH); fd("si_dVH",'C',dVH);
+        tracer_ckpt_fields(fd);
     }
     void ckpt_restored() override { qini = true; }   // the face discharges of the checkpoint
     double* stage_UH(fdm_nhf*,int,int) override final;
+    void tracer_ckpt_fields(const std::function<void(const char*, char, double*)> &fd);
 
 private:
     // open boundary face of a domain edge

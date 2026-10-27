@@ -55,7 +55,7 @@ void nhflow_ckpt_fields(lexer *p, fdm_nhf *d, FD &&fd, FI &&fi)
     fd("F",'C',d->F); fd("G",'C',d->G); fd("H",'C',d->H); fd("L",'C',d->L);
     fd("Fext",'C',d->Fext); fd("Gext",'C',d->Gext); fd("Hext",'C',d->Hext);
     fd("POR",'C',d->POR); fd("PORPART",'C',d->PORPART); fd("PORDEM",'C',d->PORDEM);
-    fd("KIN",'C',d->KIN); fd("CONC",'C',d->CONC); fd("SOLID",'C',d->SOLID); fd("FB",'C',d->FB); fd("FHB",'C',d->FHB);
+    fd("KIN",'C',d->KIN); fd("CONC",'C',d->CONC); fd("SALT",'C',d->SALT); fd("TEMP",'C',d->TEMP); fd("SOLID",'C',d->SOLID); fd("FB",'C',d->FB); fd("FHB",'C',d->FHB);
     fd("PORSTRUC",'C',d->PORSTRUC); fd("Fx",'C',d->Fx); fd("Fy",'C',d->Fy); fd("Fz",'C',d->Fz);
     fd("FEx",'C',d->FEx); fd("FEy",'C',d->FEy); fd("FSW",'C',d->FSW); fd("DWDT",'C',d->DWDT);
 

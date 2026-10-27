@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"reef3d_mpmd.h"
 #include"nhflow_amr_fill.h"
 #include"nhflow_momentum_SI.h"
+#include"nhflow_tracer_SI.h"
 #include"nhflow_longrun.h"
 #include"si_eta2D.h"
 #include"reefmg2D.h"
@@ -834,6 +835,10 @@ void nhflow_amr::si_step(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum_f
     fill_level0(pgc,-1);
     si_fillF(pgc);
 
+    // tracers (A 600) with the transport of the step
+    if(p->A600>0)
+    si_tracer(p,pgc);
+
     // the log of all blocks: volume of the own cells, discharges over the open boundaries
     double loc[4] = {0.0,0.0,0.0,0.0}, all[4];
 
@@ -870,6 +875,118 @@ void nhflow_amr::si_step(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum_f
     cout<<"  wetdry iterations "<<m0->wd_iter<<"  dry cells "<<m0->wd_cells;
 
     cout<<endl;
+    }
+}
+
+// tracers (A 600) of all blocks: the substeps of every block in lockstep (the same number on all grids
+// and ranks), the cells around the blocks and the ring filled before each; the log over the own cells,
+// the gauges P 51 from the nearest own cell centre of all grids
+void nhflow_amr::si_tracer(lexer *p, ghostcell *pgc)
+{
+    const int nt = gsi(-1)->ptrc->nt;
+
+    auto arr = [&](int g, int c) -> double* { return nhflow_tracer_SI::field(gfd(g),c); };
+
+    double r = 0.0;
+
+    si_each(pgc,[&](int g, lexer *q, fdm_nhf *dd, nhflow_momentum_SI *m, nhflow_stage_obj &S)
+    {
+        r = max(r,m->ptrc->prepare(q,dd));
+    });
+
+    double rg;
+    MPI_Allreduce(&r,&rg,1,MPI_DOUBLE,MPI_MAX,pgc->mpi_comm);
+    const int ns = nhflow_tracer_SI::substeps(p,rg);
+
+    // the fluid mask around the blocks and in the halo (static, once): filled as a tracer
+    if(!sitr_mask)
+    {
+        si_fill3(pgc,1,7674,[&](int g, int c) -> double* { return gsi(g)->ptrc->mask; });
+        sitr_mask = true;
+    }
+
+    for(int s=0; s<ns; ++s)
+    {
+        si_fill3(pgc,nt,7670,arr);
+
+        si_each(pgc,[&](int g, lexer *q, fdm_nhf *dd, nhflow_momentum_SI *m, nhflow_stage_obj &S)
+        {
+            m->ptrc->flushed(q,dd,s,ns);
+        });
+
+        si_fill3(pgc,nt,7676,[&](int g, int c) -> double* { return gsi(g)->ptrc->Cx[c]; });
+
+        si_each(pgc,[&](int g, lexer *q, fdm_nhf *dd, nhflow_momentum_SI *m, nhflow_stage_obj &S)
+        {
+            m->ptrc->substep(q,dd,s,ns);
+        });
+    }
+
+    si_fill3(pgc,nt,7672,arr);
+
+    si_each(pgc,[&](int g, lexer *q, fdm_nhf *dd, nhflow_momentum_SI *m, nhflow_stage_obj &S)
+    {
+        m->ptrc->ghosts(q,dd);
+    });
+
+    // the log: own cells of all grids
+    nhflow_tracer_SI::stats st;
+    nhflow_tracer_SI::stats_zero(st);
+
+    for(int g : sigrid)
+    gsi(g)->ptrc->sums(glex(g),gfd(g),[&](int ii, int jj){ return si_own(g,ii,jj); },st);
+
+    nhflow_tracer_SI::reduce(p,st);
+    gsi(-1)->ptrc->write_log(p,st,ns,rg);
+
+    // gauges: the nearest own cell centre of the grids of this rank, then over the ranks
+    if(p->P51>0)
+    {
+        const int ng = p->P51;
+
+        if(sitr_dist.empty())
+        {
+            sitr_dist.assign(ng,1.0e30);
+            sitr_cell.assign(ng,-1);
+            sitr_grid.assign(ng,-2);
+
+            for(int g : sigrid)
+            {
+                vector<double> dist;
+                vector<int> cell;
+                gsi(g)->ptrc->gauge_find(glex(g),[&](int ii, int jj){ return si_own(g,ii,jj); },dist,cell);
+
+                for(int k=0; k<ng; ++k)
+                if(cell[k]>=0 && dist[k]<sitr_dist[k])
+                {
+                sitr_dist[k] = dist[k];
+                sitr_cell[k] = cell[k];
+                sitr_grid[k] = g;
+                }
+            }
+        }
+
+        const size_t nv = 3*nt;
+        vector<double> val((size_t)ng*nv,0.0), dist = sitr_dist;
+
+        for(int g : sigrid)
+        {
+            vector<int> cell(ng,-1);
+            for(int k=0; k<ng; ++k)
+            if(sitr_grid[k]==g)
+            cell[k] = sitr_cell[k];
+
+            vector<double> v;
+            gsi(g)->ptrc->gauge_values(glex(g),gfd(g),cell,v);
+
+            for(int k=0; k<ng; ++k)
+            if(sitr_grid[k]==g)
+            for(size_t q=0; q<nv; ++q)
+            val[k*nv+q] = v[k*nv+q];
+        }
+
+        nhflow_tracer_SI::gauge_combine(p,dist,val);
+        nhflow_tracer_SI::gauge_write(p,val);
     }
 }
 

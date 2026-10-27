@@ -302,6 +302,21 @@ void regression_dump::nhflow_collect(lexer *p, fdm_nhf *d)
     add("bed",p->cellnum);
     SLICELOOP4
     data.back().push_back(d->bed(i,j));
+
+    // tracers of the semi-implicit NHFLOW (A 600), only when switched on
+    if(d->SALT!=nullptr)
+    {
+    add("SALT",p->cellnum);
+    LOOP
+    data.back().push_back(d->SALT[IJK]);
+    }
+
+    if(d->TEMP!=nullptr)
+    {
+    add("TEMP",p->cellnum);
+    LOOP
+    data.back().push_back(d->TEMP[IJK]);
+    }
 }
 
 void regression_dump::nhflow_state(lexer *p, fdm_nhf *d)

@@ -45,6 +45,7 @@ Author: Hans Bihs
 #include"wind_f.h"
 #include"wind_v.h"
 #include"met_forcing.h"
+#include"nhflow_tracer_SI.h"
 #include<cstring>
 #include<sys/stat.h>
 #include<sys/types.h>
@@ -89,6 +90,10 @@ nhflow_momentum_SI::nhflow_momentum_SI(lexer *p, fdm_nhf *d, ghostcell *pgc, six
     }
 
     psi = new si_eta2D(p);
+
+    // tracers (A 600)
+    if(p->A600>0)
+    ptrc = new nhflow_tracer_SI(p,d,this);
 
     // the 2D solver of the eta system: created with the first solve of one grid (new_solver2D); the
     // multi-block grid solves the eta system of all blocks together (nhflow_amr_si.cpp)
@@ -151,6 +156,7 @@ nhflow_momentum_SI::~nhflow_momentum_SI()
     delete [] a;
 
     delete psi;
+    delete ptrc;
 
     if(psolv2D!=nullptr)
     delete psolv2D;
@@ -300,6 +306,86 @@ void nhflow_momentum_SI::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *ppf
     psi_time = psi->time;
 
     si_end(p,d,pgc,S);
+
+    // tracers (A 600) with the transport of the step
+    if(ptrc!=nullptr)
+    tracer_step(p,d,pgc);
+}
+
+// tracers of one grid (the multi-block grid: nhflow_amr::si_tracer): the substeps with the partition
+// halo between them, the log and the gauges
+void nhflow_momentum_SI::tracer_step(lexer *p, fdm_nhf *d, ghostcell *pgc)
+{
+    const int nt = ptrc->nt;
+
+    double r = ptrc->prepare(p,d);
+    r = pgc->globalmax(r);
+    const int ns = nhflow_tracer_SI::substeps(p,r);
+
+    // the fluid mask of the halo (static, once)
+    if(!trc_mask)
+    {
+    pgc->gcparaxV(p,ptrc->mask,14);
+    pgc->gcparacoxV(p,ptrc->mask,14);
+    trc_mask = true;
+    }
+
+    for(int s=0; s<ns; ++s)
+    {
+        for(int n=0; n<nt; ++n)
+        {
+        pgc->gcparaxV(p,nhflow_tracer_SI::field(d,n),14);
+        pgc->gcparacoxV(p,nhflow_tracer_SI::field(d,n),14);
+        }
+
+        ptrc->flushed(p,d,s,ns);
+
+        for(int n=0; n<nt; ++n)
+        {
+        pgc->gcparaxV(p,ptrc->Cx[n],14);
+        pgc->gcparacoxV(p,ptrc->Cx[n],14);
+        }
+
+        ptrc->substep(p,d,s,ns);
+    }
+
+    for(int n=0; n<nt; ++n)
+    {
+    pgc->gcparaxV(p,nhflow_tracer_SI::field(d,n),14);
+    pgc->gcparacoxV(p,nhflow_tracer_SI::field(d,n),14);
+    }
+
+    ptrc->ghosts(p,d);
+
+    nhflow_tracer_SI::stats st;
+    nhflow_tracer_SI::stats_zero(st);
+    ptrc->sums(p,d,[](int,int){ return true; },st);
+    nhflow_tracer_SI::reduce(p,st);
+    ptrc->write_log(p,st,ns,r);
+
+    if(p->P51>0)
+    {
+        static vector<double> gdist;
+        static vector<int> gcell;
+        static bool found = false;
+
+        if(!found)
+        {
+        ptrc->gauge_find(p,[](int,int){ return true; },gdist,gcell);
+        found = true;
+        }
+
+        vector<double> val, dist = gdist;
+        ptrc->gauge_values(p,d,gcell,val);
+        nhflow_tracer_SI::gauge_combine(p,dist,val);
+        nhflow_tracer_SI::gauge_write(p,val);
+    }
+}
+
+void nhflow_momentum_SI::tracer_ckpt_fields(const std::function<void(const char*, char, double*)> &fd)
+{
+    if(ptrc!=nullptr)
+    ptrc->ckpt_fields(fd);
 }
 
 solver2D* nhflow_momentum_SI::new_solver2D(lexer *p, ghostcell *pgc)
