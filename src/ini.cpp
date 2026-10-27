@@ -312,7 +312,8 @@ void control::ini_default()
     A720=0;           // int prescribed current (stand-alone runs): 0 none, 1 U linear in x (A 721)
     A721_us=A721_ue=0.0; // double U at xs and at xe [m/s]
     A721_xs=A721_xe=0.0; // double xs, xe [m]
-    A729=0;           // int drag of the wind input: 0 Wu (1982), 1 the met drag law W 207 (W 213, W 214)
+    A728=4;           // int drag law of the wind input with A 729 2, numbered as W 207: 1 Garratt, 2 Wu, 3 Smith-Banke, 4 Zijlema et al. (2012), 5 Garratt capped at W 213, 6 Zijlema with the floor W 214
+    A729=0;           // int drag of the wind input: 0 Wu (1982), 1 the met drag law W 207 (W 213, W 214), 2 its own law A 728
     A730=0;           // int wind: 0 none, 1 uniform (A 731), 2 the met forcing W 200 (uniform, met-forcing.r3m, vortex, blend)
     A731_u10=0.0;     // double wind speed U10 [m/s]
     A731_dir=0.0;     // double wind direction [deg], direction the wind blows to, ccw from +x
@@ -346,6 +347,8 @@ void control::ini_default()
     A772=3600.0;      // double surfbeat: record length of the boundary time series [s] (repeats afterwards)
     A773=1;           // int surfbeat: seed of the random phases and directions
     A774=1;           // int surfbeat: long waves at the offshore boundary of the host: 0 absorbing only, 1 bound long wave in, absorbing out
+    A785=0;           // int nesting output: 0 off, 1 2D spectra at the points of seastate-spcout.dat into REEF3D_SEASTATE_SPC/seastate-spcout.spc (SWAN, the boundary file of a nested run, A 711 3)
+    A786=3600.0;      // double nesting output: time between the records [s], 0 every step
     A780=0.0;         // double model start date-time YYYYMMDD.HHMMSS of the forcing files (A 711 3, A 730 2), 0: first time in the files
     A790=0;           // int bathymetry raster seastate-bathy.dat (stand-alone): 0 off (bed of the 2D grid, patches interpolated), 1 bed of all grids from the raster
     A791=0.0;         // double mesh refinement (G 1): refine where the water depth is below this value [m], 0 off

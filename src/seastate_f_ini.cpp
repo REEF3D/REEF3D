@@ -332,6 +332,13 @@ void seastate_f::ini_common(lexer *p, ghostcell *pgc, bool coupled_)
 
     if(coupled && p->A760>0)
     handover(p,pgc);
+
+    // nesting output (A 785 1): header and the record of the start
+    if(p->A785==1)
+    {
+    spcout_ini(p,pgc);
+    spcout(p,pgc,!restart);
+    }
 }
 
 void seastate_f::check_keys(lexer *p, ghostcell *pgc)
@@ -365,10 +372,16 @@ void seastate_f::check_keys(lexer *p, ghostcell *pgc)
           " 'python3 tools/met_forcing.py seastate seastate-wind.dat -o met-forcing.r3m' and set W 200 2";
     else if(p->A730==2 && p->W200==0)
     msg = "A 730 2: the wind field is that of the met forcing W 200 (W 200 1 uniform, 2 met-forcing.r3m, 3 vortex, 4 blend)";
-    else if(p->A729<0 || p->A729>1)
-    msg = "A 729: drag of the wind input must be 0 (Wu 1982, as SWAN) or 1 (the met drag law W 207 with W 213, W 214)";
+    else if(p->A729<0 || p->A729>2)
+    msg = "A 729: drag of the wind input must be 0 (Wu 1982, as SWAN), 1 (the met drag law W 207 with W 213, W 214) or 2 (its own law A 728)";
     else if(p->A729==1 && (p->W207<0 || p->W207>6 || !(p->W213>0.0) || !(p->W214>=0.0)))
     msg = "A 729 1: W 207 must be a drag law 0-6, W 213 positive and W 214 not negative";
+    else if(p->A785<0 || p->A785>1)
+    msg = "A 785: nesting output must be 0 (off) or 1 (the points of seastate-spcout.dat)";
+    else if(p->A785==1 && !(p->A786>=0.0))
+    msg = "A 786: the time between the nesting outputs must not be negative";
+    else if(p->A729==2 && (p->A728<1 || p->A728>6 || !(p->W213>0.0) || !(p->W214>=0.0)))
+    msg = "A 729 2: A 728 must be a drag law 1-6 (numbered as W 207), W 213 positive and W 214 not negative";
     else if(p->A730==1 && !(p->A731_u10>=0.0))
     msg = "A 731: the wind speed must not be negative";
     else if(p->A730>=1 && p->A732<1)
@@ -832,10 +845,11 @@ void seastate_f::sources(lexer *p, ghostcell *pgc)
     sp.wdir = p->A731_dir*3.14159265358979323846/180.0;
     sp.Alin = p->A734;
 
-    // drag of the wind input (A 729): Wu (1982), or the met drag law of the surge (W 207, auto as W 200)
-    if(p->A729==1)
+    // drag of the wind input (A 729): Wu (1982), the met drag law of the surge (W 207, auto as W 200), or a law of
+    // its own (A 728, e.g. Zijlema for the waves while the surge keeps a higher cap); cap and floor W 213, W 214
+    if(p->A729==1 || p->A729==2)
     {
-    sp.drag = met_drag_law(p->W207,p->W200);
+    sp.drag = (p->A729==1) ? met_drag_law(p->W207,p->W200) : p->A728;
     sp.drag_cap = p->W213;
     sp.drag_floor = p->W214;
     }
@@ -883,7 +897,7 @@ void seastate_f::sources(lexer *p, ghostcell *pgc)
     if(sp.wind && p->A730==2)
     cout<<" wind field of the met forcing W 200 "<<p->W200<<" ("<<(sp.westh ? "Yan" : "Komen")<<", linear growth "<<sp.Alin<<"),";
     if(sp.wind && sp.drag>0)
-    cout<<" drag of u* the met law "<<sp.drag<<" (A 729 1, W 207),";
+    cout<<" drag of u* the met law "<<sp.drag<<(p->A729==2 ? " (A 729 2, A 728)," : " (A 729 1, W 207),");
     if(sp.komen && !sp.westh)
     cout<<" whitecapping (Komen),";
     if(sp.westh)

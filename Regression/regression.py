@@ -255,7 +255,8 @@ def run_case(c, args, outroot):
         shutil.rmtree(rundir)
     write_inputs(c, rundir, args.steps)
     # "chain": earlier runs whose output folders this case reads (hydrodynamic coupling):
-    # [{"case": "<case>", "copy": ["REEF3D_FNPF_STATE", ...]}], run in <rundir>/_chain
+    # [{"case": "<case>", "copy": ["REEF3D_FNPF_STATE", ...], "files": {"<file of the stage>": "<name here>"}}],
+    # run in <rundir>/_chain
     for stage in c.get("chain", []):
         sc = load_case(stage["case"])
         sinfo = run_case(sc, args, os.path.join(rundir, "_chain"))
@@ -270,6 +271,14 @@ def run_case(c, args, outroot):
                         "status": "chain stage %s: no %s" % (stage["case"], d), "time_divemesh": 0.0, "time_reef3d": 0.0}
                 return finish_run(rundir, info, args)
             shutil.copytree(s, os.path.join(rundir, d))
+        # "files": {"<path in the stage run>": "<name in this run>"} single files (e.g. nested boundary spectra)
+        for src, dst in stage.get("files", {}).items():
+            s = os.path.join(rundir, "_chain", stage["case"], src)
+            if not os.path.isfile(s):
+                info = {"case": c["name"], "np": c["np"], "steps": args.steps or c["steps"],
+                        "status": "chain stage %s: no %s" % (stage["case"], src), "time_divemesh": 0.0, "time_reef3d": 0.0}
+                return finish_run(rundir, info, args)
+            shutil.copy(s, os.path.join(rundir, dst))
     info = {"case": c["name"], "np": c["np"], "steps": args.steps or c["steps"],
             "reef3d": os.path.abspath(args.reef3d), "divemesh": os.path.abspath(args.divemesh),
             "status": "ok", "time_divemesh": 0.0, "time_reef3d": 0.0}

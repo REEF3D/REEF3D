@@ -85,6 +85,14 @@ Phase 3: coupling and handover.
                 irregular wave generation of FNPF/NHFLOW (B 85 11,
                 spectrum-file-2d.dat format), sector A 761 around the
                 mean direction, written every step
+  spcout        nesting output (A 785 1): 2D spectra at the points of
+                seastate-spcout.dat (x y per line, model coordinates),
+                bilinear between the cell centres of level 0, every
+                A 786 s, as one nonstationary SWAN spectral file
+                REEF3D_SEASTATE_SPC/seastate-spcout.spc (LOCATIONS,
+                AFREQ, CDIR, VaDens m2/Hz/degr): the boundary file
+                (seastate-boundary.spc, A 711 3) of a nested run with
+                the same model frame
 
 Phase 4: surfbeat (A 770 1), the wave-group action balance of XBeach
 type (Roelvink 1993; Reniers et al. 2004) on a single representative
@@ -199,6 +207,8 @@ public:
 private:
     void ini_common(lexer*, ghostcell*, bool coupled);
     void handover(lexer*, ghostcell*);
+    void spcout_ini(lexer*, ghostcell*);
+    void spcout(lexer*, ghostcell*, bool force);
     void check_keys(lexer*, ghostcell*);
     void environment(lexer*, ghostcell*);
     void storage(lexer*, ghostcell*);
@@ -261,6 +271,10 @@ private:
     seastate_spc_series *bser;
     met_provider *wmet;                     // the wind of the met forcing W 200 (A 730 2), the provider of the rank (not owned)
     double tref;                            // file time [s since 1970] of model time 0
+
+    // nesting output (A 785 1)
+    std::vector<double> spc_x, spc_y;       // output points [m], model coordinates
+    double spc_tnext = 0.0;                 // model time of the next record
     std::vector<float> Nside[4];            // boundary spectra per side and boundary cell
     struct bweight {int a, b; float wa, wb;};
     std::vector<bweight> bw[4];

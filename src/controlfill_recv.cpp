@@ -690,6 +690,12 @@ void control::ctrlrecv()
     ii++;
     A729 = ictrl[ii];
     ii++;
+    A728 = ictrl[ii];
+    ii++;
+    A785 = ictrl[ii];
+    ii++;
+    A786 = dctrl[dd];
+    dd++;
     A731_u10 = dctrl[dd];
     dd++;
     A731_dir = dctrl[dd];

@@ -50,7 +50,8 @@ The report is printed and written to `<out>/new/compare.md` (+ `compare.json`).
 
 A case can depend on earlier runs (hydrodynamic coupling): `"chain": [{"case": "<case>", "copy":
 ["REEF3D_FNPF_STATE"]}]` runs that case first in `<rundir>/_chain` and copies the listed folders
-into the run directory before DIVEMesh; `"keep_keys": ["P 40", "P 41"]` keeps print keys the suite
+into the run directory before DIVEMesh (`"files": {"<file of the stage>": "<name here>"}` copies single files, e.g.
+the nesting spectra of a SEASTATE stage as `seastate-boundary.spc`); `"keep_keys": ["P 40", "P 41"]` keeps print keys the suite
 normally removes (state files for such a stage). A restart from checkpoints is such a chain: the stage
 writes them (P 48), the case copies `REEF3D_Checkpoint` (and the output folders, which the restart cuts back to the
 checkpoint) and sets I 45 1 or I 45 <count>. `"rebalance": n` starts a run
@@ -639,6 +640,8 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `seastate_2d_wind_field_mpi2` | 2 | REEF3D::SEASTATE wind field in space and time (A 730 2 with the met forcing W 200 2: `met-forcing.r3m`, converted from the former seastate-wind.dat by `tools/met_forcing.py seastate`) with Komen physics and DIA, boundary spectra from a stationary 2-location file, 2 ranks; validated in Dropbox SEASTATE/validation/17-18 |
 | `seastate_2d_windsea_met_mpi2` | 2 | `seastate_2d_windsea_mpi2` with the uniform wind of the met forcing (A 730 2, W 200 1) instead of A 731: `same_as` it within 1e-6 (U10 and the direction from the components) |
 | `seastate_2d_vortex_mpi2` | 2 | SEASTATE under the GAHM vortex of `sflow_2d_si_vortex_gahm_mpi2` (A 730 2, W 200 3), the drag of the wind input from the met drag law (A 729 1), deep water, open sides |
+| `seastate_2d_spcout_mpi2` | 2 | `seastate_2d_vortex_mpi2` with the nesting output (A 785 1, A 786 1800): 2D spectra at 40 points on the sides of a nested domain, bilinear across the rank boundary; the drag of the wind input from A 728 (A 729 2) |
+| `seastate_2d_spcout_nest` | 2 | the nested run of `seastate_2d_spcout_mpi2` (chain stage, its spectra as `seastate-boundary.spc`): 5 km cells, four sides from the nesting output (A 711 3) |
 | `seastate_sflow_vortex_mpi2` | 2 | the vortex driving the surge (explicit SFLOW, W 200 3) and the coupled SEASTATE (A 750 1, A 730 2) with one met provider, radiation stress back to SFLOW |
 | `seastate_sflow_vortex_si_mpi2` | 2 | `seastate_sflow_vortex_mpi2` with the semi-implicit SFLOW (dt <= 600 s = the coupling interval): one met provider for surge and waves, radiation stress back to SFLOW SI |
 | `seastate_sflow_vortex_vf_si_mpi2` | 2 | `seastate_sflow_vortex_si_mpi2` with the vortex force (A 751 2): the host gets the met wind stress, so the dissipation force carries the wind input of the cell wind (the wave-supported stress comes off the mean flow) |
