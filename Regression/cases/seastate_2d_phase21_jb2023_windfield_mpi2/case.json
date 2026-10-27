@@ -1,0 +1,16 @@
+{
+ "base": "seastate_2d_wind_field_mpi2",
+ "ctrl_set": {
+  "A 732": "4"
+ },
+ "same_as": "seastate_2d_phase21_jb2023_windfield",
+ "description": "as seastate_2d_wind_field_mpi2 (2 ranks) with A 732 4, pipelined across the ranks, the result of seastate_2d_phase21_jb2023_windfield (one rank). Validation in Dropbox SEASTATE/validation/70_janssen_bidlot.",
+ "tags": [
+  "2d",
+  "seastate",
+  "mpi"
+ ],
+ "covers": [
+  "A 732 4 on 2 ranks"
+ ]
+}

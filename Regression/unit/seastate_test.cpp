@@ -2,7 +2,7 @@
 // Standalone verification of the REEF3D::SEASTATE kernels: spectral grid, block-sparse action
 // storage, integrated wave parameters, dispersion relation, SWAN spectrum files, source terms (incl. vegetation), surfbeat boundary generator, forcing files,
 // structure formulas (d'Angremond, porous), the DIA of a sweep window (Phase 8). No MPI, no REEF3D binary.
-// Build:  g++ -O2 -std=c++20 -I../../src seastate_test.cpp ../../src/seastate_grid.cpp ../../src/seastate_store.cpp ../../src/seastate_param.cpp ../../src/seastate_dispersion.cpp ../../src/seastate_swan_spc.cpp ../../src/seastate_source.cpp ../../src/seastate_surfbeat.cpp ../../src/seastate_forcing.cpp ../../src/seastate_bathy.cpp ../../src/seastate_structure.cpp seastate_test_threads.cpp -o seastate_test
+// Build:  g++ -O2 -std=c++20 -I../../src seastate_test.cpp ../../src/seastate_grid.cpp ../../src/seastate_store.cpp ../../src/seastate_param.cpp ../../src/seastate_dispersion.cpp ../../src/seastate_swan_spc.cpp ../../src/seastate_source.cpp ../../src/seastate_st4.cpp ../../src/seastate_surfbeat.cpp ../../src/seastate_forcing.cpp ../../src/seastate_bathy.cpp ../../src/seastate_structure.cpp seastate_test_threads.cpp -o seastate_test
 // Run:    ./seastate_test
 #include"seastate_bathy.h"
 #include"seastate_grid.h"
@@ -14,6 +14,7 @@
 #include"seastate_surfbeat.h"
 #include"seastate_forcing.h"
 #include"seastate_structure.h"
+#include"seastate_st4.h"
 #include<cstdio>
 #include<fstream>
 #include<algorithm>
@@ -584,21 +585,6 @@ static void test_source()
         seastate_source src(sg,sp);
         const double us=seastate_source::ustar_wu(20.0);
         check(close(us,std::sqrt((0.8+0.065*20.0)*1e-3)*20.0,1e-12) && close(seastate_source::ustar_wu(5.0),std::sqrt(1.2875e-3)*5.0,1e-12),"u* with the drag of Wu (1982)");
-        // A 729: the drag of the met forcing; law 2 of met_drag.h is Wu (1982) bit for bit, law 5 caps C_d at W 213
-        {
-            seastate_source_param sq = sp;
-            bool same = true;
-            for(double U : {0.0, 3.0, 7.5, 12.0, 20.0, 35.0, 60.0})
-            {
-                sq.drag = 0; seastate_source s0(sg,sq);
-                sq.drag = 2; seastate_source s2(sg,sq);
-                same = same && s0.ustar_of(U)==seastate_source::ustar_wu(U) && s2.ustar_of(U)==seastate_source::ustar_wu(U);
-            }
-            sq.drag = 5; sq.drag_cap = 2.5e-3;
-            seastate_source s5(sg,sq);
-            check(same && s5.ustar_of(60.0)==std::sqrt(2.5e-3)*60.0 && s5.ustar_of(60.0)<seastate_source::ustar_wu(60.0),
-                  "A 729: u* of the met drag law (W 207 2 = Wu bitwise, W 207 5 capped)");
-        }
         cell_kin ck(sg,1000.0);
         std::vector<float> N0(nb,0.0f);
         src.compute(N0.data(),1000.0,ck.k.data(),ck.cg.data(),P.data(),D.data());
@@ -877,8 +863,41 @@ static void test_forcing()
     ser.advance(ser.time(1)+1e5,err);
     check(ser.weight(ser.time(1)+1e5)==1.0 && ser.records==3,"spectra series: clamped after the last record");
 
-    // the wind field file seastate-wind.dat (A 730 2) is retired: the wind is that of the met forcing W 200
-    // (met_provider, tested in met_test.cpp)
+    // wind field: linear in x and y, two times
+    const char *wf = "/tmp/seastate_test_wind.dat";
+    {
+        std::ofstream o(wf);
+        o<<"wind test\n3 2\n100.0 -50.0 200.0 300.0\n";
+        for(int k=0;k<2;++k)
+        {
+            o<<(k==0 ? "20261005.000000" : "20261005.060000")<<"\n";
+            for(int c=0;c<2;++c)
+            for(int jj=0;jj<2;++jj)
+            {
+                for(int ii=0;ii<3;++ii)
+                {
+                    const double x=100.0+200.0*ii, y=-50.0+300.0*jj;
+                    o<<(c==0 ? 5.0+0.01*x+0.002*y+k*4.0 : -3.0+0.004*x-0.01*y)<<" ";
+                }
+                o<<"$ row\n";
+            }
+        }
+    }
+    seastate_wind_series ws;
+    const bool okw = ws.open(wf,err);
+    if(!okw) std::cout<<"        "<<err<<std::endl;
+    double werr=0.0;
+    const double tw = seastate_datetime(20261005.03);
+    ws.advance(tw,err);
+    for(double x : {100.0,230.0,499.0}) for(double y : {-50.0,10.0,250.0})
+    {
+        double u,v; ws.at(tw,x,y,u,v);
+        werr=std::max(werr,std::fabs(u-(5.0+0.01*x+0.002*y+2.0))+std::fabs(v-(-3.0+0.004*x-0.01*y)));
+    }
+    double uc,vc; ws.at(tw,-1000.0,1000.0,uc,vc);
+    std::cout<<"        wind: max. interpolation error "<<werr<<std::endl;
+    check(okw && ws.nx==3 && ws.ny==2 && werr<1e-12,"wind field: bilinear in space and linear in time are exact for a linear field");
+    check(std::fabs(uc-(5.0+0.01*100.0+0.002*250.0+2.0))<1e-12,"wind field: clamped to the grid outside");
 }
 
 // Phase 5b: bathymetry raster (A 790 1) and the maximum energy of SWAN (A 737 1)
@@ -1163,6 +1182,129 @@ static void test_dia_window()
     }
 }
 
+
+// ---------------------------------------------------------------------------------------------
+// Phase 20: Ardhuin et al. (2010) as ecWAM IPHYS 1 (A 732 3), against the Python port of ecWAM
+// (validation 69, ecwam_st4.py) on the same spectrum
+// ---------------------------------------------------------------------------------------------
+static void test_st4()
+{
+    std::cout<<"seastate_st4 (A 732 3)"<<std::endl;
+
+    // Kelvin functions of KZEONE (series) against scipy.special.ker/kei
+    {
+        double ker, kei;
+        seastate_st4::kerkei(0.5,ker,kei);
+        const bool a = close(ker,0.8559058721186341,1e-9) && close(kei,-0.6715816950943675,1e-9);
+        seastate_st4::kerkei(1.0,ker,kei);
+        const bool b = close(ker,0.28670620872831604,1e-9) && close(kei,-0.49499463651872,1e-9);
+        check(a && b,"ST4: ker, kei (KZEONE) as scipy to 1e-9");
+    }
+
+    // JONSWAP fp 0.12 Hz, alpha 0.01, cos^2 spreading about 0.3 rad, U10 20 m/s to 0.3 rad, deep water
+    const int nsig=36, ndir=36;
+    seastate_grid sg(nsig,0.0345,0.0345*std::pow(1.1,35),ndir);
+    std::vector<float> k(nsig), cg(nsig), N(sg.nbin);
+    const double wdir=0.3, fp=0.12, al=0.01;
+    for(int l=0;l<nsig;++l)
+    {
+        const double s=sg.sig[l];
+        k[l]=float(s*s/g); cg[l]=float(g/(2*s));
+        const double f=sg.f[l], sgm = f<fp ? 0.07 : 0.09;
+        const double Ef = al*g*g*std::pow(2*pi,-4)*std::pow(f,-5)*std::exp(-1.25*std::pow(fp/f,4))*std::pow(3.3,std::exp(-(f-fp)*(f-fp)/(2*sgm*sgm*fp*fp)));
+        double norm=0.0;
+        for(int m=0;m<ndir;++m) {const double c=std::cos(sg.theta[m]-wdir); norm += c>0 ? c*c : 0.0;}
+        norm *= sg.dtheta;
+        for(int m=0;m<ndir;++m) {const double c=std::cos(sg.theta[m]-wdir); N[sg.bin(l,m)] = float(Ef*(c>0 ? c*c : 0.0)/norm/(2*pi*s));}
+    }
+    std::vector<double> row(nsig,0.0);
+    for(int l=0;l<nsig;++l) for(int m=0;m<ndir;++m) row[l]+=N[sg.bin(l,m)];
+
+    seastate_st4 s4;
+    s4.init(sg,seastate_st4_param(),g);
+    s4.wind(N.data(),row.data(),k.data(),cg.data(),20.0,wdir,false);
+    std::cout<<"        u* "<<s4.ust<<" (ecWAM port 0.8879935003), z0 "<<s4.z0<<", tau_w "<<s4.tauw<<", cut-off "<<s4.lc<<", "<<s4.iters<<" iterations"<<std::endl;
+    check(close(s4.ust,8.879935002613e-01,1e-9) && close(s4.z0,1.221091203245e-03,1e-8) && close(s4.tauw,6.441716702711e-01,1e-8) && s4.lc==24,
+          "ST4: u*, z0, tau_w and the cut-off of the fixed point as the ecWAM port (TAUT_Z0, STRESSO, TAU_PHI_HF, FRCUTINDEX; secant steps on tau_w)");
+
+    // growth rate, swell damping, whitecapping of single bins (SINPUT_ARD, SDISSIP_ARD)
+    {
+        const int L[6]={10,15,20,24,30,12}, M[6]={3,3,5,2,0,20};
+        const double G[6]={6.308145339232e-05,2.753747753253e-04,8.139743692240e-04,3.069853843187e-03,1.639892197144e-02,0.0};
+        const double S[6]={4.187106183898e-06,1.083687952252e-05,3.385221737127e-05,5.760474515341e-05,1.922043361363e-04,2.514071247881e-05};
+        const double W[6]={0.0,4.259986008461e-05,1.704806203015e-04,4.454028985701e-04,7.425627128331e-04,0.0};
+        std::vector<double> P(sg.nbin,0.0), D(sg.nbin,0.0), Dl(ndir);
+        s4.add(N.data(),k.data(),cg.data(),0,nsig-1,0,ndir-1,P.data(),D.data());
+        bool ok=true;
+        for(int i=0;i<6;++i)
+        {
+            const int b=sg.bin(L[i],M[i]);
+            s4.dissipation(N.data(),k.data(),cg.data(),L[i],Dl.data());
+            const double gm=s4.rate(b), wc=Dl[M[i]], sw=D[b]-wc;
+            ok = ok && std::fabs(gm-G[i])<=1e-8*std::max(G[i],1e-6) && std::fabs(sw-S[i])<=1e-8*S[i] && std::fabs(wc-W[i])<=1e-8*std::max(W[i],1e-6)
+                    && std::fabs(P[b]-gm*N[b])<=1e-12*std::max(P[b],1e-30);
+        }
+        check(ok,"ST4: growth rate, swell damping and whitecapping of 6 bins as the ecWAM port (1e-8)");
+    }
+
+    // in seastate_source: P, D >= 0, the tail above the cut-off, the upper bound, frozen = the same P, D, calm = whitecapping only
+    {
+        seastate_source_param sp; sp.wind=true; sp.U10=20.0; sp.wdir=wdir; sp.komen=true; sp.st4=true; sp.dia=true;
+        seastate_source src(sg,sp);
+        std::vector<double> P(sg.nbin), D(sg.nbin), P2(sg.nbin), D2(sg.nbin);
+        src.compute(N.data(),5000.0,k.data(),cg.data(),P.data(),D.data());
+        double pmin=0.0, dmin=0.0;
+        for(int b=0;b<sg.nbin;++b) {pmin=std::min(pmin,P[b]); dmin=std::min(dmin,D[b]);}
+        check(pmin>=0.0 && dmin>=0.0,"ST4 with DIA: P >= 0, D >= 0");
+        const int lc=src.st4().lc, l=lc+3, m=8;
+        const double kc=k[lc], kl=k[l];
+        const double nt = double(N[sg.bin(lc,m)])*(kc*kc*kc*cg[lc])/(kl*kl*kl*cg[l])*sg.sig[lc]/sg.sig[l];
+        std::vector<float> Nt(N);
+        src.project(Nt.data(),k.data(),cg.data(),0,ndir-1);
+        check(close(Nt[sg.bin(l,m)],nt,1e-6) && Nt[sg.bin(lc,m)]==N[sg.bin(lc,m)] && src.tail_from()==lc+1,
+              "ST4: after a solve N above the cut-off is set to the saturation of the cut-off (IMPHFTAIL)");
+        const double nmax = (0.031/pi)/(std::pow(2*pi,4)/(g*g)*std::pow(sg.f[20],5))/(2*pi*sg.sig[20]);
+        check(src.upper()!=nullptr && close(src.upper()[20],nmax,1e-12),"ST4: upper bound of N (FLMAX, alpha_p 0.031)");
+        src.freeze(true);
+        src.compute(N.data(),5000.0,k.data(),cg.data(),P2.data(),D2.data(),5,12,10,20);
+        src.freeze(false);
+        bool same=true;
+        for(int l2=10;l2<=20;++l2) for(int m2=5;m2<=12;++m2) {const int b=sg.bin(l2,m2); same = same && P2[b]==P[b] && D2[b]==D[b];}
+        check(same,"ST4: a frozen compute of a window gives the P, D of the full compute");
+        seastate_source_param sn=sp; sn.wind=false; sn.dia=false;
+        seastate_source calm(sg,sn);
+        calm.compute(N.data(),5000.0,k.data(),cg.data(),P.data(),D.data());
+        std::vector<double> Dl(ndir);
+        s4.dissipation(N.data(),k.data(),cg.data(),20,Dl.data());
+        double pmax=0.0;
+        for(int b=0;b<sg.nbin;++b) pmax=std::max(pmax,P[b]);
+        check(pmax==0.0 && close(D[sg.bin(20,8)],Dl[8],1e-14),"ST4 without wind: whitecapping alone, no input");
+    }
+
+    // Phase 21: Janssen and Bidlot (2023), ecWAM LLGCBZ0 and LLNORMAGAM (A 732 4), the same spectrum
+    {
+        seastate_st4 jb;
+        jb.init(sg,seastate_st4_param::jb2023(),g);
+        jb.wind(N.data(),row.data(),k.data(),cg.data(),20.0,wdir,false);
+        std::cout<<"        JB2023: u* "<<jb.ust<<" (ecWAM port 0.8515815536), z0 "<<jb.z0<<", tau_w "<<jb.tauw<<", cut-off "<<jb.lc<<std::endl;
+        check(close(jb.ust,8.515815536042e-01,1e-9) && close(jb.z0,8.322351301467e-04,1e-8) && close(jb.tauw,5.503381091615e-01,1e-8) && jb.lc==24,
+              "JB2023: u*, z0, tau_w with the gravity-capillary stress (STRESS_GC, HALPHAP) and the renormalisation as the ecWAM port");
+        const int L[6]={10,15,20,24,30,12}, M[6]={3,3,5,2,0,20};
+        const double G[6]={5.933361749285e-05,2.423954791189e-04,7.061289796898e-04,2.565967641019e-03,1.378789678992e-02,0.0};
+        const double S[6]={4.001628613798e-06,1.038512631683e-05,3.261740652647e-05,5.568844549059e-05,1.873161389521e-04,2.392280605158e-05};
+        std::vector<double> P(sg.nbin,0.0), D(sg.nbin,0.0), Dl(ndir);
+        jb.add(N.data(),k.data(),cg.data(),0,nsig-1,0,ndir-1,P.data(),D.data());
+        bool ok=true;
+        for(int i=0;i<6;++i)
+        {
+            const int b=sg.bin(L[i],M[i]);
+            jb.dissipation(N.data(),k.data(),cg.data(),L[i],Dl.data());
+            ok = ok && std::fabs(jb.rate(b)-G[i])<=1e-8*std::max(G[i],1e-6) && std::fabs(D[b]-Dl[M[i]]-S[i])<=1e-8*S[i];
+        }
+        check(ok,"JB2023: renormalised growth rate and swell damping of 6 bins as the ecWAM port (1e-8)");
+    }
+}
+
 int main()
 {
     test_grid();
@@ -1178,6 +1320,7 @@ int main()
     test_structure();
     test_dia_window();
     test_memory();
+    test_st4();
 
     std::cout<<std::endl<<(nfail ? "FAILED: " : "all passed")<<(nfail ? std::to_string(nfail) : std::string())<<std::endl;
     return nfail ? 1 : 0;

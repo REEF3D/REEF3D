@@ -1,0 +1,20 @@
+{
+ "base": "seastate_2d_wind",
+ "ctrl_set": {
+  "A 732": "4"
+ },
+ "ctrl_add": [
+  "A 763 1.32",
+  "A 764 0.25"
+ ],
+ "description": "as seastate_2d_phase21_jb2023 with beta_max 1.32 (A 763) and the sheltering 0.25 (A 764) over the defaults of A 732 4 (1.39, 0). Validation in Dropbox SEASTATE/validation/70_janssen_bidlot.",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate"
+ ],
+ "covers": [
+  "A 763, A 764 over the defaults of A 732 4",
+  "the renormalisation with the sheltering (TAU_PHI_HF)"
+ ]
+}
