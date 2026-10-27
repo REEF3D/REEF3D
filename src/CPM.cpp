@@ -30,6 +30,7 @@ CPM::CPM(lexer *p, ghostcell *pgc) : P(p,pgc), bedch(p), tauGf(p), blTx(p), blTy
                                                dPx(p),dPy(p),dPz(p),dTx(p),dTy(p),dTz(p),
                                                Kt(p),dKx(p),dKy(p),dKz(p),T0e(p),Tiso(p),rng(20261003ULL+p->mpirank),gauss(0.0,1.0)
 {
+    pgc_print = pgc;
     relax_ini(p);
 
     printcount=0;

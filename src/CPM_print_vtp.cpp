@@ -24,6 +24,10 @@ Authors: Hans Bihs, Alexander Hanke
 #include"lexer.h"
 #include"sediment_fdm.h"
 #include"ghostcell.h"
+#include"lagoon_store.h"
+#include"runlog.h"
+#include<mpi.h>
+#include<cstdint>
 #include<fstream>
 #include<sstream>
 #include<sys/types.h>
@@ -36,6 +40,8 @@ void CPM::print_particles(lexer* p, sediment_fdm *s)
     if((p->count%p->Q181==0 || p->count==0) && (p->Q180==1 && p->Q181>0 && p->Q182<0.0))
     {
         P.number(p);
+        // P 18: in the LAGOON store; P 18 1: instead of the VTP files, P 18 2: as well
+        if(!(print_lagoon(p,s) && p->P18==1))
         print_vtp(p,s);
         print_bed(p,s);
         ++printcount;
@@ -44,6 +50,7 @@ void CPM::print_particles(lexer* p, sediment_fdm *s)
     if((p->simtime>printtime || p->count==0) && (p->Q180==1 && p->Q181<0 && p->Q182>0.0))
     {
         P.number(p);
+        if(!(print_lagoon(p,s) && p->P18==1))
         print_vtp(p,s);
         print_bed(p,s);
         printtime+=p->Q182;
@@ -54,6 +61,88 @@ void CPM::print_particles(lexer* p, sediment_fdm *s)
         
         ++printcount;
     }
+}
+
+// P 18: the parcels of an output in the run's LAGOON store (./REEF3D_CFD.lagoon, set cfd_particles), with the arrays
+// of the VTP files: gathered on rank 0, which writes them. True on every rank when they are in the store.
+bool CPM::print_lagoon(lexer *p, sediment_fdm *s)
+{
+    if(p->P18<=0)
+    return false;
+
+    static lagoon_particles *writer = nullptr;
+    const bool weight = p->Q78>0;
+
+    // the parcels of the rank: x y z, u v w, uf vf wf, radius, weight, bed change, flag, id
+    const int NF = 14;
+    std::vector<double> mine;
+    for(int q=0;q<P.index;++q)
+    if(P.Flag[q]>0)
+    {
+        const double row[NF] = {P.X[q],P.Y[q],P.Z[q], P.U[q],P.V[q],P.W[q], P.Uf[q],P.Vf[q],P.Wf[q], 0.5*P.d50, P.Wt[q],
+                                p->ccslipol4(s->bedzh,P.X[q],P.Y[q])-p->ccslipol4(s->bedzh0,P.X[q],P.Y[q]),
+                                double(P.Hop[q]>0.0 ? MOVING : P.Flag[q]), P.ID[q]};
+        mine.insert(mine.end(),row,row+NF);
+    }
+
+    const int num = int(mine.size());
+    std::vector<int> nums(p->mpi_size,0), displ(p->mpi_size,0);
+    MPI_Gather(&num,1,MPI_INT,nums.data(),1,MPI_INT,0,pgc_print->mpi_comm);
+    size_t total = 0;
+    if(p->mpirank==0)
+    for(int r=0;r<p->mpi_size;++r)
+    {
+        displ[r] = int(total);
+        total += size_t(nums[r]);
+    }
+    std::vector<double> all(total+1);
+    MPI_Gatherv(mine.data(),num,MPI_DOUBLE,all.data(),nums.data(),displ.data(),MPI_DOUBLE,0,pgc_print->mpi_comm);
+
+    int stored = 0;
+    if(p->mpirank==0)
+    {
+        if(writer==nullptr)
+        {
+            std::string run;
+            if(p->plog)
+                run = "{\"type\": \"run\", \"run\": " + lagoon_store::json_string(p->plog->id()) + "}";
+            std::vector<lagoon_particles::field> fields = {{"velocity",3,false}, {"fluid velocity",3,false}, {"radius",1,false}};
+            if(weight)
+            fields.push_back({"weight",1,false});
+            fields.push_back({"bedChange",1,false});
+            fields.push_back({"Flag",1,false});
+            fields.push_back({"id",1,true});
+            writer = new lagoon_particles("./REEF3D_CFD.lagoon", "CFD", "cfd_particles", "particles",
+                                          "REEF3D_CFD_CPM_Particle", run, fields);
+        }
+        const size_t n = total/NF;
+        std::vector<float> xyz(3*n), vel(3*n), fvel(3*n), radius(n), wt(n), bedch(n), flag(n);
+        std::vector<int32_t> id(n);
+        for(size_t q=0;q<n;++q)
+        {
+            const double *a = &all[q*NF];
+            for(int c=0;c<3;++c)
+            {
+                xyz[3*q+c] = float(a[c]);
+                vel[3*q+c] = float(a[3+c]);
+                fvel[3*q+c] = float(a[6+c]);
+            }
+            radius[q] = float(a[9]);
+            wt[q] = float(a[10]);
+            bedch[q] = float(a[11]);
+            flag[q] = float(a[12]);
+            id[q] = int32_t(a[13]);
+        }
+        std::vector<const void*> values = {vel.data(), fvel.data(), radius.data()};
+        if(weight)
+        values.push_back(wt.data());
+        values.push_back(bedch.data());
+        values.push_back(flag.data());
+        values.push_back(id.data());
+        stored = writer->output(p->simtime, printcount, n, xyz.data(), values) ? 1 : 0;
+    }
+    MPI_Bcast(&stored,1,MPI_INT,0,pgc_print->mpi_comm);
+    return stored==1;
 }
 
 // bed level and bed shear stress of the bedload layer per column (Q 58), with the parcel output (Q 182):
