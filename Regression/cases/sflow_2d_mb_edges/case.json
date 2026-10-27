@@ -1,0 +1,21 @@
+{
+ "solver": "sflow",
+ "np": 1,
+ "steps": 400,
+ "files": [
+  "blocks.dat"
+ ],
+ "tags": [
+  "2d",
+  "sflow",
+  "curvilinear",
+  "multiblock",
+  "tide",
+  "quick"
+ ],
+ "description": "SFLOW edge zones on the faces of the blocks (B 522): a Riemann edge with a 5 mm tide on block 1 at x = 0, a Flather edge on block 2 at x = 14.4, straight channel of three blocks. The same solution as the iowave edges of a Cartesian grid of the same cells to 1e-15 m after 12 s (Dropbox validation 08_sflow_block_edges).",
+ "covers": [
+  "ioflow_amr_block: edges2D, edges2D_eta, discharge2D with backgrounds",
+  "sflow_amr::patch_objects: B 522"
+ ]
+}

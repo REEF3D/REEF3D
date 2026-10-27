@@ -1,0 +1,22 @@
+{
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 60,
+ "files": [
+  "blocks.dat"
+ ],
+ "tags": [
+  "3d",
+  "nhflow",
+  "curvilinear",
+  "multiblock",
+  "breaking",
+  "quick"
+ ],
+ "description": "Breaking (A 550 1, A 512 2) on a multi-block grid: the wavy channel of 144 x 12 cells as three blocks in a row (blocks 1 and 2 turned by 180 deg in their indices), a 0.35 m dam break with its step at the interface of blocks 0 and 2 (F 72), so that the bore breaks on both sides of the interface. The ring of block 0 and the cells around the blocks take the detection, the flags and the breaking viscosity of the cells they stand for: the blocks break as one grid (Dropbox validation 05_block_breaking: 1e-4 m/s from one block after 0.2 s, 4e-2 m/s without the exchange).",
+ "covers": [
+  "nhflow_amr::breaking_level0, brk_exchange0 (breaking_patches with level 0)",
+  "nhflow_breaking::brk_defer on block 0 and the blocks 1..",
+  "nhflow_amr::dump_grids: vb"
+ ]
+}

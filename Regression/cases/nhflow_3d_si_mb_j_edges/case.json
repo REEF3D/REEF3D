@@ -1,0 +1,21 @@
+{
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 100,
+ "files": [
+  "blocks.dat"
+ ],
+ "tags": [
+  "3d",
+  "nhflow",
+  "curvilinear",
+  "multiblock",
+  "tide",
+  "si",
+  "quick"
+ ],
+ "description": "nhflow_3d_mb_j_edges_g55_mpi2 with the hydrostatic semi-implicit step (A 534 1) on one rank, whole blocks: the edge methods of the turned blocks (nhflow_momentum_SI, the B 521 edge after the turn).",
+ "covers": [
+  "nhflow_momentum_SI: the side of a B 522 edge of a turned block (geo_mesh::face_turned)"
+ ]
+}

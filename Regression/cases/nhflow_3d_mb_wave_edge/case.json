@@ -1,0 +1,22 @@
+{
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 200,
+ "files": [
+  "blocks.dat"
+ ],
+ "tags": [
+  "3d",
+  "nhflow",
+  "curvilinear",
+  "multiblock",
+  "waves",
+  "iowave",
+  "quick"
+ ],
+ "description": "A Riemann edge with the waves of its source (B 524 1: the B 92 linear waves) on the face of block 1 at x = 0 (turned to its -i face: the non-hydrostatic pressure of the incoming waves), a Riemann edge at still water on block 2 at x = 14.4. The same solution as the iowave edges of one block to 7e-14 m after 6 s (validation 07_block_zones).",
+ "covers": [
+  "ioflow_amr_block::edges_nhflow with waves, edge_pressure",
+  "geo_mesh::turn_blocks: a wave edge on the -i face"
+ ]
+}

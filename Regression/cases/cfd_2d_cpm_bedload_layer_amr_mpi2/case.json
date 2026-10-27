@@ -1,0 +1,14 @@
+{
+ "base": "cfd_2d_cpm_bedload_layer_amr",
+ "np": 2,
+ "description": "cfd_2d_cpm_bedload_layer_amr on 2 ranks: level 0 and the patch cut at the rank boxes, the grid of CPM decomposed over the 2 ranks by dmpart, the copy across the ranks (MPI_Alltoallv); its own reference (against the serial run: the parcels and the sediment volume exactly, the bed shear stress within 1.5e-4, the parcel events differ: the random picks of the layer per rank)",
+ "covers": [
+  "cfd_amr::cpm_plans and the copy on several ranks"
+ ],
+ "tags": [
+  "2d",
+  "cpm",
+  "amr",
+  "mpi"
+ ]
+}
