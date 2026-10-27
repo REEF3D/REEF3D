@@ -390,8 +390,8 @@ void printer_nhflow::print(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbulen
 
         SLICELOOP4
         {
-            if(d->breaking(i,j)==1)
-                d->breaking_print(i,j)=1.0;
+            if(d->breaking(i,j)>=1)
+                d->breaking_print(i,j)=double(d->breaking(i,j));
             else if(d->breaking(i,j)==0)
                 d->breaking_print(i,j)=0.0;
         }

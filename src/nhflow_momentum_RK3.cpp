@@ -49,7 +49,7 @@ Author: Hans Bihs
 
 nhflow_momentum_RK3::nhflow_momentum_RK3(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *pp6dof, vrans_nhflow* ppvrans, 
                                                       nhflow_forcing *ppnhfdf)
-                                                    : nhflow_momentum_func(p,d,pgc), WLRK1(p), WLRK2(p)
+                                                    : nhflow_momentum_func(p,d,pgc), nhflow_breaking(p,d,pgc), WLRK1(p), WLRK2(p)
 {
 	gcval_u=10;
 	gcval_v=11;
@@ -173,7 +173,7 @@ void nhflow_momentum_RK3::step_begin(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflo
     }
 }
 
-// stage s: sigma, reconstruction, continuity flux, water level, omega
+// stage s: sigma, reconstruction, continuity flux, water level, omega, breaking
 void nhflow_momentum_RK3::phase_F(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_stage_obj &S, int s)
 {
     ioflow *pflow = S.pflow;
@@ -201,6 +201,7 @@ void nhflow_momentum_RK3::phase_F(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_s
     pfsfbody->level(p,d,pgc,p6dof,pflow,s,WLRK1,1.0);
     phull->level(p,d,pgc,p6dof,pflow,s,WLRK1,1.0);
     omega_update(p,d,pgc,WLRK1,d->U,d->V,d->W);
+    breaking(p,d,pgc,d->eta,d->eta_n,WLRK1,1.0);
     p->fsftime+=pgc->timer()-starttime;
     }
     
@@ -221,6 +222,7 @@ void nhflow_momentum_RK3::phase_F(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_s
     pfsfbody->level(p,d,pgc,p6dof,pflow,s,WLRK2,0.25);
     phull->level(p,d,pgc,p6dof,pflow,s,WLRK2,0.25);
     omega_update(p,d,pgc,WLRK2,d->U,d->V,d->W);
+    breaking(p,d,pgc,d->eta,d->eta_n,WLRK2,0.25);
     
     p->fsftime+=pgc->timer()-starttime;
     }
@@ -242,6 +244,7 @@ void nhflow_momentum_RK3::phase_F(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_s
     pfsfbody->level(p,d,pgc,p6dof,pflow,s,d->WL,2.0/3.0);
     phull->level(p,d,pgc,p6dof,pflow,s,d->WL,2.0/3.0);
     omega_update(p,d,pgc,d->WL,d->U,d->V,d->W);
+    breaking(p,d,pgc,d->eta,d->eta_n,d->WL,2.0/3.0);
     
     p->fsftime+=pgc->timer()-starttime;
     }

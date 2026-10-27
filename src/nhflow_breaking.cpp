@@ -145,10 +145,15 @@ void nhflow_breaking::breaking_detect(lexer *p, fdm_nhf *d, ghostcell *pgc, slic
     // depth induced breaking
     if((p->A551==1 || p->A551==3) && p->count>1)
     {
+    // deta/dt of the stage from the continuity (nhflow_fsf rk2/rk3 steps). (eta - eta_n)/(alpha dt) was right
+    // only in the first stage: eta_n is the level of the previous stage, so in the RK2 corrector it was about
+    // dt d2eta/dt2 and the test did not fire
+    const double g = fabs(p->W22);
+    
     SLICELOOP4
     if(p->wet[IJ]==1)
     {
-        if((eta(i,j)-eta_n(i,j))/(alpha*p->dt) > p->A554*sqrt(9.81*d->WL(i,j)))
+        if(d->detadt(i,j) > p->A554*sqrt(g*MAX(WL(i,j),0.0)))
         bd(i,j)=2;
     }
     
@@ -255,11 +260,13 @@ void nhflow_breaking::breaking_vb(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &W
     if(p->j_dir==0)
     SLICELOOP4
     {   
+        // the cell and its direct neighbours A 557, the next ones A 557/2 (before, the second test
+        // overwrote the direct neighbours with A 557/2)
         if(brkflag(i,j)>0 || brkflag(i-1,j)>0 || brkflag(i+1,j)>0)
         d->vb(i,j) = p->A557;
             
-        if(brkflag(i,j)==0 && 
-        (brkflag(i-1,j)>0 || brkflag(i+1,j)>0 || brkflag(i-2,j)>0 || brkflag(i+2,j)>0))
+        else
+        if(brkflag(i-2,j)>0 || brkflag(i+2,j)>0)
         d->vb(i,j) = 0.5*p->A557;
     }
 
@@ -269,8 +276,8 @@ void nhflow_breaking::breaking_vb(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &W
         if(brkflag(i,j)>0 || brkflag(i-1,j)>0 || brkflag(i+1,j)>0 || brkflag(i,j-1)>0 || brkflag(i,j+1)>0)
         d->vb(i,j) = p->A557;
             
-        if(brkflag(i,j)==0 && 
-        ( brkflag(i-1,j-1)>0 || brkflag(i-1,j+1)>0 || brkflag(i+1,j-1)>0 || brkflag(i+1,j+1)>0
+        else
+        if(( brkflag(i-1,j-1)>0 || brkflag(i-1,j+1)>0 || brkflag(i+1,j-1)>0 || brkflag(i+1,j+1)>0
         || brkflag(i-2,j)>0 || brkflag(i+2,j)>0 || brkflag(i,j-2)>0 || brkflag(i,j+2)>0))
         d->vb(i,j) = 0.5*p->A557;
     }
@@ -317,6 +324,10 @@ void nhflow_breaking::breaking_vb(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &W
             }
         }*/
         
+    // the flags for the output (VTP 'breaking') and the breaking count of the log
+    SLICELOOP4
+    d->breaking(i,j) = brkflag(i,j);
+    
     pgc->gcsl_start4(p,d->vb,1);
     pgc->gcsl_start4int(p,d->breaking,50);
     
