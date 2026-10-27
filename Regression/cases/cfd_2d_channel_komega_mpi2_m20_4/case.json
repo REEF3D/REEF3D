@@ -1,0 +1,8 @@
+{
+ "base": "cfd_2d_channel_komega_mpi2",
+ "control_set": {"M 20": "4", "M 30": "2 1 1", "M 31": "300"},
+ "same_as": "cfd_2d_channel_komega_mpi2",
+ "description": "cfd_2d_channel_komega_mpi2 with the manual partition of DIVEMesh (M 20 4, M 30 2 1 1, M 31 300): the cut at cell 300 that the default partition gives, so the same run; ranks: bitwise (needs the DIVEMesh patch CPM/DIVEMesh-0001: before it the manual partition left the cells without a subdomain, and the run differed from the first step and blew up (NaN))",
+ "tags": ["2d", "inflow", "turbulence", "mpi"],
+ "covers": ["DIVEMesh decomp::partition_manual"]
+}

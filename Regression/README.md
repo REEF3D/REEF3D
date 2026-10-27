@@ -575,6 +575,7 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `nhflow_3d_irregular_rows` | 2 | `nhflow_3d_irregular_2nd_rows` with 1st-order irregular waves (64 components): groups and tables in z in `wave_lib_irregular_1st` |
 | `fnpf_3d_irregular_2nd_b_rows` | 2 | FNPF 3D, long-crested 2nd-order irregular waves B (128 components): eta and the surface potential once per row of zone cells; the difference-term potential of the low-rank block with the pair phase in the loop |
 | `cfd_2d_channel_kepsilon` (+ `cfd_2d_channel_komega_mpi2`) | 1/2 | open channel, discharge inflow (B60 1) with the equilibrium k/ε/ω inflow profile, k-ε / k-ω across a rank border in x |
+| `cfd_2d_channel_komega_mpi2_m20_4`, `_m20_4_m40` | 2 | `cfd_2d_channel_komega_mpi2` with the manual partition (M 20 4, M 30 2 1 1, M 31 300: the cut of the default partition), decomposed by DIVEMesh and by REEF3D from the global grid (M 50 1, M 40 1); `ranks`: bitwise `cfd_2d_channel_komega_mpi2` (needs DIVEMesh patch CPM/DIVEMesh-0001 and patch CPM/0041: before them the manual partition left the cells without a subdomain and the run blew up) |
 | `cfd_2d_channel_komega_t36` | 1 | k-ω free-surface damping T36 3 (y' = T37 h from the local water depth, dimensionless weight) |
 | `cfd_2d_stillwater_plic_t41` | 1 | PLIC VOF still water, k-ω with T41 1: no NaN from the limiter at S = 0 |
 | `nhflow_2d_channel_kepsilon` | 1 | NHFLOW open channel, discharge inflow with the equilibrium turbulence profile, k-ε, bed roughness A519 |
