@@ -537,6 +537,7 @@ private:
     // composite pressure
     vector<cfd_amr_cf> cf;
     vector<int> row0;                   // level-0 rows
+    vector<char> cover0;                // G 7 1 with bodies: the level-0 cells under the patches (sixdof_obj_cfd::amr_cover)
     vector<vector<int>> lq, lr, cq;     // [g+1] leaf cells: index, row; covered cells
     vector<vector<int>> aq, ar;         // [g+1] all cells with a row: index, row (level projection)
     int prl = -1;                       // the projection: -1 composite, l level l alone (G 7 1)
