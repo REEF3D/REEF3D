@@ -42,6 +42,7 @@ class sflow_roughness;
 class sflow_rheology;
 class sflow_boussinesq;
 class sflow_amr;
+class met_forcing;
 
 using namespace std;
 
@@ -115,6 +116,7 @@ protected:
     sflow_roughness *prough;
     sflow_rheology *prheo;
     sflow_boussinesq *pbous;
+    met_forcing *pmet = nullptr;     // atmospheric forcing (W 200)
     
     slice4 UHDIFF,VHDIFF,WHDIFF;
     slice4 Un,Vn,etaS;

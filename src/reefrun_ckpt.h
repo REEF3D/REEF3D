@@ -101,6 +101,8 @@ public:
 
 private:
     void rebalance(bool due, bool last);
+    // a decomposition lowers the load max/mean enough: the excess over 1 at least 10 % less
+    static bool lowers(double Lold, double Lnew) { return Lnew-1.0 <= 0.9*(Lold-1.0); }
     lexer *p;
     ghostcell *pgc;
     hooks h;

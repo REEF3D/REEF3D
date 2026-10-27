@@ -39,7 +39,7 @@ class seastate_grid;
 class seastate_surfbeat;
 class seastate_roller;
 class seastate_spc_series;
-class seastate_wind_series;
+class met_provider;
 class seastate_amr;
 class seastate_fas2;
 class seastate_bathy;
@@ -105,10 +105,13 @@ of the host model.
 
 Phase 5a: external forcing (seastate_f_forcing.cpp).
   forcing_ini      opens the forcing files: seastate-boundary.spc with
-                   spectra at many locations and times (A 711 3),
-                   seastate-wind.dat with the wind field (A 730 2);
+                   spectra at many locations and times (A 711 3); the
+                   wind field of the REEF3D met forcing (A 730 2: W 200
+                   1-4, uniform, met-forcing.r3m, the vortex or the
+                   blend; storm surge P6, seastate-wind.dat retired);
                    model time 0 = A 780 (YYYYMMDD.HHMMSS) or the first
-                   time in the files
+                   time in the files, with A 730 2 that of the met
+                   forcing (W 203)
   boundary_series  boundary spectrum of every boundary cell of the sides
                    with A 712 1: the two nearest locations, weights by
                    inverse distance (= linear interpolation between two
@@ -186,6 +189,11 @@ public:
     bool surfbeat() const {return sb!=nullptr;}
     const seastate_surfbeat *generator() const {return sb;}
     seastate_roller *roller() {return proll;}
+
+    // wind of every cell (met forcing, A 730 2; nullptr with a uniform wind): speed [m/s], direction the wind
+    // blows to [rad]
+    slice4 *wind_speed() const {return wU10;}
+    slice4 *wind_direction() const {return wdir;}
     bool longwave(lexer*, int j, double t, double &zeta, double &qx, double &qy) const;
 
 private:
@@ -251,7 +259,7 @@ private:
 
     // external forcing (A 711 3, A 730 2)
     seastate_spc_series *bser;
-    seastate_wind_series *wser;
+    met_provider *wmet;                     // the wind of the met forcing W 200 (A 730 2), the provider of the rank (not owned)
     double tref;                            // file time [s since 1970] of model time 0
     std::vector<float> Nside[4];            // boundary spectra per side and boundary cell
     struct bweight {int a, b; float wa, wb;};

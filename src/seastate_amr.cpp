@@ -22,6 +22,7 @@ Architect: Hans Bihs
 
 
 #include"seastate_amr.h"
+#include"reef3d_mpmd.h"
 #include"seastate_grid.h"
 #include"seastate_store.h"
 #include"seastate_param.h"
@@ -29,6 +30,7 @@ Architect: Hans Bihs
 #include"seastate_source.h"
 #include"seastate_bathy.h"
 #include"seastate_forcing.h"
+#include"met_provider.h"
 #include"seastate_obstacle.h"
 #include"fdm_seastate.h"
 #include"slice4.h"
@@ -163,11 +165,11 @@ void seastate_amr::ini(lexer *p, ghostcell *pgc, const level0 &l0)
     const int np = p->mpi_size;
     int nm = int(mine.size());
     vector<int> cnt(np), off(np);
-    MPI_Allgather(&nm,1,MPI_INT,cnt.data(),1,MPI_INT,MPI_COMM_WORLD);
+    MPI_Allgather(&nm,1,MPI_INT,cnt.data(),1,MPI_INT,reef3d_comm());
     int tot=0;
     for(int r=0; r<np; ++r) {off[r]=tot; tot+=cnt[r];}
     vector<double> all(std::max(tot,1));
-    MPI_Allgatherv(mine.data(),nm,MPI_DOUBLE,all.data(),cnt.data(),off.data(),MPI_DOUBLE,MPI_COMM_WORLD);
+    MPI_Allgatherv(mine.data(),nm,MPI_DOUBLE,all.data(),cnt.data(),off.data(),MPI_DOUBLE,reef3d_comm());
 
     bed0.assign(size_t(GNX)*GNY,0.0);
     vector<unsigned char> wet0(size_t(GNX)*GNY,0);
@@ -546,7 +548,7 @@ void seastate_amr::regrid_static(ghostcell*)
     c->solv->threads(p0->A798,64);
     c->solv->source_iterations(p0->A738,p0->A739);
 
-        if(L0.wser!=nullptr)
+        if(L0.wmet!=nullptr)
         {
         c->wU = new slice4(pp);
         c->wD = new slice4(pp);
@@ -2612,7 +2614,8 @@ void seastate_amr::diffraction(lexer*, int mode, int l0, int l1, double smax, do
 
 void seastate_amr::wind(double tf)
 {
-    if(L0.wser==nullptr)
+    // the met provider of the rank has been advanced to the model time tf by seastate_f::forcing_update
+    if(L0.wmet==nullptr)
     return;
 
     const int m = marge;
@@ -2625,8 +2628,8 @@ void seastate_amr::wind(double tf)
         for(int ii=pp->imin; ii<pp->imin+pp->imax; ++ii)
         for(int jj=pp->jmin; jj<pp->jmin+pp->jmax; ++jj)
         {
-        double u, v;
-        L0.wser->at(tf,pp->XP[ii+m],pp->YP[jj+m],u,v);
+        double u, v, pa;
+        L0.wmet->at(pp->XP[ii+m],pp->YP[jj+m],u,v,pa);
         (*c->wU)(ii,jj) = std::sqrt(u*u + v*v);
         (*c->wD)(ii,jj) = std::atan2(v,u);
         }
@@ -2813,7 +2816,7 @@ void seastate_amr::print(lexer *p, ghostcell *pgc)
     const int np = p->mpi_size;
     int mine = int(P.size());
     vector<int> cnt(np);
-    MPI_Gather(&mine,1,MPI_INT,cnt.data(),1,MPI_INT,0,MPI_COMM_WORLD);
+    MPI_Gather(&mine,1,MPI_INT,cnt.data(),1,MPI_INT,0,reef3d_comm());
 
     if(p->mpirank==0)
     {

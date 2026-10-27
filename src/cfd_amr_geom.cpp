@@ -21,6 +21,7 @@ Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"cfd_amr.h"
+#include"reef3d_mpmd.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
@@ -150,7 +151,7 @@ void cfd_amr::geom_setup(lexer *p)
         for(int j=0; j<p->knoy; ++j)
         v[(size_t)(i+p->origin_i)*p->gknoy + (j+p->origin_j)] = p->geobed[(i-p->imin)*p->jmax + (j-p->jmin)];
         gbed0.assign(n,0.0);
-        MPI_Allreduce(v.data(),gbed0.data(),(int)n,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+        MPI_Allreduce(v.data(),gbed0.data(),(int)n,MPI_DOUBLE,MPI_SUM,reef3d_comm());
     }
 }
 

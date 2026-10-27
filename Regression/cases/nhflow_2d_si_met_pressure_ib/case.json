@@ -1,0 +1,22 @@
+{
+ "base": "nhflow_2d_si_tide_riemann",
+ "description": "Air pressure of the met forcing in the NHFLOW semi-implicit channel with Riemann edges and a background tide (nhflow_2d_si_tide_riemann): a Gaussian low (10 hPa, R 800 m) moving along x at 0.4 m/s on a gradient 0.05 Pa/m, no wind; pressure gradient in every layer and inverse barometer on both edges.",
+ "ctrl_add": [
+  "W 200 2",
+  "W 204 600.0"
+ ],
+ "files": [
+  "met-forcing.r3m"
+ ],
+ "tags": [
+  "2d",
+  "nhflow",
+  "semi_implicit",
+  "met",
+  "pressure"
+ ],
+ "covers": [
+  "met_forcing::source_nhflow pressure (SI)",
+  "iowave::eta_ib on NHFLOW Riemann edges"
+ ]
+}

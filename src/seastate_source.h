@@ -66,6 +66,8 @@ in brackets):
                    exponential growth of Komen et al. (1984) (SWIND3),
                    B = max(0, 0.25 rho_a/rho_w (28 u_star cos(theta-theta_w)/c - 1)) sig,
                    u_star = sqrt(C_d) U10 with the drag of Wu (1982)     -> P
+                   (A 729 1: C_d of the met drag law W 207, met_drag.h, e.g.
+                   capped in hurricane winds as the surge)
   whitecapping     Komen et al. (1984) (SWCAP): C_ds 2.36e-5,
                    s_PM^2 3.02e-3, p 4, delta 1, mean sig_-10 and
                    k_WAM, spectral tail sig^-4                       -> D
@@ -126,6 +128,8 @@ struct seastate_source_param
     bool wind = false;
     double U10 = 0.0, wdir = 0.0;        // [m/s], direction the wind blows to [rad]
     double Alin = 1.5e-3;                // linear growth coefficient, 0: off
+    int drag = 0;                        // drag of u_star: 0 Wu (1982), else the law of met_drag.h (A 729 1: W 207)
+    double drag_cap = 2.5e-3, drag_floor = 1.5e-3;      // ... its cap and floor (W 213, W 214)
 
     bool komen = false;                  // whitecapping (and exponential wind input with wind)
     bool westh = false;                  // ... as van der Westhuysen et al. (2007): Yan wind input, saturation-based whitecapping (SWAN GEN3 WESTH)
@@ -201,6 +205,7 @@ public:
 
     static double Qb_bj(double Hrms, double Hm);      // Battjes-Janssen fraction of breaking waves
     static double ustar_wu(double U10);               // friction velocity, drag of Wu (1982)
+    double ustar_of(double U10) const;                // friction velocity of the drag prm.drag
 
 private:
     void moments(const float *N, double depth, const float *k);

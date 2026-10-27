@@ -24,9 +24,39 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
+#include"amr_grid_lookup.h"
 #include <math.h>
 
 void nhflow_force::force_calc(lexer* p, fdm_nhf *d, ghostcell *pgc)
+{  
+    force_local(p,d,pgc);
+    
+    // mesh refinement: the pieces on the patches of this rank
+    if(amr!=nullptr)
+    {
+        double F[7] = {0.0,0.0,0.0,0.0,0.0,0.0,0.0};
+        amr->solid_forces(ID,F);
+        Fx += F[0];
+        Fy += F[1];
+        Fz += F[2];
+        Ax += F[3];
+        Ay += F[4];
+        Az += F[5];
+        A_tot += F[6];
+    }
+    
+    Fx = pgc->globalsum(Fx);
+    Fy = pgc->globalsum(Fy);
+    Fz = pgc->globalsum(Fz);
+    
+    Ax = pgc->globalsum(Ax);
+    Ay = pgc->globalsum(Ay);
+    Az = pgc->globalsum(Az);
+    A_tot = pgc->globalsum(A_tot);
+}
+
+// the sums over the pieces of this grid on this rank
+void nhflow_force::force_local(lexer* p, fdm_nhf *d, ghostcell *pgc)
 {  
     Ax=0.0;
     Ay=0.0;
@@ -49,16 +79,6 @@ void nhflow_force::force_calc(lexer* p, fdm_nhf *d, ghostcell *pgc)
             add_triangle(p,d,facet[n][0],facet[n][3],facet[n][2]);
             }
     }
-    
-    
-    Fx = pgc->globalsum(Fx);
-    Fy = pgc->globalsum(Fy);
-    Fz = pgc->globalsum(Fz);
-    
-    Ax = pgc->globalsum(Ax);
-    Ay = pgc->globalsum(Ay);
-    Az = pgc->globalsum(Az);
-    A_tot = pgc->globalsum(A_tot);
 }
 
 void nhflow_force::add_triangle(lexer* p, fdm_nhf *d, int q1, int q2, int q3)
@@ -78,6 +98,10 @@ void nhflow_force::add_triangle(lexer* p, fdm_nhf *d, int q1, int q2, int q3)
             xc = (1.0/3.0)*(x1 + x2 + x3);
             yc = (1.0/3.0)*(y1 + y2 + y3);
             zc = (1.0/3.0)*(z1 + z2 + z3);
+            
+            // mesh refinement: the piece belongs to the finest grid at its centre
+            if(amr!=nullptr && !amr->force_leaf(amr_grid,xc,yc))
+            return;
             
             A = triangle_area(p,x1,y1,z1,x2,y2,z2,x3,y3,z3);
             

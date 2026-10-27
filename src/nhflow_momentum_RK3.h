@@ -25,14 +25,16 @@ Author: Hans Bihs
 
 #include"slice4.h"
 #include"nhflow_momentum_func.h"
+#include"nhflow_breaking.h"
 #include<vector>
 
 class wind;
+class met_forcing;
 class vrans;
 
 using namespace std;
 
-class nhflow_momentum_RK3 final : public nhflow_momentum_func
+class nhflow_momentum_RK3 final : public nhflow_momentum_func, public nhflow_breaking
 {
 public:
 	nhflow_momentum_RK3(lexer*, fdm_nhf*, ghostcell*, sixdof*, vrans_nhflow*, nhflow_forcing*);
@@ -79,6 +81,7 @@ private:
     sixdof *p6dof;
     nhflow_forcing *pnhfdf;
     wind *pwind;
+    met_forcing *pmet = nullptr;     // atmospheric forcing (W 200)
     vrans_nhflow* pvrans;
 };
 

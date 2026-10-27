@@ -460,20 +460,92 @@ void reefamr::blocks_setup(lexer *p, ghostcell *pgc)
     }
     GNXV = I;
 
-    // ranks: the largest block first onto the rank with the least cells (native box + blocks)
+    // ranks: the largest block first onto the rank with the least load (native box + blocks); the load is
+    // the number of cells, with G 56 a dz the cells weighted (a dry cell a, geo_mesh::cell_load)
     const int np = p->mpi_size;
-    vector<long> load(np,0);
+    const bool wgt = geo_mesh::load_weighted(p);
+    vector<double> load(np,0.0), wblk(nblk,0.0);
     for(int r=0; r<np; ++r)
-    load[r] = long(rbx1[r]-rbx0[r]+1)*long(rby1[r]-rby0[r]+1);
+    {
+        if(!wgt)
+        load[r] = double(rbx1[r]-rbx0[r]+1)*double(rby1[r]-rby0[r]+1);
+        else
+        for(int J=rby0[r]; J<=rby1[r]; ++J)
+        for(int I=rbx0[r]; I<=rbx1[r]; ++I)
+        {
+            double x, y, z, zb=0.0;
+            for(int c=0; c<4; ++c)
+            {
+                p->curv_node(I+(c&1),J+(c>>1),x,y,z);
+                zb += 0.25*z;
+            }
+            load[r] += geo_mesh::cell_load(p,zb);
+        }
+    }
+    const vector<double> load0 = load;
+    for(int b=1; b<nblk; ++b)
+    wblk[b] = G->blk_load(p,b);
     vector<int> ord;
     for(int b=1; b<nblk; ++b)
     ord.push_back(b);
-    std::stable_sort(ord.begin(),ord.end(),[&](int a, int c){ return long(blk[a].ni)*blk[a].nj > long(blk[c].ni)*blk[c].nj; });
+    std::stable_sort(ord.begin(),ord.end(),[&](int a, int c){ return wblk[a] > wblk[c]; });
     for(int b : ord)
     {
         int r = int(std::min_element(load.begin(),load.end())-load.begin());
         blk[b].rank = r;
-        load[r] += long(blk[b].ni)*blk[b].nj;
+        load[r] += wblk[b];
+    }
+
+    // G 56: the largest load lowered by moves and swaps of blocks between its rank and the others (a few large
+    // blocks, where the order above leaves the ranks apart); the best step each time, until none lowers it
+    if(p->G56==1 && np>1)
+    for(int it=0; it<10*nblk; ++it)
+    {
+        const int rm = int(std::max_element(load.begin(),load.end())-load.begin());
+        double best = load[rm];
+        int bb=-1, bc=-1, br=-1;
+        for(int b=1; b<nblk; ++b)
+        if(blk[b].rank==rm)
+        for(int r=0; r<np; ++r)
+        if(r!=rm)
+        {
+            // move b to r
+            double m = MAX(load[rm]-wblk[b], load[r]+wblk[b]);
+            if(m < best*(1.0-1.0e-9))
+            {
+                best = m; bb = b; bc = -1; br = r;
+            }
+            // swap b with a smaller block c of r
+            for(int c=1; c<nblk; ++c)
+            if(blk[c].rank==r && wblk[c]<wblk[b])
+            {
+                const double dlt = wblk[b]-wblk[c];
+                m = MAX(load[rm]-dlt, load[r]+dlt);
+                if(m < best*(1.0-1.0e-9))
+                {
+                    best = m; bb = b; bc = c; br = r;
+                }
+            }
+        }
+        if(bb<0)
+        break;
+        load[rm] -= wblk[bb]; load[br] += wblk[bb]; blk[bb].rank = br;
+        if(bc>0)
+        {
+            load[br] -= wblk[bc]; load[rm] += wblk[bc]; blk[bc].rank = rm;
+        }
+    }
+
+    if(p->G56==1 && p->mpirank==0)
+    {
+        const double mx = *std::max_element(load.begin(),load.end());
+        double mean = 0.0;
+        for(int r=0; r<np; ++r)
+        mean += load[r]/double(np);
+        cout<<par.name<<": load of the ranks (G 56 "<<p->G56_a<<" "<<p->G56_z<<", native box + blocks):";
+        for(int r=0; r<np; ++r)
+        cout<<" "<<r<<": "<<load0[r]<<" + "<<load[r]-load0[r];
+        cout<<"; max/mean "<<mx/MAX(mean,1.0e-20)<<endl;
     }
 
     // their patches (level 0), in block order on every rank: the local index is known everywhere

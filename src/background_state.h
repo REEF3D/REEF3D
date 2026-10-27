@@ -24,6 +24,7 @@ Architect: Hans Bihs
 #define BACKGROUND_STATE_H_
 
 #include<vector>
+#include<string>
 
 class lexer;
 
@@ -31,7 +32,8 @@ class lexer;
 background_state: tidal / current background of the boundary zones
 (iowave redesign, step 4).
 
-  B 510 id mode dir t_ramp     mode 1: harmonic, 2: time series, 3: constant;
+  B 510 id mode dir t_ramp     mode 1: harmonic, 2: time series, 3: constant,
+                               4: time series at points (varies along the open edges);
                                dir [deg]: direction of propagation; t_ramp [s]: spin-up
   B 511 id a T phase           harmonic constituent (repeatable): a cos(2 pi t/T - phase)
   B 514 id eta0 U V            constant level offset [m] and current [m/s]
@@ -43,6 +45,12 @@ background_state: tidal / current background of the boundary zones
                                F 60) from (x0,y0); without B 515 the background is
                                uniform in space
   file background-<id>.dat     mode 2: lines "t eta" or "t eta U V", linear in time
+                               mode 4: "points N", then N lines "x y" (model coordinates,
+                               an ordered polyline, e.g. along the open edges), then lines
+                               "t eta_1 .. eta_N" or "t eta_1 U_1 V_1 .. eta_N U_N V_N";
+                               a position is projected onto the nearest segment of the
+                               polyline: linear between its two points (held beyond the
+                               ends), linear in time (held beyond the ends)
   B 530 mode N                 waves on the background (iowave, linear and irregular waves): every N steps
                                k of each source from the background of its zones,
                                mode 1: on h_eff = h + eta_b, 2: h_eff and Doppler
@@ -52,6 +60,7 @@ background_state: tidal / current background of the boundary zones
 
   eta_b = r(t) eta0 + eta_t,   eta_t = r(t) sum a cos(2 pi t/T - phase - k s)  (mode 1)
                                      = r(t) eta_file(t - s/c)                  (mode 2)
+                                     = r(t) eta_file(t, x, y)                  (mode 4, no B 515)
   U_b   = r(t) U + eta_t sqrt(g/h) cos(dir)   (or r(t) U_file(t - s/c) if the file has U, V)
   V_b   = r(t) V + eta_t sqrt(g/h) sin(dir)
 
@@ -85,7 +94,8 @@ private:
         std::vector<constituent> c;
         bool prog=false, file_uv=false;
         double x0=0.0, y0=0.0, href=0.0, cel=0.0;
-        std::vector<double> ft, feta, fu, fv;   // time series (mode 2)
+        std::vector<double> ft, feta, fu, fv;   // time series (mode 2; mode 4: row n, point q at n*np + q)
+        std::vector<double> px, py;              // mode 4: the points of the polyline
         double r=1.0;                            // at the time of the last update
         int prof=0;                              // B 513: 0 uniform, 1 log-law, 2 power law
         double ppar=0.0;                         // z0 [m] (log-law) or n (power law 1/n)
@@ -95,6 +105,9 @@ private:
     
     double tide(const item&, double, double, double&, double&) const;   // eta_t, file U, V
     static double interp(const std::vector<double>&, const std::vector<double>&, double);
+    static void locate(const std::vector<double>&, double, size_t&, double&);   // time row n and weight
+    static void project(const item&, double, double, size_t&, double&);         // mode 4: point q and weight
+    void read_points(item&, const std::string&) const;                          // mode 4 file
 };
 
 #endif

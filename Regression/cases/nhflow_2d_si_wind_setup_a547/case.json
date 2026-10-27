@@ -1,0 +1,16 @@
+{
+ "description": "NHFLOW hydrostatic semi-implicit, closed basin 10 km x 10 m, uniform wind 20 m/s (W 200 1), 10 sigma layers with the parabolic eddy viscosity A 547 1 0, u* of bed and surface (met stress): the steady setup is 1.015 x the analytic tau L / (rho g h) (k-epsilon 1.002).",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 300,
+ "tags": [
+  "2d",
+  "nhflow",
+  "semi_implicit",
+  "wind",
+  "turbulence"
+ ],
+ "covers": [
+  "eddy_algebraic with surface stress (pmet->wind)"
+ ]
+}

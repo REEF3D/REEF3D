@@ -1,0 +1,8 @@
+{
+ "base": "seastate_sflow_vortex_si_mpi2",
+ "ctrl_set": {"A 751": "2"},
+ "description": "seastate_sflow_vortex_si_mpi2 with the vortex force (A 751 2): the host gets the met wind stress (W 200 3), so the dissipation force carries the wind input with the cell wind of the met forcing (the wave-supported stress comes off the mean flow); the Stokes mass source in the SI eta system; 2 ranks.",
+ "steps": 30,
+ "tags": ["2d", "sflow", "semi_implicit", "seastate", "mpi", "met", "vortex"],
+ "covers": ["seastate_coupling dissipation force with the wind input (A 751 2 with W 200)", "sflow_momentum_SI Stokes mass source with the met forcing"]
+}

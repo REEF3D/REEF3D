@@ -1,0 +1,29 @@
+{
+ "base": "sflow_2d_si_vortex_gahm_mpi2",
+ "description": "Blend W 200 4 (met_source_blend) of a background met file (met-forcing.r3m: 50 km, 6-hourly, a smooth easterly flow and a broad low that follows the storm, 35 % of the track Vmax; written with tools/met_forcing.py write_r3m) and the GAHM vortex of sflow_2d_si_vortex_gahm_mpi2: defaults W 222 1 3 6 (vortex inside 3 rmw, background beyond 6 rmw), cosine taper, vortex pressure rescaled to the background on the ring (W 223 1), track taper 6 h (W 224); model time 0 = 2018-10-10 03:00 (W 203), inside the taper; 2 ranks.",
+ "ctrl_set": {
+  "W 200": "4"
+ },
+ "ctrl_add": [
+  "W 203 20181010.030000"
+ ],
+ "files": [
+  "met-forcing.r3m"
+ ],
+ "tags": [
+  "2d",
+  "sflow",
+  "semi_implicit",
+  "mpi",
+  "met",
+  "vortex",
+  "blend"
+ ],
+ "covers": [
+  "met_source_blend background + vortex",
+  "W 222 1",
+  "W 223 1 (ring pressure)",
+  "W 224 track taper",
+  "W 207 0 -> 5 for W 200 4"
+ ]
+}

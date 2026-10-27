@@ -70,6 +70,13 @@ class amr_column_lookup
 public:
     virtual ~amr_column_lookup() {}
     virtual int finest_column(double x, double y, lexer *&q, void *&f) const = 0;
+
+    // the forces on the solids (NHFLOW P 81, nhflow_force): whether the point (x,y) of a grid
+    // (nullptr: level 0, else the patch of the force object) belongs to it, in its interior and not
+    // under a finer patch; and the part of this rank's patches in force box ID added to F (Fx, Fy,
+    // Fz, Ax, Ay, Az, area), every piece of the surface integrated on the finest grid at its centre
+    virtual bool force_leaf(const void *grid, double x, double y) const { return grid==nullptr; }
+    virtual void solid_forces(int ID, double *F) const {}
 };
 
 // The rank that writes a point of the output, over all ranks: per point the level of this rank's

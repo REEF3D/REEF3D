@@ -21,6 +21,7 @@ Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"fnpf_amr.h"
+#include"reef3d_mpmd.h"
 #include"lexer.h"
 #include"fdm_fnpf.h"
 #include"ghostcell.h"
@@ -353,7 +354,7 @@ void fnpf_amr::lap_prepare(ghostcell *pgc)
         }
         else
         if(sy==0)
-        xz0on = xz0.factor_mpi(L,mg0->precision(),MPI_COMM_WORLD,p0->origin_i,p0->gknox);
+        xz0on = xz0.factor_mpi(L,mg0->precision(),reef3d_comm(),p0->origin_i,p0->gknox);
         if(!xz0on)
         mg0->coarsen();
         xz0key[0] = layout_id; xz0key[1] = wkey; xz0key[2] = p0->count;

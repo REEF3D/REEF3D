@@ -29,6 +29,7 @@ Author: Hans Bihs
 #include"fdm2D.h"
 #include"ghostcell.h"
 #include"seastate_sflow.h"
+#include"met_forcing.h"
 #include"ioflow.h"
 #include"sflow_fsf.h"
 #include"sflow_signal_speed.h"
@@ -127,12 +128,20 @@ sflow_momentum_func::sflow_momentum_func(lexer *p, fdm2D *b, ghostcell *pgc, sfl
     
     if(p->B60>=1)
     outflow_flag=2;
+
+    // atmospheric forcing (W 200) and Coriolis force (W 211)
+    if(met_forcing::active(p))
+    {
+    pmet = new met_forcing(p,pgc);
+    b->met = pmet;
+    }
 }
 
 sflow_momentum_func::~sflow_momentum_func()
 {
     delete prough;
     delete prheo;
+    delete pmet;
 }
 
 void sflow_momentum_func::ini(lexer *p, fdm2D *b, ghostcell *pgc)
@@ -273,6 +282,8 @@ void sflow_momentum_func::stage(lexer *p, fdm2D *b, ghostcell *pgc,
     p6dof->isource2D(p,b,pgc);
     if(b->wave!=nullptr)
     b->wave->u_source(p,b);
+    if(pmet!=nullptr)
+    pmet->source_sflow(p,pgc,b->F,0,WLs,UHs,VHs);
 	irhs(p,b);
 	pdiff->diff_u(p,b,pgc,psolv,UHDIFF,UHs,b->U,b->V,WLs,alpha);
     p->utime+=pgc->timer()-starttime;
@@ -288,6 +299,8 @@ void sflow_momentum_func::stage(lexer *p, fdm2D *b, ghostcell *pgc,
     p6dof->jsource2D(p,b,pgc);
     if(b->wave!=nullptr)
     b->wave->v_source(p,b);
+    if(pmet!=nullptr)
+    pmet->source_sflow(p,pgc,b->G,1,WLs,UHs,VHs);
 	jrhs(p,b);
     }
 	pdiff->diff_v(p,b,pgc,psolv,VHDIFF,VHs,b->U,b->V,WLs,alpha);

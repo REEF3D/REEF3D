@@ -33,6 +33,7 @@ Author: Hans Bihs
 class si_eta2D;
 class solver2D;
 class wind;
+class met_forcing;
 
 using namespace std;
 
@@ -184,6 +185,7 @@ private:
 
     void face_depth(lexer*, fdm_nhf*, ghostcell*);
     void friction(lexer*, fdm_nhf*);
+    void eddy_algebraic(lexer*, fdm_nhf*);     // A 547: parabolic eddy viscosity from the bed friction velocity
     void bc_setup(lexer*, fdm_nhf*, ghostcell*);
     void bc_method(lexer*);
     void stage_arrays(int, double*&, double*&, double*&, double*&, double*&, double*&, double&);
@@ -233,6 +235,7 @@ private:
     int psi_iter;
     double psi_time;
     wind *pwind;
+    met_forcing *pmet = nullptr;     // atmospheric forcing (W 200)
     sixdof *p6dof;
     nhflow_forcing *pnhfdf;
     vrans_nhflow *pvrans;
@@ -251,6 +254,10 @@ private:
 
     // water depth at the end of the step, the start of the next (see start); boundary copies
     slice4 WLk, etaB, WLb;
+
+    // SEASTATE vortex force (A 751 2): the Stokes mass source -div(M) of the step [m/s], in rhsW and eta_update
+    slice4 wsrc;
+    bool mass_source = false;
 
     // layer face discharges: prognostic Q^{n+1}, Q^n, layer transport of the step (theta weighted),
     // column parts Q~ = A^-1 (I - dt L_v) Q^ and r = A^-1 1

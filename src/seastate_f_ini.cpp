@@ -21,6 +21,8 @@ Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"seastate_f.h"
+#include"met_drag.h"
+#include<fstream>
 #include"fdm_seastate.h"
 #include"seastate_grid.h"
 #include"seastate_store.h"
@@ -162,10 +164,10 @@ void seastate_f::ini_common(lexer *p, ghostcell *pgc, bool coupled_)
     psolv->boundary_sides(s);
     }
 
-    if(wser!=nullptr)
+    if(wmet!=nullptr)
     psolv->wind_field(wU10,wdir);
 
-    if(bser!=nullptr || wser!=nullptr)
+    if(bser!=nullptr || wmet!=nullptr)
     forcing_update(p,pgc,p->simtime);
 
     psolv->second_order(second);
@@ -253,8 +255,8 @@ void seastate_f::ini_common(lexer *p, ghostcell *pgc, bool coupled_)
     if(p->A758_n>0 && p->G1<1)
     {
     const std::vector<float> *s[4] = {&Nside[0],&Nside[1],&Nside[2],&Nside[3]};
-    pfas = new seastate_fas2(p,pgc,e,psolv,pex,psrc,bser!=nullptr ? s : nullptr,wser!=nullptr ? wU10 : nullptr,
-                             wser!=nullptr ? wdir : nullptr,1,6,nullptr,pobs);
+    pfas = new seastate_fas2(p,pgc,e,psolv,pex,psrc,bser!=nullptr ? s : nullptr,wmet!=nullptr ? wU10 : nullptr,
+                             wmet!=nullptr ? wdir : nullptr,1,6,nullptr,pobs);
         if(p->mpirank==0)
         {
         cout<<"SEASTATE FAS on the uniform grid (A 758 "<<p->A758_n<<" "<<p->A758_m<<"): "<<pfas->levels()<<" coarse grids of 2 x 2 cells each, active cells";
@@ -268,13 +270,13 @@ void seastate_f::ini_common(lexer *p, ghostcell *pgc, bool coupled_)
     if(p->G1>0)
     {
     pamr = new seastate_amr(p,pgc);
-    seastate_amr::level0 l0 = {e,psolv,pex,psrc,N0,bathy,wser,tref,pobs,vegr};
+    seastate_amr::level0 l0 = {e,psolv,pex,psrc,N0,bathy,wmet,tref,pobs,vegr};
     pamr->ini(p,pgc,l0);
 
         if(wk0!=nullptr)
         pamr->work_fields();
 
-        if(wser!=nullptr)
+        if(wmet!=nullptr)
         pamr->wind(tref+p->simtime);
 
         // Phase 17: the composite sweep (A 797 1) pipelined across the ranks (A 781 1): the level-0 tiles of all ranks
@@ -301,7 +303,7 @@ void seastate_f::ini_common(lexer *p, ghostcell *pgc, bool coupled_)
 
     pprint = new seastate_vtp(p,e,pgc,coupled);
 
-    if(wser!=nullptr)
+    if(wmet!=nullptr)
     {
     pprint->add_field("U10x",wUx);
     pprint->add_field("U10y",wUy);
@@ -357,7 +359,16 @@ void seastate_f::check_keys(lexer *p, ghostcell *pgc)
     else if(p->A720!=0 && p->A720!=1)
     msg = "A 720: prescribed current must be 0 (none) or 1 (linear in x, A 721)";
     else if(p->A730<0 || p->A730>2)
-    msg = "A 730: wind must be 0 (none), 1 (uniform, A 731) or 2 (field, seastate-wind.dat)";
+    msg = "A 730: wind must be 0 (none), 1 (uniform, A 731) or 2 (the met forcing W 200: uniform, met-forcing.r3m, vortex or blend)";
+    else if(p->A730==2 && p->W200==0 && std::ifstream("seastate-wind.dat").good())
+    msg = "A 730 2: seastate-wind.dat is retired, the wind field is that of the met forcing W 200: convert it with"
+          " 'python3 tools/met_forcing.py seastate seastate-wind.dat -o met-forcing.r3m' and set W 200 2";
+    else if(p->A730==2 && p->W200==0)
+    msg = "A 730 2: the wind field is that of the met forcing W 200 (W 200 1 uniform, 2 met-forcing.r3m, 3 vortex, 4 blend)";
+    else if(p->A729<0 || p->A729>1)
+    msg = "A 729: drag of the wind input must be 0 (Wu 1982, as SWAN) or 1 (the met drag law W 207 with W 213, W 214)";
+    else if(p->A729==1 && (p->W207<0 || p->W207>6 || !(p->W213>0.0) || !(p->W214>=0.0)))
+    msg = "A 729 1: W 207 must be a drag law 0-6, W 213 positive and W 214 not negative";
     else if(p->A730==1 && !(p->A731_u10>=0.0))
     msg = "A 731: the wind speed must not be negative";
     else if(p->A730>=1 && p->A732<1)
@@ -821,6 +832,14 @@ void seastate_f::sources(lexer *p, ghostcell *pgc)
     sp.wdir = p->A731_dir*3.14159265358979323846/180.0;
     sp.Alin = p->A734;
 
+    // drag of the wind input (A 729): Wu (1982), or the met drag law of the surge (W 207, auto as W 200)
+    if(p->A729==1)
+    {
+    sp.drag = met_drag_law(p->W207,p->W200);
+    sp.drag_cap = p->W213;
+    sp.drag_floor = p->W214;
+    }
+
     sp.komen = (p->A732>=1);
     sp.westh = (p->A732==2);
     sp.cds2  = p->A757_cds2;
@@ -862,7 +881,9 @@ void seastate_f::sources(lexer *p, ghostcell *pgc)
     if(sp.wind && p->A730==1)
     cout<<" wind U10 "<<sp.U10<<" m/s to "<<p->A731_dir<<" deg ("<<(sp.westh ? "Yan" : "Komen")<<", linear growth "<<sp.Alin<<"),";
     if(sp.wind && p->A730==2)
-    cout<<" wind field seastate-wind.dat ("<<(sp.westh ? "Yan" : "Komen")<<", linear growth "<<sp.Alin<<"),";
+    cout<<" wind field of the met forcing W 200 "<<p->W200<<" ("<<(sp.westh ? "Yan" : "Komen")<<", linear growth "<<sp.Alin<<"),";
+    if(sp.wind && sp.drag>0)
+    cout<<" drag of u* the met law "<<sp.drag<<" (A 729 1, W 207),";
     if(sp.komen && !sp.westh)
     cout<<" whitecapping (Komen),";
     if(sp.westh)

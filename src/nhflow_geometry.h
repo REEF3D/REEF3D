@@ -58,6 +58,16 @@ public:
     int forcing_flag,solid_flag,floating_flag;
     int dlm_flag;
     
+    // mesh refinement (NHFLOW AMR, fixed solids A 581-590): the geometry of a patch casts its
+    // solids within the patch box (amr_ray_box: the x and y extent of the patch arrays, as
+    // nhflow_amr_6dof for the hulls; the lexer of a patch has the extent of the level-0 rank) and
+    // prints no surface file and no messages
+    bool amr_grid = false;
+    void amr_ray_box(double x0, double x1, double y0, double y1) { amr_grid=true; amr_bx[0]=x0; amr_bx[1]=x1; amr_bx[2]=y0; amr_bx[3]=y1; }
+    // the x and y extent of the surface triangles of the solids (entity n < solid_entities())
+    int solid_entities() const { return solid_flag==1 ? entity_sum : 0; }
+    void entity_box(int n, double *b) const;
+    
     
 private:
     void objects_allocate_forcing(lexer*, ghostcell*);
@@ -101,6 +111,7 @@ private:
     void print_vtp(lexer*,int);
     
     double NB;
+    double amr_bx[4] = {0.0,0.0,0.0,0.0};
     
     int *IO,*CR,*CL;
     double *FRK1,*dt,*L;

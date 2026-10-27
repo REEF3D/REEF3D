@@ -1,0 +1,22 @@
+{
+ "np": 1,
+ "steps": 400,
+ "tags": [
+  "2d",
+  "sflow",
+  "multiblock",
+  "river",
+  "bend",
+  "curvilinear",
+  "sediment"
+ ],
+ "description": "P8b: the three-block LFM bend of sflow_2d_mb_sed_open_faces_noneq with the bed of the first 2 m of the inflow block held by a fixed-bed box (S 76 -1 2 -1 1) instead of the x window S 71 2.0: the held cells carry the bed load into the reach downstream (sediment supply); as for S 78 the slope flux (S 86) is closed at the faces of the held cells, the only difference to S 71 (bed 2e-6 of its l2 norm).",
+ "covers": [
+  "S 76 boxes in sediment_f::ini_guard on a block patch (physical cell centres of the curvilinear patch)",
+  "the Exner change of the held cells 0, their bed load carried downstream"
+ ],
+ "solver": "sflow",
+ "files": [
+  "blocks.dat"
+ ]
+}

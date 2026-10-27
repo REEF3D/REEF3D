@@ -33,7 +33,9 @@ Author: Hans Bihs
 #include"runlog.h"
 #include"reefckpt.h"
 #include"seastate_f.h"
+#include"met_provider.h"
 #include"cfd_amr.h"
+#include"reefcouple.h"
 #include"coral/reef3d/coral_reef3d.h"
 #include"coral/reef3d/coral_fluid_sampler.h"
 
@@ -55,6 +57,10 @@ driver::driver(int& argc, char **argv)
     pgc->mpi_check(p);
     
 	p->lexer_read(pgc);
+    
+    // coupled run (several models in one MPI job): roles and intercommunicators
+    reefcouple::roles(p,pgc);
+    
     p->vellast();
 
     // I 45 <count>: the restart from REEF3D_Checkpoint/<count> instead of the latest
@@ -100,6 +106,9 @@ driver::driver(int& argc, char **argv)
 
         pgc->final(true);
     }
+
+    // atmospheric forcing (W 200): input checks for every model
+    met_provider::check(p,pgc);
 
     // checkpoints (P 48): a case they do not cover says so now, not only at the first checkpoint (reefrun_ckpt)
     if((p->A10==3 || p->A10==5 || p->A10==6) && (p->P48>0 || p->P48_dt>0.0))

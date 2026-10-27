@@ -52,7 +52,7 @@ void iowave::timeseries(lexer *p, ghostcell* pgc)
     }
     
 	
-    if(p->B92!=20 && p->B92!=21 && p->B92!=22 && p->B92!=23 && p->B92!=61)
+    if(p->B92!=20 && p->B92!=21 && p->B92!=22 && p->B92!=23 && p->B92!=61 && p->B92!=62)
     for(int n=0; n<p->P58; ++n)
     {
         // written by rank 0 only (every rank wrote the same file before); the other ranks only

@@ -30,7 +30,7 @@ void fnpf_fsfbc_wd::coast_cache(lexer *p, fdm_fnpf *c)
 {
     cz3.clear(); cz4.clear(); cz5.clear(); czdry.clear();
     
-    // fac = 1 here (only used when !(I30==1 && count==0)), so the bands and
+    // fac = 1 here (only used when !(I30>=1 && count==0)), so the bands and
     // factors are exactly those of the loops below
     SLICELOOP4
     {
@@ -86,7 +86,7 @@ void fnpf_fsfbc_wd::coastline_eta(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &
     if(p->A347==1 || p->A347==2)
     SLICELOOP4
     {
-        if(p->I30==1 && p->count==0)
+        if(p->I30>=1 && p->count==0)
             fac=p->A349;
 
         if(c->coastline(i,j)>=0.0)
@@ -137,10 +137,10 @@ void fnpf_fsfbc_wd::coastline_fi(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f
         return;
     }
 
-    if(p->A347==1 || p->A347==3 || (p->I30==1 && p->count==0))
+    if(p->A347==1 || p->A347==3 || (p->I30>=1 && p->count==0))
     SLICELOOP4
     {
-        if(p->I30==1 && p->count==0)
+        if(p->I30>=1 && p->count==0)
         fac=p->A349;
 
         if(c->coastline(i,j)>=0.0)
@@ -192,7 +192,7 @@ void fnpf_fsfbc_wd::coastline_vel(lexer *p, fdm_fnpf *c, ghostcell *pgc, double 
 
     SLICELOOP4
     {
-        if(p->I30==1 && p->count==0)
+        if(p->I30>=1 && p->count==0)
         fac=p->A349;
 
         if(c->coastline(i,j)>=0.0)
@@ -220,10 +220,10 @@ void fnpf_fsfbc_wd::coastline_fi_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, slic
     
     double fac=1.0;
 
-    if(p->A347==1 || p->A347==3 || (p->I30==1 && p->count==0))
+    if(p->A347==1 || p->A347==3 || (p->I30>=1 && p->count==0))
     FLOOP
     {
-        if(p->I30==1 && p->count==0)
+        if(p->I30>=1 && p->count==0)
         fac=p->A349;
 
         if(c->coastline(i,j)>=0.0)
@@ -267,7 +267,7 @@ void fnpf_fsfbc_wd::coastline_Fz(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f
 
     SLICELOOP4
     {
-        if(p->I30==1 && p->count==0)
+        if(p->I30>=1 && p->count==0)
         fac=p->A349;
 
         if(c->coastline(i,j)>=0.0)
@@ -290,7 +290,7 @@ double fnpf_fsfbc_wd::rb3(lexer *p, double x)
     double r=0.0;
     double fac=1.0;
 
-    if(p->I30==1 && p->count==0)
+    if(p->I30>=1 && p->count==0)
     fac=p->A349;
 
     x=(fac*dist3-fabs(x))/(fac*dist3);
@@ -306,7 +306,7 @@ double fnpf_fsfbc_wd::rb4(lexer *p, double x)
     double r=0.0;
     double fac=1.0;
 
-    if(p->I30==1 && p->count==0)
+    if(p->I30>=1 && p->count==0)
     fac=p->A349;
 
     x=(fac*dist4-fabs(x))/(fac*dist4);
@@ -322,7 +322,7 @@ double fnpf_fsfbc_wd::rb5(lexer *p, double x)
     double r=0.0;
     double fac=1.0;
 
-    if(p->I30==1 && p->count==0)
+    if(p->I30>=1 && p->count==0)
     fac=p->A349;
 
     x=(fac*dist5-fabs(x))/(fac*dist5);

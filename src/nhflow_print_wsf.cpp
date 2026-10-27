@@ -121,8 +121,7 @@ void nhflow_print_wsf::fill_eta(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &f)
     wsf[n] = p->ccslipol4(f, x[n], y[n]);
     }
 	
-    for(n=0;n<gauge_num;++n)
-    wsf[n]=pgc->globalmax(wsf[n]);
+    pgc->globalmax(wsf,gauge_num);   // one reduction for all gauges
 }
 
 void nhflow_print_wsf::fill_deta(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &f)

@@ -25,11 +25,13 @@ Author: Hans Bihs
 
 #include<vector>
 #include<string>
+#include<functional>
 
 class lexer;
 class fdm_nhf;
 class ghostcell;
 class nhflow_amr;
+class reefckpt;
 
 using namespace std;
 
@@ -46,7 +48,8 @@ using namespace std;
 //    order M2 S2 K1 O1 M4 N2 K2 P1 Q1 MS4 MN4 M6 2N2, a constituent is taken if |f_k - f_l| T >= R for
 //    every constituent l before it (taken or not) and f_k T >= R (separation from the mean).
 //    Output per constituent: amplitude and phase of eta (x = A cos(w t - g), g in degrees, relative to
-//    t = 0 of the run, no nodal corrections), and the tidal current ellipse (major and minor semi-axis,
+//    t = 0 of the run, no nodal corrections; with P 162 (the start date of the run, UTC) the amplitude H = A/f
+//    and the Greenwich phase lag G = g + V0 + u, f and u at the middle of the record), and the tidal current ellipse (major and minor semi-axis,
 //    minor > 0 anticlockwise, inclination of the major axis in degrees from x).
 //  - time averages: eta, depth-averaged u, v (Eulerian residual current), the depth-integrated
 //    transport qx, qy (residual transport), and min/max of eta (wet times), max of the speed, and the
@@ -55,7 +58,9 @@ using namespace std;
 // Dry columns: eta is their bed level, u = v = 0 (part of the fit as such); use wet_fraction to judge
 // intertidal columns. Grids: the native grid of the rank (incl. the ring of a multi-block grid) and the
 // blocks 1.. of a multi-block grid (G 50 1). The refined patches of G 1 are not included.
-// The sums are not part of a restart.
+// Checkpoints (P 48, I 45): the scalars of the record (blob "nhflow_longrun") and the sums of every grid, the
+// native grid as slices (lr_00 ..), the blocks with the patches of nhflow_amr (tag "nhflow_longrun"), so that
+// a restart continues the record on any decomposition; on the same decomposition bitwise.
 // ---------------------------------------------------------------------------
 
 class nhflow_longrun
@@ -72,6 +77,14 @@ public:
 
     static const int NC = 13;
 
+    // checkpoints (P 48, I 45): the record and the sums of every grid; read after the patches of nhflow_amr
+    void ckpt_write(lexer*, reefckpt&, nhflow_amr*);
+    bool ckpt_read(lexer*, fdm_nhf*, reefckpt&, nhflow_amr*, string&);
+
+    // the sums of the grid of q component by component, as slices of q (the visitor of the checkpoint);
+    // between pack_all and unpack_all
+    void ckpt_fields(lexer *q, const std::function<void(const char*, char, double*)>&);
+
 private:
     struct grid
     {
@@ -84,6 +97,8 @@ private:
     void accumulate(grid&, const double *phi, double w);
     void write(lexer*, ghostcell*);
     int select(double T, vector<int> &sel) const;
+    void pack_all(bool copy);
+    void unpack_all();
 
     vector<grid> G;
     bool ini = false;
@@ -96,6 +111,8 @@ private:
     vector<double> omega;           // rad/s
     vector<string> name;
     double rayleigh;
+    vector<vector<double>> pack;    // per grid the sums component-major (checkpoints)
+    vector<string> fname;           // their names, lr_00 ..
 };
 
 #endif

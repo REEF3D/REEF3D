@@ -362,6 +362,9 @@ void driver::logic_nhflow()
     // hydrostatic semi-implicit free surface (A 534 1, theta method)
     if(p->A534==1)
 	pnhfmom = new nhflow_momentum_SI(p,d,pgc,p6dof,pnhfvrans,pnhfdf);
+    
+    if(p->A534==1 && p->A550>0 && p->mpirank==0)
+    cout<<"A 550: wave breaking is not available with the semi-implicit free surface (A 534 1), no breaking"<<endl;
 
 // mesh refinement (G 1): patches on the NHFLOW grid
     // multi-block grid (G 50 1, DIVEMesh R 20 1): the blocks 1.. are level-0 patches of the hierarchy

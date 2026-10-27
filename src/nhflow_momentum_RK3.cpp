@@ -43,12 +43,13 @@ Author: Hans Bihs
 #include"nhflow_fsf_hull.h"
 #include"wind_f.h"
 #include"wind_v.h"
+#include"met_forcing.h"
 
 #define WLVL (fabs(WL(i,j))>(1.0*p->A544)?WL(i,j):1.0e20)
 
 nhflow_momentum_RK3::nhflow_momentum_RK3(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *pp6dof, vrans_nhflow* ppvrans, 
                                                       nhflow_forcing *ppnhfdf)
-                                                    : nhflow_momentum_func(p,d,pgc), WLRK1(p), WLRK2(p)
+                                                    : nhflow_momentum_func(p,d,pgc), nhflow_breaking(p,d,pgc), WLRK1(p), WLRK2(p)
 {
 	gcval_u=10;
 	gcval_v=11;
@@ -84,6 +85,13 @@ nhflow_momentum_RK3::nhflow_momentum_RK3(lexer *p, fdm_nhf *d, ghostcell *pgc, s
     
     if(p->A570>0)
     pwind = new wind_f(p);
+
+    // atmospheric forcing (W 200) and Coriolis force (W 211)
+    if(met_forcing::active(p))
+    {
+    pmet = new met_forcing(p,pgc);
+    d->met = pmet;
+    }
 }
 
 nhflow_momentum_RK3::~nhflow_momentum_RK3()
@@ -98,6 +106,7 @@ nhflow_momentum_RK3::~nhflow_momentum_RK3()
     delete [] VHDIFF;
     delete [] WHDIFF;
     delete pwind;
+    delete pmet;
 }
 
 void nhflow_momentum_RK3::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, nhflow_signal_speed *pss,
@@ -164,7 +173,7 @@ void nhflow_momentum_RK3::step_begin(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflo
     }
 }
 
-// stage s: sigma, reconstruction, continuity flux, water level, omega
+// stage s: sigma, reconstruction, continuity flux, water level, omega, breaking
 void nhflow_momentum_RK3::phase_F(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_stage_obj &S, int s)
 {
     ioflow *pflow = S.pflow;
@@ -192,6 +201,7 @@ void nhflow_momentum_RK3::phase_F(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_s
     pfsfbody->level(p,d,pgc,p6dof,pflow,s,WLRK1,1.0);
     phull->level(p,d,pgc,p6dof,pflow,s,WLRK1,1.0);
     omega_update(p,d,pgc,WLRK1,d->U,d->V,d->W);
+    breaking(p,d,pgc,d->eta,d->eta_n,WLRK1,1.0);
     p->fsftime+=pgc->timer()-starttime;
     }
     
@@ -212,6 +222,7 @@ void nhflow_momentum_RK3::phase_F(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_s
     pfsfbody->level(p,d,pgc,p6dof,pflow,s,WLRK2,0.25);
     phull->level(p,d,pgc,p6dof,pflow,s,WLRK2,0.25);
     omega_update(p,d,pgc,WLRK2,d->U,d->V,d->W);
+    breaking(p,d,pgc,d->eta,d->eta_n,WLRK2,0.25);
     
     p->fsftime+=pgc->timer()-starttime;
     }
@@ -233,6 +244,7 @@ void nhflow_momentum_RK3::phase_F(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_s
     pfsfbody->level(p,d,pgc,p6dof,pflow,s,d->WL,2.0/3.0);
     phull->level(p,d,pgc,p6dof,pflow,s,d->WL,2.0/3.0);
     omega_update(p,d,pgc,d->WL,d->U,d->V,d->W);
+    breaking(p,d,pgc,d->eta,d->eta_n,d->WL,2.0/3.0);
     
     p->fsftime+=pgc->timer()-starttime;
     }
@@ -268,6 +280,8 @@ void nhflow_momentum_RK3::phase_M(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_s
     phull->upgrad(p,d,WL);
     p6dof->isource(p,d,pgc,WL);
     pwind->wind_forcing_nhf_x(p,d,pgc,d->U,d->V, d->F, WL, d->eta);
+    if(pmet!=nullptr)
+    pmet->source_nhflow(p,pgc,d->F,0,WL,UHi,VHi);
     if(d->wave!=nullptr)
     d->wave->u_source(p,d);
     roughness_u(p,d,d->U,d->F,WL);
@@ -306,6 +320,8 @@ void nhflow_momentum_RK3::phase_M(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_s
     ppress->vpgrad(p,d,WL);
     p6dof->jsource(p,d,pgc,WL);
     pwind->wind_forcing_nhf_y(p,d,pgc,d->U,d->V, d->G, WL, d->eta);
+    if(pmet!=nullptr)
+    pmet->source_nhflow(p,pgc,d->G,1,WL,UHi,VHi);
     if(d->wave!=nullptr)
     d->wave->v_source(p,d);
     roughness_v(p,d,d->V,d->G,WL);

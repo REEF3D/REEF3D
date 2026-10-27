@@ -84,7 +84,7 @@ private:
     std::vector<coast_cell> czdry;              // coastline<0
     bool cz_built=false;
     void coast_cache(lexer*,fdm_fnpf*);
-    inline bool coast_cached(lexer *p) const {return !(p->I30==1 && p->count==0) && p->count>0;}
+    inline bool coast_cached(lexer *p) const {return !(p->I30>=1 && p->count==0) && p->count>0;}
     
     double rb3(lexer*,double);
     double rb4(lexer*,double);

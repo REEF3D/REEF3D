@@ -29,10 +29,10 @@ Author: Hans Bihs
 #include<sys/stat.h>
 #include<sys/types.h>
 
-nhflow_force::nhflow_force(lexer* p, fdm_nhf *d, ghostcell *pgc, int qn) : interfac(1.6),zero(0.0),ID(qn)
+nhflow_force::nhflow_force(lexer* p, fdm_nhf *d, ghostcell *pgc, int qn, bool out) : interfac(1.6),zero(0.0),ID(qn)
 {
 	// Create Folder
-	if(p->mpirank==0)
+	if(p->mpirank==0 && out)
 	mkdir("./REEF3D_NHFLOW_SOLID",0777);
 	
     forceprintcount=0;
@@ -41,7 +41,8 @@ nhflow_force::nhflow_force(lexer* p, fdm_nhf *d, ghostcell *pgc, int qn) : inter
     p->Iarray(vertice,p->imax*p->jmax*(p->kmax+2));
     p->Iarray(nodeflag,p->imax*p->jmax*(p->kmax+2));
     
-    // open files
+    // open files (not for the force objects of a patch of the mesh refinement)
+    if(out)
     print_ini(p,d,pgc);
     
     is = p->posc_i(p->P81_xs[ID]);
@@ -71,6 +72,9 @@ nhflow_force::nhflow_force(lexer* p, fdm_nhf *d, ghostcell *pgc, int qn) : inter
 
 nhflow_force::~nhflow_force()
 {
+    delete [] eta;
+    delete [] vertice;
+    delete [] nodeflag;
 }
 
 void nhflow_force::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
@@ -102,5 +106,23 @@ void nhflow_force::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
     //print_vtp(p,d,pgc);
     
     deallocate(p,d,pgc);
-} 
+}
 
+// mesh refinement: the part of a patch (amr_attach) in the box, its pieces in the interior of the
+// patch that no finer patch covers
+void nhflow_force::patch_sum(lexer *p, fdm_nhf *d, ghostcell *pgc, double *F)
+{
+    triangulation(p,d,pgc);
+	reconstruct(p,d);
+    force_local(p,d,pgc);
+    
+    F[0] += Fx;
+    F[1] += Fy;
+    F[2] += Fz;
+    F[3] += Ax;
+    F[4] += Ay;
+    F[5] += Az;
+    F[6] += A_tot;
+    
+    deallocate(p,d,pgc);
+}

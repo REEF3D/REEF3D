@@ -21,6 +21,7 @@ Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"CPM.h"
+#include"reef3d_mpmd.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
@@ -135,10 +136,10 @@ void CPM::loadmap_write(lexer *p, fdm *a, ghostcell *pgc)
 
     // the ranks: CPM busy time, parcel updates, fluid busy time and cells
     int np=1;
-    MPI_Comm_size(MPI_COMM_WORLD,&np);
+    MPI_Comm_size(reef3d_comm(),&np);
     double mine[5] = {lmTcpm, Sr, Ar, tfl, nfr*st};
     std::vector<double> all(size_t(5)*np);
-    MPI_Allgather(mine,5,MPI_DOUBLE,&all[0],5,MPI_DOUBLE,MPI_COMM_WORLD);
+    MPI_Allgather(mine,5,MPI_DOUBLE,&all[0],5,MPI_DOUBLE,reef3d_comm());
 
     double sC=0.0, sS=0.0, sA=0.0, sF=0.0, sN=0.0;
     double sSS=0.0, sSA=0.0, sAA=0.0, sCS=0.0, sCA=0.0;
@@ -182,7 +183,7 @@ void CPM::loadmap_write(lexer *p, fdm *a, ghostcell *pgc)
 
     int box[6] = {p->origin_i, p->j_dir==1 ? p->origin_j : 0, p->origin_k, p->knox, p->knoy, p->knoz};
     std::vector<int> boxes(p->mpirank==0 ? size_t(6)*np : 0), cnt(np,0), dsp(np,0);
-    MPI_Gather(box,6,MPI_INT,p->mpirank==0 ? &boxes[0] : nullptr,6,MPI_INT,0,MPI_COMM_WORLD);
+    MPI_Gather(box,6,MPI_INT,p->mpirank==0 ? &boxes[0] : nullptr,6,MPI_INT,0,reef3d_comm());
 
     std::vector<double> buf;
 
@@ -200,7 +201,7 @@ void CPM::loadmap_write(lexer *p, fdm *a, ghostcell *pgc)
         buf.resize(MAX(tot,size_t(1)));
     }
 
-    MPI_Gatherv(nc>0 ? &loc[0] : nullptr, int(nc), MPI_DOUBLE, p->mpirank==0 ? &buf[0] : nullptr, &cnt[0], &dsp[0], MPI_DOUBLE, 0, MPI_COMM_WORLD);
+    MPI_Gatherv(nc>0 ? &loc[0] : nullptr, int(nc), MPI_DOUBLE, p->mpirank==0 ? &buf[0] : nullptr, &cnt[0], &dsp[0], MPI_DOUBLE, 0, reef3d_comm());
 
     if(p->mpirank!=0)
     return;

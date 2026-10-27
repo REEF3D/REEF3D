@@ -47,6 +47,7 @@ Author: Hans Bihs
 #include"vrans_nhflow_v.h"
 #include"nhflow_fsf_f.h"
 #include"nhflow_forcing.h"
+#include"nhflow_force.h"
 #include"nhflow_amr_6dof.h"
 #include"6DOF_nhflow.h"
 #include"6DOF_obj.h"
@@ -90,6 +91,9 @@ nhflow_amr::nhflow_amr(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum *pm
     // floating bodies on the hierarchy (X 10 1 two-way, X 10 2 prescribed motion)
     if(p->X10==1 || p->X10==2)
     b6 = dynamic_cast<sixdof_nhflow*>(p6dof);
+
+    // fixed solids (direct forcing, A 581-590) on every grid
+    solids = (p->A581>0 || p->A583>0 || p->A584>0 || p->A585>0 || p->A586>0 || p->A587>0 || p->A588>0 || p->A589>0 || p->A590>0);
 
     reefamr_param q;
     q.name = "NHFLOW AMR";
@@ -319,7 +323,9 @@ void nhflow_amr::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     // sediment fractions (nhflow_amr_sed.cpp)
     if(p->S10!=0 && (p->S10!=1 || p->S12!=0 || p->S51>0 || p->S31==3 || p->S32>=3)) ok=0;
     if(p->X10!=0 && (b6==nullptr || p->X60!=1 || p->X16!=0 || p->X320!=0 || p->A516==2 || p->A516==4)) ok=0;
-    if(p->A581>0 || p->A583>0 || p->A584>0 || p->A585>0 || p->A586>0 || p->A587>0 || p->A588>0 || p->A589>0 || p->A590>0) ok=0;
+    // fixed solids (A 581-590): every grid forces its own (solid_patch); not with subcycling, not with the
+    // forcing of the water level at the solids (A 516 2/4: the slice lists of level 0)
+    if(solids && (p->G7==1 || p->A516==2 || p->A516==4)) ok=0;
     if(p->A580==1) ok=0;
     if(p->E10>0 || p->L10>0 || p->Z20>0 || p->Z30>0) ok=0;
     if(p->j_dir!=1 && (p->geo_mb>0 || p->geo_curv==1)) ok=0;     // 2D grid (one cell in y): Cartesian
@@ -335,7 +341,7 @@ void nhflow_amr::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     {
         if(p->mpirank==0)
         cout<<"NHFLOW AMR (G 1): only for A 510 2/3, A 511 1/2, A 520 0/1/2, A 512 0/1/2, A 560 0/1/2/21/22 (not with G 7 1, A 561, A 563), A 519 0/1, A 550 0 (1 with A 510 2), B 200 0, S 10 0/1 (S 12 0, S 51 0, S 31 1/2, S 32 1/2), "
-            <<"X 10 0/1/2 (X 60 1, X 16 0, A 516 0/1/3), no solids, membranes, nets, DEM, particles, rods or FEM structures, and on a 2D grid Cartesian "
+            <<"X 10 0/1/2 (X 60 1, X 16 0, A 516 0/1/3), fixed solids A 581-590 (not with G 7 1, A 516 2/4), no solids of the grid file (A 580 1), membranes, nets, DEM, particles, rods or FEM structures, and on a 2D grid Cartesian "
             <<"-- refinement switched off"<<endl;
         maxlev=0;
         return;
@@ -365,6 +371,10 @@ void nhflow_amr::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
     // face entries of the flux exchange: 4 variables per layer of the coarse side, and dfx
     NF = 4*klev(MAX(maxlev-1,0)) + 1;
+
+    // fixed solids: the refinement boxes around them (G 12)
+    if(solids)
+    solid_zone(p,pgc);
 
     setup(p,pgc);
 
@@ -820,6 +830,13 @@ void nhflow_amr::patch_objects(reefamr_patch *q, ghostcell *pgc)
     c->pvrans = new vrans_nhflow_v(pp,d,pgc);
     c->pfsf = new nhflow_fsf_f(pp,d,pgc,c->pflow,c->pBC);
     c->pdf = new nhflow_forcing(pp,d,pgc);
+    // fixed solids: cast within the patch arrays (the patch lexer has the extent of the level-0 rank),
+    // the force objects of the boxes the patch reaches into
+    if(solids)
+    {
+    c->pdf->amr_ray_box(pp->XN[marge],pp->XN[pp->knox+marge],pp->YN[marge],pp->YN[pp->knoy+marge]);
+    force_objects(c);
+    }
 
     if(pp->A510==2 && pp->A534!=1)
     c->pmom = new nhflow_momentum_RK2(pp,d,pgc,c->p6dof,c->pvrans,c->pdf,c->psed);
@@ -894,6 +911,9 @@ void nhflow_amr::patch_delete(reefamr_patch *q)
         c->pp->del_Iarray(c->pp->gcout,c->pp->gcout_count,6);
     }
     delete c->p6dof;
+    for(auto f : c->forces)
+    delete f;
+    c->forces.clear();
     delete c->pdf;
     delete c->pfsf;
     delete c->pvrans;
@@ -2158,6 +2178,9 @@ void nhflow_amr::regrid_state(ghostcell *pgc, vector<reefamr_patch*> &oldP)
 
             // floating bodies: the hull on the new sigma grid
             body_patch(pgc,*c);
+
+            // fixed solids: the solids on the new sigma grid
+            solid_patch(pgc,*c);
         }
 
         // S 10: the sediment of the fresh patches starts from their bed
@@ -2759,6 +2782,148 @@ void nhflow_amr::body_patch(ghostcell *pgc, nhflow_amr_patch &c)
 
     pscope ps(pgc,c.d,d0);
     static_cast<nhflow_amr_6dof*>(c.p6dof)->body(c.pp,c.d,pgc);
+}
+
+// --------------------------------------------------------------------- fixed solids
+// the refinement boxes around the fixed solids: the x-y extent of the surface triangles of every
+// solid (the level-0 geometry, the same on all ranks) grown by G 12, refined to the finest level
+void nhflow_amr::solid_zone(lexer *p, ghostcell *pgc)
+{
+    nhflow_forcing *f0 = mom0->pmfrc;
+    if(maxlev<1 || f0==nullptr)
+    return;
+
+    if(p->G12==0)
+    {
+        if(p->mpirank==0)
+        cout<<"NHFLOW AMR: fixed solids without G 12: no refinement around them (G 10 boxes)"<<endl;
+        return;
+    }
+
+    const double r = MAX(p->G12_r,0.0);
+    for(int n=0; n<f0->solid_entities(); ++n)
+    {
+        double b[4];
+        f0->entity_box(n,b);
+        b[0] = pgc->globalmin(b[0]);
+        b[1] = pgc->globalmax(b[1]);
+        b[2] = pgc->globalmin(b[2]);
+        b[3] = pgc->globalmax(b[3]);
+        if(b[0]>b[1])
+        continue;
+
+        // 2D grid: the strip in y
+        if(p->j_dir==0)
+        {
+            b[2] = -1.0e20;
+            b[3] = 1.0e20;
+        }
+        par.rbox.push_back(b[0]-r);
+        par.rbox.push_back(b[1]+r);
+        par.rbox.push_back(b[2]-r);
+        par.rbox.push_back(b[3]+r);
+
+        if(p->mpirank==0)
+        cout<<"NHFLOW AMR: solid "<<n+1<<" refined in x "<<b[0]-r<<" "<<b[1]+r<<(p->j_dir==1 ? ", y " : "")
+            <<(p->j_dir==1 ? std::to_string(b[2]-r)+" "+std::to_string(b[3]+r) : std::string(""))<<endl;
+    }
+}
+
+// the solids on the sigma grid of a fresh patch: level set SOLID, solid flags (the forcing of the
+// stages casts them again on the moving sigma grid)
+void nhflow_amr::solid_patch(ghostcell *pgc, nhflow_amr_patch &c)
+{
+    if(!solids || maxlev<1)
+    return;
+
+    pscope ps(pgc,c.d,d0);
+    c.pdf->forcing_ini(c.pp,c.d,pgc);
+}
+
+// the force objects of patch c: one per force box (P 81) its interior reaches into, without output
+// files, as long as the patch lives
+void nhflow_amr::force_objects(nhflow_amr_patch *c)
+{
+    lexer *pp = c->pp;
+    const int m = marge;
+    if(p0->P81<=0)
+    return;
+
+    const double x0 = pp->XN[EXT+m], x1 = pp->XN[EXT+c->nx+m];
+    const double y0 = (sy==1) ? pp->YN[EY+m] : -1.0e20, y1 = (sy==1) ? pp->YN[EY+c->ny+m] : 1.0e20;
+
+    c->forces.assign(p0->P81,nullptr);
+    for(int ID=0; ID<p0->P81; ++ID)
+    {
+        if(x1<p0->P81_xs[ID] || x0>p0->P81_xe[ID] || y1<p0->P81_ys[ID] || y0>p0->P81_ye[ID])
+        continue;
+
+        c->forces[ID] = new nhflow_force(pp,c->d,pgc0,ID,false);
+        c->forces[ID]->amr_attach(this,c);
+    }
+}
+
+// a piece of the surface at (x,y) of grid g (nullptr: level 0, else the patch): in the interior of
+// the grid (level 0: the cells of this rank) and no patch of the next finer level there
+bool nhflow_amr::force_leaf(const void *g, double x, double y) const
+{
+    nhflow_amr *self = const_cast<nhflow_amr*>(this);
+    const int m = marge;
+
+    lexer *q;
+    int l, i, j, I, J;
+    if(g==nullptr)
+    {
+        q = p0;
+        l = 0;
+        if(x<q->XN[m] || x>=q->XN[q->knox+m] || (sy==1 && (y<q->YN[m] || y>=q->YN[q->knoy+m])))
+        return true;
+        i = q->posc_i(x);
+        j = (sy==1) ? q->posc_j(y) : 0;
+        I = i+O0i;
+        J = j+O0j;
+    }
+    else
+    {
+        const reefamr_patch *c = static_cast<const reefamr_patch*>(g);
+        q = c->pp;
+        l = c->lev;
+        if(x<q->XN[EXT+m] || x>=q->XN[EXT+c->nx+m])
+        return false;
+        if(sy==1 && (y<q->YN[EY+m] || y>=q->YN[EY+c->ny+m]))
+        return false;
+        i = q->posc_i(x);
+        j = (sy==1) ? q->posc_j(y) : EY;
+        I = i-EXT+c->I0;
+        J = j-EY+c->J0;
+    }
+
+    if(l>=maxlev || patches_total==0)
+    return true;
+
+    // the child of the cell that holds the point (the levels halve the cells of their parents)
+    const int Ic = 2*I + ((x-q->XN[i+m]) >= 0.5*(q->XN[i+1+m]-q->XN[i+m]) ? 1 : 0);
+    const int Jc = (sy==1) ? 2*J + ((y-q->YN[j+m]) >= 0.5*(q->YN[j+1+m]-q->YN[j+m]) ? 1 : 0) : J;
+
+    return !self->covered(l+1,Ic,Jc);
+}
+
+// the part of the patches of this rank in force box ID
+void nhflow_amr::solid_forces(int ID, double *F) const
+{
+    nhflow_amr *self = const_cast<nhflow_amr*>(this);
+    if(!solids || maxlev<1)
+    return;
+
+    for(auto q : self->P)
+    {
+        nhflow_amr_patch *c = NP(q);
+        if(ID>=(int)c->forces.size() || c->forces[ID]==nullptr)
+        continue;
+
+        pscope ps(pgc0,c->d,d0);
+        c->forces[ID]->patch_sum(c->pp,c->d,pgc0,F);
+    }
 }
 
 // loads on the floating bodies from the current state of all grids (outside the time step)

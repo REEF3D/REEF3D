@@ -24,6 +24,7 @@ Architect: Hans Bihs
 #define REEFAMR3D_H_
 
 #include"increment.h"
+#include"reef3d_mpmd.h"
 #include<vector>
 #include<unordered_map>
 #include<mpi.h>
@@ -197,7 +198,7 @@ public:
         for(int r=0; r<nr; ++r)
         {
             X.rb[r].resize(X.rq[r].size()*(size_t)nv);
-            MPI_Irecv(X.rb[r].data(),(int)X.rb[r].size(),MPI_DOUBLE,X.rp[r],3170,MPI_COMM_WORLD,&rq[r]);
+            MPI_Irecv(X.rb[r].data(),(int)X.rb[r].size(),MPI_DOUBLE,X.rp[r],3170,reef3d_comm(),&rq[r]);
         }
         for(int s=0; s<ns; ++s)
         {
@@ -207,7 +208,7 @@ public:
             for(int m=0; m<nv; ++m)
             for(size_t q=0; q<n; ++q)
             b[(size_t)m*n+q] = src(m,X.sg[s][q])[X.sq[s][q]];
-            MPI_Isend(b.data(),(int)b.size(),MPI_DOUBLE,X.sp[s],3170,MPI_COMM_WORLD,&rq[nr+s]);
+            MPI_Isend(b.data(),(int)b.size(),MPI_DOUBLE,X.sp[s],3170,reef3d_comm(),&rq[nr+s]);
         }
         MPI_Waitall(ns+nr,rq.data(),MPI_STATUSES_IGNORE);
     }

@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"reefckpt.h"
+#include"reef3d_mpmd.h"
 #include"lexer.h"
 #include<mpi.h>
 #include<sys/stat.h>
@@ -266,7 +267,7 @@ void reefckpt::write_open(lexer *pp, int count, int sub)
         remove_folder(dirname,0);
         mkdir(dirname.c_str(),0777);
     }
-    MPI_Barrier(MPI_COMM_WORLD);
+    MPI_Barrier(reef3d_comm());
 
     out.open(piece_name(dirname,p->mpirank).c_str(),ios::binary);
     out.write(MAGIC_PIECE,8);
@@ -313,7 +314,7 @@ void reefckpt::write_close(lexer *pp)
     const int np = p->mpi_size;
     int mybox[6] = {p->origin_i,p->origin_j,p->origin_k,p->knox,p->knoy,p->knoz};
     vector<int> boxes(6*np);
-    MPI_Gather(mybox,6,MPI_INT,boxes.data(),6,MPI_INT,0,MPI_COMM_WORLD);
+    MPI_Gather(mybox,6,MPI_INT,boxes.data(),6,MPI_INT,0,reef3d_comm());
 
     if(p->mpirank==0)
     {
@@ -343,7 +344,7 @@ void reefckpt::write_close(lexer *pp)
     }
 
     // every piece and the main file are complete: the latest checkpoint
-    MPI_Barrier(MPI_COMM_WORLD);
+    MPI_Barrier(reef3d_comm());
     if(p->mpirank==0)
     {
         {
@@ -352,7 +353,7 @@ void reefckpt::write_close(lexer *pp)
         }
         rename("./REEF3D_Checkpoint/latest.tmp","./REEF3D_Checkpoint/latest");
     }
-    MPI_Barrier(MPI_COMM_WORLD);
+    MPI_Barrier(reef3d_comm());
 }
 
 void reefckpt::remove_folder(const string &dir, int np)
@@ -500,7 +501,7 @@ bool reefckpt::read_open(lexer *pp, const string &dir, string &msg)
     int ok = (np==p->mpi_size && box[p->mpirank].ok==p->origin_k && box[p->mpirank].oi==p->origin_i && box[p->mpirank].oj==p->origin_j
               && box[p->mpirank].ni==p->knox && box[p->mpirank].nj==p->knoy && box[p->mpirank].nk==p->knoz) ? 1 : 0;
     int all=0;
-    MPI_Allreduce(&ok,&all,1,MPI_INT,MPI_MIN,MPI_COMM_WORLD);
+    MPI_Allreduce(&ok,&all,1,MPI_INT,MPI_MIN,reef3d_comm());
     same = (all==1);
     mine = same ? p->mpirank : -1;
 
@@ -608,7 +609,7 @@ bool reefckpt::get(const string &name, int type, void *V, size_t bytes)
     auto t = rtype.find(name);
     int ok = (t!=rtype.end() && t->second==type) ? 1 : 0;
     int all=0;
-    MPI_Allreduce(&ok,&all,1,MPI_INT,MPI_MIN,MPI_COMM_WORLD);
+    MPI_Allreduce(&ok,&all,1,MPI_INT,MPI_MIN,reef3d_comm());
     if(!all)
     return false;
 

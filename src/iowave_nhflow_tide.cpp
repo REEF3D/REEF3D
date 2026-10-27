@@ -21,6 +21,7 @@ Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"iowave.h"
+#include"met_provider.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
@@ -357,7 +358,9 @@ void iowave::nhflow_open_edges(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, 
             // curvilinear grid (G 50): the physical centre of the edge face
             if(p->geo_curv==1)
             curv_edge_centre(p,side,i,j,xf,yf);
-            const double eb = b>=0 ? bgs.eta(b,xf,yf) : 0.0;
+            double eb = b>=0 ? bgs.eta(b,xf,yf) : 0.0;
+            if(met_provider::ib_on(p))
+            eb += eta_ib(p,pgc,xf,yf);
             double ub=0.0, vb=0.0;
             if(b>=0)
             bgs.vel(b,h0,xf,yf,ub,vb);

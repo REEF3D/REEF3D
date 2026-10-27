@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"lexer.h"
+#include"reef3d_mpmd.h"
 #include"gridfile_v2.h"
 #include"geo_mesh.h"
 #include<iostream>
@@ -114,16 +115,16 @@ void lexer::read_grid()
                 ok=0;
             }
             
-            MPI_Bcast(&ok,1,MPI_INT,0,MPI_COMM_WORLD);
+            MPI_Bcast(&ok,1,MPI_INT,0,reef3d_comm());
             
             if(ok)
             {
                 for(int r=1; r<mpi_size; ++r)
                 {
                     nb = (long long)rb[r].size();
-                    MPI_Send(&nb,1,MPI_LONG_LONG,r,4711,MPI_COMM_WORLD);
+                    MPI_Send(&nb,1,MPI_LONG_LONG,r,4711,reef3d_comm());
                     for(long long off=0; off<nb; off+=1<<30)
-                    MPI_Send(rb[r].data()+off,int(min(nb-off,(long long)1<<30)),MPI_CHAR,r,4712,MPI_COMM_WORLD);
+                    MPI_Send(rb[r].data()+off,int(min(nb-off,(long long)1<<30)),MPI_CHAR,r,4712,reef3d_comm());
                 }
                 mine = std::move(rb[0]);
                 const streamsize pr = cout.precision();
@@ -133,20 +134,20 @@ void lexer::read_grid()
         }
         else
         {
-            MPI_Bcast(&ok,1,MPI_INT,0,MPI_COMM_WORLD);
+            MPI_Bcast(&ok,1,MPI_INT,0,reef3d_comm());
             
             if(ok)
             {
-                MPI_Recv(&nb,1,MPI_LONG_LONG,0,4711,MPI_COMM_WORLD,MPI_STATUS_IGNORE);
+                MPI_Recv(&nb,1,MPI_LONG_LONG,0,4711,reef3d_comm(),MPI_STATUS_IGNORE);
                 mine.resize(size_t(nb));
                 for(long long off=0; off<nb; off+=1<<30)
-                MPI_Recv(mine.data()+off,int(min(nb-off,(long long)1<<30)),MPI_CHAR,0,4712,MPI_COMM_WORLD,MPI_STATUS_IGNORE);
+                MPI_Recv(mine.data()+off,int(min(nb-off,(long long)1<<30)),MPI_CHAR,0,4712,reef3d_comm(),MPI_STATUS_IGNORE);
             }
         }
         
         if(!ok)
         {
-            MPI_Barrier(MPI_COMM_WORLD);
+            MPI_Barrier(reef3d_comm());
             exit(1);
         }
         

@@ -36,6 +36,7 @@ SINTGRL (maximum energy with Battjes-Janssen breaking) and SVEG
 --------------------------------------------------------------------*/
 
 #include"seastate_source.h"
+#include"met_drag.h"
 #include"seastate_grid.h"
 #include"seastate_dispersion.h"
 #include<algorithm>
@@ -160,6 +161,14 @@ double seastate_source::ustar_wu(double U10)
 {
     const double cd = (U10>7.5) ? (0.8 + 0.065*U10)*1.0e-3 : 1.2875e-3;
     return std::sqrt(cd)*U10;
+}
+
+double seastate_source::ustar_of(double U10) const
+{
+    if(prm.drag==0)
+    return ustar_wu(U10);
+
+    return std::sqrt(met_drag(prm.drag,U10,prm.drag_cap,prm.drag_floor))*U10;
 }
 
 double seastate_source::Qb_bj(double Hrms, double Hm)
@@ -346,7 +355,7 @@ void seastate_source::compute(const float *N, double depth, const float *k, cons
 
     if(prm.wind && prm.U10>0.0)
     {
-    ustar = ustar_wu(prm.U10);
+    ustar = ustar_of(prm.U10);
 
     const double cw = std::cos(prm.wdir), sw = std::sin(prm.wdir);
     const double spm = grav/(28.0*ustar);

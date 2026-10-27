@@ -91,10 +91,10 @@ void nhflow_geometry::objects_create_forcing(lexer *p, ghostcell *pgc)
 		++entity_count;
     }
     
-    if(p->mpirank==0)
+    if(p->mpirank==0 && !amr_grid)
     print_vtp(p,1);
 
-    if(p->mpirank==0)
+    if(p->mpirank==0 && !amr_grid)
 	cout<<"Surface triangles: "<<tricount<<endl;
 }
 

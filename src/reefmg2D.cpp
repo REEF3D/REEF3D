@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include "reefmg2D.h"
+#include"reef3d_mpmd.h"
 #include "lexer.h"
 #include "ghostcell.h"
 #include "slice.h"
@@ -285,7 +286,7 @@ void reefmg2D::vcycle(lexer *p, ghostcell *pgc, slice &z, matrix2D &M, vec2D &r,
         }
         else
         if(exact_line)
-        xzon = xz.factor_mpi(mg.fine(),mg.precision(),MPI_COMM_WORLD,p->origin_i,p->gknox);
+        xzon = xz.factor_mpi(mg.fine(),mg.precision(),reef3d_comm(),p->origin_i,p->gknox);
         if(!xzon)
         mg.coarsen();
     }

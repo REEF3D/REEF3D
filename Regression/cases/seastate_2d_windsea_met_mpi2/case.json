@@ -1,0 +1,23 @@
+{
+ "base": "seastate_2d_windsea_mpi2",
+ "ctrl_set": {
+  "A 730": "2",
+  "A 731": null,
+  "W 200": "1",
+  "W 201": "15.0 20.0"
+ },
+ "same_as": "seastate_2d_windsea_mpi2",
+ "same_as_rtol": 1e-06,
+ "description": "seastate_2d_windsea_mpi2 with the uniform wind of the met forcing (A 730 2, W 200 1, W 201 15 20) instead of A 731: the same wind field per cell (U10 = |(u, v)| and atan2 to the last bits); regression.py ranks: Hs and the spectra within 1e-6 of seastate_2d_windsea_mpi2.",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate",
+  "mpi",
+  "met"
+ ],
+ "covers": [
+  "SEASTATE wind of the met provider (A 730 2): window, update, per-cell evaluation",
+  "the met forcing for A 10 7 (met_provider::check)"
+ ]
+}

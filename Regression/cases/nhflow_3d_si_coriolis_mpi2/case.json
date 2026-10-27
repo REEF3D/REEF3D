@@ -1,0 +1,20 @@
+{
+ "base": "nhflow_3d_si_met_uniform_mpi2",
+ "description": "nhflow_3d_si_met_uniform_mpi2 (wind 20 m/s to 30 deg) with the Coriolis force of every cell from the frame (W 211 2, W 205 5.9 62.3 20: f about 1.29e-4 1/s): f UH, f VH in every layer, 2 ranks.",
+ "ctrl_add": [
+  "W 211 2",
+  "W 205 5.9 62.3 20.0"
+ ],
+ "tags": [
+  "3d",
+  "nhflow",
+  "semi_implicit",
+  "mpi",
+  "coriolis",
+  "met"
+ ],
+ "covers": [
+  "met_forcing Coriolis (NHFLOW SI)",
+  "f from met_frame::to_geo per cell"
+ ]
+}

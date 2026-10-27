@@ -53,15 +53,18 @@ void nhflow_idiff::diff_w(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, s
         {
             visc_IP = d->VISC[IJK] + d->EV[IJK];
             
-            visc_IM1 = 0.5*(visc_IP + d->VISC[Im1JK] + d->EV[Im1JK] + d->vb(i-1,j));
-            visc_IP1 = 0.5*(visc_IP + d->VISC[Ip1JK] + d->EV[Ip1JK] + d->vb(i+1,j));
+            visc_IM1 = 0.5*(visc_IP + d->VISC[Im1JK] + d->EV[Im1JK]);
+            visc_IP1 = 0.5*(visc_IP + d->VISC[Ip1JK] + d->EV[Ip1JK]);
             
-            visc_JM1 = 0.5*(visc_IP + d->VISC[IJm1K] + d->EV[IJm1K] + d->vb(i,j-1));
-            visc_JP1 = 0.5*(visc_IP + d->VISC[IJp1K] + d->EV[IJp1K] + d->vb(i,j+1));
+            visc_JM1 = 0.5*(visc_IP + d->VISC[IJm1K] + d->EV[IJm1K]);
+            visc_JP1 = 0.5*(visc_IP + d->VISC[IJp1K] + d->EV[IJp1K]);
             
-            visc_KM1 = 0.5*(visc_IP + d->VISC[IJKm1] + d->EV[IJKm1] + d->vb(i,j));
-            visc_KP1 = 0.5*(visc_IP + d->VISC[IJKp1] + d->EV[IJKp1] + d->vb(i,j));
+            visc_KM1 = 0.5*(visc_IP + d->VISC[IJKm1] + d->EV[IJKm1]);
+            visc_KP1 = 0.5*(visc_IP + d->VISC[IJKp1] + d->EV[IJKp1]);
             
+            // breaking viscosity vb (A 550 1): top layer only, face values the mean of the two cells,
+            // so that both cells of a face use the same coefficient; the face to the layer below takes vb/2
+            // from both sides (k = knoz-1 and k = knoz-2)
             if(k==p->knoz-1)
             {
             visc_IP +=  d->vb(i,j);
@@ -72,8 +75,13 @@ void nhflow_idiff::diff_w(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, s
             visc_JM1 += 0.5*(d->vb(i,j) + d->vb(i,j-1));
             visc_JP1 += 0.5*(d->vb(i,j) + d->vb(i,j+1));
             
-            visc_KM1 += d->vb(i,j);
+            visc_KM1 += 0.5*d->vb(i,j);
             visc_KP1 += d->vb(i,j);
+            }
+            
+            if(k==p->knoz-2)
+            {
+            visc_KP1 += 0.5*d->vb(i,j);
             }
             
             // vertical coefficient at the faces k-1/2 (sigma metrics at FIJK) and k+1/2 (FIJKp1); w: the transpose stress adds sigz^2 d2w/dsigma2 once (2 dw/dz)

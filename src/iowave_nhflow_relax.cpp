@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
+#include"met_provider.h"
 
 void iowave::WL_relax(lexer *p, ghostcell *pgc, slice &WL, slice &depth)
 {
@@ -52,19 +53,22 @@ void iowave::WL_relax(lexer *p, ghostcell *pgc, slice &WL, slice &depth)
             // with a background (B 523): background + ramped waves
             const int b = bg_on ? gen_bg(p) : -1;
             
+            // inverse barometer of the met forcing (W 210 1): the still water depth of the target raised by it
+            const double hd = met_provider::ib_on(p) ? depth(i,j) + eta_ib(p,pgc,p->pos_x(),p->pos_y()) : depth(i,j);
+            
             if(b<0 && !gen_lp)
             // the ramp (B 101) acts on the wave elevation only, not on the still water depth
-            WL(i,j) = (1.0-relax4_wg(i,j))*(depth(i,j) + ramp(p)*eta(i,j)) + relax4_wg(i,j) * WL(i,j);
+            WL(i,j) = (1.0-relax4_wg(i,j))*(hd + ramp(p)*eta(i,j)) + relax4_wg(i,j) * WL(i,j);
             
             // combined generation (B 98 6): target plus the low-passed deviation
             if(b<0 && gen_lp)
             {
-            const double tg = depth(i,j) + ramp(p)*eta(i,j);
+            const double tg = hd + ramp(p)*eta(i,j);
             WL(i,j) = (1.0-relax4_wg(i,j))*(tg + gen_dev(p,lpg_wl,p->imax*p->jmax,IJ,WL(i,j)-tg)) + relax4_wg(i,j) * WL(i,j);
             }
             
             if(b>=0)
-            WL(i,j) = (1.0-relax4_wg(i,j))*(depth(i,j) + bgs.eta(b,p->pos_x(),p->pos_y()) + ramp(p)*eta(i,j)) + relax4_wg(i,j) * WL(i,j);
+            WL(i,j) = (1.0-relax4_wg(i,j))*(hd + bgs.eta(b,p->pos_x(),p->pos_y()) + ramp(p)*eta(i,j)) + relax4_wg(i,j) * WL(i,j);
             }
             ++count;
             }
@@ -82,14 +86,17 @@ void iowave::WL_relax(lexer *p, ghostcell *pgc, slice &WL, slice &depth)
             // with a background (B 523): relax to the background level instead of still water
             const int b = bg_on ? beach_bg(p) : -1;
             
+            // inverse barometer of the met forcing (W 210 1)
+            const double hd = met_provider::ib_on(p) ? depth(i,j) + eta_ib(p,pgc,p->pos_x(),p->pos_y()) : depth(i,j);
+            
             if(b<0 && beach_lp)
-            WL(i,j) = (1.0-relax4_nb(i,j))*beach_target(p,lp_wl,p->imax*p->jmax,IJ,depth(i,j),WL(i,j)) + relax4_nb(i,j)*WL(i,j);
+            WL(i,j) = (1.0-relax4_nb(i,j))*beach_target(p,lp_wl,p->imax*p->jmax,IJ,hd,WL(i,j)) + relax4_nb(i,j)*WL(i,j);
             else
             if(b<0)
-            WL(i,j) = (1.0-relax4_nb(i,j))*depth(i,j) + relax4_nb(i,j)*WL(i,j);
+            WL(i,j) = (1.0-relax4_nb(i,j))*hd + relax4_nb(i,j)*WL(i,j);
             
             if(b>=0)
-            WL(i,j) = (1.0-relax4_nb(i,j))*(depth(i,j) + bgs.eta(b,p->pos_x(),p->pos_y())) + relax4_nb(i,j)*WL(i,j);
+            WL(i,j) = (1.0-relax4_nb(i,j))*(hd + bgs.eta(b,p->pos_x(),p->pos_y())) + relax4_nb(i,j)*WL(i,j);
             }
             }
         }

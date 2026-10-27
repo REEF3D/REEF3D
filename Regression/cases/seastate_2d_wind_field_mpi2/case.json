@@ -1,12 +1,12 @@
 {
- "description": "REEF3D::SEASTATE wind field in space and time (A 730 2, seastate-wind.dat: 9 x 5 nodes, 4 hourly records, wind 10 -> 22 m/s turning by 45 deg, weaker towards y+) with Komen physics and DIA, boundary spectra from a stationary file with 2 locations (A 711 3), 2 ranks; 20 x 10 cells of 2 km, deep water, 3 h. Validation in Dropbox SEASTATE/validation/17-18. Phase 14: pipelined across the ranks, one iteration per step, the result of seastate_2d_phase14_wind_field.",
+ "description": "REEF3D::SEASTATE wind field in space and time (A 730 2 with the met forcing W 200 2, met-forcing.r3m converted from the former seastate-wind.dat by tools/met_forcing.py seastate: 9 x 5 nodes, 4 hourly records, wind 10 -> 22 m/s turning by 45 deg, weaker towards y+) with Komen physics and DIA, boundary spectra from a stationary file with 2 locations (A 711 3), 2 ranks; 20 x 10 cells of 2 km, deep water, 3 h. Validation in Dropbox SEASTATE/validation/17-18. Phase 14: pipelined across the ranks, one iteration per step, the result of seastate_2d_phase14_wind_field.",
  "solver": "seastate",
  "np": 2,
  "steps": 18,
  "time": 10800.0,
  "files": [
   "seastate-boundary.spc",
-  "seastate-wind.dat"
+  "met-forcing.r3m"
  ],
  "tags": [
   "2d",
@@ -14,7 +14,7 @@
   "mpi"
  ],
  "covers": [
-  "seastate_wind_series reader and interpolation",
+  "the wind of the met forcing W 200 2 (met_provider) on the SEASTATE grid (storm surge P6)",
   "per-cell wind in the source terms (seastate_implicit wind_field)",
   "boundary spectra per rank",
   "VTP fields U10x, U10y"

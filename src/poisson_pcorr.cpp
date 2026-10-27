@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"outflow_pressure.h"
+#include"reef3d_mpmd.h"
 #include"poisson_pcorr.h"
 #include"bc_noflux.h"
 #include<mpi.h>
@@ -160,13 +161,13 @@ void poisson_pcorr::start(lexer* p, fdm *a, field &press)
     // level 0, and the patches are not collective)
     int nd_glob=0;
     if(p->amr_patch==0)
-    MPI_Allreduce(&ndirichlet,&nd_glob,1,MPI_INT,MPI_SUM,MPI_COMM_WORLD);
+    MPI_Allreduce(&ndirichlet,&nd_glob,1,MPI_INT,MPI_SUM,reef3d_comm());
 
     if(nd_glob==0 && p->amr_patch==0 && p->W32==0)
     {
         int myrank = (pin_n>=0) ? p->mpirank : 1<<30;
         int pinrank = 1<<30;
-        MPI_Allreduce(&myrank,&pinrank,1,MPI_INT,MPI_MIN,MPI_COMM_WORLD);
+        MPI_Allreduce(&myrank,&pinrank,1,MPI_INT,MPI_MIN,reef3d_comm());
 
         if(p->mpirank==pinrank && pin_n>=0)
         {

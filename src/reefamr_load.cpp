@@ -49,6 +49,7 @@ Author: Hans Bihs
 //  Not for multi-block grids.
 
 #include"reefamr.h"
+#include"reef3d_mpmd.h"
 #include"lexer.h"
 #include"ghostcell.h"
 #include<mpi.h>
@@ -130,12 +131,12 @@ void reefamr::load_window(lexer *p, bool use)
         load_counts(p,d[1],d[2],d[3]);
 
         vector<double> all((size_t)4*np);
-        MPI_Allgather(d,4,MPI_DOUBLE,&all[0],4,MPI_DOUBLE,MPI_COMM_WORLD);
+        MPI_Allgather(d,4,MPI_DOUBLE,&all[0],4,MPI_DOUBLE,reef3d_comm());
 
         // without the MPI clock the busy time is the wall-clock time: no measured model
         long calls = amr_clock::mpi_calls;
         long callsg = 0;
-        MPI_Allreduce(&calls,&callsg,1,MPI_LONG,MPI_MIN,MPI_COMM_WORLD);
+        MPI_Allreduce(&calls,&callsg,1,MPI_LONG,MPI_MIN,reef3d_comm());
         if(callsg==0)
         {
             if(p->mpirank==0)
@@ -348,7 +349,7 @@ void reefamr::lmap_write(lexer *p)
     for(int r=1; r<np; ++r)
     off[r] = off[r-1]+cnt[r-1];
     vector<double> all(p->mpirank==0 ? (size_t)(off[np-1]+cnt[np-1]) : 1);
-    MPI_Gatherv(&mine[0],(int)mine.size(),MPI_DOUBLE,&all[0],&cnt[0],&off[0],MPI_DOUBLE,0,MPI_COMM_WORLD);
+    MPI_Gatherv(&mine[0],(int)mine.size(),MPI_DOUBLE,&all[0],&cnt[0],&off[0],MPI_DOUBLE,0,reef3d_comm());
 
     if(p->mpirank!=0)
     return;
