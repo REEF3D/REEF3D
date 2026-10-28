@@ -26,7 +26,7 @@ Architect: Hans Bihs
 // maxima of eta along the ridge normal n, the crest speed C comes from the motion of the crest point along n, u_s is
 // the horizontal velocity of the top layer extrapolated to the surface. A crest point breaks at B = u_s.n / C > A 359
 // (Barthelemy et al. 2018) when it travels at least at half the linear phase speed of the generated waves, and stops
-// when the largest front-face slope falls below A 360 deg. Its front face and the band of A 502 h behind the crest
+// when the largest front-face slope falls below A 360 deg. Its front face and the band of A 502 L_k behind the crest
 // are the seed of the viscosity, with the wavenumber k = 2 pi / L of the crest (L trough to trough).
 //
 // Viscosity (breaking_kennedy with the seed): the eddy viscosity of Kennedy et al. (2000) as in A 550 3, continuous in
@@ -40,6 +40,7 @@ Architect: Hans Bihs
 //    Kirby and the wave heights oscillated from gauge to gauge; the tracking adds the onsets that A 550 3 misses
 //  - the depth h of the formula is the length L_k = tanh(k h)/k of the wave of the event (h in shallow water, 1/k in
 //    deep water), c = sqrt(g L_k) the linear phase speed, T* = A 503 sqrt(L_k/g): nu_b = B delta_b^2 L_k deta/dt
+//    over a band of A 502 L_k (also the seed behind the crest)
 //  - nu_b f(z) with the depth profile of the orbital velocity f(z) = cosh(k (z - z_b))/cosh(k h)
 //    (nhflow_breaking_profile.h), in all layers on all faces of the implicit diffusion.
 // The viscosity of the tracked crests themselves (energy matched, as FNPF A 350 4) switched on and off with the state
@@ -104,7 +105,9 @@ void nhflow_breaking::breaking_barthelemy(lexer *p, fdm_nhf *d, ghostcell *pgc, 
     bt->detect(p,pgc,eta_n,bt_us,bt_vs,d->WL,brkzone_built ? brkzone.V : nullptr,t);
 
     // the seed: front faces and bands of the breaking crest points, with their wavenumber
-    auto sback = [&](const bc3_point &R) { return p->A502*R.wl; };
+    // painted behind the crest: A 502 L_k, L_k = tanh(k h)/k (h in shallow water; A 502 h reached over the trough
+    // behind the crest in deep water)
+    auto sback = [&](const bc3_point &R) { return p->A502*((R.kw>0.0) ? tanh(R.kw*R.wl)/R.kw : R.wl); };
     auto integrand = [&](const bc3_point &R, double x, double y) { return 1.0; };
     auto epsf = [&](const bc3_point &R) { return 1.0; };
 
