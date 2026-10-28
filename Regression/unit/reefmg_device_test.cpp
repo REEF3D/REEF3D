@@ -169,6 +169,7 @@ static void suite(const char *name,const problem &pr,int bits,int levels,bool me
     // 1. one V-cycle (mode 0, one iteration: defect correction from u = 0)
     {
         config z1=zeb, d1=dev; z1.mode=d1.mode=0; z1.maxiter=d1.maxiter=1; z1.tol=d1.tol=0.0;
+        d1.dcycles=1; d1.dsweeps=1;    // the CPU's cycle
         const result rz=run(pr,z1), rd=run(pr,d1);
         check(rd.on_device,"reference device in use ("+rd.status+")");
         const double e=maxdiff(pr,rz.u,rd.u);
@@ -203,13 +204,13 @@ static void suite(const char *name,const problem &pr,int bits,int levels,bool me
         check(em<1.0e-8,fmt("Metal solution = CPU fp64 solution to %.1e",em));
     }
 
-    // stronger device preconditioner (N 17 2, N 19 2): no more iterations, same solution
+    // the default 2 V-cycles with 2 sweeps against 1 x 1 (N 17 1, N 19 1): no more iterations
     {
-        config d2=dev; d2.dcycles=2; d2.dsweeps=2;
-        const result rs=run(pr,d2);
-        const double e2=maxdiff(pr,r0.u,rs.u);
-        check(rs.relres<=1.0e-10 && rs.it<=rd.it && e2<1.0e-8,
-              fmt("2 V-cycles with 2 sweeps (N 17 2, N 19 2): %g iterations (one cycle %g), = CPU solution to %.1e",rs.it,rd.it,e2));
+        config d1=dev; d1.dcycles=1; d1.dsweeps=1;
+        const result r1=run(pr,d1);
+        const double e1=maxdiff(pr,r0.u,r1.u);
+        check(r1.relres<=1.0e-10 && rd.it<=r1.it && e1<1.0e-8,
+              fmt("default 2 V-cycles x 2 sweeps: %g iterations, N 17 1 / N 19 1: %g, = CPU solution to %.1e",rd.it,r1.it,e1));
     }
 
     // 3. stationary V-cycles (defect correction) and the fallback mode
@@ -231,11 +232,8 @@ static void bench(int nx,int ny,int nz)
     {config c; c.tol=1e-8; rows.push_back({"CPU fp32 lexicographic (default)",c});}
     {config c; c.tol=1e-8; c.ordering=1; rows.push_back({"CPU fp32 red-black (N 12 2)",c});}
 #ifdef REEF3D_USE_METAL
-    {config c; c.tol=1e-8; c.device=1; rows.push_back({"Metal GPU (N 16 1)",c});}
-    {config c; c.tol=1e-8; c.device=1; c.dsweeps=2; rows.push_back({"Metal, 2 sweeps (N 19 2)",c});}
-    {config c; c.tol=1e-8; c.device=1; c.dcycles=2; rows.push_back({"Metal, 2 V-cycles (N 17 2)",c});}
-    {config c; c.tol=1e-8; c.device=1; c.dcycles=2; c.dsweeps=2; rows.push_back({"Metal, 2 V-cycles, 2 sweeps",c});}
-    {config c; c.tol=1e-8; c.device=1; c.dcycles=3; c.dsweeps=2; rows.push_back({"Metal, 3 V-cycles, 2 sweeps",c});}
+    {config c; c.tol=1e-8; c.device=1; rows.push_back({"Metal GPU (N 16 1, 2 x 2 sweeps)",c});}
+    {config c; c.tol=1e-8; c.device=1; c.dcycles=1; c.dsweeps=1; rows.push_back({"Metal, 1 V-cycle, 1 sweep",c});}
 #endif
     if(nx*ny*nz<=4000000)
     {config c; c.tol=1e-8; c.device=2; rows.push_back({"reference device (N 16 2)",c});}
