@@ -66,6 +66,10 @@ public:
     virtual bool keel_nhflow(lexer*,fdm_nhf*,ghostcell*,int,slice&,slice&,slice&,slice&,slice&,slice&) {return false;};
     
     virtual void ini(lexer*,ghostcell*)=0;
+    // runtime coupling (reefcouple, I 243): number of bodies and the state of body n: CoG (3), velocity
+    // (3), angular velocity (3, inertial frame), rotation body -> inertial (9, row-major)
+    virtual int body_count() const {return 0;}
+    virtual void body_state(int, double*) const {}
 
     // checkpoints (P 48, I 45): the state of the bodies (the same on all ranks); restore false: the
     // checkpoint does not fit the bodies of this run

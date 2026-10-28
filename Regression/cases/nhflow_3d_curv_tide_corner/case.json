@@ -1,0 +1,19 @@
+{
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 200,
+ "files": [
+  "blocks.dat"
+ ],
+ "tags": [
+  "3d",
+  "nhflow",
+  "curvilinear",
+  "tide",
+  "quick"
+ ],
+ "description": "The one-block channel of nhflow_3d_mb_side_edges (hydrostatic): a Riemann edge with a 5 mm tide on x- and a Flather edge on y-, which meet in the corner cell: each edge keeps its ghost depth (iowave::edge_h per side); with one depth per cell the Flather edge overwrote the Riemann depth of the corner and the solution differed from the blocks by 2.6e-4 m of 6e-3 m, now to round-off (validation/13_j_face_zones).",
+ "covers": [
+  "iowave::nhflow_open_edges, nhflow_open_edges_wl: edge_h per side"
+ ]
+}

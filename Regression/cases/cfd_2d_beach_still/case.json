@@ -1,0 +1,14 @@
+{
+ "np": 1,
+ "steps": 100,
+ "description": "Still water on a gently sloping beach (S 61 wedge, 1:8.6, direct forcing), the free surface through the wedge: the level set inside the solid extrapolated linearly from the fluid (X 48 2, the default), the still water level a plane through the bed, no flow along the shore line (umax 3e-4 m/s after 100 steps; held constant along the normal of the solid instead, the free surface bends at the shore line and drives 0.75 m/s). The solid level set inside the wedge is no distance: the layers of the extrapolation from its sign alone.",
+ "tags": [
+  "quick",
+  "2d",
+  "levelset",
+  "solid"
+ ],
+ "covers": [
+  "levelset_solid_extend: the linear extrapolation, the layers inside a solid without a distance (S 61), the domain edges left out"
+ ]
+}

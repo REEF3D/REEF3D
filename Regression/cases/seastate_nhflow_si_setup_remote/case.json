@@ -1,0 +1,8 @@
+{
+ "base": "seastate_nhflow_si_setup",
+ "ctrl_set": {"A 750": "2"},
+ "remote": {"case": "seastate_remote_waves_setup", "dir": "waves"},
+ "description": "seastate_nhflow_si_setup with the waves as their own model (A 750 2) on the same 10 m grid (folder waves): NHFLOW SI host, depth-averaged velocity to the waves, the vortex force back; a grid of one row (j_dir 0).",
+ "tags": ["quick", "2d", "nhflow", "semi_implicit", "seastate", "wetdry", "mpmd"],
+ "covers": ["SEASTATE remote waves with NHFLOW (seastate_nhflow::ini, start)", "remote exchange on a grid of one row"]
+}

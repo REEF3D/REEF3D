@@ -1,0 +1,18 @@
+{
+ "base": "seastate_2d_wind",
+ "ctrl_set": {
+  "A 732": "3"
+ },
+ "ctrl_add": [
+  "A 795 0.0001"
+ ],
+ "description": "as seastate_2d_phase20_st4 with the spectral sparsity (A 795 1e-4): the widened windows of a cell take u*, the growth rates and the cut-off of its first compute (seastate_source freeze). Validation in Dropbox SEASTATE/validation/69_ardhuin_st4.",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate"
+ ],
+ "covers": [
+  "seastate_source freeze in the widened windows (A 795)"
+ ]
+}

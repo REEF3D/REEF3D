@@ -68,6 +68,10 @@ on fine grids need little memory and no communication.
             the first and the last record
   at        bilinear in space (clamped to the grid), linear in time
             (clamped to the first and the last record)
+  origin    origin of the grid at time t (moving grids: linear between the
+            two loaded records)
+  sample    one variable of record n at a point, read directly from the
+            file (four nodes, no window): the same value on every rank
 
 met_datetime(v)   YYYYMMDD.HHMMSS -> s since 1970-01-01 00:00:00 UTC
 met_date(t)       s since 1970 -> "YYYY-MM-DD HH:MM:SS"
@@ -83,6 +87,16 @@ public:
     void window(double xs, double xe, double ys, double ye);
     bool advance(double t, std::string &error);
     void at(double t, double x, double y, double &u, double &v, double &pa) const;
+
+    void origin(double t, double &ox, double &oy) const;
+    bool sample(int n, int var, double x, double y, double &val, std::string &error);
+
+    // the two loaded records (q = 0, 1): time, origin, values at a point (bilinear, clamped), time weight
+    // (storm-relative time interpolation of the blend W 227 1)
+    double rec_time(int q) const {return rec[q].t;}
+    void rec_origin(int q, double &ox, double &oy) const {ox = rec[q].xr0;  oy = rec[q].yr0;}
+    void at_record(int q, double x, double y, double &u, double &v, double &pa) const {space(rec[q],x,y,u,v,pa);}
+    double time_weight(double t) const {return weight(t);}
 
     double time(int n) const {return times[n];}
 

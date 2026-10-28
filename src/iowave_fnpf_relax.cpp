@@ -23,6 +23,7 @@ Author: Hans Bihs
 #include"iowave.h"
 #include"lexer.h"
 #include"ghostcell.h"
+#include"fnpf_couple_send.h"
 
 void iowave::fifsf_relax(lexer *p, ghostcell *pgc, slice& f)
 {
@@ -72,6 +73,9 @@ void iowave::fifsf_relax(lexer *p, ghostcell *pgc, slice& f)
             }
         }
     }
+    
+    // runtime coupling (FNPF source): towards the receiver in its overlap box (I 244)
+    fnpf_couple_send::relax_fifsf(p,f);
     
     p->wavecalctime+=pgc->timer()-starttime;
 }

@@ -1,4 +1,0 @@
-{"np": 1, "steps": 20,
- "description": "cfd_2d_heave_amr with subcycling (G 7 1): the finest level advances the body with the loads on its grid at each hull triangle, level 0 steps with a predicted copy.",
- "tags": ["quick", "2d", "6dof", "floating", "levelset", "amr"],
- "covers": ["cfd_amr::body_stage, body_loads, body_end; sixdof_obj_cfd::amr_stage_cfd; forces_stl on the finest grid (amr_grid_lookup); sixdof_cfd::amr_predict"]}

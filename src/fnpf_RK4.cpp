@@ -116,6 +116,7 @@ void fnpf_RK4::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     pbody->surface(p,c,pgc,erk,frk,gcval_eta,gcval_fifsf);
     
     // fsfdisc and sigma update
+    pf->breaking_zones(p,pflow);
     pf->breaking(p,c,pgc,erk,en,frk,0.5);
     // A 352: the filter changed eta and Fifsf in place after their halo exchange
     if((p->A350==1 || p->A350==4) && p->A352>0)
@@ -349,7 +350,7 @@ void fnpf_RK4::inidisc_step2(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pflo
     pgc->start7V(p,c->Fi,c->bc,gcval);
     
     // velocity 
-    if(p->I30==1)
+    if(p->I30>=1)
     {
     pf->fsfwvel(p,c,pgc,c->eta,c->Fifsf);
     velcalc_sig(p,c,pgc,c->Fi);

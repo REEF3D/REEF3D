@@ -39,14 +39,14 @@ void part::xchange(lexer *p, ghostcell *pgc, slice &bedch, int mode)
     return;
 
     // check send/recv array size: the parcel arrays go packed in one exchange
-    const int NA = 20;
+    const int NA = 21;
     xchange_resize(p,pgc,NA);
 
     // sendid
     xchange_sendid(p,pgc,mode);
 
     // the parcel arrays (after the resize, which may move them)
-    double *arr[NA] = {U,V,W, URK1,VRK1,WRK1, X,Y,Z, XRK1,YRK1,ZRK1, Uf,Vf,Wf, D,RO, Test,Hop, Wt};
+    double *arr[NA] = {U,V,W, URK1,VRK1,WRK1, X,Y,Z, XRK1,YRK1,ZRK1, Uf,Vf,Wf, D,RO, Test,Hop, Wt, ID};
 
     for(n=0;n<6;++n)
     for(q=0;q<sendnum[n];++q)

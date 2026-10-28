@@ -41,8 +41,8 @@ time t [s since 1970]. No lexer, unit test met_test.cpp.
                       evaluated at the longitude and latitude of the point (frame
                       W 205), the wind turned from (east, north) to the model axes
 
-Later sources (parametric vortex from a track, blends of sources with a
-radial weight, moving nests) implement the same interface.
+  met_source_blend    W 200 4: background file, moving nest and vortex
+                      with tapered weights (met_blend.h)
 --------------------------------------------------------------------*/
 
 class met_source

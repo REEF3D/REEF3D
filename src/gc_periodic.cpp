@@ -28,10 +28,13 @@ void ghostcell::gc_periodic(lexer *p, field& f, int gcv, int cs)
 {
     double val1,val2,val3;
 
+    // every row: the check of the cell flag (PCHECK) read the cell of the index left from before the
+    // loop (i in the x rows, j in the y rows, k in the z rows), not one of the row; with the mesh
+    // refinement that index was often one of a patch, beyond level 0, and a level-0 row could be
+    // skipped (its ghost cells kept zero: the pressure of the composite solve across the edge)
     if(cs==1)
     JLOOP
     KLOOP
-    PCHECK
     {
         // 4 to 1 coupling
         i=p->knox-1;
@@ -63,7 +66,6 @@ void ghostcell::gc_periodic(lexer *p, field& f, int gcv, int cs)
     if(cs==2)
     ILOOP
     KLOOP
-    PCHECK
     {
         // 2 to 3 coupling
         j=p->knoy-1;
@@ -95,7 +97,6 @@ void ghostcell::gc_periodic(lexer *p, field& f, int gcv, int cs)
     if(cs==3)
     ILOOP
     JLOOP
-    PCHECK
     {
         // 6 to 5 coupling
         k=p->knoz-1;

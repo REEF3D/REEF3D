@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"reefamr.h"
+#include"reef3d_mpmd.h"
 #include<set>
 #include"geo_mesh.h"
 #include"lexer.h"
@@ -245,7 +246,7 @@ void reefamr::build_gtable()
 
     int n = (int)mine.size();
     vector<int> cnt(np), off(np,0);
-    MPI_Allgather(&n,1,MPI_INT,&cnt[0],1,MPI_INT,MPI_COMM_WORLD);
+    MPI_Allgather(&n,1,MPI_INT,&cnt[0],1,MPI_INT,reef3d_comm());
     int tot=0;
     for(int r=0; r<np; ++r)
     {
@@ -253,7 +254,7 @@ void reefamr::build_gtable()
         tot+=cnt[r];
     }
     vector<int> all(MAX(tot,1));
-    MPI_Allgatherv(mine.empty() ? nullptr : &mine[0],n,MPI_INT,&all[0],&cnt[0],&off[0],MPI_INT,MPI_COMM_WORLD);
+    MPI_Allgatherv(mine.empty() ? nullptr : &mine[0],n,MPI_INT,&all[0],&cnt[0],&off[0],MPI_INT,reef3d_comm());
 
     GPold = GP;
     GP.clear();
@@ -496,12 +497,16 @@ int reefamr::finest_point(double x, double y, int &id) const
         if(a<EXT || a>=EXT+c->nx || b<EY || b>=EY+c->ny)
         continue;
 
-        // the cells within two of it: interior, or not taken from another grid
+        // the cells within two of it: interior, or not taken from another grid (with fills_current: a
+        // cell filled from a patch of the same level is current, as its own)
         bool ok = true;
+        const bool cur = fills_current();
         const int bj = (pp->j_dir==1) ? 2 : 0;
         for(const reefamr_fill &f : c->fill)
         if(f.kind<=2 && f.di>=a-2 && f.di<=a+2 && f.dj>=b-bj && f.dj<=b+bj)
         {
+            if(cur && (f.kind==0 || (f.kind==2 && const_cast<reefamr*>(this)->covered(c->lev,f.di-EXT+c->I0,f.dj-EY+c->J0))))
+            continue;
             ok = false;
             break;
         }
@@ -530,7 +535,7 @@ void reefamr::setup(lexer *p, ghostcell *pgc)
     // rank boxes
     int mine[4] = {O0i, O0i+NX0-1, O0j, O0j+NY0-1};
     vector<int> all(4*p->mpi_size);
-    MPI_Allgather(mine,4,MPI_INT,&all[0],4,MPI_INT,MPI_COMM_WORLD);
+    MPI_Allgather(mine,4,MPI_INT,&all[0],4,MPI_INT,reef3d_comm());
     rbx0.resize(p->mpi_size); rbx1.resize(p->mpi_size);
     rby0.resize(p->mpi_size); rby1.resize(p->mpi_size);
     for(int r=0; r<p->mpi_size; ++r)
@@ -594,12 +599,12 @@ void reefamr::setup(lexer *p, ghostcell *pgc)
             const int na = nloc+1+4*m;
             vector<int> cnt(np), off(np), st(np);
             int me0 = n0;
-            MPI_Allgather(&na,1,MPI_INT,&cnt[0],1,MPI_INT,MPI_COMM_WORLD);
-            MPI_Allgather(&me0,1,MPI_INT,&st[0],1,MPI_INT,MPI_COMM_WORLD);
+            MPI_Allgather(&na,1,MPI_INT,&cnt[0],1,MPI_INT,reef3d_comm());
+            MPI_Allgather(&me0,1,MPI_INT,&st[0],1,MPI_INT,reef3d_comm());
             int tot=0;
             for(int r=0; r<np; ++r) { off[r]=tot; tot+=cnt[r]; }
             vector<double> all(tot);
-            MPI_Allgatherv(XN,na,MPI_DOUBLE,&all[0],&cnt[0],&off[0],MPI_DOUBLE,MPI_COMM_WORLD);
+            MPI_Allgatherv(XN,na,MPI_DOUBLE,&all[0],&cnt[0],&off[0],MPI_DOUBLE,reef3d_comm());
 
             // global node K at index K+m, K in [-m, gn+m]; a rank's interior nodes take precedence
             g.assign(gn+1+2*m,0.0);
@@ -631,11 +636,11 @@ void reefamr::setup(lexer *p, ghostcell *pgc)
         }
         vector<int> cnt(np), off(np);
         int nm = NX0*NY0;
-        MPI_Allgather(&nm,1,MPI_INT,&cnt[0],1,MPI_INT,MPI_COMM_WORLD);
+        MPI_Allgather(&nm,1,MPI_INT,&cnt[0],1,MPI_INT,reef3d_comm());
         int tot=0;
         for(int r=0; r<np; ++r) { off[r]=tot; tot+=cnt[r]; }
         vector<short> all(tot);
-        MPI_Allgatherv(&mine[0],nm,MPI_SHORT,&all[0],&cnt[0],&off[0],MPI_SHORT,MPI_COMM_WORLD);
+        MPI_Allgatherv(&mine[0],nm,MPI_SHORT,&all[0],&cnt[0],&off[0],MPI_SHORT,reef3d_comm());
         gfl0.assign((size_t)GNX*GNY,-10);
         for(int r=0; r<np; ++r)
         {
@@ -699,7 +704,7 @@ void reefamr::build_tiles()
 void reefamr::global_or(vector<unsigned char> &v)
 {
     if(p0->mpi_size>1 && !v.empty())
-    MPI_Allreduce(MPI_IN_PLACE,&v[0],(int)v.size(),MPI_UNSIGNED_CHAR,MPI_BOR,MPI_COMM_WORLD);
+    MPI_Allreduce(MPI_IN_PLACE,&v[0],(int)v.size(),MPI_UNSIGNED_CHAR,MPI_BOR,reef3d_comm());
 }
 
 // the level-lf tiles covering the children of the level lf-1 cell (I,J) and buf cells around it
@@ -1175,7 +1180,7 @@ void reefamr::xsetup(vector<vector<int>> &req, vector<vector<int>> &srv, int K)
     for(int r=0; r<np; ++r)
     sc[r] = (int)req[r].size();
 
-    MPI_Alltoall(&sc[0],1,MPI_INT,&rc[0],1,MPI_INT,MPI_COMM_WORLD);
+    MPI_Alltoall(&sc[0],1,MPI_INT,&rc[0],1,MPI_INT,reef3d_comm());
 
     int ns=0, nr=0;
     for(int r=0; r<np; ++r)
@@ -1189,7 +1194,7 @@ void reefamr::xsetup(vector<vector<int>> &req, vector<vector<int>> &srv, int K)
     for(int k=0; k<sc[r]; ++k)
     sb[sd[r]+k] = req[r][k];
 
-    MPI_Alltoallv(&sb[0],&sc[0],&sd[0],MPI_INT,&rb[0],&rc[0],&rd[0],MPI_INT,MPI_COMM_WORLD);
+    MPI_Alltoallv(&sb[0],&sc[0],&sd[0],MPI_INT,&rb[0],&rc[0],&rd[0],MPI_INT,reef3d_comm());
 
     for(int r=0; r<np; ++r)
     srv[r].assign(rb.begin()+rd[r],rb.begin()+rd[r]+rc[r]);
@@ -1206,7 +1211,7 @@ void reefamr::xrun_rev(reefamr_xplan &X, int nv, int tag)
         if(!X.sbuf[k].empty())
         {
             rq.push_back(MPI_REQUEST_NULL);
-            MPI_Irecv(&X.sbuf[k][0],(int)X.sbuf[k].size(),MPI_DOUBLE,X.speer[k],tag,MPI_COMM_WORLD,&rq.back());
+            MPI_Irecv(&X.sbuf[k][0],(int)X.sbuf[k].size(),MPI_DOUBLE,X.speer[k],tag,reef3d_comm(),&rq.back());
         }
     }
 
@@ -1214,7 +1219,7 @@ void reefamr::xrun_rev(reefamr_xplan &X, int nv, int tag)
     if(!X.rbuf[k].empty())
     {
         rq.push_back(MPI_REQUEST_NULL);
-        MPI_Isend(&X.rbuf[k][0],(int)X.rbuf[k].size(),MPI_DOUBLE,X.rpeer[k],tag,MPI_COMM_WORLD,&rq.back());
+        MPI_Isend(&X.rbuf[k][0],(int)X.rbuf[k].size(),MPI_DOUBLE,X.rpeer[k],tag,reef3d_comm(),&rq.back());
     }
 
     if(!rq.empty())
@@ -1242,7 +1247,7 @@ void reefamr::xrun(reefamr_xplan &X, int nv, int tag)
         if(!X.rbuf[k].empty())
         {
             rq.push_back(MPI_REQUEST_NULL);
-            MPI_Irecv(&X.rbuf[k][0],(int)X.rbuf[k].size(),MPI_DOUBLE,X.rpeer[k],tag,MPI_COMM_WORLD,&rq.back());
+            MPI_Irecv(&X.rbuf[k][0],(int)X.rbuf[k].size(),MPI_DOUBLE,X.rpeer[k],tag,reef3d_comm(),&rq.back());
         }
     }
 
@@ -1250,7 +1255,7 @@ void reefamr::xrun(reefamr_xplan &X, int nv, int tag)
     if(!X.sbuf[k].empty())
     {
         rq.push_back(MPI_REQUEST_NULL);
-        MPI_Isend(&X.sbuf[k][0],(int)X.sbuf[k].size(),MPI_DOUBLE,X.speer[k],tag,MPI_COMM_WORLD,&rq.back());
+        MPI_Isend(&X.sbuf[k][0],(int)X.sbuf[k].size(),MPI_DOUBLE,X.speer[k],tag,reef3d_comm(),&rq.back());
     }
 
     if(!rq.empty())

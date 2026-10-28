@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"reefrun_ckpt.h"
+#include"reef3d_mpmd.h"
 #include"reefckpt.h"
 #include"lexer.h"
 #include"ghostcell.h"
@@ -250,7 +251,7 @@ void reefrun_ckpt::finish()
 bool reefrun_ckpt::signal_stop()
 {
     int s = stop_signal, all = 0;
-    MPI_Allreduce(&s,&all,1,MPI_INT,MPI_MAX,MPI_COMM_WORLD);
+    MPI_Allreduce(&s,&all,1,MPI_INT,MPI_MAX,reef3d_comm());
     if(all==0)
     return false;
 
@@ -261,7 +262,7 @@ bool reefrun_ckpt::signal_stop()
     write();
     if(h.flush)
     h.flush();
-    MPI_Barrier(MPI_COMM_WORLD);
+    MPI_Barrier(reef3d_comm());
     pgc->final();
     return true;
 }
@@ -430,14 +431,15 @@ void reefrun_ckpt::rebalance(bool due, bool last)
         cout.precision(pr);
     }
 
-    // the first check after a rebalance restart
+    // the first check after a rebalance restart: it helped if it took at least 10 % off the excess load L - 1
+    // (on L itself, 1.12 -> 1.02 counted as not enough: near a balanced load 0.9 L lies below 1)
     if(rebal_L>0.0)
     {
-        if(L>0.9*rebal_L)
+        if(!lowers(rebal_L,L))
         {
             rebal_off = true;
             if(p->mpirank==0)
-            cout<<"G 46: the rebalance did not lower the load max/mean enough ("<<rebal_L<<" -> "<<L<<") -- no further rebalance in this run"<<endl;
+            cout<<"G 46: the rebalance did not lower the excess load max/mean - 1 by 10 % ("<<rebal_L<<" -> "<<L<<") -- no further rebalance in this run"<<endl;
         }
         rebal_L = 0.0;
         return;
@@ -461,7 +463,7 @@ void reefrun_ckpt::rebalance(bool due, bool last)
 
     int mybox[6] = {p->origin_i,p->origin_j,p->origin_k,p->knox,p->knoy,p->knoz};
     vector<int> now(6*size_t(p->mpi_size));
-    MPI_Gather(mybox,6,MPI_INT,now.data(),6,MPI_INT,0,MPI_COMM_WORLD);
+    MPI_Gather(mybox,6,MPI_INT,now.data(),6,MPI_INT,0,reef3d_comm());
     // 1: it differs; 2: it differs, but would not lower the load enough (predict); 3: the restart would not pay (pays)
     int differs = 0;
     double Lnew = 0.0;
@@ -476,7 +478,7 @@ void reefrun_ckpt::rebalance(bool due, bool last)
             if(differs && h.predict)
             {
                 Lnew = h.predict(nb);
-                if(Lnew>0.9*L)
+                if(!lowers(L,Lnew))
                 differs = 2;
             }
             // 3: the restart would not pay
@@ -492,7 +494,7 @@ void reefrun_ckpt::rebalance(bool due, bool last)
         else
         cout<<"G 46: no rebalance -- "<<msg<<" (needs DIVEMesh M 50 1, 2)"<<endl;
     }
-    MPI_Bcast(&differs,1,MPI_INT,0,MPI_COMM_WORLD);
+    MPI_Bcast(&differs,1,MPI_INT,0,reef3d_comm());
     if(differs!=1)
     {
         if(p->mpirank==0 && differs==0)
@@ -503,7 +505,7 @@ void reefrun_ckpt::rebalance(bool due, bool last)
         {
             const streamsize pr = cout.precision();
             cout<<"G 46: the weighted partition of the load map would give the load max/mean "<<setprecision(3)<<Lnew
-                <<", less than 10 % below the present one -- no rebalance"<<endl;
+                <<", the excess over 1 less than 10 % below the present one -- no rebalance"<<endl;
             cout.precision(pr);
         }
         return;
@@ -530,7 +532,7 @@ void reefrun_ckpt::rebalance(bool due, bool last)
         ofstream m("REEF3D_Checkpoint/rebalance");
         m<<p->count<<" "<<L<<endl;
     }
-    MPI_Barrier(MPI_COMM_WORLD);
+    MPI_Barrier(reef3d_comm());
 
     pgc->final();
     exit(3);

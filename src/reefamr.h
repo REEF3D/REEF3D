@@ -286,8 +286,14 @@ protected:
     int finest_rank(double, double);        // place 1: rank of the finest grid at (x,y), -1 outside
     // the output on the finest grid (amr_column_lookup): the finest local patch whose interior holds
     // (x,y) with the cells within two of the point's cell its own (interior) or boundary values,
-    // not taken from another grid (fill kinds 0-2); its level (0: none), id its index in P
+    // not taken from another grid (fill kinds 0-2); its level (0: none), id its index in P.  With
+    // fills_current() the cells a patch of the same level fills (a sibling on this rank, kind 0, or
+    // across a partition edge, kind 2 where a level-l patch holds the cell) count as its own: a point
+    // on a partition edge through a patch is read on the patch, not on level 0
     int finest_point(double x, double y, int &id) const;
+    // the cells around the patches that a patch of the same level fills hold the values of the end
+    // of the step when the outputs read them (the module fills them then)
+    virtual bool fills_current() const {return false;}
     int flag0(int, int);                    // level-0 flagslice4 of the global cell (I,J), from the rank box + halo
     void goff(int, int&, int&);             // grid id: local index = global index - offset
     lexer* glex(int);                       // grid id: lexer
@@ -714,8 +720,9 @@ protected:
     vector<rblock> blk;                 // empty: one block, the native grid
     int nblk = 0;
     vector<int> bopen[2];               // G 54: per block the line of its -i face (inflow) [0] / +i face (outflow) [1], -1 none
-    vector<bc_zone> bzones;             // B 522: the edge zones on the faces of the blocks 1..
-    vector<int> bzone[2];               // per block the zone of its -i face [0] / +i face [1] (index in bzones), -1 none
+    vector<bc_zone> bzones;             // B 522: the zones on the faces of the blocks 1..
+    vector<int> bzone[2];               // per block the edge zone of its -i face [0] / +i face [1] (index in bzones), -1 none
+    vector<int> bzr[2];                 // per block the relaxation or beach zone of its -i / +i face (index in bzones), -1 none
     background_state bzbg;              // their backgrounds (B 510-515)
     void blocks_open(lexer*);           // the open faces of the blocks 1.. (G 54) and their edge zones (B 522), checked
     int GNXV = 0, GNYV = 0;             // extent of the level-0 index space with the blocks

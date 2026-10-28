@@ -57,6 +57,7 @@ void control::ini_default()
     A227=0.55;   // double SFLOW semi-implicit: implicitness theta of the free surface
     A228=0.0;    // double SFLOW semi-implicit: maximum time step (s), 0 no cap
     A229=1;      // int SFLOW semi-implicit: wetting and drying iteration (Casulli 2009), 0 off
+    A232=0.05;   // double SFLOW semi-implicit: depth below which the cell velocities of the momentum predictor are desingularised
     A231=0.0;    // double SFLOW semi-implicit: mass flux dissipation for transcritical flow, 0 off
     A251=0;    // double fsf-slope in x-dir
     A260=0;      // int turbulence model
@@ -117,8 +118,8 @@ void control::ini_default()
     A362=2;      // int breaking filter inner iter
     A365=1.86;   // double viscosity breaking wave
     A366=1.0;   // double viscosity breaking wave alpha_eta
-    A359=0.85;   // double breaking A350 4: onset threshold of B = u_s/C at the crest
-    A360=8.0;    // double breaking A350 4: termination when the largest front-face slope is below this angle (deg)
+    A359=0.85;   // double breaking A350 4 (FNPF), A550 4 (NHFLOW): onset threshold of B = u_s/C at the crest
+    A360=8.0;    // double breaking A350 4, A550 4: termination when the largest front-face slope is below this angle (deg)
     A364=1.0;    // double breaking A350 4: coefficient of the bore (hydraulic jump) dissipation g C H^3/(4 h_c)
     A367=1;      // int breaking A350 4: deep-water breaking strength b(Gamma) of Derakhti et al. (2018): 1 on, 0 off
     
@@ -206,12 +207,37 @@ void control::ini_default()
     A540=1;      // int NFHLOW wetdry scheme
     A544=0.001;  // double wetting & drying criterion
     A545=10.0;   // double deep criterion
+    A547_c=0.0;  // double NHFLOW semi-implicit (A 547 c nu0): algebraic eddy viscosity, nu_t = c kappa u* z (1 - z/h) + nu0 with u* from the log law of the bed layer (A 519 1); vertical in the column operator, horizontal in the predictor; 0 off (A 560 > 0: the turbulence model instead)
+    A547_nu0=0.0;// double NHFLOW semi-implicit: A 547 c nu0, background eddy viscosity (m2/s)
+    A600=0;      // int NHFLOW semi-implicit (A 534 1): tracers, 0 off, 1 salinity, 2 salinity and temperature (nhflow_tracer_SI)
+    A601_s=0.0;  // double NHFLOW tracers: A 601 S T, initial salinity (psu) and temperature (deg C), uniform
+    A601_t=15.0; // double NHFLOW tracers: A 601 S T, initial temperature
+    A602=0;      // int NHFLOW tracers: A 602 x1 y1 S1 x2 y2 S2 given, initial salinity linear between two points (constant beyond them)
+    A602_x1=A602_y1=A602_c1=A602_x2=A602_y2=A602_c2=0.0;
+    A603=0;      // int NHFLOW tracers: A 603 x1 y1 T1 x2 y2 T2 given, initial temperature linear between two points
+    A603_x1=A603_y1=A603_c1=A603_x2=A603_y2=A603_c2=0.0;
+    A604=0.0;    // double NHFLOW tracers: horizontal diffusivity along the sigma layers (m2/s), explicit
+    A605_sig=0.7;// double NHFLOW tracers: A 605 sigma_t K0, vertical diffusivity K_v = EV/sigma_t + K0 (turbulent Schmidt/Prandtl number)
+    A605_k0=0.0; // double NHFLOW tracers: A 605 sigma_t K0, background vertical diffusivity (m2/s)
+    A606_s=0.0;  // double NHFLOW tracers: A 606 S T, inflow values of the discharge boundaries (rivers: B 60, G 54)
+    A606_t=15.0; // double NHFLOW tracers: A 606 S T, inflow temperature of the discharge boundaries
+    A607_s=35.0; // double NHFLOW tracers: A 607 S T, inflow values of the water level and radiating boundaries (sea)
+    A607_t=15.0; // double NHFLOW tracers: A 607 S T, inflow temperature of the sea boundaries
+    A608=0.0;    // double NHFLOW tracers: Thatcher-Harleman return time of the sea boundaries (s), 0 the sea value at once
+    A609=2;      // int NHFLOW tracers: horizontal advection, 1 first-order upwind, 2 TVD van Leer, 3 TVD monotonised central
+    A610=4;      // int NHFLOW tracers: largest number of substeps of a time step (cells beyond it: first-order outflow of the mixed content)
+    A548=0;      // int NHFLOW semi-implicit: still water depth of a face between two wet cells, 0 the mean of the two cells, 1 the smaller one (the higher bed, Stelling and Duinmeijer 2003), 2 the smaller one only where one of the cells holds less than 10 A 544 (shoreline films: no flip-flop over bed steps, the conveyance of the channels kept)
+    A546=0.05;   // double NHFLOW semi-implicit: depth below which the cell velocities of the momentum predictor are desingularised
     
-    A550=0;      // int turn on breaking (which method)
+    A501=0.15;   // double breaking eddy viscosity (A 550 3): end of breaking, deta/dt > A 501 sqrt(g h) (Kennedy et al. 2000: 0.08-0.15)
+    A502=0.5;    // double breaking eddy viscosity (A 550 3): spread over a band of A 502 h around the breaking columns (the crest behind the front)
+    A503=5.0;    // double breaking eddy viscosity (A 550 3): transition time T* = A 503 sqrt(h/g) (Kennedy et al. 2000: 5)
+    A504=1.2;    // double breaking eddy viscosity (A 550 3): mixing length coefficient delta_b (Kennedy et al. 2000: 1.2)
+    A550=0;      // int turn on breaking (1 breaking viscosity A 557, 3 eddy viscosity of Kennedy et al. 2000, 4 as 3 with the deep-water form and the onsets of the crest tracking B = u_s/C of Barthelemy et al. 2018, A 359, A 360)
     A551=3;      // int type of breaking detection (deep / shallow)
     A552=0;      // int additional filtering to viscosity based breaking
 
-    A554=0.6;    // double breaking parameter alpha
+    A554=0.6;    // double breaking parameter alpha (A 550 3: start of breaking, deta/dt > A 554 sqrt(g h); Kennedy et al. 2000: 0.35-0.65)
     A555=1.25;   // double breaking parameter slope alpha
     A557=1.86;   // double viscosity breaking wave
     
@@ -286,7 +312,9 @@ void control::ini_default()
     A720=0;           // int prescribed current (stand-alone runs): 0 none, 1 U linear in x (A 721)
     A721_us=A721_ue=0.0; // double U at xs and at xe [m/s]
     A721_xs=A721_xe=0.0; // double xs, xe [m]
-    A730=0;           // int wind: 0 none, 1 uniform (A 731), 2 field in space and time from seastate-wind.dat
+    A728=4;           // int drag law of the wind input with A 729 2, numbered as W 207: 1 Garratt, 2 Wu, 3 Smith-Banke, 4 Zijlema et al. (2012), 5 Garratt capped at W 213, 6 Zijlema with the floor W 214
+    A729=0;           // int drag of the wind input: 0 Wu (1982), 1 the met drag law W 207 (W 213, W 214), 2 its own law A 728
+    A730=0;           // int wind: 0 none, 1 uniform (A 731), 2 the met forcing W 200 (uniform, met-forcing.r3m, vortex, blend)
     A731_u10=0.0;     // double wind speed U10 [m/s]
     A731_dir=0.0;     // double wind direction [deg], direction the wind blows to, ccw from +x
     A732=0;           // int deep-water physics: 0 off, 1 Komen (wind input with wind, whitecapping, quadruplets A 733), 2 van der Westhuysen (Yan wind input, saturation-based whitecapping)
@@ -319,6 +347,8 @@ void control::ini_default()
     A772=3600.0;      // double surfbeat: record length of the boundary time series [s] (repeats afterwards)
     A773=1;           // int surfbeat: seed of the random phases and directions
     A774=1;           // int surfbeat: long waves at the offshore boundary of the host: 0 absorbing only, 1 bound long wave in, absorbing out
+    A785=0;           // int nesting output: 0 off, 1 2D spectra at the points of seastate-spcout.dat into REEF3D_SEASTATE_SPC/seastate-spcout.spc (SWAN, the boundary file of a nested run, A 711 3)
+    A786=3600.0;      // double nesting output: time between the records [s], 0 every step
     A780=0.0;         // double model start date-time YYYYMMDD.HHMMSS of the forcing files (A 711 3, A 730 2), 0: first time in the files
     A790=0;           // int bathymetry raster seastate-bathy.dat (stand-alone): 0 off (bed of the 2D grid, patches interpolated), 1 bed of all grids from the raster
     A791=0.0;         // double mesh refinement (G 1): refine where the water depth is below this value [m], 0 off
@@ -529,6 +559,7 @@ void control::ini_default()
     B202=0;             // int number of porous layers (NHFLOW), counted from the structure surface inwards
     B203=1;             // int VRANS surface: 1 faces resting on the bed do not define the porous interface / layer depth, 0 all faces
     B204=1;             // int NHFLOW VRANS drag: 0 explicit, 1 point-implicit with the stage update
+    B205=1;             // int NHFLOW VRANS projections per stage (pressure passes, as for membranes)
     B210=0;      // int solid box
     B212=0;      // int solid cylinder y
     B213=0;      // int solid cylinder z
@@ -747,8 +778,13 @@ void control::ini_default()
     G30=0;      // int NHFLOW and FNPF mesh refinement: 1 patches may cover dry and shallow cells (wetting and drying in the patches; FNPF: the static coastline A 343 1 or the moving one A 343 2, 3), 0 they keep 4 level-0 cells away
     G31=1;      // int NHFLOW mesh refinement with A 512 2: 1 one implicit diffusion solve over the leaf cells of all grids (composite), 0 every grid solves its own
     G52=0;      // int curvilinear NHFLOW (G 50): 1 the i-walls are slip walls as the j-walls (normal velocity mirrored, the pressure correction Neumann), so that a wall acts the same in any index direction (set on multi-block grids); 0 the Cartesian x-walls
-    G54=0;      // int multi-block grid (G 50 1): number of open boundaries on the blocks 1.. (G 54 b t v: block b, t 1: discharge v in through its -i face, t 2: water level v at its +i face, t 3: discharge time series discharge-<v>.dat through the -i face, t 4: water level time series waterlevel-<v>.dat at the +i face)
+    G54=0;      // int multi-block grid (G 50 1): number of open boundaries on the blocks 1.. (G 54 b t v: block b, t 1: discharge v in through its -i face, t 2: water level v at its +i face, t 3: discharge time series discharge-<v>.dat through the -i face, t 4: water level time series waterlevel-<v>.dat at the +i face; t 5-8 the same through the -j / at the +j face, t 9-12 through the +i / at the -i face, t 13-16 through the +j / at the -j face: the block is turned so that these faces are its -i and +i face, geo_mesh::turn_blocks)
     G55=0;      // int multi-block grid (G 50 1): 0 the blocks 1.. of DIVEMesh as they are, m > 0 cut into pieces of at most (cells of the blocks 1..) / (m ranks) cells, so that they spread over the ranks (geo_mesh_split.cpp)
+    G57=0;      // int NHFLOW semi-implicit multi-block grid: coarse space across the grids in the preconditioner of the eta solve, aggregates of G 57 x G 57 columns (two-level: the coarse correction, then the V-cycle of every grid on the remaining residual); 0 off
+    G58=0;      // int multi-block grid (G 55): 1 the blocks without open faces cut into tiles in both index directions (the cuts of all tiles aligned), 0 strips along one direction
+    G56=0;      // int multi-block grid (G 50 1): G 56 a dz places the blocks on the ranks and cuts them (G 55) by their load: a wet cell 1, a cell whose bed lies above the still water level (F 60, else F 62 with F 65) + dz the load a (Tagus, SI: a = 0.66 measured); the placement is improved by moves and swaps of blocks between the ranks; 0: by the number of cells, largest block first
+    G56_a=1.0;  // double multi-block grid: G 56 a dz, a
+    G56_z=0.0;  // double multi-block grid: G 56 a dz, dz (m)
     G53=4;      // int NHFLOW multi-block grid: coarse space across the blocks in the preconditioner of the composite solves, aggregates of this many columns in i and j (0: off)
     G51=2;      // int NHFLOW multi-block grid (G 50 1, DIVEMesh R 20 1): passes of the block-local V-cycles in the preconditioner of the pressure, the corrections of the neighbour blocks filled in between
     G50=0;      // int curvilinear horizontal grid (SFLOW): 0 Cartesian, 1 nodes of the CURV section of grid-geometry.dat, 2 nodes of curvgrid.dat
@@ -812,6 +848,11 @@ void control::ini_default()
 	I13=0;          // int initialize turbulence
 	I21=0;          // int set phase 2 velocities to zero after potential flow solver
 	I30=0;			// int Fully intialize NWT
+    I31=-1.0;       // double I 30 2: exposure mask smoothing length (< 0: automatic, 1 peak wave length)
+    I32=32;         // int I 30 2: number of direction bins of the exposure masks
+    I33=-1.0;       // double I 30 2: cell size of the coarse exposure mask grid (< 0: automatic)
+    I35=15.0;       // double I 30 2: angular blur of the exposure masks across directions [deg] (0: off)
+    I34=0.159155;   // double I 30 2: diffraction spreading coefficient, variance = I34*Lp*distance (1/(2 pi); 0: off)
 	I40=0;			// int ini from state file
 	I41=0;			// int ID of state file
     I44=0;          // int FNPF state with Fi
@@ -827,6 +868,12 @@ void control::ini_default()
     I232=0.0;       // double starting y for flowfile
     I233=0.0;       // double starting z for flowfile
     I241=0.0;       // double delta t for flowfile
+    I242=3;         // int FNPF coupling (B 92 62): time interpolation, 1 linear, 3 cubic
+    I243=0;         // int FNPF coupling (B 92 62): the 6DOF bodies of the receiver drive the FNPF bodies (two-way, bodies)
+    I244=0;         // int FNPF coupling (B 92 62): overlap box xs xe ys ye of the receiver, FNPF relaxed towards CFD there (two-way)
+    I244_xs=I244_xe=I244_ys=I244_ye=0.0;
+    I246=-1;        // int FNPF coupling (B 92 62): app number of the FNPF source (chains), -1: the lowest FNPF app that is no receiver
+    I245=0.0;       // double FNPF coupling (B 92 62): ramp width of the I 244 box [m] (0: 1/4 of the smaller box side)
 
     // Numerics
 	N10=1;			// int linear poisson solver: 1 REEFMG; hypre (10-39) only in builds with make HYPRE=1
@@ -931,6 +978,10 @@ void control::ini_default()
 	P101=0;			  // int print sloshing forces
     P110=0;           // int print significant wave height
     P111=0.0;         // double start averging after transients
+    P112=0;           // int SFLOW maxima of the run (REEF3D_SFLOW_MAX)
+    P113=0.0;         // double SFLOW maxima: start time (after the spin-up)
+    P114=0.05;        // double SFLOW maxima: flooding depth
+    P115=0;           // int SFLOW maxima at points
 	P121=0;             // int bed level gages
 	P122=0;             // int max bed level gages
 	P123=0;             // int topoline in x-direction
@@ -953,6 +1004,8 @@ void control::ini_default()
     P160=0;            // int NHFLOW long-run statistics (P 160 t0 dt_out): harmonic analysis and time averages
     P160_ts=0.0;
     P160_dt=0.0;
+    P162=0;            // int NHFLOW long-run statistics: P 162 year month day hour minute, the start of the run (UTC): nodal corrections (f, u at the middle of the record) and Greenwich phases (V0 at the start) of the constituents
+    P162_y=2000; P162_mo=1; P162_d=1; P162_h=0; P162_mi=0;
     P161=1.0;          // double NHFLOW long-run statistics: Rayleigh criterion of the constituents
     P166=0;			  // int print discharge to terminal
 	P167=0;			  // int discharge gages in x-direction
@@ -1123,6 +1176,7 @@ void control::ini_default()
     S72=1.0e20;          // int x end of erosion
     S73=0;       // double distance for use relaxation method for the sediment bed
     S74=0;           // int no erosion zone
+    S76=0;           // int fixed-bed zones (S 76 xs xe ys ye): the bed held, the cells carry their bed load (supply of a reach)
     S75=0;       // double distance for use relaxation method for the sediment bed
     S77=0;          // int active sediment domain in x-direction
     S77_xs=-1.0e20; // double active sediment domain x_start
@@ -1258,7 +1312,7 @@ void control::ini_default()
     W110=1;          // int add rheology as source term or viscosity
     W111=1;          // int which pressure for MC
     W112=2.1;        // double threshold factor for pressure blening in W111 3
-    W200=0;          // int atmospheric forcing (SFLOW, NHFLOW): 0 off, 1 uniform (W 201, W 202), 2 met file met-forcing.r3m
+    W200=0;          // int atmospheric forcing (SFLOW, NHFLOW): 0 off, 1 uniform (W 201, W 202), 2 met file met-forcing.r3m, 3 vortex, 4 blend
     W201_u=0.0;      // double uniform wind speed U10 [m/s]
     W201_dir=0.0;    // double uniform wind direction [deg], counter-clockwise from the x axis, the direction the wind blows to
     W202=101325.0;   // double uniform air pressure [Pa]
@@ -1267,7 +1321,7 @@ void control::ini_default()
     W205=0;          // int geographic frame given (W 205 lon0 lat0 rot)
     W205_lon=W205_lat=W205_rot=0.0;  // double frame: transverse Mercator about lon0, lat0 [deg], x axis rot [deg] from east
     W206_x=W206_y=0.0;  // double model coordinates of (lon0, lat0) [m]
-    W207=0;          // int drag law of the met forcing: 0 auto (1 for W 200 1/2, 5 for the vortex W 200 3), 1 Garratt, 2 Wu, 3 Smith and Banke, 4 Zijlema et al., 5 Garratt capped at W 213, 6 Zijlema et al. with the floor W 214
+    W207=0;          // int drag law of the met forcing: 0 auto (1 for W 200 1/2, 5 for the vortex W 200 3), 1 Garratt, 2 Wu, 3 Smith and Banke, 4 Zijlema et al., 5 Garratt capped at W 213, 6 Zijlema et al. with the floor W 214, 7 wave-dependent (Taylor and Yelland 2001, SEASTATE coupling A 750)
     W208=1;          // int air pressure gradient of the met forcing: 0 off, 1 on
     W209=101325.0;   // double reference air pressure of the inverse barometer [Pa]
     W210=1;          // int inverse barometer on the open edges and relaxation zones (B 520): 0 off, 1 on
@@ -1280,6 +1334,20 @@ void control::ini_default()
     W217=0.8928;     // double vortex: 1-min to 10-min wind averaging factor
     W218=1;          // int vortex: inflow angle, 0 none, 1 ADCIRC (10 deg inside Rmax to 25 deg beyond 1.2 Rmax)
     W219=1;          // int vortex: translation, 0 none, 1 scaled by Vg/Vmax (ADCIRC), 2 full
+    W220_n=0;        // int blend W 200 4: nest layer met-nest.r3m, 0 off, 1 on
+    W220_v=1;        // int blend W 200 4: vortex layer met-vortex.trk, 0 off, 1 on
+    W221_w=50000.0;  // double blend: taper width at the edges of the nest [m]
+    W221_t=3600.0;   // double blend: taper after the first and before the last nest record [s]
+    W222=1;          // int blend: basis of the vortex radii, 1 rmw of the track, 2 mean 34 kt radius, 3 metres
+    W222_r1=3.0;     // double blend: pure vortex inside r1
+    W222_r2=6.0;     // double blend: pure background beyond r2
+    W223=1;          // int blend: vortex pressure, 0 as fitted, 1 deficit rescaled to the background on the ring r2
+    W224=21600.0;    // double blend: taper of the vortex after the first and before the last track record [s]
+    W225=1;          // int blend: taper, 1 cosine, 2 linear (ADCIRC NWS 29/30)
+    W226=0;          // int blend: environment, 1 the background minus the vortex on the ring r2 (mean wind, pressure gradient) added to the vortex
+    W227=0;          // int blend: nest in time, 0 linear at fixed points, 1 storm-relative (records shifted with the track centre)
+    W228=3.5e-3;     // double cap of the drag coefficient of the wave-dependent law W 207 7
+    W229=1;          // int floor of the roughness of W 207 7: 0 none (Taylor and Yelland alone), 1 Charnock (0.011 u*^2/g)
     W_fb=0.0;        // double density of floating body
 
 	// 6DOF
@@ -1328,7 +1396,7 @@ void control::ini_default()
 	X44=0.0;    // double viscosity in body
     X45=0;      // int type of lsm convection disc at fb
     X46=0;      // int 
-    X48=0;      // int solid forcing level set
+    X48=2;      // int solid forcing level set: 1 copied into the flagged solids (G 505 1), 2 extrapolated into the solids of the direct forcing
     X49=0;
     X50=1;      // int type of print out format for 6DOF structure
     X60=1;      // int type of print of force calculation

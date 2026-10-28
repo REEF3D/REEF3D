@@ -1,0 +1,20 @@
+{
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 100,
+ "files": [
+  "blocks.dat"
+ ],
+ "tags": [
+  "3d",
+  "nhflow",
+  "curvilinear",
+  "multiblock",
+  "turbulence",
+  "river"
+ ],
+ "description": "nhflow_3d_mb_komega_j_faces_g55_mpi2 with k-epsilon on one rank, whole blocks; the faces on -i / +i to 3e-14 m (Dropbox Tagus_NHFLOW_multiblock/validation/10_block_turbulence).",
+ "covers": [
+  "nhflow_kepsilon_IM1 on the turned blocks"
+ ]
+}

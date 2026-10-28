@@ -56,7 +56,7 @@ mooring_qs::mooring_qs(const model &m, const mooring_end &a, const mooring_end &
     sa_ = m.body(a.body).to_body(a.p);
     sb_ = m.body(b.body).to_body(b.p);
     cl_.L = p.L;
-    cl_.EA = p.EA;
+    cl_.EA = p.EA_secant();
     cl_.CB = p.CB;
     cl_.w = (p.mass - p.rho*0.25*M_PI*p.d*p.d)*gmag(m);
     if(cl_.w <= 0.0)
@@ -275,18 +275,20 @@ void mooring_system::line_accel(const line_t &L, const state &s, double t, std::
         {
             const Vec3 e = d/Ls;
             const double sr = (V(j+1) - V(j)).dot(e)/l_;
-            Tj = p.BA_slack ? (p.EA*(Ls/l_ - 1.0) + p.BA*sr)/Ls : std::max(0.0, p.EA*(Ls/l_ - 1.0) + p.BA*sr)/Ls;
+            const double Te = p.elastic(Ls/l_ - 1.0);
+            Tj = p.BA_slack ? (Te + p.BA*sr)/Ls : std::max(0.0, Te + p.BA*sr)/Ls;
         }
         else if(creg_ > 0.0 && Ls > 0.0)
-            Tj = creg_*p.EA*(Ls/l_ - 1.0)/Ls;      // static solve only: a compressed segment pushes a little
+            Tj = creg_*p.EA_secant()*(Ls/l_ - 1.0)/Ls;      // static solve only: a compressed segment pushes a little
         else if(p.BA_slack && Ls > 0.0)
             Tj = p.BA*(V(j+1) - V(j)).dot(d)/(Ls*Ls*l_);
         T_[j] = Tj*d;
     }
     // external forces on a node of length ll (weight, hydrodynamics, seabed); q tangent; added mass
-    // alpha (normal) and beta (tangential)
+    // alpha (normal) and beta (tangential); side: where the node's piece of line lies along q (0: centred on an
+    // inner node, +1: from the node along q (end a), -1: against q (end b))
     const bool fric = p.mu > 0.0 || p.mu_axial > 0.0;
-    auto external = [&](int node, const Vec3 &x, const Vec3 &vx, const Vec3 &q, double ll, double &an, double &at)
+    auto external = [&](int node, const Vec3 &x, const Vec3 &vx, const Vec3 &q, double ll, double side, double &an, double &at)
     {
         Vec3 F = p.mass*ll*g;
         an = at = 0.0;
@@ -294,13 +296,15 @@ void mooring_system::line_accel(const line_t &L, const state &s, double t, std::
         Vec3 u, aw;
         water(o + node, x, t, eta, u, aw);
         // submerged fraction of the node's piece of line: linear over its vertical extent (at least d), so
-        // a node crossing the free surface takes its buoyancy, drag and added mass gradually
+        // a node crossing the free surface takes its buoyancy, drag and added mass gradually; the piece of an end
+        // node reaches from the node into the line
         const double hz = std::max(p.d, std::fabs(q(2))*ll);
-        const double fs = std::clamp((eta - x(2))/hz + 0.5, 0.0, 1.0);
+        const double zc = x(2) + 0.5*side*ll*q(2);
+        const double fs = std::clamp((eta - zc)/hz + 0.5, 0.0, 1.0);
         if(fs > 0.0)
         {
             F -= fs*p.rho*A*ll*g;
-            const Vec3 uw = current_ + u;
+            const Vec3 uw = current_at(x(2)) + u;
             const Vec3 vr = uw - vx;
             const double vq = vr.dot(q);
             const Vec3 vrt = vq*q, vrn = vr - vrt;
@@ -392,7 +396,7 @@ void mooring_system::line_accel(const line_t &L, const state &s, double t, std::
         Vec3 q = R(i+1) - R(i-1);
         const double qn = q.norm();
         q = qn > 0.0 ? Vec3(q/qn) : Vec3::UnitZ();
-        Vec3 F = T_[i] - T_[i-1] + external(i, R(i), V(i), q, l_, an, at) - extra*mi*V(i);
+        Vec3 F = T_[i] - T_[i-1] + external(i, R(i), V(i), q, l_, 0.0, an, at) - extra*mi*V(i);
         if(bend)
             F += L.B[i];
         // (m I + an (I - q q^T) + at q q^T)^-1 F
@@ -406,9 +410,9 @@ void mooring_system::line_accel(const line_t &L, const state &s, double t, std::
     qa = qa.norm() > 0.0 ? Vec3(qa/qa.norm()) : Vec3::UnitZ();
     qb = qb.norm() > 0.0 ? Vec3(qb/qb.norm()) : Vec3::UnitZ();
     const double me = 0.5*mi;
-    L.F[0] = T_[0] + external(0, R(0), V(0), qa, 0.5*l_, an, at);
+    L.F[0] = T_[0] + external(0, R(0), V(0), qa, 0.5*l_, 1.0, an, at);
     L.M[0] = me*Mat3::Identity() + an*(Mat3::Identity() - qa*qa.transpose()) + at*qa*qa.transpose();
-    L.F[1] = -T_[N-1] + external(N, R(N), V(N), qb, 0.5*l_, an, at);
+    L.F[1] = -T_[N-1] + external(N, R(N), V(N), qb, 0.5*l_, -1.0, an, at);
     L.M[1] = me*Mat3::Identity() + an*(Mat3::Identity() - qb*qb.transpose()) + at*qb*qb.transpose();
     if(bend)
     {
@@ -441,7 +445,7 @@ void mooring_system::accel(const state &s, double t, std::vector<Vec3> &a, doubl
         Mat3 M = (p.mass + fs*rho*p.volume*p.Ca)*Mat3::Identity();
         if(fs > 0.0)
         {
-            const Vec3 vr = current_ + u - vx;
+            const Vec3 vr = current_at(x(2)) + u - vx;
             F += fs*0.5*rho*p.CdA*vr.norm()*vr;
             if(kmode_==1 || kmode_==2)
                 F += fs*rho*p.volume*(1.0 + p.Ca)*aw;

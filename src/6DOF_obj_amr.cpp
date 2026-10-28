@@ -36,6 +36,7 @@ void sixdof_obj::amr_save()
     ext_on_amr_ = ext_on_;
     ext_v_amr_ = ext_v_;
     ext_w_amr_ = ext_w_;
+    am_prev_amr_ = am_prev_;
 }
 
 void sixdof_obj::pose_update(lexer *p, ghostcell *pgc)
@@ -52,6 +53,7 @@ void sixdof_obj::amr_restore(lexer *p, ghostcell *pgc)
     ext_on_ = ext_on_amr_;
     ext_v_ = ext_v_amr_;
     ext_w_ = ext_w_amr_;
+    am_prev_ = am_prev_amr_;
     geom.transform(R_,c_);
     update_fbvel(p,pgc);
 }

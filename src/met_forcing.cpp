@@ -44,16 +44,32 @@ met_forcing::met_forcing(lexer *p, ghostcell *pgc) : U10(p), V10(p), Pa(p), Tx(p
     // box of the cell centres of the grid incl. its ghost cells: the part of the met file the rank reads
     double xs = 1.0e300, xe = -1.0e300, ys = 1.0e300, ye = -1.0e300;
 
-        IMALOOP
+        // curvilinear grid (G 50): the physical cell centres
+        if(p->geo_curv==1)
         {
-        xs = std::min(xs,p->XP[IP]);
-        xe = std::max(xe,p->XP[IP]);
+            IMALOOP
+            JMALOOP
+            {
+            xs = std::min(xs,p->XC2D[IJ]);
+            xe = std::max(xe,p->XC2D[IJ]);
+            ys = std::min(ys,p->YC2D[IJ]);
+            ye = std::max(ye,p->YC2D[IJ]);
+            }
         }
 
-        JMALOOP
+        else
         {
-        ys = std::min(ys,p->YP[JP]);
-        ye = std::max(ye,p->YP[JP]);
+            IMALOOP
+            {
+            xs = std::min(xs,p->XP[IP]);
+            xe = std::max(xe,p->XP[IP]);
+            }
+
+            JMALOOP
+            {
+            ys = std::min(ys,p->YP[JP]);
+            ye = std::max(ye,p->YP[JP]);
+            }
         }
 
     pm->window(xs,xe,ys,ye);
@@ -80,6 +96,10 @@ met_forcing::met_forcing(lexer *p, ghostcell *pgc) : U10(p), V10(p), Pa(p), Tx(p
             if(p->W211==2)
             {
             double lon, lat;
+            // curvilinear grid (G 50): the physical cell centre (XP, YP are the logical coordinates there)
+            if(p->geo_curv==1)
+            fr.to_geo(p->XC2D[IJ],p->YC2D[IJ],lon,lat);
+            else
             fr.to_geo(p->XP[IP],p->YP[JP],lon,lat);
             Fc(i,j) = 2.0*Omega*std::sin(lat*rad);
             }
@@ -102,6 +122,9 @@ void met_forcing::update(lexer *p, ghostcell *pgc)
     IMALOOP
     JMALOOP
     {
+    if(p->geo_curv==1)
+    pm->at(p->XC2D[IJ],p->YC2D[IJ],u,v,pa);
+    else
     pm->at(p->XP[IP],p->YP[JP],u,v,pa);
 
     speed = std::sqrt(u*u + v*v);
@@ -110,8 +133,18 @@ void met_forcing::update(lexer *p, ghostcell *pgc)
     V10(i,j) = v;
     Pa(i,j)  = pa;
 
-    Tx(i,j) = ra*met_drag(law,speed,p->W213,p->W214)*speed*u;
-    Ty(i,j) = ra*met_drag(law,speed,p->W213,p->W214)*speed*v;
+    double Cd;
+
+        if(law==7 && z0w!=nullptr)
+        {
+        const double z = (*z0w)(i,j);
+        Cd = z<0.0 ? met_drag(5,speed,p->W213) : met_drag_z0(p->W229==1 ? std::max(z,charnock(speed)) : z,p->W228);
+        }
+        else
+        Cd = met_drag(law,speed,p->W213,p->W214);
+
+    Tx(i,j) = ra*Cd*speed*u;
+    Ty(i,j) = ra*Cd*speed*v;
     }
 
     // kinematic air pressure gradient, central differences (the ghost cells hold the source's values)
@@ -121,13 +154,63 @@ void met_forcing::update(lexer *p, ghostcell *pgc)
 
         SLICELOOP4
         {
-        Gx(i,j) = rp*(Pa(i+1,j) - Pa(i-1,j))/(p->DXP[IP] + p->DXP[IM1]);
-        Gy(i,j) = p->j_dir==1 ? rp*(Pa(i,j+1) - Pa(i,j-1))/(p->DYP[JP] + p->DYP[JM1]) : 0.0;
+            // curvilinear grid: the physical gradient from the four neighbours (chain rule on the cell centres)
+            if(p->geo_curv==1)
+            {
+            double gx, gy;
+            p->geo_grad(i,j,Pa(i+1,j),Pa(i-1,j),Pa(i,j+1),Pa(i,j-1),gx,gy);
+            Gx(i,j) = rp*gx;
+            Gy(i,j) = p->j_dir==1 ? rp*gy : 0.0;
+            }
+
+            else
+            {
+            Gx(i,j) = rp*(Pa(i+1,j) - Pa(i-1,j))/(p->DXP[IP] + p->DXP[IM1]);
+            Gy(i,j) = p->j_dir==1 ? rp*(Pa(i,j+1) - Pa(i,j-1))/(p->DYP[JP] + p->DYP[JM1]) : 0.0;
+            }
         }
     }
 
     tlast = p->simtime;
     has_t = true;
+}
+
+void met_forcing::waves(lexer *p, slice *Hs, slice *Tp, slice *WL)
+{
+    wHs = Hs;
+    wTp = Tp;
+    wWL = WL;
+
+    if(z0w==nullptr)
+    z0w = new slice4(p);
+
+    // the Charnock roughness up to 150 m/s (linear between the entries: relative error below 1e-5)
+    if(z0c.empty())
+    for(int n=0; n<=3000; ++n)
+    z0c.push_back(met_z0_charnock(n*dz0c));
+
+    waves_update(p);
+}
+
+void met_forcing::waves_update(lexer *p)
+{
+    if(z0w==nullptr)
+    return;
+
+    IMALOOP
+    JMALOOP
+    (*z0w)(i,j) = met_z0_waves((*wHs)(i,j),(*wTp)(i,j),(*wWL)(i,j));
+
+    has_t = false;
+}
+
+double met_forcing::charnock(double U) const
+{
+    const double x = U/dz0c;
+    const int n = std::min(int(x),int(z0c.size())-2);
+    const double w = std::min(x-n,1.0);
+
+    return (1.0-w)*z0c[n] + w*z0c[n+1];
 }
 
 void met_forcing::source_sflow(lexer *p, ghostcell *pgc, slice &F, int dir, slice &WL, slice &UH, slice &VH)

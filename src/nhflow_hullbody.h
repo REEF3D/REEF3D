@@ -26,6 +26,7 @@ Architect: Hans Bihs
 #include"increment.h"
 #include<vector>
 #include<fstream>
+#include<functional>
 
 class lexer;
 class fdm_nhf;
@@ -55,7 +56,20 @@ public:
 
     void stage(lexer*, fdm_nhf*, ghostcell*, double, double*, double*, double*, slice&);
     void forces(lexer*, fdm_nhf*, ghostcell*, slice&, bool);
-    void print(lexer*, fdm_nhf*, ghostcell*);
+    void print(lexer*, fdm_nhf*, ghostcell*, const double* = nullptr);
+    
+    // mesh refinement (nhflow_amr): every grid holds its own hull (the patches: amr_patch, no start message); the
+    // loads are summed over the leaf part of the grids (loads, keep: the finest grid at the face centre) and then
+    // given to the body by the hull of level 0 (finish_loads)
+    void loads(lexer*, fdm_nhf*, slice&, const std::function<bool(double,double)>*, double*, double*);
+    void finish_loads(lexer*, fdm_nhf*, ghostcell*, const double*, bool, const double*);
+    nhflow_thinbody *thinbody() const { return tb; }
+    bool amr_patch = false;
+    // regrid: the state of column (ii,jj) from an old patch to a new one (the sides of the last stage with their
+    // hysteresis, the state of the thin body, the face corrections of the Rhie-Chow continuity flux)
+    int amr_nstate(lexer*) const;
+    void amr_get(lexer*, fdm_nhf*, int, int, double*);
+    void amr_set(lexer*, fdm_nhf*, int, int, const double*);
 
 private:
     void body_velocity(double, double, double, double&, double&, double&) const;

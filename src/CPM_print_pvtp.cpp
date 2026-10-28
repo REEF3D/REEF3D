@@ -42,8 +42,11 @@ void CPM::pvtp(lexer* p, int num)
     result<<"<PDataArray type=\"Float32\" Name=\"Test\"/>\n";
     result<<"<PDataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\"/>\n";
     result<<"<PDataArray type=\"Float32\" Name=\"radius\"/>\n";
+    if(p->Q78>0)
+    result<<"<PDataArray type=\"Float32\" Name=\"weight\"/>\n";
     result<<"<PDataArray type=\"Float32\" Name=\"fluid velocity\" NumberOfComponents=\"3\"/>\n";
     result<<"<PDataArray type=\"Float32\" Name=\"bedChange\"/>\n";
+    result<<"<PDataArray type=\"Int32\" Name=\"id\"/>\n";
     result<<"</PPointData>\n";
 
     vtp3D::pointsParallel(result);

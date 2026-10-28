@@ -28,6 +28,7 @@ Architect: Hans Bihs
 #include"increment.h"
 #include"slice4.h"
 #include"lexer.h"
+#include<functional>
 
 class lexer;
 class fdm_nhf;
@@ -183,6 +184,19 @@ public:
     double head(lexer*, fdm_nhf*, int, int, int);
     
     int nlower(lexer*, ghostcell*);
+    
+    // mesh refinement (nhflow_amr): the thin body of a patch (on one rank, no exchange of the node sides)
+    bool amr_patch = false;
+    // the state of column (ii,jj) a regrid hands from an old patch to a new one: the cell sides of the last stage
+    // (knoz values), the head below closed floors and the lid potential (2)
+    int amr_nstate(lexer *p) const { return p->knoz+2; }
+    void amr_get(lexer*, int, int, double*);
+    void amr_set(lexer*, int, int, const double*);
+    
+    // mesh refinement (nhflow_amr): lower cells and inner water volume of the cells whose centre passes keep(x,y)
+    // (the leaf part of a grid), this rank only: no collective
+    int nlower_local(lexer*, const std::function<bool(double,double)>&);
+    double inner_volume_local(lexer*, fdm_nhf*, const std::function<bool(double,double)>&);
     
     // water volume on the inner side of the body (region of the free surface of the column and lower cells), all ranks
     double inner_volume(lexer*, fdm_nhf*);

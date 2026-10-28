@@ -23,9 +23,11 @@ Author: Hans Bihs
 #include"sflow_momentum_SI.h"
 #include"si_eta2D.h"
 #include"bc_zone.h"
+#include"geo_mesh.h"
 #include"lexer.h"
 #include"fdm2D.h"
 #include"met_forcing.h"
+#include"seastate_sflow.h"
 #include"ghostcell.h"
 #include"ioflow.h"
 #include"reefckpt.h"
@@ -45,7 +47,7 @@ sflow_momentum_SI::sflow_momentum_SI(lexer *p, fdm2D *b, ghostcell *pgc, sflow_H
                                       qy(p),qyn(p),qyE(p),Hy(p),aly(p),ay(p),ky(p),gy0(p),
                                       fxU(p),fxV(p),fyU(p),fyV(p),
                                       eta0(p),WL0(p),UH0(p),VH0(p),UHa(p),VHa(p),UHb(p),VHb(p),UHp(p),VHp(p),
-                                      WHz(p),dUH(p),dVH(p),etaI(p),alc(p),rhs(p),rhsW(p),bdiag(p),
+                                      WHz(p),dUH(p),dVH(p),etaI(p),alc(p),rhs(p),rhsW(p),bdiag(p),wsrc(p),
                                       tU(p),tV(p),tUH(p),tVH(p),WLk(p),etaB(p)
 {
     check(p);
@@ -71,6 +73,8 @@ sflow_momentum_SI::sflow_momentum_SI(lexer *p, fdm2D *b, ghostcell *pgc, sflow_H
 
     if(p->A231>0.0)
     cout<<", mass flux dissipation "<<p->A231;
+
+    cout<<", thin-water velocities below "<<p->A232<<" m (A 232)";
 
     cout<<endl;
 
@@ -116,8 +120,10 @@ void sflow_momentum_SI::check(lexer *p)
     if(p->X10>0)
     msg("6DOF and direct forcing (X 10) are");
 
-    if(p->A750>0)
-    msg("SEASTATE coupling (A 750) is");
+    // SEASTATE coupling (A 750 1): the wave force in the predictor, the Stokes mass source (A 751 2) in the eta
+    // system; surfbeat (A 770 1) needs the host's step for the wave groups and the long-wave boundary
+    if(p->A750>0 && p->A770==1)
+    msg("SEASTATE surfbeat (A 770 1) is");
 
     if(stop==1)
     exit(1);
@@ -140,7 +146,10 @@ void sflow_momentum_SI::bc_method(lexer *p)
     if(p->B520_id[qn]==p->B521_id[k] && p->B520_method[qn]>=3 && p->B520_method[qn]<=6
        && bc_zone_set::zone_block(p,p->B520_id[qn])==p->amr_block)
     {
-        const int e = p->B521_edge[k];
+        // a zone of a block (B 522): its face after turning the block (geo_mesh::turn_blocks)
+        int e = p->B521_edge[k];
+        if(p->amr_block>0 && p->gridgeo!=nullptr && e>=1 && e<=4)
+        e = p->gridgeo->face_turned(p->amr_block,e-1) + 1;
 
         if(e<1 || e>4)
         continue;
@@ -608,13 +617,30 @@ void sflow_momentum_SI::rk_stage(lexer *p, fdm2D *b, ghostcell *pgc, slice &UHs,
 {
     const double alpha = 1.0-a;
 
-    // stage velocities on the depth of t^n
+    // stage velocities on the depth of t^n; below the depth A 232 desingularised (Kurganov and
+    // Petrova 2007): u = sqrt(2) h (uh)/sqrt(h^4 + max(h^4, h_v^4)), continuous at h_v, u -> 0 with h.
+    // A cell that is just wetting (h of a few mm) receives the momentum of its deep neighbours with
+    // the inflow, but its depth is that of t^n: (uh)/h gave hundreds of m/s within the stages, carried
+    // into the face predictor of the next faces (a blow-up of 57 m in the 1 km Michael hindcast)
+    const double hv4 = p->A232*p->A232*p->A232*p->A232;
+
     SLICELOOP4
     {
         if(p->wet[IJ]==1 && WL0(i,j)>p->A244)
         {
-        b->U(i,j) = UHs(i,j)/WL0(i,j);
-        b->V(i,j) = VHs(i,j)/WL0(i,j)*p->y_dir;
+            if(WL0(i,j)>=p->A232)
+            {
+            b->U(i,j) = UHs(i,j)/WL0(i,j);
+            b->V(i,j) = VHs(i,j)/WL0(i,j)*p->y_dir;
+            }
+
+            else
+            {
+            const double h = WL0(i,j);
+            const double r = sqrt(2.0)*h/sqrt(h*h*h*h + hv4);
+            b->U(i,j) = r*UHs(i,j);
+            b->V(i,j) = r*VHs(i,j)*p->y_dir;
+            }
         }
 
         else
@@ -657,6 +683,8 @@ void sflow_momentum_SI::rk_stage(lexer *p, fdm2D *b, ghostcell *pgc, slice &UHs,
     prheo->u_source(p,b,b->U,b->V,WL0);
     if(pmet!=nullptr)
     pmet->source_sflow(p,pgc,b->F,0,WL0,UHs,VHs);
+    if(b->wave!=nullptr)
+    b->wave->u_source(p,b);
     irhs(p,b);
 	pdiff->diff_u(p,b,pgc,psolv,UHDIFF,UHs,b->U,b->V,WL0,alpha);
 
@@ -665,6 +693,8 @@ void sflow_momentum_SI::rk_stage(lexer *p, fdm2D *b, ghostcell *pgc, slice &UHs,
     prheo->v_source(p,b,b->U,b->V,WL0);
     if(pmet!=nullptr)
     pmet->source_sflow(p,pgc,b->G,1,WL0,UHs,VHs);
+    if(b->wave!=nullptr)
+    b->wave->v_source(p,b);
     jrhs(p,b);
     }
     pdiff->diff_v(p,b,pgc,psolv,VHDIFF,VHs,b->U,b->V,WL0,alpha);
@@ -907,6 +937,21 @@ void sflow_momentum_SI::eta_solve(lexer *p, fdm2D *b, ghostcell *pgc)
     SLICELOOP4
     rhsW(i,j) = WL0(i,j) - dt*(theta*div(p,qxE,qyE) + (1.0-theta)*div(p,qxn,qyn));
 
+    // + dt K: the Stokes mass source of the SEASTATE vortex force (A 751 2), K = -div(M) of the wet cells, held
+    // over the step (also in eta_update)
+    mass_source = (b->wave!=nullptr && p->A751==2);
+
+    if(mass_source)
+    {
+        SLICELOOP4
+        wsrc(i,j) = 0.0;
+
+    b->wave->mass_source(p,b,wsrc);
+
+        SLICELOOP4
+        rhsW(i,j) += dt*wsrc(i,j);
+    }
+
     // initial guess eta^n; wet pattern: all wet (the linear system of P1), then the
     // Newton iteration on WL = max(eta + d, 0) (Casulli 2009), converging from above
     SLICELOOP4
@@ -963,7 +1008,12 @@ void sflow_momentum_SI::eta_update(lexer *p, fdm2D *b, ghostcell *pgc)
     // WL >= 0 up to round-off
     SLICELOOP4
     {
-    b->WL(i,j) = MAX(WL0(i,j) - p->dt*(theta*div(p,qx,qy) + (1.0-theta)*div(p,qxn,qyn)), 0.0);
+    double w = WL0(i,j) - p->dt*(theta*div(p,qx,qy) + (1.0-theta)*div(p,qxn,qyn));
+
+    if(mass_source)
+    w += p->dt*wsrc(i,j);
+
+    b->WL(i,j) = MAX(w, 0.0);
     b->eta(i,j) = b->WL(i,j) - b->depth(i,j);
     }
 
@@ -1021,16 +1071,23 @@ void sflow_momentum_SI::eta_update(lexer *p, fdm2D *b, ghostcell *pgc)
 
 void sflow_momentum_SI::cell_update(lexer *p, fdm2D *b, ghostcell *pgc)
 {
-    // cell momentum with the mean of the open face gradients of the cell
+    // cell momentum with the mean of the open face gradients of the cell. A face towards a cell
+    // that is dry at the end of the step (eta^{n+1} + d <= A 244) does not count, as in
+    // nhflow_momentum_SI: the eta of the Newton iteration is not a water level there, its row of the
+    // eta system holds only the coefficient of the thin face (H_f just above A 244), and it can lie
+    // metres below the bed; its gradient gave the wet neighbour a spurious jet of tens of m/s, the
+    // flicker of the gauges near shallow banks (1 km Michael hindcast, validation/09_michael)
     const double dt = p->dt;
     double we,ww,gn,gn1,wsum;
+
+    auto wn = [&](int a, int c) { return etaI(a,c) + b->depth(a,c) > p->A244; };
 
     SLICELOOP4
     {
         if(p->wet[IJ]==1)
         {
-        we = Hx(i,j)>0.0 ? 1.0 : 0.0;
-        ww = Hx(i-1,j)>0.0 ? 1.0 : 0.0;
+        we = (Hx(i,j)>0.0 && wn(i+1,j)) ? 1.0 : 0.0;
+        ww = (Hx(i-1,j)>0.0 && wn(i-1,j)) ? 1.0 : 0.0;
         wsum = MAX(we+ww,1.0);
 
         gn  = (ww*gx0(i-1,j) + we*gx0(i,j))/wsum;
@@ -1042,8 +1099,8 @@ void sflow_momentum_SI::cell_update(lexer *p, fdm2D *b, ghostcell *pgc)
 
             if(p->j_dir==1)
             {
-            we = Hy(i,j)>0.0 ? 1.0 : 0.0;
-            ww = Hy(i,j-1)>0.0 ? 1.0 : 0.0;
+            we = (Hy(i,j)>0.0 && wn(i,j+1)) ? 1.0 : 0.0;
+            ww = (Hy(i,j-1)>0.0 && wn(i,j-1)) ? 1.0 : 0.0;
             wsum = MAX(we+ww,1.0);
 
             gn  = (ww*gy0(i,j-1) + we*gy0(i,j))/wsum;

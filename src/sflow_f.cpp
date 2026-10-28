@@ -71,8 +71,8 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
 	// ini
 	ini(p,b,pgc);
 
-    // REEF3D::SEASTATE coupling (A 750 1)
-    if(p->A750==1)
+    // REEF3D::SEASTATE coupling (A 750 1 in-process, A 750 2 remote waves on their own grid)
+    if(p->A750==1 || p->A750==2)
     {
     b->wave = new seastate_sflow(p,b,pgc);
     b->wave->ini(p,b,pgc);
@@ -241,6 +241,9 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
     ckpt(p,b,pgc).step();
     
 	}
+
+	// the maxima of the run (P 112, P 115)
+	pprint->finish(p,b,pgc);
 
 	// a checkpoint at the end of the run (P 48): it can be continued with a later end (I 45 1)
 	ckpt(p,b,pgc).finish();

@@ -392,3 +392,74 @@ void met_file::at(double t, double x, double y, double &u, double &v, double &pa
     pa = pa + w*(pa1 - pa);
     }
 }
+
+void met_file::origin(double t, double &ox, double &oy) const
+{
+    ox = rec[0].xr0;
+    oy = rec[0].yr0;
+
+    const double w = weight(t);
+
+    if(w>0.0)
+    {
+    ox = ox + w*(rec[1].xr0 - ox);
+    oy = oy + w*(rec[1].yr0 - oy);
+    }
+}
+
+bool met_file::sample(int n, int var, double x, double y, double &val, std::string &error)
+{
+    if(var>=nvar)
+    {
+    val = 101325.0;
+    return true;
+    }
+
+    // nodes and weights as space(), clamped to the whole grid
+    int i = 0, j = 0;
+    double wx = 0.0, wy = 0.0;
+
+    if(nx>1)
+    {
+    double fx = (x - xr[n])/dx;
+    fx = std::min(std::max(fx,0.0),double(nx-1));
+    i = std::min(int(std::floor(fx)),nx-2);
+    wx = fx - double(i);
+    }
+
+    if(ny>1)
+    {
+    double fy = (y - yr[n])/dy;
+    fy = std::min(std::max(fy,0.0),double(ny-1));
+    j = std::min(int(std::floor(fy)),ny-2);
+    wy = fy - double(j);
+    }
+
+    const int ni = nx>1 ? 2 : 1;
+    float f[2][2] = {{0.0f,0.0f},{0.0f,0.0f}};
+
+    for(int b=0; b<(ny>1 ? 2 : 1); ++b)
+    {
+    in.seekg(offset(n) + record_head_bytes + 4LL*((long long)(var*ny + j + b)*nx + i));
+    in.read((char*)f[b],4LL*ni);
+    }
+
+    if(!in)
+    {
+    error = file+": read error in record "+std::to_string(n);
+    return false;
+    }
+
+    if(swap)
+    for(auto &row : f)
+    for(auto &a : row)
+    swap_bytes(a);
+
+    auto lerp = [](double f0, double f1, double w) {return f0 + w*(f1 - f0);};
+    const double r0 = nx>1 ? lerp(f[0][0],f[0][1],wx) : f[0][0];
+    const double r1 = nx>1 ? lerp(f[1][0],f[1][1],wx) : f[1][0];
+
+    val = ny>1 ? lerp(r0,r1,wy) : r0;
+
+    return true;
+}

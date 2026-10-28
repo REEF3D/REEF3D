@@ -1,0 +1,19 @@
+{
+ "base": "nhflow_3d_si_mb_basin_fine_tracers",
+ "same_as": "nhflow_3d_si_mb_basin_fine_tracers",
+ "same_as_rtol": 1e-06,
+ "np": 2,
+ "description": "nhflow_3d_si_mb_basin_fine_tracers on 2 ranks: the same to solver tolerance; the faces of the partition halo get the same flux on both sides (the mask of the halo).",
+ "tags": [
+  "3d",
+  "nhflow",
+  "semi_implicit",
+  "curvilinear",
+  "multiblock",
+  "tracer",
+  "mpi"
+ ],
+ "covers": [
+  "nhflow_tracer_SI on a partitioned native grid: the halo exchange of the tracers, the mask and the flushed values"
+ ]
+}

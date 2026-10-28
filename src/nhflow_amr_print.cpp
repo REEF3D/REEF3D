@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"reefckpt.h"
+#include"reef3d_mpmd.h"
 #include"nhflow_amr.h"
 #include"nhflow_amr_fill.h"
 #include"lexer.h"
@@ -189,7 +190,7 @@ void nhflow_amr::print(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
     int np = (int)P.size();
     vector<int> all(p->mpi_size,0);
-    MPI_Allgather(&np,1,MPI_INT,&all[0],1,MPI_INT,MPI_COMM_WORLD);
+    MPI_Allgather(&np,1,MPI_INT,&all[0],1,MPI_INT,reef3d_comm());
 
     if(p->mpirank==0)
     {
@@ -297,12 +298,12 @@ void nhflow_amr::gauges(lexer *p, fdm_nhf *d, ghostcell *pgc)
     }
 
     vector<double> lmax(ng);
-    MPI_Allreduce(&lv[0],&lmax[0],ng,MPI_DOUBLE,MPI_MAX,MPI_COMM_WORLD);
+    MPI_Allreduce(&lv[0],&lmax[0],ng,MPI_DOUBLE,MPI_MAX,reef3d_comm());
     for(int k=0; k<ng; ++k)
     if(lv[k]!=lmax[k])
     val[k]=0.0;
     vector<double> vs(ng);
-    MPI_Allreduce(&val[0],&vs[0],ng,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+    MPI_Allreduce(&val[0],&vs[0],ng,MPI_DOUBLE,MPI_SUM,reef3d_comm());
 
     if(p->mpirank==0)
     {
@@ -338,6 +339,27 @@ void amr_fields(lexer *q, fdm_nhf *d, bool wet, FIELD field)
     field("bed",[&](int ii, int jj) { return d->bed(ii,jj); });
     field("u_top",[&](int ii, int jj) { return d->U[c3(ii,jj)]; });
     field("v_top",[&](int ii, int jj) { return d->V[c3(ii,jj)]; });
+    // tracers (A 600): depth mean, bottom and top layer
+    for(int tr=0; tr<2; ++tr)
+    {
+        const double *C = tr==0 ? d->SALT : d->TEMP;
+
+        if(C==nullptr)
+        continue;
+
+        auto ck = [&](int ii, int jj, int kk) { return (ii-q->imin)*q->jmax*q->kmax + (jj-q->jmin)*q->kmax + kk-q->kmin; };
+        auto mean = [&](int ii, int jj)
+        {
+            double s=0.0;
+            for(int kk=0; kk<q->knoz; ++kk)
+            s += q->DZN[kk+increment::marge]*C[ck(ii,jj,kk)];
+            return s;
+        };
+
+        field(tr==0 ? "salinity_mean" : "temperature_mean",mean);
+        field(tr==0 ? "salinity_bottom" : "temperature_bottom",[&](int ii, int jj) { return C[ck(ii,jj,0)]; });
+        field(tr==0 ? "salinity_top" : "temperature_top",[&](int ii, int jj) { return C[ck(ii,jj,q->knoz-1)]; });
+    }
     // G 30: the wet flag and the water depth
     if(wet)
     {

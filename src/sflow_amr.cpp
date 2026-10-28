@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"sflow_curv.h"
+#include"reef3d_mpmd.h"
 #include"sflow_amr.h"
 #include"gcsl_yskip.h"
 #include"reefckpt.h"
@@ -92,6 +93,9 @@ sflow_amr::sflow_amr(lexer *p, fdm2D *b, ghostcell *pgc, patchBC_interface *ppBC
     q.nbuf = MAX(p->G3,0);
     tol_eta = p->G20;
     shore = p->G22;
+    // second difference of the surface (G 21), breaking (G 23 1 with A 246 1/2): as fnpf_amr
+    tol_curv = MAX(p->G21,0.0);
+    flagbreak = (p->G23==1 && p->A246>=1);
     q.tile = MAX(p->G4,4);
     q.tile += q.tile%2;
     q.nest = 3;
@@ -146,7 +150,7 @@ sflow_amr::sflow_amr(lexer *p, fdm2D *b, ghostcell *pgc, patchBC_interface *ppBC
     }
 
     // boxes only: static patches
-    if(tol_eta<=0.0 && shore==0 && (p->G12==0 || shipmode==0))
+    if(tol_eta<=0.0 && tol_curv<=0.0 && !flagbreak && shore==0 && (p->G12==0 || shipmode==0))
     q.regrid = 0;
 
     // refinement boxes (G 10), no refinement in the G 11 boxes and next to in- and outflow
@@ -342,6 +346,21 @@ void sflow_amr::ini(lexer *p, fdm2D *b, ghostcell *pgc)
         cout<<"SFLOW AMR: G 12 needs a moving body (X 10 2/3) -- ignored"<<endl;
         if(nrelax>0)
         cout<<"SFLOW AMR: no refinement in "<<nrelax<<" relaxation zone(s) of the wave generation and the numerical beach"<<endl;
+        if(tol_eta>0.0 || tol_curv>0.0 || shore>0 || flagbreak)
+        {
+            cout<<"SFLOW AMR: flags:";
+            if(tol_eta>0.0)
+            cout<<" surface jump > "<<tol_eta<<" m (G 20)";
+            if(tol_curv>0.0)
+            cout<<" second difference > "<<tol_curv<<" m (G 21)";
+            if(shore>0)
+            cout<<" shoreline (G 22)";
+            if(flagbreak)
+            cout<<" breaking (G 23)";
+            cout<<endl;
+        }
+        if(p->G23==1 && !flagbreak)
+        cout<<"SFLOW AMR: G 23 needs the breaking detection A 246 1/2 -- ignored"<<endl;
     }
 }
 
@@ -408,12 +427,22 @@ void sflow_amr::patch_objects(reefamr_patch *q, ghostcell *pgc)
     if(bous==1)
     c->psolv = new sflow_amr_linesolve;
 
-    // multi-block: the open faces of a block 1.. (G 54; the lists from build_bc2D)
-    if(c->blk>0 && c->lev==0 && (bopen[0][c->blk]>=0 || bopen[1][c->blk]>=0))
+    // multi-block: the open faces of a block 1.. (G 54) and its edge zones (B 522; the lists from build_bc2D); the
+    // iowave edges of level 0 (open_xm .. open_yp) are not the block's
+    const int zin = (c->blk>0 && c->lev==0) ? bzone[0][c->blk] : -1;
+    const int zout = (c->blk>0 && c->lev==0) ? bzone[1][c->blk] : -1;
+    if(c->blk>0)
+    {
+        pp->open_xm = (zin>=0) ? 1 : 0;
+        pp->open_xp = (zout>=0) ? 1 : 0;
+        pp->open_ym = pp->open_yp = 0;
+    }
+    if(c->blk>0 && c->lev==0 && (bopen[0][c->blk]>=0 || bopen[1][c->blk]>=0 || zin>=0 || zout>=0))
     {
         c->pio = new ioflow_amr_block(pp,pgc,pBC);
         pp->amr_own_io = 1;
         c->pio->open_faces(pp,bopen[0][c->blk],bopen[1][c->blk]);
+        c->pio->open_edges(pp,zin>=0 ? &bzones[zin] : nullptr,zout>=0 ? &bzones[zout] : nullptr,bzbg);
         c->phll->open_io();
     }
 
@@ -861,7 +890,10 @@ void sflow_amr::tag(int l, vector<unsigned char> &M)
         return false;
     };
 
-    // 0: no flag, 1: surface jump (G 20), 2: shoreline (G 22)
+    // a wet cell (G 21: the three cells of the second difference)
+    auto wetc = [&](lexer *q, int a, int d) { return q->flagslice4[lij(q,a,d)]>=0 && q->wet[lij(q,a,d)]==1; };
+
+    // 0: no flag, 1: surface jump (G 20), second difference (G 21), breaking (G 23), 2: shoreline (G 22)
     auto test = [&](lexer *q, fdm2D *bb, slice &WL, int ii, int jj)
     {
         if(q->flagslice4[lij(q,ii,jj)]<0)
@@ -871,6 +903,21 @@ void sflow_amr::tag(int l, vector<unsigned char> &M)
         double ec = WL(ii,jj)-bb->depth(ii,jj);
         const int di[4]={1,-1,0,0}, dj[4]={0,0,1,-1};
         int r = 0;
+
+        // breaking (G 23): the flag of the grid in the step (breaking_print: A 248 0 clears breaking at
+        // the end of the step, before the regrid of the patches)
+        if(flagbreak && wc==1 && (bb->breaking(ii,jj)>0 || bb->breaking_print(ii,jj)>0.0))
+        r = 1;
+
+        // second difference of the surface along x or y (G 21), between wet cells
+        if(tol_curv>0.0 && wc==1)
+        {
+            auto es = [&](int a, int d) { return WL(a,d)-bb->depth(a,d); };
+            if(wetc(q,ii+1,jj) && wetc(q,ii-1,jj) && fabs(es(ii+1,jj)-2.0*ec+es(ii-1,jj))>tol_curv)
+            r = 1;
+            if(sy==1 && wetc(q,ii,jj+1) && wetc(q,ii,jj-1) && fabs(es(ii,jj+1)-2.0*ec+es(ii,jj-1))>tol_curv)
+            r = 1;
+        }
 
         for(int k=0; k<2+2*sy; ++k)     // (2D grid: the x neighbours)
         {
@@ -943,6 +990,7 @@ void sflow_amr::ini_patch_defaults(sflow_amr_patch &c)
         b->UA(ii,jj) = b->VA(ii,jj) = b->MX(ii,jj) = b->MY(ii,jj) = 0.0;
         pp->wet[lij(pp,ii,jj)] = 0;
         pp->deep[lij(pp,ii,jj)] = 0;
+        b->breaking(ii,jj) = 0;
     }
 
     c.blkold.assign((size_t)(c.nx/2)*(c.ny>>sy),0);
@@ -958,7 +1006,7 @@ bool sflow_amr::block_solid(sflow_amr_patch &c, int bi, int bj)
 // the same old patch: patch boxes are tile aligned)
 void sflow_amr::ini_patch_old(int l, vector<reefamr_patch*> &oldP)
 {
-    old_run(l,16,7140+l,oldP,
+    old_run(l,17,7140+l,oldP,
             [&](reefamr_patch *q, int io, int jo, double *v)
             {
                 sflow_amr_patch *o = SP(q);
@@ -973,6 +1021,8 @@ void sflow_amr::ini_patch_old(int l, vector<reefamr_patch*> &oldP)
                 // shoreline offset of a covered cell, as a patch that is kept holds it (prolongation of
                 // the fresh children)
                 v[15] = o->sfc[lij(qp,io,jo)];
+                // breaking with persistence (A 248 1): the flag carries over to the next step
+                v[16] = ob->breaking(io,jo);
             },
             [&](reefamr_patch *q, int id, int ii, int jj, const double *v)
             {
@@ -989,6 +1039,8 @@ void sflow_amr::ini_patch_old(int l, vector<reefamr_patch*> &oldP)
                 pp->wet[lij(pp,ii,jj)] = (int)v[13];
                 pp->deep[lij(pp,ii,jj)] = (int)v[14];
                 c.sfc[lij(pp,ii,jj)] = v[15];
+                if(p0->A248==1)
+                b->breaking(ii,jj) = (int)v[16];
                 c.blkold[(size_t)bi*(c.ny>>sy)+bj] = 1;
             });
 }
@@ -998,7 +1050,7 @@ void sflow_amr::ini_patch_old(int l, vector<reefamr_patch*> &oldP)
 // mass and momentum of a fully wet parent restored exactly
 void sflow_amr::ini_patch_prolong(int l)
 {
-    const int nv = 4*NPR+6;
+    const int nv = 4*NPR+7;
 
     block_down_if(l,nv,7160+l,
                   [&](reefamr_patch *q) { return q->fresh; },
@@ -1016,6 +1068,7 @@ void sflow_amr::ini_patch_prolong(int l)
                       w[3] = (*sVH[B.g+1])(ic,jc);
                       w[4] = (*sWH[B.g+1])(ic,jc);
                       w[5] = G.b->press(ic,jc);
+                      w[6] = G.b->breaking(ic,jc);
                   },
                   [&](reefamr_patch *q, int id, int kb, const double *v)
                   {
@@ -1044,6 +1097,9 @@ void sflow_amr::ini_block(sflow_amr_patch &c, int bi, int bj, const double *pv)
         prolong_finish(&pv[(2*a+d)*NPR],b->depth(ii,jj),v);
         b->WL(ii,jj)=v[0]; b->UH(ii,jj)=v[1]; b->VH(ii,jj)=v[2]; b->WH(ii,jj)=v[8];
         b->press(ii,jj) = w[5];
+        // breaking with persistence (A 248 1): the children take the flag of the parent
+        if(p0->A248==1)
+        b->breaking(ii,jj) = (int)w[6];
         if(bous==1)
         {
         b->UA(ii,jj)=v[10]; b->VA(ii,jj)=v[11]; b->MX(ii,jj)=v[12]; b->MY(ii,jj)=v[13];
@@ -1158,7 +1214,6 @@ void sflow_amr::ini_patch_finish(lexer *p, sflow_amr_patch &c)
     {
         b->eta_n(ii,jj) = b->eta(ii,jj);
         b->hp(ii,jj) = b->WL(ii,jj);
-        b->breaking(ii,jj) = 0;
         pp->wet_n[lij(pp,ii,jj)] = pp->wet[lij(pp,ii,jj)];
     }
 
@@ -2599,7 +2654,7 @@ void sflow_amr::print(lexer *p, fdm2D *b, ghostcell *pgc)
     // multiblock index: level 0 of every rank + all patches
     int np = (int)P.size();
     vector<int> all(p->mpi_size,0);
-    MPI_Allgather(&np,1,MPI_INT,&all[0],1,MPI_INT,MPI_COMM_WORLD);
+    MPI_Allgather(&np,1,MPI_INT,&all[0],1,MPI_INT,reef3d_comm());
 
     if(p->mpirank==0)
     {
@@ -2693,12 +2748,12 @@ void sflow_amr::gauges(lexer *p, fdm2D *b, ghostcell *pgc)
     }
 
     vector<double> lmax(ng);
-    MPI_Allreduce(&lv[0],&lmax[0],ng,MPI_DOUBLE,MPI_MAX,MPI_COMM_WORLD);
+    MPI_Allreduce(&lv[0],&lmax[0],ng,MPI_DOUBLE,MPI_MAX,reef3d_comm());
     for(int k=0; k<ng; ++k)
     if(lv[k]!=lmax[k])
     val[k]=0.0;
     vector<double> vs(ng);
-    MPI_Allreduce(&val[0],&vs[0],ng,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+    MPI_Allreduce(&val[0],&vs[0],ng,MPI_DOUBLE,MPI_SUM,reef3d_comm());
 
     if(p->mpirank==0)
     {

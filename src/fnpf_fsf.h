@@ -34,6 +34,8 @@ class fnpf_etadisc;
 
 using namespace std;
 
+class ioflow;
+
 class fnpf_fsf 
 {
 public:
@@ -45,6 +47,8 @@ public:
     virtual void fsfwvel(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&)=0;
     virtual void wetdry(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&)=0;
     virtual void breaking(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&,slice&,double)=0;
+    // the relaxation zones for the breaking models (A 350 4), once
+    virtual void breaking_zones(lexer*,ioflow*) {}
     virtual void coastline_eta(lexer*,fdm_fnpf*,ghostcell*,slice&)=0;
     virtual void coastline_fi(lexer*,fdm_fnpf*,ghostcell*,slice&)=0;
     virtual void coastline_fi_ini(lexer*,fdm_fnpf*,ghostcell*,slice&)=0;

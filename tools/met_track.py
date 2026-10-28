@@ -12,6 +12,8 @@ winds, fits the vortex parameters and writes them per record; REEF3D evaluates t
              IBTrACS CSV (ISO_TIME, LAT, LON, USA_WIND, USA_PRES, USA_RMW, USA_POCI, USA_R34_NE ... USA_R64_NW)
   synthetic  an idealised straight track in ATCF format (tests, validation)
   evaluate   wind (east, north) and pressure of the vortex at points (reference tables for the C++ code)
+  check      the storm in a background met file (ERA5, ...) against the track: Vmax, pc, R34, Rmax per record
+             (how much the background underestimates the storm; the reason for the blend W 200 4)
   info       the records of a met-vortex.trk
 
 Vortex models (W 215; all fitted here, the model is chosen in ctrl.txt):
@@ -338,6 +340,33 @@ def fit_record(r, args):
     return out
 
 
+def r34_mean(rec):
+    """mean 34 kt radius of the quadrants that have one; 3 rmw without (as met_vortex::r34_mean)"""
+    v = [rec["R"][q][0] for q in range(4) if rec["R"][q][0] > 0.0]
+    if not v:
+        return 3.0 * rec["rmw"]
+    s = 0.0
+    for x in v:
+        s += x
+    return s / float(len(v))
+
+
+def state(recs, t):
+    """centre, pc, pn, rmw, mean 34 kt radius at time t, linear between the records (met_vortex::state)"""
+    ts = [r["t"] for r in recs]
+    if len(recs) == 1 or t <= ts[0]:
+        a = b = recs[0]; w = 0.0
+    elif t >= ts[-1]:
+        a = b = recs[-1]; w = 0.0
+    else:
+        k = int(np.searchsorted(ts, t, side="right")) - 1
+        a, b = recs[k], recs[k + 1]
+        w = (t - a["t"]) / (b["t"] - a["t"])
+    lerp = lambda key: a[key] + w * (b[key] - a[key])
+    ra, rb = r34_mean(a), r34_mean(b)
+    return lerp("lon"), lerp("lat"), lerp("pc"), lerp("pn"), lerp("rmw"), ra + w * (rb - ra)
+
+
 def destination(lon, lat, brg, d):
     p1, l1, b, a = math.radians(lat), math.radians(lon), math.radians(brg), d / R_EARTH
     p2 = math.asin(math.sin(p1) * math.cos(a) + math.cos(p1) * math.sin(a) * math.cos(b))
@@ -445,6 +474,63 @@ def cmd_evaluate(args):
         print("%.10f %.10f %.12e %.12e %.12e" % (lon, lat, u, v, p))
 
 
+
+def cmd_check(args):
+    """the storm in a background met file against the track: Vmax, minimum pressure and the 34 kt radii"""
+    import os
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    import met_forcing as mf
+    recs, rho = read_trk(args.track)
+    m = mf.read_r3m(args.background)
+    fr = mf.GeoFrame(*args.frame) if args.frame else mf.GeoFrame(m["lon0"], m["lat0"], m["rot"], m["X0"], m["Y0"])
+    bg = mf.R3M(args.background)
+    radii = np.arange(5e3, args.rmax + 1.0, 5e3)
+    az = np.arange(0.0, 360.0, 5.0)
+    k34 = 34.0 * KT * args.one2ten
+    print("# %s against %s (winds as 10-min: track x %.4f)" % (args.background, args.track, args.one2ten))
+    print("# time                Vmax track   bg   ratio |  pc track   bg  [hPa] | R34 track    bg  [km] | Rmax track  bg [km]")
+    rat, rr = [], []
+    for r in recs:
+        t = r["t"]
+        if t < bg.times[0] or t > bg.times[-1]:
+            continue
+        bg.advance(t)
+        V = np.zeros((len(az), len(radii)))
+        P = np.zeros_like(V)
+        for a, brg in enumerate(az):
+            for b, d in enumerate(radii):
+                lon, lat = destination(r["lon"], r["lat"], brg, d)
+                x, y = fr.to_model(lon, lat)
+                u, v, p = bg.at(t, x, y)
+                V[a, b], P[a, b] = math.hypot(u, v), p
+        vmax_bg = V.max()
+        rmax_bg = radii[np.unravel_index(np.argmax(V), V.shape)[1]]
+        pmin_bg = P[:, radii <= 200e3].min()
+        r34_bg = []
+        for q in range(4):
+            sel = [a for a, brg in enumerate(az) if abs(((brg - QUAD[q] + 180.0) % 360.0) - 180.0) <= 45.0]
+            above = [radii[np.nonzero(V[a] >= k34)[0]].max() for a in sel if (V[a] >= k34).any()]
+            r34_bg.append(float(np.mean(above)) if above else 0.0)
+        # track Vmax as 1-min surface wind: from the fitted vmaxg and the translation (inverse of the fit)
+        vt = math.hypot(r["ut"], r["vt"])
+        vm1 = r["vmaxg"] * args.wrf + vt
+        vm10 = vm1 * args.one2ten
+        r34_tr = [r["R"][q][0] for q in range(4) if r["R"][q][0] > 0]
+        r34m_tr = float(np.mean(r34_tr)) / 1e3 if r34_tr else 0.0
+        r34m_bg = float(np.mean([x for x in r34_bg if x > 0])) / 1e3 if any(x > 0 for x in r34_bg) else 0.0
+        rat.append(vmax_bg / vm10)
+        if r34m_tr > 0 and r34m_bg > 0:
+            rr.append(r34m_bg / r34m_tr)
+        print("%s   %6.1f  %6.1f  %5.2f | %7.1f %7.1f      | %6.0f  %6.0f      | %5.0f  %5.0f"
+              % (stamp(EPOCH + dt.timedelta(seconds=t)), vm10, vmax_bg, vmax_bg / vm10, r["pc"] / 100, pmin_bg / 100,
+                 r34m_tr, r34m_bg, r["rmw"] / 1e3, rmax_bg / 1e3))
+    if rat:
+        print("# background Vmax / track Vmax: mean %.2f, min %.2f%s" % (np.mean(rat), np.min(rat),
+              (", R34 background / track: mean %.2f" % np.mean(rr)) if rr else ""))
+    else:
+        print("# no track record within the background records")
+
+
 def cmd_info(args):
     recs, rho = read_trk(args.input)
     for r in recs:
@@ -498,6 +584,15 @@ def main(argv=None):
     e.add_argument("--one2ten", type=float, default=0.8928)
     phys(e)
     e.set_defaults(func=cmd_evaluate)
+
+    c = sub.add_parser("check")
+    c.add_argument("track")
+    c.add_argument("background", help="met file (met-forcing.r3m), e.g. ERA5 by met_forcing.py grid")
+    c.add_argument("--frame", type=float, nargs=5, metavar=("LON0", "LAT0", "ROT", "X0", "Y0"))
+    c.add_argument("--rmax", type=float, default=500e3, help="search radius [m]")
+    c.add_argument("--one2ten", type=float, default=0.8928)
+    c.add_argument("--wrf", type=float, default=0.9, help="Wrf of the fit (Vmax = Wrf vmaxg + |Vt|)")
+    c.set_defaults(func=cmd_check)
 
     i = sub.add_parser("info")
     i.add_argument("input")

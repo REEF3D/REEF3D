@@ -1,0 +1,7 @@
+{
+ "part_of": "seastate_nhflow_si_setup_remote",
+ "solver": "seastate",
+ "np": 1,
+ "description": "the wave model of seastate_nhflow_si_setup_remote: SEASTATE (A 10 7, A 750 2), stationary, on the plane beach of 10 m cells.",
+ "tags": ["2d", "seastate", "mpmd"]
+}

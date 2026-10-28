@@ -23,6 +23,7 @@ Author: Hans Bihs
 #include"nhflow_idiff_2D.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
+#include"nhflow_breaking_profile.h"
 #include"nhflow_thinbody.h"
 #include"ghostcell.h"
 #include"ioflow.h"
@@ -51,22 +52,41 @@ void nhflow_idiff_2D::diff_w(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow
         {
             visc_IP = d->VISC[IJK] + d->EV[IJK];
             
-            visc_IM1 = 0.5*(visc_IP + d->VISC[Im1JK] + d->EV[Im1JK] + d->vb(i-1,j));
-            visc_IP1 = 0.5*(visc_IP + d->VISC[Ip1JK] + d->EV[Ip1JK] + d->vb(i+1,j));
+            visc_IM1 = 0.5*(visc_IP + d->VISC[Im1JK] + d->EV[Im1JK]);
+            visc_IP1 = 0.5*(visc_IP + d->VISC[Ip1JK] + d->EV[Ip1JK]);
             
-            visc_KM1 = 0.5*(visc_IP + d->VISC[IJKm1] + d->EV[IJKm1] + d->vb(i,j));
-            visc_KP1 = 0.5*(visc_IP + d->VISC[IJKp1] + d->EV[IJKp1] + d->vb(i,j));
+            visc_KM1 = 0.5*(visc_IP + d->VISC[IJKm1] + d->EV[IJKm1]);
+            visc_KP1 = 0.5*(visc_IP + d->VISC[IJKp1] + d->EV[IJKp1]);
             
-            if(k==p->knoz-1)
+            // breaking viscosity vb, face values the mean of the two cells (both cells of a face use the same coefficient):
+            //  A 550 1: in the top layer only; the face to the layer below takes vb/2 from both sides (k = knoz-1, knoz-2)
+            //  A 550 3: in all layers on all faces, the eddy viscosity of Kennedy et al. (2000) as a turbulent viscosity of
+            //           the column (with the horizontal faces only, the surf zone depended on the number of layers)
+            //  A 550 4: as A 550 3 with the depth profile of the orbital velocity (nhflow_breaking_profile.h)
+            if(p->A550>=3 || k==p->knoz-1)
             {
-            visc_IP +=  d->vb(i,j);
-            
-            visc_IM1 += 0.5*(d->vb(i,j) + d->vb(i-1,j));
-            visc_IP1 += 0.5*(d->vb(i,j) + d->vb(i+1,j));
-            
-            visc_KM1 += d->vb(i,j);
+            visc_IP +=  nhflow_vbz(p,d,i,j,p->ZP[KP]);
+            visc_IM1 += 0.5*(nhflow_vbz(p,d,i,j,p->ZP[KP]) + nhflow_vbz(p,d,i-1,j,p->ZP[KP]));
+            visc_IP1 += 0.5*(nhflow_vbz(p,d,i,j,p->ZP[KP]) + nhflow_vbz(p,d,i+1,j,p->ZP[KP]));
+            }
+
+            if(p->A550<3 && k==p->knoz-1)
+            {
+            visc_KM1 += 0.5*d->vb(i,j);
             visc_KP1 += d->vb(i,j);
             }
+
+            if(p->A550<3 && k==p->knoz-2)
+            {
+            visc_KP1 += 0.5*d->vb(i,j);
+            }
+
+            if(p->A550>=3)
+            {
+            visc_KM1 += nhflow_vbz(p,d,i,j,p->ZN[KP]);
+            visc_KP1 += nhflow_vbz(p,d,i,j,p->ZN[KP1]);
+            }
+
             
             // vertical coefficient at the faces k-1/2 (FIJK) and k+1/2 (FIJKp1); w: + sigz^2 once more from 2 dw/dz
             sigxyz2_b = pow(p->sigx[FIJK],2.0) + pow(p->sigy[FIJK],2.0) + pow(p->sigz[IJ],2.0) + pow(p->sigz[IJ],2.0);

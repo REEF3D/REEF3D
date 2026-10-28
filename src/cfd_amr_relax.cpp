@@ -21,6 +21,7 @@ Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"cfd_amr.h"
+#include"reef3d_mpmd.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
@@ -419,7 +420,7 @@ void cfd_amr::reference(lexer *p, ghostcell *pgc)
                 s[1] += dirac*V;
             }
         }
-        MPI_Allreduce(MPI_IN_PLACE,s,2,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+        MPI_Allreduce(MPI_IN_PLACE,s,2,MPI_DOUBLE,MPI_SUM,reef3d_comm());
         pval = (s[1]>0.0) ? s[0]/s[1] : 0.0;
     }
 

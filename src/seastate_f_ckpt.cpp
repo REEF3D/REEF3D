@@ -45,6 +45,7 @@ Architect: Hans Bihs
 //  Not covered: the surfbeat model (A 770 1), runs coupled to a host model (A 750).
 
 #include"seastate_f.h"
+#include"reef3d_mpmd.h"
 #include"fdm_seastate.h"
 #include"seastate_grid.h"
 #include"seastate_store.h"
@@ -311,7 +312,7 @@ void seastate_f::loadmap_write(lexer *p, const vector<double> &col, double itera
     const int np = p->mpi_size;
     int mybox[4] = {p->origin_i,p->origin_j,p->knox,p->knoy};
     vector<int> boxes(4*size_t(np));
-    MPI_Gather(mybox,4,MPI_INT,boxes.data(),4,MPI_INT,0,MPI_COMM_WORLD);
+    MPI_Gather(mybox,4,MPI_INT,boxes.data(),4,MPI_INT,0,reef3d_comm());
 
     vector<double> mine(size_t(p->knox)*p->knoy,0.0);
     const double f = iterations>0.0 ? 1.0e6/iterations : 0.0;
@@ -328,7 +329,7 @@ void seastate_f::loadmap_write(lexer *p, const vector<double> &col, double itera
         off[r] = off[r-1]+cnt[r-1];
     }
     vector<double> all(p->mpirank==0 ? std::max(size_t(off[np-1]+cnt[np-1]),size_t(1)) : 1);
-    MPI_Gatherv(mine.data(),(int)mine.size(),MPI_DOUBLE,all.data(),cnt.data(),off.data(),MPI_DOUBLE,0,MPI_COMM_WORLD);
+    MPI_Gatherv(mine.data(),(int)mine.size(),MPI_DOUBLE,all.data(),cnt.data(),off.data(),MPI_DOUBLE,0,reef3d_comm());
 
     if(p->mpirank!=0)
     return;

@@ -21,6 +21,7 @@ Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"cfd_amr.h"
+#include"reef3d_mpmd.h"
 #include"patchBC_codes.h"
 #include"lexer.h"
 #include"fdm.h"
@@ -211,8 +212,10 @@ bool cfd_amr::scope(lexer *p, ghostcell *pgc)
     why = "the level set (F 30) or single phase flow, no VOF (F 80) or multiphase (F 300)";
     else if(!(p->T10==0 || p->T10==1 || p->T10==2 || p->T10==21 || p->T10==22))
     why = "laminar flow or a RANS model (T 10 0, 1, 2, 21, 22)";
-    else if(p->W30!=0 || p->W32!=0 || p->W90!=0)
-    why = "no compressibility or rheology (W 30, W 32, W 90)";
+    else if(p->W30!=0 || p->W90!=0)
+    why = "no compressibility W 30 or rheology W 90 (the air compressibility W 32 works)";
+    else if(p->W32!=0 && p->G7!=0)
+    why = "the air compressibility W 32 with one time step for all levels, G 7 0 (with subcycling the synchronisation projection does not keep the compression of the air)";
     else if(p->H10!=0 && p->C10!=0)
     why = "heat or concentration, not both (H 10, C 10)";
     else if((p->H10!=0 && p->H10!=3) || (p->C10!=0 && p->C10!=3))
@@ -227,8 +230,8 @@ bool cfd_amr::scope(lexer *p, ghostcell *pgc)
     why = "heat with the material tables, H 3 1";
     else if((p->H10>0 || p->C10>0) && (p->B200!=0 || p->D20>2))
     why = "heat and concentration without porous structures (B 200 0), with the diffusion D 20 0, 1 or 2";
-    else if(p->S10!=0 || p->Q10!=0)
-    why = "no sediment (S 10, Q 10)";
+    else if((p->S10!=0 || p->Q10!=0) && cpm_why(p)!=nullptr)
+    why = cpm_why(p);
     else if(p->E10>0)
     why = "no DEM particles (E 10; momentum_forcing holds the particle forcing of level 0 in a static member)";
     else if(p->X10>1 || p->Z10!=0 || p->Z20!=0 || p->Z30!=0)
@@ -258,8 +261,11 @@ bool cfd_amr::scope(lexer *p, ghostcell *pgc)
 
     if(bad)
     {
-        if(p->mpirank==0)
+        // asked twice with CPM (driver logic_cfd, the sediment of level 0): told once
+        static bool told = false;
+        if(p->mpirank==0 && !told)
         cout<<"CFD AMR (G 1 "<<p->G1<<"): needs "<<(why ? why : "a supported set-up")<<"; running without mesh refinement"<<endl;
+        told = true;
         return false;
     }
     return true;
@@ -317,10 +323,21 @@ cfd_amr::cfd_amr(lexer *p, fdm *a, ghostcell *pgc, momentum *pmom, pressure *ppr
     // the pressure reference (B 30)
     b30 = p->B30;
 
-    // G 7 1: the finest level advances the bodies with the loads on the finest grid
-    if(bodies && sub)
+    // the loads of the bodies on the finest grid at each hull triangle.  G 7 1: the finest level
+    // advances the bodies with them.  G 7 0: level 0 advances them, with the loads of the patches
+    // (those of its restricted pressure: the drag of a towed box 13 % below that of the uniform grid
+    // of the finest cells).  The coupling is stabilised with an artificial added mass of half the
+    // displaced fluid (sixdof_obj::cfd_added_mass): with the loads of the patches alone the
+    // stage-to-stage oscillation of the loads of a light body grew, with G 7 0 in heave (decay,
+    // density 500, validation 51), with G 7 1 in pitch (a box 0.25 x 0.12 of density 500 heeled
+    // 10 degrees: stopped after 0.11 s; two boxes 4 cm apart in heave: the vertical force changed
+    // by 166 N from one finest step to the next after 1 s, validation 54)
+    if(bodies)
     for(int nb=0; nb<b6->objects(); ++nb)
-    b6->object(nb)->amr_loads = this;
+    {
+        b6->object(nb)->amr_loads = this;
+        b6->object(nb)->set_cfd_added_mass(0.5);
+    }
     th_end.assign(maxlev+1,0.0);
     if(mom0->amr_stages()==3)
     {
@@ -414,10 +431,10 @@ void cfd_amr::hierarchy(bool first)
         double wmax[2], wsum[2];
         const double wt[1] = {w[0]+w[1]};
         double tmax, tsum;
-        MPI_Allreduce(w,wmax,2,MPI_DOUBLE,MPI_MAX,MPI_COMM_WORLD);
-        MPI_Allreduce(w,wsum,2,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
-        MPI_Allreduce(wt,&tmax,1,MPI_DOUBLE,MPI_MAX,MPI_COMM_WORLD);
-        MPI_Allreduce(wt,&tsum,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+        MPI_Allreduce(w,wmax,2,MPI_DOUBLE,MPI_MAX,reef3d_comm());
+        MPI_Allreduce(w,wsum,2,MPI_DOUBLE,MPI_SUM,reef3d_comm());
+        MPI_Allreduce(wt,&tmax,1,MPI_DOUBLE,MPI_MAX,reef3d_comm());
+        MPI_Allreduce(wt,&tsum,1,MPI_DOUBLE,MPI_SUM,reef3d_comm());
         if(p->mpirank==0)
         {
             const std::streamsize pr = cout.precision();
@@ -1276,6 +1293,10 @@ void cfd_amr::ini(lexer *p, fdm *a, ghostcell *pgc)
             <<"); keep them more than the interface thickness ("<<p->psi<<") plus the wave amplitude away from it"<<endl;
     }
 
+    // CPM (S 10 1, Q 10 1): its grid over the boxes G 15, the parcels seeded there, the bed onto the grids
+    if(p->S10==1 && p->Q10>=1)
+    cpm_setup(p,a,pgc);
+
     // the output of the patches at the start (printer_CFD has written level 0)
     print(p,pgc,true);
 }
@@ -1355,7 +1376,7 @@ void cfd_amr::timestep(lexer *p, fdm *a, ghostcell *pgc)
     }
 
     double g = -cu;
-    MPI_Allreduce(MPI_IN_PLACE,&g,1,MPI_DOUBLE,MPI_MAX,MPI_COMM_WORLD);
+    MPI_Allreduce(MPI_IN_PLACE,&g,1,MPI_DOUBLE,MPI_MAX,reef3d_comm());
     cu = -g;
 
     // the largest velocity of the level-0 leaf cells (diagnostics)
@@ -1377,16 +1398,16 @@ void cfd_amr::timestep(lexer *p, fdm *a, ghostcell *pgc)
     }
     {
         struct { double v; int r; } in = {v0[0],myrank}, out;
-        MPI_Allreduce(&in,&out,1,MPI_DOUBLE_INT,MPI_MAXLOC,MPI_COMM_WORLD);
-        MPI_Bcast(v0,5,MPI_DOUBLE,out.r,MPI_COMM_WORLD);
+        MPI_Allreduce(&in,&out,1,MPI_DOUBLE_INT,MPI_MAXLOC,reef3d_comm());
+        MPI_Bcast(v0,5,MPI_DOUBLE,out.r,reef3d_comm());
         if(myrank==0 && (p->count%p->P12==0))
         cout<<"CFD AMR: largest velocity on level 0 (leaf cells) "<<setprecision(3)<<v0[0]<<" at ("<<v0[1]<<", "<<v0[2]<<", "<<v0[3]<<")"<<endl;
     }
 
     {
         struct { double v; int r; } in = {vpat[0],myrank}, out;
-        MPI_Allreduce(&in,&out,1,MPI_DOUBLE_INT,MPI_MAXLOC,MPI_COMM_WORLD);
-        MPI_Bcast(vpat,5,MPI_DOUBLE,out.r,MPI_COMM_WORLD);
+        MPI_Allreduce(&in,&out,1,MPI_DOUBLE_INT,MPI_MAXLOC,reef3d_comm());
+        MPI_Bcast(vpat,5,MPI_DOUBLE,out.r,reef3d_comm());
         if(myrank==0 && (p->count%p->P12==0))
         cout<<"CFD AMR: largest velocity on the patches "<<setprecision(3)<<vpat[0]<<" at ("<<vpat[1]<<", "<<vpat[2]<<", "<<vpat[3]<<"), level "<<int(vpat[4])<<endl;
     }

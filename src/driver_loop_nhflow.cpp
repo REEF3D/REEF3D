@@ -47,6 +47,8 @@ Author: Hans Bihs
 #include"runlog.h"
 #include"lagoon_output.h"
 #include"reefrun_ckpt.h"
+#include"reefcouple.h"
+#include"wave_lib_fnpf_couple.h"
 
 void driver::loop_nhflow()
 {
@@ -75,6 +77,11 @@ void driver::loop_nhflow()
         }
         
         pflow->flowfile(p,a,pgc,pturb);
+        
+        // runtime coupling (B 92 62): feedback of the bodies to FNPF at the start of the step (I 243)
+        if(reefcouple::recv!=nullptr)
+        reefcouple::recv->feedback(p,pgc,p6dof,nullptr);
+        
         pflow->wavegen_precalc_nhflow(p,d,pgc);
         
         // REEF3D::SEASTATE: wave step and wave forcing (A 750 1)

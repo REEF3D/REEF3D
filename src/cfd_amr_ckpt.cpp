@@ -31,6 +31,7 @@ Author: Hans Bihs
 //  from the patches of its level in the checkpoint that hold them, the solver arrays start again.
 
 #include"cfd_amr.h"
+#include"reef3d_mpmd.h"
 #include"lexer.h"
 #include"reefckpt.h"
 #include"ckpt_registry.h"
@@ -527,7 +528,7 @@ void cfd_amr::write_loadmap(lexer *p)
     {
         const double t = amr_window_busy(), x = lm_n0/double(lm_steps), y = lm_np/double(lm_steps);
         double v[6] = {x*x, x*y, y*y, t*x, t*y, t>0.0 ? 1.0 : 0.0}, s[6];
-        MPI_Allreduce(v,s,6,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+        MPI_Allreduce(v,s,6,MPI_DOUBLE,MPI_SUM,reef3d_comm());
         const double det = s[0]*s[2]-s[1]*s[1];
         if(s[5]>=nranks && det>1.0e-6*s[0]*s[2])
         {

@@ -21,6 +21,7 @@ Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"ship.h"
+#include"reef3d_mpmd.h"
 #include"reefckpt.h"
 #include"ship_hull.h"
 #include"ship_models.h"
@@ -485,7 +486,7 @@ double ship::cell_size_at(lexer *p, const Eigen::Vector3d &x) const
         }
     }
     
-    MPI_Allreduce(MPI_IN_PLACE,&h,1,MPI_DOUBLE,MPI_MAX,MPI_COMM_WORLD);
+    MPI_Allreduce(MPI_IN_PLACE,&h,1,MPI_DOUBLE,MPI_MAX,reef3d_comm());
     
     return h>0.0 ? h : p->DXM;
 }

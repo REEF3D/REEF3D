@@ -1,0 +1,16 @@
+{
+ "base": "seastate_2d_wind_field_mpi2",
+ "ctrl_set": {
+  "A 732": "3"
+ },
+ "description": "as seastate_2d_wind_field_mpi2 (wind field in space and time, boundary spectra, 2 ranks, nonstationary 3 h) with A 732 3, pipelined across the ranks, the result of seastate_2d_phase20_st4_windfield (one rank): u* per cell from the wind of the cell and its spectrum. Validation in Dropbox SEASTATE/validation/69_ardhuin_st4.",
+ "tags": [
+  "2d",
+  "seastate",
+  "mpi"
+ ],
+ "covers": [
+  "seastate_st4 with the wind field per cell, nonstationary, 2 ranks"
+ ],
+ "same_as": "seastate_2d_phase20_st4_windfield"
+}

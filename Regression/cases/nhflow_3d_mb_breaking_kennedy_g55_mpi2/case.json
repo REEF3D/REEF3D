@@ -1,0 +1,20 @@
+{
+ "solver": "nhflow",
+ "np": 2,
+ "steps": 40,
+ "files": [
+  "blocks.dat"
+ ],
+ "tags": [
+  "3d",
+  "nhflow",
+  "curvilinear",
+  "multiblock",
+  "breaking",
+  "mpi"
+ ],
+ "description": "nhflow_3d_mb_breaking_kennedy with the blocks cut into 7 pieces on two ranks (G 55 3); the whole blocks to 1e-15 m (validation/11_block_kennedy_filter).",
+ "covers": [
+  "nhflow_amr::ken_exchange0 across the interfaces of the pieces and the ranks"
+ ]
+}

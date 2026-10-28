@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"driver.h"
+#include"cfd_amr.h"
 #include"lexer.h"
 #include"ghostcell.h"
 #include"freesurface_header.h"
@@ -611,7 +612,11 @@ void driver::logic_cfd()
 	pdata = new expdata_f(p,a,pgc);
 
 // Sediment
-    if(p->S10>0)
+    // CPM on the mesh refinement (G 1 > 0): the refinement runs it on the grid of its finest level
+    // (cfd_amr_cpm.cpp), level 0 has no sediment step of its own
+    const bool amrcpm = p->S10==1 && p->Q10>=1 && p->G1>0 && cfd_amr::scope(p,pgc);
+    
+    if(p->S10>0 && !amrcpm)
     {
         if(p->Q10==0)
         psed = new sediment_f(p,pgc,pturb,pBC);

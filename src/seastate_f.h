@@ -39,7 +39,7 @@ class seastate_grid;
 class seastate_surfbeat;
 class seastate_roller;
 class seastate_spc_series;
-class seastate_wind_series;
+class met_provider;
 class seastate_amr;
 class seastate_fas2;
 class seastate_bathy;
@@ -85,6 +85,14 @@ Phase 3: coupling and handover.
                 irregular wave generation of FNPF/NHFLOW (B 85 11,
                 spectrum-file-2d.dat format), sector A 761 around the
                 mean direction, written every step
+  spcout        nesting output (A 785 1): 2D spectra at the points of
+                seastate-spcout.dat (x y per line, model coordinates),
+                bilinear between the cell centres of level 0, every
+                A 786 s, as one nonstationary SWAN spectral file
+                REEF3D_SEASTATE_SPC/seastate-spcout.spc (LOCATIONS,
+                AFREQ, CDIR, VaDens m2/Hz/degr): the boundary file
+                (seastate-boundary.spc, A 711 3) of a nested run with
+                the same model frame
 
 Phase 4: surfbeat (A 770 1), the wave-group action balance of XBeach
 type (Roelvink 1993; Reniers et al. 2004) on a single representative
@@ -105,10 +113,13 @@ of the host model.
 
 Phase 5a: external forcing (seastate_f_forcing.cpp).
   forcing_ini      opens the forcing files: seastate-boundary.spc with
-                   spectra at many locations and times (A 711 3),
-                   seastate-wind.dat with the wind field (A 730 2);
+                   spectra at many locations and times (A 711 3); the
+                   wind field of the REEF3D met forcing (A 730 2: W 200
+                   1-4, uniform, met-forcing.r3m, the vortex or the
+                   blend; storm surge P6, seastate-wind.dat retired);
                    model time 0 = A 780 (YYYYMMDD.HHMMSS) or the first
-                   time in the files
+                   time in the files, with A 730 2 that of the met
+                   forcing (W 203)
   boundary_series  boundary spectrum of every boundary cell of the sides
                    with A 712 1: the two nearest locations, weights by
                    inverse distance (= linear interpolation between two
@@ -173,6 +184,9 @@ public:
 
     void ini_coupled(lexer*, ghostcell*);
 
+    // remote waves (A 750 2): SEASTATE as its own model in the MPI job of the host (seastate_remote)
+    void ini_remote(lexer*, ghostcell*);
+
     // Phase 18: the checkpoints (P 48, I 45) and the rebalance (G 46) of a stand-alone run (seastate_f_ckpt.cpp)
     reefrun_ckpt& ckpt(lexer*, ghostcell*);
     void step_coupled(lexer*, ghostcell*, double dt);
@@ -186,11 +200,18 @@ public:
     bool surfbeat() const {return sb!=nullptr;}
     const seastate_surfbeat *generator() const {return sb;}
     seastate_roller *roller() {return proll;}
+
+    // wind of every cell (met forcing, A 730 2; nullptr with a uniform wind): speed [m/s], direction the wind
+    // blows to [rad]
+    slice4 *wind_speed() const {return wU10;}
+    slice4 *wind_direction() const {return wdir;}
     bool longwave(lexer*, int j, double t, double &zeta, double &qx, double &qy) const;
 
 private:
     void ini_common(lexer*, ghostcell*, bool coupled);
     void handover(lexer*, ghostcell*);
+    void spcout_ini(lexer*, ghostcell*);
+    void spcout(lexer*, ghostcell*, bool force);
     void check_keys(lexer*, ghostcell*);
     void environment(lexer*, ghostcell*);
     void storage(lexer*, ghostcell*);
@@ -230,6 +251,7 @@ private:
     int iter_max, iter_done;
     double dtw;                 // wave time step (A 706 stand-alone, the coupling interval in coupled runs)
     bool coupled;
+    bool remote = false;                // A 750 2: coupled, on the own grid (seastate_remote_wave)
     bool kba = false;                   // Phase 14: the sweeps pipelined across the ranks (A 781 1)
     double conv;
     std::vector<double> hs_old;
@@ -251,8 +273,12 @@ private:
 
     // external forcing (A 711 3, A 730 2)
     seastate_spc_series *bser;
-    seastate_wind_series *wser;
+    met_provider *wmet;                     // the wind of the met forcing W 200 (A 730 2), the provider of the rank (not owned)
     double tref;                            // file time [s since 1970] of model time 0
+
+    // nesting output (A 785 1)
+    std::vector<double> spc_x, spc_y;       // output points [m], model coordinates
+    double spc_tnext = 0.0;                 // model time of the next record
     std::vector<float> Nside[4];            // boundary spectra per side and boundary cell
     struct bweight {int a, b; float wa, wb;};
     std::vector<bweight> bw[4];

@@ -1,0 +1,28 @@
+{
+ "base": "nhflow_2d_irregular_2nd_b",
+ "ctrl_set": {
+  "B 98": "4",
+  "B 99": "3",
+  "B 96": "0.0 0.0"
+ },
+ "ctrl_add": [
+  "B 531 1",
+  "B 532 1"
+ ],
+ "steps": 1200,
+ "description": "nhflow_2d_irregular_2nd_b with active generation (B 98 4), the Riemann beach relative to the wave theory (B 532 1) and the mean of B 531: with B 531 the generating edge runs with the flux over the actual depth (A 515 2, set by control::parse); 1200 steps so that the waves reach the beach.",
+ "tags": [
+  "2d",
+  "nhflow",
+  "iowave",
+  "waves",
+  "irregular",
+  "2nd_order",
+  "setdown"
+ ],
+ "covers": [
+  "B 531 in NHFLOW with B 532",
+  "control::parse: A 515 2 with B 531",
+  "B 532 with 2nd-order waves"
+ ]
+}

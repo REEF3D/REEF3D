@@ -36,6 +36,11 @@ void vrans_nhflow_f::initialize(lexer *p, fdm_nhf *d, ghostcell *pgc)
     
     layer_faces(p, d, pgc);
     
+    // pressure projections per stage (B 205): the collocated correction (wide gradient, cell value
+    // of CPORNH) and the compact Poisson matrix (face averages of CPORNH) differ where CPORNH jumps at
+    // the structure surface; repeated passes converge the remaining divergence, as for membranes
+    d->MPROJ = MAX(d->MPROJ, p->B205);
+    
     update(p, d, pgc, 1.0, 0);
     // ************************
     

@@ -63,15 +63,24 @@ Architect: Hans Bihs
 //        angular velocity, global axes; with Cd and area along the axis (default z) Q = rho Cd A / 2,
 //        e.g. the viscous drag of a heaving float that a potential-flow fluid (FNPF) leaves out;
 //        channels <name>_Fx .. _Mz, _P; coral/hydro/coral_body_drag.h)
-//   line_type <name> d <d> mass <m/L> EA <EA> [BA <BA>] [CB <CB>] [Cdn <c>] [Cdt <c>] [Can <c>] [Cat <c>] [kb <k>] [cb <c>]
-//        [mu <mu>] [mu_axial <mu>] [mu_static <r>] [ks <k>] [cs <c>] [v_eps <v>] [EI <EI>] [BA_slack]
-//        (properties of mooring lines for 'type' and 'section')
+//   line_type <name> d <d> mass <m/L> (EA <EA> | EA_curve <file>) [BA <BA>] [CB <CB>] [Cdn <c>] [Cdt <c>] [Can <c>] [Cat <c>]
+//        [kb <k>] [cb <c>] [mu <mu>] [mu_axial <mu>] [mu_static <r>] [ks <k>] [cs <c>] [v_eps <v>] [EI <EI>] [BA_slack]
+//        (properties of mooring lines for 'type' and 'section'; EA_curve: nonlinear elasticity of the dynamic line,
+//        a file of 'strain tension' per line (strains increasing from >= 0, '#' comments), linear in between and
+//        beyond the last point with its slope (MoorDyn's stress-strain table, which holds the last tension there);
+//        the quasi-static line and the catenary start take the secant stiffness of the last point; BA < 0: -BA is
+//        the damping ratio of the axial mode of a segment, BA = -BA l sqrt(EA m/L), l = L/nseg (MoorDyn's BA/-zeta))
 //   mooring <name> <quasi_static|dynamic> a <body> <x y z> | a <point>  b <body> <x y z> | b <point>
 //        (L <L> d <d> mass <m/L> EA <EA> | type <line type> L <L> | section <line type> <L> <nseg> [section ...])
 //        [BA <BA>] [CB <CB>] [Cdn <c>] [Cdt <c>] [Can <c>] [Cat <c>] [kb <k>] [cb <c>] [mu <mu>]
 //        [mu_axial <mu>] [mu_static <r>] [ks <k>] [cs <c>] [v_eps <v>] [BA_slack] (over those of the type)
 //        [nseg <n>] [seabed <z> | no_seabed] [dt_line <dt>] [settle <T>] [current <ux uy uz>] [exact_kinematics]
 //        [no_static] [break_time <t>] [break_tension <T>] [break_end <a|b>] [EI <EI>] [clamp_a [<dx dy dz>]] [clamp_b [...]]
+//        [EA_curve <file>] [current_profile <file>] [outputs <p|t|pt>]
+//        (current_profile: a file of 'z ux uy uz' per line, z increasing, linear in z, the end values outside, added to
+//        'current' (MoorDyn's steady current profile); the lines of a mooring system take that of its first line;
+//        outputs: channels of the dynamic line at its nodes, p the node positions <name>_n<i>_x .. _z (i = 0 .. nseg,
+//        from end a), t the segment tensions with the axial damping <name>_T<j> (j = 0 .. nseg-1))
 //        (sections: a line of several properties in order from a to b, e.g. chain-wire-chain: lines <name>.1 ..
 //        <name>.n joined at points <name>.p1 .. (no mass or volume of their own), started on the catenary of the
 //        whole line; dynamic lines only; failure: the line lets go of its end at break_time or when the tension of an

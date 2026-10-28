@@ -34,7 +34,8 @@ Architect: Hans Bihs
 // added mass (normal and tangential), submerged weight, axial stiffness EA (no compression) and axial
 // damping BA (N s), drag normal and tangential against the water velocity (waves and current),
 // Froude-Krylov inertia of the water (taken by the submerged fraction of a node's piece of line, linear
-// over its vertical extent, so nodes cross the free surface smoothly), seabed contact (penalty kb [Pa/m],
+// over its vertical extent, so nodes cross the free surface smoothly; an end node's piece reaches from the node
+// into the line), waves and current (uniform and a profile over the height), seabed contact (penalty kb [Pa/m],
 // damping cb [Pa s/m], Coulomb friction mu across and mu_axial along the line with the regularization
 // velocity v_eps). The inner nodes are advanced with an
 // explicit Runge-Kutta scheme (RK4) and sub-steps inside the step of the multibody system, the end
@@ -64,6 +65,7 @@ Architect: Hans Bihs
 #include"coral/mooring/coral_catenary.h"
 #include"coral/hydro/coral_waves.h"
 #include"coral/mooring/coral_seabed.h"
+#include<algorithm>
 #include<limits>
 #include<memory>
 #include<string>
@@ -88,7 +90,9 @@ namespace coral
         double d = 0.1;              // volume-equivalent diameter [m]
         double mass = 0.0;           // mass per length in air [kg/m]
         double EA = 0.0;             // axial stiffness [N]
-        double BA = 0.0;             // axial damping [N s]
+        // axial damping [N s]; < 0: -BA is the damping ratio of the axial mode of a segment (MoorDyn's BA/-zeta),
+        // BA = -BA l sqrt(EA m) with the segment length l (mooring_system::add_line resolves it)
+        double BA = 0.0;
         double CB = 0.0;             // seabed friction of the quasi-static line (< 0: no seabed)
         double Cdn = 1.2, Cdt = 0.05, Can = 1.0, Cat = 0.0;
         double kb = 3.0e6, cb = 3.0e5;     // seabed stiffness [Pa/m], damping [Pa s/m]
@@ -108,6 +112,36 @@ namespace coral
         // taut, a slack segment carries nothing (a chain or rope never pushes); true: T = max(0, EA e) + BA de/dt in
         // every segment, also slack and compressed ones (MoorDyn's and MoorDyn-F's law: the damping pushes)
         bool BA_slack = false;
+        // nonlinear elasticity of the dynamic line (MoorDyn's stress-strain table): the tension at the strains
+        // EA_strain (increasing, from 0), linear in between and beyond the last point with the last slope (MoorDyn
+        // holds the last tension there); empty: EA. The quasi-static line, the catenary start and BA < 0 take
+        // the secant stiffness of the last point (EA_secant)
+        std::vector<double> EA_strain, EA_tension;
+
+        // elastic tension at the strain e > 0
+        double elastic(double e) const
+        {
+            const size_t n = EA_strain.size();
+            if(n < 2)
+                return EA*e;
+            size_t j = 1;
+            while(j + 1 < n && e > EA_strain[j]) ++j;
+            const double s = (EA_tension[j] - EA_tension[j-1])/(EA_strain[j] - EA_strain[j-1]);
+            return EA_tension[j-1] + s*(e - EA_strain[j-1]);
+        }
+        // the secant stiffness of the last point of the table (EA without one)
+        double EA_secant() const
+        {
+            return EA_strain.size() >= 2 && EA_strain.back() > 0.0 ? EA_tension.back()/EA_strain.back() : EA;
+        }
+        // the largest tangent stiffness (the explicit time step, the scales of the static solve)
+        double EA_max() const
+        {
+            double k = EA_strain.size() >= 2 ? 0.0 : EA;
+            for(size_t j=1; j<EA_strain.size(); ++j)
+                k = std::max(k, (EA_tension[j] - EA_tension[j-1])/(EA_strain[j] - EA_strain[j-1]));
+            return k;
+        }
     };
 
     class mooring_qs : public load
@@ -194,6 +228,11 @@ namespace coral
                      int nseg, double z_seabed=-1.0e30);
         // sub-step of the explicit scheme (0: automatic, the smallest stable step of the lines and points)
         void set_dt_line(double dt);
+        // current profile (MoorDyn's steady current grid): the velocities u at the heights z (increasing), linear
+        // in z, the end values outside; added to the uniform current of the constructor
+        void set_current_profile(const std::vector<double> &z, const std::vector<Vec3> &u);
+        // the current at the height z
+        Vec3 current_at(double z) const;
         // the seabed of the lines and points that have one (a flat height above -1e30) is the surface (plane,
         // grid) instead of their flat heights; fluid_bed: the bed of the resolved fluid at the nodes where the
         // wave kinematics know it (wave_kinematics::bed_at), else the surface or the flat height (the lines and
@@ -206,6 +245,10 @@ namespace coral
         void set_point_flat(int j) {points_[j].surf = points_[j].fbed = false;}
         // failure of line k (checked at each converged step; channel <line>_broken)
         void set_break(int k, const mooring_break &b) {lines_[k].brk = b; lines_[k].has_break = true;}
+        // output of line k at its nodes (MoorDyn's line outputs): 'p' the node positions (channels <line>_n<i>_x, _y,
+        // _z, i = 0 .. N), 't' the segment tensions with the axial damping (<line>_T<j>, j = 0 .. N-1, from end a)
+        void set_line_outputs(int k, const std::string &flags) {lines_[k].out_p = flags.find('p') != std::string::npos;
+                                                                 lines_[k].out_t = flags.find('t') != std::string::npos;}
         bool line_broken(int k) const {return lines_[k].broken >= 0;}
         double line_break_time(int k) const {return lines_[k].t_broken;}
 
@@ -271,6 +314,7 @@ namespace coral
             double dt = 0.0;
             mooring_break brk;
             bool has_break = false;
+            bool out_p = false, out_t = false;     // node outputs: positions, segment tensions
             int broken = -1;           // the end that let go, -1: intact
             double t_broken = std::numeric_limits<double>::quiet_NaN();
             std::vector<Vec3> Tc;      // converged segment tensions
@@ -349,6 +393,8 @@ namespace coral
         std::string name_;
         std::shared_ptr<const wave_kinematics> waves_;
         Vec3 current_;
+        std::vector<double> cz_;       // current profile: heights and velocities
+        std::vector<Vec3> cu_;
         Vec3 g_;
         double dt_ = 0.0, dt_set_ = 0.0;
         std::shared_ptr<const seabed_surface> sb_;

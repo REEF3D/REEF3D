@@ -21,6 +21,7 @@ Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"cfd_amr.h"
+#include"reef3d_mpmd.h"
 #include<map>
 #include<tuple>
 #include"lexer.h"
@@ -468,7 +469,7 @@ void cfd_amr::pr_setup()
         for(const cfd_amr_lmg &M : lmg)
         if(!M.ovm.empty())
         any = 1;
-        MPI_Allreduce(MPI_IN_PLACE,&any,1,MPI_INT,MPI_MAX,MPI_COMM_WORLD);
+        MPI_Allreduce(MPI_IN_PLACE,&any,1,MPI_INT,MPI_MAX,reef3d_comm());
         pr_ovl = (any>0);
     }
 
@@ -1871,7 +1872,7 @@ double cfd_amr::pr_dot(int ka, int kb)
         for(int qq : UQ(g))
         s += a[qq]*b[qq];
     }
-    MPI_Allreduce(MPI_IN_PLACE,&s,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+    MPI_Allreduce(MPI_IN_PLACE,&s,1,MPI_DOUBLE,MPI_SUM,reef3d_comm());
     return s;
 }
 
@@ -2718,7 +2719,7 @@ void cfd_amr::pr_level(lexer *p, ghostcell *pgc, int l, int s)
         }
     }
     if(ncomp>0)
-    MPI_Allreduce(MPI_IN_PLACE,cs.data(),3*ncomp,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+    MPI_Allreduce(MPI_IN_PLACE,cs.data(),3*ncomp,MPI_DOUBLE,MPI_SUM,reef3d_comm());
 
     vector<char> closed(ncomp,0);
     for(int m=0; m<ncomp; ++m)
@@ -2761,7 +2762,7 @@ void cfd_amr::pr_level(lexer *p, ghostcell *pgc, int l, int s)
         }
     }
     if(ncomp>0)
-    MPI_Allreduce(MPI_IN_PLACE,cs.data(),3*ncomp,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+    MPI_Allreduce(MPI_IN_PLACE,cs.data(),3*ncomp,MPI_DOUBLE,MPI_SUM,reef3d_comm());
     for(int id : lev[l])
     {
         cfd_amr_patch *c = CP(id);

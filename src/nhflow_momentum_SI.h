@@ -31,6 +31,7 @@ Author: Hans Bihs
 #include<fstream>
 
 class si_eta2D;
+class nhflow_tracer_SI;
 class solver2D;
 class wind;
 class met_forcing;
@@ -124,6 +125,12 @@ public:
     bool patch;             // a block 1.. of a multi-block grid (no log file, no global output)
 
     friend class nhflow_amr;
+    friend class nhflow_tracer_SI;
+
+    // tracers (A 600): salinity, temperature (nhflow_tracer_SI), after the momentum step
+    nhflow_tracer_SI *ptrc = nullptr;
+    bool trc_mask = false;
+    void tracer_step(lexer*, fdm_nhf*, ghostcell*);
 
     // the stage interface of the mesh refinement (nhflow_amr) is not used: one theta step
     int stages() const override final { return 1; }
@@ -156,9 +163,11 @@ public:
         fd("si_VHb",'C',VHb); fd("si_WHb",'C',WHb); fd("si_UHp",'C',UHp); fd("si_VHp",'C',VHp);
         fd("si_WHp",'C',WHp); fd("si_UHD",'C',UHD); fd("si_VHD",'C',VHD); fd("si_WHD",'C',WHD);
         fd("si_dUH",'C',dUH); fd("si_dVH",'C',dVH);
+        tracer_ckpt_fields(fd);
     }
     void ckpt_restored() override { qini = true; }   // the face discharges of the checkpoint
     double* stage_UH(fdm_nhf*,int,int) override final;
+    void tracer_ckpt_fields(const std::function<void(const char*, char, double*)> &fd);
 
 private:
     // open boundary face of a domain edge
@@ -185,6 +194,7 @@ private:
 
     void face_depth(lexer*, fdm_nhf*, ghostcell*);
     void friction(lexer*, fdm_nhf*);
+    void eddy_algebraic(lexer*, fdm_nhf*);     // A 547: parabolic eddy viscosity from the bed friction velocity
     void bc_setup(lexer*, fdm_nhf*, ghostcell*);
     void bc_method(lexer*);
     void stage_arrays(int, double*&, double*&, double*&, double*&, double*&, double*&, double&);
@@ -253,6 +263,10 @@ private:
 
     // water depth at the end of the step, the start of the next (see start); boundary copies
     slice4 WLk, etaB, WLb;
+
+    // SEASTATE vortex force (A 751 2): the Stokes mass source -div(M) of the step [m/s], in rhsW and eta_update
+    slice4 wsrc;
+    bool mass_source = false;
 
     // layer face discharges: prognostic Q^{n+1}, Q^n, layer transport of the step (theta weighted),
     // column parts Q~ = A^-1 (I - dt L_v) Q^ and r = A^-1 1

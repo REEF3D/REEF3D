@@ -342,3 +342,11 @@ int wave_interface::decomp_ncomp(lexer *p)
     
     return decomp_L + pfield->decomp_build(p);
 }
+
+double wave_interface::decomp_dir(lexer *p, int n)
+{
+    if(n<decomp_L)
+    return pwave->wave_comp_dir(n);
+    
+    return pfield->decomp_dir(n-decomp_L);
+}

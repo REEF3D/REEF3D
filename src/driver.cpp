@@ -35,6 +35,8 @@ Author: Hans Bihs
 #include"seastate_f.h"
 #include"met_provider.h"
 #include"cfd_amr.h"
+#include"reefcouple.h"
+#include"seastate_remote.h"
 #include"coral/reef3d/coral_reef3d.h"
 #include"coral/reef3d/coral_fluid_sampler.h"
 
@@ -56,6 +58,13 @@ driver::driver(int& argc, char **argv)
     pgc->mpi_check(p);
     
 	p->lexer_read(pgc);
+    
+    // coupled run (several models in one MPI job): roles and intercommunicators
+    reefcouple::roles(p,pgc);
+
+    // SEASTATE remote waves (A 750 2): host and wave model
+    seastate_remote::roles(p,pgc);
+    
     p->vellast();
 
     // I 45 <count>: the restart from REEF3D_Checkpoint/<count> instead of the latest
@@ -191,6 +200,14 @@ void driver::seastate_driver()
     p->flagini2D();
     p->gridini2D();
     pgc->sizeS_update(p);
+
+    // remote waves (A 750 2): driven by the host model of the MPI job (seastate_remote)
+    if(p->A750==2)
+    {
+    seastate_remote_wave *pr = new seastate_remote_wave(p);
+    pr->run(p,pgc);
+    return;
+    }
 
     pseastate = new seastate_f(p,pgc);
 

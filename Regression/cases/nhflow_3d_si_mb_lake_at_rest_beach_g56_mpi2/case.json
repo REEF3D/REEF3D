@@ -1,0 +1,11 @@
+{
+ "np": 2,
+ "steps": 40,
+ "tags": ["3d", "nhflow", "semi_implicit", "curvilinear", "multiblock", "wetdry", "mpi"],
+ "description": "nhflow_3d_si_mb_lake_at_rest_beach on 2 ranks with G 56 0.5 0: the load of the dry beach cells (bed above F 60) counts half in the placement of the block. The lake stays at rest (velocities zero).",
+ "covers": [
+  "geo_mesh::cell_load, the native boxes weighted by their bed (lexer::curv_node) in reefamr::blocks_setup"
+ ],
+ "solver": "nhflow",
+ "files": ["blocks.dat"]
+}

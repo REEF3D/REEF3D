@@ -1,0 +1,14 @@
+{
+ "base": "seastate_2d_phase14_wind_field",
+ "ctrl_set": {
+  "A 732": "3"
+ },
+ "description": "seastate_2d_phase14_wind_field (wind field in space and time, boundary spectra, one rank, nonstationary 3 h) with A 732 3 (Phase 20): the reference of seastate_2d_phase20_st4_windfield_mpi2. Validation in Dropbox SEASTATE/validation/69_ardhuin_st4.",
+ "tags": [
+  "2d",
+  "seastate"
+ ],
+ "covers": [
+  "seastate_st4 with the wind field per cell, nonstationary, one rank"
+ ]
+}

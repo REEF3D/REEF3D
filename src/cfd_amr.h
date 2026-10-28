@@ -67,6 +67,7 @@ class field3;
 class weno_flux_nug;
 class fluid_update_fsf_heat;
 class force;
+struct cfd_amr_cpm;
 
 using namespace std;
 
@@ -145,7 +146,8 @@ struct cfd_amr_field
 //  cast on every patch at its resolution, cfd_amr_geom.cpp), floating bodies (X 10 1), the
 //  porous structures B 200 1 (vrans_f on every patch, the zones at its cells; CPOR n at the faces of
 //  the patch edges); heat or concentration (H 10 3, C 10 3: transported by the refinement on all
-//  grids in flux form, the patch edges with flux registers, cfd_amr_scalar.cpp); no sediment or
+//  grids in flux form, the patch edges with flux registers, cfd_amr_scalar.cpp); sediment with CPM (S 10 1, Q 10 1) on a
+//  grid of the finest level over the boxes G 15 (static refinement, cfd_amr_cpm.cpp), no other sediment model, no
 //  vegetation; the convection schemes D 10
 //  0-8, 10-16, 60 and F 35 1-8, 10-16, the diffusion D 20 0-3; the relaxation zones of the wave
 //  generation and the beach (B 98 2, B 99 1/2) with a wave theory on the patches as on level 0
@@ -325,6 +327,12 @@ public:
     // subcycling (cfd_amr_sub.cpp)
     void step_sub(lexer*, fdm*, ghostcell*, vrans*, sixdof*);
 
+    // CPM on the refinement (cfd_amr_cpm.cpp): the sediment step on the grid of CPM, before the fluid step;
+    // cpm_why: what the run needs for it (nullptr: covered)
+    void cpm_step(lexer*, fdm*, ghostcell*);
+    static const char* cpm_why(lexer*);
+    bool cpm_on() const { return cpm!=nullptr; }
+
     // heat (H 10) or concentration (C 10) on all grids (cfd_amr_scalar.cpp): the driver's objects
     // of level 0 (before ini); true: the refinement transports the scalar on all grids (the driver
     // leaves its step out)
@@ -428,6 +436,14 @@ private:
     void patch_fields_ini(int id);
     void free_patch(cfd_amr_patch*);
 
+    // CPM on the grid of the finest level over the boxes G 15 (cfd_amr_cpm.cpp)
+    cfd_amr_cpm *cpm = nullptr;
+    void cpm_setup(lexer*, fdm*, ghostcell*);
+    void cpm_plans();
+    void cpm_pull(bool ini);
+    void cpm_push();
+    void cpm_bed(lexer*, fdm*);
+
     // the registry of the patch state (cfd_amr_fields.cpp)
     vector<cfd_amr_field> reg;
     void register_fields();
@@ -530,11 +546,10 @@ private:
     int bodies = 0;
     // G 7 1: the finest level advances the bodies (amr_stage_cfd, the loads after each of its
     // stages on the finest grid); the coarser levels step with a predicted copy (amr_save,
-    // amr_restore); bfin counts the finest steps within the level-0 step
+    // amr_restore)
     void body_stage(int l, int s, double t, double dt);
     void body_loads(int s, double t, bool fin);
     void body_end();
-    int bfin = 0;
     int patch_forcing() const { return bodies ? 1 : (solids ? 2 : 0); }
     field& kfield(int g, int m);        // kin (m 0), eps (m 1) of the turbulence model of grid g
     void turb_step(int l);              // the turbulence model on the patches of level l (cells around filled)
@@ -543,6 +558,7 @@ private:
     // composite pressure
     vector<cfd_amr_cf> cf;
     vector<int> row0;                   // level-0 rows
+    vector<char> cover0;                // G 7 1 with bodies: the level-0 cells under the patches (sixdof_obj_cfd::amr_cover)
     vector<vector<int>> lq, lr, cq;     // [g+1] leaf cells: index, row; covered cells
     vector<vector<int>> aq, ar;         // [g+1] all cells with a row: index, row (level projection)
     int prl = -1;                       // the projection: -1 composite, l level l alone (G 7 1)
@@ -638,7 +654,6 @@ private:
     int scal = 0;                       // 0 none, 1 heat T (H 10), 2 concentration C (C 10)
     int cav = 0;                        // cavitation (W 60): the vapour fraction on all grids (cfd_amr_cav.cpp)
     field& cfield(int g);               // the vapour fraction of grid g
-    vector<double> print_wt;            // print: next output time of every P 35 window (as printer_CFD)
     int sc_conv = 0;                    // convection H 15 / C 15: 0 none, 1 first-order upwind, 4 WENO (weno_flux_nug)
     int sc_diff = 0;                    // D 20: 0 none, 1 explicit, 2 implicit
     double sc_sig = 1.0;                // the turbulent Prandtl (Schmidt) number of the eddy viscosity
@@ -673,6 +688,10 @@ private:
     void sc_reset(int lfine);
     void sc_record_shadows(double w, bool diff);    // G 40: the coarse fluxes of level 0 at the level-1 edges
     double sc_total(double &smin, double &smax);
+
+    // the output of the patches in the time windows P 35 (cfd_amr_print.cpp): the next output time of
+    // every window, as printer_CFD::printtime_wT
+    vector<double> p35_next;
 };
 
 #endif

@@ -1,0 +1,24 @@
+{
+ "base": "cfd_2d_cpm_bedload_layer",
+ "ctrl_set": {
+  "G 1": "1",
+  "Q 29": "1",
+  "Q 58": "3",
+  "W 20": "10.0",
+  "Q 65": "20.0"
+ },
+ "ctrl_add": [
+  "G 15 0.0 0.1 -1.0 1.0 0.0 0.03",
+  "Q 85 0.0 0.1 -1.0 1.0 0.0 0.05"
+ ],
+ "steps": 200,
+ "description": "cfd_2d_cpm_bedload_layer_hyb on the CFD mesh refinement: the hybrid suspension (Q 58 3) on the grid of CPM over the whole depth (Q 85; the bed region refined by G 15, the water above interpolated from level 0), its concentration step with BiCGStab on that grid",
+ "covers": [
+  "the Eulerian suspension of the layer on the grid of CPM (sediment_part::start_susp, its solver)"
+ ],
+ "tags": [
+  "2d",
+  "cpm",
+  "amr"
+ ]
+}

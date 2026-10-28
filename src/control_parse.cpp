@@ -32,6 +32,10 @@ void control::parse(lexer* p)
         I45=1;
     }
 
+    // I 30 2 (masked full initialization) is FNPF only: the other models use I 30 1
+    if(I30==2 && A10!=3)
+    I30=1;
+
     if(B98==1)
     B98=2;
     
@@ -92,6 +96,8 @@ void control::parse(lexer* p)
     if(S10>=1 || p->toporead==1)
     P27=1;
     
-    if(A550>1 || A560>0)
+    // A 550 1, 3, 4: the breaking viscosity acts through the implicit diffusion (before A550>1, so that
+    // A 550 1 without A 512 2 computed vb but never used it)
+    if(A550==1 || A550>=3 || A560>0)
     A512=2;
 }

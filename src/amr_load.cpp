@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"amr_load.h"
+#include"reef3d_mpmd.h"
 #include"lexer.h"
 #include"reefckpt.h"
 #include<mpi.h>
@@ -99,10 +100,10 @@ double amr_window_imbalance()
     open = true;
 
     double mx=0.0, sm=0.0;
-    MPI_Allreduce(&busy,&mx,1,MPI_DOUBLE,MPI_MAX,MPI_COMM_WORLD);
-    MPI_Allreduce(&busy,&sm,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+    MPI_Allreduce(&busy,&mx,1,MPI_DOUBLE,MPI_MAX,reef3d_comm());
+    MPI_Allreduce(&busy,&sm,1,MPI_DOUBLE,MPI_SUM,reef3d_comm());
     int np=1;
-    MPI_Comm_size(MPI_COMM_WORLD,&np);
+    MPI_Comm_size(reef3d_comm(),&np);
 
     w0 = MPI_Wtime();
     m0 = amr_clock::mpi;
@@ -171,7 +172,7 @@ void amr_load::report(lexer *p, const amr_load_counts &c, int nsteps)
     const int nr = p->mpi_size;
     const int me = p->mpirank;
     vector<double> all(me==0 ? (size_t)NV*nr : 1);
-    MPI_Gather(d,NV,MPI_DOUBLE,&all[0],NV,MPI_DOUBLE,0,MPI_COMM_WORLD);
+    MPI_Gather(d,NV,MPI_DOUBLE,&all[0],NV,MPI_DOUBLE,0,reef3d_comm());
 
     if(me!=0)
     return;

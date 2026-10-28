@@ -1,0 +1,24 @@
+{
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 200,
+ "files": [
+  "blocks.dat"
+ ],
+ "tags": [
+  "3d",
+  "nhflow",
+  "curvilinear",
+  "multiblock",
+  "waves",
+  "iowave",
+  "quick"
+ ],
+ "description": "Relaxation and beach zones on the faces of the blocks (B 520 methods 1, 2 with B 522): a straight channel of three blocks, a 2 m relaxation zone generating linear waves (B 92 2, 2 cm, 1.5 s; B 90 1, B 98 2) on the +i face of block 1 at x = 0 (the block is turned so that it is its -i face), a 3 m beach on the -i face of block 2 at x = 14.4. The same solution as the zones on the x- and x+ edges of one block (iowave): 1.6e-6 m after 6 s (Dropbox validation 07_block_zones).",
+ "covers": [
+  "ioflow_amr_block: open_zones, zones_build, WL_relax, U_relax, V_relax, W_relax, P_relax, zones_ini",
+  "ioflow_amr_block::wave_on, the wave members of the block's lexer (wave_in, wave_out)",
+  "nhflow_amr::patch_objects: B 98 2 on the -i face of a block with a relaxation zone",
+  "reefamr::blocks_open, blocks_refine_setup: the zones of the blocks"
+ ]
+}
