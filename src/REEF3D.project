@@ -296,6 +296,7 @@
             <File Name="levelset_void.h"/>
             <File Name="levelset_RK3.h"/>
             <File Name="levelset_RK2.h"/>
+            <File Name="levelset_solid_extend.h"/>
             <VirtualDirectory Name="Picard">
               <File Name="picard_void.h"/>
               <File Name="picard_lsm.h"/>
@@ -1970,6 +1971,7 @@
             <File Name="levelset_void.cpp"/>
             <File Name="levelset_RK3.cpp"/>
             <File Name="levelset_RK2.cpp"/>
+            <File Name="levelset_solid_extend.cpp"/>
             <VirtualDirectory Name="Picard">
               <File Name="picard_void.cpp"/>
               <File Name="picard_lsm.cpp"/>
