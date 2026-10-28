@@ -1,0 +1,20 @@
+{
+ "base": "sflow_2d_amr_ship",
+ "np": 2,
+ "ctrl_add": [
+  "G 40 2"
+ ],
+ "description": "sflow_2d_amr_ship on 2 ranks, placement test mode (G 40 2): small pieces placed anew at every regrid away from the rank below, the level set of the body from the other rank.",
+ "tags": [
+  "2d",
+  "sflow",
+  "amr",
+  "ship",
+  "6dof",
+  "mpi",
+  "place"
+ ],
+ "covers": [
+  "sflow_amr::ship_fs_exchange, fs0_place (G 40 2)"
+ ]
+}

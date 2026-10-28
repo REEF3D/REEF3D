@@ -1,0 +1,20 @@
+{
+ "base": "sflow_2d_amr_ship",
+ "np": 2,
+ "ctrl_add": [
+  "G 40 1"
+ ],
+ "description": "sflow_2d_amr_ship on 2 ranks with the patches placed for the load (G 40 1): the level-0 level set of the body below a patch from the rank that holds it (ship_fs_exchange).",
+ "tags": [
+  "2d",
+  "sflow",
+  "amr",
+  "ship",
+  "6dof",
+  "mpi",
+  "place"
+ ],
+ "covers": [
+  "sflow_amr::ship_fs_exchange, fs0_place (G 40 1)"
+ ]
+}
