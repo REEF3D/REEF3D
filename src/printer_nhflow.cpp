@@ -203,6 +203,7 @@ void printer_nhflow::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, 
     if(p->P66>0)
     pveltheo->start(p,d,pgc,pflow);
 
+    if(pfsf!=nullptr)
     pfsf->preproc(p,d,pgc);
 
     if(p->P186>0)
@@ -250,7 +251,7 @@ void printer_nhflow::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, 
     }
 
 
-    if((p->simtime>p->fsfprinttime && p->P182>0.0 && p->P183<0.0 && p->P180==1) || (p->count==0 && p->P182>0.0))
+    if((p->simtime>p->fsfprinttime && p->P182>0.0 && p->P183<0.0 && p->P180==1) || (p->count==0 && p->P182>0.0 && p->P180==1))
     {
         pfsf->start(p,d,pgc,psed,pnhfturb);
 

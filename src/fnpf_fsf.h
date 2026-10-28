@@ -39,6 +39,9 @@ class ioflow;
 class fnpf_fsf 
 {
 public:
+    // deleted through fnpf_fsf* (fnpf_amr): without a virtual destructor the derived destructors (fnpf_breaking: the
+    // crest tracking) did not run
+    virtual ~fnpf_fsf() {}
    
     virtual void fsfdisc(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&)=0;
     virtual void fsfdisc_ini(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&)=0;

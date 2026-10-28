@@ -463,9 +463,10 @@ void ioflow_v::pressure_io(lexer *p, fdm *a, ghostcell* pgc)
 
 void ioflow_v::u_relax(lexer *p, fdm *a, ghostcell *pgc, field &uvel)
 {
-	double epsi,H,fbval;
+	double H;
     double dist;
-    double cosb,sinb;
+    double cosb;
+    const double epsi = 2.0*p->DXM; // was uninitialised: zone radius of two cells (W 41 has no radius)
 
     for(int qn=0; qn<p->W41; ++qn)
     {
@@ -479,7 +480,7 @@ void ioflow_v::u_relax(lexer *p, fdm *a, ghostcell *pgc, field &uvel)
             
         
             if(0.5*(a->phi(i,j,k)+a->phi(i+1,j,k))>0.0)
-            a->u(i,j,k) = H*a->u(i,j,k) + (1.0-H)*p->W41_vel[qn]*cosb;
+            uvel(i,j,k) = H*uvel(i,j,k) + (1.0-H)*p->W41_vel[qn]*cosb;
         }
     }
     
@@ -487,9 +488,10 @@ void ioflow_v::u_relax(lexer *p, fdm *a, ghostcell *pgc, field &uvel)
 
 void ioflow_v::v_relax(lexer *p, fdm *a, ghostcell *pgc, field &vvel)
 {
-	double epsi,H,fbval;
+	double H;
     double dist;
-    double cosb,sinb;
+    double sinb;
+    const double epsi = 2.0*p->DXM; // was uninitialised: zone radius of two cells (W 41 has no radius)
     
     for(int qn=0; qn<p->W41; ++qn)
     {
@@ -503,7 +505,7 @@ void ioflow_v::v_relax(lexer *p, fdm *a, ghostcell *pgc, field &vvel)
             
         
             if(0.5*(a->phi(i,j,k)+a->phi(i,j+1,k))>0.0)
-            a->v(i,j,k) = H*a->v(i,j,k) + (1.0-H)*p->W41_vel[qn]*sinb;
+            vvel(i,j,k) = H*vvel(i,j,k) + (1.0-H)*p->W41_vel[qn]*sinb;
         }
     }
 }

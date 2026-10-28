@@ -106,9 +106,9 @@ double wave_lib_flap_eta::wave_eta(lexer *p, double x, double y)
 
 double wave_lib_flap_eta::wave_fi(lexer *p, double x, double y, double z)
 {
-    double fi;
-    
-    return fi;
+    // no potential: the wavemaker signal is a time series at the paddle for the Dirichlet generation (B 98 3, 4).
+    // Before, an uninitialised value was returned (used by the FNPF relaxation zone, B 98 2, and fullini)
+    return 0.0;
 }
 
 void wave_lib_flap_eta::parameters(lexer *p, ghostcell *pgc)

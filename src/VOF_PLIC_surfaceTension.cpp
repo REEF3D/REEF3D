@@ -170,7 +170,7 @@ void VOF_PLIC::surface_tension2D(lexer* p,fdm* a,ghostcell*pgc,int gcval)
                 }
                 if(nz_loc != nz_loc)
                     cout<<"nzLoc_NAN"<<endl;
-                a->rhsvec.V[n]-=(calccurv*p->W5*(-nz_loc))/(0.5*(a->ro(i,j,k)+a->ro(k+1,j,k)));
+                a->rhsvec.V[n]-=(calccurv*p->W5*(-nz_loc))/(0.5*(a->ro(i,j,k)+a->ro(i,j,k+1)));
             }
             ++n;
         }

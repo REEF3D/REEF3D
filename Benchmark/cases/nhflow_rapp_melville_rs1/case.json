@@ -1,0 +1,23 @@
+{
+ "base": "nhflow_rapp_melville_rp1",
+ "description": "Focused wave packet RS1 (spilling) of Rapp & Melville (1990), S = 0.278, in the set-up of Derakhti & Kirby (2016): depth 0.6 m, f_c = 0.88 Hz, df/f_c = 0.73, 32 components of constant amplitude, linear focus x = 8.5 m, t = 20.5 s (B 92 51, relaxation zone 2 m, beach 6 m, flume 30 m, dx 0.02 m, 16 layers), NHFLOW with A 550 4. Energy loss = 1 - <int eta^2 dt> over x = 10.5-12.5 m / over x = 4.5-6.5 m.",
+ "generate": {
+  "script": "rapp_melville_waverecon.py",
+  "args": [
+   0.278
+  ]
+ },
+ "check": {
+  "type": "packet_energy_loss",
+  "up": [
+   4.5,
+   6.5
+  ],
+  "down": [
+   10.5,
+   12.5
+  ],
+  "loss_ref": 0.14,
+  "tol": 0.07
+ }
+}

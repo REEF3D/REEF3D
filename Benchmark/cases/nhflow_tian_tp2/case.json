@@ -1,0 +1,52 @@
+{
+ "description": "Deep-water focused wave packet TP2 (plunging) of Tian, Perlin & Choi (2010), S = 0.576, in the set-up of Derakhti & Kirby (2016): depth 0.62 m (k_c d = 7.2), f_c = 1.7 Hz, df/f_c = 0.824, 128 components of constant steepness a_i = S/(k_i N), linear focus x = 7.0 m, t = 25.0 s (B 92 51, relaxation zone 1.2 m, beach 4 m, flume 16 m, dx 0.01 m, 20 layers), NHFLOW with A 550 4. Energy loss = 1 - <int eta^2 dt> over x = 9-11 m / over x = 2.5-4.5 m. Deep water is where the crest tracking of A 550 4 starts the events (deta/dt stays below A 554 sqrt(g h)); with the band of A 502 h instead of A 502 L_k the loss was 42.8 %. The nightly grid (dx 0.02 m, 10 layers) does not reach B = A 359 (loss 22.6 % from the scheme alone).",
+ "reference": {
+  "short": "Tian et al. (2010); Derakhti & Kirby (2016)",
+  "citation": "Tian, Z., Perlin, M. & Choi, W. (2010) Energy dissipation in two-dimensional unsteady plunging breakers and an eddy viscosity model. J. Fluid Mech. 655, 217-257; packets and LES losses of Derakhti, M. & Kirby, J.T. (2016) J. Fluid Mech. 790, 553-581, Tables 1-2, see refdata/waves/tian_deep/setup.txt"
+ },
+ "tags": [
+  "nhflow",
+  "experiment",
+  "2dv",
+  "breaking",
+  "deep-water"
+ ],
+ "np": 1,
+ "time": 36.0,
+ "generate": {
+  "script": "tian_waverecon.py",
+  "args": [
+   0.576
+  ]
+ },
+ "check": {
+  "type": "packet_energy_loss",
+  "up": [
+   2.5,
+   4.5
+  ],
+  "down": [
+   9.0,
+   11.0
+  ],
+  "loss_ref": 0.25,
+  "tol": 0.05
+ },
+ "levels": {
+  "nightly": {
+   "np": 1,
+   "control_set": {
+    "B 2": "800 1 10",
+    "B 10": "0.0 16 0.0 0.02 0.0 0.9",
+    "M 10": "1"
+   },
+   "ctrl_set": {
+    "M 10": "1"
+   },
+   "check_set": {
+    "tol": 0.07
+   }
+  },
+  "release": {}
+ }
+}

@@ -1,0 +1,19 @@
+{
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 100,
+ "files": [
+  "blocks.dat"
+ ],
+ "tags": [
+  "3d",
+  "nhflow",
+  "curvilinear",
+  "multiblock",
+  "tide"
+ ],
+ "description": "The tide along the side y = 0 of the multi-block channel as Riemann edges, non-hydrostatic: the native y- edge of block 0 and B 522 zones on the +j faces of blocks 1 and 2 (turned, so that the faces become +i faces); hydrostatic the same as one block to 3e-16 m, non-hydrostatic 1e-5 m of 4e-3 m, because the native y edges keep a zero-gradient non-hydrostatic pressure and the i faces p = 0 (nhflow_poisson) (validation/13_j_face_zones).",
+ "covers": [
+  "iowave edges of block 0 (B 520 on block 0 of an R 20 1 grid, B 90 1) next to the j-face edges of the blocks"
+ ]
+}

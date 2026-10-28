@@ -1,0 +1,21 @@
+{
+ "solver": "nhflow",
+ "np": 2,
+ "steps": 100,
+ "files": [
+  "blocks.dat"
+ ],
+ "tags": [
+  "3d",
+  "nhflow",
+  "curvilinear",
+  "multiblock",
+  "turbulence",
+  "tide",
+  "mpi"
+ ],
+ "description": "k-omega with the edge zones of nhflow_3d_mb_j_edges_g55_mpi2 (a Riemann edge with a 5 mm tide on the +j face of block 1, a Flather edge on the -j face of block 2, turned blocks cut into pieces on two ranks); the faces on -i / +i of the whole blocks to 3e-14 m (Dropbox Tagus_NHFLOW_multiblock/validation/10_block_turbulence).",
+ "covers": [
+  "nhflow_amr::turb_composite0 with edge zones on the blocks"
+ ]
+}

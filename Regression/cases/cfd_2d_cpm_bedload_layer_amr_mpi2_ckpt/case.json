@@ -1,0 +1,20 @@
+{
+ "base": "cfd_2d_cpm_bedload_layer_amr_mpi2",
+ "np": 2,
+ "steps": 150,
+ "ctrl_set": {
+  "P 48": "50",
+  "P 49": "0"
+ },
+ "description": "cfd_2d_cpm_bedload_layer_amr_mpi2 with a checkpoint every 50 steps, all kept (P 48 50, P 49 0): the uninterrupted run of cfd_2d_cpm_bedload_layer_amr_mpi2_restart",
+ "covers": [
+  "cfd_amr::cpm_ckpt_write: the arrays of the grid of CPM with its pieces, its sediment objects and parcels"
+ ],
+ "tags": [
+  "2d",
+  "cpm",
+  "amr",
+  "mpi",
+  "checkpoint"
+ ]
+}

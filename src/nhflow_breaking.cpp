@@ -192,7 +192,7 @@ void nhflow_breaking::breaking_kennedy(lexer *p, fdm_nhf *d, ghostcell *pgc, sli
         }
     }
     
-    // spread over the band of A 502 h: bd is the width in cells, by marks the band columns
+    // spread over the band of A 502 h (A 550 4: A 502 L_k of the event): bd is the largest width in cells
     int nband=0;
     
     SLICELOOP4
@@ -223,7 +223,12 @@ void nhflow_breaking::breaking_kennedy(lexer *p, fdm_nhf *d, ghostcell *pgc, sli
     
         if(qn<bd(i,j))
         {
-        auto take = [&](int ii, int jj) { if(d->vb(ii,jj)>brkvb(i,j)) { brkvb(i,j) = d->vb(ii,jj); bt_vbs(i,j) = d->vbk(ii,jj); } };
+        // A 550 4: the band of an event is A 502 L_k wide, L_k = tanh(k h)/k with the wavenumber k of the event
+        // carried with vb (<= h; with A 502 h in deep water the band reached over the next crest and trough)
+        const double hb = MAX(WL(i,j),0.0);
+        const double dxb = (p->j_dir==1) ? MIN(p->DXN[IP],p->DYN[JP]) : p->DXN[IP];
+        auto inband = [&](double kv) { return !(seeded && kv>0.0) || qn < int(ceil(p->A502*tanh(kv*hb)/kv/dxb - 1.0e-9)); };
+        auto take = [&](int ii, int jj) { if(d->vb(ii,jj)>brkvb(i,j) && inband(d->vbk(ii,jj))) { brkvb(i,j) = d->vb(ii,jj); bt_vbs(i,j) = d->vbk(ii,jj); } };
         take(i-1,j);
         take(i+1,j);
         

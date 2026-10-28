@@ -1,0 +1,47 @@
+{
+ "description": "Focused wave packet RP1 (plunging) of Rapp & Melville (1990), S = 0.352, in the set-up of Derakhti & Kirby (2016): depth 0.6 m, f_c = 0.88 Hz, df/f_c = 0.73, 32 components of constant amplitude, linear focus x = 8.5 m, t = 20.5 s (B 92 51, relaxation zone 2 m, beach 6 m, flume 30 m, dx 0.02 m, 16 layers), FNPF with A 350 4. Energy loss = 1 - <int eta^2 dt> over x = 10.5-12.5 m / over x = 4.5-6.5 m.",
+ "reference": {
+  "short": "Rapp & Melville (1990); Derakhti & Kirby (2016)",
+  "citation": "Rapp, R.J. & Melville, W.K. (1990) Laboratory measurements of deep-water breaking waves. Phil. Trans. R. Soc. Lond. A 331, 735-800; packets and LES losses of Derakhti, M. & Kirby, J.T. (2016) J. Fluid Mech. 790, 553-581, Tables 1-2, see refdata/waves/rapp_melville/setup.txt"
+ },
+ "tags": [
+  "fnpf",
+  "experiment",
+  "2dv",
+  "breaking",
+  "deep-water"
+ ],
+ "np": 2,
+ "time": 40.0,
+ "generate": {
+  "script": "rapp_melville_waverecon.py",
+  "args": [
+   0.352
+  ]
+ },
+ "check": {
+  "type": "packet_energy_loss",
+  "up": [
+   4.5,
+   6.5
+  ],
+  "down": [
+   10.5,
+   12.5
+  ],
+  "loss_ref": 0.289,
+  "tol": 0.07
+ },
+ "levels": {
+  "nightly": {
+   "np": 1,
+   "control_set": {
+    "M 10": "1"
+   },
+   "ctrl_set": {
+    "M 10": "1"
+   }
+  },
+  "release": {}
+ }
+}

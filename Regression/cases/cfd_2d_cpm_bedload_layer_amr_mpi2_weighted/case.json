@@ -1,0 +1,17 @@
+{
+ "base": "cfd_2d_cpm_bedload_layer_amr_mpi2",
+ "np": 2,
+ "control_add": [
+  "T 10 -0.1 0.05 -0.1 0.1 -0.1 0.025"
+ ],
+ "description": "cfd_2d_cpm_bedload_layer_amr_mpi2 with a bed of 2.5 cm on the first half and 2 cm on the second: the grid of CPM decomposed by the weighted partition of dmpart (M 20 5 with the weights of its cells, 1 + 0.25 per parcel of the bed of level 0), its cut moved towards the thick bed (cfd_amr::cpm_weights, dmpart::build_mem with the weights)",
+ "covers": [
+  "cfd_amr::cpm_weights, dmpart::build_mem and decomp::partition_weighted with the weights of the cells (lexer::Wcell)"
+ ],
+ "tags": [
+  "2d",
+  "cpm",
+  "amr",
+  "mpi"
+ ]
+}

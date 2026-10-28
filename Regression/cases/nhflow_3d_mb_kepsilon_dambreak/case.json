@@ -1,0 +1,21 @@
+{
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 60,
+ "files": [
+  "blocks.dat"
+ ],
+ "tags": [
+  "3d",
+  "nhflow",
+  "curvilinear",
+  "multiblock",
+  "turbulence",
+  "quick"
+ ],
+ "description": "nhflow_3d_mb_komega_dambreak with k-epsilon (A 560 1): the composite k and epsilon systems over the blocks; one block to 1e-14 m after 0.5 s (Dropbox Tagus_NHFLOW_multiblock/validation/10_block_turbulence).",
+ "covers": [
+  "nhflow_kepsilon_IM1::start_part",
+  "nhflow_amr::turb_composite0"
+ ]
+}

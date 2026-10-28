@@ -30,7 +30,7 @@ Author: Hans Bihs
 void iowave::active_wavegen(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v, field& w)
 {
     int ii;
-    double fac,fac1,epsi,H;
+    double fac,fac1,H;
     double eta_R,Uc,Un,Vc,Wc,eta_T,eta_M,wsf;
     
     
@@ -118,9 +118,11 @@ void iowave::active_wavegen(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v
 
 
                 // inteface H
-                epsi = interface_width(p,a->phi,i,j,k);
+                // the interface width of the cell (before, this local epsi also hid the member iowave::epsi used
+                // for the generation above, where it was read before being set)
+                const double epsi_if = interface_width(p,a->phi,i,j,k);
         
-                H = heaviside(a->phi(i,j,k),epsi);
+                H = heaviside(a->phi(i,j,k),epsi_if);
                 
                 
                 if(z<=eta_M)
@@ -130,14 +132,14 @@ void iowave::active_wavegen(lexer *p, fdm* a, ghostcell* pgc, field& u, field& v
 				u(i-3,j,k)+=Uc;
 				}
 
-				if(z>=eta_M && z<eta_M+epsi)
+				if(z>=eta_M && z<eta_M+epsi_if)
 				{
 				u(i-1,j,k)+=Uc*H*fac1;
 				u(i-2,j,k)+=Uc*H*fac1;
 				u(i-3,j,k)+=Uc*H*fac1;
 				}
 
-				if(z>=eta_M+epsi)
+				if(z>=eta_M+epsi_if)
 				{
 				u(i-1,j,k)+=0.0;
 				u(i-2,j,k)+=0.0;

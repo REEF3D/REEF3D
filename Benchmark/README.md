@@ -27,6 +27,7 @@ plots of verification runs are kept out of the repository (`~/Dropbox/Claude/REE
 | `tools/make_cases.py` | writes `cases/` (documents the gauge lists and geometry; the case files are the source of truth) |
 | `tools/berkhoff_geo.py`, `conical_geo.py`, `thacker_geo.py` | `geo.dat` bathymetries (run automatically by `write`/`run`, `"generate"` in case.json) |
 | `tools/mase_kirby_waverecon.py` | `waverecon.dat` wave components from the measured Mase & Kirby record |
+| `tools/rapp_melville_waverecon.py`, `tian_waverecon.py` | `waverecon.dat` of the focused packets (Rapp & Melville, Tian et al., set-up of Derakhti & Kirby 2016) |
 | `tools/run_suite.sh` | run one level + plots |
 
 ## Two levels
@@ -99,6 +100,11 @@ Return code 0 if all cases pass (or fail as expected, see XFAIL).
 | `sflow_mase_kirby_irregular` | SFLOW | Mase & Kirby (1992) | Hm0 and skewness at 12 gauges on a 1:20 slope | dx 0.04, 150 s | dx 0.02, 420 s |
 | `nhflow_mase_kirby_irregular` | NHFLOW | Mase & Kirby (1992) | Hm0 and skewness at 12 gauges | 362 x 5, 200 s | 725 x 8, 420 s |
 | `fnpf_mase_kirby_irregular` | FNPF | Mase & Kirby (1992) | Hm0 and skewness at 12 gauges | 362 x 8, 200 s | 725 x 10, 420 s |
+| `nhflow_rapp_melville_rn`, `_rs1`, `_rp1`, `_rp2` | NHFLOW A 550 4 | Rapp & Melville (1990), LES of Derakhti & Kirby (2016) | energy loss of the focused packet (RN: none) | 1500 x 16, 40 s | 1500 x 16, 40 s, np 2 |
+| `fnpf_rapp_melville_rn`, `_rs1`, `_rp1`, `_rp2` | FNPF A 350 4 | Rapp & Melville (1990), LES of Derakhti & Kirby (2016) | energy loss of the focused packet (RN: none) | 1500 x 16, 40 s | 1500 x 16, 40 s, np 2 |
+| `nhflow_tian_tp2` | NHFLOW A 550 4 | Tian et al. (2010), LES of Derakhti & Kirby (2016) | energy loss, deep water k d = 7 | 800 x 10, 36 s | 1600 x 20, 36 s |
+| `nhflow_ting_kirby_spilling` (+ `_x3`, `_y`) | NHFLOW A 550 4 | Ting & Kirby (1994) | breaking point; wave height along the flume along y against 3D along x | dx 0.025 x 4, 30 s | 40 s |
+| `fnpf_ting_kirby_spilling` (+ `_x3`, `_y`) | FNPF A 350 4 | Ting & Kirby (1994) | breaking point; wave height along the flume along y against 3D along x | dx 0.025 x 10, 30 s | 40 s |
 | `fnpf_jonswap_spectrum` | FNPF | JONSWAP (DNV-RP-C205) | Hm0, Tp, spectral shape at 3 gauges | 400 x 8, 600 s | 800 x 10, 1100 s |
 | `cfd_sloshing_linear` | CFD | linear sloshing theory | first-mode period | dx 0.02 | dx 0.01 |
 | `nhflow_sloshing_linear` | NHFLOW | linear sloshing theory | first-mode period | 50 x 5 | 100 x 10 |
@@ -132,6 +138,8 @@ smaller initial offset of the sphere for linear theory).
 | `oscillation_period` | sloshing | period from up-crossings vs. linear theory |
 | `thacker1d` | parabolic bowl | exact Thacker depth, rel. L1 |
 | `profiles_abs` | free-surface profiles at physical times | rms(z - z_data)/h_ref per profile |
+| `packet_energy_loss` | focused wave packets | 1 - <int eta^2 dt>_down / <int eta^2 dt>_up over two gauge windows (Derakhti & Kirby 2016, eq. 4.5b) vs. `loss_ref` (or below `loss_max`) |
+| `profile_match` | orientation | mean wave height along the flume against a partner case of the same run (`partner`, `axis`, `partner_axis`), max \|H - H_partner\| / max H |
 
 A case can have `"extra_checks"` (a list of further check dicts, e.g. time series plus run-up);
 all of them must pass.
@@ -356,3 +364,20 @@ run was possible they are provisional (marked).
 
 The 3D CFD cases (and the 2D CFD plunging breaker) need several hours each at the nightly level,
 more than the 2-core sandbox allows; their nightly and release levels are meant for the cluster.
+
+### Breaking cases added with NHFLOW Breaking v5
+
+Nightly level, Linux, 1-2 cores per case. Ting & Kirby rows: hans_dev b19f3cef0 + NHFLOW Breaking patches
+0002-0014. Deep-water rows: f86154267 + 0002-0011 (patches 0012-0014 do not change 2D flumes):
+
+| case | nightly | release |
+|---|---|---|
+| `nhflow_rapp_melville_rn` / `fnpf_` | PASS, loss 0.0 / 0.0 (non-breaking packet) | not run |
+| `nhflow_rapp_melville_rs1` / `fnpf_` | PASS, loss 8.0 % (LES 14.0 %) / XFAIL 3.6 % (spilling packet not detected) | not run |
+| `nhflow_rapp_melville_rp1` / `fnpf_` | PASS, loss 26.2 % / 22.7 % (LES 28.9 %) | not run |
+| `nhflow_rapp_melville_rp2` / `fnpf_` | PASS, loss 30.1 % / 26.3 % (LES 31.7 %) | not run |
+| `nhflow_tian_tp2` | PASS, loss 22.6 % (no crest reaches B = A 359 on this grid; the scheme alone) | PASS, 25.6 % (LES 25.0 %; 42.8 % before patch 0011; run with the same breaking code on e6238a7cb) |
+| `nhflow_ting_kirby_spilling` (+ `_x3`) | XFAIL, max. H 1.0 m (3D 1.7 m) before x_b | not run |
+| `nhflow_ting_kirby_spilling_y` | PASS, H along y vs `_x3` within 2.1 % | not run |
+| `fnpf_ting_kirby_spilling` (+ `_x3`) | PASS, x_b -0.4 m (3D: -0.4 m) | not run |
+| `fnpf_ting_kirby_spilling_y` | PASS, H along y vs `_x3` within 5.2 % (tol 8 %); both within 4.9 % of the 2D flume (7.1 % before patch 0014). The 2D flume itself changes by 7.1 % with N 47 0.99, `_x3` by 5.4 % with one rank: inner surf zone, 5 waves | not run |

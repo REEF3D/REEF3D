@@ -89,6 +89,7 @@ public:
     sixdof_rigidbody rb_amr;
     bool ext_on_amr_ = false;
     Eigen::Vector3d ext_v_amr_ = Eigen::Vector3d::Zero(), ext_w_amr_ = Eigen::Vector3d::Zero();
+    Eigen::Matrix<double,6,1> am_prev_amr_ = Eigen::Matrix<double,6,1>::Zero();     // am_prev_ of the predicted copy (G 7 1)
     
     // surface geometry: hull triangles and pose transformation (solver independent)
     sixdof_geometry geom;
@@ -390,7 +391,7 @@ protected:
 
     // CFD: the explicit coupling of a light body stabilised with an artificial added mass A
     // (am_cfd_ times the displaced fluid, cfd_added_mass): (M + A) a = F + A a_prev, a_prev the
-    // acceleration of the last stage; 0 off (set by cfd_amr, G 7 0)
+    // acceleration of the last stage; 0 off (set by cfd_amr)
     double am_cfd_ = 0.0;
     Eigen::Matrix<double,6,1> am_prev_ = Eigen::Matrix<double,6,1>::Zero();
     void cfd_added_mass(lexer*);

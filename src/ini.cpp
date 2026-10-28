@@ -230,7 +230,7 @@ void control::ini_default()
     A546=0.05;   // double NHFLOW semi-implicit: depth below which the cell velocities of the momentum predictor are desingularised
     
     A501=0.15;   // double breaking eddy viscosity (A 550 3): end of breaking, deta/dt > A 501 sqrt(g h) (Kennedy et al. 2000: 0.08-0.15)
-    A502=0.5;    // double breaking eddy viscosity (A 550 3): spread over a band of A 502 h around the breaking columns (the crest behind the front)
+    A502=0.5;    // double breaking eddy viscosity (A 550 3): spread over a band of A 502 h around the breaking columns (the crest behind the front); A 550 4: A 502 L_k, L_k = tanh(k h)/k
     A503=5.0;    // double breaking eddy viscosity (A 550 3): transition time T* = A 503 sqrt(h/g) (Kennedy et al. 2000: 5)
     A504=1.2;    // double breaking eddy viscosity (A 550 3): mixing length coefficient delta_b (Kennedy et al. 2000: 1.2)
     A550=0;      // int turn on breaking (1 breaking viscosity A 557, 3 eddy viscosity of Kennedy et al. 2000, 4 as 3 with the deep-water form and the onsets of the crest tracking B = u_s/C of Barthelemy et al. 2018, A 359, A 360)
@@ -1381,7 +1381,7 @@ void control::ini_default()
 	X44=0.0;    // double viscosity in body
     X45=0;      // int type of lsm convection disc at fb
     X46=0;      // int 
-    X48=0;      // int solid forcing level set
+    X48=2;      // int solid forcing level set: 1 copied into the flagged solids (G 505 1), 2 extrapolated into the solids of the direct forcing
     X49=0;
     X50=1;      // int type of print out format for 6DOF structure
     X60=1;      // int type of print of force calculation
