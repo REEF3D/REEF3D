@@ -76,6 +76,7 @@ struct rmg_layout
             off[a]=o;
             long n=N*4;
             if(a==RMG_ACT) n=N;
+            if(a==RMG_R)   n=0;     // the residual is not stored (k_restrict computes it)
             if(a==RMG_HX)  n=(long)(nx+2)*4;
             if(a==RMG_HY)  n=(long)(ny+2)*4;
             o+=(n+255)/256*256;
@@ -140,9 +141,9 @@ public:
 
 protected:
     //  queued kernels, implemented by each device
-    virtual void k_smooth(int l,int colour)=0;
-    virtual void k_residual(int l)=0;
-    virtual void k_restrict(int l)=0;        // f(l+1) = R r(l), u(l+1) = 0
+    //  zero: first half-sweep from u = 0 (the other colour not read, set to 0)
+    virtual void k_smooth(int l,int colour,int zero)=0;
+    virtual void k_restrict(int l)=0;        // f(l+1) = R (f - A u)(l), u(l+1) = 0
     virtual void k_prolong(int l)=0;         // u(l) += P u(l+1)
     virtual void k_coarsen(int l)=0;         // level l+1 from level l
     virtual void k_factor(int l)=0;
@@ -152,8 +153,8 @@ protected:
     //  where the device can (Metal: one threadgroup for a small level)
     virtual void k_coarse_solve(int l,int sweeps);
 
-    void smooth(int l,int sweeps,int dir);
-    void cycle(int l,int nuse,int pre,int post,int sweepstyle,int coarse_sweeps);
+    void smooth(int l,int sweeps,int dir,bool from_zero=false);
+    void cycle(int l,int nuse,int pre,int post,int sweepstyle,int coarse_sweeps,bool from_zero=false);
 
     std::vector<rmg_level_desc> desc;
     int perx=0, pery=0;

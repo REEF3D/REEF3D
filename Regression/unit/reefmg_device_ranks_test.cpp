@@ -3,10 +3,9 @@
 // Architect: Hans Bihs
 //
 // Build:
-//   g++ -O2 -std=c++20 -pthread -Impi_threads -I../../src reefmg_device_ranks_test.cpp
-//       ../../src/reefmg_core.cpp ../../src/reefmg_device.cpp -o reefmg_device_ranks_test
-// (macOS with Metal: add -fobjc-arc -DREEF3D_USE_METAL ../../src/reefmg_device_metal.mm
-//  -framework Metal -framework Foundation; then the GPU is checked too.)
+//   c++ -O2 -std=c++20 -pthread -Impi_threads -I../../src reefmg_device_ranks_test.cpp ../../src/reefmg_core.cpp
+//       ../../src/reefmg_device.cpp ../../src/reefmg_device_metal.cpp -o reefmg_device_ranks_test
+// (on macOS the Metal GPU is checked too)
 // Run:  ./reefmg_device_ranks_test
 //
 // The test problem of reefmg_test_problem.h is cut into the blocks of a
@@ -153,7 +152,7 @@ namespace
 int main()
 {
     std::vector<int> devices={2};
-#ifdef REEF3D_USE_METAL
+#if REEF3D_METAL
     {
         std::string err;
         reefmg_device *d=reefmg_device_create(1,err);

@@ -50,17 +50,19 @@ Architect: Hans Bihs
 //  every row - its own coefficients only - and its j-neighbours are the
 //  contiguous other half: no cache line is loaded for the colour that is
 //  not being smoothed.  The halo positions j = -1 and j = ny exist in both
-//  layouts.  Work items of the cell kernels run in memory order (j fastest
-//  within a half, then the colour, i, k); a level holds fewer than 2^31
-//  entries.  rmg_q is also what reefmg_core uses to write the fine level.
+//  layouts.  Work items run on a grid in memory order (the place in a half,
+//  then colour and row, then the layer), see rmg_cell; a level holds fewer
+//  than 2^31 entries.  rmg_q is also what reefmg_core uses to write the fine
+//  level.
 //
 //  One work item each:
 //    rmg_smooth    one column of one colour: red-black (zebra) line
 //                  Gauss-Seidel with the stored column factorisation, in
-//                  place; columns without an active cell are skipped
-//    rmg_residual  one interior cell: r = f - A u
-//    rmg_restrict  one interior coarse cell: f = mean of the fine residuals
-//                  of its children, u = 0
+//                  place; columns without an active cell are skipped; the
+//                  first half-sweep of a cycle from u = 0 without reading u
+//    rmg_restrict_residual
+//                  one interior coarse cell: f = mean of the fine residuals
+//                  f - A u of its children, computed in place, u = 0
 //    rmg_prolong   one interior fine cell: u += P u_coarse, masked by act
 //    rmg_coarsen   one interior coarse cell: the coarse operator from the
 //                  fine one (reefmg_core::coarsen_t) and its activity
@@ -99,63 +101,77 @@ inline int rmg_q(int i, int j, int k, int hh, int si, int sk)
     return k*sk + (i+1)*si + ((i+j)&1)*hh + ((j+1)>>1);
 }
 
-//  work item t of a cell kernel -> (i,j,k) in memory order; ok false for
-//  the halo positions of a row, which have no work
+//  Work items run on a grid (m, r, k): m the place in a colour half of a row
+//  (0 .. hh-1), r = 2*i + c the row i and colour c (0 .. 2*nx-1), k the
+//  layer - memory order, and no integer division.  rmg_cell gives the cell;
+//  ok is false for the halo positions of a row, which have no work.
 struct rmg_ijk
 {
-    int i, j, k;
+    int i, j, k, c, b;   // b = (j+1)&1: the parity of the place in the row
     bool ok;
 };
 
-inline rmg_ijk rmg_cell(unsigned t, int nx, int ny, int hh)
+inline rmg_ijk rmg_cell(int m, int r, int k, int ny)
 {
-    const int it = int(t);
-    const int m = it % hh;
-    const int r = it / hh;
-    const int c = r & 1;
-    const int rr = r >> 1;
     rmg_ijk x;
-    x.i = rr % nx;
-    x.k = rr / nx;
-    x.j = 2*m + ((c+x.i+1)&1) - 1;
+    x.i = r >> 1;
+    x.c = r & 1;
+    x.k = k;
+    x.b = (x.c + x.i + 1) & 1;
+    x.j = 2*m + x.b - 1;
     x.ok = (x.j>=0 && x.j<ny);
     return x;
 }
 
-inline int rmg_ncell(int nx, int nz, int si)
+//  r = f - A u at cell (i,j,k) of colour c: the j-neighbours are the other
+//  colour half of the row, at places m+b (j+1) and m+b-1 (j-1); the
+//  i-neighbours are the other half of the neighbouring rows, same place
+inline float rmg_resid_at(const rmg_lp P, const rmg_ijk x,
+                          const device float *f, const device float *u,
+                          const device float *cp, const device float *cn,
+                          const device float *cs, const device float *cw,
+                          const device float *ce, const device float *ct,
+                          const device float *cb)
 {
-    return nx*nz*si;
+    const int q = rmg_q(x.i,x.j,x.k,P.hh,P.si,P.sk);
+    const int o = (1-2*x.c)*P.hh;
+    float y = cp[q]*u[q] + cn[q]*u[q+P.si+o] + cs[q]*u[q-P.si+o]
+                         + cw[q]*u[q+o+x.b] + ce[q]*u[q+o+x.b-1];
+    if(x.k<P.nz-1)
+    y += ct[q]*u[q+P.sk];
+    if(x.k>0)
+    y += cb[q]*u[q-P.sk];
+    return f[q] - y;
 }
 
-//  columns per colour: work items of rmg_smooth
-inline int rmg_ncolour(const rmg_lp P)
-{
-    return P.nx*P.hh;
-}
-
-inline void rmg_smooth(const rmg_lp P, int colour, unsigned t,
+//  Red-black line Gauss-Seidel, the column (i, place m) of one colour.
+//  zero: the first half-sweep from u = 0 - the other colour is taken as zero
+//  and set to zero (place m of the other half, every layer), which replaces
+//  zeroing u before the cycle.
+inline void rmg_smooth(const rmg_lp P, int colour, int m, int i, int zero,
                        const device float *f, device float *u,
                        const device float *cn, const device float *cs,
                        const device float *cw, const device float *ce,
                        const device float *cb, const device float *ctc,
                        const device float *cti, const device unsigned char *act)
 {
-    const int it = int(t);
-    const int i = it / P.hh;
-    if(i>=P.nx)
+    if(i>=P.nx || m>=P.hh)
     return;
-    const int m = it % P.hh;
     const int b = (colour+i+1)&1;
     const int j = 2*m + b - 1;
-    if(j<0 || j>=P.ny)
-    return;
 
     const int si = P.si, sk = P.sk, nz = P.nz;
     const int q0 = (i+1)*si + colour*P.hh + m;
-    const int o  = (1-colour)*P.hh - colour*P.hh;   // to the other colour of the row
-    const int qw = q0 + o + b;                      // j+1: position (j+2)/2 = m+b
-    const int qe = qw - 1;                          // j-1: position j/2 = m+b-1
-    const int dw = qw - q0, de = qe - q0;
+    const int o  = (1-2*colour)*P.hh;    // to the other colour of the row
+    const int dw = o + b;                // j+1: place m+b of the other half
+    const int de = o + b - 1;            // j-1: place m+b-1
+
+    if(zero!=0)
+    for(int k=0; k<nz; ++k)
+    u[q0+o+k*sk] = 0.0f;
+
+    if(j<0 || j>=P.ny)
+    return;
 
     bool any = false;
     for(int k=0; k<nz; ++k)
@@ -171,7 +187,9 @@ inline void rmg_smooth(const rmg_lp P, int colour, unsigned t,
     for(int k=0; k<nz; ++k)
     {
         const int q = q0 + k*sk;
-        float r = f[q] - cn[q]*u[q+si+o] - cs[q]*u[q-si+o] - cw[q]*u[q+dw] - ce[q]*u[q+de];
+        float r = f[q];
+        if(zero==0)
+        r -= cn[q]*u[q+si+o] + cs[q]*u[q-si+o] + cw[q]*u[q+dw] + ce[q]*u[q+de];
         if(k>0)
         r -= cb[q]*prev;
         r *= cti[q];
@@ -186,88 +204,94 @@ inline void rmg_smooth(const rmg_lp P, int colour, unsigned t,
     }
 }
 
-inline void rmg_residual(const rmg_lp P, unsigned t,
-                         const device float *f, const device float *u, device float *r,
-                         const device float *cp, const device float *cn,
-                         const device float *cs, const device float *cw,
-                         const device float *ce, const device float *ct,
-                         const device float *cb)
+//  Coarse cell (I,J,k): f = mean of the residuals f - A u of its fine
+//  children, computed here (the fine residual is never stored), summed in
+//  the order of reefmg_core::restrict_xy: (a,b) = (0,0),(0,1),(1,0),(1,1);
+//  u = 0.
+inline void rmg_restrict_residual(const rmg_tp T, const rmg_lp F, int M, int R, int K,
+                                  const device float *f, const device float *u,
+                                  const device float *cp, const device float *cn,
+                                  const device float *cs, const device float *cw,
+                                  const device float *ce, const device float *ct,
+                                  const device float *cb,
+                                  device float *cf, device float *cu)
 {
-    const rmg_ijk x = rmg_cell(t,P.nx,P.ny,P.hh);
-    if(!x.ok)
+    if(M>=T.chh)
     return;
-    const int i = x.i, j = x.j, k = x.k;
-    const int sk = P.sk, hh = P.hh, si = P.si;
-    const int q = rmg_q(i,j,k,hh,si,sk);
-
-    float y = cp[q]*u[q] + cn[q]*u[rmg_q(i+1,j,k,hh,si,sk)] + cs[q]*u[rmg_q(i-1,j,k,hh,si,sk)]
-                         + cw[q]*u[rmg_q(i,j+1,k,hh,si,sk)] + ce[q]*u[rmg_q(i,j-1,k,hh,si,sk)];
-    if(k<P.nz-1)
-    y += ct[q]*u[q+sk];
-    if(k>0)
-    y += cb[q]*u[q-sk];
-
-    r[q] = f[q] - y;
-}
-
-//  children summed in the order of reefmg_core::restrict_xy:
-//  (a,b) = (0,0),(0,1),(1,0),(1,1)
-inline void rmg_restrict(const rmg_tp T, unsigned t,
-                         const device float *fr, device float *cf, device float *cu)
-{
-    const rmg_ijk x = rmg_cell(t,T.cnx,T.cny,T.chh);
-    if(!x.ok)
+    const rmg_ijk X = rmg_cell(M,R,K,T.cny);
+    if(!X.ok || X.i>=T.cnx)
     return;
-    const int I = x.i, J = x.j, k = x.k;
+    const int I = X.i, J = X.j, k = K;
 
     const int i0 = T.rx*I, j0 = T.ry*J;
     const int i1 = (T.rx==2 && i0+1<T.fnx) ? i0+1 : -1;
     const int j1 = (T.ry==2 && j0+1<T.fny) ? j0+1 : -1;
 
-    const float r00 = fr[rmg_q(i0,j0,k,T.fhh,T.fsi,T.fsk)];
-    float s;
+    rmg_ijk y;
+    y.k = k; y.ok = true;
+
+    y.i = i0; y.j = j0; y.c = (i0+j0)&1; y.b = (j0+1)&1;
+    const float r00 = rmg_resid_at(F,y,f,u,cp,cn,cs,cw,ce,ct,cb);
+    float s = r00;
 
     if(i1>=0 && j1>=0)
-    s = (((r00 + fr[rmg_q(i0,j1,k,T.fhh,T.fsi,T.fsk)]) + fr[rmg_q(i1,j0,k,T.fhh,T.fsi,T.fsk)])
-              + fr[rmg_q(i1,j1,k,T.fhh,T.fsi,T.fsk)])*0.25f;
+    {
+        y.i = i0; y.j = j1; y.c = (i0+j1)&1; y.b = (j1+1)&1;
+        const float r01 = rmg_resid_at(F,y,f,u,cp,cn,cs,cw,ce,ct,cb);
+        y.i = i1; y.j = j0; y.c = (i1+j0)&1; y.b = (j0+1)&1;
+        const float r10 = rmg_resid_at(F,y,f,u,cp,cn,cs,cw,ce,ct,cb);
+        y.i = i1; y.j = j1; y.c = (i1+j1)&1; y.b = (j1+1)&1;
+        const float r11 = rmg_resid_at(F,y,f,u,cp,cn,cs,cw,ce,ct,cb);
+        s = (((r00 + r01) + r10) + r11)*0.25f;
+    }
     else if(i1>=0)
-    s = (r00 + fr[rmg_q(i1,j0,k,T.fhh,T.fsi,T.fsk)])*0.5f;
+    {
+        y.i = i1; y.j = j0; y.c = (i1+j0)&1; y.b = (j0+1)&1;
+        s = (r00 + rmg_resid_at(F,y,f,u,cp,cn,cs,cw,ce,ct,cb))*0.5f;
+    }
     else if(j1>=0)
-    s = (r00 + fr[rmg_q(i0,j1,k,T.fhh,T.fsi,T.fsk)])*0.5f;
-    else
-    s = r00;
+    {
+        y.i = i0; y.j = j1; y.c = (i0+j1)&1; y.b = (j1+1)&1;
+        s = (r00 + rmg_resid_at(F,y,f,u,cp,cn,cs,cw,ce,ct,cb))*0.5f;
+    }
 
     const int qc = rmg_q(I,J,k,T.chh,T.csi,T.csk);
     cf[qc] = s;
     cu[qc] = 0.0f;
 }
 
-//  cell-centred bilinear in the plane, identity in z (reefmg_core::prolong_xy)
-inline void rmg_prolong(const rmg_tp T, unsigned t,
+//  Fine cell: u += cell-centred bilinear interpolation of the coarse u in
+//  the plane, identity in z (reefmg_core::prolong_xy), masked by act.  The
+//  coarse places: J and Ja = J -+ 1 are of the other parity, so the four
+//  coarse values are at place (J+1)/2 and (Ja+1)/2 of their halves.
+inline void rmg_prolong(const rmg_tp T, int m, int r, int k,
                         const device float *cu, device float *fu,
                         const device unsigned char *act)
 {
-    const rmg_ijk x = rmg_cell(t,T.fnx,T.fny,T.fhh);
-    if(!x.ok)
+    if(m>=T.fhh)
     return;
-    const int i = x.i, j = x.j, k = x.k;
+    const rmg_ijk x = rmg_cell(m,r,k,T.fny);
+    if(!x.ok || x.i>=T.fnx)
+    return;
+    const int i = x.i, j = x.j;
 
-    const int q = rmg_q(i,j,k,T.fhh,T.fsi,T.fsk);
+    const int q = k*T.fsk + (i+1)*T.fsi + x.c*T.fhh + m;
     if(act[q]==0)
     return;
 
-    const int I = i / T.rx, J = j / T.ry;
-    int Ia = I, Ja = J;
+    int I = i, Ia = i, J = j, Ja = j;
     float wx = 1.0f, wy = 1.0f;
 
     if(T.rx==2)
     {
-        Ia = (i%2==0) ? I-1 : I+1;
+        I = i >> 1;
+        Ia = (i&1) ? I+1 : I-1;
         wx = 0.75f;
     }
     if(T.ry==2)
     {
-        Ja = (j%2==0) ? J-1 : J+1;
+        J = j >> 1;
+        Ja = (j&1) ? J+1 : J-1;
         wy = 0.75f;
     }
     Ia = Ia<0 ? 0 : (Ia>T.cnx-1 ? T.cnx-1 : Ia);
@@ -275,10 +299,14 @@ inline void rmg_prolong(const rmg_tp T, unsigned t,
 
     const float w00 = wx*wy, w10 = (1.0f-wx)*wy, w01 = wx*(1.0f-wy), w11 = (1.0f-wx)*(1.0f-wy);
 
-    const float c00 = cu[rmg_q(I ,J ,k,T.chh,T.csi,T.csk)];
-    const float c10 = cu[rmg_q(Ia,J ,k,T.chh,T.csi,T.csk)];
-    const float c01 = cu[rmg_q(I ,Ja,k,T.chh,T.csi,T.csk)];
-    const float c11 = cu[rmg_q(Ia,Ja,k,T.chh,T.csi,T.csk)];
+    const int bI  = k*T.csk + (I +1)*T.csi;
+    const int bIa = k*T.csk + (Ia+1)*T.csi;
+    const int pJ  = (J +1)>>1, pJa = (Ja+1)>>1;
+
+    const float c00 = cu[bI  + ((I +J )&1)*T.chh + pJ ];
+    const float c10 = cu[bIa + ((Ia+J )&1)*T.chh + pJ ];
+    const float c01 = cu[bI  + ((I +Ja)&1)*T.chh + pJa];
+    const float c11 = cu[bIa + ((Ia+Ja)&1)*T.chh + pJa];
 
     fu[q] += w00*c00 + w10*c10 + w01*c01 + w11*c11;
 }
@@ -288,7 +316,7 @@ inline void rmg_prolong(const rmg_tp T, unsigned t,
 //  averaged over the fine faces of the coarse face and rebuilt with the
 //  coarse widths; the row sum carried over.  Widths hx/hy have one ghost
 //  entry each side, index i+1 for cell i.
-inline void rmg_coarsen(const rmg_tp T, unsigned t,
+inline void rmg_coarsen(const rmg_tp T, int M, int R, int K,
                         const device float *fp, const device float *fn, const device float *fs,
                         const device float *fw, const device float *fe, const device float *ft,
                         const device float *fb, const device unsigned char *fact,
@@ -298,10 +326,12 @@ inline void rmg_coarsen(const rmg_tp T, unsigned t,
                         device float *cb, device unsigned char *cact,
                         const device float *chx, const device float *chy)
 {
-    const rmg_ijk x = rmg_cell(t,T.cnx,T.cny,T.chh);
-    if(!x.ok)
+    if(M>=T.chh)
     return;
-    const int I = x.i, J = x.j, k = x.k;
+    const rmg_ijk x = rmg_cell(M,R,K,T.cny);
+    if(!x.ok || x.i>=T.cnx)
+    return;
+    const int I = x.i, J = x.j, k = K;
     const int rx = T.rx, ry = T.ry;
 
     int ihi = rx*I, jhi = ry*J;
@@ -391,13 +421,14 @@ inline void rmg_coarsen(const rmg_tp T, unsigned t,
 }
 
 //  LU factors of one column, reefmg_core::factor_lines_t
-inline void rmg_factor(const rmg_lp P, unsigned t,
+inline void rmg_factor(const rmg_lp P, int m, int r,
                        const device float *cp, const device float *ct, const device float *cb,
                        device float *ctc, device float *cti, const device unsigned char *act)
 {
-    //  columns in memory order: the work items of the plane k = 0
-    const rmg_ijk x = rmg_cell(t,P.nx,P.ny,P.hh);
-    if(!x.ok || x.k!=0)
+    if(m>=P.hh)
+    return;
+    const rmg_ijk x = rmg_cell(m,r,0,P.ny);
+    if(!x.ok || x.i>=P.nx)
     return;
     const int sk = P.sk;
     const int q0 = rmg_q(x.i,x.j,0,P.hh,P.si,sk);
@@ -452,11 +483,6 @@ inline void rmg_wrap(const rmg_lp P, unsigned t, device float *u)
     const int k = iy / nx_;
     u[rmg_q(i,-1 ,k,P.hh,P.si,P.sk)] = u[rmg_q(i,ny_-1,k,P.hh,P.si,P.sk)];
     u[rmg_q(i,ny_,k,P.hh,P.si,P.sk)] = u[rmg_q(i,0    ,k,P.hh,P.si,P.sk)];
-}
-
-inline int rmg_ncolumn(const rmg_lp P)
-{
-    return P.nx*P.si;
 }
 
 inline int rmg_nwrap(const rmg_lp P)

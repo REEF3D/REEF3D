@@ -54,15 +54,15 @@ namespace
     //  arrays from buffer(2) on in the order of the bind lists below
     const char *rmg_metal_entries = R"MSL(
 
-kernel void k_smooth(constant rmg_lp &P [[buffer(0)]], constant int &colour [[buffer(1)]],
+kernel void k_smooth(constant rmg_lp &P [[buffer(0)]], constant int2 &cz [[buffer(1)]],
                      const device float *f [[buffer(2)]], device float *u [[buffer(3)]],
                      const device float *cn [[buffer(4)]], const device float *cs [[buffer(5)]],
                      const device float *cw [[buffer(6)]], const device float *ce [[buffer(7)]],
                      const device float *cb [[buffer(8)]], const device float *ctc [[buffer(9)]],
                      const device float *cti [[buffer(10)]], const device unsigned char *act [[buffer(11)]],
-                     uint t [[thread_position_in_grid]])
+                     uint2 g [[thread_position_in_grid]])
 {
-    rmg_smooth(P,colour,t,f,u,cn,cs,cw,ce,cb,ctc,cti,act);
+    rmg_smooth(P,cz.x,int(g.x),int(g.y),cz.y,f,u,cn,cs,cw,ce,cb,ctc,cti,act);
 }
 
 kernel void k_coarse(constant rmg_lp &P [[buffer(0)]], constant int &sweeps [[buffer(1)]],
@@ -73,7 +73,7 @@ kernel void k_coarse(constant rmg_lp &P [[buffer(0)]], constant int &sweeps [[bu
                      const device float *cti [[buffer(10)]], const device unsigned char *act [[buffer(11)]],
                      uint tid [[thread_position_in_threadgroup]], uint tg [[threads_per_threadgroup]])
 {
-    const uint nc = uint(rmg_ncolour(P));
+    const uint nc = uint(P.nx*P.hh);
     const uint nw = uint(rmg_nwrap(P));
     const bool per = (P.perx!=0 || P.pery!=0);
 
@@ -85,36 +85,30 @@ kernel void k_coarse(constant rmg_lp &P [[buffer(0)]], constant int &sweeps [[bu
             for(uint t=tid; t<nw; t+=tg) rmg_wrap(P,t,u);
             threadgroup_barrier(mem_flags::mem_device);
         }
-        for(uint t=tid; t<nc; t+=tg) rmg_smooth(P,h,t,f,u,cn,cs,cw,ce,cb,ctc,cti,act);
+        for(uint t=tid; t<nc; t+=tg)
+        rmg_smooth(P,h,int(t%uint(P.hh)),int(t/uint(P.hh)),0,f,u,cn,cs,cw,ce,cb,ctc,cti,act);
         threadgroup_barrier(mem_flags::mem_device);
     }
 }
 
-kernel void k_residual(constant rmg_lp &P [[buffer(0)]],
+kernel void k_restrict(constant rmg_tp &T [[buffer(0)]], constant rmg_lp &F [[buffer(1)]],
                        const device float *f [[buffer(2)]], const device float *u [[buffer(3)]],
-                       device float *r [[buffer(4)]], const device float *cp [[buffer(5)]],
-                       const device float *cn [[buffer(6)]], const device float *cs [[buffer(7)]],
-                       const device float *cw [[buffer(8)]], const device float *ce [[buffer(9)]],
-                       const device float *ct [[buffer(10)]], const device float *cb [[buffer(11)]],
-                       uint t [[thread_position_in_grid]])
+                       const device float *cp [[buffer(4)]], const device float *cn [[buffer(5)]],
+                       const device float *cs [[buffer(6)]], const device float *cw [[buffer(7)]],
+                       const device float *ce [[buffer(8)]], const device float *ct [[buffer(9)]],
+                       const device float *cb [[buffer(10)]],
+                       device float *cf [[buffer(11)]], device float *cu [[buffer(12)]],
+                       uint3 g [[thread_position_in_grid]])
 {
-    rmg_residual(P,t,f,u,r,cp,cn,cs,cw,ce,ct,cb);
-}
-
-kernel void k_restrict(constant rmg_tp &T [[buffer(0)]],
-                       const device float *fr [[buffer(2)]], device float *cf [[buffer(3)]],
-                       device float *cu [[buffer(4)]],
-                       uint t [[thread_position_in_grid]])
-{
-    rmg_restrict(T,t,fr,cf,cu);
+    rmg_restrict_residual(T,F,int(g.x),int(g.y),int(g.z),f,u,cp,cn,cs,cw,ce,ct,cb,cf,cu);
 }
 
 kernel void k_prolong(constant rmg_tp &T [[buffer(0)]],
                       const device float *cu [[buffer(2)]], device float *fu [[buffer(3)]],
                       const device unsigned char *act [[buffer(4)]],
-                      uint t [[thread_position_in_grid]])
+                      uint3 g [[thread_position_in_grid]])
 {
-    rmg_prolong(T,t,cu,fu,act);
+    rmg_prolong(T,int(g.x),int(g.y),int(g.z),cu,fu,act);
 }
 
 kernel void k_coarsen(constant rmg_tp &T [[buffer(0)]],
@@ -128,18 +122,18 @@ kernel void k_coarsen(constant rmg_tp &T [[buffer(0)]],
                       device float *ce [[buffer(16)]], device float *ct [[buffer(17)]],
                       device float *cb [[buffer(18)]], device unsigned char *cact [[buffer(19)]],
                       const device float *chx [[buffer(20)]], const device float *chy [[buffer(21)]],
-                      uint t [[thread_position_in_grid]])
+                      uint3 g [[thread_position_in_grid]])
 {
-    rmg_coarsen(T,t,fp,fn,fs,fw,fe,ft,fb,fact,fhx,fhy,cp,cn,cs,cw,ce,ct,cb,cact,chx,chy);
+    rmg_coarsen(T,int(g.x),int(g.y),int(g.z),fp,fn,fs,fw,fe,ft,fb,fact,fhx,fhy,cp,cn,cs,cw,ce,ct,cb,cact,chx,chy);
 }
 
 kernel void k_factor(constant rmg_lp &P [[buffer(0)]],
                      const device float *cp [[buffer(2)]], const device float *ct [[buffer(3)]],
                      const device float *cb [[buffer(4)]], device float *ctc [[buffer(5)]],
                      device float *cti [[buffer(6)]], const device unsigned char *act [[buffer(7)]],
-                     uint t [[thread_position_in_grid]])
+                     uint2 g [[thread_position_in_grid]])
 {
-    rmg_factor(P,t,cp,ct,cb,ctc,cti,act);
+    rmg_factor(P,int(g.x),int(g.y),cp,ct,cb,ctc,cti,act);
 }
 
 kernel void k_wrap(constant rmg_lp &P [[buffer(0)]], device float *u [[buffer(2)]],
@@ -155,8 +149,8 @@ kernel void k_zero(device float *a [[buffer(2)]], uint t [[thread_position_in_gr
 
 )MSL";
 
-    enum {PS_SMOOTH=0, PS_COARSE, PS_RESIDUAL, PS_RESTRICT, PS_PROLONG, PS_COARSEN, PS_FACTOR, PS_WRAP, PS_ZERO, PS_N};
-    const char *ps_names[PS_N]={"k_smooth","k_coarse","k_residual","k_restrict","k_prolong",
+    enum {PS_SMOOTH=0, PS_COARSE, PS_RESTRICT, PS_PROLONG, PS_COARSEN, PS_FACTOR, PS_WRAP, PS_ZERO, PS_N};
+    const char *ps_names[PS_N]={"k_smooth","k_coarse","k_restrict","k_prolong",
                                 "k_coarsen","k_factor","k_wrap","k_zero"};
 
     struct metal_ctx
@@ -358,24 +352,23 @@ kernel void k_zero(device float *a [[buffer(2)]], uint t [[thread_position_in_gr
 
     protected:
 
-        void k_smooth(int l,int colour) override
+        void k_smooth(int l,int colour,int zero) override
         {
             const rmg_kern::rmg_lp P=lp(l);
-            const long n=rmg_kern::rmg_ncolour(P);
-            if(n<=0) return;
             id<MTLComputeCommandEncoder> e=begin(PS_SMOOTH);
+            const int cz[2]={colour,zero};
             [e setBytes:&P length:sizeof(P) atIndex:0];
-            [e setBytes:&colour length:sizeof(int) atIndex:1];
+            [e setBytes:cz length:sizeof(cz) atIndex:1];
             const int a[]={RMG_F,RMG_U,RMG_N,RMG_S,RMG_W,RMG_E,RMG_B,RMG_TC,RMG_TI,RMG_ACT};
             bind(e,l,a,10,2);
-            dispatch(e,PS_SMOOTH,n);
+            dispatch3(e,PS_SMOOTH,P.hh,P.nx,1);
         }
 
         //  the sweeps of a small coarsest level in one threadgroup
         void k_coarse_solve(int l,int sweeps) override
         {
             const rmg_kern::rmg_lp P=lp(l);
-            const long nc=rmg_kern::rmg_ncolour(P);
+            const long nc=(long)P.nx*P.hh;
             if(nc>4096)
             {
                 reefmg_device::k_coarse_solve(l,sweeps);
@@ -392,26 +385,18 @@ kernel void k_zero(device float *a [[buffer(2)]], uint t [[thread_position_in_gr
             if(profile) flush_profile(PS_COARSE);
         }
 
-        void k_residual(int l) override
-        {
-            const rmg_kern::rmg_lp P=lp(l);
-            id<MTLComputeCommandEncoder> e=begin(PS_RESIDUAL);
-            [e setBytes:&P length:sizeof(P) atIndex:0];
-            const int a[]={RMG_F,RMG_U,RMG_R,RMG_P,RMG_N,RMG_S,RMG_W,RMG_E,RMG_T,RMG_B};
-            bind(e,l,a,10,2);
-            dispatch(e,PS_RESIDUAL,rmg_kern::rmg_ncell(P.nx,P.nz,P.si));
-        }
-
         void k_restrict(int l) override
         {
             const rmg_kern::rmg_tp T=tp(l);
+            const rmg_kern::rmg_lp F=lp(l);
             id<MTLComputeCommandEncoder> e=begin(PS_RESTRICT);
             [e setBytes:&T length:sizeof(T) atIndex:0];
-            const int af[]={RMG_R};
+            [e setBytes:&F length:sizeof(F) atIndex:1];
+            const int af[]={RMG_F,RMG_U,RMG_P,RMG_N,RMG_S,RMG_W,RMG_E,RMG_T,RMG_B};
             const int ac[]={RMG_F,RMG_U};
-            bind(e,l,af,1,2);
-            bind(e,l+1,ac,2,3);
-            dispatch(e,PS_RESTRICT,rmg_kern::rmg_ncell(T.cnx,T.nz,T.csi));
+            bind(e,l,af,9,2);
+            bind(e,l+1,ac,2,11);
+            dispatch3(e,PS_RESTRICT,T.chh,2*T.cnx,T.nz);
         }
 
         void k_prolong(int l) override
@@ -423,7 +408,7 @@ kernel void k_zero(device float *a [[buffer(2)]], uint t [[thread_position_in_gr
             const int af[]={RMG_U,RMG_ACT};
             bind(e,l+1,ac,1,2);
             bind(e,l,af,2,3);
-            dispatch(e,PS_PROLONG,rmg_kern::rmg_ncell(T.fnx,T.nz,T.fsi));
+            dispatch3(e,PS_PROLONG,T.fhh,2*T.fnx,T.nz);
         }
 
         void k_coarsen(int l) override
@@ -434,7 +419,7 @@ kernel void k_zero(device float *a [[buffer(2)]], uint t [[thread_position_in_gr
             const int af[]={RMG_P,RMG_N,RMG_S,RMG_W,RMG_E,RMG_T,RMG_B,RMG_ACT,RMG_HX,RMG_HY};
             bind(e,l,af,10,2);
             bind(e,l+1,af,10,12);
-            dispatch(e,PS_COARSEN,rmg_kern::rmg_ncell(T.cnx,T.nz,T.csi));
+            dispatch3(e,PS_COARSEN,T.chh,2*T.cnx,T.nz);
         }
 
         void k_factor(int l) override
@@ -444,7 +429,7 @@ kernel void k_zero(device float *a [[buffer(2)]], uint t [[thread_position_in_gr
             [e setBytes:&P length:sizeof(P) atIndex:0];
             const int a[]={RMG_P,RMG_T,RMG_B,RMG_TC,RMG_TI,RMG_ACT};
             bind(e,l,a,6,2);
-            dispatch(e,PS_FACTOR,rmg_kern::rmg_ncolumn(P));
+            dispatch3(e,PS_FACTOR,P.hh,2*P.nx,1);
         }
 
         void k_wrap(int l) override
@@ -497,6 +482,21 @@ kernel void k_zero(device float *a [[buffer(2)]], uint t [[thread_position_in_gr
             NSUInteger w=[ctx.ps[k] maxTotalThreadsPerThreadgroup];
             if(w>256) w=256;
             [e dispatchThreads:MTLSizeMake((NSUInteger)n,1,1) threadsPerThreadgroup:MTLSizeMake(w,1,1)];
+            if(profile) flush_profile(k);
+        }
+
+        //  a grid (nx_, ny_, nz_) of work items: groups of up to 64 along the
+        //  first, contiguous, dimension and 256 work items in all
+        void dispatch3(id<MTLComputeCommandEncoder> e,int k,long nx_,long ny_,long nz_)
+        {
+            if(nx_<=0 || ny_<=0 || nz_<=0) return;
+            NSUInteger w=[ctx.ps[k] maxTotalThreadsPerThreadgroup];
+            if(w>256) w=256;
+            NSUInteger tx=(NSUInteger)(nx_<64? nx_ : 64);
+            NSUInteger ty=w/tx; if(ty<1) ty=1; if(ty>(NSUInteger)ny_) ty=(NSUInteger)ny_;
+            NSUInteger tz=w/(tx*ty); if(tz<1) tz=1; if(tz>(NSUInteger)nz_) tz=(NSUInteger)nz_;
+            [e dispatchThreads:MTLSizeMake((NSUInteger)nx_,(NSUInteger)ny_,(NSUInteger)nz_)
+                 threadsPerThreadgroup:MTLSizeMake(tx,ty,tz)];
             if(profile) flush_profile(k);
         }
 

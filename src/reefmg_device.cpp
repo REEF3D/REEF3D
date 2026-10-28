@@ -39,15 +39,18 @@ void reefmg_device::coarsen(int nuse)
 }
 
 //  line_zebra_t: colour 0 then 1, or 1 then 0 for dir 1; the periodic halo
-//  before every half-sweep (the exchange of reefmg_core::halo)
-void reefmg_device::smooth(int l,int sweeps,int dir)
+//  before every half-sweep (the exchange of reefmg_core::halo).  from_zero:
+//  u is to be taken as zero - the first half-sweep neither reads nor needs
+//  the other colour and sets it to zero.
+void reefmg_device::smooth(int l,int sweeps,int dir,bool from_zero)
 {
     const bool per=(perx || pery);
     for(int sw=0;sw<sweeps;++sw)
     for(int h=0;h<2;++h)
     {
-        if(per) k_wrap(l);
-        k_smooth(l,(dir==1)? 1-h : h);
+        const bool z=(from_zero && sw==0 && h==0);
+        if(per && !z) k_wrap(l);
+        k_smooth(l,(dir==1)? 1-h : h,z? 1 : 0);
     }
 }
 
@@ -56,10 +59,13 @@ void reefmg_device::k_coarse_solve(int l,int sweeps)
     smooth(l,sweeps,2);
 }
 
-void reefmg_device::cycle(int l,int nuse,int pre,int post,int sweepstyle,int coarse_sweeps)
+//  The residual is computed inside the restriction (k_restrict), so it is
+//  never stored; the periodic halo of u first.
+void reefmg_device::cycle(int l,int nuse,int pre,int post,int sweepstyle,int coarse_sweeps,bool from_zero)
 {
     if(l==nuse-1)
     {
+        if(from_zero) k_zero(l,RMG_U);
         k_coarse_solve(l,coarse_sweeps);
         return;
     }
@@ -67,20 +73,21 @@ void reefmg_device::cycle(int l,int nuse,int pre,int post,int sweepstyle,int coa
     const int dpre =(sweepstyle==1)?2:0;
     const int dpost=(sweepstyle==1)?2:1;
 
-    smooth(l,pre,dpre);
+    if(from_zero && pre==0) k_zero(l,RMG_U);
+    smooth(l,pre,dpre,from_zero && pre>0);
     if(perx || pery) k_wrap(l);
-    k_residual(l);
     k_restrict(l);
     cycle(l+1,nuse,pre,post,sweepstyle,coarse_sweeps);
     k_prolong(l);
     smooth(l,post,dpost);
 }
 
+//  u(0) from zero: the first pre-smoothing half-sweep starts from u = 0 and
+//  replaces zeroing it; further cycles start from the result
 void reefmg_device::vcycle(int nuse,int pre,int post,int sweepstyle,int coarse_sweeps,int ncycle)
 {
-    k_zero(0,RMG_U);
     for(int c=0;c<std::max(ncycle,1);++c)
-    cycle(0,nuse,pre,post,sweepstyle,coarse_sweeps);
+    cycle(0,nuse,pre,post,sweepstyle,coarse_sweeps,c==0);
 }
 
 //  ------------------------------------------------------ reference device
@@ -166,46 +173,43 @@ namespace
             return T;
         }
 
-        void k_smooth(int l,int colour) override
+        //  the grids of reefmg_device_kernels.h: (m, row-colour, layer)
+        void k_smooth(int l,int colour,int zero) override
         {
             const rmg_kern::rmg_lp P=lp(l);
-            const int n=rmg_kern::rmg_ncolour(P);
-            for(int t=0;t<n;++t)
-            rmg_kern::rmg_smooth(P,colour,(unsigned)t,F(l,RMG_F),F(l,RMG_U),F(l,RMG_N),F(l,RMG_S),
+            for(int i=0;i<P.nx;++i)
+            for(int m=0;m<P.hh;++m)
+            rmg_kern::rmg_smooth(P,colour,m,i,zero,F(l,RMG_F),F(l,RMG_U),F(l,RMG_N),F(l,RMG_S),
                                  F(l,RMG_W),F(l,RMG_E),F(l,RMG_B),F(l,RMG_TC),F(l,RMG_TI),A(l));
-        }
-
-        void k_residual(int l) override
-        {
-            const rmg_kern::rmg_lp P=lp(l);
-            const int n=rmg_kern::rmg_ncell(P.nx,P.nz,P.si);
-            for(int t=0;t<n;++t)
-            rmg_kern::rmg_residual(P,(unsigned)t,F(l,RMG_F),F(l,RMG_U),F(l,RMG_R),F(l,RMG_P),F(l,RMG_N),
-                                   F(l,RMG_S),F(l,RMG_W),F(l,RMG_E),F(l,RMG_T),F(l,RMG_B));
         }
 
         void k_restrict(int l) override
         {
             const rmg_kern::rmg_tp T=tp(l);
-            const int n=rmg_kern::rmg_ncell(T.cnx,T.nz,T.csi);
-            for(int t=0;t<n;++t)
-            rmg_kern::rmg_restrict(T,(unsigned)t,F(l,RMG_R),F(l+1,RMG_F),F(l+1,RMG_U));
+            const rmg_kern::rmg_lp P=lp(l);
+            for(int k=0;k<T.nz;++k)
+            for(int r=0;r<2*T.cnx;++r)
+            for(int m=0;m<T.chh;++m)
+            rmg_kern::rmg_restrict_residual(T,P,m,r,k,F(l,RMG_F),F(l,RMG_U),F(l,RMG_P),F(l,RMG_N),F(l,RMG_S),
+                                            F(l,RMG_W),F(l,RMG_E),F(l,RMG_T),F(l,RMG_B),F(l+1,RMG_F),F(l+1,RMG_U));
         }
 
         void k_prolong(int l) override
         {
             const rmg_kern::rmg_tp T=tp(l);
-            const int n=rmg_kern::rmg_ncell(T.fnx,T.nz,T.fsi);
-            for(int t=0;t<n;++t)
-            rmg_kern::rmg_prolong(T,(unsigned)t,F(l+1,RMG_U),F(l,RMG_U),A(l));
+            for(int k=0;k<T.nz;++k)
+            for(int r=0;r<2*T.fnx;++r)
+            for(int m=0;m<T.fhh;++m)
+            rmg_kern::rmg_prolong(T,m,r,k,F(l+1,RMG_U),F(l,RMG_U),A(l));
         }
 
         void k_coarsen(int l) override
         {
             const rmg_kern::rmg_tp T=tp(l);
-            const int n=rmg_kern::rmg_ncell(T.cnx,T.nz,T.csi);
-            for(int t=0;t<n;++t)
-            rmg_kern::rmg_coarsen(T,(unsigned)t,
+            for(int k=0;k<T.nz;++k)
+            for(int r=0;r<2*T.cnx;++r)
+            for(int m=0;m<T.chh;++m)
+            rmg_kern::rmg_coarsen(T,m,r,k,
                                   F(l,RMG_P),F(l,RMG_N),F(l,RMG_S),F(l,RMG_W),F(l,RMG_E),F(l,RMG_T),F(l,RMG_B),
                                   A(l),F(l,RMG_HX),F(l,RMG_HY),
                                   F(l+1,RMG_P),F(l+1,RMG_N),F(l+1,RMG_S),F(l+1,RMG_W),F(l+1,RMG_E),
@@ -215,9 +219,9 @@ namespace
         void k_factor(int l) override
         {
             const rmg_kern::rmg_lp P=lp(l);
-            const int n=rmg_kern::rmg_ncolumn(P);
-            for(int t=0;t<n;++t)
-            rmg_kern::rmg_factor(P,(unsigned)t,F(l,RMG_P),F(l,RMG_T),F(l,RMG_B),F(l,RMG_TC),F(l,RMG_TI),A(l));
+            for(int r=0;r<2*P.nx;++r)
+            for(int m=0;m<P.hh;++m)
+            rmg_kern::rmg_factor(P,m,r,F(l,RMG_P),F(l,RMG_T),F(l,RMG_B),F(l,RMG_TC),F(l,RMG_TI),A(l));
         }
 
         void k_wrap(int l) override

@@ -1,19 +1,15 @@
 // Standalone test of the REEFMG device path (N 16): the V-cycle kernels of
 // src/reefmg_device_kernels.h on the reference device (N 16 2, any machine)
-// and on the Apple Silicon GPU (N 16 1, macOS with -DREEF3D_USE_METAL),
+// and on the Apple Silicon GPU (N 16 1, on macOS),
 // against the CPU V-cycle of reefmg_core.
 // Architect: Hans Bihs
 //
 // No MPI library needed: mpi_serial/mpi.h stands in for one rank (and its
 // periodic self-exchange).
 //
-// Build (any machine, reference device):
-//   g++ -O2 -std=c++20 -Impi_serial -I../../src reefmg_device_test.cpp
-//       ../../src/reefmg_core.cpp ../../src/reefmg_device.cpp -o reefmg_device_test
-// Build (macOS, reference device and Metal GPU):
-//   clang++ -O2 -std=c++20 -fobjc-arc -DREEF3D_USE_METAL -Impi_serial -I../../src reefmg_device_test.cpp
-//       ../../src/reefmg_core.cpp ../../src/reefmg_device.cpp ../../src/reefmg_device_metal.mm
-//       -framework Metal -framework Foundation -o reefmg_device_test
+// Build (any machine; on macOS the Metal GPU is tested as well):
+//   c++ -O2 -std=c++20 -Impi_serial -I../../src reefmg_device_test.cpp ../../src/reefmg_core.cpp
+//       ../../src/reefmg_device.cpp ../../src/reefmg_device_metal.cpp -o reefmg_device_test
 // Run:
 //   ./reefmg_device_test                 checks (exit code 1 on a failure)
 //   ./reefmg_device_test bench NX NY NZ  timing of the solvers on one problem
@@ -231,7 +227,7 @@ static void bench(int nx,int ny,int nz)
     std::vector<row> rows;
     {config c; c.tol=1e-8; rows.push_back({"CPU fp32 lexicographic (default)",c});}
     {config c; c.tol=1e-8; c.ordering=1; rows.push_back({"CPU fp32 red-black (N 12 2)",c});}
-#ifdef REEF3D_USE_METAL
+#if REEF3D_METAL
     {config c; c.tol=1e-8; c.device=1; rows.push_back({"Metal GPU (N 16 1, 2 x 2 sweeps)",c});}
     {config c; c.tol=1e-8; c.device=1; c.dcycles=1; c.dsweeps=1; rows.push_back({"Metal, 1 V-cycle, 1 sweep",c});}
 #endif
@@ -262,7 +258,7 @@ int main(int argc,char **argv)
         return 0;
     }
 
-#ifdef REEF3D_USE_METAL
+#if REEF3D_METAL
     bool metal=true;
     {
         std::string err;
