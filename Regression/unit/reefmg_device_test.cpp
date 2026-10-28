@@ -60,6 +60,8 @@ struct config
     int maxiter=200;
     double tol=1.0e-10;
     int levels=0;        // >0: set_active_levels
+    int dcycles=0;       // N 17
+    int dsweeps=0;       // N 19
 };
 
 struct result
@@ -85,6 +87,7 @@ static result run(const problem &pr,const config &c,int repeat=1)
     mg.set_ordering(c.ordering);
     mg.set_fine_operator(&op);
     mg.set_device(c.device);
+    mg.set_device_cycle(c.dcycles,c.dsweeps);
 
     if(!mg.setup(MPI_COMM_SELF,pr.nx,pr.ny,pr.nz,pr.nx,pr.ny,0,pr.dxn.data(),pr.dyn.data(),pr.perx? 1 : 0,0))
     {
@@ -200,6 +203,15 @@ static void suite(const char *name,const problem &pr,int bits,int levels,bool me
         check(em<1.0e-8,fmt("Metal solution = CPU fp64 solution to %.1e",em));
     }
 
+    // stronger device preconditioner (N 17 2, N 19 2): no more iterations, same solution
+    {
+        config d2=dev; d2.dcycles=2; d2.dsweeps=2;
+        const result rs=run(pr,d2);
+        const double e2=maxdiff(pr,r0.u,rs.u);
+        check(rs.relres<=1.0e-10 && rs.it<=rd.it && e2<1.0e-8,
+              fmt("2 V-cycles with 2 sweeps (N 17 2, N 19 2): %g iterations (one cycle %g), = CPU solution to %.1e",rs.it,rd.it,e2));
+    }
+
     // 3. stationary V-cycles (defect correction) and the fallback mode
     {
         config d0=dev, d2=dev; d0.mode=0; d2.mode=2; d0.tol=d2.tol=1.0e-8; d0.maxiter=d2.maxiter=400;
@@ -220,6 +232,10 @@ static void bench(int nx,int ny,int nz)
     {config c; c.tol=1e-8; c.ordering=1; rows.push_back({"CPU fp32 red-black (N 12 2)",c});}
 #ifdef REEF3D_USE_METAL
     {config c; c.tol=1e-8; c.device=1; rows.push_back({"Metal GPU (N 16 1)",c});}
+    {config c; c.tol=1e-8; c.device=1; c.dsweeps=2; rows.push_back({"Metal, 2 sweeps (N 19 2)",c});}
+    {config c; c.tol=1e-8; c.device=1; c.dcycles=2; rows.push_back({"Metal, 2 V-cycles (N 17 2)",c});}
+    {config c; c.tol=1e-8; c.device=1; c.dcycles=2; c.dsweeps=2; rows.push_back({"Metal, 2 V-cycles, 2 sweeps",c});}
+    {config c; c.tol=1e-8; c.device=1; c.dcycles=3; c.dsweeps=2; rows.push_back({"Metal, 3 V-cycles, 2 sweeps",c});}
 #endif
     if(nx*ny*nz<=4000000)
     {config c; c.tol=1e-8; c.device=2; rows.push_back({"reference device (N 16 2)",c});}
