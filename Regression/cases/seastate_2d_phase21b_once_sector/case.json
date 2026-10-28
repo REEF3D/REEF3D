@@ -1,0 +1,15 @@
+{
+ "base": "seastate_2d_phase10_sector",
+ "ctrl_add": [
+  "A 767 1"
+ ],
+ "description": "as seastate_2d_phase10_sector (the computational sector A 717 270 90 through 0, two sweeps: quadrant 0 with the merged axis direction and quadrant 3) with A 767 1: the kept quadrant (3) lies before the evaluating one (0) in the direction index (Phase 21b). Validation in Dropbox SEASTATE/validation/72_source_once.",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate"
+ ],
+ "covers": [
+  "seastate_implicit source_cache with a computational sector, quadrant offsets"
+ ]
+}

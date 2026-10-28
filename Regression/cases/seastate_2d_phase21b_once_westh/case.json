@@ -1,0 +1,15 @@
+{
+ "base": "seastate_2d_phase9_westh",
+ "ctrl_add": [
+  "A 767 1"
+ ],
+ "description": "as seastate_2d_phase9_westh (van der Westhuysen whitecapping and Yan wind input, A 732 2) with A 767 1 (Phase 21b): the saturation-based whitecapping of the kept quadrants from the evaluation in the first sweep. Validation in Dropbox SEASTATE/validation/72_source_once.",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate"
+ ],
+ "covers": [
+  "A 767 1 with A 732 2"
+ ]
+}
