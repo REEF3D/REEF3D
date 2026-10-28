@@ -50,7 +50,7 @@ vector<ckpt_registry::entry> grid_arrays(const void *owner)
 
 double code(const ckpt_registry::entry &e)
 {
-    return (e.kind=='C' ? 0.0 : (e.kind=='S' ? 2.0 : 8.0)) + (e.isint ? 1.0 : 0.0) + (e.local ? 4.0 : 0.0);
+    return (e.kind=='C' ? 0.0 : (e.kind=='S' ? 2.0 : (e.kind=='F' ? 16.0 : 8.0))) + (e.isint ? 1.0 : 0.0) + (e.local ? 4.0 : 0.0);
 }
 }
 
@@ -75,6 +75,11 @@ void cfd_ckpt_write(lexer *p, reefckpt &ck, const string &tag)
         {
             if(e[n].isint) ck.put_Ci(nm,(const int*)e[n].V);
             else           ck.put_C(nm,(const double*)e[n].V);
+        }
+        else if(e[n].kind=='F')
+        {
+            if(e[n].isint) ck.put_Fi(nm,(const int*)e[n].V);
+            else           ck.put_F(nm,(const double*)e[n].V);
         }
         else
         {
@@ -123,6 +128,8 @@ bool cfd_ckpt_read(lexer *p, reefckpt &ck, string &msg, const string &tag)
         }
         if(e[q].kind=='C')
         ok = (e[q].isint ? ck.get_Ci(nm,(int*)e[q].V) : ck.get_C(nm,(double*)e[q].V)) && ok;
+        else if(e[q].kind=='F')
+        ok = (e[q].isint ? ck.get_Fi(nm,(int*)e[q].V) : ck.get_F(nm,(double*)e[q].V)) && ok;
         else
         ok = (e[q].isint ? ck.get_Si(nm,(int*)e[q].V) : ck.get_S(nm,(double*)e[q].V)) && ok;
     }

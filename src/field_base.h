@@ -133,14 +133,16 @@ protected:
      * documentation is the canonical description of that layout and the slack plane.
      *
      * allocate=false: the field is not used in this run (V stays empty)
+     * checkpoint=false: scratch storage rebuilt before every use (e.g. a solver's
+     * row numbering); not entered in the checkpoint registry
      */
-    field_base(lexer *pp, int kz, std::size_t slack, bool allocate=true) :
+    field_base(lexer *pp, int kz, std::size_t slack, bool allocate=true, bool checkpoint=true) :
         V(allocate ? static_cast<std::size_t>(pp->imax)*static_cast<std::size_t>(pp->jmax)*static_cast<std::size_t>(kz) + slack : 0, T{}),
         imin(pp->imin), jmin(pp->jmin),
         kmin(pp->kmin), kmax(kz),
         jkmax(static_cast<stride_t>(pp->jmax)*kz)
     {
-        if(V.size() > 0)
+        if(checkpoint && V.size() > 0)
         {
             if(kmax==pp->kmax && slack==0)
             {
@@ -148,8 +150,8 @@ protected:
             }
             else if(kmax==pp->kmaxF)
             {
-                // Placeholder for future use, e.g. for a field7 with kmaxF
-                // ckid = ckpt_registry::add(p,'F',std::is_same<T,int>::value,V);
+                // field7/fieldint7: the slack plane is headroom, not state - consumers take imax*jmax*kmaxF
+                ckid = ckpt_registry::add(pp,'F',std::is_same<T,int>::value,V.data());
             }
         }
 

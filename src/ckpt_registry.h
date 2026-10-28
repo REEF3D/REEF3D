@@ -41,7 +41,8 @@ public:
     struct entry
     {
         const void *owner;
-        char kind;          // 'C' field (imax jmax kmax), 'S' slice (imax jmax), 'R' raw array
+        char kind;          // 'C' field (imax jmax kmax), 'F' node field (imax jmax kmaxF, field7), 'S' slice
+                            // (imax jmax), 'R' raw array
         bool isint;
         void *V;
         bool local;         // the state of a rank (solver work arrays): restored on the same decomposition only
