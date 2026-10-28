@@ -1,0 +1,41 @@
+{
+ "description": "nhflow_ting_kirby_spilling turned along y (4 cells across, B 105 90, generation line B 108, walls at x): the mean zero-up-crossing wave height along the flume against that of nhflow_ting_kirby_spilling_x3 (along x, 4 cells across, walls at y) in the same run (orientation of the model and its breaking scheme). Before NHFLOW Breaking patch 0007 the walls at x damped NHFLOW waves along y (H_max 0.150 m 1.7 m later without breaking); before patch 0006 FNPF generated cnoidal waves of 0.05 m in both directions.",
+ "reference": {
+  "short": "Ting & Kirby (1994)",
+  "citation": "Ting, F.C.K. & Kirby, J.T. (1994) Observation of undertow and turbulence in a laboratory surf zone. Coastal Engineering 23, 51-80 (spilling case H = 0.125 m, T = 2 s, 1:35 slope); breaking point x_b = 6.40 m from Derakhti et al. (2016) Table 1, see refdata/waves/ting_kirby_breaking/setup.txt"
+ },
+ "tags": [
+  "nhflow",
+  "3d",
+  "breaking",
+  "orientation"
+ ],
+ "np": 2,
+ "time": 40.0,
+ "check": {
+  "type": "profile_match",
+  "partner": "nhflow_ting_kirby_spilling_x3",
+  "axis": "y",
+  "partner_axis": "x",
+  "t_start": 25.0,
+  "t_end": 40.0,
+  "tol": 0.04
+ },
+ "levels": {
+  "nightly": {
+   "np": 2,
+   "time": 30.0,
+   "control_set": {
+    "M 10": "2"
+   },
+   "ctrl_set": {
+    "M 10": "2"
+   },
+   "check_set": {
+    "t_start": 20.0,
+    "t_end": 30.0
+   }
+  },
+  "release": {}
+ }
+}
