@@ -20,6 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
+#include<cstring>
 #include"cfd_amr.h"
 #include"reef3d_mpmd.h"
 #include"patchBC_codes.h"
@@ -1550,7 +1551,8 @@ void cfd_amr::fill_press_out()
 {
     vector<fspec> fs;
     for(const cfd_amr_field &e : reg)
-    if(e.name=="press")
+    // the names are pointers: compare the strings (== compared the addresses of the literals)
+    if(std::strcmp(e.name,"press")==0)
     {
         const cfd_amr_field *pe = &e;
         fs.push_back({e.type,e.prolong,[this,pe](int g) -> field& { return rf(*pe,g); }});

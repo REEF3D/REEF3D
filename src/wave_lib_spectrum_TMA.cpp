@@ -39,12 +39,11 @@ double wave_lib_spectrum::TMA(lexer *p, double w)
     Sval *= (1.0-0.287*log(p->B88))*pow(p->B88,exp(-0.5*pow(((w-p->wwp)/(sigma*p->wwp)),2.0)));
 
     // TMA
-    double wdt_tma;
-    wdt_tma=p->F60;
-    if(p->B94==1)
-    wdt_tma=p->B94_wdt;
+    // the depth of the wave theory (phimean or B 94, as the other spectra; F 60 was -1e20 when the water level was
+    // given by other keys, and sqrt of it left phi_tma unset)
+    const double wdt_tma = wD;
 
-    double phi_tma;
+    double phi_tma = 1.0;
     if(w*sqrt(wdt_tma/9.81)<1)
     phi_tma=0.5*pow(w*sqrt(wdt_tma/9.81),2);
 

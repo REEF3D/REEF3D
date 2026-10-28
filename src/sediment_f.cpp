@@ -34,6 +34,18 @@ Author: Hans Bihs
 #include"sediment_mixture.h"
 #include"nhflow_suspended.h"
 #include"ckpt_pack.h"
+// the classes deleted in the destructor (deleting a pointer to an incomplete type ran no destructor)
+#include"bedload.h"
+#include"bedconc.h"
+#include"sandslide.h"
+#include"topo_relax.h"
+#include"vrans.h"
+#include"bedslope.h"
+#include"bedshear_reduction.h"
+#include"nhflow_scalar_convection.h"
+#include"nhflow_diffusion.h"
+#include"bedload_direction.h"
+#include"sediment_roughness.h"
 
 sediment_f::sediment_f(lexer *p, ghostcell *pgc, turbulence *pturb, patchBC_interface *ppBC)
 {

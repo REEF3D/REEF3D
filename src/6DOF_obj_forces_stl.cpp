@@ -163,6 +163,12 @@ void sixdof_obj_cfd::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, fi
             double u_abs, tau, density;
             double ks;
             double dir;
+            
+            // the viscous force of the triangle is set by the branch of X 38 (0-3); without one, or where a branch
+            // leaves the gradients unset (X 38 3 uses those of X 38 0/1), it was a value of the previous triangle
+            Fv_x = Fv_y = Fv_z = 0.0;
+            dudx = dudy = dudz = dvdx = dvdy = dvdz = dwdx = dwdy = dwdz = 0.0;
+            density = 0.0;
 
 
             if(q->X38==0)
