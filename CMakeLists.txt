@@ -88,6 +88,20 @@ else()
   message(STATUS "Building without HYPRE (default): Poisson solves with REEFMG (N 10 1); -DREEF3D_USE_HYPRE=ON to enable")
 endif()
 
+# ── Metal (REEFMG on the Apple Silicon GPU, N 16 1) ──────────────────────────
+# macOS only. One Objective-C++ source (src/reefmg_device_metal.mm), the Metal and Foundation
+# frameworks; the kernels are compiled at run time, so no offline Metal compiler (Xcode) is needed.
+option(REEF3D_USE_METAL "REEFMG V-cycle on the Apple Silicon GPU (N 16 1)" OFF)
+if(REEF3D_USE_METAL)
+  if(NOT APPLE)
+    message(FATAL_ERROR "REEF3D_USE_METAL needs macOS (Apple Silicon)")
+  endif()
+  enable_language(OBJCXX)
+  set(CMAKE_OBJCXX_STANDARD 20)
+  set(CMAKE_OBJCXX_STANDARD_REQUIRED ON)
+  message(STATUS "Building with Metal: REEFMG device N 16 1")
+endif()
+
 # ── Eigen ─────────────────────────────────────────────────────────────────────
 
 set(EIGEN_LOCAL_DIR "${PROJECT_SOURCE_DIR}/ThirdParty/eigen-${REEF3D_EIGEN_VERSION}")
@@ -125,6 +139,14 @@ file(GLOB_RECURSE CORAL_SOURCES CONFIGURE_DEPENDS src/coral/*.cpp)
 list(FILTER CORAL_SOURCES EXCLUDE REGEX "/src/coral/app/")
 list(APPEND SOURCES ${CORAL_SOURCES})
 add_executable(REEF3D ${SOURCES})
+if(REEF3D_USE_METAL)
+  target_sources(REEF3D PRIVATE src/reefmg_device_metal.mm)
+  # ARC; an Objective-C++ source cannot use the C++ precompiled header
+  set_source_files_properties(src/reefmg_device_metal.mm PROPERTIES
+    COMPILE_OPTIONS "-fobjc-arc" SKIP_PRECOMPILE_HEADERS ON)
+  target_compile_definitions(REEF3D PRIVATE REEF3D_USE_METAL)
+  target_link_libraries(REEF3D PRIVATE "-framework Metal" "-framework Foundation")
+endif()
 # includes of CORAL start at src/ (#include"coral/core/coral_types.h")
 target_include_directories(REEF3D PRIVATE ${PROJECT_SOURCE_DIR}/src)
 
