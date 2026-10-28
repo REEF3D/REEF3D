@@ -1,0 +1,20 @@
+{
+ "base": "nhflow_3d_mb_amr_ke_mpi2",
+ "ctrl_add": [
+  "G 7 1"
+ ],
+ "description": "nhflow_3d_mb_amr_ke_mpi2 (k-epsilon on four turned blocks and the patches over their vertex, 2 ranks) with subcycling (G 7 1): the turbulence of the blocks in the level-0 step, of the patches in their own steps.",
+ "tags": [
+  "3d",
+  "nhflow",
+  "curvilinear",
+  "multiblock",
+  "amr",
+  "turbulence",
+  "subcycling",
+  "mpi"
+ ],
+ "covers": [
+  "the turbulence of the blocks in sub_level0_blocks, turb_level and turb_sync on a multi-block grid"
+ ]
+}

@@ -323,6 +323,7 @@ private:
     // edges (B 520 3-5), the relaxation and the beach zones of SFLOW and NHFLOW target (iowave_met.cpp)
     double eta_ib(lexer*,ghostcell*,double,double);
     void nhflow_bg_update(lexer*,fdm_nhf*,ghostcell*);
+    void background_initialize_nhflow(lexer*,fdm_nhf*,ghostcell*);   // B 531 1: start with the background current
     void nhflow_open_edges(lexer*,fdm_nhf*,ghostcell*,double*,double*,double*,double*,double*,double*,slice&);
     // curvilinear grid (G 50): inward normal, length and centre of the boundary face of an edge cell
     void curv_edge_normal(lexer*,int,int,int,double&,double&);

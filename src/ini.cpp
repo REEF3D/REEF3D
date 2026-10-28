@@ -488,6 +488,7 @@ void control::ini_default()
     B534_d=B534_dx=B534_fl=B534_fh=0.0;   // double iowave: SIRW absorption at x- (B 98 8), 0: automatic from the reference period
     B535_d=B535_dx=B535_fl=B535_fh=0.0;   // double iowave: SIRW absorption at x+ (B 99 8), 0: automatic from the reference period
     B536=0;        // int iowave NHFLOW: wavemaker absorption target, 0 shallow water (legacy), 1 linear paddle theory
+    B531=0;        // int iowave NHFLOW: 1 start with the background current (B 510-514, B 523) in the whole domain (ship frame: the hull fixed in surge, the water passing it), 0 at rest
     B110=0;        // int read wave generation  origin
     B111_zs=0.0;	// double flap start
     B111_ze=0.0;	// double flap end

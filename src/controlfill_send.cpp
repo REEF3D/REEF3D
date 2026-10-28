@@ -1047,6 +1047,8 @@ void control::ctrlsend()
     dd++;
     ictrl[ii] = B536;
     ii++;
+    ictrl[ii] = B531;
+    ii++;
     ictrl[ii] = B110;
     ii++;
     dctrl[dd] = B110_zs;

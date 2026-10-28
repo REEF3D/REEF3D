@@ -201,6 +201,7 @@ public:
     double B534_d,B534_dx,B534_fl,B534_fh;   // iowave: SIRW absorption at x- (B 98 8): gauge distance, spacing, band [Hz] (0: from B 528)
     double B535_d,B535_dx,B535_fl,B535_fh;   // iowave: SIRW absorption at x+ (B 99 8): gauge distance, spacing, band [Hz] (0: from B 528)
     int B536;           // iowave NHFLOW: active absorption target of the piston wavemaker, 0 shallow water (legacy), 1 linear paddle theory
+    int B531;           // iowave NHFLOW: 1 start with the background current of the zones (B 510-514, B 523) in the whole domain
     int *B515_id; double *B515_x0,*B515_y0,*B515_href;
     int *B510_id,*B510_mode; double *B510_dir,*B510_tramp;
     int *B511_id; double *B511_a,*B511_T,*B511_phase;
