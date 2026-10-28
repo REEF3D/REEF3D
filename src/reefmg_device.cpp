@@ -107,7 +107,7 @@ namespace
             for(size_t l=0;l<lv.size();++l)
             {
                 const rmg_layout lay(lv[l].nx,lv[l].ny,lv[l].nz);
-                if((long)(lv[l].nx+2)*(lv[l].ny+2)*lv[l].nz>=2147483647L)
+                if(lay.sk*lv[l].nz>=2147483647L)
                 {
                     err="level too large for 32-bit indexing";
                     return false;
@@ -149,7 +149,8 @@ namespace
         {
             const rmg_level_desc &d=desc[l];
             rmg_kern::rmg_lp P;
-            P.nx=d.nx; P.ny=d.ny; P.nz=d.nz; P.si=d.ny+2; P.sk=(d.nx+2)*(d.ny+2);
+            const rmg_layout L(d.nx,d.ny,d.nz);
+            P.nx=d.nx; P.ny=d.ny; P.nz=d.nz; P.hh=L.hh; P.si=L.si; P.sk=(int)L.sk;
             P.perx=perx; P.pery=pery;
             return P;
         }
@@ -158,8 +159,9 @@ namespace
         {
             const rmg_level_desc &f=desc[l], &c=desc[l+1];
             rmg_kern::rmg_tp T;
-            T.fnx=f.nx; T.fny=f.ny; T.nz=f.nz; T.fsi=f.ny+2; T.fsk=(f.nx+2)*(f.ny+2);
-            T.cnx=c.nx; T.cny=c.ny; T.csi=c.ny+2; T.csk=(c.nx+2)*(c.ny+2);
+            const rmg_layout LF(f.nx,f.ny,f.nz), LC(c.nx,c.ny,c.nz);
+            T.fnx=f.nx; T.fny=f.ny; T.nz=f.nz; T.fhh=LF.hh; T.fsi=LF.si; T.fsk=(int)LF.sk;
+            T.cnx=c.nx; T.cny=c.ny; T.chh=LC.hh; T.csi=LC.si; T.csk=(int)LC.sk;
             T.rx=c.rx; T.ry=c.ry; T.perx=perx; T.pery=pery;
             return T;
         }
@@ -176,7 +178,7 @@ namespace
         void k_residual(int l) override
         {
             const rmg_kern::rmg_lp P=lp(l);
-            const int n=P.nx*P.ny*P.nz;
+            const int n=rmg_kern::rmg_ncell(P.nx,P.nz,P.si);
             for(int t=0;t<n;++t)
             rmg_kern::rmg_residual(P,(unsigned)t,F(l,RMG_F),F(l,RMG_U),F(l,RMG_R),F(l,RMG_P),F(l,RMG_N),
                                    F(l,RMG_S),F(l,RMG_W),F(l,RMG_E),F(l,RMG_T),F(l,RMG_B));
@@ -185,7 +187,7 @@ namespace
         void k_restrict(int l) override
         {
             const rmg_kern::rmg_tp T=tp(l);
-            const int n=T.cnx*T.cny*T.nz;
+            const int n=rmg_kern::rmg_ncell(T.cnx,T.nz,T.csi);
             for(int t=0;t<n;++t)
             rmg_kern::rmg_restrict(T,(unsigned)t,F(l,RMG_R),F(l+1,RMG_F),F(l+1,RMG_U));
         }
@@ -193,7 +195,7 @@ namespace
         void k_prolong(int l) override
         {
             const rmg_kern::rmg_tp T=tp(l);
-            const int n=T.fnx*T.fny*T.nz;
+            const int n=rmg_kern::rmg_ncell(T.fnx,T.nz,T.fsi);
             for(int t=0;t<n;++t)
             rmg_kern::rmg_prolong(T,(unsigned)t,F(l+1,RMG_U),F(l,RMG_U),A(l));
         }
@@ -201,7 +203,7 @@ namespace
         void k_coarsen(int l) override
         {
             const rmg_kern::rmg_tp T=tp(l);
-            const int n=T.cnx*T.cny*T.nz;
+            const int n=rmg_kern::rmg_ncell(T.cnx,T.nz,T.csi);
             for(int t=0;t<n;++t)
             rmg_kern::rmg_coarsen(T,(unsigned)t,
                                   F(l,RMG_P),F(l,RMG_N),F(l,RMG_S),F(l,RMG_W),F(l,RMG_E),F(l,RMG_T),F(l,RMG_B),
@@ -213,7 +215,7 @@ namespace
         void k_factor(int l) override
         {
             const rmg_kern::rmg_lp P=lp(l);
-            const int n=P.nx*P.ny;
+            const int n=rmg_kern::rmg_ncolumn(P);
             for(int t=0;t<n;++t)
             rmg_kern::rmg_factor(P,(unsigned)t,F(l,RMG_P),F(l,RMG_T),F(l,RMG_B),F(l,RMG_TC),F(l,RMG_TI),A(l));
         }
@@ -229,7 +231,7 @@ namespace
         void k_zero(int l,int a) override
         {
             const rmg_level_desc &d=desc[l];
-            const int n=(d.nx+2)*(d.ny+2)*d.nz;
+            const int n=(int)(rmg_layout(d.nx,d.ny,d.nz).sk*d.nz);
             float *p=F(l,a);
             for(int t=0;t<n;++t)
             rmg_kern::rmg_zero((unsigned)t,p);

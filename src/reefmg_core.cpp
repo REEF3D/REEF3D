@@ -1942,7 +1942,7 @@ void reefmg_core::device_setup(int maxlevel,int perx,int pery)
              "V-cycle on the device: %s - one hierarchy of the whole %d x %d x %d grid for %d rank%s, "
              "%d levels, single precision, red-black line smoothing, %d V-cycle%s per application, %s sweeps%s",
              myrank==0? dev->name().c_str() : "", devgx,devgy,nz,nprocs,nprocs>1?"s":"",devnlev,
-             std::max(devcycles,1),devcycles>1?"s":"",devsweeps>0? std::to_string(devsweeps).c_str() : "host's",
+             (devcycles>0)? devcycles : 2,((devcycles>0)? devcycles : 2)>1?"s":"",std::to_string((devsweeps>0)? devsweeps : 2).c_str(),
              dev0copy? " (fine level copied)" : "");
     devmsg=msg;
 }
@@ -1954,6 +1954,18 @@ void reefmg_core::device_setup(int maxlevel,int perx,int pery)
 namespace
 {
     const int JB=32;
+
+    //  Offsets in a device row (reefmg_device_kernels.h: colour (i+j)&1
+    //  selects the half, (j+1)/2 the place in it) of the global columns
+    //  gj = oy+j0 .. oy+j1-1 in global row gi
+    inline void row_offsets(int gi,int oy,int j0,int j1,int hh,int *off)
+    {
+        for(int j=j0;j<j1;++j)
+        {
+            const int gj=oy+j;
+            off[j-j0]=((gi+gj)&1)*hh+((gj+1)>>1);
+        }
+    }
 
     double wtime()
     {
@@ -1969,7 +1981,9 @@ void reefmg_core::device_upload()
     const double t0=wtime();
     const sc_level &L=lev[0];
     const int nz=L.nz;
-    const long si=devgy+2, sk=(long)(devgx+2)*(devgy+2);
+    const rmg_layout lay(devgx,devgy,nz);
+    const long si=lay.si, sk=lay.sk;
+    int off[JB];
 
     float *g[7];
     for(int m=0;m<7;++m) g[m]=window_array(RMG_P+m);
@@ -1983,18 +1997,19 @@ void reefmg_core::device_upload()
     {
         const int j1=std::min(L.ny,j0+JB);
         const long c0=L.idx(i,0,0);
+        row_offsets(devox+i,devoy,j0,j1,lay.hh,off);
         for(int k=0;k<nz;++k)
         {
-            const long qg0=k*sk+(devox+i+1)*si+devoy+1;
+            const long qr=k*sk+(devox+i+1)*si;
             for(int m=0;m<7;++m)
             {
-                float *gm=g[m]+qg0;
-                if(pcbits==32){const float  *h=hf[m]+c0+k; for(int j=j0;j<j1;++j) gm[j]=h[(long)j*nz];}
-                else          {const double *h=hd[m]+c0+k; for(int j=j0;j<j1;++j) gm[j]=float(h[(long)j*nz]);}
+                float *gm=g[m]+qr;
+                if(pcbits==32){const float  *h=hf[m]+c0+k; for(int j=j0;j<j1;++j) gm[off[j-j0]]=h[(long)j*nz];}
+                else          {const double *h=hd[m]+c0+k; for(int j=j0;j<j1;++j) gm[off[j-j0]]=float(h[(long)j*nz]);}
             }
             const char *a=&L.act[c0+k];
-            unsigned char *gam=ga+qg0;
-            for(int j=j0;j<j1;++j) gam[j]=(a[(long)j*nz]!=0);
+            unsigned char *gam=ga+qr;
+            for(int j=j0;j<j1;++j) gam[off[j-j0]]=(a[(long)j*nz]!=0);
         }
     }
     const double t1=wtime();
@@ -2006,7 +2021,7 @@ void reefmg_core::device_upload()
     {
         if(dev0copy)
         {
-            const long N=(long)(devgx+2)*(devgy+2)*nz;
+            const long N=lay.sk*nz;
             for(int m=0;m<7;++m) std::memcpy(dev->arr(0,RMG_P+m),window_array(RMG_P+m),N*sizeof(float));
             std::memcpy(dev->arr(0,RMG_ACT),window_array(RMG_ACT),N);
         }
@@ -2036,8 +2051,10 @@ void reefmg_core::device_precondition(std::vector<double> &rhs,std::vector<doubl
     const double t0=wtime();
     const sc_level &L=lev[0];
     const int nz=L.nz;
-    const long si=devgy+2, sk=(long)(devgx+2)*(devgy+2);
-    const long N=(long)(devgx+2)*(devgy+2)*nz;
+    const rmg_layout lay(devgx,devgy,nz);
+    const long si=lay.si, sk=lay.sk;
+    const long N=lay.sk*nz;
+    int off[JB];
 
     float *gf=window_array(RMG_F);
     const double *r=&rhs[0];
@@ -2046,11 +2063,12 @@ void reefmg_core::device_precondition(std::vector<double> &rhs,std::vector<doubl
     {
         const int j1=std::min(L.ny,j0+JB);
         const double *rc=r+L.idx(i,0,0);
+        row_offsets(devox+i,devoy,j0,j1,lay.hh,off);
         for(int k=0;k<nz;++k)
         {
-            float *g=gf+k*sk+(devox+i+1)*si+devoy+1;
+            float *g=gf+k*sk+(devox+i+1)*si;
             const double *h=rc+k;
-            for(int j=j0;j<j1;++j) g[j]=float(h[(long)j*nz]);
+            for(int j=j0;j<j1;++j) g[off[j-j0]]=float(h[(long)j*nz]);
         }
     }
     const double t1=wtime();
@@ -2061,9 +2079,10 @@ void reefmg_core::device_precondition(std::vector<double> &rhs,std::vector<doubl
     if(myrank==0)
     {
         if(dev0copy) std::memcpy(dev->arr(0,RMG_F),gf,N*sizeof(float));
-        const int sp=(devsweeps>0)? devsweeps : pre;
-        const int so=(devsweeps>0)? devsweeps : post;
-        dev->vcycle(device_levels(),sp,so,sweepstyle,coarse_sweeps,std::max(devcycles,1));
+        //  N 17 / N 19: 2 V-cycles with 2 sweeps unless set (see set_device_cycle)
+        const int sw=(devsweeps>0)? devsweeps : 2;
+        (void)pre; (void)post;
+        dev->vcycle(device_levels(),sw,sw,sweepstyle,coarse_sweeps,(devcycles>0)? devcycles : 2);
         device_sync();
         if(dev0copy) std::memcpy(window_array(RMG_U),dev->arr(0,RMG_U),N*sizeof(float));
     }
@@ -2079,11 +2098,12 @@ void reefmg_core::device_precondition(std::vector<double> &rhs,std::vector<doubl
     {
         const int j1=std::min(L.ny,j0+JB);
         double *xc=xo+L.idx(i,0,0);
+        row_offsets(devox+i,devoy,j0,j1,lay.hh,off);
         for(int k=0;k<nz;++k)
         {
-            const float *g=gu+k*sk+(devox+i+1)*si+devoy+1;
+            const float *g=gu+k*sk+(devox+i+1)*si;
             double *h=xc+k;
-            for(int j=j0;j<j1;++j) h[(long)j*nz]=g[j];
+            for(int j=j0;j<j1;++j) h[(long)j*nz]=g[off[j-j0]];
         }
     }
     const double t5=wtime();

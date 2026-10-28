@@ -227,9 +227,10 @@ public:
 
     //  Strength of the preconditioner on the device (N 17, N 19): ncycle
     //  V-cycles per application and sweeps pre- and post-smoothing sweeps
-    //  per level, instead of one cycle with the host's sweeps.  The GPU
-    //  cycle is cheap next to a BiCGStab iteration on the CPU ranks, so a
-    //  stronger one can pay through fewer iterations.  0: the default.
+    //  per level.  0: the default, 2 and 2 - the GPU cycle is cheap next to
+    //  a BiCGStab iteration on the CPU ranks, and 2 x 2 halves the
+    //  iterations (FNPF basin on 12 ranks, M3 Max: 1.42x the CPU at
+    //  7.7 M cells, against 1.27x with one cycle and one sweep).
     void set_device_cycle(int ncycle,int sweeps){devcycles=ncycle; devsweeps=sweeps;}
     bool on_device() const {return devmode;}
     const std::string& device_status() const {return devmsg;}

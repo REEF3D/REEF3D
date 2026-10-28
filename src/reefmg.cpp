@@ -96,7 +96,7 @@ reefmg::reefmg(lexer *p, ghostcell *pgc, int solve_input, int precon_input)
     mg.set_device(p->N16);
 
     //  N 17 / N 19: V-cycles per preconditioner application and smoothing
-    //  sweeps on the device (0: one cycle, the sweeps below)
+    //  sweeps on the device (0: 2 and 2)
     mg.set_device_cycle(p->N17,p->N19);
 
 

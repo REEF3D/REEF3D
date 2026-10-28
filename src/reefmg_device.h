@@ -52,16 +52,24 @@ enum rmg_array {RMG_P=0, RMG_N, RMG_S, RMG_W, RMG_E, RMG_T, RMG_B, RMG_TC, RMG_T
                 RMG_U, RMG_F, RMG_R, RMG_ACT, RMG_HX, RMG_HY, RMG_NARRAY};
 
 //  Byte offsets of the arrays of one level in a single block of memory, each
-//  aligned to 256 bytes; floats, except RMG_ACT (one byte per cell).  The
-//  host computes the same layout for the fine level it shares with the device.
+//  aligned to 256 bytes; floats, except RMG_ACT (one byte per cell), with
+//  the row layout of reefmg_device_kernels.h (the two colours of a row in
+//  separate halves).  The host computes the same layout for the fine level
+//  it shares with the device.
 struct rmg_layout
 {
     long off[RMG_NARRAY];
     long bytes;
 
+    int hh,si;   // entries per colour of a row, row length (see reefmg_device_kernels.h)
+    long sk;     // plane
+
     rmg_layout(int nx,int ny,int nz)
     {
-        const long N=(long)(nx+2)*(ny+2)*nz;
+        hh=(ny+3)/2;
+        si=2*hh;
+        sk=(long)(nx+2)*si;
+        const long N=sk*nz;
         long o=0;
         for(int a=0;a<RMG_NARRAY;++a)
         {

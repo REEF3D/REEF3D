@@ -258,7 +258,7 @@ kernel void k_zero(device float *a [[buffer(2)]], uint t [[thread_position_in_gr
 
             for(size_t l=0;l<lv.size();++l)
             {
-                if((long)(lv[l].nx+2)*(lv[l].ny+2)*lv[l].nz>=2147483647L)
+                if(rmg_layout(lv[l].nx,lv[l].ny,lv[l].nz).sk*lv[l].nz>=2147483647L)
                 {
                     err="level too large for 32-bit indexing";
                     return false;
@@ -399,7 +399,7 @@ kernel void k_zero(device float *a [[buffer(2)]], uint t [[thread_position_in_gr
             [e setBytes:&P length:sizeof(P) atIndex:0];
             const int a[]={RMG_F,RMG_U,RMG_R,RMG_P,RMG_N,RMG_S,RMG_W,RMG_E,RMG_T,RMG_B};
             bind(e,l,a,10,2);
-            dispatch(e,PS_RESIDUAL,(long)P.nx*P.ny*P.nz);
+            dispatch(e,PS_RESIDUAL,rmg_kern::rmg_ncell(P.nx,P.nz,P.si));
         }
 
         void k_restrict(int l) override
@@ -411,7 +411,7 @@ kernel void k_zero(device float *a [[buffer(2)]], uint t [[thread_position_in_gr
             const int ac[]={RMG_F,RMG_U};
             bind(e,l,af,1,2);
             bind(e,l+1,ac,2,3);
-            dispatch(e,PS_RESTRICT,(long)T.cnx*T.cny*T.nz);
+            dispatch(e,PS_RESTRICT,rmg_kern::rmg_ncell(T.cnx,T.nz,T.csi));
         }
 
         void k_prolong(int l) override
@@ -423,7 +423,7 @@ kernel void k_zero(device float *a [[buffer(2)]], uint t [[thread_position_in_gr
             const int af[]={RMG_U,RMG_ACT};
             bind(e,l+1,ac,1,2);
             bind(e,l,af,2,3);
-            dispatch(e,PS_PROLONG,(long)T.fnx*T.fny*T.nz);
+            dispatch(e,PS_PROLONG,rmg_kern::rmg_ncell(T.fnx,T.nz,T.fsi));
         }
 
         void k_coarsen(int l) override
@@ -434,7 +434,7 @@ kernel void k_zero(device float *a [[buffer(2)]], uint t [[thread_position_in_gr
             const int af[]={RMG_P,RMG_N,RMG_S,RMG_W,RMG_E,RMG_T,RMG_B,RMG_ACT,RMG_HX,RMG_HY};
             bind(e,l,af,10,2);
             bind(e,l+1,af,10,12);
-            dispatch(e,PS_COARSEN,(long)T.cnx*T.cny*T.nz);
+            dispatch(e,PS_COARSEN,rmg_kern::rmg_ncell(T.cnx,T.nz,T.csi));
         }
 
         void k_factor(int l) override
@@ -444,7 +444,7 @@ kernel void k_zero(device float *a [[buffer(2)]], uint t [[thread_position_in_gr
             [e setBytes:&P length:sizeof(P) atIndex:0];
             const int a[]={RMG_P,RMG_T,RMG_B,RMG_TC,RMG_TI,RMG_ACT};
             bind(e,l,a,6,2);
-            dispatch(e,PS_FACTOR,(long)P.nx*P.ny);
+            dispatch(e,PS_FACTOR,rmg_kern::rmg_ncolumn(P));
         }
 
         void k_wrap(int l) override
@@ -462,7 +462,7 @@ kernel void k_zero(device float *a [[buffer(2)]], uint t [[thread_position_in_gr
             id<MTLComputeCommandEncoder> e=begin(PS_ZERO);
             const int a[]={v};
             bind(e,l,a,1,2);
-            dispatch(e,PS_ZERO,(long)(desc[l].nx+2)*(desc[l].ny+2)*desc[l].nz);
+            dispatch(e,PS_ZERO,lay[l].sk*desc[l].nz);
         }
 
     private:
@@ -521,7 +521,8 @@ kernel void k_zero(device float *a [[buffer(2)]], uint t [[thread_position_in_gr
         {
             const rmg_level_desc &d=desc[l];
             rmg_kern::rmg_lp P;
-            P.nx=d.nx; P.ny=d.ny; P.nz=d.nz; P.si=d.ny+2; P.sk=(d.nx+2)*(d.ny+2);
+            const rmg_layout L(d.nx,d.ny,d.nz);
+            P.nx=d.nx; P.ny=d.ny; P.nz=d.nz; P.hh=L.hh; P.si=L.si; P.sk=(int)L.sk;
             P.perx=perx; P.pery=pery;
             return P;
         }
@@ -530,8 +531,9 @@ kernel void k_zero(device float *a [[buffer(2)]], uint t [[thread_position_in_gr
         {
             const rmg_level_desc &f=desc[l], &c=desc[l+1];
             rmg_kern::rmg_tp T;
-            T.fnx=f.nx; T.fny=f.ny; T.nz=f.nz; T.fsi=f.ny+2; T.fsk=(f.nx+2)*(f.ny+2);
-            T.cnx=c.nx; T.cny=c.ny; T.csi=c.ny+2; T.csk=(c.nx+2)*(c.ny+2);
+            const rmg_layout LF(f.nx,f.ny,f.nz), LC(c.nx,c.ny,c.nz);
+            T.fnx=f.nx; T.fny=f.ny; T.nz=f.nz; T.fhh=LF.hh; T.fsi=LF.si; T.fsk=(int)LF.sk;
+            T.cnx=c.nx; T.cny=c.ny; T.chh=LC.hh; T.csi=LC.si; T.csk=(int)LC.sk;
             T.rx=c.rx; T.ry=c.ry; T.perx=perx; T.pery=pery;
             return T;
         }
