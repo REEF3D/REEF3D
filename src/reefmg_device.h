@@ -42,8 +42,8 @@ Architect: Hans Bihs
 //  by the host only between sync() and the next queued kernel.
 //
 //  Devices:
-//    1  Metal - the GPU of an Apple Silicon Mac (reefmg_device_metal.mm,
-//       built with make METAL=1 or cmake -DREEF3D_USE_METAL=ON)
+//    1  Metal - the GPU of an Apple Silicon Mac (reefmg_device_metal.cpp,
+//       in every macOS build: CodeLite, make or cmake, nothing to switch on)
 //    2  reference - the same kernels in plain loops on the CPU, single
 //       threaded; for testing the device path on any machine
 
@@ -164,8 +164,13 @@ protected:
 //  is not available (not built in, no GPU).
 reefmg_device* reefmg_device_create(int kind,std::string &err);
 
-#ifdef REEF3D_USE_METAL
+//  The Metal device (reefmg_device_metal.cpp) is part of every macOS build;
+//  -DREEF3D_NO_METAL leaves it out.
+#if defined(__APPLE__) && !defined(REEF3D_NO_METAL)
+#define REEF3D_METAL 1
 reefmg_device* reefmg_device_metal_create(std::string &err);
+#else
+#define REEF3D_METAL 0
 #endif
 
 #endif

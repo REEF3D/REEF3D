@@ -254,10 +254,10 @@ reefmg_device* reefmg_device_create(int kind,std::string &err)
 
     if(kind==1)
     {
-#ifdef REEF3D_USE_METAL
+#if REEF3D_METAL
         return reefmg_device_metal_create(err);
 #else
-        err="this build has no Metal GPU support (build with make METAL=1 or cmake -DREEF3D_USE_METAL=ON on macOS)";
+        err="no Metal GPU support in this build (macOS only)";
         return 0;
 #endif
     }

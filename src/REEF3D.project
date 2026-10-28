@@ -1542,6 +1542,7 @@
         <File Name="reefmg_core.cpp"/>
         <File Name="reefmg2D.cpp"/>
         <File Name="reefmg_device.cpp"/>
+        <File Name="reefmg_device_metal.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Stationary">
         <File Name="solver_void.cpp"/>

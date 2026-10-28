@@ -85,8 +85,8 @@ reefmg::reefmg(lexer *p, ghostcell *pgc, int solve_input, int precon_input)
     //  V-cycle, which may pay at high rank counts.  Must precede setup().
     mg.set_agglomeration(p->N15==1 ? 1 : 0);
 
-    //  N 16: the V-cycle on a device - 1 the Apple Silicon GPU (Metal, built
-    //  with make METAL=1), 2 the reference device (the GPU kernels on the
+    //  N 16: the V-cycle on a device - 1 the Apple Silicon GPU (Metal, in
+    //  every macOS build), 2 the reference device (the GPU kernels on the
     //  CPU, for tests).  One single-precision hierarchy of the whole domain
     //  on the device, built and cycled by rank 0 for all ranks through an
     //  MPI shared-memory window (all ranks on one node); red-black line
