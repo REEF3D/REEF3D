@@ -1,0 +1,9 @@
+{
+ "description": "Floating hemisphere (R 0.5 m, X 15 8) released 0.05 m above equilibrium, dx 0.1 m with one level of 0.05 m and doubled sigma layers (G 6 1) in the zone around it (G 12 0.5): the sharp hull on both grids, the loads from the patch (Ship Hydrodynamics validation 22, hemi_a_g6, at its first steps).",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 15,
+ "files": ["floating.stl"],
+ "tags": ["3d", "nhflow", "6dof", "floating", "amr"],
+ "covers": ["nhflow_hullbody and nhflow_thinbody on a 3D patch", "the hull loads summed over the leaf grids"]
+}

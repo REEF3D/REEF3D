@@ -1,0 +1,4 @@
+{"base": "nhflow_2d_amr_hull_x15_8", "ctrl_add": ["G 7 1"],
+ "description": "nhflow_2d_amr_hull_x15_8 with subcycling (G 7 1): the sharp hull (X 15 8) on the subcycled levels, level 0 with the predicted body, the finest level with the loads, the synchronisation projection keeping the Rhie-Chow face corrections of the last stage (zone margin 12 level-0 cells).",
+ "tags": ["2d", "nhflow", "6dof", "floating", "amr"],
+ "covers": ["nhflow_amr_sub with nhflow_hullbody on every grid", "nhflow_amr::sub_project: MRCX/MRCY of the last stage plus the synchronisation"]}
