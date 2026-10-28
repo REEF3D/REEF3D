@@ -183,13 +183,11 @@ sflow_amr::sflow_amr(lexer *p, fdm2D *b, ghostcell *pgc, patchBC_interface *ppBC
     q.za = p->G13_a;
 
     // several ranks (G 40 1): the patches are placed for the load of the ranks; parents and old
-    // patches on other ranks are reached through the block plans and old_run of the core.  Not
-    // with the moving body (X 10 2/3): its fields on the patches come from the level-0 cells
-    // below the patch (fs0_at)
-    q.place = (p->G40>=1 && p->mpi_size>1 && shipmode==0) ? MIN(p->G40,2) : 0;
+    // patches on other ranks are reached through the block plans and old_run of the core.  With the
+    // moving body (X 10 2/3) the level-0 level set below the patches comes from the ranks that hold it
+    // (ship_fs_exchange); the draft and the pressure are evaluated on the patch itself
+    q.place = (p->G40>=1 && p->mpi_size>1) ? MIN(p->G40,2) : 0;
     q.rebalance = 0.1;
-    if(p->G40>=1 && shipmode>0 && p->mpirank==0)
-    cout<<"SFLOW AMR: G 40 is not available with the moving body (X 10 2/3), the patches stay on the rank below"<<endl;
 
     configure(q);
 

@@ -106,8 +106,9 @@ using namespace std;
 //     domain decomposition.  Marked tiles are merged into rectangles and cut at
 //     the partition edges, or with G 40 1 placed for the load of the ranks
 //     (parents and old patches on other ranks through the block plans and old_run
-//     of the core: restrict_levels, ini_patch_old, ini_patch_prolong; not with the
-//     moving body)
+//     of the core: restrict_levels, ini_patch_old, ini_patch_prolong; with the moving
+//     body the level-0 level set below a patch from the ranks that hold it,
+//     ship_fs_exchange)
 //   - Boussinesq (A 220 4): u_a is solved on the leaf cells of all levels together
 //     (sflow_amr_bous.cpp), the patch stages stop before it and continue afterwards
 //   - moving body (X 10 2/3): the body stays on level 0 (sixdof_sflow); the patches
@@ -130,6 +131,7 @@ struct sflow_amr_told
 struct sflow_amr_patch : public reefamr_patch
 {
     sediment_f *sed = nullptr;      // S 10: the sediment transport of the grid (sflow_amr_sed.cpp)
+    int fsb = -1;                   // G 40 with the body: its box of the level-0 level set (fs0c)
     vector<double> sedrec[4];       // S 10: Exner face fluxes on the box faces, per side
     fdm2D *b;
     sflow_HLL *phll;
@@ -324,6 +326,15 @@ private:
     void ship_fields_curv(sflow_amr_patch&, bool);
     void ship_patches(bool);
     double fs0_at(sflow_amr_patch&, int, int);
+    // G 40 with the body: a placed patch may lie on another rank than the level-0 cells below it.  The
+    // level-0 level set of the bodies around the patches of this rank, with the level-0 cell centres,
+    // is taken from the ranks that hold it (ship_fs_exchange, collective) before the body fields are
+    // evaluated; fs0_at reads it there.  Per patch (index into P): the global level-0 box
+    struct fs0box { int i0 = 0, i1 = -1, j0 = 0, j1 = -1; vector<double> x, y, v; };
+    vector<fs0box> fs0c;
+    void ship_fs_exchange(int);
+    void fs0_range(sflow_amr_patch&, int&, int&, int&, int&);
+    double fs0_place(sflow_amr_patch&, int, int);
     // G 7 1: the level-0 body at the start of the level-0 step (hull triangles, level set, u, c);
     // the patches take it linear in time between the start and the end of that step
     struct shipsave { vector<double> t[3], fs; double u[6], c[3]; };

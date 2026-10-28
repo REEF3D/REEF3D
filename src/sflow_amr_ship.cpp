@@ -155,6 +155,11 @@ inline int fsh_s(int a, int l) { return (a>=0) ? (a>>l) : -(((-a)-1)>>l)-1; }
 // the level-0 body level set at the centre of patch cell (ii,jj): bilinear from the level-0 cells
 double sflow_amr::fs0_at(sflow_amr_patch &c, int ii, int jj)
 {
+    // placed patches (G 40): from the level-0 cells gathered for the patch (ship_fs_exchange); the blocks
+    // of a multi-block grid (level 0) as before
+    if(par.place>0 && c.lev>=1)
+    return fs0_place(c,ii,jj);
+
     lexer *pp = c.pp;
     const int l = c.lev;
     const double x = pp->XP[ii+marge];
@@ -634,7 +639,18 @@ void sflow_amr::ship_fields_curv(sflow_amr_patch &c, bool withpress)
 
 void sflow_amr::ship_patches(bool withpress)
 {
-    if(shipmode==0 || P.empty())
+    if(shipmode==0)
+    return;
+
+    // placed patches (G 40): the level-0 level set around them first (collective: every rank)
+    if(par.place>0)
+    {
+        double t0 = MPI_Wtime();
+        ship_fs_exchange(-1);
+        tm[8] += MPI_Wtime()-t0;
+    }
+
+    if(P.empty())
     return;
 
     double t0 = MPI_Wtime();
@@ -698,7 +714,8 @@ void sflow_amr::ship_put(const vector<shipsave> &A, const vector<shipsave> *B, d
 // the level-0 body linear in time between the start and the end of that step
 void sflow_amr::ship_level(int l, double t, bool withpress)
 {
-    if(shipmode==0 || lev[l].empty())
+    // (placed patches, G 40: every rank takes part in the exchange of the level set)
+    if(shipmode==0 || (lev[l].empty() && par.place==0))
     return;
 
     double t0 = MPI_Wtime();
@@ -717,6 +734,9 @@ void sflow_amr::ship_level(int l, double t, bool withpress)
         ship_th = th;
     }
 
+    if(par.place>0)
+    ship_fs_exchange(l);
+
     zone_setup(p0);
     for(int n : lev[l])
     ship_fields(*SP(n),withpress);
@@ -731,4 +751,158 @@ void sflow_amr::ship_level(int l, double t, bool withpress)
     p0->simtime = simt;
 
     tm[8] += MPI_Wtime()-t0;
+}
+
+// ---------------------------------------------------------------------------------------------
+// G 40 with the body: the level-0 level set around the placed patches (fs0_at on another rank)
+// ---------------------------------------------------------------------------------------------
+
+namespace
+{
+// the level-0 cells a rank holds in its arrays, in global indices: the interior and the ghost cells
+inline int clampi(int v, int a, int b) { return v<a ? a : (v>b ? b : v); }
+}
+
+// the global level-0 box fs0_at reads for the cells of patch c (all cells of its arrays): the parent
+// columns and rows of the cells, one more on each side
+void sflow_amr::fs0_range(sflow_amr_patch &c, int &i0, int &i1, int &j0, int &j1)
+{
+    lexer *pp = c.pp;
+    const int l = c.lev;
+    i0 = fsh_s(pp->imin-EXT+c.I0,l) - 1;
+    i1 = fsh_s(pp->imin+pp->imax-1-EXT+c.I0,l) + 1;
+    j0 = fsh_s(pp->jmin-EY+c.J0,l) - 1;
+    j1 = fsh_s(pp->jmin+pp->jmax-1-EY+c.J0,l) + 1;
+}
+
+// collective: every rank asks for the boxes of its level-l patches (l<0: all), the ranks that hold the
+// cells (the domain cell nearest to it in their interior) send the cell centres and the level set of
+// every body, as their own arrays hold them (ghost cells beyond the domain included)
+void sflow_amr::ship_fs_exchange(int l)
+{
+    const int np = p0->mpi_size;
+    const int nb = ship6->objects();
+    const int glo = p0->imin, ghi = GNX-1 + (p0->imin+p0->imax-NX0);
+    const int gjlo = p0->jmin, gjhi = GNY-1 + (p0->jmin+p0->jmax-NY0);
+
+    // the requests of this rank: patch index and box
+    vector<int> rq;
+    fs0c.resize(P.size());
+    for(int n=0; n<(int)P.size(); ++n)
+    {
+        sflow_amr_patch *c = SP(n);
+        c->fsb = -1;
+        if(c->lev<1 || (l>=0 && c->lev!=l))
+        continue;
+        fs0box &B = fs0c[n];
+        fs0_range(*c,B.i0,B.i1,B.j0,B.j1);
+        const size_t ni = B.i1-B.i0+1, nj = B.j1-B.j0+1;
+        B.x.assign(ni,0.0);
+        B.y.assign(nj,0.0);
+        B.v.assign(ni*nj*nb,1.0e20);
+        c->fsb = n;
+        rq.push_back(n); rq.push_back(B.i0); rq.push_back(B.i1); rq.push_back(B.j0); rq.push_back(B.j1);
+    }
+
+    int nmine = (int)rq.size();
+    vector<int> cnt(np), off(np);
+    MPI_Allgather(&nmine,1,MPI_INT,&cnt[0],1,MPI_INT,MPI_COMM_WORLD);
+    int tot = 0;
+    for(int r=0; r<np; ++r) { off[r] = tot; tot += cnt[r]; }
+    vector<int> all(MAX(tot,1));
+    MPI_Allgatherv(nmine>0 ? &rq[0] : nullptr,nmine,MPI_INT,&all[0],&cnt[0],&off[0],MPI_INT,MPI_COMM_WORLD);
+
+    // the cells of this rank in the boxes of every rank: request entry (index of its 5 ints), cell offset,
+    // x, y, the level set of every body
+    const int rec = 4+nb;
+    vector<vector<double>> out(np);
+    for(int r=0; r<np; ++r)
+    for(int k=off[r]; k<off[r]+cnt[r]; k+=5)
+    {
+        const int i0 = all[k+1], i1 = all[k+2], j0 = all[k+3], j1 = all[k+4];
+        const int nj = j1-j0+1;
+        for(int I=i0; I<=i1; ++I)
+        for(int J=j0; J<=j1; ++J)
+        {
+            const int Ig = clampi(I,glo,ghi), Jg = clampi(J,gjlo,gjhi);
+            const int Io = clampi(Ig,0,GNX-1), Jo = clampi(Jg,0,GNY-1);
+            if(Io<O0i || Io>=O0i+NX0 || Jo<O0j || Jo>=O0j+NY0)
+            continue;
+            const int ia = Ig-O0i, ja = Jg-O0j;
+            vector<double> &o = out[r];
+            o.push_back(double(k-off[r]));
+            o.push_back(double((I-i0)*nj + (J-j0)));
+            o.push_back(p0->XP[ia+marge]);
+            o.push_back(p0->YP[ja+marge]);
+            for(int b=0; b<nb; ++b)
+            o.push_back(ship6->object(b)->amr_fs()(ia,ja));
+        }
+    }
+
+    vector<int> sc(np), so(np), rc(np), ro(np);
+    int st = 0;
+    for(int r=0; r<np; ++r) { sc[r] = (int)out[r].size(); so[r] = st; st += sc[r]; }
+    MPI_Alltoall(&sc[0],1,MPI_INT,&rc[0],1,MPI_INT,MPI_COMM_WORLD);
+    int rt = 0;
+    for(int r=0; r<np; ++r) { ro[r] = rt; rt += rc[r]; }
+    vector<double> sb(MAX(st,1)), rb(MAX(rt,1));
+    for(int r=0; r<np; ++r)
+    std::copy(out[r].begin(),out[r].end(),sb.begin()+so[r]);
+    MPI_Alltoallv(&sb[0],&sc[0],&so[0],MPI_DOUBLE,&rb[0],&rc[0],&ro[0],MPI_DOUBLE,MPI_COMM_WORLD);
+
+    for(int m=0; m+rec<=rt; m+=rec)
+    {
+        const int k = int(rb[m]), cell = int(rb[m+1]);
+        fs0box &B = fs0c[rq[k]];
+        const int nj = B.j1-B.j0+1;
+        const int a = cell/nj, e = cell%nj;
+        B.x[a] = rb[m+2];
+        B.y[e] = rb[m+3];
+        for(int b=0; b<nb; ++b)
+        B.v[(size_t)cell*nb+b] = rb[m+4+b];
+    }
+}
+
+// fs0_at on the box of the patch (global indices): the same cells and weights as from the level-0 arrays
+double sflow_amr::fs0_place(sflow_amr_patch &c, int ii, int jj)
+{
+    if(c.fsb<0)
+    {
+        cout<<"SFLOW AMR: the level set of the body is not there for patch "<<c.I0<<" "<<c.J0<<" (G 40)"<<endl;
+        exit(1);
+    }
+    const fs0box &B = fs0c[c.fsb];
+    lexer *pp = c.pp;
+    const int l = c.lev;
+    const double x = pp->XP[ii+marge];
+    const double y = pp->YP[jj+marge];
+    const int glo = p0->imin, ghi = GNX-1 + (p0->imin+p0->imax-NX0);
+    const int gjlo = p0->jmin, gjhi = GNY-1 + (p0->jmin+p0->jmax-NY0);
+    const int nj = B.j1-B.j0+1;
+    auto bi = [&](int I) { return clampi(clampi(I,glo,ghi),B.i0,B.i1) - B.i0; };
+    auto bj = [&](int J) { return clampi(clampi(J,gjlo,gjhi),B.j0,B.j1) - B.j0; };
+
+    int ka = fsh_s(ii-EXT+c.I0,l);
+    int la = fsh_s(jj-EY+c.J0,l);
+    if(x < B.x[bi(ka)]) --ka;
+    if(y < B.y[bj(la)]) --la;
+    int kb = ka+1, lb = la+1;
+    ka = clampi(ka,glo,ghi); kb = clampi(kb,glo,ghi);
+    la = clampi(la,gjlo,gjhi); lb = clampi(lb,gjlo,gjhi);
+
+    const double xa = B.x[bi(ka)], xb = B.x[bi(kb)], ya = B.y[bj(la)], yb = B.y[bj(lb)];
+    double wx = (kb==ka) ? 0.0 : (x-xa)/(xb-xa);
+    double wy = (lb==la) ? 0.0 : (y-ya)/(yb-ya);
+    wx = MAX(MIN(wx,1.0),0.0);
+    wy = MAX(MIN(wy,1.0),0.0);
+
+    const int nbd = ship6->objects();
+    auto f = [&](int b, int I, int J) { return B.v[((size_t)bi(I)*nj + bj(J))*nbd + b]; };
+    double fsv = 1.0e20;
+    for(int b=0; b<nbd; ++b)
+    {
+        double v = (1.0-wx)*(1.0-wy)*f(b,ka,la) + wx*(1.0-wy)*f(b,kb,la) + (1.0-wx)*wy*f(b,ka,lb) + wx*wy*f(b,kb,lb);
+        fsv = MIN(fsv,v);
+    }
+    return fsv;
 }
