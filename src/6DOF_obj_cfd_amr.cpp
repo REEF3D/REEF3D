@@ -176,10 +176,10 @@ void sixdof_obj_cfd::reini_amr(lexer *p, fdm *a, ghostcell *pgc, field &f, reini
     BOXLOOP
     {
     if(p->j_dir==0)
-    dtt.data()[IJK] = p->F43*MIN(p->DXP[IP],p->DZP[KP]);
+    dtt(i,j,k) = p->F43*MIN(p->DXP[IP],p->DZP[KP]);
 
     if(p->j_dir==1)
-	dtt.data()[IJK] = p->F43*MIN3(p->DXP[IP],p->DYP[JP],p->DZP[KP]);
+	dtt(i,j,k) = p->F43*MIN3(p->DXP[IP],p->DYP[JP],p->DZP[KP]);
 	}
 
     std::ranges::copy(f,frk.begin());
@@ -189,14 +189,14 @@ void sixdof_obj_cfd::reini_amr(lexer *p, fdm *a, ghostcell *pgc, field &f, reini
 		prd->start_box(p,a,pgc,f,LL,b);
 
 		BOXLOOP
-		frk.data()[IJK] = f.data()[IJK] + dtt.data()[IJK]*LL.data()[IJK];
+		frk(i,j,k) = f(i,j,k) + dtt(i,j,k)*LL(i,j,k);
 
         pgc->start4a(p,frk,50);
 
 		prd->start_box(p,a,pgc,frk,LL,b);
 
 		BOXLOOP
-		f.data()[IJK] = 0.5*f.data()[IJK] + 0.5*frk.data()[IJK] + 0.5*dtt.data()[IJK]*LL.data()[IJK];
+		f(i,j,k) = 0.5*f(i,j,k) + 0.5*frk(i,j,k) + 0.5*dtt(i,j,k)*LL(i,j,k);
 
         pgc->start4a(p,f,50);
 	}

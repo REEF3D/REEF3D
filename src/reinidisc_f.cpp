@@ -53,7 +53,7 @@ void reinidisc_f::start_mask(lexer *p, fdm *a, ghostcell *pgc, field &f, field &
 {
     BASELOOP
     {
-        L.data()[IJK] = 0.0;
+        L(i,j,k) = 0.0;
 
         if(m[IJK])
         disc(p,a,pgc,f,L);
@@ -66,7 +66,7 @@ void reinidisc_f::start_box(lexer *p, fdm *a, ghostcell *pgc, field &f, field &L
     for(j=b[2]; j<b[3]; ++j)
     for(k=b[4]; k<b[5]; ++k)
     {
-        L.data()[IJK] = 0.0;
+        L(i,j,k) = 0.0;
 
         if(p->flag4[IJK]>0)
         disc(p,a,pgc,f,L);
