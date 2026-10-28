@@ -1,0 +1,22 @@
+{
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 40,
+ "files": [
+  "blocks.dat"
+ ],
+ "tags": [
+  "3d",
+  "nhflow",
+  "curvilinear",
+  "multiblock",
+  "turbulence",
+  "si",
+  "quick"
+ ],
+ "description": "nhflow_3d_mb_komega_dambreak with the semi-implicit step (A 534 1, hydrostatic): the old time level of k and omega of the blocks saved after the block steps (nhflow_amr::si_step -> turb_step); one block to 3e-15 m after 0.2 s (Dropbox Tagus_NHFLOW_multiblock/validation/10_block_turbulence).",
+ "covers": [
+  "nhflow_amr::si_step: turb_step",
+  "nhflow_amr::turb_composite0 in the SI step"
+ ]
+}
