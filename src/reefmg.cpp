@@ -85,6 +85,16 @@ reefmg::reefmg(lexer *p, ghostcell *pgc, int solve_input, int precon_input)
     //  V-cycle, which may pay at high rank counts.  Must precede setup().
     mg.set_agglomeration(p->N15==1 ? 1 : 0);
 
+    //  N 16: the V-cycle on a device - 1 the Apple Silicon GPU (Metal, built
+    //  with make METAL=1), 2 the reference device (the GPU kernels on the
+    //  CPU, for tests).  One single-precision hierarchy of the whole domain
+    //  on the device, built and cycled by rank 0 for all ranks through an
+    //  MPI shared-memory window (all ranks on one node); red-black line
+    //  smoothing whatever N 12 says.  BiCGStab and the exact operator stay
+    //  distributed on the CPU ranks in double.  Falls back to the CPU with a
+    //  message if the device is not available.  Must precede setup().
+    mg.set_device(p->N16);
+
 
     //  In fp32 mode reefmg stores no double coefficients; BiCGStab takes the
     //  exact operator from REEF3D's own matrix through fine_apply().
@@ -208,6 +218,9 @@ void reefmg::topology(lexer *p, ghostcell *pgc)
         else if(p->N15==1 && npx*npy>1)
         cout<<"REEFMG coarse-grid agglomeration refused: the gathered problem ("
             <<mg.agglomerated_cells()<<" cells) is too large to hold on every rank"<<endl;
+
+        if(p->N16>0)
+        cout<<"REEFMG "<<mg.device_status()<<endl;
 
         /*if(p->knox%2!=0 || (p->knoy>1 && p->knoy%2!=0))
         cout<<"REEFMG note - odd local cell numbers give ragged coarse cells.  "
@@ -521,6 +534,14 @@ void reefmg::start_solver8(lexer *p, ghostcell *pgc, double *f, vec &rhs,
         <<"  res "<<setprecision(3)<<relres
         <<"  coarsen "<<setprecision(3)<<coarsentime
         <<" s  solve "<<setprecision(3)<<solvetime<<" s"<<endl;
+
+    //  N 16: where the time of this coarsen and solve went (rank 0)
+    if(mg.on_device())
+    {
+        if(p->mpirank==0 && p->count%p->P12==0 && !solver_print_quiet())
+        cout<<"REEFMG device: "<<mg.device_timing()<<endl;
+        mg.reset_timers();
+    }
 
     if(p->solveriter>=p->N46 && p->mpirank==0)
     cout<<"REEFMG WARNING - iteration limit N 46 = "<<p->N46<<" reached, res "
@@ -853,6 +874,14 @@ void reefmg::start_solver5(lexer *p, ghostcell *pgc, field &f, vec &rhs, matrix_
         <<"  res "<<setprecision(3)<<relres
         <<"  coarsen "<<setprecision(3)<<coarsentime
         <<" s  solve "<<setprecision(3)<<solvetime<<" s"<<endl;
+
+    //  N 16: where the time of this coarsen and solve went (rank 0)
+    if(mg.on_device())
+    {
+        if(p->mpirank==0 && p->count%p->P12==0 && !solver_print_quiet())
+        cout<<"REEFMG device: "<<mg.device_timing()<<endl;
+        mg.reset_timers();
+    }
 
     if(p->solveriter>=p->N46 && p->mpirank==0)
     cout<<"REEFMG WARNING - iteration limit N 46 = "<<p->N46<<" reached, res "

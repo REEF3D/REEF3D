@@ -886,6 +886,7 @@ void control::ini_default()
     N20=20;        //  int precondioner switch iter
     N22=0;         //  int precondioner switch SFLOW
     N15=0;         //  int REEFMG coarse-grid agglomeration: 1 on
+    N16=0;         //  int REEFMG V-cycle device: 0 CPU, 1 Metal GPU (make METAL=1), 2 reference device
     N23=0;         //  int precondioner switch FNPF
     N25=0;         //  int precondioner switch NHFLOW
     N26=1;         //  int precondioner switch CFD
