@@ -95,6 +95,10 @@ reefmg::reefmg(lexer *p, ghostcell *pgc, int solve_input, int precon_input)
     //  message if the device is not available.  Must precede setup().
     mg.set_device(p->N16);
 
+    //  N 17 / N 19: V-cycles per preconditioner application and smoothing
+    //  sweeps on the device (0: one cycle, the sweeps below)
+    mg.set_device_cycle(p->N17,p->N19);
+
 
     //  In fp32 mode reefmg stores no double coefficients; BiCGStab takes the
     //  exact operator from REEF3D's own matrix through fine_apply().

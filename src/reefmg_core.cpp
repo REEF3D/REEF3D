@@ -122,6 +122,7 @@ reefmg_core::reefmg_core()
     dev0=0;
     dev0copy=false;
     devgx=devgy=devox=devoy=devnlev=0;
+    devcycles=devsweeps=0;
     pctime=0.0;
     pccount=0;
     for(int m=0;m<4;++m) devt[m]=0.0;
@@ -1939,8 +1940,9 @@ void reefmg_core::device_setup(int maxlevel,int perx,int pery)
     char msg[512];
     snprintf(msg,sizeof(msg),
              "V-cycle on the device: %s - one hierarchy of the whole %d x %d x %d grid for %d rank%s, "
-             "%d levels, single precision, red-black line smoothing%s",
+             "%d levels, single precision, red-black line smoothing, %d V-cycle%s per application, %s sweeps%s",
              myrank==0? dev->name().c_str() : "", devgx,devgy,nz,nprocs,nprocs>1?"s":"",devnlev,
+             std::max(devcycles,1),devcycles>1?"s":"",devsweeps>0? std::to_string(devsweeps).c_str() : "host's",
              dev0copy? " (fine level copied)" : "");
     devmsg=msg;
 }
@@ -2059,7 +2061,9 @@ void reefmg_core::device_precondition(std::vector<double> &rhs,std::vector<doubl
     if(myrank==0)
     {
         if(dev0copy) std::memcpy(dev->arr(0,RMG_F),gf,N*sizeof(float));
-        dev->vcycle(device_levels(),pre,post,sweepstyle,coarse_sweeps);
+        const int sp=(devsweeps>0)? devsweeps : pre;
+        const int so=(devsweeps>0)? devsweeps : post;
+        dev->vcycle(device_levels(),sp,so,sweepstyle,coarse_sweeps,std::max(devcycles,1));
         device_sync();
         if(dev0copy) std::memcpy(window_array(RMG_U),dev->arr(0,RMG_U),N*sizeof(float));
     }

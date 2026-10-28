@@ -60,6 +60,7 @@ reefmg2D::reefmg2D(lexer *p, ghostcell *pgc)
     mg.set_precision(p->N14==32 ? 32 : 64);
     mg.set_agglomeration(p->N15==1 ? 1 : 0);
     mg.set_device(p->N16);   // N 16, see reefmg.cpp
+    mg.set_device_cycle(p->N17,p->N19);
 
     Mcur=0;
     mg.set_fine_operator(this);
@@ -79,6 +80,7 @@ reefmg2D::reefmg2D(lexer *p, ghostcell *pgc, bool loc)
     mg.set_precision(p->N14==32 ? 32 : 64);
     mg.set_agglomeration(0);
     mg.set_device(p->N16);   // N 16, see reefmg.cpp
+    mg.set_device_cycle(p->N17,p->N19);
 
     Mcur=0;
     mg.set_fine_operator(this);

@@ -23,6 +23,7 @@ Architect: Hans Bihs
 #include "reefmg_device.h"
 #include "reefmg_device_kernels.h"
 
+#include <algorithm>
 #include <cstdlib>
 #include <cstring>
 
@@ -75,9 +76,10 @@ void reefmg_device::cycle(int l,int nuse,int pre,int post,int sweepstyle,int coa
     smooth(l,post,dpost);
 }
 
-void reefmg_device::vcycle(int nuse,int pre,int post,int sweepstyle,int coarse_sweeps)
+void reefmg_device::vcycle(int nuse,int pre,int post,int sweepstyle,int coarse_sweeps,int ncycle)
 {
     k_zero(0,RMG_U);
+    for(int c=0;c<std::max(ncycle,1);++c)
     cycle(0,nuse,pre,post,sweepstyle,coarse_sweeps);
 }
 

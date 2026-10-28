@@ -224,6 +224,13 @@ public:
     //  agglomeration (N 15) is not needed.  If the device cannot be set up,
     //  the solver stays on the CPU and device_status() says why.
     void set_device(int kind){devkind=(kind>0)?kind:0;}
+
+    //  Strength of the preconditioner on the device (N 17, N 19): ncycle
+    //  V-cycles per application and sweeps pre- and post-smoothing sweeps
+    //  per level, instead of one cycle with the host's sweeps.  The GPU
+    //  cycle is cheap next to a BiCGStab iteration on the CPU ranks, so a
+    //  stronger one can pay through fewer iterations.  0: the default.
+    void set_device_cycle(int ncycle,int sweeps){devcycles=ncycle; devsweeps=sweeps;}
     bool on_device() const {return devmode;}
     const std::string& device_status() const {return devmsg;}
 
@@ -289,6 +296,7 @@ private:
     int devgx,devgy;         // global fine extent
     int devox,devoy;         // offset of this rank's block in it
     int devnlev;             // levels of the device hierarchy
+    int devcycles,devsweeps; // see set_device_cycle()
     std::vector<double> kd;  // device_vcycle0
     double pctime;           // see precondition_time()
     long pccount;

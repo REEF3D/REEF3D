@@ -107,7 +107,9 @@ public:
     //  post-smoothing as reefmg_core with ordering 1 (red-black): red then
     //  black before the coarse correction, black then red after it; the
     //  coarsest used level gets coarse_sweeps symmetric sweeps.
-    void vcycle(int nuse,int pre,int post,int sweepstyle,int coarse_sweeps);
+    //  ncycle > 1: that many V-cycles, each starting from the result of the
+    //  previous one (stationary multigrid on the fp32 operator)
+    void vcycle(int nuse,int pre,int post,int sweepstyle,int coarse_sweeps,int ncycle=1);
 
     //  wait for everything queued; false with a message if the device failed
     virtual bool sync(std::string &err)=0;
