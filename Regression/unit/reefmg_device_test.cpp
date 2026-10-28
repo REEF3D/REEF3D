@@ -187,6 +187,8 @@ struct result
     std::vector<double> u;
     int it=0;
     double relres=0.0, seconds=0.0;
+    double pcseconds=0.0;    // in the preconditioner
+    long pccalls=0;
     bool on_device=false;
     std::string status;
 };
@@ -235,10 +237,17 @@ static result run(const problem &pr,const config &c,int repeat=1)
     for(int r=0;r<repeat;++r)
     {
         for(long q=0;q<Nc;++q){L.f[q]=pr.F[q]; L.u[q]=0.0;}
+        mg.reset_timers();
         const auto t0=std::chrono::steady_clock::now();
         res.it=mg.solve_auto(c.tol,c.maxiter,res.relres,1,1,c.mode);
         const auto t1=std::chrono::steady_clock::now();
-        best=std::min(best,std::chrono::duration<double>(t1-t0).count());
+        const double t=std::chrono::duration<double>(t1-t0).count();
+        if(t<best)
+        {
+            best=t;
+            res.pcseconds=mg.precondition_time();
+            res.pccalls=mg.precondition_calls();
+        }
     }
     res.seconds=best;
     res.u=L.u;
@@ -335,8 +344,9 @@ static void bench(int nx,int ny,int nz)
     for(size_t r=0;r<rows.size();++r)
     {
         const result res=run(pr,rows[r].c,3);
-        std::printf("  %-34s %3d it  %9.4f s  %8.3f ms/it  relres %.1e%s\n",rows[r].name,res.it,res.seconds,
-                    1.0e3*res.seconds/std::max(res.it,1),res.relres,
+        std::printf("  %-34s %3d it  %9.4f s  %8.3f ms/it  %7.3f ms/V-cycle (%2.0f %% of the solve)  relres %.1e%s\n",
+                    rows[r].name,res.it,res.seconds,1.0e3*res.seconds/std::max(res.it,1),
+                    1.0e3*res.pcseconds/std::max(res.pccalls,1L),100.0*res.pcseconds/std::max(res.seconds,1e-30),res.relres,
                     (rows[r].c.device>0 && !res.on_device)? "  (not on the device!)" : "");
         if(rows[r].c.device>0) std::printf("  %-34s %s\n","",res.status.c_str());
     }
