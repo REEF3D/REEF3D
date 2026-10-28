@@ -41,6 +41,7 @@
   <Dependencies/>
   <VirtualDirectory Name="HEADERS">
     <VirtualDirectory Name="REEFAMR">
+      <File Name="amr_phase_clock.h"/>
       <File Name="reefckpt.h"/>
       <File Name="reefrun_ckpt.h"/>
       <File Name="ckpt_registry.h"/>
@@ -83,6 +84,8 @@
         <File Name="reefmg.h"/>
         <File Name="reefmg_core.h"/>
         <File Name="reefmg2D.h"/>
+        <File Name="reefmg_device.h"/>
+        <File Name="reefmg_device_kernels.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Stationary">
         <File Name="solver_void.h"/>
@@ -1538,6 +1541,7 @@
         <File Name="reefmg.cpp"/>
         <File Name="reefmg_core.cpp"/>
         <File Name="reefmg2D.cpp"/>
+        <File Name="reefmg_device.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Stationary">
         <File Name="solver_void.cpp"/>
@@ -2337,7 +2341,7 @@
           <VirtualDirectory Name="Breaking">
             <File Name="nhflow_breaking_filter.cpp"/>
             <File Name="nhflow_breaking.cpp"/>
-          <File Name="nhflow_breaking_barthelemy.cpp"/>
+            <File Name="nhflow_breaking_barthelemy.cpp"/>
           </VirtualDirectory>
           <File Name="nhflow_fsf_coastline.cpp"/>
           <File Name="nhflow_fsf_wetdry_fluxes.cpp"/>

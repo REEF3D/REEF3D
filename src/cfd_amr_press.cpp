@@ -41,6 +41,8 @@ Architect: Hans Bihs
 #include<limits>
 #include"definitions.h"
 
+using PRS = amr_phase<cfd_amr::PR_NPART>;
+
 //  The composite pressure projection of REEF3D::CFD with mesh refinement.
 //
 //  Every grid assembles its Poisson rows with its own objects (pjm_corr::amr_prepare: boundary
@@ -1068,12 +1070,14 @@ void cfd_amr::pr_level_vcycle(int m, int kr, int kz, int kc)
 
 void cfd_amr::pr_level_solve(int l, int kr, int kz, int kc)
 {
+    PRS ps_(prc,PR_LCYCLE);
     // the overlap (pr_ras): the right-hand side in the overlap of the patch multigrids (the patches next
     // to them)
     if(pr_ovl)
     {
         vector<fspec> fs;
         fs.push_back({CELL,2,[this,kr](int g) -> field& { return pfield(g,kr); }});
+        PRS po_(prc,PR_OVFILL);
         fill(l,fs,true);
     }
     for(int m=0; m<(int)lmg.size(); ++m)
@@ -1778,6 +1782,8 @@ void cfd_amr::sh_ks()
 // coarser cell (the patch rows couple to the coarse cell across a patch edge); the level-0 halo
 void cfd_amr::pr_sync(int k)
 {
+    pr_wait();
+    PRS ps_(prc,PR_HALO);
     vector<fspec> fs;
     fs.push_back({CELL,2,[this,k](int g) -> field& { return pfield(g,k); }});
 
@@ -1814,6 +1820,7 @@ void cfd_amr::pr_halo0(field &f)
 // y = A x on the leaf cells
 void cfd_amr::pr_apply(int kx, int ky)
 {
+    PRS ps_(prc,PR_OPERATOR);
     pr_sync(kx);
 
     for(int g : prg)
@@ -1846,7 +1853,10 @@ void cfd_amr::pr_apply(int kx, int ky)
     // G 40: the fluxes into the coarse cells of the shadows go to the ranks of those cells
     const std::function<field&(int)> fy = [this,ky](int g) -> field& { return pfield(g,ky); };
     if(place)
-    sh_zero(pu_cc,fy);
+    {
+        PRS sh_(prc,PR_SHADOW);
+        sh_zero(pu_cc,fy);
+    }
 
     for(const cfd_amr_cf &F : cf)
     {
@@ -1858,6 +1868,7 @@ void cfd_amr::pr_apply(int kx, int ky)
 
     if(place)
     {
+        PRS sh_(prc,PR_SHADOW);
         vector<std::function<field&(int)>> f(1,fy);
         sh_run(pu_cc,f,true);
     }
@@ -1872,6 +1883,7 @@ double cfd_amr::pr_dot(int ka, int kb)
         for(int qq : UQ(g))
         s += a[qq]*b[qq];
     }
+    pr_wait();
     MPI_Allreduce(MPI_IN_PLACE,&s,1,MPI_DOUBLE,MPI_SUM,reef3d_comm());
     return s;
 }
@@ -1930,6 +1942,7 @@ void cfd_amr::pr_x(double alp, double om)
 // above lmin from their children (finest first)
 void cfd_amr::pr_residual(int kr, int kz, int kt, int lmin)
 {
+    PRS ps_(prc,PR_OPERATOR);
     pr_apply(kz,kt);
     for(int g=-1; g<(int)P.size(); ++g)
     {
@@ -1940,6 +1953,7 @@ void cfd_amr::pr_residual(int kr, int kz, int kt, int lmin)
     }
     vector<std::function<field&(int)>> cells, none;
     cells.push_back([this,kt](int g) -> field& { return pfield(g,kt); });
+    PRS rs_(prc,PR_RESTRICT);
     for(int l=maxlev; l>lmin; --l)
     restrict_level(l,cells,none);
 }
@@ -1963,6 +1977,7 @@ double cfd_amr::psi_band(int g)
 // surface 67; with the corrections passed on 4.6-4.8, and 11.)
 void cfd_amr::pr_prec(int kr, int kz)
 {
+    PRS ps_(prc,PR_PREC);
     const int KT = REEFAMR_NTMP;        // residual
     const int KC = REEFAMR_NVEC;        // the correction of a level, passed on to the finer levels
 
@@ -2012,6 +2027,7 @@ void cfd_amr::pr_prec(int kr, int kz)
     // KC of level l (linear: the central differences of the parent, as prolong mode 0)
     auto into = [&](int l)
     {
+        PRS pi_(prc,PR_PROLONG);
         for(int id : lev[l])
         {
             cfd_amr_patch *c = CP(id);
@@ -2071,7 +2087,10 @@ void cfd_amr::pr_prec(int kr, int kz)
         {
             into(lv);
             if(lv<maxlev)
-            fill(lv,fc,false,1);
+            {
+                PRS pf_(prc,PR_CFILL);
+                fill(lv,fc,false,1);
+            }
         }
     };
 
@@ -2086,7 +2105,10 @@ void cfd_amr::pr_prec(int kr, int kz)
         for(int id : lev[l])
         zero_patch(id,pvec(id,KC));
         pr_level_solve(l,kt,kz,KC);
-        fill(l,fc,false,1);
+        {
+            PRS pf_(prc,PR_CFILL);
+            fill(l,fc,false,1);
+        }
         pass_on(l);
     };
 
@@ -2106,6 +2128,7 @@ void cfd_amr::pr_prec(int kr, int kz)
     // level 0
     pr_residual(kr,kz,KT,0);
     {
+        PRS p0_(prc,PR_L0CYCLE);
         sc_level &L = mg0->fine();
         double *t = pvec(-1,KT);
         double *z = pvec(-1,kz);
@@ -2115,7 +2138,11 @@ void cfd_amr::pr_prec(int kr, int kz)
         for(size_t n=0; n<l0a.size(); ++n)
         L.f[l0a[n]] = t[l0f[n]];
 
-        lbar();
+        {
+            PRS pw_(prc,PR_WAIT);
+            lbar();
+        }
+        pr_wait();
         const double t0 = MPI_Wtime();
         mg0->vcycle(0,1,1);
         tp[1] += MPI_Wtime()-t0;
@@ -2132,6 +2159,7 @@ void cfd_amr::pr_prec(int kr, int kz)
     // G 40: the correction of level 0 in the shadows
     if(place)
     {
+        PRS sh_(prc,PR_SHADOW);
         vector<std::function<field&(int)>> f(1,[this](int g) -> field& { return pfield(g,REEFAMR_NVEC); });
         sh_down_f(f);
     }
@@ -2426,6 +2454,7 @@ void cfd_amr::pr_correct(int s)
 // the projection of stage s on all grids
 void cfd_amr::pr_project(lexer *p, ghostcell *pgc, int s)
 {
+    PRS ps_(prc,PR_ASSEMBLY,true);
     const double alpha = mom0->amr_alpha(s);
     const double t0 = MPI_Wtime();
 
@@ -2465,7 +2494,11 @@ void cfd_amr::pr_project(lexer *p, ghostcell *pgc, int s)
 
     double bn, rn;
     pr_space sp{this};
-    int it = reefamr_bicgstab(sp,p->N44,p->N46,bn,rn,&tm[5],&tm[6]);
+    int it;
+    {
+        PRS pk_(prc,PR_KRYLOV);
+        it = reefamr_bicgstab(sp,p->N44,p->N46,bn,rn,&tm[5],&tm[6]);
+    }
 
     pr_it_last = it;
     pr_it_total += it;
@@ -2475,6 +2508,7 @@ void cfd_amr::pr_project(lexer *p, ghostcell *pgc, int s)
     p->poissoniter = it;
     p->final_res = pr_res_last;
 
+    PRS pf_(prc,PR_FINISH);
     pr_sync(-1);
 
     // pressure and velocities of every grid
@@ -2555,6 +2589,7 @@ void cfd_amr::pr_components()
 // made compatible (the round-off of the coarser solve) and the correction gets the mean 0.
 void cfd_amr::pr_level(lexer *p, ghostcell *pgc, int l, int s)
 {
+    PRS ps_(prc,PR_ASSEMBLY,true);
     const double alpha = mom0->amr_alpha(s);
     const double t0 = MPI_Wtime();
 
@@ -2741,7 +2776,12 @@ void cfd_amr::pr_level(lexer *p, ghostcell *pgc, int l, int s)
 
     double bn, rn;
     pr_space sp{this};
-    int it = reefamr_bicgstab(sp,p->N44,p->N46,bn,rn,&tm[5],&tm[6]);
+    int it;
+    {
+        PRS pk_(prc,PR_KRYLOV);
+        it = reefamr_bicgstab(sp,p->N44,p->N46,bn,rn,&tm[5],&tm[6]);
+    }
+    PRS pf_(prc,PR_FINISH);
     pr_it_last = it;
     pr_it_total += it;
     ++pr_solves;
@@ -2827,6 +2867,7 @@ void cfd_amr::pr_level(lexer *p, ghostcell *pgc, int l, int s)
 // correction added to the pressure.  The step of level 0, alpha 1.
 void cfd_amr::pr_sync_project(lexer *p, ghostcell *pgc)
 {
+    PRS ps_(prc,PR_ASSEMBLY,true);
     const int s = mom0->amr_stages()-1;     // the end state of the step: velout of the last stage
     const double alpha = 1.0;
     const double t0 = MPI_Wtime();
@@ -2933,7 +2974,12 @@ void cfd_amr::pr_sync_project(lexer *p, ghostcell *pgc)
 
     double bn, rn;
     pr_space sp{this};
-    int it = reefamr_bicgstab(sp,tol,p->N46,bn,rn,&tm[5],&tm[6]);
+    int it;
+    {
+        PRS pk_(prc,PR_KRYLOV);
+        it = reefamr_bicgstab(sp,tol,p->N46,bn,rn,&tm[5],&tm[6]);
+    }
+    PRS pf_(prc,PR_FINISH);
     pr_it_sync = it;
 
     sync_x.assign(npat+1,vector<double>());
@@ -2986,4 +3032,63 @@ void cfd_amr::pr_sync_project(lexer *p, ghostcell *pgc)
 
     t_sync += MPI_Wtime()-t0;
     tm[2] += MPI_Wtime()-t0;
+}
+
+// --------------------------------------------------------------------- the parts of the projections
+const char* cfd_amr::pr_part_name(int k)
+{
+    static const char *nm[PR_NPART] = {"assembly", "operator", "halo fills", "shadows", "restriction", "prolongation",
+                                       "correction fills", "overlap fills", "level cycles", "level-0 cycle",
+                                       "preconditioner, other", "Krylov vectors", "waits", "finish"};
+    return (k>=0 && k<PR_NPART) ? nm[k] : "?";
+}
+
+// G 43: a timed barrier (PR_WAIT) before an exchange, so that the ranks that arrive early wait here
+// and the MPI time of the parts is that of the exchanges themselves.  Inside a projection only: all
+// ranks are in the same projection and call the same exchanges in the same order
+void cfd_amr::pr_wait()
+{
+    if(p0->G43<=0 || nranks<2 || !prc.active())
+    return;
+    PRS pw_(prc,PR_WAIT);
+    MPI_Barrier(reef3d_comm());
+}
+
+// the parts of the projections since the start: max and mean over the ranks, the share of the
+// blocking MPI calls in the mean, and what the parts leave of the projection time tm[2] (the
+// projection outside the scopes: the barriers of G 41 0 after it).  Collective
+void cfd_amr::pr_report(lexer *p)
+{
+    const int N = PR_NPART;
+    double loc[2*N+2], mx[2*N+2], sm[2*N+2];
+    double tot=0.0;
+    for(int k=0; k<N; ++k)
+    {
+        loc[k] = prc.t[k];
+        loc[N+k] = prc.m[k];
+        tot += prc.t[k];
+    }
+    loc[2*N] = tm[2];
+    loc[2*N+1] = tm[2]-tot;
+    MPI_Reduce(loc,mx,2*N+2,MPI_DOUBLE,MPI_MAX,0,reef3d_comm());
+    MPI_Reduce(loc,sm,2*N+2,MPI_DOUBLE,MPI_SUM,0,reef3d_comm());
+
+    if(p->mpirank!=0)
+    return;
+
+    const double nr = double(max(nranks,1));
+    const std::streamsize pr = cout.precision();
+    cout<<"CFD AMR: projection by part, s max/mean over "<<int(nr)<<" ranks (MPI share of the mean):";
+    for(int k=0; k<N; ++k)
+    {
+        const double mean = sm[k]/nr;
+        if(mx[k]<=0.0)
+        continue;
+        cout<<" "<<pr_part_name(k)<<" "<<setprecision(3)<<mx[k]<<"/"<<mean;
+        if(mean>0.0)
+        cout<<" ("<<int(100.0*sm[N+k]/sm[k]+0.5)<<"%)";
+        cout<<",";
+    }
+    cout<<" projection "<<setprecision(3)<<mx[2*N]<<"/"<<sm[2*N]/nr<<", not in a part "<<sm[2*N+1]/nr<<endl;
+    cout.precision(pr);
 }

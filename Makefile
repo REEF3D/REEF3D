@@ -12,7 +12,11 @@
 #             incremental with a cache in build/release/lto-cache), LTO=full the previous full LTO
 #             (single-threaded link); GCC -flto=auto
 #   OMP=0     no OpenMP threads for the FEM solid (Z 30); OMP=auto (default) turns them on when available
+#   METAL=1   macOS only: the REEFMG V-cycle on the Apple Silicon GPU (N 16 1), src/reefmg_device_metal.mm,
+#             Metal and Foundation frameworks (no Xcode needed, the command line tools suffice);
+#             objects in build_metal/ (build_hypre_metal/ with HYPRE=1)
 HYPRE        ?= 0
+METAL        ?= 0
 PCH          ?= 1
 LTO          ?= 1
 
@@ -25,6 +29,9 @@ ifeq ($(HYPRE),1)
 BUILD_ROOT   := ./build_hypre
 else
 BUILD_ROOT   := ./build
+endif
+ifeq ($(METAL),1)
+BUILD_ROOT   := $(BUILD_ROOT)_metal
 endif
 OBJ_DIR      := $(BUILD_ROOT)/$(CONFIG)
 APP_DIR      := ./bin
@@ -56,6 +63,16 @@ SRC          += $(shell find src/coral -name '*.cpp' -not -path 'src/coral/app/*
 INCLUDE      += -I src
 # zlib: the LAGOON store output (P 18) compresses its chunks with gzip, in a thread
 LDFLAGS      += -lz -pthread
+
+# REEFMG on the Apple Silicon GPU (N 16 1): one Objective-C++ source, compiled without the C++ PCH
+ifeq ($(METAL),1)
+ifneq ($(shell uname -s),Darwin)
+$(error METAL=1 needs macOS (Apple Silicon))
+endif
+CXXFLAGS     += -DREEF3D_USE_METAL
+LDFLAGS      += -framework Metal -framework Foundation
+MM_SRC       := src/reefmg_device_metal.mm
+endif
 
 # ── compiler flags per configuration ─────────────────────────────────────────
 ifeq ($(CONFIG),release)
@@ -110,7 +127,7 @@ ifeq ($(USE_OMP),1)
 OMPFLAGS     := $(OMP_CFLAGS)
 OMPLIBS      := $(OMP_LIBS)
 endif
-OBJECTS      := $(SRC:%.cpp=$(OBJ_DIR)/%.o)
+OBJECTS      := $(SRC:%.cpp=$(OBJ_DIR)/%.o) $(MM_SRC:%.mm=$(OBJ_DIR)/%.o)
 DEPENDENCIES := $(OBJECTS:.o=.d)
 
 # ── precompiled header ───────────────────────────────────────────────────────
@@ -186,6 +203,11 @@ $(OBJ_DIR)/%.o: %.cpp
 	@mkdir -p $(@D)
 	$(CXX) $(CXXFLAGS) $(OMPFLAGS) $(INCLUDE) $(PCH_FLAGS) -MMD -MP -c $< -o $@
 
+# Objective-C++ (METAL=1): ARC, no precompiled header
+$(OBJ_DIR)/%.o: %.mm
+	@mkdir -p $(@D)
+	$(CXX) $(CXXFLAGS) -x objective-c++ -fobjc-arc $(INCLUDE) -MMD -MP -c $< -o $@
+
 $(OBJ_DIR)/$(TARGET): $(OBJECTS)
 	@mkdir -p $(OBJ_DIR)/lto-cache
 	$(CXX) $(CXXFLAGS) -o $@ $^ $(LTO_LDFLAGS) $(LDFLAGS) $(OMPLIBS)
@@ -208,7 +230,7 @@ else
 endif
 
 clean:
-	-@rm -rf $(APP_DIR) ./build ./build_hypre
+	-@rm -rf $(APP_DIR) ./build ./build_hypre ./build_metal ./build_hypre_metal
 
 info:
 	@echo "[*] Configuration:   ${CONFIG}      "
@@ -216,4 +238,5 @@ info:
 	@echo "[*] Application dir: ${APP_DIR}     "
 	@echo "[*] Object dir:      ${OBJ_DIR}     "
 	@echo "[*] PCH / LTO / OMP: $(USE_PCH) / $(LTO) / $(USE_OMP)"
+	@echo "[*] Metal (N 16 1):  $(METAL)"
 	@echo "[*] Sources:         ${SRC}         "

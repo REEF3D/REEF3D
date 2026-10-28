@@ -147,7 +147,8 @@ using namespace std;
 //  (L 10), rods or FEM structures (Z 20, Z 30).  Cartesian and curvilinear grids (G 50 2), 2D grids
 //  (one cell in y) Cartesian only.  The multi-block grid (G 50 1 with DIVEMesh R 20 1,
 //  nhflow_amr_block.cpp): the blocks 1.. are level-0 patches of the hierarchy, with or without
-//  refinement, not with G 7 1, A 550, X 10 > 2, or bodies with G 40 (nhflow_amr::blocks_check); the
+//  refinement (G 7 1: level 0 is the native grid with the blocks, sub_level0_blocks, without bodies),
+//  not with X 10 > 2, or bodies with G 40 (nhflow_amr::blocks_check); the
 //  hydrostatic semi-implicit free surface (A 534 1, nhflow_amr_si.cpp) on the multi-block grid
 //  without refinement (A 534 1 with G 1 is refused by nhflow_momentum_SI::check).  Checkpoints
 //  (P 48, I 45): nhflow_amr_ckpt.cpp.  Patches stay out of the relaxation zones (B 96), the in- and
@@ -158,8 +159,9 @@ using namespace std;
 //  viscosity (A 512 2) is one composite solve over the leaf cells of all grids (G 31 1, the
 //  default: nhflow_amr_diff.cpp, a patch split in pieces gives the same result as the whole
 //  patch), or with G 31 0 every grid solves its own (a bicgstab_ijk per patch, its global sums
-//  local to the patch inside pscope).  The viscous flux across a coarse-fine interface is not
-//  matched.  G 23 1 flags the cells with breaking viscosity for the adaptive mode.
+//  local to the patch inside pscope).  With G 31 1 the viscous flux across a coarse-fine interface is
+//  matched (the coarse face takes the sum of the fine faces, nhflow_amr_diff.cpp df_fix; single-block
+//  grids), with G 31 0 and with G 7 1 (every grid its own) not.  G 23 1 flags the cells with breaking viscosity for the adaptive mode.
 //
 //  Wetting and drying in the patches (G 30 1): the patches may cover dry and shallow cells, the
 //  NHFLOW wetting and drying (A 540) runs on every grid.  The coupling: the cells around a patch
@@ -522,7 +524,14 @@ private:
         int var = 0;
         vector<int> lq, lr;         // leaf cells: IJK, matrix row
         vector<int> aq;             // all computed cells (LOOP): IJK
+        vector<int> row;            // IJK -> matrix row (the index in aq), -1 none
     };
+    // the viscous flux across the coarse-fine interfaces (df_fix): the coarse face of a leaf cell next to a
+    // finer patch takes the sum of the fine faces, so that the diffusion conserves momentum there
+    void df_fix(int kx, int ky, double sg);
+    double df_fine(int id, int side, int r, int K, int k, int kx);    // the fine faces of coarse layer k: sum V T
+    vector<vector<double>> dfr;     // [grid id+1][rmatch index * K]: the fine sums from other ranks
+    std::unordered_map<const reefamr_patch*,int> dfid;  // patch -> id
     vector<dgrid> dg;               // [g+1]
     int dcur = -1;                  // grid whose phase_D runs
     vector<vector<double>> dkv0;    // level-0 vectors
@@ -597,6 +606,8 @@ private:
     void sub_creg_reset(int);
     void sub_dfx();
     void sub_step(lexer*, fdm_nhf*, ghostcell*, nhflow_momentum_func*, nhflow_stage_obj&);
+    void sub_level0_blocks(lexer*, fdm_nhf*, ghostcell*, nhflow_momentum_func*, nhflow_stage_obj&);
+    vector<int> level_grids(int) const;     // level 0: the native grid (-1) and the blocks 1..; else lev[l]
     void sub_level(lexer*, ghostcell*, int, int, double, double);
     void sub_sync(lexer*, ghostcell*, int);
     void sub_reflux(int);

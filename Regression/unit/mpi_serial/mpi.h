@@ -2,7 +2,7 @@
 // REEFMG unit test (reefmg_device_test.cpp) builds without an MPI library.
 // Architect: Hans Bihs
 //
-// One rank, no Cartesian topology (reefmg_core does not ask for one on a
+// One rank, no Cartesian topology; shared windows are plain memory (reefmg_core does not ask for one on a
 // single rank).  Point-to-point messages to oneself - the periodic halo of a
 // single rank - go through a mailbox: MPI_Isend copies the data in,
 // MPI_Waitall delivers it to the matching MPI_Irecv by tag.  Everything to or
@@ -19,6 +19,9 @@ typedef int MPI_Comm;
 typedef int MPI_Datatype;     // the size of one element in bytes
 typedef int MPI_Op;
 typedef int MPI_Request;      // index into the pending receives, -1 none
+typedef int MPI_Info;
+typedef long MPI_Aint;
+typedef void* MPI_Win;        // the memory of a shared window
 struct MPI_Status {int MPI_SOURCE, MPI_TAG, MPI_ERROR;};
 
 #define MPI_COMM_NULL      0
@@ -30,6 +33,10 @@ struct MPI_Status {int MPI_SOURCE, MPI_TAG, MPI_ERROR;};
 #define MPI_DOUBLE         ((MPI_Datatype)sizeof(double))
 #define MPI_FLOAT          ((MPI_Datatype)sizeof(float))
 #define MPI_INT            ((MPI_Datatype)sizeof(int))
+#define MPI_LONG           ((MPI_Datatype)sizeof(long))
+#define MPI_INFO_NULL      0
+#define MPI_WIN_NULL       ((MPI_Win)0)
+#define MPI_COMM_TYPE_SHARED 1
 #define MPI_SUM            1
 #define MPI_MIN            2
 #define MPI_MAX            3
@@ -51,6 +58,26 @@ inline int MPI_Comm_dup(MPI_Comm c,MPI_Comm *d){*d=(c==MPI_COMM_NULL? MPI_COMM_S
 inline int MPI_Comm_free(MPI_Comm *c){*c=MPI_COMM_NULL; return 0;}
 inline int MPI_Finalized(int *f){*f=0; return 0;}
 inline int MPI_Abort(MPI_Comm,int code){std::fprintf(stderr,"MPI_Abort %d\n",code); std::exit(code==0? 1 : 2);}
+
+inline int MPI_Barrier(MPI_Comm){return 0;}
+inline int MPI_Bcast(void*,int,MPI_Datatype,int,MPI_Comm){return 0;}
+inline int MPI_Comm_split_type(MPI_Comm,int,int,MPI_Info,MPI_Comm *out){*out=MPI_COMM_SELF; return 0;}
+
+// shared windows: plain memory of the single rank
+inline int MPI_Win_allocate_shared(MPI_Aint size,int,MPI_Info,MPI_Comm,void *baseptr,MPI_Win *win)
+{
+    void *p=std::calloc((size_t)(size>0? size : 1),1);
+    *(void**)baseptr=p;
+    *win=p;
+    return 0;
+}
+inline int MPI_Win_shared_query(MPI_Win win,int,MPI_Aint *size,int *disp,void *baseptr)
+{
+    *size=0; *disp=1;
+    *(void**)baseptr=win;
+    return 0;
+}
+inline int MPI_Win_free(MPI_Win *win){std::free(*win); *win=MPI_WIN_NULL; return 0;}
 
 inline int MPI_Topo_test(MPI_Comm,int *t){*t=MPI_UNDEFINED; return 0;}
 inline int MPI_Cartdim_get(MPI_Comm,int *nd){*nd=0; return 0;}

@@ -811,6 +811,7 @@ void reefamr::build_plans(ghostcell *pgc)
                         mt.fj = Jc-oj - (side2==3 ? 1 : 0);
                         mt.child = id;
                         mt.side = side;
+                        mt.side2 = side2;
                         mt.r = rk*k;
                         mt.sgn = sgn;
                         for(int q=0;q<reefamr_match::NVAL;++q) mt.val[q]=0.0;
@@ -873,6 +874,7 @@ void reefamr::build_plans(ghostcell *pgc)
                         mt.fj = Jc-oj - (side==3 ? 1 : 0);
                         mt.child = -1;
                         mt.side = side;
+                        mt.side2 = side;
                         mt.r = 0;
                         mt.sgn = sgn;
                         for(int q=0;q<reefamr_match::NVAL;++q) mt.val[q]=0.0;

@@ -59,6 +59,7 @@ reefmg2D::reefmg2D(lexer *p, ghostcell *pgc)
     mg.set_ordering(p->N12==2 ? 1 : 0);
     mg.set_precision(p->N14==32 ? 32 : 64);
     mg.set_agglomeration(p->N15==1 ? 1 : 0);
+    mg.set_device(p->N16);   // N 16, see reefmg.cpp
 
     Mcur=0;
     mg.set_fine_operator(this);
@@ -77,6 +78,7 @@ reefmg2D::reefmg2D(lexer *p, ghostcell *pgc, bool loc)
     mg.set_ordering(p->N12==2 ? 1 : 0);
     mg.set_precision(p->N14==32 ? 32 : 64);
     mg.set_agglomeration(0);
+    mg.set_device(p->N16);   // N 16, see reefmg.cpp
 
     Mcur=0;
     mg.set_fine_operator(this);
@@ -196,6 +198,9 @@ void reefmg2D::topology(lexer *p, ghostcell *pgc)
         if(mg.agglomerated())
         cout<<"REEFMG2D coarse-grid agglomeration: "<<mg.agglomerated_cells()
             <<" cells gathered on every rank"<<endl;
+
+        if(p->N16>0)
+        cout<<"REEFMG2D "<<mg.device_status()<<endl;
     }
 }
 

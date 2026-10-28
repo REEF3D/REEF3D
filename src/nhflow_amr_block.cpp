@@ -72,13 +72,13 @@ typedef reefamr_comms_off comms_off;
 void nhflow_amr::blocks_check(lexer *p)
 {
     int ok=1;
-    if(p->G7==1) ok=0;              // subcycling
+    if(p->G7==1 && p->X10>0) ok=0;  // subcycling (sub_level0_blocks): without bodies
     if(p->X10>2) ok=0;              // floating (X 10 1) and prescribed (X 10 2) bodies only (P5c)
     if(p->X10>0 && p->G40>0) ok=0;  // bodies: the patches on the rank of the block piece below
     if(ok==0)
     {
         if(p->mpirank==0)
-        cout<<"!!! NHFLOW multi-block grid: not with subcycling (G 7 1) or the ship pressure X 10 3 (X 10 1/2 without G 40) !!!"<<endl;
+        cout<<"!!! NHFLOW multi-block grid: not with subcycling (G 7 1) and bodies, the ship pressure X 10 3, or X 10 1/2 with G 40 !!!"<<endl;
         exit(1);
     }
 }

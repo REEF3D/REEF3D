@@ -25,6 +25,9 @@ Author: Hans Bihs
 
 #include <mpi.h>
 #include <vector>
+#include <string>
+
+class reefmg_device;
 
 //  Multigrid for the FNPF Laplace equation on a sigma grid.
 //
@@ -202,6 +205,44 @@ public:
     void set_ordering(int o){ordering=(o==1?1:0);}
     int  precision() const {return pcbits;}
 
+    //  The preconditioner on a device (N 16): 0 CPU (default), 1 the Apple
+    //  Silicon GPU (Metal), 2 the reference device (the device kernels in
+    //  loops on the CPU, for tests).  Must be called before setup().
+    //
+    //  The device holds ONE single-precision hierarchy of the whole domain
+    //  and builds and cycles it for all ranks: every rank writes its block
+    //  of the fine coefficients (once per coarsen()) and of each
+    //  right-hand side straight into the device's fine level - an MPI
+    //  shared-memory window, so all ranks must be on one node - rank 0 runs
+    //  the coarsening, the factorisations and the V-cycle on the device,
+    //  and every rank reads its block of the correction back.  BiCGStab,
+    //  the exact fine operator and the convergence test stay distributed on
+    //  the CPU ranks in double, so the converged answer does not depend on
+    //  the device.  The V-cycle uses red-black line smoothing whatever
+    //  N 12 says; the stationary iteration (solve modes 0 and 2) becomes a
+    //  defect correction; the CPU coarse levels are not built; coarse-grid
+    //  agglomeration (N 15) is not needed.  If the device cannot be set up,
+    //  the solver stays on the CPU and device_status() says why.
+    void set_device(int kind){devkind=(kind>0)?kind:0;}
+    bool on_device() const {return devmode;}
+    const std::string& device_status() const {return devmsg;}
+
+    //  wall time spent in the preconditioner (V-cycles applied by BiCGStab
+    //  and the stationary iteration), CPU or device, and the number of
+    //  applications, since construction or the last reset
+    double precondition_time() const {return pctime;}
+    long precondition_calls() const {return pccount;}
+    void reset_timers();
+
+    //  device path: where the time went since the last reset_timers(), on
+    //  this rank - writing the coefficients (upload), writing right-hand
+    //  sides and reading corrections (transfers), waiting for the other
+    //  ranks (barriers), waiting for the device (device; rank 0), and the
+    //  time the GPU was busy (rank 0, Metal)
+    std::string device_timing() const;
+    //  GPU time per kind of kernel (Metal with REEFMG_DEVICE_PROFILE=1)
+    std::string device_profile() const;
+
     void vcycle(int l,int pre,int post);
     void residual(sc_level &L);          // always double: Krylov and convergence test
     void residual_cycle(sc_level &L);    // inside the V-cycle, follows set_precision
@@ -227,6 +268,31 @@ private:
     void precondition(std::vector<double> &rhs,std::vector<double> &x,int pre,int post);
     void cycle_step(int pre,int post);   // one stationary step, defect correction in fp32
     void factor_lines();
+
+    //  device path (N 16), see set_device()
+    void device_setup(int maxlevel,int perx,int pery);
+    void device_release();
+    void device_upload();
+    void device_precondition(std::vector<double> &rhs,std::vector<double> &x,int pre,int post);
+    void device_vcycle0(int pre,int post);
+    void device_sync();
+    int  device_levels() const;
+    float* window_array(int a) const;
+
+    int devkind;             // requested device, 0 none
+    bool devmode;            // the preconditioner runs on the device (all ranks)
+    reefmg_device *dev;      // the device, rank 0 only
+    std::string devmsg;
+    MPI_Win devwin;          // shared memory: the device's fine level
+    char *dev0;              // its start on this rank
+    bool dev0copy;           // rank 0: the device keeps its own fine level, copied
+    int devgx,devgy;         // global fine extent
+    int devox,devoy;         // offset of this rank's block in it
+    int devnlev;             // levels of the device hierarchy
+    std::vector<double> kd;  // device_vcycle0
+    double pctime;           // see precondition_time()
+    long pccount;
+    double devt[4];          // see device_timing()
 
     std::vector<sc_level> lev;
 
