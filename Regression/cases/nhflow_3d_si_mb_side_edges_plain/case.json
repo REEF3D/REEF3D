@@ -1,0 +1,20 @@
+{
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 200,
+ "files": [
+  "blocks.dat"
+ ],
+ "tags": [
+  "3d",
+  "nhflow",
+  "curvilinear",
+  "multiblock",
+  "tide",
+  "si"
+ ],
+ "description": "nhflow_3d_mb_side_edges_plain with the semi-implicit step; one block to 4e-11 m, the tolerance of the water level solve (validation/13_j_face_zones).",
+ "covers": [
+  "nhflow_momentum_SI with the j-face edges of the blocks"
+ ]
+}

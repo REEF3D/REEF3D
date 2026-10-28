@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"nhflow_poisson_pcorr.h"
+#include"nhflow_xwall.h"
 #include"lexer.h"
 #include"nhflow_curv.h"
 #include"fdm_nhf.h"
@@ -203,6 +204,10 @@ void nhflow_poisson_pcorr::start(lexer* p, fdm_nhf *d, double *P)
 	++n;
 	}
     
+    // walls at the x sides: slip walls with dp/dn = 0, except where waves along x are generated / absorbed (nhflow_xwall.h)
+    const bool xslip_s = nhflow_xwall_slip(p,1);
+    const bool xslip_n = nhflow_xwall_slip(p,4);
+    
     n=0;
 	LOOP
 	{
@@ -222,6 +227,17 @@ void nhflow_poisson_pcorr::start(lexer* p, fdm_nhf *d, double *P)
             }
             
             // South
+            // solid wall (IO 0): homogeneous Neumann dp/dn=0 as at the East / West walls. The term below
+            // (rhs -= M.s P) is the Neumann condition of nhflow_poisson for the pressure itself, but P is the
+            // correction here, 0 before the solve, so it left p=0 at the wall: in a flume along y the walls at
+            // x took out most of the non-hydrostatic pressure of the narrow channel and the waves decayed
+            if(p->flag7[FIm1JK]<0 && p->IO[Im1JK]==0 && xslip_s)
+            {
+            d->M.p[n] += d->M.s[n];
+            d->M.s[n] = 0.0;
+            }
+            
+            // dry / shallow neighbour, or the side where waves along x are generated (nhflow_xwall.h): p=0
             if((p->flag7[FIm1JK]<0 || p->wet[Im1J]==0 || p->deep[Im1J]==0) && p->IO[Im1JK]==0)
             {
             d->rhsvec.V[n] -= d->M.s[n]*P[FIJK];
@@ -249,8 +265,14 @@ void nhflow_poisson_pcorr::start(lexer* p, fdm_nhf *d, double *P)
                 }
             }
             
-            // North
-            if((p->flag7[FIp1JK]<0|| p->wet[Ip1J]==0 || p->deep[Ip1J]==0) && p->IO[Ip1JK]==0)
+            // North: solid wall Neumann, dry / shallow neighbour or beach of waves along x p=0 (as South)
+            if(p->flag7[FIp1JK]<0 && p->IO[Ip1JK]==0 && xslip_n)
+            {
+            d->M.p[n] += d->M.n[n];
+            d->M.n[n] = 0.0;
+            }
+            
+            if((p->flag7[FIp1JK]<0 || p->wet[Ip1J]==0 || p->deep[Ip1J]==0) && p->IO[Ip1JK]==0)
             {
             d->M.n[n] = 0.0;
             }

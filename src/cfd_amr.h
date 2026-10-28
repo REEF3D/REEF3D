@@ -26,6 +26,7 @@ Architect: Hans Bihs
 #include"reefamr3d.h"
 #include"amr_grid_lookup.h"
 #include"amr_load.h"
+#include"amr_phase_clock.h"
 #include<vector>
 #include<functional>
 #include<map>
@@ -338,6 +339,18 @@ public:
     double t0l[3] = {0,0,0};        // G 7 0: the level-0 parts of tm[0], tm[1], tm[3]
     double wtp = 0.0;               // the loops over the patches of this rank (their work without the fills)
 
+    // the parts of the composite projections (pr_project, pr_level, pr_sync_project), exclusive
+    // clocks with their MPI time (amr_phase_clock.h); reported every P 12 steps as max/mean over the
+    // ranks (pr_report) and per rank with G 43.  PR_WAIT: with G 43 a timed barrier before the halo
+    // exchanges, the dot products and the level-0 V-cycle, so that the ranks that arrive early wait
+    // there and not inside the exchanges (the results do not change)
+    enum { PR_ASSEMBLY, PR_OPERATOR, PR_HALO, PR_SHADOW, PR_RESTRICT, PR_PROLONG, PR_CFILL, PR_OVFILL,
+           PR_LCYCLE, PR_L0CYCLE, PR_PREC, PR_KRYLOV, PR_WAIT, PR_FINISH, PR_NPART };
+    static const char* pr_part_name(int k);
+    amr_phase_clock<PR_NPART> prc;
+    void pr_report(lexer*);         // collective, every P 12 steps
+    void pr_wait();                 // G 43: the timed barrier (PR_WAIT)
+
 protected:
     r3patch* patch_new() override;
     void patch_objects(r3patch*) override;
@@ -540,11 +553,10 @@ private:
     int bodies = 0;
     // G 7 1: the finest level advances the bodies (amr_stage_cfd, the loads after each of its
     // stages on the finest grid); the coarser levels step with a predicted copy (amr_save,
-    // amr_restore); bfin counts the finest steps within the level-0 step
+    // amr_restore)
     void body_stage(int l, int s, double t, double dt);
     void body_loads(int s, double t, bool fin);
     void body_end();
-    int bfin = 0;
     int patch_forcing() const { return bodies ? 1 : (solids ? 2 : 0); }
     field& kfield(int g, int m);        // kin (m 0), eps (m 1) of the turbulence model of grid g
     void turb_step(int l);              // the turbulence model on the patches of level l (cells around filled)

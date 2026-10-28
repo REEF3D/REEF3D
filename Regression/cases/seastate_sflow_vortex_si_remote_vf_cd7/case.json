@@ -1,0 +1,8 @@
+{
+ "base": "seastate_sflow_vortex_si_remote",
+ "ctrl_set": {"A 751": "2", "W 207": "7"},
+ "remote": {"case": "seastate_remote_waves_vortex_vf", "dir": "waves"},
+ "description": "seastate_sflow_vortex_si_remote with the vortex force (A 751 2: div(M) and the wind input of the dissipation force with the host's wind stress) and the wave-dependent surge drag W 207 7 from the remote Hs, Tp.",
+ "tags": ["2d", "sflow", "semi_implicit", "seastate", "mpmd", "met", "vortex"],
+ "covers": ["remote waves with the vortex force", "W 207 7 with the remote sea state"]
+}

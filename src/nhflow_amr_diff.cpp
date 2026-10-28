@@ -56,9 +56,9 @@ Architect: Hans Bihs
 //
 //  BiCGStab (reefamr_bicgstab) with the Jacobi preconditioner of bicgstab_ijk, residual N 43
 //  relative to rhs, at most N 46 iterations.  A patch split in pieces (partition edge, placed
-//  patches) gives the same solution as the whole patch, up to that tolerance.  The coupling is not
-//  conservative across a coarse-fine interface: the coarse cell next to a patch sees the
-//  restricted fine cells (as the composite pressure).
+//  patches) gives the same solution as the whole patch, up to that tolerance.  The coupling is
+//  conservative across a coarse-fine interface: the coarse face of a leaf cell next to a patch takes
+//  the sum of the viscous fluxes of the fine faces there (df_fix, below; single-block grids).
 
 using namespace nhflow_amr_detail;
 
@@ -220,7 +220,15 @@ void nhflow_amr::diff_solve(lexer *p, ghostcell *pgc, int s)
                 ++r;
             }
         }
+
+        D.row.assign((size_t)q->imax*q->jmax*q->kmax,-1);
+        for(size_t n=0; n<D.aq.size(); ++n)
+        D.row[D.aq[n]] = (int)n;
     }
+
+    dfid.clear();
+    for(int n=0; n<(int)P.size(); ++n)
+    dfid[P[n]] = n;
 
     for(int m=0; m<3; ++m)
     {
@@ -310,6 +318,17 @@ void nhflow_amr::df_core(lexer *p)
             sr += b[qq]*b[qq];
         }
     }
+    // the coarse faces next to the finer patches take the sum of the fine faces (df_fix), for X0 with the grids'
+    // own cells around the patches and covered cells as for the rows above
+    df_fix(DX,DS,-1.0);
+    sr = 0.0;
+    for(int g=-1; g<(int)P.size(); ++g)
+    {
+        const double *b = dvec(g,DS);
+        for(int qq : dg[g+1].lq)
+        sr += b[qq]*b[qq];
+    }
+
     const double bfull = sqrt(pgc0->globalsum(sb));
     const double r0 = sqrt(pgc0->globalsum(sr));
 
@@ -538,6 +557,8 @@ void nhflow_amr::df_apply(int kx, int ky)
             y[qq] = Mp[r]*x[qq] + Mn[r]*x[qq+sI] + Ms[r]*x[qq-sI] + Mw[r]*x[qq+sJ] + Me[r]*x[qq-sJ] + Mt[r]*x[qq+1] + Mb[r]*x[qq-1];
         }
     }
+    // the coarse faces next to the finer patches: the sum of the fine faces
+    df_fix(kx,ky,1.0);
 }
 
 // z = r / diagonal (the preconditioner of bicgstab_ijk)
@@ -824,4 +845,148 @@ void nhflow_amr::brk_exchange(int l, int what)
                  else
                  c->d->vb(f.di,f.dj) = w[0];
              });
+}
+
+// ---- the viscous flux across the coarse-fine interfaces
+//
+// A leaf cell c of grid g next to a level-(l+1) patch (a coarse face of the flux registry, match / rmatch) has the
+// row term T_c = a_c (x_cov - x_c) for that face, x_cov the covered cell (the mean of the children), a_c the
+// coefficient of the face (-M.n, -M.s, -M.w or -M.e of its row).  The fine cells f of the patch at that face have
+// T_f = a_f (x_out - x_f), x_out their cell around the patch (interpolated from the coarser grid).  The transfer
+// over the interface is V_c T_c from the coarse side and -sum V_f T_f from the fine side (V the cell volume, the
+// rows are per unit volume); they differ, and the diffusion neither conserves momentum there nor sees the fine
+// gradient.  df_fix replaces T_c by -sum V_f T_f / V_c: the coarse row gets the fine flux, as the convective
+// fluxes of the continuity and momentum equations (flux_hook).  The fine rows are unchanged.  Single-block grids
+// (Cartesian and curvilinear); on a multi-block grid not.  Applied in the
+// operator (df_apply, on the increment) and to the right-hand side (df_core, on X0 with the grids' own cells around
+// the patches and covered cells), so the composite system is that of the matched fluxes for X = X0 + d.
+//
+// df_fine: sum over the fine cells of coarse layer k at the coarse face (side, first fine index r) of V_f T_f
+double nhflow_amr::df_fine(int id, int side, int r, int K, int k, int kx)
+{
+    nhflow_amr_patch *c = NP(id);
+    lexer *pp = c->pp;
+    const dgrid &D = dg[id+1];
+    const matrix_diag &M = *D.M;
+    const double *x = dvec(id,kx);
+    const int fz = pp->knoz/K;
+    const int sI = pp->jmax*pp->kmax, sJ = pp->kmax;
+
+    double sum = 0.0;
+    const int nr = (fr1(side)==0) ? 1 : 2;
+    for(int a=0; a<nr; ++a)
+    {
+        const int rr = r + a;
+        int ii, jj;
+        if(side==0)      { ii = EXT;           jj = EY+rr; }
+        else if(side==1) { ii = EXT+c->nx-1;   jj = EY+rr; }
+        else if(side==2) { ii = EXT+rr;        jj = EY; }
+        else             { ii = EXT+rr;        jj = EY+c->ny-1; }
+
+        const int n2 = lij(pp,ii,jj);
+        if(pp->wet[n2]!=1)
+        continue;
+        const double area = (pp->geo_curv==1) ? pp->AREA2D[n2] : pp->DXN[ii+marge]*pp->DYN[jj+marge];
+
+        for(int kf=fz*k; kf<fz*k+fz; ++kf)
+        {
+            const int qq = cidx(pp,ii,jj,kf);
+            const int rw = D.row[qq];
+            if(rw<0)
+            continue;
+            // the coefficient and the cell across the patch box
+            double a_f; int qo;
+            if(side==0)      { a_f = -M.s[rw]; qo = qq-sI; }
+            else if(side==1) { a_f = -M.n[rw]; qo = qq+sI; }
+            else if(side==2) { a_f = -M.e[rw]; qo = qq-sJ; }
+            else             { a_f = -M.w[rw]; qo = qq+sJ; }
+            sum += area*pp->DZN[kf+marge]*a_f*(x[qo]-x[qq]);
+        }
+    }
+    return sum;
+}
+
+// y += sg * (T_c + sum V_f T_f / V_c) for every coarse face next to a finer patch (x of vector kx with its cells
+// around the patches and covered cells set)
+void nhflow_amr::df_fix(int kx, int ky, double sg)
+{
+    // (multi-block grids: the coarse faces of a patch at a block face may lie in a turned block, where the
+    // velocity components of both sides differ: not matched there, as before)
+    if(maxlev<1 || nblk>0)
+    return;
+
+    // the fine sums of the coarse faces whose patch is on another rank
+    dfr.assign(rmatch.size(),vector<double>());
+    for(size_t t=0; t<rmatch.size(); ++t)
+    if(!rmatch[t].empty())
+    dfr[t].assign(rmatch[t].size()*(size_t)glex((int)t-1)->knoz,0.0);
+
+    for(int l=0; l<maxlev; ++l)
+    {
+        const int K = klev(l);
+        face_run_at(l+1,K,7860+l+1,
+                    [&](reefamr_patch *q, int side, int r, double *sb)
+                    {
+                        const int id = dfid[q];
+                        for(int k=0; k<K; ++k)
+                        sb[k] = df_fine(id,side,r,K,k,kx);
+                    },
+                    [&](int tgt, int idx, const double *v)
+                    {
+                        for(int k=0; k<K; ++k)
+                        dfr[tgt][(size_t)idx*K+k] = v[k];
+                    });
+    }
+
+    for(int g=-1; g<(int)P.size(); ++g)
+    {
+        const int t = g+1;
+        if(t>=(int)match.size())
+        continue;
+        lexer *q = glex(g);
+        const dgrid &D = dg[t];
+        const matrix_diag &M = *D.M;
+        const double *x = dvec(g,kx);
+        double *y = dvec(g,ky);
+        const int K = q->knoz;
+        const int sI = q->jmax*q->kmax, sJ = q->kmax;
+
+        auto fix = [&](const reefamr_match &m, auto fine)
+        {
+            // the leaf cell outside the patch and the direction to the covered cell
+            const int ii = m.fi + (m.side==1 ? 1 : 0);
+            const int jj = m.fj + (m.side==3 ? 1 : 0);
+            const int n2 = lij(q,ii,jj);
+            if(q->wet[n2]!=1)
+            return;
+            const double area = (q->geo_curv==1) ? q->AREA2D[n2] : q->DXN[ii+marge]*q->DYN[jj+marge];
+            for(int k=0; k<K; ++k)
+            {
+                const int qq = cidx(q,ii,jj,k);
+                const int rw = D.row[qq];
+                if(rw<0)
+                continue;
+                double a_c; int qn;
+                if(m.side==0)      { a_c = -M.n[rw]; qn = qq+sI; }
+                else if(m.side==1) { a_c = -M.s[rw]; qn = qq-sI; }
+                else if(m.side==2) { a_c = -M.w[rw]; qn = qq+sJ; }
+                else               { a_c = -M.e[rw]; qn = qq-sJ; }
+                const double Tc = a_c*(x[qn]-x[qq]);
+                const double Vc = area*q->DZN[k+marge];
+                y[qq] += sg*(Tc + fine(k)/Vc);
+            }
+        };
+
+        for(size_t n=0; n<match[t].size(); ++n)
+        {
+            const reefamr_match &m = match[t][n];
+            fix(m,[&](int k) { return df_fine(m.child,m.side,m.r,K,k,kx); });
+        }
+        if(t<(int)rmatch.size())
+        for(size_t n=0; n<rmatch[t].size(); ++n)
+        {
+            const reefamr_match &m = rmatch[t][n];
+            fix(m,[&](int k) { return dfr[t][n*(size_t)K+k]; });
+        }
+    }
 }

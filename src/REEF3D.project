@@ -41,6 +41,7 @@
   <Dependencies/>
   <VirtualDirectory Name="HEADERS">
     <VirtualDirectory Name="REEFAMR">
+      <File Name="amr_phase_clock.h"/>
       <File Name="reefckpt.h"/>
       <File Name="reefrun_ckpt.h"/>
       <File Name="ckpt_registry.h"/>
@@ -83,6 +84,8 @@
         <File Name="reefmg.h"/>
         <File Name="reefmg_core.h"/>
         <File Name="reefmg2D.h"/>
+        <File Name="reefmg_device.h"/>
+        <File Name="reefmg_device_kernels.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Stationary">
         <File Name="solver_void.h"/>
@@ -130,6 +133,7 @@
         <File Name="seastate_surfbeat.h"/>
         <File Name="seastate_roller.h"/>
         <File Name="seastate_coupling.h"/>
+        <File Name="seastate_remote.h"/>
         <File Name="seastate_nhflow.h"/>
         <File Name="seastate_forcing.h"/>
         <File Name="seastate_amr.h"/>
@@ -295,6 +299,7 @@
             <File Name="levelset_void.h"/>
             <File Name="levelset_RK3.h"/>
             <File Name="levelset_RK2.h"/>
+            <File Name="levelset_solid_extend.h"/>
             <VirtualDirectory Name="Picard">
               <File Name="picard_void.h"/>
               <File Name="picard_lsm.h"/>
@@ -684,6 +689,7 @@
           <File Name="nhflow_pjm.h"/>
           <VirtualDirectory Name="Poisson">
             <File Name="nhflow_poisson_pcorr.h"/>
+            <File Name="nhflow_xwall.h"/>
             <File Name="nhflow_poisson.h"/>
             <File Name="nhflow_poisson_cross.h"/>
           </VirtualDirectory>
@@ -707,6 +713,7 @@
           <File Name="nhflow_hullbody.h"/>
           <VirtualDirectory Name="Breaking">
             <File Name="nhflow_breaking.h"/>
+            <File Name="nhflow_breaking_profile.h"/>
           </VirtualDirectory>
           <File Name="nhflow_fsf_f.h"/>
           <File Name="nhflow_fsf.h"/>
@@ -725,6 +732,7 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Breaking">
           <File Name="fnpf_breaking.h"/>
+          <File Name="breaking_crest3d.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Update">
           <File Name="fnpf_fsf_update.h"/>
@@ -1225,6 +1233,7 @@
         <File Name="vrans_nhflow.h"/>
         <File Name="vrans_nhflow_f.h"/>
         <File Name="vrans_nhflow_v.h"/>
+        <File Name="nhflow_por_ghost.h"/>
         <File Name="vrans.h"/>
         <File Name="vrans_f.h"/>
         <File Name="vrans_v.h"/>
@@ -1419,6 +1428,7 @@
         <File Name="wave_lib.h"/>
         <File Name="wave_lib_cnoidal_1st.h"/>
         <File Name="wave_lib_cnoidal_5th.h"/>
+        <File Name="wave_lib_steady_fi.h"/>
         <File Name="wave_lib_cnoidal_shallow.h"/>
         <File Name="wave_lib_deep.h"/>
         <File Name="wave_lib_flap.h"/>
@@ -1531,6 +1541,8 @@
         <File Name="reefmg.cpp"/>
         <File Name="reefmg_core.cpp"/>
         <File Name="reefmg2D.cpp"/>
+        <File Name="reefmg_device.cpp"/>
+        <File Name="reefmg_device_metal.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Stationary">
         <File Name="solver_void.cpp"/>
@@ -1607,6 +1619,7 @@
           <File Name="seastate_f_surfbeat.cpp"/>
           <File Name="seastate_surfbeat.cpp"/>
           <File Name="seastate_coupling.cpp"/>
+          <File Name="seastate_remote.cpp"/>
           <File Name="seastate_nhflow.cpp"/>
           <File Name="seastate_sflow.cpp"/>
         </VirtualDirectory>
@@ -1963,6 +1976,7 @@
             <File Name="levelset_void.cpp"/>
             <File Name="levelset_RK3.cpp"/>
             <File Name="levelset_RK2.cpp"/>
+            <File Name="levelset_solid_extend.cpp"/>
             <VirtualDirectory Name="Picard">
               <File Name="picard_void.cpp"/>
               <File Name="picard_lsm.cpp"/>
@@ -2328,6 +2342,7 @@
           <VirtualDirectory Name="Breaking">
             <File Name="nhflow_breaking_filter.cpp"/>
             <File Name="nhflow_breaking.cpp"/>
+            <File Name="nhflow_breaking_barthelemy.cpp"/>
           </VirtualDirectory>
           <File Name="nhflow_fsf_coastline.cpp"/>
           <File Name="nhflow_fsf_wetdry_fluxes.cpp"/>
@@ -2362,6 +2377,7 @@
           <File Name="fnpf_breaking_baquet.cpp"/>
           <File Name="fnpf_breaking_romero.cpp"/>
           <File Name="fnpf_breaking_barthelemy.cpp"/>
+          <File Name="breaking_crest3d.cpp"/>
           <File Name="fnpf_breaking_relaxfunc.cpp"/>
           <File Name="fnfp_breaking_kennedy.cpp"/>
           <File Name="fnpf_breaking_filter.cpp"/>
@@ -3549,6 +3565,7 @@
         <VirtualDirectory Name="Void">
           <File Name="ioflow_void.cpp"/>
           <File Name="ioflow_amr_block.cpp"/>
+          <File Name="ioflow_amr_block_zones.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="ioWave">
           <File Name="iowave_fnpf_fullini_masked.cpp"/>
@@ -3708,6 +3725,7 @@
         </VirtualDirectory>
         <File Name="wave_lib_cnoidal_1st.cpp"/>
         <File Name="wave_lib_cnoidal_5th.cpp"/>
+        <File Name="wave_lib_steady_fi.cpp"/>
         <File Name="wave_lib_cnoidal_shallow.cpp"/>
         <File Name="wave_lib_deep.cpp"/>
         <File Name="wave_lib_flap.cpp"/>

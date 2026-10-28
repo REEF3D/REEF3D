@@ -1,0 +1,16 @@
+{
+ "base": "seastate_2d_wind",
+ "ctrl_add": [
+  "A 767 1"
+ ],
+ "description": "as seastate_2d_wind (stationary fetch-limited growth, 40 x 3 cells of 1 km, Komen, DIA, limiter, full circle: four sweeps) with the source terms once per iteration (A 767 1, Phase 21b): the sweep of quadrant 0 evaluates the terms of a cell for all directions and keeps P and D of quadrants 1-3 (floats), their sweeps take them. Validation in Dropbox SEASTATE/validation/72_source_once.",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate"
+ ],
+ "covers": [
+  "seastate_implicit source_cache: evaluation in the sweep of qfill, kept rows of three quadrants",
+  "seastate_source::limits"
+ ]
+}

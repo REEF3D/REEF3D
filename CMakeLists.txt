@@ -88,6 +88,10 @@ else()
   message(STATUS "Building without HYPRE (default): Poisson solves with REEFMG (N 10 1); -DREEF3D_USE_HYPRE=ON to enable")
 endif()
 
+# ── Metal (REEFMG on the Apple Silicon GPU, N 16 1) ──────────────────────────
+# src/reefmg_device_metal.cpp is part of every macOS build; Metal is loaded at run time, so nothing
+# is linked and nothing needs to be switched on (-DREEF3D_NO_METAL leaves it out).
+
 # ── Eigen ─────────────────────────────────────────────────────────────────────
 
 set(EIGEN_LOCAL_DIR "${PROJECT_SOURCE_DIR}/ThirdParty/eigen-${REEF3D_EIGEN_VERSION}")

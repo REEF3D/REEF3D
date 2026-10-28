@@ -132,6 +132,10 @@ void seastate_f::start(lexer *p, ghostcell *pgc)
         if(p->A760>0)
         handover(p,pgc);
 
+        // nesting output (A 785 1)
+        if(p->A785==1)
+        spcout(p,pgc,false);
+
         // printer (mesh refinement: the patches with every print of level 0)
         double ptime=pgc->timer();
         const int pc = p->printcount;
@@ -304,4 +308,7 @@ void seastate_f::step_coupled(lexer *p, ghostcell *pgc, double dt)
 
     if(p->A760>0)
     handover(p,pgc);
+
+    if(p->A785==1)
+    spcout(p,pgc,false);
 }

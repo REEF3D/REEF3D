@@ -44,6 +44,7 @@ void nhflow_curv::pair_forget(const lexer *p)
 #include"fdm_nhf.h"
 #include"sliceint.h"
 #include"ghostcell.h"
+#include"nhflow_xwall.h"
 
 // iterate over the precomputed boundary-cell list L (same order as the full sweep)
 // entries are (i,j,k,h): h=1 if the cell has a flagged neighbour in x or y,
@@ -525,27 +526,54 @@ void ghostcell::start4V(lexer *p, double *f, int gcv)
         outflow=1;
 
     starttime=timer();
+    const bool xslip_s = nhflow_xwall_slip(p,1);
+    const bool xslip_n = nhflow_xwall_slip(p,4);
+    
     GCBL_LOOP(4)
     {
     if(gcbl_h==1)
     {
         // xxxxxxx
+        // walls (IO 0: C 11 / C 14 neither inflow nor outflow) are slip walls as the y sides below: the normal
+        // velocity (U, UH: gcv 10, 14) mirrored antisymmetrically, the others symmetrically. The inflow / outflow
+        // ghost values (U copied or 0, V and W 0) applied there before and, with the pressure correction 0 at
+        // the wall (nhflow_poisson_pcorr), damped the waves of a flume along y.
+        // (not where waves along x are generated or absorbed: nhflow_xwall.h)
+        const bool wall_s = p->flag4[Im1JK]<0 && p->IO[Im1JK]==0 && xslip_s;
+        const bool wall_n = p->flag4[Ip1JK]<0 && p->IO[Ip1JK]==0 && xslip_n;
+        
+        if(wall_s)
+        {
+            const double sg = (gcv==10 || gcv==14) ? -1.0 : 1.0;
+            f[Im1JK] = sg*f[IJK];
+            f[Im2JK] = sg*f[Ip1JK];
+            f[Im3JK] = sg*f[Ip2JK];
+        }
+        
+        if(wall_n)
+        {
+            const double sg = (gcv==10 || gcv==14) ? -1.0 : 1.0;
+            f[Ip1JK] = sg*f[IJK];
+            f[Ip2JK] = sg*f[Im1JK];
+            f[Ip3JK] = sg*f[Im2JK];
+        }
+        
         // s
-        if(p->flag4[Im1JK]<0 && (gcv==10 || gcv==14) && (inflow==0 && p->B98!=2))
+        if(!wall_s && p->flag4[Im1JK]<0 && (gcv==10 || gcv==14) && (inflow==0 && p->B98!=2))
         {
             f[Im1JK] = 0.0;
             f[Im2JK] = 0.0;
             f[Im3JK] = 0.0;
         }
         
-        if(p->flag4[Im1JK]<0 && (gcv==10 || gcv==14) && (inflow==0 && p->B98==2))
+        if(!wall_s && p->flag4[Im1JK]<0 && (gcv==10 || gcv==14) && (inflow==0 && p->B98==2))
         {
             f[Im1JK] = f[IJK];
             f[Im2JK] = f[IJK];
             f[Im3JK] = f[IJK];
         }
 
-        if(p->flag4[Im1JK]<0 && (gcv!=10 && gcv!=14) && inflow==0)
+        if(!wall_s && p->flag4[Im1JK]<0 && (gcv!=10 && gcv!=14) && inflow==0)
         {
             f[Im1JK] = 0.0;
             f[Im2JK] = 0.0;
@@ -553,28 +581,28 @@ void ghostcell::start4V(lexer *p, double *f, int gcv)
         }
 
         // n
-        if(p->flag4[Ip1JK]<0 && (gcv==10 || gcv==14) && outflow==0)
+        if(!wall_n && p->flag4[Ip1JK]<0 && (gcv==10 || gcv==14) && outflow==0)
         {
             f[Ip1JK] = 0.0;
             f[Ip2JK] = 0.0;
             f[Ip3JK] = 0.0;
         }
 
-        if(p->flag4[Ip1JK]<0 && (gcv==10 || gcv==14) && outflow==2)
+        if(!wall_n && p->flag4[Ip1JK]<0 && (gcv==10 || gcv==14) && outflow==2)
         {
             f[Ip1JK] = MAX(0.0,f[IJK] - p->dt/p->DXP[IP]*p->Uo*(f[IJK]-f[Im1JK]));
             f[Ip2JK] = MAX(0.0,f[IJK]);
             f[Ip3JK] = MAX(0.0,f[IJK]);
         }
 
-        if(p->flag4[Ip1JK]<0 && (gcv!=10 && gcv!=14) && outflow==0)
+        if(!wall_n && p->flag4[Ip1JK]<0 && (gcv!=10 && gcv!=14) && outflow==0)
         {
             f[Ip1JK] = 0.0;
             f[Ip2JK] = 0.0;
             f[Ip3JK] = 0.0;
         }
 
-        if(p->flag4[Ip1JK]<0 && (gcv!=10 && gcv!=14) && outflow==2)
+        if(!wall_n && p->flag4[Ip1JK]<0 && (gcv!=10 && gcv!=14) && outflow==2)
         {
             f[Ip1JK] = f[IJK];
             f[Ip2JK] = f[IJK];
@@ -823,7 +851,7 @@ void ghostcell::start5Vfull(lexer *p, double *f, int gcv)
         {
         f[Im1JK] = f[IJK];
         f[Im2JK] = f[IJK];
-        f[Im2JK] = f[IJK];
+        f[Im3JK] = f[IJK];
         }
         
         

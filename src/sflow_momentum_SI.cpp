@@ -23,6 +23,7 @@ Author: Hans Bihs
 #include"sflow_momentum_SI.h"
 #include"si_eta2D.h"
 #include"bc_zone.h"
+#include"geo_mesh.h"
 #include"lexer.h"
 #include"fdm2D.h"
 #include"met_forcing.h"
@@ -145,7 +146,10 @@ void sflow_momentum_SI::bc_method(lexer *p)
     if(p->B520_id[qn]==p->B521_id[k] && p->B520_method[qn]>=3 && p->B520_method[qn]<=6
        && bc_zone_set::zone_block(p,p->B520_id[qn])==p->amr_block)
     {
-        const int e = p->B521_edge[k];
+        // a zone of a block (B 522): its face after turning the block (geo_mesh::turn_blocks)
+        int e = p->B521_edge[k];
+        if(p->amr_block>0 && p->gridgeo!=nullptr && e>=1 && e<=4)
+        e = p->gridgeo->face_turned(p->amr_block,e-1) + 1;
 
         if(e<1 || e>4)
         continue;

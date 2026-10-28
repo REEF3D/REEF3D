@@ -1,0 +1,15 @@
+{
+ "base": "seastate_2d_phase21b_once",
+ "ctrl_add": [
+  "A 795 1e-4"
+ ],
+ "description": "seastate_2d_phase21b_once with the spectral sparsity (A 795 1e-4): the kept terms hold the whole quadrant, a widened window takes them without a new evaluation; E_tot of the threshold and the triad flag from the evaluation (Phase 21b).",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate"
+ ],
+ "covers": [
+  "A 767 1 with A 795: widen, threshold from the kept E_tot"
+ ]
+}

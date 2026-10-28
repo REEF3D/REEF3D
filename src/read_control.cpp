@@ -27,6 +27,16 @@ Architect: Hans Bihs
 #include <string>
 #include <ctype.h>
 
+// rest of the line after the values of a key: true if it starts with a number (a value too many)
+static bool control_extra_number(std::ifstream &control)
+{
+    std::string rest;
+    std::getline(control,rest);
+    std::istringstream rs(rest);
+    std::string test;
+    return (rs>>test) && isdigit((unsigned char)test[0]);
+}
+
 void control::read_control(lexer* p)
 {
     std::string line;
@@ -628,6 +638,18 @@ void control::read_control(lexer* p)
                 case 545: control>>A545;
                          clear(c,numint);
                          break;
+                case 501: control>>A501;
+                         clear(c,numint);
+                         break;
+                case 502: control>>A502;
+                         clear(c,numint);
+                         break;
+                case 503: control>>A503;
+                         clear(c,numint);
+                         break;
+                case 504: control>>A504;
+                         clear(c,numint);
+                         break;
                 case 550: control>>A550;
                          clear(c,numint);
                          break;
@@ -809,7 +831,16 @@ void control::read_control(lexer* p)
                 case 721: control>>A721_us>>A721_ue>>A721_xs>>A721_xe;
                          clear(c,numint);
                          break;
+                case 728: control>>A728;
+                         clear(c,numint);
+                         break;
                 case 729: control>>A729;
+                         clear(c,numint);
+                         break;
+                case 785: control>>A785;
+                         clear(c,numint);
+                         break;
+                case 786: control>>A786;
                          clear(c,numint);
                          break;
                 case 730: control>>A730;
@@ -1117,14 +1148,10 @@ void control::read_control(lexer* p)
                 case 91: {
                             control>>B91_1>>B91_2;
 
-                            int pos = control.tellg();
-                            string test;
-                            control>>test;
-                            if (!isdigit(test[0]))
-                            {
-                                control.seekg(pos);
-                            }
-                            else
+                            // a third number on the line is the old input form; the rest of the line is read so that the
+                            // test also works when the key is the last line of the file (before, the stream stayed failed
+                            // at the end of the file and the parser looped until "missing input parameter")
+                            if(control_extra_number(control))
                             {
                                 cout<<endl;
                                 cout<<"!!! wrong input error for B 91 !!!"<<endl<<endl;
@@ -1141,14 +1168,10 @@ void control::read_control(lexer* p)
                 case 93: {
                             control>>B93_1>>B93_2;
 
-                            int pos = control.tellg();
-                            string test;
-                            control>>test;
-                            if (!isdigit(test[0]))
-                            {
-                                control.seekg(pos);
-                            }
-                            else
+                            // a third number on the line is the old input form; the rest of the line is read so that the
+                            // test also works when the key is the last line of the file (before, the stream stayed failed
+                            // at the end of the file and the parser looped until "missing input parameter")
+                            if(control_extra_number(control))
                             {
                                 cout<<endl;
                                 cout<<"!!! wrong input error for B 93 !!!"<<endl<<endl;
@@ -1169,14 +1192,10 @@ void control::read_control(lexer* p)
                 case 96: {
                             control>>B96_1>>B96_2;
 
-                            int pos = control.tellg();
-                            string test;
-                            control>>test;
-                            if (!isdigit(test[0]))
-                            {
-                                control.seekg(pos);
-                            }
-                            else
+                            // a third number on the line is the old input form; the rest of the line is read so that the
+                            // test also works when the key is the last line of the file (before, the stream stayed failed
+                            // at the end of the file and the parser looped until "missing input parameter")
+                            if(control_extra_number(control))
                             {
                                 cout<<endl;
                                 cout<<"!!! wrong input error for B 96 !!!"<<endl<<endl;
@@ -1283,6 +1302,9 @@ void control::read_control(lexer* p)
                          clear(c,numint);
                          break;
               case 536: control>>B536;
+                         clear(c,numint);
+                         break;
+              case 531: control>>B531;
                          clear(c,numint);
                          break;
               case 528: control>>B528;
@@ -1406,6 +1428,9 @@ void control::read_control(lexer* p)
                          clear(c,numint);
                          break;
                 case 204: control>>B204;
+                         clear(c,numint);
+                         break;
+                case 205: control>>B205;
                          clear(c,numint);
                          break;
                 case 208: control>>B208;
@@ -2444,7 +2469,16 @@ void control::read_control(lexer* p)
                 case 15: control>>N15;
                          clear(c,numint);
                          break;
+                case 16: control>>N16;
+                         clear(c,numint);
+                         break;
+                case 17: control>>N17;
+                         clear(c,numint);
+                         break;
                 case 18: control>>N18;
+                         clear(c,numint);
+                         break;
+                case 19: control>>N19;
                          clear(c,numint);
                          break;
                 case 20: control>>N20;
@@ -3673,6 +3707,12 @@ void control::read_control(lexer* p)
                          clear(c,numint);
                          break;
                 case 227: control>>W227;
+                         clear(c,numint);
+                         break;
+                case 228: control>>W228;
+                         clear(c,numint);
+                         break;
+                case 229: control>>W229;
                          clear(c,numint);
                          break;
                 }

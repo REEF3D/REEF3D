@@ -1,0 +1,7 @@
+{
+ "base": "nhflow_2d_waves_current_doppler_stokes5",
+ "ctrl_add": ["B 89 1"],
+ "description": "nhflow_2d_waves_current_doppler_stokes5 with decomposed precalc (B 89 1): the space parts of the 5th-order Stokes waves are decomposed again whenever B 530 sets a new k (every 10 steps); over 3000 steps within 1.9 mm of B 89 0 (max eta 431 mm, validation 28).",
+ "tags": ["quick", "2d", "nhflow", "iowave", "bc_zone", "background", "doppler", "stokes5", "decomp"],
+ "covers": ["B 530 with B 89 1 and B 92 5", "nhflow_wavegen_precalc_decomp_space after wave_comp_update"]
+}

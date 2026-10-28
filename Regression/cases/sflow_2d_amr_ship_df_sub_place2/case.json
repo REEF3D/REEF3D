@@ -1,0 +1,21 @@
+{
+ "base": "sflow_2d_amr_ship_df_sub",
+ "np": 2,
+ "ctrl_add": [
+  "G 40 2"
+ ],
+ "description": "sflow_2d_amr_ship_df_sub (direct forcing X 10 2, G 7 1) on 2 ranks with G 40 2.",
+ "tags": [
+  "2d",
+  "sflow",
+  "amr",
+  "ship",
+  "6dof",
+  "mpi",
+  "place",
+  "subcycling"
+ ],
+ "covers": [
+  "sflow_amr_ship direct forcing on placed patches"
+ ]
+}

@@ -1,0 +1,26 @@
+{
+ "base": "seastate_2d_vortex_mpi2",
+ "ctrl_set": {
+  "A 729": "2"
+ },
+ "ctrl_add": [
+  "A 728 4",
+  "A 785 1",
+  "A 786 1800.0"
+ ],
+ "files": [
+  "seastate-spcout.dat"
+ ],
+ "description": "seastate_2d_vortex_mpi2 with the nesting output (A 785 1): the 2D spectra at 40 points on the sides of the nested domain of seastate_2d_spcout_nest, bilinear between the cell centres across the rank boundary, every 30 min (A 786) into REEF3D_SEASTATE_SPC/seastate-spcout.spc; the drag of the wind input from a law of its own (A 729 2, A 728 4 Zijlema).",
+ "tags": [
+  "2d",
+  "seastate",
+  "mpi",
+  "met",
+  "vortex"
+ ],
+ "covers": [
+  "seastate_f::spcout_ini, spcout (A 785, A 786)",
+  "A 729 2 with A 728"
+ ]
+}

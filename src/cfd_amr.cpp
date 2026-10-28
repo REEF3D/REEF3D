@@ -20,6 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
+#include<cstring>
 #include"cfd_amr.h"
 #include"reef3d_mpmd.h"
 #include"patchBC_codes.h"
@@ -211,8 +212,10 @@ bool cfd_amr::scope(lexer *p, ghostcell *pgc)
     why = "the level set (F 30) or single phase flow, no VOF (F 80) or multiphase (F 300)";
     else if(!(p->T10==0 || p->T10==1 || p->T10==2 || p->T10==21 || p->T10==22))
     why = "laminar flow or a RANS model (T 10 0, 1, 2, 21, 22)";
-    else if(p->W30!=0 || p->W32!=0 || p->W90!=0)
-    why = "no compressibility or rheology (W 30, W 32, W 90)";
+    else if(p->W30!=0 || p->W90!=0)
+    why = "no compressibility W 30 or rheology W 90 (the air compressibility W 32 works)";
+    else if(p->W32!=0 && p->G7!=0)
+    why = "the air compressibility W 32 with one time step for all levels, G 7 0 (with subcycling the synchronisation projection does not keep the compression of the air)";
     else if(p->H10!=0 && p->C10!=0)
     why = "heat or concentration, not both (H 10, C 10)";
     else if((p->H10!=0 && p->H10!=3) || (p->C10!=0 && p->C10!=3))
@@ -322,14 +325,16 @@ cfd_amr::cfd_amr(lexer *p, fdm *a, ghostcell *pgc, momentum *pmom, pressure *ppr
     // the loads of the bodies on the finest grid at each hull triangle.  G 7 1: the finest level
     // advances the bodies with them.  G 7 0: level 0 advances them, with the loads of the patches
     // (those of its restricted pressure: the drag of a towed box 13 % below that of the uniform grid
-    // of the finest cells), the coupling stabilised with an artificial added mass of half the
+    // of the finest cells).  The coupling is stabilised with an artificial added mass of half the
     // displaced fluid (sixdof_obj::cfd_added_mass): with the loads of the patches alone the
-    // stage-to-stage oscillation of the loads of a light body (heave decay, density 500) grew
+    // stage-to-stage oscillation of the loads of a light body grew, with G 7 0 in heave (decay,
+    // density 500, validation 51), with G 7 1 in pitch (a box 0.25 x 0.12 of density 500 heeled
+    // 10 degrees: stopped after 0.11 s; two boxes 4 cm apart in heave: the vertical force changed
+    // by 166 N from one finest step to the next after 1 s, validation 54)
     if(bodies)
     for(int nb=0; nb<b6->objects(); ++nb)
     {
         b6->object(nb)->amr_loads = this;
-        if(!sub)
         b6->object(nb)->set_cfd_added_mass(0.5);
     }
     th_end.assign(maxlev+1,0.0);
@@ -889,7 +894,10 @@ void cfd_amr::fill(int l, vector<fspec> &fs, bool siblings_only, int maxdepth)
 
     // G 40: the coarser level of the level-1 patches, their shadows, from level 0
     if(place && l==1 && !siblings_only)
-    sh_fill_down(fs);
+    {
+        amr_phase<PR_NPART> sh_(prc,PR_SHADOW);
+        sh_fill_down(fs);
+    }
 
     // the fields of the grids, resolved once per fill (the field functions of fs are evaluated for
     // the grids they are asked for, as before, but once each)
@@ -1546,7 +1554,8 @@ void cfd_amr::fill_press_out()
 {
     vector<fspec> fs;
     for(const cfd_amr_field &e : reg)
-    if(e.name=="press")
+    // the names are pointers: compare the strings (== compared the addresses of the literals)
+    if(std::strcmp(e.name,"press")==0)
     {
         const cfd_amr_field *pe = &e;
         fs.push_back({e.type,e.prolong,[this,pe](int g) -> field& { return rf(*pe,g); }});
@@ -1612,6 +1621,17 @@ void cfd_amr::load_step(lexer *p)
         }
         c.wpred = c.n0 + wpatch*c.np;
         c.tpatch = wtp + tp[0];
+        // the parts of the projections (time, then the MPI time of each)
+        for(int k=0; k<PR_NPART; ++k)
+        {
+            c.clk.push_back(prc.t[k]);
+            c.clk_names.push_back(string("projection ")+pr_part_name(k));
+        }
+        for(int k=0; k<PR_NPART; ++k)
+        {
+            c.clk.push_back(prc.m[k]);
+            c.clk_names.push_back(string("projection ")+pr_part_name(k)+" MPI");
+        }
         return c;
     });
 }
@@ -1806,6 +1826,9 @@ void cfd_amr::step_comp(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof 
             cout.precision(pr);
         }
     }
+
+    if(p->count%p->P12==0)
+    pr_report(p);
 
     if(p->mpirank==0 && (p->count%p->P12==0))
     cout<<"CFD AMR: pressure iterations "<<pr_it_last<<"  res "<<setprecision(3)<<pr_res_last

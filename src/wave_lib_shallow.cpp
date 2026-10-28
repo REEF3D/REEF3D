@@ -97,9 +97,14 @@ double wave_lib_shallow::wave_eta(lexer *p, double x, double y)
 
 double wave_lib_shallow::wave_fi(lexer *p, double x, double y, double z)
 {
-    double fi;
+    // the theory gives no potential: the antiderivative of the horizontal velocity (wave_lib_steady_fi.h)
+    if(!sfi.built())
+    sfi.build(wL, wL/wT, wdt, fabs(p->W22), p->wavetime,
+              [&](double s, double zz) {return wave_horzvel(p,s,0.0,zz);},
+              [&](double s, double zz) {return wave_w(p,s,0.0,zz);},
+              [&](double s) {return wave_eta(p,s,0.0);});
     
-    return fi;
+    return sfi.fi(x,z,p->wavetime);
 }
 
 void wave_lib_shallow::parameters(lexer *p, ghostcell *pgc)

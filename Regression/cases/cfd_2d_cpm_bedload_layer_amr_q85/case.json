@@ -1,0 +1,24 @@
+{
+ "base": "cfd_2d_cpm_bedload_layer",
+ "ctrl_set": {
+  "G 1": "1",
+  "Q 29": "1"
+ },
+ "ctrl_add": [
+  "G 15 0.02 0.06 -1.0 1.0 0.0 0.03",
+  "Q 85 0.0 0.1 -1.0 1.0 0.0 0.03"
+ ],
+ "description": "cfd_2d_cpm_bedload_layer on the CFD mesh refinement with the bed across the patch edges: the box G 15 refines x 0.02-0.06 m of the bed region to 2.5 mm, the grid of CPM covers the whole bed (Q 85, the periodic length): its cells under the patch take the fluid of the patch as it is, the others the fluid of level 0 interpolated; its bed goes back onto the patch and level 0 (the mean of its cells under each cell), restricted under the patch",
+ "covers": [
+  "cfd_amr::cpm_plans: the fluid of the finest grid at every cell of CPM, copied or interpolated (the stencils of a coarser grid)",
+  "cfd_amr::cpm_bplans, cpm_push: the bed onto the leaf cells of every grid as the mean of the cells of CPM, the restriction under the patches",
+  "Q 85: the region of the grid of CPM"
+ ],
+ "np": 1,
+ "steps": 150,
+ "tags": [
+  "2d",
+  "cpm",
+  "amr"
+ ]
+}

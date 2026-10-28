@@ -368,9 +368,14 @@ void cfd_amr::patch_step(int l, double dt, double th0, double t)
         }
 
         // the finest level: the loads after its stage, on the finest grid at every hull triangle;
-        // the force output once per level-0 step
+        // the force output after every step of the finest level (labelled with its start, as the
+        // step of a uniform grid).  The loads alternate between the finest steps of a level-0
+        // step (the synchronisation at its end corrects the velocities of the patches, the body
+        // answers in the next stage: a towed box, the vertical force of the first finest step
+        // 0.2-0.3 N below that of the second); once per level-0 step the file had the second only,
+        // 8-11 % off the uniform grid instead of 3-4 % (validation 53)
         if(bodies && l==maxlev)
-        body_loads(s,t,s==stages-1 && bfin==(1<<maxlev)-1);
+        body_loads(s,t,s==stages-1);
     }
 
     if(bodies && l==maxlev)
@@ -380,7 +385,6 @@ void cfd_amr::patch_step(int l, double dt, double th0, double t)
         for(int nb=0; nb<b6->objects(); ++nb)
         b6->object(nb)->saveTimeStep(p0,stages-1);
         p0->dt = dts;
-        ++bfin;
     }
 
     if(bodies && l<maxlev)
@@ -472,7 +476,6 @@ void cfd_amr::step_sub(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof *
         for(int nb=0; nb<b6->objects(); ++nb)
         b6->object(nb)->amr_cover = cover0.data();
     }
-    bfin = 0;
 
     mom0->amr_step_begin(p,a,pgc);
     for(int s=0; s<mom0->amr_stages(); ++s)
@@ -538,6 +541,9 @@ void cfd_amr::step_sub(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof *
             cout.precision(pr);
         }
     }
+    if(p->count%p->P12==0)
+    pr_report(p);
+
     if(p->mpirank==0 && (p->count%p->P12==0))
     {
         cout<<"CFD AMR: subcycling, level-0 step "<<setprecision(3)<<tm[4]<<" s, the patches "<<tm[7]-tm[4]<<" s; pressure iterations (last level solve) "<<pr_it_last

@@ -155,8 +155,8 @@ void wave_lib_spectrum::wavepackets_parameters(lexer *p)
     // Group Velocities
     double duration,duration_tot;
     
-    cmin = sqrt((9.81/ki[0])*tanh(ki[0]/wD));
-    cmax = sqrt((9.81/ki[p->wN-1])*tanh(ki[p->wN-1]/wD));
+    cmin = sqrt((9.81/ki[0])*tanh(ki[0]*wD));
+    cmax = sqrt((9.81/ki[p->wN-1])*tanh(ki[p->wN-1]*wD));
     
     duration = 0.5*(p->B81_1/cmin + p->B81_1/cmax);
     

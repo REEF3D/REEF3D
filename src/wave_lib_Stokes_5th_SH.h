@@ -25,6 +25,7 @@ Author: Hans Bihs
 
 #include"wave_lib_precalc.h"
 #include"wave_lib_parameters.h"
+#include"wave_lib_steady_fi.h"
 #include"increment.h"
 
 using namespace std;
@@ -49,6 +50,7 @@ public:
     void wave_prestep(lexer*,ghostcell*) override final;
     
 private:
+    wave_lib_steady_fi sfi;    // the velocity potential (wave_lib_steady_fi.h)
     double a11,a22,a31,a33,a42,a44,a51,a53,a55;
     double b22,b31,b42,b44,b53,b55;
     double e2,e4;

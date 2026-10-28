@@ -183,13 +183,11 @@ sflow_amr::sflow_amr(lexer *p, fdm2D *b, ghostcell *pgc, patchBC_interface *ppBC
     q.za = p->G13_a;
 
     // several ranks (G 40 1): the patches are placed for the load of the ranks; parents and old
-    // patches on other ranks are reached through the block plans and old_run of the core.  Not
-    // with the moving body (X 10 2/3): its fields on the patches come from the level-0 cells
-    // below the patch (fs0_at)
-    q.place = (p->G40>=1 && p->mpi_size>1 && shipmode==0) ? MIN(p->G40,2) : 0;
+    // patches on other ranks are reached through the block plans and old_run of the core.  With the
+    // moving body (X 10 2/3) the level-0 level set below the patches comes from the ranks that hold it
+    // (ship_fs_exchange); the draft and the pressure are evaluated on the patch itself
+    q.place = (p->G40>=1 && p->mpi_size>1) ? MIN(p->G40,2) : 0;
     q.rebalance = 0.1;
-    if(p->G40>=1 && shipmode>0 && p->mpirank==0)
-    cout<<"SFLOW AMR: G 40 is not available with the moving body (X 10 2/3), the patches stay on the rank below"<<endl;
 
     configure(q);
 
@@ -427,12 +425,22 @@ void sflow_amr::patch_objects(reefamr_patch *q, ghostcell *pgc)
     if(bous==1)
     c->psolv = new sflow_amr_linesolve;
 
-    // multi-block: the open faces of a block 1.. (G 54; the lists from build_bc2D)
-    if(c->blk>0 && c->lev==0 && (bopen[0][c->blk]>=0 || bopen[1][c->blk]>=0))
+    // multi-block: the open faces of a block 1.. (G 54) and its edge zones (B 522; the lists from build_bc2D); the
+    // iowave edges of level 0 (open_xm .. open_yp) are not the block's
+    const int zin = (c->blk>0 && c->lev==0) ? bzone[0][c->blk] : -1;
+    const int zout = (c->blk>0 && c->lev==0) ? bzone[1][c->blk] : -1;
+    if(c->blk>0)
+    {
+        pp->open_xm = (zin>=0) ? 1 : 0;
+        pp->open_xp = (zout>=0) ? 1 : 0;
+        pp->open_ym = pp->open_yp = 0;
+    }
+    if(c->blk>0 && c->lev==0 && (bopen[0][c->blk]>=0 || bopen[1][c->blk]>=0 || zin>=0 || zout>=0))
     {
         c->pio = new ioflow_amr_block(pp,pgc,pBC);
         pp->amr_own_io = 1;
         c->pio->open_faces(pp,bopen[0][c->blk],bopen[1][c->blk]);
+        c->pio->open_edges(pp,zin>=0 ? &bzones[zin] : nullptr,zout>=0 ? &bzones[zout] : nullptr,bzbg);
         c->phll->open_io();
     }
 

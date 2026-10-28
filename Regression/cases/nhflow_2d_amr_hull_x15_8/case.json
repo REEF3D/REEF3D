@@ -1,0 +1,4 @@
+{"base": "nhflow_2d_6dof_box_x15_8", "ctrl_add": ["G 1 1", "G 4 4", "G 12 0.3", "G 6 1"],
+ "description": "nhflow_2d_6dof_box_x15_8 on the hierarchy: one level with the sigma layers doubled (G 6 1) in the zone around the box (G 12, margin widened to 4 level-0 cells), the zone follows the box in the waves (surge, heave and pitch free). The hull as a sharp thin body on every grid, the loads from the finest grid at every blocked face.",
+ "tags": ["2d", "nhflow", "6dof", "floating", "amr"],
+ "covers": ["nhflow_hullbody on a patch (amr_patch)", "nhflow_amr::flux_hook with the thin-body hook", "nhflow_pjm::amr_finish Rhie-Chow store (MBETA)", "sixdof_obj_nhflow::amr_grids_nhflow, nhflow_hullbody::loads/finish_loads", "patch_delete of the hull fields"]}

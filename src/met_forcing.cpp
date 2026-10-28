@@ -133,8 +133,18 @@ void met_forcing::update(lexer *p, ghostcell *pgc)
     V10(i,j) = v;
     Pa(i,j)  = pa;
 
-    Tx(i,j) = ra*met_drag(law,speed,p->W213,p->W214)*speed*u;
-    Ty(i,j) = ra*met_drag(law,speed,p->W213,p->W214)*speed*v;
+    double Cd;
+
+        if(law==7 && z0w!=nullptr)
+        {
+        const double z = (*z0w)(i,j);
+        Cd = z<0.0 ? met_drag(5,speed,p->W213) : met_drag_z0(p->W229==1 ? std::max(z,charnock(speed)) : z,p->W228);
+        }
+        else
+        Cd = met_drag(law,speed,p->W213,p->W214);
+
+    Tx(i,j) = ra*Cd*speed*u;
+    Ty(i,j) = ra*Cd*speed*v;
     }
 
     // kinematic air pressure gradient, central differences (the ghost cells hold the source's values)
@@ -163,6 +173,44 @@ void met_forcing::update(lexer *p, ghostcell *pgc)
 
     tlast = p->simtime;
     has_t = true;
+}
+
+void met_forcing::waves(lexer *p, slice *Hs, slice *Tp, slice *WL)
+{
+    wHs = Hs;
+    wTp = Tp;
+    wWL = WL;
+
+    if(z0w==nullptr)
+    z0w = new slice4(p);
+
+    // the Charnock roughness up to 150 m/s (linear between the entries: relative error below 1e-5)
+    if(z0c.empty())
+    for(int n=0; n<=3000; ++n)
+    z0c.push_back(met_z0_charnock(n*dz0c));
+
+    waves_update(p);
+}
+
+void met_forcing::waves_update(lexer *p)
+{
+    if(z0w==nullptr)
+    return;
+
+    IMALOOP
+    JMALOOP
+    (*z0w)(i,j) = met_z0_waves((*wHs)(i,j),(*wTp)(i,j),(*wWL)(i,j));
+
+    has_t = false;
+}
+
+double met_forcing::charnock(double U) const
+{
+    const double x = U/dz0c;
+    const int n = std::min(int(x),int(z0c.size())-2);
+    const double w = std::min(x-n,1.0);
+
+    return (1.0-w)*z0c[n] + w*z0c[n+1];
 }
 
 void met_forcing::source_sflow(lexer *p, ghostcell *pgc, slice &F, int dir, slice &WL, slice &UH, slice &VH)

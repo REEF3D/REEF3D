@@ -96,6 +96,7 @@ public:
     double A604,A605_sig,A605_k0,A606_s,A606_t,A607_s,A607_t,A608;
     int A550,A551,A552;
     double A554,A555,A557;
+    double A501,A502,A503,A504;
     int A560;
     int A564,A565,A566,A567;
     int A561;
@@ -130,14 +131,14 @@ public:
     // Spectral
     int A700,A701,A703,A704,A707,A710,A711,A712_xm,A712_xp,A712_ym,A712_yp,A713,A714,A720;
     double A702_fmin,A702_fmax,A705,A706,A708,A721_us,A721_ue,A721_xs,A721_xe;
-    int A729,A730,A732,A733,A740,A742,A744;
+    int A728,A729,A730,A785,A732,A733,A740,A742,A744;
     double A731_u10,A731_dir,A734,A735,A741_alpha,A741_gamma,A743,A745;
     int A737;
     double A736_cutfr,A736_urcrit,A736_urslim;
     int A750,A751,A753,A760;
     double A752,A761;
     int A748,A770,A773,A774,A775;
-    double A746,A747,A749,A771,A772,A780;
+    double A746,A747,A749,A771,A772,A780,A786;
     int A790,A792,A794,A796,A797,A738,A798,A799,A781,A715_k,A718,A719,A722;
     int A758_m;
     int A758_n;
@@ -200,6 +201,7 @@ public:
     double B534_d,B534_dx,B534_fl,B534_fh;   // iowave: SIRW absorption at x- (B 98 8): gauge distance, spacing, band [Hz] (0: from B 528)
     double B535_d,B535_dx,B535_fl,B535_fh;   // iowave: SIRW absorption at x+ (B 99 8): gauge distance, spacing, band [Hz] (0: from B 528)
     int B536;           // iowave NHFLOW: active absorption target of the piston wavemaker, 0 shallow water (legacy), 1 linear paddle theory
+    int B531;           // iowave NHFLOW: 1 start with the background current of the zones (B 510-514, B 523) in the whole domain
     int *B515_id; double *B515_x0,*B515_y0,*B515_href;
     int *B510_id,*B510_mode; double *B510_dir,*B510_tramp;
     int *B511_id; double *B511_a,*B511_T,*B511_phase;
@@ -233,7 +235,7 @@ public:
     
     int B200,B201,B208;
     double B201_n, B201_d50, B201_alpha, B201_beta;
-    int B202,B203,B204;
+    int B202,B203,B204,B205;
     double *B202_t,*B202_n,*B202_d50,*B202_alpha,*B202_beta;
     double B209;
     int B210;
@@ -432,7 +434,7 @@ public:
     int I246;
 
     // Numerical Options
-    int N10,N11,N12,N13,N14,N15,N18,N40,N45,N46,N48;
+    int N10,N11,N12,N13,N14,N15,N16,N17,N18,N19,N40,N45,N46,N48;
     int N20,N22,N23,N25,N26;
     double N41,N43,N44,N47,N49,N50,N61;
 
@@ -604,8 +606,8 @@ public:
     int W110,W111;
     double W112;
     // atmospheric forcing (met_provider, met_forcing)
-    int W200,W205,W207,W208,W210,W211,W215,W218,W219,W220_n,W220_v,W222,W223,W225,W226,W227;
-    double W201_u,W201_dir,W202,W203,W204,W205_lon,W205_lat,W205_rot,W206_x,W206_y,W209,W212,W213,W214,W216,W217;
+    int W200,W205,W207,W208,W210,W211,W215,W218,W219,W220_n,W220_v,W222,W223,W225,W226,W227,W229;
+    double W201_u,W201_dir,W202,W203,W204,W205_lon,W205_lat,W205_rot,W206_x,W206_y,W209,W212,W213,W214,W216,W217,W228;
     double W221_w,W221_t,W222_r1,W222_r2,W224;
 
     // 6DOF

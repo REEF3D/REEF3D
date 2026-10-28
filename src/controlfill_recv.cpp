@@ -528,6 +528,14 @@ void control::ctrlrecv()
     dd++;
     A557 = dctrl[dd];
     dd++;
+    A501 = dctrl[dd];
+    dd++;
+    A502 = dctrl[dd];
+    dd++;
+    A503 = dctrl[dd];
+    dd++;
+    A504 = dctrl[dd];
+    dd++;
     A560 = ictrl[ii];
     ii++;
     A564 = ictrl[ii];
@@ -682,6 +690,12 @@ void control::ctrlrecv()
     ii++;
     A729 = ictrl[ii];
     ii++;
+    A728 = ictrl[ii];
+    ii++;
+    A785 = ictrl[ii];
+    ii++;
+    A786 = dctrl[dd];
+    dd++;
     A731_u10 = dctrl[dd];
     dd++;
     A731_dir = dctrl[dd];
@@ -1029,6 +1043,8 @@ void control::ctrlrecv()
     dd++;
     B536 = ictrl[ii];
     ii++;
+    B531 = ictrl[ii];
+    ii++;
     B110 = ictrl[ii];
     ii++;
     B110_zs = dctrl[dd];
@@ -1172,6 +1188,8 @@ void control::ctrlrecv()
     B203 = ictrl[ii];
     ii++;
     B204 = ictrl[ii];
+    ii++;
+    B205 = ictrl[ii];
     ii++;
     B208 = ictrl[ii];
     ii++;
@@ -1734,6 +1752,12 @@ void control::ctrlrecv()
     N14 = ictrl[ii];
     ii++;
     N15 = ictrl[ii];
+    ii++;
+    N16 = ictrl[ii];
+    ii++;
+    N17 = ictrl[ii];
+    ii++;
+    N19 = ictrl[ii];
     ii++;
     N18 = ictrl[ii];
     ii++;
@@ -2648,6 +2672,10 @@ void control::ctrlrecv()
     W226 = ictrl[ii];
     ii++;
     W227 = ictrl[ii];
+    ii++;
+    W228 = dctrl[dd];
+    dd++;
+    W229 = ictrl[ii];
     ii++;
 
     X10 = ictrl[ii];

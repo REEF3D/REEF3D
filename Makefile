@@ -12,6 +12,8 @@
 #             incremental with a cache in build/release/lto-cache), LTO=full the previous full LTO
 #             (single-threaded link); GCC -flto=auto
 #   OMP=0     no OpenMP threads for the FEM solid (Z 30); OMP=auto (default) turns them on when available
+#   The REEFMG preconditioner on the Apple Silicon GPU (N 16 1, src/reefmg_device_metal.cpp) is part of
+#   every macOS build: nothing to switch on, no framework to link (Metal is loaded at run time)
 HYPRE        ?= 0
 PCH          ?= 1
 LTO          ?= 1

@@ -21,6 +21,8 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"ioflow_amr_block.h"
+#include"geo_mesh.h"
+#include"wave_interface.h"
 #include"lexer.h"
 #include"fdm2D.h"
 #include"fdm_nhf.h"
@@ -35,6 +37,7 @@ ioflow_amr_block::ioflow_amr_block(lexer *p, ghostcell *pgc, patchBC_interface *
 
 ioflow_amr_block::~ioflow_amr_block()
 {
+    delete pwave;
 }
 
 // the open faces of the G 54 lines nin (-i face) and nout (+i face), -1 none
@@ -44,7 +47,7 @@ void ioflow_amr_block::open_faces(lexer *p, int nin, int nout)
     {
         in = 1;
         Q = p->G54_v[nin];
-        if(p->G54_t[nin]==3)
+        if(geo_mesh::g54_kind(p->G54_t[nin])==3)
         {
             series_read(series_file(3,int(p->G54_v[nin])),sq_t,sq_v);
             Q = series_value(sq_t,sq_v,p->simtime);
@@ -55,7 +58,7 @@ void ioflow_amr_block::open_faces(lexer *p, int nin, int nout)
     {
         out = 1;
         wsf = p->G54_v[nout];
-        if(p->G54_t[nout]==4)
+        if(geo_mesh::g54_kind(p->G54_t[nout])==4)
         {
             series_read(series_file(4,int(p->G54_v[nout])),sw_t,sw_v);
             wsf = series_value(sw_t,sw_v,p->simtime);
@@ -150,6 +153,19 @@ void ioflow_amr_block::discharge2D(lexer *p, fdm2D *b, ghostcell *pgc)
 {
     series_update(p);
 
+    // the backgrounds of the edge zones at the time of the step, the waves (iowave::sflow_bg_update)
+    if(ez[0]>=0 || ez[1]>=0)
+    bgs.update(p,p->simtime);
+    if(pwave!=nullptr)
+    {
+        wave_run l0;
+        wave_in(p,l0);
+        p->wavetime = p->simtime;
+        pwave->wave_prestep(p,pgc);
+        wave_get(p,wown);
+        wave_out(p,l0);
+    }
+
     if(in==0)
     return;
 
@@ -177,6 +193,10 @@ void ioflow_amr_block::discharge2D(lexer *p, fdm2D *b, ghostcell *pgc)
 
 void ioflow_amr_block::inflow2D(lexer *p, fdm2D *b, ghostcell *pgc, slice &P, slice &Q, slice &bed, slice &eta)
 {
+    // the edge zones of the faces (B 522)
+    edges2D(p,b,pgc,P,Q);
+
+    if(in==1)
     for(n=0;n<p->gcslin_count;n++)
     {
     i=p->gcslin[n][0];
@@ -201,6 +221,9 @@ void ioflow_amr_block::inflow2D(lexer *p, fdm2D *b, ghostcell *pgc, slice &P, sl
 // as ioflow_f::waterlevel2D with F 62 (F 50 2/3)
 void ioflow_amr_block::waterlevel2D(lexer *p, fdm2D *b, ghostcell *pgc, slice &eta)
 {
+    // the edge zones of the faces (B 522)
+    edges2D_eta(p,b,eta);
+
     if(out==0)
     return;
 
@@ -258,9 +281,21 @@ void ioflow_amr_block::discharge_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
     series_update(p);
 
-    // the backgrounds of the edge zones at the time of the step (iowave::nhflow_bg_update)
-    if(ez[0]>=0 || ez[1]>=0)
+    // the backgrounds of the edge, relaxation and beach zones at the time of the step (iowave::nhflow_bg_update)
+    if(ez[0]>=0 || ez[1]>=0 || rz[0]>=0 || rz[1]>=0)
     bgs.update(p,p->simtime);
+
+    // the waves at the start of the step (iowave::wave_prestep), B 95: the targets of the step until the stages set them
+    tstage = -1.0e20;
+    if(pwave!=nullptr)
+    {
+        wave_run l0;
+        wave_in(p,l0);
+        p->wavetime = p->simtime;
+        pwave->wave_prestep(p,pgc);
+        wave_get(p,wown);
+        wave_out(p,l0);
+    }
 
     if(in==1)
     {
@@ -325,7 +360,7 @@ void ioflow_amr_block::inflow_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, doubl
     if(in==1)
     inflow_q(p,d,U,V,W,UH,VH,WH);
 
-    edges_nhflow(p,d,U,V,W,UH,VH,WH);
+    edges_nhflow(p,d,pgc,U,V,W,UH,VH,WH);
 }
 
 // as ioflow_f::inflow_plain_nhflow (B 61 1) and inflow_log_nhflow (B 61 2, 4, 5)
@@ -623,7 +658,7 @@ void edge_face(const lexer *p, int f, int i, int j, double &cx, double &cy, doub
 // the ghost cells of the edges (iowave::nhflow_open_edges, x edges on the curvilinear grid): the characteristics
 // of the background and the interior (Riemann), Flather, the level of the background (clamped level) or its
 // normal current / the B 525 discharge (clamped discharge)
-void ioflow_amr_block::edges_nhflow(lexer *p, fdm_nhf *d, double *U, double *V, double *W, double *UH, double *VH, double *WH)
+void ioflow_amr_block::edges_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc_w, double *U, double *V, double *W, double *UH, double *VH, double *WH)
 {
     if(ez[0]<0 && ez[1]<0)
     return;
@@ -643,6 +678,48 @@ void ioflow_amr_block::edges_nhflow(lexer *p, fdm_nhf *d, double *U, double *V, 
         const int di = (f==0) ? -1 : 1;
         const double nn = -double(di);
         const int b = z.bg>0 ? bgs.index(z.bg) : -1;
+
+        // waves of the edge's sources (B 524, Riemann only, iowave::nhflow_open_edges): per column eta and the column
+        // means of u, v at the centre of the edge cell, at the -i edge the non-hydrostatic pressure of the waves
+        const bool waves = z.method==bc_method::riemann && !z.sources.empty() && wave_on(p,pgc_w);
+        wave_run l0;
+        if(waves)
+        {
+            wave_in(p,l0);
+            pwave->select_sources(&z.sources);
+            p->wavetime = p->simtime;
+            if(ew_eta.empty())
+            {
+                ew_eta.assign(size_t(p->imax)*size_t(p->jmax),0.0);
+                ew_u.assign(size_t(p->imax)*size_t(p->jmax),0.0);
+                ew_v.assign(size_t(p->imax)*size_t(p->jmax),0.0);
+            }
+            for(int list=0; list<2; ++list)
+            {
+                const int cs = list==0 ? p->gcslin_count : p->gcslout_count;
+                int **gs = list==0 ? p->gcslin : p->gcslout;
+                for(n=0; n<cs; ++n)
+                {
+                    i = gs[n][0];
+                    j = gs[n][1];
+                    if(gs[n][3]!=sc)
+                    continue;
+                    double xg,yg;
+                    wave_frame(p,p->XC2D[IJ],p->YC2D[IJ],xg,yg);
+                    ew_eta[IJ] = pwave->wave_eta(p,pgc_w,xg,yg);
+                    double su=0.0, sv=0.0;
+                    for(k=0; k<p->knoz; ++k)
+                    {
+                        su += pwave->wave_u(p,pgc_w,xg,yg,p->ZSP[IJK]-p->phimean)*p->DZN[KP];
+                        sv += pwave->wave_v(p,pgc_w,xg,yg,p->ZSP[IJK]-p->phimean)*p->DZN[KP];
+                    }
+                    ew_u[IJ] = su;
+                    ew_v[IJ] = sv;
+                    if(f==0)
+                    edge_pressure(p,d,pgc_w,xg,yg);
+                }
+            }
+        }
 
         // clamped discharge edge with B 525: normal velocity Q / (sum of h ds along the face), ramped
         double uq = 0.0;
@@ -699,13 +776,30 @@ void ioflow_amr_block::edges_nhflow(lexer *p, fdm_nhf *d, double *U, double *V, 
                 bgs.vel(b,h0,xf,yf,ub,vb);
 
                 const double ui = nn*(col_ubar(p,d->U)*cx + col_ubar(p,d->V)*cy);
-                const double unb = ub*cx + vb*cy;      // target, normal
+
+                // the waves of the layer and of the column (ramped), added to the background
+                double uwk=0.0, vwk=0.0, wwk=0.0, ewc=0.0, uwc=0.0, vwc=0.0;
+                if(waves)
+                {
+                    double xg,yg;
+                    wave_frame(p,p->XC2D[IJ],p->YC2D[IJ],xg,yg);
+                    const double zk = p->ZSP[IJK]-p->phimean;
+                    const double rw = wramp(p);
+                    uwk = rw*pwave->wave_u(p,pgc_w,xg,yg,zk);
+                    vwk = rw*pwave->wave_v(p,pgc_w,xg,yg,zk);
+                    wwk = rw*pwave->wave_w(p,pgc_w,xg,yg,zk);
+                    ewc = rw*ew_eta[IJ];
+                    uwc = rw*ew_u[IJ];
+                    vwc = rw*ew_v[IJ];
+                }
+
+                const double unb = (ub + uwc)*cx + (vb + vwc)*cy;      // target, normal
                 const double uni = nn*ui;              // interior, normal
                 double ung, hg;
 
                 if(z.method==bc_method::riemann)
                 {
-                    const double hb = fmax(h0+eb,1.0e-6);
+                    const double hb = fmax(h0+eb+ewc,1.0e-6);
                     const double Rin  = unb + 2.0*sqrt(g*hb);
                     const double Rout = uni - 2.0*sqrt(g*hi);
 
@@ -734,13 +828,16 @@ void ioflow_amr_block::edges_nhflow(lexer *p, fdm_nhf *d, double *U, double *V, 
 
                 // inflow: tangential velocity of the background, outflow: of the interior; the normal part
                 // from the edge, with the vertical profile of the background current (B 513) at inflow
+                // (the waves: the normal part their deviation from the column mean, the tangential part with the
+                // background at inflow)
                 const bool inflow = ung>0.0;
                 const double tx = -cy, ty = cx;
                 const double fp = (inflow && bgs.profiled(b)) ? bg_prof(p,b,k,fmax(h0+eb,1.0e-6)) : 1.0;
-                const double ut = inflow ? (ub*fp)*tx + (vb*fp)*ty : U[IJK]*tx + V[IJK]*ty;
-                const double ug = (ung*fp)*cx + ut*tx;
-                const double vg = (ung*fp)*cy + ut*ty;
-                const double wg = inflow ? 0.0 : W[IJK];
+                const double dn = (uwk - uwc)*cx + (vwk - vwc)*cy;
+                const double ut = inflow ? (ub*fp + uwk)*tx + (vb*fp + vwk)*ty : U[IJK]*tx + V[IJK]*ty;
+                const double ug = (ung*fp + dn)*cx + ut*tx;
+                const double vg = (ung*fp + dn)*cy + ut*ty;
+                const double wg = inflow ? wwk : W[IJK];
 
                 const int ii=i;
                 for(int q=1; q<=3; ++q)
@@ -755,6 +852,12 @@ void ioflow_amr_block::edges_nhflow(lexer *p, fdm_nhf *d, double *U, double *V, 
                 }
                 i = ii;
             }
+        }
+
+        if(waves)
+        {
+            pwave->select_sources(nullptr);
+            wave_out(p,l0);
         }
     }
 }
@@ -835,6 +938,211 @@ void ioflow_amr_block::edges_wl(lexer *p, fdm_nhf *d, slice &WL)
                     WL(i+q*di,j) = hg;
                     d->eta(i+q*di,j) = hg - d->depth(i,j);
                 }
+            }
+        }
+    }
+}
+
+// ------------------------------------------------------------------------------------------- SFLOW edge zones
+// the ghost cells of the edges of the -i and +i faces (iowave::sflow_open_edges on the native grid, here along the
+// normal of the block face): the characteristics of the background (+ the waves of the B 524 sources, averaged
+// over B 160 + 1 levels) and the interior (Riemann), Flather, the level of the background (clamped level) or its
+// normal current / the B 525 discharge (clamped discharge); U, V, W, UA, VA and eta in the three ghost cells
+void ioflow_amr_block::edges2D(lexer *p, fdm2D *b, ghostcell *pgc, slice &U, slice &V)
+{
+    if(ez[0]<0 && ez[1]<0)
+    return;
+
+    if(edge_h.empty())
+    edge_h.assign(size_t(p->imax)*size_t(p->jmax),0.0);
+
+    const double g = fabs(p->W22);
+
+    for(int f=0; f<2; ++f)
+    {
+        if(ez[f]<0)
+        continue;
+
+        const bc_zone &z = ezone[ez[f]];
+        const int sc = (f==0) ? 1 : 4;
+        const int di = (f==0) ? -1 : 1;
+        const int bi = z.bg>0 ? bgs.index(z.bg) : -1;
+        const int **gsl[2] = {(const int**)p->gcslin,(const int**)p->gcslout};
+        const int gsc[2] = {p->gcslin_count,p->gcslout_count};
+
+        // clamped discharge edge with B 525: normal velocity Q / (sum of h ds along the face), ramped
+        double uq = 0.0;
+        if(z.method==bc_method::clamp_q && z.has_Q)
+        {
+            double area = 0.0;
+            for(int list=0; list<2; ++list)
+            for(n=0; n<gsc[list]; ++n)
+            if(gsl[list][n][3]==sc)
+            {
+                i = gsl[list][n][0];
+                j = gsl[list][n][1];
+                if(p->wet[IJ]==1)
+                {
+                    double cx,cy,len,xf,yf;
+                    edge_face(p,f,i,j,cx,cy,len,xf,yf);
+                    area += b->WL(i,j)*len;
+                }
+            }
+            const double r = (z.Q_tramp>0.0 && p->simtime<z.Q_tramp) ? 0.5*(1.0-cos(PI*fmax(p->simtime,0.0)/z.Q_tramp)) : 1.0;
+            uq = area>1.0e-12 ? r*z.Q/area : 0.0;
+        }
+
+        const bool waves = z.method==bc_method::riemann && !z.sources.empty() && wave_on(p,pgc);
+        wave_run l0;
+        if(waves)
+        {
+            wave_in(p,l0);
+            pwave->select_sources(&z.sources);
+            p->wavetime = p->simtime;
+        }
+
+        for(int list=0; list<2; ++list)
+        for(n=0; n<gsc[list]; ++n)
+        {
+            i = gsl[list][n][0];
+            j = gsl[list][n][1];
+
+            if(gsl[list][n][3]!=sc)
+            continue;
+
+            const double h0 = b->depth(i,j);
+            const double hi = b->eta(i,j) + b->depth(i,j);
+
+            if(p->wet[IJ]==0 || hi<=1.0e-6 || h0<=1.0e-6)
+            continue;
+
+            // background at the centre of the boundary face, the inward normal (cx, cy)
+            double cx,cy,len,xf,yf;
+            edge_face(p,f,i,j,cx,cy,len,xf,yf);
+            const double eb = bi>=0 ? bgs.eta(bi,xf,yf) : 0.0;
+            double ub=0.0, vb=0.0;
+            if(bi>=0)
+            bgs.vel(bi,h0,xf,yf,ub,vb);
+
+            // waves (ramped): eta and the velocities averaged over B 160 + 1 levels
+            double ewc=0.0, uwc=0.0, vwc=0.0, wwc=0.0;
+            if(waves)
+            {
+                double xg,yg;
+                wave_frame(p,p->XC2D[IJ],p->YC2D[IJ],xg,yg);
+                const double rw = wramp(p);
+                const double ew = pwave->wave_eta(p,pgc,xg,yg);
+                const double dz = (eb + ew + p->wd - b->bed(i,j))/double(p->B160);
+
+                double su=0.0, sv=0.0, sw=0.0;
+                double zl = -p->wd;
+                for(int qn=0; qn<=p->B160; ++qn)
+                {
+                    su += pwave->wave_u(p,pgc,xg,yg,zl);
+                    sv += pwave->wave_v(p,pgc,xg,yg,zl);
+                    sw += pwave->wave_w(p,pgc,xg,yg,zl);
+                    zl += dz;
+                }
+
+                ewc = rw*ew;
+                uwc = rw*su/double(p->B160+1);
+                vwc = rw*sv/double(p->B160+1);
+                wwc = rw*sw/double(p->B160+1);
+            }
+
+            const double unb = (ub + uwc)*cx + (vb + vwc)*cy;      // target, normal
+            const double uni = U(i,j)*cx + V(i,j)*cy;              // interior, normal
+            double ung, hg;
+
+            if(z.method==bc_method::riemann)
+            {
+                const double hb = fmax(h0+eb+ewc,1.0e-6);
+                const double Rin  = unb + 2.0*sqrt(g*hb);
+                const double Rout = uni - 2.0*sqrt(g*hi);
+
+                hg  = pow(Rin-Rout,2.0)/(16.0*g);
+                ung = 0.5*(Rin+Rout);
+            }
+            else
+            if(z.method==bc_method::flather)
+            {
+                hg = hi;
+                ung = (ub*cx + vb*cy) - sqrt(g/hi)*((hi-h0) - eb);
+            }
+            else
+            if(z.method==bc_method::clamp_level)
+            {
+                hg = fmax(h0+eb,1.0e-6);
+                ung = uni;
+            }
+            else
+            {
+                hg = hi;
+                ung = z.has_Q ? uq : (ub*cx + vb*cy);
+            }
+
+            edge_h[IJ] = hg;
+
+            // inflow: tangential velocity of the background (+ waves), outflow: of the interior
+            const bool inflow = ung>0.0;
+            const double tx = -cy, ty = cx;
+            const double ut = inflow ? (ub + uwc)*tx + (vb + vwc)*ty : U(i,j)*tx + V(i,j)*ty;
+            const double ug = ung*cx + ut*tx;
+            const double vg = ung*cy + ut*ty;
+            const double wg = inflow ? wwc : b->W(i,j);
+            const double eg = (z.method==bc_method::riemann || z.method==bc_method::clamp_level) ? hg - h0 : b->eta(i,j);
+
+            for(int q=1; q<=3; ++q)
+            {
+                const int ii = i + q*di;
+                U(ii,j) = ug;
+                V(ii,j) = vg;
+                b->W(ii,j) = wg;
+                b->UA(ii,j) = ug;
+                b->VA(ii,j) = vg;
+                b->eta(ii,j) = eg;
+            }
+        }
+
+        if(waves)
+        {
+            pwave->select_sources(nullptr);
+            wave_out(p,l0);
+        }
+    }
+}
+
+// the ghost level of the edges after a water level update (iowave::sflow_open_edges_eta): Riemann, clamped level
+// h_g of the step, Flather, clamped discharge zero gradient
+void ioflow_amr_block::edges2D_eta(lexer *p, fdm2D *b, slice &eta)
+{
+    for(int f=0; f<2; ++f)
+    {
+        if(ez[f]<0)
+        continue;
+
+        const bc_zone &z = ezone[ez[f]];
+        const int sc = (f==0) ? 1 : 4;
+        const int di = (f==0) ? -1 : 1;
+        const bool own_h = z.method==bc_method::riemann || z.method==bc_method::clamp_level;
+
+        for(int list=0; list<2; ++list)
+        {
+            const int cs = list==0 ? p->gcslin_count : p->gcslout_count;
+            int **gs = list==0 ? p->gcslin : p->gcslout;
+
+            for(n=0; n<cs; ++n)
+            {
+                i = gs[n][0];
+                j = gs[n][1];
+
+                if(gs[n][3]!=sc)
+                continue;
+
+                const double eg = (own_h && !edge_h.empty() && edge_h[IJ]>0.0) ? edge_h[IJ] - b->depth(i,j) : eta(i,j);
+
+                for(int q=1; q<=3; ++q)
+                eta(i+q*di,j) = eg;
             }
         }
     }

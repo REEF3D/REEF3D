@@ -1,0 +1,21 @@
+{
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 100,
+ "files": [
+  "blocks.dat"
+ ],
+ "tags": [
+  "3d",
+  "nhflow",
+  "curvilinear",
+  "multiblock",
+  "turbulence",
+  "tide",
+  "si"
+ ],
+ "description": "nhflow_3d_mb_komega_j_edges_g55_mpi2 with the semi-implicit step on one rank, whole blocks; the faces on -i / +i to 6e-17 m (Dropbox Tagus_NHFLOW_multiblock/validation/10_block_turbulence).",
+ "covers": [
+  "nhflow_amr::si_step: turb_step with edge zones"
+ ]
+}

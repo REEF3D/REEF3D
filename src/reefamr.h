@@ -140,6 +140,8 @@ struct reefamr_match
     int fi,fj;        // local face index on the target grid
     int child;        // patch that recorded the fine faces (-1: remote)
     int side,r;       // recorded side (0: low x, 1: high x, 2: low y, 3: high y) and first fine index
+    int side2 = -1;   // the side of the outside cell as seen from it on the target grid (multi-block: in a
+                      // turned neighbour block it differs from side; rmatch: side itself), -1 unset
     int sgn = 1;      // multi-block: -1 where the target face points against the fine faces (the fluxes
                       // change sign, the face depth not)
     double val[NVAL]; // remote: averaged fine values (module layout)
@@ -720,8 +722,9 @@ protected:
     vector<rblock> blk;                 // empty: one block, the native grid
     int nblk = 0;
     vector<int> bopen[2];               // G 54: per block the line of its -i face (inflow) [0] / +i face (outflow) [1], -1 none
-    vector<bc_zone> bzones;             // B 522: the edge zones on the faces of the blocks 1..
-    vector<int> bzone[2];               // per block the zone of its -i face [0] / +i face [1] (index in bzones), -1 none
+    vector<bc_zone> bzones;             // B 522: the zones on the faces of the blocks 1..
+    vector<int> bzone[2];               // per block the edge zone of its -i face [0] / +i face [1] (index in bzones), -1 none
+    vector<int> bzr[2];                 // per block the relaxation or beach zone of its -i / +i face (index in bzones), -1 none
     background_state bzbg;              // their backgrounds (B 510-515)
     void blocks_open(lexer*);           // the open faces of the blocks 1.. (G 54) and their edge zones (B 522), checked
     int GNXV = 0, GNYV = 0;             // extent of the level-0 index space with the blocks

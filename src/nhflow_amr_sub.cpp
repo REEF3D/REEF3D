@@ -199,13 +199,20 @@ void nhflow_amr::sub_snapshot(int g)
 }
 
 // the parent columns of level lp at time theta of their step (0: start, 1: end = current)
-void nhflow_amr::sub_swap_in(int lp, double theta)
+// the grids of level l: level 0 the native grid and the blocks 1.. of a multi-block grid
+vector<int> nhflow_amr::level_grids(int l) const
 {
     vector<int> grids;
-    if(lp==0)
+    if(l==0)
     grids.push_back(-1);
-    else
-    grids = lev[lp];
+    for(int id : lev[l])
+    grids.push_back(id);
+    return grids;
+}
+
+void nhflow_amr::sub_swap_in(int lp, double theta)
+{
+    const vector<int> grids = level_grids(lp);
 
     for(int g : grids)
     {
@@ -242,11 +249,7 @@ void nhflow_amr::sub_swap_in(int lp, double theta)
 
 void nhflow_amr::sub_swap_out(int lp)
 {
-    vector<int> grids;
-    if(lp==0)
-    grids.push_back(-1);
-    else
-    grids = lev[lp];
+    const vector<int> grids = level_grids(lp);
 
     for(int g : grids)
     {
@@ -340,8 +343,11 @@ void nhflow_amr::sub_step(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum_
     S0p = &S0;
     mom->step_begin(p,d,pgc,S0);
 
-    sub_snapshot(-1);
-    sub_creg_reset(-1);
+    for(int g : level_grids(0))
+    {
+        sub_snapshot(g);
+        sub_creg_reset(g);
+    }
 
     // floating bodies: level 0 with a predicted copy (the finest level advances the body)
     const bool bpred = (b6!=nullptr && maxlev>0);
@@ -353,7 +359,10 @@ void nhflow_amr::sub_step(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum_
     }
     bfin = 0;
 
-    // level 0 alone, with its own pressure
+    // level 0 alone, with its own pressure (multi-block: the native grid and the blocks, sub_level0_blocks)
+    if(nblk>0)
+    sub_level0_blocks(p,d,pgc,mom,S0);
+    else
     for(int s=0; s<ns; ++s)
     {
         cur_stage = s;
@@ -392,6 +401,121 @@ void nhflow_amr::sub_step(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum_
 
 // step k (0, 1) of the level-l patches from time t with dt, within the step of level l-1; then
 // the steps of the finer levels and the synchronisation of level l with them
+// G 7 1 on a multi-block grid: the step of level 0 (the native grid and the blocks 1..) alone, as the stages of
+// nhflow_amr::step without the patches: before every stage the cells around the blocks and the ring of the native
+// grid from the cells they stand for (fill_level0), the continuity and momentum of the blocks and of the native
+// grid (with breaking, A 550 1: the continuity of all, the breaking of level 0 over the blocks, then the momentum),
+// the pressure as one solve over the grids of level 0 (the composite solve with the level window 0: the columns
+// covered by the patches are unknowns of level 0 as on a uniform grid), the end of the stage.  The implicit
+// diffusion per grid (G 31 1 needs all grids at the same time, as for the patches with G 7 1).  The turbulence of
+// the blocks as in turb_step (level 0 has made its step in the driver)
+void nhflow_amr::sub_level0_blocks(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum_func *mom, nhflow_stage_obj &S0)
+{
+    const int ns = mom->stages();
+
+    {
+    comms_off guard(pgc);
+    for(int id : lev[0])
+    {
+        nhflow_amr_patch *c = NP(id);
+        lexer *pp = c->pp;
+        pp->dt = p->dt;
+        pp->dt_old = p->dt_old;
+        pp->simtime = p->simtime;
+        pp->count = p->count;
+        pp->amr_follow(*p);
+        pscope ps(pgc,c->d,d0);
+        c->pmom->step_begin(pp,c->d,pgc,c->S);
+    }
+    }
+
+    // A 560: the blocks step their models with the cells around them from level 0 and from each other
+    if(turb)
+    {
+        const double t0 = MPI_Wtime();
+        turb_fill0(pgc);
+        for(int id : lev[0])
+        turb_run(pgc,*NP(id));
+        turb_fill0(pgc);
+        for(int id : lev[0])
+        turb_save(pgc,*NP(id));
+        tturb += MPI_Wtime()-t0;
+    }
+
+    for(int s=0; s<ns; ++s)
+    {
+        cur_stage = s;
+        hstage = s;
+
+        double t0 = MPI_Wtime();
+        fill_level0(pgc,s);
+        tm[0] += MPI_Wtime()-t0;
+
+        if(brk0)
+        {
+            blocks_phase(pgc,s,0);
+            mom->phase_F(p,d,pgc,S0,s);
+            t0 = MPI_Wtime();
+            breaking_level0(pgc,-1);
+            tm[1] += MPI_Wtime()-t0;
+            blocks_phase(pgc,s,1);
+            mom->phase_M(p,d,pgc,S0,s);
+        }
+        else
+        {
+            blocks_phase(pgc,s,0);
+            blocks_phase(pgc,s,1);
+            mom->phase_F(p,d,pgc,S0,s);
+            mom->phase_M(p,d,pgc,S0,s);
+        }
+
+        halo0(pgc,s);
+
+        mom->phase_P1(p,d,pgc,S0,s);
+        {
+        comms_off guard(pgc);
+        for(int id : lev[0])
+        {
+            nhflow_amr_patch *c = NP(id);
+            pscope ps(pgc,c->d,d0);
+            c->pmom->phase_P1(c->pp,c->d,pgc,c->S,s);
+        }
+        }
+
+        // the pressure of the grids of level 0 in one solve
+        wlo = whi = 0;
+        press_solve(p,pgc,s);
+        wlo = 0;
+        whi = -1;
+
+        {
+        comms_off guard(pgc);
+        for(int id : lev[0])
+        {
+            nhflow_amr_patch *c = NP(id);
+            pscope ps(pgc,c->d,d0);
+            c->pmom->phase_P2(c->pp,c->d,pgc,c->S,s);
+        }
+        }
+        mom->phase_P2(p,d,pgc,S0,s);
+
+        {
+        comms_off guard(pgc);
+        for(int id : lev[0])
+        {
+            nhflow_amr_patch *c = NP(id);
+            pscope ps(pgc,c->d,d0);
+            c->pmom->phase_E(c->pp,c->d,pgc,c->S,s);
+        }
+        }
+        mom->phase_E(p,d,pgc,S0,s);
+    }
+    cur_stage = -1;
+
+    // the cells around the blocks and the ring at the end of the step (the parents of level 1)
+    fill_level0(pgc,-1);
+}
+
 void nhflow_amr::sub_level(lexer *p, ghostcell *pgc, int l, int k, double t, double dt)
 {
     const int ns = mom0->stages();
@@ -723,11 +847,7 @@ void nhflow_amr::sub_reflux(int l)
                     rflux[tgt][(size_t)idx*NR+m] = v[m];
                 });
 
-    vector<int> grids;
-    if(l==0)
-    grids.push_back(-1);
-    else
-    grids = lev[l];
+    const vector<int> grids = level_grids(l);
 
     const double wd = p0->A544;
     vector<double> dlt(NR);
@@ -740,9 +860,11 @@ void nhflow_amr::sub_reflux(int l)
 
         auto fix = [&](const reefamr_match &m)
         {
-            const int ii = m.fi + (m.side==1 ? 1 : 0);
-            const int jj = m.fj + (m.side==3 ? 1 : 0);
-            const double sg = (m.side==0 || m.side==2) ? -1.0 : 1.0;
+            // the outside cell as seen on the target grid (multi-block: a turned neighbour block, side2)
+            const int s2 = (m.side2>=0) ? m.side2 : m.side;
+            const int ii = m.fi + (s2==1 ? 1 : 0);
+            const int jj = m.fj + (s2==3 ? 1 : 0);
+            const double sg = (s2==0 || s2==2) ? -1.0 : 1.0;
             // curvilinear grid: face length over cell area (the fluxes are per unit length)
             const double f = (q->geo_curv==1) ? sg*((m.dir==0) ? q->LEN1[lij(q,m.fi,m.fj)] : q->LEN2[lij(q,m.fi,m.fj)])/q->AREA2D[lij(q,ii,jj)]
                            : ((m.dir==0) ? sg/q->DXN[ii+marge] : sg*q->y_dir/q->DYN[jj+marge]);
@@ -778,9 +900,10 @@ void nhflow_amr::sub_reflux(int l)
         {
             const reefamr_match &m = match[t][n];
             nhflow_amr_patch *c = NP(m.child);
+            // (multi-block: the fine fluxes against the normal of the coarse face, sgn, as flux_hook)
             for(int ip=1; ip<=4; ++ip)
             for(int k=0; k<K; ++k)
-            dlt[(ip-1)*K+k] = fmean(c->freg[ip][m.side],m.side,m.r,k) - cregL[t][(4*n+ip-1)*K+k];
+            dlt[(ip-1)*K+k] = double(m.sgn)*fmean(c->freg[ip][m.side],m.side,m.r,k) - cregL[t][(4*n+ip-1)*K+k];
             fix(m);
         }
 
@@ -788,7 +911,7 @@ void nhflow_amr::sub_reflux(int l)
         {
             const reefamr_match &m = rmatch[t][n];
             for(int m2=0; m2<NR; ++m2)
-            dlt[m2] = rflux[t][n*NR+m2] - cregR[t][n*NR+m2];
+            dlt[m2] = double(m.sgn)*rflux[t][n*NR+m2] - cregR[t][n*NR+m2];
             fix(m);
         }
     }
@@ -802,11 +925,9 @@ void nhflow_amr::sub_project(lexer *p, ghostcell *pgc, int l)
     const double t0 = MPI_Wtime();
     const int last = mom0->stages()-1;
 
-    // the window grids
-    vector<int> grids;
-    if(l==0)
-    grids.push_back(-1);
-    for(int m=MAX(l,1); m<=maxlev; ++m)
+    // the window grids (level 0: the native grid and the blocks of a multi-block grid)
+    vector<int> grids = level_grids(l);
+    for(int m=l+1; m<=maxlev; ++m)
     for(int id : lev[m])
     grids.push_back(id);
 
@@ -915,6 +1036,10 @@ void nhflow_amr::sub_project(lexer *p, ghostcell *pgc, int l)
 
     if(l==0)
     halo0(pgc,last);
+
+    // multi-block: the ring and the cells around the blocks from the corrected state
+    if(l==0 && nblk>0)
+    fill_level0(pgc,-1);
 
     tm[4] += MPI_Wtime()-t0;
     tsync += MPI_Wtime()-t0;

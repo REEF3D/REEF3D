@@ -29,6 +29,10 @@ Typical use
   # text outputs (bitwise; with "same_as_rtol": r, within r)
   ./regression.py ranks runs/new
 
+  # two models in one MPI job (MPMD, e.g. SEASTATE remote waves A 750 2): "remote": {"case": "<case>", "dir": "<dir>"}
+  # runs that case (its inputs, DIVEMesh, its np) in <rundir>/<dir> next to this one:
+  #   mpirun -np <np> REEF3D : -np <np of the case> -wdir <rundir>/<dir> REEF3D
+  # such a partner case has "part_of": "<case>" and is not selected on its own
   # checkpoints and restarts: "chain": [{"case": "<case writing checkpoints>", "copy": ["REEF3D_Checkpoint"]}] and
   # I 45 1 in the restart case; "rebalance": n starts a run again after a rebalance stop (G 46), at most n times
 
@@ -157,7 +161,7 @@ def load_case(name, _seen=None):
         for k, v in b.items():
             if k not in ("name", "dir", "base", "control_lines", "ctrl_lines", "files_abs", "files",
                          "control_set", "ctrl_set", "control_add", "ctrl_add", "description", "covers", "same_as",
-                         "same_as_rtol", "same_as_skip"):
+                         "same_as_rtol", "same_as_skip", "part_of", "remote"):
                 c.setdefault(k, v)
     else:
         control = read_lines(os.path.join(cdir, "control.txt"))
@@ -211,7 +215,11 @@ def all_case_names():
 
 
 def select_cases(patterns, tags):
-    names = all_case_names()
+    # partner models of an MPMD case ("part_of", not inherited) run only with that case
+    def part_of(n):
+        with open(os.path.join(CASES_DIR, n, "case.json")) as f:
+            return json.load(f).get("part_of")
+    names = [n for n in all_case_names() if not part_of(n)]
     if patterns:
         names = [n for n in names if any(fnmatch.fnmatch(n, p) for p in patterns)]
     if tags:
@@ -255,7 +263,8 @@ def run_case(c, args, outroot):
         shutil.rmtree(rundir)
     write_inputs(c, rundir, args.steps)
     # "chain": earlier runs whose output folders this case reads (hydrodynamic coupling):
-    # [{"case": "<case>", "copy": ["REEF3D_FNPF_STATE", ...]}], run in <rundir>/_chain
+    # [{"case": "<case>", "copy": ["REEF3D_FNPF_STATE", ...], "files": {"<file of the stage>": "<name here>"}}],
+    # run in <rundir>/_chain
     for stage in c.get("chain", []):
         sc = load_case(stage["case"])
         sinfo = run_case(sc, args, os.path.join(rundir, "_chain"))
@@ -270,9 +279,31 @@ def run_case(c, args, outroot):
                         "status": "chain stage %s: no %s" % (stage["case"], d), "time_divemesh": 0.0, "time_reef3d": 0.0}
                 return finish_run(rundir, info, args)
             shutil.copytree(s, os.path.join(rundir, d))
+        # "files": {"<path in the stage run>": "<name in this run>"} single files (e.g. nested boundary spectra)
+        for src, dst in stage.get("files", {}).items():
+            s = os.path.join(rundir, "_chain", stage["case"], src)
+            if not os.path.isfile(s):
+                info = {"case": c["name"], "np": c["np"], "steps": args.steps or c["steps"],
+                        "status": "chain stage %s: no %s" % (stage["case"], src), "time_divemesh": 0.0, "time_reef3d": 0.0}
+                return finish_run(rundir, info, args)
+            shutil.copy(s, os.path.join(rundir, dst))
     info = {"case": c["name"], "np": c["np"], "steps": args.steps or c["steps"],
             "reef3d": os.path.abspath(args.reef3d), "divemesh": os.path.abspath(args.divemesh),
             "status": "ok", "time_divemesh": 0.0, "time_reef3d": 0.0}
+    # "remote": the partner model of an MPMD job in <rundir>/<dir>, with its own inputs and grid
+    remote = None
+    if c.get("remote"):
+        rc = load_case(c["remote"]["case"])
+        rdir = os.path.join(rundir, c["remote"].get("dir", rc["name"]))
+        write_inputs(rc, rdir, args.steps)
+        with open(os.path.join(rdir, "divemesh.log"), "w") as log:
+            r = subprocess.run([os.path.abspath(args.divemesh)], cwd=rdir, stdout=log,
+                               stderr=subprocess.STDOUT, timeout=args.timeout)
+        if r.returncode != 0:
+            info["status"] = "divemesh failed in %s (%d)" % (c["remote"].get("dir", rc["name"]), r.returncode)
+            return finish_run(rundir, info, args)
+        remote = (rc, os.path.abspath(rdir))
+        info["remote_dir"] = os.path.relpath(rdir, rundir)
     env = dict(os.environ)
     env["REEF3D_REGRESSION_DIR"] = DUMP_DIR
     env["REEF3D_REGRESSION_EVERY"] = str(c.get("dump_every", 0))
@@ -291,6 +322,8 @@ def run_case(c, args, outroot):
         return finish_run(rundir, info, args)
 
     cmd = shlex.split(args.mpirun) + ["-np", str(c["np"]), os.path.abspath(args.reef3d)]
+    if remote is not None:
+        cmd += [":", "-np", str(remote[0]["np"]), "-wdir", remote[1], os.path.abspath(args.reef3d)]
     t0 = time.time()
     try:
         with open(os.path.join(rundir, "reef3d.log"), "w") as log:
@@ -331,6 +364,8 @@ def finish_run(rundir, info, args):
     if not args.keep:
         for d in BULK_OUTPUT:
             shutil.rmtree(os.path.join(rundir, d), ignore_errors=True)
+            if info.get("remote_dir"):
+                shutil.rmtree(os.path.join(rundir, info["remote_dir"], d), ignore_errors=True)
         for d in glob.glob(os.path.join(rundir, "DIVEMesh_Grid*")):
             shutil.rmtree(d, ignore_errors=True)
         for f in glob.glob(os.path.join(rundir, "grid-*.dat")):
@@ -546,10 +581,17 @@ def read_numeric_table(path):
     return rows
 
 
+def text_globs(rundir):
+    """the text outputs of a run: those of the partner model of an MPMD case ("remote") in its folder as well"""
+    st = run_status(rundir) or {}
+    rd = st.get("remote_dir")
+    return TEXT_OUTPUT_GLOBS + ([os.path.join(rd, g) for g in TEXT_OUTPUT_GLOBS] if rd else [])
+
+
 def compare_text(ref_dir, new_dir, rtol, atol):
     res = {"level": "identical", "files": {}}
     level = 0
-    for g in TEXT_OUTPUT_GLOBS:
+    for g in text_globs(ref_dir):
         for fr in sorted(glob.glob(os.path.join(ref_dir, g))):
             if measured(fr):
                 continue
@@ -731,7 +773,7 @@ def same_as_run(da, db, rt, skip=None):
     files = {k: v for k, v in tx["files"].items() if not skipped(k)}
     tl = max([LEVELS.index(v["level"]) for v in files.values()] + [0])
     worst = max(worst, tl)
-    nf = sum(1 for g in TEXT_OUTPUT_GLOBS for fn in glob.glob(os.path.join(da, g))
+    nf = sum(1 for g in text_globs(da) for fn in glob.glob(os.path.join(da, g))
              if not measured(fn) and not skipped(os.path.relpath(fn, da)))
     bad = sorted(k for k, v in files.items() if v["level"] != "identical")
     notes.append("%d text outputs %s%s" % (nf, LEVELS[tl], (" (" + ", ".join(bad) + ")") if bad else ""))
@@ -851,7 +893,7 @@ def summarize(rundir):
             agg["linf"] = max(agg["linf"], max((abs(x) for x in a), default=0.0))
     for agg in summ["fields"].values():
         agg["l2"] = math.sqrt(agg["l2"])
-    for g in TEXT_OUTPUT_GLOBS:
+    for g in text_globs(rundir):
         for fn in sorted(glob.glob(os.path.join(rundir, g))):
             if measured(fn):
                 continue

@@ -23,10 +23,12 @@ Architect: Hans Bihs
 
 #include"patchBC_codes.h"
 #include"seastate_sflow.h"
+#include"seastate_remote.h"
 #include"seastate_f.h"
 #include"fdm_seastate.h"
 #include"seastate_vtp.h"
 #include"fdm2D.h"
+#include"met_forcing.h"
 #include"lexer.h"
 #include"ghostcell.h"
 #include<cmath>
@@ -37,6 +39,37 @@ seastate_sflow::seastate_sflow(lexer *p, fdm2D *b, ghostcell *pgc) : seastate_co
 
 void seastate_sflow::ini(lexer *p, fdm2D *b, ghostcell *pgc)
 {
+    // the coupling acts on level 0: refined patches would run without the wave force and with law 5 for W 207 7
+    if(p->G1>0)
+    {
+        if(p->mpirank==0)
+        cout<<endl<<"SEASTATE input error  --  A 750 with SFLOW: mesh refinement (G 1) is not supported (the patches get no"
+            <<" wave force); for fine coastal cells use a stretched grid (DIVEMesh B 101 10, B 102 10, tools/stretched_grid.py)"<<endl<<endl;
+
+        pgc->final(true);
+    }
+
+    // wave-dependent drag of the met forcing (W 207 7): the sea state of the coupling
+    if(p->W207==7 && p->W200>0)
+    {
+        if(b->met!=nullptr)
+        {
+        b->met->waves(p,&Hsw,&Tpw,&b->WL);
+        pmetw = b->met;
+        }
+
+        if(p->mpirank==0)
+        cout<<(b->met!=nullptr ? "W 207 7: wave-dependent drag with the sea state of SEASTATE" : "!!! W 207 7: no met forcing on this grid, the drag stays law 5 !!!")<<endl;
+    }
+
+    // remote waves (A 750 2): SEASTATE is the other app of the MPI job
+    if(p->A750==2)
+    {
+    seastate_remote::link = this;
+    remote_ini(p,pgc,b->eta,b->WL,b->U,b->V);
+    return;
+    }
+
     ini_wave(p,pgc,"SFLOW");
 
     forces(p,pgc,b->U,b->V);
@@ -48,6 +81,12 @@ void seastate_sflow::ini(lexer *p, fdm2D *b, ghostcell *pgc)
 void seastate_sflow::start(lexer *p, fdm2D *b, ghostcell *pgc)
 {
     double dt;
+
+    if(remote)
+    {
+    remote_step(p,pgc,b->eta,b->WL,b->U,b->V,false);
+    return;
+    }
 
     if(!due(p,dt))
     return;
@@ -93,7 +132,7 @@ void seastate_sflow::mass_source(lexer *p, fdm2D *b, slice &K)
 
 void seastate_sflow::ghostcells(lexer *p, fdm2D *b)
 {
-    if(!pwave->surfbeat() || p->origin_i!=0)
+    if(!surfbeat() || p->origin_i!=0)
     return;
 
     double etag, ug, vg;
@@ -120,7 +159,7 @@ void seastate_sflow::ghostcells(lexer *p, fdm2D *b)
 
 void seastate_sflow::flux_bc(lexer *p, fdm2D *b, int ipol, slice &Fx)
 {
-    if(!pwave->surfbeat() || p->origin_i!=0)
+    if(!surfbeat() || p->origin_i!=0)
     return;
 
     const double g = fabs(p->W22);
