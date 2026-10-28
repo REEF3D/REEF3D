@@ -102,7 +102,7 @@ model frame and clock. Every A 706 s of host time the host sends eta,
 WL, U, V (global fields, root to root, seastate_remote) and receives the
 wave force, div(M), Hs, Tp and the wet cells of the wave grid:
   waves -> host   bilinear between the wet wave cell centres
-  host -> waves   the mean over the host cells inside the wave cell (eta,
+  host -> waves   the area mean over the host cells inside the wave cell (eta,
                   U, V over the wet ones, WL over all), bilinear where the
                   host grid is the coarser one
 The waves lag one interval: the forces the host gets at t_k are those

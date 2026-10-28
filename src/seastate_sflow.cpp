@@ -39,6 +39,16 @@ seastate_sflow::seastate_sflow(lexer *p, fdm2D *b, ghostcell *pgc) : seastate_co
 
 void seastate_sflow::ini(lexer *p, fdm2D *b, ghostcell *pgc)
 {
+    // the coupling acts on level 0: refined patches would run without the wave force and with law 5 for W 207 7
+    if(p->G1>0)
+    {
+        if(p->mpirank==0)
+        cout<<endl<<"SEASTATE input error  --  A 750 with SFLOW: mesh refinement (G 1) is not supported (the patches get no"
+            <<" wave force); for fine coastal cells use a stretched grid (DIVEMesh B 101 10, B 102 10, tools/stretched_grid.py)"<<endl<<endl;
+
+        pgc->final(true);
+    }
+
     // wave-dependent drag of the met forcing (W 207 7): the sea state of the coupling
     if(p->W207==7 && p->W200>0)
     {

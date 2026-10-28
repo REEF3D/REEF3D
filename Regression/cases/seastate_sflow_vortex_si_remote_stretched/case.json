@@ -1,0 +1,9 @@
+{
+ "base": "seastate_sflow_vortex_si_remote",
+ "control_add": ["B 101 10", "B 102 10"],
+ "files": ["x-spacing.dat", "y-spacing.dat"],
+ "remote": {"case": "seastate_remote_waves_vortex", "dir": "waves"},
+ "description": "seastate_sflow_vortex_si_remote on a stretched host grid (DIVEMesh B 101 10, B 102 10; tools/stretched_grid.py): 5 km cells over the centre, growing by 15 % per cell to 15 km; the waves on their uniform 20 km grid (area mean of the host cells of different size).",
+ "tags": ["2d", "sflow", "semi_implicit", "seastate", "mpmd", "met", "vortex"],
+ "covers": ["SFLOW SI on a stretched rectilinear grid", "remote waves with a stretched host grid"]
+}
