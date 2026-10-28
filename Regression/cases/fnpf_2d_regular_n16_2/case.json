@@ -1,0 +1,20 @@
+{
+ "base": "fnpf_2d_regular",
+ "np": 1,
+ "ctrl_add": [
+  "N 16 2"
+ ],
+ "same_as": "fnpf_2d_regular",
+ "same_as_rtol": 1e-05,
+ "description": "fnpf_2d_regular with the REEFMG V-cycle on the reference device (N 16 2): a whole V-cycle queued without halo exchange (one rank, not periodic); within 1e-5 of the CPU run",
+ "tags": [
+  "quick",
+  "2d",
+  "fnpf",
+  "solver"
+ ],
+ "covers": [
+  "REEFMG device path (N 16), reference device",
+  "device V-cycle in one command queue"
+ ]
+}

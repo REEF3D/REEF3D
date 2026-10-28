@@ -1,0 +1,20 @@
+{
+ "base": "nhflow_2d_nwt_stokes5",
+ "np": 1,
+ "ctrl_add": [
+  "N 16 2"
+ ],
+ "same_as": "nhflow_2d_nwt_stokes5",
+ "same_as_rtol": 1e-05,
+ "description": "nhflow_2d_nwt_stokes5 with the REEFMG V-cycle on the reference device (N 16 2): the NHFLOW non-hydrostatic pressure; within 1e-5 of the CPU run",
+ "tags": [
+  "2d",
+  "nhflow",
+  "waves",
+  "solver"
+ ],
+ "covers": [
+  "REEFMG device path (N 16), reference device",
+  "device V-cycle in one command queue"
+ ]
+}
