@@ -1,0 +1,17 @@
+{
+ "description": "FNPF: a box held in regular waves (H 0.02 m, T 1 s) with a closed inner cavity (0.11 x 0.1 x 0.08 m) around two grid nodes of one column: the vertical ray there crosses the hull four times, the two nodes are fluid that reaches neither the free surface nor the rest of the fluid. Their Laplace rows have body faces only (singular): without close_pockets the case gives NaN from the first step. close_pockets makes them body nodes. In a long run such a pocket (the flank of a pitched column above a pontoon, CORAL validation 24) drifted to -6e12 and blew the case up.",
+ "solver": "fnpf",
+ "np": 1,
+ "steps": 20,
+ "tags": [
+  "3d",
+  "fnpf",
+  "6dof"
+ ],
+ "covers": [
+  "fnpf_6DOF::close_pockets: enclosed fluid pockets of the hull become body nodes"
+ ],
+ "files": [
+  "floating.stl"
+ ]
+}
