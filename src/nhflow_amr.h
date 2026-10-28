@@ -147,7 +147,8 @@ using namespace std;
 //  (L 10), rods or FEM structures (Z 20, Z 30).  Cartesian and curvilinear grids (G 50 2), 2D grids
 //  (one cell in y) Cartesian only.  The multi-block grid (G 50 1 with DIVEMesh R 20 1,
 //  nhflow_amr_block.cpp): the blocks 1.. are level-0 patches of the hierarchy, with or without
-//  refinement, not with G 7 1, A 550, X 10 > 2, or bodies with G 40 (nhflow_amr::blocks_check); the
+//  refinement (G 7 1: level 0 is the native grid with the blocks, sub_level0_blocks, without bodies),
+//  not with X 10 > 2, or bodies with G 40 (nhflow_amr::blocks_check); the
 //  hydrostatic semi-implicit free surface (A 534 1, nhflow_amr_si.cpp) on the multi-block grid
 //  without refinement (A 534 1 with G 1 is refused by nhflow_momentum_SI::check).  Checkpoints
 //  (P 48, I 45): nhflow_amr_ckpt.cpp.  Patches stay out of the relaxation zones (B 96), the in- and
@@ -597,6 +598,8 @@ private:
     void sub_creg_reset(int);
     void sub_dfx();
     void sub_step(lexer*, fdm_nhf*, ghostcell*, nhflow_momentum_func*, nhflow_stage_obj&);
+    void sub_level0_blocks(lexer*, fdm_nhf*, ghostcell*, nhflow_momentum_func*, nhflow_stage_obj&);
+    vector<int> level_grids(int) const;     // level 0: the native grid (-1) and the blocks 1..; else lev[l]
     void sub_level(lexer*, ghostcell*, int, int, double, double);
     void sub_sync(lexer*, ghostcell*, int);
     void sub_reflux(int);

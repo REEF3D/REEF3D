@@ -140,6 +140,8 @@ struct reefamr_match
     int fi,fj;        // local face index on the target grid
     int child;        // patch that recorded the fine faces (-1: remote)
     int side,r;       // recorded side (0: low x, 1: high x, 2: low y, 3: high y) and first fine index
+    int side2 = -1;   // the side of the outside cell as seen from it on the target grid (multi-block: in a
+                      // turned neighbour block it differs from side; rmatch: side itself), -1 unset
     int sgn = 1;      // multi-block: -1 where the target face points against the fine faces (the fluxes
                       // change sign, the face depth not)
     double val[NVAL]; // remote: averaged fine values (module layout)

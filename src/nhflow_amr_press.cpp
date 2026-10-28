@@ -1603,10 +1603,13 @@ void nhflow_amr::press_solve(lexer *p, ghostcell *pgc, int s)
     const double t0 = MPI_Wtime();
     const double alpha = mom0->stage_alpha(s);
 
+    // (G 7 1 on a multi-block grid: the grids of the level window only, sub_level0_blocks)
     {
     comms_off guard(pgc);
     for(auto q : P)
     {
+        if(q->lev<wlo || q->lev>wtop())
+        continue;
         nhflow_amr_patch *c = NP(q);
         pscope ps(pgc,c->d,d0);
         c->ptgt = c->ppress->amr_prepare(c->pp,c->d,pgc,alpha);
@@ -1621,6 +1624,8 @@ void nhflow_amr::press_solve(lexer *p, ghostcell *pgc, int s)
     comms_off guard(pgc);
     for(int n=0; n<(int)P.size(); ++n)
     {
+        if(P[n]->lev<wlo || P[n]->lev>wtop())
+        continue;
         nhflow_amr_patch *c = NP(n);
         stg O = stage_out(n,s);
         pscope ps(pgc,c->d,d0);

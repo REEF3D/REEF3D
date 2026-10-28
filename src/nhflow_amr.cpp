@@ -2672,6 +2672,9 @@ void nhflow_amr::step(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum_func
         sub_step(p,d,pgc,mom,S0);
         regrid_step(p,pgc);
         fill_out(pgc);
+        // multi-block: the ring and the cells around the blocks from the end of the step
+        if(nblk>0)
+        fill_level0(pgc,-1);
         return;
     }
 
