@@ -41,6 +41,7 @@
   <Dependencies/>
   <VirtualDirectory Name="HEADERS">
     <VirtualDirectory Name="REEFAMR">
+      <File Name="amr_phase_clock.h"/>
       <File Name="reefckpt.h"/>
       <File Name="reefrun_ckpt.h"/>
       <File Name="ckpt_registry.h"/>
@@ -2335,7 +2336,7 @@
           <VirtualDirectory Name="Breaking">
             <File Name="nhflow_breaking_filter.cpp"/>
             <File Name="nhflow_breaking.cpp"/>
-          <File Name="nhflow_breaking_barthelemy.cpp"/>
+            <File Name="nhflow_breaking_barthelemy.cpp"/>
           </VirtualDirectory>
           <File Name="nhflow_fsf_coastline.cpp"/>
           <File Name="nhflow_fsf_wetdry_fluxes.cpp"/>

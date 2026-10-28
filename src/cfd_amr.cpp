@@ -894,7 +894,10 @@ void cfd_amr::fill(int l, vector<fspec> &fs, bool siblings_only, int maxdepth)
 
     // G 40: the coarser level of the level-1 patches, their shadows, from level 0
     if(place && l==1 && !siblings_only)
-    sh_fill_down(fs);
+    {
+        amr_phase<PR_NPART> sh_(prc,PR_SHADOW);
+        sh_fill_down(fs);
+    }
 
     // the fields of the grids, resolved once per fill (the field functions of fs are evaluated for
     // the grids they are asked for, as before, but once each)
@@ -1618,6 +1621,17 @@ void cfd_amr::load_step(lexer *p)
         }
         c.wpred = c.n0 + wpatch*c.np;
         c.tpatch = wtp + tp[0];
+        // the parts of the projections (time, then the MPI time of each)
+        for(int k=0; k<PR_NPART; ++k)
+        {
+            c.clk.push_back(prc.t[k]);
+            c.clk_names.push_back(string("projection ")+pr_part_name(k));
+        }
+        for(int k=0; k<PR_NPART; ++k)
+        {
+            c.clk.push_back(prc.m[k]);
+            c.clk_names.push_back(string("projection ")+pr_part_name(k)+" MPI");
+        }
         return c;
     });
 }
@@ -1812,6 +1826,9 @@ void cfd_amr::step_comp(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof 
             cout.precision(pr);
         }
     }
+
+    if(p->count%p->P12==0)
+    pr_report(p);
 
     if(p->mpirank==0 && (p->count%p->P12==0))
     cout<<"CFD AMR: pressure iterations "<<pr_it_last<<"  res "<<setprecision(3)<<pr_res_last

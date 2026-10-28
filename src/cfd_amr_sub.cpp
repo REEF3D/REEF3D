@@ -541,6 +541,9 @@ void cfd_amr::step_sub(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof *
             cout.precision(pr);
         }
     }
+    if(p->count%p->P12==0)
+    pr_report(p);
+
     if(p->mpirank==0 && (p->count%p->P12==0))
     {
         cout<<"CFD AMR: subcycling, level-0 step "<<setprecision(3)<<tm[4]<<" s, the patches "<<tm[7]-tm[4]<<" s; pressure iterations (last level solve) "<<pr_it_last
