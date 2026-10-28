@@ -181,16 +181,32 @@ value at s/D 1.3):
 
 | sigma | closure CFD | measured | uniform D/40 before the condensation limit | vapour [m³] | Cd |
 |---|---|---|---|---|---|
-| 0.500 | 1.14 | 1.04 | 1.35 | 0.008 (alpha_v at the wall <= 0.42) | 0.314 |
+| 0.500 | 1.10 | 1.04 | 1.35 | 0.008 (alpha_v at the wall <= 0.42) | 0.314 |
 | 0.400 | 1.56 | 1.43 | 1.83 | 0.128 | 0.348 |
 | 0.301 | 2.43 | 2.09 | 2.47 | 0.63, still growing 1 % per s | 0.345 |
 
-The trend with sigma is right and sigma is held to 0.001; the cavities are 0.10, 0.13 and 0.34 D too
-long, the longest the most. The CFD cavities are steady (side force rms 0.1 N) with a sharp closure,
+The trend with sigma is right and sigma is held to 0.001; the cavities are 0.06, 0.13 and 0.34 D too
+long, the longest the most (sigma 0.5 corrected from 1.14: that value took the measured
+threshold). The CFD cavities are steady (side force rms 0.1 N) with a sharp closure,
 the measured long cavity closes over s/D 1.8-2.4 (a time average of an unsteady closure: the
 re-entrant jet sheds the rear of the cavity). k-epsilon without a correction for the mixture
 (Reboud et al. 1998: mu_t f(rho), f = rho_v + (1 - alpha)^n (rho_l - rho_v), n = 10) is known to damp
 the re-entrant jet and give too long, steady cavities.
+
+With the Reboud correction (W 70 10, D/20 + AMR, 66867d6, user, 2026-10-28), means over 15-30 s:
+
+| sigma | closure CFD | without W 70 | measured | vapour [m³] (without) | alpha_v at the wall | Cd |
+|---|---|---|---|---|---|---|
+| 0.501 | 1.10 | 1.10 | 1.04 | 0.004 (0.008) | <= 0.24 | 0.313 |
+| 0.401 | 1.56 | 1.56 | 1.43 | 0.06 +- 0.007 (0.128) | ~0.5 | 0.349 |
+| 0.302 | 2.44 | 2.43 | 2.09 | 0.30 +- 0.03 (0.63) | ~0.48, falling from s/D 1.6 | 0.345 |
+
+(closure here for all runs: halfway between -sigma and the recompression peak, for sigma 0.5 the
+value at s/D 1.3.) The correction halves the vapour volume and makes the cavities unsteady (smooth
+low-frequency changes of the volume and side forces of 2-13 N rms at sigma 0.4 and 0.3, no 2 dt
+oscillation; the time-averaged alpha_v at the wall ~0.5) and the rise of the pressure at the closure
+more gradual, as measured, but the mean closure point does not move. The remaining 0.06-0.35 D are
+not the eddy viscosity of k-epsilon at this resolution; next: D/40 + AMR (D/80 at the body).
 
 A restart from the state files (P 40/I 40) does not help, they do not hold the vapour fraction;
 the checkpoints (P 48/I 45) do, a run with `P 48` can be continued.
