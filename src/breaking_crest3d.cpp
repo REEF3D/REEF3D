@@ -210,6 +210,44 @@ double breaking_crest3d::ip(lexer *p, slice &f, double x, double y)
     return (1.0-a)*(1.0-b)*f(ii,jj) + a*(1.0-b)*f(ii+1,jj) + (1.0-a)*b*f(ii,jj+1) + a*b*f(ii+1,jj+1);
 }
 
+// walls: the sides without inflow / outflow cells (gcbsl4 side codes: 1 x-, 4 x+, 3 y-, 2 y+)
+void breaking_crest3d::walls(lexer *p, ghostcell *pgc)
+{
+    int open[5] = {0,0,0,0,0};
+
+    for(int q=0; q<p->gcslin_count; ++q)
+    {
+        const int cs = p->gcslin[q][3];
+        open[cs==1 ? 1 : cs==4 ? 2 : cs==3 ? 3 : 4] = 1;
+    }
+
+    for(int q=0; q<p->gcslout_count; ++q)
+    {
+        const int cs = p->gcslout[q][3];
+        open[cs==1 ? 1 : cs==4 ? 2 : cs==3 ? 3 : 4] = 1;
+    }
+
+    for(int e=1; e<=4; ++e)
+    wallside[e] = (pgc->globalimax(open[e])==0 && (e<=2 || p->j_dir==1)) ? 1 : 0;
+
+    wallside[0] = 0;
+}
+
+// a ray sample beyond a wall is moved back onto the wall (the ray slides along it); true if moved
+bool breaking_crest3d::clampxy(lexer *p, double &x, double &y)
+{
+    const double ex = 1.0e-9*(p->global_xmax-p->global_xmin);
+    const double ey = 1.0e-9*(p->global_ymax-p->global_ymin);
+    bool moved = false;
+
+    if(wallside[1]==1 && x<p->global_xmin+ex) {x = p->global_xmin+ex; moved = true;}
+    if(wallside[2]==1 && x>p->global_xmax-ex) {x = p->global_xmax-ex; moved = true;}
+    if(wallside[3]==1 && y<p->global_ymin+ey) {y = p->global_ymin+ey; moved = true;}
+    if(wallside[4]==1 && y>p->global_ymax-ey) {y = p->global_ymax-ey; moved = true;}
+
+    return moved;
+}
+
 bool breaking_crest3d::wetcell(lexer *p, int ii, int jj)
 {
     return p->wet[(ii-p->imin)*p->jmax + (jj-p->jmin)]==1;
@@ -616,6 +654,13 @@ void breaking_crest3d::rays(lexer *p, ghostcell *pgc, slice &eta, slice &WL, dou
 {
     const double g = fabs(p->W22);
 
+    if(wallside[0]==-1)
+    walls(p,pgc);
+
+    // an axis with a wall side: the ray is not cut there (clampxy), the own subdomain is tested per sample
+    const bool xwall = wallside[1]==1 || wallside[2]==1;
+    const bool ywall = wallside[3]==1 || wallside[4]==1;
+
     // ------------------------------------------------------------
     // candidates of all ranks
     // ------------------------------------------------------------
@@ -645,6 +690,8 @@ void breaking_crest3d::rays(lexer *p, ghostcell *pgc, slice &eta, slice &WL, dou
         double s0=0.0, s1=smax_all;
         const double vx = dir*R.nx, vy = dir*R.ny;
 
+        if(!xwall)
+        {
         if(fabs(vx)>1.0e-14)
         {
             const double a = (xa-R.x)/vx, b = (xb-R.x)/vx;
@@ -654,8 +701,9 @@ void breaking_crest3d::rays(lexer *p, ghostcell *pgc, slice &eta, slice &WL, dou
         else
         if(R.x<xa || R.x>=xb)
         s1=-1.0;
+        }
 
-        if(p->j_dir==1)
+        if(p->j_dir==1 && !ywall)
         {
             if(fabs(vy)>1.0e-14)
             {
@@ -693,8 +741,13 @@ void breaking_crest3d::rays(lexer *p, ghostcell *pgc, slice &eta, slice &WL, dou
 
             for(int m=m0; m<=m1 && found==1000000000; ++m)
             {
-                const double x = R.x + dir*m*ds*R.nx;
-                const double y = R.y + dir*m*ds*R.ny;
+                double x = R.x + dir*m*ds*R.nx;
+                double y = R.y + dir*m*ds*R.ny;
+                double xm = x-dir*ds*R.nx, ym = y-dir*ds*R.ny;
+                double xp = x+dir*ds*R.nx, yp = y+dir*ds*R.ny;
+                clampxy(p,x,y);
+                clampxy(p,xm,ym);
+                clampxy(p,xp,yp);
 
                 if(!own(p,x,y))
                 continue;
@@ -710,8 +763,8 @@ void breaking_crest3d::rays(lexer *p, ghostcell *pgc, slice &eta, slice &WL, dou
                 }
 
                 const double e0 = ip(p,eta,x,y);
-                const double em = ip(p,eta,x-dir*ds*R.nx,y-dir*ds*R.ny);
-                const double ep = ip(p,eta,x+dir*ds*R.nx,y+dir*ds*R.ny);
+                const double em = ip(p,eta,xm,ym);
+                const double ep = ip(p,eta,xp,yp);
 
                 if(!std::isnan(ep) && e0<=em && e0<ep)
                 found = m;
@@ -780,8 +833,13 @@ void breaking_crest3d::rays(lexer *p, ghostcell *pgc, slice &eta, slice &WL, dou
             for(int m=m0; m<=m1; ++m)
             {
                 const double s = dir*m*ds;
-                const double x = R.x + s*R.nx;
-                const double y = R.y + s*R.ny;
+                double x = R.x + s*R.nx;
+                double y = R.y + s*R.ny;
+                double xm = x-R.d*R.nx, ym = y-R.d*R.ny;
+                double xp = x+R.d*R.nx, yp = y+R.d*R.ny;
+                clampxy(p,x,y);
+                clampxy(p,xm,ym);
+                clampxy(p,xp,yp);
 
                 if(!own(p,x,y))
                 continue;
@@ -794,8 +852,8 @@ void breaking_crest3d::rays(lexer *p, ghostcell *pgc, slice &eta, slice &WL, dou
 
                 if(side==0)
                 {
-                    const double em = ip(p,eta,x-R.d*R.nx,y-R.d*R.ny);
-                    const double ep = ip(p,eta,x+R.d*R.nx,y+R.d*R.ny);
+                    const double em = ip(p,eta,xm,ym);
+                    const double ep = ip(p,eta,xp,yp);
 
                     if(!std::isnan(em) && !std::isnan(ep))
                     sl[k] = MAX(sl[k], fabs(ep-em)/(2.0*R.d));
@@ -964,8 +1022,9 @@ void breaking_crest3d::rays(lexer *p, ghostcell *pgc, slice &eta, slice &WL, dou
         for(int m=m0; m<=m1; ++m)
         {
             const double s = dir*m*ds;
-            const double x = R.x + s*R.nx;
-            const double y = R.y + s*R.ny;
+            double x = R.x + s*R.nx;
+            double y = R.y + s*R.ny;
+            const bool slid = clampxy(p,x,y);
 
             const int ic = cell_i(p,x), jc = cell_j(p,y);
 
@@ -980,9 +1039,10 @@ void breaking_crest3d::rays(lexer *p, ghostcell *pgc, slice &eta, slice &WL, dou
                 if(ii<0 || ii>=p->knox || jj<0 || jj>=p->knoy)
                 continue;
 
-                const double cx = p->XP[ii+marge] - R.x;
-                const double cy = (p->j_dir==1) ? p->YP[jj+marge] - R.y : 0.0;
-                const double sc = cx*R.nx + cy*R.ny;
+                // position along the ray and distance from it; for a sample slid along a wall, from the sample
+                const double cx = p->XP[ii+marge] - (slid ? x : R.x);
+                const double cy = (p->j_dir==1) ? p->YP[jj+marge] - (slid ? y : R.y) : 0.0;
+                const double sc = (slid ? s : 0.0) + cx*R.nx + cy*R.ny;
                 const double pd = fabs(-cx*R.ny + cy*R.nx);
                 // half width of the painted strip: 1.5 cells, so that the strips of neighbouring crest points overlap
                 // and reach the cells next to the side walls

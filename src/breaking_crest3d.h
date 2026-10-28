@@ -133,6 +133,12 @@ private:
     std::ofstream logf;
 
     bool wetcell(lexer*, int, int);
+    
+    // the sides of the domain that are walls (1: x-, 2: x+, 3: y-, 4: y+; no inflow / outflow cells on any rank),
+    // set at the first rays(): a ray that reaches a wall slides along it instead of ending there
+    int wallside[5] = {-1,0,0,0,0};
+    void walls(lexer*, ghostcell*);
+    bool clampxy(lexer*, double &x, double &y);
     double celld(lexer*, int, int, double, double);
     void exchange_halo(lexer*);
 };
