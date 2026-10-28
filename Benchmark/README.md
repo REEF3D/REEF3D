@@ -367,7 +367,8 @@ more than the 2-core sandbox allows; their nightly and release levels are meant 
 
 ### Breaking cases added with NHFLOW Breaking v5
 
-Nightly level, hans_dev f86154267 + NHFLOW Breaking patches 0002-0011, Linux, 1-2 cores per case:
+Nightly level, Linux, 1-2 cores per case. Ting & Kirby rows: hans_dev b19f3cef0 + NHFLOW Breaking patches
+0002-0014. Deep-water rows: f86154267 + 0002-0011 (patches 0012-0014 do not change 2D flumes):
 
 | case | nightly | release |
 |---|---|---|
@@ -377,6 +378,6 @@ Nightly level, hans_dev f86154267 + NHFLOW Breaking patches 0002-0011, Linux, 1-
 | `nhflow_rapp_melville_rp2` / `fnpf_` | PASS, loss 30.1 % / 26.3 % (LES 31.7 %) | not run |
 | `nhflow_tian_tp2` | PASS, loss 22.6 % (no crest reaches B = A 359 on this grid; the scheme alone) | PASS, 25.6 % (LES 25.0 %; 42.8 % before patch 0011; run with the same breaking code on e6238a7cb) |
 | `nhflow_ting_kirby_spilling` (+ `_x3`) | XFAIL, max. H 1.0 m (3D 1.7 m) before x_b | not run |
-| `nhflow_ting_kirby_spilling_y` | PASS, H along y vs `_x3` within 1.9 % | not run |
-| `fnpf_ting_kirby_spilling` (+ `_x3`) | PASS, x_b -0.4 m | not run |
-| `fnpf_ting_kirby_spilling_y` | PASS, H along y vs `_x3` within 0.5 % (against the 2D flume: 7.4 %, the 2D and 3D FNPF surf zones differ) | not run |
+| `nhflow_ting_kirby_spilling_y` | PASS, H along y vs `_x3` within 2.1 % | not run |
+| `fnpf_ting_kirby_spilling` (+ `_x3`) | PASS, x_b -0.4 m (3D: -0.4 m) | not run |
+| `fnpf_ting_kirby_spilling_y` | PASS, H along y vs `_x3` within 5.2 % (tol 8 %); both within 4.9 % of the 2D flume (7.1 % before patch 0014). The 2D flume itself changes by 7.1 % with N 47 0.99, `_x3` by 5.4 % with one rank: inner surf zone, 5 waves | not run |

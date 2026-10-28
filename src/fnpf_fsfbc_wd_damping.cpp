@@ -106,29 +106,60 @@ void fnpf_fsfbc_wd::damping(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f, int
         }
         
         
+        // walls: zero gradient of the new value (the diagonal takes the coupling). Before, the coupling went to the
+        // right-hand side with the old value f(i,j), which damped the change of the cells next to a wall less: in a
+        // Ting & Kirby flume 4 cells across, the surf zone kept 7 % more wave height than in 2D. Dry neighbours keep
+        // the lagged form, and so does mesh refinement (G 1): with the implicit wall, fnpf_3d_amr_break_romero (A 350 3
+        // on patches near the coast) went unstable at t = 6.6 s
+        const bool implicit_wall = (p->G1==0 && p->amr_patch==0);
+        
         n=0;
         SLICELOOP4
         {
             if(p->wet[IJ]==1 || p->A343>=1)
             {
+                if(p->flagslice4[Im1J]<0 && implicit_wall)
+                {
+                c->N.p[n] += c->N.s[n];
+                c->N.s[n] = 0.0;
+                }
+                else
                 if(p->flagslice4[Im1J]<0 || (p->wet[Im1J]==0 && p->A343>=1))
                 {
                 c->rvec.V[n] -= c->N.s[n]*f(i,j);
                 c->N.s[n] = 0.0;
                 }
                 
+                if(p->flagslice4[Ip1J]<0 && implicit_wall)
+                {
+                c->N.p[n] += c->N.n[n];
+                c->N.n[n] = 0.0;
+                }
+                else
                 if(p->flagslice4[Ip1J]<0 || (p->wet[Ip1J]==0 && p->A343>=1))
                 {
                 c->rvec.V[n] -= c->N.n[n]*f(i,j);
                 c->N.n[n] = 0.0;
                 }
                 
+                if(p->flagslice4[IJm1]<0 && implicit_wall)
+                {
+                c->N.p[n] += c->N.e[n];
+                c->N.e[n] = 0.0;
+                }
+                else
                 if(p->flagslice4[IJm1]<0 || (p->wet[IJm1]==0 && p->A343>=1))
                 {
                 c->rvec.V[n] -= c->N.e[n]*f(i,j);
                 c->N.e[n] = 0.0;
                 }
                 
+                if(p->flagslice4[IJp1]<0 && implicit_wall)
+                {
+                c->N.p[n] += c->N.w[n];
+                c->N.w[n] = 0.0;
+                }
+                else
                 if(p->flagslice4[IJp1]<0 || (p->wet[IJp1]==0 && p->A343>=1))
                 {
                 c->rvec.V[n] -= c->N.w[n]*f(i,j);
