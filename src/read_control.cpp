@@ -27,6 +27,16 @@ Architect: Hans Bihs
 #include <string>
 #include <ctype.h>
 
+// rest of the line after the values of a key: true if it starts with a number (a value too many)
+static bool control_extra_number(std::ifstream &control)
+{
+    std::string rest;
+    std::getline(control,rest);
+    std::istringstream rs(rest);
+    std::string test;
+    return (rs>>test) && isdigit((unsigned char)test[0]);
+}
+
 void control::read_control(lexer* p)
 {
     std::string line;
@@ -1138,14 +1148,10 @@ void control::read_control(lexer* p)
                 case 91: {
                             control>>B91_1>>B91_2;
 
-                            int pos = control.tellg();
-                            string test;
-                            control>>test;
-                            if (!isdigit(test[0]))
-                            {
-                                control.seekg(pos);
-                            }
-                            else
+                            // a third number on the line is the old input form; the rest of the line is read so that the
+                            // test also works when the key is the last line of the file (before, the stream stayed failed
+                            // at the end of the file and the parser looped until "missing input parameter")
+                            if(control_extra_number(control))
                             {
                                 cout<<endl;
                                 cout<<"!!! wrong input error for B 91 !!!"<<endl<<endl;
@@ -1162,14 +1168,10 @@ void control::read_control(lexer* p)
                 case 93: {
                             control>>B93_1>>B93_2;
 
-                            int pos = control.tellg();
-                            string test;
-                            control>>test;
-                            if (!isdigit(test[0]))
-                            {
-                                control.seekg(pos);
-                            }
-                            else
+                            // a third number on the line is the old input form; the rest of the line is read so that the
+                            // test also works when the key is the last line of the file (before, the stream stayed failed
+                            // at the end of the file and the parser looped until "missing input parameter")
+                            if(control_extra_number(control))
                             {
                                 cout<<endl;
                                 cout<<"!!! wrong input error for B 93 !!!"<<endl<<endl;
@@ -1190,14 +1192,10 @@ void control::read_control(lexer* p)
                 case 96: {
                             control>>B96_1>>B96_2;
 
-                            int pos = control.tellg();
-                            string test;
-                            control>>test;
-                            if (!isdigit(test[0]))
-                            {
-                                control.seekg(pos);
-                            }
-                            else
+                            // a third number on the line is the old input form; the rest of the line is read so that the
+                            // test also works when the key is the last line of the file (before, the stream stayed failed
+                            // at the end of the file and the parser looped until "missing input parameter")
+                            if(control_extra_number(control))
                             {
                                 cout<<endl;
                                 cout<<"!!! wrong input error for B 96 !!!"<<endl<<endl;
