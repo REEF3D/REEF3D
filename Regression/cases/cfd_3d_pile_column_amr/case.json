@@ -1,0 +1,16 @@
+{
+ "np": 1,
+ "steps": 40,
+ "description": "Still water around a square pile through the free surface (S 10, direct forcing) that holds a water column 2 cm above the free surface outside (F 70, as a hot start leaves it), two refined levels around the pile (G 1 2, finest 5 mm): the level set inside the solid extrapolated linearly from the fluid (X 48 2, the default), the column inside the pile at the level outside, no jet along the wall.",
+ "tags": [
+  "quick",
+  "3d",
+  "levelset",
+  "amr",
+  "solid"
+ ],
+ "covers": [
+  "levelset_solid_extend on level 0 and on the patches (momentum_rk::levelset_finish)",
+  "X 48 2 with the direct forcing of the solids (G 505 0)"
+ ]
+}

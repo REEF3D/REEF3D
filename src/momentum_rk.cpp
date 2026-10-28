@@ -35,6 +35,7 @@ Author: Hans Bihs
 #include"vrans.h"
 #include"solver.h"
 #include"reini.h"
+#include"levelset_solid_extend.h"
 #include"picard.h"
 #include"picard_f.h"
 #include"picard_lsm.h"
@@ -495,6 +496,9 @@ void momentum_rk::levelset_finish(lexer *p, fdm *a, ghostcell *pgc, int s, bool 
 
     pgc->start4(p,fout,gcval_phi);
 
+    // the level set inside the solids of the direct forcing from the fluid around (X 48 2)
+    levelset_solid_extend(p,a,pgc,fout,gcval_phi);
+
     // F44 iterations in the final stage, one less in the others (default 3 / 2)
     p->reini_iter = final ? p->F44 : MAX(p->F44-1,1);
     if(iters>0)
@@ -793,6 +797,9 @@ void momentum_rk::levelset_lowstorage(lexer *p, fdm *a, ghostcell *pgc, int s)
     pflow->phi_relax(p,pgc,a->phi);
 
     pgc->start4(p,a->phi,gcval_phi);
+
+    // the level set inside the solids of the direct forcing from the fluid around (X 48 2)
+    levelset_solid_extend(p,a,pgc,a->phi,gcval_phi);
 
     // F44 iterations in the final stage, one less in the others (default 3 / 2)
     p->reini_iter = (s==2) ? p->F44 : MAX(p->F44-1,1);
