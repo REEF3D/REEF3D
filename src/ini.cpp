@@ -1398,6 +1398,7 @@ void control::ini_default()
     X103=0;        // int ini angular velocity
     X103_p=X103_q=X103_r=0.0;
     X110=0;        // int rectangular box floating body
+    X111=0;        // int degrees of freedom of single bodies (body id, then as X 11), overrides X 11 for that body
     X120=0;        // int sphere floating bod
     X120_rad=X120_xc=X120_yc=X120_zc=0.0;
     X131=0;        // int cylinder floating bod

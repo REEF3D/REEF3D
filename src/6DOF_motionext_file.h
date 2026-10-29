@@ -51,7 +51,7 @@ public:
     
     
     
-    sixdof_motionext_file(lexer*, ghostcell*);
+    sixdof_motionext_file(lexer*, ghostcell*, int=0);
 	virtual ~sixdof_motionext_file();
     
 private:
@@ -71,6 +71,7 @@ private:
     std::vector<std::vector<double>> data;
     double ts,te;
     int timecount,timecount_old;
+    int id;     // body number (6DOF_motion-<id>.dat)
     
     double Uext, Vext, Wext, Pext, Qext, Rext;
 };

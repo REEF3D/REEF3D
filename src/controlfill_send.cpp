@@ -2847,6 +2847,8 @@ void control::ctrlsend()
     dd++;
     ictrl[ii] = X110;
     ii++;
+    ictrl[ii] = X111;
+    ii++;
     ictrl[ii] = X120;
     ii++;
     dctrl[dd] = X120_rad;
@@ -4946,6 +4948,24 @@ void control::ctrlsend()
         dd++;
         dctrl[dd] = X102_w[n];
         dd++;
+    }
+
+    for(n=0;n<X111;++n)
+    {
+        ictrl[ii] = X111_id[n];
+        ii++;
+        ictrl[ii] = X111_u[n];
+        ii++;
+        ictrl[ii] = X111_v[n];
+        ii++;
+        ictrl[ii] = X111_w[n];
+        ii++;
+        ictrl[ii] = X111_p[n];
+        ii++;
+        ictrl[ii] = X111_q[n];
+        ii++;
+        ictrl[ii] = X111_r[n];
+        ii++;
     }
 
     for(n=0;n<X110;++n)

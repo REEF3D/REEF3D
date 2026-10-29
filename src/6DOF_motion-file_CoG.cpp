@@ -25,7 +25,7 @@ Authors: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 
-sixdof_motionext_file_CoG::sixdof_motionext_file_CoG(lexer *p, ghostcell *pgc)
+sixdof_motionext_file_CoG::sixdof_motionext_file_CoG(lexer *p, ghostcell *pgc, int nb) : id(nb)
 {
     ini(p,pgc);
     
@@ -76,19 +76,19 @@ void sixdof_motionext_file_CoG::motionext_trans(lexer *p, ghostcell *pgc, Eigen:
             Vext = (data[timecount][2]-data[timecount_old][2])/(data[timecount][0]-data[timecount_old][0]);
         }
         
-        if (p->X11_u == 2)
+        if (dof[0] == 2)
         {
             dp_(0) = 0.0;
             dc_(0) = Uext*ramp_vel(p);
         }
 
-        if (p->X11_v == 2)
+        if (dof[1] == 2)
         {
             dp_(1) = 0.0;
             dc_(1) = Vext*ramp_vel(p);
         }
         
-        if (p->X11_w == 2)
+        if (dof[2] == 2)
         {
             dp_(2) = 0.0;
             dc_(2) = 0.0;
@@ -105,14 +105,14 @@ void sixdof_motionext_file_CoG::motionext_rot(lexer *p, Eigen::Vector3d& dh_, Ei
         }
     
     
-        if(p->X11_p == 2) dh_(0) = 0.0;
-        if(p->X11_q == 2) dh_(1) = 0.0;
-        if(p->X11_r == 2) dh_(2) = 0.0;
+        if(dof[3] == 2) dh_(0) = 0.0;
+        if(dof[4] == 2) dh_(1) = 0.0;
+        if(dof[5] == 2) dh_(2) = 0.0;
         omega_ = I_.inverse() * h_;
 
-        if(p->X11_p == 2) omega_(0) = 0.0;
-        if(p->X11_q == 2) omega_(1) = 0.0;
-        if(p->X11_r == 2) omega_(2) = Rext * ramp_vel(p); // Rext is already in rad/s
+        if(dof[3] == 2) omega_(0) = 0.0;
+        if(dof[4] == 2) omega_(1) = 0.0;
+        if(dof[5] == 2) omega_(2) = Rext * ramp_vel(p); // Rext is already in rad/s
 
         h_ = I_*omega_;
 

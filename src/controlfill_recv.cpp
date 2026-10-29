@@ -2838,6 +2838,8 @@ void control::ctrlrecv()
     dd++;
     X110 = ictrl[ii];
     ii++;
+    X111 = ictrl[ii];
+    ii++;
     X120 = ictrl[ii];
     ii++;
     X120_rad = dctrl[dd];
@@ -4376,6 +4378,17 @@ void control::ctrlrecv()
         Darray(X102_u,X102);
         Darray(X102_v,X102);
         Darray(X102_w,X102);
+    }
+
+    if(X111>0)
+    {
+        Iarray(X111_id,X111);
+        Iarray(X111_u,X111);
+        Iarray(X111_v,X111);
+        Iarray(X111_w,X111);
+        Iarray(X111_p,X111);
+        Iarray(X111_q,X111);
+        Iarray(X111_r,X111);
     }
 
     if(X110>0)
@@ -6273,6 +6286,24 @@ void control::ctrlrecv()
         dd++;
         X102_w[n] = dctrl[dd];
         dd++;
+    }
+
+    for(n=0;n<X111;++n)
+    {
+        X111_id[n] = ictrl[ii];
+        ii++;
+        X111_u[n] = ictrl[ii];
+        ii++;
+        X111_v[n] = ictrl[ii];
+        ii++;
+        X111_w[n] = ictrl[ii];
+        ii++;
+        X111_p[n] = ictrl[ii];
+        ii++;
+        X111_q[n] = ictrl[ii];
+        ii++;
+        X111_r[n] = ictrl[ii];
+        ii++;
     }
 
     for(n=0;n<X110;++n)

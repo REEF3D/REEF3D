@@ -57,6 +57,19 @@ sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc, int number) : ddweno_f_nug(p),
     rb.dof[3] = p->X11_p;
     rb.dof[4] = p->X11_q;
     rb.dof[5] = p->X11_r;
+    
+    // single bodies (X 111 id u v w p q r): own DOF modes, e.g. prescribed lock gates and a free ship
+    for(int n=0; n<p->X111; ++n)
+    if(p->X111_id[n]==number)
+    {
+    rb.dof[0] = p->X111_u[n];
+    rb.dof[1] = p->X111_v[n];
+    rb.dof[2] = p->X111_w[n];
+    rb.dof[3] = p->X111_p[n];
+    rb.dof[4] = p->X111_q[n];
+    rb.dof[5] = p->X111_r[n];
+    }
+    
     rb.twoD = (p->j_dir==0);
     rb.Cdamp_t[0] = p->X26_Cu;
     rb.Cdamp_t[1] = p->X26_Cv;
@@ -119,20 +132,30 @@ sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc, int number) : ddweno_f_nug(p),
     }
     
     
-    if(p->X210==0 && p->X211==0)
-    pmotion = new sixdof_motionext_void(p,pgc);
-    
-    if((p->X210==1 || p->X211==1) && p->X240==0)
-    pmotion = new sixdof_motionext_fixed(p,pgc);
-    
-    if(p->X240==1)
-    pmotion = new sixdof_motionext_file(p,pgc);
-    
-    if(p->X240==11)
-    pmotion = new sixdof_motionext_file_CoG(p,pgc);
+    // external motion: motion files (X 240 1, 11) with 6DOF_motion-<id>.dat of the body, otherwise
+    // 6DOF_motion.dat; a body without prescribed DOF (X 111) needs none
+    bool prescribed=false;
+    for(int n=0; n<6; ++n)
+    if(rb.dof[n]==2)
+    prescribed=true;
     
     if(p->X240==21)
     pmotion = new sixdof_motionext_wavemaker(p,pgc);
+    
+    else if(p->X240==1 && prescribed)
+    pmotion = new sixdof_motionext_file(p,pgc,number);
+    
+    else if(p->X240==11 && prescribed)
+    pmotion = new sixdof_motionext_file_CoG(p,pgc,number);
+    
+    else if((p->X210==1 || p->X211==1) && p->X240==0)
+    pmotion = new sixdof_motionext_fixed(p,pgc);
+    
+    else
+    pmotion = new sixdof_motionext_void(p,pgc);
+    
+    // the prescribed DOF of this body (X 11 or X 111)
+    pmotion->set_dof(rb.dof);
     
     Mass_fb =  Rfb = Vfb = 1.0;
     
