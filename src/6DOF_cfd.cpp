@@ -26,6 +26,8 @@ Authors: Tobias Martin, Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 #include"ddweno_f_nug.h"
+#include"field4a.h"
+#include<algorithm>
 
 sixdof_cfd::sixdof_cfd(lexer *p, fdm *a, ghostcell *pgc)
 {
@@ -36,10 +38,14 @@ sixdof_cfd::sixdof_cfd(lexer *p, fdm *a, ghostcell *pgc)
     
     for (int nb = 0; nb < number6DOF; nb++)
     fb_obj.push_back(new sixdof_obj_cfd(p,pgc,nb));
+    
+    if(number6DOF>1)
+    fball = new field4a(p);
 }
     
 sixdof_cfd::~sixdof_cfd()
 {
+    delete fball;
 }
 
 void sixdof_cfd::start_cfd(lexer* p, fdm* a, ghostcell* pgc, int iter, field &uvel, field &vvel, field &wvel, field &fx, field &fy, field &fz, bool finalize)
@@ -81,6 +87,9 @@ void sixdof_cfd::start_cfd(lexer* p, fdm* a, ghostcell* pgc, int iter, field &uv
         // Update forcing terms
         fb_obj[nb]->update_forcing(p,a,pgc,uvel,vvel,wvel,fx,fy,fz,iter);
         
+        // several bodies: the level set of this one into that of all
+        fb_combine(p,a,nb);
+        
         // Print
         if(finalize==true && !amr_predict)
         {
@@ -95,6 +104,10 @@ void sixdof_cfd::start_cfd(lexer* p, fdm* a, ghostcell* pgc, int iter, field &uv
             fb_obj[nb]->print_parameter(p,pgc);
         }
     }
+    
+    // several bodies: a->fb the level set of all bodies (ghost cell flags, implicit diffusion, level
+    // set inside the bodies X 48 3)
+    fb_finish(p,a,pgc);
     
     // actuator disks of the load models (ship propellers): momentum source of the fluid, after all
     // bodies have set their Heaviside fbh1..3 (no source in the forcing zone of any body)
@@ -163,4 +176,30 @@ void sixdof_cfd::body_state(int n, double *s) const
     for(int r=0; r<3; ++r)
     for(int q=0; q<3; ++q)
     s[9+3*r+q] = b.R(r,q);
+}
+
+// several bodies (X 20 > 1): the level set of all bodies, the minimum of their level sets
+void sixdof_cfd::fb_combine(lexer *p, fdm *a, int nb)
+{
+    if(fball==nullptr)
+    return;
+    
+    const int n = p->imax*p->jmax*p->kmax;
+    
+    if(nb==0)
+    std::copy(a->fb.V, a->fb.V+n, fball->V);
+    
+    if(nb>0)
+    for(int q=0; q<n; ++q)
+    fball->V[q] = MIN(fball->V[q], a->fb.V[q]);
+}
+
+void sixdof_cfd::fb_finish(lexer *p, fdm *a, ghostcell *pgc)
+{
+    if(fball==nullptr)
+    return;
+    
+    std::copy(fball->V, fball->V+p->imax*p->jmax*p->kmax, a->fb.V);
+    
+    pgc->start4a(p,a->fb,50);
 }

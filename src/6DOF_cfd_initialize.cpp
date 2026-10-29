@@ -28,7 +28,13 @@ Authors: Tobias Martin, Hans Bihs
 void sixdof_cfd::initialize(lexer *p, fdm *a, ghostcell *pgc)
 {
     for (int nb = 0; nb < number6DOF; nb++)
+    {
     fb_obj[nb]->initialize_cfd(p, a, pgc);
+    
+    fb_combine(p,a,nb);
+    }
+    
+    fb_finish(p,a,pgc);
 }
 
 void sixdof_cfd::initialize(lexer *p, fdm2D *b, ghostcell *pgc)
