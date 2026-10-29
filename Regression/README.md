@@ -135,6 +135,7 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `cfd_3d_pier_komega` (+ `_rkls3_sf`, `_t33`) | 2 | 3D inflow/outflow, k-ω wall functions, cylinder, N40=14 sf loop, T33 k-gradient source; references with patch 0122 (the level set inside the solids extrapolated from the fluid, X 48 2) |
 | `cfd_3d_heave_sphere_6dof` (+ `_rk3`) | 4 | floating body 6DOF (FCLS3), N40=13→14 df loop |
 | `cfd_3d_heave_sphere_6dof_mooring` | 2 | 6DOF with spring mooring (X310=4), all DOFs free, rotational damping |
+| `cfd_2d_lock_gate` | 1 | closed lock gate between two water levels (fixed 6DOF body) and a box with its heave from its own motion file: X 111 (DOF modes of single bodies), `6DOF_motion-1.dat`, the level set of all bodies, X 48 3 (level set inside the bodies from the fluid) (patches 0033-0035) |
 | `cfd_3d_net_wall` | 2 | fixed quasi-static wall net (X 320 3) in an open-channel inflow, no floating body (sixdof_void): net forces spread with the Peskin kernel (net_interface::dlm_cfd) (references with patch 0022, Ship Hydrodynamics) |
 | `nhflow_2d_6dof_box` (+ `_rk3`) | 1 | NHFLOW floating box in waves, two-way 6DOF, A510=2 / 3 |
 | `nhflow_2d_6dof_box_init` | 1 | + linear damping X25/X26, initial pitch X101, initial velocities X102/X103 |
