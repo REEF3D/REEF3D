@@ -70,6 +70,7 @@ public:
     virtual ~printer_nhflow() = default;
     void start(lexer*,fdm_nhf*,ghostcell*,ioflow*,nhflow_turbulence*,sediment*) override final;
     void print_stop(lexer*,fdm_nhf*,ghostcell*,ioflow*,nhflow_turbulence*,sediment*) override final;
+    void print_end(lexer*,fdm_nhf*,ghostcell*,ioflow*,nhflow_turbulence*,sediment*) override final;
     void ckpt_state(std::vector<double>&) override;
     void ckpt_restore(const std::vector<double>&) override;
     void flush_outputs() override;
@@ -77,6 +78,9 @@ public:
 private:
     bool bed_printed = false;   // the fixed bed of this run (also after a restart, I 45: a new LAGOON store)
     void print(lexer*,fdm_nhf*,ghostcell*,nhflow_turbulence*,sediment*);
+    void print_fsf(lexer*,fdm_nhf*,ghostcell*,sediment*,nhflow_turbulence*);
+    int last_print = -1;    // the iteration of the last volume output (print_end)
+    int last_fsf = -1;      // and of the last free surface output (with the bed, S 10)
     void parallel(lexer*,fdm_nhf*,ghostcell*,nhflow_turbulence*,sediment*,int);
 
     vtk3D *outputFormat;

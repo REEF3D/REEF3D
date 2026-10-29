@@ -64,8 +64,16 @@ void sflow_vtp_bed::start(lexer *p, fdm2D* b, ghostcell* pgc, sediment *psed)
     }
 }
 
+void sflow_vtp_bed::print_end(lexer *p, fdm2D* b, ghostcell* pgc, sediment *psed)
+{
+    if(p->P10>0 && (p->P181>0 || p->P182>0.0) && last_print!=p->count)
+        print2D(p,b,pgc,psed);
+}
+
 void sflow_vtp_bed::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sediment *psed)
 {
+    last_print = p->count;
+
     int num=0;
     if(p->P15==1)
         num = printbedcount;

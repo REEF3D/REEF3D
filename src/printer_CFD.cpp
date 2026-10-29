@@ -270,11 +270,11 @@ void printer_CFD::start(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, hea
 
     // Print FSF
     if(((p->count%p->P181==0 && p->P182<0.0 && p->P180==1 )|| (p->count==0 &&  p->P182<0.0 && p->P180==1)) && p->P181>0)
-    pfsf->start(p,a,pgc);
+    print_fsf(p,a,pgc);
 
     if((p->simtime>p->fsfprinttime && p->P182>0.0 && p->P180==1) || (p->count==0 &&  p->P182>0.0))
     {
-        pfsf->start(p,a,pgc);
+        print_fsf(p,a,pgc);
         p->fsfprinttime+=p->P182;
     }
 
@@ -282,14 +282,14 @@ void printer_CFD::start(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, hea
     for(int qn=0; qn<p->P184; ++qn)
     if(p->count%p->P184_dit[qn]==0 && p->count>=p->P184_its[qn] && p->count<=(p->P184_ite[qn]))
     {
-        pfsf->start(p,a,pgc);
+        print_fsf(p,a,pgc);
     }
 
     if(p->P180==1 && p->P185>0)
     for(int qn=0; qn<p->P185; ++qn)
     if(p->simtime>printfsftime_wT[qn] && p->simtime>=p->P185_ts[qn] && p->simtime<=(p->P185_te[qn]+0.5*p->P185_dt[qn]))
     {
-        pfsf->start(p,a,pgc);
+        print_fsf(p,a,pgc);
 
         printfsftime_wT[qn]+=p->P185_dt[qn];
     }
@@ -348,7 +348,7 @@ void printer_CFD::start(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, hea
 void printer_CFD::print_stop(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, heat *pheat, ioflow *pflow, expdata *pdata, concentration *pconc, multiphase *pmp, sediment *psed)
 {
     if(p->P180==1)
-        pfsf->start(p,a,pgc);
+        print_fsf(p,a,pgc);
 
     print3D(p,a,pgc,pturb,pheat,pdata,pconc,pmp,psed);
 
@@ -357,8 +357,29 @@ void printer_CFD::print_stop(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb
     lagoon_output::finish_all(p,pgc);  // and those of the free surface and bed
 }
 
+void printer_CFD::print_end(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, heat *pheat, ioflow *pflow, expdata *pdata, concentration *pconc, multiphase *pmp, sediment *psed)
+{
+    // the state at the end of the run, also when it ends between two outputs (N 45 before P 30)
+    const bool volume = (p->P20>0 && p->P30<0.0 && p->P34<0.0) || p->P30>0.0 || p->P34>0.0 || p->P35>0;
+    const bool fsf = p->P180==1 && (p->P181>0 || p->P182>0.0 || p->P184>0 || p->P185>0);
+
+    if(fsf && last_fsf!=p->count)
+        print_fsf(p,a,pgc);
+
+    if(volume && last_print!=p->count)
+        print3D(p,a,pgc,pturb,pheat,pdata,pconc,pmp,psed);
+}
+
+void printer_CFD::print_fsf(lexer* p, fdm* a, ghostcell* pgc)
+{
+    pfsf->start(p,a,pgc);
+    last_fsf = p->count;
+}
+
 void printer_CFD::print3D(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, heat *pheat, expdata *pdata, concentration *pconc, multiphase *pmp, sediment *psed)
 {
+    last_print = p->count;
+
     if(p->P10!=vtk3D::type::none)
     {
         pgc->start4a(p,a->test,1);

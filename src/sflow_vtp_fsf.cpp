@@ -148,8 +148,17 @@ void sflow_vtp_fsf::start(lexer *p, fdm2D* b, ghostcell* pgc, ioflow *pflow, sfl
         p->probeprinttime+=p->P55;
 }
 
+void sflow_vtp_fsf::print_end(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence *pturb, sediment *psed)
+{
+    // the state at the end of the run, also when it ends between two outputs (N 45 before P 182)
+    if(p->P10>0 && (p->P181>0 || p->P182>0.0) && last_print!=p->count)
+        print2D(p,b,pgc,pturb,psed);
+}
+
 void sflow_vtp_fsf::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence *pturb, sediment *psed)
 {
+    last_print = p->count;
+
     int num = 0;
     if(p->P15==1)
         num = p->printcount;

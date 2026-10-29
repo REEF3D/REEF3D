@@ -59,12 +59,16 @@ public:
     virtual ~printer_fnpf() = default;
     void start(lexer*,fdm_fnpf*,ghostcell*,ioflow*) override final;
     void print_stop(lexer*,fdm_fnpf*,ghostcell*) override final;
+    void print_end(lexer*,fdm_fnpf*,ghostcell*) override final;
     void ckpt_state(std::vector<double>&) override;
     void ckpt_restore(const std::vector<double>&) override;
     void flush_outputs() override;
 
 private:
     void print(lexer*,fdm_fnpf*,ghostcell*);
+    void print_fsf(lexer*,fdm_fnpf*,ghostcell*);
+    int last_print = -1;    // the iteration of the last volume output (print_end)
+    int last_fsf = -1;      // and of the last free surface output
     void parallel(lexer*,int);
 
     vtk3D *outputFormat;

@@ -244,7 +244,7 @@ void printer_nhflow::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, 
     // Print FSF + Bed
     if(((p->count%p->P181==0 && p->P182<0.0 && p->P183<0.0 && p->P180==1 )|| (p->count==0 &&  p->P182<0.0 && p->P180==1)) && p->P181>0)
     {
-        pfsf->start(p,d,pgc,psed,pnhfturb);
+        print_fsf(p,d,pgc,psed,pnhfturb);
 
         if(p->S10>0)
             pbed->start(p,d,pgc,psed);
@@ -253,7 +253,7 @@ void printer_nhflow::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, 
 
     if((p->simtime>p->fsfprinttime && p->P182>0.0 && p->P183<0.0 && p->P180==1) || (p->count==0 && p->P182>0.0 && p->P180==1))
     {
-        pfsf->start(p,d,pgc,psed,pnhfturb);
+        print_fsf(p,d,pgc,psed,pnhfturb);
 
         if(p->S10>0)
             pbed->start(p,d,pgc,psed);
@@ -263,7 +263,7 @@ void printer_nhflow::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, 
 
     if((p->sedtime>p->fsfsedprinttime && p->P182<0.0 && p->P183>0.0 && p->P180==1) || (p->count==0 && p->P183>0.0))
     {
-        pfsf->start(p,d,pgc,psed,pnhfturb);
+        print_fsf(p,d,pgc,psed,pnhfturb);
 
         if(p->S10>0)
         pbed->start(p,d,pgc,psed);
@@ -275,7 +275,7 @@ void printer_nhflow::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, 
         for(int qn=0; qn<p->P184; ++qn)
             if(p->count%p->P184_dit[qn]==0 && p->count>=p->P184_its[qn] && p->count<=(p->P184_ite[qn]))
             {
-                pfsf->start(p,d,pgc,psed,pnhfturb);
+                print_fsf(p,d,pgc,psed,pnhfturb);
 
                 if(p->S10>0)
                     pbed->start(p,d,pgc,psed);
@@ -285,7 +285,7 @@ void printer_nhflow::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, 
         for(int qn=0; qn<p->P185; ++qn)
             if(p->simtime>printfsftime_wT[qn] && p->simtime>=p->P185_ts[qn] && p->simtime<=(p->P185_te[qn]+0.5*p->P185_dt[qn]))
             {
-                pfsf->start(p,d,pgc,psed,pnhfturb);
+                print_fsf(p,d,pgc,psed,pnhfturb);
 
                 if(p->S10>0)
                     pbed->start(p,d,pgc,psed);
@@ -371,15 +371,41 @@ void printer_nhflow::print_stop(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pf
         pbed->start(p,d,pgc,psed);
 
     if(p->P180==1)
-        pfsf->start(p,d,pgc,psed,pnhfturb);
+        print_fsf(p,d,pgc,psed,pnhfturb);
 
     if(plagoon)  // the last output of the LAGOON store is counted
         plagoon->finish(p,pgc);
     lagoon_output::finish_all(p,pgc);  // and those of the free surface and bed
 }
 
+void printer_nhflow::print_end(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, nhflow_turbulence *pnhfturb, sediment *psed)
+{
+    // the state at the end of the run, also when it ends between two outputs (N 45 before P 30)
+    const bool volume = (p->P20>0 && p->P30<0.0 && p->P34<0.0) || p->P30>0.0 || p->P34>0.0 || p->P35>0;
+    const bool fsf = p->P180==1 && (p->P181>0 || p->P182>0.0 || p->P183>0.0 || p->P184>0 || p->P185>0);
+
+    if(fsf && last_fsf!=p->count)
+    {
+        print_fsf(p,d,pgc,psed,pnhfturb);
+
+        if(p->S10>0)
+            pbed->start(p,d,pgc,psed);
+    }
+
+    if(volume && last_print!=p->count)
+        print(p,d,pgc,pnhfturb,psed);
+}
+
+void printer_nhflow::print_fsf(lexer* p, fdm_nhf* d, ghostcell* pgc, sediment *psed, nhflow_turbulence *pnhfturb)
+{
+    pfsf->start(p,d,pgc,psed,pnhfturb);
+    last_fsf = p->count;
+}
+
 void printer_nhflow::print(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbulence *pnhfturb, sediment *psed)
 {
+    last_print = p->count;
+
     if(p->P10==vtk3D::type::vtu || p->P10==vtk3D::type::vts)
     {
         /*
