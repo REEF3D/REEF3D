@@ -1,0 +1,26 @@
+{
+ "base": "seastate_2d_phase23_st4_ckpt_ns",
+ "np": 2,
+ "same_as": "seastate_2d_phase23_st4_ckpt_ns",
+ "chain": [
+  {
+   "case": "seastate_2d_phase23_st4_ckpt_ns",
+   "copy": [
+    "REEF3D_Checkpoint"
+   ]
+  }
+ ],
+ "ctrl_set": {
+  "I 45": "1"
+ },
+ "description": "the restart (I 45 1) of seastate_2d_phase23_st4_ckpt_ns after step 4 on 2 ranks (pipelined): bitwise the full run on one rank, the wave stress of the last time step of every cell from the checkpoint (Phase 23). Validation in Dropbox SEASTATE/validation/73_st4_high_winds.",
+ "tags": [
+  "2d",
+  "seastate",
+  "amr",
+  "mpi"
+ ],
+ "covers": [
+  "seastate_implicit::lag_put, ckpt_read of the lag state on another decomposition"
+ ]
+}

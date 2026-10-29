@@ -1,0 +1,17 @@
+{
+ "base": "seastate_2d_wind",
+ "ctrl_set": {
+  "A 732": "3",
+  "A 731": "35.0 0.0"
+ },
+ "description": "as seastate_2d_wind (stationary fetch-limited growth, 40 x 3 cells of 1 km, DIA, limiter) with A 732 3 at U10 35 m/s (Phase 23): the fixed point of u* and the wave stress where the wave stress is close to the total stress and the Charnock parameter capped (CHNKMIN): secant steps upwards, growing steps, regula falsi in the bracket. Validation in Dropbox SEASTATE/validation/73_st4_high_winds.",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate"
+ ],
+ "covers": [
+  "seastate_st4::wind fixed point (Phase 23): growing steps and Illinois",
+  "A 732 3 above 33 m/s"
+ ]
+}

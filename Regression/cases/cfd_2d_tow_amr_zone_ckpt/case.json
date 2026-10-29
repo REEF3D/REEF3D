@@ -1,0 +1,20 @@
+{
+ "base": "cfd_2d_tow_amr_zone",
+ "ctrl_set": {
+  "P 48": "20",
+  "P 49": "0"
+ },
+ "description": "cfd_2d_tow_amr_zone with a checkpoint every 20 steps (P 48 20, P 49 0): the uninterrupted run of cfd_2d_tow_amr_zone_restart.",
+ "tags": [
+  "2d",
+  "6dof",
+  "floating",
+  "levelset",
+  "amr",
+  "adaptive",
+  "checkpoint"
+ ],
+ "covers": [
+  "cfd_amr::ckpt_write: the start of the bodies of the zone"
+ ]
+}

@@ -1,0 +1,29 @@
+{
+ "base": "cfd_2d_heave_amr_adapt_sub_ckpt",
+ "same_as": "cfd_2d_heave_amr_adapt_sub_ckpt",
+ "chain": [
+  {
+   "case": "cfd_2d_heave_amr_adapt_sub_ckpt",
+   "copy": [
+    "REEF3D_Checkpoint",
+    "REEF3D_CFD_6DOF"
+   ]
+  }
+ ],
+ "ctrl_set": {
+  "I 45": "20"
+ },
+ "description": "the restart of cfd_2d_heave_amr_adapt_sub_ckpt from step 20 (I 45 20): the body state, the patches around it and the subcycled body stages after the restart; its 6DOF files cut back and continued, bitwise those of the uninterrupted run (regression.py ranks).",
+ "tags": [
+  "2d",
+  "6dof",
+  "floating",
+  "levelset",
+  "amr",
+  "adaptive",
+  "checkpoint"
+ ],
+ "covers": [
+  "cfd_amr::ckpt_read with a floating body (the hull cast on the patches after the restart, body_loads)"
+ ]
+}

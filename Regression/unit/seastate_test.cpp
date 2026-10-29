@@ -1225,7 +1225,7 @@ static void test_st4()
     s4.wind(N.data(),row.data(),k.data(),cg.data(),20.0,wdir,false);
     std::cout<<"        u* "<<s4.ust<<" (ecWAM port 0.8879935003), z0 "<<s4.z0<<", tau_w "<<s4.tauw<<", cut-off "<<s4.lc<<", "<<s4.iters<<" iterations"<<std::endl;
     check(close(s4.ust,8.879935002613e-01,1e-9) && close(s4.z0,1.221091203245e-03,1e-8) && close(s4.tauw,6.441716702711e-01,1e-8) && s4.lc==24,
-          "ST4: u*, z0, tau_w and the cut-off of the fixed point as the ecWAM port (TAUT_Z0, STRESSO, TAU_PHI_HF, FRCUTINDEX; secant steps on tau_w)");
+          "ST4: u*, z0, tau_w and the cut-off of the fixed point as the ecWAM port (TAUT_Z0, STRESSO, TAU_PHI_HF, FRCUTINDEX; Phase 23: secant steps and regula falsi on tau_w)");
 
     // growth rate, swell damping, whitecapping of single bins (SINPUT_ARD, SDISSIP_ARD)
     {
@@ -1286,12 +1286,12 @@ static void test_st4()
         seastate_st4 jb;
         jb.init(sg,seastate_st4_param::jb2023(),g);
         jb.wind(N.data(),row.data(),k.data(),cg.data(),20.0,wdir,false);
-        std::cout<<"        JB2023: u* "<<jb.ust<<" (ecWAM port 0.8515815536), z0 "<<jb.z0<<", tau_w "<<jb.tauw<<", cut-off "<<jb.lc<<std::endl;
-        check(close(jb.ust,8.515815536042e-01,1e-9) && close(jb.z0,8.322351301467e-04,1e-8) && close(jb.tauw,5.503381091615e-01,1e-8) && jb.lc==24,
+        std::cout<<"        JB2023: u* "<<jb.ust<<" (ecWAM port 0.8515787410), z0 "<<jb.z0<<", tau_w "<<jb.tauw<<", cut-off "<<jb.lc<<std::endl;
+        check(close(jb.ust,8.515787409550e-01,1e-9) && close(jb.z0,8.322098376792e-04,1e-8) && close(jb.tauw,5.503336362325e-01,1e-8) && jb.lc==24,
               "JB2023: u*, z0, tau_w with the gravity-capillary stress (STRESS_GC, HALPHAP) and the renormalisation as the ecWAM port");
         const int L[6]={10,15,20,24,30,12}, M[6]={3,3,5,2,0,20};
-        const double G[6]={5.933361749285e-05,2.423954791189e-04,7.061289796898e-04,2.565967641019e-03,1.378789678992e-02,0.0};
-        const double S[6]={4.001628613798e-06,1.038512631683e-05,3.261740652647e-05,5.568844549059e-05,1.873161389521e-04,2.392280605158e-05};
+        const double G[6]={5.933334901921e-05,2.423932165655e-04,7.061215647255e-04,2.565932876686e-03,1.378771860980e-02,0.0};
+        const double S[6]={4.001609971511e-06,1.038507796354e-05,3.261726241126e-05,5.568818370292e-05,1.873152767456e-04,2.392271909870e-05};
         std::vector<double> P(sg.nbin,0.0), D(sg.nbin,0.0), Dl(ndir);
         jb.add(N.data(),k.data(),cg.data(),0,nsig-1,0,ndir-1,P.data(),D.data());
         bool ok=true;
@@ -1302,6 +1302,50 @@ static void test_st4()
             ok = ok && std::fabs(jb.rate(b)-G[i])<=1e-8*std::max(G[i],1e-6) && std::fabs(D[b]-Dl[M[i]]-S[i])<=1e-8*S[i];
         }
         check(ok,"JB2023: renormalised growth rate and swell damping of 6 bins as the ecWAM port (1e-8)");
+    }
+
+    // Phase 23 (A 768 1): u* from the wave stress of the last time step (tau_w 0.5, direction 0.2, u* 0.9), the two
+    // calls of SINFLX of ecWAM, against the port for A 732 3 and 4
+    {
+        const int L[6]={10,15,20,24,30,12}, M[6]={3,3,5,2,0,20};
+        const double G3[6]={6.228759928700e-05,2.679541733596e-04,7.895926672388e-04,2.950394330914e-03,1.579989257710e-02,0.0};
+        const double S3[6]={4.170512630059e-06,1.079410145284e-05,3.368423134870e-05,5.739948804012e-05,1.914698793028e-04,2.492237419897e-05};
+        const double G4[6]={5.893976626029e-05,2.389425449259e-04,6.948053849081e-04,2.512930181466e-03,1.351597776942e-02,0.0};
+        const double S4[6]={3.973116517751e-06,1.031117328269e-05,3.239740209534e-05,5.528790466337e-05,1.859978583966e-04,2.379112528140e-05};
+        for(int ph=3; ph<=4; ++ph)
+        {
+            seastate_st4 s;
+            s.init(sg,ph==3 ? seastate_st4_param() : seastate_st4_param::jb2023(),g);
+            s.lag(0.5,0.2,0.9);
+            s.wind(N.data(),row.data(),k.data(),cg.data(),20.0,wdir,false);
+            const double *Gr = ph==3 ? G3 : G4, *Sr = ph==3 ? S3 : S4;
+            std::vector<double> P(sg.nbin,0.0), D(sg.nbin,0.0), Dl(ndir);
+            s.add(N.data(),k.data(),cg.data(),0,nsig-1,0,ndir-1,P.data(),D.data());
+            bool ok = s.iters==2 && s.lc==24;
+            if(ph==3)
+            ok = ok && close(s.ust,8.789308424516e-01,1e-9) && close(s.z0,1.112585891977e-03,1e-8) && close(s.tauw,6.350151838146e-01,1e-8);
+            else
+            ok = ok && close(s.ust,8.473414515639e-01,1e-9) && close(s.z0,7.939800853609e-04,1e-8) && close(s.tauw,5.435005037898e-01,1e-8);
+            for(int i=0;i<6;++i)
+            {
+                const int b=sg.bin(L[i],M[i]);
+                s.dissipation(N.data(),k.data(),cg.data(),L[i],Dl.data());
+                ok = ok && std::fabs(s.rate(b)-Gr[i])<=1e-8*std::max(Gr[i],1e-6) && std::fabs(D[b]-Dl[M[i]]-Sr[i])<=1e-8*Sr[i];
+            }
+            check(ok,ph==3 ? "ST4, Phase 23: u* from the wave stress of the last time step (two calls of SINFLX) as the ecWAM port"
+                           : "JB2023, Phase 23: u* from the wave stress of the last time step (two calls of SINFLX) as the ecWAM port");
+        }
+
+        // in seastate_source: lag() for one compute only, the state for the next step; the fixed point again after it
+        seastate_source_param sp; sp.wind=true; sp.U10=20.0; sp.wdir=wdir; sp.komen=true; sp.st4=true; sp.dia=true;
+        seastate_source src(sg,sp);
+        std::vector<double> P(sg.nbin), D(sg.nbin);
+        src.lag(0.5,0.2,0.9);
+        src.compute(N.data(),5000.0,k.data(),cg.data(),P.data(),D.data());
+        const bool a = close(src.lag_ustar(),8.789308424516e-01,1e-9) && close(src.lag_tauw(),6.350151838146e-01,1e-8) && src.st4().iters==2;
+        src.compute(N.data(),5000.0,k.data(),cg.data(),P.data(),D.data());
+        const bool b = close(src.lag_ustar(),8.879935002613e-01,1e-9) && src.st4().iters>2;
+        check(a && b,"ST4, Phase 23: seastate_source::lag() acts on the next compute() only");
     }
 }
 
