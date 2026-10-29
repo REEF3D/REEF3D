@@ -1,0 +1,22 @@
+{
+ "base": "sflow_2d_amr_bar_nh_place2",
+ "np": 2,
+ "ctrl_add": [
+  "N 16 2"
+ ],
+ "same_as": "sflow_2d_amr_bar_nh_place2",
+ "same_as_rtol": 1e-05,
+ "description": "sflow_2d_amr_bar_nh_place2 with the level-0 V-cycle of the SFLOW AMR non-hydrostatic pressure (reefmg2D) on the reference device (N 16 2); within 1e-5 of the CPU run",
+ "tags": [
+  "2d",
+  "sflow",
+  "amr",
+  "nh",
+  "solver",
+  "mpi"
+ ],
+ "covers": [
+  "REEFMG device path (N 16) for the REEFAMR level 0, reference device",
+  "SFLOW AMR level-0 reefmg2D on the device"
+ ]
+}

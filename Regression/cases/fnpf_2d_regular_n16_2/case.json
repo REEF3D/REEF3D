@@ -6,7 +6,7 @@
  ],
  "same_as": "fnpf_2d_regular",
  "same_as_rtol": 1e-05,
- "description": "fnpf_2d_regular with the REEFMG V-cycle on the reference device (N 16 2): a whole V-cycle queued without halo exchange (one rank, not periodic); within 1e-5 of the CPU run",
+ "description": "fnpf_2d_regular with the REEFMG V-cycle on the reference device (N 16 2): one rank, the whole V-cycle queued on the device; within 1e-5 of the CPU run",
  "tags": [
   "quick",
   "2d",

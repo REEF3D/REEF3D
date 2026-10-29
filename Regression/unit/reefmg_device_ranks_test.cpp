@@ -18,6 +18,7 @@
 //     device sees the same global problem whatever the decomposition
 //   - the converged solution = the CPU fp64 solution on one rank to 1e-8
 //   - the number of BiCGStab iterations does not depend on the decomposition
+//   - two vcycle(0) called by the host (REEFAMR level 0) on np ranks = on one rank, bitwise
 
 #include "reefmg_test_problem.h"
 #include "reefmg_device.h"
@@ -122,7 +123,11 @@ namespace
             }
             mg.coarsen();
             double rr=0.0;
-            const int it=mg.solve_auto(tol,maxiter,rr,1,1,mode);
+            int it=0;
+            if(maxiter<0)      // -n: n host-driven vcycle(0) from u = 0 (REEFAMR level 0, reefmg2D)
+            for(int n=0;n<-maxiter;++n) mg.vcycle(0,1,1);
+            else
+            it=mg.solve_auto(tol,maxiter,rr,1,1,mode);
 
             std::lock_guard<std::mutex> lk(mu);
             for(int i=0;i<p.nx;++i)
@@ -175,6 +180,7 @@ int main()
         for(int device: devices)
         {
             const block_result one =solve(g,1,1,device,0,1,0.0);       // one V-cycle, one rank
+            const block_result host1=solve(g,1,1,device,0,-2,0.0);     // two host-driven vcycle(0)
             const block_result one_bicg=solve(g,1,1,device,1,200,1.0e-10);
 
             for(const dec &d: decs)
@@ -187,6 +193,10 @@ int main()
                 check(v.on_device,std::string(nm)+": device on every rank ("+v.status+")");
                 const double ev=maxrel(g,one.u,v.u);
                 check(ev==0.0,sfmt("%s: one V-cycle = the one-rank V-cycle, largest difference %.1e",nm,ev));
+
+                const block_result h=solve(g,d.npx,d.npy,device,0,-2,0.0);
+                const double eh=maxrel(g,host1.u,h.u);
+                check(eh==0.0,sfmt("%s: two host-driven vcycle(0) = the same on one rank, largest difference %.1e",nm,eh));
 
                 const block_result s=solve(g,d.npx,d.npy,device,1,200,1.0e-10);
                 const double es=maxrel(g,ref.u,s.u);
