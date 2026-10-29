@@ -141,10 +141,11 @@ using namespace std;
 //  G 30, G 31, G 40), A 510 2/3, A 511 1/2, A 514 all, A 519 0/1, A 520 0/1/2, A 512 0/1/2, A 550 0/1
 //  (with A 510 2/3; on a multi-block grid the blocks break as one grid), A 560 0/1/2/21/22 (turbulence on every grid, nhflow_amr_turb.cpp; not with
 //  G 7 1, A 561, A 563), B 200 0, X 10 0/1/2 (X 60 1, X 16 0, A 516 0/1/3; X 15 8, the sharp
-//  hull: on every grid, G 7 0/1, G 12, A 520 1, one body), S 10 0/1 (bed load on
-//  every grid, nhflow_amr_sed.cpp; S 12 0, S 51 0, S 31 1/2, S 32 1/2), fixed solids A 581-590 (not
-//  with G 7 1 or A 516 2/4; not A 580 1), no membranes (X 330), nets (X 320), DEM (E 10), particles
-//  (L 10), rods or FEM structures (Z 20, Z 30).  Cartesian and curvilinear grids (G 50 2), 2D grids
+//  hull: on every grid, G 7 0/1, the zone around it (G 12, or implicit with G 10 boxes or flags),
+//  A 520 1, one body), S 10 0/1 (bed load on every grid, nhflow_amr_sed.cpp; S 12 0, S 51 0,
+//  S 31 1/2, S 32 1/2), fixed solids A 581-590 (not with G 7 1 or A 516 2/4; not A 580 1), no
+//  membranes (X 330), nets (X 320), DEM (E 10), particles (L 10), rods or FEM structures (Z 20,
+//  Z 30).  Cartesian and curvilinear grids (G 50 2), 2D grids
 //  (one cell in y) Cartesian only.  The multi-block grid (G 50 1 with DIVEMesh R 20 1,
 //  nhflow_amr_block.cpp): the blocks 1.. are level-0 patches of the hierarchy, with or without
 //  refinement (G 7 1: level 0 is the native grid with the blocks, sub_level0_blocks, without bodies),
@@ -579,6 +580,7 @@ private:
     // G 7 1: subcycling (nhflow_amr_sub.cpp)
     int sub = 0;                    // 1: subcycled
     bool hb = false;                // the hull as a sharp thin body (X 15 8) on every grid
+    void hull_cover(lexer*, ghostcell*);    // X 15 8: the hull and its band on the finest level, else stop
     int hstage = 0;                 // RK stage of the grids running (flux register weights)
     int wlo = 0, whi = -1;          // level window of the restriction and of the composite solve (whi<0: maxlev)
     int wtop() const { return whi<0 ? maxlev : whi; }
