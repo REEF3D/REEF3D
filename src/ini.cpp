@@ -1386,7 +1386,7 @@ void control::ini_default()
 	X44=0.0;    // double viscosity in body
     X45=0;      // int type of lsm convection disc at fb
     X46=0;      // int 
-    X48=2;      // int solid forcing level set: 1 copied into the flagged solids (G 505 1), 2 extrapolated into the solids of the direct forcing
+    X48=2;      // int solid forcing level set: 1 copied into the flagged solids (G 505 1), 2 extrapolated into the solids of the direct forcing, 3 as 2 and into the 6DOF bodies (X 10)
     X49=0;
     X50=1;      // int type of print out format for 6DOF structure
     X60=1;      // int type of print of force calculation
