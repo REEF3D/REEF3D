@@ -6,7 +6,7 @@
  ],
  "same_as": "fnpf_3d_shortcrested",
  "same_as_rtol": 1e-05,
- "description": "fnpf_3d_shortcrested with the REEFMG V-cycle on the reference device (N 16 2: the GPU kernels of reefmg_device_kernels.h in loops on the CPU, single precision, red-black line smoothing): the Laplace solves with the device preconditioner on 2 ranks (float halo exchange before every half-sweep); the free surface within 1e-5 of the CPU run (`regression.py ranks`)",
+ "description": "fnpf_3d_shortcrested with the REEFMG V-cycle on the reference device (N 16 2: one single-precision hierarchy of the whole domain for both ranks in an MPI shared-memory window, the GPU kernels of reefmg_device_kernels.h in loops on the CPU): the Laplace solves of 2 ranks; the free surface within 1e-5 of the CPU run (`regression.py ranks`)",
  "tags": [
   "3d",
   "fnpf",
@@ -15,6 +15,6 @@
  ],
  "covers": [
   "REEFMG device path (N 16), reference device",
-  "halo exchange of the device arrays"
+  "the ranks' blocks in the shared fine level"
  ]
 }

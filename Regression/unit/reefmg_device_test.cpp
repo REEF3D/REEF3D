@@ -60,6 +60,8 @@ struct config
     int dsweeps=0;       // N 19
     int dprec=0;         // N 21: 0/16 half-precision smoother coefficients, 32 single
     long tail=-2;        // REEFMG_DEVICE_TAIL: -2 not set (the default), -1 no tail, else columns
+    int hostcycles=0;    // >0: instead of a solve, that many vcycle(0) calls from u = 0, as the
+                         // REEFAMR level-0 multigrids and reefmg2D drive it
 };
 
 struct result
@@ -124,6 +126,9 @@ static result run(const problem &pr,const config &c,int repeat=1)
         for(long q=0;q<Nc;++q){L.f[q]=pr.F[q]; L.u[q]=0.0;}
         mg.reset_timers();
         const auto t0=std::chrono::steady_clock::now();
+        if(c.hostcycles>0)
+        for(int n=0;n<c.hostcycles;++n) mg.vcycle(0,1,1);
+        else
         res.it=mg.solve_auto(c.tol,c.maxiter,res.relres,1,1,c.mode);
         const auto t1=std::chrono::steady_clock::now();
         const double t=std::chrono::duration<double>(t1-t0).count();
@@ -204,6 +209,26 @@ static void suite(const char *name,const problem &pr,int bits,int levels,bool me
                 const double et=maxdiff(pr,rmh.u,r.u);
                 check(et<1.0e-5,fmt("one V-cycle, Metal, REEFMG_DEVICE_TAIL=%.0f = the default tail to %.1e",t,et));
             }
+        }
+    }
+
+    // the cycle driven by the host (REEFAMR level 0: f set, u = 0, vcycle(0)): on the device a
+    // defect-correction step u += V(f - A u), so one call = one V-cycle of the solver, two = two
+    // stationary iterations (the second residual with the stored instead of the exact operator)
+    {
+        config h1=dev, h2=dev, s1=dev, s2=dev;
+        h1.hostcycles=1; h2.hostcycles=2;
+        s1.mode=s2.mode=0; s1.tol=s2.tol=0.0; s1.maxiter=1; s2.maxiter=2;
+        const result a1=run(pr,h1), b1=run(pr,s1), a2=run(pr,h2), b2=run(pr,s2);
+        const double e1=maxdiff(pr,b1.u,a1.u), e2=maxdiff(pr,b2.u,a2.u);
+        check(a1.on_device && e1<1.0e-12,fmt("host-driven vcycle(0) on the device = one V-cycle of the solver to %.1e",e1));
+        check(e2<1.0e-5,fmt("two host-driven vcycle(0) = two stationary device iterations to %.1e",e2));
+        if(metal)
+        {
+            config m1=h1; m1.device=1;
+            const result rm=run(pr,m1);
+            const double em=maxdiff(pr,a1.u,rm.u);
+            check(rm.on_device && em<2.0e-3,fmt("host-driven vcycle(0): Metal = reference device to %.1e",em));
         }
     }
 

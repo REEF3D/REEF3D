@@ -384,12 +384,24 @@ void nhflow_amr::pr_prepare(ghostcell *pgc)
             mg0 = new reefmg_core;
             mg0->set_precision(p0->N14==32 ? 32 : 64);
             mg0->set_fine_operator(&pr_fineop_none);
+            // N 16: the level-0 V-cycle on a device (the Apple GPU), as the uniform solver (reefmg.cpp);
+            // the patch-local cycles stay on the CPU.  A 2D grid with one block solves level 0
+            // exactly (xz0), no device
+            const bool l0dev = !(sy==0 && nblk==0);
+            if(l0dev)
+            {
+                mg0->set_device(p0->N16);
+                mg0->set_device_cycle(p0->N17,p0->N19);
+                mg0->set_device_precision(p0->N21);
+            }
             if(!mg0->setup(pgc->cart(),p0->knox,p0->knoy,p0->knoz,p0->gknox,p0->gknoy,p0->N13,p0->DXN+marge-1,p0->DYN+marge-1))
             {
                 if(p0->mpirank==0)
                 cout<<"NHFLOW AMR: level-0 multigrid "<<mg0->err()<<endl;
                 MPI_Abort(MPI_COMM_WORLD,-2760);
             }
+            if(p0->mpirank==0 && p0->N16>0)
+            cout<<"NHFLOW AMR: level-0 multigrid: "<<(l0dev ? mg0->device_status() : string("the exact x-z solve of a 2D grid, N 16 not used"))<<endl;
         }
 
         pr_layout = layout_id;
