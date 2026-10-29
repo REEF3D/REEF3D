@@ -47,7 +47,7 @@ public:
 
     fdm_fnpf(lexer*);
    
-    field5 test;
+    field5 test;    // allocated with P 23 1 only (printed)
     fieldint5 nodeval;
     
     slice4 eta,eta_n,WL;

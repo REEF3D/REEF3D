@@ -236,6 +236,11 @@ void driver::fnpf_driver()
     preg->fnpf_ini(p,c,pgc);
 
     coral_ini();
+    
+    // the 3D flags only the grid set-up reads (CFD velocity and solid forcing flags) are given back;
+    // kept with mesh refinement, floating bodies and CORAL, which build or move geometry later
+    if(pfamr==nullptr && p->X10==0 && pcoral==nullptr)
+    p->flagfree_fnpf();
 
     // Start MAINLOOP
     loop_fnpf();

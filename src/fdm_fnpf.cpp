@@ -77,7 +77,7 @@ namespace
     }
 }
 
-fdm_fnpf::fdm_fnpf(lexer *p) : test(p),Fifsf(p),
+fdm_fnpf::fdm_fnpf(lexer *p) : test(p,p->P23==1),Fifsf(p),
                               nodeval(p),eta(p),etaloc(p),
                               wet_n(p),breaking(p),breaklog(p),bc(p),
                               eta_n(p),WL(p),bed(p),depth(p),Fz(p),K(p),

@@ -332,6 +332,7 @@ void printer_fnpf::print(lexer* p, fdm_fnpf *c, ghostcell* pgc)
         pgc->gcsl_start4(p,c->WL,50);
         pgc->gcsl_start4(p,c->bed,50);
         pgc->gcsl_start4(p,c->breaking_print,50);
+        if(p->P23==1)
         pgc->start4(p,c->test,1);
 
         i=-1;
@@ -697,6 +698,8 @@ void printer_fnpf::print(lexer* p, fdm_fnpf *c, ghostcell* pgc)
 
         if(lagoon_output::vtu_files(p))
             writeFile(name, total_size);
+        
+        release_buffer();
 
         ++printcount;
     }

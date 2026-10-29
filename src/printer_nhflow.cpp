@@ -960,6 +960,8 @@ void printer_nhflow::print(lexer* p, fdm_nhf *d, ghostcell* pgc, nhflow_turbulen
 
         if(lagoon_output::vtu_files(p))
             writeFile(name, total_size);
+        
+        release_buffer();
 
         ++printcount;
     }

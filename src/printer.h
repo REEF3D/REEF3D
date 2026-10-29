@@ -69,6 +69,10 @@ public:
     virtual void print_end(lexer*,fdm_fnpf*,ghostcell*) {};
 protected:
     void writeFile(const char*, const size_t);
+    
+    // the volume output is rare (P 30): its buffer (the whole 3D grid with connectivity, about
+    // 150 bytes per node) is given back after each output instead of being kept for the run
+    void release_buffer() {std::vector<char>().swap(buffer);}
 
     std::vector<char> buffer;
 };

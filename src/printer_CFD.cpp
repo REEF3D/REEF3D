@@ -904,6 +904,8 @@ void printer_CFD::print3D(lexer* p, fdm* a, ghostcell* pgc, turbulence *pturb, h
 
         if(lagoon_output::vtu_files(p))
             writeFile(name, total_size);
+        
+        release_buffer();
 
         ++p->printcount;
 
