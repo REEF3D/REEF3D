@@ -328,6 +328,7 @@ protected:
     double curr_time;
     double printtime,printtimenormal;
     double *printtime_wT;
+    double *printtime_wF=nullptr;   // next print time of each P 185 window (SFLOW, NHFLOW); printtime_wT: P 35
     int nCorr;
     int q,iin;
     float ffn;
