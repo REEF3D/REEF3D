@@ -448,6 +448,11 @@ void cfd_amr::pr_setup()
     mg0 = new reefmg_core;
     mg0->set_precision(p0->N14==32 ? 32 : 64);
     mg0->set_fine_operator(&pr_fineop_none);
+    // N 16: the level-0 V-cycle on a device (the Apple GPU), as the uniform solver (reefmg.cpp);
+    // the patch and level multigrids stay on the CPU
+    mg0->set_device(p0->N16);
+    mg0->set_device_cycle(p0->N17,p0->N19);
+    mg0->set_device_precision(p0->N21);
     if(!mg0->setup(pgc0->cart(),p0->knox,p0->knoy,p0->knoz,p0->gknox,p0->gknoy,p0->N13,p0->DXN+marge-1,p0->DYN+marge-1,
                    p0->periodic1>0,p0->periodic2>0 && p0->j_dir==1))
     {
@@ -455,6 +460,8 @@ void cfd_amr::pr_setup()
         cout<<"CFD AMR: level-0 multigrid "<<mg0->err()<<endl;
         MPI_Abort(MPI_COMM_WORLD,-3122);
     }
+    if(p0->mpirank==0 && p0->N16>0)
+    cout<<"CFD AMR: level-0 multigrid: "<<mg0->device_status()<<endl;
     }
 
     // the joint multigrids of the levels (the patches of a rank next to each other), then the overlap
