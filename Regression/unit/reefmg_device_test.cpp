@@ -58,6 +58,8 @@ struct config
     int levels=0;        // >0: set_active_levels
     int dcycles=0;       // N 17
     int dsweeps=0;       // N 19
+    int dprec=0;         // N 21: 0/16 half-precision smoother coefficients, 32 single
+    long tail=-2;        // REEFMG_DEVICE_TAIL: -2 not set (the default), -1 no tail, else columns
 };
 
 struct result
@@ -84,6 +86,9 @@ static result run(const problem &pr,const config &c,int repeat=1)
     mg.set_fine_operator(&op);
     mg.set_device(c.device);
     mg.set_device_cycle(c.dcycles,c.dsweeps);
+    mg.set_device_precision(c.dprec);
+    if(c.tail==-2) unsetenv("REEFMG_DEVICE_TAIL");
+    else setenv("REEFMG_DEVICE_TAIL",std::to_string(c.tail).c_str(),1);
 
     if(!mg.setup(MPI_COMM_SELF,pr.nx,pr.ny,pr.nz,pr.nx,pr.ny,0,pr.dxn.data(),pr.dyn.data(),pr.perx? 1 : 0,0))
     {
@@ -166,18 +171,39 @@ static void suite(const char *name,const problem &pr,int bits,int levels,bool me
     {
         config z1=zeb, d1=dev; z1.mode=d1.mode=0; z1.maxiter=d1.maxiter=1; z1.tol=d1.tol=0.0;
         d1.dcycles=1; d1.dsweeps=1;    // the CPU's cycle
-        const result rz=run(pr,z1), rd=run(pr,d1);
+        config d32=d1; d32.dprec=32;   // single-precision smoother: the CPU's arithmetic
+        const result rz=run(pr,z1), rd=run(pr,d32), rh=run(pr,d1);
         check(rd.on_device,"reference device in use ("+rd.status+")");
         const double e=maxdiff(pr,rz.u,rd.u);
-        check(e<2.0e-5,fmt("one V-cycle: device = CPU red-black to %.1e (max relative difference)",e));
+        check(e<2.0e-5,fmt("one V-cycle, N 21 32: device = CPU red-black to %.1e (max relative difference)",e));
+        const double eh=maxdiff(pr,rd.u,rh.u);
+        check(eh<5.0e-3,fmt("one V-cycle, half-precision smoother coefficients (N 21 16) = single to %.1e",eh));
+
+        // the tail (small coarse levels in one unit of work): the same code, so bitwise the same
+        for(long t: {-1L,0L,1000000000L})
+        {
+            config dt=d1; dt.tail=t;
+            const result r=run(pr,dt);
+            const double et=maxdiff(pr,rh.u,r.u);
+            check(et==0.0,fmt("one V-cycle with REEFMG_DEVICE_TAIL=%.0f = the default tail, difference %.1e",t,et));
+        }
 
         if(metal)
         {
-            config m1=d1; m1.device=1;
-            const result rm=run(pr,m1);
+            config m32=d32, m16=d1; m32.device=m16.device=1;
+            const result rm=run(pr,m32), rmh=run(pr,m16);
             check(rm.on_device,"Metal device in use ("+rm.status+")");
             const double em=maxdiff(pr,rd.u,rm.u);
-            check(em<1.0e-5,fmt("one V-cycle: Metal = reference device to %.1e",em));
+            check(em<1.0e-5,fmt("one V-cycle, N 21 32: Metal = reference device to %.1e",em));
+            const double emh=maxdiff(pr,rh.u,rmh.u);
+            check(emh<2.0e-3,fmt("one V-cycle, N 21 16: Metal = reference device to %.1e",emh));
+            for(long t: {-1L,1000000000L})
+            {
+                config mt=m16; mt.tail=t;
+                const result r=run(pr,mt);
+                const double et=maxdiff(pr,rmh.u,r.u);
+                check(et<1.0e-5,fmt("one V-cycle, Metal, REEFMG_DEVICE_TAIL=%.0f = the default tail to %.1e",t,et));
+            }
         }
     }
 
@@ -189,6 +215,12 @@ static void suite(const char *name,const problem &pr,int bits,int levels,bool me
                              rd.it,rz.it,r0.it));
     const double es=maxdiff(pr,r0.u,rd.u);
     check(es<1.0e-8,fmt("device solution = CPU fp64 solution to %.1e",es));
+    {
+        config d32=dev; d32.dprec=32;
+        const result r32=run(pr,d32);
+        check(r32.relres<=1.0e-10 && std::abs(r32.it-rd.it)<=1,
+              fmt("BiCGStab iterations: half-precision smoother coefficients %g, single (N 21 32) %g",rd.it,r32.it));
+    }
 
     if(metal)
     {
@@ -229,6 +261,11 @@ static void bench(int nx,int ny,int nz)
     {config c; c.tol=1e-8; c.ordering=1; rows.push_back({"CPU fp32 red-black (N 12 2)",c});}
 #if REEF3D_METAL
     {config c; c.tol=1e-8; c.device=1; rows.push_back({"Metal GPU (N 16 1, 2 x 2 sweeps)",c});}
+    {config c; c.tol=1e-8; c.device=1; c.dprec=32; rows.push_back({"Metal, single-precision smoother",c});}
+    {config c; c.tol=1e-8; c.device=1; c.tail=-1; rows.push_back({"Metal, no tail",c});}
+    {config c; c.tol=1e-8; c.device=1; c.tail=0; rows.push_back({"Metal, tail = coarsest level",c});}
+    {config c; c.tol=1e-8; c.device=1; c.tail=512; rows.push_back({"Metal, tail 512 columns",c});}
+    {config c; c.tol=1e-8; c.device=1; c.tail=8192; rows.push_back({"Metal, tail 8192 columns",c});}
     {config c; c.tol=1e-8; c.device=1; c.dcycles=1; c.dsweeps=1; rows.push_back({"Metal, 1 V-cycle, 1 sweep",c});}
 #endif
     if(nx*ny*nz<=4000000)

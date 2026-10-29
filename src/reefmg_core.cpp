@@ -123,6 +123,7 @@ reefmg_core::reefmg_core()
     dev0copy=false;
     devgx=devgy=devox=devoy=devnlev=0;
     devcycles=devsweeps=0;
+    devprec=0;
     pctime=0.0;
     pccount=0;
     for(int m=0;m<4;++m) devt[m]=0.0;
@@ -1454,7 +1455,7 @@ long reefmg_core::memory_bytes() const
     s+=long(agg_send.capacity()+agg_recv.capacity())*sizeof(double);
     if(agg) s+=agg->memory_bytes();
     if(dev) s+=dev->memory_bytes();
-    if(devmode && myrank==0) s+=rmg_layout(devgx,devgy,lev[0].nz).bytes;   // the shared fine level
+    if(devmode && myrank==0) s+=rmg_layout(devgx,devgy,lev[0].nz,devhalf()).bytes;   // the shared fine level
     s+=long(kd.capacity())*sizeof(double);
     return s;
 }
@@ -1714,7 +1715,7 @@ int reefmg_core::device_levels() const
 
 float* reefmg_core::window_array(int a) const
 {
-    const rmg_layout lay(devgx,devgy,lev[0].nz);
+    const rmg_layout lay(devgx,devgy,lev[0].nz,devhalf());
     return (float*)(dev0+lay.off[a]);
 }
 
@@ -1887,7 +1888,7 @@ void reefmg_core::device_setup(int maxlevel,int perx,int pery)
 
     //  the shared fine level, page aligned on every rank: the mapping starts
     //  on a page boundary in every process, so one offset fits all
-    const rmg_layout lay(devgx,devgy,nz);
+    const rmg_layout lay(devgx,devgy,nz,devhalf());
     const long page=page_size();
     {
         char *mine=0;
@@ -1911,12 +1912,12 @@ void reefmg_core::device_setup(int maxlevel,int perx,int pery)
     //  can use that memory, else with a fine level of its own (copied)
     if(myrank==0)
     {
-        if(!dev->build(desc,perx,pery,dev0,err))
+        if(!dev->build(desc,perx,pery,devhalf(),dev0,err))
         {
             delete dev;
             dev=reefmg_device_create(devkind,err);
             dev0copy=true;
-            ok=(dev && dev->build(desc,perx,pery,0,err))? 1 : 0;
+            ok=(dev && dev->build(desc,perx,pery,devhalf(),0,err))? 1 : 0;
         }
 
         if(ok)
@@ -1940,8 +1941,9 @@ void reefmg_core::device_setup(int maxlevel,int perx,int pery)
     char msg[512];
     snprintf(msg,sizeof(msg),
              "V-cycle on the device: %s - one hierarchy of the whole %d x %d x %d grid for %d rank%s, "
-             "%d levels, single precision, red-black line smoothing, %d V-cycle%s per application, %s sweeps%s",
+             "%d levels, single precision%s, red-black line smoothing, %d V-cycle%s per application, %s sweeps%s",
              myrank==0? dev->name().c_str() : "", devgx,devgy,nz,nprocs,nprocs>1?"s":"",devnlev,
+             devhalf()? " (smoother coefficients in half precision)" : "",
              (devcycles>0)? devcycles : 2,((devcycles>0)? devcycles : 2)>1?"s":"",std::to_string((devsweeps>0)? devsweeps : 2).c_str(),
              dev0copy? " (fine level copied)" : "");
     devmsg=msg;
@@ -1981,7 +1983,7 @@ void reefmg_core::device_upload()
     const double t0=wtime();
     const sc_level &L=lev[0];
     const int nz=L.nz;
-    const rmg_layout lay(devgx,devgy,nz);
+    const rmg_layout lay(devgx,devgy,nz,devhalf());
     const long si=lay.si, sk=lay.sk;
     int off[JB];
 
@@ -2051,7 +2053,7 @@ void reefmg_core::device_precondition(std::vector<double> &rhs,std::vector<doubl
     const double t0=wtime();
     const sc_level &L=lev[0];
     const int nz=L.nz;
-    const rmg_layout lay(devgx,devgy,nz);
+    const rmg_layout lay(devgx,devgy,nz,devhalf());
     const long si=lay.si, sk=lay.sk;
     const long N=lay.sk*nz;
     int off[JB];

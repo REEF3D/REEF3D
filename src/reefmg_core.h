@@ -232,6 +232,14 @@ public:
     //  iterations (FNPF basin on 12 ranks, M3 Max: 1.42x the CPU at
     //  7.7 M cells, against 1.27x with one cycle and one sweep).
     void set_device_cycle(int ncycle,int sweeps){devcycles=ncycle; devsweeps=sweeps;}
+
+    //  Precision of the device smoother's coefficients (N 21): 16 (the
+    //  default, also for 0) or 32.  With 16 the couplings of every cell are
+    //  divided by the pivot of its column and held in half precision - the
+    //  smoother, three quarters of the GPU time, reads 12 instead of 28
+    //  bytes of coefficients per cell; the coarse operators, the residual
+    //  and everything else stay in single precision.
+    void set_device_precision(int bits){devprec=bits;}
     bool on_device() const {return devmode;}
     const std::string& device_status() const {return devmsg;}
 
@@ -298,6 +306,8 @@ private:
     int devox,devoy;         // offset of this rank's block in it
     int devnlev;             // levels of the device hierarchy
     int devcycles,devsweeps; // see set_device_cycle()
+    int devprec;             // see set_device_precision()
+    bool devhalf() const {return devprec!=32;}
     std::vector<double> kd;  // device_vcycle0
     double pctime;           // see precondition_time()
     long pccount;

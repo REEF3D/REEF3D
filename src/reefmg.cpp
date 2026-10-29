@@ -99,6 +99,10 @@ reefmg::reefmg(lexer *p, ghostcell *pgc, int solve_input, int precon_input)
     //  sweeps on the device (0: 2 and 2)
     mg.set_device_cycle(p->N17,p->N19);
 
+    //  N 21: the device smoother's coefficients in half precision (16, the
+    //  default) or single (32)
+    mg.set_device_precision(p->N21);
+
 
     //  In fp32 mode reefmg stores no double coefficients; BiCGStab takes the
     //  exact operator from REEF3D's own matrix through fine_apply().
