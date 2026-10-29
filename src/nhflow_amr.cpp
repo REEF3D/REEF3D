@@ -209,11 +209,12 @@ nhflow_amr::nhflow_amr(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum *pm
     // the hull as a sharp thin body (X 15 8, nhflow_hullbody): every grid holds the hull (blocked links, wall
     // velocity, the thin-body service of nhflow_thinbody), the loads are summed over the leaf grids.  The hull
     // with its band (the local fluxes within two cells, the footprint of the lower cells, the lid correction)
-    // lies inside the finest level: the zone around the hull (G 12) with a margin of at least 4 level-0 cells,
-    // one time step for all levels (G 7 0), on several ranks the zone placed whole (G 40 1)
+    // lies inside the finest level: the zone around the hull (G 12) with a margin of at least 4 level-0 cells
+    // (12 with G 7 1, as all bodies), on several ranks the zone placed whole (G 40 1).  With subcycling (G 7 1)
+    // the hull is on every level's steps as the direct forcing is; the coarse levels step with their own picture
+    // of the hull, and the finest level takes their pressure at the edge of the zone: the near field of the
+    // hull should lie inside the zone (the margin is widened for it in ini)
     hb = (b6!=nullptr && p->X15==8);
-    if(hb)
-    sub = 0;
     if(hb)
     q.place_whole_zones = true;
 
@@ -429,6 +430,40 @@ void nhflow_amr::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     if(solids)
     solid_zone(p,pgc);
 
+    // the sharp hull (X 15 8) with subcycling (G 7 1): level 0 steps first with its own coarse hull, and the finest
+    // level takes level 0's pressure at the edge of the zone.  The added-mass flow around the hull has to lie
+    // inside the zone: its margin is at least the narrower horizontal extent B of the wetted hull, and on a 2D
+    // grid, where the outer flow reaches to the depth h, at least min(h, 3 B) (validation 25 of Ship
+    // Hydrodynamics: 2D box, margin 0.38 h a33 4.9 % low, margin h 0.3-0.4 %; hemisphere, margin B 0.4 %)
+    hb_zr = 0.0;
+    if(hb && sub==1 && par.zones)
+    {
+        sixdof_obj *o = b6->object(0);
+        double **tx = o->amr_tri(0), **ty = o->amr_tri(1), **tz = o->amr_tri(2);
+        double x0=1.0e20, x1=-1.0e20, y0=1.0e20, y1=-1.0e20;
+        for(int n=0; n<o->amr_tricount(); ++n)
+        for(int q=0; q<3; ++q)
+        if(tz[n][q]<=p->wd)
+        {
+            x0 = MIN(x0,tx[n][q]); x1 = MAX(x1,tx[n][q]);
+            y0 = MIN(y0,ty[n][q]); y1 = MAX(y1,ty[n][q]);
+        }
+        const double B = (x1<x0) ? 0.0 : ((p->j_dir==0) ? x1-x0 : MIN(x1-x0,y1-y0));
+        hb_zr = B;
+
+        if(p->j_dir==0)
+        {
+            double h = 0.0;
+            for(int i=0; i<p->knox; ++i)
+            for(int j=0; j<p->knoy; ++j)
+            h = MAX(h, p->wd - d->bed(i,j));
+            h = pgc->globalmax(h);
+            hb_zr = MIN(h,3.0*B);
+        }
+
+        par.zr = MAX(par.zr,hb_zr);
+    }
+
     setup(p,pgc);
 
     // multi-block grid: blocks 1.. as level-0 patches, their initial state, the fill plans, the bed
@@ -572,14 +607,16 @@ void nhflow_amr::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     if(hb)
     {
     cout<<"NHFLOW AMR: the sharp hull (X 15 8) on every grid, the loads from the finest grid at every blocked face";
-    if(p->G7==1)
-    cout<<"; G 7 1 not with X 15 8 -- one time step for all levels";
-    if(par.zr>zr_user)
+    if(sub==0 && par.zr>zr_user)
     cout<<"; zone margin "<<par.zr<<" m (4 cells of level 0) instead of G 12 "<<zr_user;
     cout<<endl;
     }
-    if(sub==1 && par.zones && par.zr>zr_user)
+    if(sub==1 && par.zones && par.zr>zr_user && !hb)
     cout<<"NHFLOW AMR: G 7 1 with bodies: zone margin "<<par.zr<<" m (12 cells of level 0) instead of G 12 "<<zr_user<<endl;
+    if(sub==1 && hb)
+    cout<<"NHFLOW AMR: G 7 1 with the sharp hull: zone margin "<<par.zr<<" m (at least 12 cells of level 0 and "<<hb_zr
+        <<" m for the added-mass flow around the hull"<<((p->j_dir==0) ? ", 2D: min(depth, 3 B)" : ", the narrower extent B")
+        <<"; G 12 "<<zr_user<<")"<<endl;
     if(p->G7==1 && sub==1 && p->A512==2 && p->G31==1)
     cout<<"NHFLOW AMR: G 7 1: every grid solves its own implicit diffusion (G 31 1 needs all grids at the same time)"<<endl;
     }

@@ -987,6 +987,29 @@ void nhflow_amr::sub_project(lexer *p, ghostcell *pgc, int l)
     sub_sy_it += pr_it_last;
     ++sub_sy_n;
 
+    // the sharp hull (X 15 8): amr_finish stores the Rhie-Chow face corrections of the pressure it is given
+    // (nhflow_membrane_rc_store, linear in the pressure), here those of the correction; the next continuity
+    // flux needs the corrections of the last stage plus those of the synchronisation
+    // (the stored ones set to 0 first, so that a cell amr_finish does not write, e.g. a halo cell of a patch, keeps
+    // its value once; the correction is the difference to the pressure kept: A 520 1)
+    vector<vector<double>> RCX(grids.size()), RCY(grids.size());
+    if(hb && total)
+    for(size_t n=0; n<grids.size(); ++n)
+    {
+        lexer *q = glex(grids[n]);
+        fdm_nhf *dd = gfd(grids[n]);
+        if(dd->MBETA==nullptr)
+        continue;
+        const size_t nc = (size_t)q->imax*q->jmax*q->kmax;
+        RCX[n].assign(dd->MRCX,dd->MRCX+nc);
+        std::fill(dd->MRCX,dd->MRCX+nc,0.0);
+        if(q->j_dir==1)
+        {
+        RCY[n].assign(dd->MRCY,dd->MRCY+nc);
+        std::fill(dd->MRCY,dd->MRCY+nc,0.0);
+        }
+    }
+
     for(int g : grids)
     {
         stg O = stage_out(g,last);
@@ -1007,6 +1030,15 @@ void nhflow_amr::sub_project(lexer *p, ghostcell *pgc, int l)
         fdm_nhf *dd = gfd(grids[n]);
         for(size_t m=0; m<Psave[n].size(); ++m)
         dd->P[m] += Psave[n][m];
+    }
+
+    for(size_t n=0; n<grids.size(); ++n)
+    {
+        fdm_nhf *dd = gfd(grids[n]);
+        for(size_t m=0; m<RCX[n].size(); ++m)
+        dd->MRCX[m] += RCX[n][m];
+        for(size_t m=0; m<RCY[n].size(); ++m)
+        dd->MRCY[m] += RCY[n][m];
     }
 
     for(size_t n=0; n<grids.size(); ++n)

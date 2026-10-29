@@ -141,7 +141,7 @@ using namespace std;
 //  G 30, G 31, G 40), A 510 2/3, A 511 1/2, A 514 all, A 519 0/1, A 520 0/1/2, A 512 0/1/2, A 550 0/1
 //  (with A 510 2/3; on a multi-block grid the blocks break as one grid), A 560 0/1/2/21/22 (turbulence on every grid, nhflow_amr_turb.cpp; not with
 //  G 7 1, A 561, A 563), B 200 0, X 10 0/1/2 (X 60 1, X 16 0, A 516 0/1/3; X 15 8, the sharp
-//  hull: on every grid, G 7 0, G 12, A 520 1, one body), S 10 0/1 (bed load on
+//  hull: on every grid, G 7 0/1, G 12, A 520 1, one body), S 10 0/1 (bed load on
 //  every grid, nhflow_amr_sed.cpp; S 12 0, S 51 0, S 31 1/2, S 32 1/2), fixed solids A 581-590 (not
 //  with G 7 1 or A 516 2/4; not A 580 1), no membranes (X 330), nets (X 320), DEM (E 10), particles
 //  (L 10), rods or FEM structures (Z 20, Z 30).  Cartesian and curvilinear grids (G 50 2), 2D grids
@@ -585,6 +585,7 @@ private:
     bool pr_edge = false;           // composite solve with its lowest level > 0: the parent columns are fixed
     bool pr_dir = false;            // pr_fill of a Krylov vector (the fixed parent columns are 0)
     double zr_user = 0.0;           // G 12 as given (G 7 1 with bodies widens the zone margin)
+    double hb_zr = 0.0;             // X 15 8 with G 7 1: the margin for the added-mass flow around the hull
     int pr_wkey = -1;               // window of the current row lists
     struct tcol                     // parent columns read by the fills of the next level, their start-of-step values
     {
