@@ -30,15 +30,21 @@ Architect: Hans Bihs
 //      runs them in plain loops on the CPU, and
 //    - as Metal Shading Language (MSL) for the Apple GPU (N 16 1): the same
 //      text, stringified into rmg_kernel_source and compiled at run time by
-//      the Metal framework (reefmg_device_metal.mm adds the entry points).
+//      the Metal framework (reefmg_device_metal.cpp adds the entry points).
 //      No offline Metal compiler is needed.
 //
 //  The text must stay inside the common subset of C++ and MSL: int,
 //  unsigned, float, structs of int, no long, no double (Apple GPUs have no
 //  fp64), no library calls, no preprocessor directives, no string literals.
 //  Pointers to level arrays carry the MSL address space 'device'; in C++ the
-//  word is defined away while the text is expanded.  The stringified copy is
-//  taken by the # operator, before expansion, so the MSL keeps it.
+//  word is defined away while the text is expanded (and 'constant', the
+//  address space of the tail's parameters, becomes const).  The stringified
+//  copy is taken by the # operator, before expansion, so the MSL keeps them.
+//  Four names are defined outside the text, for C++ below and for MSL in
+//  reefmg_device_metal.cpp: rmg_h (half precision storage: half in MSL, its
+//  16 bits in C++), rmg_hf (rmg_h to float), rmg_toh (float to rmg_h, round
+//  to nearest even) and rmg_barrier (a threadgroup barrier; nothing in C++,
+//  where one work item does all the work of the group).
 //
 //  Device layout (not reefmg_core's): k SLOWEST, one halo cell in x and y,
 //  none in z, and every row (i,k) split by the red-black colour (i+j)&1:
@@ -60,6 +66,10 @@ Architect: Hans Bihs
 //                  Gauss-Seidel with the stored column factorisation, in
 //                  place; columns without an active cell are skipped; the
 //                  first half-sweep of a cycle from u = 0 without reading u
+//    rmg_smooth_h  the same with the coefficients in half precision (N 21,
+//                  the default): every coupling divided by the pivot of the
+//                  column's LU factorisation, dimensionless, so 16 bits hold
+//                  it to 5e-4 without a range problem
 //    rmg_restrict_residual
 //                  one interior coarse cell: f = mean of the fine residuals
 //                  f - A u of its children, computed in place, u = 0
@@ -68,14 +78,77 @@ Architect: Hans Bihs
 //                  fine one (reefmg_core::coarsen_t) and its activity
 //    rmg_factor    one column: the LU factors of its tridiagonal matrix
 //                  (reefmg_core::factor_lines_t)
+//    rmg_factor_h  the same, and the scaled couplings of rmg_smooth_h
 //    rmg_wrap      one halo cell of a periodic direction
 //    rmg_zero      one entry of an array
+//
+//  And one threadgroup:
+//    rmg_tail_run  the whole V-cycle of the small coarse levels at the bottom
+//                  of the hierarchy - smoothing, residual-restriction,
+//                  prolongation, the coarsest level - with barriers instead
+//                  of one dispatch per step (reefmg_device::cycle)
+
+//  C++ side of the four names
+namespace rmg_kern
+{
+    typedef unsigned short rmg_h;
+
+    inline float rmg_hf(rmg_h h)
+    {
+        union {unsigned u; float f;} o, magic;
+        magic.u = 113u << 23;
+        const unsigned shifted_exp = 0x7c00u << 13;
+        o.u = (unsigned)(h & 0x7fffu) << 13;
+        const unsigned e = shifted_exp & o.u;
+        o.u += (127u - 15u) << 23;
+        if(e == shifted_exp)            // inf, nan
+        o.u += (128u - 16u) << 23;
+        else if(e == 0)                 // zero, subnormal
+        {
+            o.u += 1u << 23;
+            o.f -= magic.f;
+        }
+        o.u |= (unsigned)(h & 0x8000u) << 16;
+        return o.f;
+    }
+
+    //  round to nearest even, as the GPU converts
+    inline rmg_h rmg_toh(float x)
+    {
+        union {unsigned u; float f;} v, inf32, max16, dmagic;
+        inf32.u = 255u << 23;
+        max16.u = (127u + 16u) << 23;
+        dmagic.u = ((127u - 15u) + (23u - 10u) + 1u) << 23;
+        v.f = x;
+        const unsigned sign = v.u & 0x80000000u;
+        v.u ^= sign;
+        unsigned o;
+        if(v.u >= max16.u)
+        o = (v.u > inf32.u) ? 0x7e00u : 0x7c00u;
+        else if(v.u < (113u << 23))     // subnormal half
+        {
+            v.f += dmagic.f;
+            o = v.u - dmagic.u;
+        }
+        else
+        {
+            const unsigned odd = (v.u >> 13) & 1u;
+            v.u += ((unsigned)(15 - 127) << 23) + 0xfffu;
+            v.u += odd;
+            o = v.u >> 13;
+        }
+        return (rmg_h)(o | (sign >> 16));
+    }
+
+    inline void rmg_barrier(){}
+}
 
 #define RMG_DEVICE_SOURCE(...)                                               \
     static const char *const rmg_kernel_source = #__VA_ARGS__;               \
     namespace rmg_kern { __VA_ARGS__ }
 
 #define device
+#define constant const
 
 RMG_DEVICE_SOURCE(
 
@@ -85,6 +158,7 @@ struct rmg_lp
     int nx, ny, nz;
     int hh, si, sk;
     int perx, pery;
+    int h16;          // the smoother's coefficients in half precision
 };
 
 //  a fine level and the next coarser one
@@ -201,6 +275,66 @@ inline void rmg_smooth(const rmg_lp P, int colour, int m, int i, int zero,
     {
         const int q = q0 + k*sk;
         u[q] -= ctc[q]*u[q+sk];
+    }
+}
+
+//  rmg_smooth with the factorisation folded into the couplings (rmg_factor_h):
+//  an..ab = cn..cb times the inverse pivot ti of the cell, hc = ctc, all in
+//  half precision; f is scaled by ti in single precision.  The same
+//  forward and backward substitution as rmg_smooth, to the rounding of the
+//  16-bit couplings (relative 2^-11).
+inline void rmg_smooth_h(const rmg_lp P, int colour, int m, int i, int zero,
+                         const device float *f, device float *u,
+                         const device rmg_h *an, const device rmg_h *as,
+                         const device rmg_h *aw, const device rmg_h *ae,
+                         const device rmg_h *ab, const device rmg_h *hc,
+                         const device float *cti, const device unsigned char *act)
+{
+    if(i>=P.nx || m>=P.hh)
+    return;
+    const int b = (colour+i+1)&1;
+    const int j = 2*m + b - 1;
+
+    const int si = P.si, sk = P.sk, nz = P.nz;
+    const int q0 = (i+1)*si + colour*P.hh + m;
+    const int o  = (1-2*colour)*P.hh;
+    const int dw = o + b;
+    const int de = o + b - 1;
+
+    if(zero!=0)
+    for(int k=0; k<nz; ++k)
+    u[q0+o+k*sk] = 0.0f;
+
+    if(j<0 || j>=P.ny)
+    return;
+
+    bool any = false;
+    for(int k=0; k<nz; ++k)
+    if(act[q0+k*sk]!=0)
+    {
+        any = true;
+        break;
+    }
+    if(!any)
+    return;
+
+    float prev = 0.0f;
+    for(int k=0; k<nz; ++k)
+    {
+        const int q = q0 + k*sk;
+        float r = f[q]*cti[q];
+        if(zero==0)
+        r -= rmg_hf(an[q])*u[q+si+o] + rmg_hf(as[q])*u[q-si+o] + rmg_hf(aw[q])*u[q+dw] + rmg_hf(ae[q])*u[q+de];
+        if(k>0)
+        r -= rmg_hf(ab[q])*prev;
+        u[q] = r;
+        prev = r;
+    }
+
+    for(int k=nz-2; k>=0; --k)
+    {
+        const int q = q0 + k*sk;
+        u[q] -= rmg_hf(hc[q])*u[q+sk];
     }
 }
 
@@ -458,6 +592,49 @@ inline void rmg_factor(const rmg_lp P, int m, int r,
     }
 }
 
+//  rmg_factor, and for rmg_smooth_h the couplings of every cell divided by
+//  its pivot, ti = 1/pivot in single precision, hc = ctc
+inline void rmg_factor_h(const rmg_lp P, int m, int r,
+                         const device float *cp, const device float *cn, const device float *cs,
+                         const device float *cw, const device float *ce, const device float *ct,
+                         const device float *cb, device float *cti,
+                         device rmg_h *an, device rmg_h *as, device rmg_h *aw, device rmg_h *ae,
+                         device rmg_h *ab, device rmg_h *hc, const device unsigned char *act)
+{
+    if(m>=P.hh)
+    return;
+    const rmg_ijk x = rmg_cell(m,r,0,P.ny);
+    if(!x.ok || x.i>=P.nx)
+    return;
+    const int sk = P.sk;
+    const int q0 = rmg_q(x.i,x.j,0,P.hh,P.si,sk);
+
+    bool any = false;
+    for(int k=0; k<P.nz; ++k)
+    if(act[q0+k*sk]!=0)
+    {
+        any = true;
+        break;
+    }
+    if(!any)
+    return;
+
+    float tcp = 0.0f;
+    for(int k=0; k<P.nz; ++k)
+    {
+        const int q = q0 + k*sk;
+        const float inv = (k==0) ? 1.0f/cp[q] : 1.0f/(cp[q] - cb[q]*tcp);
+        tcp = ct[q]*inv;
+        cti[q] = inv;
+        hc[q] = rmg_toh(tcp);
+        an[q] = rmg_toh(cn[q]*inv);
+        as[q] = rmg_toh(cs[q]*inv);
+        aw[q] = rmg_toh(cw[q]*inv);
+        ae[q] = rmg_toh(ce[q]*inv);
+        ab[q] = rmg_toh(cb[q]*inv);
+    }
+}
+
 //  periodic halo: work items 0 .. ny*nz-1 the x direction, then nx*nz the y
 //  direction; the halo corners are never read
 inline void rmg_wrap(const rmg_lp P, unsigned t, device float *u)
@@ -495,8 +672,124 @@ inline void rmg_zero(unsigned t, device float *a)
     a[t] = 0.0f;
 }
 
+//  ------------------------------------------------------------ the tail
+//  The small coarse levels lt .. nuse-1 of the hierarchy, one block of
+//  memory from level lt on (B); every array of a level at a byte offset.
+struct rmg_tlv
+{
+    rmg_lp P;
+    rmg_tp T;     // to the next coarser level (not used by the last one)
+    int of, ou, op, on, os, ow, oe, ot, ob, otc, oti, oact;
+    int ohn, ohs, ohw, ohe, ohb, ohc;
+};
+
+struct rmg_tail
+{
+    int nlev, pre, post, dpre, dpost, csweeps, pad0, pad1;
+    rmg_tlv L[12];
+};
+
+inline device float *rmg_pf(device char *B, int o)
+{
+    return (device float*)(B + o);
+}
+
+inline device rmg_h *rmg_ph(device char *B, int o)
+{
+    return (device rmg_h*)(B + o);
+}
+
+inline device unsigned char *rmg_pa(device char *B, int o)
+{
+    return (device unsigned char*)(B + o);
+}
+
+inline void rmg_tail_wrap(constant rmg_tlv &V, device char *B, unsigned tid, unsigned tg)
+{
+    const rmg_lp P = V.P;
+    const int nw = rmg_nwrap(P);
+    for(int t=int(tid); t<nw; t+=int(tg))
+    rmg_wrap(P,unsigned(t),rmg_pf(B,V.ou));
+    rmg_barrier();
+}
+
+//  reefmg_device::smooth: the periodic halo before every half-sweep
+inline void rmg_tail_smooth(constant rmg_tlv &V, device char *B, int sweeps, int dir,
+                            unsigned tid, unsigned tg)
+{
+    const rmg_lp P = V.P;
+    const int n = P.nx*P.hh;
+    const bool per = (P.perx!=0 || P.pery!=0);
+    for(int sw=0; sw<sweeps; ++sw)
+    for(int h=0; h<2; ++h)
+    {
+        if(per)
+        rmg_tail_wrap(V,B,tid,tg);
+        const int colour = (dir==1) ? 1-h : h;
+        for(int t=int(tid); t<n; t+=int(tg))
+        {
+            const int m = t % P.hh, i = t / P.hh;
+            if(P.h16!=0)
+            rmg_smooth_h(P,colour,m,i,0,rmg_pf(B,V.of),rmg_pf(B,V.ou),
+                         rmg_ph(B,V.ohn),rmg_ph(B,V.ohs),rmg_ph(B,V.ohw),rmg_ph(B,V.ohe),
+                         rmg_ph(B,V.ohb),rmg_ph(B,V.ohc),rmg_pf(B,V.oti),rmg_pa(B,V.oact));
+            else
+            rmg_smooth(P,colour,m,i,0,rmg_pf(B,V.of),rmg_pf(B,V.ou),
+                       rmg_pf(B,V.on),rmg_pf(B,V.os),rmg_pf(B,V.ow),rmg_pf(B,V.oe),
+                       rmg_pf(B,V.ob),rmg_pf(B,V.otc),rmg_pf(B,V.oti),rmg_pa(B,V.oact));
+        }
+        rmg_barrier();
+    }
+}
+
+//  reefmg_device::cycle from level lt (L[0]) down, without recursion (MSL
+//  has none): work item tid of tg does every tg-th item of every step
+inline void rmg_tail_run(constant rmg_tail &X, device char *B, unsigned tid, unsigned tg)
+{
+    const int nl = X.nlev;
+
+    for(int l=0; l<nl-1; ++l)
+    {
+        rmg_tail_smooth(X.L[l],B,X.pre,X.dpre,tid,tg);
+        const rmg_lp P = X.L[l].P;
+        if(P.perx!=0 || P.pery!=0)
+        rmg_tail_wrap(X.L[l],B,tid,tg);
+
+        const rmg_tp T = X.L[l].T;
+        const int nr = 2*T.cnx;
+        const int n = T.chh*nr*T.nz;
+        for(int t=int(tid); t<n; t+=int(tg))
+        {
+            const int M = t % T.chh, w = t / T.chh;
+            rmg_restrict_residual(T,P,M,w%nr,w/nr,
+                                  rmg_pf(B,X.L[l].of),rmg_pf(B,X.L[l].ou),rmg_pf(B,X.L[l].op),
+                                  rmg_pf(B,X.L[l].on),rmg_pf(B,X.L[l].os),rmg_pf(B,X.L[l].ow),
+                                  rmg_pf(B,X.L[l].oe),rmg_pf(B,X.L[l].ot),rmg_pf(B,X.L[l].ob),
+                                  rmg_pf(B,X.L[l+1].of),rmg_pf(B,X.L[l+1].ou));
+        }
+        rmg_barrier();
+    }
+
+    rmg_tail_smooth(X.L[nl-1],B,X.csweeps,2,tid,tg);
+
+    for(int l=nl-2; l>=0; --l)
+    {
+        const rmg_tp T = X.L[l].T;
+        const int nr = 2*T.fnx;
+        const int n = T.fhh*nr*T.nz;
+        for(int t=int(tid); t<n; t+=int(tg))
+        {
+            const int m = t % T.fhh, w = t / T.fhh;
+            rmg_prolong(T,m,w%nr,w/nr,rmg_pf(B,X.L[l+1].ou),rmg_pf(B,X.L[l].ou),rmg_pa(B,X.L[l].oact));
+        }
+        rmg_barrier();
+        rmg_tail_smooth(X.L[l],B,X.post,X.dpost,tid,tg);
+    }
+}
+
 )
 
 #undef device
+#undef constant
 
 #endif

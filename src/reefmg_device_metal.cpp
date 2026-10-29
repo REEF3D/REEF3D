@@ -37,12 +37,14 @@ Architect: Hans Bihs
 //  - The kernels are the text of reefmg_device_kernels.h plus the entry
 //    points below, compiled at run time (newLibraryWithSource), once per
 //    process and shared by every hierarchy: no offline Metal compiler.
-//  - Every level is one MTLBuffer in shared storage, its arrays at the
-//    offsets of rmg_layout.  The fine level can be the caller's memory (the
-//    MPI shared window of reefmg_core), wrapped without a copy.
+//  - The fine level is one MTLBuffer in shared storage, its arrays at the
+//    offsets of rmg_layout; it can be the caller's memory (the MPI shared
+//    window of reefmg_core), wrapped without a copy.  The coarse levels are
+//    one more buffer, every level at its offset in it.
 //  - Kernels are queued into one compute encoder of serial dispatch type and
 //    committed at sync(): one V-cycle is one command buffer and one wait.
-//    The coarsest level's sweeps run as one dispatch of one threadgroup.
+//    The small coarse levels at the bottom of the V-cycle run as one
+//    dispatch of one threadgroup (k_tail, see reefmg_device::tail_level).
 
 #include "reefmg_device.h"
 
@@ -60,6 +62,16 @@ Architect: Hans Bihs
 
 namespace
 {
+    //  the four names reefmg_device_kernels.h leaves to the MSL side
+    const char *rmg_metal_prelude = R"MSL(
+
+typedef half rmg_h;
+inline float rmg_hf(rmg_h x){return float(x);}
+inline rmg_h rmg_toh(float x){return rmg_h(x);}
+inline void rmg_barrier(){threadgroup_barrier(mem_flags::mem_device);}
+
+)MSL";
+
     const char *rmg_metal_entries = R"MSL(
 
 kernel void k_smooth(constant rmg_lp &P [[buffer(0)]], constant int2 &cz [[buffer(1)]],
@@ -73,30 +85,21 @@ kernel void k_smooth(constant rmg_lp &P [[buffer(0)]], constant int2 &cz [[buffe
     rmg_smooth(P,cz.x,int(g.x),int(g.y),cz.y,f,u,cn,cs,cw,ce,cb,ctc,cti,act);
 }
 
-kernel void k_coarse(constant rmg_lp &P [[buffer(0)]], constant int &sweeps [[buffer(1)]],
-                     const device float *f [[buffer(2)]], device float *u [[buffer(3)]],
-                     const device float *cn [[buffer(4)]], const device float *cs [[buffer(5)]],
-                     const device float *cw [[buffer(6)]], const device float *ce [[buffer(7)]],
-                     const device float *cb [[buffer(8)]], const device float *ctc [[buffer(9)]],
-                     const device float *cti [[buffer(10)]], const device unsigned char *act [[buffer(11)]],
-                     uint tid [[thread_position_in_threadgroup]], uint tg [[threads_per_threadgroup]])
+kernel void k_smooth_h(constant rmg_lp &P [[buffer(0)]], constant int2 &cz [[buffer(1)]],
+                       const device float *f [[buffer(2)]], device float *u [[buffer(3)]],
+                       const device half *an [[buffer(4)]], const device half *as [[buffer(5)]],
+                       const device half *aw [[buffer(6)]], const device half *ae [[buffer(7)]],
+                       const device half *ab [[buffer(8)]], const device half *hc [[buffer(9)]],
+                       const device float *cti [[buffer(10)]], const device unsigned char *act [[buffer(11)]],
+                       uint2 g [[thread_position_in_grid]])
 {
-    const uint nc = uint(P.nx*P.hh);
-    const uint nw = uint(rmg_nwrap(P));
-    const bool per = (P.perx!=0 || P.pery!=0);
+    rmg_smooth_h(P,cz.x,int(g.x),int(g.y),cz.y,f,u,an,as,aw,ae,ab,hc,cti,act);
+}
 
-    for(int sw=0; sw<sweeps; ++sw)
-    for(int h=0; h<2; ++h)
-    {
-        if(per)
-        {
-            for(uint t=tid; t<nw; t+=tg) rmg_wrap(P,t,u);
-            threadgroup_barrier(mem_flags::mem_device);
-        }
-        for(uint t=tid; t<nc; t+=tg)
-        rmg_smooth(P,h,int(t%uint(P.hh)),int(t/uint(P.hh)),0,f,u,cn,cs,cw,ce,cb,ctc,cti,act);
-        threadgroup_barrier(mem_flags::mem_device);
-    }
+kernel void k_tail(constant rmg_tail &X [[buffer(0)]], device char *B [[buffer(1)]],
+                   uint tid [[thread_position_in_threadgroup]], uint tg [[threads_per_threadgroup]])
+{
+    rmg_tail_run(X,B,tid,tg);
 }
 
 kernel void k_restrict(constant rmg_tp &T [[buffer(0)]], constant rmg_lp &F [[buffer(1)]],
@@ -144,6 +147,20 @@ kernel void k_factor(constant rmg_lp &P [[buffer(0)]],
     rmg_factor(P,int(g.x),int(g.y),cp,ct,cb,ctc,cti,act);
 }
 
+kernel void k_factor_h(constant rmg_lp &P [[buffer(0)]],
+                       const device float *cp [[buffer(2)]], const device float *cn [[buffer(3)]],
+                       const device float *cs [[buffer(4)]], const device float *cw [[buffer(5)]],
+                       const device float *ce [[buffer(6)]], const device float *ct [[buffer(7)]],
+                       const device float *cb [[buffer(8)]], device float *cti [[buffer(9)]],
+                       device half *an [[buffer(10)]], device half *as [[buffer(11)]],
+                       device half *aw [[buffer(12)]], device half *ae [[buffer(13)]],
+                       device half *ab [[buffer(14)]], device half *hc [[buffer(15)]],
+                       const device unsigned char *act [[buffer(16)]],
+                       uint2 g [[thread_position_in_grid]])
+{
+    rmg_factor_h(P,int(g.x),int(g.y),cp,cn,cs,cw,ce,ct,cb,cti,an,as,aw,ae,ab,hc,act);
+}
+
 kernel void k_wrap(constant rmg_lp &P [[buffer(0)]], device float *u [[buffer(2)]],
                    uint t [[thread_position_in_grid]])
 {
@@ -157,9 +174,10 @@ kernel void k_zero(device float *a [[buffer(2)]], uint t [[thread_position_in_gr
 
 )MSL";
 
-    enum {PS_SMOOTH=0, PS_COARSE, PS_RESTRICT, PS_PROLONG, PS_COARSEN, PS_FACTOR, PS_WRAP, PS_ZERO, PS_N};
-    const char *ps_names[PS_N]={"k_smooth","k_coarse","k_restrict","k_prolong",
-                                "k_coarsen","k_factor","k_wrap","k_zero"};
+    enum {PS_SMOOTH=0, PS_SMOOTH_H, PS_TAIL, PS_RESTRICT, PS_PROLONG, PS_COARSEN, PS_FACTOR, PS_FACTOR_H,
+          PS_WRAP, PS_ZERO, PS_N};
+    const char *ps_names[PS_N]={"k_smooth","k_smooth_h","k_tail","k_restrict","k_prolong",
+                                "k_coarsen","k_factor","k_factor_h","k_wrap","k_zero"};
 
     //  ------------------------------------------- Objective-C runtime, by hand
     typedef void* obj;                 // id
@@ -284,6 +302,8 @@ kernel void k_zero(device float *a [[buffer(2)]], uint t [[thread_position_in_gr
         c.queue=msg<obj>(c.device,RMG_SEL("newCommandQueue"));
 
         std::string src="#include <metal_stdlib>\nusing namespace metal;\n";
+        src+=rmg_metal_prelude;
+        src+="\n";
         src+=rmg_kernel_source;
         src+="\n";
         src+=rmg_metal_entries;
@@ -351,55 +371,54 @@ kernel void k_zero(device float *a [[buffer(2)]], uint t [[thread_position_in_gr
             return "Metal GPU "+cstr(msg<obj>(ctx.device,RMG_SEL("name")));
         }
 
-        bool build(const std::vector<rmg_level_desc> &lv,int px,int py,void *ext0,std::string &err) override
+        bool build(const std::vector<rmg_level_desc> &lv,int px,int py,bool half16,void *ext0,std::string &err) override
         {
-            desc=lv; perx=px; pery=py;
             free_buffers();
-            lay.clear();
+            const long nb=plan_levels(lv,px,py,half16);
             bytes=0;
-
             for(size_t l=0;l<lv.size();++l)
+            if(lay[l].sk*lv[l].nz>=2147483647L)
             {
-                if(rmg_layout(lv[l].nx,lv[l].ny,lv[l].nz).sk*lv[l].nz>=2147483647L)
+                err="level too large for 32-bit indexing";
+                return false;
+            }
+
+            obj b=nullptr;
+            const long len=lay[0].bytes;
+            if(ext0)
+            {
+                const long page=sysconf(_SC_PAGESIZE)>0? sysconf(_SC_PAGESIZE) : 16384;
+                const long wlen=(len+page-1)/page*page;
+                b=msg<obj>(ctx.device,RMG_SEL("newBufferWithBytesNoCopy:length:options:deallocator:"),
+                           ext0,(nsuint)wlen,MTL_STORAGE_SHARED,(void*)nullptr);
+                if(!b)
                 {
-                    err="level too large for 32-bit indexing";
+                    err="Metal cannot use the shared fine level without a copy";
                     return false;
                 }
-                lay.push_back(rmg_layout(lv[l].nx,lv[l].ny,lv[l].nz));
-                const long len=lay.back().bytes;
-                obj b=nullptr;
-
-                if(l==0 && ext0)
-                {
-                    const long page=sysconf(_SC_PAGESIZE)>0? sysconf(_SC_PAGESIZE) : 16384;
-                    const long wlen=(len+page-1)/page*page;
-                    b=msg<obj>(ctx.device,RMG_SEL("newBufferWithBytesNoCopy:length:options:deallocator:"),
-                               ext0,(nsuint)wlen,MTL_STORAGE_SHARED,(void*)nullptr);
-                    if(!b)
-                    {
-                        err="Metal cannot use the shared fine level without a copy";
-                        return false;
-                    }
-                }
-                else
-                {
-                    b=msg<obj>(ctx.device,RMG_SEL("newBufferWithLength:options:"),(nsuint)len,MTL_STORAGE_SHARED);
-                    if(!b)
-                    {
-                        err="Metal buffer allocation of "+std::to_string(len)+" bytes failed";
-                        return false;
-                    }
-                    std::memset(contents(b),0,(size_t)len);
-                    bytes+=len;
-                }
-                buf.push_back(b);
             }
+            else
+            {
+                b=new_buffer(len,err);
+                if(!b) return false;
+                bytes+=len;
+            }
+            buf.assign(lv.size(),b);
+
+            if(nb>0)
+            {
+                blk=new_buffer(nb,err);
+                if(!blk) return false;
+                bytes+=nb;
+                for(size_t l=1;l<lv.size();++l) buf[l]=blk;
+            }
+            profl.assign(lv.size(),0.0);
             return true;
         }
 
         void* arr(int l,int a) override
         {
-            return (char*)contents(buf[l])+lay[l].off[a];
+            return (char*)contents(buf[l])+lbase[l]+lay[l].off[a];
         }
 
         bool sync(std::string &err) override
@@ -440,6 +459,15 @@ kernel void k_zero(device float *a [[buffer(2)]], uint t [[thread_position_in_gr
                          tot>0.0? 100.0*prof[k]/tot : 0.0);
                 r+=b;
             }
+            //  by level; the tail is counted with its first level
+            for(size_t l=0;l<profl.size();++l)
+            if(profl[l]>0.0)
+            {
+                snprintf(b,sizeof(b),"    level %-2d %5d x %5d x %3d  %9.3f ms  %5.1f %%%s\n",(int)l,desc[l].nx,desc[l].ny,
+                         desc[l].nz,1.0e3*profl[l],tot>0.0? 100.0*profl[l]/tot : 0.0,
+                         ((int)l==proftail)? "  (tail: this level and below)" : "");
+                r+=b;
+            }
             return r;
         }
 
@@ -448,42 +476,39 @@ kernel void k_zero(device float *a [[buffer(2)]], uint t [[thread_position_in_gr
         void k_smooth(int l,int colour,int zero) override
         {
             const rmg_kern::rmg_lp P=lp(l);
-            obj e=begin(PS_SMOOTH);
+            const int ps=h16? PS_SMOOTH_H : PS_SMOOTH;
+            obj e=begin(ps,l);
             const int cz[2]={colour,zero};
             bytes_at(e,&P,sizeof(P),0);
             bytes_at(e,cz,sizeof(cz),1);
-            const int a[]={RMG_F,RMG_U,RMG_N,RMG_S,RMG_W,RMG_E,RMG_B,RMG_TC,RMG_TI,RMG_ACT};
-            bind(e,l,a,10,2);
-            dispatch3(e,PS_SMOOTH,P.hh,P.nx,1);
+            const int a32[]={RMG_F,RMG_U,RMG_N,RMG_S,RMG_W,RMG_E,RMG_B,RMG_TC,RMG_TI,RMG_ACT};
+            const int a16[]={RMG_F,RMG_U,RMG_HN,RMG_HS,RMG_HW,RMG_HE,RMG_HB,RMG_HC,RMG_TI,RMG_ACT};
+            bind(e,l,h16? a16 : a32,10,2);
+            dispatch3(e,ps,P.hh,P.nx,1);
         }
 
-        //  the sweeps of a small coarsest level in one threadgroup
-        void k_coarse_solve(int l,int sweeps) override
+        //  levels lt .. nuse-1 in one threadgroup, from the block of the
+        //  coarse levels at level lt
+        void k_tail(int lt,int nuse,int pre,int post,int sweepstyle,int coarse_sweeps) override
         {
-            const rmg_kern::rmg_lp P=lp(l);
-            const long nc=(long)P.nx*P.hh;
-            if(nc>4096)
-            {
-                reefmg_device::k_coarse_solve(l,sweeps);
-                return;
-            }
-            obj e=begin(PS_COARSE);
-            bytes_at(e,&P,sizeof(P),0);
-            bytes_at(e,&sweeps,sizeof(int),1);
-            const int a[]={RMG_F,RMG_U,RMG_N,RMG_S,RMG_W,RMG_E,RMG_B,RMG_TC,RMG_TI,RMG_ACT};
-            bind(e,l,a,10,2);
-            nsuint w=max_threads(ctx.ps[PS_COARSE]);
+            rmg_kern::rmg_tail X;
+            tail_params(lt,nuse,pre,post,sweepstyle,coarse_sweeps,X);
+            obj e=begin(PS_TAIL,lt);
+            bytes_at(e,&X,sizeof(X),0);
+            msg<void>(e,RMG_SEL("setBuffer:offset:atIndex:"),blk,(nsuint)lbase[lt],(nsuint)1);
+            nsuint w=max_threads(ctx.ps[PS_TAIL]);
             if(w>1024) w=1024;
             const mtl_size grid={1,1,1}, group={w,1,1};
             msg<void>(e,RMG_SEL("dispatchThreadgroups:threadsPerThreadgroup:"),grid,group);
-            if(profile) flush_profile(PS_COARSE);
+            proftail=lt;
+            if(profile) flush_profile(PS_TAIL);
         }
 
         void k_restrict(int l) override
         {
             const rmg_kern::rmg_tp T=tp(l);
             const rmg_kern::rmg_lp F=lp(l);
-            obj e=begin(PS_RESTRICT);
+            obj e=begin(PS_RESTRICT,l);
             bytes_at(e,&T,sizeof(T),0);
             bytes_at(e,&F,sizeof(F),1);
             const int af[]={RMG_F,RMG_U,RMG_P,RMG_N,RMG_S,RMG_W,RMG_E,RMG_T,RMG_B};
@@ -496,7 +521,7 @@ kernel void k_zero(device float *a [[buffer(2)]], uint t [[thread_position_in_gr
         void k_prolong(int l) override
         {
             const rmg_kern::rmg_tp T=tp(l);
-            obj e=begin(PS_PROLONG);
+            obj e=begin(PS_PROLONG,l);
             bytes_at(e,&T,sizeof(T),0);
             const int ac[]={RMG_U};
             const int af[]={RMG_U,RMG_ACT};
@@ -508,7 +533,7 @@ kernel void k_zero(device float *a [[buffer(2)]], uint t [[thread_position_in_gr
         void k_coarsen(int l) override
         {
             const rmg_kern::rmg_tp T=tp(l);
-            obj e=begin(PS_COARSEN);
+            obj e=begin(PS_COARSEN,l);
             bytes_at(e,&T,sizeof(T),0);
             const int af[]={RMG_P,RMG_N,RMG_S,RMG_W,RMG_E,RMG_T,RMG_B,RMG_ACT,RMG_HX,RMG_HY};
             bind(e,l,af,10,2);
@@ -519,7 +544,17 @@ kernel void k_zero(device float *a [[buffer(2)]], uint t [[thread_position_in_gr
         void k_factor(int l) override
         {
             const rmg_kern::rmg_lp P=lp(l);
-            obj e=begin(PS_FACTOR);
+            if(h16)
+            {
+                obj e=begin(PS_FACTOR_H,l);
+                bytes_at(e,&P,sizeof(P),0);
+                const int a[]={RMG_P,RMG_N,RMG_S,RMG_W,RMG_E,RMG_T,RMG_B,RMG_TI,
+                               RMG_HN,RMG_HS,RMG_HW,RMG_HE,RMG_HB,RMG_HC,RMG_ACT};
+                bind(e,l,a,15,2);
+                dispatch3(e,PS_FACTOR_H,P.hh,2*P.nx,1);
+                return;
+            }
+            obj e=begin(PS_FACTOR,l);
             bytes_at(e,&P,sizeof(P),0);
             const int a[]={RMG_P,RMG_T,RMG_B,RMG_TC,RMG_TI,RMG_ACT};
             bind(e,l,a,6,2);
@@ -529,7 +564,7 @@ kernel void k_zero(device float *a [[buffer(2)]], uint t [[thread_position_in_gr
         void k_wrap(int l) override
         {
             const rmg_kern::rmg_lp P=lp(l);
-            obj e=begin(PS_WRAP);
+            obj e=begin(PS_WRAP,l);
             bytes_at(e,&P,sizeof(P),0);
             const int a[]={RMG_U};
             bind(e,l,a,1,2);
@@ -538,7 +573,7 @@ kernel void k_zero(device float *a [[buffer(2)]], uint t [[thread_position_in_gr
 
         void k_zero(int l,int v) override
         {
-            obj e=begin(PS_ZERO);
+            obj e=begin(PS_ZERO,l);
             const int a[]={v};
             bind(e,l,a,1,2);
             dispatch1(e,PS_ZERO,lay[l].sk*desc[l].nz);
@@ -553,13 +588,29 @@ kernel void k_zero(device float *a [[buffer(2)]], uint t [[thread_position_in_gr
 
         void free_buffers()
         {
-            for(size_t l=0;l<buf.size();++l) release(buf[l]);
+            if(!buf.empty()) release(buf[0]);
+            release(blk);
             buf.clear();
+            blk=nullptr;
         }
 
-        //  the current compute encoder, set to kernel k
-        obj begin(int k)
+        obj new_buffer(long len,std::string &err)
         {
+            obj b=msg<obj>(ctx.device,RMG_SEL("newBufferWithLength:options:"),(nsuint)len,MTL_STORAGE_SHARED);
+            if(!b)
+            {
+                err="Metal buffer allocation of "+std::to_string(len)+" bytes failed";
+                return nullptr;
+            }
+            std::memset(contents(b),0,(size_t)len);
+            return b;
+        }
+
+        //  the current compute encoder, set to kernel k (of level l, for the
+        //  profile)
+        obj begin(int k,int l)
+        {
+            curlev=l;
             if(!enc)
             {
                 pool p;
@@ -580,7 +631,7 @@ kernel void k_zero(device float *a [[buffer(2)]], uint t [[thread_position_in_gr
         {
             obj b[16];
             nsuint o[16];
-            for(int m=0;m<n;++m){b[m]=buf[l]; o[m]=(nsuint)lay[l].off[a[m]];}
+            for(int m=0;m<n;++m){b[m]=buf[l]; o[m]=(nsuint)(lbase[l]+lay[l].off[a[m]]);}
             const ns_range r={(nsuint)first,(nsuint)n};
             msg<void>(e,RMG_SEL("setBuffers:offsets:withRange:"),(const obj*)b,(const nsuint*)o,r);
         }
@@ -635,34 +686,15 @@ kernel void k_zero(device float *a [[buffer(2)]], uint t [[thread_position_in_gr
         //  profiling: this kernel alone in a command buffer, timed on the GPU
         void flush_profile(int k)
         {
-            prof[k]+=commit_and_wait();
+            const double t=commit_and_wait();
+            prof[k]+=t;
             ++profn[k];
-        }
-
-        rmg_kern::rmg_lp lp(int l) const
-        {
-            const rmg_level_desc &d=desc[l];
-            rmg_kern::rmg_lp P;
-            const rmg_layout L(d.nx,d.ny,d.nz);
-            P.nx=d.nx; P.ny=d.ny; P.nz=d.nz; P.hh=L.hh; P.si=L.si; P.sk=(int)L.sk;
-            P.perx=perx; P.pery=pery;
-            return P;
-        }
-
-        rmg_kern::rmg_tp tp(int l) const
-        {
-            const rmg_level_desc &f=desc[l], &c=desc[l+1];
-            rmg_kern::rmg_tp T;
-            const rmg_layout LF(f.nx,f.ny,f.nz), LC(c.nx,c.ny,c.nz);
-            T.fnx=f.nx; T.fny=f.ny; T.nz=f.nz; T.fhh=LF.hh; T.fsi=LF.si; T.fsk=(int)LF.sk;
-            T.cnx=c.nx; T.cny=c.ny; T.chh=LC.hh; T.csi=LC.si; T.csk=(int)LC.sk;
-            T.rx=c.rx; T.ry=c.ry; T.perx=perx; T.pery=pery;
-            return T;
+            if(curlev>=0 && curlev<(int)profl.size()) profl[curlev]+=t;
         }
 
         metal_ctx &ctx;
-        std::vector<obj> buf;
-        std::vector<rmg_layout> lay;
+        std::vector<obj> buf;      // buffer of every level: level 0's, then blk
+        obj blk=nullptr;           // the coarse levels
         obj cb=nullptr;
         obj enc=nullptr;
         long bytes=0;
@@ -672,6 +704,8 @@ kernel void k_zero(device float *a [[buffer(2)]], uint t [[thread_position_in_gr
         bool profile=false;
         double prof[PS_N];
         long profn[PS_N];
+        std::vector<double> profl;
+        int curlev=-1, proftail=-1;
     };
 
     #undef RMG_SEL
