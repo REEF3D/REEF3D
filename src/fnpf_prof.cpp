@@ -41,7 +41,7 @@ namespace fnpf_prof
             "wave generation (precalc)", "RK stages (total)", "printer + LAGOON poll", "time step",
             "kfsfbc + dfsfbc", "fsfdisc (WENO, metrics)", "sigma_update", "fsfbc_sig + bedbc_sig",
             "Fi halo exchange (start7V)", "Laplace solve", "fsfwvel", "velcalc_sig (+U,V,W halos)",
-            "eta/Fifsf relaxation", "damping (beach)", "wetdry", "coastline", "breaking", "inflow_fnpf",
+            "eta/Fifsf relaxation", "damping (vb: breaking, coastline)", "wetdry", "coastline", "breaking", "inflow_fnpf",
             "slice halo exchange (gcsl)", "body (6DOF/ALE)"
         };
     }

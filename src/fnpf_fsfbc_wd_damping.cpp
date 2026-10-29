@@ -172,6 +172,8 @@ void fnpf_fsfbc_wd::damping(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f, int
         
         pgc->gcsl_start4(p,f,gcval);
         
+        // the rows with viscosity only (Jacobi, same residual), BiCGStab over all columns if that does not converge
+        if(!damping_local(p,c,pgc,f))
         psolv->start(p,pgc,f,c->N,c->xvec,c->rvec,4);
         
         double time=pgc->timer()-starttime;
@@ -179,4 +181,91 @@ void fnpf_fsfbc_wd::damping(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f, int
         if(p->mpirank==0 && p->count%p->P12==0 && p->D21==1)
         cout<<"fsfbc_damping: "<<p->solveriter<<"  fsfbc_damping_time: "<<setprecision(3)<<time<<endl;
     }
+}
+
+// The damping system (1/(alpha dt) + L_vb) f_new = f/(alpha dt): only the rows with breaking or coastline
+// viscosity vb > 0 (A 346) couple to their neighbours. Every other row is diagonal: a wet cell keeps f, a
+// dry cell takes its right-hand side. BiCGStab iterated over all columns of the domain for the few rows of
+// the breaking zones and the coastline band; here the diagonal rows are set directly and the coupled rows
+// are solved by Jacobi iterations (the rows are diagonally dominant by 1/(alpha dt): convergence factor
+// kappa/(1+kappa), kappa = 4 vb alpha dt/dx^2) until the residual is 1e-10 of the initial one. (The test of
+// BiCGStab, |r|_2/cellnumtot2D < N 44, is met by the old f on large grids; BiCGStab still does one
+// iteration, which nearly solves this system. Jacobi with that test would do none.)
+// As in BiCGStab the iterate is a separate vector with the halo exchange of the parallel boundaries, and f
+// gets the solution in its interior cells. Without convergence after N 46 iterations f is not changed
+// and the caller solves with BiCGStab.
+bool fnpf_fsfbc_wd::damping_local(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f)
+{
+    const int nij = p->imax*p->jmax;
+    
+    if(int(damp_x.size())!=nij)
+    damp_x.assign(nij,0.0);
+    
+    double *const x = damp_x.data();
+    const int sI = p->jmax;
+    
+    // diagonal rows directly, coupled rows into the list
+    damp_act.clear();
+    
+    n=0;
+    SLICELOOP4
+    {
+        if(c->N.s[n]!=0.0 || c->N.n[n]!=0.0 || c->N.e[n]!=0.0 || c->N.w[n]!=0.0)
+        {
+            damp_act.push_back({IJ,n});
+            x[IJ] = f(i,j);
+        }
+        else
+        x[IJ] = c->rvec.V[n]/c->N.p[n];
+        
+        ++n;
+    }
+    
+    const int na = int(damp_act.size());
+    damp_r.resize(na);
+    
+    p->solveriter = 0;
+    double residual0 = 0.0;
+    
+    while(true)
+    {
+        pgc->gcslparaxijk_single(p,x,4);
+        
+        double sum = 0.0;
+        
+        for(int a=0; a<na; ++a)
+        {
+            const int q = damp_act[a].q;
+            const int m = damp_act[a].n;
+            
+            const double r = c->rvec.V[m] - (c->N.p[m]*x[q]
+                                           + c->N.n[m]*x[q+sI]
+                                           + c->N.s[m]*x[q-sI]
+                                           + c->N.w[m]*x[q+1]
+                                           + c->N.e[m]*x[q-1]);
+            damp_r[a] = r;
+            sum += r*r;
+        }
+        
+        const double residual = sqrt(pgc->globalsum(sum));
+        
+        if(p->solveriter==0)
+        residual0 = residual;
+        
+        if(residual<=1.0e-10*residual0)
+        break;
+        
+        if(p->solveriter>=p->N46)
+        return false;
+        
+        for(int a=0; a<na; ++a)
+        x[damp_act[a].q] += damp_r[a]/c->N.p[damp_act[a].n];
+        
+        ++p->solveriter;
+    }
+    
+    SLICELOOP4
+    f(i,j) = x[IJ];
+    
+    return true;
 }

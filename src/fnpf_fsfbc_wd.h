@@ -111,6 +111,12 @@ private:
 
     // connectivity to the main water body and Fifsf gauge of wet pockets
     void wd_connect(lexer*,fdm_fnpf*,ghostcell*,slice&,bool);
+    
+    // damping: Jacobi on the rows with viscosity, the other rows are diagonal
+    struct damp_row {int q,n;};
+    std::vector<damp_row> damp_act;
+    std::vector<double> damp_x,damp_r;
+    bool damping_local(lexer*,fdm_fnpf*,ghostcell*,slice&);
     sliceint4 wdconn;           // 1: wet and connected to the main water body
     sliceint4 wdref;            // rewetted in this flag update from a connected neighbour
     slice4 wdL,wdS;             // flood fill label and Fifsf gauge shift
