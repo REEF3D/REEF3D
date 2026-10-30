@@ -28,13 +28,15 @@ Architect: Hans Bihs
 
 class lexer;
 class fdm2D;
+class fdm_nhf;
 class ghostcell;
 class sediment_fdm;
+class seastate_coupling;
 
 using namespace std;
 
 /*--------------------------------------------------------------------
-Waves in the sediment transport of SFLOW (S 110 > 0)
+Waves in the sediment transport of SFLOW and NHFLOW (S 110 > 0)
 
 Wave parameters of the cells
   S 110 1  from REEF3D::SEASTATE (A 750 1, seastate_coupling::bed_waves),
@@ -79,8 +81,22 @@ current bed shear stress tau_c of S 16 (bedshear::taubed):
   with the vortex force (A 751 2) the host velocity;
   the bed load formulas S 11 1-5 see tau_m (S 115 1) or tau_max (S 115 2),
   the wave formulas S 11 6-9 (bedload_waves) use the wave fields directly.
-v1: SFLOW (A 10 2), Cartesian grid, one grid (no mesh refinement,
-curvilinear grid or blocks).
+NHFLOW (A 10 5) as the current model of phase-averaged waves (SEASTATE
+A 750 1 or prescribed S 110 2; no wave generation in NHFLOW, B 90 0, B 98 < 2):
+  the current is the velocity of the bottom sigma layer (s->P, s->Q);
+  with the radiation stress (A 751 1) the SEASTATE force is uniform over
+  the layers and the NHFLOW velocity Lagrangian, the Eulerian current is
+  the bottom velocity minus M/h (S 119 0), and tau_c of S 16 (from the
+  NHFLOW velocity) is corrected with the rough log law of the bottom
+  layer, tau_c + rho (kappa/ln(30 z_b/ks_eff))^2 (|u_E|^2 - |u_L|^2) >= 0
+  (eulerian_nhflow);
+  the wave formulas S 11 6-9 take the depth-averaged current of the log
+  profile through the bottom velocity (depth_mean_nhflow, as Delft3D for
+  the depth-averaged formulas in 3D):
+    U = u_b (ln(h/z0) - 1)/ln(z_b/z0),  z_b = half the bottom layer,
+    z0 = ks_eff/30
+v1: Cartesian grid, one grid (no mesh refinement, curvilinear grid or
+blocks).
 --------------------------------------------------------------------*/
 
 class sediment_waves : public increment
@@ -90,11 +106,18 @@ public:
     virtual ~sediment_waves() = default;
     
     // wave parameters of the cells (every call; SEASTATE spectra only after a new wave step)
-    void start(lexer*, fdm2D*, ghostcell*, sediment_fdm*);
+    void start(lexer*, seastate_coupling*, ghostcell*, sediment_fdm*);
     
     // S 119 0 with SEASTATE and the radiation stress (A 751 1, host velocity = Lagrangian): the Eulerian current
     // of the sediment transport, s->P and s->Q minus the Stokes drift M/h of the faces (ramped as the host)
     void eulerian(lexer*, fdm2D*, ghostcell*, sediment_fdm*);
+    
+    // NHFLOW, S 119 0 with SEASTATE and the radiation stress: the Eulerian bottom velocity s->P, s->Q (minus M/h)
+    // and the correction dtc of tau_c for the Eulerian current (bedshear)
+    void eulerian_nhflow(lexer*, fdm_nhf*, ghostcell*, sediment_fdm*);
+    
+    // NHFLOW, S 11 6-9: s->P, s->Q from the bottom layer to the depth-averaged current of the log profile
+    static void depth_mean_nhflow(lexer*, ghostcell*, sediment_fdm*);
     
     // wave and current bed shear stress, after bedshear::taubed (tau_c in s->tau_eff)
     void bedshear(lexer*, ghostcell*, sediment_fdm*);
@@ -117,9 +140,11 @@ public:
     slice4 Tw,Dbr,kb,Ure,Uw,Sk,As,ua;
     // bed shear stresses [N/m^2] and wave friction factor
     slice4 tauc,tauw,taum,taumax,fw;
+    // NHFLOW: correction of the current bed shear stress for the Eulerian current [N/m^2] (0 without)
+    slice4 dtc;
     
 private:
-    void seastate(lexer*, fdm2D*);
+    void seastate(lexer*, seastate_coupling*);
     void prescribed(lexer*, sediment_fdm*);
     void derived(lexer*, ghostcell*, sediment_fdm*);
     

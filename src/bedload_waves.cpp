@@ -125,8 +125,8 @@ void bedload_waves::soulsby_vanrijn(lexer *p, sediment_fdm *s, double &qx, doubl
     
     Ls(i,j) = Ass*st;
     
-    // bed part, plus the suspended part without the suspended load model
-    const double A = (p->S120>0) ? Asb : Asb + Ass;
+    // bed part, plus the suspended part without a suspended load model (SFLOW S 120, NHFLOW S 12)
+    const double A = (p->S120>0 || (p->A10==5 && p->S12>0)) ? Asb : Asb + Ass;
     
     qx = A*st*utx;
     qy = A*st*uty;
@@ -232,8 +232,8 @@ void bedload_waves::bailard(lexer *p, sediment_fdm *s, double &qx, double &qy)
     qx = cb*m3x;
     qy = cb*m3y;
     
-    // suspended part without the suspended load model
-    if(p->S120==0)
+    // suspended part without a suspended load model (SFLOW S 120, NHFLOW S 12)
+    if(p->S120==0 && !(p->A10==5 && p->S12>0))
     {
     qx += cs*m4x;
     qy += cs*m4y;

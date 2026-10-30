@@ -1,0 +1,17 @@
+{
+ "base": "nhflow_2d_susp_flume",
+ "ctrl_set": {
+  "S 11": "7",
+  "S 35": "1.0"
+ },
+ "ctrl_add": [
+  "S 110 2",
+  "S 111 0.25",
+  "S 112 3.0",
+  "S 113 0.0"
+ ],
+ "steps": 1500,
+ "description": "nhflow_2d_susp_flume (k-epsilon with A 519 1, A 567 1) with prescribed waves following the current (S 110 2: Hs 0.25 m, Tp 3 s): van Rijn (2007) bed load over the skewed wave cycle (S 11 7) from the depth-averaged current of the log profile through the bottom layer (sediment_waves::depth_mean_nhflow, within 0.3 % of the NHFLOW depth mean), wave and current bed shear stress (Soulsby DATA13) for the van Rijn suspended load (S 12 1), bed change on (S 35 1) in the transport direction.",
+ "tags": ["2d", "nhflow", "sediment", "suspended", "waves", "inflow"],
+ "covers": ["sediment_waves prescribed in NHFLOW", "sediment_waves::depth_mean_nhflow", "bedload_waves van Rijn 2007 in NHFLOW", "sediment_f::transport_direction in NHFLOW with an inflow edge"]
+}

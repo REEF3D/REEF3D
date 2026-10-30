@@ -23,16 +23,18 @@ Architect: Hans Bihs
 #include"sediment_waves.h"
 #include"sediment_fdm.h"
 #include"seastate_sflow.h"
+#include"seastate_nhflow.h"
 #include"seastate_dispersion.h"
 #include"lexer.h"
 #include"fdm2D.h"
+#include"fdm_nhf.h"
 #include"ghostcell.h"
 #include<cmath>
 #include<vector>
 
 sediment_waves::sediment_waves(lexer *p) : Hs(p),Tm10(p),Tp(p),Urms(p),Tbot(p),ex(p),ey(p),Dr(p),
                                            Tw(p),Dbr(p),kb(p),Ure(p),Uw(p),Sk(p),As(p),ua(p),
-                                           tauc(p),tauw(p),taum(p),taumax(p),fw(p),stamp(-1)
+                                           tauc(p),tauw(p),taum(p),taumax(p),fw(p),dtc(p),stamp(-1)
 {
     SLICEBASELOOP
     {
@@ -40,13 +42,14 @@ sediment_waves::sediment_waves(lexer *p) : Hs(p),Tm10(p),Tp(p),Urms(p),Tbot(p),e
     Dr(i,j)=-1.0;
     Tw(i,j)=Dbr(i,j)=kb(i,j)=Ure(i,j)=Uw(i,j)=Sk(i,j)=As(i,j)=ua(i,j)=0.0;
     tauc(i,j)=tauw(i,j)=taum(i,j)=taumax(i,j)=fw(i,j)=0.0;
+    dtc(i,j)=0.0;
     }
 }
 
-void sediment_waves::start(lexer *p, fdm2D *b, ghostcell *pgc, sediment_fdm *s)
+void sediment_waves::start(lexer *p, seastate_coupling *w, ghostcell *pgc, sediment_fdm *s)
 {
     if(p->S110==1)
-    seastate(p,b);
+    seastate(p,w);
     
     if(p->S110==2)
     prescribed(p,s);
@@ -54,14 +57,14 @@ void sediment_waves::start(lexer *p, fdm2D *b, ghostcell *pgc, sediment_fdm *s)
     derived(p,pgc,s);
 }
 
-void sediment_waves::seastate(lexer *p, fdm2D *b)
+void sediment_waves::seastate(lexer *p, seastate_coupling *w)
 {
     // the spectra change only with a wave step
-    if(b->wave==nullptr || b->wave->wave_steps()==stamp)
+    if(w==nullptr || w->wave_steps()==stamp)
     return;
     
-    b->wave->bed_waves(p,Hs,Tm10,Tp,Urms,Tbot,ex,ey,Dr);
-    stamp = b->wave->wave_steps();
+    w->bed_waves(p,Hs,Tm10,Tp,Urms,Tbot,ex,ey,Dr);
+    stamp = w->wave_steps();
 }
 
 void sediment_waves::prescribed(lexer *p, sediment_fdm *s)
@@ -237,7 +240,7 @@ void sediment_waves::bedshear(lexer *p, ghostcell *pgc, sediment_fdm *s)
     v = 0.5*(s->Q(i,j)+s->Q(i,j-1));
     uabs = sqrt(u*u + v*v);
     
-    tauc(i,j) = s->tau_eff(i,j);
+    tauc(i,j) = MAX(s->tau_eff(i,j) + dtc(i,j),0.0);
     tauw(i,j) = fw(i,j) = 0.0;
     taum(i,j) = taumax(i,j) = tauc(i,j);
     
@@ -284,6 +287,94 @@ void sediment_waves::eulerian(lexer *p, fdm2D *b, ghostcell *pgc, sediment_fdm *
     SLICELOOP2
     if(b->wave->wave_active(i,j)==1 && b->wave->wave_active(i,j+1)==1 && b->hy(i,j)>=p->S128)
     s->Q(i,j) -= r*0.5*(b->wave->stokes_y()(i,j) + b->wave->stokes_y()(i,j+1))/b->hy(i,j);
+    
+    pgc->gcsl_start1(p,s->P,10);
+	pgc->gcsl_start2(p,s->Q,11);
+}
+
+void sediment_waves::eulerian_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, sediment_fdm *s)
+{
+    SLICEBASELOOP
+    dtc(i,j) = 0.0;
+    
+    if(p->S110!=1 || p->A751!=1 || p->S119!=0 || d->wave==nullptr)
+    return;
+    
+    seastate_coupling *w = d->wave;
+    const double r = w->stokes_ramp(p);
+    const double kappa = 0.4;
+    
+    // the faces of the bottom layer: minus the Stokes drift of the column
+    SLICELOOP1
+    {
+    const double hx = 0.5*(s->waterlevel(i,j) + s->waterlevel(i+1,j));
+    
+    if(w->wave_active(i,j)==1 && w->wave_active(i+1,j)==1 && hx>=p->S128)
+    s->P(i,j) -= r*0.5*(w->stokes_x()(i,j) + w->stokes_x()(i+1,j))/hx;
+    }
+    
+    if(p->j_dir==1)
+    SLICELOOP2
+    {
+    const double hy = 0.5*(s->waterlevel(i,j) + s->waterlevel(i,j+1));
+    
+    if(w->wave_active(i,j)==1 && w->wave_active(i,j+1)==1 && hy>=p->S128)
+    s->Q(i,j) -= r*0.5*(w->stokes_y()(i,j) + w->stokes_y()(i,j+1))/hy;
+    }
+    
+    pgc->gcsl_start1(p,s->P,10);
+	pgc->gcsl_start2(p,s->Q,11);
+    
+    // tau_c of S 16 comes from the (Lagrangian) velocity of the bottom cell: the change of the rough log law
+    // for the Eulerian velocity of the cell
+    k=0;
+    SEDSLICELOOP
+    {
+    const double h = s->waterlevel(i,j);
+    
+        if(w->wave_active(i,j)==1 && h>=p->S128)
+        {
+        const double uL = d->U[IJK], vL = d->V[IJK]*p->y_dir;
+        const double uE = uL - r*w->stokes_x()(i,j)/h;
+        const double vE = vL - r*w->stokes_y()(i,j)/h*p->y_dir;
+        const double zb = 0.5*p->DZN[KP]*h;
+        const double ks = MAX(s->ks_eff(i,j),1.0e-6);
+        const double cf = pow(kappa/MAX(log(30.0*zb/ks),1.0),2.0);
+        
+        dtc(i,j) = p->W1*cf*((uE*uE + vE*vE) - (uL*uL + vL*vL));
+        }
+    }
+}
+
+void sediment_waves::depth_mean_nhflow(lexer *p, ghostcell *pgc, sediment_fdm *s)
+{
+    // u(z) = u*/kappa ln(z/z0): mean over z0..h divided by the value at z_b
+    int i,j,k=0;
+    
+    auto fac = [&](double h, double ks)
+    {
+    const double z0 = MAX(ks,1.0e-6)/30.0;
+    const double zb = 0.5*p->DZN[KP]*h;
+    const double lh = log(MAX(h/z0,2.718281828459045));
+    
+    return (lh - 1.0 + z0/h)/MAX(log(zb/z0),1.0);
+    };
+    
+    SLICELOOP1
+    {
+    const double hx = 0.5*(s->waterlevel(i,j) + s->waterlevel(i+1,j));
+    
+    if(hx>=p->S128)
+    s->P(i,j) *= fac(hx,0.5*(s->ks_eff(i,j) + s->ks_eff(i+1,j)));
+    }
+    
+    SLICELOOP2
+    {
+    const double hy = 0.5*(s->waterlevel(i,j) + s->waterlevel(i,j+1));
+    
+    if(hy>=p->S128)
+    s->Q(i,j) *= fac(hy,0.5*(s->ks_eff(i,j) + s->ks_eff(i,j+1)));
+    }
     
     pgc->gcsl_start1(p,s->P,10);
 	pgc->gcsl_start2(p,s->Q,11);

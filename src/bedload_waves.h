@@ -28,8 +28,9 @@ Architect: Hans Bihs
 #include"slice4.h"
 
 /*--------------------------------------------------------------------
-Wave-related transport formulas for SFLOW (A 10 2), S 11 6-9: depth-averaged
-current U, waves of sediment_waves (S 110 > 0; without waves the formulas
+Wave-related transport formulas for SFLOW (A 10 2) and NHFLOW (A 10 5), S 11 6-9:
+depth-averaged current U (NHFLOW: of the log profile through the bottom layer,
+sediment_waves::depth_mean_nhflow), waves of sediment_waves (S 110 > 0; without waves the formulas
 reduce to their current-only forms). Volume transport [m^2/s] as a vector
 (magnitude s->qbe, unit direction tx, ty); the Exner step takes the
 direction of the transport (sediment_f::transport_direction).
@@ -45,7 +46,7 @@ S 11 6  Soulsby-van Rijn (Soulsby 1997), total load, transport velocity
           (0.5-2 mm), d90 = 2 d
         bed part Asb, suspended part Ass; equilibrium suspended load per
         area Ls = Ass [...]^2.4 (S 120 2); with the suspended load model
-        (S 120 > 0) only the bed part is bed load.
+        (SFLOW S 120 > 0, NHFLOW S 12 > 0) only the bed part is bed load.
         The slope term (1 - 1.6 tan(beta)) is left to S 80/S 85.
 S 11 7  van Rijn (2007a) bed load over the wave cycle (quasi-steady, 36 phases),
         friction velocity of current and orbital velocity u_w(t) (S 116):

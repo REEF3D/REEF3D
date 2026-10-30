@@ -41,6 +41,9 @@ Author: Hans Bihs
 #include"bedload_direction.h"
 #include"sediment_roughness.h"
 #include"sediment_mixture.h"
+#include"sediment_waves.h"
+#include"bedload_waves.h"
+#include"seastate_nhflow.h"
 
 void sediment_f::sediment_algorithm_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow)
 {
@@ -61,6 +64,10 @@ void sediment_f::sediment_algorithm_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc,
     // prep NHFLOW -------
     prep_nhflow(p,d,pgc);
     
+    // waves of SEASTATE with the radiation stress (S 110 1, S 119 0): the Eulerian current of the bottom layer
+    if(pwaves!=nullptr)
+    pwaves->eulerian_nhflow(p,d,pgc,s);
+    
     // bedslope cds ******
     pslope->slope_cds(p,pgc,s);
     
@@ -72,7 +79,19 @@ void sediment_f::sediment_algorithm_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc,
     
     // bedshear stress -------
 	pbedshear->taubed(p,d,pgc,s);
+    
+    // waves (S 110): the wave parameters, the wave and current bed shear stress
+    if(pwaves!=nullptr)
+    {
+    pwaves->start(p,d->wave,pgc,s);
+    pwaves->bedshear(p,pgc,s);
+    }
+    
     pbedshear->taucritbed(p,d,pgc,s);
+    
+    // wave formulas (S 11 6-9): the depth-averaged current of the log profile through the bottom layer
+    if(pbedw!=nullptr)
+    sediment_waves::depth_mean_nhflow(p,pgc,s);
     
     // bedload *******
     if(s->pmix==nullptr)
@@ -80,6 +99,10 @@ void sediment_f::sediment_algorithm_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc,
     
     if(s->pmix!=nullptr)
     s->pmix->bedload_fractions(p,pgc,s,pbed);
+    
+    // wave formulas (S 11 6-9): the Exner step in the direction of the transport
+    if(pbedw!=nullptr)
+    transport_direction(p,pgc,1);
     
     // bedload_direction *******
     pbeddir->start(p,pgc,s);
@@ -98,6 +121,9 @@ void sediment_f::sediment_algorithm_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc,
     p->sedtime+=p->dtsed;
     
     pnhfsusp->bed_done(p,s);
+    
+    if(pbedw!=nullptr)
+    transport_direction(p,pgc,0);
     
     // sandslide ********
     if(p->sediter%p->S94==0)

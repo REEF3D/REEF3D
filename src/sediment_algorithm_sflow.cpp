@@ -42,6 +42,7 @@ Author: Hans Bihs
 #include"sediment_waves.h"
 #include"bedload_waves.h"
 #include"sediment_susp2D.h"
+#include"seastate_sflow.h"
 #include"slice1.h"
 #include"slice2.h"
 
@@ -145,7 +146,7 @@ void sediment_f::physics_sflow(lexer *p, fdm2D *b, ghostcell *pgc, slice &P, sli
     
     if(pwaves!=nullptr)
     {
-    pwaves->start(p,b,pgc,s);
+    pwaves->start(p,b->wave,pgc,s);
     pwaves->bedshear(p,pgc,s);
     }
     
