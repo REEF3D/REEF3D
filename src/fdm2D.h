@@ -130,6 +130,12 @@ public:
 
     // REEF3D::SEASTATE coupling (A 750 1), nullptr otherwise
     seastate_sflow *wave = nullptr;
+    
+    // depth-averaged suspended load (S 120 > 0, sediment_susp2D): the mass flux of the continuity of the time step,
+    // RK-weighted over the stages (sflow_eta::update), and the step it belongs to
+    slice1 *FEacc_x = nullptr;
+    slice2 *FEacc_y = nullptr;
+    int FEacc_step = -1;
 
     // REEF3D atmospheric forcing (W 200) of this grid, owned by the momentum class (output)
     met_forcing *met = nullptr;

@@ -1027,6 +1027,9 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Grain Fractions">
           <File Name="sediment_mixture.h"/>
+          <File Name="sediment_waves.h"/>
+          <File Name="bedload_waves.h"/>
+          <File Name="sediment_susp2D.h"/>
           <File Name="sediment_roughness.h"/>
         </VirtualDirectory>
         <File Name="sediment_RK2.h"/>
@@ -1623,6 +1626,7 @@
           <File Name="seastate_surfbeat.cpp"/>
           <File Name="seastate_coupling.cpp"/>
           <File Name="seastate_remote.cpp"/>
+          <File Name="seastate_coupling_bed.cpp"/>
           <File Name="seastate_nhflow.cpp"/>
           <File Name="seastate_sflow.cpp"/>
         </VirtualDirectory>
@@ -2796,6 +2800,9 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Grain Fractions">
           <File Name="sediment_mixture.cpp"/>
+          <File Name="sediment_waves.cpp"/>
+          <File Name="bedload_waves.cpp"/>
+          <File Name="sediment_susp2D.cpp"/>
           <File Name="sediment_roughness.cpp"/>
         </VirtualDirectory>
         <File Name="sediment_RK2.cpp"/>

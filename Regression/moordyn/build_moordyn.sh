@@ -18,7 +18,7 @@ fi
 mkdir -p "$W/build"
 (cd "$W/build" && cmake ../MoorDyn -DCMAKE_BUILD_TYPE=Release -DFORTRAN_WRAPPER=OFF -DPYTHON_WRAPPER=OFF \
      -DMATLAB_WRAPPER=OFF -DBUILD_TESTING=OFF -DUSE_VTK=OFF > cmake.log && make -j "$JOBS" moordyn > make.log)
-FLAGS="-O2 -std=c++20 -I../../ThirdParty/eigen-5.0.0 -DEIGEN_MPL2_ONLY -I../../src"
+FLAGS="-O2 -DEIGEN_NO_DEBUG -std=c++20 -I../../ThirdParty/eigen-5.0.0 -DEIGEN_MPL2_ONLY -I../../src"
 OBJ="$W/coral_obj"
 mkdir -p "$OBJ"
 for f in $(find ../../src/coral -name '*.cpp' -not -path '*/reef3d/*' -not -path '*/app/*'); do

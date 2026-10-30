@@ -33,7 +33,8 @@ Architect: Hans Bihs
 //
 // Channels (one row per output time): t, body x z pitch, the mooring force on the body Fx Fy Fz and the
 // moment My about the body origin (with the inertia of the end nodes, as a coupled MoorDyn body), then per
-// line the tension of the end segments Ta Tb (with the axial damping), then per point x y z.
+// line the tension of the end segments Ta Tb (with the axial damping), then per point x y z. F: the magnitude of the
+// force on the body (the 'top tension' of published results: the end segment and the end half-segment's loads).
 
 #ifndef CORAL_MOORDYN_CASES_H_
 #define CORAL_MOORDYN_CASES_H_
@@ -44,6 +45,8 @@ Architect: Hans Bihs
 #include"coral/core/coral_load.h"
 #include"coral/structure/coral_linear6.h"
 #include"coral/mooring/coral_mooring.h"
+#include"coral/hydro/coral_waves.h"
+#include<limits>
 #include<array>
 #include<cmath>
 #include<fstream>
@@ -105,6 +108,26 @@ namespace cmd
         Vec3 amp = Vec3::Zero();
         double pitch_amp = 0.0, T = 10.0, ramp = 10.0;
         double t_motion = 0.0;                       // the motion (and its ramp) starts at this time
+        int ramp_kind = 0;                           // 0: 0.5 (1 - cos(pi t/ramp)), 1: f^3 (6 f^2 - 15 f + 10), f = t/ramp
+
+        // regular wave components (H, T, direction, phase [rad]) in CORAL's convention, eta = H/2 cos(w t - k (x cos b
+        // + y sin b) + phase), finite depth; MoorDyn takes CORAL's kinematics at its nodes (WaveKin 1, the free
+        // surface stays at z = 0 there, CORAL's nodes see the elevation)
+        std::vector<std::array<double,4>> waves;
+
+        // a published or measured reference (CSV 't, value' per line): value = ext_scale * channel ext_channel at
+        // t + ext_t0; ext_tol: the largest difference allowed (in the reference's units). ext_static: a measured
+        // static value of the channel at t = 0 (NaN: none), ext_static_tol relative
+        std::string ext_ref, ext_channel = "L1_Tb";
+        double ext_scale = 1.0e-3, ext_t0 = 0.0, ext_tol = 0.0;
+        double ext_static = std::numeric_limits<double>::quiet_NaN(), ext_static_tol = 0.02;
+        // snap loads (a line that goes slack and snaps taut): the codes are compared by the mean of the largest value
+        // of each channel per period of the motion over t >= t_cmp, not by the time series (the instants of the snaps
+        // are sensitive); ext_peak: the mean peak of ext_channel expected (published ratio times the quasi-static
+        // value), ext_peak_tol relative
+        bool peaks = false;
+        double ext_peak = std::numeric_limits<double>::quiet_NaN(), ext_peak_tol = 0.2;
+        bool unit = true;                            // part of the unit test (else only coral_moordyn_compare)
 
         // free planar body (surge, heave, pitch): mass and pitch inertia about the origin, stiffness and damping
         // against x0n (neutral), a harmonic force F_amp sin(2 pi t / F_T) at the origin
@@ -179,7 +202,7 @@ namespace cmd
 
     inline std::vector<std::string> channel_names(const case_spec &c)
     {
-        std::vector<std::string> n = {"t", "x", "z", "pitch", "Fx", "Fy", "Fz", "My"};
+        std::vector<std::string> n = {"t", "x", "z", "pitch", "Fx", "Fy", "Fz", "My", "F"};
         for(const auto &l : c.lines) {n.push_back(l.name + "_Ta"); n.push_back(l.name + "_Tb");}
         for(const auto &p : c.points) {n.push_back(p.name + "_x"); n.push_back(p.name + "_y"); n.push_back(p.name + "_z");}
         return n;
@@ -227,12 +250,57 @@ namespace cmd
         return out;
     }
 
+    // the mean over the periods T (from t0) of the largest value of a channel
+    inline double mean_peak(const series &s, const std::string &ch, double t0, double T)
+    {
+        const int c = s.col(ch);
+        double sum = 0.0, mx = -1e300;
+        int n = 0, k = -1;
+        for(const auto &r : s.rows)
+        {
+            if(r[0] < t0 - 1e-9) continue;
+            const int kp = (int)std::floor((r[0] - t0)/T + 1e-9);
+            if(kp != k) {if(k >= 0) {sum += mx; ++n;} k = kp; mx = -1e300;}
+            mx = std::max(mx, r[c]);
+        }
+        return n ? sum/n : 0.0;            // complete periods only
+    }
+
+    // snap loads: per channel (the force magnitude and the tensions; a signed component peaks near zero when the line is
+    // slack) the relative difference of the mean peaks
+    inline std::vector<channel_error> compare_peaks(const series &a, const series &b, double t0, double T)
+    {
+        std::vector<channel_error> out;
+        for(size_t c=1; c<a.names.size(); ++c)
+        {
+            const std::string &n = a.names[c];
+            const bool tension = n=="F" || (n.size() > 3 && (n.compare(n.size()-3, 3, "_Ta")==0 || n.compare(n.size()-3, 3, "_Tb")==0));
+            if(b.col(n) < 0 || !tension) continue;
+            channel_error e;
+            e.name = n;
+            const double pa = mean_peak(a, n, t0, T), pb = mean_peak(b, n, t0, T);
+            e.maxdiff = std::fabs(pa - pb);
+            e.range = std::fabs(pa);
+            e.rel = e.range > 1e-12 ? e.maxdiff/e.range : 0.0;
+            out.push_back(e);
+        }
+        return out;
+    }
+
     // ------------------------------------------------------------------ prescribed motion
 
-    inline void ramp(double t, double Tr, double &r, double &rd, double &rdd)
+    inline void ramp(double t, double Tr, double &r, double &rd, double &rdd, int kind=0)
     {
         if(Tr <= 0.0 || t >= Tr) {r = 1.0; rd = rdd = 0.0; return;}
         if(t <= 0.0) {r = rd = rdd = 0.0; return;}
+        if(kind==1)
+        {
+            const double f = t/Tr;
+            r = f*f*f*(6.0*f*f - 15.0*f + 10.0);
+            rd = 30.0*f*f*(f*f - 2.0*f + 1.0)/Tr;
+            rdd = 60.0*f*(2.0*f*f - 3.0*f + 1.0)/(Tr*Tr);
+            return;
+        }
         const double a = M_PI/Tr;
         r = 0.5*(1.0 - std::cos(a*t));
         rd = 0.5*a*std::sin(a*t);
@@ -244,7 +312,7 @@ namespace cmd
     {
         double r, rd, rdd;
         t -= c.t_motion;
-        ramp(t, c.ramp, r, rd, rdd);
+        ramp(t, c.ramp, r, rd, rdd, c.ramp_kind);
         const double w = 2.0*M_PI/c.T, s = std::sin(w*t), co = std::cos(w*t);
         const double f = r*s, fd = rd*s + r*w*co, fdd = rdd*s + 2.0*rd*w*co - r*w*w*s;
         x = c.x0 + f*c.amp;
@@ -262,6 +330,63 @@ namespace cmd
              0.0, 1.0, 0.0,
              -std::sin(th), 0.0, std::cos(th);
         return R;
+    }
+
+    // ------------------------------------------------------------------ waves
+
+    inline std::shared_ptr<coral::wave_field> make_waves(const case_spec &c)
+    {
+        if(c.waves.empty())
+            return nullptr;
+        auto w = std::make_shared<coral::wave_field>(c.depth, c.g);
+        for(const auto &q : c.waves)
+            w->add_regular(q[0], q[1], q[2], q[3]);
+        return w;
+    }
+
+    // ------------------------------------------------------------------ external references
+
+    inline std::vector<std::array<double,2>> read_ext(const std::string &file)
+    {
+        std::ifstream f(file);
+        if(!f) throw std::runtime_error("cannot read " + file);
+        std::vector<std::array<double,2>> v;
+        std::string l;
+        while(std::getline(f, l))
+        {
+            const size_t h = l.find('#');
+            if(h != std::string::npos) l = l.substr(0, h);
+            for(char &ch : l) if(ch==',') ch = ' ';
+            std::istringstream ls(l);
+            double t, x;
+            if(ls >> t >> x) v.push_back({t, x});
+        }
+        return v;
+    }
+
+    // the largest and the rms difference of channel ch of s (scaled, at t + t0, linear between rows) to the reference
+    inline void compare_ext(const series &s, const std::vector<std::array<double,2>> &ref, const std::string &ch, double scale,
+                            double t0, double &maxdiff, double &rms, double &tmax)
+    {
+        const int c = s.col(ch);
+        if(c < 0) throw std::runtime_error("no channel " + ch);
+        maxdiff = rms = tmax = 0.0;
+        int n = 0;
+        size_t j = 0;
+        for(const auto &r : ref)
+        {
+            const double t = r[0] + t0;
+            while(j + 1 < s.rows.size() && s.rows[j+1][0] < t) ++j;
+            if(j + 1 >= s.rows.size()) break;
+            const double ta = s.rows[j][0], tb = s.rows[j+1][0];
+            const double f = tb > ta ? std::clamp((t - ta)/(tb - ta), 0.0, 1.0) : 0.0;
+            const double v = scale*(s.rows[j][c] + f*(s.rows[j+1][c] - s.rows[j][c]));
+            const double d = std::fabs(v - r[1]);
+            if(d > maxdiff) {maxdiff = d; tmax = r[0];}
+            rms += d*d;
+            ++n;
+        }
+        rms = n ? std::sqrt(rms/n) : 0.0;
     }
 
     // ------------------------------------------------------------------ CORAL
@@ -320,7 +445,7 @@ namespace cmd
         if(c.free_body) b.inertia *= c.Iyy;
         b.x = c.free_body ? c.x0n : c.x0;
         const int ib = m.add_body(b);
-        auto sys = std::make_unique<coral::mooring_system>(m, nullptr, Vec3::Zero(), "moor");
+        auto sys = std::make_unique<coral::mooring_system>(m, make_waves(c), Vec3::Zero(), "moor");
         if(!c.current.empty())
         {
             std::vector<double> z;
@@ -416,7 +541,7 @@ namespace cmd
             F += Fe;
             M += (p - B.x).cross(Fe);
         }
-        r.push_back(F(0)); r.push_back(F(1)); r.push_back(F(2)); r.push_back(M(1));
+        r.push_back(F(0)); r.push_back(F(1)); r.push_back(F(2)); r.push_back(M(1)); r.push_back(F.norm());
         for(size_t k=0; k<c.lines.size(); ++k)
         {
             const int N = R.sys->line_nseg((int)k);
@@ -666,6 +791,118 @@ namespace cmd
             c.F_amp = 5.0e5; c.F_T = 30.0;
             c.tend = 240.0;
             v.push_back(c);
+            c.name = "spar_waves"; c.title = "OC3-like spar on three lines in waves (H 8 m, T 12 s, on the lines), surge force 0.3 MN at T 12 s";
+            c.waves = {{8.0, 12.0, 0.0, 0.0}};
+            c.F_amp = 3.0e5; c.F_T = 12.0;
+            c.tend = 150.0; c.tol = 0.01;
+            v.push_back(c);
+        }
+        // ---------------- waves (CORAL's linear wave field, at MoorDyn's nodes through its API)
+        {
+            case_spec c;
+            c.name = "oc3_waves"; c.title = "OC3 chain in regular waves (H 6 m, T 10 s, along the line), fairlead surge 3 m";
+            c.depth = 320.0;
+            c.types = {oc3_chain()};
+            c.lines = {{"L1", 0, fixed(-853.87, 0.0, -320.0), body(-5.2, 0.0, -70.0), 902.2, 20}};
+            c.waves = {{6.0, 10.0, 0.0, 0.0}};
+            c.amp = Vec3(3.0, 0.0, 0.0); c.T = 10.0; c.ramp = 10.0; c.tend = 60.0; c.t_cmp = 0.5; c.tol = 0.02;
+            v.push_back(c);
+        }
+        {
+            case_spec c;
+            c.name = "chain_irregular"; c.title = "studless chain in 50 m in five oblique wave components (H 0.8 - 2 m, T 6 - 12 s), heave 1 m";
+            c.depth = 50.0;
+            c.types = {studless_chain()};
+            c.lines = {{"L1", 0, fixed(-400.0, 0.0, -50.0), body(0.0, 0.0, -5.0), 410.0, 41}};
+            c.waves = {{2.0, 12.0, 0.3, 0.0}, {1.6, 10.0, 0.1, 1.3}, {1.4, 8.5, -0.2, 2.9}, {1.0, 7.0, 0.5, 4.4}, {0.8, 6.0, -0.4, 0.7}};
+            c.amp = Vec3(0.0, 0.0, 1.0); c.T = 9.0; c.ramp = 9.0; c.tend = 60.0; c.t_cmp = 0.5; c.tol = 0.03;
+            c.md_ic_dynamic = true;
+            v.push_back(c);
+        }
+        // ---------------- Lowe and Langley (OMAE 2006): a flexible jumper with bending stiffness, a published time domain
+        // solution (digitized for MoorDyn's tests, ext/lowe_langley_2006_case<n>.csv): the fairlead moves 10 m at T 27 s
+        // along x, y, z (cases 1-3, quintic ramp over one period), or waves of 5 m amplitude, T 10 s from 0, 45 and 90
+        // degrees pass the fixed jumper (cases 4-6, from t = 0); the reference starts after the ramp (27 s, 20 s)
+        {
+            line_type t;
+            t.name = "jumper";
+            t.d = 0.396; t.mass = 165.0; t.EA = 500.0e6; t.BA = -0.5; t.EI = 120.8e3;
+            t.Cdn = 1.0; t.Can = 1.0; t.Cdt = 0.0; t.Cat = 0.0;
+            case_spec c;
+            c.depth = 100.0; c.rho = 1000.0; c.g = 9.807;
+            c.types = {t};
+            c.lines = {{"L1", 0, fixed(-100.0, 0.0, -55.0), body(0.0, 0.0, 0.0), 170.0, 68}};
+            c.x0 = Vec3(0.0, 0.0, -5.0);
+            c.ext_channel = "F"; c.ext_scale = 1.0e-3; c.ext_tol = 1.0;
+            for(int k=1; k<=3; ++k)
+            {
+                case_spec q = c;
+                q.name = "lowe_langley_" + std::to_string(k);
+                q.title = std::string("Lowe and Langley 2006 jumper, fairlead motion 10 m, T 27 s along ") + "xyz"[k-1];
+                q.amp = Vec3::Zero(); q.amp(k-1) = 10.0;
+                q.T = 27.0; q.ramp = 27.0; q.ramp_kind = 1; q.tend = 27.0 + 80.0; q.tol = k==1 ? 0.01 : 0.05;
+                q.ext_ref = "ext/lowe_langley_2006_case" + std::to_string(k) + ".csv"; q.ext_t0 = 27.0;
+                q.unit = k != 2;
+                v.push_back(q);
+            }
+            const double phase[3] = {230.0, 165.0, 0.0};
+            for(int k=4; k<=6; ++k)
+            {
+                case_spec q = c;
+                q.name = "lowe_langley_" + std::to_string(k);
+                q.title = "Lowe and Langley 2006 jumper in waves, amplitude 5 m, T 10 s, from " + std::to_string(45*(k-4)) + " degrees";
+                // MoorDyn's test: u ~ cos(k x - w t + phi), CORAL: cos(w t - k x + phase), phase = -phi
+                q.waves = {{10.0, 10.0, (k-4)*0.25*M_PI, -phase[k-4]*M_PI/180.0}};
+                q.tend = 20.0 + 30.0; q.t_cmp = 0.5; q.tol = 0.02;   // Fx, Fy of the jumper vary little: 1 %
+                q.ext_ref = "ext/lowe_langley_2006_case" + std::to_string(k) + ".csv"; q.ext_t0 = 20.0;
+                q.unit = k==4;
+                v.push_back(q);
+            }
+        }
+        // ---------------- Azcona et al. (Ocean Engineering 2017): a 21 m studless chain in the 5 m deep basin of Ecole
+        // Centrale de Nantes, fairlead at the water plane moving horizontally in the plane of the line at T 1.58, 3.16,
+        // 4.74 s (0.25 m in the paper's table, taken as the stroke: amplitude 0.125 m, see below); anchor 19.364 m
+        // (configuration 1) or 19.870 m (2) away. Measured static fairlead tension 8.13 N and 14.48 N; seabed stiffness
+        // 20 N/m^2 and damping 0.1 N s/m^2 per length, Cdn 1.4, Cdt 0.67 (equivalent diameter), Can 1, structural damping
+        // 0.1 %, fresh water. Of the dynamic tests the text gives ratios only: at T 1.58 s the largest tension is 'between
+        // 2 (Configuration 1) and 3 (Configuration 2) times' the quasi-static one and three times larger in configuration 2
+        // than in 1. CORAL (and MoorDyn) give 1.76, 2.74 and 3.07 with the amplitude 0.125 m, 3.8, 6.9 and 3.9 with 0.25 m
+        {
+            line_type t;
+            t.name = "chain";
+            t.d = 0.0034; t.mass = 0.069; t.EA = 3.4e5; t.BA = -0.001;
+            t.Cdn = 1.4; t.Can = 1.0; t.Cdt = 0.67; t.Cat = 0.0;
+            const double dist[2] = {19.364, 19.870}, Tst[2] = {8.13, 14.48};
+            for(int k=0; k<2; ++k)
+            {
+                case_spec c;
+                c.depth = 5.0; c.rho = 1000.0; c.g = 9.81;
+                c.kb = 20.0/t.d; c.cb = 0.1/t.d;
+                c.types = {t};
+                c.lines = {{"L1", 0, fixed(-dist[k], 0.0, -5.0), body(0.0, 0.0, 0.0), 21.0, 40}};
+                c.h = 0.002; c.out_dt = 0.02; c.md_h = 0.001;
+                case_spec q = c;
+                q.name = "azcona_c" + std::to_string(k+1) + "_static";
+                q.title = "Azcona et al. 2017 chain, configuration " + std::to_string(k+1) + ", static";
+                q.tend = 2.0; q.tol = 0.01;          // MoorDyn's stationary solver stops 0.5 % short
+                q.ext_channel = "L1_Tb"; q.ext_scale = 1.0; q.ext_static = Tst[k]; q.ext_static_tol = 0.03;
+                v.push_back(q);
+                const double per[3] = {1.58, 3.16, 4.74};
+                // the quasi-static peak (fairlead 0.125 m out, mooring_qs) 9.22 N and 18.20 N
+                const double qs_peak[2] = {9.22, 18.20}, ratio[2] = {2.0, 3.0};
+                for(int j=0; j<3; ++j)
+                {
+                    q = c;
+                    q.name = "azcona_c" + std::to_string(k+1) + "_T" + std::to_string((int)std::lround(100*per[j]));
+                    q.title = "Azcona et al. 2017 chain, configuration " + std::to_string(k+1) + ", fairlead stroke 0.25 m at T " + std::to_string(per[j]).substr(0, 4) + " s";
+                    q.amp = Vec3(0.125, 0.0, 0.0); q.T = per[j]; q.ramp = 2.0*per[j];
+                    q.tend = 25.0*per[j]; q.t_cmp = 15.0*per[j]; q.peaks = true; q.tol = 0.05;
+                    q.ext_channel = "L1_Tb"; q.ext_scale = 1.0;
+                    if(j==0) {q.ext_peak = ratio[k]*qs_peak[k]; q.ext_peak_tol = 0.2;}
+                    q.unit = j==0;
+                    v.push_back(q);
+                }
+            }
         }
         return v;
     }

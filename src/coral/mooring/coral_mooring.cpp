@@ -641,6 +641,16 @@ void mooring_system::eval(const model &m, double t, VecX &f) const
         state s{r_, v_};
         stick_t f = st_;
         integrate(s, em, t_, t, 0.0, false, &f);
+        cs_ = std::move(s);
+        cst_ = std::move(f);
+        cw_.resize(lines_.size());
+        for(size_t k=0; k<lines_.size(); ++k)
+        {
+            const line_t &L = lines_[k];
+            line_work &w = cw_[k];
+            w.T = L.T;
+            for(int e=0; e<2; ++e) {w.F[e] = L.F[e]; w.M[e] = L.M[e]; w.cd[e] = L.cd[e];}
+        }
         cr_ = r1;
         cv_ = v1;
         cF_.resize(na);
@@ -688,8 +698,34 @@ void mooring_system::commit(const model &m, double t, double)
             em[k].d1 = B.R*att_[k].ds;
         }
     }
-    state s{r_, v_};
-    integrate(s, em, t_, t, 0.0, false, &st_);
+    // the converged state is the last trial that eval() integrated, up to the last Newton increment (the time
+    // integrator stops on an increment below its tolerance, 1e-12 relative, without evaluating the loads there): take
+    // that integration instead of integrating the step again (positions and velocities within 1e-10 relative, the
+    // end forces of the lines then within 1e-10 EA/l of a fairlead)
+    bool hit = cvalid_ && t==ct_ && cw_.size()==lines_.size();
+    auto near = [](const Vec3 &a, const Vec3 &b) {return (a - b).cwiseAbs().maxCoeff() <= 1.0e-10*(1.0 + a.cwiseAbs().maxCoeff());};
+    for(size_t k=0; k<na && hit; ++k)
+        hit = near(em[k].r1, cr_[k]) && near(em[k].v1, cv_[k]) && (!clamped_ || att_[k].ds.isZero() || near(em[k].d1, cd_[k]));
+    state s;
+    if(hit)
+    {
+        s = std::move(cs_);
+        st_ = std::move(cst_);
+        for(size_t k=0; k<lines_.size(); ++k)
+        {
+            const line_t &L = lines_[k];
+            const line_work &w = cw_[k];
+            L.T = w.T;
+            for(int e=0; e<2; ++e) {L.F[e] = w.F[e]; L.M[e] = w.M[e]; L.cd[e] = w.cd[e];}
+        }
+        ++commit_hits_;
+    }
+    else
+    {
+        s = state{r_, v_};
+        integrate(s, em, t_, t, 0.0, false, &st_);
+    }
+    ++commits_;
     for(size_t k=0; k<na; ++k)
     {
         attach_t &a = att_[k];

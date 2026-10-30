@@ -49,7 +49,26 @@ KEY = {
     "chain_wire_chain": ("S3_Tb", "fairlead tension [kN]", 1e-3),
     "spar_decay": ("x", "surge [m]", 1.0),
     "spar_forced": ("x", "surge [m]", 1.0),
+    "spar_waves": ("x", "surge [m]", 1.0),
+    "oc3_waves": ("L1_Tb", "fairlead tension [kN]", 1e-3),
+    "chain_irregular": ("L1_Tb", "fairlead tension [kN]", 1e-3),
+    "lowe_langley_1": ("F", "top tension [kN]", 1e-3),
+    "lowe_langley_2": ("F", "top tension [kN]", 1e-3),
+    "lowe_langley_3": ("F", "top tension [kN]", 1e-3),
+    "lowe_langley_4": ("F", "top tension [kN]", 1e-3),
+    "lowe_langley_5": ("F", "top tension [kN]", 1e-3),
+    "lowe_langley_6": ("F", "top tension [kN]", 1e-3),
+    "azcona_c1_static": ("L1_Tb", "fairlead tension [N]", 1.0),
+    "azcona_c2_static": ("L1_Tb", "fairlead tension [N]", 1.0),
+    "azcona_c1_T158": ("L1_Tb", "fairlead tension [N]", 1.0),
+    "azcona_c1_T316": ("L1_Tb", "fairlead tension [N]", 1.0),
+    "azcona_c1_T474": ("L1_Tb", "fairlead tension [N]", 1.0),
+    "azcona_c2_T158": ("L1_Tb", "fairlead tension [N]", 1.0),
+    "azcona_c2_T316": ("L1_Tb", "fairlead tension [N]", 1.0),
+    "azcona_c2_T474": ("L1_Tb", "fairlead tension [N]", 1.0),
 }
+# published references drawn into the overview: case -> (file, time offset, channel scale already applied)
+EXT = {"lowe_langley_%d" % k: ("ext/lowe_langley_2006_case%d.csv" % k, 27.0 if k <= 3 else 20.0) for k in range(1, 7)}
 
 
 def flat_ylim(ax, *series):
@@ -123,6 +142,17 @@ def overview(cases, outdir, src):
         key, label, s = KEY.get(name, ("Fx", "Fx [kN]", 1e-3))
         ax.plot(c["t"], [v*s for v in c[key]], color=BLUE, lw=1.3, label="CORAL")
         ax.plot(m["t"], [v*s for v in m[key]], color=ORANGE, lw=1.1, ls="--", label="MoorDyn")
+        if name in EXT and os.path.exists(EXT[name][0]):
+            te, ve = [], []
+            for l in open(EXT[name][0]):
+                if l.startswith("#"):
+                    continue
+                q = l.replace(",", " ").split()
+                if len(q) >= 2:
+                    te.append(float(q[0]) + EXT[name][1])
+                    ve.append(float(q[1]))
+            ax.plot(te[::4], ve[::4], ls="none", marker="o", ms=2.0, color=GREEN, label="Lowe & Langley")
+            ax.legend(loc="best", fontsize=7)
         flat_ylim(ax, [v*s for v in c[key]], [v*s for v in m[key]])
         ax.set_title(name.replace("_", " "), fontsize=10, loc="left", color="#333333")
         ax.set_ylabel(label, fontsize=8)

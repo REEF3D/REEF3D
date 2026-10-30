@@ -5,7 +5,7 @@
 # Architect: Hans Bihs
 CXX=${CXX:-g++}
 JOBS=${JOBS:-4}
-FLAGS="-O2 -std=c++20 -I../../ThirdParty/eigen-5.0.0 -DEIGEN_MPL2_ONLY -I../../src"
+FLAGS="-O2 -DEIGEN_NO_DEBUG -std=c++20 -I../../ThirdParty/eigen-5.0.0 -DEIGEN_MPL2_ONLY -I../../src"
 OBJ=$(mktemp -d)
 trap 'rm -rf "$OBJ"' EXIT
 fail=0

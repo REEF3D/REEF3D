@@ -1,0 +1,9 @@
+{
+ "base": "nhflow_3d_sediment_basin_susp",
+ "ctrl_set": {"S 15": "4", "S 44": "5"},
+ "np": 1,
+ "steps": 300,
+ "description": "nhflow_3d_sediment_basin_susp with a bed update every 5 flow steps over the flow time since the last update (S 15 4, S 44 5): the bed takes the mean exchange rate of the 5 steps (nhflow_suspended_IM1::bed_rate), the balance stays closed (before: the bed took 1/5 of the exchange).",
+ "tags": ["quick", "3d", "nhflow", "sediment", "suspended", "closed"],
+ "covers": ["nhflow_suspended_IM1::bed_rate / bed_done", "sediment_exner::susp_ED NHFLOW mean rate"]
+}

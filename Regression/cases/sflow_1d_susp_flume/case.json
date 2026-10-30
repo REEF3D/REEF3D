@@ -1,0 +1,9 @@
+{
+ "description": "SFLOW 1D flume with bed friction (A 218 1, B 50 1 mm), 40 m x 1 cell of 0.2 m, h 0.5 m, U 0.6 m/s, clear-water inflow (S 124 0) over a fine sand bed (d50 0.15 mm) without bed change (S 35 0): the depth-averaged suspended load (S 120 1, van Rijn reference concentration, F = S 121 2, MUSCL) adapts to C_eq as C = C_eq (1 - exp(-x ws F/(hU))). Validation in Dropbox/Claude/REEF3D sediment waves suspended.",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 10000,
+ "time": 400.0,
+ "tags": ["quick", "1d", "sflow", "sediment", "suspended"],
+ "covers": ["sediment_susp2D advection MUSCL, implicit exchange, inflow concentration S 124", "sflow_eta FEacc (RK-weighted mass flux)", "sediment_exner::susp_ED SFLOW branch"]
+}

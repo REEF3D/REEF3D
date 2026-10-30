@@ -1,0 +1,18 @@
+{
+ "description": "NHFLOW closed basin 20 x 10 m (60 x 30 x 6 cells, walls on all sides), dam break from one corner over a sand bed (d50 0.2 mm), k-epsilon with bed friction (A 519 1), MPM bed load and van Rijn suspended load (S 12 1), bed update every flow step with the flow time step (S 15 3, S 17 1, S 35 1, S 44 1): the sediment balance of the log (suspended + bed + dried columns + pending exchange) stays at the level of the transport (about 1e-4 of the suspended volume).",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 300,
+ "tags": [
+  "quick",
+  "3d",
+  "nhflow",
+  "sediment",
+  "suspended",
+  "closed"
+ ],
+ "covers": [
+  "nhflow_suspended_IM1 sediment balance log",
+  "nhflow_suspended_IM1::exchange_sum (one flow step: the previous coupling)"
+ ]
+}

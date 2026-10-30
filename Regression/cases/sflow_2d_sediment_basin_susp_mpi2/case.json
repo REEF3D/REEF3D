@@ -1,0 +1,8 @@
+{
+ "base": "sflow_2d_sediment_basin_susp",
+ "np": 2,
+ "steps": 300,
+ "description": "sflow_2d_sediment_basin_susp on two subdomains: the MUSCL stencil and the diffusion across the rank boundary.",
+ "tags": ["quick", "2d", "sflow", "sediment", "suspended", "closed", "mpi"],
+ "covers": ["sediment_susp2D halo exchange"]
+}

@@ -59,6 +59,12 @@ class sediment_exner;
 class fdm_nhf;
 class fdm2D;
 class ioflow;
+class sediment_waves;
+class bedload_waves;
+class sediment_susp2D;
+class slice1;
+class slice2;
+class slice4;
 
 // mesh refinement and multi-block grids: the sediment step of all grids (nhflow_amr, sflow_amr), called by
 // the level-0 sediment_f instead of its own step (sediment_amr.cpp)
@@ -128,6 +134,15 @@ public:
     void fill_PQ_sflow(lexer*,fdm2D*,ghostcell*,slice&,slice&);
     void active_sflow(lexer*, fdm2D*, ghostcell*);
     void active_ini_sflow(lexer*, fdm2D*, ghostcell*);
+    
+    // SFLOW: bed shear stress with the waves (S 110), shared by the sediment step and the suspended load
+    void physics_sflow(lexer*, fdm2D*, ghostcell*, slice&, slice&);
+    // SFLOW: depth-averaged suspended load (S 120), every flow step once the sediment transport has started
+    void susp_sflow(lexer*, fdm2D*, ghostcell*, slice&, slice&);
+    // SFLOW wave formulas (S 11 6-9): the face directions of the Exner step from the transport direction
+    // (mode 1, s->P and s->Q saved), mode 0 restores the flow velocities
+    void transport_direction(lexer*, ghostcell*, int mode);
+    void check_sflow_waves(lexer*);
     
     void active_zone(lexer*, ghostcell*);
     void dfbed_comms(lexer*, ghostcell*);
@@ -234,6 +249,14 @@ public:
     sediment_f *psed;
     ofstream sedlogout;
     sediment_roughness *pks = nullptr; 
+    
+    // SFLOW: waves (S 110), wave formulas (S 11 6-9), depth-averaged suspended load (S 120)
+    sediment_waves *pwaves = nullptr;
+    bedload_waves *pbedw = nullptr;
+    sediment_susp2D *psusp2D = nullptr;
+    slice1 *Psave = nullptr;
+    slice2 *Qsave = nullptr;
+    slice4 *Vtx = nullptr, *Vty = nullptr;
     
     double starttime;
     

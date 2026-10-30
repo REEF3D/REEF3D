@@ -1,0 +1,11 @@
+{
+ "base": "sflow_2d_sediment_basin_susp_ckpt",
+ "np": 1,
+ "steps": 300,
+ "same_as": "sflow_2d_sediment_basin_susp_ckpt",
+ "chain": [{"case": "sflow_2d_sediment_basin_susp_ckpt", "copy": ["REEF3D_Checkpoint"]}],
+ "ctrl_set": {"I 45": "200"},
+ "description": "the restart of sflow_2d_sediment_basin_susp_ckpt from its checkpoint at step 200 (I 45 200); regression.py ranks: the final state bitwise that of the uninterrupted run.",
+ "tags": ["2d", "sflow", "sediment", "suspended", "checkpoint"],
+ "covers": ["sediment_susp2D checkpoint (M, C, ED, hn, the flow time since the last bed update)"]
+}

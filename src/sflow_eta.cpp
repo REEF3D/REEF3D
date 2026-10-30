@@ -85,6 +85,34 @@ void sflow_eta::update(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *pflow, slice 
     if(b->wave!=nullptr)
     b->wave->mass_source(p,b,K);
     
+    // depth-averaged suspended load (S 120 > 0): the mass flux of the step, weighted as the stages, so that
+    // WL^n+1 = WL^n - dt div(FEacc) (stage output a WL0 + (1-a)(WLs + dt K): FEacc = (1-a)(FEacc + FE))
+    if(b->FEacc_x!=nullptr && p->geo_curv==0)
+    {
+    const double w = 1.0-a;
+    
+        if(a==0.0)
+        {
+        for(i=-1; i<p->knox; ++i)
+        for(j=0; j<p->knoy; ++j)
+        (*b->FEacc_x)(i,j) = 0.0;
+        
+        for(i=0; i<p->knox; ++i)
+        for(j=-1; j<p->knoy; ++j)
+        (*b->FEacc_y)(i,j) = 0.0;
+        }
+    
+        for(i=-1; i<p->knox; ++i)
+        for(j=0; j<p->knoy; ++j)
+        (*b->FEacc_x)(i,j) = w*((*b->FEacc_x)(i,j) + b->FEx(i,j));
+        
+        for(i=0; i<p->knox; ++i)
+        for(j=-1; j<p->knoy; ++j)
+        (*b->FEacc_y)(i,j) = w*((*b->FEacc_y)(i,j) + b->FEy(i,j));
+    
+    b->FEacc_step = p->count;
+    }
+    
     SLICELOOP4
     WLout(i,j) = a*WL0(i,j) + (1.0-a)*(WLs(i,j) + p->dt*K(i,j));
     

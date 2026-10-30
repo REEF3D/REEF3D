@@ -33,6 +33,7 @@ Author: Hans Bihs
 using namespace std;
 
 class sediment_mixture;
+class sediment_waves;
 
 class sediment_fdm
 {
@@ -76,6 +77,13 @@ public:
     
     // multi-fraction bed model (S51>0), nullptr otherwise
     sediment_mixture *pmix;
+    
+    // SFLOW: waves in the sediment transport (S 110 > 0), nullptr otherwise
+    sediment_waves *pwave = nullptr;
+    
+    // SFLOW: mean exchange rate E - D of the depth-averaged suspended load since the last bed update
+    // (S 120 > 0, sediment_susp2D), nullptr otherwise
+    slice4 *edrate = nullptr;
 
 };
 
