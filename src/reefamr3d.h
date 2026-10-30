@@ -172,6 +172,7 @@ public:
     const vector<r3gpatch> *GPforce = nullptr;     // restart (I 45): the patch table of the checkpoint (make_boxes)
     vector<vector<int>> glev;       // [l] global ids
     vector<r3xplan> xp;             // [l] remote fills
+    int plan_gen = 0;               // counts the plans (the fill lists and xp): the plans kept from them (cfd_amr::cfp) know they are old
     vector<double> gx[3];           // global level-0 nodes, with margin nodes (index + marge)
 
     // G 40: the placement of the units (level-1 pieces with their finer patches) and the shadows

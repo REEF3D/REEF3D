@@ -940,6 +940,177 @@ void cfd_amr::fill_all(vector<fspec> &fs, int maxdepth)
     fill(l,fs,false,maxdepth);
 }
 
+//  The fills of the solver vectors.  The projection fills its vectors some ten times per iteration
+//  (the halos of the operator, the corrections, the overlaps); fill walks the fill lists of the
+//  patches for each, with the field functions, the three slopes of a prolongation and the cell
+//  indices per item, and sends all the cells around the patches of another rank (three deep) where
+//  the operator reads the next cell only.  Here per level, siblings_only and maxdepth a plan from
+//  those lists: the copies and prolongations as pairs of array indices, the items sent only those of
+//  the cells up to maxdepth (the receiving rank tells the serving one which, once).  The values are
+//  those of fill (injection: the value of the parent, + 0.0 as the slopes of prolong_f add).  The
+//  plans are made anew after new fill lists (plan_gen, every rebuild of the hierarchy); making one
+//  is collective, as the fill is.
+cfd_amr::cfill_plan& cfd_amr::cfp_get(int l, bool sib, int maxdepth)
+{
+    if(cfp_gen!=plan_gen)
+    {
+        cfp.clear();
+        cfp_gen = plan_gen;
+    }
+    for(cfill_plan &C : cfp)
+    if(C.l==l && C.sib==sib && C.maxdepth==maxdepth)
+    return C;
+
+    cfp.emplace_back();
+    cfill_plan &C = cfp.back();
+    C.l = l;
+    C.sib = sib;
+    C.maxdepth = maxdepth;
+
+    vector<int> slot(P.size()+1,-1);
+    auto gslot = [&](int g) -> int
+    {
+        int &s = slot[g+1];
+        if(s<0)
+        {
+            s = (int)C.grids.size();
+            C.grids.push_back(g);
+        }
+        return s;
+    };
+
+    r3xplan &X = xp[l];
+    vector<char> need(X.nrecv,0);
+    vector<int> rslot;                  // the remote entries: the slot of fill
+    for(int id : lev[l])
+    {
+        const r3patch *c = P[id];
+        lexer *q = c->pp;
+        for(const r3fill &f : c->fill)
+        {
+            if(f.kind==3 || f.depth>maxdepth || (sib && f.kind==1))
+            continue;
+            const int d = cix(q,f.d[0],f.d[1],f.d[2]);
+            if(f.kind==2)
+            {
+                C.rg.push_back(gslot(id));
+                C.rq.push_back(d);
+                rslot.push_back(f.slot);
+                need[f.slot] = 1;
+                continue;
+            }
+            C.dg.push_back(gslot(id));
+            C.dq.push_back(d);
+            C.sg.push_back(gslot(f.g));
+            C.sq.push_back(cix(glex(f.g),f.s[0],f.s[1],f.s[2]));
+            C.pz.push_back(f.kind==1 && (f.o[0]!=0 || f.o[1]!=0 || f.o[2]!=0) ? 1 : 0);
+        }
+    }
+
+    if(nranks>1)
+    {
+        // the serving rank learns which of its items are needed
+        vector<char> sneed(X.nsend+1,0);
+        MPI_Alltoallv(need.empty()?nullptr:need.data(),X.rcnt.data(),X.rdsp.data(),MPI_CHAR,
+                      sneed.data(),X.scnt.data(),X.sdsp.data(),MPI_CHAR,reef3d_comm());
+
+        C.scnt.assign(nranks,0);
+        C.rcnt.assign(nranks,0);
+        C.sdsp.assign(nranks,0);
+        C.rdsp.assign(nranks,0);
+        for(int r=0; r<nranks; ++r)
+        {
+            for(int m=X.sdsp[r]; m<X.sdsp[r]+X.scnt[r]; ++m)
+            if(sneed[m])
+            {
+                const r3serve &S = X.serve[m];
+                C.vg.push_back(gslot(S.g));
+                C.vq.push_back(cix(glex(S.g),S.s[0],S.s[1],S.s[2]));
+                ++C.scnt[r];
+            }
+            for(int m=X.rdsp[r]; m<X.rdsp[r]+X.rcnt[r]; ++m)
+            C.rcnt[r] += need[m];
+            if(r>0)
+            {
+                C.sdsp[r] = C.sdsp[r-1]+C.scnt[r-1];
+                C.rdsp[r] = C.rdsp[r-1]+C.rcnt[r-1];
+            }
+        }
+        C.nsend = (int)C.vg.size();
+        C.nrecv = C.rdsp[nranks-1]+C.rcnt[nranks-1];
+
+        // the slots of fill (X) -> the items received here (in the order of X per rank)
+        vector<int> remap(X.nrecv,-1);
+        int n = 0;
+        for(int m=0; m<X.nrecv; ++m)
+        if(need[m])
+        remap[m] = n++;
+        for(int &s : rslot)
+        s = remap[s];
+        C.rs = rslot;
+    }
+
+    return C;
+}
+
+void cfd_amr::fill_cells(int l, int nv, const std::function<double*(int,int)> &ptr, bool sib, int maxdepth, bool sh1)
+{
+    // G 40: the coarser level of the level-1 patches, their shadows, from level 0 (as fill)
+    if(place && l==1 && !sib)
+    {
+        amr_phase<PR_NPART> sh_(prc,PR_SHADOW);
+        const int ng = (int)P.size()+1;
+        vector<double*> tab((size_t)nv*ng,nullptr);
+        auto F = [&](int m, int g) -> double*
+        {
+            double *&t = tab[(size_t)m*ng+g+1];
+            if(t==nullptr)
+            t = ptr(m,g);
+            return t;
+        };
+        cplan_run(sh1 ? sh_down1 : sh_down,nv,F,F,false);
+    }
+
+    cfill_plan &C = cfp_get(l,sib,maxdepth);
+    const int ng = (int)C.grids.size();
+    cfp_tab.resize((size_t)nv*ng);
+    for(int m=0; m<nv; ++m)
+    for(int s=0; s<ng; ++s)
+    cfp_tab[(size_t)m*ng+s] = ptr(m,C.grids[s]);
+    double *const *T = cfp_tab.data();
+
+    if(nranks>1)
+    {
+        C.sbuf.resize((size_t)C.nsend*nv+1);
+        C.rbuf.resize((size_t)C.nrecv*nv+1);
+        for(int q=0; q<C.nsend; ++q)
+        for(int m=0; m<nv; ++m)
+        C.sbuf[(size_t)q*nv+m] = T[(size_t)m*ng+C.vg[q]][C.vq[q]];
+
+        vector<int> sc(nranks), sd(nranks), rc(nranks), rd(nranks);
+        for(int r=0; r<nranks; ++r)
+        {
+            sc[r] = C.scnt[r]*nv; sd[r] = C.sdsp[r]*nv;
+            rc[r] = C.rcnt[r]*nv; rd[r] = C.rdsp[r]*nv;
+        }
+        MPI_Alltoallv(C.sbuf.data(),sc.data(),sd.data(),MPI_DOUBLE,C.rbuf.data(),rc.data(),rd.data(),MPI_DOUBLE,reef3d_comm());
+    }
+
+    const size_t nl = C.dq.size();
+    for(int m=0; m<nv; ++m)
+    {
+        double *const *Tm = T+(size_t)m*ng;
+        for(size_t n=0; n<nl; ++n)
+        {
+            const double v = Tm[C.sg[n]][C.sq[n]];
+            Tm[C.dg[n]][C.dq[n]] = C.pz[n] ? v+0.0 : v;
+        }
+        const size_t nr = C.rq.size();
+        for(size_t n=0; n<nr; ++n)
+        Tm[C.rg[n]][C.rq[n]] = C.rbuf[(size_t)C.rs[n]*nv+m];
+    }
+}
+
 // density and viscosity of the cells around patch id from its level set (as fluid_update_fsf, with
 // the local interface width)
 void cfd_amr::margin_rovisc(int id)

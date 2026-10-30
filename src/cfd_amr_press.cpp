@@ -1082,10 +1082,8 @@ void cfd_amr::pr_level_solve(int l, int kr, int kz, int kc)
     // to them)
     if(pr_ovl)
     {
-        vector<fspec> fs;
-        fs.push_back({CELL,2,[this,kr](int g) -> field& { return pfield(g,kr); }});
         PRS po_(prc,PR_OVFILL);
-        fill(l,fs,true);
+        fill_cells(l,1,[this,kr](int,int g) -> double* { return pvec(g,kr); },true);
     }
     for(int m=0; m<(int)lmg.size(); ++m)
     if(P[lmg[m].ids[0]]->lev==l)
@@ -1791,17 +1789,16 @@ void cfd_amr::sh_ks()
 // rows of the levels >= lmin only (pr_residual): the fills of the levels >= lmin - 1 (the coarse
 // values the edges of level lmin read, with their transverse neighbours), the level-0 halo while
 // level 1 is filled
-void cfd_amr::pr_sync(int k, int lmin)
+void cfd_amr::pr_sync(int k, int lmin, bool sh1)
 {
     pr_wait();
     PRS ps_(prc,PR_HALO);
-    vector<fspec> fs;
-    fs.push_back({CELL,2,[this,k](int g) -> field& { return pfield(g,k); }});
+    const std::function<double*(int,int)> fs = [this,k](int,int g) -> double* { return pvec(g,k); };
 
     // level projection (G 7 1): the patches of the level next to each other
     if(prl>0)
     {
-        fill(prl,fs);
+        fill_cells(prl,1,fs);
         return;
     }
 
@@ -1813,7 +1810,7 @@ void cfd_amr::pr_sync(int k, int lmin)
 
     // (the operator reaches one cell around a patch: the cells next to it)
     for(int l=lf; l<=maxlev; ++l)
-    fill(l,fs,false,1);
+    fill_cells(l,1,fs,false,1,sh1);
 }
 
 // the halo of a level-0 vector: the neighbour ranks, the periodic edges
@@ -1840,7 +1837,7 @@ void cfd_amr::pr_halo0(field &f)
 void cfd_amr::pr_apply(int kx, int ky, int lmin)
 {
     PRS ps_(prc,PR_OPERATOR);
-    pr_sync(kx,lmin);
+    pr_sync(kx,lmin,true);
 
     for(int g : prg)
     {
@@ -2049,8 +2046,7 @@ void cfd_amr::pr_prec(int kr, int kz)
     }
 
     // KC of a level: its cells around the patches (the slopes of the prolongation reach one cell)
-    vector<fspec> fc;
-    fc.push_back({CELL,2,[this](int g) -> field& { return pfield(g,REEFAMR_NVEC); }});
+    const std::function<double*(int,int)> fc = [this](int,int g) -> double* { return pvec(g,REEFAMR_NVEC); };
 
     // the correction of level l-1 (KC) prolonged into the patches of level l: added to z, and into
     // KC of level l (linear: the central differences of the parent, as prolong mode 0)
@@ -2118,7 +2114,7 @@ void cfd_amr::pr_prec(int kr, int kz)
             if(lv<maxlev)
             {
                 PRS pf_(prc,PR_CFILL);
-                fill(lv,fc,false,1);
+                fill_cells(lv,1,fc,false,1,true);
             }
         }
     };
@@ -2136,7 +2132,7 @@ void cfd_amr::pr_prec(int kr, int kz)
         pr_level_solve(l,kt,kz,KC);
         {
             PRS pf_(prc,PR_CFILL);
-            fill(l,fc,false,1);
+            fill_cells(l,1,fc,false,1,true);
         }
         pass_on(l);
     };
@@ -2278,10 +2274,7 @@ void cfd_amr::pr_coef_fill(int l)
                 c->kc7[3]->V[qq] = M.w[r]; c->kc7[4]->V[qq] = M.e[r]; c->kc7[5]->V[qq] = M.t[r]; c->kc7[6]->V[qq] = M.b[r];
             }
         }
-        vector<fspec> fs;
-        for(int m=0; m<7; ++m)
-        fs.push_back({CELL,2,[this,m](int g) -> field& { return *CP(g)->kc7[m]; }});
-        fill(lv,fs,true);
+        fill_cells(lv,7,[this](int m, int g) -> double* { return CP(g)->kc7[m]->V; },true);
     }
 }
 

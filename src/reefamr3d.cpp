@@ -2187,6 +2187,7 @@ void reefamr3d::build_lexer(r3patch &c)
 // --------------------------------------------------------------------- plans
 void reefamr3d::plans()
 {
+    ++plan_gen;
     xp.assign(maxlev+1,r3xplan());
     const int m = marge>=3 ? 3 : marge;     // the CFD margin: 3 cells
     (void)m;

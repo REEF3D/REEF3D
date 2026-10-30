@@ -373,6 +373,29 @@ private:
     void fill(int l, vector<fspec> &fs, bool siblings_only=false, int maxdepth=1<<20);   // siblings_only: copies from the patches of the same level (kind 0, 2) alone;
                                                                                         // maxdepth: the cells around the patch up to that distance
     void fill_all(vector<fspec> &fs, int maxdepth=1<<20);
+    // the fills of the vectors of the solver (cells, injection: fill with CELL, mode 2), as fill with
+    // plans kept from the fill lists of the patches (cfd_amr.cpp): the copies as index pairs, the
+    // remote items only those of the cells up to maxdepth; ptr(m, g) the array of field m of grid g
+    struct cfill_plan
+    {
+        int l = 0, maxdepth = 0;
+        bool sib = false;
+        vector<int> grids;                  // the grids the plan touches (the pointer table)
+        vector<int> dg, dq, sg, sq;         // local: destination grid (in grids) and index, source
+        vector<unsigned char> pz;           // a prolongation of a child off the low corner (+ 0.0, as prolong_f)
+        vector<int> rg, rq, rs;             // remote: destination grid, index, item of the receive buffer
+        vector<int> vg, vq;                 // served: grid, index
+        vector<int> scnt, sdsp, rcnt, rdsp; // per rank, in items
+        int nsend = 0, nrecv = 0;
+        vector<double> sbuf, rbuf;
+    };
+    vector<cfill_plan> cfp;
+    int cfp_gen = -1;
+    vector<double*> cfp_tab;
+    cfill_plan& cfp_get(int l, bool siblings_only, int maxdepth);     // collective when it is new
+    // (G 40, level 1: the shadows from level 0 first, all their cells (sh_down), or with sh1 only the
+    // cells the operator and the fills up to depth 1 read (sh_down1: the vectors inside the solver))
+    void fill_cells(int l, int nv, const std::function<double*(int,int)> &ptr, bool siblings_only=false, int maxdepth=1<<20, bool sh1=false);
     double prolong(const fspec &F, int g, const int *s, const int *o);
     double prolong_f(field &f, int type, int mode, int g, const int *s, const int *o);
     double cell_slope(field &f, int g, const int *s, int d, int mode);
@@ -502,7 +525,7 @@ private:
     void pr_predict(int s);
     void pr_correct(int s);
     void pr_project(lexer*, ghostcell*, int s);
-    void pr_sync(int k, int lmin=0);
+    void pr_sync(int k, int lmin=0, bool sh1=false);     // sh1: the shadows only where the operator reads them (pr_apply)
     void pr_covered_coef();                              // the coarse couplings under the finer patches from the fine faces
     void pr_halo0(field &f);                             // the halo of a level-0 vector (ranks, periodic edges)
     bool pr_wrap(int id, int d) const;                   // patch id over the whole length of periodic direction d
@@ -642,6 +665,7 @@ private:
     r3cplan pu_face[3];                 //     the faces under them (set; the - face at the low edge too)
     r3cplan pu_cf[3];                   //     the coarse faces at the edges of the level-1 patches (set)
     r3cplan pu_cc;                      //     the coarse cells at those edges (added: pr_apply, refluxing)
+    r3cplan sh_down1;                   // (not up: down, the cells of the shadows the solver reads, fill_cells)
     r3cplan pu_key;                     //     the coarse cell and side of the faces: the folds of the level-0
                                         //     rows (pjm_corr), the couplings of the level-0 multigrid (pr_matrix)
     vector<vector<double>> kval;        // per shadow: the sum of kc of its keys (pu_key order)
