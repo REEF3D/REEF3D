@@ -508,6 +508,8 @@ private:
     void df_free();
     void df_core(lexer*);
     void df_sync(int);
+    solver* df_capsolver();
+    bool df_l0 = false;             // the system of level 0 alone (the turbulence of the blocks, turb_composite0)
     double* dvec(int, int);         // grid, vector (-1: the unknowns of the solve)
     struct dgrid
     {
@@ -655,6 +657,9 @@ private:
     void turb_step(lexer*, ghostcell*);
     void turb_level(ghostcell*, int);     // G 7 1: the turbulence step of the level-l patches (their own step)
     void turb_sync(ghostcell*, int);      // G 7 1: the levels above l restricted into level l
+    // the turbulence of level 0 and the blocks as one grid, from the step of level 0 (nhflow_turbulence::defer)
+    bool turb_composite0(lexer*, fdm_nhf*, ghostcell*, nhflow_scalar_convection*, nhflow_diffusion*, solver*, ioflow*, vrans_nhflow*);
+    int turb_c0count = -1;          // the step of the last composite turbulence of level 0
     void potential(lexer*, ghostcell*);     // I 11: potential flow initialisation over the blocks
     bool ring0(int ii, int jj) const { return nblk>0 && nring[(ii-p0->imin)*p0->jmax + (jj-p0->jmin)]==1; }
 

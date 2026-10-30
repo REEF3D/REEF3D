@@ -45,6 +45,20 @@ nhflow_kepsilon_IM1::~nhflow_kepsilon_IM1()
 
 void nhflow_kepsilon_IM1::start(lexer* p, fdm_nhf* d, ghostcell* pgc, nhflow_scalar_convection* pconvec, nhflow_diffusion* pdiff,solver* psolv, ioflow* pflow, vrans_nhflow *pvrans)
 {
+    // a multi-block grid steps the model of all blocks as one grid (nhflow_amr::turb_composite0)
+    if(defer && defer(p,d,pgc,pconvec,pdiff,psolv,pflow,pvrans))
+    return;
+
+    for(int part=0; part<3; ++part)
+    start_part(p,d,pgc,pconvec,pdiff,psolv,pflow,pvrans,part);
+}
+
+// the step in three parts: 0 the k system and its solve, 1 the epsilon system and its solve, 2 the eddy viscosity;
+// the solver may only record a system (nhflow_amr, the blocks as one grid), which is then solved between the parts
+void nhflow_kepsilon_IM1::start_part(lexer* p, fdm_nhf* d, ghostcell* pgc, nhflow_scalar_convection* pconvec, nhflow_diffusion* pdiff,solver* psolv, ioflow* pflow, vrans_nhflow *pvrans, int part)
+{
+    if(part==0)
+    {
 	Pk_update(p,d,pgc);
     Pk_b_update(p,d,pgc);
 	wallf_update(p,d,pgc,WALLF);
@@ -61,6 +75,11 @@ void nhflow_kepsilon_IM1::start(lexer* p, fdm_nhf* d, ghostcell* pgc, nhflow_sca
     bckepsilon_start(p,d,KIN,EPS,gcval_kin);
     bckin_matrix(p,d,KIN,EPS);
     psolv->startV(p,pgc,KIN,d->rhsvec,d->M,4);
+    return;
+    }
+
+    if(part==1)
+    {
     // k >= 0 also against the explicit convection (was only with the buoyancy sink A 566 1)
     LOOP
     KIN[IJK] = MAX(KIN[IJK],0.0);
@@ -80,6 +99,9 @@ void nhflow_kepsilon_IM1::start(lexer* p, fdm_nhf* d, ghostcell* pgc, nhflow_sca
     bcepsilon_matrix(p,d,KIN,EPS);
     bckepsilon_start(p,d,KIN,EPS,gcval_eps);   // wall-function epsilon, must act on M/rhs before the solve
 	psolv->startV(p,pgc,EPS,d->rhsvec,d->M,4);
+    return;
+    }
+
 	epsfsf(p,d,pgc);
     length_limit(p,d,false);   // l <= kappa h (A 564 >= 1)
 	pgc->start30V(p,EPS,gcval_eps);

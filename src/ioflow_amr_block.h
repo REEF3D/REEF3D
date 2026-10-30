@@ -78,6 +78,7 @@ public:
     void W_relax(lexer*,ghostcell*,double*,double*) override;
     void P_relax(lexer*,ghostcell*,double*) override;
     void WL_relax(lexer*,ghostcell*,slice&,slice&) override;
+    void turb_relax_nhflow(lexer*,fdm_nhf*,ghostcell*,double*) override;
 
     // G 54 types 3, 4: the file of a time series and its value at time t
     static std::string series_file(int,int);

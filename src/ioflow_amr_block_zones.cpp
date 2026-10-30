@@ -320,6 +320,26 @@ void ioflow_amr_block::zone_columns(lexer *p, F &&fn)
     }
 }
 
+// the turbulence in the zones (k, epsilon/omega, the eddy viscosities): towards 0 with the weight of the zone, as
+// iowave::turb_relax_nhflow
+void ioflow_amr_block::turb_relax_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double *F)
+{
+    if(rzone.empty())
+    return;
+
+    zone_columns(p,[&](size_t q, double rg, double rb, int zg, int zb)
+    {
+        for(k=0; k<p->knoz; ++k)
+        if(p->flag4[IJK]>0)
+        {
+            if(zg>=0)
+            F[IJK] = rg*F[IJK];
+            if(zb>=0)
+            F[IJK] = rb*F[IJK];
+        }
+    });
+}
+
 void ioflow_amr_block::WL_relax(lexer *p, ghostcell *pgc, slice &WL, slice &depth)
 {
     if(rzone.empty())

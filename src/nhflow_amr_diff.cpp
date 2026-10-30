@@ -152,7 +152,9 @@ double* nhflow_amr::dvec(int g, int k)
 {
     if(k<0)
     k = DX;
-    return (g<0) ? dkv0[k].data() : NP(g)->dkv[k].data();
+    // a grid without vectors (the patches of levels 1.. in the turbulence of level 0, turb_composite0): no cells
+    vector<vector<double>> &V = (g<0) ? dkv0 : NP(g)->dkv;
+    return ((size_t)k<V.size()) ? V[k].data() : nullptr;
 }
 
 void nhflow_amr::df_capture(double *f, vec &rhs, matrix_diag &M, int var)
@@ -162,6 +164,17 @@ void nhflow_amr::df_capture(double *f, vec &rhs, matrix_diag &M, int var)
     D.rhs = &rhs;
     D.M = &M;
     D.var = var;
+}
+
+// the capture solver of the systems of the grids (created with the first use)
+solver* nhflow_amr::df_capsolver()
+{
+    if(dcap==nullptr)
+    {
+        dcap = new df_capture_solver(this);
+        dkeep = new df_keep();
+    }
+    return dcap;
 }
 
 // the implicit diffusion of stage s on all grids: per component the rows of every grid (phase_D),
@@ -302,6 +315,8 @@ void nhflow_amr::df_core(lexer *p)
     {
         lexer *q = glex(g);
         const dgrid &D = dg[g+1];
+        if(D.M==nullptr)       // a grid outside the system (the patches of the turbulence of level 0)
+        continue;
         const matrix_diag &M = *D.M;
         const double *R = D.rhs->V.data();
         const double *x = dvec(g,DX);
@@ -347,7 +362,18 @@ void nhflow_amr::df_core(lexer *p)
     {
         double bn, rn;
         df_space sp{this};
-        const double tol = p->N43*bfull/r0;
+        // the system of level 0 alone (the turbulence of the blocks, df_l0): the residual per cell as bicgstab_ijk
+        // (the turbulence of one grid), so that the blocks solve as tightly as one grid
+        double tol = p->N43*bfull/r0;
+        if(df_l0)
+        {
+            double nl = 0.0;
+            for(const dgrid &D : dg)
+            nl += double(D.lq.size());
+            tol = p->N43*pgc0->globalsum(nl)/r0;
+            // at least one iteration, as bicgstab_ijk
+            tol = MIN(tol,1.0-1.0e-9);
+        }
         it = reefamr_bicgstab(sp,tol,p->N46,bn,rn,nullptr,nullptr,&df_restarts,STAGTOL*tol,&df_stalls);
 
         if(it>=p->N46 && rn>tol*bn)
@@ -368,8 +394,9 @@ void nhflow_amr::df_core(lexer *p)
 // covered cells, level-0 halo, cells around the patches of vector k
 void nhflow_amr::df_sync(int k)
 {
-    // covered cells: 2x2 mean per layer (with G 6 of both fine layers), finest first
-    for(int l=maxlev; l>=1; --l)
+    // covered cells: 2x2 mean per layer (with G 6 of both fine layers), finest first (not in a system of level 0
+    // alone: df_l0)
+    for(int l=(df_l0 ? 0 : maxlev); l>=1; --l)
     {
         const int Kc = klev(l-1);
         block_up(l,Kc,7800+l,
@@ -452,7 +479,7 @@ void nhflow_amr::df_sync(int k)
     }
     pgc0->gc_periodic_ijk(p0,dvec(-1,k));
 
-    for(int l=1; l<=maxlev; ++l)
+    for(int l=1; l<=(df_l0 ? 0 : maxlev); ++l)
     {
         const int K = klev(l);
         const int Kc = klev(l-1);
@@ -544,6 +571,8 @@ void nhflow_amr::df_apply(int kx, int ky)
     {
         lexer *q = glex(g);
         const dgrid &D = dg[g+1];
+        if(D.M==nullptr)
+        continue;
         const matrix_diag &M = *D.M;
         const double *x = dvec(g,kx);
         double *y = dvec(g,ky);
@@ -567,6 +596,8 @@ void nhflow_amr::df_prec(int kr, int kz)
     for(int g=-1; g<(int)P.size(); ++g)
     {
         const dgrid &D = dg[g+1];
+        if(D.M==nullptr)
+        continue;
         const double *Mp = D.M->p.data();
         const double *r = dvec(g,kr);
         double *z = dvec(g,kz);

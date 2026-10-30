@@ -521,14 +521,18 @@ void nhflow_amr::sub_level0_blocks(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_
     }
     }
 
-    // A 560: the blocks step their models with the cells around them from level 0 and from each other
+    // A 560: the blocks step their models with the cells around them from level 0 and from each other (not when
+    // level 0 has stepped them with its own step, turb_composite0)
     if(turb)
     {
         const double t0 = MPI_Wtime();
-        turb_fill0(pgc);
-        for(int id : lev[0])
-        turb_run(pgc,*NP(id));
-        turb_fill0(pgc);
+        if(turb_c0count!=p->count)
+        {
+            turb_fill0(pgc);
+            for(int id : lev[0])
+            turb_run(pgc,*NP(id));
+            turb_fill0(pgc);
+        }
         for(int id : lev[0])
         turb_save(pgc,*NP(id));
         tturb += MPI_Wtime()-t0;

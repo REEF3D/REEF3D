@@ -518,8 +518,8 @@ void nhflow_amr::si_step(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum_f
         pp->amr_follow(*p);
     }
 
-    // A 560: the turbulence of the blocks and the patches (level 0 has made its step before the momentum)
-    if(si_lv)
+    // A 560: the turbulence of the patches and the old time level of the blocks (level 0 and the blocks have made
+    // their step before the momentum, turb_composite0)
     turb_step(p,pgc);
 
     // the water column of the step before, then the state of t^n around the grids

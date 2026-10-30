@@ -22,6 +22,7 @@ Author: Hans Bihs
 
 #include"nhflow_amr.h"
 #include"nhflow_amr_fill.h"
+#include"nhflow_momentum_func.h"
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
@@ -30,10 +31,12 @@ Author: Hans Bihs
 #include"nhflow_scalar_ifou.h"
 #include"nhflow_idiff.h"
 #include"bicgstab_ijk.h"
+#include"reefamr_krylov.h"
 #include"ioflow_amr_block.h"
 #include"definitions.h"
 #include<cmath>
 #include<mpi.h>
+#include<functional>
 
 using namespace nhflow_amr_detail;
 
@@ -42,12 +45,14 @@ using namespace nhflow_amr_detail;
 // Every grid has its own turbulence model (nhflow_kepsilon_IM1 / nhflow_komega_IM1 on the lexer and the fdm of the
 // grid) with its own scalar convection (first-order upwind), implicit diffusion and BiCGStab, as level 0. At the
 // start of the step (before the momentum, as level 0 in driver_loop_nhflow):
-//   1. the blocks 1..: the cells around the blocks take k, epsilon/omega and the eddy viscosity of the grid that holds
-//      them (level 0 after its step, the other blocks from the end of the last step), every block steps its k and
-//      epsilon/omega with them as boundary values; then the ring of the native grid from the blocks.  Four turned
-//      blocks and one block agree to the solver tolerance (nhflow_multiblock/t2 with A 560: 5e-11 in k with N 43 and
-//      N 44 1e-14); more passes do not help, a second step of a model from the same old time level is not the
-//      same as the first (the sources take the new k and epsilon/omega)
+//   1. the blocks 1..: level 0 and the blocks step as one grid (turb_composite0, at the step of level 0 before the
+//      momentum): every grid assembles its k system with the cells around the blocks and the ring from the grid that
+//      holds them (the end of the last step), one composite BiCGStab over level 0 and the blocks (the composite
+//      diffusion of nhflow_amr_diff.cpp with the system of level 0 alone, df_l0), the same for epsilon/omega with the
+//      new k, then the eddy viscosity of every grid and the cells around the blocks and the ring.  The blocks give
+//      the solution of one block to the solver tolerance (before, the blocks stepped after level 0 with its new
+//      values around them and level 0 with the values of the blocks of the last step: 4e-4 in the eddy viscosity
+//      of a dam break after 0.2 s with N 43 1e-14)
 //   2. levels 1..: the cells around the patches from a patch of the same level or linear from the parent (minmod
 //      slopes: k and epsilon/omega stay positive; G 6: in the two halves of a layer), then the patches step
 //   3. the covered cells take the mean of their children (per area on curvilinear grids), finest first; the cells
@@ -106,6 +111,136 @@ double* nhflow_amr::tfield(int g, int m)
 void nhflow_amr::turb_attach(nhflow_turbulence *t)
 {
     tb0 = t;
+}
+
+// level 0 and the blocks as one grid (nhflow_turbulence::defer of level 0 on a multi-block grid): the parts of the
+// models of all grids, the k and the epsilon/omega systems solved together
+bool nhflow_amr::turb_composite0(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_scalar_convection *pconvec, nhflow_diffusion *pdiff,
+                                 solver *psolv, ioflow *pflow, vrans_nhflow *pvrans)
+{
+    if(!turb || nblk==0)
+    return false;
+
+    const double t0 = MPI_Wtime();
+
+    // the time of the blocks (the momentum sets it again)
+    for(int id : lev[0])
+    {
+        lexer *pp = NP(id)->pp;
+        pp->dt = p->dt;
+        pp->dt_old = p->dt_old;
+        pp->simtime = p->simtime;
+        pp->count = p->count;
+        pp->amr_follow(*p);
+    }
+
+    // the cells around the blocks and the ring from the end of the last step: the turbulence fields and the state
+    // (the velocity gradients of the production at the interfaces)
+    turb_fill0(pgc);
+    fill_level0(pgc,-1);
+
+    // the sigma grid of every grid with the water level of the cells around it at the end of the step (the gradients
+    // of the production and the strain limiter; the last stage updated the sigma grid of a grid before the cells
+    // around it had the end of the step)
+    mom0->sigma_update(p,d,pgc,d->WL);
+    {
+    comms_off guard(pgc);
+    for(int id : lev[0])
+    {
+        nhflow_amr_patch *c = NP(id);
+        pscope ps(pgc,c->d,d0);
+        c->pmom->sigma_update(c->pp,c->d,pgc,c->d->WL);
+    }
+    }
+
+    // the system of level 0 and the blocks: every cell of their boxes (the ring of the native grid stands for cells
+    // of the blocks; the cells under a patch are stepped by level 0 and then take the mean of the children)
+    solver *cap = df_capsolver();
+    df_l0 = true;
+    dg.assign(P.size()+1,dgrid());
+    df_fs.clear();
+
+    auto grids = [&](const std::function<void(int)> &f)
+    {
+        f(-1);
+        for(int id : lev[0])
+        f(id);
+    };
+
+    grids([&](int g)
+    {
+        lexer *q = glex(g);
+        const size_t n = (size_t)q->imax*q->jmax*(q->kmax+2);
+        vector<vector<double>> &V = (g<0) ? dkv0 : NP(g)->dkv;
+        if(V.size()!=(size_t)REEFAMR_NVEC+1 || V[0].size()!=n)
+        V.assign(REEFAMR_NVEC+1,vector<double>(n,0.0));
+
+        dgrid &D = dg[g+1];
+        int i0,i1,j0,j1;
+        if(g<0) { i0=0; i1=NX0-1; j0=0; j1=NY0-1; }
+        else    { i0=EXT; i1=EXT+P[g]->nx-1; j0=EY; j1=EY+P[g]->ny-1; }
+
+        int r=0;
+        for(int ii=0; ii<q->knox; ++ii)
+        for(int jj=0; jj<q->knoy; ++jj)
+        {
+            const bool box = (ii>=i0 && ii<=i1 && jj>=j0 && jj<=j1) && !(g<0 && ring0(ii,jj));
+            for(int kk=0; kk<q->knoz; ++kk)
+            {
+                const int qq = cidx(q,ii,jj,kk);
+                if(q->flag4[qq]<=0)
+                continue;
+                D.aq.push_back(qq);
+                if(box)
+                {
+                    D.lq.push_back(qq);
+                    D.lr.push_back(r);
+                }
+                ++r;
+            }
+        }
+    });
+
+    for(int part=0; part<3; ++part)
+    {
+        {
+        comms_off guard(pgc);
+        for(int id : lev[0])
+        {
+            nhflow_amr_patch *c = NP(id);
+            pscope ps(pgc,c->d,d0);
+            dcur = id;
+            c->pturb->start_part(c->pp,c->d,pgc,c->ptconv,c->ptdiff,cap,c->pflow,c->pvrans,part);
+        }
+        }
+        dcur = -1;
+        tb0->start_part(p,d,pgc,pconvec,pdiff,(part<2 ? cap : psolv),pflow,pvrans,part);
+
+        if(part==2)
+        break;
+
+        // the k (epsilon/omega) system of all grids, the result with the cells around the blocks and the ring
+        df_core(p);
+        df_sync(REEFAMR_NVEC);
+        grids([&](int g)
+        {
+            const dgrid &D = dg[g+1];
+            const double *dx = dvec(g,REEFAMR_NVEC);
+            for(int qq : D.aq)
+            D.x[qq] += dx[qq];
+        });
+    }
+
+    df_l0 = false;
+
+    // the cells around the blocks and the ring from the new fields
+    turb_fill0(pgc);
+    for(int id : lev[0])
+    turb_bc(pgc,id);
+
+    turb_c0count = p->count;
+    tturb += MPI_Wtime()-t0;
+    return true;
 }
 
 void nhflow_amr::turb_objects(nhflow_amr_patch &c, ghostcell *pgc)
@@ -359,6 +494,13 @@ void nhflow_amr::turb_blocks_ini(ghostcell *pgc)
     turb_fill0(pgc);
     for(int id : lev[0])
     turb_save(pgc,*NP(id));
+
+    // the step of level 0 makes the step of the blocks (turb_composite0)
+    tb0->defer = [this](lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_scalar_convection *c, nhflow_diffusion *df, solver *s,
+                        ioflow *f, vrans_nhflow *v)
+    {
+        return turb_composite0(p,d,pgc,c,df,s,f,v);
+    };
 }
 
 // the fresh patches of level l after a regrid: linear from the parent, then from an old patch of the same level
@@ -466,7 +608,7 @@ void nhflow_amr::turb_step(lexer *p, ghostcell *pgc)
 
     // the blocks (level 0 has made its step: the cells around the blocks from it and from the blocks at the end of
     // the last step), then the ring of the native grid from the blocks
-    if(nblk>0)
+    if(nblk>0 && turb_c0count!=p->count)
     {
         turb_fill0(pgc);
         for(int id : lev[0])
