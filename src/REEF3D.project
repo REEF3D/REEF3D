@@ -739,6 +739,8 @@
           <File Name="fnpf_fsf_update.h"/>
           <File Name="fnpf_bed_update.h"/>
           <File Name="fnpf_sigma.h"/>
+          <File Name="fnpf_sigma_col.h"/>
+          <File Name="fnpf_memory.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Printer">
           <VirtualDirectory Name="Kinematics">
@@ -888,6 +890,7 @@
           <File Name="coral/aero/coral_rotor.h"/>
           <File Name="coral/aero/coral_rotor_aero.h"/>
           <File Name="coral/aero/coral_rotor_tune.h"/>
+          <File Name="coral/aero/coral_unsteady_aero.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Control">
           <File Name="coral/control/README.md"/>
@@ -2557,6 +2560,7 @@
           <File Name="coral/aero/coral_rotor.cpp"/>
           <File Name="coral/aero/coral_rotor_aero.cpp"/>
           <File Name="coral/aero/coral_rotor_tune.cpp"/>
+          <File Name="coral/aero/coral_unsteady_aero.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Control">
           <File Name="coral/control/coral_turbine_controller.cpp"/>
