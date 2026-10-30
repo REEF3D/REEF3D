@@ -63,6 +63,15 @@ Architect: Hans Bihs
 //   loads       the outer pressure, rho g eta_L + P, on the outer side of every blocked link times the
 //               face area, towards the body; moments about the centre of gravity. The enclosed inner
 //               water takes no part in the body dynamics (its pressure is not on the hull).
+//   enclosed water  its horizontal velocity is the horizontal rigid-body velocity, every stage
+//               (enclosed_water). Left free, it sloshed inside the hull. In a current (a hull at speed in the
+//               ship frame, B 531) the inner level of the footprint columns oscillated by 2-3 cm at 5 Hz and
+//               moved the sigma layers of the lower cells and the keel pressure: a 2D box fixed in a current
+//               of 1 m/s had a heave force noise of 135 N (now 2 N), in forced heave a negative damping, free
+//               in heave it oscillated by +-5 cm (now +-2.5 cm at 1 m/s, decaying at 0.5 m/s), and the
+//               calm-water force of the KVLCC2-like hull in the ship frame was -67 N with a noise of 35 N
+//               (now -22 N, 9 N; Ship Hydrodynamics validation 27). Its vertical velocity stays with the
+//               solver, so that the inner level follows the keel through the lid correction.
 // The direct forcing is off. The pressure scheme is the full projection (A 520 1).
 //
 // Result (2D box B 1 m, T 0.4 m, forced heave at 3.5 rad/s; Frank close-fit A/m 0.975, B 63.6 per
@@ -366,10 +375,34 @@ void nhflow_hullbody::stage(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, 
     // cells that crossed the hull with the moving sigma grid, cut cells and pockets at the wall velocity
     tb->side_change(p,d,UH,VH,WH,WL);
     tb->cut_forcing(p,d,UH,VH,WH,WL);
+    
+    // the enclosed water moves horizontally with the hull
+    enclosed_water(p,d,pgc,UH,VH,WL);
 
     marked = true;
 
     tstage += pgc->timer() - starttime;
+}
+
+// ------------------------------------------------------------------ enclosed water
+void nhflow_hullbody::enclosed_water(lexer *p, fdm_nhf *d, ghostcell *pgc, double *UH, double *VH, slice &WL)
+{
+    // cells inside the hull (side -1) that are not cut by a floor (no blocked vertical link, their W is the wall
+    // velocity of cut_forcing): U, V of the rigid-body motion at the cell centre
+    LOOP
+    if(p->wet[IJ]==1 && tb->sideC[IJK]<0.0 && tb->bz[IJK]<0.5)
+    {
+        double u,v,w;
+        body_velocity(p->XP[IP],p->YP[JP],p->ZSP[IJK],u,v,w);
+        
+        d->U[IJK] = u;
+        d->V[IJK] = v;
+        UH[IJK] = u*WL(i,j);
+        VH[IJK] = v*WL(i,j);
+    }
+    
+    pgc->start4V(p,d->U,10);
+    pgc->start4V(p,d->V,11);
 }
 
 // ------------------------------------------------------------------ loads: the outer pressure on the blocked links

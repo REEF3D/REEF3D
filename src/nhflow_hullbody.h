@@ -73,6 +73,7 @@ public:
 
 private:
     void body_velocity(double, double, double, double&, double&, double&) const;
+    void enclosed_water(lexer*, fdm_nhf*, ghostcell*, double*, double*, slice&);   // horizontal velocity of the water inside the hull
     bool hull_normal(lexer*, fdm_nhf*, int, int, double&, double&, double&) const;
 
     sixdof_obj_nhflow *obj;
