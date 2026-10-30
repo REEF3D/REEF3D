@@ -70,6 +70,23 @@ fnpf_RK4::fnpf_RK4(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_ini(p,c,pgc),fn
     // resolved bodies (X 10): no-op unless present
     pbody = fnpf_body::create(p,c,pgc);
     plap = pbody->laplace(plap);
+    
+    // the 3D velocities for an output when they are not stored (fnpf_memory.h): as the last update
+    c->vel3D_fill = [this,c](lexer *p, ghostcell *pgc)
+    {
+        const int state = c->vel_state;
+        
+        velcalc_sig(p,c,pgc,c->Fi);
+        
+        if(state==2)
+        {
+        pf->coastline_vel(p,c,pgc,c->U);
+        pf->coastline_vel(p,c,pgc,c->V);
+        pf->coastline_vel(p,c,pgc,c->W);
+        }
+        
+        c->vel_state = state;
+    };
 }
 
 fnpf_RK4::~fnpf_RK4()
@@ -311,9 +328,20 @@ void fnpf_RK4::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     {fnpf_prof::scope ps_(fnpf_prof::velcalc); velcalc_sig(p,c,pgc,c->Fi);}
     {fnpf_prof::scope ps_(fnpf_prof::body); pbody->velocity(p,c,pgc);}
     
+    if(c->U!=nullptr)
+    {
     {fnpf_prof::scope ps_(fnpf_prof::coastline); pf->coastline_vel(p,c,pgc,c->U);}
     {fnpf_prof::scope ps_(fnpf_prof::coastline); pf->coastline_vel(p,c,pgc,c->V);}
     {fnpf_prof::scope ps_(fnpf_prof::coastline); pf->coastline_vel(p,c,pgc,c->W);}
+    }
+    else
+    {
+    {fnpf_prof::scope ps_(fnpf_prof::coastline); pf->coastline_vel_sl(p,c,pgc,c->Us);}
+    {fnpf_prof::scope ps_(fnpf_prof::coastline); pf->coastline_vel_sl(p,c,pgc,c->Vs);}
+    {fnpf_prof::scope ps_(fnpf_prof::coastline); pf->coastline_vel_sl(p,c,pgc,c->Ws);}
+    }
+    
+    c->vel_state = 2;
 }
 
 void fnpf_RK4::inidisc_step1(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pflow, solver *psolv)

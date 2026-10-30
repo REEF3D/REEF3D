@@ -22,6 +22,7 @@ Author: Hans Bihs
 
 #include"fdm_fnpf.h"
 #include"lexer.h"
+#include"fnpf_sigma_col.h"
 
 namespace
 {
@@ -87,21 +88,39 @@ fdm_fnpf::fdm_fnpf(lexer *p) : test(p,p->P23==1),Fifsf(p),
                               coastline(p),vb(p),
                               test2D(p),Hs(p),
                               nodeval2D(p),breaking_print(p),
+                              Us(p),Vs(p),Ws(p),
                               laprows(fnpf_laplace_rows(p)),
                               slicerows(fnpf_damping_rows(p)),
                               rhsvec(p,laprows),rvec(p,slicerows),xvec(p,slicerows),
                               N(p,slicerows),M(p,laprows)
 {   
+    // the 3D sigma metrics only for their readers outside the Laplace assembly, the velocities and the
+    // bed BC, which evaluate them per column (fnpf_sigma_col.h): 4 arrays of the 3D grid less
+    if(fnpf_sigma_3D(p))
+    {
     p->Darray(p->sig,p->imax*p->jmax*(p->kmax+2));
     p->Darray(p->sigx,p->imax*p->jmax*(p->kmax+2));
     p->Darray(p->sigy,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(p->sigz,p->imax*p->jmax);
     p->Darray(p->sigxx,p->imax*p->jmax*(p->kmax+2));
+    }
+    else
+    p->sig = p->sigx = p->sigy = p->sigxx = nullptr;
     
+    p->Darray(p->sigz,p->imax*p->jmax);
+    
+    // U, V, W and Uin as 3D arrays only for their readers (fnpf_memory.h)
+    U = V = W = Uin = nullptr;
+    
+    if(fnpf_vel_3D(p))
+    {
     p->Darray(U,p->imax*p->jmax*(p->kmax+2));
     p->Darray(V,p->imax*p->jmax*(p->kmax+2));
     p->Darray(W,p->imax*p->jmax*(p->kmax+2));
+    }
+    
     p->Darray(Fi,p->imax*p->jmax*(p->kmax+2));
+    
+    if(fnpf_uin_3D(p))
     p->Darray(Uin,p->imax*p->jmax*(p->kmax+2));
     
     if(p->X10>0)
@@ -113,15 +132,30 @@ fdm_fnpf::fdm_fnpf(lexer *p) : test(p,p->P23==1),Fifsf(p),
     }
 }
 
+// the 3D velocities for an output when they are not stored (fnpf_memory.h): true if they were made
+// here, then vel3D_free gives them back after the output
+bool fdm_fnpf::vel3D_make(lexer *p, ghostcell *pgc)
+{
+    if(U!=nullptr)
+    return false;
+    
+    p->Darray(U,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(V,p->imax*p->jmax*(p->kmax+2));
+    p->Darray(W,p->imax*p->jmax*(p->kmax+2));
+    
+    // as the last velocity update: none yet (zero), velcalc_sig, or velcalc_sig and the coastline
+    if(vel_state>0 && vel3D_fill)
+    vel3D_fill(p,pgc);
+    
+    return true;
+}
 
-
-
-
-
-
-
-
-
-
-
+void fdm_fnpf::vel3D_free(lexer *p)
+{
+    p->del_Darray(U,p->imax*p->jmax*(p->kmax+2));
+    p->del_Darray(V,p->imax*p->jmax*(p->kmax+2));
+    p->del_Darray(W,p->imax*p->jmax*(p->kmax+2));
+    
+    U = V = W = nullptr;
+}
 

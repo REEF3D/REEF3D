@@ -429,7 +429,13 @@ void regression_dump::fnpf_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 
     steplog<<"# count simtime dt  sum(Fi^2) sum(U^2) sum(W^2) sum(eta^2) sum(Fifsf^2) sum(WL^2)  (rank-local, hexfloat)"<<std::endl;
 
+    // the 3D velocities when they are not stored (fnpf_memory.h)
+    const bool vel_tmp = c->vel3D_make(p,pgc);
+    
     fnpf_state(p,c);
+    
+    if(vel_tmp)
+    c->vel3D_free(p);
 }
 
 void regression_dump::fnpf_step(lexer *p, fdm_fnpf *c, ghostcell *pgc)
@@ -438,6 +444,9 @@ void regression_dump::fnpf_step(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     return;
 
     double sfi=0.0, su=0.0, sw=0.0, se=0.0, sff=0.0, swl=0.0;
+    
+    // the 3D velocities when they are not stored (fnpf_memory.h)
+    const bool vel_tmp = c->vel3D_make(p,pgc);
 
     FLOOP
     {
@@ -458,6 +467,9 @@ void regression_dump::fnpf_step(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 
     if(every>0 && p->count%every==0)
     fnpf_state(p,c);
+    
+    if(vel_tmp)
+    c->vel3D_free(p);
 }
 
 void regression_dump::fnpf_final(lexer *p, fdm_fnpf *c, ghostcell *pgc)
@@ -466,7 +478,13 @@ void regression_dump::fnpf_final(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     return;
 
     steplog.flush();
+    
+    const bool vel_tmp = c->vel3D_make(p,pgc);
+    
     fnpf_state(p,c);
+    
+    if(vel_tmp)
+    c->vel3D_free(p);
 }
 
 // ---------------------------------------------------------------------

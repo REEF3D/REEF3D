@@ -241,6 +241,17 @@ void driver::fnpf_driver()
     // kept with mesh refinement, floating bodies and CORAL, which build or move geometry later
     if(pfamr==nullptr && p->X10==0 && pcoral==nullptr)
     p->flagfree_fnpf();
+    
+    // ZSN/ZSP (the heights of the sigma nodes and cells): read in the time steps only by floating
+    // bodies (X 10), velocity probes (P 65, P 66), kinematics and forces (P 85, P 88), Dirichlet wave
+    // generation and the active beach (B 98, B 99 > 2), mesh refinement and the ice; otherwise given
+    // back after the initialisation (fivec_relax, I 30 0) and no longer filled by sigma_update
+    if(pfamr==nullptr && pcoral==nullptr && p->X10==0 && p->P65==0 && p->P66==0 && p->P85==0 && p->P88==0
+    && p->P140==0 && p->B98<=2 && p->B99<=2 && p->A380==0)
+    {
+    p->del_Darray(p->ZSN,p->imax*p->jmax*(p->kmax+1));
+    p->del_Darray(p->ZSP,p->imax*p->jmax*p->kmax);
+    }
 
     // Start MAINLOOP
     loop_fnpf();

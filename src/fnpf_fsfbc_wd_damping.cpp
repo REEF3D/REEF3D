@@ -25,6 +25,7 @@ Author: Hans Bihs
 #include"fdm_fnpf.h"
 #include"ghostcell.h"
 #include"solver2D.h"
+#include"sflow_bicgstab.h"
 
 void fnpf_fsfbc_wd::damping(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f, int gcval, double alpha)
 {
@@ -174,7 +175,12 @@ void fnpf_fsfbc_wd::damping(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f, int
         
         // the rows with viscosity only (Jacobi, same residual), BiCGStab over all columns if that does not converge
         if(!damping_local(p,c,pgc,f))
-        psolv->start(p,pgc,f,c->N,c->xvec,c->rvec,4);
+        {
+            if(psolv==nullptr)
+            psolv = new sflow_bicgstab(p,pgc);
+            
+            psolv->start(p,pgc,f,c->N,c->xvec,c->rvec,4);
+        }
         
         double time=pgc->timer()-starttime;
         

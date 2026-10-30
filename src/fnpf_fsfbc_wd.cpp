@@ -67,8 +67,9 @@ fnpf_fsfbc_wd::fnpf_fsfbc_wd(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_break
 
     pcoast = new fnpf_coastline(p);
 
-    if(p->A350>0)
-        psolv = new sflow_bicgstab(p,pgc);
+    // the global BiCGStab of the damping (11 vectors of the 2D grid) only when its Jacobi does not
+    // converge (damping_local): made then
+    psolv = nullptr;
 
     // wind forcing
     if(p->A370>0)

@@ -319,6 +319,9 @@ void printer_fnpf::print(lexer* p, fdm_fnpf *c, ghostcell* pgc)
 
     if(p->P10==vtk3D::type::vtu || p->P10==vtk3D::type::vts)
     {
+        // the 3D velocities for this output when they are not stored (fnpf_memory.h)
+        const bool vel_tmp = c->vel3D_make(p,pgc);
+        
         SLICELOOP4
         {
             if(c->breaking(i,j)==1)
@@ -700,6 +703,9 @@ void printer_fnpf::print(lexer* p, fdm_fnpf *c, ghostcell* pgc)
             writeFile(name, total_size);
         
         release_buffer();
+        
+        if(vel_tmp)
+        c->vel3D_free(p);
 
         ++printcount;
     }

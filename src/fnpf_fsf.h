@@ -56,6 +56,8 @@ public:
     virtual void coastline_fi(lexer*,fdm_fnpf*,ghostcell*,slice&)=0;
     virtual void coastline_fi_ini(lexer*,fdm_fnpf*,ghostcell*,slice&)=0;
     virtual void coastline_vel(lexer*,fdm_fnpf*,ghostcell*,double*)=0;
+    // the same on the surface velocities (no 3D U, V, W, fnpf_memory.h)
+    virtual void coastline_vel_sl(lexer*,fdm_fnpf*,ghostcell*,slice&) {}
     virtual void damping(lexer*,fdm_fnpf*,ghostcell*,slice&,int,double)=0;
     
 };

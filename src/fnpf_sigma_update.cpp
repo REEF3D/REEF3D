@@ -25,6 +25,7 @@ Author: Hans Bihs
 #include"fdm_fnpf.h"
 #include"ghostcell.h"
 #include"fnpf_fsf.h"
+#include"fnpf_sigma_col.h"
 
 #define WLVL (fabs(c->WL(i,j))>1.0e-20?c->WL(i,j):1.0e-5) // keep as is for wetting-drying
 
@@ -33,9 +34,10 @@ Author: Hans Bihs
 
 void fnpf_sigma::sigma_update(lexer *p, fdm_fnpf *c, ghostcell *pgc, fnpf_fsf *pf, slice &eta)
 {
-    // One fused pass per (i,j) column. All slice quantities are loaded once per
-    // column; the per-cell arithmetic is kept in the original order so the
-    // result is bit-identical to the previous five separate 3D sweeps.
+    // One fused pass per (i,j) column. The metrics sigx, sigy, sigxx come from fnpf_sigma_col, which
+    // the Laplace assembly, the velocities and the bed BC evaluate themselves; the 3D arrays are only
+    // filled where they are kept for other readers (fnpf_sigma_3D), and ZSN/ZSP while allocated
+    // (driver::fnpf_driver gives them back when nothing reads them in the time steps).
     double *const __restrict sig   = p->sig;
     double *const __restrict sigx  = p->sigx;
     double *const __restrict sigy  = p->sigy;
@@ -44,48 +46,44 @@ void fnpf_sigma::sigma_update(lexer *p, fdm_fnpf *c, ghostcell *pgc, fnpf_fsf *p
     double *const __restrict ZSP   = p->ZSP;
     const int knoz = p->knoz;
     
+    fnpf_sigma_col col;
+    
     ILOOP
     JLOOP
     {
-        const double W   = WLVL;
-        const double W2  = W*W;
-        const double bx  = c->Bx(i,j),  by  = c->By(i,j);
-        const double ex  = c->Ex(i,j),  ey  = c->Ey(i,j);
-        const double bxx = c->Bxx(i,j), byy = c->Byy(i,j);
-        const double exx = c->Exx(i,j), eyy = c->Eyy(i,j);
+        const double W = WLVL;
         
-        const double bxW = bx/W, exW = ex/W;
-        const double byW = by/W, eyW = ey/W;
-        
-        const double tbx = bxx - bx*bx/W;
-        const double tex = exx - ex*ex/W;
-        const double tby = byy - by*by/W;
-        const double tey = eyy - ey*ey/W;
-        const double sbex = bx + ex, bex = bx*ex;
-        const double sbey = by + ey, bey = by*ey;
-        
-        k=0;
-        const int n0 = FIJK;
-        
-        for(int kk=0; kk<=knoz; ++kk)
+        if(sigx!=nullptr)
         {
-            const int n = n0 + kk;
-            const double s = sig[n];
+            col.set(p,c,i,j);
             
-            const double sgx = (1.0 - s)*bxW - s*exW;
-            const double sgy = (1.0 - s)*byW - s*eyW;
+            k=0;
+            const int n0 = FIJK;
             
-            sigx[n] = sgx;
-            sigy[n] = sgy;
+            for(int kk=0; kk<=knoz; ++kk)
+            {
+                const int n = n0 + kk;
+                const double s = sig[n];
+                const double sgx = col.sx(s);
+                const double sgy = col.sy(s);
+                
+                sigx[n] = sgx;
+                sigy[n] = sgy;
+                sigxx[n] = col.sxx(s,sgx,sgy);
+            }
             
-            sigxx[n] = ((1.0 - s)/W)*tbx
-                     - (s/W)*tex
-                     - (sgx/W)*sbex
-                     - ((1.0 - 2.0*s)/W2)*bex
-                     + ((1.0 - s)/W)*tby
-                     - (s/W)*tey
-                     - (sgy/W)*sbey
-                     - ((1.0 - 2.0*s)/W2)*bey;
+            // sig BC
+            if(p->flagslice4[IJ]>0)
+            {
+                const int nb = n0, nt = n0 + knoz;
+                
+                sigx[nb-1] = sigx[nb-2] = sigx[nb-3] = sigx[nb];
+                sigx[nt+1] = sigx[nt+2] = sigx[nt+3] = sigx[nt];
+                sigy[nb-1] = sigy[nb-2] = sigy[nb-3] = sigy[nb];
+                sigy[nt+1] = sigy[nt+2] = sigy[nt+3] = sigy[nt];
+                sigxx[nb-1] = sigxx[nb-2] = sigxx[nb-3] = sigxx[nb];
+                sigxx[nt+1] = sigxx[nt+2] = sigxx[nt+3] = sigxx[nt];
+            }
         }
         
         // sigz
@@ -95,33 +93,21 @@ void fnpf_sigma::sigma_update(lexer *p, fdm_fnpf *c, ghostcell *pgc, fnpf_fsf *p
         if(p->flagslice4[IJ]<0)
         p->sigz[IJ] = 1.0/(p->wd-p->bed[IJ]);
         
-        // sig BC (was SLICELOOP4)
-        if(p->flagslice4[IJ]>0)
-        {
-            const int nb = n0, nt = n0 + knoz;
-            
-            sigx[nb-1] = sigx[nb-2] = sigx[nb-3] = sigx[nb];
-            sigx[nt+1] = sigx[nt+2] = sigx[nt+3] = sigx[nt];
-            
-            sigy[nb-1] = sigy[nb-2] = sigy[nb-3] = sigy[nb];
-            sigy[nt+1] = sigy[nt+2] = sigy[nt+3] = sigy[nt];
-            
-            sigxx[nb-1] = sigxx[nb-2] = sigxx[nb-3] = sigxx[nb];
-            sigxx[nt+1] = sigxx[nt+2] = sigxx[nt+3] = sigxx[nt];
-        }
-        
         // ZSN (was FLOOP) and ZSP (was LOOP)
-        const double wl = c->WL(i,j), bd = c->bed(i,j);
-        
-        for(k=0; k<=knoz; ++k)
+        if(ZSN!=nullptr)
         {
-            // FLOOP already implies flag7>0, so the old FSCHECK branch was dead
-            if(p->flag7[FIJK]>0)
-            ZSN[FIJK] = p->ZN[KP]*wl + bd;
+            const double wl = c->WL(i,j), bd = c->bed(i,j);
+            
+            for(k=0; k<=knoz; ++k)
+            {
+                // FLOOP already implies flag7>0, so the old FSCHECK branch was dead
+                if(p->flag7[FIJK]>0)
+                ZSN[FIJK] = p->ZN[KP]*wl + bd;
+            }
+            
+            for(k=0; k<knoz; ++k)
+            if(p->flag4[IJK]>0)
+            ZSP[IJK]  = p->ZP[KP]*wl + bd;
         }
-        
-        for(k=0; k<knoz; ++k)
-        if(p->flag4[IJK]>0)
-        ZSP[IJK]  = p->ZP[KP]*wl + bd;
     }
 }

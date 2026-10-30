@@ -429,15 +429,15 @@ void wave_lib_irregular_1st::wave_cache_points(lexer *p, const std::vector<doubl
     const int N=int(x.size());
     const int M=Nw;
 
-    cS.assign(size_t(N)*M,0.0);
-    sS.assign(size_t(N)*M,0.0);
+    cS.assign(size_t(N)*M,0.0f);
+    sS.assign(size_t(N)*M,0.0f);
 
     for(int q=0;q<N;++q)
     for(int m=0;m<M;++m)
     {
         const double a = ki[m]*(cosbeta[m]*x[q] + sinbeta[m]*y[q]);
-        cS[size_t(q)*M+m] = cos(a);
-        sS[size_t(q)*M+m] = sin(a);
+        cS[size_t(q)*M+m] = float(cos(a));
+        sS[size_t(q)*M+m] = float(sin(a));
     }
 
     cT.assign(M,0.0); sT.assign(M,0.0);
@@ -581,7 +581,7 @@ double wave_lib_irregular_1st::wave_eta_c(lexer *p, int q)
 double wave_lib_irregular_1st::eta_c(int q)
 {
     const int M=Nw;
-    const double *cs=&cS[size_t(q)*M], *ss=&sS[size_t(q)*M];
+    const float *cs=&cS[size_t(q)*M], *ss=&sS[size_t(q)*M];
 
     const double *A=Aeta.data(), *ct=cT.data(), *st=sT.data();
 
@@ -603,7 +603,7 @@ double wave_lib_irregular_1st::wave_fi_c(lexer *p, int q, double z)
 double wave_lib_irregular_1st::fi_c(int q, double z)
 {
     const int M=Nw;
-    const double *cs=&cS[size_t(q)*M], *ss=&sS[size_t(q)*M];
+    const float *cs=&cS[size_t(q)*M], *ss=&sS[size_t(q)*M];
     const double *ch, *sh;
     vertical_c(z,ch,sh);
     const double *A=Afi.data(), *ct=cT.data(), *st=sT.data();
@@ -621,7 +621,7 @@ double wave_lib_irregular_1st::wave_u_c(lexer *p, int q, double z)
     cache_time(p);
 
     const int M=Nw;
-    const double *cs=&cS[size_t(q)*M], *ss=&sS[size_t(q)*M];
+    const float *cs=&cS[size_t(q)*M], *ss=&sS[size_t(q)*M];
     const double *ch, *sh;
     vertical_c(z,ch,sh);
     const double *A=Au.data(), *ct=cT.data(), *st=sT.data();
@@ -642,7 +642,7 @@ double wave_lib_irregular_1st::wave_v_c(lexer *p, int q, double z)
     cache_time(p);
 
     const int M=Nw;
-    const double *cs=&cS[size_t(q)*M], *ss=&sS[size_t(q)*M];
+    const float *cs=&cS[size_t(q)*M], *ss=&sS[size_t(q)*M];
     const double *ch, *sh;
     vertical_c(z,ch,sh);
     const double *A=Av.data(), *ct=cT.data(), *st=sT.data();
@@ -663,7 +663,7 @@ double wave_lib_irregular_1st::wave_w_c(lexer *p, int q, double z)
     cache_time(p);
 
     const int M=Nw;
-    const double *cs=&cS[size_t(q)*M], *ss=&sS[size_t(q)*M];
+    const float *cs=&cS[size_t(q)*M], *ss=&sS[size_t(q)*M];
     const double *ch, *sh;
     vertical_c(z,ch,sh);
     const double *A=Aw.data(), *ct=cT.data(), *st=sT.data();
@@ -697,7 +697,7 @@ void wave_lib_irregular_1st::wave_uvw_c(lexer *p, int q, double z, double &u, do
 void wave_lib_irregular_1st::uvw_c(int q, double z, bool jd, double &u, double &v, double &w)
 {
     const int M=Nw;
-    const double *cs=&cS[size_t(q)*M], *ss=&sS[size_t(q)*M];
+    const float *cs=&cS[size_t(q)*M], *ss=&sS[size_t(q)*M];
     const double *ch, *sh;
     vertical_c(z,ch,sh);
 
@@ -834,8 +834,8 @@ void wave_lib_irregular_1st::wave_comp_update()
     for(int m=0;m<M;++m)
     {
         const double a = ki[m]*(cosbeta[m]*cache_x[q] + sinbeta[m]*cache_y[q]);
-        cS[size_t(q)*M+m] = cos(a);
-        sS[size_t(q)*M+m] = sin(a);
+        cS[size_t(q)*M+m] = float(cos(a));
+        sS[size_t(q)*M+m] = float(sin(a));
     }
     
     for(int m=0;m<M;++m)

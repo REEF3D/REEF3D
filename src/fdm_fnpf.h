@@ -35,8 +35,10 @@ Author: Hans Bihs
 #include"vec2D.h"
 #include"matrix_diag.h"
 #include"matrix2D.h"
+#include<functional>
 
 class lexer;
+class ghostcell;
 class fnpf_ice;
 
 using namespace std;
@@ -69,6 +71,10 @@ public:
     
     sliceint5 nodeval2D;
     slice4 breaking_print;
+    
+    // U, V, W of the surface node when the 3D velocities are not stored (fnpf_memory.h): the time
+    // step and the free-surface output read only these
+    slice4 Us,Vs,Ws;
 	
     //  Rows the Laplace assembly writes, and rows the 2D damping system
     //  writes.  Declared before rhsvec/M and xvec/rvec/N so they are
@@ -92,6 +98,14 @@ public:
     
     // FNPF ice floes (A 380), nullptr when off; read by the dynamic FSBC
     fnpf_ice *ice = nullptr;
+    
+    // the 3D velocities for an output (volume, regression dump) when they are not stored: made from
+    // Fi as the last velocity update made them (vel_state 0 none: zero, 1 velcalc_sig, 2 velcalc_sig
+    // and the coastline damping of the RK step); vel3D_fill is set by the RK scheme
+    int vel_state = 0;
+    std::function<void(lexer*,ghostcell*)> vel3D_fill;
+    bool vel3D_make(lexer*,ghostcell*);
+    void vel3D_free(lexer*);
 };
 
 #endif
