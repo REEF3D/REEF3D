@@ -101,8 +101,9 @@ Return code 0 if all cases pass (or fail as expected, see XFAIL).
 | `nhflow_mase_kirby_irregular` | NHFLOW | Mase & Kirby (1992) | Hm0 and skewness at 12 gauges | 362 x 5, 200 s | 725 x 8, 420 s |
 | `fnpf_mase_kirby_irregular` | FNPF | Mase & Kirby (1992) | Hm0 and skewness at 12 gauges | 362 x 8, 200 s | 725 x 10, 420 s |
 | `nhflow_rapp_melville_rn`, `_rs1`, `_rp1`, `_rp2` | NHFLOW A 550 4 | Rapp & Melville (1990), LES of Derakhti & Kirby (2016) | energy loss of the focused packet (RN: none) | 1500 x 16, 40 s | 1500 x 16, 40 s, np 2 |
-| `fnpf_rapp_melville_rn`, `_rs1`, `_rp1`, `_rp2` | FNPF A 350 4 | Rapp & Melville (1990), LES of Derakhti & Kirby (2016) | energy loss of the focused packet (RN: none) | 1500 x 16, 40 s | 1500 x 16, 40 s, np 2 |
+| `fnpf_rapp_melville_rn`, `_rs1`, `_rp1`, `_rp2` | FNPF A 350 4 | Rapp & Melville (1990), LES of Derakhti & Kirby (2016) | energy loss of the focused packet (RN: none) | 625 x 10 (L_c/40), 40 s | 1500 x 16, 40 s, np 2 |
 | `nhflow_tian_tp2` | NHFLOW A 550 4 | Tian et al. (2010), LES of Derakhti & Kirby (2016) | energy loss, deep water k d = 7 | 800 x 10, 36 s | 1600 x 20, 36 s |
+| `fnpf_tian_tn`, `_tp1`, `_tp2`, `_tp3` | FNPF A 350 4 | Tian et al. (2010), LES of Derakhti & Kirby (2016) | energy loss, deep water k d = 7 (TN: none) | 1185 x 10 (L_c/40), 36 s | 1600 x 20, 36 s |
 | `nhflow_ting_kirby_spilling` (+ `_x3`, `_y`) | NHFLOW A 550 4 | Ting & Kirby (1994) | breaking point; wave height along the flume along y against 3D along x | dx 0.025 x 4, 30 s | 40 s |
 | `fnpf_ting_kirby_spilling` (+ `_x3`, `_y`) | FNPF A 350 4 | Ting & Kirby (1994) | breaking point; wave height along the flume along y against 3D along x | dx 0.025 x 10, 30 s | 40 s |
 | `fnpf_jonswap_spectrum` | FNPF | JONSWAP (DNV-RP-C205) | Hm0, Tp, spectral shape at 3 gauges | 400 x 8, 600 s | 800 x 10, 1100 s |
@@ -372,12 +373,34 @@ Nightly level, Linux, 1-2 cores per case. Ting & Kirby rows: hans_dev b19f3cef0 
 
 | case | nightly | release |
 |---|---|---|
-| `nhflow_rapp_melville_rn` / `fnpf_` | PASS, loss 0.0 / 0.0 (non-breaking packet) | not run |
-| `nhflow_rapp_melville_rs1` / `fnpf_` | PASS, loss 8.0 % (LES 14.0 %) / XFAIL 3.6 % (spilling packet not detected) | not run |
-| `nhflow_rapp_melville_rp1` / `fnpf_` | PASS, loss 26.2 % / 22.7 % (LES 28.9 %) | not run |
-| `nhflow_rapp_melville_rp2` / `fnpf_` | PASS, loss 30.1 % / 26.3 % (LES 31.7 %) | not run |
+| `nhflow_rapp_melville_rn` / `fnpf_` | PASS, loss 0.0 / 0.0 (non-breaking packet; FNPF: see below) | not run |
+| `nhflow_rapp_melville_rs1` / `fnpf_` | PASS, loss 8.0 % (LES 14.0 %) / v5 XFAIL 3.6 % (spilling packet not detected; FNPF since patch 0015: see below) | not run |
+| `nhflow_rapp_melville_rp1` / `fnpf_` | PASS, loss 26.2 % / v5 22.7 % (LES 28.9 %) | not run |
+| `nhflow_rapp_melville_rp2` / `fnpf_` | PASS, loss 30.1 % / v5 26.3 % (LES 31.7 %) | not run |
 | `nhflow_tian_tp2` | PASS, loss 22.6 % (no crest reaches B = A 359 on this grid; the scheme alone) | PASS, 25.6 % (LES 25.0 %; 42.8 % before patch 0011; run with the same breaking code on e6238a7cb) |
 | `nhflow_ting_kirby_spilling` (+ `_x3`) | XFAIL, max. H 1.0 m (3D 1.7 m) before x_b | not run |
 | `nhflow_ting_kirby_spilling_y` | PASS, H along y vs `_x3` within 2.1 % | not run |
 | `fnpf_ting_kirby_spilling` (+ `_x3`) | PASS, x_b -0.4 m (3D: -0.4 m) | not run |
 | `fnpf_ting_kirby_spilling_y` | PASS, H along y vs `_x3` within 5.2 % (tol 8 %); both within 4.9 % of the 2D flume (7.1 % before patch 0014). The 2D flume itself changes by 7.1 % with N 47 0.99, `_x3` by 5.4 % with one rank: inner surf zone, 5 waves | not run |
+
+### FNPF deep-water breaking at L_c/40 (NHFLOW Breaking patch 0015)
+
+hans_dev b19f3cef0 + NHFLOW Breaking patches 0002-0015, Linux. Nightly: dx = L_c/40, 10 layers, np 1. Release:
+Rapp & Melville dx 0.02 m (L_c/97), 16 layers, np 2; Tian dx 0.01 m (L_c/54), 20 layers, np 1. Tolerance +-7 points
+of the LES loss of Derakhti & Kirby (2016).
+
+| case | nightly (L_c/40) | release |
+|---|---|---|
+| `fnpf_rapp_melville_rn` | PASS, loss 0.1 % | not run |
+| `fnpf_rapp_melville_rs1` | PASS, 16.2 % (LES 14.0 %) | PASS, 14.1 % (v5: XFAIL 3.6 %) |
+| `fnpf_rapp_melville_rp1` | PASS, 30.8 % (LES 28.9 %) | PASS, 34.0 % (v5: 22.7 %) |
+| `fnpf_rapp_melville_rp2` | PASS, 36.2 % (LES 31.7 %) | PASS, 33.5 % (v5: 26.3 %) |
+| `fnpf_tian_tn` | PASS, loss 1.0 % | not run |
+| `fnpf_tian_tp1` | PASS, 11.8 % (LES 13.3 %) | PASS, 11.8 % |
+| `fnpf_tian_tp2` | PASS, 30.5 % (LES 25.0 %) | PASS, 31.0 % |
+| `fnpf_tian_tp3` | PASS, 33.5 % (LES 30.3 %) | PASS, 25.7 % |
+| `fnpf_ting_kirby_spilling` (+ `_x3`) | PASS, x_b -0.4 m (3D: -0.4 m); onset threshold unchanged in shallow water, H within 3.3 % (3D 4.9 %) of v5 from the limit of Gamma | not run |
+| `fnpf_ting_kirby_spilling_y` | PASS, H along y vs `_x3` within 3.6 % (tol 8 %) | not run |
+
+v5 at L_c/40 (no benchmark entry then): Rapp & Melville RS1 / RP1 / RP2 2.5 / 6.9 / 9.0 % (no crest detected),
+Tian TP1 / TP2 / TP3 1.7 / 19.0 / 12.8 %. At the release grid v5 gave Tian TP1 / TP2 / TP3 3.2 / 22.5 / 20.1 %.

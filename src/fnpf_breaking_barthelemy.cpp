@@ -25,11 +25,16 @@ Architect: Hans Bihs
 // Onset (Barthelemy et al. 2018, JFM 841; Derakhti et al. 2020, shallow water):
 //   B = u_s / C > A 359 (0.85), u_s = horizontal surface velocity at the crest along the direction of travel n
 //   (= grad Fi_s there, the crest has grad eta . n = 0), C = crest speed along n from tracking the crest over time.
+//   Deep and intermediate water (C^2/(g h) < 0.6 and 2 pi h/L > 1.4, ramps to 0.9 and 0.8, h the still-water depth):
+//   B > A 359 - A 369/sqrt(N), N = L/dx cells per wavelength of the crest. The threshold 0.85 needs the crest slow-down before breaking resolved (dx ~ L/200); on
+//   coarser grids C stays high and u_s low. A 369 1.64 from focused packets without onset at N = 30-120 (Tian et al.
+//   2010, Rapp & Melville 1990): midway between the largest B of the non-breaking (TN, RI) and the smallest of the
+//   breaking packets (TP1, RS1); 0.59 at N = 40, 0.68 at N = 100, N not below 30. A 369 0: A 359 everywhere.
 // Termination: largest front-face slope below tan(A 360 deg) (8 deg, Simon et al. 2018).
 // Strength, per unit crest length and density (the larger of the two):
 //   bore / hydraulic jump   eps = A 364 * g C H^3 / (4 h_c)   (discharge C h_t times the head loss H^3/(4 h_c h_t))
 //   deep water (A 367 1)    eps = b C^5 / g, b = 0.034 (Gamma - 0.30)^2.5 (Derakhti, Banner & Kirby 2018),
-//                           Gamma = T_b dB/dt at onset, T_b = L/C
+//                           Gamma = T_b dB/dt at onset (at most 1.62, b <= 0.068), T_b = L/C
 //   H crest to trough ahead, h_c water depth at the crest, L trough to trough.
 // Filter: with A352 > 0 the filter of A350 1 (A361, A362) acts on eta and Fifsf in the breaking zones and,
 // with A351 1/3, in the cells of the depth-induced criterion of A350 1 (A354) shoreward of the deepest onset.
@@ -109,6 +114,11 @@ void fnpf_breaking::breaking_barthelemy(lexer *p, fdm_fnpf *c, ghostcell *pgc, s
         bt->slope_end = tan(p->A360*PI/180.0);
         bt->deep = p->A367;
         bt->Tdom = (p->B90>0) ? ((p->wTp>0.0) ? p->wTp : p->wT) : 0.0;
+        bt->BonN = MAX(p->A369,0.0);
+
+        // candidates (rays, log) below the lowest onset threshold, that of N = 30 cells per wavelength
+        if(bt->BonN>0.0)
+        bt->Bcand = MIN(bt->Bcand, 0.9*(bt->Bon - bt->BonN/sqrt(30.0)));
     }
 
     bt->Hmin = 2.0*c->wd_criterion;

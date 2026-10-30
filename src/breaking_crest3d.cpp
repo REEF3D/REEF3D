@@ -930,8 +930,30 @@ void breaking_crest3d::rays(lexer *p, ghostcell *pgc, slice &eta, slice &WL, dou
             clin = sqrt(g*tanh(kk*MAX(R.wl,1.0e-3))/kk);
         }
 
+        // onset threshold: Bon, in deep and intermediate water lowered by BonN/sqrt(N) with N = L/d the cells per
+        // wavelength of the crest: on coarse grids the crest slow-down before breaking is not resolved, C stays high and
+        // u_s low, and B of a breaking crest stays below Bon. Deep and intermediate water by both
+        //   mu = C^2/(g h) (linear waves: tanh(kh)/kh): full correction for mu < 0.6, none for mu > 0.9; crests and
+        //   bores in shallow water travel at C^2 >= g h, and the short crests riding on the bores of the inner surf zone
+        //   (L ~ 2 h) have kh ~ 2 by their own L;
+        //   kh = 2 pi h / L: full correction for kh > 1.4, none for kh < 0.8; the thin crests of the swash travel slower
+        //   than sqrt(g h);
+        // h the still-water depth at the crest. N at least 30, the coarsest grid of the calibration: short crests
+        // (ripples, crests riding on a longer wave) keep the threshold of N = 30.
+        double Bth = Bon;
+
+        if(BonN>0.0 && R.L>0.0)
+        {
+            const double N = MAX(R.L/MAX(R.d,1.0e-12), 30.0);
+            const double hs = MAX(R.wl-R.eta,1.0e-3);
+            const double mu = R.C*R.C/(g*hs);
+            const double kh = 2.0*M_PI*hs/R.L;
+            const double w = MIN(MAX((0.9-mu)/0.3,0.0),1.0)*MIN(MAX((kh-0.8)/0.6,0.0),1.0);
+            Bth = Bon - w*BonN/sqrt(N);
+        }
+
         // onset
-        if(R.state==0 && R.B>Bon && R.C>=Cmin*clin)
+        if(R.state==0 && R.B>Bth && R.C>=Cmin*clin)
         {
             R.state = 1;
             R.ton = t;
@@ -943,7 +965,11 @@ void breaking_crest3d::rays(lexer *p, ghostcell *pgc, slice &eta, slice &WL, dou
             if(deep==1)
             {
                 const double Tb = R.L/MAX(fabs(R.C),1.0e-6);
-                const double Gm = Tb*bc3_slope(R.tb,R.bh,R.nbh,5);
+
+                // Gamma at most 1.62, the largest of the data of the fit (Derakhti et al. 2018, Table 1; b = 0.068): on
+                // coarse grids B of the tracked crest jumps between samples, and dB/dt over the last samples gave
+                // Gamma up to 6 (b up to 2) in the Tian et al. packets at 40-80 cells per wavelength
+                const double Gm = MIN(Tb*bc3_slope(R.tb,R.bh,R.nbh,5), 1.62);
 
                 if(Gm>0.30)
                 R.b = 0.034*pow(Gm-0.30,2.5);

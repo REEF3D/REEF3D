@@ -122,6 +122,7 @@ void control::ini_default()
     A360=8.0;    // double breaking A350 4, A550 4: termination when the largest front-face slope is below this angle (deg)
     A364=1.0;    // double breaking A350 4: coefficient of the bore (hydraulic jump) dissipation g C H^3/(4 h_c)
     A367=1;      // int breaking A350 4: deep-water breaking strength b(Gamma) of Derakhti et al. (2018): 1 on, 0 off
+    A369=1.64;   // double breaking A350 4: onset in deep and intermediate water at B > A359 - A369/sqrt(N), N = cells per crest wavelength (0: A359 everywhere)
     
     A370=0;      // int wind model
     A371_u=0.0;  // double wind velocity

@@ -54,7 +54,9 @@ using namespace std;
 //    ray), the crest-to-trough height H, the water depths at crest and trough, the largest front-face slope, and the
 //    caller's dissipation per unit viscosity along the painted interval [-s_back, s_ahead]. Minima, maxima and
 //    sums over the ranks; every rank then has the same numbers for every ray.
-// 4. state: onset at B > Bon with H > Hmin and C > Cmin c_lin, c_lin the linear phase speed at the crest depth for
+// 4. state: onset at B > Bon (deep and intermediate water, C^2/(g h) < 0.6-0.9 and 2 pi h/L > 0.8-1.4:
+//    Bon - BonN/sqrt(L/d), L/d at least 30) with H > Hmin
+//    and C > Cmin c_lin, c_lin the linear phase speed at the crest depth for
 //    the period of the generated waves (or k = 2 pi/L): no onset of short waves riding on the waves, end when the largest front-face slope falls below slope_end (not in the
 //    step of onset). Strength per unit crest length eps (caller), viscosity nu = eps / (dissipation per nu),
 //    at most |C| (s_back + s_ahead).
@@ -84,6 +86,7 @@ public:
 
     // parameters
     double Bon = 0.85;          // onset B
+    double BonN = 0.0;          // deep and intermediate water: onset at Bon - BonN/sqrt(N), N = L/d cells per crest wavelength
     double Bcand = 0.5;         // rays and log for B above this
     double slope_end = 0.1405;  // tan(8 deg)
     double Hmin = 0.0;          // smallest crest-to-trough height
