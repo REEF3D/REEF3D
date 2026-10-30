@@ -283,18 +283,6 @@ public:
     // between, one eta system over the cells of all blocks (BiCGStab, one REEFMG2D V-cycle per grid as preconditioner)
     void si_step(lexer*, fdm_nhf*, ghostcell*, nhflow_momentum_func*, nhflow_stage_obj&);
 
-    // vector space of the composite eta solve (reefamr_bicgstab)
-    void si_apply(int, int);
-    void si_prec(int, int);
-    void si_ras(int, int);
-    void si_cs_build();             // G 57: the coarse space of the eta solve (aggregates over all grids)
-    void si_cs_correct(int, int);
-    double si_dot(int, int);
-    void si_opstart();
-    void si_op_p(double, double);
-    void si_op_s(double);
-    void si_op_x(double, double);
-    void si_restart();
 
     // face fluxes of grid id (0: level 0, n: patch n-1) before the divergence
     void flux_hook(lexer*, fdm_nhf*, int, int, double*, double*) override;
@@ -674,35 +662,27 @@ private:
     nhflow_momentum_func *mom0;
     nhflow_stage_obj *S0p = nullptr;
 
-    // A 534 1 (nhflow_amr_si.cpp): the grids of the composite eta system (-1 the native grid, then
-    // lev[0]), their own rows (i, j, row of the si_eta2D assembly) and the Krylov vectors per grid
-    std::vector<int> sigrid;
-    std::vector<std::vector<int>> sirow;
-    std::vector<std::vector<slice*>> sivec;
+    // A 534 1 (nhflow_amr_si.cpp): the semi-implicit step of all grids (the native grid, the blocks 1.., the patches
+    // of the levels), the eta system of all of them (reefamr_si.cpp)
     nhflow_momentum_SI* gsi(int);
-    bool si_own(int, int, int);
-    void si_setup();
-    template<class F> void si_each(ghostcell*, F);
+    template<class F> void si_each(ghostcell*, F);          // the level-0 grids (native grid, blocks)
+    template<class F> void si_level(ghostcell*, int, F);    // the patches of a level
+    template<class F> void si_all(ghostcell*, F);           // all grids: level 0, then the levels
     template<class A> void si_fill3(ghostcell*, int, int, A);
-    void si_fillv(ghostcell*, int);
     void si_fillF(ghostcell*);
     void si_tracer(lexer*, ghostcell*);   // tracers (A 600) of all blocks
     std::vector<double> sitr_dist;
     std::vector<int> sitr_cell, sitr_grid;
     bool sitr_mask = false;
-    void si_dirichlet(ghostcell*);
     void si_solve(lexer*, ghostcell*);
+    void si_hooks(bool);                  // the advection hooks of the grids (face matching with patches)
+    void si_match_faces();                // q^E, q^n of the coarse faces next to the patches
+    void si_match_layers();               // Q, T, q after the face update
+    bool si_lv = false;                   // patches in the step
     ghostcell *sipgc = nullptr;
-    // P7: preconditioner of the composite eta solve, one REEFMG2D V-cycle per grid on its own rows
-    // (the cells around the grid with a zero residual: restricted additive Schwarz)
-    std::vector<reefmg2D*> simg;
-    std::vector<vec2D*> sir;
-    std::vector<slice*> siz;
-    std::vector<int> sinrow;
-    std::vector<char> sirebuild;
-    // G 57: the coarse space across the grids of the eta solve
-    struct si_cs_impl *sics = nullptr;
-    int sics_n = 0;
+    bool rsi_rows_of(int, rsi_rows&) override;
+    void rsi_bound() override;
+    void rsi_run(int, const std::function<void()>&) override;
     ioflow *pflowv;                 // objects shared by all patches (their NHFLOW calls do nothing)
     patchBC_interface *pBCv;
     sediment *psedv;

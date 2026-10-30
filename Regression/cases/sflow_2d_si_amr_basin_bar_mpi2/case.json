@@ -1,0 +1,19 @@
+{
+ "base": "sflow_2d_si_amr_basin_bar",
+ "np": 2,
+ "control_set": {
+  "M 10": "2"
+ },
+ "description": "sflow_2d_si_amr_basin_bar on 2 ranks: patches across the partition, the composite eta system across ranks.",
+ "tags": [
+  "2d",
+  "sflow",
+  "semi_implicit",
+  "amr",
+  "mpi"
+ ],
+ "covers": [
+  "reefamr_si remote fills and matches"
+ ],
+ "architect": "Hans Bihs"
+}

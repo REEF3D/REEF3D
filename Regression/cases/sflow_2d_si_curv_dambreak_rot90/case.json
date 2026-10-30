@@ -1,0 +1,21 @@
+{
+ "base": "sflow_2d_curv_dambreak_rot90",
+ "steps": 30,
+ "ctrl_add": [
+  "A 226 1",
+  "A 227 0.55",
+  "A 228 0.05"
+ ],
+ "description": "sflow_2d_curv_dambreak_rot90 semi-implicit (A 226 1, dt 0.05 s): the grid is the Cartesian one rotated by 90 deg; eta and WL per cell index equal those of the Cartesian semi-implicit run (F 72 12 18 12 18 2.0, no G 50) to round-off (checked by hand: 4e-16 after 30 steps).",
+ "tags": [
+  "quick",
+  "2d",
+  "sflow",
+  "semi_implicit",
+  "curvilinear"
+ ],
+ "covers": [
+  "sflow_momentum_SI curvilinear: face normals, lengths over areas (eta rows), normal face discharges, mean-normal gravity of the cells"
+ ],
+ "architect": "Hans Bihs"
+}

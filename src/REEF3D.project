@@ -1486,6 +1486,7 @@
       <VirtualDirectory Name="SFLOW">
         <File Name="sflow_amr_ship.cpp"/>
         <File Name="sflow_amr_nh.cpp"/>
+        <File Name="sflow_amr_si.cpp"/>
         <File Name="sflow_amr_sub.cpp"/>
         <File Name="sflow_amr_subnh.cpp"/>
         <File Name="sflow_amr_linesolve.cpp"/>
@@ -1536,6 +1537,7 @@
       </VirtualDirectory>
       <File Name="reefamr.cpp"/>
       <File Name="reefamr_regrid.cpp"/>
+      <File Name="reefamr_si.cpp"/>
       <File Name="reefamr_block.cpp"/>
       <File Name="reefamr_zone.cpp"/>
       <File Name="mpi_clock.cpp"/>
