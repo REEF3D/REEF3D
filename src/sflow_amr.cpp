@@ -435,23 +435,31 @@ void sflow_amr::patch_objects(reefamr_patch *q, ghostcell *pgc)
     // relaxation and beach zones (B 522 methods 1, 2)
     const int rin = (c->blk>0 && c->lev==0) ? bzr[0][c->blk] : -1;
     const int rout = (c->blk>0 && c->lev==0) ? bzr[1][c->blk] : -1;
+    // the j faces (two open faces that are not opposite, geo_mesh::turn_blocks): edges and beach zones
+    const int zjm = (c->blk>0 && c->lev==0) ? bzone[2][c->blk] : -1;
+    const int zjp = (c->blk>0 && c->lev==0) ? bzone[3][c->blk] : -1;
+    const int rjm = (c->blk>0 && c->lev==0) ? bzr[2][c->blk] : -1;
+    const int rjp = (c->blk>0 && c->lev==0) ? bzr[3][c->blk] : -1;
     if(c->blk>0)
     {
         pp->open_xm = (zin>=0) ? 1 : 0;
         pp->open_xp = (zout>=0) ? 1 : 0;
-        pp->open_ym = pp->open_yp = 0;
+        pp->open_ym = (zjm>=0) ? 1 : 0;
+        pp->open_yp = (zjp>=0) ? 1 : 0;
     }
-    if(c->blk>0 && c->lev==0 && (bopen[0][c->blk]>=0 || bopen[1][c->blk]>=0 || zin>=0 || zout>=0 || rin>=0 || rout>=0))
+    const bool eopen = zin>=0 || zout>=0 || zjm>=0 || zjp>=0;
+    if(c->blk>0 && c->lev==0 && (bopen[0][c->blk]>=0 || bopen[1][c->blk]>=0 || eopen || rin>=0 || rout>=0 || rjm>=0 || rjp>=0))
     {
         c->pio = new ioflow_amr_block(pp,pgc,pBC);
         pp->amr_own_io = 1;
         c->pio->open_faces(pp,bopen[0][c->blk],bopen[1][c->blk]);
-        c->pio->open_edges(pp,zin>=0 ? &bzones[zin] : nullptr,zout>=0 ? &bzones[zout] : nullptr,bzbg);
+        c->pio->open_edges(pp,zin>=0 ? &bzones[zin] : nullptr,zout>=0 ? &bzones[zout] : nullptr,bzbg,
+                           zjm>=0 ? &bzones[zjm] : nullptr,zjp>=0 ? &bzones[zjp] : nullptr);
         // the zones (the faces closed: walls, as the native grid with B 98 2); the waves of the relaxation zones with
         // the B 92 waves (level 0 has no wave generation on a curvilinear grid, sflow_curv::check)
         c->pio->open_zones(pp,rin>=0 ? &bzones[rin] : nullptr,rout>=0 ? &bzones[rout] : nullptr,bzbg,p0->B92>0,
-                           EXT,blk[c->blk].ni,EXT,blk[c->blk].nj);
-        if(bopen[0][c->blk]>=0 || bopen[1][c->blk]>=0 || zin>=0 || zout>=0)
+                           EXT,blk[c->blk].ni,EXT,blk[c->blk].nj,rjm>=0 ? &bzones[rjm] : nullptr,rjp>=0 ? &bzones[rjp] : nullptr);
+        if(bopen[0][c->blk]>=0 || bopen[1][c->blk]>=0 || eopen)
         c->phll->open_io();
     }
 

@@ -364,7 +364,7 @@ private:
 
     // patch lexer: 3D flags, boundary list, sigma arrays
     void build_lexer3D(nhflow_amr_patch&);
-    void open_lists(nhflow_amr_patch&, bool, bool);     // G 54: the 3D in- and outflow cells of the open faces of a block
+    void open_lists(nhflow_amr_patch&, bool, bool, bool=false, bool=false);     // G 54: the 3D in- and outflow cells of the open faces of a block
     void free_lexer3D(nhflow_amr_patch&);
 
     // interpolation from the coarser grid g: cell (ic,jc), quadrant (ox,oy); the last argument

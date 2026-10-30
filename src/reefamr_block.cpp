@@ -668,26 +668,28 @@ void reefamr::blocks_open(lexer *p)
         }
     }
 
-    // zones on the faces of the blocks (B 522 b): edges (B 520 methods 3-6, NHFLOW and SFLOW) on the -i or +i face
-    // of a block 1.. without interface and without G 54; relaxation and beach zones (methods 1, 2, NHFLOW and SFLOW) on the
-    // -i or +i face without interface; the background of the zone given (B 510).  (The j faces: the block is
-    // turned, geo_mesh::turn_blocks.)
-    bzone[0].assign(nblk,-1);
-    bzone[1].assign(nblk,-1);
-    bzr[0].assign(nblk,-1);
-    bzr[1].assign(nblk,-1);
+    // zones on the faces of the blocks (B 522 b): edges (B 520 methods 3-6, NHFLOW and SFLOW) on a face of a block 1..
+    // without interface and without G 54; relaxation and beach zones (methods 1, 2, NHFLOW and SFLOW) on a face without
+    // interface; the background of the zone given (B 510).  The block is turned so that a relaxation zone and an edge
+    // with waves lie on its -i face, the G 54 faces on -i / +i (geo_mesh::turn_blocks); edges without waves and beach
+    // zones may then lie on a j face
+    for(int f=0; f<4; ++f)
+    {
+        bzone[f].assign(nblk,-1);
+        bzr[f].assign(nblk,-1);
+    }
     bzones = bc_zone_set::from_input(p).bedges;
     for(int q=0; q<(int)bzones.size(); ++q)
     {
         const bc_zone &z = bzones[q];
         const bool rz = (z.method==bc_method::relax || z.method==bc_method::beach);
         const int bo = z.block, f = (bo>=1 && bo<G->nblk_orig) ? G->face_turned(bo,z.edge-1) : -1;
-        const int b = (f==0 || f==1) ? G->face_piece(bo,f) : -1;
+        const int b = (f>=0 && f<=3) ? G->face_piece(bo,f) : -1;
         const char *why = nullptr;
         if(bo>=G->nblk_orig)
         why = "no block 1.. of the grid";
         else
-        if(f!=0 && f!=1)
+        if(f<0 || f>3)
         why = "the face is not open after turning the block (geo_mesh::turn_blocks)";
         else
         if(p->A10!=5 && p->A10!=2)
@@ -697,8 +699,14 @@ void reefamr::blocks_open(lexer *p)
         if(b<0)
         why = "the face is cut into pieces (G 55)";
         else
-        if(!rz && bopen[f][b]>=0)
+        if(!rz && f<2 && bopen[f][b]>=0)
         why = "the face is open by G 54 already";
+        else
+        if(f>=2 && (z.method==bc_method::relax || !z.sources.empty()))
+        why = "a relaxation zone and an edge with the waves of sources lie on the -i face of their block (geo_mesh::turn_blocks)";
+        else
+        if(f>=2 && (bzone[f][b]>=0 || bzr[f][b]>=0))
+        why = "the face has a zone already";
         else
         if(z.method==bc_method::relax && f!=0)
         why = "a relaxation zone lies on the -i face of its block (geo_mesh::turn_blocks)";

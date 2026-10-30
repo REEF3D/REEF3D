@@ -54,20 +54,17 @@ inline double zone_r(double x)
 }
 
 void ioflow_amr_block::open_zones(lexer *p, const bc_zone *zm, const bc_zone *zp, const background_state &bg, bool waves,
-                                  int i0, int ni, int j0, int nj)
+                                  int i0, int ni, int j0, int nj, const bc_zone *zjm, const bc_zone *zjp)
 {
     zi0 = i0; zni = ni; zj0 = j0; znj = nj;
     rzone.clear();
-    rz[0] = rz[1] = -1;
-    if(zm!=nullptr)
+    rz[0] = rz[1] = rz[2] = rz[3] = -1;
+    const bc_zone *zf[4] = {zm,zp,zjm,zjp};
+    for(int f=0; f<4; ++f)
+    if(zf[f]!=nullptr)
     {
-        rz[0] = int(rzone.size());
-        rzone.push_back(*zm);
-    }
-    if(zp!=nullptr)
-    {
-        rz[1] = int(rzone.size());
-        rzone.push_back(*zp);
+        rz[f] = int(rzone.size());
+        rzone.push_back(*zf[f]);
     }
     gen_waves = waves;
     zbuilt = false;
@@ -194,7 +191,7 @@ void ioflow_amr_block::zones_build(lexer *p)
     vector<double> xg(n2,-1.0), rb(n2,0.0);
     vector<int> cb(n2,0), zg(n2,-1), zb(n2,-1);
 
-    for(int f=0; f<2; ++f)
+    for(int f=0; f<4; ++f)
     {
         if(rz[f]<0)
         continue;
@@ -202,17 +199,37 @@ void ioflow_amr_block::zones_build(lexer *p)
         const bc_zone &z = rzone[rz[f]];
         const double w = z.d;
 
-        for(j=zj0; j<zj0+znj; ++j)
+        // the lines across the face: along i from an i face, along j from a j face
+        const bool jf = (f>=2);
+        const int nline = jf ? zni : znj, nlen = jf ? znj : zni;
+
+        for(int l=0; l<nline; ++l)
         {
-            const int in = (f==0) ? zi0 : zi0+zni;
-            const int a = p->nij(in,j), c = p->nij(in,j+1);
+            int a, c;
+            if(!jf)
+            {
+                j = zj0+l;
+                const int in = (f==0) ? zi0 : zi0+zni;
+                a = p->nij(in,j);
+                c = p->nij(in,j+1);
+            }
+            else
+            {
+                i = zi0+l;
+                const int jn = (f==2) ? zj0 : zj0+znj;
+                a = p->nij(i,jn);
+                c = p->nij(i+1,jn);
+            }
             double xo = 0.5*(p->XN2D[a] + p->XN2D[c]);
             double yo = 0.5*(p->YN2D[a] + p->YN2D[c]);
             double s = 0.0;
 
-            for(int m=0; m<zni; ++m)
+            for(int m=0; m<nlen; ++m)
             {
+                if(!jf)
                 i = (f==0) ? zi0+m : zi0+zni-1-m;
+                else
+                j = (f==2) ? zj0+m : zj0+znj-1-m;
                 const double xc = p->XC2D[IJ], yc = p->YC2D[IJ];
                 const double ds = sqrt((xc-xo)*(xc-xo) + (yc-yo)*(yc-yo));
                 s += ds;
@@ -223,7 +240,7 @@ void ioflow_amr_block::zones_build(lexer *p)
                 break;
 
                 // the zone reaches beyond the other face of the block (a G 55 piece): it ends there
-                if(m==zni-1 && s+ds<w && !ztold)
+                if(m==nlen-1 && s+ds<w && !ztold)
                 {
                     ztold = true;
                     std::cout<<"!!! zone "<<z.id<<" (B 522) is "<<w<<" m wide, its block (G 55: its piece) ends "<<s

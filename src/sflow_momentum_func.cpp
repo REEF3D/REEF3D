@@ -953,10 +953,14 @@ void sflow_momentum_func::face_velocities(lexer *p, fdm2D *b, ghostcell *pgc, sl
     pgc->gcsl_start1(p,b->P,gcval_u);
     
     // in- and outflow faces (discharge diagnostics Qin2D, Qout2D)
+    // (the j faces of a block of a multi-block grid: the y edges, side 3 -j, 2 +j)
     for(n=0;n<p->gcslin_count;n++)
     {
     i=p->gcslin[n][0];
     j=p->gcslin[n][1];
+    
+    if(p->gcslin[n][3]==3 || p->gcslin[n][3]==2)
+    continue;
     
     b->P(i-1,j) = b->U(i-1,j);
     }
@@ -965,6 +969,18 @@ void sflow_momentum_func::face_velocities(lexer *p, fdm2D *b, ghostcell *pgc, sl
     {
     i=p->gcslout[n][0];
     j=p->gcslout[n][1];
+    
+    if(p->gcslout[n][3]==3)
+    {
+    b->Q(i,j-1) = (p->wet[IJ]==1)?0.5*(b->V(i,j) + b->V(i,j-1)):0.0;
+    continue;
+    }
+    
+    if(p->gcslout[n][3]==2)
+    {
+    b->Q(i,j) = (p->wet[IJ]==1)?0.5*(b->V(i,j) + b->V(i,j+1)):0.0;
+    continue;
+    }
     
     b->P(i,j) = (p->wet[IJ]==1)?0.5*(b->U(i,j) + b->U(i+1,j)):0.0;
     }

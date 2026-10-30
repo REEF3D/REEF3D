@@ -668,8 +668,9 @@ void geo_mesh::turn_blocks(lexer *p)
     if(nb<=1)
     return;
 
-    // the open faces of every block of DIVEMesh and the faces they may become (bit 0: -i, bit 1: +i)
-    vector<vector<int>> face(nb), want(nb);
+    // the open faces of every block of DIVEMesh and the faces they may become (bit 0: -i, bit 1: +i, bit 2: -j,
+    // bit 3: +j; jwant: in the second search, when no turn puts all of them on -i / +i)
+    vector<vector<int>> face(nb), want(nb), jwant(nb);
     vector<vector<string>> what(nb);
     for(int n=0; n<p->G54; ++n)
     {
@@ -678,6 +679,7 @@ void geo_mesh::turn_blocks(lexer *p)
         continue;
         face[b].push_back(f);
         want[b].push_back((k==1 || k==3) ? 1 : 2);
+        jwant[b].push_back(want[b].back());
         what[b].push_back((k==1 || k==3) ? "G 54 discharge" : "G 54 water level");
     }
     for(int m=0; m<p->B522; ++m)
@@ -700,6 +702,9 @@ void geo_mesh::turn_blocks(lexer *p)
         if(p->B524_id[q]==p->B522_id[m])
         src = true;
         want[b].push_back((meth==1 || (meth==3 && src)) ? 1 : 3);
+        // an edge (B 520 methods 3-6) without waves and a beach zone may also lie on a j face (-j: side 3, +j: side
+        // 2 of the ghost cell lists, as the y edges of the native grid)
+        jwant[b].push_back((meth==1 || (meth==3 && src)) ? 1 : 15);
         what[b].push_back(meth==1 ? "B 522 relaxation zone" : (meth==3 && src) ? "B 522 Riemann edge with waves" : "B 522 zone");
     }
 
@@ -709,7 +714,10 @@ void geo_mesh::turn_blocks(lexer *p)
         if(face[b].empty())
         continue;
 
+        // the first turn that puts all open faces on -i / +i; else the first one with the edges and beach zones on any
+        // face (two open faces that are not opposite: one of them on a j face)
         int r = -1;
+        for(int pass=0; pass<2 && r<0; ++pass)
         for(int t=0; t<4 && r<0; ++t)
         {
             bool ok = true;
@@ -718,9 +726,16 @@ void geo_mesh::turn_blocks(lexer *p)
                 int f = face[b][q];
                 for(int u=0; u<t; ++u)
                 f = turn_face[f];
-                if(f>1 || !((want[b][q]>>f)&1))
+                const int w = (pass==0) ? want[b][q] : jwant[b][q];
+                if(!((w>>f)&1))
                 ok = false;
             }
+            // the second search: one open face per face
+            if(pass==1)
+            for(size_t q=0; q<face[b].size() && ok; ++q)
+            for(size_t u=q+1; u<face[b].size(); ++u)
+            if(face[b][q]==face[b][u])
+            ok = false;
             if(ok)
             r = t;
         }
@@ -733,7 +748,7 @@ void geo_mesh::turn_blocks(lexer *p)
                 cout<<"!!! block "<<b<<": its open faces (G 54, B 522)";
                 for(size_t q=0; q<face[b].size(); ++q)
                 cout<<(q>0 ? ", " : " ")<<fn[face[b][q]]<<" ("<<what[b][q]<<")";
-                cout<<": the block cannot be turned so that they become its -i and +i face (two opposite faces; a discharge, a relaxation zone or a Riemann edge with waves on the one, a water level on the other) !!!"<<endl;
+                cout<<": the block cannot be turned to take them (a discharge, a relaxation zone or a Riemann edge with waves on its -i face, a water level on its +i face; edges without waves and beach zones on any face; one open face per face) !!!"<<endl;
             }
             ++bad;
             continue;
@@ -772,5 +787,5 @@ void geo_mesh::turn_blocks(lexer *p)
     for(int b=1; b<nb; ++b)
     if(blk_turn[b]>0)
     cout<<"block "<<b<<": turned by "<<90*blk_turn[b]<<" deg in its indices (now "<<blk[b].ni<<" x "<<blk[b].nj
-        <<" cells), so that its open faces are its -i and +i face"<<endl;
+        <<" cells), so that its open faces lie where the solvers take them"<<endl;
 }

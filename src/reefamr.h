@@ -724,8 +724,8 @@ protected:
     int nblk = 0;
     vector<int> bopen[2];               // G 54: per block the line of its -i face (inflow) [0] / +i face (outflow) [1], -1 none
     vector<bc_zone> bzones;             // B 522: the zones on the faces of the blocks 1..
-    vector<int> bzone[2];               // per block the edge zone of its -i face [0] / +i face [1] (index in bzones), -1 none
-    vector<int> bzr[2];                 // per block the relaxation or beach zone of its -i / +i face (index in bzones), -1 none
+    vector<int> bzone[4];               // per block the edge zone of its -i [0], +i [1], -j [2], +j [3] face (index in bzones), -1 none
+    vector<int> bzr[4];                 // per block the relaxation or beach zone of its faces (index in bzones), -1 none
     background_state bzbg;              // their backgrounds (B 510-515)
     void blocks_open(lexer*);           // the open faces of the blocks 1.. (G 54) and their edge zones (B 522), checked
     int GNXV = 0, GNYV = 0;             // extent of the level-0 index space with the blocks

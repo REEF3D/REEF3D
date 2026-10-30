@@ -755,10 +755,11 @@ void nhflow_amr::build_lexer3D(nhflow_amr_patch &c)
 // the 3D in- and outflow cells of the open faces of a block (G 54): the fluid cells of its first (-i, gcin)
 // and last (+i, gcout) column of cells, the ghost cells beyond them marked IO 1 / 2 (as ioflow_gcio_lists and
 // ioflow_gcio_marks with the DIVEMesh boundary groups 1 and 2 on the native grid)
-void nhflow_amr::open_lists(nhflow_amr_patch &c, bool in, bool out)
+void nhflow_amr::open_lists(nhflow_amr_patch &c, bool in, bool out, bool jm, bool jp)
 {
     lexer *pp = c.pp;
     const int i0 = EXT, i1 = EXT+blk[c.blk].ni-1;
+    const int j0 = EY, j1 = EY+blk[c.blk].nj-1;
     auto fluid = [&](int ii, int jj) { return pp->flagslice4[lij(pp,ii,jj)]>0; };
 
     int nin=0, nout=0;
@@ -767,6 +768,14 @@ void nhflow_amr::open_lists(nhflow_amr_patch &c, bool in, bool out)
         if(in && fluid(i0,jj) && !fluid(i0-1,jj))
         nin += pp->knoz;
         if(out && fluid(i1,jj) && !fluid(i1+1,jj))
+        nout += pp->knoz;
+    }
+    // the edges of the j faces in the outflow list (as the y edges of the native grid, iowave::gcio_update_nhflow)
+    for(int ii=i0; ii<=i1; ++ii)
+    {
+        if(jm && fluid(ii,j0) && !fluid(ii,j0-1))
+        nout += pp->knoz;
+        if(jp && fluid(ii,j1) && !fluid(ii,j1+1))
         nout += pp->knoz;
     }
 
@@ -789,6 +798,22 @@ void nhflow_amr::open_lists(nhflow_amr_patch &c, bool in, bool out)
         {
             pp->gcout[b][0]=i1; pp->gcout[b][1]=jj; pp->gcout[b][2]=kk; pp->gcout[b][3]=4; pp->gcout[b][4]=2; pp->gcout[b][5]=0;
             pp->IO[cidx(pp,i1+1,jj,kk)] = 2;
+            ++b;
+        }
+    }
+    for(int ii=i0; ii<=i1; ++ii)
+    for(int kk=0; kk<pp->knoz; ++kk)
+    {
+        if(jm && fluid(ii,j0) && !fluid(ii,j0-1))
+        {
+            pp->gcout[b][0]=ii; pp->gcout[b][1]=j0; pp->gcout[b][2]=kk; pp->gcout[b][3]=3; pp->gcout[b][4]=2; pp->gcout[b][5]=0;
+            pp->IO[cidx(pp,ii,j0-1,kk)] = 2;
+            ++b;
+        }
+        if(jp && fluid(ii,j1) && !fluid(ii,j1+1))
+        {
+            pp->gcout[b][0]=ii; pp->gcout[b][1]=j1; pp->gcout[b][2]=kk; pp->gcout[b][3]=2; pp->gcout[b][4]=2; pp->gcout[b][5]=0;
+            pp->IO[cidx(pp,ii,j1+1,kk)] = 2;
             ++b;
         }
     }
@@ -847,8 +872,13 @@ void nhflow_amr::patch_objects(reefamr_patch *q, ghostcell *pgc)
     const int zout = (c->blk>0 && c->lev==0) ? bzone[1][c->blk] : -1;
     const int rin = (c->blk>0 && c->lev==0) ? bzr[0][c->blk] : -1;
     const int rout = (c->blk>0 && c->lev==0) ? bzr[1][c->blk] : -1;
-    const bool open = oin>=0 || oout>=0 || zin>=0 || zout>=0;
-    const bool zoned = open || rin>=0 || rout>=0;
+    // the j faces (two open faces that are not opposite, geo_mesh::turn_blocks): edges and beach zones
+    const int zjm = (c->blk>0 && c->lev==0) ? bzone[2][c->blk] : -1;
+    const int zjp = (c->blk>0 && c->lev==0) ? bzone[3][c->blk] : -1;
+    const int rjm = (c->blk>0 && c->lev==0) ? bzr[2][c->blk] : -1;
+    const int rjp = (c->blk>0 && c->lev==0) ? bzr[3][c->blk] : -1;
+    const bool open = oin>=0 || oout>=0 || zin>=0 || zout>=0 || zjm>=0 || zjp>=0;
+    const bool zoned = open || rin>=0 || rout>=0 || rjm>=0 || rjp>=0;
     if(c->blk>0)
     {
         pp->B60 = (oin>=0 || oout>=0) ? 1 : 0;
@@ -858,10 +888,11 @@ void nhflow_amr::patch_objects(reefamr_patch *q, ghostcell *pgc)
         pp->B99 = 0;
         pp->open_xm = (zin>=0) ? 1 : 0;
         pp->open_xp = (zout>=0) ? 1 : 0;
-        pp->open_ym = pp->open_yp = 0;
+        pp->open_ym = (zjm>=0) ? 1 : 0;
+        pp->open_yp = (zjp>=0) ? 1 : 0;
         // an edge zone: the non-hydrostatic pressure at the -i edge 0 as at the iowave edges (nhflow_poisson, B 90);
         // a relaxation or beach zone: the relaxation of the semi-implicit step (nhflow_momentum_SI::relax)
-        if(zin>=0 || zout>=0 || rin>=0 || rout>=0)
+        if(zin>=0 || zout>=0 || rin>=0 || rout>=0 || zjm>=0 || zjp>=0 || rjm>=0 || rjp>=0)
         pp->B90 = 1;
         // a relaxation zone on the -i face: that face is the generation side of the block as x- of the native grid
         // with B 98 2 (the velocities zero gradient in the ghost cells, start4V; not a G 52 wall, nhflow_curv::iwall)
@@ -876,8 +907,16 @@ void nhflow_amr::patch_objects(reefamr_patch *q, ghostcell *pgc)
     build_bc2D(pgc,*c);
     build_lexer3D(*c);
 
+    // an open j face: the cells of the block as the cells of a native grid in y (the y edges find their row by
+    // origin_j + j and gknoy, gc_startV, nhflow_curv), after the lists of the slices (build_bc2D sets the j sides)
+    if(zjm>=0 || zjp>=0)
+    {
+        pp->origin_j = -EY;
+        pp->gknoy = blk[c->blk].nj;
+    }
+
     if(open)
-    open_lists(*c,oin>=0 || zin>=0,oout>=0 || zout>=0);
+    open_lists(*c,oin>=0 || zin>=0,oout>=0 || zout>=0,zjm>=0,zjp>=0);
 
     // vectors of the Poisson rows (nhflow_poisson fills them over FBASELOOP and LOOP)
     pp->veclength = pp->imax*pp->jmax*pp->kmaxF;
@@ -910,10 +949,11 @@ void nhflow_amr::patch_objects(reefamr_patch *q, ghostcell *pgc)
         c->pio = new ioflow_amr_block(pp,pgc,pBCv);
         pp->amr_own_io = 1;
         c->pio->open_faces(pp,oin,oout);
-        c->pio->open_edges(pp,zin>=0 ? &bzones[zin] : nullptr,zout>=0 ? &bzones[zout] : nullptr,bzbg);
+        c->pio->open_edges(pp,zin>=0 ? &bzones[zin] : nullptr,zout>=0 ? &bzones[zout] : nullptr,bzbg,
+                           zjm>=0 ? &bzones[zjm] : nullptr,zjp>=0 ? &bzones[zjp] : nullptr);
         // relaxation and beach zones (B 522 methods 1, 2), the waves with B 90 1 and B 98 2 on level 0
         c->pio->open_zones(pp,rin>=0 ? &bzones[rin] : nullptr,rout>=0 ? &bzones[rout] : nullptr,bzbg,p0->B90>0 && p0->B98==2,
-                           EXT,blk[c->blk].ni,EXT,blk[c->blk].nj);
+                           EXT,blk[c->blk].ni,EXT,blk[c->blk].nj,rjm>=0 ? &bzones[rjm] : nullptr,rjp>=0 ? &bzones[rjp] : nullptr);
         c->pflow = c->pio;
     }
     // the floating bodies on the patch grid (all calls do nothing without bodies)

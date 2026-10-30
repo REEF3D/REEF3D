@@ -237,12 +237,41 @@ void sflow_curv::flux_bc(lexer *p, fdm2D *b, int ipol, slice &Fx, slice &Fy, int
         Fx(fi,fj) = wl*un;
     };
 
+    // through a j-face (the y edges of the j faces of a block of a multi-block grid, side 3: -j, 2: +j)
+    auto ghostj = [&](int gi, int gj, int fi, int fj)
+    {
+        const double eg = b->eta(gi,gj);
+        const double wl = MAX(eg + b->depth(gi,gj), 0.0);
+
+        normal(p,2,fi,fj,nx,ny,len);
+        un = b->U(gi,gj)*nx + b->V(gi,gj)*ny;
+        P = 0.5*g*eg*eg + g*eg*b->dfy(fi,fj);
+
+        if(ipol==1)
+        Fy(fi,fj) = wl*b->U(gi,gj)*un + P*nx;
+
+        if(ipol==2)
+        Fy(fi,fj) = wl*b->V(gi,gj)*un + P*ny;
+
+        if(ipol==3)
+        Fy(fi,fj) = wl*b->W(gi,gj)*un;
+
+        if(ipol==4)
+        Fy(fi,fj) = wl*un;
+    };
+
     if(inflow==1)
     for(n=0;n<p->gcslin_count;n++)
     {
     i=p->gcslin[n][0];
     j=p->gcslin[n][1];
 
+    if(p->gcslin[n][3]==3)
+    ghostj(i,j-1,i,j-1);
+    else
+    if(p->gcslin[n][3]==2)
+    ghostj(i,j+1,i,j);
+    else
     ghost(i-1,j,i-1,j);
     }
 
@@ -252,6 +281,12 @@ void sflow_curv::flux_bc(lexer *p, fdm2D *b, int ipol, slice &Fx, slice &Fy, int
     i=p->gcslout[n][0];
     j=p->gcslout[n][1];
 
+    if(p->gcslout[n][3]==3)
+    ghostj(i,j-1,i,j-1);
+    else
+    if(p->gcslout[n][3]==2)
+    ghostj(i,j+1,i,j);
+    else
     ghost(i+1,j,i,j);
     }
 }
