@@ -91,6 +91,9 @@ in brackets):
                    (2009), saturation-based whitecapping B_r 9e-4, the
                    diagnostic f^-5 tail above max(2.5 f_m, 3 f_PM) and the
                    upper bound alpha_p 0.031 (see seastate_st4.h)    -> P, D
+  (A 732 4)        Janssen and Bidlot (2023), ecWAM operational: A 732 3 with
+                   the gravity-capillary background roughness and the
+                   renormalised growth rate (Phase 21)               -> P, D
   quadruplets     DIA (Hasselmann et al. 1985) (FAC4WW, SWSNL1):
                    lambda 0.25, C 3e7, shallow-water scaling
                    1 + 5.5/x (1 - 0.833 x) exp(-1.25 x),
@@ -144,7 +147,7 @@ struct seastate_source_param
     bool komen = false;                  // whitecapping (and exponential wind input with wind)
     bool westh = false;                  // ... as van der Westhuysen et al. (2007): Yan wind input, saturation-based whitecapping (SWAN GEN3 WESTH)
     double cds2 = 5.0e-5, br = 1.75e-3;  // ... its coefficient and saturation threshold
-    bool st4 = false;                    // ... as Ardhuin et al. (2010), ecWAM IPHYS 1 (A 732 3, Phase 20): wind input with sheltering,
+    bool st4 = false;                    // ... as Ardhuin et al. (2010), ecWAM IPHYS 1 (A 732 3, Phase 20; A 732 4 with st4p.gc, normagam, Phase 21): wind input with sheltering,
                                          // swell damping, saturation-based whitecapping, u* from the wave stress, diagnostic tail
     seastate_st4_param st4p;
     bool dia = false;                    // quadruplets

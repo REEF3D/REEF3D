@@ -24,7 +24,9 @@ spectral grid and source term interface, of routines of the ECMWF
 wave model ecWAM 1.5.14 (IPHYS = 1): SINPUT_ARD, SDISSIP_ARD,
 TAUT_Z0, STRESSO, TAU_PHI_HF, FRCUTINDEX, FEMEANWS, FKMEAN (mean
 frequency), CHNKMIN, INIT_X0TAUHF, INIT_SDISS_ARDH, TABU_SWELLFT,
-KERKEI, KZEONE, IMPHFTAIL and the parameters of SETWAVPHYS.
+KERKEI, KZEONE, IMPHFTAIL and the parameters of SETWAVPHYS; Phase 21:
+STRESS_GC, NS_GC, OMEGAGC, INITGC, HALPHAP, MEANSQS_LF, FEMEAN and the
+branches of LLGCBZ0 and LLNORMAGAM (Janssen and Bidlot 2023).
 ecWAM: Copyright 1996- ECMWF, licensed under the Apache License,
 Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0); see
 seastate_st4.cpp for the notice and the list of changes.
@@ -72,6 +74,18 @@ REEF3D::SEASTATE - wind input and dissipation of Ardhuin et al. (2010)
   its bins above the cut-off of the source terms of that solve are set
   to the tail (as ecWAM after each time step)
 
+Janssen and Bidlot (2023), A 732 4 (Phase 21, ecWAM IPHYS 1 with LLGCBZ0
+and LLNORMAGAM, the operational ecWAM): the same dissipation, and
+  - the background roughness from the stress of the gravity-capillary
+    waves (STRESS_GC: an inertial-subrange spectrum from the Phillips
+    parameter of the resolved waves, HALPHAP, wave numbers to 20000 rad/m)
+    and the viscous stress in the stress balance (TAUT_Z0 with LLGCBZ0),
+    Charnock alpha 0.0055, capped above 28 m/s
+  - the growth rate renormalised per frequency by the slope of the waves,
+    gamma (1 + N1)/(1 + N2) (LLNORMAGAM), stronger above 33 m/s (RNFAC)
+  - no sheltering, beta_max 1.39, the tail stress up to the
+    gravity-capillary cut-off, alpha_p,max 0.03, no cap of tau_w by u*^2
+
 Units as seastate_source: N(sig,theta), P [N/s], D [1/s].
 --------------------------------------------------------------------*/
 
@@ -87,8 +101,25 @@ struct seastate_st4_param
     double tailfactor = 2.5, tailfactor_pm = 3.0;
     double rhoa = 1.225, rhow = 1000.0, nu = 1.5e-5;
     double sdsbr = 9.0e-4, ssdsc2 = -2.2e-5, ssdsc4 = 1.0, ssdsc6 = 0.3;
+    // Janssen and Bidlot (2023), ecWAM LLGCBZ0 (gravity-capillary roughness) and LLNORMAGAM (renormalisation), A 732 4
+    bool gc = false, normagam = false;
+    double dthrn_a = 0.60, dthrn_u = 33.0, rn1_rn = 0.25, delta_theta_rn = 0.75;
+    double ang_gc_a = 0.35, ang_gc_b = 0.65, ang_gc_c = 3.0, surft = 0.0000717;
     double tol = 1.0e-4;
     int maxit = 12;
+
+    // the parameters of ecWAM IPHYS 1 with LLGCBZ0 and LLNORMAGAM (SETWAVPHYS): the operational ecWAM, the
+    // Janssen and Bidlot (2023) input with the Ardhuin dissipation (A 732 4)
+    static seastate_st4_param jb2023()
+    {
+        seastate_st4_param p;
+        p.gc = p.normagam = true;
+        p.betamax = 1.39; p.tauwshelter = 0.0;
+        p.alpha = 0.0055; p.alphamin = 0.0001; p.chnkmin_u = 28.0; p.alphapmax = 0.03;
+        p.z0tubmax = 0.05; p.z0rat = 0.02; p.swellf4 = 1.15e5; p.swellf7 = 4.32e5;
+        p.dthrn_a = 0.60; p.dthrn_u = 33.0;
+        return p;
+    }
     double alphapmax = 0.031;           // upper bound of the spectrum (ecWAM ALPHAPMAX), 0 off
 };
 
@@ -136,11 +167,19 @@ private:
     void stress(const float *N, const float *k, double us, double zz0, double wdir, double &tw, double &twdir) const;
     void cutoff(const float *N, double us);
     double chnkmin(double u10) const;
+    void taut_z0_gc(int iusfg, double U, double tauwact, bool llcosdiff, double &us, double &zz0, double &zz0b, double &chr) const;
+    int ns_gc(double ustar) const;
+    double stress_gc(double ang, double ustar, double zz0, double z0min, double hp, double rf) const;
+    double halphap(const float *N, const float *k, double wdir) const;
 
     const seastate_grid *pg = nullptr;
     seastate_st4_param prm;
     int nsig = 0, ndir = 0, nbin = 0;
-    double grav = 9.81, rnum = 0.0, raorw = 0.0, constn = 0.0;
+    double grav = 9.81, rnum = 0.0, raorw = 0.0, constn = 0.0, bmaxokap = 0.0, gamnconst = 0.0;
+    double rnfac = 1.0, halp = 0.0;             // of the cell (wind())
+    int nwav_gc = 0;                            // gravity-capillary wave numbers (INITGC)
+    double sqrtgosurft = 0.0, xlogkratiom1_gc = 0.0;
+    std::vector<double> xk_gc, xkm_gc, omega_gc, cm_gc, omxkm3_gc, c2osqrtvg_gc, xkmsqrtvgoc2_gc, om3gmkm_gc, delkcc_gc_ns, delkcc_omxkm3_gc;
     double x0tauhf = 0.0, wtauhf[19];
     std::vector<double> swellft;                // SWELLFT(1..200), index 0 unused
     int nsat = 0;                               // directions on each side of the saturation integral

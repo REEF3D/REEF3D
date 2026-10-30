@@ -318,9 +318,9 @@ void control::ini_default()
     A730=0;           // int wind: 0 none, 1 uniform (A 731), 2 the met forcing W 200 (uniform, met-forcing.r3m, vortex, blend)
     A731_u10=0.0;     // double wind speed U10 [m/s]
     A731_dir=0.0;     // double wind direction [deg], direction the wind blows to, ccw from +x
-    A732=0;           // int deep-water physics: 0 off, 1 Komen (wind input with wind, whitecapping, quadruplets A 733), 2 van der Westhuysen (Yan wind input, saturation-based whitecapping), 3 Ardhuin et al. 2010 (ST4 as ecWAM IPHYS 1: input with sheltering, swell damping, saturation whitecapping, u* from the wave stress, diagnostic tail)
-    A763=1.40;        // double A 732 3: beta_max of the Janssen growth rate (ecWAM BETAMAX)
-    A764=0.25;        // double A 732 3: sheltering of the input by the wave stress of the lower frequencies (ecWAM TAUWSHELTER), 0 off
+    A732=0;           // int deep-water physics: 0 off, 1 Komen (wind input with wind, whitecapping, quadruplets A 733), 2 van der Westhuysen (Yan wind input, saturation-based whitecapping), 3 Ardhuin et al. 2010 (ST4 as ecWAM IPHYS 1: input with sheltering, swell damping, saturation whitecapping, u* from the wave stress, diagnostic tail), 4 Janssen and Bidlot 2023 (A 732 3 with the gravity-capillary roughness and the renormalised growth rate, ecWAM LLGCBZ0 and LLNORMAGAM)
+    A763=0.0;         // double A 732 3, 4: beta_max of the Janssen growth rate (ecWAM BETAMAX), 0: the default (1.40 for A 732 3, 1.39 for A 732 4)
+    A764=-1.0;        // double A 732 3, 4: sheltering of the input by the wave stress of the lower frequencies (ecWAM TAUWSHELTER), 0 off, negative: the default (0.25 for A 732 3, 0 for A 732 4)
     A765=1;           // int A 732 3: diagnostic f^-5 tail above max(2.5 f_m, 3 f_PM) (ecWAM IMPHFTAIL), 0 off
     A766=1;           // int A 732 3: swell damping of Ardhuin et al. (2009), 0 off
     A733=1;           // int quadruplets with A 732 1: 0 off, 1 DIA

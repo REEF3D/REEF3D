@@ -393,13 +393,13 @@ void seastate_f::check_keys(lexer *p, ghostcell *pgc)
     else if(p->A730==1 && !(p->A731_u10>=0.0))
     msg = "A 731: the wind speed must not be negative";
     else if(p->A730>=1 && p->A732<1)
-    msg = "A 730: wind input needs the deep-water physics A 732 1 (Komen), 2 (van der Westhuysen) or 3 (Ardhuin et al. 2010)";
-    else if(p->A732<0 || p->A732>3)
-    msg = "A 732: deep-water physics must be 0 (off), 1 (Komen), 2 (van der Westhuysen et al. 2007, SWAN GEN3 WESTH) or 3 (Ardhuin et al. 2010, ecWAM IPHYS 1)";
-    else if(p->A732==3 && (!(p->A763>0.0) || !(p->A764>=0.0) || p->A764>=1.0 || (p->A765!=0 && p->A765!=1) || (p->A766!=0 && p->A766!=1)))
-    msg = "A 763-766: beta_max must be positive, the sheltering in [0,1), the tail and the swell damping 0 or 1";
-    else if(p->A732==3 && (p->A716_w>0.0 || p->A715_k>1))
-    msg = "A 732 3: the saturation of the Ardhuin whitecapping needs uniform directions (no A 715, A 716)";
+    msg = "A 730: wind input needs the deep-water physics A 732 1 (Komen), 2 (van der Westhuysen), 3 (Ardhuin et al. 2010) or 4 (Janssen and Bidlot 2023)";
+    else if(p->A732<0 || p->A732>4)
+    msg = "A 732: deep-water physics must be 0 (off), 1 (Komen), 2 (van der Westhuysen et al. 2007, SWAN GEN3 WESTH), 3 (Ardhuin et al. 2010, ecWAM IPHYS 1) or 4 (Janssen and Bidlot 2023 input with the Ardhuin dissipation, ecWAM operational)";
+    else if(p->A732>=3 && (!(p->A763>=0.0) || p->A764>=1.0 || (p->A765!=0 && p->A765!=1) || (p->A766!=0 && p->A766!=1)))
+    msg = "A 763-766: beta_max must not be negative (0: the default), the sheltering below 1 (negative: the default), the tail and the swell damping 0 or 1";
+    else if(p->A732>=3 && (p->A716_w>0.0 || p->A715_k>1))
+    msg = "A 732 3, 4: the saturation of the Ardhuin whitecapping needs uniform directions (no A 715, A 716)";
     else if(p->A758_n<0 || p->A758_m<0)
     msg = "A 758: the FAS period and the coarse iterations must not be negative";
     else if(p->A758_n>0 && p->G1<1 && (p->A718>=1 || p->A754>0))
@@ -872,8 +872,12 @@ void seastate_f::sources(lexer *p, ghostcell *pgc)
 
     sp.komen = (p->A732>=1);
     sp.westh = (p->A732==2);
-    sp.st4   = (p->A732==3);
+    sp.st4   = (p->A732==3 || p->A732==4);
+    if(p->A732==4)
+    sp.st4p = seastate_st4_param::jb2023();
+    if(p->A763>0.0)
     sp.st4p.betamax = p->A763;
+    if(p->A764>=0.0)
     sp.st4p.tauwshelter = p->A764;
     sp.st4p.tail = (p->A765==1);
     sp.st4p.swell = (p->A766==1);
@@ -914,9 +918,9 @@ void seastate_f::sources(lexer *p, ghostcell *pgc)
     {
     cout<<"SEASTATE source terms:";
     if(sp.wind && p->A730==1)
-    cout<<" wind U10 "<<sp.U10<<" m/s to "<<p->A731_dir<<" deg ("<<(sp.st4 ? "Ardhuin" : (sp.westh ? "Yan" : "Komen"))<<", linear growth "<<sp.Alin<<"),";
+    cout<<" wind U10 "<<sp.U10<<" m/s to "<<p->A731_dir<<" deg ("<<(sp.st4 ? (sp.st4p.gc ? "Janssen-Bidlot" : "Ardhuin") : (sp.westh ? "Yan" : "Komen"))<<", linear growth "<<sp.Alin<<"),";
     if(sp.wind && p->A730==2)
-    cout<<" wind field of the met forcing W 200 "<<p->W200<<" ("<<(sp.st4 ? "Ardhuin" : (sp.westh ? "Yan" : "Komen"))<<", linear growth "<<sp.Alin<<"),";
+    cout<<" wind field of the met forcing W 200 "<<p->W200<<" ("<<(sp.st4 ? (sp.st4p.gc ? "Janssen-Bidlot" : "Ardhuin") : (sp.westh ? "Yan" : "Komen"))<<", linear growth "<<sp.Alin<<"),";
     if(sp.wind && sp.drag>0 && !sp.st4)
     cout<<" drag of u* the met law "<<sp.drag<<(p->A729==2 ? " (A 729 2, A 728)," : " (A 729 1, W 207),");
     if(sp.komen && !sp.westh && !sp.st4)
@@ -924,7 +928,7 @@ void seastate_f::sources(lexer *p, ghostcell *pgc)
     if(sp.westh)
     cout<<" whitecapping (van der Westhuysen, cds2 "<<sp.cds2<<", br "<<sp.br<<"),";
     if(sp.st4)
-    cout<<" Ardhuin et al. 2010 (ecWAM IPHYS 1: beta_max "<<sp.st4p.betamax<<", sheltering "<<sp.st4p.tauwshelter<<", swell damping "
+    cout<<(sp.st4p.gc ? " Janssen and Bidlot 2023 (ecWAM IPHYS 1 with LLGCBZ0, LLNORMAGAM: gravity-capillary roughness, renormalised growth rate," : " Ardhuin et al. 2010 (ecWAM IPHYS 1:")<<" beta_max "<<sp.st4p.betamax<<", sheltering "<<sp.st4p.tauwshelter<<", swell damping "
         <<(sp.st4p.swell ? "on" : "off")<<", saturation whitecapping, diagnostic tail "<<(sp.st4p.tail ? "on" : "off")<<"),";
     if(sp.dia)
     cout<<" quadruplets (DIA),";

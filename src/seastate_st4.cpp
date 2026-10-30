@@ -32,17 +32,18 @@ model ecWAM 1.5.14 (https://github.com/ecmwf-ifs/ecwam):
   intergovernmental organisation nor does it submit to any
   jurisdiction.
 
-Translated: SINPUT_ARD (NGST 1, no LLNORMAGAM), SDISSIP_ARD (SSDSC3 0,
-SSDSC5 0), TAUT_Z0 (without LLGCBZ0), STRESSO and TAU_PHI_HF (without
-LLGCBZ0 and LLNORMAGAM), FRCUTINDEX (no ice), FEMEANWS, FKMEAN (FM1),
-CHNKMIN, CDM, INIT_X0TAUHF, INIT_SDISS_ARDH, TABU_SWELLFT, KERKEI,
-KZEONE (series branch, |z| < 4.3), IMPHFTAIL, parameters of SETWAVPHYS
-(IPHYS 1, LLGCBZ0 and LLNORMAGAM false).
+Translated: SINPUT_ARD (NGST 1), SDISSIP_ARD (SSDSC3 0, SSDSC5 0),
+TAUT_Z0, STRESSO, TAU_PHI_HF, STRESS_GC, NS_GC, OMEGAGC, INITGC,
+HALPHAP, MEANSQS_LF, FEMEAN, FRCUTINDEX (no ice), FEMEANWS, FKMEAN
+(FM1), CHNKMIN, CDM, INIT_X0TAUHF, INIT_SDISS_ARDH, TABU_SWELLFT,
+KERKEI, KZEONE (series branch, |z| < 4.3), IMPHFTAIL, parameters of
+SETWAVPHYS (IPHYS 1; LLGCBZ0 and LLNORMAGAM both false for A 732 3,
+both true for A 732 4).
 Changes: one grid point; the SEASTATE spectral grid (its bin widths
 DFIM = dsig dtheta / 2 pi, directions from 0, the compact direction
 sector without wrapping); action density N(sig,theta) with F(f,theta)
 = 2 pi sig N; Cartesian directions (x = cos, y = sin); no gustiness
-(WSTAR 0); the lag of the wave stress by a time step replaced by the
+(WSTAR 0); HALPHAP from the spectrum of the cell without the FLM floor; the lag of the wave stress by a time step replaced by the
 fixed point of u* and tau_w for the spectrum of the cell; the source
 terms returned as P = gamma N and D >= 0 for the implicit solver; the
 diagnostic tail imposed after each solve of a cell; gravity of
@@ -60,7 +61,7 @@ namespace
     const double zpi = 2.0*pi;
     const double xkappa = 0.40, xnlev = 10.0;
     const double epsmin = 0.1e-32, epsus = 1.0e-6, eps1 = 0.00001;
-    const double acd = 8.0e-4, bcd = 8.0e-5, cdmax = 0.0025;
+    const double acd = 8.0e-4, bcd = 8.0e-5, cdmax = 0.0025, acdlin = 0.0008, bcdlin = 0.00047, alphamax = 0.11;
     const double swellf = 0.66, swellf2 = -0.018, swellf3 = 0.022, swellf5 = 1.2, swellf6 = 1.0;
     const double abmin = 0.3, abmax = 8.0;
     const int iab = 200;
@@ -133,16 +134,67 @@ double seastate_st4::chnkmin(double u10) const
     return prm.alphamin + (prm.alpha-prm.alphamin)*0.5*(1.0 - std::tanh(u10-prm.chnkmin_u));
 }
 
+static inline int ndir_of(const seastate_grid &g) {return g.periodic ? g.ndir : int(2.0*3.14159265358979323846/g.dtheta+0.5);}
+
 void seastate_st4::init(const seastate_grid &g, const seastate_st4_param &p, double gravity)
 {
     pg = &g;
     prm = p;
+
+    // SETWAVPHYS: the angular spreading of the gravity-capillary input by the number of directions
+    if(ndir_of(g)<=24)
+    {
+    prm.ang_gc_a = 0.40;
+    prm.ang_gc_b = 0.60;
+    }
     grav = gravity;
     nsig = g.nsig;
     ndir = g.ndir;
     nbin = g.nbin;
     rnum = 0.11*prm.nu;
     raorw = std::max(prm.rhoa,1.0)/prm.rhow;
+    constn = g.dtheta/(xkappa*zpi);
+    bmaxokap = prm.delta_theta_rn*prm.betamax/(xkappa*xkappa)/xkappa;
+    gamnconst = bmaxokap*0.5*std::pow(zpi,4.0)/(grav*grav*grav);
+
+    // INITGC: gravity-capillary wave numbers 0.006 .. 20000 rad/m, ratio 1.2 (LLGCBZ0)
+    if(prm.gc)
+    {
+    const double kratio = 1.2, xks = 0.006, xkl = 20000.0, st = prm.surft;
+    sqrtgosurft = std::sqrt(grav/st);
+    xlogkratiom1_gc = 1.0/std::log(kratio);
+    nwav_gc = nint(std::log(xkl/xks)/std::log(kratio));
+    const int n = nwav_gc;
+    xk_gc.assign(n,0.0); xkm_gc = cm_gc = omxkm3_gc = c2osqrtvg_gc = xkmsqrtvgoc2_gc = om3gmkm_gc = xk_gc;
+    delkcc_gc_ns = delkcc_omxkm3_gc = xk_gc;
+    std::vector<double> om(n), delk(n);
+        for(int i=0; i<n; ++i)
+        {
+        const double xk = xks*std::pow(kratio,double(i));
+        xk_gc[i] = xk;
+        xkm_gc[i] = 1.0/xk;
+        om[i] = std::sqrt(grav*xk + st*xk*xk*xk);
+        const double vg = 0.5/om[i]*(grav + 3.0*st*xk*xk);
+        const double c = om[i]/xk;
+        omxkm3_gc[i] = om[i]*xkm_gc[i]*xkm_gc[i]*xkm_gc[i];
+        cm_gc[i] = 1.0/c;
+        c2osqrtvg_gc[i] = c*c/std::sqrt(vg);
+        xkmsqrtvgoc2_gc[i] = xkm_gc[i]/c2osqrtvg_gc[i];
+        om3gmkm_gc[i] = om[i]*om[i]*om[i]/(grav*xk);
+        }
+    delk[0] = 0.5*(xk_gc[1]-xk_gc[0])/c2osqrtvg_gc[0];
+    delkcc_gc_ns[0] = delk[0];
+        for(int i=1; i<n-1; ++i)
+        {
+        delk[i] = 0.5*(xk_gc[i+1]-xk_gc[i-1])/c2osqrtvg_gc[i];
+        delkcc_gc_ns[i] = 0.5*(xk_gc[i+1]-xk_gc[i])/c2osqrtvg_gc[i];
+        }
+    delk[n-1] = 0.5*(xk_gc[n-1]-xk_gc[n-2])/c2osqrtvg_gc[n-1];
+    delkcc_gc_ns[n-1] = delk[n-1];
+    for(int i=0; i<n; ++i)
+    delkcc_omxkm3_gc[i] = delk[i]*omxkm3_gc[i];
+    omega_gc = om;
+    }
 
     gam.assign(nbin,0.0);
     dst.assign(nbin,0.0);
@@ -263,6 +315,13 @@ void seastate_st4::taut_z0(int iusfg, double utop, double udir, double tw, doubl
 
     const double cosdiff = std::cos(udir-twdir);
     const double tauwact = std::max(tw*cosdiff,epsmin);
+
+    if(prm.gc)
+    {
+    taut_z0_gc(iusfg,utop,tauwact,cosdiff>0.9,ustar,zz0,zz0b,chr);
+    return;
+    }
+
     const double tauweff = tauwact*us2totauw;
 
     double xmin, alphaog;
@@ -308,6 +367,207 @@ void seastate_st4::taut_z0(int iusfg, double utop, double udir, double tw, doubl
     zz0 = z0ch;
     zz0b = alphaog*tauold;
     chr = std::max(grav*zz0*ustm1*ustm1,prm.alphamin);
+}
+
+// CDM: the drag of high winds (cdm.func.h)
+static inline double cdm(double u)
+{
+    return std::max(std::min(0.0006+0.00008*u,0.001+0.0018*std::exp(-0.05*(u-33.0))),0.001);
+}
+
+// TAUT_Z0 with the gravity-capillary model (LLGCBZ0): the stress of the unresolved short waves (STRESS_GC), the
+// viscous stress, then the Charnock-type roughness of the resolved waves
+void seastate_st4::taut_z0_gc(int iusfg, double utop, double tauwact, bool llcosdiff, double &ustar, double &zz0, double &zz0b, double &chr) const
+{
+    const int niter = 18;
+    const double pmax = 0.99, z0min = 0.000001;
+    const double gm1 = 1.0/grav;
+    const double us2totauw = 1.0 + eps1;
+    const double rnueff = 0.04*prm.nu, rnukappam1 = rnueff/xkappa;
+    const double pce_gc = 0.001*iusfg + (1-iusfg)*0.005;
+
+    const double alphaog = prm.capchnk ? chnkmin(utop)*gm1 : 0.0;
+    const double usmax = std::max(-0.21339 + 0.093698*utop - 0.0020944*utop*utop + 5.5091e-5*utop*utop*utop,0.03);
+    const double tauweff = std::min(tauwact*us2totauw,usmax*usmax);
+
+    if(iusfg==0)
+    {
+    double cdfg;
+        if(utop<1.0)
+        cdfg = 0.002;
+        else if(llcosdiff)
+        {
+        const double x = std::min(tauwact/(std::max(ustar,epsus)*std::max(ustar,epsus)),pmax);
+        double zchar = std::min(prm.alpha*gm1*ustar*ustar/std::sqrt(1.0-x),0.05*std::exp(-0.05*(utop-35.0)));
+        zchar = std::min(zchar,alphamax);
+        cdfg = acdlin + bcdlin*std::sqrt(zchar)*utop;
+        }
+        else
+        cdfg = cdm(utop);
+    ustar = utop*std::sqrt(cdfg);
+    }
+
+    const double w1 = 0.85 - 0.05*(std::tanh(10.0*(utop-5.0)) + 1.0);
+    const double xkutop = xkappa*utop;
+    double ustold = ustar, tauold = ustold*ustold, tauunr = 0.0;
+    int it;
+
+    for(it=1; it<=niter; ++it)
+    {
+    zz0 = std::max(xnlev/(std::exp(std::min(xkutop/ustold,50.0))-1.0),z0min);
+    const double tauv = rnukappam1*ustold/zz0;
+    const double ang = prm.ang_gc_a + prm.ang_gc_b*std::tanh(prm.ang_gc_c*tauold);
+    tauunr = stress_gc(ang,ustar,zz0,z0min,halp,rnfac);
+    const double taunew = tauweff + tauv + tauunr;
+    const double ustnew = std::sqrt(taunew);
+    ustar = w1*ustold + (1.0-w1)*ustnew;
+    const double del = ustar-ustold;
+    if(std::fabs(del)<pce_gc*ustar)
+    break;
+    tauold = ustar*ustar;
+    ustold = ustar;
+    }
+
+    double x = tauweff/tauold;
+    if(it>niter && x>=pmax)
+    {
+    ustar = utop*std::sqrt(cdm(utop));
+    const double z0minrst = ustar*ustar*prm.alpha*gm1;
+    zz0 = std::max(xnlev/(std::exp(xkutop/ustar)-1.0),z0minrst);
+    zz0b = z0minrst;
+    }
+    else
+    {
+    zz0 = std::max(xnlev/(std::exp(xkutop/ustar)-1.0),z0min);
+    zz0b = zz0*std::sqrt(tauunr/tauold);
+    }
+
+    if(x<pmax)
+    {
+    const double usnrf = ustar, z0nrf = zz0, z0bnrf = zz0b;
+    ustold = ustar;
+    tauold = std::max(ustold*ustold,tauweff);
+    const double alpog = std::max(std::min(zz0b/tauold,alphamax),alphaog);
+    double ustm1 = 0.0;
+        for(it=1; it<=niter; ++it)
+        {
+        x = std::min(tauweff/tauold,pmax);
+        ustm1 = 1.0/std::max(ustold,epsus);
+        const double z0vis = rnum*ustm1;
+        const double hz = 0.5*z0vis/(1.0-x);
+        zz0b = alpog*tauold;
+        zz0 = hz + std::sqrt(hz*hz + zz0b*zz0b/(1.0-x));
+        const double xologz0 = 1.0/std::log(xnlev/zz0+1.0);
+        const double f = ustold - xkutop*xologz0;
+        const double zz = 2.0*ustm1*(3.0*zz0b*zz0b + 0.5*z0vis*zz0 - zz0*zz0)/(2.0*zz0*zz0*(1.0-x) - z0vis*zz0);
+        const double delf = 1.0 - xkutop*xologz0*xologz0*zz;
+        if(delf!=0.0)
+        ustar = ustold - f/delf;
+        const double taunew = std::max(ustar*ustar,tauweff);
+        ustar = std::sqrt(taunew);
+        const double del = taunew-tauold;
+        if(std::fabs(del)<pce_gc*tauold)
+        break;
+        tauold = taunew;
+        ustold = ustar;
+        }
+        if(it>niter)
+        {
+        ustar = usnrf;
+        zz0 = z0nrf;
+        zz0b = z0bnrf;
+        ustm1 = 1.0/std::max(ustar,epsus);
+        chr = std::max(grav*(zz0-rnum*ustm1)*ustm1*ustm1,prm.alphamin);
+        }
+        else
+        chr = std::max(grav*(zz0b/std::sqrt(1.0-x))/(std::max(ustar,epsus)*std::max(ustar,epsus)),prm.alphamin);
+    }
+    else
+    {
+    const double ustm1 = 1.0/std::max(ustar,epsus);
+    chr = std::max(grav*(zz0-rnum*ustm1)*ustm1*ustm1,prm.alphamin);
+    }
+}
+
+// NS_GC: the first gravity-capillary wave number above the cut-off of the resolved spectrum
+int seastate_st4::ns_gc(double ustar) const
+{
+    const double xks = sqrtgosurft/(1.48 + 2.05*ustar);
+    return std::min(int(std::log(std::max(xks*xkm_gc[0],1.0))*xlogkratiom1_gc) + 1,nwav_gc-1);
+}
+
+// STRESS_GC: the stress of the gravity-capillary waves (the spectrum of an inertial subrange with the Phillips
+// parameter of the resolved waves), with the renormalisation of the growth rate
+double seastate_st4::stress_gc(double ang, double ustar, double zz0, double z0min, double hp, double rf) const
+{
+    const double xlama = 0.25, xlamb = 4.0;
+    const int ns = ns_gc(ustar);
+    const double tauwcg_min = (ustar*(z0min/zz0))*(ustar*(z0min/zz0));
+    const double xlambda = 1.0 + xlama*std::tanh(xlamb*ustar*ustar*ustar*ustar);
+    const double bk2 = prm.betamax/(xkappa*xkappa);
+    const double zabhrc = ang*bk2*hp*c2osqrtvg_gc[ns-1];
+    const double cst = prm.normagam ? rf*bmaxokap*hp*c2osqrtvg_gc[ns-1]/std::max(ustar,epsus) : 0.0;
+    const double llam = std::log(xlambda);
+    double tauwcg = 0.0;
+
+    for(int i=ns-1; i<nwav_gc; ++i)
+    {
+    const double x = ustar*cm_gc[i];
+    const double xlog = std::log(xk_gc[i]*zz0) + xkappa/(x + prm.zalp);
+    const double zlog = std::min(xlog-llam,0.0);
+    const double zlog2x = zlog*zlog*x;
+    const double gw = zlog2x*zlog2x*std::exp(xlog)*om3gmkm_gc[i];
+    const double zn = cst*xkmsqrtvgoc2_gc[i]*gw;
+    const double gn = (1.0 + prm.rn1_rn*zn)/(1.0 + zn);
+    tauwcg += (i==ns-1) ? gw*delkcc_gc_ns[i]*omxkm3_gc[i]*gn : gw*delkcc_omxkm3_gc[i]*gn;
+    }
+
+    return std::max(zabhrc*tauwcg,tauwcg_min);
+}
+
+// HALPHAP: 1/2 the Phillips parameter of the downwind half of the spectrum (MEANSQS_LF, FEMEAN)
+double seastate_st4::halphap(const float *N, const float *k, double wdir) const
+{
+    const seastate_grid &g = *pg;
+    double xmss = 0.0, em = 0.0, fmv = 0.0, temp2 = 0.0, f1d = 0.0;
+
+    for(int l=0; l<nsig; ++l)
+    {
+    const float *Nl = N + g.bin(l,0);
+    const double fs = zpi*g.sig[l];
+    double s = 0.0, t = 0.0;
+        for(int m=0; m<ndir; ++m)
+        {
+        const double c = std::cos(g.theta[m]-wdir);
+        const double F = (c>=0.0) ? fs*double(Nl[m]) : 0.0;
+        s += F;
+        t += std::max(F,epsmin);
+        }
+    xmss += dfim[l]*double(k[l])*double(k[l])*s;
+    temp2 = t;
+    em += t*dfim[l];
+    fmv += dfim[l]/g.f[l]*t;
+    if(l==nsig-1)
+    f1d = s*g.dtheta;
+    }
+
+    em += wetail*g.f[nsig-1]*g.dtheta*temp2;
+    fmv += frtail*g.dtheta*temp2;
+    const double fmean = std::max(em/fmv,g.f[0]);
+    const double fr5 = std::pow(g.f[nsig-1],5.0);
+    const double zpi4gm2 = std::pow(zpi,4.0)/(grav*grav);
+    double alphap;
+
+    if(em>0.0 && fmean<g.f[nsig-3])
+    {
+    alphap = xmss/(std::log(g.f[nsig-1]) - std::log(fmean));
+    if(alphap>prm.alphapmax)
+    alphap = zpi4gm2*fr5*f1d;
+    }
+    else
+    alphap = zpi4gm2*fr5*f1d;
+
+    return 0.5*std::min(alphap,prm.alphapmax);
 }
 
 // SINPUT_ARD for all bins: growth rates gam, swell damping dst (sneg), the stress of the input per frequency
@@ -363,7 +623,9 @@ void seastate_st4::input(const float *N, const float *k, const float *cg, double
     double sx = 0.0, sy = 0.0, ws = 0.0, xa = 0.0, ya = 0.0;
     const float *Nl = N + g.bin(l,0);
     double *gl = gam.data() + g.bin(l,0), *dl = dst.data() + g.bin(l,0);
+    double sumf = 0.0, sumfsin2 = 0.0;
 
+        // the growth rate of Janssen (1991)
         for(int m=0; m<ndir; ++m)
         {
         const double coslp = g.costh[m]*cl + g.sinth[m]*sl;
@@ -382,6 +644,29 @@ void seastate_st4::input(const float *N, const float *k, const float *cg, double
                 }
             }
 
+        gl[m] = gm;
+            if(prm.normagam)
+            {
+            const double sd = g.sinth[m]*cw - g.costh[m]*sw;          // sin(theta - wind direction)
+            sumf += gm*F;
+            sumfsin2 += gm*F*sd*sd;
+            }
+        }
+
+    // Janssen and Bidlot (2023): the renormalisation of the growth rate by the slope of the waves of this
+    // frequency, (1 + N1)/(1 + N2), N1 from the crosswind part (LLNORMAGAM)
+    double gamn = 1.0;
+        if(prm.normagam)
+        {
+        const double znz = constn*rnfac/raorw*kl*kl*double(cg[l])/std::max(ustp,epsus);
+        gamn = (1.0 + znz*sumfsin2)/(1.0 + znz*sumf);
+        }
+
+        for(int m=0; m<ndir; ++m)
+        {
+        const double coslp = g.costh[m]*cl + g.sinth[m]*sl;
+        const double F = fs*double(Nl[m]);
+        const double gm = gl[m]*gamn;
         gl[m] = gm;
         const double slp = gm*F;
         sx += slp*g.costh[m];
@@ -475,8 +760,27 @@ double seastate_st4::tau_hf(int m, bool shelter, double us, double zz0, double w
     }
     f1dcos3 *= g.dtheta;
 
+    // LLNORMAGAM: the renormalisation of the growth rate in the tail (CONST1, CONST2), LLGCBZ0: the tail ends at the
+    // gravity-capillary cut-off (OMEGAGC)
+    double c1 = 0.0, c2 = 0.0;
+        if(prm.normagam)
+        {
+        double f1dsin2 = 0.0, f1d = 0.0;
+            for(int k=0; k<ndir; ++k)
+            {
+            const double sd = std::sin(g.theta[k]-wdir);
+            const double F = zpi*g.sig[m]*double(Nm[k]);
+            f1dsin2 += F*sd*sd;
+            f1d += F;
+            }
+        const double confg = gamnconst*fr5*rnfac*sqrtgz0;
+        c1 = confg*f1dsin2*g.dtheta;
+        c2 = confg*f1d*g.dtheta;
+        }
+    const double zsup = prm.gc ? std::min(std::log(omega_gc[ns_gc(us)-1]*sqrtz0og),zsupmax) : zsupmax;
+
     double taul = ust*ust;
-    const double delz = std::max((zsupmax-zinf)/double(jtot-1),0.0);
+    const double delz = std::max((zsup-zinf)/double(jtot-1),0.0);
     double tauhf = 0.0;
 
     if(shelter)
@@ -491,7 +795,9 @@ double seastate_st4::tau_hf(int m, bool shelter, double us, double zz0, double w
         double zlog = xloggz0 + 2.0*std::log(cm1) + zarg;
         zlog = std::min(zlog,0.0);
         const double zbeta = zlog*zlog*zlog*zlog*std::exp(zlog);
-        const double fnc2 = f1dcos3*consttau*zbeta*taul*wtauhf[j]*delz;
+        const double znz = zbeta*ust*y;
+        const double gn = (1.0 + c1*znz)/(1.0 + c2*znz);
+        const double fnc2 = f1dcos3*consttau*zbeta*taul*wtauhf[j]*delz*gn;
         taul = std::max(taul - prm.tauwshelter*fnc2,0.0);
         ust = std::sqrt(taul);
         tauhf += fnc2;
@@ -509,12 +815,12 @@ double seastate_st4::tau_hf(int m, bool shelter, double us, double zz0, double w
         double zlog = xloggz0 + 2.0*std::log(cm1) + zarg;
         zlog = std::min(zlog,0.0);
         const double zbeta = zlog*zlog*zlog*zlog*std::exp(zlog);
-        tauhf += zbeta*wtauhf[j];
+        const double znz = zbeta*ust*y;
+        tauhf += zbeta*wtauhf[j]*((1.0 + c1*znz)/(1.0 + c2*znz));
         }
     tauhf = f1dcos3*consttau*taul*tauhf*delz;
     }
 
-    (void)us;
     return tauhf;
 }
 
@@ -553,6 +859,7 @@ void seastate_st4::stress(const float *N, const float *k, double us, double zz0,
     ys += tauhf*std::sin(usdirp);
     tw = std::max(std::sqrt(xs*xs + ys*ys),0.0);
     twdir = std::atan2(ys,xs);
+    if(!prm.gc)
     tw = std::min(tw,us*us/(1.0+eps1));
 }
 
@@ -563,6 +870,11 @@ void seastate_st4::wind(const float *N, const double *row, const float *k, const
 
     calmed = false;
     const seastate_grid &g = *pg;
+
+    // Janssen and Bidlot (2023): the factor of the renormalisation (strong winds) and the Phillips parameter of the
+    // resolved spectrum for the gravity-capillary waves
+    rnfac = (prm.normagam && prm.capchnk) ? 1.0 + prm.dthrn_a*(1.0 + std::tanh(U10-prm.dthrn_u)) : 1.0;
+    halp = prm.gc ? halphap(N,k,wdir) : 0.0;
 
     // the fixed point of u* and tau_w (ecWAM: tau_w of the last time step, two calls of SINFLX): tau_w = H(tau_w),
     // H the wave stress of the input with u*, z0 of TAUT_Z0(tau_w); secant steps on H(tau_w) - tau_w (the plain
