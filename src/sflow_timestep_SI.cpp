@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm2D.h"
 #include"ghostcell.h"
+#include"sflow_curv.h"
 
 sflow_timestep_SI::sflow_timestep_SI(lexer *p, fdm2D *b)
 {
@@ -46,10 +47,17 @@ double sflow_timestep_SI::advective(lexer *p, fdm2D* b, ghostcell* pgc, double &
     SLICELOOP4
     WETDRY
     {
+    // curvilinear grid: the normal velocities over the face distances (sflow_curv::sigma without the wave speed)
+    if(p->geo_curv==1)
+    sigma = sflow_curv::sigma(p,b,i,j,0.0);
+
+    else
+    {
     sigma = fabs(b->U(i,j))/p->DXN[IP];
 
     if(p->j_dir==1)
     sigma += fabs(b->V(i,j))/p->DYN[JP];
+    }
 
     if(sigma>1.0e-20)
     cmin = MIN(cmin,1.0/sigma);
@@ -68,7 +76,9 @@ double sflow_timestep_SI::advective(lexer *p, fdm2D* b, ghostcell* pgc, double &
 
     p->viscmax = MAX(p->viscmax,visc);
 
-    cmin = MIN(cmin, 0.5/(visc*(1.0/(p->DXN[IP]*p->DXN[IP]) + p->y_dir/(p->DYN[JP]*p->DYN[JP])) + 1.0e-20)/(2.0*cfl));
+    const double lam = (p->geo_curv==1) ? sflow_curv::inv2(p,i,j) : 1.0/(p->DXN[IP]*p->DXN[IP]) + p->y_dir/(p->DYN[JP]*p->DYN[JP]);
+
+    cmin = MIN(cmin, 0.5/(visc*lam + 1.0e-20)/(2.0*cfl));
     }
 
     cmin = pgc->globalmin(cmin);

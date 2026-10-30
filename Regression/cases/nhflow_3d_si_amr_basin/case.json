@@ -1,0 +1,26 @@
+{
+ "base": "nhflow_3d_si_basin_mpi2",
+ "np": 1,
+ "control_set": {
+  "M 10": "1"
+ },
+ "ctrl_add": [
+  "G 1 1",
+  "G 2 0",
+  "G 3 2",
+  "G 4 8",
+  "G 10 300.0 1200.0 200.0 800.0"
+ ],
+ "description": "nhflow_3d_si_basin_mpi2 on 1 rank with a static patch over the step of the water level: NHFLOW hydrostatic SI on the composite grid (reefamr_si), layer face fluxes matched at the patch edges.",
+ "tags": [
+  "quick",
+  "3d",
+  "nhflow",
+  "semi_implicit",
+  "amr"
+ ],
+ "covers": [
+  "nhflow_amr_si si_step on levels, si_match_faces/layers"
+ ],
+ "architect": "Hans Bihs"
+}

@@ -1,0 +1,19 @@
+{
+ "base": "sflow_2d_si_curv_amr_lake_island",
+ "ctrl_set": {
+  "F 60": "3.0"
+ },
+ "description": "sflow_2d_si_curv_amr_lake_island with the island submerged: the composite system on the curvilinear grid with a patch keeps the lake at rest.",
+ "tags": [
+  "quick",
+  "2d",
+  "sflow",
+  "semi_implicit",
+  "curvilinear",
+  "amr"
+ ],
+ "covers": [
+  "reefamr_si curvilinear well balancing"
+ ],
+ "architect": "Hans Bihs"
+}

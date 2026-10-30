@@ -828,6 +828,22 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `sflow_2d_si_vortex_max_mpi2` | 2 | `sflow_2d_si_vortex_gahm_mpi2` with the maxima from t = 1 h (P 113): water level, speed, 10 m wind, air pressure; a point outside the domain (`nan`) |
 | `sflow_2d_si_vortex_max_ckpt`, `sflow_2d_si_vortex_max_restart` | 2 | the maxima in the checkpoints: the restart at step 30 (after the start of the maxima) gives the final state and the point table bitwise those of the uninterrupted run (`same_as`, `regression.py ranks`) |
 | `nhflow_3d_channel_coriolis_mpi2`, `sflow_2d_channel_coriolis_mpi2` | 2 | channel flows with a strong f-plane Coriolis force (W 212 0.01): the explicit RK stages of NHFLOW and SFLOW |
+| `sflow_2d_si_curv_dambreak_rot90` | 1 | `sflow_2d_curv_dambreak_rot90` semi-implicit (A 226 1): the grid is the Cartesian one turned by 90 deg; eta and WL per cell index equal those of the Cartesian semi-implicit run to round-off (checked by hand) |
+| `sflow_2d_si_curv_lake_wet` (`_island`) | 1 | `sflow_2d_curv_lake_island` semi-implicit on the wavy curvilinear grid: island submerged, exactly at rest; island emerged, wetting and drying (the 1 mm initial film on the island drains into the thin shoreline cells) |
+| `sflow_2d_si_mb_quadrants` | 1 | `sflow_2d_mb_quadrants` semi-implicit: one eta system over the four turned blocks (reefamr_si, level 0) |
+| `sflow_2d_si_amr_basin_bar` (`_lev2`, `_mpi2`) | 1/2 | `sflow_2d_si_basin_bar` with a static patch over the bar (G 10), two levels, two ranks: one eta system over the leaf cells of all levels (reefamr_si), the fine fluxes on the coarse faces next to the patch; volume to round-off |
+| `sflow_2d_si_amr_lake_at_rest` | 1 | the bar without the tilt: at rest to 1e-14 with a patch |
+| `sflow_2d_si_amr_adaptive` | 1 | adaptive refinement (G 2 4) of the semi-implicit basin: the composite system rebuilt at the regrids |
+| `sflow_1d_si_amr_tidal_flat` | 1 | `sflow_1d_si_tidal_flat` with a patch across the shoreline (x-only refinement): wetting and drying of the composite system, the coefficients of the coarse faces next to the patch from the fine faces (rsi_couple) |
+| `sflow_2d_si_curv_amr_lake_island` (`_wet`) | 1 | the curvilinear lake with a patch across the island, semi-implicit |
+| `sflow_2d_si_mb_amr` | 1 | `sflow_2d_mb_amr` semi-implicit: patches cut at the turned block faces in the composite eta system |
+| `sflow_2d_si_vortex_amr_mpi2` | 2 | the GAHM vortex with a patch around the track: met forcing on the patches, Flather edges on level 0 |
+| `sflow_2d_si_amr_basin_bar_ckpt`, `_restart` | 1 | the restart at step 30 gives the final state of the uninterrupted run bitwise (the SI state of the patches in the checkpoint) |
+| `nhflow_3d_si_amr_basin` (`_mpi2`) | 1/2 | `nhflow_3d_si_basin_mpi2` with a patch over the step of the water level: NHFLOW hydrostatic semi-implicit on the levels, layer discharges matched on the box faces |
+| `nhflow_3d_si_amr_still` | 1 | `nhflow_3d_amr_still` semi-implicit: the tank with bed ramps under the patch edges stays at rest |
+| `nhflow_3d_si_mb_amr` | 1 | `nhflow_3d_si_mb_basin_fine` with a patch across the block vertex: blocks and patches in one eta system |
+| `nhflow_2d_si_amr_tidal_flat` | 1 | `nhflow_2d_si_tidal_flat_kepsilon` with a patch over the drying slope: k-epsilon on the levels, composite wetting and drying |
+| `nhflow_3d_si_amr_basin_ckpt`, `_restart` | 1 | the restart at step 30 bitwise |
 
 Tag `quick` selects a subset that runs in a few minutes. Adding a case: copy a directory, edit,
 run `./regression.py run ... --cases <new>`, check it, then `bless`.

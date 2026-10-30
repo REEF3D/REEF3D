@@ -256,3 +256,30 @@ static void periodic_ghost_nodes(lexer *p, ghostcell *pgc)
     if(p->periodic2>0 && p->j_dir==1)
     side(p->YN,p->knoy,p->origin_j,p->gknoy);
 }
+
+// FNPF reads the 3D cell flags flag4, flag5 and flag7 in its time steps (and the printers). The flags
+// of the CFD velocity components (flag1-3), of the solid forcing (flagsf1-4, DF, DF1-3, DFF) and IO
+// are read by the grid set-up only. For FNPF they are given back after the initialisation: 13 int
+// arrays of the 3D grid (with the ghost cells), about 0.65 GB each for 1e8 cells. Any later access
+// fails at once (nullptr).
+void lexer::flagfree_fnpf()
+{
+    const int n3 = imax*jmax*kmax;
+    const int nF = imax*jmax*(kmax+1);
+    
+    del_Iarray(flag1,n3);
+    del_Iarray(flag2,n3);
+    del_Iarray(flag3,n3);
+    
+    del_Iarray(flagsf1,n3);
+    del_Iarray(flagsf2,n3);
+    del_Iarray(flagsf3,n3);
+    del_Iarray(flagsf4,n3);
+    
+    del_Iarray(IO,n3);
+    del_Iarray(DF,n3);
+    del_Iarray(DF1,n3);
+    del_Iarray(DF2,n3);
+    del_Iarray(DF3,n3);
+    del_Iarray(DFF,nF);
+}

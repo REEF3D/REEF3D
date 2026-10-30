@@ -1,0 +1,24 @@
+{
+ "base": "sflow_2d_si_vortex_gahm_mpi2",
+ "steps": 40,
+ "ctrl_add": [
+  "G 1 1",
+  "G 2 0",
+  "G 3 2",
+  "G 4 8",
+  "G 10 100000.0 300000.0 60000.0 260000.0"
+ ],
+ "description": "sflow_2d_si_vortex_gahm_mpi2 with a patch around the track: met forcing on the patch, Flather edges on level 0, 2 ranks.",
+ "tags": [
+  "2d",
+  "sflow",
+  "semi_implicit",
+  "amr",
+  "met",
+  "mpi"
+ ],
+ "covers": [
+  "sflow_amr_si met forcing on patches"
+ ],
+ "architect": "Hans Bihs"
+}

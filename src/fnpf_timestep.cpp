@@ -55,9 +55,10 @@ void fnpf_timestep::start(fdm_fnpf *c, lexer *p,ghostcell *pgc)
 	SLICELOOP4
     if(i+p->origin_i>=5 || p->j_dir==1)
     {
-	p->umax=MAX(p->umax,fabs(c->U[FIJK]));
-    p->vmax=MAX(p->vmax,fabs(c->V[FIJK]));
-    p->wmax=MAX(p->wmax,fabs(c->W[FIJK]));
+	// the surface node (k = knoz): of the 3D velocities, or the surface ones (fnpf_memory.h)
+	p->umax=MAX(p->umax,fabs(c->U!=nullptr ? c->U[FIJK] : c->Us(i,j)));
+    p->vmax=MAX(p->vmax,fabs(c->V!=nullptr ? c->V[FIJK] : c->Vs(i,j)));
+    p->wmax=MAX(p->wmax,fabs(c->W!=nullptr ? c->W[FIJK] : c->Ws(i,j)));
     }
     
     SLICELOOP4
@@ -161,8 +162,14 @@ void fnpf_timestep::ini(fdm_fnpf* c, lexer* p,ghostcell* pgc)
 	p->vmax=pgc->globalmax(p->vmax);
 
 
+	// (only printed; without the 3D velocities the surface ones, fnpf_memory.h)
+	if(c->W!=nullptr)
 	FLOOP
 	p->wmax=MAX(p->wmax,fabs(c->W[FIJK]));
+	
+	if(c->W==nullptr)
+	SLICELOOP4
+	p->wmax=MAX(p->wmax,fabs(c->Ws(i,j)));
 
 	p->wmax=pgc->globalmax(p->wmax);
 	

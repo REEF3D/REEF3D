@@ -203,13 +203,13 @@ void printer_fnpf::start(lexer* p, fdm_fnpf* c,ghostcell* pgc, ioflow *pflow)
     // Print FSF
     if(((p->count%p->P181==0 && p->P182<0.0 && p->P180==1 )|| (p->count==0 &&  p->P182<0.0 && p->P180==1)) && p->P181>0)
     {
-        pfsf->start(p,c,pgc);
+        print_fsf(p,c,pgc);
     }
 
 
     if((p->simtime>p->fsfprinttime && p->P182>0.0 && p->P180==1) || (p->count==0 &&  p->P182>0.0 && p->P180==1))
     {
-        pfsf->start(p,c,pgc);
+        print_fsf(p,c,pgc);
         p->fsfprinttime+=p->P182;
     }
 
@@ -217,14 +217,14 @@ void printer_fnpf::start(lexer* p, fdm_fnpf* c,ghostcell* pgc, ioflow *pflow)
     for(int qn=0; qn<p->P184; ++qn)
     if(p->count%p->P184_dit[qn]==0 && p->count>=p->P184_its[qn] && p->count<=(p->P184_ite[qn]))
     {
-        pfsf->start(p,c,pgc);
+        print_fsf(p,c,pgc);
     }
 
     if(p->P180==1 && p->P185>0)
     for(int qn=0; qn<p->P185; ++qn)
     if(p->simtime>printfsftime_wT[qn] && p->simtime>=p->P185_ts[qn] && p->simtime<=(p->P185_te[qn]+0.5*p->P185_dt[qn]))
     {
-        pfsf->start(p,c,pgc);
+        print_fsf(p,c,pgc);
 
         printfsftime_wT[qn]+=p->P185_dt[qn];
     }
@@ -285,7 +285,7 @@ void printer_fnpf::start(lexer* p, fdm_fnpf* c,ghostcell* pgc, ioflow *pflow)
 void printer_fnpf::print_stop(lexer* p, fdm_fnpf *c, ghostcell* pgc)
 {
     if(p->P180==1)
-    pfsf->start(p,c,pgc);
+    print_fsf(p,c,pgc);
 
     print(p,c,pgc);
 
@@ -294,10 +294,34 @@ void printer_fnpf::print_stop(lexer* p, fdm_fnpf *c, ghostcell* pgc)
     lagoon_output::finish_all(p,pgc);  // and those of the free surface and bed
 }
 
+void printer_fnpf::print_end(lexer* p, fdm_fnpf *c, ghostcell* pgc)
+{
+    // the state at the end of the run, also when it ends between two outputs (N 45 before P 30)
+    const bool volume = (p->P20>0 && p->P30<0.0 && p->P34<0.0) || p->P30>0.0 || p->P35>0;
+    const bool fsf = p->P180==1 && (p->P181>0 || p->P182>0.0 || p->P184>0 || p->P185>0);
+
+    if(fsf && last_fsf!=p->count)
+        print_fsf(p,c,pgc);
+
+    if(volume && last_print!=p->count)
+        print(p,c,pgc);
+}
+
+void printer_fnpf::print_fsf(lexer* p, fdm_fnpf *c, ghostcell* pgc)
+{
+    pfsf->start(p,c,pgc);
+    last_fsf = p->count;
+}
+
 void printer_fnpf::print(lexer* p, fdm_fnpf *c, ghostcell* pgc)
 {
+    last_print = p->count;
+
     if(p->P10==vtk3D::type::vtu || p->P10==vtk3D::type::vts)
     {
+        // the 3D velocities for this output when they are not stored (fnpf_memory.h)
+        const bool vel_tmp = c->vel3D_make(p,pgc);
+        
         SLICELOOP4
         {
             if(c->breaking(i,j)==1)
@@ -311,6 +335,7 @@ void printer_fnpf::print(lexer* p, fdm_fnpf *c, ghostcell* pgc)
         pgc->gcsl_start4(p,c->WL,50);
         pgc->gcsl_start4(p,c->bed,50);
         pgc->gcsl_start4(p,c->breaking_print,50);
+        if(p->P23==1)
         pgc->start4(p,c->test,1);
 
         i=-1;
@@ -676,6 +701,11 @@ void printer_fnpf::print(lexer* p, fdm_fnpf *c, ghostcell* pgc)
 
         if(lagoon_output::vtu_files(p))
             writeFile(name, total_size);
+        
+        release_buffer();
+        
+        if(vel_tmp)
+        c->vel3D_free(p);
 
         ++printcount;
     }

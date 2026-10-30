@@ -1,0 +1,22 @@
+{
+ "base": "nhflow_3d_si_mb_basin_fine",
+ "ctrl_add": [
+  "G 1 1",
+  "G 2 0",
+  "G 3 2",
+  "G 4 8",
+  "G 10 600.0 1400.0 300.0 700.0"
+ ],
+ "description": "nhflow_3d_si_mb_basin_fine with a patch across the block vertex: blocks and patches in one composite eta system.",
+ "tags": [
+  "3d",
+  "nhflow",
+  "semi_implicit",
+  "multiblock",
+  "amr"
+ ],
+ "covers": [
+  "reefamr_si blocks + levels"
+ ],
+ "architect": "Hans Bihs"
+}

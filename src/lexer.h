@@ -69,6 +69,7 @@ public:
 //---- setup
     void lexer_read(ghostcell*);
     void flagini();
+    void flagfree_fnpf();   // FNPF: the 3D flags only the grid set-up reads, given back after the initialisation
 	void gridini(ghostcell*);
     void grid_solids(ghostcell*);   // solids and topography of the grid file for all modules
     void geometry_ini(ghostcell*);  // horizontal geometry layer of the grid (lexer_geometry.cpp)

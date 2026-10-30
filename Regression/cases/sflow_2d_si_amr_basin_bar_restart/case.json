@@ -1,0 +1,32 @@
+{
+ "base": "sflow_2d_si_amr_basin_bar_ckpt",
+ "same_as": "sflow_2d_si_amr_basin_bar_ckpt",
+ "chain": [
+  {
+   "case": "sflow_2d_si_amr_basin_bar_ckpt",
+   "copy": [
+    "REEF3D_Checkpoint",
+    "REEF3D_SFLOW_WSF",
+    "REEF3D_SFLOW_Log",
+    "REEF3D_SFLOW_AMR",
+    "REEF3D_SFLOW_ProbePoint",
+    "REEF3D_SFLOW_WSFLINE"
+   ]
+  }
+ ],
+ "ctrl_set": {
+  "I 45": "30"
+ },
+ "description": "the restart of sflow_2d_si_amr_basin_bar_ckpt from step 30 (I 45 30): regression.py ranks: the final state bitwise that of the uninterrupted run (face discharges q^n of all grids from the checkpoint).",
+ "tags": [
+  "2d",
+  "sflow",
+  "semi_implicit",
+  "amr",
+  "checkpoint"
+ ],
+ "covers": [
+  "sflow_amr_ckpt psim fields, ckpt_restored"
+ ],
+ "architect": "Hans Bihs"
+}

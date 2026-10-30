@@ -32,6 +32,7 @@ Author: Hans Bihs
 //  counters of the refinement (the interval P 182 / P 181 of the log and the grids).
 
 #include"sflow_amr.h"
+#include"sflow_momentum_SI.h"
 #include"reef3d_mpmd.h"
 #include"reefckpt.h"
 #include"sflow_ckpt_fields.h"
@@ -88,6 +89,8 @@ void patch_fields(sflow_amr_patch *c, const reefamr::ckpt_visit &v)
     fd("amr_gsf",'S',c->gsf.data());
     if(c->pmom!=nullptr)
     c->pmom->ckpt_fields(fd,fi);
+    if(c->psim!=nullptr)
+    c->psim->ckpt_fields(fd,fi);
     if(c->pfsf!=nullptr)
     c->pfsf->ckpt_fields(fd,fi);
     if(c->ppress!=nullptr)
@@ -184,6 +187,11 @@ bool sflow_amr::ckpt_read(reefckpt &ck, string &msg)
 
     if(!ckpt_read_patches(ck,"sflow_amr",[&](reefamr_patch *q, const ckpt_visit &v){ patch_fields(SP(q),v); },msg))
     return false;
+
+    // semi-implicit free surface: the face discharges of the checkpoint
+    for(auto q : P)
+    if(SP(q)->psim!=nullptr)
+    SP(q)->psim->ckpt_restored();
 
     if(ck.has("sflow_amr_print"))
     {

@@ -204,6 +204,18 @@ void fnpf_vtp_fsf::print2D(lexer *p, fdm_fnpf *c, ghostcell* pgc)
     TPSLICELOOP
     {
         k = p->knoz-1;
+        
+        // without the 3D velocities: the surface ones (fnpf_memory.h), the same node
+        if(c->U==nullptr)
+        {
+        ffn=float(c->Us(i,j));
+        result.write((char*)&ffn, sizeof(float));
+        ffn=float(c->Vs(i,j));
+        result.write((char*)&ffn, sizeof(float));
+        ffn=float(c->Ws(i,j));
+        result.write((char*)&ffn, sizeof(float));
+        continue;
+        }
 
         ffn=float(c->U[FIJKp1]);
         if(k==-1 && j==-1)

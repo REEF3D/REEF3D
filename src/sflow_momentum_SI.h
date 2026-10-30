@@ -29,8 +29,10 @@ Author: Hans Bihs
 #include"slice4.h"
 #include<vector>
 #include<fstream>
+#include<functional>
 
 class si_eta2D;
+class sflow_amr;
 
 using namespace std;
 
@@ -75,9 +77,15 @@ using namespace std;
 // the collocated grid; the cells see the mean of the two face gradients.
 // Lake at rest: grad eta = 0, exact for any bathymetry.
 //
-// Not yet (stops in check()): non-hydrostatic pressure and Boussinesq (A 220 > 0), mesh
-// refinement and multi-block grids, curvilinear grids, patch boundary conditions (B 411-422),
-// 6DOF / direct forcing, SEASTATE.
+// Grids: Cartesian and curvilinear (G 50 2, sflow_curv: face lengths and normals, the normal distance of the
+// centres; the face discharges are normal to the faces, the gravity term of a cell from the mean normals of its open
+// faces per index direction, as nhflow_momentum_SI); multi-block grids (G 50 1) and mesh refinement (G 1): every
+// block and every patch has its own object, the stage runner sflow_amr::si_step runs the parts of the step on all
+// grids, fills the cells around them in between (the coarse faces next to a patch take its fine fluxes) and solves
+// one eta system over the leaf cells of all grids (reefamr_si.cpp).
+//
+// Not yet (stops in check()): non-hydrostatic pressure and Boussinesq (A 220 > 0), patch boundary conditions
+// (B 411-422), 6DOF / direct forcing, subcycling of the refinement (G 7 1), SEASTATE surfbeat.
 // ---------------------------------------------------------------------------
 
 class sflow_momentum_SI final : public sflow_momentum_func
@@ -105,12 +113,45 @@ public:
         fd("momentum_SI_WLk",'S',WLk.V); fd("momentum_SI_etaB",'S',etaB.V);
     }
 	sflow_momentum_SI(lexer*, fdm2D*, ghostcell*, sflow_HLL*, sflow_signal_speed*, sflow_reconstruct*, sflow_diffusion*, sflow_pressure*,
-                        solver2D*, solver2D*, ioflow*, sflow_fsf*, sflow_forcing*, sixdof*);
+                        solver2D*, solver2D*, ioflow*, sflow_fsf*, sflow_forcing*, sixdof*, bool block=false);
 	virtual ~sflow_momentum_SI();
 
 	void start(lexer*, fdm2D*, ghostcell*) override final;
 
     static void check(lexer*);
+
+    // the parts of one step (step_single runs them in this order on one grid; on a multi-block grid and with mesh
+    // refinement the stage runner, sflow_amr::si_step, fills the cells around the grids between them and solves
+    // the eta system of all grids together)
+    void step_single(lexer*, fdm2D*, ghostcell*);
+    void si_restore(lexer*, fdm2D*, ghostcell*);            // the water column of the step before
+    void si_begin(lexer*, fdm2D*, ghostcell*);              // t^n, faces, friction, open boundaries
+    void si_stage_vel(lexer*, fdm2D*, ghostcell*, int);     // velocities of predictor stage s
+    void si_stage_rhs(lexer*, fdm2D*, ghostcell*, int);     // explicit terms of stage s
+    void si_predictor_end(lexer*, fdm2D*, ghostcell*);      // the cell predictor to the faces
+    void si_assemble(lexer*, fdm2D*, ghostcell*);           // face predictor and eta-system coefficients
+    void si_rhs(lexer*, fdm2D*, ghostcell*);                // right-hand side of the eta system
+    void si_end_faces(lexer*, fdm2D*, ghostcell*);          // face discharges
+    void si_end_cells(lexer*, fdm2D*, ghostcell*);          // WL, cells, relaxation zones
+    int si_stages() const { return rk; }
+    void stage_io_si(int, slice*&, slice*&, slice*&, slice*&);     // input and output UH, VH of stage s
+
+    sflow_amr *prun = nullptr;  // level 0 of a multi-block grid or of the mesh refinement: the stage runner
+    bool patch = false;         // a block 1.. or a refined patch (no log file)
+    bool amrgrid = false;       // one grid of several: the state of t^n of all cells of the arrays (the filled ones)
+
+    // mesh refinement: called by the advection with the face fluxes of UH, VH before the divergence (the coarse
+    // faces next to a finer patch take the fine fluxes, a patch records its box faces)
+    std::function<void(lexer*, slice&, slice&, slice&, slice&)> fhook;
+
+    friend class sflow_amr;
+
+    // geometry of the horizontal grid (Cartesian or curvilinear): face i+1/2 (dir 1) or j+1/2 (dir 2) of cell (i,j):
+    // length, normal distance of the centres, unit normal towards +i / +j; the cell area
+    double flen(lexer*, int, int, int);
+    double fdn(lexer*, int, int, int);
+    void fnorm(lexer*, int, int, int, double&, double&);
+    double carea(lexer*, int, int);
 
 private:
     // open boundary face of a domain edge
@@ -127,6 +168,7 @@ private:
         double dxp;     // distance cell centre - ghost centre
         double dxn;     // cell width normal to the face
         double ds;      // face length
+        double nx,ny;   // unit normal of the face towards +i / +j
         double qin;     // flux type: inward discharge per width at t^{n+1}
         double A,B;     // radiating: q_in = A - B eta^{n+1}
     };
@@ -135,10 +177,9 @@ private:
     void friction(lexer*, fdm2D*);
     void bc_setup(lexer*, fdm2D*, ghostcell*);
     void bc_method(lexer*);
-    void predictor(lexer*, fdm2D*, ghostcell*);
-    void rk_stage(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&, slice&, double);
+    void stage_vel(lexer*, fdm2D*, ghostcell*, slice&, slice&);
+    void stage_rhs(lexer*, fdm2D*, ghostcell*, slice&, slice&, slice&, slice&, double);
     void advection(lexer*, fdm2D*, ghostcell*);
-    void eta_solve(lexer*, fdm2D*, ghostcell*);
     void face_update(lexer*, fdm2D*, ghostcell*);
     void eta_update(lexer*, fdm2D*, ghostcell*);
     void cell_update(lexer*, fdm2D*, ghostcell*);

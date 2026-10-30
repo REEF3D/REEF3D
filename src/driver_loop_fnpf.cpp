@@ -47,6 +47,7 @@ Author: Hans Bihs
 #include"reefrun_ckpt.h"
 #include"reefcouple.h"
 #include"fnpf_couple_send.h"
+#include"fnpf_prof.h"
 
 void driver::loop_fnpf()
 {
@@ -83,7 +84,7 @@ void driver::loop_fnpf()
         if(reefcouple::sender!=nullptr)
         reefcouple::sender->pre_step(p,c,pgc);
         
-        pflow->wavegen_precalc_fnpf(p,c,pgc);
+        {fnpf_prof::scope ps_(fnpf_prof::wavegen); pflow->wavegen_precalc_fnpf(p,c,pgc);}
         
         
         SLICELOOP4
@@ -95,15 +96,18 @@ void driver::loop_fnpf()
         pfice->prestep(p,c,pgc);
         
         // FNPF
-		ppfsg->start(p,c,pgc,plapsolv,pfsfdisc,pflow,preini);
+		{fnpf_prof::scope ps_(fnpf_prof::rk_total); ppfsg->start(p,c,pgc,plapsolv,pfsfdisc,pflow,preini);}
         
         // ice floes: forces at t^n+1, 6DOF + contact, output
         if(pfice!=nullptr)
         pfice->poststep(p,c,pgc);
         
         // printer
+        {
+        fnpf_prof::scope ps_(fnpf_prof::print);
         pprint->start(p,c,pgc,pflow);
         lagoon_output::poll_all(p,pgc);  // outputs of the LAGOON store written by now (P 18)
+        }
         
         if(pfamr!=nullptr)
         pfamr->print(p,c,pgc);
@@ -119,7 +123,7 @@ void driver::loop_fnpf()
         if(reefcouple::sender!=nullptr)
         reefcouple::sender->send(p,c,pgc);
         
-        pftstep->start(c,p,pgc);
+        {fnpf_prof::scope ps_(fnpf_prof::timestep); pftstep->start(c,p,pgc);}
         
         if(pfamr!=nullptr)
         pfamr->timestep(p,c,pgc);
@@ -138,6 +142,7 @@ void driver::loop_fnpf()
         endtime=pgc->timer();
         
 		p->itertime=endtime-starttime;
+        fnpf_prof::step_end(p->itertime);   // this rank, before the max over the ranks
         
         p->itertime = pgc->globalmax(p->itertime);
         p->gctime = pgc->globalmax(p->gctime);
@@ -171,6 +176,10 @@ void driver::loop_fnpf()
 	p->wavecalctime=0.0;
     p->laplacetime=0.0;
     
+    // step profile every 100 steps (collective: every rank has the same count)
+    if(p->count%100==0)
+    fnpf_prof::report(p,pgc,false);
+    
     stop(p,a,pgc);
     
     // runtime coupling: all receivers have ended
@@ -178,6 +187,13 @@ void driver::loop_fnpf()
     break;
 	}
 
+	// the state at the end of the run (N 45, N 41), unless the last step wrote it: before the checkpoint,
+	// which keeps the output counters
+	pprint->print_end(p,c,pgc);
+
+	// step profile of the whole run
+	fnpf_prof::report(p,pgc,true);
+	
 	// a checkpoint at the end of the run (P 48): it can be continued with a later end (I 45 1)
 	ckpt().finish();
 

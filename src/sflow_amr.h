@@ -51,6 +51,7 @@ class sflow_pressure;
 class sflow_fsf;
 class sflow_forcing;
 class sflow_momentum_RK3;
+class sflow_momentum_SI;
 class sflow_pressure_nh;
 class reefmg_core;
 class reefmg2D;
@@ -142,6 +143,7 @@ struct sflow_amr_patch : public reefamr_patch
     sflow_fsf *pfsf;
     sflow_forcing *psfdf;
     sflow_momentum_RK3 *pmom;
+    sflow_momentum_SI *psim = nullptr;     // semi-implicit free surface (A 226 1): the step of the grid (sflow_amr_si.cpp)
 
     // boundary face values recorded by hll_hook: rec[ipol][side][fine index]
     // side 0: low x, 1: high x, 2: low y, 3: high y; ipol 0 holds dfx/dfy
@@ -229,6 +231,11 @@ public:
     // called by sflow_HLL between flux_bc and the divergence (ipol 1-4)
     void hll_hook(lexer*, fdm2D*, int, int);
 
+    // semi-implicit free surface (A 226 1, sflow_amr_si.cpp): the level-0 object, the step of all grids with one eta
+    // system over their leaf cells (reefamr_si.cpp)
+    void si_attach(sflow_momentum_SI*);
+    void si_step(lexer*, fdm2D*, ghostcell*);
+
     // composite non-hydrostatic pressure, called by the level-0 sflow_pjm_lin after its assembly
     // (G 7 1: level 0 solves alone, the patches level by level in sflow_amr_sub.cpp)
     bool nh_patches() const { return maxlev>0 && patches_total>0 && nh==1 && sub==0; }
@@ -283,8 +290,28 @@ protected:
     double serve_aux(int, int, int) override;
     void zone_bodies(vector<sixdof_obj*>&) override;
 
+    // semi-implicit free surface (sflow_amr_si.cpp)
+    bool rsi_rows_of(int, rsi_rows&) override;
+    void rsi_bound() override;
+
 private:
     sflow_amr_patch* SP(int n) { return static_cast<sflow_amr_patch*>(P[n]); }
+
+    // semi-implicit free surface (sflow_amr_si.cpp)
+    int si = 0;                         // A 226 1
+    bool si_lv = false;                 // patches in the step
+    sflow_momentum_SI *psim0 = nullptr; // level 0
+    ghostcell *sipgc = nullptr;
+    sflow_momentum_SI* gsi(int g);
+    template<class F> void si_level0(ghostcell*, F);
+    template<class F> void si_level(ghostcell*, int, F);
+    template<class F> void si_all(ghostcell*, F);
+    void si_fillS(ghostcell*, int, int, const std::function<slice&(int,int)>&);
+    double si_interp(lexer*, fdm2D*, slice&, int, int, int, int);
+    void si_hooks(bool);
+    void si_match(int);                 // 0: q^E, q^n before the right-hand sides; 1: q after the face update
+    void si_timestep(lexer*, ghostcell*);
+    void si_log(lexer*, ghostcell*);
     static sflow_amr_patch* SP(reefamr_patch *c) { return static_cast<sflow_amr_patch*>(c); }
 
     // composite non-hydrostatic solve (sflow_amr_nh.cpp)

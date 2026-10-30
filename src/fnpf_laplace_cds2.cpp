@@ -26,6 +26,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"solver.h"
 #include"fnpf_bed_update.h"
+#include"fnpf_sigma_col.h"
 #include"fnpf_laplace_body_bc.h"
 #include"solver_print.h"
 
@@ -166,6 +167,12 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
         const double bx = c->Bx(i,j);
         const double by = c->By(i,j);
         
+        // the sigma metrics of the column (without the 3D arrays, fnpf_sigma_col.h)
+        fnpf_sigma_col col;
+        
+        if(sigx==nullptr)
+        col.set(p,c,i,j);
+        
         KLOOP
         if(p->flag4[IJK]>0)
         {
@@ -173,9 +180,21 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
             
             if(wP==1 && flag7[q]>0 && !body.body(q))
             {
-            const double sx  = sigx[q];
-            const double sy  = sigy[q];
-            const double sxx = sigxx[q];
+            double sx,sy,sxx;
+            
+            if(sigx!=nullptr)
+            {
+            sx  = sigx[q];
+            sy  = sigy[q];
+            sxx = sigxx[q];
+            }
+            else
+            {
+            const double s = p->ZN[KP];
+            sx  = col.sx(s);
+            sy  = col.sy(s);
+            sxx = col.sxx(s,sx,sy);
+            }
             const double s2  = sx*sx + sy*sy + sz*sz;
             const double dzc = p->DZN[KP]+p->DZN[KM1];
             
