@@ -1213,6 +1213,27 @@ void control::ini_default()
     S102=0.0;              // double filter: fraction of the centre value kept per pass (0: 2dx wave removed)
     S103=0.0;              // double bed celerity CFL number for dtsed, 0: off
     S104=0.0;              // double limit of bed celerity x morphological factor / near-bed flow speed for dtsed, 0: off
+    // SFLOW: waves in the sediment transport (sediment_waves)
+    S110=0;                // int wave effects on the bed (SFLOW): 0 off, 1 from REEF3D::SEASTATE (A 750 1), 2 prescribed uniform waves S 111-113
+    S111=0.0;              // double S 110 2: significant wave height Hs [m]
+    S112=0.0;              // double S 110 2: peak period Tp [s]
+    S113=0.0;              // double S 110 2: direction of propagation [deg], ccw from +x
+    S114=0.6;              // double S 110 2: depth limitation Hs <= S 114 h
+    S115=1;                // int bed shear stress of the formulas S 11 1-5 with waves: 1 tau_m (mean, Soulsby DATA13), 2 tau_max
+    S116=1;                // int near-bed orbital velocity of the wave cycle: 0 sinusoidal, 1 skewed and asymmetric (Ruessink et al. 2012, Abreu et al. 2010)
+    S117=0.1;              // double asymmetry transport velocity u_a = S117 (Sk - As) Urms (S 11 6, suspended load S 120)
+    S118=0;                // int stirring by wave breaking (turbulence of the roller or Baldock dissipation): 0 off, 1 on
+    S119=0;                // int current of the sediment transport with SEASTATE: 0 Eulerian (host velocity minus the Stokes drift), 1 Lagrangian
+    // SFLOW: depth-averaged suspended load (sediment_susp2D)
+    S120=0;                // int depth-averaged suspended load (SFLOW): 0 off, 1 C_eq from the van Rijn reference concentration, 2 C_eq from the suspended part of S 11 6/8
+    S121=0.0;              // double profile factor F = c_a/C, 0: Rouse profile
+    S122=0.0;              // double horizontal diffusivity K0 [m^2/s], added to the eddy viscosity / S 123
+    S123=1.0;              // double Schmidt number of the eddy viscosity
+    S124=-1.0;             // double inflow concentration, <0: equilibrium C_eq, >=0: prescribed (volume concentration)
+    S125=2;                // int advection: 1 first-order upwind, 2 MUSCL minmod
+    S126=0.05;             // double maximum equilibrium concentration (volume)
+    S127=0;                // int hindered settling (Richardson-Zaki): 0 off, 1 on
+    S128=0.01;             // double minimum water depth of the suspended load [m]
 
     // Turbulence
 	T10=0;			    // int turbulence model

@@ -29,18 +29,26 @@ Author: Hans Bihs
 #include"ioflow.h"
 #include"solver.h"
 #include"sediment_fdm.h"
+#include"ckpt_registry.h"
 
-nhflow_suspended_IM1::nhflow_suspended_IM1(lexer* p) 
+nhflow_suspended_IM1::nhflow_suspended_IM1(lexer* p) : ED(p),RT(p)
 {
 	gcval_susp=60;
 
     p->Darray(WVEL,p->imax*p->jmax*(p->kmax+2));
     p->Darray(WLN,p->imax*p->jmax);
     wl_ini=0;
+    
+    SLICEBASELOOP
+    ED(i,j)=RT(i,j)=0.0;
+    
+    acc[0]=acc[1]=0.0;
+    ckid = ckpt_registry::add_raw(p,acc,2,false);
 }
 
 nhflow_suspended_IM1::~nhflow_suspended_IM1()
 {
+    ckpt_registry::remove(ckid);
 }
 
 void nhflow_suspended_IM1::start(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_scalar_convection *pconvec, nhflow_diffusion *pdiff, solver *psolv, ioflow *pflow, sediment_fdm *s)
@@ -58,6 +66,9 @@ void nhflow_suspended_IM1::start(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_sc
 	pgc->start60V(p,d->CONC,gcval_susp);
     fillconc(p,d,pgc,s);
     
+    // the exchange with the bed of this solve, for the bed update (S 62 1)
+    exchange_sum(p,d,s);
+    
     // depth belonging to the new concentration, for the D^n/D^(n+1) ratio of the next time step
     SLICELOOP4
     WLN[IJ] = d->WL(i,j);
@@ -67,6 +78,37 @@ void nhflow_suspended_IM1::start(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_sc
 	p->suspiter=p->solveriter;
 	if(p->mpirank==0 && (p->count%p->P12==0))
 	cout<<"suspiter: "<<p->suspiter<<"  susptime: "<<setprecision(3)<<p->susptime<<endl;
+    
+    // sediment balance (every P 12 steps): suspended volume, bed change (solids) since the start, the sediment
+    // of dried columns not yet deposited and the exchange since the last bed update, which the bed takes in the
+    // next sediment step (S 62 1); closed domains: the sum stays constant when the sediment time step is the flow
+    // time since the last bed update (S 15 4, or S 15 3 with S 42 1, S 44 1) and S 17 1, S 35 1
+    if(p->count%p->P12==0)
+    {
+    double vol=0.0, bed=0.0, dry=0.0, pend=0.0;
+    
+    SLICELOOP4
+    pend += ED(i,j)*p->DXN[IP]*p->DYN[JP];
+    
+    LOOP
+    if(p->DF[IJK]>0 && p->wet[IJ]==1)
+    vol += MAX(d->CONC[IJK],0.0)*p->DZN[KP]*MAX(d->WL(i,j),0.0)*p->DXN[IP]*p->DYN[JP];
+    
+    SEDSLICELOOP
+    {
+    bed += (1.0-p->S24)*(s->bedzh(i,j)-s->bedzh0(i,j))*p->DXN[IP]*p->DYN[JP];
+    dry += s->dryd(i,j)*p->DXN[IP]*p->DYN[JP];
+    }
+    
+    vol = pgc->globalsum(vol);
+    bed = pgc->globalsum(bed);
+    dry = pgc->globalsum(dry);
+    pend = pgc->globalsum(pend);
+    
+    if(p->mpirank==0)
+    cout<<"suspended load (S 12): volume "<<setprecision(8)<<vol<<" m^3, bed change "<<bed<<" m^3, dried columns "<<dry
+        <<" m^3, pending exchange "<<-pend<<" m^3, balance "<<vol+bed+dry-pend<<" m^3"<<endl;
+    }
 }
 
 void nhflow_suspended_IM1::timesource(lexer* p, fdm_nhf *d, double *FN)
@@ -332,4 +374,47 @@ void nhflow_suspended_IM1::clearrhs(lexer* p, fdm_nhf *d)
             d->M.b[n] = 0.0;
 	++n;
     }
+}
+
+void nhflow_suspended_IM1::exchange_sum(lexer *p, fdm_nhf *d, sediment_fdm *s)
+{
+    // the implicit exchange of the solve, ws (cbe - c_0) on the cells of suspsource; the bed takes it from the
+    // sediment step on (susp_ED: count > S 43)
+    if(p->S62!=1 || p->count<=p->S43)
+    return;
+    
+    k=0;
+    SLICELOOP4
+    if(p->DF[IJK]>0 && p->wet[IJ]==1 && p->DFBED[IJ]>0 && p->XP[IP]>=p->S71 && p->XP[IP]<=p->S72)
+    ED(i,j) += s->ws*(s->cbe(i,j) - d->CONC[IJK])*p->dt;
+    
+    acc[0] += p->dt;
+    acc[1] += 1.0;
+}
+
+void nhflow_suspended_IM1::bed_rate(lexer *p, ghostcell *pgc, sediment_fdm *s)
+{
+    // one flow step since the last bed update: the bed takes ws (cbn - cb) of that step (susp_ED), as before;
+    // several flow steps (S 44 > 1, S 42 2, 3): the mean rate of all of them, so that with S 15 4 the bed takes
+    // exactly the exchange of the water column
+    s->edrate = nullptr;
+    
+    if(acc[1]<1.5 || acc[0]<=0.0)
+    return;
+    
+    SLICELOOP4
+    RT(i,j) = ED(i,j)/acc[0];
+    
+    pgc->gcsl_start4(p,RT,1);
+    
+    s->edrate = &RT;
+}
+
+void nhflow_suspended_IM1::bed_done(lexer *p, sediment_fdm *s)
+{
+    SLICEBASELOOP
+    ED(i,j) = 0.0;
+    
+    acc[0] = acc[1] = 0.0;
+    s->edrate = nullptr;
 }

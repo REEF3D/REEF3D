@@ -33,6 +33,18 @@ double sediment_exner::susp_ED(lexer* p, ghostcell *pgc, sediment_fdm *s)
 {
     double val=0.0;
     
+    // SFLOW depth-averaged suspended load (S 120 > 0, sediment_susp2D): the mean exchange rate E - D of the flow
+    // steps since the last bed update (multi-fraction bed: distributed with the active layer composition)
+    if(p->A10==2 && s->edrate!=nullptr)
+    {
+    val = (*s->edrate)(i,j);
+    
+    if(frac_k>=0)
+    val *= (*s->pmix->F[frac_k])(i,j);
+    
+    return val;
+    }
+    
     if(p->S62==1 && p->count>p->S43)
     val = (-s->ws)*(s->cb(i,j) - s->cbe(i,j)); 
     
@@ -41,6 +53,19 @@ double sediment_exner::susp_ED(lexer* p, ghostcell *pgc, sediment_fdm *s)
     // wet/dry cycle of a swash cell leaves ws*dt*(cbe^n - cbe^(n-1)) unbalanced
     if(p->S62==1 && p->count>p->S43 && p->A10==5 && (p->S10==1 || p->S10==12))
     val = (-s->ws)*(s->cb(i,j) - s->cbn(i,j)); 
+    
+    // NHFLOW, several flow steps since the last bed update (S 44 > 1, S 42 2, 3): the mean exchange rate of the
+    // water column over these steps (nhflow_suspended_IM1::bed_rate); the bed takes it also where the column is
+    // dry now (the exchange happened while it was wet)
+    if(p->S62==1 && p->count>p->S43 && p->A10==5 && (p->S10==1 || p->S10==12) && s->edrate!=nullptr)
+    {
+    val = (*s->edrate)(i,j);
+    
+    if(frac_k>=0)
+    val *= (*s->pmix->F[frac_k])(i,j);
+    
+    return val;
+    }
     
     // NHFLOW: same exchange condition as the water column (nhflow_suspended_IM1::suspsource: k=0, wet, DF>0),
     // the bed cannot erode or deposit suspended sediment the water column never receives or loses

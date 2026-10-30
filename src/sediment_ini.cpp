@@ -27,6 +27,7 @@ Author: Hans Bihs
 #include"fdm2D.h"
 #include"ghostcell.h"
 #include"sediment_fdm.h"
+#include"sediment_susp2D.h"
 #include"patchBC_interface.h"
 #include"bedslope.h"
 #include"sediment_mixture.h"
@@ -143,6 +144,10 @@ void sediment_f::ini_sflow(lexer *p, fdm2D *b, ghostcell *pgc)
     pgc->gcsl_start4(p,s->ro,1);
     
     active_ini_sflow(p,b,pgc);
+    
+    // depth-averaged suspended load (S 120)
+    if(psusp2D!=nullptr)
+    psusp2D->ini(p,b,pgc,s);
     
     if(s->pmix!=nullptr)
     s->pmix->ini(p,pgc,s);

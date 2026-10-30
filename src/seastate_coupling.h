@@ -137,6 +137,27 @@ public:
     // drag W 207 7)
     slice4 Hsw, Tpw;
 
+    // sediment transport with waves (S 110 1, sediment_waves): the wave parameters at the bed of the host cells,
+    // from the spectra of the last wave step (seastate_coupling_bed.cpp)
+    //   Hs    4 sqrt(m0) [m]                      Tm10  2 pi m_-1/m0 [s]          Tp  peak period [s]
+    //   Urms  sqrt(sum sig^2/sinh^2(kd) E) [m/s]  rms orbital velocity at the bed (linear theory)
+    //   Tbot  2 pi sqrt(sum Eu/sum sig^2 Eu)      mean period of the orbital motion, Eu = sig^2/sinh^2(kd) E
+    //   ex,ey unit vector of the mean direction of propagation of Eu (the orbital motion at the bed)
+    //   Dr    roller dissipation g Dr [m^3/s^3] (energy per area and density), -1: no roller (A 748 0)
+    // dry or inactive cells: all zero (Dr -1). Cells of the host loop SLICELOOP4, no ghost cells.
+    void bed_waves(lexer*, slice &Hs, slice &Tm10, slice &Tp, slice &Urms, slice &Tbot, slice &ex, slice &ey, slice &Dr);
+
+    // the number of wave steps so far: the bed parameters change only with a wave step
+    int wave_steps() const {return nstep;}
+
+    // Stokes (wave and roller) transport M [m^2/s] of the cells and the wave-active flag, for the transport of
+    // suspended sediment with the vortex force (A 751 2): the host velocity is then the Eulerian one and the
+    // continuity carries -div(M) in flux form between wave-active cells
+    slice4& stokes_x() {return Mx;}
+    slice4& stokes_y() {return My;}
+    int wave_active(int ii, int jj) const;
+    double stokes_ramp(lexer *p) const {return ramp(p);}
+
 protected:
     // wave model set-up; the host then calls forces
     void ini_wave(lexer*, ghostcell*, const char *host);

@@ -28,6 +28,7 @@ Author: Hans Bihs
 #include"bedshear.h"
 #include"sediment_mixture.h"
 #include"sediment_exner.h"
+#include"sediment_waves.h"
 #include<cstring>
 
 void sediment_f::name_ParaView_parallel_bedload(lexer *p, ofstream &result)
@@ -41,6 +42,15 @@ void sediment_f::name_ParaView_parallel_bedload(lexer *p, ofstream &result)
     // S 95 2: the spiral-flow intensity (SFLOW)
     if(p->S95==2)
     result<<"<PDataArray type=\"Float32\" Name=\"ST_spiral\"/>\n";
+    
+    // SFLOW waves (S 110)
+    if(pwaves!=nullptr)
+    {
+    result<<"<PDataArray type=\"Float32\" Name=\"ST_Urms\"/>\n";
+    result<<"<PDataArray type=\"Float32\" Name=\"ST_tauw\"/>\n";
+    result<<"<PDataArray type=\"Float32\" Name=\"ST_taumax\"/>\n";
+    result<<"<PDataArray type=\"Float32\" Name=\"ST_ua\"/>\n";
+    }
     
     // multi-fraction bed
     if(s->pmix!=nullptr)
@@ -71,6 +81,18 @@ void sediment_f::name_ParaView_bedload(lexer *p, ostream &result, int *offset, i
     if(p->S95==2)
     {
     result<<"<DataArray type=\"Float32\" Name=\"ST_spiral\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
+    ++n;
+    }
+    
+    if(pwaves!=nullptr)
+    {
+    result<<"<DataArray type=\"Float32\" Name=\"ST_Urms\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
+    ++n;
+    result<<"<DataArray type=\"Float32\" Name=\"ST_tauw\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
+    ++n;
+    result<<"<DataArray type=\"Float32\" Name=\"ST_taumax\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
+    ++n;
+    result<<"<DataArray type=\"Float32\" Name=\"ST_ua\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
     }
     
@@ -108,6 +130,13 @@ void sediment_f::offset_ParaView_2D_bedload(lexer *p, int *offset, int &n)
 	++n;
     
     if(p->S95==2)
+    {
+    offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
+	++n;
+    }
+    
+    if(pwaves!=nullptr)
+    for(int q=0;q<4;++q)
     {
     offset[n]=offset[n-1]+4*(p->pointnum2D)+4;
 	++n;
@@ -304,7 +333,7 @@ void sediment_f::print_2D_bedload(lexer* p, ghostcell *pgc, ofstream &result)
 	}
     
     // cb
-    pgc->gcsl_start4(p,s->cbe,1);
+    pgc->gcsl_start4(p,s->cb,1);
     
 	iin=4*(p->pointnum2D);
     result.write((char*)&iin, sizeof (int));
@@ -329,6 +358,26 @@ void sediment_f::print_2D_bedload(lexer* p, ghostcell *pgc, ofstream &result)
     ffn=float(p->sl_ipol4(sp));
 	result.write((char*)&ffn, sizeof (float));
 	}
+    }
+    
+    // SFLOW waves (S 110): Urms_eff, tau_w, tau_max, u_a
+    if(pwaves!=nullptr)
+    {
+    slice4 *wf[4] = {&pwaves->Ure,&pwaves->tauw,&pwaves->taumax,&pwaves->ua};
+    
+        for(int q=0;q<4;++q)
+        {
+        pgc->gcsl_start4(p,*wf[q],1);
+        
+        iin=4*(p->pointnum2D);
+        result.write((char*)&iin, sizeof (int));
+        
+        TPSLICELOOP
+        {
+        ffn=float(p->sl_ipol4(*wf[q]));
+        result.write((char*)&ffn, sizeof (float));
+        }
+        }
     }
     
     // multi-fraction bed

@@ -1,0 +1,42 @@
+{
+ "base": "seastate_sflow_surfbeat",
+ "ctrl_add": [
+  "S 10 1",
+  "S 11 8",
+  "S 16 2",
+  "S 20 0.00015",
+  "S 21 3.0",
+  "S 15 3",
+  "S 17 1.0",
+  "S 35 20.0",
+  "S 41 1",
+  "S 43 500",
+  "S 44 1",
+  "S 110 1",
+  "S 118 1",
+  "S 120 2",
+  "P 76 1",
+  "P 79 1"
+ ],
+ "np": 1,
+ "steps": 3000,
+ "description": "seastate_sflow_surfbeat (GLOBEX, surfbeat with roller, radiation stress) with an erodible slope (T 61 instead of S 61) and sediment transport from the SEASTATE wave field (S 110 1: Urms, Tbot, direction from the spectra, roller dissipation for the stirring S 118 1): Bailard (S 11 8) over the skewed and asymmetric wave cycle, d50 0.15 mm, depth-averaged suspended load S 120 2, morphological factor 20 from step 500.",
+ "tags": [
+  "quick",
+  "2d",
+  "sflow",
+  "seastate",
+  "sediment",
+  "waves",
+  "suspended"
+ ],
+ "covers": [
+  "seastate_coupling::bed_waves",
+  "sediment_waves S 110 1 with the roller",
+  "sediment_susp2D with the radiation stress host (Lagrangian velocity)"
+ ],
+ "control_set": {
+  "S 61": null,
+  "T 61": "16.57 96.57 -1.0 1.0 0.0 1.0"
+ }
+}

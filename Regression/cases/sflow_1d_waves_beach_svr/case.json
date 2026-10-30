@@ -1,0 +1,9 @@
+{
+ "description": "SFLOW on the GLOBEX profile (0.85 m deep, erodible 1:80 slope T 61 from x = 16.57 m, closed sides) with prescribed uniform waves (S 110 2: Hs 0.4 m, Tp 3.0 s, towards +x, depth-limited Hs <= 0.6 h) and no wave forcing of the flow: Soulsby-van Rijn (S 11 6) with the asymmetry velocity (S 117 0.1, Ruessink et al. 2012), stirring by breaking (S 118 1, Baldock), the depth-averaged suspended load from the suspended part of the formula (S 120 2), morphological factor S 35 20. Onshore transport on the slope.",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 1500,
+ "time": 30.0,
+ "tags": ["quick", "1d", "sflow", "sediment", "waves", "suspended"],
+ "covers": ["sediment_waves prescribed, Ruessink skewness/asymmetry, Baldock dissipation, Soulsby DATA13", "bedload_waves Soulsby-van Rijn", "sediment_f::transport_direction", "sediment_susp2D S 120 2 with the asymmetry velocity"]
+}

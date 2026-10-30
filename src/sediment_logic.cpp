@@ -85,6 +85,11 @@ Author: Hans Bihs
 #include"bedprobe_line_y.h"
 #include"sediment_roughness.h"
 #include"sediment_mixture.h"
+#include"sediment_waves.h"
+#include"bedload_waves.h"
+#include"sediment_susp2D.h"
+#include"slice1.h"
+#include"slice2.h"
 
 void sediment_f::sediment_logic(lexer *p, ghostcell *pgc, turbulence *pturb)
 {
@@ -131,6 +136,20 @@ void sediment_f::sediment_logic(lexer *p, ghostcell *pgc, turbulence *pturb)
     
     if(p->S11==5)
     pbed = new bedload_einstein(p);
+    
+    // SFLOW wave formulas (bedload_waves.h)
+    if(p->S11>=6 && p->S11<=9)
+    {
+    check_sflow_waves(p);
+    pbedw = new bedload_waves(p);
+    pbed = pbedw;
+    
+    // the flow velocities of the sediment step and the transport velocity (transport_direction)
+    Psave = new slice1(p);
+    Qsave = new slice2(p);
+    Vtx = new slice4(p);
+    Vty = new slice4(p);
+    }
     
     if(p->S12==0)
     pcbed = new bedconc_void(p);
@@ -309,4 +328,96 @@ void sediment_f::sediment_logic(lexer *p, ghostcell *pgc, turbulence *pturb)
     
     pks = new sediment_roughness(p);
     
+    // SFLOW: waves in the sediment transport (sediment_waves.h), depth-averaged suspended load (sediment_susp2D.h)
+    if(p->S110>0 || p->S120>0)
+    check_sflow_waves(p);
+    
+    if(p->S110>0)
+    {
+    pwaves = new sediment_waves(p);
+    s->pwave = pwaves;
+    }
+    
+    if(p->S120>0)
+    psusp2D = new sediment_susp2D(p);
+    
+    // suspended load (SFLOW S 120, NHFLOW S 12): the bed takes S 35 dtsed/T of the exchange of the flow time T since the
+    // last bed update
+    if((p->S120>0 || (p->A10==5 && p->S12>0 && p->S62==1)) && p->mpirank==0 && amrgrid==0 && !(p->S15==4 || (p->S15==3 && p->S42==1 && p->S44==1)))
+    cout<<"NOTE suspended load: the bed takes S 35 dtsed/T of the suspended exchange of the flow time T since the last bed update; "
+        <<"bed and suspended load conserve the sediment with S 15 4 or S 15 3, S 42 1, S 44 1 (and S 17 1, S 35 1)"<<endl;
+}
+
+void sediment_f::check_sflow_waves(lexer *p)
+{
+    int stop=0;
+    
+    if(p->A10!=2)
+    {
+    if(p->mpirank==0)
+    cout<<"!!! S 11 6-9, S 110 and S 120 are for SFLOW (A 10 2) !!!"<<endl;
+    stop=1;
+    }
+    
+    if(p->S11>=6 && p->S51>0)
+    {
+    if(p->mpirank==0)
+    cout<<"!!! S 11 6-9: one sediment fraction (S 51 0) !!!"<<endl;
+    stop=1;
+    }
+    
+    if(p->S110==1 && p->A750!=1)
+    {
+    if(p->mpirank==0)
+    cout<<"!!! S 110 1 needs REEF3D::SEASTATE coupled with SFLOW (A 750 1) !!!"<<endl;
+    stop=1;
+    }
+    
+    if(p->S110==2 && (!(p->S111>0.0) || !(p->S112>0.0)))
+    {
+    if(p->mpirank==0)
+    cout<<"!!! S 110 2 needs Hs (S 111) and Tp (S 112) > 0 !!!"<<endl;
+    stop=1;
+    }
+    
+    if(p->S110<0 || p->S110>2 || p->S120<0 || p->S120>2 || (p->S11>=10))
+    {
+    if(p->mpirank==0)
+    cout<<"!!! S 11 0-9, S 110 0-2, S 120 0-2 !!!"<<endl;
+    stop=1;
+    }
+    
+    if(p->S120==2 && p->S11!=6 && p->S11!=8)
+    {
+    if(p->mpirank==0)
+    cout<<"!!! S 120 2 takes C_eq from the suspended part of S 11 6 or 8 !!!"<<endl;
+    stop=1;
+    }
+    
+    if(p->S120>0 && p->S64>0.0)
+    {
+    if(p->mpirank==0)
+    cout<<"!!! S 120 (suspended load model) and S 64 (suspended part of the bed load) exclude each other !!!"<<endl;
+    stop=1;
+    }
+    
+    if(p->S11>=6 && p->S95>0)
+    {
+    if(p->mpirank==0)
+    cout<<"!!! S 11 6-9 set the transport direction, S 95 (spiral flow) is not combined with them !!!"<<endl;
+    stop=1;
+    }
+    
+    // v1: Cartesian grid, one grid
+    const int amr_on = ((p->G1>0 && (p->G10>0 || p->G20>0.0 || p->G22>0 || p->G12>0)) || p->geo_mb>0) ? 1 : 0;
+    
+    if(amr_on==1 || p->G50>0 || p->geo_curv==1)
+    {
+    if(p->mpirank==0)
+    cout<<"!!! S 11 6-9, S 110 and S 120: Cartesian grid without mesh refinement or blocks (G 1, G 50, G 54) !!!"<<endl;
+    stop=1;
+    }
+    
+    if(stop==1)
+    exit(1);
 }
