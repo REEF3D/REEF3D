@@ -1,0 +1,13 @@
+{
+ "base": "cfd_2d_dambreak",
+ "np": 2,
+ "steps": 40,
+ "control_set": {
+  "M 50": "1"
+ },
+ "ctrl_add": ["G 1 1", "G 15 0.0 0.3 0.0 1.0 0.0 0.4", "G 46 1.2", "G 47 10"],
+ "rebalance": 2,
+ "description": "cfd_2d_dambreak_amr on 2 ranks with the rebalance (G 46 1.2, G 47 10): the refined box lies on rank 0, so the measured load stops the run (load map of the patch cells per level-0 cell, checkpoint, exit code 3); it continues from the checkpoint on the weighted partition of DIVEMesh_Grid/grid-global.dat (M 50 1) that REEF3D computes from the load map (M 41 1, the weight of a patch cell G 41 1). Validation in Dropbox REEFAMR/validation/63.",
+ "tags": ["quick", "2d", "dambreak", "levelset", "amr", "mpi"],
+ "covers": ["cfd_amr::lmap_step, cfd_amr::write_loadmap (G 46)", "the rebalance restart of CFD AMR with M 41 1 and the CFD AMR load map", "dmpart M 20 5 with a map of the cells"]
+}
