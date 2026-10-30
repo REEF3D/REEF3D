@@ -29,7 +29,8 @@ class ghostcell;
 class field;
 
 // The level set inside the solids of the direct forcing (S entities of the grid file, G 505 0) extrapolated
-// from the fluid: constant across, linear along z (X 48 2, the default; levelset_solid_extend.cpp)
+// from the fluid: constant across, linear along z (X 48 2, the default; levelset_solid_extend.cpp);
+// X 48 3 inside the 6DOF bodies (X 10) as well
 void levelset_solid_extend(lexer *p, fdm *a, ghostcell *pgc, field &f, int gcval);
 
 #endif

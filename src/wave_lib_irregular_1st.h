@@ -109,7 +109,8 @@ private:
     double eta_c(int);                          // eta, the potential and u, v, w of cached point q at cache_t
     double fi_c(int, double);
     void uvw_c(int, double, bool, double&, double&, double&);
-    std::vector<double> cS, sS;                 // cos/sin of the spatial phase, [q*wN+n]
+    std::vector<float> cS, sS;                  // cos/sin of the spatial phase, [q*wN+n]; float: the cache holds
+                                                // points x components (1024 components on 2e5 generation columns: 1.8 GB less)
     std::vector<double> cT, sT;                 // cos/sin of the time phase, [n]
     std::vector<double> em2kd, invden;          // exp(-2 k d), 1/(1-exp(-2 k d))
     std::vector<double> Aeta, Afi, Au, Av, Aw;  // component amplitudes of each quantity

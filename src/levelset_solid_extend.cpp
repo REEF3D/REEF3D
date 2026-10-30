@@ -61,6 +61,14 @@ Architect: Hans Bihs
 //
 //  X 48 2 (the default); X 48 0 keeps the level set inside the solids as it is, X 48 1 is the copy
 //  into the ghost cells of the flagged solids (G 505 1, ghostcell::solid_forcing_lsm).
+//
+//  X 48 3: as 2, and inside the 6DOF bodies of the direct forcing as well (X 10, the level set a->fb
+//  of all bodies at the pose of the stage).  A body between two water levels (a lock gate, its top
+//  above both) holds the free surface of the start inside, a step at the face of the high side: the
+//  same jet along the face, and the water level of the high side falls (the water goes into the air
+//  above, the level set loses it), 0.12 m in 7 s at 0.32 m head (validation 26_cfd_ship_lock).  The
+//  layers of the body follow the level set of their own side; with fewer than about four cells across
+//  the body the two sides meet in the middle.
 
 namespace
 {
@@ -82,8 +90,12 @@ inline double extrapolate(double f1, double f2, double h1, double h2)
 
 void levelset_solid_extend(lexer *p, fdm *a, ghostcell *pgc, field &f, int gcval)
 {
-    // with a free surface (F 30), solids of the direct forcing (G 505 0)
-    if(p->X48!=2 || p->F30==0 || p->solidread==0 || p->G505!=0)
+    // with a free surface (F 30): solids of the direct forcing (G 505 0; X 48 2, 3), the 6DOF bodies
+    // (X 10; X 48 3) with the level set a->fb of all bodies
+    const bool solids = (p->X48==2 || p->X48==3) && p->solidread>0 && p->G505==0;
+    const bool bodies = p->X48==3 && p->X10>0;
+    
+    if(p->F30==0 || (!solids && !bodies))
     return;
 
     int i,j,k;
@@ -109,7 +121,7 @@ void levelset_solid_extend(lexer *p, fdm *a, ghostcell *pgc, field &f, int gcval
         if(jd && ((j<0 && !ym) || (j>=p->knoy && !yp)))
         continue;
 
-        if(a->solid(i,j,k)>=0.0)
+        if(!((solids && a->solid(i,j,k)<0.0) || (bodies && a->fb(i,j,k)<0.0)))
         layer[IJK]=0;
         else
         solid.push_back(IJK);

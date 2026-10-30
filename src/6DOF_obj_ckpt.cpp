@@ -52,6 +52,10 @@ void sixdof_obj::ckpt_fields(lexer *p, P &q)
     // the print windows (P 35), allocated by print_ini_vtp, print_ini_stl
     if(printtime_wT!=nullptr && (p->X50==1 || p->X50==2))
     q.ad(printtime_wT,p->P35);
+    
+    // the P 185 windows (SFLOW, NHFLOW)
+    if(printtime_wF!=nullptr && p->P185>0 && (p->X50==1 || p->X50==2))
+    q.ad(printtime_wF,p->P185);
 
     q.vd(strip_F_);
     q.m(Aadd_); q.b(am_on_);

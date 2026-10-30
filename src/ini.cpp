@@ -1386,7 +1386,7 @@ void control::ini_default()
 	X44=0.0;    // double viscosity in body
     X45=0;      // int type of lsm convection disc at fb
     X46=0;      // int 
-    X48=2;      // int solid forcing level set: 1 copied into the flagged solids (G 505 1), 2 extrapolated into the solids of the direct forcing
+    X48=2;      // int solid forcing level set: 1 copied into the flagged solids (G 505 1), 2 extrapolated into the solids of the direct forcing, 3 as 2 and into the 6DOF bodies (X 10)
     X49=0;
     X50=1;      // int type of print out format for 6DOF structure
     X60=1;      // int type of print of force calculation
@@ -1398,6 +1398,7 @@ void control::ini_default()
     X103=0;        // int ini angular velocity
     X103_p=X103_q=X103_r=0.0;
     X110=0;        // int rectangular box floating body
+    X111=0;        // int degrees of freedom of single bodies (body id, then as X 11), overrides X 11 for that body
     X120=0;        // int sphere floating bod
     X120_rad=X120_xc=X120_yc=X120_zc=0.0;
     X131=0;        // int cylinder floating bod

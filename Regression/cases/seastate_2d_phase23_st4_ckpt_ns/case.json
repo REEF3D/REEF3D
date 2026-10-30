@@ -1,0 +1,17 @@
+{
+ "base": "seastate_2d_phase18_ckpt_ns",
+ "ctrl_set": {
+  "A 732": "3",
+  "A 731": "30.0 20.0"
+ },
+ "description": "as seastate_2d_phase18_ckpt_ns (the island case with refinement, nonstationary, 6 steps of 2 iterations, composite sweep, checkpoints every 4 steps, one rank) with A 732 3 at 30 m/s: u* from the wave stress of the last time step per cell (A 768 1, the default, Phase 23) on level 0 and the patches, the state in the checkpoints. Validation in Dropbox SEASTATE/validation/73_st4_high_winds.",
+ "tags": [
+  "2d",
+  "seastate",
+  "amr"
+ ],
+ "covers": [
+  "seastate_implicit lag state (A 768 1) on level 0 and the patches",
+  "the lag state in the checkpoints (ss_nl)"
+ ]
+}

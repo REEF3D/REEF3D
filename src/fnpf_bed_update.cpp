@@ -28,6 +28,7 @@ Author: Hans Bihs
 #include"ioflow.h"
 #include"fnpf_cds2.h"
 #include"fnpf_cds4.h"
+#include"fnpf_sigma_col.h"
 
 fnpf_bed_update::fnpf_bed_update(lexer *p) 
 {    
@@ -56,7 +57,23 @@ void fnpf_bed_update::bedbc_sig(lexer *p, fdm_fnpf *c, ghostcell *pgc, double *F
     
             +  c->By(i,j)*(Fi[FIJp1K]-Fi[FIJm1K])/(p->DYP[JP] + p->DYP[JM1]));
             
-    denom =  p->sigz[IJ] + c->Bx(i,j)*p->sigx[FIJK] + c->By(i,j)*p->sigy[FIJK];
+    // sigx, sigy at the bed node (k=0) without the 3D arrays: fnpf_sigma_col.h
+    double sgx, sgy;
+    
+    if(p->sigx!=nullptr)
+    {
+    sgx = p->sigx[FIJK];
+    sgy = p->sigy[FIJK];
+    }
+    else
+    {
+    fnpf_sigma_col col;
+    col.set(p,c,i,j);
+    sgx = col.sx(p->ZN[KP]);
+    sgy = col.sy(p->ZN[KP]);
+    }
+    
+    denom =  p->sigz[IJ] + c->Bx(i,j)*sgx + c->By(i,j)*sgy;
     
     Fi[FIJKm1] = (bcval/denom)*(1.0*p->DZN[KP]) + Fi[FIJK];
     Fi[FIJKm2] = (bcval/denom)*(2.0*p->DZN[KP]) + Fi[FIJK];

@@ -1,0 +1,14 @@
+{
+ "base": "seastate_2d_phase20_st4_windfield",
+ "ctrl_set": {
+  "A 768": "0"
+ },
+ "description": "as seastate_2d_phase20_st4_windfield (wind field in space and time, boundary spectra, one rank, nonstationary 3 h, A 732 3) with A 768 0: the fixed point of u* and the wave stress in every evaluation instead of the wave stress of the last time step (Phase 23). Validation in Dropbox SEASTATE/validation/73_st4_high_winds.",
+ "tags": [
+  "2d",
+  "seastate"
+ ],
+ "covers": [
+  "A 768 0 in a nonstationary run"
+ ]
+}

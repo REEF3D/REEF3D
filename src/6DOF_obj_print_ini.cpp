@@ -126,6 +126,14 @@ void sixdof_obj::print_ini_vtp(lexer *p, ghostcell *pgc)
 
     for(int qn=0; qn<p->P35; ++qn)
 	printtime_wT[qn]=p->P35_ts[qn];
+    
+    // the P 185 windows (SFLOW, NHFLOW) have their own times: indexed with the P 35 array, a run with more P 185
+    // than P 35 windows wrote past its end (segmentation fault in print_vtp at the start of a run with P 185 only)
+    if(printtime_wF==nullptr)
+    p->Darray(printtime_wF,p->P185);
+
+    for(int qn=0; qn<p->P185; ++qn)
+	printtime_wF[qn]=p->P185_ts[qn];
 }
 
 void sixdof_obj::print_ini_stl(lexer *p, ghostcell *pgc)
@@ -204,4 +212,12 @@ void sixdof_obj::print_ini_stl(lexer *p, ghostcell *pgc)
 
     for(int qn=0; qn<p->P35; ++qn)
 	printtime_wT[qn]=p->P35_ts[qn];
+    
+    // the P 185 windows (SFLOW, NHFLOW) have their own times: indexed with the P 35 array, a run with more P 185
+    // than P 35 windows wrote past its end (segmentation fault in print_vtp at the start of a run with P 185 only)
+    if(printtime_wF==nullptr)
+    p->Darray(printtime_wF,p->P185);
+
+    for(int qn=0; qn<p->P185; ++qn)
+	printtime_wF[qn]=p->P185_ts[qn];
 }

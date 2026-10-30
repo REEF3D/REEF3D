@@ -179,6 +179,10 @@ void driver::loop_cfd(fdm* a)
     stop(p,a,pgc);
 	}
 
+	// the state at the end of the run (N 45, N 41, S 19), unless the last step wrote it: before the
+	// checkpoint, which keeps the output counters
+	pprint->print_end(p,a,pgc,pturb,pheat,pflow,pdata,pconc,pmp,psed);
+
 	// a checkpoint at the end of the run (P 48): it can be continued with a later end (I 45 1)
 	ckpt().finish();
 

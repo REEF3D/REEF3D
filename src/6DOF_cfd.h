@@ -88,6 +88,12 @@ private:
    
     int number6DOF;
     vector<sixdof_obj_cfd*> fb_obj;
+    
+    // several bodies: the level set of all bodies (minimum) in a->fb after their update; the ray cast
+    // of a body overwrites a->fb with its own, the forcing of the body uses that one
+    void fb_combine(lexer*, fdm*, int);
+    void fb_finish(lexer*, fdm*, ghostcell*);
+    field4a *fball = nullptr;
 
 };
 

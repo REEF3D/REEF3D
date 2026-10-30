@@ -45,6 +45,9 @@ void fnpf_sigma::sigma_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, fnpf_fsf *pf, 
     SLICELOOP4
     c->WL(i,j) = MAX(c->wd_criterion, c->eta(i,j) + p->wd - c->bed(i,j));
     
+    // sig = ZN: kept as a 3D array only for its readers outside the core (fnpf_sigma_3D)
+    if(p->sig!=nullptr)
+    {
     FLOOP
     p->sig[FIJK] =  p->ZN[KP];
     
@@ -62,6 +65,7 @@ void fnpf_sigma::sigma_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, fnpf_fsf *pf, 
             p->sig[FIJKp1] = p->ZN[KP1];
             p->sig[FIJKp2] = p->ZN[KP2];
             p->sig[FIJKp3] = p->ZN[KP3];
+    }
     }
     
     

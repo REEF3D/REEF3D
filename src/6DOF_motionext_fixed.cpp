@@ -47,19 +47,19 @@ void sixdof_motionext_fixed::ini(lexer *p, ghostcell *pgc)
 
 void sixdof_motionext_fixed::motionext_trans(lexer *p, ghostcell *pgc, Eigen::Vector3d& dp_, Eigen::Vector3d& dc_)
 {
-    if (p->X11_u==2)
+    if (dof[0]==2)
     {
         dp_(0) = 0.0;
         dc_(0) = Uext*ramp_vel(p);
     }
 
-    if (p->X11_v==2)
+    if (dof[1]==2)
     {
         dp_(1) = 0.0;
         dc_(1) = Vext*ramp_vel(p);
     }
 
-    if (p->X11_w==2)
+    if (dof[2]==2)
     {
         dp_(2) = 0.0;
         dc_(2) = Wext*ramp_vel(p);
@@ -69,15 +69,15 @@ void sixdof_motionext_fixed::motionext_trans(lexer *p, ghostcell *pgc, Eigen::Ve
 void sixdof_motionext_fixed::motionext_rot(lexer *p, Eigen::Vector3d& dh_, Eigen::Vector3d& h_, Eigen::Vector4d& de_, Eigen::Matrix<double, 3, 4>&G_,  Eigen::Matrix3d&I_)
 {
 
-    if(p->X11_p == 2) dh_(0) = 0.0;
-    if(p->X11_q == 2) dh_(1) = 0.0;
-    if(p->X11_r == 2) dh_(2) = 0.0;
+    if(dof[3] == 2) dh_(0) = 0.0;
+    if(dof[4] == 2) dh_(1) = 0.0;
+    if(dof[5] == 2) dh_(2) = 0.0;
 
     omega_ = I_.inverse() * h_;
 
-    if(p->X11_p == 2) omega_(0) = Pext*ramp_vel(p);
-    if(p->X11_q == 2) omega_(1) = Qext*ramp_vel(p);
-    if(p->X11_r == 2) omega_(2) = Rext*ramp_vel(p);
+    if(dof[3] == 2) omega_(0) = Pext*ramp_vel(p);
+    if(dof[4] == 2) omega_(1) = Qext*ramp_vel(p);
+    if(dof[5] == 2) omega_(2) = Rext*ramp_vel(p);
 
     h_ = I_*omega_;
 

@@ -242,6 +242,11 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
     
 	}
 
+	// the state at the end of the run (N 45, N 41, S 19), unless the last step wrote it: before the
+	// checkpoint, which keeps the output counters
+	pprint->print_end(p,b,pgc,pturb,psed);
+	pprintbed->print_end(p,b,pgc,psed);
+
 	// the maxima of the run (P 112, P 115)
 	pprint->finish(p,b,pgc);
 

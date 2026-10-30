@@ -795,6 +795,7 @@
           <File Name="fnpf.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">
+          <File Name="fnpf_prof.h"/>
           <File Name="fdm_fnpf.h"/>
           <VirtualDirectory Name="Timestep">
             <File Name="fnpf_timestep.h"/>
@@ -2472,6 +2473,7 @@
           <File Name="fnpf_RK3.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FDM">
+          <File Name="fnpf_prof.cpp"/>
           <File Name="fdm_fnpf.cpp"/>
           <VirtualDirectory Name="Timestep">
             <File Name="fnpf_timestep.cpp"/>

@@ -33,6 +33,7 @@ Author: Hans Bihs
 #include"fnpf_fsfbc_wd.h"
 #include"fnpf_body.h"
 #include"fnpf_amr.h"
+#include"fnpf_prof.h"
 
 fnpf_RK3::fnpf_RK3(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_ini(p,c,pgc),fnpf_sigma(p,c,pgc),
                                                       erk1(p),erk2(p),frk1(p),frk2(p),ek(p),fk(p),en(p)
@@ -68,6 +69,23 @@ fnpf_RK3::fnpf_RK3(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_ini(p,c,pgc),fn
     // resolved bodies (X 10): no-op unless present
     pbody = fnpf_body::create(p,c,pgc);
     plap = pbody->laplace(plap);
+    
+    // the 3D velocities for an output when they are not stored (fnpf_memory.h): as the last update
+    c->vel3D_fill = [this,c](lexer *p, ghostcell *pgc)
+    {
+        const int state = c->vel_state;
+        
+        velcalc_sig(p,c,pgc,c->Fi);
+        
+        if(state==2)
+        {
+        pf->coastline_vel(p,c,pgc,c->U);
+        pf->coastline_vel(p,c,pgc,c->V);
+        pf->coastline_vel(p,c,pgc,c->W);
+        }
+        
+        c->vel_state = state;
+    };
 }
 
 fnpf_RK3::~fnpf_RK3()
@@ -81,12 +99,12 @@ void fnpf_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     
 // Step 1
     // fsf eta
-    pf->kfsfbc(p,c,pgc);
+    {fnpf_prof::scope ps_(fnpf_prof::fsfbc); pf->kfsfbc(p,c,pgc);}
     SLICELOOP4
     ek(i,j) = c->K(i,j);
     
     // fsf Fi (dfsfbc only uses the eta passed to it)
-    pf->dfsfbc(p,c,pgc,c->eta);
+    {fnpf_prof::scope ps_(fnpf_prof::fsfbc); pf->dfsfbc(p,c,pgc,c->eta);}
     SLICELOOP4
     fk(i,j) = c->K(i,j);
     
@@ -94,7 +112,7 @@ void fnpf_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     if(pamr!=nullptr)
     pamr->stage_tendency(p,c,pgc,0);
     
-    pbody->stage(p,c,pgc,psolv,pf,ek,fk,0);
+    {fnpf_prof::scope ps_(fnpf_prof::body); pbody->stage(p,c,pgc,psolv,pf,ek,fk,0);}
     
     SLICELOOP4
 	erk1(i,j) = c->eta(i,j) + p->dt*ek(i,j);
@@ -102,54 +120,54 @@ void fnpf_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     SLICELOOP4
 	frk1(i,j) = c->Fifsf(i,j) + p->dt*fk(i,j);
     
-    pf->damping(p,c,pgc,erk1,gcval_eta,1.0);
-    pf->damping(p,c,pgc,frk1,gcval_fifsf,1.0);
+    {fnpf_prof::scope ps_(fnpf_prof::damping); pf->damping(p,c,pgc,erk1,gcval_eta,1.0);}
+    {fnpf_prof::scope ps_(fnpf_prof::damping); pf->damping(p,c,pgc,frk1,gcval_fifsf,1.0);}
    
     // wavegen and coastline
-    pflow->eta_relax(p,pgc,erk1);
-    pf->wetdry(p,c,pgc,erk1,frk1);
-    pgc->gcsl_start4(p,erk1,gcval_eta);
-    pf->coastline_eta(p,c,pgc,erk1);
-    pf->coastline_fi(p,c,pgc,frk1);
-    pflow->fifsf_relax(p,pgc,frk1);
-    pgc->gcsl_start4(p,frk1,gcval_fifsf);
-    pbody->surface(p,c,pgc,erk1,frk1,gcval_eta,gcval_fifsf);
+    {fnpf_prof::scope ps_(fnpf_prof::relax); pflow->eta_relax(p,pgc,erk1);}
+    {fnpf_prof::scope ps_(fnpf_prof::wetdry); pf->wetdry(p,c,pgc,erk1,frk1);}
+    {fnpf_prof::scope ps_(fnpf_prof::gc2d); pgc->gcsl_start4(p,erk1,gcval_eta);}
+    {fnpf_prof::scope ps_(fnpf_prof::coastline); pf->coastline_eta(p,c,pgc,erk1);}
+    {fnpf_prof::scope ps_(fnpf_prof::coastline); pf->coastline_fi(p,c,pgc,frk1);}
+    {fnpf_prof::scope ps_(fnpf_prof::relax); pflow->fifsf_relax(p,pgc,frk1);}
+    {fnpf_prof::scope ps_(fnpf_prof::gc2d); pgc->gcsl_start4(p,frk1,gcval_fifsf);}
+    {fnpf_prof::scope ps_(fnpf_prof::body); pbody->surface(p,c,pgc,erk1,frk1,gcval_eta,gcval_fifsf);}
     
     // mesh refinement: stage values of the patches, restriction, cells around the patches
     if(pamr!=nullptr)
     pamr->stage_surface(p,c,pgc,erk1,frk1,0);
     
     // fsfdisc and sigma update
-    pf->breaking_zones(p,pflow);
-    pf->breaking(p,c,pgc,erk1,en,frk1,1.0);
+    {fnpf_prof::scope ps_(fnpf_prof::breaking); pf->breaking_zones(p,pflow);}
+    {fnpf_prof::scope ps_(fnpf_prof::breaking); pf->breaking(p,c,pgc,erk1,en,frk1,1.0);}
     // A 352: the filter changed eta and Fifsf in place after their halo exchange
     if((p->A350==1 || p->A350==4) && p->A352>0)
     {
-    pgc->gcsl_start4(p,erk1,gcval_eta);
-    pgc->gcsl_start4(p,frk1,gcval_fifsf);
+    {fnpf_prof::scope ps_(fnpf_prof::gc2d); pgc->gcsl_start4(p,erk1,gcval_eta);}
+    {fnpf_prof::scope ps_(fnpf_prof::gc2d); pgc->gcsl_start4(p,frk1,gcval_fifsf);}
     }
-    pflow->inflow_fnpf(p,c,pgc,c->Fi,c->Uin,frk1,erk1);
-    pf->fsfdisc(p,c,pgc,erk1,frk1);
-    sigma_update(p,c,pgc,pf,erk1);
+    {fnpf_prof::scope ps_(fnpf_prof::inflow); pflow->inflow_fnpf(p,c,pgc,c->Fi,c->Uin,frk1,erk1);}
+    {fnpf_prof::scope ps_(fnpf_prof::fsfdisc); pf->fsfdisc(p,c,pgc,erk1,frk1);}
+    {fnpf_prof::scope ps_(fnpf_prof::sigma); sigma_update(p,c,pgc,pf,erk1);}
   
     // Set Boundary Conditions Fi
-    fsfbc_sig(p,c,pgc,frk1,c->Fi);
-    bedbc_sig(p,c,pgc,c->Fi,pf);
+    {fnpf_prof::scope ps_(fnpf_prof::bc3d); fsfbc_sig(p,c,pgc,frk1,c->Fi);}
+    {fnpf_prof::scope ps_(fnpf_prof::bc3d); bedbc_sig(p,c,pgc,c->Fi,pf);}
     
     // solve Fi
-    pgc->start7V(p,c->Fi,c->bc,gcval);
-    plap->start(p,c,pgc,psolv,pf,c->Fi,frk1);
-    pgc->start7V(p,c->Fi,c->bc,gcval);
-    pf->fsfwvel(p,c,pgc,erk1,frk1);
+    {fnpf_prof::scope ps_(fnpf_prof::gc3d); pgc->start7V(p,c->Fi,c->bc,gcval);}
+    {fnpf_prof::scope ps_(fnpf_prof::laplace); plap->start(p,c,pgc,psolv,pf,c->Fi,frk1);}
+    {fnpf_prof::scope ps_(fnpf_prof::gc3d); pgc->start7V(p,c->Fi,c->bc,gcval);}
+    {fnpf_prof::scope ps_(fnpf_prof::fsfwvel); pf->fsfwvel(p,c,pgc,erk1,frk1);}
 
 // Step 2
     // fsf eta
-    pf->kfsfbc(p,c,pgc);
+    {fnpf_prof::scope ps_(fnpf_prof::fsfbc); pf->kfsfbc(p,c,pgc);}
     SLICELOOP4
     ek(i,j) = c->K(i,j);
     
     // fsf Fi (dfsfbc only uses the eta passed to it)
-    pf->dfsfbc(p,c,pgc,erk1);
+    {fnpf_prof::scope ps_(fnpf_prof::fsfbc); pf->dfsfbc(p,c,pgc,erk1);}
     SLICELOOP4
     fk(i,j) = c->K(i,j);
     
@@ -157,7 +175,7 @@ void fnpf_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     if(pamr!=nullptr)
     pamr->stage_tendency(p,c,pgc,1);
     
-    pbody->stage(p,c,pgc,psolv,pf,ek,fk,1);
+    {fnpf_prof::scope ps_(fnpf_prof::body); pbody->stage(p,c,pgc,psolv,pf,ek,fk,1);}
     
     SLICELOOP4
 	erk2(i,j) = 0.75*c->eta(i,j) + 0.25*erk1(i,j) + 0.25*p->dt*ek(i,j);
@@ -165,52 +183,52 @@ void fnpf_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     SLICELOOP4
 	frk2(i,j) = 0.75*c->Fifsf(i,j) + 0.25*frk1(i,j) + 0.25*p->dt*fk(i,j);
     
-    pf->damping(p,c,pgc,erk2,gcval_eta,0.25);
-    pf->damping(p,c,pgc,frk2,gcval_fifsf,0.25);
+    {fnpf_prof::scope ps_(fnpf_prof::damping); pf->damping(p,c,pgc,erk2,gcval_eta,0.25);}
+    {fnpf_prof::scope ps_(fnpf_prof::damping); pf->damping(p,c,pgc,frk2,gcval_fifsf,0.25);}
     
     // wavegen and coastline
-    pflow->eta_relax(p,pgc,erk2);
-    pf->wetdry(p,c,pgc,erk2,frk2);
-    pgc->gcsl_start4(p,erk2,gcval_eta);
-    pf->coastline_eta(p,c,pgc,erk2);
-    pf->coastline_fi(p,c,pgc,frk2);
-    pflow->fifsf_relax(p,pgc,frk2);
-    pgc->gcsl_start4(p,frk2,gcval_fifsf);
-    pbody->surface(p,c,pgc,erk2,frk2,gcval_eta,gcval_fifsf);
+    {fnpf_prof::scope ps_(fnpf_prof::relax); pflow->eta_relax(p,pgc,erk2);}
+    {fnpf_prof::scope ps_(fnpf_prof::wetdry); pf->wetdry(p,c,pgc,erk2,frk2);}
+    {fnpf_prof::scope ps_(fnpf_prof::gc2d); pgc->gcsl_start4(p,erk2,gcval_eta);}
+    {fnpf_prof::scope ps_(fnpf_prof::coastline); pf->coastline_eta(p,c,pgc,erk2);}
+    {fnpf_prof::scope ps_(fnpf_prof::coastline); pf->coastline_fi(p,c,pgc,frk2);}
+    {fnpf_prof::scope ps_(fnpf_prof::relax); pflow->fifsf_relax(p,pgc,frk2);}
+    {fnpf_prof::scope ps_(fnpf_prof::gc2d); pgc->gcsl_start4(p,frk2,gcval_fifsf);}
+    {fnpf_prof::scope ps_(fnpf_prof::body); pbody->surface(p,c,pgc,erk2,frk2,gcval_eta,gcval_fifsf);}
     
     if(pamr!=nullptr)
     pamr->stage_surface(p,c,pgc,erk2,frk2,1);
     
     // fsfdisc and sigma update
-    pf->breaking(p,c,pgc,erk2,en,frk2,0.5);
+    {fnpf_prof::scope ps_(fnpf_prof::breaking); pf->breaking(p,c,pgc,erk2,en,frk2,0.5);}
     // A 352: the filter changed eta and Fifsf in place after their halo exchange
     if((p->A350==1 || p->A350==4) && p->A352>0)
     {
-    pgc->gcsl_start4(p,erk2,gcval_eta);
-    pgc->gcsl_start4(p,frk2,gcval_fifsf);
+    {fnpf_prof::scope ps_(fnpf_prof::gc2d); pgc->gcsl_start4(p,erk2,gcval_eta);}
+    {fnpf_prof::scope ps_(fnpf_prof::gc2d); pgc->gcsl_start4(p,frk2,gcval_fifsf);}
     }
-    pflow->inflow_fnpf(p,c,pgc,c->Fi,c->Uin,frk2,erk2);
-    pf->fsfdisc(p,c,pgc,erk2,frk2);
-    sigma_update(p,c,pgc,pf,erk2);
+    {fnpf_prof::scope ps_(fnpf_prof::inflow); pflow->inflow_fnpf(p,c,pgc,c->Fi,c->Uin,frk2,erk2);}
+    {fnpf_prof::scope ps_(fnpf_prof::fsfdisc); pf->fsfdisc(p,c,pgc,erk2,frk2);}
+    {fnpf_prof::scope ps_(fnpf_prof::sigma); sigma_update(p,c,pgc,pf,erk2);}
     
     // Set Boundary Conditions Fi
-    fsfbc_sig(p,c,pgc,frk2,c->Fi);
-    bedbc_sig(p,c,pgc,c->Fi,pf);
+    {fnpf_prof::scope ps_(fnpf_prof::bc3d); fsfbc_sig(p,c,pgc,frk2,c->Fi);}
+    {fnpf_prof::scope ps_(fnpf_prof::bc3d); bedbc_sig(p,c,pgc,c->Fi,pf);}
     
     // solve Fi
-    pgc->start7V(p,c->Fi,c->bc,gcval);
-    plap->start(p,c,pgc,psolv,pf,c->Fi,frk2);
-    pgc->start7V(p,c->Fi,c->bc,gcval);
-    pf->fsfwvel(p,c,pgc,erk2,frk2);
+    {fnpf_prof::scope ps_(fnpf_prof::gc3d); pgc->start7V(p,c->Fi,c->bc,gcval);}
+    {fnpf_prof::scope ps_(fnpf_prof::laplace); plap->start(p,c,pgc,psolv,pf,c->Fi,frk2);}
+    {fnpf_prof::scope ps_(fnpf_prof::gc3d); pgc->start7V(p,c->Fi,c->bc,gcval);}
+    {fnpf_prof::scope ps_(fnpf_prof::fsfwvel); pf->fsfwvel(p,c,pgc,erk2,frk2);}
 
 // Step 3 
     // fsf eta
-    pf->kfsfbc(p,c,pgc);
+    {fnpf_prof::scope ps_(fnpf_prof::fsfbc); pf->kfsfbc(p,c,pgc);}
     SLICELOOP4
     ek(i,j) = c->K(i,j);
     
     // fsf Fi (dfsfbc only uses the eta passed to it)
-    pf->dfsfbc(p,c,pgc,erk2);
+    {fnpf_prof::scope ps_(fnpf_prof::fsfbc); pf->dfsfbc(p,c,pgc,erk2);}
     SLICELOOP4
     fk(i,j) = c->K(i,j);
     
@@ -218,7 +236,7 @@ void fnpf_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     if(pamr!=nullptr)
     pamr->stage_tendency(p,c,pgc,2);
     
-    pbody->stage(p,c,pgc,psolv,pf,ek,fk,2);
+    {fnpf_prof::scope ps_(fnpf_prof::body); pbody->stage(p,c,pgc,psolv,pf,ek,fk,2);}
     
     SLICELOOP4
 	c->eta(i,j) = (1.0/3.0)*c->eta(i,j) + (2.0/3.0)*erk2(i,j) + (2.0/3.0)*p->dt*ek(i,j);
@@ -226,53 +244,64 @@ void fnpf_RK3::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, conve
     SLICELOOP4
 	c->Fifsf(i,j) = (1.0/3.0)*c->Fifsf(i,j) + (2.0/3.0)*frk2(i,j) + (2.0/3.0)*p->dt*fk(i,j);
     
-    pf->damping(p,c,pgc,c->eta,gcval_eta,2.0/3.0);
-    pf->damping(p,c,pgc,c->Fifsf,gcval_fifsf,2.0/3.0);
+    {fnpf_prof::scope ps_(fnpf_prof::damping); pf->damping(p,c,pgc,c->eta,gcval_eta,2.0/3.0);}
+    {fnpf_prof::scope ps_(fnpf_prof::damping); pf->damping(p,c,pgc,c->Fifsf,gcval_fifsf,2.0/3.0);}
     
     // wavegen and coastline
-    pflow->eta_relax(p,pgc,c->eta);
-    pf->wetdry(p,c,pgc,c->eta,c->Fifsf);
-    pgc->gcsl_start4(p,c->eta,gcval_eta);
-    pf->coastline_eta(p,c,pgc,c->eta);
-    pf->coastline_fi(p,c,pgc,c->Fifsf);
-    pflow->fifsf_relax(p,pgc,c->Fifsf);
-    pgc->gcsl_start4(p,c->Fifsf,gcval_fifsf);
-    pbody->surface(p,c,pgc,c->eta,c->Fifsf,gcval_eta,gcval_fifsf);
+    {fnpf_prof::scope ps_(fnpf_prof::relax); pflow->eta_relax(p,pgc,c->eta);}
+    {fnpf_prof::scope ps_(fnpf_prof::wetdry); pf->wetdry(p,c,pgc,c->eta,c->Fifsf);}
+    {fnpf_prof::scope ps_(fnpf_prof::gc2d); pgc->gcsl_start4(p,c->eta,gcval_eta);}
+    {fnpf_prof::scope ps_(fnpf_prof::coastline); pf->coastline_eta(p,c,pgc,c->eta);}
+    {fnpf_prof::scope ps_(fnpf_prof::coastline); pf->coastline_fi(p,c,pgc,c->Fifsf);}
+    {fnpf_prof::scope ps_(fnpf_prof::relax); pflow->fifsf_relax(p,pgc,c->Fifsf);}
+    {fnpf_prof::scope ps_(fnpf_prof::gc2d); pgc->gcsl_start4(p,c->Fifsf,gcval_fifsf);}
+    {fnpf_prof::scope ps_(fnpf_prof::body); pbody->surface(p,c,pgc,c->eta,c->Fifsf,gcval_eta,gcval_fifsf);}
     
     if(pamr!=nullptr)
     pamr->stage_surface(p,c,pgc,c->eta,c->Fifsf,2);
     
     // fsfdisc and sigma update
-    pf->breaking(p,c,pgc,c->eta,en,c->Fifsf,1.0);
+    {fnpf_prof::scope ps_(fnpf_prof::breaking); pf->breaking(p,c,pgc,c->eta,en,c->Fifsf,1.0);}
     // A 352: the filter changed eta and Fifsf in place after their halo exchange
     if((p->A350==1 || p->A350==4) && p->A352>0)
     {
-    pgc->gcsl_start4(p,c->eta,gcval_eta);
-    pgc->gcsl_start4(p,c->Fifsf,gcval_fifsf);
+    {fnpf_prof::scope ps_(fnpf_prof::gc2d); pgc->gcsl_start4(p,c->eta,gcval_eta);}
+    {fnpf_prof::scope ps_(fnpf_prof::gc2d); pgc->gcsl_start4(p,c->Fifsf,gcval_fifsf);}
     }
-    pflow->inflow_fnpf(p,c,pgc,c->Fi,c->Uin,c->Fifsf,c->eta);
-    pf->fsfdisc(p,c,pgc,c->eta,c->Fifsf);
-    sigma_update(p,c,pgc,pf,c->eta);
+    {fnpf_prof::scope ps_(fnpf_prof::inflow); pflow->inflow_fnpf(p,c,pgc,c->Fi,c->Uin,c->Fifsf,c->eta);}
+    {fnpf_prof::scope ps_(fnpf_prof::fsfdisc); pf->fsfdisc(p,c,pgc,c->eta,c->Fifsf);}
+    {fnpf_prof::scope ps_(fnpf_prof::sigma); sigma_update(p,c,pgc,pf,c->eta);}
     
     // Set Boundary Conditions Fi
-    fsfbc_sig(p,c,pgc,c->Fifsf,c->Fi);
-    bedbc_sig(p,c,pgc,c->Fi,pf);
+    {fnpf_prof::scope ps_(fnpf_prof::bc3d); fsfbc_sig(p,c,pgc,c->Fifsf,c->Fi);}
+    {fnpf_prof::scope ps_(fnpf_prof::bc3d); bedbc_sig(p,c,pgc,c->Fi,pf);}
     
     // solve Fi
-    pgc->start7V(p,c->Fi,c->bc,gcval);
-    plap->start(p,c,pgc,psolv,pf,c->Fi,c->Fifsf);
-    pgc->start7V(p,c->Fi,c->bc,gcval);
-    pf->fsfwvel(p,c,pgc,c->eta,c->Fifsf);
+    {fnpf_prof::scope ps_(fnpf_prof::gc3d); pgc->start7V(p,c->Fi,c->bc,gcval);}
+    {fnpf_prof::scope ps_(fnpf_prof::laplace); plap->start(p,c,pgc,psolv,pf,c->Fi,c->Fifsf);}
+    {fnpf_prof::scope ps_(fnpf_prof::gc3d); pgc->start7V(p,c->Fi,c->bc,gcval);}
+    {fnpf_prof::scope ps_(fnpf_prof::fsfwvel); pf->fsfwvel(p,c,pgc,c->eta,c->Fifsf);}
 
     //---------------------------------
 
-    bedbc_sig(p,c,pgc,c->Fi,pf);
-    velcalc_sig(p,c,pgc,c->Fi);
-    pbody->velocity(p,c,pgc);
+    {fnpf_prof::scope ps_(fnpf_prof::bc3d); bedbc_sig(p,c,pgc,c->Fi,pf);}
+    {fnpf_prof::scope ps_(fnpf_prof::velcalc); velcalc_sig(p,c,pgc,c->Fi);}
+    {fnpf_prof::scope ps_(fnpf_prof::body); pbody->velocity(p,c,pgc);}
     
-    pf->coastline_vel(p,c,pgc,c->U);
-    pf->coastline_vel(p,c,pgc,c->V);
-    pf->coastline_vel(p,c,pgc,c->W);
+    if(c->U!=nullptr)
+    {
+    {fnpf_prof::scope ps_(fnpf_prof::coastline); pf->coastline_vel(p,c,pgc,c->U);}
+    {fnpf_prof::scope ps_(fnpf_prof::coastline); pf->coastline_vel(p,c,pgc,c->V);}
+    {fnpf_prof::scope ps_(fnpf_prof::coastline); pf->coastline_vel(p,c,pgc,c->W);}
+    }
+    else
+    {
+    {fnpf_prof::scope ps_(fnpf_prof::coastline); pf->coastline_vel_sl(p,c,pgc,c->Us);}
+    {fnpf_prof::scope ps_(fnpf_prof::coastline); pf->coastline_vel_sl(p,c,pgc,c->Vs);}
+    {fnpf_prof::scope ps_(fnpf_prof::coastline); pf->coastline_vel_sl(p,c,pgc,c->Ws);}
+    }
+    
+    c->vel_state = 2;
     
     if(pamr!=nullptr)
     pamr->step_end(p,c,pgc);
