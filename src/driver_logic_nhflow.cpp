@@ -324,6 +324,28 @@ void driver::logic_nhflow()
 	pnhfvrans = new vrans_nhflow_f(p,d,pgc);
 
 //IOFlow
+    // the zones of the native grid (B 520 without B 522), their backgrounds (B 510-515), the wave sources (B 500-504)
+    // and the start with the background current (B 531) belong to iowave (B 90 1): without it they are read and not
+    // used. The zones on the faces of blocks 1.. (B 522) work without it (nhflow_amr, ioflow_amr_block)
+    if(p->B90==0 && p->mpirank==0)
+    {
+        const int native = p->B520 - p->B522;
+        const int bg = p->B510 + p->B511 + p->B513 + p->B514 + p->B515;
+        const int src = p->B500 + p->B501 + p->B502 + p->B504;
+        std::string what;
+        auto add = [&](const std::string &w) { what += (what.empty() ? "" : ", ") + w; };
+        if(native>0)
+        add(std::to_string(native)+" zone(s) of B 520 on the native grid");
+        if(bg>0 && p->B522==0)
+        add("the backgrounds of B 510-515");
+        if(src>0)
+        add("the wave sources of B 500-504");
+        if(p->B531!=0)
+        add("B 531 (the start with the background current)");
+        if(!what.empty())
+        cout<<"!!! B 90 0: "<<what<<" given but not used: they need the wave module, B 90 1 (a current without waves: B 90 1 with waves of zero height) !!!"<<endl;
+    }
+
 	if(p->B60==0 && p->B90==0 && p->B180==0)
 	pflow = new ioflow_v(p,pgc,pBC);
 
