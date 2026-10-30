@@ -259,6 +259,7 @@ private:
 
     // DIA arrays with the directions continued periodically beyond 0 and ndir-1 (no index wrapping in
     // the loops): UE for m = -2 dpad .. ndir-1+2 dpad, SA1/SA2 and the derivatives for m = -dpad .. ndir-1+dpad
+    // (compact sector, not periodic: zero beyond 0 .. ndir-1 from the allocation, never written; Phase 21b)
     double &ue(int l, int m) {return UE[size_t(l+uoff)*uw + size_t(m+2*dpad)];}
     double &sa1(int l, int m) {return SA1[sx(l,m)];}
     double &sa2(int l, int m) {return SA2[sx(l,m)];}
