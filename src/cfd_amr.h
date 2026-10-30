@@ -309,7 +309,7 @@ public:
     bool print_lagoon(lexer*, ghostcell*, int num);    // P 18: the blocks into the LAGOON store
 
     // the composite projection (cfd_amr_press.cpp), public for the vector space of the solver
-    void pr_apply(int kx, int ky);
+    void pr_apply(int kx, int ky, int lmin=0);    // the rows of the levels >= lmin (pr_residual)
     void pr_prec(int kr, int kz);
     void pr_patch_solve(int id, int kt, int kz, int kc);
     void pr_residual(int kr, int kz, int kt, int lmin);
@@ -502,7 +502,7 @@ private:
     void pr_predict(int s);
     void pr_correct(int s);
     void pr_project(lexer*, ghostcell*, int s);
-    void pr_sync(int k);
+    void pr_sync(int k, int lmin=0);
     void pr_covered_coef();                              // the coarse couplings under the finer patches from the fine faces
     void pr_halo0(field &f);                             // the halo of a level-0 vector (ranks, periodic edges)
     bool pr_wrap(int id, int d) const;                   // patch id over the whole length of periodic direction d

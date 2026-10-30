@@ -1787,7 +1787,11 @@ void cfd_amr::sh_ks()
 
 // the cells around the patches: the vector of the patch of the same level, or the value of the
 // coarser cell (the patch rows couple to the coarse cell across a patch edge); the level-0 halo
-void cfd_amr::pr_sync(int k)
+// the halos of vector k for the operator: the level-0 halo and the fills of the patches.  For the
+// rows of the levels >= lmin only (pr_residual): the fills of the levels >= lmin - 1 (the coarse
+// values the edges of level lmin read, with their transverse neighbours), the level-0 halo while
+// level 1 is filled
+void cfd_amr::pr_sync(int k, int lmin)
 {
     pr_wait();
     PRS ps_(prc,PR_HALO);
@@ -1801,10 +1805,15 @@ void cfd_amr::pr_sync(int k)
         return;
     }
 
+    // (the fills of level lmin - 1 as well: without them the coarse values across the edges of level
+    // lmin are not those of the full apply, the results change)
+    const int lf = MAX(lmin-1,1);
+    if(lf<=1)
     pr_halo0(pfield(-1,k));
 
     // (the operator reaches one cell around a patch: the cells next to it)
-    fill_all(fs,1);
+    for(int l=lf; l<=maxlev; ++l)
+    fill(l,fs,false,1);
 }
 
 // the halo of a level-0 vector: the neighbour ranks, the periodic edges
@@ -1825,13 +1834,18 @@ void cfd_amr::pr_halo0(field &f)
 }
 
 // y = A x on the leaf cells
-void cfd_amr::pr_apply(int kx, int ky)
+// y = A x on the leaf cells; lmin > 0: the rows of the grids of the levels >= lmin only (the fine
+// side of the edges of level lmin, both sides of the finer edges), the other rows of y left as they
+// are (pr_residual: the residual of the levels a level solve reads)
+void cfd_amr::pr_apply(int kx, int ky, int lmin)
 {
     PRS ps_(prc,PR_OPERATOR);
-    pr_sync(kx);
+    pr_sync(kx,lmin);
 
     for(int g : prg)
     {
+        if(glevel(g)<lmin)
+        continue;
         lexer *q = glex(g);
         const matrix_diag &M = gfd(g)->M;
         const double *x = pvec(g,kx);
@@ -1858,8 +1872,9 @@ void cfd_amr::pr_apply(int kx, int ky)
     return;
 
     // G 40: the fluxes into the coarse cells of the shadows go to the ranks of those cells
+    // (the shadows are level 0: their rows only with lmin 0)
     const std::function<field&(int)> fy = [this,ky](int g) -> field& { return pfield(g,ky); };
-    if(place)
+    if(place && lmin==0)
     {
         PRS sh_(prc,PR_SHADOW);
         sh_zero(pu_cc,fy);
@@ -1867,13 +1882,17 @@ void cfd_amr::pr_apply(int kx, int ky)
 
     for(const cfd_amr_cf &F : cf)
     {
+        const int lf = glevel(F.pid);
+        if(lf<lmin)
+        continue;
         const double xs = pr_xs(F,kx);
         const double xf = pvec(F.pid,kx)[F.qf];
         pvec(F.pid,ky)[F.qf] -= F.kf*xs;
+        if(lf-1>=lmin)
         pvec(F.gc,ky)[F.qc] += F.kc*(xs-xf);
     }
 
-    if(place)
+    if(place && lmin==0)
     {
         PRS sh_(prc,PR_SHADOW);
         vector<std::function<field&(int)>> f(1,fy);
@@ -1946,13 +1965,16 @@ void cfd_amr::pr_x(double alp, double om)
 }
 
 // the composite residual r - A z into kt: leaf cells, then the cells under the patches of the levels
-// above lmin from their children (finest first)
+// above lmin from their children (finest first).  Only the rows of the levels >= lmin: the level
+// solves that follow read no other (pr_apply with lmin; the same values as the full apply)
 void cfd_amr::pr_residual(int kr, int kz, int kt, int lmin)
 {
     PRS ps_(prc,PR_OPERATOR);
-    pr_apply(kz,kt);
+    pr_apply(kz,kt,lmin);
     for(int g=-1; g<(int)P.size(); ++g)
     {
+        if(glevel(g)<lmin)
+        continue;
         const double *r = pvec(g,kr);
         double *t = pvec(g,kt);
         for(int qq : lq[g+1])
@@ -2123,8 +2145,13 @@ void cfd_amr::pr_prec(int kr, int kz)
     // (a V(0,2) cycle over the levels) each solve needs 0.5-1 iterations more with one or two levels
     // but every iteration half the patch V-cycles and composite residuals: the 67 CFD AMR cases 4.5 %
     // faster, four adaptive levels 8.7 iterations instead of 10.4 (20 -> 12 s).  With G 40 the down
-    // sweep stays (the dam break on 2 and 3 ranks: 7.6 and 8.2 iterations with it, 12 and 14 without)
-    if(place)
+    // sweep was kept (the dam break on 2 and 3 ranks: 7.6 and 8.2 iterations with it, 12 and 14
+    // without); G 48 1, the default, keeps it, G 48 0 leaves it out.  Measured with the parts of the
+    // projection (validation 60): without it the scaled pier on 2 ranks takes 11 instead of 13
+    // iterations and 34 % less time in the projection, the adaptive dam break on 2 ranks 17 instead
+    // of 13 iterations and 29 % less time; on 3 ranks (on 2 cores) 13-16 instead of 8 iterations and
+    // 55 % more time
+    if(place && p0->G48!=0)
     for(int l=maxlev; l>=1; --l)
     {
         if(l<maxlev)
