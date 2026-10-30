@@ -246,6 +246,7 @@ Architect: Hans Bihs
 //        [K <N m s^2>] [rpm_cutin <rpm>] [rpm_rgn2 <rpm>] [rpm_rated_torque <rpm>] [P_rated <W>] [slip <%>] [T_max <N m>]
 //        [T_rate <N m/s>] [pitch_rgn3 <deg>] [rpm_ref <rpm>] [KP <s>] [KI <->] [theta_K <deg>] [theta_min <deg>]
 //        [theta_max <deg>] [theta_rate <deg/s>] [corner <Hz>] [dt <s>] [no_pitch] [no_torque]
+//        [floating [U_float <m/s>] [float_gain <g>] [float_A <1/s> float_B <rad/s^2 per m/s>]]
 //        (wind turbine controller of the NREL 5 MW baseline type on the filtered generator speed: variable-speed
 //        torque (regions 1, 1.5, 2 k omega^2, 2.5, 3 constant power) and gain-scheduled PI collective pitch; speeds and
 //        torque on the generator (high-speed) side, K in N m s^2/rad^2; the defaults are the NREL 5 MW's (DISCON); it sets
@@ -256,7 +257,11 @@ Architect: Hans Bihs
 //        rpm_ref = N rpm_rated (the rotor speed), rpm_rated_torque (region 3 of the torque law) 0.99 of it, rpm_cutin, rpm_rgn2 0.57 and 0.74 of rpm_ref
 //        and T_max 1.1 rated torque as the NREL 5 MW; K Omega_rated^3 must stay below P_rated: the baseline torque law
 //        reaches the rated power at the rated speed, not before), given values override; write: the steady operating curve and the
-//        tuning; channels <name>_wf (rpm), _T, _pitch (deg), _region; coral/control/coral_turbine_controller.h)
+//        tuning; floating: the platform's part of the speed out of the pitch loop's error (parallel compensation of
+//        the negative damping of platform pitch, the hub's velocity along the shaft through a first-order drivetrain
+//        model; with tune from CORAL's BEM at U_float, 1.25 U_rated by default, else float_A and float_B given;
+//        float_gain 1); channels <name>_wf (rpm), _T, _pitch (deg), _region, floating: _wplat (rpm), _vnac (m/s);
+//        coral/control/coral_turbine_controller.h)
 //   static                                       static equilibrium before the time integration
 //   modes <n> [damped]                           linear analysis: the first n modes (modes.dat, mode_shapes.dat)
 //   output vtp <dt>                              VTP of the structure (coral_vtp/)

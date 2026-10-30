@@ -117,6 +117,35 @@ rotor_tuning tune_rotor(const rotor_def &rd, double rho, double P_r, double O_r,
     return tu;
 }
 
+rotor_sensitivity rotor_sensitivities(const rotor_def &rd, const rotor_tuning &tu, double rho, double P_r, double O_r, double U,
+                                      const bem_options &o)
+{
+    auto P = [&](double u, double Om, double th) {return rotor_steady(rd, u, Om, th, rho, o);};
+    rotor_sensitivity s;
+    s.U = U;
+    s.Omega = std::min(tu.lambda_opt*U/rd.R_tip, O_r);
+    if(U > tu.U_rated)
+    {
+        double lo = 0.0, hi = 50.0*M_PI/180.0;
+        for(int i=0; i<80; ++i)
+        {
+            const double c = 0.5*(lo + hi);
+            (P(U, s.Omega, c).P > P_r ? lo : hi) = c;
+        }
+        s.theta = 0.5*(lo + hi);
+    }
+    const rotor_result r = P(U, s.Omega, s.theta);
+    s.T = r.T; s.Q = r.Q;
+    const double dU = 0.01*U, dth = 1.0e-4, dO = 1.0e-3*s.Omega;
+    const rotor_result u1 = P(U + dU, s.Omega, s.theta), u0 = P(U - dU, s.Omega, s.theta);
+    const rotor_result t1 = P(U, s.Omega, s.theta + dth), t0 = P(U, s.Omega, s.theta - dth);
+    const rotor_result o1 = P(U, s.Omega + dO, s.theta), o0 = P(U, s.Omega - dO, s.theta);
+    s.dT_dU = (u1.T - u0.T)/(2.0*dU); s.dQ_dU = (u1.Q - u0.Q)/(2.0*dU);
+    s.dT_dtheta = (t1.T - t0.T)/(2.0*dth); s.dQ_dtheta = (t1.Q - t0.Q)/(2.0*dth);
+    s.dT_dOmega = (o1.T - o0.T)/(2.0*dO); s.dQ_dOmega = (o1.Q - o0.Q)/(2.0*dO);
+    return s;
+}
+
 bool rotor_tuning::write(const std::string &file) const
 {
     std::ofstream o(file);

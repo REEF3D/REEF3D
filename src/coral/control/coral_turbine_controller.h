@@ -33,6 +33,16 @@ Architect: Hans Bihs
 //   pitch          GK = 1/(1 + theta/theta_K) (theta: the last command), e = w_f - w_ref,
 //                  I = int e dt (held so that GK KI I stays within the pitch limits),
 //                  theta_cmd = clamp(GK (KP e + KI I), theta_min, theta_max), rate at most theta_rate
+//   floating       (optional) the speed the platform's motion causes is taken out of the speed error of the pitch loop
+//                  (parallel compensation): a first-order model of the drivetrain driven by the nacelle's fore-aft
+//                  velocity v (along the shaft, downwind positive), dw_p/dt = A_f w_p + B_f v, and
+//                  e = filter(w - g w_p) - w_ref; A_f = (dQ/dOmega + P_rated/Omega^2)/J (aerodynamic torque and the
+//                  constant-power generator, negative above rated), B_f = -N dQ/dU/J. Without it a pitch loop faster
+//                  than the platform pitch mode holds the torque against the apparent wind of the platform's motion, the
+//                  thrust then falls when the nacelle moves upwind and rises when it moves downwind: negative damping of
+//                  platform pitch (Larsen and Hanson 2007, Jonkman 2008). With it the pitch does not answer the platform's
+//                  motion, the rotor keeps the positive damping of a fixed pitch, and the loop keeps its bandwidth for the
+//                  wind. The torque law uses the filtered measured speed.
 // Speeds on the generator (high-speed) side in rad/s, torque on the generator side. The controller is pure logic: the
 // model's measurement and actuators are attached by its load (controller_load) through functions, so it does not depend
 // on the rotor's implementation. Gains for another rotor: coral/aero/coral_rotor_tune.h (from CORAL's own BEM).
@@ -61,6 +71,9 @@ namespace coral
         double KP = 0.01882681, KI = 0.008068634, theta_K = 0.1099965;    // s, -, rad
         double theta_min = 0.0, theta_max = 1.570796, theta_rate = 0.1396263;   // rad, rad, rad/s
         bool pitch_control = true, torque_control = true;
+        // floating: A_f [1/s], B_f [rad/s^2 per m/s] (generator side), the gain g (1: the full compensation); off for B_f = 0
+        double float_A = 0.0, float_B = 0.0, float_gain = 1.0;
+        bool floating() const {return float_B != 0.0;}
 
         // the derived points of the torque curve
         double w_sync() const {return w_rated/(1.0 + 0.01*slip);}
@@ -82,14 +95,16 @@ namespace coral
 
         // start from the measured generator speed and pitch
         void initialize(double t, double w_gen, double pitch, double torque);
-        // one controller step at t with the measured generator speed: new torque and pitch commands
-        void update(double t, double w_gen);
+        // one controller step at t with the measured generator speed (and the nacelle's fore-aft velocity [m/s],
+        // downwind positive, for floating): new torque and pitch commands
+        void update(double t, double w_gen, double v_nacelle=0.0);
 
         double torque_law(double w_f, double pitch) const;      // the torque before the limits
         double torque() const {return T_;}
         double pitch() const {return th_;}
         double filtered_speed() const {return wf_;}
         double integral() const {return I_;}
+        double platform_speed() const {return wp_;}      // floating: the generator speed caused by the platform [rad/s]
         int region() const {return region_;}
 
         void save_state(std::vector<double>&) const;
@@ -98,13 +113,14 @@ namespace coral
         turbine_controller_settings set;
 
     private:
-        double t_last_ = 0.0, wf_ = 0.0, I_ = 0.0, T_ = 0.0, th_ = 0.0;
+        double t_last_ = 0.0, wf_ = 0.0, I_ = 0.0, T_ = 0.0, th_ = 0.0, wp_ = 0.0, wfc_ = 0.0;
         int region_ = 0;
         bool started_ = false;
     };
 
     // the controller in the model: called once per converged step (commit), the commands held over the next step
-    // (zero-order hold, as a controller DLL); channels <name>_wf (rpm), _T (N m), _pitch (deg), _region
+    // (zero-order hold, as a controller DLL); channels <name>_wf (rpm), _T (N m), _pitch (deg), _region, floating:
+    // _wplat (rpm, the generator speed caused by the platform's motion), _vnac (m/s)
     class controller_load : public load
     {
     public:
@@ -115,6 +131,7 @@ namespace coral
             std::function<double(const model&)> torque;           // the generator torque at the start [N m]
             std::function<void(double)> set_torque;
             std::function<void(double)> set_pitch;                // collective
+            std::function<double(const model&)> nacelle_velocity; // fore-aft, downwind positive [m/s] (floating)
         };
         controller_load(const turbine_controller_settings&, io, const std::string &name="controller");
 

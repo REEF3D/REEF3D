@@ -49,6 +49,17 @@ namespace coral
         bool write(const std::string &file) const;
     };
 
+    // the operating point at the wind speed U on the curve of tu (below rated lambda_opt at zero pitch, above the pitch
+    // that holds P_rated at Omega_rated) and the partial derivatives of thrust and torque there (central differences)
+    struct rotor_sensitivity
+    {
+        double U = 0.0, Omega = 0.0, theta = 0.0, T = 0.0, Q = 0.0;
+        double dT_dU = 0.0, dT_dtheta = 0.0, dT_dOmega = 0.0;     // N/(m/s), N/rad, N s/rad
+        double dQ_dU = 0.0, dQ_dtheta = 0.0, dQ_dOmega = 0.0;     // N m/(m/s), N m/rad, N m s/rad
+    };
+    rotor_sensitivity rotor_sensitivities(const rotor_def&, const rotor_tuning &tu, double rho, double P_rated, double Omega_rated,
+                                          double U, const bem_options& = bem_options());
+
     // rotor at rated power P_rated (aerodynamic) and rated rotor speed Omega_rated [rad/s]
     rotor_tuning tune_rotor(const rotor_def&, double rho, double P_rated, double Omega_rated, double U_out=25.0,
                             const bem_options& = bem_options());

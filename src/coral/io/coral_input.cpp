@@ -1507,7 +1507,21 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
                 cs.theta_K = tu.theta_K;
                 const double J = h.J + sp.J_gen*N*N;
                 turbine_controller_settings::pi_gains(J, Or, N, tu.dPdtheta0, it.get("omega_n", 0.6), it.get("zeta", 0.7), cs.KP, cs.KI);
+                if(it.has("floating"))
+                {
+                    // the drivetrain model of the compensation at U_float (1.25 U_rated)
+                    const double Uf = it.get("U_float", 1.25*tu.U_rated);
+                    const rotor_sensitivity rs = rotor_sensitivities(rd, tu, rho_air, Pr, Or, Uf, sp.aero.bem);
+                    cs.float_A = (rs.dQ_dOmega + (Uf > tu.U_rated ? Pr/(rs.Omega*rs.Omega) : -2.0*tu.K*rs.Omega))/J;
+                    cs.float_B = -N*rs.dQ_dU/J;
+                }
             }
+            else if(it.has("floating") && !(it.has("float_A") && it.has("float_B")))
+                it.fail("floating without tune needs float_A and float_B");
+            cs.float_A = it.get("float_A", cs.float_A);
+            cs.float_B = it.get("float_B", cs.float_B);
+            cs.float_gain = it.get("float_gain", cs.float_gain);
+            if(cs.floating() && cs.float_A >= 0.0) it.fail("float_A must be negative (a stable drivetrain model)");
             cs.K = it.get("K", cs.K);
             cs.w_cutin = it.get("rpm_cutin", cs.w_cutin/rpm)*rpm;
             cs.w_rgn2 = it.get("rpm_rgn2", cs.w_rgn2/rpm)*rpm;
@@ -1546,6 +1560,17 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
                 const int B = sp.B;
                 f.pitch = [ra](const model&) {return ra->pitch(0, 0.0);};
                 f.set_pitch = [ra, B](double th) {ra->set_pitch_table({}, {}); for(int q=0; q<B; ++q) ra->set_pitch(q, th);};
+            }
+            if(cs.floating())
+            {
+                // the hub centre's velocity along the shaft (turned with the hub; downwind positive)
+                const int hb = h.hub;
+                const Vec3 e0 = sp.axis.normalized();
+                f.nacelle_velocity = [hb, e0](const model &mm)
+                {
+                    const rigid_body &b = mm.body(hb);
+                    return b.v.dot(b.R*b.R0.transpose()*e0);
+                };
             }
             m.add_load(std::make_unique<controller_load>(cs, f, it.word(1)));
         }
