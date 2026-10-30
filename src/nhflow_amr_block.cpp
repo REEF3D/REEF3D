@@ -30,6 +30,7 @@ Author: Hans Bihs
 #include"nhflow_fsf.h"
 #include"nhflow_potential_f.h"
 #include"ioflow_amr_block.h"
+#include"nhflow_breaking.h"
 #include<cstdlib>
 #include<cstring>
 #include<cstdint>
@@ -187,6 +188,10 @@ void nhflow_amr::blocks_sigma(ghostcell *pgc)
             c->pio->zones_ini(pp,d,pgc);
             c->pmom->sigma_ini(pp,d,pgc,d->eta);
             c->pmom->inidisc(pp,d,pgc,c->pfsf);
+
+            // A 550 3: no breaking in the zones (as nhflow_breaking::breaking_zones with ioflow::relax_boxes)
+            if(nhflow_breaking *b = dynamic_cast<nhflow_breaking*>(c->pmom))
+            b->breaking_zone_mask(pp,[&](const std::function<void(int,int)> &in) { c->pio->zone_cells(pp,in); });
         }
         c->pfsf->kinematic_fsf(pp,d,d->U,d->V,d->W,d->eta);
 

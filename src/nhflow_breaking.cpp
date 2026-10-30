@@ -89,8 +89,41 @@ void nhflow_breaking::breaking(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &eta,
 // No breaking in the relaxation zones (breaking_zones).
 void nhflow_breaking::breaking_kennedy(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
 {
+    // multi-block grid (nhflow_amr::breaking_level0): only the arguments, the parts run on all blocks with the
+    // exchanges between the blocks in between
+    if(brk_defer)
+    {
+    brk_WL = &WL;
+    return;
+    }
+    
+    kennedy_part(p,d,pgc,WL,0,0);
+    kennedy_part(p,d,pgc,WL,1,0);
+    
+    const int nband = pgc->globalimax(kn_band);
+    
+    for(int qn=0; qn<nband; ++qn)
+    {
+    kennedy_part(p,d,pgc,WL,2,qn);
+    kennedy_part(p,d,pgc,WL,3,qn);
+    }
+    
+    kennedy_part(p,d,pgc,WL,4,0);
+    
+    const int count=pgc->globalisum(kn_count);
+    
+    if(p->mpirank==0 && (p->count%p->P12==0))
+    cout<<"breaking: "<<count<<endl;
+}
+
+// the parts of breaking_kennedy: 0 the ages of the last step, 1 the viscosity of the columns (kn_count) and the width
+// of the band (kn_band cells), 2 the ghost cells before the pass qn of the band, 3 the pass, 4 the flags
+void nhflow_breaking::kennedy_part(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL, int part, int qn)
+{
     const double g = fabs(p->W22);
     
+    if(part==0)
+    {
     // new time step: the ages (and with A 550 4 the wavenumbers) at the end of the last step
     if(p->count>count_n)
     {
@@ -107,9 +140,13 @@ void nhflow_breaking::breaking_kennedy(lexer *p, fdm_nhf *d, ghostcell *pgc, sli
     
     count_n=p->count;
     }
+    return;
+    }
     
+    if(part==1)
+    {
     const bool seeded = (p->A550==4);
-    int count=0;
+    kn_count=0;
     
     SLICELOOP4
     {
@@ -177,7 +214,7 @@ void nhflow_breaking::breaking_kennedy(lexer *p, fdm_nhf *d, ghostcell *pgc, sli
             brkk(i,j) = kw;
             brkr(i,j) = r0;
             brkflag(i,j) = 1;
-            ++count;
+            ++kn_count;
             }
             
             // A 550 4: the event of a seeded column ages also below the threshold, so the threshold relaxes from
@@ -193,7 +230,7 @@ void nhflow_breaking::breaking_kennedy(lexer *p, fdm_nhf *d, ghostcell *pgc, sli
     }
     
     // spread over the band of A 502 h (A 550 4: A 502 L_k of the event): bd is the largest width in cells
-    int nband=0;
+    kn_band=0;
     
     SLICELOOP4
     {
@@ -203,18 +240,24 @@ void nhflow_breaking::breaking_kennedy(lexer *p, fdm_nhf *d, ghostcell *pgc, sli
     dxl = MIN(dxl,p->DYN[JP]);
     
     bd(i,j) = (p->wet[IJ]==1 && brkzone(i,j)==0) ? int(ceil(p->A502*MAX(WL(i,j),0.0)/dxl - 1.0e-9)) : 0;
-    nband = MAX(nband,bd(i,j));
+    kn_band = MAX(kn_band,bd(i,j));
     }
-    
-    nband = pgc->globalimax(nband);
     
     SLICELOOP4
     d->vbk(i,j) = brkk(i,j);
+    return;
+    }
     
-    for(int qn=0; qn<nband; ++qn)
+    if(part==2)
     {
     pgc->gcsl_start4(p,d->vb,1);
     pgc->gcsl_start4(p,d->vbk,1);
+    return;
+    }
+    
+    if(part==3)
+    {
+    const bool seeded = (p->A550==4);
     
     SLICELOOP4
     {
@@ -245,6 +288,7 @@ void nhflow_breaking::breaking_kennedy(lexer *p, fdm_nhf *d, ghostcell *pgc, sli
     d->vb(i,j) = brkvb(i,j);
     d->vbk(i,j) = bt_vbs(i,j);
     }
+    return;
     }
     
     SLICELOOP4
@@ -253,15 +297,20 @@ void nhflow_breaking::breaking_kennedy(lexer *p, fdm_nhf *d, ghostcell *pgc, sli
     pgc->gcsl_start4(p,d->vb,1);
     pgc->gcsl_start4(p,d->vbk,1);
     pgc->gcsl_start4int(p,d->breaking,50);
-    
-    count=pgc->globalisum(count);
-    
-    if(p->mpirank==0 && (p->count%p->P12==0))
-    cout<<"breaking: "<<count<<endl;
 }
 
 // the relaxation zones of the wave generation and the numerical beach (ioflow::relax_boxes): deta/dt of the
 // continuity is not the change of the relaxed water level there
+void nhflow_breaking::breaking_zone_mask(lexer *p, const std::function<void(const std::function<void(int,int)>&)> &cells)
+{
+    SLICELOOP4
+    brkzone(i,j) = 0;
+
+    cells([&](int ii, int jj) { brkzone(ii,jj) = 1; });
+
+    brkzone_built = true;
+}
+
 void nhflow_breaking::breaking_zones(lexer *p, ioflow *pflow)
 {
     if(brkzone_built || p->A550<2 || pflow==nullptr)

@@ -26,6 +26,7 @@ Author: Hans Bihs
 #include"nhflow_fsf.h"
 #include"sliceint4.h"
 #include"slice4.h"
+#include<functional>
 
 using namespace std;
 
@@ -56,11 +57,21 @@ public:
     sliceint4& brk_by() { return by; }
     sliceint4& brk_bd() { return bd; }
     sliceint4& brk_flag() { return brkflag; }
+    slice* brk_wl() { return brk_WL; }      // the water level of the deferred breaking (A 552: filtered)
 
     void filter(lexer*, fdm_nhf*, ghostcell*, slice&);
     
     // A 550 3: eddy viscosity of Kennedy et al. (2000)
     void breaking_kennedy(lexer*,fdm_nhf*,ghostcell*,slice&);
+    // its parts (multi-block grid: nhflow_amr::breaking_level0 runs them on all blocks): 0 the ages of the last step,
+    // 1 the columns and the band width kn_band, 2 the ghost cells of a pass of the band, 3 the pass qn, 4 the flags
+    void kennedy_part(lexer*,fdm_nhf*,ghostcell*,slice&,int,int);
+    void kennedy_run(lexer *p, fdm_nhf *d, ghostcell *pgc, int part, int qn) { kennedy_part(p,d,pgc,*brk_WL,part,qn); }
+    int kn_band = 0;            // the band width of the grid in cells (part 1)
+    int kn_count = 0;           // its breaking columns (part 1)
+    slice4& brk_age_n() { return brkage_n; }
+    slice4& brk_k_n() { return brkk_n; }
+    slice4& brk_r_n() { return brkr_n; }
     
     // A 550 4: onset from crest tracking B = u_s/C (Barthelemy et al. 2018), the seed of breaking_kennedy
     void breaking_barthelemy(lexer*,fdm_nhf*,ghostcell*,slice&);
@@ -68,6 +79,8 @@ public:
     // no detection in the relaxation zones of the wave generation and the numerical beach (ioflow::relax_boxes);
     // called by the momentum schemes before breaking(), builds the mask once
     void breaking_zones(lexer*,ioflow*);
+    // a block of a multi-block grid (nhflow_amr): the zone columns of its edges, in(i, j) for every column with i, j set
+    void breaking_zone_mask(lexer*,const std::function<void(const std::function<void(int,int)>&)>&);
 
     
 private:

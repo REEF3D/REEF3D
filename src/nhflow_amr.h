@@ -504,6 +504,8 @@ private:
     // one grid (nhflow_amr_diff.cpp)
     bool brk0 = false;
     void breaking_level0(ghostcell*, int);
+    void kennedy_level0(ghostcell*);    // A 550 3 on block 0 and the blocks
+    void ken_exchange0(ghostcell*, int);
     void brk_exchange0(ghostcell*, int);
     void df_free();
     void df_core(lexer*);

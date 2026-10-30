@@ -28,6 +28,7 @@ Author: Hans Bihs
 #include"background_state.h"
 #include<string>
 #include<vector>
+#include<functional>
 
 // in- and outflow of a block 1.. of a multi-block grid (G 50 1, its level-0 grid of REEFAMR) through its open
 // faces (G 54), as ioflow_f on the native grid with B 60 1: the discharge Q through the -i face (the velocity
@@ -70,6 +71,8 @@ public:
     void open_zones(lexer*,const bc_zone*,const bc_zone*,const background_state&,bool,int,int,int,int);
     bool has_zones() const { return !rzone.empty(); }
     void zones_ini(lexer*,fdm_nhf*,ghostcell*);
+    // the columns in a relaxation or beach zone: f(i, j) (breaking: no detection there, A 550 3)
+    void zone_cells(lexer*,const std::function<void(int,int)>&);
 
     // NHFLOW relaxation zones (B 95: the targets at the stage time t, the weights to the power dt / dt_ref)
     void wavegen_stage_nhflow(lexer*,fdm_nhf*,ghostcell*,double) override;

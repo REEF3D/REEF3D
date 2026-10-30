@@ -208,7 +208,7 @@ nhflow_amr::nhflow_amr(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum *pm
     // (a turbulence model with A 512 0 diffuses implicitly as A 512 2, driver_logic_nhflow)
     cdiff = ((p->A512==2 || (p->A512==0 && p->A560>0)) && (p->G31==1 || p->geo_mb>0));
     brk_split = (cdiff && p->A550==1);
-    brk0 = (p->geo_mb>0 && p->A550==1);
+    brk0 = (p->geo_mb>0 && (p->A550==1 || p->A550==3));
 
     // subcycling (G 7 1, nhflow_amr_sub.cpp): floating bodies with the zone around the hull (G 12, for
     // X 15 8 also without it: the finest level advances the body); every grid solves its own implicit diffusion (G 31 1
@@ -348,8 +348,10 @@ int nhflow_amr::keys_ok(lexer *p)
     if(p->A519==2) ok=0;
     // breaking (A 550 1, RK2 and RK3): it acts through the implicit diffusion (A 512 2), composite (G 31 1)
     // or per grid (G 31 0); on a multi-block grid the blocks break as one grid (breaking_level0). The eddy viscosity
-    // (A 550 3) is not on the patches
-    if(p->A550!=0 && (p->A550!=1 || (p->A510!=2 && p->A510!=3))) ok=0;
+    // (A 550 3) on a multi-block grid without refinement (kennedy_level0), not on the patches; not A 550 4 (the crest
+    // tracking of the whole grid)
+    if(p->A550!=0 && (p->A510!=2 && p->A510!=3)) ok=0;
+    if(p->A550!=0 && p->A550!=1 && !(p->A550==3 && p->geo_mb>0 && maxlev==0)) ok=0;
     if(p->B200!=0 || p->X330!=0 || p->A599!=0) ok=0;
     // sediment transport (S 10 1): bed load, Exner (S 31 1/2, S 32 1/2), sand slide; no suspended load, no
     // sediment fractions (nhflow_amr_sed.cpp)
@@ -388,7 +390,7 @@ void nhflow_amr::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     if(ok==0 && p->geo_mb>0)
     {
         if(p->mpirank==0)
-        cout<<"!!! NHFLOW multi-block grid: only for A 510 2/3, A 511 1/2, A 520 0/1/2, A 512 0/1/2, A 560 0/1/2/21/22 (A 561 0, A 563 0), A 519 0/1, A 550 0/1, B 200 0, S 10 0/1 (S 12 0, S 51 0, S 31 1/2, S 32 1/2), no solids, membranes, nets, DEM, particles, rods or FEM structures !!!"<<endl;
+        cout<<"!!! NHFLOW multi-block grid: only for A 510 2/3, A 511 1/2, A 520 0/1/2, A 512 0/1/2, A 560 0/1/2/21/22 (A 561 0, A 563 0), A 519 0/1, A 550 0/1/3 (3 without refinement), B 200 0, S 10 0/1 (S 12 0, S 51 0, S 31 1/2, S 32 1/2), no solids, membranes, nets, DEM, particles, rods or FEM structures !!!"<<endl;
         exit(1);
     }
 
@@ -2833,6 +2835,8 @@ void nhflow_amr::step(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum_func
         t0 = MPI_Wtime();
         if(brk_split)
         breaking_patches(pgc);
+        else if(brk0)
+        breaking_level0(pgc,-1);
         tm[1] += MPI_Wtime()-t0;
 
         t0 = MPI_Wtime();
