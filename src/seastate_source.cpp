@@ -327,6 +327,17 @@ bool seastate_source::cap(float *N, double depth) const
     return true;
 }
 
+void seastate_source::limits(const float *k, const float *cg)
+{
+    // as in compute: gamma alpha_PM/(2 sig k^3 c_g)
+    if(prm.komen && prm.limiter>0.0)
+    for(int l=0; l<nsig; ++l)
+    {
+    const double kl = std::max(double(k[l]),1.0e-12);
+    dNmax[l] = prm.limiter*0.0081/(2.0*g.sig[l]*kl*kl*kl*std::max(double(cg[l]),1.0e-12));
+    }
+}
+
 void seastate_source::compute(const float *N, double depth, const float *k, const float *cg, double *P, double *D, int ma, int mb, int la, int lb)
 {
     moments(N,depth,k);

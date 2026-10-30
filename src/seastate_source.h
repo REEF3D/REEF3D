@@ -214,6 +214,11 @@ public:
     // maximum change of N per iteration of the last call (per frequency), nullptr: no limiter
     const double *limit() const {return (prm.komen && prm.limiter>0.0) ? dNmax.data() : nullptr;}
 
+    // Phase 21b (A 767 1, the source terms of a cell taken from the evaluation in the first sweep of the iteration):
+    // the limiter of the cell (k, cg) for all frequencies without the source terms, and the row sums of set_rows()
+    // or cap() dropped (they belong to this cell, the next compute() is for another)
+    void limits(const float *k, const float *cg);
+    void drop_rows() const {rows_ready = false;}
     // ST4 (A 732 3): keep u*, the growth rates and the cut-off of the last compute for the next computes of the
     // same cell (the widened windows of the spectral sparsity, A 795), true until freeze(false)
     void freeze(bool f) {frozen = f;}

@@ -162,6 +162,7 @@ void seastate_f::ini_common(lexer *p, ghostcell *pgc, bool coupled_)
 
     if(p->A700==2)
     psolv->source_iterations(p->A738,p->A739);
+    psolv->source_once(p->A767==1);
     psolv->lagging(seastate_implicit::lag_wanted(p->A700,p->A730,p->A732,p->A768,p->A770),p);
 
     if(sb!=nullptr)
@@ -531,6 +532,10 @@ void seastate_f::check_keys(lexer *p, ghostcell *pgc)
     msg = "A 738, A 739: at least one source iteration, the tolerance must not be negative";
     else if(p->A798<1)
     msg = "A 798: at least one thread per rank";
+    else if(p->A767!=0 && p->A767!=1)
+    msg = "A 767: the source terms once per iteration must be 0 (off) or 1 (on)";
+    else if(p->A767==1 && p->A732>=3)
+    msg = "A 767 1: not yet with A 732 3 and 4 (the cut-off and the bound of the spectrum of a cell come from its own evaluation)";
     else if(p->A768!=0 && p->A768!=1)
     msg = "A 768: u* of A 732 3 and 4 must be 0 (the fixed point in every evaluation) or 1 (from the wave stress of the last time step, ecWAM)";
     else if(p->A799!=0 && p->A799!=1)
@@ -801,6 +806,16 @@ void seastate_f::storage(lexer *p, ghostcell *pgc)
     if(p->A798>1) cout<<" "<<p->A798<<" threads per rank (A 798)"<<(p->A770==1 ? ", not used with surfbeat" : "");
     if(p->A700==2 && p->A738>1) cout<<(p->A798>1 ? "," : "")<<" up to "<<p->A738<<" source iterations per cell, tolerance "<<scientific<<setprecision(1)<<p->A739<<defaultfloat<<setprecision(6)<<" (A 738, A 739)";
     if(p->A700==2 && p->A799==1) cout<<(p->A798>1 || p->A738>1 ? "," : "")<<" convergence test on the estimated distance to the solution (A 799 1)";
+    cout<<endl;
+    }
+    if(p->A767==1)
+    {
+    const bool ws = (p->A730==1 || p->A730==2 || (p->A732>=1 && p->A733==1));
+    cout<<"SEASTATE solver (Phase 21b): the source terms of a cell once per iteration (A 767 1)";
+    if(ws) cout<<", evaluated in the sweep of the first quadrant and kept for the others (floats, the bins of the other quadrants per wet cell)";
+    else cout<<", not used: no wind input or DIA";
+    if(p->A770==1) cout<<", not with surfbeat";
+    if(p->A797==1 && p->G1>0) cout<<", not in the composite sweep (A 797 1)";
     cout<<endl;
     }
     if(p->A718>=1)

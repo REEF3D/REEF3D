@@ -224,6 +224,19 @@ time of the sweeps (the work of the tiles, the waiting before the first
 tile and between the tiles, the messages, the exchanges around the
 sweeps) is reported at the end of a run (seastate_f::pipeline_report,
 REEF3D_SEASTATE_Log/REEF3D_SEASTATE_pipeline.dat).
+Phase 21b (A 767 1): the source terms of a cell once per iteration. In
+the sweep of the first quadrant of an iteration the terms of a cell are
+evaluated for all its directions and frequencies, and P and D of the
+bins of the other quadrants are kept (floats per wet cell); the sweeps
+of the other quadrants take them instead of evaluating the terms again.
+The bins of those quadrants are the same at both times (only the bins
+of the first quadrant were solved in between), so the terms differ from
+the evaluation in every sweep only through the integral parameters, the
+whitecapping and the DIA neighbours in direction, by the change of one
+sweep; at the fixed point they are the same. The first quadrant sees the
+terms as before (bitwise). Not in residual mode (FAS), with the surfbeat
+model or in the composite sweep; a cell scaled to the maximum energy
+(A 737 1) evaluates its terms again.
 Phase 6 (seastate_obstacle): faces blocked by obstacles, structures or
 reflecting coasts transmit Kt^2 of the inflow (per frequency for the
 structures of A 725) and return Kr^2 of the outflow into the mirrored
@@ -288,6 +301,10 @@ public:
     // hold_zero (Phase 15, with the spectral sparsity A 795 of the finer grid): the bins that are zero in N_t are held at zero
     void fas_source(const seastate_store *tau, const seastate_store *Nt, bool hold_zero=false) {ftau = tau; ftil = Nt; fhold = hold_zero;}
     void source_iterations(int n, double tol) {nsrcit = std::max(n,1); srctol = tol;}
+    // Phase 21b (A 767 1): the source terms of a cell evaluated once per iteration (see source_cache)
+    void source_once(bool s) {sonce = s;}
+    // ... the floats kept per cell (0: not used)
+    size_t source_cache_floats() const;
 
     // threads per rank (A 798): the tiles of a quadrant sweep, a tile once its two upwind tiles are solved (Phase 13;
     // Phase 7b: the cells of one diagonal i+j = const at the same time); not the surfbeat model
@@ -439,6 +456,38 @@ private:
     bool fhold = false;
     int nsrcit = 1;                     // source iterations per cell and sweep (A 738)
     double srctol = 0.0;                // ... until the relative energy change of the cell is below this
+
+    // Phase 21b (A 767 1): the source terms of a cell once per iteration. The sweep of the first quadrant of an
+    // iteration (qfill) evaluates them for all directions of the cell and keeps P and D of the bins of the other
+    // quadrants (floats, per wet cell of the grid); the sweeps of the other quadrants take them from there instead of
+    // evaluating them again. Between the two the cell's own bins of those quadrants are unchanged (only the bins of
+    // qfill were solved), so the lag is only in the coupling through the integral parameters and the DIA neighbours
+    // in direction; at a fixed point it vanishes. Shared with the copies of the solver that work the threads.
+    struct source_cache
+    {
+    bool ready = false;
+    int qfill = -1;                     // the quadrant whose sweep evaluates the terms
+    int wa = 0, wb = -1;                // the directions evaluated (all quadrants)
+    int width = 0;                      // directions kept per frequency (the quadrants other than qfill)
+    int qoff[4] = {-1,-1,-1,-1};        // offset of quadrant q in a kept row, -1: not kept
+    int imin = 0, jmin = 0, ni = 0, nj = 0;
+    std::vector<int> slot;              // per cell: its slot, -1 none (dry at the allocation, or not managed)
+    std::vector<float> PD;              // per slot: P then D, nsig x width each
+    std::vector<double> etot;           // per slot: E_tot of the evaluation (threshold of the spectral sparsity)
+    std::vector<uint8_t> tri;           // per slot: the triads acted
+    std::vector<long> gen;              // per slot: the iteration of the evaluation (sgen), -1 none
+    int slot_of(int ci, int cj) const
+    {
+    if(!ready || ci<imin || ci>=imin+ni || cj<jmin || cj>=jmin+nj)
+    return -1;
+    return slot[size_t(ci-imin)*nj + (cj-jmin)];
+    }
+    };
+    std::shared_ptr<source_cache> scache = std::make_shared<source_cache>();
+    bool sonce = false;                 // A 767 1
+    bool suse = false;                  // the current sweep evaluates or takes the kept terms
+    long sgen = 0;                      // iterations counted by the sweeps of qfill
+    void scache_alloc(lexer*, fdm_seastate*);
     vector<int> wlo, whi;               // window of directions solved per frequency (quadrant index)
     vector<double> thr;                 // threshold per frequency (action density)
     // the active ranges are shared with the copies of the solver that work the threads (A 798)
