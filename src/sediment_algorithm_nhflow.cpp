@@ -52,6 +52,9 @@ void sediment_f::sediment_algorithm_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc,
     if(grids!=nullptr)
     {
     grids->sediment_step_nhflow(p,d,pgc,pflow,this);
+    
+    // the grids keep the exchange of the last flow step (sediment_amr.cpp)
+    pnhfsusp->bed_done(p,s);
     }
     else
     {
@@ -87,9 +90,14 @@ void sediment_f::sediment_algorithm_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc,
     // relax *******
 	prelax->start(p,pgc,s);
     
+    // suspended load: the mean exchange rate of several flow steps since the last bed update (S 62 1)
+    pnhfsusp->bed_rate(p,pgc,s);
+    
     // Exner *******
     ptopo->start(p,pgc,s);
     p->sedtime+=p->dtsed;
+    
+    pnhfsusp->bed_done(p,s);
     
     // sandslide ********
     if(p->sediter%p->S94==0)

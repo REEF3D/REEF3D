@@ -1,0 +1,9 @@
+{
+ "base": "sflow_1d_waves_beach_svr",
+ "ctrl_set": {"S 11": "8", "S 120": "2"},
+ "np": 1,
+ "steps": 1500,
+ "description": "sflow_1d_waves_beach_svr with S 11 8 and S 120 2.",
+ "tags": ["quick", "1d", "sflow", "sediment", "waves"],
+ "covers": ["bedload_waves S 11 8"]
+}

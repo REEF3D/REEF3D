@@ -205,6 +205,14 @@ void driver::logic_nhflow()
         pgc->final(true);
     }
     
+    // no bed friction in the momentum equations (A 519 0; the diffusion has a zero-gradient bed with A 513 1): the flow
+    // slips over the bed, a RANS model gets its turbulence only from the wall function of the bottom cell and the
+    // velocity profile stays a plug (open-channel flow: nu_t far below the parabolic profile, the bed shear stress of
+    // the sediment S 16 from the near-bed velocity about twice too high)
+    if(p->A519==0 && (p->A560==1 || p->A560==21 || p->A560==2 || p->A560==22 || p->S10>0) && p->mpirank==0)
+    cout<<"NOTE A 519 0: no bed friction in the momentum equations, the flow slips over the bed; use A 519 1 for "
+        <<"open-channel flow with a turbulence model (A 560) or sediment transport (S 10)"<<endl;
+    
     // HLES split (A 561) and QCR (A 563) work with the RANS models (k-epsilon, k-omega) only
     if((p->A561!=0 || p->A563>0.0) && p->A560!=1 && p->A560!=21 && p->A560!=2 && p->A560!=22)
     {

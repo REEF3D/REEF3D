@@ -25,6 +25,7 @@ Author: Hans Bihs
 
 #include"nhflow_suspended.h"
 #include"increment.h"
+#include"slice4.h"
 
 using namespace std;
 
@@ -42,6 +43,9 @@ public:
     void bcsusp_start(lexer*,fdm_nhf*,ghostcell*,sediment_fdm*,double*);
 	void clearrhs(lexer*,fdm_nhf*);
     void fillconc(lexer*,fdm_nhf*,ghostcell*,sediment_fdm*);
+    
+    void bed_rate(lexer*, ghostcell*, sediment_fdm*) override final;
+    void bed_done(lexer*, sediment_fdm*) override final;
 
 	int gcval_susp;
 
@@ -53,6 +57,13 @@ private:
     double *WVEL;
     double *WLN;    // water depth belonging to the stored concentration (end of the last solve)
     int wl_ini;
+    
+    // exchange with the bed since the last bed update: ED = sum ws (cbe - c_0) dt [m], its mean rate RT,
+    // acc[0] the flow time, acc[1] the number of flow steps (checkpoints: raw entry of the grid)
+    void exchange_sum(lexer*, fdm_nhf*, sediment_fdm*);
+    slice4 ED,RT;
+    double acc[2];
+    unsigned long long ckid;
     double Rouse_formula(lexer*,fdm_nhf*,sediment_fdm*,double); 
     
     int count,q;

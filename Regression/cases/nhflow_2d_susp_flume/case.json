@@ -1,0 +1,16 @@
+{
+ "description": "NHFLOW 2D flume (40 m, h 0.5 m, U 0.6 m/s, 200 x 20 cells), k-epsilon with bed friction (A 519 1) and the free-surface length scale (A 567 1): log-law velocity profile and parabolic-like eddy viscosity; clear-water discharge inflow (B 60 1) over a fine sand bed (d50 0.15 mm) without bed change (S 35 0), van Rijn suspended load (S 12 1) picked up along the flume. The solver agrees within 1 % with an independent 2DV solution from the NHFLOW velocity and eddy viscosity (Dropbox/Claude/REEF3D sediment waves suspended).",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 2000,
+ "tags": [
+  "2d",
+  "nhflow",
+  "sediment",
+  "suspended",
+  "inflow"
+ ],
+ "covers": [
+  "nhflow_suspended_IM1 advection, settling, diffusion and bed exchange along a channel"
+ ]
+}
