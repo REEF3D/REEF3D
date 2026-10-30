@@ -232,6 +232,10 @@ struct nhflow_amr_patch : public reefamr_patch
     // G 7 1: fine face fluxes summed over the steps of the patch within one step of its parent
     // (dt * RK weight), freg[ipol][side][r*knoz+k], ipol 1-4
     vector<double> freg[5][4];
+    // G 7 1 with the non-hydrostatic pressure: the pressure on the box faces summed in the same way,
+    // preg[side][r*knoz+k], the mean of the first cell and of the cell around the box (A 520 2: with its
+    // correction, the parent pressure the solve held there)
+    vector<double> preg[4];
 };
 
 class reefckpt;
@@ -593,6 +597,8 @@ private:
     void sub_swap_out(int);
     void sub_fill(ghostcell*, int, int, double);
     vector<vector<double>> cregL, cregR, rflux;   // [id+1]: coarse face fluxes summed over the step (4 K per entry), received fine sums
+    vector<vector<double>> pregL, pregR, rpres;   // [id+1]: the pressure on those faces from the coarse side (K per entry), received fine sums
+    void sub_preg(int l, int s);    // the pressure on the coarse-fine faces after the pressure of stage s of level l
     vector<double> dtlev;           // step of each level in the current level-0 step
     void sub_creg_reset(int);
     void sub_dfx();

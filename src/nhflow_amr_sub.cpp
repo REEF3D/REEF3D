@@ -27,6 +27,7 @@ Architect: Hans Bihs
 #include"ghostcell.h"
 #include"nhflow_pressure.h"
 #include"6DOF_nhflow.h"
+#include"nhflow_curv.h"
 #include<cmath>
 #include<mpi.h>
 #include<algorithm>
@@ -51,7 +52,10 @@ Architect: Hans Bihs
 //
 //  After the two steps of level l+1 (sub_sync): the coarse cells of level l next to the patches
 //  take the difference of the summed fine and coarse fluxes (continuity into WL, layer by layer
-//  with the sigma thickness, momentum UH, VH, WH per layer), the levels above l are restricted
+//  with the sigma thickness, momentum UH, VH, WH per layer) and, with the non-hydrostatic pressure,
+//  of the summed pressures on the interface faces in their pressure gradient (sub_preg: after every
+//  pressure of a level, the coarse side from the covered cell, the fine side from the patch with the
+//  parent pressure around it); the levels above l are restricted
 //  into level l, then the synchronisation projection: one composite correction solve over the
 //  levels l..L for the divergence the coupled velocities have now (the parent columns of level l
 //  fixed at 0), the velocity correction on all those grids, the correction added to the pressure.
@@ -287,6 +291,86 @@ void nhflow_amr::sub_creg_reset(int g)
     const int K = glex(g)->knoz;
     cregL[t].assign(match[t].size()*4*(size_t)K,0.0);
     cregR[t].assign(rmatch[t].size()*4*(size_t)K,0.0);
+    pregL[t].assign(match[t].size()*(size_t)K,0.0);
+    pregR[t].assign(rmatch[t].size()*(size_t)K,0.0);
+}
+
+// the pressure on the coarse-fine faces after the pressure of stage s of level l, summed with the RK
+// weight times the step of the level (as the fluxes): the faces of the level-l grids next to level-(l+1)
+// patches from the coarse side (the mean of the cell outside the patch and the covered cell, layer by
+// layer), the box faces of the level-l patches from the fine side (the mean of the first cell and of
+// the cell around the box; A 520 2: that cell with its correction, the parent pressure the level solve
+// held there).  The momentum of the coarse cell takes the pressure gradient of the covered cell's
+// pressure; sub_reflux replaces the coarse face pressure in it by the fine one
+void nhflow_amr::sub_preg(int l, int s)
+{
+    if(p0->A520==0)
+    return;
+
+    const double w = rkw(s)*dtlev[l];
+
+    // the pressure of layer k between its two nodes
+    auto pm = [&](lexer *q, const double *f, int ii, int jj, int k) { return 0.5*(f[fidx(q,ii,jj,k)] + f[fidx(q,ii,jj,k+1)]); };
+
+    if(l<maxlev)
+    for(int g : level_grids(l))
+    {
+        const int t = g+1;
+        if(t>=(int)match.size())
+        continue;
+        lexer *q = glex(g);
+        fdm_nhf *d = gfd(g);
+        const int K = q->knoz;
+
+        auto add = [&](const reefamr_match &m, double *R)
+        {
+            const int s2 = (m.side2>=0) ? m.side2 : m.side;
+            const int ii = m.fi + (s2==1 ? 1 : 0), jj = m.fj + (s2==3 ? 1 : 0);
+            const int ic = ii + (s2==0 ? 1 : 0) - (s2==1 ? 1 : 0);
+            const int jc = jj + (s2==2 ? 1 : 0) - (s2==3 ? 1 : 0);
+            for(int k=0; k<K; ++k)
+            R[k] += w*0.5*(pm(q,d->P,ii,jj,k) + pm(q,d->P,ic,jc,k));
+        };
+
+        for(size_t n=0; n<match[t].size(); ++n)
+        add(match[t][n],&pregL[t][n*K]);
+        if(t<(int)rmatch.size())
+        for(size_t n=0; n<rmatch[t].size(); ++n)
+        add(rmatch[t][n],&pregR[t][n*K]);
+    }
+
+    if(l>=1)
+    for(int id : lev[l])
+    {
+        nhflow_amr_patch *c = NP(id);
+        lexer *pp = c->pp;
+        fdm_nhf *d = c->d;
+        const int Kf = pp->knoz;
+        const double *pc = (p0->A520==2) ? c->ptgt : nullptr;
+
+        for(int side=0; side<4; ++side)
+        {
+            if(sy==0 && side>=2)
+            continue;
+            const int nr = (side<2) ? c->ny : c->nx;
+            vector<double> &R = c->preg[side];
+            for(int r=0; r<nr; ++r)
+            {
+                int i1, j1, i0, j0;
+                if(side==0)      { i1 = EXT;          i0 = EXT-1;      j1 = j0 = EY+r; }
+                else if(side==1) { i1 = EXT+c->nx-1;  i0 = EXT+c->nx;  j1 = j0 = EY+r; }
+                else if(side==2) { j1 = EY;           j0 = EY-1;       i1 = i0 = EXT+r; }
+                else             { j1 = EY+c->ny-1;   j0 = EY+c->ny;   i1 = i0 = EXT+r; }
+                for(int k=0; k<Kf; ++k)
+                {
+                    double po = pm(pp,d->P,i0,j0,k);
+                    if(pc!=nullptr)
+                    po += pm(pp,pc,i0,j0,k);
+                    R[r*Kf+k] += w*0.5*(pm(pp,d->P,i1,j1,k) + po);
+                }
+            }
+        }
+    }
 }
 
 // fine face depths of the patch boxes for the coarse faces next to them (the coarse grids run
@@ -337,6 +421,9 @@ void nhflow_amr::sub_step(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum_
     cregL.resize(P.size()+1);
     cregR.resize(P.size()+1);
     rflux.resize(P.size()+1);
+    pregL.resize(P.size()+1);
+    pregR.resize(P.size()+1);
+    rpres.resize(P.size()+1);
 
     double t0 = MPI_Wtime();
     sub_dfx();
@@ -372,6 +459,7 @@ void nhflow_amr::sub_step(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum_
         mom->phase_F(p,d,pgc,S0,s);
         mom->phase_M(p,d,pgc,S0,s);
         mom->phase_P(p,d,pgc,S0,s);
+        sub_preg(0,s);
         mom->phase_E(p,d,pgc,S0,s);
     }
     cur_stage = -1;
@@ -390,6 +478,8 @@ void nhflow_amr::sub_step(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum_
         for(int ip=1; ip<=4; ++ip)
         for(int side=0; side<4; ++side)
         c->freg[ip][side].assign((size_t)(side<2 ? c->ny : c->nx)*c->pp->knoz,0.0);
+        for(int side=0; side<4; ++side)
+        c->preg[side].assign((size_t)(side<2 ? c->ny : c->nx)*c->pp->knoz,0.0);
     }
 
     sub_level(p,pgc,1,0,t,0.5*dt);
@@ -500,6 +590,7 @@ void nhflow_amr::sub_level0_blocks(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_
         }
         }
         mom->phase_P2(p,d,pgc,S0,s);
+        sub_preg(0,s);
 
         {
         comms_off guard(pgc);
@@ -649,6 +740,8 @@ void nhflow_amr::sub_level(lexer *p, ghostcell *pgc, int l, int k, double t, dou
         for(int ip=1; ip<=4; ++ip)
         for(int side=0; side<4; ++side)
         c->freg[ip][side].assign((size_t)(side<2 ? c->ny : c->nx)*c->pp->knoz,0.0);
+        for(int side=0; side<4; ++side)
+        c->preg[side].assign((size_t)(side<2 ? c->ny : c->nx)*c->pp->knoz,0.0);
     }
 
     sub_level(p,pgc,l+1,0,t,0.5*dt);
@@ -786,6 +879,9 @@ void nhflow_amr::sub_press_level(lexer *p, ghostcell *pgc, int l, int k, int s)
     }
     }
 
+    // the pressure on the coarse-fine faces of the level (the finer levels' refluxing)
+    sub_preg(l,s);
+
     tm[4] += MPI_Wtime()-t0;
 }
 
@@ -822,7 +918,11 @@ void nhflow_amr::sub_sync(lexer *p, ghostcell *pgc, int l)
 }
 
 // coarse cells of level l next to the level-(l+1) patches: the summed fine face fluxes replace the
-// summed coarse ones, layer by layer
+// summed coarse ones, layer by layer.  With the non-hydrostatic pressure also the pressure on the face in
+// the momentum of the coarse cell (sub_preg): the coarse step took the gradient of the covered cell's own
+// pressure; where a steep front meets the interface that pressure is far from the one the patches had at
+// the face, and the fine fluxes alone (whose hydrostatic part the fine pressure balances) moved the coarse
+// cell too far
 void nhflow_amr::sub_reflux(int l)
 {
     const int K = klev(l);
@@ -855,10 +955,30 @@ void nhflow_amr::sub_reflux(int l)
                     rflux[tgt][(size_t)idx*NR+m] = v[m];
                 });
 
+    const bool pr = (p0->A520>0);
+    if(pr)
+    {
+        for(size_t t=0; t<rmatch.size() && t<rpres.size(); ++t)
+        rpres[t].assign(rmatch[t].size()*(size_t)K,0.0);
+
+        face_run_at(l+1,K,7290+l+1,
+                    [&](reefamr_patch *q, int side, int r, double *sb)
+                    {
+                        nhflow_amr_patch *c = NP(q);
+                        for(int k=0; k<K; ++k)
+                        sb[k] = fmean(c->preg[side],side,r,k);
+                    },
+                    [&](int tgt, int idx, const double *v)
+                    {
+                        for(int k=0; k<K; ++k)
+                        rpres[tgt][(size_t)idx*K+k] = v[k];
+                    });
+    }
+
     const vector<int> grids = level_grids(l);
 
     const double wd = p0->A544;
-    vector<double> dlt(NR);
+    vector<double> dlt(NR), pdl(K,0.0);
 
     for(int g : grids)
     {
@@ -891,6 +1011,28 @@ void nhflow_amr::sub_reflux(int l)
                 d->WH[c] += f*dlt[2*K+k];
             }
 
+            // the pressure: the coarse face pressure is the mean of the outside and the covered cell, so the covered
+            // cell's pressure in the gradient of the outside cell changes by twice the difference of the summed face
+            // pressures (pdl); the gradient as nhflow_pjm_corr (Cartesian) and nhflow_curv::pgrad_layer
+            const int n2 = lij(q,ii,jj);
+            if(pr && q->wet[n2]==1 && q->deep[n2]==1)
+            for(int k=0; k<K; ++k)
+            {
+                const double dp = 2.0*pdl[k];
+                double gx = 0.0, gy = 0.0;
+                if(q->geo_curv==1)
+                nhflow_curv::grad5(q,ii,jj,s2==0 ? dp : 0.0,s2==1 ? dp : 0.0,s2==2 ? dp : 0.0,s2==3 ? dp : 0.0,gx,gy);
+                else
+                if(m.dir==0)
+                gx = (s2==0 ? dp : -dp)/(q->DXP[ii+marge]+q->DXP[ii-1+marge]);
+                else
+                gy = (s2==2 ? dp : -dp)/(q->DYP[jj+marge]+q->DYP[jj-1+marge]);
+
+                const int c = cidx(q,ii,jj,k);
+                d->UH[c] -= d->WL(ii,jj)/p0->W1*gx;
+                d->VH[c] -= d->WL(ii,jj)/p0->W1*gy;
+            }
+
             // derived values as after the restriction
             const double wl = d->WL(ii,jj);
             const double wlvl = fabs(wl)>wd ? wl : 1.0e20;
@@ -912,6 +1054,9 @@ void nhflow_amr::sub_reflux(int l)
             for(int ip=1; ip<=4; ++ip)
             for(int k=0; k<K; ++k)
             dlt[(ip-1)*K+k] = double(m.sgn)*fmean(c->freg[ip][m.side],m.side,m.r,k) - cregL[t][(4*n+ip-1)*K+k];
+            if(pr)
+            for(int k=0; k<K; ++k)
+            pdl[k] = fmean(c->preg[m.side],m.side,m.r,k) - pregL[t][n*K+k];
             fix(m);
         }
 
@@ -920,6 +1065,9 @@ void nhflow_amr::sub_reflux(int l)
             const reefamr_match &m = rmatch[t][n];
             for(int m2=0; m2<NR; ++m2)
             dlt[m2] = double(m.sgn)*rflux[t][n*NR+m2] - cregR[t][n*NR+m2];
+            if(pr)
+            for(int k=0; k<K; ++k)
+            pdl[k] = rpres[t][n*(size_t)K+k] - pregR[t][n*(size_t)K+k];
             fix(m);
         }
     }
