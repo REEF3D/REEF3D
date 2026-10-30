@@ -2251,6 +2251,19 @@ void sflow_amr::step_end(lexer *p, fdm2D *b, ghostcell *pgc)
     tm[0] += MPI_Wtime()-t0;
     }
 
+    // the outputs on the finest grid (gauges, probes, free surface) read the end-of-step state of the patches up to
+    // the cells around them (fills_current): the face velocities (P, Q) and depths (hx, hy) from it.  The last
+    // stage left them from its own input around the boxes, and a fresh patch of the regrid had none (P = Q = 0)
+    if(nblk==0 && patches_total>0)
+    {
+    comms_off guard(pgc);
+    for(auto q : P)
+    {
+        sflow_amr_patch *c = SP(q);
+        c->pmom->face_velocities(c->pp,c->b,pgc,c->b->WL);
+    }
+    }
+
     // load statistics of the ranks (G 43)
     load_step(p);
 }

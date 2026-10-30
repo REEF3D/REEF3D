@@ -206,6 +206,13 @@ public:
         return L;
     }
 
+    // the cells around the patches that a patch of the same level fills hold its end-of-step state when the
+    // outputs read them (step_end, sub_level: fill_level before the wet-dry update; the face velocities at the
+    // end of step_end), so the outputs on the finest grid may interpolate across them (reefamr::finest_point),
+    // as NHFLOW (fill_out).  Not on multi-block grids, and not with the semi-implicit free surface (A 226 1:
+    // si_step fills the cells around the patches at the start of the step)
+    bool fills_current() const override { return nblk==0 && si==0; }
+
     // S 10: sediment transport on all grids (sflow_amr_sed.cpp): the level-0 sediment_f hands its step over
     void sed_attach(sediment*);
     void sediment_step_sflow(lexer*, fdm2D*, ghostcell*, ioflow*, sediment_f*) override;
