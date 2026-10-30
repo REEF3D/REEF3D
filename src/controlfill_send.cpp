@@ -834,6 +834,8 @@ void control::ctrlsend()
     ii++;
     ictrl[ii] = A781;
     ii++;
+    ictrl[ii] = A767;
+    ii++;
     ictrl[ii] = A758_m;
     ii++;
     ictrl[ii] = A758_n;
@@ -854,6 +856,16 @@ void control::ctrlsend()
     dd++;
     dctrl[dd] = A717_th2;
     dd++;
+    dctrl[dd] = A763;
+    dd++;
+    dctrl[dd] = A764;
+    dd++;
+    ictrl[ii] = A765;
+    ii++;
+    ictrl[ii] = A766;
+    ii++;
+    ictrl[ii] = A768;
+    ii++;
 
     ictrl[ii] = B10;
     ii++;

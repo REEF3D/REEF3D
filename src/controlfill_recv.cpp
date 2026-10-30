@@ -830,6 +830,8 @@ void control::ctrlrecv()
     ii++;
     A781 = ictrl[ii];
     ii++;
+    A767 = ictrl[ii];
+    ii++;
     A758_m = ictrl[ii];
     ii++;
     A758_n = ictrl[ii];
@@ -850,6 +852,16 @@ void control::ctrlrecv()
     dd++;
     A717_th2 = dctrl[dd];
     dd++;
+    A763 = dctrl[dd];
+    dd++;
+    A764 = dctrl[dd];
+    dd++;
+    A765 = ictrl[ii];
+    ii++;
+    A766 = ictrl[ii];
+    ii++;
+    A768 = ictrl[ii];
+    ii++;
 
     B10 = ictrl[ii];
     ii++;

@@ -69,6 +69,9 @@ seastate_source::seastate_source(const seastate_grid &grid, const seastate_sourc
     TQ.assign(nsig,0.0);
     row.assign(nsig,0.0);
 
+    if(prm.st4)
+    st4s.init(g,prm.st4p,seastate_gravity);
+
     // powers of the spectral tail (moments, cap, DIA), once
     {
     const double smax = g.sig[nsig-1];
@@ -324,6 +327,17 @@ bool seastate_source::cap(float *N, double depth) const
     return true;
 }
 
+void seastate_source::limits(const float *k, const float *cg)
+{
+    // as in compute: gamma alpha_PM/(2 sig k^3 c_g)
+    if(prm.komen && prm.limiter>0.0)
+    for(int l=0; l<nsig; ++l)
+    {
+    const double kl = std::max(double(k[l]),1.0e-12);
+    dNmax[l] = prm.limiter*0.0081/(2.0*g.sig[l]*kl*kl*kl*std::max(double(cg[l]),1.0e-12));
+    }
+}
+
 void seastate_source::compute(const float *N, double depth, const float *k, const float *cg, double *P, double *D, int ma, int mb, int la, int lb)
 {
     moments(N,depth,k);
@@ -355,6 +369,14 @@ void seastate_source::compute(const float *N, double depth, const float *k, cons
 
     if(prm.wind && prm.U10>0.0)
     {
+    // ST4: u* from the stress balance with the wave stress of the spectrum (the fixed point), else the drag law of the wind (ustar_of)
+    if(prm.st4)
+    {
+    st4s.wind(N,row.data(),k,cg,prm.U10,prm.wdir,frozen);
+    ustar = st4s.ust;
+    st4s.add(N,k,cg,fa,fb,wa,wb,P,D);
+    }
+    else
     ustar = ustar_of(prm.U10);
 
     const double cw = std::cos(prm.wdir), sw = std::sin(prm.wdir);
@@ -384,7 +406,7 @@ void seastate_source::compute(const float *N, double depth, const float *k, cons
 
                 // exponential growth: Snyder et al. (1981) as Komen et al. (1984), or Yan (1987) as adapted by
                 // van der Westhuysen et al. (2007) (SWAN SWIND5 with IWCAP 7)
-                if(prm.komen && !prm.westh)
+                if(prm.komen && !prm.westh && !prm.st4)
                 P[b] += std::max(0.0,0.25*rho_ratio*(28.0*ustar*cinv*cosdif - 1.0))*sig*double(N[b]);
                 if(prm.westh)
                 {
@@ -421,7 +443,7 @@ void seastate_source::compute(const float *N, double depth, const float *k, cons
         }
 
         // whitecapping (Komen)
-        if(prm.komen && !prm.westh && km_wam>0.0)
+        if(prm.komen && !prm.westh && !prm.st4 && km_wam>0.0)
         {
         const double stp = km_wam*std::sqrt(Etot)/std::sqrt(wc_stpm);
         const double ck = wc_cds*stp*stp*stp*stp;
@@ -500,6 +522,22 @@ void seastate_source::compute(const float *N, double depth, const float *k, cons
     vegetation(N,depth,k,D);
 
     split(N,P,D);
+
+    // ST4 without wind (or calm): the whitecapping alone
+    if(prm.st4 && !(prm.wind && prm.U10>0.0) && Etot>0.0)
+    {
+    st4s.calm();
+    st4s.add(N,k,cg,fa,fb,wa,wb,P,D);
+    }
+
+    if(prm.st4)
+    st4s.unlag();
+}
+
+void seastate_source::project(float *N, const float *k, const float *cg, int ma, int mb) const
+{
+    if(prm.st4 && prm.wind && prm.U10>0.0)
+    st4s.project(N,k,cg,ma,mb);
 }
 
 void seastate_source::vegetation(const float *N, double depth, const float *k, double *D)
@@ -649,14 +687,18 @@ void seastate_source::dia(const float *N, double depth)
 
     // rows and directions of SA needed by the transfers of the window
     const int l0 = std::max(0,fa-isp1), l1 = std::min(shi,fb-ism1);
-    const int m0 = wa-dpad, m1 = wb+dpad, nm = m1-m0+1;
+    const int m0 = wa-dpad, m1 = wb+dpad;
 
     // E for the rows and directions that these SA read (Phase 15: before, every row and direction of the spectrum in
     // every call; the same values): rows l0+ism1 .. l1+isp1, directions m0-dpad .. m1+dpad, continued periodically or
     // (compact sector, A 717) zero beyond the ends; above the grid the sig^-4 tail of the row below
     const int ua = std::max(ism1,l0+ism1), ub = std::min(lhi,l1+isp1);
-    const int ma = std::max(m0-dpad,-2*dpad), mb = std::min(m1+dpad,ndir+2*dpad-1);
     const bool per = g.periodic;
+    // Phase 21b: on a compact sector (A 717, not periodic) E and SA beyond the ends of the sector are zero: they keep the
+    // zeros of the allocation and are neither filled nor computed (the same values)
+    const int ma = per ? std::max(m0-dpad,-2*dpad) : std::max(m0-dpad,0);
+    const int mb = per ? std::min(m1+dpad,ndir+2*dpad-1) : std::min(m1+dpad,ndir-1);
+    const int s0 = per ? m0 : std::max(m0,0), s1 = per ? m1 : std::min(m1,ndir-1), ns = s1-s0+1;
 
     for(int l=ua; l<=ub; ++l)
     {
@@ -692,16 +734,16 @@ void seastate_source::dia(const float *N, double depth)
     for(int l=l0; l<=l1; ++l)
     {
     const double ca = cons*af11[l];
-    const double *__restrict u00 = &ue(l,m0);
-    const double *__restrict up1 = &ue(l+isp1,m0), *__restrict up0 = &ue(l+isp,m0);
-    const double *__restrict um1 = &ue(l+ism1,m0), *__restrict um0 = &ue(l+ism,m0);
-    double *__restrict s1 = &sa1(l,m0), *__restrict s2 = &sa2(l,m0);
-    const size_t x0 = sx(l,m0);
+    const double *__restrict u00 = &ue(l,s0);
+    const double *__restrict up1 = &ue(l+isp1,s0), *__restrict up0 = &ue(l+isp,s0);
+    const double *__restrict um1 = &ue(l+ism1,s0), *__restrict um0 = &ue(l+ism,s0);
+    double *__restrict s1 = &sa1(l,s0), *__restrict s2 = &sa2(l,s0);
+    const size_t x0 = sx(l,s0);
     double *__restrict d1c = &DA1C[x0], *__restrict d1p = &DA1P[x0], *__restrict d1m = &DA1M[x0];
     double *__restrict d2c = &DA2C[x0], *__restrict d2p = &DA2P[x0], *__restrict d2m = &DA2M[x0];
 
         #pragma GCC ivdep
-        for(int n=0; n<nm; ++n)
+        for(int n=0; n<ns; ++n)
         {
         const double e00 = u00[n];
 

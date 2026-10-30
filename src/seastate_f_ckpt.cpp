@@ -367,6 +367,7 @@ void seastate_f::ckpt_write(lexer *p, reefckpt &ck)
 {
     const int nbin = e->grid->nbin;
     const int nr = psolv->ranges_size();
+    const int nl = psolv->lag_size();
     const int ns = (nbin+1)/2;
     const int k = (rck!=nullptr) ? rck->sub : 0;
     const bool mid = (k>0 && p->A700==2);
@@ -374,6 +375,7 @@ void seastate_f::ckpt_write(lexer *p, reefckpt &ck)
     ck.scalar("ss_iter",double(mid ? k : 0));
     ck.scalar("ss_nbin",double(nbin));
     ck.scalar("ss_nr",double(nr));
+    ck.scalar("ss_nl",double(nl));     // Phase 23: the state of the wind input per cell (A 768 1)
 
     // the last change of Hs of the leaf cells (within a stationary step): level 0 by cell, the patches by cell
     vector<double> d0(size_t(p->knox)*p->knoy,0.0);
@@ -414,7 +416,7 @@ void seastate_f::ckpt_write(lexer *p, reefckpt &ck)
     }
 
     vector<double> b;
-    vector<double> r(std::max(nr,1));
+    vector<double> r(std::max(nr,1)), lg(std::max(nl,1));
     auto put = [&](int lev, int I, int J, double d, const float *N, seastate_implicit *s, lexer *pp, int ii, int jj)
     {
         b.push_back(double(lev));
@@ -425,6 +427,11 @@ void seastate_f::ckpt_write(lexer *p, reefckpt &ck)
         {
             s->ranges_get(pp,ii,jj,r.data());
             b.insert(b.end(),r.begin(),r.begin()+nr);
+        }
+        if(nl>0)
+        {
+            s->lag_get(pp,ii,jj,lg.data());
+            b.insert(b.end(),lg.begin(),lg.begin()+nl);
         }
         const size_t at = b.size();
         b.resize(at+ns,0.0);
@@ -460,6 +467,7 @@ bool seastate_f::ckpt_read(lexer *p, ghostcell *pgc, reefckpt &ck, string &msg)
 {
     const int nbin = e->grid->nbin;
     const int nr = psolv->ranges_size();
+    const int nl = psolv->lag_size();
     const int ns = (nbin+1)/2;
 
     if(!ck.has("ss_nbin"))
@@ -473,7 +481,10 @@ bool seastate_f::ckpt_read(lexer *p, ghostcell *pgc, reefckpt &ck, string &msg)
         return false;
     }
     const int nrc = int(ck.get_scalar("ss_nr"));
-    const int rec = 4+nrc+ns;
+    const int nlc = ck.has("ss_nl") ? int(ck.get_scalar("ss_nl")) : 0;
+    const int rec = 4+nrc+nlc+ns;
+    // the state of the wind input (A 768 1): only if both runs keep it, else it starts from zero
+    const bool lags = (nl>0 && nlc==nl);
     // the ranges: only with the same sparsity, else they start again (as at the first visit of a cell)
     const bool ranges = (nr>0 && nrc==nr);
 
@@ -547,10 +558,12 @@ bool seastate_f::ckpt_read(lexer *p, ghostcell *pgc, reefckpt &ck, string &msg)
             dst &d = it->second;
             lexer *pp; fdm_seastate *ee; seastate_implicit *s;
             grid(d,pp,ee,s);
-            memcpy(ee->N->spec(d.ii,d.jj),&bl[q+4+nrc],sizeof(float)*size_t(nbin));
-            found.push_back({&d,&bl[q+4+nrc]});
+            memcpy(ee->N->spec(d.ii,d.jj),&bl[q+4+nrc+nlc],sizeof(float)*size_t(nbin));
+            found.push_back({&d,&bl[q+4+nrc+nlc]});
             if(ranges)
             s->ranges_put(pp,d.ii,d.jj,&bl[q+4]);
+            if(lags)
+            s->lag_put(pp,d.ii,d.jj,&bl[q+4+nrc]);
             if(d.g<0)
             d0[size_t(d.ii)*p->knoy+d.jj] = bl[q+3];
             else

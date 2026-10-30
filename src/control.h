@@ -139,7 +139,7 @@ public:
     double A752,A761;
     int A748,A770,A773,A774,A775;
     double A746,A747,A749,A771,A772,A780,A786;
-    int A790,A792,A794,A796,A797,A738,A798,A799,A781,A715_k,A718,A719,A722;
+    int A790,A792,A794,A796,A797,A738,A798,A799,A781,A767,A715_k,A718,A719,A722;
     int A758_m;
     int A758_n;
     int A762;
@@ -150,6 +150,8 @@ public:
     double A716_w;
     int A717;
     double A717_th1,A717_th2;
+    double A763,A764;
+    int A765,A766,A768;
     double A709,A791,A793,A795,A739;
     double *A760_x,*A760_y;
     double *A722_xs,*A722_ys,*A722_xe,*A722_ye,*A722_kt,*A722_kr,*A722_zc;
