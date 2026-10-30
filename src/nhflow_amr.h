@@ -140,7 +140,7 @@ using namespace std;
 //  without refinement, G 4 tile width, G 3, G 20, G 21, G 12, G 13, G 2, G 5, G 6, G 7, G 22, G 23,
 //  G 30, G 31, G 40), A 510 2/3, A 511 1/2, A 514 all, A 519 0/1, A 520 0/1/2, A 512 0/1/2, A 550 0/1
 //  (with A 510 2/3; on a multi-block grid the blocks break as one grid), A 560 0/1/2/21/22 (turbulence on every grid, nhflow_amr_turb.cpp; not with
-//  G 7 1, A 561, A 563), B 200 0, X 10 0/1/2 (X 60 1, X 16 0, A 516 0/1/3; X 15 8, the sharp
+//  A 561, A 563; with G 7 1 every level steps its own with its time step), B 200 0, X 10 0/1/2 (X 60 1, X 16 0, A 516 0/1/3; X 15 8, the sharp
 //  hull: on every grid, G 7 0/1, the zone around it (G 12, or implicit with G 10 boxes or flags),
 //  A 520 1, one body), S 10 0/1 (bed load on every grid, nhflow_amr_sed.cpp; S 12 0, S 51 0,
 //  S 31 1/2, S 32 1/2), fixed solids A 581-590 (not with G 7 1 or A 516 2/4; not A 580 1), no
@@ -647,6 +647,8 @@ private:
     void turb_blocks_ini(ghostcell*);
     void turb_regrid(ghostcell*, int, vector<reefamr_patch*>&);
     void turb_step(lexer*, ghostcell*);
+    void turb_level(ghostcell*, int);     // G 7 1: the turbulence step of the level-l patches (their own step)
+    void turb_sync(ghostcell*, int);      // G 7 1: the levels above l restricted into level l
     void potential(lexer*, ghostcell*);     // I 11: potential flow initialisation over the blocks
     bool ring0(int ii, int jj) const { return nblk>0 && nring[(ii-p0->imin)*p0->jmax + (jj-p0->jmin)]==1; }
 

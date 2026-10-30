@@ -57,8 +57,10 @@ Architect: Hans Bihs
 //  fixed at 0), the velocity correction on all those grids, the correction added to the pressure.
 //
 //  The time step of level 0 is limited by the cells of level l as if they were 2^l times larger
-//  (dt_cell_size).  The regrid runs at the end of a level-0 step.  Not with floating bodies; the
-//  implicit diffusion per grid (G 31 1 needs all grids at the same time).
+//  (dt_cell_size).  The regrid runs at the end of a level-0 step.  The implicit diffusion per grid
+//  (G 31 1 needs all grids at the same time).  Turbulence (A 560): every level steps its model at the
+//  start of each of its steps with its own time step (turb_level), the finer levels restricted into the
+//  coarser ones after their steps (turb_sync, nhflow_amr_turb.cpp).
 
 namespace
 {
@@ -538,6 +540,9 @@ void nhflow_amr::sub_level(lexer *p, ghostcell *pgc, int l, int k, double t, dou
     }
     }
 
+    // A 560: the turbulence step of the level (the cells around its patches from the level or the parent)
+    turb_level(pgc,l);
+
     // floating bodies: a level coarser than the finest steps with a predicted copy
     const bool bpred = (b6!=nullptr && l<maxlev);
     if(bpred)
@@ -811,6 +816,9 @@ void nhflow_amr::sub_sync(lexer *p, ghostcell *pgc, int l)
 
     if(p->A520>0)
     sub_project(p,pgc,l);
+
+    // A 560: the turbulence of the levels above l into level l
+    turb_sync(pgc,l);
 }
 
 // coarse cells of level l next to the level-(l+1) patches: the summed fine face fluxes replace the

@@ -55,6 +55,14 @@ using namespace nhflow_amr_detail;
 //   4. the old time level of every grid (ktimesave, etimesave; level 0: the driver after the momentum)
 // A fresh patch of a regrid takes its fields from an old patch of the same level where there was one, else linear
 // from its parent.
+//
+// Subcycling (G 7 1, turb_level, turb_sync): level 0 makes its step in the driver as before; every step of a level
+// l >= 1 (sub_level, with the time step of the level) starts with the turbulence step of its patches, the cells
+// around them from a patch of the level or linear from the parent as it is then (the parent has made its own
+// turbulence step at the start of its step: its fields are those of the end of that step, not interpolated in
+// time, as level 0 for the patches without subcycling).  After the two steps of level l+1 the levels above l are
+// restricted into the covered cells of level l and the cells around them filled again (sub_sync).  The time step
+// of the model of a patch is that of its level.
 
 namespace
 {
@@ -493,4 +501,58 @@ void nhflow_amr::turb_step(lexer *p, ghostcell *pgc)
 
     tturb += MPI_Wtime()-t0;
     ++tturb_n;
+}
+
+// G 7 1: the turbulence step of the level-l patches at the start of their step (sub_level): the cells around them,
+// the step with the time step of the level, the old time level
+void nhflow_amr::turb_level(ghostcell *pgc, int l)
+{
+    if(!turb)
+    return;
+
+    const double t0 = MPI_Wtime();
+
+    turb_fill(pgc,l);
+    for(int id : lev[l])
+    turb_run(pgc,*NP(id));
+    for(int id : lev[l])
+    turb_save(pgc,*NP(id));
+
+    tturb += MPI_Wtime()-t0;
+    ++tturb_n;
+}
+
+// G 7 1: after the steps of the levels above l (sub_sync): their fields restricted into the covered cells down to
+// level l, the ghost cells of level 0, the cells around the patches above l again; the old time level of the level-l
+// patches with their restricted cells (level 0: the driver after the momentum)
+void nhflow_amr::turb_sync(ghostcell *pgc, int l)
+{
+    if(!turb || l>=maxlev)
+    return;
+
+    const double t0 = MPI_Wtime();
+
+    wlo = l;
+    whi = maxlev;
+    {
+    comms_off guard(pgc);
+    turb_restrict();
+    }
+    wlo = 0;
+    whi = -1;
+
+    if(l==0)
+    turb_bc(pgc,-1);
+    else
+    for(int id : lev[l])
+    turb_bc(pgc,id);
+
+    for(int ll=MAX(l,1); ll<=maxlev; ++ll)
+    turb_fill(pgc,ll);
+
+    if(l>=1)
+    for(int id : lev[l])
+    turb_save(pgc,*NP(id));
+
+    tturb += MPI_Wtime()-t0;
 }

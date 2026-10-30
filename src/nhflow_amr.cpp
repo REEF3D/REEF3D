@@ -342,7 +342,7 @@ int nhflow_amr::keys_ok(lexer *p)
     // turbulence (nhflow_amr_turb.cpp): k-epsilon and k-omega on every grid, one time step for all levels, without
     // the HLES split and QCR
     if(p->A560!=0 && p->A560!=1 && p->A560!=21 && p->A560!=2 && p->A560!=22) ok=0;
-    if(p->A560!=0 && (p->G7==1 || p->A561!=0 || p->A563!=0.0)) ok=0;
+    if(p->A560!=0 && (p->A561!=0 || p->A563!=0.0)) ok=0;
     // the side-wall friction and wall functions (A 519 2) need the side walls in the boundary lists of the grids; the
     // patches and the blocks have the bed and the surface only
     if(p->A519==2) ok=0;
@@ -404,7 +404,7 @@ void nhflow_amr::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
     if(ok==0)
     {
         if(p->mpirank==0)
-        cout<<"NHFLOW AMR (G 1): only for A 510 2/3, A 511 1/2, A 520 0/1/2, A 512 0/1/2, A 560 0/1/2/21/22 (not with G 7 1, A 561, A 563), A 519 0/1, A 550 0/1, B 200 0, S 10 0/1 (S 12 0, S 51 0, S 31 1/2, S 32 1/2), "
+        cout<<"NHFLOW AMR (G 1): only for A 510 2/3, A 511 1/2, A 520 0/1/2, A 512 0/1/2, A 560 0/1/2/21/22 (not with A 561, A 563), A 519 0/1, A 550 0/1, B 200 0, S 10 0/1 (S 12 0, S 51 0, S 31 1/2, S 32 1/2), "
             <<"X 10 0/1/2 (X 60 1, X 16 0, A 516 0/1/3), fixed solids A 581-590 (not with G 7 1, A 516 2/4), no solids of the grid file (A 580 1), membranes, nets, DEM, particles, rods or FEM structures, and on a 2D grid Cartesian "
             <<"-- refinement switched off"<<endl;
         maxlev=0;
