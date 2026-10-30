@@ -153,7 +153,7 @@
     158.499999792,
     147.126922125,
     59.315167423,
-    1.5312917956968926,
+    1.5312112428757985,
     1.9580028740159513e-05,
     9.595157993716e-12
    ],
@@ -162,7 +162,7 @@
     158.499999792,
     147.126922125,
     59.315167423,
-    1.5312948650328444,
+    1.5312334732573505,
     2.0557368685489056e-05,
     1.0723366631356e-11
    ]
@@ -201,7 +201,7 @@
   0.004210640202610888,
   0.004212153612276331
  ],
- "blessed_from": "/home/claude/build3/stage/REEF3D",
- "date": "2026-10-27",
- "note": "re-blessed at hans_dev 9996bd2 + patches 0007-0010: stale or missing at 9996bd2 (identical with and without the patches)"
+ "blessed_from": "/home/claude/reg/new/REEF3D",
+ "date": "2026-10-30",
+ "note": "REEFAMR/0135: SFLOW AMR outputs on the finest grid across the cells around the patches (fills_current)"
 }

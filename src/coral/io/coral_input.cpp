@@ -1455,6 +1455,18 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
             sp.aero.bem.tangential = !it.has("no_tangential");
             sp.aero.bem.induction = !it.has("no_induction");
             sp.aero.bem.drag_in_induction = !it.has("no_drag_induction");
+            sp.aero.dyn_inflow.on = it.has("dynamic_inflow");
+            sp.aero.dyn_inflow.tau1 = it.get("di_tau1", 0.0);
+            sp.aero.dyn_inflow.k = it.get("di_k", sp.aero.dyn_inflow.k);
+            if(it.has("dynamic_stall"))
+            {
+                const std::string ds = it.word("dynamic_stall");
+                if(ds=="oye") sp.aero.dyn_stall.model = 1;
+                else if(ds=="hgm") sp.aero.dyn_stall.model = 2;
+                else it.fail("dynamic_stall must be oye or hgm");
+                sp.aero.dyn_stall.T_f0 = it.get("ds_T_f0", -1.0);
+                sp.aero.dyn_stall.T_p = it.get("ds_T_p", -1.0);
+            }
             const int it_ = it.find("tower");
             if(it_ >= 0)
             {

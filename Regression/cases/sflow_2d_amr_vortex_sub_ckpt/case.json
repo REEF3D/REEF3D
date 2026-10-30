@@ -1,0 +1,25 @@
+{
+ "description": "SFLOW AMR, explicit (A 226 0), under the parametric vortex of sflow_2d_si_vortex_gahm_mpi2 (W 200 3, met-vortex.trk, Coriolis W 211 2, Flather edges with the inverse barometer): one level following the surge (G 21 0.01, regrid every 4 steps), subcycled (G 7 1), placement test mode (G 40 2), 2 ranks, a checkpoint every 50 steps (P 48 50, P 49 0): the uninterrupted run of sflow_2d_amr_vortex_sub_restart.",
+ "solver": "sflow",
+ "np": 2,
+ "steps": 100,
+ "files": [
+  "met-vortex.trk"
+ ],
+ "tags": [
+  "2d",
+  "sflow",
+  "amr",
+  "adaptive",
+  "subcycling",
+  "met",
+  "vortex",
+  "mpi",
+  "place",
+  "checkpoint"
+ ],
+ "covers": [
+  "met_forcing (W 200 3, W 211 2) on the patches of the explicit scheme, subcycled and placed"
+ ],
+ "architect": "Hans Bihs"
+}

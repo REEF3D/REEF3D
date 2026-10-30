@@ -35,6 +35,8 @@ Architect: Hans Bihs
 //   chi = (0.6 a + 1) gamma, the induction a (1 + 15 pi/32 (r/R) tan(chi/2) cos psi), psi the azimuth of the station
 //   from the downwind side of the cross flow
 //   loads: F = w (fn n + ft t), M = w mz (t x n) at P (mz nose-up positive), w the station's share of the span
+// A station at the tip or at the hub of the set-up geometry keeps r = R_tip or R_hub (no load with the tip or hub
+// loss), whatever rounding in the turned frames or the blade's deflection does to its radius.
 // Tower potential flow (AeroDyn's TwrPotent 1): around a tower from base to top with linear diameter D, the wind
 // normal to the tower axis U, x along it and y across, scaled by D/2: u = U (1 - (x^2 - y^2)/(x^2 + y^2)^2),
 // v = -2 U x y/(x^2 + y^2)^2 outside the tower, between its base and top.
@@ -45,6 +47,15 @@ Architect: Hans Bihs
 // position part, a blade turned out of the plane of the (fixed) shaft axis gave a spurious stiffness and Newton needed
 // twice the iterations on a flexible tower; without the whole rotor in the finite-difference Jacobian a turbine on a
 // flexible monopile runs 3.5 times faster.
+// Unsteady aerodynamics (coral_unsteady_aero.h; settings dyn_inflow, dyn_stall): after the quasi-steady solution of a
+// station, its induced velocities W_qs = (a Vx, a' Vy) (skewed wake included) pass Øye's dynamic inflow filter, and the
+// angle of attack from the filtered inflow (Vx - W_n, Vy + W_t) passes the dynamic stall model (Øye or Beddoes-Leishman
+// HGM, with the section's pitch and torsion rate relative to the hub and the rate of a pitch table); the loads follow
+// from the resulting cl, cd, cm (as AeroDyn: the momentum balance with the static polar, the unsteady models on the
+// loads). The states are committed once per converged step (commit) and each trial state of a step is integrated from
+// them (eval, tangent: the aerodynamic damping then sees the lag of the induction and of the separation); tau1 from
+// the area-weighted mean axial induction and the wind at the hub at the committed state. Before initialize() (static
+// equilibrium, modes) and without the models: quasi-steady. save_state/load_state carry the states for a restart.
 // Rotor values: thrust T = sum F.e, torque Q = sum ((P - H) x F + M).e about the hub centre H, power Q omega, Cp and Ct
 // with the wind speed at the hub and the swept area in the rotor plane; aerodynamic root moments of each blade about
 // the root, out of the rotor plane (about span x n, positive for downwind thrust) and in it (about span x t, positive
@@ -56,6 +67,7 @@ Architect: Hans Bihs
 #include"coral/core/coral_load.h"
 #include"coral/core/coral_body.h"
 #include"coral/aero/coral_bem.h"
+#include"coral/aero/coral_unsteady_aero.h"
 #include"coral/wind/coral_wind.h"
 #include<memory>
 #include<string>
@@ -87,6 +99,9 @@ namespace coral
         int tower_body = -1;
         Vec3 tower_base = Vec3::Zero(), tower_top = Vec3::UnitZ();     // global at the set-up
         double D_base = 0.0, D_top = 0.0;
+        // unsteady aerodynamics (coral_unsteady_aero.h)
+        dynamic_inflow_settings dyn_inflow;
+        dynamic_stall_settings dyn_stall;
     };
 
     struct station_load
@@ -109,11 +124,15 @@ namespace coral
         std::string name() const override {return name_;}
         coupling_kind coupling() const override {return coupling_kind::local;}
         void coupled_bodies(std::vector<int>&) const override;
+        void initialize(const model&, double t0) override;
         void eval(const model&, double t, VecX &f) const override;
+        void commit(const model&, double t, double dt) override;
         bool has_tangent() const override {return true;}
         void tangent(const model&, double t, double cK, double cC, double cM, std::vector<triplet>&) const override;
         void channel_names(std::vector<std::string>&) const override;
         void channel_values(const model&, double t, std::vector<double>&) const override;
+        void save_state(std::vector<double>&) const override;
+        bool load_state(const std::vector<double>&, size_t &k) override;
 
         // pitch of each blade [rad], or a collective table in time (rad)
         void set_pitch(int blade, double p) {pitch_[blade] = p;}
@@ -130,14 +149,27 @@ namespace coral
         Vec3 hub_centre(const model&) const;
         const std::vector<aero_station> &stations() const {return st_;}
         const rotor_aero_settings &settings() const {return set_;}
+        bool unsteady() const {return set_.dyn_inflow.on || set_.dyn_stall.model > 0;}
+        double tau1() const {return tau1_;}
+        // the committed unsteady states of the stations (in the order of stations())
+        const std::vector<inflow_state> &inflow_states() const {return di_;}
+        const std::vector<stall_state> &stall_states() const {return ds_;}
 
     private:
         // the inflow state at the hub shared by all stations
         struct hub_state {Vec3 H, e; double gam; Vec3 cross;};
         hub_state hub(const model&, double t) const;
-        // one station on the body b (its state as given)
+        // one station on the body b (its state as given); i >= 0: the station's index, for the unsteady aerodynamics
+        // (with di, ds: their states at t)
         void station(const model&, const rigid_body &b, const aero_station&, const hub_state&, double t, station_load&,
-                     const Vec3 &dV=Vec3::Zero()) const;
+                     const Vec3 &dV=Vec3::Zero(), int i=-1, inflow_state *di=nullptr, stall_state *ds=nullptr) const;
+        // the unsteady aerodynamics of a station after its quasi-steady solution (el, Vx, Vy: its element and inflow;
+        // c: its chord direction, global)
+        void unsteady_station(const model&, const rigid_body &b, const aero_station&, const hub_state&, double t,
+                              station_load&, const bem_element &el, double Vx, double Vy, const Vec3 &c, int i,
+                              inflow_state *di, stall_state *ds) const;
+        // the unsteady states at t of all stations: steady (initialize) or a step from the committed ones
+        void advance(const model&, double t);
 
         std::string name_;
         std::shared_ptr<const wind_inflow> wind_;
@@ -150,6 +182,14 @@ namespace coral
         rotor_aero_settings set_;
         Vec3 tb_, tt_;                     // tower in its body frame
         std::vector<double> pitch_, pt_, pv_;
+        std::vector<char> edge_;           // per station: 1 at the tip, 2 at the hub (set-up geometry), else 0
+        // unsteady aerodynamics: the committed states at tc_ (started_ after initialize; before it, and without the
+        // unsteady models, quasi-steady)
+        bool started_ = false;
+        double tc_ = 0.0, tau1_ = 0.0;
+        std::vector<inflow_state> di_;
+        std::vector<stall_state> ds_;
+        std::vector<stall_polar> sp_;     // per airfoil
     };
 }
 

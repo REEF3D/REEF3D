@@ -225,6 +225,7 @@ Architect: Hans Bihs
 //        [gearbox <N>] [gen_inertia <J_hss>] [shaft <k> <c>] [efficiency <eta>]
 //        [generator none | constant <T> | slip <slope> <rpm_sync> | k_omega2 <K> [<T_max>]]
 //        [no_skew] [no_tip_loss] [no_hub_loss] [no_tangential] [no_induction] [no_drag_induction]
+//        [dynamic_inflow [di_tau1 <s>] [di_k <k>]] [dynamic_stall oye | hgm [ds_T_f0 <T>] [ds_T_p <T>]]
 //        [tower <x y z base> <x y z top> <D_base> <D_top> [tower_body <b>]]
 //        [pitch_joints [pitch_freq <Hz>] [pitch_zeta <z>]] [blade_elements <n> [blade_beta <s>] [ea_per_mass <EA/m>] [gj_factor <f>]]
 //        (wind turbine rotor: hub (body <name>_hub, <name>_gen with the shaft torsion) turning in the revolute joint
@@ -235,6 +236,10 @@ Architect: Hans Bihs
 //        shaft (N m, rad/s; rpm_sync of the high-speed shaft), shaft torsion k [N m/rad], c [N m s/rad] on the
 //        low-speed shaft with the generator on a body of its own; quasi-steady blade element momentum with
 //        Prandtl's tip and hub loss, Buhl's correction and the skewed wake; tower potential flow;
+//        dynamic_inflow: Øye's filter of the induced velocities (tau1 from the mean induction and the hub wind, or
+//        di_tau1; k 0.6, or di_k; channel <name>_tau1); dynamic_stall: Øye's (T_f0 6) or the Beddoes-Leishman model of
+//        Hansen, Gaunaa and Madsen (A1, A2, b1, b2, T_f0, T_p from the airfoil file, else Jones' 0.165, 0.335, 0.0455, 0.3
+//        and AeroDyn's 3, 1.7; ds_T_f0 and ds_T_p override) (coral/aero/coral_unsteady_aero.h);
 //        channels <name>_azimuth _rpm _T _Q _P _Cp _Ct _lambda _U _yaw _pitch _b<k>_Moop _b<k>_Mip and
 //        <name>_dt_rpm_rotor _rpm_gen _T_gen _P_gen _T_shaft; blades rigid on the hub unless: pitch_joints: each blade
 //        on a pitch bearing (body <name>_pitch<k>, revolute joint <name>_pitch<k> on the hub, positive towards feather)

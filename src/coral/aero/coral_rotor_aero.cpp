@@ -41,6 +41,20 @@ rotor_aero::rotor_aero(const model &m, std::shared_ptr<const wind_inflow> wind, 
     tb_ = m.body(s.tower_body).to_body(s.tower_base);
     tt_ = m.body(s.tower_body).to_body(s.tower_top);
     pitch_.assign(std::max(s.B, 1), 0.0);
+    // the stations at the tip and at the hub (in the set-up geometry): no load with the tip and hub loss, whatever
+    // rounding or deflection does to their radius later (a load switching on and off there stalls Newton)
+    {
+        const Vec3 e = shaft.axis(m);
+        for(const aero_station &a : st_)
+        {
+            const Vec3 d = m.body(a.body).point(a.s) - H;
+            const double r = (d - d.dot(e)*e).norm();
+            edge_.push_back(r >= s.R_tip*(1.0 - 1.0e-9) ? 1 : (s.R_hub > 0.0 && r <= s.R_hub*(1.0 + 1.0e-9)) ? 2 : 0);
+        }
+    }
+    if(s.dyn_stall.model > 0)
+        for(const airfoil &a : af_)
+            sp_.emplace_back(a, 0.0, s.dyn_stall);
 }
 
 void rotor_aero::coupled_bodies(std::vector<int> &b) const
@@ -112,7 +126,7 @@ rotor_aero::hub_state rotor_aero::hub(const model &m, double t) const
 }
 
 void rotor_aero::station(const model &m, const rigid_body &b, const aero_station &s, const hub_state &h, double t,
-                         station_load &o, const Vec3 &dV) const
+                         station_load &o, const Vec3 &dV, int i, inflow_state *dio, stall_state *dso) const
 {
     const Vec3 &e = h.e;
     o.P = b.point(s.s);
@@ -129,6 +143,9 @@ void rotor_aero::station(const model &m, const rigid_body &b, const aero_station
     bem_element el;
     el.r = dr.norm(); el.chord = s.chord; el.theta = o.theta;
     el.R = set_.R_tip; el.R_hub = set_.R_hub; el.B = set_.B;
+    const int ie = int(&s - st_.data());
+    if(ie >= 0 && ie < (int)edge_.size() && edge_[ie])
+        el.r = edge_[ie]==1 ? set_.R_tip : set_.R_hub;
     el.af = (s.airfoil >= 0 && s.airfoil < (int)af_.size()) ? &af_[s.airfoil] : nullptr;
     o.bem = bem_solve(el, Vx, Vy, set_.rho, set_.bem);
     if(h.gam > 0.0 && o.bem.region != 0 && el.r > 0.0)
@@ -138,8 +155,162 @@ void rotor_aero::station(const model &m, const rigid_body &b, const aero_station
         const double K = 15.0*M_PI/32.0*(el.r/set_.R_tip)*std::tan(0.5*chi)*cpsi;
         o.bem = bem_solve(el, Vx, Vy, set_.rho, set_.bem, K);
     }
+    if(i >= 0 && unsteady())
+        unsteady_station(m, b, s, h, t, o, el, Vx, Vy, c, i, dio, dso);
     o.F = s.w*(o.bem.fn*o.n + o.bem.ft*o.t);
     o.M = s.w*o.bem.mz*o.t.cross(o.n);
+}
+
+void rotor_aero::unsteady_station(const model &m, const rigid_body &b, const aero_station &s, const hub_state &h, double t,
+                                  station_load &o, const bem_element &el, double Vx, double Vy, const Vec3 &c, int i,
+                                  inflow_state *dio, stall_state *dso) const
+{
+    // at the tip or the hub with their loss: no load, the states kept
+    if(o.bem.region==0 && o.bem.F==0.0)
+    {
+        if(dio) *dio = i < (int)di_.size() ? di_[i] : inflow_state();
+        if(dso) *dso = i < (int)ds_.size() ? ds_[i] : stall_state();
+        return;
+    }
+    // the quasi-steady induced velocities (skewed wake included) and the dynamic ones
+    const double Wqs[2] = {o.bem.a*Vx, o.bem.ap*Vy};
+    const double dt = t - tc_;
+    inflow_state di = inflow_steady(Wqs);
+    double ux = Vx - Wqs[0], uy = Vy + Wqs[1];
+    if(set_.dyn_inflow.on && started_)
+    {
+        di = inflow_step(di_[i], Wqs, tau1_, oye_tau2(tau1_, el.r/set_.R_tip), set_.dyn_inflow.k, dt);
+        ux = Vx - di.W[0];
+        uy = Vy + di.W[1];
+    }
+    if(dio) *dio = di;
+    bem_result &r = o.bem;
+    r.phi = std::atan2(ux, uy);
+    r.alpha = r.phi - el.theta;
+    r.W = std::hypot(ux, uy);
+    airfoil_coef k = el.af ? el.af->coefficients(r.alpha, el.re) : airfoil_coef{};
+    if(set_.dyn_stall.model > 0 && el.af)
+    {
+        // the section's nose-up angular velocity: its rotation about the span relative to the hub (pitch joints,
+        // torsion) and the rate of a pitch table; the rotation of the hub itself leaves the chord's angle to the rotor
+        // plane unchanged
+        const Vec3 z = b.R*s.z0;
+        const rigid_body &hb = m.body(hub_);
+        const double wz = (b.R*b.w - hb.R*hb.w).dot(z);
+        const Vec3 zc = z.cross(c);
+        const double cn = c.dot(o.n), ct = c.dot(o.t);
+        const double g = (-zc.dot(o.n)*ct + cn*zc.dot(o.t))/std::max(cn*cn + ct*ct, 1.0e-30);
+        double pr = 0.0;
+        if(!pt_.empty())
+            pr = (pitch(s.blade, t + 1.0e-3) - pitch(s.blade, t - 1.0e-3))/2.0e-3;
+        stall_input in;
+        in.alpha = r.alpha; in.U = r.W; in.chord = el.chord;
+        in.omega = -(g*wz + pr);
+        const stall_polar &sp = sp_[s.airfoil];
+        stall_state ds;
+        if(started_)
+            k = stall_step(sp, set_.dyn_stall.model, ds_[i], in, dt, ds);
+        else
+            ds = stall_steady(sp, set_.dyn_stall.model, in);
+        if(dso) *dso = ds;
+    }
+    r.cl = k.cl; r.cd = k.cd; r.cm = k.cm;
+    r.cn = k.cl*std::cos(r.phi) + k.cd*std::sin(r.phi);
+    r.ct = k.cl*std::sin(r.phi) - k.cd*std::cos(r.phi);
+    const double q = 0.5*set_.rho*r.W*r.W;
+    r.fn = q*el.chord*r.cn;
+    r.ft = q*el.chord*r.ct;
+    r.mz = q*el.chord*el.chord*r.cm;
+}
+
+void rotor_aero::advance(const model &m, double t)
+{
+    const hub_state h = hub(m, t);
+    const size_t n = st_.size();
+    std::vector<inflow_state> di(n);
+    std::vector<stall_state> ds(n);
+    double sa = 0.0, sw = 0.0;
+    for(size_t i=0; i<n; ++i)
+    {
+        station_load o;
+        station(m, m.body(st_[i].body), st_[i], h, t, o, Vec3::Zero(), (int)i, &di[i], &ds[i]);
+        // the mean axial induction (area weighted) of tau1
+        const double r = (o.P - h.H - (o.P - h.H).dot(h.e)*h.e).norm();
+        if(o.bem.region != 0)
+        {
+            sa += st_[i].w*r*o.bem.a;
+            sw += st_[i].w*r;
+        }
+    }
+    di_ = std::move(di);
+    ds_ = std::move(ds);
+    if(set_.dyn_inflow.tau1 > 0.0)
+        tau1_ = set_.dyn_inflow.tau1;
+    else
+        tau1_ = oye_tau1(sw > 0.0 ? sa/sw : 0.0, set_.R_tip, wind_->velocity(h.H, t).norm());
+    tc_ = t;
+}
+
+void rotor_aero::initialize(const model &m, double t0)
+{
+    if(!unsteady())
+        return;
+    started_ = false;
+    advance(m, t0);
+    started_ = true;
+}
+
+void rotor_aero::commit(const model &m, double t, double)
+{
+    if(!unsteady() || !started_)
+        return;
+    advance(m, t);
+}
+
+void rotor_aero::save_state(std::vector<double> &v) const
+{
+    if(!unsteady())
+        return;
+    v.push_back(started_ ? 1.0 : 0.0);
+    v.push_back(tc_);
+    v.push_back(tau1_);
+    v.push_back((double)di_.size());
+    for(size_t i=0; i<di_.size(); ++i)
+    {
+        const inflow_state &a = di_[i];
+        for(int j=0; j<2; ++j) {v.push_back(a.Wqs[j]); v.push_back(a.Wint[j]); v.push_back(a.W[j]);}
+        const stall_state &b = i < ds_.size() ? ds_[i] : stall_state();
+        for(int j=0; j<4; ++j) v.push_back(b.x[j]);
+        for(double x : {b.a34, b.clp, b.fF, b.fst}) v.push_back(x);
+    }
+}
+
+bool rotor_aero::load_state(const std::vector<double> &v, size_t &k)
+{
+    if(!unsteady())
+        return true;
+    if(k + 4 > v.size())
+        return false;
+    started_ = v[k] != 0.0;
+    tc_ = v[k+1];
+    tau1_ = v[k+2];
+    const size_t n = (size_t)v[k+3];
+    k += 4;
+    if(n != 0 && n != st_.size())
+        return false;
+    if(k + 14*n > v.size())
+        return false;
+    di_.assign(n, inflow_state());
+    ds_.assign(n, stall_state());
+    for(size_t i=0; i<n; ++i)
+    {
+        inflow_state &a = di_[i];
+        for(int j=0; j<2; ++j) {a.Wqs[j] = v[k++]; a.Wint[j] = v[k++]; a.W[j] = v[k++];}
+        stall_state &b = ds_[i];
+        for(int j=0; j<4; ++j) b.x[j] = v[k++];
+        b.a34 = v[k++]; b.clp = v[k++]; b.fF = v[k++]; b.fst = v[k++];
+    }
+    return true;
 }
 
 void rotor_aero::station_loads(const model &m, double t, std::vector<station_load> &out) const
@@ -147,7 +318,7 @@ void rotor_aero::station_loads(const model &m, double t, std::vector<station_loa
     out.resize(st_.size());
     const hub_state h = hub(m, t);
     for(size_t i=0; i<st_.size(); ++i)
-        station(m, m.body(st_[i].body), st_[i], h, t, out[i]);
+        station(m, m.body(st_[i].body), st_[i], h, t, out[i], Vec3::Zero(), (int)i);
 }
 
 void rotor_aero::eval(const model &m, double t, VecX &f) const
@@ -167,17 +338,19 @@ void rotor_aero::tangent(const model &m, double t, double cK, double cC, double,
         return;
     const hub_state h = hub(m, t);
     // the generalized force of one station on its body: [F (global); M about the CoG (body frame)]
-    auto gen = [&](const rigid_body &b, const aero_station &s)
+    auto gen = [&](const rigid_body &b, const aero_station &s, int i)
     {
         station_load o;
-        station(m, b, s, h, t, o);
+        station(m, b, s, h, t, o, Vec3::Zero(), i);
         Vec6 g;
         g.head<3>() = o.F;
         g.tail<3>() = b.R.transpose()*((o.P - b.x).cross(o.F) + o.M);
         return g;
     };
-    for(const aero_station &s : st_)
+    for(size_t is=0; is<st_.size(); ++is)
     {
+        const aero_station &s = st_[is];
+        const int i = (int)is;
         if(s.body < 0)
             continue;
         const rigid_body &b0 = m.body(s.body);
@@ -185,13 +358,13 @@ void rotor_aero::tangent(const model &m, double t, double cK, double cC, double,
         const double ev = 1.0e-5*std::max(1.0, b0.point_velocity(s.s).norm()), er = 1.0e-7;
         // dF/dV and dM/dV of the station's force and moment by its relative inflow V = u - v_P
         station_load o0;
-        station(m, b0, s, h, t, o0);
+        station(m, b0, s, h, t, o0, Vec3::Zero(), i);
         Mat3 dF, dM;
         for(int j=0; j<3; ++j)
         {
             Vec3 d = Vec3::Zero(); d(j) = ev;
             station_load o1;
-            station(m, b0, s, h, t, o1, d);
+            station(m, b0, s, h, t, o1, d, i);
             dF.col(j) = (o1.F - o0.F)/ev;
             dM.col(j) = (o1.M - o0.M)/ev;
         }
@@ -210,7 +383,7 @@ void rotor_aero::tangent(const model &m, double t, double cK, double cC, double,
         {
             rigid_body rp = b0, rm = b0;
             rp.R = b0.R*exp_so3(er*s.z0); rm.R = b0.R*exp_so3(-er*s.z0);
-            const Vec6 G = (gen(rp, s) - gen(rm, s))/(2.0*er);
+            const Vec6 G = (gen(rp, s, i) - gen(rm, s, i))/(2.0*er);
             Kq.rightCols<3>() = G*s.z0.transpose();
         }
         const int o = 6*s.body;
@@ -258,6 +431,8 @@ void rotor_aero::channel_names(std::vector<std::string> &c) const
         c.push_back(name_ + "_b" + std::to_string(k + 1) + "_Moop");
         c.push_back(name_ + "_b" + std::to_string(k + 1) + "_Mip");
     }
+    if(set_.dyn_inflow.on)
+        c.push_back(name_ + "_tau1");
 }
 
 void rotor_aero::channel_values(const model &m, double t, std::vector<double> &v) const
@@ -289,6 +464,8 @@ void rotor_aero::channel_values(const model &m, double t, std::vector<double> &v
         v.push_back(M.dot(z.cross(n)));     // out of the plane: positive for a downwind thrust
         v.push_back(M.dot(z.cross(td)));    // in the plane: positive for a driving force
     }
+    if(set_.dyn_inflow.on)
+        v.push_back(tau1_);
 }
 
 }
