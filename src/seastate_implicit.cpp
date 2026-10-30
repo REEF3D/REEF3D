@@ -1356,6 +1356,10 @@ void seastate_implicit::store(float *N, int l, int ma, int nq, double dmax, bool
     for(int n=na; n<=nb; ++n)
     tso[o+n] = std::max(tso[o+n],0.0);
 
+    if(nup!=nullptr)
+    for(int n=na; n<=nb; ++n)
+    tso[o+n] = std::min(tso[o+n],nup[l]);
+
     for(int n=na; n<=nb; ++n)
     Nl[n] = float(tso[o+n]);
 }
@@ -1551,6 +1555,9 @@ void seastate_implicit::cell(lexer *p, fdm_seastate *e, int q, int ci, int cj, c
     }
 
     const double *lim = (src!=nullptr) ? src->limit() : nullptr;
+
+    // ST4 (A 732 3): the upper bound of the spectrum per frequency (ecWAM FLMAX, Phillips alpha 0.031)
+    nup = (src!=nullptr) ? src->upper() : nullptr;
 
     // triads of this cell (the window of the next sweeps includes the lower frequencies that feed a bin)
     if(sparse && src!=nullptr)
@@ -1934,6 +1941,7 @@ void seastate_implicit::cell(lexer *p, fdm_seastate *e, int q, int ci, int cj, c
     if(rout!=nullptr)
     {
     float *R = raccum ? rout->spec(ic>>rshift,jc>>rshift) : rout->spec(ic,jc);
+    const int ltail = (src!=nullptr) ? src->tail_from() : nsig;
 
         if(R!=nullptr)
         {
@@ -1957,6 +1965,9 @@ void seastate_implicit::cell(lexer *p, fdm_seastate *e, int q, int ci, int cj, c
                 // Phase 15: with the spectral sparsity a zero bin is inactive (below the threshold, set to zero by
                 // the sweep), its equation does not hold at the converged solution: no residual
                 if(sparse && !(Nl[n]>0.0f))
+                r = 0.0;
+                // Phase 20: the bins of the diagnostic tail (A 732 3) are set after the solve, their equations do not hold either
+                if(l>=ltail)
                 r = 0.0;
                 if(raccum)
                 R[g.bin(l,ma+n)] += float(r);
@@ -2064,8 +2075,11 @@ void seastate_implicit::cell(lexer *p, fdm_seastate *e, int q, int ci, int cj, c
 
             if(src!=nullptr)
             {
+            // ST4 (A 732 3): u*, the growth rates and the cut-off of the compute of this cell
             src->set_rows(rsum.data());
+            src->freeze(true);
             src->compute(N,d,kc,cgc,P.data(),D.data(),ma+na2,ma+nb2,l,l);
+            src->freeze(false);
             }
 
         wlo[l] = na2;
@@ -2136,6 +2150,10 @@ void seastate_implicit::cell(lexer *p, fdm_seastate *e, int q, int ci, int cj, c
 
     store(N,l,ma,nq,lim!=nullptr ? lim[l] : -1.0,so);
     }
+
+        // ST4 (A 732 3): the diagnostic tail above the cut-off of the source terms of this solve
+        if(src!=nullptr)
+        src->project(N,kc,cgc,ma,mb);
 
         // the cell has reached the balance of its source terms with the inflow: the distance of its
         // energy to the fixed point, estimated from the change d of the last solve and the contraction

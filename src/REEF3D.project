@@ -129,6 +129,7 @@
         <File Name="seastate_exchange.h"/>
         <File Name="seastate_implicit.h"/>
         <File Name="seastate_source.h"/>
+        <File Name="seastate_st4.h"/>
         <File Name="seastate_sflow.h"/>
         <File Name="seastate_surfbeat.h"/>
         <File Name="seastate_roller.h"/>
@@ -1618,6 +1619,7 @@
         </VirtualDirectory>
         <VirtualDirectory Name="Sources">
           <File Name="seastate_source.cpp"/>
+          <File Name="seastate_st4.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Coupling">
           <File Name="seastate_f_forcing.cpp"/>

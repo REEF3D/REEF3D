@@ -69,6 +69,9 @@ seastate_source::seastate_source(const seastate_grid &grid, const seastate_sourc
     TQ.assign(nsig,0.0);
     row.assign(nsig,0.0);
 
+    if(prm.st4)
+    st4s.init(g,prm.st4p,seastate_gravity);
+
     // powers of the spectral tail (moments, cap, DIA), once
     {
     const double smax = g.sig[nsig-1];
@@ -355,6 +358,14 @@ void seastate_source::compute(const float *N, double depth, const float *k, cons
 
     if(prm.wind && prm.U10>0.0)
     {
+    // ST4: u* from the stress balance with the wave stress of the spectrum (the fixed point), else the drag law of the wind (ustar_of)
+    if(prm.st4)
+    {
+    st4s.wind(N,row.data(),k,cg,prm.U10,prm.wdir,frozen);
+    ustar = st4s.ust;
+    st4s.add(N,k,cg,fa,fb,wa,wb,P,D);
+    }
+    else
     ustar = ustar_of(prm.U10);
 
     const double cw = std::cos(prm.wdir), sw = std::sin(prm.wdir);
@@ -384,7 +395,7 @@ void seastate_source::compute(const float *N, double depth, const float *k, cons
 
                 // exponential growth: Snyder et al. (1981) as Komen et al. (1984), or Yan (1987) as adapted by
                 // van der Westhuysen et al. (2007) (SWAN SWIND5 with IWCAP 7)
-                if(prm.komen && !prm.westh)
+                if(prm.komen && !prm.westh && !prm.st4)
                 P[b] += std::max(0.0,0.25*rho_ratio*(28.0*ustar*cinv*cosdif - 1.0))*sig*double(N[b]);
                 if(prm.westh)
                 {
@@ -421,7 +432,7 @@ void seastate_source::compute(const float *N, double depth, const float *k, cons
         }
 
         // whitecapping (Komen)
-        if(prm.komen && !prm.westh && km_wam>0.0)
+        if(prm.komen && !prm.westh && !prm.st4 && km_wam>0.0)
         {
         const double stp = km_wam*std::sqrt(Etot)/std::sqrt(wc_stpm);
         const double ck = wc_cds*stp*stp*stp*stp;
@@ -500,6 +511,19 @@ void seastate_source::compute(const float *N, double depth, const float *k, cons
     vegetation(N,depth,k,D);
 
     split(N,P,D);
+
+    // ST4 without wind (or calm): the whitecapping alone
+    if(prm.st4 && !(prm.wind && prm.U10>0.0) && Etot>0.0)
+    {
+    st4s.calm();
+    st4s.add(N,k,cg,fa,fb,wa,wb,P,D);
+    }
+}
+
+void seastate_source::project(float *N, const float *k, const float *cg, int ma, int mb) const
+{
+    if(prm.st4 && prm.wind && prm.U10>0.0)
+    st4s.project(N,k,cg,ma,mb);
 }
 
 void seastate_source::vegetation(const float *N, double depth, const float *k, double *D)

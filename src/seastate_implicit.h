@@ -412,6 +412,7 @@ private:
     vector<double> tdi, tla, tup, trh, tsi, trd, tcp, tdp, tso;   // theta systems of all frequencies [l*ndir+n]
     vector<int> tok;                    // per frequency: 0 after a vanishing pivot
     void store(float *N, int l, int ma, int nq, double dmax, bool clip);
+    const double *nup = nullptr;            // ST4: upper bound of N per frequency (ecWAM FLMAX), nullptr: none
 
     // spectral sparsity
     double eps = 0.0;

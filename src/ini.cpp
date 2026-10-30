@@ -318,7 +318,11 @@ void control::ini_default()
     A730=0;           // int wind: 0 none, 1 uniform (A 731), 2 the met forcing W 200 (uniform, met-forcing.r3m, vortex, blend)
     A731_u10=0.0;     // double wind speed U10 [m/s]
     A731_dir=0.0;     // double wind direction [deg], direction the wind blows to, ccw from +x
-    A732=0;           // int deep-water physics: 0 off, 1 Komen (wind input with wind, whitecapping, quadruplets A 733), 2 van der Westhuysen (Yan wind input, saturation-based whitecapping)
+    A732=0;           // int deep-water physics: 0 off, 1 Komen (wind input with wind, whitecapping, quadruplets A 733), 2 van der Westhuysen (Yan wind input, saturation-based whitecapping), 3 Ardhuin et al. 2010 (ST4 as ecWAM IPHYS 1: input with sheltering, swell damping, saturation whitecapping, u* from the wave stress, diagnostic tail)
+    A763=1.40;        // double A 732 3: beta_max of the Janssen growth rate (ecWAM BETAMAX)
+    A764=0.25;        // double A 732 3: sheltering of the input by the wave stress of the lower frequencies (ecWAM TAUWSHELTER), 0 off
+    A765=1;           // int A 732 3: diagnostic f^-5 tail above max(2.5 f_m, 3 f_PM) (ecWAM IMPHFTAIL), 0 off
+    A766=1;           // int A 732 3: swell damping of Ardhuin et al. (2009), 0 off
     A733=1;           // int quadruplets with A 732 1: 0 off, 1 DIA
     A734=1.5e-3;      // double linear wind growth (Cavaleri and Malanotte-Rizzoli), 0 off
     A735=0.1;         // double action density limiter with A 732 1 (SWAN, Ris 1997), 0 off

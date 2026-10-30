@@ -1024,6 +1024,18 @@ void control::read_control(lexer* p)
                 case 757: control>>A757_cds2>>A757_br;
                          clear(c,numint);
                          break;
+                case 763: control>>A763;
+                         clear(c,numint);
+                         break;
+                case 764: control>>A764;
+                         clear(c,numint);
+                         break;
+                case 765: control>>A765;
+                         clear(c,numint);
+                         break;
+                case 766: control>>A766;
+                         clear(c,numint);
+                         break;
                 case 716: control>>A716_w>>A716_m;
                          clear(c,numint);
                          break;
