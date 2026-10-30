@@ -87,6 +87,10 @@ struct fnpf_6DOF_grid
     slice4 *foot = nullptr, *psiD = nullptr, *zeroslice = nullptr, *eta_ext = nullptr, *fi_ext = nullptr;
     bool ext_ini = false;
     int footcount = 0;
+    // enclosed fluid pockets of the hull (close_pockets): visit stamps, the stamp, the nodes closed so far
+    std::vector<int> pocket_seen;
+    int pocket_stamp = 0;
+    long pockets_closed = 0;
     fnpf_bed_update *pbed = nullptr;
     fnpf_fsf_update *pvel = nullptr;
     slice *Keta = nullptr, *Kfi = nullptr;      // patch: tendencies of the current stage
@@ -160,6 +164,7 @@ public:
 private:
     void geometry(fnpf_6DOF_grid&, ghostcell*);
     void extrapolate(fnpf_6DOF_grid&, ghostcell*, double*);
+    void close_pockets(fnpf_6DOF_grid&, double *FBF);
     void body_velocities(fnpf_6DOF_grid&, ghostcell*);
     void ini(lexer*, fdm_fnpf*, ghostcell*);
     void forces(lexer*, fdm_fnpf*, ghostcell*, solver*, fnpf_fsf*, slice&, slice&, int);

@@ -1028,6 +1028,8 @@ void fnpf_6DOF::geometry(fnpf_6DOF_grid &G, ghostcell *pgc)
     for(int nb=0; nb<nbody; ++nb)
     fb_obj[nb]->ray_cast_fnpf(p,c,pgc,c->FBF,foot);
     
+    close_pockets(G,c->FBF);
+    
     if(G.l0)
     pgc->gcparax7(p,c->FBF,7);
     pgc->gcsl_start4(p,foot,50);
@@ -1044,6 +1046,99 @@ void fnpf_6DOF::geometry(fnpf_6DOF_grid &G, ghostcell *pgc)
     for(int nb=0; nb<nbody; ++nb)
     fb_obj[nb]->face_data_fnpf(p,c,pgc,-1,c->FBF,c->FBu,c->FBv,c->FBw);
     exchange_face(G,pgc);
+}
+
+// Fluid pockets enclosed by the hull: fluid nodes that reach neither the free surface nor the edge of the
+// grid through other fluid nodes, e.g. a thin gap between two hull parts that a vertical ray crosses
+// several times (the flank of a pitched column just above a pontoon: the crossings at 111.07, 111.47,
+// 112.17, 112.40 m of one column, a node in the gap between them). Their Laplace rows have body faces
+// only, whose ghost values the assembly eliminates with the Neumann data: the row sum is zero, the row
+// singular, and the solve leaves the pocket at an arbitrary value (-6e12 at t = 136.6 s in CORAL validation 24,
+// with a converged residual). The body-node fill carries it into the hull and the next
+// stage blows up. A pocket of at most MAXP nodes becomes body nodes (of the body next to it); a gap
+// that thin is not resolved by the grid anyway.
+void fnpf_6DOF::close_pockets(fnpf_6DOF_grid &G, double *FBF)
+{
+    lexer *p = G.p;
+    const int MAXP = 64;
+    const int sI = p->jmax*p->kmaxF, sJ = p->kmaxF;
+    auto idx = [&](int ii, int jj, int kk) {return (ii-p->imin)*sI + (jj-p->jmin)*sJ + kk-p->kmin;};
+    auto inside = [&](int ii, int jj, int kk) {return ii>=0 && ii<p->knox && jj>=0 && jj<p->knoy && kk>=0 && kk<=p->knoz;};
+    auto fluid = [&](int q) {return p->flag7[q]>0 && FBF[q]<0.5;};
+    
+    const int di[6] = {-1,1,0,0,0,0}, dj[6] = {0,0,-1,1,0,0}, dk[6] = {0,0,0,0,-1,1};
+    const int nn = (p->j_dir==1) ? 6 : 4;
+    const int ndir[4] = {0,1,4,5};
+    
+    // seen: open_mark for the nodes of searches that found the free surface or the grid edge (a search that
+    // meets one of them is open too), the mark of the running search for its own nodes
+    std::vector<int> &seen = G.pocket_seen;
+    const size_t size = size_t(p->imax)*p->jmax*(p->kmax+2);
+    if(seen.size()!=size)
+    seen.assign(size,0);
+    const int open_mark = ++G.pocket_stamp;
+    
+    std::vector<int> cells;
+    int closed=0;
+    
+    for(int ii=0; ii<p->knox; ++ii)
+    for(int jj=0; jj<p->knoy; ++jj)
+    for(int kk=0; kk<p->knoz; ++kk)
+    {
+        const int q0 = idx(ii,jj,kk);
+        if(!fluid(q0) || seen[q0]==open_mark)
+        continue;
+        
+        // only fluid nodes next to the hull start a search
+        bool nearbody=false;
+        double bid=0.0;
+        for(int m=0; m<nn; ++m)
+        {
+            const int d = (p->j_dir==1) ? m : ndir[m];
+            const int a=ii+di[d], b=jj+dj[d], e=kk+dk[d];
+            if(inside(a,b,e) && FBF[idx(a,b,e)]>0.5) {nearbody=true; bid=FBF[idx(a,b,e)];}
+        }
+        if(!nearbody)
+        continue;
+        
+        // flood fill over the fluid nodes, open at the free surface, the grid edge, an open node or beyond MAXP nodes
+        const int mark = ++G.pocket_stamp;
+        cells.clear();
+        cells.push_back(ii); cells.push_back(jj); cells.push_back(kk);
+        seen[q0] = mark;
+        bool open=false;
+        for(size_t n=0; n<cells.size() && !open; n+=3)
+        {
+            const int a0=cells[n], b0=cells[n+1], e0=cells[n+2];
+            if(e0>=p->knoz) {open=true; break;}
+            for(int m=0; m<nn && !open; ++m)
+            {
+                const int d = (p->j_dir==1) ? m : ndir[m];
+                const int a=a0+di[d], b=b0+dj[d], e=e0+dk[d];
+                if(!inside(a,b,e)) {if(e>=0) open=true; continue;}
+                const int q = idx(a,b,e);
+                if(!fluid(q) || seen[q]==mark) continue;
+                if(seen[q]==open_mark) {open=true; break;}
+                seen[q] = mark;
+                cells.push_back(a); cells.push_back(b); cells.push_back(e);
+                if((int)cells.size()/3 > MAXP) open=true;
+            }
+        }
+        
+        if(open)
+        {
+            for(size_t n=0; n<cells.size(); n+=3)
+            seen[idx(cells[n],cells[n+1],cells[n+2])] = open_mark;
+        }
+        else
+        {
+            for(size_t n=0; n<cells.size(); n+=3)
+            FBF[idx(cells[n],cells[n+1],cells[n+2])] = bid;
+            closed += int(cells.size()/3);
+        }
+    }
+    
+    G.pockets_closed += closed;
 }
 
 void fnpf_6DOF::extrapolate(fnpf_6DOF_grid &G, ghostcell *pgc, double *f)
