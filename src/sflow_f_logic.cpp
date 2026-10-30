@@ -31,7 +31,12 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
     // curvilinear grid (G 50): options available on it
     if(p->geo_curv==1)
     sflow_curv::check(p);
-    
+
+    // mesh refinement given: a box (G 10), a flag (G 20 surface jump, G 21 second difference, G 22 shoreline,
+    // G 23 breaking) or the body zone (G 12).  One test for every choice below that depends on it (eddy viscosity,
+    // sflow_amr, the message without anything to refine)
+    const bool amr_given = (p->G10>0 || p->G20>0.0 || p->G21>0.0 || p->G22>0 || p->G23==1 || p->G12>0);
+
     // forcing
     psfdf=new sflow_forcing(p);
     
@@ -113,9 +118,9 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
     if(p->A260==4)
 	pturb =  new sflow_turb_parabolic(p);
     
-    // curvilinear grids and REEFAMR (G 1 with boxes or flags, multi-block G 50 1): the algebraic eddy viscosity
-    // (A 260 3/4) by each grid in its explicit diffusion (sflow_ediff::own_eddyv), from the state of the stage
-    const int amr_on = ((p->G1>0 && (p->G10>0 || p->G20>0.0 || p->G22>0 || p->G12>0)) || p->geo_mb>0) ? 1 : 0;
+    // curvilinear grids and REEFAMR (G 1 with boxes, flags or the body zone, multi-block G 50 1): the algebraic eddy
+    // viscosity (A 260 3/4) by each grid in its explicit diffusion (sflow_ediff::own_eddyv), from the state of the stage
+    const int amr_on = ((p->G1>0 && amr_given) || p->geo_mb>0) ? 1 : 0;
     if((p->geo_curv==1 || amr_on==1) && (p->A260==3 || p->A260==4) && p->A212==1)
     {
     delete pturb;
@@ -190,7 +195,7 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
 	pmom = new sflow_momentum_SI(p,b,pgc,phll,pss,precon,pdiff,ppress,psolv,ppoissonsolv,pflow,pfsf,psfdf,p6dof);
 
     // mesh refinement (G 1): static boxes (G 10) and/or flagged regions (G 20-23)
-    if((p->G1>0 && (p->G10>0 || p->G20>0.0 || p->G21>0.0 || p->G22>0 || p->G23==1 || p->G12>0)) || p->geo_mb>0)
+    if(amr_on==1)
     {
     sflow_momentum_RK3 *prk3 = dynamic_cast<sflow_momentum_RK3*>(pmom);
     sflow_momentum_SI *psi = dynamic_cast<sflow_momentum_SI*>(pmom);
@@ -235,7 +240,7 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
     }
 
     // G 1 without anything to refine: no box (G 10), no flag (G 20-23) and no body zone (G 12)
-    if(p->G1>0 && !(p->G10>0 || p->G20>0.0 || p->G21>0.0 || p->G22>0 || p->G23==1 || p->G12>0) && p->geo_mb==0 && p->mpirank==0)
+    if(p->G1>0 && !amr_given && p->geo_mb==0 && p->mpirank==0)
     cout<<"SFLOW AMR (G 1): no refinement box (G 10), flag (G 20-23) or body zone (G 12) given -- refinement switched off"<<endl;
     
     //Potential Flow Solver
