@@ -83,6 +83,15 @@ public:
     void WL_relax(lexer*,ghostcell*,slice&,slice&) override;
     void turb_relax_nhflow(lexer*,fdm_nhf*,ghostcell*,double*) override;
 
+    // SFLOW relaxation and beach zones (B 522 methods 1, 2), as iowave_sflow_relax.cpp: eta, the depth-averaged
+    // velocities (the waves averaged over B 160 + 1 levels), the non-hydrostatic pressure
+    void zones_ini2D(lexer*,fdm2D*,ghostcell*);
+    void eta_relax(lexer*,ghostcell*,slice&) override;
+    void um_relax(lexer*,ghostcell*,slice&,slice&,slice&) override;
+    void vm_relax(lexer*,ghostcell*,slice&,slice&,slice&) override;
+    void wm_relax(lexer*,ghostcell*,slice&,slice&,slice&) override;
+    void pm_relax(lexer*,ghostcell*,slice&) override;
+
     // G 54 types 3, 4: the file of a time series and its value at time t
     static std::string series_file(int,int);
     static bool series_read(const std::string&,std::vector<double>&,std::vector<double>&);
@@ -162,6 +171,9 @@ private:
     double zone_time(lexer*) const;
     void zone_stage(lexer*);
     template<class F> void zone_columns(lexer*,F&&);
+    fdm2D *zb2 = nullptr;                       // SFLOW: the fields of the block (the still water depth of the targets)
+    void wave_col2D(lexer*,ghostcell*,const bc_zone&,double,double&,double&,double&,double&);
+    void uvw_relax2D(lexer*,ghostcell*,slice&,slice&,slice&,int);
 };
 
 #endif

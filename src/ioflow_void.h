@@ -71,11 +71,11 @@ public:
     void P_relax(lexer*,ghostcell*,double*) override;
     void WL_relax(lexer*,ghostcell*,slice&,slice&) override;
     void fifsf_relax(lexer*, ghostcell*, slice&) override final;
-    void eta_relax(lexer*,ghostcell*,slice&) override final;
-    void um_relax(lexer*,ghostcell*,slice&,slice&,slice&) override final;
-    void vm_relax(lexer*,ghostcell*,slice&,slice&,slice&) override final;
-	void wm_relax(lexer*,ghostcell*,slice&,slice&,slice&) override final;
-	void pm_relax(lexer*,ghostcell*,slice&) override final;
+    void eta_relax(lexer*,ghostcell*,slice&) override;
+    void um_relax(lexer*,ghostcell*,slice&,slice&,slice&) override;
+    void vm_relax(lexer*,ghostcell*,slice&,slice&,slice&) override;
+	void wm_relax(lexer*,ghostcell*,slice&,slice&,slice&) override;
+	void pm_relax(lexer*,ghostcell*,slice&) override;
     
     void wavegen_2D_precalc(lexer*,fdm2D*,ghostcell*) override final;
     

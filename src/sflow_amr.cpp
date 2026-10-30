@@ -432,18 +432,26 @@ void sflow_amr::patch_objects(reefamr_patch *q, ghostcell *pgc)
     // iowave edges of level 0 (open_xm .. open_yp) are not the block's
     const int zin = (c->blk>0 && c->lev==0) ? bzone[0][c->blk] : -1;
     const int zout = (c->blk>0 && c->lev==0) ? bzone[1][c->blk] : -1;
+    // relaxation and beach zones (B 522 methods 1, 2)
+    const int rin = (c->blk>0 && c->lev==0) ? bzr[0][c->blk] : -1;
+    const int rout = (c->blk>0 && c->lev==0) ? bzr[1][c->blk] : -1;
     if(c->blk>0)
     {
         pp->open_xm = (zin>=0) ? 1 : 0;
         pp->open_xp = (zout>=0) ? 1 : 0;
         pp->open_ym = pp->open_yp = 0;
     }
-    if(c->blk>0 && c->lev==0 && (bopen[0][c->blk]>=0 || bopen[1][c->blk]>=0 || zin>=0 || zout>=0))
+    if(c->blk>0 && c->lev==0 && (bopen[0][c->blk]>=0 || bopen[1][c->blk]>=0 || zin>=0 || zout>=0 || rin>=0 || rout>=0))
     {
         c->pio = new ioflow_amr_block(pp,pgc,pBC);
         pp->amr_own_io = 1;
         c->pio->open_faces(pp,bopen[0][c->blk],bopen[1][c->blk]);
         c->pio->open_edges(pp,zin>=0 ? &bzones[zin] : nullptr,zout>=0 ? &bzones[zout] : nullptr,bzbg);
+        // the zones (the faces closed: walls, as the native grid with B 98 2); the waves of the relaxation zones with
+        // the B 92 waves (level 0 has no wave generation on a curvilinear grid, sflow_curv::check)
+        c->pio->open_zones(pp,rin>=0 ? &bzones[rin] : nullptr,rout>=0 ? &bzones[rout] : nullptr,bzbg,p0->B92>0,
+                           EXT,blk[c->blk].ni,EXT,blk[c->blk].nj);
+        if(bopen[0][c->blk]>=0 || bopen[1][c->blk]>=0 || zin>=0 || zout>=0)
         c->phll->open_io();
     }
 
@@ -1322,6 +1330,11 @@ void sflow_amr::blocks_ini(lexer *p, ghostcell *pgc)
         for(int ii=0; ii<pp->knox; ++ii)
         for(int jj=0; jj<pp->knoy; ++jj)
         pp->wet[lij(pp,ii,jj)]=1;
+
+        // B 522 relaxation and beach zones: the state at the start as sflow_f::ini
+        if(c->pio!=nullptr)
+        c->pio->zones_ini2D(pp,pb,pgc);
+
         c->pfsf->depth_update(pp,pb,pgc,pb->WL);
 
         ini_patch_finish(p,*c);

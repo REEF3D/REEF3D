@@ -669,7 +669,7 @@ void reefamr::blocks_open(lexer *p)
     }
 
     // zones on the faces of the blocks (B 522 b): edges (B 520 methods 3-6, NHFLOW and SFLOW) on the -i or +i face
-    // of a block 1.. without interface and without G 54; relaxation and beach zones (methods 1, 2, NHFLOW) on the
+    // of a block 1.. without interface and without G 54; relaxation and beach zones (methods 1, 2, NHFLOW and SFLOW) on the
     // -i or +i face without interface; the background of the zone given (B 510).  (The j faces: the block is
     // turned, geo_mesh::turn_blocks.)
     bzone[0].assign(nblk,-1);
@@ -690,8 +690,8 @@ void reefamr::blocks_open(lexer *p)
         if(f!=0 && f!=1)
         why = "the face is not open after turning the block (geo_mesh::turn_blocks)";
         else
-        if(p->A10!=5 && (p->A10!=2 || rz))
-        why = rz ? "relaxation and beach zones on the blocks are available for NHFLOW (A 10 5) only, so far"
+        if(p->A10!=5 && p->A10!=2)
+        why = rz ? "relaxation and beach zones on the blocks are available for NHFLOW (A 10 5) and SFLOW (A 10 2) only"
                  : "edge zones on the blocks are available for NHFLOW (A 10 5) and SFLOW (A 10 2) only";
         else
         if(b<0)
