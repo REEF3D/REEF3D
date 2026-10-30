@@ -63,10 +63,19 @@ REEF3D::SEASTATE - wind input and dissipation of Ardhuin et al. (2010)
   0.11 nu/ustar, the Charnock parameter capped for strong winds (CHNKMIN,
   alpha 0.0065 to 0.0001 around 33 m/s); the wave stress tau_w is the
   input of the prognostic spectrum up to the cut-off and of the f^-5
-  tail above it (STRESSO, TAU_PHI_HF). ecWAM lags tau_w by a time step;
-  here the fixed point ustar(tau_w(ustar)) of the spectrum of the cell is
-  iterated from tau_w = 0 in every evaluation (no state, the same in any
-  order of the cells), relative change of ustar below tol
+  tail above it (STRESSO, TAU_PHI_HF). Two ways to tie u* and tau_w:
+  - ecWAM (lag(), nonstationary runs, A 768 1, Phase 23): tau_w of the
+    last time step of the cell; as the two calls of SINFLX per step, u*
+    from it, the wave stress of the spectrum with that u*, u* again from
+    that stress
+  - the fixed point tau_w = H(tau_w) of the spectrum of the cell in every
+    evaluation (no state; stationary runs, A 768 0): H the wave stress with
+    u*, z0 of TAUT_Z0(tau_w); from tau_w = 0 upwards by secant steps (at
+    least the plain step, growing steps until H - tau_w changes sign), then
+    regula falsi (Illinois) in the bracket, until |H - tau_w| <= tol u*^2.
+    Above 25 m/s H(tau_w) follows u*^2 closely up to the root (the wave
+    stress near the total stress); Phase 20 stopped there at 12 plain
+    steps with a u* too low (Phase 23)
 
   diagnostic tail (IMPHFTAIL): above the cut-off frequency
   f_c = max(2.5 max(f_m, f_m,ws), 3 g/(2 pi 28 ustar)) the spectrum is held
@@ -105,8 +114,8 @@ struct seastate_st4_param
     bool gc = false, normagam = false;
     double dthrn_a = 0.60, dthrn_u = 33.0, rn1_rn = 0.25, delta_theta_rn = 0.75;
     double ang_gc_a = 0.35, ang_gc_b = 0.65, ang_gc_c = 3.0, surft = 0.0000717;
-    double tol = 1.0e-4;
-    int maxit = 12;
+    double tol = 1.0e-4;                // the fixed point: |H(tau_w) - tau_w| <= tol u*^2
+    int maxit = 40;
 
     // the parameters of ecWAM IPHYS 1 with LLGCBZ0 and LLNORMAGAM (SETWAVPHYS): the operational ecWAM, the
     // Janssen and Bidlot (2023) input with the Ardhuin dissipation (A 732 4)
@@ -134,7 +143,13 @@ public:
     void wind(const float *N, const double *row, const float *k, const float *cg, double U10, double wdir, bool freeze);
 
     // no wind (a calm cell): no input and no swell damping, the whitecapping alone in add()
-    void calm() {calmed = true; ust = 0.0; tauw = 0.0; lc = nsig-1;}
+    void calm() {calmed = true; ust = 0.0; tauw = 0.0; lc = nsig-1; lagged = false;}
+
+    // ecWAM (Phase 23, A 768 1): the next wind() starts from the wave stress tw (direction twd) and the friction velocity
+    // us of the last time step of the cell instead of the fixed point; after wind(), tauw, tauwdir and ust are the state
+    // for the next time step
+    void lag(double tw, double twd, double us) {lagged = true; lagtw = tw; lagtwd = twd; lagus = us;}
+    void unlag() {lagged = false;}
 
     // P, D of the input, swell damping and whitecapping for the frequencies la..lb and directions ma..mb
     // (after wind() of the same cell)
@@ -177,6 +192,8 @@ private:
     int nsig = 0, ndir = 0, nbin = 0;
     double grav = 9.81, rnum = 0.0, raorw = 0.0, constn = 0.0, bmaxokap = 0.0, gamnconst = 0.0;
     double rnfac = 1.0, halp = 0.0;             // of the cell (wind())
+    bool lagged = false;                        // lag(): the next wind() from the wave stress of the last time step
+    double lagtw = 0.0, lagtwd = 0.0, lagus = 0.0;
     int nwav_gc = 0;                            // gravity-capillary wave numbers (INITGC)
     double sqrtgosurft = 0.0, xlogkratiom1_gc = 0.0;
     std::vector<double> xk_gc, xkm_gc, omega_gc, cm_gc, omxkm3_gc, c2osqrtvg_gc, xkmsqrtvgoc2_gc, om3gmkm_gc, delkcc_gc_ns, delkcc_omxkm3_gc;

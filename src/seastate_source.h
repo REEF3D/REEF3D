@@ -224,6 +224,13 @@ public:
     // ST4: the upper bound of N per frequency (ecWAM FLMAX, Phillips alpha_p,max / pi per bin), nullptr: none
     const double *upper() const {return prm.st4 ? st4s.upper() : nullptr;}
     const seastate_st4 &st4() const {return st4s;}
+    // ST4 (Phase 23, A 768 1): the next compute() starts from the wave stress and u* of the last time step of the cell
+    // (ecWAM); lag_tauw(), lag_tauwdir(), lag_ustar(): the state after compute() for the next time step (0 without wind)
+    bool lags() const {return prm.st4 && prm.wind;}
+    void lag(double tw, double twd, double us) {if(prm.st4) st4s.lag(tw,twd,us);}
+    double lag_tauw() const {return (prm.st4 && prm.wind && prm.U10>0.0 && !st4s.calmed) ? st4s.tauw : 0.0;}
+    double lag_tauwdir() const {return (prm.st4 && prm.wind && prm.U10>0.0 && !st4s.calmed) ? st4s.tauwdir : 0.0;}
+    double lag_ustar() const {return (prm.st4 && prm.wind && prm.U10>0.0 && !st4s.calmed) ? st4s.ust : 0.0;}
 
     // integral parameters of the last call
     double Etot = 0.0, sigm01 = 0.0, sigm_10 = 0.0, km_wam = 0.0, Hs = 0.0, Qb = 0.0, ursell = 0.0;

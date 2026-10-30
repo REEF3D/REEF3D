@@ -348,6 +348,21 @@ public:
     void ranges_get(lexer*, int ci, int cj, double *v);
     void ranges_put(lexer*, int ci, int cj, const double *v);
 
+    // Phase 23 (A 768 1, nonstationary, A 732 3 and 4): ecWAM's state of the wind input per cell, the wave stress,
+    // its direction and u* of the last time step: every evaluation of the cell in a time step starts from the state
+    // of the time step before (lag_key: the time the step solves for, set by seastate_f before every step), the last
+    // evaluation of the step leaves the state for the next one. Shared with the copies of the solver that work the
+    // threads; in the checkpoints (lag_size() values per cell, lag_get, lag_put)
+    void lagging(bool on, lexer *p);           // on: the state allocated for the cells of p (before any threads)
+    // the runs with the state: A 732 3 or 4 with wind (A 730 1, 2), nonstationary, A 768 1, not the surfbeat model
+    static bool lag_wanted(int A700, int A730, int A732, int A768, int A770)
+    {return (A732==3 || A732==4) && (A730==1 || A730==2) && A700==1 && A768==1 && A770!=1;}
+    bool lagging() const {return lagon;}
+    static double lag_key;
+    int lag_size() const {return lagon ? 3 : 0;}
+    void lag_get(lexer*, int ci, int cj, double *v);
+    void lag_put(lexer*, int ci, int cj, const double *v);
+
 private:
 
     void cell(lexer*, fdm_seastate*, int q, int ci, int cj, const float *N0, double rdt,
@@ -433,6 +448,18 @@ private:
     int rni = 0, rnj = 0, rimin = 0, rjmin = 0;
     };
     std::shared_ptr<shared_ranges> sr = std::make_shared<shared_ranges>();
+    // Phase 23 (A 768 1): per cell the state of the last time step (tw, twd, us), the state of the step being solved
+    // (nw, nwd, nus: written by every evaluation, the last one stays) and the step of the last write (key)
+    struct shared_lag
+    {
+    vector<double> tw, twd, us, nw, nwd, nus, key;
+    int ni = 0, nj = 0, imin = 0, jmin = 0;
+    };
+    std::shared_ptr<shared_lag> slag = std::make_shared<shared_lag>();
+    bool lagon = false;
+    long lag_cell(lexer*, int ci, int cj);      // the index of the cell in slag, -1: outside; the step turned over
+    void lag_start(lexer*, int ci, int cj);     // before a compute() of the source terms of the cell
+    void lag_end(lexer*, int ci, int cj);       // after it
     vector<uint16_t> &rg = sr->rg;      // active ranges per cell, quadrant, frequency
     vector<uint16_t> &rv = sr->rv;      // per cell: 1 ranges set, 2 triads active, 4<<q quadrant q holds energy,
                                         // 64<<2q / 128<<2q energy in the first / last direction of quadrant q

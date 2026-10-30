@@ -518,6 +518,9 @@ void seastate_source::compute(const float *N, double depth, const float *k, cons
     st4s.calm();
     st4s.add(N,k,cg,fa,fb,wa,wb,P,D);
     }
+
+    if(prm.st4)
+    st4s.unlag();
 }
 
 void seastate_source::project(float *N, const float *k, const float *cg, int ma, int mb) const

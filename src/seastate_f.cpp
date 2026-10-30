@@ -243,6 +243,7 @@ void seastate_f::step(lexer *p, ghostcell *pgc)
 {
     // implicit transport in x, y, sigma, theta with the source terms (if any)
     tnew = p->simtime + dtw;
+    seastate_implicit::lag_key = tnew;      // Phase 23 (A 768 1): the time step of the state of the wind input
 
     if(bser!=nullptr || wmet!=nullptr)
     forcing_update(p,pgc,tnew);
@@ -290,6 +291,7 @@ void seastate_f::step_coupled(lexer *p, ghostcell *pgc, double dt)
 
     // the host calls at the start of its step: the wave field is advanced to the host's time
     tnew = p->simtime;
+    seastate_implicit::lag_key = tnew;      // Phase 23 (A 768 1)
 
     if(bser!=nullptr || wmet!=nullptr)
     forcing_update(p,pgc,tnew);

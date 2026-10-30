@@ -547,6 +547,7 @@ void seastate_amr::regrid_static(ghostcell*)
     // least 64 cells (the wavefront of a smaller patch is too short)
     c->solv->threads(p0->A798,64);
     c->solv->source_iterations(p0->A738,p0->A739);
+    c->solv->lagging(seastate_implicit::lag_wanted(p0->A700,p0->A730,p0->A732,p0->A768,p0->A770),pp);
 
         if(L0.wmet!=nullptr)
         {

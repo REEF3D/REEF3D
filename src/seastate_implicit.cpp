@@ -817,6 +817,8 @@ void seastate_implicit::copy_config(const seastate_implicit &o)
     nthreads = o.nthreads;
     thread_min = o.thread_min;
     sr = o.sr;
+    slag = o.slag;
+    lagon = o.lagon;
 }
 
 void seastate_implicit::preset_ranges(lexer *p, fdm_seastate *e)
@@ -892,6 +894,98 @@ void seastate_implicit::ranges_put(lexer *p, int ci, int cj, const double *v)
     rb[c*4+k] = uint16_t(v[1+k]);
     for(int k=0; k<4*nsig; ++k)
     rg[c*4*nsig+k] = uint16_t(v[5+k]);
+}
+
+// Phase 23 (A 768 1): ecWAM's wave stress and u* of the last time step per cell
+double seastate_implicit::lag_key = 0.0;
+
+void seastate_implicit::lagging(bool on, lexer *p)
+{
+    lagon = on;
+    shared_lag &L = *slag;
+    if(!on || !L.tw.empty())
+    return;
+    L.ni = p->imax; L.nj = p->jmax; L.imin = p->imin; L.jmin = p->jmin;
+    const size_t n = size_t(L.ni)*L.nj;
+    L.tw.assign(n,0.0); L.twd.assign(n,0.0); L.us.assign(n,0.0);
+    L.nw.assign(n,0.0); L.nwd.assign(n,0.0); L.nus.assign(n,0.0);
+    L.key.assign(n,-1.0e300);
+}
+
+long seastate_implicit::lag_cell(lexer *p, int ci, int cj)
+{
+    shared_lag &L = *slag;
+    if(L.tw.empty())
+    return -1;
+    if(ci<L.imin || ci>=L.imin+L.ni || cj<L.jmin || cj>=L.jmin+L.nj)
+    return -1;
+    const long c = long(ci-L.imin)*L.nj + (cj-L.jmin);
+    // the first evaluation of the cell in a new time step: the state the last step left
+    if(L.key[c]!=lag_key)
+    {
+        if(L.key[c]>-1.0e300)
+        {
+        L.tw[c] = L.nw[c];
+        L.twd[c] = L.nwd[c];
+        L.us[c] = L.nus[c];
+        }
+    L.key[c] = lag_key;
+    }
+    return c;
+}
+
+void seastate_implicit::lag_start(lexer *p, int ci, int cj)
+{
+    if(!lagon || src==nullptr || !src->lags())
+    return;
+    const long c = lag_cell(p,ci,cj);
+    if(c>=0)
+    src->lag(slag->tw[c],slag->twd[c],slag->us[c]);
+}
+
+void seastate_implicit::lag_end(lexer *p, int ci, int cj)
+{
+    if(!lagon || src==nullptr || !src->lags())
+    return;
+    const long c = lag_cell(p,ci,cj);
+    if(c<0)
+    return;
+    shared_lag &L = *slag;
+    L.nw[c] = src->lag_tauw();
+    L.nwd[c] = src->lag_tauwdir();
+    L.nus[c] = src->lag_ustar();
+}
+
+// checkpoints: the state the last completed step left (the step in progress has not begun at a checkpoint)
+void seastate_implicit::lag_get(lexer *p, int ci, int cj, double *v)
+{
+    if(lag_size()==0)
+    return;
+    v[0] = v[1] = v[2] = 0.0;
+    const shared_lag &L = *slag;
+    if(L.tw.empty() || ci<L.imin || ci>=L.imin+L.ni || cj<L.jmin || cj>=L.jmin+L.nj)
+    return;
+    const size_t c = size_t(ci-L.imin)*L.nj + (cj-L.jmin);
+    if(L.key[c]<=-1.0e300)
+    return;
+    v[0] = L.nw[c];
+    v[1] = L.nwd[c];
+    v[2] = L.nus[c];
+}
+
+void seastate_implicit::lag_put(lexer *p, int ci, int cj, const double *v)
+{
+    if(lag_size()==0)
+    return;
+    shared_lag &L = *slag;
+    if(L.tw.empty() || ci<L.imin || ci>=L.imin+L.ni || cj<L.jmin || cj>=L.jmin+L.nj)
+    return;
+    const size_t c = size_t(ci-L.imin)*L.nj + (cj-L.jmin);
+    // as written by the last step: the next evaluation (a new step) takes it over
+    L.nw[c] = v[0];
+    L.nwd[c] = v[1];
+    L.nus[c] = v[2];
+    L.key[c] = -1.0e299;
 }
 
 namespace
@@ -1522,7 +1616,9 @@ void seastate_implicit::cell(lexer *p, fdm_seastate *e, int q, int ci, int cj, c
         }
 
     src->cap(N,d);
+    lag_start(p,ic,jc);
     src->compute(N,d,kc,cgc,P.data(),D.data(),ma+wmin,ma+wmax,lmin,lmax);
+    lag_end(p,ic,jc);
     }
 
     // FAS coarse-grid correction (A 758): the source -tau of the coarse cell, its loss part proportional to

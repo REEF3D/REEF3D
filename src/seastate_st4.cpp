@@ -43,8 +43,10 @@ Changes: one grid point; the SEASTATE spectral grid (its bin widths
 DFIM = dsig dtheta / 2 pi, directions from 0, the compact direction
 sector without wrapping); action density N(sig,theta) with F(f,theta)
 = 2 pi sig N; Cartesian directions (x = cos, y = sin); no gustiness
-(WSTAR 0); HALPHAP from the spectrum of the cell without the FLM floor; the lag of the wave stress by a time step replaced by the
-fixed point of u* and tau_w for the spectrum of the cell; the source
+(WSTAR 0); HALPHAP from the spectrum of the cell without the FLM floor; the wave stress of the last time step kept per
+cell by the SEASTATE solver (the two calls of SINFLX in every
+evaluation of the cell in a time step), or replaced by the fixed point
+of u* and tau_w for the spectrum of the cell (stationary runs); the source
 terms returned as P = gamma N and D >= 0 for the implicit solver; the
 diagnostic tail imposed after each solve of a cell; gravity of
 SEASTATE (9.81).
@@ -865,6 +867,9 @@ void seastate_st4::stress(const float *N, const float *k, double us, double zz0,
 
 void seastate_st4::wind(const float *N, const double *row, const float *k, const float *cg, double U10, double wdir, bool freeze)
 {
+    const bool lg = lagged;
+    lagged = false;
+
     if(freeze)
     return;
 
@@ -876,45 +881,98 @@ void seastate_st4::wind(const float *N, const double *row, const float *k, const
     rnfac = (prm.normagam && prm.capchnk) ? 1.0 + prm.dthrn_a*(1.0 + std::tanh(U10-prm.dthrn_u)) : 1.0;
     halp = prm.gc ? halphap(N,k,wdir) : 0.0;
 
-    // the fixed point of u* and tau_w (ecWAM: tau_w of the last time step, two calls of SINFLX): tau_w = H(tau_w),
-    // H the wave stress of the input with u*, z0 of TAUT_Z0(tau_w); secant steps on H(tau_w) - tau_w (the plain
-    // iteration where the secant leaves [0, u*^2)), from tau_w = 0, until u* changes by less than tol
-    double tw = 0.0, twd = wdir, us = 0.0, prev = 0.0;
+    double tw = 0.0, twd = wdir, us = 0.0;
     double zz0 = 0.0, zz0b = 0.0, chr = 0.0;
-    double t0 = 0.0, h0 = 0.0;
     int it = 0;
 
-    for(it=0; it<prm.maxit; ++it)
+    if(lg)
     {
-    taut_z0(it>0 ? 1 : 0,U10,wdir,tw,twd,us,zz0,zz0b,chr);
-    if(it>0 && std::fabs(us-prev)<=prm.tol*us)
-    break;
-    prev = us;
-
-    double h = 0.0, hd = wdir;
+    // ecWAM (SINFLX twice in a time step, Phase 23): u* from tau_w of the last time step, the wave stress of the
+    // spectrum with it, u* from that stress; the input and the stress with this u* follow below (the second call)
+    us = lagus;
+    taut_z0(0,U10,wdir,lagtw,lagtwd,us,zz0,zz0b,chr);
     input(N,k,cg,us,zz0,wdir,false);
     cutoff(N,us);
-    stress(N,k,us,zz0,wdir,h,hd);
+    stress(N,k,us,zz0,wdir,tw,twd);
+    taut_z0(1,U10,wdir,tw,twd,us,zz0,zz0b,chr);
+    it = 2;
+    }
+    else
+    {
+    // the fixed point tau_w = H(tau_w), g(t) = H(t) - t (Phase 23): g(0) = H(0) >= 0; upwards from t = 0 by secant
+    // steps, at least the plain step t + g (and twice the last step where g falls slowly), until g < 0; then regula
+    // falsi (Illinois) in the bracket [tlo, thi] (g(tlo) > 0 > g(thi)); converged when |g| <= tol u*^2, or the
+    // bracket below tol thi
+    double tlo = 0.0, glo = 0.0, thi = -1.0, ghi = 0.0;
+    double tp = 0.0, gp = 0.0;
+    int kept = 0;                   // Illinois: +1 the lower end kept last, -1 the upper end
+    bool conv = false;
 
-    double tn = h;
-        if(it>0)
+        for(it=0; it<prm.maxit; ++it)
         {
-        const double f1 = h-tw, f0 = h0-t0;
-            if(std::fabs(f1-f0)>1.0e-14*std::max(us*us,1.0e-12))
+        taut_z0(it>0 ? 1 : 0,U10,wdir,tw,twd,us,zz0,zz0b,chr);
+
+        double h = 0.0, hd = wdir;
+        input(N,k,cg,us,zz0,wdir,false);
+        cutoff(N,us);
+        stress(N,k,us,zz0,wdir,h,hd);
+        const double gv = h-tw;
+        twd = hd;
+
+            if(std::fabs(gv)<=prm.tol*std::max(us*us,1.0e-12))
             {
-            const double ts = tw - f1*(tw-t0)/(f1-f0);
-            if(ts>0.0 && ts<us*us)
-            tn = ts;
+            conv = true;
+            ++it;
+            break;
             }
+
+            if(gv>0.0)
+            {
+            tlo = tw; glo = gv;
+            if(kept==1 && thi>=0.0) ghi *= 0.5;
+            kept = 1;
+            }
+            else
+            {
+            thi = tw; ghi = gv;
+            if(kept==-1) glo *= 0.5;
+            kept = -1;
+            }
+
+        double tn;
+            if(thi<0.0)
+            {
+            tn = tw+gv;
+                if(it>0)
+                {
+                if(gv<gp)
+                tn = std::max(tn,tw - gv*(tw-tp)/(gv-gp));
+                // g fell by less than half: H(t) close to u*^2 (strong winds), the steps doubled
+                if(gv>0.5*gp)
+                tn = std::max(tn,tw + 2.0*(tw-tp));
+                }
+            }
+            else
+            {
+            tn = (tlo*ghi - thi*glo)/(ghi-glo);
+            if(!(tn>tlo && tn<thi))
+            tn = 0.5*(tlo+thi);
+                if(thi-tlo<=prm.tol*thi)
+                {
+                tw = tn;
+                ++it;
+                break;
+                }
+            }
+        tp = tw;
+        gp = gv;
+        tw = tn;
         }
-    t0 = tw;
-    h0 = h;
-    tw = tn;
-    twd = hd;
+
+    if(!conv)
+    taut_z0(1,U10,wdir,tw,twd,us,zz0,zz0b,chr);
     }
     iters = it;
-    if(it==prm.maxit)
-    taut_z0(1,U10,wdir,tw,twd,us,zz0,zz0b,chr);
 
     // swell damping of the cell (SINPUT_ARD with LLSNEG): orbital velocity, amplitude, Reynolds number
     if(prm.swell)

@@ -162,6 +162,7 @@ void seastate_f::ini_common(lexer *p, ghostcell *pgc, bool coupled_)
 
     if(p->A700==2)
     psolv->source_iterations(p->A738,p->A739);
+    psolv->lagging(seastate_implicit::lag_wanted(p->A700,p->A730,p->A732,p->A768,p->A770),p);
 
     if(sb!=nullptr)
     psolv->boundary_rows(&Nbx,&Nbx0);
@@ -530,6 +531,8 @@ void seastate_f::check_keys(lexer *p, ghostcell *pgc)
     msg = "A 738, A 739: at least one source iteration, the tolerance must not be negative";
     else if(p->A798<1)
     msg = "A 798: at least one thread per rank";
+    else if(p->A768!=0 && p->A768!=1)
+    msg = "A 768: u* of A 732 3 and 4 must be 0 (the fixed point in every evaluation) or 1 (from the wave stress of the last time step, ecWAM)";
     else if(p->A799!=0 && p->A799!=1)
     msg = "A 799: the convergence test must be 0 (change per iteration) or 1 (estimated distance to the solution)";
     else if(p->A718<0 || p->A718>2)
@@ -929,7 +932,8 @@ void seastate_f::sources(lexer *p, ghostcell *pgc)
     cout<<" whitecapping (van der Westhuysen, cds2 "<<sp.cds2<<", br "<<sp.br<<"),";
     if(sp.st4)
     cout<<(sp.st4p.gc ? " Janssen and Bidlot 2023 (ecWAM IPHYS 1 with LLGCBZ0, LLNORMAGAM: gravity-capillary roughness, renormalised growth rate," : " Ardhuin et al. 2010 (ecWAM IPHYS 1:")<<" beta_max "<<sp.st4p.betamax<<", sheltering "<<sp.st4p.tauwshelter<<", swell damping "
-        <<(sp.st4p.swell ? "on" : "off")<<", saturation whitecapping, diagnostic tail "<<(sp.st4p.tail ? "on" : "off")<<"),";
+        <<(sp.st4p.swell ? "on" : "off")<<", saturation whitecapping, diagnostic tail "<<(sp.st4p.tail ? "on" : "off")
+        <<(sp.wind ? (seastate_implicit::lag_wanted(p->A700,p->A730,p->A732,p->A768,p->A770) ? ", u* from the wave stress of the last time step as ecWAM (A 768 1)" : ", u* from the fixed point with the wave stress in every evaluation") : "")<<"),";
     if(sp.dia)
     cout<<" quadruplets (DIA),";
     if(sp.komen)

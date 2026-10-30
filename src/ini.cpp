@@ -323,6 +323,7 @@ void control::ini_default()
     A764=-1.0;        // double A 732 3, 4: sheltering of the input by the wave stress of the lower frequencies (ecWAM TAUWSHELTER), 0 off, negative: the default (0.25 for A 732 3, 0 for A 732 4)
     A765=1;           // int A 732 3: diagnostic f^-5 tail above max(2.5 f_m, 3 f_PM) (ecWAM IMPHFTAIL), 0 off
     A766=1;           // int A 732 3: swell damping of Ardhuin et al. (2009), 0 off
+    A768=1;           // int A 732 3, 4, nonstationary: 1 u* from the wave stress of the last time step per cell (ecWAM, Phase 23), 0 the fixed point of u* and the wave stress in every evaluation (no state; stationary runs always)
     A733=1;           // int quadruplets with A 732 1: 0 off, 1 DIA
     A734=1.5e-3;      // double linear wind growth (Cavaleri and Malanotte-Rizzoli), 0 off
     A735=0.1;         // double action density limiter with A 732 1 (SWAN, Ris 1997), 0 off
