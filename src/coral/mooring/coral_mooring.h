@@ -41,7 +41,8 @@ Architect: Hans Bihs
 // explicit Runge-Kutta scheme (RK4) and sub-steps inside the step of the multibody system, the end
 // points moving on cubic Hermite curves from the converged to the trial positions and velocities of the
 // attachment points; eval() integrates from the converged line state (cached per trial state), commit()
-// keeps the converged line. The force on an attached body is the tension of the end segment plus the
+// keeps the converged line (the integration of the last trial when the converged state is that trial within
+// 1e-10 relative: the time integrator stops on a Newton increment below its tolerance). The force on an attached body is the tension of the end segment plus the
 // weight, drag and Froude-Krylov force of the end half-segment, minus its inertia: mass and added mass
 // (normal and tangential, submerged) times the acceleration of the attachment point (as the coupled
 // points of MoorDyn), so the body carries the end node. The line starts from the catenary profile
@@ -425,13 +426,21 @@ namespace coral
         mutable std::vector<Vec3> w_[4];
         mutable state ws_;
 
-        // trial cache: time, positions and velocities of the attachments; forces and end masses
+        // trial cache: time, positions and velocities of the attachments; forces and end masses; the integrated
+        // state of the last trial with the lines' work arrays (commit() takes it when the converged state is that
+        // trial, instead of integrating the step again)
+        struct line_work {std::vector<Vec3> T; Vec3 F[2]; Mat3 M[2]; Vec3 cd[2];};
+        mutable state cs_;
+        mutable stick_t cst_;
+        mutable std::vector<line_work> cw_;
         mutable double ct_ = -1.0e300;
         mutable std::vector<Vec3> cr_, cv_, cF_, cMb_;
         mutable std::vector<Mat3> cM_;
         mutable std::vector<Vec3> cd_;     // clamp directions of the cached trial
         bool clamped_ = false;             // some end is clamped (bending)
         mutable bool cvalid_ = false;
+    public:
+        long commits_ = 0, commit_hits_ = 0;           // steps, steps that took the last trial's integration
     };
 
     // a single dynamic line between two attachment points: a mooring system of one line (the interface of

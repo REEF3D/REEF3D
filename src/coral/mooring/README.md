@@ -21,8 +21,11 @@ Mooring lines and cables.
 ## Validation
 
 `Regression/moordyn/`: the dynamic lines, line networks (bridle, clump weight, buoy, chain-wire-chain) and a
-moored floating body against MoorDyn v2.7.2 (MoorDyn-C, prescribed fairlead motion and coupled planar body);
-`Regression/unit/coral_moordyn_test.cpp` checks CORAL against the stored MoorDyn time series. Known differences:
+moored floating body against MoorDyn v2.7.2 (MoorDyn-C, prescribed fairlead motion and coupled planar body), in
+still water, currents and waves (CORAL's wave field at MoorDyn's nodes); against published results: the flexible
+jumper of Lowe and Langley (2006, top tension in motion and waves) and the chain of Azcona et al. (2017, measured
+static tension, the ratios of the dynamic peaks); `Regression/unit/coral_moordyn_test.cpp` checks CORAL against
+the stored MoorDyn time series and the published values. Known differences:
 MoorDyn's seabed damping also pulls a node that rises from the seabed (CORAL's contact only pushes: snap loads of
 a chain lifting off differ a little), MoorDyn's points take their whole volume above the free surface (CORAL: the
 submerged part), MoorDyn's initial condition leaves the current out (CORAL's static start takes it), MoorDyn holds

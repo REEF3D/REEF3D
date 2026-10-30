@@ -138,6 +138,8 @@ static void write_moordyn_input(const case_spec &c, const std::string &dir, doub
         for(const auto &r : c.current)
             u<<r[0]<<" "<<r[1]<<" "<<r[2]<<" "<<r[3]<<"\n";
     }
+    if(!c.waves.empty())
+        f<<"1 WaveKin\n";             // kinematics at the nodes through the API (CORAL's wave field)
     f<<"1 disableOutput\n";
     f<<"1 disableOutTime\n";
     f<<"------------------------- need this line --------------------------------------\n";
@@ -155,7 +157,7 @@ struct md_handles
 
 static std::vector<double> md_row(const case_spec &c, const md_handles &H, double t, const double *x, const double *f)
 {
-    std::vector<double> r = {t, x[0], x[2], x[4], f[0], f[1], f[2], f[4]};
+    std::vector<double> r = {t, x[0], x[2], x[4], f[0], f[1], f[2], f[4], std::sqrt(f[0]*f[0] + f[1]*f[1] + f[2]*f[2])};
     for(size_t k=0; k<c.lines.size(); ++k)
     {
         double Ta[3], Tb[3];
@@ -213,6 +215,28 @@ static series run_moordyn(const case_spec &c, const std::string &dir, double dtM
     };
     set_x(0.0);
     if(MoorDyn_Init(H.sys, x, xd) != MOORDYN_SUCCESS) throw std::runtime_error("MoorDyn_Init failed for " + c.name);
+    // waves: CORAL's linear wave field at MoorDyn's nodes, at the middle of each coupling step
+    const auto waves = make_waves(c);
+    unsigned int nwp = 0;
+    std::vector<double> rwp, uwp, awp;
+    if(waves)
+    {
+        if(MoorDyn_ExternalWaveKinInit(H.sys, &nwp) != MOORDYN_SUCCESS) throw std::runtime_error("MoorDyn: no external wave kinematics");
+        rwp.resize(3*nwp); uwp.resize(3*nwp); awp.resize(3*nwp);
+    }
+    auto set_waves = [&](double tm)
+    {
+        if(!waves) return;
+        MoorDyn_ExternalWaveKinGetCoordinates(H.sys, rwp.data());
+        for(unsigned int i=0; i<nwp; ++i)
+        {
+            Vec3 u, du;
+            double pr;
+            waves->kinematics(Vec3(rwp[3*i], rwp[3*i+1], rwp[3*i+2]), tm, u, du, pr);
+            for(int d=0; d<3; ++d) {uwp[3*i+d] = u(d); awp[3*i+d] = du(d);}
+        }
+        MoorDyn_ExternalWaveKinSet(H.sys, uwp.data(), awp.data(), tm);
+    };
     double t = 0.0, dt0 = 0.0;
     MoorDyn_Step(H.sys, x, xd, f, &t, &dt0);      // dt 0: the forces of the initial state
     series s;
@@ -226,6 +250,7 @@ static series run_moordyn(const case_spec &c, const std::string &dir, double dtM
     {
         double tt = (i - 1)*h, dt = h;
         set_x(tt);
+        set_waves(tt + 0.5*h);
         if(MoorDyn_Step(H.sys, x, xd, f, &tt, &dt) != MOORDYN_SUCCESS)
             throw std::runtime_error("MoorDyn_Step failed for " + c.name);
         const double t1 = i*h;
@@ -293,10 +318,10 @@ int main(int argc, char **argv)
         catch(const std::exception &e) {std::cout<<"  MoorDyn: "<<e.what()<<std::endl; ++nfail; continue;}
         sc.write("out/" + c.name + "_coral.csv");
         sm.write("out/" + c.name + "_moordyn.csv");
-        if(ref) sm.write("ref/" + c.name + ".csv", 7);
+        if(ref && c.unit) sm.write("ref/" + c.name + ".csv", 7);       // the references of the unit test
         std::cout<<"  sub-step "<<dtM<<" s (CORAL "<<dtl<<" s)"<<std::endl;
         double worst = 0.0;
-        for(const auto &e : compare(sm, sc, c.t_cmp))
+        for(const auto &e : c.peaks ? compare_peaks(sm, sc, c.t_cmp, c.T) : compare(sm, sc, c.t_cmp))
         {
             if(e.name=="x" || e.name=="z" || e.name=="pitch")
                 if(!c.free_body) continue;
@@ -305,6 +330,34 @@ int main(int argc, char **argv)
         }
         std::printf("  worst %.4f (tolerance of the unit test %.3f)%s\n", worst, c.tol, worst > c.tol ? "  <-- above" : "");
         if(worst > c.tol) ++nfail;
+        // published or measured references
+        if(!c.ext_ref.empty())
+        {
+            const auto ref = read_ext(c.ext_ref);
+            for(int k=0; k<2; ++k)
+            {
+                double md, rms, tm;
+                compare_ext(k==0 ? sc : sm, ref, c.ext_channel, c.ext_scale, c.ext_t0, md, rms, tm);
+                std::printf("  %-8s against %s: max diff %.3f (at %.1f s), rms %.3f, tolerance %.3f%s\n", k==0 ? "CORAL" : "MoorDyn",
+                            c.ext_ref.c_str(), md, tm, rms, c.ext_tol, (k==0 && md > c.ext_tol) ? "  <-- above" : "");
+            }
+        }
+        if(c.peaks)
+        {
+            const double pc = c.ext_scale*mean_peak(sc, c.ext_channel, c.t_cmp, c.T), pm = c.ext_scale*mean_peak(sm, c.ext_channel, c.t_cmp, c.T);
+            if(std::isfinite(c.ext_peak))
+                std::printf("  mean peak %s: published %.4g, CORAL %.4g (%+.1f %%), MoorDyn %.4g (%+.1f %%)\n", c.ext_channel.c_str(), c.ext_peak,
+                            pc, 100.0*(pc/c.ext_peak - 1.0), pm, 100.0*(pm/c.ext_peak - 1.0));
+            else
+                std::printf("  mean peak %s: CORAL %.4g, MoorDyn %.4g\n", c.ext_channel.c_str(), pc, pm);
+        }
+        if(std::isfinite(c.ext_static))
+        {
+            const int ch = sc.col(c.ext_channel);
+            const double vc = c.ext_scale*sc.rows[0][ch], vm = c.ext_scale*sm.rows[0][sm.col(c.ext_channel)];
+            std::printf("  static %s: measured %.4g, CORAL %.4g (%+.2f %%), MoorDyn %.4g (%+.2f %%)\n", c.ext_channel.c_str(), c.ext_static,
+                        vc, 100.0*(vc/c.ext_static - 1.0), vm, 100.0*(vm/c.ext_static - 1.0));
+        }
     }
     std::cout<<(nfail ? "cases above tolerance: " + std::to_string(nfail) : std::string("all within tolerance"))<<std::endl;
     return nfail ? 1 : 0;
