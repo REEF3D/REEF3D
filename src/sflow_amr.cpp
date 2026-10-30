@@ -40,6 +40,7 @@ Author: Hans Bihs
 #include"sflow_eta.h"
 #include"sflow_forcing.h"
 #include"sflow_momentum_RK3.h"
+#include"sflow_momentum_SI.h"
 #include"sflow_pjm_lin.h"
 #include"sflow_pjm_quad.h"
 #include"sflow_ediff.h"
@@ -240,7 +241,9 @@ void sflow_amr::ini(lexer *p, fdm2D *b, ghostcell *pgc)
     // scope
     int ok=1;
     if(p->A220<0 || p->A220>4) ok=0;
-    if(p->A210==2) ok=0;
+    if(p->A210==2 && si==0) ok=0;
+    // semi-implicit free surface (A 226 1): hydrostatic, one global time step, no moving bodies (sflow_amr_si.cpp)
+    if(si==1 && (p->A220!=0 || p->G7==1 || p->X10!=0)) ok=0;
     if(p->A260!=0 && p->A260!=3 && p->A260!=4) ok=0;   // the algebraic eddy viscosity of every grid (sflow_ediff)
     // sediment transport (S 10 1): bed load, Exner (S 31 1/2, S 32 1/2), sand slide, no fractions (sflow_amr_sed.cpp)
     if(p->S10!=0 && (p->S10!=1 || p->S51>0 || p->S31==3 || p->S32>=3)) ok=0;
@@ -258,7 +261,7 @@ void sflow_amr::ini(lexer *p, fdm2D *b, ghostcell *pgc)
         if(ok==0)
         {
             if(p->mpirank==0)
-            cout<<"!!! SFLOW multi-block grid: only for A 220 0, A 210 3, A 260 0/3/4, S 10 0/1 (S 51 0, S 31 1/2, S 32 1/2), X 10 0/2/3, W 90 0, without G 7 1 !!!"<<endl;
+            cout<<"!!! SFLOW multi-block grid: only for A 220 0, A 210 3 (A 226 1: A 210 2/3), A 260 0/3/4, S 10 0/1 (S 51 0, S 31 1/2, S 32 1/2), X 10 0/2/3 (A 226 1: X 10 0), W 90 0, without G 7 1 !!!"<<endl;
             exit(1);
         }
     }
@@ -266,7 +269,7 @@ void sflow_amr::ini(lexer *p, fdm2D *b, ghostcell *pgc)
     if(ok==0)
     {
         if(p->mpirank==0)
-        cout<<"SFLOW AMR (G 1): only for A 220 0-4, A 210 3, A 260 0/3/4, S 10 0/1 (S 51 0, S 31 1/2, S 32 1/2), X 10 0-3, W 90 0, and with one cell in y Cartesian -- refinement switched off"<<endl;
+        cout<<"SFLOW AMR (G 1): only for A 220 0-4, A 210 3 (A 226 1: A 210 2/3, A 220 0, X 10 0, without G 7 1), A 260 0/3/4, S 10 0/1 (S 51 0, S 31 1/2, S 32 1/2), X 10 0-3, W 90 0, and with one cell in y Cartesian -- refinement switched off"<<endl;
         maxlev=0;
         return;
     }
@@ -448,6 +451,17 @@ void sflow_amr::patch_objects(reefamr_patch *q, ghostcell *pgc)
     c->pmom->nh_defer = (nh==1);
     c->pmom->bous_defer = (bous==1);
 
+    // semi-implicit free surface (A 226 1): the step of the grid (sflow_amr_si.cpp); the RK3 object of the patch serves
+    // the fills and the restriction (its stage arrays of stage 0 in and stage 2 out are the fields of the grid). A
+    // refined patch has no open boundaries (no refinement next to them)
+    if(si==1)
+    {
+        if(c->lev>=1)
+        pp->open_xm = pp->open_xp = pp->open_ym = pp->open_yp = 0;
+        c->psim = new sflow_momentum_SI(pp,c->b,pgc,c->phll,c->pss,c->precon,c->pdiff,c->ppress,c->psolv,nullptr,pflow_of(c),c->pfsf,c->psfdf,p6,true);
+        c->psim->amrgrid = true;
+    }
+
     for(int ip=0; ip<5; ++ip)
     {
         c->rec[ip][0].assign(c->ny,0.0);
@@ -490,6 +504,7 @@ void sflow_amr::patch_delete(reefamr_patch *q)
     c->pp->del_Iarray(c->pp->DFBED,c->pp->imax*c->pp->jmax);
     }
     delete c->pmom;
+    delete c->psim;
     delete c->pio;
     delete c->pship;
     delete c->psolv;
@@ -2469,6 +2484,14 @@ void sflow_amr::timestep(lexer *p, fdm2D *b, ghostcell *pgc)
 {
     if(!active())
     return;
+
+    // semi-implicit free surface: the advective limit over the cells of the blocks and the patches (sflow_amr_si.cpp)
+    if(si==1)
+    {
+        if(p->count>0)
+        si_timestep(p,pgc);
+        return;
+    }
 
     // initial time step (sflow_etimestep::ini): linear in DXM, so scale with the finest patch
     if(p->count==0)

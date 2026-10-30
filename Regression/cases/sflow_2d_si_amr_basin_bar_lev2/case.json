@@ -1,0 +1,18 @@
+{
+ "base": "sflow_2d_si_amr_basin_bar",
+ "ctrl_set": {
+  "G 1": "2",
+  "G 10": "60.0 140.0 20.0 80.0"
+ },
+ "description": "sflow_2d_si_amr_basin_bar with two levels (G 1 2): nested patches, FAC over two levels.",
+ "tags": [
+  "2d",
+  "sflow",
+  "semi_implicit",
+  "amr"
+ ],
+ "covers": [
+  "reefamr_si two levels"
+ ],
+ "architect": "Hans Bihs"
+}

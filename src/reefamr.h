@@ -40,6 +40,7 @@ class ghostcell;
 class slice;
 class sixdof_obj;
 class reefckpt;
+class si_eta2D;
 
 using namespace std;
 
@@ -878,6 +879,61 @@ public:
         }
     }
 
+    // ---- semi-implicit free surface (SFLOW A 226 1, NHFLOW A 534 1; reefamr_si.cpp)
+    //  One eta system over the leaf cells of all grids: the level-0 grids (the native grid without its
+    //  ring, the blocks 1.. of a multi-block grid) and the refined patches.  Every grid assembles its own
+    //  rows (si_eta2D, the module's semi-implicit object); a row of the composite system is the row of the
+    //  grid that holds the cell as a leaf.  The cells around a grid take the values of the cells they stand
+    //  for (blocks, ring, halo, siblings) or are interpolated from the coarser level (linear, as the
+    //  composite non-hydrostatic solves); a coarse face next to a finer patch takes the mean of the fine
+    //  face fluxes a_f (eta_R - eta_L) of the two fine faces (with the sign of the coarse face on a
+    //  multi-block grid), so that the system is the divergence of the fluxes the face update takes.
+    //  BiCGStab (reefamr_krylov.h), preconditioned by one sweep over the levels: on level 0 one REEFMG2D
+    //  V-cycle per grid on its own rows, restricted additive Schwarz (G 57: with the coarse space across the
+    //  grids first), then level by level the correction interpolated into the patches and patch-local
+    //  multigrid V-cycles on the residual it leaves (FAC).  The wetting and drying iteration of si_eta2D
+    //  (Casulli 2009) runs over all grids together.  Without patches the arithmetic is that of the
+    //  multi-block solve of nhflow_amr_si.cpp before this layer, bit for bit.
+    struct rsi_rows
+    {
+        lexer *q = nullptr;
+        si_eta2D *e = nullptr;
+        slice *ax = nullptr, *ay = nullptr, *etaI = nullptr, *rhsW = nullptr, *depth = nullptr, *bdiag = nullptr;
+    };
+    struct rsi_result { int iter = 0, wd_iter = 0, dry = 0; double time = 0.0; };
+    // the eta system of all grids (the rows and right-hand sides assembled by the grids): wetting and drying
+    // iterations at most itmax; eta^{n+1} in the etaI of every grid, on the leaf cells, the covered cells (mean of
+    // the children) and the cells around the grids
+    void rsi_solve(lexer*, ghostcell*, int itmax, rsi_result&);
+    bool rsi_own(int g, int ii, int jj);                    // a cell of grid g that the grid holds
+    bool rsi_leaf(int g, int ii, int jj);                   // ... and no finer patch covers
+    const vector<int>& rsi_grids();                         // the grids of the system (-1, blocks, patches by level)
+    // a field of every grid (F(g) -> slice&): the covered cells take the mean of their children, the cells around
+    // the grids the values of the cells they stand for or the linear interpolation of the coarser level
+    void rsi_fill(int tag, const std::function<slice&(int)> &F);
+
+    // vector space of reefamr_bicgstab (public for the solver struct)
+    void rsi_apply(int, int);
+    void rsi_prec(int, int);
+    double rsi_dot(int, int);
+    void rsi_opstart();
+    void rsi_op_p(double, double);
+    void rsi_op_s(double);
+    void rsi_op_x(double, double);
+    void rsi_restart();
+
+    // ---- face matching of module values on the patch boxes (the semi-implicit steps: discharges, advective
+    //      fluxes): nv values per fine face, recorded by the module on the box faces of the patches
+    //      (rsm_slot), sent level by level to the ranks of the coarse faces (rsm_send, finest level first),
+    //      taken by the coarse grids (rsm_take: the mean of the two fine faces of a coarse face, sgn -1
+    //      where a multi-block face points against them)
+    void rsm_begin(int nv);
+    double* rsm_slot(int id, int side, int r);
+    void rsm_face(int id, int side, int r, int &dir, int &fi, int &fj);     // the fine face: dir 1 x, 2 y
+    int rsm_count(int id, int side);                                     // faces along the side
+    void rsm_send(int l, int tag);
+    void rsm_take(int g, const std::function<void(int, int, int, const double*, int)> &f);
+
 protected:
     // ---- moving bodies
     void zone_setup(lexer*);
@@ -949,6 +1005,38 @@ protected:
     vector<vector<reefamr_match>> xmatch, xrmatch;
     vector<reefamr_xplan> xfplan;
     vector<vector<int>> xfsend, xfrecv;
+
+    // ---- semi-implicit free surface (reefamr_si.cpp): module hooks and data
+    // the eta system of grid g (false: none)
+    virtual bool rsi_rows_of(int, rsi_rows&) { return false; }
+    // eta^{n+1} of the water level boundaries of every grid in their ghost cells (after each solve)
+    virtual void rsi_bound() {}
+    // f on grid g alone (g >= 0: a block or a patch, the MPI exchange of the ghostcell class off)
+    virtual void rsi_run(int g, const std::function<void()> &f);
+    struct rsi_g;
+    vector<rsi_g*> rsg;             // the grids of the eta system
+    vector<int> rsig;               // their ids: -1, lev[0], lev[1], ...
+    int rsi_layout = -1;            // regrids at the setup
+    ghostcell *rsipgc = nullptr;
+    struct rsi_csi;
+    rsi_csi *rsics = nullptr;       // G 57: the coarse space of the level-0 grids
+    int rsics_n = 0;
+    bool rsi_lev = false;           // patches in the system: the composite solve over the levels
+    void rsi_setup();
+    void rsi_free();
+    void rsi_fillv(int v, bool all=true);       // Krylov vector v of all grids (all: the levels as well)
+    void rsi_restrict(int tag, const std::function<slice&(int)> &F);
+    double rsi_interp(lexer*, slice&, int, int, int, int);
+    void rsi_rows0(int x, int y);               // y = A x on the own rows of the level-0 grids (level-0 fill)
+    void rsi_ras(int, int);
+    void rsi_cs_build();
+    void rsi_cs_correct(int, int);
+    void rsi_pmg();                             // the patch multigrids of this pass
+    void rsi_prolong(int l, int v);
+    void rsi_couple();                          // the coarse faces next to the patches: the mean fine coefficient
+    vector<vector<double>> rsm_rec;             // [patch id]: nv values per box face, sides x-, x+, y-, y+
+    vector<vector<double>> rsm_val;             // [grid id+1]: rmatch index * nv, the fine values from other ranks
+    int rsm_nv = 0;
 
 private:
     // ---- measured cost model of the placement (G 41 0, reefamr_load.cpp)

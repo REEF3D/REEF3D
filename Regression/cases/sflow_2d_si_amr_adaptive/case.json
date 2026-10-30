@@ -1,0 +1,24 @@
+{
+ "base": "sflow_2d_si_basin_bar",
+ "steps": 120,
+ "ctrl_add": [
+  "G 1 1",
+  "G 2 4",
+  "G 3 2",
+  "G 4 8",
+  "G 20 0.0005"
+ ],
+ "description": "sflow_2d_si_basin_bar with adaptive refinement (G 2 4) of the water level gradient: regrids of the composite eta system (rsi_layout rebuild).",
+ "tags": [
+  "2d",
+  "sflow",
+  "semi_implicit",
+  "amr",
+  "adaptive"
+ ],
+ "covers": [
+  "reefamr_si rebuild after regrid",
+  "sflow_amr_si regrid"
+ ],
+ "architect": "Hans Bihs"
+}

@@ -183,10 +183,16 @@ void nhflow_momentum_SI::check(lexer *p)
     if(p->A510!=2 && p->A510!=3)
     msg("a predictor other than SSP-RK2/3 (A 510 2/3) is");
 
-    if(p->G1>0)
-    msg("mesh refinement (G 1) is");
+    // mesh refinement (G 1): one eta system over the leaf cells of all grids (reefamr_si.cpp), one global time step
+    // with the same sigma layers on every level
+    if(p->G1>0 && p->G7==1)
+    msg("subcycling of the mesh refinement (G 7 1) is");
 
+    if(p->G1>0 && p->G6==1)
+    msg("vertical refinement of the mesh refinement (G 6 1) is");
 
+    if(p->G1>0 && p->A600>0)
+    msg("tracers (A 600) with mesh refinement (G 1) are");
 
     if(p->A519==2)
     msg("wall friction at every wall face (A 519 2) is");
@@ -287,8 +293,13 @@ void nhflow_momentum_SI::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *ppf
     return;
     }
 
-    // one grid: the parts of the step in sequence (with the multi-block grid the stage runner fills the
-    // cells around the blocks between them)
+    step_single(p,d,pgc,S);
+}
+
+// one grid: the parts of the step in sequence (with the multi-block grid and the mesh refinement the stage runner
+// fills the cells around the grids between them)
+void nhflow_momentum_SI::step_single(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_stage_obj &S)
+{
     si_restore(p,d,pgc);
     si_begin(p,d,pgc,S);
 
@@ -300,6 +311,7 @@ void nhflow_momentum_SI::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *ppf
 
     si_predictor_end(p,d,pgc);
     si_assemble(p,d,pgc);
+    si_rhs(p,d,pgc);
 
     // initial guess eta^n; Newton iteration on WL = max(eta + d, 0) (Casulli 2009)
     if(psolv2D==nullptr)
@@ -546,9 +558,18 @@ void nhflow_momentum_SI::si_begin(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_s
 
 void nhflow_momentum_SI::si_end(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_stage_obj &S)
 {
+    si_end_faces(p,d,pgc);
+    si_end_cells(p,d,pgc,S);
+}
+
+void nhflow_momentum_SI::si_end_faces(lexer *p, fdm_nhf *d, ghostcell *pgc)
+{
     // 7. layer face discharges
     face_update(p,d,pgc);
+}
 
+void nhflow_momentum_SI::si_end_cells(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_stage_obj &S)
+{
     // 8. WL, eta, wetting and drying
     eta_update(p,d,pgc,S.pfsf);
 
@@ -1373,6 +1394,10 @@ void nhflow_momentum_SI::advection(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_
             }
         }
 
+        // mesh refinement: the coarse faces next to a finer patch take the fine fluxes, a patch records its box faces
+        if(fhook)
+        fhook(p,comp,d->Fx,d->Fy);
+
         // the vertical advection is implicit in the column operator (col_coef)
         LOOP
         WETDRY
@@ -1725,6 +1750,12 @@ void nhflow_momentum_SI::si_assemble(lexer *p, fdm_nhf *d, ghostcell *pgc)
         for(k=0;k<p->knoz;++k)
         Qn[IJK] = 0.0;
     }
+
+}
+
+void nhflow_momentum_SI::si_rhs(lexer *p, fdm_nhf *d, ghostcell *pgc)
+{
+    const double dt = p->dt;
 
     // right-hand side of the water depth: WL^n - dt div( theta q^E + (1-theta) q^n )
     SLICELOOP4

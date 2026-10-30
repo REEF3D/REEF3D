@@ -1,0 +1,19 @@
+{
+ "base": "sflow_2d_si_amr_basin_bar",
+ "steps": 60,
+ "ctrl_set": {
+  "A 251": null
+ },
+ "description": "sflow_2d_si_amr_basin_bar without the tilt (A 251): the lake at rest over the bar with a patch must stay at rest (well balanced composite system).",
+ "tags": [
+  "quick",
+  "2d",
+  "sflow",
+  "semi_implicit",
+  "amr"
+ ],
+ "covers": [
+  "reefamr_si well balancing"
+ ],
+ "architect": "Hans Bihs"
+}

@@ -29,6 +29,7 @@ Author: Hans Bihs
 #include"slice4.h"
 #include<vector>
 #include<fstream>
+#include<functional>
 
 class si_eta2D;
 class nhflow_tracer_SI;
@@ -94,7 +95,11 @@ using namespace std;
 //     over the open faces; WH: the predictor with the implicit vertical advection (no pressure)
 // 10. relaxation zones once per step, the layer face discharges follow the change
 //
-// Not yet (stops in check()): non-hydrostatic pressure (A 520 > 0), mesh refinement (G 1), VRANS,
+// Mesh refinement (G 1): every patch has its own object; the stage runner runs the parts on all grids, finest
+// first where the coarse faces next to a patch take the fine fluxes (advection, discharges), and one eta system over
+// the leaf cells of all grids (reefamr_si.cpp); not with subcycling (G 7 1), vertical refinement (G 6 1) or tracers.
+//
+// Not yet (stops in check()): non-hydrostatic pressure (A 520 > 0), VRANS,
 // 6DOF / floating bodies, SEASTATE, side-wall friction A 519 2, membranes, FEM coupling, patch
 // boundary conditions.
 // ---------------------------------------------------------------------------
@@ -118,8 +123,16 @@ public:
     void si_stage_vel(lexer*, fdm_nhf*, ghostcell*, nhflow_stage_obj&, int);   // velocities of predictor stage s
     void si_stage_rhs(lexer*, fdm_nhf*, ghostcell*, nhflow_stage_obj&, int);   // explicit terms, stage s
     void si_predictor_end(lexer*, fdm_nhf*, ghostcell*);                // the predictor to the faces (UHD, VHD)
-    void si_assemble(lexer*, fdm_nhf*, ghostcell*);                     // column operator, eta system
+    void si_assemble(lexer*, fdm_nhf*, ghostcell*);                     // column operator, face coefficients
+    void si_rhs(lexer*, fdm_nhf*, ghostcell*);                          // right-hand side of the eta system
     void si_end(lexer*, fdm_nhf*, ghostcell*, nhflow_stage_obj&);       // faces, WL, cells, omega
+    void si_end_faces(lexer*, fdm_nhf*, ghostcell*);                    // the face discharges (si_end in two parts)
+    void si_end_cells(lexer*, fdm_nhf*, ghostcell*, nhflow_stage_obj&); // WL, cells, omega
+    void step_single(lexer*, fdm_nhf*, ghostcell*, nhflow_stage_obj&);  // the step of one grid
+
+    // mesh refinement: called by the advection of a component (0 U, 1 V, 2 W) with its layer face fluxes before the
+    // divergence (the coarse faces next to a finer patch take the fine fluxes, a patch records its box faces)
+    std::function<void(lexer*, int, double*, double*)> fhook;
     int si_stages() const { return rk; }
 
     bool patch;             // a block 1.. of a multi-block grid (no log file, no global output)
