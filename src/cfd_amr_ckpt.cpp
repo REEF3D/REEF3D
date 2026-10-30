@@ -521,9 +521,14 @@ void cfd_amr::lmap_step(lexer *p)
 // nx ny nz, then the cells (i*ny + j)*nz + k
 void cfd_amr::write_loadmap(lexer *p)
 {
-    // the weight of a patch cell from the busy times of the ranks (collective)
+    // the weight of a patch cell from the busy times of the ranks (collective).  The fit needs ranks
+    // with different mixes of level-0 and patch cells; when they are too much alike (after a
+    // rebalance), the last fitted weight (wpatch, kept in the checkpoint: it carries over the
+    // rebalance restart).  (The timers of the level-0 and the patch work leave out the composite
+    // parts of the projection, most of them patch work: their ratio came out at a quarter of the
+    // fit on the scaled pier, validation 63.)
     double w = (p->G41>0.0) ? p->G41 : wpatch;
-    bool fit = false;
+    int fit = 0;
     if(p->G41<=0.0 && nranks>1 && lm_steps>0)
     {
         const double t = amr_window_busy(), x = lm_n0/double(lm_steps), y = lm_np/double(lm_steps);
@@ -536,9 +541,12 @@ void cfd_amr::write_loadmap(lexer *p)
             if(A>0.0 && B>0.0)
             {
                 w = MIN(MAX(B/A,0.25),16.0);
-                fit = true;
+                wpatch = w;
+                fit = 1;
             }
         }
+        if(fit==0)
+        fit = 2;
     }
 
     if(p->mpirank!=0)
@@ -554,7 +562,7 @@ void cfd_amr::write_loadmap(lexer *p)
     mkdir("./REEF3D_CFD_AMR",0777);
     ofstream out("./REEF3D_CFD_AMR/REEF3D_CFD_AMR_loadmap.dat");
     out<<"# REEF3D CFD AMR load map (G 45/46): work per step of every level-0 cell (1 + its patch cells times "<<w
-       <<(fit ? ", measured" : "")<<"), averaged over "<<lm_steps<<" steps, count "<<p->count<<endl;
+       <<(fit==1 ? ", measured" : (fit==2 ? ", the last measured" : ""))<<"), averaged over "<<lm_steps<<" steps, count "<<p->count<<endl;
     out<<NX<<" "<<NY<<" "<<NZ<<endl;
     out<<setprecision(8);
     size_t n=0;
@@ -565,7 +573,8 @@ void cfd_amr::write_loadmap(lexer *p)
     out<<endl;
 
     const streamsize pr = cout.precision();
-    cout<<"CFD AMR: load map, a patch cell "<<setprecision(3)<<w<<" level-0 cells"<<(fit ? " (fitted to the busy times of the ranks)" : "")<<endl;
+    cout<<"CFD AMR: load map, a patch cell "<<setprecision(3)<<w<<" level-0 cells"
+        <<(fit==1 ? " (fitted to the busy times of the ranks)" : (fit==2 ? " (the ranks too much alike for the fit: the last weight)" : ""))<<endl;
     cout.precision(pr);
 }
 
