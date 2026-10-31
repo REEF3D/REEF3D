@@ -123,15 +123,23 @@ void driver::logic_nhflow()
     // signal speed
     pss = new nhflow_signal_speed(p);
     
+    // A 520: 0 hydrostatic, 1 projection, 2 incremental projection (A 520 3, the HLLYL flux with its pressure
+    // scheme nhflow_pjm_yl, has been removed)
+    if(p->A520<0 || p->A520>2)
+    {
+        if(p->mpirank==0)
+        cout<<endl<<"A 520 "<<p->A520<<": unknown NHFLOW pressure scheme; use 0 (hydrostatic), 1 (projection) or 2 (incremental projection). "
+            <<"A 520 3 (the HLLYL flux) has been removed."<<endl<<endl;
+        
+        pgc->final(true);
+    }
+    
 //Convection	
-    if(p->A511==1 && p->A520!=3)
+    if(p->A511==1)
 	pnhfconvec = new nhflow_HLL(p,pgc,pBC);
     
-    if(p->A511==2 && p->A520!=3)
+    if(p->A511==2)
 	pnhfconvec = new nhflow_HLL(p,pgc,pBC);   // HLLC mode inside nhflow_HLL (A 511 2)
-    
-    if(p->A520==3)
-	pnhfconvec = new nhflow_HLLYL(p,pgc,pBC);
     
     pnhfscalarconvec = new nhflow_scalar_ifou(p,1);   // advective form for k, epsilon/omega
     
@@ -191,9 +199,6 @@ void driver::logic_nhflow()
     
     if(p->A520==2)
     pnhpress = new nhflow_pjm_corr(p,d,pgc,pBC);
-    
-    if(p->A520==3)
-    pnhpress = new nhflow_pjm_yl(p,d,pgc,pBC);
 
 //Turbulence
     // unknown A 560: no model would be created (pnhfturb uninitialised) and the run crashed later

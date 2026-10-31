@@ -322,18 +322,17 @@ void nhflow_momentum_RK2::phase_M(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_s
     pconvec->start(p,d,3,WL,WHo);
     pnhfdiff->diff_w(p,d,pgc,pflow,psolv,WHDIFF,WHi,UHi,VHi,WHi,WL,1.0);   // implicit step UHDIFF = UHi + dt D(UHDIFF); the stage weight is applied below (alpha here gave alpha^2)
     
-    if(p->A520!=3 && s==0)
+    if(s==0)
 	LOOP
 	WHRK1[IJK] = WHDIFF[IJK]
 				+ p->dt*CPORNH*d->H[IJK];
     
-    if(p->A520!=3 && s==1)
+    if(s==1)
 	LOOP
 	d->WH[IJK] = 0.5*d->WH[IJK] + 0.5*WHDIFF[IJK]
 				+ 0.5*p->dt*CPORNH*d->H[IJK];
 	
     // VRANS: point-implicit Darcy-Forchheimer drag of the static structures (B 204 1)
-    if(p->A520!=3)
     pvrans->implicit_drag(p,d,WHo,alpha,2);
     
     if(s==0)

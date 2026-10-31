@@ -187,7 +187,7 @@ void control::ini_default()
     A517=1;      // int preserve tangential velocities for forcing
     A518=2;      // int NHFLOW bed BC
     A519=-1;     // int turn on bed roughness (not given: 1 with a turbulence model A 560 or sediment S 10, else 0; lexer_read)
-    A520=2;		// int NFHLOW non-hydrostatic pressure scheme
+    A520=2;		// int NHFLOW pressure scheme: 0 hydrostatic, 1 projection, 2 incremental projection
     A521=0;		// int wetdry/forcing flux 
     A522=5.0;    // double p_alpha
     A524=2;      // int sigma gradients

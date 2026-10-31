@@ -29,17 +29,10 @@ Architect: Hans Bihs
 // them the array is not allocated (nullptr) - 8 bytes per cell each, about 0.8 GB per array and 1e8 cells.
 // The checkpoints skip a nullptr field (driver_ckpt, nhflow_amr_ckpt).
 
-// FSW, DWDT and the stored face fluxes Fs, Fn, Fe, Fw: the HLLYL flux and the Yamazaki pressure (A 520 3).
-// The HLL and HLLC fluxes of nhflow_HLL evaluate the face fluxes on the fly (nhflow_flux_face.h).
-inline bool nhflow_yl_fields(lexer *p)
-{
-    return p->A520==3;
-}
-
-// test: the output P 23 and the work array of the Yamazaki pressure (A 520 3)
+// test: the output P 23
 inline bool nhflow_test_field(lexer *p)
 {
-    return p->P23==1 || p->A520==3;
+    return p->P23==1;
 }
 
 // KIN: the turbulence models (A 560); the bed shear stress (bedshear_nhflow) takes k = 0 without one
@@ -68,11 +61,11 @@ inline bool nhflow_dem_field(lexer *p)
 
 // The tangential face states Vs, Vn, Ws, Wn (x faces) and Ue, Uw, We, Ww (y faces): only the HLLC flux
 // (A 511 2), the curvilinear grid (face-normal velocities, nhflow_curv) and the semi-implicit momentum
-// (A 534 1) reconstruct and read them. The HLL flux (A 511 1) and HLLYL (A 520 3) reconstruct the normal
-// velocity and the conserved variables only (nhflow_momentum_func::reconstruct).
+// (A 534 1) reconstruct and read them. The HLL flux (A 511 1) reconstructs the normal velocity and the
+// conserved variables only (nhflow_momentum_func::reconstruct).
 inline bool nhflow_tangential_faces(lexer *p)
 {
-    return (p->A511==2 && p->A520!=3) || p->geo_curv==1 || p->A534==1;
+    return p->A511==2 || p->geo_curv==1 || p->A534==1;
 }
 
 #endif

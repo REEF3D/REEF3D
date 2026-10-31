@@ -590,7 +590,6 @@
         <VirtualDirectory Name="Convect">
           <File Name="nhflow_solid_flux.h"/>
           <File Name="nhflow_flux_face.h"/>
-          <File Name="nhflow_HLLYL.h"/>
           <VirtualDirectory Name="Scalar">
             <File Name="nhflow_scalar_void.h"/>
             <File Name="nhflow_scalar_ifou.h"/>
@@ -599,8 +598,6 @@
             <File Name="nhflow_scalar_iweno.h"/>
             <File Name="nhflow_scalar_convection.h"/>
           </VirtualDirectory>
-          <File Name="nhflow_flux_build.h"/>
-          <File Name="nhflow_flux_build_f.h"/>
           <VirtualDirectory Name="Signal Speed">
             <File Name="nhflow_signal_speed.h"/>
           </VirtualDirectory>
@@ -687,7 +684,6 @@
         <File Name="nhflow_v.h"/>
         <File Name="nhflow.h"/>
         <VirtualDirectory Name="Pressure">
-          <File Name="nhflow_pjm_yl.h"/>
           <File Name="nhflow_pjm_corr.h"/>
           <File Name="nhflow_pjm_hs.h"/>
           <File Name="nhflow_pjm.h"/>
@@ -2213,7 +2209,6 @@
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Convect">
-          <File Name="nhflow_HLLYL.cpp"/>
           <VirtualDirectory Name="Scalar">
             <File Name="nhflow_scalar_void.cpp"/>
             <File Name="nhflow_scalar_ifou.cpp"/>
@@ -2221,7 +2216,6 @@
             <File Name="nhflow_scalar_iweno.cpp"/>
           </VirtualDirectory>
           <File Name="nhflow_thinbody.cpp"/>
-          <File Name="nhflow_flux_build_f.cpp"/>
           <VirtualDirectory Name="Signal Speed">
             <File Name="nhflow_signal_speed.cpp"/>
           </VirtualDirectory>
@@ -2336,7 +2330,6 @@
         <File Name="nhflow_v.cpp"/>
         <File Name="nhflow_f.cpp"/>
         <VirtualDirectory Name="Pressure">
-          <File Name="nhflow_pjm_yl.cpp"/>
           <File Name="nhflow_pjm_corr.cpp"/>
           <File Name="nhflow_pjm_hs.cpp"/>
           <File Name="nhflow_pjm.cpp"/>

@@ -57,7 +57,7 @@ void nhflow_ckpt_fields(lexer *p, fdm_nhf *d, FD &&fd, FI &&fi)
     fd("POR",'C',d->POR); fd("PORPART",'C',d->PORPART); fd("PORDEM",'C',d->PORDEM);
     fd("KIN",'C',d->KIN); fd("CONC",'C',d->CONC); fd("SALT",'C',d->SALT); fd("TEMP",'C',d->TEMP); fd("SOLID",'C',d->SOLID); fd("FB",'C',d->FB); fd("FHB",'C',d->FHB);
     fd("PORSTRUC",'C',d->PORSTRUC); fd("Fx",'C',d->Fx); fd("Fy",'C',d->Fy); fd("Fz",'C',d->Fz);
-    fd("FEx",'C',d->FEx); fd("FEy",'C',d->FEy); fd("FSW",'C',d->FSW); fd("DWDT",'C',d->DWDT);
+    fd("FEx",'C',d->FEx); fd("FEy",'C',d->FEy);
 
     // the sigma grid and the flags of the lexer that change in time (wetting and drying)
     fd("sig",'F',p->sig); fd("sigx",'F',p->sigx); fd("sigy",'F',p->sigy); fd("sigt",'F',p->sigt); fd("sigxx",'F',p->sigxx);

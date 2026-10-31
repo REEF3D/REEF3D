@@ -116,8 +116,6 @@ public:
     
     double *Fx,*Fy,*Fz;
     double *FEx,*FEy;
-    double *FSW = nullptr, *DWDT = nullptr;                         // A 520 3
-    double *Fs = nullptr, *Fn = nullptr, *Fe = nullptr, *Fw = nullptr;  // A 520 3 (HLLYL)
     double *Ss,*Sn,*Se,*Sw;
     
     // face states: s/n the left/right state of the x face i+1/2, e/w of the y face j+1/2, b/t of the z face k+1/2.

@@ -30,7 +30,6 @@ Author: Hans Bihs
 #include"patchBC_interface.h"
 #include"nhflow_reconstruct_hires.h"
 #include"nhflow_signal_speed.h"
-#include"nhflow_flux_build_f.h"
 #include"vrans.h"
 #include"nhflow_flux_face.h"
 #include"nhflow_curv.h"
@@ -40,8 +39,6 @@ nhflow_HLL::nhflow_HLL (lexer *p, ghostcell *ppgc, patchBC_interface *ppBC)
     pgc = ppgc;
     pBC = ppBC;
     
-    pflux = new nhflow_flux_build_f(p,pgc,pBC);
-    
     // A 511 2: HLLC (see hllc_sweep_x/y); on the curvilinear grid (G 50) the momentum components are
     // not face-normal/tangential, there the HLL flux is used
     hllc = (p->A511==2 && p->geo_curv!=1) ? 1 : 0;
@@ -49,7 +46,6 @@ nhflow_HLL::nhflow_HLL (lexer *p, ghostcell *ppgc, patchBC_interface *ppBC)
 
 nhflow_HLL::~nhflow_HLL()
 {
-    delete pflux;
 }
 
 void nhflow_HLL::precalc(lexer* p, fdm_nhf* d, int ipolL, slice &eta)
@@ -73,11 +69,9 @@ void nhflow_HLL::start(lexer *&p, fdm_nhf *&d, int ipol, slice &eta, double *FH)
 
 // ---------------------------------------------------------------------------
 // Fused flux build + HLL: the left/right physical fluxes of a face are
-// evaluated on the fly (nhflow_flux_face.h, the same expressions that
-// nhflow_flux_build_f stores in d->Fs/Fn/Fe/Fw) instead of being written to
-// and re-read from four full 3D arrays. Only the fluxes of the branch that is
-// taken are evaluated. Loop ranges and arithmetic are those of
-// flux_build_f::start_* followed by HLL()/HLL_E().
+// evaluated on the fly (nhflow_flux_face.h) instead of being stored in and
+// re-read from four full 3D arrays. Only the fluxes of the branch that is
+// taken are evaluated.
 //   FL,FR : physical flux left/right of the face
 //   DQ    : (qR - qL), the jump of the conserved variable
 // ---------------------------------------------------------------------------
@@ -647,90 +641,4 @@ void nhflow_HLL::aij_E(lexer *&p, fdm_nhf *&d, int ipol)
     
     if(phook!=nullptr)
     phook->flux_hook(p,d,hook_id,4,d->FEx,d->FEy);
-}
-
-void nhflow_HLL::HLL(lexer *&p,fdm_nhf *&d, double *Us, double *Un, double *Ue, double *Uw)
-{    
-    // HLL flux
-    ULOOP
-    {
-        if(d->Ss[IJK]>=0.0)
-        d->Fx[IJK] = d->Fs[IJK];
-        
-        else
-        if(d->Sn[IJK]<=0.0)
-        d->Fx[IJK] = d->Fn[IJK];
-        
-        else
-        {
-        denom = d->Sn[IJK]-d->Ss[IJK];
-        denom = fabs(denom)>1.0e-10?denom:1.0e10;
-        
-        d->Fx[IJK] = (d->Sn[IJK]*d->Fs[IJK] - d->Ss[IJK]*d->Fn[IJK] + d->Sn[IJK]*d->Ss[IJK]*(Un[IJK] - Us[IJK]))/denom;
-        }
-    }
-    
-    // HLL flux y-dir
-    if(p->j_dir==1)
-    {
-    VLOOP
-    {
-        if(d->Se[IJK]>=0.0)
-        d->Fy[IJK] = d->Fe[IJK];
-        
-        else
-        if(d->Sw[IJK]<=0.0)
-        d->Fy[IJK] = d->Fw[IJK];
-        
-        else
-        {
-        denom = d->Sw[IJK]-d->Se[IJK];
-        denom = fabs(denom)>1.0e-10?denom:1.0e10;
-        
-        d->Fy[IJK] = (d->Sw[IJK]*d->Fe[IJK] - d->Se[IJK]*d->Fw[IJK] + d->Sw[IJK]*d->Se[IJK]*(Uw[IJK] - Ue[IJK]))/denom;
-        }
-    }
-    }
-}
-
-void nhflow_HLL::HLL_E(lexer *&p, fdm_nhf *&d)
-{
-    // HLL flux
-    ULOOP
-    {
-        if(d->Ss[IJK]>=0.0)
-        d->FEx[IJK] = d->Fs[IJK];
-        
-        else
-        if(d->Sn[IJK]<=0.0)
-        d->FEx[IJK] = d->Fn[IJK];
-        
-        else
-        {
-        denom = d->Sn[IJK]-d->Ss[IJK];
-        denom = fabs(denom)>1.0e-10?denom:1.0e10;
-        
-        d->FEx[IJK] = (d->Sn[IJK]*d->Fs[IJK] - d->Ss[IJK]*d->Fn[IJK] + d->Sn[IJK]*d->Ss[IJK]*nhflow_face::por_surf_x(p,d,i,j)*(d->Dn(i,j) - d->Ds(i,j)))/denom;
-        }
-    }
-    
-    // HLL flux y-dir
-    if(p->j_dir==1)
-    VLOOP
-    {
-        if(d->Se[IJK]>=0.0)
-        d->FEy[IJK] = d->Fe[IJK];
-        
-        else
-        if(d->Sw[IJK]<=0.0)
-        d->FEy[IJK] = d->Fw[IJK];
-        
-        else
-        {
-        denom = d->Sw[IJK]-d->Se[IJK];
-        denom = fabs(denom)>1.0e-10?denom:1.0e10;
-        
-        d->FEy[IJK] = (d->Sw[IJK]*d->Fe[IJK] - d->Se[IJK]*d->Fw[IJK] + d->Sw[IJK]*d->Se[IJK]*nhflow_face::por_surf_y(p,d,i,j)*(d->Dw(i,j) - d->De(i,j)))/denom;
-        }
-    }
 }

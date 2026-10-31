@@ -24,17 +24,16 @@ Author: Hans Bihs
 #define NHFLOW_FLUX_FACE_H_
 
 // Physical face fluxes of the NHFLOW momentum and continuity equations,
-// evaluated at one face (i,j,k). Single source for nhflow_flux_build_f
-// (which stores them in d->Fs, d->Fn, d->Fe, d->Fw) and for the fused
-// nhflow_HLL sweeps (which evaluate them on the fly).
+// evaluated at one face (i,j,k), for the fused nhflow_HLL sweeps (which
+// evaluate them on the fly instead of storing them).
 //
 // s/n: left/right state at the x-face i+1/2, e/w: at the y-face j+1/2.
 //
 // The face functions are noinline on purpose: g++ contracts a*b+c into FMA
 // across inlined expressions (-ffp-contract=fast is its C++ default), so
 // inlining them into the HLL formula would change the last bits of the
-// fluxes. As separate calls they round exactly as the stored d->Fs/Fn/Fe/Fw
-// did before, and the fused HLL sweep stays bitwise identical. (Measured:
+// fluxes. As separate calls they round exactly as the stored face fluxes
+// of the former flux build did, and the fused HLL sweep stays bitwise identical. (Measured:
 // no speed difference between inline and noinline.)
 
 #include"lexer.h"

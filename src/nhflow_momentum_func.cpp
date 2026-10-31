@@ -82,9 +82,9 @@ void nhflow_momentum_func::reconstruct(lexer *p, fdm_nhf *d, ghostcell *pgc, nhf
 
     // reconstruct U 
     // Vs,Vn,Ws,Wn,Ue,Uw,We,Ww are only read by the HLLC flux (wave-speed scaling);
-    // HLL (A511=1) and HLLYL (A520=3) never use them -> skip 4 of 12 horizontal reconstructions
+    // HLL (A511=1) never uses them -> skip 4 of 12 horizontal reconstructions
     // curvilinear grid (G 50): both components on both face directions (normal velocity)
-    const bool hllc = (p->A511==2 && p->A520!=3) || p->geo_curv==1;
+    const bool hllc = p->A511==2 || p->geo_curv==1;
 
     precon->reconstruct_3D_x(p, pgc, d, U, d->Us, d->Un);
     if(hllc)
@@ -131,9 +131,9 @@ void nhflow_momentum_func::reconstruct(lexer *p, fdm_nhf *d, ghostcell *pgc, nhf
 
 void nhflow_momentum_func::velcalc(lexer *p, fdm_nhf *d, ghostcell *pgc, double *UH, double *VH, double *WH, slice &WL, double alpha)
 {
-    // Froude-number limiters + U=UH/WL + DWDT, fused into one sweep.
+    // Froude-number limiters + U=UH/WL, fused into one sweep.
     // Every operation is per cell, so the result is identical to the former
-    // sequence of separate loops (limiter A532, limiter B60, DWDT, U, dry, DWDT).
+    // sequence of separate loops (limiter A532, limiter B60, U, dry).
     LOOP
     {
         if(p->wet[IJ]==1 && (p->A532==1 || (p->A532==2 && p->deep[IJ]==0)))
@@ -165,15 +165,11 @@ void nhflow_momentum_func::velcalc(lexer *p, fdm_nhf *d, ghostcell *pgc, double 
         
         if(p->wet[IJ]==1)
         {
-        const double wold = d->W[IJK];
         const double wl = WLVL;
         
         d->U[IJK] = UH[IJK]/wl;
         d->V[IJK] = VH[IJK]/wl;
         d->W[IJK] = WH[IJK]/wl;
-        
-        if(d->DWDT!=nullptr)    // (A 520 3 only)
-        d->DWDT[IJK] = (d->W[IJK]-wold)/(alpha*p->dt);
         }
         
         else

@@ -1134,7 +1134,7 @@ void nhflow_amr::patch_delete(reefamr_patch *q)
         double **a[] = {&d->U,&d->V,&d->W,&d->omegaF,&d->UH,&d->VH,&d->WH,&d->P,&d->RO,&d->VISC,&d->EV,&d->EV0,
                         &d->F,&d->G,&d->H,&d->L,&d->Fext,&d->Gext,&d->Hext,&d->POR,&d->PORPART,&d->PORDEM,&d->test,
                         &d->KIN,&d->CONC,&d->SOLID,&d->FB,&d->FHB,&d->PORSTRUC,&d->Fx,&d->Fy,&d->Fz,&d->FEx,&d->FEy,
-                        &d->FSW,&d->DWDT,&d->Fs,&d->Fn,&d->Fe,&d->Fw,&d->Ss,&d->Sn,&d->Se,&d->Sw,
+                        &d->Ss,&d->Sn,&d->Se,&d->Sw,
                         &d->Us,&d->Un,&d->Ue,&d->Uw,&d->Ub,&d->Ut,&d->Vs,&d->Vn,&d->Ve,&d->Vw,&d->Vb,&d->Vt,
                         &d->Ws,&d->Wn,&d->We,&d->Ww,&d->Wb,&d->Wt,&d->UHs,&d->UHn,&d->UHe,&d->UHw,
                         &d->VHs,&d->VHn,&d->VHe,&d->VHw,&d->WHs,&d->WHn,&d->WHe,&d->WHw};
