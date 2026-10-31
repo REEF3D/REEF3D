@@ -36,6 +36,7 @@ seastate_st4.cpp for the notice and the list of changes.
 #define SEASTATE_ST4_H_
 
 #include<vector>
+#include<algorithm>
 
 class seastate_grid;
 
@@ -143,7 +144,7 @@ public:
     void wind(const float *N, const double *row, const float *k, const float *cg, double U10, double wdir, bool freeze);
 
     // no wind (a calm cell): no input and no swell damping, the whitecapping alone in add()
-    void calm() {calmed = true; ust = 0.0; tauw = 0.0; lc = nsig-1; lagged = false;}
+    void calm() {calmed = true; ust = 0.0; tauw = 0.0; lc = nsig-1; lagged = false; ltk = -1;}
 
     // ecWAM (Phase 23, A 768 1): the next wind() starts from the wave stress tw (direction twd) and the friction velocity
     // us of the last time step of the cell instead of the fixed point; after wind(), tauw, tauwdir and ust are the state
@@ -158,7 +159,11 @@ public:
     // the diagnostic tail (IMPHFTAIL) after the solve of a cell: N above the cut-off of the last wind() set to the
     // saturation of the cut-off, directions ma..mb
     void project(float *N, const float *k, const float *cg, int ma, int mb) const;
-    int tail_from() const {return (!prm.tail || calmed || !(ust>0.0)) ? nsig : lc+1;}
+    int tail_from() const {return (ltk>=0) ? ltk : ((!prm.tail || calmed || !(ust>0.0)) ? nsig : lc+1);}
+    // A 767 1 (the terms of a cell kept from the evaluation in the first sweep of the iteration): the tail of that
+    // evaluation for the next project() and tail_from(), until untake() (the next compute)
+    void take_tail(int lt) {ltk = std::min(std::max(lt,0),nsig);}
+    void untake() {ltk = -1;}
 
     // single terms of the last wind() for tests: growth rate gamma (1/s), swell damping (>= 0), whitecapping (>= 0)
     double rate(int b) const {return gam[b];}
@@ -171,6 +176,7 @@ public:
     double ust = 0.0, z0 = 0.0, z0b = 0.0, chrnck = 0.0, tauw = 0.0, tauwdir = 0.0, fm = 0.0, fmws = 0.0;
     int lc = 0, iters = 0;
     bool calmed = true;
+    int ltk = -1;                               // the first bin of the tail taken from a kept evaluation, -1 none
 
     static void kzeone(double x, double y, double &re0, double &im0, double &re1, double &im1);
     static void kerkei(double x, double &ker, double &kei);

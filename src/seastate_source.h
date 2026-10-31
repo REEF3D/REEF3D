@@ -226,6 +226,9 @@ public:
     void project(float *N, const float *k, const float *cg, int ma, int mb) const;
     // ST4: the first frequency of the diagnostic tail of the last compute, nsig without a tail
     int tail_from() const {return (prm.st4 && prm.wind && prm.U10>0.0) ? st4s.tail_from() : nsig;}
+    // A 767 1: the tail of the kept evaluation of the cell (tail_from() of that evaluation) for project(); the next
+    // compute() drops it
+    void take_tail(int lt) {if(prm.st4) st4s.take_tail(lt);}
     // ST4: the upper bound of N per frequency (ecWAM FLMAX, Phillips alpha_p,max / pi per bin), nullptr: none
     const double *upper() const {return prm.st4 ? st4s.upper() : nullptr;}
     const seastate_st4 &st4() const {return st4s;}

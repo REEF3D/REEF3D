@@ -340,6 +340,9 @@ void seastate_source::limits(const float *k, const float *cg)
 
 void seastate_source::compute(const float *N, double depth, const float *k, const float *cg, double *P, double *D, int ma, int mb, int la, int lb)
 {
+    if(prm.st4)
+    st4s.untake();
+
     moments(N,depth,k);
 
     wa = ma;

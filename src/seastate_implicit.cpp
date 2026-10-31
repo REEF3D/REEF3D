@@ -885,6 +885,7 @@ void seastate_implicit::scache_alloc(lexer *p, fdm_seastate *e)
     c.PD.assign(size_t(ns)*2*nsig*c.width,0.0f);
     c.etot.assign(ns,0.0);
     c.tri.assign(ns,0);
+    c.tail.assign(ns,int16_t(nsig));
     c.gen.assign(ns,-1);
     c.ready = true;
 }
@@ -1732,6 +1733,7 @@ void seastate_implicit::cell(lexer *p, fdm_seastate *e, int q, int ci, int cj, c
 
         src->limits(kc,cgc);
         src->drop_rows();
+        src->take_tail(c.tail[cslot]);
         setot = c.etot[cslot];
         stri = (c.tri[cslot]!=0);
         }
@@ -1768,6 +1770,7 @@ void seastate_implicit::cell(lexer *p, fdm_seastate *e, int q, int ci, int cj, c
 
             c.etot[cslot] = src->Etot;
             c.tri[cslot] = src->triads_active() ? 1 : 0;
+            c.tail[cslot] = int16_t(src->tail_from());
             c.gen[cslot] = sgen;
             }
             else
