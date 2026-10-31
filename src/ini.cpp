@@ -999,6 +999,7 @@ void control::ini_default()
     P87_amax=4.0;     // double sediment balance scour: bed shear stress amplification at the pile (S = 0)
     P87_beta=0.0;     // double sediment balance scour: decay of the amplification with S/D, 0: ln(amax)/1.3
     P87_k=1.65;       // double sediment balance scour: rate coefficient
+    P89=0;            // int scour gauges: equilibrium scour, 0 Sumer & Fredsoe (2001), 1 Hoballah Jalloul et al. (2026)
 	P91=0.25;		  // double factor used in force calculation algorithm
     P92=0;           // int force from water or from water+air
 	P101=0;			  // int print sloshing forces
