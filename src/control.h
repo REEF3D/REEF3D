@@ -151,7 +151,8 @@ public:
     int A717;
     double A717_th1,A717_th2;
     double A763,A764;
-    int A765,A766,A768;
+    int A765,A766,A768,A787;
+    double A788,A789;
     double A709,A791,A793,A795,A739;
     double *A760_x,*A760_y;
     double *A722_xs,*A722_ys,*A722_xe,*A722_ye,*A722_kt,*A722_kr,*A722_zc;

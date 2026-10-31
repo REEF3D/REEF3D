@@ -137,6 +137,7 @@
         <File Name="seastate_remote.h"/>
         <File Name="seastate_nhflow.h"/>
         <File Name="seastate_forcing.h"/>
+        <File Name="seastate_collocation.h"/>
         <File Name="seastate_amr.h"/>
         <File Name="seastate_bathy.h"/>
         <File Name="seastate_fas2.h"/>
@@ -1631,6 +1632,8 @@
         <VirtualDirectory Name="Coupling">
           <File Name="seastate_f_forcing.cpp"/>
           <File Name="seastate_forcing.cpp"/>
+          <File Name="seastate_collocation.cpp"/>
+          <File Name="seastate_f_collocation.cpp"/>
           <File Name="seastate_f_surfbeat.cpp"/>
           <File Name="seastate_surfbeat.cpp"/>
           <File Name="seastate_coupling.cpp"/>

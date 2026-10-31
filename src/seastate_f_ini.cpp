@@ -349,6 +349,10 @@ void seastate_f::ini_common(lexer *p, ghostcell *pgc, bool coupled_)
     spcout_ini(p,pgc);
     spcout(p,pgc,!restart);
     }
+
+    // online collocation (A 787 1)
+    if(p->A787==1)
+    colloc_ini(p,pgc);
 }
 
 void seastate_f::check_keys(lexer *p, ghostcell *pgc)
@@ -534,6 +538,10 @@ void seastate_f::check_keys(lexer *p, ghostcell *pgc)
     msg = "A 798: at least one thread per rank";
     else if(p->A767!=0 && p->A767!=1)
     msg = "A 767: the source terms once per iteration must be 0 (off) or 1 (on)";
+    else if(p->A787!=0 && p->A787!=1)
+    msg = "A 787: the online collocation must be 0 (off) or 1 (seastate-collocation.csv)";
+    else if(p->A789<0.0)
+    msg = "A 789: the interval of the collocation summary must not be negative (0: at the end only)";
     else if(p->A768!=0 && p->A768!=1)
     msg = "A 768: u* of A 732 3 and 4 must be 0 (the fixed point in every evaluation) or 1 (from the wave stress of the last time step, ecWAM)";
     else if(p->A799!=0 && p->A799!=1)
