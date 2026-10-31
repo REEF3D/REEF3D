@@ -2940,6 +2940,15 @@ void control::read_control(lexer* p)
                 case 186: ++P186;
                          clear(c,numint);
                          break;
+                case 187: control>>P187;
+                         clear(c,numint);
+                         break;
+                case 188: control>>P188_D>>P188_ts>>P188_T;
+                         clear(c,numint);
+                         break;
+                case 189: control>>P189_U>>P189_dir;
+                         clear(c,numint);
+                         break;
                 case 190: control>>P190;
                          clear(c,numint);
                          break;
@@ -2953,6 +2962,21 @@ void control::read_control(lexer* p)
                          clear(c,numint);
                          break;
                 case 195: ++P195;
+                         clear(c,numint);
+                         break;
+                case 196: control>>P196;
+                         clear(c,numint);
+                         break;
+                case 197: control>>P197_d>>P197_rho>>P197_aamp>>P197_kt>>P197_gE>>P197_nr;
+                         clear(c,numint);
+                         break;
+                case 198: ++P198;
+                         clear(c,numint);
+                         break;
+                case 193: ++P193;
+                         clear(c,numint);
+                         break;
+                case 199: control>>P199_dt>>P199_Tw>>P199_m;
                          clear(c,numint);
                          break;
                 case 230: ++P230;
@@ -4892,6 +4916,10 @@ void control::read_control(lexer* p)
 
     Darray(P51_x,P51);
     Darray(P51_y,P51);
+    Darray(P198_x,P198);
+    Darray(P198_y,P198);
+    Darray(P193_x,P193);
+    Darray(P193_y,P193);
 
     Darray(P52_y,P52);
     Darray(P56_x,P56);
@@ -5339,6 +5367,8 @@ void control::read_control(lexer* p)
     int countP69=0;
     int countP167=0;
     int countP168=0;
+    int countP198=0;
+    int countP193=0;
     int countP81=0;
     int countP85=0;
     int countP88=0;
@@ -6097,6 +6127,16 @@ void control::read_control(lexer* p)
                          break;
                 case 186: control>>P186_tstart[countP186]>>P186_tend[countP186];
                          ++countP186;
+                         clear(c,numint);
+                         break;
+                case 198: control>>P198_x[countP198]>>P198_y[countP198];
+                         p->XYin(P198_x[countP198],P198_y[countP198]);
+                         ++countP198;
+                         clear(c,numint);
+                         break;
+                case 193: control>>P193_x[countP193]>>P193_y[countP193];
+                         p->XYin(P193_x[countP193],P193_y[countP193]);
+                         ++countP193;
                          clear(c,numint);
                          break;
                 case 194: control>>P194_its[countP194]>>P194_ite[countP194]>>P194_dit[countP194];

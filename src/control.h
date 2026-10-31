@@ -486,6 +486,17 @@ public:
     double P91;
     double P101_xm,P101_ym,P101_zs,P101_ze,P101_r1,P101_r2;
     int P110;
+    int P187,P196;                      // P 187: FNPF scour parameters in the bed output, P 196: ambient current from scour_current.dat
+    double P188_D,P188_ts,P188_T;       // P 188: structure diameter, start of the statistics, wave period (<= 0: wave input)
+    double P189_U,P189_dir;             // P 189: ambient current speed and direction (deg, towards, from the x-axis)
+    double P197_d,P197_rho;             // P 197: armour stone size and density,
+    double P197_aamp,P197_kt,P197_gE,P197_nr;   // velocity amplification, kt, environmental factor gamma_E, roughness ks/D50 (REEF_Tools)
+    int P193;                           // P 193: FNPF/NHFLOW scour protection gauges
+    double *P193_x,*P193_y;
+    int P198;                           // P 198: FNPF scour gauges
+    double *P198_x,*P198_y;
+    double P199_dt,P199_Tw;             // P 199: scour gauge output interval, statistics time window,
+    int P199_m;                         //        U_m: 0 sqrt(2) sigma_u (irregular waves), 1 maximum (regular waves)
     double P111;
     int P112,P115;
     double P113,P114;

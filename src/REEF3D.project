@@ -644,6 +644,7 @@
           </VirtualDirectory>
           <VirtualDirectory Name="VTP BED">
             <File Name="nhflow_vtp_bed.h"/>
+            <File Name="nhflow_scour.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="WSF">
             <File Name="nhflow_print_wsfline_y.h"/>
@@ -768,6 +769,8 @@
           </VirtualDirectory>
           <VirtualDirectory Name="VTP BED">
             <File Name="fnpf_vtp_bed.h"/>
+            <File Name="fnpf_scour.h"/>
+            <File Name="scour_core.h"/>
           </VirtualDirectory>
           <VirtualDirectory Name="VTP FSF">
             <File Name="fnpf_vtp_fsf.h"/>
@@ -2272,6 +2275,7 @@
           <VirtualDirectory Name="VTP BED">
             <File Name="nhflow_vtp_bed_pvtp.cpp"/>
             <File Name="nhflow_vtp_bed.cpp"/>
+            <File Name="nhflow_scour.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="VTP FSF">
             <File Name="nhflow_vtp_fsf_pvtp.cpp"/>
@@ -2447,6 +2451,8 @@
           <VirtualDirectory Name="VTP BED">
             <File Name="fnpf_vtp_bed_pvtp.cpp"/>
             <File Name="fnpf_vtp_bed.cpp"/>
+            <File Name="fnpf_scour.cpp"/>
+            <File Name="scour_core.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="State">
             <File Name="fnpf_state_mainheader.cpp"/>

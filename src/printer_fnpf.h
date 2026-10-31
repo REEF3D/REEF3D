@@ -38,6 +38,7 @@ class fnpf_print_wsfline;
 class fnpf_print_wsfline_y;
 class fnpf_vtp_fsf;
 class fnpf_vtp_bed;
+class fnpf_scour;
 class fnpf_state;
 class fnpf_breaking_log;
 class fnpf_print_Hs;
@@ -94,6 +95,7 @@ private:
     potentialfile_out *ppotentialfile;
     fnpf_vtp_fsf *pfsf = nullptr;
     fnpf_vtp_bed *pbed = nullptr;
+    fnpf_scour *pscourbed = nullptr;  // P 187: scour parameters in the bed output
     fnpf_state *pstate;
     fnpf_breaking_log *pbreaklog;
     fnpf_force_ale **pforce_ale;

@@ -2092,6 +2092,42 @@ void control::ctrlrecv()
     ii++;
     P186 = ictrl[ii];
     ii++;
+    P187 = ictrl[ii];
+    ii++;
+    P188_D = dctrl[dd];
+    dd++;
+    P188_ts = dctrl[dd];
+    dd++;
+    P188_T = dctrl[dd];
+    dd++;
+    P189_U = dctrl[dd];
+    dd++;
+    P189_dir = dctrl[dd];
+    dd++;
+    P196 = ictrl[ii];
+    ii++;
+    P197_d = dctrl[dd];
+    dd++;
+    P197_rho = dctrl[dd];
+    dd++;
+    P197_aamp = dctrl[dd];
+    dd++;
+    P197_kt = dctrl[dd];
+    dd++;
+    P197_gE = dctrl[dd];
+    dd++;
+    P197_nr = dctrl[dd];
+    dd++;
+    P193 = ictrl[ii];
+    ii++;
+    P198 = ictrl[ii];
+    ii++;
+    P199_dt = dctrl[dd];
+    dd++;
+    P199_Tw = dctrl[dd];
+    dd++;
+    P199_m = ictrl[ii];
+    ii++;
     P190 = ictrl[ii];
     ii++;
     P191 = ictrl[ii];
@@ -4117,6 +4153,18 @@ void control::ctrlrecv()
         Darray(P50_y,P50);
     }
 
+    if(P198>0)
+    {
+        Darray(P198_x,P198);
+        Darray(P198_y,P198);
+    }
+
+    if(P193>0)
+    {
+        Darray(P193_x,P193);
+        Darray(P193_y,P193);
+    }
+
     if(P51>0)
     {
         Darray(P51_x,P51);
@@ -5886,6 +5934,22 @@ void control::ctrlrecv()
         P51_x[n] = dctrl[dd];
         dd++;
         P51_y[n] = dctrl[dd];
+        dd++;
+    }
+
+    for(n=0;n<P198;++n)
+    {
+        P198_x[n] = dctrl[dd];
+        dd++;
+        P198_y[n] = dctrl[dd];
+        dd++;
+    }
+
+    for(n=0;n<P193;++n)
+    {
+        P193_x[n] = dctrl[dd];
+        dd++;
+        P193_y[n] = dctrl[dd];
         dd++;
     }
 

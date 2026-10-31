@@ -45,6 +45,7 @@ class nhflow_depavg_vel_lineprobe;
 class nhflow_depandtime_avg_vel_lineprobe;
 class nhflow_vtp_fsf;
 class nhflow_vtp_bed;
+class nhflow_scour;
 class nhflow_state;
 class nhflow_breaking_log;
 class nhflow_probe_vel;
@@ -80,6 +81,7 @@ private:
     bool bed_printed = false;   // the fixed bed of this run (also after a restart, I 45: a new LAGOON store)
     void print(lexer*,fdm_nhf*,ghostcell*,nhflow_turbulence*,sediment*);
     void print_fsf(lexer*,fdm_nhf*,ghostcell*,sediment*,nhflow_turbulence*);
+    void print_bed(lexer*,fdm_nhf*,ghostcell*,sediment*);   // the bed with the free surface (S 10 > 0 or P 187)
     int last_print = -1;    // the iteration of the last volume output (print_end)
     int last_fsf = -1;      // and of the last free surface output (with the bed, S 10)
     void parallel(lexer*,fdm_nhf*,ghostcell*,nhflow_turbulence*,sediment*,int);
@@ -114,6 +116,7 @@ private:
     nhflow_depandtime_avg_vel_lineprobe *pdepandtimeavgline;
     nhflow_vtp_fsf *pfsf = nullptr;
     nhflow_vtp_bed *pbed = nullptr;
+    nhflow_scour *pscourbed = nullptr;  // P 187: scour parameters in the bed output, P 198: scour gauges
     nhflow_state *pstate;
     nhflow_breaking_log *pbreaklog;
     nhflow_probe_vel *pvel;

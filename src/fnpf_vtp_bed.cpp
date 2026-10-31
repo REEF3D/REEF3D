@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm_fnpf.h"
 #include"ghostcell.h"
+#include"scour_core.h"
 #include<sys/stat.h>
 #include<sys/types.h>
 #include"lagoon_output.h"
@@ -31,6 +32,15 @@ Author: Hans Bihs
 namespace
 {
 lagoon_surface *lagoon_bed = nullptr;  // P 18
+}
+
+// the point data of the scour option (P 187) in the order of the file
+std::vector<std::pair<const char*,slice*>> fnpf_vtp_bed::scour_fields(scour_core *s)
+{
+    std::vector<std::pair<const char*,slice*>> f;
+    for(int n=0; n<scour_core::NQ; ++n)
+    f.push_back({scour_core::name(n),s->field(n)});
+    return f;
 }
 
 fnpf_vtp_bed::fnpf_vtp_bed(lexer *p, fdm_fnpf *c, ghostcell *pgc)
@@ -78,6 +88,14 @@ void fnpf_vtp_bed::print2D(lexer *p, fdm_fnpf *c, ghostcell* pgc)
     offset[n]=offset[n-1]+sizeof(float)*p->pointnum2D+sizeof(int);
     ++n;
 
+    // scour (P 187)
+    const int nsc = scour!=nullptr ? int(scour_fields(scour).size()) : 0;
+    for(int q=0; q<nsc; ++q)
+    {
+    offset[n]=offset[n-1]+sizeof(float)*p->pointnum2D+sizeof(int);
+    ++n;
+    }
+
     // Cells
     offset[n]=offset[n-1] + sizeof(int)*p->polygon_sum*3+sizeof(int);
     ++n;
@@ -99,6 +117,11 @@ void fnpf_vtp_bed::print2D(lexer *p, fdm_fnpf *c, ghostcell* pgc)
     ++n;
     result<<"<DataArray type=\"Float32\" Name=\"depth\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
+    for(int q=0; q<nsc; ++q)
+    {
+    result<<"<DataArray type=\"Float32\" Name=\""<<scour_fields(scour)[q].first<<"\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
+    ++n;
+    }
     result<<"</PointData>\n";
 
     vtp3D::polys(result,offset,n);
@@ -140,6 +163,19 @@ void fnpf_vtp_bed::print2D(lexer *p, fdm_fnpf *c, ghostcell* pgc)
     {
         ffn=float(p->sl_ipol4(c->depth));
         result.write((char*)&ffn, sizeof(float));
+    }
+
+    //  Scour (P 187)
+    for(int q=0; q<nsc; ++q)
+    {
+    slice &f = *scour_fields(scour)[q].second;
+    iin=sizeof(float)*p->pointnum2D;
+    result.write((char*)&iin, sizeof(int));
+    TPSLICELOOP
+    {
+        ffn=float(p->sl_ipol4(f));
+        result.write((char*)&ffn, sizeof(float));
+    }
     }
 
     //  Connectivity

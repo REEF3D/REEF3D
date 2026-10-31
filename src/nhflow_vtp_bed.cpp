@@ -25,6 +25,7 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 #include"sediment.h"
+#include"scour_core.h"
 #include<sys/stat.h>
 #include<sys/types.h>
 #include"lagoon_output.h"
@@ -32,6 +33,15 @@ Author: Hans Bihs
 namespace
 {
 lagoon_surface *lagoon_bed = nullptr;  // P 18
+}
+
+// the point data of the scour option (P 187) in the order of the file
+std::vector<std::pair<const char*,slice*>> nhflow_vtp_bed::scour_fields(scour_core *s)
+{
+    std::vector<std::pair<const char*,slice*>> f;
+    for(int q=0; q<scour_core::NQ; ++q)
+    f.push_back({scour_core::name(q),s->field(q)});
+    return f;
 }
 
 nhflow_vtp_bed::nhflow_vtp_bed(lexer *p)
@@ -78,6 +88,14 @@ void nhflow_vtp_bed::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc, sediment *pse
     // depth
     offset[n]=offset[n-1]+sizeof(float)*p->pointnum2D+sizeof(int);
     ++n;
+    // scour (P 187)
+    const int nsc = scour!=nullptr ? scour_core::NQ : 0;
+    for(int q=0; q<nsc; ++q)
+    {
+    offset[n]=offset[n-1]+sizeof(float)*p->pointnum2D+sizeof(int);
+    ++n;
+    }
+
     // sediment bedlaod
     if(p->P76==1)
         psed->offset_ParaView_2D_bedload(p,offset,n);
@@ -120,6 +138,12 @@ void nhflow_vtp_bed::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc, sediment *pse
     ++n;
     result<<"<DataArray type=\"Float32\" Name=\"depth\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
     ++n;
+
+    for(int q=0; q<nsc; ++q)
+    {
+    result<<"<DataArray type=\"Float32\" Name=\""<<scour_core::name(q)<<"\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
+    ++n;
+    }
     if(p->P76==1)
         psed->name_ParaView_bedload(p,result,offset,n);
     if(p->P77==1)
@@ -216,6 +240,19 @@ void nhflow_vtp_bed::print2D(lexer *p, fdm_nhf *d, ghostcell* pgc, sediment *pse
     {
         ffn=float(p->sl_ipol4(d->depth));
         result.write((char*)&ffn, sizeof(float));
+    }
+
+    //  Scour (P 187)
+    for(int q=0; q<nsc; ++q)
+    {
+    slice &f = *scour->field(q);
+    iin=sizeof(float)*p->pointnum2D;
+    result.write((char*)&iin, sizeof(int));
+    TPSLICELOOP
+    {
+        ffn=float(p->sl_ipol4(f));
+        result.write((char*)&ffn, sizeof(float));
+    }
     }
 
     //  sediment bedload

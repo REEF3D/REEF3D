@@ -1044,6 +1044,24 @@ void control::ini_default()
     P184=0;       // int time between file printout in iterations
 	P185=0;        	// int time between file printout in seconds
     P186=0;       // int time-averaged fsf vtp printouts
+    P187=0;          // int FNPF scour parameters in the bed output, written with the fsf output
+    P188_D=1.0;      // double FNPF scour structure diameter
+    P188_ts=0.0;     // double FNPF scour start of the bed velocity statistics
+    P188_T=-1.0;     // double FNPF scour wave period for KC, <= 0: Tp (spectrum) or T of the wave input
+    P189_U=0.0;      // double FNPF scour ambient current speed
+    P189_dir=0.0;    // double FNPF scour ambient current direction (deg, towards, counterclockwise from x)
+    P196=0;          // int FNPF scour ambient current from scour_current.dat (x y Ux Uy)
+    P197_d=0.5;      // double FNPF scour armour stone size
+    P197_rho=2650.0; // double FNPF scour armour stone density
+    P197_aamp=1.1;   // double FNPF scour protection: velocity amplification alpha (REEF_Tools)
+    P197_kt=1.1;     // double FNPF scour protection: velocity factor kt (REEF_Tools)
+    P197_gE=1.3;     // double FNPF scour protection: environmental factor gamma_E on tau_max (REEF_Tools)
+    P197_nr=1.5;     // double FNPF scour protection: roughness ks = n_r D50 (REEF_Tools)
+    P193=0;          // int FNPF scour protection gauges
+    P198=0;          // int FNPF scour gauges
+    P199_dt=-1.0;    // double FNPF scour gauge output interval, <= 0: every time step
+    P199_Tw=-1.0;    // double FNPF scour statistics time window (exponential), <= 0: all from P 188 t_s on
+    P199_m=0;        // int FNPF scour U_m: 0 sqrt(2) sigma_u (irregular waves), 1 maximum orbital velocity (regular waves)
     P190=0;			  // int print topo
 	P191=-10;		  // int ith iteration topo printed
 	P192=-1.0;       // double time between topo file printout in seconds

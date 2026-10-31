@@ -2099,6 +2099,42 @@ void control::ctrlsend()
     ii++;
     ictrl[ii] = P186;
     ii++;
+    ictrl[ii] = P187;
+    ii++;
+    dctrl[dd] = P188_D;
+    dd++;
+    dctrl[dd] = P188_ts;
+    dd++;
+    dctrl[dd] = P188_T;
+    dd++;
+    dctrl[dd] = P189_U;
+    dd++;
+    dctrl[dd] = P189_dir;
+    dd++;
+    ictrl[ii] = P196;
+    ii++;
+    dctrl[dd] = P197_d;
+    dd++;
+    dctrl[dd] = P197_rho;
+    dd++;
+    dctrl[dd] = P197_aamp;
+    dd++;
+    dctrl[dd] = P197_kt;
+    dd++;
+    dctrl[dd] = P197_gE;
+    dd++;
+    dctrl[dd] = P197_nr;
+    dd++;
+    ictrl[ii] = P193;
+    ii++;
+    ictrl[ii] = P198;
+    ii++;
+    dctrl[dd] = P199_dt;
+    dd++;
+    dctrl[dd] = P199_Tw;
+    dd++;
+    ictrl[ii] = P199_m;
+    ii++;
     ictrl[ii] = P190;
     ii++;
     ictrl[ii] = P191;
@@ -4533,6 +4569,22 @@ void control::ctrlsend()
         dctrl[dd] = P51_x[n];
         dd++;
         dctrl[dd] = P51_y[n];
+        dd++;
+    }
+
+    for(n=0;n<P198;++n)
+    {
+        dctrl[dd] = P198_x[n];
+        dd++;
+        dctrl[dd] = P198_y[n];
+        dd++;
+    }
+
+    for(n=0;n<P193;++n)
+    {
+        dctrl[dd] = P193_x[n];
+        dd++;
+        dctrl[dd] = P193_y[n];
         dd++;
     }
 

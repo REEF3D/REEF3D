@@ -30,6 +30,7 @@ Author: Hans Bihs
 #include"nhflow_print_wsf.h"
 #include"nhflow_vtp_fsf.h"
 #include"nhflow_vtp_bed.h"
+#include"nhflow_scour.h"
 #include"nhflow_state.h"
 #include"nhflow_print_wsf_theory.h"
 #include"nhflow_print_wsfline.h"
@@ -178,10 +179,32 @@ printer_nhflow::printer_nhflow(lexer* p, fdm_nhf *d, ghostcell *pgc)
     pfsf = new nhflow_vtp_fsf(p,d,pgc);
 
     pbed = new nhflow_vtp_bed(p);
+
+    // P 187: scour parameters in the bed output, written with the free surface, P 198: scour gauges
+    // (not with mesh refinement)
+    const bool scour = p->P187==1 || p->P198>0;
+
+    if(scour && p->G1>0 && p->mpirank==0)
+        cout<<"NHFLOW scour (P 187, P 198) is not available with mesh refinement (G 1), off"<<endl;
+
+    if(scour && p->G1<=0)
+    {
+        pscourbed = new nhflow_scour(p,d,pgc);
+
+        if(p->P187==1)
+        pbed->scour = pscourbed;
+    }
 }
 
 void printer_nhflow::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, nhflow_turbulence *pnhfturb, sediment *psed)
 {
+    // P 187, P 198: near-bed velocity statistics, every time step, and the scour gauges
+    if(pscourbed!=nullptr)
+    {
+    pscourbed->sample(p,d,pgc);
+    pscourbed->gauges(p,pgc);
+    }
+
     // Gages
     if(p->P51>0)
     pwsf->height_gauge(p,d,pgc,d->eta);
@@ -253,8 +276,8 @@ void printer_nhflow::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, 
     {
         print_fsf(p,d,pgc,psed,pnhfturb);
 
-        if(p->S10>0)
-            pbed->start(p,d,pgc,psed);
+        if(p->S10>0 || p->P187==1)
+            print_bed(p,d,pgc,psed);
     }
 
 
@@ -262,8 +285,8 @@ void printer_nhflow::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, 
     {
         print_fsf(p,d,pgc,psed,pnhfturb);
 
-        if(p->S10>0)
-            pbed->start(p,d,pgc,psed);
+        if(p->S10>0 || p->P187==1)
+            print_bed(p,d,pgc,psed);
 
         p->fsfprinttime+=p->P182;
     }
@@ -272,8 +295,8 @@ void printer_nhflow::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, 
     {
         print_fsf(p,d,pgc,psed,pnhfturb);
 
-        if(p->S10>0)
-        pbed->start(p,d,pgc,psed);
+        if(p->S10>0 || p->P187==1)
+        print_bed(p,d,pgc,psed);
 
         p->fsfsedprinttime+=p->P183;
     }
@@ -284,8 +307,8 @@ void printer_nhflow::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, 
             {
                 print_fsf(p,d,pgc,psed,pnhfturb);
 
-                if(p->S10>0)
-                    pbed->start(p,d,pgc,psed);
+                if(p->S10>0 || p->P187==1)
+                    print_bed(p,d,pgc,psed);
             }
 
     if(p->P180==1 && p->P185>0)
@@ -294,19 +317,17 @@ void printer_nhflow::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, 
             {
                 print_fsf(p,d,pgc,psed,pnhfturb);
 
-                if(p->S10>0)
-                    pbed->start(p,d,pgc,psed);
+                if(p->S10>0 || p->P187==1)
+                    print_bed(p,d,pgc,psed);
 
                 printfsftime_wT[qn]+=p->P185_dt[qn];
             }
 
     // Print BED
     // the fixed bed: at the start, and at the first output of a restart (I 45: a new LAGOON store)
-    if((p->count==0 || !bed_printed) && p->S10==0)
-    {
-        pbed->start(p,d,pgc,psed);
-        bed_printed = true;
-    }
+    // (with P 187 the bed is written with the free surface: here only when that has not happened yet)
+    if(((p->count==0 && p->P187!=1) || !bed_printed) && p->S10==0)
+    print_bed(p,d,pgc,psed);
 
 
     // Gages
@@ -374,11 +395,14 @@ void printer_nhflow::print_stop(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pf
 {
     print(p,d,pgc,pnhfturb,psed);
 
-    if(p->S10>0)
-        pbed->start(p,d,pgc,psed);
+    if(p->S10>0 || p->P187==1)
+        print_bed(p,d,pgc,psed);
 
     if(p->P180==1)
         print_fsf(p,d,pgc,psed,pnhfturb);
+
+    if(pscourbed!=nullptr)
+        pscourbed->gauge_flush();
 
     if(plagoon)  // the last output of the LAGOON store is counted
         plagoon->finish(p,pgc);
@@ -387,6 +411,9 @@ void printer_nhflow::print_stop(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pf
 
 void printer_nhflow::print_end(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, nhflow_turbulence *pnhfturb, sediment *psed)
 {
+    if(pscourbed!=nullptr)
+        pscourbed->gauge_flush();
+
     // the state at the end of the run, also when it ends between two outputs (N 45 before P 30)
     const bool volume = (p->P20>0 && p->P30<0.0 && p->P34<0.0) || p->P30>0.0 || p->P34>0.0 || p->P35>0;
     const bool fsf = p->P180==1 && (p->P181>0 || p->P182>0.0 || p->P183>0.0 || p->P184>0 || p->P185>0);
@@ -395,12 +422,21 @@ void printer_nhflow::print_end(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pfl
     {
         print_fsf(p,d,pgc,psed,pnhfturb);
 
-        if(p->S10>0)
-            pbed->start(p,d,pgc,psed);
+        if(p->S10>0 || p->P187==1)
+            print_bed(p,d,pgc,psed);
     }
 
     if(volume && last_print!=p->count)
         print(p,d,pgc,pnhfturb,psed);
+}
+
+void printer_nhflow::print_bed(lexer* p, fdm_nhf* d, ghostcell* pgc, sediment *psed)
+{
+    if(pbed->scour!=nullptr)
+    pscourbed->evaluate(p,pgc);
+
+    pbed->start(p,d,pgc,psed);
+    bed_printed = true;
 }
 
 void printer_nhflow::print_fsf(lexer* p, fdm_nhf* d, ghostcell* pgc, sediment *psed, nhflow_turbulence *pnhfturb)

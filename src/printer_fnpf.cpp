@@ -33,6 +33,7 @@ Author: Hans Bihs
 #include"fnpf_print_wsfline_y.h"
 #include"fnpf_vtp_fsf.h"
 #include"fnpf_vtp_bed.h"
+#include"fnpf_scour.h"
 #include"fnpf_breaking_log.h"
 #include"fnpf_print_Hs.h"
 #include"fnpf_vel_probe.h"
@@ -119,6 +120,21 @@ printer_fnpf::printer_fnpf(lexer* p, fdm_fnpf *c, ghostcell *pgc)
 
     pbed = new fnpf_vtp_bed(p,c,pgc);
 
+    // P 187: scour parameters in the bed output, written with the free surface, P 198: scour gauges
+    // (not with mesh refinement)
+    const bool scour = p->P187==1 || p->P198>0;
+
+    if(scour && p->G1>0 && p->mpirank==0)
+        cout<<"FNPF scour (P 187, P 198) is not available with mesh refinement (G 1), off"<<endl;
+
+    if(scour && p->G1<=0)
+    {
+        pscourbed = new fnpf_scour(p,c,pgc);
+
+        if(p->P187==1)
+        pbed->scour = pscourbed;
+    }
+
     if(p->P40>0)
         pstate=new fnpf_state(p,c,pgc);
 
@@ -183,6 +199,13 @@ void printer_fnpf::start(lexer* p, fdm_fnpf* c,ghostcell* pgc, ioflow *pflow)
     if(pscour!=nullptr)
     pscour->start(p,c,pgc);
 
+    // P 187: bed velocity statistics, every time step
+    if(pscourbed!=nullptr)
+    {
+    pscourbed->sample(p,c,pgc);
+    pscourbed->gauges(p,pgc);
+    }
+
     // Print out based on iteration
     if(p->count%p->P20==0 && p->P30<0.0 && p->P34<0.0 && p->P20>0)
     {
@@ -238,8 +261,11 @@ void printer_fnpf::start(lexer* p, fdm_fnpf* c,ghostcell* pgc, ioflow *pflow)
 
     // Print BED: at the start, and at the first output of a restart (I 45: a new LAGOON store, the bed of the
     // earlier one stays with it)
-    if(p->count==0 || !bed_printed)
+    // (with P 187 the bed is written with the free surface: here only when that has not happened yet)
+    if((p->count==0 && p->P187!=1) || !bed_printed)
     {
+    if(pbed->scour!=nullptr)
+    pscourbed->evaluate(p,pgc);
     pbed->start(p,c,pgc,pflow);
     bed_printed = true;
     }
@@ -296,6 +322,9 @@ void printer_fnpf::print_stop(lexer* p, fdm_fnpf *c, ghostcell* pgc)
 
     print(p,c,pgc);
 
+    if(pscourbed!=nullptr)
+        pscourbed->gauge_flush();
+
     if(plagoon)  // the last output of the LAGOON store is counted
         plagoon->finish(p,pgc);
     lagoon_output::finish_all(p,pgc);  // and those of the free surface and bed
@@ -303,6 +332,9 @@ void printer_fnpf::print_stop(lexer* p, fdm_fnpf *c, ghostcell* pgc)
 
 void printer_fnpf::print_end(lexer* p, fdm_fnpf *c, ghostcell* pgc)
 {
+    if(pscourbed!=nullptr)
+        pscourbed->gauge_flush();
+
     // the state at the end of the run, also when it ends between two outputs (N 45 before P 30)
     const bool volume = (p->P20>0 && p->P30<0.0 && p->P34<0.0) || p->P30>0.0 || p->P35>0;
     const bool fsf = p->P180==1 && (p->P181>0 || p->P182>0.0 || p->P184>0 || p->P185>0);
@@ -318,6 +350,14 @@ void printer_fnpf::print_fsf(lexer* p, fdm_fnpf *c, ghostcell* pgc)
 {
     pfsf->start(p,c,pgc);
     last_fsf = p->count;
+
+    // P 187: the bed with the scour parameters at the free-surface frequency
+    if(pscourbed!=nullptr && p->P187==1)
+    {
+    pscourbed->evaluate(p,pgc);
+    pbed->start(p,c,pgc,nullptr);
+    bed_printed = true;
+    }
 }
 
 void printer_fnpf::print(lexer* p, fdm_fnpf *c, ghostcell* pgc)
