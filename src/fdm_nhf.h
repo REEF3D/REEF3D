@@ -120,13 +120,18 @@ public:
     double *Fs = nullptr, *Fn = nullptr, *Fe = nullptr, *Fw = nullptr;  // A 520 3 (HLLYL)
     double *Ss,*Sn,*Se,*Sw;
     
-    double *Un,*Us,*Ue,*Uw,*Ub,*Ut;
-    double *Vn,*Vs,*Ve,*Vw,*Vb,*Vt;
-    double *Wn,*Ws,*We,*Ww,*Wb,*Wt;
+    // face states: s/n the left/right state of the x face i+1/2, e/w of the y face j+1/2, b/t of the z face k+1/2.
+    // The tangential velocities of the horizontal faces (Vs..Ww, nullptr) only for HLLC, the curvilinear grid
+    // and the semi-implicit momentum (nhflow_tangential_faces); the conserved variables have no z faces.
+    double *Un,*Us,*Ub,*Ut;
+    double *Ve,*Vw,*Vb,*Vt;
+    double *Wb,*Wt;
+    double *Vn = nullptr, *Vs = nullptr, *Wn = nullptr, *Ws = nullptr;
+    double *Ue = nullptr, *Uw = nullptr, *We = nullptr, *Ww = nullptr;
     
-    double *UHn,*UHs,*UHe,*UHw,*UHb,*UHt;
-    double *VHn,*VHs,*VHe,*VHw,*VHb,*VHt;
-    double *WHn,*WHs,*WHe,*WHw,*WHb,*WHt;
+    double *UHn,*UHs,*UHe,*UHw;
+    double *VHn,*VHs,*VHe,*VHw;
+    double *WHn,*WHs,*WHe,*WHw;
     
     slice1 ETAs,ETAn;
     slice2 ETAe,ETAw;

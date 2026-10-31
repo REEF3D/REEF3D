@@ -66,4 +66,13 @@ inline bool nhflow_dem_field(lexer *p)
     return p->E10>0;
 }
 
+// The tangential face states Vs, Vn, Ws, Wn (x faces) and Ue, Uw, We, Ww (y faces): only the HLLC flux
+// (A 511 2), the curvilinear grid (face-normal velocities, nhflow_curv) and the semi-implicit momentum
+// (A 534 1) reconstruct and read them. The HLL flux (A 511 1) and HLLYL (A 520 3) reconstruct the normal
+// velocity and the conserved variables only (nhflow_momentum_func::reconstruct).
+inline bool nhflow_tangential_faces(lexer *p)
+{
+    return (p->A511==2 && p->A520!=3) || p->geo_curv==1 || p->A534==1;
+}
+
 #endif

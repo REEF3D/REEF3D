@@ -1136,8 +1136,9 @@ void nhflow_amr::patch_delete(reefamr_patch *q)
                         &d->KIN,&d->CONC,&d->SOLID,&d->FB,&d->FHB,&d->PORSTRUC,&d->Fx,&d->Fy,&d->Fz,&d->FEx,&d->FEy,
                         &d->FSW,&d->DWDT,&d->Fs,&d->Fn,&d->Fe,&d->Fw,&d->Ss,&d->Sn,&d->Se,&d->Sw,
                         &d->Us,&d->Un,&d->Ue,&d->Uw,&d->Ub,&d->Ut,&d->Vs,&d->Vn,&d->Ve,&d->Vw,&d->Vb,&d->Vt,
-                        &d->Ws,&d->Wn,&d->We,&d->Ww,&d->Wb,&d->Wt,&d->UHs,&d->UHn,&d->UHe,&d->UHw,&d->UHb,&d->UHt,
-                        &d->VHs,&d->VHn,&d->VHe,&d->VHw,&d->VHb,&d->VHt,&d->WHs,&d->WHn,&d->WHe,&d->WHw,&d->WHb,&d->WHt};
+                        &d->Ws,&d->Wn,&d->We,&d->Ww,&d->Wb,&d->Wt,&d->UHs,&d->UHn,&d->UHe,&d->UHw,
+                        &d->VHs,&d->VHn,&d->VHe,&d->VHw,&d->WHs,&d->WHn,&d->WHe,&d->WHw};
+        // (the fields of some options only are nullptr without them, nhflow_memory.h: delete[] of nullptr)
         for(auto f : a)
         pp->del_Darray(*f,n7);
         pp->del_Iarray(d->NODEVAL,pp->imax*pp->jmax*(pp->kmax+3));
