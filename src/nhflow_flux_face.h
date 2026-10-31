@@ -67,6 +67,42 @@ inline double por_surf_y(lexer *p, fdm_nhf *d, int i, int j)
     return 0.5*(d->POR[IJK] + d->POR[IJp1K]);
 }
 
+// VRANS (B 200 1, B 206 1): HLL jump term of the momentum equations.
+// Every momentum tendency is scaled by the inertia factor C = CPORNH (vrans_definitions.h), i.e. the
+// system is M q_t + f_x = 0 with M = 1/C for the momentum q = UH. The HLL flux of that system has the
+// jump M (q_R - q_L) = (q_R - q_L)/C (as the continuity has n_s (D_R - D_L)); with the jump q_R - q_L
+// the numerical dissipation of the porous momentum was C times (0.17-0.27 in an armour layer) that
+// of open water. Face value of C as in the advective flux (PORVALNH1, PORVALNH2); 1 in open water.
+inline double jinv_x(lexer *p, fdm_nhf *d, int i, int j, int k)
+{
+    if(p->B200!=1 || p->B206==0)
+    return 1.0;
+    
+    return 1.0/CPORNHval(PORVALNH1);
+}
+
+inline double jinv_y(lexer *p, fdm_nhf *d, int i, int j, int k)
+{
+    if(p->B200!=1 || p->B206==0)
+    return 1.0;
+    
+    return 1.0/CPORNHval(PORVALNH2);
+}
+
+// VRANS (B 200 1, B 206 1): wave speeds of the porous system with M = diag(n_s, 1/C)
+//      n_s deta/dt + dQ/dx = 0,      dQ/dt + C d/dx (Q^2/(n^2 D) + g D^2/2) = ...
+// eigenvalues of M^-1 df/dq, u = Q/D (Darcy velocity), n the face porosity of the advective flux:
+//      lambda = a +- b,   a = C u/n^2,   b^2 = C^2 u^2/n^4 + (C/n_s)(g D - u^2/n^2)
+// n = n_s = C = 1 gives u +- sqrt(g D). In an armour layer (n = 0.3, B 260 0.34) the advective speed
+// is about 3 u (B 265 0) or 1.9 u (B 265 1) instead of u.
+inline void por_speed(lexer *p, double n, double ns, double u, double D, double &a, double &b)
+{
+    const double C = CPORNHval(n);
+    a = C*u/(n*n);
+    const double b2 = a*a + (C/ns)*(9.81*MAX(D,0.0) - u*u/(n*n));
+    b = sqrt(MAX(b2,0.0));
+}
+
 // porosity (VRANS, Darcy velocities): the advective flux UH*U/n^2 of the face i+1/2 (j+1/2) is evaluated
 // with the porosity of that face, PORVALNH1 (PORVALNH2), for the left and the right state alike: equal
 // states give equal fluxes, and the porosity gradient acts at the face where it is

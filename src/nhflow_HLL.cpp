@@ -368,19 +368,19 @@ void nhflow_HLL::aij_U(lexer *&p,fdm_nhf *&d, int ipol)
     hll_sweep_x(p, d, d->Fx,
                 [p,d](int i, int j, int k){return d->UHs[IJK]*d->Us[IJK]/(PORVALNH1*PORVALNH1) + curvface::Px(p,d,d->ETAs(i,j),i,j)*curvface::n1x(p,i,j);},
                 [p,d](int i, int j, int k){return d->UHn[IJK]*d->Un[IJK]/(PORVALNH1*PORVALNH1) + curvface::Px(p,d,d->ETAn(i,j),i,j)*curvface::n1x(p,i,j);},
-                [p,d](int i, int j, int k){return d->UHn[IJK] - d->UHs[IJK];}, fbm);
+                [p,d](int i, int j, int k){return (d->UHn[IJK] - d->UHs[IJK])*nhflow_face::jinv_x(p,d,i,j,k);}, fbm);
     
     hll_sweep_y(p, d, d->Fy,
                 [p,d](int i, int j, int k){return d->UHe[IJK]*d->Ve[IJK]/(PORVALNH2*PORVALNH2) + curvface::Py(p,d,d->ETAe(i,j),i,j)*curvface::n2x(p,i,j);},
                 [p,d](int i, int j, int k){return d->UHw[IJK]*d->Vw[IJK]/(PORVALNH2*PORVALNH2) + curvface::Py(p,d,d->ETAw(i,j),i,j)*curvface::n2x(p,i,j);},
-                [p,d](int i, int j, int k){return d->UHw[IJK] - d->UHe[IJK];}, fbm);
+                [p,d](int i, int j, int k){return (d->UHw[IJK] - d->UHe[IJK])*nhflow_face::jinv_y(p,d,i,j,k);}, fbm);
     }
     else
     {
         hll_sweep_x(p, d, d->Fx,
                     [p,d](int i, int j, int k){return nhflow_face::U_s(p,d,i,j,k);},
                     [p,d](int i, int j, int k){return nhflow_face::U_n(p,d,i,j,k);},
-                    [p,d](int i, int j, int k){return d->UHn[IJK] - d->UHs[IJK];}, fbm, kn);
+                    [p,d](int i, int j, int k){return (d->UHn[IJK] - d->UHs[IJK])*nhflow_face::jinv_x(p,d,i,j,k);}, fbm, kn);
         
         if(p->j_dir==1 && hllc==1)
         hllc_sweep_y(p, d, d->Fy,
@@ -394,7 +394,7 @@ void nhflow_HLL::aij_U(lexer *&p,fdm_nhf *&d, int ipol)
         hll_sweep_y(p, d, d->Fy,
                     [p,d](int i, int j, int k){return nhflow_face::U_e(p,d,i,j,k);},
                     [p,d](int i, int j, int k){return nhflow_face::U_w(p,d,i,j,k);},
-                    [p,d](int i, int j, int k){return d->UHw[IJK] - d->UHe[IJK];}, fbm, kt, d->U);
+                    [p,d](int i, int j, int k){return (d->UHw[IJK] - d->UHe[IJK])*nhflow_face::jinv_y(p,d,i,j,k);}, fbm, kt, d->U);
     }
     
     nhflow_face::zflux(p,d,d->Ub,d->Ut);
@@ -441,12 +441,12 @@ void nhflow_HLL::aij_V(lexer *&p, fdm_nhf *&d, int ipol)
     hll_sweep_x(p, d, d->Fx,
                 [p,d](int i, int j, int k){return d->VHs[IJK]*d->Us[IJK]/(PORVALNH1*PORVALNH1) + curvface::Px(p,d,d->ETAs(i,j),i,j)*curvface::n1y(p,i,j);},
                 [p,d](int i, int j, int k){return d->VHn[IJK]*d->Un[IJK]/(PORVALNH1*PORVALNH1) + curvface::Px(p,d,d->ETAn(i,j),i,j)*curvface::n1y(p,i,j);},
-                [p,d](int i, int j, int k){return d->VHn[IJK] - d->VHs[IJK];}, fbm);
+                [p,d](int i, int j, int k){return (d->VHn[IJK] - d->VHs[IJK])*nhflow_face::jinv_x(p,d,i,j,k);}, fbm);
     
     hll_sweep_y(p, d, d->Fy,
                 [p,d](int i, int j, int k){return d->VHe[IJK]*d->Ve[IJK]/(PORVALNH2*PORVALNH2) + curvface::Py(p,d,d->ETAe(i,j),i,j)*curvface::n2y(p,i,j);},
                 [p,d](int i, int j, int k){return d->VHw[IJK]*d->Vw[IJK]/(PORVALNH2*PORVALNH2) + curvface::Py(p,d,d->ETAw(i,j),i,j)*curvface::n2y(p,i,j);},
-                [p,d](int i, int j, int k){return d->VHw[IJK] - d->VHe[IJK];}, fbm);
+                [p,d](int i, int j, int k){return (d->VHw[IJK] - d->VHe[IJK])*nhflow_face::jinv_y(p,d,i,j,k);}, fbm);
     }
     else
     {
@@ -461,13 +461,13 @@ void nhflow_HLL::aij_V(lexer *&p, fdm_nhf *&d, int ipol)
         hll_sweep_x(p, d, d->Fx,
                     [p,d](int i, int j, int k){return nhflow_face::V_s(p,d,i,j,k);},
                     [p,d](int i, int j, int k){return nhflow_face::V_n(p,d,i,j,k);},
-                    [p,d](int i, int j, int k){return d->VHn[IJK] - d->VHs[IJK];}, fbm, kt, d->V);
+                    [p,d](int i, int j, int k){return (d->VHn[IJK] - d->VHs[IJK])*nhflow_face::jinv_x(p,d,i,j,k);}, fbm, kt, d->V);
         
         if(p->j_dir==1)
         hll_sweep_y(p, d, d->Fy,
                     [p,d](int i, int j, int k){return nhflow_face::V_e(p,d,i,j,k);},
                     [p,d](int i, int j, int k){return nhflow_face::V_w(p,d,i,j,k);},
-                    [p,d](int i, int j, int k){return d->VHw[IJK] - d->VHe[IJK];}, fbm, kn);
+                    [p,d](int i, int j, int k){return (d->VHw[IJK] - d->VHe[IJK])*nhflow_face::jinv_y(p,d,i,j,k);}, fbm, kn);
     }
     
     nhflow_face::zflux(p,d,d->Vb,d->Vt);
@@ -514,12 +514,12 @@ void nhflow_HLL::aij_W(lexer *&p,fdm_nhf *&d, int ipol)
     hll_sweep_x(p, d, d->Fx,
                 [p,d](int i, int j, int k){return d->WHs[IJK]*d->Us[IJK]/(PORVALNH1*PORVALNH1);},
                 [p,d](int i, int j, int k){return d->WHn[IJK]*d->Un[IJK]/(PORVALNH1*PORVALNH1);},
-                [p,d](int i, int j, int k){return d->WHn[IJK] - d->WHs[IJK];}, fbm);
+                [p,d](int i, int j, int k){return (d->WHn[IJK] - d->WHs[IJK])*nhflow_face::jinv_x(p,d,i,j,k);}, fbm);
     
     hll_sweep_y(p, d, d->Fy,
                 [p,d](int i, int j, int k){return d->WHe[IJK]*d->Ve[IJK]/(PORVALNH2*PORVALNH2);},
                 [p,d](int i, int j, int k){return d->WHw[IJK]*d->Vw[IJK]/(PORVALNH2*PORVALNH2);},
-                [p,d](int i, int j, int k){return d->WHw[IJK] - d->WHe[IJK];}, fbm);
+                [p,d](int i, int j, int k){return (d->WHw[IJK] - d->WHe[IJK])*nhflow_face::jinv_y(p,d,i,j,k);}, fbm);
     }
     else
     {
@@ -544,13 +544,13 @@ void nhflow_HLL::aij_W(lexer *&p,fdm_nhf *&d, int ipol)
         hll_sweep_x(p, d, d->Fx,
                     [p,d](int i, int j, int k){return nhflow_face::W_s(p,d,i,j,k);},
                     [p,d](int i, int j, int k){return nhflow_face::W_n(p,d,i,j,k);},
-                    [p,d](int i, int j, int k){return d->WHn[IJK] - d->WHs[IJK];}, fbm, kt, d->W);
+                    [p,d](int i, int j, int k){return (d->WHn[IJK] - d->WHs[IJK])*nhflow_face::jinv_x(p,d,i,j,k);}, fbm, kt, d->W);
         
         if(p->j_dir==1)
         hll_sweep_y(p, d, d->Fy,
                     [p,d](int i, int j, int k){return nhflow_face::W_e(p,d,i,j,k);},
                     [p,d](int i, int j, int k){return nhflow_face::W_w(p,d,i,j,k);},
-                    [p,d](int i, int j, int k){return d->WHw[IJK] - d->WHe[IJK];}, fbm, kt, d->W);
+                    [p,d](int i, int j, int k){return (d->WHw[IJK] - d->WHe[IJK])*nhflow_face::jinv_y(p,d,i,j,k);}, fbm, kt, d->W);
         }
     }
     
