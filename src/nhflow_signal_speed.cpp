@@ -108,7 +108,6 @@ void nhflow_signal_speed::signal_speed_update(lexer* p, ghostcell *pgc, fdm_nhf 
             {
             d->Ss[IJK] = MIN(as - bs, an - bn);
             d->Sn[IJK] = MAX(as + bs, an + bn);
-            d->SSx[IJK] = 0.5*(as + an);
             }
             
             else
@@ -116,7 +115,6 @@ void nhflow_signal_speed::signal_speed_update(lexer* p, ghostcell *pgc, fdm_nhf 
             {
             d->Ss[IJK] = an - 2.0*bn;
             d->Sn[IJK] = an +     bn;
-            d->SSx[IJK] = d->Ss[IJK];
             }
             
             else
@@ -124,7 +122,6 @@ void nhflow_signal_speed::signal_speed_update(lexer* p, ghostcell *pgc, fdm_nhf 
             {
             d->Ss[IJK] = as -     bs;
             d->Sn[IJK] = as + 2.0*bs;
-            d->SSx[IJK] = d->Sn[IJK];
             }
             }
         }
@@ -194,7 +191,6 @@ void nhflow_signal_speed::signal_speed_update(lexer* p, ghostcell *pgc, fdm_nhf 
             {
             d->Se[IJK] = MIN(ae - be, aw - bw);
             d->Sw[IJK] = MAX(ae + be, aw + bw);
-            d->SSy[IJK] = 0.5*(ae + aw);
             }
             
             else
@@ -202,7 +198,6 @@ void nhflow_signal_speed::signal_speed_update(lexer* p, ghostcell *pgc, fdm_nhf 
             {
             d->Se[IJK] = aw - 2.0*bw;
             d->Sw[IJK] = aw +     bw;
-            d->SSy[IJK] = d->Se[IJK];
             }
             
             else
@@ -210,7 +205,6 @@ void nhflow_signal_speed::signal_speed_update(lexer* p, ghostcell *pgc, fdm_nhf 
             {
             d->Se[IJK] = ae -     be;
             d->Sw[IJK] = ae + 2.0*be;
-            d->SSy[IJK] = d->Sw[IJK];
             }
             }
         }
