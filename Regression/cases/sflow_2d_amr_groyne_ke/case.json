@@ -1,0 +1,16 @@
+{
+ "description": "SFLOW channel 1000 m x 100 m, 1 m deep, 100 m3/s, a groyne from the side wall over 40 m of the width at x = 300 m, depth-averaged k-epsilon (A 260 1); level 0 at 10 m, a patch of 5 m cells over the wake (G 10 x 280-700 m): the patch has its own k-epsilon model (sflow_amr_turb.cpp), the cells around it as Dirichlet values, the covered cells restricted.",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 600,
+ "tags": [
+  "2d",
+  "sflow",
+  "amr",
+  "turbulence"
+ ],
+ "covers": [
+  "sflow_amr_turb.cpp: k-epsilon on the patches (turb_step, turb_fill, the Dirichlet solver)"
+ ],
+ "architect": "Hans Bihs"
+}

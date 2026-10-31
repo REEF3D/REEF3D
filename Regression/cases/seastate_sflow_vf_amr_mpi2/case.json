@@ -1,0 +1,22 @@
+{
+ "base": "seastate_sflow_vf_mpi2",
+ "ctrl_add": [
+  "G 1 1",
+  "G 2 0",
+  "G 3 2",
+  "G 4 8",
+  "G 10 450.0 800.0 0.0 20.0"
+ ],
+ "description": "seastate_sflow_vf_mpi2 (vortex force, A 751 2) with a patch over the surf zone and the shoreline: the force and div(M) of the Stokes transport (the mass source of the continuity) on the patch from its parents, 2 ranks.",
+ "tags": [
+  "2d",
+  "sflow",
+  "seastate",
+  "amr",
+  "mpi"
+ ],
+ "covers": [
+  "sflow_amr_wave.cpp: the vortex force and the Stokes mass source of the patches (A 751 2)"
+ ],
+ "architect": "Hans Bihs"
+}

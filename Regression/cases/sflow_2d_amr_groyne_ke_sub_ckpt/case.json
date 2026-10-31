@@ -1,0 +1,33 @@
+{
+ "base": "sflow_2d_amr_groyne_ke",
+ "np": 2,
+ "steps": 200,
+ "ctrl_set": {
+  "G 2": "4",
+  "G 10": null,
+  "P 48": "100",
+  "P 49": "0"
+ },
+ "ctrl_add": [
+  "G 21 0.002",
+  "G 7 1",
+  "G 40 2"
+ ],
+ "description": "sflow_2d_amr_groyne_ke with patches following the surface (G 21 0.002, a regrid every 4 steps), subcycled (G 7 1), placed (G 40 2), 2 ranks, a checkpoint every 100 steps (P 48 100, P 49 0): the uninterrupted run of sflow_2d_amr_groyne_ke_sub_restart; the fresh patches take k, epsilon from the old patches or their parents (turb_regrid).",
+ "tags": [
+  "2d",
+  "sflow",
+  "amr",
+  "adaptive",
+  "turbulence",
+  "subcycling",
+  "mpi",
+  "place",
+  "checkpoint"
+ ],
+ "covers": [
+  "sflow_amr::turb_regrid",
+  "the turbulence models of the patches in the checkpoint (sflow_amr_ckpt patch_fields)"
+ ],
+ "architect": "Hans Bihs"
+}

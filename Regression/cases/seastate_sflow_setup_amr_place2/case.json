@@ -1,0 +1,25 @@
+{
+ "base": "seastate_sflow_setup_amr",
+ "np": 2,
+ "ctrl_add": [
+  "G 40 2"
+ ],
+ "same_as": "seastate_sflow_setup_amr",
+ "same_as_rtol": 1e-08,
+ "same_as_skip": [
+  "REEF3D_SFLOW_AMR/REEF3D_SFLOW_AMR_log.dat"
+ ],
+ "description": "seastate_sflow_setup_amr on 2 ranks in the placement test mode (G 40 2): the wave fields of the placed pieces from their parents on other ranks; regression.py ranks: the run on 1 rank within 1e-8 (the wave model on 2 ranks differs from 1 rank by 1e-10 m in the set-up without patches).",
+ "tags": [
+  "2d",
+  "sflow",
+  "seastate",
+  "amr",
+  "mpi",
+  "place"
+ ],
+ "covers": [
+  "sflow_amr::wave_fields with G 40 2"
+ ],
+ "architect": "Hans Bihs"
+}

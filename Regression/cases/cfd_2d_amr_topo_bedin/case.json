@@ -1,0 +1,35 @@
+{
+ "base": "cfd_2d_cpm_bedload_layer",
+ "ctrl_set": {
+  "S 10": null,
+  "S 20": null,
+  "S 21": null,
+  "S 22": null,
+  "S 24": null,
+  "S 41": null,
+  "S 45": null,
+  "Q 10": null,
+  "Q 11": null,
+  "Q 12": null,
+  "Q 24": null,
+  "Q 29": null,
+  "Q 52": null,
+  "Q 58": null,
+  "G 1": "1"
+ },
+ "ctrl_add": [
+  "G 15 0.0 0.1 -1.0 1.0 0.0 0.035"
+ ],
+ "description": "As cfd_2d_amr_topo_bedface with the bed inside the patch (the box G 15 from the bottom of the domain): without CPM the patches had no direct forcing flags DF of their own (momentum_forcing sets them on level 0, the patches force by momentum_rk::amr_solid_forcing), so the implicit diffusion coupled the first fluid cells to the bed cells as to fluid at rest; now cfd_amr sets DF at the setup of a patch, at a regrid and with the bodies",
+ "covers": [
+  "cfd_amr: DF of the patches at their setup without CPM (solid_forcing_flag_update before solid_forcing_ini)"
+ ],
+ "np": 1,
+ "steps": 150,
+ "tags": [
+  "quick",
+  "2d",
+  "amr",
+  "topo"
+ ]
+}

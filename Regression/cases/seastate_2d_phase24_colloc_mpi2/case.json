@@ -1,0 +1,21 @@
+{
+ "base": "seastate_2d_windsea_mpi2",
+ "ctrl_add": [
+  "A 787 1",
+  "A 788 600.0",
+  "A 789 1500.0"
+ ],
+ "files": [
+  "seastate-collocation.csv"
+ ],
+ "description": "seastate_2d_windsea_mpi2 (2 ranks, the boundary at x = 20 km) with the online collocation of seastate_2d_phase24_colloc: observations at x = 19.95 and 20.05 km take the cells of the other rank from the halo; the statistics as on one rank (Phase 24). Validation in Dropbox SEASTATE/validation/76_collocation.",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate",
+  "mpi"
+ ],
+ "covers": [
+  "seastate_f::colloc on 2 ranks: the owner of a cell, the halo, the gather on rank 0"
+ ]
+}

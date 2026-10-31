@@ -1,0 +1,16 @@
+{
+ "base": "seastate_2d_phase21b_once",
+ "ctrl_set": {
+  "A 732": "3"
+ },
+ "description": "seastate_2d_phase21b_once (stationary fetch-limited growth, A 767 1: the terms of a cell evaluated in the sweep of quadrant 0, kept for quadrants 1-3) with the Ardhuin et al. (2010) physics as ecWAM (A 732 3, Phase 24): the diagnostic tail of the kept quadrants from the cut-off of the evaluation (seastate_st4::take_tail). Validation in Dropbox SEASTATE/validation/74_once_st4.",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate"
+ ],
+ "covers": [
+  "A 767 1 with A 732 3",
+  "seastate_st4::take_tail, untake; the tail per slot of source_cache"
+ ]
+}

@@ -104,6 +104,7 @@ TEXT_OUTPUT_GLOBS = [
     "REEF3D_SFLOW_MAX/*.dat",
     "REEF3D_SEASTATE_Log/*.dat",
     "REEF3D_SEASTATE_Spectra/*.dat",
+    "REEF3D_SEASTATE_Collocation/*.dat",   # online collocation (A 787 1): the statistics per source
     "REEF3D_CORAL/*.dat",
 ]
 

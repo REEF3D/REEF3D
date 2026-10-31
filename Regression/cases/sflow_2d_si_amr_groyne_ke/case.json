@@ -1,0 +1,22 @@
+{
+ "base": "sflow_2d_amr_groyne_ke",
+ "steps": 100,
+ "ctrl_add": [
+  "A 220 0",
+  "A 226 1",
+  "A 227 0.55",
+  "A 228 2.0"
+ ],
+ "description": "sflow_2d_amr_groyne_ke with the semi-implicit free surface (A 226 1, dt 2 s): the k-epsilon models of the patches after the semi-implicit step.",
+ "tags": [
+  "2d",
+  "sflow",
+  "amr",
+  "turbulence",
+  "semi_implicit"
+ ],
+ "covers": [
+  "sflow_amr_turb.cpp with A 226 1"
+ ],
+ "architect": "Hans Bihs"
+}

@@ -1,0 +1,17 @@
+{
+ "base": "sflow_2d_amr_groyne_ke",
+ "ctrl_set": {
+  "A 260": "2"
+ },
+ "description": "sflow_2d_amr_groyne_ke with k-omega (A 260 2).",
+ "tags": [
+  "2d",
+  "sflow",
+  "amr",
+  "turbulence"
+ ],
+ "covers": [
+  "sflow_amr_turb.cpp: k-omega on the patches"
+ ],
+ "architect": "Hans Bihs"
+}

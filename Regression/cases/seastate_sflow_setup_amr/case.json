@@ -1,0 +1,22 @@
+{
+ "base": "seastate_sflow_setup",
+ "ctrl_add": [
+  "G 1 1",
+  "G 2 0",
+  "G 3 2",
+  "G 4 8",
+  "G 10 450.0 800.0 0.0 20.0"
+ ],
+ "description": "seastate_sflow_setup with a patch of 5 m cells over the surf zone and the shoreline (G 10 x 450-800 m): the waves on level 0 (in-process, A 750 1, G 1 refines the host only), the radiation-stress force of the patch linear in its parents (sflow_amr::wave_sync), set-down and set-up on the patch.",
+ "tags": [
+  "2d",
+  "sflow",
+  "seastate",
+  "amr"
+ ],
+ "covers": [
+  "sflow_amr_wave.cpp: the wave force of the patches (A 751 1)",
+  "seastate_f: G 1 with the coupling refines the host"
+ ],
+ "architect": "Hans Bihs"
+}

@@ -1,0 +1,14 @@
+{
+ "base": "seastate_2d_phase21_jb2023_windfield",
+ "ctrl_add": [
+  "A 767 1"
+ ],
+ "description": "seastate_2d_phase21_jb2023_windfield (wind field in space and time, boundary spectra, nonstationary 3 h, A 732 4, A 768 1) with A 767 1 (Phase 24). Validation in Dropbox SEASTATE/validation/74_once_st4.",
+ "tags": [
+  "2d",
+  "seastate"
+ ],
+ "covers": [
+  "A 767 1 with A 732 4 and the wind field per cell"
+ ]
+}

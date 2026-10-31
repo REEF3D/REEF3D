@@ -1,0 +1,18 @@
+{
+ "base": "seastate_2d_wind",
+ "ctrl_add": [
+  "A 787 1"
+ ],
+ "files": [
+  "seastate-collocation.csv"
+ ],
+ "description": "seastate_2d_wind (stationary, A 700 2) with the online collocation (A 787 1, Phase 24): all observations inside the grid take the final field (time ignored). Validation in Dropbox SEASTATE/validation/76_collocation.",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate"
+ ],
+ "covers": [
+  "seastate_f::colloc_end in a stationary run"
+ ]
+}

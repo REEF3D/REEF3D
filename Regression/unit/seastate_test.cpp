@@ -2,7 +2,7 @@
 // Standalone verification of the REEF3D::SEASTATE kernels: spectral grid, block-sparse action
 // storage, integrated wave parameters, dispersion relation, SWAN spectrum files, source terms (incl. vegetation), surfbeat boundary generator, forcing files,
 // structure formulas (d'Angremond, porous), the DIA of a sweep window (Phase 8). No MPI, no REEF3D binary.
-// Build:  g++ -O2 -std=c++20 -I../../src seastate_test.cpp ../../src/seastate_grid.cpp ../../src/seastate_store.cpp ../../src/seastate_param.cpp ../../src/seastate_dispersion.cpp ../../src/seastate_swan_spc.cpp ../../src/seastate_source.cpp ../../src/seastate_st4.cpp ../../src/seastate_surfbeat.cpp ../../src/seastate_forcing.cpp ../../src/seastate_bathy.cpp ../../src/seastate_structure.cpp seastate_test_threads.cpp -o seastate_test
+// Build:  g++ -O2 -std=c++20 -I../../src seastate_test.cpp ../../src/seastate_grid.cpp ../../src/seastate_store.cpp ../../src/seastate_param.cpp ../../src/seastate_dispersion.cpp ../../src/seastate_swan_spc.cpp ../../src/seastate_source.cpp ../../src/seastate_st4.cpp ../../src/seastate_surfbeat.cpp ../../src/seastate_forcing.cpp ../../src/seastate_collocation.cpp ../../src/seastate_bathy.cpp ../../src/seastate_structure.cpp seastate_test_threads.cpp -o seastate_test
 // Run:    ./seastate_test
 #include"seastate_bathy.h"
 #include"seastate_grid.h"
@@ -15,6 +15,7 @@
 #include"seastate_forcing.h"
 #include"seastate_structure.h"
 #include"seastate_st4.h"
+#include"seastate_collocation.h"
 #include<cstdio>
 #include<fstream>
 #include<algorithm>
@@ -397,9 +398,9 @@ static void test_swan_spc()
     struct {bool naut, energy; const char *name;} cases[3] = {{false,false,"CDIR VaDens"},{true,false,"NDIR VaDens"},{false,true,"CDIR EnDens"}};
     for(auto &c : cases)
     {
-        write_spc("seastate_test.spc",1.5,9.0,40.0,8.0,c.naut,c.energy);
+        write_spc("seastate_test_tmp.spc",1.5,9.0,40.0,8.0,c.naut,c.energy);
         seastate_swan_spc spc;
-        const bool ok=spc.read("seastate_test.spc",err);
+        const bool ok=spc.read("seastate_test_tmp.spc",err);
         check(ok && spc.f.size()==40 && spc.dir.size()==36,std::string(c.name)+": read 40 x 36 spectrum");
         std::vector<float> N;
         spc.to_grid(sg,N);
@@ -409,7 +410,7 @@ static void test_swan_spc()
         check(std::fabs(sp.dir-40.0)<0.5,std::string(c.name)+": mean direction 40 deg (Cartesian)");
         check(spc.x==100.0 && spc.y==200.0,std::string(c.name)+": location");
     }
-    std::remove("seastate_test.spc");
+    std::remove("seastate_test_tmp.spc");
 
     seastate_swan_spc bad;
     check(!bad.read("no_such_file.spc",err),"missing file reported");
@@ -807,7 +808,7 @@ static void test_surfbeat()
 }
 
 // ---------------------------------------------------------------------------------------------
-// external forcing: date-times, series of SWAN spectra, wind field
+// external forcing: date-times, series of SWAN spectra (the wind field: met_test.cpp)
 // ---------------------------------------------------------------------------------------------
 static void test_forcing()
 {
@@ -863,41 +864,62 @@ static void test_forcing()
     ser.advance(ser.time(1)+1e5,err);
     check(ser.weight(ser.time(1)+1e5)==1.0 && ser.records==3,"spectra series: clamped after the last record");
 
-    // wind field: linear in x and y, two times
-    const char *wf = "/tmp/seastate_test_wind.dat";
+    // the wind field of SEASTATE is the met forcing (A 730 2, W 200, met-forcing.r3m) since hans_dev 221581380; its
+    // reader (bilinear in space, linear in time, windows, clamping) is tested in met_test.cpp
+}
+
+// Phase 24: online collocation (A 787 1): the file of the observations, the times, the statistics
+static void test_collocation()
+{
+    std::cout<<"seastate_collocation"<<std::endl;
+
+    double t1, t2, t3;
+    check(seastate_collocation::parse_time("20220129.061231",t1) && seastate_collocation::parse_time("2022-01-29 06:12:31",t2)
+          && seastate_collocation::parse_time("2022-01-29T06:12:31.250",t3) && t1==t2 && std::fabs(t3-t1-0.25)<1e-6
+          && t1==seastate_datetime(20220129.061231),"times: YYYYMMDD.HHMMSS, ISO with a space or T, fractions of a second");
+    double tx;
+    check(!seastate_collocation::parse_time("29/01/2022",tx) && !seastate_collocation::parse_time("2022-13-01",tx),"times: other formats rejected");
+    check(seastate_collocation::stamp(t1)=="20220129.061231","stamp: seconds since 1970 -> YYYYMMDD.HHMMSS");
+
+    const char *f = "seastate_test_colloc.csv";
     {
-        std::ofstream o(wf);
-        o<<"wind test\n3 2\n100.0 -50.0 200.0 300.0\n";
-        for(int k=0;k<2;++k)
-        {
-            o<<(k==0 ? "20261005.000000" : "20261005.060000")<<"\n";
-            for(int c=0;c<2;++c)
-            for(int jj=0;jj<2;++jj)
-            {
-                for(int ii=0;ii<3;++ii)
-                {
-                    const double x=100.0+200.0*ii, y=-50.0+300.0*jj;
-                    o<<(c==0 ? 5.0+0.01*x+0.002*y+k*4.0 : -3.0+0.004*x-0.01*y)<<" ";
-                }
-                o<<"$ row\n";
-            }
-        }
+        std::ofstream o(f);
+        o<<"# observations\nhs,time,y,x,source,id,extra\n";
+        o<<"2.5,2022-01-29 07:00:00,20.0,10.0,buoy,ekofisk,1\n";
+        o<<"3.0,2022-01-29 06:00:00,0.0,-5.0,alti,jason-3,1\n";
+        o<<"\n4.0,2022-01-29 06:30:00,5.0,6.0,alti,saral,1  # comment\n";
     }
-    seastate_wind_series ws;
-    const bool okw = ws.open(wf,err);
-    if(!okw) std::cout<<"        "<<err<<std::endl;
-    double werr=0.0;
-    const double tw = seastate_datetime(20261005.03);
-    ws.advance(tw,err);
-    for(double x : {100.0,230.0,499.0}) for(double y : {-50.0,10.0,250.0})
+    seastate_collocation c;
+    std::string err;
+    const double tref = seastate_datetime(20220129.0);
+    const bool ok = c.read(f,tref,err);
+    if(!ok) std::cout<<"        "<<err<<std::endl;
+    check(ok && c.obs.size()==3 && c.sources.size()==2 && c.ids.size()==3,"file: columns by name, comments, empty lines");
+    check(ok && c.obs[0].t==6.0*3600.0 && c.obs[1].t==6.5*3600.0 && c.obs[2].t==7.0*3600.0 && c.obs[0].x==-5.0 && c.obs[2].y==20.0
+          && c.sources[c.obs[2].src]=="buoy" && c.ids[c.obs[1].id]=="saral","file: sorted by time, model time from tref, x, y, source, id");
     {
-        double u,v; ws.at(tw,x,y,u,v);
-        werr=std::max(werr,std::fabs(u-(5.0+0.01*x+0.002*y+2.0))+std::fabs(v-(-3.0+0.004*x-0.01*y)));
+        std::ofstream o("seastate_test_colloc_bad.csv");
+        o<<"time,x,hs\n2022-01-29 06:00:00,1,2\n";
     }
-    double uc,vc; ws.at(tw,-1000.0,1000.0,uc,vc);
-    std::cout<<"        wind: max. interpolation error "<<werr<<std::endl;
-    check(okw && ws.nx==3 && ws.ny==2 && werr<1e-12,"wind field: bilinear in space and linear in time are exact for a linear field");
-    check(std::fabs(uc-(5.0+0.01*100.0+0.002*250.0+2.0))<1e-12,"wind field: clamped to the grid outside");
+    seastate_collocation b;
+    check(!b.read("seastate_test_colloc_bad.csv",0.0,err) && !b.read("no_such_file.csv",0.0,err),"file without y, missing file: rejected");
+    std::remove(f);
+    std::remove("seastate_test_colloc_bad.csv");
+
+    // statistics against a direct computation
+    const double o[5] = {1.0,2.0,3.0,4.0,5.0}, m[5] = {1.2,1.9,3.5,4.4,4.8};
+    seastate_colloc_stats s;
+    double bd=0.0, sd2=0.0;
+    for(int k=0; k<5; ++k) {s.add(o[k],m[k]); bd += m[k]-o[k]; sd2 += (m[k]-o[k])*(m[k]-o[k]);}
+    bd /= 5.0;
+    double var=0.0;
+    for(int k=0; k<5; ++k) var += (m[k]-o[k]-bd)*(m[k]-o[k]-bd);
+    var /= 5.0;
+    double mo=3.0, mm=0.0, cxy=0.0, cxx=0.0, cyy=0.0;
+    for(int k=0; k<5; ++k) mm += m[k]/5.0;
+    for(int k=0; k<5; ++k) {cxy += (o[k]-mo)*(m[k]-mm); cxx += (o[k]-mo)*(o[k]-mo); cyy += (m[k]-mm)*(m[k]-mm);}
+    check(s.n==5 && std::fabs(s.bias()-bd)<1e-12 && std::fabs(s.rmse()-std::sqrt(sd2/5.0))<1e-12 && std::fabs(s.si()-std::sqrt(var)/3.0)<1e-12
+          && std::fabs(s.r()-cxy/std::sqrt(cxx*cyy))<1e-12,"statistics: bias, RMSE, scatter index, correlation");
 }
 
 // Phase 5b: bathymetry raster (A 790 1) and the maximum energy of SWAN (A 737 1)
@@ -1359,6 +1381,7 @@ int main()
     test_source();
     test_surfbeat();
     test_forcing();
+    test_collocation();
     test_bathy();
     test_vegetation();
     test_structure();
