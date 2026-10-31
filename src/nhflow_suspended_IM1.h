@@ -43,6 +43,8 @@ public:
     void bcsusp_start(lexer*,fdm_nhf*,ghostcell*,sediment_fdm*,double*);
 	void clearrhs(lexer*,fdm_nhf*);
     void fillconc(lexer*,fdm_nhf*,ghostcell*,sediment_fdm*);
+    void inflow_conc(lexer*,fdm_nhf*,sediment_fdm*);
+    int cin_on = 0;
     
     void bed_rate(lexer*, ghostcell*, sediment_fdm*) override final;
     void bed_done(lexer*, sediment_fdm*) override final;

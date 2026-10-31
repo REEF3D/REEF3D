@@ -1,0 +1,6 @@
+# t [s]   qb [m^2/s]   C [-]: no supply, then a feed pulse of bed load and suspended sediment, then equilibrium
+0.0     0.0      0.0
+50.0    0.0      0.0
+60.0    8.0e-6   2.0e-4
+120.0   8.0e-6   2.0e-4
+130.0   -1.0     -1.0

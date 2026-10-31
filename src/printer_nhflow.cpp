@@ -43,6 +43,7 @@ Author: Hans Bihs
 #include"nhflow_depavg_vel_lineprobe.h"
 #include"nhflow_depandtime_avg_vel_lineprobe.h"
 #include"nhflow_probe_vel.h"
+#include"nhflow_print_scour.h"
 #include"nhflow_probe_vel_theory.h"
 #include"nhflow_probe_press.h"
 #include"nhflow_print_Hs.h"
@@ -129,6 +130,9 @@ printer_nhflow::printer_nhflow(lexer* p, fdm_nhf *d, ghostcell *pgc)
     if(p->P65>0)
     pvel=new nhflow_probe_vel(p,d);
 
+    if(p->P83>0 || p->P84>0)
+    pscour = new nhflow_print_scour(p,d);
+
     if(p->P67>0)
     puprofile = new nhflow_profile_u(p,d);
 
@@ -199,6 +203,9 @@ void printer_nhflow::start(lexer* p, fdm_nhf* d, ghostcell* pgc, ioflow *pflow, 
     
     if(p->P65>0)
     pvel->start(p,d,pgc);
+
+    if(pscour!=nullptr)
+    pscour->start(p,d,pgc);
 
     if(p->P66>0)
     pveltheo->start(p,d,pgc,pflow);
@@ -993,6 +1000,8 @@ void printer_nhflow::ckpt_state(std::vector<double> &v)
     v.push_back(nP185);
     for(int qn=0; qn<nP185; ++qn)
     v.push_back(printfsftime_wT[qn]);
+    if(pscour!=nullptr)
+    pscour->ckpt_state(v);   // the scour gauges P 83, P 84
 }
 
 void printer_nhflow::ckpt_restore(const std::vector<double> &v)
@@ -1015,6 +1024,8 @@ void printer_nhflow::ckpt_restore(const std::vector<double> &v)
         const double t = nx();
         if(qn<nP185) printfsftime_wT[qn] = t;
     }
+    if(pscour!=nullptr)
+    pscour->ckpt_restore(v,q);
 }
 
 void printer_nhflow::flush_outputs()

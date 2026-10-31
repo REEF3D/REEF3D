@@ -48,6 +48,7 @@ class nhflow_vtp_bed;
 class nhflow_state;
 class nhflow_breaking_log;
 class nhflow_probe_vel;
+class nhflow_print_scour;
 class nhflow_probe_press;
 class nhflow_probe_vel_theory;
 class nhflow_print_Hs;
@@ -116,6 +117,7 @@ private:
     nhflow_state *pstate;
     nhflow_breaking_log *pbreaklog;
     nhflow_probe_vel *pvel;
+    nhflow_print_scour *pscour = nullptr;  // P 83, P 84: scour gauges
     nhflow_probe_vel_theory *pveltheo;
     nhflow_probe_press *ppressprobe;
     nhflow_print_Hs *phs;

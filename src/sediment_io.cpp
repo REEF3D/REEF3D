@@ -123,6 +123,43 @@ void sediment_f::fill_PQ_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     pgc->gcsl_start1(p,s->P,10);
 	pgc->gcsl_start2(p,s->Q,11);  
     pgc->gcsl_start4(p,s->waterlevel,1);
+    
+    // open domain edges (in- and outflow, IO 1, 2): the face velocities of the bottom layer from the boundary
+    // ghost cells, so that the Exner fluxes cross them (the ghost faces were left at zero: the bed load could
+    // neither enter nor leave the domain); closed edges stay closed
+    k=0;
+    
+    if(p->origin_i==0)
+    for(j=0; j<p->knoy; ++j)
+    {
+    i=0;
+    if(p->flag4[IJK]>0 && p->IO[Im1JK]>0)
+    s->P(-1,j) = 0.5*(d->U[Im1JK] + d->U[IJK]);
+    }
+    
+    if(p->origin_i+p->knox==p->gknox)
+    for(j=0; j<p->knoy; ++j)
+    {
+    i=p->knox-1;
+    if(p->flag4[IJK]>0 && p->IO[Ip1JK]>0)
+    s->P(i,j) = 0.5*(d->U[IJK] + d->U[Ip1JK]);
+    }
+    
+    if(p->j_dir==1 && p->origin_j==0)
+    for(i=0; i<p->knox; ++i)
+    {
+    j=0;
+    if(p->flag4[IJK]>0 && p->IO[IJm1K]>0)
+    s->Q(i,-1) = 0.5*(d->V[IJm1K] + d->V[IJK]);
+    }
+    
+    if(p->j_dir==1 && p->origin_j+p->knoy==p->gknoy)
+    for(i=0; i<p->knox; ++i)
+    {
+    j=p->knoy-1;
+    if(p->flag4[IJK]>0 && p->IO[IJp1K]>0)
+    s->Q(i,j) = 0.5*(d->V[IJK] + d->V[IJp1K]);
+    }
 }
 
 void sediment_f::fill_PQ_sflow(lexer *p, fdm2D *b,ghostcell *pgc,slice &P, slice &Q)
@@ -159,6 +196,25 @@ void sediment_f::fill_PQ_sflow(lexer *p, fdm2D *b,ghostcell *pgc,slice &P, slice
     pgc->gcsl_start1(p,s->P,10);
 	pgc->gcsl_start2(p,s->Q,11);
     pgc->gcsl_start4(p,s->waterlevel,1);
+    
+    // domain edge faces: the face velocities of SFLOW (in- and outflow; zero at walls), the ghost faces of
+    // gcsl_start1/2 were zero, so the bed load could neither enter nor leave the domain and the first cell
+    // had half its velocity in the bed shear stress
+    if(p->origin_i==0)
+    for(j=0; j<p->knoy; ++j)
+    s->P(-1,j) = P(-1,j);
+    
+    if(p->origin_i+p->knox==p->gknox)
+    for(j=0; j<p->knoy; ++j)
+    s->P(p->knox-1,j) = P(p->knox-1,j);
+    
+    if(p->j_dir==1 && p->origin_j==0)
+    for(i=0; i<p->knox; ++i)
+    s->Q(i,-1) = Q(i,-1);
+    
+    if(p->j_dir==1 && p->origin_j+p->knoy==p->gknoy)
+    for(i=0; i<p->knox; ++i)
+    s->Q(i,p->knoy-1) = Q(i,p->knoy-1);
 }
 
 double sediment_f::qbeval(int ii, int jj)

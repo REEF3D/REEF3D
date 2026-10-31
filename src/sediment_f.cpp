@@ -47,6 +47,7 @@ Author: Hans Bihs
 #include"bedload_direction.h"
 #include"sediment_roughness.h"
 #include"sediment_waves.h"
+#include"sediment_inflow.h"
 #include"bedload_waves.h"
 #include"sediment_susp2D.h"
 #include"slice1.h"
@@ -119,6 +120,7 @@ sediment_f::~sediment_f()
     delete pbeddir;
     delete pks;
     delete pwaves;
+    delete s->pinflow;
     delete psusp2D;
     delete Psave;
     delete Qsave;

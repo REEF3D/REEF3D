@@ -33,6 +33,7 @@ Author: Hans Bihs
 #include"sediment_weno_hj.h"
 #include"sflow_bicgstab.h"
 #include"sediment_mixture.h"
+#include"sediment_inflow.h"
 #include<math.h>
 
 sediment_exner::sediment_exner(lexer* p, ghostcell* pgc) : q0(p),xvec(p),rhsvec(p),M(p),qbx(p),qby(p),qbn(p),cxn(p),cyn(p),bK(p),btd(p),bu(p),bv(p),bz(p),bg(p),lagfix(p),lagval(p),Ie(p),Isp(p),qse(p),qsn(p),qbb(p),lss(p),lsa(p)
@@ -119,6 +120,9 @@ void sediment_exner::start(lexer* p, ghostcell* pgc, sediment_fdm *s)
     
     pgc->gcsl_start4(p,s->qb,1);
     
+    // bed load supply at the inflow (S 129)
+    qb_inflow(p,s,-1);
+    
     // suspended qs
     if(p->S62==2)
     susp_qs(p,pgc,s);
@@ -172,6 +176,9 @@ void sediment_exner::start_RK(lexer* p, ghostcell* pgc, sediment_fdm *s)
     qb_clear(p,s);
     
     pgc->gcsl_start4(p,s->qb,1);
+    
+    // bed load supply at the inflow (S 129)
+    qb_inflow(p,s,-1);
     
     // suspended qs
     if(p->S62==2)
@@ -253,6 +260,9 @@ void sediment_exner::start_mixture(lexer* p, ghostcell* pgc, sediment_fdm *s)
         qb_clear(p,s);
         
         pgc->gcsl_start4(p,s->qb,1);
+        
+        // bed load supply at the inflow (S 129), fraction q of S 51
+        qb_inflow(p,s,q);
         
         // suspended load exchange distributed with the active layer composition
         frac_k = q;
@@ -347,6 +357,49 @@ void sediment_exner::qb_clear(lexer *p, sediment_fdm *s)
     SLICEBASELOOP
     if(p->flagslice4[IJ]<0 || p->DFBED[IJ]<0)
     s->qb(i,j) = 0.0;
+}
+
+void sediment_exner::qb_inflow(lexer *p, sediment_fdm *s, int frac)
+{
+    // S 129 1, 2: the bed load of the inflow ghost cells, the import of the first cells through the faces where the
+    // flow enters the domain (the Exner fluxes take the upwind value); qb < 0 or S 129 0: zero gradient as before
+    if(s->pinflow==nullptr || !s->pinflow->bedload_on())
+    return;
+    
+    double qin = s->pinflow->qb(p);
+    
+    if(qin<0.0)
+    return;
+    
+    // graded bed: the fractions F_a,k of S 51
+    if(frac>=0)
+    {
+    double sum=0.0;
+    for(int q=0; q<p->S51; ++q)
+    sum += MAX(p->S51_fa[q],0.0);
+    
+    qin *= (sum>0.0) ? MAX(p->S51_fa[frac],0.0)/sum : 0.0;
+    }
+    
+    if(p->origin_i==0)
+    for(j=0; j<p->knoy; ++j)
+    if(p->flagslice4[(0-p->imin)*p->jmax + (j-p->jmin)]>0 && s->P(-1,j)>0.0)
+    s->qb(-1,j) = s->qb(-2,j) = s->qb(-3,j) = qin;
+    
+    if(p->origin_i+p->knox==p->gknox)
+    for(j=0; j<p->knoy; ++j)
+    if(p->flagslice4[(p->knox-1-p->imin)*p->jmax + (j-p->jmin)]>0 && s->P(p->knox-1,j)<0.0)
+    s->qb(p->knox,j) = s->qb(p->knox+1,j) = s->qb(p->knox+2,j) = qin;
+    
+    if(p->j_dir==1 && p->origin_j==0)
+    for(i=0; i<p->knox; ++i)
+    if(p->flagslice4[(i-p->imin)*p->jmax + (0-p->jmin)]>0 && s->Q(i,-1)>0.0)
+    s->qb(i,-1) = s->qb(i,-2) = s->qb(i,-3) = qin;
+    
+    if(p->j_dir==1 && p->origin_j+p->knoy==p->gknoy)
+    for(i=0; i<p->knox; ++i)
+    if(p->flagslice4[(i-p->imin)*p->jmax + (p->knoy-1-p->jmin)]>0 && s->Q(i,p->knoy-1)<0.0)
+    s->qb(i,p->knoy) = s->qb(i,p->knoy+1) = s->qb(i,p->knoy+2) = qin;
 }
 
 void sediment_exner::dry_deposit(lexer *p, sediment_fdm *s)

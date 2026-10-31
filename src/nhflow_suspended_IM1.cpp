@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm_nhf.h"
 #include"ghostcell.h"
+#include"sediment_inflow.h"
 #include"nhflow_scalar_convection.h"
 #include"nhflow_diffusion.h"
 #include"ioflow.h"
@@ -57,6 +58,7 @@ void nhflow_suspended_IM1::start(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_sc
     drysave(p,d,s);
     clearrhs(p,d);
     fill_wvel(p,d,pgc,s);
+    inflow_conc(p,d,s);
     pconvec->start(p,d,d->CONC,4,d->U,d->V,WVEL);
     pdiff->diff_scalar(p,d,pgc,psolv,d->CONC,1.0,1.0);
 	suspsource(p,d,d->CONC,s);
@@ -202,6 +204,35 @@ void nhflow_suspended_IM1::suspsource(lexer* p, fdm_nhf *d, double *CONC, sedime
     }
 }
 
+void nhflow_suspended_IM1::inflow_conc(lexer *p, fdm_nhf *d, sediment_fdm *s)
+{
+    // prescribed inflow concentration (S 124 >= 0, or the time series of S 129 2): the inflow ghost columns (IO 1)
+    // at the x- edge carry the depth-averaged concentration C_in with the profile of the first column (uniform
+    // while that column is clear); bcsusp_start takes them as the upwind (Dirichlet) value of the inflow face.
+    // C_in < 0: zero gradient as before (the face coefficient is folded into the diagonal)
+    cin_on = 0;
+    
+    const double cin = (s->pinflow!=nullptr) ? s->pinflow->conc(p) : p->S124;
+    
+    if(cin<0.0 || p->origin_i!=0)
+    return;
+    
+    cin_on = 1;
+    
+    i=0;
+    for(j=0; j<p->knoy; ++j)
+    {
+    double cm=0.0;
+    
+        for(k=0; k<p->knoz; ++k)
+        cm += MAX(d->CONC[IJK],0.0)*p->DZN[KP];
+    
+        for(k=0; k<p->knoz; ++k)
+        if(p->IO[Im1JK]==1)
+        d->CONC[Im1JK] = d->CONC[Im2JK] = d->CONC[Im3JK] = (cm>1.0e-12) ? cin*MAX(d->CONC[IJK],0.0)/cm : cin;
+    }
+}
+
 void nhflow_suspended_IM1::bcsusp_start(lexer *p, fdm_nhf *d, ghostcell *pgc, sediment_fdm *s, double *CONC)
 {
     double cval;
@@ -215,6 +246,12 @@ void nhflow_suspended_IM1::bcsusp_start(lexer *p, fdm_nhf *d, ghostcell *pgc, se
             // implicit zero gradient, the off-diagonal is folded into the diagonal, so the
             // diffusive flux through the face is exactly zero (explicit C^n left a flux ~ C^(n+1)-C^n);
             // at inflow edges the inflow concentration is the cell value
+            if(cin_on==1 && i+p->origin_i==0 && p->IO[Im1JK]==1 && p->DF[Im1JK]>0)
+            {
+            d->rhsvec.V[n] -= d->M.s[n]*CONC[Im1JK];
+            d->M.s[n] = 0.0;
+            }
+            
             if(p->flag4[Im1JK]<0 || p->DF[Im1JK]<0 || p->wet[Im1J]==0)
             {
             d->M.p[n] += d->M.s[n];

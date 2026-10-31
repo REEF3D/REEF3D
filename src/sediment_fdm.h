@@ -34,6 +34,7 @@ using namespace std;
 
 class sediment_mixture;
 class sediment_waves;
+class sediment_inflow;
 
 class sediment_fdm
 {
@@ -78,8 +79,11 @@ public:
     // multi-fraction bed model (S51>0), nullptr otherwise
     sediment_mixture *pmix;
     
-    // SFLOW: waves in the sediment transport (S 110 > 0), nullptr otherwise
+    // SFLOW, NHFLOW: waves in the sediment transport (S 110 > 0), nullptr otherwise
     sediment_waves *pwave = nullptr;
+    
+    // sediment supply at the inflow (S 129, S 124, sediment_inflow.h)
+    sediment_inflow *pinflow = nullptr;
     
     // SFLOW: mean exchange rate E - D of the depth-averaged suspended load since the last bed update
     // (S 120 > 0, sediment_susp2D), nullptr otherwise

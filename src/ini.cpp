@@ -186,7 +186,7 @@ void control::ini_default()
     A516=1;      // int forcing WL/eta treatment
     A517=1;      // int preserve tangential velocities for forcing
     A518=2;      // int NHFLOW bed BC
-    A519=0;      // int turn on bed roughness
+    A519=-1;     // int turn on bed roughness (not given: 1 with a turbulence model A 560 or sediment S 10, else 0; lexer_read)
     A520=2;		// int NFHLOW non-hydrostatic pressure scheme
     A521=0;		// int wetdry/forcing flux 
     A522=5.0;    // double p_alpha
@@ -986,6 +986,15 @@ void control::ini_default()
     P82=0;            // int add eddyv to viscous force
 	P85=0;            // int ALE force print out for FNPF
     P88=0;            // int kinematics print out for FNPF
+    P83=0;            // int scour gauges, Sumer-Fredsoe incremental (FNPF, NHFLOW)
+    P84=0;            // int scour gauges, sediment balance (FNPF, NHFLOW)
+    P86_Tw=0.0;       // double scour gauges: statistics window [s], 0: 50 Tp
+    P86_Tp=0.0;       // double scour gauges: peak period [s], 0: wave input, else from the bed velocity
+    P86_cb=1.0;       // double scour gauges: backfilling time scale factor (P 83)
+    P86_dt=0.0;       // double scour gauges: output interval [s], 0: every time step
+    P87_amax=4.0;     // double sediment balance scour: bed shear stress amplification at the pile (S = 0)
+    P87_beta=0.0;     // double sediment balance scour: decay of the amplification with S/D, 0: ln(amax)/1.3
+    P87_k=1.65;       // double sediment balance scour: rate coefficient
 	P91=0.25;		  // double factor used in force calculation algorithm
     P92=0;           // int force from water or from water+air
 	P101=0;			  // int print sloshing forces
@@ -1240,6 +1249,8 @@ void control::ini_default()
     S126=0.05;             // double maximum equilibrium concentration (volume)
     S127=0;                // int hindered settling (Richardson-Zaki): 0 off, 1 on
     S128=0.01;             // double minimum water depth of the suspended load [m]
+    S129=0;                // int sediment inflow: 0 equilibrium, 1 constant (bed load S 130, concentration S 124), 2 time series sediment-inflow.dat
+    S130=0.0;              // double bed load at the inflow for S 129 1 [m^2/s], sediment volume per width
 
     // Turbulence
 	T10=0;			    // int turbulence model

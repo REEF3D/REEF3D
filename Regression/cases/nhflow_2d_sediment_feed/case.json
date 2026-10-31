@@ -1,0 +1,16 @@
+{
+ "base": "nhflow_2d_susp_flume",
+ "ctrl_set": {
+  "S 11": "1",
+  "S 35": "1.0",
+  "S 124": "5.0e-5"
+ },
+ "ctrl_add": [
+  "S 129 1",
+  "S 130 3.0e-6"
+ ],
+ "steps": 1500,
+ "description": "nhflow_2d_susp_flume with van Rijn bed load (S 11 1), bed change (S 35 1) and a constant sediment supply at the discharge inflow (S 129 1): bed load S 130 3e-6 m^2/s into the first cells and the depth-averaged inflow concentration S 124 5e-5, distributed over the depth with the profile of the first column (nhflow_suspended_IM1::inflow_conc; the inflow ghost cells were left at zero before).",
+ "tags": ["2d", "nhflow", "sediment", "suspended", "inflow"],
+ "covers": ["nhflow_suspended_IM1::inflow_conc prescribed", "sediment_exner::qb_inflow in NHFLOW"]
+}

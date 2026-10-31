@@ -1965,6 +1965,24 @@ void control::ctrlsend()
     ii++;
     ictrl[ii] = P88;
     ii++;
+    ictrl[ii] = P83;
+    ii++;
+    ictrl[ii] = P84;
+    ii++;
+    dctrl[dd] = P86_Tw;
+    dd++;
+    dctrl[dd] = P86_Tp;
+    dd++;
+    dctrl[dd] = P86_cb;
+    dd++;
+    dctrl[dd] = P86_dt;
+    dd++;
+    dctrl[dd] = P87_amax;
+    dd++;
+    dctrl[dd] = P87_beta;
+    dd++;
+    dctrl[dd] = P87_k;
+    dd++;
     dctrl[dd] = P91;
     dd++;
     ictrl[ii] = P92;
@@ -2475,6 +2493,10 @@ void control::ctrlsend()
     ictrl[ii] = S127;
     ii++;
     dctrl[dd] = S128;
+    dd++;
+    ictrl[ii] = S129;
+    ii++;
+    dctrl[dd] = S130;
     dd++;
     ictrl[ii] = S51;
     ii++;
@@ -4657,6 +4679,26 @@ void control::ctrlsend()
         dctrl[dd] = P88_x[n];
         dd++;
         dctrl[dd] = P88_y[n];
+        dd++;
+    }
+
+    for(n=0;n<P83;++n)
+    {
+        dctrl[dd] = P83_x[n];
+        dd++;
+        dctrl[dd] = P83_y[n];
+        dd++;
+        dctrl[dd] = P83_D[n];
+        dd++;
+    }
+
+    for(n=0;n<P84;++n)
+    {
+        dctrl[dd] = P84_x[n];
+        dd++;
+        dctrl[dd] = P84_y[n];
+        dd++;
+        dctrl[dd] = P84_D[n];
         dd++;
     }
 
