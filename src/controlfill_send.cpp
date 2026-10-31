@@ -1977,6 +1977,8 @@ void control::ctrlsend()
     ii++;
     ictrl[ii] = P84;
     ii++;
+    ictrl[ii] = P89;
+    ii++;
     dctrl[dd] = P86_Tw;
     dd++;
     dctrl[dd] = P86_Tp;

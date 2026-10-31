@@ -37,17 +37,24 @@ class lexer;
 // Tp (P 86, else the wave input, else 1.28 Tm02 of the bed velocity), KC = Um Tp/D,
 // theta_w from Um with f_w = 0.04 (a/k_s)^-1/4, k_s = 2.5 d50, theta_c from Uc with the log law.
 //
+// The live-bed equilibrium depth S_eq,lb/D (P 89):
+//    0: Sumer & Fredsoe (2001): 1.3 [1 - exp(-A (KC-B))], A = 0.03 + 0.75 Ucw^2.6, B = 6 exp(-4.7 Ucw)
+//    1: Hoballah Jalloul et al. (2026, Eq. 29-31 with the corrigendum):
+//       1.9 [1 - exp(-An (KC^0.5 - Bn^0.5))], An = 0.06 + 4 Ucw^(1/KC^0.5 + 4),
+//       Bn = (3 - 2.8 tanh(7 (D/L)^0.75)) exp(-6 Ucw), L the wave length of Tp at the depth
+//    both with the current limit 1.3 blended in for Ucw > 0.75 (the formulas go to zero for KC -> 0 also in
+//    a pure current)
+//
 // P 83, Sumer-Fredsoe incremental (type 0):
-//    S_eq/D = 1.3 K_I [1 - exp(-A (KC-B))], A = 0.03 + 0.75 Ucw^2.6, B = 6 exp(-4.7 Ucw)
-//             (Sumer & Fredsoe 2001), the current limit blended in for Ucw > 0.75,
-//             K_I = min(1, U/Ucr) clear water (Melville & Sutherland 1988), no change below U/Ucr = 0.5
+//    S_eq/D = K_I S_eq,lb/D, K_I = min(1, U/Ucr) clear water (Melville & Sutherland 1988), no change below
+//             U/Ucr = 0.5
 //    T      = T* D^2/sqrt(g(s-1)d50^3), T*_w = 1e-6 (KC/theta_w)^3 (Sumer et al. 1992),
 //             T*_c = 1/2000 (h/D) theta_c^-2.2, log-interpolated with Ucw
 //    S_n+1  = S_eq + (S_n - S_eq) exp(-dt/T), backfilling (S > S_eq) with P86_cb T
 //
 // P 84, sediment balance (type 1): inverted cone around the pile, V = pi cot(phi) S^2 (D/2 + S cot(phi)/3)
 //    (1-n) dV/dt = k D sqrt(g(s-1)d50^3) [Phi(alpha theta(t)) - Phi(theta(t))],  Phi = 8 (theta-theta_cr)^1.5
-//    alpha(S) = alpha_0 exp(-beta S/D),  alpha_0 = amax^F,  F the KC shape of P 83,  beta = ln(amax)/1.3
+//    alpha(S) = alpha_0 exp(-beta S/D),  alpha_0 = exp(beta S_eq,lb/D),  beta = ln(amax)/1.3 (P 87)
 //    theta(t) instantaneous: wave part 0.5 f_w |u~| u~ (u~ = ub - mean) plus the current stress (vector sum);
 //    live bed it tends to S_eq of P 83, clear water to less, the history comes from the transport
 
@@ -74,16 +81,17 @@ public:
 private:
     struct stats
     {
-        double Um,Uc,Ucw,Tp,KC,fw,theta_w,theta_c,ufc2,F,r,h;
+        double Um,Uc,Ucw,Tp,KC,fw,theta_w,theta_c,ufc2,Slb,r,h,L;
         double ecx,ecy;     // the direction of the current
     };
 
     void statistics(lexer*, int n, stats&) const;
-    double seq_shape(double KC, double Ucw) const;
+    double seq_live(double KC, double Ucw, double DL) const;
     void write(lexer*, int n, const stats&, double a, double b);
     double depth_from_volume(double V, double R, double S0) const;
 
     const int type;
+    int eq;     // P 89
     double g,s,d50,poro,thcr,cotphi,ks,q0;
     double Tw,Tp_in,cb,dtout;
     double amax,beta,kB;

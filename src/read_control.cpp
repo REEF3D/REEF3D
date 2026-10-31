@@ -2801,6 +2801,9 @@ void control::read_control(lexer* p)
                 case 87: control>>P87_amax>>P87_beta>>P87_k;
                          clear(c,numint);
                          break;
+                case 89: control>>P89;
+                         clear(c,numint);
+                         break;
                 case 88: ++P88;
                          clear(c,numint);
                          break;

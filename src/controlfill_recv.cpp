@@ -1970,6 +1970,8 @@ void control::ctrlrecv()
     ii++;
     P84 = ictrl[ii];
     ii++;
+    P89 = ictrl[ii];
+    ii++;
     P86_Tw = dctrl[dd];
     dd++;
     P86_Tp = dctrl[dd];

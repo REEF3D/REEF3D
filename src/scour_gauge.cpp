@@ -60,10 +60,13 @@ scour_gauge::scour_gauge(lexer *p, int type_, const char *module) : type(type_)
     cb    = p->P86_cb>0.0 ? p->P86_cb : 1.0;
     dtout = p->P86_dt;
 
-    // P 87: sediment balance; beta such that the live-bed equilibrium is 1.3 D for KC -> infinity
+    // P 87: sediment balance; beta (default from amax, the amplification at S = 0 for S_eq,lb = 1.3 D)
     amax = std::max(p->P87_amax, 1.0+1.0e-6);
     beta = p->P87_beta>0.0 ? p->P87_beta : log(amax)/1.3;
     kB   = p->P87_k;
+
+    // P 89: the equilibrium scour depth, 0 Sumer & Fredsoe (2001), 1 Hoballah Jalloul et al. (2026)
+    eq = p->P89==1 ? 1 : 0;
 
     const std::vector<double> zero(num,0.0);
     wsum=mub=mvb=muu=mvv=muc=mvc=maa=mh=ubp=vbp=hasp=tact=S=V=zero;
@@ -92,6 +95,7 @@ scour_gauge::scour_gauge(lexer *p, int type_, const char *module) : type(type_)
             out[n]<<"x_coord \t y_coord \t D"<<std::endl;
             out[n]<<p->Xout(x[n],y[n])<<" \t "<<p->Yout(x[n],y[n])<<" \t "<<D[n]<<std::endl<<std::endl;
             out[n]<<"d50 = "<<d50<<"  s = "<<s<<"  n = "<<poro<<"  theta_cr = "<<thcr<<"  phi = "<<p->S81<<std::endl;
+            out[n]<<"S_eq: "<<(eq==1 ? "Hoballah Jalloul et al. (2026)" : "Sumer & Fredsoe (2001)")<<std::endl;
             if(type==1)
             out[n]<<"amax = "<<amax<<"  beta = "<<beta<<"  k = "<<kB<<std::endl;
             out[n]<<std::endl;
@@ -118,17 +122,32 @@ scour_gauge::~scour_gauge()
     }
 }
 
-// the shape of the equilibrium depth in KC and Ucw (Sumer & Fredsoe 2001), the current limit blended in
-// for Ucw > 0.75 (their formula goes to zero for KC -> 0 also in a pure current)
-double scour_gauge::seq_shape(double KC, double Ucw) const
+// the live-bed equilibrium depth S_eq/D from KC, Ucw and D/L: Sumer & Fredsoe (2001) or Hoballah Jalloul
+// et al. (2026, Eq. 29-31, An as corrected in the corrigendum); the current limit 1.3 blended in for
+// Ucw > 0.75 (both formulas go to zero for KC -> 0 also in a pure current)
+double scour_gauge::seq_live(double KC, double Ucw, double DL) const
 {
-    const double A = 0.03 + 0.75*pow(Ucw,2.6);
-    const double B = 6.0*exp(-4.7*Ucw);
-
-    const double Fw = KC>B ? 1.0-exp(-A*(KC-B)) : 0.0;
     const double wc = std::min(std::max((Ucw-0.75)/0.2,0.0),1.0);
 
-    return std::max(Fw,wc);
+    double Sw = 0.0;
+
+    if(eq==0)
+    {
+        const double A = 0.03 + 0.75*pow(Ucw,2.6);
+        const double B = 6.0*exp(-4.7*Ucw);
+
+        Sw = KC>B ? 1.3*(1.0-exp(-A*(KC-B))) : 0.0;
+    }
+
+    if(eq==1 && KC>0.0)
+    {
+        const double An = 0.06 + 4.0*pow(Ucw, 1.0/sqrt(KC) + 4.0);
+        const double Bn = (3.0 - 2.8*tanh(7.0*pow(std::max(DL,0.0),0.75)))*exp(-6.0*Ucw);
+
+        Sw = KC>Bn ? 1.9*(1.0-exp(-An*(sqrt(KC) - sqrt(Bn)))) : 0.0;
+    }
+
+    return std::max(Sw,1.3*wc);
 }
 
 void scour_gauge::statistics(lexer *p, int n, stats &st) const
@@ -171,7 +190,16 @@ void scour_gauge::statistics(lexer *p, int n, stats &st) const
     st.theta_c = st.ufc2/(g*(s-1.0)*d50);
 
     st.Ucw = (st.Uc+st.Um)>1.0e-12 ? st.Uc/(st.Uc+st.Um) : 0.0;
-    st.F = seq_shape(st.KC,st.Ucw);
+
+    // the wave length of Tp at the mean depth (Fenton & McKee 1990), for D/L of P 89 1
+    st.L = 0.0;
+    if(st.Tp>0.0 && st.h>0.0)
+    {
+        const double L0 = g*st.Tp*st.Tp/(2.0*scour_pi);
+        st.L = L0*pow(tanh(pow(2.0*scour_pi*sqrt(st.h/g)/st.Tp,1.5)),2.0/3.0);
+    }
+
+    st.Slb = seq_live(st.KC,st.Ucw,st.L>0.0 ? D[n]/st.L : 0.0);
     st.r = sqrt((st.theta_w+st.theta_c)/thcr);
 }
 
@@ -296,7 +324,7 @@ void scour_gauge::step(lexer *p, const double *smp)
         if(type==0)
         {
             const double KI = std::min(st.r,1.0);
-            const double Seq = 1.3*st.F*KI*D[n];
+            const double Seq = st.Slb*KI*D[n];
 
             const double Tsw = (st.KC>0.0 && st.theta_w>0.0) ? 1.0e-6*pow(st.KC/st.theta_w,3.0) : -1.0;
             const double Tsc = (st.Uc>0.0 && st.theta_c>0.0) ? (1.0/2000.0)*(st.h/D[n])*pow(st.theta_c,-2.2) : -1.0;
@@ -325,7 +353,8 @@ void scour_gauge::step(lexer *p, const double *smp)
         // P 84: sediment balance
         if(type==1)
         {
-            const double alpha = pow(amax,st.F)*exp(-beta*S[n]/D[n]);
+            // live bed: alpha = 1 at S = S_eq,lb
+            const double alpha = exp(beta*(st.Slb - S[n]/D[n]));
 
             // instantaneous bed shear stress: the oscillating part of the bed velocity (wave friction)
             // plus the current (log law), as vectors

@@ -481,6 +481,7 @@ public:
     double *P83_x,*P83_y,*P83_D,*P84_x,*P84_y,*P84_D;       // x y and pile diameter D of each gauge
     double P86_Tw,P86_Tp,P86_cb,P86_dt;                     // P 86: statistics window, Tp, backfilling factor, output interval
     double P87_amax,P87_beta,P87_k;                         // P 87: sediment balance amplification, decay, rate coefficient
+    int P89;                                                // P 89: equilibrium scour of P 83, P 84: 0 Sumer & Fredsoe 2001, 1 Hoballah Jalloul et al. 2026
     double *P88_x,*P88_y;
     double P91;
     double P101_xm,P101_ym,P101_zs,P101_ze,P101_r1,P101_r2;
