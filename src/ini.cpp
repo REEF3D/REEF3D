@@ -353,6 +353,9 @@ void control::ini_default()
     A772=3600.0;      // double surfbeat: record length of the boundary time series [s] (repeats afterwards)
     A773=1;           // int surfbeat: seed of the random phases and directions
     A774=1;           // int surfbeat: long waves at the offshore boundary of the host: 0 absorbing only, 1 bound long wave in, absorbing out
+    A787=0;           // int online collocation: 0 off, 1 the observations of seastate-collocation.csv (time, x, y, hs, source, id) sampled during the run -> REEF3D_SEASTATE_Collocation
+    A788=0.0;         // double online collocation: model time [s] from which the matchups are counted in the statistics (the spin-up)
+    A789=21600.0;     // double online collocation: model time [s] between the summaries in the log, 0 at the end only
     A785=0;           // int nesting output: 0 off, 1 2D spectra at the points of seastate-spcout.dat into REEF3D_SEASTATE_SPC/seastate-spcout.spc (SWAN, the boundary file of a nested run, A 711 3)
     A786=3600.0;      // double nesting output: time between the records [s], 0 every step
     A780=0.0;         // double model start date-time YYYYMMDD.HHMMSS of the forcing files (A 711 3, A 730 2), 0: first time in the files

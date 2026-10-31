@@ -62,7 +62,9 @@ Architect: Hans Bihs
 //               the lid correction makes their net inflow the keel velocity times the column area
 //   loads       the outer pressure, rho g eta_L + P, on the outer side of every blocked link times the
 //               face area, towards the body; moments about the centre of gravity. The enclosed inner
-//               water takes no part in the body dynamics (its pressure is not on the hull).
+//               water takes no part in the body dynamics (its pressure is not on the hull). The side faces
+//               of the staircase (horizontal links) are taken at the heights of their layer in still water
+//               (face_height): the sigma layers stretch with the free surface, the hull does not.
 //   enclosed water  its horizontal velocity is the horizontal rigid-body velocity, every stage
 //               (enclosed_water). Left free, it sloshed inside the hull. In a current (a hull at speed in the
 //               ship frame, B 531) the inner level of the footprint columns oscillated by 2-3 cm at 5 Hz and
@@ -475,6 +477,33 @@ void nhflow_hullbody::loads(lexer *p, fdm_nhf *d, slice &WL, const std::function
         add(x,y,z,(ps+pd)*A*nfx,(ps+pd)*A*nfy,(ps+pd)*A*nfz);
     };
     
+    // the vertical extent of a side face (horizontal link, layer k of the outer column): the layer at its height in
+    // still water, the top layer from there to the free surface. With the sigma heights (layer k * WL) the walls of
+    // the staircase stretched with the free surface: the bottom of a hull side, the layer of the keel, rose and fell
+    // with the outer level, and the still-water part of the face loads (rho g depth times the face area) changed at
+    // first order in the wave elevation where the true hull has none. Bow and stern side differently: KVLCC2-like hull
+    // in the ship frame at Fr 0.142 (Ship Hydrodynamics validation 28), forced heave and pitch at zero speed in calm
+    // water: mean surge force +19.6 N (+1.9 N on still-water heights), the still-water part of the surge force
+    // oscillating by +-90 N (+-1 N); in head waves the added resistance -20 N (+25.5 N, tests 15-17 N); the bow
+    // pile-up and the stern trough of a hull in a current did not act on the walls (calm-water force -22 N, now +118
+    // N, near the 125-135 N of the direct forcing X 15 1). Height zf of the face centre, width times extent in A.
+    auto face_height = [&](int ii, int jj, int kk, double w, double &zf, double &A)
+    {
+        const double D = d->depth(ii,jj), bd = d->bed(ii,jj);
+        
+        if(kk<p->knoz-1)
+        {
+            zf = bd + p->ZP[kk+marge]*D;
+            A = w*p->DZN[kk+marge]*D;
+        }
+        else
+        {
+            const double z0 = bd + (1.0 - p->DZN[kk+marge])*D, z1 = bd + D + d->eta(ii,jj);
+            zf = 0.5*(z0 + z1);
+            A = w*MAX(z1 - z0,0.0);
+        }
+    };
+    
     LOOP
     if(p->wet[IJ]==1)
     {
@@ -483,20 +512,20 @@ void nhflow_hullbody::loads(lexer *p, fdm_nhf *d, slice &WL, const std::function
         {
             const bool outer_i = tb->sideC[IJK]>0.0;
             const int ii = outer_i ? i : i+1;
-            const int q = outer_i ? IJK : Ip1JK;
-            const double A = p->DYN[JP]*p->DZN[KP]*WL(ii,j);
+            double zf, A;
+            face_height(ii,j,k,p->DYN[JP],zf,A);
 
-            face(IJK,Ip1JK, p->XP[IP]+0.5*p->DXN[IP], p->YP[JP], p->ZSP[q], pstill(ii,j,p->ZSP[q]), pdyn(ii,j,k,tb->pcell(p,P,ii,j,k)), A, (outer_i ? 1.0 : -1.0), 0.0, 0.0);
+            face(IJK,Ip1JK, p->XP[IP]+0.5*p->DXN[IP], p->YP[JP], zf, pstill(ii,j,zf), pdyn(ii,j,k,tb->pcell(p,P,ii,j,k)), A, (outer_i ? 1.0 : -1.0), 0.0, 0.0);
         }
 
         if(p->j_dir==1 && tb->by[IJK]>0.5)
         {
             const bool outer_j = tb->sideC[IJK]>0.0;
             const int jj = outer_j ? j : j+1;
-            const int q = outer_j ? IJK : IJp1K;
-            const double A = p->DXN[IP]*p->DZN[KP]*WL(i,jj);
+            double zf, A;
+            face_height(i,jj,k,p->DXN[IP],zf,A);
 
-            face(IJK,IJp1K, p->XP[IP], p->YP[JP]+0.5*p->DYN[JP], p->ZSP[q], pstill(i,jj,p->ZSP[q]), pdyn(i,jj,k,tb->pcell(p,P,i,jj,k)), A, 0.0, (outer_j ? 1.0 : -1.0), 0.0);
+            face(IJK,IJp1K, p->XP[IP], p->YP[JP]+0.5*p->DYN[JP], zf, pstill(i,jj,zf), pdyn(i,jj,k,tb->pcell(p,P,i,jj,k)), A, 0.0, (outer_j ? 1.0 : -1.0), 0.0);
         }
         
         // vertical link through cell k (the surface between the nodes k and k+1): the cell centres below (kb)

@@ -1085,8 +1085,10 @@ void seastate_st4::add(const float *N, const float *k, const float *cg, int la, 
 // IMPHFTAIL: above the cut-off the saturation of the cut-off, F(f) = F(f_c) k_c^3 cg_c / (k^3 cg)
 void seastate_st4::project(float *N, const float *k, const float *cg, int ma, int mb) const
 {
-    if(!prm.tail || calmed || !(ust>0.0) || lc>=nsig-1)
+    const int lt = tail_from();
+    if(lt>=nsig)
     return;
+    const int lc = lt-1;
 
     const seastate_grid &g = *pg;
     const double kc = double(k[lc]);

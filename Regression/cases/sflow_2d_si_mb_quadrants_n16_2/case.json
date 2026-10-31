@@ -1,0 +1,19 @@
+{
+ "base": "sflow_2d_si_mb_quadrants",
+ "ctrl_add": [
+  "N 16 2"
+ ],
+ "same_as": "sflow_2d_si_mb_quadrants",
+ "same_as_rtol": 1e-05,
+ "description": "sflow_2d_si_mb_quadrants with N 16 2: the eta system of four curvilinear blocks, the block-local V-cycles (reefmg2D local) on the CPU (patch REEFMG/0010), the native level-0 grid on the reference device; within 1e-5 of the CPU run",
+ "tags": [
+  "2d",
+  "sflow",
+  "semi_implicit",
+  "multiblock",
+  "solver"
+ ],
+ "covers": [
+  "REEFMG device path (N 16) with multi-block grids: device for the native grid only"
+ ]
+}

@@ -69,7 +69,6 @@ void nhflow_signal_speed::signal_speed_update(lexer* p, ghostcell *pgc, fdm_nhf 
         {
         d->Ss[IJK] = MIN(us - cs, usx - dsx);
         d->Sn[IJK] = MAX(un + cn, usx + dsx);
-        d->SSx[IJK] = usx;
         }
         
         else
@@ -77,7 +76,6 @@ void nhflow_signal_speed::signal_speed_update(lexer* p, ghostcell *pgc, fdm_nhf 
         {
         d->Ss[IJK] = un - 2.0*cn;
         d->Sn[IJK] = un +     cn;
-        d->SSx[IJK] = d->Ss[IJK];
         }
         
         else
@@ -85,7 +83,6 @@ void nhflow_signal_speed::signal_speed_update(lexer* p, ghostcell *pgc, fdm_nhf 
         {
         d->Ss[IJK] = us -     cs;
         d->Sn[IJK] = us + 2.0*cs;
-        d->SSx[IJK] = d->Sn[IJK];
         }
         
         else
@@ -93,7 +90,6 @@ void nhflow_signal_speed::signal_speed_update(lexer* p, ghostcell *pgc, fdm_nhf 
         {
         d->Ss[IJK] = 0.0;
         d->Sn[IJK] = 0.0;
-        d->SSx[IJK] = 0.0;
         }
         
         // VRANS (B 206 1): wave speeds of the porous equations (nhflow_face::por_speed), Davis bounds
@@ -159,7 +155,6 @@ void nhflow_signal_speed::signal_speed_update(lexer* p, ghostcell *pgc, fdm_nhf 
         {
         d->Se[IJK] = MIN(ve - ce, usy - dsy);
         d->Sw[IJK] = MAX(vw + cw, usy + dsy);
-        d->SSy[IJK] = usy;
         }
 
         else
@@ -167,7 +162,6 @@ void nhflow_signal_speed::signal_speed_update(lexer* p, ghostcell *pgc, fdm_nhf 
         {
         d->Se[IJK] = vw - 2.0*cw;
         d->Sw[IJK] = vw +     cw;
-        d->SSy[IJK] = d->Se[IJK];
         }
         
         else
@@ -175,7 +169,6 @@ void nhflow_signal_speed::signal_speed_update(lexer* p, ghostcell *pgc, fdm_nhf 
         {
         d->Se[IJK] = ve -     ce;
         d->Sw[IJK] = ve + 2.0*ce;
-        d->SSy[IJK] = d->Sw[IJK];
         }
         
         else
@@ -183,7 +176,6 @@ void nhflow_signal_speed::signal_speed_update(lexer* p, ghostcell *pgc, fdm_nhf 
         {
         d->Se[IJK] = 0.0;
         d->Sw[IJK] = 0.0;
-        d->SSy[IJK] = 0.0;
         }
         
         // VRANS (B 206 1): wave speeds of the porous equations (nhflow_face::por_speed), Davis bounds

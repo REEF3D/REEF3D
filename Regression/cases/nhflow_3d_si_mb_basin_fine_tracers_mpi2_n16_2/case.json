@@ -1,0 +1,21 @@
+{
+ "base": "nhflow_3d_si_mb_basin_fine_tracers_mpi2",
+ "np": 2,
+ "ctrl_add": [
+  "N 16 2"
+ ],
+ "same_as": "nhflow_3d_si_mb_basin_fine_tracers_mpi2",
+ "same_as_rtol": 1e-05,
+ "description": "nhflow_3d_si_mb_basin_fine_tracers_mpi2 with N 16 2: the V-cycle of the native level-0 grid of the semi-implicit eta system (reefmg2D over the ranks) on the reference device; the block-local hierarchies (reefmg2D local) stay on the CPU (patch REEFMG/0010); within 1e-5 of the CPU run",
+ "tags": [
+  "3d",
+  "nhflow",
+  "semi_implicit",
+  "multiblock",
+  "solver",
+  "mpi"
+ ],
+ "covers": [
+  "REEFMG device path (N 16) with multi-block grids: device for the native grid only"
+ ]
+}

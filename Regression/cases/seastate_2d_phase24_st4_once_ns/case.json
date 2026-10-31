@@ -1,0 +1,15 @@
+{
+ "base": "seastate_2d_phase21b_once_ns",
+ "ctrl_set": {
+  "A 732": "3"
+ },
+ "description": "seastate_2d_phase21b_once_ns (nonstationary wind-sea growth from rest, one rank, A 767 1) with A 732 3 and u* from the wave stress of the last time step (A 768 1, the default, Phase 23): the reference of seastate_2d_phase24_st4_once_ns_mpi2. Validation in Dropbox SEASTATE/validation/74_once_st4.",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate"
+ ],
+ "covers": [
+  "A 767 1 with A 732 3 and A 768 1, nonstationary: the state of u* from the evaluations in the sweep of quadrant 0"
+ ]
+}

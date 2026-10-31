@@ -1,0 +1,35 @@
+{
+ "base": "sflow_2d_amr_groyne_ke_sub_ckpt",
+ "same_as": "sflow_2d_amr_groyne_ke_sub_ckpt",
+ "chain": [
+  {
+   "case": "sflow_2d_amr_groyne_ke_sub_ckpt",
+   "copy": [
+    "REEF3D_Checkpoint",
+    "REEF3D_SFLOW_AMR",
+    "REEF3D_SFLOW_WSF",
+    "REEF3D_SFLOW_ProbePoint",
+    "REEF3D_SFLOW_WSFLINE"
+   ]
+  }
+ ],
+ "ctrl_set": {
+  "I 45": "100"
+ },
+ "description": "the restart of sflow_2d_amr_groyne_ke_sub_ckpt from step 100 (I 45 100): regression.py ranks: the final state and the text outputs bitwise those of the uninterrupted run.",
+ "tags": [
+  "2d",
+  "sflow",
+  "amr",
+  "adaptive",
+  "turbulence",
+  "subcycling",
+  "mpi",
+  "place",
+  "checkpoint"
+ ],
+ "covers": [
+  "the bitwise restart of SFLOW + mesh refinement with k-epsilon on the patches"
+ ],
+ "architect": "Hans Bihs"
+}

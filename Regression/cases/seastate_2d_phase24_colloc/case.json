@@ -1,0 +1,21 @@
+{
+ "base": "seastate_2d_phase14_windsea",
+ "ctrl_add": [
+  "A 787 1",
+  "A 788 600.0",
+  "A 789 1500.0"
+ ],
+ "files": [
+  "seastate-collocation.csv"
+ ],
+ "description": "seastate_2d_phase14_windsea (nonstationary wind-sea growth, one rank, 10 steps of 300 s) with the online collocation (A 787 1, Phase 24): 43 observations of seastate-collocation.csv (model time t) before the start, at the start, between and at the ends of steps, after the end and outside the grid; Hs, Tm01, Tp, direction bilinear in space and linear in time on the rank of the cell; statistics per source from t = 600 s (A 788), the summary every 1500 s (A 789); REEF3D_SEASTATE_Collocation/seastate-collocation-stats.dat compared. Validation in Dropbox SEASTATE/validation/76_collocation.",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate"
+ ],
+ "covers": [
+  "seastate_collocation: the file, the statistics",
+  "seastate_f::colloc_ini, colloc, colloc_sample, colloc_end (A 787, A 788, A 789)"
+ ]
+}

@@ -136,6 +136,10 @@ void seastate_f::start(lexer *p, ghostcell *pgc)
         if(p->A785==1)
         spcout(p,pgc,false);
 
+        // online collocation (A 787 1), nonstationary
+        if(pcol!=nullptr && p->A700!=2)
+        colloc(p,pgc,false);
+
         // printer (mesh refinement: the patches with every print of level 0)
         double ptime=pgc->timer();
         const int pc = p->printcount;
@@ -194,6 +198,9 @@ void seastate_f::start(lexer *p, ghostcell *pgc)
     // Phase 19: the time of the pipelined sweeps per rank
     if(kba)
     pipeline_report(p,pgc);
+
+    // online collocation (A 787 1): a stationary run takes the final field; the statistics
+    colloc_end(p,pgc);
 
     preg->seastate_final(p,e,pgc);
 
@@ -313,4 +320,7 @@ void seastate_f::step_coupled(lexer *p, ghostcell *pgc, double dt)
 
     if(p->A785==1)
     spcout(p,pgc,false);
+
+    if(pcol!=nullptr && p->A700!=2)
+    colloc(p,pgc,false);
 }

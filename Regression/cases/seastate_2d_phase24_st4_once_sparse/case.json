@@ -1,0 +1,15 @@
+{
+ "base": "seastate_2d_phase21b_once_sparse",
+ "ctrl_set": {
+  "A 732": "3"
+ },
+ "description": "seastate_2d_phase21b_once_sparse (A 767 1, spectral sparsity A 795 1e-4: a widened window takes the kept terms) with A 732 3 (Phase 24): no new evaluation in a widened window of a kept quadrant, the tail of the evaluation. Validation in Dropbox SEASTATE/validation/74_once_st4.",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate"
+ ],
+ "covers": [
+  "A 767 1, A 795 and A 732 3: widened windows of kept quadrants"
+ ]
+}
