@@ -36,6 +36,12 @@ void lexer::lexer_read(ghostcell *pgc)
     if(mpirank==0 && A212<0)
     A212 = (A260>0) ? 1 : 0;
 
+    // NHFLOW: A 519 not given in ctrl.txt -> bed friction (log law in the bottom layer) with a turbulence model (A 560)
+    // or sediment transport (S 10): without it the flow slips over the bed, the velocity profile of an open channel
+    // stays a plug and the bed shear stress of the sediment is too high; no bed friction otherwise (the previous default)
+    if(mpirank==0 && A519<0)
+    A519 = (A560>0 || S10>0) ? 1 : 0;
+
 #ifndef REEF3D_USE_HYPRE
     // built without hypre (the default; hypre is opt-in via make HYPRE=1): the hypre solvers N 10 10-39 are replaced by REEFMG (N 10 1)
     if(mpirank==0 && N10>=10)

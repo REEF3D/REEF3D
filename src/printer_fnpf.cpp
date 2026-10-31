@@ -41,6 +41,7 @@ Author: Hans Bihs
 #include"potentialfile_out.h"
 #include"fnpf_state.h"
 #include"fnpf_print_kinematics.h"
+#include"fnpf_print_scour.h"
 #include<sys/stat.h>
 #include<sys/types.h>
 #include<sstream>
@@ -106,6 +107,9 @@ printer_fnpf::printer_fnpf(lexer* p, fdm_fnpf *c, ghostcell *pgc)
 
     if(p->P66>0)
      pveltheo = new fnpf_vel_probe_theory(p,c);
+
+    if(p->P83>0 || p->P84>0)
+        pscour = new fnpf_print_scour(p,c);
 
     if(p->P230>0)
         ppotentialfile = new potentialfile_out(p,c,pgc);
@@ -175,6 +179,9 @@ void printer_fnpf::start(lexer* p, fdm_fnpf* c,ghostcell* pgc, ioflow *pflow)
 
     if(p->P66>0)
     pveltheo->start(p,c,pgc,pflow);
+
+    if(pscour!=nullptr)
+    pscour->start(p,c,pgc);
 
     // Print out based on iteration
     if(p->count%p->P20==0 && p->P30<0.0 && p->P34<0.0 && p->P20>0)
@@ -732,6 +739,8 @@ void printer_fnpf::ckpt_state(std::vector<double> &v)
     v.push_back(nP185);
     for(int qn=0; qn<nP185; ++qn)
     v.push_back(printfsftime_wT[qn]);
+    if(pscour!=nullptr)
+    pscour->ckpt_state(v);   // the scour gauges P 83, P 84
 }
 
 void printer_fnpf::ckpt_restore(const std::vector<double> &v)
@@ -754,6 +763,8 @@ void printer_fnpf::ckpt_restore(const std::vector<double> &v)
         const double t = nx();
         if(qn<nP185) printfsftime_wT[qn] = t;
     }
+    if(pscour!=nullptr)
+    pscour->ckpt_restore(v,q);
 }
 
 void printer_fnpf::flush_outputs()

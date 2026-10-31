@@ -476,6 +476,10 @@ public:
     double *P69_x,*P69_y;
     double *P81_xs,*P81_xe,*P81_ys,*P81_ye,*P81_zs,*P81_ze;
     double *P85_x,*P85_y,*P85_r,*P85_cd,*P85_cm;
+    int P83,P84;                                            // scour gauges: P 83 Sumer-Fredsoe incremental, P 84 sediment balance
+    double *P83_x,*P83_y,*P83_D,*P84_x,*P84_y,*P84_D;       // x y and pile diameter D of each gauge
+    double P86_Tw,P86_Tp,P86_cb,P86_dt;                     // P 86: statistics window, Tp, backfilling factor, output interval
+    double P87_amax,P87_beta,P87_k;                         // P 87: sediment balance amplification, decay, rate coefficient
     double *P88_x,*P88_y;
     double P91;
     double P101_xm,P101_ym,P101_zs,P101_ze,P101_r1,P101_r2;
@@ -566,8 +570,8 @@ public:
 
 
     // Sediment Transport
-    int S10,S11,S12,S15,S16,S25,S27,S28,S29,S31,S32,S33,S34,S36,S37,S38,S41,S42,S43,S44,S50,S61,S62,S73,S74,S75,S76,S77,S78,S80,S84,S85,S86,S95,S90,S91,S94,S100,S101,S49,S51,S54,S56,S59,S110,S115,S116,S118,S119,S120,S125,S127;
-    double S13,S14,S17,S18,S19,S20,S21,S22,S23,S24,S26_a,S26_b,S30,S35,S39,S40,S45,S46,S47,S48,S57,S71,S72,S81,S82,S87,S88,S89,S96,S97,S64,S65,S92,S93,S102,S103,S104,S52,S53,S55,S58,S59_phi,S63,S111,S112,S113,S114,S117,S121,S122,S123,S124,S126,S128;
+    int S10,S11,S12,S15,S16,S25,S27,S28,S29,S31,S32,S33,S34,S36,S37,S38,S41,S42,S43,S44,S50,S61,S62,S73,S74,S75,S76,S77,S78,S80,S84,S85,S86,S95,S90,S91,S94,S100,S101,S49,S51,S54,S56,S59,S110,S115,S116,S118,S119,S120,S125,S127,S129;
+    double S13,S14,S17,S18,S19,S20,S21,S22,S23,S24,S26_a,S26_b,S30,S35,S39,S40,S45,S46,S47,S48,S57,S71,S72,S81,S82,S87,S88,S89,S96,S97,S64,S65,S92,S93,S102,S103,S104,S52,S53,S55,S58,S59_phi,S63,S111,S112,S113,S114,S117,S121,S122,S123,S124,S126,S128,S130;
     double S29_ts,S29_te,S29_dts,S29_dte;
     double *S73_val,*S73_dist,*S73_b,*S73_x,*S73_y;
     double *S74_xs,*S74_xe,*S74_ys,*S74_ye;

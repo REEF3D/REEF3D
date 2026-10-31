@@ -2774,7 +2774,19 @@ void control::read_control(lexer* p)
                 case 82: control>>P82;
                          clear(c,numint);
                          break;
+                case 83: ++P83;
+                         clear(c,numint);
+                         break;
+                case 84: ++P84;
+                         clear(c,numint);
+                         break;
                 case 85: ++P85;
+                         clear(c,numint);
+                         break;
+                case 86: control>>P86_Tw>>P86_Tp>>P86_cb>>P86_dt;
+                         clear(c,numint);
+                         break;
+                case 87: control>>P87_amax>>P87_beta>>P87_k;
                          clear(c,numint);
                          break;
                 case 88: ++P88;
@@ -3510,6 +3522,12 @@ void control::read_control(lexer* p)
                          clear(c,numint);
                          break;
                 case 128: control>>S128;
+                         clear(c,numint);
+                         break;
+                case 129: control>>S129;
+                         clear(c,numint);
+                         break;
+                case 130: control>>S130;
                          clear(c,numint);
                          break;
                 }
@@ -4927,6 +4945,13 @@ void control::read_control(lexer* p)
     Darray(P88_x,P88);
     Darray(P88_y,P88);
 
+    Darray(P83_x,P83);
+    Darray(P83_y,P83);
+    Darray(P83_D,P83);
+    Darray(P84_x,P84);
+    Darray(P84_y,P84);
+    Darray(P84_D,P84);
+
     Darray(P121_x,P121);
     Darray(P121_y,P121);
 
@@ -5302,6 +5327,8 @@ void control::read_control(lexer* p)
     int countP81=0;
     int countP85=0;
     int countP88=0;
+    int countP83=0;
+    int countP84=0;
     int countP121=0;
     int countP123=0;
     int countP124=0;
@@ -5945,6 +5972,16 @@ void control::read_control(lexer* p)
                 case 69: control>>P69_x[countP69]>>P69_y[countP69];
                          p->XYin(P69_x[countP69],P69_y[countP69]);
                          ++countP69;
+                         clear(c,numint);
+                         break;
+                case 83: control>>P83_x[countP83]>>P83_y[countP83]>>P83_D[countP83];
+                         p->XYin(P83_x[countP83],P83_y[countP83]);
+                         ++countP83;
+                         clear(c,numint);
+                         break;
+                case 84: control>>P84_x[countP84]>>P84_y[countP84]>>P84_D[countP84];
+                         p->XYin(P84_x[countP84],P84_y[countP84]);
+                         ++countP84;
                          clear(c,numint);
                          break;
                 case 81: control>>P81_xs[countP81]>>P81_xe[countP81]>>P81_ys[countP81]>>P81_ye[countP81]>>P81_zs[countP81]>>P81_ze[countP81];

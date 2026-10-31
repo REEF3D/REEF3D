@@ -159,6 +159,7 @@
           </VirtualDirectory>
           <VirtualDirectory Name="Probes">
             <File Name="probe_core.h"/>
+            <File Name="scour_gauge.h"/>
             <File Name="probe_vel_theory.h"/>
             <File Name="probe_vel.h"/>
             <File Name="probe_pressure.h"/>
@@ -629,6 +630,7 @@
             <File Name="nhflow_depandtime_avg_vel_lineprobe.h"/>
             <File Name="nhflow_probe_vel_theory.h"/>
             <File Name="nhflow_probe_vel.h"/>
+            <File Name="nhflow_print_scour.h"/>
             <File Name="nhflow_probe_press.h"/>
             <File Name="nhflow_profile_u.h"/>
             <File Name="nhflow_timeavg_vel_profile.h"/>
@@ -739,6 +741,8 @@
           <File Name="fnpf_fsf_update.h"/>
           <File Name="fnpf_bed_update.h"/>
           <File Name="fnpf_sigma.h"/>
+          <File Name="fnpf_sigma_col.h"/>
+          <File Name="fnpf_memory.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Printer">
           <VirtualDirectory Name="Kinematics">
@@ -775,6 +779,7 @@
           <VirtualDirectory Name="Probes">
             <File Name="fnpf_vel_probe.h"/>
             <File Name="fnpf_vel_probe_theory.h"/>
+            <File Name="fnpf_print_scour.h"/>
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Laplace">
@@ -888,6 +893,7 @@
           <File Name="coral/aero/coral_rotor.h"/>
           <File Name="coral/aero/coral_rotor_aero.h"/>
           <File Name="coral/aero/coral_rotor_tune.h"/>
+          <File Name="coral/aero/coral_unsteady_aero.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Control">
           <File Name="coral/control/README.md"/>
@@ -1030,6 +1036,7 @@
           <File Name="sediment_mixture.h"/>
           <File Name="sediment_waves.h"/>
           <File Name="bedload_waves.h"/>
+          <File Name="sediment_inflow.h"/>
           <File Name="sediment_susp2D.h"/>
           <File Name="sediment_roughness.h"/>
         </VirtualDirectory>
@@ -1682,6 +1689,7 @@
           </VirtualDirectory>
           <VirtualDirectory Name="Probes">
             <File Name="probe_core.cpp"/>
+            <File Name="scour_gauge.cpp"/>
             <File Name="probe_vel_theory.cpp"/>
             <File Name="probe_vel.cpp"/>
             <File Name="probe_pressure.cpp"/>
@@ -2253,6 +2261,7 @@
             <File Name="nhflow_depandtime_avg_vel_lineprobe.cpp"/>
             <File Name="nhflow_probe_vel_theory.cpp"/>
             <File Name="nhflow_probe_vel.cpp"/>
+            <File Name="nhflow_print_scour.cpp"/>
             <File Name="nhflow_profile_u.cpp"/>
             <File Name="nhflow_timeavg_vel_profile.cpp"/>
             <File Name="nhflow_print_timeavg_wsfline.cpp"/>
@@ -2413,6 +2422,7 @@
           <VirtualDirectory Name="Probes">
             <File Name="fnpf_vel_probe_theory.cpp"/>
             <File Name="fnpf_vel_probe.cpp"/>
+            <File Name="fnpf_print_scour.cpp"/>
           </VirtualDirectory>
           <VirtualDirectory Name="Force ALE">
             <File Name="fnpf_force_ale_print.cpp"/>
@@ -2557,6 +2567,7 @@
           <File Name="coral/aero/coral_rotor.cpp"/>
           <File Name="coral/aero/coral_rotor_aero.cpp"/>
           <File Name="coral/aero/coral_rotor_tune.cpp"/>
+          <File Name="coral/aero/coral_unsteady_aero.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Control">
           <File Name="coral/control/coral_turbine_controller.cpp"/>
@@ -2805,6 +2816,7 @@
           <File Name="sediment_waves.cpp"/>
           <File Name="bedload_waves.cpp"/>
           <File Name="sediment_susp2D.cpp"/>
+          <File Name="sediment_inflow.cpp"/>
           <File Name="sediment_roughness.cpp"/>
         </VirtualDirectory>
         <File Name="sediment_RK2.cpp"/>

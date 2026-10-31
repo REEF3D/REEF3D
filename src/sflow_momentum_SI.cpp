@@ -1202,6 +1202,21 @@ void sflow_momentum_SI::eta_update(lexer *p, fdm2D *b, ghostcell *pgc)
     b->WL(i,j) = MAX(w, 0.0);
     b->eta(i,j) = b->WL(i,j) - b->depth(i,j);
     }
+    
+    // depth-averaged suspended load (S 120 > 0): the face discharges of this continuity step,
+    // theta q + (1-theta) q^n, the mass flux of the suspended load (as FEacc of the explicit scheme)
+    if(b->FEacc_x!=nullptr && p->geo_curv==0)
+    {
+        for(i=-1; i<p->knox; ++i)
+        for(j=0; j<p->knoy; ++j)
+        (*b->FEacc_x)(i,j) = theta*qx(i,j) + (1.0-theta)*qxn(i,j);
+        
+        for(i=0; i<p->knox; ++i)
+        for(j=-1; j<p->knoy; ++j)
+        (*b->FEacc_y)(i,j) = (p->j_dir==1) ? theta*qy(i,j) + (1.0-theta)*qyn(i,j) : 0.0;
+        
+    b->FEacc_step = p->count;
+    }
 
     // discharge over the open boundaries (theta weighted, inward positive)
     Qin = Qout = 0.0;

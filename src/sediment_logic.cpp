@@ -88,6 +88,7 @@ Author: Hans Bihs
 #include"sediment_waves.h"
 #include"bedload_waves.h"
 #include"sediment_susp2D.h"
+#include"sediment_inflow.h"
 #include"slice1.h"
 #include"slice2.h"
 
@@ -331,6 +332,23 @@ void sediment_f::sediment_logic(lexer *p, ghostcell *pgc, turbulence *pturb)
     // SFLOW, NHFLOW: waves in the sediment transport (sediment_waves.h); SFLOW: depth-averaged suspended load (sediment_susp2D.h)
     if(p->S110>0 || p->S120>0)
     check_sflow_waves(p);
+    
+    // sediment supply at the inflow (S 129, S 124)
+    if(p->S129<0 || p->S129>2)
+    {
+    if(p->mpirank==0)
+    cout<<"!!! S 129 0-2 !!!"<<endl;
+    exit(1);
+    }
+    
+    if(p->S129>0 && ((p->G1>0 && (p->G10>0 || p->G20>0.0 || p->G22>0 || p->G12>0)) || p->geo_mb>0 || p->G50>0 || p->geo_curv==1))
+    {
+    if(p->mpirank==0)
+    cout<<"!!! S 129: Cartesian grid without mesh refinement or blocks (G 1, G 50, G 54) !!!"<<endl;
+    exit(1);
+    }
+    
+    s->pinflow = new sediment_inflow(p);
     
     if(p->S110>0)
     {

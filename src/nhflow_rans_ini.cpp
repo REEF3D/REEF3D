@@ -123,7 +123,7 @@ void nhflow_rans_io::inflow(lexer* p, fdm_nhf *d, ghostcell* pgc)
 void nhflow_rans_io::inflow_profile(lexer* p, double z, double H, double &kv, double &ev, double &nut)
 {
     const double kappa = 0.4;
-    double ks = (p->S10==0) ? p->B50 : p->S20*p->S21;
+    double ks = (p->S10==0 || p->S28==2) ? p->B50 : p->S20*p->S21;
     
     if(ks<=0.0)
     ks=0.0001;

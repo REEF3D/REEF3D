@@ -32,6 +32,7 @@ class lexer;
 class fdm2D;
 class ghostcell;
 class sediment_fdm;
+class sediment_inflow;
 class sediment_waves;
 class bedload_waves;
 
@@ -117,6 +118,9 @@ private:
     void exchange(lexer*, fdm2D*, ghostcell*, sediment_fdm*);
     double rouse(double h, double a, double Z) const;
     double cin(lexer*, int, int);
+    
+    // the inflow concentration (S 124 or the time series of S 129 2)
+    const sediment_inflow *pin = nullptr;
     static double minmod(double, double);
     
     slice1 Fx,Gx;

@@ -21,6 +21,7 @@ Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"sediment_susp2D.h"
+#include"sediment_inflow.h"
 #include"sediment_waves.h"
 #include"bedload_waves.h"
 #include"sediment_fdm.h"
@@ -69,7 +70,9 @@ double sediment_susp2D::minmod(double a, double b)
 
 double sediment_susp2D::cin(lexer *p, int ii, int jj)
 {
-    return (p->S124>=0.0) ? p->S124 : Ceq(ii,jj);
+    const double c = (pin!=nullptr) ? pin->conc(p) : p->S124;
+    
+    return (c>=0.0) ? c : Ceq(ii,jj);
 }
 
 double sediment_susp2D::rouse(double h, double a, double Z) const
@@ -101,6 +104,8 @@ double sediment_susp2D::rouse(double h, double a, double Z) const
 
 void sediment_susp2D::start(lexer *p, fdm2D *b, ghostcell *pgc, sediment_fdm *s, bedload_waves *pbw)
 {
+    pin = s->pinflow;
+    
     // first step: the water depth of the previous step
     if(tacc[1]==0.0)
     {

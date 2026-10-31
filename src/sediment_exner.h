@@ -88,6 +88,7 @@ private:
     void topovel_curv(lexer*,ghostcell*,sediment_fdm*,int);   // curvilinear grid (G 50): S 31 1, 2 (sediment_exner_curv.cpp)
     void face_closure(lexer*,double&,double&,double&,double&);
     void qb_clear(lexer*,sediment_fdm*);
+    void qb_inflow(lexer*,sediment_fdm*,int);
     void dry_deposit(lexer*,sediment_fdm*);
     
     double ramp_dt(lexer*);
