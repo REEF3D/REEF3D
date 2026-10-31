@@ -121,7 +121,7 @@ void bedshear::taubed(lexer *p, fdm_nhf*d, ghostcell *pgc, sediment_fdm *s)
         
         u_plus = uplus(dist,s->ks_eff(i,j));
 
-        tau_eff = MAX(density*(uabs*uabs)/(u_plus*u_plus), density*d->KIN[IJK]*0.3);
+        tau_eff = MAX(density*(uabs*uabs)/(u_plus*u_plus), density*(d->KIN!=nullptr ? d->KIN[IJK] : 0.0)*0.3);
         }
         
         // S 16 10: the bed shear stress of the CFD S 16 10 and the CPM bedload layer (bedshear::column_tau):
@@ -155,7 +155,7 @@ void bedshear::taubed(lexer *p, fdm_nhf*d, ghostcell *pgc, sediment_fdm *s)
         }
         
         if(p->S16==4)
-        tau_eff = density*d->KIN[IJK]*0.3;
+        tau_eff = density*(d->KIN!=nullptr ? d->KIN[IJK] : 0.0)*0.3;
         
         if(p->S16==6)
         {
@@ -314,7 +314,7 @@ bool bedshear::column_tau(lexer *p, fdm_nhf *d, int i, int j, double ks, double 
     double ur = d->U[IJK];
     double vr = p->j_dir==1 ? d->V[IJK] : 0.0;
     double zr = p->ZP[KP]*wl;
-    double kin = d->KIN[IJK];
+    double kin = d->KIN!=nullptr ? d->KIN[IJK] : 0.0;   // (k = 0 without a turbulence model)
     
     if(href>0.0)
     {

@@ -290,14 +290,15 @@ void regression_dump::nhflow_collect(lexer *p, fdm_nhf *d)
     LOOP
     data.back().push_back(d->EV[IJK]);
 
+    // (KIN and CONC are allocated only with a turbulence model / suspended sediment, nhflow_memory.h: zero without)
     add("KIN",p->cellnum);
     LOOP
-    data.back().push_back(d->KIN[IJK]);
+    data.back().push_back(d->KIN!=nullptr ? d->KIN[IJK] : 0.0);
 
     // sediment (zero without sediment transport): suspended concentration and bed level
     add("CONC",p->cellnum);
     LOOP
-    data.back().push_back(d->CONC[IJK]);
+    data.back().push_back(d->CONC!=nullptr ? d->CONC[IJK] : 0.0);
 
     add("bed",p->cellnum);
     SLICELOOP4

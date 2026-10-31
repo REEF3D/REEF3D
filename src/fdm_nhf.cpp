@@ -22,6 +22,7 @@ Author: Hans Bihs
 
 #include"fdm_nhf.h"
 #include"lexer.h"
+#include"nhflow_memory.h"
 
 fdm_nhf::fdm_nhf(lexer *p) :  eta(p),etaloc(p),
                               wet_n(p),breaking(p),breaklog(p),bc(p),
@@ -35,7 +36,7 @@ fdm_nhf::fdm_nhf(lexer *p) :  eta(p),etaloc(p),
                               coastline(p),PORS(p),vb(p),vbk(p),
                               test2D(p),fs(p),
                               breaking_print(p),Hs(p),
-                              rhsvec(p),rvec(p),xvec(p),N(p),M(p),
+                              rhsvec(p),rvec(p,0),xvec(p,0),N(p,0),M(p),
                               ETAs(p),ETAn(p),ETAe(p),ETAw(p),
                               Ds(p),Dn(p),De(p),Dw(p),dfx(p),dfy(p)
 {    
@@ -76,14 +77,24 @@ fdm_nhf::fdm_nhf(lexer *p) :  eta(p),etaloc(p),
     p->Darray(Hext,p->imax*p->jmax*(p->kmax+2));
     
     p->Darray(POR,p->imax*p->jmax*(p->kmax+2));
+    // the fields of some options only (nhflow_memory.h), nullptr otherwise
+    if(nhflow_vrans_fields(p))
     p->Darray(PORPART,p->imax*p->jmax*(p->kmax+2));
+    
+    if(nhflow_dem_field(p))
+    {
     p->Darray(PORDEM,p->imax*p->jmax*(p->kmax+2));
     for(int n=0; n<p->imax*p->jmax*(p->kmax+2); ++n)
     PORDEM[n] = 1.0;
+    }
     
+    if(nhflow_test_field(p))
     p->Darray(test,p->imax*p->jmax*(p->kmax+2));
     
+    if(nhflow_kin_field(p))
     p->Darray(KIN,p->imax*p->jmax*(p->kmax+2));
+    
+    if(nhflow_conc_field(p))
     p->Darray(CONC,p->imax*p->jmax*(p->kmax+2));
 
     // tracers of the semi-implicit NHFLOW (A 600): only when switched on
@@ -95,6 +106,7 @@ fdm_nhf::fdm_nhf(lexer *p) :  eta(p),etaloc(p),
     p->Darray(SOLID,p->imax*p->jmax*(p->kmax+2));
     p->Darray(FB,p->imax*p->jmax*(p->kmax+2));
     p->Darray(FHB,p->imax*p->jmax*(p->kmax+2));
+    if(nhflow_vrans_fields(p))
     p->Darray(PORSTRUC,p->imax*p->jmax*(p->kmax+2));
     
     p->Darray(Fx,p->imax*p->jmax*(p->kmax+2));
@@ -103,6 +115,9 @@ fdm_nhf::fdm_nhf(lexer *p) :  eta(p),etaloc(p),
     
     p->Darray(FEx,p->imax*p->jmax*(p->kmax+2));
     p->Darray(FEy,p->imax*p->jmax*(p->kmax+2));
+    
+    if(nhflow_yl_fields(p))
+    {
     p->Darray(FSW,p->imax*p->jmax*(p->kmax+2));
     p->Darray(DWDT,p->imax*p->jmax*(p->kmax+2));
     
@@ -110,14 +125,12 @@ fdm_nhf::fdm_nhf(lexer *p) :  eta(p),etaloc(p),
     p->Darray(Fn,p->imax*p->jmax*(p->kmax+2));
     p->Darray(Fe,p->imax*p->jmax*(p->kmax+2));
     p->Darray(Fw,p->imax*p->jmax*(p->kmax+2));
+    }
     
     p->Darray(Ss,p->imax*p->jmax*(p->kmax+2));
     p->Darray(Sn,p->imax*p->jmax*(p->kmax+2));
     p->Darray(Se,p->imax*p->jmax*(p->kmax+2));
     p->Darray(Sw,p->imax*p->jmax*(p->kmax+2));
-    
-    p->Darray(SSx,p->imax*p->jmax*(p->kmax+2));
-    p->Darray(SSy,p->imax*p->jmax*(p->kmax+2));
     
     p->Darray(Us,p->imax*p->jmax*(p->kmax+2));
     p->Darray(Un,p->imax*p->jmax*(p->kmax+2));

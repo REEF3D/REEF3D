@@ -172,6 +172,7 @@ void nhflow_momentum_func::velcalc(lexer *p, fdm_nhf *d, ghostcell *pgc, double 
         d->V[IJK] = VH[IJK]/wl;
         d->W[IJK] = WH[IJK]/wl;
         
+        if(d->DWDT!=nullptr)    // (A 520 3 only)
         d->DWDT[IJK] = (d->W[IJK]-wold)/(alpha*p->dt);
         }
         
