@@ -1,0 +1,17 @@
+{
+ "description": "SFLOW Thacker bowl as sflow_2d_amr_bowl_shore, the patches from the second difference of the surface (G 21 0.0002) instead of the shoreline flag: fresh patches reach the shoreline with a wet parent whose children partly fall dry, which take one water surface with the parent's volume (shore_fit).",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 280,
+ "files": ["geo.dat"],
+ "tags": [
+  "2d",
+  "sflow",
+  "amr",
+  "wetdry"
+ ],
+ "covers": [
+  "sflow_amr::shore_fit: the children of a wet parent at a shoreline at one surface with its volume and momentum"
+ ],
+ "architect": "Hans Bihs"
+}
