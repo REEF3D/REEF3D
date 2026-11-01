@@ -442,6 +442,7 @@ private:
     void ini_patch_old(int, vector<reefamr_patch*>&);
     void ini_patch_prolong(int);
     void ini_block(sflow_amr_patch&, int, int, const double*);
+    void shore_fit(sflow_amr_patch&, int, int, const double*);
     void ini_patch_finish(lexer*, sflow_amr_patch&);
     bool block_solid(sflow_amr_patch&, int, int);
 

@@ -1098,7 +1098,8 @@ void sflow_amr::ini_patch_old(int l, vector<reefamr_patch*> &oldP)
 
 // the other blocks of the fresh level-l patches: prolonged from the parent (prolong_parts of the
 // four children and the parent's values on its rank), finished with the child depths, then the
-// mass and momentum of a fully wet parent restored exactly
+// mass and momentum of a wet parent restored exactly (at a shoreline: shore_fit) and the water
+// level of a dry one kept
 void sflow_amr::ini_patch_prolong(int l)
 {
     const int nv = 4*NPR+7;
@@ -1163,6 +1164,24 @@ void sflow_amr::ini_block(sflow_amr_patch &c, int bi, int bj, const double *pv)
     int nw = (sy==0) ? pp->wet[lij(pp,i0,j0)] + pp->wet[lij(pp,i0+1,j0)]
                      : pp->wet[lij(pp,i0,j0)] + pp->wet[lij(pp,i0+1,j0)] + pp->wet[lij(pp,i0,j0+1)] + pp->wet[lij(pp,i0+1,j0+1)];
 
+    // shoreline: a wet parent some of whose children fall dry (the parent's surface below their bed): the children
+    // take one water surface that holds the parent's volume, the dry ones the film A 244 (shore_fit); the
+    // parent's surface alone gave them another volume.  The momentum of the parent goes to the wet children by
+    // their depth.  Not in the initial hierarchy: its children start from the surface (a lake at rest)
+    if(nw<nch && (int)w[0]==1 && pv[0]==2.0 && !dryfill)
+    shore_fit(c,i0,j0,pv);
+    else
+    // a dry parent above the film (the film a receding shoreline leaves behind: sflow_eta::wetdry dries cells
+    // without taking their water) passes its water level on to its children instead of the film A 244.  The
+    // patches following a shoreline (G 22) otherwise lost that water at every fresh block (Thacker bowl:
+    // 1.6e-3 of the mass in 11 s, which hid as much of the gain of the wet-dry resets)
+    if((int)w[0]==0 && pv[0]==0.0 && w[1]>wd)
+    {
+        for(int a=0;a<2;++a)
+        for(int d=0;d<=sy;++d)
+        b->WL(i0+a,j0+d) = w[1];
+    }
+    else
     // curvilinear grid: the volumes of the children (area weighted) sum to the parent's
     if(nw==nch && (int)w[0]==1 && pp->geo_curv==1)
     {
@@ -1252,6 +1271,118 @@ void sflow_amr::ini_block(sflow_amr_patch &c, int bi, int bj, const double *pv)
         b->V(ii,jj) = wt==1 ? b->MY(ii,jj)/wlvl*p0->y_dir : 0.0;
         }
         pp->deep[lij(pp,ii,jj)] = wt;
+    }
+}
+
+// shoreline: the children of a wet parent at a shoreline (ini_block) at one water surface s with the parent's
+// volume, sum_k A_k max(s + depth_k, A 244) = A WL_parent (A_k: the child areas, A their sum), the children
+// with s + depth_k above A 244 wet; velocities as prolonged (also for a child that falls wet only now), the
+// momentum of the parent (UH, VH, WH) restored over the wet children by their depth
+void sflow_amr::shore_fit(sflow_amr_patch &c, int i0, int j0, const double *pv)
+{
+    lexer *pp = c.pp;
+    fdm2D *b = c.b;
+    const double wd = p0->A244;
+    const double *w = &pv[4*NPR];
+    const int n = 2<<sy;
+
+    int ci[4], cj[4], pk[4];
+    double A[4], dep[4], at=0.0;
+    for(int k=0; k<n; ++k)
+    {
+        // (the values of the child (a,d) start at pv[(2a+d) NPR], as packed by ini_patch_prolong; 2D grid: d = 0)
+        const int a = (sy==0) ? k : k/2, d = (sy==0) ? 0 : k%2;
+        pk[k] = 2*a+d;
+        ci[k] = i0+a;
+        cj[k] = j0+d;
+        A[k] = (pp->geo_curv==1) ? pp->AREA2D[lij(pp,ci[k],cj[k])] : 1.0;
+        dep[k] = b->depth(ci[k],cj[k]);
+        at += A[k];
+    }
+
+    // the surface: f(s) = sum_k A_k max(s + dep_k, wd) increases piecewise linearly; on the segment where the
+    // children up to m (by the levels wd - dep_k where they start to take water) are wet,
+    // s = (V - wd sum_dry A - sum_wet A dep) / sum_wet A
+    const double V = at*w[1];
+    int ord[4];
+    for(int k=0; k<n; ++k)
+    ord[k] = k;
+    std::sort(ord,ord+n,[&](int x, int y) { return dep[x]>dep[y]; });
+
+    double s = 0.0;
+    for(int m=1; m<=n; ++m)
+    {
+        double aw=0.0, ad=0.0, ab=0.0;
+        for(int q=0; q<n; ++q)
+        {
+            const int k = ord[q];
+            if(q<m)
+            {
+            aw += A[k];
+            ab += A[k]*dep[k];
+            }
+            else
+            ad += A[k];
+        }
+        s = (V - wd*ad - ab)/aw;
+        if(m==n || s <= wd - dep[ord[m]])
+        break;
+    }
+
+    double h[4], sh=0.0;
+    int wt[4], nw=0;
+    for(int k=0; k<n; ++k)
+    {
+        h[k] = MAX(s + dep[k], wd);
+        wt[k] = (h[k]>wd+eps) ? 1 : 0;
+        nw += wt[k];
+        if(wt[k]==1)
+        sh += A[k]*h[k];
+    }
+
+    // all within the film: the parent's water level on every child
+    if(nw==0)
+    {
+        for(int k=0; k<n; ++k)
+        {
+            b->WL(ci[k],cj[k]) = w[1];
+            b->UH(ci[k],cj[k]) = b->VH(ci[k],cj[k]) = b->WH(ci[k],cj[k]) = 0.0;
+            if(bous==1)
+            b->MX(ci[k],cj[k]) = b->MY(ci[k],cj[k]) = 0.0;
+            pp->wet[lij(pp,ci[k],cj[k])] = 0;
+        }
+        return;
+    }
+
+    double su=0.0, sv=0.0, sw=0.0;
+    for(int k=0; k<n; ++k)
+    {
+        const double *r = &pv[pk[k]*NPR];
+        const double hk = (wt[k]==1) ? h[k] : 0.0;
+        b->WL(ci[k],cj[k]) = h[k];
+        b->UH(ci[k],cj[k]) = hk*r[2];
+        b->VH(ci[k],cj[k]) = hk*r[3];
+        b->WH(ci[k],cj[k]) = hk*r[4];
+        if(bous==1)
+        {
+        b->MX(ci[k],cj[k]) = hk*r[7];
+        b->MY(ci[k],cj[k]) = hk*r[8];
+        if(wt[k]==0)
+        b->UA(ci[k],cj[k]) = b->VA(ci[k],cj[k]) = 0.0;
+        }
+        pp->wet[lij(pp,ci[k],cj[k])] = wt[k];
+        su += A[k]*b->UH(ci[k],cj[k]);
+        sv += A[k]*b->VH(ci[k],cj[k]);
+        sw += A[k]*b->WH(ci[k],cj[k]);
+    }
+
+    const double du = at*w[2] - su, dv = at*w[3] - sv, dw = at*w[4] - sw;
+    for(int k=0; k<n; ++k)
+    if(wt[k]==1)
+    {
+        b->UH(ci[k],cj[k]) += h[k]/sh*du;
+        b->VH(ci[k],cj[k]) += h[k]/sh*dv;
+        b->WH(ci[k],cj[k]) += h[k]/sh*dw;
     }
 }
 
@@ -1882,7 +2013,7 @@ void sflow_amr::restrict_level(lexer *p, int l, int s)
     // shoreline: the surface of the wet children (v[nv]); the parents of other cells hold none
     sfc_reset(l-1);
 
-    block_up(l,nv+1,7020+l,
+    block_up(l,nv+2,7020+l,
              [&](reefamr_patch *q, int id, int k, double *v)
              {
                  sflow_amr_patch &c = *SP(q);
@@ -1921,6 +2052,14 @@ void sflow_amr::restrict_level(lexer *p, int l, int s)
                  }
                  }
                  v[nv] = (sa>0.0 && (nw<nf || np>0)) ? se/sa : NAN;
+
+                 // the wet children (the wet flag of the parent)
+                 int nwf = 0;
+                 for(int a=0;a<2;++a)
+                 for(int d=0;d<=sy;++d)
+                 if(pp->flagslice4[lij(pp,i0+a,j0+d)]>0 && pp->wet[lij(pp,i0+a,j0+d)]==1)
+                 ++nwf;
+                 v[nv+1] = nwf;
                  }
 
                  // curvilinear grid: area weighted (the children of a cell differ in area)
@@ -1977,7 +2116,14 @@ void sflow_amr::restrict_level(lexer *p, int l, int s)
 
                  (*pWLo)(ic,jc)=wl; (*pUHo)(ic,jc)=uh; (*pVHo)(ic,jc)=vh; (*pWHo)(ic,jc)=wh;
 
-                 int w = wl>p->A244+eps ? 1 : 0;
+                 // wet: above the film and with a wet child.  Children that are all dry, holding the film a
+                 // receding shoreline leaves behind (above A 244: sflow_eta::wetdry dries without taking the
+                 // water), leave the parent dry with their mean water level, as a uniform grid holds that film.
+                 // As a wet cell it drained in the next stages, and the resets to A 244 put water back: the
+                 // patches following a shoreline (G 22) gained mass at every coarsening of the trailing side
+                 // (Thacker bowl: 0.83 % in 11 s against 0.35 % on the uniform finest grid) and left the film
+                 // in isolated spots
+                 int w = (wl>p->A244+eps && v[nv+1]>0.5) ? 1 : 0;
                  G.q->wet[lij(G.q,ic,jc)] = w;
 
                  double wlvl = fabs(wl)>p->A244 ? wl : 1.0e20;
