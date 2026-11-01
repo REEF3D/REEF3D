@@ -27,6 +27,8 @@ Author: Hans Bihs
 #include"scour_core.h"
 #include<sys/stat.h>
 #include<sys/types.h>
+#include<sstream>
+#include<vector>
 #include"lagoon_output.h"
 
 namespace
@@ -102,10 +104,10 @@ void fnpf_vtp_bed::print2D(lexer *p, fdm_fnpf *c, ghostcell* pgc)
     offset[n]=offset[n-1] + sizeof(int)*p->polygon_sum+sizeof(int);
     ++n;
 
-    // Open File
-    ofstream result;
+    // the piece in memory (lagoon_surface::piece writes the file where it is wanted); every array
+    // made in a buffer and written at once: the same bytes as value by value
     sprintf(name,"./REEF3D_FNPF_VTP_BED/REEF3D-FNPF-BED-%08i-%06i.vtp",num,p->mpirank+1);
-    result.open(name, ios::binary);
+    std::ostringstream result(std::ios::out | std::ios::binary);
 
     vtp3D::beginning(p,result,p->pointnum2D,0,0,0,p->polygon_sum);
 
@@ -129,96 +131,68 @@ void fnpf_vtp_bed::print2D(lexer *p, fdm_fnpf *c, ghostcell* pgc)
     vtp3D::ending(result);
 
     //----------------------------------------------------------------------------
-    
-    float ffn;
-    int iin;
+
+    std::vector<float> fb;
+    fb.reserve(size_t(p->pointnum2D)*3);
+    auto put_size = [&](int bytes){ result.write((char*)&bytes, sizeof(int)); };
+    auto put_floats = [&](){ result.write((char*)fb.data(), std::streamsize(sizeof(float)*fb.size())); fb.clear(); };
+    // a point array of the slice f, interpolated to the nodes
+    auto put_slice = [&](slice &f)
+    {
+        put_size(sizeof(float)*p->pointnum2D);
+        TPSLICELOOP
+        fb.push_back(float(p->sl_ipol4(f)));
+        put_floats();
+    };
+
     //  XYZ
-    iin=sizeof(float)*p->pointnum2D*3;
-    result.write((char*)&iin, sizeof(int));
+    put_size(sizeof(float)*p->pointnum2D*3);
     TPSLICELOOP
     {
-        ffn=float(p->Xout(p->XN[IP1],p->YN[JP1]));
-        result.write((char*)&ffn, sizeof(float));
-
-        ffn=float(p->Yout(p->XN[IP1],p->YN[JP1]));
-        result.write((char*)&ffn, sizeof(float));
-
-        ffn=float(p->sl_ipol4(c->bed));
-        result.write((char*)&ffn, sizeof(float));
+        fb.push_back(float(p->Xout(p->XN[IP1],p->YN[JP1])));
+        fb.push_back(float(p->Yout(p->XN[IP1],p->YN[JP1])));
+        fb.push_back(float(p->sl_ipol4(c->bed)));
     }
+    put_floats();
 
-    //  Elevation
-    iin=sizeof(float)*p->pointnum2D;
-    result.write((char*)&iin, sizeof(int));
-    TPSLICELOOP
-    {
-        ffn=float(p->sl_ipol4(c->bed));
-        result.write((char*)&ffn, sizeof(float));
-    }
-
-    //  Depth
-    iin=sizeof(float)*p->pointnum2D;
-    result.write((char*)&iin, sizeof(int));
-    TPSLICELOOP
-    {
-        ffn=float(p->sl_ipol4(c->depth));
-        result.write((char*)&ffn, sizeof(float));
-    }
+    //  Elevation, depth
+    put_slice(c->bed);
+    put_slice(c->depth);
 
     //  Scour (P 187)
     for(int q=0; q<nsc; ++q)
-    {
-    slice &f = *scour_fields(scour)[q].second;
-    iin=sizeof(float)*p->pointnum2D;
-    result.write((char*)&iin, sizeof(int));
-    TPSLICELOOP
-    {
-        ffn=float(p->sl_ipol4(f));
-        result.write((char*)&ffn, sizeof(float));
-    }
-    }
+    put_slice(*scour_fields(scour)[q].second);
 
     //  Connectivity
-    iin=sizeof(int)*(p->polygon_sum)*3;
-    result.write((char*)&iin, sizeof(int));
+    std::vector<int> ib;
+    ib.reserve(size_t(p->polygon_sum)*3);
+    put_size(sizeof(int)*(p->polygon_sum)*3);
     SLICEBASELOOP
     {
         // Triangle 1
-        iin=int(c->nodeval2D(i-1,j-1))-1;
-        result.write((char*)&iin, sizeof(int));
-
-        iin=int(c->nodeval2D(i,j-1))-1;
-        result.write((char*)&iin, sizeof(int));
-
-        iin=int(c->nodeval2D(i,j))-1;
-        result.write((char*)&iin, sizeof(int));
+        ib.push_back(int(c->nodeval2D(i-1,j-1))-1);
+        ib.push_back(int(c->nodeval2D(i,j-1))-1);
+        ib.push_back(int(c->nodeval2D(i,j))-1);
 
         // Triangle 2
-        iin=int(c->nodeval2D(i-1,j-1))-1;
-        result.write((char*)&iin, sizeof(int));
-
-        iin=int(c->nodeval2D(i,j))-1;
-        result.write((char*)&iin, sizeof(int));
-
-        iin=int(c->nodeval2D(i-1,j))-1;
-        result.write((char*)&iin, sizeof(int));
+        ib.push_back(int(c->nodeval2D(i-1,j-1))-1);
+        ib.push_back(int(c->nodeval2D(i,j))-1);
+        ib.push_back(int(c->nodeval2D(i-1,j))-1);
     }
+    result.write((char*)ib.data(), std::streamsize(sizeof(int)*ib.size()));
 
     //  Offset of Connectivity
-    iin=sizeof(int)*(p->polygon_sum);
-    result.write((char*)&iin, sizeof(int));
+    ib.clear();
+    put_size(sizeof(int)*(p->polygon_sum));
     for(n=0;n<p->polygon_sum;++n)
-    {
-        iin=(n+1)*3;
-        result.write((char*)&iin, sizeof(int));
-    }
+    ib.push_back((n+1)*3);
+    result.write((char*)ib.data(), std::streamsize(sizeof(int)*ib.size()));
 
     vtp3D::footer(result);
 
-    result.close();
-
-    // P 18: the piece in the LAGOON store (P 18 1: instead of the file, P 18 2: as well)
-    lagoon_surface::piece_written(p,pgc,lagoon_bed,"FNPF","bed","REEF3D_FNPF_VTP_BED",name,num);
+    // the file (P 18 0, 2) and the piece in the LAGOON store (P 18 1: instead of the file, P 18 2: as well)
+    std::string piece = std::move(result).str();
+    lagoon_surface::piece(p,pgc,lagoon_bed,"FNPF","bed","REEF3D_FNPF_VTP_BED",name,num,piece);
 
     ++printcount;
 }
