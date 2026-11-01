@@ -65,6 +65,11 @@ void pjm_corr::comp_terms(lexer *p, fdm *a, field &u, field &v, field &w, double
 
     n=0;
     LOOP
+    ++n;
+    comp_k.assign(n,0.0);
+
+    n=0;
+    LOOP
     {
     wt = 0.0;
 
@@ -91,6 +96,7 @@ void pjm_corr::comp_terms(lexer *p, fdm *a, field &u, field &v, field &w, double
         {
         pabs = MAX(p->W36 + a->press(i,j,k), 0.01*p->W36);
         kappa = wt/(p->W33*pabs);
+        comp_k[n] = kappa;
 
         a->M.p[n] += kappa*fac_t;
         a->rhsvec.V[n] -= kappa*(a->press(i,j,k)-pn(i,j,k))*fac_t;

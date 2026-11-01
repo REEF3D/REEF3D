@@ -31,6 +31,8 @@ Architect: Hans Bihs
 #include"turbulence.h"
 #include"6DOF_cfd.h"
 #include"cfd_amr_6dof.h"
+#include"pjm_corr.h"
+#include"reefamr_krylov.h"
 #include"field1.h"
 #include"field2.h"
 #include"field3.h"
@@ -378,6 +380,9 @@ void cfd_amr::patch_step(int l, double dt, double th0, double t)
         body_loads(s,t,s==stages-1);
     }
 
+    // W 32: the faces at the patch edges at the end of the step (the volume registers)
+    vr_record(l,dt);
+
     if(bodies && l==maxlev)
     {
         const double dts = p0->dt;
@@ -447,6 +452,9 @@ void cfd_amr::step_sub(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof *
     // level 0: its step as step_ssp (the volume correction over all levels at the end)
     save_old(0);
 
+    // W 32: the volume registers of the patch edges (the synchronisation)
+    vr_reset();
+
     // heat, concentration on level 0 (the flux registers of the level-1 edges start with its fluxes)
     if(scal)
     sc_step_level(0,p->dt,0.0);
@@ -486,6 +494,8 @@ void cfd_amr::step_sub(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof *
         mom0->amr_projection(p,a,pgc,s);
         mom0->amr_stage_end(p,a,pgc,s);
     }
+
+    vr_record(0,p->dt);
 
     const double t1 = MPI_Wtime();
     tm[4] += t1-t0;
@@ -691,4 +701,109 @@ void cfd_amr::rovisc_all()
     pgc0->start4(p0,a0->phi,gcval_phi);
     pgc0->start4(p0,a0->ro,1);
     pgc0->start4(p0,a0->visc,1);
+}
+
+// --------------------------------------------------------------------- compressible air (W 32, G 7 1)
+//  Every level projection compresses the air of its cells: SSP-RK3 with the projection in every
+//  stage makes kappa (p - p^n) = -t_out dt div u at the output of each stage, so over a step of a
+//  level the pressure change of a cell is -dt div u at the end of that step (kappa = w/(gamma p),
+//  pjm_corr_comp.cpp).  A level takes the flux of its own faces; at a patch edge the coarser level
+//  and the patch have each their own: the coarse cell next to the edge was compressed by the
+//  coarse face, the air that crossed the edge on the fine side is that of the fine faces over the
+//  steps of the patch.  The synchronisation of hans_dev took the divergence at the end of the
+//  level-0 step as its right-hand side everywhere: in the compressible cells that is the
+//  compression the level projections made on purpose, and it compressed the air a second time
+//  (the sealed box with the patch edges across the free surface: 12.2 kPa against 6.75 kPa).
+//  Here the right-hand side of a compressible row is the volume the levels disagree on: per face
+//  at a patch edge the time integral of the face velocity over the steps of the patch minus that
+//  over the steps of the coarser level (registers vr_f, vr_c: the velocity at the end of each step
+//  times the step, as the compression above), averaged over the level-0 step, as a divergence in
+//  the coarse cell next to the edge; 0 in every other compressible row.  The rows of the
+//  incompressible cells keep the divergence at the end of the step.  The diagonal of the
+//  compressibility stays (a closed box has no pinning of the pressure: singular without it).  The
+//  correction is restricted onto the cells under the patches (pr_sync_project): the pressure is the
+//  state of the air, and the coarser levels step on with that of the patches.  The sealed box with
+//  the patch edges across the free surface (cfd_2d_compressible_box_amr_sub): +0.6 % against the
+//  isentropic pressure after 2.5 s (G 7 0 -0.1 %, no refinement -0.4 %).
+
+void cfd_amr::vr_reset()
+{
+    if(p0->W32<=0)
+    return;
+
+    vr_f.assign(cf.size(),0.0);
+    vr_c.assign(cf.size(),0.0);
+}
+
+void cfd_amr::vr_record(int l, double dt)
+{
+    if(p0->W32<=0 || vr_f.size()!=cf.size())
+    return;
+
+    const int s = mom0->amr_stages()-1;
+
+    // the coarse side of the level-1 edges with G 40: the level-0 faces into the shadows
+    if(l==0 && place)
+    {
+        vector<std::function<field&(int)>> f;
+        for(int c=0; c<3; ++c)
+        f.push_back([this,s,c](int g) -> field& { return gmom(g)->amr_velout(gfd(g),c,s); });
+        sh_down_f(f);
+    }
+
+    for(size_t n=0; n<cf.size(); ++n)
+    {
+        const cfd_amr_cf &F = cf[n];
+        const int lf = glevel(F.pid);
+        if(lf==l && l>=1)
+        vr_f[n] += dt*F.area*CP(F.pid)->pmom->amr_velout(CP(F.pid)->a,F.d,s)(F.ff[0],F.ff[1],F.ff[2]);
+        if(lf==l+1)
+        vr_c[n] += dt*F.area*gmom(F.gface)->amr_velout(gfd(F.gface),F.d,s)(F.cf[0],F.cf[1],F.cf[2]);
+    }
+}
+
+void cfd_amr::vr_sync_rhs()
+{
+    if(p0->W32<=0 || vr_f.size()!=cf.size())
+    return;
+
+    const int KT = REEFAMR_NTMP;
+    const double dt = p0->dt;
+
+    for(int g=-1; g<(int)P.size(); ++g)
+    {
+        const lexer *q = glex(g);
+        std::fill(pvec(g,KT),pvec(g,KT)+(size_t)q->imax*q->jmax*q->kmax,0.0);
+    }
+
+    // the coarse cell next to the edge: the mismatch of the face (mean velocity over the step) as
+    // the divergence it adds to the cell; the face is the - face of the cell if it lies at +d
+    for(size_t n=0; n<cf.size(); ++n)
+    {
+        const cfd_amr_cf &F = cf[n];
+        const lexer *q = glex(F.gc);
+        const double *dn = (F.d==0) ? q->DXN : (F.d==1 ? q->DYN : q->DZN);
+        const double dx = dn[F.ci[F.d]+marge];
+        const double du = (vr_f[n]-vr_c[n])/dt;
+        const double ddiv = (F.dir>0 ? -1.0 : 1.0)*du/dx;
+        pvec(F.gc,KT)[F.qc] -= ddiv/dt;
+    }
+
+    // G 40: the coarse cells of the level-1 edges are in the shadows, their rows on level 0
+    if(place)
+    {
+        vector<std::function<field&(int)>> f(1,[this,KT](int g) -> field& { return pfield(g,KT); });
+        sh_run(pu_cc,f,true);
+    }
+
+    for(int g : prg)
+    {
+        const vector<double> &K = (g<0) ? press0->comp_k : CP(g)->ppress->comp_k;
+        const double *T = pvec(g,KT);
+        double *b = pvec(g,REEFAMR_NS);
+        const vector<int> &LQ = lq[g+1], &LR = lr[g+1];
+        for(size_t n=0; n<LQ.size(); ++n)
+        if((size_t)LR[n]<K.size() && K[LR[n]]>0.0)
+        b[LQ[n]] = T[LQ[n]];
+    }
 }

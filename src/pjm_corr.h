@@ -26,6 +26,7 @@ Author: Hans Bihs
 #include"pressure.h"
 #include"pressure_reference.h"
 #include"field4.h"
+#include<vector>
 
 class heat;
 class concentration;
@@ -57,6 +58,7 @@ public:
 
     field4 pcorr;
     field4 pn;
+    std::vector<double> comp_k;    // W 32: the compressibility kappa of every row of the last assembly (0: incompressible; cfd_amr, the synchronisation of G 7 1)
 
 private:
     void comp_ini(lexer*);

@@ -2973,6 +2973,10 @@ void cfd_amr::pr_sync_project(lexer *p, ghostcell *pgc)
         b[qq] = 0.0;
     }
 
+    // W 32: the compressible rows take the volume the levels disagree on at the patch edges
+    // (cfd_amr_sub.cpp), not the compression the level projections made
+    vr_sync_rhs();
+
     // the start: the correction of the last synchronisation (the mismatch at the patch edges
     // changes slowly from step to step), as long as the patches are the same
     if(sync_x_ok && sync_x.size()==npat+1)
@@ -3018,6 +3022,18 @@ void cfd_amr::pr_sync_project(lexer *p, ghostcell *pgc)
         sync_x[g+1].push_back(x[qq]);
     }
     sync_x_ok = true;
+
+    // W 32: the pressure is the state of the compressible air.  The correction of the leaf cells
+    // restricted onto the cells under the patches (finest first), so the coarser levels step on
+    // with the pressure of the patches above them (without: the covered cells kept the pressure
+    // before the synchronisation, the sealed box +2.5 %, rms 107 Pa; with: +0.6 %, 23 Pa)
+    if(p0->W32>0)
+    {
+        vector<std::function<field&(int)>> cells, none;
+        cells.push_back([this](int g) -> field& { return pfield(g,-1); });
+        for(int l=maxlev; l>=1; --l)
+        restrict_level(l,cells,none);
+    }
 
     pr_sync(-1);
 

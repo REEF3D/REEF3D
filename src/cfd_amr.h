@@ -539,6 +539,14 @@ private:
     bool pr_ovl = false;            // some patch multigrid of some rank has overlap cells (the fills of their rows, right-hand sides)
     void pr_level(lexer*, ghostcell*, int l, int s);
     void pr_sync_project(lexer*, ghostcell*);   // G 7 1: the synchronisation projection at the end of the level-0 step
+    // W 32 with G 7 1: the volume registers of the faces at the patch edges (per entry of cf, the face
+    // velocity at the end of every step of the level times its step and the area weight F.area, on
+    // the fine side and on the coarse side), and the right-hand side of the synchronisation in the
+    // compressible cells from them (cfd_amr_sub.cpp)
+    vector<double> vr_f, vr_c;
+    void vr_reset();
+    void vr_record(int l, double dt);           // the end of a step of level l: the fine side of its edges, the coarse side of the edges of level l+1
+    void vr_sync_rhs();                         // the right-hand side NS of the compressible rows of the synchronisation
     double psi_band(int g);                     // the half width of the interface band of grid g
     void pr_components();
     const vector<int>& UQ(int g) { return prl<0 ? lq[g+1] : aq[g+1]; }
