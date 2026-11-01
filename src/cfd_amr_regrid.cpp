@@ -369,11 +369,11 @@ void cfd_amr::measure_load()
     }
 }
 
-// G 40 1 with G 41 0 and a static refinement (no regrid): the work measured over steps 5-15, then
+// G 40 1, 3 with G 41 0 and a static refinement (no regrid): the work measured over steps 5-15, then
 // the units placed once more with the measured weight of a patch cell
 void cfd_amr::replace_static(lexer *p, ghostcell *pgc)
 {
-    if(adapt || place!=1 || !lmeas() || (p->count!=5 && p->count!=15))
+    if(adapt || (place!=1 && place!=3) || !lmeas() || (p->count!=5 && p->count!=15))
     return;
     measure_load();
     if(p->count==15)

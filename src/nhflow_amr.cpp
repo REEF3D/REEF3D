@@ -200,7 +200,7 @@ nhflow_amr::nhflow_amr(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum *pm
     // several ranks (G 40 1): the patches are not cut at the rank boxes but placed for the load of
     // the ranks; parents and old patches on other ranks are reached through the block plans and
     // old_run of the core
-    q.place = (p->G40>=1 && p->mpi_size>1) ? MIN(p->G40,2) : 0;
+    q.place = (p->G40>=1 && p->mpi_size>1) ? (p->G40>=3 ? 1 : MIN(p->G40,2)) : 0;     // (G 40 3, the owner placement of CFD: as 1 here)
     q.rebalance = 0.1;
 
     // implicit diffusion (A 512 2): one composite solve over the leaf cells of all grids (G 31 1,

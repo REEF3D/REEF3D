@@ -1505,6 +1505,7 @@ void reefamr3d::place_units(vector<vector<int>> &mb)
     // the ranks; cut into pieces of a quarter of the mean work, 10 pieces of a two-level dam break
     // on 2 ranks took 70-95 BiCGStab iterations instead of 8)
     const bool fill_ranks = (place==1 && !ptest && ptv!=3 && nranks>1);
+    const bool owner_place = (place==3 && !ptest && ptv!=3 && nranks>1);    // G 40 3, below
     vector<int> rcap;           // the ranks of the pieces of fill_ranks
     if(maxlev>=1 && fill_ranks)
     {
@@ -1621,7 +1622,7 @@ void reefamr3d::place_units(vector<vector<int>> &mb)
         c.rank = r;
         pcs.push_back(c);
     }
-    else if(maxlev>=1)
+    else if(maxlev>=1 && !owner_place)
     for(size_t b=0; b<mb[1].size()/6; ++b)
     {
         piece c;
@@ -1631,6 +1632,145 @@ void reefamr3d::place_units(vector<vector<int>> &mb)
             c.hi[d] = mb[1][6*b+3+d];
         }
         split(c);
+    }
+
+    // G 40 3: the level-1 boxes cut at the rank boxes of level 0 (where the cut conforms: no edge of
+    // a finer level on it), every piece on the rank below its centre: the patches of G 40 0, through
+    // the shadows.  Then, as long as the heaviest rank lies more than 3 % of the mean above it, the
+    // move that lowers it most onto the lightest rank: a whole piece, or the part of one cut off at a
+    // conforming tile edge (x and y; z only without).  A piece on its own rank takes the cells of its
+    // shadow from that rank (no messages); the pieces that stay are those of G 40 0.
+    vector<int> rown;
+    if(maxlev>=1 && owner_place)
+    {
+        vector<int> cuts[3];
+        for(int d=0; d<3; ++d)
+        {
+            const int R = ratio(1,d);
+            for(int r=0; r<nranks; ++r)
+            {
+                cuts[d].push_back(rbox[6*r+d]*R);
+                cuts[d].push_back((rbox[6*r+d]+rbox[6*r+3+d])*R);
+            }
+            std::sort(cuts[d].begin(),cuts[d].end());
+            cuts[d].erase(std::unique(cuts[d].begin(),cuts[d].end()),cuts[d].end());
+        }
+        auto own = [&](piece &c)
+        {
+            c.w = unit_work(c.lo,c.hi);
+            int C[3];
+            for(int d=0; d<3; ++d)
+            C[d] = fdiv((c.lo[d]+c.hi[d])/2,rr[d]);
+            c.rank = owner0(C);
+        };
+        std::function<void(piece)> cut = [&](piece c)
+        {
+            for(int d=0; d<3; ++d)
+            for(int X : cuts[d])
+            if(X>c.lo[d] && X<=c.hi[d] && conforming(d,X,c.lo,c.hi))
+            {
+                piece A = c, B = c;
+                A.hi[d] = X-1;
+                B.lo[d] = X;
+                cut(A);
+                cut(B);
+                return;
+            }
+            own(c);
+            pcs.push_back(c);
+        };
+        for(size_t b=0; b<mb[1].size()/6; ++b)
+        {
+            piece c;
+            for(int d=0; d<3; ++d)
+            {
+                c.lo[d] = mb[1][6*b+d];
+                c.hi[d] = mb[1][6*b+3+d];
+            }
+            cut(c);
+        }
+
+        const double tol = 0.03*wmean;
+        for(int it=0; it<4*(int)pcs.size()+16; ++it)
+        {
+            vector<double> L = base;
+            for(const piece &c : pcs)
+            L[c.rank] += c.w;
+            int r = 0, q = 0;
+            for(int k=1; k<nranks; ++k)
+            {
+                if(L[k]>L[r]) r = k;
+                if(L[k]<L[q]) q = k;
+            }
+            if(L[r]<=wmean+tol || r==q)
+            break;
+
+            // a whole piece of r onto q
+            int bi = -1;
+            double bm = L[r];
+            for(size_t i=0; i<pcs.size(); ++i)
+            if(pcs[i].rank==r)
+            {
+                const double m = MAX(L[r]-pcs[i].w,L[q]+pcs[i].w);
+                if(m<bm)
+                {
+                    bm = m;
+                    bi = (int)i;
+                }
+            }
+            // a part of a piece of r, cut at a conforming tile edge, onto q
+            int ci = -1, cd = -1, cX = 0, chigh = 0;
+            double cm = bm;
+            for(int pass=0; pass<2 && ci<0; ++pass)
+            for(size_t i=0; i<pcs.size(); ++i)
+            {
+                if(pcs[i].rank!=r)
+                continue;
+                const piece &c = pcs[i];
+                for(int d=0; d<3; ++d)
+                {
+                    if(rr[d]!=2 || (pass==0)==(d==2))
+                    continue;
+                    for(int X=(c.lo[d]/tile[d]+1)*tile[d]; X<=c.hi[d]; X+=tile[d])
+                    {
+                        int a[3] = {c.lo[0],c.lo[1],c.lo[2]}, e[3] = {c.hi[0],c.hi[1],c.hi[2]};
+                        e[d] = X-1;
+                        const double wl = unit_work(a,e);
+                        for(int hs=0; hs<2; ++hs)
+                        {
+                            const double part = hs ? c.w-wl : wl;
+                            const double m = MAX(L[r]-part,L[q]+part);
+                            if(m<cm-1.0e-9*wmean && conforming(d,X,c.lo,c.hi))
+                            {
+                                cm = m;
+                                ci = (int)i;
+                                cd = d;
+                                cX = X;
+                                chigh = hs;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if(ci>=0 && cm<bm)
+            {
+                piece A = pcs[ci], B = pcs[ci];
+                A.hi[cd] = cX-1;
+                B.lo[cd] = cX;
+                A.w = unit_work(A.lo,A.hi);
+                B.w = unit_work(B.lo,B.hi);
+                (chigh ? B : A).rank = q;
+                pcs[ci] = A;
+                pcs.push_back(B);
+            }
+            else if(bi>=0 && bm<L[r]-1.0e-9*wmean)
+            pcs[bi].rank = q;
+            else
+            break;
+        }
+        for(const piece &c : pcs)
+        rown.push_back(c.rank);
     }
 
     // placement: largest first
@@ -1646,7 +1786,7 @@ void reefamr3d::place_units(vector<vector<int>> &mb)
             if(rk[i]>=0)
             continue;
             int r = -1;
-            if(place==1)
+            if(place==1 || place==3)
             {
                 int C[3];
                 for(int d=0; d<3; ++d)
@@ -1669,6 +1809,12 @@ void reefamr3d::place_units(vector<vector<int>> &mb)
 
     vector<int> rf(pcs.size(),-1), rkp(pcs.size(),-1);
     vector<double> lf = base, lk = base;
+    if(owner_place)
+    for(size_t i=0; i<pcs.size(); ++i)
+    {
+        rf[i] = rown[i];
+        lf[rf[i]] += pcs[i].w;
+    }
     if(fill_ranks)
     for(size_t i=0; i<pcs.size(); ++i)
     {
@@ -1687,7 +1833,7 @@ void reefamr3d::place_units(vector<vector<int>> &mb)
     greedy(rf,lf);
 
     bool keep = false;
-    if(place==1 && !GPold.empty() && !ptest)
+    if((place==1 || place==3) && !GPold.empty() && !ptest)
     {
         for(size_t i=0; i<pcs.size(); ++i)
         for(const r3gpatch &o : GPold)

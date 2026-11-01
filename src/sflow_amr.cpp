@@ -194,7 +194,7 @@ sflow_amr::sflow_amr(lexer *p, fdm2D *b, ghostcell *pgc, patchBC_interface *ppBC
     // patches on other ranks are reached through the block plans and old_run of the core.  With the
     // moving body (X 10 2/3) the level-0 level set below the patches comes from the ranks that hold it
     // (ship_fs_exchange); the draft and the pressure are evaluated on the patch itself
-    q.place = (p->G40>=1 && p->mpi_size>1) ? MIN(p->G40,2) : 0;
+    q.place = (p->G40>=1 && p->mpi_size>1) ? (p->G40>=3 ? 1 : MIN(p->G40,2)) : 0;     // (G 40 3, the owner placement of CFD: as 1 here)
     q.rebalance = 0.1;
 
     configure(q);

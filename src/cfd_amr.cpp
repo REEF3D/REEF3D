@@ -348,10 +348,12 @@ cfd_amr::cfd_amr(lexer *p, fdm *a, ghostcell *pgc, momentum *pmom, pressure *ppr
     }
 
     // G 40: the units placed for the load of the ranks (the level-1 patches with the shadows of
-    // level 0; G 40 2: the test of it, small pieces placed anew at every regrid)
+    // level 0; G 40 2: the test of it, small pieces placed anew at every regrid; G 40 3: the
+    // level-1 boxes cut at the rank boxes of level 0 and left on their rank, moved only to lower
+    // the heaviest rank, reefamr3d::place_units)
     // (periodic boundaries: the shadows take the level-0 cells across a periodic edge from the other
     // end, reefamr3d::wrap0)
-    place = (p->G40>=1) ? MIN(p->G40,2) : 0;
+    place = (p->G40>=1) ? (p->G40>=3 ? 3 : p->G40) : 0;
     // G 41: the work of a patch cell in the placement (0: measured, from 1 until the first measurement)
     wpatch = (p->G41>0.0) ? p->G41 : 1.0;
 

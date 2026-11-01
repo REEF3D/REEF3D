@@ -213,7 +213,7 @@ fnpf_amr::fnpf_amr(lexer *p, fdm_fnpf *c, ghostcell *pgc) : reefamr(p,pgc)
     // several ranks (G 40 1): the patches are placed for the load of the ranks; parents and old
     // patches on other ranks are reached through the block plans and old_run of the core, the
     // hull triangles are taken by the rank of the finest grid at their centroid (owns_point)
-    q.place = (p->G40>=1 && p->mpi_size>1) ? MIN(p->G40,2) : 0;
+    q.place = (p->G40>=1 && p->mpi_size>1) ? (p->G40>=3 ? 1 : MIN(p->G40,2)) : 0;     // (G 40 3, the owner placement of CFD: as 1 here)
     q.rebalance = 0.1;
     q.place_whole_zones = true;
 
