@@ -46,7 +46,7 @@ public:
     sflow_turb_io(lexer*);
 	virtual ~sflow_turb_io();
     
-    void print_2D(lexer*, fdm2D*, ghostcell*,ofstream&) override final;
+    void print_2D(lexer*, fdm2D*, ghostcell*,std::ostream&) override final;
     
     void kinget(int,int,double) override final;
     void epsget(int,int,double) override final;
@@ -55,7 +55,7 @@ public:
     double epsval(int,int) override final;
     
 	void name_pvtp(lexer*, fdm2D*, ghostcell*,ofstream&) override final;
-    void name_vtp(lexer*, fdm2D*, ghostcell*,ofstream&, int*, int &) override final;
+    void name_vtp(lexer*, fdm2D*, ghostcell*,std::ostream &, int*, int &) override final;
     
     void offset_ParaView_2D(lexer*, int*, int &) override final;
     

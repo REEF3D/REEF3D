@@ -93,9 +93,9 @@ public:
 
     // free surface VTP output (W 200 > 0)
     void offset_vtp(lexer*, int*, int&);
-    void name_vtp(ofstream&, int*, int&);
+    void name_vtp(std::ostream &, int*, int&);
     void name_pvtp(ofstream&);
-    void print_vtp(lexer*, ofstream&);
+    void print_vtp(lexer*, std::ostream&);
 
     static bool active(lexer *p) {return p->W200>0 || p->W211>0;}
 

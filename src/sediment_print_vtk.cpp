@@ -279,7 +279,7 @@ void sediment_f::print_3D_bedload(lexer* p, ghostcell *pgc, std::vector<char> &b
     }
 }
 
-void sediment_f::print_2D_bedload(lexer* p, ghostcell *pgc, ofstream &result)
+void sediment_f::print_2D_bedload(lexer* p, ghostcell *pgc, std::ostream &result)
 {	
 	float ffn;
 	int iin;
@@ -474,7 +474,7 @@ void sediment_f::offset_ParaView_bedshear(lexer *p, int *offset, int &n)
 	++n;
 }
 
-void sediment_f::print_2D_bedshear(lexer* p, ghostcell *pgc, ofstream &result)
+void sediment_f::print_2D_bedshear(lexer* p, ghostcell *pgc, std::ostream &result)
 {	
 	float ffn;
 	int iin;
@@ -672,7 +672,7 @@ void sediment_f::print_3D_bedshear(lexer* p, ghostcell *pgc, std::vector<char> &
     }
 }
 
-void sediment_f::print_2D_parameter1(lexer* p, ghostcell *pgc, ofstream &result)
+void sediment_f::print_2D_parameter1(lexer* p, ghostcell *pgc, std::ostream &result)
 {	
 	float ffn;
 	int iin;
@@ -881,7 +881,7 @@ void sediment_f::offset_ParaView_parameter1(lexer *p, int *offset, int &n)
 }
 
 
-void sediment_f::print_2D_parameter2(lexer* p, ghostcell *pgc, ofstream &result)
+void sediment_f::print_2D_parameter2(lexer* p, ghostcell *pgc, std::ostream &result)
 {	
 	float ffn;
 	int iin;

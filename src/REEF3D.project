@@ -1279,6 +1279,7 @@
           <File Name="vts3D.h"/>
           <File Name="vtr3D.h"/>
           <File Name="vtp3D.h"/>
+          <File Name="vtp_piece_buffer.h"/>
           <File Name="vtks.h"/>
           <File Name="vtk3D.h"/>
         </VirtualDirectory>
