@@ -65,6 +65,13 @@ Architect: Hans Bihs
 //               water takes no part in the body dynamics (its pressure is not on the hull). The side faces
 //               of the staircase (horizontal links) are taken at the heights of their layer in still water
 //               (face_height): the sigma layers stretch with the free surface, the hull does not.
+//               The dynamic part is weighted with the hull normal, (nf . n) n, so that the work of the body
+//               against it equals the work of the wall fluxes. In the ship frame (surge, sway and yaw fixed,
+//               X 11) the horizontal loads are taken on the face normals themselves (plain_horizontal): the
+//               body does no horizontal work, and the solver takes the momentum out of the water on the faces,
+//               along their normals. With the weighting, the floors at the keel corners took an x part of the
+//               stagnation pressure (a 2D box in a current: -12 N per 0.1 m, a thrust) and the steps of a sloped
+//               bow lost most of theirs (Ship Hydrodynamics validation 30).
 //   enclosed water  its horizontal velocity is the horizontal rigid-body velocity, every stage
 //               (enclosed_water). Left free, it sloshed inside the hull. In a current (a hull at speed in the
 //               ship frame, B 531) the inner level of the footprint columns oscillated by 2-3 cm at 5 Hz and
@@ -155,6 +162,9 @@ nhflow_hullbody::nhflow_hullbody(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof_ob
     dmin = MIN(dmin,p->DYN[q+marge]);
 
     hyst = 0.02*pgc->globalmin(dmin);
+    // the horizontal loads on the face normals of the staircase: a hull at rest horizontally (X 11: surge, sway and yaw
+    // fixed; the ship frame). The vertical loads keep the hull-normal weighting (heave and pitch damping).
+    plain_horizontal = (p->X11_u==0 && p->X11_v==0 && p->X11_r==0);
     Rn = 1.0e5;
 
     nbx = nby = nbz = nlink = 0;
@@ -471,6 +481,12 @@ void nhflow_hullbody::loads(lexer *p, fdm_nhf *d, slice &WL, const std::function
         if(hull_normal(p,d,q0,q1,nx,ny,nz))
         {
             const double f = pd*A*(nfx*nx + nfy*ny + nfz*nz);
+            
+            // ship frame: the horizontal part on the face normal (the momentum the solver takes from the water at the
+            // face), the vertical part weighted
+            if(plain_horizontal)
+            add(x,y,z,(ps+pd)*A*nfx, (ps+pd)*A*nfy, ps*A*nfz + f*nz);
+            else
             add(x,y,z,ps*A*nfx + f*nx, ps*A*nfy + f*ny, ps*A*nfz + f*nz);
         }
         else

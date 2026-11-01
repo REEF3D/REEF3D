@@ -82,6 +82,7 @@ private:
     double *side0N;             // node sides of the last stage
     double hyst;                // hysteresis distance
     double Rn;                  // hydraulic resistance of the blocked links [m/s]
+    bool plain_horizontal;      // horizontal loads on the face normals, without the hull-normal weighting (ship frame)
     int nbx,nby,nbz;            // blocked links on this rank (last stage)
     int nlink;                  // global
     bool told,marked;
