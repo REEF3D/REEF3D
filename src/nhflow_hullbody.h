@@ -73,6 +73,8 @@ public:
 
 private:
     void body_velocity(double, double, double, double&, double&, double&) const;
+    void footprint_level(lexer*, fdm_nhf*, ghostcell*, slice&, double);
+    double keel_height(lexer*, fdm_nhf*, int, int) const;
     void enclosed_water(lexer*, fdm_nhf*, ghostcell*, double*, double*, slice&);   // horizontal velocity of the water inside the hull
     bool hull_normal(lexer*, fdm_nhf*, int, int, double&, double&, double&) const;
 
@@ -83,6 +85,9 @@ private:
     double hyst;                // hysteresis distance
     double Rn;                  // hydraulic resistance of the blocked links [m/s]
     bool plain_horizontal;      // horizontal loads on the face normals, without the hull-normal weighting (ship frame)
+    bool fp_on;                 // footprint level: ship frame with a current
+    double *zk0;                // keel height of a footprint column when it entered the footprint (1e20: outside)
+    double fp_tau;              // relaxation time of the footprint level [s]
     int nbx,nby,nbz;            // blocked links on this rank (last stage)
     int nlink;                  // global
     bool told,marked;

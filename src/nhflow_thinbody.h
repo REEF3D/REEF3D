@@ -185,6 +185,11 @@ public:
     
     int nlower(lexer*, ghostcell*);
     
+    // hull clients (nhflow_hullbody): the head below the floor (the outer level carried across the footprint) and the
+    // region of the column's free surface (inside the body), both of the last stage
+    double etaL_at(int ii, int jj) {return etaL(ii,jj);}
+    bool top_inside(int ii, int jj) {return rt(ii,jj)>0.5;}
+    
     // mesh refinement (nhflow_amr): the thin body of a patch (on one rank, no exchange of the node sides)
     bool amr_patch = false;
     // the state of column (ii,jj) a regrid hands from an old patch to a new one: the cell sides of the last stage

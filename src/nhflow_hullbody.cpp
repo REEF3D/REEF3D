@@ -109,6 +109,10 @@ nhflow_hullbody::nhflow_hullbody(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof_ob
 
     p->Darray(side0C,ncell);
     p->Darray(side0N,nnode);
+    p->Darray(zk0,p->imax*p->jmax);
+
+    for(int q=0; q<p->imax*p->jmax; ++q)
+    zk0[q] = 1.0e20;
 
     for(int q=0; q<ncell; ++q)
     side0C[q] = 0.0;
@@ -165,6 +169,14 @@ nhflow_hullbody::nhflow_hullbody(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof_ob
     // the horizontal loads on the face normals of the staircase: a hull at rest horizontally (X 11: surge, sway and yaw
     // fixed; the ship frame). The vertical loads keep the hull-normal weighting (heave and pitch damping).
     plain_horizontal = (p->X11_u==0 && p->X11_v==0 && p->X11_r==0);
+
+    // the footprint level: in the ship frame, a hull at rest horizontally in a current (B 514); relaxation time [s]
+    bool current = false;
+    for(int n=0; n<p->B514; ++n)
+    if(fabs(p->B514_U[n]) + fabs(p->B514_V[n])>0.0)
+    current = true;
+    fp_on = plain_horizontal && current;
+    fp_tau = 0.5;
     Rn = 1.0e5;
 
     nbx = nby = nbz = nlink = 0;
@@ -180,6 +192,7 @@ nhflow_hullbody::~nhflow_hullbody()
 {
     delete [] side0C;
     delete [] side0N;
+    delete [] zk0;
 
     if(out.is_open())
     out.close();
@@ -256,6 +269,11 @@ void nhflow_hullbody::stage(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, 
     d->MCHI[q] = 0.0;
     d->MBX[q] = d->MBY[q] = d->MBZ[q] = 1.0;
     }
+
+    // the free surface of the footprint columns in the ship frame with a current: relaxed towards the outer level carried
+    // under the hull plus the keel displacement
+    if(fp_on)
+    footprint_level(p,d,pgc,WL,a);
 
     tb->begin(p);
 
@@ -415,6 +433,66 @@ void nhflow_hullbody::enclosed_water(lexer *p, fdm_nhf *d, ghostcell *pgc, doubl
     
     pgc->start4V(p,d->U,10);
     pgc->start4V(p,d->V,11);
+}
+
+// ------------------------------------------------------------------ footprint level (ship frame)
+// The footprint columns (the free surface of the column inside the hull, nhflow_thinbody::top_inside) carry the level of
+// the enclosed water, set by the column's own continuity and the lid correction. Their sigma layers then end at that
+// inner level, while the outer columns at the hull edge end at the outer free surface. In a current the bow pile-up
+// and the stern trough put the layers below the keel at different heights on the two sides of the hull edge: a 2D box
+// free in heave in a current of 1 m/s kept a limit cycle of +-2.5 cm (validation 27), and the heave force of the
+// KVLCC2-like hull in the ship frame a noise of 70-200 N.
+// In the ship frame with a current the level of a footprint column relaxes, with the time fp_tau, towards the outer
+// level carried under the hull (eta_L, the harmonic extension of the outer levels, the head of the lower cells) plus
+// the keel displacement since the column entered the footprint:
+//     d eta/dt = (eta_L + z_keel - z_keel,0 - eta)/fp_tau
+// so that the layers continue across the hull edge, and the lower region still follows the keel. Set to that level at
+// every stage instead, the column fought its own continuity: on the 3D hull a column near the keel took a flux of
+// several m/s and the time step fell to a third. Only with a current (B 514): at zero speed the level of the enclosed
+// water gives the radiation of the heaving hull (2D box, forced heave at 3.5 rad/s: A/m 0.922, B 63.0 per span, Frank
+// 0.975, 63.6; with the relaxation 0.986, 78.1). Ship Hydrodynamics validation 30.
+void nhflow_hullbody::footprint_level(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL, double a)
+{
+    const double r = MIN(a/fp_tau, 1.0);
+
+    SLICELOOP4
+    {
+        const int q = (i-p->imin)*p->jmax + (j-p->jmin);
+
+        if(p->wet[IJ]==1 && tb->top_inside(i,j))
+        {
+            const double zk = keel_height(p,d,i,j);
+
+            if(zk0[q]>1.0e19)
+            zk0[q] = zk;
+
+            const double dz = (zk<1.0e19 && zk0[q]<1.0e19) ? zk - zk0[q] : 0.0;
+
+            d->eta(i,j) += (tb->etaL_at(i,j) + dz - d->eta(i,j))*r;
+            WL(i,j) = d->eta(i,j) + d->depth(i,j);
+        }
+        else
+        zk0[q] = 1.0e20;
+    }
+
+    pgc->gcsl_start4(p,d->eta,50);
+    pgc->gcsl_start4(p,WL,50);
+}
+
+// lowest crossing of the hull in the column, from the level set at the cell centres (1e20: none)
+double nhflow_hullbody::keel_height(lexer *p, fdm_nhf *d, int ii, int jj) const
+{
+    int i=ii, j=jj, k;
+
+    for(k=1; k<p->knoz; ++k)
+    if(d->FB[IJKm1]>=0.0 && d->FB[IJK]<0.0)
+    {
+        const double fa = d->FB[IJKm1], fb = d->FB[IJK];
+        const double za = p->ZSP[IJKm1], zb = p->ZSP[IJK];
+        return za + (zb - za)*fa/(fa - fb);
+    }
+
+    return 1.0e20;
 }
 
 // ------------------------------------------------------------------ loads: the outer pressure on the blocked links
@@ -619,7 +697,7 @@ void nhflow_hullbody::finish_loads(lexer *p, fdm_nhf *d, ghostcell *pgc, const d
 // ------------------------------------------------------------------ regrid (mesh refinement)
 int nhflow_hullbody::amr_nstate(lexer *p) const
 {
-    return p->knoz + (p->knoz+1) + tb->amr_nstate(p) + 2*p->knoz;
+    return p->knoz + (p->knoz+1) + tb->amr_nstate(p) + 2*p->knoz + 1;
 }
 
 void nhflow_hullbody::amr_get(lexer *p, fdm_nhf *d, int ii, int jj, double *v)
@@ -643,6 +721,8 @@ void nhflow_hullbody::amr_get(lexer *p, fdm_nhf *d, int ii, int jj, double *v)
     v[n++] = d->MRCX[qc+kk];
     v[n++] = d->MRCY[qc+kk];
     }
+
+    v[n++] = zk0[(ii-p->imin)*p->jmax + (jj-p->jmin)];
 }
 
 void nhflow_hullbody::amr_set(lexer *p, fdm_nhf *d, int ii, int jj, const double *v)
@@ -666,6 +746,8 @@ void nhflow_hullbody::amr_set(lexer *p, fdm_nhf *d, int ii, int jj, const double
     d->MRCX[qc+kk] = v[n++];
     d->MRCY[qc+kk] = v[n++];
     }
+
+    zk0[(ii-p->imin)*p->jmax + (jj-p->jmin)] = v[n++];
 }
 
 // ------------------------------------------------------------------ log

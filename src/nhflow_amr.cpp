@@ -2341,7 +2341,7 @@ void nhflow_amr::regrid_state(ghostcell *pgc, vector<reefamr_patch*> &oldP)
             const int nv0 = 3 + 2 + 6*K + K+1 + 1;
             // X 15 8: and the state of the hull (nhflow_hullbody::amr_get: sides with their hysteresis, thin body,
             // Rhie-Chow face corrections), so that a rebuilt patch continues the hull of the old one
-            const int nh = hb ? (K + (K+1) + (K+2) + 2*K) : 0;
+            const int nh = hb ? (K + (K+1) + (K+2) + 2*K + 1) : 0;
             const int nv = nv0 + nh;
             old_run(l,nv,7630+l,oldP,
                     [&](reefamr_patch *o, int io, int jo, double *v)
