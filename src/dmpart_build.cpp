@@ -147,12 +147,13 @@ static bool build_from(gridv2::reader &gf, int nranks, std::vector<std::vector<c
 
     L.M10 = nranks;
 
-    // REEF3D M 41 (rebalance restart, G 46): the weighted partition with the load map
+    // REEF3D M 41 (rebalance restart, G 46): the weighted partition with the load map; a layout M 30
+    // of DIVEMesh is kept when it gives the ranks (also with M 20 3, 4: their cuts M 31-33 are not
+    // used), else the layout is chosen by the load
     if(weighted==1)
     {
         L.M20 = 5;
         L.M35 = 1;
-        L.M30_x = L.M30_y = L.M30_z = 0;
     }
 
     // a fixed number of subdomains per direction (M 30) has to fit the ranks; M 20 5: else chosen

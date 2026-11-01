@@ -919,7 +919,7 @@ void control::ini_default()
 
     // MPI
 	M10=0;          // number of MPI processes
-	M41=0;          // int M 40: 1 the weighted partition with the load map (DIVEMesh M 20 5, M 35 1) whatever DIVEMesh M 20 is; set by a rebalance restart (G 46)
+	M41=0;          // int M 40: 1 the weighted partition with the load map (DIVEMesh M 20 5, M 35 1) whatever DIVEMesh M 20 is, the layout of DIVEMesh M 30 if it gives the ranks, else the layout by the load; set by a rebalance restart (G 46)
 	M40=0;          // int grid: 0 the grid files of the ranks from DIVEMesh, else its global grid file (DIVEMesh M 50 1, 2) decomposed by REEF3D; 1 always the global grid file, REEF3D decomposes for M 10 ranks with the decomposition keys of DIVEMesh (M 20, ...)
 
     // Printer
