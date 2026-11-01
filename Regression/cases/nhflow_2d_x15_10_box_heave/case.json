@@ -1,0 +1,4 @@
+{"solver": "nhflow", "np": 1, "steps": 300, "files": ["6DOF_motion.dat"],
+ "description": "2D box B 1 m, T 0.4 m in forced heave (0.01 m at 3.5 rad/s from 6DOF_motion.dat, X 240 1) as a solid with cut faces (X 15 10), dx 0.1 m: the set-up of Ship Hydrodynamics validation 21 (Frank A/m 0.975, B 64 per 0.1 m span; X 15 10 0.94, 66 over 4-8 s, validation 31).",
+ "tags": ["2d", "nhflow", "6dof", "motionfile"],
+ "covers": ["X 15 10 with a prescribed motion", "the keel moving through the sigma layers"]}

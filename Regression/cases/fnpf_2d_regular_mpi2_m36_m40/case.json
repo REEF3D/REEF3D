@@ -1,0 +1,9 @@
+{
+ "base": "fnpf_2d_regular_mpi2_m36",
+ "control_set": {"M 50": "1"},
+ "ctrl_set": {"M 40": "1"},
+ "same_as": "fnpf_2d_regular_mpi2_m42",
+ "description": "fnpf_2d_regular_mpi2_m36 decomposed by REEF3D (M 50 1, M 40 1): DIVEMesh M 36 in the global grid file, dmpart reads ./capacity.dat; bitwise fnpf_2d_regular_mpi2_m42",
+ "tags": ["quick", "2d", "fnpf", "mpi", "capacity"],
+ "covers": ["dmpart::build M 36 (GHED)", "dmpart::read_capacity"]
+}

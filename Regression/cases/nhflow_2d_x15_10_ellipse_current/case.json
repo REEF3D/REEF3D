@@ -1,0 +1,4 @@
+{"solver": "nhflow", "np": 1, "steps": 300, "files": ["floating.stl"],
+ "description": "2D submerged ellipse (length 1 m, thickness 0.2 m, 5 cells across; X 180 STL) fixed in a current of 1 m/s from the start (B 514, B 531 1), X 15 10: a submerged solid with cut faces, the sigma grid moving through its top and bottom with the free surface. Ship Hydrodynamics validation 31.",
+ "tags": ["2d", "nhflow", "6dof", "background", "current"],
+ "covers": ["X 15 10 submerged body", "cells crossing the body surface with the sigma grid"]}
