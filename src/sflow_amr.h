@@ -59,6 +59,9 @@ class vec2D;
 class sixdof_sflow;
 class sflow_amr_ship;
 class solver2D;
+class sflow_turbulence;
+class sflow_turb_io;
+class seastate_sflow;
 
 #include<functional>
 
@@ -169,6 +172,11 @@ struct sflow_amr_patch : public reefamr_patch
 
     // line solver of the Boussinesq u_a inversion (A 220 4)
     solver2D *psolv = nullptr;
+
+    // turbulence k-epsilon / k-omega (A 260 1/2, sflow_amr_turb.cpp): the model of the patch and its solver (the
+    // cells around the patch as Dirichlet values)
+    sflow_turbulence *pturb = nullptr;
+    solver2D *ptsolv = nullptr;
     // regrid: blocks of a fresh patch that took the state of an old patch
     vector<char> blkold;
 
@@ -243,6 +251,11 @@ public:
     void si_attach(sflow_momentum_SI*);
     void si_step(lexer*, fdm2D*, ghostcell*);
 
+    // turbulence k-epsilon / k-omega (A 260 1/2, sflow_amr_turb.cpp): the level-0 model, the step of the patches after
+    // the step of level 0 (sflow_f::mainloop)
+    void turb_attach(sflow_turbulence*);
+    void turb_step(lexer*, fdm2D*, ghostcell*);
+
     // composite non-hydrostatic pressure, called by the level-0 sflow_pjm_lin after its assembly
     // (G 7 1: level 0 solves alone, the patches level by level in sflow_amr_sub.cpp)
     bool nh_patches() const { return maxlev>0 && patches_total>0 && nh==1 && sub==0; }
@@ -303,6 +316,26 @@ protected:
 
 private:
     sflow_amr_patch* SP(int n) { return static_cast<sflow_amr_patch*>(P[n]); }
+
+    // turbulence k-epsilon / k-omega (A 260 1/2, sflow_amr_turb.cpp)
+    int turb = 0;                       // the patches have their own model (A 260 1/2, Cartesian, no multi-block)
+    sflow_turbulence *tb0 = nullptr;    // the level-0 model
+    sflow_turb_io* tio(int g);          // the model of grid g (-1: level 0)
+    solver2D* turb_solver(lexer*, ghostcell*);
+    void turb_objects(sflow_amr_patch&, ghostcell*);
+    void turb_faces(sflow_amr_patch&);
+    void turb_fill(ghostcell*, int);
+    void turb_run(ghostcell*, sflow_amr_patch&);
+    void turb_save(ghostcell*, sflow_amr_patch&);
+    void turb_regrid(ghostcell*, int, vector<reefamr_patch*>&);
+
+    // SEASTATE coupling (A 750, sflow_amr_wave.cpp): the wave force, div(M) and Hs, Tp of the patches from their
+    // parents after every change on level 0 and every regrid
+    int wave_seen = -1;
+    bool wave_dirty = true;
+    void wave_sync(ghostcell*);
+    void wave_fields(ghostcell*);
+    seastate_sflow* wv(int g);
 
     // semi-implicit free surface (sflow_amr_si.cpp)
     int si = 0;                         // A 226 1

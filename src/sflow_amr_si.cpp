@@ -338,6 +338,9 @@ void sflow_amr::si_step(lexer *p, fdm2D *b, ghostcell *pgc)
     sipgc = pgc;
     rsipgc = pgc;
 
+    // A 750: the wave force of the patches after a wave step or a regrid (sflow_amr_wave.cpp)
+    wave_sync(pgc);
+
     // no blocks and no patches (the adaptive refinement before its first patches): the step of the native grid alone
     if(!(nblk>0 || (maxlev>=1 && patches_total>0)))
     {

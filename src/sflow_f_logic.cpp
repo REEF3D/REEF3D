@@ -237,6 +237,10 @@ void sflow_f::logic(lexer *p, fdm2D* b, ghostcell* pgc)
             cout<<"!!! SFLOW multi-block grid (G 50 1 with DIVEMesh R 20 1): only with A 210 3 or A 226 1 !!!"<<endl;
             exit(1);
         }
+
+        // A 260 1/2: the level-0 turbulence model for the models of the patches (sflow_amr_turb.cpp)
+        if(pamr!=nullptr)
+        pamr->turb_attach(pturb);
     }
 
     // G 1 without anything to refine: no box (G 10), no flag (G 20-23) and no body zone (G 12)

@@ -118,6 +118,10 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
         
         // turbulence
         pturb->start(p,b,pgc,pconvec,pdiff,psolv,pflow);
+
+        // A 260 1/2 with mesh refinement: the models of the patches (sflow_amr_turb.cpp)
+        if(pamr!=nullptr)
+        pamr->turb_step(p,b,pgc);
         
         // breaking waves
         int count=0;

@@ -262,6 +262,8 @@ private:
     double dtw;                 // wave time step (A 706 stand-alone, the coupling interval in coupled runs)
     bool coupled;
     bool remote = false;                // A 750 2: coupled, on the own grid (seastate_remote_wave)
+    int g1 = 0;                         // mesh refinement of the wave model: G 1, not in-process (A 750 1: the
+                                        // refinement is the host's, the waves run on its level 0)
     bool kba = false;                   // Phase 14: the sweeps pipelined across the ranks (A 781 1)
     double conv;
     std::vector<double> hs_old;

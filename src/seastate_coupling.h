@@ -150,6 +150,13 @@ public:
     // the number of wave steps so far: the bed parameters change only with a wave step
     int wave_steps() const {return nstep;}
 
+    // the wave forcing for the patches of the mesh refinement (sflow_amr_wave.cpp): the fields and the number of
+    // times they changed (a wave step in-process, a receive from the remote waves)
+    slice4& force_x() {return Fw;}
+    slice4& force_y() {return Gw;}
+    slice4& div_m() {return divM;}
+    int updates() const {return nupd;}
+
     // Stokes (wave and roller) transport M [m^2/s] of the cells and the wave-active flag, for the transport of
     // suspended sediment with the vortex force (A 751 2): the host velocity is then the Eulerian one and the
     // continuity carries -div(M) in flux form between wave-active cells
@@ -215,6 +222,7 @@ protected:
     double t_wait;                          // rank 0: time spent waiting for the other app [s]
 
     met_forcing *pmetw = nullptr;           // wave-dependent drag W 207 7: told after every change of Hsw, Tpw
+    int nupd = 0;                           // changes of Fw, Gw, divM, Hsw, Tpw (updates)
 };
 
 #endif

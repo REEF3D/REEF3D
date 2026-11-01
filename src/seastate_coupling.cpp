@@ -391,6 +391,8 @@ void seastate_coupling::forces(lexer *p, ghostcell *pgc, slice &U, slice &V)
     Tpw(i,j) = e->wet(i,j)==1 ? e->Tp(i,j) : 0.0;
     }
 
+    ++nupd;
+
     if(pmetw!=nullptr)
     pmetw->waves_update(p);
 }
@@ -640,6 +642,8 @@ void seastate_coupling::remote_step(lexer *p, ghostcell *pgc, slice &eta, slice 
         for(int n=0; n<5; ++n)
         (*T[n])(i,j) = ws>0.0 ? v[n]/ws : 0.0;
     }
+
+    ++nupd;
 
     if(pmetw!=nullptr)
     pmetw->waves_update(p);

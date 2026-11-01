@@ -1493,6 +1493,8 @@
       </VirtualDirectory>
       <VirtualDirectory Name="SFLOW">
         <File Name="sflow_amr_ship.cpp"/>
+        <File Name="sflow_amr_turb.cpp"/>
+        <File Name="sflow_amr_wave.cpp"/>
         <File Name="sflow_amr_nh.cpp"/>
         <File Name="sflow_amr_si.cpp"/>
         <File Name="sflow_amr_sub.cpp"/>

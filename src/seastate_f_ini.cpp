@@ -82,6 +82,7 @@ void seastate_f::ini_common(lexer *p, ghostcell *pgc, bool coupled_)
 {
     coupled = coupled_;
     restart = (!coupled && p->I45==1);
+    g1 = (coupled && !remote) ? 0 : p->G1;
 
     check_keys(p,pgc);
 
@@ -208,7 +209,7 @@ void seastate_f::ini_common(lexer *p, ghostcell *pgc, bool coupled_)
     dfT = new slice4(p);
     dfK = new slice4(p);
     dfC = new slice4(p);
-    if(p->G1>0)
+    if(g1>0)
     dfE = new slice4(p);
     psolv->diffraction(dca,dcax,dcay);
     }
@@ -247,7 +248,7 @@ void seastate_f::ini_common(lexer *p, ghostcell *pgc, bool coupled_)
 
     // Phase 14: the sweeps pipelined across the ranks (A 781 1) on a grid without refinement: the result of one rank,
     // so nonstationary one iteration per step as on one rank (unless A 707, FAS or surfbeat)
-    if(p->A781==1 && p->M10>1 && p->G1<1 && !second)
+    if(p->A781==1 && p->M10>1 && g1<1 && !second)
     {
     kba = psolv->pipeline(p,pgc);
     if(kba && p->A700==1 && p->A707<=0 && p->A758_n<=0 && p->A770!=1)
@@ -262,7 +263,7 @@ void seastate_f::ini_common(lexer *p, ghostcell *pgc, bool coupled_)
     }
 
     // Phase 12: FAS on a uniform grid (A 758 without mesh refinement): a V-cycle over coarse grids of 2 x 2 cells
-    if(p->A758_n>0 && p->G1<1)
+    if(p->A758_n>0 && g1<1)
     {
     const std::vector<float> *s[4] = {&Nside[0],&Nside[1],&Nside[2],&Nside[3]};
     pfas = new seastate_fas2(p,pgc,e,psolv,pex,psrc,bser!=nullptr ? s : nullptr,wmet!=nullptr ? wU10 : nullptr,
@@ -277,7 +278,7 @@ void seastate_f::ini_common(lexer *p, ghostcell *pgc, bool coupled_)
     }
 
     // mesh refinement (G 1): static hierarchy of patches
-    if(p->G1>0)
+    if(g1>0)
     {
     pamr = new seastate_amr(p,pgc);
     seastate_amr::level0 l0 = {e,psolv,pex,psrc,N0,bathy,wmet,tref,pobs,vegr};
@@ -408,9 +409,9 @@ void seastate_f::check_keys(lexer *p, ghostcell *pgc)
     msg = "A 732 3, 4: the saturation of the Ardhuin whitecapping needs uniform directions (no A 715, A 716)";
     else if(p->A758_n<0 || p->A758_m<0)
     msg = "A 758: the FAS period and the coarse iterations must not be negative";
-    else if(p->A758_n>0 && p->G1<1 && (p->A718>=1 || p->A754>0))
+    else if(p->A758_n>0 && g1<1 && (p->A718>=1 || p->A754>0))
     msg = "A 758: the FAS coarse grid of a uniform grid (no G 1) is not available with diffraction (A 718) or vegetation (A 754)";
-    else if(p->A758_n>0 && p->G1<1 && coupled)
+    else if(p->A758_n>0 && g1<1 && coupled)
     msg = "A 758: the FAS coarse grid of a uniform grid (no G 1) is not available in a coupled run";
     else if(p->A758_n>0 && p->A700==1 && (p->A707>0 ? p->A707 : (p->M10>1 ? 2 : 1))<2)
     msg = "A 758: nonstationary, the FAS coarse-grid correction needs at least 2 iterations per step (A 707), a fine iteration after each correction";
@@ -476,13 +477,13 @@ void seastate_f::check_keys(lexer *p, ghostcell *pgc)
     msg = "A 790: the bathymetry raster must be 0 (off) or 1 (seastate-bathy.dat)";
     else if(p->A790==1 && coupled && !remote)
     msg = "A 790 1: the bathymetry raster is for stand-alone runs (A 10 7); a host model sets the bed";
-    else if(p->G1>0 && coupled)
-    msg = "G 1: mesh refinement of SEASTATE is for stand-alone runs (A 10 7), not with the coupling (A 750)";
-    else if(p->G1>0 && p->A770==1)
+    else if(g1>0 && coupled)
+    msg = "G 1: mesh refinement of SEASTATE is for stand-alone runs (A 10 7), not for the remote waves (A 750 2; in-process, A 750 1, G 1 refines the host, the waves run on its level 0)";
+    else if(g1>0 && p->A770==1)
     msg = "G 1: mesh refinement is not available with the surfbeat model (A 770 1)";
-    else if(p->G1>0 && p->G40!=0)
+    else if(g1>0 && p->G40!=0)
     msg = "G 40: SEASTATE patches are cut at the rank boxes (G 40 0)";
-    else if(p->G1>0 && (p->G4<4 || p->G4%2!=0))
+    else if(g1>0 && (p->G4<4 || p->G4%2!=0))
     msg = "G 4: the tile size must be even and at least 4";
     else if(p->A791<0.0 || p->A792<0 || p->A792>3 || p->A793<0.0 || p->A794<0 || p->A762<0)
     msg = "A 791-794, A 762: the refinement criteria must not be negative (A 792 at most 3)";
@@ -798,12 +799,12 @@ void seastate_f::storage(lexer *p, ghostcell *pgc)
     cout<<"SEASTATE mode: surfbeat, nonstationary, time step "<<(coupled ? "of the host" : "A 706")<<", refraction "<<p->A713<<", no frequency shift"<<endl;
     else
     cout<<"SEASTATE mode: "<<(p->A700==2 ? "stationary" : "nonstationary")<<", time step "<<p->A706<<" s, refraction "<<p->A713<<", frequency shift "<<p->A714<<endl;
-    if(p->A795>0.0 || p->A796==2 || (p->A797==1 && p->G1>0))
+    if(p->A795>0.0 || p->A796==2 || (p->A797==1 && g1>0))
     {
     cout<<"SEASTATE solver:";
     if(p->A795>0.0) cout<<" spectral sparsity (A 795, threshold "<<scientific<<setprecision(1)<<p->A795<<defaultfloat<<setprecision(6)<<" of the cell energy per bin)";
     if(p->A796==2) cout<<(p->A795>0.0 ? "," : "")<<" second-order geographic advection (A 796 2)";
-    if(p->A797==1 && p->G1>0) cout<<(p->A795>0.0 || p->A796==2 ? "," : "")<<" composite sweep across the refinement levels (A 797 1)";
+    if(p->A797==1 && g1>0) cout<<(p->A795>0.0 || p->A796==2 ? "," : "")<<" composite sweep across the refinement levels (A 797 1)";
     cout<<endl;
     }
     if(p->A798>1 || (p->A700==2 && (p->A738>1 || p->A799==1)))
@@ -821,14 +822,14 @@ void seastate_f::storage(lexer *p, ghostcell *pgc)
     if(ws) cout<<", evaluated in the sweep of the first quadrant and kept for the others (floats, the bins of the other quadrants per wet cell)";
     else cout<<", not used: no wind input or DIA";
     if(p->A770==1) cout<<", not with surfbeat";
-    if(p->A797==1 && p->G1>0) cout<<", not in the composite sweep (A 797 1)";
+    if(p->A797==1 && g1>0) cout<<", not in the composite sweep (A 797 1)";
     cout<<endl;
     }
     if(p->A718>=1)
     {
     cout<<"SEASTATE solver (Phase 6):";
     cout<<" diffraction"<<(p->A718==1 ? " (total energy, as SWAN)" : " (per frequency)")<<", smoothing "<<(p->A719>0 ? std::to_string(p->A719)+" steps" : std::string("from the wavelength"))<<" (A 718, A 719)";
-    if(p->G1>0) cout<<", on every refinement level";
+    if(g1>0) cout<<", on every refinement level";
     cout<<endl;
     }
     if(p->A720==1)

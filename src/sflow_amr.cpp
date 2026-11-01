@@ -23,6 +23,9 @@ Author: Hans Bihs
 #include"sflow_curv.h"
 #include"reef3d_mpmd.h"
 #include"sflow_amr.h"
+#include"sflow_turbulence.h"
+#include"solver2D.h"
+#include"seastate_sflow.h"
 #include"gcsl_yskip.h"
 #include"reefckpt.h"
 #include"sflow_boussinesq.h"
@@ -150,6 +153,10 @@ sflow_amr::sflow_amr(lexer *p, fdm2D *b, ghostcell *pgc, patchBC_interface *ppBC
         shipmode = p->X10;
     }
 
+    // turbulence k-epsilon / k-omega (A 260 1/2): every patch has its own model (sflow_amr_turb.cpp); Cartesian grids
+    // without multi-block
+    turb = ((p->A260==1 || p->A260==2) && p->geo_mb==0 && p->geo_curv==0) ? 1 : 0;
+
     // boxes only: static patches
     if(tol_eta<=0.0 && tol_curv<=0.0 && !flagbreak && shore==0 && (p->G12==0 || shipmode==0))
     q.regrid = 0;
@@ -244,7 +251,9 @@ void sflow_amr::ini(lexer *p, fdm2D *b, ghostcell *pgc)
     if(p->A210==2 && si==0) ok=0;
     // semi-implicit free surface (A 226 1): hydrostatic, one global time step, no moving bodies (sflow_amr_si.cpp)
     if(si==1 && (p->A220!=0 || p->G7==1 || p->X10!=0)) ok=0;
-    if(p->A260!=0 && p->A260!=3 && p->A260!=4) ok=0;   // the algebraic eddy viscosity of every grid (sflow_ediff)
+    // the algebraic eddy viscosity of every grid (sflow_ediff); k-epsilon / k-omega with a model on every patch
+    // (sflow_amr_turb.cpp), Cartesian without multi-block
+    if(p->A260!=0 && p->A260!=3 && p->A260!=4 && turb==0) ok=0;
     // sediment transport (S 10 1): bed load, Exner (S 31 1/2, S 32 1/2), sand slide, no fractions (sflow_amr_sed.cpp)
     if(p->S10!=0 && (p->S10!=1 || p->S51>0 || p->S31==3 || p->S32>=3)) ok=0;
     if(p->X10>3) ok=0;
@@ -269,7 +278,7 @@ void sflow_amr::ini(lexer *p, fdm2D *b, ghostcell *pgc)
     if(ok==0)
     {
         if(p->mpirank==0)
-        cout<<"SFLOW AMR (G 1): only for A 220 0-4, A 210 3 (A 226 1: A 210 2/3, A 220 0, X 10 0, without G 7 1), A 260 0/3/4, S 10 0/1 (S 51 0, S 31 1/2, S 32 1/2), X 10 0-3, W 90 0, and with one cell in y Cartesian -- refinement switched off"<<endl;
+        cout<<"SFLOW AMR (G 1): only for A 220 0-4, A 210 3 (A 226 1: A 210 2/3, A 220 0, X 10 0, without G 7 1), A 260 0-4 (1/2 Cartesian), S 10 0/1 (S 51 0, S 31 1/2, S 32 1/2), X 10 0-3, W 90 0, and with one cell in y Cartesian -- refinement switched off"<<endl;
         maxlev=0;
         return;
     }
@@ -497,6 +506,9 @@ void sflow_amr::patch_objects(reefamr_patch *q, ghostcell *pgc)
 
     c->sfc.assign((size_t)pp->imax*pp->jmax,NAN);
     c->gsf.assign((size_t)pp->imax*pp->jmax,NAN);
+
+    // A 260 1/2: the turbulence model of the patch
+    turb_objects(*c,pgc);
 }
 
 ioflow* sflow_amr::pflow_of(sflow_amr_patch *c)
@@ -519,6 +531,10 @@ void sflow_amr::patch_delete(reefamr_patch *q)
     if(c->pp->DFBED!=nullptr)
     c->pp->del_Iarray(c->pp->DFBED,c->pp->imax*c->pp->jmax);
     }
+    delete c->pturb;
+    delete c->ptsolv;
+    delete c->b->wave;
+    c->b->wave = nullptr;
     delete c->pmom;
     delete c->psim;
     delete c->pio;
@@ -685,6 +701,9 @@ void sflow_amr::regrid_static(ghostcell *pgc)
 // any rank), the other blocks prolonged from their parent (on its rank)
 void sflow_amr::regrid_state(ghostcell *pgc, vector<reefamr_patch*> &oldP)
 {
+    // A 750: the wave fields of the patches again at the next step (wave_sync)
+    wave_dirty = true;
+
     cache_stage(0);
 
     for(int l=1; l<=maxlev; ++l)
@@ -708,6 +727,9 @@ void sflow_amr::regrid_state(ghostcell *pgc, vector<reefamr_patch*> &oldP)
         dryfill = ini_pass;
         ini_patch_prolong(l);
         dryfill = false;
+
+        // A 260 1/2: k, epsilon/omega and the eddy viscosity of the fresh patches
+        turb_regrid(pgc,l,oldP);
 
         {
         comms_off guard(pgc);
@@ -2053,6 +2075,9 @@ void sflow_amr::exchange_fluxes(int l)
 // --------------------------------------------------------------------- stages
 void sflow_amr::step_begin(lexer *p, fdm2D *b, ghostcell *pgc)
 {
+    // A 750: the wave force of the patches after a wave step or a regrid (sflow_amr_wave.cpp)
+    wave_sync(pgc);
+
     // G 7 1: level 0 steps alone, the patches follow in step_end
     if(sub==1)
     {

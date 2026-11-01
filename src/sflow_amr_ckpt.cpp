@@ -40,6 +40,7 @@ Author: Hans Bihs
 #include"sflow_fsf.h"
 #include"sflow_pressure.h"
 #include"sflow_diffusion.h"
+#include"sflow_turbulence.h"
 #include"sediment_f.h"
 #include"ckpt_registry.h"
 #include"lexer.h"
@@ -97,6 +98,9 @@ void patch_fields(sflow_amr_patch *c, const reefamr::ckpt_visit &v)
     c->ppress->ckpt_fields(fd,fi);
     if(c->pdiff!=nullptr)
     c->pdiff->ckpt_fields(fd,fi);
+    // A 260 1/2: the turbulence model of the patch
+    if(c->pturb!=nullptr)
+    c->pturb->ckpt_fields(fd,fi);
 
     // S 10: the sediment cell flags and the arrays of the sediment objects of the patch
     if(c->sed!=nullptr)
