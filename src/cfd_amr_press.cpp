@@ -2142,11 +2142,13 @@ void cfd_amr::pr_prec(int kr, int kz)
     // but every iteration half the patch V-cycles and composite residuals: the 67 CFD AMR cases 4.5 %
     // faster, four adaptive levels 8.7 iterations instead of 10.4 (20 -> 12 s).  With G 40 the down
     // sweep was kept (the dam break on 2 and 3 ranks: 7.6 and 8.2 iterations with it, 12 and 14
-    // without); G 48 1, the default, keeps it, G 48 0 leaves it out.  Measured with the parts of the
+    // without); G 48 1 keeps it, G 48 0 leaves it out.  Measured with the parts of the
     // projection (validation 60): without it the scaled pier on 2 ranks takes 11 instead of 13
     // iterations and 34 % less time in the projection, the adaptive dam break on 2 ranks 17 instead
     // of 13 iterations and 29 % less time; on 3 ranks (on 2 cores) 13-16 instead of 8 iterations and
-    // 55 % more time
+    // 55 % more time.  With a core per rank every run of validation 65 was faster without it (the
+    // pier 1.04-1.08 times the time of G 40 0 instead of 1.40, the off-centre pier and the dam break
+    // faster than G 40 0): G 48 0 is the default
     if(place && p0->G48!=0)
     for(int l=maxlev; l>=1; --l)
     {
