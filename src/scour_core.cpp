@@ -449,27 +449,54 @@ scour_core::protection scour_core::protect(double Um_, double Uc_, double T, dou
     return r;
 }
 
-// the D50 for which gamma_E tau_max = tau_cr (fixed point: tau_max depends weakly on D50 through ks and n)
+// the D50 for which gamma_E tau_max = tau_cr: d = F(d) = tau_max(d)/(0.055 (rho_s - rho) g), clamped to
+// 1e-6 .. 50 m. tau_max depends weakly on d (through ks and Manning's n, about d^0.3 .. d^0.5): the secant
+// method on ln F(d) - ln d converges to round-off in about five evaluations of F, where the plain
+// fixed-point iteration took about 25 to reach 1e-7 (the results agree to that).
 double scour_core::protect_dreq(double Um_, double Uc_, double T, double h, double d0) const
 {
+    const double K  = 0.055*(p_rhos-rho)*g;
+    const double lo = log(1.0e-6);
+    const double hi = log(50.0);
+
     double d = MAX(d0,1.0e-4);
 
-    for(int it=0; it<60; ++it)
-    {
-    const protection r = protect(Um_,Uc_,T,h,d);
+    protection r = protect(Um_,Uc_,T,h,d);
 
     if(r.tmax<=0.0)
     return 0.0;
 
-    const double dn = MIN(MAX(r.tmax/(0.055*(p_rhos-rho)*g),1.0e-6),50.0);
+    const double f0 = MIN(MAX(r.tmax/K,1.0e-6),50.0);
 
-    if(fabs(dn-d)<1.0e-7*d)
-    return dn;
+    // x = ln d, g(x) = ln F(e^x) - x; the first step is the fixed-point one
+    double x0 = log(d);
+    double g0 = log(f0) - x0;
+    double x1 = log(f0);
 
-    d = dn;
+    for(int it=0; it<60; ++it)
+    {
+    r = protect(Um_,Uc_,T,h,exp(x1));
+
+    if(r.tmax<=0.0)
+    return 0.0;
+
+    const double f1 = MIN(MAX(r.tmax/K,1.0e-6),50.0);
+    const double g1 = log(f1) - x1;
+
+    if(fabs(g1)<1.0e-12)
+    return f1;
+
+    const double dg = g1 - g0;
+    double x2 = fabs(dg)>1.0e-300 ? x1 - g1*(x1-x0)/dg : x1 + g1;
+
+    x2 = MIN(MAX(x2,lo),hi);
+
+    x0 = x1;
+    g0 = g1;
+    x1 = x2;
     }
 
-    return d;
+    return exp(x1);
 }
 
 const char *scour_core::name(int n)
