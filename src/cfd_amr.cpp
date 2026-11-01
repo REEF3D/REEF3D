@@ -1472,7 +1472,11 @@ void cfd_amr::ini(lexer *p, fdm *a, ghostcell *pgc)
 void cfd_amr::timestep(lexer *p, fdm *a, ghostcell *pgc)
 {
     double cu = 1.0e10;
-    double vpat[5] = {0.0,0.0,0.0,0.0,0.0};     // largest velocity on the patches: value, x, y, z, level
+    // the largest velocity on the patches: value, x, y, z, level, and (P 5 of the performance plan)
+    // its distance to the nearest edge of the patches of its level (the nearest cell filled from the
+    // coarser level), to the nearest solid or bed (the level sets solid, topo), and its level set
+    double vpat[8] = {0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0};
+    int vid = -1, vijk[3] = {0,0,0};
 
     for(int id=0; id<npat; ++id)
     {
@@ -1502,6 +1506,8 @@ void cfd_amr::timestep(lexer *p, fdm *a, ghostcell *pgc)
                 vpat[0] = MAX3(au,av,aw);
                 vpat[1] = pp->XP[i+marge]; vpat[2] = pp->YP[j+marge]; vpat[3] = pp->ZP[k+marge];
                 vpat[4] = c->lev;
+                vid = id;
+                vijk[0] = i; vijk[1] = j; vijk[2] = k;
             }
         }
 
@@ -1569,12 +1575,45 @@ void cfd_amr::timestep(lexer *p, fdm *a, ghostcell *pgc)
         cout<<"CFD AMR: largest velocity on level 0 (leaf cells) "<<setprecision(3)<<v0[0]<<" at ("<<v0[1]<<", "<<v0[2]<<", "<<v0[3]<<")"<<endl;
     }
 
+    // where it is: the nearest cell of the patch filled from the coarser level (a patch edge), the
+    // solid and bed level sets there, the level set of the free surface
+    if(vid>=0 && p->count%p->P12==0)
+    {
+        cfd_amr_patch *c = CP(vid);
+        lexer *pp = c->pp;
+        const int i = vijk[0], j = vijk[1], k = vijk[2];
+        double de = 1.0e10;
+        for(const r3fill &f : c->fill)
+        if(f.kind==1)
+        {
+            const double dx = pp->XP[f.d[0]+marge]-pp->XP[i+marge];
+            const double dy = pp->YP[f.d[1]+marge]-pp->YP[j+marge];
+            const double dz = pp->ZP[f.d[2]+marge]-pp->ZP[k+marge];
+            de = MIN(de,sqrt(dx*dx+dy*dy+dz*dz));
+        }
+        vpat[5] = de;
+        vpat[6] = MIN(c->a->solid(i,j,k),c->a->topo(i,j,k));
+        vpat[7] = c->a->phi(i,j,k);
+    }
+
     {
         struct { double v; int r; } in = {vpat[0],myrank}, out;
         MPI_Allreduce(&in,&out,1,MPI_DOUBLE_INT,MPI_MAXLOC,reef3d_comm());
-        MPI_Bcast(vpat,5,MPI_DOUBLE,out.r,reef3d_comm());
+        MPI_Bcast(vpat,8,MPI_DOUBLE,out.r,reef3d_comm());
         if(myrank==0 && (p->count%p->P12==0))
-        cout<<"CFD AMR: largest velocity on the patches "<<setprecision(3)<<vpat[0]<<" at ("<<vpat[1]<<", "<<vpat[2]<<", "<<vpat[3]<<"), level "<<int(vpat[4])<<endl;
+        {
+            cout<<"CFD AMR: largest velocity on the patches "<<setprecision(3)<<vpat[0]<<" at ("<<vpat[1]<<", "<<vpat[2]<<", "<<vpat[3]<<"), level "<<int(vpat[4]);
+            if(vpat[0]<=0.0)
+            cout<<endl;
+            else
+            {
+            if(vpat[5]<1.0e9)
+            cout<<"; "<<vpat[5]<<" m from the nearest patch edge of its level";
+            else
+            cout<<"; no patch edge of its level on the patch";
+            cout<<", "<<vpat[6]<<" m from a solid or the bed, "<<(vpat[7]<0.0 ? "air" : "water")<<" (level set "<<vpat[7]<<")"<<endl;
+            }
+        }
     }
 
     p->dt = MIN(p->dt,p->N47*cu);
