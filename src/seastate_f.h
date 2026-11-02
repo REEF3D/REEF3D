@@ -295,7 +295,7 @@ private:
     // online collocation (A 787 1, seastate_f_collocation.cpp)
     seastate_collocation *pcol = nullptr;
     std::vector<int> col_ci, col_cj;        // the cell of every observation on this rank, -1: another rank or outside
-    std::vector<double> col_ts, col_s;      // the sample at the end of the step before the observation: time, Hs Tm01 Tp dir
+    std::vector<double> col_ts, col_s;      // the sample at the end of the step before the observation: time, Hs Tm01 Tp dir Tm-1,0 depth U10
     std::vector<char> col_sw, col_done;     // the sample wet; the observation finished
     size_t col_next = 0;                    // the first observation not finished
     double col_tlog = 0.0;                  // model time of the next summary in the log
