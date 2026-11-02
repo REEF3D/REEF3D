@@ -1,0 +1,19 @@
+{
+ "description": "cfd_2d_soil_stress_s217 on 2 ranks (split in x): the halo of the soil model (faces, edges, corners), the column communicator of the liquefaction potential",
+ "solver": "cfd",
+ "np": 2,
+ "steps": 60,
+ "tags": [
+  "quick",
+  "2d",
+  "cfd",
+  "sediment",
+  "soil",
+  "periodic",
+  "mpi"
+ ],
+ "covers": [
+  "soil_stress halo and MPI reductions"
+ ],
+ "architect": "Hans Bihs"
+}
