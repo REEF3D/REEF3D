@@ -66,8 +66,10 @@ public:
     // first fluid cell; returns false if the column has no fluid cell above the bed.
     // wall 1: the distance of the log law is measured from the face under the first fluid cell (topo >= 0 at its
     // centre), the wall of the k-omega wall law of the fluid at the direct-forcing bed; wall 0: from the bed level set
+    // kref 1: k of the k term at the reference height href (linear as the velocity), else of the first fluid cell (the
+    // CPM grid of the mesh refinement where its fluid is interpolated from a coarser grid: the first cell of that grid)
     static bool column_tau(lexer*, fdm*, turbulence*, int i, int j, double zbed, double ks, double href, int kmode,
-                           double rho, double &tx, double &ty, double &hcell, bool &rest, int wall=0);
+                           double rho, double &tx, double &ty, double &hcell, bool &rest, int wall=0, int kref=0);
 
     // the same for the NHFLOW sigma grid (S 16 10): the first cell centre is half a cell above the bed, href > 0
     // takes the log law href cells of the first cell above the bed (at most half the water depth)
