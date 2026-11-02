@@ -1296,6 +1296,34 @@ void control::ini_default()
     S129=0;                // int sediment inflow: 0 equilibrium, 1 constant (bed load S 130, concentration S 124), 2 time series sediment-inflow.dat
     S130=0.0;              // double bed load at the inflow for S 129 1 [m^2/s], sediment volume per width
 
+    // CFD: soil stress model (soil_stress.h), Biot u-p in the cells below the bed
+    S200=0;                // int soil stress model: 0 off, 1 quasi-static, 2 dynamic (soil inertia)
+    S201=1.333e7;          // double Young's modulus Ev (vertical) [Pa]
+    S202_hh=0.3333;        // double Poisson's ratio mu_hh (horizontal)
+    S202_vh=0.3333;        // double Poisson's ratio mu_vh (vertical-horizontal)
+    S203_O=1.0;            // double anisotropy Eh/Ev
+    S203_L=-1.0;           // double vertical shear modulus Gv/Ev, < 0: isotropic 1/(2(1+mu_vh))
+    S204_x=1.0e-2;         // double hydraulic conductivity in x [m/s]
+    S204_y=1.0e-2;         // double hydraulic conductivity in y [m/s]
+    S204_z=1.0e-2;         // double hydraulic conductivity in z [m/s]
+    S205=0.4;              // double porosity
+    S206=0.995;            // double degree of saturation
+    S207=2.2e9;            // double bulk modulus of the pore water [Pa]
+    S208=-1.0;             // double absolute pore water pressure Pw0 of the storage [Pa], < 0: atmosphere + CFD pressure
+    S209=2650.0;           // double density of the grains [kg/m^3]
+    S210=0.5;              // double coefficient of lateral earth pressure K0 (liquefaction potential)
+    S211=1;                // int lateral edges of the domain: 1 roller, 2 fixed
+    S212=1;                // int soil step every S 212 CFD steps
+    S213=0.0;              // double start time; the CFD pressure then is the reference of the bed pressure
+    S214_n=5000;           // int maximum number of MINRES iterations
+    S214_tol=1.0e-8;       // double relative tolerance of MINRES
+    S215=0;                // int VTU output of the soil, REEF3D_CFD_Soil (interval of the volume output, P 20 / P 30)
+    S216=0;                // int number of soil probes (x, y, z)
+    S217=0;                // int prescribed bed pressure p0 cos(kx - wt) instead of the CFD pressure (verification)
+    S217_p0=0.0;           // double amplitude of the bed pressure [Pa]
+    S217_L=0.0;            // double wave length [m]
+    S217_T=0.0;            // double wave period [s]
+
     // Turbulence
 	T10=0;			    // int turbulence model
 	T12=5;              // int convection scheme

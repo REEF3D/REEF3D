@@ -46,6 +46,7 @@ Author: Hans Bihs
 #include"reefrun_ckpt.h"
 #include"reefcouple.h"
 #include"wave_lib_fnpf_couple.h"
+#include"soil_stress.h"
 
 
 void driver::loop_cfd(fdm* a)
@@ -124,6 +125,11 @@ void driver::loop_cfd(fdm* a)
 
         //timestep control
         p->simtime+=p->dt;
+
+        // soil stress model (S 200), at the new time level
+        if(psoil!=nullptr)
+        psoil->step(p,a,pgc);
+
         ptstep->start(a,p,pgc,pturb);
         if(pcfdamr!=nullptr)
         pcfdamr->timestep(p,a,pgc);

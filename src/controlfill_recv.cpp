@@ -2587,6 +2587,58 @@ void control::ctrlrecv()
     ii++;
     S130 = dctrl[dd];
     dd++;
+    S200 = ictrl[ii];
+    ii++;
+    S201 = dctrl[dd];
+    dd++;
+    S202_hh = dctrl[dd];
+    dd++;
+    S202_vh = dctrl[dd];
+    dd++;
+    S203_O = dctrl[dd];
+    dd++;
+    S203_L = dctrl[dd];
+    dd++;
+    S204_x = dctrl[dd];
+    dd++;
+    S204_y = dctrl[dd];
+    dd++;
+    S204_z = dctrl[dd];
+    dd++;
+    S205 = dctrl[dd];
+    dd++;
+    S206 = dctrl[dd];
+    dd++;
+    S207 = dctrl[dd];
+    dd++;
+    S208 = dctrl[dd];
+    dd++;
+    S209 = dctrl[dd];
+    dd++;
+    S210 = dctrl[dd];
+    dd++;
+    S211 = ictrl[ii];
+    ii++;
+    S212 = ictrl[ii];
+    ii++;
+    S213 = dctrl[dd];
+    dd++;
+    S214_n = ictrl[ii];
+    ii++;
+    S214_tol = dctrl[dd];
+    dd++;
+    S215 = ictrl[ii];
+    ii++;
+    S216 = ictrl[ii];
+    ii++;
+    S217 = ictrl[ii];
+    ii++;
+    S217_p0 = dctrl[dd];
+    dd++;
+    S217_L = dctrl[dd];
+    dd++;
+    S217_T = dctrl[dd];
+    dd++;
     S51 = ictrl[ii];
     ii++;
     S52 = dctrl[dd];
@@ -4561,6 +4613,13 @@ void control::ctrlrecv()
         Darray(S76_ys,S76);
         Darray(S76_ye,S76);
     }
+
+    if(S216>0)
+    {
+        Darray(S216_x,S216);
+        Darray(S216_y,S216);
+        Darray(S216_z,S216);
+    }
     
     if(S75>0)
     {
@@ -6505,6 +6564,16 @@ void control::ctrlrecv()
         S76_ys[n]  = dctrl[dd];
         dd++;
         S76_ye[n]  = dctrl[dd];
+        dd++;
+    }
+
+    for(n=0;n<S216;++n)
+    {
+        S216_x[n]  = dctrl[dd];
+        dd++;
+        S216_y[n]  = dctrl[dd];
+        dd++;
+        S216_z[n]  = dctrl[dd];
         dd++;
     }
     

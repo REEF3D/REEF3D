@@ -2596,6 +2596,58 @@ void control::ctrlsend()
     ii++;
     dctrl[dd] = S130;
     dd++;
+    ictrl[ii] = S200;
+    ii++;
+    dctrl[dd] = S201;
+    dd++;
+    dctrl[dd] = S202_hh;
+    dd++;
+    dctrl[dd] = S202_vh;
+    dd++;
+    dctrl[dd] = S203_O;
+    dd++;
+    dctrl[dd] = S203_L;
+    dd++;
+    dctrl[dd] = S204_x;
+    dd++;
+    dctrl[dd] = S204_y;
+    dd++;
+    dctrl[dd] = S204_z;
+    dd++;
+    dctrl[dd] = S205;
+    dd++;
+    dctrl[dd] = S206;
+    dd++;
+    dctrl[dd] = S207;
+    dd++;
+    dctrl[dd] = S208;
+    dd++;
+    dctrl[dd] = S209;
+    dd++;
+    dctrl[dd] = S210;
+    dd++;
+    ictrl[ii] = S211;
+    ii++;
+    ictrl[ii] = S212;
+    ii++;
+    dctrl[dd] = S213;
+    dd++;
+    ictrl[ii] = S214_n;
+    ii++;
+    dctrl[dd] = S214_tol;
+    dd++;
+    ictrl[ii] = S215;
+    ii++;
+    ictrl[ii] = S216;
+    ii++;
+    ictrl[ii] = S217;
+    ii++;
+    dctrl[dd] = S217_p0;
+    dd++;
+    dctrl[dd] = S217_L;
+    dd++;
+    dctrl[dd] = S217_T;
+    dd++;
     ictrl[ii] = S51;
     ii++;
     dctrl[dd] = S52;
@@ -5129,6 +5181,16 @@ void control::ctrlsend()
         dctrl[dd] = S76_ys[n];
         dd++;
         dctrl[dd] = S76_ye[n];
+        dd++;
+    }
+
+    for(n=0;n<S216;++n)
+    {
+        dctrl[dd] = S216_x[n];
+        dd++;
+        dctrl[dd] = S216_y[n];
+        dd++;
+        dctrl[dd] = S216_z[n];
         dd++;
     }
     

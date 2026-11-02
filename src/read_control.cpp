@@ -3606,6 +3606,61 @@ void control::read_control(lexer* p)
                 case 130: control>>S130;
                          clear(c,numint);
                          break;
+                case 200: control>>S200;
+                         clear(c,numint);
+                         break;
+                case 201: control>>S201;
+                         clear(c,numint);
+                         break;
+                case 202: control>>S202_hh>>S202_vh;
+                         clear(c,numint);
+                         break;
+                case 203: control>>S203_O>>S203_L;
+                         clear(c,numint);
+                         break;
+                case 204: control>>S204_x>>S204_y>>S204_z;
+                         clear(c,numint);
+                         break;
+                case 205: control>>S205;
+                         clear(c,numint);
+                         break;
+                case 206: control>>S206;
+                         clear(c,numint);
+                         break;
+                case 207: control>>S207;
+                         clear(c,numint);
+                         break;
+                case 208: control>>S208;
+                         clear(c,numint);
+                         break;
+                case 209: control>>S209;
+                         clear(c,numint);
+                         break;
+                case 210: control>>S210;
+                         clear(c,numint);
+                         break;
+                case 211: control>>S211;
+                         clear(c,numint);
+                         break;
+                case 212: control>>S212;
+                         clear(c,numint);
+                         break;
+                case 213: control>>S213;
+                         clear(c,numint);
+                         break;
+                case 214: control>>S214_n>>S214_tol;
+                         clear(c,numint);
+                         break;
+                case 215: control>>S215;
+                         clear(c,numint);
+                         break;
+                case 216: ++S216;
+                         clear(c,numint);
+                         break;
+                case 217: control>>S217_p0>>S217_L>>S217_T;
+                         S217=1;
+                         clear(c,numint);
+                         break;
                 }
                 break;
 
@@ -5137,6 +5192,10 @@ void control::read_control(lexer* p)
     Darray(S76_xe,S76);
     Darray(S76_ys,S76);
     Darray(S76_ye,S76);
+
+    Darray(S216_x,S216);
+    Darray(S216_y,S216);
+    Darray(S216_z,S216);
     
     Darray(S75_x,S75);
     Darray(S75_dist,S75);
@@ -5447,6 +5506,7 @@ void control::read_control(lexer* p)
     int countS73=0;
     int countS74=0;
     int countS76=0;
+    int countS216=0;
     int countS75=0;
     int countW41=0;
     int countX102=0;
@@ -6265,6 +6325,10 @@ void control::read_control(lexer* p)
                          break;
                 case 75: control>>S75_x[countS75]>>S75_dist[countS75];
                          ++countS75;
+                         clear(c,numint);
+                         break;
+                case 216: control>>S216_x[countS216]>>S216_y[countS216]>>S216_z[countS216];
+                         ++countS216;
                          clear(c,numint);
                          break;
                 }

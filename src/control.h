@@ -598,6 +598,11 @@ public:
     double *S75_x,*S75_dist;
     double *S51_d,*S51_fa,*S51_fs;
     double S77_xs,S77_xe;
+    // soil stress model (CFD, S 200 - S 217)
+    int S200,S211,S212,S214_n,S215,S216,S217;
+    double S201,S202_hh,S202_vh,S203_O,S203_L,S204_x,S204_y,S204_z,S205,S206,S207,S208,S209,S210,S213,S214_tol;
+    double S217_p0,S217_L,S217_T;
+    double *S216_x,*S216_y,*S216_z;
 
     // Turbulence
     int T10,T12,T21,T33,T34,T36,T39,T41,T45;

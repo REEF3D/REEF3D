@@ -1029,6 +1029,9 @@
         <File Name="FSI.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Sediment">
+        <VirtualDirectory Name="Soil Stress">
+          <File Name="soil_stress.h"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Bedslope">
           <File Name="bedslope.h"/>
         </VirtualDirectory>
@@ -2813,6 +2816,11 @@
         <File Name="benchmark_convection.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Sediment">
+        <VirtualDirectory Name="Soil Stress">
+          <File Name="soil_stress.cpp"/>
+          <File Name="soil_stress_solve.cpp"/>
+          <File Name="soil_stress_print.cpp"/>
+        </VirtualDirectory>
         <VirtualDirectory Name="Bedslope">
           <File Name="bedslope.cpp"/>
         </VirtualDirectory>
