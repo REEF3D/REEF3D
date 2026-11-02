@@ -28,6 +28,7 @@ Author: Hans Bihs
 #include"ghostcell.h"
 #include"ioflow.h"
 #include"sediment_fdm.h"
+#include"sediment_exner.h"
 #include"reinitopo.h"
 #include"vrans.h"
 
@@ -98,5 +99,14 @@ void sediment_f::update_sflow(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *pflow)
     bedchange_update(p,pgc);
     
     active_sflow(p,b,pgc);
+
+    // S 98: the intensity of the spiral flow for the momentum of the flow (sflow_momentum_func::spiral_source)
+    if(p->S98>0.0 && p->S95>0)
+    {
+        SLICEBASELOOP
+        b->spiral(i,j) = (p->DFBED[IJ]>0) ? exner()->spiral_I(p,i,j) : 0.0;
+
+        pgc->gcsl_start4(p,b->spiral,1);
+    }
     
 }

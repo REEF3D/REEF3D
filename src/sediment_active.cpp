@@ -170,6 +170,8 @@ void sediment_f::active_sflow(lexer *p, fdm2D *b, ghostcell *pgc)
     for(int q : dfbed_open)
     p->DFBED[q]=1;
     
+    dfbed_inflow(p);
+    
     dfbed_comms(p,pgc);
 }
 
@@ -206,6 +208,8 @@ void sediment_f::active_ini_sflow(lexer *p, fdm2D *b, ghostcell *pgc)
     for(int q : dfbed_open)
     p->DFBED[q]=1;
     
+    dfbed_inflow(p);
+    
     dfbed_comms(p,pgc);
 }
 
@@ -217,6 +221,33 @@ void sediment_f::active_zone(lexer *p, ghostcell *pgc)
     s->active(i,j)=0;
 
 }
+void sediment_f::dfbed_inflow(lexer *p)
+{
+    // SFLOW: no sediment enters through an inflow (B 60, the -i face of a block with G 54): the cells beyond the
+    // inflow faces are no sediment cells, which closes the faces for the Exner fluxes, the slope flux and the
+    // upwind cells of the lags.  (Before, the face velocity of the sediment was left 0 there, which also halved the
+    // velocity and the bed load of the first row, see inflow_PQ.)  The inflow guard S 78 holds the bed of the
+    // first row (ini_guard): its bed load is the supply of the cells downstream.  Curvilinear grids only and without
+    // a sediment supply at the inflow (S 129 0): the Cartesian grid and S 129 > 0 keep the inflow faces open, the
+    // bed load of the ghost cells enters there (fill_PQ_sflow, sediment_exner::qb_inflow).
+    if(p->geo_curv!=1 || p->S129!=0)
+    return;
+
+    for(int n=0; n<p->gcslin_count; ++n)
+    {
+        const int ii = p->gcslin[n][0], jj = p->gcslin[n][1], cs = p->gcslin[n][3];
+        const int di = (cs==1) ? -1 : (cs==4 ? 1 : 0);
+        const int dj = (cs==3) ? -1 : (cs==2 ? 1 : 0);
+
+        for(int q=1; q<=p->margin; ++q)
+        {
+        const int ia = ii + q*di, ja = jj + q*dj;
+            if(ia>=p->imin && ia<p->imin+p->imax && ja>=p->jmin && ja<p->jmin+p->jmax)
+            p->DFBED[(ia-p->imin)*p->jmax + (ja-p->jmin)] = -1;
+        }
+    }
+}
+
 void sediment_f::dfbed_comms(lexer *p, ghostcell *pgc)
 {
     // sediment cell flag of the neighbour subdomains: the Exner face closure, the bed filter,

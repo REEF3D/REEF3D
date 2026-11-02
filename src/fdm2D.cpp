@@ -82,7 +82,7 @@ fdm2D::fdm2D(lexer *p)
             wet1(p),deep1(p),wet2(p),deep2(p),
             nodeval(p),
             cmu(0.09),
-            ks(p)
+            ks(p),spiral(p)
 {
 
 	inverse=1.0/p->DXM;

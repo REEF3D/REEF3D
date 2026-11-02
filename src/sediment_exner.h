@@ -71,6 +71,8 @@ public:
     // intensity (S 95 2), the suspended load (S 64) and (P8a) the non-equilibrium bed load (S 33)
     static const int amr_nfield = 8;
     double& amr_field(sediment_fdm*, int n, int ii, int jj);
+    // S 98: the intensity of the spiral flow (S 95 1: h |U| K_c, S 95 2: the lagged one), m/s
+    double spiral_I(lexer*, int, int);
     slice4& bend_slice(int n) { return (n==1) ? bK : (n==2 ? btd : (n==3 ? bz : (n==4 ? bg : (n==5 ? Isp : (n==6 ? qsn : qbn))))); }
     void amr_flux(lexer*, ghostcell*, sediment_fdm*, slice&, slice&);
     double amr_vz(lexer*, ghostcell*, sediment_fdm*, slice&, slice&, slice*);
@@ -78,6 +80,10 @@ public:
     void amr_bed(lexer*, ghostcell*, sediment_fdm*);
     double amr_dx(lexer*);
     double amr_maxvz = 0.0, amr_mindx = 0.0;
+    // the bed celerity of a grid for S 103 / S 104 (rank-local maxima of c, c/dx and the flow speed; mask: the cells with
+    // mask > 0.5 only); amr_cmax, amr_cdx, amr_umax: those of the other grids, part of timestep() as amr_maxvz
+    void celerity(lexer*, sediment_fdm*, slice*, double&, double&, double&);
+    double amr_cmax = 0.0, amr_cdx = 0.0, amr_umax = 0.0;
 
 private:
     void start_mixture(lexer*,ghostcell*,sediment_fdm*);
@@ -166,6 +172,8 @@ private:
     double maxvz_k=0.0;   // multi-fraction bed: max |vz| of the single fractions (time step)
     double simtime_last=-1.0;   // flow time of the previous bed update
     double morfac=0.0, c_U=0.0; // effective morphological factor S35*dtsed/flow time, bed celerity/flow speed
+    int cu_warned=0;    // the warning of c/U > 2 (cu_warn, once per run)
+    void cu_warn(lexer*);
 };
 
 #endif

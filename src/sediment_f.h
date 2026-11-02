@@ -146,6 +146,8 @@ public:
     
     void active_zone(lexer*, ghostcell*);
     void dfbed_comms(lexer*, ghostcell*);
+    void dfbed_inflow(lexer*);
+    void inflow_PQ(lexer*);
     
     
     // ---

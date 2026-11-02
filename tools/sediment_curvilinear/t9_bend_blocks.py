@@ -10,7 +10,7 @@
 #   s952   S 95 2, S 97 1 (the spiral flow builds up over L_a = 1.5 m across the interface at the bend entrance)
 #   susp   S 95 2, S 64 0.5 (L_s of the suspended load up to 1.2 m)
 # and the passes of the lags per step (the log of the block run).  The bed volume of both against its change.
-# usage: python3 t9_bend_blocks.py [steps]; environment CASES (s951 s952 susp; flow s97_0 s97_01), NA (cells of the inflow block, 80), LAYOUT (two, three), NOGUARD (no fixed inflow reach S 71), NB (cells of the outflow block of three, 40), MF (100), NORUN
+# usage: python3 t9_bend_blocks.py [steps]; environment CASES (s951 s952 susp; flow s97_0 s97_01), NA (cells of the inflow block, 80), LAYOUT (two, three), NOGUARD (no fixed inflow reach S 71), NB (cells of the outflow block of three, 40), MF (100), NORUN, SAVE (prefix of an .npz of the beds), XCASES (more cases: name=keys;keys,...)
 import sys, re, numpy as np
 from p5lib import *
 sys.path.insert(0, os.path.join(S5, "../nhflow_multiblock"))
@@ -46,6 +46,10 @@ Z = slope*(s_n[-1] - S)
 AR = 0.5*np.abs((X[1:, 1:]-X[:-1, :-1])*(Y[:-1, 1:]-Y[1:, :-1]) - (X[:-1, 1:]-X[1:, :-1])*(Y[1:, 1:]-Y[:-1, :-1]))
 
 XC = {"eh": "S 95 1;S 11 4", "ehplain": "S 95 0;S 86 0;S 11 4", "ehpnoneq": "S 95 0;S 86 0;S 11 4;S 33 1;S 40 0.3", "ehpnoneqt": "S 95 0;S 86 0;S 11 4;S 33 1;S 40 0.3;S 49 5000", "ehsnoneq": "S 95 0;S 86 1;S 11 4;S 33 1;S 40 0.3", "ehsusp": "S 95 0;S 86 0;S 11 4;S 64 0.5;S 65 4", "ehslope": "S 95 0;S 86 1;S 11 4", "ehnoneq": "S 95 1;S 11 4;S 33 1;S 40 0.3", "ehnoneq2": "S 95 1;S 11 4;S 33 1;S 40 0.3;S 49 3000", "noneq": "S 95 1;S 33 1;S 40 0.3", "flow": "S 95 1;S 35 0", "plain": "S 95 0;S 86 0", "noslope": "S 95 1;S 86 0", "s97_0": "S 95 2;S 97 0", "s97_01": "S 95 2;S 97 0.1", "s951": "S 95 1", "s952": "S 95 2;S 97 1", "susp": "S 95 2;S 64 0.5"}
+# XCASES "name=keys;keys,name2=..." adds cases (the keys separated by ;)
+for item in filter(None, os.environ.get("XCASES", "").split(",")):
+    k_, v_ = item.split("=", 1)
+    XC[k_] = v_
 LAY = {"one": ([(0, nx)], 1, 2, ""),
        "two": ([(NA, nx), (0, NA)], 21, 2, "G 54 1 1 %g\n" % Q),
        "three": ([(NA, nx-NB), (0, NA), (nx-NB, nx)], 21, 21, "G 54 1 1 %g\nG 54 2 2 %g\n" % (Q, h0))}
@@ -112,6 +116,9 @@ for c in cases:
         print("%-5s %-5s rc=%d %s" % (c, name, rc, ("passes per step: mean %.1f max %d" % (np.mean(ps), max(ps))) if ps else ""),
               log_lines(d, "!!!")[:2])
     (b1, w1), (b3, w3) = res["one"], res[LAYOUT]
+    if os.environ.get("SAVE"):
+        # the bed and water level per cell (i, j) of both runs and the initial bed: SAVE the .npz prefix
+        np.savez("%s_%s.npz" % (os.environ["SAVE"], c), bed_one=b1, wl_one=w1, bed_blk=b3, wl_blk=w3, z0=z0)
     db = b1 - z0
     print("%-5s bed change max %.3e m; %s vs one: bed %.1e  water level %.1e  (bed change rms %.1e)"
           % (c, np.nanmax(np.abs(db)), LAYOUT, np.nanmax(np.abs(b3-b1)), np.nanmax(np.abs(w3-w1)), np.sqrt(np.nanmean((b3-b1)**2))))

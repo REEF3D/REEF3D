@@ -125,6 +125,7 @@ public:
     sliceint2 wet2,deep2;
     
     slice4 ks;
+    slice4 spiral;      // S 98: the intensity I of the spiral flow from the sediment (S 95), m/s
 	
 	vec2D xvec,rhsvec;
 

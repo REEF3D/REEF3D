@@ -16,7 +16,7 @@ ap.add_argument("runs", nargs="+")
 ap.add_argument("--labels", nargs="*")
 ap.add_argument("--out", default="sed")
 ap.add_argument("--y0", type=float, default=-300.0)
-ap.add_argument("--supply", nargs=4, type=float, default=[760, 1000, -2200, -1900])
+ap.add_argument("--supply", nargs=4, type=float, default=[850, 1000, -2200, -2075], help="the S 76 box (default that of t2_harbour.py)")
 a = ap.parse_args()
 labels = a.labels or [os.path.basename(r) for r in a.runs]
 cols = [BLUE, ORANGE, GREEN, LBLUE, GREY]

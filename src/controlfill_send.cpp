@@ -2530,6 +2530,8 @@ void control::ctrlsend()
     dd++;
     dctrl[dd] = S97;
     dd++;
+    dctrl[dd] = S98;
+    dd++;
     dctrl[dd] = S64;
     dd++;
     dctrl[dd] = S65;

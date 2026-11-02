@@ -284,6 +284,8 @@ void sflow_momentum_func::stage(lexer *p, fdm2D *b, ghostcell *pgc,
     b->wave->u_source(p,b);
     if(pmet!=nullptr)
     pmet->source_sflow(p,pgc,b->F,0,WLs,UHs,VHs);
+    if(p->S98>0.0 && p->S95>0 && p->S10>0)
+    spiral_source(p,b,WLs,0);
 	irhs(p,b);
 	pdiff->diff_u(p,b,pgc,psolv,UHDIFF,UHs,b->U,b->V,WLs,alpha);
     p->utime+=pgc->timer()-starttime;
@@ -301,6 +303,8 @@ void sflow_momentum_func::stage(lexer *p, fdm2D *b, ghostcell *pgc,
     b->wave->v_source(p,b);
     if(pmet!=nullptr)
     pmet->source_sflow(p,pgc,b->G,1,WLs,UHs,VHs);
+    if(p->S98>0.0 && p->S95>0 && p->S10>0)
+    spiral_source(p,b,WLs,1);
 	jrhs(p,b);
     }
 	pdiff->diff_v(p,b,pgc,psolv,VHDIFF,VHs,b->U,b->V,WLs,alpha);
@@ -1052,3 +1056,79 @@ void sflow_momentum_func::clearrhs(lexer *p, fdm2D *b)
     b->H(i,j)=0.0;
 	}
 }
+
+// S 98: the dispersion of the main-flow momentum by the spiral flow of the bends (the secondary flow of Delft3D-FLOW,
+// Kalkwijk & Booij 1986): the spiral flow carries the faster water near the surface outwards and the slower water
+// near the bed inwards, a flux of streamwise momentum towards the outer bank.  In streamline coordinates (s along the
+// depth-averaged velocity, n to the left) the depth-integrated dispersion M_sn = M_ns = -beta h |U| I, M_ss = M_nn = 0,
+// with the intensity I of the spiral flow (positive in bends to the left; sediment S 95: the equilibrium h |U| K_c, or
+// the lagged one of S 95 2) and beta = S98 (5 a - 15.6 a^2 + 37.5 a^3), a = sqrt(g)/(kappa C) <= 0.5, C from the
+// Manning roughness of the bed (A 218 1).  Cartesian: M_xx = 2 beta h I u v/|U|, M_yy = -M_xx, M_xy = -beta h I
+// (u^2 - v^2)/|U|; the source of the momentum h u_i is -div M_i (finite volumes over the cell faces, closed at walls
+// and dry cells).  comp 0: F (x), 1: G (y)
+void sflow_momentum_func::spiral_source(lexer *p, fdm2D *b, slice &WL, int comp)
+{
+    const double g = fabs(p->W22), kappa = 0.4;
+    auto qq = [&](int a, int c) { return (a-p->imin)*p->jmax + (c-p->jmin); };
+    auto open = [&](int a, int c) { const int q = qq(a,c); return p->flagslice4[q]>0 && p->wet[q]==1; };
+
+    // the dispersion tensor of cell (a,c): xx, xy, yy
+    auto tensor = [&](int a, int c, double &mxx, double &mxy, double &myy)
+    {
+        mxx = mxy = myy = 0.0;
+        const double u = b->U(a,c), v = b->V(a,c), h = WL(a,c);
+        const double U = sqrt(u*u + v*v);
+        if(U<1.0e-6 || h<1.0e-6)
+        return;
+        const double n = pow(b->ks(a,c),1.0/6.0)/20.0;
+        const double C = pow(h,1.0/6.0)/MAX(n,1.0e-10);
+        const double al = MIN(sqrt(g)/(kappa*C), 0.5);
+        const double beta = p->S98*(5.0*al - 15.6*al*al + 37.5*al*al*al);
+        const double I = b->spiral(a,c);
+        mxx = 2.0*beta*h*I*u*v/U;
+        myy = -mxx;
+        mxy = -beta*h*I*(u*u - v*v)/U;
+    };
+
+    // the flux of momentum component comp through the face between (a,c) and its +dir neighbour, per unit length
+    auto fflux = [&](int dir, int a, int c, double nx, double ny) -> double
+    {
+        const int a2 = a + (dir==1?1:0), c2 = c + (dir==2?1:0);
+        if(!open(a,c) || !open(a2,c2))
+        return 0.0;
+        double x1,y1,z1,x2,y2,z2;
+        tensor(a,c,x1,y1,z1);
+        tensor(a2,c2,x2,y2,z2);
+        const double mxx = 0.5*(x1+x2), mxy = 0.5*(y1+y2), myy = 0.5*(z1+z2);
+        return (comp==0) ? mxx*nx + mxy*ny : mxy*nx + myy*ny;
+    };
+
+    double nx,ny,len;
+
+    SLICELOOP4
+    WETDRY
+    {
+        double div;
+
+        if(p->geo_curv==1)
+        {
+            double fe,fw,fn,fs,le,lw,ln,ls;
+            sflow_curv::normal(p,1,i,j,nx,ny,le);   fe = fflux(1,i,j,nx,ny);
+            sflow_curv::normal(p,1,i-1,j,nx,ny,lw); fw = fflux(1,i-1,j,nx,ny);
+            sflow_curv::normal(p,2,i,j,nx,ny,ln);   fn = fflux(2,i,j,nx,ny);
+            sflow_curv::normal(p,2,i,j-1,nx,ny,ls); fs = fflux(2,i,j-1,nx,ny);
+            div = (fe*le - fw*lw + (fn*ln - fs*ls)*p->y_dir)/p->AREA2D[IJ];
+        }
+        else
+        {
+            div = (fflux(1,i,j,1.0,0.0) - fflux(1,i-1,j,1.0,0.0))/p->DXN[IP]
+                + (fflux(2,i,j,0.0,1.0) - fflux(2,i,j-1,0.0,1.0))/p->DYN[JP]*p->y_dir;
+        }
+
+        if(comp==0)
+        b->F(i,j) -= div;
+        else
+        b->G(i,j) -= div;
+    }
+}
+

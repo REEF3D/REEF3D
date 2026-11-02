@@ -196,6 +196,23 @@ void sediment_f::ini_guard(lexer *p, ghostcell *pgc)
     
     if(p->S78==1)
     {
+        // the inflow cells: SFLOW on a curvilinear grid the 2D list gcslin (the 3D list gcin is not filled for SFLOW:
+        // its zero entries held the bed of the cell (0,0) only, the inflow corner); the inflow faces are closed there
+        // (dfbed_inflow) and the held first row supplies the reach.  With a sediment supply at the inflow (S 129 > 0)
+        // and on Cartesian grids the inflow faces stay open (fill_PQ_sflow, sediment_exner::qb_inflow) and the first
+        // row is not held.
+        const bool slin = (p->A10==2 && p->geo_curv==1 && p->S129==0);
+
+        if(slin)
+        for(n=0;n<p->gcslin_count;++n)
+        {
+        i=p->gcslin[n][0];
+        j=p->gcslin[n][1];
+
+        s->guard(i,j)=0.0;
+        }
+
+        if(!slin)
         for(n=0;n<p->gcin_count;++n)
         {
         i=p->gcin[n][0];

@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"sflow_amr.h"
+#include"sflow_fsf.h"
 #include"sediment_f.h"
 #include"sediment_fdm.h"
 #include"sediment_exner.h"
@@ -138,10 +139,11 @@ void sflow_amr::sed_patch_ini(ghostcell *pgc, sflow_amr_patch &c)
 
     c.sed->ini_sflow(pp,b,pgc);
 
-    // the open faces of a block 1.. (G 54) are open for the sediment as the native in- and outflow: the cells beyond
-    // them carry the sediment flag (their bed load from the boundary ghost values, the face flux upwind)
+    // the open faces of a block 1.. (G 54) as the native in- and outflow: the cells beyond the outflow face carry the
+    // sediment flag (their bed load from the boundary ghost values, the face flux upwind); the inflow face is closed
+    // for the sediment (sediment_f::dfbed_inflow, the cells beyond it no sediment cells)
     if(c.blk>0 && c.lev==0)
-    for(int t=0; t<2; ++t)
+    for(int t=1; t<2; ++t)
     if(bopen[t][c.blk]>=0)
     {
         const int ia = (t==0) ? pp->imin : EXT+c.nx;
@@ -154,6 +156,25 @@ void sflow_amr::sed_patch_ini(ghostcell *pgc, sflow_amr_patch &c)
         pp->DFBED[q] = 1;
         }
     }
+
+    // the cells around a block beyond its walls (no grid there, flagslice4<0) as the ghost cells of the native grid:
+    // sediment cells (the walls are closed by their zero face velocity), so that the bed gradient (one-sided next to
+    // non-sediment cells) and the bend terms of the cells at the walls are those of the native grid
+    if(c.blk>0 && c.lev==0)
+    for(int ii=pp->imin; ii<pp->imin+pp->imax; ++ii)
+    for(int jj=pp->jmin; jj<pp->jmin+pp->jmax; ++jj)
+    {
+        const bool inside = ii>=EXT && ii<EXT+c.nx && jj>=EY && jj<EY+c.ny;
+        const int q = (ii-pp->imin)*pp->jmax + (jj-pp->jmin);
+        if(!inside && pp->flagslice4[q]<0)
+        {
+        c.sed->dfbed_open.push_back(q);
+        pp->DFBED[q] = 1;
+        }
+    }
+
+    if(c.blk>0 && c.lev==0)
+    c.sed->dfbed_inflow(pp);
 
     for(int ii=pp->imin; ii<pp->imin+pp->imax; ++ii)
     for(int jj=pp->jmin; jj<pp->jmin+pp->jmax; ++jj)
@@ -260,6 +281,28 @@ void sflow_amr::sed_fill_bed0(ghostcell *pgc)
         {
         sedscope ss(pgc,pp);
         pgc->gcsl_start4(pp,pb->depth,50);
+        }
+
+        // as the native grid after the bed update (sflow_f: sflow_eta::depth_update): the surface held at the
+        // water-level face of the block (G 54 b 2), the wetting and drying from the new bed.  Without it the depth
+        // of the outflow cells followed the bed one step late, three blocks against one 1e-6 m after 160 steps
+        {
+        reefamr_comms_off guard(pgc);
+        c->pfsf->depth_update(pp,pb,pgc,pb->WL);
+        }
+
+        // the cells beyond the water-level face as the ghost cells of the native outflow: the surface of the face
+        // (depth_update keeps the water column of the grid cells, these are grid cells of the block), the depth of
+        // the new bed
+        for(int n=0; n<pp->gcslout_count; ++n)
+        {
+            const int ii = pp->gcslout[n][0], jj = pp->gcslout[n][1];
+            if(pp->gcslout[n][3]==4 && pp->wet[(ii-pp->imin)*pp->jmax + (jj-pp->jmin)]==1)
+            for(int q=1; q<=3 && ii+q<pp->imin+pp->imax; ++q)
+            {
+            pb->eta(ii+q,jj) = pb->eta(ii,jj);
+            pb->WL(ii+q,jj) = MAX(pb->eta(ii+q,jj) + pb->depth(ii+q,jj),0.0);
+            }
         }
 
         for(int ii=pp->imin; ii<pp->imin+pp->imax-1; ++ii)
@@ -655,6 +698,7 @@ void sflow_amr::sediment_step_sflow(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *
     double vzmax = s0->exner()->amr_vzmax(p,s0->s,mask[0].get());
     double dxmin = 1.0e20;
     double brate = s0->exner()->bend_rate;
+    double ccmax = 0.0, ccdx = 0.0, cumax = 0.0;
 
     for(int id=0; id<ng; ++id)
     {
@@ -663,6 +707,8 @@ void sflow_amr::sediment_step_sflow(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *
         vzmax = MAX(vzmax,c->sed->exner()->amr_vzmax(c->pp,c->sed->s,mask[id+1].get()));
         dxmin = MIN(dxmin,c->sed->exner()->amr_dx(c->pp));
         brate = MAX(brate,c->sed->exner()->bend_rate);
+        // the bed celerity of the patches and blocks (their own cells): S 103, S 104 and c/U of the log
+        c->sed->exner()->celerity(c->pp,c->sed->s,mask[id+1].get(),ccmax,ccdx,cumax);
     }
 
     SLICEBASELOOP
@@ -676,7 +722,11 @@ void sflow_amr::sediment_step_sflow(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *
     s0->exner()->amr_maxvz = vzmax;
     s0->exner()->amr_mindx = (dxmin<1.0e19) ? dxmin : 0.0;
     s0->exner()->amr_bendrate = brate;
+    s0->exner()->amr_cmax = ccmax;
+    s0->exner()->amr_cdx = ccdx;
+    s0->exner()->amr_umax = cumax;
     s0->exner()->timestep(p,pgc,s0->s);
+    s0->exner()->amr_cmax = s0->exner()->amr_cdx = s0->exner()->amr_umax = 0.0;
     s0->exner()->amr_maxvz = 0.0;
     s0->exner()->amr_mindx = 0.0;
     s0->exner()->amr_bendrate = 0.0;

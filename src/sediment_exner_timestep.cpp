@@ -105,38 +105,15 @@ void sediment_exner::timestep(lexer* p, ghostcell *pgc, sediment_fdm *s)
     // Exner: dz/dt + S35/(1-n) * dqb/dx = 0  ->  celerity c = S35/(1-n) * dqb/dz
     // and the near-bed flow speed U = |(P,Q)|
     double cmax=0.0, cdx=0.0, umax=0.0;
-    double dz,dq;
-    const double dzmin = MAX(p->S20,1.0e-10);
     const double cfac = p->S35/(1.0-p->S24);
-    
-        SEDSLICELOOP
-        {
-            if(i+p->origin_i<p->gknox-1 && p->flagslice4[Ip1J]>0 && p->DFBED[Ip1J]>0)
-            {
-            dz = fabs(s->bedzh(i+1,j)-s->bedzh(i,j));
-            dq = fabs(s->qb(i+1,j)-s->qb(i,j));
-            if(dz>dzmin)
-            {
-            cmax = MAX(cmax, cfac*dq/dz);
-            cdx = MAX(cdx, cfac*dq/(dz*p->DXP[IP]));
-            }
-            }
-            
-            if(p->j_dir==1 && p->gknoy>1)
-            if(j+p->origin_j<p->gknoy-1 && p->flagslice4[IJp1]>0 && p->DFBED[IJp1]>0)
-            {
-            dz = fabs(s->bedzh(i,j+1)-s->bedzh(i,j));
-            dq = fabs(s->qb(i,j+1)-s->qb(i,j));
-            if(dz>dzmin)
-            {
-            cmax = MAX(cmax, cfac*dq/dz);
-            cdx = MAX(cdx, cfac*dq/(dz*p->DYP[JP]));
-            }
-            }
-            
-        umax = MAX(umax, sqrt(s->P(i,j)*s->P(i,j) + s->Q(i,j)*s->Q(i,j)));
-        }
-        
+    celerity(p,s,nullptr,cmax,cdx,umax);
+
+    // mesh refinement, multi-block grids: the other grids (amr_celerity, sflow_amr_sed.cpp, nhflow_amr_sed.cpp), so
+    // that S 103 and S 104 give one dtsed for the whole hierarchy (before P9 only the grid of level 0 counted)
+    cmax = MAX(cmax,amr_cmax);
+    cdx = MAX(cdx,amr_cdx);
+    umax = MAX(umax,amr_umax);
+
     cmax = pgc->globalmax(cmax);
     cdx = pgc->globalmax(cdx);
     umax = pgc->globalmax(umax);
@@ -164,6 +141,7 @@ void sediment_exner::timestep(lexer* p, ghostcell *pgc, sediment_fdm *s)
     // effective morphological factor and bed celerity / flow speed
     morfac = p->S35*p->dtsed/MAX(dtflow,1.0e-20);
     c_U = umax>1.0e-20 ? cmax*p->dtsed/(MAX(dtflow,1.0e-20)*umax) : 0.0;
+    cu_warn(p);
     
     maxdh=p->dtsed*maxvz;
 	
@@ -273,38 +251,15 @@ void sediment_exner::timestep_curv(lexer* p, ghostcell *pgc, sediment_fdm *s)
     // Exner: dz/dt + S35/(1-n) * dqb/dx = 0  ->  celerity c = S35/(1-n) * dqb/dz
     // and the near-bed flow speed U = |(P,Q)|
     double cmax=0.0, cdx=0.0, umax=0.0;
-    double dz,dq;
-    const double dzmin = MAX(p->S20,1.0e-10);
     const double cfac = p->S35/(1.0-p->S24);
-    
-        SEDSLICELOOP
-        {
-            if(i+p->origin_i<p->gknox-1 && p->flagslice4[Ip1J]>0 && p->DFBED[Ip1J]>0)
-            {
-            dz = fabs(s->bedzh(i+1,j)-s->bedzh(i,j));
-            dq = fabs(s->qb(i+1,j)-s->qb(i,j));
-            if(dz>dzmin)
-            {
-            cmax = MAX(cmax, cfac*dq/dz);
-            cdx = MAX(cdx, cfac*dq/(dz*(p->geo_curv==1?sediment_curv::dist(p,i,j,1,0):p->DXP[IP])));
-            }
-            }
-            
-            if(p->j_dir==1 && p->gknoy>1)
-            if(j+p->origin_j<p->gknoy-1 && p->flagslice4[IJp1]>0 && p->DFBED[IJp1]>0)
-            {
-            dz = fabs(s->bedzh(i,j+1)-s->bedzh(i,j));
-            dq = fabs(s->qb(i,j+1)-s->qb(i,j));
-            if(dz>dzmin)
-            {
-            cmax = MAX(cmax, cfac*dq/dz);
-            cdx = MAX(cdx, cfac*dq/(dz*(p->geo_curv==1?sediment_curv::dist(p,i,j,0,1):p->DYP[JP])));
-            }
-            }
-            
-        umax = MAX(umax, sqrt(s->P(i,j)*s->P(i,j) + s->Q(i,j)*s->Q(i,j)));
-        }
-        
+    celerity(p,s,nullptr,cmax,cdx,umax);
+
+    // mesh refinement, multi-block grids: the other grids (amr_celerity, sflow_amr_sed.cpp, nhflow_amr_sed.cpp), so
+    // that S 103 and S 104 give one dtsed for the whole hierarchy (before P9 only the grid of level 0 counted)
+    cmax = MAX(cmax,amr_cmax);
+    cdx = MAX(cdx,amr_cdx);
+    umax = MAX(umax,amr_umax);
+
     cmax = pgc->globalmax(cmax);
     cdx = pgc->globalmax(cdx);
     umax = pgc->globalmax(umax);
@@ -332,10 +287,67 @@ void sediment_exner::timestep_curv(lexer* p, ghostcell *pgc, sediment_fdm *s)
     // effective morphological factor and bed celerity / flow speed
     morfac = p->S35*p->dtsed/MAX(dtflow,1.0e-20);
     c_U = umax>1.0e-20 ? cmax*p->dtsed/(MAX(dtflow,1.0e-20)*umax) : 0.0;
+    cu_warn(p);
     
     maxdh=p->dtsed*maxvz;
 	
 	if(p->mpirank==0)
 	cout<<p->mpirank<<" max_vz: "<<setprecision(4)<<maxvz<<" max_dh: "<<setprecision(4)<<maxdh<<" dtsed: "<<setprecision(4)<<p->dtsed
         <<" morph. factor: "<<setprecision(4)<<morfac<<" c/U: "<<setprecision(3)<<c_U<<endl;
+}
+
+// the bed celerity of the grid (rank-local maxima; Roe-type estimate across each face of two sediment cells, only where
+// |dz| > d50 so that transport gradients over a flat bed give no celerity): c = S35/(1-n) |dqb|/|dz|, c/dx, and the
+// near-bed flow speed |(P,Q)|.  Every face of an own cell to an erodible cell of the domain (bend_open: the cells around a
+// patch or block from the flags of their source, outside the domain closed), from both sides, so that the faces of the
+// interfaces of a multi-block grid count as in one block; mask (mesh refinement): the cells with mask > 0.5 only
+void sediment_exner::celerity(lexer *p, sediment_fdm *s, slice *mask, double &cmax, double &cdx, double &umax)
+{
+    const double dzmin = MAX(p->S20,1.0e-10);
+    const double cfac = p->S35/(1.0-p->S24);
+    const bool ydir = (p->j_dir==1 && p->gknoy>1);
+
+    auto face = [&](int a, int b, double dl)
+    {
+        if(!bend_open(p,a,b) || (mask!=nullptr && (*mask)(a,b)<0.5))
+        return;
+        const double dz = fabs(s->bedzh(a,b)-s->bedzh(i,j));
+        const double dq = fabs(s->qb(a,b)-s->qb(i,j));
+        if(dz>dzmin)
+        {
+        cmax = MAX(cmax, cfac*dq/dz);
+        cdx = MAX(cdx, cfac*dq/(dz*dl));
+        }
+    };
+
+    SEDSLICELOOP
+    if(mask==nullptr || (*mask)(i,j)>0.5)
+    {
+        face(i+1,j,p->geo_curv==1 ? sediment_curv::dist(p,i,j,1,0) : p->DXP[IP]);
+        face(i-1,j,p->geo_curv==1 ? sediment_curv::dist(p,i-1,j,1,0) : p->DXP[IM1]);
+
+        if(ydir)
+        {
+        face(i,j+1,p->geo_curv==1 ? sediment_curv::dist(p,i,j,0,1) : p->DYP[JP]);
+        face(i,j-1,p->geo_curv==1 ? sediment_curv::dist(p,i,j-1,0,1) : p->DYP[JM1]);
+        }
+
+        umax = MAX(umax, sqrt(s->P(i,j)*s->P(i,j) + s->Q(i,j)*s->Q(i,j)));
+    }
+}
+
+// the morphological acceleration beyond its range: the bed moves faster than the flow (c/U > 2, c the bed celerity times
+// the morphological factor), once per run and only without the limits S 103 / S 104.  In the LFM bend (t9) MF 100 gives
+// c/U 3 - 38 and bed waves that run upstream through the inflow reach in every variant (S 95 1, S 95 2, S 64); MF 10
+// c/U 0.15.  The log only, the results stay the same.
+void sediment_exner::cu_warn(lexer *p)
+{
+    if(cu_warned || c_U<=2.0 || p->S103>0.0 || p->S104>0.0)
+    return;
+
+    cu_warned = 1;
+    if(p->mpirank==0)
+    cout<<"!!! S 35: the bed moves faster than the flow (bed celerity x morphological factor / flow speed c/U = "
+        <<setprecision(3)<<c_U<<" > 2): the morphological acceleration is beyond its range; lower S 35 or limit dtsed with "
+        <<"S 104 (e.g. 0.5) or S 103 !!!"<<endl;
 }
