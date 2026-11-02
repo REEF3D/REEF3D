@@ -111,6 +111,14 @@ void driver::logic_nhflow()
     if(p->A534!=1)
 	pnhfstep=new nhflow_timestep(p);
 
+    // density from the tracers (A 620): needs the tracers
+    if(p->A620>0 && p->A600==0)
+    {
+        if(p->mpirank==0)
+        cout<<"!!! NHFLOW density (A 620) needs the tracers (A 600 1/2) !!!"<<endl;
+        exit(1);
+    }
+
     // tracers (A 600): the semi-implicit path only
     if(p->A600>0 && p->A534!=1)
     {

@@ -34,15 +34,18 @@ Author: Hans Bihs
 #include<mpi.h>
 #include<sys/stat.h>
 #include<cstdlib>
+#include<algorithm>
+#include<utility>
 
 nhflow_tracer_SI::nhflow_tracer_SI(lexer *p, fdm_nhf *d, nhflow_momentum_SI *mom)
-                : lx(p),dnx(p),ly(p),dny(p),ar(p),wl0(p),wl1(p),trini(p)
+                : lx(p),dnx(p),ly(p),dny(p),ar(p),wl0(p),wl1(p),wn0(p),wn1(p),trini(p)
 {
     m = mom;
     nt = p->A600>=2 ? 2 : 1;
     K = p->knoz;
     N = p->imax*p->jmax*(p->kmax+2);
     scheme = p->A609;
+    vscheme = p->A613>0 ? p->A613 : (p->A620>0 ? 2 : 1);
     dt = 0.0;
     ini = false;
 
@@ -62,7 +65,7 @@ nhflow_tracer_SI::nhflow_tracer_SI(lexer *p, fdm_nhf *d, nhflow_momentum_SI *mom
     lx(ii,jj) = dnx(ii,jj) = ly(ii,jj) = dny(ii,jj) = 0.0;
     ar(ii,jj) = m->carea(p,ii,jj);
     trini(ii,jj) = 0.0;
-    wl0(ii,jj) = wl1(ii,jj) = 0.0;
+    wl0(ii,jj) = wl1(ii,jj) = wn0(ii,jj) = wn1(ii,jj) = 0.0;
     }
 
     for(int ii=p->imin; ii<p->imin+p->imax-1; ++ii)
@@ -133,6 +136,8 @@ nhflow_tracer_SI::~nhflow_tracer_SI()
     }
     delete [] tht;
     delete [] mask;
+    delete [] tsx;
+    delete [] tsy;
 }
 
 double* nhflow_tracer_SI::field(fdm_nhf *d, int mm)
@@ -213,6 +218,42 @@ void nhflow_tracer_SI::initial(lexer *p, fdm_nhf *d)
 
             for(int kk=0; kk<K; ++kk)
             C[cidx(p,ii,jj,kk)] = c1 + t*(c2-c1);
+        }
+
+        // A 611 / A 612: a function of z, linear between the points (sorted by z), constant beyond them; at the
+        // layer centres bed + sigma WL
+        const int np = n==0 ? p->A611 : p->A612;
+
+        if(np>0)
+        {
+            vector<pair<double,double>> pt(np);
+            for(int q=0; q<np; ++q)
+            pt[q] = n==0 ? make_pair(p->A611_z[q],p->A611_c[q]) : make_pair(p->A612_z[q],p->A612_c[q]);
+            sort(pt.begin(),pt.end());
+
+            for(int ii=p->imin; ii<p->imin+p->imax; ++ii)
+            for(int jj=p->jmin; jj<p->jmin+p->jmax; ++jj)
+            for(int kk=0; kk<K; ++kk)
+            {
+                const double z = d->bed(ii,jj) + p->ZP[kk+mg]*d->WL(ii,jj);
+                double v = pt[0].second;
+
+                if(z>=pt[np-1].first)
+                v = pt[np-1].second;
+
+                else
+                if(z>pt[0].first)
+                for(int q=1; q<np; ++q)
+                if(z<=pt[q].first)
+                {
+                    const double dz = pt[q].first - pt[q-1].first;
+                    const double t = dz>0.0 ? (z - pt[q-1].first)/dz : 1.0;
+                    v = pt[q-1].second + t*(pt[q].second - pt[q-1].second);
+                    break;
+                }
+
+                C[cidx(p,ii,jj,kk)] = v;
+            }
         }
     }
 
@@ -305,12 +346,26 @@ double nhflow_tracer_SI::face_value(lexer *p, int mm, int dir, int ii, int jj, i
     // Courant number of the face for the substep, relative to the content of the upwind cell: the
     // limited correction (1 - nu)/2 (Lax-Wendroff in the smooth part, Sweby 1984), second order in time
     // and space with the forward step (without (1 - nu) the step is anti-diffusive, -u^2 dt/2)
-    const double wu = wl0(ui,uj) + sfa*(wl1(ui,uj) - wl0(ui,uj));
+    const double wu = wn0(ui,uj) + (fr0 + sfa*(fr1-fr0))*(wn1(ui,uj) - wn0(ui,uj));
     const double L = dir==1 ? lx(ii,jj) : ly(ii,jj);
     double nu = wu>1.0e-12 ? fabs(T)*L*sdt/(ar(ui,uj)*wu) : 1.0;
     nu = nu>1.0 ? 1.0 : nu;
 
     return cu + 0.5*(1.0-nu)*lim(cu-cuu,cd-cu);
+}
+
+// the predictor of the density (A 620): the tracers before it, back after it (the step then moves them with
+// the whole transport T, conservative and bounded as without density)
+void nhflow_tracer_SI::save(fdm_nhf *d)
+{
+    for(int n=0; n<nt; ++n)
+    sav[n].assign(field(d,n),field(d,n)+N);
+}
+
+void nhflow_tracer_SI::restore(fdm_nhf *d)
+{
+    for(int n=0; n<nt; ++n)
+    memcpy(field(d,n),sav[n].data(),N*sizeof(double));
 }
 
 int nhflow_tracer_SI::substeps(lexer *p, double rmax)
@@ -323,12 +378,19 @@ int nhflow_tracer_SI::substeps(lexer *p, double rmax)
 }
 
 // ---- the step: initial values, omega of the transport, boundary values, the ratio of the substeps
-double nhflow_tracer_SI::prepare(lexer *p, fdm_nhf *d)
+double nhflow_tracer_SI::prepare(lexer *p, fdm_nhf *d, int phase)
 {
-    const int mg = increment::marge;
     dt = p->dt;
 
     // the first step: the initial values, or the values of the checkpoint (trini set)
+    ensure_ini(p,d);
+
+    return prepare_step(p,d,phase);
+}
+
+// the initial values before the first step (or the values of the checkpoint, trini set)
+void nhflow_tracer_SI::ensure_ini(lexer *p, fdm_nhf *d)
+{
     if(!ini)
     {
         bool rs = false;
@@ -347,12 +409,77 @@ double nhflow_tracer_SI::prepare(lexer *p, fdm_nhf *d)
         ghosts(p,d);
         }
     }
+}
 
+double nhflow_tracer_SI::prepare_step(lexer *p, fdm_nhf *d, int phase)
+{
+    const int mg = increment::marge;
+    const double th = m->theta;
+
+    // the transport: the step T = theta Q^{n+1} + (1-theta) Q^n (phase 0), its old part (1-theta) Q^n
+    // (phase 1: the predictor of the density before the momentum, A 620)
+    if(phase==0)
+    {
+    tx = m->Tx;
+    ty = m->Ty;
+    fr0 = 0.0;
+    fr1 = 1.0;
+    }
+
+    else
+    {
+        if(tsx==nullptr)
+        {
+        tsx = new double[N];
+        tsy = new double[N];
+        }
+
+        for(int q=0; q<N; ++q)
+        {
+        tsx[q] = (1.0-th)*m->Qxn[q];
+        tsy[q] = p->j_dir==1 ? (1.0-th)*m->Qyn[q] : 0.0;
+        }
+
+        tx = tsx;
+        ty = tsy;
+        fr0 = 0.0;
+        fr1 = 1.0-th;
+    }
+
+    // the water depths: WL^n and WL^{n+1} (the face Courant numbers, all cells), those of the step (own
+    // cells; phase 1 ends at WL* = WL^n - dt div (1-theta) Q^n)
     for(int ii=p->imin; ii<p->imin+p->imax; ++ii)
     for(int jj=p->jmin; jj<p->jmin+p->jmax; ++jj)
     {
-    wl0(ii,jj) = m->WL0(ii,jj);
-    wl1(ii,jj) = d->WL(ii,jj);
+    wn0(ii,jj) = wl0(ii,jj) = m->WL0(ii,jj);
+    wn1(ii,jj) = d->WL(ii,jj);
+    wl1(ii,jj) = phase==1 ? wn0(ii,jj) + fr1*(wn1(ii,jj) - wn0(ii,jj)) : wn1(ii,jj);
+    }
+
+    if(phase==1)
+    for(int ii=0; ii<p->knox; ++ii)
+    for(int jj=0; jj<p->knoy; ++jj)
+    {
+        if(p->flagslice4[sidx(p,ii,jj)]<0)
+        {
+        wl1(ii,jj) = wn0(ii,jj);
+        continue;
+        }
+
+        double dv = 0.0;
+
+        for(int kk=0; kk<K; ++kk)
+        {
+            double v = tx[cidx(p,ii,jj,kk)]*lx(ii,jj) - tx[cidx(p,ii-1,jj,kk)]*lx(ii-1,jj);
+
+            if(p->j_dir==1)
+            v += ty[cidx(p,ii,jj,kk)]*ly(ii,jj) - ty[cidx(p,ii,jj-1,kk)]*ly(ii,jj-1);
+
+            dv += p->DZN[kk+mg]*v;
+        }
+
+        // a column the old transport drains below zero: empty (the remainder at the surface; the predictor only)
+        wl1(ii,jj) = fmax(wn0(ii,jj) - dt*dv/ar(ii,jj),0.0);
     }
 
     // omega from the layer continuity with the transport of the step
@@ -372,10 +499,10 @@ double nhflow_tracer_SI::prepare(lexer *p, fdm_nhf *d)
 
         for(int kk=0; kk<K; ++kk)
         {
-            double dv = m->Tx[cidx(p,ii,jj,kk)]*lx(ii,jj) - m->Tx[cidx(p,ii-1,jj,kk)]*lx(ii-1,jj);
+            double dv = tx[cidx(p,ii,jj,kk)]*lx(ii,jj) - tx[cidx(p,ii-1,jj,kk)]*lx(ii-1,jj);
 
             if(p->j_dir==1)
-            dv += m->Ty[cidx(p,ii,jj,kk)]*ly(ii,jj) - m->Ty[cidx(p,ii,jj-1,kk)]*ly(ii,jj-1);
+            dv += ty[cidx(p,ii,jj,kk)]*ly(ii,jj) - ty[cidx(p,ii,jj-1,kk)]*ly(ii,jj-1);
 
             w -= p->DZN[kk+mg]*(dw + dv/ar(ii,jj));
             om[o+kk+1] = w;
@@ -398,22 +525,26 @@ double nhflow_tracer_SI::prepare(lexer *p, fdm_nhf *d)
 
         (xf ? bfx : bfy)[sidx(p,f.fi,f.fj)] = int(b);
 
-        const double *T = xf ? m->Tx : m->Ty;
+        const double *T = xf ? tx : ty;
 
         for(int kk=0; kk<K; ++kk)
         {
             const int c = cidx(p,f.i,f.j,kk);
             const bool in = f.s*T[cidx(p,f.fi,f.fj,kk)]>0.0;
 
-            if(in)
-            tht[c] += dt;
+            // the Thatcher-Harleman state: the step only (the predictor uses it as it is)
+            if(phase==0)
+            {
+                if(in)
+                tht[c] += dt;
 
-            else
-            tht[c] = 0.0;
+                else
+                tht[c] = 0.0;
+            }
 
             for(int n=0; n<nt; ++n)
             {
-                if(!in)
+                if(!in && phase==0)
                 thc[n][c] = field(d,n)[c];
 
                 bval[n][b*K+kk] = bvalue(n,f.type,thc[n][c],tht[c]);
@@ -458,13 +589,13 @@ double nhflow_tracer_SI::prepare(lexer *p, fdm_nhf *d)
 
         for(int kk=0; kk<K; ++kk)
         {
-            const double te = m->Tx[cidx(p,ii,jj,kk)]*lx(ii,jj), tw = m->Tx[cidx(p,ii-1,jj,kk)]*lx(ii-1,jj);
+            const double te = tx[cidx(p,ii,jj,kk)]*lx(ii,jj), tw = tx[cidx(p,ii-1,jj,kk)]*lx(ii-1,jj);
             double out = fmax(te,0.0) + fmax(-tw,0.0);
             double in = fmax(-te,0.0) + fmax(tw,0.0);
 
             if(p->j_dir==1)
             {
-            const double tn = m->Ty[cidx(p,ii,jj,kk)]*ly(ii,jj), ts = m->Ty[cidx(p,ii,jj-1,kk)]*ly(ii,jj-1);
+            const double tn = ty[cidx(p,ii,jj,kk)]*ly(ii,jj), ts = ty[cidx(p,ii,jj-1,kk)]*ly(ii,jj-1);
             out += fmax(tn,0.0) + fmax(-ts,0.0);
             in += fmax(-tn,0.0) + fmax(ts,0.0);
             }
@@ -476,12 +607,15 @@ double nhflow_tracer_SI::prepare(lexer *p, fdm_nhf *d)
         }
     }
 
-    for(int n=0; n<nt; ++n)
-    for(size_t q=0; q<clipc[n].size(); ++q)
-    clipc[n][q] = binc[n][q] = 0.0;
+    // the step sums
+    {
+        for(int n=0; n<nt; ++n)
+        for(size_t q=0; q<clipc[n].size(); ++q)
+        clipc[n][q] = binc[n][q] = 0.0;
 
-    for(size_t q=0; q<violc.size(); ++q)
-    violc[q] = 0.0;
+        for(size_t q=0; q<violc.size(); ++q)
+        violc[q] = 0.0;
+    }
 
     return rmax;
 }
@@ -545,7 +679,7 @@ void nhflow_tracer_SI::flushed(lexer *p, fdm_nhf *d, int s, int nsub)
 
             for(int q=0; q<nf; ++q)
             {
-            const double T = (fd[q]==1 ? m->Tx : m->Ty)[cidx(p,fi[q],fj[q],kk)];
+            const double T = (fd[q]==1 ? tx : ty)[cidx(p,fi[q],fj[q],kk)];
             const double L = fd[q]==1 ? lx(fi[q],fj[q]) : ly(fi[q],fj[q]);
             tq[q] = sg[q]*T*L;
             out += fmax(tq[q],0.0);
@@ -566,7 +700,7 @@ void nhflow_tracer_SI::flushed(lexer *p, fdm_nhf *d, int s, int nsub)
                 for(int q=0; q<nf; ++q)
                 if(tq[q]<0.0)
                 {
-                const double T = (fd[q]==1 ? m->Tx : m->Ty)[cidx(p,fi[q],fj[q],kk)];
+                const double T = (fd[q]==1 ? tx : ty)[cidx(p,fi[q],fj[q],kk)];
                 num -= dts*tq[q]*face_value(p,n,fd[q],fi[q],fj[q],kk,T);
                 }
 
@@ -609,14 +743,14 @@ void nhflow_tracer_SI::substep(lexer *p, fdm_nhf *d, int s, int nsub)
         for(int jj=0; jj<p->knoy; ++jj)
         if(own(ii,jj) || own(ii+1,jj))
         for(int kk=0; kk<K; ++kk)
-        fvx[n][cidx(p,ii,jj,kk)] = face_value(p,n,1,ii,jj,kk,m->Tx[cidx(p,ii,jj,kk)]);
+        fvx[n][cidx(p,ii,jj,kk)] = face_value(p,n,1,ii,jj,kk,tx[cidx(p,ii,jj,kk)]);
 
         if(p->j_dir==1)
         for(int ii=0; ii<p->knox; ++ii)
         for(int jj=-1; jj<p->knoy; ++jj)
         if(own(ii,jj) || own(ii,jj+1))
         for(int kk=0; kk<K; ++kk)
-        fvy[n][cidx(p,ii,jj,kk)] = face_value(p,n,2,ii,jj,kk,m->Ty[cidx(p,ii,jj,kk)]);
+        fvy[n][cidx(p,ii,jj,kk)] = face_value(p,n,2,ii,jj,kk,ty[cidx(p,ii,jj,kk)]);
     }
 
     for(int ii=0; ii<p->knox; ++ii)
@@ -697,7 +831,7 @@ void nhflow_tracer_SI::substep(lexer *p, fdm_nhf *d, int s, int nsub)
 
                 auto face = [&](int dir, int fi, int fj, double sg)
                 {
-                    const double T = (dir==1 ? m->Tx : m->Ty)[cidx(p,fi,fj,kk)];
+                    const double T = (dir==1 ? tx : ty)[cidx(p,fi,fj,kk)];
                     const double v = (dir==1 ? fvx : fvy)[n][cidx(p,fi,fj,kk)];
                     F += sg*T*v*(dir==1 ? lx(fi,fj) : ly(fi,fj));
 
@@ -744,13 +878,43 @@ void nhflow_tracer_SI::substep(lexer *p, fdm_nhf *d, int s, int nsub)
 
                     const auto &f = m->bcf[b];
                     const bool xf = (f.cs==1 || f.cs==4);
-                    const double Tf = (xf ? m->Tx : m->Ty)[cidx(p,f.fi,f.fj,kk)];
+                    const double Tf = (xf ? tx : ty)[cidx(p,f.fi,f.fj,kk)];
                     const double L = xf ? lx(f.fi,f.fj) : ly(f.fi,f.fj);
 
                     binc[n][c2] += dts*f.s*Tf*(xf ? fvx : fvy)[n][cidx(p,f.fi,f.fj,kk)]*L*dz;
                 }
 
                 cr[kk] = dz*(wa*C[c] - dts*F/A);
+            }
+
+            // A 613 2: the explicit TVD correction of the vertical advection, the Lax-Wendroff part (1 - |nu|)/2 of
+            // the limited difference at the layer interfaces from the values at the start of the substep (the
+            // upwind part implicit above; a missing upwind-upwind value continued linearly). Without it the
+            // implicit upwind mixes a stratification by |omega| dz/2: with the density (A 620) a feedback of the
+            // spurious currents near sloping beds (they mix, the mixing drives them)
+            if(vscheme==2 && scheme>1)
+            for(int kk=0; kk<K-1; ++kk)
+            {
+                const double w = om[o+kk+1];
+
+                if(w==0.0)
+                continue;
+
+                const int ku = w>0.0 ? kk : kk+1, kd = w>0.0 ? kk+1 : kk, kuu = w>0.0 ? kk-1 : kk+2;
+                const int cu_ = cidx(p,ii,jj,ku), cd_ = cidx(p,ii,jj,kd);
+
+                if(Cx[n][cu_]>-1.0e29 || Cx[n][cd_]>-1.0e29)
+                continue;
+
+                const double cu = C[cu_], cd = C[cd_];
+                const double cuu = (kuu>=0 && kuu<K) ? C[cidx(p,ii,jj,kuu)] : cu;
+                const double hu = p->DZN[ku+mg]*wa;
+                double nu = hu>1.0e-12 ? fabs(w)*dts/hu : 1.0;
+                nu = nu>1.0 ? 1.0 : nu;
+
+                const double fc = dts*w*0.5*(1.0-nu)*lim(cu-cuu,cd-cu);
+                cr[kk] -= fc;
+                cr[kk+1] += fc;
             }
 
             // tridiagonal solve (Thomas)

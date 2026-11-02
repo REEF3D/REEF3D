@@ -1,0 +1,17 @@
+{
+ "base": "nhflow_2d_si_density_ridge",
+ "description": "nhflow_2d_si_density_ridge with the two-term pressure gradient (A 622 2, without the cubic corrections): a larger spurious velocity (about 3 mm/s over a day).",
+ "ctrl_set": {
+  "A 622": "2"
+ },
+ "tags": [
+  "2d",
+  "nhflow",
+  "semi_implicit",
+  "tracer",
+  "density"
+ ],
+ "covers": [
+  "nhflow_momentum_SI::baroclinic_face, baroclinic_column (A 622 2)"
+ ]
+}
