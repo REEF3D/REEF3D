@@ -25,6 +25,8 @@ Architect: Hans Bihs
 
 #include<vector>
 #include<string>
+#include<map>
+#include<array>
 
 class lexer;
 class ghostcell;
@@ -47,7 +49,7 @@ class field;
 //  cell of it (velocities, pressure, level set, density, viscosity, eddy viscosity, k and its
 //  dissipation) is copied onto it, from a patch of the finest level as it is, from a coarser grid
 //  interpolated; its bed (topo) goes back onto every grid as the mean of the cells of CPM under each
-//  cell.
+//  cell, and with the two-way coupling (Q 50 1) the drag of the parcels the same way.
 struct cfd_amr_cpm
 {
     lexer *p = nullptr;
@@ -79,7 +81,7 @@ struct cfd_amr_cpm
     long nipol_all = 0;                         //   interpolated (all ranks)
     std::vector<signed char> lev_of;            // per cell of this piece ((i knoy + j) knoz + k): the level of its fluid
 
-    // the bed onto the grids: per cell of a grid in the region (a target, on
+    // the bed and the drag of the parcels onto the grids: per cell of a grid in the region (a target, on
     // its rank) the cells of CPM under it on the ranks that hold them (items), summed there
     std::vector<int> bscnt, bsdsp, brcnt, brdsp;    // items: requested from / served to each rank
     std::vector<int> bt;                        // requested items: their target
@@ -87,6 +89,10 @@ struct cfd_amr_cpm
     std::vector<char> tleaf;                    //   an interior cell no finer patch covers (the bed is set)
     std::vector<double> tcnt;                   //   the cells of CPM under it
     std::vector<int> bsv;                       // served items: the box of cells of CPM (local, 6 per item)
+
+    // two-way coupling (Q 50 1): the drag of the parcels on every grid (Kc, KUx, KUy, KUz of CPM.h)
+    std::map<const lexer*,std::array<std::vector<double>,4>> kf;
+    bool coupled = false;
 
     // G 27: the bed level of the columns at the start (this rank), the mobile columns of the grid of CPM
     // (all ranks, global column I*gn(L,1) + J of level L)

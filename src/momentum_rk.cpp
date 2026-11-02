@@ -386,7 +386,8 @@ void momentum_rk::amr_momentum(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
     amr_solid_forcing(p,a,pgc,uout,vout,wout,ssp_b[s]);
 }
 
-// the direct forcing of solids and topography alone (as momentum_forcing_start)
+// the direct forcing of solids and topography alone (as momentum_forcing_start), and the drag of the parcels of
+// CPM on the mesh refinement
 void momentum_rk::amr_solid_forcing(lexer *p, fdm *a, ghostcell *pgc, field &u, field &v, field &w, double alpha)
 {
     std::fill(fx.V, fx.V + p->imax*p->jmax*p->kmax, 0.0);
@@ -403,6 +404,10 @@ void momentum_rk::amr_solid_forcing(lexer *p, fdm *a, ghostcell *pgc, field &u, 
 
     WLOOP
     w(i,j,k) += alpha*p->dt*CPOR3*fz(i,j,k);
+
+    // CPM on the mesh refinement, two-way coupling (Q 50 1): the drag of the parcels
+    if(amr_psed)
+    amr_psed(p,a,alpha,u,v,w);
 }
 
 // after the projection: the level set of the stage, density and viscosity, the explicit diffusion

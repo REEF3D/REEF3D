@@ -468,15 +468,17 @@ private:
     void free_patch(cfd_amr_patch*);
 
     // CPM on the grid of the finest level over the region of the mobile bed (Q 85, G 15; cfd_amr_cpm.cpp):
-    // the plans of the fluid onto it (cpm_plans) and of the bed onto the grids (cpm_bplans),
+    // the plans of the fluid onto it (cpm_plans) and of the bed and the drag onto the grids (cpm_bplans),
     // made again at a regrid (cpm_regrid); G 27: the mobile columns, the flag of a cell near them
     cfd_amr_cpm *cpm = nullptr;
     void cpm_setup(lexer*, fdm*, ghostcell*);
     void cpm_plans();
     void cpm_bplans();
+    void cpm_kfields();
     void cpm_pull(bool ini);
     void cpm_push();
     void cpm_bed(lexer*, fdm*);
+    void cpm_forcing(lexer*, double, field&, field&, field&);
     void cpm_regrid();
     void cpm_href();
     void cpm_mobile();

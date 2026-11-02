@@ -33,10 +33,13 @@ Architect: Hans Bihs
 #include"sediment_part.h"
 #include"sediment_fdm.h"
 #include"CPM.h"
+#include"momentum_forcing.h"
 #include"reinitopo_void.h"
 #include"reinitopo_RK3.h"
 #include"ioflow_void.h"
 #include"solver_void.h"
+#include"bicgstab_ijk.h"
+#include"bicgstab_ijk_2D.h"
 #include"patchBC_void.h"
 #include"gridfile_v2.h"
 #include"dmpart_api.h"
@@ -58,8 +61,8 @@ fluid, the sides walls, periodic where level 0 is periodic and the region spans 
 in memory and decomposed over all ranks by dmpart, as REEF3D M 40 does for level 0. Every rank builds
 the lexer (the grid read from memory), the ghostcell (its own communicator) and the fdm of its piece,
 and on them the objects of the sediment step of a CFD run: sediment_part (CPM), the reinitialisation
-of the bed, an ioflow and a solver without function, and a turbulence model that holds k and its
-dissipation (copied).
+of the bed, an ioflow without function, a solver (BiCGStab with the Eulerian suspension of the layer,
+Q 58 3, 4; else none), and a turbulence model that holds k and its dissipation (copied).
 
 The fluid. Every cell of the grid of CPM with its margin (global index of level L, wrapped at the
 periodic sides) takes the fluid of the finest grid that holds it: a patch of level L as it is, a patch
@@ -78,12 +81,16 @@ of the interior cells no finer patch covers, the coarser cells under the patches
 (the mean of the children, cfd_amr::restrict_level) from level L down to level 0, the cells around the
 patches filled from them; every grid then updates its direct forcing as level 0 does after a bed
 change (the flags of D 22 1, gcdf_update) and the bed level of its columns (fdm::bed, read by the wall
-laws of k-omega and k-epsilon with sediment). Outside the region the bed is fixed (as Q 76, Q 77 on one
-grid); a parcel at a side of the region that is not periodic meets a wall.
+laws of k-omega and k-epsilon with sediment). With the two-way coupling (Q 50 1, Q 11 2) the drag of the
+parcels (Kc, KUx, KUy, KUz of CPM_coupling.cpp, per volume) goes onto every cell of every grid in the
+region and the cell around it the same way, and the momentum of every grid takes it in its stages as
+CPM::fluid_forcing does on one grid (momentum_forcing::amr_psed). Outside the region the bed is fixed
+(as Q 76, Q 77 on one grid); a parcel at a side of the region that is not periodic meets a wall.
 
 The step. At the start of the time step, where level 0 runs its sediment step: the time of level 0 onto
-the lexer of CPM, the fluid onto the grid, the sediment step of CPM, the bed back. The fluid step of the
-refinement follows.
+the lexer of CPM, the fluid onto the grid, the suspension of the layer (Q 58 3, 4: on the grid of CPM, its
+top a wall: the region has to reach as high as the suspension), the sediment step of CPM, the bed (and the
+drag) back. The fluid step of the refinement follows.
 
 Adaptive refinement (G 24-27). The patches may come and go under the grid of CPM: at every regrid the
 plans are made again and the bed goes onto the new patches (their bed of the grid file replaced). G 27 r
@@ -91,10 +98,9 @@ flags the cells near a mobile bed: the columns of CPM whose bed shear stress is 
 critical one or whose bed has moved by a cell of CPM since the start, the cells of them within two cells
 of the bed.
 
-Not covered (cfd_amr::cpm_why): the two-way coupling (Q 50 1), the Eulerian suspension of the layer
-(Q 58 3, 4), subcycling (G 7 1), the placement of the patches (G 40 1, 2), checkpoints and the hotstart
-(P 48, I 45, I 40), floating bodies (X 10), S 10 2. The outputs of CPM (the parcels Q 180, the log of
-CPM) come from the grid of CPM; level 0 writes no bed of its own.
+Not covered (cfd_amr::cpm_why): subcycling (G 7 1), the placement of the patches (G 40 1, 2), checkpoints
+and the hotstart (P 48, I 45, I 40), floating bodies (X 10), S 10 2. The outputs of CPM (the parcels
+Q 180, the log of CPM) come from the grid of CPM; level 0 writes no bed of its own.
 --------------------------------------------------------------------*/
 
 namespace
@@ -239,10 +245,6 @@ const char* cfd_amr::cpm_why(lexer *p)
     return "CPM: the patches on the ranks of the level-0 cells below (G 40 0)";
     if(p->G12>0)
     return "CPM: no refinement zone of the floating bodies (G 12)";
-    if(p->Q50==1)
-    return "CPM: no two-way coupling (Q 50 0)";
-    if(p->Q58>=3)
-    return "CPM: the bedload layer without the Eulerian suspension (Q 58 0-2)";
     if(p->P48>0 || p->P48_dt>0.0 || p->I45==1 || p->I40==1)
     return "CPM: no checkpoints or hotstart (P 48, I 45, I 40)";
     if(p->X10>0)
@@ -558,20 +560,37 @@ void cfd_amr::cpm_setup(lexer *p, fdm *a, ghostcell *pgc)
     C->pturb = new turbulence_amr_copy(q);
     C->pBC = new patchBC_void(q);
     C->pflow = new ioflow_v(q,g,C->pBC);
+    if(p->Q58>=3)
+    {
+        if(q->j_dir==0)
+        C->psolv = new bicgstab_ijk_2D(q,C->a,g);
+        else
+        C->psolv = new bicgstab_ijk(q,C->a,g);
+    }
+    else
     C->psolv = new solver_void(q,C->a,g);
     if(p->G540>0)
     C->preto = new reinitopo_RK3(q);
     else
     C->preto = new reinitopo_void();
 
+    // two-way coupling: the drag of the parcels on every grid (the sediment of one grid has it in
+    // momentum_forcing::psed and CPM::coupled; S 10 1 has no source of the pressure equation)
+    C->coupled = (p->Q50==1 && p->Q11==2);
+
     // the plans, the fluid, the solids and the bed of the grids
     cpm_plans();
     cpm_bplans();
+    cpm_kfields();
     cpm_pull(true);
 
     g->solid_forcing_ini(q,C->a);
 
     C->psed = new sediment_part(q,C->a,g,C->pturb,C->pBC);
+    momentum_forcing::psed = nullptr;
+    CPM::coupled = nullptr;
+    if(C->coupled)
+    momentum_forcing::amr_psed = [this](lexer *pp, fdm*, double alpha, field &u, field &v, field &w){ cpm_forcing(pp,alpha,u,v,w); };
 
     C->psed->ini_cfd(q,C->a,g);
     C->psed->update_cfd(q,C->a,g,C->pflow,C->preto);
@@ -744,12 +763,13 @@ void cfd_amr::cpm_plans()
     }
 }
 
-// the bed onto the grids: every cell of a grid in the region, the cells of CPM under it on the ranks that
-// hold them
+// the bed and the drag onto the grids: every cell of a grid in the region, the cells of CPM under it on
+// the ranks that hold them
 void cfd_amr::cpm_bplans()
 {
     cfd_amr_cpm *C = cpm;
     const int L = C->L;
+    const int mk = C->coupled ? 1 : 0;      // the drag: the cell around every grid too
 
     C->tg.clear(); C->tq.clear(); C->tleaf.clear(); C->tcnt.clear();
     vector<vector<int>> req(nranks), tgt(nranks);
@@ -767,9 +787,9 @@ void cfd_amr::cpm_bplans()
             bh[d] = (C->lo[d]+C->n[d])/R[d];
         }
         int I[3], J[3];
-        for(int i=0; i<gq->knox; ++i)
-        for(int j=0; j<gq->knoy; ++j)
-        for(int k=0; k<gq->knoz; ++k)
+        for(int i=-mk; i<gq->knox+mk; ++i)
+        for(int j=(gq->j_dir==1 ? -mk : 0); j<(gq->j_dir==1 ? gq->knoy+mk : 1); ++j)
+        for(int k=-mk; k<gq->knoz+mk; ++k)
         {
             I[0] = i+og[0]; I[1] = j+og[1]; I[2] = k+og[2];
             if(!wrap(l,I,J))
@@ -780,7 +800,8 @@ void cfd_amr::cpm_bplans()
             in = false;
             if(!in)
             continue;
-            const bool leaf = !covered(l,J);
+            const bool inner = (i>=0 && i<gq->knox && j>=0 && j<gq->knoy && k>=0 && k<gq->knoz);
+            const bool leaf = inner && !covered(l,J);
 
             // the cells of CPM under it (global index of the grid of CPM)
             int cl[3], ch[3];
@@ -848,6 +869,24 @@ void cfd_amr::cpm_bplans()
     }
     C->bsv.assign(6*(size_t)nr+1,0);
     MPI_Alltoallv(sb.data(),sc6.data(),sd6.data(),MPI_INT,C->bsv.data(),rc6.data(),rd6.data(),MPI_INT,reef3d_comm());
+}
+
+// two-way coupling: the drag of the parcels on every grid of this rank (zero outside the region)
+void cfd_amr::cpm_kfields()
+{
+    cfd_amr_cpm *C = cpm;
+    C->kf.clear();
+    if(!C->coupled)
+    return;
+    auto add = [&](lexer *gq)
+    {
+        auto &K = C->kf[gq];
+        for(int m=0; m<4; ++m)
+        K[m].assign((size_t)gq->imax*gq->jmax*gq->kmax,0.0);
+    };
+    add(p0);
+    for(int id=0; id<npat; ++id)
+    add(CP(id)->pp);
 }
 
 // --------------------------------------------------------------------- the copies
@@ -918,7 +957,8 @@ void cfd_amr::cpm_pull(bool ini)
 }
 
 // the bed of the grid of CPM onto the grids (the mean of its cells under every cell), restricted to level
-// 0, the cells around the patches filled, the direct forcing and the bed level of all grids
+// 0, the cells around the patches filled, the direct forcing and the bed level of all grids; with the
+// two-way coupling the drag of the parcels as well
 void cfd_amr::cpm_push()
 {
     cfd_amr_cpm *C = cpm;
@@ -927,6 +967,12 @@ void cfd_amr::cpm_push()
 
     vector<field*> fs;
     fs.push_back(&a->topo);
+    if(C->coupled)
+    {
+        CPM *M = static_cast<sediment_part*>(C->psed)->cpm_model();
+        for(int m=0; m<4; ++m)
+        fs.push_back(&M->coupling_field(m));
+    }
     const int nf = (int)fs.size();
 
     // the sums over the boxes of cells of the served items
@@ -964,9 +1010,23 @@ void cfd_amr::cpm_push()
     for(int f=0; f<nf; ++f)
     ts[(size_t)C->bt[u]*nf+f] += rb[u*nf+f];
 
+    if(C->coupled)
+    for(auto &e : C->kf)
+    for(int m=0; m<4; ++m)
+    std::fill(e.second[m].begin(),e.second[m].end(),0.0);
+
     for(size_t t=0; t<nt; ++t)
-    if(C->tleaf[t])
-    gfd(C->tg[t])->topo.V[C->tq[t]] = ts[t*nf]/C->tcnt[t];
+    {
+        const int g = C->tg[t];
+        if(C->tleaf[t])
+        gfd(g)->topo.V[C->tq[t]] = ts[t*nf]/C->tcnt[t];
+        if(C->coupled)
+        {
+            auto &K = C->kf[glex(g)];
+            for(int m=0; m<4; ++m)
+            K[m][C->tq[t]] = ts[t*nf+1+m]/C->tcnt[t];
+        }
+    }
 
     // restriction: level L down to level 0
     vector<std::function<field&(int)>> cells = {[this](int g) -> field& { return gfd(g)->topo; }};
@@ -1030,6 +1090,45 @@ void cfd_amr::cpm_bed(lexer *pp, fdm *fa)
     }
 }
 
+// two-way coupling: the drag of the parcels in a stage of the momentum of grid pp (CPM::fluid_forcing)
+void cfd_amr::cpm_forcing(lexer *pp, double alpha, field &u, field &v, field &w)
+{
+    auto e = cpm->kf.find(pp);
+    if(e==cpm->kf.end())
+    return;
+    const vector<double> &Kc = e->second[0], &Kx = e->second[1], &Ky = e->second[2], &Kz = e->second[3];
+    const double adt = alpha*pp->dt;
+    const int di = pp->jmax*pp->kmax, dj = pp->kmax;
+
+    for(int i=0; i<pp->knox-pp->ulast; ++i)
+    for(int j=0; j<pp->knoy; ++j)
+    for(int k=0; k<pp->knoz; ++k)
+    {
+        const int c = cix(pp,i,j,k);
+        if(pp->flag1[c]>0)
+        u.V[c] = (u.V[c] + adt*0.5*(Kx[c]+Kx[c+di]))/(1.0 + adt*0.5*(Kc[c]+Kc[c+di]));
+    }
+
+    if(pp->j_dir==1)
+    for(int i=0; i<pp->knox; ++i)
+    for(int j=0; j<pp->knoy-pp->vlast; ++j)
+    for(int k=0; k<pp->knoz; ++k)
+    {
+        const int c = cix(pp,i,j,k);
+        if(pp->flag2[c]>0)
+        v.V[c] = (v.V[c] + adt*0.5*(Ky[c]+Ky[c+dj]))/(1.0 + adt*0.5*(Kc[c]+Kc[c+dj]));
+    }
+
+    for(int i=0; i<pp->knox; ++i)
+    for(int j=0; j<pp->knoy; ++j)
+    for(int k=0; k<pp->knoz-pp->wlast; ++k)
+    {
+        const int c = cix(pp,i,j,k);
+        if(pp->flag3[c]>0)
+        w.V[c] = (w.V[c] + adt*0.5*(Kz[c]+Kz[c+1]))/(1.0 + adt*0.5*(Kc[c]+Kc[c+1]));
+    }
+}
+
 // --------------------------------------------------------------------- the step
 void cfd_amr::cpm_step(lexer *p, fdm *a, ghostcell *pgc)
 {
@@ -1049,6 +1148,7 @@ void cfd_amr::cpm_step(lexer *p, fdm *a, ghostcell *pgc)
 
     cpm_pull(false);
     cpm_href();
+    C->psed->start_susp(q,C->a,C->pgc,C->pflow,C->psolv);
     C->psed->start_cfd(q,C->a,C->pgc,C->pflow,C->preto,C->psolv);
     cpm_push();
 
@@ -1096,13 +1196,14 @@ void cfd_amr::cpm_href()
     M->amr_href.clear();
 }
 
-// after a regrid: the plans made again, the bed onto the new patches
+// after a regrid: the plans made again, the bed (and the drag) onto the new patches
 void cfd_amr::cpm_regrid()
 {
     if(cpm==nullptr)
     return;
     cpm_plans();
     cpm_bplans();
+    cpm_kfields();
     cpm_push();
 }
 
