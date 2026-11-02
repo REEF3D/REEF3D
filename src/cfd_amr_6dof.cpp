@@ -128,6 +128,7 @@ void cfd_amr_6dof::body(lexer *p, fdm *a, ghostcell *pgc)
     for(int nb=0; nb<b->objects(); ++nb)
     cast(p,a,pgc,nb);
 
+    pgc->solid_forcing_flag_update(p,a);
     pgc->gcdf_update(p,a);
 }
 
@@ -148,5 +149,6 @@ void cfd_amr_6dof::start_cfd(lexer *p, fdm *a, ghostcell *pgc, int iter, field &
         b->object(nb)->update_forcing(p,a,pgc,uvel,vvel,wvel,fx,fy,fz,iter);
     }
 
+    pgc->solid_forcing_flag_update(p,a);
     pgc->gcdf_update(p,a);
 }
