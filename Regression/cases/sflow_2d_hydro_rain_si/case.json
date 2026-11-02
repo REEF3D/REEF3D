@@ -1,0 +1,19 @@
+{
+ "description": "REEF3D::HYDRO rain-on-grid (R 10 1, 36 mm/h) on a dry closed basin 100 m x 100 m, semi-implicit (A 226 1): every cell wets by its own depth, the volume budget closes to round-off (REEF3D_SFLOW_Log/REEF3D-SFLOW-Hydro-Budget.dat, compared as text). Validated in Dropbox REEF3D HYDRO/validation/01_basin_budgets.",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 60,
+ "tags": [
+  "quick",
+  "2d",
+  "sflow",
+  "hydro",
+  "semi_implicit",
+  "wetdry"
+ ],
+ "covers": [
+  "hydro_sflow::prepare, mass_source, sinks, budget",
+  "the rain source in the eta system and the depth update of sflow_momentum_SI",
+  "the HYDRO wetting rule of sflow_eta::wetdry"
+ ]
+}

@@ -1,0 +1,17 @@
+{
+ "description": "REEF3D::HYDRO losses on 0.2 m of water in a closed basin: evaporation 864 mm/day (R 20) and Green-Ampt infiltration Ks 36 mm/h, psi 0.1 m, dtheta 0.3 (R 30 2, R 32); the cumulative infiltration follows the ponded Green-Ampt solution to 1e-11 m (validation/01_basin_budgets).",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 60,
+ "tags": [
+  "quick",
+  "2d",
+  "sflow",
+  "hydro",
+  "semi_implicit"
+ ],
+ "covers": [
+  "hydro_sflow::sinks, ga_step",
+  "sflow_momentum_SI::water_column (the losses in the water column of the next step)"
+ ]
+}

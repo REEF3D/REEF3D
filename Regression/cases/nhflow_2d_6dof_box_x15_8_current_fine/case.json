@@ -1,0 +1,8 @@
+{
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 300,
+ "description": "nhflow_2d_6dof_box_x15_8_current on the fine grid (dx 0.05 m, 60 layers): the lid correction of the lower region drains through its outflow edge (nhflow_thinbody::lid_outflow, patch 0040). Before, the level in front of the bow rose by 0.5 m within 0.4 s and the run failed (Ship Hydrodynamics validation 32).",
+ "tags": ["2d", "nhflow", "6dof", "floating", "background", "current"],
+ "covers": ["X 15 8 with a current on a fine grid", "nhflow_thinbody::lid_correction with lid_outflow"]
+}

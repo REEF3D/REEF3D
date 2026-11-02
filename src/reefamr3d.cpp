@@ -2590,6 +2590,28 @@ void reefamr3d::xrun(r3xplan &X, int nv)
         rc[r] = X.rcnt[r]*nv; rd[r] = X.rdsp[r]*nv;
     }
     double dummy = 0.0;
-    MPI_Alltoallv(X.sbuf.empty()?&dummy:&X.sbuf[0],&sc[0],&sd[0],MPI_DOUBLE,
-                  X.rbuf.empty()?&dummy:&X.rbuf[0],&rc[0],&rd[0],MPI_DOUBLE,reef3d_comm());
+    xchg(X.sbuf.empty()?&dummy:&X.sbuf[0],&sc[0],&sd[0],X.rbuf.empty()?&dummy:&X.rbuf[0],&rc[0],&rd[0]);
+}
+
+void reefamr3d::xchg(const double *sb, const int *sc, const int *sd, double *rb, const int *rc, const int *rd)
+{
+    // a collective per fill waited for every rank; the messages go only to the ranks with items
+    vector<MPI_Request> rq;
+    rq.reserve(2*nranks);
+    for(int r=0; r<nranks; ++r)
+    if(r!=myrank && rc[r]>0)
+    {
+        rq.emplace_back();
+        MPI_Irecv(rb+rd[r],rc[r],MPI_DOUBLE,r,3171,reef3d_comm(),&rq.back());
+    }
+    for(int r=0; r<nranks; ++r)
+    if(r!=myrank && sc[r]>0)
+    {
+        rq.emplace_back();
+        MPI_Isend(sb+sd[r],sc[r],MPI_DOUBLE,r,3171,reef3d_comm(),&rq.back());
+    }
+    if(sc[myrank]>0)
+    std::copy(sb+sd[myrank],sb+sd[myrank]+sc[myrank],rb+rd[myrank]);
+    if(!rq.empty())
+    MPI_Waitall((int)rq.size(),rq.data(),MPI_STATUSES_IGNORE);
 }

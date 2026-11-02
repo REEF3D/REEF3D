@@ -1,0 +1,18 @@
+{
+ "description": "REEF3D::HYDRO point source (R 40, 0.5 m3/s) into a dry closed basin, semi-implicit: the water spreads from one cell, the budget closes to round-off.",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 60,
+ "tags": [
+  "quick",
+  "2d",
+  "sflow",
+  "hydro",
+  "semi_implicit",
+  "wetdry"
+ ],
+ "covers": [
+  "R 40 point sources: the cell of a point (lexer::geo_cell), the source rate",
+  "the wetting of a dry cell by its own depth and of its neighbours"
+ ]
+}

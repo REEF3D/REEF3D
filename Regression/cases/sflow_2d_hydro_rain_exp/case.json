@@ -1,0 +1,17 @@
+{
+ "description": "REEF3D::HYDRO rain-on-grid (R 10 1) on a dry closed basin, explicit (HLL): the rain in the continuity of every RK stage (sflow_eta::update), the donor-cell limiter of the face mass fluxes (sflow_eta::hydro_limit).",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 60,
+ "tags": [
+  "quick",
+  "2d",
+  "sflow",
+  "hydro",
+  "wetdry"
+ ],
+ "covers": [
+  "the rain source in sflow_eta::update",
+  "sflow_eta::hydro_limit"
+ ]
+}

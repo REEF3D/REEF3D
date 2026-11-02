@@ -1093,7 +1093,7 @@ void cfd_amr::fill_cells(int l, int nv, const std::function<double*(int,int)> &p
             sc[r] = C.scnt[r]*nv; sd[r] = C.sdsp[r]*nv;
             rc[r] = C.rcnt[r]*nv; rd[r] = C.rdsp[r]*nv;
         }
-        MPI_Alltoallv(C.sbuf.data(),sc.data(),sd.data(),MPI_DOUBLE,C.rbuf.data(),rc.data(),rd.data(),MPI_DOUBLE,reef3d_comm());
+        xchg(C.sbuf.data(),sc.data(),sd.data(),C.rbuf.data(),rc.data(),rd.data());
     }
 
     const size_t nl = C.dq.size();

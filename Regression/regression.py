@@ -92,6 +92,7 @@ TEXT_OUTPUT_GLOBS = [
     "REEF3D_NHFLOW_Log/REEF3D_NHFLOW_tracer*.dat",   # tracers (A 600): log and gauges
     "REEF3D_DEM/*.dat",
     "REEF3D_SFLOW_AMR/*.dat",
+    "REEF3D_SFLOW_Log/REEF3D-SFLOW-Hydro-Budget.dat",   # REEF3D::HYDRO volume budget (R 10 - R 50)
     "REEF3D_FNPF_AMR/*.dat",
     "REEF3D_FNPF_WSF/*.dat",
     "REEF3D_FNPF_ProbePoint/*.dat",

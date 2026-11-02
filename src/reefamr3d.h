@@ -316,6 +316,10 @@ protected:
 
     void build_lexer(r3patch&);
     void xrun(r3xplan&, int);
+    // the exchange of a plan with counts and displacements per rank (doubles), as MPI_Alltoallv but
+    // point to point with only the ranks that send or receive (a fill reaches the neighbouring
+    // ranks), the part of this rank copied; every rank calls it in the same order (tag 3171)
+    void xchg(const double *sb, const int *sc, const int *sd, double *rb, const int *rc, const int *rd);
 
 private:
     void global_nodes();
