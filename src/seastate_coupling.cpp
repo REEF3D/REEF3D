@@ -92,6 +92,8 @@ void seastate_coupling::ini_wave(lexer *p, ghostcell *pgc, const char *host)
     {
     seastate_source_param prm = pwave->source()->param();
     prm.wind = prm.wind && (remote ? host_wind : (p->W200>0 || p->A570>0));
+    // the net source: the DIA into S as usual (A 769 2 integrates it in the solver)
+    prm.dia_mp = false;
 
     if(pwave->roller()!=nullptr)
     prm.breaking = false;

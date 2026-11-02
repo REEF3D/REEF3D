@@ -65,6 +65,13 @@ the mean frequency sig_-1,0 / 2 pi otherwise; none where u* = 0.
 Bounds that scale with the wind and the time step, which do not hold
 the growth back as the SWAN limiter does at large time steps (Dropbox
 SEASTATE/validation/78_limiter).
+A 769 2 (Phase 25, Komen A 732 1, nonstationary): no limiter. The DIA as a
+production-destruction system per interaction, conservative in action
+(modified Patankar, Burchard et al. 2003; dia_mp): the donors lose
+implicitly, the receivers gain the transfer times the ratio N_new/N of
+the donors, two passes per solve of a cell (seastate_implicit::cell),
+so N stays positive at any time step; the whitecapping linearised with
+its degree in N (wc_newton: D += (q-1) w, P += (q-1) w N, the same S).
 
 The formulations and default coefficients follow SWAN 41.51 (routines
 in brackets):
@@ -158,8 +165,10 @@ struct seastate_source_param
                                          // swell damping, saturation-based whitecapping, u* from the wave stress, diagnostic tail
     seastate_st4_param st4p;
     bool dia = false;                    // quadruplets
+    bool dia_mp = false;                 // A 769 2: the DIA by dia_mp() (conservative modified Patankar), not into P and D
     double limiter = 0.1;                // action density limiter gamma with komen, 0: off
     int limiter_type = 0;                // 0 SWAN (Ris 1997), 1 Hersbach and Janssen (1999) as ecWAM (A 769 1)
+    bool wc_newton = false;              // whitecapping linearised with the degree q of the term in N (Phase 25)
     double limiter_dt = 0.0;             // the time step [s] of the Hersbach-Janssen limiter
 
     bool breaking = false;
@@ -216,6 +225,13 @@ public:
     // total energy (gamma d)^2/4 (tail included, as SWAN SINTGRL); true if it was scaled
     bool cap(float *N, double depth) const;
 
+    // A 769 2 (prm.dia_mp, Phase 25): the DIA of the last compute as a conservative production-destruction system per
+    // interaction (modified Patankar): Lr the loss rate of every bin [1/s] (the donors, implicit), G the gain [N/s] with
+    // the transfer of each interaction times the ratio r = N_new/N of its donors (N the spectrum of the compute); the
+    // bins of the window of the compute complete
+    // gains_only: G alone, Lr as it is (the second pass: the loss rates do not depend on r)
+    void dia_mp(const float *N, const double *r, double *G, double *Lr, bool gains_only=false) const;
+
     // single terms as dN/dt [N/s], for tests and diagnostics (S of size nbin, overwritten)
     void quadruplets(const float *N, double depth, const float *k, double *S, double *dSdN = nullptr);
     void triads(const float *N, double depth, const float *k, const float *cg, double *S);
@@ -264,6 +280,10 @@ public:
 
 private:
     double hjs = 0.0;                   // A 769 1: u* f_ref of the last compute (or taken)
+    int mp_l0 = 0, mp_l1 = -1, mp_m0 = 0, mp_m1 = -1;   // A 769 2: the centres of the last dia()
+    std::vector<double> rsg;            // 1/(2 pi sig)
+    mutable std::vector<int> mpW;       // A 769 2: the bin direction of each padded direction, -1 none
+    mutable std::vector<double> mpR, mpG, mpL, mpA;   // A 769 2: padded rows of the ratios, gains and loss rates; rates
     void hj_limits(int la, int lb);     // A 769 1: dNmax of the frequencies la..lb from hjs
     void moments(const float *N, double depth, const float *k);
     void dia(const float *N, double depth);

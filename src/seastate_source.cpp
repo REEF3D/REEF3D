@@ -61,6 +61,9 @@ seastate_source::seastate_source(const seastate_grid &grid, const seastate_sourc
 
     S.assign(nbin,0.0);
     L.assign(nbin,0.0);
+    rsg.resize(nsig);
+    for(int l=0; l<nsig; ++l)
+    rsg[l] = 1.0/(2.0*pi*g.sig[l]);
     dNmax.assign(nsig,0.0);
     EL.assign(nsig,0.0);
     VE.assign(nsig,0.0);
@@ -452,10 +455,26 @@ void seastate_source::compute(const float *N, double depth, const float *k, cons
             const double fbr = 0.5*(1.0 + std::tanh(10.0*(std::sqrt(B/prm.br) - 1.0)));
             const double pp = 3.0 + std::tanh(25.76*(ustar*kl/sig - 0.1));
             const double fac1 = std::pow(B/prm.br,0.5*pp), fac2 = std::sqrt(seastate_gravity*kl);
-            const double w = fbr*prm.cds2*fac1*std::pow(fac2/sig,0.5*pp-1.0)*fac2 + (1.0-fbr)*ck*sigm_10*(kl/km_wam);
+            const double wb_ = fbr*prm.cds2*fac1*std::pow(fac2/sig,0.5*pp-1.0)*fac2, wn = (1.0-fbr)*ck*sigm_10*(kl/km_wam);
+            const double w = wb_ + wn;
 
+            // Phase 25 (wc_newton): the derivative of w N along N of the row, w + dw/dlnN: the breaking part of degree
+            // 1 + pp/2 in N (B ~ N) with the switch f_br (its derivative B dfbr/dB), the non-breaking part of degree 3
+            // (ck ~ E^2) less the switch; wq = dw/dlnN >= 0
+            double wq = 0.0;
+            if(prm.wc_newton)
+            {
+            const double th = std::tanh(10.0*(std::sqrt(B/prm.br) - 1.0));
+            const double bdf = 2.5*(1.0 - th*th)*std::sqrt(B/prm.br);
+            const double base = (fbr>0.0) ? wb_/fbr : 0.0;      // fbr cds2 (B/Br)^(pp/2) ... / fbr
+            wq = std::max(0.0,0.5*pp*wb_ + bdf*base + 2.0*wn - ((1.0-fbr)>0.0 ? bdf*wn/(1.0-fbr) : 0.0));
+            }
             for(int m=wa; m<=wb; ++m)
-            D[g.bin(l,m)] += w;
+            {
+            const int b = g.bin(l,m);
+            D[b] += w + wq;
+            P[b] += wq*double(N[b]);
+            }
             }
         }
 
@@ -470,6 +489,16 @@ void seastate_source::compute(const float *N, double depth, const float *k, cons
             const double r = double(k[l])/km_wam;
             const double w = ck*r*sigm_10*r;
 
+            // Phase 25 (wc_newton): S = -w N is of degree 3 in N (w ~ E^2); the diagonal of its derivative for the
+            // spectrum scaled as a whole, -3 w, in D, the difference to -w N in P (the same S at N)
+            if(prm.wc_newton)
+            for(int m=wa; m<=wb; ++m)
+            {
+            const int b = g.bin(l,m);
+            D[b] += 3.0*w;
+            P[b] += 2.0*w*double(N[b]);
+            }
+            else
             for(int m=wa; m<=wb; ++m)
             D[g.bin(l,m)] += w;
             }
@@ -805,6 +834,14 @@ void seastate_source::dia(const float *N, double depth)
     for(int n=0; n<8; ++n)
     swg[n] = awg[n]*awg[n];
 
+    // A 769 2: the centres of this compute for dia_mp(); the transfers go there, not into S and L
+    mp_l0 = l0;
+    mp_l1 = l1;
+    mp_m0 = s0;
+    mp_m1 = s1;
+    if(prm.dia_mp)
+    return;
+
     // the transfers into the bins of the window of this compute (the quadrant of the sweep)
     const int nw = wb-wa+1;
 
@@ -841,6 +878,7 @@ void seastate_source::dia(const float *N, double depth)
 
         Sl[n] += sfnl*rsigpi;
 
+
         // diagonal derivative dS/dN = d sfnl/dE(f,theta) (SWAN DSNL)
         const double dsnl = -2.0*(c1[n] + c2[n])
             + swg[0]*(p1p1[n-idp1] + p2p1[n+idp1])
@@ -853,6 +891,177 @@ void seastate_source::dia(const float *N, double depth)
             + swg[7]*(m1m0[n+idm ] + m2m0[n-idm ]);
 
         Ll[n] += dsnl;
+        }
+    }
+}
+
+// A 769 2 (Phase 25): the DIA of the last compute as a production-destruction system per interaction, conservative in
+// action (modified Patankar, Burchard et al. 2003). For the transfer d = SA of the interaction centred at (l, m):
+//   d > 0: the centre gives 2 d (in E), its loss rate 2 d / E_c on the diagonal; the eight side bins take the action
+//          the centre loses, times the ratio r = N_new/N of the centre, shared as the weights of the standard DIA
+//          (awg / (2 pi sig) per bin, times the bin width);
+//   d < 0: each side gives |d| from its four bins in proportion to their weight of the interpolated energy E_side, the
+//          loss rate |d| / E_side for the four on the diagonal; the centre takes the action they lose, times their r.
+// A centre above the grid (the tail rows of SA) is not a bin: with d > 0 nothing, with d < 0 its sides lose |d| (to
+// the tail beyond the grid, as in the standard DIA, where the tail takes it). The centres
+// are those of the last dia() (the rows and directions of its window, each direction once); the gains and losses
+// of the bins of that window are complete. With r = 1, G - Lr N is the DIA with the gains of each interaction scaled
+// to its loss (the action of the standard discrete DIA differs from it by its interpolation on the logarithmic grid).
+void seastate_source::dia_mp(const float *N, const double *r, double *G, double *Lr, bool gains_only) const
+{
+    (void)N;    // E from UE of the last dia() (the spectrum N of that compute)
+    std::fill(G,G+nbin,0.0);
+    if(!gains_only)
+    std::fill(Lr,Lr+nbin,0.0);
+    if(!(mp_l1>=mp_l0))
+    return;
+
+    // the interactions centred at the rows mp_l0..mp_l1 and the directions c0..c1 (unwrapped, each direction once) of
+    // the last dia(); E = 2 pi sig N from its padded rows UE (E+ and E- of an interaction are those of dia()); the gains
+    // and the losses into padded rows (directions -2 dpad .. ndir-1+2 dpad), folded onto the bins at the end
+    const int c0 = mp_m0, c1 = (mp_m1-mp_m0+1>=ndir) ? mp_m0+ndir-1 : mp_m1, nc = c1-c0+1;
+    const int pw = ndir + 4*dpad, po = 2*dpad;
+    const double dth = g.dtheta;
+    const int lr[8] = {isp1,isp1,isp,isp,ism1,ism1,ism,ism};
+    const int dr[8] = {idp1,idp,idp1,idp,-idm1,-idm,-idm1,-idm};
+    auto uep = [&](int l, int m) {return &UE[size_t(l+uoff)*uw + size_t(m+2*dpad)];};
+
+    // the bin of each padded direction (periodic, or -1 beyond a compact sector)
+    if(int(mpW.size())!=pw)
+    {
+    mpW.resize(pw);
+        for(int m=-po; m<ndir+po; ++m)
+        {
+        const int mm = g.periodic ? dw(m) : m;
+        mpW[m+po] = (mm>=0 && mm<ndir) ? mm : -1;
+        }
+    }
+    const int *__restrict wi = mpW.data();
+
+    // the ratios of the bins with the padding of the directions (0 beyond a compact sector)
+    mpR.assign(size_t(nsig)*pw,0.0);
+    mpG.assign(size_t(nsig)*pw,0.0);
+    if(!gains_only)
+    mpL.assign(size_t(nsig)*pw,0.0);
+    for(int l=0; l<nsig; ++l)
+    {
+    const double *rl = r + g.bin(l,0);
+    double *ql = &mpR[size_t(l)*pw];
+        for(int x=0; x<pw; ++x)
+        ql[x] = (wi[x]>=0) ? rl[wi[x]] : 0.0;
+    }
+
+    for(int l=mp_l0; l<=mp_l1; ++l)
+    {
+    const bool top = (l>=nsig);
+    const double wc = top ? 0.0 : g.dsig[l]*dth;
+    const double rsc = top ? 0.0 : rsg[l];
+
+    // the row constants of the eight sides: the share of the gain of a side bin (action, as the weights of the standard
+    // DIA, awg/(2 pi sig) times the bin width) and h = the action of a side bin per E over the width of the centre
+    bool ok[8];
+    double c[8], h[8], sw = 0.0;
+        for(int k=0; k<8; ++k)
+        {
+        const int ls = l + lr[k];
+        ok[k] = (ls>=0 && ls<nsig);
+        c[k] = ok[k] ? awg[k]*rsg[ls] : 0.0;
+        sw += ok[k] ? c[k]*g.dsig[ls]*dth : 0.0;
+        h[k] = (ok[k] && !top) ? rsg[ls]*g.dsig[ls]*dth/wc : 0.0;
+        }
+    const double cg2 = (sw>0.0 && !top) ? 2.0*rsc*wc/sw : 0.0;
+
+    for(int q=0; q<2; ++q)
+    {
+    const double *sa = &((q==0) ? SA1 : SA2)[sx(l,c0)];
+    const int sg = (q==0) ? 1 : -1;
+    const double *ec = top ? nullptr : uep(l,c0);
+    const double *rc = top ? nullptr : &mpR[size_t(l)*pw + c0+po];
+    const double *es[8];
+    const double *rs[8];
+    double *gs[8], *ls_[8];
+        for(int k=0; k<8; ++k)
+        {
+        const int ls = l + lr[k];
+        es[k] = uep(ls,c0+sg*dr[k]);
+        rs[k] = ok[k] ? &mpR[size_t(ls)*pw + c0+sg*dr[k]+po] : nullptr;
+        gs[k] = ok[k] ? &mpG[size_t(ls)*pw + c0+sg*dr[k]+po] : nullptr;
+        ls_[k] = (ok[k] && !gains_only) ? &mpL[size_t(ls)*pw + c0+sg*dr[k]+po] : nullptr;
+        }
+    double *gc = top ? nullptr : &mpG[size_t(l)*pw + c0+po];
+    double *lc = (top || gains_only) ? nullptr : &mpL[size_t(l)*pw + c0+po];
+
+        mpA.resize(size_t(3*nc));
+        double *__restrict ap = mpA.data(), *__restrict am = ap + nc, *__restrict dq = am + nc;
+
+        // d > 0: the centre gives, the sides take (d r of the centre first)
+        if(!top)
+        {
+            #pragma GCC ivdep
+            for(int n=0; n<nc; ++n)
+            dq[n] = (sa[n]>0.0 && ec[n]>0.0) ? sa[n]*rc[n] : 0.0;
+
+            for(int k=0; k<8; ++k)
+            if(ok[k])
+            {
+            const double f = cg2*c[k];
+            double *__restrict gk = gs[k];
+                #pragma GCC ivdep
+                for(int n=0; n<nc; ++n)
+                gk[n] += f*dq[n];
+            }
+
+            if(lc!=nullptr)
+            #pragma GCC ivdep
+            for(int n=0; n<nc; ++n)
+            lc[n] += (sa[n]>0.0 && ec[n]>0.0) ? 2.0*sa[n]/ec[n] : 0.0;
+        }
+
+        // d < 0: the sides give in proportion to their weight of E+ (E-), the centre takes their action (vectorised over
+        // the directions: the rates |d|/E+ and |d|/E- first)
+            #pragma GCC ivdep
+            for(int n=0; n<nc; ++n)
+            {
+            const double dm = (sa[n]<0.0) ? -sa[n] : 0.0;
+            const double ep = awg[0]*es[0][n] + awg[1]*es[1][n] + awg[2]*es[2][n] + awg[3]*es[3][n];
+            const double em = awg[4]*es[4][n] + awg[5]*es[5][n] + awg[6]*es[6][n] + awg[7]*es[7][n];
+            ap[n] = (ep>0.0) ? dm/ep : 0.0;
+            am[n] = (em>0.0) ? dm/em : 0.0;
+            }
+        for(int k=0; k<8; ++k)
+        if(ok[k])
+        {
+        const double *__restrict ak = (k<4) ? ap : am;
+        const double *__restrict ek = es[k], *__restrict rk = rs[k];
+            if(ls_[k]!=nullptr)
+            {
+            double *__restrict lk = ls_[k];
+                #pragma GCC ivdep
+                for(int n=0; n<nc; ++n)
+                lk[n] += ak[n];
+            }
+            if(gc!=nullptr)
+            {
+            const double hk = h[k];
+                #pragma GCC ivdep
+                for(int n=0; n<nc; ++n)
+                gc[n] += ak[n]*hk*ek[n]*rk[n];
+            }
+        }
+    }
+    }
+
+    // fold the padding onto the bins
+    for(int l=0; l<nsig; ++l)
+    {
+    const double *gp = &mpG[size_t(l)*pw], *lp = gains_only ? nullptr : &mpL[size_t(l)*pw];
+    double *Gl = G + g.bin(l,0), *Ll = Lr + g.bin(l,0);
+        for(int x=0; x<pw; ++x)
+        if(wi[x]>=0)
+        {
+        Gl[wi[x]] += gp[x];
+            if(lp!=nullptr)
+            Ll[wi[x]] += lp[x];
         }
     }
 }

@@ -2193,6 +2193,26 @@ void seastate_implicit::cell(lexer *p, fdm_seastate *e, int q, int ci, int cj, c
         }
     };
 
+    // A 769 2 (Phase 25): the DIA as a conservative production-destruction system (seastate_source::dia_mp), first with
+    // the ratios r = 1: the loss rates of the donors in D, the gains in P; after the solve a second pass with the
+    // ratios N_new/N of the solve (below)
+    const bool dmp = (src!=nullptr && src->param().dia_mp && setot>0.0);
+    if(dmp)
+    {
+    mpN.assign(N,N+g.nbin);
+    mpR.assign(g.nbin,1.0);
+    mpG.resize(g.nbin);
+    mpL.resize(g.nbin);
+    src->dia_mp(mpN.data(),mpR.data(),mpG.data(),mpL.data());
+        for(int l=lmin; l<=lmax; ++l)
+        for(int n=wlo[l]; n<=whi[l]; ++n)
+        {
+        const int b = g.bin(l,ma+n);
+        P[b] += mpG[b];
+        D[b] += mpL[b];
+        }
+    }
+
     for(int l=lmin; l<=lmax; ++l)
     if(wlo[l]<=whi[l])
     assemble(l,wlo[l],whi[l]);
@@ -2358,14 +2378,9 @@ void seastate_implicit::cell(lexer *p, fdm_seastate *e, int q, int ci, int cj, c
 
     // C: forward and back substitution. Without frequency shift the frequencies are independent;
     // with it, the inflow from l-1 takes the value just solved (Gauss-Seidel in sigma)
-    if(sparse)
-    for(int l=lmin; l<=lmax; ++l)
+    auto substitute = [&]()
     {
-    solve1(l);
-    store(N,l,ma,nq,lim!=nullptr ? lim[l] : -1.0,so);
-    widen(l);
-    }
-    else if(!fs)
+    if(!fs)
     {
         for(int n=wmin; n<=wmax; ++n)
         for(int l=lmin; l<=lmax; ++l)
@@ -2413,6 +2428,45 @@ void seastate_implicit::cell(lexer *p, fdm_seastate *e, int q, int ci, int cj, c
         }
 
     store(N,l,ma,nq,lim!=nullptr ? lim[l] : -1.0,so);
+    }
+    };
+
+    if(sparse)
+    for(int l=lmin; l<=lmax; ++l)
+    {
+    solve1(l);
+    store(N,l,ma,nq,lim!=nullptr ? lim[l] : -1.0,so);
+    widen(l);
+    }
+    else
+    {
+        if(dmp)
+        mpH.assign(trh.begin(),trh.end());
+
+    substitute();
+
+        // A 769 2: the second pass, the gains with the ratios N_new/N of the first solve (the loss rates and the
+        // matrix stay; the right-hand side changes by the change of the gains)
+        if(dmp)
+        {
+            for(int l=lmin; l<=lmax; ++l)
+            for(int n=wlo[l]; n<=whi[l]; ++n)
+            {
+            const int b = g.bin(l,ma+n);
+            mpR[b] = (mpN[b]>0.0f) ? double(N[b])/double(mpN[b]) : 1.0;
+            }
+        mpG2.resize(g.nbin);
+        src->dia_mp(mpN.data(),mpR.data(),mpG2.data(),mpL.data(),true);
+        std::copy(mpH.begin(),mpH.end(),trh.begin());
+            for(int l=lmin; l<=lmax; ++l)
+            for(int n=wlo[l]; n<=whi[l]; ++n)
+            {
+            const int b = g.bin(l,ma+n);
+            trh[size_t(l)*ndir+n] += mpG2[b] - mpG[b];
+            P[b] += mpG2[b] - mpG[b];
+            }
+        substitute();
+        }
     }
 
         // ST4 (A 732 3): the diagnostic tail above the cut-off of the source terms of this solve

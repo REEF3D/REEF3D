@@ -442,6 +442,8 @@ private:
     vector<float> zero;                 // zero spectrum (no inflow)
     vector<double> zerod;               // zero source terms
     vector<double> tdi, tla, tup, trh, tsi, trd, tcp, tdp, tso;   // theta systems of all frequencies [l*ndir+n]
+    vector<double> mpG, mpG2, mpL, mpR, mpH;   // A 769 2: the gains of the two passes, the loss rates, r, trh before C
+    vector<float> mpN;                          // A 769 2: the spectrum of the source terms of the cell
     vector<int> tok;                    // per frequency: 0 after a vanishing pivot
     void store(float *N, int l, int ma, int nq, double dmax, bool clip);
     const double *nup = nullptr;            // ST4: upper bound of N per frequency (ecWAM FLMAX), nullptr: none
