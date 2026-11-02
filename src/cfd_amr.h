@@ -469,9 +469,11 @@ private:
 
     // CPM on the grid of the finest level over the region of the mobile bed (Q 85, G 15; cfd_amr_cpm.cpp):
     // the plans of the fluid onto it (cpm_plans) and of the bed and the drag onto the grids (cpm_bplans),
-    // made again at a regrid (cpm_regrid); G 27: the mobile columns, the flag of a cell near them
+    // made again at a regrid (cpm_regrid); the weights of its partition; G 27: the mobile columns, the flag
+    // of a cell near them; its checkpoints
     cfd_amr_cpm *cpm = nullptr;
     void cpm_setup(lexer*, fdm*, ghostcell*);
+    void cpm_weights(std::vector<double>&);
     void cpm_plans();
     void cpm_bplans();
     void cpm_kfields();
@@ -483,6 +485,8 @@ private:
     void cpm_href();
     void cpm_mobile();
     bool cpm_flag(int g, int i, int j, int k);
+    void cpm_ckpt_write(reefckpt&);
+    bool cpm_ckpt_read(reefckpt&, std::string&);
 
     // the registry of the patch state (cfd_amr_fields.cpp)
     vector<cfd_amr_field> reg;

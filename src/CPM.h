@@ -136,8 +136,10 @@ public:
     void continuity_source(lexer*, ghostcell*);
     void coupling_reset(lexer*, ghostcell*);
     field4a Dsrc;
-    // CPM on the CFD mesh refinement (cfd_amr_cpm.cpp): the coupling fields (0 Kc, 1-3 KUx, KUy, KUz)
+    // CPM on the CFD mesh refinement (cfd_amr_cpm.cpp): the coupling fields (0 Kc, 1-3 KUx, KUy, KUz), the
+    // active parcels of every cell of the rank ((i knoy + j) knoz + k)
     field4a& coupling_field(int m) { return m==0 ? Kc : (m==1 ? KUx : (m==2 ? KUy : KUz)); }
+    void parcels_per_cell(lexer*, std::vector<double>&);
     // the bed shear stress of column (i,j): of the bedload layer (Q 58 > 0), else of the bed shear model (tau_eff)
     double column_tau(lexer*, sediment_fdm*, int, int);
     // the least reference height of the bed shear stress of the layer per column (i knoy + j), in cells above the

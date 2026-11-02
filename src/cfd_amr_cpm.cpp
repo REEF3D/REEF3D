@@ -47,9 +47,14 @@ Architect: Hans Bihs
 #include"mgcslice1.h"
 #include"mgcslice2.h"
 #include"mgcslice4.h"
+#include"reefckpt.h"
+#include"ckpt_registry.h"
 #include<cmath>
 #include<iostream>
+#include<fstream>
+#include<sstream>
 #include<algorithm>
+#include<sys/stat.h>
 
 /*--------------------------------------------------------------------
 CPM on the CFD mesh refinement (validation 25: the design note; validations 29, 30).
@@ -58,11 +63,13 @@ The grid of CPM. The region of the mobile bed, Q 85 xs xe ys ye zs ze (else the 
 boxes G 15), widened to whole cells of level 0: its cells of the finest level L make a regular grid.
 Its global grid file (the format of DIVEMesh M 50, gridfile_v2.h: the nodes of level L, all cells
 fluid, the sides walls, periodic where level 0 is periodic and the region spans the domain) is built
-in memory and decomposed over all ranks by dmpart, as REEF3D M 40 does for level 0. Every rank builds
-the lexer (the grid read from memory), the ghostcell (its own communicator) and the fdm of its piece,
-and on them the objects of the sediment step of a CFD run: sediment_part (CPM), the reinitialisation
-of the bed, an ioflow without function, a solver (BiCGStab with the Eulerian suspension of the layer,
-Q 58 3, 4; else none), and a turbulence model that holds k and its dissipation (copied).
+in memory and decomposed over all ranks by dmpart, as REEF3D M 40 does for level 0: by the cells, or
+weighted by the parcels where the bed is uneven (the bed of level 0 at the start; the parcels of the
+columns at the last checkpoint at a rebalance restart, M 41 1). Every rank builds the lexer (the grid
+read from memory), the ghostcell (its own communicator) and the fdm of its piece, and on them the
+objects of the sediment step of a CFD run: sediment_part (CPM), the reinitialisation of the bed, an
+ioflow without function, a solver (BiCGStab with the Eulerian suspension of the layer, Q 58 3, 4; else
+none), and a turbulence model that holds k and its dissipation (copied).
 
 The fluid. Every cell of the grid of CPM with its margin (global index of level L, wrapped at the
 periodic sides) takes the fluid of the finest grid that holds it: a patch of level L as it is, a patch
@@ -98,9 +105,13 @@ flags the cells near a mobile bed: the columns of CPM whose bed shear stress is 
 critical one or whose bed has moved by a cell of CPM since the start, the cells of them within two cells
 of the bed.
 
-Not covered (cfd_amr::cpm_why): subcycling (G 7 1), the placement of the patches (G 40 1, 2), checkpoints
-and the hotstart (P 48, I 45, I 40), floating bodies (X 10), S 10 2. The outputs of CPM (the parcels
-Q 180, the log of CPM) come from the grid of CPM; level 0 writes no bed of its own.
+Checkpoints (P 48, I 45): the arrays of the grid of CPM (its registry) with its piece, the scalars of its
+sediment objects and run, its parcels (CPM::ckpt_rank_state); on another decomposition the cells from
+the pieces that hold them, the parcels by position.
+
+Not covered (cfd_amr::cpm_why): subcycling (G 7 1), the placement of the patches (G 40 1, 2), the hotstart
+from state files (I 40), floating bodies (X 10), S 10 2. The outputs of CPM (the parcels Q 180, the log of
+CPM) come from the grid of CPM; level 0 writes no bed of its own.
 --------------------------------------------------------------------*/
 
 namespace
@@ -229,6 +240,15 @@ void locate_cell(const lexer *q, int d, double x, int &i0, double &w0)
         w0 = 0.0;
     }
 }
+
+// the parcels of the columns of the grid of CPM at the last checkpoint (the weights of its partition at a
+// rebalance restart, M 41 1)
+const char *parcel_file = "./REEF3D_CFD_AMR/REEF3D_CFD_AMR_CPM_parcels.dat";
+
+// the work of a parcel against a cell of the grid of CPM in a step (the weights of its partition): a parcel of a
+// bed at rest 0.22 cells (the flume of validation 30, CPU time with 4 times the parcels and with twice the cells),
+// a moving one about three times that (validation 22), 90 % of them asleep in a bedload run
+const double parcel_work = 0.25;
 }
 
 // --------------------------------------------------------------------- scope
@@ -245,8 +265,8 @@ const char* cfd_amr::cpm_why(lexer *p)
     return "CPM: the patches on the ranks of the level-0 cells below (G 40 0)";
     if(p->G12>0)
     return "CPM: no refinement zone of the floating bodies (G 12)";
-    if(p->P48>0 || p->P48_dt>0.0 || p->I45==1 || p->I40==1)
-    return "CPM: no checkpoints or hotstart (P 48, I 45, I 40)";
+    if(p->I40==1)
+    return "CPM: no hotstart from the state files (I 40); the checkpoints (P 48, I 45) are there";
     if(p->X10>0)
     return "CPM: no floating bodies (X 10 0)";
     return nullptr;
@@ -360,6 +380,99 @@ static std::vector<char> cpm_box_grid(lexer *p0, const int *n, const std::vector
     return std::move(w.buf);
 }
 
+// the weights of the cells of the grid of CPM for its partition, (i n1 + j) n2 + k; empty: by the cells.
+// A rebalance restart (M 41 1): the parcels of the columns at the last checkpoint; else the bed of
+// level 0 at the start (the cells of a column below it hold Q 24 parcels each). Collective.
+void cfd_amr::cpm_weights(std::vector<double> &w)
+{
+    cfd_amr_cpm *C = cpm;
+    const int n0 = C->n[0], n1 = C->n[1], n2 = C->n[2];
+    std::vector<double> col((size_t)n0*n1,0.0);     // parcels of the columns
+    int ok = 0;
+
+    if(p0->M41==1)
+    {
+        if(myrank==0)
+        {
+            std::ifstream in(parcel_file);
+            int a=-1, b=-1;
+            std::string line;
+            std::vector<double> v;
+            while(in && std::getline(in,line))
+            {
+                if(line.empty() || line[0]=='#')
+                continue;
+                std::istringstream ls(line);
+                if(a<0)
+                {
+                    ls>>a>>b;
+                    continue;
+                }
+                double x;
+                while(ls>>x)
+                v.push_back(x);
+            }
+            if(a==n0 && b==n1 && v.size()==(size_t)n0*n1)
+            {
+                col = v;
+                ok = 1;
+            }
+        }
+        MPI_Bcast(&ok,1,MPI_INT,0,reef3d_comm());
+        if(ok)
+        MPI_Bcast(col.data(),(int)col.size(),MPI_DOUBLE,0,reef3d_comm());
+        if(myrank==0)
+        cout<<"CPM on the mesh refinement: "<<(ok ? "the partition of its grid weighted by the parcels of the last checkpoint" : "no parcels of a checkpoint for its partition ("+std::string(parcel_file)+")")<<endl;
+    }
+
+    if(!ok)
+    {
+        // the bed of level 0: its cells in the region below the bed, per column of level 0 in the region
+        int R[3], b0[3], bn[3];
+        for(int d=0; d<3; ++d)
+        {
+            R[d] = ratio(C->L,d);
+            b0[d] = C->lo[d]/R[d];
+            bn[d] = C->n[d]/R[d];
+        }
+        std::vector<double> c0((size_t)bn[0]*bn[1],0.0);
+        for(int i=0; i<p0->knox; ++i)
+        for(int j=0; j<p0->knoy; ++j)
+        {
+            const int I = i+org[0]-b0[0], J = j+org[1]-b0[1];
+            if(I<0 || I>=bn[0] || J<0 || J>=bn[1])
+            continue;
+            for(int k=0; k<p0->knoz; ++k)
+            {
+                const int K = k+org[2]-b0[2];
+                if(K>=0 && K<bn[2] && a0->topo(i,j,k)<0.0)
+                c0[(size_t)I*bn[1]+J] += 1.0;
+            }
+        }
+        MPI_Allreduce(MPI_IN_PLACE,c0.data(),(int)c0.size(),MPI_DOUBLE,MPI_SUM,reef3d_comm());
+        for(int i=0; i<n0; ++i)
+        for(int j=0; j<n1; ++j)
+        col[(size_t)i*n1+j] = c0[(size_t)(i/R[0])*bn[1]+j/R[1]]*R[2]*double(MAX(p0->Q24,1));
+    }
+
+    // the same in every column: by the cells
+    double cmin = col[0], cmax = col[0];
+    for(double v : col)
+    {
+        cmin = MIN(cmin,v);
+        cmax = MAX(cmax,v);
+    }
+    w.clear();
+    if(cmax-cmin<=1.0e-9*MAX(cmax,1.0))
+    return;
+
+    w.assign((size_t)n0*n1*n2,1.0);
+    for(int i=0; i<n0; ++i)
+    for(int j=0; j<n1; ++j)
+    for(int k=0; k<n2; ++k)
+    w[((size_t)i*n1+j)*n2+k] = 1.0 + parcel_work*col[(size_t)i*n1+j]/double(n2);
+}
+
 void cfd_amr::cpm_setup(lexer *p, fdm *a, ghostcell *pgc)
 {
     cfd_amr_cpm *C = cpm = new cfd_amr_cpm;
@@ -423,6 +536,10 @@ void cfd_amr::cpm_setup(lexer *p, fdm *a, ghostcell *pgc)
     C->px = (per[0] && C->lo[0]==0 && C->n[0]==gn(C->L,0)) ? 1 : 0;
     C->py = (per[1] && C->lo[1]==0 && C->n[1]==gn(C->L,1)) ? 1 : 0;
 
+    // the weights of its partition
+    std::vector<double> wcell;
+    cpm_weights(wcell);
+
     // the global grid file, decomposed by rank 0, the grid file of every rank sent to it
     vector<char> mine;
     {
@@ -439,7 +556,7 @@ void cfd_amr::cpm_setup(lexer *p, fdm *a, ghostcell *pgc)
             vector<char> glob = cpm_box_grid(p,C->n,X,C->px,C->py,nranks);
             vector<vector<char>> rb;
             string msg;
-            if(!dmpart::build_mem(std::move(glob),nranks,rb,msg))
+            if(!dmpart::build_mem(std::move(glob),nranks,rb,msg,wcell.empty() ? nullptr : &wcell))
             {
                 cout<<endl<<"!!! CPM on the mesh refinement: the decomposition of its grid: "<<msg<<" !!!"<<endl<<endl;
                 ok = 0;
@@ -554,7 +671,7 @@ void cfd_amr::cpm_setup(lexer *p, fdm *a, ghostcell *pgc)
     cout<<"CPM on the mesh refinement: the grid of level "<<C->L<<", "<<C->n[0]<<" x "<<C->n[1]<<" x "<<C->n[2]<<" cells from ("
         <<node(C->L,0,C->lo[0])<<", "<<node(C->L,1,C->lo[1])<<", "<<node(C->L,2,C->lo[2])<<") to ("
         <<node(C->L,0,C->lo[0]+C->n[0])<<", "<<node(C->L,1,C->lo[1]+C->n[1])<<", "<<node(C->L,2,C->lo[2]+C->n[2])<<")"
-        <<(C->px ? ", periodic in x" : "")<<(C->py ? ", periodic in y" : "")<<endl;
+        <<(C->px ? ", periodic in x" : "")<<(C->py ? ", periodic in y" : "")<<(wcell.empty() ? "" : ", decomposed by the parcels")<<endl;
 
     // the objects of the sediment step
     C->pturb = new turbulence_amr_copy(q);
@@ -599,6 +716,20 @@ void cfd_amr::cpm_setup(lexer *p, fdm *a, ghostcell *pgc)
     C->bed0.assign((size_t)q->knox*q->knoy,0.0);
 
     cpm_push();
+
+    // the parcels of the ranks
+    {
+        vector<double> pc;
+        static_cast<sediment_part*>(C->psed)->cpm_model()->parcels_per_cell(q,pc);
+        double np = 0.0;
+        for(double v : pc)
+        np += v;
+        double mx = np, sm = np;
+        MPI_Allreduce(MPI_IN_PLACE,&mx,1,MPI_DOUBLE,MPI_MAX,reef3d_comm());
+        MPI_Allreduce(MPI_IN_PLACE,&sm,1,MPI_DOUBLE,MPI_SUM,reef3d_comm());
+        if(myrank==0 && nranks>1 && sm>0.0)
+        cout<<"CPM on the mesh refinement: parcels of the ranks max/mean "<<mx/(sm/nranks)<<endl;
+    }
 
     long nc[2] = {C->ncopy,C->nipol};
     MPI_Allreduce(MPI_IN_PLACE,nc,2,MPI_LONG,MPI_SUM,reef3d_comm());
@@ -1267,5 +1398,311 @@ bool cfd_amr::cpm_flag(int g, int i, int j, int k)
     if(I>=0 && I<gn(C->L,0) && J>=0 && J<NY && C->mob[(size_t)I*NY+J])
     return true;
     return false;
+}
+
+// --------------------------------------------------------------------- checkpoints
+namespace
+{
+double code_of(const ckpt_registry::entry &e)
+{
+    return (e.kind=='C' ? 0.0 : (e.kind=='S' ? 2.0 : 8.0)) + (e.isint ? 1.0 : 0.0) + (e.local ? 4.0 : 0.0);
+}
+
+long long count_of(const ckpt_registry::entry &e, const lexer *q)
+{
+    if(e.kind=='R')
+    return e.n;
+    const long long s = (long long)q->imax*q->jmax;
+    return e.kind=='C' ? s*q->kmax : s;
+}
+
+// the run state of the lexer of CPM that its sediment objects change
+template<class F>
+void cpm_run_scalars(lexer *q, F &&f)
+{
+    f(q->sedtime); f(q->dtsed); f(q->sedsimtime); f(q->sedwavetime); f(q->bedmin); f(q->bedmax);
+    f(q->slidecells); f(q->sedprinttime); f(q->printtime);
+    double it = q->sediter;
+    f(it);
+    q->sediter = int(it);
+}
+}
+
+void cfd_amr::cpm_ckpt_write(reefckpt &ck)
+{
+    cfd_amr_cpm *C = cpm;
+    if(C==nullptr)
+    return;
+    lexer *q = C->p;
+
+    // the grid and the run state of its lexer (the same on all ranks)
+    vector<double> G = {double(C->L), double(C->lo[0]), double(C->lo[1]), double(C->lo[2]), double(C->n[0]), double(C->n[1]), double(C->n[2])};
+    cpm_run_scalars(q,[&](double &v){ G.push_back(v); });
+    G.push_back(C->bed0_ok ? 1.0 : 0.0);
+    ck.blob("cfd_amr_cpm",G);
+
+    // the arrays of the piece of this rank (ckpt_registry with the lexer of CPM), the bed of the start (G 27)
+    vector<ckpt_registry::entry> e;
+    ckpt_registry::visit(q,[&](const ckpt_registry::entry &x){ e.push_back(x); });
+    vector<double> B = {double(q->origin_i), double(q->origin_j), double(q->origin_k), double(q->knox), double(q->knoy), double(q->knoz),
+                        double(q->imin), double(q->imax), double(q->jmin), double(q->jmax), double(q->kmin), double(q->kmax)};
+    B.push_back(double(e.size()));
+    for(const auto &x : e)
+    {
+        const long long n = count_of(x,q);
+        B.push_back(code_of(x));
+        B.push_back(double(n));
+        if(x.isint)
+        for(long long m=0; m<n; ++m)
+        B.push_back(double(((const int*)x.V)[m]));
+        else
+        B.insert(B.end(),(const double*)x.V,(const double*)x.V+n);
+    }
+    B.push_back(double(C->bed0.size()));
+    B.insert(B.end(),C->bed0.begin(),C->bed0.end());
+    ck.rank_blob("cfd_amr_cpm_grid",B);
+
+    // the sediment objects: their scalars, the parcels of the rank
+    vector<double> sv, sr;
+    C->psed->ckpt_state(q,sv);
+    ck.blob("cfd_amr_cpm_sed",sv);
+    C->psed->ckpt_rank_state(q,sr);
+    ck.rank_blob("cfd_amr_cpm_sed_rank",sr);
+
+    // the parcels of the columns (the partition of a rebalance restart, M 41 1), rank 0
+    {
+        CPM *M = static_cast<sediment_part*>(C->psed)->cpm_model();
+        vector<double> pc;
+        M->parcels_per_cell(q,pc);
+        vector<double> col((size_t)C->n[0]*C->n[1],0.0);
+        for(int i=0; i<q->knox; ++i)
+        for(int j=0; j<q->knoy; ++j)
+        for(int k=0; k<q->knoz; ++k)
+        col[(size_t)(q->origin_i+i)*C->n[1]+q->origin_j+j] += pc[((size_t)i*q->knoy+j)*q->knoz+k];
+        MPI_Reduce(myrank==0 ? MPI_IN_PLACE : col.data(),col.data(),(int)col.size(),MPI_DOUBLE,MPI_SUM,0,reef3d_comm());
+        if(myrank==0)
+        {
+            mkdir("./REEF3D_CFD_AMR",0777);
+            std::ofstream out(parcel_file);
+            out<<"# REEF3D CFD AMR: the parcels of the columns of the grid of CPM at count "<<p0->count<<" (the partition of its grid at a rebalance restart, M 41 1)"<<endl;
+            out<<C->n[0]<<" "<<C->n[1]<<endl;
+            size_t m=0;
+            for(double v : col)
+            out<<v<<((++m)%10==0 ? "\n" : " ");
+            out<<endl;
+        }
+    }
+}
+
+bool cfd_amr::cpm_ckpt_read(reefckpt &ck, std::string &msg)
+{
+    cfd_amr_cpm *C = cpm;
+    if(C==nullptr)
+    return true;
+    lexer *q = C->p;
+    ghostcell *g = C->pgc;
+
+    const vector<double> G = ck.get_blob("cfd_amr_cpm");
+    if(G.size()<7 || int(G[0])!=C->L || int(G[1])!=C->lo[0] || int(G[2])!=C->lo[1] || int(G[3])!=C->lo[2]
+       || int(G[4])!=C->n[0] || int(G[5])!=C->n[1] || int(G[6])!=C->n[2])
+    {
+        msg = "the grid of CPM of the checkpoint differs (the region Q 85, G 15, the levels G 1), or there is none";
+        return false;
+    }
+    {
+        size_t k = 7;
+        cpm_run_scalars(q,[&](double &v){ if(k<G.size()) v = G[k]; ++k; });
+        if(k<G.size())
+        C->bed0_ok = G[k]>0.5;
+    }
+
+    // the pieces of the checkpoint
+    struct piece
+    {
+        int o[3], kn[3], imin, imax, jmin, jmax, kmin, kmax;
+        vector<int> code;
+        vector<vector<double>> data;
+        vector<double> bed0;
+    };
+    vector<piece> pc;
+    for(const auto &bl : ck.get_rank_blobs("cfd_amr_cpm_grid"))
+    {
+        size_t k=0;
+        if(bl.size()<13)
+        {
+            msg = "the grid of CPM in the checkpoint is incomplete";
+            return false;
+        }
+        piece c;
+        for(int d=0; d<3; ++d) c.o[d] = int(bl[k++]);
+        for(int d=0; d<3; ++d) c.kn[d] = int(bl[k++]);
+        c.imin = int(bl[k++]); c.imax = int(bl[k++]); c.jmin = int(bl[k++]); c.jmax = int(bl[k++]); c.kmin = int(bl[k++]); c.kmax = int(bl[k++]);
+        const int ne = int(bl[k++]);
+        for(int r=0; r<ne; ++r)
+        {
+            if(k+2>bl.size())
+            {
+                msg = "the grid of CPM in the checkpoint is incomplete";
+                return false;
+            }
+            c.code.push_back(int(bl[k++]));
+            const size_t n = size_t(bl[k++]);
+            if(k+n>bl.size())
+            {
+                msg = "the grid of CPM in the checkpoint is incomplete";
+                return false;
+            }
+            c.data.emplace_back(bl.begin()+k,bl.begin()+k+n);
+            k += n;
+        }
+        if(k<bl.size())
+        {
+            const size_t n = size_t(bl[k++]);
+            if(k+n<=bl.size())
+            c.bed0.assign(bl.begin()+k,bl.begin()+k+n);
+        }
+        pc.push_back(std::move(c));
+    }
+
+    vector<ckpt_registry::entry> e;
+    ckpt_registry::visit(q,[&](const ckpt_registry::entry &x){ e.push_back(x); });
+
+    // the same decomposition: every piece of the checkpoint is the piece of the same rank here
+    int same = ((int)pc.size()==nranks) ? 1 : 0;
+    if(same)
+    {
+        const piece &c = pc[myrank];
+        if(c.o[0]!=q->origin_i || c.o[1]!=q->origin_j || c.o[2]!=q->origin_k || c.kn[0]!=q->knox || c.kn[1]!=q->knoy || c.kn[2]!=q->knoz
+           || c.code.size()!=e.size())
+        same = 0;
+        for(size_t r=0; r<e.size() && same; ++r)
+        if(c.code[r]!=int(code_of(e[r])) || (long long)c.data[r].size()!=count_of(e[r],q))
+        same = 0;
+    }
+    MPI_Allreduce(MPI_IN_PLACE,&same,1,MPI_INT,MPI_MIN,reef3d_comm());
+
+    if(same)
+    {
+        const piece &c = pc[myrank];
+        for(size_t r=0; r<e.size(); ++r)
+        {
+            const vector<double> &v = c.data[r];
+            if(e[r].isint)
+            for(size_t t=0; t<v.size(); ++t)
+            ((int*)e[r].V)[t] = int(v[t]);
+            else
+            std::copy(v.begin(),v.end(),(double*)e[r].V);
+        }
+        if(c.bed0.size()==C->bed0.size())
+        C->bed0 = c.bed0;
+    }
+    else
+    {
+        // another decomposition: the cells (I,J,K) of the grid from the pieces that hold them, the interior
+        // of a piece first; the scalars of the objects from a piece; the solver arrays start again. The
+        // arrays of a piece fit as far as both have them in the same order (as the patches, cfd_amr_ckpt.cpp)
+        vector<char> fits(pc.size(),0);
+        for(size_t t=0; t<pc.size(); ++t)
+        {
+            bool f = true;
+            const size_t nc = std::min(pc[t].code.size(),e.size());
+            for(size_t r=0; r<nc && f; ++r)
+            if(pc[t].code[r]!=int(code_of(e[r])))
+            f = false;
+            fits[t] = f ? 1 : 0;
+        }
+        const int jk = q->jmax*q->kmax;
+        for(size_t r=0; r<e.size(); ++r)
+        {
+            if(e[r].kind=='R' && !e[r].local)
+            {
+                for(size_t t=0; t<pc.size(); ++t)
+                if(fits[t] && r<pc[t].code.size() && (long long)pc[t].data[r].size()==e[r].n)
+                {
+                    std::copy(pc[t].data[r].begin(),pc[t].data[r].end(),(double*)e[r].V);
+                    break;
+                }
+                continue;
+            }
+            if(e[r].kind=='R' || e[r].local)
+            continue;
+            const bool cell = (e[r].kind=='C');
+
+            for(int ii=q->imin; ii<q->imin+q->imax; ++ii)
+            for(int jj=q->jmin; jj<q->jmin+q->jmax; ++jj)
+            for(int kk=(cell ? q->kmin : 0); kk<(cell ? q->kmin+q->kmax : 1); ++kk)
+            {
+                const int I = q->origin_i+ii, J = q->origin_j+jj, K = q->origin_k+kk;
+                const piece *src = nullptr;
+                int best = 2;
+                for(size_t t=0; t<pc.size(); ++t)
+                {
+                    const piece &o = pc[t];
+                    if(!fits[t] || r>=o.code.size())
+                    continue;
+                    const int oi = I-o.o[0], oj = J-o.o[1], ok = K-o.o[2];
+                    if(oi<o.imin || oi>=o.imin+o.imax || oj<o.jmin || oj>=o.jmin+o.jmax)
+                    continue;
+                    if(cell && (ok<o.kmin || ok>=o.kmin+o.kmax))
+                    continue;
+                    const bool inner = (oi>=0 && oi<o.kn[0] && oj>=0 && oj<o.kn[1] && (!cell || (ok>=0 && ok<o.kn[2])));
+                    const int rank = inner ? 0 : 1;
+                    if(rank<best)
+                    {
+                        best = rank;
+                        src = &o;
+                        if(rank==0)
+                        break;
+                    }
+                }
+                if(src==nullptr)
+                continue;
+                const int oi = I-src->o[0], oj = J-src->o[1], ok = K-src->o[2];
+                const size_t si = cell ? (size_t)(oi-src->imin)*src->jmax*src->kmax + (size_t)(oj-src->jmin)*src->kmax + (ok-src->kmin)
+                                       : (size_t)(oi-src->imin)*src->jmax + (oj-src->jmin);
+                const size_t di = cell ? (size_t)(ii-q->imin)*jk + (size_t)(jj-q->jmin)*q->kmax + (kk-q->kmin)
+                                       : (size_t)(ii-q->imin)*q->jmax + (jj-q->jmin);
+                const double v = src->data[r][si];
+                if(e[r].isint)
+                ((int*)e[r].V)[di] = int(v);
+                else
+                ((double*)e[r].V)[di] = v;
+            }
+        }
+
+        // the bed of the start of the columns
+        for(int i=0; i<q->knox; ++i)
+        for(int j=0; j<q->knoy; ++j)
+        {
+            const int I = q->origin_i+i, J = q->origin_j+j;
+            for(const auto &o : pc)
+            if(I>=o.o[0] && I<o.o[0]+o.kn[0] && J>=o.o[1] && J<o.o[1]+o.kn[1] && o.bed0.size()==(size_t)o.kn[0]*o.kn[1])
+            {
+                C->bed0[(size_t)i*q->knoy+j] = o.bed0[(size_t)(I-o.o[0])*o.kn[1]+(J-o.o[1])];
+                break;
+            }
+        }
+    }
+
+    // the sediment objects
+    if(!ck.has("cfd_amr_cpm_sed") || !C->psed->ckpt_restore(q,g,ck.get_blob("cfd_amr_cpm_sed")))
+    {
+        msg = "the checkpoint has no sediment state of the grid of CPM that fits this run (S 10)";
+        return false;
+    }
+    const vector<vector<double>> sr = same ? vector<vector<double>>{ck.get_rank_blob("cfd_amr_cpm_sed_rank",myrank)}
+                                           : ck.get_rank_blobs("cfd_amr_cpm_sed_rank");
+    if(!C->psed->ckpt_rank_restore(q,g,sr,same!=0))
+    {
+        msg = "the parcels of the grid of CPM do not fit this run (S 10)";
+        return false;
+    }
+
+    if(myrank==0)
+    cout<<"CPM on the mesh refinement: restart from the checkpoint, "<<(same ? "its grid as it was" : "its grid mapped onto another decomposition")<<endl;
+
+    // the bed onto the grids
+    cpm_push();
+    return true;
 }
 

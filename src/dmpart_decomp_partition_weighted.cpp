@@ -498,6 +498,12 @@ void decomp::partition_weighted(lexer* p, dive* a)
         }
     }
 
+    // the weights of the cells given (REEF3D: the grid of CPM on the mesh refinement)
+    if(p->Wcell!=nullptr && p->Wcell->size()==(size_t)NX*NY*NZ)
+    LOOP
+    if(a->flag(i,j,k)>0)
+    W(i,j,k) = (*p->Wcell)[((size_t)i*NY+j)*NZ+k];
+
     for(int b=0; b<p->M34; ++b)
     LOOP
     {

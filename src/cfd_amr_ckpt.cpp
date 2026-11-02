@@ -29,6 +29,8 @@ Author: Hans Bihs
 //  lexer of the patch) with its box (rank blob cfd_amr_patches).  A patch of the same box takes them
 //  as they are (bitwise); another one (a changed decomposition, G 40 units cut anew) takes its cells
 //  from the patches of its level in the checkpoint that hold them, the solver arrays start again.
+//  CPM on the refinement: the grid of CPM the same way with its pieces, its sediment objects and parcels
+//  (cfd_amr_cpm.cpp).
 
 #include"cfd_amr.h"
 #include"reef3d_mpmd.h"
@@ -160,6 +162,9 @@ void cfd_amr::ckpt_write(reefckpt &ck)
         S.insert(S.end(),x.begin(),x.end());
     }
     ck.rank_blob("cfd_amr_sync",S);
+
+    // CPM on the refinement: its grid, its sediment objects and parcels (cfd_amr_cpm.cpp)
+    cpm_ckpt_write(ck);
 }
 
 bool cfd_amr::ckpt_read(reefckpt &ck, string &msg)
@@ -464,7 +469,8 @@ bool cfd_amr::ckpt_read(reefckpt &ck, string &msg)
     if(p0->mpirank==0 && verbose)
     cout<<"CFD AMR: restart from the checkpoint, "<<exact<<" patches as they were, "<<mapped<<" mapped (rank 0)"<<endl;
 
-    return true;
+    // CPM on the refinement: its grid, its sediment objects and parcels, its bed onto the grids
+    return cpm_ckpt_read(ck,msg);
 }
 
 // the load map (G 45, G 46): per step of the window of G 46 the patch cells over every level-0 cell

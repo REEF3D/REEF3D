@@ -71,7 +71,7 @@ namespace
 }
 
 static bool build_from(gridv2::reader &gf, int nranks, std::vector<std::vector<char>> &rankbuf, std::string &msg, int weighted,
-                       std::vector<int> *boxes, bool boxes_only);
+                       std::vector<int> *boxes, bool boxes_only, const std::vector<double> *wcell=nullptr);
 
 bool build(const char *fname, int nranks, std::vector<std::vector<char>> &rankbuf, std::string &msg, int weighted,
            std::vector<int> *boxes, bool boxes_only)
@@ -86,7 +86,8 @@ bool build(const char *fname, int nranks, std::vector<std::vector<char>> &rankbu
     return build_from(gf,nranks,rankbuf,msg,weighted,boxes,boxes_only);
 }
 
-bool build_mem(std::vector<char> &&glob, int nranks, std::vector<std::vector<char>> &rankbuf, std::string &msg)
+bool build_mem(std::vector<char> &&glob, int nranks, std::vector<std::vector<char>> &rankbuf, std::string &msg,
+               const std::vector<double> *wcell)
 {
     gridv2::reader gf;
 
@@ -95,11 +96,11 @@ bool build_mem(std::vector<char> &&glob, int nranks, std::vector<std::vector<cha
         msg = gf.error;
         return false;
     }
-    return build_from(gf,nranks,rankbuf,msg,0,nullptr,false);
+    return build_from(gf,nranks,rankbuf,msg,0,nullptr,false,wcell);
 }
 
 static bool build_from(gridv2::reader &gf, int nranks, std::vector<std::vector<char>> &rankbuf, std::string &msg, int weighted,
-                       std::vector<int> *boxes, bool boxes_only)
+                       std::vector<int> *boxes, bool boxes_only, const std::vector<double> *wcell)
 {
 
     gridv2::section sc;
@@ -154,6 +155,14 @@ static bool build_from(gridv2::reader &gf, int nranks, std::vector<std::vector<c
     {
         L.M20 = 5;
         L.M35 = 1;
+    }
+
+    // the weights of the cells given: the weighted partition with them
+    if(wcell!=nullptr)
+    {
+        L.M20 = 5;
+        L.M35 = 0;
+        L.Wcell = wcell;
     }
 
     // a fixed number of subdomains per direction (M 30) has to fit the ranks; M 20 5: else chosen
