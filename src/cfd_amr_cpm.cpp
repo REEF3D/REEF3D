@@ -447,6 +447,10 @@ void cfd_amr::cpm_setup(lexer *p, fdm *a, ghostcell *pgc)
     C->a = new fdm(q);
     g->fdm_update(C->a);
 
+    // the sides of the cells around the piece (initialize::start): the parcels leaving it for the rank
+    // across or over a periodic side go by them (part::xchange_count)
+    g->flagbase(q,C->a);
+
     if(myrank==0)
     cout<<"CPM on the mesh refinement: the grid of level "<<C->L<<", "<<C->n[0]<<" x "<<C->n[1]<<" x "<<C->n[2]<<" cells from ("
         <<node(C->L,0,C->lo[0])<<", "<<node(C->L,1,C->lo[1])<<", "<<node(C->L,2,C->lo[2])<<") to ("
