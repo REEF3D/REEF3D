@@ -43,6 +43,9 @@ public:
     virtual void ckpt_fields(const std::function<void(const char*, char, double*)>&, const std::function<void(const char*, char, int*)>&) {}
     // after a restart from a checkpoint (the state of a step: the start-up of the first step is done)
     virtual void ckpt_restored() {}
+    // the water column was changed after the step (REEF3D::HYDRO losses): the semi-implicit scheme keeps its
+    // own copy of the column for the next step (sflow_momentum_SI::si_restore)
+    virtual void water_column(lexer*, fdm2D*) {}
 
 	virtual void start(lexer*, fdm2D*, ghostcell*)=0;
     virtual void ini(lexer*, fdm2D*, ghostcell*)=0;

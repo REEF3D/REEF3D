@@ -25,6 +25,7 @@ Author: Hans Bihs
 #include"fdm2D.h"
 #include"ghostcell.h"
 #include"seastate_sflow.h"
+#include"hydro_sflow.h"
 #include"ioflow.h"
 #include"patchBC_interface.h"
 
@@ -65,6 +66,13 @@ void sflow_eta::update(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *pflow, slice 
 {
     starttime=pgc->timer();
     
+    // REEF3D::HYDRO: positivity of the stage, the outflow of a cell is at most its water above the film A 244 at
+    // the start of the stage plus its rain and sources (donor-cell limiter of the face mass fluxes, conservative).
+    // Sheet flow on steep beds and at steps drained cells below zero, and the clip of WL to 0 and the film of
+    // wetdry made water.
+    if(b->hydro!=nullptr)
+    hydro_limit(p,b,pgc,WLs);
+    
     // continuity: dWL/dt = -div(FE)
     SLICELOOP4
     K(i,j) = 0.0;
@@ -84,6 +92,10 @@ void sflow_eta::update(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *pflow, slice 
     // REEF3D::SEASTATE vortex force (A 751 2): Stokes transport
     if(b->wave!=nullptr)
     b->wave->mass_source(p,b,K);
+
+    // REEF3D::HYDRO: rain and point sources, on wet and dry cells
+    if(b->hydro!=nullptr)
+    b->hydro->mass_source(p,b,K);
     
     // depth-averaged suspended load (S 120 > 0): the mass flux of the step, weighted as the stages, so that
     // WL^n+1 = WL^n - dt div(FEacc) (stage output a WL0 + (1-a)(WLs + dt K): FEacc = (1-a)(FEacc + FE))
@@ -133,6 +145,49 @@ void sflow_eta::update(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *pflow, slice 
     wetdry(p,b,pgc,WLout);
     
     p->lsmtime+=pgc->timer()-starttime;
+}
+
+void sflow_eta::hydro_limit(lexer *p, fdm2D *b, ghostcell *pgc, slice &WLs)
+{
+    const double dt = p->dt;
+    double out;
+
+    // the factor of the outflow of each cell (in K, which update sets afterwards)
+    SLICELOOP4
+    {
+        if(p->geo_curv==1)
+        out = (MAX(b->FEx(i,j),0.0)*p->LEN1[IJ] + MAX(-b->FEx(i-1,j),0.0)*p->LEN1[Im1J]
+            +  MAX(b->FEy(i,j),0.0)*p->LEN2[IJ] + MAX(-b->FEy(i,j-1),0.0)*p->LEN2[IJm1])/p->AREA2D[IJ];
+
+        else
+        out = (MAX(b->FEx(i,j),0.0) + MAX(-b->FEx(i-1,j),0.0))/p->DXN[IP]
+            + (MAX(b->FEy(i,j),0.0) + MAX(-b->FEy(i,j-1),0.0))/p->DYN[JP]*p->y_dir;
+
+        // the film A 244 stays: wetdry gives a cell that drains below it the film again (water from nothing)
+        const double avail = MAX(WLs(i,j)-wd_criterion,0.0) + dt*b->hydro->S(i,j);
+
+        K(i,j) = (dt*out>avail && out>0.0) ? avail/(dt*out) : 1.0;
+    }
+
+    // the neighbours across the ranks; the ghost cells of the domain boundaries do not limit (inflow)
+    pgc->gcsl_start4(p,K,50);
+
+    for(n=0;n<p->gcbsl4_count;++n)
+    {
+    i = p->gcbsl4[n][0];
+    j = p->gcbsl4[n][1];
+    const int cs = p->gcbsl4[n][3];
+
+    K(i-(cs==1?1:0)+(cs==4?1:0), j-(cs==3?1:0)+(cs==2?1:0)) = 1.0;
+    }
+
+    // a face takes the factor of its donor cell
+    SLICELOOP1
+    b->FEx(i,j) *= b->FEx(i,j)>0.0 ? K(i,j) : K(i+1,j);
+
+    if(p->j_dir==1)
+    SLICELOOP2
+    b->FEy(i,j) *= b->FEy(i,j)>0.0 ? K(i,j) : K(i,j+1);
 }
 
 void sflow_eta::depth_update(lexer *p, fdm2D *b , ghostcell *pgc, slice &WL)

@@ -539,6 +539,12 @@ public:
     int E10,E11,E13,E16,E21,E22,E26,E27,E28,E29;
     double E12,E14,E15,E17,E18,E19,E20,E23,E24,E25,E30;
 
+    // REEF3D::HYDRO, SFLOW (A 10 2): rain-on-grid, point sources, evaporation, infiltration, roughness raster
+    int R10,R12,R30,R40,R41,R50;
+    double R11,R20,R31,R32_Ks,R32_psi,R32_dth,R90;
+    int *R40_ID,*R41_ID;
+    double *R40_x,*R40_y,*R40_Q;
+
     // Particles
     int Q10;
     int Q11;

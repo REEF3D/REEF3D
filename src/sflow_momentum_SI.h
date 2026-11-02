@@ -93,6 +93,7 @@ class sflow_momentum_SI final : public sflow_momentum_func
 public:
 
     void ckpt_restored() override { qini = true; }   // the face discharges of the checkpoint
+    void water_column(lexer*, fdm2D*) override;      // REEF3D::HYDRO losses: WLk = WL
     void ckpt_fields(const std::function<void(const char*, char, double*)> &fd, const std::function<void(const char*, char, int*)> &fi) override
     {
         fd("momentum_SI_qx",'S',qx.V); fd("momentum_SI_qxn",'S',qxn.V); fd("momentum_SI_qxE",'S',qxE.V);
@@ -211,6 +212,7 @@ private:
     // implicit diagonal of the open boundaries
     slice4 bdiag;
     slice4 wsrc;        // SEASTATE vortex force (A 751 2): the Stokes mass source -div(M) of the step [m/s]
+    slice4 hsrc;        // REEF3D::HYDRO: rain and point sources of the step [m/s]
     bool mass_source = false;
 
     // interior copies kept through the ghost cell update (thin solids, see rk_stage)

@@ -28,6 +28,7 @@ Author: Hans Bihs
 #include"fdm2D.h"
 #include"met_forcing.h"
 #include"seastate_sflow.h"
+#include"hydro_sflow.h"
 #include"ghostcell.h"
 #include"ioflow.h"
 #include"reefckpt.h"
@@ -49,7 +50,7 @@ sflow_momentum_SI::sflow_momentum_SI(lexer *p, fdm2D *b, ghostcell *pgc, sflow_H
                                       qy(p),qyn(p),qyE(p),Hy(p),aly(p),ay(p),ky(p),gy0(p),
                                       fxU(p),fxV(p),fyU(p),fyV(p),
                                       eta0(p),WL0(p),UH0(p),VH0(p),UHa(p),VHa(p),UHb(p),VHb(p),UHp(p),VHp(p),
-                                      WHz(p),dUH(p),dVH(p),etaI(p),alc(p),rhs(p),rhsW(p),bdiag(p),wsrc(p),
+                                      WHz(p),dUH(p),dVH(p),etaI(p),alc(p),rhs(p),rhsW(p),bdiag(p),wsrc(p),hsrc(p),
                                       tU(p),tV(p),tUH(p),tVH(p),WLk(p),etaB(p)
 {
     check(p);
@@ -366,6 +367,14 @@ void sflow_momentum_SI::si_end_faces(lexer *p, fdm2D* b, ghostcell* pgc)
     face_update(p,b,pgc);
 }
 
+void sflow_momentum_SI::water_column(lexer *p, fdm2D* b)
+{
+    // REEF3D::HYDRO: evaporation, infiltration and abstraction after the step (hydro_sflow::sinks) are part
+    // of the water column the next step starts from
+    SLICELOOP4
+    WLk(i,j) = b->WL(i,j);
+}
+
 void sflow_momentum_SI::si_end_cells(lexer *p, fdm2D* b, ghostcell* pgc)
 {
     // 8. WL, eta, wetting and drying
@@ -409,7 +418,12 @@ void sflow_momentum_SI::face_depth(lexer *p, fdm2D *b, ghostcell *pgc)
     // open between two fluid cells when this depth exceeds the wetting criterion A 244.
     // Next to a dry cell the still water depth of the face is the smaller one (the higher
     // bed): water below the bed of the dry cell does not flow into it.
+    // REEF3D::HYDRO rain and point sources (R 10, R 40): the higher bed on every face. Sheet flow on a slope
+    // is thinner than the bed step between two cells (1 cm on a slope of 0.02 with 2 m cells against 4 cm),
+    // and the mean of the still water depths adds half the step to the face depth: the friction of the face
+    // drops and the sheet drains several times too fast.
     double df,eu,h;
+    const bool hbed = hydro_sflow::wetting(p);
 
     SLICELOOP1
     {
@@ -417,7 +431,7 @@ void sflow_momentum_SI::face_depth(lexer *p, fdm2D *b, ghostcell *pgc)
 
         if(p->flagslice4[IJ]>0 && p->flagslice4[Ip1J]>0)
         {
-        if(p->wet[IJ]==1 && p->wet[Ip1J]==1)
+        if(p->wet[IJ]==1 && p->wet[Ip1J]==1 && !hbed)
         df = 0.5*(b->depth(i,j) + b->depth(i+1,j));
 
         else
@@ -446,7 +460,7 @@ void sflow_momentum_SI::face_depth(lexer *p, fdm2D *b, ghostcell *pgc)
 
         if(p->flagslice4[IJ]>0 && p->flagslice4[IJp1]>0)
         {
-        if(p->wet[IJ]==1 && p->wet[IJp1]==1)
+        if(p->wet[IJ]==1 && p->wet[IJp1]==1 && !hbed)
         df = 0.5*(b->depth(i,j) + b->depth(i,j+1));
 
         else
@@ -660,8 +674,10 @@ void sflow_momentum_SI::bc_setup(lexer *p, fdm2D *b, ghostcell *pgc)
         f.A = 0.0;
         f.B = 0.0;
 
-        // a dry boundary cell: only an inflowing discharge
-        if((p->wet[IJ]==0 || hi<=p->A244) && f.type!=bc_flux)
+        // a dry boundary cell: only an inflowing discharge. REEF3D::HYDRO (R 10, R 40): dry by the water column
+        // of the step; the outflow cell takes the level of the outflow in sflow_eta::depth_update, and with a level at
+        // or below the bed (a free outfall of rain-on-grid) its wet flag is that of the film, not of its water
+        if((hydro_sflow::wetting(p) ? hi<=p->A244 : (p->wet[IJ]==0 || hi<=p->A244)) && f.type!=bc_flux)
         {
         qf(f.fi,f.fj) = 0.0;
         continue;
@@ -1140,6 +1156,18 @@ void sflow_momentum_SI::si_rhs(lexer *p, fdm2D *b, ghostcell *pgc)
         rhsW(i,j) += dt*wsrc(i,j);
     }
 
+    // + dt S: REEF3D::HYDRO rain and point sources on wet and dry cells, held over the step (also in eta_update)
+    if(b->hydro!=nullptr)
+    {
+        SLICELOOP4
+        hsrc(i,j) = 0.0;
+
+    b->hydro->mass_source(p,b,hsrc);
+
+        SLICELOOP4
+        rhsW(i,j) += dt*hsrc(i,j);
+    }
+
     // initial guess eta^n; wet pattern: all wet (the linear system of P1), then the
     // Newton iteration on WL = max(eta + d, 0) (Casulli 2009), converging from above
     SLICELOOP4
@@ -1198,6 +1226,9 @@ void sflow_momentum_SI::eta_update(lexer *p, fdm2D *b, ghostcell *pgc)
 
     if(mass_source)
     w += p->dt*wsrc(i,j);
+
+    if(b->hydro!=nullptr)
+    w += p->dt*hsrc(i,j);
 
     b->WL(i,j) = MAX(w, 0.0);
     b->eta(i,j) = b->WL(i,j) - b->depth(i,j);

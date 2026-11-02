@@ -43,6 +43,7 @@ Author: Hans Bihs
 #include"lagoon_output.h"
 #include"regression_dump.h"
 #include"seastate_sflow.h"
+#include"hydro_sflow.h"
 #include<iostream>
 #include<fstream>
 #include<sys/stat.h>
@@ -110,10 +111,21 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
         if(b->wave!=nullptr)
         b->wave->start(p,b,pgc);
 
+        // REEF3D::HYDRO: rain and point sources of the step
+        if(b->hydro!=nullptr)
+        b->hydro->prepare(p,b,pgc);
+
         // outer loop
 		double temptime=pgc->timer();
 		pmom->start(p,b,pgc);
 		double mtime=pgc->timer()-temptime;
+
+        // REEF3D::HYDRO: evaporation, infiltration and abstraction after the continuity of the step
+        if(b->hydro!=nullptr)
+        {
+        b->hydro->sinks(p,b,pgc);
+        pmom->water_column(p,b);
+        }
     
         
         // turbulence
@@ -152,6 +164,10 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
 		
         //timestep control
         p->simtime+=p->dt;
+
+        // REEF3D::HYDRO: volume budget at the end of the step
+        if(b->hydro!=nullptr)
+        b->hydro->budget(p,b,pgc);
         ptime->start(p,b,pgc);
         
         if(pamr!=nullptr)

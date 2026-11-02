@@ -40,6 +40,7 @@ Author: Hans Bihs
 class lexer;
 class seastate_sflow;
 class met_forcing;
+class hydro_sflow;
 
 using namespace std;
 
@@ -140,6 +141,9 @@ public:
 
     // REEF3D atmospheric forcing (W 200) of this grid, owned by the momentum class (output)
     met_forcing *met = nullptr;
+
+    // REEF3D::HYDRO (R 10, R 20, R 30, R 40, R 50) of level 0, nullptr otherwise
+    hydro_sflow *hydro = nullptr;
 
 	matrix2D M;
 

@@ -5585,6 +5585,51 @@ void control::ctrlsend()
         dd++;
     }
 
+
+    // HYDRO (R)
+    ictrl[ii] = R10;
+    ii++;
+    ictrl[ii] = R12;
+    ii++;
+    ictrl[ii] = R30;
+    ii++;
+    ictrl[ii] = R40;
+    ii++;
+    ictrl[ii] = R41;
+    ii++;
+    ictrl[ii] = R50;
+    ii++;
+    dctrl[dd] = R11;
+    dd++;
+    dctrl[dd] = R20;
+    dd++;
+    dctrl[dd] = R31;
+    dd++;
+    dctrl[dd] = R32_Ks;
+    dd++;
+    dctrl[dd] = R32_psi;
+    dd++;
+    dctrl[dd] = R32_dth;
+    dd++;
+    dctrl[dd] = R90;
+    dd++;
+    for(n=0;n<R40;++n)
+    {
+        ictrl[ii] = R40_ID[n];
+        ii++;
+        dctrl[dd] = R40_x[n];
+        dd++;
+        dctrl[dd] = R40_y[n];
+        dd++;
+        dctrl[dd] = R40_Q[n];
+        dd++;
+    }
+    for(n=0;n<R41;++n)
+    {
+        ictrl[ii] = R41_ID[n];
+        ii++;
+    }
+
     ii_send=ii;
     dd_send=dd;
 }

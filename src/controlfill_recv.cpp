@@ -6967,6 +6967,56 @@ void control::ctrlrecv()
         dd++;
     }
 
+
+    // HYDRO (R)
+    R10 = ictrl[ii];
+    ii++;
+    R12 = ictrl[ii];
+    ii++;
+    R30 = ictrl[ii];
+    ii++;
+    R40 = ictrl[ii];
+    ii++;
+    R41 = ictrl[ii];
+    ii++;
+    R50 = ictrl[ii];
+    ii++;
+    R11 = dctrl[dd];
+    dd++;
+    R20 = dctrl[dd];
+    dd++;
+    R31 = dctrl[dd];
+    dd++;
+    R32_Ks = dctrl[dd];
+    dd++;
+    R32_psi = dctrl[dd];
+    dd++;
+    R32_dth = dctrl[dd];
+    dd++;
+    R90 = dctrl[dd];
+    dd++;
+    Iarray(R40_ID,R40);
+    Darray(R40_x,R40);
+    Darray(R40_y,R40);
+    Darray(R40_Q,R40);
+    Iarray(R41_ID,R41);
+    for(n=0;n<R40;++n)
+    {
+        R40_ID[n] = ictrl[ii];
+        ii++;
+        R40_x[n] = dctrl[dd];
+        dd++;
+        R40_y[n] = dctrl[dd];
+        dd++;
+        R40_Q[n] = dctrl[dd];
+        dd++;
+    }
+    for(n=0;n<R41;++n)
+    {
+        R41_ID[n] = ictrl[ii];
+        ii++;
+    }
+
     ii_recv=ii;
     dd_recv=dd;
 }

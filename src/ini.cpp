@@ -1119,6 +1119,17 @@ void control::ini_default()
     E30=1.0;            // double NHFLOW: relaxation time of the particle porosity [s] (E 28), 0 instantaneous
 
     // Particles
+    R10=0;              // int HYDRO rain: 0 off, 1 constant R 11, 2 time series rain.dat, 3 raster series rain_series.dat
+    R11=0.0;            // double HYDRO constant rain rate [mm/h]
+    R12=0;              // int HYDRO rain in time: 0 piecewise constant (a value holds until the next time), 1 linear
+    R20=0.0;            // double HYDRO open-water evaporation [mm/day]
+    R30=0;              // int HYDRO infiltration: 0 off, 1 constant loss rate R 31, 2 Green-Ampt R 32
+    R31=0.0;            // double HYDRO constant infiltration (loss) rate [mm/h]
+    R32_Ks=R32_psi=R32_dth=0.0;     // double HYDRO Green-Ampt: Ks [mm/h], wetting-front suction head [m], moisture deficit [-]
+    R40=0;              // int HYDRO number of point sources (R 40 ID x y Q)
+    R41=0;              // int HYDRO number of point sources with a hydrograph file hydrograph_src_<ID>.dat (R 41 ID)
+    R50=0;              // int HYDRO roughness raster: 1 Manning n from manning.asc
+    R90=60.0;           // double HYDRO volume budget output interval [s], <= 0: every step
     Q10=0;              // int particle sediment model (S 10>0): 0 Eulerian bedload/exner, 1 CPM explicit Euler, 2 CPM RK2
     Q11=1;              // int particle movement model: 1 plain (empirical threshold), 2 MP-PIC
     Q12=2;              // int inter-particle stress model: 0 off, 1 Snider (2001), 2 packed bed (Johnson-Jackson contact pressure + mu(I) friction)

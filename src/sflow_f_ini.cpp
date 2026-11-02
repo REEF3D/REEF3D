@@ -40,6 +40,7 @@ Author: Hans Bihs
 #include"sflow_vtp_bed.h"
 #include"6DOF_sflow.h"
 #include"sflow_amr.h"
+#include"hydro_sflow.h"
 #include"reefrun_ckpt.h"
 
 void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
@@ -206,6 +207,20 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
     cout<<"!!! B 50 "<<p->B50<<" is set but A 218 0: no bed friction (A 218 1: Manning, n = ks^(1/6)/20)"<<endl;
 
     pgc->gcsl_start4(p,b->ks,50);
+
+    // REEF3D::HYDRO (R 10, R 20, R 30, R 40, R 50): level 0 only so far
+    if(hydro_sflow::active(p))
+    {
+        if(pamr!=nullptr)
+        {
+            if(p->mpirank==0)
+            cout<<endl<<"!!! HYDRO (R 10 - R 50) does not work with mesh refinement or multi-block grids yet !!!"<<endl<<endl;
+        pgc->final(true);
+        }
+
+    b->hydro = new hydro_sflow(p,b,pgc);
+    b->hydro->ini(p,b,pgc);
+    }
 
     //sediment ini
     psed->ini_sflow(p,b,pgc);

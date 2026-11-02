@@ -52,6 +52,7 @@ public:
 
 private:
     void wetdrydeep(lexer*, fdm2D*, ghostcell*, slice&);
+    void hydro_limit(lexer*, fdm2D*, ghostcell*, slice&);   // REEF3D::HYDRO: positivity of the stage
     
 	int gcval_eta;
 	double starttime;

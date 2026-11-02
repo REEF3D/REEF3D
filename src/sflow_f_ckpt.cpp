@@ -51,6 +51,7 @@ Author: Hans Bihs
 #include"6DOF.h"
 #include"cfd_ckpt.h"
 #include"sediment.h"
+#include"hydro_sflow.h"
 
 using namespace std;
 
@@ -86,9 +87,12 @@ reefrun_ckpt& sflow_f::ckpt(lexer *p, fdm2D *b, ghostcell *pgc)
         // the 6DOF bodies on the grid
         if(p->X10>0)
         p6dof->ckpt_fields(fd,fi);
+        // REEF3D::HYDRO: the cumulative infiltration
+        if(b->hydro!=nullptr)
+        b->hydro->ckpt_fields(fd,fi);
     };
 
-    h.write = [this,p,fields](reefckpt &ck)
+    h.write = [this,p,b,fields](reefckpt &ck)
     {
         std::function<void(const char*,char,double*)> wd = [&](const char *n, char, double *V){ if(V!=nullptr) ck.put_S(n,V); };
         std::function<void(const char*,char,int*)> wi = [&](const char *n, char, int *V){ if(V!=nullptr) ck.put_Si(n,V); };
@@ -120,13 +124,21 @@ reefrun_ckpt& sflow_f::ckpt(lexer *p, fdm2D *b, ghostcell *pgc)
             ck.put_Si("DFBED",p->DFBED);
         }
 
+        // REEF3D::HYDRO: the volume budget (the same on all ranks)
+        if(b->hydro!=nullptr)
+        {
+            vector<double> hv;
+            b->hydro->ckpt_state(hv);
+            ck.blob("hydro",hv);
+        }
+
         // the state of the boundary conditions (local to the rank)
         vector<double> io;
         pflow->ckpt_state(p,io);
         ck.rank_blob("ioflow",io);
     };
 
-    h.read = [this,p,pgc,fields](reefckpt &ck, string &msg)
+    h.read = [this,p,b,pgc,fields](reefckpt &ck, string &msg)
     {
         bool ok = true;
         std::function<void(const char*,char,double*)> rd = [&](const char *n, char, double *V){ if(V==nullptr || !ck.has(n)) return; ok = ck.get_S(n,V) && ok; };
@@ -178,6 +190,16 @@ reefrun_ckpt& sflow_f::ckpt(lexer *p, fdm2D *b, ghostcell *pgc)
             psed->ckpt_rank_restore(p,pgc,sr,ck.same_decomposition());
             if(p->DFBED!=nullptr && ck.has("DFBED"))
             ok = ck.get_Si("DFBED",p->DFBED) && ok;
+        }
+
+        // REEF3D::HYDRO: the volume budget
+        if(b->hydro!=nullptr)
+        {
+            if(!ck.has("hydro") || !b->hydro->ckpt_restore(ck.get_blob("hydro")))
+            {
+                msg = "the checkpoint has no HYDRO budget that fits this run (R 10 - R 50)";
+                return false;
+            }
         }
 
         // the state of the boundary conditions: on the same decomposition (else they start again)

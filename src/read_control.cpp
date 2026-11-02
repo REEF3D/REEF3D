@@ -3274,6 +3274,45 @@ void control::read_control(lexer* p)
                 }
                 break;
 
+            case 'R': control>>numint;
+                switch(numint)
+                {
+                case 10: control>>R10;
+                         clear(c,numint);
+                         break;
+                case 11: control>>R11;
+                         clear(c,numint);
+                         break;
+                case 12: control>>R12;
+                         clear(c,numint);
+                         break;
+                case 20: control>>R20;
+                         clear(c,numint);
+                         break;
+                case 30: control>>R30;
+                         clear(c,numint);
+                         break;
+                case 31: control>>R31;
+                         clear(c,numint);
+                         break;
+                case 32: control>>R32_Ks>>R32_psi>>R32_dth;
+                         clear(c,numint);
+                         break;
+                case 40: ++R40;
+                         clear(c,numint);
+                         break;
+                case 41: ++R41;
+                         clear(c,numint);
+                         break;
+                case 50: control>>R50;
+                         clear(c,numint);
+                         break;
+                case 90: control>>R90;
+                         clear(c,numint);
+                         break;
+                }
+                break;
+
             case 'S': control>>numint;
                 switch(numint)
                 {
@@ -4726,6 +4765,12 @@ void control::read_control(lexer* p)
     Iarray(B422_FSF,B422);
 
 
+    Iarray(R40_ID,R40);
+    Darray(R40_x,R40);
+    Darray(R40_y,R40);
+    Darray(R40_Q,R40);
+    Iarray(R41_ID,R41);
+
     Iarray(B440_ID,B440);
     Iarray(B440_face,B440);
     Darray(B440_xs,B440);
@@ -5460,6 +5505,8 @@ void control::read_control(lexer* p)
     int countF399=0;
     int countP35=0;
     int countP50=0;
+    int countR40=0;
+    int countR41=0;
     int countP51=0;
     int countP52=0;
     int countP56=0;
@@ -6305,6 +6352,21 @@ void control::read_control(lexer* p)
                          break;
                     case 111: control>>Q111_xs[countQ111]>>Q111_xe[countQ111]>>Q111_ys[countQ111]>>Q111_ye[countQ111]>>Q111_zs[countQ111]>>Q111_ze[countQ111];
                          ++countQ111;
+                         clear(c,numint);
+                         break;
+                }
+                break;
+
+            case 'R': control>>numint;
+                switch(numint)
+                {
+                case 40: control>>R40_ID[countR40]>>R40_x[countR40]>>R40_y[countR40]>>R40_Q[countR40];
+                         p->XYin(R40_x[countR40],R40_y[countR40]);
+                         ++countR40;
+                         clear(c,numint);
+                         break;
+                case 41: control>>R41_ID[countR41];
+                         ++countR41;
                          clear(c,numint);
                          break;
                 }
