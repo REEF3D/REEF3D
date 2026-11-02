@@ -707,6 +707,8 @@
           <File Name="nhflow_momentum_RK2.h"/>
           <File Name="nhflow_momentum_RK3.h"/>
           <File Name="nhflow_momentum_SI.h"/>
+          <File Name="nhflow_stratification.h"/>
+          <File Name="nhflow_memory.h"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FSF">
           <File Name="nhflow_fsf_body.h"/>
@@ -2358,6 +2360,8 @@
           </VirtualDirectory>
           <File Name="nhflow_momentum_RK3.cpp"/>
           <File Name="nhflow_momentum_SI.cpp"/>
+          <File Name="nhflow_momentum_SI_density.cpp"/>
+          <File Name="nhflow_stratification.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FSF">
           <File Name="nhflow_fsf_body.cpp"/>
