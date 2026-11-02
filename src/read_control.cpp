@@ -629,6 +629,24 @@ void control::read_control(lexer* p)
                 case 609: control>>A609;
                          clear(c,numint);
                          break;
+                case 611: ++A611;
+                         clear(c,numint);
+                         break;
+                case 612: ++A612;
+                         clear(c,numint);
+                         break;
+                case 613: control>>A613;
+                         clear(c,numint);
+                         break;
+                case 620: control>>A620;
+                         clear(c,numint);
+                         break;
+                case 621: control>>A621_rho0>>A621_t0>>A621_s0>>A621_alpha>>A621_beta;
+                         clear(c,numint);
+                         break;
+                case 622: control>>A622;
+                         clear(c,numint);
+                         break;
                 case 610: control>>A610;
                          clear(c,numint);
                          break;
@@ -4713,6 +4731,11 @@ void control::read_control(lexer* p)
     Darray(A760_x,A760);
     Darray(A760_y,A760);
 
+    Darray(A611_z,A611);
+    Darray(A611_c,A611);
+    Darray(A612_z,A612);
+    Darray(A612_c,A612);
+
     Darray(A722_xs,A722);
     Darray(A722_ys,A722);
     Darray(A722_xe,A722);
@@ -5329,6 +5352,8 @@ void control::read_control(lexer* p)
     int countG11=0;
     int countG15=0;
     int countA760=0;
+    int countA611=0;
+    int countA612=0;
     int countA722=0;
     int countA725=0;
     int countA726=0;
@@ -5437,6 +5462,14 @@ void control::read_control(lexer* p)
             case 'A': control>>numint;
                 switch(numint)
                 {
+                case 611: control>>A611_z[countA611]>>A611_c[countA611];
+                         ++countA611;
+                         clear(c,numint);
+                         break;
+                case 612: control>>A612_z[countA612]>>A612_c[countA612];
+                         ++countA612;
+                         clear(c,numint);
+                         break;
                 case 760: control>>A760_x[countA760]>>A760_y[countA760];
                          p->XYin(A760_x[countA760],A760_y[countA760]);
                          ++countA760;

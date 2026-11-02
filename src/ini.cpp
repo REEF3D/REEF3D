@@ -226,6 +226,16 @@ void control::ini_default()
     A607_t=15.0; // double NHFLOW tracers: A 607 S T, inflow temperature of the sea boundaries
     A608=0.0;    // double NHFLOW tracers: Thatcher-Harleman return time of the sea boundaries (s), 0 the sea value at once
     A609=2;      // int NHFLOW tracers: horizontal advection, 1 first-order upwind, 2 TVD van Leer, 3 TVD monotonised central
+    A611=0;      // int NHFLOW tracers: number of A 611 z S points, the initial salinity a function of z (linear between the points sorted by z, constant beyond; over A 601/602)
+    A612=0;      // int NHFLOW tracers: number of A 612 z T points, the initial temperature a function of z
+    A613=0;      // int NHFLOW tracers: vertical advection, 1 implicit upwind, 2 implicit upwind with the explicit TVD correction (Lax-Wendroff, A 609 limiter); 0: 2 with A 620, else 1
+    A620=0;      // int NHFLOW semi-implicit: density from the tracers and its pressure gradient, 0 off (passive tracers), 1 linear equation of state, 2 UNESCO 1981 (one atmosphere)
+    A621_rho0=1025.0;    // double NHFLOW density: A 621 rho0 T0 S0 alpha beta, reference density (Boussinesq; kg/m3)
+    A621_t0=10.0;        // double NHFLOW density: reference temperature (deg C; and the temperature without A 600 2)
+    A621_s0=35.0;        // double NHFLOW density: reference salinity (psu)
+    A621_alpha=2.0e-4;   // double NHFLOW density, linear: thermal expansion (1/K)
+    A621_beta=7.6e-4;    // double NHFLOW density, linear: haline contraction (1/psu)
+    A622=1;      // int NHFLOW density: the pressure gradient on the sigma layers, 1 Shchepetkin and McWilliams (2003), 2 the two-term form (without the cubic corrections)
     A610=4;      // int NHFLOW tracers: largest number of substeps of a time step (cells beyond it: first-order outflow of the mixed content)
     A548=0;      // int NHFLOW semi-implicit: still water depth of a face between two wet cells, 0 the mean of the two cells, 1 the smaller one (the higher bed, Stelling and Duinmeijer 2003), 2 the smaller one only where one of the cells holds less than 10 A 544 (shoreline films: no flip-flop over bed steps, the conveyance of the channels kept)
     A546=0.05;   // double NHFLOW semi-implicit: depth below which the cell velocities of the momentum predictor are desingularised

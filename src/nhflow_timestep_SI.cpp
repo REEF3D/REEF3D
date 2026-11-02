@@ -26,6 +26,7 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"ghostcell.h"
 #include"nhflow_curv.h"
+#include"nhflow_momentum_SI.h"
 #include"sflow_curv.h"
 
 nhflow_timestep_SI::nhflow_timestep_SI(lexer* p) : nhflow_timestep(p), cfl(p->N47)
@@ -60,15 +61,18 @@ void nhflow_timestep_SI::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
     WETDRY
     if(d->WL(i,j)>p->A544)
     {
-    sigma = fabs(d->U[IJK])/p->DXN[IP];
+    // the speed of the first internal mode adds to the flow (A 620: the baroclinic term is explicit)
+    const double ci = p->A620>0 ? nhflow_momentum_SI::internal_speed(p,d,i,j) : 0.0;
+
+    sigma = (fabs(d->U[IJK]) + ci)/p->DXN[IP];
 
     if(p->j_dir==1)
-    sigma += fabs(d->V[IJK])/p->DYN[JP];
+    sigma += (fabs(d->V[IJK]) + ci)/p->DYN[JP];
 
     // curvilinear grid: the speed over the widths of the cell across its faces
     if(p->geo_curv==1)
     {
-    const double sp = sqrt(d->U[IJK]*d->U[IJK] + d->V[IJK]*d->V[IJK]);
+    const double sp = sqrt(d->U[IJK]*d->U[IJK] + d->V[IJK]*d->V[IJK]) + ci;
     sigma = sp/nhflow_curv::width1(p,i,j) + sp/nhflow_curv::width2(p,i,j);
     }
 

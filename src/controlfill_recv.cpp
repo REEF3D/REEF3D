@@ -474,6 +474,26 @@ void control::ctrlrecv()
     ii++;
     A610 = ictrl[ii];
     ii++;
+    A611 = ictrl[ii];
+    ii++;
+    A612 = ictrl[ii];
+    ii++;
+    A620 = ictrl[ii];
+    ii++;
+    A622 = ictrl[ii];
+    ii++;
+    A613 = ictrl[ii];
+    ii++;
+    A621_rho0 = dctrl[dd];
+    dd++;
+    A621_t0 = dctrl[dd];
+    dd++;
+    A621_s0 = dctrl[dd];
+    dd++;
+    A621_alpha = dctrl[dd];
+    dd++;
+    A621_beta = dctrl[dd];
+    dd++;
     A601_s = dctrl[dd];
     dd++;
     A601_t = dctrl[dd];
@@ -3947,6 +3967,18 @@ void control::ctrlrecv()
         Darray(A760_y,A760);
     }
 
+    if(A611>0)
+    {
+        Darray(A611_z,A611);
+        Darray(A611_c,A611);
+    }
+
+    if(A612>0)
+    {
+        Darray(A612_z,A612);
+        Darray(A612_c,A612);
+    }
+
     if(A722>0)
     {
         Darray(A722_xs,A722);
@@ -5628,6 +5660,22 @@ void control::ctrlrecv()
         G15_zs[n] = dctrl[dd];
         dd++;
         G15_ze[n] = dctrl[dd];
+        dd++;
+    }
+
+    for(n=0;n<A611;++n)
+    {
+        A611_z[n] = dctrl[dd];
+        dd++;
+        A611_c[n] = dctrl[dd];
+        dd++;
+    }
+
+    for(n=0;n<A612;++n)
+    {
+        A612_z[n] = dctrl[dd];
+        dd++;
+        A612_c[n] = dctrl[dd];
         dd++;
     }
 

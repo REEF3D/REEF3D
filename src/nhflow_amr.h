@@ -685,7 +685,7 @@ private:
     template<class F> void si_all(ghostcell*, F);           // all grids: level 0, then the levels
     template<class A> void si_fill3(ghostcell*, int, int, A);
     void si_fillF(ghostcell*);
-    void si_tracer(lexer*, ghostcell*);   // tracers (A 600) of all blocks
+    void si_tracer(lexer*, ghostcell*, int phase=0);   // tracers (A 600) of all blocks (phase: nhflow_tracer_SI::prepare)
     std::vector<double> sitr_dist;
     std::vector<int> sitr_cell, sitr_grid;
     bool sitr_mask = false;

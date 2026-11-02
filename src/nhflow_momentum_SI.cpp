@@ -92,9 +92,16 @@ nhflow_momentum_SI::nhflow_momentum_SI(lexer *p, fdm_nhf *d, ghostcell *pgc, six
 
     psi = new si_eta2D(p);
 
-    // tracers (A 600)
+    // tracers (A 600), density and its pressure gradient (A 620)
     if(p->A600>0)
     ptrc = new nhflow_tracer_SI(p,d,this);
+
+    if(p->A620>0)
+    {
+    double **ba[] = {&Bx,&By,&BFx,&BFy};
+    for(double **a : ba)
+    p->Darray(*a,N);
+    }
 
     // the 2D solver of the eta system: created with the first solve of one grid (new_solver2D); the
     // multi-block grid solves the eta system of all blocks together (nhflow_amr_si.cpp)
@@ -158,6 +165,8 @@ nhflow_momentum_SI::~nhflow_momentum_SI()
 
     delete psi;
     delete ptrc;
+    for(double *a : {Bx,By,BFx,BFy})
+    delete [] a;
 
     if(psolv2D!=nullptr)
     delete psolv2D;
@@ -310,6 +319,18 @@ void nhflow_momentum_SI::step_single(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflo
     }
 
     si_predictor_end(p,d,pgc);
+
+    // A 620: the density for the pressure gradient from the predictor of the tracers with the old part of the
+    // transport (forward-backward with the step after the momentum)
+    if(p->A620>0)
+    {
+    si_old_closed(p,pgc);
+    ptrc->save(d);
+    tracer_step(p,d,pgc,1);
+    si_density(p,d);
+    ptrc->restore(d);
+    }
+
     si_assemble(p,d,pgc);
     si_rhs(p,d,pgc);
 
@@ -330,11 +351,11 @@ void nhflow_momentum_SI::step_single(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflo
 
 // tracers of one grid (the multi-block grid: nhflow_amr::si_tracer): the substeps with the partition
 // halo between them, the log and the gauges
-void nhflow_momentum_SI::tracer_step(lexer *p, fdm_nhf *d, ghostcell *pgc)
+void nhflow_momentum_SI::tracer_step(lexer *p, fdm_nhf *d, ghostcell *pgc, int phase)
 {
     const int nt = ptrc->nt;
 
-    double r = ptrc->prepare(p,d);
+    double r = ptrc->prepare(p,d,phase);
     r = pgc->globalmax(r);
     const int ns = nhflow_tracer_SI::substeps(p,r);
 
@@ -372,6 +393,9 @@ void nhflow_momentum_SI::tracer_step(lexer *p, fdm_nhf *d, ghostcell *pgc)
     }
 
     ptrc->ghosts(p,d);
+
+    if(phase==1)
+    return;
 
     nhflow_tracer_SI::stats st;
     nhflow_tracer_SI::stats_zero(st);
@@ -475,6 +499,10 @@ void nhflow_momentum_SI::si_begin(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_s
     // A 547: the algebraic eddy viscosity of t^n (without a turbulence model)
     if(p->A560==0 && (p->A547_c>0.0 || p->A547_nu0>0.0))
     eddy_algebraic(p,d);
+
+    // tracers: the initial values before the first step
+    if(ptrc!=nullptr)
+    ptrc->ensure_ini(p,d);
     pfsf->kinematic_fsf(p,d,d->U,d->V,d->W,d->eta);
     pfsf->kinematic_bed(p,d,d->U,d->V,d->W);
 
@@ -1540,6 +1568,11 @@ void nhflow_momentum_SI::si_assemble(lexer *p, fdm_nhf *d, ghostcell *pgc)
         for(k=0;k<p->knoz;++k)
         wb[k] = 0.5*(UHD[IJK] + UHD[Ip1JK])*nx + 0.5*(VHD[IJK] + VHD[Ip1JK])*ny;
 
+        // the baroclinic pressure gradient on the face (A 620; explicit, nhflow_momentum_SI_density.cpp)
+        if(BFx!=nullptr)
+        for(k=0;k<p->knoz;++k)
+        wb[k] -= dt*Hx(i,j)*BFx[IJK];
+
         col_solve(p,wcu.data(),wcl.data(),wcd.data(),dt*gmx(i,j),wb.data(),wr.data());
 
         qh = 0.0;
@@ -1592,6 +1625,10 @@ void nhflow_momentum_SI::si_assemble(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
         for(k=0;k<p->knoz;++k)
         wb[k] = 0.5*(UHD[IJK] + UHD[IJp1K])*nx + 0.5*(VHD[IJK] + VHD[IJp1K])*ny;
+
+        if(BFy!=nullptr)
+        for(k=0;k<p->knoz;++k)
+        wb[k] -= dt*Hy(i,j)*BFy[IJK];
 
         col_solve(p,wcu.data(),wcl.data(),wcd.data(),dt*gmy(i,j),wb.data(),wr.data());
 
@@ -1707,8 +1744,15 @@ void nhflow_momentum_SI::si_assemble(lexer *p, fdm_nhf *d, ghostcell *pgc)
         }
     }
 
-    // a face closed in this step (dry, H_f = 0) carries no old discharge either: the explicit
-    // part (1-theta) q^n would drain a cell without coupling in the eta system below zero
+    si_old_closed(p,pgc);
+
+}
+
+// a face closed in this step (dry, H_f = 0) carries no old discharge either: the explicit part
+// (1-theta) q^n would drain a cell without coupling in the eta system below zero (si_assemble; with
+// A 620 also before the predictor of the tracers)
+void nhflow_momentum_SI::si_old_closed(lexer *p, ghostcell *pgc)
+{
     SLICELOOP1
     if(Hx(i,j)<=0.0)
     {
@@ -1750,7 +1794,14 @@ void nhflow_momentum_SI::si_assemble(lexer *p, fdm_nhf *d, ghostcell *pgc)
         for(k=0;k<p->knoz;++k)
         Qn[IJK] = 0.0;
     }
+}
 
+// A 620: the density from the predictor of the tracers and its pressure gradient, for the face predictor
+// (si_assemble) and the cells (cell_update)
+void nhflow_momentum_SI::si_density(lexer *p, fdm_nhf *d)
+{
+    density(p,d);
+    baroclinic(p,d);
 }
 
 void nhflow_momentum_SI::si_rhs(lexer *p, fdm_nhf *d, ghostcell *pgc)
@@ -2164,7 +2215,7 @@ void nhflow_momentum_SI::cell_update(lexer *p, fdm_nhf *d, ghostcell *pgc)
         col_solve(p,wcu.data(),wcl.data(),wcd.data(),dt*gmc(i,j),wb.data(),wr.data());
 
         for(k=0;k<p->knoz;++k)
-        wb[k] = UHD[IJK];
+        wb[k] = UHD[IJK] - (Bx!=nullptr ? dt*WL0(i,j)*Bx[IJK] : 0.0);
 
         col_solve(p,wcu.data(),wcl.data(),wcd.data(),dt*gmc(i,j),wb.data(),wx.data());
 
@@ -2177,7 +2228,7 @@ void nhflow_momentum_SI::cell_update(lexer *p, fdm_nhf *d, ghostcell *pgc)
             if(p->j_dir==1)
             {
             for(k=0;k<p->knoz;++k)
-            wb[k] = VHD[IJK];
+            wb[k] = VHD[IJK] - (By!=nullptr ? dt*WL0(i,j)*By[IJK] : 0.0);
 
             col_solve(p,wcu.data(),wcl.data(),wcd.data(),dt*gmc(i,j),wb.data(),wx.data());
 

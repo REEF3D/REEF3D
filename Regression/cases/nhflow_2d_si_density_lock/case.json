@@ -1,0 +1,16 @@
+{
+ "description": "NHFLOW hydrostatic semi-implicit with density: lock exchange in a 4 km x 10 m channel (400 x 20 sigma layers), salinity 0 | 10 psu at x = 2 km (A 602), no friction and no diffusion. The fronts run at 0.35 m/s = 0.81 of 1/2 sqrt(g' H) with the default time step (N 47 0.4); 0.389 m/s with N 47 0.1 and 0.402 m/s (0.93) with N 47 0.025.",
+ "solver": "nhflow",
+ "np": 1,
+ "time": 1200.0,
+ "tags": [
+  "2d",
+  "nhflow",
+  "semi_implicit",
+  "tracer",
+  "density"
+ ],
+ "covers": [
+  "baroclinic pressure gradient at a front, the split tracer step with TVD fronts, tracer gauges"
+ ]
+}

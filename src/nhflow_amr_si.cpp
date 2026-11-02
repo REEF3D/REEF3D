@@ -594,6 +594,25 @@ void nhflow_amr::si_step(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum_f
         return c==0 ? gsi(g)->UHD : gsi(g)->VHD;
     });
 
+    // A 620: the density for the pressure gradient from the predictor of the tracers with the old part of the
+    // transport (forward-backward with the step after the momentum); tracers on the level-0 grids only
+    if(p->A620>0)
+    {
+        si_each(pgc,[&](int g, lexer *q, fdm_nhf *dd, nhflow_momentum_SI *m, nhflow_stage_obj &S)
+        {
+            m->si_old_closed(q,pgc);
+            m->ptrc->save(dd);
+        });
+
+        si_tracer(p,pgc,1);
+
+        si_each(pgc,[&](int g, lexer *q, fdm_nhf *dd, nhflow_momentum_SI *m, nhflow_stage_obj &S)
+        {
+            m->si_density(q,dd);
+            m->ptrc->restore(dd);
+        });
+    }
+
     si_all(pgc,[&](int g, lexer *q, fdm_nhf *dd, nhflow_momentum_SI *m, nhflow_stage_obj &S)
     {
         m->si_assemble(q,dd,pgc);
@@ -709,7 +728,7 @@ void nhflow_amr::si_step(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum_f
 // tracers (A 600) of all blocks: the substeps of every block in lockstep (the same number on all grids
 // and ranks), the cells around the blocks and the ring filled before each; the log over the own cells,
 // the gauges P 51 from the nearest own cell centre of all grids
-void nhflow_amr::si_tracer(lexer *p, ghostcell *pgc)
+void nhflow_amr::si_tracer(lexer *p, ghostcell *pgc, int phase)
 {
     const int nt = gsi(-1)->ptrc->nt;
 
@@ -719,7 +738,7 @@ void nhflow_amr::si_tracer(lexer *p, ghostcell *pgc)
 
     si_each(pgc,[&](int g, lexer *q, fdm_nhf *dd, nhflow_momentum_SI *m, nhflow_stage_obj &S)
     {
-        r = max(r,m->ptrc->prepare(q,dd));
+        r = max(r,m->ptrc->prepare(q,dd,phase));
     });
 
     double rg;
@@ -756,6 +775,9 @@ void nhflow_amr::si_tracer(lexer *p, ghostcell *pgc)
     {
         m->ptrc->ghosts(q,dd);
     });
+
+    if(phase==1)
+    return;
 
     // the log: own cells of all grids
     nhflow_tracer_SI::stats st;
@@ -839,6 +861,9 @@ void nhflow_amr::dt_si_cmin(double cfl, double &cmin, double &hmax)
 
             hmax = MAX(hmax,dd->WL(ii,jj));
 
+            // the speed of the first internal mode (A 620)
+            const double ci = pp->A620>0 ? nhflow_momentum_SI::internal_speed(pp,dd,ii,jj) : 0.0;
+
             for(int kk=0; kk<pp->knoz; ++kk)
             {
                 const int n = cidx(pp,ii,jj,kk);
@@ -846,16 +871,16 @@ void nhflow_amr::dt_si_cmin(double cfl, double &cmin, double &hmax)
 
                 if(pp->geo_curv==1)
                 {
-                const double sp = sqrt(dd->U[n]*dd->U[n] + dd->V[n]*dd->V[n]);
+                const double sp = sqrt(dd->U[n]*dd->U[n] + dd->V[n]*dd->V[n]) + ci;
                 sigma = sp/nhflow_curv::width1(pp,ii,jj) + sp/nhflow_curv::width2(pp,ii,jj);
                 }
 
                 else
                 {
-                sigma = fabs(dd->U[n])/pp->DXN[ii+marge];
+                sigma = (fabs(dd->U[n]) + ci)/pp->DXN[ii+marge];
 
                 if(pp->j_dir==1)
-                sigma += fabs(dd->V[n])/pp->DYN[jj+marge];
+                sigma += (fabs(dd->V[n]) + ci)/pp->DYN[jj+marge];
                 }
 
                 if(sigma>1.0e-20)

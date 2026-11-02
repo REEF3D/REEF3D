@@ -125,6 +125,8 @@ public:
     void si_predictor_end(lexer*, fdm_nhf*, ghostcell*);                // the predictor to the faces (UHD, VHD)
     void si_assemble(lexer*, fdm_nhf*, ghostcell*);                     // column operator, face coefficients
     void si_rhs(lexer*, fdm_nhf*, ghostcell*);                          // right-hand side of the eta system
+    void si_old_closed(lexer*, ghostcell*);                             // no old discharge on the closed faces
+    void si_density(lexer*, fdm_nhf*);                                  // A 620: the density, its pressure gradient
     void si_end(lexer*, fdm_nhf*, ghostcell*, nhflow_stage_obj&);       // faces, WL, cells, omega
     void si_end_faces(lexer*, fdm_nhf*, ghostcell*);                    // the face discharges (si_end in two parts)
     void si_end_cells(lexer*, fdm_nhf*, ghostcell*, nhflow_stage_obj&); // WL, cells, omega
@@ -142,8 +144,12 @@ public:
 
     // tracers (A 600): salinity, temperature (nhflow_tracer_SI), after the momentum step
     nhflow_tracer_SI *ptrc = nullptr;
+
+    // density from the tracers and its pressure gradient (A 620, nhflow_momentum_SI_density.cpp)
+    static double eos(lexer*, double S, double T);
+    static double internal_speed(lexer*, fdm_nhf*, int, int);
     bool trc_mask = false;
-    void tracer_step(lexer*, fdm_nhf*, ghostcell*);
+    void tracer_step(lexer*, fdm_nhf*, ghostcell*, int phase=0);
 
     // the stage interface of the mesh refinement (nhflow_amr) is not used: one theta step
     int stages() const override final { return 1; }
@@ -207,6 +213,13 @@ private:
 
     void face_depth(lexer*, fdm_nhf*, ghostcell*);
     void friction(lexer*, fdm_nhf*);
+    void density(lexer*, fdm_nhf*);
+    void baroclinic(lexer*, fdm_nhf*);
+    void baroclinic_face(lexer*, fdm_nhf*, int dir, int fi, int fj, double *bn);
+    void baroclinic_column(lexer*, fdm_nhf*, int, int, double *P);
+    double *Bx = nullptr, *By = nullptr;     // (1/rho0) grad_z p' of the cells (A 620)
+    double *BFx = nullptr, *BFy = nullptr;   // its normal component on the faces (the layer face discharges)
+    vector<double> bpl, bpr, bcr, bcz, bcd, bce;
     void eddy_algebraic(lexer*, fdm_nhf*);     // A 547: parabolic eddy viscosity from the bed friction velocity
     void bc_setup(lexer*, fdm_nhf*, ghostcell*);
     void bc_method(lexer*);
