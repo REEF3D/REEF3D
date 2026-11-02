@@ -205,11 +205,16 @@ void driver::logic_nhflow()
         p->A520=1;
     }
     
-    // the hull as a sharp thin body (X 15 8): the same, blocked links of a moving body
-    if(p->X15==8 && p->X10>0 && p->A520==2)
+    // the hull as a sharp thin body (X 15 8) keeps the incremental projection (nhflow_pjm_corr: the old pressure in the
+    // predictor with the link mobilities, the wall velocity in the right-hand side). The full projection damps short
+    // waves: a 2D wave of T 1.4 s in 3 m depth (dx 0.1 m, 30 layers) kept 88.5 % of its height over 20 m with A 520 1
+    // against 98.5 % with A 520 2; in the ship frame of the KVLCC2-like hull (dx 0.3 m, 20 layers) the incident wave
+    // reached the hull at 62 % of its height at lambda/L 0.6 and 93 % at 1.0 (Ship Hydrodynamics validation 34).
+    // On the mesh refinement hierarchy the hull needs the full projection (nhflow_amr::keys_ok).
+    if(p->X15==8 && p->X10>0 && p->A520==2 && p->G1>0)
     {
         if(p->mpirank==0)
-        cout<<"X 15 8: sharp hull, pressure scheme A 520 2 -> A 520 1 (full projection)"<<endl;
+        cout<<"X 15 8 on the mesh refinement hierarchy (G 1): pressure scheme A 520 2 -> A 520 1 (full projection)"<<endl;
 
         p->A520=1;
     }

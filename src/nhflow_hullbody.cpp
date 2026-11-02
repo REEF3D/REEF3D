@@ -81,7 +81,9 @@ Architect: Hans Bihs
 //               calm-water force of the KVLCC2-like hull in the ship frame was -67 N with a noise of 35 N
 //               (now -22 N, 9 N; Ship Hydrodynamics validation 27). Its vertical velocity stays with the
 //               solver, so that the inner level follows the keel through the lid correction.
-// The direct forcing is off. The pressure scheme is the full projection (A 520 1).
+// The direct forcing is off. Pressure scheme: the incremental projection (A 520 2, default; the old pressure in the
+// predictor with the link mobilities, nhflow_pjm_corr) or the full projection (A 520 1, on the mesh refinement
+// hierarchy). The full projection damps short waves (Ship Hydrodynamics validation 34).
 //
 // Result (2D box B 1 m, T 0.4 m, forced heave at 3.5 rad/s; Frank close-fit A/m 0.975, B 63.6 per
 // 0.1 m span): see the README of validation 21.
