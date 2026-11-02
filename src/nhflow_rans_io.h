@@ -74,6 +74,8 @@ public:
     
     void wetting_ini(lexer*, fdm_nhf*, double*, double*, bool);
     void length_limit(lexer*, fdm_nhf*, bool);
+    void strat_kmin(lexer*);                // A 623: k >= A 626 k_min
+    void strat_limit(lexer*, fdm_nhf*);     // A 623: Galperin length limit l <= c_lim sqrt(2k)/N (epsilon)
     
     // SST/Bradshaw limiter (A 564 2), shared by k-epsilon and k-omega
     void walldist_h(lexer*, fdm_nhf*, ghostcell*);

@@ -119,6 +119,21 @@ void driver::logic_nhflow()
         exit(1);
     }
 
+    // mixing damped by the stratification (A 623): needs the density; A 547 or k-epsilon
+    if(p->A623>0 && p->A620==0)
+    {
+        if(p->mpirank==0)
+        cout<<"!!! NHFLOW stratified mixing (A 623) needs the density (A 620 1/2) !!!"<<endl;
+        exit(1);
+    }
+
+    if(p->A623>0 && p->A560!=0 && p->A560!=1 && p->A560!=21)
+    {
+        if(p->mpirank==0)
+        cout<<"!!! NHFLOW stratified mixing (A 623): with the algebraic eddy viscosity (A 547) or k-epsilon (A 560 1, 21) only !!!"<<endl;
+        exit(1);
+    }
+
     // tracers (A 600): the semi-implicit path only
     if(p->A600>0 && p->A534!=1)
     {

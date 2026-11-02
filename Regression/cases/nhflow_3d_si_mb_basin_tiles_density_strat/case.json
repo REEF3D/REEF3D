@@ -1,0 +1,23 @@
+{
+ "base": "nhflow_3d_si_mb_basin_tiles_density",
+ "same_as": "nhflow_3d_si_mb_basin_fine_density_strat",
+ "same_as_rtol": 1e-06,
+ "description": "nhflow_3d_si_mb_basin_fine_density_strat cut into tiles (G 55 8, G 58 1, G 57 4): the same to solver tolerance.",
+ "ctrl_add": [
+  "A 547 1.0 1.0e-6",
+  "A 623 1"
+ ],
+ "tags": [
+  "3d",
+  "nhflow",
+  "semi_implicit",
+  "curvilinear",
+  "multiblock",
+  "tracer",
+  "density",
+  "turbulence"
+ ],
+ "covers": [
+  "A 623 with A 547 across tiles"
+ ]
+}

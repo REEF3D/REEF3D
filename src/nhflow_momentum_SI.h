@@ -149,6 +149,10 @@ public:
     static double eos(lexer*, double S, double T);
     static double internal_speed(lexer*, fdm_nhf*, int, int);
     bool trc_mask = false;
+
+    // A 623 with A 547: the vertical eddy diffusivity of the tracers K = nu_n/sigma_t f_h(Ri) + nu0/sigma_t
+    // (nullptr: EV/sigma_t), the buoyancy frequency
+    double *KV = nullptr, *N2 = nullptr;
     void tracer_step(lexer*, fdm_nhf*, ghostcell*, int phase=0);
 
     // the stage interface of the mesh refinement (nhflow_amr) is not used: one theta step

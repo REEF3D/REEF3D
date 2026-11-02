@@ -799,7 +799,7 @@ void nhflow_tracer_SI::substep(lexer *p, fdm_nhf *d, int s, int nsub)
             const double w = om[o+kk+1];
             const double wp = fmax(w,0.0), wm = fmax(-w,0.0);
             const double ev = 0.5*(d->EV[cidx(p,ii,jj,kk)] + d->EV[cidx(p,ii,jj,kk+1)]);
-            const double kv = ev/sigt + k0;
+            const double kv = (m->KV!=nullptr ? 0.5*(m->KV[cidx(p,ii,jj,kk)] + m->KV[cidx(p,ii,jj,kk+1)]) : ev/sigt) + k0;
             const double dz = wb*(p->ZP[kk+1+mg] - p->ZP[kk+mg]);
             const double D = dz>0.0 ? kv/dz : 0.0;
 
@@ -975,7 +975,7 @@ void nhflow_tracer_SI::substep(lexer *p, fdm_nhf *d, int s, int nsub)
                     const double w = om[o+kk+1];
                     const double wp = fmax(w,0.0), wm = fmax(-w,0.0);
                     const double ev = 0.5*(d->EV[cidx(p,ii,jj,kk)] + d->EV[cidx(p,ii,jj,kk+1)]);
-                    const double kv = ev/sigt + k0;
+                    const double kv = (m->KV!=nullptr ? 0.5*(m->KV[cidx(p,ii,jj,kk)] + m->KV[cidx(p,ii,jj,kk+1)]) : ev/sigt) + k0;
                     const double dz = wb*(p->ZP[kk+1+mg] - p->ZP[kk+mg]);
                     const double D = dz>0.0 ? kv/dz : 0.0;
 

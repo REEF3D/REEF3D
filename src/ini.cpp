@@ -228,6 +228,14 @@ void control::ini_default()
     A609=2;      // int NHFLOW tracers: horizontal advection, 1 first-order upwind, 2 TVD van Leer, 3 TVD monotonised central
     A611=0;      // int NHFLOW tracers: number of A 611 z S points, the initial salinity a function of z (linear between the points sorted by z, constant beyond; over A 601/602)
     A612=0;      // int NHFLOW tracers: number of A 612 z T points, the initial temperature a function of z
+    A623=0;      // int NHFLOW density: mixing damped by the stratification (needs A 620), 0 off, 1 on: A 547 with the stability functions of A 625, k-epsilon with the buoyancy term
+    A624=0.0;    // double NHFLOW density, k-epsilon with A 623: c3e of the buoyancy term in the epsilon equation for stable stratification (G_b < 0); unstable: 1
+    A625_am=10.0;  // double NHFLOW density, A 547 with A 623: A 625 a_m p_m a_h p_h, nu = nu_n (1 + a_m Ri)^p_m (Munk and Anderson 1948)
+    A625_pm=-0.5;  // double
+    A625_ah=3.33;  // double K = nu_n/sigma_t (1 + a_h Ri)^p_h
+    A625_ph=-1.5;  // double
+    A626_kmin=1.0e-7;  // double NHFLOW density, k-epsilon with A 623: A 626 k_min c_lim, the floor of k (m2/s2)
+    A626_clim=0.53;    // double the length limit l <= c_lim sqrt(2k)/N (Galperin et al. 1988)
     A613=0;      // int NHFLOW tracers: vertical advection, 1 implicit upwind, 2 implicit upwind with the explicit TVD correction (Lax-Wendroff, A 609 limiter); 0: 2 with A 620, else 1
     A620=0;      // int NHFLOW semi-implicit: density from the tracers and its pressure gradient, 0 off (passive tracers), 1 linear equation of state, 2 UNESCO 1981 (one atmosphere)
     A621_rho0=1025.0;    // double NHFLOW density: A 621 rho0 T0 S0 alpha beta, reference density (Boussinesq; kg/m3)

@@ -43,6 +43,7 @@ public:
     double Qij2(lexer*,fdm_nhf*);
 	void Pk_update(lexer*,fdm_nhf*,ghostcell*);
     void Pk_b_update(lexer*,fdm_nhf*,ghostcell*);
+    void Pk_strat(lexer*,fdm_nhf*);     // A 623: buoyancy production of the stratification (nhflow_stratification.h)
 	void wallf_update(lexer*,fdm_nhf*,ghostcell*,int*);
 	double strainterm(lexer*,fdm_nhf*);
     double strainterm_v(lexer*,fdm_nhf*);   // vertical shear sqrt((du/dz)^2 + (dv/dz)^2) (A 561 1)
@@ -70,6 +71,7 @@ public:
     double qcr_fz(lexer*,fdm_nhf*);
     
 	double *PK,*PK0,*PK_b;
+    double *GBS=nullptr,*GBS0=nullptr,*N2S=nullptr;     // A 623: G_b = -(nu_t/sigma_t) N^2 with EV and EV0, N^2
     double *TQ11,*TQ22,*TQ33,*TQ12,*TQ13,*TQ23;
 
 private:

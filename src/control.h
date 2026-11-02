@@ -92,7 +92,8 @@ public:
     int A548;                    // NHFLOW semi-implicit: still water depth of a face between wet cells, 1 the smaller
     double A547_c,A547_nu0;      // NHFLOW semi-implicit: algebraic vertical eddy viscosity (A 547 c nu0)
     int A600,A602,A603,A609,A610;    // NHFLOW semi-implicit: tracers (salinity, temperature), A 600 - 610
-    int A611,A612,A613,A620,A622;         // NHFLOW semi-implicit: vertical initial profiles, density and its pressure gradient
+    int A611,A612,A613,A620,A622,A623;
+    double A624,A625_am,A625_pm,A625_ah,A625_ph,A626_kmin,A626_clim;         // NHFLOW semi-implicit: vertical initial profiles, density and its pressure gradient
     double *A611_z,*A611_c,*A612_z,*A612_c;
     double A621_rho0,A621_t0,A621_s0,A621_alpha,A621_beta;
     double A601_s,A601_t,A602_x1,A602_y1,A602_c1,A602_x2,A602_y2,A602_c2,A603_x1,A603_y1,A603_c1,A603_x2,A603_y2,A603_c2;

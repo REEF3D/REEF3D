@@ -61,6 +61,7 @@ void nhflow_kepsilon_IM1::start_part(lexer* p, fdm_nhf* d, ghostcell* pgc, nhflo
     {
 	Pk_update(p,d,pgc);
     Pk_b_update(p,d,pgc);
+    Pk_strat(p,d);
 	wallf_update(p,d,pgc,WALLF);
     inflow(p,d,pgc);
     wetting_ini(p,d,KN,EN,false);   // newly wetted columns start from the wet neighbours
@@ -83,6 +84,7 @@ void nhflow_kepsilon_IM1::start_part(lexer* p, fdm_nhf* d, ghostcell* pgc, nhflo
     // k >= 0 also against the explicit convection (was only with the buoyancy sink A 566 1)
     LOOP
     KIN[IJK] = MAX(KIN[IJK],0.0);
+    strat_kmin(p);
     pgc->start20V(p,KIN,gcval_kin);
 	p->kintime=pgc->timer()-starttime;
 	p->kiniter=p->solveriter;
@@ -104,6 +106,7 @@ void nhflow_kepsilon_IM1::start_part(lexer* p, fdm_nhf* d, ghostcell* pgc, nhflo
 
 	epsfsf(p,d,pgc);
     length_limit(p,d,false);   // l <= kappa h (A 564 >= 1)
+    strat_limit(p,d);          // A 623: l <= c_lim sqrt(2k)/N
 	pgc->start30V(p,EPS,gcval_eps);
 	p->epstime=pgc->timer()-starttime;
 	p->epsiter=p->solveriter;

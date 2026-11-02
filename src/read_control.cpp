@@ -638,6 +638,18 @@ void control::read_control(lexer* p)
                 case 613: control>>A613;
                          clear(c,numint);
                          break;
+                case 623: control>>A623;
+                         clear(c,numint);
+                         break;
+                case 624: control>>A624;
+                         clear(c,numint);
+                         break;
+                case 625: control>>A625_am>>A625_pm>>A625_ah>>A625_ph;
+                         clear(c,numint);
+                         break;
+                case 626: control>>A626_kmin>>A626_clim;
+                         clear(c,numint);
+                         break;
                 case 620: control>>A620;
                          clear(c,numint);
                          break;

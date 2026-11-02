@@ -1,0 +1,21 @@
+{
+ "base": "nhflow_3d_si_mb_basin_fine_density",
+ "description": "nhflow_3d_si_mb_basin_fine_density with the algebraic eddy viscosity A 547 1 1e-6 damped by the stratification (A 623 1): the eddy viscosity and the tracer diffusivity of every block column from its own state, the cells around the blocks included.",
+ "ctrl_add": [
+  "A 547 1.0 1.0e-6",
+  "A 623 1"
+ ],
+ "tags": [
+  "3d",
+  "nhflow",
+  "semi_implicit",
+  "curvilinear",
+  "multiblock",
+  "tracer",
+  "density",
+  "turbulence"
+ ],
+ "covers": [
+  "eddy_algebraic with A 623 on blocks (KV in the cells around the blocks)"
+ ]
+}

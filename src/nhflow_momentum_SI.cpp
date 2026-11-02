@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"nhflow_momentum_SI.h"
+#include"nhflow_stratification.h"
 #include"seastate_nhflow.h"
 #include"si_eta2D.h"
 #include"bc_zone.h"
@@ -103,6 +104,13 @@ nhflow_momentum_SI::nhflow_momentum_SI(lexer *p, fdm_nhf *d, ghostcell *pgc, six
     p->Darray(*a,N);
     }
 
+    // A 623 with the algebraic eddy viscosity A 547: its stability functions
+    if(p->A623>0 && p->A560==0 && (p->A547_c>0.0 || p->A547_nu0>0.0))
+    {
+    p->Darray(KV,N);
+    p->Darray(N2,N);
+    }
+
     // the 2D solver of the eta system: created with the first solve of one grid (new_solver2D); the
     // multi-block grid solves the eta system of all blocks together (nhflow_amr_si.cpp)
     psolv2D = nullptr;
@@ -165,7 +173,7 @@ nhflow_momentum_SI::~nhflow_momentum_SI()
 
     delete psi;
     delete ptrc;
-    for(double *a : {Bx,By,BFx,BFy})
+    for(double *a : {Bx,By,BFx,BFy,KV,N2})
     delete [] a;
 
     if(psolv2D!=nullptr)
@@ -802,8 +810,14 @@ void nhflow_momentum_SI::eddy_algebraic(lexer *p, fdm_nhf *d)
     // z0 = max(dn/2, ks/30)), so that the eddy viscosity belongs to the bed stress of the column operator;
     // u*_s = sqrt(|tau_s|/rho_w) of the met forcing (W 200, wind stress of the step before), 0 without it.
     // All columns incl. the ghost cells (each column from its own state), dry columns nu0.
+    // A 623 (P12c): the stratified part damped by the stability functions of Ri (nhflow_stratification.h),
+    // nu_t = nu_n f_m(Ri) + nu0, and the tracer diffusivity K = (nu_n f_h(Ri) + nu0)/sigma_t (KV)
     const double kappa = 0.4;
     const int ii=i, jj=j, kk=k;
+    const double sigt = p->A605_sig>0.0 ? p->A605_sig : 1.0;
+
+    if(KV!=nullptr)
+    nhflow_n2(p,d,N2);
 
     for(i=p->imin; i<p->imin+p->imax; ++i)
     for(j=p->jmin; j<p->jmin+p->jmax; ++j)
@@ -834,7 +848,17 @@ void nhflow_momentum_SI::eddy_algebraic(lexer *p, fdm_nhf *d)
         {
             const double sc = zs + 0.5*p->DZN[KP];
             zs += p->DZN[KP];
-            d->EV[IJK] = p->A547_c*kappa*ustar*sc*(1.0-sc)*MAX(h,0.0) + p->A547_nu0;
+            const double nun = p->A547_c*kappa*ustar*sc*(1.0-sc)*MAX(h,0.0);
+
+            if(KV==nullptr)
+            d->EV[IJK] = nun + p->A547_nu0;
+
+            else
+            {
+            const double Ri = nhflow_ri(p,d,N2,i,j,k);
+            d->EV[IJK] = nun*nhflow_fm(p,Ri) + p->A547_nu0;
+            KV[IJK] = (nun*nhflow_fh(p,Ri) + p->A547_nu0)/sigt;
+            }
         }
     }
 
