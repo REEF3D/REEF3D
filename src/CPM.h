@@ -136,6 +136,12 @@ public:
     void continuity_source(lexer*, ghostcell*);
     void coupling_reset(lexer*, ghostcell*);
     field4a Dsrc;
+    // CPM on the CFD mesh refinement (cfd_amr_cpm.cpp):
+    // the bed shear stress of column (i,j): of the bedload layer (Q 58 > 0), else of the bed shear model (tau_eff)
+    double column_tau(lexer*, sediment_fdm*, int, int);
+    // the least reference height of the bed shear stress of the layer per column (i knoy + j), in cells above the
+    // bed: the first cell of the coarser fluid grid where the fluid is interpolated from it (Q 66 is the least of all)
+    std::vector<double> amr_href;
 private:
     
     void limiter(lexer*, fdm*, ghostcell*, double*, double*, double*, double*, double*, double*, double*, double*, double*);

@@ -125,7 +125,12 @@ void CPM::bedload_columns(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
         double tx=0.0, ty=0.0, hc=0.0;
         bool rest=false;
         
-        bedshear::column_tau(p,a,pturb_,i,j,s->bedzh(i,j),ks,p->Q66,(p->Q68==1||p->Q68==2)?p->Q68:0,p->W1,tx,ty,hc,rest,p->Q79==1?1:0);
+        // CPM on the mesh refinement: where the fluid comes from a coarser grid, the velocity and k at least at its
+        // first cell
+        const double ha = amr_href.empty() ? 0.0 : amr_href[(size_t)i*p->knoy+j];
+        const double href = MAX(p->Q66, ha);
+        
+        bedshear::column_tau(p,a,pturb_,i,j,s->bedzh(i,j),ks,href,(p->Q68==1||p->Q68==2)?p->Q68:0,p->W1,tx,ty,hc,rest,p->Q79==1?1:0,ha>0.0?1:0);
         
         blTx(i,j) = tx;
         blTy(i,j) = ty;

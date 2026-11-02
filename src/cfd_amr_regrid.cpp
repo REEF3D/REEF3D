@@ -41,6 +41,8 @@ Architect: Hans Bihs
 //    G 24 n   the interface band: |phi| < n psi (psi of the flagging level)
 //    G 25 n   within n cells of a solid, the topography or a floating body (|solid|, |topo|, |fb| < n dx)
 //    G 26 w   a vorticity |curl u| > w [1/s]
+//    G 27 r   near a mobile bed (CPM, cfd_amr_cpm.cpp): within two cells of the bed where its shear stress is
+//             above r times the critical one or it has moved by a cell of the grid of CPM
 //    G 12 r   the zone of the floating bodies (cfd_amr_zone.cpp), on the finest level
 //    G 15     boxes, always refined to the finest level
 //  A flagged cell of level l (with a buffer of G 3 cells) marks the tiles of its children on level
@@ -104,6 +106,10 @@ bool cfd_amr::flagged(int g, int i, int j, int k, int lt, bool init)
         return true;
     }
 
+    // G 27: near a mobile bed (CPM on the refinement)
+    if(p0->G27>0.0 && !init && cpm_flag(g,i,j,k))
+    return true;
+
     if(p0->G26>0.0)
     {
         // cell-centred velocities, central differences
@@ -136,6 +142,10 @@ void cfd_amr::flags(vector<vector<unsigned char>> &seed, bool init)
 
     if(!adapt)
     return;
+
+    // G 27: the mobile columns of the grid of CPM
+    if(p0->G27>0.0 && !init && cpm_on())
+    cpm_mobile();
 
     const int buf = MAX(p0->G3,0);
     int bb[3];
@@ -586,6 +596,9 @@ void cfd_amr::regrid(lexer *p, ghostcell *pgc, bool replace)
         CP(id)->pturb->ktimesave(CP(id)->pp,CP(id)->a,pgc);
         CP(id)->pturb->etimesave(CP(id)->pp,CP(id)->a,pgc);
     }
+
+    // CPM: the plans with the new patches, the bed of CPM onto them (in place of the bed of the grid file)
+    cpm_regrid();
 
     if(p->mpirank==0)
     {

@@ -797,6 +797,7 @@ void control::ini_default()
     G24=0.0;    // double CFD mesh refinement: flag the cells with |phi| below this many interface thicknesses (psi of the flagging level); 0 off
     G25=0;      // int CFD mesh refinement: flag the cells within this many cells of a solid, the topography or a floating body; 0 off
     G26=0.0;    // double CFD mesh refinement: flag the cells with a vorticity above this value [1/s]; 0 off
+    G27=0.0;    // double CFD mesh refinement with CPM: flag the cells near the bed where it is mobile, the bed shear stress above this many times the critical one or the bed moved by a cell of the grid of CPM; 0 off
     G30=0;      // int NHFLOW and FNPF mesh refinement: 1 patches may cover dry and shallow cells (wetting and drying in the patches; FNPF: the static coastline A 343 1 or the moving one A 343 2, 3), 0 they keep 4 level-0 cells away
     G31=1;      // int NHFLOW mesh refinement with A 512 2: 1 one implicit diffusion solve over the leaf cells of all grids (composite), 0 every grid solves its own
     G52=0;      // int curvilinear NHFLOW (G 50): 1 the i-walls are slip walls as the j-walls (normal velocity mirrored, the pressure correction Neumann), so that a wall acts the same in any index direction (set on multi-block grids); 0 the Cartesian x-walls
@@ -1149,6 +1150,8 @@ void control::ini_default()
     Q67=0;              // int bedload layer: jammed bed only within the Mohr-Coulomb yield of the column (deep slope failures), 0 off, 1 on
     Q68=1;              // int bedload layer: bed shear stress, 0 log law, 1 max(log law, 0.3 rho k) with the turbulent kinetic energy, 2 sqrt(log law * 0.3 rho k) (two velocity scales)
     Q69=0;              // int bedload layer: seepage flow in the bed (Darcy), pore pressure and its force on the contact network, 0 off, 1 on
+    Q85=0;              // int CFD mesh refinement: the region of the grid of CPM, Q 85 xs xe ys ye zs ze (the mobile bed; default the bounding box of the boxes G 15)
+    Q85_xs=Q85_xe=Q85_ys=Q85_ye=Q85_zs=Q85_ze=0.0;
     Q70=0.0;            // double seepage (Q 69): excess pore pressure [Pa] at the bottom of the domain (upflow tests), 0: closed bottom
     Q72=2;              // int bedload layer: passes of a 1-2-1 filter over the columns of the bed level seen by the fluid, 0: off
     Q74=0;              // int bedload layer: 1 grains of the bed not released into the suspension see no resolved flow and no dispersion

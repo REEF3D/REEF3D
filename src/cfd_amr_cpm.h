@@ -37,15 +37,17 @@ class patchBC_interface;
 class turbulence;
 class field;
 
-//  CPM on the CFD mesh refinement, static boxes (cfd_amr_cpm.cpp).
+//  CPM on the CFD mesh refinement (cfd_amr_cpm.cpp).
 //
-//  The parcels and the bed live on a grid of their own: the cells of the finest level (G 1) in the
-//  bounding box of the refinement boxes G 15, a regular grid of REEF3D decomposed over all ranks
-//  (its grid file built in memory, decomposed by dmpart), with its own lexer, ghostcell and fdm, and
-//  the sediment objects of a CFD run on it (sediment_part). CPM runs there unchanged. Every step the
-//  fluid of the finest patches (velocities, pressure, level set, density, viscosity, eddy viscosity,
-//  k and its dissipation) is copied onto it, cell by cell, and its bed (topo) goes back onto the
-//  patches, is restricted onto the coarser levels and sets their direct forcing.
+//  The parcels and the bed live on a grid of their own: the cells of the finest level (G 1) over the
+//  region of the mobile bed (Q 85, else the bounding box of the boxes G 15, both widened to whole
+//  level-0 cells), a regular grid of REEF3D decomposed over all ranks (its grid file built in memory,
+//  decomposed by dmpart), with its own lexer, ghostcell and fdm, and the sediment objects of a CFD run
+//  on it (sediment_part). CPM runs there unchanged. Every step the fluid of the finest grid at every
+//  cell of it (velocities, pressure, level set, density, viscosity, eddy viscosity, k and its
+//  dissipation) is copied onto it, from a patch of the finest level as it is, from a coarser grid
+//  interpolated; its bed (topo) goes back onto every grid as the mean of the cells of CPM under each
+//  cell.
 struct cfd_amr_cpm
 {
     lexer *p = nullptr;
@@ -61,15 +63,36 @@ struct cfd_amr_cpm
     int L = 0;                  // the level of the grid (the finest)
     int lo[3] = {0,0,0};        // its first cell on the index space of level L
     int n[3] = {0,0,0};         // its cells
+    int px = 0, py = 0;         // periodic in x, y
+    std::vector<int> pbox;      // the pieces of all ranks: origin and cells (6 per rank)
 
-    // the copy between the patches of level L and this grid: per rank the items requested from it
-    // (this rank: their position in the arrays of the grid, sorted by rank) and served to it (the patch
-    // and its cell); in the interior of the grid (the bed goes back from those only)
-    std::vector<int> scnt, sdsp, rcnt, rdsp;    // items: sent to / received from each rank (requests)
-    std::vector<int> mine;                      // requested items: the flat index in the arrays of the grid
-    std::vector<char> inner;                    //   in the interior of the grid
-    std::vector<int> sv_g, sv_q;                // served items: the local patch, the flat index in its arrays
-    std::vector<char> sv_in;                    //   in the interior of the grid (the bed back)
+    // the fluid onto the grid of CPM: per rank the items requested from it (this rank: their position in
+    // the arrays of the grid, sorted by rank) and served to it (the local grid, -1 level 0, and its cell:
+    // the flat index of a cell of the finest level as it is, or a stencil of 8 cells per kind of field,
+    // u v w and cell centred, on a coarser grid)
+    std::vector<int> scnt, sdsp, rcnt, rdsp;
+    std::vector<int> mine;
+    std::vector<int> sv_g, sv_q, sv_st;         // sv_st: the stencil block, -1 a copy of sv_q
+    std::vector<int> st_i;                      // stencil blocks: 4 kinds x 8 points (flat index, weight)
+    std::vector<double> st_w;
+    long ncopy = 0, nipol = 0;                  // cells of the grid copied, interpolated (this rank)
+    long nipol_all = 0;                         //   interpolated (all ranks)
+    std::vector<signed char> lev_of;            // per cell of this piece ((i knoy + j) knoz + k): the level of its fluid
+
+    // the bed onto the grids: per cell of a grid in the region (a target, on
+    // its rank) the cells of CPM under it on the ranks that hold them (items), summed there
+    std::vector<int> bscnt, bsdsp, brcnt, brdsp;    // items: requested from / served to each rank
+    std::vector<int> bt;                        // requested items: their target
+    std::vector<int> tg, tq;                    // targets: grid (-1 level 0), flat index in its arrays
+    std::vector<char> tleaf;                    //   an interior cell no finer patch covers (the bed is set)
+    std::vector<double> tcnt;                   //   the cells of CPM under it
+    std::vector<int> bsv;                       // served items: the box of cells of CPM (local, 6 per item)
+
+    // G 27: the bed level of the columns at the start (this rank), the mobile columns of the grid of CPM
+    // (all ranks, global column I*gn(L,1) + J of level L)
+    std::vector<double> bed0;
+    bool bed0_ok = false;
+    std::vector<unsigned char> mob;
 };
 
 #endif

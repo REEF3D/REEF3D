@@ -147,7 +147,8 @@ struct cfd_amr_field
 //  porous structures B 200 1 (vrans_f on every patch, the zones at its cells; CPOR n at the faces of
 //  the patch edges); heat or concentration (H 10 3, C 10 3: transported by the refinement on all
 //  grids in flux form, the patch edges with flux registers, cfd_amr_scalar.cpp); sediment with CPM (S 10 1, Q 10 1) on a
-//  grid of the finest level over the boxes G 15 (static refinement, cfd_amr_cpm.cpp), no other sediment model, no
+//  grid of the finest level over the region of the mobile bed (Q 85, G 15; static or adaptive refinement, G 27 the
+//  mobile bed; cfd_amr_cpm.cpp), no other sediment model, no
 //  vegetation; the convection schemes D 10
 //  0-8, 10-16, 60 and F 35 1-8, 10-16, the diffusion D 20 0-3; the relaxation zones of the wave
 //  generation and the beach (B 98 2, B 99 1/2) with a wave theory on the patches as on level 0
@@ -466,13 +467,20 @@ private:
     void patch_fields_ini(int id);
     void free_patch(cfd_amr_patch*);
 
-    // CPM on the grid of the finest level over the boxes G 15 (cfd_amr_cpm.cpp)
+    // CPM on the grid of the finest level over the region of the mobile bed (Q 85, G 15; cfd_amr_cpm.cpp):
+    // the plans of the fluid onto it (cpm_plans) and of the bed onto the grids (cpm_bplans),
+    // made again at a regrid (cpm_regrid); G 27: the mobile columns, the flag of a cell near them
     cfd_amr_cpm *cpm = nullptr;
     void cpm_setup(lexer*, fdm*, ghostcell*);
     void cpm_plans();
+    void cpm_bplans();
     void cpm_pull(bool ini);
     void cpm_push();
     void cpm_bed(lexer*, fdm*);
+    void cpm_regrid();
+    void cpm_href();
+    void cpm_mobile();
+    bool cpm_flag(int g, int i, int j, int k);
 
     // the registry of the patch state (cfd_amr_fields.cpp)
     vector<cfd_amr_field> reg;

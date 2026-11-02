@@ -365,7 +365,7 @@ cfd_amr::cfd_amr(lexer *p, fdm *a, ghostcell *pgc, momentum *pmom, pressure *ppr
 
     // the hierarchy: static boxes G 15, adaptive with the flags G 24-26 (and the body zone G 12) of the
     // initial level 0
-    adapt = (p->G24>0.0 || p->G25>0 || p->G26>0.0 || bzone) ? 1 : 0;
+    adapt = (p->G24>0.0 || p->G25>0 || p->G26>0.0 || bzone || (p->G27>0.0 && p->S10==1 && p->Q10>=1)) ? 1 : 0;
     if(adapt)
     {
         setup_base(p,pgc);

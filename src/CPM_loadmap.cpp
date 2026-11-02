@@ -26,6 +26,8 @@ Architect: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 #include"amr_load.h"
+#include"sediment_fdm.h"
+#include<cmath>
 #include<mpi.h>
 #include<iomanip>
 #include<sys/stat.h>
@@ -245,4 +247,13 @@ void CPM::loadmap_write(lexer *p, fdm *a, ghostcell *pgc)
     out<<v<<((++m)%10==0 ? "\n" : " ");
 
     out<<endl;
+}
+
+// the bed shear stress of column (i,j): of the bedload layer (Q 58 > 0), else of the bed shear model (G 27 of the
+// mesh refinement, cfd_amr_cpm.cpp)
+double CPM::column_tau(lexer *p, sediment_fdm *s, int ic, int jc)
+{
+    if(p->Q58>0 && p->S10!=2)
+    return sqrt(blTx(ic,jc)*blTx(ic,jc) + blTy(ic,jc)*blTy(ic,jc));
+    return s->tau_eff(ic,jc);
 }
