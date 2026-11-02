@@ -64,6 +64,12 @@ seastate_source::seastate_source(const seastate_grid &grid, const seastate_sourc
     rsg.resize(nsig);
     for(int l=0; l<nsig; ++l)
     rsg[l] = 1.0/(2.0*pi*g.sig[l]);
+    // A 769 2 with A 732 1, 2 (flmax): FLMAX = (alpha/pi)/((2 pi)^4/g^2 f^5) of F(f,theta), as N = F/(2 pi sig), as
+    // seastate_st4
+    nmaxk.assign(nsig,0.0);
+    if(prm.flmax>0.0)
+    for(int l=0; l<nsig; ++l)
+    nmaxk[l] = (prm.flmax/pi)/(std::pow(2.0*pi,4.0)/(seastate_gravity*seastate_gravity)*std::pow(g.f[l],5.0))/(2.0*pi*g.sig[l]);
     dNmax.assign(nsig,0.0);
     EL.assign(nsig,0.0);
     VE.assign(nsig,0.0);

@@ -428,8 +428,8 @@ void seastate_f::check_keys(lexer *p, ghostcell *pgc)
     msg = "A 735: the limiter coefficient must not be negative";
     else if(p->A769<0 || p->A769>2)
     msg = "A 769: the source-term limiter must be 0 (SWAN), 1 (Hersbach and Janssen) or 2 (none: the conservative DIA and the linearised whitecapping)";
-    else if(p->A769==2 && (p->A732!=1 || p->A733!=1))
-    msg = "A 769 2: the limiter-free integration is for the Komen physics with the DIA (A 732 1, A 733 1)";
+    else if(p->A769==2 && (p->A732<1 || p->A732>2 || p->A733!=1))
+    msg = "A 769 2: the limiter-free integration is for the Komen and van der Westhuysen physics with the DIA (A 732 1, 2; A 733 1)";
     else if(p->A769==2 && p->A700!=1)
     msg = "A 769 2: the limiter-free integration needs a nonstationary run (A 700 1); stationary runs keep the limiter";
     else if(p->A769==2 && (p->A795>0.0 || p->A767==1))
@@ -934,6 +934,9 @@ void seastate_f::sources(lexer *p, ghostcell *pgc)
     sp.limiter = 0.0;
     sp.dia_mp = true;
     sp.wc_newton = true;
+    // Phase 25 (0059): with van der Westhuysen the upper bound of ecWAM (FLMAX, alpha_p,max 0.031), which holds the Yan
+    // input at the high frequencies (Komen is stable without it, and the bound would slow its early growth)
+    sp.flmax = (p->A732==2) ? 0.031 : 0.0;
     }
 
     sp.breaking = (p->A740==1 || p->A740==2);
@@ -984,7 +987,7 @@ void seastate_f::sources(lexer *p, ghostcell *pgc)
     if(sp.dia)
     cout<<" quadruplets (DIA),";
     if(sp.dia_mp)
-    cout<<" no limiter: the DIA conservative in action (modified Patankar, two passes) and the whitecapping linearised (A 769 2),";
+    cout<<" no limiter: the DIA conservative in action (modified Patankar, two passes), the whitecapping linearised"<<(sp.flmax>0.0 ? ", the upper bound FLMAX (alpha 0.031)" : "")<<" (A 769 2),";
     else if(sp.komen && sp.limiter>0.0 && sp.limiter_type==1)
     cout<<" limiter of Hersbach and Janssen (A 769 1, dt "<<sp.limiter_dt<<" s),";
     else if(sp.komen)

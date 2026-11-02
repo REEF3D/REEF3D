@@ -72,6 +72,11 @@ implicitly, the receivers gain the transfer times the ratio N_new/N of
 the donors, two passes per solve of a cell (seastate_implicit::cell),
 so N stays positive at any time step; the whitecapping linearised with
 its degree in N (wc_newton: D += (q-1) w, P += (q-1) w N, the same S).
+With A 732 2 (Phase 25, 0059) also the upper bound of ecWAM (FLMAX,
+alpha_p,max 0.031 per frequency, flmax): it holds the Yan input of van
+der Westhuysen at the high frequencies, which grows by up to 46 times in
+a step of 900 s before the saturation dissipation acts, at the level of
+a saturated tail. Komen is stable without it.
 
 The formulations and default coefficients follow SWAN 41.51 (routines
 in brackets):
@@ -169,6 +174,7 @@ struct seastate_source_param
     double limiter = 0.1;                // action density limiter gamma with komen, 0: off
     int limiter_type = 0;                // 0 SWAN (Ris 1997), 1 Hersbach and Janssen (1999) as ecWAM (A 769 1)
     bool wc_newton = false;              // whitecapping linearised with the degree q of the term in N (Phase 25)
+    double flmax = 0.0;                  // A 732 1, 2: the upper bound of ecWAM FLMAX with this alpha_p,max (A 769 2: 0.031), 0 off
     double limiter_dt = 0.0;             // the time step [s] of the Hersbach-Janssen limiter
 
     bool breaking = false;
@@ -259,7 +265,8 @@ public:
     // compute() drops it
     void take_tail(int lt) {if(prm.st4) st4s.take_tail(lt);}
     // ST4: the upper bound of N per frequency (ecWAM FLMAX, Phillips alpha_p,max / pi per bin), nullptr: none
-    const double *upper() const {return prm.st4 ? st4s.upper() : nullptr;}
+    // A 732 1, 2 with prm.flmax (A 769 2): the same bound with alpha_p,max = prm.flmax
+    const double *upper() const {return prm.st4 ? st4s.upper() : (prm.flmax>0.0 ? nmaxk.data() : nullptr);}
     const seastate_st4 &st4() const {return st4s;}
     // ST4 (Phase 23, A 768 1): the next compute() starts from the wave stress and u* of the last time step of the cell
     // (ecWAM); lag_tauw(), lag_tauwdir(), lag_ustar(): the state after compute() for the next time step (0 without wind)
@@ -282,6 +289,7 @@ private:
     double hjs = 0.0;                   // A 769 1: u* f_ref of the last compute (or taken)
     int mp_l0 = 0, mp_l1 = -1, mp_m0 = 0, mp_m1 = -1;   // A 769 2: the centres of the last dia()
     std::vector<double> rsg;            // 1/(2 pi sig)
+    std::vector<double> nmaxk;          // prm.flmax: N_max per frequency (as seastate_st4)
     mutable std::vector<int> mpW;       // A 769 2: the bin direction of each padded direction, -1 none
     mutable std::vector<double> mpR, mpG, mpL, mpA;   // A 769 2: padded rows of the ratios, gains and loss rates; rates
     void hj_limits(int la, int lb);     // A 769 1: dNmax of the frequencies la..lb from hjs
