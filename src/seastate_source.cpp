@@ -329,12 +329,25 @@ bool seastate_source::cap(float *N, double depth) const
 
 void seastate_source::limits(const float *k, const float *cg)
 {
-    // as in compute: gamma alpha_PM/(2 sig k^3 c_g)
-    if(prm.komen && prm.limiter>0.0)
+    // as in compute: gamma alpha_PM/(2 sig k^3 c_g); A 769 1 from u* f_ref of the kept evaluation (take_hj)
+    if(prm.komen && prm.limiter>0.0 && prm.limiter_type==1)
+    hj_limits(0,nsig-1);
+    else if(prm.komen && prm.limiter>0.0)
     for(int l=0; l<nsig; ++l)
     {
     const double kl = std::max(double(k[l]),1.0e-12);
     dNmax[l] = prm.limiter*0.0081/(2.0*g.sig[l]*kl*kl*kl*std::max(double(cg[l]),1.0e-12));
+    }
+}
+
+// A 769 1: Hersbach and Janssen (1999), as ecWAM: |dF| <= 5e-7 g f^-4 u* f_ref dt, F = 2 pi sig N (hjs = u* f_ref)
+void seastate_source::hj_limits(int la, int lb)
+{
+    const double grav = seastate_gravity, zpi = 2.0*3.14159265358979323846;
+    for(int l=la; l<=lb; ++l)
+    {
+    const double f = g.sig[l]/zpi;
+    dNmax[l] = 5.0e-7*grav/(f*f*f*f)*hjs*prm.limiter_dt/(zpi*g.sig[l]);
     }
 }
 
@@ -359,8 +372,9 @@ void seastate_source::compute(const float *N, double depth, const float *k, cons
 
     const double grav = seastate_gravity;
 
-    // action density limiter: gamma alpha_PM/(2 sig k^3 c_g)
-    if(prm.komen && prm.limiter>0.0)
+    // action density limiter: gamma alpha_PM/(2 sig k^3 c_g) (A 769 1: at the end, from u*)
+    hjs = 0.0;
+    if(prm.komen && prm.limiter>0.0 && prm.limiter_type==0)
     for(int l=fa; l<=fb; ++l)
     {
     const double kl = std::max(double(k[l]),1.0e-12);
@@ -531,6 +545,15 @@ void seastate_source::compute(const float *N, double depth, const float *k, cons
     {
     st4s.calm();
     st4s.add(N,k,cg,fa,fb,wa,wb,P,D);
+    }
+
+    // A 769 1: the limiter of Hersbach and Janssen from u* and the reference frequency of this compute
+    if(prm.komen && prm.limiter>0.0 && prm.limiter_type==1)
+    {
+    const double zpi = 2.0*3.14159265358979323846;
+    const double fref = prm.st4 ? std::max(st4s.fm,st4s.fmws) : sigm_10/zpi;
+    hjs = (ustar>0.0 && fref>0.0) ? ustar*fref : 0.0;
+    hj_limits(fa,fb);
     }
 
     if(prm.st4)

@@ -58,6 +58,13 @@ to gamma alpha_PM/(2 sig k^3 c_g), gamma = A 735 (0.1), alpha_PM =
 0.0081. It is active only while the wind-sea spectrum is far from its
 balance (large time steps, early stationary iterations); breaking,
 friction and triads are not limited.
+A 769 1 (Phase 25): the limiter of Hersbach and Janssen (1999), as
+ecWAM, instead: |dF| <= 5e-7 g f^-4 u* f_ref dt per time step dt, F =
+2 pi sig N, f_ref = max(f_m, f_m,ws) of the ST4 terms (A 732 3, 4),
+the mean frequency sig_-1,0 / 2 pi otherwise; none where u* = 0.
+Bounds that scale with the wind and the time step, which do not hold
+the growth back as the SWAN limiter does at large time steps (Dropbox
+SEASTATE/validation/78_limiter).
 
 The formulations and default coefficients follow SWAN 41.51 (routines
 in brackets):
@@ -152,6 +159,8 @@ struct seastate_source_param
     seastate_st4_param st4p;
     bool dia = false;                    // quadruplets
     double limiter = 0.1;                // action density limiter gamma with komen, 0: off
+    int limiter_type = 0;                // 0 SWAN (Ris 1997), 1 Hersbach and Janssen (1999) as ecWAM (A 769 1)
+    double limiter_dt = 0.0;             // the time step [s] of the Hersbach-Janssen limiter
 
     bool breaking = false;
     bool emax = false;                   // Battjes-Janssen: total energy limited to (gamma d)^2/4 (SWAN SINTGRL)
@@ -212,7 +221,11 @@ public:
     void triads(const float *N, double depth, const float *k, const float *cg, double *S);
 
     // maximum change of N per iteration of the last call (per frequency), nullptr: no limiter
-    const double *limit() const {return (prm.komen && prm.limiter>0.0) ? dNmax.data() : nullptr;}
+    const double *limit() const {return (prm.komen && prm.limiter>0.0 && (prm.limiter_type==0 || hjs>0.0)) ? dNmax.data() : nullptr;}
+    // A 769 1: u* f_ref of the last compute (the bound of the Hersbach-Janssen limiter), 0 none; A 767 1: the value of
+    // the kept evaluation of the cell for limits()
+    double hj_scale() const {return hjs;}
+    void take_hj(double s) {hjs = s;}
 
     // Phase 21b (A 767 1, the source terms of a cell taken from the evaluation in the first sweep of the iteration):
     // the limiter of the cell (k, cg) for all frequencies without the source terms, and the row sums of set_rows()
@@ -250,6 +263,8 @@ public:
     double ustar_of(double U10) const;                // friction velocity of the drag prm.drag
 
 private:
+    double hjs = 0.0;                   // A 769 1: u* f_ref of the last compute (or taken)
+    void hj_limits(int la, int lb);     // A 769 1: dNmax of the frequencies la..lb from hjs
     void moments(const float *N, double depth, const float *k);
     void dia(const float *N, double depth);
     void lta(const float *N, double depth, const float *k, const float *cg);

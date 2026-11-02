@@ -426,6 +426,12 @@ void seastate_f::check_keys(lexer *p, ghostcell *pgc)
     msg = "A 734: the linear growth coefficient must not be negative";
     else if(!(p->A735>=0.0))
     msg = "A 735: the limiter coefficient must not be negative";
+    else if(p->A769!=0 && p->A769!=1)
+    msg = "A 769: the source-term limiter must be 0 (SWAN) or 1 (Hersbach and Janssen)";
+    else if(p->A769==1 && p->A700!=1)
+    msg = "A 769 1: the limiter of Hersbach and Janssen bounds the change per time step; it needs a nonstationary run (A 700 1)";
+    else if(p->A769==1 && coupled && !remote)
+    msg = "A 769 1: the limiter of Hersbach and Janssen takes the time step A 706; not with the time step of a coupled host";
     else if(p->A740!=0 && p->A740!=1 && p->A740!=2)
     msg = "A 740: depth-induced breaking must be 0 (off), 1 (Battjes-Janssen) or 2 (Roelvink, surfbeat)";
     else if(p->A740==2 && p->A770!=1)
@@ -911,6 +917,8 @@ void seastate_f::sources(lexer *p, ghostcell *pgc)
     sp.br    = p->A757_br;
     sp.dia   = (p->A732>=1 && p->A733==1);
     sp.limiter = p->A735;
+    sp.limiter_type = p->A769;
+    sp.limiter_dt = p->A706;
 
     sp.breaking = (p->A740==1 || p->A740==2);
     sp.breaking_model = (p->A740==2) ? 2 : 1;
@@ -959,7 +967,9 @@ void seastate_f::sources(lexer *p, ghostcell *pgc)
         <<(sp.wind ? (seastate_implicit::lag_wanted(p->A700,p->A730,p->A732,p->A768,p->A770) ? ", u* from the wave stress of the last time step as ecWAM (A 768 1)" : ", u* from the fixed point with the wave stress in every evaluation") : "")<<"),";
     if(sp.dia)
     cout<<" quadruplets (DIA),";
-    if(sp.komen)
+    if(sp.komen && sp.limiter>0.0 && sp.limiter_type==1)
+    cout<<" limiter of Hersbach and Janssen (A 769 1, dt "<<sp.limiter_dt<<" s),";
+    else if(sp.komen)
     cout<<" action density limiter "<<sp.limiter<<",";
     if(sp.breaking && sp.breaking_model==1)
     cout<<" breaking (Battjes-Janssen, alpha "<<sp.alpha<<", gamma "<<sp.gamma<<"),";
