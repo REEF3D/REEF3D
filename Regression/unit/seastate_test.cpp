@@ -1340,6 +1340,19 @@ static void test_limiter_free()
     }
     check(es<=1e-12*sm && larger,std::string("wc_newton: the same source term, D and P not smaller (")+(westh ? "Westhuysen" : "Komen")+")");
     }
+
+    // the upper bound of A 769 2 with A 732 1, 2 (flmax, 0059): the FLMAX of the ST4 terms with the same alpha_p,max
+    {
+    seastate_grid sg(30,0.04,1.0,24);
+    seastate_source_param a; a.wind=true; a.U10=18.0; a.komen=true; a.dia=true; a.flmax=0.031;
+    seastate_source_param b; b.wind=true; b.U10=18.0; b.komen=true; b.st4=true; b.dia=true; b.st4p.alphapmax=0.031;
+    seastate_source sa(sg,a), sb(sg,b);
+    seastate_source_param c=a; c.flmax=0.0;
+    seastate_source sc(sg,c);
+    double e=0.0;
+    for(int l=0;l<sg.nsig;++l) e=std::max(e,std::fabs(sa.upper()[l]-sb.upper()[l])/sb.upper()[l]);
+    check(sa.upper()!=nullptr && e<1e-12 && sc.upper()==nullptr,"flmax: the bound of A 732 1, 2 equals FLMAX of A 732 3 (alpha 0.031); none without it");
+    }
 }
 
 // ---------------------------------------------------------------------------------------------

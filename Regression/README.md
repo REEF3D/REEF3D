@@ -822,6 +822,7 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `seastate_2d_phase25_hj_amr` | 1 | `seastate_2d_phase23_st4_ckpt_ns` (island with refinement, A 732 3 at 30 m/s) with A 769 1 |
 | `seastate_2d_phase25_mp_komen`, `_mp_komen_mpi2` | 1, 2 | `seastate_2d_phase14_windsea` / `seastate_2d_windsea_mpi2` with A 769 2 (0058): no limiter, the DIA conservative in action (modified Patankar, two passes per cell solve), the whitecapping linearised; `same_as`, bitwise |
 | `seastate_2d_phase25_mp_composite_ns` | 1 | `seastate_2d_phase17_composite_ns` (island with refinement, nonstationary, composite sweep) with A 769 2 |
+| `seastate_2d_phase25_mp_westh` | 1 | `seastate_2d_phase14_windsea` with A 732 2 and A 769 2 (0059): the linearised saturation whitecapping with its breaking switch, the upper bound FLMAX (alpha_p,max 0.031) |
 | `seastate_2d_phase21b_once` | 1 | `seastate_2d_wind` with A 767 1 (Phase 21b): the source terms once per iteration, evaluated in the sweep of quadrant 0 and kept for quadrants 1-3; validated in Dropbox SEASTATE/validation/72 (needs patch SEASTATE/0047) |
 | `seastate_2d_phase21b_once_sector`, `_westh` | 1 | A 767 1 on `seastate_2d_phase10_sector` (sector through 0: the kept quadrant before the evaluating one) and `seastate_2d_phase9_westh` (A 732 2) |
 | `seastate_2d_phase21b_once_threads` | 1 | `seastate_2d_phase21b_once` with A 798 2: the kept terms shared by the worker copies; `same_as` the one-thread case, bitwise |
