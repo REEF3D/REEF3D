@@ -177,6 +177,9 @@ nhflow_hullbody::nhflow_hullbody(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof_ob
     current = true;
     fp_on = plain_horizontal && current;
     fp_tau = 0.5;
+
+    // the lid correction of the lower region drains through its outflow edges (ship frame with a current)
+    tb->lid_outflow = fp_on;
     Rn = 1.0e5;
 
     nbx = nby = nbz = nlink = 0;

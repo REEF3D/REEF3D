@@ -27,6 +27,7 @@ Architect: Hans Bihs
 #include"ghostcell.h"
 #include"slice.h"
 #include<cmath>
+#include<vector>
 
 nhflow_thinbody::nhflow_thinbody(lexer *p, fdm_nhf *d, ghostcell *ppgc) : etaL(p), fp(p), cbx(p), cby(p), phi(p), rL(p), Hx(p), Hy(p), cr(p), cd(p), cq(p), wf(p), rt(p), first(true), nlowg(0), nlow(0)
 {
@@ -1042,6 +1043,61 @@ void nhflow_thinbody::lid_correction(lexer *p, fdm_nhf *d, double *Fx, double *F
     for(k=0; k<p->knoz; ++k)
     if((isL(IJK) || isL(IJp1K)) && by[IJK]<0.5 && p->flag4[IJK]>0 && p->flag4[IJp1K]>0 && p->wet[IJ]==1 && p->wet[IJp1]==1)
     Hy(i,j) += p->DZN[KP];
+    
+    // in a current (lid_outflow): the edge faces of the footprint through which the lower region takes water in get no
+    // correction (Neumann for phi), the imbalance leaves through the outflow edges. With phi = 0 at every edge, the
+    // imbalance of the first footprint columns behind the bow went mostly back out through the bow face: in the column in
+    // front of the bow the pile-up of the stagnation flow could not drain under the keel, and on a fine grid it grew
+    // into an oscillation with the inner level (2D box in a current of 1 m/s at dx 0.05 m: the level in front of the bow
+    // rose by 0.5 m within 0.4 s and the run failed; Ship Hydrodynamics validation 32)
+    if(lid_outflow)
+    {
+        auto actc = [&](int ii, int jj) {return fp(ii,jj)>0.5 && p->wet[(ii-p->imin)*p->jmax + (jj-p->jmin)]==1;};
+        int nout=0;
+        std::vector<std::pair<int,int>> inx, iny;
+        
+        for(i=-1; i<p->knox; ++i)
+        for(j=0; j<p->knoy; ++j)
+        if(Hx(i,j)>0.0 && actc(i,j)!=actc(i+1,j))
+        {
+            double fs=0.0;
+            
+            for(k=0; k<p->knoz; ++k)
+            if((isL(IJK) || isL(Ip1JK)) && bx[IJK]<0.5)
+            fs += p->DZN[KP]*Fx[IJK];
+            
+            if(actc(i+1,j) ? fs>0.0 : fs<0.0)
+            inx.push_back({i,j});
+            else
+            ++nout;
+        }
+        
+        if(p->j_dir==1)
+        for(i=0; i<p->knox; ++i)
+        for(j=-1; j<p->knoy; ++j)
+        if(Hy(i,j)>0.0 && actc(i,j)!=actc(i,j+1))
+        {
+            double fs=0.0;
+            
+            for(k=0; k<p->knoz; ++k)
+            if((isL(IJK) || isL(IJp1K)) && by[IJK]<0.5)
+            fs += p->DZN[KP]*Fy[IJK];
+            
+            if(actc(i,j+1) ? fs>0.0 : fs<0.0)
+            iny.push_back({i,j});
+            else
+            ++nout;
+        }
+        
+        // without an outflow edge (anywhere) the edges stay Dirichlet
+        if(pgc->globalisum(nout)>0)
+        {
+            for(auto &f : inx)
+            Hx(f.first,f.second)=0.0;
+            for(auto &f : iny)
+            Hy(f.first,f.second)=0.0;
+        }
+    }
     
     // net outflow of the lower cells
     LOOP

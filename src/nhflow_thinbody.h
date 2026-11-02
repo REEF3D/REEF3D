@@ -191,6 +191,11 @@ public:
     bool top_inside(int ii, int jj) {return rt(ii,jj)>0.5;}
     
     // mesh refinement (nhflow_amr): the thin body of a patch (on one rank, no exchange of the node sides)
+    // the lid correction takes the imbalance of the lower region out through its outflow edges only (the faces of the
+    // footprint edge through which the lower cells take water in get no correction); set by the hull client in the ship
+    // frame with a current (nhflow_hullbody)
+    bool lid_outflow = false;
+    
     bool amr_patch = false;
     // the state of column (ii,jj) a regrid hands from an old patch to a new one: the cell sides of the last stage
     // (knoz values), the head below closed floors and the lid potential (2)
