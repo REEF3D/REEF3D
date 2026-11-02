@@ -6,10 +6,13 @@ REEF3D::SEASTATE online collocation (A 787 1): observations -> seastate-collocat
 Reads CSV files of observations with the columns time, lon, lat, hs (the altimeter.csv and insitu_*.csv of a
 download kit, or any file with these columns) and writes the file a run reads with A 787 1:
 
-    time,x,y,source,id,hs
-    2022-01-29 06:12:31.000,-12345.6,234567.8,alti,jason-3,7.21
+    time,x,y,source,id,hs,tp,tm01,tm10
+    2022-01-29 06:12:31.000,-12345.6,234567.8,alti,jason-3,7.21,,,
+    2022-01-29 07:00:00.000,85000.0,-12000.0,buoy,ekofisk,6.40,11.100,,
 
-with the position in the model frame (the same frame options as seastate_forcing.py and met_forcing.py).
+with the position in the model frame (the same frame options as seastate_forcing.py and met_forcing.py). The
+observed periods tp, tm01, tm10 [s] are passed on where a file has the column (the insitu_*.csv of the kits: tp),
+empty otherwise; the run compares them with the model (seastate-collocation-periods.dat).
 
   source   --source NAME for all files, otherwise from the file name: altimeter* -> alti, insitu_* -> buoy,
            else the file name
@@ -37,6 +40,17 @@ from seastate_forcing import Frame   # noqa: E402
 
 MISSIONS = ["cryosat-2", "jason-1", "jason-2", "jason-3", "saral", "sentinel-3a", "envisat", "topex", "ers-1", "ers-2",
             "sentinel-3b", "sentinel-6a"]
+
+
+PERIODS = ("tp", "tm01", "tm10")    # the observed periods [s] passed on if a file has the column (empty where none)
+
+
+def period(v):
+    try:
+        v = float(v)
+    except (TypeError, ValueError):
+        return None
+    return v if np.isfinite(v) and v > 0.0 else None
 
 
 def parse_time(s):
@@ -123,7 +137,8 @@ def main(argv=None):
                 if need not in cols:
                     sys.exit("%s: no column %s" % (path, need))
             idcol = next((cols[c] for c in ("mission", "platform", "station", "id") if c in cols), None)
-            T, LON, LAT, HS, ID = [], [], [], [], []
+            pcols = [cols.get(c) for c in PERIODS]
+            T, LON, LAT, HS, ID, PER = [], [], [], [], [], []
             for r in rd:
                 try:
                     t = parse_time(r[cols["time"]])
@@ -138,6 +153,7 @@ def main(argv=None):
                 if i.isdigit() and src == "alti" and int(i) < len(MISSIONS):
                     i = MISSIONS[int(i)]
                 T.append(t); LON.append(lon); LAT.append(lat); HS.append(hs); ID.append(i)
+                PER.append(tuple(period(r.get(c)) if c else None for c in pcols))
         if not T:
             continue
         x, y = fr.to_model(np.array(LON), np.array(LAT))
@@ -147,14 +163,15 @@ def main(argv=None):
         if bathy is not None and src in a.coast_sources:
             keep &= coast_distance(bathy, x, y) >= a.coast
         for k in np.flatnonzero(keep):
-            rows.append((T[k], x[k], y[k], src, ID[k], HS[k]))
+            rows.append((T[k], x[k], y[k], src, ID[k], HS[k], PER[k]))
         print("%s: %d of %d observations (%s)" % (path, int(keep.sum()), len(T), src))
 
     rows.sort(key=lambda r: r[0])
     with open(a.output, "w") as f:
-        f.write("time,x,y,source,id,hs\n")
-        for t, x, y, s, i, hs in rows:
-            f.write("%s,%.1f,%.1f,%s,%s,%.3f\n" % (t.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3], x, y, s, i, hs))
+        f.write("time,x,y,source,id,hs,%s\n" % ",".join(PERIODS))
+        for t, x, y, s, i, hs, per in rows:
+            f.write("%s,%.1f,%.1f,%s,%s,%.3f,%s\n" % (t.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3], x, y, s, i, hs,
+                                                    ",".join("" if v is None else "%.3f" % v for v in per)))
     print("%s: %d observations" % (a.output, len(rows)))
 
 

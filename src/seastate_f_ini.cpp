@@ -351,8 +351,9 @@ void seastate_f::ini_common(lexer *p, ghostcell *pgc, bool coupled_)
     spcout(p,pgc,!restart);
     }
 
-    // online collocation (A 787 1)
-    if(p->A787==1)
+    // online collocation (A 787 1); a restart after the checkpoint is read (seastate_f::start: the model time of the
+    // checkpoint)
+    if(p->A787==1 && !restart)
     colloc_ini(p,pgc);
 }
 
