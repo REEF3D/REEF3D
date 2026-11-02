@@ -1,0 +1,15 @@
+{
+ "base": "seastate_2d_phase23_st4_ckpt_ns",
+ "ctrl_add": [
+  "A 769 1"
+ ],
+ "description": "seastate_2d_phase23_st4_ckpt_ns (the island case with refinement, A 732 3 at 30 m/s, 6 steps of 2 iterations, composite sweep) with A 769 1: the limiter of Hersbach and Janssen on level 0 and the patches. Validation in Dropbox SEASTATE/validation/78_limiter.",
+ "tags": [
+  "2d",
+  "seastate",
+  "amr"
+ ],
+ "covers": [
+  "A 769 1 with the mesh refinement"
+ ]
+}

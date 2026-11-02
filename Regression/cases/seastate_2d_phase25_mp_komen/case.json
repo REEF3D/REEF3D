@@ -1,0 +1,16 @@
+{
+ "base": "seastate_2d_phase14_windsea",
+ "ctrl_add": [
+  "A 769 2"
+ ],
+ "description": "seastate_2d_phase14_windsea (nonstationary wind-sea growth from rest, one rank, Komen, DIA, 10 steps of 300 s) without a limiter (A 769 2, Phase 25): the DIA as a production-destruction system conservative in action, two passes per solve of a cell (the gains with the ratios N_new/N of the first), the whitecapping linearised with its degree in N. The reference of seastate_2d_phase25_mp_komen_mpi2. Validation in Dropbox SEASTATE/validation/78_limiter.",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate"
+ ],
+ "covers": [
+  "seastate_source::dia_mp, wc_newton (A 769 2)",
+  "seastate_implicit::cell: the two passes of A 769 2"
+ ]
+}

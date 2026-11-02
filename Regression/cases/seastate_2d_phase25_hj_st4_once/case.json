@@ -1,0 +1,15 @@
+{
+ "base": "seastate_2d_phase24_st4_once_ns",
+ "ctrl_add": [
+  "A 769 1"
+ ],
+ "description": "seastate_2d_phase24_st4_once_ns (A 732 3, A 767 1, one rank) with A 769 1: the kept quadrants take u* f_ref of the evaluation of the cell (the cache of A 767 1) for the bound. The reference of seastate_2d_phase25_hj_st4_once_mpi2. Validation in Dropbox SEASTATE/validation/78_limiter.",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate"
+ ],
+ "covers": [
+  "A 769 1 with A 767 1: seastate_source::take_hj, limits"
+ ]
+}

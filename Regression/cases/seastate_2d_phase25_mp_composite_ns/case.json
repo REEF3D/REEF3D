@@ -1,0 +1,15 @@
+{
+ "base": "seastate_2d_phase17_composite_ns",
+ "ctrl_add": [
+  "A 769 2"
+ ],
+ "description": "seastate_2d_phase17_composite_ns (the island case with refinement, nonstationary with wind, composite sweep) with A 769 2: the two passes of the limiter-free DIA on level 0 and the patches. Validation in Dropbox SEASTATE/validation/78_limiter.",
+ "tags": [
+  "2d",
+  "seastate",
+  "amr"
+ ],
+ "covers": [
+  "A 769 2 with the mesh refinement"
+ ]
+}

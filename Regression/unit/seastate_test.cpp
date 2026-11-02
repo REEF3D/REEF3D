@@ -920,6 +920,50 @@ static void test_collocation()
     for(int k=0; k<5; ++k) {cxy += (o[k]-mo)*(m[k]-mm); cxx += (o[k]-mo)*(o[k]-mo); cyy += (m[k]-mm)*(m[k]-mm);}
     check(s.n==5 && std::fabs(s.bias()-bd)<1e-12 && std::fabs(s.rmse()-std::sqrt(sd2/5.0))<1e-12 && std::fabs(s.si()-std::sqrt(var)/3.0)<1e-12
           && std::fabs(s.r()-cxy/std::sqrt(cxx*cyy))<1e-12,"statistics: bias, RMSE, scatter index, correlation");
+
+    // Phase 25: the observed periods (optional columns), the regimes, the periods, the quantiles
+    {
+        std::ofstream o(f);
+        o<<"time,x,y,hs,source,tp,tm10\n";
+        o<<"2022-01-29 06:00:00,0,0,1.5,buoy,8.0,\n";
+        o<<"2022-01-29 06:10:00,0,0,7.0,buoy,nan,9.5\n";
+        o<<"2022-01-29 06:20:00,0,0,3.0,alti,,\n";
+    }
+    seastate_collocation q;
+    const bool okq = q.read(f,tref,err);
+    std::remove(f);
+    check(okq && q.has_tp && !q.has_tm01 && q.has_tm10 && q.obs[0].tp==8.0 && std::isnan(q.obs[1].tp) && q.obs[1].tm10==9.5
+          && std::isnan(q.obs[2].tp) && std::isnan(q.obs[0].tm10),"file: the observed periods tp, tm10 (empty and nan: none)");
+
+    // cp at 10 s in deep water g T / 2 pi; at 10 s in 5 m depth close to sqrt(g d)
+    const double c0 = seastate_collocation::phase_speed(10.0,0.0), c5 = seastate_collocation::phase_speed(10.0,5.0);
+    const double k5 = 2.0*3.14159265358979323846/(10.0*c5);
+    check(std::fabs(c0-9.81*10.0/(2.0*3.14159265358979323846))<1e-9 && c5<std::sqrt(9.81*5.0)
+          && std::fabs(std::pow(2.0*3.14159265358979323846/10.0,2)-9.81*k5*std::tanh(k5*5.0))<1e-9,"phase speed: deep water, dispersion in 5 m");
+
+    // three matchups: buoy (Hs 1.5, Tp 8 observed), buoy (Hs 7), alti (Hs 3)
+    seastate_matchup a, b2, c2;
+    a.src = 0; a.hs_obs = 1.5; a.hs = 1.7; a.tp_obs = 8.0; a.tp = 8.6; a.tm01_obs = std::nan(""); a.tm10_obs = std::nan("");
+    a.depth = 15.0; a.u10 = 20.0;
+    b2.src = 0; b2.hs_obs = 7.0; b2.hs = 7.9; b2.tp_obs = std::nan(""); b2.tm10_obs = 9.5; b2.tm10 = 9.1; b2.tm01_obs = std::nan("");
+    b2.tp = 11.0; b2.depth = 300.0; b2.u10 = 0.5;
+    c2.src = 1; c2.hs_obs = 3.0; c2.hs = 2.6; c2.tp_obs = c2.tm01_obs = c2.tm10_obs = std::nan(""); c2.tp = 6.0; c2.depth = 60.0; c2.u10 = 15.0;
+    q.count(a); q.count(b2); q.count(c2);
+    // (source 0 is buoy, the order of the file)
+    const int sb = int(std::find(q.sources.begin(),q.sources.end(),"buoy") - q.sources.begin());
+    check(sb==0 && q.total.n==3 && q.regime(0,1,-1).n==1 && q.regime(0,4,-1).n==1 && q.regime(0,2,-1).n==1
+          && std::fabs(q.regime(0,4,0).bias()-0.9)<1e-12 && q.regime(0,2,1).n==1,"regimes: the classes of the observed Hs (1-2, 2-4, 6-8)");
+    check(q.regime(1,1,-1).n==1 && q.regime(1,3,1).n==1 && q.regime(1,5,0).n==1,"regimes: the classes of the model depth (10-20, 50-100, 200+)");
+    // wave age: a: cp(8.6 s, 15 m)/20 < 0.8; c2: cp(6 s, 60 m) = 9.37/15 = 0.62 < 0.8; b2: U10 < 1 -> swell
+    check(q.regime(2,0,-1).n==2 && q.regime(2,3,-1).n==1 && q.regime(2,3,0).n==1,"regimes: wave age (young wind sea, swell with U10 < 1 m/s)");
+    check(q.period(0,-1).n==1 && std::fabs(q.period(0,0).bias()-0.6)<1e-12 && q.period(1,-1).n==0 && q.period(2,-1).n==1
+          && std::fabs(q.period(2,-1).bias()+0.4)<1e-12,"periods: Tp and Tm-1,0 where observed only");
+    check(std::fabs(q.quantile(-1,0.5,false)-3.0)<1e-6 && std::fabs(q.quantile(-1,1.0,true)-7.9)<1e-6
+          && std::fabs(q.quantile(-1,0.9,false)-(3.0+0.8*4.0))<1e-6 && std::fabs(q.quantile(0,0.0,true)-1.7)<1e-6,
+          "quantiles: linear between the order statistics, per source");
+    const std::string tr = q.regimes_table(), tq = q.quantiles_table(), tpp = q.periods_table();
+    check(tr.find("0 \t 4 \t -1 \t 1 \t ")!=std::string::npos && tq.find("-1 \t 1 \t 3 \t 7 \t 7.9")!=std::string::npos
+          && tpp.find("tp 1, tm01 0, tm10 1")!=std::string::npos,"tables: regimes, quantiles, periods");
 }
 
 // Phase 5b: bathymetry raster (A 790 1) and the maximum energy of SWAN (A 737 1)
@@ -1206,6 +1250,99 @@ static void test_dia_window()
 
 
 // ---------------------------------------------------------------------------------------------
+// Phase 25: A 769 2, the limiter-free integration: the DIA as a conservative production-destruction system
+// (seastate_source::dia_mp) and the linearised whitecapping (wc_newton)
+// ---------------------------------------------------------------------------------------------
+static void test_limiter_free()
+{
+    std::cout<<"A 769 2: conservative DIA (dia_mp), linearised whitecapping"<<std::endl;
+
+    for(int ndir : {24,36})
+    {
+    // fmax 2 Hz: the spectrum is empty at the top, so no action leaves through the tail
+    seastate_grid sg(40,0.04,2.0,ndir);
+    const int nb=sg.nbin;
+    const double d=200.0;
+    cell_kin ck(sg,d);
+    std::vector<float> N=make_spectrum(sg,2.0,8.0,3.3,0.6,4.0);
+
+    seastate_source_param sp; sp.dia=true; sp.dia_mp=true;
+    seastate_source src(sg,sp);
+    std::vector<double> P(nb), D(nb), G(nb), L(nb), r(nb,1.0), S(nb), dS(nb);
+    src.compute(N.data(),d,ck.k.data(),ck.cg.data(),P.data(),D.data());
+    src.dia_mp(N.data(),r.data(),G.data(),L.data());
+
+    // the standard DIA of the same spectrum
+    seastate_source_param sq; sq.dia=true;
+    seastate_source std_(sg,sq);
+    std_.quadruplets(N.data(),d,ck.k.data(),S.data(),dS.data());
+
+    double gmin=0.0, lmin=0.0, bal=0.0, gross=0.0, e2=0.0, s2=0.0, pd=0.0;
+    for(int b=0;b<nb;++b)
+    {
+        const double w=sg.dsig[b/ndir]*sg.dth[b%ndir], s=G[b]-L[b]*double(N[b]);
+        gmin=std::min(gmin,G[b]); lmin=std::min(lmin,L[b]);
+        bal+=w*s; gross+=w*L[b]*double(N[b]);
+        e2+=w*(s-S[b])*(s-S[b]); s2+=w*S[b]*S[b];
+        pd=std::max(pd,std::fabs(P[b])+std::fabs(D[b]));
+    }
+    std::cout<<"        "<<ndir<<" directions: action balance "<<bal/gross<<" of the gross loss; against the standard DIA rel. L2 "
+             <<std::sqrt(e2/s2)<<std::endl;
+    check(gmin>=0.0 && lmin>=0.0,"dia_mp: gains and loss rates non-negative ("+std::to_string(ndir)+" directions)");
+    check(std::fabs(bal)<1e-10*gross,"dia_mp: conservative in action at r = 1 ("+std::to_string(ndir)+" directions)");
+    check(std::sqrt(e2/s2)<1e-3,"dia_mp at r = 1: the standard DIA within its interpolation (rel. L2 < 1e-3)");
+    check(pd==0.0,"with dia_mp the DIA is not in P and D");
+
+    // the gains of the ratios: r = 2 everywhere doubles the gains, the loss rates stay
+    std::vector<double> G2(nb), L2(nb), r2(nb,2.0);
+    src.dia_mp(N.data(),r2.data(),G2.data(),L2.data());
+    double eg=0.0, el=0.0;
+    for(int b=0;b<nb;++b) {eg=std::max(eg,std::fabs(G2[b]-2.0*G[b])); el=std::max(el,std::fabs(L2[b]-L[b]));}
+    check(eg<=1e-12*(*std::max_element(G.begin(),G.end())) && el==0.0,"dia_mp: the gains scale with r, the loss rates do not");
+
+    // a window of the sweep (a quadrant and a band of frequencies): G and L of its bins as with the full circle
+    double ew=0.0;
+    for(int q=0;q<4;++q)
+    {
+        const int a=q*ndir/4, b=(q+1)*ndir/4-1, la=2, lb=sg.nsig-3;
+        src.compute(N.data(),d,ck.k.data(),ck.cg.data(),P.data(),D.data(),a,b,la,lb);
+        std::vector<double> Gw(nb), Lw(nb);
+        src.dia_mp(N.data(),r.data(),Gw.data(),Lw.data());
+        for(int l=la;l<=lb;++l) for(int m=a;m<=b;++m)
+        {
+            const int x=sg.bin(l,m);
+            ew=std::max(ew,std::fabs(Gw[x]-G[x])/(G[x]+L[x]*N[x]+1e-300));
+            ew=std::max(ew,std::fabs(Lw[x]-L[x])/(L[x]+1e-300));
+        }
+    }
+    check(ew<1e-12,"dia_mp of a window equals the full circle in the window ("+std::to_string(ndir)+" directions)");
+    }
+
+    // the linearised whitecapping: the same S = P - D N, D larger by (q - 1) times the whitecapping rate
+    for(int westh=0; westh<2; ++westh)
+    {
+    seastate_grid sg(30,0.04,1.0,24);
+    const int nb=sg.nbin;
+    cell_kin ck(sg,500.0);
+    std::vector<float> N=make_spectrum(sg,3.0,9.0,3.3,0.6,4.0);
+    seastate_source_param a; a.wind=true; a.U10=18.0; a.komen=true; a.westh=(westh==1); a.dia=true; a.limiter=0.0;
+    seastate_source_param b=a; b.wc_newton=true;
+    seastate_source sa(sg,a), sb(sg,b);
+    std::vector<double> Pa(nb), Da(nb), Pb(nb), Db(nb);
+    sa.compute(N.data(),500.0,ck.k.data(),ck.cg.data(),Pa.data(),Da.data());
+    sb.compute(N.data(),500.0,ck.k.data(),ck.cg.data(),Pb.data(),Db.data());
+    double es=0.0, sm=0.0; bool larger=true;
+    for(int x=0;x<nb;++x)
+    {
+        const double s1=Pa[x]-Da[x]*N[x], s2=Pb[x]-Db[x]*N[x];
+        es=std::max(es,std::fabs(s1-s2)); sm=std::max(sm,std::fabs(Pa[x])+std::fabs(Da[x]*N[x]));
+        if(Db[x]<Da[x] || Pb[x]<Pa[x]) larger=false;
+    }
+    check(es<=1e-12*sm && larger,std::string("wc_newton: the same source term, D and P not smaller (")+(westh ? "Westhuysen" : "Komen")+")");
+    }
+}
+
+// ---------------------------------------------------------------------------------------------
 // Phase 20: Ardhuin et al. (2010) as ecWAM IPHYS 1 (A 732 3), against the Python port of ecWAM
 // (validation 69, ecwam_st4.py) on the same spectrum
 // ---------------------------------------------------------------------------------------------
@@ -1388,6 +1525,7 @@ int main()
     test_dia_window();
     test_memory();
     test_st4();
+    test_limiter_free();
 
     std::cout<<std::endl<<(nfail ? "FAILED: " : "all passed")<<(nfail ? std::to_string(nfail) : std::string())<<std::endl;
     return nfail ? 1 : 0;
