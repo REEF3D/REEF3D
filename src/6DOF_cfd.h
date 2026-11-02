@@ -94,6 +94,10 @@ private:
     void fb_combine(lexer*, fdm*, int);
     void fb_finish(lexer*, fdm*, ghostcell*);
     field4a *fball = nullptr;
+    
+    // the forcing weights of the solids and the topography of the stage (a->fbh1-3 before setup resets
+    // them), for the limit of the body weights (sixdof_obj_cfd::sfh)
+    field *sf[3] = {nullptr,nullptr,nullptr};
 
 };
 

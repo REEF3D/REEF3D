@@ -26,6 +26,18 @@ Authors: Tobias Martin, Ahmet Soydan, Hans Bihs
 #include"ghostcell.h"
 #include"heaviside.h"
 
+// the weight H of a face of the body, at most what the solids (hs) and the bodies before it (hb)
+// leave of 1: the forcing terms of a face add up to a weight of 1 at most (overlaps)
+static inline double Hlimit(double H, double hb, double hs)
+{
+    const double hm = 1.0 - hb - hs;
+    
+    if(H>hm)
+    H = (hm>0.0) ? hm : 0.0;
+    
+    return H;
+}
+
 void sixdof_obj_cfd::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel, field& vvel, field& wvel, field &fx, field &fy, field &fz,int iter)
 {
     
@@ -52,6 +64,7 @@ void sixdof_obj_cfd::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel
         }
         
         H = Hsolidface(p,a,1,0,0);
+        H = Hlimit(H,a->fbh1(i,j,k),sfh[0]!=nullptr ? (*sfh[0])(i,j,k) : 0.0);
         
         if(H!=H)
         cout<<"H "<<uf<<endl;
@@ -70,6 +83,7 @@ void sixdof_obj_cfd::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel
         cout<<"VF "<<vf<<endl;
         
         H = Hsolidface(p,a,0,1,0);
+        H = Hlimit(H,a->fbh2(i,j,k),sfh[1]!=nullptr ? (*sfh[1])(i,j,k) : 0.0);
         
         if(H!=H)
         cout<<"H "<<uf<<endl;
@@ -88,6 +102,7 @@ void sixdof_obj_cfd::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel
         cout<<"WF "<<wf<<endl;
         
         H = Hsolidface(p,a,0,0,1);
+        H = Hlimit(H,a->fbh3(i,j,k),sfh[2]!=nullptr ? (*sfh[2])(i,j,k) : 0.0);
         
         if(H!=H)
         cout<<"H "<<uf<<endl;
@@ -154,6 +169,7 @@ void sixdof_obj_cfd::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel
 
 
 		H = Hsolidface(p,a,1,0,0);
+        H = Hlimit(H,a->fbh1(i,j,k),sfh[0]!=nullptr ? (*sfh[0])(i,j,k) : 0.0);
 	    Ht = Hsolidface_t(p,a,1,0,0);
 	
     
@@ -195,6 +211,7 @@ void sixdof_obj_cfd::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel
 
         
          H = Hsolidface(p,a,0,1,0);
+        H = Hlimit(H,a->fbh2(i,j,k),sfh[1]!=nullptr ? (*sfh[1])(i,j,k) : 0.0);
 		Ht = Hsolidface_t(p,a,0,1,0);
 		
       
@@ -235,6 +252,7 @@ void sixdof_obj_cfd::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel
 
         
          H = Hsolidface(p,a,0,0,1);
+        H = Hlimit(H,a->fbh3(i,j,k),sfh[2]!=nullptr ? (*sfh[2])(i,j,k) : 0.0);
 		Ht = Hsolidface_t(p,a,0,0,1);
 
 

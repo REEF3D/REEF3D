@@ -106,6 +106,8 @@ private:
     vector<fbcache> fbc;
     vector<vector<double>> lastb;   // the triangles of every body at its last cast
     field4a *fball = nullptr;
+    field *sf[3] = {nullptr,nullptr,nullptr};   // the weights of the solids of the stage (sixdof_obj_cfd::sfh)
+    void force(lexer*, fdm*, ghostcell*, int, int, field&, field&, field&, field&, field&, field&);
 };
 
 #endif

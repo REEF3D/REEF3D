@@ -27,6 +27,9 @@ Authors: Tobias Martin, Hans Bihs
 #include"ghostcell.h"
 #include"ddweno_f_nug.h"
 #include"field4a.h"
+#include"field1.h"
+#include"field2.h"
+#include"field3.h"
 #include<algorithm>
 
 sixdof_cfd::sixdof_cfd(lexer *p, fdm *a, ghostcell *pgc)
@@ -41,11 +44,21 @@ sixdof_cfd::sixdof_cfd(lexer *p, fdm *a, ghostcell *pgc)
     
     if(number6DOF>1)
     fball = new field4a(p);
+    
+    if(p->solidread>0 || p->topoforcing>0)
+    {
+    sf[0] = new field1(p);
+    sf[1] = new field2(p);
+    sf[2] = new field3(p);
+    }
 }
     
 sixdof_cfd::~sixdof_cfd()
 {
     delete fball;
+    
+    for(int q=0; q<3; ++q)
+    delete sf[q];
 }
 
 void sixdof_cfd::start_cfd(lexer* p, fdm* a, ghostcell* pgc, int iter, field &uvel, field &vvel, field &wvel, field &fx, field &fy, field &fz, bool finalize)
@@ -85,7 +98,13 @@ void sixdof_cfd::start_cfd(lexer* p, fdm* a, ghostcell* pgc, int iter, field &uv
         fb_obj[nb]->update_fbvel(p,pgc);
         
         // Update forcing terms
+        for(int q=0; q<3; ++q)
+        fb_obj[nb]->sfh[q] = sf[q];
+        
         fb_obj[nb]->update_forcing(p,a,pgc,uvel,vvel,wvel,fx,fy,fz,iter);
+        
+        for(int q=0; q<3; ++q)
+        fb_obj[nb]->sfh[q] = nullptr;
         
         // several bodies: the level set of this one into that of all
         fb_combine(p,a,nb);

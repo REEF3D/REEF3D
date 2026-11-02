@@ -27,6 +27,9 @@ Architect: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 #include"reinidisc_f.h"
+#include"field1.h"
+#include"field2.h"
+#include"field3.h"
 #include<algorithm>
 
 cfd_amr_6dof::cfd_amr_6dof(lexer *p, sixdof_cfd *bb) : b(bb), cutl(p), cutr(p), fbio(p), frk1(p), L(p), dt(p)
@@ -45,6 +48,9 @@ cfd_amr_6dof::~cfd_amr_6dof()
 {
     delete prdisc;
     delete fball;
+    
+    for(int q=0; q<3; ++q)
+    delete sf[q];
 }
 
 // body nb on the grid: ray cast, reinitialisation
@@ -58,6 +64,23 @@ void cfd_amr_6dof::cast(lexer *p, fdm *a, ghostcell *pgc, int nb)
 // the solid Heaviside functions of the stage (sixdof_cfd::setup)
 void cfd_amr_6dof::reset_fbh(lexer *p, fdm *a, ghostcell *pgc)
 {
+    // the weights of the solids and the topography (ghostcell::solid_forcing of this stage); the
+    // fields at the first stage (the grid of a patch gets its solids after this object)
+    if(sf[0]==nullptr && (p->solidread>0 || p->topoforcing>0))
+    {
+    sf[0] = new field1(p);
+    sf[1] = new field2(p);
+    sf[2] = new field3(p);
+    }
+    
+    if(sf[0]!=nullptr)
+    {
+    const int n = p->imax*p->jmax*p->kmax;
+    std::copy(a->fbh1.V, a->fbh1.V+n, sf[0]->V);
+    std::copy(a->fbh2.V, a->fbh2.V+n, sf[1]->V);
+    std::copy(a->fbh3.V, a->fbh3.V+n, sf[2]->V);
+    }
+    
     ULOOP
     a->fbh1(i,j,k) = 0.0;
 
@@ -179,7 +202,7 @@ void cfd_amr_6dof::start_cfd(lexer *p, fdm *a, ghostcell *pgc, int iter, field &
     {
         if(!keep)
         cast(p,a,pgc,nb);
-        b->object(nb)->update_forcing(p,a,pgc,uvel,vvel,wvel,fx,fy,fz,iter);
+        force(p,a,pgc,nb,iter,uvel,vvel,wvel,fx,fy,fz);
     }
 
     pgc->solid_forcing_flag_update(p,a);
@@ -205,7 +228,7 @@ void cfd_amr_6dof::start_bodies(lexer *p, fdm *a, ghostcell *pgc, int iter, fiel
         store(p,a,nb);
         }
         
-        b->object(nb)->update_forcing(p,a,pgc,uvel,vvel,wvel,fx,fy,fz,iter);
+        force(p,a,pgc,nb,iter,uvel,vvel,wvel,fx,fy,fz);
         
         combine(p,a,nb);
     }
@@ -311,4 +334,19 @@ void cfd_amr_6dof::finish(lexer *p, fdm *a, ghostcell *pgc)
     std::copy(fball->V, fball->V+p->imax*p->jmax*p->kmax, a->fb.V);
     
     pgc->start4a(p,a->fb,50);
+}
+
+// the forcing of body nb with the weights of the solids of this grid
+void cfd_amr_6dof::force(lexer *p, fdm *a, ghostcell *pgc, int nb, int iter, field &uvel, field &vvel, field &wvel,
+                         field &fx, field &fy, field &fz)
+{
+    sixdof_obj_cfd *o = b->object(nb);
+    
+    for(int q=0; q<3; ++q)
+    o->sfh[q] = sf[q];
+    
+    o->update_forcing(p,a,pgc,uvel,vvel,wvel,fx,fy,fz,iter);
+    
+    for(int q=0; q<3; ++q)
+    o->sfh[q] = nullptr;
 }

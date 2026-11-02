@@ -54,6 +54,11 @@ public:
     void solve_eqmotion_cfd(lexer*,fdm*,ghostcell*,int,bool);
     void initialize_cfd(lexer*,fdm*,ghostcell*);
     void update_forcing(lexer*, fdm*, ghostcell*,field&,field&,field&,field&,field&,field&,int);
+    // the forcing weights of the solids and the topography at the faces in this stage (a->fbh1-3 of
+    // ghostcell::solid_forcing), set by sixdof_cfd and cfd_amr_6dof for update_forcing: the weight of
+    // a face of the body is limited so that the weights of the solids and of all bodies at the face
+    // add up to 1 at most (a body that reaches into a solid or into another body)
+    field *sfh[3] = {nullptr,nullptr,nullptr};
     void hydrodynamic_forces_cfd(lexer*, fdm*, ghostcell*,field&,field&,field&,int,bool);
     void update_position_3D(lexer*, fdm*, ghostcell*, bool);
     
