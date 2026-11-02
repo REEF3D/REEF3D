@@ -87,6 +87,25 @@ private:
     reinidisc_f *prdisc;
     int box[6];             // the box of the body on the grid (ray_cast_amr)
     vector<vector<double>> last;    // the triangles of the bodies at the last cast on this grid
+    
+    // several bodies (X 20 > 1): a cast writes fb of one body only.  Every body keeps the level set
+    // of its last cast in its box (fbc), restored for its forcing while it has not moved, and fb of
+    // all bodies (the minimum, fball) is left in fb after the stage
+    struct fbcache
+    {
+        int box[6];
+        vector<double> v;
+        bool valid = false;
+    };
+    void start_bodies(lexer*, fdm*, ghostcell*, int, field&, field&, field&, field&, field&, field&, bool);
+    bool moved(int, double);
+    void store(lexer*, fdm*, int);
+    void restore(lexer*, fdm*, ghostcell*, int);
+    void combine(lexer*, fdm*, int);
+    void finish(lexer*, fdm*, ghostcell*);
+    vector<fbcache> fbc;
+    vector<vector<double>> lastb;   // the triangles of every body at its last cast
+    field4a *fball = nullptr;
 };
 
 #endif
