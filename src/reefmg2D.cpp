@@ -139,6 +139,8 @@ void reefmg2D::topology(lexer *p, ghostcell *pgc)
         cout<<"REEFMG2D periodic boundaries are not supported yet - the halo "
             <<"exchange has no wraparound.  "<<REEFMG2D_ALT<<endl;
 
+        // every rank stops here: the barrier lets rank 0 print before the abort of another rank
+        MPI_Barrier(pgc->mpi_comm);
         MPI_Abort(MPI_COMM_WORLD,-2760);
     }
 
@@ -146,8 +148,10 @@ void reefmg2D::topology(lexer *p, ghostcell *pgc)
     {
         if(p->mpirank==0)
         cout<<"REEFMG2D the grid is decomposed in z ("<<npz<<" ranks) - decompose "
-            <<"in x and y only.  "<<REEFMG2D_ALT<<endl;
+            <<"in x and y only (DIVEMesh M 13 0, the default; M 30 with 1 in z).  "<<REEFMG2D_ALT<<endl;
 
+        // every rank stops here: the barrier lets rank 0 print before the abort of another rank
+        MPI_Barrier(pgc->mpi_comm);
         MPI_Abort(MPI_COMM_WORLD,-2761);
     }
 
@@ -177,6 +181,8 @@ void reefmg2D::topology(lexer *p, ghostcell *pgc)
                 <<"sharing an x position must share knox, and likewise in y.  "
                 <<REEFMG2D_ALT<<endl;
 
+            // every rank stops here: the barrier lets rank 0 print before the abort of another rank
+            MPI_Barrier(pgc->mpi_comm);
             MPI_Abort(MPI_COMM_WORLD,-2762);
         }
     }

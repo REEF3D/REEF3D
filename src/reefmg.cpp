@@ -148,6 +148,8 @@ void reefmg::topology(lexer *p, ghostcell *pgc)
         cout<<"REEFMG periodic boundaries in z are not supported - the vertical "
             <<"line solver needs closed columns.  "<<REEFMG_ALT<<endl;
 
+        // every rank stops here: the barrier lets rank 0 print before the abort of another rank
+        MPI_Barrier(pgc->mpi_comm);
         MPI_Abort(MPI_COMM_WORLD,-2749);
     }
 
@@ -158,8 +160,10 @@ void reefmg::topology(lexer *p, ghostcell *pgc)
         if(p->mpirank==0)
         cout<<"REEFMG the grid is decomposed in z ("<<npz<<" ranks).  The vertical "
             <<"line solver needs each vertical column on one rank - decompose in x and y "
-            <<"only.  "<<REEFMG_ALT<<endl;
+            <<"only (DIVEMesh M 13 0, the default; M 30 with 1 in z).  "<<REEFMG_ALT<<endl;
 
+        // every rank stops here: the barrier lets rank 0 print before the abort of another rank
+        MPI_Barrier(pgc->mpi_comm);
         MPI_Abort(MPI_COMM_WORLD,-2750);
     }
 
@@ -192,6 +196,8 @@ void reefmg::topology(lexer *p, ghostcell *pgc)
                 <<"sharing an x position must share knox, and likewise in y.  "
                 <<REEFMG_ALT<<endl;
 
+            // every rank stops here (bad from the gathered sizes): the barrier lets rank 0 print
+            MPI_Barrier(pgc->mpi_comm);
             MPI_Abort(MPI_COMM_WORLD,-2757);
         }
     }
