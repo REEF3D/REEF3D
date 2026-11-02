@@ -687,7 +687,9 @@ void cfd_amr::cpm_bed(lexer *pp, fdm *fa)
         double h = pp->ZN[0+m];
         if(fa->topo(i,j,0)>=0.0 && pp->origin_k==0)
         set = true;
-        for(int k=1; k<pp->knoz; ++k)
+        // a grid above the bottom of the domain: the bed may lie on its lower side, between the cell below it
+        // (filled) and its first cell
+        for(int k=(pp->origin_k>0 ? 0 : 1); k<pp->knoz; ++k)
         if(fa->topo(i,j,k-1)<0.0 && fa->topo(i,j,k)>=0.0)
         {
             h = -(fa->topo(i,j,k-1)*pp->DZP[k-1+m])/(fa->topo(i,j,k)-fa->topo(i,j,k-1)) + pp->ZP[k+m]-pp->DZP[k-1+m];
