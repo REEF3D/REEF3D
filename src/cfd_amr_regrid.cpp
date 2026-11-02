@@ -545,7 +545,10 @@ void cfd_amr::regrid(lexer *p, ghostcell *pgc, bool replace)
         pgc->start4(pp,fa->visc,1);
         c->ppress->ini(pp,fa,pgc);
         if(solids)
+        {
+        pgc->solid_forcing_flag_update(pp,fa);
         pgc->solid_forcing_ini(pp,fa);
+        }
         if(bodies)
         c->p6dof->body(pp,fa,pgc);
     }

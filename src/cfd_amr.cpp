@@ -1426,9 +1426,14 @@ void cfd_amr::ini(lexer *p, fdm *a, ghostcell *pgc)
 
         c->ppress->ini(pp,fa,pgc);
 
-        // solids and topography: the direct forcing fields and flags of the patch
+        // solids and topography: the direct forcing fields and flags of the patch (DF: the cells in a solid
+        // or the bed, which the implicit diffusion of D 22 1 does not couple to; level 0 sets them in
+        // momentum_forcing, the patches force by amr_solid_forcing)
         if(solids)
+        {
+        pgc->solid_forcing_flag_update(pp,fa);
         pgc->solid_forcing_ini(pp,fa);
+        }
         if(bodies)
         c->p6dof->body(pp,fa,pgc);
         if(turb)
