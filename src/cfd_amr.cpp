@@ -1484,6 +1484,12 @@ void cfd_amr::timestep(lexer *p, fdm *a, ghostcell *pgc)
     // coarser level), to the nearest solid or bed (the level sets solid, topo), and its level set
     double vpat[8] = {0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0};
     int vid = -1, vijk[3] = {0,0,0};
+    // (P 8: what limits the time step) the patch with the smallest step: cp, level, velocity term
+    // |u|/dx, acceleration term sqrt(4 |F|/dx), |u|, |F|, dx, centre x, y, z; and the step the
+    // velocity term alone would allow (all patches)
+    const double dt0 = p->dt;
+    double lim[11] = {1.0e10,0,0,0,0,0,0,0,0,0,0};
+    double cvel = 1.0e10;
 
     for(int id=0; id<npat; ++id)
     {
@@ -1527,6 +1533,7 @@ void cfd_amr::timestep(lexer *p, fdm *a, ghostcell *pgc)
         if(p->count==0)
         vel = MAX(vel,sqrt(2.0*sqrt(p->W20*p->W20+p->W21*p->W21+p->W22*p->W22)*(p->zcoormax-p->zcoormin)));
 
+        double dxm = 1.0e10;
         for(int i=0; i<pp->knox; ++i)
         for(int j=0; j<pp->knoy; ++j)
         for(int k=0; k<pp->knoz; ++k)
@@ -1534,6 +1541,7 @@ void cfd_amr::timestep(lexer *p, fdm *a, ghostcell *pgc)
             if(pp->flag4[cix(pp,i,j,k)]<=0)
             continue;
             const double dx = MIN3(pp->DXN[i+marge],pp->DYN[j+marge],pp->DZN[k+marge]);
+            dxm = MIN(dxm,dx);
             if(p->N50==2)
             {
                 cp = MIN(cp,2.0/(umax/pp->DXN[i+marge] + sqrt(4.0*fabs(fa->maxF)/pp->DXN[i+marge])));
@@ -1550,12 +1558,62 @@ void cfd_amr::timestep(lexer *p, fdm *a, ghostcell *pgc)
         cp *= double(1<<c->lev);
         cu = MIN(cu,cp);
 
+        // (P 8) the terms of the patch
+        if(dxm<1.0e9)
+        {
+            const double tv = vel/dxm, ta = sqrt(4.0*fabs(mF)/dxm);
+            const double sc = sub ? double(1<<c->lev) : 1.0;
+            if(tv>0.0)
+            cvel = MIN(cvel,2.0/tv*sc);
+            if(cp<lim[0])
+            {
+                const double L[11] = {cp,double(c->lev),tv,ta,vel,fabs(mF),dxm,
+                                      0.5*(pp->XN[marge]+pp->XN[pp->knox+marge]),0.5*(pp->YN[marge]+pp->YN[pp->knoy+marge]),
+                                      0.5*(pp->ZN[marge]+pp->ZN[pp->knoz+marge]),double(c->gid)};
+                for(int e=0; e<11; ++e)
+                lim[e] = L[e];
+            }
+        }
+
         fa->maxF = fa->maxG = fa->maxH = 0.0;
     }
 
     double g = -cu;
     MPI_Allreduce(MPI_IN_PLACE,&g,1,MPI_DOUBLE,MPI_MAX,reef3d_comm());
     cu = -g;
+
+    // (P 8) the limiting patch of all ranks, and what limits the step: level 0, or the velocity or
+    // the acceleration term of a patch (|F|: the explicit acceleration of the momentum step, gravity
+    // included); counted over the run, reported every P 12 steps
+    // (all ranks: the reductions)
+    {
+        struct { double v; int r; } in = {lim[0],myrank}, out;
+        MPI_Allreduce(&in,&out,1,MPI_DOUBLE_INT,MPI_MINLOC,reef3d_comm());
+        MPI_Bcast(lim,11,MPI_DOUBLE,out.r,reef3d_comm());
+        MPI_Allreduce(MPI_IN_PLACE,&cvel,1,MPI_DOUBLE,MPI_MIN,reef3d_comm());
+        const double dtp = p->N47*lim[0], dtv = MIN(dt0,p->N47*cvel);
+        if(p->count>0 && lim[0]<1.0e9)
+        {
+            ++dtl_n;
+            if(dt0<=dtp)
+            ++dtl_l0;
+            else if(lim[3]>lim[2])
+            ++dtl_acc;
+            dtl_dt += MIN(dt0,dtp);
+            dtl_dtv += dtv;
+        }
+        if(myrank==0 && p->count%p->P12==0 && lim[0]<1.0e9)
+        {
+            const double gg = sqrt(p->W20*p->W20+p->W21*p->W21+p->W22*p->W22);
+            cout<<"CFD AMR: time step "<<setprecision(3)<<MIN(dt0,dtp)<<" s: level 0 allows "<<dt0<<", the patches "<<dtp
+                <<"; the limiting patch level "<<int(lim[1])<<" at ("<<lim[7]<<", "<<lim[8]<<", "<<lim[9]<<"), dx "<<lim[6]
+                <<": |u|/dx "<<lim[2]<<" 1/s (|u| "<<lim[4]<<"), sqrt(4|F|/dx) "<<lim[3]<<" 1/s (|F| "<<lim[5]<<", g "<<gg<<")"
+                <<"; the velocity term alone would allow "<<dtv<<endl;
+            if(dtl_n>0)
+            cout<<"CFD AMR: time step over "<<dtl_n<<" steps: set by level 0 in "<<dtl_l0<<", by the acceleration term of a patch in "<<dtl_acc
+                <<", by the velocity term in "<<dtl_n-dtl_l0-dtl_acc<<"; the velocity term alone would allow "<<dtl_dtv/dtl_dt<<" times the steps' sum"<<endl;
+        }
+    }
 
     // the largest velocity of the level-0 leaf cells (diagnostics)
     double v0[5] = {0.0,0.0,0.0,0.0,0.0};
