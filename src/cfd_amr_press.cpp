@@ -1373,6 +1373,66 @@ double cfd_amr::pr_ps(const cfd_amr_cf &F)
     return v;
 }
 
+// the share of the direct forcing at a face (field d, cell index c of grid g; the face between c and
+// c + e_d), as the forcing took it: the solids and the bed (ghostcell::solid_forcing) and the 6DOF
+// bodies (sixdof_obj_cfd::update_forcing; fbh1-3 hold the Heaviside of the bodies alone after their
+// forcing, the solids are kept apart, cfd_amr_6dof::reset_fbh).  Inside a solid or a body (its level
+// set at the face < 0) the share is H; outside, in the tangential mode (B 21 1, X 14 > 0) the forcing
+// takes |n_d| H, the component along the normal only
+double cfd_amr::forced_share(int g, const int *c, int d)
+{
+    lexer *q = glex(g);
+    fdm *f = gfd(g);
+    const int e[3] = {d==0 ? 1 : 0, d==1 ? 1 : 0, d==2 ? 1 : 0};
+    const int i0 = c[0], j0 = c[1], k0 = c[2];
+    const int i1 = i0+e[0], j1 = j0+e[1], k1 = k0+e[2];
+
+    // |n_d| of the level set ls at cell c (central differences, as the forcing)
+    auto normal_d = [&](field &ls) -> double
+    {
+        const double nx = (ls(i0+1,j0,k0) - ls(i0-1,j0,k0))/(2.0*q->DXN[i0+marge]);
+        const double ny = (ls(i0,j0+1,k0) - ls(i0,j0-1,k0))/(2.0*q->DYN[j0+marge]);
+        const double nz = (ls(i0,j0,k0+1) - ls(i0,j0,k0-1))/(2.0*q->DZN[k0+marge]);
+        const double norm = sqrt(nx*nx + ny*ny + nz*nz);
+        if(norm<=1.0e-20)
+        return 0.0;
+        return fabs(d==0 ? nx : (d==1 ? ny : nz))/norm;
+    };
+
+    double H = 0.0;
+    if(q->G505==0 && (q->solidread>0 || q->topoforcing>0))
+    {
+        const double phs = 0.5*(f->solid(i0,j0,k0)+f->solid(i1,j1,k1));
+        const double pht = 0.5*(f->topo(i0,j0,k0)+f->topo(i1,j1,k1));
+        double ph;
+        if(q->topoforcing>0 && q->solidread>0)
+        ph = MIN(phs,pht);
+        else if(q->topoforcing>0)
+        ph = pht;
+        else
+        ph = phs;
+
+        const double psi = (q->j_dir==1) ? q->X41*(1.0/3.0)*(q->DXN[i0+marge]+q->DYN[j0+marge]+q->DZN[k0+marge])
+                                         : q->X41*0.5*(q->DXN[i0+marge]+q->DZN[k0+marge]);
+        double Hs = heaviside(-ph,psi);
+        if(q->B21==1 && ph>=0.0)
+        {
+            const bool topo_normal = q->topoforcing>0 && (q->solidread==0 || phs>=pht);
+            Hs *= normal_d(topo_normal ? (field&)f->topo : (field&)f->solid);
+        }
+        H += Hs;
+    }
+    if(bodies)
+    {
+        field &fbh = (d==0) ? (field&)f->fbh1 : (d==1 ? (field&)f->fbh2 : (field&)f->fbh3);
+        double Hb = fbh(i0,j0,k0);
+        if(q->X14!=0 && 0.5*(f->fb(i0,j0,k0)+f->fb(i1,j1,k1))>0.0)
+        Hb *= normal_d(f->fb);
+        H += Hb;
+    }
+    return MAX(0.0,MIN(1.0,H));
+}
+
 // the stage predictor at the faces of the patch edges: the coarse face velocity, linear in the
 // transverse directions
 void cfd_amr::pr_predict(int s)
@@ -1438,12 +1498,19 @@ void cfd_amr::pr_predict(int s)
             const double Gc = double(F.dir)*(pC-pP)/(dp[F.d][Lc+marge]*roc);
             const double Gf = double(F.dir)*(pCs-pf)/(F.dist*rof);
 
-            v += bs*p0->dt*(Gc-Gf);
+            // the direct forcing (solids G 505 0, 6DOF bodies X 10) took the share H of the coarse
+            // face to its target velocity, the pressure gradient and the gravity with it: they are
+            // replaced on the share 1-H only.  Replaced on the whole face, a face deep in a solid
+            // took dt (Gc-Gf) with the densities of the level set extended into the solid (X 48 2,
+            // 3), in the air above the free surface there 1000 times the velocity of water
+            const double Hf = MAX(forced_share(F.gface,F.cf,F.d),forced_share(F.pid,F.ff,F.d));
+
+            v += (1.0-Hf)*bs*p0->dt*(Gc-Gf);
 
             // a face normal to gravity: the hydrostatic part of the pressure gradient balances the
             // gravity of the coarse stage velocity, both out
             if(F.hok && F.d==2)
-            v -= bs*p0->dt*p0->W22*fpc;
+            v -= (1.0-Hf)*bs*p0->dt*p0->W22*fpc;
         }
 
         F.ustar = v;
@@ -2690,9 +2757,11 @@ void cfd_amr::pr_level(lexer *p, ghostcell *pgc, int l, int s)
         const double Gc = double(F.dir)*(pC-pP)/(dp[F.d][Lc+marge]*roc);
         const double Gf = double(F.dir)*(pCs-pf)/(F.dist*F.rof);
 
-        v += alpha*pp->dt*(Gc-Gf);
+        // the share of the direct forcing alone (pr_predict)
+        const double Hf = MAX(forced_share(F.gface,F.cf,F.d),forced_share(F.pid,F.ff,F.d));
+        v += (1.0-Hf)*alpha*pp->dt*(Gc-Gf);
         if(F.hok && F.d==2)
-        v -= alpha*pp->dt*p0->W22*fpc;
+        v -= (1.0-Hf)*alpha*pp->dt*p0->W22*fpc;
 
         F.ustar = v;
         c->pmom->amr_velout(c->a,F.d,s)(F.ff[0],F.ff[1],F.ff[2]) = v;

@@ -1,0 +1,19 @@
+{
+ "base": "seastate_2d_phase25_gse",
+ "ctrl_set": {
+  "A 776": "1",
+  "A 778": "3"
+ },
+ "ctrl_add": [
+  "A 777 43200.0"
+ ],
+ "description": "seastate_2d_phase25_gse with a fixed age (A 776 1, A 777 12 h, as Booij and Holthuijsen 1987) and 3 iterations (A 778). Validation in Dropbox SEASTATE/validation/79_gse.",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate"
+ ],
+ "covers": [
+  "A 776 1, A 777"
+ ]
+}

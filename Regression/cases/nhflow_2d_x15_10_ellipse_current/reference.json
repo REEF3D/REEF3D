@@ -551,7 +551,7 @@
   0.0022670221534446173,
   0.002261919658265081
  ],
- "blessed_from": "/home/claude/reg/ncut/REEF3D",
+ "blessed_from": "/home/claude/reg/ncut2/REEF3D",
  "date": "2026-11-02",
- "note": "patches 0143 + 0147 + 0148: the momentum of a cut cell is that of its water"
+ "note": "patches 0143 + 0147 + 0148 on hans_dev 3a0b3a029"
 }

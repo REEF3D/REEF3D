@@ -1,0 +1,15 @@
+{
+ "description": "REEF3D::SEASTATE GSE closure (A 776 2, Phase 25, 0060): a swell field of 200 x 200 km (A 727 the box of the initial spectrum A 710 1, Tp 12 s, 20 deg) in deep water on 60 x 40 cells of 20 km, 12 x 24 bins, second order (A 796 2), 20 steps of 1800 s; after the transport of each step the flux inside a bin as a diffusion D = t_a Sigma with t_a the model time, 2 Gauss-Seidel iterations (A 778). Validation in Dropbox SEASTATE/validation/79_gse.",
+ "solver": "seastate",
+ "np": 1,
+ "steps": 20,
+ "tags": [
+  "quick",
+  "2d",
+  "seastate"
+ ],
+ "covers": [
+  "seastate_f::gse_step (A 776, A 777, A 778)",
+  "seastate_f::initial_parametric with the box A 727"
+ ]
+}

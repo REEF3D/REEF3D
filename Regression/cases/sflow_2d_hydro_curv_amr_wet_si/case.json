@@ -1,0 +1,21 @@
+{
+ "base": "sflow_2d_hydro_curv_amr_si",
+ "np": 1,
+ "steps": 60,
+ "ctrl_set": {
+  "F 60": "3.0"
+ },
+ "description": "sflow_2d_hydro_curv_amr_si with the island submerged: rain on the curvilinear grid with a patch without wetting and drying; the budget closes to round-off.",
+ "tags": [
+  "quick",
+  "2d",
+  "sflow",
+  "hydro",
+  "amr",
+  "curvilinear",
+  "semi_implicit"
+ ],
+ "covers": [
+  "the HYDRO source in the composite eta system on the curvilinear grid"
+ ]
+}

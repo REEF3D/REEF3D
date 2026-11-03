@@ -537,6 +537,7 @@ private:
     double pr_ps(const cfd_amr_cf&);
     void pr_matrix(int s);
     void pr_predict(int s);
+    double forced_share(int g, const int *c, int d);
     void pr_correct(int s);
     void pr_project(lexer*, ghostcell*, int s);
     void pr_sync(int k, int lmin=0, bool sh1=false);     // sh1: the shadows only where the operator reads them (pr_apply)

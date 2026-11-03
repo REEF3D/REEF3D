@@ -1,0 +1,15 @@
+{
+ "base": "seastate_2d_phase25_gse",
+ "np": 2,
+ "same_as": "seastate_2d_phase25_gse",
+ "description": "seastate_2d_phase25_gse on 2 ranks: the red-black Gauss-Seidel iterations of the GSE closure by the global index of the cells, the halo exchanged before each colour: bitwise the result of one rank. Validation in Dropbox SEASTATE/validation/79_gse.",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate",
+  "mpi"
+ ],
+ "covers": [
+  "A 776 on 2 ranks"
+ ]
+}

@@ -1,0 +1,21 @@
+{
+ "base": "sflow_2d_hydro_amr_adaptive_si",
+ "np": 1,
+ "steps": 120,
+ "ctrl_set": {
+  "P 48": "60",
+  "P 49": "0"
+ },
+ "description": "sflow_2d_hydro_amr_adaptive_si with a checkpoint every 60 steps: the uninterrupted run of sflow_2d_hydro_amr_restart.",
+ "tags": [
+  "2d",
+  "sflow",
+  "hydro",
+  "amr",
+  "semi_implicit",
+  "checkpoint"
+ ],
+ "covers": [
+  "the HYDRO fields of the patches in the checkpoints (sflow_amr_ckpt patch_fields)"
+ ]
+}

@@ -1,0 +1,25 @@
+{
+ "base": "sflow_2d_si_amr_adaptive",
+ "np": 1,
+ "steps": 120,
+ "ctrl_add": [
+  "R 10 1",
+  "R 11 360.0",
+  "R 30 2",
+  "R 32 36.0 0.1 0.3",
+  "R 90 10.0"
+ ],
+ "description": "sflow_2d_si_amr_adaptive (adaptive patches over a tilted basin, G 2 4) with rain 360 mm/h and Green-Ampt infiltration: the patches are rebuilt every 4 steps, the cumulative infiltration and rain of a fresh patch from the old patch or the parent.",
+ "tags": [
+  "quick",
+  "2d",
+  "sflow",
+  "hydro",
+  "amr",
+  "semi_implicit"
+ ],
+ "covers": [
+  "sflow_amr::hydro_regrid (old_run, block_down_if)",
+  "hydro_sflow on fresh patches (hydro_attach)"
+ ]
+}

@@ -1,0 +1,24 @@
+{
+ "base": "sflow_2d_hydro_rain_exp",
+ "np": 1,
+ "steps": 60,
+ "ctrl_add": [
+  "G 1 1",
+  "G 2 0",
+  "G 3 2",
+  "G 4 8",
+  "G 10 30.0 70.0 30.0 70.0"
+ ],
+ "description": "sflow_2d_hydro_rain_exp with a static patch: the rain in the stages of the patch, the limiter of the patch.",
+ "tags": [
+  "quick",
+  "2d",
+  "sflow",
+  "hydro",
+  "amr",
+  "wetdry"
+ ],
+ "covers": [
+  "the HYDRO source and sflow_eta::hydro_limit in the patch stages"
+ ]
+}

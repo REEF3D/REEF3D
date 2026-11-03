@@ -73,6 +73,7 @@
     1.127829989e-07,
     0.0,
     0.0,
+    1.127829989e-07,
     0.0,
     400.0
    ],
@@ -88,6 +89,7 @@
     4.962456312320897e-06,
     0.0,
     0.0,
+    4.962456312320897e-06,
     0.0,
     13488.0
    ],
@@ -103,6 +105,7 @@
     4.962456809700812e-06,
     0.0,
     0.0,
+    4.962456809700812e-06,
     0.0,
     13488.0
    ]
@@ -171,7 +174,7 @@
   8.061782817747527,
   8.095248443872654
  ],
- "blessed_from": "/home/claude/build_new/REEF3D",
- "date": "2026-11-01",
- "note": "REEF3D::HYDRO M1 (patches 0001-0003 on hans_dev 45384cf81; binary f2b01800c + the same changes, the commits between touch only sflow_amr)"
+ "blessed_from": "/home/claude/build_m1b/REEF3D",
+ "date": "2026-11-03",
+ "note": "REEF3D::HYDRO M1 + M1b (hans_dev f124d3b61 + patch HYDRO/0004)"
 }

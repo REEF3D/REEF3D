@@ -139,6 +139,7 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `cfd_2d_lock_gate` | 1 | closed lock gate between two water levels (fixed 6DOF body) and a box with its heave from its own motion file: X 111 (DOF modes of single bodies), `6DOF_motion-1.dat`, the level set of all bodies, X 48 3 (level set inside the bodies from the fluid) (patches 0033-0035) |
 | `cfd_2d_lock_gate_amr` | 1 | `cfd_2d_lock_gate` with one refined level over both bodies (G 1 1, G 15, N 40 3): several bodies on a patch, each forced with its own level set (patch 0041) |
 | `cfd_2d_culvert_valve` | 1 | lock filling through a culvert: a valve (6DOF body, heave from its motion file) that reaches into the culvert roof and below the bed; the forcing weights of solid and body at a face add up to 1 at most (patch 0042; hans_dev blows up in the first steps) |
+| `cfd_3d_mitre_gate_amr` | 1 | upper head of the CEMT Va lock (validation 27): two closed mitre leaves (6DOF bodies, X 48 3) against a 0.20 m head, one refined level around the leaves whose edges run through the thick lock walls; the faces of a patch edge inside a solid keep the forced velocity (patch 0054; hans_dev blows up after 11 steps) |
 | `cfd_3d_net_wall` | 2 | fixed quasi-static wall net (X 320 3) in an open-channel inflow, no floating body (sixdof_void): net forces spread with the Peskin kernel (net_interface::dlm_cfd) (references with patch 0022, Ship Hydrodynamics) |
 | `nhflow_2d_6dof_box` (+ `_rk3`) | 1 | NHFLOW floating box in waves, two-way 6DOF, A510=2 / 3 |
 | `nhflow_2d_6dof_box_init` | 1 | + linear damping X25/X26, initial pitch X101, initial velocities X102/X103 |
@@ -823,6 +824,7 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `seastate_2d_phase25_mp_komen`, `_mp_komen_mpi2` | 1, 2 | `seastate_2d_phase14_windsea` / `seastate_2d_windsea_mpi2` with A 769 2 (0058): no limiter, the DIA conservative in action (modified Patankar, two passes per cell solve), the whitecapping linearised; `same_as`, bitwise |
 | `seastate_2d_phase25_mp_composite_ns` | 1 | `seastate_2d_phase17_composite_ns` (island with refinement, nonstationary, composite sweep) with A 769 2 |
 | `seastate_2d_phase25_mp_westh` | 1 | `seastate_2d_phase14_windsea` with A 732 2 and A 769 2 (0059): the linearised saturation whitecapping with its breaking switch, the upper bound FLMAX (alpha_p,max 0.031) |
+| `seastate_2d_phase25_gse`, `_gse_age`, `_gse_mpi2` | 1, 1, 2 | a swell field of 200 x 200 km (the box A 727 of the initial spectrum A 710 1, Tp 12 s, 20 deg) in deep water, 60 x 40 cells of 20 km, second order (A 796 2), 20 steps of 1800 s, with the GSE closure (0060): after the transport of each step the flux inside a bin as a diffusion D = t_a Sigma, A 778 red-black Gauss-Seidel iterations; t_a the model time (A 776 2) and a fixed age of 12 h (A 776 1, A 777, 3 iterations); `same_as`, bitwise on 2 ranks |
 | `seastate_2d_phase21b_once` | 1 | `seastate_2d_wind` with A 767 1 (Phase 21b): the source terms once per iteration, evaluated in the sweep of quadrant 0 and kept for quadrants 1-3; validated in Dropbox SEASTATE/validation/72 (needs patch SEASTATE/0047) |
 | `seastate_2d_phase21b_once_sector`, `_westh` | 1 | A 767 1 on `seastate_2d_phase10_sector` (sector through 0: the kept quadrant before the evaluating one) and `seastate_2d_phase9_westh` (A 732 2) |
 | `seastate_2d_phase21b_once_threads` | 1 | `seastate_2d_phase21b_once` with A 798 2: the kept terms shared by the worker copies; `same_as` the one-thread case, bitwise |
@@ -900,6 +902,15 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `sflow_1d_hydro_plane_manning_si` | 1 | the plane into a closed pool with the roughness from a Manning raster (R 50 1) |
 | `sflow_2d_curv_hydro_lake_island` (`_si`) | 1 | `sflow_2d_curv_lake_island` with HYDRO rain 360 mm/h and a point source: cell areas, centres and the cell of a point on the curvilinear grid, the limiter with the face lengths |
 | `sflow_2d_hydro_ckpt`, `sflow_2d_hydro_restart` | 1 | the HYDRO budget and the cumulative infiltration in the checkpoints: the restart at step 30 gives the final state and the budget file bitwise those of the uninterrupted run (`regression.py ranks`) |
+| `sflow_2d_hydro_soil_si` | 1 | HYDRO soil rasters: Green-Ampt Ks from `ga_ks.asc` (36 mm/h west, 0 east, R 33 1), sealed fraction 0.5 north from `sealed.asc` (R 35 1); the infiltration is 3750 m2 times the ponded Green-Ampt F(t) to 1e-8 (validation/04_soil_rasters) |
+| `sflow_2d_hydro_amr_rain_si`, `_exp` | 1 | `sflow_2d_hydro_rain_*` with a static patch (G 10): the sources of the patch, the budget over the leaf cells (`sflow_amr::hydro_prepare`, `hydro_sinks`) to 1e-14 (SI) and 1e-12 (explicit) |
+| `sflow_2d_hydro_amr_source_si`, `_mpi2` | 1/2 | the point source in a patch cell (and in the level-0 cell under it), the water crosses the patch boundary |
+| `sflow_2d_hydro_amr_losses_si` | 1 | rain, evaporation and Green-Ampt on a patch: the losses of the leaf cells, `sflow_momentum_SI::water_column` of the patch |
+| `sflow_2d_hydro_amr_adaptive_si` | 1 | `sflow_2d_si_amr_adaptive` (patches rebuilt every 4 steps) with rain and Green-Ampt: the cumulative infiltration and rain of fresh patches from the old patch or the parent (`hydro_regrid`), budget to 1e-11 |
+| `sflow_2d_hydro_amr_sub_exp` | 1 | `sflow_2d_hydro_amr_rain_exp` with sub-cycling (G 7 1): the sources of the level-0 step on the half steps of the patch (budget 8e-5: the film of the explicit wetting, as without patches) |
+| `sflow_2d_hydro_amr_ckpt`, `sflow_2d_hydro_amr_restart` | 1 | the HYDRO fields of the patches in the checkpoints: the restart at step 60 bitwise |
+| `sflow_2d_hydro_mb_quadrants_si` | 1 | `sflow_2d_si_mb_quadrants` (four turned curvilinear blocks) with rain and a point source in a block |
+| `sflow_2d_hydro_curv_amr_si` (`_wet_si`) | 1 | `sflow_2d_si_curv_amr_lake_island` with rain: a curvilinear patch through a wetting island (budget 1e-4 of the rain: the composite wetting and drying at the patch boundary), and with the island submerged (1e-12) |
 | `cfd_2d_soil_stress_s217` | 1 | soil stress model S 200 1 (quasi-static Biot u-p, `soil_stress`): periodic box 2.8 m, 0.5 m of fine sand below a fixed bed (S 10 1, S 57 0), still water above, the bed pressure prescribed as a progressive wave 707 cos(kx - wt) Pa (S 217); MINRES with the Cholesky block preconditioner, BDF2, soil probes S 216 (p, u, liquefaction potential) (needs Soil Stress patch 0001) |
 | `cfd_2d_soil_stress_s217_mpi2` | 2 | the same on 2 ranks: the halo of the soil model, the parallel periodic direction, the column communicator of the liquefaction potential |
 | `cfd_3d_soil_stress_s217` | 1 | the same in 3D (3 cells in y, roller side walls S 211 1): uy and the xy, yz shear edges; uniform in y |
@@ -920,8 +931,8 @@ run `./regression.py run ... --cases <new>`, check it, then `bless`.
   digits; then bless once on your machine and keep using `ab` for bitwise checks.
   The NHFLOW AMR cases of steps 5-7 (`nhflow_3d_amr_still` ... `_breaking_mpi2`) were blessed
   on hans_dev 925e271a7 + REEFAMR patches 0001/0002 (patch lexer periodic flags, Z11 default).
-- The HYDRO cases (`*hydro*`) were blessed with hans_dev f2b01800c + the changes of the patches HYDRO/0001-0003
-  (applied to 45384cf81 they give the same files; the commits between change only `sflow_amr`).
+- The HYDRO cases (`*hydro*`) were blessed with hans_dev f124d3b61 + patch HYDRO/0004 (the budget file has the
+  columns inflow, outflow and error since 0004).
 - The HDC cases (`*_hdc*`) need DIVEMesh 95ae3a4 or later (state file names in
   `hdc_filename_in.cpp`); `nhflow_2d_hdc_nhflow` also needs the pressure skip in
   `hdc_read_nhflow.cpp` (NHFLOW state files with the default P 44 1).
