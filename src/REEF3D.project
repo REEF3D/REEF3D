@@ -2368,6 +2368,7 @@
           <File Name="nhflow_momentum_RK3.cpp"/>
           <File Name="nhflow_momentum_SI.cpp"/>
           <File Name="nhflow_momentum_SI_density.cpp"/>
+          <File Name="nhflow_momentum_SI_elm.cpp"/>
           <File Name="nhflow_stratification.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="FSF">
