@@ -260,9 +260,30 @@ void driver::logic_nhflow()
     // slips over the bed, a RANS model gets its turbulence only from the wall function of the bottom cell and the
     // velocity profile stays a plug (open-channel flow: nu_t far below the parabolic profile, the bed shear stress of
     // the sediment S 16 from the near-bed velocity about twice too high)
-    if(p->A519==0 && (p->A560==1 || p->A560==21 || p->A560==2 || p->A560==22 || p->S10>0) && p->mpirank==0)
+    if(p->A519==0 && p->A518!=2 && (p->A560==1 || p->A560==21 || p->A560==2 || p->A560==22 || p->S10>0) && p->mpirank==0)
     cout<<"NOTE A 519 0: no bed friction in the momentum equations, the flow slips over the bed; A 519 1 (the default "
         <<"with a turbulence model A 560 or sediment transport S 10) for open-channel flow"<<endl;
+    
+    // bed of the velocity (A 518): 1 the wall-function bed, mirrored ghost cells, zero gradient in the diffusion and
+    // the bed shear from the log-law friction A 519; 2 the resolved no-slip bed, u = 0 on the bed face in the
+    // ghost cells and in the diffusion, the bed shear from the diffusion (gc_startV.cpp, nhflow_idiff, nhflow_bcmom)
+    if(p->A518==2 && p->mpirank==0)
+    {
+        if(p->A519>0)
+        cout<<"NOTE A 518 2: resolved no-slip bed, the bed shear comes from the diffusion; no bed friction of A 519 at the bed"<<endl;
+        
+        if(p->A512==0 && p->A560==0)
+        cout<<"!!! A 518 2 without diffusion (A 512 0, A 560 0): the no-slip bed acts only through the ghost cells"<<endl;
+        
+        // the bed face has the molecular viscosity only (nu_t = 0 at the wall): with a RANS model the bed cell has to lie
+        // in the viscous sublayer (z+ < 5); on a coarse grid the bed shear is far too low (open channel, k-epsilon,
+        // 20 layers over 2 m: u* half the log law), A 518 1 there
+        if(p->A560==1 || p->A560==21 || p->A560==2 || p->A560==22)
+        cout<<"!!! A 518 2 with a RANS model (A 560 "<<p->A560<<"): wall-resolving grids only (bed cell z+ < 5), A 518 1 otherwise"<<endl;
+        
+        if(p->A534==1)
+        cout<<"!!! A 518 2 with the semi-implicit free surface (A 534 1): its column operator keeps the log-law bed friction (A 519 1)"<<endl;
+    }
     
     // HLES split (A 561) and QCR (A 563) work with the RANS models (k-epsilon, k-omega) only
     if((p->A561!=0 || p->A563>0.0) && p->A560!=1 && p->A560!=21 && p->A560!=2 && p->A560!=22)
