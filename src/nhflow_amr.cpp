@@ -136,6 +136,15 @@ nhflow_amr::nhflow_amr(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_momentum *pm
     // the hull as a sharp thin body (X 15 8) without G 12 (refinement by boxes G 10 or by the flags): the hull
     // still gets its zone, margin 4 level-0 cells (below), so that the hull and its band lie inside the finest
     // level wherever the boxes or flags are; hull_cover checks it at every step
+    // the solid with cut faces (X 15 10) is not on the patches yet
+    if(b6!=nullptr && p->X15==10)
+    {
+        if(p->mpirank==0)
+        cout<<"!!! X 15 10 (cut faces) is not available with the mesh refinement yet: use X 15 8 there !!!"<<endl;
+        
+        exit(1);
+    }
+    
     if(b6!=nullptr && p->X15==8 && p->G12<=0)
     {
     q.zones = true;

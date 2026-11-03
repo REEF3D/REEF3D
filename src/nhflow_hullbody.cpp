@@ -29,6 +29,7 @@ Architect: Hans Bihs
 #include"6DOF_obj_nhflow.h"
 #include"nhflow_thinbody.h"
 #include<cmath>
+#include<cstdlib>
 #include<sys/stat.h>
 
 // The 6DOF hull as a sharp thin body (X 15 8).
@@ -101,6 +102,36 @@ Architect: Hans Bihs
 //
 // Not covered: submerged bodies (the cells inside would be lower cells of their column; keep the direct
 // forcing), porous bodies (X 16), curvilinear grids (G 50), more than one body, subcycling (G 7 1).
+//
+// X 15 10: the body as a solid with cut faces (stage_cut, loads_cut). The staircase of X 15 8 changes in steps: a cell
+// centre or a node that crosses the surface (the sigma grid moves with the free surface, the body moves) switches a
+// whole link at once, the projection gets a pressure kick, the free surface a bump, and the next cell switches (a
+// submerged ellipse in a current: a front of node switches moving upstream by one column per step until the run blew
+// up; the steps also give a form drag of their own, C_D 0.4 at 5 cells across the ellipse, falling with the grid at
+// order 0.8). Here every face near the body has its open fraction (aperture) from the level set, linear between the
+// face corners (the corners: the level set averaged from the cell centres), so the wall moves continuously:
+//   faces       the x and y faces in a lower and an upper half (node k to the cell centre, the centre to node k+1), the
+//               horizontal faces through the cell centres (the vertical links of the projection) and at the nodes
+//   cells       the water fraction kap of every cell from its corners; the apertures of the faces of a cell with
+//               little water are scaled with min(kap/0.25, 1), so that a cell has no open face left when its water
+//               vanishes (a sliver of water beyond a fully open face would otherwise be a whole cell of water that
+//               disappears at once). A cell without an open face is solid: it moves with the body (also after the
+//               projection, reforce); the switch carries no flux. Corners on the surface within 1e-6 dx count as body.
+//   wall part   (1 - a) of a face moves with the body: the wall velocity is the body velocity at the face centre (the
+//               open parts then see the swept volume of the true surface, -u_b . sum a n A)
+//   service     nhflow_thinbody in cut mode: fluxes a F + (1 - a) F(wall), the projection with the apertures as link
+//               mobilities and the blended face velocity in its divergence, the head of the columns the body covers
+//               (the open fraction of the column top weights eta and the outer level eta_L), see nhflow_thinbody.h
+//   loads       the still-water pressure rho g (wd - z) on the STL below the still water level, exact for planar
+//               facets (the buoyancy and the zero horizontal force at rest); the dynamic pressure (rho g head + P,
+//               at the surface point nearest to the cell centre) on the wall part of every cell, -p sum_f a_f n_f A_f
+//               (the divergence theorem on the water of the cell): the same pressure that the projection and the wall
+//               fluxes put on the water
+// Results (Ship Hydrodynamics validation 31): submerged ellipse in a current C_D 0.07 at 5 cells across (X 15 1: 0.41),
+// stable as the grid moves through it; 2D box in forced heave at 3.5 rad/s, dx 0.1 m: A/m 0.94, B 66 (Frank 0.975, 64;
+// X 15 8 0.96, 76, with ten times the force noise); the box in waves and in a current of 1 m/s free in heave without the
+// noise of the staircase; a symmetric box at rest stays symmetric. Not covered yet: mesh refinement (stopped with a
+// message), turbulence walls at the cut faces (the faces keep the diffusion), porous bodies, more than one body.
 
 nhflow_hullbody::nhflow_hullbody(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof_obj_nhflow *pobj)
 {
@@ -112,6 +143,11 @@ nhflow_hullbody::nhflow_hullbody(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof_ob
     p->Darray(side0C,ncell);
     p->Darray(side0N,nnode);
     p->Darray(zk0,p->imax*p->jmax);
+    
+    // X 15 10: the body as a solid with cut faces
+    cut = (p->X15==10);
+    p->Darray(solidC,ncell);
+    p->Darray(kapC,ncell);
 
     for(int q=0; q<p->imax*p->jmax; ++q)
     zk0[q] = 1.0e20;
@@ -157,6 +193,9 @@ nhflow_hullbody::nhflow_hullbody(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof_ob
     d->thinbody = new nhflow_thinbody(p,d,pgc);
 
     tb = d->thinbody;
+    
+    if(cut)
+    tb->enable_cut(p);
 
     double dmin = p->DXM;
 
@@ -198,6 +237,8 @@ nhflow_hullbody::~nhflow_hullbody()
     delete [] side0C;
     delete [] side0N;
     delete [] zk0;
+    delete [] solidC;
+    delete [] kapC;
 
     if(out.is_open())
     out.close();
@@ -262,7 +303,19 @@ void nhflow_hullbody::stage(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, 
         told = true;
 
         if(p->mpirank==0 && !amr_patch)
+        {
+        if(cut)
+        cout<<"NHFLOW 6DOF X 15 10: the body as a solid with cut faces (open fractions of the faces from the level set, wall part with the body velocity, loads from the pressure on the wall parts)"<<endl;
+        else
         cout<<"NHFLOW 6DOF X 15 8: the hull as a sharp thin body (blocked links, wall velocity, loads from the outer pressure)"<<endl;
+        }
+    }
+    
+    if(cut)
+    {
+    stage_cut(p,d,pgc,alpha,UH,VH,WH,WL);
+    tstage += pgc->timer() - starttime;
+    return;
     }
 
     const int ncell = p->imax*p->jmax*(p->kmax+2);
@@ -514,6 +567,12 @@ void nhflow_hullbody::forces(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL, bo
 // faces. No collective.
 void nhflow_hullbody::loads(lexer *p, fdm_nhf *d, slice &WL, const std::function<bool(double,double)> *keep, double *F, double *S)
 {
+    if(cut)
+    {
+    loads_cut(p,d,WL,keep,F,S);
+    return;
+    }
+    
     double Fx=0.0, Fy=0.0, Fz=0.0, Mx=0.0, My=0.0, Mz=0.0;
     int nf=0;
 
@@ -797,4 +856,499 @@ void nhflow_hullbody::print(lexer *p, fdm_nhf *d, ghostcell *pgc, const double *
     }
 
     tstage = 0.0;
+}
+
+// X 15 10: the cells without an open face at the rigid-body velocity after the projection (nhflow_forcing::reforcing)
+void nhflow_hullbody::reforce(lexer *p, fdm_nhf *d, ghostcell *pgc, double *UH, double *VH, double *WH, slice &WL)
+{
+    if(cut && marked)
+    solid_velocity(p,d,pgc,UH,VH,WH,WL);
+}
+
+// the cells of the solid at the rigid-body velocity of their centre
+void nhflow_hullbody::solid_velocity(lexer *p, fdm_nhf *d, ghostcell *pgc, double *UH, double *VH, double *WH, slice &WL)
+{
+    LOOP
+    if(p->wet[IJ]==1 && solidC[IJK]>0.5)
+    {
+        double u,v,w;
+        body_velocity(p->XP[IP],p->YP[JP],p->ZSP[IJK],u,v,w);
+        
+        d->U[IJK] = u;
+        d->V[IJK] = v;
+        d->W[IJK] = w;
+        UH[IJK] = u*WL(i,j);
+        VH[IJK] = v*WL(i,j);
+        WH[IJK] = w*WL(i,j);
+    }
+    
+    pgc->start4V(p,d->U,10);
+    pgc->start4V(p,d->V,11);
+    pgc->start4V(p,d->W,12);
+}
+
+// ------------------------------------------------------------------ X 15 10: cut faces
+// fluid fraction of a segment, a triangle and a quadrilateral (corners in cyclic order) with the level set linear
+// between the corner values (> 0 water); continuous in the corner values
+static double cut_seg(double a, double b)
+{
+    if(a<=0.0 && b<=0.0)
+    return 0.0;
+    
+    if(a>=0.0 && b>=0.0)
+    return 1.0;
+    
+    return (a>0.0 ? a : b)/(fabs(a)+fabs(b));
+}
+
+static double cut_tri(double a, double b, double c)
+{
+    const int np = (a>0.0) + (b>0.0) + (c>0.0);
+    
+    if(np==3)
+    return 1.0;
+    
+    if(np==0)
+    return 0.0;
+    
+    // the corner alone on its side: v, the two others w1, w2; fraction of its side v^2/((v-w1)(v-w2))
+    double v,w1,w2;
+    
+    if(np==1)
+    {
+        if(a>0.0)      {v=a; w1=b; w2=c;}
+        else if(b>0.0) {v=b; w1=a; w2=c;}
+        else           {v=c; w1=a; w2=b;}
+        
+        return v*v/((v-w1)*(v-w2));
+    }
+    
+    if(a<=0.0)      {v=a; w1=b; w2=c;}
+    else if(b<=0.0) {v=b; w1=a; w2=c;}
+    else            {v=c; w1=a; w2=b;}
+    
+    return 1.0 - v*v/((v-w1)*(v-w2));
+}
+
+static double cut_quad(double a, double b, double c, double d)
+{
+    return 0.25*(cut_tri(a,b,c) + cut_tri(a,c,d) + cut_tri(a,b,d) + cut_tri(b,c,d));
+}
+
+void nhflow_hullbody::stage_cut(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, double *UH, double *VH, double *WH, slice &WL)
+{
+    const int ncell = p->imax*p->jmax*(p->kmax+2);
+    const double a = alpha*p->dt;
+    
+    for(int q=0; q<ncell; ++q)
+    {
+    d->MBETA[q] = 1.0;
+    d->MCHI[q] = 0.0;
+    d->MBX[q] = d->MBY[q] = d->MBZ[q] = 1.0;
+    }
+    
+    tb->begin(p);
+    
+    // level set at the cell corners: (x_ii+1/2, y_jj+1/2) at the level of the cell centres kk (vC) or of node kk (vN)
+    // a corner on the surface within rounding (a body face that coincides with a grid face) counts as body, on every
+    // face alike
+    const double ftol = 1.0e-6*p->DXM;
+    auto snap = [&](double v) {return fabs(v)<ftol ? 0.0 : v;};
+    auto FBc = [&](int ii, int jj, int kk) {return d->FB[tb->cidx(p,ii,jj,kk)];};
+    
+    auto vC = [&](int ii, int jj, int kk)
+    {
+        if(p->j_dir==0)
+        return snap(0.5*(FBc(ii,jj,kk) + FBc(ii+1,jj,kk)));
+        
+        return snap(0.25*(FBc(ii,jj,kk) + FBc(ii+1,jj,kk) + FBc(ii,jj+1,kk) + FBc(ii+1,jj+1,kk)));
+    };
+    
+    auto vN = [&](int ii, int jj, int kk)
+    {
+        if(kk<=0)
+        return vC(ii,jj,0);
+        
+        if(kk>=p->knoz)
+        return vC(ii,jj,p->knoz-1);
+        
+        return snap(0.5*(vC(ii,jj,kk-1) + vC(ii,jj,kk)));
+    };
+    
+    const int jo = p->j_dir==1 ? 1 : 0;   // corner offset in y (2D: the y extent is one cell)
+    
+    // x faces i+1/2, i = -1 .. knox-1
+    for(i=-1; i<p->knox; ++i)
+    for(j=0; j<p->knoy; ++j)
+    for(k=0; k<p->knoz; ++k)
+    {
+        if(p->j_dir==0)
+        {
+        tb->axl[IJK] = cut_seg(vN(i,j,k),vC(i,j,k));
+        tb->axh[IJK] = cut_seg(vC(i,j,k),vN(i,j,k+1));
+        }
+        else
+        {
+        tb->axl[IJK] = cut_quad(vN(i,j-jo,k),vN(i,j,k),vC(i,j,k),vC(i,j-jo,k));
+        tb->axh[IJK] = cut_quad(vC(i,j-jo,k),vC(i,j,k),vN(i,j,k+1),vN(i,j-jo,k+1));
+        }
+    }
+    
+    // y faces j+1/2, j = -1 .. knoy-1
+    if(p->j_dir==1)
+    for(i=0; i<p->knox; ++i)
+    for(j=-1; j<p->knoy; ++j)
+    for(k=0; k<p->knoz; ++k)
+    {
+        tb->ayl[IJK] = cut_quad(vN(i-1,j,k),vN(i,j,k),vC(i,j,k),vC(i-1,j,k));
+        tb->ayh[IJK] = cut_quad(vC(i-1,j,k),vC(i,j,k),vN(i,j,k+1),vN(i-1,j,k+1));
+    }
+    
+    // horizontal faces through the cell centre (vertical link of the projection) and at node k (bottom of cell k)
+    LOOP
+    {
+        if(p->j_dir==0)
+        {
+        tb->azc[IJK] = cut_seg(vC(i-1,j,k),vC(i,j,k));
+        tb->azn[IJK] = cut_seg(vN(i-1,j,k),vN(i,j,k));
+        }
+        else
+        {
+        tb->azc[IJK] = cut_quad(vC(i-1,j-1,k),vC(i,j-1,k),vC(i,j,k),vC(i-1,j,k));
+        tb->azn[IJK] = cut_quad(vN(i-1,j-1,k),vN(i,j-1,k),vN(i,j,k),vN(i-1,j,k));
+        }
+    }
+    
+    // water fraction of the cells (2D: the cell between its four corners; 3D: the mean of the three mid sections) and
+    // the effective apertures: a face next to a cell with little water closes with it, a (kap/kap0), so that a cell
+    // whose water vanishes has no open face left when it does (a sliver of water beyond a fully open face would
+    // otherwise be a whole cell of water that disappears at once)
+    const double kap0 = 0.25;
+    
+    for(i=-1; i<=p->knox; ++i)
+    for(j=(p->j_dir==1?-1:0); j<=(p->j_dir==1?p->knoy:p->knoy-1); ++j)
+    for(k=0; k<p->knoz; ++k)
+    {
+        double kap;
+        
+        if(p->j_dir==0)
+        kap = cut_quad(vN(i-1,j,k),vN(i,j,k),vN(i,j,k+1),vN(i-1,j,k+1));
+        else
+        {
+        auto mx = [&](int jj, int kk) {return 0.5*(vN(i-1,jj,kk)+vN(i,jj,kk));};
+        auto my = [&](int ii, int kk) {return 0.5*(vN(ii,j-1,kk)+vN(ii,j,kk));};
+        const double sx = cut_quad(mx(j-1,k),mx(j,k),mx(j,k+1),mx(j-1,k+1));
+        const double sy = cut_quad(my(i-1,k),my(i,k),my(i,k+1),my(i-1,k+1));
+        const double sz = cut_quad(vC(i-1,j-1,k),vC(i,j-1,k),vC(i,j,k),vC(i-1,j,k));
+        kap = (sx+sy+sz)/3.0;
+        }
+        
+        kapC[IJK] = kap;
+    }
+    
+    auto gk = [&](int q) {return kap0>0.0 ? MIN(kapC[q]/kap0,1.0) : 1.0;};
+    
+    for(i=-1; i<p->knox; ++i)
+    for(j=0; j<p->knoy; ++j)
+    for(k=0; k<p->knoz; ++k)
+    {
+        const double g = gk(IJK)*gk(Ip1JK);
+        tb->axl[IJK] *= g;
+        tb->axh[IJK] *= g;
+    }
+    
+    if(p->j_dir==1)
+    for(i=0; i<p->knox; ++i)
+    for(j=-1; j<p->knoy; ++j)
+    for(k=0; k<p->knoz; ++k)
+    {
+        const double g = gk(IJK)*gk(IJp1K);
+        tb->ayl[IJK] *= g;
+        tb->ayh[IJK] *= g;
+    }
+    
+    LOOP
+    {
+        tb->azc[IJK] *= gk(IJK);
+        tb->azn[IJK] *= gk(IJK)*(k>0 ? gk(IJKm1) : 1.0);
+    }
+    
+    pgc->start4V(p,tb->azc,1);
+    pgc->start4V(p,tb->azn,1);
+    
+    // open fraction of the free surface of the columns (the face at node knoz, with the top cell's water)
+    SLICELOOP4
+    {
+        k = p->knoz-1;
+        double a;
+        
+        if(p->j_dir==0)
+        a = cut_seg(vN(i-1,j,p->knoz),vN(i,j,p->knoz));
+        else
+        a = cut_quad(vN(i-1,j-1,p->knoz),vN(i,j-1,p->knoz),vN(i,j,p->knoz),vN(i-1,j,p->knoz));
+        
+        tb->atop(i,j) = a*gk(IJK);
+    }
+    
+    pgc->gcsl_start4(p,tb->atop,1);
+    
+    auto AX = [&](int q) {return 0.5*(tb->axl[q]+tb->axh[q]);};
+    auto AY = [&](int q) {return 0.5*(tb->ayl[q]+tb->ayh[q]);};
+    
+    // cells without an open face: no water, they move with the body
+    
+    LOOP
+    {
+        // (a tolerance: the two sides of a symmetric body differ in the last digits of the level set)
+        const double atol = 1.0e-10;
+        bool s = AX(IJK)<=atol && AX(Im1JK)<=atol && tb->azc[IJK]<=atol && tb->azn[IJK]<=atol && (k==p->knoz-1 || tb->azn[IJKp1]<=atol);
+        
+        if(p->j_dir==1)
+        s = s && AY(IJK)<=atol && AY(IJm1K)<=atol;
+        
+        solidC[IJK] = s ? 1.0 : 0.0;
+        tb->sideC[IJK] = d->FB[IJK]>=0.0 ? 1.0 : -1.0;
+    }
+    
+    pgc->start4V(p,solidC,1);
+    pgc->start4V(p,tb->sideC,1);
+    tb->solidC = solidC;
+    
+    // body velocity at the faces (the wall part of a face moves with the body: its flux is the body velocity), the
+    // link mobilities of the projection: the apertures, at least the mobility of a closed link
+    auto beta = [&](double l) {return 1.0/(1.0 + a*Rn/MAX(l,1.0e-20));};
+    double u,v,w;
+    
+    nbx = nby = nbz = 0;
+    
+    for(i=-1; i<p->knox; ++i)
+    for(j=0; j<p->knoy; ++j)
+    for(k=0; k<p->knoz; ++k)
+    {
+        const double A = AX(IJK);
+        
+        if(A<1.0)
+        {
+        body_velocity(p->XP[IP]+0.5*p->DXN[IP], p->YP[JP], p->ZSP[IJK], u,v,w);
+        tb->ux[IJK] = u;
+        ++nbx;
+        }
+        
+        d->MBX[IJK] = MAX(A, beta(p->DXP[IP]));
+    }
+    
+    if(p->j_dir==1)
+    for(i=0; i<p->knox; ++i)
+    for(j=-1; j<p->knoy; ++j)
+    for(k=0; k<p->knoz; ++k)
+    {
+        const double A = AY(IJK);
+        
+        if(A<1.0)
+        {
+        body_velocity(p->XP[IP], p->YP[JP]+0.5*p->DYN[JP], p->ZSP[IJK], u,v,w);
+        tb->uy[IJK] = v;
+        ++nby;
+        }
+        
+        d->MBY[IJK] = MAX(A, beta(p->DYP[JP]));
+    }
+    
+    LOOP
+    {
+        if(tb->azc[IJK]<1.0 || solidC[IJK]>0.5)
+        {
+        body_velocity(p->XP[IP], p->YP[JP], p->ZSP[IJK], u,v,w);
+        tb->uz[IJK] = w;
+        ++nbz;
+        }
+        
+        d->MBZ[IJK] = MAX(tb->azc[IJK], beta(p->DZN[KP]*WL(i,j)));
+    }
+    
+    pgc->start4V(p,d->MBX,1);
+    pgc->start4V(p,d->MBY,1);
+    pgc->start4V(p,d->MBZ,1);
+    
+    LOOP
+    {
+        double b = MIN(MIN(d->MBX[IJK],d->MBX[Im1JK]),d->MBZ[IJK]);
+        
+        if(p->j_dir==1)
+        b = MIN(b,MIN(d->MBY[IJK],d->MBY[IJm1K]));
+        
+        d->MBETA[IJK] = MIN(b,1.0);
+    }
+    
+    pgc->start4V(p,d->MBETA,1);
+    
+    tb->finish_cut(p,d,pgc);
+    
+    nlink = pgc->globalisum(nbx+nby+nbz);
+    
+    solid_velocity(p,d,pgc,UH,VH,WH,WL);
+    
+    marked = true;
+}
+
+// loads of the cut faces: the body takes -p sum_f a_f n_f A_f of every cell with water (the wall part of the cell
+// surface, divergence theorem), p the pressure of the cell centre (still water, head, non-hydrostatic)
+void nhflow_hullbody::loads_cut(lexer *p, fdm_nhf *d, slice &WL, const std::function<bool(double,double)> *keep, double *F, double *S)
+{
+    double Fx=0.0, Fy=0.0, Fz=0.0, Mx=0.0, My=0.0, Mz=0.0;
+    int nf=0;
+    
+    if(marked)
+    {
+    const double rg = p->W1*fabs(p->W22);
+    const double *P = d->P;
+    const double xc = obj->amr_c(0), yc = obj->amr_c(1), zc = obj->amr_c(2);
+    
+    auto AX = [&](int q) {return 0.5*(tb->axl[q]+tb->axh[q]);};
+    auto AY = [&](int q) {return 0.5*(tb->ayl[q]+tb->ayh[q]);};
+    
+    LOOP
+    if(p->wet[IJ]==1 && solidC[IJK]<0.5)
+    {
+        const double ax = AX(IJK) - AX(Im1JK);
+        const double ay = p->j_dir==1 ? AY(IJK) - AY(IJm1K) : 0.0;
+        const double az = (k<p->knoz-1 ? tb->azn[IJKp1] : tb->atop(i,j)) - tb->azn[IJK];
+        
+        if(ax==0.0 && ay==0.0 && az==0.0)
+        continue;
+        
+        // the pressure at the surface point nearest to the cell centre, x_c - FB grad FB (the still-water part there,
+        // so that the load does not jump by rho g dz when the wall passes from one cell layer to the next)
+        double gx = (d->FB[Ip1JK] - d->FB[Im1JK])/(p->DXP[IP] + p->DXP[IM1]);
+        double gy = p->j_dir==1 ? (d->FB[IJp1K] - d->FB[IJm1K])/(p->DYP[JP] + p->DYP[JM1]) : 0.0;
+        double gz = (d->FB[IJKp1] - d->FB[IJKm1])/((p->DZP[KP] + p->DZP[KM1])*MAX(WL(i,j),1.0e-20));
+        const double gn = sqrt(gx*gx + gy*gy + gz*gz);
+        
+        if(gn>1.0e-20)
+        {
+        gx/=gn;
+        gy/=gn;
+        gz/=gn;
+        }
+        
+        const double fb = d->FB[IJK];
+        const double x = p->XP[IP] - fb*gx, y = p->YP[JP] - fb*gy, z = p->ZSP[IJK] - fb*gz;
+        
+        if(keep!=nullptr && !(*keep)(p->XP[IP],p->YP[JP]))
+        continue;
+        
+        // the dynamic part (head above the still water level, non-hydrostatic pressure); the still-water part below
+        const double pc = rg*tb->head(p,d,i,j,k) + tb->pcell(p,P,i,j,k);
+        
+        const double fx = -pc*ax*p->DYN[JP]*p->DZN[KP]*WL(i,j);
+        const double fy = -pc*ay*p->DXN[IP]*p->DZN[KP]*WL(i,j);
+        const double fz = -pc*az*p->DXN[IP]*p->DYN[JP];
+        
+        ++nf;
+        Fx += fx;
+        Fy += fy;
+        Fz += fz;
+        Mx += (y - yc)*fz - (z - zc)*fy;
+        My += (z - zc)*fx - (x - xc)*fz;
+        Mz += (x - xc)*fy - (y - yc)*fx;
+    }
+    }
+    
+    // still-water pressure rho g (wd - z) on the STL below the still water level, exact for planar facets (edge-midpoint
+    // rule on the clipped facets): the buoyancy and the zero horizontal force of a body at rest come out exactly, not
+    // with the discretisation error of the cut faces; triangles owned by the rank of their centroid
+    if(marked)
+    {
+    const double rg = p->W1*fabs(p->W22);
+    const double xc = obj->amr_c(0), yc = obj->amr_c(1), zc = obj->amr_c(2);
+    double **tx = obj->amr_tri(0), **ty = obj->amr_tri(1), **tz = obj->amr_tri(2);
+    const double wd = p->wd;
+    
+    // orientation of the STL: the normals of the facets point out of the body when the enclosed volume is positive
+    double vol=0.0;
+    
+    for(int n=0; n<obj->amr_tricount(); ++n)
+    vol += (tx[n][0]*(ty[n][1]*tz[n][2]-tz[n][1]*ty[n][2]) - ty[n][0]*(tx[n][1]*tz[n][2]-tz[n][1]*tx[n][2])
+          + tz[n][0]*(tx[n][1]*ty[n][2]-ty[n][1]*tx[n][2]))/6.0;
+    
+    const double sgn = vol<0.0 ? -1.0 : 1.0;
+    
+    for(int n=0; n<obj->amr_tricount(); ++n)
+    {
+        const double cxx = (tx[n][0]+tx[n][1]+tx[n][2])/3.0, cyy = (ty[n][0]+ty[n][1]+ty[n][2])/3.0;
+        
+        if(!(cxx>=p->originx && cxx<p->endx))
+        continue;
+        
+        if(p->j_dir==1 && !(cyy>=p->originy && cyy<p->endy))
+        continue;
+        
+        double nx = (ty[n][1]-ty[n][0])*(tz[n][2]-tz[n][0]) - (ty[n][2]-ty[n][0])*(tz[n][1]-tz[n][0]);
+        double ny = (tx[n][2]-tx[n][0])*(tz[n][1]-tz[n][0]) - (tx[n][1]-tx[n][0])*(tz[n][2]-tz[n][0]);
+        double nz = (tx[n][1]-tx[n][0])*(ty[n][2]-ty[n][0]) - (tx[n][2]-tx[n][0])*(ty[n][1]-ty[n][0]);
+        const double nn = sqrt(nx*nx+ny*ny+nz*nz);
+        
+        if(nn<1.0e-20)
+        continue;
+        
+        nx*=sgn/nn; ny*=sgn/nn; nz*=sgn/nn;
+        
+        // clip at z = wd (keep z <= wd); in 2D the end caps too (no x or z part when they are planar; with them the
+        // surface stays closed, so that the horizontal force at rest is zero to round-off)
+        double px[4],py[4],pz[4];
+        int np=0;
+        
+        for(int q=0; q<3; ++q)
+        {
+            const int r = (q+1)%3;
+            const double za = tz[n][q], zb = tz[n][r];
+            
+            if(za<=wd)
+            {
+            px[np]=tx[n][q]; py[np]=ty[n][q]; pz[np]=za; ++np;
+            }
+            
+            if((za<wd && zb>wd) || (za>wd && zb<wd))
+            {
+            const double t = (wd-za)/(zb-za);
+            px[np]=tx[n][q]+t*(tx[n][r]-tx[n][q]); py[np]=ty[n][q]+t*(ty[n][r]-ty[n][q]); pz[np]=wd; ++np;
+            }
+        }
+        
+        for(int q=1; q+1<np; ++q)
+        {
+            const int a=0, b=q, c=q+1;
+            const double ux_=px[b]-px[a], uy_=py[b]-py[a], uz_=pz[b]-pz[a];
+            const double vx_=px[c]-px[a], vy_=py[c]-py[a], vz_=pz[c]-pz[a];
+            const double cx_=uy_*vz_-uz_*vy_, cy_=uz_*vx_-ux_*vz_, cz_=ux_*vy_-uy_*vx_;
+            const double As = 0.5*sqrt(cx_*cx_+cy_*cy_+cz_*cz_);
+            
+            const int e0[3]={a,b,c}, e1[3]={b,c,a};
+            
+            for(int m=0; m<3; ++m)
+            {
+                const double mx = 0.5*(px[e0[m]]+px[e1[m]]), my = 0.5*(py[e0[m]]+py[e1[m]]), mz = 0.5*(pz[e0[m]]+pz[e1[m]]);
+                const double ps = rg*(wd - mz);
+                const double fx = -ps*nx*As/3.0, fy = -ps*ny*As/3.0, fz = -ps*nz*As/3.0;
+                
+                Fx += fx;
+                Fy += fy;
+                Fz += fz;
+                Mx += (my - yc)*fz - (mz - zc)*fy;
+                My += (mz - zc)*fx - (mx - xc)*fz;
+                Mz += (mx - xc)*fy - (my - yc)*fx;
+            }
+        }
+    }
+    }
+    
+    F[0] += Fx;
+    F[1] += Fy;
+    F[2] += Fz;
+    F[3] += Mx;
+    F[4] += My;
+    F[5] += Mz;
+    
+    if(S!=nullptr)
+    S[0] += double(nf);
 }

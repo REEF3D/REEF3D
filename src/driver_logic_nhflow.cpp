@@ -218,6 +218,16 @@ void driver::logic_nhflow()
 
         p->A520=1;
     }
+    
+    // the body as a solid with cut faces (X 15 10): the cut faces are in the full projection only (nhflow_pjm: the
+    // divergence of the wall parts, the pressure extension)
+    if(p->X15==10 && p->X10>0 && p->A520==2)
+    {
+        if(p->mpirank==0)
+        cout<<"X 15 10: pressure scheme A 520 2 -> A 520 1 (full projection)"<<endl;
+
+        p->A520=1;
+    }
 
     if(p->A520==0)
 	pnhpress = new nhflow_pjm_hs(p,d,pBC);

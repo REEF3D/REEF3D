@@ -55,6 +55,9 @@ public:
     virtual ~nhflow_hullbody();
 
     void stage(lexer*, fdm_nhf*, ghostcell*, double, double*, double*, double*, slice&);
+    // X 15 10: the cells of the solid at the rigid-body velocity after the projection
+    void reforce(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*, slice&);
+    bool cut;                   // X 15 10: the body as a solid with cut faces
     void forces(lexer*, fdm_nhf*, ghostcell*, slice&, bool);
     void print(lexer*, fdm_nhf*, ghostcell*, const double* = nullptr);
     
@@ -82,6 +85,11 @@ private:
     nhflow_thinbody *tb;
     double *side0C;             // cell sides of the last stage (hysteresis)
     double *side0N;             // node sides of the last stage
+    double *solidC;             // X 15 10: 1 for a cell with no open face (moves with the body)
+    double *kapC;               // X 15 10: water fraction of the cells
+    void solid_velocity(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*, slice&);
+    void stage_cut(lexer*, fdm_nhf*, ghostcell*, double, double*, double*, double*, slice&);
+    void loads_cut(lexer*, fdm_nhf*, slice&, const std::function<bool(double,double)>*, double*, double*);
     double hyst;                // hysteresis distance
     double Rn;                  // hydraulic resistance of the blocked links [m/s]
     bool plain_horizontal;      // horizontal loads on the face normals, without the hull-normal weighting (ship frame)

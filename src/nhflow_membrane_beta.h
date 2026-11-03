@@ -174,6 +174,21 @@ inline void nhflow_membrane_row(lexer *p, fdm_nhf *d, int i, int j, int k, int n
             
             auto lay = [&](const double *MB, int qa, int qb) {return tb->other_side(qa,qb,sN) ? MIN(MB[qa],bmin) : MB[qa];};
             
+            // cut faces (X 15 10): the apertures of the faces of the node control volume
+            if(tb->cutmode)
+            {
+            bn = MAX(tb->anode_x(p,i,j,k),   bmin);
+            bs = MAX(tb->anode_x(p,i-1,j,k), bmin);
+            
+            if(p->j_dir==1)
+            {
+            bw = MAX(tb->anode_y(p,i,j,k),   bmin);
+            be = MAX(tb->anode_y(p,i,j-1,k), bmin);
+            }
+            }
+            else
+            {
+            
             bn = (1.0-fac)*lay(d->MBX,IJK,Ip1JK)   + fac*(k>0 ? lay(d->MBX,IJKm1,Ip1JKm1)   : lay(d->MBX,IJK,Ip1JK));
             bs = (1.0-fac)*lay(d->MBX,Im1JK,IJK)   + fac*(k>0 ? lay(d->MBX,Im1JKm1,IJKm1)   : lay(d->MBX,Im1JK,IJK));
             
@@ -191,6 +206,7 @@ inline void nhflow_membrane_row(lexer *p, fdm_nhf *d, int i, int j, int k, int n
             if(tb->node_cut_y(p,i,j,k))   bw = MIN(bw, MIN(MIN(d->MBY[IJK],k>0?d->MBY[IJKm1]:1.0),bmin));
             if(tb->node_cut_y(p,i,j-1,k)) be = MIN(be, MIN(MIN(d->MBY[IJm1K],k>0?d->MBY[IJm1Km1]:1.0),bmin));
             }
+            }   // !cutmode
         }
     }
     else
@@ -237,7 +253,8 @@ inline void nhflow_membrane_row(lexer *p, fdm_nhf *d, int i, int j, int k, int n
     {
         const double bmx = MAX(MAX(MAX(bn,bs),MAX(bw,be)),MAX(bt,bb));
         
-        if(bmx<1.0)
+        // cut faces: the divergence already carries the apertures; only rows without any open face
+        if(bmx<1.0 && (!d->thinbody->cutmode || bmx<1.0e-3))
         d->rhsvec.V[n] *= bmx;
     }
 }

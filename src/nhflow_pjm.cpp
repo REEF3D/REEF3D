@@ -79,6 +79,10 @@ void nhflow_pjm::start(lexer *p, fdm_nhf *d, solver* psolv, ghostcell* pgc, iofl
         endtime=pgc->timer();
 
 	pgc->start7P(p,d->P,gcval_press);
+    
+    // cut faces (X 15 10): the pressure of the nodes without water from their neighbours
+    if(d->thinbody!=nullptr && d->thinbody->cutmode)
+    d->thinbody->extend_pressure(p,d,pgc,d->P);
 
 	ucorr(p,d,WL,UH,d->P,alpha);
 	vcorr(p,d,WL,VH,d->P,alpha);

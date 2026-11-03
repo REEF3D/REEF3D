@@ -117,6 +117,8 @@ public:
     void finish(lexer*, fdm_nhf*, ghostcell*);
     
     double *sideC;              // side of the cell centre, written by the clients
+    const double *solidC = nullptr; // cut faces (X 15 10, nhflow_hullbody): 1 for a cell with no open face (no water, it
+                                // moves with the body)
     double *sideN;              // side of the nodes (FIJK), written by the clients
     double *bx,*by,*bz;         // 1: blocked link
     double *ux,*uy,*uz;         // wall velocity along the blocked link
@@ -177,6 +179,68 @@ public:
         return sN!=0.0 && sideC[qa]*sN<0.0 && sideC[qb]*sN<0.0;
     }
     
+    // ---- cut faces (X 15 10, nhflow_hullbody): instead of blocked links, every face near the body has an open fraction
+    // (aperture) from the level set, so that the wall moves continuously through the grid as the body or the sigma grid
+    // moves (no jump when a cell centre or a node crosses the surface). Set by the client every stage before
+    // finish_cut(): axl/axh the lower / upper half of the x face (i+1/2) of layer k (node k to the cell centre, cell
+    // centre to node k+1), ayl/ayh the same for the y face (j+1/2), azc the horizontal face through the cell centre
+    // (the vertical link of the projection), azn the horizontal face at node k (the bottom of cell k); ux, uy, uz the
+    // body velocity at those faces (the wall part of a face moves with the body); solidC the cells with no open face;
+    // atop the open fraction of the free surface of each column.
+    //   fluxes      face flux = a F(fluid) + (1-a) F(wall): the wall part as the blocked faces (pressure of each side,
+    //               advection with the wall velocity), the continuity flux a F + (1-a) D u_wall
+    //   projection  link mobility = aperture (at least the closed-link mobility), the face velocity of the divergence
+    //               a u + (1-a) u_wall; node links: the aperture of the node control volume face (the halves of the two
+    //               layers); the cell pressure the nodes weighted with the water of the two cell halves; after the
+    //               solve the nodes without water take the pressure of their neighbours (extend_pressure)
+    //   cells       a cell is no water once all its faces are closed: then it moves with the body (it has no open face
+    //               left, so the switch carries no flux); the apertures next to a cell with little water close with
+    //               it (nhflow_hullbody), so that this holds as the water of a cell vanishes
+    //   head        the free surface of the column where its top is open, the outer level eta_L where the body
+    //               covers it, weighted with the open fraction of the top (head())
+    bool cutmode = false;
+    double *axl=nullptr,*axh=nullptr,*ayl=nullptr,*ayh=nullptr,*azc=nullptr,*azn=nullptr;
+    void enable_cut(lexer*);
+    // after the pressure solve: the nodes with (almost) no water get the pressure of their neighbours with water
+    // (rows with closed links only are near singular, the solver leaves them at any level)
+    void extend_pressure(lexer*, fdm_nhf*, ghostcell*, double*);
+    double *wnode = nullptr, *ptmp = nullptr;
+    void finish_cut(lexer*, fdm_nhf*, ghostcell*);
+    
+    inline int cidx(lexer *p, int ii, int jj, int kk) const
+    {
+        return (ii-p->imin)*p->jmax*p->kmax + (jj-p->jmin)*p->kmax + kk-p->kmin;
+    }
+    
+    // aperture of the x face (i+1/2) of the control volume of node k (upper half of layer k-1, lower half of layer k)
+    inline double anode_x(lexer *p, int ii, int jj, int kk) const
+    {
+        const int q = cidx(p,ii,jj,kk);
+        
+        if(kk<=0)
+        return axl[q];
+        
+        if(kk>=p->knoz)
+        return axh[q-1];
+        
+        const double d0 = p->DZN[kk-1+marge], d1 = p->DZN[kk+marge];
+        return (d0*axh[q-1] + d1*axl[q])/(d0+d1);
+    }
+    
+    inline double anode_y(lexer *p, int ii, int jj, int kk) const
+    {
+        const int q = cidx(p,ii,jj,kk);
+        
+        if(kk<=0)
+        return ayl[q];
+        
+        if(kk>=p->knoz)
+        return ayh[q-1];
+        
+        const double d0 = p->DZN[kk-1+marge], d1 = p->DZN[kk+marge];
+        return (d0*ayh[q-1] + d1*ayl[q])/(d0+d1);
+    }
+    
     // loads: force on the body [N] of the blocked link dir (0 x, 1 y, 2 vertical) of cell (i,j,k), in +dir
     double link_force(lexer*, fdm_nhf*, int, int, int, int);
     
@@ -215,6 +279,8 @@ private:
     void update_etaL(lexer*, fdm_nhf*, int);
     void top_region(lexer*, fdm_nhf*);
     void lid_correction(lexer*, fdm_nhf*, double*, double*);
+    void cut_faces(lexer*, fdm_nhf*, int, double*, double*, double*, const double*);
+    void projection_rhs_cut(lexer*, fdm_nhf*, double*, double*, double*, double);
     
     ghostcell *pgc;
     int ncell;
@@ -231,6 +297,10 @@ private:
     slice4 cr,cd,cq;            // conjugate gradients of the lid potential: residual, direction, operator x direction
     slice4 rt;                  // region of the column's free surface: 1 inside the body, 0 outside (top_region)
     slice4 wf;                  // vertical wall velocity of the floor above the lower cells of a footprint column
+    slice4 cz;                  // cut faces: column with a cut or solid cell (first-order vertical fluxes)
+public:
+    slice4 atop;                // cut faces: open fraction of the free surface of the column (set by the client)
+private:
     bool first;
     int nlow, nlowg;
     
