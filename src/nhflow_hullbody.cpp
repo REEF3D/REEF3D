@@ -117,6 +117,9 @@ Architect: Hans Bihs
 //               vanishes (a sliver of water beyond a fully open face would otherwise be a whole cell of water that
 //               disappears at once). A cell without an open face is solid: it moves with the body (also after the
 //               projection, reforce); the switch carries no flux. Corners on the surface within 1e-6 dx count as body.
+//   momentum    the momentum of a cut cell is that of its water kap V: its right-hand side and its velocity correction
+//               are divided by max(kap, kap0) (the links of the Poisson matrix with it); with the whole cell the water
+//               of the cut layer was too heavy (added mass of the hemisphere +20 %, now +9 %)
 //   wall part   (1 - a) of a face moves with the body: the wall velocity is the body velocity at the face centre (the
 //               open parts then see the swept volume of the true surface, -u_b . sum a n A)
 //   service     nhflow_thinbody in cut mode: fluxes a F + (1 - a) F(wall), the projection with the apertures as link
@@ -1149,6 +1152,17 @@ void nhflow_hullbody::stage_cut(lexer *p, fdm_nhf *d, ghostcell *pgc, double alp
     pgc->start4V(p,solidC,1);
     pgc->start4V(p,tb->sideC,1);
     tb->solidC = solidC;
+    
+    // the momentum of a cut cell is that of its water (nhflow_thinbody::ikap): 1/max(kap, kap0). Below kap0 the faces
+    // of a cell close with its water, so that its fluxes, and with them its acceleration, stay bounded
+    for(int q=0; q<p->imax*p->jmax*(p->kmax+2); ++q)
+    tb->ikap[q] = 1.0;
+    
+    LOOP
+    if(solidC[IJK]<0.5)
+    tb->ikap[IJK] = 1.0/MAX(MIN(kapC[IJK],1.0),kap0);
+    
+    pgc->start4V(p,tb->ikap,1);
     
     // body velocity at the faces (the wall part of a face moves with the body: its flux is the body velocity), the
     // link mobilities of the projection: the apertures, at least the mobility of a closed link

@@ -185,6 +185,23 @@ inline void nhflow_membrane_row(lexer *p, fdm_nhf *d, int i, int j, int k, int n
             bw = MAX(tb->anode_y(p,i,j,k),   bmin);
             be = MAX(tb->anode_y(p,i,j-1,k), bmin);
             }
+            
+            // the momentum of a cut cell is that of its water: its velocity correction is 1/kap larger (ucorr), so
+            // are the links of the matrix
+            if(tb->ikap!=nullptr)
+            {
+            bn *= tb->ik_x(p,i,j,k);
+            bs *= tb->ik_x(p,i-1,j,k);
+            
+            if(p->j_dir==1)
+            {
+            bw *= tb->ik_y(p,i,j,k);
+            be *= tb->ik_y(p,i,j-1,k);
+            }
+            
+            bc  *= tb->ik(IJK);
+            bcm *= k>0 ? tb->ik(IJKm1) : tb->ik(IJK);
+            }
             }
             else
             {

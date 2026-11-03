@@ -195,7 +195,8 @@ public:
     //               solve the nodes without water take the pressure of their neighbours (extend_pressure)
     //   cells       a cell is no water once all its faces are closed: then it moves with the body (it has no open face
     //               left, so the switch carries no flux); the apertures next to a cell with little water close with
-    //               it (nhflow_hullbody), so that this holds as the water of a cell vanishes
+    //               it (nhflow_hullbody), so that this holds as the water of a cell vanishes; the momentum of a cell
+    //               is that of its water (ikap)
     //   head        the free surface of the column where its top is open, the outer level eta_L where the body
     //               covers it, weighted with the open fraction of the top (head())
     bool cutmode = false;
@@ -206,6 +207,50 @@ public:
     void extend_pressure(lexer*, fdm_nhf*, ghostcell*, double*);
     double *wnode = nullptr, *ptmp = nullptr;
     void finish_cut(lexer*, fdm_nhf*, ghostcell*);
+    
+    // the momentum of a cut cell is that of its water: 1/max(kap, kap_min) of the cells (1 for full and solid cells,
+    // set by the client with the water fractions). It scales the explicit right-hand side of the momentum (scale_rhs,
+    // nhflow_momentum_RK2/RK3) and the velocity correction of the projection (nhflow_pjm::ucorr, vcorr, wcorr), and the
+    // link mobilities of the Poisson matrix with it (nhflow_membrane_row), so that the projection stays consistent
+    double *ikap = nullptr;
+    inline double ik(int q) const { return ikap!=nullptr ? ikap[q] : 1.0; }
+    void scale_rhs(lexer*, double*);
+    
+    // the inverse water fraction of the x / y face of the control volume of node k (cells i and i+1 / j and j+1 of the
+    // layers k-1 and k, weighted like anode_x)
+    inline double ik_x(lexer *p, int ii, int jj, int kk) const
+    {
+        if(ikap==nullptr)
+        return 1.0;
+        
+        const int q = cidx(p,ii,jj,kk), qx = cidx(p,ii+1,jj,kk);
+        
+        if(kk<=0)
+        return 0.5*(ikap[q]+ikap[qx]);
+        
+        if(kk>=p->knoz)
+        return 0.5*(ikap[q-1]+ikap[qx-1]);
+        
+        const double d0 = p->DZN[kk-1+marge], d1 = p->DZN[kk+marge];
+        return (d0*0.5*(ikap[q-1]+ikap[qx-1]) + d1*0.5*(ikap[q]+ikap[qx]))/(d0+d1);
+    }
+    
+    inline double ik_y(lexer *p, int ii, int jj, int kk) const
+    {
+        if(ikap==nullptr)
+        return 1.0;
+        
+        const int q = cidx(p,ii,jj,kk), qy = cidx(p,ii,jj+1,kk);
+        
+        if(kk<=0)
+        return 0.5*(ikap[q]+ikap[qy]);
+        
+        if(kk>=p->knoz)
+        return 0.5*(ikap[q-1]+ikap[qy-1]);
+        
+        const double d0 = p->DZN[kk-1+marge], d1 = p->DZN[kk+marge];
+        return (d0*0.5*(ikap[q-1]+ikap[qy-1]) + d1*0.5*(ikap[q]+ikap[qy]))/(d0+d1);
+    }
     
     inline int cidx(lexer *p, int ii, int jj, int kk) const
     {

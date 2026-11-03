@@ -1303,7 +1303,23 @@ void nhflow_thinbody::enable_cut(lexer *p)
     p->Darray(wnode,p->imax*p->jmax*p->kmaxF);
     p->Darray(ptmp,p->imax*p->jmax*p->kmaxF);
     
+    p->Darray(ikap,ncell);
+    
+    for(int q=0; q<ncell; ++q)
+    ikap[q]=1.0;
+    
     cutmode = true;
+}
+
+// the explicit right-hand side of the momentum of a cut cell per its water (the fluxes through its open faces and its
+// wall parts act on kap V, not on the whole cell)
+void nhflow_thinbody::scale_rhs(lexer *p, double *F)
+{
+    if(ikap==nullptr)
+    return;
+    
+    LOOP
+    F[IJK] *= ikap[IJK];
 }
 
 void nhflow_thinbody::finish_cut(lexer *p, fdm_nhf *d, ghostcell *pgc)

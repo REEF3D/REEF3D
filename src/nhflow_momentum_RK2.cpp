@@ -45,6 +45,7 @@ Author: Hans Bihs
 #include"wind_v.h"
 #include"met_forcing.h"
 #include"sediment_f.h"
+#include"nhflow_thinbody.h"
 
 #define WLVL (fabs(WL(i,j))>(1.0*p->A544)?WL(i,j):1.0e20)
 
@@ -257,6 +258,10 @@ void nhflow_momentum_RK2::phase_M(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_s
     pconvec->start(p,d,1,WL,UHo);
     pnhfdiff->diff_u(p,d,pgc,pflow,psolv,UHDIFF,UHi,UHi,VHi,WHi,WL,1.0);   // implicit step UHDIFF = UHi + dt D(UHDIFF); the stage weight is applied below (alpha here gave alpha^2)
 
+    // X 15 10: the momentum of a cut cell is that of its water
+    if(d->thinbody!=nullptr && d->thinbody->cutmode)
+    d->thinbody->scale_rhs(p,d->F);
+    
     if(s==0)
 	LOOP
 	UHRK1[IJK] = UHDIFF[IJK]
@@ -292,6 +297,10 @@ void nhflow_momentum_RK2::phase_M(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_s
     pconvec->start(p,d,2,WL,VHo);
     pnhfdiff->diff_v(p,d,pgc,pflow,psolv,VHDIFF,VHi,UHi,VHi,WHi,WL,1.0);   // implicit step UHDIFF = UHi + dt D(UHDIFF); the stage weight is applied below (alpha here gave alpha^2)
 
+    // X 15 10: the momentum of a cut cell is that of its water
+    if(d->thinbody!=nullptr && d->thinbody->cutmode)
+    d->thinbody->scale_rhs(p,d->G);
+    
     if(s==0)
 	LOOP
 	VHRK1[IJK] = VHDIFF[IJK]
@@ -321,6 +330,10 @@ void nhflow_momentum_RK2::phase_M(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_s
     krhs(p,d,pgc);
     pconvec->start(p,d,3,WL,WHo);
     pnhfdiff->diff_w(p,d,pgc,pflow,psolv,WHDIFF,WHi,UHi,VHi,WHi,WL,1.0);   // implicit step UHDIFF = UHi + dt D(UHDIFF); the stage weight is applied below (alpha here gave alpha^2)
+    
+    // X 15 10: the momentum of a cut cell is that of its water
+    if(d->thinbody!=nullptr && d->thinbody->cutmode)
+    d->thinbody->scale_rhs(p,d->H);
     
     if(s==0)
 	LOOP

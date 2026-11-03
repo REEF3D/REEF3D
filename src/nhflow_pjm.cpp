@@ -160,6 +160,7 @@ void nhflow_pjm::amr_finish(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL, dou
 void nhflow_pjm::ucorr(lexer* p, fdm_nhf *d, slice &WL, double *UH, double *P, double alpha)
 {
     // membranes (X 330): face mobilities in the horizontal gradient, see nhflow_membrane_beta.h
+    // cut faces (X 15 10): the correction of a cut cell per its water (nhflow_thinbody::ik)
     // curvilinear grid: the horizontal gradient by the chain rule (nhflow_curv.h)
 	LOOP
     WETDRYDEEP
@@ -168,7 +169,7 @@ void nhflow_pjm::ucorr(lexer* p, fdm_nhf *d, slice &WL, double *UH, double *P, d
     if(p->geo_curv==1)
     nhflow_curv::pgrad_layer(p,d->P,i,j,k,px,py);
     
-	UH[IJK] -= alpha*p->dt*CPORNH*WL(i,j)*(1.0/p->W1)*
+	UH[IJK] -= alpha*p->dt*CPORNH*WL(i,j)*(1.0/p->W1)*(d->thinbody!=nullptr ? d->thinbody->ik(IJK) : 1.0)*
     
                 ((d->MBETA!=nullptr ? nhflow_membrane_gradx(p,d,d->P,i,j,k) :
                 p->geo_curv==1 ? px :
@@ -188,7 +189,7 @@ void nhflow_pjm::vcorr(lexer* p, fdm_nhf *d, slice &WL, double *VH, double *P, d
     if(p->geo_curv==1)
     nhflow_curv::pgrad_layer(p,d->P,i,j,k,px,py);
     
-    VH[IJK] -= alpha*p->dt*CPORNH*WL(i,j)*(1.0/p->W1)*
+    VH[IJK] -= alpha*p->dt*CPORNH*WL(i,j)*(1.0/p->W1)*(d->thinbody!=nullptr ? d->thinbody->ik(IJK) : 1.0)*
     
                 ((d->MBETA!=nullptr ? nhflow_membrane_grady(p,d,d->P,i,j,k) :
                 p->geo_curv==1 ? py :
@@ -202,7 +203,7 @@ void nhflow_pjm::wcorr(lexer* p, fdm_nhf *d, slice &WL, double *WH, double *P, d
 {
     LOOP
     WETDRYDEEP
-	WH[IJK] -= MBETAVAL*alpha*p->dt*CPORNH*(1.0/p->W1)*((d->P[FIJKp1]-d->P[FIJK])/(p->DZN[KP]));
+	WH[IJK] -= MBETAVAL*alpha*p->dt*CPORNH*(1.0/p->W1)*(d->thinbody!=nullptr ? d->thinbody->ik(IJK) : 1.0)*((d->P[FIJKp1]-d->P[FIJK])/(p->DZN[KP]));
 }
 
 void nhflow_pjm::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, double *V, double *W, double alpha)
