@@ -29,6 +29,9 @@ Author: Hans Bihs
 
 nhflow_strain::nhflow_strain(lexer *p, fdm_nhf *d)	: nhflow_gradient(p),epsi(p->F45*p->DXM)
 {
+    // the bed cell of the wall-function bed: du/dz, dv/dz from the log law (nhflow_gradient.cpp)
+    bedwall_set(d);
+    
     p->Darray(PK,p->imax*p->jmax*(p->kmax+2));
     p->Darray(PK0,p->imax*p->jmax*(p->kmax+2));
     p->Darray(PK_b,p->imax*p->jmax*(p->kmax+2));
