@@ -62,6 +62,7 @@ class solver2D;
 class sflow_turbulence;
 class sflow_turb_io;
 class seastate_sflow;
+class hydro_sflow;
 
 #include<functional>
 
@@ -256,6 +257,12 @@ public:
     void turb_attach(sflow_turbulence*);
     void turb_step(lexer*, fdm2D*, ghostcell*);
 
+    // REEF3D::HYDRO (R 10 - R 50, sflow_amr_hydro.cpp): the sources of all grids before the momentum step, the losses
+    // and the budget volumes over the leaf cells after it
+    void hydro_prepare(lexer*, fdm2D*, ghostcell*);
+    void hydro_sinks(lexer*, fdm2D*, ghostcell*);
+    double hydro_storage(lexer*, ghostcell*);
+
     // composite non-hydrostatic pressure, called by the level-0 sflow_pjm_lin after its assembly
     // (G 7 1: level 0 solves alone, the patches level by level in sflow_amr_sub.cpp)
     bool nh_patches() const { return maxlev>0 && patches_total>0 && nh==1 && sub==0; }
@@ -328,6 +335,11 @@ private:
     void turb_run(ghostcell*, sflow_amr_patch&);
     void turb_save(ghostcell*, sflow_amr_patch&);
     void turb_regrid(ghostcell*, int, vector<reefamr_patch*>&);
+
+    // REEF3D::HYDRO (sflow_amr_hydro.cpp): the object of grid g (-1: level 0), of a patch, the fields of fresh patches
+    hydro_sflow* hy(int g);
+    void hydro_attach(int, ghostcell*);
+    void hydro_regrid(ghostcell*, int, vector<reefamr_patch*>&);
 
     // SEASTATE coupling (A 750, sflow_amr_wave.cpp): the wave force, div(M) and Hs, Tp of the patches from their
     // parents after every change on level 0 and every regrid

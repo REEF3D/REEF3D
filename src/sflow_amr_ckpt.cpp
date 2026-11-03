@@ -36,6 +36,7 @@ Author: Hans Bihs
 #include"reef3d_mpmd.h"
 #include"reefckpt.h"
 #include"sflow_ckpt_fields.h"
+#include"hydro_sflow.h"
 #include"sflow_momentum_RK3.h"
 #include"sflow_fsf.h"
 #include"sflow_pressure.h"
@@ -82,6 +83,9 @@ void patch_fields(sflow_amr_patch *c, const reefamr::ckpt_visit &v)
     auto fd = [&](const char *n, char k, double *V){ listed.insert(V); v(n,k,V,nullptr); };
     auto fi = [&](const char *n, char k, int *V){ listed.insert(V); v(n,k,nullptr,V); };
     sflow_ckpt_fields(c->pp,c->b,fd,fi);
+    // REEF3D::HYDRO: the cumulative infiltration and rain
+    if(c->b->hydro!=nullptr)
+    c->b->hydro->ckpt_fields(fd,fi);
     // shoreline: the restricted surface offsets of the covered cells (used by the stages of the next
     // step) and the parent surfaces of the ghost cells
     if(c->sfc.size()==(size_t)c->pp->imax*c->pp->jmax)

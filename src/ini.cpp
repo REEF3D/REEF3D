@@ -1128,6 +1128,9 @@ void control::ini_default()
     R32_Ks=R32_psi=R32_dth=0.0;     // double HYDRO Green-Ampt: Ks [mm/h], wetting-front suction head [m], moisture deficit [-]
     R40=0;              // int HYDRO number of point sources (R 40 ID x y Q)
     R41=0;              // int HYDRO number of point sources with a hydrograph file hydrograph_src_<ID>.dat (R 41 ID)
+    R33=0;              // int HYDRO infiltration parameters from rasters: R 30 1 inf_rate.asc, R 30 2 ga_ks.asc ga_psi.asc ga_dtheta.asc
+    R34=0.0;            // double HYDRO sealed fraction of every cell [0..1]
+    R35=0;              // int HYDRO sealed fraction from sealed.asc
     R50=0;              // int HYDRO roughness raster: 1 Manning n from manning.asc
     R90=60.0;           // double HYDRO volume budget output interval [s], <= 0: every step
     Q10=0;              // int particle sediment model (S 10>0): 0 Eulerian bedload/exner, 1 CPM explicit Euler, 2 CPM RK2

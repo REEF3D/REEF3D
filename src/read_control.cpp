@@ -3298,6 +3298,15 @@ void control::read_control(lexer* p)
                 case 32: control>>R32_Ks>>R32_psi>>R32_dth;
                          clear(c,numint);
                          break;
+                case 33: control>>R33;
+                         clear(c,numint);
+                         break;
+                case 34: control>>R34;
+                         clear(c,numint);
+                         break;
+                case 35: control>>R35;
+                         clear(c,numint);
+                         break;
                 case 40: ++R40;
                          clear(c,numint);
                          break;

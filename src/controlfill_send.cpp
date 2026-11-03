@@ -5630,6 +5630,14 @@ void control::ctrlsend()
         ii++;
     }
 
+    // HYDRO (R), rasters of the soil
+    ictrl[ii] = R33;
+    ii++;
+    ictrl[ii] = R35;
+    ii++;
+    dctrl[dd] = R34;
+    dd++;
+
     ii_send=ii;
     dd_send=dd;
 }

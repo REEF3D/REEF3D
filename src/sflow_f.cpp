@@ -111,9 +111,14 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
         if(b->wave!=nullptr)
         b->wave->start(p,b,pgc);
 
-        // REEF3D::HYDRO: rain and point sources of the step
+        // REEF3D::HYDRO: rain and point sources of the step (with the mesh refinement or multi-block grids: of all grids)
         if(b->hydro!=nullptr)
-        b->hydro->prepare(p,b,pgc);
+        {
+            if(pamr!=nullptr)
+            pamr->hydro_prepare(p,b,pgc);
+            else
+            b->hydro->prepare(p,b,pgc);
+        }
 
         // outer loop
 		double temptime=pgc->timer();
@@ -123,7 +128,15 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
         // REEF3D::HYDRO: evaporation, infiltration and abstraction after the continuity of the step
         if(b->hydro!=nullptr)
         {
-        b->hydro->sinks(p,b,pgc);
+        double qin,qout;
+        if(pmom->boundary_flow(qin,qout))
+        b->hydro->boundary(qin,qout);
+
+            if(pamr!=nullptr)
+            pamr->hydro_sinks(p,b,pgc);
+            else
+            b->hydro->sinks(p,b,pgc);
+
         pmom->water_column(p,b);
         }
     

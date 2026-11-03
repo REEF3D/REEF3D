@@ -208,16 +208,9 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
 
     pgc->gcsl_start4(p,b->ks,50);
 
-    // REEF3D::HYDRO (R 10, R 20, R 30, R 40, R 50): level 0 only so far
+    // REEF3D::HYDRO (R 10 - R 50): the level-0 object with the inputs of all grids (the patches and blocks: sflow_amr_hydro.cpp)
     if(hydro_sflow::active(p))
     {
-        if(pamr!=nullptr)
-        {
-            if(p->mpirank==0)
-            cout<<endl<<"!!! HYDRO (R 10 - R 50) does not work with mesh refinement or multi-block grids yet !!!"<<endl<<endl;
-        pgc->final(true);
-        }
-
     b->hydro = new hydro_sflow(p,b,pgc);
     b->hydro->ini(p,b,pgc);
     }

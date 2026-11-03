@@ -371,8 +371,11 @@ void sflow_momentum_SI::water_column(lexer *p, fdm2D* b)
 {
     // REEF3D::HYDRO: evaporation, infiltration and abstraction after the step (hydro_sflow::sinks) are part
     // of the water column the next step starts from
+    // (the losses only: with the mesh refinement the fills and the restriction after the step change b->WL of the
+    // cells around a grid and of the covered cells, which the next step must not take)
+    if(b->hydro!=nullptr)
     SLICELOOP4
-    WLk(i,j) = b->WL(i,j);
+    WLk(i,j) -= b->hydro->L(i,j);
 }
 
 void sflow_momentum_SI::si_end_cells(lexer *p, fdm2D* b, ghostcell* pgc)

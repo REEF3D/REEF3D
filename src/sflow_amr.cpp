@@ -26,6 +26,7 @@ Author: Hans Bihs
 #include"sflow_turbulence.h"
 #include"solver2D.h"
 #include"seastate_sflow.h"
+#include"hydro_sflow.h"
 #include"gcsl_yskip.h"
 #include"reefckpt.h"
 #include"sflow_boussinesq.h"
@@ -533,6 +534,8 @@ void sflow_amr::patch_delete(reefamr_patch *q)
     }
     delete c->pturb;
     delete c->ptsolv;
+    delete c->b->hydro;
+    c->b->hydro = nullptr;
     delete c->b->wave;
     c->b->wave = nullptr;
     delete c->pmom;
@@ -730,6 +733,9 @@ void sflow_amr::regrid_state(ghostcell *pgc, vector<reefamr_patch*> &oldP)
 
         // A 260 1/2: k, epsilon/omega and the eddy viscosity of the fresh patches
         turb_regrid(pgc,l,oldP);
+
+        // HYDRO: the cumulative infiltration and rain of the fresh patches
+        hydro_regrid(pgc,l,oldP);
 
         {
         comms_off guard(pgc);

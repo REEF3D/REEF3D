@@ -542,6 +542,8 @@ public:
     // REEF3D::HYDRO, SFLOW (A 10 2): rain-on-grid, point sources, evaporation, infiltration, roughness raster
     int R10,R12,R30,R40,R41,R50;
     double R11,R20,R31,R32_Ks,R32_psi,R32_dth,R90;
+    int R33,R35;            // HYDRO: infiltration and sealed fraction from rasters
+    double R34;             // HYDRO: sealed fraction
     int *R40_ID,*R41_ID;
     double *R40_x,*R40_y,*R40_Q;
 

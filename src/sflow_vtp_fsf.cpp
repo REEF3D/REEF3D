@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm2D.h"
 #include"met_forcing.h"
+#include"hydro_sflow.h"
 #include"ghostcell.h"
 #include"sediment.h"
 #include"sflow_print_wsf.h"
@@ -263,6 +264,10 @@ void sflow_vtp_fsf::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence
     if(b->met!=nullptr)
         b->met->offset_vtp(p,offset,n);
 
+    // REEF3D::HYDRO
+    if(b->hydro!=nullptr)
+        b->hydro->offset_vtp(p,offset,n);
+
     // Cells
     offset[n]=offset[n-1] + sizeof(int)*p->polygon_sum*3+sizeof(int);
     ++n;
@@ -317,6 +322,8 @@ void sflow_vtp_fsf::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence
     }
     if(b->met!=nullptr)
         b->met->name_vtp(result,offset,n);
+    if(b->hydro!=nullptr)
+        b->hydro->name_vtp(result,offset,n);
     result<<"</PointData>\n";
 
     vtp3D::polys(result,offset,n);
@@ -465,6 +472,8 @@ void sflow_vtp_fsf::print2D(lexer *p, fdm2D* b, ghostcell* pgc, sflow_turbulence
     //  wind10, air_pressure, wind_stress (W 200)
     if(b->met!=nullptr)
         {std::ostringstream part(std::ios::out | std::ios::binary); b->met->print_vtp(p,part); bin.s += part.str();}
+    if(b->hydro!=nullptr)
+        {std::ostringstream part(std::ios::out | std::ios::binary); b->hydro->print_vtp(p,part); bin.s += part.str();}
 
     //  Connectivity
     iin=sizeof(int)*p->polygon_sum*3;

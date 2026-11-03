@@ -46,6 +46,9 @@ public:
     // the water column was changed after the step (REEF3D::HYDRO losses): the semi-implicit scheme keeps its
     // own copy of the column for the next step (sflow_momentum_SI::si_restore)
     virtual void water_column(lexer*, fdm2D*) {}
+    // the discharges over the open boundaries of the step [m3/s], inflow and outflow positive (REEF3D::HYDRO budget);
+    // false: not known exactly (explicit schemes: the budget takes the ioflow discharges)
+    virtual bool boundary_flow(double&, double&) { return false; }
 
 	virtual void start(lexer*, fdm2D*, ghostcell*)=0;
     virtual void ini(lexer*, fdm2D*, ghostcell*)=0;
