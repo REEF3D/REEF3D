@@ -51,6 +51,7 @@ Author: Hans Bihs
 #include"runlog.h"
 #include"reefckpt.h"
 #include"reefrun_ckpt.h"
+#include"hydro_core.h"
 
 sflow_f::sflow_f(lexer *p, fdm2D *b, ghostcell* pgc, patchBC_interface *ppBC)
 {
@@ -65,6 +66,15 @@ sflow_f::~sflow_f()
 
 void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
 {	
+    // REEF3D::HYDRO catchment model only (R 100 1): no hydrodynamics
+    if(p->R100==1)
+    {
+        {
+        hydro_core hc(p,pgc);
+        hc.run(p,pgc);
+        }
+        pgc->final();
+    }
 	
 	// logic
 	logic(p,b,pgc);

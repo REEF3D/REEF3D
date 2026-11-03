@@ -3319,6 +3319,27 @@ void control::read_control(lexer* p)
                 case 90: control>>R90;
                          clear(c,numint);
                          break;
+                case 100: control>>R100;
+                         clear(c,numint);
+                         break;
+                case 101: control>>R101;
+                         clear(c,numint);
+                         break;
+                case 102: control>>R102;
+                         clear(c,numint);
+                         break;
+                case 103: control>>R103;
+                         clear(c,numint);
+                         break;
+                case 104: control>>R104;
+                         clear(c,numint);
+                         break;
+                case 105: control>>R105;
+                         clear(c,numint);
+                         break;
+                case 106: control>>R106;
+                         clear(c,numint);
+                         break;
                 }
                 break;
 

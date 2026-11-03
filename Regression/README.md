@@ -911,10 +911,18 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `sflow_2d_hydro_amr_ckpt`, `sflow_2d_hydro_amr_restart` | 1 | the HYDRO fields of the patches in the checkpoints: the restart at step 60 bitwise |
 | `sflow_2d_hydro_mb_quadrants_si` | 1 | `sflow_2d_si_mb_quadrants` (four turned curvilinear blocks) with rain and a point source in a block |
 | `sflow_2d_hydro_curv_amr_si` (`_wet_si`) | 1 | `sflow_2d_si_curv_amr_lake_island` with rain: a curvilinear patch through a wetting island (budget 1e-4 of the rain: the composite wetting and drying at the patch boundary), and with the island submerged (1e-12) |
+| `hydro_catchment_kw_chain` | 1 | REEF3D::HYDRO catchment model only (R 100 1): DIVEMesh W 10 builds 20 hydrology cells of 100 m along a valley from `catchment_dem.asc` (`hydro_grid.dat`); 36 mm/h for 1 h pass through HBV and are routed with the kinematic wave (R 106 1); `REEF3D_HYDRO/REEF3D-HYDRO-Gauges.dat`, `-Budget.dat`, `-Means.dat` compared as text, budget to 1e-9 m3 (validated against the analytic solution in Dropbox HYDRO/validation/07_catchment_model; needs DIVEMesh patch HYDRO/DIVEMesh-0001) |
+| `hydro_catchment_hbv` (`_mpi2`) | 1/2 | HBV on a synthetic mountain catchment (DEM 24 km x 16 km of 200 m, 96 cells of 2 km, 3 elevation bands, glacier and zone rasters, outlet and two gauges), 300 mm of snow from mid-March, hourly for 30 days, two stations with lapse rates, Oudin PET, MAXBAS, kinematic wave, parameters by zone and sub-catchment; on 2 ranks the gauges are bitwise those of 1 rank (independent Python implementation to 4e-12 in validation/07) |
+| `hydro_catchment_daily` | 1 | the mountain catchment with daily steps for a year from 1 September, PET columns in `hydro_forcing.dat`, the outflow of a cell downstream within the step (R 106 0) |
 | `cfd_2d_soil_stress_s217` | 1 | soil stress model S 200 1 (quasi-static Biot u-p, `soil_stress`): periodic box 2.8 m, 0.5 m of fine sand below a fixed bed (S 10 1, S 57 0), still water above, the bed pressure prescribed as a progressive wave 707 cos(kx - wt) Pa (S 217); MINRES with the Cholesky block preconditioner, BDF2, soil probes S 216 (p, u, liquefaction potential) (needs Soil Stress patch 0001) |
 | `cfd_2d_soil_stress_s217_mpi2` | 2 | the same on 2 ranks: the halo of the soil model, the parallel periodic direction, the column communicator of the liquefaction potential |
 | `cfd_3d_soil_stress_s217` | 1 | the same in 3D (3 cells in y, roller side walls S 211 1): uy and the xy, yz shear edges; uniform in y |
 | `cfd_2d_soil_stress_dynamic` | 1 | `cfd_2d_soil_stress_s217` with the soil inertia (S 200 2) |
+| `nhflow_2d_bed_noslip_laminar` | 1 | NHFLOW laminar open channel (Re 1) on the resolved no-slip bed A 518 2: antisymmetric bed ghost cells, implicit no-slip bed face with the molecular viscosity and the dt F correction of the stage velocity (needs NHFLOW Bed BC patches 0001-0004; the developed parabola in the validation of that topic) |
+| `nhflow_2d_bed_noslip_laminar_ediff` | 1 | the same with the explicit momentum diffusion A 512 1 (bed neighbour -u of the cell) (needs NHFLOW Bed BC patches 0001-0004) |
+| `nhflow_3d_bed_noslip_laminar` | 2 | the same in 3D between slip side walls: the bed face of u and v (nhflow_idiff_u, nhflow_idiff_v), MPI (needs NHFLOW Bed BC patches 0001-0004) |
+| `nhflow_2d_bed_wallfunction_les` | 1 | NHFLOW open channel with Smagorinsky LES (A 560 31) on the wall-function bed A 518 1 with bed friction A 519 1: du/dz of the bed cell from the log law in the strain, mirrored bed ghosts, implicit zero-gradient bed face (needs NHFLOW Bed BC patches 0001-0004) |
+| `nhflow_2d_bed_noslip_kepsilon` | 1 | NHFLOW open channel, k-epsilon on the no-slip bed A 518 2 with A 519 1 given: no log-law bed friction at the bed, the notes of driver_logic_nhflow (a coarse-grid misuse kept as a test of the switch) (needs NHFLOW Bed BC patches 0001-0004) |
 
 Tag `quick` selects a subset that runs in a few minutes. Adding a case: copy a directory, edit,
 run `./regression.py run ... --cases <new>`, check it, then `bless`.
@@ -933,6 +941,9 @@ run `./regression.py run ... --cases <new>`, check it, then `bless`.
   on hans_dev 925e271a7 + REEFAMR patches 0001/0002 (patch lexer periodic flags, Z11 default).
 - The HYDRO cases (`*hydro*`) were blessed with hans_dev f124d3b61 + patch HYDRO/0004 (the budget file has the
   columns inflow, outflow and error since 0004).
+- The catchment cases (`hydro_catchment_*`) were blessed with hans_dev b2a60385a + patch HYDRO/0005 and DIVEMesh
+  21fb332 + patch HYDRO/DIVEMesh-0001 (catchment preprocessing W 10, which writes `hydro_grid.dat`); with a
+  DIVEMesh without W 10 they stop with "no hydro_grid.dat".
 - The HDC cases (`*_hdc*`) need DIVEMesh 95ae3a4 or later (state file names in
   `hdc_filename_in.cpp`); `nhflow_2d_hdc_nhflow` also needs the pressure skip in
   `hdc_read_nhflow.cpp` (NHFLOW state files with the default P 44 1).

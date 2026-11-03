@@ -544,6 +544,8 @@ public:
     double R11,R20,R31,R32_Ks,R32_psi,R32_dth,R90;
     int R33,R35;            // HYDRO: infiltration and sealed fraction from rasters
     double R34;             // HYDRO: sealed fraction
+    int R100,R106;          // HYDRO catchment model
+    double R101,R102,R103,R104,R105;
     int *R40_ID,*R41_ID;
     double *R40_x,*R40_y,*R40_Q;
 

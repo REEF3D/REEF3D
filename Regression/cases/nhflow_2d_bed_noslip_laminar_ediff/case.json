@@ -1,0 +1,8 @@
+{
+ "description": "As nhflow_2d_bed_noslip_laminar with the explicit momentum diffusion (A 512 1): the bed neighbour -u of the cell (nhflow_ediff ediff_nb_bed).",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 300,
+ "tags": ["2d", "nhflow", "diffusion", "bed"],
+ "covers": ["nhflow_ediff ediff_nb_bed A 518 2"]
+}

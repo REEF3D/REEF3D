@@ -5638,6 +5638,22 @@ void control::ctrlsend()
     dctrl[dd] = R34;
     dd++;
 
+    // HYDRO (R), catchment model
+    ictrl[ii] = R100;
+    ii++;
+    ictrl[ii] = R106;
+    ii++;
+    dctrl[dd] = R101;
+    dd++;
+    dctrl[dd] = R102;
+    dd++;
+    dctrl[dd] = R103;
+    dd++;
+    dctrl[dd] = R104;
+    dd++;
+    dctrl[dd] = R105;
+    dd++;
+
     ii_send=ii;
     dd_send=dd;
 }

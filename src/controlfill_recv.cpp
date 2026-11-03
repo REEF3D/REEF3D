@@ -7025,6 +7025,22 @@ void control::ctrlrecv()
     R34 = dctrl[dd];
     dd++;
 
+    // HYDRO (R), catchment model
+    R100 = ictrl[ii];
+    ii++;
+    R106 = ictrl[ii];
+    ii++;
+    R101 = dctrl[dd];
+    dd++;
+    R102 = dctrl[dd];
+    dd++;
+    R103 = dctrl[dd];
+    dd++;
+    R104 = dctrl[dd];
+    dd++;
+    R105 = dctrl[dd];
+    dd++;
+
     ii_recv=ii;
     dd_recv=dd;
 }
