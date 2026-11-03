@@ -134,6 +134,14 @@ void driver::logic_nhflow()
         exit(1);
     }
 
+    // eddy viscosity floor of a turbulence model in thin water (A 627): the semi-implicit path with a turbulence model
+    if(p->A627_c>0.0 && (p->A534!=1 || p->A560==0))
+    {
+        if(p->mpirank==0)
+        cout<<"!!! NHFLOW eddy viscosity floor (A 627): with the hydrostatic semi-implicit free surface (A 534 1) and a turbulence model (A 560 > 0) only !!!"<<endl;
+        exit(1);
+    }
+
     // tracers (A 600): the semi-implicit path only
     if(p->A600>0 && p->A534!=1)
     {

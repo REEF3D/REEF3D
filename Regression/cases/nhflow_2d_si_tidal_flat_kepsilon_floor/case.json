@@ -1,0 +1,19 @@
+{
+ "base": "nhflow_2d_si_tidal_flat_kepsilon",
+ "description": "nhflow_2d_si_tidal_flat_kepsilon with the thin-water floor of the eddy viscosity of the turbulence model (A 627 0.5 0: nu_t >= 0.5 kappa u* z'(1 - z'/h), the parabolic profile of A 547, in every column): wetting and drying, the floor in the shallow columns of the flat.",
+ "ctrl_add": [
+  "A 627 0.5 0.0"
+ ],
+ "tags": [
+  "2d",
+  "nhflow",
+  "semi_implicit",
+  "tide",
+  "turbulence",
+  "wetdry"
+ ],
+ "covers": [
+  "nhflow_momentum_SI::eddy_floor",
+  "nhflow_momentum_SI::col_ustar"
+ ]
+}

@@ -506,6 +506,10 @@ void control::ctrlsend()
     dd++;
     dctrl[dd] = A626_clim;
     dd++;
+    dctrl[dd] = A627_c;
+    dd++;
+    dctrl[dd] = A627_h;
+    dd++;
     dctrl[dd] = A621_rho0;
     dd++;
     dctrl[dd] = A621_t0;
