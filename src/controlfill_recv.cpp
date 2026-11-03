@@ -502,6 +502,10 @@ void control::ctrlrecv()
     dd++;
     A626_clim = dctrl[dd];
     dd++;
+    A627_c = dctrl[dd];
+    dd++;
+    A627_h = dctrl[dd];
+    dd++;
     A621_rho0 = dctrl[dd];
     dd++;
     A621_t0 = dctrl[dd];

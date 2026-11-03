@@ -152,7 +152,7 @@ public:
 
     // A 623 with A 547: the vertical eddy diffusivity of the tracers K = nu_n/sigma_t f_h(Ri) + nu0/sigma_t
     // (nullptr: EV/sigma_t), the buoyancy frequency
-    double *KV = nullptr, *N2 = nullptr;
+    double *KV = nullptr, *N2 = nullptr;   // N2 also with A 627 + A 623 (the floor damped by f_m(Ri))
     void tracer_step(lexer*, fdm_nhf*, ghostcell*, int phase=0);
 
     // the stage interface of the mesh refinement (nhflow_amr) is not used: one theta step
@@ -225,6 +225,8 @@ private:
     double *BFx = nullptr, *BFy = nullptr;   // its normal component on the faces (the layer face discharges)
     vector<double> bpl, bpr, bcr, bcz, bcd, bce;
     void eddy_algebraic(lexer*, fdm_nhf*);     // A 547: parabolic eddy viscosity from the bed friction velocity
+    void eddy_floor(lexer*, fdm_nhf*);         // A 627: turbulence model, eddy viscosity >= c times that profile (thin water)
+    double col_ustar(lexer*, fdm_nhf*, double h);   // bed (+ wind) friction velocity of the column (i,j), 0 dry
     void bc_setup(lexer*, fdm_nhf*, ghostcell*);
     void bc_method(lexer*);
     void stage_arrays(int, double*&, double*&, double*&, double*&, double*&, double*&, double&);

@@ -1,0 +1,18 @@
+{
+ "base": "nhflow_2d_si_river_kepsilon",
+ "steps": 2300,
+ "description": "nhflow_2d_si_river_kepsilon with the thin-water floor of the eddy viscosity (A 627 0.5 0) over 2300 steps (about 20000 s, the steady state): during the start the floor acts at the front of the filling channel; in the equilibrium k-epsilon stays above half the parabolic profile and the floor does not act (the steady state within 3e-7 m/s and 1e-7 m of the run without A 627; with A 627 1 0 the floor acts: 4.7 cm/s, 3 cm).",
+ "ctrl_add": [
+  "A 627 0.5 0.0"
+ ],
+ "tags": [
+  "2d",
+  "nhflow",
+  "river",
+  "semi_implicit",
+  "turbulence"
+ ],
+ "covers": [
+  "nhflow_momentum_SI::eddy_floor in the equilibrium of an open channel"
+ ]
+}

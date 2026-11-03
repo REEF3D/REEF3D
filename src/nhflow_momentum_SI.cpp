@@ -111,6 +111,10 @@ nhflow_momentum_SI::nhflow_momentum_SI(lexer *p, fdm_nhf *d, ghostcell *pgc, six
     p->Darray(N2,N);
     }
 
+    // A 627 + A 623 with a turbulence model: the floor damped by f_m(Ri)
+    if(p->A627_c>0.0 && p->A623>0 && p->A560>0)
+    p->Darray(N2,N);
+
     // the 2D solver of the eta system: created with the first solve of one grid (new_solver2D); the
     // multi-block grid solves the eta system of all blocks together (nhflow_amr_si.cpp)
     psolv2D = nullptr;
@@ -508,6 +512,10 @@ void nhflow_momentum_SI::si_begin(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_s
     if(p->A560==0 && (p->A547_c>0.0 || p->A547_nu0>0.0))
     eddy_algebraic(p,d);
 
+    // A 627: the eddy viscosity of the turbulence model (stepped before the momentum) with its thin-water floor
+    if(p->A560>0 && p->A627_c>0.0)
+    eddy_floor(p,d);
+
     // tracers: the initial values before the first step
     if(ptrc!=nullptr)
     ptrc->ensure_ini(p,d);
@@ -823,25 +831,7 @@ void nhflow_momentum_SI::eddy_algebraic(lexer *p, fdm_nhf *d)
     for(j=p->jmin; j<p->jmin+p->jmax; ++j)
     {
         const double h = d->WL(i,j);
-        double ustar = 0.0;
-
-        if(h>p->A544 && p->wet[IJ]==1)
-        {
-            k=0;
-            const double dn = p->DZN[KP]*h;
-            double ks = d->ks(i,j);
-            if(ks<=0.0)
-            ks = 0.0001;
-            double z0 = 0.5*dn;
-            if(30.0*z0<ks)
-            z0 = ks/30.0;
-            const double uplus = (1.0/kappa)*MAX(1.0,std::log(30.0*(z0/ks)));
-            const double ub = sqrt(d->U[IJK]*d->U[IJK] + d->V[IJK]*d->V[IJK]*p->y_dir);
-            ustar = ub/uplus;
-
-            if(pmet!=nullptr && pmet->wind)
-            ustar += sqrt(sqrt(pmet->Tx(i,j)*pmet->Tx(i,j) + pmet->Ty(i,j)*pmet->Ty(i,j)));
-        }
+        const double ustar = col_ustar(p,d,h);
 
         double zs = 0.0;
         for(k=0; k<p->knoz; ++k)
@@ -859,6 +849,89 @@ void nhflow_momentum_SI::eddy_algebraic(lexer *p, fdm_nhf *d)
             d->EV[IJK] = nun*nhflow_fm(p,Ri) + p->A547_nu0;
             KV[IJK] = (nun*nhflow_fh(p,Ri) + p->A547_nu0)/sigt;
             }
+        }
+    }
+
+    i=ii; j=jj; k=kk;
+}
+
+double nhflow_momentum_SI::col_ustar(lexer *p, fdm_nhf *d, double h)
+{
+    // u* = u*_b + u*_s of the column (i,j) (A 547, eddy_algebraic): u*_b = |u_b|/u+ from the log law of the bottom
+    // layer, u*_s = sqrt(|tau_s|/rho_w) of the met forcing; 0 in a dry column
+    const double kappa = 0.4;
+    double ustar = 0.0;
+
+    if(h>p->A544 && p->wet[IJ]==1)
+    {
+        const int kk=k;
+        k=0;
+        const double dn = p->DZN[KP]*h;
+        double ks = d->ks(i,j);
+        if(ks<=0.0)
+        ks = 0.0001;
+        double z0 = 0.5*dn;
+        if(30.0*z0<ks)
+        z0 = ks/30.0;
+        const double uplus = (1.0/kappa)*MAX(1.0,std::log(30.0*(z0/ks)));
+        const double ub = sqrt(d->U[IJK]*d->U[IJK] + d->V[IJK]*d->V[IJK]*p->y_dir);
+        ustar = ub/uplus;
+        k=kk;
+
+        if(pmet!=nullptr && pmet->wind)
+        ustar += sqrt(sqrt(pmet->Tx(i,j)*pmet->Tx(i,j) + pmet->Ty(i,j)*pmet->Ty(i,j)));
+    }
+
+    return ustar;
+}
+
+void nhflow_momentum_SI::eddy_floor(lexer *p, fdm_nhf *d)
+{
+    // A 627 c h: with a turbulence model (A 560 > 0), nu_t >= w c kappa u* z' (1 - z'/h) at the centre of every layer,
+    // the parabolic profile of A 547 (u* = col_ustar), w = 1 for depth <= h, linear to 0 at 2h (h <= 0: w = 1).
+    // In thin water (a few decimetres over the intertidal flats) the 2-equation model on a few sigma layers with
+    // time steps much longer than its time scale k/eps loses the turbulence of the upper layers (k -> 1e-11,
+    // nu_t at its floor 1e-4 nu): they decouple from the bed stress and are accelerated by the surface slope
+    // (Tagus, k-epsilon: 7-8 m/s in 0.3-0.9 m of water, against <= 3 m/s with A 547). The floor keeps them
+    // coupled; the production of the next turbulence step (nhflow_strain::Pk_update, from d->EV) then rebuilds k.
+    // In the equilibrium of an open channel the model's own nu_t is of the order of the profile, so the floor
+    // only acts where the model has lost its turbulence. With A 623 the floor is damped by f_m(Ri) as A 547.
+    // All columns incl. the ghost cells (each column from its own state), as eddy_algebraic.
+    const double kappa = 0.4;
+    const int ii=i, jj=j, kk=k;
+    const double hf = p->A627_h;
+
+    if(N2!=nullptr)
+    nhflow_n2(p,d,N2);
+
+    for(i=p->imin; i<p->imin+p->imax; ++i)
+    for(j=p->jmin; j<p->jmin+p->jmax; ++j)
+    {
+        const double h = d->WL(i,j);
+        const double ustar = col_ustar(p,d,h);
+
+        if(ustar<=0.0)
+        continue;
+
+        double w = 1.0;
+        if(hf>0.0)
+        w = MAX(0.0,MIN(1.0,2.0-h/hf));
+
+        if(w<=0.0)
+        continue;
+
+        double zs = 0.0;
+        for(k=0; k<p->knoz; ++k)
+        {
+            const double sc = zs + 0.5*p->DZN[KP];
+            zs += p->DZN[KP];
+            double nuf = w*p->A627_c*kappa*ustar*sc*(1.0-sc)*h;
+
+            if(N2!=nullptr)
+            nuf *= nhflow_fm(p,nhflow_ri(p,d,N2,i,j,k));
+
+            if(p->DF[IJK]>0 && d->EV[IJK]<nuf)
+            d->EV[IJK] = nuf;
         }
     }
 
