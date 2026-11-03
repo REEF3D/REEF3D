@@ -1,0 +1,33 @@
+// REEF3D::HYDRO parameters of the synthetic mountain catchment
+all
+TT 0.0
+CFMAX 3.0
+SFCF 1.1
+CWH 0.1
+CFR 0.05
+CFGLAC 1.5
+FC 200.0
+LP 0.7
+BETA 2.5
+PERC 1.2
+UZL 25.0
+K0 0.25
+K1 0.08
+K2 0.015
+MAXBAS 1.0
+PCALT 8.0
+TCALT 0.6
+CH_N 0.04
+CH_WA 3.0
+CH_WB 0.5
+INI_SM 0.6
+INI_SLZ 60.0
+// mountain zone: thinner soils, faster snowmelt
+zone 2
+FC 120.0
+CFMAX 4.0
+// upstream of gauge 1: quicker response
+subcatchment 1
+K1 0.12
+all
+INI_SWE 300.0

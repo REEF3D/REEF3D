@@ -97,6 +97,7 @@ TEXT_OUTPUT_GLOBS = [
     "REEF3D_HYDRO/REEF3D-HYDRO-Gauges.dat",             # REEF3D::HYDRO catchment model (R 100)
     "REEF3D_HYDRO/REEF3D-HYDRO-Budget.dat",
     "REEF3D_HYDRO/REEF3D-HYDRO-Means.dat",
+    "REEF3D_HYDRO/REEF3D-HYDRO-Coupled.dat",           # coupled with SFLOW (R 100 2)
     "REEF3D_FNPF_AMR/*.dat",
     "REEF3D_FNPF_WSF/*.dat",
     "REEF3D_FNPF_ProbePoint/*.dat",

@@ -47,6 +47,9 @@ Author: Hans Bihs
 // (biharmonic, curvature continuous patch); X 184 0 keeps them as open boundaries.
 // Sharp edges (X 187 feature angle), corners and open boundaries are preserved; every vertex
 // stays on the original STL surface and the triangle orientation is kept.
+// A remeshed closed surface whose volume differs by more than 15 % from the input (walls or features thinner
+// than the target length, which collapse) is rejected: the input triangles are kept and the function returns
+// true, sixdof_geometry::refine then splits them as with X 185 1.
 
 namespace
 {
@@ -64,7 +67,7 @@ double grid_cellsize(const std::vector<double> &g, double x)
 }
 }
 
-void sixdof_geometry::geometry_remesh(lexer *p, ghostcell *pgc)
+bool sixdof_geometry::geometry_remesh(lexer *p, ghostcell *pgc)
 {
     // ---------------------------------------------------------- global grid node coordinates
     auto gather_nodes = [&](std::vector<double> &g, int gkno, int origin, int kno, const double *XN)
@@ -202,6 +205,7 @@ void sixdof_geometry::geometry_remesh(lexer *p, ghostcell *pgc)
     std::vector<int> ntri(entity_sum,0);
     std::vector<double> buf;
     int repaired = 0;
+    int rejected = 0;
 
     if(p->mpirank==0)
     {
@@ -254,8 +258,16 @@ void sixdof_geometry::geometry_remesh(lexer *p, ghostcell *pgc)
             cout<<"  estimated triangle count "<<st.ntri_estimate<<" exceeds "<<prm.max_tri<<", increase X 186"<<endl;
 
             sixdof_remesh::print_stats(cout,st);
+            
+            if(st.vol_rejected)
+            {
+                cout<<"  WARNING: the remeshed surface changes the volume of the body by more than "<<100.0*prm.max_vol_change
+                    <<"%, the input triangles are split instead (X 185 1); for thin-walled bodies use X 185 1 or a smaller X 186"<<endl;
+                rejected = 1;
+            }
 
-            if(st.n_holes_filled>0 || st.n_gap_merges>0)
+            // (a rejected surface keeps the input triangles, with their holes)
+            if((st.n_holes_filled>0 || st.n_gap_merges>0) && ok)
             {
                 cout<<"  NOTE: the STL surface had holes or gaps, they were closed (X 184 "<<p->X184<<")"<<endl;
                 repaired = 1;
@@ -283,6 +295,7 @@ void sixdof_geometry::geometry_remesh(lexer *p, ghostcell *pgc)
     pgc->bcast_int(ntri.data(),entity_sum);
     
     pgc->bcast_int(&repaired,1);
+    pgc->bcast_int(&rejected,1);
 
     int total = 0;
     for(int qn=0; qn<nent; ++qn)
@@ -325,4 +338,6 @@ void sixdof_geometry::geometry_remesh(lexer *p, ghostcell *pgc)
     // the volume of an STL with holes is meaningless: the owner recomputes volume and mass (X 21)
     // or density (X 22) from the closed surface
     holes_closed = (repaired==1);
+    
+    return (rejected==1);
 }

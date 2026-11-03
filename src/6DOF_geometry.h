@@ -100,7 +100,7 @@ private:
 
     // refinement
     void geometry_refinement(lexer*, ghostcell*);
-	void geometry_remesh(lexer*, ghostcell*);
+	bool geometry_remesh(lexer*, ghostcell*);
 	void create_triangle(double&,double&,double&,double&,double&,double&,double&,double&,double&,const double&,const double&,const double&);
     vector<vector<double> > tri_x_r, tri_y_r, tri_z_r;
 

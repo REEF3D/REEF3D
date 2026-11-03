@@ -1,0 +1,21 @@
+{
+ "base": "seastate_2d_phase25_mp_komen",
+ "ctrl_set": {
+  "A 706": "900.0",
+  "N 41": "14400.0",
+  "N 45": "16"
+ },
+ "ctrl_add": [
+  "A 707 2"
+ ],
+ "steps": 16,
+ "description": "seastate_2d_phase25_mp_komen (Komen, A 769 2, growth from rest at 15 m/s) with 16 steps of 900 s and 2 iterations per step (A 707 2): with the upper bound FLMAX (0061) the sea grows to its steady state; without it (0058) the high frequencies ran away and Hs grew without bound (the Trondheimsfjorden case of validation 81). Validation in Dropbox SEASTATE/validation/81_iterations.",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate"
+ ],
+ "covers": [
+  "A 769 2 with A 732 1: the bound FLMAX (0061)"
+ ]
+}

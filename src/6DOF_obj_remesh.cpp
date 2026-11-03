@@ -1537,6 +1537,14 @@ bool remesher::run(const std::vector<vec3> &in, std::vector<vec3> &out)
     detect_features();
     build_reference();
 
+    // volume of the reference surface (after welding and hole filling): the remeshed surface of a closed body
+    // must enclose the same volume (buoyancy, mass from X 22); walls or features thinner than the target
+    // length collapse when their vertices are merged across the wall
+    st.closed=(st.n_boundary_edges==0 && st.n_nonmanifold_edges==0 && st.n_inconsistent_edges==0);
+    st.vol_ref=0.0;
+    for(auto &t: rF)
+    st.vol_ref+=dot(rP[t[0]],cross(rP[t[1]],rP[t[2]]))/6.0;
+
     st.ntri_estimate=estimate_triangles();
     if(st.ntri_estimate>prm.max_tri) return false;
 
@@ -1592,6 +1600,13 @@ bool remesher::run(const std::vector<vec3> &in, std::vector<vec3> &out)
         st.q_min_metric=std::min(st.q_min_metric,q);
     }
     if(!out.empty()) st.q_mean_metric/=double(out.size()/3);
+
+    if(st.closed && std::fabs(st.vol_ref)>0.0 && std::fabs(st.vol_out-st.vol_ref)>prm.max_vol_change*std::fabs(st.vol_ref))
+    {
+        st.vol_rejected=true;
+        return false;
+    }
+
     return st.ntri_out>0;
 }
 
@@ -1642,6 +1657,9 @@ void sixdof_remesh::print_stats(std::ostream &os, const stats &st)
     os<<"  edge/target    : mean "<<st.Lh_mean<<"  min "<<st.Lh_min<<"  max "<<st.Lh_max
       <<"   (target = X 186 cells)   quality in grid metric: mean "<<st.q_mean_metric<<"  min "<<st.q_min_metric<<std::endl;
     os<<"  area           : "<<st.area_in<<" -> "<<st.area_out<<"   volume: "<<st.vol_in<<" -> "<<st.vol_out<<std::endl;
+    if(st.vol_rejected)
+    os<<"  volume change  : "<<100.0*(st.vol_out-st.vol_ref)/st.vol_ref<<"% of the closed input surface ("<<st.vol_ref
+      <<"), walls or features thinner than the target length, remeshed surface rejected"<<std::endl;
     os.flags(fl);
     os.precision(pr);
 }

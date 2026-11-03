@@ -78,6 +78,9 @@ public:
                                        // patch, 2 close gaps + fill holes with a biharmonic (curvature continuous) patch
         double gap_tol = 1.0e-3;       // gap closing tolerance relative to the bounding box diagonal (additionally
                                        // limited to 0.3 x the adjacent boundary edge length)
+        double max_vol_change = 0.15;  // closed surface: reject the remeshed surface (keep the input) if its volume
+                                       // differs by more than this fraction from the volume of the input surface
+                                       // (walls or features thinner than the target length collapse)
     };
 
     struct stats
@@ -94,6 +97,9 @@ public:
         double frac_q05_in=0.0, frac_q05_out=0.0;            // fraction of triangles with q < 0.5
         double q_mean_metric=0.0, q_min_metric=0.0;          // quality measured in the sizing metric (grid index space)
         double Lh_mean=0.0, Lh_min=0.0, Lh_max=0.0;          // edge length / target length (metric length)
+        double vol_ref=0.0;                                  // volume of the welded (hole filled) input surface
+        bool closed=false;                                   // the surface is closed and consistently oriented
+        bool vol_rejected=false;                             // the remeshed surface was rejected: volume change
         bool ok=false;
     };
 
