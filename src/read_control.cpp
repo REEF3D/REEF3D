@@ -650,6 +650,9 @@ void control::read_control(lexer* p)
                 case 626: control>>A626_kmin>>A626_clim;
                          clear(c,numint);
                          break;
+                case 549: control>>A549>>A549_c;
+                         clear(c,numint);
+                         break;
                 case 627: control>>A627_c>>A627_h;
                          clear(c,numint);
                          break;

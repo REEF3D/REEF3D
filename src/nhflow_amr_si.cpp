@@ -867,24 +867,9 @@ void nhflow_amr::dt_si_cmin(double cfl, double &cmin, double &hmax)
             for(int kk=0; kk<pp->knoz; ++kk)
             {
                 const int n = cidx(pp,ii,jj,kk);
-                double sigma;
 
-                if(pp->geo_curv==1)
-                {
-                const double sp = sqrt(dd->U[n]*dd->U[n] + dd->V[n]*dd->V[n]) + ci;
-                sigma = sp/nhflow_curv::width1(pp,ii,jj) + sp/nhflow_curv::width2(pp,ii,jj);
-                }
-
-                else
-                {
-                sigma = (fabs(dd->U[n]) + ci)/pp->DXN[ii+marge];
-
-                if(pp->j_dir==1)
-                sigma += (fabs(dd->V[n]) + ci)/pp->DYN[jj+marge];
-                }
-
-                if(sigma>1.0e-20)
-                cmin = MIN(cmin,1.0/sigma);
+                // the Courant number of the flow and the internal speed; A 549 1: the flow up to A549_c
+                cmin = MIN(cmin,nhflow_momentum_SI::adv_cmin(pp,dd->U[n],dd->V[n],ci,ii,jj,cfl));
 
                 if(pp->A512>0 || pp->A560>0 || pp->A547_c>0.0 || pp->A547_nu0>0.0)
                 {

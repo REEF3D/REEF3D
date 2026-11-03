@@ -236,6 +236,8 @@ void control::ini_default()
     A625_ph=-1.5;  // double
     A626_kmin=1.0e-7;  // double NHFLOW density, k-epsilon with A 623: A 626 k_min c_lim, the floor of k (m2/s2)
     A626_clim=0.53;    // double the length limit l <= c_lim sqrt(2k)/N (Galperin et al. 1988)
+    A549=0;      // int NHFLOW semi-implicit (A 534 1): A 549 m C, momentum advection, 0 flux form in the SSP-RK predictor, 1 semi-Lagrangian (one stage)
+    A549_c=2.0;  // double the Courant number of the time step with A 549 1 (0 < C <= 2.5; at most 1 with a turbulence model)
     A627_c=0.0;  // double NHFLOW semi-implicit, turbulence model (A 560 > 0): A 627 c h, eddy viscosity >= c times the parabolic profile of A 547 (thin water), 0 off
     A627_h=0.0;  // double in the columns with depth <= h, tapered to 0 at 2h; h <= 0: all columns
     A613=0;      // int NHFLOW tracers: vertical advection, 1 implicit upwind, 2 implicit upwind with the explicit TVD correction (Lax-Wendroff, A 609 limiter); 0: 2 with A 620, else 1

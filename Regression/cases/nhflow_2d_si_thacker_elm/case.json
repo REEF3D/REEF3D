@@ -1,0 +1,22 @@
+{
+ "base": "nhflow_2d_si_thacker",
+ "description": "nhflow_2d_si_thacker with the semi-Lagrangian momentum advection (A 549 1 2.0) and the time step up to Courant number 2 (A 536 15 s instead of 3 s): the tracks end at the shoreline (no flux into dry cells), the velocity form on the depth of t^n (cell_update takes h^{n+1}). At dt 3 s the gauges are within 1.5 cm (of 1.6 m) of the flux form; at Courant 2 (dt about 11 s, 4 times fewer steps than the flux form at dt 3 s) within 12 cm, at Courant 1 within 8.5 cm (the time error of the first-order step over the 480 s period).",
+ "ctrl_set": {
+  "A 536": "15.0"
+ },
+ "ctrl_add": [
+  "A 549 1 2.0"
+ ],
+ "tags": [
+  "2d",
+  "elm",
+  "nhflow",
+  "semi_implicit",
+  "wetdry"
+ ],
+ "covers": [
+  "nhflow_momentum_SI::elm_departure with wetting and drying",
+  "nhflow_momentum_SI::adv_cmin (A 549 1)",
+  "cell_update: UH^{n+1} = h^{n+1} u^{n+1}"
+ ]
+}

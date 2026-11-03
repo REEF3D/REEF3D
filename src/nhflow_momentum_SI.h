@@ -148,6 +148,10 @@ public:
     // density from the tracers and its pressure gradient (A 620, nhflow_momentum_SI_density.cpp)
     static double eos(lexer*, double S, double T);
     static double internal_speed(lexer*, fdm_nhf*, int, int);
+    // the advective time step limit of a cell (cmin of dt = 2 cfl cmin), A 549 0 and 1
+    static double adv_cmin(lexer*, double u, double v, double ci, int i, int j, double cfl);
+    static int elm_mode(lexer *p) { return p->A549; }      // A 549 m C: the mode and the Courant number
+    static double elm_c(lexer *p) { return p->A549_c; }
     bool trc_mask = false;
 
     // A 623 with A 547: the vertical eddy diffusivity of the tracers K = nu_n/sigma_t f_h(Ri) + nu0/sigma_t
@@ -227,6 +231,11 @@ private:
     void eddy_algebraic(lexer*, fdm_nhf*);     // A 547: parabolic eddy viscosity from the bed friction velocity
     void eddy_floor(lexer*, fdm_nhf*);         // A 627: turbulence model, eddy viscosity >= c times that profile (thin water)
     double col_ustar(lexer*, fdm_nhf*, double h);   // bed (+ wind) friction velocity of the column (i,j), 0 dry
+    // A 549 1: semi-Lagrangian momentum advection (nhflow_momentum_SI_elm.cpp), the velocities at the feet of the
+    // characteristics of the cells
+    void elm_departure(lexer*, fdm_nhf*);
+    bool elm_fluid(lexer*, int, int);
+    double *ELU = nullptr, *ELV = nullptr, *ELW = nullptr;
     void bc_setup(lexer*, fdm_nhf*, ghostcell*);
     void bc_method(lexer*);
     void stage_arrays(int, double*&, double*&, double*&, double*&, double*&, double*&, double&);

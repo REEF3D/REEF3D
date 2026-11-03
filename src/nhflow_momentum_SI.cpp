@@ -125,6 +125,15 @@ nhflow_momentum_SI::nhflow_momentum_SI(lexer *p, fdm_nhf *d, ghostcell *pgc, six
     theta = p->A535;
     g = fabs(p->W22);
     rk = (p->A510==2)?2:3;
+
+    // A 549 1: semi-Lagrangian advection, one stage (the other explicit terms of t^n)
+    if(elm_mode(p)==1)
+    {
+    rk = 1;
+    p->Darray(ELU,N);
+    p->Darray(ELV,N);
+    p->Darray(ELW,N);
+    }
     qini = false;
     wd_iter = 0;
     wd_cells = 0;
@@ -177,7 +186,7 @@ nhflow_momentum_SI::~nhflow_momentum_SI()
 
     delete psi;
     delete ptrc;
-    for(double *a : {Bx,By,BFx,BFy,KV,N2})
+    for(double *a : {Bx,By,BFx,BFy,KV,N2,ELU,ELV,ELW})
     delete [] a;
 
     if(psolv2D!=nullptr)
@@ -214,6 +223,9 @@ void nhflow_momentum_SI::check(lexer *p)
 
     if(p->G1>0 && p->A600>0)
     msg("tracers (A 600) with mesh refinement (G 1) are");
+
+    if(p->G1>0 && elm_mode(p)>0)
+    msg("semi-Lagrangian momentum advection (A 549 1) with mesh refinement (G 1) is");
 
     if(p->A519==2)
     msg("wall friction at every wall face (A 519 2) is");
@@ -1001,7 +1013,8 @@ void nhflow_momentum_SI::col_coef(lexer *p, fdm_nhf *d, double h, int i1, int j1
 
     cu[q] += a*MAX(-ot,0.0);
     cl[q] += a*MAX(ob,0.0);
-    cd[q] = a*(ot - ob);
+    // A 549 1 (velocity form): the advective part omega du/dsigma alone, the continuity part is in h^{n+1}
+    cd[q] = elm_mode(p)==1 ? 0.0 : a*(ot - ob);
     }
 
     i=ii; j=jj; k=kk;
@@ -1425,8 +1438,13 @@ void nhflow_momentum_SI::si_stage_rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, nhfl
     pflow->ksource_nhflow(p,d,pgc,pvrans,WL0);
     krhs(p,d,pgc);
 
-    // advection with the layer transport and omega of the previous step
+    // advection with the layer transport and omega of the previous step; A 549 1: the velocities at the feet of the
+    // characteristics (semi-Lagrangian, nhflow_momentum_SI_elm.cpp)
+    if(elm_mode(p)==0)
     advection(p,d,pgc,S.precon);
+
+    else
+    elm_departure(p,d);
 
     // horizontal diffusion along the sigma layers (explicit); the vertical diffusion is implicit in
     // the column operator
@@ -1435,7 +1453,17 @@ void nhflow_momentum_SI::si_stage_rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, nhfl
 
     LOOP
     {
-        if(p->wet[IJ]==1)
+        if(p->wet[IJ]==1 && elm_mode(p)==1)
+        {
+        // one stage (a = 0), the velocity form on the depth of t^n: h^n u_d + dt F^n (UH^n + h^n (u_d - u^n) + dt F^n
+        // also in the desingularised shallow cells); cell_update takes UH^{n+1} = h^{n+1} u^{n+1}
+        const double h = WL0(i,j);
+        UHo[IJK] = UHs[IJK] + h*(ELU[IJK] - d->U[IJK]) + p->dt*d->F[IJK];
+        VHo[IJK] = p->j_dir==1 ? VHs[IJK] + h*(ELV[IJK] - d->V[IJK]) + p->dt*d->G[IJK] : 0.0;
+        WHo[IJK] = WHs[IJK] + h*(ELW[IJK] - d->W[IJK]) + p->dt*d->H[IJK];
+        }
+
+        else if(p->wet[IJ]==1)
         {
         UHo[IJK] = a*UH0[IJK] + alpha*(UHs[IJK] + p->dt*d->F[IJK]);
         VHo[IJK] = p->j_dir==1 ? a*VH0[IJK] + alpha*(VHs[IJK] + p->dt*d->G[IJK]) : 0.0;
@@ -2345,6 +2373,19 @@ void nhflow_momentum_SI::cell_update(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
         for(k=0;k<p->knoz;++k)
         d->WH[IJK] = wx[k];
+
+            // A 549 1: the velocity form of the step on the depth of t^n, the momentum on that of t^{n+1}
+            if(elm_mode(p)==1 && WL0(i,j)>p->A544)
+            {
+            const double r = MAX(d->WL(i,j),0.0)/WL0(i,j);
+
+                for(k=0;k<p->knoz;++k)
+                {
+                d->UH[IJK] *= r;
+                d->VH[IJK] *= r;
+                d->WH[IJK] *= r;
+                }
+            }
         }
 
         else
