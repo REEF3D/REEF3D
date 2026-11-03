@@ -586,7 +586,9 @@ void nhflow_curv::ediff(lexer *p, fdm_nhf *d, int comp, double *F, double *UH, d
         const double s2t = pow(p->sigx[flp],2.0) + pow(p->sigy[flp],2.0) + sz2;
         
         const double fc = f[c];
-        const double fkm = nb(c,C(ii,jj,kk-1)), fkp = nb(c,C(ii,jj,kk+1));
+        // A 518 2 resolved no-slip bed: u, v = 0 on the bed face (ghost -u of the cell), as nhflow_ediff
+        const double fkm = (comp<3 && p->A518==2 && p->flag4[C(ii,jj,kk-1)]<0) ? -fc : nb(c,C(ii,jj,kk-1));
+        const double fkp = nb(c,C(ii,jj,kk+1));
         
         // compact horizontal Laplacian
         double cE,cW,cN,cS;
