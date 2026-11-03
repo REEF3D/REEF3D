@@ -488,6 +488,8 @@ void control::ctrlrecv()
     ii++;
     A623 = ictrl[ii];
     ii++;
+    A549 = ictrl[ii];
+    ii++;
     A624 = dctrl[dd];
     dd++;
     A625_am = dctrl[dd];
@@ -505,6 +507,8 @@ void control::ctrlrecv()
     A627_c = dctrl[dd];
     dd++;
     A627_h = dctrl[dd];
+    dd++;
+    A549_c = dctrl[dd];
     dd++;
     A621_rho0 = dctrl[dd];
     dd++;

@@ -134,6 +134,14 @@ void driver::logic_nhflow()
         exit(1);
     }
 
+    // semi-Lagrangian momentum advection (A 549 1): the hydrostatic semi-implicit path
+    if(p->A549!=0 && (p->A549!=1 || p->A534!=1 || p->A549_c<=0.0 || p->A549_c>2.5))
+    {
+        if(p->mpirank==0)
+        cout<<"!!! NHFLOW A 549 m C: m 0 or 1 (semi-Lagrangian momentum advection, with A 534 1 only), 0 < C <= 2.5 !!!"<<endl;
+        exit(1);
+    }
+
     // eddy viscosity floor of a turbulence model in thin water (A 627): the semi-implicit path with a turbulence model
     if(p->A627_c>0.0 && (p->A534!=1 || p->A560==0))
     {

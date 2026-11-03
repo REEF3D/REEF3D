@@ -492,6 +492,8 @@ void control::ctrlsend()
     ii++;
     ictrl[ii] = A623;
     ii++;
+    ictrl[ii] = A549;
+    ii++;
     dctrl[dd] = A624;
     dd++;
     dctrl[dd] = A625_am;
@@ -509,6 +511,8 @@ void control::ctrlsend()
     dctrl[dd] = A627_c;
     dd++;
     dctrl[dd] = A627_h;
+    dd++;
+    dctrl[dd] = A549_c;
     dd++;
     dctrl[dd] = A621_rho0;
     dd++;
