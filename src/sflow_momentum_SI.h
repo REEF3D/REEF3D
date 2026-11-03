@@ -224,6 +224,7 @@ private:
     slice4 WLk, etaB;
 
     vector<bc_face> bcf;
+    vector<bc_face> bco;    // open boundary faces closed for the step (dry cell or face): no discharge of t^n either
     int method[5];          // iowave open edge method per side cs (B 520 3-6), 0 none
 
     double theta, g;

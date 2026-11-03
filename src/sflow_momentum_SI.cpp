@@ -321,6 +321,17 @@ void sflow_momentum_SI::si_begin(lexer *p, fdm2D* b, ghostcell* pgc)
         else
         qyn(f.fi,f.fj) = qy(f.fi,f.fj);
     }
+
+    // an open boundary face closed for the step (dry cell, no depth at the face) carries no old discharge: it kept
+    // the discharge of the last step it was open, which drained the cell and left uncounted
+    for(const bc_face &f : bco)
+    {
+        if(f.cs==1 || f.cs==4)
+        qxn(f.fi,f.fj) = 0.0;
+
+        else
+        qyn(f.fi,f.fj) = 0.0;
+    }
 }
 
 void sflow_momentum_SI::stage_io_si(int s, slice *&UHs, slice *&VHs, slice *&UHo, slice *&VHo)
@@ -576,6 +587,7 @@ void sflow_momentum_SI::bc_setup(lexer *p, fdm2D *b, ghostcell *pgc)
     double manning,cf,u,h,eu,df;
 
     bcf.clear();
+    bco.clear();
 
     // eta with the boundary values: water level outflow (ioflow), open edges (iowave)
     for(i=p->imin; i<p->imin+p->imax; ++i)
@@ -683,6 +695,7 @@ void sflow_momentum_SI::bc_setup(lexer *p, fdm2D *b, ghostcell *pgc)
         if((hydro_sflow::wetting(p) ? hi<=p->A244 : (p->wet[IJ]==0 || hi<=p->A244)) && f.type!=bc_flux)
         {
         qf(f.fi,f.fj) = 0.0;
+        bco.push_back(f);
         continue;
         }
 
@@ -742,6 +755,7 @@ void sflow_momentum_SI::bc_setup(lexer *p, fdm2D *b, ghostcell *pgc)
             if(h<=p->A244)
             {
             qf(f.fi,f.fj) = 0.0;
+            bco.push_back(f);
             continue;
             }
 
