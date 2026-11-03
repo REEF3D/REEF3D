@@ -102,7 +102,7 @@ public:
     // velocity at the keel point; the loads of the footprint columns into the body (gravity added,
     // force file written)
     void keel_nhflow(lexer*, fdm_nhf*, slice&, slice&, slice&, slice&, slice&, slice&);
-    void hull_loads_nhflow(lexer*, ghostcell*, bool, double, double, double, double, double, double);
+    void hull_loads_nhflow(lexer*, ghostcell*, bool, double, double, double, double, double, double, const double* =nullptr);
     // hr: the spacing of the grid relative to level 0 for the band of the loads (0: DXM of the grid / DXM of level 0;
     // the blocks of a multi-block grid have their own logical DXM)
     struct nhflow_grid { lexer *p; fdm_nhf *d; slice *WL; double hr = 0.0; };

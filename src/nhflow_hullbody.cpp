@@ -126,11 +126,18 @@ Architect: Hans Bihs
 //               facets (the buoyancy and the zero horizontal force at rest); the dynamic pressure (rho g head + P,
 //               at the surface point nearest to the cell centre) on the wall part of every cell, -p sum_f a_f n_f A_f
 //               (the divergence theorem on the water of the cell): the same pressure that the projection and the wall
-//               fluxes put on the water
+//               fluxes put on the water. The force file gets the loads of the stages in the weights of the
+//               Runge-Kutta scheme (finish_loads), the force that changes the momentum of the water over the step:
+//               the loads of the last stage alone made the drag of the ellipse 25 % larger than the momentum balance
+//               of a control volume around it (now within 5 %)
 // Results (Ship Hydrodynamics validation 31): submerged ellipse in a current C_D 0.07 at 5 cells across (X 15 1: 0.41),
 // stable as the grid moves through it; 2D box in forced heave at 3.5 rad/s, dx 0.1 m: A/m 0.94, B 66 (Frank 0.975, 64;
 // X 15 8 0.96, 76, with ten times the force noise); the box in waves and in a current of 1 m/s free in heave without the
-// noise of the staircase; a symmetric box at rest stays symmetric. Not covered yet: mesh refinement (stopped with a
+// noise of the staircase; a symmetric box at rest stays symmetric. In the ship frame (validation 33): the 2D box in a
+// current of 1 m/s loses less than half the momentum of X 15 8 (12 N against 28-32 N per 0.1 m at dx 0.1 m, 6 N at
+// dx 0.05 m, where X 15 8 is unstable); the KVLCC2-like hull at Fr 0.142, dx 0.3 m, heave and pitch free, runs clean
+// over 15 s, the flow around it loses 190 N (control volume; X 15 8 about 300 N, tests 49 N with friction): at that
+// grid the excess is in the flow, not in the staircase. Not covered yet: mesh refinement (stopped with a
 // message), turbulence walls at the cut faces (the faces keep the diffusion), porous bodies, more than one body.
 
 nhflow_hullbody::nhflow_hullbody(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof_obj_nhflow *pobj)
@@ -752,6 +759,35 @@ void nhflow_hullbody::finish_loads(lexer *p, fdm_nhf *d, ghostcell *pgc, const d
     Fp[4] = My = pgc->globalsum(F[4]);
     Fp[5] = Mz = pgc->globalsum(F[5]);
 
+    // X 15 10: the printed loads are the stage loads in the weights of the Runge-Kutta scheme (the loads of a stage
+    // follow its pressure projection): the force by which the time step changes the momentum of the water. The
+    // pressure of the single stages differs by more than the mean load on a body in a current; only the weighted
+    // sum enters the flow. The body motion takes the loads of the stage as before.
+    if(cut)
+    {
+        for(int s=0; s<2; ++s)
+        for(int q=0; q<6; ++q)
+        Fst[s][q] = Fst[s+1][q];
+        
+        for(int q=0; q<6; ++q)
+        Fst[2][q] = Fp[q];
+        
+        nst = MIN(nst+1,3);
+        
+        const int ns = p->A534==1 ? 1 : (p->A510==3 ? 3 : (p->A510==2 ? 2 : 1));
+        const double w3[3] = {1.0/6.0, 1.0/6.0, 2.0/3.0}, w2[3] = {0.0, 0.5, 0.5}, w1[3] = {0.0, 0.0, 1.0};
+        const double *w = ns==3 ? w3 : (ns==2 ? w2 : w1);
+        double Fw[6] = {0.0,0.0,0.0,0.0,0.0,0.0};
+        
+        // after a start or restart with fewer stages stored: their mean
+        for(int s=3-MIN(ns,nst); s<3; ++s)
+        for(int q=0; q<6; ++q)
+        Fw[q] += (nst>=ns ? w[s] : 1.0/double(MIN(ns,nst)))*Fst[s][q];
+        
+        obj->hull_loads_nhflow(p,pgc,finalize,Fx,Fy,Fz,Mx,My,Mz,Fw);
+    }
+    
+    else
     obj->hull_loads_nhflow(p,pgc,finalize,Fx,Fy,Fz,Mx,My,Mz);
 
     if(finalize)

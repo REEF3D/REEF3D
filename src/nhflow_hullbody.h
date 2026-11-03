@@ -100,6 +100,8 @@ private:
     int nlink;                  // global
     bool told,marked;
     double Fp[6];               // last loads: Fx, Fy, Fz, Mx, My, Mz
+    double Fst[3][6];           // X 15 10: the loads of the last three stages (oldest first), for the printed loads
+    int nst=0;
     double tstage,tsum;
 
     ofstream out;
