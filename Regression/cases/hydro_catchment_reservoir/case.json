@@ -1,0 +1,23 @@
+{
+ "description": "REEF3D::HYDRO reservoir (R 110 1, hydro_reservoir.dat): the chain of 20 cells alone, outflows downstream within the step (R 106 0), a level pool of 50 000 m2 at the weir crest in cell 10, 1.1 m3/s for 1 h: the level and the spill over the weir (5 m, cw 1.7) as text (REEF3D-HYDRO-Reservoirs.dat; validation 09: the implicit level to 1e-10 m)",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 720,
+ "files": [
+  "catchment_dem.asc",
+  "geo.dat",
+  "hydro_forcing.dat",
+  "hydro_param.dat",
+  "hydro_reservoir.dat"
+ ],
+ "tags": [
+  "quick",
+  "hydro",
+  "catchment",
+  "reservoir"
+ ],
+ "covers": [
+  "hydro_core_reservoir.cpp",
+  "hydro_core::route with reservoirs"
+ ]
+}

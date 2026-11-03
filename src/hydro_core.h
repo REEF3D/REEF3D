@@ -56,6 +56,8 @@ Coupled:  R 100 2 with SFLOW (hydro_couple.h): the share of the runoff of the ce
           discharge of the cells whose flow path enters it go to SFLOW, the outflow of SFLOW comes back into
           the cell below the SFLOW grid, the infiltration of SFLOW into the upper zone
 Hot start: R 107 1 writes REEF3D_HYDRO/hydro_state.dat at the end, R 108 1 starts from hydro_state.dat
+Reservoirs: R 110 1, hydro_reservoir.dat: a level pool with a weir and a release series in place of the channel of a
+          cell (hydro_core_reservoir.cpp), REEF3D_HYDRO/REEF3D-HYDRO-Reservoirs.dat
 */
 
 class hydro_core : public increment
@@ -84,12 +86,20 @@ public:
     // hot start (R 107 1 writes, R 108 1 reads REEF3D_HYDRO/hydro_state.dat / hydro_state.dat)
     void write_state(lexer*, ghostcell*);
     void read_state(lexer*, ghostcell*);
+    void gather_cells(lexer*, ghostcell*, vector<double>&);     // rank 0: the state of all cells
+    void scatter_cells(const double*);                          // the owned cells from the state of all cells
+
+    // checkpoints of a coupled run (P 48, I 45): everything on rank 0 (collective), restored on all ranks
+    void ckpt_state(lexer*, ghostcell*, vector<double>&);
+    bool ckpt_restore(lexer*, const vector<double>&);
+    void flush();
+    vector<double> Q, qgen;                     // outflow of every cell [m3/s], its runoff into the channel [m3/s]
+    vector<double> len, alpha;                  // channel length [m] and A = alpha Q^0.6 of every cell
 
     // coupling with SFLOW (R 100 2, hydro_couple): set before step(), read after it
     vector<double> share;                       // fraction of the runoff of a cell that goes to SFLOW
     vector<char> enter;                         // the outflow of the cell enters SFLOW instead of the downstream cell
-    int ret;                                    // cell that takes the outflow of SFLOW (-1: it leaves the catchment)
-    double Qret;                                // outflow of SFLOW into cell ret over the step [m3/s]
+    vector<double> qret;                        // outflow of SFLOW into every cell over the step [m3/s]
     vector<double> addv;                        // water from SFLOW into the upper zone of every cell over the step [m3] (all ranks)
     vector<double> qsf;                         // runoff of a cell to SFLOW over the step [m3/s]
     vector<double> Qent;                        // discharge of a cell into SFLOW over the step [m3/s]
@@ -100,11 +110,23 @@ public:
     int ni, nj;
     double x0, y0, D;
     vector<int> I, J, down, sub, zone;
-    vector<double> xc, yc, area, zmean, len, slope, aup, lakef;
+    vector<double> xc, yc, area, zmean, slope, aup, lakef;
     vector<double> bz, bf, bg;                  // per cell and band
     vector<int> gid, gcell;
     vector<int> poff;                           // version 2: the fine flow path of cell n, points poff[n] .. poff[n+1]-1,
     vector<double> px, py;                      // from its outlet pixel to the outlet pixel of the downstream cell
+
+    // reservoirs (R 110 1, hydro_reservoir.dat): a level pool in place of the channel of a cell
+    struct reservoir
+    {
+        int id, cell;
+        double area, zb, crest, width, cw;      // area [m2], bottom, crest [m], weir width [m], weir coefficient [m^0.5/s]
+        vector<double> rt, rq;                  // release series hydro_release_<id>.dat (t [s], Q [m3/s], linear)
+        double h, qin, qrel, qspill;            // level [m], inflow, release, spill of the last step [m3/s]
+    };
+    vector<reservoir> resv;
+    vector<int> rescell;                        // reservoir of every cell, -1 none
+    double reservoir_storage() const;
 
     // volumes [m3], cumulative (Vp, Vea, Vgm over the owned cells, Vout the same on all ranks)
     double Vp, Vea, Vgm, Vout, S0;
@@ -119,6 +141,10 @@ private:
     void vertical(lexer*);
     void route(lexer*, ghostcell*);
     double kinwave(double c, double alpha, double R) const;
+    void read_reservoirs(lexer*, ghostcell*);
+    double reservoir_step(lexer*, reservoir&, double qin);     // the outflow of the step [m3/s]
+    void reservoir_output(lexer*);
+    ofstream fr;
     void gather(ghostcell*, vector<double>&) const;
     void budget(lexer*, ghostcell*, bool force);
     void print_vtk(lexer*, ghostcell*);
@@ -147,17 +173,16 @@ private:
     int nmb;
 
     // fluxes of the step per owned cell
-    vector<double> qgen;                        // runoff into the channel [m3/s], all cells after gather
     vector<double> cP, cT, cE, cEa, cRun;       // cell means for output [mm/h], [C]
 
     // routing (all cells, every rank)
-    vector<double> Q, Qold, Qin, alpha;
+    vector<double> Qold, Qin;
 
     double tout, tvtk, tlast;               // next output, next grid output, last output
     int nvtk;
     bool kw;                                    // kinematic wave (R 106 1)
     ofstream fg, fb, fm;
-    bool first;
+    bool first, opened;
 };
 
 #endif

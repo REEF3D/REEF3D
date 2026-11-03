@@ -1,0 +1,23 @@
+{
+ "description": "REEF3D::HYDRO coupled (R 100 2): two parallel valleys (DEM without an outlet, W 21 gauges at both ends), one SFLOW grid over both on 600-1400 m: the outflow of every boundary cell of SFLOW returns into the hydrology cell below its own valley (hydro_sflow::Bq, per boundary cell), gauges 1 and 2 as text.",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 400,
+ "files": [
+  "catchment_dem.asc",
+  "geo.dat",
+  "hydro_forcing.dat",
+  "hydro_param.dat"
+ ],
+ "tags": [
+  "quick",
+  "hydro",
+  "catchment",
+  "coupled",
+  "semi_implicit"
+ ],
+ "covers": [
+  "hydro_couple::exchange_in per boundary cell (rcell)",
+  "sflow_momentum_SI: Bq"
+ ]
+}

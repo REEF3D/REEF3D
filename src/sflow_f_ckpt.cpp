@@ -52,6 +52,7 @@ Author: Hans Bihs
 #include"cfd_ckpt.h"
 #include"sediment.h"
 #include"hydro_sflow.h"
+#include"hydro_couple.h"
 
 using namespace std;
 
@@ -92,7 +93,7 @@ reefrun_ckpt& sflow_f::ckpt(lexer *p, fdm2D *b, ghostcell *pgc)
         b->hydro->ckpt_fields(fd,fi);
     };
 
-    h.write = [this,p,b,fields](reefckpt &ck)
+    h.write = [this,p,b,pgc,fields](reefckpt &ck)
     {
         std::function<void(const char*,char,double*)> wd = [&](const char *n, char, double *V){ if(V!=nullptr) ck.put_S(n,V); };
         std::function<void(const char*,char,int*)> wi = [&](const char *n, char, int *V){ if(V!=nullptr) ck.put_Si(n,V); };
@@ -130,6 +131,14 @@ reefrun_ckpt& sflow_f::ckpt(lexer *p, fdm2D *b, ghostcell *pgc)
             vector<double> hv;
             b->hydro->ckpt_state(hv);
             ck.blob("hydro",hv);
+        }
+
+        // REEF3D::HYDRO coupled (R 100 2): the catchment model and the coupling (gathered on rank 0)
+        if(pcpl!=nullptr)
+        {
+            vector<double> cv;
+            pcpl->ckpt_state(p,pgc,cv);
+            ck.blob("hydro_couple",cv);
         }
 
         // the state of the boundary conditions (local to the rank)
@@ -202,6 +211,16 @@ reefrun_ckpt& sflow_f::ckpt(lexer *p, fdm2D *b, ghostcell *pgc)
             }
         }
 
+        // REEF3D::HYDRO coupled (R 100 2)
+        if(pcpl!=nullptr)
+        {
+            if(!ck.has("hydro_couple") || !pcpl->ckpt_restore(p,b,ck.get_blob("hydro_couple")))
+            {
+                msg = "the checkpoint has no catchment model (R 100 2) that fits this run";
+                return false;
+            }
+        }
+
         // the state of the boundary conditions: on the same decomposition (else they start again)
         if(ck.same_decomposition())
         pflow->ckpt_restore(p,ck.get_rank_blob("ioflow",p->mpirank));
@@ -216,6 +235,8 @@ reefrun_ckpt& sflow_f::ckpt(lexer *p, fdm2D *b, ghostcell *pgc)
         pprint->flush_outputs();
         if(pamr!=nullptr)
         pamr->flush_outputs();
+        if(pcpl!=nullptr)
+        pcpl->flush();
         mainlogout.flush();
     };
 

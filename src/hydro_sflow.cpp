@@ -35,7 +35,7 @@ Architect: Hans Bihs
 
 using namespace std;
 
-hydro_sflow::hydro_sflow(lexer *p, fdm2D *b, ghostcell *pgc, const hydro_sflow *lv0) : S(p), R(p), F(p), Rc(p), fc(p), Pc(p), sc(p), L(p), C(p)
+hydro_sflow::hydro_sflow(lexer *p, fdm2D *b, ghostcell *pgc, const hydro_sflow *lv0) : S(p), R(p), F(p), Rc(p), fc(p), Pc(p), sc(p), L(p), C(p), Bq(p), Fp(p)
 {
     in = (lv0==nullptr) ? this : lv0;
 
@@ -50,6 +50,8 @@ hydro_sflow::hydro_sflow(lexer *p, fdm2D *b, ghostcell *pgc, const hydro_sflow *
     sc(i,j) = 0.0;
     L(i,j) = 0.0;
     C(i,j) = 0.0;
+    Bq(i,j) = 0.0;
+    Fp(i,j) = 0.0;
     }
 }
 
@@ -773,16 +775,25 @@ void hydro_sflow::ckpt_fields(const function<void(const char*, char, double*)> &
 {
     fd("hydro_F",'S',F.V);
     fd("hydro_Rc",'S',Rc.V);
+
+    // coupled with the catchment model (R 100 2)
+    if(cpl)
+    {
+    fd("hydro_C",'S',C.V);
+    fd("hydro_Bq",'S',Bq.V);
+    fd("hydro_Fp",'S',Fp.V);
+    }
 }
 
 void hydro_sflow::ckpt_state(vector<double> &v) const
 {
-    v = {Vrain,Vsrc,Vabs,Vevap,Vinf,Vqi,Vqo,Vstore0,tnext};
+    v = {Vrain,Vsrc,Vabs,Vevap,Vinf,Vqi,Vqo,Vstore0,tnext,Vstore,Vcpl,qcpl};
 }
 
 bool hydro_sflow::ckpt_restore(const vector<double> &v)
 {
-    if(v.size()!=9)
+    // 9 values: a checkpoint before R 100 2 (no storage of the step, no coupling)
+    if(v.size()!=9 && v.size()!=12)
     return false;
 
     Vrain = v[0];
@@ -795,6 +806,13 @@ bool hydro_sflow::ckpt_restore(const vector<double> &v)
     Vstore0 = v[7];
     tnext = v[8];
     store0_leaf = true;
+
+    if(v.size()==12)
+    {
+    Vstore = v[9];
+    Vcpl = v[10];
+    qcpl = v[11];
+    }
 
     rk = -2;
     return true;

@@ -182,6 +182,8 @@ public:
     slice4 sc;      // sealed fraction
     slice4 L;       // the losses of the step [m] (the semi-implicit water column: sflow_momentum_SI::water_column)
     slice4 C;       // R 100 2: source rate from the catchment model [m/s] (hydro_couple), with cpl
+    slice4 Bq;      // R 100 2: outflow over the open boundary faces of a cell since the last exchange [m3] (semi-implicit)
+    slice4 Fp;      // R 100 2: (1 - sealed) F at the last exchange [m]
     bool cpl = false;
     double qcpl = 0.0, Vcpl = 0.0;  // R 100 2: its global rate [m3/s] (part of the sources) and cumulative volume [m3]
 

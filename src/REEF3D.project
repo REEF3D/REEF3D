@@ -2763,6 +2763,7 @@
         <File Name="hydro_core.cpp"/>
         <File Name="hydro_core_hbv.cpp"/>
         <File Name="hydro_core_out.cpp"/>
+        <File Name="hydro_core_reservoir.cpp"/>
         <File Name="hydro_core_route.cpp"/>
         <File Name="hydro_couple.cpp"/>
         <File Name="hydro_sflow.cpp"/>

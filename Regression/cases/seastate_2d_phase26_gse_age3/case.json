@@ -1,0 +1,18 @@
+{
+ "base": "seastate_2d_phase25_gse",
+ "ctrl_set": {
+  "A 776": "3"
+ },
+ "ctrl_add": [
+  "A 777 0.0"
+ ],
+ "description": "seastate_2d_phase25_gse with the transported age (A 776 3, Phase 26): M = t_a N per bin transported with the spectra by a second solver without source terms (from M + dt N), the faces of the GSE step with the energy-weighted age of their two cells, M diffused with N. Without wind the age is the model time: the result of A 776 2 within the rounding. Validation in Dropbox SEASTATE/validation/82_gse_age.",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate"
+ ],
+ "covers": [
+  "seastate_f::age_ini, age_start, age_step, gse_age_step (A 776 3)"
+ ]
+}

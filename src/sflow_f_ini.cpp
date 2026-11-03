@@ -41,6 +41,7 @@ Author: Hans Bihs
 #include"6DOF_sflow.h"
 #include"sflow_amr.h"
 #include"hydro_sflow.h"
+#include"hydro_couple.h"
 #include"reefrun_ckpt.h"
 
 void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
@@ -213,6 +214,20 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
     {
     b->hydro = new hydro_sflow(p,b,pgc);
     b->hydro->ini(p,b,pgc);
+    }
+
+    // REEF3D::HYDRO catchment model coupled with SFLOW (R 100 2): before a restart reads its state
+    if(p->R100==2)
+    {
+        if(pamr!=nullptr)
+        {
+            if(p->mpirank==0)
+            cout<<"!!! HYDRO: R 100 2 with mesh refinement or multi-block grids is not available yet !!!"<<endl;
+            pgc->final(true);
+        }
+
+    pcpl = new hydro_couple(p,b,pgc);
+    pcpl->ini(p,b,pgc);
     }
 
     //sediment ini

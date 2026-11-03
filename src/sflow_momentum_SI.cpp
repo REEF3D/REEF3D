@@ -1279,6 +1279,10 @@ void sflow_momentum_SI::eta_update(lexer *p, fdm2D *b, ghostcell *pgc)
 
         else
         Qout += q;
+
+        // REEF3D::HYDRO coupled (R 100 2): the outflow volume of the boundary cell, returned to the catchment model
+        if(q<0.0 && b->hydro!=nullptr && b->hydro->cpl)
+        b->hydro->Bq(f.i,f.j) -= q*p->dt;
     }
 
     Qin = pgc->globalsum(Qin);

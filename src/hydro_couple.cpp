@@ -26,6 +26,7 @@ Architect: Hans Bihs
 #include"lexer.h"
 #include"fdm2D.h"
 #include"ghostcell.h"
+#include"reefckpt.h"
 #include<algorithm>
 #include<climits>
 #include<cmath>
@@ -34,9 +35,11 @@ Architect: Hans Bihs
 #include<sys/stat.h>
 #include<sys/types.h>
 
-hydro_couple::hydro_couple(lexer *p, fdm2D *b, ghostcell *pgc) : hc(nullptr), t0(0.0), tnext(0.0),
-    Vqo0(0.0), Vret(0.0), Vleave(0.0), Vinfout(0.0), Vinf0(0.0), S0(0.0), nexch(0)
+hydro_couple::hydro_couple(lexer *p, fdm2D *b, ghostcell *pgc) : hc(nullptr), t0(0.0), tnext(0.0), warm(0.0), qw(0.0), ret(-1),
+    Vqo0(0.0), Vleave(0.0), Vinfout(0.0), S0(0.0), Vadj(0.0), Vwarm(0.0), nexch(0), started(false), opened(false)
 {
+    for(double &v : b0)
+    v=0.0;
 }
 
 hydro_couple::~hydro_couple()
@@ -75,19 +78,22 @@ void hydro_couple::ini(lexer *p, fdm2D *b, ghostcell *pgc)
     if(b->hydro==nullptr)
     stop(p,pgc,"no HYDRO object of SFLOW");
 
-    if(p->I45>0)
-    stop(p,pgc,"the restart of a coupled run (I 45) is not available yet");
-
     hc = new hydro_core(p,pgc);
     hc->ini(p,pgc);
-    hc->begin(p,pgc);
 
     const int N=hc->N;
     if(hc->poff.back()==0)
     stop(p,pgc,"hydro_grid.dat without the flow paths (version 2): run DIVEMesh W 10 again");
 
     t0=hc->t;
-    tnext=p->simtime;
+    warm = p->R109;
+    if(warm>0.0 && p->R108!=1)
+    {
+        if(p->mpirank==0)
+        cout<<"!!! HYDRO: R 109 (river start state) needs the hot start R 108 1, no start state"<<endl;
+        warm=0.0;
+    }
+    tnext=p->simtime+warm;
     b->hydro->cpl=true;
 
     // overlap: the hydrology cell of every SFLOW cell
@@ -157,54 +163,152 @@ void hydro_couple::ini(lexer *p, fdm2D *b, ghostcell *pgc)
             emax=n;
         }
     }
-    hc->ret = (emax>=0) ? hc->down[emax] : -1;
+
+    // return: the first cell at or below the hydrology cell of an SFLOW cell whose flow path does not enter SFLOW
+    rcell.clear();
+    for(int h : hcell)
+    {
+        int r=h;
+        while(r>=0 && hc->enter[r])
+        r=hc->down[r];
+        rcell.push_back(r);
+    }
+    ret = (emax>=0) ? hc->down[emax] : -1;
 
     // the infiltration of SFLOW so far
-    Fp.clear();
     SLICELOOP4
-    Fp.push_back((1.0-b->hydro->sc(i,j))*b->hydro->F(i,j));
+    b->hydro->Fp(i,j) = (1.0-b->hydro->sc(i,j))*b->hydro->F(i,j);
 
-    Vqo0=b->hydro->Vqo;
-    S0=hc->total_storage(pgc)+b->hydro->Vstore;
+    // river start state (R 109): the steady discharges of the coupled network, SFLOW with them for warm seconds
+    if(warm>0.0 && p->I45!=1)
+    start_state(p,b,pgc);
+
+    if(p->I45!=1)
+    hc->begin(p,pgc);
 
     if(p->mpirank==0)
     {
         cout<<"HYDRO coupling: "<<nov<<" of "<<N<<" hydrology cells under SFLOW ("<<atot*1.0e-6<<" km2), "<<nent
-            <<" flow paths enter SFLOW, the outflow of SFLOW returns into cell "<<hc->ret
-            <<(hc->ret<0 ? " (none: it leaves the catchment)" : "")<<"; exchange every "<<hc->dt<<" s, catchment time at the start "<<t0<<" s"<<endl;
-
-        mkdir("./REEF3D_HYDRO",0777);
-        fout.open("./REEF3D_HYDRO/REEF3D-HYDRO-Coupled.dat");
-        fout<<"// REEF3D::HYDRO coupled budget [m3], cumulative since the start; storage = catchment model + SFLOW + returns of the last interval"<<endl;
-        fout<<"// time_SFLOW[s] time_HYDRO[s] precipitation glacier_melt evaporation_HYDRO outflow_catchment rain_SFLOW sources_SFLOW inflow_SFLOW"
-            <<" evaporation_SFLOW abstraction_SFLOW infiltration_outside outflow_SFLOW_leaving storage_HYDRO storage_SFLOW returns dS residual"
-            <<" to_SFLOW received_SFLOW returned"<<endl;
-        fout<<setprecision(14);
+            <<" flow paths enter SFLOW; the outflow of SFLOW returns into the cells below the entering paths"
+            <<(p->A226==1 ? " (per boundary cell)" : " (explicit SFLOW: all into cell "+to_string(ret)+")")
+            <<"; exchange every "<<hc->dt<<" s, catchment time at the start "<<t0<<" s"<<endl;
+        if(warm>0.0)
+        cout<<"HYDRO coupling: river start state, SFLOW runs "<<warm<<" s with the steady sources of the network ("
+            <<b->hydro->qcpl<<" m3/s); the channels under SFLOW gave up "<<Vadj<<" m3"<<endl;
     }
+}
+
+// the steady discharges of the coupled network for the runoff of the catchment state, and the sources of SFLOW
+void hydro_couple::start_state(lexer *p, fdm2D *b, ghostcell *pgc)
+{
+    const int N=hc->N;
+    vector<double> Qin(N,0.0), Qs(N,0.0), qs(N,0.0), qe(N,0.0);
+
+    for(int n=0; n<N; ++n)
+    {
+        qs[n]=hc->share[n]*hc->qgen[n];
+        Qs[n]=Qin[n]+hc->qgen[n]-qs[n];
+
+        if(hc->enter[n])
+        qe[n]=Qs[n];
+        else if(hc->down[n]>=0)
+        Qin[hc->down[n]]+=Qs[n];
+    }
+
+    Vadj=0.0;
+    if(p->R106==1)
+    for(int n=0; n<N; ++n)
+    if(hc->rescell[n]<0)
+    Vadj+=hc->len[n]*hc->alpha[n]*(pow(hc->Q[n],0.6)-pow(Qs[n],0.6));
+
+    hc->Q=Qs;
+    sources(p,b,pgc,qs,qe);
+
+    // the steady sources, raised over the first half of the start state (step)
+    Cw.clear();
+    SLICELOOP4
+    Cw.push_back(b->hydro->C(i,j));
+    qw=b->hydro->qcpl;
+}
+
+// the start of the coupled budget: the first exchange (after the river start state)
+void hydro_couple::start_budget(lexer *p, fdm2D *b, ghostcell *pgc)
+{
+    hydro_sflow &H=*b->hydro;
+
+    Vqo0=H.Vqo;
+    SLICELOOP4
+    {
+    H.Bq(i,j)=0.0;
+    H.Fp(i,j)=(1.0-H.sc(i,j))*H.F(i,j);
+    }
+    fill(hc->qret.begin(),hc->qret.end(),0.0);
+    fill(hc->addv.begin(),hc->addv.end(),0.0);
+
+    Vleave=0.0;
+    Vinfout=0.0;
+    Vwarm=H.Vcpl;
+    const double v[6]={H.Vrain,H.Vsrc,H.Vcpl,H.Vqi,H.Vevap,H.Vabs};
+    for(int k=0; k<6; ++k)
+    b0[k]=v[k];
+
+    S0=hc->total_storage(pgc)+H.Vstore;
+    started=true;
+
+    if(p->mpirank==0 && warm>0.0)
+    cout<<"HYDRO coupling: the river start state took "<<Vwarm<<" m3 from the network, the coupled run starts"<<endl;
 }
 
 // SFLOW -> HYDRO: the outflow and the infiltration of the last interval
 void hydro_couple::exchange_in(lexer *p, fdm2D *b, ghostcell *pgc)
 {
-    const double dVo=b->hydro->Vqo-Vqo0;
-    Vqo0=b->hydro->Vqo;
+    hydro_sflow &H=*b->hydro;
+    const int N=hc->N;
+    const double dVo=H.Vqo-Vqo0;
+    Vqo0=H.Vqo;
 
-    if(hc->ret>=0)
-    hc->Qret=dVo/hc->dt;
+    vector<double> &qret=hc->qret;
+    fill(qret.begin(),qret.end(),0.0);
+    double out=0.0;
+
+    if(p->A226==1)
+    {
+        int q=0;
+        SLICELOOP4
+        {
+            const double v=H.Bq(i,j);
+            if(v!=0.0)
+            {
+                if(rcell[q]>=0)
+                qret[rcell[q]]+=v;
+                else
+                out+=v;
+            }
+            H.Bq(i,j)=0.0;
+            ++q;
+        }
+        MPI_Allreduce(MPI_IN_PLACE,qret.data(),N,MPI_DOUBLE,MPI_SUM,pgc->mpi_comm);
+        Vleave+=pgc->globalsum(out);
+
+        for(int n=0; n<N; ++n)
+        qret[n]/=hc->dt;
+    }
     else
     {
-        hc->Qret=0.0;
+        if(ret>=0)
+        qret[ret]=dVo/hc->dt;
+        else
         Vleave+=dVo;
     }
 
     fill(hc->addv.begin(),hc->addv.end(),0.0);
-    double out=0.0;
+    out=0.0;
     int q=0;
     SLICELOOP4
     {
-        const double Fn=(1.0-b->hydro->sc(i,j))*b->hydro->F(i,j);
-        const double dv=(Fn-Fp[q])*p->cellarea(i,j);
-        Fp[q]=Fn;
+        const double Fn=(1.0-H.sc(i,j))*H.F(i,j);
+        const double dv=(Fn-H.Fp(i,j))*p->cellarea(i,j);
+        H.Fp(i,j)=Fn;
 
         if(hcell[q]>=0)
         hc->addv[hcell[q]]+=dv;
@@ -213,12 +317,12 @@ void hydro_couple::exchange_in(lexer *p, fdm2D *b, ghostcell *pgc)
 
         ++q;
     }
-    MPI_Allreduce(MPI_IN_PLACE,hc->addv.data(),hc->N,MPI_DOUBLE,MPI_SUM,pgc->mpi_comm);
+    MPI_Allreduce(MPI_IN_PLACE,hc->addv.data(),N,MPI_DOUBLE,MPI_SUM,pgc->mpi_comm);
     Vinfout+=pgc->globalsum(out);
 }
 
-// HYDRO -> SFLOW: the source rates of the interval
-void hydro_couple::sources(lexer *p, fdm2D *b, ghostcell *pgc)
+// HYDRO -> SFLOW: the source rates of the interval (qs runoff share, qe discharge of the entering cells) [m3/s]
+void hydro_couple::sources(lexer *p, fdm2D *b, ghostcell *pgc, const vector<double> &qs, const vector<double> &qe)
 {
     slice4 &C=b->hydro->C;
     int q=0;
@@ -227,12 +331,12 @@ void hydro_couple::sources(lexer *p, fdm2D *b, ghostcell *pgc)
     SLICELOOP4
     {
         const int h=hcell[q];
-        C(i,j) = (h>=0 && aov[h]>0.0) ? hc->qsf[h]/aov[h] : 0.0;
+        C(i,j) = (h>=0 && aov[h]>0.0) ? qs[h]/aov[h] : 0.0;
         ++q;
     }
 
     for(const entry &e : ent)
-    C(e.ci,e.cj) += hc->Qent[e.n]/e.area;
+    C(e.ci,e.cj) += qe[e.n]/e.area;
 
     SLICELOOP4
     v+=C(i,j)*p->cellarea(i,j);
@@ -245,20 +349,36 @@ void hydro_couple::budget(lexer *p, fdm2D *b, ghostcell *pgc)
     double s[3]={hc->Vp,hc->Vea,hc->Vgm};
     MPI_Allreduce(MPI_IN_PLACE,s,3,MPI_DOUBLE,MPI_SUM,pgc->mpi_comm);
 
-    double pend=hc->Qret*hc->dt;
-    for(double a : hc->addv)
-    pend+=a;
+    double pend=0.0;
+    for(int n=0; n<hc->N; ++n)
+    pend+=hc->qret[n]*hc->dt+hc->addv[n];
 
     const double Sh=hc->total_storage(pgc);
     const hydro_sflow &H=*b->hydro;
     const double Stot=Sh+H.Vstore+pend;
-    const double usr=H.Vsrc-H.Vcpl;
-    const double res=Stot-S0-(s[0]+s[2]+H.Vrain+usr+H.Vqi-s[1]-H.Vevap-H.Vabs-Vinfout-hc->Vout-Vleave);
+    const double rain=H.Vrain-b0[0], rec=H.Vcpl-b0[2], usr=H.Vsrc-b0[1]-rec, qi=H.Vqi-b0[3], ev=H.Vevap-b0[4], ab=H.Vabs-b0[5];
+    const double res=Stot-S0-(s[0]+s[2]+rain+usr+qi-s[1]-ev-ab-Vinfout-hc->Vout-Vleave);
 
     if(p->mpirank==0)
-    fout<<p->simtime<<" "<<hc->t<<" "<<s[0]<<" "<<s[2]<<" "<<s[1]<<" "<<hc->Vout<<" "<<H.Vrain<<" "<<usr<<" "<<H.Vqi<<" "
-        <<H.Vevap<<" "<<H.Vabs<<" "<<Vinfout<<" "<<Vleave<<" "<<Sh<<" "<<H.Vstore<<" "<<pend<<" "<<Stot-S0<<" "<<res<<" "
-        <<hc->Vto<<" "<<H.Vcpl<<" "<<hc->Vfrom<<endl;
+    {
+        if(!opened)
+        {
+            mkdir("./REEF3D_HYDRO",0777);
+            if(reefckpt_open(fout,"./REEF3D_HYDRO/REEF3D-HYDRO-Coupled.dat",p->I45))
+            {
+            fout<<"// REEF3D::HYDRO coupled budget [m3], cumulative since the start of the coupling; storage = catchment model + SFLOW + returns of the last interval"<<endl;
+            fout<<"// time_SFLOW[s] time_HYDRO[s] precipitation glacier_melt evaporation_HYDRO outflow_catchment rain_SFLOW sources_SFLOW inflow_SFLOW"
+                <<" evaporation_SFLOW abstraction_SFLOW infiltration_outside outflow_SFLOW_leaving storage_HYDRO storage_SFLOW returns dS residual"
+                <<" to_SFLOW received_SFLOW returned"<<endl;
+            }
+            fout<<setprecision(14);
+            opened=true;
+        }
+
+        fout<<p->simtime<<" "<<hc->t<<" "<<s[0]<<" "<<s[2]<<" "<<s[1]<<" "<<hc->Vout<<" "<<rain<<" "<<usr<<" "<<qi<<" "
+            <<ev<<" "<<ab<<" "<<Vinfout<<" "<<Vleave<<" "<<Sh<<" "<<H.Vstore<<" "<<pend<<" "<<Stot-S0<<" "<<res<<" "
+            <<hc->Vto<<" "<<rec<<" "<<hc->Vfrom<<endl;
+    }
 
     if(p->mpirank==0 && p->count%p->P12==0)
     cout<<"HYDRO coupled: t = "<<hc->t<<" s, to SFLOW "<<hc->Vto<<" m3, residual "<<res<<" m3"<<endl;
@@ -266,34 +386,92 @@ void hydro_couple::budget(lexer *p, fdm2D *b, ghostcell *pgc)
 
 void hydro_couple::step(lexer *p, fdm2D *b, ghostcell *pgc)
 {
+    // river start state: the steady sources with a cosine ramp over the first half
+    if(!started && !Cw.empty())
+    {
+        const double PI=3.14159265358979323846;
+        const double f = (p->simtime<0.5*warm) ? 0.5*(1.0-cos(PI*p->simtime/(0.5*warm))) : 1.0;
+        int q=0;
+        SLICELOOP4
+        {
+        b->hydro->C(i,j)=f*Cw[q];
+        ++q;
+        }
+        b->hydro->qcpl=f*qw;
+    }
+
     if(p->simtime>=tnext-1.0e-9*hc->dt)
     {
-        if(nexch>0)
+        if(!started)
+        start_budget(p,b,pgc);
+        else
         exchange_in(p,b,pgc);
 
         budget(p,b,pgc);
 
         hc->step(p,pgc);
-        sources(p,b,pgc);
+        sources(p,b,pgc,hc->qsf,hc->Qent);
 
         tnext+=hc->dt;
         ++nexch;
     }
 
-    // the SFLOW steps end on the next exchange
+    // the SFLOW steps end on the next exchange: the rest of the interval in equal steps no longer than the step
+    // of the time step control (one short step at the end jolts the semi-implicit scheme)
     const double rem=tnext-p->simtime;
-    if(rem>0.0 && p->dt>rem)
-    p->dt=rem;
+    if(rem>0.0 && p->dt>0.0)
+    {
+        const double n=ceil(rem/p->dt-1.0e-9);
+        p->dt=rem/max(n,1.0);
+    }
 }
 
 void hydro_couple::final(lexer *p, fdm2D *b, ghostcell *pgc)
 {
     // the run ends on an exchange: the last budget with the returns of the last interval
-    if(fabs(p->simtime-(tnext))<=1.0e-9*hc->dt)
+    if(started && fabs(p->simtime-tnext)<=1.0e-9*hc->dt)
     {
         exchange_in(p,b,pgc);
         budget(p,b,pgc);
     }
 
     hc->end(p,pgc);
+}
+
+/*
+checkpoint (rank 0's blob): t0 tnext warm Vqo0 Vleave Vinfout S0 Vadj Vwarm b0[6] nexch started, then the
+catchment model (hydro_core::ckpt_state)
+*/
+void hydro_couple::ckpt_state(lexer *p, ghostcell *pgc, vector<double> &v)
+{
+    vector<double> hv;
+    hc->ckpt_state(p,pgc,hv);
+
+    v={t0,tnext,warm,Vqo0,Vleave,Vinfout,S0,Vadj,Vwarm};
+    v.insert(v.end(),b0,b0+6);
+    v.push_back(double(nexch));
+    v.push_back(started ? 1.0 : 0.0);
+    v.insert(v.end(),hv.begin(),hv.end());
+}
+
+bool hydro_couple::ckpt_restore(lexer *p, fdm2D *b, const vector<double> &v)
+{
+    const size_t m=17;
+    if(v.size()<m)
+    return false;
+
+    t0=v[0]; tnext=v[1]; warm=v[2]; Vqo0=v[3]; Vleave=v[4]; Vinfout=v[5]; S0=v[6]; Vadj=v[7]; Vwarm=v[8];
+    for(int k=0; k<6; ++k)
+    b0[k]=v[9+k];
+    nexch=int(v[15]);
+    started=(v[16]>0.5);
+
+    return hc->ckpt_restore(p,vector<double>(v.begin()+m,v.end()));
+}
+
+void hydro_couple::flush()
+{
+    if(fout.is_open())
+    fout.flush();
+    hc->flush();
 }

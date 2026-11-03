@@ -829,6 +829,7 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `seastate_2d_phase25_mp_westh` | 1 | `seastate_2d_phase14_windsea` with A 732 2 and A 769 2 (0059): the linearised saturation whitecapping with its breaking switch, the upper bound FLMAX (alpha_p,max 0.031) |
 | `seastate_2d_phase25_gse`, `_gse_age`, `_gse_mpi2` | 1, 1, 2 | a swell field of 200 x 200 km (the box A 727 of the initial spectrum A 710 1, Tp 12 s, 20 deg) in deep water, 60 x 40 cells of 20 km, second order (A 796 2), 20 steps of 1800 s, with the GSE closure (0060): after the transport of each step the flux inside a bin as a diffusion D = t_a Sigma, A 778 red-black Gauss-Seidel iterations; t_a the model time (A 776 2) and a fixed age of 12 h (A 776 1, A 777, 3 iterations); `same_as`, bitwise on 2 ranks |
 | `seastate_2d_phase26_mp_komen_dt900` | 1 | `seastate_2d_phase25_mp_komen` with 16 steps of 900 s and 2 iterations per step (A 707 2): A 769 2 with Komen and the upper bound FLMAX (0061); without it (0058) Hs ran away to 1e6 m |
+| `seastate_2d_phase26_gse_age3`, `_gse_age3_mpi2`, `_gse_age3_wind` | 1, 2, 1 | `seastate_2d_phase25_gse` with the transported age of the GSE closure (A 776 3, 0062): M = t_a N per bin transported by a second solver without source terms, the faces with the energy-weighted age; without wind the result of A 776 2; `same_as`, bitwise on 2 ranks; with the wind sea of `seastate_2d_phase14_windsea` (the age 0 where 1.7 U10 cos > c) |
 | `seastate_2d_phase21b_once` | 1 | `seastate_2d_wind` with A 767 1 (Phase 21b): the source terms once per iteration, evaluated in the sweep of quadrant 0 and kept for quadrants 1-3; validated in Dropbox SEASTATE/validation/72 (needs patch SEASTATE/0047) |
 | `seastate_2d_phase21b_once_sector`, `_westh` | 1 | A 767 1 on `seastate_2d_phase10_sector` (sector through 0: the kept quadrant before the evaluating one) and `seastate_2d_phase9_westh` (A 732 2) |
 | `seastate_2d_phase21b_once_threads` | 1 | `seastate_2d_phase21b_once` with A 798 2: the kept terms shared by the worker copies; `same_as` the one-thread case, bitwise |
@@ -922,6 +923,11 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `hydro_coupled_chain_mid` | 1 | SFLOW on 600-1400 m: its outflow returns into the hydrology cell below it, its infiltration (R 30 1) into the upper zone of the cells |
 | `hydro_coupled_chain_mpi2` | 2 | `hydro_coupled_chain_down` on 2 ranks |
 | `hydro_catchment_spinup`, `hydro_catchment_hotstart` | 1 | the catchment model writes its state (R 107 1) after 360 h, the hot start (R 108 1, chain stage) continues it for 360 h: the gauges are bitwise those of `hydro_catchment_hbv` from hour 361 |
+| `hydro_coupled_two_outlets` | 1 | two parallel valleys (DEM without an outlet, W 21 gauges at both ends), one SFLOW grid over both: the outflow of every SFLOW boundary cell returns into the hydrology cell below its own valley (`hydro_sflow::Bq`); gauges 1 and 2 as text |
+| `hydro_coupled_warm_spinup`, `hydro_coupled_warm` | 1 | the catchment alone under steady rain, its state (R 107 1); then coupled from it with the river start state R 109 1800 (chain stage): the channels set to the steady discharges of the coupled network, SFLOW 1800 s with these sources, then the exchanges |
+| `hydro_coupled_curv` | 1 | coupled with SFLOW on a curvilinear grid (G 50 2, `curvgrid.dat`): a valley on a quarter circle, SFLOW over its lower 45 degrees |
+| `hydro_coupled_ckpt`, `hydro_coupled_restart` | 1 | `hydro_coupled_chain_mid` with checkpoints (P 48 100) and its restart from step 100: final state and the budgets of both models bitwise (`regression.py ranks`) |
+| `hydro_catchment_reservoir`, `_release` | 1 | reservoir (R 110 1, `hydro_reservoir.dat`): a level pool of 5000 m2 with a weir in cell 10 of the chain, at the crest / 0.2 m below with a release series; `REEF3D-HYDRO-Reservoirs.dat` as text (validation 09: the level to 1e-10 m of an independent implicit solve) |
 | `cfd_2d_soil_stress_s217` | 1 | soil stress model S 200 1 (quasi-static Biot u-p, `soil_stress`): periodic box 2.8 m, 0.5 m of fine sand below a fixed bed (S 10 1, S 57 0), still water above, the bed pressure prescribed as a progressive wave 707 cos(kx - wt) Pa (S 217); MINRES with the Cholesky block preconditioner, BDF2, soil probes S 216 (p, u, liquefaction potential) (needs Soil Stress patch 0001) |
 | `cfd_2d_soil_stress_s217_mpi2` | 2 | the same on 2 ranks: the halo of the soil model, the parallel periodic direction, the column communicator of the liquefaction potential |
 | `cfd_3d_soil_stress_s217` | 1 | the same in 3D (3 cells in y, roller side walls S 211 1): uy and the xy, yz shear edges; uniform in y |
@@ -954,7 +960,11 @@ run `./regression.py run ... --cases <new>`, check it, then `bless`.
   DIVEMesh without W 10 they stop with "no hydro_grid.dat".
 - The cases `hydro_coupled_*`, `hydro_catchment_spinup`, `hydro_catchment_hotstart` were blessed with hans_dev
   586679bda + patches HYDRO/0006-0007 and DIVEMesh 02e8cfd + HYDRO/DIVEMesh-0002. Patch 0006 (no old discharge on
-  an open boundary face closed for the step, semi-implicit SFLOW) changed the references of: see the HYDRO README.
+  an open boundary face closed for the step, semi-implicit SFLOW) changes none of the other references (A/B bitwise,
+  the 27 `sflow_*hydro*` cases at their full steps).
+- The cases of M3b (`hydro_coupled_two_outlets`, `_warm_spinup`, `_warm`, `_curv`, `_ckpt`, `_restart`,
+  `hydro_catchment_reservoir`, `_release`) were blessed with 586679bda + HYDRO/0006-0008; `hydro_coupled_chain_down`,
+  `_mid`, `_mpi2` re-blessed with 0008 (the SFLOW steps to the exchanges in equal parts; within 1e-6 of before).
 - The HDC cases (`*_hdc*`) need DIVEMesh 95ae3a4 or later (state file names in
   `hdc_filename_in.cpp`); `nhflow_2d_hdc_nhflow` also needs the pressure skip in
   `hdc_read_nhflow.cpp` (NHFLOW state files with the default P 44 1).

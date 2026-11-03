@@ -1,0 +1,22 @@
+{
+ "description": "REEF3D::HYDRO coupled with SFLOW on a curvilinear grid (G 50 2, curvgrid.dat): a valley along a quarter circle of radius 1000 m, 50 m hydrology cells, SFLOW on its lower 45 degrees (80 x 14 cells): overlap and entry points with the cell centres and geo_cell of the curvilinear grid.",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 400,
+ "files": [
+  "catchment_dem.asc",
+  "curvgrid.dat",
+  "hydro_forcing.dat",
+  "hydro_param.dat"
+ ],
+ "tags": [
+  "quick",
+  "hydro",
+  "catchment",
+  "coupled",
+  "curvilinear"
+ ],
+ "covers": [
+  "hydro_couple on a curvilinear grid"
+ ]
+}

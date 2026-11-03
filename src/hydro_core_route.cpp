@@ -79,15 +79,17 @@ void hydro_core::route(lexer *p, ghostcell *pgc)
     Qold=Q;
     fill(Qin.begin(),Qin.end(),0.0);
 
-    // coupled (R 100 2): the outflow of SFLOW into cell ret, the infiltration of SFLOW (vertical)
+    // coupled (R 100 2): the outflow of SFLOW into the cells, the infiltration of SFLOW (vertical)
     double vfrom=0.0, vto=0.0;
     for(int n=0; n<N; ++n)
-    vfrom+=addv[n];
-
-    if(ret>=0)
     {
-        Qin[ret]+=Qret;
-        vfrom+=Qret*dt;
+        vfrom+=addv[n];
+
+        if(qret[n]!=0.0)
+        {
+            Qin[n]+=qret[n];
+            vfrom+=qret[n]*dt;
+        }
     }
 
     double vout=0.0;
@@ -97,7 +99,9 @@ void hydro_core::route(lexer *p, ghostcell *pgc)
         qsf[n]=share[n]*qgen[n];
         const double ql=qgen[n]-qsf[n];
 
-        if(p->R106==0)
+        if(rescell[n]>=0)
+        Q[n]=reservoir_step(p,resv[rescell[n]],Qin[n]+ql);
+        else if(p->R106==0)
         Q[n]=Qin[n]+ql;
         else
         {

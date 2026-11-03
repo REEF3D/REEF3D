@@ -90,20 +90,6 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
     b->wave->ini(p,b,pgc);
     }
 	
-    // REEF3D::HYDRO catchment model coupled with SFLOW (R 100 2)
-    if(p->R100==2)
-    {
-        if(pamr!=nullptr)
-        {
-            if(p->mpirank==0)
-            cout<<"!!! HYDRO: R 100 2 with mesh refinement or multi-block grids is not available yet !!!"<<endl;
-            pgc->final(true);
-        }
-
-    pcpl = new hydro_couple(p,b,pgc);
-    pcpl->ini(p,b,pgc);
-    }
-	
 	regression_dump rdump(p);
 	rdump.sflow_ini(p,b,pgc);
 	

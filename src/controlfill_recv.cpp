@@ -7052,6 +7052,10 @@ void control::ctrlrecv()
     ii++;
     R108 = ictrl[ii];
     ii++;
+    R109 = dctrl[dd];
+    dd++;
+    R110 = ictrl[ii];
+    ii++;
 
     ii_recv=ii;
     dd_recv=dd;

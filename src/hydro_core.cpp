@@ -67,8 +67,8 @@ bool hydro_core::active(lexer *p)
     return p->A10==2 && p->R100>0;
 }
 
-hydro_core::hydro_core(lexer *p, ghostcell *pgc) : t(0.0), dt(p->R101), N(0), nb(1), ret(-1), Qret(0.0), Vto(0.0), Vfrom(0.0),
-    ni(0), nj(0), x0(0.0), y0(0.0), D(1.0), Vp(0.0), Vea(0.0), Vgm(0.0), Vout(0.0), S0(0.0), n0(0), n1(0), fhasE(false), nmb(1), tout(0.0), tvtk(0.0), tlast(-1.0), nvtk(0), kw(p->R106==1), first(true)
+hydro_core::hydro_core(lexer *p, ghostcell *pgc) : t(0.0), dt(p->R101), N(0), nb(1), Vto(0.0), Vfrom(0.0),
+    ni(0), nj(0), x0(0.0), y0(0.0), D(1.0), Vp(0.0), Vea(0.0), Vgm(0.0), Vout(0.0), S0(0.0), n0(0), n1(0), fhasE(false), nmb(1), tout(0.0), tvtk(0.0), tlast(-1.0), nvtk(0), kw(p->R106==1), first(true), opened(false)
 {
 }
 
@@ -419,6 +419,7 @@ void hydro_core::ini(lexer *p, ghostcell *pgc)
     read_grid(p,pgc);
     read_param(p,pgc);
     read_forcing(p,pgc);
+    read_reservoirs(p,pgc);
 
     const int no=n1-n0;
     SP.assign(size_t(no)*nb,0.0);
@@ -475,6 +476,7 @@ void hydro_core::ini(lexer *p, ghostcell *pgc)
     share.assign(N,0.0);
     enter.assign(N,0);
     addv.assign(N,0.0);
+    qret.assign(N,0.0);
     qsf.assign(N,0.0);
     Qent.assign(N,0.0);
     cP.assign(no,0.0); cT.assign(no,0.0); cE.assign(no,0.0); cEa.assign(no,0.0); cRun.assign(no,0.0);

@@ -1146,6 +1146,8 @@ void control::ini_default()
     R106=1;             // int HYDRO catchment routing: 0 downstream within the step, 1 kinematic wave
     R107=0;             // int HYDRO catchment model: write the state REEF3D_HYDRO/hydro_state.dat at the end
     R108=0;             // int HYDRO catchment model: start from hydro_state.dat (hot start)
+    R110=0;             // int HYDRO catchment model: reservoirs from hydro_reservoir.dat
+    R109=0.0;           // double HYDRO coupled (R 100 2, R 108 1): SFLOW time of the river start state [s], 0 none
     Q10=0;              // int particle sediment model (S 10>0): 0 Eulerian bedload/exner, 1 CPM explicit Euler, 2 CPM RK2
     Q11=1;              // int particle movement model: 1 plain (empirical threshold), 2 MP-PIC
     Q12=2;              // int inter-particle stress model: 0 off, 1 Snider (2001), 2 packed bed (Johnson-Jackson contact pressure + mu(I) friction)
