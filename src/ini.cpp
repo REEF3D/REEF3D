@@ -185,7 +185,7 @@ void control::ini_default()
     A515=1;      // int Dirichlet wave BC type: 1 still-water flux, 2 actual-depth flux, 3 theoretical eta, 4 mass-conservative (still-water flux, U=UH/D, exact face flux)
     A516=1;      // int forcing WL/eta treatment
     A517=1;      // int preserve tangential velocities for forcing
-    A518=2;      // int NHFLOW bed BC
+    A518=1;      // int NHFLOW bed BC of the velocity: 1 wall-function bed (mirrored ghosts, bed shear from A 519), 2 resolved no-slip bed (u = 0 on the bed face)
     A519=-1;     // int turn on bed roughness (not given: 1 with a turbulence model A 560 or sediment S 10, else 0; lexer_read)
     A520=2;		// int NHFLOW pressure scheme: 0 hydrostatic, 1 projection, 2 incremental projection
     A521=0;		// int wetdry/forcing flux 

@@ -486,6 +486,31 @@ void ghostcell::start3V(lexer *p, double *f, int gcv)
     p->gctime+=timer()-starttime;
 }
 
+// bed ghost cells of the horizontal velocity (U, V, UH, VH: gcv 10, 11, 14, 15), A 518:
+//  1 wall-function bed (default): mirrored symmetrically, zero normal gradient. The bed shear enters the
+//    momentum equations as the wall friction of A 519, not through the ghost cells; the reconstruction
+//    and the velocity gradients see smooth data at the bed
+//  2 resolved no-slip bed: mirrored antisymmetrically, u = 0 on the bed face (wall-resolving grids,
+//    laminar flow, wall-resolved LES)
+// The ghost cells were set to 0 with A 518 2 before (the bed-face value u/2 of the cell: neither slip nor
+// no-slip) and copied (not mirrored) with A 518 1. The divergence at the bed node of the pressure Poisson
+// equation does not use them (nhflow_pjm::rhs: 0 below the bed, as before).
+// Ghost m mirrors the cell m-1 above the bed; with fewer layers the top cell is repeated (the ghost cells
+// above the top layer are not necessarily set yet in this sweep).
+static inline void nhflow_bed_ghost(lexer *p, double *f, int i, int j, int k)
+{
+    const double sg = (p->A518==2) ? -1.0 : 1.0;
+    const int above = p->knoz-1-k;   // cells above the bed cell in the column
+    
+    const double f0 = f[IJK];
+    const double f1 = above>=1 ? f[IJKp1] : f0;
+    const double f2 = above>=2 ? f[IJKp2] : f1;
+    
+    f[IJKm1] = sg*f0;
+    f[IJKm2] = sg*f1;
+    f[IJKm3] = sg*f2;
+}
+
 void ghostcell::start4V_par(lexer *p, double *f, int gcv)
 {
     if(do_comms)
@@ -664,22 +689,9 @@ void ghostcell::start4V(lexer *p, double *f, int gcv)
             f[IJKp3] = f[IJK];
         }
 
-        // bed
+        // bed: A 518 (nhflow_bed_ghost)
         if(p->flag4[IJKm1]<0 && (gcv==10||gcv==11||gcv==14||gcv==15))
-        {
-            if(p->A518==1)
-            {
-                f[IJKm1] = f[IJK];
-                f[IJKm2] = f[IJK];
-                f[IJKm3] = f[IJK];
-            }
-             if(p->A518==2)
-            {
-                f[IJKm1] = 0.0;
-                f[IJKm2] = 0.0;
-                f[IJKm3] = 0.0;
-            }
-        }
+        nhflow_bed_ghost(p,f,i,j,k);
     }
     else
     {
@@ -704,22 +716,9 @@ void ghostcell::start4V(lexer *p, double *f, int gcv)
             f[IJKp3] = f[IJK];
         }
 
-        // bed
+        // bed: A 518 (nhflow_bed_ghost)
         if(p->flag4[IJKm1]<0 && (gcv==10||gcv==11||gcv==14||gcv==15))
-        {
-            if(p->A518==1)
-            {
-                f[IJKm1] = f[IJK];
-                f[IJKm2] = f[IJK];
-                f[IJKm3] = f[IJK];
-            }
-             if(p->A518==2)
-            {
-                f[IJKm1] = 0.0;
-                f[IJKm2] = 0.0;
-                f[IJKm3] = 0.0;
-            }
-        }
+        nhflow_bed_ghost(p,f,i,j,k);
     
     }
     }

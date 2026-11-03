@@ -185,32 +185,41 @@ void nhflow_pjm_corr::rhs(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, doubl
     {
         WETDRYDEEP
         {
+        // bed node (k==0): the velocity below the bed is taken as 0 here, whatever the bed ghost cells of the velocity
+        // (A 518): the bed face then carries (1-fac) U of the bed cell, the half cell of the bed node half its
+        // horizontal divergence. With the mirrored ghost cells of the wall-function bed (A 518 1) in this place the
+        // dispersion of the waves changed (linear sloshing, kh = pi/2, 5 layers: period +1.8 % instead of -0.1 %)
+        const bool bednode = (k==0);
+        const double Ub1 = bednode ? 0.0 : U[Im1JKm1], Ub2 = bednode ? 0.0 : U[Ip1JKm1];
+        const double Vb1 = bednode ? 0.0 : V[IJm1Km1], Vb2 = bednode ? 0.0 : V[IJp1Km1];
+        const double Ubc = bednode ? 0.0 : U[IJKm1],   Vbc = bednode ? 0.0 : V[IJKm1];
+        
         fac = p->DZN[KM1]/(p->DZN[KP]+p->DZN[KM1]);    
 
-        U1 = (1.0-fac)*U[Im1JK] + fac*U[Im1JKm1]; 
-        U2 = (1.0-fac)*U[Ip1JK] + fac*U[Ip1JKm1]; 
+        U1 = (1.0-fac)*U[Im1JK] + fac*Ub1; 
+        U2 = (1.0-fac)*U[Ip1JK] + fac*Ub2; 
         
-        V1 = (1.0-fac)*V[IJm1K] + fac*V[IJm1Km1]; 
-        V2 = (1.0-fac)*V[IJp1K] + fac*V[IJp1Km1];   
+        V1 = (1.0-fac)*V[IJm1K] + fac*Vb1; 
+        V2 = (1.0-fac)*V[IJp1K] + fac*Vb2;   
 
         
         if(k==0)
         {
         fac = MAX((1.0 - p->A522*fabs(d->Bx(i,j))),0.0)*p->DZN[KM1]/(p->DZN[KP]+p->DZN[KM1]);
         
-        U1 = (1.0-fac)*U[Im1JK] + fac*U[Im1JKm1]; 
-        U2 = (1.0-fac)*U[Ip1JK] + fac*U[Ip1JKm1]; 
+        U1 = (1.0-fac)*U[Im1JK] + fac*Ub1; 
+        U2 = (1.0-fac)*U[Ip1JK] + fac*Ub2; 
         
         
         fac = MAX((1.0 - p->A522*fabs(d->By(i,j))),0.0)*p->DZN[KM1]/(p->DZN[KP]+p->DZN[KM1]);
         
-        V1 = (1.0-fac)*V[IJm1K] + fac*V[IJm1Km1]; 
-        V2 = (1.0-fac)*V[IJp1K] + fac*V[IJp1Km1]; 
+        V1 = (1.0-fac)*V[IJm1K] + fac*Vb1; 
+        V2 = (1.0-fac)*V[IJp1K] + fac*Vb2; 
         }
      
 
-        dUdz = (U[IJK] - U[IJKm1])/p->DZP[KM1];
-        dVdz = (V[IJK] - V[IJKm1])/p->DZP[KM1];
+        dUdz = (U[IJK] - Ubc)/p->DZP[KM1];
+        dVdz = (V[IJK] - Vbc)/p->DZP[KM1];
         dWdz = p->sigz[IJ]*(W[IJK]-W[IJKm1])/p->DZP[KM1];
          
         // curvilinear grid: the horizontal divergence by the chain rule (nhflow_curv.h)

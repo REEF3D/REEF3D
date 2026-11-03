@@ -217,8 +217,9 @@ double nhflow_curv::divh_level(lexer *p, fdm_nhf *d, const double *U, const doub
         facj = MAX((1.0 - p->A522*bj),0.0)*p->DZN[kk-1+marge]/(p->DZN[kk+marge]+p->DZN[kk-1+marge]);
     }
 
-    auto li = [&](const double *f, int a, int b) { return (1.0-faci)*f[C(a,b,kk)] + faci*f[C(a,b,kk-1)]; };
-    auto lj = [&](const double *f, int a, int b) { return (1.0-facj)*f[C(a,b,kk)] + facj*f[C(a,b,kk-1)]; };
+    // bed node: the velocity below the bed 0, whatever the bed ghost cells (A 518), as nhflow_pjm::rhs
+    auto li = [&](const double *f, int a, int b) { return (1.0-faci)*f[C(a,b,kk)] + (kk==0 ? 0.0 : faci*f[C(a,b,kk-1)]); };
+    auto lj = [&](const double *f, int a, int b) { return (1.0-facj)*f[C(a,b,kk)] + (kk==0 ? 0.0 : facj*f[C(a,b,kk-1)]); };
 
     double ux,uy,vx,vy;
     grad5(p,ii,jj,li(U,ii+1,jj),li(U,ii-1,jj),lj(U,ii,jj+1),lj(U,ii,jj-1),ux,uy);
