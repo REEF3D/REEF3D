@@ -79,22 +79,44 @@ void hydro_core::route(lexer *p, ghostcell *pgc)
     Qold=Q;
     fill(Qin.begin(),Qin.end(),0.0);
 
+    // coupled (R 100 2): the outflow of SFLOW into cell ret, the infiltration of SFLOW (vertical)
+    double vfrom=0.0, vto=0.0;
+    for(int n=0; n<N; ++n)
+    vfrom+=addv[n];
+
+    if(ret>=0)
+    {
+        Qin[ret]+=Qret;
+        vfrom+=Qret*dt;
+    }
+
     double vout=0.0;
     for(int n=0; n<N; ++n)
     {
+        // the share of the runoff under the SFLOW grid
+        qsf[n]=share[n]*qgen[n];
+        const double ql=qgen[n]-qsf[n];
+
         if(p->R106==0)
-        Q[n]=Qin[n]+qgen[n];
+        Q[n]=Qin[n]+ql;
         else
         {
             const double c=dt/len[n];
-            Q[n]=kinwave(c,alpha[n],c*(Qin[n]+qgen[n])+alpha[n]*pow(Qold[n],0.6));
+            Q[n]=kinwave(c,alpha[n],c*(Qin[n]+ql)+alpha[n]*pow(Qold[n],0.6));
         }
 
-        if(down[n]>=0)
+        Qent[n]=0.0;
+        if(enter[n])
+        Qent[n]=Q[n];
+        else if(down[n]>=0)
         Qin[down[n]]+=Q[n];
         else
         vout+=Q[n]*dt;
+
+        vto+=(qsf[n]+Qent[n])*dt;
     }
 
     Vout+=vout;
+    Vto+=vto;
+    Vfrom+=vfrom;
 }

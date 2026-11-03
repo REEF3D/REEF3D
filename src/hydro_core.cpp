@@ -67,8 +67,8 @@ bool hydro_core::active(lexer *p)
     return p->A10==2 && p->R100>0;
 }
 
-hydro_core::hydro_core(lexer *p, ghostcell *pgc) : t(0.0), dt(p->R101), N(0), nb(1), ni(0), nj(0), x0(0.0), y0(0.0), D(1.0),
-    n0(0), n1(0), fhasE(false), nmb(1), Vp(0.0), Vea(0.0), Vgm(0.0), Vout(0.0), S0(0.0), tout(0.0), tvtk(0.0), tlast(-1.0), nvtk(0), first(true)
+hydro_core::hydro_core(lexer *p, ghostcell *pgc) : t(0.0), dt(p->R101), N(0), nb(1), ret(-1), Qret(0.0), Vto(0.0), Vfrom(0.0),
+    ni(0), nj(0), x0(0.0), y0(0.0), D(1.0), Vp(0.0), Vea(0.0), Vgm(0.0), Vout(0.0), S0(0.0), n0(0), n1(0), fhasE(false), nmb(1), tout(0.0), tvtk(0.0), tlast(-1.0), nvtk(0), kw(p->R106==1), first(true)
 {
 }
 
@@ -109,7 +109,7 @@ void hydro_core::read_grid(lexer *p, ghostcell *pgc)
     {
         istringstream s(line);
         s>>key>>version;
-        if(key!="REEF3D_HYDRO_GRID" || version!=1)
+        if(key!="REEF3D_HYDRO_GRID" || version<1 || version>2)
         stop(p,pgc,"hydro_grid.dat: unknown format");
     }
 
@@ -169,6 +169,31 @@ void hydro_core::read_grid(lexer *p, ghostcell *pgc)
         c>>gid[g]>>gx>>gy>>gcell[g];
         if(c.fail() || gcell[g]<0 || gcell[g]>=N)
         stop(p,pgc,"hydro_grid.dat: could not read gauge "+to_string(g));
+    }
+
+    // version 2: the fine flow paths (x y of the pixel centres)
+    poff.assign(N+1,0);
+    if(version>=2)
+    {
+        header("paths",s);
+        for(int n=0; n<N; ++n)
+        {
+            if(!next_line(f,line))
+            stop(p,pgc,"hydro_grid.dat: too few paths");
+            istringstream c(line);
+            int id, np;
+            c>>id>>np;
+            for(int k=0; k<np; ++k)
+            {
+                double a,b;
+                c>>a>>b;
+                px.push_back(a);
+                py.push_back(b);
+            }
+            if(c.fail() || id!=n || np<1)
+            stop(p,pgc,"hydro_grid.dat: could not read the path of cell "+to_string(n));
+            poff[n+1]=int(px.size());
+        }
     }
 
     // partition: contiguous ranges of cells
@@ -447,6 +472,11 @@ void hydro_core::ini(lexer *p, ghostcell *pgc)
     buf.assign(size_t(no)*nmb,0.0);
 
     qgen.assign(N,0.0);
+    share.assign(N,0.0);
+    enter.assign(N,0);
+    addv.assign(N,0.0);
+    qsf.assign(N,0.0);
+    Qent.assign(N,0.0);
     cP.assign(no,0.0); cT.assign(no,0.0); cE.assign(no,0.0); cEa.assign(no,0.0); cRun.assign(no,0.0);
 
     // channels: A = alpha Q^0.6 for a wide channel, alpha = (n W^(2/3) / sqrt(S))^0.6
@@ -460,6 +490,9 @@ void hydro_core::ini(lexer *p, ghostcell *pgc)
         alpha[n]=pow(P(n,CH_N)*pow(W,2.0/3.0)/sqrt(max(slope[n],1.0e-6)),0.6);
         len[n]=max(len[n],1.0);
     }
+
+    if(p->R108==1)
+    read_state(p,pgc);
 
     if(p->mpirank==0)
     {

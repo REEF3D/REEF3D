@@ -34,10 +34,10 @@ void control::parse(lexer* p)
     R20=0.0;
     }
 
-    if(R100>1)
+    if(R100<0 || R100>2)
     {
         if(p->mpirank==0)
-        cout<<"!!! HYDRO: R 100 "<<R100<<": only R 100 1 (the catchment model alone) so far, ignored"<<endl;
+        cout<<"!!! HYDRO: R 100 "<<R100<<": 1 the catchment model alone, 2 coupled with SFLOW; ignored"<<endl;
     R100=0;
     }
 

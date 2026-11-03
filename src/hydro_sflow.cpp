@@ -35,7 +35,7 @@ Architect: Hans Bihs
 
 using namespace std;
 
-hydro_sflow::hydro_sflow(lexer *p, fdm2D *b, ghostcell *pgc, const hydro_sflow *lv0) : S(p), R(p), F(p), Rc(p), fc(p), Pc(p), sc(p), L(p)
+hydro_sflow::hydro_sflow(lexer *p, fdm2D *b, ghostcell *pgc, const hydro_sflow *lv0) : S(p), R(p), F(p), Rc(p), fc(p), Pc(p), sc(p), L(p), C(p)
 {
     in = (lv0==nullptr) ? this : lv0;
 
@@ -49,6 +49,7 @@ hydro_sflow::hydro_sflow(lexer *p, fdm2D *b, ghostcell *pgc, const hydro_sflow *
     Pc(i,j) = 0.0;
     sc(i,j) = 0.0;
     L(i,j) = 0.0;
+    C(i,j) = 0.0;
     }
 }
 
@@ -546,6 +547,11 @@ void hydro_sflow::grid_prepare(lexer *p)
     SLICELOOP4
     S(i,j) = R(i,j);
 
+    // the catchment model (R 100 2)
+    if(cpl)
+    SLICELOOP4
+    S(i,j) += C(i,j);
+
     // point sources, Q > 0
     for(const cell &c : cells)
     if(I.src[c.n].q>0.0)
@@ -655,6 +661,7 @@ void hydro_sflow::step_volumes(lexer *p, ghostcell *pgc, double ve, double vi, d
 
     Vrain += dt*qrain;
     Vsrc += dt*qsrc;
+    Vcpl += dt*qcpl;
     Vqi += dt*(bq_set ? bq_in : p->Qi);
     Vqo += dt*(bq_set ? bq_out : p->Qo);
     bq_set = false;
@@ -667,6 +674,7 @@ void hydro_sflow::step_volumes(lexer *p, ghostcell *pgc, double ve, double vi, d
 void hydro_sflow::prepare(lexer *p, fdm2D *b, ghostcell *pgc)
 {
     inputs_step(p,pgc);
+    qsrc += qcpl;
     grid_prepare(p);
 
     qrain = pgc->globalsum(grid_rain(p,[](int,int){return true;}));

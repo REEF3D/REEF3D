@@ -1004,6 +1004,7 @@
       <VirtualDirectory Name="Hydro">
         <File Name="hydro_raster.h"/>
         <File Name="hydro_core.h"/>
+        <File Name="hydro_couple.h"/>
         <File Name="hydro_sflow.h"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Multiphase">
@@ -2762,6 +2763,7 @@
         <File Name="hydro_core_hbv.cpp"/>
         <File Name="hydro_core_out.cpp"/>
         <File Name="hydro_core_route.cpp"/>
+        <File Name="hydro_couple.cpp"/>
         <File Name="hydro_sflow.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="Multiphase">

@@ -52,6 +52,7 @@ Author: Hans Bihs
 #include"reefckpt.h"
 #include"reefrun_ckpt.h"
 #include"hydro_core.h"
+#include"hydro_couple.h"
 
 sflow_f::sflow_f(lexer *p, fdm2D *b, ghostcell* pgc, patchBC_interface *ppBC)
 {
@@ -89,6 +90,20 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
     b->wave->ini(p,b,pgc);
     }
 	
+    // REEF3D::HYDRO catchment model coupled with SFLOW (R 100 2)
+    if(p->R100==2)
+    {
+        if(pamr!=nullptr)
+        {
+            if(p->mpirank==0)
+            cout<<"!!! HYDRO: R 100 2 with mesh refinement or multi-block grids is not available yet !!!"<<endl;
+            pgc->final(true);
+        }
+
+    pcpl = new hydro_couple(p,b,pgc);
+    pcpl->ini(p,b,pgc);
+    }
+	
 	regression_dump rdump(p);
 	rdump.sflow_ini(p,b,pgc);
 	
@@ -102,6 +117,10 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
 	{		
         ++p->count;
         starttime=pgc->timer();
+
+        // REEF3D::HYDRO coupled (R 100 2): the catchment step and the exchange when due, the step ends on the next exchange
+        if(pcpl!=nullptr)
+        pcpl->step(p,b,pgc);
 
         if(p->mpirank==0 && (p->count%p->P12==0))
         {
@@ -311,6 +330,9 @@ void sflow_f::start(lexer *p, fdm2D* b, ghostcell* pgc)
 	}
     
     rdump.sflow_final(p,b,pgc);
+
+    if(pcpl!=nullptr)
+    pcpl->final(p,b,pgc);
     
     pgc->final();
 	

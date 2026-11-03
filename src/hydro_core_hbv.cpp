@@ -123,9 +123,9 @@ void hydro_core::vertical(lexer *p)
             sgm += fb*g*icemelt;
         }
 
-        // response
+        // response (with the water SFLOW infiltrated on the cell, R 100 2)
         double &suz=SUZ[o], &slz=SLZ[o];
-        suz += recharge;
+        suz += recharge + addv[n]*1.0e3/area[n];
         const double perc=min(P(n,PERC)*dtd,suz);
         suz -= perc;
         slz += perc;

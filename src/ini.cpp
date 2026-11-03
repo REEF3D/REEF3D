@@ -1137,13 +1137,15 @@ void control::ini_default()
     R35=0;              // int HYDRO sealed fraction from sealed.asc
     R50=0;              // int HYDRO roughness raster: 1 Manning n from manning.asc
     R90=60.0;           // double HYDRO volume budget output interval [s], <= 0: every step
-    R100=0;             // int HYDRO catchment model from hydro_grid.dat (DIVEMesh W 10): 0 off, 1 catchment model only
+    R100=0;             // int HYDRO catchment model from hydro_grid.dat (DIVEMesh W 10): 0 off, 1 catchment model only, 2 coupled with SFLOW
     R101=3600.0;        // double HYDRO catchment model time step [s]
     R102=3600.0;        // double HYDRO catchment model output interval of gauges, budget and means [s], <= 0: every step
     R103=0.0;           // double HYDRO catchment model grid output interval [s] (REEF3D_HYDRO/*.vtk), <= 0: off
     R104=60.0;          // double HYDRO latitude [deg] for the potential evaporation (Oudin) without PET columns
     R105=1.0;           // double HYDRO day of the year at t = 0
     R106=1;             // int HYDRO catchment routing: 0 downstream within the step, 1 kinematic wave
+    R107=0;             // int HYDRO catchment model: write the state REEF3D_HYDRO/hydro_state.dat at the end
+    R108=0;             // int HYDRO catchment model: start from hydro_state.dat (hot start)
     Q10=0;              // int particle sediment model (S 10>0): 0 Eulerian bedload/exner, 1 CPM explicit Euler, 2 CPM RK2
     Q11=1;              // int particle movement model: 1 plain (empirical threshold), 2 MP-PIC
     Q12=2;              // int inter-particle stress model: 0 off, 1 Snider (2001), 2 packed bed (Johnson-Jackson contact pressure + mu(I) friction)

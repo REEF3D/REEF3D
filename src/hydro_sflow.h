@@ -117,6 +117,11 @@ eta system, exact; explicit: the time integrals of ioflow Qi, Qo) and the
 error = residual - (inflow - outflow) (semi-implicit: the mass error of
 the scheme).
 
+Coupled with the catchment model (R 100 2, hydro_couple.h): the source rates
+C of the catchment (runoff of the cells under the grid, discharge of the
+flow paths that enter it) are added to S; they count as sources in the
+budget (Vcpl: their part). Rain R 10 on top of it would count twice.
+
 Output (with any HYDRO key): REEF3D_SFLOW_VTP_FSF rain [mm/h], rain_depth
 [mm] (cumulative), infiltration [mm] (cumulative).
 
@@ -131,8 +136,8 @@ public:
     hydro_sflow(lexer*, fdm2D*, ghostcell*, const hydro_sflow *lv0=nullptr);
     virtual ~hydro_sflow() = default;
 
-    static bool active(lexer *p) {return p->A10==2 && (p->R10>0 || p->R20>0.0 || p->R30>0 || p->R40>0 || p->R50>0);}
-    static bool wetting(lexer *p) {return p->A10==2 && (p->R10>0 || p->R40>0);}
+    static bool active(lexer *p) {return p->A10==2 && (p->R10>0 || p->R20>0.0 || p->R30>0 || p->R40>0 || p->R50>0 || p->R100==2);}
+    static bool wetting(lexer *p) {return p->A10==2 && (p->R10>0 || p->R40>0 || p->R100==2);}
 
     // level 0: the inputs (collective), its grid, the storage at the start, the budget file
     void ini(lexer*, fdm2D*, ghostcell*);
@@ -176,6 +181,9 @@ public:
     slice4 Pc;      // R 30 2: psi dtheta [m]
     slice4 sc;      // sealed fraction
     slice4 L;       // the losses of the step [m] (the semi-implicit water column: sflow_momentum_SI::water_column)
+    slice4 C;       // R 100 2: source rate from the catchment model [m/s] (hydro_couple), with cpl
+    bool cpl = false;
+    double qcpl = 0.0, Vcpl = 0.0;  // R 100 2: its global rate [m3/s] (part of the sources) and cumulative volume [m3]
 
     // budget, cumulative volumes [m3] since the start (the same on all ranks)
     double Vrain=0.0, Vsrc=0.0, Vabs=0.0, Vevap=0.0, Vinf=0.0, Vqi=0.0, Vqo=0.0, Vstore0=0.0, Vstore=0.0;
@@ -201,7 +209,9 @@ private:
     double xc(lexer*, int, int) const;
     double yc(lexer*, int, int) const;
     void load_record(lexer*, ghostcell*, int n, hydro_raster &dst);
-    bool locate(lexer*, double x, double y, int &ci, int &cj);
+public:
+    bool locate(lexer*, double x, double y, int &ci, int &cj);      // a point (model coordinates) in a fluid cell of this grid
+private:
     static double ga_step(double F0, double P, double Ksdt);
     static bool read_series(const std::string &file, std::vector<double> &t, std::vector<double> &v);
     static double ipol(const std::vector<double> &t, const std::vector<double> &v, double tt, int mode);

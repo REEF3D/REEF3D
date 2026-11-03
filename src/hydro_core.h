@@ -52,6 +52,10 @@ Routing:  MAXBAS triangular weights per cell, then the cell network: R 106 0 the
 Parallel: cells are split into contiguous ranges over the ranks (vertical processes are local); the
           lateral inflows are gathered and the network is routed on every rank (identical on all ranks)
 Output:   REEF3D_HYDRO/REEF3D-HYDRO-Gauges.dat, -Budget.dat, -Means.dat, REEF3D-HYDRO-<n>.vtk (R 103)
+Coupled:  R 100 2 with SFLOW (hydro_couple.h): the share of the runoff of the cells under the SFLOW grid and the
+          discharge of the cells whose flow path enters it go to SFLOW, the outflow of SFLOW comes back into
+          the cell below the SFLOW grid, the infiltration of SFLOW into the upper zone
+Hot start: R 107 1 writes REEF3D_HYDRO/hydro_state.dat at the end, R 108 1 starts from hydro_state.dat
 */
 
 class hydro_core : public increment
@@ -65,6 +69,8 @@ public:
     void ini(lexer*, ghostcell*);
     void step(lexer*, ghostcell*);              // advance the model from t to t+dt
     void run(lexer*, ghostcell*);               // R 100 1: catchment model only
+    void begin(lexer*, ghostcell*);             // outputs at the start (after ini)
+    void end(lexer*, ghostcell*);               // outputs at the end, the state (R 107 1)
     void regression_fields(vector<string>&, vector<vector<double>>&) const;   // owned state (regression dump)
     vector<double> regression_sums() const;
 
@@ -74,6 +80,34 @@ public:
 
     double t, dt;                               // time and time step [s]
     int N, nb;                                  // cells and bands
+
+    // hot start (R 107 1 writes, R 108 1 reads REEF3D_HYDRO/hydro_state.dat / hydro_state.dat)
+    void write_state(lexer*, ghostcell*);
+    void read_state(lexer*, ghostcell*);
+
+    // coupling with SFLOW (R 100 2, hydro_couple): set before step(), read after it
+    vector<double> share;                       // fraction of the runoff of a cell that goes to SFLOW
+    vector<char> enter;                         // the outflow of the cell enters SFLOW instead of the downstream cell
+    int ret;                                    // cell that takes the outflow of SFLOW (-1: it leaves the catchment)
+    double Qret;                                // outflow of SFLOW into cell ret over the step [m3/s]
+    vector<double> addv;                        // water from SFLOW into the upper zone of every cell over the step [m3] (all ranks)
+    vector<double> qsf;                         // runoff of a cell to SFLOW over the step [m3/s]
+    vector<double> Qent;                        // discharge of a cell into SFLOW over the step [m3/s]
+    double Vto, Vfrom;                          // cumulative volumes to and from SFLOW [m3] (the same on all ranks)
+    double total_storage(ghostcell*) const;     // collective
+
+    // grid (hydro_grid.dat)
+    int ni, nj;
+    double x0, y0, D;
+    vector<int> I, J, down, sub, zone;
+    vector<double> xc, yc, area, zmean, len, slope, aup, lakef;
+    vector<double> bz, bf, bg;                  // per cell and band
+    vector<int> gid, gcell;
+    vector<int> poff;                           // version 2: the fine flow path of cell n, points poff[n] .. poff[n+1]-1,
+    vector<double> px, py;                      // from its outlet pixel to the outlet pixel of the downstream cell
+
+    // volumes [m3], cumulative (Vp, Vea, Vgm over the owned cells, Vout the same on all ranks)
+    double Vp, Vea, Vgm, Vout, S0;
 
 private:
     void stop(lexer*, ghostcell*, const string&) const;
@@ -90,14 +124,6 @@ private:
     void print_vtk(lexer*, ghostcell*);
     double owned_storage() const;
     double P(int n, int k) const {return par[n*NPAR+k];}
-
-    // grid
-    int ni, nj;
-    double x0, y0, D;
-    vector<int> I, J, down, sub, zone;
-    vector<double> xc, yc, area, zmean, len, slope, aup, lakef;
-    vector<double> bz, bf, bg;                  // per cell and band
-    vector<int> gid, gcell;
 
     // partition: rank r owns cells [displ[r], displ[r]+count[r])
     int n0, n1;
@@ -127,10 +153,9 @@ private:
     // routing (all cells, every rank)
     vector<double> Q, Qold, Qin, alpha;
 
-    // volumes [m3], cumulative over the owned cells
-    double Vp, Vea, Vgm, Vout, S0;
     double tout, tvtk, tlast;               // next output, next grid output, last output
     int nvtk;
+    bool kw;                                    // kinematic wave (R 106 1)
     ofstream fg, fb, fm;
     bool first;
 };

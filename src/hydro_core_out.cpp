@@ -48,13 +48,32 @@ void hydro_core::step(lexer *p, ghostcell *pgc)
     }
 }
 
+void hydro_core::begin(lexer *p, ghostcell *pgc)
+{
+    budget(p,pgc,true);
+
+    if(p->R103>0.0)
+    {
+        print_vtk(p,pgc);
+        tvtk=t+p->R103;
+    }
+}
+
+void hydro_core::end(lexer *p, ghostcell *pgc)
+{
+    budget(p,pgc,true);
+
+    if(p->R107==1)
+    write_state(p,pgc);
+}
+
 void hydro_core::run(lexer *p, ghostcell *pgc)
 {
     if(p->mpirank==0)
     cout<<endl<<"REEF3D::HYDRO catchment model (R 100 1)"<<endl;
 
     ini(p,pgc);
-    budget(p,pgc,true);
+    begin(p,pgc);
 
     regression_dump rdump(p);
     vector<string> rn;
@@ -65,12 +84,6 @@ void hydro_core::run(lexer *p, ghostcell *pgc)
     rdump.model_ini(p,"sum(SP^2) sum(SM^2) sum(SUZ^2) sum(SLZ^2) sum(Q^2)");
     regression_fields(rn,rd);
     rdump.model_state(p,rn,rd);
-
-    if(p->R103>0.0)
-    {
-        print_vtk(p,pgc);
-        tvtk=p->R103;
-    }
 
     const double t0=pgc->timer();
     int count=0;
@@ -87,7 +100,7 @@ void hydro_core::run(lexer *p, ghostcell *pgc)
         cout<<"HYDRO step "<<count<<"  t = "<<t/86400.0<<" day  Q outlet = "<<(gcell.empty() ? 0.0 : Q[gcell[0]])<<" m3/s"<<endl;
     }
 
-    budget(p,pgc,true);
+    end(p,pgc);
 
     regression_fields(rn,rd);
     rdump.model_state(p,rn,rd);
@@ -167,7 +180,8 @@ void hydro_core::budget(lexer *p, ghostcell *pgc, bool force)
 
         fb.open("./REEF3D_HYDRO/REEF3D-HYDRO-Budget.dat");
         fb<<"// REEF3D::HYDRO volume budget [m3], cumulative since t = 0"<<endl;
-        fb<<"// time[s] precipitation glacier_melt evaporation outflow storage channels dS residual relative_residual"<<endl;
+        fb<<"// time[s] precipitation glacier_melt evaporation outflow storage channels dS residual relative_residual"
+          <<(p->R100==2 ? " to_SFLOW from_SFLOW" : "")<<endl;
 
         fg.open("./REEF3D_HYDRO/REEF3D-HYDRO-Gauges.dat");
         fg<<"// REEF3D::HYDRO discharge [m3/s]"<<endl<<"// time[s]";
@@ -186,9 +200,12 @@ void hydro_core::budget(lexer *p, ghostcell *pgc, bool force)
     first=false;
 
     const double dS=store-S0;
-    const double res=dS-(s[VP]+s[VGM]-s[VEA]-Vout);
+    const double res=dS-(s[VP]+s[VGM]-s[VEA]-Vout-Vto+Vfrom);
     const double ref=max(1.0e-30,s[VP]+s[VGM]);
-    fb<<t<<" "<<s[VP]<<" "<<s[VGM]<<" "<<s[VEA]<<" "<<Vout<<" "<<store<<" "<<vch<<" "<<dS<<" "<<res<<" "<<res/ref<<endl;
+    fb<<t<<" "<<s[VP]<<" "<<s[VGM]<<" "<<s[VEA]<<" "<<Vout<<" "<<store<<" "<<vch<<" "<<dS<<" "<<res<<" "<<res/ref;
+    if(p->R100==2)
+    fb<<" "<<Vto<<" "<<Vfrom;
+    fb<<endl;
 
     fg<<t;
     for(size_t g=0; g<gid.size(); ++g)
@@ -284,4 +301,107 @@ vector<double> hydro_core::regression_sums() const
     for(int n=n0; n<n1; ++n)
     s[4]+=Q[n]*Q[n];
     return s;
+}
+
+// water in the catchment model [m3]: snow, soil, zones, MAXBAS buffers, channels (collective)
+double hydro_core::total_storage(ghostcell *pgc) const
+{
+    double s=owned_storage();
+    MPI_Allreduce(MPI_IN_PLACE,&s,1,MPI_DOUBLE,MPI_SUM,pgc->mpi_comm);
+
+    if(kw)
+    for(int n=0; n<N; ++n)
+    s+=len[n]*alpha[n]*pow(Q[n],0.6);
+
+    return s;
+}
+
+/*
+hot start: the state of all cells (rank 0 gathers), binary:
+"R3DHYST1", int N, nb, nmb, double t, then per cell SP[nb] WC[nb] SM[nb] SUZ SLZ buf[nmb] Q
+*/
+void hydro_core::write_state(lexer *p, ghostcell *pgc)
+{
+    const int m=3*nb+2+nmb;
+    vector<double> loc(size_t(n1-n0)*m);
+    for(int n=n0; n<n1; ++n)
+    {
+        const int o=n-n0;
+        double *v=&loc[size_t(o)*m];
+        for(int b=0; b<nb; ++b)
+        {
+            v[b]=SP[o*nb+b];
+            v[nb+b]=WC[o*nb+b];
+            v[2*nb+b]=SM[o*nb+b];
+        }
+        v[3*nb]=SUZ[o];
+        v[3*nb+1]=SLZ[o];
+        for(int k=0; k<nmb; ++k)
+        v[3*nb+2+k]=buf[size_t(o)*nmb+k];
+    }
+
+    vector<int> rc(cnt.size()), rd(cnt.size());
+    for(size_t r=0; r<cnt.size(); ++r)
+    {
+        rc[r]=cnt[r]*m;
+        rd[r]=displ[r]*m;
+    }
+
+    vector<double> all(p->mpirank==0 ? size_t(N)*m : 1);
+    MPI_Gatherv(loc.data(),int(loc.size()),MPI_DOUBLE,all.data(),rc.data(),rd.data(),MPI_DOUBLE,0,pgc->mpi_comm);
+
+    if(p->mpirank==0)
+    {
+        mkdir("./REEF3D_HYDRO",0777);
+        ofstream f("./REEF3D_HYDRO/hydro_state.dat",ios::binary);
+        const char magic[8]={'R','3','D','H','Y','S','T','1'};
+        f.write(magic,8);
+        int32_t h[3]={N,nb,nmb};
+        f.write((char*)h,sizeof(h));
+        f.write((char*)&t,sizeof(double));
+        f.write((char*)all.data(),all.size()*sizeof(double));
+        f.write((char*)Q.data(),Q.size()*sizeof(double));
+        cout<<"HYDRO: state at t = "<<t<<" s written to REEF3D_HYDRO/hydro_state.dat"<<endl;
+    }
+}
+
+void hydro_core::read_state(lexer *p, ghostcell *pgc)
+{
+    ifstream f("hydro_state.dat",ios::binary);
+    char magic[8]={0};
+    int32_t h[3]={0,0,0};
+    double ts=0.0;
+    const int m=3*nb+2+nmb;
+    vector<double> all(size_t(N)*m), q(N);
+
+    f.read(magic,8);
+    f.read((char*)h,sizeof(h));
+    f.read((char*)&ts,sizeof(double));
+    f.read((char*)all.data(),all.size()*sizeof(double));
+    f.read((char*)q.data(),q.size()*sizeof(double));
+
+    const int ok = (f && string(magic,8)=="R3DHYST1" && h[0]==N && h[1]==nb && h[2]==nmb) ? 1 : 0;
+    if(pgc->globalimin(ok)==0)
+    stop(p,pgc,"R 108 1: hydro_state.dat is missing or does not fit hydro_grid.dat and MAXBAS (copy REEF3D_HYDRO/hydro_state.dat of an R 107 1 run)");
+
+    t=ts;
+    for(int n=n0; n<n1; ++n)
+    {
+        const int o=n-n0;
+        const double *v=&all[size_t(n)*m];
+        for(int b=0; b<nb; ++b)
+        {
+            SP[o*nb+b]=v[b];
+            WC[o*nb+b]=v[nb+b];
+            SM[o*nb+b]=v[2*nb+b];
+        }
+        SUZ[o]=v[3*nb];
+        SLZ[o]=v[3*nb+1];
+        for(int k=0; k<nmb; ++k)
+        buf[size_t(o)*nmb+k]=v[3*nb+2+k];
+    }
+    Q=q;
+
+    if(p->mpirank==0)
+    cout<<"HYDRO: hot start from hydro_state.dat at t = "<<t<<" s"<<endl;
 }
