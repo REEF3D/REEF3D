@@ -213,6 +213,7 @@ public:
     // nhflow_momentum_RK2/RK3) and the velocity correction of the projection (nhflow_pjm::ucorr, vcorr, wcorr), and the
     // link mobilities of the Poisson matrix with it (nhflow_membrane_row), so that the projection stays consistent
     double *ikap = nullptr;
+    double atop_(int ii, int jj) const { return const_cast<slice4&>(atop)(ii,jj); }
     inline double ik(int q) const { return ikap!=nullptr ? ikap[q] : 1.0; }
     void scale_rhs(lexer*, double*);
     

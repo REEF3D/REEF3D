@@ -159,6 +159,9 @@ void nhflow_pjm::amr_finish(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL, dou
 
 void nhflow_pjm::ucorr(lexer* p, fdm_nhf *d, slice &WL, double *UH, double *P, double alpha)
 {
+    // cut faces (X 15 10): the horizontal pressure force of the cells as finite volumes (nhflow_cut_gx)
+    const bool cut = d->thinbody!=nullptr && d->thinbody->cutmode;
+
     // membranes (X 330): face mobilities in the horizontal gradient, see nhflow_membrane_beta.h
     // cut faces (X 15 10): the correction of a cut cell per its water (nhflow_thinbody::ik)
     // curvilinear grid: the horizontal gradient by the chain rule (nhflow_curv.h)
@@ -171,7 +174,8 @@ void nhflow_pjm::ucorr(lexer* p, fdm_nhf *d, slice &WL, double *UH, double *P, d
     
 	UH[IJK] -= alpha*p->dt*CPORNH*WL(i,j)*(1.0/p->W1)*(d->thinbody!=nullptr ? d->thinbody->ik(IJK) : 1.0)*
     
-                ((d->MBETA!=nullptr ? nhflow_membrane_gradx(p,d,d->P,i,j,k) :
+                (cut ? nhflow_cut_gx(p,d,WL,d->P,i,j,k) :
+                (d->MBETA!=nullptr ? nhflow_membrane_gradx(p,d,d->P,i,j,k) :
                 p->geo_curv==1 ? px :
                 ((0.5*(d->P[FIp1JKp1]+d->P[FIp1JK])-0.5*(d->P[FIm1JKp1]+d->P[FIm1JK]))/(p->DXP[IP]+p->DXP[IM1])))
                 
@@ -181,6 +185,9 @@ void nhflow_pjm::ucorr(lexer* p, fdm_nhf *d, slice &WL, double *UH, double *P, d
 
 void nhflow_pjm::vcorr(lexer* p, fdm_nhf *d, slice &WL, double *VH, double *P, double alpha)
 {
+    // cut faces (X 15 10): the horizontal pressure force of the cells as finite volumes (nhflow_cut_gx)
+    const bool cut = d->thinbody!=nullptr && d->thinbody->cutmode;
+
     if(p->j_dir==1)
     LOOP
     WETDRYDEEP
@@ -191,7 +198,8 @@ void nhflow_pjm::vcorr(lexer* p, fdm_nhf *d, slice &WL, double *VH, double *P, d
     
     VH[IJK] -= alpha*p->dt*CPORNH*WL(i,j)*(1.0/p->W1)*(d->thinbody!=nullptr ? d->thinbody->ik(IJK) : 1.0)*
     
-                ((d->MBETA!=nullptr ? nhflow_membrane_grady(p,d,d->P,i,j,k) :
+                (cut ? nhflow_cut_gy(p,d,WL,d->P,i,j,k) :
+                (d->MBETA!=nullptr ? nhflow_membrane_grady(p,d,d->P,i,j,k) :
                 p->geo_curv==1 ? py :
                 ((0.5*(d->P[FIJp1Kp1]+d->P[FIJp1K])-0.5*(d->P[FIJm1Kp1]+d->P[FIJm1K]))/(p->DYP[JP]+p->DYP[JM1])))
                 

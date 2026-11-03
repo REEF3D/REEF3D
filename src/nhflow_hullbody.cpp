@@ -1264,7 +1264,20 @@ void nhflow_hullbody::loads_cut(lexer *p, fdm_nhf *d, slice &WL, const std::func
         const double ay = p->j_dir==1 ? AY(IJK) - AY(IJm1K) : 0.0;
         const double az = (k<p->knoz-1 ? tb->azn[IJKp1] : tb->atop(i,j)) - tb->azn[IJK];
         
-        if(ax==0.0 && ay==0.0 && az==0.0)
+        // the horizontal part of the open surface of the cell, sum a n A, as the finite volume of the pressure force of
+        // the solver (nhflow_cut_gx): the x / y faces with their heights, the sigma faces with their slope
+        const double He = 0.5*(WL(i,j)+WL(i+1,j))*p->DZN[KP], Hw = 0.5*(WL(i-1,j)+WL(i,j))*p->DZN[KP];
+        const double a0 = tb->azn[IJK], a1 = k<p->knoz-1 ? tb->azn[IJKp1] : tb->atop(i,j);
+        const double ox = (AX(IJK)*He - AX(Im1JK)*Hw)*p->DYN[JP] - p->DXN[IP]*p->DYN[JP]*WL(i,j)*(p->sigx[FIJK]*a0 - p->sigx[FIJKp1]*a1);
+        double oy = 0.0;
+        
+        if(p->j_dir==1)
+        {
+        const double Hn = 0.5*(WL(i,j)+WL(i,j+1))*p->DZN[KP], Hs = 0.5*(WL(i,j-1)+WL(i,j))*p->DZN[KP];
+        oy = (AY(IJK)*Hn - AY(IJm1K)*Hs)*p->DXN[IP] - p->DXN[IP]*p->DYN[JP]*WL(i,j)*(p->sigy[FIJK]*a0 - p->sigy[FIJKp1]*a1);
+        }
+        
+        if(ax==0.0 && ay==0.0 && az==0.0 && fabs(ox)<1.0e-14 && fabs(oy)<1.0e-14)
         continue;
         
         // the pressure at the surface point nearest to the cell centre, x_c - FB grad FB (the still-water part there,
@@ -1287,11 +1300,16 @@ void nhflow_hullbody::loads_cut(lexer *p, fdm_nhf *d, slice &WL, const std::func
         if(keep!=nullptr && !(*keep)(p->XP[IP],p->YP[JP]))
         continue;
         
-        // the dynamic part (head above the still water level, non-hydrostatic pressure); the still-water part below
-        const double pc = rg*tb->head(p,d,i,j,k) + tb->pcell(p,P,i,j,k);
+        // the dynamic part (head above the still water level, non-hydrostatic pressure); the still-water part below.
+        // Horizontally both as the solver puts them on the water: the head as the wall flux of the hydrostatic part,
+        // g (e^2/2 + e h) per layer fraction (nhflow_thinbody::cut_faces), the non-hydrostatic pressure on the open surface
+        // (ox, oy); vertically the pressure on the open fractions of the bottom and the top face
+        const double eh = tb->head(p,d,i,j,k), pn = tb->pcell(p,P,i,j,k);
+        const double pc = rg*eh + pn;
+        const double hh = rg*(0.5*eh*eh + eh*d->depth(i,j));
         
-        const double fx = -pc*ax*p->DYN[JP]*p->DZN[KP]*WL(i,j);
-        const double fy = -pc*ay*p->DXN[IP]*p->DZN[KP]*WL(i,j);
+        const double fx = -hh*ax*p->DYN[JP]*p->DZN[KP] - pn*ox;
+        const double fy = -hh*ay*p->DXN[IP]*p->DZN[KP] - pn*oy;
         const double fz = -pc*az*p->DXN[IP]*p->DYN[JP];
         
         ++nf;

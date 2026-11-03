@@ -58,6 +58,7 @@ Author: Hans Bihs
 #include"increment.h"
 #include"vrans_definitions.h"
 #include"nhflow_thinbody.h"
+#include"slice.h"
 
 // mobility of the vertical velocity correction in cell (i,j,k): compact difference of the nodes k, k+1,
 // exactly the vertical face of the Poisson matrix
@@ -133,6 +134,56 @@ inline double nhflow_membrane_grady(lexer *p, fdm_nhf *d, const double *P, int i
     const double dyp = p->DYP[JP], dym = p->DYP[JM1];
     
     return (nhflow_mby(d,IJK,IJp1K)*(Pw-Pc) + nhflow_mby(d,IJm1K,IJK)*(Pc-Pe))/(dyp+dym);
+}
+
+// X 15 10 (cut faces): the horizontal pressure force on the water of cell (i,j,k) as a finite volume,
+//   F = - sum over the open parts of its faces (p_f - p_c) n_f A_f,
+// the x (y) faces with their heights (the mean water depth of the two columns times the layer fraction) and face
+// pressures (the mean of the two cells), the sigma faces at the nodes with their slope dz/dx = -WL sigx and their open
+// fractions. The wall parts carry the cell pressure p_c, so that the sum over the cells of any region is the pressure
+// on its boundary plus p_c on the wall parts (the loads of nhflow_hullbody::loads_cut; the discrete divergence theorem).
+// In a full cell this is the gradient of nhflow_pjm::ucorr (the wide gradient and the sigma term) up to the face heights.
+// Returned as G, F = -WL V G.
+inline double nhflow_cut_gx(lexer *p, fdm_nhf *d, slice &WL, const double *P, int i, int j, int k)
+{
+    const int marge = increment::marge;
+    const nhflow_thinbody *tb = d->thinbody;
+    
+    const double pc = tb->pcell(p,P,i,j,k);
+    const double pe = 0.5*(pc + tb->pcell(p,P,i+1,j,k));
+    const double pw = 0.5*(tb->pcell(p,P,i-1,j,k) + pc);
+    const int q = tb->cidx(p,i,j,k), qw = tb->cidx(p,i-1,j,k);
+    const double ae = 0.5*(tb->axl[q]+tb->axh[q]), aw = 0.5*(tb->axl[qw]+tb->axh[qw]);
+    const double He = 0.5*(WL(i,j)+WL(i+1,j))*p->DZN[KP], Hw = 0.5*(WL(i-1,j)+WL(i,j))*p->DZN[KP];
+    
+    const double a0 = tb->azn[q], a1 = k<p->knoz-1 ? tb->azn[q+1] : tb->atop_(i,j);
+    const double s0 = -WL(i,j)*p->sigx[FIJK], s1 = -WL(i,j)*p->sigx[FIJKp1];
+    
+    // per unit y
+    const double F = -((pe-pc)*ae*He - (pw-pc)*aw*Hw) + p->DXN[IP]*((P[FIJKp1]-pc)*a1*s1 - (P[FIJK]-pc)*a0*s0);
+    
+    return -F/(WL(i,j)*p->DXN[IP]*p->DZN[KP]);
+}
+
+inline double nhflow_cut_gy(lexer *p, fdm_nhf *d, slice &WL, const double *P, int i, int j, int k)
+{
+    const int marge = increment::marge;
+    const nhflow_thinbody *tb = d->thinbody;
+    
+    const double pc = tb->pcell(p,P,i,j,k);
+    const double pn = 0.5*(pc + tb->pcell(p,P,i,j+1,k));
+    const double ps = 0.5*(tb->pcell(p,P,i,j-1,k) + pc);
+    const int q = tb->cidx(p,i,j,k), qs = tb->cidx(p,i,j-1,k);
+    const double an = 0.5*(tb->ayl[q]+tb->ayh[q]), as = 0.5*(tb->ayl[qs]+tb->ayh[qs]);
+    const double Hn = 0.5*(WL(i,j)+WL(i,j+1))*p->DZN[KP], Hs = 0.5*(WL(i,j-1)+WL(i,j))*p->DZN[KP];
+    
+    const double a0 = tb->azn[q], a1 = k<p->knoz-1 ? tb->azn[q+1] : tb->atop_(i,j);
+    const double s0 = -WL(i,j)*p->sigy[FIJK], s1 = -WL(i,j)*p->sigy[FIJKp1];
+    
+    // per unit x
+    const double F = -((pn-pc)*an*Hn - (ps-pc)*as*Hs) + p->DYN[JP]*((P[FIJKp1]-pc)*a1*s1 - (P[FIJK]-pc)*a0*s0);
+    
+    return -F/(WL(i,j)*p->DYN[JP]*p->DZN[KP]);
 }
 
 inline void nhflow_membrane_row(lexer *p, fdm_nhf *d, int i, int j, int k, int n, double ct, double cb, double sxx, double rhs0)
