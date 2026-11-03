@@ -37,7 +37,8 @@ void net_sheet::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc)
     //- Initialise net model
     ini(p,pgc);
     
-    //- Initialise printing
+    //- Initialise printing (no forces before the first time step)
+    Fx = Fy = Fz = 0.0;
     printtime = 0.0;
     // a restart (I 45): no print at the start, the outputs continue from the checkpoint
     if(p->I45!=1)
@@ -57,7 +58,8 @@ void net_sheet::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
         zend[qn]   =  1.0e20;
     }
     
-    //- Initialise printing
+    //- Initialise printing (no forces before the first time step)
+    Fx = Fy = Fz = 0.0;
     printtime = 0.0;
     // a restart (I 45): no print at the start, the outputs continue from the checkpoint
     if(p->I45!=1)
