@@ -666,6 +666,10 @@ private:
     bool ring0(int ii, int jj) const { return nblk>0 && nring[(ii-p0->imin)*p0->jmax + (jj-p0->jmin)]==1; }
 
     // output
+    // which cells another grid shows (the leaf cells of mass() are 0): 1 a finer patch covers the cell,
+    // 2 the ring of block 0 (the blocks 1.. have its cells); of level 0 and of a patch
+    int cover0(int ii, int jj);
+    int cover(reefamr_patch *q, int ii, int jj);
     void write_vtr(lexer*, nhflow_amr_patch&, int);
     void write_vtr0(lexer*, fdm_nhf*);
     bool print_lagoon(lexer*, fdm_nhf*, ghostcell*);

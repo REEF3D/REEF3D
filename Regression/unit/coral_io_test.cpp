@@ -12,7 +12,8 @@
 // output vtp) build the same frame as the code and give bit for bit the same modes, the mode table
 // (kinetic energy split) and the VTP file are written; offshore keywords (superelement, soil,
 // soil_layer, pile, morison on frame and superelement members, point_mass at an offset, force, linear6
-// with full matrices) build the expected loads and the model finds its static equilibrium.
+// with full matrices) build the expected loads and the model finds its static equilibrium; initial_pose
+// turns and moves the whole model with its joints closed.
 // Architect: Hans Bihs
 #include"coral/core/coral_gravity.h"
 #include"coral/core/coral_constraint.h"
@@ -479,6 +480,29 @@ static void test_bathymetry_input()
     check(ok && ls.size()==2 && dmax < 0.01 && zflat < -54.99, msg);
 }
 
+// initial_pose: the whole model turned and moved after the set-up; the joints stay closed, the velocities turn
+static void test_initial_pose()
+{
+    std::cout<<"initial_pose"<<std::endl;
+    coral_case c;
+    c.read_string("time dt 0.05 end 1\ngravity 0 0 -9.81\n"
+                  "body a mass 1000 cog 0 0 -5 inertia 10 10 10\n"
+                  "body b mass 100 cog 0 0 20 inertia 1 1 1 velocity 1 0 0 omega 0 0 2\n"
+                  "joint j revolute a b point 0 0 10 axis 0 0 1\n"
+                  "initial_pose offset 5 0 0 rpy 0 30 0\n", ".");
+    const model &m = c.m;
+    const rigid_body &a = m.body(m.find_body("a")), &b = m.body(m.find_body("b"));
+    const double s = 0.5, co = std::sqrt(3.0)/2.0;
+    const Mat3 Ry = (Mat3() << co, 0, s, 0, 1, 0, -s, 0, co).finished();
+    VecX g; MatX G;
+    m.constraints(g, G);
+    const double e = (a.x - Vec3(5 - 5*s, 0, -5*co)).norm() + (b.x - Vec3(5 + 20*s, 0, 20*co)).norm()
+                   + (a.R - Ry).norm() + (b.R - Ry).norm() + (b.v - Vec3(co, 0, -s)).norm() + (b.w - Vec3(0, 0, 2)).norm();
+    char msg[160];
+    std::snprintf(msg, sizeof(msg), "initial_pose: bodies turned 30 deg about y and moved 5 m (error %.1e), joint closed (|g| %.1e)", e, g.norm());
+    check(e < 1e-12 && g.norm() < 1e-12, msg);
+}
+
 int main()
 {
     test_full_model();
@@ -490,6 +514,7 @@ int main()
     test_mooring_points();
     test_mooring_sections();
     test_bathymetry_input();
+    test_initial_pose();
     std::cout<<(nfail ? "FAILED: " : "all passed")<<(nfail ? std::to_string(nfail) : "")<<std::endl;
     return nfail ? 1 : 0;
 }

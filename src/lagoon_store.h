@@ -320,7 +320,9 @@ public:
         int rank = -1;              // the MPI rank that has it
         int nx = 0, ny = 0;         // cells
         int nz = 0;                 // cells in z: 0 for a 2D grid (a surface's), > 0 for a block of a volume (CFD)
-        std::vector<double> x, y;   // nx+1 and ny+1 node coordinates, rising
+        bool curvilinear = false;   // a 2D grid of a curvilinear grid (G 50): x and y of every node
+        std::vector<double> x, y;   // nx+1 and ny+1 node coordinates, rising; curvilinear: (nx+1)*(ny+1)
+                                    // each, the x and the y of every node, x fastest
         std::vector<double> z;      // nz+1 node coordinates of a block, rising
         std::vector<double> values; // nx*ny(*nz) per field (x fastest, then y, then z), the fields one after another
     };
@@ -337,7 +339,7 @@ public:
 
     bool usable() const { return ok; }
 
-    // grids as doubles for MPI (count, then per grid level, nx, ny, nz, x, y, z, values) and
+    // grids as doubles for MPI (count, then per grid level, nx, ny, nz, curvilinear, x, y, z, values) and
     // back; unpack appends the grids of one rank
     static void pack(const std::vector<grid> &grids, int fields, std::vector<double> &out);
     static bool unpack(const double *data, size_t n, int fields, int rank, std::vector<grid> &out);
@@ -348,6 +350,7 @@ private:
     int gzip_level;
     bool ok, started;
     int dims;                               // 2: grids of a surface, 3: blocks of a volume
+    bool curvilinear;                       // 2D grids with the x and y of every node (G 50)
     std::vector<lagoon_rows::array> table;  // level, rank, size, x_end, y_end, cell_end (, z_end)
     std::vector<lagoon_rows::array> nodes;  // x, y (, z)
     std::vector<lagoon_rows::array> cells;  // the fields

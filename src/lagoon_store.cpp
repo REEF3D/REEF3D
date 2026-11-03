@@ -1378,7 +1378,7 @@ lagoon_amr::lagoon_amr(const std::string &path_, const std::string &solver_, con
                        const std::vector<field> &fields_, int gzip_level_)
     : path(path_), solver(solver_), key(key_), source(source_), run_json(run_json_),
       dir(path_ + "/amr/" + key_), fields(fields_), gzip_level(gzip_level_), ok(true), started(false),
-      dims(2), x_end(0), y_end(0), z_end(0), cell_end(0), store(path_), rw(gzip_level_)
+      dims(2), curvilinear(false), x_end(0), y_end(0), z_end(0), cell_end(0), store(path_), rw(gzip_level_)
 {
 }
 
@@ -1400,6 +1400,7 @@ void lagoon_amr::start()
           << lagoon_store::json_string(array_name(fields[f].name)) << "}";
     j << "}, \"dataset\": " << lagoon_store::json_string(key)
       << ", \"role\": \"amr\", \"refinement\": 2" << (dims==3 ? ", \"dims\": 3" : "")
+      << (curvilinear ? ", \"horizontal\": \"curvilinear\"" : "")
       << ", \"source\": " << lagoon_store::json_string(source) << "}}}";
     write_file(dir + "/zarr.json", j.str());
 
@@ -1440,7 +1441,10 @@ bool lagoon_amr::output(double time, long long step, const std::vector<grid> &gr
     {
         const size_t nf = fields.size();
         if(!started && !grids.empty())
+        {
             dims = grids.front().nz>0 ? 3 : 2;  // the first output says what the set holds
+            curvilinear = dims==2 && grids.front().curvilinear;
+        }
         std::vector<int32_t> level, rank, size;
         std::vector<int64_t> xe, ye, ze, ce;
         std::vector<double> x, y, z;
@@ -1448,8 +1452,11 @@ bool lagoon_amr::output(double time, long long step, const std::vector<grid> &gr
         for(const grid &g : grids)
         {
             const size_t n = size_t(g.nx)*size_t(g.ny)*size_t(dims==3 ? g.nz : 1);
-            if(g.nx<1 || g.ny<1 || g.x.size()!=size_t(g.nx+1) || g.y.size()!=size_t(g.ny+1)
-               || g.values.size()!=nf*n || (dims==3) != (g.nz>0)
+            // curvilinear: the x and the y of every node; else the grid lines
+            const size_t nxs = curvilinear ? size_t(g.nx+1)*size_t(g.ny+1) : size_t(g.nx+1);
+            const size_t nys = curvilinear ? size_t(g.nx+1)*size_t(g.ny+1) : size_t(g.ny+1);
+            if(g.nx<1 || g.ny<1 || g.x.size()!=nxs || g.y.size()!=nys
+               || g.values.size()!=nf*n || (dims==3) != (g.nz>0) || g.curvilinear!=curvilinear
                || (dims==3 && g.z.size()!=size_t(g.nz+1)))
                 throw std::runtime_error("lagoon_amr: a grid's sizes do not fit");
             level.push_back(g.level);
@@ -1460,8 +1467,8 @@ bool lagoon_amr::output(double time, long long step, const std::vector<grid> &gr
                 size.push_back(g.nz);
             x.insert(x.end(), g.x.begin(), g.x.end());
             y.insert(y.end(), g.y.begin(), g.y.end());
-            x_end += g.nx + 1;
-            y_end += g.ny + 1;
+            x_end += (long long)nxs;
+            y_end += (long long)nys;
             cell_end += (long long)n;
             xe.push_back(x_end);
             ye.push_back(y_end);
@@ -1533,6 +1540,10 @@ void lagoon_amr::pack(const std::vector<grid> &grids, int nf, std::vector<double
         out.push_back(g.nx);
         out.push_back(g.ny);
         out.push_back(g.nz);
+        out.push_back(g.curvilinear ? 1.0 : 0.0);
+        const size_t nodes = g.curvilinear ? size_t(g.nx+1)*size_t(g.ny+1) : 0;
+        if(g.curvilinear && (g.nz>0 || g.x.size()!=nodes || g.y.size()!=nodes))
+            throw std::runtime_error("lagoon_amr: a curvilinear grid's nodes do not fit its size");
         out.insert(out.end(), g.x.begin(), g.x.end());
         out.insert(out.end(), g.y.begin(), g.y.end());
         if(g.nz>0)
@@ -1556,24 +1567,29 @@ bool lagoon_amr::unpack(const double *data, size_t n, int nf, int rank, std::vec
     const long long count = (long long)data[at++];
     for(long long q=0; q<count; ++q)
     {
-        if(at + 4 > n)
+        if(at + 5 > n)
             return false;
         grid g;
         g.level = int(data[at]);
         g.nx = int(data[at+1]);
         g.ny = int(data[at+2]);
         g.nz = int(data[at+3]);
+        g.curvilinear = data[at+4]!=0.0;
         g.rank = rank;
-        at += 4;
+        at += 5;
+        if(g.nx<1 || g.ny<1 || g.nz<0 || (g.curvilinear && g.nz>0))
+            return false;
         const size_t layers = size_t(g.nz>0 ? g.nz : 1);
         const size_t nv = size_t(nf)*size_t(g.nx)*size_t(g.ny)*layers;
-        const size_t need = size_t(g.nx+1) + size_t(g.ny+1) + (g.nz>0 ? size_t(g.nz+1) : 0) + nv;
-        if(g.nx<1 || g.ny<1 || g.nz<0 || at + need > n)
+        const size_t nxs = g.curvilinear ? size_t(g.nx+1)*size_t(g.ny+1) : size_t(g.nx+1);
+        const size_t nys = g.curvilinear ? size_t(g.nx+1)*size_t(g.ny+1) : size_t(g.ny+1);
+        const size_t need = nxs + nys + (g.nz>0 ? size_t(g.nz+1) : 0) + nv;
+        if(at + need > n)
             return false;
-        g.x.assign(data + at, data + at + g.nx + 1);
-        at += g.nx + 1;
-        g.y.assign(data + at, data + at + g.ny + 1);
-        at += g.ny + 1;
+        g.x.assign(data + at, data + at + nxs);
+        at += nxs;
+        g.y.assign(data + at, data + at + nys);
+        at += nys;
         if(g.nz>0)
         {
             g.z.assign(data + at, data + at + g.nz + 1);
