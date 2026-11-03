@@ -48,6 +48,7 @@ Architect: Hans Bihs
 #include"coral/wind/coral_wind.h"
 #include"coral/wind/coral_wind_grid.h"
 #include"coral/wind/coral_wind_probe.h"
+#include"coral/structure/coral_beam.h"
 #include"coral/aero/coral_rotor.h"
 #include"coral/aero/coral_rotor_tune.h"
 #include"coral/control/coral_turbine_controller.h"
@@ -170,7 +171,7 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
     // items whose second word is a name (of a body, joint, load, ...): keys are searched after it
     static const std::set<std::string> named = {"body", "joint", "pto", "drive", "jforce", "spring", "linear6", "force", "drag",
         "mooring", "morison", "section", "member", "superelement", "pile", "point_mass", "fluid_body", "fluid_member", "hydro",
-        "point", "line_type", "wind_probe", "rotor", "controller", "strip_member"};
+        "point", "line_type", "wind_probe", "rotor", "controller", "strip_member", "beam_sensor"};
     for(const auto &l : lines)
     {
         items.push_back(item{l.first, l.second});
@@ -1585,6 +1586,16 @@ void coral_case::parse(const std::vector<std::pair<int, std::vector<std::string>
                 };
             }
             m.add_load(std::make_unique<controller_load>(cs, f, it.word(1)));
+        }
+        else if(k=="beam_sensor")
+        {
+            const std::string en = it.word("element");
+            const beam_element *be = nullptr;
+            for(const auto &l : m.load_list)
+                if(l->name()==en)
+                    if((be = dynamic_cast<const beam_element*>(l.get()))) break;
+            if(!be) it.fail("no beam element '" + en + "' (members: <member>.e<k>, k from 0; rotor blades: <rotor>_b<k>e<i>.e0)");
+            m.add_load(std::make_unique<beam_sensor>(*be, it.word(1)));
         }
         else if(k=="wind_probe")
         {

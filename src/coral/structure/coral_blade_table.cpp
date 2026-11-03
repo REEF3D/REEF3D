@@ -72,6 +72,7 @@ bool blade_structure::read_string(const std::string &text, blade_structure &b, s
     std::string line;
     int n = -1;
     double adj_m = 1.0, adj_f = 1.0, adj_e = 1.0;
+    int col[6] = {0, 1, 2, 3, 4, 5}, ncol = 6;
     bool elastodyn = text.find("NBlInpSt") != std::string::npos;
     auto num = [](const std::string &w, double &x) {try {size_t k; x = std::stod(w, &k); return k==w.size();} catch(...) {return false;}};
     while(std::getline(in, line))
@@ -91,10 +92,29 @@ bool blade_structure::read_string(const std::string &text, blade_structure &b, s
             if(w[1]=="AdjFlSt") {adj_f = v; continue;}
             if(w[1]=="AdjEdSt") {adj_e = v; continue;}
         }
-        if(w.size() < 6) continue;
+        // a header naming the columns (ElastoDyn: BlFract PitchAxis StrcTwst BMassDen FlpStff EdgStff; files of
+        // OpenFAST 3.5 and later leave out PitchAxis)
+        if(std::find(w.begin(), w.end(), "BlFract") != w.end())
+        {
+            const char *names[6] = {"BlFract", "PitchAxis", "StrcTwst", "BMassDen", "FlpStff", "EdgStff"};
+            for(int q=0; q<6; ++q)
+            {
+                const auto it = std::find(w.begin(), w.end(), names[q]);
+                col[q] = it==w.end() ? -1 : int(it - w.begin());
+            }
+            ncol = 0;
+            for(int q=0; q<6; ++q) ncol = std::max(ncol, col[q] + 1);
+            if(col[0] < 0 || col[2] < 0 || col[3] < 0 || col[4] < 0 || col[5] < 0)
+            {
+                msg = "the blade table needs the columns BlFract StrcTwst BMassDen FlpStff EdgStff";
+                return false;
+            }
+            continue;
+        }
+        if((int)w.size() < ncol) continue;
         double r[6];
         bool ok = true;
-        for(int q=0; q<6 && ok; ++q) ok = num(w[q], r[q]);
+        for(int q=0; q<6 && ok; ++q) ok = col[q] < 0 ? (r[q] = 0.25, true) : num(w[col[q]], r[q]);
         if(!ok) continue;
         if(elastodyn && (n < 0 || (int)b.frac.size()==n)) continue;   // the mode shape tables after the stations
         if(!b.frac.empty() && r[0] <= b.frac.back())

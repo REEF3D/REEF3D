@@ -37,7 +37,11 @@ Architect: Hans Bihs
 // Loads per unit span: fn = 1/2 rho W^2 c cn (along Vx, thrust), ft = 1/2 rho W^2 c ct (along Vy, driving torque),
 // mz = 1/2 rho W^2 c^2 cm (pitching moment, nose up positive), W^2 = (Vx (1 - a))^2 + (Vy (1 + a'))^2.
 // Without inflow normal to the plane or in it (Vx <= 0 or Vy <= 0), or with induction off: no induction. At the tip
-// (r >= R) with the tip loss, and at the hub (r <= R_hub) with the hub loss, F = 0: no load.
+// (r >= R) with the tip loss, and at the hub (r <= R_hub) with the hub loss, F = 0: a = 1, a' = 0 as AeroDyn (the
+// limit of the momentum balance for F -> 0): the element's load without axial inflow (phi = 0, W = Vy; region 4).
+// Where the windmill root has passed phi = 0 (a -> 1: the residual positive from eps on, no root in (0, pi/2]),
+// AeroDyn switches to the propeller-brake root, whose load jumps; CORAL takes the state at phi = eps (the inductions of
+// the momentum balance there), continuous where the root leaves the interval, for the implicit time step (region 4).
 // Skewed wake (Pitt-Peters, AeroDyn's SkewMod 1): a (1 + skew) after the solution, with
 // skew = 15 pi/32 (r/R) tan(chi/2) cos(psi) given by the caller (chi the wake skew, psi the azimuth from the most
 // downwind position of the blade).
@@ -78,7 +82,7 @@ namespace coral
         double phi = 0.0, alpha = 0.0, a = 0.0, ap = 0.0, F = 1.0, W = 0.0;
         double cl = 0.0, cd = 0.0, cm = 0.0, cn = 0.0, ct = 0.0;
         double fn = 0.0, ft = 0.0, mz = 0.0;         // per unit span
-        int region = 0;     // 0 no induction, 1 windmill (0, pi/2], 2 propeller brake, 3 (pi/2, pi)
+        int region = 0;     // 0 no induction, 1 windmill (0, pi/2], 2 propeller brake, 3 (pi/2, pi), 4 a = 1 (phi = 0)
         bool converged = true;
     };
 

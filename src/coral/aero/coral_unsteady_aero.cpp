@@ -166,13 +166,10 @@ airfoil_coef stall_polar::stat(double alpha) const {return af_ ? af_->coefficien
 double stall_polar::f_st(double alpha) const {return interp(f_, wrap_angle(alpha));}
 double stall_polar::cl_fs(double alpha) const
 {
-    // from f_st (interpolated) and the static cl at alpha, so that f_st Cl_inv + (1 - f_st) Cl_fs = cl at any angle
-    // (interpolating Cl_fs itself would not); near f_st = 1 the table's value; the static lift where f_st = 0
-    const double a = wrap_angle(alpha);
-    const double f = interp(f_, a);
-    if(f <= 0.0) return stat(a).cl;
-    if(1.0 - f > 1.0e-3) return (stat(a).cl - cl_inv(a)*f)/(1.0 - f);
-    return interp(fs_, a);
+    // linear in the table of Cl_fs, as AeroDyn (OpenFAST's UnsteadyAero output to 1e-5; computing Cl_fs from the
+    // interpolated f_st and cl instead reproduces the static cl between the table's angles exactly but differs from
+    // AeroDyn by up to 5e-3 in Cl_fs)
+    return interp(fs_, wrap_angle(alpha));
 }
 
 double stall_Tu(const stall_input &in)

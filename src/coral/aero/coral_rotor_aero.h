@@ -35,8 +35,8 @@ Architect: Hans Bihs
 //   chi = (0.6 a + 1) gamma, the induction a (1 + 15 pi/32 (r/R) tan(chi/2) cos psi), psi the azimuth of the station
 //   from the downwind side of the cross flow
 //   loads: F = w (fn n + ft t), M = w mz (t x n) at P (mz nose-up positive), w the station's share of the span
-// A station at the tip or at the hub of the set-up geometry keeps r = R_tip or R_hub (no load with the tip or hub
-// loss), whatever rounding in the turned frames or the blade's deflection does to its radius.
+// A station at the tip or at the hub of the set-up geometry keeps r = R_tip or R_hub (F = 0 of the tip or hub loss:
+// coral_bem.h), whatever rounding in the turned frames or the blade's deflection does to its radius.
 // Tower potential flow (AeroDyn's TwrPotent 1): around a tower from base to top with linear diameter D, the wind
 // normal to the tower axis U, x along it and y across, scaled by D/2: u = U (1 - (x^2 - y^2)/(x^2 + y^2)^2),
 // v = -2 U x y/(x^2 + y^2)^2 outside the tower, between its base and top.

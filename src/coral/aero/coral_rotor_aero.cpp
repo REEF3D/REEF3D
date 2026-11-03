@@ -41,8 +41,9 @@ rotor_aero::rotor_aero(const model &m, std::shared_ptr<const wind_inflow> wind, 
     tb_ = m.body(s.tower_body).to_body(s.tower_base);
     tt_ = m.body(s.tower_body).to_body(s.tower_top);
     pitch_.assign(std::max(s.B, 1), 0.0);
-    // the stations at the tip and at the hub (in the set-up geometry): no load with the tip and hub loss, whatever
-    // rounding or deflection does to their radius later (a load switching on and off there stalls Newton)
+    // the stations at the tip and at the hub (in the set-up geometry) stay there for the tip and hub loss, whatever
+    // rounding or deflection does to their radius later (a load switching between the solution with F = 0 and one
+    // with a tiny F stalls Newton)
     {
         const Vec3 e = shaft.axis(m);
         for(const aero_station &a : st_)
@@ -148,7 +149,7 @@ void rotor_aero::station(const model &m, const rigid_body &b, const aero_station
         el.r = edge_[ie]==1 ? set_.R_tip : set_.R_hub;
     el.af = (s.airfoil >= 0 && s.airfoil < (int)af_.size()) ? &af_[s.airfoil] : nullptr;
     o.bem = bem_solve(el, Vx, Vy, set_.rho, set_.bem);
-    if(h.gam > 0.0 && o.bem.region != 0 && el.r > 0.0)
+    if(h.gam > 0.0 && o.bem.region >= 1 && o.bem.region <= 3 && el.r > 0.0)
     {
         const double chi = (0.6*o.bem.a + 1.0)*h.gam;
         const double cpsi = dr.dot(h.cross)/el.r;
@@ -165,13 +166,6 @@ void rotor_aero::unsteady_station(const model &m, const rigid_body &b, const aer
                                   station_load &o, const bem_element &el, double Vx, double Vy, const Vec3 &c, int i,
                                   inflow_state *dio, stall_state *dso) const
 {
-    // at the tip or the hub with their loss: no load, the states kept
-    if(o.bem.region==0 && o.bem.F==0.0)
-    {
-        if(dio) *dio = i < (int)di_.size() ? di_[i] : inflow_state();
-        if(dso) *dso = i < (int)ds_.size() ? ds_[i] : stall_state();
-        return;
-    }
     // the quasi-steady induced velocities (skewed wake included) and the dynamic ones
     const double Wqs[2] = {o.bem.a*Vx, o.bem.ap*Vy};
     const double dt = t - tc_;
@@ -236,7 +230,7 @@ void rotor_aero::advance(const model &m, double t)
         station(m, m.body(st_[i].body), st_[i], h, t, o, Vec3::Zero(), (int)i, &di[i], &ds[i]);
         // the mean axial induction (area weighted) of tau1
         const double r = (o.P - h.H - (o.P - h.H).dot(h.e)*h.e).norm();
-        if(o.bem.region != 0)
+        if(o.bem.region >= 1 && o.bem.region <= 3)
         {
             sa += st_[i].w*r*o.bem.a;
             sw += st_[i].w*r;
