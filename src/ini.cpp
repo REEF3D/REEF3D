@@ -594,6 +594,7 @@ void control::ini_default()
     B203=1;             // int VRANS surface: 1 faces resting on the bed do not define the porous interface / layer depth, 0 all faces
     B204=1;             // int NHFLOW VRANS drag: 0 explicit, 1 point-implicit with the stage update
     B205=1;             // int NHFLOW VRANS projections per stage (pressure passes, as for membranes)
+    B221=2;             // int NHFLOW VRANS moving sigma grid in the porous structure: 0 off, 1 omega with the porosity of the swept volume, 2 as 1 and the grid-motion part of the vertical momentum flux not scaled by the inertia factor
     B206=1;             // int NHFLOW VRANS wave speeds of the porous equations in the HLL flux and the time step: 0 open-water speeds, 1 porous speeds
     B210=0;      // int solid box
     B212=0;      // int solid cylinder y

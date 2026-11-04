@@ -415,7 +415,13 @@ void nhflow_HLL::aij_U(lexer *&p,fdm_nhf *&d, int ipol)
     d->F[IJK] -= ((d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP] 
                 + (d->Fy[IJK] - d->Fy[IJm1K])/p->DYN[JP]*p->y_dir
                 + (d->Fz[IJK] - d->Fz[IJKm1])/p->DZN[KP]);
-    }    
+    }
+    
+    // VRANS (B 221 2): grid-motion part of the vertical flux not scaled by the inertia factor
+    if(p->B200==1 && p->B221>=2)
+    LOOP
+    WETDRY
+    d->F[IJK] += nhflow_face::zgrid_corr(p,d,d->Ub,d->Ut,i,j,k);    
 }
 
 void nhflow_HLL::aij_V(lexer *&p, fdm_nhf *&d, int ipol)
@@ -488,7 +494,13 @@ void nhflow_HLL::aij_V(lexer *&p, fdm_nhf *&d, int ipol)
     d->G[IJK] -= ((d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP] 
                 + (d->Fy[IJK] - d->Fy[IJm1K])/p->DYN[JP]*p->y_dir
                 + (d->Fz[IJK] - d->Fz[IJKm1])/p->DZN[KP]);
-    }    
+    }
+    
+    // VRANS (B 221 2): grid-motion part of the vertical flux not scaled by the inertia factor
+    if(p->B200==1 && p->B221>=2)
+    LOOP
+    WETDRY
+    d->G[IJK] += nhflow_face::zgrid_corr(p,d,d->Vb,d->Vt,i,j,k);    
 }
 
 void nhflow_HLL::aij_W(lexer *&p,fdm_nhf *&d, int ipol)
@@ -572,7 +584,13 @@ void nhflow_HLL::aij_W(lexer *&p,fdm_nhf *&d, int ipol)
     d->H[IJK] -= ((d->Fx[IJK] - d->Fx[Im1JK])/p->DXN[IP] 
                 + (d->Fy[IJK] - d->Fy[IJm1K])/p->DYN[JP]*p->y_dir
                 + (d->Fz[IJK] - d->Fz[IJKm1])/p->DZN[KP]);
-    }    
+    }
+    
+    // VRANS (B 221 2): grid-motion part of the vertical flux not scaled by the inertia factor
+    if(p->B200==1 && p->B221>=2)
+    LOOP
+    WETDRY
+    d->H[IJK] += nhflow_face::zgrid_corr(p,d,d->Wb,d->Wt,i,j,k);    
 }
 
 void nhflow_HLL::aij_E(lexer *&p, fdm_nhf *&d, int ipol)

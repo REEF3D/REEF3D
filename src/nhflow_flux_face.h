@@ -40,6 +40,7 @@ Author: Hans Bihs
 #include"fdm_nhf.h"
 #include"slice.h"
 #include"vrans_definitions.h"
+#include"increment.h"
 #include<cmath>
 
 namespace nhflow_face
@@ -178,6 +179,41 @@ __attribute__((noinline)) inline double W_w(lexer *p, fdm_nhf *d, int i, int j, 
 }
 
 // vertical (sigma) flux, upwinded with omega: Fz = omega*Fb (omega>=0) or omega*Ft (omega<0)
+// VRANS (B 200 1, B 221 2): grid-motion part of the vertical momentum flux.
+// With the sigma grid moving through the fixed porous structure, the momentum equation q_t|z = C R
+// (C = CPORNH) transforms to  (qD)_t|sigma = D C R + d(G)/dsigma,  G = sigma D_t q:
+// the kinematic term d(G)/dsigma is not scaled by C, and the physical vertical flux Q q/n^2 is.
+// zflux carries omega q/n^2 = (Q - n sigma D_t) q/n^2 (B 221 >= 1), i.e. the grid part G/n, and the
+// momentum update multiplies everything by C. This returns the term that turns C dsigma(G/n) into
+// dsigma(G):  [ (G_t - G_b)/C - (G_t/n_t - G_b/n_b) ]/dsigma,  0 in open water.
+// At the free surface Q = n_s D_t, so the flux of zflux (0 there) is consistent with G/n_s.
+inline double zgrid_corr(lexer *p, fdm_nhf *d, const double *Fb, const double *Ft, int i, int j, int k)
+{
+    if(p->B200!=1 || p->B221<2)
+    return 0.0;
+    
+    const int marge = increment::marge;
+    const double Dt = d->detadt(i,j);
+    const bool top = (k==p->knoz-1);
+    
+    const double qt = (top || d->omegaF[FIJKp1]>=0.0) ? Fb[IJK] : Ft[IJK];
+    const double nt = top ? d->PORS(i,j) : PORVALNH3;
+    const double Gt = p->ZN[KP1]*Dt*qt;
+    
+    double Gb=0.0, nb=1.0;
+    
+    if(k>0)
+    {
+    const double qb = d->omegaF[FIJK]>=0.0 ? Fb[IJKm1] : Ft[IJKm1];
+    nb = 0.5*(d->POR[IJKm1] + d->POR[IJK]);
+    Gb = p->ZN[KP]*Dt*qb;
+    }
+    
+    const double C = CPORNHval(d->POR[IJK]);
+    
+    return ((Gt - Gb)/C - (Gt/nt - Gb/nb))/p->DZN[KP];
+}
+
 inline void zflux(lexer *p, fdm_nhf *d, const double *Fb, const double *Ft)
 {
     int i,j,k;

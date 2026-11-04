@@ -1263,6 +1263,8 @@ void control::ctrlrecv()
     ii++;
     B206 = ictrl[ii];
     ii++;
+    B221 = ictrl[ii];
+    ii++;
     B208 = ictrl[ii];
     ii++;
     B209 = dctrl[dd];
