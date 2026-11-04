@@ -943,9 +943,10 @@ void seastate_f::sources(lexer *p, ghostcell *pgc)
     sp.limiter = 0.0;
     sp.dia_mp = true;
     sp.wc_newton = true;
-    // Phase 25 (0059): with van der Westhuysen the upper bound of ecWAM (FLMAX, alpha_p,max 0.031), which holds the Yan
-    // input at the high frequencies (Komen is stable without it, and the bound would slow its early growth)
-    sp.flmax = (p->A732==2) ? 0.031 : 0.0;
+    // the upper bound of ecWAM (FLMAX, alpha_p,max 0.031): with van der Westhuysen it holds the Yan input at the high
+    // frequencies (Phase 25, 0059); with Komen too (Phase 26, 0061): without it a field run diverges after 1 h at
+    // 900 s, from rest, the input of the high frequencies explicit and the whitecapping still weak (validation 81)
+    sp.flmax = 0.031;
     }
 
     sp.breaking = (p->A740==1 || p->A740==2);
