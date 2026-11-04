@@ -23,59 +23,74 @@ Author: Tobias Martin
 #ifndef MOORING_SPRING_H_
 #define MOORING_SPRING_H_
 
-#include"mooring.h"
-#include"field1.h"
-#include"field2.h"
-#include"field3.h"
-#include"field4.h"
-#include"field5.h"
-#include"fieldint5.h"
-#include"vec.h"
-#include<fstream>
-#include<iostream>
-#include<vector>
-
+#include "field1.h"
+#include "field2.h"
+#include "field3.h"
+#include "field4.h"
+#include "field5.h"
+#include "fieldint5.h"
+#include "mooring.h"
+#include "vec.h"
+#include <fstream>
+#include <iostream>
+#include <vector>
 
 using namespace std;
 
 class mooring_Spring final : public mooring
 {
 public:
-	mooring_Spring(int);
-	virtual ~mooring_Spring();
-	
-	void start(lexer*, ghostcell*) override final;
-	void initialize(lexer*, ghostcell*) override final;
-	void mooringForces(double&, double&, double&) override final;
-	
-private:	
+    void ckpt_state(std::vector<double> &v) const override
+    {
+        for(double x : {T, Xme_, Yme_, Zme_, printtime, broken ? 1.0 : 0.0, curr_time})
+            v.push_back(x);
+    }
+    void ckpt_restore(const std::vector<double> &v, size_t &k) override
+    {
+        if(k + 7 > v.size())
+            return;
+        T = v[k++];
+        Xme_ = v[k++];
+        Yme_ = v[k++];
+        Zme_ = v[k++];
+        printtime = v[k++];
+        broken = v[k++] > 0.5;
+        curr_time = v[k++];
+    }
+    mooring_Spring(int);
+    virtual ~mooring_Spring();
 
-	// Print
-	void print(lexer*);
-	
-	// --------------------
-	
-	// Line number
-	int line;
-	
-	// Material constants
-	double L0, k;
-    
+    void start(lexer *, ghostcell *) override final;
+    void initialize(lexer *, ghostcell *) override final;
+    void mooringForces(double &, double &, double &) override final;
+
+private:
+    // Print
+    void print(lexer *);
+
+    // --------------------
+
+    // Line number
+    int line;
+
+    // Material constants
+    double L0, k;
+
     // Mesh
     double dx, dy, dz, L;
 
-	// Forces
-	double T0, T;	
-	double Xme_, Yme_, Zme_;
-	
-	// Print
-	char name[100];
-	ofstream eTout;
-    
+    // Forces
+    double T0, T;
+    double Xme_, Yme_, Zme_;
+
+    // Print
+    char name[100];
+    ofstream eTout;
+
     // Breaking
     bool broken;
     double breakTension, breakTime, curr_time;
-	double printtime;
+    double printtime;
 };
 
 #endif

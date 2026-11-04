@@ -23,42 +23,46 @@ Author: Hans Bihs
 #ifndef SANDSLIDE_STEEPEST_DESCENT_H_
 #define SANDSLIDE_STEEPEST_DESCENT_H_
 
-#include"norm_vec.h"
-#include"bedslope.h"
-#include"slice4.h"
-#include"sandslide.h"
+#include "bedslope.h"
+#include "norm_vec.h"
+#include "sandslide.h"
+#include "slice4.h"
 
 class sediment_fdm;
 
 using namespace std;
 
-class sandslide_steepest_descent final :  public sandslide, public norm_vec, public bedslope
+class sandslide_steepest_descent final : public sandslide, public norm_vec, public bedslope
 {
 public:
-    sandslide_steepest_descent(lexer*);
+    sandslide_steepest_descent(lexer *);
     virtual ~sandslide_steepest_descent();
 
-	void start(lexer*,ghostcell*,sediment_fdm*) override final;
+    void start(lexer *, ghostcell *, sediment_fdm *) override final;
+    int amr_sweep(lexer *, ghostcell *, sediment_fdm *) override;
+    slice *amr_fh() override { return &fh; }
 
 private:
-    void find_steepest_neighbor(lexer* p, slice& topo, int i, int j,
-                                 int& i_steep, int& j_steep, 
-                                 double& max_slope, double& dist_steep);
+    void find_steepest_neighbor(lexer *p, slice &topo, int i, int j,
+                                int &i_steep, int &j_steep,
+                                double &max_slope, double &dist_steep);
+    void find_steepest_neighbor_curv(lexer *p, slice &zh, int i, int j, int &i_steep, int &j_steep,
+                                     double &max_slope, double &dist_steep);  // curvilinear grid (G 50)
 
-    void slide(lexer*,ghostcell*,sediment_fdm*);
+    void slide(lexer *, ghostcell *, sediment_fdm *);
 
     slice4 fh;
-    
-    int gcval_topo,count;
+
+    int gcval_topo, count;
 
     double fac1, fac2;
-    double dh,maxdh,maxdhs,dh_corr;
-    double slide_dh,slide_dhs;
-	double teta, alpha, beta, gamma;
+    double dh, maxdh, maxdhs, dh_corr;
+    double slide_dh, slide_dhs;
+    double teta, alpha, beta, gamma;
     double phi;
-    
+
     double relax;
-}; 
+};
 
 #endif
 

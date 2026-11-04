@@ -1,0 +1,23 @@
+{
+ "base": "cfd_2d_cpm_bedload_layer",
+ "ctrl_set": {
+  "G 1": "1",
+  "Q 29": "1"
+ },
+ "ctrl_add": [
+  "G 15 0.0 0.1 -1.0 1.0 0.0 0.03"
+ ],
+ "description": "cfd_2d_cpm_bedload_layer on the CFD mesh refinement: level 0 at 5 mm, the box G 15 over the bed (z 0-0.03 m, the whole periodic length) refined to level 1 (2.5 mm); CPM runs on the grid of level 1 over the box (its own lexer, ghostcell, fdm, decomposed by dmpart), the fluid of the patch copied onto it every step, its bed back onto the patch, restricted to level 0 (lattice seeding Q 29 1)",
+ "covers": [
+  "cfd_amr::cpm_setup: the grid of CPM built in memory (gridfile_v2 writer, dmpart::build_mem, lexer::grid_inmem, ghostcell(lexer*))",
+  "cfd_amr::cpm_pull, cpm_push: the copy between the patches and the grid of CPM, the restriction of the bed, its fills, the direct forcing and the bed level of all grids",
+  "sediment_part on the grid of CPM: the bedload layer, the CPM log"
+ ],
+ "np": 1,
+ "steps": 150,
+ "tags": [
+  "2d",
+  "cpm",
+  "amr"
+ ]
+}

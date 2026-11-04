@@ -1,0 +1,22 @@
+{
+ "description": "NHFLOW 3D fixed membrane bag 'membrane cylcone' filled to 80 % with 'mobility sharp', the bag centred on the border of the two subdomains (x = 1.5 m), current from a hydrograph inflow ramp (B60=2): blocked links, lower cells, lid potential and node sides across the subdomain border with flow below the floor. Before patch 0007 the lid potential diverged (u = 12 m/s after 14 steps). Coarse grid.",
+ "solver": "nhflow",
+ "np": 2,
+ "steps": 60,
+ "files": [
+  "membrane.dat",
+  "hydrograph.dat"
+ ],
+ "tags": [
+  "3d",
+  "nhflow",
+  "membrane",
+  "current",
+  "mpi"
+ ],
+ "covers": [
+  "nhflow_thinbody lid_correction across subdomains (conjugate gradients, ghost faces)",
+  "node sides across subdomains",
+  "update_etaL / top_region in parallel"
+ ]
+}

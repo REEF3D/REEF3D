@@ -30,6 +30,8 @@ Authors: Hans Bihs, Alexander Hanke
 // grid quantities from the parcels: solid fraction, solid velocity, particle stress and its gradient
 void CPM::grid_update(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, double *PX, double *PY, double *PZ, double *PU, double *PV, double *PW)
 {
+    index_cache(p);
+
     volfrac_update(p, pgc, s, PX, PY, PZ, PU, PV, PW);
 
     if(p->Q12 == 1)
@@ -104,6 +106,9 @@ double CPM::substep_size(lexer *p, ghostcell *pgc, double trem, int qs)
 
 void CPM::mppic_EE1(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbulence *pturb)
 {
+    // parcel merge and split (Q 78)
+    parcel_resample(p, a, pgc);
+
     count_particles(p, a, pgc, s);
 
     pressure_gradient(p, a, pgc, s);
@@ -145,9 +150,24 @@ void CPM::substep_euler(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbu
             // sub-grid bedload layer
             if(layer && P.Hop[n] > 0.0)
             {
-                bedload_move(p, s, n, dt);
+                loadmap_mark(p, n, true);
+                bedload_move(p, a, s, n, dt);
                 continue;
             }
+
+            // a grain held at rest by the jammed bed sleeps: the update below would give it zero velocity
+            // and leave it in place (Hjam = 1, no dispersion inside the bed)
+            if(layer && bed_asleep(p, a, n, P.X[n], P.Y[n], P.Z[n]))
+            {
+                loadmap_mark(p, n, false);
+                P.URK1[n] = P.VRK1[n] = P.WRK1[n] = 0.0;
+                P.XRK1[n] = P.X[n];
+                P.YRK1[n] = P.Y[n];
+                P.ZRK1[n] = P.Z[n];
+                continue;
+            }
+
+            loadmap_mark(p, n, true);
 
             advec_mppic(p, a, P, s, pturb,
                         P.X, P.Y, P.Z, P.U, P.V, P.W,
@@ -164,21 +184,63 @@ void CPM::substep_euler(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, turbu
             if(p->Q12 == 2 && p->Q13 == 1)
                 friction(p, a, P.X[n], P.Y[n], P.Z[n], P.URK1[n], P.VRK1[n], P.WRK1[n], dt, fac);
 
+            // jammed bed
+            P.URK1[n] *= 1.0 - Hjam;
+            P.VRK1[n] *= 1.0 - Hjam;
+            P.WRK1[n] *= 1.0 - Hjam;
+
             // tentative position
             P.XRK1[n] = P.X[n] + dt * P.URK1[n];
             P.YRK1[n] = P.Y[n] + dt * P.VRK1[n];
             P.ZRK1[n] = P.Z[n] + dt * P.WRK1[n];
 
             // turbulent dispersion
-            if(p->Q52 == 1 && !(layer && bedload_rest(p, a, n)))
+            if(p->Q52 == 1 && !(layer && bedload_nodisp(p, a, n)))
             {
-                double ddx, ddy, ddz;
-                dispersion(p, P.X[n], P.Y[n], P.Z[n], ddx, ddy, ddz, dt);
-                P.XRK1[n] += ddx;
-                P.YRK1[n] += ddy;
-                P.ZRK1[n] += ddz;
+                // sub-grid bedload layer
+                if(layer && P.Hop[n] > 0.0)
+                {
+                    bedload_move(p, s, n, dt);
+                    continue;
+                }
+
+                advec_mppic(p, a, P, s, pturb,
+                            P.X, P.Y, P.Z, P.U, P.V, P.W,
+                            F, G, H, dt);
+
+                // velocity update
+                fac = 1.0 / (1.0 + dt * Dpx);
+
+                P.URK1[n] = (P.U[n] + dt * F) * fac;
+                P.VRK1[n] = (P.V[n] + dt * G) * fac;
+                P.WRK1[n] = (P.W[n] + dt * H) * fac;
+
+                // friction
+                if(p->Q12 == 2 && p->Q13 == 1)
+                    friction(p, a, P.X[n], P.Y[n], P.Z[n], P.URK1[n], P.VRK1[n], P.WRK1[n], dt, fac);
+
+                // tentative position
+                P.XRK1[n] = P.X[n] + dt * P.URK1[n];
+                P.YRK1[n] = P.Y[n] + dt * P.VRK1[n];
+                P.ZRK1[n] = P.Z[n] + dt * P.WRK1[n];
+
+                // turbulent dispersion
+                if(p->Q52 == 1 && !(layer && bedload_rest(p, a, n)))
+                {
+                    double ddx, ddy, ddz;
+                    dispersion(p, P.X[n], P.Y[n], P.Z[n], ddx, ddy, ddz, dt);
+                    P.XRK1[n] += ddx;
+                    P.YRK1[n] += ddy;
+                    P.ZRK1[n] += ddz;
+                }
             }
+
+            // sub-grid bedload layer: a parcel settling from the flow onto the bed is deposited
+            if(layer)
+                bedload_settle(p, a, s, n);
         }
+
+    loadmap_substep(p);
 
     // walls, then grid-limited step
     boundcheck(p, 1);

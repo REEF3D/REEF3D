@@ -1,0 +1,19 @@
+{
+ "np": 1,
+ "steps": 60,
+ "tags": [
+  "2d",
+  "sflow",
+  "curvilinear",
+  "quick"
+ ],
+ "description": "SFLOW on a curvilinear grid (G 50 2): dam break in a closed basin whose grid is the Cartesian one rotated by 90 deg and shifted; the same eta per cell index as the Cartesian run (F 72 in physical coordinates).",
+ "covers": [
+  "sflow_curv normal velocities, fluxes, walls, divergence, bed-slope source, CFL",
+  "lexer::curv_nodes (G 50 2)"
+ ],
+ "solver": "sflow",
+ "files": [
+  "curvgrid.dat"
+ ]
+}

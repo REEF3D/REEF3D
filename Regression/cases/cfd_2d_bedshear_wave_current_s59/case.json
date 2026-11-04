@@ -1,0 +1,12 @@
+{
+ "base": "cfd_2d_bedshear_wave_s16_9",
+ "ctrl_set": {"W 20": "0.01962"},
+ "ctrl_add": ["S 59 1 20.0"],
+ "description": "cfd_2d_bedshear_wave_s16_9 with a current (W 20 slope) and S 59 1 20: bed shear max(log law, Soulsby DATA13 wave-current stress), current from the running mean of the sample, wave stress with a 20 deg phase lead.",
+ "solver": "cfd",
+ "np": 1,
+ "steps": 300,
+ "tags": ["quick", "2d", "cfd", "sediment", "periodic", "singlephase"],
+ "covers": ["bedshear tau_wave_current (S 59 1)", "S 59 phase lead", "S 59 read/broadcast"],
+ "architect": "Hans Bihs"
+}

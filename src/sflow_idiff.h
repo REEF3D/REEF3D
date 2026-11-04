@@ -39,13 +39,12 @@ using namespace std;
 class sflow_idiff final : public sflow_diffusion, public increment
 {
 public:
+    void ckpt_fields(const std::function<void(const char *, char, double *)> &fd, const std::function<void(const char *, char, int *)> &fi) override
+    {
+        fd("idiff_f", 'S', f.V);
+    }
     sflow_idiff(lexer *);
     virtual ~sflow_idiff();
-
-    void diff_u(lexer *, fdm2D *, ghostcell *, solver2D *, slice &, slice &, slice &, slice &, slice &, double) override final;
-    void diff_v(lexer *, fdm2D *, ghostcell *, solver2D *, slice &, slice &, slice &, slice &, slice &, double) override final;
-    void diff_w(lexer *, fdm2D *, ghostcell *, solver2D *, slice &, slice &, slice &, slice &, slice &, slice &, double) override final;
-    void diff_scalar(lexer *, fdm2D *, ghostcell *, solver2D *, slice &, double, double) override final;
 
 private:
     double viscosity(lexer *, fdm2D *);

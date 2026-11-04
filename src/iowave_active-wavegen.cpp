@@ -22,14 +22,20 @@ Author: Hans Bihs
 
 #include "fdm.h"
 #include "ghostcell.h"
+#include "heaviside.h"
+#include "interface_width.h"
 #include "iowave.h"
 #include "lexer.h"
 
 void iowave::active_wavegen(lexer *p, fdm *a, ghostcell *pgc, field &u, field &v, field &w)
 {
     int ii;
-    double fac, fac1, epsi, H;
+    double fac, fac1, H;
     double eta_R, Uc, Un, Vc, Wc, eta_T, eta_M, wsf;
+
+    // get the fsf elevation
+    LOOP
+        wsfmax[i][j] = -1.0e20;
 
     // get the fsf elevation
     LOOP
@@ -68,24 +74,33 @@ void iowave::active_wavegen(lexer *p, fdm *a, ghostcell *pgc, field &u, field &v
         u(i - 2, j, k) = uvel * H + p->Ui;
         u(i - 3, j, k) = uvel * H + p->Ui;
 
-        v(i - 1, j, k) = vvel * H;
-        v(i - 2, j, k) = vvel * H;
-        v(i - 3, j, k) = vvel * H;
+        // inteface H
+        // the interface width of the cell (before, this local epsi also hid the member iowave::epsi used
+        // for the generation above, where it was read before being set)
+        const double epsi_if = interface_width(p, a->phi, i, j, k);
 
-        w(i - 1, j, k) = wvel * H;
-        w(i - 2, j, k) = wvel * H;
-        w(i - 3, j, k) = wvel * H;
+        H = heaviside(a->phi(i, j, k), epsi_if);
 
-        if(p->W50_air == 1 && phival < -epsi)
+        if(z <= eta_M)
         {
-            u(i - 1, j, k) += p->W50;
-            u(i - 2, j, k) += p->W50;
-            u(i - 3, j, k) += p->W50;
+            u(i - 1, j, k) += Uc;
+            u(i - 2, j, k) += Uc;
+            u(i - 3, j, k) += Uc;
         }
 
-        // fsf deviation
+        if(z >= eta_M && z < eta_M + epsi_if)
+        {
+            u(i - 1, j, k) += Uc * H * fac1;
+            u(i - 2, j, k) += Uc * H * fac1;
+            u(i - 3, j, k) += Uc * H * fac1;
+        }
 
-        wsf = wsfmax[i][j];
+        if(z >= eta_M + epsi_if)
+        {
+            u(i - 1, j, k) += 0.0;
+            u(i - 2, j, k) += 0.0;
+            u(i - 3, j, k) += 0.0;
+        }
 
         eta_T = wave_eta(p, pgc, x, 0.0);
         eta_M = wsf - p->wd;

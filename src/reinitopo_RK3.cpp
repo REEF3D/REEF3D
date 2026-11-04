@@ -27,13 +27,10 @@ Author: Hans Bihs
 #include "gradient.h"
 #include "ioflow.h"
 #include "lexer.h"
-#include "picard_f.h"
-#include "picard_void.h"
 #include "reinidisc_f.h"
-#include "reinidisc_fsf.h"
-#include "reinidisc_fsf_rig.h"
 
-reinitopo_RK3::reinitopo_RK3(lexer *p) : epsi(p->F45 * p->DXM), f(p), frk1(p), frk2(p), L(p), dt(p)
+// topo and solid level set reinitialisation (name: "topo" or "solid", used in the start message)
+reinitopo_RK3::reinitopo_RK3(lexer *p, const char *name) : f(p), frk1(p), frk2(p), L(p), dt(p), name(name)
 {
 
     if(p->S50 == 1)
@@ -45,8 +42,9 @@ reinitopo_RK3::reinitopo_RK3(lexer *p) : epsi(p->F45 * p->DXM), f(p), frk1(p), f
     if(p->S50 == 3)
         gcval_topo = 153;
 
-    if(p->S50 == 4)
-        gcval_topo = 150;
+    gcval_initopo = 150;
+
+    prdisc = new reinidisc_f(p, true);
 
     gcval_initopo = 150;
 
@@ -61,64 +59,76 @@ reinitopo_RK3::~reinitopo_RK3()
 
 void reinitopo_RK3::start(lexer *p, fdm *a, ghostcell *pgc, field &f)
 {
-    pgc->start4a(p, f, gcval);
-
     gcval = gcval_topo;
+
+    pgc->start4a(p, f, gcval);
 
     if(p->count == 0)
     {
         if(p->mpirank == 0)
-            cout << "initializing topo..." << endl
+            cout << "initializing " << name << "..." << endl
                  << endl;
         reiniter = 2 * int(p->maxlength / (p->F43 * p->DXM));
         gcval = gcval_initopo;
         pgc->start4a(p, f, gcval);
     }
 
-    if(p->count > 0)
-        step(p, a);
+    gcval = gcval_topo;
 
-    for(int q = 0; q < reiniter; ++q)
+    if(p->count == 0)
     {
         // Step 1
-        prdisc->start(p, a, pgc, f, L, 5);
+        prdisc->start(p, a, pgc, f, L, 6);
 
-        LOOP
-            frk1.V[IJK] = f.V[IJK] + dt.V[IJK] * L.V[IJK];
+        if(p->count > 0)
+            step(p, a);
 
-        pgc->start4a(p, frk1, gcval);
+        for(int q = 0; q < reiniter; ++q)
+        {
+            // Step 1
+            prdisc->start(p, a, pgc, f, L, 5);
 
-        // Step 2
-        prdisc->start(p, a, pgc, frk1, L, 5);
+            // Step 2
+            prdisc->start(p, a, pgc, frk1, L, 6);
 
-        LOOP
-            frk2.V[IJK] = 0.75 * f.V[IJK] + 0.25 * frk1.V[IJK] + 0.25 * dt.V[IJK] * L.V[IJK];
+            pgc->start4a(p, frk1, gcval);
 
-        pgc->start4a(p, frk2, gcval);
+            // Step 2
+            prdisc->start(p, a, pgc, frk1, L, 5);
 
-        // Step 3
-        prdisc->start(p, a, pgc, frk2, L, 5);
+            LOOP
+                frk2.V[IJK] = 0.75 * f.V[IJK] + 0.25 * frk1.V[IJK] + 0.25 * dt.V[IJK] * L.V[IJK];
 
-        LOOP
-            f.V[IJK] = (1.0 / 3.0) * f.V[IJK] + (2.0 / 3.0) * frk2.V[IJK] + (2.0 / 3.0) * dt.V[IJK] * L.V[IJK];
+            // Step 3
+            prdisc->start(p, a, pgc, frk2, L, 6);
 
-        pgc->start4a(p, f, gcval);
+            // Step 3
+            prdisc->start(p, a, pgc, frk2, L, 5);
+
+            LOOP
+                f.V[IJK] = (1.0 / 3.0) * f.V[IJK] + (2.0 / 3.0) * frk2.V[IJK] + (2.0 / 3.0) * dt.V[IJK] * L.V[IJK];
+
+            pgc->start4a(p, f, gcval);
+        }
     }
-}
 
-void reinitopo_RK3::step(lexer *p, fdm *a)
-{
-
-    reiniter = p->G541;
-}
-
-void reinitopo_RK3::time_preproc(lexer *p)
-{
-    n = 0;
-    LOOP
+    void reinitopo_RK3::step(lexer * p, fdm * a)
     {
-        dt.V[IJK] = p->F43 * MIN3(p->DXP[IP], p->DYP[JP], p->DZP[KP]);
-        ++n;
+
+        reiniter = p->G541;
     }
-}
+
+    void reinitopo_RK3::time_preproc(lexer * p)
+    {
+        n = 0;
+        LOOP
+        {
+            if(p->j_dir == 0)
+                dt.V[IJK] = p->F43 * MIN(p->DXP[IP], p->DZP[KP]);
+
+            if(p->j_dir == 1)
+                dt.V[IJK] = p->F43 * MIN3(p->DXP[IP], p->DYP[JP], p->DZP[KP]);
+            ++n;
+        }
+    }
 

@@ -1,0 +1,1 @@
+{"description": "NHFLOW 2D bore running up a dry 1:20 beach (F 72 box, T 61 slope), k-eps: newly wetted columns start from the wet neighbours, length-scale limit l <= kappa h (A 564 1).", "solver": "nhflow", "np": 1, "steps": 900, "tags": ["nhflow", "turbulence", "wetdry"], "covers": ["nhflow_rans_io::wetting_ini", "nhflow_rans_io::length_limit"]}

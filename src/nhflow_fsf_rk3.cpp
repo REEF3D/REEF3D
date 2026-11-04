@@ -24,8 +24,10 @@ Author: Hans Bihs
 #include "ghostcell.h"
 #include "ioflow.h"
 #include "lexer.h"
+#include "nhflow_curv.h"
 #include "nhflow_fsf_f.h"
 #include "patchBC_interface.h"
+#include "seastate_nhflow.h"
 #include "vrans.h"
 
 void nhflow_fsf_f::rk3_step1(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, double *U, double *V, double *W, slice &WLRK1, slice &WLRK2, double alpha)
@@ -35,23 +37,33 @@ void nhflow_fsf_f::rk3_step1(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow
     SLICELOOP4
     K(i, j) = 0.0;
 
-    LOOP
-        WETDRY
+    LOOP WETDRY
+    {
+        if(p->geo_curv == 1)
+            K(i, j) += -p->DZN[KP] * nhflow_curv::divh(p, d->FEx, d->FEy, i, j, k);
+        else
             K(i, j) += -p->DZN[KP] * ((d->FEx[IJK] - d->FEx[Im1JK]) / p->DXN[IP] + (d->FEy[IJK] - d->FEy[IJm1K]) / p->DYN[JP] * p->y_dir);
+    }
 
     // VRANS: d/dt int_{-h}^{eta} n dz = n(eta) deta/dt -> divide the column divergence by the
-    // porosity of the surface cell, not layer by layer (mass error for vertically varying n)
+    // porosity at the free surface, not layer by layer (mass error for vertically varying n)
     SLICELOOP4
     {
         k = p->knoz - 1;
-        K(i, j) /= PORVALNH;
+        K(i, j) /= PORSURFNH;
     }
+
+    // REEF3D::SEASTATE: Stokes transport in the continuity (A 751 2)
+    if(d->wave != nullptr)
+        d->wave->mass_source(p, d, K);
 
     SLICELOOP4
     WLRK1(i, j) = d->WL(i, j) + p->dt * K(i, j);
 
     pflow->WL_relax(p, pgc, WLRK1, d->depth);
     pflow->fsfinflow_nhflow(p, d, pgc, WLRK1);
+    if(d->wave != nullptr)
+        d->wave->wl_ghostcells(p, d, WLRK1);
     pgc->gcsl_start4(p, WLRK1, gcval_eta);
 
     SLICELOOP4
@@ -76,17 +88,34 @@ void nhflow_fsf_f::rk3_step2(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow
     SLICELOOP4
     K(i, j) = 0.0;
 
-    LOOP
-        WETDRY
+    LOOP WETDRY
+    {
+        if(p->geo_curv == 1)
+            K(i, j) += -p->DZN[KP] * nhflow_curv::divh(p, d->FEx, d->FEy, i, j, k);
+        else
             K(i, j) += -p->DZN[KP] * ((d->FEx[IJK] - d->FEx[Im1JK]) / p->DXN[IP] + (d->FEy[IJK] - d->FEy[IJm1K]) / p->DYN[JP] * p->y_dir);
+    }
 
     // VRANS: d/dt int_{-h}^{eta} n dz = n(eta) deta/dt -> divide the column divergence by the
-    // porosity of the surface cell, not layer by layer (mass error for vertically varying n)
+    // porosity at the free surface, not layer by layer (mass error for vertically varying n)
     SLICELOOP4
     {
         k = p->knoz - 1;
-        K(i, j) /= PORVALNH;
+        K(i, j) /= PORSURFNH;
     }
+
+    // REEF3D::SEASTATE: Stokes transport in the continuity (A 751 2)
+    if(d->wave != nullptr)
+        d->wave->mass_source(p, d, K);
+
+    SLICELOOP4
+    WLRK2(i, j) = 0.75 * d->WL(i, j) + 0.25 * WLRK1(i, j) + 0.25 * p->dt * K(i, j);
+
+    pflow->WL_relax(p, pgc, WLRK2, d->depth);
+    pflow->fsfinflow_nhflow(p, d, pgc, WLRK2);
+    if(d->wave != nullptr)
+        d->wave->wl_ghostcells(p, d, WLRK2);
+    pgc->gcsl_start4(p, WLRK2, gcval_eta);
 
     SLICELOOP4
     WLRK2(i, j) = 0.75 * d->WL(i, j) + 0.25 * WLRK1(i, j) + 0.25 * p->dt * K(i, j);
@@ -114,17 +143,37 @@ void nhflow_fsf_f::rk3_step3(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow
     SLICELOOP4
     K(i, j) = 0.0;
 
-    LOOP
-        WETDRY
+    LOOP WETDRY
+    {
+        if(p->geo_curv == 1)
+            K(i, j) += -p->DZN[KP] * nhflow_curv::divh(p, d->FEx, d->FEy, i, j, k);
+        else
             K(i, j) += -p->DZN[KP] * ((d->FEx[IJK] - d->FEx[Im1JK]) / p->DXN[IP] + (d->FEy[IJK] - d->FEy[IJm1K]) / p->DYN[JP] * p->y_dir);
+    }
 
     // VRANS: d/dt int_{-h}^{eta} n dz = n(eta) deta/dt -> divide the column divergence by the
-    // porosity of the surface cell, not layer by layer (mass error for vertically varying n)
+    // porosity at the free surface, not layer by layer (mass error for vertically varying n)
     SLICELOOP4
     {
         k = p->knoz - 1;
-        K(i, j) /= PORVALNH;
+        K(i, j) /= PORSURFNH;
     }
+
+    // REEF3D::SEASTATE: Stokes transport in the continuity (A 751 2)
+    if(d->wave != nullptr)
+        d->wave->mass_source(p, d, K);
+
+    SLICELOOP4
+    d->WL(i, j) = (1.0 / 3.0) * d->WL(i, j) + (2.0 / 3.0) * WLRK2(i, j) + (2.0 / 3.0) * p->dt * K(i, j);
+
+    pflow->WL_relax(p, pgc, d->WL, d->depth);
+    pflow->fsfinflow_nhflow(p, d, pgc, d->WL);
+    if(d->wave != nullptr)
+        d->wave->wl_ghostcells(p, d, d->WL);
+    pgc->gcsl_start4(p, d->WL, gcval_eta);
+
+    // SLICELOOP4
+    // d->eta_n(i,j) = d->eta(i,j);
 
     SLICELOOP4
     d->WL(i, j) = (1.0 / 3.0) * d->WL(i, j) + (2.0 / 3.0) * WLRK2(i, j) + (2.0 / 3.0) * p->dt * K(i, j);

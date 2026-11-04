@@ -1,0 +1,7 @@
+{
+ "base": "nhflow_2d_awa",
+ "description": "nhflow_2d_awa with the linear-theory active beach B 99 4: like B 99 3 an absorbing Riemann edge at x+ with still water outside (iowave::nhflow_active_beach_edge).",
+ "tags": ["quick", "2d", "nhflow", "waves", "iowave", "awa"],
+ "covers": ["B 99 4 in NHFLOW as an absorbing Riemann edge"],
+ "ctrl_set": {"B 99": "4"}
+}

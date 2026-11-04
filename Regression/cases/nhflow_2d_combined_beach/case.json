@@ -1,0 +1,8 @@
+{
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 600,
+ "description": "NHFLOW 2D flume, linear waves (H 0.2 m, T 3 s, h 4 m) with the combined beach B 99 6: relaxation over the 20 m beach towards the state low-passed over tau = T / 2 pi (default B 526) and an absorbing Riemann edge at x+.",
+ "tags": ["quick", "2d", "nhflow", "waves", "iowave", "awa"],
+ "covers": ["B 99 6 / B 526 (iowave::beach_target, nhflow_active_beach_edge)", "low-passed beach target for WL, U, UH, W, WH"]
+}

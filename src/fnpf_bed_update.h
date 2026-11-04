@@ -6,7 +6,7 @@ This file is part of REEF3D.
 
 REEF3D is free software; you can redistribute it and/or modify it
 under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 3 of the B117, or
+the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
@@ -23,8 +23,8 @@ Author: Hans Bihs
 #ifndef FNPF_BED_UPDATE_H_
 #define FNPF_BED_UPDATE_H_
 
-#include"increment.h"
-#include"slice4.h"
+#include "increment.h"
+#include "slice4.h"
 
 class lexer;
 class ghostcell;
@@ -40,14 +40,13 @@ using namespace std;
 class fnpf_bed_update : public increment
 {
 public:
-    fnpf_bed_update(lexer*);
-	virtual ~fnpf_bed_update();
-    
-    void bedbc_sig(lexer*, fdm_fnpf*, ghostcell*,double*,fnpf_fsf*);
-    void waterdepth(lexer*, fdm_fnpf*, ghostcell*);
+    fnpf_bed_update(lexer *);
+    virtual ~fnpf_bed_update();
 
-private: 
-    
+    void bedbc_sig(lexer *, fdm_fnpf *, ghostcell *, double *, fnpf_fsf *);
+    void waterdepth(lexer *, fdm_fnpf *, ghostcell *);
+
+private:
     fnpf_convection *pconvec;
     fnpf_ddx *pddx;
 };

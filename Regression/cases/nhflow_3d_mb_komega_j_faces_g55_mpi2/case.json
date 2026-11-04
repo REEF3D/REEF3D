@@ -1,0 +1,22 @@
+{
+ "solver": "nhflow",
+ "np": 2,
+ "steps": 100,
+ "files": [
+  "blocks.dat"
+ ],
+ "tags": [
+  "3d",
+  "nhflow",
+  "curvilinear",
+  "multiblock",
+  "turbulence",
+  "river",
+  "mpi"
+ ],
+ "description": "k-omega on the river of nhflow_3d_mb_j_faces (discharge in through the -j face of block 2, water level out at the +j face of block 1, both blocks turned by a quarter turn), the blocks cut into pieces on two ranks (G 55 2): the turbulence boundary values of the open faces of turned blocks and pieces; the whole blocks to 1e-13 m, the i faces to 3e-16 m (Dropbox Tagus_NHFLOW_multiblock/validation/10_block_turbulence).",
+ "covers": [
+  "nhflow_amr::turb_composite0 with G 55 pieces",
+  "ioflow_amr_block::turb_relax_nhflow, the k / omega values of the open faces"
+ ]
+}

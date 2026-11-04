@@ -1111,6 +1111,71 @@ def check_wave_stats(c, rundir):
     return result(ok, eh, "Hm0 ±%g / skew ±%g" % (ck["tol_Hm0"], ck["tol_skew"]), "\n".join(txt), error_skew=es)
 
 
+def check_packet_energy_loss(c, rundir):
+    """Breaking of a focused wave packet (Rapp & Melville 1990): loss = 1 - <int eta^2 dt>_down / <int eta^2 dt>_up,
+    the time integral of eta^2 over the whole record at the gauges, averaged over an upstream and a downstream window
+    of gauge positions (Derakhti & Kirby 2016, eq. 4.5b). Error: |loss - loss_ref|; with "loss_max" (no breaking):
+    the error is max(loss - loss_max, 0)."""
+    ck = c["check"]
+    g = read_gauges(rundir, model_of(c))
+    if g is None:
+        return fail("no gauge output")
+    pos = g[1] if ck.get("axis", "x") == "y" else g[0]
+    e2 = []
+    for i, s in enumerate(pos):
+        ts, ys = g[2], g[3][i]
+        v = sum(0.5 * (ys[k] ** 2 + ys[k - 1] ** 2) * (ts[k] - ts[k - 1]) for k in range(1, len(ts)))
+        e2.append((s, v))
+    up = [v for s, v in e2 if ck["up"][0] <= s <= ck["up"][1]]
+    dn = [v for s, v in e2 if ck["down"][0] <= s <= ck["down"][1]]
+    if not up or not dn:
+        return fail("no gauges in the windows")
+    loss = 1.0 - (sum(dn) / len(dn)) / (sum(up) / len(up))
+    if "loss_max" in ck:
+        err = max(loss - ck["loss_max"], 0.0)
+        ok = err <= 0.0
+        tol = "loss <= %g" % ck["loss_max"]
+        ref = "no breaking"
+    else:
+        err = abs(loss - ck["loss_ref"])
+        ok = err <= ck["tol"]
+        tol = "±%g" % ck["tol"]
+        ref = "%.3f" % ck["loss_ref"]
+    txt = ("loss of int eta^2 dt between x = %g-%g m and %g-%g m: %.3f (reference %s)\n\nint eta^2 dt (m^2 s): %s"
+           % (ck["up"][0], ck["up"][1], ck["down"][0], ck["down"][1], loss, ref,
+              ", ".join("%.1f:%.4g" % r for r in e2[::5])))
+    return result(ok, err, tol, txt, loss=loss)
+
+
+def check_profile_match(c, rundir):
+    """Orientation: the mean zero-up-crossing wave height along the flume against that of a partner case of the same
+    run (the same flume turned), gauges matched by their position along the flume (axis x or y of each case).
+    Error: max |H - H_partner| / max H_partner."""
+    ck = c["check"]
+    g = read_gauges(rundir, model_of(c))
+    gp = read_gauges(os.path.join(os.path.dirname(rundir), ck["partner"]), model_of(c))
+    if g is None or gp is None:
+        return fail("no gauge output (partner %s)" % ck["partner"])
+    t0, t1 = ck["t_start"], ck["t_end"]
+    pos = g[1] if ck.get("axis", "x") == "y" else g[0]
+    posp = gp[1] if ck.get("partner_axis", "x") == "y" else gp[0]
+    H = [(s, wave_height(g[2], g[3][i], t0, t1)) for i, s in enumerate(pos)]
+    Hp = [(s, wave_height(gp[2], gp[3][i], t0, t1)) for i, s in enumerate(posp)]
+    hmax = max(h for _, h in Hp if h == h)
+    err, rows = 0.0, []
+    for s, h in H:
+        sp, hp = min(Hp, key=lambda r: abs(r[0] - s))
+        if abs(sp - s) > 1.0e-6 or h != h or hp != hp:
+            continue
+        err = max(err, abs(h - hp) / hmax)
+        rows.append("%.2f:%.4f/%.4f" % (s, h, hp))
+    if not rows:
+        return fail("no common gauge positions with %s" % ck["partner"])
+    ok = err <= ck["tol"]
+    txt = "max |H - H_%s| / max H = %.4f (tol %g)\n\nH / H_partner: %s" % (ck["partner"], err, ck["tol"], ", ".join(rows[::5]))
+    return result(ok, err, ck["tol"], txt)
+
+
 def band_hm0(y, dt, f0, f1):
     """Hm0 = 4 sqrt(m0) of the band f0 <= f < f1 (periodogram of the zero-padded record)"""
     n = len(y)
@@ -1315,6 +1380,8 @@ CHECKS = {
     "oscillation_period": check_oscillation_period,
     "thacker1d": check_thacker1d,
     "profiles_abs": check_profiles_abs,
+    "packet_energy_loss": check_packet_energy_loss,
+    "profile_match": check_profile_match,
 }
 
 

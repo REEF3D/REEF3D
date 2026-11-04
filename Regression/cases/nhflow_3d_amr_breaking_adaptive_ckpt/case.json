@@ -1,0 +1,20 @@
+{
+ "base": "nhflow_3d_amr_breaking_adaptive",
+ "ctrl_set": {
+  "P 48": "20",
+  "P 49": "0"
+ },
+ "description": "nhflow_3d_amr_breaking_adaptive (NHFLOW, breaking with the composite implicit diffusion, wetting and drying in the patches G 30, the patch following the bore, a regrid every step) with a checkpoint every 20 steps, all kept: the uninterrupted run of nhflow_3d_amr_breaking_adaptive_restart.",
+ "tags": [
+  "3d",
+  "nhflow",
+  "amr",
+  "breaking",
+  "adaptive",
+  "wetdry",
+  "checkpoint"
+ ],
+ "covers": [
+  "nhflow_amr::ckpt_write with breaking and wetting and drying in the patches"
+ ]
+}

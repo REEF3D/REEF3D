@@ -1,0 +1,22 @@
+{
+ "description": "nhflow_3d_amr_heave_sub with three levels (G 1 2): level 0 and level 1 step with predicted copies of the body, level 2 advances it; 2 ranks.",
+ "solver": "nhflow",
+ "np": 2,
+ "steps": 10,
+ "tags": [
+  "3d",
+  "nhflow",
+  "amr",
+  "6dof",
+  "subcycling",
+  "mpi"
+ ],
+ "covers": [
+  "nhflow_amr_sub: the predicted body of an intermediate level (sub_level l < maxlev)"
+ ],
+ "base": "nhflow_3d_amr_heave_mpi2",
+ "ctrl_add": [
+  "G 1 2",
+  "G 7 1"
+ ]
+}

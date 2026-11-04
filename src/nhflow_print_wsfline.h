@@ -28,10 +28,10 @@ Author: Hans Bihs
 #include <iostream>
 
 class lexer;
+class wsfline_core;
 class fdm_nhf;
 class ghostcell;
 class ioflow;
-class wave_theory;
 class slice;
 
 using namespace std;
@@ -46,20 +46,11 @@ public:
 
 private:
     void ini_location(lexer *, fdm_nhf *, ghostcell *);
-    void sort(double *, double *, int *, int, int);
-    void remove_multientry(lexer *, double *, double *, int *, int &);
-
-    int conv(double);
-    int *jloc, **flag, **flag_all, *rowflag, *wsfpoints;
-    double **wsf, **wsf_all;
-    double **xloc, **xloc_all;
-    double *yloc;
+    int *jloc;
     int n, q;
     ofstream wsfout;
 
-    double xcoor;
-
-    wave_theory *pwave;
+    wsfline_core *pcore;
 
     int maxknox, sumknox;
 };

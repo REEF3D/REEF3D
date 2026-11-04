@@ -23,39 +23,54 @@ Author: Hans Bihs
 #ifndef WAVE_LIB_PISTON_ETA_H_
 #define WAVE_LIB_PISTON_ETA_H_
 
-#include"wave_lib_precalc.h"
-#include"wave_lib_parameters.h"
-#include"increment.h"
+#include "increment.h"
+#include "wave_lib_parameters.h"
+#include "wave_lib_precalc.h"
+
+#include <vector>
 
 using namespace std;
 
 class wave_lib_piston_eta final : public wave_lib_precalc, public wave_lib_parameters, public increment
 {
 public:
-    wave_lib_piston_eta(lexer*, ghostcell*);
-	virtual ~wave_lib_piston_eta();
-    
-    double wave_horzvel(lexer*,double,double,double);
-    
-    double wave_u(lexer*,double,double,double) override final;
-    double wave_v(lexer*,double,double,double) override final;
-    double wave_w(lexer*,double,double,double) override final;
-    double wave_eta(lexer*,double,double) override final;
-    double wave_fi(lexer*,double,double,double) override final;
-    
-    void parameters(lexer*,ghostcell*) override final;
-    void wave_prestep(lexer*,ghostcell*) override final;
-    
+    // checkpoints (P 48, I 45): the position in the time series of the wavemaker
+    void ckpt_state(std::vector<double> &v) override
+    {
+        v.push_back(double(timecount));
+        v.push_back(double(timecount_old));
+    }
+    void ckpt_restore(const std::vector<double> &v, size_t &k) override
+    {
+        if(k + 2 > v.size())
+            return;
+        timecount = decltype(timecount)(v[k++]);
+        timecount_old = decltype(timecount_old)(v[k++]);
+    }
+    wave_lib_piston_eta(lexer *, ghostcell *);
+    virtual ~wave_lib_piston_eta();
+
+    double wave_horzvel(lexer *, double, double, double);
+
+    double wave_u(lexer *, double, double, double) override final;
+    double wave_v(lexer *, double, double, double) override final;
+    double wave_w(lexer *, double, double, double) override final;
+    double wave_eta(lexer *, double, double) override final;
+    double wave_fi(lexer *, double, double, double) override final;
+
+    void parameters(lexer *, ghostcell *) override final;
+    void wave_prestep(lexer *, ghostcell *) override final;
+
 private:
-	void read(lexer*, ghostcell*);
-	
-	int ptnum;
-	
-	double **eta;
-	
-	double ts,te,val;
-	int timecount,timecount_old;
-    double singamma,cosgamma;
+    void read(lexer *, ghostcell *);
+
+    int ptnum;
+
+    double **eta;
+
+    double ts, te, val;
+    int timecount, timecount_old;
+    double singamma, cosgamma;
 };
 
 #endif

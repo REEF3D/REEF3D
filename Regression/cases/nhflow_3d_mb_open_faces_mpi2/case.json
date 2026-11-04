@@ -1,0 +1,21 @@
+{
+ "np": 2,
+ "steps": 100,
+ "tags": [
+  "3d",
+  "nhflow",
+  "curvilinear",
+  "multiblock",
+  "river",
+  "mpi"
+ ],
+ "description": "As sflow_2d_mb_open_faces with non-hydrostatic NHFLOW (A 520 2) on two ranks: the open faces of the blocks as the native in- and outflow (the log profile of the inflow scaled to the discharge, the river outflow of start4V, the pressure rows of the IO cells), the same solution as one block to round-off (harbour_multiblock/t1).",
+ "covers": [
+  "ioflow_amr_block: NHFLOW discharge, log inflow profile, inflow and outflow levels",
+  "nhflow_amr::open_lists (gcin, gcout, IO of the open faces); lexer::river_xm, river_xp in start*V and nhflow_curv"
+ ],
+ "solver": "nhflow",
+ "files": [
+  "blocks.dat"
+ ]
+}

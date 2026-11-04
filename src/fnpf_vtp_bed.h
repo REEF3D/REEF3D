@@ -23,30 +23,39 @@ Author: Hans Bihs
 #ifndef FNPF_VTP_BED_H_
 #define FNPF_VTP_BED_H_
 
-#include"increment.h"
-#include"vtp3D.h"
+#include "increment.h"
+#include "vtp3D.h"
+#include <utility>
+#include <vector>
 
 class lexer;
 class fdm_fnpf;
 class ghostcell;
+class slice;
 class ioflow;
+class scour_core;
 
 using namespace std;
 
 class fnpf_vtp_bed : public increment, private vtp3D
 {
 public:
-    fnpf_vtp_bed(lexer*,fdm_fnpf*,ghostcell*);
+    int &print_counter() { return printcount; }  // checkpoints (P 48, I 45)
+    fnpf_vtp_bed(lexer *, fdm_fnpf *, ghostcell *);
     virtual ~fnpf_vtp_bed() = default;
 
-    void start(lexer*,fdm_fnpf*,ghostcell*,ioflow*);
+    void start(lexer *, fdm_fnpf *, ghostcell *, ioflow *);
+
+    // P 187: the scour parameters as further point data of the bed (nullptr: elevation and depth only)
+    scour_core *scour = nullptr;
 
 private:
-    void print2D(lexer*,fdm_fnpf*,ghostcell*);
-    void pvtp(lexer*,int);
+    void print2D(lexer *, fdm_fnpf *, ghostcell *);
+    void pvtp(lexer *, int);
+    static std::vector<std::pair<const char *, slice *>> scour_fields(scour_core *);
 
     char name[200];
-    int n,offset[200];
+    int n, offset[200];
     int printcount;
 };
 

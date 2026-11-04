@@ -1,0 +1,8 @@
+{
+ "description": "FNPF 2D floating box of fnpf_2d_6dof_box (surge, heave, pitch) driven by REEF3D::CORAL (Z 40 1, fluid_body) through a planar joint, with the fluid loads extrapolated linearly and no predictor (fluid_coupling order 1 no_predictor). REEF3D_FNPF_6DOF and REEF3D_CORAL compared.",
+ "base": "fnpf_2d_6dof_box",
+ "ctrl_add": ["Z 40 1"],
+ "files": ["coral.txt"],
+ "tags": ["2d", "fnpf", "6dof", "floating", "coral"],
+ "covers": ["fnpf_6DOF_external (without predictor)", "sixdof_external", "coral_reef3d fluid bodies", "CORAL planar joint with the FNPF added mass"]
+}

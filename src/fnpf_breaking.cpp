@@ -21,15 +21,18 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include "fnpf_breaking.h"
+#include "breaking_crest3d.h"
 #include "fdm_fnpf.h"
 #include "ghostcell.h"
 #include "lexer.h"
 
 fnpf_breaking::fnpf_breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc) : bx(p), by(p), eta_t(p), t_break(p), B_coeff(p),
-                                                                      S_local(p), b_strength(p), c_phase(p), k_local(p), L_break(p), B_ramp(p), eta_old(p), brk_flag(p), k_smooth(p),
-                                                                      wdband(p)
+                                                                      S_local(p), b_strength(p), c_phase(p), k_local(p), L_break(p), B_ramp(p), brk_flag(p), k_smooth(p), vb_brk(p),
+                                                                      wdband(p), bt_us(p), bt_vs(p), bt_zone(p)
 
 {
+    count_n = 0;  // step of the last reset of the breaking flags (breaking_baquet_wd)
+
     // Default parameter values
     eta_I = 0.65;     // onset threshold coefficient
     eta_F = 0.15;     // cessation threshold coefficient
@@ -58,9 +61,9 @@ fnpf_breaking::fnpf_breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc) : bx(p), by(
         L_break(i, j) = 1.0;
         B_ramp(i, j) = 0.0;
         t_break(i, j) = -1.0e20;
-        eta_old(i, j) = c->eta(i, j);
         eta_t(i, j) = 0.0;
         brk_flag(i, j) = 0;
+        vb_brk(i, j) = 0.0;
     }
 
     pgc->gcsl_start4(p, c->vb, 1);
@@ -84,6 +87,7 @@ fnpf_breaking::fnpf_breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc) : bx(p), by(
 
 fnpf_breaking::~fnpf_breaking()
 {
+    delete bt;
 }
 
 void fnpf_breaking::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, slice &eta_n, slice &Fifsf, double alpha)
@@ -103,5 +107,8 @@ void fnpf_breaking::breaking(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &eta, 
 
     if(p->A350 == 3)
         breaking_romero(p, c, pgc, eta, eta_n, Fifsf, alpha);
+
+    if(p->A350 == 4)
+        breaking_barthelemy(p, c, pgc, eta, eta_n, Fifsf, alpha);
 }
 

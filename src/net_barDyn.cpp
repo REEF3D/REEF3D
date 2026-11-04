@@ -21,6 +21,7 @@ Author: Tobias Martin
 --------------------------------------------------------------------*/
 
 #include "net_barDyn.h"
+#include "ckpt_pack.h"
 #include "fdm.h"
 #include "fdm_nhf.h"
 #include "ghostcell.h"
@@ -234,22 +235,6 @@ void net_barDyn::startLoop(lexer *p, ghostcell *pgc, int &iter)
         xdot_.col(1) *= 0.0;
     }
 
-    /*MatrixXd xdot_new(nK,3);
-
-    xdot_new =
-        1.0/coeffs_(0)*
-        (
-            xdotdot_ - coeffs_(1)*xdot_ - coeffs_(2)*xdotn_ - coeffs_(3)*xdotnn_
-        );
-    */
-
-    // Under-relaxation for velocities below rigid top knots
-    /*    xdot_new.block(nK-niK,0,niK,1) = xdot_.block(nK-niK,0,niK,1) + p->X325_relX*(xdot_new.block(nK-niK,0,niK,1) - xdot_.block(nK-niK,0,niK,1));
-        xdot_new.block(nK-niK,1,niK,1) = xdot_.block(nK-niK,1,niK,1) + p->X325_relY*(xdot_new.block(nK-niK,1,niK,1) - xdot_.block(nK-niK,1,niK,1));
-        xdot_new.block(nK-niK,2,niK,1) = xdot_.block(nK-niK,2,niK,1) + p->X325_relZ*(xdot_new.block(nK-niK,2,niK,1) - xdot_.block(nK-niK,2,niK,1));
-    */
-
-    //- Advance position
     x_ =
         1.0 / coeffs_(0) *
         (xdot_ - coeffs_(1) * x_ - coeffs_(2) * xn_ - coeffs_(3) * xnn_);
@@ -344,4 +329,44 @@ Eigen::VectorXd net_barDyn::timeWeight(lexer *p)
     }
 
     return coeff.col(1);
+}
+
+// checkpoints (P 48, I 45): the knots with their history (third-order time weights over the last three
+// steps), the tensions (the Newton start), the fluid at the knots (t^n for the next step), the print state
+void net_barDyn::ckpt_state(std::vector<double> &v) const
+{
+    ckpt_put w{v};
+    for(const MatrixXd *a : {&x_, &xn_, &xnn_, &xdot_, &xdotn_, &xdotnn_, &xdotdot_, &top_xdot_, &top_xdotdot_, &forces_knot})
+        w.md(*a);
+    for(const VectorXd *a : {&B_, &T_, &T_old, &T_backup, &coeffs_})
+        w.md(*a);
+    for(double x : {dt_, dtn_, dtnn_, t_net, t_net_n, printtime, Tne, Fx, Fy, Fz})
+        w.d(x);
+    w.b(fluidVelInit_);
+    for(int n = 0; n < nK; ++n)
+    {
+        w.ad(coupledField[n], 4);
+        w.ad(coupledFieldn[n], 4);
+        w.ad(K[n], 3);
+    }
+}
+
+void net_barDyn::ckpt_restore(const std::vector<double> &v, size_t &k)
+{
+    ckpt_get r{v};
+    r.k = k;
+    for(MatrixXd *a : {&x_, &xn_, &xnn_, &xdot_, &xdotn_, &xdotnn_, &xdotdot_, &top_xdot_, &top_xdotdot_, &forces_knot})
+        r.md(*a);
+    for(VectorXd *a : {&B_, &T_, &T_old, &T_backup, &coeffs_})
+        r.md(*a);
+    for(double *x : {&dt_, &dtn_, &dtnn_, &t_net, &t_net_n, &printtime, &Tne, &Fx, &Fy, &Fz})
+        r.d(*x);
+    r.b(fluidVelInit_);
+    for(int n = 0; n < nK; ++n)
+    {
+        r.ad(coupledField[n], 4);
+        r.ad(coupledFieldn[n], 4);
+        r.ad(K[n], 3);
+    }
+    k = r.k;
 }

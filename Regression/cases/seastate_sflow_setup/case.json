@@ -1,0 +1,9 @@
+{
+ "description": "REEF3D::SEASTATE coupled with SFLOW (A 10 2, A 750 1), radiation stress forcing (A 751 1): stationary SEASTATE every 30 s (A 706), Battjes-Janssen breaking, JONSWAP Hs 1.5 m Tp 8 s on a plane beach 10 m -> dry (DIVEMesh wedge), set-down and set-up in a closed SFLOW basin, water level and currents fed back (A 753 2), ramp-up 60 s; 80 x 2 cells of 10 m, 300 s. Validation in Dropbox SEASTATE/validation/09_setup.",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 1200,
+ "time": 300.0,
+ "tags": ["quick", "2d", "sflow", "seastate"],
+ "covers": ["seastate_sflow radiation stress", "seastate_f ini_coupled/step_coupled, drying cells", "sflow_momentum_func wave source", "seastate_vtp coupled fields"]
+}

@@ -1,0 +1,23 @@
+{
+ "base": "nhflow_3d_amr_still",
+ "ctrl_set": {
+  "A 520": "0"
+ },
+ "ctrl_add": [
+  "A 534 1",
+  "A 535 0.55",
+  "A 536 0.05"
+ ],
+ "description": "nhflow_3d_amr_still semi-implicit hydrostatic: the closed tank with bed ramps under the patch edges stays at rest.",
+ "tags": [
+  "quick",
+  "3d",
+  "nhflow",
+  "semi_implicit",
+  "amr"
+ ],
+ "covers": [
+  "nhflow_amr_si well balancing"
+ ],
+ "architect": "Hans Bihs"
+}

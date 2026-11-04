@@ -124,6 +124,10 @@ void benchmark_TaylorGreen::start(lexer *p, fdm *a, ghostcell *pgc, convection *
             vx(i, j, k) = 0.0;
             vy(i, j, k) = pudz(p, a) - pwdx(p, a);
             vz(i, j, k) = 0.0;
+            // 2D: the kinetic energy of u and w (was unset)
+            uu = 0.5 * (a->u(i, j, k) + a->u(i - 1, j, k));
+            vv = 0.0;
+            ww = 0.5 * (a->w(i, j, k) + a->w(i, j, k - 1));
         }
 
         vmag2 = vx(i, j, k) * vx(i, j, k) + vy(i, j, k) * vy(i, j, k) + vz(i, j, k) * vz(i, j, k);
@@ -192,238 +196,237 @@ void benchmark_TaylorGreen::start(lexer *p, fdm *a, ghostcell *pgc, convection *
 
         printdata.open(name);
 
-        printdata << "Data ID:  " << 1 << endl
-                  << endl;
-        //			lineout[n]<<"x_start     x_end     y_start     y_end     z_start     z_end"<<endl;
-
-        //			lineout[n]<<p->P62_xs[n]<<"\t "<<p->P62_xe[n]<<"\t "<<p->P62_ys[n]<<"\t "<<p->P62_ye[n]<<"\t "<<p->P62_zs[n]<<"\t "<<p->P62_ze[n]<<endl;
-
-        printdata << endl
-                  << endl;
-
-        printdata << "position \t GrowthRatio \t" << endl;
-        //			printdata<<"X \t Y \t Z \t U \t V \t W \t P"<<endl;
-
-        printdata << endl
-                  << endl;
-
         for(i = 1; i < p->knox - 1; ++i)
             for(j = 0; j < p->knoy; ++j)
                 for(k = 0; k < p->knoz; ++k)
                     if(j == p->knoy / 2.0 && k == p->knoz / 2.0)
                     {
 
-                        //			x = i;
-                        //			y = j;
-                        //			z = k;
-
-                        //			x = p->pos3_x();
-                        //       		y = p->pos3_y();
-                        //        		z = p->pos3_z();
-
                         X1NM1P = p->XP[IP];
 
-                        if(p->XP[IP] < 0)
-                        {
-                            growfactor1 = 1.0 / (p->DXP[IP] / p->DXP[IM1]);
-                        }
-                        else
-                        {
-                            growfactor1 = (p->DXP[IP] / p->DXP[IM1]);
-                        }
+                        printdata << "position \t GrowthRatio \t" << endl;
+                        //			printdata<<"X \t Y \t Z \t U \t V \t W \t P"<<endl;
 
-                        printdata << X1NM1P << " \t " << growfactor1 << " \t " << endl;
+                        printdata << endl
+                                  << endl;
 
-                        //            printdata<<x<<" \t "<<y<<" \t "<<z<<" \t "<<a->w(i,j,k)<<" \t "<<endl;
-                        //          printdata<<p->pos1_x()<<" \t "<<p->pos1_y()<<" \t "<<p->pos1_z()<<" \t "<<a->u(i,j,k)<<" \t "<<V<<" \t "<<W;
-                        //			printdata<<" \t "<<P<<endl;
+                        for(i = 1; i < p->knox - 1; ++i)
+                            for(j = 0; j < p->knoy; ++j)
+                                for(k = 0; k < p->knoz; ++k)
+                                    if(j == p->knoy / 2.0 && k == p->knoz / 2.0)
+                                    {
+
+                                        //			x = i;
+                                        //			y = j;
+                                        //			z = k;
+
+                                        //			x = p->pos3_x();
+                                        //       		y = p->pos3_y();
+                                        //        		z = p->pos3_z();
+
+                                        X1NM1P = p->XP[IP];
+
+                                        if(p->XP[IP] < 0)
+                                        {
+                                            growfactor1 = 1.0 / (p->DXP[IP] / p->DXP[IM1]);
+                                        }
+                                        else
+                                        {
+                                            growfactor1 = (p->DXP[IP] / p->DXP[IM1]);
+                                        }
+
+                                        printdata << X1NM1P << " \t " << growfactor1 << " \t " << endl;
+
+                                        //            printdata<<x<<" \t "<<y<<" \t "<<z<<" \t "<<a->w(i,j,k)<<" \t "<<endl;
+                                        //          printdata<<p->pos1_x()<<" \t "<<p->pos1_y()<<" \t "<<p->pos1_z()<<" \t "<<a->u(i,j,k)<<" \t "<<V<<" \t "<<W;
+                                        //			printdata<<" \t "<<P<<endl;
+                                    }
+
+                        printdata.close();
                     }
 
-        printdata.close();
+        // Vorticity_Norml
+        //     if(p->mpirank==0)
+        //     {
+        // ofstream printdata;
+        // double x,y,z;
+        //  open file
+
+        if(numberi == p->P20 || numberi == 8001.0 || numberi == 9001.0)
+        {
+
+            if(numberi < 10)
+                sprintf(name, "./REEF3D_CFD_Vorticity_Norml/REEF3D-CFD-Vorticity_Norm-%d-00000%d.dat", numberi, p->mpirank);
+
+            if(numberi < 100 && numberi > 9)
+                sprintf(name, "./REEF3D_CFD_Vorticity_Norml/REEF3D-CFD-Vorticity_Norm-%d-0000%d.dat", numberi, p->mpirank);
+
+            if(numberi < 1000 && numberi > 99)
+                sprintf(name, "./REEF3D_CFD_Vorticity_Norml/REEF3D-CFD-Vorticity_Norm-%d-000%d.dat", numberi, p->mpirank);
+
+            if(numberi < 10000 && numberi > 999)
+                sprintf(name, "./REEF3D_CFD_Vorticity_Norml/REEF3D-CFD-Vorticity_Norm-%d-00%d.dat", numberi, p->mpirank);
+
+            if(numberi < 100000 && numberi > 9999)
+                sprintf(name, "./REEF3D_CFD_Vorticity_Norml/REEF3D-CFD-Vorticity_Norm-%d-0%d.dat", numberi, p->mpirank);
+
+            if(numberi > 99999)
+                sprintf(name, "./REEF3D_CFD_Vorticity_Norml/REEF3D-CFD-Vorticity_Norm-%d-%d.dat", numberi, p->mpirank);
+
+            printdata.open(name);
+
+            printdata << "Data ID:  " << 1 << endl
+                      << endl;
+            //			lineout[n]<<"x_start     x_end     y_start     y_end     z_start     z_end"<<endl;
+
+            //			lineout[n]<<p->P62_xs[n]<<"\t "<<p->P62_xe[n]<<"\t "<<p->P62_ys[n]<<"\t "<<p->P62_ye[n]<<"\t "<<p->P62_zs[n]<<"\t "<<p->P62_ze[n]<<endl;
+
+            printdata << endl
+                      << endl;
+
+            printdata << "X \t Y \t Z \t Vorticity_Norml \t" << endl;
+            //			printdata<<"X \t Y \t Z \t U \t V \t W \t P"<<endl;
+
+            printdata << endl
+                      << endl;
+
+            pgc->start4(p, vx, 1);
+            pgc->start4(p, vy, 1);
+            pgc->start4(p, vz, 1);
+
+            TPLOOP
+            {
+                vxP = float(p->ipol4(vx));
+                vyP = float(p->ipol4(vy));
+                vzP = float(p->ipol4(vz));
+
+                vmagP = sqrt(vxP * vxP + vyP * vyP + vzP * vzP);
+            }
+
+            TPLOOP
+            if(p->pos_y() >= -0.018 && p->pos_y() <= 0.0)
+            {
+
+                printdata << p->XN[IP1] << " \t " << p->YN[JP1] << " \t " << p->ZN[KP1] << " \t " << vmagP << " \t " << endl;
+            }
+            printdata.close();
+        }
+
+        // Vorticity_Normr
+        //     if(p->mpirank==0)
+        //     {
+        // ofstream printdata;
+        // double x,y,z;
+        //  open file
+        // Positions
+        //    if(p->mpirank==0)
+        //    {
+        // ofstream printdata;
+        // double x,y,z;
+        // open file
+
+        if(numberi == 5.0)
+        {
+
+            if(numberi < 10)
+                sprintf(name, "./REEF3D_CFD_position/REEF3D-CFD-Pos-%d-00000%d.dat", numberi, p->mpirank);
+
+            if(numberi < 100 && numberi > 9)
+                sprintf(name, "./REEF3D_CFD_position/REEF3D-CFD-Pos-%d-0000%d.dat", numberi, p->mpirank);
+
+            if(numberi < 1000 && numberi > 99)
+                sprintf(name, "./REEF3D_CFD_position/REEF3D-CFD-Pos-%d-000%d.dat", numberi, p->mpirank);
+
+            if(numberi < 10000 && numberi > 999)
+                sprintf(name, "./REEF3D_CFD_position/REEF3D-CFD-Pos-%d-00%d.dat", numberi, p->mpirank);
+
+            if(numberi < 100000 && numberi > 9999)
+                sprintf(name, "./REEF3D_CFD_position/REEF3D-CFD-Pos-%d-0%d.dat", numberi, p->mpirank);
+
+            if(numberi > 99999)
+                sprintf(name, "./REEF3D_CFD_position/REEF3D-CFD-Pos-%d-%d.dat", numberi, p->mpirank);
+
+            printpos.open(name);
+
+            printpos << "Data ID:  " << 10 << endl
+                     << endl;
+            //			lineout[n]<<"x_start     x_end     y_start     y_end     z_start     z_end"<<endl;
+
+            //			lineout[n]<<p->P62_xs[n]<<"\t "<<p->P62_xe[n]<<"\t "<<p->P62_ys[n]<<"\t "<<p->P62_ye[n]<<"\t "<<p->P62_zs[n]<<"\t "<<p->P62_ze[n]<<endl;
+
+            printpos << endl
+                     << endl;
+
+            printpos << "XN \t YN \t ZN \t XP \t YP \t ZP \t" << endl;
+            //			printdata<<"X \t Y \t Z \t U \t V \t W \t P"<<endl;
+
+            printpos << endl
+                     << endl;
+
+            for(i = -3; i < p->knox - p->ulast + 3; ++i)
+            {
+
+                x = p->pos1_x();
+
+                printpos << x << " \t ";
+            }
+
+            printpos << endl;
+
+            for(j = -3; j < p->knoy - p->vlast + 3; ++j)
+            {
+
+                y = p->pos2_y();
+
+                printpos << y << " \t ";
+            }
+
+            printpos << endl;
+
+            for(k = -3; k < p->knoz - p->wlast + 3; ++k)
+            {
+
+                z = p->pos3_z();
+
+                printpos << z << " \t ";
+            }
+
+            printpos << endl;
+
+            for(i = -3; i < p->knox + 3; ++i)
+            {
+
+                xp = p->pos_x();
+
+                printpos << xp << " \t ";
+            }
+
+            printpos << endl;
+
+            for(j = -3; j < p->knoy + 3; ++j)
+            {
+
+                yp = p->pos_y();
+
+                printpos << yp << " \t ";
+            }
+
+            printpos << endl;
+
+            for(k = -3; k < p->knoz + 3; ++k)
+            {
+
+                zp = p->pos_z();
+
+                printpos << zp << " \t ";
+            }
+
+            printpos << endl;
+
+            //          printdata<<p->pos1_x()<<" \t "<<p->pos1_y()<<" \t "<<p->pos1_z()<<" \t "<<a->u(i,j,k)<<" \t "<<V<<" \t "<<W;
+            //			printdata<<" \t "<<P<<endl;
+
+            printpos.close();
+        }
     }
-
-    // Vorticity_Norml
-    //     if(p->mpirank==0)
-    //     {
-    // ofstream printdata;
-    // double x,y,z;
-    //  open file
-
-    if(numberi == p->P20 || numberi == 8001.0 || numberi == 9001.0)
-    {
-
-        if(numberi < 10)
-            sprintf(name, "./REEF3D_CFD_Vorticity_Norml/REEF3D-CFD-Vorticity_Norm-%d-00000%d.dat", numberi, p->mpirank);
-
-        if(numberi < 100 && numberi > 9)
-            sprintf(name, "./REEF3D_CFD_Vorticity_Norml/REEF3D-CFD-Vorticity_Norm-%d-0000%d.dat", numberi, p->mpirank);
-
-        if(numberi < 1000 && numberi > 99)
-            sprintf(name, "./REEF3D_CFD_Vorticity_Norml/REEF3D-CFD-Vorticity_Norm-%d-000%d.dat", numberi, p->mpirank);
-
-        if(numberi < 10000 && numberi > 999)
-            sprintf(name, "./REEF3D_CFD_Vorticity_Norml/REEF3D-CFD-Vorticity_Norm-%d-00%d.dat", numberi, p->mpirank);
-
-        if(numberi < 100000 && numberi > 9999)
-            sprintf(name, "./REEF3D_CFD_Vorticity_Norml/REEF3D-CFD-Vorticity_Norm-%d-0%d.dat", numberi, p->mpirank);
-
-        if(numberi > 99999)
-            sprintf(name, "./REEF3D_CFD_Vorticity_Norml/REEF3D-CFD-Vorticity_Norm-%d-%d.dat", numberi, p->mpirank);
-
-        printdata.open(name);
-
-        printdata << "Data ID:  " << 1 << endl
-                  << endl;
-        //			lineout[n]<<"x_start     x_end     y_start     y_end     z_start     z_end"<<endl;
-
-        //			lineout[n]<<p->P62_xs[n]<<"\t "<<p->P62_xe[n]<<"\t "<<p->P62_ys[n]<<"\t "<<p->P62_ye[n]<<"\t "<<p->P62_zs[n]<<"\t "<<p->P62_ze[n]<<endl;
-
-        printdata << endl
-                  << endl;
-
-        printdata << "X \t Y \t Z \t Vorticity_Norml \t" << endl;
-        //			printdata<<"X \t Y \t Z \t U \t V \t W \t P"<<endl;
-
-        printdata << endl
-                  << endl;
-
-        pgc->start4(p, vx, 1);
-        pgc->start4(p, vy, 1);
-        pgc->start4(p, vz, 1);
-
-        TPLOOP
-        {
-            vxP = float(p->ipol4(vx));
-            vyP = float(p->ipol4(vy));
-            vzP = float(p->ipol4(vz));
-
-            vmagP = sqrt(vxP * vxP + vyP * vyP + vzP * vzP);
-        }
-
-        TPLOOP
-        if(p->pos_y() >= -0.018 && p->pos_y() <= 0.0)
-        {
-
-            printdata << p->XN[IP1] << " \t " << p->YN[JP1] << " \t " << p->ZN[KP1] << " \t " << vmagP << " \t " << endl;
-        }
-        printdata.close();
-    }
-
-    // Vorticity_Normr
-    //     if(p->mpirank==0)
-    //     {
-    // ofstream printdata;
-    // double x,y,z;
-    //  open file
-    // Positions
-    //    if(p->mpirank==0)
-    //    {
-    // ofstream printdata;
-    // double x,y,z;
-    // open file
-
-    if(numberi == 5.0)
-    {
-
-        if(numberi < 10)
-            sprintf(name, "./REEF3D_CFD_position/REEF3D-CFD-Pos-%d-00000%d.dat", numberi, p->mpirank);
-
-        if(numberi < 100 && numberi > 9)
-            sprintf(name, "./REEF3D_CFD_position/REEF3D-CFD-Pos-%d-0000%d.dat", numberi, p->mpirank);
-
-        if(numberi < 1000 && numberi > 99)
-            sprintf(name, "./REEF3D_CFD_position/REEF3D-CFD-Pos-%d-000%d.dat", numberi, p->mpirank);
-
-        if(numberi < 10000 && numberi > 999)
-            sprintf(name, "./REEF3D_CFD_position/REEF3D-CFD-Pos-%d-00%d.dat", numberi, p->mpirank);
-
-        if(numberi < 100000 && numberi > 9999)
-            sprintf(name, "./REEF3D_CFD_position/REEF3D-CFD-Pos-%d-0%d.dat", numberi, p->mpirank);
-
-        if(numberi > 99999)
-            sprintf(name, "./REEF3D_CFD_position/REEF3D-CFD-Pos-%d-%d.dat", numberi, p->mpirank);
-
-        printpos.open(name);
-
-        printpos << "Data ID:  " << 10 << endl
-                 << endl;
-        //			lineout[n]<<"x_start     x_end     y_start     y_end     z_start     z_end"<<endl;
-
-        //			lineout[n]<<p->P62_xs[n]<<"\t "<<p->P62_xe[n]<<"\t "<<p->P62_ys[n]<<"\t "<<p->P62_ye[n]<<"\t "<<p->P62_zs[n]<<"\t "<<p->P62_ze[n]<<endl;
-
-        printpos << endl
-                 << endl;
-
-        printpos << "XN \t YN \t ZN \t XP \t YP \t ZP \t" << endl;
-        //			printdata<<"X \t Y \t Z \t U \t V \t W \t P"<<endl;
-
-        printpos << endl
-                 << endl;
-
-        for(i = -3; i < p->knox - p->ulast + 3; ++i)
-        {
-
-            x = p->pos1_x();
-
-            printpos << x << " \t ";
-        }
-
-        printpos << endl;
-
-        for(j = -3; j < p->knoy - p->vlast + 3; ++j)
-        {
-
-            y = p->pos2_y();
-
-            printpos << y << " \t ";
-        }
-
-        printpos << endl;
-
-        for(k = -3; k < p->knoz - p->wlast + 3; ++k)
-        {
-
-            z = p->pos3_z();
-
-            printpos << z << " \t ";
-        }
-
-        printpos << endl;
-
-        for(i = -3; i < p->knox + 3; ++i)
-        {
-
-            xp = p->pos_x();
-
-            printpos << xp << " \t ";
-        }
-
-        printpos << endl;
-
-        for(j = -3; j < p->knoy + 3; ++j)
-        {
-
-            yp = p->pos_y();
-
-            printpos << yp << " \t ";
-        }
-
-        printpos << endl;
-
-        for(k = -3; k < p->knoz + 3; ++k)
-        {
-
-            zp = p->pos_z();
-
-            printpos << zp << " \t ";
-        }
-
-        printpos << endl;
-
-        //          printdata<<p->pos1_x()<<" \t "<<p->pos1_y()<<" \t "<<p->pos1_z()<<" \t "<<a->u(i,j,k)<<" \t "<<V<<" \t "<<W;
-        //			printdata<<" \t "<<P<<endl;
-
-        printpos.close();
-    }
-}
 

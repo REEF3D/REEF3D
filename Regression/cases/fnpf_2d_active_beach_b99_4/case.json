@@ -1,0 +1,19 @@
+{
+ "base": "fnpf_2d_dirichlet_awa",
+ "ctrl_set": {
+  "B 99": "4"
+ },
+ "steps": 1200,
+ "description": "FNPF active beach with the linear-theory profile (B 99 4), Dirichlet generation.",
+ "tags": [
+  "quick",
+  "2d",
+  "waves",
+  "iowave",
+  "awa",
+  "fnpf"
+ ],
+ "covers": [
+  "iowave_fnpf_active-beach B 99 4 profile"
+ ]
+}

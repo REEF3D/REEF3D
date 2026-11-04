@@ -1,0 +1,29 @@
+{
+ "base": "nhflow_3d_si_mb_basin_wavy",
+ "description": "nhflow_3d_si_mb_basin_wavy at rest with a met file (W 200 2, met-forcing.r3m: wind and air pressure, 7 records over 6 h) on the curvilinear multi-block grid: sampling at the cell centres XC2D/YC2D and the pressure gradient through geo_grad. The static inverse barometer is reproduced within 0.18 mm of 5.6 mm.",
+ "steps": 200,
+ "ctrl_set": {
+  "F 72": null,
+  "N 41": "10800.0"
+ },
+ "ctrl_add": [
+  "W 200 2",
+  "W 204 1800.0",
+  "P 51 1500.0 300.0",
+  "P 51 300.0 700.0"
+ ],
+ "files": [
+  "met-forcing.r3m"
+ ],
+ "tags": [
+  "3d",
+  "nhflow",
+  "semi_implicit",
+  "curvilinear",
+  "multiblock",
+  "met"
+ ],
+ "covers": [
+  "met_forcing / met_provider on curvilinear grids (G 50 1)"
+ ]
+}

@@ -1,0 +1,23 @@
+{
+ "base": "seastate_2d_wind",
+ "control_set": {
+  "B 10": "0.0 40000.0 0.0 6000.0 0.0 2000.0"
+ },
+ "ctrl_add": [
+  "A 738 16",
+  "A 739 1.0e-4"
+ ],
+ "ctrl_set": {
+  "A 707": "40",
+  "A 708": "1.0e-12"
+ },
+ "description": "as seastate_2d_wind (stationary fetch-limited growth, Komen, DIA, limiter) on 6 rows instead of 3, with source iterations per cell (A 738 16, A 739 1e-4) and 40 iterations (Phase 10 fix): the action density limiter bounds the change from the spectrum of the cell before its first solve (it bounded every solve, so 16 source iterations moved a cell up to 16 limits per iteration and the outer iteration wandered on more than 3 rows), and non-contracting cells take the spectrum of the first solve instead of the mean of the last two. Validation in Dropbox SEASTATE/validation/46_source_iterations_fix.",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate"
+ ],
+ "covers": [
+  "seastate_implicit source iterations: limiter reference, fallback of non-contracting cells"
+ ]
+}

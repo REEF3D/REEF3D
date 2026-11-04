@@ -31,9 +31,8 @@ using namespace std;
 class nhflow_scalar_convection
 {
 public:
-
-	virtual void start(lexer*,fdm_nhf*,double*,int,double*,double*,double*)=0;
-    
+    virtual ~nhflow_scalar_convection() {}
+    virtual void start(lexer *, fdm_nhf *, double *, int, double *, double *, double *) = 0;
 };
 
 #endif

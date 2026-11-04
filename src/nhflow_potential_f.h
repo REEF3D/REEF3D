@@ -23,8 +23,8 @@ Author: Hans Bihs
 #ifndef NHFLOW_POTENTIAL_F_H_
 #define NHFLOW_POTENTIAL_F_H_
 
-#include"nhflow_potential.h"
-#include"increment.h"
+#include "increment.h"
+#include "nhflow_potential.h"
 
 using namespace std;
 
@@ -32,31 +32,34 @@ class nhflow_potential_f final : public nhflow_potential, public increment
 {
 
 public:
-	nhflow_potential_f(lexer*);
-	virtual ~nhflow_potential_f();
+    nhflow_potential_f(lexer *);
+    virtual ~nhflow_potential_f();
 
-	void start(lexer*,fdm_nhf*, solver*, ghostcell*) override final;
+    void start(lexer *, fdm_nhf *, solver *, ghostcell *) override final;
 
+    // multi-block grid (nhflow_amr::potential): the rows of one grid, its velocities from the solution
+    void amr_assemble(lexer *, fdm_nhf *, ghostcell *, double *);
+    int amr_velocities(lexer *, fdm_nhf *, ghostcell *, const double *);
 
 private:
-    void rhs(lexer*,fdm_nhf*);
-	void ucalc(lexer*,fdm_nhf*);
-	void vcalc(lexer*,fdm_nhf*);
-	void wcalc(lexer*,fdm_nhf*);
-    
-    void laplace(lexer*,fdm_nhf*,ghostcell*);
-    void ini_bc(lexer*,fdm_nhf*,ghostcell*);
-    
-    
-	double starttime,endtime;
-	int count;
-	int gcval_pot;
-    double sigxyz2;
-    
-    double *PSI;
-    
-    int *BC;
+    void rhs(lexer *, fdm_nhf *);
+    void ucalc(lexer *, fdm_nhf *);
+    void vcalc(lexer *, fdm_nhf *);
+    void wcalc(lexer *, fdm_nhf *);
 
+    void laplace(lexer *, fdm_nhf *, ghostcell *);
+    void ini_bc(lexer *, fdm_nhf *, ghostcell *);
+    void curv_ghost(lexer *);
+    void curv_velocities(lexer *, fdm_nhf *);
+
+    double starttime, endtime;
+    int count;
+    int gcval_pot;
+    double sigxyz2;
+
+    double *PSI;
+
+    int *BC;
 };
 
 #endif

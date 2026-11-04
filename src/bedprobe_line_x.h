@@ -23,11 +23,12 @@ Author: Hans Bihs
 #ifndef BEDPROBE_LINE_X_H_
 #define BEDPROBE_LINE_X_H_
 
-#include"boundarycheck.h"
-#include<iostream>
-#include<fstream>
+#include "boundarycheck.h"
+#include <fstream>
+#include <iostream>
 
 class lexer;
+class wsfline_core;
 class sediment_fdm;
 class ghostcell;
 class field;
@@ -39,30 +40,22 @@ using namespace std;
 class bedprobe_line_x : public boundarycheck
 {
 public:
-    bedprobe_line_x(lexer*,ghostcell*,sediment_fdm*);
-	virtual ~bedprobe_line_x();
+    bedprobe_line_x(lexer *, ghostcell *, sediment_fdm *);
+    virtual ~bedprobe_line_x();
 
-	void start(lexer*, ghostcell*,sediment_fdm*,ioflow*);
-
+    void start(lexer *, ghostcell *, sediment_fdm *, ioflow *);
 
 private:
-    void ini_location(lexer*, ghostcell*,sediment_fdm*);
-    void sort(double*, double*, int*, int,int);
-    void remove_multientry(lexer*,double*, double*, int*, int&);
-
-    int *jloc,**flag,**flag_all,*rowflag,*wsfpoints;
-    double **wsf,**wsf_all;
-    double **xloc, **xloc_all;
+    void ini_location(lexer *, ghostcell *, sediment_fdm *);
+    int *jloc;
     double *yloc;
-    int n,q;
+    int n, q;
     ofstream wsfout;
 
     double xcoor;
-	
-	wave_theory *pwave;
 
-    int maxknox,sumknox;
-
+    wave_theory *pwave;
+    wsfline_core *pcore;
 };
 
 #endif

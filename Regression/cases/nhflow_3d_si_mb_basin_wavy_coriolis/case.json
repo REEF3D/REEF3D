@@ -1,0 +1,19 @@
+{
+ "base": "nhflow_3d_si_mb_basin_wavy",
+ "ctrl_add": [
+  "W 205 8.0 54.0 0.0",
+  "W 211 2"
+ ],
+ "description": "nhflow_3d_si_mb_basin_wavy with the Coriolis force per cell (W 211 2): the latitude from the physical cell centres XC2D, YC2D of every block (frame W 205).",
+ "tags": [
+  "3d",
+  "nhflow",
+  "semi_implicit",
+  "curvilinear",
+  "multiblock",
+  "coriolis"
+ ],
+ "covers": [
+  "met_forcing Coriolis W 211 2 on the blocks of a multi-block grid (G 50 1)"
+ ]
+}

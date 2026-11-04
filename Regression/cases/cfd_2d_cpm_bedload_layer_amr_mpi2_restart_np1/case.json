@@ -1,0 +1,31 @@
+{
+ "base": "cfd_2d_cpm_bedload_layer_amr_mpi2_ckpt",
+ "np": 1,
+ "steps": 150,
+ "chain": [
+  {
+   "case": "cfd_2d_cpm_bedload_layer_amr_mpi2_ckpt",
+   "copy": [
+    "REEF3D_Checkpoint",
+    "REEF3D_CFD_CPM_Particle"
+   ]
+  }
+ ],
+ "control_set": {
+  "M 10": "1"
+ },
+ "ctrl_set": {
+  "I 45": "100",
+  "M 10": "1"
+ },
+ "description": "the restart of cfd_2d_cpm_bedload_layer_amr_mpi2_ckpt (2 ranks) from its checkpoint at step 100 on one rank (I 45 100): level 0 and the patches mapped, the grid of CPM of one piece from the two pieces of the checkpoint (cell by cell), its parcels by their position (CPM::ckpt_rank_restore); its own reference (against the uninterrupted run on 2 ranks: parcels and sediment volume exactly, the fluid to the round-off of the other decomposition)",
+ "covers": [
+  "cfd_amr::cpm_ckpt_read on another decomposition"
+ ],
+ "tags": [
+  "2d",
+  "cpm",
+  "amr",
+  "checkpoint"
+ ]
+}

@@ -40,10 +40,8 @@ public:
     bedslope(lexer *);
     virtual ~bedslope();
 
-    void slope_analytical(lexer *, ghostcell *, sediment_fdm *);
     void slope_cds(lexer *, ghostcell *, sediment_fdm *);
-    void slope_weno(lexer *, ghostcell *, sediment_fdm *);
-    void slope_weno_topo(lexer *, ghostcell *, sediment_fdm *, field &);
+    void slope_cds_curv(lexer *p, ghostcell *pgc, sediment_fdm *s);  // curvilinear grid (G 50)
 
 private:
     double u_abs, u_plus, dist;

@@ -39,10 +39,12 @@ public:
     void correct_ls(lexer *, fdm *, ghostcell *, field &) override final;
 
 private:
-    const double epsi;
-    double vol1, vol2;
-    double inivol, netvol;
-    bool vol_ini;  // reference volume taken (first volcalc)
+    double vol1, vol2, dvol2;
+    // the reference and the net volume, the reference taken (1, first volcalc): one array for the
+    // checkpoints (ckpt_registry)
+    double vs[3] = {0.0, 0.0, 0.0};
+    double &inivol = vs[0], &netvol = vs[1], &vol_ini = vs[2];
+    unsigned long long ckid;
 };
 
 #endif

@@ -1,0 +1,12 @@
+{
+ "base": "fnpf_2d_amr_6dof_box",
+ "np": 1,
+ "steps": 200,
+ "ctrl_add": [
+  "X 30 100",
+  "X 35 1"
+ ],
+ "description": "fnpf_2d_amr_6dof_box with the psi solves to 100 x N 44 (X 30 100) and started from the extrapolation of the last two of their kind (X 35 1: psi_0 of the same stage of the previous two steps, the unit modes of the previous two added masses; psi_guess, psi_record on level 0 and the patch).",
+ "tags": ["2d", "fnpf", "amr", "6dof", "floating"],
+ "covers": ["fnpf_6DOF psi_guess/psi_record: X 35 initial guess of the psi solves (solve_psi_amr)", "X 30 with X 35"]
+}

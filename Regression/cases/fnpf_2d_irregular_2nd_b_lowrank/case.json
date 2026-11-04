@@ -1,0 +1,7 @@
+{
+ "base": "fnpf_2d_irregular_2nd_b",
+ "ctrl_set": {"B 86": "128"},
+ "description": "fnpf_2d_irregular_2nd_b with 128 components: low-rank sums of the direction for eta and the potential of the sum terms, the potential of the difference terms direct.",
+ "tags": ["quick", "2d", "fnpf", "waves", "iowave", "irregular"],
+ "covers": ["2nd-order low-rank sums: potential and eta (FNPF)"]
+}

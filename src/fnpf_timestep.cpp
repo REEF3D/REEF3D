@@ -55,9 +55,10 @@ void fnpf_timestep::start(fdm_fnpf *c, lexer *p, ghostcell *pgc)
     SLICELOOP4
     if(i + p->origin_i >= 5 || p->j_dir == 1)
     {
-        p->umax = MAX(p->umax, fabs(c->U[FIJK]));
-        p->vmax = MAX(p->vmax, fabs(c->V[FIJK]));
-        p->wmax = MAX(p->wmax, fabs(c->W[FIJK]));
+        // the surface node (k = knoz): of the 3D velocities, or the surface ones (fnpf_memory.h)
+        p->umax = MAX(p->umax, fabs(c->U != nullptr ? c->U[FIJK] : c->Us(i, j)));
+        p->vmax = MAX(p->vmax, fabs(c->V != nullptr ? c->V[FIJK] : c->Vs(i, j)));
+        p->wmax = MAX(p->wmax, fabs(c->W != nullptr ? c->W[FIJK] : c->Ws(i, j)));
     }
 
     SLICELOOP4
@@ -101,15 +102,24 @@ void fnpf_timestep::start(fdm_fnpf *c, lexer *p, ghostcell *pgc)
     if(p->j_dir == 1)
         cu = MIN(cu, cv);
 
-    p->dt = p->N47 * cu;
+    // minimum over all ranks (was the value of rank 0, i.e. of its cells only)
+    cu = pgc->globalmin(cu);
 
-    p->dt = pgc->timesync(p->dt);
+    // no water and no velocity: the time step would be N47*1e10 and the run would end silently
+    if(cu >= 1.0e10)
+    {
+        if(p->mpirank == 0)
+            cout << endl
+                 << "!!! FNPF: no time step, the domain holds no water (max water depth " << depthmax << " m, umax " << p->umax << " m/s) !!!" << endl
+                 << endl;
+
+        pgc->final(true);
+    }
+
+    p->dt = p->N47 * cu;
 
     if(p->mpirank == 0 && (p->count % p->P12 == 0))
         cout << "dt: " << p->dt << endl;
-
-    if(p->N48 == 0)
-        p->dt = maxtimestep;
 
     else
         p->dt = MIN(p->dt, maxtimestep);
@@ -144,7 +154,14 @@ void fnpf_timestep::ini(fdm_fnpf *c, lexer *p, ghostcell *pgc)
     FLOOP
     p->wmax = MAX(p->wmax, fabs(c->W[FIJK]));
 
-    p->wmax = pgc->globalmax(p->wmax);
+    // (only printed; without the 3D velocities the surface ones, fnpf_memory.h)
+    if(c->W != nullptr)
+        FLOOP
+    p->wmax = MAX(p->wmax, fabs(c->W[FIJK]));
+
+    if(c->W == nullptr)
+        SLICELOOP4
+    p->wmax = MAX(p->wmax, fabs(c->Ws(i, j)));
 
     p->umax = MAX(p->umax, 2.0 * p->ufbmax);
     p->umax = MAX(p->umax, 2.0 * p->vfbmax);
@@ -173,17 +190,42 @@ void fnpf_timestep::ini(fdm_fnpf *c, lexer *p, ghostcell *pgc)
 
     cu = MIN(cu, cv);
 
-    p->dt = p->N47 * cu;
-
-    // p->dt=pgc->timesync(p->dt);
-    p->dt = pgc->globalmin(p->dt);
-    p->dt_old = p->dt;
-
-    if(p->B94 == 0)
-        wdt = p->phimean;
-
     if(p->B94 == 1)
         wdt = p->B94_wdt;
+
+    // all columns dry: no wet cell set the time step above, it would be N47*1e10 and the run
+    // would end after one step without a message (e.g. a bed level above the still water level
+    // everywhere from a broken geo.dat interpolation)
+    int nwet = 0, ncol = 0;
+    double bedmin = 1.0e20, bedmax = -1.0e20;
+
+    SLICELOOP4
+    {
+        ++ncol;
+
+        if(p->wet[IJ] > 0)
+            ++nwet;
+
+        bedmin = MIN(bedmin, c->bed(i, j));
+        bedmax = MAX(bedmax, c->bed(i, j));
+    }
+
+    nwet = pgc->globalisum(nwet);
+    ncol = pgc->globalisum(ncol);
+    bedmin = pgc->globalmin(bedmin);
+    bedmax = pgc->globalmax(bedmax);
+
+    if(nwet == 0)
+    {
+        if(p->mpirank == 0)
+            cout << endl
+                 << "!!! FNPF: all " << ncol << " columns are dry: bed level " << bedmin << " to " << bedmax
+                 << " m, still water level F 60 = " << p->phimean << " m, wetting criterion A 344 = " << p->A344 << " m."
+                 << " Check the bed level of the grid (DIVEMesh geo.dat, G 51/G 52, G 23) and F 60 !!!" << endl
+                 << endl;
+
+        pgc->final(true);
+    }
 
     if(p->mpirank == 0 && (p->count % p->P12 == 0))
     {

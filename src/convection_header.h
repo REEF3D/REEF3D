@@ -39,15 +39,15 @@ Author: Hans Bihs
 #include "idiff2_PLIC.h"
 #include "idiff2_PLIC_2D.h"
 #include "ifou.h"
-#include "iweno_hj.h"
 #include "iweno_hj_df_nug.h"
 #include "quick.h"
 #include "weno3_flux.h"
 #include "weno3_hj.h"
-#include "weno_flux.h"
 #include "weno_flux_nug.h"
 #include "weno_hj_df_nug.h"
 #include "weno_hj_nug.h"
+
+#include "hires.h"
 
 #include "hires.h"
 

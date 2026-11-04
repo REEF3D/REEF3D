@@ -20,24 +20,24 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"wave_lib_shallow.h"
-#include"lexer.h"
-#include"fdm.h"
-#include"ghostcell.h"
+#include "wave_lib_shallow.h"
+#include "fdm.h"
+#include "ghostcell.h"
+#include "lexer.h"
 
-wave_lib_shallow::wave_lib_shallow(lexer *p, ghostcell *pgc) : wave_lib_parameters(p,pgc)
-{ 
-    parameters(p,pgc);
-    
-    if(p->mpirank==0)
+wave_lib_shallow::wave_lib_shallow(lexer *p, ghostcell *pgc) : wave_lib_parameters(p, pgc)
+{
+    parameters(p, pgc);
+
+    if(p->mpirank == 0)
     {
-    cout<<"Wave_Lib: shallow water waves "<<endl;
-    cout<<"k: "<<wk<<" w: "<<ww<<" f: "<<wf<<" T: "<<wT<<" L: "<<wL<<" d: "<<wdt<<" kd: "<<wdt*wk<<" c: "<<p->wC<<endl;
-    cout<<"d/gT^2: "<<wdt/(fabs(p->W22)*wT*wT)<<" H/gT^2: "<<wH/(fabs(p->W22)*wT*wT)<<endl;
+        cout << "Wave_Lib: shallow water waves " << endl;
+        cout << "k: " << wk << " w: " << ww << " f: " << wf << " T: " << wT << " L: " << wL << " d: " << wdt << " kd: " << wdt * wk << " c: " << p->wC << endl;
+        cout << "d/gT^2: " << wdt / (fabs(p->W22) * wT * wT) << " H/gT^2: " << wH / (fabs(p->W22) * wT * wT) << endl;
     }
-    
-    singamma = sin((p->B105_1)*(PI/180.0));
-    cosgamma = cos((p->B105_1)*(PI/180.0));
+
+    singamma = sin((p->B105_1) * (PI / 180.0));
+    cosgamma = cos((p->B105_1) * (PI / 180.0));
 }
 
 wave_lib_shallow::~wave_lib_shallow()
@@ -48,27 +48,27 @@ double wave_lib_shallow::wave_u(lexer *p, double x, double y, double z)
 {
     double vel;
 
-    vel = wave_horzvel(p,x,y,z);
+    vel = wave_horzvel(p, x, y, z);
 
-    return cosgamma*vel;
+    return cosgamma * vel;
 }
 
 double wave_lib_shallow::wave_v(lexer *p, double x, double y, double z)
 {
     double vel;
 
-    vel = wave_horzvel(p,x,y,z);
+    vel = wave_horzvel(p, x, y, z);
 
-    return singamma*vel;
+    return singamma * vel;
 }
 
 double wave_lib_shallow::wave_horzvel(lexer *p, double x, double y, double z)
 {
     double vel;
-	
-	teta = wk*x-ww*(p->wavetime) + pshift;
 
-    vel = wa*sqrt(9.81/wdt) * cos(teta);
+    teta = wk * x - ww * (p->wavetime) + pshift;
+
+    vel = wa * sqrt(9.81 / wdt) * cos(teta);
 
     return vel;
 }
@@ -76,10 +76,10 @@ double wave_lib_shallow::wave_horzvel(lexer *p, double x, double y, double z)
 double wave_lib_shallow::wave_w(lexer *p, double x, double y, double z)
 {
     double vel;
-	
-	teta = wk*x-ww*(p->wavetime) + pshift;
 
-    vel = wa*sqrt(9.81/wdt)*((z+wdt)/wdt) * sin(teta);
+    teta = wk * x - ww * (p->wavetime) + pshift;
+
+    vel = wa * sqrt(9.81 / wdt) * ((z + wdt) / wdt) * sin(teta);
 
     return vel;
 }
@@ -87,25 +87,28 @@ double wave_lib_shallow::wave_w(lexer *p, double x, double y, double z)
 double wave_lib_shallow::wave_eta(lexer *p, double x, double y)
 {
     double eta;
-	
-	teta = wk*x-ww*(p->wavetime) + pshift;
 
-    eta =  wa * cos(teta);
+    teta = wk * x - ww * (p->wavetime) + pshift;
+
+    eta = wa * cos(teta);
 
     return eta;
 }
 
 double wave_lib_shallow::wave_fi(lexer *p, double x, double y, double z)
 {
-    double fi;
-    
-    return fi;
+    // the theory gives no potential: the antiderivative of the horizontal velocity (wave_lib_steady_fi.h)
+    if(!sfi.built())
+        sfi.build(wL, wL / wT, wdt, fabs(p->W22), p->wavetime, [&](double s, double zz)
+                  { return wave_horzvel(p, s, 0.0, zz); }, [&](double s, double zz)
+                  { return wave_w(p, s, 0.0, zz); }, [&](double s)
+                  { return wave_eta(p, s, 0.0); });
+
+    return sfi.fi(x, z, p->wavetime);
 }
 
 void wave_lib_shallow::parameters(lexer *p, ghostcell *pgc)
 {
-    
-    
 }
 
 void wave_lib_shallow::wave_prestep(lexer *p, ghostcell *pgc)

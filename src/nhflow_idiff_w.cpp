@@ -24,7 +24,10 @@ Author: Hans Bihs
 #include "ghostcell.h"
 #include "ioflow.h"
 #include "lexer.h"
+#include "nhflow_breaking_profile.h"
+#include "nhflow_curv.h"
 #include "nhflow_idiff.h"
+#include "nhflow_thinbody.h"
 #include "slice.h"
 #include "solver.h"
 #include "vrans.h"
@@ -49,56 +52,102 @@ void nhflow_idiff::diff_w(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, s
         {
             visc_IP = d->VISC[IJK] + d->EV[IJK];
 
-            visc_IM1 = 0.5 * (visc_IP + d->VISC[Im1JK] + d->EV[Im1JK] + d->vb(i - 1, j));
-            visc_IP1 = 0.5 * (visc_IP + d->VISC[Ip1JK] + d->EV[Ip1JK] + d->vb(i + 1, j));
+            visc_IM1 = 0.5 * (visc_IP + d->VISC[Im1JK] + d->EV[Im1JK]);
+            visc_IP1 = 0.5 * (visc_IP + d->VISC[Ip1JK] + d->EV[Ip1JK]);
 
-            visc_JM1 = 0.5 * (visc_IP + d->VISC[IJm1K] + d->EV[IJm1K] + d->vb(i, j - 1));
-            visc_JP1 = 0.5 * (visc_IP + d->VISC[IJp1K] + d->EV[IJp1K] + d->vb(i, j + 1));
+            visc_JM1 = 0.5 * (visc_IP + d->VISC[IJm1K] + d->EV[IJm1K]);
+            visc_JP1 = 0.5 * (visc_IP + d->VISC[IJp1K] + d->EV[IJp1K]);
 
-            visc_KM1 = 0.5 * (visc_IP + d->VISC[IJKm1] + d->EV[IJKm1] + d->vb(i, j));
-            visc_KP1 = 0.5 * (visc_IP + d->VISC[IJKp1] + d->EV[IJKp1] + d->vb(i, j));
+            visc_KM1 = 0.5 * (visc_IP + d->VISC[IJKm1] + d->EV[IJKm1]);
+            visc_KP1 = 0.5 * (visc_IP + d->VISC[IJKp1] + d->EV[IJKp1]);
 
-            if(k == p->knoz - 1)
+            // breaking viscosity vb, face values the mean of the two cells (both cells of a face use the same coefficient):
+            //  A 550 1: in the top layer only; the face to the layer below takes vb/2 from both sides (k = knoz-1, knoz-2)
+            //  A 550 3: in all layers on all faces, the eddy viscosity of Kennedy et al. (2000) as a turbulent viscosity of
+            //           the column (with the horizontal faces only, the surf zone depended on the number of layers)
+            //  A 550 4: as A 550 3 with the depth profile of the orbital velocity (nhflow_breaking_profile.h)
+            if(p->A550 >= 3 || k == p->knoz - 1)
             {
-                visc_IP += d->vb(i, j);
+                visc_IP += nhflow_vbz(p, d, i, j, p->ZP[KP]);
+                visc_IM1 += 0.5 * (nhflow_vbz(p, d, i, j, p->ZP[KP]) + nhflow_vbz(p, d, i - 1, j, p->ZP[KP]));
+                visc_IP1 += 0.5 * (nhflow_vbz(p, d, i, j, p->ZP[KP]) + nhflow_vbz(p, d, i + 1, j, p->ZP[KP]));
+                visc_JM1 += 0.5 * (nhflow_vbz(p, d, i, j, p->ZP[KP]) + nhflow_vbz(p, d, i, j - 1, p->ZP[KP]));
+                visc_JP1 += 0.5 * (nhflow_vbz(p, d, i, j, p->ZP[KP]) + nhflow_vbz(p, d, i, j + 1, p->ZP[KP]));
+            }
 
-                visc_IM1 += 0.5 * (d->vb(i, j) + d->vb(i - 1, j));
-                visc_IP1 += 0.5 * (d->vb(i, j) + d->vb(i + 1, j));
-
-                visc_JM1 += 0.5 * (d->vb(i, j) + d->vb(i, j - 1));
-                visc_JP1 += 0.5 * (d->vb(i, j) + d->vb(i, j + 1));
-
-                visc_KM1 += d->vb(i, j);
+            if(p->A550 < 3 && k == p->knoz - 1)
+            {
+                visc_KM1 += 0.5 * d->vb(i, j);
                 visc_KP1 += d->vb(i, j);
             }
 
-            sigxyz2 = pow(p->sigx[FIJK], 2.0) + pow(p->sigy[FIJK], 2.0) + pow(p->sigz[IJ], 2.0);
+            if(p->A550 < 3 && k == p->knoz - 2)
+            {
+                visc_KP1 += 0.5 * d->vb(i, j);
+            }
 
-            d->M.p[n] = visc_IP1 / (p->DXP[IP] * p->DXN[IP]) + visc_IM1 / (p->DXP[IM1] * p->DXN[IP])
+            if(p->A550 >= 3)
+            {
+                visc_KM1 += nhflow_vbz(p, d, i, j, p->ZN[KP]);
+                visc_KP1 += nhflow_vbz(p, d, i, j, p->ZN[KP1]);
+            }
 
-                        + visc_JP1 / (p->DYP[JP] * p->DYN[JP]) * p->y_dir + visc_JM1 / (p->DYP[JM1] * p->DYN[JP]) * p->y_dir
+            // vertical coefficient at the faces k-1/2 (sigma metrics at FIJK) and k+1/2 (FIJKp1); w: the transpose stress adds sigz^2 d2w/dsigma2 once (2 dw/dz)
+            sigxyz2_b = pow(p->sigx[FIJK], 2.0) + pow(p->sigy[FIJK], 2.0) + pow(p->sigz[IJ], 2.0) + pow(p->sigz[IJ], 2.0);
+            sigxyz2_t = pow(p->sigx[FIJKp1], 2.0) + pow(p->sigy[FIJKp1], 2.0) + pow(p->sigz[IJ], 2.0) + pow(p->sigz[IJ], 2.0);
 
-                        + 2.0 * (visc_KP1 * sigxyz2) / (p->DZP[KP] * p->DZN[KP]) + 2.0 * (visc_KM1 * sigxyz2) / (p->DZP[KM1] * p->DZN[KP])
+            // curvilinear grid (G 50): compact horizontal rows, the rest explicit (nhflow_curv.h)
+            if(p->geo_curv == 1)
+            {
+                double cIp, cIm, cJp, cJm;
+                nhflow_curv::lapcoef(p, i, j, cIp, cIm, cJp, cJm);
 
-                        + CPORNH / (alpha * p->dt);
+                d->M.p[n] = visc_IP1 * cIp + visc_IM1 * cIm + visc_JP1 * cJp + visc_JM1 * cJm
 
-            d->M.n[n] = -visc_IP1 / (p->DXP[IP] * p->DXN[IP]);
-            d->M.s[n] = -visc_IM1 / (p->DXP[IM1] * p->DXN[IP]);
+                            + (visc_KP1 * sigxyz2_t) / (p->DZP[KP] * p->DZN[KP]) + (visc_KM1 * sigxyz2_b) / (p->DZP[KM1] * p->DZN[KP])
 
-            d->M.w[n] = -visc_JP1 / (p->DYP[JP] * p->DYN[JP]) * p->y_dir;
-            d->M.e[n] = -visc_JM1 / (p->DYP[JM1] * p->DYN[JP]) * p->y_dir;
+                            + CPORNH / (alpha * p->dt);
 
-            d->M.t[n] = -2.0 * (visc_KP1 * sigxyz2) / (p->DZP[KP] * p->DZN[KP]) - 2.0 * visc_KP1 * p->sigxx[FIJK] / ((p->DZN[KP] + p->DZN[KM1]));
+                d->M.n[n] = -visc_IP1 * cIp;
+                d->M.s[n] = -visc_IM1 * cIm;
+                d->M.w[n] = -visc_JP1 * cJp;
+                d->M.e[n] = -visc_JM1 * cJm;
 
-            d->M.b[n] = -2.0 * (visc_KM1 * sigxyz2) / (p->DZP[KM1] * p->DZN[KP]) + 2.0 * visc_KM1 * p->sigxx[FIJK] / ((p->DZN[KP] + p->DZN[KM1]));
+                d->M.t[n] = -(visc_KP1 * sigxyz2_t) / (p->DZP[KP] * p->DZN[KP]) - visc_KP1 * p->sigxx[FIJK] / ((p->DZP[KP] + p->DZP[KM1]));
 
-            d->rhsvec.V[n] = visc_IP * ((UH[Ip1JKp1] - UH[Ip1JKm1]) - (UH[Im1JKp1] - UH[Im1JKm1])) / ((p->DZN[KP] + p->DZN[KM1]) * (p->DXP[IP] + p->DXP[IM1])) * p->sigz[IJ] + visc_IP * ((VH[IJp1Kp1] - VH[IJp1Km1]) - (VH[IJm1Kp1] - VH[IJm1Km1])) / ((p->DYN[JP] + p->DYN[JM1]) * (p->DZN[KP] + p->DZN[KM1])) * p->sigz[IJ]
+                d->M.b[n] = -(visc_KM1 * sigxyz2_b) / (p->DZP[KM1] * p->DZN[KP]) + visc_KM1 * p->sigxx[FIJK] / ((p->DZP[KP] + p->DZP[KM1]));
 
-                             + (CPORNH * WHin[IJK]) / (alpha * p->dt)
+                d->rhsvec.V[n] = (CPORNH * WHin[IJK]) / (alpha * p->dt) + visc_IP * nhflow_curv::diff_explicit(p, 3, i, j, k, UH, VH, WH);
+            }
 
-                             + visc_IP * 2.0 * 0.5 * (p->sigx[FIJK] + p->sigx[FIJKp1]) * (WH[Ip1JKp1] - WH[Im1JKp1] - WH[Ip1JKm1] + WH[Im1JKm1]) / ((p->DXP[IP] + p->DXP[IM1]) * (p->DZN[KP] + p->DZN[KM1]))
+            if(p->geo_curv == 0)
+            {
+                d->M.p[n] = visc_IP1 / (p->DXP[IP] * p->DXN[IP]) + visc_IM1 / (p->DXP[IM1] * p->DXN[IP])
 
-                             + visc_IP * 2.0 * 0.5 * (p->sigy[FIJK] + p->sigy[FIJKp1]) * (WH[IJp1Kp1] - WH[IJm1Kp1] - WH[IJp1Km1] + WH[IJm1Km1]) / ((p->DYP[JP] + p->DYP[JM1]) * (p->DZN[KP] + p->DZN[KM1])) * p->y_dir;
+                            + visc_JP1 / (p->DYP[JP] * p->DYN[JP]) * p->y_dir + visc_JM1 / (p->DYP[JM1] * p->DYN[JP]) * p->y_dir
+
+                            + (visc_KP1 * sigxyz2_t) / (p->DZP[KP] * p->DZN[KP]) + (visc_KM1 * sigxyz2_b) / (p->DZP[KM1] * p->DZN[KP])
+
+                            + CPORNH / (alpha * p->dt);
+
+                sigxyz2 = pow(p->sigx[FIJK], 2.0) + pow(p->sigy[FIJK], 2.0) + pow(p->sigz[IJ], 2.0);
+
+                d->M.p[n] = visc_IP1 / (p->DXP[IP] * p->DXN[IP]) + visc_IM1 / (p->DXP[IM1] * p->DXN[IP])
+
+                            + visc_JP1 / (p->DYP[JP] * p->DYN[JP]) * p->y_dir + visc_JM1 / (p->DYP[JM1] * p->DYN[JP]) * p->y_dir
+
+                                                                                                                            d->M.t[n] = -(visc_KP1 * sigxyz2_t) / (p->DZP[KP] * p->DZN[KP]) - visc_KP1 * p->sigxx[FIJK] / ((p->DZP[KP] + p->DZP[KM1]));
+
+                d->M.b[n] = -(visc_KM1 * sigxyz2_b) / (p->DZP[KM1] * p->DZN[KP]) + visc_KM1 * p->sigxx[FIJK] / ((p->DZP[KP] + p->DZP[KM1]));
+
+                d->rhsvec.V[n] = visc_IP * ((UH[Ip1JKp1] - UH[Ip1JKm1]) - (UH[Im1JKp1] - UH[Im1JKm1])) / ((p->DZP[KP] + p->DZP[KM1]) * (p->DXP[IP] + p->DXP[IM1])) * p->sigz[IJ] + visc_IP * ((VH[IJp1Kp1] - VH[IJp1Km1]) - (VH[IJm1Kp1] - VH[IJm1Km1])) / ((p->DYP[JP] + p->DYP[JM1]) * (p->DZP[KP] + p->DZP[KM1])) * p->sigz[IJ]
+
+                                 + (CPORNH * WHin[IJK]) / (alpha * p->dt)
+
+                                 + visc_IP * 2.0 * 0.5 * (p->sigx[FIJK] + p->sigx[FIJKp1]) * (WH[Ip1JKp1] - WH[Im1JKp1] - WH[Ip1JKm1] + WH[Im1JKm1]) / ((p->DXP[IP] + p->DXP[IM1]) * (p->DZP[KP] + p->DZP[KM1]))
+
+                                 + visc_IP * 2.0 * 0.5 * (p->sigy[FIJK] + p->sigy[FIJKp1]) * (WH[IJp1Kp1] - WH[IJm1Kp1] - WH[IJp1Km1] + WH[IJm1Km1]) / ((p->DYP[JP] + p->DYP[JM1]) * (p->DZP[KP] + p->DZP[KM1])) * p->y_dir;
+            }
         }
 
         if(p->wet[IJ] == 0 || p->flag4[IJK] < 0 || p->DF[IJK] < 0)
@@ -106,120 +155,99 @@ void nhflow_idiff::diff_w(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, s
             d->M.p[n] = 1.0;
 
             d->M.n[n] = 0.0;
-            d->M.s[n] = 0.0;
+        }
 
-            d->M.w[n] = 0.0;
+        if(p->flag4[IJm1K] < 0 || p->DF[IJm1K] < 0)
+        {
+            d->rhsvec.V[n] -= d->M.e[n] * WH[IJK] * p->y_dir;
             d->M.e[n] = 0.0;
+        }
 
-            d->M.t[n] = 0.0;
+        if(p->flag4[IJp1K] < 0 || p->DF[IJp1K] < 0)
+        {
+            d->rhsvec.V[n] -= d->M.w[n] * WH[IJK] * p->y_dir;
+            d->M.w[n] = 0.0;
+        }
+
+        if(p->flag4[IJKm1] < 0 || p->DF[IJKm1] < 0)
+        {
+            d->rhsvec.V[n] -= d->M.b[n] * WH[IJK];
             d->M.b[n] = 0.0;
-
-            d->rhsvec.V[n] = 0.0;
         }
 
-        ++n;
-    }
-
-    if(p->A513 == 1)
-    {
-        n = 0;
-        LOOP
+        if(p->flag4[IJKp1] < 0 || p->DF[IJKp1] < 0)
         {
-            if(p->wet[IJ] == 1 && p->DF[IJK] > 0)
-            {
-                if(p->flag4[Im1JK] < 0 || p->DF[Im1JK] < 0)
-                {
-                    d->rhsvec.V[n] -= d->M.s[n] * WH[IJK];
-                    d->M.s[n] = 0.0;
-                }
-
-                if(p->flag4[Ip1JK] < 0 || p->DF[Ip1JK] < 0)
-                {
-                    d->rhsvec.V[n] -= d->M.n[n] * WH[IJK];
-                    d->M.n[n] = 0.0;
-                }
-
-                if(p->flag4[IJm1K] < 0 || p->DF[IJm1K] < 0)
-                {
-                    d->rhsvec.V[n] -= d->M.e[n] * WH[IJK] * p->y_dir;
-                    d->M.e[n] = 0.0;
-                }
-
-                if(p->flag4[IJp1K] < 0 || p->DF[IJp1K] < 0)
-                {
-                    d->rhsvec.V[n] -= d->M.w[n] * WH[IJK] * p->y_dir;
-                    d->M.w[n] = 0.0;
-                }
-
-                if(p->flag4[IJKm1] < 0 || p->DF[IJKm1] < 0)
-                {
-                    d->rhsvec.V[n] -= d->M.b[n] * WH[IJK];
-                    d->M.b[n] = 0.0;
-                }
-
-                if(p->flag4[IJKp1] < 0 || p->DF[IJKp1] < 0)
-                {
-                    d->rhsvec.V[n] -= d->M.t[n] * WH[IJK];
-                    d->M.t[n] = 0.0;
-                }
-            }
-            ++n;
+            d->rhsvec.V[n] -= d->M.t[n] * WH[IJK];
+            d->M.t[n] = 0.0;
         }
     }
-
-    if(p->A513 == 2)
-    {
-        n = 0;
-        LOOP
-        {
-            if(p->wet[IJ] == 1 && p->DF[IJK] > 0)
-            {
-                if(p->flag4[Im1JK] < 0 || p->DF[Im1JK] < 0)
-                {
-                    d->rhsvec.V[n] -= d->M.s[n] * WH[Im1JK];
-                    d->M.s[n] = 0.0;
-                }
-
-                if(p->flag4[Ip1JK] < 0 || p->DF[Ip1JK] < 0)
-                {
-                    d->rhsvec.V[n] -= d->M.n[n] * WH[Ip1JK];
-                    d->M.n[n] = 0.0;
-                }
-
-                if(p->flag4[IJm1K] < 0 || p->DF[IJm1K] < 0)
-                {
-                    d->rhsvec.V[n] -= d->M.e[n] * WH[IJm1K] * p->y_dir;
-                    d->M.e[n] = 0.0;
-                }
-
-                if(p->flag4[IJp1K] < 0 || p->DF[IJp1K] < 0)
-                {
-                    d->rhsvec.V[n] -= d->M.w[n] * WH[IJp1K] * p->y_dir;
-                    d->M.w[n] = 0.0;
-                }
-
-                if(p->flag4[IJKm1] < 0 || p->DF[IJKm1] < 0)
-                {
-                    d->rhsvec.V[n] -= d->M.b[n] * WH[IJKm1];
-                    d->M.b[n] = 0.0;
-                }
-
-                if(p->flag4[IJKp1] < 0 || p->DF[IJKp1] < 0)
-                {
-                    d->rhsvec.V[n] -= d->M.t[n] * WH[IJKp1];
-                    d->M.t[n] = 0.0;
-                }
-            }
-            ++n;
-        }
-    }
-
-    psolv->startV(p, pgc, WHdiff, d->rhsvec, d->M, 4);
-
-    pgc->start4V(p, WHdiff, gcval_wh);
-
-    time = pgc->timer() - starttime;
-    p->witer = p->solveriter;
-    if(p->mpirank == 0 && p->D21 == 1 && (p->count % p->P12 == 0))
-        cout << "wdiffiter: " << p->witer << "  wdifftime: " << setprecision(4) << time << endl;
+    ++n;
 }
+}
+
+// A 513 2: neighbour values; at a direct forcing solid (DF < 0 inside the domain) the mirrored value of the
+// cell, as in the ghost cells of the domain walls (start4V): tangential symmetric, normal antisymmetric.
+// The forced velocity (0) of the solid cell would make the solid a no-slip wall, the domain walls are slip
+// walls (wall friction only with A 519 2, nhflow_wall.h).
+if(p->A513 == 2)
+{
+    n = 0;
+    LOOP
+    {
+        if(p->wet[IJ] == 1 && p->DF[IJK] > 0)
+        {
+            if(p->flag4[Im1JK] < 0 || p->DF[Im1JK] < 0)
+            {
+                d->rhsvec.V[n] -= d->M.s[n] * (p->DF[Im1JK] < 0 && p->flag4[Im1JK] > 0 ? WH[IJK] : WH[Im1JK]);
+                d->M.s[n] = 0.0;
+            }
+
+            if(p->flag4[Ip1JK] < 0 || p->DF[Ip1JK] < 0)
+            {
+                d->rhsvec.V[n] -= d->M.n[n] * (p->DF[Ip1JK] < 0 && p->flag4[Ip1JK] > 0 ? WH[IJK] : WH[Ip1JK]);
+                d->M.n[n] = 0.0;
+            }
+
+            if(p->flag4[IJm1K] < 0 || p->DF[IJm1K] < 0)
+            {
+                d->rhsvec.V[n] -= d->M.e[n] * (p->DF[IJm1K] < 0 && p->flag4[IJm1K] > 0 ? WH[IJK] : WH[IJm1K]) * p->y_dir;
+                d->M.e[n] = 0.0;
+            }
+
+            if(p->flag4[IJp1K] < 0 || p->DF[IJp1K] < 0)
+            {
+                d->rhsvec.V[n] -= d->M.w[n] * (p->DF[IJp1K] < 0 && p->flag4[IJp1K] > 0 ? WH[IJK] : WH[IJp1K]) * p->y_dir;
+                d->M.w[n] = 0.0;
+            }
+
+            if(p->flag4[IJKm1] < 0 || p->DF[IJKm1] < 0)
+            {
+                d->rhsvec.V[n] -= d->M.b[n] * (p->DF[IJKm1] < 0 && p->flag4[IJKm1] > 0 ? -WH[IJK] : WH[IJKm1]);
+                d->M.b[n] = 0.0;
+            }
+
+            if(p->flag4[IJKp1] < 0 || p->DF[IJKp1] < 0)
+            {
+                d->rhsvec.V[n] -= d->M.t[n] * (p->DF[IJKp1] < 0 && p->flag4[IJKp1] > 0 ? -WH[IJK] : WH[IJKp1]);
+                d->M.t[n] = 0.0;
+                d->M.b[n] = 0.0;
+
+                d->rhsvec.V[n] = 0.0;
+            }
+
+            ++n;
+        }
+
+        // sharp thin bodies (X 330 'mobility sharp'): no diffusive exchange through the body
+        if(d->thinbody != nullptr)
+            d->thinbody->matrix_walls(p, d, WH);
+
+        psolv->startV(p, pgc, WHdiff, d->rhsvec, d->M, 4);
+
+        pgc->start4V(p, WHdiff, gcval_wh);
+
+        time = pgc->timer() - starttime;
+        p->witer = p->solveriter;
+        if(p->mpirank == 0 && p->D21 == 1 && (p->count % p->P12 == 0))
+            cout << "wdiffiter: " << p->witer << "  wdifftime: " << setprecision(4) << time << endl;
+    }

@@ -1,0 +1,32 @@
+{
+ "base": "nhflow_3d_mb_sed_amr_ckpt",
+ "same_as": "nhflow_3d_mb_sed_amr_ckpt",
+ "chain": [
+  {
+   "case": "nhflow_3d_mb_sed_amr_ckpt",
+   "copy": [
+    "REEF3D_Checkpoint",
+    "REEF3D_NHFLOW_AMR",
+    "REEF3D_NHFLOW_WSF"
+   ]
+  }
+ ],
+ "ctrl_set": {
+  "I 45": "10"
+ },
+ "description": "the restart of nhflow_3d_mb_sed_amr_ckpt from step 10 (I 45 10): the sediment of level 0 (registry tag reg, scalars), of the blocks 1.. and of the refined patches (their registry slices and sediment scalars) from the checkpoint; regression.py ranks: the final state (bed included) and the text outputs bitwise those of the uninterrupted run.",
+ "tags": [
+  "3d",
+  "nhflow",
+  "multiblock",
+  "amr",
+  "curvilinear",
+  "sediment",
+  "checkpoint"
+ ],
+ "covers": [
+  "nhflow_amr::ckpt_read with S 10 (sed_read)",
+  "driver_ckpt: NHFLOW sediment with multi-block grids and mesh refinement no longer refused",
+  "the bitwise restart of NHFLOW + multi-block + mesh refinement + sediment"
+ ]
+}

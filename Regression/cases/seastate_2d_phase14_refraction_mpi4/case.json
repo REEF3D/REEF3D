@@ -1,0 +1,15 @@
+{
+ "base": "seastate_2d_refraction",
+ "np": 4,
+ "same_as": "seastate_2d_refraction",
+ "description": "as seastate_2d_refraction on 4 MPI ranks with the sweeps pipelined across the ranks (A 781 1, Phase 14): bitwise the result of one rank (regression.py ranks).",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate",
+  "mpi"
+ ],
+ "covers": [
+  "seastate_implicit::sweep_threads pipelined across the ranks: boundary tiles, messages, the order of the tiles"
+ ]
+}

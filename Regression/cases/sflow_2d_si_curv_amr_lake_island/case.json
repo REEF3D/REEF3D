@@ -1,0 +1,21 @@
+{
+ "base": "sflow_2d_curv_amr_lake_island",
+ "ctrl_add": [
+  "A 226 1",
+  "A 227 0.55",
+  "A 228 0.5"
+ ],
+ "description": "sflow_2d_curv_amr_lake_island semi-implicit: curvilinear grid with a patch whose boundary crosses the island; wetting and drying in the composite system (the island film drains as in sflow_2d_si_curv_lake_island).",
+ "tags": [
+  "2d",
+  "sflow",
+  "semi_implicit",
+  "curvilinear",
+  "amr",
+  "wetdry"
+ ],
+ "covers": [
+  "reefamr_si curvilinear geometry factors"
+ ],
+ "architect": "Hans Bihs"
+}

@@ -1,0 +1,19 @@
+{
+ "description": "REEF3D::SEASTATE quasi-stationary sequence (A 700 2, a stationary solve every A 706 = 1 h) with boundary spectra changing in time (A 711 3, one location, Hs 1 -> 2 m), Battjes-Janssen breaking at 15 m depth; 20 x 10 cells of 1 km, 2 h.",
+ "solver": "seastate",
+ "np": 1,
+ "steps": 2,
+ "time": 7200.0,
+ "files": [
+  "seastate-boundary.spc"
+ ],
+ "tags": [
+  "quick",
+  "2d",
+  "seastate"
+ ],
+ "covers": [
+  "forcing in stationary mode (one stationary solve per interval)",
+  "model time 0 = first record (A 780 0)"
+ ]
+}

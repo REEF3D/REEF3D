@@ -1,0 +1,34 @@
+{
+ "base": "sflow_2d_si_blend_mpi2",
+ "description": "sflow_2d_si_blend_mpi2 with a moving nest (met-nest.r3m: 200 x 200 km, 10 km, 3-hourly, following the storm; W 220 1 1, taper 40 km and 2 h, W 221), the vortex radii relative to the mean 34 kt radius (W 222 2 0.4 0.9), the linear taper of ADCIRC (W 225 2), the vortex pressure as fitted (W 223 0), the environment of the ring added to the vortex (W 226 1), the nest interpolated in time relative to the storm (W 227 1), one rank.",
+ "np": 1,
+ "ctrl_add": [
+  "W 220 1 1",
+  "W 221 40000.0 7200.0",
+  "W 222 2 0.4 0.9",
+  "W 223 0",
+  "W 225 2",
+  "W 226 1",
+  "W 227 1"
+ ],
+ "files": [
+  "met-nest.r3m"
+ ],
+ "tags": [
+  "2d",
+  "sflow",
+  "semi_implicit",
+  "met",
+  "vortex",
+  "blend",
+  "nest"
+ ],
+ "covers": [
+  "met_source_blend nest layer (moving grid, edge and time taper)",
+  "W 222 2",
+  "W 223 0",
+  "W 225 2",
+  "W 226 1",
+  "W 227 1 (storm-relative nest records)"
+ ]
+}

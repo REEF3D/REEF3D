@@ -43,7 +43,7 @@ public:
     void jsource(lexer *, fdm_nhf *) override final;
     void ksource(lexer *, fdm_nhf *) override final;
 
-    void print_2D(lexer *, fdm_nhf *, ghostcell *, ofstream &, int) override final {};
+    void print_2D(lexer *, fdm_nhf *, ghostcell *, std::ostream &, int) override final {};
     void print_3D(lexer *, fdm_nhf *, ghostcell *, std::vector<char> &, size_t &) override final;
     void ini(lexer *, fdm_nhf *, ghostcell *) override final;
     double kinval(int, int, int) override final;
@@ -61,7 +61,7 @@ public:
     void offset_ParaView(lexer *, int *, int &) override final;
 
     void name_pvtp(lexer *, fdm_nhf *, ghostcell *, ofstream &) override final {};
-    void name_vtp(lexer *, fdm_nhf *, ghostcell *, ofstream &, int *, int &) override final {};
+    void name_vtp(lexer *, fdm_nhf *, ghostcell *, std::ostream &, int *, int &) override final {};
     void offset_ParaView_2D(lexer *, int *, int &) override final {};
 };
 

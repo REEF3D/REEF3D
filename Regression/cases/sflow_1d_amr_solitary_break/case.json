@@ -1,0 +1,18 @@
+{
+ "description": "A solitary wave (H 0.12 m on 0.5 m) that breaks on a 1:20 slope onto a 0.1 m shelf, SFLOW non-hydrostatic (A 220 2) on a grid with one cell in y, breaking with persistence (A 246 1, A 248 1); 2 levels following the surface jump (G 20), a regrid every 4 steps: the fresh patch cells take the breaking flags of the old patch or of the parent.",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 4000,
+ "tags": [
+  "1d",
+  "sflow",
+  "amr",
+  "adaptive",
+  "nh",
+  "waves",
+  "breaking"
+ ],
+ "covers": [
+  "sflow_amr::ini_patch_old, ini_patch_prolong: the breaking flags (A 248 1)"
+ ]
+}

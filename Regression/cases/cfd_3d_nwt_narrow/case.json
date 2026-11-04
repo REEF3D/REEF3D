@@ -1,0 +1,4 @@
+{"base": "cfd_2d_nwt", "control_set": {"B 10": "0.0 20.0 0.0 0.2 0.0 1.0"},
+ "description": "as cfd_2d_nwt as a 3D flume 4 cells wide (400 x 4 x 20). REEFMG coarsens the narrow y direction down to one cell while x is coarsened (before: 40-190 cycles per pressure solve instead of 3-5).",
+ "np": 1, "steps": 50,
+ "tags": ["3d", "waves", "solver"], "covers": ["REEFMG narrow direction coarsening", "3D wave tank with few cells across"]}

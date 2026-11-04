@@ -1,0 +1,22 @@
+{
+ "base": "sflow_2d_si_met_file",
+ "description": "sflow_2d_si_met_file with the blend W 200 4 and no layer on the background (W 220 0 0): bitwise sflow_2d_si_met_file (W 200 2), checked by 'regression.py ranks'.",
+ "same_as": "sflow_2d_si_met_file",
+ "ctrl_set": {
+  "W 200": "4"
+ },
+ "ctrl_add": [
+  "W 220 0 0"
+ ],
+ "tags": [
+  "quick",
+  "2d",
+  "sflow",
+  "semi_implicit",
+  "met",
+  "blend"
+ ],
+ "covers": [
+  "met_source_blend: background only = the file source bitwise"
+ ]
+}

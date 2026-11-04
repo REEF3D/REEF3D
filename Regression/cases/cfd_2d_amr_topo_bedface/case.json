@@ -1,0 +1,36 @@
+{
+ "base": "cfd_2d_cpm_bedload_layer",
+ "ctrl_set": {
+  "S 10": null,
+  "S 20": null,
+  "S 21": null,
+  "S 22": null,
+  "S 24": null,
+  "S 41": null,
+  "S 45": null,
+  "Q 10": null,
+  "Q 11": null,
+  "Q 12": null,
+  "Q 24": null,
+  "Q 29": null,
+  "Q 52": null,
+  "Q 58": null,
+  "G 1": "1"
+ },
+ "ctrl_add": [
+  "G 15 0.0 0.1 -1.0 1.0 0.02 0.035"
+ ],
+ "description": "The channel of cfd_2d_cpm_bedload_layer without sediment (the bed a topography, k-omega) on the CFD mesh refinement, the box G 15 starting at the bed (z 0.02 m, a face of level 0): the bed cells below the patch are cells around it. They take the direct forcing flag DF of their own topography, so the implicit diffusion (D 22 1) does not couple the first fluid cells of the patch to them (before, they kept DF 1 and acted as a no-slip wall: the flow over the patch 6-7 % slower than on a uniform grid)",
+ "covers": [
+  "ghostcell::solid_forcing_flag_update: DF, DF1-3 of the cells around a patch from their own fields",
+  "cfd_amr: DF of the patches at their setup without CPM"
+ ],
+ "np": 1,
+ "steps": 150,
+ "tags": [
+  "quick",
+  "2d",
+  "amr",
+  "topo"
+ ]
+}

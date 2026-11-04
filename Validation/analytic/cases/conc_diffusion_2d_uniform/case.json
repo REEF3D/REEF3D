@@ -1,0 +1,2 @@
+{"base": "conc_diffusion_2d_stretched", "control_set": {"B 101": null, "B 111": null, "B 114": null, "B 103": null, "B 113": null, "B 116": null},
+ "description": "as conc_diffusion_2d_stretched on a uniform grid (reference).", "tags": ["quick", "diffusion", "scalar", "2d", "conservation"]}

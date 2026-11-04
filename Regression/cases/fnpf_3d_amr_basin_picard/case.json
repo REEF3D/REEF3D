@@ -1,0 +1,20 @@
+{
+ "base": "fnpf_3d_amr_basin",
+ "np": 1,
+ "steps": 40,
+ "ctrl_add": [
+  "A 324 3",
+  "A 325 0.01"
+ ],
+ "description": "fnpf_3d_amr_basin with Picard iterations on the sigma cross-derivatives (A 324 3, A 325 0.01): the composite solve repeated with the rows of the new iterate (patch 0080).",
+ "tags": [
+  "3d",
+  "fnpf",
+  "amr",
+  "waves"
+ ],
+ "covers": [
+  "fnpf_amr::lap_picard",
+  "fnpf_laplace_cds2::picard_bc"
+ ]
+}

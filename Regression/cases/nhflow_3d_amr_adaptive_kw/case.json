@@ -1,0 +1,17 @@
+{
+ "base": "nhflow_3d_amr_adaptive",
+ "ctrl_add": [
+  "A 560 2"
+ ],
+ "tags": [
+  "3d",
+  "nhflow",
+  "amr",
+  "turbulence",
+  "quick"
+ ],
+ "description": "As nhflow_3d_amr_adaptive (a regrid every step) with k-omega on every patch: the fresh patches take k, omega and the eddy viscosity from an old patch of the same level or from their parent.",
+ "covers": [
+  "nhflow_amr_turb.cpp: turb_regrid, turb_free (patch_delete)"
+ ]
+}

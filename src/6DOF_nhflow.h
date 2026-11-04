@@ -40,6 +40,10 @@ using namespace std;
 class sixdof_nhflow final : public sixdof, public increment
 {
 public:
+    // runtime coupling (reefcouple, I 243): state of the bodies
+    int body_count() const override { return int(fb_obj.size()); }
+    void body_state(int, double *) const override;
+
     sixdof_nhflow(lexer *, ghostcell *);
     virtual ~sixdof_nhflow();
 
@@ -61,6 +65,9 @@ public:
     void start_wavemaker(lexer *, fdm_nhf *, ghostcell *, int, double *, double *, double *, slice &, slice &, bool);
     void start_shipwave(lexer *, fdm_nhf *, ghostcell *, int, bool);
 
+    void ckpt_state(lexer *, std::vector<double> &) override final;
+    bool ckpt_restore(lexer *, ghostcell *, const std::vector<double> &) override final;
+    double *ckpt_slice() override final { return press.V; }
     void ini(lexer *, ghostcell *) override final;
     void initialize(lexer *, fdm *, ghostcell *) override final;
     void initialize(lexer *, fdm2D *, ghostcell *) override final;
@@ -81,6 +88,18 @@ public:
     int objects() const { return number6DOF; }
     sixdof_obj_nhflow *object(int nb) { return fb_obj[nb]; }
 
+    // subcycling (G 7 1): level 0 steps with a predicted copy of the bodies (X 10 1/2): the RK
+    // stages with the loads frozen, the trimesh, ray cast and forcing; no loads, no output
+    bool amr_predict = false;
+
+    // X 13: the top-cell distance of the pierced-column level at the pose of the stage. The body
+    // is then advanced at the start of the stage (advance_stage, from the loads of the last
+    // stage, as before), not in phase_P1, so the footprint and the loads see the same hull.
+    bool top_phi_nhflow(lexer *, fdm_nhf *, ghostcell *, int, slice &, slice &) override final;
+
+    // X 13 2: the keel of the hull at the pose of the stage (advance_stage as for X 13 1)
+    bool keel_nhflow(lexer *, fdm_nhf *, ghostcell *, int, slice &, slice &, slice &, slice &, slice &, slice &) override final;
+
 private:
     // hires gradient
     double limiter(double v1, double v2);
@@ -92,7 +111,35 @@ private:
     int number6DOF;
     vector<sixdof_obj_nhflow *> fb_obj;
 
+    // body advanced ahead of phase_P1 for stage adv_iter of step adv_count at adv_time (X 13)
+    void advance_stage(lexer *, fdm_nhf *, ghostcell *, int);
+    bool advanced(lexer *, int) const;
+    bool advance_early_ok(lexer *) const;
+    int adv_count = -1, adv_iter = -1;
+    double adv_time = -1.0e20;
+    bool adv_told = false;
+
     slice4 press;
+
+    // external solver of the bodies (6DOF_external.h, REEF3D::CORAL fluid_body; 6DOF_nhflow_external.cpp)
+    void ext_connect(lexer *, ghostcell *);
+
+public:
+    // mesh refinement with subcycling (nhflow_amr_sub.cpp): stage s of the bodies with the step of a level
+    // (p->simtime, p->dt: that step), predict: a coarser level's copy; the loads after stage s of the
+    // finest level (to the external solver)
+    void amr_body_stage(lexer *, fdm_nhf *, ghostcell *, int s, bool predict);
+    void amr_body_loads(lexer *, ghostcell *, int s, int ns);
+
+private:
+    void ext_stage(lexer *, int);
+    void ext_predict_copy(lexer *, int);
+    void ext_loads(lexer *, double, bool);
+    double ext_node(lexer *, int) const;
+    bool ext_drives(int) const;
+    class sixdof_external *pext = nullptr;
+    bool ext_checked = false;
+    bool ext_twoway = false;
 };
 
 #endif

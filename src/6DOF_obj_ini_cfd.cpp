@@ -32,14 +32,14 @@ Author: Tobias Martin
 #include "mooring_dynamic.h"
 #include "mooring_void.h"
 #include "net_interface.h"
-#include "reinidisc_fsf.h"
+#include "reinidisc_f.h"
 #include <sys/stat.h>
 
 sixdof_obj_cfd::sixdof_obj_cfd(lexer *p, ghostcell *pgc, int number) : sixdof_obj(p, pgc, number),
                                                                        cutl(p), cutr(p), fbio(p), f(p), frk1(p), L(p), dt(p),
                                                                        vertice(p), nodeflag(p), eta(p)
 {
-    prdisc = new reinidisc_fsf(p);
+    prdisc = new reinidisc_f(p, true);
 }
 
 sixdof_obj_cfd::~sixdof_obj_cfd()
@@ -163,24 +163,15 @@ void sixdof_obj_cfd::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc)
         }
     }
 
-    pnetinter->initialize_cfd(p, a, pgc);
-
-    if(p->X320 > 0)
+    // Print initial body (not on a restart from a checkpoint, I 45 1: printed already)
+    if(p->I45 != 1)
     {
-        Xne.resize(p->net_count);
-        Yne.resize(p->net_count);
-        Zne.resize(p->net_count);
-        Kne.resize(p->net_count);
-        Mne.resize(p->net_count);
-        Nne.resize(p->net_count);
+        if(p->X50 == 1)
+            print_vtp(p, pgc);
+
+        else if(p->X50 == 2)
+            print_stl(p, pgc);
     }
-
-    // Print initial body
-    if(p->X50 == 1)
-        print_vtp(p, pgc);
-
-    else if(p->X50 == 2)
-        print_stl(p, pgc);
 
     // ghostcell update
     pgc->gcdf_update(p, a);

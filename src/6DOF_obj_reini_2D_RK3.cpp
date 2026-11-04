@@ -28,7 +28,23 @@ Author: Hans Bihs
 
 void sixdof_obj_2D::reini_2D(lexer *p, ghostcell *pgc, slice &f)
 {
+    // curvilinear grid (G 50): fs is the exact distance already (ray_cast_2D_curv)
+    if(p->geo_curv == 1)
+        return;
+
     if(p->count == 0)
+    {
+        reiniter = 2 * int(p->maxlength / (1.0 * p->DXM));
+
+        if(p->mpirank == 0)
+            cout << "initializing 6DOF... " << endl
+                 << endl;
+    }
+
+    if(p->count > 0)
+        reiniter = p->G541;
+
+    for(int q = 0; q < reiniter; ++q)
     {
         reiniter = 2 * int(p->maxlength / (1.0 * p->DXM));
 

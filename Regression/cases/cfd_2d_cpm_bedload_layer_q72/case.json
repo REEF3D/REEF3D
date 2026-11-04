@@ -1,0 +1,8 @@
+{
+ "base": "cfd_2d_cpm_bedload_layer",
+ "ctrl_add": ["Q 72 2", "Q 68 2"],
+ "steps": 150,
+ "tags": ["quick", "2d", "cpm"],
+ "description": "as cfd_2d_cpm_bedload_layer with the bed level seen by the fluid smoothed over the columns (Q 72 2, at most half a cell per column) and the bed shear stress with two velocity scales, sqrt(log law * 0.3 rho k) (Q 68 2)",
+ "covers": ["CPM topo_column: 1-2-1 filter of the relaxed bed level (Q 72), periodic sides, limit of half a cell", "bedshear::tau_logk kmode 2 (Q 68 2)"]
+}

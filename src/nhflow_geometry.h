@@ -51,8 +51,29 @@ public:
 
     void geometry_ini(lexer *, fdm_nhf *, ghostcell *);
 
+    // VRANS: exposed surface faces (PORSTRUC distance, B 202 layer depth) and depth below them
+    void layer_faces(lexer *, fdm_nhf *, ghostcell *);
+    void layer_dist(lexer *, fdm_nhf *, double, const double *, double *);
+
     int forcing_flag, solid_flag, floating_flag;
     int dlm_flag;
+
+    // mesh refinement (NHFLOW AMR, fixed solids A 581-590): the geometry of a patch casts its
+    // solids within the patch box (amr_ray_box: the x and y extent of the patch arrays, as
+    // nhflow_amr_6dof for the hulls; the lexer of a patch has the extent of the level-0 rank) and
+    // prints no surface file and no messages
+    bool amr_grid = false;
+    void amr_ray_box(double x0, double x1, double y0, double y1)
+    {
+        amr_grid = true;
+        amr_bx[0] = x0;
+        amr_bx[1] = x1;
+        amr_bx[2] = y0;
+        amr_bx[3] = y1;
+    }
+    // the x and y extent of the surface triangles of the solids (entity n < solid_entities())
+    int solid_entities() const { return solid_flag == 1 ? entity_sum : 0; }
+    void entity_box(int n, double *b) const;
 
 private:
     void objects_allocate_forcing(lexer *, ghostcell *);
@@ -65,6 +86,24 @@ private:
     void grid_solids(lexer *, ghostcell *);
     int grid_solid_num, grid_solid_tri;
     vector<int> ent_raymode, ent_invert;
+
+    // porous layers
+    bool point_inside(lexer *, int, double, double, double);
+    vector<int> tri_layer;
+    double layer_dsmax;
+
+    void box(lexer *, ghostcell *, int);
+    void cylinder_y(lexer *, ghostcell *, int);
+    void cylinder_z(lexer *, ghostcell *, int);
+    void jacketmember(lexer *, ghostcell *, int);
+    void sphere(lexer *, ghostcell *, int);
+    void wedge_x(lexer *, ghostcell *, int);
+    void wedge_y(lexer *, ghostcell *, int);
+    void wedge_z(lexer *, ghostcell *, int);
+
+    void read_stl(lexer *, ghostcell *);
+
+    void rotation_tri(lexer *, double, double, double, double &, double &, double &, const double &, const double &, const double &);
 
     void box(lexer *, ghostcell *, int);
     void cylinder_y(lexer *, ghostcell *, int);
@@ -91,6 +130,7 @@ private:
     void print_vtp(lexer *, int);
 
     double NB;
+    double amr_bx[4] = {0.0, 0.0, 0.0, 0.0};
 
     int *IO, *CR, *CL;
     double *FRK1, *dt, *L;

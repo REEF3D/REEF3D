@@ -1,0 +1,19 @@
+{
+ "solver": "sflow",
+ "np": 1,
+ "steps": 400,
+ "files": [
+  "blocks.dat"
+ ],
+ "tags": [
+  "2d",
+  "sflow",
+  "curvilinear",
+  "multiblock",
+  "tide"
+ ],
+ "description": "sflow_2d_mb_side_edges with the blocks of the j layout (the edges of block 1 on its +j and -i faces).",
+ "covers": [
+  "SFLOW j-face edges with turned blocks"
+ ]
+}

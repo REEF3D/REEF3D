@@ -1,0 +1,34 @@
+{
+ "base": "fnpf_3d_coral_array_x36_ckpt",
+ "same_as": "fnpf_3d_coral_array_x36_ckpt",
+ "chain": [
+  {
+   "case": "fnpf_3d_coral_array_x36_ckpt",
+   "copy": [
+    "REEF3D_Checkpoint",
+    "REEF3D_CORAL",
+    "REEF3D_FNPF_6DOF",
+    "REEF3D_FNPF_AMR",
+    "REEF3D_FNPF_WSF"
+   ]
+  }
+ ],
+ "ctrl_set": {
+  "I 45": "10"
+ },
+ "description": "the restart of fnpf_3d_coral_array_x36_ckpt from its checkpoint at step 10 (I 45 10): the arrays of the unit modes on the patches of the zones made before the patch arrays are read (fnpf_6DOF::amr_ckpt_grids), the start values of the next window solves and the calibration from the checkpoint (the next one at the refresh of the uninterrupted run, X 37 4); the final state and the text outputs bitwise those of the uninterrupted run.",
+ "tags": [
+  "3d",
+  "fnpf",
+  "amr",
+  "6dof",
+  "floating",
+  "coral",
+  "checkpoint"
+ ],
+ "covers": [
+  "fnpf_6DOF::amr_ckpt_grids with X 36: the arrays of the unit modes on the patches of the zones before they are read",
+  "the calibration of X 36 1 in the checkpoint (ckpt_state version 3)",
+  "the bitwise restart with X 36"
+ ]
+}

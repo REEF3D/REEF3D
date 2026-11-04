@@ -25,6 +25,10 @@ Author: Hans Bihs
 
 int position::posf_i(double xs)
 {
+    // inside the grid: the interval of the cell centres, without the bisection (same result)
+    if(xs >= p->XP[0 + marge] && xs < p->XP[p->knox - p->ulast + marge])
+        return fast_index(fffi, p->XP, 0, p->knox - p->ulast, xs);
+
     stop = 0;
 
     is = 0;
@@ -64,10 +68,12 @@ int position::posf_i(double xs)
             break;
         }
 
-        // out of bounds
+        // beyond the last cell centre at a wall (ulast 1): the stencil is the last cell and its ghost, as
+        // -1 and 0 at the lower end; knox would give two ghost cells, and the slice interpolation (lintsl4)
+        // no valid value at all inside the last half cell
         if(xs > p->XP[p->knox - p->ulast + marge])
         {
-            ii = p->knox;
+            ii = p->ulast == 1 ? p->knox - 1 : p->knox;
 
             stop = 1;
             break;
@@ -103,6 +109,10 @@ int position::posf_j(double ys)
         return jj;
     }
 
+    // inside the grid: the interval of the cell centres, without the bisection (same result)
+    if(ys >= p->YP[0 + marge] && ys < p->YP[p->knoy - p->vlast + marge])
+        return fast_index(fffj, p->YP, 0, p->knoy - p->vlast, ys);
+
     count = 0;
     do
     {
@@ -122,10 +132,12 @@ int position::posf_j(double ys)
             break;
         }
 
-        // out of bounds
+        // beyond the last cell centre at a wall (vlast 1): the stencil is the last cell and its ghost, as
+        // -1 and 0 at the lower end; knoy would give two ghost cells, and the slice interpolation (lintsl4)
+        // no valid value at all inside the last half cell
         if(ys > p->YP[p->knoy - p->vlast + marge])
         {
-            jj = p->knoy;
+            jj = p->vlast == 1 ? p->knoy - 1 : p->knoy;
 
             // cout<<"EXIT 0p  "<<p->YP[p->knoy-1]<<endl;
 
@@ -175,6 +187,10 @@ int position::posf_k(double zs)
 {
     if(p->G502 == 0)
     {
+        // inside the grid: the interval of the cell centres, without the bisection (same result)
+        if(zs >= p->ZP[0 + marge] && zs < p->ZP[p->knoz - 1 + marge])
+            return fast_index(fffk, p->ZP, 0, p->knoz - 1, zs);
+
         stop = 0;
 
         ks = 0;

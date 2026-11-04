@@ -1,0 +1,3 @@
+{"base": "cfd_2d_dambreak", "ctrl_set": {"N 40": "3", "F 80": "4", "F 30": "0", "F 40": "0", "F 46": "3", "F 92": "1"},
+ "description": "as cfd_2d_dambreak_plic with level-set redistancing (F92=1) and the Picard volume correction picard_lsm (F46=3) around the reinitialisation.",
+ "tags": ["2d", "dambreak", "plic", "levelset"], "covers": ["F46=3 picard_lsm", "F92=1 PLIC redistancing", "momentum_FC3_PLIC"]}

@@ -30,8 +30,12 @@ Author: Hans Bihs
 #include "hypre_struct2D.h"
 #endif
 #include "6DOF_sflow.h"
+#include "lagoon_output.h"
+#include "reefckpt.h"
+#include "reefrun_ckpt.h"
 #include "regression_dump.h"
 #include "runlog.h"
+#include "seastate_sflow.h"
 #include "sflow_amr.h"
 #include "sflow_eta.h"
 #include "sflow_etimestep.h"
@@ -67,6 +71,13 @@ void sflow_f::start(lexer *p, fdm2D *b, ghostcell *pgc)
     // ini
     ini(p, b, pgc);
 
+    // REEF3D::SEASTATE coupling (A 750 1 in-process, A 750 2 remote waves on their own grid)
+    if(p->A750 == 1 || p->A750 == 2)
+    {
+        b->wave = new seastate_sflow(p, b, pgc);
+        b->wave->ini(p, b, pgc);
+    }
+
     regression_dump rdump(p);
     rdump.sflow_ini(p, b, pgc);
 
@@ -80,147 +91,207 @@ void sflow_f::start(lexer *p, fdm2D *b, ghostcell *pgc)
         ++p->count;
         starttime = pgc->timer();
 
-        if(p->mpirank == 0 && (p->count % p->P12 == 0))
-        {
-            cout << "------------------------------------" << endl;
-            cout << p->count << endl;
+        // logic
+        logic(p, b, pgc);
 
-            cout << "simtime: " << p->simtime << endl;
-            cout << "timestep: " << p->dt << endl;
+        // ini
+        ini(p, b, pgc);
 
-            if(p->B90 > 0)
-                cout << "t/T: " << p->simtime / p->wT << endl;
-        }
+        regression_dump rdump(p);
+        rdump.sflow_ini(p, b, pgc);
 
-        pflow->wavegen_2D_precalc(p, b, pgc);
-
-        // outer loop
-        double temptime = pgc->timer();
-        pmom->start(p, b, pgc);
-        double mtime = pgc->timer() - temptime;
-
-        // turbulence
-        pturb->start(p, b, pgc, pconvec, pdiff, psolv, pflow);
-
-        // breaking waves
-        int count = 0;
-        SLICELOOP4
-        if(b->breaking(i, j) > 0)
-        {
-            b->breaking_print(i, j) = 1;
-            ++count;
-        }
-        pgc->gcsl_start4(p, b->breaking_print, 1);
-
-        count = pgc->globalisum(count);
-
-        if(p->mpirank == 0 && (p->count % p->P12 == 0))
-            cout << "breaking: " << count << endl;
-
-        if(p->A248 == 0)
-            SLICELOOP4
-        b->breaking(i, j) = 0;
-
-        // sediment transport
-        psed->start_sflow(p, b, pgc, pflow, b->P, b->Q);
-        pfsf->depth_update(p, b, pgc, b->WL);
-
-        // timesave
-        pturb->ktimesave(p, b, pgc);
-        pturb->etimesave(p, b, pgc);
-
-        // timestep control
-        p->simtime += p->dt;
-        ptime->start(p, b, pgc);
-
-        if(pamr != nullptr)
-            pamr->timestep(p, b, pgc);
-
-        // printer
-        // print_debug(p,b,pgc);
-
-        double ptime = pgc->timer();
-
-        if(pamr != nullptr)
-            pamr->print(p, b, pgc);
-
-        pprint->start(p, b, pgc, pflow, pturb, psed);
-        pprintbed->start(p, b, pgc, psed);
-        rdump.sflow_step(p, b, pgc);
-
-        p->printouttime = pgc->timer() - ptime;
-
-        // Shell-Printout
+        // Mainloop
         if(p->mpirank == 0)
-        {
-            endtime = pgc->timer();
+            cout << "starting mainloop.SFLOW" << endl;
 
-            p->itertime = endtime - starttime;
-            p->totaltime += p->itertime;
-            p->gctotaltime += p->gctime;
-            p->Xtotaltime += p->xtime;
-            p->meantime = (p->totaltime / double(p->count));
-            p->gcmeantime = (p->gctotaltime / double(p->count));
-            p->Xmeantime = (p->Xtotaltime / double(p->count));
+        //-----------MAINLOOP SFLOW----------------------------
+        while(p->count < p->N45 && p->simtime < p->N41 && p->sedtime < p->S19)
+        {
+            ++p->count;
+            starttime = pgc->timer();
 
             if(p->mpirank == 0 && (p->count % p->P12 == 0))
             {
+                cout << "------------------------------------" << endl;
+                cout << p->count << endl;
+
+                cout << "simtime: " << p->simtime << endl;
+                cout << "timestep: " << p->dt << endl;
+
                 if(p->B90 > 0)
-                    cout << "mtime: " << setprecision(3) << mtime << endl;
-                if(p->X10 > 0)
-                    cout << "fbtime: " << setprecision(3) << p->fbtime << endl;
-                cout << "wavegentime: " << setprecision(3) << p->wavecalctime << endl;
-                cout << "printouttime: " << setprecision(3) << p->printouttime << endl;
-                cout << "gctime: " << setprecision(3) << p->gctime << "\t average gctime: " << setprecision(3) << p->gcmeantime << endl;
-                cout << "Xtime: " << setprecision(3) << p->xtime << "\t average Xtime: " << setprecision(3) << p->Xmeantime << endl;
-                cout << "total time: " << setprecision(6) << p->totaltime << "   average time: " << setprecision(3) << p->meantime << endl;
-                cout << "timer per step: " << setprecision(3) << p->itertime << endl;
+                    cout << "t/T: " << p->simtime / p->wT << endl;
             }
 
-            mainlog(p);
-        }
+            pflow->wavegen_2D_precalc(p, b, pgc);
 
-        p->gctime = 0.0;
-        p->xtime = 0.0;
-        p->reinitime = 0.0;
-        p->wavecalctime = 0.0;
-        p->lsmtime = 0.0;
-        p->printouttime = 0.0;
-        p->fbtime = 0.0;
+            // REEF3D::SEASTATE: wave step and wave forcing (A 750 1)
+            if(b->wave != nullptr)
+                b->wave->start(p, b, pgc);
 
-        SLICELOOP1
-        b->Pn(i, j) = b->P(i, j);
+            // outer loop
+            double temptime = pgc->timer();
+            pmom->start(p, b, pgc);
+            double mtime = pgc->timer() - temptime;
 
-        SLICELOOP2
-        b->Qn(i, j) = b->Q(i, j);
+            // turbulence
+            pturb->start(p, b, pgc, pconvec, pdiff, psolv, pflow);
 
-        p->solver_error = pgc->globalimax(p->solver_error);
+            // A 260 1/2 with mesh refinement: the models of the patches (sflow_amr_turb.cpp)
+            if(pamr != nullptr)
+                pamr->turb_step(p, b, pgc);
 
-        if(p->umax > p->N61 || p->vmax > p->N61 || p->umax != p->umax || p->vmax != p->vmax)
-        {
+            // breaking waves
+            int count = 0;
+            SLICELOOP4
+            if(b->breaking(i, j) > 0)
+            {
+                b->breaking_print(i, j) = 1;
+                ++count;
+            }
+            pgc->gcsl_start4(p, b->breaking_print, 1);
 
+            count = pgc->globalisum(count);
+
+            if(p->mpirank == 0 && (p->count % p->P12 == 0))
+                cout << "breaking: " << count << endl;
+
+            if(p->A248 == 0)
+                SLICELOOP4
+            b->breaking(i, j) = 0;
+
+            // sediment transport
+            psed->start_sflow(p, b, pgc, pflow, b->P, b->Q);
+            pfsf->depth_update(p, b, pgc, b->WL);
+
+            // timesave
+            pturb->ktimesave(p, b, pgc);
+            pturb->etimesave(p, b, pgc);
+
+            // timestep control
+            p->simtime += p->dt;
+            ptime->start(p, b, pgc);
+
+            if(pamr != nullptr)
+                pamr->timestep(p, b, pgc);
+
+            // printer
+            // print_debug(p,b,pgc);
+
+            double ptime = pgc->timer();
+
+            if(pamr != nullptr)
+                pamr->print(p, b, pgc);
+
+            pprint->start(p, b, pgc, pflow, pturb, psed);
+            pprintbed->start(p, b, pgc, psed);
+            lagoon_output::poll_all(p, pgc);  // outputs of the LAGOON store written by now (P 18)
+            rdump.sflow_step(p, b, pgc);
+
+            p->printouttime = pgc->timer() - ptime;
+
+            // Shell-Printout
             if(p->mpirank == 0)
-                cout << endl
-                     << "EMERGENCY STOP  --  velocities exceeding critical value N 61" << endl
-                     << endl;
+            {
+                endtime = pgc->timer();
 
-            pprint->print2D(p, b, pgc, pturb, psed);
+                p->itertime = endtime - starttime;
+                p->totaltime += p->itertime;
+                p->gctotaltime += p->gctime;
+                p->Xtotaltime += p->xtime;
+                p->meantime = (p->totaltime / double(p->count));
+                p->gcmeantime = (p->gctotaltime / double(p->count));
+                p->Xmeantime = (p->Xtotaltime / double(p->count));
 
-            pgc->final(true);
+                if(p->mpirank == 0 && (p->count % p->P12 == 0))
+                {
+                    if(p->B90 > 0)
+                        cout << "mtime: " << setprecision(3) << mtime << endl;
+                    if(p->X10 > 0)
+                        cout << "fbtime: " << setprecision(3) << p->fbtime << endl;
+                    cout << "wavegentime: " << setprecision(3) << p->wavecalctime << endl;
+                    cout << "printouttime: " << setprecision(3) << p->printouttime << endl;
+                    cout << "gctime: " << setprecision(3) << p->gctime << "\t average gctime: " << setprecision(3) << p->gcmeantime << endl;
+                    cout << "Xtime: " << setprecision(3) << p->xtime << "\t average Xtime: " << setprecision(3) << p->Xmeantime << endl;
+                    cout << "total time: " << setprecision(6) << p->totaltime << "   average time: " << setprecision(3) << p->meantime << endl;
+                    cout << "timer per step: " << setprecision(3) << p->itertime << endl;
+                }
+
+                mainlog(p);
+            }
+
+            p->gctime = 0.0;
+            p->xtime = 0.0;
+            p->reinitime = 0.0;
+            p->wavecalctime = 0.0;
+            p->lsmtime = 0.0;
+            p->printouttime = 0.0;
+            p->fbtime = 0.0;
+
+            SLICELOOP1
+            b->Pn(i, j) = b->P(i, j);
+
+            SLICELOOP2
+            b->Qn(i, j) = b->Q(i, j);
+
+            p->solver_error = pgc->globalimax(p->solver_error);
+
+            if(p->umax > p->N61 || p->vmax > p->N61 || p->umax != p->umax || p->vmax != p->vmax)
+            {
+
+                if(p->mpirank == 0)
+                    cout << endl
+                         << "EMERGENCY STOP  --  velocities exceeding critical value N 61" << endl
+                         << endl;
+
+                pprint->print2D(p, b, pgc, pturb, psed);
+
+                pgc->final(true);
+            }
+
+            if(p->solver_error >= 1)
+            {
+                if(p->mpirank == 0)
+                    cout << endl
+                         << "!!! EMERGENCY STOP  --  HYPRE solver broke down!  !!!     " << p->solver_error << endl
+                         << endl;
+
+                pprint->print2D(p, b, pgc, pturb, psed);
+
+                pgc->final(true);
+            }
         }
 
-        if(p->solver_error >= 1)
+        if(p->mpirank == 0)
         {
-            if(p->mpirank == 0)
-                cout << endl
-                     << "!!! EMERGENCY STOP  --  HYPRE solver broke down!  !!!     " << p->solver_error << endl
-                     << endl;
+            cout << endl
+                 << "******************************" << endl
+                 << endl;
 
-            pprint->print2D(p, b, pgc, pturb, psed);
+            if(p->plog)
+                p->plog->end(p, "finished");
 
-            pgc->final(true);
+            cout << "modelled time: " << p->simtime << endl;
+            cout << endl;
         }
+
+        // checkpoint on any decomposition (P 48), rebalance on the measured load (G 46): the state at the
+        // end of the step (Pn, Qn included)
+        ckpt(p, b, pgc).step();
     }
+
+    // the state at the end of the run (N 45, N 41, S 19), unless the last step wrote it: before the
+    // checkpoint, which keeps the output counters
+    pprint->print_end(p, b, pgc, pturb, psed);
+    pprintbed->print_end(p, b, pgc, psed);
+
+    // the maxima of the run (P 112, P 115)
+    pprint->finish(p, b, pgc);
+
+    // a checkpoint at the end of the run (P 48): it can be continued with a later end (I 45 1)
+    ckpt(p, b, pgc).finish();
+
+    // the last outputs of the LAGOON store are counted (P 18)
+    lagoon_output::finish_all(p, pgc);
 
     if(p->mpirank == 0)
     {
@@ -228,65 +299,57 @@ void sflow_f::start(lexer *p, fdm2D *b, ghostcell *pgc)
              << "******************************" << endl
              << endl;
 
-        if(p->plog)
-            p->plog->end(p, "finished");
-
-        cout << "modelled time: " << p->simtime << endl;
-        cout << endl;
+        pgc->final();
     }
 
-    rdump.sflow_final(p, b, pgc);
-
-    pgc->final();
-}
-
-void sflow_f::print_debug(lexer *p, fdm2D *b, ghostcell *pgc)
-{
-
-    char name[100];
-    ofstream debug;
-
-    // Create Folder
-    if(p->mpirank == 0)
-        mkdir("./REEF3D_SFLOW_Log", 0777);
-
-    sprintf(name, "./REEF3D_PLS/POS-%i-%i.dat", p->count, p->mpirank + 1);
-
-    sprintf(name, "./REEF3D_SFLOW_Log/SFLOW_Debug-%i-%i.dat", p->count, p->mpirank + 1);
-
-    debug.open(name);
-
-    SLICELOOP4
-    debug << b->eta(i, j) << " " << b->bed(i, j) << " " << b->depth(i, j) << endl;
-
-    debug.close();
-}
-
-void sflow_f::log_ini(lexer *p)
-{
-
-    // Create Folder
-    if(p->mpirank == 0)
-        mkdir("./REEF3D_SFLOW_Log", 0777);
-
-    if(p->mpirank == 0)
+    void sflow_f::print_debug(lexer * p, fdm2D * b, ghostcell * pgc)
     {
-        mainlogout.open("./REEF3D_SFLOW_Log/REEF3D_SFLOW_mainlog.dat");
 
-        mainlogout << "number of cells:  " << p->cellnumtot2D << endl;
-        mainlogout << "#iteration \t #timestep \t #simtime \t #itertime \t #piter \t #ptime \t #Inflow \t #Outflow " << endl;
+        char name[100];
+        ofstream debug;
+
+        // Create Folder
+        if(p->mpirank == 0)
+            mkdir("./REEF3D_SFLOW_Log", 0777);
+
+        sprintf(name, "./REEF3D_PLS/POS-%i-%i.dat", p->count, p->mpirank + 1);
+
+        sprintf(name, "./REEF3D_SFLOW_Log/SFLOW_Debug-%i-%i.dat", p->count, p->mpirank + 1);
+
+        debug.open(name);
+
+        SLICELOOP4
+        debug << b->eta(i, j) << " " << b->bed(i, j) << " " << b->depth(i, j) << endl;
+
+        debug.close();
     }
-}
 
-void sflow_f::mainlog(lexer *p)
-{
-    if(p->count % p->P12 == 0)
+    void sflow_f::log_ini(lexer * p)
     {
-        mainlogout << fixed << p->count << " \t " << setprecision(5) << p->dt << " \t " << setprecision(5) << p->simtime << " \t ";
-        mainlogout << fixed << setprecision(4) << p->itertime << " \t ";
-        mainlogout << p->poissoniter << " \t " << setprecision(4) << p->poissontime << " \t ";
-        mainlogout << fixed << setprecision(6) << p->Qi << " \t " << setprecision(6) << p->Qo << " \t ";
-        mainlogout << endl;
+
+        // Create Folder
+        if(p->mpirank == 0)
+            mkdir("./REEF3D_SFLOW_Log", 0777);
+
+        if(p->mpirank == 0)
+        {
+            if(reefckpt_open(mainlogout, "./REEF3D_SFLOW_Log/REEF3D_SFLOW_mainlog.dat", p->I45))  // I 45: continued
+            {
+                mainlogout << "number of cells:  " << p->cellnumtot2D << endl;
+                mainlogout << "#iteration \t #timestep \t #simtime \t #itertime \t #piter \t #ptime \t #Inflow \t #Outflow " << endl;
+            }
+        }
     }
-}
+
+    void sflow_f::mainlog(lexer * p)
+    {
+        if(p->count % p->P12 == 0)
+        {
+            mainlogout << fixed << p->count << " \t " << setprecision(5) << p->dt << " \t " << setprecision(5) << p->simtime << " \t ";
+            mainlogout << fixed << setprecision(4) << p->itertime << " \t ";
+            mainlogout << p->poissoniter << " \t " << setprecision(4) << p->poissontime << " \t ";
+            mainlogout << fixed << setprecision(6) << p->Qi << " \t " << setprecision(6) << p->Qo << " \t ";
+            mainlogout << endl;
+        }
+    }
 

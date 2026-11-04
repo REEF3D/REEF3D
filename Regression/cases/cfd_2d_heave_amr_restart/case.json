@@ -1,0 +1,28 @@
+{
+ "base": "cfd_2d_heave_amr_ckpt",
+ "same_as": "cfd_2d_heave_amr_ckpt",
+ "chain": [
+  {
+   "case": "cfd_2d_heave_amr_ckpt",
+   "copy": [
+    "REEF3D_Checkpoint",
+    "REEF3D_CFD_6DOF"
+   ]
+  }
+ ],
+ "ctrl_set": {
+  "I 45": "20"
+ },
+ "description": "the restart of cfd_2d_heave_amr_ckpt from step 20 (I 45 20): the body with the acceleration of its last stage for the added mass of the coupling; regression.py ranks: bitwise the uninterrupted run.",
+ "tags": [
+  "2d",
+  "6dof",
+  "floating",
+  "levelset",
+  "amr",
+  "checkpoint"
+ ],
+ "covers": [
+  "sixdof_obj::ckpt_restore of the coupling state (am_prev_)"
+ ]
+}

@@ -1,0 +1,21 @@
+{
+ "solver": "sflow",
+ "np": 1,
+ "steps": 400,
+ "files": [
+  "blocks.dat"
+ ],
+ "tags": [
+  "2d",
+  "sflow",
+  "curvilinear",
+  "multiblock",
+  "tide"
+ ],
+ "description": "SFLOW: a Riemann edge with a 5 mm tide at x = 0 and Flather edges on the side y = 0 of blocks 1 and 2 (B 522 on their j faces; block 1 with two open faces that are not opposite): sflow_curv::flux_bc and the face velocities through the j faces; the blocks not turned in DIVEMesh and the j layout to 4e-16 m (validation/13_j_face_zones).",
+ "covers": [
+  "sflow_curv::flux_bc: ghost fluxes through the j faces",
+  "sflow_momentum_func::face_velocities: Q of the j faces",
+  "ioflow_amr_block::edges2D on the j faces"
+ ]
+}

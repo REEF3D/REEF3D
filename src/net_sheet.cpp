@@ -21,6 +21,7 @@ Authors: Tobias Martin, Hans Bihs
 --------------------------------------------------------------------*/
 
 #include "net_sheet.h"
+#include "ckpt_pack.h"
 #include "fdm.h"
 #include "fdm_nhf.h"
 #include "ghostcell.h"
@@ -37,7 +38,9 @@ void net_sheet::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc)
 
     //- Initialise printing
     printtime = 0.0;
-    print(p);
+    // a restart (I 45): no print at the start, the outputs continue from the checkpoint
+    if(p->I45 != 1)
+        print(p);
 }
 
 void net_sheet::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
@@ -55,7 +58,9 @@ void net_sheet::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
     //- Initialise printing
     printtime = 0.0;
-    print(p);
+    // a restart (I 45): no print at the start, the outputs continue from the checkpoint
+    if(p->I45 != 1)
+        print(p);
 }
 
 void net_sheet::updateFluidAcc(lexer *p, bool finalize)
@@ -245,3 +250,36 @@ void net_sheet::start_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha,
     }
 }
 
+// checkpoints (P 48, I 45): the knots at the pose of the last stage, the fluid at the knots (t^n) and its
+// acceleration, the print state
+void net_sheet::ckpt_state(std::vector<double> &v) const
+{
+    ckpt_put w{v};
+    for(const MatrixXd *a : {&x_, &xdot_, &forces_knot, &fluidAcc_})
+        w.md(*a);
+    for(double x : {dt_, printtime, Fx, Fy, Fz})
+        w.d(x);
+    w.b(fluidVelInit_);
+    for(int n = 0; n < nK; ++n)
+    {
+        w.ad(coupledField[n], 4);
+        w.ad(coupledFieldn[n], 4);
+    }
+}
+
+void net_sheet::ckpt_restore(const std::vector<double> &v, size_t &k)
+{
+    ckpt_get r{v};
+    r.k = k;
+    for(MatrixXd *a : {&x_, &xdot_, &forces_knot, &fluidAcc_})
+        r.md(*a);
+    for(double *x : {&dt_, &printtime, &Fx, &Fy, &Fz})
+        r.d(*x);
+    r.b(fluidVelInit_);
+    for(int n = 0; n < nK; ++n)
+    {
+        r.ad(coupledField[n], 4);
+        r.ad(coupledFieldn[n], 4);
+    }
+    k = r.k;
+}

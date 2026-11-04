@@ -58,6 +58,7 @@ public:
 
     // impermeable membranes (X 330, membrane.dat), NHFLOW
     void membrane_ini_nhflow(lexer *, fdm_nhf *, ghostcell *);
+    void membrane_links_nhflow(lexer *, fdm_nhf *, ghostcell *, double);
     void membrane_forcing_nhflow(lexer *, fdm_nhf *, ghostcell *, double, double *, double *, double *, slice &);
     void membrane_reaction_nhflow(lexer *, fdm_nhf *, ghostcell *, double, slice &, bool);
     void membrane_pgrad(lexer *, fdm_nhf *, double, double *, double *, double *, slice &, int);
@@ -73,15 +74,13 @@ public:
 
     typedef vector<Eigen::Vector3d> EigenMat;
 
+    // checkpoints (P 48, I 45): the nets (X 320), each with its length; false: the nets do not fit
+    void ckpt_state(std::vector<double> &) const;
+    bool ckpt_restore(const std::vector<double> &);
+
 private:
     vector<net *> pnet;
     vector<net_membrane *> pmem;
-
-    field1 kernel_x;
-    field2 kernel_y;
-    field3 kernel_z;
-
-    double *KX, *KY, *KZ;
 
     double kernel_peskin(const double &);
 };

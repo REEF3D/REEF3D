@@ -76,6 +76,98 @@ void sflow_idiff::bc(lexer *p, fdm2D *b, slice &u)
             b->M.w[n] = 0.0;
         }
 
+        // dry neighbours inside the domain: free slip, zero normal gradient (the coupling goes to the diagonal);
+        // the dry cell itself is solved as f = 0 and would otherwise act as a no-slip wall at the shoreline
+        if(p->wet[IJ] == 1)
+        {
+            if(p->flagslice4[Im1J] > 0 && p->wet[Im1J] == 0)
+            {
+                b->M.p[n] += b->M.s[n];
+                b->M.s[n] = 0.0;
+            }
+
+            if(p->flagslice4[Ip1J] > 0 && p->wet[Ip1J] == 0)
+            {
+                b->M.p[n] += b->M.n[n];
+                b->M.n[n] = 0.0;
+            }
+
+            if(p->flagslice4[IJm1] > 0 && p->wet[IJm1] == 0)
+            {
+                b->M.p[n] += b->M.e[n];
+                b->M.e[n] = 0.0;
+            }
+
+            if(p->flagslice4[IJp1] > 0 && p->wet[IJp1] == 0)
+            {
+                b->M.p[n] += b->M.w[n];
+                b->M.w[n] = 0.0;
+            }
+        }
+
+        if(p->wet[IJ] == 0)
+        {
+            b->rhsvec.V[n] -= b->M.s[n] * u(i - 1, j);
+            b->M.s[n] = 0.0;
+        }
+
+        void sflow_idiff::diff_u(lexer * p, fdm2D * b, ghostcell * pgc, solver2D * psolv, slice & UHdiff, slice & UH, slice & U, slice & V, slice & WL, double alpha)
+        {
+            double cxp, cxm, cyp, cym, dxy;
+
+            starttime = pgc->timer();
+
+            n = 0;
+            SLICELOOP4
+            {
+                viscosity(p, b);
+
+                cxp = 2.0 * visc / (p->DXP[IP] * p->DXN[IP]);
+                cxm = 2.0 * visc / (p->DXP[IM1] * p->DXN[IP]);
+                cyp = visc / (p->DYP[JP] * p->DYN[JP]) * p->y_dir;
+                cym = visc / (p->DYP[JM1] * p->DYN[JP]) * p->y_dir;
+
+                dxy = 0.0;
+                if(p->j_dir == 1 && p->flagslice4[Ip1Jp1] > 0 && p->flagslice4[Ip1Jm1] > 0 && p->flagslice4[Im1Jp1] > 0 && p->flagslice4[Im1Jm1] > 0 && p->wet[Ip1Jp1] == 1 && p->wet[Ip1Jm1] == 1 && p->wet[Im1Jp1] == 1 && p->wet[Im1Jm1] == 1)
+                    dxy = (V(i + 1, j + 1) - V(i + 1, j - 1) - V(i - 1, j + 1) + V(i - 1, j - 1)) / ((p->DXP[IP] + p->DXP[IM1]) * (p->DYP[JP] + p->DYP[JM1]));
+
+                b->M.p[n] = cxp + cxm + cyp + cym + 1.0 / (alpha * p->dt);
+                b->M.n[n] = -cxp;
+                b->M.s[n] = -cxm;
+                b->M.w[n] = -cyp;
+                b->M.e[n] = -cym;
+
+                b->rhsvec.V[n] = visc * dxy + U(i, j) / (alpha * p->dt);
+
+                f(i, j) = U(i, j);
+                ++n;
+            }
+
+            bc(p, b, U);
+
+            psolv->start(p, pgc, f, b->M, b->xvec, b->rhsvec, 4);
+
+            SLICELOOP4
+            UHdiff(i, j) = (p->wet[IJ] == 1) ? UH(i, j) + WL(i, j) * (f(i, j) - U(i, j)) : UH(i, j);
+
+            time = pgc->timer() - starttime;
+            p->uiter = p->solveriter;
+            if(p->mpirank == 0 && p->D21 == 1 && p->count % p->P12 == 0)
+                cout << "udiffiter: " << p->uiter << "  udifftime: " << setprecision(3) << time << endl;
+        }
+
+        if(p->flagslice4[IJm1] < 0)
+        {
+            b->rhsvec.V[n] -= b->M.e[n] * u(i, j - 1);
+            b->M.e[n] = 0.0;
+        }
+
+        if(p->flagslice4[IJp1] < 0)
+        {
+            b->rhsvec.V[n] -= b->M.w[n] * u(i, j + 1);
+            b->M.w[n] = 0.0;
+        }
+
         if(p->wet[IJ] == 0)
         {
             b->M.p[n] = 1.0;
@@ -100,14 +192,14 @@ void sflow_idiff::diff_u(lexer *p, fdm2D *b, ghostcell *pgc, solver2D *psolv, sl
     {
         viscosity(p, b);
 
-        cxp = 2.0 * visc / (p->DXP[IP] * p->DXN[IP]);
-        cxm = 2.0 * visc / (p->DXP[IM1] * p->DXN[IP]);
-        cyp = visc / (p->DYP[JP] * p->DYN[JP]) * p->y_dir;
-        cym = visc / (p->DYP[JM1] * p->DYN[JP]) * p->y_dir;
+        cxp = visc / (p->DXP[IP] * p->DXN[IP]);
+        cxm = visc / (p->DXP[IM1] * p->DXN[IP]);
+        cyp = 2.0 * visc / (p->DYP[JP] * p->DYN[JP]);
+        cym = 2.0 * visc / (p->DYP[JM1] * p->DYN[JP]);
 
         dxy = 0.0;
-        if(p->j_dir == 1 && p->flagslice4[Ip1Jp1] > 0 && p->flagslice4[Ip1Jm1] > 0 && p->flagslice4[Im1Jp1] > 0 && p->flagslice4[Im1Jm1] > 0)
-            dxy = (V(i + 1, j + 1) - V(i + 1, j - 1) - V(i - 1, j + 1) + V(i - 1, j - 1)) / ((p->DXP[IP] + p->DXP[IM1]) * (p->DYP[JP] + p->DYP[JM1]));
+        if(p->flagslice4[Ip1Jp1] > 0 && p->flagslice4[Ip1Jm1] > 0 && p->flagslice4[Im1Jp1] > 0 && p->flagslice4[Im1Jm1] > 0 && p->wet[Ip1Jp1] == 1 && p->wet[Ip1Jm1] == 1 && p->wet[Im1Jp1] == 1 && p->wet[Im1Jm1] == 1)
+            dxy = (U(i + 1, j + 1) - U(i + 1, j - 1) - U(i - 1, j + 1) + U(i - 1, j - 1)) / ((p->DXP[IP] + p->DXP[IM1]) * (p->DYP[JP] + p->DYP[JM1]));
 
         b->M.p[n] = cxp + cxm + cyp + cym + 1.0 / (alpha * p->dt);
         b->M.n[n] = -cxp;
@@ -115,13 +207,13 @@ void sflow_idiff::diff_u(lexer *p, fdm2D *b, ghostcell *pgc, solver2D *psolv, sl
         b->M.w[n] = -cyp;
         b->M.e[n] = -cym;
 
-        b->rhsvec.V[n] = visc * dxy + U(i, j) / (alpha * p->dt);
+        b->rhsvec.V[n] = visc * dxy + V(i, j) / (alpha * p->dt);
 
-        f(i, j) = U(i, j);
+        f(i, j) = V(i, j);
         ++n;
     }
 
-    bc(p, b, U);
+    bc(p, b, V);
 
     psolv->start(p, pgc, f, b->M, b->xvec, b->rhsvec, 4);
 

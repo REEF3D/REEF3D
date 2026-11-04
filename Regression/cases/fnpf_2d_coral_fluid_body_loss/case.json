@@ -1,0 +1,7 @@
+{
+ "description": "fnpf_2d_coral_fluid_body with drive-train losses in the CORAL PTO (c_loss 15, coulomb_loss 0.02, v_eps 0.005): the losses act on the box, not absorbed, channels pto_Ploss and pto_Eloss in REEF3D_CORAL/box.dat. The 6DOF kernel counterpart is fnpf_2d_6dof_box_pto_loss.",
+ "base": "fnpf_2d_coral_fluid_body",
+ "files": ["coral.txt"],
+ "tags": ["2d", "fnpf", "6dof", "floating", "coral", "pto"],
+ "covers": ["CORAL pto_load c_loss, coulomb_loss", "loss channels"]
+}

@@ -1,0 +1,14 @@
+{
+ "base": "seastate_2d_phase12_fas_uniform",
+ "np": 2,
+ "description": "as seastate_2d_phase12_fas_uniform on 2 ranks: every rank coarsens its own cells, the coarse halo exchange and the exchange-list check of the coarse grids.",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate",
+  "mpi"
+ ],
+ "covers": [
+  "seastate_fas2 on 2 ranks: coarse exchange lists, global number of coarse grids"
+ ]
+}

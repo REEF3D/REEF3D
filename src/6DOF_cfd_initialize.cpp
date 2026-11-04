@@ -20,15 +20,21 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Authors: Tobias Martin, Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"6DOF_cfd.h"
-#include"lexer.h"
-#include"fdm.h"
-#include"ghostcell.h"
+#include "6DOF_cfd.h"
+#include "fdm.h"
+#include "ghostcell.h"
+#include "lexer.h"
 
 void sixdof_cfd::initialize(lexer *p, fdm *a, ghostcell *pgc)
 {
-    for (int nb = 0; nb < number6DOF; nb++)
-    fb_obj[nb]->initialize_cfd(p, a, pgc);
+    for(int nb = 0; nb < number6DOF; nb++)
+    {
+        fb_obj[nb]->initialize_cfd(p, a, pgc);
+
+        fb_combine(p, a, nb);
+    }
+
+    fb_finish(p, a, pgc);
 }
 
 void sixdof_cfd::initialize(lexer *p, fdm2D *b, ghostcell *pgc)
@@ -47,19 +53,19 @@ void sixdof_cfd::setup(lexer *p, fdm *a, ghostcell *pgc)
 {
     // Reset heaviside field
     ULOOP
-    a->fbh1(i,j,k) = 0.0;
+    a->fbh1(i, j, k) = 0.0;
 
     VLOOP
-    a->fbh2(i,j,k) = 0.0;
-    
+    a->fbh2(i, j, k) = 0.0;
+
     WLOOP
-    a->fbh3(i,j,k) = 0.0;
+    a->fbh3(i, j, k) = 0.0;
 
     LOOP
-    a->fbh4(i,j,k) = 0.0;
+        a->fbh4(i, j, k) = 0.0;
 
-    pgc->start1(p,a->fbh1,10);
-    pgc->start2(p,a->fbh2,11);
-    pgc->start3(p,a->fbh3,12);
-    pgc->start4(p,a->fbh4,40);
+    pgc->start1(p, a->fbh1, 10);
+    pgc->start2(p, a->fbh2, 11);
+    pgc->start3(p, a->fbh3, 12);
+    pgc->start4(p, a->fbh4, 40);
 }

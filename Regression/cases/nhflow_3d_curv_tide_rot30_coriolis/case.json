@@ -1,0 +1,19 @@
+{
+ "base": "nhflow_3d_curv_tide_rot30",
+ "ctrl_add": [
+  "W 205 8.0 54.0 0.0",
+  "W 211 1",
+  "W 212 0.001"
+ ],
+ "description": "nhflow_3d_curv_tide_rot30 with the Coriolis force, f-plane f = 1e-3 1/s (W 211 1, W 212): on a curvilinear grid the velocities are Cartesian components, so f k x u needs no rotation.",
+ "tags": [
+  "3d",
+  "nhflow",
+  "curvilinear",
+  "tide",
+  "coriolis"
+ ],
+ "covers": [
+  "met_forcing Coriolis on a curvilinear grid (G 50 2)"
+ ]
+}

@@ -22,6 +22,7 @@ Author: Hans Bihs
 
 #include "momentum_rk.h"
 #include "bcmom.h"
+#include "ckpt_registry.h"
 #include "concentration.h"
 #include "convection.h"
 #include "density_comp.h"
@@ -43,6 +44,7 @@ Author: Hans Bihs
 #include "ghostcell.h"
 #include "heat.h"
 #include "ioflow.h"
+#include "levelset_solid_extend.h"
 #include "lexer.h"
 #include "picard.h"
 #include "picard_f.h"
@@ -53,6 +55,7 @@ Author: Hans Bihs
 #include "reini.h"
 #include "solver.h"
 #include "turbulence.h"
+#include "vrans.h"
 
 // loop over the cells of velocity component c (0 u, 1 v, 2 w); cpor is the porosity factor CPOR1/2/3
 #define MOMRK_LOOP(c, ...)             \
@@ -216,7 +219,8 @@ momentum_rk::momentum_rk(lexer *p, fdm *a, ghostcell *pgc, convection *pconvecti
 
     // second-order implicit diffusion
     imex = (p->D20 == 2 && p->D23 == 2 && pdiff->apply_available());
-    imex_valid = false;
+    imex_valid = 0.0;
+    ckid_imex = ckpt_registry::add_raw(p, &imex_valid, 1);
 
     if(imex)
     {
@@ -272,6 +276,7 @@ momentum_rk::momentum_rk(lexer *p, fdm *a, ghostcell *pgc, convection *pconvecti
 
 momentum_rk::~momentum_rk()
 {
+    ckpt_registry::remove(ckid_imex);
     delete ls;
     delete frk1;
     delete frk2;
@@ -298,13 +303,15 @@ void momentum_rk::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof 
 {
     p6dof = pp6dof;
 
-    imex_step_setup(p);
-
+    // (the SSP step sets the weights of the implicit diffusion in amr_step_begin)
     if(scheme == SSP)
         step_ssp(p, a, pgc, pvrans, p6dof);
 
     if(scheme == LOWSTORAGE)
+    {
+        imex_step_setup(p);
         step_lowstorage(p, a, pgc, pvrans, p6dof);
+    }
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -313,6 +320,34 @@ void momentum_rk::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof 
 
 void momentum_rk::step_ssp(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof *p6dof)
 {
+    amr_step_begin(p, a, pgc);
+
+    for(int s = 0; s < stages; ++s)
+    {
+        amr_ls_transport(p, a, pgc, s);
+
+        if(levelset)
+            amr_ls_finish(p, a, pgc, s, true, -1);
+
+        amr_momentum(p, a, pgc, pvrans, p6dof, s, 1);
+
+        projection(p, a, pgc, velout(a, 0, s), velout(a, 1, s), velout(a, 2, s), ssp_b[s]);
+
+        amr_stage_end(p, a, pgc, s);
+    }
+}
+
+// ---------------------------------------------------------------------------------------------
+// the parts of an SSP step (step_ssp; the mesh refinement cfd_amr calls them grid by grid, with the
+// fills of the patches and the composite projection in between)
+// ---------------------------------------------------------------------------------------------
+
+void momentum_rk::amr_step_begin(lexer *p, fdm *a, ghostcell *pgc)
+{
+    // weights of the second-order implicit diffusion of this step (also on the grids of the mesh
+    // refinement, which call the parts of the step without start)
+    imex_step_setup(p);
+
     pflow->discharge(p, a, pgc);
     pflow->inflow(p, a, pgc, a->u, a->v, a->w);
     pflow->rkinflow(p, a, pgc, urk1, vrk1, wrk1);
@@ -323,62 +358,133 @@ void momentum_rk::step_ssp(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixd
     // reference volume of the level set at the start of the step (F 46)
     if(levelset)
         ppicard->volcalc(p, a, pgc, a->phi);
+}
 
-    for(int s = 0; s < stages; ++s)
+// face density of the stage (conservative form) and the level-set transport into the stage output
+void momentum_rk::amr_ls_transport(lexer *p, fdm *a, ghostcell *pgc, int s)
+{
+    // face density of the stage, before the level set is advanced
+    if(conservative)
     {
-        const bool final = (s == stages - 1);
+        pgc->start4(p, a->ro, gcval_ro);
+        face_density(p, a, pgc, RO(0, s), RO(1, s), RO(2, s));
+    }
 
-        // face density of the stage, before the level set is advanced
-        if(conservative)
-        {
-            pgc->start4(p, a->ro, gcval_ro);
-            face_density(p, a, pgc, RO(0, s), RO(1, s), RO(2, s));
-        }
+    if(levelset)
+        levelset_transport(p, a, pgc, s);
+}
 
-        if(levelset)
-            levelset_ssp(p, a, pgc, s);
+void momentum_rk::amr_ls_finish(lexer *p, fdm *a, ghostcell *pgc, int s, bool picard, int iters)
+{
+    levelset_finish(p, a, pgc, s, picard, iters);
+}
 
-        if(conservative)
-            convection_conservative(p, a, pgc, s);
+// iterations of the reinitialisation of the stage output (iters > 0)
+void momentum_rk::amr_ls_reini(lexer *p, fdm *a, ghostcell *pgc, int s, int iters)
+{
+    p->reini_iter = iters;
+    preini->start(a, p, amr_phi_out(s), pgc, pflow);
+}
 
-        for(int c = 0; c < 3; ++c)
-            component_ssp(p, a, pgc, pvrans, c, s);
+int momentum_rk::amr_reini_iters(lexer *p, int s) const
+{
+    return (s == stages - 1) ? p->F44 : MAX(p->F44 - 1, 1);
+}
 
-        field &uout = velout(a, 0, s);
-        field &vout = velout(a, 1, s);
-        field &wout = velout(a, 2, s);
+// convection, sources, diffusion of the three components and the direct forcing of stage s
+// (forcing 1: all, as step_ssp; 2: solids and topography only, the grids of the mesh refinement)
+void momentum_rk::amr_momentum(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixdof *p6dof, int s, int forcing)
+{
+    const bool final = (s == stages - 1);
 
-        if(conservative)
-        {
-            pgc->start1(p, uout, gcval_u);
-            pgc->start2(p, vout, gcval_v);
-            pgc->start3(p, wout, gcval_w);
-        }
+    if(conservative)
+        convection_conservative(p, a, pgc, s);
 
+    for(int c = 0; c < 3; ++c)
+        component_ssp(p, a, pgc, pvrans, c, s);
+
+    field &uout = velout(a, 0, s);
+    field &vout = velout(a, 1, s);
+    field &wout = velout(a, 2, s);
+
+    if(conservative)
+    {
+        pgc->start1(p, uout, gcval_u);
+        pgc->start2(p, vout, gcval_v);
+        pgc->start3(p, wout, gcval_w);
+    }
+
+    if(forcing == 1)
         momentum_forcing_start(a, p, pgc, p6dof, pfsi,
                                uout, vout, wout, fx, fy, fz, s, ssp_b[s], final);
 
-        projection(p, a, pgc, uout, vout, wout, ssp_b[s]);
-
-        if(conservative)
-            clear_FGH(p, a);
-
-        if(levelset)
-        {
-            field4 &fout = final ? *ls : (s == 0 ? *frk1 : *frk2);
-
-            LOOP
-                a->phi(i, j, k) = fout(i, j, k);
-
-            pgc->start4(p, a->phi, gcval_phi);
-            pupdate->start(p, a, pgc, uout, vout, wout);
-        }
-
-        imex_accumulate(p, a, pgc, s, uout, vout, wout);
-    }
+    if(forcing == 2)
+        amr_solid_forcing(p, a, pgc, uout, vout, wout, ssp_b[s]);
 }
 
-void momentum_rk::levelset_ssp(lexer *p, fdm *a, ghostcell *pgc, int s)
+// the direct forcing of solids and topography alone (as momentum_forcing_start)
+void momentum_rk::amr_solid_forcing(lexer *p, fdm *a, ghostcell *pgc, field &u, field &v, field &w, double alpha)
+{
+    std::fill(fx.V, fx.V + p->imax * p->jmax * p->kmax, 0.0);
+    std::fill(fy.V, fy.V + p->imax * p->jmax * p->kmax, 0.0);
+    std::fill(fz.V, fz.V + p->imax * p->jmax * p->kmax, 0.0);
+
+    pgc->solid_forcing(p, a, alpha, u, v, w, fx, fy, fz);
+
+    ULOOP
+    u(i, j, k) += alpha * p->dt * CPOR1 * fx(i, j, k);
+
+    VLOOP
+    v(i, j, k) += alpha * p->dt * CPOR2 * fy(i, j, k);
+
+    WLOOP
+    w(i, j, k) += alpha * p->dt * CPOR3 * fz(i, j, k);
+}
+
+// after the projection: the level set of the stage, density and viscosity, the explicit diffusion
+// of the second-order implicit scheme
+void momentum_rk::amr_stage_end(lexer *p, fdm *a, ghostcell *pgc, int s)
+{
+    const bool final = (s == stages - 1);
+
+    if(conservative)
+        clear_FGH(p, a);
+
+    if(levelset)
+    {
+        field4 &fout = final ? *ls : (s == 0 ? *frk1 : *frk2);
+
+        LOOP
+            a->phi(i, j, k) = fout(i, j, k);
+
+        pgc->start4(p, a->phi, gcval_phi);
+        pupdate->start(p, a, pgc, velout(a, 0, s), velout(a, 1, s), velout(a, 2, s));
+    }
+
+    imex_accumulate(p, a, pgc, s, velout(a, 0, s), velout(a, 1, s), velout(a, 2, s));
+}
+
+field &momentum_rk::amr_vel(fdm *a, int c, int s)
+{
+    return vel(a, c, s);
+}
+
+field &momentum_rk::amr_velout(fdm *a, int c, int s)
+{
+    return velout(a, c, s);
+}
+
+field4 &momentum_rk::amr_phi_in(int s)
+{
+    return (s == 0) ? *ls : (s == 1 ? *frk1 : *frk2);
+}
+
+field4 &momentum_rk::amr_phi_out(int s)
+{
+    return (s == stages - 1) ? *ls : (s == 0 ? *frk1 : *frk2);
+}
+
+void momentum_rk::levelset_transport(lexer *p, fdm *a, ghostcell *pgc, int s)
 {
     const bool final = (s == stages - 1);
     field4 &fout = final ? *ls : (s == 0 ? *frk1 : *frk2);
@@ -412,16 +518,28 @@ void momentum_rk::levelset_ssp(lexer *p, fdm *a, ghostcell *pgc, int s)
         LOOP
             fout(i, j, k) = as * (*ls)(i, j, k) + bs * fin(i, j, k) + bs * p->dt * a->L(i, j, k);
     }
+}
+
+void momentum_rk::levelset_finish(lexer *p, fdm *a, ghostcell *pgc, int s, bool picard, int iters)
+{
+    const bool final = (s == stages - 1);
+    field4 &fout = final ? *ls : (s == 0 ? *frk1 : *frk2);
 
     pflow->phi_relax(p, pgc, fout);
 
     pgc->start4(p, fout, gcval_phi);
 
-    p->F44 = final ? 3 : 2;
+    // the level set inside the solids of the direct forcing from the fluid around (X 48 2)
+    levelset_solid_extend(p, a, pgc, fout, gcval_phi);
+
+    // F44 iterations in the final stage, one less in the others (default 3 / 2)
+    p->reini_iter = final ? p->F44 : MAX(p->F44 - 1, 1);
+    if(iters > 0)
+        p->reini_iter = iters;
     preini->start(a, p, fout, pgc, pflow);
 
     // volume correction once per time step (it also adds Qi*dt-Qo*dt to the target volume)
-    if(final)
+    if(final && picard)
         ppicard->correct_ls(p, a, pgc, fout);
 }
 
@@ -440,7 +558,7 @@ void momentum_rk::component_ssp(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans,
     const double as = ssp_a[s];
     const double bs = ssp_b[s];
 
-    sources(p, a, pgc, pvrans, c);
+    sources(p, a, pgc, pvrans, c, uin);
     rhs(p, a, c);
 
     // combine the explicit terms first, then solve the implicit diffusion with the stage weight
@@ -474,6 +592,9 @@ void momentum_rk::component_ssp(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans,
             MOMRK_LOOP(c, out(i, j, k) = urc(i, j, k) + bs * p->dt * cpor * F(i, j, k);)
         }
     }
+
+    // VRANS resistance, point-implicit with the stage weight (B 268 1)
+    pvrans->implicit_drag(p, a, c, bs, out, U, V, W);
 
     MOMRK_LOOP(c, F(i, j, k) = 0.0;)
 
@@ -713,6 +834,13 @@ void momentum_rk::levelset_lowstorage(lexer *p, fdm *a, ghostcell *pgc, int s)
     p->F44 = (s == 2) ? 3 : 2;
     preini->start(a, p, a->phi, pgc, pflow);
 
+    // the level set inside the solids of the direct forcing from the fluid around (X 48 2)
+    levelset_solid_extend(p, a, pgc, a->phi, gcval_phi);
+
+    // F44 iterations in the final stage, one less in the others (default 3 / 2)
+    p->reini_iter = (s == 2) ? p->F44 : MAX(p->F44 - 1, 1);
+    preini->start(a, p, a->phi, pgc, pflow);
+
     // volume correction once per time step (it also adds Qi*dt-Qo*dt to the target volume)
     if(s == 2)
         ppicard->correct_ls(p, a, pgc, a->phi);
@@ -733,7 +861,7 @@ void momentum_rk::component_lowstorage(lexer *p, fdm *a, ghostcell *pgc, vrans *
     const double gs = ls_gamma[s];
     const double zs = ls_zeta[s];
 
-    sources(p, a, pgc, pvrans, c);
+    sources(p, a, pgc, pvrans, c, un);
     rhs(p, a, c);
 
     // combine the explicit terms first (sources, pressure, convection), then solve the implicit diffusion
@@ -744,6 +872,9 @@ void momentum_rk::component_lowstorage(lexer *p, fdm *a, ghostcell *pgc, vrans *
     convection_start(p, a, c, un, a->u, a->v, a->w);
 
     MOMRK_LOOP(c, uk(i, j, k) += gs * p->dt * cpor * F(i, j, k) + zs * p->dt * cpor * C(i, j, k);)
+
+    // VRANS resistance, point-implicit with the source weight 2 alpha_s (B 268 1)
+    pvrans->implicit_drag(p, a, c, al2, uk, a->u, a->v, a->w);
 
     MOMRK_LOOP(c, C(i, j, k) = F(i, j, k);)
 
@@ -768,13 +899,14 @@ void momentum_rk::component_lowstorage(lexer *p, fdm *a, ghostcell *pgc, vrans *
 // common parts of a stage
 // ---------------------------------------------------------------------------------------------
 
-void momentum_rk::sources(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, int c)
+// ust: the velocity component c of the stage, used by the explicit wall shear (was u(n) in every stage)
+void momentum_rk::sources(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, int c, field &ust)
 {
     if(c == 0)
     {
         pturb->isource(p, a);
         pflow->isource(p, a, pgc, pvrans);
-        bcmom_start(a, p, pgc, pturb, a->u, gcval_u);
+        bcmom_start(a, p, pgc, pturb, ust, gcval_u);
         ppress->upgrad(p, a, a->eta, a->eta_n);
     }
 
@@ -782,7 +914,7 @@ void momentum_rk::sources(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, int c
     {
         pturb->jsource(p, a);
         pflow->jsource(p, a, pgc, pvrans);
-        bcmom_start(a, p, pgc, pturb, a->v, gcval_v);
+        bcmom_start(a, p, pgc, pturb, ust, gcval_v);
         ppress->vpgrad(p, a, a->eta, a->eta_n);
     }
 
@@ -790,7 +922,7 @@ void momentum_rk::sources(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, int c
     {
         pturb->ksource(p, a);
         pflow->ksource(p, a, pgc, pvrans);
-        bcmom_start(a, p, pgc, pturb, a->w, gcval_w);
+        bcmom_start(a, p, pgc, pturb, ust, gcval_w);
         ppress->wpgrad(p, a, a->eta, a->eta_n);
     }
 }
@@ -856,6 +988,18 @@ void momentum_rk::projection(lexer *p, fdm *a, ghostcell *pgc, field &u, field &
     pflow->pressure_io(p, a, pgc);
     ppress->start(a, p, ppois, ppoissonsolv, pgc, pflow, u, v, w, weight);
 
+    amr_project_after(p, a, pgc, u, v, w);
+}
+
+// the projection of the SSP stage s (as step_ssp)
+void momentum_rk::amr_projection(lexer *p, fdm *a, ghostcell *pgc, int s)
+{
+    projection(p, a, pgc, velout(a, 0, s), velout(a, 1, s), velout(a, 2, s), ssp_b[s]);
+}
+
+// after the pressure correction: relaxation zones and the ghost cells of the velocities
+void momentum_rk::amr_project_after(lexer *p, fdm *a, ghostcell *pgc, field &u, field &v, field &w)
+{
     pflow->u_relax(p, a, pgc, u);
     pflow->v_relax(p, a, pgc, v);
     pflow->w_relax(p, a, pgc, w);
@@ -930,7 +1074,7 @@ void momentum_rk::imex_step_setup(lexer *p)
         }
     }
 
-    imex_valid = (scheme == LOWSTORAGE || stages == 2);
+    imex_valid = (scheme == LOWSTORAGE || stages == 2) ? 1.0 : 0.0;
 }
 
 // before the implicit solve of stage s: add the accumulated explicit diffusion of earlier stages

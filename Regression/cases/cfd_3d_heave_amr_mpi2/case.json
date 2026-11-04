@@ -1,0 +1,21 @@
+{
+ "base": "cfd_3d_heave_amr_mpi2_sub",
+ "steps": 20,
+ "ctrl_set": {
+  "G 7": "0"
+ },
+ "description": "cfd_3d_heave_amr_mpi2_sub with G 7 0: level 0 advances the light box (density 500) with the loads of the patches at each hull triangle (also those on the patch of the other rank), the coupling stabilised with the artificial added mass.",
+ "tags": [
+  "quick",
+  "3d",
+  "6dof",
+  "floating",
+  "levelset",
+  "amr",
+  "mpi"
+ ],
+ "covers": [
+  "cfd_amr: amr_loads with G 7 0 on 2 ranks",
+  "sixdof_obj::cfd_added_mass in 3D (translation and rotation blocks, heave free only)"
+ ]
+}

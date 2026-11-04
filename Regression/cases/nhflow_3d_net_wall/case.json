@@ -1,0 +1,8 @@
+{
+ "description": "NHFLOW 3D current (discharge inflow B 60 1, 0.3 m/s) through a fixed quasi-static net panel (X 320 3, wall net, X 321/X 322; no floating body: sixdof_void with net forces), 2 MPI ranks. Net forces are spread onto the sigma grid with the Peskin kernel (net_interface::dlm_nhflow).",
+ "solver": "nhflow",
+ "np": 2,
+ "steps": 40,
+ "tags": ["3d", "nhflow", "net", "current", "mpi"],
+ "covers": ["net_barQuasiStatic wall net in NHFLOW", "net_interface::dlm_nhflow", "sixdof_void::start_nhflow net forces"]
+}

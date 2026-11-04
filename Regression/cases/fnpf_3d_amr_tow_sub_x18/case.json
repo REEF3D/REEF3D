@@ -1,0 +1,17 @@
+{
+ "base": "fnpf_3d_amr_tow_sub",
+ "ctrl_add": [
+  "X 18 0.5"
+ ],
+ "description": "fnpf_3d_amr_tow_sub with X 18 0.5: the running mean of chi at body-fixed points removed from the psi_0 free-surface data next to the body, on the base grid and on the refinement patches (one body-frame grid per level, updated once per finest step with subcycling).",
+ "tags": [
+  "3d",
+  "fnpf",
+  "amr",
+  "6dof",
+  "subcycling"
+ ],
+ "covers": [
+  "sixdof_obj_fnpf::chi_mean_patch in fnpf_6DOF::forces_level"
+ ]
+}

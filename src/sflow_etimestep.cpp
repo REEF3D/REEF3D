@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include "fdm2D.h"
 #include "ghostcell.h"
 #include "lexer.h"
+#include "sflow_curv.h"
 
 sflow_etimestep::sflow_etimestep(lexer *p, fdm2D *b)
 {
@@ -60,34 +61,18 @@ void sflow_etimestep::start(lexer *p, fdm2D *b, ghostcell *pgc)
     SLICELOOP4
     WETDRY
     {
-        p->umax = MAX(p->umax, fabs(b->U(i, j)));
-        p->vmax = MAX(p->vmax, fabs(b->V(i, j)));
-    }
-
-    p->umax = pgc->globalmax(p->umax);
-    p->vmax = pgc->globalmax(p->vmax);
-
-    if(p->mpirank == 0 && (p->count % p->P12 == 0))
-    {
-        cout << "umax: " << setprecision(3) << p->umax << " \t utime: " << p->utime << endl;
-        cout << "vmax: " << setprecision(3) << p->vmax << " \t vtime: " << p->vtime << endl;
-        cout << "fsftime: " << p->lsmtime << endl;
-    }
-
-    // CFL: dt = N47 * 2 / max( (|u|+c)/dx + (|v|+c)/dy ),  c = sqrt(g h)
-    // the HLL update is unsplit: the x and y Courant numbers add up in 2D (1D unchanged)
-    // (factor 2 as in the previous SFLOW time step definition, N 47 0.2 -> Courant number 0.4)
-    cmin = 1.0e20;
-
-    SLICELOOP4
-    WETDRY
-    {
         c = sqrt(g * MAX(b->WL(i, j), wd_criterion));
 
-        sigma = (fabs(b->U(i, j)) + c) / p->DXN[IP];
+        if(p->geo_curv == 1)
+            sigma = sflow_curv::sigma(p, b, i, j, c);
 
-        if(p->j_dir == 1)
-            sigma += (fabs(b->V(i, j)) + c) / p->DYN[JP];
+        else
+        {
+            sigma = (fabs(b->U(i, j)) + c) / p->DXN[IP];
+
+            if(p->j_dir == 1)
+                sigma += (fabs(b->V(i, j)) + c) / p->DYN[JP];
+        }
 
         cmin = MIN(cmin, 1.0 / sigma);
 
@@ -113,7 +98,11 @@ void sflow_etimestep::start(lexer *p, fdm2D *b, ghostcell *pgc)
         WETDRY
         {
             hh = MAX(b->WL(i, j), wd_criterion);
-            dtd = MIN(dtd, 1.2 / ((1.0 / (p->DXN[IP] * p->DXN[IP]) + p->y_dir / (p->DYN[JP] * p->DYN[JP])) * sqrt(g * B * hh * hh * hh)));
+            if(p->geo_curv == 1)
+                dtd = MIN(dtd, 1.2 / (sflow_curv::inv2(p, i, j) * sqrt(g * B * hh * hh * hh)));
+
+            else
+                dtd = MIN(dtd, 1.2 / ((1.0 / (p->DXN[IP] * p->DXN[IP]) + p->y_dir / (p->DYN[JP] * p->DYN[JP])) * sqrt(g * B * hh * hh * hh)));
         }
 
         dtd = pgc->globalmin(dtd);
@@ -179,8 +168,26 @@ void sflow_etimestep::ini(lexer *p, fdm2D *b, ghostcell *pgc)
 
     cu = 2.0 / ((p->umax / p->DXM));
 
+    // curvilinear grid: the smallest cell (sqrt of its area) in place of the mean spacing
+    double dxm = p->DXM;
+
+    if(p->geo_curv == 1)
+    {
+        dxm = 1.0e20;
+
+        SLICELOOP4
+        dxm = MIN(dxm, sqrt(p->AREA2D[IJ]));
+
+        dxm = pgc->globalmin(dxm);
+    }
+
+    cu = 2.0 / ((p->umax / dxm));
+
     // include the shallow water wave speed
-    cu = MIN(cu, p->DXM / (p->umax + sqrt(fabs(p->W22) * MAX(MAX(p->F60, p->wd), 1.0))));
+    cu = MIN(cu, dxm / (p->umax + sqrt(fabs(p->W22) * MAX(MAX(p->F60, p->wd), 1.0))));
+
+    p->dt = cfl * cu;
+    p->dt = pgc->timesync(p->dt);
 
     p->dt = cfl * cu;
     p->dt = pgc->timesync(p->dt);

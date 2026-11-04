@@ -69,12 +69,25 @@ void CPM::limiter(lexer *p, fdm *a, ghostcell *pgc, double *X0, double *Y0, doub
     int i0, j0, k0, i1, j1, k1;
     double ta, t;
 
-    std::vector<int> ci(P.index), cj(P.index), ck(P.index);
-    std::vector<int> si(P.index), sj(P.index), sk(P.index);
-    std::vector<double> tarr(P.index);
+    // work arrays per parcel, kept between the calls (the entries are set before they are read)
+    if(lm_ci.size() < size_t(P.index))
+    {
+        lm_ci.resize(P.index);
+        lm_cj.resize(P.index);
+        lm_ck.resize(P.index);
+        lm_si.resize(P.index);
+        lm_sj.resize(P.index);
+        lm_sk.resize(P.index);
+        lm_t.resize(P.index);
+        lm_ub.resize(P.index);
+    }
+    std::vector<int> &ci = lm_ci, &cj = lm_cj, &ck = lm_ck;
+    std::vector<int> &si = lm_si, &sj = lm_sj, &sk = lm_sk;
+    std::vector<double> &tarr = lm_t;
 
     // 0 stays in its cell, 1 pending request (rejected if still pending at the end), 2 accepted, 4 accepted without check
-    std::vector<char> state(P.index, 0);
+    std::vector<char> &state = lm_state;
+    state.assign(P.index, 0);
 
     auto local = [&](int ii, int jj, int kk)
     { return ii >= 0 && ii < p->knox && jj >= 0 && jj < p->knoy && kk >= 0 && kk < p->knoz; };
@@ -84,12 +97,12 @@ void CPM::limiter(lexer *p, fdm *a, ghostcell *pgc, double *X0, double *Y0, doub
     // cell index of a position; beyond the local domain posc_i/j/k return knox+1 (knoy+1, knoz+1),
     // a move of less than one cell ends in the first ghost layer: knox (the neighbour's first cell,
     // or for a serial periodic side the copy of cell 0, see pfold)
-    auto ci_of = [&](double x)
-    {int q = p->posc_i(x); return q>p->knox ? p->knox : (q<-1 ? -1 : q); };
-    auto cj_of = [&](double y)
-    {int q = p->posc_j(y); return q>p->knoy ? p->knoy : (q<-1 ? -1 : q); };
-    auto ck_of = [&](double z)
-    {int q = p->posc_k(z); return q>p->knoz ? p->knoz : (q<-1 ? -1 : q); };
+    auto ci_of = [&](int m, double x)
+    {int q = pci(p,m,x); return q>p->knox ? p->knox : (q<-1 ? -1 : q); };
+    auto cj_of = [&](int m, double y)
+    {int q = pcj(p,m,y); return q>p->knoy ? p->knoy : (q<-1 ? -1 : q); };
+    auto ck_of = [&](int m, double z)
+    {int q = pck(p,m,z); return q>p->knoz ? p->knoz : (q<-1 ? -1 : q); };
 
     // occupancy at the start of the step
     for(i = -1; i < p->knox + 1; ++i)
@@ -100,12 +113,12 @@ void CPM::limiter(lexer *p, fdm *a, ghostcell *pgc, double *X0, double *Y0, doub
     for(n = 0; n < P.index; ++n)
         if(P.Flag[n] >= ACTIVE)
         {
-            i0 = ci_of(X0[n]);
-            j0 = p->j_dir == 1 ? cj_of(Y0[n]) : 0;
-            k0 = ck_of(Z0[n]);
+            i0 = ci_of(n, X0[n]);
+            j0 = p->j_dir == 1 ? cj_of(n, Y0[n]) : 0;
+            k0 = ck_of(n, Z0[n]);
 
             if(local(i0, j0, k0))
-                Locc(i0, j0, k0) += vpar;
+                Locc(i0, j0, k0) += vpar * P.Wt[n];
         }
 
     // requests
@@ -119,35 +132,114 @@ void CPM::limiter(lexer *p, fdm *a, ghostcell *pgc, double *X0, double *Y0, doub
             if(p->Q58 > 0 && (P.Hop[n] > 0.0 || P.Test[n] < 0.0))
                 continue;
 
-            i0 = ci_of(X0[n]);
-            j0 = p->j_dir == 1 ? cj_of(Y0[n]) : 0;
-            k0 = ck_of(Z0[n]);
+            // a parcel that does not move stays in its cell (the sleeping grains of the bed)
+            if(X1[n] == X0[n] && Y1[n] == Y0[n] && Z1[n] == Z0[n])
+                continue;
+
+            i0 = ci_of(n, X0[n]);
+            j0 = p->j_dir == 1 ? cj_of(n, Y0[n]) : 0;
+            k0 = ck_of(n, Z0[n]);
 
             // a move of more than one cell is shortened to stay within the neighbour cell
             {
-                double hx = p->DXN[i0 + marge], hz = p->DZN[k0 + marge];
-                double hy = p->j_dir == 1 ? p->DYN[j0 + marge] : 1.0e20;
-                double sc = 1.0;
+                i0 = ci_of(X0[n]);
+                j0 = p->j_dir == 1 ? cj_of(Y0[n]) : 0;
+                k0 = ck_of(Z0[n]);
 
-                if(fabs(X1[n] - X0[n]) > 0.9 * hx)
-                    sc = MIN(sc, 0.9 * hx / fabs(X1[n] - X0[n]));
-                if(fabs(Y1[n] - Y0[n]) > 0.9 * hy)
-                    sc = MIN(sc, 0.9 * hy / fabs(Y1[n] - Y0[n]));
-                if(fabs(Z1[n] - Z0[n]) > 0.9 * hz)
-                    sc = MIN(sc, 0.9 * hz / fabs(Z1[n] - Z0[n]));
-
-                if(sc < 1.0)
-                {
-                    X1[n] = X0[n] + sc * (X1[n] - X0[n]);
-                    Y1[n] = Y0[n] + sc * (Y1[n] - Y0[n]);
-                    Z1[n] = Z0[n] + sc * (Z1[n] - Z0[n]);
-                    ++nclip;
-                }
+                if(local(i0, j0, k0))
+                    Locc(i0, j0, k0) += vpar;
             }
 
-            i1 = ci_of(X1[n]);
-            j1 = p->j_dir == 1 ? cj_of(Y1[n]) : 0;
-            k1 = ck_of(Z1[n]);
+            // requests
+            int nreq = 0;
+            int nclip = 0;
+
+            for(n = 0; n < P.index; ++n)
+                if(P.Flag[n] == ACTIVE)
+                {
+                    // parcels of the sub-grid bedload layer (Q 58) move along the bed surface, below the grid scale
+                    if(p->Q58 > 0 && (P.Hop[n] > 0.0 || P.Test[n] < 0.0))
+                        continue;
+
+                    i0 = ci_of(X0[n]);
+                    j0 = p->j_dir == 1 ? cj_of(Y0[n]) : 0;
+                    k0 = ck_of(Z0[n]);
+
+                    // a move of more than one cell is shortened to stay within the neighbour cell
+                    {
+                        double hx = p->DXN[i0 + marge], hz = p->DZN[k0 + marge];
+                        double hy = p->j_dir == 1 ? p->DYN[j0 + marge] : 1.0e20;
+                        double sc = 1.0;
+
+                        if(fabs(X1[n] - X0[n]) > 0.9 * hx)
+                            sc = MIN(sc, 0.9 * hx / fabs(X1[n] - X0[n]));
+                        if(fabs(Y1[n] - Y0[n]) > 0.9 * hy)
+                            sc = MIN(sc, 0.9 * hy / fabs(Y1[n] - Y0[n]));
+                        if(fabs(Z1[n] - Z0[n]) > 0.9 * hz)
+                            sc = MIN(sc, 0.9 * hz / fabs(Z1[n] - Z0[n]));
+
+                        if(sc < 1.0)
+                        {
+                            X1[n] = X0[n] + sc * (X1[n] - X0[n]);
+                            Y1[n] = Y0[n] + sc * (Y1[n] - Y0[n]);
+                            Z1[n] = Z0[n] + sc * (Z1[n] - Z0[n]);
+                            ++nclip;
+                        }
+                    }
+
+                    i1 = ci_of(X1[n]);
+                    j1 = p->j_dir == 1 ? cj_of(Y1[n]) : 0;
+                    k1 = ck_of(Z1[n]);
+
+                    si[n] = i0;
+                    sj[n] = j0;
+                    sk[n] = k0;
+                    ci[n] = i1;
+                    cj[n] = j1;
+                    ck[n] = k1;
+
+                    if(i0 == i1 && j0 == j1 && k0 == k1)
+                        continue;
+
+                    // arrival time: the last face crossed
+                    ta = 0.0;
+
+                    if(i1 != i0 && fabs(X1[n] - X0[n]) > 1.0e-20)
+                    {
+                        t = i1 > i0 ? (p->XN[i0 + 1 + marge] - X0[n]) / (X1[n] - X0[n]) : (p->XN[i0 + marge] - X0[n]) / (X1[n] - X0[n]);
+                        ta = MAX(ta, t);
+                    }
+
+                    if(j1 != j0 && fabs(Y1[n] - Y0[n]) > 1.0e-20)
+                    {
+                        t = j1 > j0 ? (p->YN[j0 + 1 + marge] - Y0[n]) / (Y1[n] - Y0[n]) : (p->YN[j0 + marge] - Y0[n]) / (Y1[n] - Y0[n]);
+                        ta = MAX(ta, t);
+                    }
+
+                    if(k1 != k0 && fabs(Z1[n] - Z0[n]) > 1.0e-20)
+                    {
+                        t = k1 > k0 ? (p->ZN[k0 + 1 + marge] - Z0[n]) / (Z1[n] - Z0[n]) : (p->ZN[k0 + marge] - Z0[n]) / (Z1[n] - Z0[n]);
+                        ta = MAX(ta, t);
+                    }
+
+                    tarr[n] = MAX(0.0, MIN(ta, 1.0));
+
+                    // a move of more than one cell or across a processor corner is not limited
+                    int out = (i1 < 0 || i1 >= p->knox) + (j1 < 0 || j1 >= p->knoy) + (k1 < 0 || k1 >= p->knoz);
+
+                    if(std::abs(i1 - i0) > 1 || std::abs(j1 - j0) > 1 || std::abs(k1 - k0) > 1 || out > 1)
+                        state[n] = 4;
+
+                    else
+                    {
+                        state[n] = 1;
+                        ++nreq;
+                    }
+                }
+
+            i1 = ci_of(n, X1[n]);
+            j1 = p->j_dir == 1 ? cj_of(n, Y1[n]) : 0;
+            k1 = ck_of(n, Z1[n]);
 
             si[n] = i0;
             sj[n] = j0;
@@ -217,39 +309,113 @@ void CPM::limiter(lexer *p, fdm *a, ghostcell *pgc, double *X0, double *Y0, doub
     const int MAXIT = 50;
     int it;
 
+    // the moves of the passes (state 2 or 4), in the order of the parcels
+    std::vector<int> &mv = lm_mv;
+    mv.clear();
+
+    for(n = 0; n < P.index; ++n)
+        if(P.Flag[n] == ACTIVE && (state[n] == 2 || state[n] == 4))
+            mv.push_back(n);
+
+    // the cells a pass works on: the local targets of the moves and the first layer of cells at the sides
+    // the summing exchange adds to (subdomain and serial periodic sides); the counts of all other cells are
+    // zero, as the fields are, so the passes touch these cells only (the result is that of all cells)
+    limiter_shell(p);
+
+    const int ny = p->knoy + 2, nz = p->knoz + 2;
+    auto cid = [&](int ii, int jj, int kk)
+    { return (size_t(ii + 1) * ny + jj + 1) * nz + kk + 1; };
+    std::vector<int> &tc_i = lm_ti, &tc_j = lm_tj, &tc_k = lm_tk;
+
     for(it = 0; it < MAXIT; ++it)
     {
-        for(i = -1; i < p->knox + 1; ++i)
-            for(j = -1; j < p->knoy + 1; ++j)
-                for(k = -1; k < p->knoz + 1; ++k)
-                {
-                    Lout(i, j, k) = 0.0;
-                    Lin(i, j, k) = 0.0;
-                    for(int b = 0; b < NB; ++b)
-                        (*hist[b])(i, j, k) = 0.0;
-                }
+        // the four arrival counts per cell (time bins) are whole numbers: they are counted packed in one
+        // field, h0 + B h1 + B^2 h2 + B^3 h3 (B = 4096, exact in double precision up to 4095 arrivals per
+        // bin and cell), summed to the owner in one exchange and unpacked there (one exchange instead of four)
+        const double bw[4] = {1.0, 4096.0, 4096.0 * 4096.0, 4096.0 * 4096.0 * 4096.0};
+
+        // back to zero: the cells of the moves of the last pass and the side layers of the exchange
+        if(it > 0)
+            limiter_clear(p);
 
         // volume leaving (local source) and arriving (any target, summed to the owner);
-        // arrivals that can be rejected are counted per arrival time bin
-        for(n = 0; n < P.index; ++n)
-            if(P.Flag[n] == ACTIVE && (state[n] == 2 || state[n] == 4))
+        // arrivals that can be rejected are counted per arrival time bin, and the local ones per cell
+        tc_i.clear();
+        tc_j.clear();
+        tc_k.clear();
+
+        for(int qs = 0; qs < int(lm_sh_i.size()); ++qs)
+            if(lm_sh_in[qs])
             {
-                if(local(si[n], sj[n], sk[n]))
-                    Lout(si[n], sj[n], sk[n]) += vpar;
+                const size_t c = cid(lm_sh_i[qs], lm_sh_j[qs], lm_sh_k[qs]);
 
-                Lin(ci[n], cj[n], ck[n]) += vpar;
-
-                if(state[n] == 2)
-                    (*hist[bin(tarr[n])])(ci[n], cj[n], ck[n]) += 1.0;
+                if(!lm_mark[c])
+                {
+                    lm_mark[c] = 1;
+                    tc_i.push_back(lm_sh_i[qs]);
+                    tc_j.push_back(lm_sh_j[qs]);
+                    tc_k.push_back(lm_sh_k[qs]);
+                }
             }
 
-        BASELOOP
-        Lloc(i, j, k) = (*hist[0])(i, j, k) + (*hist[1])(i, j, k) + (*hist[2])(i, j, k) + (*hist[3])(i, j, k);
-
-        for(int b = 0; b < NB; ++b)
+        for(size_t q = 0; q < mv.size(); ++q)
         {
-            pfold(p, *hist[b]);
-            pgc->start4a_sum(p, *hist[b], 1);
+            n = mv[q];
+
+            if(state[n] != 2 && state[n] != 4)
+                continue;
+
+            // the parcel volume, and its weight in the counts (whole numbers: seeded parcels, Q 78)
+            const double wn = P.Wt[n];
+
+            if(local(si[n], sj[n], sk[n]))
+                Lout(si[n], sj[n], sk[n]) += vpar * wn;
+
+            Lin(ci[n], cj[n], ck[n]) += vpar * wn;
+
+            if(state[n] == 2)
+            {
+                Lh0(ci[n], cj[n], ck[n]) += bw[bin(tarr[n])] * wn;
+
+                if(local(ci[n], cj[n], ck[n]))
+                    Lloc(ci[n], cj[n], ck[n]) += wn;
+            }
+
+            if(local(ci[n], cj[n], ck[n]))
+            {
+                const size_t c = cid(ci[n], cj[n], ck[n]);
+
+                if(!lm_mark[c])
+                {
+                    lm_mark[c] = 1;
+                    tc_i.push_back(ci[n]);
+                    tc_j.push_back(cj[n]);
+                    tc_k.push_back(ck[n]);
+                }
+            }
+        }
+
+        for(size_t q = 0; q < tc_i.size(); ++q)
+            lm_mark[cid(tc_i[q], tc_j[q], tc_k[q])] = 0;
+
+        pfold(p, Lh0);
+        pgc->start4a_sum(p, Lh0, 1);
+
+        for(size_t q = 0; q < tc_i.size(); ++q)
+        {
+            i = tc_i[q];
+            j = tc_j[q];
+            k = tc_k[q];
+
+            if(p->flag4[IJK] <= OBJ_FLAG)
+                continue;
+
+            long long v = llround(Lh0(i, j, k));
+            const long long b1 = 4096;
+            Lh0(i, j, k) = double(v % b1);
+            Lh1(i, j, k) = double((v / b1) % b1);
+            Lh2(i, j, k) = double((v / (b1 * b1)) % b1);
+            Lh3(i, j, k) = double(v / (b1 * b1 * b1));
         }
 
         pfold(p, Lin);
@@ -261,12 +427,19 @@ void CPM::limiter(lexer *p, fdm *a, ghostcell *pgc, double *X0, double *Y0, doub
         //   Ltc in [-1,NB-1]: arrivals from other ranks, whole bins are rejected
         int nover = 0;
 
-        BASELOOP
+        for(size_t q = 0; q < tc_i.size(); ++q)
         {
+            i = tc_i[q];
+            j = tc_j[q];
+            k = tc_k[q];
+
+            if(p->flag4[IJK] <= OBJ_FLAG)
+                continue;
+
             double V = p->DXN[IP] * p->DYN[JP] * p->DZN[KP];
             // capacity: packing of the contact network theta_0(I) (theta_0 at rest, lower in sheared layers)
             double t0 = p->Q12 == 2 ? T0e(i, j, k) : theta_0;
-            double cap = MAX((t0 + theta_max - theta_0) * V, t0 * V + vpar * (1.0 + 1.0e-6));
+            double cap = MAX((t0 + theta_max - theta_0) * V, t0 * V + vpar * wcell(p, i, j, k) * (1.0 + 1.0e-6));
 
             if(a->solid(i, j, k) < 0.0)
                 cap = 0.0;
@@ -318,9 +491,10 @@ void CPM::limiter(lexer *p, fdm *a, ghostcell *pgc, double *X0, double *Y0, doub
         // reject: bins above the cut-off, exact for cells with local arrivals only
         order.clear();
 
-        for(n = 0; n < P.index; ++n)
-            if(P.Flag[n] == ACTIVE && state[n] == 2)
+        for(size_t q = 0; q < mv.size(); ++q)
+            if(state[mv[q]] == 2)
             {
+                n = mv[q];
                 double tc = Ltc(ci[n], cj[n], ck[n]);
 
                 if(tc > double(NB) && tc < 2.0 * NB - 0.5 && local(ci[n], cj[n], ck[n]))
@@ -347,12 +521,15 @@ void CPM::limiter(lexer *p, fdm *a, ghostcell *pgc, double *X0, double *Y0, doub
             if(E > 1.0e-9 * vpar)
             {
                 state[nn] = 1;
-                E -= vpar;
+                E -= vpar * P.Wt[nn];
             }
         }
     }
 
     nit_step = MAX(nit_step, it);
+
+    // the counts back to zero for the next call
+    limiter_clear(p);
 
     // still over capacity after MAXIT: back to the start for all limited moves
     if(it == MAXIT)
@@ -369,7 +546,7 @@ void CPM::limiter(lexer *p, fdm *a, ghostcell *pgc, double *X0, double *Y0, doub
     // a move across one face stops at the face, a diagonal move stays at the start
     int nrej = 0;
     double gmag = sqrt(p->W20 * p->W20 + p->W21 * p->W21 + p->W22 * p->W22);
-    std::vector<double> ublk(P.index, 0.0);
+    std::vector<double> &ublk = lm_ub;
 
     for(n = 0; n < P.index; ++n)
         if(P.Flag[n] == ACTIVE && state[n] == 1)
@@ -382,128 +559,215 @@ void CPM::limiter(lexer *p, fdm *a, ghostcell *pgc, double *X0, double *Y0, doub
             Z1[n] = Z0[n] + f * (Z1[n] - Z0[n]);
 
             // safeguard at faces (round-off of the cell search): back to the start
-            if(ci_of(X1[n]) != si[n] || (p->j_dir == 1 && cj_of(Y1[n]) != sj[n]) || ck_of(Z1[n]) != sk[n])
+            if(ci_of(n, X1[n]) != si[n] || (p->j_dir == 1 && cj_of(n, Y1[n]) != sj[n]) || ck_of(n, Z1[n]) != sk[n])
             {
-                X1[n] = X0[n];
-                Y1[n] = Y0[n];
-                Z1[n] = Z0[n];
-            }
+                int nface = (ci[n] != si[n]) + (cj[n] != sj[n]) + (ck[n] != sk[n]);
+                double f = nface == 1 ? MAX(0.0, tarr[n] - 1.0e-6) : 0.0;
 
-            // ride-over (Q 56): a grain pushed against a full cell across the gravity direction
-            // climbs over the grains ahead, part of the blocked velocity turns upward
-            //   u_up = Q56 |u_blocked|   (Q56 = tan of the pivot angle)
-            double ublock = 0.0;
+                X1[n] = X0[n] + f * (X1[n] - X0[n]);
+                Y1[n] = Y0[n] + f * (Y1[n] - Y0[n]);
+                Z1[n] = Z0[n] + f * (Z1[n] - Z0[n]);
 
-            if(ci[n] != si[n] && fabs(p->W20) < 0.5 * gmag)
-                ublock = MAX(ublock, fabs(PU[n]));
-
-            if(cj[n] != sj[n] && fabs(p->W21) < 0.5 * gmag)
-                ublock = MAX(ublock, fabs(PV[n]));
-
-            if(ck[n] != sk[n] && fabs(p->W22) < 0.5 * gmag)
-                ublock = MAX(ublock, fabs(PW[n]));
-
-            if(ci[n] != si[n])
-                PU[n] = 0.0;
-
-            if(cj[n] != sj[n])
-                PV[n] = 0.0;
-
-            if(ck[n] != sk[n])
-                PW[n] = 0.0;
-
-            ublk[n] = ublock;
-
-            if(p->Q56 > 0.0 && ublock > 0.0 && gmag > 1.0e-10)
-            {
-                double up = p->Q56 * ublock;
-                double ex = -p->W20 / gmag, ey = -p->W21 / gmag, ez = -p->W22 / gmag;
-                double un = PU[n] * ex + PV[n] * ey + PW[n] * ez;
-
-                if(un < up)
+                // safeguard at faces (round-off of the cell search): back to the start
+                if(ci_of(X1[n]) != si[n] || (p->j_dir == 1 && cj_of(Y1[n]) != sj[n]) || ck_of(Z1[n]) != sk[n])
                 {
-                    PU[n] += (up - un) * ex;
-                    PV[n] += (up - un) * ey;
-                    PW[n] += (up - un) * ez;
+                    X1[n] = X0[n];
+                    Y1[n] = Y0[n];
+                    Z1[n] = Z0[n];
                 }
+
+                // ride-over (Q 56): a grain pushed against a full cell across the gravity direction
+                // climbs over the grains ahead, part of the blocked velocity turns upward
+                //   u_up = Q56 |u_blocked|   (Q56 = tan of the pivot angle)
+                double ublock = 0.0;
+
+                if(ci[n] != si[n] && fabs(p->W20) < 0.5 * gmag)
+                    ublock = MAX(ublock, fabs(PU[n]));
+
+                if(cj[n] != sj[n] && fabs(p->W21) < 0.5 * gmag)
+                    ublock = MAX(ublock, fabs(PV[n]));
+
+                if(ck[n] != sk[n] && fabs(p->W22) < 0.5 * gmag)
+                    ublock = MAX(ublock, fabs(PW[n]));
+
+                if(ci[n] != si[n])
+                    PU[n] = 0.0;
+
+                if(cj[n] != sj[n])
+                    PV[n] = 0.0;
+
+                if(ck[n] != sk[n])
+                    PW[n] = 0.0;
+
+                ublk[n] = ublock;
+
+                if(p->Q56 > 0.0 && ublock > 0.0 && gmag > 1.0e-10)
+                {
+                    double up = p->Q56 * ublock;
+                    double ex = -p->W20 / gmag, ey = -p->W21 / gmag, ez = -p->W22 / gmag;
+                    double un = PU[n] * ex + PV[n] * ey + PW[n] * ez;
+
+                    if(un < up)
+                    {
+                        PU[n] += (up - un) * ex;
+                        PV[n] += (up - un) * ey;
+                        PW[n] += (up - un) * ez;
+                    }
+                }
+
+                ++nrej;
             }
 
-            ++nrej;
+            // ride-over displacement (Q 56): a grain blocked across gravity climbs into the cell
+            // above its own cell if that cell has free volume (the grain rolls over the grains ahead
+            // onto the top of the bed); checked against the occupancy after all moves of this step
+            if(p->Q56 > 0.0 && gmag > 1.0e-10 && fabs(p->W22) > 0.5 * gmag)
+            {
+                int dk = p->W22 < 0.0 ? 1 : -1;
+
+                for(i = -1; i < p->knox + 1; ++i)
+                    for(j = -1; j < p->knoy + 1; ++j)
+                        for(k = -1; k < p->knoz + 1; ++k)
+                            Lloc(i, j, k) = 0.0;
+
+                for(n = 0; n < P.index; ++n)
+                    if(P.Flag[n] >= ACTIVE)
+                    {
+                        int a1 = ci_of(n, X1[n]), b1 = p->j_dir == 1 ? cj_of(n, Y1[n]) : 0, c1 = ck_of(n, Z1[n]);
+
+                        if(local(a1, b1, c1))
+                            Lloc(a1, b1, c1) += vpar * P.Wt[n];
+                    }
+
+                for(n = 0; n < P.index; ++n)
+                    if(P.Flag[n] == ACTIVE && state[n] == 1 && ublk[n] > 0.0)
+                    {
+                        int a1 = si[n], b1 = sj[n], c1 = sk[n] + dk;
+
+                        if(!local(a1, b1, c1) || !local(si[n], sj[n], sk[n]))
+                            continue;
+
+                        i = a1;
+                        j = b1;
+                        k = c1;
+                        double V = p->DXN[IP] * p->DYN[JP] * p->DZN[KP];
+                        double t0 = p->Q12 == 2 ? T0e(i, j, k) : theta_0;
+                        double cap = MAX((t0 + theta_max - theta_0) * V, t0 * V + vpar * wcell(p, i, j, k) * (1.0 + 1.0e-6));
+                        const double vp = vpar * P.Wt[n];
+
+                        if(a->solid(i, j, k) < 0.0 || Lloc(i, j, k) + vp > cap)
+                            continue;
+
+                        // just inside the cell above
+                        Z1[n] = dk > 0 ? p->ZN[c1 + marge] + 1.0e-3 * p->DZN[c1 + marge] : p->ZN[c1 + 1 + marge] - 1.0e-3 * p->DZN[c1 + marge];
+
+                        Lloc(i, j, k) += vp;
+                        Lloc(si[n], sj[n], sk[n]) -= vp;
+                    }
+
+                for(i = -1; i < p->knox + 1; ++i)
+                    for(j = -1; j < p->knoy + 1; ++j)
+                        for(k = -1; k < p->knoz + 1; ++k)
+                            Lloc(i, j, k) = 0.0;
+            }
+
+            nrej_step += nrej;
         }
 
-    // ride-over displacement (Q 56): a grain blocked across gravity climbs into the cell
-    // above its own cell if that cell has free volume (the grain rolls over the grains ahead
-    // onto the top of the bed); checked against the occupancy after all moves of this step
-    if(p->Q56 > 0.0 && gmag > 1.0e-10 && fabs(p->W22) > 0.5 * gmag)
+    // the cells of the sides at which the summing exchange (start4a_sum) and the periodic fold (pfold) add to or
+    // write the counts of the grid-limited step: the first layer of cells (lm_sh_in = 1) and the ghost layer (0)
+    // at the subdomain sides and the serial periodic sides; the grid is fixed, the lists are built once
+    void CPM::limiter_shell(lexer * p)
     {
-        int dk = p->W22 < 0.0 ? 1 : -1;
+        if(lm_sh_ok)
+            return;
 
-        for(i = -1; i < p->knox + 1; ++i)
-            for(j = -1; j < p->knoy + 1; ++j)
-                for(k = -1; k < p->knoz + 1; ++k)
-                    Lloc(i, j, k) = 0.0;
+        lm_sh_ok = 1;
+        lm_sh_i.clear();
+        lm_sh_j.clear();
+        lm_sh_k.clear();
+        lm_sh_in.clear();
+        lm_mark.assign(size_t(p->knox + 2) * (p->knoy + 2) * (p->knoz + 2), 0);
+
+        auto add = [&](int ii, int jj, int kk, int in)
+        {
+            lm_sh_i.push_back(ii);
+            lm_sh_j.push_back(jj);
+            lm_sh_k.push_back(kk);
+            lm_sh_in.push_back(in);
+        };
+
+        const bool xm = p->nb1 >= 0 || perx == 1, xp = p->nb4 >= 0 || perx == 1;
+        const bool ym = p->j_dir == 1 && (p->nb3 >= 0 || pery == 1), yp = p->j_dir == 1 && (p->nb2 >= 0 || pery == 1);
+        const bool zm = p->nb5 >= 0, zp = p->nb6 >= 0;
+
+        for(int ii = -1; ii <= p->knox; ++ii)
+            for(int jj = -1; jj <= p->knoy; ++jj)
+                for(int kk = -1; kk <= p->knoz; ++kk)
+                {
+                    const bool ghost = ii < 0 || ii >= p->knox || jj < 0 || jj >= p->knoy || kk < 0 || kk >= p->knoz;
+
+                    if(ghost)
+                    {
+                        if((xm && ii == -1) || (xp && ii == p->knox) || (ym && jj == -1) || (yp && jj == p->knoy) || (zm && kk == -1) || (zp && kk == p->knoz))
+                            add(ii, jj, kk, 0);
+                    }
+                    else
+                    {
+                        if((xm && ii == 0) || (xp && ii == p->knox - 1) || (ym && jj == 0) || (yp && jj == p->knoy - 1) || (zm && kk == 0) || (zp && kk == p->knoz - 1))
+                            add(ii, jj, kk, 1);
+                    }
+                }
+    }
+
+    // the counts of the moves of the last pass and of the side layers back to zero
+    void CPM::limiter_clear(lexer * p)
+    {
+        auto local = [&](int ii, int jj, int kk)
+        { return ii >= 0 && ii < p->knox && jj >= 0 && jj < p->knoy && kk >= 0 && kk < p->knoz; };
+
+        for(size_t q = 0; q < lm_mv.size(); ++q)
+        {
+            const int m = lm_mv[q];
+
+            if(local(lm_si[m], lm_sj[m], lm_sk[m]))
+                Lout(lm_si[m], lm_sj[m], lm_sk[m]) = 0.0;
+
+            Lin(lm_ci[m], lm_cj[m], lm_ck[m]) = 0.0;
+            Lh0(lm_ci[m], lm_cj[m], lm_ck[m]) = 0.0;
+            Lloc(lm_ci[m], lm_cj[m], lm_ck[m]) = 0.0;
+        }
+
+        for(size_t q = 0; q < lm_sh_i.size(); ++q)
+        {
+            Lin(lm_sh_i[q], lm_sh_j[q], lm_sh_k[q]) = 0.0;
+            Lh0(lm_sh_i[q], lm_sh_j[q], lm_sh_k[q]) = 0.0;
+        }
+    }
+
+    // largest occupancy relative to theta_max, diagnostic
+    double CPM::occupancy_max(lexer * p, ghostcell * pgc)
+    {
+        const double vpar = P.ParcelFactor * Vp;
+
+        BASELOOP
+        Locc(i, j, k) = 0.0;
 
         for(n = 0; n < P.index; ++n)
             if(P.Flag[n] >= ACTIVE)
             {
-                int a1 = ci_of(X1[n]), b1 = p->j_dir == 1 ? cj_of(Y1[n]) : 0, c1 = ck_of(Z1[n]);
+                i = p->posc_i(P.X[n]);
+                j = p->posc_j(P.Y[n]);
+                k = p->posc_k(P.Z[n]);
 
-                if(local(a1, b1, c1))
-                    Lloc(a1, b1, c1) += vpar;
+                if(i >= 0 && i < p->knox && j >= 0 && j < p->knoy && k >= 0 && k < p->knoz)
+                    Locc(i, j, k) += vpar * P.Wt[n];
             }
 
-        for(n = 0; n < P.index; ++n)
-            if(P.Flag[n] == ACTIVE && state[n] == 1 && ublk[n] > 0.0)
-            {
-                int a1 = si[n], b1 = sj[n], c1 = sk[n] + dk;
+        double omax = 0.0;
 
-                if(!local(a1, b1, c1) || !local(si[n], sj[n], sk[n]))
-                    continue;
+        BASELOOP
+        omax = MAX(omax, Locc(i, j, k) / (p->DXN[IP] * p->DYN[JP] * p->DZN[KP]));
 
-                i = a1;
-                j = b1;
-                k = c1;
-                double V = p->DXN[IP] * p->DYN[JP] * p->DZN[KP];
-                double t0 = p->Q12 == 2 ? T0e(i, j, k) : theta_0;
-                double cap = MAX((t0 + theta_max - theta_0) * V, t0 * V + vpar * (1.0 + 1.0e-6));
-
-                if(a->solid(i, j, k) < 0.0 || Lloc(i, j, k) + vpar > cap)
-                    continue;
-
-                // just inside the cell above
-                Z1[n] = dk > 0 ? p->ZN[c1 + marge] + 1.0e-3 * p->DZN[c1 + marge] : p->ZN[c1 + 1 + marge] - 1.0e-3 * p->DZN[c1 + marge];
-
-                Lloc(i, j, k) += vpar;
-                Lloc(si[n], sj[n], sk[n]) -= vpar;
-            }
+        return pgc->globalmax(omax);
     }
-
-    nrej_step += nrej;
-}
-
-// largest occupancy relative to theta_max, diagnostic
-double CPM::occupancy_max(lexer *p, ghostcell *pgc)
-{
-    const double vpar = P.ParcelFactor * Vp;
-
-    BASELOOP
-    Locc(i, j, k) = 0.0;
-
-    for(n = 0; n < P.index; ++n)
-        if(P.Flag[n] >= ACTIVE)
-        {
-            i = p->posc_i(P.X[n]);
-            j = p->posc_j(P.Y[n]);
-            k = p->posc_k(P.Z[n]);
-
-            if(i >= 0 && i < p->knox && j >= 0 && j < p->knoy && k >= 0 && k < p->knoz)
-                Locc(i, j, k) += vpar;
-        }
-
-    double omax = 0.0;
-
-    BASELOOP
-    omax = MAX(omax, Locc(i, j, k) / (p->DXN[IP] * p->DYN[JP] * p->DZN[KP]));
-
-    return pgc->globalmax(omax);
-}

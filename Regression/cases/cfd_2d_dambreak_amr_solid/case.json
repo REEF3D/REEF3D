@@ -1,0 +1,18 @@
+{
+ "np": 1,
+ "steps": 100,
+ "description": "Adaptive CFD mesh refinement around a solid (S 32 cylinder in the dam-break tank): the interface band (G 24 3) and the cells within 3 cells of the solid (G 25 3), regrid every 4 steps.",
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "levelset",
+  "amr",
+  "adaptive",
+  "solid"
+ ],
+ "covers": [
+  "solid on patches: prolonged solid level set, solid_forcing_ini, direct forcing of the patch (amr_solid_forcing)",
+  "cfd_amr::flags G 25"
+ ]
+}

@@ -1,0 +1,22 @@
+{
+ "base": "cfd_2d_cpm_bedload_layer",
+ "ctrl_set": {
+  "G 1": "1",
+  "Q 29": "1"
+ },
+ "ctrl_add": [
+  "G 15 0.0 0.1 -1.0 1.0 0.02 0.035",
+  "Q 85 0.0 0.1 -1.0 1.0 0.0 0.035"
+ ],
+ "description": "cfd_2d_cpm_bedload_layer on the CFD mesh refinement with the patch on the bed: the box G 15 starts at the bed (z 0.02 m, a face of level 0) and refines the 1.5 cm above it, the grid of CPM covers the bed and the patch (Q 85). The bed of the patch lies between the cell below it (filled from level 0) and its first cell: its columns take that bed level for the wall law of k-omega (cfd_amr::cpm_bed; before, the patch had no bed level and k at the bed rose eightfold)",
+ "covers": [
+  "cfd_amr::cpm_bed: the bed level of a grid above the bottom of the domain on its lower side"
+ ],
+ "np": 1,
+ "steps": 150,
+ "tags": [
+  "2d",
+  "cpm",
+  "amr"
+ ]
+}

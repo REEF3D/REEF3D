@@ -20,282 +20,284 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"iowave.h"
-#include"lexer.h"
-#include"ghostcell.h"
+#include "ghostcell.h"
+#include "iowave.h"
+#include "lexer.h"
 
 void iowave::wavegen_precalc_decomp_relax(lexer *p, ghostcell *pgc)
 {
-        /*
-        a: space
-        b: time
-        
-        sin(a + b) = sin(a) cos(b) + cos(a) sin(b)
-        cos(a + b) = cos(a) cos(b) - sin(a) sin(b)
-        */
+    /*
+    a: space
+    b: time
 
-        /*
-         U: cos()
-         V: cos()
-         W: sin()
-         ETA: cos()
-        */
+    sin(a + b) = sin(a) cos(b) + cos(a) sin(b)
+    cos(a + b) = cos(a) cos(b) - sin(a) sin(b)
+    */
+
+    /*
+     U: cos()
+     V: cos()
+     W: sin()
+     ETA: cos()
+    */
 
     double fsfloc;
     int qn;
 
-
     // pre-calc every iteration
-    count=0;
+    count = 0;
     SLICELOOP4
     {
-		dg = distgen(p);
-		
-		// Wave Generation
-        if(p->B98==2 && h_switch==1)
+        dg = distgen(p);
+
+        // Wave Generation
+        if(p->B98 == 2 && h_switch == 1)
         {
             // Zone 1
-            if(dg<1.0e20)
+            if(dg < 1.0e20)
             {
-                eta(i,j) = 0.0;
-                
-                for(qn=0;qn<wave_comp;++qn)
-                eta(i,j) += etaval_S_cos[count][qn]*etaval_T_cos[qn] - etaval_S_sin[count][qn]*etaval_T_sin[qn];
+                eta(i, j) = 0.0;
 
-            ++count;
+                for(qn = 0; qn < wave_comp; ++qn)
+                    eta(i, j) += etaval_S_cos[count][qn] * etaval_T_cos[qn] - etaval_S_sin[count][qn] * etaval_T_sin[qn];
+
+                ++count;
             }
-		}
+        }
     }
-    pgc->gcsl_start4(p,eta,50);
+    pgc->gcsl_start4(p, eta, 50);
 
-    
-    count=0;
-    ULOOP
+    count = 0;
+    if(!zc_built)
+        zonecol_build(p);
+    ZULOOP
     {
         dg = distgen(p);
-        
+
         zloc1 = p->pos1_z();
-        fsfloc = 0.5*(eta(i,j)+eta(i+1,j)) + p->phimean;
-    
+        fsfloc = 0.5 * (eta(i, j) + eta(i + 1, j)) + p->phimean;
 
-        if(zloc1<=fsfloc)
+        if(zloc1 <= fsfloc)
         {
-        if(zloc1<=p->phimean)
-        z=-(fabs(p->phimean-zloc1));
-		
-		if(zloc1>p->phimean)
-        z=(fabs(p->phimean-zloc1));
+            if(zloc1 <= p->phimean)
+                z = -(fabs(p->phimean - zloc1));
+
+            if(zloc1 > p->phimean)
+                z = (fabs(p->phimean - zloc1));
         }
-        
-        if(zloc1>fsfloc)
-        z = 0.5*(eta(i,j)+eta(i+1,j));
-		
-		// Wave Generation
-		if(p->B98==2 && u_switch==1)
+
+        if(zloc1 > fsfloc)
+            z = 0.5 * (eta(i, j) + eta(i + 1, j));
+
+        // Wave Generation
+        if(p->B98 == 2 && u_switch == 1)
         {
-            
+
             // Zone 1
-            if(dg<dist1)
+            if(dg < 1.0e20)
             {
-            uval[count]=0.0;
-            
-            if(zloc1<=fsfloc+epsi)
-            for(qn=0;qn<wave_comp;++qn)
-            uval[count] += uval_S_cos[count][qn]*uval_T_cos[qn] - uval_S_sin[count][qn]*uval_T_sin[qn];
-            
-            if(zloc1>fsfloc+epsi)
-            uval[count] = 0.0;
-            
-            ++count;
+                uval[count] = 0.0;
+
+                if(zloc1 <= fsfloc + epsi)
+                    for(qn = 0; qn < wave_comp; ++qn)
+                        uval[count] += uval_S_cos[count][qn] * uval_T_cos[qn] - uval_S_sin[count][qn] * uval_T_sin[qn];
+
+                if(zloc1 > fsfloc + epsi)
+                    uval[count] = 0.0;
+
+                ++count;
             }
-            
-		}
+        }
     }
 
-
-    count=0;
-    VLOOP
+    count = 0;
+    if(!zc_built)
+        zonecol_build(p);
+    ZVLOOP
     {
         dg = distgen(p);
-        
+
         zloc2 = p->pos2_z();
-        fsfloc = 0.5*(eta(i,j)+eta(i,j+1)) + p->phimean;
-    
+        fsfloc = 0.5 * (eta(i, j) + eta(i, j + 1)) + p->phimean;
 
-        if(zloc2<=fsfloc)
+        if(zloc2 <= fsfloc)
         {
-        if(zloc2<=p->phimean)
-        z=-(fabs(p->phimean-zloc2));
-		
-		if(zloc2>p->phimean)
-        z=(fabs(p->phimean-zloc2));
-        }
-        
-        if(zloc2>fsfloc)
-        z = 0.5*(eta(i,j)+eta(i,j+1));
+            if(zloc2 <= p->phimean)
+                z = -(fabs(p->phimean - zloc2));
 
-		// Wave Generation
-		if(p->B98==2 && v_switch==1)
+            if(zloc2 > p->phimean)
+                z = (fabs(p->phimean - zloc2));
+        }
+
+        if(zloc2 > fsfloc)
+            z = 0.5 * (eta(i, j) + eta(i, j + 1));
+
+        // Wave Generation
+        if(p->B98 == 2 && v_switch == 1)
         {
             // Zone 1
-            if(dg<dist1)
+            if(dg < 1.0e20)
             {
-            vval[count]=0.0;
-            
-            if(zloc2<=fsfloc+epsi)
-            for(qn=0;qn<wave_comp;++qn)
-            vval[count] += vval_S_cos[count][qn]*vval_T_cos[qn] - vval_S_sin[count][qn]*vval_T_sin[qn];
-            
-            if(zloc2>fsfloc+epsi)
-            vval[count] = 0.0;
-            
-            ++count;
+                vval[count] = 0.0;
+
+                if(zloc2 <= fsfloc + epsi)
+                    for(qn = 0; qn < wave_comp; ++qn)
+                        vval[count] += vval_S_cos[count][qn] * vval_T_cos[qn] - vval_S_sin[count][qn] * vval_T_sin[qn];
+
+                if(zloc2 > fsfloc + epsi)
+                    vval[count] = 0.0;
+
+                ++count;
             }
-		}
+        }
     }
 
-
-    count=0;
-    WLOOP
+    count = 0;
+    if(!zc_built)
+        zonecol_build(p);
+    ZWLOOP
     {
         dg = distgen(p);
-        
+
         zloc3 = p->pos3_z();
-        fsfloc = eta(i,j) + p->phimean;
-    
-        if(zloc3<=fsfloc)
+        fsfloc = eta(i, j) + p->phimean;
+
+        if(zloc3 <= fsfloc)
         {
-        if(zloc3<=p->phimean)
-        z=-(fabs(p->phimean-zloc3));
-		
-		if(zloc3>p->phimean)
-        z=(fabs(p->phimean-zloc3));
+            if(zloc3 <= p->phimean)
+                z = -(fabs(p->phimean - zloc3));
+
+            if(zloc3 > p->phimean)
+                z = (fabs(p->phimean - zloc3));
         }
-        
-        if(zloc3>fsfloc)
-        z = eta(i,j);
 
+        if(zloc3 > fsfloc)
+            z = eta(i, j);
 
-		// Wave Generation
-		if(p->B98==2 && w_switch==1)
+        // Wave Generation
+        if(p->B98 == 2 && w_switch == 1)
         {
             // Zone 1
-            if(dg<dist1)
+            if(dg < 1.0e20)
             {
-            wval[count]=0.0;
-            
-            if(zloc3<=fsfloc+epsi)
-            for(qn=0;qn<wave_comp;++qn)
-            wval[count] += wval_S_cos[count][qn]*wval_T_sin[qn] + wval_S_sin[count][qn]*wval_T_cos[qn];
-            
-            if(zloc3>fsfloc+epsi)
-            wval[count] = 0.0;
-            
-            ++count;
+                wval[count] = 0.0;
+
+                if(zloc3 <= fsfloc + epsi)
+                    for(qn = 0; qn < wave_comp; ++qn)
+                        wval[count] += wval_S_cos[count][qn] * wval_T_sin[qn] + wval_S_sin[count][qn] * wval_T_cos[qn];
+
+                if(zloc3 > fsfloc + epsi)
+                    wval[count] = 0.0;
+
+                ++count;
             }
-		}
-    }	
-    
-    count=0;
-    LOOP
-    {
-		dg = distgen(p);
-        
-		if(p->pos_z()<=p->phimean)
-        z=-(fabs(p->phimean-p->pos_z()));
-		
-		if(p->pos_z()>p->phimean)
-        z=(fabs(p->phimean-p->pos_z()));
-		
-		// Wave Generation
-        if(p->B98==2 && h_switch==1)
-        {
-            // Zone 1
-            if(dg<dist1)
-            {
-            lsval[count] = eta(i,j)+p->phimean-p->pos_z();
-            
-            ++count;
-            }
-		}
+        }
     }
-    
-    count=0;
-    
-    if(p->F80==4)
-    {
-    LOOP
+
+    count = 0;
+    if(!zc_built)
+        zonecol_build(p);
+    ZLOOP
     {
         dg = distgen(p);
-        
-		if(p->pos_z()<=p->phimean)
-        z=-(fabs(p->phimean-p->pos_z()));
-		
-		if(p->pos_z()>p->phimean)
-        z=(fabs(p->phimean-p->pos_z()));
-		
-		// Wave Generation
-        if(p->B98==2 && h_switch==1)
+
+        if(p->pos_z() <= p->phimean)
+            z = -(fabs(p->phimean - p->pos_z()));
+
+        if(p->pos_z() > p->phimean)
+            z = (fabs(p->phimean - p->pos_z()));
+
+        // Wave Generation
+        if(p->B98 == 2 && h_switch == 1)
         {
             // Zone 1
-            if(dg<dist1)
+            if(dg < 1.0e20)
             {
-            if(eta(i,j)+p->phimean>=p->pos_z()+0.5*p->DZN[KP])
-                vofval[count]=1.0;
-            else if(eta(i,j)+p->phimean<=p->pos_z()-0.5*p->DZN[KP])
-                vofval[count]=0.0;
-            else
+                lsval[count] = eta(i, j) + p->phimean - p->pos_z();
+
+                ++count;
+            }
+        }
+    }
+
+    count = 0;
+
+    if(p->F80 == 4)
+    {
+        if(!zc_built)
+            zonecol_build(p);
+        ZLOOP
+        {
+            dg = distgen(p);
+
+            if(p->pos_z() <= p->phimean)
+                z = -(fabs(p->phimean - p->pos_z()));
+
+            if(p->pos_z() > p->phimean)
+                z = (fabs(p->phimean - p->pos_z()));
+
+            // Wave Generation
+            if(p->B98 == 2 && h_switch == 1)
             {
-                vofval[count]=(eta(i,j)+p->phimean - (p->pos_z()-0.5*p->DZN[KP]))/p->DZN[KP];
-                if(vofval[count]>1.0 || vofval[count]<0.0)
-                    cout<<"decomp relax vof error, vof:"<<vofval[count]<<endl;
+                // Zone 1
+                if(dg < 1.0e20)
+                {
+                    if(eta(i, j) + p->phimean >= p->pos_z() + 0.5 * p->DZN[KP])
+                        vofval[count] = 1.0;
+                    else if(eta(i, j) + p->phimean <= p->pos_z() - 0.5 * p->DZN[KP])
+                        vofval[count] = 0.0;
+                    else
+                    {
+                        vofval[count] = (eta(i, j) + p->phimean - (p->pos_z() - 0.5 * p->DZN[KP])) / p->DZN[KP];
+                        if(vofval[count] > 1.0 || vofval[count] < 0.0)
+                            cout << "decomp relax vof error, vof:" << vofval[count] << endl;
+                    }
+
+                    ++count;
+                }
             }
-            
-            ++count;
-            }
-		}
+        }
     }
-    }
-    count=0;
-    LOOP
+    count = 0;
+    if(!zc_built)
+        zonecol_build(p);
+    ZLOOP
     {
         dg = distgen(p);
-        
+
         zloc4 = p->pos_z();
-        fsfloc = eta(i,j) + p->phimean;
-    
+        fsfloc = eta(i, j) + p->phimean;
 
-        if(zloc4<=fsfloc)
+        if(zloc4 <= fsfloc)
         {
-        if(zloc4<=p->phimean)
-        z=-(fabs(p->phimean-zloc4));
-		
-		if(zloc4>p->phimean)
-        z=(fabs(p->phimean-zloc4));
+            if(zloc4 <= p->phimean)
+                z = -(fabs(p->phimean - zloc4));
+
+            if(zloc4 > p->phimean)
+                z = (fabs(p->phimean - zloc4));
         }
-        
-        if(zloc4>fsfloc)
-        z = eta(i,j);
-		
-		// Wave Generation		
-		if(p->B98==2 && u_switch==1)
-        {  
+
+        if(zloc4 > fsfloc)
+            z = eta(i, j);
+
+        // Wave Generation
+        if(p->B98 == 2 && u_switch == 1)
+        {
             // Zone 1
-            if(dg<dist1)
+            if(dg < 1.0e20)
             {
-            Fival[count]=0.0;
-            
-            if(zloc4<=fsfloc+epsi)
-            for(qn=0;qn<wave_comp;++qn)
-            Fival[count] += Fival_S_cos[count][qn]*Fival_T_cos[qn] - Fival_S_sin[count][qn]*Fival_T_sin[qn];
-            
-            if(zloc4>fsfloc+epsi)
-            Fival[count] = 0.0;
-            
-            ++count;
+                Fival[count] = 0.0;
+
+                if(zloc4 <= fsfloc + epsi)
+                    for(qn = 0; qn < wave_comp; ++qn)
+                        Fival[count] += Fival_S_cos[count][qn] * Fival_T_cos[qn] - Fival_S_sin[count][qn] * Fival_T_sin[qn];
+
+                if(zloc4 > fsfloc + epsi)
+                    Fival[count] = 0.0;
+
+                ++count;
             }
-		}
+        }
     }
-    
 }
-    
+

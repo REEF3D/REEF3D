@@ -23,6 +23,8 @@ Author: Hans Bihs
 #include "fluid_update_fsf.h"
 #include "fdm.h"
 #include "ghostcell.h"
+#include "heaviside.h"
+#include "interface_width.h"
 #include "lexer.h"
 
 fluid_update_fsf::fluid_update_fsf(lexer *p, fdm *a, ghostcell *pgc) : dx(p->DXM), visc_air(p->W4), visc_water(p->W2), visc_body(p->X44),
@@ -48,6 +50,23 @@ void fluid_update_fsf::start(lexer *p, fdm *a, ghostcell *pgc, field &u, field &
     iter = p->count;
 
     BASELOOP
+    {
+        H = heaviside(a->phi(i, j, k), interface_width(p, a->phi, i, j, k));
+
+        a->ro(i, j, k) = ro_water * H + ro_air * (1.0 - H);
+        a->visc(i, j, k) = visc_water * H + visc_air * (1.0 - H);
+
+        if(p->flagsf4[IJK] > 0)
+        {
+            p->volume1 += p->DXN[IP] * p->DYN[JP] * p->DZN[KP] * H * PORVAL4;
+            p->volume2 += p->DXN[IP] * p->DYN[JP] * p->DZN[KP] * (1.0 - H) * PORVAL4;
+        }
+    }
+
+    p->volume1 = pgc->globalsum(p->volume1);
+    p->volume2 = pgc->globalsum(p->volume2);
+
+    if(p->mpirank == 0 && iocheck == 0 && (p->count % p->P12 == 0))
     {
         if(a->phi(i, j, k) > p->psi)
             H = 1.0;

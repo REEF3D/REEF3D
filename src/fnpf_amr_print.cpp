@@ -17,23 +17,29 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include "fdm_fnpf.h"
 #include "fnpf_amr.h"
+#include "fnpf_amr_fill.h"
 #include "ghostcell.h"
 #include "lagoon_output.h"
 #include "lexer.h"
+#include "reef3d_mpmd.h"
+#include "reefckpt.h"
 #include <cstdio>
 #include <iomanip>
 #include <mpi.h>
 
 //  Output of FNPF AMR: the free surface of level 0 and of every patch as VTK rectilinear
-//  grids (REEF3D_FNPF_AMR/*.vtr, indexed by a .vtm per output time, P 20 / P 30 as the FNPF
-//  output), the wave gauges P 51 from the finest grid that holds them (bilinear between the
-//  cell centres), and a log. P 18: the grids also in the LAGOON store (P 18 1: instead of
-//  the .vtr and .vtm files).
+//  grids (REEF3D_FNPF_AMR/*.vtr, indexed by a .vtm per output time; with P 180 1 at the interval
+//  of the free surface output, P 182 / P 181, else at that of the 3D output, P 30 / P 20), the
+//  wave gauges P 51 from the finest grid that holds them (bilinear between the cell centres),
+//  and a log. The grids' cell fields: eta, elevation, Fifsf, the velocity at the free surface
+//  u, v, w (the top node of the sigma grid, as REEF3D_FNPF_VTP_FSF's velocity; LAGOON joins them
+//  into the vector, as SFLOW's) and bed. P 18: the grids also in the LAGOON store (P 18 1:
+//  instead of the .vtr and .vtm files).
 
 namespace {
 inline int lij(const lexer *q, int ii, int jj) { return (ii - q->imin) * q->jmax + (jj - q->jmin); }
@@ -44,15 +50,22 @@ void fnpf_amr::print(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     if(maxlev < 1)
         return;
 
+    // the grids are the free surface: with P 180 1 at its interval (P 182 in time, P 181 in
+    // iterations, as REEF3D_FNPF_VTP_FSF), else at that of the 3D output (P 30, P 20; P 10)
+    const bool fsf = p->P180 == 1;
+    const double every = fsf ? p->P182 : p->P30;
+    const int every_it = fsf ? p->P181 : p->P20;
+    const bool on = fsf || p->P10 > 0;
+
     bool doprint = false;
 
-    if((p->count % p->P20 == 0 && p->P30 < 0.0 && p->P10 > 0 && p->P20 > 0) || (p->count == 0 && p->P30 < 0.0))
+    if((every_it > 0 && p->count % every_it == 0 && every < 0.0 && on) || (p->count == 0 && every < 0.0))
         doprint = true;
 
-    if((p->simtime > printtime_amr && p->P30 > 0.0 && p->P10 > 0) || (p->count == 0 && p->P30 > 0.0))
+    if((p->simtime > printtime_amr && every > 0.0 && on) || (p->count == 0 && every > 0.0))
     {
         doprint = true;
-        printtime_amr += p->P30;
+        printtime_amr += every;
     }
 
     if(p->P51 > 0)
@@ -70,17 +83,27 @@ void fnpf_amr::print(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     // the waiting for the patch ranks as Laplace time); doprint is the same on all ranks
     if(doprint)
     {
-        double tmx[6];
-        for(int k = 0; k < 6; ++k)
+        double tmx[9];
+        for(int k = 0; k < 9; ++k)
             tmx[k] = tm[k];
-        pgc->globalmax(tmx, 6);
+        pgc->globalmax(tmx, 9);
         const double cmax = pgc->globalmax(double(cells_local));
 
         if(p->mpirank == 0)
         {
             cout << "FNPF AMR: " << patches_total << " patches, " << cells_total << " columns (max " << (long)cmax << " per rank); max over ranks: patch stages "
-                 << setprecision(4) << tmx[0] << " s, Laplace " << tmx[1] << " s (preconditioner " << tmx[2] << " s, operator " << tmx[3] << " s, setup " << tmx[5]
-                 << " s), mean iterations " << (lap_solves > 0 ? double(lap_it_total) / lap_solves : 0.0);
+                 << setprecision(4) << tmx[0] << " s, Laplace " << tmx[1] << " s (preconditioner " << tmx[2] << " s, operator " << tmx[3] << " s, assembly and coarsening "
+                 << tmx[7] << " s, setup " << tmx[5] << " s), mean iterations " << (lap_solves > 0 ? double(lap_it_total) / lap_solves : 0.0);
+            // a body: the psi solves of its loads (pressure, added mass) against the phi solves
+            if(lap_solves_psi > 0)
+            {
+                const long nphi = lap_solves - lap_solves_psi;
+                cout << "; psi solves " << lap_solves_psi << " of " << lap_solves << ": " << tmx[6] << " s (assembly and coarsening " << tmx[8]
+                     << " s), mean iterations " << double(lap_it_psi) / lap_solves_psi
+                     << " (phi " << (nphi > 0 ? double(lap_it_total - lap_it_psi) / nphi : 0.0) << ")";
+            }
+            if(lap_kept > 0)
+                cout << "; rows and preconditioner kept for " << lap_kept << " of " << lap_solves << " solves";
             if(regrid_int > 0)
                 cout << ", regrid " << tmx[4] << " s, layouts " << layout_id << ", regrids skipped " << regrids_skipped;
             if(lap_restarts > 0)
@@ -114,7 +137,7 @@ void fnpf_amr::print(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 
     int np = (int)P.size();
     vector<int> all(p->mpi_size, 0);
-    MPI_Allgather(&np, 1, MPI_INT, &all[0], 1, MPI_INT, MPI_COMM_WORLD);
+    MPI_Allgather(&np, 1, MPI_INT, &all[0], 1, MPI_INT, reef3d_comm());
 
     if(p->mpirank == 0)
     {
@@ -163,6 +186,8 @@ void fnpf_amr::gauges(lexer *p, fdm_fnpf *c, ghostcell *pgc)
                 jj = a;
                 break;
             }
+        if(q->j_dir == 0)  // 2D grid: the strip, wherever y is
+            jj = j0;
         return ii >= 0 && jj >= 0;
     };
 
@@ -170,8 +195,14 @@ void fnpf_amr::gauges(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     auto ipol = [&](lexer *q, slice &f, int ii, int jj, double x, double y)
     {
         int a = (x >= q->XP[ii + marge]) ? ii : ii - 1;
-        int b = (y >= q->YP[jj + marge]) ? jj : jj - 1;
         double wx = (x - q->XP[a + marge]) / (q->XP[a + 1 + marge] - q->XP[a + marge]);
+        if(q->j_dir == 0)  // 2D grid: linear in x
+        {
+            if(q->flagslice4[lij(q, a, jj)] < 0 || q->flagslice4[lij(q, a + 1, jj)] < 0)
+                return f(ii, jj);
+            return (1.0 - wx) * f(a, jj) + wx * f(a + 1, jj);
+        }
+        int b = (y >= q->YP[jj + marge]) ? jj : jj - 1;
         double wy = (y - q->YP[b + marge]) / (q->YP[b + 1 + marge] - q->YP[b + marge]);
         if(q->flagslice4[lij(q, a, b)] < 0 || q->flagslice4[lij(q, a + 1, b)] < 0 || q->flagslice4[lij(q, a, b + 1)] < 0 || q->flagslice4[lij(q, a + 1, b + 1)] < 0)
             return f(ii, jj);
@@ -188,7 +219,7 @@ void fnpf_amr::gauges(lexer *p, fdm_fnpf *c, ghostcell *pgc)
             val[k] = ipol(p, c->eta, ii, jj, x, y);
         }
         for(auto q : P)
-            if(q->lev > lv[k] && find(q->pp, EXT, EXT + q->nx - 1, EXT, EXT + q->ny - 1, x, y, ii, jj))
+            if(q->lev > lv[k] && find(q->pp, EXT, EXT + q->nx - 1, EY, EY + q->ny - 1, x, y, ii, jj))
             {
                 lv[k] = q->lev;
                 val[k] = ipol(q->pp, FP(q)->c->eta, ii, jj, x, y);
@@ -196,23 +227,23 @@ void fnpf_amr::gauges(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     }
 
     vector<double> lmax(ng);
-    MPI_Allreduce(&lv[0], &lmax[0], ng, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+    MPI_Allreduce(&lv[0], &lmax[0], ng, MPI_DOUBLE, MPI_MAX, reef3d_comm());
     for(int k = 0; k < ng; ++k)
         if(lv[k] != lmax[k])
             val[k] = 0.0;
     vector<double> vs(ng);
-    MPI_Allreduce(&val[0], &vs[0], ng, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+    MPI_Allreduce(&val[0], &vs[0], ng, MPI_DOUBLE, MPI_SUM, reef3d_comm());
 
     if(p->mpirank == 0)
     {
         if(!gaugeout.is_open())
-        {
-            gaugeout.open("./REEF3D_FNPF_AMR/REEF3D_FNPF_AMR_gauges.dat");
-            gaugeout << "# simtime";
-            for(int k = 0; k < ng; ++k)
-                gaugeout << " \t eta(" << p->P51_x[k] << "," << p->P51_y[k] << ")";
-            gaugeout << " \t levels" << endl;
-        }
+            if(reefckpt_open(gaugeout, "./REEF3D_FNPF_AMR/REEF3D_FNPF_AMR_gauges.dat", p->I45))  // I 45: continued
+            {
+                gaugeout << "# simtime";
+                for(int k = 0; k < ng; ++k)
+                    gaugeout << " \t eta(" << p->P51_x[k] << "," << p->P51_y[k] << ")";
+                gaugeout << " \t levels" << endl;
+            }
         gaugeout << setprecision(10) << p->simtime;
         for(int k = 0; k < ng; ++k)
             gaugeout << " \t " << setprecision(10) << vs[k];
@@ -247,10 +278,24 @@ void fnpf_amr::write_vtr0(lexer *p, fdm_fnpf *c)
         }
         out << "</DataArray>\n";
     };
+    // the velocity at the free surface (the top node of the sigma grid), as REEF3D_FNPF_VTP_FSF
+    auto surface = [&](const char *nm, const double *A)
+    {
+        out << "<DataArray type=\"Float64\" Name=\"" << nm << "\" format=\"ascii\">\n";
+        for(int jj = 0; jj < ny; ++jj)
+        {
+            for(int ii = 0; ii < nx; ++ii)
+                out << setprecision(17) << A[fidx(p, ii, jj, p->knoz)] << " ";
+            out << "\n";
+        }
+        out << "</DataArray>\n";
+    };
     field("eta", c->eta, 0.0);
     field("elevation", c->eta, p->wd);
     field("Fifsf", c->Fifsf, 0.0);
-    field("Fz", c->Fz, 0.0);
+    surface("u", c->U);
+    surface("v", c->V);
+    surface("w", c->W);
     field("bed", c->bed, 0.0);
 
     out << "</CellData>\n<Coordinates>\n";
@@ -284,7 +329,7 @@ void fnpf_amr::write_vtr(lexer *p, fnpf_amr_patch &c, int id)
     auto field = [&](const char *nm, slice &f, double shift)
     {
         out << "<DataArray type=\"Float64\" Name=\"" << nm << "\" format=\"ascii\">\n";
-        for(int jj = EXT; jj < EXT + c.ny; ++jj)
+        for(int jj = EY; jj < EY + c.ny; ++jj)
         {
             for(int ii = EXT; ii < EXT + c.nx; ++ii)
                 out << setprecision(17) << f(ii, jj) + shift << " ";
@@ -292,10 +337,24 @@ void fnpf_amr::write_vtr(lexer *p, fnpf_amr_patch &c, int id)
         }
         out << "</DataArray>\n";
     };
+    // the velocity at the free surface (the top node of the sigma grid), as REEF3D_FNPF_VTP_FSF
+    auto surface = [&](const char *nm, const double *A)
+    {
+        out << "<DataArray type=\"Float64\" Name=\"" << nm << "\" format=\"ascii\">\n";
+        for(int jj = EY; jj < EY + c.ny; ++jj)
+        {
+            for(int ii = EXT; ii < EXT + c.nx; ++ii)
+                out << setprecision(17) << A[fidx(pp, ii, jj, pp->knoz)] << " ";
+            out << "\n";
+        }
+        out << "</DataArray>\n";
+    };
     field("eta", cc->eta, 0.0);
     field("elevation", cc->eta, p->wd);
     field("Fifsf", cc->Fifsf, 0.0);
-    field("Fz", cc->Fz, 0.0);
+    surface("u", cc->U);
+    surface("v", cc->V);
+    surface("w", cc->W);
     field("bed", cc->bed, 0.0);
 
     out << "</CellData>\n<Coordinates>\n";
@@ -304,7 +363,7 @@ void fnpf_amr::write_vtr(lexer *p, fnpf_amr_patch &c, int id)
     for(int ii = EXT; ii <= EXT + c.nx; ++ii)
         out << setprecision(12) << pp->XN[ii + m] << " ";
     out << "</DataArray>\n<DataArray type=\"Float64\" Name=\"y\" format=\"ascii\">";
-    for(int jj = EXT; jj <= EXT + c.ny; ++jj)
+    for(int jj = EY; jj <= EY + c.ny; ++jj)
         out << setprecision(12) << pp->YN[jj + m] << " ";
     out << "</DataArray>\n<DataArray type=\"Float64\" Name=\"z\" format=\"ascii\">0</DataArray>\n";
     out << "</Coordinates>\n</Piece>\n</RectilinearGrid>\n</VTKFile>\n";
@@ -317,7 +376,7 @@ bool fnpf_amr::print_lagoon(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
     static lagoon_amr_output *writer = nullptr;
     if(writer == nullptr)
-        writer = new lagoon_amr_output("FNPF", {{"eta", false}, {"elevation", false}, {"Fifsf", false}, {"Fz", false}, {"bed", false}});
+        writer = new lagoon_amr_output("FNPF", {{"eta", false}, {"elevation", false}, {"Fifsf", false}, {"u", false}, {"v", false}, {"w", false}, {"bed", false}});
 
     const int m = marge;
     vector<lagoon_amr::grid> grids;
@@ -337,16 +396,24 @@ bool fnpf_amr::print_lagoon(lexer *p, fdm_fnpf *c, ghostcell *pgc)
                 for(int ii = i0; ii < i0 + nx; ++ii)
                     g.values.push_back(s(ii, jj) + shift);
         };
+        auto surface = [&](const double *A)  // the velocity at the free surface (top node)
+        {
+            for(int jj = j0; jj < j0 + ny; ++jj)
+                for(int ii = i0; ii < i0 + nx; ++ii)
+                    g.values.push_back(A[fidx(q, ii, jj, q->knoz)]);
+        };
         field(f->eta, 0.0);
         field(f->eta, p->wd);
         field(f->Fifsf, 0.0);
-        field(f->Fz, 0.0);
+        surface(f->U);
+        surface(f->V);
+        surface(f->W);
         field(f->bed, 0.0);
         grids.push_back(std::move(g));
     };
     take(p, c, 0, 0, p->knox, p->knoy, 0);
     for(int n = 0; n < (int)P.size(); ++n)
-        take(FP(n)->pp, FP(n)->c, EXT, EXT, FP(n)->nx, FP(n)->ny, FP(n)->lev);
+        take(FP(n)->pp, FP(n)->c, EXT, EY, FP(n)->nx, FP(n)->ny, FP(n)->lev);
 
     return writer->write(p, pgc, grids, printcount_amr);
 }

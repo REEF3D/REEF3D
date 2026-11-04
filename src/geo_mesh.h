@@ -74,7 +74,64 @@ public:
     int geodat;  // geodat bed level (GEOB) belongs to: 0 none, 1 solid, 2 topo
     double dxm;  // DIVEMesh mean cell size
 
+    // CURV (optional): river corridor grid of DIVEMesh (R 1), read and checked, not used by a solver yet
+    //   nodes (i,j), i=0..curv_ni along the river from the inflow, j=0..curv_nj from the right bank,
+    //   index i + (curv_ni+1)*j; curv_par = {R 2 wl0, R 3 wl, R 3 margin, R 5 open, raster spacing}
+    int curv_ni, curv_nj;
+    vector<double> curv_par, curv_x, curv_y, curv_zb;
+
+    // BLKS (optional): multi-block grid of DIVEMesh (R 20 1); block 0 is the grid of the run (CURV,
+    // with a ring of blk_ring cells on its interface faces, blk[0].ring), blocks 1.. carry their
+    // nodes; interface segments: face, lo, hi (cells along it), neighbour block and face, cell
+    // transform i' = sign0*c[perm0]+off0, j' = sign1*c[perm1]+off1, c = (i,j)
+    struct blk_seg
+    {
+        int face, lo, hi, nbr, nface, perm[2], sign[2], off[2];
+    };
+    struct blk_block
+    {
+        int ni = 0, nj = 0;
+        int ring[4] = {0, 0, 0, 0};
+        vector<blk_seg> seg;
+        vector<double> x, y, zb;
+        int orig = 0, oi = 0, oj = 0;  // G 55: the block of DIVEMesh this piece is cut from, its first cell there
+    };
+    vector<blk_block> blk;
+    int blk_ring = 0;
+
+    // G 55 m (geo_mesh_split.cpp): the blocks 1.. of DIVEMesh cut into pieces along i (j for a block wider in j
+    // without open faces) of at most (cells of the blocks 1..) / (m ranks) cells each, at least 16 cells deep;
+    // a piece is a block of its own (the first piece keeps the number of its block, the others follow the
+    // blocks of DIVEMesh), the interfaces between the pieces and to the neighbours rebuilt cell by cell
+    void split_blocks(lexer *);
+    int nblk_orig = 0;             // the blocks of DIVEMesh (blk.size() before the cut)
+    vector<int> orig_ni, orig_nj;  // their sizes
+    // the piece that holds face f (0 -i, 1 +i, 2 -j, 3 +j) of block b of DIVEMesh whole; -1: cut across it
+    int face_piece(int b, int f) const;
+
+    // G 54 (types 1-16) and B 522 on any face of a block 1.. (geo_mesh_split.cpp): REEF3D opens the -i face of a
+    // block for a discharge and the +i face for a water level (ioflow_amr_block), the edge zones on the -i or +i
+    // face; a block whose open faces are j faces or reversed is turned by quarter turns of its indices (the
+    // nodes and the interfaces, before G 55) so that they become these faces.  blk_turn[b]: the quarter turns of
+    // block b of DIVEMesh (0-3; a turn maps the faces -i, +i, -j, +j to +j, -j, -i, +i)
+    void turn_blocks(lexer *);
+    vector<int> blk_turn;
+    int face_turned(int b, int f) const;  // face f of block b of DIVEMesh (0 -i, 1 +i, 2 -j, 3 +j) after the turns
+    static int g54_kind(int t);           // G 54 type t: 1 discharge, 2 water level, 3 discharge series, 4 level series
+    static int g54_face(int t);           // the face of DIVEMesh of type t (0 -i, 1 +i, 2 -j, 3 +j); -1 bad type
+
+    // G 56 a dz (geo_mesh_split.cpp): the load of a cell relative to a wet cell, a when its bed lies above the
+    // still water level + dz (F 60, else F 62 with F 65); without G 56 (a = 1) or a still water level every cell 1
+    static double load_level(const lexer *);
+    static bool load_weighted(const lexer *);
+    static double cell_load(const lexer *, double zb);
+    double blk_cell_load(const lexer *, int b, int ci, int cj) const;  // blocks 1..: the bed is the mean of the cell's nodes
+    double blk_load(const lexer *, int b) const;
+
 private:
+    int seg_check() const;                              // interface cells that do not map back
+    int zone_cells(const lexer *, int b, int f) const;  // G 55: the cells of the zones of B 522 at face f of block b
+    void turn_block(int b);                             // one quarter turn of block b (1..)
     void allocate(int);
     void release();
 };

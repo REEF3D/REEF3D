@@ -1,0 +1,12 @@
+{
+ "description": "FNPF 2D Kennedy breaking (A 350 2) on steep 5th-order Stokes waves in deep water (H 0.2 m, T 1.2 s, d 2 m), steepness threshold lowered (A 355 0.25) so that the deep-water flag fires early. Before fnpf breaking 01 the 2D deep-water flag was cleared in the step it was set (no viscosity, the run blows up at t = 13.6 s).",
+ "solver": "fnpf",
+ "np": 1,
+ "steps": 400,
+ "tags": ["2d", "fnpf", "waves", "breaking"],
+ "covers": [
+  "fnpf_breaking::breaking_kennedy: deep-water onset/cessation in 2D (A 351 2/3)",
+  "fnpf_breaking::breaking_kennedy: two-pass viscosity spreading (vb_brk, +-2 cells)",
+  "fnpf_fsfbc::damping with A 350 2"
+ ]
+}

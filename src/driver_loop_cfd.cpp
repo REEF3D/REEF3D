@@ -22,8 +22,10 @@ Author: Hans Bihs
 
 #include "6DOF_header.h"
 #include "benchmark_header.h"
+#include "cfd_amr.h"
 #include "concentration_header.h"
 #include "convection_header.h"
+#include "coral/reef3d/coral_reef3d.h"
 #include "dem.h"
 #include "driver.h"
 #include "fdm.h"
@@ -32,14 +34,18 @@ Author: Hans Bihs
 #include "freesurface_header.h"
 #include "ghostcell.h"
 #include "heat_header.h"
+#include "lagoon_output.h"
 #include "lexer.h"
 #include "momentum_header.h"
 #include "pressure_header.h"
+#include "reefcouple.h"
+#include "reefrun_ckpt.h"
 #include "regression_dump.h"
 #include "runlog.h"
 #include "sediment_header.h"
 #include "solver_header.h"
 #include "turbulence_header.h"
+#include "wave_lib_fnpf_couple.h"
 
 void driver::loop_cfd(fdm *a)
 {
@@ -72,23 +78,36 @@ void driver::loop_cfd(fdm *a)
 
         pflow->flowfile(p, a, pgc, pturb);
 
+        // runtime coupling (B 92 62): feedback to FNPF at the start of the step (I 243, I 244)
+        if(reefcouple::recv != nullptr)
+            reefcouple::recv->feedback(p, pgc, p6dof, a);
+
         pflow->wavegen_precalc(p, pgc);
 
         pfsf->start(a, p, pfsfdisc, psolv, pgc, pflow, preini, a->phi);
         pturb->start(a, p, pturbdisc, pturbdiff, psolv, pgc, pflow, pvrans);
-        pheat->start(a, p, pheatdisc, pdiff, psolv, pgc, pflow);
-        pconc->start(a, p, pconcdisc, pconcdiff, pturb, psolv, pgc, pflow);
+        // with the mesh refinement it transports heat and concentration on all grids
+        if(pcfdamr == nullptr || !pcfdamr->scalars())
+        {
+            pheat->start(a, p, pheatdisc, pdiff, psolv, pgc, pflow);
+            pconc->start(a, p, pconcdisc, pconcdiff, pturb, psolv, pgc, pflow);
+        }
         pmp->start(p, a, pgc, pmpconvec, psolv, pflow, preini);
 
         psed->start_susp(p, a, pgc, pflow, psolv);
         psed->start_cfd(p, a, pgc, pflow, preto, psolv);
+        if(pcfdamr != nullptr)
+            pcfdamr->cpm_step(p, a, pgc);
 
         pflow->u_relax(p, a, pgc, a->u);
         pflow->v_relax(p, a, pgc, a->v);
         pflow->w_relax(p, a, pgc, a->w);
         pfsf->update(p, a, pgc, a->phi);
         pdem->start_cfd(p, a, pgc);
-        pmom->start(p, a, pgc, pvrans, p6dof);
+        if(pcfdamr != nullptr)
+            pcfdamr->step(p, a, pgc, pvrans, p6dof);
+        else
+            pmom->start(p, a, pgc, pvrans, p6dof);
         pbench->start(p, a, pgc, pconvec);
 
         // save previous timestep
@@ -97,12 +116,21 @@ void driver::loop_cfd(fdm *a)
         pflow->veltimesave(p, a, pgc, pvrans);
         psed->ctimesave(p, a);
 
+        // REEF3D::CORAL (Z 40): structural model from simtime to simtime + dt
+        if(pcoral != nullptr)
+            pcoral->step(p, pgc);
+
         // timestep control
         p->simtime += p->dt;
         ptstep->start(a, p, pgc, pturb);
+        if(pcfdamr != nullptr)
+            pcfdamr->timestep(p, a, pgc);
 
         // printer
+        if(pcfdamr != nullptr)
+            pcfdamr->print(p, pgc);
         pprint->start(p, a, pgc, pturb, pheat, pflow, pdata, pconc, pmp, psed);
+        lagoon_output::poll_all(p, pgc);  // outputs of the LAGOON store written by now (P 18)
         preg->cfd_step(p, a, pgc, pturb, pconc);
 
         // Shell-Printout
@@ -142,6 +170,28 @@ void driver::loop_cfd(fdm *a)
         p->field4time = 0.0;
 
         pgc->gcparax(p, a->press, 4);
+
+        // checkpoint on any decomposition (P 48), rebalance on the measured load (G 46)
+        ckpt().step();
+
+        stop(p, a, pgc);
+    }
+
+    // the state at the end of the run (N 45, N 41, S 19), unless the last step wrote it: before the
+    // checkpoint, which keeps the output counters
+    pprint->print_end(p, a, pgc, pturb, pheat, pflow, pdata, pconc, pmp, psed);
+
+    // a checkpoint at the end of the run (P 48): it can be continued with a later end (I 45 1)
+    ckpt().finish();
+
+    // the last outputs of the LAGOON store are counted (P 18)
+    lagoon_output::finish_all(p, pgc);
+
+    if(p->mpirank == 0)
+    {
+        cout << endl
+             << "******************************" << endl
+             << endl;
 
         stop(p, a, pgc);
     }

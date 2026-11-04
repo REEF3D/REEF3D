@@ -1,0 +1,16 @@
+{
+ "base": "seastate_2d_phase16_faces_levels",
+ "ctrl_add": [
+  "A 797 1"
+ ],
+ "description": "as seastate_2d_phase16_faces_levels with the composite sweep (A 797 1): the ring faces from the latest fine cells where the sweep reaches the ring cell (ghost_fill).",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate",
+  "amr"
+ ],
+ "covers": [
+  "seastate_amr::ghost_fill with the ring faces"
+ ]
+}

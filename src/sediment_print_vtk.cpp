@@ -24,9 +24,11 @@ Author: Hans Bihs
 #include "fdm.h"
 #include "ghostcell.h"
 #include "lexer.h"
+#include "sediment_exner.h"
 #include "sediment_f.h"
 #include "sediment_fdm.h"
 #include "sediment_mixture.h"
+#include "sediment_waves.h"
 #include <cstring>
 
 void sediment_f::name_ParaView_parallel_bedload(lexer *p, ofstream &result)
@@ -36,6 +38,19 @@ void sediment_f::name_ParaView_parallel_bedload(lexer *p, ofstream &result)
     result << "<PDataArray type=\"Float32\" Name=\"ST_qbs\"/>\n";
     result << "<PDataArray type=\"Float32\" Name=\"ST_cbe\"/>\n";
     result << "<PDataArray type=\"Float32\" Name=\"ST_cb\"/>\n";
+
+    // S 95 2: the spiral-flow intensity (SFLOW)
+    if(p->S95 == 2)
+        result << "<PDataArray type=\"Float32\" Name=\"ST_spiral\"/>\n";
+
+    // SFLOW waves (S 110)
+    if(pwaves != nullptr)
+    {
+        result << "<PDataArray type=\"Float32\" Name=\"ST_Urms\"/>\n";
+        result << "<PDataArray type=\"Float32\" Name=\"ST_tauw\"/>\n";
+        result << "<PDataArray type=\"Float32\" Name=\"ST_taumax\"/>\n";
+        result << "<PDataArray type=\"Float32\" Name=\"ST_ua\"/>\n";
+    }
 
     // multi-fraction bed
     if(s->pmix != nullptr)
@@ -62,6 +77,24 @@ void sediment_f::name_ParaView_bedload(lexer *p, ostream &result, int *offset, i
     ++n;
     result << "<DataArray type=\"Float32\" Name=\"ST_cb\" format=\"appended\" offset=\"" << offset[n] << "\"/>\n";
     ++n;
+
+    if(p->S95 == 2)
+    {
+        result << "<DataArray type=\"Float32\" Name=\"ST_spiral\" format=\"appended\" offset=\"" << offset[n] << "\"/>\n";
+        ++n;
+    }
+
+    if(pwaves != nullptr)
+    {
+        result << "<DataArray type=\"Float32\" Name=\"ST_Urms\" format=\"appended\" offset=\"" << offset[n] << "\"/>\n";
+        ++n;
+        result << "<DataArray type=\"Float32\" Name=\"ST_tauw\" format=\"appended\" offset=\"" << offset[n] << "\"/>\n";
+        ++n;
+        result << "<DataArray type=\"Float32\" Name=\"ST_taumax\" format=\"appended\" offset=\"" << offset[n] << "\"/>\n";
+        ++n;
+        result << "<DataArray type=\"Float32\" Name=\"ST_ua\" format=\"appended\" offset=\"" << offset[n] << "\"/>\n";
+        ++n;
+    }
 
     // multi-fraction bed
     if(s->pmix != nullptr)
@@ -95,6 +128,19 @@ void sediment_f::offset_ParaView_2D_bedload(lexer *p, int *offset, int &n)
     ++n;
     offset[n] = offset[n - 1] + 4 * (p->pointnum2D) + 4;
     ++n;
+
+    if(p->S95 == 2)
+    {
+        offset[n] = offset[n - 1] + 4 * (p->pointnum2D) + 4;
+        ++n;
+    }
+
+    if(pwaves != nullptr)
+        for(int q = 0; q < 4; ++q)
+        {
+            offset[n] = offset[n - 1] + 4 * (p->pointnum2D) + 4;
+            ++n;
+        }
 
     if(s->pmix != nullptr)
         for(int q = 0; q < s->pmix->nfields(); ++q)
@@ -232,7 +278,7 @@ void sediment_f::print_3D_bedload(lexer *p, ghostcell *pgc, std::vector<char> &b
         }
 }
 
-void sediment_f::print_2D_bedload(lexer *p, ghostcell *pgc, ofstream &result)
+void sediment_f::print_2D_bedload(lexer *p, ghostcell *pgc, std::ostream &result)
 {
     float ffn;
     int iin;
@@ -248,6 +294,98 @@ void sediment_f::print_2D_bedload(lexer *p, ghostcell *pgc, ofstream &result)
         ffn = float(p->sl_ipol4(s->qbe));
         result.write((char *)&ffn, sizeof(float));
     }
+
+    // qb
+    pgc->gcsl_start4(p, s->qb, 1);
+
+    iin = 4 * (p->pointnum2D);
+    result.write((char *)&iin, sizeof(int));
+
+    TPSLICELOOP
+    {
+        ffn = float(p->sl_ipol4(s->qb));
+        result.write((char *)&ffn, sizeof(float));
+    }
+
+    // qbs
+    pgc->gcsl_start4(p, s->qbs, 1);
+
+    iin = 4 * (p->pointnum2D);
+    result.write((char *)&iin, sizeof(int));
+
+    TPSLICELOOP
+    {
+        ffn = float(p->sl_ipol4(s->qbs));
+        result.write((char *)&ffn, sizeof(float));
+    }
+
+    // cbe
+    pgc->gcsl_start4(p, s->cbe, 1);
+
+    iin = 4 * (p->pointnum2D);
+    result.write((char *)&iin, sizeof(int));
+
+    TPSLICELOOP
+    {
+        ffn = float(p->sl_ipol4(s->cbe));
+        result.write((char *)&ffn, sizeof(float));
+    }
+
+    // cb
+    pgc->gcsl_start4(p, s->cb, 1);
+
+    iin = 4 * (p->pointnum2D);
+    result.write((char *)&iin, sizeof(int));
+
+    TPSLICELOOP
+    {
+        ffn = float(p->sl_ipol4(s->cb));
+        result.write((char *)&ffn, sizeof(float));
+    }
+
+    // S 95 2: the spiral-flow intensity
+    if(p->S95 == 2)
+    {
+        slice4 &sp = exner()->bend_slice(5);
+        pgc->gcsl_start4(p, sp, 1);
+
+        iin = 4 * (p->pointnum2D);
+        result.write((char *)&iin, sizeof(int));
+
+        TPSLICELOOP
+        {
+            ffn = float(p->sl_ipol4(sp));
+            result.write((char *)&ffn, sizeof(float));
+        }
+    }
+
+    // SFLOW waves (S 110): Urms_eff, tau_w, tau_max, u_a
+    if(pwaves != nullptr)
+    {
+        slice4 *wf[4] = {&pwaves->Ure, &pwaves->tauw, &pwaves->taumax, &pwaves->ua};
+
+        for(int q = 0; q < 4; ++q)
+        {
+            pgc->gcsl_start4(p, *wf[q], 1);
+
+            iin = 4 * (p->pointnum2D);
+            result.write((char *)&iin, sizeof(int));
+
+            TPSLICELOOP
+            {
+                ffn = float(p->sl_ipol4(*wf[q]));
+                result.write((char *)&ffn, sizeof(float));
+            }
+        }
+    }
+
+    // multi-fraction bed
+    if(s->pmix != nullptr)
+        for(int q = 0; q < s->pmix->nfields(); ++q)
+        {
+            ffn = float(p->sl_ipol4(s->qbe));
+            result.write((char *)&ffn, sizeof(float));
+        }
 
     // qb
     pgc->gcsl_start4(p, s->qb, 1);
@@ -391,7 +529,7 @@ void sediment_f::offset_ParaView_bedshear(lexer *p, int *offset, int &n)
     ++n;
 }
 
-void sediment_f::print_2D_bedshear(lexer *p, ghostcell *pgc, ofstream &result)
+void sediment_f::print_2D_bedshear(lexer *p, ghostcell *pgc, std::ostream &result)
 {
     float ffn;
     int iin;
@@ -583,7 +721,7 @@ void sediment_f::print_3D_bedshear(lexer *p, ghostcell *pgc, std::vector<char> &
     }
 }
 
-void sediment_f::print_2D_parameter1(lexer *p, ghostcell *pgc, ofstream &result)
+void sediment_f::print_2D_parameter1(lexer *p, ghostcell *pgc, std::ostream &result)
 {
     float ffn;
     int iin;
@@ -795,234 +933,239 @@ void sediment_f::print_2D_parameter2(lexer *p, ghostcell *pgc, ofstream &result)
     float ffn;
     int iin;
 
-    // dh,bedch,reduce,threshold,slide_fh
-
-    // dh
-    pgc->gcsl_start4(p, s->dh, 1);
-
-    iin = 4 * (p->pointnum2D);
-    result.write((char *)&iin, sizeof(int));
-
-    TPSLICELOOP
+    void sediment_f::print_2D_parameter2(lexer * p, ghostcell * pgc, std::ostream & result)
     {
-        ffn = float(p->dtsed * p->sl_ipol4(s->dh));
-        result.write((char *)&ffn, sizeof(float));
+        float ffn;
+        int iin;
+
+        // dh,bedch,reduce,threshold,slide_fh
+
+        // dh
+        pgc->gcsl_start4(p, s->dh, 1);
+
+        iin = 4 * (p->pointnum2D);
+        result.write((char *)&iin, sizeof(int));
+
+        TPSLICELOOP
+        {
+            ffn = float(p->dtsed * p->sl_ipol4(s->dh));
+            result.write((char *)&ffn, sizeof(float));
+        }
+
+        // bedchange
+        pgc->gcsl_start4(p, s->bedch, 1);
+
+        iin = 4 * (p->pointnum2D);
+        result.write((char *)&iin, sizeof(int));
+
+        TPSLICELOOP
+        {
+            ffn = float(p->sl_ipol4(s->bedch));
+            result.write((char *)&ffn, sizeof(float));
+        }
+
+        // reduce
+        pgc->gcsl_start4(p, s->reduce, 1);
+
+        iin = 4 * (p->pointnum2D);
+        result.write((char *)&iin, sizeof(int));
+
+        TPSLICELOOP
+        {
+            ffn = float(p->sl_ipol4(s->reduce));
+            result.write((char *)&ffn, sizeof(float));
+        }
+
+        // threshold
+        iin = 4 * (p->pointnum2D);
+        result.write((char *)&iin, sizeof(int));
+
+        TPSLICELOOP
+        {
+            ffn = 0.0;
+
+            if(s->tau_eff(i, j) > s->tau_crit(i, j))
+                ffn = 1.0;
+            result.write((char *)&ffn, sizeof(float));
+        }
+
+        // MOB
+        pgc->gcsl_start4(p, s->MOB, 1);
+
+        iin = 4 * (p->pointnum2D);
+        result.write((char *)&iin, sizeof(int));
+
+        TPSLICELOOP
+        {
+            ffn = float(p->sl_ipol4(s->MOB));
+            result.write((char *)&ffn, sizeof(float));
+        }
+
+        // slide_fh
+        pgc->gcsl_start4(p, s->slide_fh, 1);
+
+        iin = 4 * (p->pointnum2D);
+        result.write((char *)&iin, sizeof(int));
+
+        TPSLICELOOP
+        {
+            ffn = float(p->sl_ipol4(s->slide_fh));
+            result.write((char *)&ffn, sizeof(float));
+        }
     }
 
-    // bedchange
-    pgc->gcsl_start4(p, s->bedch, 1);
-
-    iin = 4 * (p->pointnum2D);
-    result.write((char *)&iin, sizeof(int));
-
-    TPSLICELOOP
+    void sediment_f::print_3D_parameter2(lexer * p, ghostcell * pgc, std::vector<char> & buffer, size_t &m)
     {
-        ffn = float(p->sl_ipol4(s->bedch));
-        result.write((char *)&ffn, sizeof(float));
+        float ffn;
+        int iin;
+
+        // dh,bedch,reduce,threshold,slide_fh
+
+        // dh
+        pgc->gcsl_start4(p, s->dh, 1);
+
+        iin = 4 * (p->pointnum);
+        std::memcpy(&buffer[m], &iin, sizeof(int));
+        m += sizeof(int);
+
+        TPLOOP
+        {
+            ffn = float(p->dtsed * p->sl_ipol4(s->dh));
+            std::memcpy(&buffer[m], &ffn, sizeof(float));
+            m += sizeof(float);
+        }
+
+        // bedchange
+        pgc->gcsl_start4(p, s->bedch, 1);
+
+        iin = 4 * (p->pointnum);
+        std::memcpy(&buffer[m], &iin, sizeof(int));
+        m += sizeof(int);
+
+        TPLOOP
+        {
+            ffn = float(p->sl_ipol4(s->bedch));
+            std::memcpy(&buffer[m], &ffn, sizeof(float));
+            m += sizeof(float);
+        }
+
+        // reduce
+        pgc->gcsl_start4(p, s->reduce, 1);
+
+        iin = 4 * (p->pointnum);
+        std::memcpy(&buffer[m], &iin, sizeof(int));
+        m += sizeof(int);
+
+        TPLOOP
+        {
+            ffn = float(p->sl_ipol4(s->reduce));
+            std::memcpy(&buffer[m], &ffn, sizeof(float));
+            m += sizeof(float);
+        }
+
+        // threshold
+        iin = 4 * (p->pointnum);
+        std::memcpy(&buffer[m], &iin, sizeof(int));
+        m += sizeof(int);
+
+        TPLOOP
+        {
+            ffn = 0.0;
+
+            if(s->tau_eff(i, j) > s->tau_crit(i, j))
+                ffn = 1.0;
+            std::memcpy(&buffer[m], &ffn, sizeof(float));
+            m += sizeof(float);
+        }
+
+        // MOB
+        pgc->gcsl_start4(p, s->MOB, 1);
+
+        iin = 4 * (p->pointnum);
+        std::memcpy(&buffer[m], &iin, sizeof(int));
+        m += sizeof(int);
+
+        TPLOOP
+        {
+            ffn = float(p->sl_ipol4(s->MOB));
+            std::memcpy(&buffer[m], &ffn, sizeof(float));
+            m += sizeof(float);
+        }
+
+        // slide_fh
+        pgc->gcsl_start4(p, s->slide_fh, 1);
+
+        iin = 4 * (p->pointnum);
+        std::memcpy(&buffer[m], &iin, sizeof(int));
+        m += sizeof(int);
+
+        TPLOOP
+        {
+            ffn = float(p->sl_ipol4(s->slide_fh));
+            std::memcpy(&buffer[m], &ffn, sizeof(float));
+            m += sizeof(float);
+        }
     }
 
-    // reduce
-    pgc->gcsl_start4(p, s->reduce, 1);
-
-    iin = 4 * (p->pointnum2D);
-    result.write((char *)&iin, sizeof(int));
-
-    TPSLICELOOP
+    void sediment_f::name_ParaView_parallel_parameter2(lexer * p, ofstream & result)
     {
-        ffn = float(p->sl_ipol4(s->reduce));
-        result.write((char *)&ffn, sizeof(float));
+        result << "<PDataArray type=\"Float32\" Name=\"ST_dh\"/>\n";
+
+        result << "<PDataArray type=\"Float32\" Name=\"ST_bedch\"/>\n";
+
+        result << "<PDataArray type=\"Float32\" Name=\"ST_reduce\"/>\n";
+
+        result << "<PDataArray type=\"Float32\" Name=\"ST_threshold\"/>\n";
+
+        result << "<PDataArray type=\"Float32\" Name=\"ST_MOB\"/>\n";
+
+        result << "<PDataArray type=\"Float32\" Name=\"ST_slide_fh\"/>\n";
     }
 
-    // threshold
-    iin = 4 * (p->pointnum2D);
-    result.write((char *)&iin, sizeof(int));
-
-    TPSLICELOOP
+    void sediment_f::name_ParaView_parameter2(lexer * p, ostream & result, int *offset, int &n)
     {
-        ffn = 0.0;
-
-        if(s->tau_eff(i, j) > s->tau_crit(i, j))
-            ffn = 1.0;
-        result.write((char *)&ffn, sizeof(float));
+        result << "<DataArray type=\"Float32\" Name=\"ST_dh\" format=\"appended\" offset=\"" << offset[n] << "\"/>\n";
+        ++n;
+        result << "<DataArray type=\"Float32\" Name=\"ST_bedch\" format=\"appended\" offset=\"" << offset[n] << "\"/>\n";
+        ++n;
+        result << "<DataArray type=\"Float32\" Name=\"ST_reduce\" format=\"appended\" offset=\"" << offset[n] << "\"/>\n";
+        ++n;
+        result << "<DataArray type=\"Float32\" Name=\"ST_threshold\" format=\"appended\" offset=\"" << offset[n] << "\"/>\n";
+        ++n;
+        result << "<DataArray type=\"Float32\" Name=\"ST_MOB\" format=\"appended\" offset=\"" << offset[n] << "\"/>\n";
+        ++n;
+        result << "<DataArray type=\"Float32\" Name=\"ST_slide_fh\" format=\"appended\" offset=\"" << offset[n] << "\"/>\n";
+        ++n;
     }
 
-    // MOB
-    pgc->gcsl_start4(p, s->MOB, 1);
-
-    iin = 4 * (p->pointnum2D);
-    result.write((char *)&iin, sizeof(int));
-
-    TPSLICELOOP
+    void sediment_f::offset_ParaView_2D_parameter2(lexer * p, int *offset, int &n)
     {
-        ffn = float(p->sl_ipol4(s->MOB));
-        result.write((char *)&ffn, sizeof(float));
+        offset[n] = offset[n - 1] + 4 * (p->pointnum2D) + 4;
+        ++n;
+        offset[n] = offset[n - 1] + 4 * (p->pointnum2D) + 4;
+        ++n;
+        offset[n] = offset[n - 1] + 4 * (p->pointnum2D) + 4;
+        ++n;
+        offset[n] = offset[n - 1] + 4 * (p->pointnum2D) + 4;
+        ++n;
+        offset[n] = offset[n - 1] + 4 * (p->pointnum2D) + 4;
+        ++n;
+        offset[n] = offset[n - 1] + 4 * (p->pointnum2D) + 4;
+        ++n;
     }
 
-    // slide_fh
-    pgc->gcsl_start4(p, s->slide_fh, 1);
-
-    iin = 4 * (p->pointnum2D);
-    result.write((char *)&iin, sizeof(int));
-
-    TPSLICELOOP
+    void sediment_f::offset_ParaView_parameter2(lexer * p, int *offset, int &n)
     {
-        ffn = float(p->sl_ipol4(s->slide_fh));
-        result.write((char *)&ffn, sizeof(float));
+        offset[n] = offset[n - 1] + 4 * (p->pointnum) + 4;
+        ++n;
+        offset[n] = offset[n - 1] + 4 * (p->pointnum) + 4;
+        ++n;
+        offset[n] = offset[n - 1] + 4 * (p->pointnum) + 4;
+        ++n;
+        offset[n] = offset[n - 1] + 4 * (p->pointnum) + 4;
+        ++n;
+        offset[n] = offset[n - 1] + 4 * (p->pointnum) + 4;
+        ++n;
+        offset[n] = offset[n - 1] + 4 * (p->pointnum) + 4;
+        ++n;
     }
-}
-
-void sediment_f::print_3D_parameter2(lexer *p, ghostcell *pgc, std::vector<char> &buffer, size_t &m)
-{
-    float ffn;
-    int iin;
-
-    // dh,bedch,reduce,threshold,slide_fh
-
-    // dh
-    pgc->gcsl_start4(p, s->dh, 1);
-
-    iin = 4 * (p->pointnum);
-    std::memcpy(&buffer[m], &iin, sizeof(int));
-    m += sizeof(int);
-
-    TPLOOP
-    {
-        ffn = float(p->dtsed * p->sl_ipol4(s->dh));
-        std::memcpy(&buffer[m], &ffn, sizeof(float));
-        m += sizeof(float);
-    }
-
-    // bedchange
-    pgc->gcsl_start4(p, s->bedch, 1);
-
-    iin = 4 * (p->pointnum);
-    std::memcpy(&buffer[m], &iin, sizeof(int));
-    m += sizeof(int);
-
-    TPLOOP
-    {
-        ffn = float(p->sl_ipol4(s->bedch));
-        std::memcpy(&buffer[m], &ffn, sizeof(float));
-        m += sizeof(float);
-    }
-
-    // reduce
-    pgc->gcsl_start4(p, s->reduce, 1);
-
-    iin = 4 * (p->pointnum);
-    std::memcpy(&buffer[m], &iin, sizeof(int));
-    m += sizeof(int);
-
-    TPLOOP
-    {
-        ffn = float(p->sl_ipol4(s->reduce));
-        std::memcpy(&buffer[m], &ffn, sizeof(float));
-        m += sizeof(float);
-    }
-
-    // threshold
-    iin = 4 * (p->pointnum);
-    std::memcpy(&buffer[m], &iin, sizeof(int));
-    m += sizeof(int);
-
-    TPLOOP
-    {
-        ffn = 0.0;
-
-        if(s->tau_eff(i, j) > s->tau_crit(i, j))
-            ffn = 1.0;
-        std::memcpy(&buffer[m], &ffn, sizeof(float));
-        m += sizeof(float);
-    }
-
-    // MOB
-    pgc->gcsl_start4(p, s->MOB, 1);
-
-    iin = 4 * (p->pointnum);
-    std::memcpy(&buffer[m], &iin, sizeof(int));
-    m += sizeof(int);
-
-    TPLOOP
-    {
-        ffn = float(p->sl_ipol4(s->MOB));
-        std::memcpy(&buffer[m], &ffn, sizeof(float));
-        m += sizeof(float);
-    }
-
-    // slide_fh
-    pgc->gcsl_start4(p, s->slide_fh, 1);
-
-    iin = 4 * (p->pointnum);
-    std::memcpy(&buffer[m], &iin, sizeof(int));
-    m += sizeof(int);
-
-    TPLOOP
-    {
-        ffn = float(p->sl_ipol4(s->slide_fh));
-        std::memcpy(&buffer[m], &ffn, sizeof(float));
-        m += sizeof(float);
-    }
-}
-
-void sediment_f::name_ParaView_parallel_parameter2(lexer *p, ofstream &result)
-{
-    result << "<PDataArray type=\"Float32\" Name=\"ST_dh\"/>\n";
-
-    result << "<PDataArray type=\"Float32\" Name=\"ST_bedch\"/>\n";
-
-    result << "<PDataArray type=\"Float32\" Name=\"ST_reduce\"/>\n";
-
-    result << "<PDataArray type=\"Float32\" Name=\"ST_threshold\"/>\n";
-
-    result << "<PDataArray type=\"Float32\" Name=\"ST_MOB\"/>\n";
-
-    result << "<PDataArray type=\"Float32\" Name=\"ST_slide_fh\"/>\n";
-}
-
-void sediment_f::name_ParaView_parameter2(lexer *p, ostream &result, int *offset, int &n)
-{
-    result << "<DataArray type=\"Float32\" Name=\"ST_dh\" format=\"appended\" offset=\"" << offset[n] << "\"/>\n";
-    ++n;
-    result << "<DataArray type=\"Float32\" Name=\"ST_bedch\" format=\"appended\" offset=\"" << offset[n] << "\"/>\n";
-    ++n;
-    result << "<DataArray type=\"Float32\" Name=\"ST_reduce\" format=\"appended\" offset=\"" << offset[n] << "\"/>\n";
-    ++n;
-    result << "<DataArray type=\"Float32\" Name=\"ST_threshold\" format=\"appended\" offset=\"" << offset[n] << "\"/>\n";
-    ++n;
-    result << "<DataArray type=\"Float32\" Name=\"ST_MOB\" format=\"appended\" offset=\"" << offset[n] << "\"/>\n";
-    ++n;
-    result << "<DataArray type=\"Float32\" Name=\"ST_slide_fh\" format=\"appended\" offset=\"" << offset[n] << "\"/>\n";
-    ++n;
-}
-
-void sediment_f::offset_ParaView_2D_parameter2(lexer *p, int *offset, int &n)
-{
-    offset[n] = offset[n - 1] + 4 * (p->pointnum2D) + 4;
-    ++n;
-    offset[n] = offset[n - 1] + 4 * (p->pointnum2D) + 4;
-    ++n;
-    offset[n] = offset[n - 1] + 4 * (p->pointnum2D) + 4;
-    ++n;
-    offset[n] = offset[n - 1] + 4 * (p->pointnum2D) + 4;
-    ++n;
-    offset[n] = offset[n - 1] + 4 * (p->pointnum2D) + 4;
-    ++n;
-    offset[n] = offset[n - 1] + 4 * (p->pointnum2D) + 4;
-    ++n;
-}
-
-void sediment_f::offset_ParaView_parameter2(lexer *p, int *offset, int &n)
-{
-    offset[n] = offset[n - 1] + 4 * (p->pointnum) + 4;
-    ++n;
-    offset[n] = offset[n - 1] + 4 * (p->pointnum) + 4;
-    ++n;
-    offset[n] = offset[n - 1] + 4 * (p->pointnum) + 4;
-    ++n;
-    offset[n] = offset[n - 1] + 4 * (p->pointnum) + 4;
-    ++n;
-    offset[n] = offset[n - 1] + 4 * (p->pointnum) + 4;
-    ++n;
-    offset[n] = offset[n - 1] + 4 * (p->pointnum) + 4;
-    ++n;
-}

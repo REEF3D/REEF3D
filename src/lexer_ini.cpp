@@ -30,6 +30,7 @@ void lexer::lexer_ini()
     kinmax = 0.0;
     epsmax = 0.0;
     pressmax = 0.0;
+    pressmin = 1.0e9;
     omegamax = 0.0;
 
     utime = vtime = wtime = 0.0;
@@ -52,6 +53,11 @@ void lexer::lexer_ini()
     bedmin = bedmax = 0.0;
     solver_status = 0;
     solver_error = 0;
+
+    maxdt = mindt = 0.0;
+    wavetime = 0.0;
+    open_xm = open_xp = open_ym = open_yp = 0;
+    RK_alpha = 0.0;
 
     maxdt = mindt = 0.0;
     wavetime = 0.0;

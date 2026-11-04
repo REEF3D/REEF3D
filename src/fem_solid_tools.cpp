@@ -41,6 +41,32 @@ std::string upper(std::string s)
 }
 }  // namespace
 
+bool fem_solid::rebar_preset(const std::string &name_in, material &mt)
+{
+    // reinforcing steel, mean values like the concrete presets: f_y = 1.1 f_yk,
+    // tensile strength k f_y and rupture at the strain at maximum force eps_uk
+    // (EN 1992-1-1 Annex C; ASTM A615 Grade 60: f_yk 420 MPa, f_u / f_y 1.5, 9 %)
+    const std::string name = upper(name_in);
+    struct row
+    {
+        const char *n;
+        double fyk, k, eu;
+    };
+    static const row tab[] = {{"B500A", 500, 1.05, 0.025}, {"B500B", 500, 1.08, 0.05}, {"B500C", 500, 1.15, 0.075}, {"GR60", 420, 1.5, 0.09}};
+    for(const row &r : tab)
+        if(name == r.n)
+        {
+            mt.sname = r.n;
+            mt.sE = 2.0e11;
+            mt.sfy = 1.1 * r.fyk * 1.0e6;
+            mt.seu = r.eu;
+            const double fu = r.k * mt.sfy;
+            mt.sH = (fu - mt.sfy) / (r.eu - fu / mt.sE);
+            return true;
+        }
+    return false;
+}
+
 bool fem_solid::preset(const std::string &type, const std::string &name_in, material &mt)
 {
     const std::string name = upper(name_in);
@@ -446,6 +472,7 @@ void fem_solid::update_utilisation()
     {
         element &el = elems[e];
         el.util = -1.0;
+        el.sutil = -1.0;
         if(!el.alive)
             continue;
 
@@ -456,9 +483,10 @@ void fem_solid::update_utilisation()
         const egeom &G = geom(el);
         double u = 0.0;
 
-        for(int g = 0; g < ngp; ++g)
+        const int ng = ngauss(e);
+        for(int g = 0; g < ng; ++g)
         {
-            const double (*dN)[3] = (ngp == 1) ? G.dN0 : G.dNg[g];
+            const double (*dN)[3] = (ng == 1) ? G.dN0 : G.dNg[g];
             Mat3 F = Mat3::Zero();
             for(int a = 0; a < 8; ++a)
                 for(int i = 0; i < 3; ++i)
@@ -469,472 +497,588 @@ void fem_solid::update_utilisation()
             if(Jd <= 0.0)
                 continue;
 
-            Mat3 E = 0.5 * (F.transpose() * F - I);
-            const gpstate &st = gps[e * ngp + g];
-            Mat3 S;
-
-            if(mt.type == MAT_J2)
-            {
-                Mat3 Ep;
-                Ep << st.Ep[0], st.Ep[3], st.Ep[5],
-                    st.Ep[3], st.Ep[1], st.Ep[4],
-                    st.Ep[5], st.Ep[4], st.Ep[2];
-                const Mat3 Ee = E - Ep;
-                S = mt.lambda * Ee.trace() * I + 2.0 * mt.mu * Ee;
-            }
-            else
-                S = (1.0 - st.d) * (mt.lambda * E.trace() * I + 2.0 * mt.mu * E);
-
-            const Mat3 sig = F * S * F.transpose() / Jd;
-
-            if(mt.type == MAT_J2)
-            {
-                const Mat3 dev = sig - sig.trace() / 3.0 * I;
-                const double svm = std::sqrt(1.5 * (dev.array() * dev.array()).sum());
-                if(mt.sigy > 0.0)
-                    u = std::max(u, svm / mt.sigy);
-            }
-            else
-            {
-                Eigen::SelfAdjointEigenSolver<Mat3> es;
-                es.computeDirect(sig, Eigen::EigenvaluesOnly);
-                const Eigen::Vector3d sp = es.eigenvalues();
-                if(mt.ft > 0.0)
-                    u = std::max(u, sp(2) / mt.ft);
-                if(mt.fc > 0.0)
-                    u = std::max(u, -sp(0) / mt.fc);
-            }
-        }
-        el.util = u;
-    }
-}
-
-double fem_solid::max_utilisation(int *elem) const
-{
-    double u = -1.0;
-    int best = -1;
-    for(int e = 0; e < nelem(); ++e)
-        if(elems[e].alive && elems[e].util > u)
-        {
-            u = elems[e].util;
-            best = e;
-        }
-    if(elem)
-        *elem = best;
-    return u;
-}
-
-double fem_solid::max_damage(int *elem) const
-{
-    double d = 0.0;
-    int best = -1;
-    for(int e = 0; e < nelem(); ++e)
-        for(int g = 0; g < ngp; ++g)
-            if(gps[e * ngp + g].d > d)
-            {
-                d = gps[e * ngp + g].d;
-                best = e;
-            }
-    if(elem)
-        *elem = best;
-    return d;
-}
-
-double fem_solid::max_plastic_strain(int *elem) const
-{
-    double p = 0.0;
-    int best = -1;
-    for(int e = 0; e < nelem(); ++e)
-        for(int g = 0; g < ngp; ++g)
-            if(gps[e * ngp + g].ep > p)
-            {
-                p = gps[e * ngp + g].ep;
-                best = e;
-            }
-    if(elem)
-        *elem = best;
-    return p;
-}
-
-fem_solid::Vec3 fem_solid::elem_centre(int e) const
-{
-    Vec3 c = Vec3::Zero();
-    for(int a = 0; a < 8; ++a)
-        c += x[elems[e].n[a]];
-    return c / 8.0;
-}
-
-fem_solid::Vec3 fem_solid::support_moment() const
-{
-    Vec3 M = Vec3::Zero();
-    for(int i = 0; i < nnode(); ++i)
-        if(fixed[i])
-        {
-            Vec3 r = fext[i] + fcon[i] + fcpl[i] + (m[i] - mfl[i]) * grav - fint[i];
-            for(int d = 0; d < 3; ++d)
-                if(!(fixed[i] & (1 << d)))
-                    r(d) = 0.0;
-            M += (X[i] - base_c).cross(r);
-        }
-    return M;
-}
-
-double fem_solid::eroded_mass_fraction() const
-{
-    double me = 0.0, mt = 0.0;
-    for(const element &e : elems)
-    {
-        const double mm = mats[e.mat].rho * geom(e).V;
-        mt += mm;
-        if(!e.alive)
-            me += mm;
-    }
-    return mt > 0.0 ? me / mt : 0.0;
-}
-
-double fem_solid::fragment_mass_fraction() const
-{
-    double mf = 0.0, mt = 0.0;
-    for(const element &e : elems)
-    {
-        const double mm = mats[e.mat].rho * geom(e).V;
-        mt += mm;
-        if(e.alive && e.rigid && !rnode.empty() && rnode[e.n[0]] >= 0 && rbs[rnode[e.n[0]]].fragment)
-            mf += mm;
-    }
-    return mt > 0.0 ? mf / mt : 0.0;
-}
-
-// ----------------------------------------------------------------------
-// check mode
-// ----------------------------------------------------------------------
-
-fem_solid::check_info fem_solid::check()
-{
-    check_info ci;
-
-    ci.lo = Vec3::Constant(1.0e300);
-    ci.hi = Vec3::Constant(-1.0e300);
-    for(int i = 0; i < nnode(); ++i)
-    {
-        ci.mass += m[i];
-        ci.cog += m[i] * X[i];
-        ci.lo = ci.lo.cwiseMin(X[i]);
-        ci.hi = ci.hi.cwiseMax(X[i]);
-        if(fixed[i])
-            ++ci.nfixed;
-    }
-    ci.cog /= ci.mass;
-    for(const element &e : elems)
-        ci.volume += geom(e).V;
-
-    for(const face &f : faces)
-        ci.surface_area += 0.5 * ((X[f.n[2]] - X[f.n[0]]).cross(X[f.n[3]] - X[f.n[1]])).norm();
-
-    // one element thick parts: exposed faces on opposite sides
-    {
-        static const int off[6][3] = {{-1, 0, 0}, {1, 0, 0}, {0, -1, 0}, {0, 1, 0}, {0, 0, -1}, {0, 0, 1}};
-        int nsurf = 0, nthin = 0;
-        for(const element &el : elems)
-        {
-            bool ex[6];
-            bool any = false;
-            for(int f = 0; f < 6; ++f)
-            {
-                const int nb = voxel(el.ix + off[f][0], el.iy + off[f][1], el.iz + off[f][2]);
-                ex[f] = (nb < 0 || vox_elem[nb] < 0);
-                any = any || ex[f];
-            }
-            if(!any)
+            const material &mt = mats[el.mat];
+            if(mt.type == MAT_ELASTIC)
                 continue;
-            ++nsurf;
-            const bool thinx = ex[0] && ex[1], thiny = !plane_strain && ex[2] && ex[3], thinz = ex[4] && ex[5];
-            if(thinx || thiny || thinz)
-                ++nthin;
-        }
-        ci.thin_fraction = nsurf > 0 ? double(nthin) / double(nsurf) : 0.0;
-    }
 
-    // warnings that need no simulation
-    if(ci.thin_fraction > 0.1)
-    {
-        std::ostringstream os;
-        os << "about " << int(100.0 * ci.thin_fraction + 0.5) << " % of the surface elements belong to parts that are only one element thick: "
-                                                                 "bending stiffness and stresses there are inaccurate, use 'resolution fine' or a smaller lattice spacing";
-        ci.warnings.push_back(os.str());
-    }
-    if(ci.nfixed == 0 && !ground_on)
-        ci.warnings.push_back("the structure has no supports ('fix base', 'fix bed' or a fix box) and no ground: it will fall or drift");
-    for(const material &mt : mats)
-        if(mt.type == MAT_CONCRETE && mt.ft > 0.0)
-        {
-            double hmax = 0.0;
-            for(const element &e : elems)
-                if(e.mat >= 0 && &mats[e.mat] == &mt)
-                    hmax = std::max(hmax, geom(e).h);
-            const double hlim = 2.0 * mt.E * mt.Gf / (mt.ft * mt.ft);
-            if(hmax > 0.5 * hlim)
+            const egeom &G = geom(el);
+            double u = 0.0;
+
+            for(int g = 0; g < ngp; ++g)
             {
-                std::ostringstream os;
-                os << "material " << mt.id << " (" << mt.name << "): elements of " << hmax << " m are more than half of the crack-band limit " << hlim << " m, cracking will be brittle";
-                ci.warnings.push_back(os.str());
+                const double (*dN)[3] = (ngp == 1) ? G.dN0 : G.dNg[g];
+                Mat3 F = Mat3::Zero();
+                for(int a = 0; a < 8; ++a)
+                    for(int i = 0; i < 3; ++i)
+                        for(int J = 0; J < 3; ++J)
+                            F(i, J) += x[el.n[a]](i) * dN[a][J];
+
+                const double Jd = F.determinant();
+                if(Jd <= 0.0)
+                    continue;
+
+                Mat3 E = 0.5 * (F.transpose() * F - I);
+                const gpstate &st = gps[e * ngp + g];
+                Mat3 S;
+
+                if(mt.type == MAT_J2)
+                {
+                    Mat3 Ep;
+                    Ep << st.Ep[0], st.Ep[3], st.Ep[5],
+                        st.Ep[3], st.Ep[1], st.Ep[4],
+                        st.Ep[5], st.Ep[4], st.Ep[2];
+                    const Mat3 Ee = E - Ep;
+                    S = mt.lambda * Ee.trace() * I + 2.0 * mt.mu * Ee;
+                }
+                else if(mt.type == MAT_CONCRETE && mt.reinforced())
+                {
+                    // reinforced concrete: unilateral damage as in stress()
+                    const Mat3 S0 = mt.lambda * E.trace() * I + 2.0 * mt.mu * E;
+                    double dt = 0.0, dc = 0.0;
+                    if(mt.ft > 0.0)
+                    {
+                        const double e0 = mt.ft / mt.E;
+                        dt = damage_exp(st.kt, e0, 0.5 * e0 + mt.Gf / (mt.ft * G.h));
+                    }
+                    if(mt.fc > 0.0)
+                    {
+                        const double e0 = mt.fc / mt.E;
+                        dc = damage_exp(st.kc, e0, 0.5 * e0 + mt.Gc / (mt.fc * G.h));
+                    }
+                    Eigen::SelfAdjointEigenSolver<Mat3> ev;
+                    ev.computeDirect(S0, Eigen::ComputeEigenvectors);
+                    S.setZero();
+                    for(int i = 0; i < 3; ++i)
+                    {
+                        const double si = ev.eigenvalues()(i);
+                        S += (si > 0.0 ? (1.0 - dt) * si : (1.0 - dc) * si) * ev.eigenvectors().col(i) * ev.eigenvectors().col(i).transpose();
+                    }
+                }
+                else
+                    S = (1.0 - st.d) * (mt.lambda * E.trace() * I + 2.0 * mt.mu * E);
+
+                const Mat3 sig = F * S * F.transpose() / Jd;
+
+                if(mt.type == MAT_J2)
+                {
+                    const Mat3 dev = sig - sig.trace() / 3.0 * I;
+                    const double svm = std::sqrt(1.5 * (dev.array() * dev.array()).sum());
+                    if(mt.sigy > 0.0)
+                        u = std::max(u, svm / mt.sigy);
+                }
+                else
+                {
+                    Eigen::SelfAdjointEigenSolver<Mat3> es;
+                    es.computeDirect(sig, Eigen::EigenvaluesOnly);
+                    const Eigen::Vector3d sp = es.eigenvalues();
+                    if(mt.ft > 0.0)
+                        u = std::max(u, sp(2) / mt.ft);
+                    if(mt.fc > 0.0)
+                        u = std::max(u, -sp(0) / mt.fc);
+                }
+
+                // bars: |sigma_s| / f_y (ruptured bars: 0)
+                if(el.reinforced() && mt.type == MAT_CONCRETE)
+                {
+                    if(el.sutil < 0.0)
+                        el.sutil = 0.0;
+                    for(int k = 0; k < 3; ++k)
+                        if(el.rs[k] > 0.0 && !(st.sfail & (1u << k)))
+                        {
+                            const double ss = mt.sE * (E(k, k) - st.es[k]);
+                            el.sutil = std::max(el.sutil, std::fabs(ss) / mt.sfy);
+                        }
+                }
             }
+            el.util = u;
         }
-    if(nelem() > 200000)
-        ci.warnings.push_back("more than 200000 elements: the solid is computed on every rank, expect it to dominate the run time");
-
-    // keep the initial state
-    const std::vector<Vec3> x0 = x;
-    const std::vector<gpstate> g0 = gps;
-    const std::vector<element> e0 = elems;
-    const Vec3 grav0 = grav;
-    const double wdiss0 = wdiss;
-
-    // self weight
-    if(ci.nfixed > 0 || ground_on)
-    {
-        double res;
-        ci.settled = settle(200000, 1.0e-4, &res, !ground_on);
-        std::fill(fint.begin(), fint.end(), Vec3::Zero());
-        std::fill(fcon.begin(), fcon.end(), Vec3::Zero());
-        internal_forces(cfl * (dtcrit_el < 1.0e30 ? dtcrit_el : dtcrit));
-        ci.sw_maxdisp = max_displacement();
-        ci.sw_maxvm = max_vonmises();
-        update_utilisation();
-        ci.sw_maxutil = max_utilisation();
-        ci.sw_support = support_force();
-        if(!ci.settled)
-            ci.warnings.push_back("the structure did not reach equilibrium under its own weight within 200000 steps (very soft or not stable)");
-        if(n_eroded() > 0)
-            ci.warnings.push_back("elements fail under the self weight alone");
-
-        x = x0;
-        gps = g0;
-        elems = e0;
-        wdiss = wdiss0;
-        build_surface();
-        count_bodies();
     }
 
-    // first natural frequencies (Rayleigh, static deflection under 1 g in each direction)
-    if(ci.nfixed > 0)
-        rayleigh_frequencies(ci.freq, ci.freq_ok);
-    grav = grav0;
-    std::fill(v.begin(), v.end(), Vec3::Zero());
-
-    return ci;
-}
-
-void fem_solid::write_check(std::ostream &os, const check_info &ci) const
-{
-    os << std::setprecision(4);
-    os << "FEM check\n";
-    os << "  mesh:        " << nelem() << " hex8 elements (" << (ngp == 8 ? "full" : "reduced") << " integration), " << nnode() << " nodes, "
-       << geos.size() << " elements snapped to the surface, element size " << hx << " x " << hy << " x " << hz << " m\n";
-    os << "  extent:      x " << ci.lo(0) << " .. " << ci.hi(0) << "   y " << ci.lo(1) << " .. " << ci.hi(1) << "   z " << ci.lo(2) << " .. " << ci.hi(2) << " m\n";
-    os << "  volume:      " << ci.volume << " m3,  mass " << ci.mass << " kg,  weight " << ci.mass * grav.norm() / 1000.0 << " kN\n";
-    os << "  centre of gravity: " << ci.cog(0) << " " << ci.cog(1) << " " << ci.cog(2) << " m\n";
-    os << "  surface:     " << ci.surface_area << " m2\n";
-    for(const material &mt : mats)
+    double fem_solid::max_steel_utilisation(int *elem) const
     {
-        double vol = 0.0;
+        double u = -1.0;
+        int best = -1;
+        for(int e = 0; e < nelem(); ++e)
+            if(elems[e].alive && elems[e].sutil > u)
+            {
+                u = elems[e].sutil;
+                best = e;
+            }
+        if(elem)
+            *elem = best;
+        return u;
+    }
+
+    bool fem_solid::steel_yielded(int *elem) const
+    {
+        for(int e = 0; e < nelem(); ++e)
+            if(elems[e].reinforced())
+                for(int g = 0; g < ngauss(e); ++g)
+                {
+                    const gpstate &st = gps[e * ngp + g];
+                    if(std::fabs(st.es[0]) + std::fabs(st.es[1]) + std::fabs(st.es[2]) > 0.0)
+                    {
+                        if(elem)
+                            *elem = e;
+                        return true;
+                    }
+                }
+        return false;
+    }
+
+    int fem_solid::bars_ruptured() const
+    {
+        int n = 0;
+        for(int e = 0; e < nelem(); ++e)
+            if(elems[e].reinforced())
+                for(int g = 0; g < ngauss(e); ++g)
+                    if(gps[e * ngp + g].sfail)
+                        ++n;
+        return n;
+    }
+
+    bool fem_solid::any_reinforcement() const
+    {
+        for(const element &el : elems)
+            if(el.reinforced())
+                return true;
+        return false;
+    }
+
+    double fem_solid::max_utilisation(int *elem) const
+    {
+        double u = -1.0;
+        int best = -1;
+        for(int e = 0; e < nelem(); ++e)
+            if(elems[e].alive && elems[e].util > u)
+            {
+                u = elems[e].util;
+                best = e;
+            }
+        if(elem)
+            *elem = best;
+        return u;
+    }
+
+    double fem_solid::max_damage(int *elem) const
+    {
+        double d = 0.0;
+        int best = -1;
+        for(int e = 0; e < nelem(); ++e)
+            for(int g = 0; g < ngauss(e); ++g)
+                if(gps[e * ngp + g].d > d)
+                {
+                    d = gps[e * ngp + g].d;
+                    best = e;
+                }
+        if(elem)
+            *elem = best;
+        return d;
+    }
+
+    double fem_solid::max_plastic_strain(int *elem) const
+    {
+        double p = 0.0;
+        int best = -1;
+        for(int e = 0; e < nelem(); ++e)
+            for(int g = 0; g < ngauss(e); ++g)
+                if(gps[e * ngp + g].ep > p)
+                {
+                    p = gps[e * ngp + g].ep;
+                    best = e;
+                }
+        if(elem)
+            *elem = best;
+        return p;
+    }
+
+    fem_solid::Vec3 fem_solid::elem_centre(int e) const
+    {
+        Vec3 c = Vec3::Zero();
+        for(int a = 0; a < 8; ++a)
+            c += x[elems[e].n[a]];
+        return c / 8.0;
+    }
+
+    fem_solid::Vec3 fem_solid::support_moment() const
+    {
+        Vec3 M = Vec3::Zero();
+        for(int i = 0; i < nnode(); ++i)
+            if(fixed[i])
+            {
+                Vec3 r = fext[i] + fcon[i] + fcpl[i] + (m[i] - mfl[i]) * grav - fint[i];
+                for(int d = 0; d < 3; ++d)
+                    if(!(fixed[i] & (1 << d)))
+                        r(d) = 0.0;
+                M += (X[i] - base_c).cross(r);
+            }
+        return M;
+    }
+
+    double fem_solid::eroded_mass_fraction() const
+    {
+        double me = 0.0, mt = 0.0;
         for(const element &e : elems)
-            if(&mats[e.mat] == &mt)
-                vol += geom(e).V;
-        os << "  material " << mt.id << ":  " << (mt.name.empty() ? std::string("custom") : mt.name) << ", " << vol << " m3, rho " << mt.rho << " kg/m3, E " << mt.E / 1.0e9 << " GPa";
-        if(mt.type == MAT_J2)
-            os << ", yield " << mt.sigy / 1.0e6 << " MPa";
-        if(mt.type == MAT_CONCRETE)
-            os << ", tension " << mt.ft / 1.0e6 << " MPa, compression " << mt.fc / 1.0e6 << " MPa";
-        os << "\n";
-    }
-    os << "  supports:    " << ci.nfixed << " nodes";
-    if(ci.nfixed > 0)
-        os << ", base centre " << base_c(0) << " " << base_c(1) << " " << base_c(2) << " m";
-    os << (ground_on ? ", ground contact on" : "") << "\n";
-    if(!rbs.empty())
-    {
-        os << "  rigid bodies: " << rbs.size() << " (move as rigid bodies, loads from the outer pressure)\n";
-        for(size_t k = 0; k < rbs.size() && k < 20; ++k)
         {
-            const rigid_body &rb = rbs[k];
-            const double rho = rb.M / std::max(rb.Vol, 1.0e-30);
-            os << "     " << k + 1 << ": mass " << rb.M << " kg, volume " << rb.Vol << " m3, density " << rho << " kg/m3, centre " << rb.c0.transpose()
-               << (rho < 1000.0 ? "  (floats in water)" : "") << "\n";
-            const char *src[4] = {"given", "axial bar E A / L", "E = rho c^2 from rigid_contact_speed, set 'stiffness' for a physical value", "fragment of the structure: bar E A / L"};
-            os << "        impact: stiffness " << rb.k << " N/m (" << src[rb.ksrc] << (rb.ksrc == 1 ? ", L = " + std::to_string(rb.Lbar) + " m" : std::string("")) << "), "
-               << "duration pi sqrt(M/k) " << 1000.0 * 3.14159265358979 * std::sqrt(rb.M / rb.k) << " ms, force u sqrt(k M) " << std::sqrt(rb.k * rb.M) / 1000.0 << " kN per m/s";
-            if(rb.Fcap > 0.0)
-                os << ", crushing at " << rb.Fcap / 1000.0 << " kN";
-            os << "\n";
+            const double mm = mats[e.mat].rho * geom(e).V;
+            mt += mm;
+            if(!e.alive)
+                me += mm;
         }
-        os << "     debris contact damping " << 100.0 * debris_zeta << " % of critical\n";
-        if(rbs.size() > 20)
-            os << "     ... " << rbs.size() - 20 << " more\n";
+        return mt > 0.0 ? me / mt : 0.0;
     }
-    if(dtcrit_el < 1.0e30)
-        os << "  time step:   " << dtcrit_el * cfl << " s (solid)\n";
-    if(dtcrit_rig < 1.0e30)
-        os << "  time step:   " << dtcrit_rig * cfl << " s (rigid-body impact, used while a body is close to a wall, the bed or another body)\n";
-    if(ci.nfixed > 0 || ground_on)
+
+    double fem_solid::fragment_mass_fraction() const
     {
-        os << "  self weight: " << (ci.settled ? "in equilibrium" : "NOT in equilibrium") << ", max displacement " << ci.sw_maxdisp * 1000.0 << " mm, max von Mises " << ci.sw_maxvm / 1.0e6 << " MPa";
-        if(ci.sw_maxutil >= 0.0)
-            os << ", max utilisation " << ci.sw_maxutil;
-        os << "\n               support force " << ci.sw_support.transpose() / 1000.0 << " kN (weight " << ci.mass * grav.norm() / 1000.0 << " kN)\n";
+        double mf = 0.0, mt = 0.0;
+        for(const element &e : elems)
+        {
+            const double mm = mats[e.mat].rho * geom(e).V;
+            mt += mm;
+            if(e.alive && e.rigid && !rnode.empty() && rnode[e.n[0]] >= 0 && rbs[rnode[e.n[0]]].fragment)
+                mf += mm;
+        }
+        return mt > 0.0 ? mf / mt : 0.0;
     }
-    const char *dn[3] = {"x", "y", "z"};
-    for(int d = 0; d < 3; ++d)
-        if(ci.freq_ok[d])
-            os << "  first natural frequency in " << dn[d] << " (Rayleigh, dry): " << ci.freq[d] << " Hz,  period " << 1.0 / ci.freq[d] << " s\n";
+
+    // ----------------------------------------------------------------------
+    // check mode
+    // ----------------------------------------------------------------------
+
+    fem_solid::check_info fem_solid::check()
     {
-        double f1 = 0.0;
-        for(int d = 0; d < 3; ++d)
-            if(ci.freq_ok[d] && (f1 == 0.0 || ci.freq[d] < f1))
-                f1 = ci.freq[d];
-        if(zeta > 0.0 && f1 > 0.0)
-            os << "  structural damping: " << 100.0 * zeta << " % of critical at " << f1 << " Hz (less for higher modes, rigid motion undamped)\n";
-        else if(zeta > 0.0)
-            os << "  structural damping: " << 100.0 * zeta << " % requested, but no natural frequency (no supports): not applied\n";
-        else
-            os << "  structural damping: off\n";
-    }
-    if(ci.warnings.empty())
-        os << "  no warnings\n";
-    for(const std::string &w : ci.warnings)
-        os << "  WARNING: " << w << "\n";
-}
+        check_info ci;
 
-// ----------------------------------------------------------------------
-// first natural frequencies: Rayleigh quotient of the static deflection
-// under 1 g in each direction (supports needed), state restored
-// ----------------------------------------------------------------------
-
-void fem_solid::rayleigh_frequencies(double f[3], bool ok[3])
-{
-    const std::vector<Vec3> x0 = x, v0 = v, fe0 = fext;
-    const std::vector<gpstate> g0 = gps;
-    const std::vector<element> e0 = elems;
-    const Vec3 grav0 = grav;
-    const double wdiss0 = wdiss;
-    const int ne0 = n_eroded();
-    const std::vector<material> m0 = mats;
-
-    // linear-elastic stiffness: no cracking, yielding or erosion under the test load
-    std::fill(fext.begin(), fext.end(), Vec3::Zero());
-    for(material &mt : mats)
-        mt.type = MAT_ELASTIC;
-
-    for(int d = 0; d < 3; ++d)
-    {
-        f[d] = 0.0;
-        ok[d] = false;
-        if(plane_strain && d == 1)
-            continue;
-
-        // from the undeformed state: deflection under 1 g only
-        x = X;
-        grav = Vec3::Zero();
-        grav(d) = 9.81;
-        const bool conv = settle(200000, 1.0e-5, nullptr, true);
-        double num = 0.0, den = 0.0;
+        ci.lo = Vec3::Constant(1.0e300);
+        ci.hi = Vec3::Constant(-1.0e300);
         for(int i = 0; i < nnode(); ++i)
         {
-            const Vec3 u = x[i] - X[i];
-            num += m[i] * 9.81 * u(d);
-            den += m[i] * u.squaredNorm();
+            ci.mass += m[i];
+            ci.cog += m[i] * X[i];
+            ci.lo = ci.lo.cwiseMin(X[i]);
+            ci.hi = ci.hi.cwiseMax(X[i]);
+            if(fixed[i])
+                ++ci.nfixed;
         }
-        if(conv && den > 0.0 && num > 0.0 && n_eroded() == ne0)
+        ci.cog /= ci.mass;
+        for(const element &e : elems)
+            ci.volume += geom(e).V;
+
+        for(const face &f : faces)
+            ci.surface_area += 0.5 * ((X[f.n[2]] - X[f.n[0]]).cross(X[f.n[3]] - X[f.n[1]])).norm();
+
+        // one element thick parts: exposed faces on opposite sides
         {
-            f[d] = std::sqrt(num / den) / (2.0 * 3.14159265358979);
-            ok[d] = true;
-        }
-        x = x0;
-        gps = g0;
-        elems = e0;
-        wdiss = wdiss0;
-        build_surface();
-        count_bodies();
-    }
-    grav = grav0;
-    v = v0;
-    fext = fe0;
-    mats = m0;
-}
-
-void fem_solid::prepare_damping()
-{
-    alpha_struct = 0.0;
-    f_damp = 0.0;
-    if(zeta <= 0.0 || !has_supports())
-        return;
-
-    double f[3];
-    bool ok[3];
-    rayleigh_frequencies(f, ok);
-    for(int d = 0; d < 3; ++d)
-        if(ok[d] && (f_damp == 0.0 || f[d] < f_damp))
-            f_damp = f[d];
-
-    // mass-proportional on the deformation: ratio zeta at the first frequency,
-    // less for the higher modes (bulk viscosity takes care of those)
-    if(f_damp > 0.0)
-        alpha_struct = 2.0 * zeta * 2.0 * 3.14159265358979 * f_damp;
-}
-
-void fem_solid::rigid_velocity(std::vector<Vec3> &vr) const
-{
-    // supported bodies: rest, free bodies: translation + rotation fitted to
-    // their momentum and angular momentum
-    vr.assign(nnode(), Vec3::Zero());
-    const int nb = (int)body_fixed.size();
-    std::vector<double> M(nb, 0.0);
-    std::vector<Vec3> P(nb, Vec3::Zero()), C(nb, Vec3::Zero());
-    for(int i = 0; i < nnode(); ++i)
-    {
-        const int b = body[i];
-        if(b < 0 || body_fixed[b])
-            continue;
-        M[b] += m[i];
-        P[b] += m[i] * v[i];
-        C[b] += m[i] * x[i];
-    }
-    std::vector<Vec3> L(nb, Vec3::Zero());
-    std::vector<Eigen::Matrix3d> J(nb, Eigen::Matrix3d::Zero());
-    for(int b = 0; b < nb; ++b)
-        if(M[b] > 0.0)
-            C[b] /= M[b];
-    for(int i = 0; i < nnode(); ++i)
-    {
-        const int b = body[i];
-        if(b < 0 || body_fixed[b] || M[b] <= 0.0)
-            continue;
-        const Vec3 r = x[i] - C[b];
-        L[b] += m[i] * r.cross(v[i]);
-        J[b] += m[i] * (r.squaredNorm() * Eigen::Matrix3d::Identity() - r * r.transpose());
-    }
-    std::vector<Vec3> W(nb, Vec3::Zero());
-    for(int b = 0; b < nb; ++b)
-        if(M[b] > 0.0 && !body_fixed[b])
-        {
-            Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> es(J[b]);
-            const Eigen::Vector3d lam = es.eigenvalues();
-            const double lmax = lam.maxCoeff();
-            Eigen::Vector3d inv;
-            for(int k = 0; k < 3; ++k)
-                inv(k) = lam(k) > 1.0e-9 * lmax ? 1.0 / lam(k) : 0.0;
-            W[b] = es.eigenvectors() * inv.asDiagonal() * es.eigenvectors().transpose() * L[b];
-            if(plane_strain)
+            static const int off[6][3] = {{-1, 0, 0}, {1, 0, 0}, {0, -1, 0}, {0, 1, 0}, {0, 0, -1}, {0, 0, 1}};
+            int nsurf = 0, nthin = 0;
+            for(const element &el : elems)
             {
-                W[b](0) = 0.0;
-                W[b](2) = 0.0;
+                bool ex[6];
+                bool any = false;
+                for(int f = 0; f < 6; ++f)
+                {
+                    const int nb = voxel(el.ix + off[f][0], el.iy + off[f][1], el.iz + off[f][2]);
+                    ex[f] = (nb < 0 || vox_elem[nb] < 0);
+                    any = any || ex[f];
+                }
+                if(!any)
+                    continue;
+                ++nsurf;
+                const bool thinx = ex[0] && ex[1], thiny = !plane_strain && ex[2] && ex[3], thinz = ex[4] && ex[5];
+                if(thinx || thiny || thinz)
+                    ++nthin;
             }
+            ci.thin_fraction = nsurf > 0 ? double(nthin) / double(nsurf) : 0.0;
         }
-    for(int i = 0; i < nnode(); ++i)
-    {
-        const int b = body[i];
-        if(b < 0 || body_fixed[b] || M[b] <= 0.0)
-            continue;
-        vr[i] = P[b] / M[b] + W[b].cross(x[i] - C[b]);
+
+        // warnings that need no simulation
+        if(ci.thin_fraction > 0.1)
+        {
+            std::ostringstream os;
+            os << "about " << int(100.0 * ci.thin_fraction + 0.5) << " % of the surface elements belong to parts that are only one element thick: "
+                                                                     "bending stiffness and stresses there are inaccurate, use 'resolution fine' or a smaller lattice spacing";
+            ci.warnings.push_back(os.str());
+        }
+        if(ci.nfixed == 0 && !ground_on)
+            ci.warnings.push_back("the structure has no supports ('fix base', 'fix bed' or a fix box) and no ground: it will fall or drift");
+        for(const material &mt : mats)
+            if(mt.type == MAT_CONCRETE && mt.ft > 0.0)
+            {
+                double hmax = 0.0;
+                for(const element &e : elems)
+                    if(e.mat >= 0 && &mats[e.mat] == &mt)
+                        hmax = std::max(hmax, geom(e).h);
+                const double hlim = 2.0 * mt.E * mt.Gf / (mt.ft * mt.ft);
+                if(hmax > 0.5 * hlim)
+                {
+                    std::ostringstream os;
+                    os << "material " << mt.id << " (" << mt.name << "): elements of " << hmax << " m are more than half of the crack-band limit " << hlim << " m, cracking will be brittle";
+                    ci.warnings.push_back(os.str());
+                }
+            }
+        if(nelem() > 200000)
+            ci.warnings.push_back("more than 200000 elements: the solid is computed on every rank, expect it to dominate the run time");
+
+        // keep the initial state
+        const std::vector<Vec3> x0 = x;
+        const std::vector<gpstate> g0 = gps;
+        const std::vector<element> e0 = elems;
+        const Vec3 grav0 = grav;
+        const double wdiss0 = wdiss;
+        const std::vector<double> wde0 = wde;
+
+        // self weight
+        if(ci.nfixed > 0 || ground_on)
+        {
+            double res;
+            ci.settled = settle(200000, 1.0e-4, &res, !ground_on);
+            std::fill(fint.begin(), fint.end(), Vec3::Zero());
+            std::fill(fcon.begin(), fcon.end(), Vec3::Zero());
+            internal_forces(cfl * (dtcrit_el < 1.0e30 ? dtcrit_el : dtcrit));
+            ci.sw_maxdisp = max_displacement();
+            ci.sw_maxvm = max_vonmises();
+            update_utilisation();
+            ci.sw_maxutil = max_utilisation();
+            ci.sw_support = support_force();
+            if(!ci.settled)
+                ci.warnings.push_back("the structure did not reach equilibrium under its own weight within 200000 steps (very soft or not stable)");
+            if(n_eroded() > 0)
+                ci.warnings.push_back("elements fail under the self weight alone");
+
+            x = x0;
+            gps = g0;
+            elems = e0;
+            wdiss = wdiss0;
+            wde = wde0;
+            act_dirty = true;
+            build_surface();
+            count_bodies();
+        }
+
+        // first natural frequencies (Rayleigh, static deflection under 1 g in each direction)
+        if(ci.nfixed > 0)
+            rayleigh_frequencies(ci.freq, ci.freq_ok);
+        grav = grav0;
+        std::fill(v.begin(), v.end(), Vec3::Zero());
+
+        return ci;
     }
-}
+
+    void fem_solid::write_check(std::ostream & os, const check_info &ci) const
+    {
+        os << std::setprecision(4);
+        os << "FEM check\n";
+        os << "  mesh:        " << nelem() << " hex8 elements (" << (full_int == 1 ? "full" : full_int == 2 ? "adaptive"
+                                                                                                            : "reduced")
+           << " integration), " << nnode() << " nodes, "
+           << geos.size() << " elements snapped to the surface, element size " << hx << " x " << hy << " x " << hz << " m\n";
+        os << "  extent:      x " << ci.lo(0) << " .. " << ci.hi(0) << "   y " << ci.lo(1) << " .. " << ci.hi(1) << "   z " << ci.lo(2) << " .. " << ci.hi(2) << " m\n";
+        os << "  volume:      " << ci.volume << " m3,  mass " << ci.mass << " kg,  weight " << ci.mass * grav.norm() / 1000.0 << " kN\n";
+        os << "  centre of gravity: " << ci.cog(0) << " " << ci.cog(1) << " " << ci.cog(2) << " m\n";
+        os << "  surface:     " << ci.surface_area << " m2\n";
+        for(const material &mt : mats)
+        {
+            double vol = 0.0;
+            for(const element &e : elems)
+                if(&mats[e.mat] == &mt)
+                    vol += geom(e).V;
+            os << "  material " << mt.id << ":  " << (mt.name.empty() ? std::string("custom") : mt.name) << ", " << vol << " m3, rho " << mt.rho << " kg/m3, E " << mt.E / 1.0e9 << " GPa";
+            if(mt.type == MAT_J2)
+                os << ", yield " << mt.sigy / 1.0e6 << " MPa";
+            if(mt.type == MAT_CONCRETE)
+                os << ", tension " << mt.ft / 1.0e6 << " MPa, compression " << mt.fc / 1.0e6 << " MPa";
+            os << "\n";
+        }
+        os << "  supports:    " << ci.nfixed << " nodes";
+        if(ci.nfixed > 0)
+            os << ", base centre " << base_c(0) << " " << base_c(1) << " " << base_c(2) << " m";
+        os << (ground_on ? ", ground contact on" : "") << "\n";
+        if(!rbs.empty())
+        {
+            os << "  rigid bodies: " << rbs.size() << " (move as rigid bodies, loads from the outer pressure)\n";
+            for(size_t k = 0; k < rbs.size() && k < 20; ++k)
+            {
+                const rigid_body &rb = rbs[k];
+                const double rho = rb.M / std::max(rb.Vol, 1.0e-30);
+                os << "     " << k + 1 << ": mass " << rb.M << " kg, volume " << rb.Vol << " m3, density " << rho << " kg/m3, centre " << rb.c0.transpose()
+                   << (rho < 1000.0 ? "  (floats in water)" : "") << "\n";
+                const char *src[4] = {"given", "axial bar E A / L", "E = rho c^2 from rigid_contact_speed, set 'stiffness' for a physical value", "fragment of the structure: bar E A / L"};
+                os << "        impact: stiffness " << rb.k << " N/m (" << src[rb.ksrc] << (rb.ksrc == 1 ? ", L = " + std::to_string(rb.Lbar) + " m" : std::string("")) << "), "
+                   << "duration pi sqrt(M/k) " << 1000.0 * 3.14159265358979 * std::sqrt(rb.M / rb.k) << " ms, force u sqrt(k M) " << std::sqrt(rb.k * rb.M) / 1000.0 << " kN per m/s";
+                if(rb.Fcap > 0.0)
+                    os << ", crushing at " << rb.Fcap / 1000.0 << " kN";
+                os << "\n";
+            }
+            os << "     debris contact damping " << 100.0 * debris_zeta << " % of critical\n";
+            if(rbs.size() > 20)
+                os << "     ... " << rbs.size() - 20 << " more\n";
+        }
+        if(dtcrit_el < 1.0e30)
+            os << "  time step:   " << dtcrit_el * cfl << " s (solid)\n";
+        if(dtcrit_rig < 1.0e30)
+            os << "  time step:   " << dtcrit_rig * cfl << " s (rigid-body impact, used while a body is close to a wall, the bed or another body)\n";
+        if(ci.nfixed > 0 || ground_on)
+        {
+            os << "  self weight: " << (ci.settled ? "in equilibrium" : "NOT in equilibrium") << ", max displacement " << ci.sw_maxdisp * 1000.0 << " mm, max von Mises " << ci.sw_maxvm / 1.0e6 << " MPa";
+            if(ci.sw_maxutil >= 0.0)
+                os << ", max utilisation " << ci.sw_maxutil;
+            os << "\n               support force " << ci.sw_support.transpose() / 1000.0 << " kN (weight " << ci.mass * grav.norm() / 1000.0 << " kN)\n";
+        }
+        const char *dn[3] = {"x", "y", "z"};
+        for(int d = 0; d < 3; ++d)
+            if(ci.freq_ok[d])
+                os << "  first natural frequency in " << dn[d] << " (Rayleigh, dry): " << ci.freq[d] << " Hz,  period " << 1.0 / ci.freq[d] << " s\n";
+        {
+            double f1 = 0.0;
+            for(int d = 0; d < 3; ++d)
+                if(ci.freq_ok[d] && (f1 == 0.0 || ci.freq[d] < f1))
+                    f1 = ci.freq[d];
+            if(zeta > 0.0 && f1 > 0.0)
+                os << "  structural damping: " << 100.0 * zeta << " % of critical at " << f1 << " Hz (less for higher modes, rigid motion undamped)\n";
+            else if(zeta > 0.0)
+                os << "  structural damping: " << 100.0 * zeta << " % requested, but no natural frequency (no supports): not applied\n";
+            else
+                os << "  structural damping: off\n";
+        }
+        if(ci.warnings.empty())
+            os << "  no warnings\n";
+        for(const std::string &w : ci.warnings)
+            os << "  WARNING: " << w << "\n";
+    }
+
+    // ----------------------------------------------------------------------
+    // first natural frequencies: Rayleigh quotient of the static deflection
+    // under 1 g in each direction (supports needed), state restored
+    // ----------------------------------------------------------------------
+
+    void fem_solid::rayleigh_frequencies(double f[3], bool ok[3])
+    {
+        const std::vector<Vec3> x0 = x, v0 = v, fe0 = fext;
+        const std::vector<gpstate> g0 = gps;
+        const std::vector<element> e0 = elems;
+        const Vec3 grav0 = grav;
+        const double wdiss0 = wdiss;
+        const std::vector<double> wde0 = wde;
+        const int ne0 = n_eroded();
+        const std::vector<material> m0 = mats;
+
+        // linear-elastic stiffness: no cracking, yielding or erosion under the test load
+        std::fill(fext.begin(), fext.end(), Vec3::Zero());
+        for(material &mt : mats)
+            mt.type = MAT_ELASTIC;
+
+        for(int d = 0; d < 3; ++d)
+        {
+            f[d] = 0.0;
+            ok[d] = false;
+            if(plane_strain && d == 1)
+                continue;
+
+            // from the undeformed state: deflection under 1 g only
+            x = X;
+            grav = Vec3::Zero();
+            grav(d) = 9.81;
+            const bool conv = settle(200000, 1.0e-5, nullptr, true);
+            double num = 0.0, den = 0.0;
+            for(int i = 0; i < nnode(); ++i)
+            {
+                const Vec3 u = x[i] - X[i];
+                num += m[i] * 9.81 * u(d);
+                den += m[i] * u.squaredNorm();
+            }
+            if(conv && den > 0.0 && num > 0.0 && n_eroded() == ne0)
+            {
+                f[d] = std::sqrt(num / den) / (2.0 * 3.14159265358979);
+                ok[d] = true;
+            }
+            x = x0;
+            gps = g0;
+            elems = e0;
+            wdiss = wdiss0;
+            wde = wde0;
+            act_dirty = true;
+            build_surface();
+            count_bodies();
+        }
+        grav = grav0;
+        v = v0;
+        fext = fe0;
+        mats = m0;
+    }
+
+    void fem_solid::prepare_damping()
+    {
+        alpha_struct = 0.0;
+        f_damp = 0.0;
+        if(zeta <= 0.0 || !has_supports())
+            return;
+
+        double f[3];
+        bool ok[3];
+        rayleigh_frequencies(f, ok);
+        for(int d = 0; d < 3; ++d)
+            if(ok[d] && (f_damp == 0.0 || f[d] < f_damp))
+                f_damp = f[d];
+
+        // mass-proportional on the deformation: ratio zeta at the first frequency,
+        // less for the higher modes (bulk viscosity takes care of those)
+        if(f_damp > 0.0)
+            alpha_struct = 2.0 * zeta * 2.0 * 3.14159265358979 * f_damp;
+    }
+
+    void fem_solid::rigid_velocity(std::vector<Vec3> & vr) const
+    {
+        // supported bodies: rest, free bodies: translation + rotation fitted to
+        // their momentum and angular momentum
+        vr.assign(nnode(), Vec3::Zero());
+        const int nb = (int)body_fixed.size();
+        std::vector<double> M(nb, 0.0);
+        std::vector<Vec3> P(nb, Vec3::Zero()), C(nb, Vec3::Zero());
+        for(int i = 0; i < nnode(); ++i)
+        {
+            const int b = body[i];
+            if(b < 0 || body_fixed[b])
+                continue;
+            M[b] += m[i];
+            P[b] += m[i] * v[i];
+            C[b] += m[i] * x[i];
+        }
+        std::vector<Vec3> L(nb, Vec3::Zero());
+        std::vector<Eigen::Matrix3d> J(nb, Eigen::Matrix3d::Zero());
+        for(int b = 0; b < nb; ++b)
+            if(M[b] > 0.0)
+                C[b] /= M[b];
+        for(int i = 0; i < nnode(); ++i)
+        {
+            const int b = body[i];
+            if(b < 0 || body_fixed[b] || M[b] <= 0.0)
+                continue;
+            const Vec3 r = x[i] - C[b];
+            L[b] += m[i] * r.cross(v[i]);
+            J[b] += m[i] * (r.squaredNorm() * Eigen::Matrix3d::Identity() - r * r.transpose());
+        }
+        std::vector<Vec3> W(nb, Vec3::Zero());
+        for(int b = 0; b < nb; ++b)
+            if(M[b] > 0.0 && !body_fixed[b])
+            {
+                Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> es(J[b]);
+                const Eigen::Vector3d lam = es.eigenvalues();
+                const double lmax = lam.maxCoeff();
+                Eigen::Vector3d inv;
+                for(int k = 0; k < 3; ++k)
+                    inv(k) = lam(k) > 1.0e-9 * lmax ? 1.0 / lam(k) : 0.0;
+                W[b] = es.eigenvectors() * inv.asDiagonal() * es.eigenvectors().transpose() * L[b];
+                if(plane_strain)
+                {
+                    W[b](0) = 0.0;
+                    W[b](2) = 0.0;
+                }
+            }
+        for(int i = 0; i < nnode(); ++i)
+        {
+            const int b = body[i];
+            if(b < 0 || body_fixed[b] || M[b] <= 0.0)
+                continue;
+            vr[i] = P[b] / M[b] + W[b].cross(x[i] - C[b]);
+        }
+    }

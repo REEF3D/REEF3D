@@ -1,0 +1,15 @@
+{
+ "description": "REEF3D::SEASTATE line obstacles (A 722, Phase 6): swell from x- in a 1.5 x 1.5 km basin (30 m cells, depth 20 m) with an oblique obstacle at 45 deg (Kt 0.3, Kr 0.6: transmission through the faces it crosses, specular reflection into 90 deg) and a dam across y < 300 m with Goda transmission from the crest level -0.3 m (Kt < 0). Validation in Dropbox SEASTATE/validation/35_obstacles (energy balance, Goda formula, SWAN OBSTACLE).",
+ "solver": "seastate",
+ "np": 1,
+ "steps": 1,
+ "tags": [
+  "quick",
+  "2d",
+  "seastate"
+ ],
+ "covers": [
+  "seastate_obstacle faces, Goda transmission",
+  "seastate_implicit obstacle transmission and reflection"
+ ]
+}

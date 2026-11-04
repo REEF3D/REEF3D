@@ -1,0 +1,5 @@
+{"base": "cfd_2d_nwt", "np": 1, "steps": 100,
+ "ctrl_add": ["G 1 1", "G 15 4.2 11.8 0.0 1.0 0.3 0.75"],
+ "description": "CFD mesh refinement in the wave tank: a refined band around the free surface between the relaxation zones (level 0 only); the free surface crosses the patch edges.",
+ "tags": ["quick", "2d", "waves", "levelset", "amr"],
+ "covers": ["cfd_amr with iowave on level 0", "faces at the patch edges across the free surface: predictor without the hydrostatic pressure of each grid, density-weighted transverse interpolation"]}

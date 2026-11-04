@@ -1,0 +1,22 @@
+{
+ "base": "fnpf_3d_amr_decay_sub",
+ "ctrl_set": {
+  "G 7": null,
+  "X 11": "1 1 1 1 1 1",
+  "B 93": "0.04 1.0"
+ },
+ "steps": 20,
+ "description": "the moored cylinder of fnpf_3d_amr_decay_sub with all six DOFs free in regular waves (H 0.04 m, T 1 s) on a refined patch without subcycling (G 7 0): per stage the psi_0 solve and at the first stage the six unit-mode solves on all grids. The psi solves keep the rows and the preconditioner of the phi solve before them (fnpf_amr::lap_same), stop at the half step of BiCGStab (reefamr_bicgstab halfexit), and the roll, pitch and yaw modes start from their last solution moved to the new centre of gravity (fnpf_6DOF::mode_shift on all grids); REEF3D_FNPF_6DOF compared.",
+ "tags": [
+  "3d",
+  "fnpf",
+  "amr",
+  "6dof",
+  "floating"
+ ],
+ "covers": [
+  "fnpf_amr::lap_core: the half-step exit of the psi solves",
+  "fnpf_6DOF::mode_shift on all grids (forces_amr)",
+  "fnpf_amr::lap_same with six unit modes per step"
+ ]
+}

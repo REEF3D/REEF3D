@@ -1,0 +1,17 @@
+{
+ "base": "seastate_2d_phase16_faces_levels",
+ "np": 4,
+ "same_as": "seastate_2d_phase16_faces_levels",
+ "same_as_rtol": 1e-05,
+ "description": "as seastate_2d_phase16_faces_levels on 4 ranks (patches cut at the rank boxes): the faces of covered source cells on other ranks with the fills of the level and the level-0 faces across the rank borders; the converged result of one rank within 1e-5 (regression.py ranks; before Phase 16 0.25 %).",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate",
+  "amr",
+  "mpi"
+ ],
+ "covers": [
+  "seastate_amr::ring_faces_remote (plans through xsetup, xrun)"
+ ]
+}

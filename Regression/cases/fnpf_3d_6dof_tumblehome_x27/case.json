@@ -1,0 +1,17 @@
+{
+ "description": "FNPF towed floating frustum with tumblehome (radius 0.25 m at the bottom, 0.17 m at the still-water level, X 210 0.4 m/s) and X 27 2: columns whose free-surface node lies outside the body and that have a body node within two sigma layers below it (the sliver under the waterline) are put into the footprint.",
+ "solver": "fnpf",
+ "np": 1,
+ "steps": 20,
+ "tags": [
+  "3d",
+  "fnpf",
+  "6dof"
+ ],
+ "covers": [
+  "FNPF X 27: columns with a body node within n sigma layers below the free-surface node belong to the footprint (sixdof_obj_fnpf::ray_cast_fnpf)"
+ ],
+ "files": [
+  "floating.stl"
+ ]
+}

@@ -1,0 +1,16 @@
+{
+ "base": "seastate_2d_phase18_ckpt",
+ "np": 2,
+ "same_as": "seastate_2d_phase18_ckpt",
+ "description": "seastate_2d_phase18_ckpt on 2 ranks (pipelined, the checkpoints in two pieces): bitwise the result of one rank. Validation in Dropbox SEASTATE/validation/67_rebalance.",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate",
+  "amr",
+  "mpi"
+ ],
+ "covers": [
+  "checkpoints of the cell records on several ranks"
+ ]
+}

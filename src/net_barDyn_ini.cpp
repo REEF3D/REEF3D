@@ -71,7 +71,9 @@ void net_barDyn::initialize_cfd(lexer *p, fdm *a, ghostcell *pgc)
 
     //- Initialise printing
     printtime = 0.0;
-    print(p);
+    // a restart (I 45): no print at the start, the outputs continue from the checkpoint
+    if(p->I45 != 1)
+        print(p);
 
     //- Update porous zone
     coupling_dlm_cfd(p, a, pgc);
@@ -130,7 +132,9 @@ void net_barDyn::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
     //- Initialise printing
     printtime = 0.0;
-    print(p);
+    // a restart (I 45): no print at the start, the outputs continue from the checkpoint
+    if(p->I45 != 1)
+        print(p);
 
     //- Update porous zone
     coupling_dlm_nhflow(p, d, pgc);

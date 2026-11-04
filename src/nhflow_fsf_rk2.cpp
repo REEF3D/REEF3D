@@ -24,8 +24,10 @@ Author: Hans Bihs
 #include "ghostcell.h"
 #include "ioflow.h"
 #include "lexer.h"
+#include "nhflow_curv.h"
 #include "nhflow_fsf_f.h"
 #include "patchBC_interface.h"
+#include "seastate_nhflow.h"
 #include "vrans.h"
 
 nhflow_fsf_f::nhflow_fsf_f(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, patchBC_interface *ppBC) : eps(1.0e-6), P(p), Q(p), K(p)
@@ -67,23 +69,33 @@ void nhflow_fsf_f::rk2_step1(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow
     SLICELOOP4
     K(i, j) = 0.0;
 
-    LOOP
-        WETDRY
+    LOOP WETDRY
+    {
+        if(p->geo_curv == 1)
+            K(i, j) += -p->DZN[KP] * nhflow_curv::divh(p, d->FEx, d->FEy, i, j, k);
+        else
             K(i, j) += -p->DZN[KP] * ((d->FEx[IJK] - d->FEx[Im1JK]) / p->DXN[IP] + (d->FEy[IJK] - d->FEy[IJm1K]) / p->DYN[JP] * p->y_dir);
+    }
 
     // VRANS: d/dt int_{-h}^{eta} n dz = n(eta) deta/dt -> divide the column divergence by the
-    // porosity of the surface cell, not layer by layer (mass error for vertically varying n)
+    // porosity at the free surface, not layer by layer (mass error for vertically varying n)
     SLICELOOP4
     {
         k = p->knoz - 1;
-        K(i, j) /= PORVALNH;
+        K(i, j) /= PORSURFNH;
     }
+
+    // REEF3D::SEASTATE: Stokes transport in the continuity (A 751 2)
+    if(d->wave != nullptr)
+        d->wave->mass_source(p, d, K);
 
     SLICELOOP4
     WLRK1(i, j) = d->WL(i, j) + p->dt * K(i, j);
 
     pflow->WL_relax(p, pgc, WLRK1, d->depth);
     pflow->fsfinflow_nhflow(p, d, pgc, WLRK1);
+    if(d->wave != nullptr)
+        d->wave->wl_ghostcells(p, d, WLRK1);
     pgc->gcsl_start4(p, WLRK1, gcval_eta);
 
     SLICELOOP4
@@ -114,23 +126,33 @@ void nhflow_fsf_f::rk2_step2(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow
     SLICELOOP4
     K(i, j) = 0.0;
 
-    LOOP
-        WETDRY
+    LOOP WETDRY
+    {
+        if(p->geo_curv == 1)
+            K(i, j) += -p->DZN[KP] * nhflow_curv::divh(p, d->FEx, d->FEy, i, j, k);
+        else
             K(i, j) += -p->DZN[KP] * ((d->FEx[IJK] - d->FEx[Im1JK]) / p->DXN[IP] + (d->FEy[IJK] - d->FEy[IJm1K]) / p->DYN[JP] * p->y_dir);
+    }
 
     // VRANS: d/dt int_{-h}^{eta} n dz = n(eta) deta/dt -> divide the column divergence by the
-    // porosity of the surface cell, not layer by layer (mass error for vertically varying n)
+    // porosity at the free surface, not layer by layer (mass error for vertically varying n)
     SLICELOOP4
     {
         k = p->knoz - 1;
-        K(i, j) /= PORVALNH;
+        K(i, j) /= PORSURFNH;
     }
+
+    // REEF3D::SEASTATE: Stokes transport in the continuity (A 751 2)
+    if(d->wave != nullptr)
+        d->wave->mass_source(p, d, K);
 
     SLICELOOP4
     d->WL(i, j) = 0.5 * d->WL(i, j) + 0.5 * WLRK1(i, j) + 0.5 * p->dt * K(i, j);
 
     pflow->WL_relax(p, pgc, d->WL, d->depth);
     pflow->fsfinflow_nhflow(p, d, pgc, d->WL);
+    if(d->wave != nullptr)
+        d->wave->wl_ghostcells(p, d, d->WL);
     pgc->gcsl_start4(p, d->WL, gcval_eta);
 
     SLICELOOP4

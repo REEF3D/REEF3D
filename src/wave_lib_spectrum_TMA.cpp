@@ -20,39 +20,38 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"wave_lib_spectrum.h"
-#include"lexer.h"
-#include"ghostcell.h"
+#include "ghostcell.h"
+#include "lexer.h"
+#include "wave_lib_spectrum.h"
 
 double wave_lib_spectrum::TMA(lexer *p, double w)
 {
-  if(w<=p->wwp)
-	sigma=0.07;
+    if(w <= p->wwp)
+        sigma = 0.07;
 
-	if(w>p->wwp)
-	sigma=0.09;
+    if(w > p->wwp)
+        sigma = 0.09;
 
     // PM
-    Sval = (5.0/16.0)*pow(p->wHs,2.0)*pow(p->wwp,4.0)*pow(w,-5.0)*exp(-(5.0/4.0)*pow(w/p->wwp,-4.0));
+    Sval = (5.0 / 16.0) * pow(p->wHs, 2.0) * pow(p->wwp, 4.0) * pow(w, -5.0) * exp(-(5.0 / 4.0) * pow(w / p->wwp, -4.0));
 
     // JONSWAP
-    Sval *= (1.0-0.287*log(p->B88))*pow(p->B88,exp(-0.5*pow(((w-p->wwp)/(sigma*p->wwp)),2.0)));
+    Sval *= (1.0 - 0.287 * log(p->B88)) * pow(p->B88, exp(-0.5 * pow(((w - p->wwp) / (sigma * p->wwp)), 2.0)));
 
     // TMA
-    double wdt_tma;
-    wdt_tma=p->F60;
-    if(p->B94==1)
-    wdt_tma=p->B94_wdt;
+    // the depth of the wave theory (phimean or B 94, as the other spectra; F 60 was -1e20 when the water level was
+    // given by other keys, and sqrt of it left phi_tma unset)
+    const double wdt_tma = wD;
 
-    double phi_tma;
-    if(w*sqrt(wdt_tma/9.81)<1)
-    phi_tma=0.5*pow(w*sqrt(wdt_tma/9.81),2);
+    double phi_tma = 1.0;
+    if(w * sqrt(wdt_tma / 9.81) < 1)
+        phi_tma = 0.5 * pow(w * sqrt(wdt_tma / 9.81), 2);
 
-    if(w*sqrt(wdt_tma/9.81)>=1 && w*sqrt(wdt_tma/9.81)<2)
-    phi_tma=(1-0.5*pow(2-w*sqrt(wdt_tma/9.81),2));
+    if(w * sqrt(wdt_tma / 9.81) >= 1 && w * sqrt(wdt_tma / 9.81) < 2)
+        phi_tma = (1 - 0.5 * pow(2 - w * sqrt(wdt_tma / 9.81), 2));
 
-    if(w*sqrt(wdt_tma/9.81)>=2)
-    phi_tma=1.0;
+    if(w * sqrt(wdt_tma / 9.81) >= 2)
+        phi_tma = 1.0;
 
     Sval *= phi_tma;
 

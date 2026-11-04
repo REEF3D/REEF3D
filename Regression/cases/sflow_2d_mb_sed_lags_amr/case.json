@@ -1,0 +1,23 @@
+{
+ "np": 1,
+ "steps": 40,
+ "tags": [
+  "2d",
+  "sflow",
+  "multiblock",
+  "amr",
+  "bend",
+  "lags",
+  "curvilinear",
+  "sediment"
+ ],
+ "description": "The lags of P7 (S 95 2 with a short adaptation length S 97 0.1, S 64 0.5) with the transverse slope (S 86 1) on the multi-block grid of t5 with a refinement box over the vertex: the relaxations of every grid hold the cells around it and its covered cells, passes across the grids until the interfaces no longer move them; the same bed as one block to 1e-4 of the change (the order of the Gauss-Seidel sweeps differs, the dam break amplifies it at its wet front), the bed volume conserved (sediment_curvilinear/t5).",
+ "covers": [
+  "sflow_amr::sediment_step_sflow: lagfix, the passes of lag_refresh with the fills (sync), bend_K after the passes",
+  "the lagged fields Isp and qsn filled around the grids (amr_field 5, 6), prolonged and restricted"
+ ],
+ "solver": "sflow",
+ "files": [
+  "blocks.dat"
+ ]
+}

@@ -1,0 +1,24 @@
+{
+ "base": "cfd_2d_dambreak_amr_adapt",
+ "np": 2,
+ "steps": 48,
+ "ctrl_add": [
+  "G 40 1",
+  "G 48 0"
+ ],
+ "description": "cfd_2d_dambreak_amr_adapt on 2 ranks with the placement (G 40 1) and without the down sweep of the composite preconditioner (G 48 0): the up sweep only, as without G 40 (patch 0132).",
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "levelset",
+  "amr",
+  "adaptive",
+  "mpi",
+  "place"
+ ],
+ "covers": [
+  "cfd_amr::pr_prec without the down sweep (G 48 0)",
+  "pr_residual on the levels >= lmin in the up sweep with G 40"
+ ]
+}

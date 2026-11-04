@@ -1,0 +1,25 @@
+{
+ "base": "cfd_2d_nwt",
+ "np": 1,
+ "steps": 100,
+ "ctrl_set": {
+  "B 98": "4",
+  "B 99": "3"
+ },
+ "ctrl_add": [
+  "G 1 2",
+  "G 7 1",
+  "G 15 0.0 20.0 0.0 1.0 0.3 0.75"
+ ],
+ "description": "Active wave generation and absorption at the boundaries (B 98 4, B 99 3) with two refined levels over the whole tank (G 7 1): the tiles at the in- and outflow boundary, and those whose nesting would reach them, stay on the coarser level.",
+ "tags": [
+  "quick",
+  "2d",
+  "waves",
+  "levelset",
+  "amr"
+ ],
+ "covers": [
+  "reefamr3d::mark_tiles: ioface, the forbidden tiles of every level (io_near, fbd)"
+ ]
+}

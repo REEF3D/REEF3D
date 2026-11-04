@@ -26,15 +26,19 @@ Author: Hans Bihs
 #include "ghostcell.h"
 #include "ioflow.h"
 #include "lexer.h"
+#include "met_forcing.h"
 #include "nhflow_bcmom.h"
 #include "nhflow_convection.h"
 #include "nhflow_diffusion.h"
 #include "nhflow_forcing.h"
 #include "nhflow_fsf.h"
+#include "nhflow_fsf_body.h"
+#include "nhflow_fsf_hull.h"
 #include "nhflow_pressure.h"
 #include "nhflow_reconstruct.h"
 #include "nhflow_signal_speed.h"
 #include "nhflow_turbulence.h"
+#include "seastate_nhflow.h"
 #include "sediment_f.h"
 #include "solver.h"
 #include "turbulence.h"
@@ -79,6 +83,13 @@ nhflow_momentum_RK2::nhflow_momentum_RK2(lexer *p, fdm_nhf *d, ghostcell *pgc, s
 
     if(p->A570 > 0)
         pwind = new wind_f(p);
+
+    // atmospheric forcing (W 200) and Coriolis force (W 211)
+    if(met_forcing::active(p))
+    {
+        pmet = new met_forcing(p, pgc);
+        d->met = pmet;
+    }
 }
 
 nhflow_momentum_RK2::~nhflow_momentum_RK2()
@@ -90,6 +101,7 @@ nhflow_momentum_RK2::~nhflow_momentum_RK2()
     delete[] VHDIFF;
     delete[] WHDIFF;
     delete pwind;
+    delete pmet;
 }
 
 void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, nhflow_signal_speed *pss,
@@ -114,6 +126,12 @@ void nhflow_momentum_RK2::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
         phase_P(p, d, pgc, S, s);
         phase_E(p, d, pgc, S, s);
     }
+
+    // turbulence (A 560 > 0): the k, eps/omega step at the start of the next time step runs before the next
+    // sigma_update, so the metrics are refreshed here at the final water level (they were those of the last
+    // stage level, and newly wetted cells had sigz = 0)
+    if(p->A560 > 0)
+        sigma_update(p, d, pgc, d->WL);
 }
 
 slice &nhflow_momentum_RK2::stage_WL(fdm_nhf *d, int s)
@@ -135,6 +153,13 @@ void nhflow_momentum_RK2::step_begin(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflo
     S.pflow->discharge_nhflow(p, d, pgc);
     S.pflow->inflow_nhflow(p, d, pgc, d->U, d->V, d->W, d->UH, d->VH, d->WH, d->WL);
     S.pflow->rkinflow_nhflow(p, d, pgc, d->U, d->V, d->W, UHRK1, VHRK1, WHRK1, WLRK1);
+
+    // REEF3D::SEASTATE surfbeat: long-wave boundary (A 770 1)
+    if(d->wave != nullptr)
+    {
+        d->wave->ghostcells(p, d, d->UH, d->VH, d->WH);
+        d->wave->ghostcells(p, d, UHRK1, VHRK1, WHRK1);
+    }
 }
 
 // stage s: sigma, reconstruction, continuity flux, water level, omega, breaking
@@ -143,6 +168,10 @@ void nhflow_momentum_RK2::phase_F(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_s
     ioflow *pflow = S.pflow;
     nhflow_fsf *pfsf = S.pfsf;
     nhflow_convection *pconvec = S.pconvec;
+
+    // B 95: relaxation targets at the time of the stage output
+    if(p->B95 != 0.0)
+        pflow->wavegen_stage_nhflow(p, d, pgc, p->simtime + p->dt);
 
     if(s == 0)
     {
@@ -153,12 +182,11 @@ void nhflow_momentum_RK2::phase_F(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_s
         pfsf->kinematic_fsf(p, d, d->U, d->V, d->W, d->eta);
         pfsf->kinematic_bed(p, d, d->U, d->V, d->W);
 
-        // FSF
-        starttime = pgc->timer();
-        pconvec->start(p, d, 4, d->WL, UHRK1);
-
         pfsf->rk2_step1(p, d, pgc, pflow, d->UH, d->VH, d->WH, WLRK1, WLRK1, 1.0);
+        pfsfbody->level(p, d, pgc, p6dof, pflow, s, WLRK1, 1.0);
+        phull->level(p, d, pgc, p6dof, pflow, s, WLRK1, 1.0);
         omega_update(p, d, pgc, WLRK1, d->U, d->V, d->W);
+        breaking_zones(p, pflow);
         breaking(p, d, pgc, d->eta, d->eta_n, WLRK1, 1.0);
         p->fsftime += pgc->timer() - starttime;
     }
@@ -177,7 +205,10 @@ void nhflow_momentum_RK2::phase_F(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_s
 
         pconvec->start(p, d, 4, WLRK1, d->UH);
         pfsf->rk2_step2(p, d, pgc, pflow, UHRK1, VHRK1, WHRK1, WLRK1, WLRK1, 0.5);
+        pfsfbody->level(p, d, pgc, p6dof, pflow, s, d->WL, 0.5);
+        phull->level(p, d, pgc, p6dof, pflow, s, d->WL, 0.5);
         omega_update(p, d, pgc, d->WL, d->U, d->V, d->W);
+        breaking_zones(p, pflow);
         breaking(p, d, pgc, d->eta, d->eta_n, d->WL, 0.5);
         p->fsftime += pgc->timer() - starttime;
     }
@@ -204,8 +235,20 @@ void nhflow_momentum_RK2::phase_M(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_s
     slice &WL = stage_WL(d, s);
     const double alpha = s == 0 ? 1.0 : 0.5;
 
-    // U
-    starttime = pgc->timer();
+    pnhfturb->isource(p, d);
+    pflow->isource_nhflow(p, d, pgc, pvrans, WL);
+    ppress->upgrad(p, d, WL);
+    phull->upgrad(p, d, WL);
+    p6dof->isource(p, d, pgc, WL);
+    pwind->wind_forcing_nhf_x(p, d, pgc, d->U, d->V, d->F, WL, d->eta);
+    if(pmet != nullptr)
+        pmet->source_nhflow(p, pgc, d->F, 0, WL, UHi, VHi);
+    if(d->wave != nullptr)
+        d->wave->u_source(p, d);
+    roughness_u(p, d, d->U, d->F, WL);
+    irhs(p, d, pgc);
+    pconvec->start(p, d, 1, WL, UHo);
+    pnhfdiff->diff_u(p, d, pgc, pflow, psolv, UHDIFF, UHi, UHi, VHi, WHi, WL, 1.0);  // implicit step UHDIFF = UHi + dt D(UHDIFF); the stage weight is applied below (alpha here gave alpha^2)
 
     pnhfturb->isource(p, d);
     pflow->isource_nhflow(p, d, pgc, pvrans, WL);
@@ -217,13 +260,8 @@ void nhflow_momentum_RK2::phase_M(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_s
     pconvec->start(p, d, 1, WL, UHo);
     pnhfdiff->diff_u(p, d, pgc, pflow, psolv, UHDIFF, UHi, UHi, VHi, WHi, WL, 1.0);  // implicit step UHDIFF = UHi + dt D(UHDIFF); the stage weight is applied below (alpha here gave alpha^2)
 
-    if(s == 0)
-        LOOP
-            UHRK1[IJK] = UHDIFF[IJK] + p->dt * CPORNH * d->F[IJK];
-
-    if(s == 1)
-        LOOP
-            d->UH[IJK] = 0.5 * d->UH[IJK] + 0.5 * UHDIFF[IJK] + 0.5 * p->dt * CPORNH * d->F[IJK];
+    // VRANS: point-implicit Darcy-Forchheimer drag of the static structures (B 204 1)
+    pvrans->implicit_drag(p, d, UHo, alpha, 0);
 
     if(s == 0)
         p->utime = pgc->timer() - starttime;
@@ -238,6 +276,10 @@ void nhflow_momentum_RK2::phase_M(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_s
     ppress->vpgrad(p, d, WL);
     p6dof->jsource(p, d, pgc, WL);
     pwind->wind_forcing_nhf_y(p, d, pgc, d->U, d->V, d->G, WL, d->eta);
+    if(pmet != nullptr)
+        pmet->source_nhflow(p, pgc, d->G, 1, WL, UHi, VHi);
+    if(d->wave != nullptr)
+        d->wave->v_source(p, d);
     roughness_v(p, d, d->V, d->G, WL);
     jrhs(p, d, pgc);
     pconvec->start(p, d, 2, WL, VHo);
@@ -247,9 +289,8 @@ void nhflow_momentum_RK2::phase_M(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_s
         LOOP
             VHRK1[IJK] = VHDIFF[IJK] + p->dt * CPORNH * d->G[IJK];
 
-    if(s == 1)
-        LOOP
-            d->VH[IJK] = 0.5 * d->VH[IJK] + 0.5 * VHDIFF[IJK] + 0.5 * p->dt * CPORNH * d->G[IJK];
+    // VRANS: point-implicit Darcy-Forchheimer drag of the static structures (B 204 1)
+    pvrans->implicit_drag(p, d, VHo, alpha, 1);
 
     if(s == 0)
         p->vtime = pgc->timer() - starttime;
@@ -268,18 +309,37 @@ void nhflow_momentum_RK2::phase_M(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_s
     pconvec->start(p, d, 3, WL, WHo);
     pnhfdiff->diff_w(p, d, pgc, pflow, psolv, WHDIFF, WHi, UHi, VHi, WHi, WL, 1.0);  // implicit step UHDIFF = UHi + dt D(UHDIFF); the stage weight is applied below (alpha here gave alpha^2)
 
-    if(p->A520 != 3 && s == 0)
+    if(s == 0)
         LOOP
             WHRK1[IJK] = WHDIFF[IJK] + p->dt * CPORNH * d->H[IJK];
 
-    if(p->A520 != 3 && s == 1)
+    if(s == 1)
         LOOP
             d->WH[IJK] = 0.5 * d->WH[IJK] + 0.5 * WHDIFF[IJK] + 0.5 * p->dt * CPORNH * d->H[IJK];
+
+    // VRANS: point-implicit Darcy-Forchheimer drag of the static structures (B 204 1)
+    pvrans->implicit_drag(p, d, WHo, alpha, 2);
 
     if(s == 0)
         p->wtime = pgc->timer() - starttime;
     else
         p->wtime += pgc->timer() - starttime;
+}
+
+// stage s: the implicit diffusion of component m, as in phase_M
+void nhflow_momentum_RK2::phase_D(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_stage_obj &S, int s, int m)
+{
+    double *UHi = s == 0 ? d->UH : UHRK1;
+    double *VHi = s == 0 ? d->VH : VHRK1;
+    double *WHi = s == 0 ? d->WH : WHRK1;
+    slice &WL = stage_WL(d, s);
+
+    if(m == 0)
+        S.pdiff->diff_u(p, d, pgc, S.pflow, S.psolv, UHDIFF, UHi, UHi, VHi, WHi, WL, 1.0);
+    if(m == 1)
+        S.pdiff->diff_v(p, d, pgc, S.pflow, S.psolv, VHDIFF, VHi, UHi, VHi, WHi, WL, 1.0);
+    if(m == 2)
+        S.pdiff->diff_w(p, d, pgc, S.pflow, S.psolv, WHDIFF, WHi, UHi, VHi, WHi, WL, 1.0);
 }
 
 // stage s: velocities, forcing (before the pressure projection)
@@ -292,7 +352,13 @@ void nhflow_momentum_RK2::phase_P1(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_
     const double alpha = stage_alpha(s);
     const int fin = s;
 
+    pfsfbody->momentum(p, UHo, VHo, WHo);
+    phull->momentum(p, UHo, VHo, WHo);
+
     velcalc(p, d, pgc, UHo, VHo, WHo, WL, alpha);
+
+    // X 13 2: the piezometric head under the hull (depth-integrated continuity of the footprint)
+    phull->correct(p, d, pgc, s, alpha, UHo, VHo, WHo, WL);
 
     pnhfdf->forcing(p, d, pgc, p6dof, s, alpha, UHo, VHo, WHo, WL, fin);
 }
@@ -310,6 +376,12 @@ void nhflow_momentum_RK2::phase_P2(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_
     velcalc(p, d, pgc, UHo, VHo, WHo, WL, alpha);
 
     pnhfdf->reforcing(p, d, pgc, p6dof, s, alpha, UHo, VHo, WHo, WL, fin);
+
+    if(fin == 1)
+    {
+        pfsfbody->print(p, d, pgc, WL);
+        phull->print(p, d, pgc, WL);
+    }
 }
 
 // stage s: relaxation zones, ghost cells, sediment and depth

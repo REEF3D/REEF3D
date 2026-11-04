@@ -1,0 +1,5 @@
+# floating rigid box (rho 500, 0.2 x 0.1 m) released with a draft of 3 cm in 0.3 m still water (NHFLOW), equilibrium draft 5 cm
+# Architect: Hans Bihs
+material rigid 500
+box 0.4 0.6  0.0 0.01  0.27 0.37
+resolution normal

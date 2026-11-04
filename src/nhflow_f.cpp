@@ -25,6 +25,9 @@ Author: Hans Bihs
 #include "ghostcell.h"
 #include "lexer.h"
 #include "nhflow_fsf.h"
+#include "nhflow_por_ghost.h"
+#include "river_ini.h"
+#include "slice4.h"
 #include "vrans.h"
 
 nhflow_f::nhflow_f(lexer *p, fdm_nhf *d, ghostcell *pgc)
@@ -101,7 +104,18 @@ void nhflow_f::ini(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, nhflow_f
 
     for(int qn = 0; qn < p->A509; ++qn)
     {
-        SLICELOOP4
+        // G 52 1 (multi-block grids): the sweep from the old values, independent of the index directions
+        if(p->G52 == 1)
+        {
+            slice4 b0(p);
+            SLICELOOP4
+            b0(i, j) = d->bed(i, j);
+            pgc->gcsl_start4(p, b0, 50);
+            SLICELOOP4
+            d->bed(i, j) = 0.5 * b0(i, j) + 0.125 * (b0(i - 1, j) + b0(i + 1, j) + b0(i, j - 1) + b0(i, j + 1));
+        }
+        else
+            SLICELOOP4
         d->bed(i, j) = 0.5 * d->bed(i, j) + 0.125 * (d->bed(i - 1, j) + d->bed(i + 1, j) + d->bed(i, j - 1) + d->bed(i, j + 1));
 
         pgc->gcsl_start4(p, d->bed, 50);
@@ -126,8 +140,48 @@ void nhflow_f::ini(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, nhflow_f
     pgc->gcsl_start4Vint(p, p->deep, 50);
     pgc->gcsl_start4(p, d->eta, 50);
 
+    // river free-surface initialisation along the i-direction (F 65, river_ini.h)
+    if(p->F65 > 0)
+    {
+        river_ini river;
+        if(river.start(p, pgc, d->bed, 1, 1) == 1)
+        {
+            SLICELOOP4
+            d->eta(i, j) = river.eta(p, i, j, d->bed(i, j));
+
+            pgc->gcsl_start4(p, d->eta, 50);
+        }
+    }
+
+    pgc->gcsl_start4Vint(p, p->wet, 50);
+    pgc->gcsl_start4Vint(p, p->deep, 50);
+    pgc->gcsl_start4(p, d->eta, 50);
+
     LOOP
         d->POR[IJK] = 1.0;
+
+    pgc->start5Vfull(p, d->POR, 1);
+
+    // below the bed and above the surface of every column of the array (partition halo, ghost columns
+    // beyond the domain, 2D y-ghost columns): the Poisson rows of the bottom layer read POR below the bed
+    // of the neighbour column (cN ... of nhflow_poisson), see nhflow_por_ghost.h
+    nhflow_por_ghost(p, d);
+
+    // VRANS: porosity at the free surface (storage of the continuity), set by vrans_nhflow_f::update
+    SLICELOOP4
+    d->PORS(i, j) = 1.0;
+
+    pgc->gcsl_start4(p, d->PORS, 50);
+
+    SLICELOOP4
+    d->WL(i, j) = d->eta(i, j) + d->depth(i, j);
+
+    SLICELOOP4
+    if(d->WL(i, j) < p->A544)
+        p->wet[IJ] = 0;
+
+    SLICELOOP4
+    d->WL(i, j) = MAX(p->A544, d->eta(i, j) + d->depth(i, j));
 
     pgc->start5Vfull(p, d->POR, 1);
 

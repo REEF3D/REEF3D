@@ -20,22 +20,22 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Widar W. Wang
 --------------------------------------------------------------------*/
 
-#include"wave_lib_spectrum.h"
-#include"lexer.h"
-#include"ghostcell.h"
-#include <ctime>        // std::time
-#include <cstdlib>      // std::rand, std::srand
+#include "ghostcell.h"
+#include "lexer.h"
+#include "wave_lib_spectrum.h"
+#include <cstdlib>  // std::rand, std::srand
+#include <ctime>    // std::time
 
-void wave_lib_spectrum::directional_spreading(lexer* p) // modified
+void wave_lib_spectrum::directional_spreading(lexer *p)  // modified
 {
     int n, q;
     int count;
 
     // calc delta beta
-    if(p->B130==0)
-    dbeta = 1.0;
+    if(p->B130 == 0)
+        dbeta = 1.0;
 
-    if(p->B130>0)
+    if(p->B130 > 0)
     {
 
         /*if(p->B133 % 2==0)
@@ -53,7 +53,7 @@ void wave_lib_spectrum::directional_spreading(lexer* p) // modified
         // Special handling for 2D spectrum file (B85==11)
         // Use file frequencies and directions directly - no interpolation
         // =================================================================
-        if(p->B85==11)
+        if(p->B85 == 11)
         {
             // Use file directions directly (p->B133 already set in wave_lib_spectrum.cpp)
 
@@ -72,12 +72,12 @@ void wave_lib_spectrum::directional_spreading(lexer* p) // modified
 
             // Calculate dbeta (average directional spacing from file)
             if(ptnum_dir_2d > 1)
-                dbeta = (dir_2d[ptnum_dir_2d-1] - dir_2d[0]) / double(ptnum_dir_2d - 1);
+                dbeta = (dir_2d[ptnum_dir_2d - 1] - dir_2d[0]) / double(ptnum_dir_2d - 1);
             else
                 dbeta = 0.0;
 
             // Setup wi array - expand frequencies
-            double* Si_temp;
+            double *Si_temp;
             p->Darray(Si_temp, p->wN);
 
             for(n = 0; n < p->wN; ++n)
@@ -148,14 +148,14 @@ void wave_lib_spectrum::directional_spreading(lexer* p) // modified
             // Update p->wN to total components
             p->wN *= p->B133;
 
-            if(p->mpirank==0)
-                cout<<"2D Spectrum: dbeta = "<<dbeta<<" rad"<<endl;
+            if(p->mpirank == 0)
+                cout << "2D Spectrum: dbeta = " << dbeta << " rad" << endl;
         }
         // =================================================================
         // End of B85==11 special handling
         // Below: Standard directional spreading (analytical methods)
         // =================================================================
-        else if(p->B84==1)
+        else if(p->B84 == 1)
         {
             dbeta = (p->B132_e - p->B132_s) / double(p->B133 - 1);
 
@@ -172,7 +172,7 @@ void wave_lib_spectrum::directional_spreading(lexer* p) // modified
                 }
             }
 
-            double* Si_temp;
+            double *Si_temp;
             p->Darray(Si_temp, p->wN);
 
             // Calc wi
@@ -181,7 +181,7 @@ void wave_lib_spectrum::directional_spreading(lexer* p) // modified
 
             count = 0;
             // Double Summation Method frequency vector
-            if (p->B136==1)
+            if(p->B136 == 1)
             {
                 for(n = 0; n < p->wN; ++n)
                 {
@@ -193,32 +193,32 @@ void wave_lib_spectrum::directional_spreading(lexer* p) // modified
                 }
             }
             // Pascal's Single Summation Method frequency vector
-            if (p->B136==2)
+            if(p->B136 == 2)
             {
                 for(n = 0; n < p->wN; ++n)
                 {
                     for(q = 0; q < p->B133; ++q)
                     {
-                        wi[count] = Si_temp[n]+double (q)*dw[n]/double (p->B133);
+                        wi[count] = Si_temp[n] + double(q) * dw[n] / double(p->B133);
                         ++count;
                     }
                 }
             }
 
             // Yu's Single Summation Method frequency vector
-            if (p->B136==3)
+            if(p->B136 == 3)
             {
-                if(p->B138>0)
-                srand(p->B138_1);
+                if(p->B138 > 0)
+                    srand(p->B138_1);
 
-                if(p->B138==0)
-                srand((unsigned)time(0));
-                
+                if(p->B138 == 0)
+                    srand((unsigned)time(0));
+
                 for(n = 0; n < p->wN; ++n)
                 {
                     for(q = 0; q < p->B133; ++q)
                     {
-                        wi[count] = Si_temp[n]+(double (q)+((float) rand()) / (float) RAND_MAX)*dw[n]/double (p->B133);
+                        wi[count] = Si_temp[n] + (double(q) + ((float)rand()) / (float)RAND_MAX) * dw[n] / double(p->B133);
                         ++count;
                     }
                 }
@@ -226,15 +226,15 @@ void wave_lib_spectrum::directional_spreading(lexer* p) // modified
 
             // Calc dw
             for(n = 0; n < p->wN; ++n)
-            Si_temp[n] = dw[n];
+                Si_temp[n] = dw[n];
 
             count = 0;
             for(n = 0; n < p->wN; ++n)
             {
                 for(q = 0; q < p->B133; ++q)
                 {
-                dw[count] = Si_temp[n];
-                ++count;
+                    dw[count] = Si_temp[n];
+                    ++count;
                 }
             }
 
@@ -261,9 +261,9 @@ void wave_lib_spectrum::directional_spreading(lexer* p) // modified
             {
                 for(q = 0; q < p->B133; ++q)
                 {
-                  Di[count]=spreading_function(p, beta[count], wi[count]);
-                  Si[count] = Si_temp[n] * Di[count];
-                  ++count;
+                    Di[count] = spreading_function(p, beta[count], wi[count]);
+                    Si[count] = Si_temp[n] * Di[count];
+                    ++count;
                 }
             }
 
@@ -272,153 +272,158 @@ void wave_lib_spectrum::directional_spreading(lexer* p) // modified
             // set p->wN to B86*B133
             p->wN *= p->B133;
 
-            if(p->mpirank==0)
+            if(p->mpirank == 0)
             {
                 cout << "directional spreading  dbeta: " << dbeta << "  Nj: " << p->B133 << endl;
             }
         }
 
-        else if(p->B84==2 && p->B136==4)
+        else if(p->B84 == 2 && p->B136 == 4)
         {
             double DD, ddb, w, ddw, sum, Dcdf_s, Dcdf_e;
             double cdf_s, cdf_e, d_s, d_e, d_low, d_high, cdf_low, cdf_high;
             int m, NR, ND;
 
-            ddb=0.01;
-            ND= (int) ((p->B132_e - p->B132_s) / ddb)+1;
+            ddb = 0.01;
+            ND = (int)((p->B132_e - p->B132_s) / ddb) + 1;
 
             // integration of the spectrum
-            p->Darray(Dn,ND);
-            p->Darray(Dcdf,ND);
-            p->Darray(betat,ND);
-            p->Darray(Ddee,p->B133);
+            p->Darray(Dn, ND);
+            p->Darray(Dcdf, ND);
+            p->Darray(betat, ND);
+            p->Darray(Ddee, p->B133);
 
-            w=ws;
-            ddw=(we-ws)/double(ND-1);
+            w = ws;
+            ddw = (we - ws) / double(ND - 1);
             for(q = 0; q < ND; ++q)
             {
-                betat[q]=p->B132_s+double (q)*ddb;
-                DD=spreading_function(p,betat[q],w);
-                Dn[q]=DD;
-                w+=ddw;
+                betat[q] = p->B132_s + double(q) * ddb;
+                DD = spreading_function(p, betat[q], w);
+                Dn[q] = DD;
+                w += ddw;
             }
 
-            sum=0.0;
-            for(n=0;n<ND;++n)
+            sum = 0.0;
+            for(n = 0; n < ND; ++n)
             {
-                sum+=ddb*Dn[n];
-                Dcdf[n]=sum;
+                sum += ddb * Dn[n];
+                Dcdf[n] = sum;
             }
 
             // Create 0.5% - 99.5% caps of the energy
-            Dcdf_s = 0.005*Dcdf[ND-1];
-            Dcdf_e = 0.995*Dcdf[ND-1];
+            Dcdf_s = 0.005 * Dcdf[ND - 1];
+            Dcdf_e = 0.995 * Dcdf[ND - 1];
 
-            for(m=0;m<ND;++m)
+            for(m = 0; m < ND; ++m)
             {
-                if(Dcdf[m]<=Dcdf_s)
+                if(Dcdf[m] <= Dcdf_s)
                 {
-                    cdf_low=Dcdf[m];
-                    d_low=betat[m];
+                    cdf_low = Dcdf[m];
+                    d_low = betat[m];
                 }
             }
 
-            for(m=(ND-1);m>=0;--m)
+            for(m = (ND - 1); m >= 0; --m)
             {
-                if(Dcdf[m]>=Dcdf_s)
+                if(Dcdf[m] >= Dcdf_s)
                 {
-                    cdf_high=Dcdf[m];
-                    d_high=betat[m];
+                    cdf_high = Dcdf[m];
+                    d_high = betat[m];
                 }
             }
 
-            if(d_low==d_high)
+            if(d_low == d_high)
             {
-                d_s=d_low;
+                d_s = d_low;
             }
 
-            if(d_low!=d_high)
+            if(d_low != d_high)
             {
-                d_s=(Dcdf_s-cdf_low)*(d_high-d_low)/(cdf_high-cdf_low)+d_low;
+                d_s = (Dcdf_s - cdf_low) * (d_high - d_low) / (cdf_high - cdf_low) + d_low;
             }
 
-            for(m=0;m<ND;++m)
+            for(m = 0; m < ND; ++m)
             {
-                if(Dcdf[m]<=Dcdf_e)
+                if(Dcdf[m] <= Dcdf_e)
                 {
-                    cdf_low=Dcdf[m];
-                    d_low=betat[m];
+                    cdf_low = Dcdf[m];
+                    d_low = betat[m];
                 }
             }
 
-            for(m=(ND-1);m>=0;--m)
+            for(m = (ND - 1); m >= 0; --m)
             {
-                if(Dcdf[m]>=Dcdf_e)
+                if(Dcdf[m] >= Dcdf_e)
                 {
-                    cdf_high=Dcdf[m];
-                    d_high=betat[m];
+                    cdf_high = Dcdf[m];
+                    d_high = betat[m];
                 }
             }
 
-            if(d_low==d_high)
+            if(d_low == d_high)
             {
-                d_e=d_high;
+                d_e = d_high;
             }
 
-            if(d_low!=d_high)
+            if(d_low != d_high)
             {
-                d_e=(Dcdf_e-cdf_low)*(d_high-d_low)/(cdf_high-cdf_low)+d_low;
+                d_e = (Dcdf_e - cdf_low) * (d_high - d_low) / (cdf_high - cdf_low) + d_low;
             }
 
             // Create equal energy bins cdf_s:(cdf_e-cdf_s)/double (p->B133-1):cdf_e
-            for(n=0;n<p->B133;++n)
+            for(n = 0; n < p->B133; ++n)
             {
-                Ddee[n] = Dcdf_s+double (n)*(Dcdf_e-Dcdf_s)/double (p->B133-1);
+                Ddee[n] = Dcdf_s + double(n) * (Dcdf_e - Dcdf_s) / double(p->B133 - 1);
             }
 
             // Interpolate the corresponding angles at each equal energy bin
-            for(n=0;n<p->B133;++n)
+            for(n = 0; n < p->B133; ++n)
             {
-                for(m=0;m<ND;++m)
+                for(m = 0; m < ND; ++m)
                 {
-                    if(Dcdf[m]<=Ddee[n])
+                    if(Dcdf[m] <= Ddee[n])
                     {
-                        cdf_low=Dcdf[m];
-                        d_low=betat[m];
+                        cdf_low = Dcdf[m];
+                        d_low = betat[m];
                     }
                 }
 
-                for(m=(ND-1);m>=0;--m)
+                for(m = (ND - 1); m >= 0; --m)
                 {
-                    if(Dcdf[m]>=Ddee[n])
+                    if(Dcdf[m] >= Ddee[n])
                     {
-                        cdf_high=Dcdf[m];
-                        d_high=betat[m];
+                        cdf_high = Dcdf[m];
+                        d_high = betat[m];
                     }
                 }
 
-                if(d_low==d_high)
+                if(d_low == d_high)
                 {
-                    beta[n]=d_low;
+                    beta[n] = d_low;
                 }
 
-                if(d_low!=d_high)
+                if(d_low != d_high)
                 {
-                    beta[n]=(Ddee[n]-cdf_low)*(d_high-d_low)/(cdf_high-cdf_low)+d_low;
+                    beta[n] = (Ddee[n] - cdf_low) * (d_high - d_low) / (cdf_high - cdf_low) + d_low;
                 }
 
-                beta_n[n]=beta[n];
-                Di_n[n]=spreading_function(p, beta[n], wi[n]);
-
+                beta_n[n] = beta[n];
+                Di_n[n] = spreading_function(p, beta[n], wi[n]);
             }
 
-            // p->B133 divided by p->wN must be an interger
-            if(p->wN % p->B133==0)
-                NR=int(p->wN/p->B133);
+            // p->B133 divided by p->wN must be an interger (NR was unset otherwise: out-of-bounds writes or no angles)
+            if(p->B133 < 1 || p->B133 > p->wN || p->wN % p->B133 != 0)
+            {
+                if(p->mpirank == 0)
+                    cout << "!!! B 133 (number of directions " << p->B133 << ") must divide the number of components " << p->wN << " !!!" << endl;
+                exit(1);
+            }
+
+            NR = int(p->wN / p->B133);
 
             // create an angular array of the same length as the frequency array
-            count=0;
-            for(n = 0; n <NR; ++n)
+            count = 0;
+            for(n = 0; n < NR; ++n)
             {
                 for(q = 0; q < p->B133; ++q)
                 {
@@ -431,23 +436,23 @@ void wave_lib_spectrum::directional_spreading(lexer* p) // modified
 
             // randomly re-shuffle the angular array
 
-            if(p->B138>0)
-            srand(p->B138_2);
+            if(p->B138 > 0)
+                srand(p->B138_2);
 
-            if(p->B138==0)
-            srand((unsigned)time(0));
-            
+            if(p->B138 == 0)
+                srand((unsigned)time(0));
+
             for(n = 0; n < p->wN; ++n)
             {
                 // introduce random index
-                int index=rand() % p->wN;
+                int index = rand() % p->wN;
                 // keep swaping with the random array to avoid repeating
-                double temp=beta[n];
+                double temp = beta[n];
                 beta[n] = beta[index];
-                beta[index]=temp;
+                beta[index] = temp;
             }
 
-            count=0;
+            count = 0;
             for(n = 0; n < p->wN; ++n)
             {
                 beta[count] = beta[n];
@@ -456,7 +461,7 @@ void wave_lib_spectrum::directional_spreading(lexer* p) // modified
                 ++count;
             }
 
-            count=0;
+            count = 0;
             for(n = 0; n < p->wN; ++n)
             {
                 wi[count] = wi[n];
@@ -465,17 +470,17 @@ void wave_lib_spectrum::directional_spreading(lexer* p) // modified
                 ++count;
             }
 
-            double* Si_temp;
+            double *Si_temp;
             p->Darray(Si_temp, p->wN);
 
             for(n = 0; n < p->wN; ++n)
-            Si_temp[n] = Si[n];
+                Si_temp[n] = Si[n];
 
             // multiply S with D
             count = 0;
             for(n = 0; n < p->wN; ++n)
             {
-                Di[count]=spreading_function(p, beta[count], wi[count]);
+                Di[count] = spreading_function(p, beta[count], wi[count]);
                 Si[count] = Si_temp[n] * Di[count];
                 ++count;
             }
@@ -485,14 +490,14 @@ void wave_lib_spectrum::directional_spreading(lexer* p) // modified
     }
 }
 
-double wave_lib_spectrum::spreading_function(lexer* p, double beta, double w)
+double wave_lib_spectrum::spreading_function(lexer *p, double beta, double w)
 {
     double D = 0.0;
 
     // PNJ
-    if(p->B130==1)
+    if(p->B130 == 1)
     {
-        s_f = p->B134; // CAN BE ANY POSITIVE INTEGER
+        s_f = p->B134;  // CAN BE ANY POSITIVE INTEGER
 
         if((beta - p->B131) <= PI / 2.0 && (beta - p->B131) >= -PI / 2.0)
             D = (2.0 / PI) * pow(cos(beta - p->B131), s_f);
@@ -502,7 +507,7 @@ double wave_lib_spectrum::spreading_function(lexer* p, double beta, double w)
     }
 
     // Mitsuyasu
-    if(p->B130==2)
+    if(p->B130 == 2)
     {
 
         if(p->B134 <= 0.0)  // DON NOT USE THIS OPTION B 135, IT IS WRONG

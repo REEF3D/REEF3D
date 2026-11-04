@@ -1,0 +1,22 @@
+{
+ "base": "cfd_2d_dambreak",
+ "np": 1,
+ "steps": 80,
+ "ctrl_add": [
+  "G 1 2",
+  "G 24 3",
+  "G 2 4"
+ ],
+ "description": "Two levels adaptive (G 1 2, G 24 3, regrid every 4 steps, default hysteresis): level-2 patch edges on the edges between level-1 patches.",
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "levelset",
+  "amr",
+  "adaptive"
+ ],
+ "covers": [
+  "cfd_amr::restrict_level (the face at a low edge into the patch that owns it), pr_predict (the coarse face also into the copy of the coarse cell)"
+ ]
+}

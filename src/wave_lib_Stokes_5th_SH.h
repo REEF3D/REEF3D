@@ -23,36 +23,37 @@ Author: Hans Bihs
 #ifndef WAVE_LIB_STOKES_5TH_SH_H_
 #define WAVE_LIB_STOKES_5TH_SH_H_
 
-#include"wave_lib_precalc.h"
-#include"wave_lib_parameters.h"
-#include"increment.h"
+#include "increment.h"
+#include "wave_lib_parameters.h"
+#include "wave_lib_precalc.h"
+#include "wave_lib_steady_fi.h"
 
 using namespace std;
 
 class wave_lib_Stokes_5th_SH final : public wave_lib_precalc, public wave_lib_parameters, public increment
 {
 public:
-    wave_lib_Stokes_5th_SH(lexer*, ghostcell*);
-	virtual ~wave_lib_Stokes_5th_SH();
+    int wave_lexer_fields() const override { return 0; }
+    wave_lib_Stokes_5th_SH(lexer *, ghostcell *);
+    virtual ~wave_lib_Stokes_5th_SH();
 
-    double wave_horzvel(lexer*,double,double,double);
-    
-    double wave_u(lexer*,double,double,double) override final;
-    double wave_v(lexer*,double,double,double) override final;
-    double wave_w(lexer*,double,double,double) override final;
-    double wave_eta(lexer*,double,double) override final;
-    double wave_fi(lexer*,double,double,double) override final;
-    
-    
-    void parameters(lexer*,ghostcell*) override final;
-    void wave_prestep(lexer*,ghostcell*) override final;
-    
+    double wave_horzvel(lexer *, double, double, double);
+
+    double wave_u(lexer *, double, double, double) override final;
+    double wave_v(lexer *, double, double, double) override final;
+    double wave_w(lexer *, double, double, double) override final;
+    double wave_eta(lexer *, double, double) override final;
+    double wave_fi(lexer *, double, double, double) override final;
+
+    void parameters(lexer *, ghostcell *) override final;
+    void wave_prestep(lexer *, ghostcell *) override final;
+
 private:
-    double a11,a22,a31,a33,a42,a44,a51,a53,a55;
-    double b22,b31,b42,b44,b53,b55;
-    double e2,e4;
-    double singamma,cosgamma;
-
+    wave_lib_steady_fi sfi;  // the velocity potential (wave_lib_steady_fi.h)
+    double a11, a22, a31, a33, a42, a44, a51, a53, a55;
+    double b22, b31, b42, b44, b53, b55;
+    double e2, e4;
+    double singamma, cosgamma;
 };
 
 #endif

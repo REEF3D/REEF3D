@@ -21,12 +21,16 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include "probe_pressure.h"
+#include "amr_grid_lookup.h"
 #include "fdm.h"
 #include "ghostcell.h"
 #include "lexer.h"
+#include "probe_core.h"
+#include "reefckpt.h"
 #include "turbulence.h"
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <vector>
 
 probe_pressure::probe_pressure(lexer *p, fdm *a, ghostcell *pgc) : probenum(p->P64)
 {
@@ -34,6 +38,7 @@ probe_pressure::probe_pressure(lexer *p, fdm *a, ghostcell *pgc) : probenum(p->P
     p->Iarray(jloc, probenum);
     p->Iarray(kloc, probenum);
     p->Iarray(flag, probenum);
+    p->Darray(val, probenum * 1);
 
     // cout<<p->mpirank<<" pressure probepoint_num: "<<probenum<<endl;
 
@@ -42,6 +47,7 @@ probe_pressure::probe_pressure(lexer *p, fdm *a, ghostcell *pgc) : probenum(p->P
         mkdir("./REEF3D_CFD_PressureProbe", 0777);
 
     pout = new ofstream[probenum + 1];
+    std::vector<char> head(probenum + 1, 1);
 
     if(p->mpirank == 0 && probenum > 0)
     {
@@ -50,79 +56,116 @@ probe_pressure::probe_pressure(lexer *p, fdm *a, ghostcell *pgc) : probenum(p->P
         {
             sprintf(name, "./REEF3D_CFD_PressureProbe/REEF3D-CFD-Probe-Pressure-%i.dat", n + 1);
 
-            pout[n].open(name, std::fstream::out);
-
-            // cout<<pout[n].is_open()<<" "<<n+1<<endl;
+            head[n] = reefckpt_open(pout[n], name, p->I45);  // I 45: continued
         }
 
         for(n = 0; n < probenum; ++n)
+            if(head[n])
+            {
+                pout[n] << "Point Probe ID:  " << n + 1 << endl
+                        << endl;
+                pout[n] << "x_coord     y_coord     z_coord" << endl;
+
+                pout[n] << n + 1 << "\t " << p->P64_x[n] << "\t " << p->P64_y[n] << "\t " << p->P64_z[n] << endl;
+
+                // cout<<p->mpirank<<" pressure probepoint_num: "<<probenum<<endl;
+
+                // Create Folder
+                if(p->mpirank == 0)
+                    mkdir("./REEF3D_CFD_PressureProbe", 0777);
+
+                pout = new ofstream[probenum + 1];
+
+                if(p->mpirank == 0 && probenum > 0)
+                {
+                    // open file
+                    for(n = 0; n < probenum; ++n)
+                    {
+                        sprintf(name, "./REEF3D_CFD_PressureProbe/REEF3D-CFD-Probe-Pressure-%i.dat", n + 1);
+
+                        pout[n].open(name, std::fstream::out);
+
+                        // cout<<pout[n].is_open()<<" "<<n+1<<endl;
+                    }
+
+                    for(n = 0; n < probenum; ++n)
+                    {
+                        pout[n] << "Point Probe ID:  " << n + 1 << endl
+                                << endl;
+                        pout[n] << "x_coord     y_coord     z_coord" << endl;
+
+                        pout[n] << n + 1 << "\t " << p->P64_x[n] << "\t " << p->P64_y[n] << "\t " << p->P64_z[n] << endl;
+
+                        pout[n] << endl
+                                << endl;
+                    }
+                }
+
+                ini_location(p, a, pgc);
+            }
+
+        probe_pressure::~probe_pressure()
         {
-            pout[n] << "Point Probe ID:  " << n + 1 << endl
-                    << endl;
-            pout[n] << "x_coord     y_coord     z_coord" << endl;
-
-            pout[n] << n + 1 << "\t " << p->P64_x[n] << "\t " << p->P64_y[n] << "\t " << p->P64_z[n] << endl;
-
-            pout[n] << endl
-                    << endl;
+            for(n = 0; n < probenum; ++n)
+                pout[n].close();
         }
-    }
 
-    ini_location(p, a, pgc);
-}
-
-probe_pressure::~probe_pressure()
-{
-    for(n = 0; n < probenum; ++n)
-        pout[n].close();
-}
-
-void probe_pressure::start(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb)
-{
-    double xp, yp, zp;
-
-    for(n = 0; n < probenum; ++n)
-    {
-        uval = vval = wval = pval = kval = eval = edval = -1.0e20;
-
-        if(flag[n] > 0)
+        void probe_pressure::start(lexer * p, fdm * a, ghostcell * pgc, turbulence * pturb)
         {
-            xp = p->P64_x[n];
-            yp = p->P64_y[n];
-            zp = p->P64_z[n];
+            double xp, yp, zp;
 
-            pval = p->ccipol4a(a->press, xp, yp, zp) - p->pressgage;
+            // the probes of this rank: on its level-0 grid; with the placement of the CFD patches (G 40)
+            // the rank of the finest grid there
+            std::vector<char> mine;
+            amr_cfd_mine(amr, probenum, p->P64_x, p->P64_y, p->P64_z, flag, mine);
+
+            for(n = 0; n < probenum; ++n)
+            {
+                uval = vval = wval = pval = kval = eval = edval = -1.0e20;
+
+                if(mine[n])
+                {
+                    xp = p->P64_x[n];
+                    yp = p->P64_y[n];
+                    zp = p->P64_z[n];
+
+                    // level 0, or the finest patch of a mesh refinement there
+                    lexer *q = p;
+                    fdm *fa = a;
+                    if(amr != nullptr)
+                        amr->finest_grid(xp, yp, zp, q, fa);
+
+                    pval = q->ccipol4a(fa->press, xp, yp, zp) - p->pressgage;
+                }
+
+                val[n * 1 + 0] = pval;
+            }
+
+            probe_rows(p, pgc, pout, val, probenum, 1);
         }
 
-        pval = pgc->globalmax(pval);
+        void probe_pressure::ini_location(lexer * p, fdm * a, ghostcell * pgc)
+        {
+            int check;
 
-        if(p->mpirank == 0)
-            pout[n] << setprecision(9) << p->simtime << " \t " << pval << endl;
-    }
-}
+            for(n = 0; n < probenum; ++n)
+            {
+                check = 0;
 
-void probe_pressure::ini_location(lexer *p, fdm *a, ghostcell *pgc)
-{
-    int check;
+                iloc[n] = p->posc_i(p->P64_x[n]);
 
-    for(n = 0; n < probenum; ++n)
-    {
-        check = 0;
+                if(p->j_dir == 0)
+                    jloc[n] = 0;
 
-        iloc[n] = p->posc_i(p->P64_x[n]);
+                if(p->j_dir == 1)
+                    jloc[n] = p->posc_j(p->P64_y[n]);
 
-        if(p->j_dir == 0)
-            jloc[n] = 0;
+                kloc[n] = p->posc_k(p->P64_z[n]);
 
-        if(p->j_dir == 1)
-            jloc[n] = p->posc_j(p->P64_y[n]);
+                check = boundcheck(p, iloc[n], jloc[n], kloc[n], 0);
 
-        kloc[n] = p->posc_k(p->P64_z[n]);
-
-        check = boundcheck(p, iloc[n], jloc[n], kloc[n], 0);
-
-        if(check == 1)
-            flag[n] = 1;
-    }
-}
+                if(check == 1)
+                    flag[n] = 1;
+            }
+        }
 

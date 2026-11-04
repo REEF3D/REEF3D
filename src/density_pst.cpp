@@ -20,12 +20,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"density_pst.h"
-#include"lexer.h"
-#include"fdm.h"
+#include "density_pst.h"
+#include "fdm.h"
+#include "heaviside.h"
+#include "interface_width.h"
+#include "lexer.h"
 
-density_pst::density_pst(lexer* p)
-{ 
+density_pst::density_pst(lexer *p)
+{
 }
 
 density_pst::~density_pst()
@@ -34,37 +36,19 @@ density_pst::~density_pst()
 
 double density_pst::roface(lexer *p, fdm *a, int aa, int bb, int cc)
 {
-    phival = 0.5*(a->phi(i,j,k) + a->phi(i+aa,j+bb,k+cc));
+    phival = 0.5 * (a->phi(i, j, k) + a->phi(i + aa, j + bb, k + cc));
 
-    if(phival>p->psi)
-    H=1.0;
+    H = heaviside_face(p, a->phi, phival, i, j, k, aa, bb, cc);
 
-    if(phival<-p->psi)
-    H=0.0;
+    roval = p->W1 * H + p->W3 * (1.0 - H);
 
-    if(fabs(phival)<=p->psi)
-    H=0.5*(1.0 + phival/p->psi + (1.0/PI)*sin((PI*phival)/p->psi));
-    
-    roval = p->W1*H + p->W3*(1.0-H);
-    
-    
     // ----
-    topoval = 0.5*(a->topo(i,j,k) + a->topo(i+aa,j+bb,k+cc));
+    topoval = 0.5 * (a->topo(i, j, k) + a->topo(i + aa, j + bb, k + cc));
 
-    if(topoval>p->psi)
-    H=1.0;
+    H = heaviside_face(p, a->topo, topoval, i, j, k, aa, bb, cc);
 
-    if(topoval<-p->psi)
-    H=0.0;
+    roval = roval * H + p->S22 * (1.0 - H);
 
-    if(fabs(topoval)<=p->psi)
-    H=0.5*(1.0 + topoval/p->psi + (1.0/PI)*sin((PI*topoval)/p->psi));
-    
-    roval = roval*H + p->S22*(1.0-H);
-
-	return roval;	
+    return roval;
 }
-
-
-
 

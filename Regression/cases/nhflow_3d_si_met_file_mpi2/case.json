@@ -1,0 +1,27 @@
+{
+ "base": "nhflow_3d_si_basin_mpi2",
+ "description": "Met forcing W 200 2 in the NHFLOW semi-implicit closed basin on 2 ranks: met file with u10, v10, pa linear in x, y, t (tools/met_forcing.py analytic, 13 x 9 nodes, hourly), model time 0 = 2018-10-10 12:30 (W 203, between two records), ramp 300 s (W 204), Zijlema drag (W 207 4); every rank reads its window of the file. np 1 (nhflow_3d_si_met_file) agrees to round-off.",
+ "ctrl_add": [
+  "W 200 2",
+  "W 203 20181010.123000",
+  "W 204 300.0",
+  "W 207 4"
+ ],
+ "files": [
+  "met-forcing.r3m"
+ ],
+ "tags": [
+  "3d",
+  "nhflow",
+  "semi_implicit",
+  "mpi",
+  "wind",
+  "met"
+ ],
+ "covers": [
+  "met_file windows per rank",
+  "linear in time between records",
+  "ramp W 204",
+  "W 203"
+ ]
+}

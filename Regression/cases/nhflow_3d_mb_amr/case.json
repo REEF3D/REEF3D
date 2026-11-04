@@ -1,0 +1,21 @@
+{
+ "base": "nhflow_3d_mb_quadrants",
+ "ctrl_add": [
+  "G 1 1",
+  "G 2 0",
+  "G 3 2",
+  "G 4 8",
+  "G 10 0.55 1.75 0.6 1.6"
+ ],
+ "description": "As nhflow_3d_mb_quadrants with one refinement level in a static box over the vertex: patches in all four blocks, cut at the block faces, filled and flux-matched across the turned interfaces (sign of the fluxes), the composite pressure with the block-local cycles below the patches (nhflow_multiblock/t5).",
+ "tags": [
+  "3d",
+  "nhflow",
+  "curvilinear",
+  "multiblock",
+  "amr"
+ ],
+ "covers": [
+  "flux_hook with the sign of turned coarse faces, prolongation from the blocks, restriction into the blocks, FAC with the blocks as level 0"
+ ]
+}

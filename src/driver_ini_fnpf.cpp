@@ -106,6 +106,10 @@ void driver::driver_ini_fnpf()
     p->ycoormin = pgc->globalmin(p->ycoormin);
     p->zcoormin = pgc->globalmin(p->zcoormin);
 
+    // F 42 sets it explicitly (as in driver::makegrid_sigma and for CFD)
+    if(p->F42 >= 0.0)
+        p->maxlength = p->F42;
+
     if(p->mpirank == 0)
         cout << "starting driver_ini_FNPF" << endl;
 
@@ -188,6 +192,10 @@ void driver::driver_ini_fnpf()
     if(pfamr != nullptr)
         pfamr->ini(p, c, pgc);
 
+    // the wave gauges and probes of the printer on the finest grid
+    if(pfamr != nullptr)
+        pprint->amr_columns(p, pfamr);
+
     pftstep->ini(c, p, pgc);
 
     if(pfamr != nullptr)
@@ -196,10 +204,17 @@ void driver::driver_ini_fnpf()
     if(pfice != nullptr)
         pfice->timestep(p, c, pgc);
 
-    pprint->start(p, c, pgc, pflow);
+    // restart from the latest checkpoint (I 45), on any decomposition; the outputs continue
+    if(p->I45 == 1)
+        ckpt_read();
 
-    if(pfamr != nullptr)
-        pfamr->print(p, c, pgc);
+    if(p->I45 != 1)
+    {
+        pprint->start(p, c, pgc, pflow);
+
+        if(pfamr != nullptr)
+            pfamr->print(p, c, pgc);
+    }
 
     p->gctime = 0.0;
     p->xtime = 0.0;

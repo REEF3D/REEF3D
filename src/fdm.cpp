@@ -20,58 +20,51 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"fdm.h"
-#include"lexer.h"
+#include "fdm.h"
+#include "ckpt_registry.h"
+#include "lexer.h"
 
-fdm::fdm(lexer *p) :
-            u(p),F(p),Fext(p),
-            v(p),G(p),Gext(p),
-            w(p),H(p),Hext(p),
-            press(p),
-            Fi(p),
-            eddyv(p),
-            L(p),
-            ro(p),visc(p),
-            phi(p),
-            vof(p),vof_nt(p),vof_nb(p),vof_st(p),vof_sb(p),phasemarker(p),
-            vof_nte(p),vof_ntw(p),vof_nbe(p),vof_nbw(p),vof_ste(p),vof_stw(p),vof_sbe(p),vof_sbw(p),
-            conc(p),
-            topo(p),solid(p),
-            test(p),
-            fb(p),fbh1(p),fbh2(p),fbh3(p),fbh4(p),fbh5(p),
-            porosity(p),porpart(p),
-            walld(p),
-            nodeval(p),nodeval2D(p),etaloc(p),
-            eta(p),eta_n(p),depth(p),WL(p),
-            Fifsf(p),K(p),
-            P(p),Q(p),bed(p),
-            rhsvec(p),M(p),
-            nX(p),nY(p),nZ(p),Alpha(p)
-            
+fdm::fdm(lexer *p, unsigned lean) : u(p), F(p), Fext(p),
+                                    v(p), G(p), Gext(p),
+                                    w(p), H(p), Hext(p),
+                                    press(p),
+                                    Fi(p, !(lean & FDM_LEAN_FI)),
+                                    eddyv(p),
+                                    L(p),
+                                    ro(p), visc(p),
+                                    phi(p),
+                                    vof(p, !(lean & FDM_LEAN_VOF)), vof_nt(p, p->F80 > 0), vof_nb(p, p->F80 > 0), vof_st(p, p->F80 > 0), vof_sb(p, p->F80 > 0), phasemarker(p, p->F80 > 0),
+                                    vof_nte(p, p->F80 > 0), vof_ntw(p, p->F80 > 0), vof_nbe(p, p->F80 > 0), vof_nbw(p, p->F80 > 0), vof_ste(p, p->F80 > 0), vof_stw(p, p->F80 > 0), vof_sbe(p, p->F80 > 0), vof_sbw(p, p->F80 > 0),
+                                    conc(p, !(lean & FDM_LEAN_CONC)),
+                                    topo(p), solid(p),
+                                    test(p, !(lean & FDM_LEAN_TEST)),
+                                    fb(p), fbh1(p), fbh2(p), fbh3(p), fbh4(p), fbh5(p),
+                                    porosity(p), porpart(p, !(lean & FDM_LEAN_POR)), porA(p, !(lean & FDM_LEAN_POR)), porB(p, !(lean & FDM_LEAN_POR)),
+                                    walld(p, !(lean & FDM_LEAN_WALLD)),
+                                    nodeval(p, !(lean & FDM_LEAN_NODE)), nodeval2D(p), etaloc(p),
+                                    eta(p), eta_n(p), depth(p), WL(p),
+                                    Fifsf(p), K(p),
+                                    P(p), Q(p), bed(p),
+                                    rhsvec(p), M(p),
+                                    nX(p, p->F80 > 0), nY(p, p->F80 > 0), nZ(p, p->F80 > 0), Alpha(p, p->F80 > 0)
+
 {
-	maxF=0.0;
-	maxG=0.0; 
-	maxH=0.0;
-    
-	gi=p->W20;
-	gj=p->W21;
-	gk=p->W22;
+    // checkpoints (P 48, I 45): the matrix and the right-hand side of the solvers (entries an
+    // assembly leaves carry over), local to the rank
+    for(std::vector<double> *m : {&M.p, &M.n, &M.s, &M.e, &M.w, &M.t, &M.b, &rhsvec.V})
+        ckids.push_back(ckpt_registry::add_raw(p, m->data(), (long long)m->size()));
+
+    maxF = 0.0;
+    maxG = 0.0;
+    maxH = 0.0;
+
+    gi = p->W20;
+    gj = p->W21;
+    gk = p->W22;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+fdm::~fdm()
+{
+    for(auto id : ckids)
+        ckpt_registry::remove(id);
+}

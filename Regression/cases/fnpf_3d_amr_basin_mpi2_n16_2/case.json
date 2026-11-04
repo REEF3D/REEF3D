@@ -1,0 +1,21 @@
+{
+ "base": "fnpf_3d_amr_basin_mpi2",
+ "np": 2,
+ "ctrl_add": [
+  "N 16 2"
+ ],
+ "same_as": "fnpf_3d_amr_basin_mpi2",
+ "same_as_rtol": 1e-05,
+ "description": "fnpf_3d_amr_basin_mpi2 with the level-0 V-cycle of the composite REEFAMR preconditioner on the reference device (N 16 2: one single-precision hierarchy of the whole level-0 grid for all ranks, the GPU kernels of reefmg_device_kernels.h in loops on the CPU, called by the host as a defect-correction step); the patch-local cycles on the CPU; the Laplace solves of 2 ranks; within 1e-5 of the CPU run (`regression.py ranks`)",
+ "tags": [
+  "3d",
+  "fnpf",
+  "amr",
+  "solver",
+  "mpi"
+ ],
+ "covers": [
+  "REEFMG device path (N 16) for the REEFAMR level 0, reference device",
+  "FNPF AMR level-0 multigrid on the device"
+ ]
+}

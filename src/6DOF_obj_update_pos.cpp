@@ -36,6 +36,11 @@ void sixdof_obj_cfd::update_position_3D(lexer *p, fdm *a, ghostcell *pgc, bool f
     // Update angular velocities
     rb.update_omega();
 
+    // the pose and velocity: in the 6DOF log files (REEF3D_*_6DOF), no longer on the terminal
+
+    // Update angular velocities
+    rb.update_omega();
+
     if(p->mpirank == 0 && finalize == true)
     {
         cout << "XG: " << c_(0) << " YG: " << c_(1) << " ZG: " << c_(2) << " phi: " << phi * (180.0 / PI) << " theta: " << theta * (180.0 / PI) << " psi: " << psi * (180.0 / PI) << endl;

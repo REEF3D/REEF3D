@@ -20,22 +20,22 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"lexer.h"
+#include "lexer.h"
 
 void lexer::control_calc()
 {
-	dt=dt_old=0.0;
-	simtime=I50;
-	sedtime=0.0;
-	dtsed=0.0;
-	presstime=veltime=lsmtime=reinitime=reinitime=turbtime=0.0;
-    fsitime=fbtime=0.0;
-    fbdt=fbmax=0.0;
-	printouttime=0.0;
-	xtime=0.0;
-	gctime=0.0;
-	totaltime=0.0;
-	meantime=0.0;
-	Xmeantime=Xtotaltime=0.0;
-	gcmeantime=gctotaltime=0.0;
+    dt = dt_old = 0.0;
+    simtime = I50;
+    sedtime = 0.0;
+    dtsed = 0.0;
+    presstime = veltime = lsmtime = reinitime = turbtime = 0.0;
+    fsitime = fbtime = 0.0;
+    fbdt = fbmax = 0.0;
+    printouttime = 0.0;
+    xtime = 0.0;
+    gctime = 0.0;
+    totaltime = 0.0;
+    meantime = 0.0;
+    Xmeantime = Xtotaltime = 0.0;
+    gcmeantime = gctotaltime = 0.0;
 }

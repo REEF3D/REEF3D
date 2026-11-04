@@ -1,0 +1,18 @@
+# Architect: Hans Bihs
+# Regression: cylinder-on-cone bag (Strand et al. 2013 cage, model scale), coarse grid
+# flexible bag with mobility sharp: filling 0.98 pumped out of the bag interior over 0.2 s (drain), staggered coupling
+# with added mass, bending hinges, smoothed fluid geometry; hydrograph inflow (B 60 2)
+membrane cylcone 1 1.2 0.38 0.9 1.2 1.53
+name strand2013
+resistance 1.0e5 0
+projections 1
+print 0
+structure flexible
+mass 1.0
+density 1140
+stiffness 5.0e5
+damping 0.1
+compression 0.001
+filling 0.98
+drain 0.2
+mobility sharp

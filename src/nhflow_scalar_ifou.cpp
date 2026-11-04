@@ -23,7 +23,46 @@ Author: Hans Bihs
 #include "nhflow_scalar_ifou.h"
 #include "fdm_nhf.h"
 #include "lexer.h"
+#include "nhflow_curv.h"
 #include "nhflow_scalar_advec_CDS2.h"
+
+// curvilinear grid (G 50): the face velocities along the face normals (as nhflow_scalar_advec_CDS2: the
+// mean of the two cells, zero towards solid or dry neighbours inside the domain) and the factors
+// face length / cell area that replace 1/dx, 1/dy
+static void curv_faces(lexer *p, double *U, double *V, int i, int j, int k,
+                       double &iv1, double &iv2, double &jv1, double &jv2, double &a1, double &a2, double &b1, double &b2)
+{
+    double nx, ny, len;
+    const double A = p->AREA2D[IJ];
+
+    nhflow_curv::normal(p, 1, i - 1, j, nx, ny, len);
+    iv1 = 0.5 * ((U[IJK] + U[Im1JK]) * nx + (V[IJK] + V[Im1JK]) * ny);
+    a1 = len / A;
+
+    nhflow_curv::normal(p, 1, i, j, nx, ny, len);
+    iv2 = 0.5 * ((U[IJK] + U[Ip1JK]) * nx + (V[IJK] + V[Ip1JK]) * ny);
+    a2 = len / A;
+
+    nhflow_curv::normal(p, 2, i, j - 1, nx, ny, len);
+    jv1 = 0.5 * ((U[IJK] + U[IJm1K]) * nx + (V[IJK] + V[IJm1K]) * ny);
+    b1 = len / A;
+
+    nhflow_curv::normal(p, 2, i, j, nx, ny, len);
+    jv2 = 0.5 * ((U[IJK] + U[IJp1K]) * nx + (V[IJK] + V[IJp1K]) * ny);
+    b2 = len / A;
+
+    if(i + p->origin_i > 0 && p->DF[Im1JK] < 0)
+        iv1 = 0.0;
+
+    if(i + p->origin_i < p->gknox - 1 && p->DF[Ip1JK] < 0)
+        iv2 = 0.0;
+
+    if((j + p->origin_j == 0 && p->periodic2 == 0) || p->DF[IJm1K] < 0)
+        jv1 = 0.0;
+
+    if((j + p->origin_j == p->gknoy - 1 && p->periodic2 == 0) || p->DF[IJp1K] < 0)
+        jv2 = 0.0;
+}
 
 nhflow_scalar_ifou::nhflow_scalar_ifou(lexer *p, int form) : advective(form)
 {
@@ -43,34 +82,53 @@ void nhflow_scalar_ifou::start(lexer *p, fdm_nhf *d, double *F, int ipol, double
         return;
     }
 
+    if(advective == 2)
+    {
+        start_conservative(p, d, F, ipol, U, V, W);
+        return;
+    }
+
+    // conservative form: (F_i+1/2 - F_i-1/2)/dx_i with the upwind value per face (as ifou); was one direction
+    // per cell and the width of the upstream cell for positive flow (not conservative on stretched grids)
     count = 0;
     LOOP
     {
-        udir = vdir = wdir = 0.0;
-
         padvec->uadvec(ipol, U, ivel1, ivel2);
         padvec->vadvec(ipol, V, jvel1, jvel2);
         padvec->wadvec(ipol, W, kvel1, kvel2);
 
-        if(0.5 * (ivel1 + ivel2) >= 0.0)
-            udir = 1.0;
+        const double dxc = p->DXN[IP];
+        const double dyc = p->DYN[JP];
+        const double dzc = p->DZN[KP] * (p->WL[IJ] > 1.0e-20 ? p->WL[IJ] : 1.0e20);
 
-        if(0.5 * (jvel1 + jvel2) >= 0.0)
-            vdir = 1.0;
+        if(p->geo_curv == 1)
+        {
+            double a1, a2, b1, b2;
+            curv_faces(p, U, V, i, j, k, ivel1, ivel2, jvel1, jvel2, a1, a2, b1, b2);
 
-        if(0.5 * (kvel1 + kvel2) >= 0.0)
-            wdir = 1.0;
+            d->M.p[count] = MAX(ivel2, 0.0) * a2 - MIN(ivel1, 0.0) * a1 + MAX(jvel2, 0.0) * b2 - MIN(jvel1, 0.0) * b1 + (MAX(kvel2, 0.0) - MIN(kvel1, 0.0)) / dzc;
 
-        d->M.p[count] = udir * ivel2 / p->DXN[IM1] - (1.0 - udir) * ivel1 / p->DXN[IP] + (vdir * jvel2 / p->DYN[JM1] - (1.0 - vdir) * jvel1 / p->DYN[JP]) * p->y_dir + wdir * kvel2 / (p->DZN[KM1] * p->WL[IJ]) - (1.0 - wdir) * kvel1 / (p->DZN[KP] * p->WL[IJ]);
+            d->M.s[count] = -MAX(ivel1, 0.0) * a1;
+            d->M.n[count] = MIN(ivel2, 0.0) * a2;
+            d->M.e[count] = -MAX(jvel1, 0.0) * b1;
+            d->M.w[count] = MIN(jvel2, 0.0) * b2;
+            d->M.b[count] = -MAX(kvel1, 0.0) / dzc;
+            d->M.t[count] = MIN(kvel2, 0.0) / dzc;
 
-        d->M.s[count] = -udir * ivel1 / p->DXN[IM1];
-        d->M.n[count] = (1.0 - udir) * ivel2 / p->DXN[IP];
+            ++count;
+            continue;
+        }
 
-        d->M.e[count] = -vdir * jvel1 / p->DYN[JM1] * p->y_dir;
-        d->M.w[count] = (1.0 - vdir) * jvel2 / p->DYN[JP] * p->y_dir;
+        d->M.p[count] = (MAX(ivel2, 0.0) - MIN(ivel1, 0.0)) / dxc + (MAX(jvel2, 0.0) - MIN(jvel1, 0.0)) / dyc * p->y_dir + (MAX(kvel2, 0.0) - MIN(kvel1, 0.0)) / dzc;
 
-        d->M.b[count] = -wdir * kvel1 / (p->DZN[KM1] * p->WL[IJ]);
-        d->M.t[count] = (1.0 - wdir) * kvel2 / (p->DZN[KP] * p->WL[IJ]);
+        d->M.s[count] = -MAX(ivel1, 0.0) / dxc;
+        d->M.n[count] = MIN(ivel2, 0.0) / dxc;
+
+        d->M.e[count] = -MAX(jvel1, 0.0) / dyc * p->y_dir;
+        d->M.w[count] = MIN(jvel2, 0.0) / dyc * p->y_dir;
+
+        d->M.b[count] = -MAX(kvel1, 0.0) / dzc;
+        d->M.t[count] = MIN(kvel2, 0.0) / dzc;
 
         ++count;
     }
@@ -104,6 +162,28 @@ void nhflow_scalar_ifou::start_advective(lexer *p, fdm_nhf *d, double *F, int ip
         dyc = p->DYN[JP];
         dzc = p->DZN[KP] * (p->WL[IJ] > 1.0e-20 ? p->WL[IJ] : 1.0e20);
 
+        if(p->geo_curv == 1)
+        {
+            double a1, a2, b1, b2;
+            curv_faces(p, U, V, i, j, k, ivel1, ivel2, jvel1, jvel2, a1, a2, b1, b2);
+            up1 = MAX(ivel1, 0.0);
+            um2 = MIN(ivel2, 0.0);
+            vp1 = MAX(jvel1, 0.0);
+            vm2 = MIN(jvel2, 0.0);
+
+            d->M.p[count] = up1 * a1 - um2 * a2 + vp1 * b1 - vm2 * b2 + (wp1 - wm2) / dzc;
+
+            d->M.s[count] = -up1 * a1;
+            d->M.n[count] = um2 * a2;
+            d->M.e[count] = -vp1 * b1;
+            d->M.w[count] = vm2 * b2;
+            d->M.b[count] = -wp1 / dzc;
+            d->M.t[count] = wm2 / dzc;
+
+            ++count;
+            continue;
+        }
+
         d->M.p[count] = (up1 - um2) / dxc + ((vp1 - vm2) / dyc) * p->y_dir + (wp1 - wm2) / dzc;
 
         d->M.s[count] = -up1 / dxc;
@@ -114,6 +194,94 @@ void nhflow_scalar_ifou::start_advective(lexer *p, fdm_nhf *d, double *F, int ip
 
         d->M.b[count] = -wp1 / dzc;
         d->M.t[count] = wm2 / dzc;
+
+        ++count;
+    }
+}
+
+void nhflow_scalar_ifou::start_conservative(lexer *p, fdm_nhf *d, double *F, int ipol, double *U, double *V, double *W)
+{
+    // Implicit first-order upwind for the conservative (in D) scalar equation in sigma coordinates:
+    //   d(D F)/dt + d(D u F)/dx|s + d(D v F)/dy|s + d(W F)/ds = ...
+    // W is the vertical volume flux through the sigma faces (D*ds/dt, e.g. omegaF - ws), [m/s].
+    // One flux per face, evaluated identically by both cells sharing it -> fluxes cancel in the domain sum.
+    // Horizontal fluxes: the continuity fluxes of the flow solver (FEx, FEy = D u per layer, from which
+    // omegaF is built), so the scheme is consistent with the depth change of the flow step, walls give
+    // zero flux and inflow/outflow boundaries stay open.
+    // Coefficients are divided by the cell depth D_p, the unknown stays F; the time term of the
+    // calling class has to supply the depth ratio D^n/D^(n+1) (geometric conservation).
+    // Closed faces: bed and free surface (bed exchange as a source), dry or solid neighbours.
+    double qx1, qx2, qy1, qy2, qz1, qz2;
+    double hp;
+    double dxc, dyc, dzc;
+
+    count = 0;
+    LOOP
+    {
+        padvec->uadvec(ipol, U, ivel1, ivel2);
+        padvec->vadvec(ipol, V, jvel1, jvel2);
+        padvec->wadvec(ipol, W, kvel1, kvel2);
+
+        hp = MAX(d->WL(i, j), 1.0e-20);
+
+        qx1 = d->FEx[Im1JK];
+        qx2 = d->FEx[IJK];
+        qy1 = d->FEy[IJm1K];
+        qy2 = d->FEy[IJK];
+        qz1 = kvel1;
+        qz2 = kvel2;
+
+        if(p->wet[Im1J] == 0 || p->DF[Im1JK] < 0)
+            qx1 = 0.0;
+
+        if(p->wet[Ip1J] == 0 || p->DF[Ip1JK] < 0)
+            qx2 = 0.0;
+
+        if(p->wet[IJm1] == 0 || p->DF[IJm1K] < 0)
+            qy1 = 0.0;
+
+        if(p->wet[IJp1] == 0 || p->DF[IJp1K] < 0)
+            qy2 = 0.0;
+
+        if(k == 0)
+            qz1 = 0.0;
+
+        if(k == p->knoz - 1)
+            qz2 = 0.0;
+
+        dxc = hp * p->DXN[IP];
+        dyc = hp * p->DYN[JP];
+        dzc = hp * p->DZN[KP];
+
+        // curvilinear grid (G 50): FEx, FEy are the fluxes per face length along the face normals
+        if(p->geo_curv == 1)
+        {
+            const double A = hp * p->AREA2D[IJ];
+            const double a1 = p->LEN1[Im1J] / A, a2 = p->LEN1[IJ] / A, b1 = p->LEN2[IJm1] / A, b2 = p->LEN2[IJ] / A;
+
+            d->M.p[count] = MAX(qx2, 0.0) * a2 - MIN(qx1, 0.0) * a1 + MAX(qy2, 0.0) * b2 - MIN(qy1, 0.0) * b1 + (MAX(qz2, 0.0) - MIN(qz1, 0.0)) / dzc;
+
+            d->M.s[count] = -MAX(qx1, 0.0) * a1;
+            d->M.n[count] = MIN(qx2, 0.0) * a2;
+            d->M.e[count] = -MAX(qy1, 0.0) * b1;
+            d->M.w[count] = MIN(qy2, 0.0) * b2;
+            d->M.b[count] = -MAX(qz1, 0.0) / dzc;
+            d->M.t[count] = MIN(qz2, 0.0) / dzc;
+
+            ++count;
+            continue;
+        }
+
+        d->M.p[count] = (MAX(qx2, 0.0) - MIN(qx1, 0.0)) / dxc + ((MAX(qy2, 0.0) - MIN(qy1, 0.0)) / dyc) * p->y_dir + (MAX(qz2, 0.0) - MIN(qz1, 0.0)) / dzc;
+
+        d->M.s[count] = -MAX(qx1, 0.0) / dxc;
+        d->M.n[count] = MIN(qx2, 0.0) / dxc;
+
+        d->M.e[count] = -MAX(qy1, 0.0) / dyc * p->y_dir;
+        d->M.w[count] = MIN(qy2, 0.0) / dyc * p->y_dir;
+
+        d->M.b[count] = -MAX(qz1, 0.0) / dzc;
+        d->M.t[count] = MIN(qz2, 0.0) / dzc;
 
         ++count;
     }

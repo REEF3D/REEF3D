@@ -23,26 +23,24 @@ Author: Hans Bihs
 #ifndef FLUX_FACE_CDS2_H_
 #define FLUX_FACE_CDS2_H_
 
-#include"flux.h"
-#include"increment.h"
+#include "flux.h"
+#include "increment.h"
 
 using namespace std;
 
 class flux_face_CDS2 final : public flux, public increment
 {
 public:
+    flux_face_CDS2(lexer *p);
+    virtual ~flux_face_CDS2();
 
-	flux_face_CDS2 (lexer *p);
-	virtual ~flux_face_CDS2();
+    void u_flux(fdm *a, int, field &, double &, double &) override final;
+    void v_flux(fdm *a, int, field &, double &, double &) override final;
+    void w_flux(fdm *a, int, field &, double &, double &) override final;
 
-	void u_flux(fdm* a,int,field&,double&,double&) override final;
-	void v_flux(fdm* a,int,field&,double&,double&) override final;
-	void w_flux(fdm* a,int,field&,double&,double&) override final;
-
-    
 private:
+    bool static_geometry(fdm *, int, int, int);  // cell inside a solid or the topography
     lexer *p;
-
 };
 
 #endif

@@ -1,0 +1,7 @@
+{
+ "base": "fnpf_2d_irregular_decomp",
+ "description": "fnpf_2d_irregular_decomp (600 m deep, Hs 5 m, Tp 12 s) with 2nd-order irregular waves B (B 92 33, 32 components) and B 89 0. The former 2nd-order coefficients stopped this case (HYPRE breakdown); with the corrected theory it runs.",
+ "tags": ["quick", "2d", "fnpf", "waves", "iowave", "irregular"],
+ "covers": ["second-order theory in deep water", "wave_lib_irregular_2nd_terms, exp-path of the vertical profiles"],
+ "ctrl_set": {"B 92": "33", "B 89": "0", "B 86": "32"}
+}

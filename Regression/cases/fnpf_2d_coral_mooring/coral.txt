@@ -1,0 +1,12 @@
+# REEF3D::CORAL model for fnpf_2d_coral_mooring: the FNPF box moored fore and aft by a quasi-static line (elastic
+# catenary with seabed) and a dynamic line (lumped mass, the free surface and the wave kinematics of FNPF at its
+# nodes); surge, heave and pitch through a planar joint
+# Architect: Hans Bihs
+fluid_kinematics
+time dt 0.005 end 100
+output dt 0.01 file box.dat
+body box mass 1.0 cog 6.0 0.025 0.5
+joint plane planar ground box point 6.0 0.025 0.5 axis 0 1 0
+mooring line1 quasi_static a ground 3.6 0.025 0.0 b box 5.6 0.025 0.4 L 2.2 d 0.004027 mass 0.1 EA 10000.0 seabed 0.0
+mooring line2 dynamic a ground 8.4 0.025 0.0 b box 6.4 0.025 0.4 L 2.2 d 0.004027 mass 0.1 EA 10000.0 seabed 0.0 nseg 10
+fluid_body box

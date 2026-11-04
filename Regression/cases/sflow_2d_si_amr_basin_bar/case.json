@@ -1,0 +1,24 @@
+{
+ "base": "sflow_2d_si_basin_bar",
+ "steps": 120,
+ "ctrl_add": [
+  "G 1 1",
+  "G 2 0",
+  "G 3 2",
+  "G 4 8",
+  "G 10 60.0 140.0 20.0 80.0"
+ ],
+ "description": "sflow_2d_si_basin_bar with one refinement level in a static box over the bar (G 10): the composite eta system over the leaf cells of both levels (reefamr_si), coarse faces next to the patch replaced by the fine fluxes, global time step. The volume is conserved to round-off.",
+ "tags": [
+  "quick",
+  "2d",
+  "sflow",
+  "semi_implicit",
+  "amr"
+ ],
+ "covers": [
+  "reefamr_si: composite eta rows, CF flux replacement, RAS+FAC preconditioner",
+  "sflow_amr_si: stages on all levels, face matching of qE/q, restriction"
+ ],
+ "architect": "Hans Bihs"
+}

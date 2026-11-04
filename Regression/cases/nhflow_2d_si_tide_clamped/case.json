@@ -1,0 +1,18 @@
+{
+ "description": "NHFLOW hydrostatic semi-implicit (A 534 1): 1D tidal channel 20 km, 10 m deep, 3 sigma layers, clamped tidal level (B 520 5, a 0.25 m, T 3 h) at x-, wall at x+, A 536 600 s (the advective limit ~60-80 s sets the step). Over many periods the harmonic amplitude follows the standing-tide solution to 1-2 %.",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 120,
+ "tags": [
+  "quick",
+  "2d",
+  "nhflow",
+  "semi_implicit",
+  "tide"
+ ],
+ "covers": [
+  "si_eta2D with the column conveyance",
+  "clamped level edge as eta Dirichlet",
+  "nhflow_timestep_SI"
+ ]
+}

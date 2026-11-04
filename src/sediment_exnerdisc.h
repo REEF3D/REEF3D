@@ -26,16 +26,14 @@ Author: Hans Bihs
 class lexer;
 class slice;
 
-
 using namespace std;
 
 class sediment_exnerdisc
 {
 public:
-    virtual double sx(lexer*, slice&, double, double)=0;
-	virtual double sy(lexer*, slice&, double, double)=0;
-
-
+    virtual ~sediment_exnerdisc() {}
+    virtual double sx(lexer *, slice &, double, double) = 0;
+    virtual double sy(lexer *, slice &, double, double) = 0;
 };
 
 #endif

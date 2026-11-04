@@ -22,6 +22,8 @@ Author: Hans Bihs
 
 #include "fdm.h"
 #include "ghostcell.h"
+#include "heaviside.h"
+#include "interface_width.h"
 #include "ioflow.h"
 #include "lexer.h"
 #include "sediment_f.h"
@@ -64,9 +66,11 @@ void sediment_f::topo_zh_update(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *
 
     pgc->gcsl_start4(p, s->bedzh, 1);
 
+    // inside the S 77 window, and outside wherever the bed has changed (sand slide receivers next
+    // to the window, S 75 relaxation): the CFD has to see every bed change of bedzh
     LOOP
     {
-        if(p->pos_x() > p->S77_xs && p->pos_x() < p->S77_xe)
+        if((p->pos_x() > p->S77_xs && p->pos_x() < p->S77_xe) || fabs(s->bedzh(i, j) - s->bedzh0(i, j)) > 1.0e-12)
             a->topo(i, j, k) = -s->bedzh(i, j) + p->pos_z();
     }
 
@@ -96,13 +100,9 @@ void sediment_f::volume_calc(lexer *p, fdm *a, ghostcell *pgc)
 
     LOOP
     {
-        epsi = p->F45 * (1.0 / 3.0) * (p->DXN[IP] + p->DYN[JP] + p->DZN[KP]);
+        epsi = interface_width(p, a->topo, i, j, k);
 
-        if(a->topo(i, j, k) > epsi)
-            H = 1.0;
-
-        if(a->topo(i, j, k) < -epsi)
-            H = 0.0;
+        H = heaviside(a->topo(i, j, k), epsi);
 
         if(fabs(a->topo(i, j, k)) <= epsi)
             H = 0.5 * (1.0 + a->topo(i, j, k) / epsi + (1.0 / PI) * sin((PI * a->topo(i, j, k)) / epsi));

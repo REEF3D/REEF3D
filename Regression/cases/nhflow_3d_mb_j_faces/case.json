@@ -1,0 +1,21 @@
+{
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 100,
+ "files": [
+  "blocks.dat"
+ ],
+ "tags": [
+  "3d",
+  "nhflow",
+  "curvilinear",
+  "multiblock",
+  "river",
+  "quick"
+ ],
+ "description": "Open faces on the j faces of the blocks (G 54 types 5 and 6): the wavy channel with block 1 (i along +y, j along -x, its +j face at x = 0) and block 2 (its -j face at x = 14.4), discharge 0.05 m3/s in through the -j face of block 2, water level 0.25 m out at the +j face of block 1. Both blocks are turned by a quarter turn (geo_mesh::turn_blocks) and run as the blocks with the faces on -i and +i (the same solution to round-off, Dropbox validation 06_turned_blocks).",
+ "covers": [
+  "geo_mesh::turn_blocks, turn_block (nodes, own and incoming segments), seg_check",
+  "geo_mesh::g54_kind, g54_face, face_turned; reefamr::blocks_open with turned blocks"
+ ]
+}

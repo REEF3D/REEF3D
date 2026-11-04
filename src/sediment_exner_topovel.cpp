@@ -30,6 +30,14 @@ Author: Hans Bihs
 
 void sediment_exner::topovel1(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
+    if(p->geo_curv == 1)
+    {
+        topovel_curv(p, pgc, s, 1);
+        return;
+    }
+
+    bend_prep(p, pgc, s);
+
     double dqx, dqy;
     double ux1, vx1, ux2, vx2, uy1, vy1, uy2, vy2;
     double sgx1, sgx2, sgy1, sgy2;
@@ -56,11 +64,158 @@ void sediment_exner::topovel1(lexer *p, ghostcell *pgc, sediment_fdm *s)
         uy1_abs = sqrt(uy1 * uy1 + vy1 * vy1);
         uy2_abs = sqrt(uy2 * uy2 + vy2 * vy2);
 
-        sgx1 = fabs(ux1_abs) > 1.0e-10 ? ux1 / fabs(ux1_abs) : 0.0;
-        sgx2 = fabs(ux2_abs) > 1.0e-10 ? ux2 / fabs(ux2_abs) : 0.0;
+        // transport directions of the faces (S 95: turned by the spiral-flow angle, sediment_exner_bend.cpp)
+        sgx1 = bend_turn(ux1, vx1, ux1_abs, bend_td(p, 1, i - 1, j));
+        sgx2 = bend_turn(ux2, vx2, ux2_abs, bend_td(p, 1, i, j));
+        sgy1 = bend_turn(vy1, -uy1, uy1_abs, bend_td(p, 2, i, j - 1));
+        sgy2 = bend_turn(vy2, -uy2, uy2_abs, bend_td(p, 2, i, j));
 
-        sgy1 = fabs(uy1_abs) > 1.0e-10 ? vy1 / fabs(uy1_abs) : 0.0;
-        sgy2 = fabs(uy2_abs) > 1.0e-10 ? vy2 / fabs(uy2_abs) : 0.0;
+        face_closure(p, sgx1, sgx2, sgy1, sgy2);
+
+        // complete q
+        dqx = pdx->sx(p, s->qb, sgx1, sgx2);
+        dqy = pdx->sy(p, s->qb, sgy1, sgy2);
+
+        // Exner equations
+        s->vz(i, j) = -p->S35 * s->guard(i, j) * prelax->rf(p, pgc) * (1.0 / (1.0 - p->S24)) * (dqx + dqy + bend_div(p, s, i, j) + susp_ED(p, pgc, s));
+
+        if(p->DFBED[IJ] < 0)
+            s->vz(i, j) = 0.0;
+    }
+
+    pgc->gcsl_start4(p, s->vz, 1);
+}
+
+void sediment_exner::topovel2(lexer *p, ghostcell *pgc, sediment_fdm *s)
+{
+    if(p->geo_curv == 1)
+    {
+        topovel_curv(p, pgc, s, 2);
+        return;
+    }
+
+    bend_prep(p, pgc, s);
+
+    double dqx, dqy;
+    double ux1, vx1, ux2, vx2, uy1, vy1, uy2, vy2;
+    double sgx1, sgx2, sgy1, sgy2;
+    double ux1_abs, ux2_abs, uy1_abs, uy2_abs;
+
+    double u_abs, signx, signy;
+    double uvel, vvel;
+
+    SLICEBASELOOP
+    {
+        qbx(i, j) = 0.0;
+        qby(i, j) = 0.0;
+    }
+
+    SEDSLICELOOP
+    {
+        ux1 = s->P(i - 1, j);
+        vx1 = 0.25 * (s->Q(i, j) + s->Q(i - 1, j) + s->Q(i, j - 1) + s->Q(i - 1, j - 1));
+
+        vvel = 0.5 * (s->Q(i, j) + s->Q(i, j - 1));
+        u_abs = sqrt(uvel * uvel + vvel * vvel);
+        signx = fabs(u_abs) > 1.0e-10 ? uvel / fabs(u_abs) : 0.0;
+        signy = fabs(u_abs) > 1.0e-10 ? vvel / fabs(u_abs) : 0.0;
+
+        // S 95: the cell direction turned by the spiral-flow angle
+        if(btd(i, j) != 0.0)
+        {
+            const double t = btd(i, j), c = 1.0 / sqrt(1.0 + t * t);
+            const double sx = signx;
+            signx = (sx - t * signy) * c;
+            signy = (signy + t * sx) * c;
+        }
+
+        qbx(i, j) = signx * s->qb(i, j);
+        qby(i, j) = signy * s->qb(i, j);
+    }
+
+    pgc->gcsl_start4(p, qbx, 1);
+    pgc->gcsl_start4(p, qby, 1);
+
+    SEDSLICELOOP
+    if(p->pos_x() >= p->S71 && p->pos_x() <= p->S72)
+    {
+        ux1 = s->P(i - 1, j);
+        vx1 = 0.25 * (s->Q(i, j) + s->Q(i - 1, j) + s->Q(i, j - 1) + s->Q(i - 1, j - 1));
+
+        ux2 = s->P(i, j);
+        vx2 = 0.25 * (s->Q(i, j) + s->Q(i + 1, j) + s->Q(i, j - 1) + s->Q(i + 1, j - 1));
+
+        uy1 = 0.25 * (s->P(i, j - 1) + s->P(i, j) + s->P(i - 1, j - 1) + s->P(i - 1, j));
+        vy1 = s->Q(i, j - 1);
+
+        uy2 = 0.25 * (s->P(i, j) + s->P(i, j + 1) + s->P(i - 1, j) + s->P(i - 1, j + 1));
+        vy2 = s->Q(i, j);
+
+        ux1_abs = sqrt(ux1 * ux1 + vx1 * vx1);
+        ux2_abs = sqrt(ux2 * ux2 + vx2 * vx2);
+
+        uy1_abs = sqrt(uy1 * uy1 + vy1 * vy1);
+        uy2_abs = sqrt(uy2 * uy2 + vy2 * vy2);
+
+        // transport directions of the faces (S 95: turned by the spiral-flow angle, sediment_exner_bend.cpp)
+        sgx1 = bend_turn(ux1, vx1, ux1_abs, bend_td(p, 1, i - 1, j));
+        sgx2 = bend_turn(ux2, vx2, ux2_abs, bend_td(p, 1, i, j));
+        sgy1 = bend_turn(vy1, -uy1, uy1_abs, bend_td(p, 2, i, j - 1));
+        sgy2 = bend_turn(vy2, -uy2, uy2_abs, bend_td(p, 2, i, j));
+
+        face_closure(p, sgx1, sgx2, sgy1, sgy2);
+
+        // complete q
+        dqx = pdx->sx(p, qbx, sgx1, sgx2);
+        dqy = pdx->sy(p, qby, sgy1, sgy2);
+
+        // Exner equations
+        s->vz(i, j) = -p->S35 * s->guard(i, j) * prelax->rf(p, pgc) * (1.0 / (1.0 - p->S24)) * (dqx + dqy + bend_div(p, s, i, j) + susp_ED(p, pgc, s));
+
+        if(p->DFBED[IJ] < 0)
+            s->vz(i, j) = 0.0;
+    }
+
+    pgc->gcsl_start4(p, s->vz, 1);
+}
+
+void sediment_exner::topovel3(lexer *p, ghostcell *pgc, sediment_fdm *s)
+{
+    // advective form signx*dqb/dx + signy*dqb/dy: not conservative where the transport
+    // direction turns (div(s)*qb is missing), see the warning in sediment_logic
+    double dqx, dqy;
+    double signx, signy;
+    double uvel, vvel, u_abs;
+    double ux1, vx1, ux2, vx2, uy1, vy1, uy2, vy2;
+    double sgx1, sgx2, sgy1, sgy2;
+
+    SEDSLICELOOP
+    if(p->pos_x() >= p->S71 && p->pos_x() <= p->S72)
+    {
+        uvel = 0.5 * (s->P(i, j) + s->P(i - 1, j));
+        vvel = 0.5 * (s->Q(i, j) + s->Q(i, j - 1));
+
+        u_abs = sqrt(uvel * uvel + vvel * vvel);
+
+        signx = fabs(u_abs) > 1.0e-10 ? uvel / fabs(u_abs) : 0.0;
+        signy = fabs(u_abs) > 1.0e-10 ? vvel / fabs(u_abs) : 0.0;
+
+        // face directions: upwinding and closed faces
+        ux1 = s->P(i - 1, j);
+        vx1 = 0.25 * (s->Q(i, j) + s->Q(i - 1, j) + s->Q(i, j - 1) + s->Q(i - 1, j - 1));
+        ux2 = s->P(i, j);
+        vx2 = 0.25 * (s->Q(i, j) + s->Q(i + 1, j) + s->Q(i, j - 1) + s->Q(i + 1, j - 1));
+        uy1 = 0.25 * (s->P(i, j - 1) + s->P(i, j) + s->P(i - 1, j - 1) + s->P(i - 1, j));
+        vy1 = s->Q(i, j - 1);
+        uy2 = 0.25 * (s->P(i, j) + s->P(i, j + 1) + s->P(i - 1, j) + s->P(i - 1, j + 1));
+        vy2 = s->Q(i, j);
+
+        sgx1 = sqrt(ux1 * ux1 + vx1 * vx1) > 1.0e-10 ? ux1 / sqrt(ux1 * ux1 + vx1 * vx1) : 0.0;
+        sgx2 = sqrt(ux2 * ux2 + vx2 * vx2) > 1.0e-10 ? ux2 / sqrt(ux2 * ux2 + vx2 * vx2) : 0.0;
+        sgy1 = sqrt(uy1 * uy1 + vy1 * vy1) > 1.0e-10 ? vy1 / sqrt(uy1 * uy1 + vy1 * vy1) : 0.0;
+        sgy2 = sqrt(uy2 * uy2 + vy2 * vy2) > 1.0e-10 ? vy2 / sqrt(uy2 * uy2 + vy2 * vy2) : 0.0;
+
+        face_closure(p, sgx1, sgx2, sgy1, sgy2);
 
         // complete q
         dqx = pdx->sx(p, s->qb, sgx1, sgx2);
@@ -172,4 +327,23 @@ void sediment_exner::topovel3(lexer *p, ghostcell *pgc, sediment_fdm *s)
     }
 
     pgc->gcsl_start4(p, s->vz, 1);
+}
+
+void sediment_exner::face_closure(lexer *p, double &sgx1, double &sgx2, double &sgy1, double &sgy2)
+{
+    // faces to cells without an erodible bed (structures, solids, non-sediment cells) carry no
+    // bedload: the face direction is set to zero, and the discretisations (sediment_exnerdisc)
+    // multiply every face value by the face direction (S 31 1) or by its open flag (S 31 2, 3).
+    // Closed domain walls have zero face-normal velocity and are closed the same way.
+    if(p->DFBED[Im1J] < 0)
+        sgx1 = 0.0;
+
+    if(p->DFBED[Ip1J] < 0)
+        sgx2 = 0.0;
+
+    if(p->DFBED[IJm1] < 0)
+        sgy1 = 0.0;
+
+    if(p->DFBED[IJp1] < 0)
+        sgy2 = 0.0;
 }

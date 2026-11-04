@@ -85,15 +85,18 @@ private:
 
     int *CVAL4;
 
-    matrix_diag *Mcur;         // REEF3D's matrix for the current solve
-    bool mixed = false;        // Mcur carries the FNPF sigma cross-couplings
-                               // nt..eb (A 328 1): Krylov operator via
-                               // fine_apply() also in fp64 mode
-    std::vector<int> rowmap;   // reefmg fine cell -> matrix_diag row, -1 inactive
-    std::vector<int> colrow0;  // first row of a fully active column with
-                               // consecutive rows, -1 otherwise
-    bool fill_ini = false;     // CVAL4 and the zero halo set up (first fill)
-    std::vector<int> wetsig;   // p->wet at the last rowmap/colrow0 build
+    matrix_diag *Mcur;            // REEF3D's matrix for the current solve
+    bool mixed = false;           // Mcur carries the FNPF sigma cross-couplings
+                                  // nt..eb (A 328 1): Krylov operator via
+                                  // fine_apply() also in fp64 mode
+    std::vector<int> rowmap;      // reefmg fine cell -> matrix_diag row, -1 inactive
+    std::vector<int> colrow0;     // first row of a fully active column with
+                                  // consecutive rows, -1 otherwise
+    bool fill_ini = false;        // CVAL4 and the zero halo set up (first fill)
+    std::vector<int> wetsig;      // p->wet at the last rowmap/colrow0 build
+    bool fill_topo = true;        // the wet/dry pattern changed in the last fill_matrix8
+    unsigned long long mkey = 0;  // var 8: hash of the rows of the last coarsen()
+    bool mkey_ok = false;         // (cleared by the other paths that coarsen mg)
     int count;
 
     int solve_mode, presweep, postsweep;

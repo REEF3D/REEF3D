@@ -20,13 +20,12 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-
 #ifndef SFLOW_TURB_KE_IM1_H_
 #define SFLOW_TURB_KE_IM1_H_
 
-#include"sflow_turb_io.h"
-#include"slice4.h"
-#include"sliceint4.h"
+#include "sflow_turb_io.h"
+#include "slice4.h"
+#include "sliceint4.h"
 
 class sflow_convection;
 class sflow_diffusion;
@@ -37,35 +36,45 @@ class sflow_turb_ke_IM1 final : public sflow_turb_io
 {
 
 public:
-    sflow_turb_ke_IM1(lexer*);
-	virtual ~sflow_turb_ke_IM1();
-    
-	void start(lexer*, fdm2D*, ghostcell*, sflow_convection*, sflow_diffusion*, solver2D*, ioflow*) override final;
-	void ktimesave(lexer*, fdm2D*, ghostcell*) override final;
-	void etimesave(lexer*, fdm2D*, ghostcell*) override final;
-    
+    void ckpt_fields(const std::function<void(const char *, char, double *)> &fd, const std::function<void(const char *, char, int *)> &fi) override
+    {
+        sflow_turb_io::ckpt_fields(fd, fi);
+        fd("turb_ke_IM1_kn", 'S', kn.V);
+        fd("turb_ke_IM1_en", 'S', en.V);
+        fd("turb_ke_IM1_Pk", 'S', Pk.V);
+        fd("turb_ke_IM1_S", 'S', S.V);
+        fd("turb_ke_IM1_ustar", 'S', ustar.V);
+        fd("turb_ke_IM1_cf", 'S', cf.V);
+        fi("turb_ke_IM1_wallf", 'S', wallf.V);
+    }
+    sflow_turb_ke_IM1(lexer *);
+    virtual ~sflow_turb_ke_IM1();
+
+    void start(lexer *, fdm2D *, ghostcell *, sflow_convection *, sflow_diffusion *, solver2D *, ioflow *) override final;
+    void ktimesave(lexer *, fdm2D *, ghostcell *) override final;
+    void etimesave(lexer *, fdm2D *, ghostcell *) override final;
+
 private:
-    void Pk_update(lexer*, fdm2D*, ghostcell*);
-    void ustar_update(lexer*, fdm2D*, ghostcell*);
-	void kin_source(lexer*, fdm2D*);
-	void eps_source(lexer*, fdm2D*);
-    void timesource(lexer*, fdm2D*, slice&);
-    void eddyvisc(lexer*, fdm2D*, ghostcell*);
-    void clearrhs(lexer*, fdm2D*);
-    void wall_law_kin(lexer*, fdm2D*);
-    void wall_law_eps(lexer*, fdm2D*);
+    void Pk_update(lexer *, fdm2D *, ghostcell *);
+    void ustar_update(lexer *, fdm2D *, ghostcell *);
+    void kin_source(lexer *, fdm2D *);
+    void eps_source(lexer *, fdm2D *);
+    void timesource(lexer *, fdm2D *, slice &);
+    void eddyvisc(lexer *, fdm2D *, ghostcell *);
+    void clearrhs(lexer *, fdm2D *);
+    void wall_law_kin(lexer *, fdm2D *);
+    void wall_law_eps(lexer *, fdm2D *);
 
     slice4 kn, en, Pk, S, ustar, cf;
     sliceint4 wallf;
-    double const ce1,ce2,sigk,sige,ceg;
-    
+    double const ce1, ce2, sigk, sige, ceg;
+
     int gcval_kin, gcval_eps;
     int count;
     double starttime;
-    
-    sflow_convection *pconvec;   
-    sflow_diffusion *pdiff; 
-    
+
+    sflow_convection *pconvec;
+    sflow_diffusion *pdiff;
 };
 
 #endif

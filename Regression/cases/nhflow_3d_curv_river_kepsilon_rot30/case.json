@@ -1,0 +1,23 @@
+{
+ "np": 1,
+ "steps": 100,
+ "tags": [
+  "3d",
+  "nhflow",
+  "curvilinear",
+  "river",
+  "turbulence"
+ ],
+ "description": "NHFLOW river reach on a curvilinear grid turned by 30 deg at UTM coordinates: discharge inflow along the inflow face normal (B 60 1), stage outflow (F 62), bed friction, k-epsilon (A 560 1) with the implicit diffusion (A 512 2).",
+ "covers": [
+  "ioflow nhflow inflow / Qin / Qout on face normals",
+  "pair_bc river outflow",
+  "nhflow_idiff curvilinear rows",
+  "nhflow_scalar_ifou face fluxes",
+  "nhflow_strain chain rule"
+ ],
+ "solver": "nhflow",
+ "files": [
+  "curvgrid.dat"
+ ]
+}

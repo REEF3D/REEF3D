@@ -1,0 +1,16 @@
+{
+ "base": "seastate_2d_phase17_sordup",
+ "np": 2,
+ "same_as": "seastate_2d_phase17_sordup",
+ "description": "as seastate_2d_phase17_sordup on 2 ranks, pipelined: two halo layers per boundary tile, the covered cells of the second halo layer marked, the second ring layer of the patches with the boundary tiles; bitwise the result of one rank (regression.py ranks).",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate",
+  "amr",
+  "mpi"
+ ],
+ "covers": [
+  "second-order fluxes with the pipelined composite sweep"
+ ]
+}

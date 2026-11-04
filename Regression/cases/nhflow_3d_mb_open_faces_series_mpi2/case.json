@@ -1,0 +1,14 @@
+{
+ "base": "nhflow_3d_mb_open_faces_mpi2",
+ "description": "As nhflow_3d_mb_open_faces_mpi2 with the open faces from time series files: the discharge through the -i face of block 1 from discharge-1.dat (G 54 1 3 1, 0.10 -> 0.16 m3/s), the water level at the +i face of block 2 from waterlevel-2.dat (G 54 2 4 2, 0.25 -> 0.27 m). With constant files the run is bitwise the one of the base case.",
+ "covers": [
+  "G 54 types 3, 4 (reefamr::blocks_open, ioflow_amr_block::open_faces, series_read, series_value, series_update)"
+ ],
+ "ctrl_set": {
+  "G 54": ["1 3 1", "2 4 2"]
+ },
+ "files": [
+  "discharge-1.dat",
+  "waterlevel-2.dat"
+ ]
+}

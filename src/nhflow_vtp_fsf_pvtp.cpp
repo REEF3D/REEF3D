@@ -20,11 +20,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#include "fdm_nhf.h"
 #include "lexer.h"
+#include "met_forcing.h"
+#include "nhflow_turbulence.h"
 #include "nhflow_vtp_fsf.h"
 #include "runlog.h"
 
-void nhflow_vtp_fsf::pvtp(lexer *p, int num)
+void nhflow_vtp_fsf::pvtp(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_turbulence *pnhfturb, int num)
 {
     sprintf(name, "./REEF3D_NHFLOW_VTP_FSF/REEF3D-NHFLOW-FSF-%08i.pvtp", num);
 
@@ -50,6 +53,9 @@ void nhflow_vtp_fsf::pvtp(lexer *p, int num)
         result << "<PDataArray type=\"Float32\" Name=\"Hs\"/>\n";
     if(p->P131 == 1)
         result << "<PDataArray type=\"Float32\" Name=\"wetdry_max\"/>\n";
+    if(d->met != nullptr)
+        d->met->name_pvtp(result);
+    pnhfturb->name_pvtp(p, d, pgc, result);
     result << "</PPointData>\n";
 
     char pname[200];

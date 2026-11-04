@@ -36,6 +36,18 @@ void iowave::inflow_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U, doub
     if(p->B98 == 4)
         nhflow_active_wavegen(p, d, pgc, U, V, W, UH, VH, WH, WL);
 
+    // Dirichlet / active generation by a wave theory: non-hydrostatic pressure of the target
+    // waves at the inflow (Poisson boundary value, nhflow_poisson)
+    if((p->B98 == 3 || p->B98 == 4) && (p->B92 < 20 || p->B92 > 29))
+        for(n = 0; n < p->gcslin_count; n++)
+        {
+            i = p->gcslin[n][0];
+            j = p->gcslin[n][1];
+            xg = xgen(p);
+            yg = ygen(p);
+            nhflow_edge_pressure(p, d, pgc, xg, yg);
+        }
+
     if(p->B99 == 3 || p->B99 == 4 || p->B99 == 5)
         nhflow_active_beach(p, d, pgc, U, V, W, UH, VH, WH);
 
@@ -109,6 +121,23 @@ void iowave::nhflow_inflow_plain(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U
         WH[Im1JK] = 0.0;
         WH[Im2JK] = 0.0;
         WH[Im3JK] = 0.0;
+
+        // curvilinear grid (G 50): along the normal of the inflow face
+        if(p->geo_curv == 1)
+        {
+            const int qf = (i - 1 - p->imin) * p->jmax + (j - p->jmin);
+            const double len = p->LEN1[qf];
+            const double nx = len > 0.0 ? p->SX1[qf] / len : 1.0, ny = len > 0.0 ? p->SY1[qf] / len : 0.0;
+            const int c[3] = {Im1JK, Im2JK, Im3JK};
+
+            for(int q = 0; q < 3; ++q)
+            {
+                V[c[q]] = U[c[q]] * ny;
+                U[c[q]] = U[c[q]] * nx;
+                VH[c[q]] = UH[c[q]] * ny;
+                UH[c[q]] = UH[c[q]] * nx;
+            }
+        }
     }
 }
 
@@ -146,7 +175,14 @@ void iowave::fsfinflow_flux_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
         j = p->gcin[n][1];
         k = p->gcin[n][2];
 
-        if(p->wet[IJ] == 1)
+        if(p->wet[IJ] == 1 && p->geo_curv == 1)
+        {
+            // curvilinear grid (G 50): the flux along the normal of the inflow face
+            const int qf = (i - 1 - p->imin) * p->jmax + (j - p->jmin);
+            const double len = p->LEN1[qf];
+            d->FEx[Im1JK] = len > 0.0 ? (UHval[count] * p->SX1[qf] + VHval[count] * p->SY1[qf]) / len * ramp(p) : 0.0;
+        }
+        else if(p->wet[IJ] == 1)
             d->FEx[Im1JK] = UHval[count] * ramp(p);
 
         ++count;

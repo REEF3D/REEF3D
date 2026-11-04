@@ -1,0 +1,15 @@
+{
+ "base": "seastate_2d_phase12_fas_uniform_threads",
+ "ctrl_set": {
+  "A 732": "3"
+ },
+ "description": "as seastate_2d_phase12_fas_uniform_threads (FAS on the uniform grid, 2 threads) with A 732 3: the source copies of the threads and the coarse grids carry the ST4 tables. Validation in Dropbox SEASTATE/validation/69_ardhuin_st4.",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate"
+ ],
+ "covers": [
+  "seastate_st4 in the copies of the threads and on the FAS coarse grids"
+ ]
+}

@@ -1,0 +1,21 @@
+{
+ "base": "nhflow_3d_dem_boom_mat",
+ "np": 2,
+ "steps": 30,
+ "ctrl_set": {
+  "P 48": "10",
+  "P 49": "0"
+ },
+ "description": "nhflow_3d_dem_boom_mat with a checkpoint every 10 steps, all kept (P 48 10, P 49 0): the uninterrupted run of nhflow_3d_dem_boom_mat_restart.",
+ "tags": [
+  "3d",
+  "dem",
+  "nhflow",
+  "mpi",
+  "checkpoint"
+ ],
+ "covers": [
+  "dem_f::ckpt_state / ckpt_apply (same decomposition)",
+  "dem_core::cache_state"
+ ]
+}

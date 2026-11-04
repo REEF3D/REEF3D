@@ -1,0 +1,23 @@
+{
+ "base": "cfd_2d_cpm_bedload_layer_mpi2",
+ "np": 2,
+ "steps": 150,
+ "ctrl_set": {
+  "P 48": "50",
+  "P 49": "0"
+ },
+ "description": "cfd_2d_cpm_bedload_layer_mpi2 with a checkpoint every 50 steps, all kept (P 48 50, P 49 0): the uninterrupted run of cfd_2d_cpm_bedload_layer_mpi2_restart.",
+ "tags": [
+  "2d",
+  "cfd",
+  "sediment",
+  "cpm",
+  "mpi",
+  "checkpoint"
+ ],
+ "covers": [
+  "CPM::ckpt_rank_state",
+  "part::ckpt_state",
+  "sediment_part::ckpt_state"
+ ]
+}

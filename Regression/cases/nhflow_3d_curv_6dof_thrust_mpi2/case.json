@@ -1,0 +1,21 @@
+{
+ "np": 2,
+ "steps": 20,
+ "solver": "nhflow",
+ "files": [
+  "curvgrid.dat",
+  "ship.dat"
+ ],
+ "tags": [
+  "3d",
+  "nhflow",
+  "curvilinear",
+  "6dof",
+  "mpi"
+ ],
+ "description": "Ship with a thrust actuator (X 350 1, ship.dat) on a curvilinear grid turned by 90 deg, two ranks: the actuator cells by the physical cell that holds them, the loads by the rank of the cell that holds the triangle centroid.",
+ "covers": [
+  "6DOF_obj_nhflow_actuator curvilinear ownership (geo_cell)",
+  "hydrodynamic_forces_nhflow geo_cell ownership on several ranks"
+ ]
+}

@@ -1,0 +1,18 @@
+{
+ "base": "sflow_2d_amr_bar_bous",
+ "ctrl_set": {
+  "P 48": "50",
+  "P 49": "0"
+ },
+ "description": "sflow_2d_amr_bar_bous with a checkpoint every 50 steps, all kept (P 48 50, P 49 0): the uninterrupted run of sflow_2d_amr_bar_bous_restart.",
+ "tags": [
+  "2d",
+  "sflow",
+  "amr",
+  "bous",
+  "checkpoint"
+ ],
+ "covers": [
+  "sflow_amr::ckpt_write: the Boussinesq bar (A 220 4)"
+ ]
+}

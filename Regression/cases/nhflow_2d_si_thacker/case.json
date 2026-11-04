@@ -1,0 +1,16 @@
+{
+ "description": "NHFLOW hydrostatic semi-implicit: planar oscillation in a parabolic bowl (Thacker 1981), 3 sigma layers, dt 3 s; wetting and drying by the Newton iteration of si_eta2D; volume exact.",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 150,
+ "tags": [
+  "2d",
+  "nhflow",
+  "semi_implicit",
+  "wetdry"
+ ],
+ "covers": [
+  "si_eta2D::solve_wetdry",
+  "wet flags on a copy of WL"
+ ]
+}

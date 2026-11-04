@@ -24,6 +24,7 @@ Architect: Hans Bihs
 #include "ghostcell.h"
 #include "lexer.h"
 #include "net_membrane.h"
+#include "nhflow_thinbody.h"
 #include "slice.h"
 #include <algorithm>
 #include <cmath>
@@ -50,6 +51,14 @@ Architect: Hans Bihs
 //
 // Loads: the momentum the forcing takes out of the layer cells (normal resistance) plus the pressure difference across
 // the blocked links times the link face area, F = (P_a - P_b) A e on the membrane.
+//
+// Sharp mode ('mobility sharp'): the same blocked links, but no layer forcing at all. The links are passed to the
+// thin-body service (nhflow_thinbody.h: wall fluxes, wall velocity in the projection, cut cells, head below the floor),
+// the cell centre sides are written directly into its side field. Loads: total pressure jump (hydrostatic + P) across
+// the blocked links. Moving membrane: the wall velocity of a blocked link is the normal part (u_m . n) n of the membrane
+// velocity at the closest point; a cell centre or node changes its side only when it lies more than a hysteresis distance
+// (2 % of the smallest cell size) beyond the membrane; a node whose two cells lie on the other side (a fold thinner than
+// a cell) takes their side.
 
 void net_membrane::link_ini(lexer *p)
 {
@@ -67,7 +76,10 @@ void net_membrane::link_ini(lexer *p)
                 etri_[e][1] = t;
         }
 
-    p->Darray(sideC_, p->imax * p->jmax * (p->kmax + 2));
+    if(prm.link == 2 && tb_ != nullptr)
+        sideC_ = tb_->sideC;
+    else
+        p->Darray(sideC_, p->imax * p->jmax * (p->kmax + 2));
     sideN_.assign(p->imax * p->jmax * p->kmaxF, 0);
 
     pseudonormals();
@@ -105,7 +117,12 @@ void net_membrane::pseudonormals()
 
 int net_membrane::side_of(const Eigen::Vector3d &P, int t, double u, double v, double w) const
 {
-    // closest point u a + v b + w c on triangle t; normal of the feature it lies on
+    return sdist_of(P, t, u, v, w) >= 0.0 ? 1 : -1;
+}
+
+double net_membrane::sdist_of(const Eigen::Vector3d &P, int t, double u, double v, double w) const
+{
+    // closest point u a + v b + w c on triangle t; signed distance along the normal of the feature it lies on
     const Eigen::Vector3d C = u * x_[tri_[t][0]] + v * x_[tri_[t][1]] + w * x_[tri_[t][2]];
     const double eps = 1.0e-9;
 
@@ -124,10 +141,15 @@ int net_membrane::side_of(const Eigen::Vector3d &P, int t, double u, double v, d
     else if(v < eps)
         N = epn_[tedge_[t][2]];
 
-    return (P - C).dot(N) >= 0.0 ? 1 : -1;
+    return (P - C).dot(N);
 }
 
 int net_membrane::side_near(const Eigen::Vector3d &P, const cellentry &e) const
+{
+    return sdist_near(P, e) >= 0.0 ? 1 : -1;
+}
+
+double net_membrane::sdist_near(const Eigen::Vector3d &P, const cellentry &e) const
 {
     // a point next to a layer cell (its nodes): closest among the triangles closest to the cell
     double dbest = 1.0e20, ub = 1.0, vb = 0.0, wb = 0.0, u, v, w;
@@ -153,13 +175,47 @@ int net_membrane::side_near(const Eigen::Vector3d &P, const cellentry &e) const
     for(int r = 0; r < e.ns; ++r)
         test(e.t[r]);
 
-    return side_of(P, tb, ub, vb, wb);
+    return sdist_of(P, tb, ub, vb, wb);
 }
 
 void net_membrane::link_mobility(lexer *p, fdm_nhf *d, ghostcell *pgc, double a)
 {
     if(moving())
         pseudonormals();
+
+    // moving sharp membrane: a point changes its side only when it is more than hyst_ beyond the membrane (no
+    // flickering of cells and nodes that sit on the moving fabric); memory of the sides of the last stage
+    const bool hyst = prm.link == 2 && moving();
+
+    if(hyst)
+    {
+        if(hC_.empty())
+        {
+            hC_.assign(p->imax * p->jmax * (p->kmax + 2), 0);
+            hN_.assign(p->imax * p->jmax * p->kmaxF, 0);
+        }
+
+        for(int q : hCq_)
+            hC_[q] = 0;
+
+        for(int q : hNq_)
+            hN_[q] = 0;
+
+        hCq_ = sideCq_;
+        hNq_ = sideNq_;
+
+        for(int q : sideCq_)
+            hC_[q] = sideC_[q] > 0.0 ? 1 : (sideC_[q] < 0.0 ? -1 : 0);
+
+        for(int q : sideNq_)
+            hN_[q] = sideN_[q];
+    }
+
+    auto keep = [&](double sd, signed char old)
+    {
+        const int s = sd >= 0.0 ? 1 : -1;
+        return (hyst && old != 0 && s != old && fabs(sd) < hyst_) ? int(old) : s;
+    };
 
     // sides of the cell centres and nodes of the layer cells
     for(int q : sideCq_)
@@ -178,7 +234,7 @@ void net_membrane::link_mobility(lexer *p, fdm_nhf *d, ghostcell *pgc, double a)
         k = e.k;
 
         const Eigen::Vector3d P(p->XP[IP], p->YP[JP], p->ZSP[IJK]);
-        sideC_[IJK] = side_of(P, e.tc, e.w0, e.w1, e.w2);
+        sideC_[IJK] = hyst ? keep(sdist_of(P, e.tc, e.w0, e.w1, e.w2), hC_[IJK]) : side_of(P, e.tc, e.w0, e.w1, e.w2);
         sideCq_.push_back(IJK);
 
         for(int kk = k; kk <= k + 1; ++kk)
@@ -189,19 +245,45 @@ void net_membrane::link_mobility(lexer *p, fdm_nhf *d, ghostcell *pgc, double a)
                 continue;
 
             const Eigen::Vector3d N(p->XP[IP], p->YP[JP], p->ZSN[qf]);
-            sideN_[qf] = side_near(N, e);
+            sideN_[qf] = hyst ? keep(sdist_near(N, e), hN_[qf]) : side_near(N, e);
             sideNq_.push_back(qf);
         }
     }
 
+    // nodes inside a fold thinner than a cell: a node whose two cells (k-1, k of its column) lie both on the other side
+    // would be a pressure node enclosed by the membrane (no open link, a pressure spike); it takes the side of its cells
+    if(prm.link == 2)
+        for(int qf : sideNq_)
+        {
+            const int ii = qf / (p->jmax * p->kmaxF), rem = qf - ii * p->jmax * p->kmaxF;
+            const int jj = rem / p->kmaxF, kk = rem - jj * p->kmaxF;
+            const int ic = ii + p->imin, jc = jj + p->jmin, kc = kk + p->kmin;
+
+            if(kc <= 0 || kc >= p->knoz)
+                continue;
+
+            const int qa = (ic - p->imin) * p->jmax * p->kmax + (jc - p->jmin) * p->kmax + kc - 1 - p->kmin;
+            const int qb = qa + 1;
+
+            if(sideC_[qa] != 0.0 && sideC_[qa] * sideC_[qb] > 0.0 && double(sideN_[qf]) * sideC_[qa] < 0.0)
+                sideN_[qf] = sideC_[qa] > 0.0 ? 1 : -1;
+        }
+
     // neighbours across subdomain borders
     pgc->start4V(p, sideC_, 1);
+
+    // sharp mode: node sides to the thin-body service (cell pressure next to the floor)
+    if(prm.link == 2 && tb_ != nullptr)
+        for(int q : sideNq_)
+            tb_->sideN[q] = sideN_[q];
 
     // blocked links: porous-jump mobility 1/(1 + a R_n/l)
     blocked_.clear();
 
     auto beta = [&](double l)
     { return 1.0 / (1.0 + a * prm.Rn / MAX(l, 1.0e-20)); };
+
+    const bool sharp = prm.link == 2 && tb_ != nullptr;
 
     for(const auto &e : cells_)
     {
@@ -215,6 +297,18 @@ void net_membrane::link_mobility(lexer *p, fdm_nhf *d, ghostcell *pgc, double a)
         const double s = sideC_[IJK];
         double bmin = 1.0;
 
+        // wall velocity at the closest point of the cell centre (sharp mode): the normal part (u_m . n) n of the membrane
+        // velocity. Along a blocked link of direction d the swept volume of the staircase is then (u_m . n) n_d per face
+        // area, which adds up to (u_m . n) A over the faces that represent a surface element A; the tangential motion
+        // of the fabric (sliding, in-plane compression of a slack membrane) moves no water
+        Eigen::Vector3d um = Eigen::Vector3d::Zero();
+
+        if(sharp)
+        {
+            const Eigen::Vector3d &nt = tn_[e.tc];
+            um = membrane_vel(e.tc, e.w0, e.w1, e.w2).dot(nt) * nt;
+        }
+
         // +x, -x
         if(sideC_[Ip1JK] * s < 0.0 && p->flag4[Ip1JK] > 0)
         {
@@ -222,6 +316,12 @@ void net_membrane::link_mobility(lexer *p, fdm_nhf *d, ghostcell *pgc, double a)
             d->MBX[IJK] = MIN(d->MBX[IJK], b);
             bmin = MIN(bmin, b);
             blocked_.push_back({i, j, k, 0, e.tc, {e.w0, e.w1, e.w2}});
+
+            if(sharp)
+            {
+                tb_->bx[IJK] = 1.0;
+                tb_->ux[IJK] = um(0);
+            }
         }
 
         if(sideC_[Im1JK] * s < 0.0 && p->flag4[Im1JK] > 0)
@@ -231,6 +331,12 @@ void net_membrane::link_mobility(lexer *p, fdm_nhf *d, ghostcell *pgc, double a)
 
             if(i - 1 >= 0)
                 d->MBX[Im1JK] = MIN(d->MBX[Im1JK], b);
+
+            if(sharp && i - 1 >= 0)
+            {
+                tb_->bx[Im1JK] = 1.0;
+                tb_->ux[Im1JK] = um(0);
+            }
         }
 
         // +y, -y
@@ -242,6 +348,12 @@ void net_membrane::link_mobility(lexer *p, fdm_nhf *d, ghostcell *pgc, double a)
                 d->MBY[IJK] = MIN(d->MBY[IJK], b);
                 bmin = MIN(bmin, b);
                 blocked_.push_back({i, j, k, 1, e.tc, {e.w0, e.w1, e.w2}});
+
+                if(sharp)
+                {
+                    tb_->by[IJK] = 1.0;
+                    tb_->uy[IJK] = um(1);
+                }
             }
 
             if(sideC_[IJm1K] * s < 0.0 && p->flag4[IJm1K] > 0)
@@ -251,6 +363,12 @@ void net_membrane::link_mobility(lexer *p, fdm_nhf *d, ghostcell *pgc, double a)
 
                 if(j - 1 >= 0)
                     d->MBY[IJm1K] = MIN(d->MBY[IJm1K], b);
+
+                if(sharp && j - 1 >= 0)
+                {
+                    tb_->by[IJm1K] = 1.0;
+                    tb_->uy[IJm1K] = um(1);
+                }
             }
         }
 
@@ -264,6 +382,12 @@ void net_membrane::link_mobility(lexer *p, fdm_nhf *d, ghostcell *pgc, double a)
                 d->MBZ[IJK] = MIN(d->MBZ[IJK], b);
                 bmin = MIN(bmin, b);
                 blocked_.push_back({i, j, k, 2, e.tc, {e.w0, e.w1, e.w2}});
+
+                if(sharp)
+                {
+                    tb_->bz[IJK] = 1.0;
+                    tb_->uz[IJK] = um(2);
+                }
             }
         }
 
@@ -275,6 +399,18 @@ void net_membrane::link_mobility(lexer *p, fdm_nhf *d, ghostcell *pgc, double a)
 void net_membrane::link_loads(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL,
                               const function<void(int, const double *, const Eigen::Vector3d &)> &add)
 {
+    // sharp mode: total pressure jump across the blocked links, no layer forcing
+    if(prm.link == 2 && tb_ != nullptr)
+    {
+        for(const auto &b : blocked_)
+        {
+            Eigen::Vector3d f = Eigen::Vector3d::Zero();
+            f(b.dir) = tb_->link_force(p, d, b.dir, b.i, b.j, b.k);
+            add(b.t, b.w, f);
+        }
+        return;
+    }
+
     // 1. momentum taken out of the layer cells by the forcing in this stage
     for(size_t s = 0; s < cells_.size() && s < fimp_.size(); ++s)
     {

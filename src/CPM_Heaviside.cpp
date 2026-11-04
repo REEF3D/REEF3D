@@ -20,26 +20,19 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Authors: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"CPM.h"
-#include"lexer.h"
-#include"fdm.h"
-#include"ghostcell.h"
-#include"sediment_fdm.h"
+#include "CPM.h"
+#include "fdm.h"
+#include "ghostcell.h"
+#include "heaviside.h"
+#include "lexer.h"
+#include "sediment_fdm.h"
 
 double CPM::heaviside(double phival)
 {
 
-double H;
-    
-    if(phival>epsi)
-    H=1.0;
-    
-    else if(phival<-epsi)
-    H=0.0;
-    
-    else
-    H=0.5*(1.0 + phival/epsi + (1.0/PI)*sin((PI*phival)/epsi));
+    double H;
+
+    H = ::heaviside(phival, epsi);
 
     return H;
-    
 }

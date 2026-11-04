@@ -1,0 +1,21 @@
+{
+ "description": "nhflow_3d_amr_waves3 with subcycling (G 7 1): level 1 between level 0 and level 2 - fills in time from a subcycled parent, two synchronisations per level-0 step, 2 ranks.",
+ "solver": "nhflow",
+ "np": 2,
+ "steps": 10,
+ "tags": [
+  "3d",
+  "nhflow",
+  "amr",
+  "subcycling",
+  "mpi"
+ ],
+ "covers": [
+  "nhflow_amr_sub with three levels: sub_level recursion, sub_sync on level 1 and level 0"
+ ],
+ "base": "nhflow_3d_amr_waves_mpi2",
+ "ctrl_add": [
+  "G 1 2",
+  "G 7 1"
+ ]
+}

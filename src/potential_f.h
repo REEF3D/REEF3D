@@ -23,9 +23,9 @@ Author: Hans Bihs
 #ifndef POTENTIAL_F_H_
 #define POTENTIAL_F_H_
 
-#include"potential.h"
-#include"increment.h"
-#include"fieldint4.h"
+#include "fieldint4.h"
+#include "increment.h"
+#include "potential.h"
 
 class field;
 
@@ -35,26 +35,23 @@ class potential_f final : public potential, public increment
 {
 
 public:
-	potential_f(lexer*);
-	virtual ~potential_f();
+    potential_f(lexer *);
+    virtual ~potential_f();
 
-	void start(lexer*,fdm*, solver*, ghostcell*) override final;
-
+    void start(lexer *, fdm *, solver *, ghostcell *) override final;
 
 private:
-    void rhs(lexer*,fdm*);
-	void ucalc(lexer*,fdm*,field&);
-	void vcalc(lexer*,fdm*,field&);
-	void wcalc(lexer*,fdm*,field&);
-    
-    void laplace(lexer*,fdm*,ghostcell*,field&);
-    void ini_bc(lexer*,fdm*,ghostcell*);
-    
-    
-	double starttime,endtime;
-	int count;
-	int gcval_pot;
-    
+    void ucalc(lexer *, fdm *, field &);
+    void vcalc(lexer *, fdm *, field &);
+    void wcalc(lexer *, fdm *, field &);
+
+    void laplace(lexer *, fdm *, ghostcell *, field &);
+    void ini_bc(lexer *, fdm *, ghostcell *);
+
+    double starttime, endtime;
+    int count;
+    int gcval_pot;
+
     fieldint4 bc;
 };
 

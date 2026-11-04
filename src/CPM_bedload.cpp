@@ -21,10 +21,13 @@ Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include "CPM.h"
+#include "bedshear.h"
 #include "fdm.h"
 #include "ghostcell.h"
 #include "lexer.h"
 #include "sediment_fdm.h"
+#include "turbulence.h"
+#include <algorithm>
 #include <vector>
 
 /*--------------------------------------------------------------------
@@ -38,7 +41,7 @@ grading, slopes and exchange with the suspension follow from the parcels):
   Shields vector of a grain d in a bed column, with the bed slope (gravity along the bed):
       theta = tau_b/((rho_s-rho_f) g d) - theta_c,d/mu_s grad(z_b)
       tau_b       : bed shear stress, log law at the first fluid cell at least 0.5 h above the bed
-                    (distance from the bed level set, ks = S 21 d50)
+                    (distance from the bed level set, ks = S 21 d50); Q 68 1: at least 0.3 rho k
       theta_c,d   : Q 60 (d/d50)^(-0.8)  (hiding of the small grains, equal mobility tendency)
       mu_s        : static friction Q 36
       the slope term is limited to tan(beta) = 0.9 mu_s: without flow the layer stays at rest,
@@ -84,7 +87,7 @@ The flow moves the bed through the layer only:
 --------------------------------------------------------------------*/
 
 // bed column of a position: periodic sides wrap, beyond the local domain the edge column
-void CPM::bedload_column(lexer *p, double x, double y, int &ic, int &jc)
+void CPM::bedload_column(lexer *p, double x, double y, int &ic, int &jc, int q)
 {
     if(perx == 1)
     {
@@ -104,55 +107,33 @@ void CPM::bedload_column(lexer *p, double x, double y, int &ic, int &jc)
             y += Ly;
     }
 
-    ic = MAX(0, MIN(p->knox - 1, p->posc_i(x)));
-    jc = p->j_dir == 1 ? MAX(0, MIN(p->knoy - 1, p->posc_j(y))) : 0;
+    ic = MAX(0, MIN(p->knox - 1, pci(p, q, x)));
+    jc = p->j_dir == 1 ? MAX(0, MIN(p->knoy - 1, pcj(p, q, y))) : 0;
 }
 
 // bed shear stress vector and bed slope per column
-//   log law of the wall at the centre of the first fluid cell at least 0.5 h above the bed,
-//   with the distance to the bed from the topo level set (consistent with the wall function
-//   of the fluid; the linear interpolation towards the solid cells below must not be used)
+//   log law of the wall at the centre of the first fluid cell at least 0.5 h above the bed, with the distance
+//   from the wall of the fluid's wall law (Q 79 1) or from the topo level set (Q 79 0); the linear
+//   interpolation towards the solid cells below must not be used
 void CPM::bedload_columns(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
 {
     const double ks = MAX(p->S21 * p->S20, 1.0e-6);
 
+    // the bed shear stress of the column, shared with the Eulerian bed shear stress S 16 10 (bedshear::column_tau):
+    // log law at the first cell centre at least half a cell above the bed level set, or Q 66 cells above the bed,
+    // the distance measured from the face under the first fluid cell (Q 79 1: the wall of the fluid's k-omega wall
+    // law; Q 79 0: from the bed level set); Q 68 1: max(log law, 0.3 rho k) with k of the first fluid cell
     for(i = 0; i < p->knox; ++i)
         for(j = 0; j < p->knoy; ++j)
         {
-            int kb = MAX(0, MIN(p->knoz - 1, p->posc_k(s->bedzh(i, j))));
-            double ur = 0.0, vr = 0.0, zr = 0.0;
-            bool found = false;
+            double tx = 0.0, ty = 0.0, hc = 0.0;
+            bool rest = false;
 
-            for(k = kb; k < p->knoz; ++k)
-            {
-                double h = p->j_dir == 1 ? (1.0 / 3.0) * (p->DXN[IP] + p->DYN[JP] + p->DZN[KP]) : 0.5 * (p->DXN[IP] + p->DZN[KP]);
+            bedshear::column_tau(p, a, pturb_, i, j, s->bedzh(i, j), ks, p->Q66, (p->Q68 == 1 || p->Q68 == 2) ? p->Q68 : 0, p->W1, tx, ty, hc, rest, p->Q79 == 1 ? 1 : 0);
 
-                if(a->topo(i, j, k) >= 0.5 * h)
-                {
-                    ur = 0.5 * (a->u(i - 1, j, k) + a->u(i, j, k));
-                    vr = p->j_dir == 1 ? 0.5 * (a->v(i, j - 1, k) + a->v(i, j, k)) : 0.0;
-                    zr = a->topo(i, j, k);
-                    blH(i, j) = h;
-                    found = true;
-                    break;
-                }
-            }
-
-            // no fluid cell above the bed in this subdomain (vertical decomposition): no transport
-            if(!found)
-            {
-                blTx(i, j) = blTy(i, j) = 0.0;
-                blH(i, j) = p->DZN[kb + marge];
-                continue;
-            }
-
-            double um = sqrt(ur * ur + vr * vr);
-            double uplus = log(MAX(30.0 * zr / ks, 1.0 + 1.0e-6)) / 0.4;
-            double us = um / uplus;
-            double tau = p->W1 * us * us;
-
-            blTx(i, j) = um > 1.0e-12 ? tau * ur / um : 0.0;
-            blTy(i, j) = um > 1.0e-12 ? tau * vr / um : 0.0;
+            blTx(i, j) = tx;
+            blTy(i, j) = ty;
+            blH(i, j) = hc;
         }
 
     // bed slope, central differences; periodic sides wrap, walls one-sided
@@ -266,17 +247,18 @@ void CPM::bedload_occupancy(lexer *p)
         if(P.Flag[n] >= ACTIVE)
         {
             int ic, jc;
-            bedload_column(p, P.X[n], P.Y[n], ic, jc);
-            int kc = MAX(0, MIN(p->knoz - 1, p->posc_k(P.Z[n])));
-            Locc(ic, jc, kc) += vpar;
+            bedload_column(p, P.X[n], P.Y[n], ic, jc, n);
+            int kc = MAX(0, MIN(p->knoz - 1, pck(p, n, P.Z[n])));
+            Locc(ic, jc, kc) += vpar * P.Wt[n];
         }
 }
 
 // a layer parcel leaves its cell at (x,y,z) and is placed at the level zl of the column (ic,jc):
 // the cell of zl if it has room, else the next cell above with room; returns the new z
-double CPM::bedload_place(lexer *p, double x, double y, double z, int ic, int jc, double zl, double d)
+double CPM::bedload_place(lexer *p, fdm *a, double x, double y, double z, int ic, int jc, double zl, double d, double w)
 {
-    const double vpar = P.ParcelFactor * Vp;
+    const double vbase = P.ParcelFactor * Vp;
+    const double vpar = vbase * w;
     int is, js;
 
     bedload_column(p, x, y, is, js);
@@ -284,13 +266,24 @@ double CPM::bedload_place(lexer *p, double x, double y, double z, int ic, int jc
     Locc(is, js, ks) -= vpar;
 
     int kc = MAX(0, MIN(p->knoz - 1, p->posc_k(zl)));
+    const int kc0 = kc;
+    const double zl0 = zl;
 
     while(kc < p->knoz - 1)
     {
         int ii = ic, jj = jc, kk = kc;
+
+        // never into a solid body: the parcel stays at the bed level (cell over-filled)
+        if(p->solidread > 0 && a->solid(ii, jj, kk) < 0.0)
+        {
+            kc = kc0;
+            zl = zl0;
+            break;
+        }
+
         double V = p->DXN[ii + marge] * p->DYN[jj + marge] * p->DZN[kk + marge];
         double t0 = p->Q12 == 2 ? T0e(ii, jj, kk) : theta_0;
-        double cap = MAX((t0 + theta_max - theta_0) * V, t0 * V + vpar * (1.0 + 1.0e-6));
+        double cap = MAX((t0 + theta_max - theta_0) * V, t0 * V + vbase * wcell(p, ii, jj, kk) * (1.0 + 1.0e-6));
 
         if(Locc(ii, jj, kk) + vpar <= cap)
             break;
@@ -304,6 +297,157 @@ double CPM::bedload_place(lexer *p, double x, double y, double z, int ic, int jc
     return zl;
 }
 
+// Q 75: sand slide of the bed surface. Where the bed level of the layer drops from a column to its neighbour by more
+// than Q75 (tan of the angle of repose) times their distance, the top grains of the higher column (at rest in
+// the bed, not hopping, not released) are moved onto the bed of the lower column until the slope is Q75. The
+// packed bed alone held a deposition face of 40-45 degrees at the crest of a pipeline mound (validation 21):
+// grains deposited by the layer come to rest on the face and the jammed bed below the mobile layer (Q 64) does
+// not fail. Pairs of columns within the subdomain; the slide is instantaneous (no time scale, also with Q 65).
+void CPM::bedload_slide(lexer *p, fdm *a, sediment_fdm *s)
+{
+    if(p->Q75 <= 0.0 || p->S10 == 2)
+        return;
+
+    const int nj = p->knoy;
+    const double vpar = P.ParcelFactor * Vp;
+
+    // bed level of the columns (updated by the moves) and the bed grains of each column, top first
+    const size_t ncol = size_t(p->knox) * nj;
+    std::vector<double> zc(ncol);
+
+    for(i = 0; i < p->knox; ++i)
+        for(j = 0; j < nj; ++j)
+            zc[size_t(i) * nj + j] = zbl(s, i, j);
+
+    // the slope is taken from the bed level smoothed over the columns (two passes of a 1-2-1 filter within the
+    // subdomain): between single columns the parcel noise alone makes slopes of 0.5 on 2.5 mm columns, and the
+    // slide reshuffled hundreds of grains per step on a bed far below the angle of repose
+    std::vector<double> zs(zc), tmp(zc);
+
+    for(int qn = 0; qn < 2; ++qn)
+    {
+        for(i = 0; i < p->knox; ++i)
+            for(j = 0; j < nj; ++j)
+            {
+                const size_t c = size_t(i) * nj + j;
+                double v = 0.25 * zs[size_t(MAX(i - 1, 0)) * nj + j] + 0.5 * zs[c] + 0.25 * zs[size_t(MIN(i + 1, p->knox - 1)) * nj + j];
+
+                if(p->j_dir == 1)
+                    v = 0.5 * (v + 0.25 * zs[size_t(i) * nj + MAX(j - 1, 0)] + 0.5 * zs[c] + 0.25 * zs[size_t(i) * nj + MIN(j + 1, nj - 1)]);
+
+                tmp[c] = v;
+            }
+
+        zs = tmp;
+    }
+
+    int ic, jc;
+
+    // the cell height at the bed level of each column
+    std::vector<double> &hz = sl_hz;
+    hz.resize(ncol);
+
+    for(size_t c = 0; c < ncol; ++c)
+        hz[c] = p->DZN[MAX(0, MIN(p->knoz - 1, p->posc_k(zc[c]))) + marge];
+
+    // the grains of the bed surface of each column (within a cell of its bed level), in flat lists in the order
+    // of the parcels, then sorted from the top; a column's list is used from its head on
+    std::vector<int> &cn = sl_cn;
+    cn.assign(P.index, -1);
+    sl_off.assign(ncol + 1, 0);
+
+    for(n = 0; n < P.index; ++n)
+        if(P.Flag[n] == ACTIVE && P.Hop[n] == 0.0)
+        {
+            bedload_column(p, P.X[n], P.Y[n], ic, jc, n);
+
+            if(ic < 0 || ic >= p->knox || jc < 0 || jc >= nj)
+                continue;
+
+            const size_t c = size_t(ic) * nj + jc;
+
+            // grains of the bed surface: within a cell below the bed level of the column
+            double zb = zc[c];
+
+            if(P.Z[n] > zb - hz[c] && P.Z[n] < zb + hz[c])
+            {
+                cn[n] = int(c);
+                ++sl_off[c + 1];
+            }
+        }
+
+    for(size_t c = 0; c < ncol; ++c)
+        sl_off[c + 1] += sl_off[c];
+
+    sl_list.resize(sl_off[ncol]);
+    sl_head.assign(sl_off.begin(), sl_off.end() - 1);
+
+    for(n = 0; n < P.index; ++n)
+        if(cn[n] >= 0)
+            sl_list[sl_head[cn[n]]++] = int(n);
+
+    sl_head.assign(sl_off.begin(), sl_off.end() - 1);
+
+    for(size_t c = 0; c < ncol; ++c)
+        std::sort(sl_list.begin() + sl_off[c], sl_list.begin() + sl_off[c + 1], [&](int q1, int q2)
+                  { return P.Z[q1] > P.Z[q2]; });
+
+    auto pair = [&](int i1, int j1, int i2, int j2, double dist)
+    {
+        double &z1 = zs[size_t(i1) * nj + j1];
+        double &z2 = zs[size_t(i2) * nj + j2];
+
+        int ih = z1 >= z2 ? i1 : i2, jh = z1 >= z2 ? j1 : j2;
+        int il = z1 >= z2 ? i2 : i1, jl = z1 >= z2 ? j2 : j1;
+        double &zh = z1 >= z2 ? z1 : z2;
+        double &zl = z1 >= z2 ? z2 : z1;
+        const double zlc = zc[size_t(il) * nj + jl];
+
+        // no slide into or out of a solid body (a pipeline resting on the bed)
+        if(p->solidread > 0)
+        {
+            int kh = MAX(0, MIN(p->knoz - 1, p->posc_k(zh)));
+            int kl = MAX(0, MIN(p->knoz - 1, p->posc_k(zl)));
+
+            if(a->solid(ih, jh, kh) < 0.0 || a->solid(il, jl, kl) < 0.0)
+                return;
+        }
+
+        const double Ah = p->DXN[ih + marge] * p->DYN[jh + marge];
+        const double Al = p->DXN[il + marge] * p->DYN[jl + marge];
+        const size_t ch = size_t(ih) * nj + jh;
+
+        while(zh - zl > p->Q75 * dist && sl_head[ch] < sl_off[ch + 1])
+        {
+            int q = sl_list[sl_head[ch]];
+            ++sl_head[ch];
+
+            double xs = p->XN[il + marge] + (0.25 + 0.5 * double(q % 97) / 96.0) * p->DXN[il + marge];
+            double ys = p->j_dir == 1 ? p->YN[jl + marge] + (0.25 + 0.5 * double(q % 89) / 88.0) * p->DYN[jl + marge] : P.Y[q];
+
+            P.Z[q] = P.ZRK1[q] = bedload_place(p, a, P.X[q], P.Y[q], P.Z[q], il, jl, zlc + 0.5 * P.D[q], P.D[q], P.Wt[q]);
+            P.X[q] = P.XRK1[q] = xs;
+            P.Y[q] = P.YRK1[q] = ys;
+            P.U[q] = P.V[q] = P.W[q] = 0.0;
+            P.URK1[q] = P.VRK1[q] = P.WRK1[q] = 0.0;
+
+            // the smoothed level of a column changes by 0.375 of its raw level (weight 0.5 per pass, two passes)
+            zh -= 0.375 * (vpar * P.Wt[q]) / (theta_0 * Ah);
+            zl += 0.375 * (vpar * P.Wt[q]) / (theta_0 * Al);
+            ++bl_nslide;
+        }
+    };
+
+    for(i = 0; i + 1 < p->knox; ++i)
+        for(j = 0; j < nj; ++j)
+            pair(i, j, i + 1, j, p->DXP[i + marge]);
+
+    if(p->j_dir == 1)
+        for(i = 0; i < p->knox; ++i)
+            for(j = 0; j + 1 < nj; ++j)
+                pair(i, j, i, j + 1, p->DYP[j + marge]);
+}
+
 // pickup from the exposed top layer and release into the suspension, once per sub-step
 void CPM::bedload_exchange(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, double dt)
 {
@@ -312,24 +456,60 @@ void CPM::bedload_exchange(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, do
     const double vpar = P.ParcelFactor * Vp;
     const bool hasexpo = expo.size() == size_t(P.index);
 
-    std::vector<std::vector<int>> cand(nc), mov(nc);
-    std::vector<std::vector<double>> rate(nc);
+    // per column: the exposed candidates with their pickup rates and the moving parcels (kept between the
+    // sub-steps, emptied here)
+    if(bx_cand.size() != size_t(nc))
+    {
+        bx_cand.assign(nc, std::vector<int>());
+        bx_mov.assign(nc, std::vector<int>());
+        bx_rate.assign(nc, std::vector<double>());
+    }
+
+    std::vector<std::vector<int>> &cand = bx_cand, &mov = bx_mov;
+    std::vector<std::vector<double>> &rate = bx_rate;
+
+    for(int c = 0; c < nc; ++c)
+    {
+        cand[c].clear();
+        mov[c].clear();
+        rate[c].clear();
+    }
 
     int ic, jc;
     double ub, vb, te;
 
     bedload_occupancy(p);
 
+    bedload_slide(p, a, s);
+
     for(n = 0; n < P.index; ++n)
         if(P.Flag[n] == ACTIVE)
         {
-            bedload_column(p, P.X[n], P.Y[n], ic, jc);
+            bedload_column(p, P.X[n], P.Y[n], ic, jc, n);
             int c = (ic + 1) * nj + jc + 1;
 
             if(P.Hop[n] > 0.0)
             {
-                mov[c].push_back(n);
-                continue;
+                bedload_column(p, P.X[n], P.Y[n], ic, jc);
+                int c = (ic + 1) * nj + jc + 1;
+
+                if(P.Hop[n] > 0.0)
+                {
+                    mov[c].push_back(n);
+                    continue;
+                }
+
+                if(!hasexpo || expo[n] <= 0.0)
+                    continue;
+
+                if(!bedload_grain(p, ic, jc, P.D[n], ub, vb, te))
+                    continue;
+
+                // share of the bed area times V_m* u_b/L
+                double r = expo[n] * vpar / (theta_0 * P.D[n]) * (te * P.D[n] / mu_s) * sqrt(ub * ub + vb * vb) / (p->Q62 * P.D[n]);
+
+                cand[c].push_back(n);
+                rate[c].push_back(r);
             }
 
             if(!hasexpo || expo[n] <= 0.0)
@@ -339,7 +519,7 @@ void CPM::bedload_exchange(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, do
                 continue;
 
             // share of the bed area times V_m* u_b/L
-            double r = expo[n] * vpar / (theta_0 * P.D[n]) * (te * P.D[n] / mu_s) * sqrt(ub * ub + vb * vb) / (p->Q62 * P.D[n]);
+            double r = expo[n] * (vpar * P.Wt[n]) / (theta_0 * P.D[n]) * (te * P.D[n] / mu_s) * sqrt(ub * ub + vb * vb) / (p->Q62 * P.D[n]);
 
             cand[c].push_back(n);
             rate[c].push_back(r);
@@ -364,160 +544,418 @@ void CPM::bedload_exchange(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s, do
             for(double r : rn)
                 rsum += r;
 
-            blC(i, j) += rsum * dt;
+            // morphological factor Q 65: the bed evolves Q 65 times faster than the flow (bedload only)
+            blC(i, j) += p->Q65 * rsum * dt;
 
             while(blC(i, j) >= vpar && !cn.empty())
             {
-                // weighted choice among the exposed parcels
-                double tot = 0.0;
+                int c = (i + 1) * nj + j + 1;
+                auto &cn = cand[c];
+                auto &rn = rate[c];
+
+                double rsum = 0.0;
                 for(double r : rn)
-                    tot += r;
+                    rsum += r;
 
-                double u = uni(rng) * tot;
-                size_t q = 0;
+                blC(i, j) += rsum * dt;
 
-                for(q = 0; q + 1 < cn.size(); ++q)
+                while(blC(i, j) >= vpar && !cn.empty())
                 {
-                    u -= rn[q];
-                    if(u <= 0.0)
-                        break;
+                    // weighted choice among the exposed parcels
+                    double tot = 0.0;
+                    for(double r : rn)
+                        tot += r;
+
+                    double u = uni(rng) * tot;
+                    size_t q = 0;
+
+                    // hop length, exponential with the mean Q 62 d
+                    P.Hop[n] = -p->Q62 * P.D[n] * log(MAX(1.0 - uni(rng), 1.0e-12));
+                    P.Z[n] = bedload_place(p, a, P.X[n], P.Y[n], P.Z[n], i, j, zbl(s, i, j) + 0.5 * P.D[n], P.D[n], P.Wt[n]);
+                    P.U[n] = P.V[n] = P.W[n] = 0.0;
+                    mov[c].push_back(n);
+                    ++bl_npick;
+
+                    cn.erase(cn.begin() + q);
+                    rn.erase(rn.begin() + q);
+
+                    blC(i, j) -= vpar * P.Wt[n];
                 }
 
-                n = cn[q];
+                // no grains to pick up: no credit beyond one parcel
+                blC(i, j) = MIN(blC(i, j), vpar);
 
-                // hop length, exponential with the mean Q 62 d
-                P.Hop[n] = -p->Q62 * P.D[n] * log(MAX(1.0 - uni(rng), 1.0e-12));
-                P.Z[n] = bedload_place(p, P.X[n], P.Y[n], P.Z[n], i, j, zbl(s, i, j) + 0.5 * P.D[n], P.D[n]);
-                P.U[n] = P.V[n] = P.W[n] = 0.0;
-                mov[c].push_back(n);
-                ++bl_npick;
+                // below the threshold the remainder decays (1 s)
+                if(rsum <= 0.0)
+                    blC(i, j) *= MAX(0.0, 1.0 - dt / 1.0);
 
-                cn.erase(cn.begin() + q);
-                rn.erase(rn.begin() + q);
+                // erodible parcels of the column (hybrid suspension Q 58 3: no erosion without them)
+                blNc(i, j) = double(cn.size() + mov[c].size());
 
-                blC(i, j) -= vpar;
-            }
-
-            // no grains to pick up: no credit beyond one parcel
-            blC(i, j) = MIN(blC(i, j), vpar);
-
-            // below the threshold the remainder decays (1 s)
-            if(rsum <= 0.0)
-                blC(i, j) *= MAX(0.0, 1.0 - dt / 1.0);
-
-            // release into the suspension
-            if(p->Q58 == 2)
-            {
-                double tm = sqrt(blTx(i, j) * blTx(i, j) + blTy(i, j) * blTy(i, j));
-                double ustar = sqrt(tm / p->W1);
-                double T = tm / ((p->S22 - p->W1) * gmag * p->S20 * p->Q60) - 1.0;
-
-                if(ustar > ws && T > 0.0)
+                // hybrid suspension (Q 58 3): the net exchange with the concentration (susp_flux) moves
+                // whole parcels between the bed and the suspension
+                if(p->Q58 >= 3)
                 {
-                    double ha = 0.5 * blH(i, j);
-                    double ca = MIN(0.05, 0.015 * p->S20 * pow(T, 1.5) / (ha * pow(Dst, 0.3)));
+                    blCs(i, j) += blSr(i, j) * dt;
 
-                    blCs(i, j) += ws * ca * p->DXN[IP] * p->DYN[JP] * dt;
-
-                    auto &mn = mov[c];
-
-                    while(blCs(i, j) >= vpar && !mn.empty())
+                    // erosion: a parcel of the layer (moving, else exposed) goes into the concentration
+                    while(blCs(i, j) >= vpar)
                     {
-                        size_t q = MIN(mn.size() - 1, size_t(uni(rng) * mn.size()));
-                        n = mn[q];
+                        auto &mn = mov[c];
+                        int q = -1;
 
-                        double zr = zbl(s, i, j) + ha;
+                        if(!mn.empty())
+                        {
+                            size_t qq = MIN(mn.size() - 1, size_t(uni(rng) * mn.size()));
+                            q = mn[qq];
+                            mn.erase(mn.begin() + qq);
+                        }
+                        else if(!cn.empty())
+                        {
+                            size_t qq = MIN(cn.size() - 1, size_t(uni(rng) * cn.size()));
+                            q = cn[qq];
+                            cn.erase(cn.begin() + qq);
+                            rn.erase(rn.begin() + qq);
+                        }
 
-                        P.Hop[n] = 0.0;
-                        P.Z[n] = bedload_place(p, P.X[n], P.Y[n], P.Z[n], i, j, zr, P.D[n]);
-                        P.U[n] = p->ccipol1c(a->u, P.X[n], P.Y[n], zr);
-                        P.V[n] = p->j_dir == 1 ? p->ccipol2c(a->v, P.X[n], P.Y[n], zr) : 0.0;
-                        P.W[n] = 0.0;
+                        if(q < 0)
+                            break;
+
+                        int is, js;
+                        bedload_column(p, P.X[q], P.Y[q], is, js, q);
+                        int ks = MAX(0, MIN(p->knoz - 1, p->posc_k(P.Z[q])));
+                        Locc(is, js, ks) -= vpar * P.Wt[q];
+                        blCs(i, j) -= vpar * P.Wt[q];
+
+                        P.remove(q);
                         ++bl_nsus;
-
-                        mn.erase(mn.begin() + q);
-                        blCs(i, j) -= vpar;
                     }
 
+                    // no parcel to give: no credit beyond one parcel
                     blCs(i, j) = MIN(blCs(i, j), vpar);
+
+                    // deposition: a parcel settles on the bed of the column, at rest
+                    while(blCs(i, j) <= -vpar)
+                    {
+                        if(P.index_empty <= 0)
+                            P.resize(p, P.capacity + 1000);
+
+                        --P.index_empty;
+                        n = P.Empty[P.index_empty];
+
+                        double xs = p->XN[IP] + p->DXN[IP] * uni(rng);
+                        double ys = p->j_dir == 1 ? p->YN[JP] + p->DYN[JP] * uni(rng) : p->YP[JP];
+
+                        P.X[n] = P.XRK1[n] = xs;
+                        P.Y[n] = P.YRK1[n] = ys;
+                        P.D[n] = p->S20;
+                        P.RO[n] = p->S22;
+                        P.Z[n] = zbl(s, i, j) + 0.5 * P.D[n];
+                        Locc(i, j, MAX(0, MIN(p->knoz - 1, p->posc_k(P.Z[n])))) += vpar;
+                        P.Z[n] = P.ZRK1[n] = bedload_place(p, a, xs, ys, P.Z[n], i, j, P.Z[n], P.D[n], 1.0);
+                        P.U[n] = P.V[n] = P.W[n] = 0.0;
+                        P.URK1[n] = P.VRK1[n] = P.WRK1[n] = 0.0;
+                        P.Uf[n] = P.Vf[n] = P.Wf[n] = 0.0;
+                        P.Test[n] = 0.0;
+                        P.Hop[n] = 0.0;
+                        P.Wt[n] = 1.0;
+                        P.Flag[n] = ACTIVE;
+
+                        if(size_t(n) < expo.size())
+                            expo[n] = 0.0;
+
+                        ++bl_nset;
+                        blCs(i, j) += vpar;
+                    }
+                }
+
+                // release into the suspension
+                if(p->Q58 == 2)
+                {
+                    double tm = sqrt(blTx(i, j) * blTx(i, j) + blTy(i, j) * blTy(i, j));
+                    double ustar = sqrt(tm / p->W1);
+                    double T = tm / ((p->S22 - p->W1) * gmag * p->S20 * p->Q60) - 1.0;
+
+                    // onset of suspension after van Rijn (1984): u* > 4 w_s/D* (1 < D* <= 10), 0.4 w_s (D* > 10)
+                    double ucs = (Dst <= 10.0 ? 4.0 / MAX(Dst, 1.0) : 0.4) * ws;
+
+                    if(ustar > ucs && T > 0.0)
+                    {
+                        double ha = 0.5 * blH(i, j);
+                        double ca = MIN(0.05, 0.015 * p->S20 * pow(T, 1.5) / (ha * pow(Dst, 0.3)));
+
+                        // morphological factor Q 65: the suspended parcels act on the bed only (no feedback on the
+                        // flow with S 10 1), so the release is scaled as the pickup, the deposition follows
+                        blCs(i, j) += p->Q65 * ws * ca * p->DXN[IP] * p->DYN[JP] * dt;
+
+                        auto &mn = mov[c];
+
+                        while(blCs(i, j) >= vpar && !mn.empty())
+                        {
+                            size_t q = MIN(mn.size() - 1, size_t(uni(rng) * mn.size()));
+                            n = mn[q];
+
+                            double zr = zbl(s, i, j) + ha;
+
+                            P.Hop[n] = -1.0;  // in the flow, deposited when it settles back onto the bed
+                            P.Z[n] = bedload_place(p, a, P.X[n], P.Y[n], P.Z[n], i, j, zr, P.D[n], P.Wt[n]);
+                            P.U[n] = p->ccipol1c(a->u, P.X[n], P.Y[n], zr);
+                            P.V[n] = p->j_dir == 1 ? p->ccipol2c(a->v, P.X[n], P.Y[n], zr) : 0.0;
+                            P.W[n] = 0.0;
+                            ++bl_nsus;
+
+                            mn.erase(mn.begin() + q);
+                            blCs(i, j) -= vpar * P.Wt[n];
+                        }
+
+                        n = cn[q];
+
+                        // hop length, exponential with the mean Q 62 d
+                        P.Hop[n] = -p->Q62 * P.D[n] * log(MAX(1.0 - uni(rng), 1.0e-12));
+                        P.Z[n] = bedload_place(p, P.X[n], P.Y[n], P.Z[n], i, j, zbl(s, i, j) + 0.5 * P.D[n], P.D[n]);
+                        P.U[n] = P.V[n] = P.W[n] = 0.0;
+                        mov[c].push_back(n);
+                        ++bl_npick;
+
+                        cn.erase(cn.begin() + q);
+                        rn.erase(rn.begin() + q);
+
+                        blC(i, j) -= vpar;
+                    }
+
+                    // no grains to pick up: no credit beyond one parcel
+                    blC(i, j) = MIN(blC(i, j), vpar);
+
+                    // below the threshold the remainder decays (1 s)
+                    if(rsum <= 0.0)
+                        blC(i, j) *= MAX(0.0, 1.0 - dt / 1.0);
+
+                    // release into the suspension
+                    if(p->Q58 == 2)
+                    {
+                        double tm = sqrt(blTx(i, j) * blTx(i, j) + blTy(i, j) * blTy(i, j));
+                        double ustar = sqrt(tm / p->W1);
+                        double T = tm / ((p->S22 - p->W1) * gmag * p->S20 * p->Q60) - 1.0;
+
+                        if(ustar > ws && T > 0.0)
+                        {
+                            double ha = 0.5 * blH(i, j);
+                            double ca = MIN(0.05, 0.015 * p->S20 * pow(T, 1.5) / (ha * pow(Dst, 0.3)));
+
+                            blCs(i, j) += ws * ca * p->DXN[IP] * p->DYN[JP] * dt;
+
+                            auto &mn = mov[c];
+
+                            while(blCs(i, j) >= vpar && !mn.empty())
+                            {
+                                size_t q = MIN(mn.size() - 1, size_t(uni(rng) * mn.size()));
+                                n = mn[q];
+
+                                double zr = zbl(s, i, j) + ha;
+
+                                P.Hop[n] = 0.0;
+                                P.Z[n] = bedload_place(p, P.X[n], P.Y[n], P.Z[n], i, j, zr, P.D[n]);
+                                P.U[n] = p->ccipol1c(a->u, P.X[n], P.Y[n], zr);
+                                P.V[n] = p->j_dir == 1 ? p->ccipol2c(a->v, P.X[n], P.Y[n], zr) : 0.0;
+                                P.W[n] = 0.0;
+                                ++bl_nsus;
+
+                                mn.erase(mn.begin() + q);
+                                blCs(i, j) -= vpar;
+                            }
+
+                            blCs(i, j) = MIN(blCs(i, j), vpar);
+                        }
+                    }
                 }
             }
-        }
-}
 
-// a parcel of the bedload layer: hop along the bed with the grain velocity, deposition at the end of the hop
-// or below the threshold; tentative position and velocity in XRK1, URK1 (Test = -1 marks the parcel as done)
-void CPM::bedload_move(lexer *p, sediment_fdm *s, int q, double dt)
-{
-    int ic, jc;
-    double ub, vb, te;
+            // a parcel of the bedload layer: hop along the bed with the grain velocity, deposition at the end of the hop
+            // or below the threshold; tentative position and velocity in XRK1, URK1 (Test = -1 marks the parcel as done);
+            // a hop into a solid body (solid level set < d/2 at the target) ends where the parcel is
+            void CPM::bedload_move(lexer * p, fdm * a, sediment_fdm * s, int q, double dt)
+            {
+                int ic, jc;
+                double ub, vb, te;
 
-    bedload_column(p, P.X[q], P.Y[q], ic, jc);
+                bedload_column(p, P.X[q], P.Y[q], ic, jc, q);
 
-    bool mob = bedload_grain(p, ic, jc, P.D[q], ub, vb, te);
-    double sp = sqrt(ub * ub + vb * vb);
-    double f = 1.0;
+                bool mob = bedload_grain(p, ic, jc, P.D[q], ub, vb, te);
 
-    bool dep = !mob || P.Hop[q] <= sp * dt;
+                // morphological factor Q 65: the pickup is Q 65 times faster (bedload_exchange), and so is the hop:
+                // the bed evolves on the clock Q 65 t for both. With the pickup alone the volume of the grains in transit
+                // (q/u_b) was Q 65 times the physical one and was missing from the bed level seen by the fluid
+                // (pipeline, Q 65 50: 40 times more grains in the layer, 9 mm of bed over 1.5 D)
+                const double mf = p->Q65 > 0.0 ? p->Q65 : 1.0;
+                double sp = mf * sqrt(ub * ub + vb * vb);
+                double f = 1.0;
 
-    if(mob && dep && sp * dt > 1.0e-20)
-        f = P.Hop[q] / (sp * dt);
+                bool dep = !mob || P.Hop[q] <= sp * dt;
 
-    if(!mob)
-        f = 0.0;
+                if(mob && dep && sp * dt > 1.0e-20)
+                    f = P.Hop[q] / (sp * dt);
 
-    P.XRK1[q] = P.X[q] + f * dt * ub;
-    P.YRK1[q] = p->j_dir == 1 ? P.Y[q] + f * dt * vb : P.Y[q];
+                if(!mob)
+                    f = 0.0;
 
-    bedload_column(p, P.XRK1[q], P.YRK1[q], ic, jc);
-    double zb = zbl(s, ic, jc);
+                P.XRK1[q] = P.X[q] + f * dt * mf * ub;
+                P.YRK1[q] = p->j_dir == 1 ? P.Y[q] + f * dt * mf * vb : P.Y[q];
 
-    P.Test[q] = -1.0;
+                bedload_column(p, P.XRK1[q], P.YRK1[q], ic, jc, q);
+                double zb = zbl(s, ic, jc);
 
-    if(dep)
-    {
-        // deposited on the bed, just inside the bed surface (or the first cell above with room)
-        double zl = zb - 0.5 * P.D[q];
+                if(p->solidread > 0 && p->ccipol4_b(a->solid, P.XRK1[q], P.YRK1[q], zb + 0.5 * P.D[q]) < 0.5 * P.D[q])
+                {
+                    P.XRK1[q] = P.X[q];
+                    P.YRK1[q] = P.Y[q];
+                    bedload_column(p, P.X[q], P.Y[q], ic, jc, q);
+                    zb = zbl(s, ic, jc);
+                    dep = true;
+                }
 
-        if(p->nb5 < 0)
-            zl = MAX(zl, p->ZN[0 + marge] + 0.5 * P.D[q]);
+                P.Test[q] = -1.0;
 
-        P.Hop[q] = 0.0;
-        P.ZRK1[q] = bedload_place(p, P.X[q], P.Y[q], P.Z[q], ic, jc, zl, P.D[q]);
-        P.URK1[q] = P.VRK1[q] = P.WRK1[q] = 0.0;
-        ++bl_ndep;
-    }
-    else
-    {
-        P.Hop[q] -= sp * dt;
-        P.ZRK1[q] = bedload_place(p, P.X[q], P.Y[q], P.Z[q], ic, jc, zb + 0.5 * P.D[q], P.D[q]);
-        P.URK1[q] = ub;
-        P.VRK1[q] = vb;
-        P.WRK1[q] = 0.0;
-    }
-}
+                if(dep)
+                {
+                    // deposited on the bed, just inside the bed surface (or the first cell above with room)
+                    double zl = zb - 0.5 * P.D[q];
 
-// a grain at rest in the bed or on the bed surface (within one cell above the bed level): with the
-// bedload layer it is moved by the layer only (no resolved drag, no turbulent dispersion)
-bool CPM::bedload_rest(lexer *p, fdm *a, int q)
-{
-    double topo = ptopo(p, a, P.X[q], P.Y[q], P.Z[q]);
+                    if(p->nb5 < 0)
+                        zl = MAX(zl, p->ZN[0 + marge] + 0.5 * P.D[q]);
 
-    if(topo < 0.0)
-        return true;
+                    P.Hop[q] = 0.0;
+                    P.ZRK1[q] = bedload_place(p, a, P.X[q], P.Y[q], P.Z[q], ic, jc, zl, P.D[q], P.Wt[q]);
+                    P.URK1[q] = P.VRK1[q] = P.WRK1[q] = 0.0;
+                    ++bl_ndep;
+                }
+                else
+                {
+                    P.Hop[q] -= sp * dt;
+                    P.ZRK1[q] = bedload_place(p, a, P.X[q], P.Y[q], P.Z[q], ic, jc, zb + 0.5 * P.D[q], P.D[q], P.Wt[q]);
+                    P.URK1[q] = ub;
+                    P.VRK1[q] = vb;
+                    P.WRK1[q] = 0.0;
+                }
+            }
 
-    i = p->posc_i(P.X[q]);
-    j = p->posc_j(P.Y[q]);
-    k = p->posc_k(P.Z[q]);
+            // a parcel settling from the flow onto the bed (suspension, ejected grains) is deposited where its
+            // tentative step reaches the bed level of the layer, as at the end of a hop (placed just inside the
+            // bed surface, at rest). The bed absorbs the arriving grains: the deposition flux is the settling
+            // flux at the bed, w_s c_b, as for the Eulerian suspension. Without it a grain that reached the bed
+            // stayed in the flow above the top cell when that cell was full: it skated with the near-bed flow
+            // (u delta/h), was not at rest and was dispersed into the flow again (the suspension of rung 8 was
+            // 3.6 x van Rijn's c_a). The rule holds for the parcels released into the suspension (Hop = -1 from
+            // the release until they settle back); grains of the bed, of the surface layer and of avalanches are
+            // not affected (on a steep face a grain is more than a cell above the bed level of the next column).
+            bool CPM::bedload_settle(lexer * p, fdm * a, sediment_fdm * s, int q)
+            {
+                if(P.Hop[q] >= 0.0 || P.Test[q] < 0.0)
+                    return false;
 
-    double h = p->j_dir == 1 ? (1.0 / 3.0) * (p->DXN[IP] + p->DYN[JP] + p->DZN[KP]) : 0.5 * (p->DXN[IP] + p->DZN[KP]);
-    double sp = sqrt(P.U[q] * P.U[q] + P.V[q] * P.V[q] + P.W[q] * P.W[q]);
+                int ic, jc;
 
-    return topo < h && sp < 0.1 * settling_velocity(p, P.D[q]);
-}
+                bedload_column(p, P.XRK1[q], P.YRK1[q], ic, jc, q);
+                double zb = zbl(s, ic, jc);
 
-// bed level of a column for the layer: the actual level from the parcels (the fluid sees it relaxed in time, Q 63)
-double CPM::zbl(sediment_fdm *s, int ic, int jc)
-{
-    return zbl_ok ? blZb(ic, jc) : s->bedzh(ic, jc);
-}
+                // the bed level, or a quarter cell above it: the top cell of the bed can be full above the
+                // level, the grid-limited step then holds the grain there (released half a cell above the level)
+                if(P.ZRK1[q] - 0.5 * P.D[q] > zb + 0.25 * blH(ic, jc))
+                    return false;
+
+                P.Hop[q] = 0.0;
+
+                // never into a solid body
+                if(p->solidread > 0 && p->ccipol4_b(a->solid, P.XRK1[q], P.YRK1[q], zb + 0.5 * P.D[q]) < 0.5 * P.D[q])
+                    return false;
+
+                double zl = zb - 0.5 * P.D[q];
+
+                if(p->nb5 < 0)
+                    zl = MAX(zl, p->ZN[0 + marge] + 0.5 * P.D[q]);
+
+                P.ZRK1[q] = bedload_place(p, a, P.X[q], P.Y[q], P.Z[q], ic, jc, zl, P.D[q], P.Wt[q]);
+                P.URK1[q] = P.VRK1[q] = P.WRK1[q] = 0.0;
+                P.Test[q] = -1.0;
+                ++bl_ndep;
+
+                return true;
+            }
+
+            // no turbulent dispersion: grains at rest, and with the suspension of the layer the grains within one cell
+            // above the bed level that were not released into the suspension (Hop = 0): the release (Q 58 2) is the
+            // only path into the suspension. Without it the grains of the top cell that move with the near-bed flow
+            // were dispersed into the flow as a second, uncontrolled pickup, and never deposited by bedload_settle.
+            // resting grains of the jammed bed sleep (validation 22). With the bedload layer (Q 58, S 10 1) the parcel
+            // update multiplies the new velocity of a grain by 1 - Hjam, Hjam = 1 below the mobile surface layer
+            // (topo + 1.5 psi <= -0.5 psi, psi = Q 64 h; the solid level set only lowers it). Such a grain gets zero
+            // velocity and stays in place whatever the drag, stress and friction are, and it is not dispersed (below
+            // the bed surface). The update is skipped for it: the result is the same, up to the sign of a zero velocity.
+            // Not with the column yield (Q 67) or the seepage (Q 69), which make Hjam smaller than 1 in the bed.
+            bool CPM::bed_asleep(lexer * p, fdm * a, int q, double xp, double yp, double zp)
+            {
+                ++bl_nupd;
+
+                if(p->Q58 <= 0 || p->S10 != 1 || p->Q67 > 0 || p->Q69 > 0 || P.Hop[q] != 0.0)
+                    return false;
+
+                i = pci(p, q, xp);
+                j = pcj(p, q, yp);
+                k = pck(p, q, zp);
+
+                double psi = p->Q64 * p->DZN[KP];
+                double phi = ptopo_p(p, a, q, xp, yp, zp);
+
+                if(phi + 1.5 * psi <= -0.5 * psi)
+                {
+                    ++bl_nsleep;
+                    return true;
+                }
+
+                return false;
+            }
+
+            bool CPM::bedload_nodisp(lexer * p, fdm * a, int q)
+            {
+                if(bedload_rest(p, a, q))
+                    return true;
+
+                if(P.Hop[q] < 0.0)
+                    return false;
+
+                // Q 74 1: bed grains that were not released are not dispersed at any height
+                if(p->Q74 == 1)
+                    return true;
+
+                i = pci(p, q, P.X[q]);
+                j = pcj(p, q, P.Y[q]);
+                k = pck(p, q, P.Z[q]);
+
+                double h = p->DZN[KP];
+
+                return ptopo(p, a, P.X[q], P.Y[q], P.Z[q]) < h;
+            }
+
+            // a grain at rest in the bed or on the bed surface (within one cell above the bed level): with the
+            // bedload layer it is moved by the layer only (no resolved drag, no turbulent dispersion)
+            bool CPM::bedload_rest(lexer * p, fdm * a, int q)
+            {
+                double topo = ptopo(p, a, P.X[q], P.Y[q], P.Z[q]);
+
+                if(topo < 0.0)
+                    return true;
+
+                i = pci(p, q, P.X[q]);
+                j = pcj(p, q, P.Y[q]);
+                k = pck(p, q, P.Z[q]);
+
+                double h = p->DZN[KP];
+                double sp = sqrt(P.U[q] * P.U[q] + P.V[q] * P.V[q] + P.W[q] * P.W[q]);
+
+                return topo < h && sp < 0.1 * settling_velocity(p, P.D[q]);
+            }
+
+            // bed level of a column for the layer: the actual level from the parcels (the fluid sees it relaxed in time, Q 63)
+            double CPM::zbl(sediment_fdm * s, int ic, int jc)
+            {
+                return zbl_ok ? blZb(ic, jc) : s->bedzh(ic, jc);
+            }

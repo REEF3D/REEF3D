@@ -1,0 +1,11 @@
+{
+ "base": "sflow_2d_sediment_basin",
+ "description": "As sflow_2d_sediment_basin with S 31 1, WENO flux Exner (S 32 4) and non-equilibrium bedload (S 33 1, Ls = 0.5 m), two subdomains.",
+ "ctrl_set": {"S 31": "1", "S 32": "4"},
+ "ctrl_add": ["S 33 1", "S 40 0.5"],
+ "np": 2,
+ "steps": 300,
+ "tags": ["quick", "2d", "sflow", "sediment", "closed", "mpi"],
+ "covers": ["sediment_wenoflux (unique face flux at the domain boundary)", "sediment_exner_noneq Gauss-Seidel across the subdomain boundary",
+            "dfbed_comms", "topovel1"]
+}

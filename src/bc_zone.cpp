@@ -151,6 +151,13 @@ bc_zone_set bc_zone_set::from_legacy(lexer *p, ghostcell *pgc)
     return zs;
 }
 
+bc_zone_set bc_zone_set::from_input(lexer *p)
+{
+    bc_zone_set zs;
+    zs.read_input(p, nullptr);
+    return zs;
+}
+
 void bc_zone_set::read_input(lexer *p, ghostcell *pgc)
 {
     // B 520-524 (control.h, read by read_control and sent to all ranks)
@@ -188,8 +195,8 @@ void bc_zone_set::read_input(lexer *p, ghostcell *pgc)
     {
         if(find(p->B520_id[q]) != q)
             fail("zone id " + std::to_string(p->B520_id[q]) + " defined twice in B 520");
-        if(p->B520_method[q] < 1 || p->B520_method[q] > 4)
-            fail("B 520 method is 1 (relaxation), 2 (beach), 3 (Riemann edge) or 4 (Flather edge)");
+        if(p->B520_method[q] < 1 || p->B520_method[q] > 6)
+            fail("B 520 method is 1 (relaxation), 2 (beach), 3 (Riemann edge), 4 (Flather edge), 5 (clamped level) or 6 (clamped discharge)");
     }
 
     for(int m = 0; m < p->B521; ++m)
@@ -226,6 +233,35 @@ void bc_zone_set::read_input(lexer *p, ghostcell *pgc)
         bgid[q] = p->B523_bg[m];
     }
 
+    std::vector<int> blk(n, 0);
+
+    for(int m = 0; m < p->B522; ++m)
+    {
+        int q = find(p->B522_id[m]);
+        if(q < 0)
+            fail("B 522 refers to zone " + std::to_string(p->B522_id[m]) + ", which has no B 520");
+        if(p->B522_b[m] < 1)
+            fail("B 522: zone " + std::to_string(p->B522_id[m]) + " on block " + std::to_string(p->B522_b[m]) + ", the blocks are 1.. (block 0 is the native grid, its zones need no B 522)");
+
+        blk[q] = p->B522_b[m];
+    }
+
+    std::vector<int> hasq(n, 0);
+    std::vector<double> qv(n, 0.0), qr(n, 0.0);
+
+    for(int m = 0; m < p->B525; ++m)
+    {
+        int q = find(p->B525_id[m]);
+        if(q < 0)
+            fail("B 525 refers to zone " + std::to_string(p->B525_id[m]) + ", which has no B 520");
+        if(p->B520_method[q] != 6)
+            fail("B 525 (discharge) needs a clamped discharge edge (B 520 method 6), zone " + std::to_string(p->B525_id[m]));
+
+        hasq[q] = 1;
+        qv[q] = p->B525_Q[m];
+        qr[q] = p->B525_tramp[m];
+    }
+
     const double fac = (p->B99 == 1) ? 2.0 : 1.0;
     const double ext = 10.0 * p->DXM;
 
@@ -237,10 +273,38 @@ void bc_zone_set::read_input(lexer *p, ghostcell *pgc)
             fail("zone " + std::to_string(k) + " needs a B 521 edge (1: x-, 2: x+, 3: y-, 4: y+)");
         if(width[q] <= 0.0 && m <= 2)
             fail("zone " + std::to_string(k) + ": the B 521 width must be positive");
-        if(m >= 3 && e > 2)
-            fail("zone " + std::to_string(k) + ": Riemann and Flather edges are available on the x edges (B 521 edge 1 or 2)");
-        if(m >= 3 && bgid[q] == 0)
-            fail("zone " + std::to_string(k) + ": a Riemann or Flather edge needs a background (B 523)");
+        if(m >= 3 && bgid[q] == 0 && !(m == 6 && hasq[q]))
+            fail("zone " + std::to_string(k) + ": a Riemann, Flather or clamped edge needs a background (B 523); a clamped discharge edge a background or B 525");
+
+        // a zone on a face of a block 1.. (B 522): an edge of methods 3-6, or a relaxation (1) or beach (2) zone
+        // reaching the B 521 width into the block from its face; the geometry is the block's (reefamr::blocks_open
+        // checks the block and the face, ioflow_amr_block measures the distance from the face)
+        if(blk[q] > 0)
+        {
+            const bc_method meth = m == 1 ? bc_method::relax : m == 2 ? bc_method::beach
+                                                           : m == 3   ? bc_method::riemann
+                                                           : m == 4   ? bc_method::flather
+                                                           : m == 5   ? bc_method::clamp_level
+                                                                      : bc_method::clamp_q;
+            bc_zone z(k, meth, 0.0, 0.0, 0.0, 0.0, m <= 2 ? width[q] : 0.0, m == 2 ? fac : 1.0);
+            z.priority = p->B520_prio[q];
+            z.user = true;
+            z.sources = src[q];
+            z.bg = bgid[q];
+            z.edge = e;
+            z.block = blk[q];
+            z.has_Q = hasq[q] == 1;
+            z.Q = qv[q];
+            z.Q_tramp = qr[q];
+
+            if(m >= 3 && block_edge(z.block, e) != nullptr)
+                fail("zone " + std::to_string(k) + ": face " + std::to_string(e) + " of block " + std::to_string(z.block) + " has two edge zones");
+            if(m <= 2 && block_zone(z.block, e) != nullptr)
+                fail("zone " + std::to_string(k) + ": face " + std::to_string(e) + " of block " + std::to_string(z.block) + " has two relaxation / beach zones");
+
+            bedges.push_back(z);
+            continue;
+        }
 
         const double a = s0[q], b = s1[q], w = m <= 2 ? width[q] : p->DXM;
         const bool whole = b <= a;
@@ -261,7 +325,9 @@ void bc_zone_set::read_input(lexer *p, ghostcell *pgc)
 
         const bc_method meth = m == 1 ? bc_method::relax : m == 2 ? bc_method::beach
                                                        : m == 3   ? bc_method::riemann
-                                                                  : bc_method::flather;
+                                                       : m == 4   ? bc_method::flather
+                                                       : m == 5   ? bc_method::clamp_level
+                                                                  : bc_method::clamp_q;
 
         bc_zone z(k, meth, xs, ys, xe, ye, w, m == 2 ? fac : 1.0);
         z.priority = p->B520_prio[q];
@@ -269,6 +335,9 @@ void bc_zone_set::read_input(lexer *p, ghostcell *pgc)
         z.sources = src[q];
         z.bg = bgid[q];
         z.edge = e;
+        z.has_Q = hasq[q] == 1;
+        z.Q = qv[q];
+        z.Q_tramp = qr[q];
 
         if(m == 1)
             relax.push_back(z);
@@ -279,7 +348,7 @@ void bc_zone_set::read_input(lexer *p, ghostcell *pgc)
         if(m >= 3)
         {
             if(open_edge(e) != nullptr)
-                fail("zone " + std::to_string(k) + ": edge " + std::to_string(e) + " has two Riemann / Flather zones");
+                fail("zone " + std::to_string(k) + ": edge " + std::to_string(e) + " has two Riemann / Flather / clamped zones");
 
             edges.push_back(z);
         }
@@ -332,6 +401,33 @@ const bc_zone *bc_zone_set::beach_zone_at(double x0, double y0) const
             best = &z;
 
     return best;
+}
+
+const bc_zone *bc_zone_set::block_edge(int b, int e) const
+{
+    for(const bc_zone &z : bedges)
+        if(z.block == b && z.edge == e && z.method != bc_method::relax && z.method != bc_method::beach)
+            return &z;
+
+    return nullptr;
+}
+
+const bc_zone *bc_zone_set::block_zone(int b, int e) const
+{
+    for(const bc_zone &z : bedges)
+        if(z.block == b && z.edge == e && (z.method == bc_method::relax || z.method == bc_method::beach))
+            return &z;
+
+    return nullptr;
+}
+
+int bc_zone_set::zone_block(const lexer *p, int id)
+{
+    for(int m = 0; m < p->B522; ++m)
+        if(p->B522_id[m] == id)
+            return p->B522_b[m];
+
+    return 0;
 }
 
 const bc_zone *bc_zone_set::open_edge(int e) const

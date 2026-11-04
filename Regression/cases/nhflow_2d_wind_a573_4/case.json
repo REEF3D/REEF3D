@@ -1,0 +1,21 @@
+{
+ "base": "nhflow_2d_nwt_stokes5",
+ "description": "NHFLOW wind forcing on Stokes waves: modified Jeffreys sheltering on steep faces (A 573 4, A 576 0.5 0.05 0: critical slope 0.05, below the steepest faces of the waves), Wu drag (A 570 2), U10 12 m/s along x, forcing area with cos^2 decay (A 572, A 574 1).",
+ "ctrl_add": [
+  "A 570 2",
+  "A 571 12.0 0.0",
+  "A 573 4",
+  "A 572 10.0 100.0 -1.0 1.0",
+  "A 574 1",
+  "A 576 0.5 0.05 0.0"
+ ],
+ "tags": [
+  "2d",
+  "nhflow",
+  "wind"
+ ],
+ "covers": [
+  "wind_f::wind_pressure mode 4",
+  "forcing area A 572 and decay A 574"
+ ]
+}

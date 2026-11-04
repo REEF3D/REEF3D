@@ -1,0 +1,10 @@
+# REEF3D::CORAL model for nhflow_2d_coral_fluid_body: the box of nhflow_2d_6dof_box (4 kg, heave added mass
+# about 15 kg) on a heave joint with a PTO damper, driven by the NHFLOW fluid, with half the added mass as
+# artificial added mass (not needed for this box, here for the code path)
+# Architect: Hans Bihs
+time dt 0.005 end 100
+output dt 0.01 file box.dat
+body box mass 1.0 cog 6.0 0.025 0.53
+joint heave prismatic ground box point 6.0 0.025 0.53 axis 0 0 1
+pto pto joint heave c 10.0
+fluid_body box added_mass 0 0 7.5 0 0 0

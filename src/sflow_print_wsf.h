@@ -23,9 +23,10 @@ Author: Hans Bihs
 #ifndef SFLOW_PRINT_WSF_H_
 #define SFLOW_PRINT_WSF_H_
 
-#include"increment.h"
-#include<iostream>
-#include<fstream>
+#include "amr_grid_lookup.h"
+#include "increment.h"
+#include <fstream>
+#include <iostream>
 
 class lexer;
 class fdm2D;
@@ -37,25 +38,27 @@ using namespace std;
 class sflow_print_wsf : public increment
 {
 public:
-    sflow_print_wsf(lexer*,fdm2D*);
-	virtual ~sflow_print_wsf();
+    void flush_files() { wsfout.flush(); }  // a rebalance stop (G 46)
+    // the mesh refinement: the points read the finest grid (amr_grid_lookup.h), nullptr: level 0
+    const amr_column_lookup *amr = nullptr;
 
-	void height_gauge(lexer*, fdm2D*, ghostcell*,slice&);
+    sflow_print_wsf(lexer *, fdm2D *);
+    virtual ~sflow_print_wsf();
 
+    void height_gauge(lexer *, fdm2D *, ghostcell *, slice &);
 
 private:
-    void ini_location(lexer*, fdm2D*);
+    void ini_location(lexer *, fdm2D *);
     int conv(double);
-	
-	double *x,*y;
-	int gauge_num;
 
-    int *iloc,*jloc,*flag;
+    double *x, *y;
+    int gauge_num;
+
+    int *iloc, *jloc, *flag;
     double *wsf;
     int n;
     ofstream wsfout;
     const int fileFlushMaxCount;
-
 };
 
 #endif

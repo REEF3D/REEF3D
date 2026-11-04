@@ -26,6 +26,7 @@ Author: Hans Bihs
 #include "ioflow.h"
 #include "lexer.h"
 #include "patchBC_interface.h"
+#include "seastate_sflow.h"
 
 sflow_eta::sflow_eta(lexer *p, fdm2D *b, ghostcell *pgc, patchBC_interface *ppBC) : eps(1.0e-6), K(p)
 {
@@ -68,9 +69,47 @@ void sflow_eta::update(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *pflow, slice 
     SLICELOOP4
     K(i, j) = 0.0;
 
-    SLICELOOP4
+    if(p->geo_curv == 1)
+        SLICELOOP4
+    WETDRY
+    K(i, j) = -(b->FEx(i, j) * p->LEN1[IJ] - b->FEx(i - 1, j) * p->LEN1[Im1J] + b->FEy(i, j) * p->LEN2[IJ] - b->FEy(i, j - 1) * p->LEN2[IJm1]) / p->AREA2D[IJ];
+
+    if(p->geo_curv == 0)
+        SLICELOOP4
     WETDRY
     K(i, j) = -(b->FEx(i, j) - b->FEx(i - 1, j)) / p->DXN[IP] - (b->FEy(i, j) - b->FEy(i, j - 1)) / p->DYN[JP] * p->y_dir;
+
+    // REEF3D::SEASTATE vortex force (A 751 2): Stokes transport
+    if(b->wave != nullptr)
+        b->wave->mass_source(p, b, K);
+
+    // depth-averaged suspended load (S 120 > 0): the mass flux of the step, weighted as the stages, so that
+    // WL^n+1 = WL^n - dt div(FEacc) (stage output a WL0 + (1-a)(WLs + dt K): FEacc = (1-a)(FEacc + FE))
+    if(b->FEacc_x != nullptr && p->geo_curv == 0)
+    {
+        const double w = 1.0 - a;
+
+        if(a == 0.0)
+        {
+            for(i = -1; i < p->knox; ++i)
+                for(j = 0; j < p->knoy; ++j)
+                    (*b->FEacc_x)(i, j) = 0.0;
+
+            for(i = 0; i < p->knox; ++i)
+                for(j = -1; j < p->knoy; ++j)
+                    (*b->FEacc_y)(i, j) = 0.0;
+        }
+
+        for(i = -1; i < p->knox; ++i)
+            for(j = 0; j < p->knoy; ++j)
+                (*b->FEacc_x)(i, j) = w * ((*b->FEacc_x)(i, j) + b->FEx(i, j));
+
+        for(i = 0; i < p->knox; ++i)
+            for(j = -1; j < p->knoy; ++j)
+                (*b->FEacc_y)(i, j) = w * ((*b->FEacc_y)(i, j) + b->FEy(i, j));
+
+        b->FEacc_step = p->count;
+    }
 
     SLICELOOP4
     WLout(i, j) = a * WL0(i, j) + (1.0 - a) * (WLs(i, j) + p->dt * K(i, j));
@@ -132,6 +171,11 @@ void sflow_eta::depth_update(lexer *p, fdm2D *b, ghostcell *pgc, slice &WL)
         {
             i = p->gcslout[n][0];
             j = p->gcslout[n][1];
+
+            // not at iowave Riemann / Flather / clamped edges (B 520 methods 3-6)
+            const int cs = p->gcslout[n][3];
+            if((cs == 4 && p->open_xp == 1) || (cs == 3 && p->open_ym == 1) || (cs == 2 && p->open_yp == 1) || (cs == 1 && p->open_xm == 1))
+                continue;
 
             if(p->wet[IJ] == 1)
                 b->eta(i, j) = wsfout - p->wd;

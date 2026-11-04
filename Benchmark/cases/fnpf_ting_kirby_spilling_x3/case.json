@@ -1,0 +1,36 @@
+{
+ "base": "fnpf_ting_kirby_spilling",
+ "description": "fnpf_ting_kirby_spilling in 3D along x (4 cells across, walls at y), the partner of fnpf_ting_kirby_spilling_y: same grid and number of cells across, so the two differ only in the direction of travel. Breaking point as fnpf_ting_kirby_spilling.",
+ "tags": [
+  "fnpf",
+  "3d",
+  "breaking",
+  "orientation"
+ ],
+ "np": 2,
+ "control_set": {
+  "B 2": "1200 4 10",
+  "B 10": "0.0 30 0.0 0.1 0.0 0.748",
+  "S 61": "5.8 31.98 0.0 0.1 0.0 0.748"
+ },
+ "levels": {
+  "nightly": {
+   "np": 2,
+   "time": 30.0,
+   "control_set": {
+    "B 2": "1200 4 10",
+    "B 10": "0.0 30 0.0 0.1 0.0 0.748",
+    "S 61": "5.8 31.98 0.0 0.1 0.0 0.748",
+    "M 10": "2"
+   },
+   "ctrl_set": {
+    "M 10": "2"
+   },
+   "check_set": {
+    "t_start": 20.0,
+    "t_end": 30.0
+   }
+  },
+  "release": {}
+ }
+}

@@ -1,0 +1,9 @@
+{
+ "description": "REEF3D::CORAL one-way body loads (Z 40 1): the box of fnpf_2d_6dof_box held fixed (X 11 0) in the FNPF 2D wave tank, its loads of the first stage on a rigid CORAL body (fluid_body one_way, CORAL one step behind) and in strips along a beam spanning it (fluid_member), with the journal of the fluid input (record); REEF3D_FNPF_6DOF and REEF3D_CORAL/box.dat compared.",
+ "base": "fnpf_2d_6dof_box",
+ "ctrl_set": {"X 11": "0 0 0 0 0 0"},
+ "ctrl_add": ["Z 40 1"],
+ "files": ["coral.txt"],
+ "tags": ["2d", "fnpf", "6dof", "coral"],
+ "covers": ["fnpf_6DOF_external one-way", "6DOF strips (forces_fnpf)", "coral_reef3d fluid_member, fluid_body one_way", "CORAL coupling journal"]
+}

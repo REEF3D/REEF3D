@@ -1,0 +1,16 @@
+{
+ "description": "NHFLOW hydrostatic semi-implicit, 1D tidal channel 20 km x 10 m, clamped level with M2, S2, N2, K1, O1 (B 511), 31 days at dt 600 s, long-run statistics P 160 from day 1, maps every 10 days. The on-the-fly harmonic constants equal a least-squares fit of the gauge series to 4 digits and the frictionless standing wave to 0.1 %; at 10, 20 and 30 days the record resolves M2 K1 M4 M6, then + S2 O1 MS4, then all 11.",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 4500,
+ "tags": [
+  "2d",
+  "nhflow",
+  "semi_implicit",
+  "tide",
+  "longrun"
+ ],
+ "covers": [
+  "nhflow_longrun: sums, Rayleigh choice, Cholesky solve, ellipses, .vts/.vtm/.txt output"
+ ]
+}

@@ -21,12 +21,17 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include "reefamr.h"
+#include "geo_mesh.h"
 #include "ghostcell.h"
 #include "lexer.h"
 #include "mgcslice1.h"
 #include "mgcslice2.h"
 #include "mgcslice4.h"
+#include "reef3d_mpmd.h"
+#include "slice.h"
+#include <algorithm>
 #include <mpi.h>
+#include <set>
 
 namespace {
 // floor(a/2^l) for negative a as well
@@ -41,13 +46,16 @@ inline bool inarr(const lexer *q, int ii, int jj)
 }
 }  // namespace
 
+// the time with the comms off is the patch time of the load statistics (G 43)
 reefamr_comms_off::reefamr_comms_off(ghostcell *gg) : g(gg)
 {
     old = g->set_comms(false);
+    amr_clock::patch_begin();
 }
 
 reefamr_comms_off::~reefamr_comms_off()
 {
+    amr_clock::patch_end();
     g->set_comms(old);
 }
 
@@ -93,6 +101,12 @@ void reefamr::configure(const reefamr_param &q)
     nest = q.nest;
     keep = q.keep;
     EXT = q.ext;
+    sy = (p0->j_dir == 1) ? 1 : 0;
+    EY = sy * EXT;
+
+    // measured cost model (G 41 0: the placement, the load map) and the weight of the patch phase (G 44)
+    lmeas = (p0->G41 <= 0.0 && p0->mpi_size > 1);
+    lmu = MAX(p0->G44, 0.0);
 }
 
 // --------------------------------------------------------------------- grids
@@ -105,7 +119,7 @@ void reefamr::goff(int g, int &oi, int &oj)
         return;
     }
     oi = P[g]->I0 - EXT;
-    oj = P[g]->J0 - EXT;
+    oj = P[g]->J0 - EY;
 }
 
 lexer *reefamr::glex(int g)
@@ -115,8 +129,22 @@ lexer *reefamr::glex(int g)
 
 int reefamr::patch_at(int l, int I, int J)
 {
-    // placed patches: from the global table, -3 where a patch of another rank holds the cell
-    if(par.place > 0 && l >= 1)
+    // multi-block: a level-0 block on this rank (outside the native box)
+    if(nblk > 0 && l == 0 && (I < 0 || I >= GNX || J < 0 || J >= GNY))
+    {
+        const int b = block_near(I, J);
+        if(b < 1)
+            return -2;
+        int i, j;
+        block_own(0, b, I, J, i, j);
+        if(i < 0 || i >= blk[b].ni || j < 0 || j >= blk[b].nj)
+            return -2;
+        return (blk[b].rank == p0->mpirank) ? blk[b].lid : -3;
+    }
+
+    // placed patches and multi-block grids: from the global table, -3 where a patch of another rank
+    // holds the cell
+    if((par.place > 0 || nblk > 0) && l >= 1)
     {
         const int q = gpatch_at(l, I, J);
         if(q < 0)
@@ -138,7 +166,21 @@ int reefamr::patch_at(int l, int I, int J)
 int reefamr::owner(int I, int J)
 {
     if(I < 0 || I >= GNX || J < 0 || J >= GNY)
+    {
+        // multi-block: the rank of a level-0 block
+        if(nblk > 0)
+        {
+            const int b = block_near(I, J);
+            if(b >= 1)
+            {
+                int i, j;
+                block_own(0, b, I, J, i, j);
+                if(i >= 0 && i < blk[b].ni && j >= 0 && j < blk[b].nj)
+                    return blk[b].rank;
+            }
+        }
         return -1;
+    }
 
     int r = last_owner;
     if(I >= rbx0[r] && I <= rbx1[r] && J >= rby0[r] && J <= rby1[r])
@@ -184,7 +226,7 @@ int reefamr::holder(int l, int I, int J)
         if(q >= 0)
             return GP[q].rank;
         I = fsh(I, 1);
-        J = fsh(J, 1);
+        J = fsh(J, sy);
     }
     return owner(I, J);
 }
@@ -208,7 +250,7 @@ void reefamr::build_gtable()
 
     int n = (int)mine.size();
     vector<int> cnt(np), off(np, 0);
-    MPI_Allgather(&n, 1, MPI_INT, &cnt[0], 1, MPI_INT, MPI_COMM_WORLD);
+    MPI_Allgather(&n, 1, MPI_INT, &cnt[0], 1, MPI_INT, reef3d_comm());
     int tot = 0;
     for(int r = 0; r < np; ++r)
     {
@@ -216,7 +258,7 @@ void reefamr::build_gtable()
         tot += cnt[r];
     }
     vector<int> all(MAX(tot, 1));
-    MPI_Allgatherv(mine.empty() ? nullptr : &mine[0], n, MPI_INT, &all[0], &cnt[0], &off[0], MPI_INT, MPI_COMM_WORLD);
+    MPI_Allgatherv(mine.empty() ? nullptr : &mine[0], n, MPI_INT, &all[0], &cnt[0], &off[0], MPI_INT, reef3d_comm());
 
     GPold = GP;
     GP.clear();
@@ -258,9 +300,19 @@ void reefamr::build_gtable()
 int reefamr::flag0(int I, int J)
 {
     if(I < 0 || I >= GNX || J < 0 || J >= GNY)
+    {
+        // multi-block: cells of the blocks and the cells beyond their interfaces are fluid
+        if(nblk > 0)
+        {
+            const int b = block_near(I, J);
+            int I2, J2;
+            if(b >= 1 && canon(0, b, I, J, I2, J2))
+                return 1;
+        }
         return -10;
+    }
 
-    if(par.place > 0)
+    if(par.place > 0 || !gfl0.empty())
         return gfl0[(size_t)I * GNY + J];
 
     int ii = I - O0i + FH, jj = J - O0j + FH;
@@ -353,6 +405,8 @@ double reefamr::y0g(int K) const
 // place 1: x (dir 0) or y (dir 1) of global node N of level l, as build_lexer sets the patch nodes
 double reefamr::gnode(int dir, int l, int N)
 {
+    if(dir == 1)
+        l = ysh(l);
     const double rl = double(1 << l);
     const int K = fsh(N, l);
     const int r = N - (K << l);
@@ -368,6 +422,33 @@ int reefamr::finest_rank(double x, double y)
     // 2D: one cell in y, the point may lie beyond the strip (as the 6DOF ownership test)
     if(p0->j_dir == 0)
         y = 0.5 * (gyn[marge] + gyn[marge + GNY]);
+
+    // curvilinear grid (G 50): the logical coordinates of the point (lexer::curv_logical), the patches and the
+    // level-0 cells by their logical ranges (the patch cells subdivide the level-0 cells bilinearly)
+    if(p0->geo_curv == 1 && p0->geo_mb == 0)
+    {
+        double X, Y;
+        if(!p0->curv_logical(x, y, X, Y))
+            return -1;
+        if(p0->j_dir == 0)
+            Y = 0.5 * double(GNY);
+
+        int best = -1, bl = 0;
+        for(const reefamr_gpatch &G : GP)
+        {
+            if(G.lev <= bl)
+                continue;
+            const double r = double(1 << G.lev), ry = double(1 << ysh(G.lev));
+            if(X * r >= double(G.I0) && X * r < double(G.I1 + 1) && Y * ry >= double(G.J0) && Y * ry < double(G.J1 + 1))
+            {
+                best = G.rank;
+                bl = G.lev;
+            }
+        }
+        if(best >= 0)
+            return best;
+        return owner(std::min(int(X), GNX - 1), std::min(int(Y), GNY - 1));
+    }
 
     int best = -1, bl = 0;
     for(const reefamr_gpatch &G : GP)
@@ -392,6 +473,61 @@ int reefamr::finest_rank(double x, double y)
     return owner(I, J);
 }
 
+int reefamr::finest_point(double x, double y, int &id) const
+{
+    id = -1;
+    if(p0->geo_mb > 0)
+        return 0;
+
+    int best = 0;
+    for(int n = 0; n < (int)P.size(); ++n)
+    {
+        const reefamr_patch *c = P[n];
+        lexer *pp = c->pp;
+        if(c->lev <= best)
+            continue;
+
+        // the cell of the point in the patch lexer (index EXT: first interior cell)
+        int a = -1, b = -1;
+        if(pp->geo_curv == 1)
+        {
+            if(!pp->geo_cell(x, y, a, b))
+                continue;
+        }
+        else
+        {
+            if(!(x >= pp->XN[EXT + marge] && x < pp->XN[EXT + c->nx + marge]))
+                continue;
+            if(pp->j_dir == 1 && !(y >= pp->YN[EXT + marge] && y < pp->YN[EXT + c->ny + marge]))
+                continue;
+            a = int(std::upper_bound(pp->XN + EXT + marge, pp->XN + EXT + c->nx + marge + 1, x) - (pp->XN + marge)) - 1;
+            b = (pp->j_dir == 1) ? int(std::upper_bound(pp->YN + EXT + marge, pp->YN + EXT + c->ny + marge + 1, y) - (pp->YN + marge)) - 1 : EY;
+        }
+        if(a < EXT || a >= EXT + c->nx || b < EY || b >= EY + c->ny)
+            continue;
+
+        // the cells within two of it: interior, or not taken from another grid (with fills_current: a
+        // cell filled from a patch of the same level is current, as its own)
+        bool ok = true;
+        const bool cur = fills_current();
+        const int bj = (pp->j_dir == 1) ? 2 : 0;
+        for(const reefamr_fill &f : c->fill)
+            if(f.kind <= 2 && f.di >= a - 2 && f.di <= a + 2 && f.dj >= b - bj && f.dj <= b + bj)
+            {
+                if(cur && (f.kind == 0 || (f.kind == 2 && const_cast<reefamr *>(this)->covered(c->lev, f.di - EXT + c->I0, f.dj - EY + c->J0))))
+                    continue;
+                ok = false;
+                break;
+            }
+        if(!ok)
+            continue;
+
+        best = c->lev;
+        id = n;
+    }
+    return best;
+}
+
 // --------------------------------------------------------------------- setup
 // rank boxes, level arrays, tiles, level-0 flags and the no-refinement cells
 void reefamr::setup(lexer *p, ghostcell *pgc)
@@ -402,11 +538,13 @@ void reefamr::setup(lexer *p, ghostcell *pgc)
     NY0 = p->knoy;
     GNX = p->gknox;
     GNY = p->gknoy;
+    GNXV = GNX;  // multi-block: the blocks widen the index space (blocks_refine_setup)
+    GNYV = GNY;
 
     // rank boxes
     int mine[4] = {O0i, O0i + NX0 - 1, O0j, O0j + NY0 - 1};
     vector<int> all(4 * p->mpi_size);
-    MPI_Allgather(mine, 4, MPI_INT, &all[0], 4, MPI_INT, MPI_COMM_WORLD);
+    MPI_Allgather(mine, 4, MPI_INT, &all[0], 4, MPI_INT, reef3d_comm());
     rbx0.resize(p->mpi_size);
     rbx1.resize(p->mpi_size);
     rby0.resize(p->mpi_size);
@@ -435,6 +573,11 @@ void reefamr::setup(lexer *p, ghostcell *pgc)
     fplan.assign(maxlev + 1, reefamr_xplan());
     fsend.assign(maxlev + 1, vector<int>());
     frecv.assign(maxlev + 1, vector<int>());
+    xfplan.assign(maxlev + 1, reefamr_xplan());
+    xfsend.assign(maxlev + 1, vector<int>());
+    xfrecv.assign(maxlev + 1, vector<int>());
+    xmatch.resize(1);
+    xrmatch.resize(1);
     bup.assign(maxlev + 1, reefamr_xplan());
     bdn.assign(maxlev + 1, reefamr_xplan());
     bloc.assign(maxlev + 1, vector<int>());
@@ -453,13 +596,14 @@ void reefamr::setup(lexer *p, ghostcell *pgc)
     for(int l = 1; l <= maxlev; ++l)
     {
         gtnx[l] = ((GNX << l) + tile - 1) / tile;
-        gtny[l] = ((GNY << l) + tile - 1) / tile;
+        gtny[l] = ((GNY << ysh(l)) + tile - 1) / tile;
     }
     build_tiles();
     build_flags(p);
 
-    // placed patches: the global level-0 nodes and solid flags (a patch may lie outside the rank box)
-    if(par.place > 0)
+    // placed patches: the global level-0 nodes and solid flags (a patch may lie outside the rank box);
+    // multi-block grids: the solid flags (a block on any rank reaches the native cells next to it)
+    if(par.place > 0 || p->geo_mb > 0)
     {
         const int np = p->mpi_size;
         const int m = marge;
@@ -470,8 +614,8 @@ void reefamr::setup(lexer *p, ghostcell *pgc)
             const int na = nloc + 1 + 4 * m;
             vector<int> cnt(np), off(np), st(np);
             int me0 = n0;
-            MPI_Allgather(&na, 1, MPI_INT, &cnt[0], 1, MPI_INT, MPI_COMM_WORLD);
-            MPI_Allgather(&me0, 1, MPI_INT, &st[0], 1, MPI_INT, MPI_COMM_WORLD);
+            MPI_Allgather(&na, 1, MPI_INT, &cnt[0], 1, MPI_INT, reef3d_comm());
+            MPI_Allgather(&me0, 1, MPI_INT, &st[0], 1, MPI_INT, reef3d_comm());
             int tot = 0;
             for(int r = 0; r < np; ++r)
             {
@@ -479,7 +623,7 @@ void reefamr::setup(lexer *p, ghostcell *pgc)
                 tot += cnt[r];
             }
             vector<double> all(tot);
-            MPI_Allgatherv(XN, na, MPI_DOUBLE, &all[0], &cnt[0], &off[0], MPI_DOUBLE, MPI_COMM_WORLD);
+            MPI_Allgatherv(XN, na, MPI_DOUBLE, &all[0], &cnt[0], &off[0], MPI_DOUBLE, reef3d_comm());
 
             // global node K at index K+m, K in [-m, gn+m]; a rank's interior nodes take precedence
             g.assign(gn + 1 + 2 * m, 0.0);
@@ -511,8 +655,16 @@ void reefamr::setup(lexer *p, ghostcell *pgc)
             }
         vector<int> cnt(np), off(np);
         int nm = NX0 * NY0;
-        MPI_Allgather(&nm, 1, MPI_INT, &cnt[0], 1, MPI_INT, MPI_COMM_WORLD);
+        MPI_Allgather(&nm, 1, MPI_INT, &cnt[0], 1, MPI_INT, reef3d_comm());
         int tot = 0;
+        for(int r = 0; r < np; ++r)
+        {
+            off[r] = tot;
+            tot += cnt[r];
+        }
+        vector<short> all(tot);
+        MPI_Allgatherv(&mine[0], nm, MPI_SHORT, &all[0], &cnt[0], &off[0], MPI_SHORT, reef3d_comm());
+        gfl0.assign((size_t)GNX * GNY, -10);
         for(int r = 0; r < np; ++r)
         {
             off[r] = tot;
@@ -545,10 +697,15 @@ void reefamr::setup(lexer *p, ghostcell *pgc)
     for(n = 0; n < p->gcslout_count; ++n)
         forbid_around(p->gcslout[n][0], p->gcslout[n][1]);
 
+    // (curvilinear grid: the cell centres, as F 72)
     for(size_t q = 0; q + 3 < par.fbox.size(); q += 4)
         SLICELOOP4
-    if(p->XP[IP] >= par.fbox[q] && p->XP[IP] <= par.fbox[q + 1] && p->YP[JP] >= par.fbox[q + 2] && p->YP[JP] <= par.fbox[q + 3])
-        forbid0[(size_t)(i + O0i) * GNY + (j + O0j)] = 1;
+        {
+            const double xc = (p->geo_curv == 1) ? p->XC2D[IJ] : p->XP[IP];
+            const double yc = (p->geo_curv == 1) ? p->YC2D[IJ] : p->YP[JP];
+            if(xc >= par.fbox[q] && xc <= par.fbox[q + 1] && yc >= par.fbox[q + 2] && yc <= par.fbox[q + 3])
+                forbid0[(size_t)(i + O0i) * GNY + (j + O0j)] = 1;
+        }
 
     global_or(forbid0);
 }
@@ -563,8 +720,8 @@ void reefamr::build_tiles()
         tny[l] = byhi(l) / tile - ttj0[l] + 1;
         tmap[l].assign(tnx[l] * tny[l], -2);
 
-        // (placed patches are looked up in the global table)
-        if(par.place == 0)
+        // (placed patches and the patches of multi-block grids are looked up in the global table)
+        if(par.place == 0 && nblk == 0)
             for(int id : lev[l])
             {
                 reefamr_patch *c = P[id];
@@ -578,7 +735,7 @@ void reefamr::build_tiles()
 void reefamr::global_or(vector<unsigned char> &v)
 {
     if(p0->mpi_size > 1 && !v.empty())
-        MPI_Allreduce(MPI_IN_PLACE, &v[0], (int)v.size(), MPI_UNSIGNED_CHAR, MPI_BOR, MPI_COMM_WORLD);
+        MPI_Allreduce(MPI_IN_PLACE, &v[0], (int)v.size(), MPI_UNSIGNED_CHAR, MPI_BOR, reef3d_comm());
 }
 
 // the level-lf tiles covering the children of the level lf-1 cell (I,J) and buf cells around it
@@ -586,10 +743,10 @@ void reefamr::tag_cell(int lf, int I, int J, int buf, vector<unsigned char> &M)
 {
     const int T = tile;
     int a0 = MAX((2 * (I - buf)) / T, 0), a1 = MIN((2 * (I + buf) + 1) / T, gtnx[lf] - 1);
-    int d0 = MAX((2 * (J - buf)) / T, 0), d1 = MIN((2 * (J + buf) + 1) / T, gtny[lf] - 1);
+    int d0 = MAX(ychild(J - buf) / T, 0), d1 = MIN((ychild(J + buf) + sy) / T, gtny[lf] - 1);
     if(2 * (I - buf) < 0)
         a0 = 0;
-    if(2 * (J - buf) < 0)
+    if(ychild(J - buf) < 0)
         d0 = 0;
     for(int a = a0; a <= a1; ++a)
         for(int d = d0; d <= d1; ++d)
@@ -598,10 +755,11 @@ void reefamr::tag_cell(int lf, int I, int J, int buf, vector<unsigned char> &M)
 
 // --------------------------------------------------------------------- patches
 // allocate the patch, its lexer and (through the module) its objects; the state is set later
-reefamr_patch *reefamr::make_patch(lexer *p, ghostcell *pgc, int l, int I0, int I1, int J0, int J1)
+reefamr_patch *reefamr::make_patch(lexer *p, ghostcell *pgc, int l, int I0, int I1, int J0, int J1, int b)
 {
     reefamr_patch *c = patch_new();
     c->lev = l;
+    c->blk = b;
     c->I0 = I0;
     c->I1 = I1;
     c->J0 = J0;
@@ -670,6 +828,8 @@ void reefamr::free_patch(reefamr_patch *c)
         pp->del_Iarray(pp->dgcsl4, pp->dgcsl4_count, 3);
     }
 
+    pp->geometry_free();
+
     delete pp;
     delete c;
 }
@@ -687,11 +847,11 @@ void reefamr::build_lexer(lexer *p, reefamr_patch &c)
     lexer *pp = c.pp;
     const int ms = pp->margin;  // ghost layers of the slices
     const int m = marge;        // offset of the coordinate arrays (IP = i+marge)
-    const int l = c.lev;
-    const double rl = double(1 << l);
+    const int l = c.lev, ly = ysh(l);
+    const double rl = double(1 << l), rly = double(1 << ly);
 
     pp->knox = c.nx + 2 * EXT;
-    pp->knoy = c.ny + 2 * EXT;
+    pp->knoy = c.ny + 2 * EY;
     pp->knoz = p->knoz;
     pp->imin = -ms;
     pp->jmin = -ms;
@@ -731,8 +891,14 @@ void reefamr::build_lexer(lexer *p, reefamr_patch &c)
     pp->DZP = p->DZP;
     build_vertical(p, c);
 
+    // multi-block: the blocks 1.. are logical boxes (the geometry are their 2D nodes) with the spacing
+    // of the native box (CURV raster spacing; DXM depends on the decomposition)
+    const double hlog = (p->gridgeo != nullptr && p->gridgeo->curv_par.size() >= 5 && p->gridgeo->curv_par[4] > 0.0) ? p->gridgeo->curv_par[4] : p->DXM;
+
     auto x0 = [&](int K)  // global level-0 node K, linear extrapolation outside the rank arrays
     {
+        if(c.blk > 0)
+            return hlog * double(K);
         if(par.place > 0)
             return x0g(K);
         int a = K - O0i + m;
@@ -744,6 +910,8 @@ void reefamr::build_lexer(lexer *p, reefamr_patch &c)
     };
     auto y0 = [&](int K)
     {
+        if(c.blk > 0)
+            return hlog * double(K);
         if(par.place > 0)
             return y0g(K);
         int a = K - O0j + m;
@@ -763,10 +931,10 @@ void reefamr::build_lexer(lexer *p, reefamr_patch &c)
     }
     for(int a = 0; a < nya; ++a)
     {
-        int N = a - m - EXT + c.J0;
-        int K = fsh(N, l);
-        int r = N - (K << l);
-        pp->YN[a] = (r == 0) ? y0(K) : y0(K) + (y0(K + 1) - y0(K)) * (double(r) / rl);
+        int N = a - m - EY + c.J0;
+        int K = fsh(N, ly);
+        int r = N - (K << ly);
+        pp->YN[a] = (r == 0) ? y0(K) : y0(K) + (y0(K + 1) - y0(K)) * (double(r) / rly);
     }
 
     for(int a = 0; a < nxa - 1; ++a)
@@ -790,9 +958,67 @@ void reefamr::build_lexer(lexer *p, reefamr_patch &c)
     pp->DXP[nxa - 1] = pp->DXP[nxa - 2];
     pp->DYP[nya - 1] = pp->DYP[nya - 2];
 
+    // horizontal geometry layer: the patch nodes subdivide the level-0 2D nodes bilinearly (on a
+    // Cartesian grid bit for bit the XN/YN above), then the metrics of the patch cells; curvilinear
+    // grid: nodes beyond the rank's ones (placement G 40) from the global nodes
+    pp->geo_curv = p->geo_curv;
+    pp->geometry_alloc();
+    {
+        auto node0 = [&](int K, int L, double &x, double &y)  // level-0 2D node, global index
+        {
+            if(c.blk > 0)  // multi-block: the nodes of the block, beyond its faces the neighbours
+            {
+                double z;
+                int k, q;
+                block_own(0, c.blk, K, L, k, q);
+                block_node_any(c.blk, k, q, x, y, z);
+                return;
+            }
+            const int k = K - O0i, q = L - O0j;
+            if(par.place == 0 && p->XN2D != nullptr && k >= p->imin && k <= p->imin + p->imax && q >= p->jmin && q <= p->jmin + p->jmax)
+            {
+                x = p->XN2D[p->nij(k, q)];
+                y = p->YN2D[p->nij(k, q)];
+            }
+            else if(p->geo_curv == 1)
+            {
+                double z;
+                p->curv_node(K, L, x, y, z);
+            }
+            else
+            {
+                x = x0(K);
+                y = y0(L);
+            }
+        };
+
+        for(int ii = pp->imin; ii <= pp->imin + pp->imax; ++ii)
+            for(int jj = pp->jmin; jj <= pp->jmin + pp->jmax; ++jj)
+            {
+                const int NI = ii - EXT + c.I0, NJ = jj - EY + c.J0;  // global level-l node
+                const int K = fsh(NI, l), L = fsh(NJ, ly);
+                const double fr = double(NI - (K << l)) / rl, fs = double(NJ - (L << ly)) / rly;
+                double x00, y00, x10, y10, x01, y01, x11, y11;
+                node0(K, L, x00, y00);
+                node0(K + 1, L, x10, y10);
+                node0(K, L + 1, x01, y01);
+                node0(K + 1, L + 1, x11, y11);
+
+                pp->XN2D[pp->nij(ii, jj)] = x00 + (x10 - x00) * fr + (x01 - x00) * fs + (x11 - x10 - x01 + x00) * fr * fs;
+                pp->YN2D[pp->nij(ii, jj)] = y00 + (y10 - y00) * fr + (y01 - y00) * fs + (y11 - y10 - y01 + y00) * fr * fs;
+            }
+    }
+    pp->geometry_metrics();
+    {
+        double err, gcl;
+        const int mismatch = pp->geometry_check(err, gcl);
+        if(mismatch != 0)
+            cout << "!!! AMR patch (level " << l << "): " << mismatch << " 2D nodes differ from XN/YN !!!" << endl;
+    }
+
     // mean spacing: exact fraction of level 0, independent of the patch size
     pp->DXM = p->DXM / rl;
-    pp->DYM = pp->DXM;
+    pp->DYM = (sy == 1) ? pp->DXM : p->DYM;
     pp->DXD = p->DXD;
     pp->DYD = p->DYD;
 
@@ -808,8 +1034,8 @@ void reefamr::build_lexer(lexer *p, reefamr_patch &c)
     for(int ii = pp->imin; ii < pp->imin + pp->imax; ++ii)
         for(int jj = pp->jmin; jj < pp->jmin + pp->jmax; ++jj)
         {
-            int I = ii - EXT + c.I0, J = jj - EXT + c.J0;
-            pp->flagslice4[lij(pp, ii, jj)] = flag0(fsh(I, l), fsh(J, l));
+            int I = ii - EXT + c.I0, J = jj - EY + c.J0;
+            pp->flagslice4[lij(pp, ii, jj)] = flag0(fsh(I, l), fsh(J, ly));
         }
 
     // face flags as mgcslice1/2::makemgc, over the whole array
@@ -846,6 +1072,12 @@ void reefamr::build_lexer(lexer *p, reefamr_patch &c)
     pp->gcslparaco1_count = pp->gcslparaco2_count = pp->gcslparaco3_count = pp->gcslparaco4_count = 0;
     pp->nb1 = pp->nb2 = pp->nb3 = pp->nb4 = pp->nb5 = pp->nb6 = -2;
     pp->periodic1 = pp->periodic2 = pp->periodic3 = 0;  // no periodic ghost copies on a patch (the lexer copy leaves them unset)
+    pp->bcside1 = p->bcside1;
+    pp->bcside2 = p->bcside2;
+    pp->bcside3 = p->bcside3;  // side types of the domain edges (y in 2D),
+    pp->bcside4 = p->bcside4;
+    pp->bcside5 = p->bcside5;
+    pp->bcside6 = p->bcside6;  // as on the base grid (the lexer copy leaves them unset)
     pp->mpi_size = 1;
     pp->mpirank = p->mpirank;
 
@@ -867,13 +1099,8 @@ void reefamr::build_lexer(lexer *p, reefamr_patch &c)
     pp->originx = p->originx;
     pp->originy = p->originy;
 
-    pp->wd = p->wd;
-    pp->phimean = p->phimean;
-    pp->phiout = p->phiout;
-    pp->dt = p->dt;
-    pp->dt_old = p->dt_old;
-    pp->simtime = p->simtime;
-    pp->count = p->count;
+    // the runtime state of level 0 (time, wave parameters, water levels, extent): the lexer copy
+    // (lexer_amr.cpp)
 }
 
 // vertical grid of the patch: the level-0 arrays, or (vref) the level-0 nodes subdivided by
@@ -953,9 +1180,113 @@ void reefamr::build_bc2D(ghostcell *pgc, reefamr_patch &c)
     m2.gcb_seed(pp);
     m4.gcb_seed(pp);
 
+    // multi-block grids: a wall entry of a cell around the grid (filled by a neighbour block) is dropped where its ghost
+    // cells are those of an own cell's wall or own cells.  Such a filled cell can lie next to a wall cell of the same
+    // row (a block face that is a wall up to a vertex and an interface beyond it): its entry would overwrite the wall
+    // ghost cells of the own cell with its value, where the own cell needs its mirror (NHFLOW took the surface of
+    // the branch for the wall ghost cells upstream of the corner of a junction: a jet along the corner, 4 m/s).  A
+    // wall that runs on through an interface keeps the entries of the filled cells: their ghost cells are the corner
+    // beyond both, which no own cell sets (P6b dropped them too, and the cells next to the interface and the wall
+    // took the unmirrored corner: two blocks differed from one block by 1e-3 of the depth in a river reach)
+    if(nblk > 0)
+    {
+        auto own = [&](int ii, int jj)
+        { return ii >= EXT && ii < EXT + c.nx && jj >= EXT && jj < EXT + c.ny; };
+        const int di[5] = {0, -1, 0, 0, 1}, dj[5] = {0, 0, 1, -1, 0};  // side cs: 1 -i, 2 +j, 3 -j, 4 +i
+        const int depth = 3;
+        auto key = [&](int ii, int jj)
+        { return (long)(ii + 64) * 1000000L + (long)(jj + 64); };
+        auto filter = [&](int **g, int &cnt)
+        {
+            std::set<long> tgt;
+            for(int n = 0; n < cnt; ++n)
+                if(own(g[n][0], g[n][1]))
+                    for(int q = 1; q <= depth; ++q)
+                        tgt.insert(key(g[n][0] + q * di[g[n][3]], g[n][1] + q * dj[g[n][3]]));
+
+            int m = 0;
+            for(int n = 0; n < cnt; ++n)
+            {
+                bool ok = own(g[n][0], g[n][1]);
+                if(!ok)
+                {
+                    ok = true;
+                    for(int q = 1; q <= depth && ok; ++q)
+                    {
+                        const int a = g[n][0] + q * di[g[n][3]], b = g[n][1] + q * dj[g[n][3]];
+                        if(own(a, b) || tgt.count(key(a, b)))
+                            ok = false;
+                    }
+                }
+                if(ok)
+                {
+                    if(m != n)
+                        for(int q = 0; q < 6; ++q)
+                            g[m][q] = g[n][q];
+                    ++m;
+                }
+            }
+            cnt = m;
+        };
+        filter(pp->gcbsl1, pp->gcbsl1_count);
+        filter(pp->gcbsl2, pp->gcbsl2_count);
+        filter(pp->gcbsl4, pp->gcbsl4_count);
+    }
+
     pgc->gcsl_setbc1(pp);
     pgc->gcsl_setbc2(pp);
     pgc->gcsl_setbc4(pp);
+
+    // multi-block: an open face of a block 1.. (G 54, an edge zone B 522) is the -i (inflow, bc 1) or +i face
+    // (outflow, bc 2) of its level-0 grid, the lists as gcsl_setbc for a native grid whose first cell is the first
+    // one of the block
+    const bool om = c.blk > 0 && c.lev == 0 && (bopen[0][c.blk] >= 0 || bzone[0][c.blk] >= 0);
+    const bool op = c.blk > 0 && c.lev == 0 && (bopen[1][c.blk] >= 0 || bzone[1][c.blk] >= 0);
+    // an edge zone on a j face (geo_mesh::turn_blocks: two open faces that are not opposite): the -j (side 3) or +j
+    // face (side 2) as an outflow side, as the y edges of the native grid
+    const bool ojm = c.blk > 0 && c.lev == 0 && bzone[2][c.blk] >= 0;
+    const bool ojp = c.blk > 0 && c.lev == 0 && bzone[3][c.blk] >= 0;
+    if(om || op)
+    {
+        // (the j sides out of reach: a block with an open j face has its origin_j, below)
+        const int oi = pp->origin_i, gn = pp->gknox, s1 = pp->bcside1, s4 = pp->bcside4, oj = pp->origin_j;
+        pp->origin_i = -EXT;
+        pp->gknox = blk[c.blk].ni;
+        pp->origin_j = -100000000;
+        pp->bcside1 = om ? 1 : 21;
+        pp->bcside4 = op ? 2 : 21;
+        pgc->gcsl_setbc1(pp);
+        pgc->gcsl_setbc2(pp);
+        pgc->gcsl_setbc4(pp);
+        pp->origin_i = oi;
+        pp->gknox = gn;
+        pp->bcside1 = s1;
+        pp->bcside4 = s4;
+        pp->origin_j = oj;
+    }
+    if(ojm || ojp)
+    {
+        const int oi = pp->origin_i, gn = pp->gknox, s1 = pp->bcside1, s4 = pp->bcside4;
+        const int oj = pp->origin_j, gm = pp->gknoy, s2 = pp->bcside2, s3 = pp->bcside3;
+        pp->origin_i = -EXT;
+        pp->gknox = blk[c.blk].ni;
+        pp->origin_j = -EY;
+        pp->gknoy = blk[c.blk].nj;
+        pp->bcside1 = pp->bcside4 = 21;
+        pp->bcside3 = ojm ? 2 : 21;
+        pp->bcside2 = ojp ? 2 : 21;
+        pgc->gcsl_setbc1(pp);
+        pgc->gcsl_setbc2(pp);
+        pgc->gcsl_setbc4(pp);
+        pp->origin_i = oi;
+        pp->gknox = gn;
+        pp->bcside1 = s1;
+        pp->bcside4 = s4;
+        pp->origin_j = oj;
+        pp->gknoy = gm;
+        pp->bcside2 = s2;
+        pp->bcside3 = s3;
+    }
 
     pgc->gcsl_setbcio(pp);
 
@@ -980,7 +1311,7 @@ void reefamr::xsetup(vector<vector<int>> &req, vector<vector<int>> &srv, int K)
     for(int r = 0; r < np; ++r)
         sc[r] = (int)req[r].size();
 
-    MPI_Alltoall(&sc[0], 1, MPI_INT, &rc[0], 1, MPI_INT, MPI_COMM_WORLD);
+    MPI_Alltoall(&sc[0], 1, MPI_INT, &rc[0], 1, MPI_INT, reef3d_comm());
 
     int ns = 0, nr = 0;
     for(int r = 0; r < np; ++r)
@@ -996,10 +1327,46 @@ void reefamr::xsetup(vector<vector<int>> &req, vector<vector<int>> &srv, int K)
         for(int k = 0; k < sc[r]; ++k)
             sb[sd[r] + k] = req[r][k];
 
-    MPI_Alltoallv(&sb[0], &sc[0], &sd[0], MPI_INT, &rb[0], &rc[0], &rd[0], MPI_INT, MPI_COMM_WORLD);
+    MPI_Alltoallv(&sb[0], &sc[0], &sd[0], MPI_INT, &rb[0], &rc[0], &rd[0], MPI_INT, reef3d_comm());
 
     for(int r = 0; r < np; ++r)
         srv[r].assign(rb.begin() + rd[r], rb.begin() + rd[r] + rc[r]);
+}
+
+void reefamr::xrun_rev(reefamr_xplan &X, int nv, int tag)
+{
+    vector<MPI_Request> rq;
+    X.sbuf.resize(X.speer.size());
+
+    for(size_t k = 0; k < X.speer.size(); ++k)
+    {
+        X.sbuf[k].resize(X.sitem[k].size() * nv);
+        if(!X.sbuf[k].empty())
+        {
+            rq.push_back(MPI_REQUEST_NULL);
+            MPI_Irecv(&X.sbuf[k][0], (int)X.sbuf[k].size(), MPI_DOUBLE, X.speer[k], tag, reef3d_comm(), &rq.back());
+        }
+    }
+
+    for(size_t k = 0; k < X.rpeer.size(); ++k)
+        if(!X.rbuf[k].empty())
+        {
+            rq.push_back(MPI_REQUEST_NULL);
+            MPI_Isend(&X.rbuf[k][0], (int)X.rbuf[k].size(), MPI_DOUBLE, X.rpeer[k], tag, reef3d_comm(), &rq.back());
+        }
+
+    if(!rq.empty())
+        MPI_Waitall((int)rq.size(), &rq[0], MPI_STATUSES_IGNORE);
+}
+
+void reefamr::native_gc4(slice &f)
+{
+    pgc0->gcsl_start4(p0, f, 1);
+}
+
+void reefamr::native_fh(slice &f)
+{
+    pgc0->gcslparax_fh(p0, f, 4);
 }
 
 void reefamr::xrun(reefamr_xplan &X, int nv, int tag)
@@ -1013,7 +1380,7 @@ void reefamr::xrun(reefamr_xplan &X, int nv, int tag)
         if(!X.rbuf[k].empty())
         {
             rq.push_back(MPI_REQUEST_NULL);
-            MPI_Irecv(&X.rbuf[k][0], (int)X.rbuf[k].size(), MPI_DOUBLE, X.rpeer[k], tag, MPI_COMM_WORLD, &rq.back());
+            MPI_Irecv(&X.rbuf[k][0], (int)X.rbuf[k].size(), MPI_DOUBLE, X.rpeer[k], tag, reef3d_comm(), &rq.back());
         }
     }
 
@@ -1021,7 +1388,7 @@ void reefamr::xrun(reefamr_xplan &X, int nv, int tag)
         if(!X.sbuf[k].empty())
         {
             rq.push_back(MPI_REQUEST_NULL);
-            MPI_Isend(&X.sbuf[k][0], (int)X.sbuf[k].size(), MPI_DOUBLE, X.speer[k], tag, MPI_COMM_WORLD, &rq.back());
+            MPI_Isend(&X.sbuf[k][0], (int)X.sbuf[k].size(), MPI_DOUBLE, X.speer[k], tag, reef3d_comm(), &rq.back());
         }
 
     if(!rq.empty())

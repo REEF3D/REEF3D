@@ -1,0 +1,7 @@
+{
+ "base": "fnpf_2d_regular_mpi2_m40",
+ "ctrl_set": {"M 42": "1", "M 43": "0.5"},
+ "description": "fnpf_2d_regular_mpi2_m40 with rank 1 an E-rank (M 42 1) of capacity 0.5 (M 43 0.5): DIVEMesh M 20 2 becomes the weighted partition M 20 5 with capacities, rank 1 gets half the cells of rank 0 (x-cut at cell 267 of 400)",
+ "tags": ["quick", "2d", "fnpf", "mpi", "capacity"],
+ "covers": ["dmpart_cuts.h cuts_1d (capacities, exact test)", "dmpart::build capacities", "core_class::initial (M 43)"]
+}

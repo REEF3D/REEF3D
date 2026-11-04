@@ -1,0 +1,9 @@
+{
+ "description": "REEF3D::CORAL inside REEF3D (Z 40 1): the CORAL model of coral.txt (point absorber decay, Cummins equation, tether, PTO) runs in step with the FNPF 2D regular-wave case; REEF3D_CORAL/results.dat compared.",
+ "base": "fnpf_2d_regular",
+ "steps": 150,
+ "ctrl_add": ["Z 40 1"],
+ "files": ["coral.txt", "point_absorber.chd"],
+ "tags": ["quick", "2d", "fnpf", "coral"],
+ "covers": ["coral_reef3d (Z 40)", "CORAL Cummins load, PTO, tether, sub-steps per fluid step"]
+}

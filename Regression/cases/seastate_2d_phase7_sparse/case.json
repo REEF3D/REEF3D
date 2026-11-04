@@ -1,0 +1,7 @@
+{
+ "base": "seastate_2d_refraction",
+ "ctrl_add": ["A 795 1.0e-6"],
+ "description": "as seastate_2d_refraction with spectral sparsity (A 795 1e-6, Phase 7): per cell, frequency and quadrant only the window of the bins that can hold energy is solved, bins below 1e-6 of the cell energy are zero. Validation in Dropbox SEASTATE/validation/25_phase7_speed and 26_sparsity.",
+ "tags": ["quick", "2d", "seastate"],
+ "covers": ["seastate_implicit windows, keep, widen (spectral sparsity)", "row sums of the active ranges for the source terms"]
+}

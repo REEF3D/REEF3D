@@ -20,77 +20,135 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"bedshear.h"
-#include"lexer.h"
-#include"fdm.h"
-#include"fdm2D.h"
-#include"ghostcell.h"
-#include"sediment_fdm.h"
-#include"turbulence.h"
-#include"sliceint.h"
+#include "bedshear.h"
+#include "fdm.h"
+#include "fdm2D.h"
+#include "ghostcell.h"
+#include "lexer.h"
+#include "sediment_curv.h"
+#include "sediment_fdm.h"
+#include "sliceint.h"
+#include "turbulence.h"
 
-#define HP (fabs(b->hp(i,j))>1.0e-20?b->hp(i,j):1.0e20)
+#define HP (fabs(b->hp(i, j)) > 1.0e-20 ? b->hp(i, j) : 1.0e20)
 
 // SFLOW
 void bedshear::taubed(lexer *p, fdm2D *b, ghostcell *pgc, sediment_fdm *s)
 {
-    double uabs,cf,manning,tau;
-    double density=p->W1;
-    double U,V;
-    
+    // curvilinear grid (G 50): sediment_curv.h
+    if(p->geo_curv == 1)
+    {
+        taubed_curv(p, b, pgc, s);
+        return;
+    }
+
+    double uabs, cf, manning, tau;
+    double density = p->W1;
+    double U, V;
+
     SEDSLICELOOP
     {
-    U = 0.5*(s->P(i,j) + s->P(i-1,j));
-    V = 0.5*(s->Q(i,j) + s->Q(i,j-1));
+        tau = 0.0;
 
-    uabs = sqrt(U*U + V*V);
-    
-    manning = pow(s->ks(i,j),1.0/6.0)/20.0;
-    
-    if(p->S16==1)
-    {
-    cf = pow(manning,2.0)/pow(HP,1.0/3.0);
-    
-    tau = p->W1*9.81*cf*uabs*uabs; 
-    }
-    
-    if(p->S16==2)
-    {    
-    cf = 2.5*log(12.0*b->hp(i,j)/(s->ks(i,j)));
-    
-    tau = p->W1*9.81*uabs*uabs/(fabs(cf*cf)>1.0e-20?(cf*cf):1.0e20); 
-    }
-    
-    if(p->S16==3)
-    {    
-    cf = 2.5*log(12.0*b->hp(i,j)/(s->ks(i,j)));
-    
-    tau = p->W1*9.81*uabs*uabs/(fabs(cf*cf)>1.0e-20?(cf*cf):1.0e20); 
-    }
-    
-    if(p->S16==4)
-    {
-    tau=p->W1*b->kin(i,j)*0.3;
-    }
-    
-    s->tau_eff(i,j) = tau;
-    s->shearvel_eff(i,j) = sqrt(tau/density);
-    s->shields_eff(i,j) = tau/((p->S22-density)*fabs(p->W22)*p->S20);
+        U = 0.5 * (s->P(i, j) + s->P(i - 1, j));
+        V = 0.5 * (s->Q(i, j) + s->Q(i, j - 1));
+
+        uabs = sqrt(U * U + V * V);
+
+        manning = pow(s->ks(i, j), 1.0 / 6.0) / 20.0;
+
+        if(p->S16 == 1)
+        {
+            cf = pow(manning, 2.0) / pow(HP, 1.0 / 3.0);
+
+            tau = p->W1 * 9.81 * cf * uabs * uabs;
+        }
+
+        // Keulegan: U/u* = 2.5 ln(12h/ks), tau = rho U^2/(U/u*)^2 (the factor g was too much: theta 9.81x too high),
+        // 12h/ks clamped to e as in the 3D log laws (no singular shear in thin water)
+        if(p->S16 == 2 || p->S16 == 3)
+        {
+            cf = 2.5 * log(MAX(12.0 * b->hp(i, j) / s->ks_eff(i, j), 2.718281828459045));
+
+            tau = p->W1 * uabs * uabs / (cf * cf);
+        }
+
+        if(p->S16 == 4)
+        {
+            tau = p->W1 * b->kin(i, j) * 0.3;
+        }
+
+        s->tau_eff(i, j) = tau;
+        s->tau_i(i, j) = tau;  // depth-averaged: no separate grain shear stress (was never set in SFLOW)
+        s->shearvel_eff(i, j) = sqrt(tau / density);
+        s->shields_eff(i, j) = tau / ((p->S22 - density) * fabs(p->W22) * p->S20);
     }
 }
 
 void bedshear::taucritbed(lexer *p, fdm2D *b, ghostcell *pgc, sediment_fdm *s)
 {
-	double density = p->W1;
-    
+    double density = p->W1;
+
     SEDSLICELOOP
     {
-    tauc = (p->S30*fabs(p->W22)*(p->S22-p->W1))*p->S20*s->reduce(i,j);
-  
-    s->tau_crit(i,j) = tauc;
-    s->shearvel_crit(i,j) = sqrt(tauc/density);
-    s->shields_crit(i,j) = tauc/((p->S22-density)*fabs(p->W22)*p->S20);
-    
-    s->MOB(i,j) = s->shields_eff(i,j)/(fabs(s->shields_crit(i,j))>1.0e-10?s->shields_crit(i,j):1.0e10);
+        tauc = (p->S30 * fabs(p->W22) * (p->S22 - p->W1)) * p->S20 * s->reduce(i, j);
+
+        s->tau_crit(i, j) = tauc;
+        s->shearvel_crit(i, j) = sqrt(tauc / density);
+        s->shields_crit(i, j) = tauc / ((p->S22 - density) * fabs(p->W22) * p->S20);
+
+        s->MOB(i, j) = s->shields_eff(i, j) / (fabs(s->shields_crit(i, j)) > 1.0e-10 ? s->shields_crit(i, j) : 1.0e10);
+    }
+}
+
+// ---- curvilinear grid (G 50): the functions above with the geometry of sediment_curv.h
+
+void bedshear::taubed_curv(lexer *p, fdm2D *b, ghostcell *pgc, sediment_fdm *s)
+{
+    double uabs, cf, manning, tau;
+    double density = p->W1;
+    double U, V;
+
+    SEDSLICELOOP
+    {
+        tau = 0.0;
+
+        if(p->geo_curv == 1)
+            sediment_curv::cellvel(p, s, i, j, U, V);
+        else
+        {
+            U = 0.5 * (s->P(i, j) + s->P(i - 1, j));
+            V = 0.5 * (s->Q(i, j) + s->Q(i, j - 1));
+        }
+
+        uabs = sqrt(U * U + V * V);
+
+        manning = pow(s->ks(i, j), 1.0 / 6.0) / 20.0;
+
+        if(p->S16 == 1)
+        {
+            cf = pow(manning, 2.0) / pow(HP, 1.0 / 3.0);
+
+            tau = p->W1 * 9.81 * cf * uabs * uabs;
+        }
+
+        // Keulegan: U/u* = 2.5 ln(12h/ks), tau = rho U^2/(U/u*)^2 (the factor g was too much: theta 9.81x too high),
+        // 12h/ks clamped to e as in the 3D log laws (no singular shear in thin water)
+        if(p->S16 == 2 || p->S16 == 3)
+        {
+            cf = 2.5 * log(MAX(12.0 * b->hp(i, j) / s->ks_eff(i, j), 2.718281828459045));
+
+            tau = p->W1 * uabs * uabs / (cf * cf);
+        }
+
+        if(p->S16 == 4)
+        {
+            tau = p->W1 * b->kin(i, j) * 0.3;
+        }
+
+        s->tau_eff(i, j) = tau;
+        s->tau_i(i, j) = tau;  // depth-averaged: no separate grain shear stress (was never set in SFLOW)
+        s->shearvel_eff(i, j) = sqrt(tau / density);
+        s->shields_eff(i, j) = tau / ((p->S22 - density) * fabs(p->W22) * p->S20);
     }
 }

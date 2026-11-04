@@ -1,0 +1,9 @@
+{
+ "description": "CFD 2D flume (h 0.1 m, discharge inflow, outflow), k-omega, MPM sand bed (S 57 0, S 35 50) with a submerged block (solid, 4 cm above the bed), default Exner S 31 2, sand slide S 90 1. Bed shear S 16 1 (log law at the velocity sample height), flow over and behind the structure.",
+ "solver": "cfd",
+ "np": 1,
+ "steps": 150,
+ "tags": ["quick", "2d", "cfd", "sediment", "structure", "inflow"],
+ "covers": ["bedshear_cfd S 16 1 (uplus at 1.6 DZN), tau_i", "sediment_exner face_closure at the solid", "topo_zh_update", "sediment ini (DZP[KM1])",
+            "bedload_MPM (water density)", "sandslide_f"]
+}

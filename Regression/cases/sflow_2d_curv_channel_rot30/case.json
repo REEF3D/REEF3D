@@ -1,0 +1,21 @@
+{
+ "np": 1,
+ "steps": 100,
+ "tags": [
+  "2d",
+  "sflow",
+  "curvilinear",
+  "wetdry",
+  "river"
+ ],
+ "description": "SFLOW on a curvilinear grid (G 50 2): straight river reach rotated by 30 deg at UTM coordinates, discharge inflow (B 60 1) along the inflow face normal, stage outflow, an emerging island.",
+ "covers": [
+  "sflow_curv in- and outflow fluxes",
+  "inflow2D/Qin2D/Qout2D on face normals",
+  "magnitude Froude limiter"
+ ],
+ "solver": "sflow",
+ "files": [
+  "curvgrid.dat"
+ ]
+}

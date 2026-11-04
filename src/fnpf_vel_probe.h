@@ -23,9 +23,10 @@ Author: Hans Bihs
 #ifndef FNPF_VEL_PROBE_H_
 #define FNPF_VEL_PROBE_H_
 
-#include"boundarycheck.h"
-#include<iostream>
-#include<fstream>
+#include "amr_grid_lookup.h"
+#include "boundarycheck.h"
+#include <fstream>
+#include <iostream>
 
 class lexer;
 class fdm_fnpf;
@@ -37,28 +38,26 @@ using namespace std;
 class fnpf_vel_probe : public boundarycheck
 {
 public:
-    fnpf_vel_probe(lexer*,fdm_fnpf*);
-	virtual ~fnpf_vel_probe();
+    // the mesh refinement: the points read the finest grid (amr_grid_lookup.h), nullptr: level 0
+    const amr_column_lookup *amr = nullptr;
 
-	void start(lexer*, fdm_fnpf*, ghostcell*);
+    fnpf_vel_probe(lexer *, fdm_fnpf *);
+    virtual ~fnpf_vel_probe();
 
+    void start(lexer *, fdm_fnpf *, ghostcell *);
 
 private:
-    void ini_location(lexer*, fdm_fnpf*);
+    void ini_location(lexer *, fdm_fnpf *);
 
+    char name[100];
 
-	char name[100];
-
-    int *iloc,*jloc,*kloc,*flag;
-    int n,q;
-	const int probenum;
+    int *iloc, *jloc, *kloc, *flag;
+    int n, q;
+    const int probenum;
     ofstream *pout;
-	
-	double uval,vval,wval,pval,kval,eval,edval,fival;
-    
-    
-    
+    double *val;
 
+    double uval, vval, wval, pval, kval, eval, edval, fival;
 };
 
 #endif

@@ -1,0 +1,5 @@
+{"base": "cfd_2d_dambreak", "np": 2, "steps": 80,
+ "ctrl_add": ["G 1 1", "G 24 3", "G 2 2", "G 5 0", "G 7 1", "H 10 3", "H 15 4", "H 50 40.0 10.0", "H 51 0.0", "H 52 -1.0", "H 53 0.0", "H 54 0.1", "H 55 1.0", "H 56 0.3"],
+ "description": "Heat with adaptive CFD refinement and subcycling on 2 ranks: the patches follow the free surface across the rank boundary, T moves with the regrids (from the old patches, prolonged, restricted) and through the patch edges with refluxing.",
+ "tags": ["quick", "2d", "dambreak", "levelset", "amr", "adaptive", "mpi", "heat"],
+ "covers": ["cfd_amr_scalar on 2 ranks: the level-0 halo in the stages, the fills from patches of the other rank", "the regrid transfer of T (rfp), the flux registers rebuilt with the hierarchy"]}

@@ -1,0 +1,21 @@
+{
+ "base": "cfd_2d_cylinder_amr_adapt_mpi2",
+ "ctrl_set": {
+  "P 48": "20",
+  "P 49": "0"
+ },
+ "description": "cfd_2d_cylinder_amr_adapt_mpi2 (adaptive refinement around a solid and its wake, 2 ranks, the force P 81 on the finest grid) with a checkpoint every 20 steps (P 48 20, P 49 0): the uninterrupted run of cfd_2d_cylinder_amr_adapt_mpi2_restart.",
+ "tags": [
+  "2d",
+  "singlephase",
+  "inflow",
+  "solid",
+  "amr",
+  "adaptive",
+  "mpi",
+  "checkpoint"
+ ],
+ "covers": [
+  "cfd_amr::ckpt_write with solids on the patches"
+ ]
+}

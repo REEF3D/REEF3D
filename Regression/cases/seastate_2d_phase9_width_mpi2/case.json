@@ -1,0 +1,14 @@
+{
+ "base": "seastate_2d_phase9_width",
+ "np": 2,
+ "description": "as seastate_2d_phase9_width on 2 ranks: the water width from the level-0 wet cells gathered from all ranks (A 762).",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate",
+  "mpi"
+ ],
+ "covers": [
+  "A 762 gather on 2 ranks"
+ ]
+}

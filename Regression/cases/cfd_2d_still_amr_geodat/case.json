@@ -1,0 +1,11 @@
+{
+ "np": 1,
+ "steps": 40,
+ "files": ["geo.dat"],
+ "description": "Still water over a geodat bed (G 9 1, G 10 1: a Gaussian hump from geo.dat, the bed level of every level-0 column, GEOB) with two refined levels over the hump (G 1 2, G 15 below the free surface): the patches cast the bed as the surface through the level-0 column centres (2D: a polyline; the exact distance in a band of 5 cells, below it inside), not the prolonged level-0 distance. The water stays at rest.",
+ "tags": ["quick", "2d", "levelset", "amr", "topo", "geodat"],
+ "covers": [
+  "cfd_amr::geom_setup: the geodat bed of all level-0 columns gathered (gbed0)",
+  "cfd_amr::patch_bed in 2D (polyline, the edge column held beyond the outermost centres)"
+ ]
+}

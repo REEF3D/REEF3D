@@ -1,0 +1,4 @@
+{"base": "nhflow_3d_6dof_box", "ctrl_set": {"X 11": "2 0 1 0 1 0", "X 101": "0.0 0.0 0.0"},
+ "ctrl_add": ["X 210 0.5 0.0 0.0", "X 206 0.0 0.5", "X 15 3"],
+ "description": "as nhflow_3d_6dof_box, towed in surge at 0.5 m/s in waves with heave and pitch free, X 15 3: direct forcing only in the cells inside the body, momentum fluxes at the body faces from the fluid side (needs patch 0020).",
+ "tags": ["3d", "nhflow", "6dof", "floating", "mpi"], "covers": ["forcing_kernel_nhflow X15=3", "nhflow_HLL hll_sweep body faces", "nhflow_HLL body_zflux"]}

@@ -1,0 +1,9 @@
+{
+ "description": "REEF3D::CORAL one-way body loads (Z 40 1): the box of nhflow_2d_6dof_box held fixed (X 11 0) in the NHFLOW 2D wave tank, its loads of the end of each step on a rigid CORAL body (fluid_body one_way) and in strips along a beam spanning it (fluid_member); REEF3D_NHFLOW_6DOF and REEF3D_CORAL/box.dat compared.",
+ "base": "nhflow_2d_6dof_box",
+ "ctrl_set": {"X 11": "0 0 0 0 0 0"},
+ "ctrl_add": ["Z 40 1"],
+ "files": ["coral.txt"],
+ "tags": ["2d", "nhflow", "6dof", "coral"],
+ "covers": ["sixdof_nhflow::ext_loads", "6DOF strips (force_calc_stl)", "coral_reef3d fluid_member, fluid_body one_way", "CORAL member_fluid_load, fluid_load attachment"]
+}

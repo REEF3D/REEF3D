@@ -27,25 +27,31 @@ Author: Hans Bihs
 #include "sediment_fdm.h"
 
 // parcels in the first cell column at the in- and outflow boundaries are fixed (BEDBC),
-// they retain the bed at the open boundaries
+// they retain the bed at the open boundaries; Q 76 / Q 77: also the bed upstream of x = Q76 and downstream of
+// x = Q77 (a non-erodible bed in a developing inflow: in the pipeline set-up the bed shear stress near the inflow
+// was 1.2-2 times the threshold, the bed there eroded and the sand built up upstream of the pipe)
 void CPM::wallbc(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
     for(size_t n = 0; n < P.index; n++)
         if(P.Flag[n] == ACTIVE)
         {
-            i = p->posc_i(P.X[n]);
+            i = pci(p, n, P.X[n]);
 
-            if((i <= 0 && p->nb1 < 0 && open_side[0] == 1) || (i >= p->knox - 1 && p->nb4 < 0 && open_side[3] == 1))
+            if((i <= 0 && p->nb1 < 0 && open_side[0] == 1) || (i >= p->knox - 1 && p->nb4 < 0 && open_side[3] == 1) || P.X[n] < p->Q76 || P.X[n] > p->Q77)
             {
-                P.Flag[n] = BEDBC;
+                i = p->posc_i(P.X[n]);
 
-                P.U[n] = P.V[n] = P.W[n] = 0.0;
+                if((i <= 0 && p->nb1 < 0 && open_side[0] == 1) || (i >= p->knox - 1 && p->nb4 < 0 && open_side[3] == 1))
+                {
+                    P.Flag[n] = BEDBC;
 
-                P.XRK1[n] = P.X[n];
-                P.YRK1[n] = P.Y[n];
-                P.ZRK1[n] = P.Z[n];
+                    P.U[n] = P.V[n] = P.W[n] = 0.0;
 
-                P.URK1[n] = P.VRK1[n] = P.WRK1[n] = 0.0;
+                    P.XRK1[n] = P.X[n];
+                    P.YRK1[n] = P.Y[n];
+                    P.ZRK1[n] = P.Z[n];
+
+                    P.URK1[n] = P.VRK1[n] = P.WRK1[n] = 0.0;
+                }
             }
         }
-}

@@ -23,7 +23,7 @@ Author: Hans Bihs
 #ifndef GRIDFILE_V2_H_
 #define GRIDFILE_V2_H_
 
-// DIVEMesh -> REEF3D grid format, version 2 (reader; the writer is in DIVEMesh)
+// DIVEMesh -> REEF3D grid format, version 2 (reader; the writer as in DIVEMesh, for dmpart)
 //
 // file     = magic[8] | int32 version | int32 endian marker | section* | "END "
 // section  = char tag[4] | int64 nbytes | payload[nbytes]
@@ -34,6 +34,10 @@ Author: Hans Bihs
 //                                 int64 tri offset, int64 tri count, int32 npar, double[npar]
 //   VERT  int64 nvert, double[3*nvert]  unique vertices x y z
 //   TIDX  table(ntri x 3)                vertex indices of the triangles
+//   CURV  int32 nint=3, int32 layout version, ni, nj, int32 ndbl, double[ndbl] (R 2, R 3 wl,
+//         R 3 margin, R 5, raster spacing), double x[n], y[n], zbed[n] with n = (ni+1)(nj+1),
+//         node (i,j) at i + (ni+1)*j: river corridor grid (R 1 1), i along the river from the
+//         inflow, j across from the right bank; optional (geo_mesh::curv_*)
 //
 // DIVEMesh_Grid/grid-%06i.dat (one file per rank)
 //   HEAD  int32 nint, int32[nint], int32 ndbl, double[ndbl]
@@ -67,10 +71,11 @@ const int endian = 0x01020304;
 
 struct section
 {
-    const char *data = nullptr;
-    size_t size = 0;
-    size_t pos = 0;
-    bool good = true;
+    const char magic_grid[8] = {'D', 'M', 'G', 'R', 'I', 'D', '0', '2'};
+    const char magic_geom[8] = {'D', 'M', 'G', 'E', 'O', 'M', '0', '2'};
+    const char magic_glob[8] = {'D', 'M', 'G', 'L', 'O', 'B', '0', '2'};  // DIVEMesh M 50 1, 2: grid-global.dat
+    const int version = 2;
+    const int endian = 0x01020304;
 
     bool get(void *val, size_t bytes)
     {
@@ -258,73 +263,201 @@ struct reader
         size_t pos = 16;
         bool closed = false;
 
-        while(pos + 12 <= buf.size())
+        return parse(magic);
+    }
+
+    // a grid file in memory (REEF3D M 40: built by dmpart from the global grid file)
+    bool open_buffer(std::vector<char> &&b, const char *nm, const char magic[8])
+    {
+        name = nm;
+        buf = std::move(b);
+        return parse(magic);
+    }
+
+    bool parse(const char magic[8])
+    {
+        tag.clear();
+        off.clear();
+        len.clear();
+
+        if(buf.size() < 16 || std::memcmp(buf.data(), magic, 8) != 0)
         {
-            std::string t(buf.data() + pos, 4);
-            int64_t nb = 0;
-            std::memcpy(&nb, buf.data() + pos + 4, sizeof(int64_t));
-            pos += 12;
-
-            if(nb < 0 || pos + size_t(nb) > buf.size())
-            {
-                error = "DIVEMesh grid file " + name + " is truncated";
-                return false;
-            }
-
-            if(t == "END ")
-            {
-                closed = true;
-                break;
-            }
-
-            tag.push_back(t);
-            off.push_back(pos);
-            len.push_back(size_t(nb));
-
-            pos += size_t(nb);
+            error = "DIVEMesh grid file " + name + " is not in grid format v2";
+            return false;
         }
 
-        if(!closed)
+        if(nb < 0 || pos + size_t(nb) > buf.size())
         {
             error = "DIVEMesh grid file " + name + " is truncated";
             return false;
         }
 
-        return true;
+        if(t == "END ")
+        {
+            closed = true;
+            break;
+        }
+
+        tag.push_back(t);
+        off.push_back(pos);
+        len.push_back(size_t(nb));
+
+        pos += size_t(nb);
     }
 
-    bool find(const char *t, section &sc)
+    if(!closed)
     {
-        for(size_t q = 0; q < tag.size(); ++q)
-            if(tag[q] == std::string(t, 4))
-            {
-                sc.data = buf.data() + off[q];
-                sc.size = len[q];
-                sc.pos = 0;
-                sc.good = true;
-                return true;
-            }
-
+        error = "DIVEMesh grid file " + name + " is truncated";
         return false;
     }
 
-    void check(const section &sc)
+    return true;
+}
+
+bool
+find(const char *t, section &sc)
+{
+    for(size_t q = 0; q < tag.size(); ++q)
+        if(tag[q] == std::string(t, 4))
+        {
+            sc.data = buf.data() + off[q];
+            sc.size = len[q];
+            sc.pos = 0;
+            sc.good = true;
+            return true;
+        }
+
+    return false;
+}
+
+void check(const section &sc)
+{
+    if(!sc.good)
+        good = false;
+}
+
+bool ok() const { return good; }
+
+template<class L>
+void fail(L *p, const char *msg)
+{
+    std::cout << std::endl
+              << "!!! rank " << p->mpirank << ": " << name << ": " << msg << " !!!" << std::endl
+              << std::endl;
+    std::exit(1);
+}
+};
+
+// the writer of DIVEMesh (REEF3D M 40: dmpart builds the grid files of the ranks in memory)
+struct writer
+{
+    std::vector<char> buf;
+
+    void put(const void *val, size_t bytes)
     {
-        if(!sc.good)
-            good = false;
+        const size_t m = buf.size();
+        buf.resize(m + bytes);
+        std::memcpy(&buf[m], val, bytes);
     }
 
-    bool ok() const { return good; }
-
-    template<class L>
-    void fail(L *p, const char *msg)
+    void put_int(int val) { put(&val, sizeof(int)); }
+    void put_i64(long long val)
     {
-        std::cout << std::endl
-                  << "!!! rank " << p->mpirank << ": " << name << ": " << msg << " !!!" << std::endl
-                  << std::endl;
-        std::exit(1);
+        int64_t v = val;
+        put(&v, sizeof(int64_t));
+    }
+    void put_double(double val) { put(&val, sizeof(double)); }
+
+    void start(const char magic[8])
+    {
+        put(magic, 8);
+        put_int(version);
+        put_int(endian);
+    }
+
+    // returns the position of the length field
+    size_t begin(const char tag[4])
+    {
+        put(tag, 4);
+        const size_t pos = buf.size();
+        put_i64(0);
+        return pos;
+    }
+
+    void end(size_t pos)
+    {
+        const int64_t n = int64_t(buf.size() - pos - sizeof(int64_t));
+        std::memcpy(&buf[pos], &n, sizeof(int64_t));
+    }
+
+    void finish()
+    {
+        end(begin("END "));
+    }
+
+    void put_varint(uint64_t v)
+    {
+        while(v >= 128u)
+        {
+            const unsigned char b = (unsigned char)(v & 127u) | 128u;
+            put(&b, 1);
+            v >>= 7;
+        }
+
+        const unsigned char b = (unsigned char)v;
+        put(&b, 1);
+    }
+
+    // integer table, column by column: zigzag varint of the difference to the previous row
+    template<class Get>
+    void put_table(long long nrow, int ncol, Get get)
+    {
+        put_i64(nrow);
+        put_int(ncol);
+
+        for(int c = 0; c < ncol; ++c)
+        {
+            long long prev = 0;
+
+            for(long long r = 0; r < nrow; ++r)
+            {
+                const long long v = get(r, c);
+                const long long d = v - prev;
+                prev = v;
+
+                put_varint((uint64_t(d) << 1) ^ uint64_t(d >> 63));
+            }
+        }
+    }
+
+    // run-length coding of an int sequence
+    template<class Get>
+    void put_rle(size_t num, Get get)
+    {
+        const size_t pos = buf.size();
+        put_i64(0);
+
+        long long nrun = 0;
+        size_t q = 0;
+
+        while(q < num)
+        {
+            const int val = get(q);
+            size_t len = 1;
+
+            while(q + len < num && get(q + len) == val && len < 2147483647u)
+                ++len;
+
+            put_int(val);
+            put_int(int(len));
+            ++nrun;
+            q += len;
+        }
+
+        const int64_t n = nrun;
+        std::memcpy(&buf[pos], &n, sizeof(int64_t));
     }
 };
-}  // namespace gridv2
+}
 
 #endif

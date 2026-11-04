@@ -1,0 +1,19 @@
+{
+ "base": "sflow_2d_sediment_basin",
+ "ctrl_add": [
+  "S 51 0.0005 0.5 0.5",
+  "S 51 0.002 0.5 0.5"
+ ],
+ "np": 1,
+ "steps": 300,
+ "description": "sflow_2d_sediment_basin with a two-fraction bed (S 51 0.5 mm and 2 mm, half each in the active layer and the substrate).",
+ "tags": [
+  "2d",
+  "sflow",
+  "sediment",
+  "mixture"
+ ],
+ "covers": [
+  "sediment_mixture with SFLOW"
+ ]
+}

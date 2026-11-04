@@ -23,10 +23,10 @@ Author: Hans Bihs
 #ifndef BEDSHEAR_PROBE_H_
 #define BEDSHEAR_PROBE_H_
 
-#include"boundarycheck.h"
+#include "boundarycheck.h"
 
-#include<iostream>
-#include<fstream>
+#include <fstream>
+#include <iostream>
 
 class lexer;
 class ghostcell;
@@ -37,21 +37,18 @@ using namespace std;
 class bedshear_probe : public boundarycheck
 {
 public:
-    bedshear_probe(lexer*, ghostcell*);
-	virtual ~bedshear_probe();
+    bedshear_probe(lexer *, ghostcell *);
+    virtual ~bedshear_probe();
 
-	void bedshear_gauge(lexer*, ghostcell*, sediment*);
-
+    void bedshear_gauge(lexer *, ghostcell *, sediment *);
 
 private:
-    void ini_location(lexer*, ghostcell*);
-    int conv(double);
+    void ini_location(lexer *, ghostcell *);
 
-    int *iloc,*jloc,*flag;
+    int *iloc, *jloc, *flag;
     double *bsg;
     int n;
     ofstream bsgout;
-
 };
 
 #endif

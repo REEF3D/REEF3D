@@ -71,7 +71,7 @@ if [ -n "$HYPRE" ]; then
         GIT_BRANCH="$BRANCH" GIT_COMMIT="$COMMIT" GIT_DIRTY="" GIT_VERSION="$COMMIT" \
         CXXFLAGS="$FLAGS -DREEF3D_USE_HYPRE" \
         INCLUDE="-I $HYPRE_INC -I ThirdParty/eigen-5.0.0 -DEIGEN_MPL2_ONLY" \
-        LDFLAGS="-L $HYPRE/lib -lHYPRE"
+        LDFLAGS="-L $HYPRE/lib -lHYPRE -lz"
 else
     make -C "$SRC" -j "$JOBS" all \
         OBJ_DIR="$OUT/obj" APP_DIR="$OUT" \

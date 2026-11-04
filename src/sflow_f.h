@@ -27,6 +27,7 @@ Author: Hans Bihs
 #include "sflow.h"
 #include <fstream>
 #include <iostream>
+#include <string>
 #include <vector>
 
 class lexer;
@@ -55,6 +56,7 @@ class turbulence;
 class patchBC_interface;
 class sixdof;
 class sflow_amr;
+class reefrun_ckpt;
 
 using namespace std;
 
@@ -74,10 +76,17 @@ private:
     void ini_fsf(lexer *, fdm2D *, ghostcell *);
     void ini_fsf_2(lexer *, fdm2D *, ghostcell *);
     void ini_wl(lexer *, fdm2D *, ghostcell *);
+    void ini_river(lexer *, fdm2D *, ghostcell *, int);  // F 65: river free surface along i (sflow_f_ini_river.cpp)
 
     void maxcoor(lexer *, fdm2D *, ghostcell *);
 
     void print_debug(lexer *, fdm2D *, ghostcell *);
+
+    // checkpoints (P 48, I 45) and the rebalance (G 46): the hooks of SFLOW (sflow_f_ckpt.cpp) for
+    // the run part (reefrun_ckpt.h)
+    std::string ckpt_unsupported(lexer *);
+    reefrun_ckpt &ckpt(lexer *, fdm2D *, ghostcell *);
+    reefrun_ckpt *rck = nullptr;
 
     void log_ini(lexer *);
     void mainlog(lexer *);

@@ -1,0 +1,20 @@
+{
+ "base": "nhflow_2d_met_uniform",
+ "description": "nhflow_2d_met_uniform with U10 40 m/s and the drag law W 207 5 (Garratt capped at 2.5e-3 by W 213): the capped stress.",
+ "ctrl_set": {
+  "W 201": "40.0 0.0"
+ },
+ "ctrl_add": [
+  "W 207 5"
+ ],
+ "tags": [
+  "quick",
+  "2d",
+  "nhflow",
+  "wind",
+  "met"
+ ],
+ "covers": [
+  "met_drag law 5"
+ ]
+}

@@ -1,0 +1,18 @@
+{
+ "base": "fnpf_3d_amr_moored_6dof",
+ "ctrl_add": [
+  "X 36 1"
+ ],
+ "description": "fnpf_3d_amr_moored_6dof (a moored cylinder with all six DOFs free in regular waves on a refined patch, G 12 0.6) with the six unit modes on the patch only (X 36 1, calibrated on all grids at the first added mass): the window solve of the rotation modes and mode_shift on the patches of the window. Without the calibration the added mass in heave is 0.8 % low, surge 0.02 %; with it, at step 20 within 0.05 % (heave) and 0.01 % (surge, roll, pitch) of the solves on all grids, the roll angle within 3e-4 of that run.",
+ "tags": [
+  "3d",
+  "fnpf",
+  "amr",
+  "6dof",
+  "floating",
+  "mooring"
+ ],
+ "covers": [
+  "X 36 with all six DOFs: the rotation modes in the window (mode_shift), the calibration of the 6x6 block"
+ ]
+}

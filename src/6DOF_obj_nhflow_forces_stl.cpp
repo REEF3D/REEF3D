@@ -25,10 +25,54 @@ Author: Hans Bihs
 #include "ghostcell.h"
 #include "gradient.h"
 #include "lexer.h"
+#include "nhflow_fsf_hull.h"
+#include "nhflow_hullbody.h"
+#include "nhflow_thinbody.h"
 
 void sixdof_obj_nhflow::hydrodynamic_forces_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL, bool finalize)
 {
     // forcecalc
+    // X 13 2: the hull is the top of the water columns, the loads are the column integrals
+    if(d->hull != nullptr)
+    {
+        d->hull->forces(p, d, pgc, WL, this, finalize);
+        return;
+    }
+
+    // X 15 8: the hull is a sharp thin body, the loads are the outer pressure on the blocked links
+    // mesh refinement: every grid holds the hull, every blocked face counts on the finest grid at its centre
+    // (and with placed patches, G 40 1, on the rank of that grid)
+    if(d->hullbody != nullptr && amr_grids_nhflow)
+    {
+        double F[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+        double S[3] = {0.0, 0.0, 0.0};
+
+        amr_grids_nhflow([&](const nhflow_grid &g)
+                         {
+        if(g.d->hullbody==nullptr)
+        return;
+        
+        const std::function<bool(double,double)> keep = [&](double x, double y)
+        {
+            if(amr_owner_nhflow && !amr_owner_nhflow(x,y))
+            return false;
+            return amr_grid_nhflow(x,y).d==g.d;
+        };
+        
+        g.d->hullbody->loads(g.p,g.d,*g.WL,&keep,F,S);
+        S[1] += double(g.d->hullbody->thinbody()->nlower_local(g.p,keep));
+        S[2] += g.d->hullbody->thinbody()->inner_volume_local(g.p,g.d,keep); });
+
+        d->hullbody->finish_loads(p, d, pgc, F, finalize, S);
+        return;
+    }
+
+    if(d->hullbody != nullptr)
+    {
+        d->hullbody->forces(p, d, pgc, WL, finalize);
+        return;
+    }
+
     // porous body (X 16) always uses the STL integration: the (1-n) scaled envelope pressure
     // plus the volume drag from update_forcing_nhflow_porous()
     if(p->X60 == 1 || p->X16 == 1)
@@ -64,15 +108,18 @@ void sixdof_obj_nhflow::force_calc_stl(lexer *p, fdm_nhf *d, ghostcell *pgc, sli
     A = 0.0;
     Xe = Ye = Ze = Ke = Me = Ne = 0.0;
 
+    // distributed loads (fluid_member): the hull forces binned along the member, this rank's part
+    external_strips_zero();
+
     // porous body (X 16): the pressure acts on the solid fraction only.
     // -int_V (1-n) grad p dV = -(1-n_fb) oint p n dA  (divergence theorem, n_fb const inside)
     // -> buoyancy and Froude-Krylov load on the skeleton
     const double pfac = (p->X16 == 1) ? (1.0 - p->X16_n) : 1.0;
     Xe_p = Ye_p = Ze_p = Xe_v = Ye_v = Ze_v = 0.0;
-    double dMhs = 0.0, dMhs0 = 0.0, dMnh = 0.0, dMv = 0.0;
 
     // Set new time
-    curr_time = p->simtime;
+    // the loads of the last stage belong to the end of the step (simtime is advanced after it)
+    curr_time = finalize ? p->simtime + p->dt : p->simtime;
 
     for(int n = 0; n < tricount; ++n)
     {
@@ -96,6 +143,13 @@ void sixdof_obj_nhflow::force_calc_stl(lexer *p, fdm_nhf *d, ghostcell *pgc, sli
             if(!amr_owner_nhflow(xc, yc))
                 continue;
         }
+        else if(p->geo_curv == 1)
+        {
+            // curvilinear grid (G 50): the rank of the cell that holds the centroid (grid_locate.cpp)
+            int ci, cj;
+            if(!p->geo_cell(xc, yc, ci, cj))
+                continue;
+        }
         else
         {
             if(!(xc >= p->originx && xc < p->endx))
@@ -116,8 +170,11 @@ void sixdof_obj_nhflow::force_calc_stl(lexer *p, fdm_nhf *d, ghostcell *pgc, sli
             pl = g.p;
             dl = g.d;
             WLl = g.WL;
-            dsm = DSM * pl->DXM / p->DXM;
+            dsm = (g.hr > 0.0) ? DSM * g.hr : DSM * pl->DXM / p->DXM;
         }
+        lexer *plc = pl;
+        fdm_nhf *dlc = dl;
+        slice *WLc = WLl;
 
         // Normal vector (pointing outwards)
         double nx = (vy[1] - vy[0]) * (vz[2] - vz[0]) - (vy[2] - vy[0]) * (vz[1] - vz[0]);
@@ -191,41 +248,81 @@ void sixdof_obj_nhflow::force_calc_stl(lexer *p, fdm_nhf *d, ghostcell *pgc, sli
             const double mx[3] = {0.5 * (ax + bx), 0.5 * (bx + cx), 0.5 * (cx + ax)};
             const double my[3] = {0.5 * (ay + by), 0.5 * (by + cy), 0.5 * (cy + ay)};
             const double mz[3] = {0.5 * (az + bz), 0.5 * (bz + cz), 0.5 * (cz + az)};
+            double pq[3];  // pfac p at the quadrature points, for the strips
 
-            for(int q = 0; q < 3; ++q)
+            // multi-block grid: every quadrature point on the grid of this rank that holds it (amr_point_nhflow)
+            if(amr_point_grid)
             {
-                // non-hydrostatic pressure, optionally sampled X42 mean cell sizes off the wall
-                const double pval = pl->ccipol7V(dl->P, *WLl, dl->bed, mx[q] + p->X42 * nx * dsm,
-                                                 my[q] + p->X42 * ny * dsm,
-                                                 mz[q] + p->X42 * nz * dsm);
-                // hydrostatic pressure at the quadrature point
-                const double hsp = MAX(0.0, (p->wd + pl->ccslipol4(dl->eta, mx[q], my[q]) - mz[q]) * p->W1 * fabs(p->W22));
-
-                const double w = A_sub / 3.0;
-                const double fx = -pfac * (pval + hsp) * w * nx;
-                const double fy = -pfac * (pval + hsp) * w * ny;
-                const double fz = -pfac * (pval + hsp) * w * nz;
-
-                const double rx = mx[q] - c_(0);
-                const double ry = my[q] - c_(1);
-                const double rz = mz[q] - c_(2);
-
-                Xe += fx;
-                Ye += fy;
-                Ze += fz;
-                Ke += ry * fz - rz * fy;
-                Me += rz * fx - rx * fz;
-                Ne += rx * fy - ry * fx;
-
-                Xe_p += fx;
-                Ye_p += fy;
-                Ze_p += fz;
+                for(int q = 0; q < 3; ++q)
                 {
-                    const double hs0 = MAX(0.0, (p->wd - mz[q]) * p->W1 * fabs(p->W22));
-                    dMhs += rz * (-hsp * w * nx) - rx * (-hsp * w * nz);
-                    dMhs0 += rz * (-hs0 * w * nx) - rx * (-hs0 * w * nz);
-                    dMnh += rz * (-pval * w * nx) - rx * (-pval * w * nz);
+                    const double sx = mx[q] + p->X42 * nx * dsm, sy = my[q] + p->X42 * ny * dsm;
+                    amr_point_nhflow(p, sx, sy, plc, dlc, WLc, pl, dl, WLl);
+
+                    const double pval = pl->ccipol7V(dl->P, *WLl, dl->bed, sx, sy, mz[q] + p->X42 * nz * dsm);
+                    const double hsp = MAX(0.0, (p->wd + pl->ccslipol4(dl->eta, mx[q], my[q]) - mz[q]) * p->W1 * fabs(p->W22));
+
+                    const double w = A_sub / 3.0;
+                    pq[q] = pfac * (pval + hsp);
+                    const double fx = -pfac * (pval + hsp) * w * nx;
+                    const double fy = -pfac * (pval + hsp) * w * ny;
+                    const double fz = -pfac * (pval + hsp) * w * nz;
+
+                    const double rx = mx[q] - c_(0);
+                    const double ry = my[q] - c_(1);
+                    const double rz = mz[q] - c_(2);
+
+                    Xe += fx;
+                    Ye += fy;
+                    Ze += fz;
+                    Ke += ry * fz - rz * fy;
+                    Me += rz * fx - rx * fz;
+                    Ne += rx * fy - ry * fx;
+
+                    Xe_p += fx;
+                    Ye_p += fy;
+                    Ze_p += fz;
                 }
+                pl = plc;
+                dl = dlc;
+                WLl = WLc;
+            }
+
+            else
+                for(int q = 0; q < 3; ++q)
+                {
+                    // non-hydrostatic pressure, optionally sampled X42 mean cell sizes off the wall
+                    const double pval = pl->ccipol7V(dl->P, *WLl, dl->bed, mx[q] + p->X42 * nx * dsm,
+                                                     my[q] + p->X42 * ny * dsm,
+                                                     mz[q] + p->X42 * nz * dsm);
+                    // hydrostatic pressure at the quadrature point
+                    const double hsp = MAX(0.0, (p->wd + pl->ccslipol4(dl->eta, mx[q], my[q]) - mz[q]) * p->W1 * fabs(p->W22));
+
+                    const double w = A_sub / 3.0;
+                    pq[q] = pfac * (pval + hsp);
+                    const double fx = -pfac * (pval + hsp) * w * nx;
+                    const double fy = -pfac * (pval + hsp) * w * ny;
+                    const double fz = -pfac * (pval + hsp) * w * nz;
+
+                    const double rx = mx[q] - c_(0);
+                    const double ry = my[q] - c_(1);
+                    const double rz = mz[q] - c_(2);
+
+                    Xe += fx;
+                    Ye += fy;
+                    Ze += fz;
+                    Ke += ry * fz - rz * fy;
+                    Me += rz * fx - rx * fz;
+                    Ne += rx * fy - ry * fx;
+
+                    Xe_p += fx;
+                    Ye_p += fy;
+                    Ze_p += fz;
+                }
+
+            if(external_strips_on())
+            {
+                const double ta[3] = {ax, ay, az}, tb[3] = {bx, by, bz}, tc[3] = {cx, cy, cz};
+                external_strips_tri(ta, tb, tc, pq, nx, ny, nz);
             }
 
             A += A_sub;
@@ -244,9 +341,9 @@ void sixdof_obj_nhflow::force_calc_stl(lexer *p, fdm_nhf *d, ghostcell *pgc, sli
             Xe += Fv_x;
             Ye += Fv_y;
             Ze += Fv_z;
+            external_strips_add(gx, gy, gz, Fv_x, Fv_y, Fv_z);
             Ke += (gy - c_(1)) * Fv_z - (gz - c_(2)) * Fv_y;
             Me += (gz - c_(2)) * Fv_x - (gx - c_(0)) * Fv_z;
-            dMv += (gz - c_(2)) * Fv_x - (gx - c_(0)) * Fv_z;
             Ne += (gx - c_(0)) * Fv_y - (gy - c_(1)) * Fv_x;
 
             Xe_v += Fv_x;
@@ -256,12 +353,6 @@ void sixdof_obj_nhflow::force_calc_stl(lexer *p, fdm_nhf *d, ghostcell *pgc, sli
     }
 
     // Communication with other processors
-    dMhs = pgc->globalsum(dMhs);
-    dMhs0 = pgc->globalsum(dMhs0);
-    dMnh = pgc->globalsum(dMnh);
-    dMv = pgc->globalsum(dMv);
-    if(p->mpirank == 0)
-        cout << "DIAG " << p->simtime << " " << dMhs << " " << dMhs0 << " " << dMnh << " " << dMv << " " << p->ccslipol4(d->eta, c_(0), c_(1)) << " " << p->ccslipol4(d->eta, c_(0) + 0.35, c_(1)) << " " << p->ccslipol4(d->eta, c_(0) - 0.35, c_(1)) << " " << p->ccslipol4(d->eta, c_(0) + 0.15, c_(1)) << " " << p->ccslipol4(d->eta, c_(0) - 0.15, c_(1)) << " " << finalize << endl;
     A = pgc->globalsum(A);
 
     Xe = pgc->globalsum(Xe);
@@ -312,18 +403,31 @@ void sixdof_obj_nhflow::force_calc_stl(lexer *p, fdm_nhf *d, ghostcell *pgc, sli
     Ye += p->W21 * Mass_fb;
     Ze += p->W22 * Mass_fb;
 
-    if(p->mpirank == 0)
-    {
-        cout << "Mass_fb: " << Mass_fb << " G_fb: " << p->W22 * Mass_fb << endl;
-        cout << "Fx: " << Fx << " Fy: " << Fy << " Fz: " << Fz << endl;
-        cout << "A_tot: " << A << endl;
-        cout << "Xe: " << Xe << " Ye: " << Ye << " Ze: " << Ze << " Ke: " << Ke << " Me: " << Me << " Ne: " << Ne << endl;
-    }
-
     // Print results
     if(p->mpirank == 0 && finalize == 1)
     {
         printforce << curr_time << " \t " << Xe << " \t " << Ye << " \t " << Ze << " \t " << Ke
                    << " \t " << Me << " \t " << Ne << " \t " << Xe_p << " \t " << Ye_p << " \t " << Ze_p << " \t " << Xe_v << " \t " << Ye_v << " \t " << Ze_v << endl;
     }
+}
+
+// multi-block grid (amr_point_grid): the grid of this rank that holds the quadrature point (x,y): a patch or block piece,
+// level 0 (the native grid with its ring) where it holds the point, else the grid of the centroid (plc, dlc, WLc)
+void sixdof_obj_nhflow::amr_point_nhflow(lexer *p, double x, double y, lexer *plc, fdm_nhf *dlc, slice *WLc,
+                                         lexer *&pl, fdm_nhf *&dl, slice *&WLl)
+{
+    nhflow_grid g = amr_grid_nhflow(x, y);
+    int a, b;
+
+    if(g.p != p || plc == p || p->geo_cell(x, y, a, b))
+    {
+        pl = g.p;
+        dl = g.d;
+        WLl = g.WL;
+        return;
+    }
+
+    pl = plc;
+    dl = dlc;
+    WLl = WLc;
 }

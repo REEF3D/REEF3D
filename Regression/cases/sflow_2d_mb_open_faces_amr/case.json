@@ -1,0 +1,20 @@
+{
+ "np": 1,
+ "steps": 100,
+ "tags": [
+  "2d",
+  "sflow",
+  "curvilinear",
+  "multiblock",
+  "river",
+  "amr"
+ ],
+ "description": "As sflow_2d_mb_open_faces with one refinement level over the whole reach (G 10): the patches cross the block interfaces and keep away from the open faces (the no-refinement band of the in- and outflow).",
+ "covers": [
+  "reefamr::blocks_refine_setup: no refinement next to the open faces of the blocks"
+ ],
+ "solver": "sflow",
+ "files": [
+  "blocks.dat"
+ ]
+}

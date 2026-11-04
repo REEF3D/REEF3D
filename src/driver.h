@@ -61,6 +61,8 @@ class fnpf;
 class fnpf_ice;
 class fnpf_amr;
 class nhflow_amr;
+class nhflow_longrun;
+class cfd_amr;
 class nhflow_fsf;
 class nhflow_convection;
 class nhflow_scalar_convection;
@@ -68,6 +70,7 @@ class nhflow_signal_speed;
 class nhflow_reconstruct;
 class nhflow_fsf_reconstruct;
 class nhflow_turbulence;
+class reefrun_ckpt;
 class nhflow_pressure;
 class nhflow_diffusion;
 class nhflow_forcing;
@@ -82,13 +85,13 @@ class nhflow;
 class multiphase;
 class nhflow_momentum;
 class nhflow_particle;
-class momentum_RKLS3_df;
-class momentum_RKLS3_sf;
 class particle_base;
+class coral_reef3d;
 
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <string>
 #include <vector>
 
 using namespace std;
@@ -107,11 +110,10 @@ public:
     void nhflow_driver();
     void fnpf_driver();
     void sflow_driver();
+    void coral_ini();
     void seastate_driver();
 
     void loop_cfd(fdm *);
-    void loop_cfd_df(fdm *);
-    void loop_cfd_sf(fdm *);
     void loop_nhflow();
     void loop_fnpf();
 
@@ -125,6 +127,14 @@ public:
     void driver_ini_cfd();
     void driver_ini_nhflow();
     void driver_ini_fnpf();
+    // checkpoints of FNPF and NHFLOW on any decomposition (P 48, I 45) and the rebalance (G 46):
+    // the hooks of the modules (driver_ckpt.cpp) for the run part (reefrun_ckpt.h)
+    void ckpt_write();
+    void ckpt_read();
+    std::string ckpt_unsupported();
+    void rebalance_check();
+    reefrun_ckpt &ckpt();
+    reefrun_ckpt *rck = nullptr;
 
     void log_ini();
     void mainlog(lexer *);
@@ -145,6 +155,7 @@ public:
     printer *pprint;
     regression_dump *preg;
     initialize *pini;
+    cfd_amr *pcfdamr = nullptr;  // CFD mesh refinement (G 1 > 0, G 15)
     diffusion *pdiff;
     diffusion *pturbdiff;
     diffusion *pconcdiff;
@@ -185,7 +196,10 @@ public:
     fnpf *ppfsg;
     fnpf_ice *pfice = nullptr;
     fnpf_amr *pfamr = nullptr;
+    coral_reef3d *pcoral = nullptr;  // REEF3D::CORAL structural solver (Z 40)
+    std::vector<double> coral_ckpt;  // its state from the checkpoint (I 45 1), until coral_ini
     nhflow_amr *pnhfamr = nullptr;
+    nhflow_longrun *plongrun = nullptr;
     nhflow_fsf *pnhfsf;
     sflow *psflow;
     seastate *pseastate = nullptr;
@@ -206,8 +220,6 @@ public:
     nhflow_particle *pnhfpart;
     nhflow_forcing *pnhfdf;
     vrans_nhflow *pnhfvrans;
-    momentum_RKLS3_df *pmom_df;
-    momentum_RKLS3_sf *pmom_sf;
     sixdof *p6dof;
     dem *pdem;
     turbulence *pturbcfd;

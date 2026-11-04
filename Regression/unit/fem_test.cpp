@@ -1,12 +1,13 @@
 // Standalone verification of the REEF3D FEM solid solver (no MPI, no REEF3D).
 // Architect: Hans Bihs
 // Build:  g++ -O2 -std=c++20 -I../../ThirdParty/eigen-5.0.0 -DEIGEN_MPL2_ONLY -I../../src
-//         fem_test.cpp ../../src/fem_solid*.cpp -o fem_test
+//         fem_test.cpp ../../src/fem_solid*.cpp -o fem_test          (add -fopenmp for the threads test)
 // Run:    ./fem_test [test]      tests: cantilever freq rotation j2 crackband drop collapse snap patch
-//                                presets settle snapbeam damping rigid walls impact (default: all)
+//                                presets settle snapbeam damping rigid walls impact rebar tie rc adaptive threads ranks (default: all)
 #include "fem_solid.h"
 #include <cmath>
 #include <cstdio>
+#include <cstring>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -879,6 +880,369 @@ static void test_impact()
     }
 }
 
+// ----------------------------------------------------------------------
+// reinforced concrete: smeared bars
+// ----------------------------------------------------------------------
+
+static void test_rebar_input()
+{
+    std::cout << "reinforcement input: presets, skin placement, steel volume" << std::endl;
+    std::istringstream in(
+        "lattice 0.05 0.05 0.05\n"
+        "material 1 concrete C30\n"
+        "rebar B500B z 1% x 0.25%\n"
+        "box 0 0.5 0 0.5 0 1.0\n"
+        "fix -1 1 -1 1 -0.001 0.001 xyz\n");
+    fem_solid s;
+    s.read(in);
+    s.build();
+    s.info(std::cout);
+    double vz = 0, vx = 0, V = 0;
+    int nskin = 0;
+    for(int e = 0; e < s.nelem(); ++e)
+    {
+        const double ve = 0.05 * 0.05 * 0.05;
+        V += ve;
+        vz += s.elem(e).rs[2] * ve;
+        vx += s.elem(e).rs[0] * ve;
+        if(s.elem(e).iz == 0 && s.elem(e).rs[2] > 0)
+            ++nskin;
+    }
+    fem_solid::material m;
+    fem_solid::rebar_preset("B500B", m);
+    std::printf("    skin elements per layer %d of 100, local z fraction %.4f, steel volume z %.4f %% x %.4f %%, B500B f_y %.0f MPa H %.0f MPa eps_u %.3f\n",
+                nskin, s.elem(0).rs[2], 100 * vz / V, 100 * vx / V, m.sfy / 1e6, m.sH / 1e6, m.seu);
+    check(nskin == 36, "the bars lie in the outer element layer (36 of 100 elements)");
+    check(std::fabs(vz / V - 0.01) < 1e-12 && std::fabs(vx / V - 0.0025) < 1e-12, "the steel volume of the member is the given fraction");
+    check(std::fabs(m.sfy - 550e6) < 1 && std::fabs(m.seu - 0.05) < 1e-12, "B500B: f_y = 1.1 x 500 MPa, rupture at 5 %");
+}
+
+static void test_rebar_tension()
+{
+    std::cout << "reinforced tie in tension: cracking, yield plateau rho f_y, rupture at eps_u" << std::endl;
+    const double h = 0.05, L = 0.5;
+    fem_solid s;
+    s.set_lattice(0, 0, 0, h, h, h);
+    s.set_plane_strain(true);
+    fem_solid::material c;
+    c.id = 1;
+    c.type = fem_solid::MAT_CONCRETE;
+    c.rho = 2400;
+    c.E = 33e9;
+    c.nu = 0.0;
+    c.ft = 2.9e6;
+    c.Gf = 140;
+    c.fc = 38e6;
+    c.Gc = 54000;
+    fem_solid::rebar_preset("B500B", c);
+    c.rs[2] = 0.01;
+    c.rskin = 0.0;
+    s.add_material(c);
+    s.add_box(0, h, 0, h, 0, L, 1);
+    s.add_fix(-1, 1, -1, 1, -1e-6, 1e-6, true, true, true);
+    s.set_gravity(Vec3(0, 0, 0));
+    s.set_damping(200.0);
+    s.build();
+    std::vector<int> top;
+    for(int i = 0; i < s.nnode(); ++i)
+        if(std::fabs(s.ref_pos(i)(2) - L) < 1e-9)
+            top.push_back(i);
+    const double dt = 4e-6, v = 0.02;
+    double u = 0, s2 = 0, s4 = 0, pk = 0;
+    while(u < 0.03)
+    {
+        u += v * dt;
+        for(int i : top)
+        {
+            Vec3 p = s.ref_pos(i);
+            p(2) += u;
+            s.set_pos(i, p);
+            s.set_vel(i, Vec3(0, 0, v));
+        }
+        s.advance(dt);
+        const double sg = s.support_force(-1, 1, -1, 1, -1e-6, 1e-6)(2) / (h * h);
+        pk = std::max(pk, sg);
+        if(std::fabs(u / L - 0.02) < 0.5 * v * dt / L)
+            s2 = sg;
+        if(std::fabs(u / L - 0.04) < 0.5 * v * dt / L)
+            s4 = sg;
+    }
+    const double sf = s.support_force(-1, 1, -1, 1, -1e-6, 1e-6)(2) / (h * h);
+    const double fy = c.sfy, H = c.sH, Es = c.sE;
+    // linear kinematic hardening on the Green-Lagrange strain E = e + e^2/2: S = f_y + H E_p,
+    // E_p = (E - f_y/E_s)/(1 + H/E_s); nominal stress (1 + e) S
+    auto bar = [&](double e)
+    {const double G=e+0.5*e*e; return (1+e)*0.01*(fy + H*(G-fy/Es)/(1+H/Es)); };
+    std::printf("    stress at 2 %% strain %.3f MPa (bar %.3f), at 4 %% %.3f (bar %.3f), peak %.3f, after 6 %% %.2e MPa, ruptured %d\n", s2 / 1e6, bar(0.02) / 1e6, s4 / 1e6, bar(0.04) / 1e6, pk / 1e6, sf / 1e6, s.bars_ruptured());
+    check(std::fabs(s2 / bar(0.02) - 1) < 0.03 && std::fabs(s4 / bar(0.04) - 1) < 0.03, "cracked tie: the bars carry rho sigma_s (within 3 %)");
+    check(s.bars_ruptured() > 0 && std::fabs(sf) < 1e-3 * pk, "the bars rupture beyond eps_u, the tie carries nothing");
+}
+
+static void rc_push(double h, int full, double ratio, double umax, double v, double *Mcr, double *My, double *uy, double *M3, double *Mpk, double *Mend, int *rupt, int *eroded, int *nfull = nullptr, int *nel = nullptr, int *ntop = nullptr)
+{
+    // plane-strain cantilever 0.5 x 3 m pushed at the top through a stiff spring
+    const double L = 3.0, D = 0.5, B = h;
+    fem_solid s;
+    s.set_lattice(0, 0, 0, h, h, h);
+    s.set_plane_strain(true);
+    fem_solid::material c;
+    c.id = 1;
+    c.type = fem_solid::MAT_CONCRETE;
+    c.rho = 2400;
+    c.E = 33e9;
+    c.nu = 0.0;
+    c.ft = 2.9e6;
+    c.Gf = 73 * std::pow(38.0, 0.18);
+    c.fc = 38e6;
+    c.Gc = 8.8 * std::sqrt(38.0) * 1000;
+    if(ratio > 0)
+    {
+        fem_solid::rebar_preset("B500B", c);
+        c.rs[2] = ratio;
+    }
+    s.add_material(c);
+    s.add_box(0, D, 0, B, 0, L, 1);
+    s.add_fix(-1, 1, -1, 1, -1e-6, 1e-6, true, true, true);
+    s.set_gravity(Vec3(0, 0, 0));
+    s.set_damping(20.0);
+    s.set_element_type(full);
+    s.build();
+    std::vector<int> top;
+    for(int i = 0; i < s.nnode(); ++i)
+        if(std::fabs(s.ref_pos(i)(2) - L) < 1e-9)
+            top.push_back(i);
+    const double dt = 2e-5, K = 2e8 * B;
+    double ut = 0, M = 0;
+    *Mcr = *My = *uy = *M3 = *Mpk = 0;
+    while(ut < umax)
+    {
+        ut += v * dt;
+        double u = 0;
+        for(int i : top)
+            u += s.pos(i)(0) - s.ref_pos(i)(0);
+        u /= top.size();
+        const double H = K * (ut - u);
+        s.clear_loads();
+        for(int i : top)
+            s.add_load(i, Vec3(H / top.size(), 0, 0));
+        s.advance(dt);
+        M = H / B * L;  // base moment per metre width
+        if(*Mcr == 0 && s.max_damage() > 0.05)
+            *Mcr = M;
+        if(*My == 0 && s.steel_yielded())
+        {
+            *My = M;
+            *uy = u;
+        }
+        if(*M3 == 0 && u >= 0.03 * L)
+            *M3 = M;
+        *Mpk = std::max(*Mpk, M);
+    }
+    *Mend = M;
+    *rupt = s.bars_ruptured();
+    *eroded = s.n_eroded();
+    if(nfull)
+        *nfull = s.n_full_elements();
+    if(nel)
+        *nel = s.n_alive();
+    // below the loaded top row, z > 0.93 L: M < 0.07 M_max (a fifth of the cracking moment)
+    if(ntop)
+    {
+        *ntop = 0;
+        for(int e = 0; e < s.nelem(); ++e)
+            if(s.elem(e).full && s.elem(e).iz * h > 0.93 * L - 1e-9 && (s.elem(e).iz + 1) * h < L - 1e-9)
+                ++*ntop;
+    }
+}
+
+static void test_rc_column()
+{
+    std::cout << "RC cantilever 0.5 x 3 m (plane strain), 1 % bars B500B in the outer layer, pushed at the top (10 cm elements, full integration)" << std::endl;
+    // moment-curvature analysis of the section with the same laws (fibre per element column, 10 cm):
+    // first yield 571 kNm/m at a curvature of 0.0079 1/m, up to 594 kNm/m beyond; f_t W = 121 kNm/m
+    const double My_ref = 571e3;
+    double Mcr, My, uy, M3, Mpk, Mend;
+    int rupt, er;
+    rc_push(0.1, 1, 0.01, 0.1, 0.1, &Mcr, &My, &uy, &M3, &Mpk, &Mend, &rupt, &er);
+    std::printf("    RC: cracking %.0f kNm/m, first yield %.0f kNm/m at a top drift of %.1f mm, at 3 %% drift %.0f, max %.0f, ruptured %d, eroded %d\n", Mcr / 1e3, My / 1e3, 1e3 * uy, M3 / 1e3, Mpk / 1e3, rupt, er);
+    check(std::fabs(My / My_ref - 1) < 0.1, "moment at first yield of the bars within 10 % of the section analysis");
+    check(uy > 0.017 && uy < 0.032, "yield drift: phi_y L^2/3 = 24 mm plus shear (17-32 mm)");
+    check(M3 > 0.95 * My && M3 < 1.25 * My, "ductile: at 3 % drift the moment stays between 0.95 and 1.25 M_y");
+    double Mcr0, My0, uy0, M30, Mpk0, Mend0;
+    int rupt0, er0;
+    rc_push(0.05, 0, 0.0, 0.03, 0.05, &Mcr0, &My0, &uy0, &M30, &Mpk0, &Mend0, &rupt0, &er0);  // one-point elements
+    std::printf("    plain: max %.0f kNm/m (f_t W = 121), end %.0f, eroded %d\n", Mpk0 / 1e3, Mend0 / 1e3, er0);
+    check(Mpk0 > 121e3 && Mpk0 < 0.4 * My, "plain concrete: brittle, the peak moment is a fraction of the RC yield moment");
+    check(er0 > 0 && Mend0 < 0.2 * Mpk0, "plain concrete: the section breaks");
+}
+
+static void test_adaptive()
+{
+    std::cout << "adaptive integration: RC cantilever as with full integration, the elastic part on one point" << std::endl;
+    double Mcr, My, uy, M3, Mpk, Mend;
+    int rupt, er, nf, ne, nt;
+    double Mcr1, My1, uy1, M31, Mpk1, Mend1;
+    int rupt1, er1;
+    rc_push(0.1, 2, 0.01, 0.1, 0.1, &Mcr, &My, &uy, &M3, &Mpk, &Mend, &rupt, &er, &nf, &ne, &nt);
+    rc_push(0.1, 1, 0.01, 0.1, 0.1, &Mcr1, &My1, &uy1, &M31, &Mpk1, &Mend1, &rupt1, &er1);
+    std::printf("    adaptive: first yield %.0f kNm/m at %.1f mm, at 3 %% drift %.0f, max %.0f; full: %.0f at %.1f mm, %.0f, %.0f; %d of %d elements on 2x2x2 points (near the top: %d)\n",
+                My / 1e3, 1e3 * uy, M3 / 1e3, Mpk / 1e3, My1 / 1e3, 1e3 * uy1, M31 / 1e3, Mpk1 / 1e3, nf, ne, nt);
+    check(std::fabs(My / My1 - 1) < 0.02 && std::fabs(M3 / M31 - 1) < 0.03, "first yield within 2 %, moment at 3 % drift within 3 % of full integration");
+    check(nf > 0 && nf < ne && nt == 0, "the cracked part switches to 2x2x2 points, the elastic top (moment below a fifth of cracking, below the loaded row) stays on one point");
+}
+
+// ----------------------------------------------------------------------
+// threads (OpenMP): the results must not depend on the number of threads
+// ----------------------------------------------------------------------
+
+static void threads_run(int nthr, std::vector<double> &state, int *eroded, int *nrigid, double *wd, fem_comm *comm = nullptr)
+{
+    // a weak plain concrete wall broken by a rigid block (erosion, fragments, node and
+    // ground contact), a reinforced column hit by a second block (bars, unilateral damage)
+    std::istringstream in(
+        "lattice 0.05 0.05 0.05\n"
+        "material 1 concrete 2400 3e9 0.2 2e4 50 2e6 5e3\n"
+        "material 2 concrete C30\n"
+        "rebar B500B z 1%\n"
+        "box 0.5 0.6 0 0.4 0 0.8 1\n"
+        "box 1.2 1.4 0 0.2 0 1.0 2\n"
+        "fix -1 3 -1 1 -0.001 0.001 xyz\n"
+        "ground 0.0\n"
+        "contact on\n");
+    fem_solid s;
+    s.read(in);
+    fem_solid::material m = elastic(3, 500, 1e10, 0.3);
+    m.rigid = true;
+    m.kdebris = 1e7;
+    s.add_material(m);
+    s.add_box(0.1, 0.3, 0.1, 0.3, 0.3, 0.5, 3);
+    s.add_box(0.85, 1.05, 0.0, 0.2, 0.4, 0.6, 3);
+    s.build();
+    s.use_threads(nthr);
+    if(comm)
+    {
+        s.set_comm(comm);
+        s.set_distribute(1);
+    }
+    for(int k = 0; k < s.n_rigid(); ++k)
+    {
+        fem_solid::rigid_body &rb = const_cast<fem_solid::rigid_body &>(s.rigid(k));
+        rb.V = Vec3(rb.c(0) < 0.5 ? 15.0 : 10.0, 0, 0);
+    }
+    const int n0 = s.n_alive();
+    for(int n = 0; n < 60; ++n)
+        s.advance(1e-3);
+    state.clear();
+    for(int i = 0; i < s.nnode(); ++i)
+        for(int d = 0; d < 3; ++d)
+        {
+            state.push_back(s.pos(i)(d));
+            state.push_back(s.vel(i)(d));
+        }
+    for(int e = 0; e < s.nelem(); ++e)
+        for(int q = 0; q < s.ngauss(); ++q)
+        {
+            const fem_solid::gpstate &g = s.gp(e, q);
+            state.push_back(g.d);
+            state.push_back(g.kt);
+            state.push_back(g.kc);
+            for(int k = 0; k < 3; ++k)
+                state.push_back(g.es[k]);
+        }
+    for(int k = 0; k < s.n_rigid(); ++k)
+        for(int d = 0; d < 3; ++d)
+        {
+            state.push_back(s.rigid(k).c(d));
+            state.push_back(s.rigid(k).V(d));
+        }
+    *eroded = n0 - s.n_alive();
+    *nrigid = s.n_rigid();
+    *wd = s.dissipated_energy();
+    state.push_back(*wd);
+}
+
+static void test_threads()
+{
+    const int T = std::max(2, fem_solid::max_threads());
+    std::cout << "threads: 1 and " << T << " threads give bitwise the same results"
+              << (fem_solid::max_threads() > 1 ? "" : " (built without OpenMP: one thread)") << std::endl;
+    std::vector<double> a, b;
+    int ea, eb, ra, rb;
+    double wa, wb;
+    threads_run(1, a, &ea, &ra, &wa);
+    threads_run(T, b, &eb, &rb, &wb);
+    std::printf("    eroded %d / %d elements, rigid bodies %d / %d, dissipated %.6f / %.6f J, %zu values\n", ea, eb, ra, rb, wa, wb, a.size());
+    check(ea > 0 && ra > 2, "the wall breaks: eroded elements and rigid fragments");
+    check(a.size() == b.size() && std::memcmp(a.data(), b.data(), a.size() * sizeof(double)) == 0, "positions, velocities, damage, bar strains, rigid bodies, dissipated energy bitwise equal");
+}
+
+// ----------------------------------------------------------------------
+// ranks: the solid split over ranks (threads with a shared-memory communicator
+// stand in for MPI) gives the results of one rank
+// ----------------------------------------------------------------------
+#include <barrier>
+#include <thread>
+struct shared_comm
+{
+    int P;
+    std::barrier<> bar;
+    std::vector<std::vector<char>> bufs;
+    std::vector<int> ints;
+    explicit shared_comm(int p) : P(p), bar(p), bufs(p), ints(p) {}
+};
+struct thread_comm : public fem_comm
+{
+    shared_comm *sh;
+    int r;
+    thread_comm(shared_comm *s, int rr) : sh(s), r(rr) {}
+    int size() const override { return sh->P; }
+    int rank() const override { return r; }
+    void allgatherv(const void *send, int nbytes, void *recv, const int *counts, const int *displs) override
+    {
+        sh->bufs[r].assign((const char *)send, (const char *)send + nbytes);
+        sh->bar.arrive_and_wait();
+        for(int q = 0; q < sh->P; ++q)
+            if(counts[q] > 0)
+                std::memcpy((char *)recv + displs[q], sh->bufs[q].data(), counts[q]);
+        sh->bar.arrive_and_wait();
+    }
+    void allgather_int(int v, int *all) override
+    {
+        sh->ints[r] = v;
+        sh->bar.arrive_and_wait();
+        for(int q = 0; q < sh->P; ++q)
+            all[q] = sh->ints[q];
+        sh->bar.arrive_and_wait();
+    }
+};
+
+static void test_ranks()
+{
+    std::cout << "ranks: the solid split over 1 and 3 ranks gives bitwise the same results" << std::endl;
+    std::vector<double> a;
+    int ea, ra;
+    double wa;
+    threads_run(1, a, &ea, &ra, &wa);
+    const int P = 3;
+    shared_comm sh(P);
+    std::vector<std::vector<double>> st(P);
+    std::vector<int> er(P), rr(P);
+    std::vector<double> wd(P);
+    std::vector<std::thread> th;
+    for(int r = 0; r < P; ++r)
+        th.emplace_back([&, r]
+                        {thread_comm c(&sh,r); threads_run(1,st[r],&er[r],&rr[r],&wd[r],&c); });
+    for(std::thread &t : th)
+        t.join();
+    bool same = true;
+    for(int r = 0; r < P; ++r)
+        same = same && st[r].size() == a.size() && std::memcmp(st[r].data(), a.data(), a.size() * sizeof(double)) == 0;
+    std::printf("    1 rank: eroded %d, rigid bodies %d, dissipated %.6f J; 3 ranks: eroded %d %d %d, dissipated %.6f %.6f %.6f\n",
+                ea, ra, wa, er[0], er[1], er[2], wd[0], wd[1], wd[2]);
+    check(ea > 0 && ra > 2, "the wall breaks: eroded elements and rigid fragments");
+    check(same, "every rank holds the state of the run on one rank (positions, velocities, damage, bar strains, rigid bodies, dissipated energy)");
+}
+
 int main(int argc, char **argv)
 {
     std::string w = argc > 1 ? argv[1] : "all";
@@ -914,6 +1278,18 @@ int main(int argc, char **argv)
         test_walls();
     if(w == "all" || w == "impact")
         test_impact();
+    if(w == "all" || w == "rebar")
+        test_rebar_input();
+    if(w == "all" || w == "tie")
+        test_rebar_tension();
+    if(w == "all" || w == "rc")
+        test_rc_column();
+    if(w == "all" || w == "adaptive")
+        test_adaptive();
+    if(w == "all" || w == "threads")
+        test_threads();
+    if(w == "all" || w == "ranks")
+        test_ranks();
     std::cout << (nfail ? "FAILED: " : "all tests passed") << (nfail ? std::to_string(nfail) : "") << std::endl;
     return nfail ? 1 : 0;
 }

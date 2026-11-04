@@ -1,0 +1,20 @@
+{
+ "base": "nhflow_3d_net_wall_dyn",
+ "np": 2,
+ "steps": 30,
+ "ctrl_set": {
+  "P 48": "10",
+  "P 49": "0"
+ },
+ "description": "nhflow_3d_net_wall_dyn with a checkpoint every 10 steps, all kept (P 48 10, P 49 0): the uninterrupted run of nhflow_3d_net_wall_dyn_restart.",
+ "tags": [
+  "3d",
+  "net",
+  "nhflow",
+  "mpi",
+  "checkpoint"
+ ],
+ "covers": [
+  "net_barDyn::ckpt_state"
+ ]
+}

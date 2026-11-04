@@ -22,8 +22,11 @@ Author: Hans Bihs
 
 #include "fnpf_print_wsf.h"
 #include "fdm2D.h"
+#include "fdm_fnpf.h"
 #include "ghostcell.h"
 #include "lexer.h"
+#include "probe_core.h"
+#include "reefckpt.h"
 #include "runlog.h"
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -42,24 +45,27 @@ fnpf_print_wsf::fnpf_print_wsf(lexer *p, fdm_fnpf *c) : fileFlushMaxCount(100)
     if(p->mpirank == 0 && p->P51 > 0)
     {
         // open WSF file
-        wsfout.open("./REEF3D_FNPF_WSF/REEF3D-FNPF-WSF-HG.dat");
+        const bool head = reefckpt_open(wsfout, "./REEF3D_FNPF_WSF/REEF3D-FNPF-WSF-HG.dat", p->I45);  // I 45: continued
         if(p->plog)
             p->plog->table_file(p, "wsf", "gauges", "./REEF3D_FNPF_WSF/REEF3D-FNPF-WSF-HG.dat");
 
-        wsfout << "number of gauges:  " << gauge_num << endl
-               << endl;
-        wsfout << "x_coord     y_coord" << endl;
-        for(n = 0; n < gauge_num; ++n)
-            wsfout << n + 1 << "\t " << p->Xout(x[n], y[n]) << "\t " << p->Yout(x[n], y[n]) << endl;
+        if(head)
+        {
+            wsfout << "number of gauges:  " << gauge_num << endl
+                   << endl;
+            wsfout << "x_coord     y_coord" << endl;
+            for(n = 0; n < gauge_num; ++n)
+                wsfout << n + 1 << "\t " << p->Xout(x[n], y[n]) << "\t " << p->Yout(x[n], y[n]) << endl;
 
-        wsfout << endl
-               << endl;
+            wsfout << endl
+                   << endl;
 
-        wsfout << "time";
-        for(n = 0; n < gauge_num; ++n)
-            wsfout << "\t P" << n + 1;
+            wsfout << "time";
+            for(n = 0; n < gauge_num; ++n)
+                wsfout << "\t P" << n + 1;
 
-        wsfout << endl;
+            wsfout << endl;
+        }
 
         if(p->P57 == 1 || p->P57 == 3)
         {
@@ -127,18 +133,7 @@ void fnpf_print_wsf::height_gauge(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &
     fill_eta(p, c, pgc, f);
 
     // write to file
-    if(p->mpirank == 0)
-    {
-        wsfout << setprecision(9) << p->simtime << "\t";
-        for(n = 0; n < gauge_num; ++n)
-        {
-            wsfout << setprecision(9) << wsf[n] << "\t";
-            // flush print to disc limited to prevent data loss for many gauges
-            if(n % fileFlushMaxCount == 0 && n != 0)
-                wsfout << std::flush;
-        }
-        wsfout << endl;
-    }
+    gauge_row(p, wsfout, wsf, gauge_num, fileFlushMaxCount);
 
     // Rise Velocity
 
@@ -152,13 +147,26 @@ void fnpf_print_wsf::fill_eta(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &f)
     for(n = 0; n < gauge_num; ++n)
         wsf[n] = -1.0e20;
 
+    // the mesh refinement: the finest grid at the gauge (one rank writes it, its cell there)
+    amr_points ap;
+    if(amr != nullptr)
+        ap.find(amr, p, gauge_num, x, y, flag);
+
     for(n = 0; n < gauge_num; ++n)
-        if(flag[n] > 0)
+        if(amr == nullptr ? flag[n] > 0 : ap.mine[n] != 0)
         {
             zval = 0.0;
 
             i = iloc[n];
             j = jloc[n];
+
+            // interpolated at the gauge between the cell centres (as nhflow_print_wsf): the value of the
+            // cell that holds the gauge lay up to dx/2 away, a phase offset of k dx/2 between grids of
+            // different resolution
+            if(amr != nullptr && ap.f[n] != nullptr)
+                wsf[n] = ap.q[n]->ccslipol4(static_cast<fdm_fnpf *>(ap.f[n])->eta, x[n], y[n]);
+            else
+                wsf[n] = p->ccslipol4(f, x[n], y[n]);
 
             wsf[n] = f(i, j);
         }
@@ -178,7 +186,14 @@ void fnpf_print_wsf::ini_location(lexer *p, fdm_fnpf *c)
 {
     for(n = 0; n < gauge_num; ++n)
     {
+        // the cell that contains the gauge: the rank that writes it
         iloc[n] = p->posc_i(x[n]);
+
+        if(p->j_dir == 0)
+            jloc[n] = 0;
+
+        if(p->j_dir == 1)
+            jloc[n] = p->posc_j(y[n]);
 
         if(p->j_dir == 0)
             jloc[n] = 0;

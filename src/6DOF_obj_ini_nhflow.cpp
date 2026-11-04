@@ -31,6 +31,7 @@ Author: Tobias Martin
 #include "mooring_dynamic.h"
 #include "mooring_void.h"
 #include "net_interface.h"
+#include "nhflow_hullbody.h"
 #include "nhflow_reinidisc_fsf.h"
 #include <sys/stat.h>
 
@@ -66,32 +67,8 @@ void sixdof_obj_nhflow::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     if(p->mpirank == 0)
         mkdir("./REEF3D_NHFLOW_6DOF", 0777);
 
-    // DSM
-    int num = 0;
-    DSM = 0.0;
-
-    if(p->j_dir == 0)
-        SLICELOOP4
-        {
-            DSM += p->DXN[IP];
-
-            ++num;
-        }
-
-    if(p->j_dir == 1)
-        SLICELOOP4
-        {
-            DSM += 0.5 * (p->DXN[IP] + p->DYN[JP]);
-
-            ++num;
-        }
-
-    DSM = pgc->globalsum(DSM);
-    num = pgc->globalisum(num);
-
-    DSM = DSM / double(num);
-
-    NB = MAX(3.0, 2.0 * p->A526 + 1.0);
+    // mean horizontal spacing and band width of the ray cast
+    ini_band(p, pgc);
 
     // Initialise folder structure
     if(p->X50 == 1)
@@ -126,9 +103,19 @@ void sixdof_obj_nhflow::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     // Initialise global variables
     update_fbvel(p, pgc);
 
-    // Print initial body
-    if(p->X50 == 1)
-        print_vtp(p, pgc);
+    // X 15 8: the hull as a sharp thin body (nhflow_hullbody), the thin-body service with it
+    if(p->X15 == 8 && d->hullbody == nullptr)
+        d->hullbody = new nhflow_hullbody(p, d, pgc, this);
+
+    // Print initial body (not on a restart from a checkpoint, I 45 1: printed already)
+    if(p->I45 != 1)
+    {
+        if(p->X50 == 1)
+            print_vtp(p, pgc);
+
+        if(p->X50 == 2)
+            print_stl(p, pgc);
+    }
 
     if(p->X50 == 2)
         print_stl(p, pgc);
@@ -227,5 +214,51 @@ void sixdof_obj_nhflow::initialize_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
     if(p->X10 == 1)
         hydrodynamic_forces_nhflow(p, d, pgc, d->WL, false);
+
+    // power take-off (X 500): explicit (X 500 1) or with the stiff-element Jacobians on the
+    // left-hand side (X 500 2, apply_added_mass with A = 0); two-way bodies only (X 10 1)
+    ini_pto(p, pgc);
+
+    if(pto_on_ && p->X10 != 1 && p->mpirank == 0)
+        cout << "6DOF PTO: X 500 needs a two-way floating body (X 10 1) in NHFLOW to act on the motion" << endl;
 }
 
+void sixdof_obj_nhflow::ini_band(lexer *p, ghostcell *pgc)
+{
+    // DSM: mean horizontal spacing (ray cast band NB*DSM, forcing widths); NB: band in cells.
+    // Shared by the floating body (initialize_nhflow) and the wavemaker (initialize_wavemaker).
+    int num = 0;
+    DSM = 0.0;
+
+    if(p->j_dir == 0)
+        SLICELOOP4
+        {
+            DSM += p->DXN[IP];
+
+            ++num;
+        }
+
+    if(p->j_dir == 1 && p->geo_curv == 0)
+        SLICELOOP4
+        {
+            DSM += 0.5 * (p->DXN[IP] + p->DYN[JP]);
+
+            ++num;
+        }
+
+    // curvilinear grid (G 50): the physical mean widths of the cells
+    if(p->j_dir == 1 && p->geo_curv == 1)
+        SLICELOOP4
+        {
+            DSM += p->geo_width(i, j);
+
+            ++num;
+        }
+
+    DSM = pgc->globalsum(DSM);
+    num = pgc->globalisum(num);
+
+    DSM = DSM / double(MAX(num, 1));
+
+    NB = MAX(3.0, 2.0 * p->A526 + 1.0);
+}

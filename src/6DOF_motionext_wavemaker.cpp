@@ -69,27 +69,24 @@ void sixdof_motionext_wavemaker::motionext_trans(lexer *p, ghostcell *pgc, Eigen
             ++timecount;
     }
 
-    if(p->X11_u == 2)
+    if(dof[0] == 2)
     {
         Uext = 0.0;
 
         if(p->simtime >= ts && p->simtime <= te)
             Uext = (data[timecount][1] - data[timecount_old][1]) / (data[timecount][0] - data[timecount_old][0]);
 
-        if(p->mpirank == 0)
-            cout << "6DOF_motion  Uext " << Uext << endl;
-
         dp_(0) = 0.0;
         dc_(0) = Uext * ramp_vel(p);
     }
 
-    if(p->X11_v == 2)
+    if(dof[1] == 2)
     {
         dp_(1) = 0.0;
         dc_(1) = 0.0;
     }
 
-    if(p->X11_w == 2)
+    if(dof[2] == 2)
     {
         dp_(2) = 0.0;
         dc_(2) = 0.0;
@@ -98,20 +95,20 @@ void sixdof_motionext_wavemaker::motionext_trans(lexer *p, ghostcell *pgc, Eigen
 
 void sixdof_motionext_wavemaker::motionext_rot(lexer *p, Eigen::Vector3d &dh_, Eigen::Vector3d &h_, Eigen::Vector4d &de_, Eigen::Matrix<double, 3, 4> &G_, Eigen::Matrix3d &I_)
 {
-    if(p->X11_p == 2)
+    if(dof[3] == 2)
         dh_(0) = 0.0;
-    if(p->X11_q == 2)
+    if(dof[4] == 2)
         dh_(1) = 0.0;
-    if(p->X11_r == 2)
+    if(dof[5] == 2)
         dh_(2) = 0.0;
 
     omega_ = I_.inverse() * h_;
 
-    if(p->X11_p == 2)
+    if(dof[3] == 2)
         omega_(0) = 0.0;
-    if(p->X11_q == 2)
+    if(dof[4] == 2)
         omega_(1) = 0.0;
-    if(p->X11_r == 2)
+    if(dof[5] == 2)
         omega_(2) = 0.0;
 
     h_ = I_ * omega_;
@@ -130,22 +127,6 @@ double sixdof_motionext_wavemaker::ramp_vel(lexer *p)
         f = (p->simtime - p->X206_ts) / (p->X206_te - p->X206_ts) - (1.0 / PI) * sin(PI * (p->simtime - p->X206_ts) / (p->X206_te - p->X206_ts));
 
     if(p->X206 == 1 && p->simtime < p->X206_ts)
-        f = 0.0;
-
-    return f;
-}
-
-double sixdof_motionext_wavemaker::ramp_draft(lexer *p)
-{
-    double f = 1.0;
-
-    if(p->X205 == 1 && p->X207 == 1 && p->simtime >= p->X207_ts && p->simtime < p->X207_te)
-        f = p->simtime / (p->X207_te - p->X207_ts);
-
-    if(p->X205 == 2 && p->X207 == 1 && p->simtime >= p->X207_ts && p->simtime < p->X207_te)
-        f = p->simtime / (p->X207_te - p->X207_ts) - (1.0 / PI) * sin(PI * (p->simtime / (p->X207_te - p->X207_ts)));
-
-    if(p->X207 == 1 && p->simtime < p->X207_ts)
         f = 0.0;
 
     return f;

@@ -1,0 +1,34 @@
+{
+ "base": "nhflow_2d_si_river_tracer_spin",
+ "chain": [
+  {
+   "case": "nhflow_2d_si_river_tracer_spin",
+   "copy": [
+    "REEF3D_Checkpoint"
+   ]
+  }
+ ],
+ "ctrl_set": {
+  "I 45": "1",
+  "P 48": null
+ },
+ "ctrl_add": [
+  "A 600 1",
+  "A 601 0.0 15.0",
+  "A 606 1.0 15.0",
+  "A 604 2.0"
+ ],
+ "description": "the steady river of nhflow_2d_si_river_tracer_spin with salinity switched on at the restart (initial 0, inflow 1, A 604 2 m2/s): the front after 3300 s is within 0.03 (L1 0.002) of a fine-grid 1D solution with the depth of the run; first-order upwind (A 609 1) 0.15.",
+ "tags": [
+  "2d",
+  "nhflow",
+  "semi_implicit",
+  "river",
+  "tracer",
+  "checkpoint"
+ ],
+ "covers": [
+  "tracers switched on at a restart (initial values then), the discharge boundary value A 606, the Lax-Wendroff factor of the TVD faces"
+ ],
+ "time": 23300.0
+}

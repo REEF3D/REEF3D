@@ -48,21 +48,19 @@ using namespace std;
 class sediment
 {
 public:
-    virtual void start_cfd(lexer *, fdm *, ghostcell *, ioflow *, reinitopo *, solver *) = 0;
-    virtual void ini_cfd(lexer *, fdm *, ghostcell *) = 0;
-    virtual void start_susp(lexer *, fdm *, ghostcell *, ioflow *, solver *) = 0;
-    virtual void update_cfd(lexer *, fdm *, ghostcell *, ioflow *, reinitopo *) = 0;
+    virtual ~sediment() = default;
 
-    virtual void start_nhflow(lexer *, fdm_nhf *, ghostcell *, ioflow *) = 0;
-    virtual void ini_nhflow(lexer *, fdm_nhf *, ghostcell *) = 0;
-    virtual void start_susp_nhflow(lexer *, fdm_nhf *, ghostcell *, ioflow *, solver *) = 0;
-    virtual void update_nhflow(lexer *, fdm_nhf *, ghostcell *, ioflow *) = 0;
-    virtual void RK2_step1_nhflow(lexer *, fdm_nhf *, ghostcell *, ioflow *) = 0;
-    virtual void RK2_step2_nhflow(lexer *, fdm_nhf *, ghostcell *, ioflow *) = 0;
-
-    virtual void start_sflow(lexer *, fdm2D *, ghostcell *, ioflow *, slice &, slice &) = 0;
-    virtual void ini_sflow(lexer *, fdm2D *, ghostcell *) = 0;
-    virtual void update_sflow(lexer *, fdm2D *, ghostcell *, ioflow *) = 0;
+    // checkpoints (P 48, I 45): the scalars of the sediment objects (the same on all ranks, ckpt_state) and of
+    // the rank (ckpt_rank_state: on the same decomposition, or redistributed by the model, CPM), the slices of
+    // the rank NHFLOW does not have in its lists (ckpt_wln); the fields and slices are those of the grid's
+    // registry (ckpt_registry.h)
+    virtual void ckpt_state(lexer *, std::vector<double> &) {}
+    virtual bool ckpt_restore(lexer *, ghostcell *, const std::vector<double> &) { return true; }
+    virtual void ckpt_rank_state(lexer *, std::vector<double> &) {}
+    virtual bool ckpt_rank_restore(lexer *, ghostcell *, const std::vector<std::vector<double>> &, bool) { return true; }
+    virtual double *ckpt_wln() { return nullptr; }
+    // the load map for the weighted partition at a rebalance (G 46; CPM: its parcels per cell), collective
+    virtual void loadmap(lexer *, fdm *, ghostcell *) {}
 
     //
     virtual void relax(lexer *, ghostcell *) {};
@@ -103,6 +101,44 @@ public:
     virtual void offset_ParaView_parameter1(lexer *, int *, int &) {};
 
     virtual void print_2D_parameter2(lexer *, ghostcell *, ofstream &) {};
+    virtual void print_3D_parameter2(lexer *, ghostcell *, std::vector<char> &, size_t &) {};
+    virtual void name_ParaView_parallel_parameter2(lexer *, ofstream &) {};
+    virtual void name_ParaView_parameter2(lexer *, ostream &, int *, int &) {};
+    virtual void offset_ParaView_2D_parameter2(lexer *, int *, int &) {};
+    virtual void offset_ParaView_parameter2(lexer *, int *, int &) {};
+
+    virtual void print_3D_CPM(lexer *, ghostcell *, std::vector<char> &, size_t &) {};
+
+    virtual void write_state_particles(lexer *, ofstream &) {};
+    virtual void read_state_particles(lexer *, ifstream &) {};
+
+    virtual void ctimesave(lexer *, fdm *) {};
+
+    virtual void print_probes(lexer *, ghostcell *, sediment_fdm *, ioflow *) = 0;
+    virtual void print_particles(lexer *, sediment_fdm *) = 0;
+
+    virtual void print_2D_bedload(lexer *, ghostcell *, std::ostream &) {};
+    virtual void print_3D_bedload(lexer *, ghostcell *, std::vector<char> &, size_t &) {};
+    virtual void name_ParaView_parallel_bedload(lexer *, ofstream &) {};
+    virtual void name_ParaView_bedload(lexer *, ostream &, int *, int &) {};
+    virtual void offset_ParaView_2D_bedload(lexer *, int *, int &) {};
+    virtual void offset_ParaView_bedload(lexer *, int *, int &) {};
+
+    virtual void print_2D_bedshear(lexer *, ghostcell *, std::ostream &) {};
+    virtual void print_3D_bedshear(lexer *, ghostcell *, std::vector<char> &, size_t &) {};
+    virtual void name_ParaView_parallel_bedshear(lexer *, ofstream &) {};
+    virtual void name_ParaView_bedshear(lexer *, ostream &, int *, int &) {};
+    virtual void offset_ParaView_2D_bedshear(lexer *, int *, int &) {};
+    virtual void offset_ParaView_bedshear(lexer *, int *, int &) {};
+
+    virtual void print_2D_parameter1(lexer *, ghostcell *, std::ostream &) {};
+    virtual void print_3D_parameter1(lexer *, ghostcell *, std::vector<char> &, size_t &) {};
+    virtual void name_ParaView_parallel_parameter1(lexer *, ofstream &) {};
+    virtual void name_ParaView_parameter1(lexer *, ostream &, int *, int &) {};
+    virtual void offset_ParaView_2D_parameter1(lexer *, int *, int &) {};
+    virtual void offset_ParaView_parameter1(lexer *, int *, int &) {};
+
+    virtual void print_2D_parameter2(lexer *, ghostcell *, std::ostream &) {};
     virtual void print_3D_parameter2(lexer *, ghostcell *, std::vector<char> &, size_t &) {};
     virtual void name_ParaView_parallel_parameter2(lexer *, ofstream &) {};
     virtual void name_ParaView_parameter2(lexer *, ostream &, int *, int &) {};

@@ -1,0 +1,22 @@
+{
+ "np": 2,
+ "steps": 150,
+ "tags": [
+  "2d",
+  "sflow",
+  "curvilinear",
+  "river",
+  "wetdry",
+  "mpi"
+ ],
+ "description": "SFLOW on a curvilinear grid (G 50 2): the sloping river bend of sflow_2d_curv_river_ini_bend_mpi2 with a rising hydrograph (B 60 2, 10 to 120 m3/s in 10 s) spilling onto the floodplains at the inflow, discharge distributed across the inflow face by conveyance (B 62 1), two ranks",
+ "covers": [
+  "Qin2D/inflow2D curvilinear branch with B 62 1 (global conveyance sum over the ranks)",
+  "hydrograph inflow on the curvilinear grid"
+ ],
+ "solver": "sflow",
+ "files": [
+  "curvgrid.dat",
+  "hydrograph.dat"
+ ]
+}

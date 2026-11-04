@@ -1,0 +1,9 @@
+# REEF3D::CORAL model of the FNPF box (fnpf_2d_6dof_box): surge, heave and pitch through a planar joint
+# (x-z plane); linear extrapolation of the fluid loads, no predictor.
+# Architect: Hans Bihs
+time dt 0.005 end 100
+output dt 0.01 file box.dat
+body box mass 1.0 cog 6.0 0.025 0.53
+joint plane planar ground box point 6.0 0.025 0.53 axis 0 1 0
+fluid_body box
+fluid_coupling order 1 no_predictor

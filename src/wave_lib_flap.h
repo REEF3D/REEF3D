@@ -28,11 +28,30 @@ Author: Hans Bihs
 #include "wave_lib_precalc.h"
 #include "wave_lib_wavemaker2nd.h"
 
+#include <vector>
+
 using namespace std;
 
 class wave_lib_flap final : public wave_lib_precalc, public wave_lib_parameters, public increment
 {
 public:
+    // checkpoints (P 48, I 45): the position in the time series of the wavemaker
+    void ckpt_state(std::vector<double> &v) override
+    {
+        v.push_back(double(timecount));
+        v.push_back(double(timecount_old));
+        v.push_back(double(timecount_z));
+        v.push_back(double(wtime_old));
+    }
+    void ckpt_restore(const std::vector<double> &v, size_t &k) override
+    {
+        if(k + 4 > v.size())
+            return;
+        timecount = decltype(timecount)(v[k++]);
+        timecount_old = decltype(timecount_old)(v[k++]);
+        timecount_z = decltype(timecount_z)(v[k++]);
+        wtime_old = decltype(wtime_old)(v[k++]);
+    }
     wave_lib_flap(lexer *, ghostcell *);
     virtual ~wave_lib_flap();
 
@@ -45,13 +64,12 @@ public:
     double wave_fi(lexer *, double, double, double) override final;
 
     double wave_paddle_Q(lexer *, double) override final;
-
-    void parameters(lexer *, ghostcell *) override final;
-    void wave_prestep(lexer *, ghostcell *) override final;
+    void wavemaker_setup(lexer *, ghostcell *, double) override final;
 
 private:
     void read(lexer *, ghostcell *);
     wave_lib_wavemaker2nd wm2;
+    int setup_done;
 
     int ptnum;
 
@@ -59,6 +77,7 @@ private:
 
     double ts, te, val;
     int timecount, timecount_old, timecount_z;
+    double wtime_old;
     double singamma, cosgamma;
 };
 

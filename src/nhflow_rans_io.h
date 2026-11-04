@@ -40,10 +40,9 @@ public:
     nhflow_rans_io(lexer *, fdm_nhf *);
     virtual ~nhflow_rans_io();
 
-    void print_2D(lexer *, fdm_nhf *, ghostcell *, ofstream &, int) override final;
+    void print_2D(lexer *, fdm_nhf *, ghostcell *, std::ostream &, int) override final;
     void print_3D(lexer *, fdm_nhf *, ghostcell *, std::vector<char> &, size_t &) override final;
     void ini(lexer *, fdm_nhf *, ghostcell *) override final;
-    void plain_wallfunc(lexer *, fdm_nhf *, ghostcell *);
     void inflow(lexer *, fdm_nhf *, ghostcell *);
     void inflow_profile(lexer *, double, double, double &, double &, double &);
     double kinval(int, int, int) override final;
@@ -61,19 +60,36 @@ public:
     void offset_ParaView(lexer *, int *, int &) override final;
 
     void name_pvtp(lexer *, fdm_nhf *, ghostcell *, ofstream &) override final;
-    void name_vtp(lexer *, fdm_nhf *, ghostcell *, ofstream &, int *, int &) override final;
+    void name_vtp(lexer *, fdm_nhf *, ghostcell *, std::ostream &, int *, int &) override final;
     void offset_ParaView_2D(lexer *, int *, int &) override final;
 
+    void ckpt_fields(const std::function<void(const char *, char, double *)> &fd, const std::function<void(const char *, char, int *)> &fi) override
+    {
+        fd("turb_KIN", 'C', KIN);
+        fd("turb_EPS", 'C', EPS);
+        fi("turb_WETN", 'S', WETN);
+        fd("turb_PK", 'C', PK);
+        fd("turb_PK0", 'C', PK0);
+        fd("turb_PK_b", 'C', PK_b);
+    }
     double *KIN, *EPS;
     int *WALLF;
+    int *WETN;  // wet state of the column after the last turbulence step (newly wetted columns)
+
+    void wetting_ini(lexer *, fdm_nhf *, double *, double *, bool);
+    void length_limit(lexer *, fdm_nhf *, bool);
+
+    // SST/Bradshaw limiter (A 564 2), shared by k-epsilon and k-omega
+    void walldist_h(lexer *, fdm_nhf *, ghostcell *);
+    double sst_walldist(lexer *, fdm_nhf *);
+    double sst_F2(lexer *, fdm_nhf *, double, double);
+    double *WDH = nullptr;  // distance to the nearest side wall with a wall function (A 519 2), walldist_h
 
     double const ke_c_1e, ke_c_2e, ke_sigma_k, ke_sigma_e;
     double const kw_alpha, kw_beta, kw_sigma_k, kw_sigma_w;
-    double const sst_alpha1, sst_alpha2, sst_beta1, sst_beta2, sst_sigma_k1, sst_sigma_k2, sst_sigma_w1, sst_sigma_w2;
 
 private:
     void kepsini_default(lexer *, fdm_nhf *, ghostcell *);
-    void flowdepth_inflow(lexer *, fdm_nhf *, ghostcell *);
 
     float ffn;
     int q, iin, ii, jj, kk;
@@ -82,7 +98,7 @@ private:
     double M, I, tau, H, B, ks, shearvel, kinbed, epsbed, omegabed;
     double uvel, refwalldist, fc, ev_fac, beddist, dist;
     double kinw, epsw;
-    double walld, ddn, depth, depth_inflow;
+    double walld, ddn, depth;
 };
 
 #endif

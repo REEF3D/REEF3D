@@ -1,0 +1,21 @@
+{
+ "base": "sflow_2d_sediment_basin_mix",
+ "np": 1,
+ "steps": 300,
+ "ctrl_set": {
+  "P 48": "100",
+  "P 49": "0"
+ },
+ "description": "sflow_2d_sediment_basin_mix with a checkpoint every 100 steps, all kept (P 48 100, P 49 0): the uninterrupted run of sflow_2d_sediment_basin_mix_restart.",
+ "tags": [
+  "2d",
+  "sflow",
+  "sediment",
+  "mixture",
+  "checkpoint"
+ ],
+ "covers": [
+  "cfd_ckpt_write/read tag reg (SFLOW)",
+  "sediment_f::ckpt_state (mixture)"
+ ]
+}

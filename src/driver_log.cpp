@@ -36,12 +36,14 @@ Author: Hans Bihs
 #include "momentum_header.h"
 #include "pressure_header.h"
 #include "print_gage_location.h"
+#include "reefckpt.h"
 #include "sediment_header.h"
 #include "solver_header.h"
 #include "turbulence_header.h"
 #include <sys/stat.h>
 #include <sys/types.h>
 
+// the logs continue (appended) on a restart from a checkpoint (I 45 1)
 void driver::log_ini()
 {
 
@@ -51,55 +53,56 @@ void driver::log_ini()
 
     if(p->mpirank == 0)
     {
-        versionlogout.open("./REEF3D_Log/REEF3D_Version.dat");
-        versionlogout << "REEF3D version:  " << version << endl;
-        versionlogout << endl
-                      << "github branch: " << BRANCH << endl;
-        versionlogout << endl
-                      << "github version: " << VERSION << endl
+        if(reefckpt_open(mainlogout, "./REEF3D_Log/REEF3D_mainlog.dat", p->I45))
+        {
+            mainlogout << "REEF3D version:  " << version << endl
+                       << endl;
+            mainlogout << endl
+                       << "github branch: " << BRANCH << endl;
+            mainlogout << endl
+                       << "github version: " << VERSION << endl
+                       << endl;
+            mainlogout << "number of cells:  " << p->cellnumtot << endl
+                       << endl;
+            mainlogout << "#iteration \t #timestep \t #simtime \t #itertime \t #piter \t #ptime \t #Volume 1 \t #Volume2 \t #Inflow \t #Outflow \t #Ui \t #Phimean \t #Phiout " << endl;
+        }
+    }
+
+    if(p->mpirank == 0)
+    {
+        if(reefckpt_open(maxlogout, "./REEF3D_Log/REEF3D_maxlog.dat", p->I45))
+        {
+
+            maxlogout << "number of cells:  " << p->cellnumtot << endl
                       << endl;
+            maxlogout << "#iteration \t #umax \t\t #vmax \t\t #wmax \t\t #viscmax \t\t #kinmax \t\t #epsmax \t\t #pressmax " << endl;
+        }
+        else
+            maxlogout << setprecision(4);  // as after the first line of the writing run
     }
 
     if(p->mpirank == 0)
     {
-        mainlogout.open("./REEF3D_Log/REEF3D_mainlog.dat");
-        mainlogout << "REEF3D version:  " << version << endl
-                   << endl;
-        mainlogout << endl
-                   << "github branch: " << BRANCH << endl;
-        mainlogout << endl
-                   << "github version: " << VERSION << endl
-                   << endl;
-        mainlogout << "number of cells:  " << p->cellnumtot << endl
-                   << endl;
-        mainlogout << "#iteration \t #timestep \t #simtime \t #itertime \t #piter \t #ptime \t #Volume 1 \t #Volume2 \t #Inflow \t #Outflow \t #Ui \t #Phimean \t #Phiout " << endl;
+        if(reefckpt_open(vollogout, "./REEF3D_Log/REEF3D_volumelog.dat", p->I45))
+        {
+
+            vollogout << "#simetime \t #Volume \t" << endl;
+        }
+        else
+            vollogout << setprecision(4);  // as after the first line of the writing run
     }
 
     if(p->mpirank == 0)
     {
-        maxlogout.open("./REEF3D_Log/REEF3D_maxlog.dat");
+        if(reefckpt_open(solvlogout, "./REEF3D_Log/REEF3D_solverlog.dat", p->I45))
+        {
 
-        maxlogout << "number of cells:  " << p->cellnumtot << endl
-                  << endl;
-        maxlogout << "#iteration \t #umax \t\t #vmax \t\t #wmax \t\t #viscmax \t\t #kinmax \t\t #epsmax \t\t #pressmax " << endl;
-    }
-
-    if(p->mpirank == 0)
-    {
-        vollogout.open("./REEF3D_Log/REEF3D_volumelog.dat");
-
-        vollogout << "#simetime \t #Volume \t" << endl;
-    }
-
-    if(p->mpirank == 0)
-    {
-        solvlogout.open("./REEF3D_Log/REEF3D_solverlog.dat");
-
-        solvlogout << "number of cells:  " << p->cellnumtot << endl
-                   << endl;
-        solvlogout << "#iteration \t #itertime \t #totaltime \t |#piter \t #ptime \t| #uiter \t #utime \t| #viter \t #vtime \t| #witer \t #wtime \t|";
-        solvlogout << "#kiter \t #ktime \t| #eiter \t #etime \t|";
-        solvlogout << "#liter \t #ltime \t| #reiniiter \t #reinitime" << endl;
+            maxlogout << "number of cells:  " << p->cellnumtot << endl
+                      << endl;
+            maxlogout << "#iteration \t #umax \t\t #vmax \t\t #wmax \t\t #viscmax \t\t #kinmax \t\t #epsmax \t\t #pressmax " << endl;
+        }
+        else
+            solvlogout << setprecision(4);  // as after the first line of the writing run
     }
 
     // print gage location

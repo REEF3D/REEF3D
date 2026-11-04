@@ -1,0 +1,1 @@
+{"base": "channel_2d_fc3", "ctrl_set": {"N 40": "14"}, "description": "as channel_2d_fc3, N40=14 (loop_cfd_sf + momentum_RKLS3_sf).", "tags": ["diffusion", "laminar", "2d"]}

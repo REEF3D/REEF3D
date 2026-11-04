@@ -43,9 +43,13 @@ void bedshear::taubed(lexer *p, fdm_nhf *d, ghostcell *pgc, sediment_fdm *s)
         s->tau_crit(i, j) = 0.0;
     }
 
+    if(p->S16 == 9)
+        tau_wave_step(p);
+
     SEDSLICELOOP
     {
         k = 0;
+        tau_eff = 0.0;  // unsupported S 16 options: no shear instead of an uninitialised value
 
         if(p->S16 == 1 && p->B22 == 1)
         {
@@ -57,9 +61,9 @@ void bedshear::taubed(lexer *p, fdm_nhf *d, ghostcell *pgc, sediment_fdm *s)
 
             uabs = sqrt(U * U + V * V + W * W);
 
-            u_plus = (1.0 / kappa) * log(30.0 * (dist / s->ks_eff(i, j)));
+            u_plus = uplus(dist, s->ks_eff(i, j));
 
-            tau_eff = density * (uabs * uabs) / pow((u_plus > 0.0 ? u_plus : 1.0e20), 2.0);
+            tau_eff = density * (uabs * uabs) / (u_plus * u_plus);
 
             us = sqrt(tau_eff / density);
 
@@ -67,14 +71,14 @@ void bedshear::taubed(lexer *p, fdm_nhf *d, ghostcell *pgc, sediment_fdm *s)
             {
                 usn = us;
 
-                us = uabs / ((1.0 / kappa) * log(dist * (us > 1.0e-10 ? us : 1.0e-10) / visc) + 5.5);
+                us = uabs / ((1.0 / kappa) * log(MAX(dist * (us > 1.0e-10 ? us : 1.0e-10) / visc, 1.0)) + 5.5);
 
                 us += 0.5 * (usn - us);
             }
             tau_eff = density * us * us;
         }
 
-        if(p->S16 == 1 && p->B22 == 2)
+        if((p->S16 == 1 && p->B22 == 2) || p->S16 == 9)
         {
             U = d->U[IJK];
             V = d->V[IJK];
@@ -84,9 +88,50 @@ void bedshear::taubed(lexer *p, fdm_nhf *d, ghostcell *pgc, sediment_fdm *s)
 
             uabs = sqrt(U * U + V * V + W * W);
 
-            u_plus = (1.0 / kappa) * log(30.0 * (dist / s->ks_eff(i, j)));
+            u_plus = uplus(dist, s->ks_eff(i, j));
 
-            tau_eff = density * (uabs * uabs) / pow((u_plus > 0.0 ? u_plus : 1.0e20), 2.0);
+            tau_eff = density * (uabs * uabs) / (u_plus * u_plus);
+
+            // tau_wave updates the running mean: called once (MAX is a macro)
+            if(p->S16 == 9 && p->S59 < 1)
+            {
+                double tau_w = tau_wave(p, U, V, s->ks_eff(i, j), density);
+                tau_eff = MAX(tau_eff, tau_w);
+            }
+
+            // S 59 1: max(tau_log, Soulsby DATA13), S 59 2: Soulsby DATA13
+            if(p->S16 == 9 && p->S59 >= 1)
+            {
+                double tau_wc = tau_wave_current(p, U, V, s->ks_eff(i, j), density, dist);
+                tau_eff = p->S59 == 1 ? MAX(tau_eff, tau_wc) : tau_wc;
+            }
+        }
+
+        if(p->S16 == 2)
+        {
+            U = d->U[IJK];
+            V = d->V[IJK];
+            W = d->W[IJK];
+
+            dist = 0.5 * p->DZN[KP] * d->WL(i, j);
+
+            uabs = sqrt(U * U + V * V + W * W);
+
+            u_plus = uplus(dist, s->ks_eff(i, j));
+
+            tau_eff = MAX(density * (uabs * uabs) / (u_plus * u_plus), density * (d->KIN != nullptr ? d->KIN[IJK] : 0.0) * 0.3);
+        }
+
+        // S 16 10: the bed shear stress of the CFD S 16 10 and the CPM bedload layer (bedshear::column_tau):
+        // log law at the first cell centre, or S 63 cells above the bed, horizontal velocity, and
+        // max(log law, 0.3 rho k) with k of the first cell; S 16 11: sqrt(log law * 0.3 rho k)
+        if(p->S16 == 10 || p->S16 == 11)
+        {
+            double tx = 0.0, ty = 0.0;
+
+            bedshear::column_tau(p, d, i, j, s->ks_eff(i, j), p->S63, p->S16 == 11 ? 2 : 1, density, tx, ty);
+
+            tau_eff = sqrt(tx * tx + ty * ty);
         }
 
         if(p->S16 == 2)
@@ -104,7 +149,10 @@ void bedshear::taubed(lexer *p, fdm_nhf *d, ghostcell *pgc, sediment_fdm *s)
             tau_eff = MAX(density * (uabs * uabs) / pow((u_plus > 0.0 ? u_plus : 1.0e20), 2.0), density * d->KIN[IJK] * 0.3);
         }
 
-        if(p->S16 == 3)
+        if(p->S16 == 4)
+            tau_eff = density * (d->KIN != nullptr ? d->KIN[IJK] : 0.0) * 0.3;
+
+        if(p->S16 == 6)
         {
             double v_t, v_d;
 
@@ -140,8 +188,10 @@ void bedshear::taubed(lexer *p, fdm_nhf *d, ghostcell *pgc, sediment_fdm *s)
                 wh += p->DZN[KP] * d->WL(i, j);
             }
 
-            U = U / wh;
-            V = V / wh;
+            k = 0;
+
+            U = wh > 1.0e-20 ? U / wh : 0.0;
+            V = wh > 1.0e-20 ? V / wh : 0.0;
 
             u_abs = sqrt(U * U + V * V);
 
@@ -149,7 +199,7 @@ void bedshear::taubed(lexer *p, fdm_nhf *d, ghostcell *pgc, sediment_fdm *s)
             // tau_eff = density*pow(sqrt(9.81)*(u_abs/Cval),2.0);
 
             manning = pow(s->ks(i, j), 1.0 / 6.0) / 20.0;
-            cf = pow(manning, 2.0) / pow(d->WL(i, j), 1.0 / 3.0);
+            cf = pow(manning, 2.0) / pow(MAX(d->WL(i, j), 1.0e-6), 1.0 / 3.0);
 
             // cf = sqrt(9.81)/log(12.0*d->WL(i,j)/(s->ks(i,j)));
 
@@ -167,9 +217,9 @@ void bedshear::taubed(lexer *p, fdm_nhf *d, ghostcell *pgc, sediment_fdm *s)
 
         uabs = sqrt(U * U + V * V + W * W);
 
-        u_plus = (1.0 / kappa) * log(30.0 * (dist / s->ks(i, j)));
+        u_plus = uplus(dist, s->ks(i, j));
 
-        tau_i = density * (uabs * uabs) / pow((u_plus > 0.0 ? u_plus : 1.0e20), 2.0);
+        tau_i = density * (uabs * uabs) / (u_plus * u_plus);
 
         // blend with shallow water
         if(p->S38 == 1 && d->WL(i, j) < p->S39 * p->A544)
@@ -185,10 +235,16 @@ void bedshear::taubed(lexer *p, fdm_nhf *d, ghostcell *pgc, sediment_fdm *s)
                 wh += p->DZN[KP] * d->WL(i, j);
             }
 
+            k = 0;
+
+            U = wh > 1.0e-20 ? U / wh : 0.0;
+            V = wh > 1.0e-20 ? V / wh : 0.0;
+
             U = U / wh;
             V = V / wh;
 
-            u_abs = sqrt(U * U + V * V);
+            manning = pow(s->ks(i, j), 1.0 / 6.0) / 20.0;
+            cf = pow(manning, 2.0) / pow(MAX(d->WL(i, j), 1.0e-6), 1.0 / 3.0);
 
             manning = pow(s->ks(i, j), 1.0 / 6.0) / 20.0;
             cf = pow(manning, 2.0) / pow(d->WL(i, j), 1.0 / 3.0);
@@ -221,8 +277,9 @@ void bedshear::taubed(lexer *p, fdm_nhf *d, ghostcell *pgc, sediment_fdm *s)
 
             // cout<<tau_acc<<endl;
 
-            tau_eff += tau_acc;
-            tau_i += tau_acc;
+            // the inertia term is signed: no negative shear stress (sqrt below)
+            tau_eff = MAX(tau_eff + tau_acc, 0.0);
+            tau_i = MAX(tau_i + tau_acc, 0.0);
         }
 
         s->tau_eff(i, j) = tau_eff;
@@ -247,4 +304,73 @@ void bedshear::taucritbed(lexer *p, fdm_nhf *d, ghostcell *pgc, sediment_fdm *s)
 
     SEDSLICELOOP
     s->MOB(i, j) = s->shields_eff(i, j) / (fabs(s->shields_crit(i, j)) > 1.0e-10 ? s->shields_crit(i, j) : 1.0e10);
+}
+/*--------------------------------------------------------------------
+bed shear stress of a bed column on the NHFLOW sigma grid (S 16 10), the same as bedshear::column_tau of CFD:
+the first cell centre is half a cell above the bed; href > 0 takes the velocity href cells (of the first cell)
+above the bed, at most half the water depth, linear between the cell centres (below the second cell centre
+the first cell, as in CFD); horizontal velocity; k of the first cell
+thin water: z_r at least e k_s/30 (u+ >= 1/kappa, as uplus and the NHFLOW wall drag), no singular shear
+stress when the depth approaches zero; the CFD column has z_r >= half a cell
+--------------------------------------------------------------------*/
+bool bedshear::column_tau(lexer *p, fdm_nhf *d, int i, int j, double ks, double href, int kmode,
+                          double rho, double &tx, double &ty)
+{
+    double wl = d->WL(i, j);
+    int k = 0;
+
+    tx = ty = 0.0;
+    ks = MAX(ks, 1.0e-6);
+
+    if(wl <= 1.0e-20)
+        return false;
+
+    double ur = d->U[IJK];
+    double vr = p->j_dir == 1 ? d->V[IJK] : 0.0;
+    double zr = p->ZP[KP] * wl;
+    double kin = d->KIN != nullptr ? d->KIN[IJK] : 0.0;  // (k = 0 without a turbulence model)
+
+    if(href > 0.0)
+    {
+        double zref = href * p->DZN[KP] * wl;
+
+        zref = MIN(zref, 0.5 * wl);
+        zref = MAX(zref, zr);
+
+        int kr = 0;
+        while(kr + 1 < p->knoz && p->ZP[kr + 1 + marge] * wl <= zref)
+            ++kr;
+
+        if(kr > 0 && kr + 1 < p->knoz)
+        {
+            double z0 = p->ZP[kr + marge] * wl, z1 = p->ZP[kr + 1 + marge] * wl;
+            double f = (zref - z0) / (z1 - z0);
+
+            k = kr;
+            double u0 = d->U[IJK], v0 = p->j_dir == 1 ? d->V[IJK] : 0.0;
+            k = kr + 1;
+            double u1 = d->U[IJK], v1 = p->j_dir == 1 ? d->V[IJK] : 0.0;
+
+            ur = (1.0 - f) * u0 + f * u1;
+            vr = (1.0 - f) * v0 + f * v1;
+            zr = zref;
+        }
+        else if(kr > 0)
+        {
+            k = kr;
+            ur = d->U[IJK];
+            vr = p->j_dir == 1 ? d->V[IJK] : 0.0;
+            zr = p->ZP[KP] * wl;
+        }
+    }
+
+    zr = MAX(zr, 2.718281828459045 * ks / 30.0);
+
+    double um = sqrt(ur * ur + vr * vr);
+    double tau = tau_logk(um, zr, ks, kin, kmode, rho);
+
+    tx = um > 1.0e-12 ? tau * ur / um : 0.0;
+    ty = um > 1.0e-12 ? tau * vr / um : 0.0;
+
+    return true;
 }

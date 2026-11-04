@@ -1,0 +1,10 @@
+{
+ "base": "nhflow_3d_si_mb_lake_at_rest_beach",
+ "description": "nhflow_3d_si_mb_lake_at_rest_beach with the thin-film face depth A 548 2 (the face depth between two wet cells at the higher bed where one of them is thinner than 10 film depths): the lake stays at rest.",
+ "ctrl_add": [
+  "A 548 2"
+ ],
+ "covers": [
+  "face_depth A 548"
+ ]
+}

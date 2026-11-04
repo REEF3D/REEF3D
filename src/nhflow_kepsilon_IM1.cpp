@@ -45,42 +45,65 @@ nhflow_kepsilon_IM1::~nhflow_kepsilon_IM1()
 
 void nhflow_kepsilon_IM1::start(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_scalar_convection *pconvec, nhflow_diffusion *pdiff, solver *psolv, ioflow *pflow, vrans_nhflow *pvrans)
 {
-    Pk_update(p, d, pgc);
-    Pk_b_update(p, d, pgc);
-    wallf_update(p, d, pgc, WALLF);
-    inflow(p, d, pgc);
+    // a multi-block grid steps the model of all blocks as one grid (nhflow_amr::turb_composite0)
+    if(defer && defer(p, d, pgc, pconvec, pdiff, psolv, pflow, pvrans))
+        return;
 
-    // kin
-    starttime = pgc->timer();
-    clearrhs(p, d);
-    pconvec->start(p, d, KIN, 4, d->U, d->V, d->omegaF);
-    pdiff->diff_scalar(p, d, pgc, psolv, KIN, ke_sigma_k, 1.0);
-    kinsource(p, d, pvrans);
-    timesource(p, d, KN);
-    bckepsilon_start(p, d, KIN, EPS, gcval_kin);
-    bckin_matrix(p, d, KIN, EPS);
-    psolv->startV(p, pgc, KIN, d->rhsvec, d->M, 4);
-    if(p->A566 == 1)  // buoyancy sink: keep k >= 0 also against the explicit convection
+    for(int part = 0; part < 3; ++part)
+        start_part(p, d, pgc, pconvec, pdiff, psolv, pflow, pvrans, part);
+}
+
+// the step in three parts: 0 the k system and its solve, 1 the epsilon system and its solve, 2 the eddy viscosity;
+// the solver may only record a system (nhflow_amr, the blocks as one grid), which is then solved between the parts
+void nhflow_kepsilon_IM1::start_part(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_scalar_convection *pconvec, nhflow_diffusion *pdiff, solver *psolv, ioflow *pflow, vrans_nhflow *pvrans, int part)
+{
+    if(part == 0)
+    {
+        Pk_update(p, d, pgc);
+        Pk_b_update(p, d, pgc);
+        wallf_update(p, d, pgc, WALLF);
+        inflow(p, d, pgc);
+        wetting_ini(p, d, KN, EN, false);  // newly wetted columns start from the wet neighbours
+
+        // kin
+        starttime = pgc->timer();
+        clearrhs(p, d);
+        pconvec->start(p, d, KIN, 4, d->U, d->V, d->omegaF);
+        pdiff->diff_scalar(p, d, pgc, psolv, KIN, ke_sigma_k, 1.0);
+        kinsource(p, d, pvrans);
+        timesource(p, d, KN);
+        bckepsilon_start(p, d, KIN, EPS, gcval_kin);
+        bckin_matrix(p, d, KIN, EPS);
+        psolv->startV(p, pgc, KIN, d->rhsvec, d->M, 4);
+        return;
+    }
+
+    if(part == 1)
+    {
+        // k >= 0 also against the explicit convection (was only with the buoyancy sink A 566 1)
         LOOP
             KIN[IJK] = MAX(KIN[IJK], 0.0);
-    pgc->start20V(p, KIN, gcval_kin);
-    kinupdate(p, d, pgc);
-    p->kintime = pgc->timer() - starttime;
-    p->kiniter = p->solveriter;
-    if(p->mpirank == 0 && (p->count % p->P12 == 0))
-        cout << "kin_iter: " << p->kiniter << "  kin_time: " << setprecision(3) << p->kintime << endl;
+        pgc->start20V(p, KIN, gcval_kin);
+        p->kintime = pgc->timer() - starttime;
+        p->kiniter = p->solveriter;
+        if(p->mpirank == 0 && (p->count % p->P12 == 0))
+            cout << "kin_iter: " << p->kiniter << "  kin_time: " << setprecision(3) << p->kintime << endl;
 
-    // omega
-    starttime = pgc->timer();
-    clearrhs(p, d);
-    pconvec->start(p, d, EPS, 4, d->U, d->V, d->omegaF);
-    pdiff->diff_scalar(p, d, pgc, psolv, EPS, ke_sigma_e, 1.0);
-    epssource(p, d, pvrans);
-    timesource(p, d, EN);
-    bcepsilon_matrix(p, d, KIN, EPS);
-    bckepsilon_start(p, d, KIN, EPS, gcval_eps);  // wall-function epsilon, must act on M/rhs before the solve
-    psolv->startV(p, pgc, EPS, d->rhsvec, d->M, 4);
+        // omega
+        starttime = pgc->timer();
+        clearrhs(p, d);
+        pconvec->start(p, d, EPS, 4, d->U, d->V, d->omegaF);
+        pdiff->diff_scalar(p, d, pgc, psolv, EPS, ke_sigma_e, 1.0);
+        epssource(p, d, pvrans);
+        timesource(p, d, EN);
+        bcepsilon_matrix(p, d, KIN, EPS);
+        bckepsilon_start(p, d, KIN, EPS, gcval_eps);  // wall-function epsilon, must act on M/rhs before the solve
+        psolv->startV(p, pgc, EPS, d->rhsvec, d->M, 4);
+        return;
+    }
+
     epsfsf(p, d, pgc);
+    length_limit(p, d, false);  // l <= kappa h (A 564 >= 1)
     pgc->start30V(p, EPS, gcval_eps);
     p->epstime = pgc->timer() - starttime;
     p->epsiter = p->solveriter;
@@ -88,10 +111,21 @@ void nhflow_kepsilon_IM1::start(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_sca
         cout << "epsilon_iter: " << p->epsiter << "  epsilon_time: " << setprecision(3) << p->epstime << endl;
 
     eddyvisc(p, d, pgc, pvrans);
+    // relaxation zones: k, eps and both eddy viscosities with the same factor (nu_t = cmu k^2/eps scales with it),
+    // then d->KIN (was copied before the relaxation)
     pflow->turb_relax_nhflow(p, d, pgc, KIN);
+    pflow->turb_relax_nhflow(p, d, pgc, EPS);
     pflow->turb_relax_nhflow(p, d, pgc, d->EV);
+    pflow->turb_relax_nhflow(p, d, pgc, d->EV0);
+    pgc->start20V(p, KIN, gcval_kin);
+    pgc->start30V(p, EPS, gcval_eps);
+    kinupdate(p, d, pgc);
     pgc->start24V(p, d->EV, 24);
     pgc->start24V(p, d->EV0, 24);
+
+    // HLES split (A 561) and QCR (A 563) from the final nu_t
+    hles_update(p, d, pgc);
+    qcr_update(p, d, pgc);
 }
 
 void nhflow_kepsilon_IM1::ktimesave(lexer *p, fdm_nhf *d, ghostcell *pgc)

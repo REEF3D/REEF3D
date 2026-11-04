@@ -1,0 +1,6 @@
+{
+ "description": "3D dam break periodic in x and y (C 21 1, C 22 1) with a box obstacle, 4 MPI ranks (DIVEMesh splits x only: x periodic across ranks, y periodic on one rank). Default Poisson solver REEFMG: wraparound halo exchange (across ranks and onto the own rank).",
+ "np": 4, "steps": 40,
+ "tags": ["3d", "dambreak", "mpi", "periodic", "solver"],
+ "covers": ["REEFMG periodic x/y", "periodic ghost cells 3D", "solid obstacle"]
+}

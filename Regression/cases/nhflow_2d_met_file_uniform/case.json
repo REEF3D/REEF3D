@@ -1,0 +1,22 @@
+{
+ "base": "nhflow_2d_nwt_stokes5",
+ "description": "Met forcing W 200 2 on NHFLOW Stokes waves from a met file with a uniform series (nx = ny = 1, tools/met_forcing.py uniform: 15 m/s along x, 101325 Pa, two records): bitwise nhflow_2d_met_uniform and nhflow_2d_wind_a573_1.",
+ "ctrl_add": [
+  "W 200 2"
+ ],
+ "files": [
+  "met-forcing.r3m"
+ ],
+ "tags": [
+  "quick",
+  "2d",
+  "nhflow",
+  "wind",
+  "met"
+ ],
+ "covers": [
+  "met_file (uniform series)",
+  "met_source_file",
+  "model time 0 at the first record"
+ ]
+}

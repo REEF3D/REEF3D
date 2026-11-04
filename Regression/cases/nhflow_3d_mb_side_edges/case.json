@@ -1,0 +1,23 @@
+{
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 200,
+ "files": [
+  "blocks.dat"
+ ],
+ "tags": [
+  "3d",
+  "nhflow",
+  "curvilinear",
+  "multiblock",
+  "tide",
+  "quick"
+ ],
+ "description": "Edge zones along the side of a multi-block channel (hydrostatic): a Riemann edge with a 5 mm tide at x = 0 (+i face of block 1) and Flather edges along y = 0 over the whole length: the native y- edge of block 0 (B 520 on block 0, B 90 1) and B 522 zones on the +j faces of blocks 1 and 2 (block 1 keeps two open faces that are not opposite: the -j edge of a block, the corner of two open edges with a ghost depth per face); one block to 4e-16 m after 4 s (validation/13_j_face_zones).",
+ "covers": [
+  "ioflow_amr_block: edges on the j faces (side codes 3, 2), edge_h per face",
+  "reefamr::build_bc2D: j sides of a block",
+  "lexer origin_j / gknoy of a block for the y edges (gc_startV, nhflow_curv)",
+  "geo_mesh::turn_blocks, two passes"
+ ]
+}

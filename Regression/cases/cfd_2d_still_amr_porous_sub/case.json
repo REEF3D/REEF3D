@@ -1,0 +1,6 @@
+{"base": "cfd_2d_dambreak", "np": 1, "steps": 40,
+ "ctrl_set": {"F 54": "1.0"},
+ "ctrl_add": ["G 1 1", "G 7 1", "G 15 0.0 0.3 0.0 1.0 0.0 0.5", "B 270 0.2 0.5 0.0 1.0 0.0 0.4 0.45 0.05 500.0 2.0"],
+ "description": "CFD mesh refinement with subcycling: still water with a porous box across the patch edge and the free surface (at rest the porous faces at the patch edge keep the hydrostatic balance).",
+ "tags": ["quick", "2d", "levelset", "vrans", "amr"],
+ "covers": ["cfd_amr: CPOR n at the faces of the patch edges, the gravity of the coarse face with its porosity factor"]}

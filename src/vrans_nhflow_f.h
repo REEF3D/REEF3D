@@ -50,16 +50,41 @@ public:
 
     void force_calc(lexer *, fdm_nhf *, ghostcell *, double, int) override final;
 
+    void initialize(lexer *, fdm_nhf *, ghostcell *) override final;
+    void update(lexer *, fdm_nhf *, ghostcell *, double, int) override final;
+
+    void u_source(lexer *, fdm_nhf *, slice &) override final;
+    void v_source(lexer *, fdm_nhf *, slice &) override final;
+    void w_source(lexer *, fdm_nhf *, slice &) override final;
+
+    void implicit_drag(lexer *, fdm_nhf *, double *, double, int) override final;
+
+    void ke_source(lexer *, fdm_nhf *, double *, double *) override final;
+    void kw_source(lexer *, fdm_nhf *, double *, double *) override final;
+    void eps_source(lexer *, fdm_nhf *, double *, double *) override final;
+    void omega_source(lexer *, fdm_nhf *, double *, double *, double) override final;
+
+    void eddyv_func(lexer *, fdm_nhf *) override final;
+
+    void force_calc(lexer *, fdm_nhf *, ghostcell *, double, int) override final;
+
 private:
     void print_force_ini(lexer *, fdm_nhf *, ghostcell *);
     void print_force(lexer *, fdm_nhf *, ghostcell *);
 
     double Hporface(lexer *, fdm_nhf *, int, int, int);
+    double porpsi(lexer *, fdm_nhf *);
+    void por_surface(lexer *, fdm_nhf *, ghostcell *);
     void porous_coeff(lexer *, fdm_nhf *);
+    void layer_prop(lexer *, fdm_nhf *);
     void turb_inf(lexer *, fdm_nhf *, double &, double &);
 
     double *UN, *VN, *WN;
     double *P;
+
+    // porous layers (B 202): depth below the exposed surface, layered n, d50, alpha, beta
+    double *LDEP, *LN, *LD50, *LALPHA, *LBETA;
+    vector<double> layer_T;
 
     ofstream fout;
     char name[100];

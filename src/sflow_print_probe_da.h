@@ -23,9 +23,10 @@ Author: Hans Bihs
 #ifndef SFLOW_PRINT_PROBE_DA_H_
 #define SFLOW_PRINT_PROBE_DA_H_
 
-#include"boundarycheck.h"
-#include<iostream>
-#include<fstream>
+#include "amr_grid_lookup.h"
+#include "boundarycheck.h"
+#include <fstream>
+#include <iostream>
 
 class lexer;
 class fdm2D;
@@ -38,24 +39,24 @@ using namespace std;
 class sflow_print_probe_da : public boundarycheck
 {
 public:
-    sflow_print_probe_da(lexer*,fdm2D*,ghostcell*);
-	virtual ~sflow_print_probe_da();
+    // the mesh refinement: the points read the finest grid (amr_grid_lookup.h), nullptr: level 0
+    const amr_column_lookup *amr = nullptr;
 
-	void start(lexer*, fdm2D*, ghostcell*);
+    sflow_print_probe_da(lexer *, fdm2D *, ghostcell *);
+    virtual ~sflow_print_probe_da();
 
+    void start(lexer *, fdm2D *, ghostcell *);
 
 private:
-    void ini_location(lexer*, fdm2D*, ghostcell*);
-    void write(lexer*, fdm2D*, ghostcell*);
-	char name[100];
+    void ini_location(lexer *, fdm2D *, ghostcell *);
+    char name[100];
 
-    int *iloc,*jloc,*flag;
-    int n,q;
-	const int probenum;
+    int *iloc, *jloc, *flag;
+    int n, q;
+    const int probenum;
     ofstream *pout;
-	
-	double uval,vval,wval,pval,eval;
 
+    double uval, vval, wval, pval, eval;
 };
 
 #endif

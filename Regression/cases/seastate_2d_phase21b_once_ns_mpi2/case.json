@@ -1,0 +1,18 @@
+{
+ "base": "seastate_2d_windsea_mpi2",
+ "ctrl_add": [
+  "A 767 1"
+ ],
+ "np": 2,
+ "description": "as seastate_2d_windsea_mpi2 (2 ranks, pipelined sweeps) with A 767 1 (Phase 21b): the kept terms per rank, the result of seastate_2d_phase21b_once_ns (one rank), bitwise.",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate",
+  "mpi"
+ ],
+ "covers": [
+  "A 767 1 with the pipelined sweeps across the ranks"
+ ],
+ "same_as": "seastate_2d_phase21b_once_ns"
+}

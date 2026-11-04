@@ -1,0 +1,8 @@
+{
+ "base": "fnpf_2d_irregular_2nd_b_twoband",
+ "ctrl_add": ["B 532 1", "B 531 1"],
+ "steps": 2400,
+ "description": "fnpf_2d_irregular_2nd_b_twoband with the beach relative to the wave theory (B 532 1) and the mean of B 531: the two-band beach absorbs the deviation from the 2nd-order waves at x+ (surface, velocity per level), started at x / c_g; 2400 steps so that the waves reach the beach.",
+ "tags": ["2d", "fnpf", "iowave", "waves", "irregular", "2nd_order", "twoband", "setdown"],
+ "covers": ["B 532 1 (FNPF active beach)", "iowave::ramp_beach", "B 531 with B 532"]
+}

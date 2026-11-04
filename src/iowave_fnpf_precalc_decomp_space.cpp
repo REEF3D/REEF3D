@@ -20,70 +20,70 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"iowave.h"
-#include"lexer.h"
-#include"ghostcell.h"
+#include "ghostcell.h"
+#include "iowave.h"
+#include "lexer.h"
 
 void iowave::wavegen_precalc_decomp_space_fnpf(lexer *p, ghostcell *pgc)
 {
     double fsfloc;
     int qn;
 
-
     // pre-calc every iteration
-    count=0;
+    count = 0;
     SLICELOOP4
     {
         xg = xgen(p);
         yg = ygen(p);
-		dg = distgen(p);
-		db = distbeach(p);
-		
-		// Wave Generation
-        if(p->B98==2 && h_switch==1)
+        dg = distgen(p);
+        db = distbeach(p);
+
+        // Wave Generation
+        if(p->B98 == 2 && h_switch == 1)
         {
             // Zone 1
-            if(dg<1.0e20)
+            if(dg < 1.0e20)
             {
-                for(qn=0;qn<wave_comp;++qn)
+                select_zone_at(p);  // zone sources (B 524)
+                for(qn = 0; qn < wave_comp; ++qn)
                 {
-                etaval_S_sin[count][qn] = wave_eta_space_sin(p,pgc,xg,yg,qn);
-                etaval_S_cos[count][qn] = wave_eta_space_cos(p,pgc,xg,yg,qn);
+                    etaval_S_sin[count][qn] = wave_eta_space_sin(p, pgc, xg, yg, qn);
+                    etaval_S_cos[count][qn] = wave_eta_space_cos(p, pgc, xg, yg, qn);
                 }
-            ++count;
+                ++count;
             }
-		}
+        }
     }
-    pgc->gcsl_start4(p,eta,50);
-        
-    
+    pgc->gcsl_start4(p, eta, 50);
+
     // Fifsf
-    count=0;
+    count = 0;
     SLICELOOP4
     {
         xg = xgen(p);
         yg = ygen(p);
-		dg = distgen(p);
-		db = distbeach(p);
-        
-        z = eta(i,j);
-		
-		// Wave Generation
-        if(p->B98==2 && f_switch==1)
+        dg = distgen(p);
+        db = distbeach(p);
+
+        z = eta(i, j);
+
+        // Wave Generation
+        if(p->B98 == 2 && f_switch == 1)
         {
             // Zone 1
-            if(dg<1.0e20)
+            if(dg < 1.0e20)
             {
-                for(qn=0;qn<wave_comp;++qn)
+                select_zone_at(p);  // zone sources (B 524)
+                for(qn = 0; qn < wave_comp; ++qn)
                 {
-                Fifsfval_S_sin[count][qn] = wave_fi_space_sin(p,pgc,xg,yg,z,qn);
-                Fifsfval_S_cos[count][qn] = wave_fi_space_cos(p,pgc,xg,yg,z,qn);
+                    Fifsfval_S_sin[count][qn] = wave_fi_space_sin(p, pgc, xg, yg, z, qn);
+                    Fifsfval_S_cos[count][qn] = wave_fi_space_cos(p, pgc, xg, yg, z, qn);
                 }
-            ++count;
+                ++count;
             }
-		}
+        }
     }
 
-
-
+    if(zones.has_sources())
+        select_sources(nullptr);
 }

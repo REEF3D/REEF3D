@@ -1,0 +1,18 @@
+{
+ "description": "FNPF AMR towed floating body (X 10 1, X 210): the refinement zone (G 12) follows the body, a regrid every 4 steps (G 2).",
+ "solver": "fnpf",
+ "np": 1,
+ "steps": 12,
+ "tags": [
+  "3d",
+  "fnpf",
+  "amr",
+  "6dof"
+ ],
+ "covers": [
+  "fnpf_amr regrid_state, fnpf_6DOF body grids and loads on the patches"
+ ],
+ "files": [
+  "floating.stl"
+ ]
+}

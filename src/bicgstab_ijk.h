@@ -26,6 +26,8 @@ Author: Hans Bihs
 #include "increment.h"
 #include "solver.h"
 
+#include <vector>
+
 using namespace std;
 
 class bicgstab_ijk final : public solver, public increment
@@ -58,6 +60,9 @@ public:
 
 private:
     double *sj, *rj, *r0, *vj, *tj, *pj, *ph, *sh, *x, *rhs, *aii;
+
+    double *sj, *rj, *r0, *vj, *tj, *pj, *ph, *sh, *x, *rhs, *aii;
+    std::vector<unsigned long long> ckids;  // checkpoints (ckpt_registry.h)
 
     int *sizeM, *range;
 

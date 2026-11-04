@@ -1,0 +1,9 @@
+# REEF3D::CORAL model of the FNPF box (fnpf_2d_6dof_box) as fnpf_2d_coral_fluid_body, with drive-train
+# losses in the PTO: loss damper c_loss and loss Coulomb friction coulomb_loss (not absorbed power).
+# Architect: Hans Bihs
+time dt 0.005 end 100
+output dt 0.01 file box.dat
+body box mass 1.0 cog 6.0 0.025 0.53
+joint heave prismatic ground box point 6.0 0.025 0.53 axis 0 0 1
+pto pto joint heave c 30 c_loss 15 coulomb_loss 0.02 v_eps 0.005 stops -0.032 0.005 2.0e5 0
+fluid_body box

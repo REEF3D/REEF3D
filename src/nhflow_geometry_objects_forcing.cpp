@@ -91,10 +91,10 @@ void nhflow_geometry::objects_create_forcing(lexer *p, ghostcell *pgc)
         ++entity_count;
     }
 
-    if(p->mpirank == 0)
+    if(p->mpirank == 0 && !amr_grid)
         print_vtp(p, 1);
 
-    if(p->mpirank == 0)
+    if(p->mpirank == 0 && !amr_grid)
         cout << "Surface triangles: " << tricount << endl;
 }
 
@@ -237,7 +237,7 @@ void nhflow_geometry::objects_allocate_forcing(lexer *p, ghostcell *pgc)
     {
         r = p->A586_r[n];
         U = 2.0 * PI * r;
-        ds = 0.85 * (DSM);
+        ds = 0.5 * (DSM);  // as nhflow_geometry::sphere (geo_primitive::segments with 0.5*DSM)
         snum = MAX(int(U / ds), 40);
         trisum += snum * snum * 2;
 

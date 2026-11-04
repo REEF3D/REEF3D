@@ -1,0 +1,1 @@
+{"description": "CFD 2D channel with a discharge inflow patch (B 441, B 411) on the x- wall instead of B 60, k-omega: IO flags at the patch faces (ioflow_f::gcio_update), turbulence zero gradient at the patch.", "solver": "cfd", "np": 1, "steps": 200, "tags": ["2d", "patchBC", "turbulence"], "covers": ["ioflow_f::gcio_update pBC IO", "komega_bc inflow faces"]}

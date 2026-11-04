@@ -1,0 +1,9 @@
+{
+ "solver": "fnpf",
+ "np": 2,
+ "steps": 120,
+ "files": ["waverecon.dat"],
+ "description": "FNPF 3D basin, wave reconstruction (B 92 51) from a waverecon.dat with a fourth column (direction in degrees): two components at 0 and 25 deg, generation zones on x- and y- (B 520/521), beaches on x+ and y+.",
+ "tags": ["quick", "3d", "fnpf", "waves", "iowave", "bc_zone", "irregular", "mpi"],
+ "covers": ["waverecon.dat with directions (recon_read, recon_dir)", "B 130 switched on by directional recon input"]
+}

@@ -1,0 +1,8 @@
+{
+ "base": "cfd_2d_nwt",
+ "ctrl_set": {"B 92": "32"},
+ "ctrl_add": ["B 85 2", "B 86 32", "B 87 0.6 3.0", "B 88 3.3", "B 139 16000"],
+ "description": "CFD 2D flume, 2nd-order irregular waves A (B 92 32, JONSWAP, 32 components) in the relaxation zone with B 89 0: cached-point evaluation of the pair terms at the cell centre, u and v points of the zone columns.",
+ "tags": ["quick", "2d", "cfd", "waves", "iowave", "irregular"],
+ "covers": ["wave_lib_irregular_2nd_terms::kin from the CFD precalc (u and w, 2D)"]
+}

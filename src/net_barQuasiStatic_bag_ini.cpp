@@ -24,6 +24,7 @@ Author: Tobias Martin
 #include "ghostcell.h"
 #include "lexer.h"
 #include "net_barQuasiStatic.h"
+#include "reefckpt.h"
 #include <sys/stat.h>
 
 void net_barQuasiStatic::bag_ini(lexer *p, ghostcell *pgc)
@@ -49,28 +50,6 @@ void net_barQuasiStatic::bag_ini(lexer *p, ghostcell *pgc)
     phi = 0.0;
     theta = 0 * PI / 180;
     psi = 0.0;
-
-    /*
-        // Net wall in waves
-        L = 1.0;        // length of net in y-direction
-        D = 1.0;        // length of net in x-direction
-
-        nd = 8;          // number of meshes in x-direction
-        nl = 8;          // number of meshes in y-direction
-
-        al = 0.13;     	// length of mesh in [m]
-        EA = 1e9;       // Elasticity
-        d_c = 0.002;    // diameter
-        rho_c = 1100;    // density material
-        w = 0.007;       // weight per meter in air
-
-        origin_x = 1.0;
-        origin_y = 0.75;
-        origin_z = 1.2;
-        phi = 0.0;
-        theta = 0*PI/180;
-        psi = 0.0;
-     */
 
     if(2 * nd * al < (D / sin(atan(D / L))))
     {
@@ -151,8 +130,10 @@ void net_barQuasiStatic::bag_ini(lexer *p, ghostcell *pgc)
         if(p->A10 == 6)
             sprintf(str, "./REEF3D_CFD_6DOF_Net/REEF3D_6DOF_net_max_force_%i.dat", nNet);
 
-        eTout.open(str);
-        eTout << "time \t Tmax \t Fx \t Fy \t Fz" << endl;
+        if(reefckpt_open(eTout, str, p->I45))  // I 45: continued from the checkpoint
+        {
+            eTout << "time \t Tmax \t Fx \t Fy \t Fz" << endl;
+        }
     }
     printtime = 0.0;
 

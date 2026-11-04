@@ -1,0 +1,19 @@
+{
+ "description": "nhflow_3d_amr_waves_mpi2 with three levels (G 1 2), one step for all levels: nested static patches split at the partition edge.",
+ "solver": "nhflow",
+ "np": 2,
+ "steps": 20,
+ "tags": [
+  "3d",
+  "nhflow",
+  "amr",
+  "mpi"
+ ],
+ "covers": [
+  "nhflow_amr with three levels: nested fills, restriction and the composite pressure over three levels"
+ ],
+ "base": "nhflow_3d_amr_waves_mpi2",
+ "ctrl_add": [
+  "G 1 2"
+ ]
+}

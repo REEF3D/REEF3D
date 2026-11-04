@@ -1,0 +1,21 @@
+{
+ "description": "As cfd_2d_bedshear_s16_7 with S 16 1 and the initial bed S 57 0.005 exactly at a cell-centre height (topo = 0 in the cell centres of the bed cells). Before the solid forcing fix these cells were forced to zero velocity (phi <= 0) but counted as fluid by DF/flagsf (topo < 0 solid): the wall law went to the forced cell and the flow was strongly retarded (tau_b 0.04 of rho g S h).",
+ "solver": "cfd",
+ "np": 1,
+ "steps": 300,
+ "tags": [
+  "quick",
+  "2d",
+  "cfd",
+  "sediment",
+  "periodic",
+  "singlephase",
+  "solid_forcing"
+ ],
+ "covers": [
+  "gc_solid_forcing phi = 0 faces (normal-only forcing)",
+  "bedshear_cfd S 16 1",
+  "sediment ini with topo = 0 at cell centres"
+ ],
+ "architect": "Hans Bihs"
+}

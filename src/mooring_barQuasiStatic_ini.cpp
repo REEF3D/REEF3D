@@ -24,6 +24,7 @@ Author: Tobias Martin
 #include "ghostcell.h"
 #include "lexer.h"
 #include "mooring_barQuasiStatic.h"
+#include "reefckpt.h"
 #include <sys/stat.h>
 
 void mooring_barQuasiStatic::initialize(lexer *p, ghostcell *pgc)
@@ -44,11 +45,27 @@ void mooring_barQuasiStatic::initialize(lexer *p, ghostcell *pgc)
 
     vector<double> three(3, 0);
 
-    l0.resize(sigma + 1, 0);
-    l.resize(sigma + 1, 0);
-    A.resize(sigma + 1, l);
-    f.resize(sigma + 1, three);
-    B.resize(sigma + 1, three);
+    if(p->mpirank == 0)
+    {
+        char str[1000];
+
+        sprintf(str, "%s/REEF3D_6DOF_mooring_force_%i.dat", sixdof_output_dir(p), line);
+
+        if(reefckpt_open(eTout, str, p->I45))  // I 45: continued
+            eTout << "time \t T" << endl;
+    }
+    printtime = 0.0;
+
+    // Initial element lengths
+    l[0] = 0.0;
+    l0[0] = 0.0;
+    for(int j = 0; j < sigma; j++)
+    {
+        l[j + 1] = p->X311_l[line] / sigma;
+        l0[j + 1] = l[j + 1];
+    }
+
+    // Filling system matrix A
 
     R.resize(sigma + 1, three);
     v.resize(sigma + 2, three);
@@ -117,5 +134,7 @@ void mooring_barQuasiStatic::initialize(lexer *p, ghostcell *pgc)
     breakTension = p->X314 > 0 ? p->X314_T[line] : 0.0;
     breakTime = p->X315 > 0 ? p->X315_t[line] : 0.0;
 
-    print(p, pgc);
+    // the first output (not on a restart from a checkpoint, I 45 1: printed already)
+    if(p->I45 != 1)
+        print(p, pgc);
 }

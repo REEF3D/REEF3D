@@ -1,0 +1,22 @@
+{
+ "base": "cfd_2d_nwt_amr_porous",
+ "np": 2,
+ "ctrl_add": [
+  "G 40 1"
+ ],
+ "description": "Waves through a porous box inside a refined box (k-omega) with the placement (G 40 1) on 2 ranks: the porosity of the shadows, the turbulence fields in the fills.",
+ "tags": [
+  "quick",
+  "2d",
+  "waves",
+  "turbulence",
+  "vrans",
+  "amr",
+  "mpi",
+  "place"
+ ],
+ "covers": [
+  "the porosity down into the shadows",
+  "kin, eps through the shadows"
+ ]
+}

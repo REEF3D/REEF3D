@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include "ghostcell.h"
 #include "lexer.h"
 #include "net_membrane.h"
+#include "nhflow_thinbody.h"
 #include <cstdio>
 #include <fstream>
 #include <iomanip>
@@ -62,6 +63,9 @@ void net_membrane::print_timeseries(lexer *p, fdm_nhf *d, ghostcell *pgc)
     umax = pgc->globalmax(umax);
     vol = pgc->globalsum(vol);
 
+    // mobility sharp: water on the inner side of the membrane
+    const double vin = (prm.link == 2 && tb_ != nullptr) ? tb_->inner_volume(p, d) : 0.0;
+
     if(p->mpirank == 0)
     {
         const double etain = ain > 0.0 ? ein / ain : 0.0;
@@ -84,6 +88,9 @@ void net_membrane::print_timeseries(lexer *p, fdm_nhf *d, ghostcell *pgc)
         // strong coupling: iterations of the time step (all stages), largest relative residual at the end of a stage
         if(iterated())
             ts << " " << citstep_ << " " << cres_;
+
+        if(prm.link == 2)
+            ts << " " << vin;
 
         if(collar())
         {

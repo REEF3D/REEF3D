@@ -1,0 +1,18 @@
+{
+ "np": 2,
+ "steps": 30,
+ "tags": [
+  "3d",
+  "nhflow",
+  "curvilinear",
+  "mpi"
+ ],
+ "description": "NHFLOW on a curvilinear grid turned by 30 deg at UTM coordinates, two ranks: a water box released in a closed basin (F 72 in physical coordinates).",
+ "covers": [
+  "nhflow_curv on two ranks (geometry halo, chain-rule gradients across the partition)"
+ ],
+ "solver": "nhflow",
+ "files": [
+  "curvgrid.dat"
+ ]
+}

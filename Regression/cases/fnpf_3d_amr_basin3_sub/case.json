@@ -1,0 +1,21 @@
+{
+ "description": "fnpf_3d_amr_basin with three levels (G 1 2) and subcycling (G 7 1): a level between two levels, the window preconditioner through the scratch level.",
+ "solver": "fnpf",
+ "np": 1,
+ "steps": 15,
+ "tags": [
+  "3d",
+  "fnpf",
+  "amr",
+  "waves",
+  "subcycling"
+ ],
+ "covers": [
+  "fnpf_amr_sub with three levels"
+ ],
+ "base": "fnpf_3d_amr_basin",
+ "ctrl_add": [
+  "G 1 2",
+  "G 7 1"
+ ]
+}

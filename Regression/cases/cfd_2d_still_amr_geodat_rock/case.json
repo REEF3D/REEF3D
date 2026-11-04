@@ -1,0 +1,18 @@
+{
+ "base": "cfd_2d_still_amr_geodat",
+ "control_add": [
+  "T 10 1.12 1.20 0.0 0.02 0.0 0.16"
+ ],
+ "description": "cfd_2d_still_amr_geodat with a block half buried in the hump (T 10, a topography entity): the topography is the union of the entity and the geodat bed on the patches (the minimum of both distances), as on level 0.",
+ "tags": [
+  "quick",
+  "2d",
+  "levelset",
+  "amr",
+  "topo",
+  "geodat"
+ ],
+ "covers": [
+  "cfd_amr::patch_geometry: entities and geodat bed of the same role (the union)"
+ ]
+}

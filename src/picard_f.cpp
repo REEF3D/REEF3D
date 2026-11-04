@@ -23,9 +23,11 @@ Author: Hans Bihs
 #include "picard_f.h"
 #include "fdm.h"
 #include "ghostcell.h"
+#include "heaviside.h"
+#include "interface_width.h"
 #include "lexer.h"
 
-picard_f::picard_f(lexer *p) : gradient(p), epsi(p->F45 * p->DXM), vol1(0.0), vol2(0.0)
+picard_f::picard_f(lexer *p) : gradient(p), vol1(0.0), vol2(0.0), dvol2(0.0)
 {
 }
 
@@ -40,16 +42,9 @@ void picard_f::volcalc(lexer *p, fdm *a, ghostcell *pgc, field &b)
 
     LOOP
     {
-        if(b(i, j, k) > epsi)
-            H = 1.0;
+        H = heaviside(b(i, j, k), interface_width(p, b, i, j, k));
 
-        if(b(i, j, k) < -epsi)
-            H = 0.0;
-
-        if(fabs(b(i, j, k)) <= epsi)
-            H = 0.5 * (1.0 + b(i, j, k) / epsi + (1.0 / PI) * sin((PI * b(i, j, k)) / epsi));
-
-        vol1 += pow(p->DXM, 3.0) * H;
+        vol1 += p->DXN[IP] * p->DYN[JP] * p->DZN[KP] * H;
     }
 
     vol1 = pgc->globalsum(vol1);
@@ -57,56 +52,48 @@ void picard_f::volcalc(lexer *p, fdm *a, ghostcell *pgc, field &b)
 
 void picard_f::volcalc2(lexer *p, fdm *a, ghostcell *pgc, field &b)
 {
-    double H = 0.0;
+    // volume and its derivative with respect to a uniform shift of the level set,
+    // dV/dw = sum delta(phi) dV (the interface area for a signed distance)
+    double V = 0.0;
     vol2 = 0.0;
+    dvol2 = 0.0;
 
     LOOP
     {
-        if(b(i, j, k) > epsi)
-            H = 1.0;
+        V = p->DXN[IP] * p->DYN[JP] * p->DZN[KP];
 
-        if(b(i, j, k) < -epsi)
-            H = 0.0;
+        double epsi = interface_width(p, b, i, j, k);
 
-        if(fabs(b(i, j, k)) <= epsi)
-            H = 0.5 * (1.0 + b(i, j, k) / epsi + (1.0 / PI) * sin((PI * b(i, j, k)) / epsi));
-
-        vol2 += pow(p->DXM, 3.0) * H;
+        vol2 += V * heaviside(b(i, j, k), epsi);
+        dvol2 += V * heaviside_delta(b(i, j, k), epsi);
     }
+
+    vol2 = pgc->globalsum(vol2);
+    dvol2 = pgc->globalsum(dvol2);
 
     vol2 = pgc->globalsum(vol2);
 }
 
 void picard_f::correct_ls(lexer *p, fdm *a, ghostcell *pgc, field &b)
 {
-    double r1, r2;
     double w;
-    double starttime, endtime;
-
-    starttime = pgc->timer();
 
     // no reference volume yet (volcalc not called)
     if(vol1 <= 0.0)
         return;
 
+    // Newton iterations for a uniform shift w of the level set that restores the
+    // reference volume: w = (V_ref - V) / (dV/dw)
     for(int n = 0; n < p->F47; ++n)
     {
-
         volcalc2(p, a, pgc, b);
 
-        r1 = pow((0.75 / PI) * vol1, 1.0 / 3.0);
-        r2 = pow((0.75 / PI) * vol2, 1.0 / 3.0);
+        if(dvol2 <= 1.0e-20)
+            break;
 
-        w = r1 - r2;
-
-        // if(p->mpirank==0 &&(n==0||n==p->46-1))
-        // cout<<"PICARD: "<<vol1<<" "<<vol2<<" "<<r1<<" "<<r2<<" "<<w<<endl;
+        w = (vol1 - vol2) / dvol2;
 
         LOOP
-            b(i, j, k) += w;  // *(vol1-vol2);
+            b(i, j, k) += w;
     }
-    endtime = pgc->timer();
-
-    // if(p->mpirank==0)
-    // cout<<"PICARD TIME: "<<endtime-starttime<<endl;
 }

@@ -1,0 +1,20 @@
+{
+ "base": "cfd_2d_dambreak_amr4_adapt",
+ "np": 1,
+ "steps": 3,
+ "ctrl_add": [
+  "G 7 1"
+ ],
+ "description": "cfd_2d_dambreak_amr4_adapt with subcycling (G 7 1): the level projections of a level with patches in no joint multigrid, their overlap on one rank (patch 0069).",
+ "tags": [
+  "2d",
+  "dambreak",
+  "levelset",
+  "amr",
+  "subcycling"
+ ],
+ "covers": [
+  "cfd_amr pr_overlap on one rank (the sides between patches in no joint multigrid)",
+  "pr_sync_project with four levels"
+ ]
+}

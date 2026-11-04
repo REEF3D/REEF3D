@@ -39,19 +39,33 @@ using namespace std;
 class sixdof_motionext_file_CoG final : public sixdof_motionext
 {
 public:
+    void ckpt_state(std::vector<double> &v) const override
+    {
+        for(double x : {double(timecount), double(timecount_old), Uext, Vext, Wext, Pext, Qext, Rext})
+            v.push_back(x);
+    }
+    void ckpt_restore(const std::vector<double> &v, size_t &k) override
+    {
+        if(k + 8 > v.size())
+            return;
+        timecount = int(v[k++]);
+        timecount_old = int(v[k++]);
+        Uext = v[k++];
+        Vext = v[k++];
+        Wext = v[k++];
+        Pext = v[k++];
+        Qext = v[k++];
+        Rext = v[k++];
+    }
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
-
-    void motionext_trans(lexer *, ghostcell *, Eigen::Vector3d &, Eigen::Vector3d &) override final;
-    void motionext_rot(lexer *, Eigen::Vector3d &, Eigen::Vector3d &, Eigen::Vector4d &, Eigen::Matrix<double, 3, 4> &, Eigen::Matrix3d &) override final;
 
     void ini(lexer *, ghostcell *) override final;
 
-    sixdof_motionext_file_CoG(lexer *, ghostcell *);
+    sixdof_motionext_file_CoG(lexer *, ghostcell *, int = 0);
     virtual ~sixdof_motionext_file_CoG();
 
 private:
     double ramp_vel(lexer *);
-    double ramp_draft(lexer *);
 
     void read_format_1(lexer *, ghostcell *);
     void read_format_2(lexer *, ghostcell *);
@@ -67,6 +81,7 @@ private:
     std::vector<std::vector<double>> data;
     double ts, te;
     int timecount, timecount_old;
+    int id;  // body number (6DOF_motion-<id>.dat)
 
     double Uext, Vext, Wext, Pext, Qext, Rext;
 };

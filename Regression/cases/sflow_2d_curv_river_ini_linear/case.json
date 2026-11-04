@@ -1,0 +1,20 @@
+{
+ "np": 1,
+ "steps": 100,
+ "tags": [
+  "2d",
+  "sflow",
+  "curvilinear",
+  "river",
+  "wetdry"
+ ],
+ "description": "SFLOW on a curvilinear grid (G 50 2): straight sloping river reach (bed slope 0.002) at UTM coordinates, rotated by 30 deg; free surface linear along the river from F 61 at the inflow to F 62 at the outflow (F 65 1), fluid at rest.",
+ "covers": [
+  "F 65 1: water level linear in the distance along i",
+  "inflow ghost levels from the first column"
+ ],
+ "solver": "sflow",
+ "files": [
+  "curvgrid.dat"
+ ]
+}

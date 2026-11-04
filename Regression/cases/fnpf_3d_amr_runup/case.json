@@ -1,0 +1,12 @@
+{
+ "description": "fnpf_3d_amr_coast_wd with the moving coastline (A 343 2: run-up and run-down) in the patch over the shoreline (G 30 1, patch 3-8 m).",
+ "solver": "fnpf",
+ "np": 1,
+ "base": "fnpf_3d_amr_coast_wd",
+ "ctrl_set": {"A 343": "2"},
+ "tags": ["3d", "fnpf", "amr", "waves", "breaking", "coastline", "wetdry", "runup"],
+ "covers": [
+  "fnpf_fsfbc_wd::wetdry_dynamic on a patch with lexer::wetfix (fill_wet, restrict_flags, ring_dry)",
+  "wd_connect with the cells around a patch as the main water body"
+ ]
+}

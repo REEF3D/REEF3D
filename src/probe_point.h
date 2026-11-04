@@ -32,6 +32,7 @@ class fdm;
 class ghostcell;
 class field;
 class turbulence;
+class amr_grid_lookup;
 
 using namespace std;
 
@@ -41,7 +42,7 @@ public:
     probe_point(lexer *, fdm *, ghostcell *);
     virtual ~probe_point();
 
-    void start(lexer *, fdm *, ghostcell *, turbulence *);
+    const amr_grid_lookup *amr = nullptr;  // CFD mesh refinement: the finest grid at the probe
 
 private:
     void ini_location(lexer *, fdm *, ghostcell *);

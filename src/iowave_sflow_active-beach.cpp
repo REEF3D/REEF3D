@@ -87,41 +87,67 @@ void iowave::active_beach2D(lexer *p, fdm2D *b, ghostcell *pgc, slice &P, slice 
 
         fx = 1.0;
 
-        if(p->B99 == 3)
-        {
-            Uc = eta_R * sqrt(9.81 / p->wd);
+        for(int q = 1; q <= 3; ++q)
+            P(i + q * aa, j + q * bb) = P(i, j) - p->dt * sqrt(9.81 * b->hp(i, j)) * dfx4;
+    }
 
-            P(i + 1 * aa, j + 1 * bb) = Uc * fx;
-            P(i + 2 * aa, j + 2 * bb) = Uc * fx;
-            P(i + 3 * aa, j + 3 * bb) = Uc * fx;
+    //-----------------------------------------------
+    // VVEL
+
+    for(n = 0; n < p->gcslawa2_count; ++n)
+    {
+        i = p->gcslawa2[n][0];
+        j = p->gcslawa2[n][1];
+
+        jj = 0;
+        if(p->gcslawa2[n][2] == 2)
+            jj = 1;
+
+        eta_T = 0.0;
+        eta_M = b->eta(i, j + jj);
+        eta_R = eta_M - eta_T;
+
+        uvel = 0.5 * (b->P(i, j) + b->P(i - 1, j));
+        vvel = b->Q(i, j);
+        uabs = sqrt(uvel * uvel + vvel * vvel);
+
+        fy = (vvel / (uabs > 1.0e-10 ? uabs : 1.0e20));
+
+        if(eta_R >= 0.0)
+            fac1 = 1.0;
+
+        if(eta_R < 0.0)
+            fac1 = 0.0;
+
+        aa = bb = 0;
+        if(p->gcslawa2[n][2] == 1)
+        {
+            aa = -1;
+            fy *= 1.0;
         }
 
-        if(p->B99 == 4)
+        if(p->gcslawa2[n][2] == 4)
+            aa = 1;
+
+        if(p->gcslawa2[n][2] == 3)
         {
-            double dfx1, dfx4, dfy2, dfy3;
-
-            dfx1 = (P(i + 1, j) - P(i, j)) / p->DXM;
-            dfx4 = (P(i, j) - P(i - 1, j)) / p->DXM;
-            dfy2 = (P(i, j) - P(i, j - 1)) / p->DXM;
-            dfy3 = (P(i, j + 1) - P(i, j)) / p->DXM;
-
-            /*
-           if(cs==1)
-           for(q=0;q<margin;++q)
-           P(i-q-1,j) = P(i,j) - p->dt*sqrt(9.81*p->wd)*dfx1;
-
-           if(cs==2)
-           for(q=0;q<margin;++q)
-           P(i,j+q+1) = P(i,j) - p->dt*sqrt(9.81*p->wd)*dfy2;
-
-           if(cs==3)
-           for(q=0;q<margin;++q)
-           P(i,j-q-1) = P(i,j) - p->dt*sqrt(9.81*p->wd)*dfy3;
-       */
-
-            for(int q = 1; q <= 3; ++q)
-                P(i + q * aa, j + q * bb) = P(i, j) - p->dt * sqrt(9.81 * b->hp(i, j)) * dfx4;
+            bb = -1;
+            fy *= -1.0;
         }
+
+        if(p->gcslawa2[n][2] == 2)
+        {
+            bb = 1;
+            fy *= -1.0;
+        }
+
+        fy = 0.0;  // !
+
+        Uc = eta_R * sqrt(9.81 / p->wd);
+
+        b->Q(i + 1 * aa, j + 1 * bb) = Uc * fy;
+        b->Q(i + 2 * aa, j + 2 * bb) = Uc * fy;
+        b->Q(i + 3 * aa, j + 3 * bb) = Uc * fy;
     }
 
     //-----------------------------------------------

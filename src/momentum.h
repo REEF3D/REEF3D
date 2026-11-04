@@ -23,7 +23,7 @@ Author: Hans Bihs
 #ifndef MOMENTUM_H_
 #define MOMENTUM_H_
 
-#include<vector>
+#include <vector>
 
 class lexer;
 class fdm;
@@ -45,8 +45,9 @@ using namespace std;
 class momentum
 {
 public:
-	virtual void start(lexer*, fdm*, ghostcell*, vrans*, sixdof*)=0;
+    virtual ~momentum() = default;
 
+    virtual void start(lexer *, fdm *, ghostcell *, vrans *, sixdof *) = 0;
 };
 
 #endif

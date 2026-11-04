@@ -20,17 +20,17 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"fnpf_sigma.h"
-#include"lexer.h"
-#include"fdm_fnpf.h"
-#include"ghostcell.h"
-#include"fnpf_fsf.h"
+#include "fnpf_sigma.h"
+#include "fdm_fnpf.h"
+#include "fnpf_fsf.h"
+#include "ghostcell.h"
+#include "lexer.h"
 
-#define WLVL (fabs(c->WL(i,j))>1.0e-20?c->WL(i,j):1.0e-5) // keep as is for wetting-drYing
+#define WLVL (fabs(c->WL(i, j)) > 1.0e-20 ? c->WL(i, j) : 1.0e-5)  // keep as is for wetting-drYing
 
-#define WLVLDRY (0.01*c->wd_criterion)
+#define WLVLDRY (0.01 * c->wd_criterion)
 
-fnpf_sigma::fnpf_sigma(lexer *p, fdm_fnpf *c, ghostcell *pgc) 
+fnpf_sigma::fnpf_sigma(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
 }
 
@@ -39,62 +39,61 @@ fnpf_sigma::~fnpf_sigma()
 }
 
 void fnpf_sigma::sigma_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, fnpf_fsf *pf, slice &eta)
-{	
-    c->wd_criterion=p->A344;
-    
+{
+    c->wd_criterion = p->A344;
+
     SLICELOOP4
-    c->WL(i,j) = MAX(c->wd_criterion, c->eta(i,j) + p->wd - c->bed(i,j));
-    
-    FLOOP
-    p->sig[FIJK] =  p->ZN[KP];
-    
-    // bc
-    SLICELOOP4
+    c->WL(i, j) = MAX(c->wd_criterion, c->eta(i, j) + p->wd - c->bed(i, j));
+
+    // sig = ZN: kept as a 3D array only for its readers outside the core (fnpf_sigma_3D)
+    if(p->sig != nullptr)
     {
-        k=0;
-    
+        FLOOP
+        p->sig[FIJK] = p->ZN[KP];
+
+        // bc
+        SLICELOOP4
+        {
+            k = 0;
+
             p->sig[FIJKm1] = p->ZN[KM1];
             p->sig[FIJKm2] = p->ZN[KM2];
             p->sig[FIJKm3] = p->ZN[KM3];
-        
-        k=p->knoz;
+
+            k = p->knoz;
 
             p->sig[FIJKp1] = p->ZN[KP1];
             p->sig[FIJKp2] = p->ZN[KP2];
             p->sig[FIJKp3] = p->ZN[KP3];
+        }
     }
-    
-    
+
     SLICELOOP4
-	c->bed(i,j) = p->bed[IJ];
-    
-    
-    for(int qn=0; qn<p->A309;++qn)
+    c->bed(i, j) = p->bed[IJ];
+
+    for(int qn = 0; qn < p->A309; ++qn)
     {
-	SLICELOOP4
-	c->bed(i,j) = 0.5*c->bed(i,j) + 0.125*(c->bed(i-1,j) +c->bed(i+1,j) +c->bed(i,j-1) +c->bed(i,j+1) );
-    
-    pgc->gcsl_start4(p,c->bed,50);
+        SLICELOOP4
+        c->bed(i, j) = 0.5 * c->bed(i, j) + 0.125 * (c->bed(i - 1, j) + c->bed(i + 1, j) + c->bed(i, j - 1) + c->bed(i, j + 1));
+
+        pgc->gcsl_start4(p, c->bed, 50);
     }
-    
-    
+
     SLICELOOP4
-    c->WL(i,j) = MAX(0.0,c->eta(i,j) + p->wd - c->bed(i,j));
-    
+    c->WL(i, j) = MAX(0.0, c->eta(i, j) + p->wd - c->bed(i, j));
+
     SLICEBASELOOP
     {
-    PSLICECHECK4
-	c->depth(i,j) = p->wd - c->bed(i,j);
-    
-    SSLICECHECK4
-	c->depth(i,j) = p->wd - p->bed[IJ];
+        PSLICECHECK4
+        c->depth(i, j) = p->wd - c->bed(i, j);
+
+        SSLICECHECK4
+        c->depth(i, j) = p->wd - p->bed[IJ];
     }
-    
-    pgc->gcsl_start4(p,c->depth,50);
-    
+
+    pgc->gcsl_start4(p, c->depth, 50);
+
     SLICELOOP4
-    p->sigz[IJ] = 1.0/WLVL;
+    p->sigz[IJ] = 1.0 / WLVL;
 }
-
-
 

@@ -23,6 +23,7 @@ Author: Hans Bihs
 #include "fdm_nhf.h"
 #include "ghostcell.h"
 #include "lexer.h"
+#include "nhflow_curv.h"
 #include "nhflow_sigma.h"
 
 #define WLVL (fabs(d->WL(i, j)) > 0.00005 ? d->WL(i, j) : 1.0e20)
@@ -37,14 +38,19 @@ void nhflow_sigma::omega_update(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL,
     FLOOP
     d->omegaF[FIJK] = 0.0;
 
-    LOOP
-    {
-        d->omegaF[FIJKp1] = d->omegaF[FIJK]
+    if(p->geo_curv == 1)
+        LOOP
+            d->omegaF[FIJKp1] = d->omegaF[FIJK] - p->DZN[KP] * (d->detadt(i, j) + nhflow_curv::divh(p, d->FEx, d->FEy, i, j, k));
 
-                            - p->DZN[KP] * (d->detadt(i, j)
+    if(p->geo_curv == 0)
+        LOOP
+        {
+            d->omegaF[FIJKp1] = d->omegaF[FIJK]
 
-                                            + (d->FEx[IJK] - d->FEx[Im1JK]) / p->DXN[IP] + (d->FEy[IJK] - d->FEy[IJm1K]) / p->DYN[JP] * p->y_dir);
-    }
+                                - p->DZN[KP] * (d->detadt(i, j)
+
+                                                + (d->FEx[IJK] - d->FEx[Im1JK]) / p->DXN[IP] + (d->FEy[IJK] - d->FEy[IJm1K]) / p->DYN[JP] * p->y_dir);
+        }
 
     GC4LOOP
     if(p->gcb4[n][3] == 6 && p->gcb4[n][4] == 3)

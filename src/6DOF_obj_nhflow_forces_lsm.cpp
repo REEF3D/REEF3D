@@ -139,14 +139,6 @@ void sixdof_obj_nhflow::force_calc_lsm(lexer *p, fdm_nhf *d, ghostcell *pgc, sli
         ylocvel = yc + ny * p->DYP[JP];
         zlocvel = zc + nz * p->DZP[KP] * d->WL(i, j);
 
-        /*uval = p->ccipol4V(d->U, d->WL, d->bed,xlocvel,ylocvel,zlocvel);
-        vval = p->ccipol4V(d->V, d->WL, d->bed,xlocvel,ylocvel,zlocvel);
-        wval = p->ccipol4V(d->W, d->WL, d->bed,xlocvel,ylocvel,zlocvel);
-
-        du = uval/p->DXN[IP];
-        dv = vval/p->DYN[JP];
-        dw = wval/(p->DZN[KP]*d->WL(i,j));*/
-
         density = p->ccipol4V(d->RO, d->WL, d->bed, xloc, yloc, zloc);
         viscosity = p->ccipol4V(d->VISC, d->WL, d->bed, xloc, yloc, zloc);
         if(p->P82 == 1)
@@ -176,44 +168,130 @@ void sixdof_obj_nhflow::force_calc_lsm(lexer *p, fdm_nhf *d, ghostcell *pgc, sli
         Ye += Fy;
         Ze += Fz;
 
-        Ke += (yc - c_(1)) * Fz - (zc - c_(2)) * Fy;
-        Me += (zc - c_(2)) * Fx - (xc - c_(0)) * Fz;
-        Ne += (xc - c_(0)) * Fy - (yc - c_(1)) * Fx;
+        xc = (1.0 / 4.0) * (x1 + x2 + x3 + x4);
+        yc = (1.0 / 4.0) * (y1 + y2 + y3 + y4);
+        zc = (1.0 / 4.0) * (z1 + z2 + z3 + z4);
+
+        // tri1
+        A = triangle_area(p, x1, y1, z1, x2, y2, z2, x3, y3, z3);
+
+        // tri2
+        A += triangle_area(p, x1, y1, z1, x3, y3, z3, x4, y4, z4);
     }
 
-    Xe = pgc->globalsum(Xe);
-    Ye = pgc->globalsum(Ye);
-    Ze = pgc->globalsum(Ze);
-    Ke = pgc->globalsum(Ke);
-    Me = pgc->globalsum(Me);
-    Ne = pgc->globalsum(Ne);
+    xp1 = x2 - x1;
+    yp1 = y2 - y1;
+    zp1 = z2 - z1;
 
-    Fx = Xe;
-    Fy = Ye;
-    Fz = Ze;
+    xp2 = x3 - x1;
+    yp2 = y3 - y1;
+    zp2 = z3 - z1;
 
-    Ax = pgc->globalsum(Ax);
-    Ay = pgc->globalsum(Ay);
-    Az = pgc->globalsum(Az);
+    nx = fabs(yp1 * zp2 - zp1 * yp2);
+    ny = fabs(zp1 * xp2 - xp1 * zp2);
+    nz = fabs(xp1 * yp2 - yp1 * xp2);
 
-    Xe += p->W20 * Mass_fb;
-    Ye += p->W21 * Mass_fb;
-    Ze += p->W22 * Mass_fb;
+    norm = sqrt(nx * nx + ny * ny + nz * nz);
 
-    if(p->mpirank == 0)
-    {
-        cout << "Mass_fb: " << Mass_fb << " G_fb: " << 9.81 * Mass_fb << endl;
-        cout << "Fx: " << Fx << " Fy: " << Fy << " Fz: " << Fz << endl;
-        cout << "Xe: " << Xe << " Ye: " << Ye << " Ze: " << Ze << " Ke: " << Ke << " Me: " << Me << " Ne: " << Ne << endl;
-    }
+    nx /= norm > 1.0e-20 ? norm : 1.0e20;
+    ny /= norm > 1.0e-20 ? norm : 1.0e20;
+    nz /= norm > 1.0e-20 ? norm : 1.0e20;
 
-    /*
-    // Print results
-    if (p->mpirank==0 && finalize==1)
-    {
-        printforce<<curr_time<<" \t "<<Xe<<" \t "<<Ye<<" \t "<<Ze<<" \t "<<Ke
-        <<" \t "<<Me<<" \t "<<Ne<<" \t "<<Xe_p<<" \t "<<Ye_p<<" \t "<<Ze_p<<" \t "<<Xe_v<<" \t "<<Ye_v<<" \t "<<Ze_v<<endl;
-    }*/
+    //----
+
+    i = p->posc_i(xc);
+    j = p->posc_j(yc);
+    k = p->posc_sig(i, j, zc);
+
+    sgnx = (d->FB[Ip1JK] - d->FB[Im1JK]) / (p->DXP[IM1] + p->DXP[IP]);
+    sgny = (d->FB[IJp1K] - d->FB[IJm1K]) / (p->DYP[JM1] + p->DYP[JP]);
+    sgnz = (d->FB[IJKp1] - d->FB[IJKm1]) / ((p->DZP[KM1] + p->DZP[KP]) * d->WL(i, j));
+
+    nx = nx * sgnx / fabs(fabs(sgnx) > 1.0e-20 ? sgnx : 1.0e20);
+    ny = ny * sgny / fabs(fabs(sgny) > 1.0e-20 ? sgny : 1.0e20);
+    nz = nz * sgnz / fabs(fabs(sgnz) > 1.0e-20 ? sgnz : 1.0e20);
+
+    f_jdir = 1.0;
+
+    if(fabs(ny) > 0.9 && p->j_dir == 0)
+        f_jdir = 0.0;
+
+    xloc = xc;  // + nx*p->DXP[IP]*p->P91;
+    yloc = yc;  // + ny*p->DYP[JP]*p->P91;
+    zloc = zc;  // + nz*p->DZP[KP]*d->WL(i,j)*p->P91;
+
+    xlocvel = xc + nx * p->DXP[IP];
+    ylocvel = yc + ny * p->DYP[JP];
+    zlocvel = zc + nz * p->DZP[KP] * d->WL(i, j);
+
+    /*uval = p->ccipol4V(d->U, d->WL, d->bed,xlocvel,ylocvel,zlocvel);
+    vval = p->ccipol4V(d->V, d->WL, d->bed,xlocvel,ylocvel,zlocvel);
+    wval = p->ccipol4V(d->W, d->WL, d->bed,xlocvel,ylocvel,zlocvel);
+
+    du = uval/p->DXN[IP];
+    dv = vval/p->DYN[JP];
+    dw = wval/(p->DZN[KP]*d->WL(i,j));*/
+
+    density = p->ccipol4V(d->RO, d->WL, d->bed, xloc, yloc, zloc);
+    viscosity = p->ccipol4V(d->VISC, d->WL, d->bed, xloc, yloc, zloc);
+    if(p->P82 == 1)
+        viscosity += p->ccipol4V(d->EV, d->WL, d->bed, xloc, yloc, zloc);
+
+    // pressure
+    pval = p->ccipol7V(d->P, WL, d->bed, xc, yc, zc);  // - p->pressgage;
+    etaval = p->ccslipol4(d->eta, xc, yc);
+    hspval = (p->wd + etaval - zc) * p->W1 * fabs(p->W22);
+
+    // Force
+    Fx = -(pval + hspval) * A * nx * f_jdir;
+    //+ 0.0*density*viscosity*A*(du*ny+du*nz);
+
+    if(p->j_dir == 1)
+        Fy = -(pval + hspval) * A * ny * f_jdir;
+    // + 0.0*density*viscosity*A*(dv*nx+dv*nz);
+
+    Fz = -(pval + hspval) * A * nz * f_jdir;
+    // + 0.0*density*viscosity*A*(dw*nx+dw*ny);
+
+    Ax += A * nx;
+    Ay += A * ny;
+    Az += A * nz;
+
+    Xe += Fx;
+    Ye += Fy;
+    Ze += Fz;
+
+    Ke += (yc - c_(1)) * Fz - (zc - c_(2)) * Fy;
+    Me += (zc - c_(2)) * Fx - (xc - c_(0)) * Fz;
+    Ne += (xc - c_(0)) * Fy - (yc - c_(1)) * Fx;
+}
+
+Xe = pgc->globalsum(Xe);
+Ye = pgc->globalsum(Ye);
+Ze = pgc->globalsum(Ze);
+Ke = pgc->globalsum(Ke);
+Me = pgc->globalsum(Me);
+Ne = pgc->globalsum(Ne);
+
+Fx = Xe;
+Fy = Ye;
+Fz = Ze;
+
+Ax = pgc->globalsum(Ax);
+Ay = pgc->globalsum(Ay);
+Az = pgc->globalsum(Az);
+
+Xe += p->W20 * Mass_fb;
+Ye += p->W21 * Mass_fb;
+Ze += p->W22 * Mass_fb;
+
+/*
+// Print results
+if (p->mpirank==0 && finalize==1)
+{
+    printforce<<curr_time<<" \t "<<Xe<<" \t "<<Ye<<" \t "<<Ze<<" \t "<<Ke
+    <<" \t "<<Me<<" \t "<<Ne<<" \t "<<Xe_p<<" \t "<<Ye_p<<" \t "<<Ze_p<<" \t "<<Xe_v<<" \t "<<Ye_v<<" \t "<<Ze_v<<endl;
+}*/
 }
 
 void sixdof_obj_nhflow::allocate(lexer *p, fdm_nhf *d, ghostcell *pgc)

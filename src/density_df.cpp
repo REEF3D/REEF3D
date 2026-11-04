@@ -20,13 +20,15 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"density_df.h"
-#include"lexer.h"
-#include"fdm.h"
+#include "density_df.h"
+#include "fdm.h"
+#include "heaviside.h"
+#include "interface_width.h"
+#include "lexer.h"
 
-density_df::density_df(lexer* p) : epsi(p->F45*p->DXM), eps(2.1*p->DXM)
+density_df::density_df(lexer *p)
 {
-    H=0.0;
+    H = 0.0;
 }
 
 density_df::~density_df()
@@ -34,24 +36,13 @@ density_df::~density_df()
 }
 
 double density_df::roface(lexer *p, fdm *a, int aa, int bb, int cc)
-{     
-    phival = 0.5*(a->phi(i,j,k) + a->phi(i+aa,j+bb,k+cc));
+{
+    phival = 0.5 * (a->phi(i, j, k) + a->phi(i + aa, j + bb, k + cc));
 
-    if(phival>p->psi)
-    H=1.0;
+    H = heaviside_face(p, a->phi, phival, i, j, k, aa, bb, cc);
 
-    if(phival<-p->psi)
-    H=0.0;
+    roval = p->W1 * H + p->W3 * (1.0 - H);
 
-    if(fabs(phival)<=p->psi)
-    H=0.5*(1.0 + phival/p->psi + (1.0/PI)*sin((PI*phival)/p->psi));
-    
-    
-    roval = p->W1*H + p->W3*(1.0-H);
-
-	return roval;	
+    return roval;
 }
-
-
-
 

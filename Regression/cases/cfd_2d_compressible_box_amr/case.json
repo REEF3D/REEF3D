@@ -1,0 +1,24 @@
+{
+ "base": "cfd_2d_compressible_box",
+ "np": 1,
+ "steps": 100,
+ "ctrl_add": [
+  "G 1 2",
+  "G 7 0",
+  "G 15 0.5 1.5 0.0 0.05 0.8 1.3",
+  "P 64 1.0 0.025 1.20"
+ ],
+ "description": "cfd_2d_compressible_box (sealed box, piston, W 32 2) with two refined levels (G 1 2, one time step for all levels G 7 0) in a box across the free surface: the composite pressure solve takes the compressibility terms of every grid. Over 2.5 s the air pressure follows p0 (V0/V)^1.4 within 9 Pa rms (6.7 kPa rise; 27 Pa without refinement); the probe at z = 1.2 lies in the level-2 patch.",
+ "tags": [
+  "quick",
+  "2d",
+  "levelset",
+  "compressible",
+  "amr"
+ ],
+ "covers": [
+  "cfd_amr::scope: W 32 with G 7 0",
+  "pjm_corr::amr_prepare comp_terms on the patches, cfd_amr composite solve with the compressibility on the diagonal",
+  "W 32 without pressure pinning in a closed domain with refinement"
+ ]
+}

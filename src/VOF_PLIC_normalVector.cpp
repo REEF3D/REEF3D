@@ -973,6 +973,66 @@ void VOF_PLIC::calcNormalMYC3D_V2(fdm *a, lexer *p, field &voffield)
 
     zsum_ym = voffield(i, j - 1, k - 1) * p->DZN[KM1] + voffield(i, j - 1, k) * p->DZN[KP] + voffield(i, j - 1, k + 1) * p->DZN[KP1] + voffield(i - 1, j - 1, k - 1) * p->DZN[KM1] + voffield(i - 1, j - 1, k) * p->DZN[KP] + voffield(i - 1, j - 1, k + 1) * p->DZN[KP1] + voffield(i + 1, j - 1, k - 1) * p->DZN[KM1] + voffield(i + 1, j - 1, k) * p->DZN[KP] + voffield(i + 1, j - 1, k + 1) * p->DZN[KP1];
 
+    zsum_yp = voffield(i, j + 1, k - 1) * p->DZN[KM1] + voffield(i, j + 1, k) * p->DZN[KP] + voffield(i, j + 1, k + 1) * p->DZN[KP1] + voffield(i - 1, j + 1, k - 1) * p->DZN[KM1] + voffield(i - 1, j + 1, k) * p->DZN[KP] + voffield(i - 1, j + 1, k + 1) * p->DZN[KP1] + voffield(i + 1, j + 1, k - 1) * p->DZN[KM1] + voffield(i + 1, j + 1, k) * p->DZN[KP] + voffield(i + 1, j + 1, k + 1) * p->DZN[KP1];
+
+    vofsumup = voffield(i - 1, j, k + 1) * p->DXN[IM1] * p->DYN[JP] + voffield(i, j, k + 1) * p->DXN[IP] * p->DYN[JP] + voffield(i + 1, j, k + 1) * p->DXN[IP1] * p->DYN[JP] + voffield(i - 1, j - 1, k + 1) * p->DXN[IM1] * p->DYN[JM1] + voffield(i, j - 1, k + 1) * p->DXN[IP] * p->DYN[JM1] + voffield(i + 1, j - 1, k + 1) * p->DXN[IP1] * p->DYN[JM1] + voffield(i - 1, j + 1, k + 1) * p->DXN[IM1] * p->DYN[JP1] + voffield(i, j + 1, k + 1) * p->DXN[IP] * p->DYN[JP1] + voffield(i + 1, j + 1, k + 1) * p->DXN[IP1] * p->DYN[JP1];
+
+    vofsumdown = voffield(i - 1, j, k - 1) * p->DXN[IM1] * p->DYN[JP] + voffield(i, j, k - 1) * p->DXN[IP] * p->DYN[JP] + voffield(i + 1, j, k - 1) * p->DXN[IP1] * p->DYN[JP] + voffield(i - 1, j - 1, k - 1) * p->DXN[IM1] * p->DYN[JM1] + voffield(i, j - 1, k - 1) * p->DXN[IP] * p->DYN[JM1] + voffield(i + 1, j - 1, k - 1) * p->DXN[IP1] * p->DYN[JM1] + voffield(i - 1, j + 1, k - 1) * p->DXN[IM1] * p->DYN[JP1] + voffield(i, j + 1, k - 1) * p->DXN[IP] * p->DYN[JP1] + voffield(i + 1, j + 1, k - 1) * p->DXN[IP1] * p->DYN[JP1];
+
+    if(vofsumup > vofsumdown)
+        sign = -1.0;
+    else
+        sign = 1.0;
+
+    nz_Cz = 1.0 * sign;
+    nx_Cz = -(zsum_xp - zsum_xm) / (p->DXP[IM1] + p->DXP[IP]);
+    ny_Cz = -(zsum_yp - zsum_ym) / (p->DYP[JM1] + p->DYP[JP]);
+    nsum = sqrt(nx_Cz * nx_Cz + ny_Cz * ny_Cz + nz_Cz * nz_Cz);
+    if(nsum != nsum)
+        cout << "nsumNAN Cz" << endl;
+    nz_Cz = nz_Cz / nsum;
+    nx_Cz = nx_Cz / nsum;
+    ny_Cz = ny_Cz / nsum;
+
+    // Candidate CC2 height function is x dimension
+    xsum_zm = voffield(i - 1, j, k - 1) * p->DXN[IM1] + voffield(i, j, k - 1) * p->DXN[IP] + voffield(i + 1, j, k - 1) * p->DXN[IP1] + voffield(i - 1, j - 1, k - 1) * p->DXN[IM1] + voffield(i, j - 1, k - 1) * p->DXN[IP] + voffield(i + 1, j - 1, k - 1) * p->DXN[IP1] + voffield(i - 1, j + 1, k - 1) * p->DXN[IM1] + voffield(i, j + 1, k - 1) * p->DXN[IP] + voffield(i + 1, j + 1, k - 1) * p->DXN[IP1];
+
+    xsum_zp = voffield(i - 1, j, k + 1) * p->DXN[IM1] + voffield(i, j, k + 1) * p->DXN[IP] + voffield(i + 1, j, k + 1) * p->DXN[IP1] + voffield(i - 1, j - 1, k + 1) * p->DXN[IM1] + voffield(i, j - 1, k + 1) * p->DXN[IP] + voffield(i + 1, j - 1, k + 1) * p->DXN[IP1] + voffield(i - 1, j + 1, k + 1) * p->DXN[IM1] + voffield(i, j + 1, k + 1) * p->DXN[IP] + voffield(i + 1, j + 1, k + 1) * p->DXN[IP1];
+
+    xsum_yp = voffield(i - 1, j + 1, k) * p->DXN[IM1] + voffield(i, j + 1, k) * p->DXN[IP] + voffield(i + 1, j + 1, k) * p->DXN[IP1] + voffield(i - 1, j + 1, k - 1) * p->DXN[IM1] + voffield(i, j + 1, k - 1) * p->DXN[IP] + voffield(i + 1, j + 1, k - 1) * p->DXN[IP1] + voffield(i - 1, j + 1, k + 1) * p->DXN[IM1] + voffield(i, j + 1, k + 1) * p->DXN[IP] + voffield(i + 1, j + 1, k + 1) * p->DXN[IP1];
+
+    xsum_ym = voffield(i - 1, j - 1, k) * p->DXN[IM1] + voffield(i, j - 1, k) * p->DXN[IP] + voffield(i + 1, j - 1, k) * p->DXN[IP1] + voffield(i - 1, j - 1, k - 1) * p->DXN[IM1] + voffield(i, j - 1, k - 1) * p->DXN[IP] + voffield(i + 1, j - 1, k - 1) * p->DXN[IP1] + voffield(i - 1, j - 1, k + 1) * p->DXN[IM1] + voffield(i, j - 1, k + 1) * p->DXN[IP] + voffield(i + 1, j - 1, k + 1) * p->DXN[IP1];
+
+    vofsumup = voffield(i + 1, j, k - 1) * p->DZN[KM1] * p->DYN[JP] + voffield(i + 1, j, k) * p->DZN[KP] * p->DYN[JP] + voffield(i + 1, j, k + 1) * p->DZN[KP1] * p->DYN[JP] + voffield(i + 1, j - 1, k - 1) * p->DZN[KM1] * p->DYN[JM1] + voffield(i + 1, j - 1, k) * p->DZN[KP] * p->DYN[JM1] + voffield(i + 1, j - 1, k + 1) * p->DZN[KP1] * p->DYN[JM1] + voffield(i + 1, j + 1, k - 1) * p->DZN[KM1] * p->DYN[JP1] + voffield(i + 1, j + 1, k) * p->DZN[KP] * p->DYN[JP1] + voffield(i + 1, j + 1, k + 1) * p->DZN[KP1] * p->DYN[JP1];
+
+    vofsumdown = voffield(i - 1, j, k - 1) * p->DZN[KM1] * p->DYN[JP] + voffield(i - 1, j, k) * p->DZN[KP] * p->DYN[JP] + voffield(i - 1, j, k + 1) * p->DZN[KP1] * p->DYN[JP] + voffield(i - 1, j - 1, k - 1) * p->DZN[KM1] * p->DYN[JM1] + voffield(i - 1, j - 1, k) * p->DZN[KP] * p->DYN[JM1] + voffield(i - 1, j - 1, k + 1) * p->DZN[KP1] * p->DYN[JM1] + voffield(i - 1, j + 1, k - 1) * p->DZN[KM1] * p->DYN[JP1] + voffield(i - 1, j + 1, k) * p->DZN[KP] * p->DYN[JP1] + voffield(i - 1, j + 1, k + 1) * p->DZN[KP1] * p->DYN[JP1];
+
+    if(vofsumup > vofsumdown)
+        sign = -1.0;
+    else
+        sign = 1.0;
+
+    nx_Cx = 1.0 * sign;
+    nz_Cx = -(xsum_zp - xsum_zm) / (p->DZP[KM1] + p->DZP[KP]);
+    ny_Cx = -(xsum_yp - xsum_ym) / (p->DYP[JM1] + p->DYP[JP]);
+    nsum = sqrt(nx_Cx * nx_Cx + ny_Cx * ny_Cx + nz_Cx * nz_Cx);
+    if(nsum != nsum)
+        cout << "nsumNAN Cx" << endl;
+
+    nx_Cx = nx_Cx / nsum;
+    nz_Cx = nz_Cx / nsum;
+    ny_Cx = ny_Cx / nsum;
+
+    // Candidate CC3 height function is y dimension
+    ysum_zm = voffield(i, j - 1, k - 1) * p->DYN[JM1] + voffield(i, j, k - 1) * p->DYN[JP] + voffield(i, j + 1, k - 1) * p->DYN[JP1] + voffield(i - 1, j - 1, k - 1) * p->DYN[JM1] + voffield(i - 1, j, k - 1) * p->DYN[JP] + voffield(i - 1, j + 1, k - 1) * p->DYN[JP1] + voffield(i + 1, j - 1, k - 1) * p->DYN[JM1] + voffield(i + 1, j, k - 1) * p->DYN[JP] + voffield(i + 1, j + 1, k - 1) * p->DYN[JP1];
+
+    // Candidate CC1 height function is z dimension
+    zsum_xm = voffield(i - 1, j, k - 1) * p->DZN[KM1] + voffield(i - 1, j, k) * p->DZN[KP] + voffield(i - 1, j, k + 1) * p->DZN[KP1] + voffield(i - 1, j - 1, k - 1) * p->DZN[KM1] + voffield(i - 1, j - 1, k) * p->DZN[KP] + voffield(i - 1, j - 1, k + 1) * p->DZN[KP1] + voffield(i - 1, j + 1, k - 1) * p->DZN[KM1] + voffield(i - 1, j + 1, k) * p->DZN[KP] + voffield(i - 1, j + 1, k + 1) * p->DZN[KP1];
+
+    zsum_xp = voffield(i + 1, j, k - 1) * p->DZN[KM1] + voffield(i + 1, j, k) * p->DZN[KP] + voffield(i + 1, j, k + 1) * p->DZN[KP1] + voffield(i + 1, j - 1, k - 1) * p->DZN[KM1] + voffield(i + 1, j - 1, k) * p->DZN[KP] + voffield(i + 1, j - 1, k + 1) * p->DZN[KP1] + voffield(i + 1, j + 1, k - 1) * p->DZN[KM1] + voffield(i + 1, j + 1, k) * p->DZN[KP] + voffield(i + 1, j + 1, k + 1) * p->DZN[KP1];
+
+    zsum_ym = voffield(i, j - 1, k - 1) * p->DZN[KM1] + voffield(i, j - 1, k) * p->DZN[KP] + voffield(i, j - 1, k + 1) * p->DZN[KP1] + voffield(i - 1, j - 1, k - 1) * p->DZN[KM1] + voffield(i - 1, j - 1, k) * p->DZN[KP] + voffield(i - 1, j - 1, k + 1) * p->DZN[KP1] + voffield(i + 1, j - 1, k - 1) * p->DZN[KM1] + voffield(i + 1, j - 1, k) * p->DZN[KP] + voffield(i + 1, j - 1, k + 1) * p->DZN[KP1];
+
     zsum_yp = voffield(i, j + 1, k - 1) * p->DZN[KM1] + voffield(i, j + 1, k) * p->DZN[KP] + voffield(i, j + 1, k + 1) * p->DZN[KP1];
     +voffield(i - 1, j + 1, k - 1) * p->DZN[KM1] + voffield(i - 1, j + 1, k) * p->DZN[KP] + voffield(i - 1, j + 1, k + 1) * p->DZN[KP1] + voffield(i + 1, j + 1, k - 1) * p->DZN[KM1] + voffield(i + 1, j + 1, k) * p->DZN[KP] + voffield(i + 1, j + 1, k + 1) * p->DZN[KP1];
 

@@ -1,0 +1,9 @@
+{
+ "base": "fnpf_2d_regular_mpi2",
+ "control_set": {"M 36": "1"},
+ "files": ["capacity.dat"],
+ "same_as": "fnpf_2d_regular_mpi2_m42",
+ "description": "fnpf_2d_regular_mpi2 with the capacities 1, 0.5 of DIVEMesh M 36 1 (./capacity.dat) decomposed by DIVEMesh (grid files of the ranks): bitwise fnpf_2d_regular_mpi2_m42 (the same capacities through REEF3D M 42, M 43, decomposed by REEF3D): the weighted partition of DIVEMesh and of dmpart agree",
+ "tags": ["quick", "2d", "fnpf", "mpi", "capacity"],
+ "covers": ["DIVEMesh decomp::capacities", "DIVEMesh decomp_partition_cuts.h"]
+}

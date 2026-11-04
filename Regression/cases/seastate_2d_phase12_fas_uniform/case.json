@@ -1,0 +1,17 @@
+{
+ "base": "seastate_2d_wind",
+ "ctrl_add": [
+  "A 758 2 4"
+ ],
+ "description": "as seastate_2d_wind (stationary fetch-limited growth, 40 x 3 cells of 1 km, Komen, DIA) with the FAS V-cycle on the uniform grid (A 758 2 4 without G 1, Phase 12): 6 coarse grids of 2 x 2 cells (20 x 2 down to 1 x 1), a correction every 2 iterations, 2 coarse iterations before and after the next coarser grid, 16 on the coarsest. Validation in Dropbox SEASTATE/validation/52_fas_uniform.",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate"
+ ],
+ "covers": [
+  "seastate_fas2 coarse lexer, fields and kinematics",
+  "seastate_fas2 restriction, tau, prolongation, V-cycle",
+  "seastate_f transport FAS on the uniform grid"
+ ]
+}

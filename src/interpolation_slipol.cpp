@@ -22,43 +22,19 @@ Author: Hans Bihs
 
 #include "fdm.h"
 #include "field.h"
+#include "gcsl_yskip.h"
 #include "interpolation.h"
 #include "lexer.h"
 
-double interpolation::sl_ipol1(slice &f)
-{
-    v1 = v2 = 0;
-
-    if(p->flagslice1[IJ] > 0)
-        v1 = f(i, j);
-    if(p->flagslice1[IJp1] > 0)
-        v2 = f(i, j + 1);
-
-    value = 0.5 * (v1 + v2);
-
-    return value;
-}
-
-double interpolation::sl_ipol2(slice &f)
-{
-    v1 = v2 = 0;
-
-    if(p->flagslice2[IJ] > 0)
-        v1 = f(i, j);
-    if(p->flagslice2[Ip1J] > 0)
-        v2 = f(i + 1, j);
-
-    value = 0.5 * (v1 + v2);
-
-    return value;
-}
-
+// (SFLOW with one cell in y, gcsl_yskip: the y ghost rows of the slices are not kept; the node rows
+// read the cell row 0, which their ghost cells copied)
 double interpolation::sl_ipol1a(slice &f)
 {
     v1 = v2 = 0;
 
-    v1 = f(i, j);
-    v2 = f(i, j + 1);
+    const bool ys = gcsl_yskip(p);
+    v1 = f(i, ys ? 0 : j);
+    v2 = f(i, ys ? 0 : j + 1);
 
     value = 0.5 * (v1 + v2);
 
@@ -81,166 +57,16 @@ double interpolation::sl_ipol4(slice &f)
 {
     v1 = v2 = v3 = v4 = 0;
 
-    v1 = f(i, j);
+    const bool ys = gcsl_yskip(p);
+    const int j0 = ys ? 0 : j, j1 = ys ? 0 : j + 1;
 
-    v2 = f(i + 1, j);
+    v1 = f(i, j0);
 
-    v3 = f(i, j + 1);
+    v2 = f(i + 1, j0);
 
-    v4 = f(i + 1, j + 1);
+    v3 = f(i, j1);
 
-    value = 0.25 * (v1 + v2 + v3 + v4);
-
-    return value;
-}
-
-double interpolation::sl_ipol1eta(int *wet, slice &f, slice &bed)
-{
-    double bedvalue;
-    double wd_criterion = 0.00005;
-    int jj;
-
-    wd_criterion = p->A244;
-
-    v1 = v2 = v3 = v4 = 0.0;
-
-    // 2D
-    if(p->j_dir == 0)
-    {
-        jj = j;
-        j = 0;
-        v1 = f(i, j);
-
-        value = v1;
-
-        // bed
-        v1 = bed(i, j);
-
-        v2 = bed(i + 1, j);
-
-        bedvalue = 0.5 * (v1 + v2);
-
-        j = jj;
-    }
-
-    // 3D
-    if(p->j_dir == 1)
-    {
-        if(wet[IJ] == 1)
-            v1 = f(i, j);
-
-        if(wet[IJ] == 0)
-            v1 = MIN(f(i, j), bed(i, j) - p->wd - 30.0 * wd_criterion);
-
-        if(wet[Ip1J] == 1)
-            v2 = f(i + 1, j);
-
-        if(wet[Ip1J] == 0)
-            v2 = MIN(f(i + 1, j), bed(i + 1, j) - p->wd - 30.0 * wd_criterion);
-
-        if(wet[IJp1] == 1)
-            v3 = f(i, j + 1);
-
-        if(wet[IJp1] == 0)
-            v3 = MIN(f(i, j + 1), bed(i, j + 1) - p->wd - 30.0 * wd_criterion);
-
-        if(wet[Ip1Jp1] == 1)
-            v4 = f(i + 1, j + 1);
-
-        if(wet[Ip1Jp1] == 0)
-            v4 = MIN(f(i + 1, j + 1), bed(i + 1, j + 1) - p->wd - 30.0 * wd_criterion);
-
-        value = 0.25 * (v1 + v2 + v3 + v4);
-
-        // bed
-        v1 = bed(i, j);
-
-        v2 = bed(i + 1, j);
-
-        v3 = bed(i, j + 1);
-
-        v4 = bed(i + 1, j + 1);
-
-        bedvalue = 0.25 * (v1 + v2 + v3 + v4);
-    }
-
-    // if(value+p->wd>bedvalue)
-    // if(value+p->wd<wd_criterion+bedvalue)
-    // value=value-3.0*wd_criterion;
-
-    return value;
-}
-
-double interpolation::sl_ipol2eta(int *wet, slice &f, slice &bed)
-{
-    double bedvalue;
-    double wd_criterion = 0.00005;
-    int jj;
-
-    wd_criterion = p->A244;
-
-    v1 = v2 = v3 = v4 = 0.0;
-
-    if(p->j_dir == 0)
-    {
-        jj = j;
-
-        j = 0;
-        v1 = f(i, j);
-
-        v2 = f(i + 1, j);
-
-        value = 0.5 * (v1 + v2);
-
-        // bed
-        v1 = bed(i, j);
-
-        v2 = bed(i + 1, j);
-
-        bedvalue = 0.5 * (v1 + v2);
-
-        j = jj;
-    }
-
-    if(p->j_dir == 1)
-    {
-        if(wet[IJ] == 1)
-            v1 = f(i, j);
-
-        if(wet[IJ] == 0)
-            v1 = MIN(f(i, j), bed(i, j) - p->wd - 30.0 * wd_criterion);
-
-        if(wet[Ip1J] == 1)
-            v2 = f(i + 1, j);
-
-        if(wet[Ip1J] == 0)
-            v2 = MIN(f(i + 1, j), bed(i + 1, j) - p->wd - 30.0 * wd_criterion);
-
-        if(wet[IJp1] == 1)
-            v3 = f(i, j + 1);
-
-        if(wet[IJp1] == 0)
-            v3 = MIN(f(i, j + 1), bed(i, j + 1) - p->wd - 30.0 * wd_criterion);
-
-        if(wet[Ip1Jp1] == 1)
-            v4 = f(i + 1, j + 1);
-
-        if(wet[Ip1Jp1] == 0)
-            v4 = MIN(f(i + 1, j + 1), bed(i + 1, j + 1) - p->wd - 30.0 * wd_criterion);
-
-        value = 0.25 * (v1 + v2 + v3 + v4);
-
-        // bed
-        v1 = bed(i, j);
-
-        v2 = bed(i + 1, j);
-
-        v3 = bed(i, j + 1);
-
-        v4 = bed(i + 1, j + 1);
-
-        bedvalue = 0.25 * (v1 + v2 + v3 + v4);
-    }
+    v4 = f(i + 1, j1);
 
     return value;
 }
@@ -251,33 +77,12 @@ double interpolation::sl_ipol4eta(int *wet, slice &f, slice &bed)
     double wd_criterion = 0.00005;
     int jj;
 
-    wd_criterion = p->A244;
+    // (gcsl_yskip: the cell row 0)
+    const int jsave = j;
+    if(gcsl_yskip(p))
+        j = 0;
 
     v1 = v2 = v3 = v4 = 0.0;
-
-    /*
-    if(p->j_dir==0)
-    {
-    jj=j;
-
-    j=0;
-    v1=f(i,j);
-
-    v2=f(i+1,j);
-
-
-    value = 0.5*(v1+v2);
-
-    //bed
-    v1=bed(i,j);
-
-    v2=bed(i+1,j);
-
-
-    bedvalue = 0.5*(v1+v2);
-
-    j=jj;
-    }*/
 
     if(p->j_dir == 0)
     {
@@ -409,43 +214,53 @@ double interpolation::sl_ipol4eta(int *wet, slice &f, slice &bed)
                 value = value - 1.0 * wd_criterion;
     }
 
-    return value;
+    v2 = f(i + 1, j);
+
+    v3 = f(i, j + 1);
+
+    v4 = f(i + 1, j + 1);
+
+    value = 0.25 * (v1 + v2 + v3 + v4);
+
+    // bed
+    v1 = bed(i, j);
+
+    v2 = bed(i + 1, j);
+
+    v3 = bed(i, j + 1);
+
+    v4 = bed(i + 1, j + 1);
+
+    bedvalue = 0.25 * (v1 + v2 + v3 + v4);
+}
+
+if(value + p->wd > bedvalue)
+    if(value + p->wd - bedvalue < wd_criterion)
+        value = value - 1.0 * wd_criterion;
+}
+
+j = jsave;
+return value;
 }
 
 double interpolation::sl_ipol4eta_wd(int *wet, slice &f, slice &bed)
 {
     v1 = v2 = v3 = v4 = 0;
 
+    const bool ys = gcsl_yskip(p);
+    const int j0 = ys ? 0 : j, j1 = ys ? 0 : j + 1;
+
     if(wet[IJ] == 1)
-        v1 = f(i, j);
+        v1 = f(i, j0);
 
     if(wet[Ip1J] == 1)
-        v2 = f(i + 1, j);
+        v2 = f(i + 1, j0);
 
     if(wet[IJp1] == 1)
-        v3 = f(i, j + 1);
+        v3 = f(i, j1);
 
     if(wet[Ip1Jp1] == 1)
-        v4 = f(i + 1, j + 1);
-
-    value = 0.25 * (v1 + v2 + v3 + v4);
-
-    return value;
-}
-
-double interpolation::sl_ipolint(sliceint &f)
-{
-    v1 = v2 = v3 = v4 = 0;
-
-    v1 = double(f(i, j));
-
-    v2 = double(f(i + 1, j));
-
-    v3 = double(f(i, j + 1));
-
-    v4 = double(f(i + 1, j + 1));
-
-    value = 0.25 * (v1 + v2 + v3 + v4);
+        v4 = f(i + 1, j1);
 
     return value;
 }
@@ -469,11 +284,10 @@ double interpolation::nhf_ipol4eta(int *wet, slice &f, slice &bed)
         if(wet[IJ] == 0)
             v1 = MIN(f(i, j), bed(i, j) - p->wd - fac * p->DXM);
 
-        if(wet[Ip1J] == 1)
-            v2 = f(i + 1, j);
+        value = 0.5 * (v1 + v2);
 
-        if(wet[Ip1J] == 0)
-            v2 = MIN(f(i + 1, j), bed(i + 1, j) - p->wd - fac * p->DXM);
+        // bed
+        v1 = bed(i, j);
 
         value = 0.5 * (v1 + v2);
 

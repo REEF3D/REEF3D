@@ -29,8 +29,18 @@ double interpolation::lint1_2D(field &b, int &i, int &j, int &k, double wa, doub
 {
     v1 = v2 = v3 = v4 = 0.0;
 
-    jj = j;
+    const int jsave = j;  // local: jj is the member in which the ccipol callers keep their own j
     j = 0;
+
+    if(p->flag1[IJK] > TOPO_FLAG)
+        v1 = b(i, j, k);
+    if(p->flag1[IJKp1] > TOPO_FLAG)
+        v2 = b(i, j, k + 1);
+    if(p->flag1[Ip1JK] > TOPO_FLAG)
+        v3 = b(i + 1, j, k);
+    if(p->flag1[Ip1JKp1] > TOPO_FLAG)
+        v4 = b(i + 1, j, k + 1);
+    j = jsave;
 
     if(p->flag1[IJK] > TOPO_FLAG)
         v1 = b(i, j, k);
@@ -54,8 +64,18 @@ double interpolation::lint2_2D(field &b, int &i, int &j, int &k, double wa, doub
 {
     v1 = v2 = v3 = v4 = 0.0;
 
-    jj = j;
+    const int jsave = j;  // local: jj is the member in which the ccipol callers keep their own j
     j = 0;
+
+    if(p->flag2[IJK] > TOPO_FLAG)
+        v1 = b(i, j, k);
+    if(p->flag2[IJKp1] > TOPO_FLAG)
+        v2 = b(i, j, k + 1);
+    if(p->flag2[Ip1JK] > TOPO_FLAG)
+        v3 = b(i + 1, j, k);
+    if(p->flag2[Ip1JKp1] > TOPO_FLAG)
+        v4 = b(i + 1, j, k + 1);
+    j = jsave;
 
     if(p->flag2[IJK] > TOPO_FLAG)
         v1 = b(i, j, k);
@@ -70,8 +90,6 @@ double interpolation::lint2_2D(field &b, int &i, int &j, int &k, double wa, doub
     x1 = wa * v1 + (1.0 - wa) * v3;
     x2 = wa * v2 + (1.0 - wa) * v4;
 
-    value = wc * x1 + (1.0 - wc) * x2;
-
     return value;
 }
 
@@ -79,7 +97,7 @@ double interpolation::lint3_2D(field &b, int &i, int &j, int &k, double wa, doub
 {
     v1 = v2 = v3 = v4 = 0.0;
 
-    jj = j;
+    const int jsave = j;  // local: jj is the member in which the ccipol callers keep their own j
     j = 0;
 
     if(p->flag3[IJK] > TOPO_FLAG)
@@ -90,7 +108,7 @@ double interpolation::lint3_2D(field &b, int &i, int &j, int &k, double wa, doub
         v3 = b(i + 1, j, k);
     if(p->flag3[Ip1JKp1] > TOPO_FLAG)
         v4 = b(i + 1, j, k + 1);
-    j = jj;
+    j = jsave;
 
     x1 = wa * v1 + (1.0 - wa) * v3;
     x2 = wa * v2 + (1.0 - wa) * v4;
@@ -100,12 +118,22 @@ double interpolation::lint3_2D(field &b, int &i, int &j, int &k, double wa, doub
     return value;
 }
 
-double interpolation::lint4_2D(field &f, int &i, int &j, int &k, double wa, double wb, double wc)
+double interpolation::lint3_2D(field &b, int &i, int &j, int &k, double wa, double wb, double wc)
 {
     v1 = v2 = v3 = v4 = 0.0;
 
-    jj = j;
+    const int jsave = j;  // local: jj is the member in which the ccipol callers keep their own j
     j = 0;
+
+    if(p->flag4[IJK] > TOPO_FLAG)
+        v1 = f(i, j, k);
+    if(p->flag4[IJKp1] > TOPO_FLAG)
+        v2 = f(i, j, k + 1);
+    if(p->flag4[Ip1JK] > TOPO_FLAG)
+        v3 = f(i + 1, j, k);
+    if(p->flag4[Ip1JKp1] > TOPO_FLAG)
+        v4 = f(i + 1, j, k + 1);
+    j = jsave;
 
     if(p->flag4[IJK] > TOPO_FLAG)
         v1 = f(i, j, k);
@@ -127,22 +155,13 @@ double interpolation::lint4_2D(field &f, int &i, int &j, int &k, double wa, doub
 
 double interpolation::lint4phi_2D(fdm *a, field &b, int &i, int &j, int &k, double wa, double wb, double wc)
 {
-    double epphi = 1.6 * p->DXM;
-    double epphi2 = 0.6 * p->DXM;
-    v1 = v2 = v3 = v4 = p->phimean - p->pos_z();
+    const int jsave = j;  // local: jj is the member in which the ccipol callers keep their own j
+    j = 0;
 
     jj = j;
     j = 0;
 
-    if(a->topo(i, j, k) > -epphi && a->fb(i, j, k) > -epphi2)
-        v1 = b(i, j, k);
-    if(a->topo(i, j, k + 1) > -epphi && a->fb(i, j, k + 1) > -epphi2)
-        v2 = b(i, j, k + 1);
-    if(a->topo(i + 1, j, k) > -epphi && a->fb(i + 1, j, k) > -epphi2)
-        v3 = b(i + 1, j, k);
-    if(a->topo(i + 1, j, k + 1) > -epphi && a->fb(i + 1, j, k + 1) > -epphi2)
-        v4 = b(i + 1, j, k + 1);
-    j = jj;
+    j = jsave;
 
     x1 = wa * v1 + (1.0 - wa) * v3;
     x2 = wa * v2 + (1.0 - wa) * v4;
@@ -154,7 +173,9 @@ double interpolation::lint4phi_2D(fdm *a, field &b, int &i, int &j, int &k, doub
 
 double interpolation::lint_a_2D(field &f, int &i, int &j, int &k, double wa, double wb, double wc)
 {
-    jj = j;
+    v1 = v2 = v3 = v4 = 0.0;
+
+    const int jsave = j;  // local: jj is the member in which the ccipol callers keep their own j
     j = 0;
 
     x1 = wa * f(i, j, k) + (1.0 - wa) * f(i + 1, j, k);
@@ -167,77 +188,40 @@ double interpolation::lint_a_2D(field &f, int &i, int &j, int &k, double wa, dou
     return value;
 }
 
-double interpolation::lint4V_2D(double *f, int &i, int &j, int &k, double wa, double wb, double wc)
-{
-    v1 = v2 = v3 = v4 = 0.0;
+j = jsave;
 
-    jj = j;
-    j = 0;
+jj = j;
+j = 0;
 
-    v1 = f[IJK];
+v1 = f[IJK];
 
-    v2 = f[IJKp1];
+v2 = f[IJKp1];
 
-    v3 = f[Ip1JK];
+v3 = f[Ip1JK];
 
-    v4 = f[Ip1JKp1];
+v4 = f[Ip1JKp1];
 
-    j = jj;
+j = jj;
 
-    x1 = wa * v1 + (1.0 - wa) * v3;
-    x2 = wa * v2 + (1.0 - wa) * v4;
+x1 = wa * v1 + (1.0 - wa) * v3;
+x2 = wa * v2 + (1.0 - wa) * v4;
 
-    value = wc * x1 + (1.0 - wc) * x2;
+value = wc * x1 + (1.0 - wc) * x2;
 
-    return value;
+return value;
 }
-/*
-double interpolation::lint7V_2D(double *f, int& i,int& j, int& k, double wa, double wb, double wc)
-{
-
-    v1=v2=v3=v4=0.0;
-
-    jj=j;
-    j=0;
-
-    v1=f[FIJK];
-
-    v2=f[FIJKp1];
-
-    v3=f[FIp1JK];
-
-    v4=f[FIp1JKp1];
-
-    j=jj;
-
-
-    x1 = wa*v1 + (1.0-wa)*v3;
-    x2 = wa*v2 + (1.0-wa)*v4;
-
-    value = wc*x1 +(1.0-wc)*x2;
-
-    return value;
-}*/
 
 double interpolation::lint7V_2D(double *f, int &i, int &j, int &k, double wa, double wb, double wc)
 {
     double w1, w2, w3, w4, wsum;
 
-    jj = j;
+    const int jsave = j;  // local: jj is the member in which the ccipol callers keep their own j
     j = 0;
 
     w1 = wa * wc;                  // (i,   k  )
     w2 = wa * (1.0 - wc);          // (i,   k+1)
     w3 = (1.0 - wa) * wc;          // (i+1, k  )
     w4 = (1.0 - wa) * (1.0 - wc);  // (i+1, k+1)
-
-    // drop nodes inside the body and renormalise: zero-gradient fill
-    // if(p->DFF[FIJK]     < 0) w1 = 0.0;
-    // if(p->DFF[FIJKp1]   < 0) w2 = 0.0;
-    // if(p->DFF[FIp1JK]   < 0) w3 = 0.0;
-    // if(p->DFF[FIp1JKp1] < 0) w4 = 0.0;
-
-    // cout<<"w1: "<<w1<<" w2: "<<w2<<" w3: "<<w3<<" w4: "<<w4<<endl;
 
     wsum = w1 + w2 + w3 + w4;
 
@@ -247,7 +231,7 @@ double interpolation::lint7V_2D(double *f, int &i, int &j, int &k, double wa, do
     else
         value = 0.0;
 
-    j = jj;
+    j = jsave;
 
     return value;
 }

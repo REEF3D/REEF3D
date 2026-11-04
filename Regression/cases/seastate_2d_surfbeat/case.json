@@ -1,0 +1,9 @@
+{
+ "description": "REEF3D::SEASTATE surfbeat stand-alone (A 10 7, A 770 1): short-crested wave groups (Mitsuyasu, 20 deg) on the GLOBEX profile, T_rep 2 s (A 771), Roelvink breaking and roller, time step 0.05 s, 180 x 40 cells of 0.5 m, 60 s. Validation of the energy and roller balance in Dropbox SEASTATE/validation/14_roller.",
+ "solver": "seastate",
+ "np": 1,
+ "steps": 1200,
+ "time": 60.0,
+ "tags": ["quick", "2d", "seastate"],
+ "covers": ["seastate_f surfbeat stand-alone stepping", "seastate_roller", "surfbeat log files"]
+}

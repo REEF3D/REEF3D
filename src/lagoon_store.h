@@ -23,7 +23,7 @@ Architect: Hans Bihs
 #ifndef LAGOON_STORE_H_
 #define LAGOON_STORE_H_
 
-// Writes LAGOON stores (LAGOON lagoon-format SPEC.md, version 0.3): one Zarr v3
+// Writes LAGOON stores (LAGOON lagoon-format SPEC.md, version 0.5): one Zarr v3
 // store per run, one group per output stream, one block per MPI rank.
 //
 // No MPI and no REEF3D types in here: every rank writes its own block's files
@@ -32,10 +32,11 @@ Architect: Hans Bihs
 //
 // Each array of a block is a sharded Zarr array: a shard file holds `shard_time`
 // outputs of the whole block, cut into inner chunks of one output, a few levels
-// and a tile of at most 64 x 64 points (byte shuffle + gzip). A shard grows by one
-// output at a time: the new chunks are appended and a new index (with a CRC-32C
-// checksum) is written after them, so a reader never sees a half-written index as
-// valid; the space of the old index stays unused.
+// and a tile of at most 64 x 64 points (byte shuffle + gzip; a byte plane that is
+// noise, the low bytes of the mantissas, is stored in the gzip stream as it is).
+// A shard grows by one output at a time: the new chunks are appended and a new
+// index (with a CRC-32C checksum) is written after them, so a reader never sees a
+// half-written index as valid; the space of the old index stays unused.
 
 #include <cstdint>
 #include <map>
@@ -59,14 +60,28 @@ public:
     // rank 0, once: the root group (run_json: the run log's run record, or "")
     void create_root(const std::string &solver, const std::string &run_json);
 
+    // rank 0, before a run's first output into the store, by every writer (volume,
+    // surfaces, AMR, bodies, particles): a store holds one run. The store of an
+    // earlier run in its place (another run id in its root, or none) is moved aside
+    // to REEF3D_<SOLVER>-<its run>.lagoon-earlier and this run's root is made; later
+    // calls of the run do nothing. Returns where the earlier store went, or "".
+    std::string begin_run(const std::string &solver, const std::string &run_json);
+
+    // the run id a run record or a root's zarr.json text holds, or ""
+    static std::string run_id(const std::string &json);
+
     // rank 0, once per output stream: the group, its grid lines and time arrays
     // grid: "sigma" (levels: their σ, 0 at the bed, 1 at the surface), "cartesian"
     // (levels: their heights z, CFD) or "surface" (levels empty)
+    // A curvilinear grid (G 50; SPEC 2.2) also gives xc and yc: the x and y of every
+    // grid point, x fastest (y.size() rows of x.size()); x and y are then the grid's
+    // index lines.
     void create_output(const std::string &output, const std::string &grid,
                        const std::vector<double> &x, const std::vector<double> &y,
                        const std::vector<double> &levels,
                        const std::vector<variable> &variables,
-                       int blocks, const std::string &source);
+                       int blocks, const std::string &source,
+                       const std::vector<double> *xc = nullptr, const std::vector<double> *yc = nullptr);
 
     // every rank, once per output stream: its block (i0, j0: index of its first
     // point in x and y; nx, ny: its number of points; nz: levels, 1 for surfaces).
@@ -97,6 +112,9 @@ public:
 
     static std::string json_string(const std::string &text);
 
+    // threads that compress the chunks of an array (1: only the calling thread)
+    void set_threads(int n) { threads = n < 1 ? 1 : n; }
+
     // the Float32 point arrays and the points of a VTK XML header (appended data):
     // name, components and offset (from the '_' that starts the appended data)
     struct vtu_array
@@ -119,6 +137,7 @@ private:
     std::string path;
     int shard_time;
     int gzip_level;
+    int threads = 1;
     std::map<std::string, array_info> arrays;  // "output/block/name"
     std::map<std::string, std::vector<double>> times;
     std::map<std::string, std::vector<long long>> steps;
@@ -302,8 +321,10 @@ public:
         int level = 0;
         int rank = -1;               // the MPI rank that has it
         int nx = 0, ny = 0;          // cells
+        int nz = 0;                  // cells in z: 0 for a 2D grid (a surface's), > 0 for a block of a volume (CFD)
         std::vector<double> x, y;    // nx+1 and ny+1 node coordinates, rising
-        std::vector<double> values;  // nx*ny per field (x fastest), the fields one after another
+        std::vector<double> z;       // nz+1 node coordinates of a block, rising
+        std::vector<double> values;  // nx*ny(*nz) per field (x fastest, then y, then z), the fields one after another
     };
 
     // key: the AMR set, e.g. "nhflow_amr"; source: "REEF3D_NHFLOW_AMR"
@@ -312,13 +333,14 @@ public:
                const std::vector<field> &fields, int gzip_level = 1);
 
     // one output: its grids, level 0 first. False when it could not be written (no more
-    // output to the store then: the .vtr and .vtm files are needed).
+    // output to the store then: the .vtr and .vtm files are needed). The set is of 2D grids
+    // or of 3D blocks (dims 3), as the first output's grids are.
     bool output(double time, long long step, const std::vector<grid> &grids);
 
     bool usable() const { return ok; }
 
-    // grids as doubles for MPI (count, then per grid level, nx, ny, x, y, values) and back;
-    // unpack appends the grids of one rank
+    // grids as doubles for MPI (count, then per grid level, nx, ny, nz, x, y, z, values) and
+    // back; unpack appends the grids of one rank
     static void pack(const std::vector<grid> &grids, int fields, std::vector<double> &out);
     static bool unpack(const double *data, size_t n, int fields, int rank, std::vector<grid> &out);
 
@@ -327,11 +349,12 @@ private:
     std::vector<field> fields;
     int gzip_level;
     bool ok, started;
-    std::vector<lagoon_rows::array> table;  // level, rank, size, x_end, y_end, cell_end
-    std::vector<lagoon_rows::array> nodes;  // x, y
+    int dims;                               // 2: grids of a surface, 3: blocks of a volume
+    std::vector<lagoon_rows::array> table;  // level, rank, size, x_end, y_end, cell_end (, z_end)
+    std::vector<lagoon_rows::array> nodes;  // x, y (, z)
     std::vector<lagoon_rows::array> cells;  // the fields
     std::vector<long long> grid_end;
-    long long x_end, y_end, cell_end;
+    long long x_end, y_end, z_end, cell_end;
     lagoon_store store;
     lagoon_rows rw;
 

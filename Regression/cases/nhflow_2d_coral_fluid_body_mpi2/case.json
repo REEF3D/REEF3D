@@ -1,0 +1,8 @@
+{
+ "description": "nhflow_2d_coral_fluid_body on 2 ranks: CORAL drives the NHFLOW box on every rank with the loads of rank 0.",
+ "solver": "nhflow",
+ "np": 2,
+ "base": "nhflow_2d_coral_fluid_body",
+ "tags": ["2d", "nhflow", "6dof", "floating", "coral", "mpi"],
+ "covers": ["6DOF_nhflow_external on several ranks", "coral_reef3d bcast and check_ranks"]
+}

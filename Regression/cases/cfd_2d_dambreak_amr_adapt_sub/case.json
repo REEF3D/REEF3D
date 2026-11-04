@@ -1,0 +1,24 @@
+{
+ "base": "cfd_2d_dambreak",
+ "np": 1,
+ "steps": 100,
+ "ctrl_add": [
+  "G 1 1",
+  "G 7 1",
+  "G 24 3",
+  "G 2 2",
+  "G 5 0"
+ ],
+ "description": "Adaptive CFD mesh refinement with subcycling (G 7 1): regrid after the steps of level 0.",
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "levelset",
+  "amr",
+  "adaptive"
+ ],
+ "covers": [
+  "regrid with G 7 1: the time levels of the new patches"
+ ]
+}

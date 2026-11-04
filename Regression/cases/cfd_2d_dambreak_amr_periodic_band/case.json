@@ -1,0 +1,28 @@
+{
+ "base": "cfd_2d_dambreak",
+ "np": 1,
+ "steps": 80,
+ "control_add": [
+  "C 21 1"
+ ],
+ "ctrl_set": {
+  "F 54": "0.20"
+ },
+ "ctrl_add": [
+  "F 51 0.05",
+  "G 1 1",
+  "G 15 0.0 0.6 0.0 1.0 0.0 0.4"
+ ],
+ "description": "A static refined band over the whole periodic length: one patch, its margin across the periodic edge is the patch itself; its multigrid periodic in x.",
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "levelset",
+  "amr",
+  "periodic"
+ ],
+ "covers": [
+  "a patch periodic over itself (pr_wrap): the self fill, the periodic patch multigrid"
+ ]
+}

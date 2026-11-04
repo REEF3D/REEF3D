@@ -106,6 +106,23 @@ void sixdof_obj_nhflow::membrane_stabilisation(lexer *p, int iter)
     Eigen::Matrix3d J = pnetinter->membrane_stiffness_nhflow(p);
     const Eigen::Matrix3d Ia = pnetinter->membrane_addedinertia_nhflow(p);
 
+    coupling_stabilisation(p, iter, Ma, J, Ia);
+}
+
+// the hull as a sharp thin body (X 15 8): the hull pressure of the projection carries the added mass of the water,
+// lagged by a stage, as the load of a rigid bag: stabilised with M_a = 2 M (twice the displaced water of a floating
+// body) and I_a = 2 I (world frame), the defaults of the rigid bag
+void sixdof_obj_nhflow::hull_stabilisation(lexer *p, int iter)
+{
+    const double Ma = 2.0 * Mass_fb;
+    const Eigen::Matrix3d J = Eigen::Matrix3d::Zero();
+    const Eigen::Matrix3d Ia = 2.0 * quatRotMat * I_ * quatRotMat.transpose();
+
+    coupling_stabilisation(p, iter, Ma, J, Ia);
+}
+
+void sixdof_obj_nhflow::coupling_stabilisation(lexer *p, int iter, double Ma, Eigen::Matrix3d J, const Eigen::Matrix3d &Ia)
+{
     if(Ma <= 0.0 && J.norm() <= 0.0 && Ia.norm() <= 0.0)
         return;
 
@@ -176,11 +193,44 @@ void sixdof_obj_nhflow::membrane_stabilisation(lexer *p, int iter)
             b(r) = 0.0;
         }
 
-    const Eigen::Vector3d F = Mass_fb * A.lu().solve(b);
+    const Eigen::Vector3d M = Iw * A.lu().solve(b);
 
     for(int r = 0; r < 3; ++r)
-        if(fr[r])
-            Ffb_(r) = F(r);
+        if(fw[r])
+            Mfb_(r) = M(r);
+}
+
+if(Ma <= 0.0 && J.norm() <= 0.0)
+    return;
+
+// free translations only
+const int fr[3] = {rb.dof[0] == 1, rb.dof[1] == 1 && p->j_dir == 1, rb.dof[2] == 1};
+
+for(int r = 0; r < 3; ++r)
+    for(int c = 0; c < 3; ++c)
+        if(!fr[r] || !fr[c])
+            J(r, c) = 0.0;
+
+const double h = alpha[iter] * p->dt;
+const Eigen::Vector3d v(u_fb(0), u_fb(1), u_fb(2));
+
+Eigen::Matrix3d A = (Mass_fb + Ma) * Eigen::Matrix3d::Identity() - h * h * J;
+Eigen::Vector3d b = Ffb_ + Ma * amem_n_ + h * J * v;
+
+for(int r = 0; r < 3; ++r)
+    if(!fr[r])
+    {
+        A.row(r).setZero();
+        A.col(r).setZero();
+        A(r, r) = 1.0;
+        b(r) = 0.0;
+    }
+
+const Eigen::Vector3d F = Mass_fb * A.lu().solve(b);
+
+for(int r = 0; r < 3; ++r)
+    if(fr[r])
+        Ffb_(r) = F(r);
 }
 
 bool sixdof_obj_nhflow::membrane_iterated()

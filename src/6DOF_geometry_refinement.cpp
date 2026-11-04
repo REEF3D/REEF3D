@@ -96,6 +96,47 @@ void sixdof_geometry::geometry_refinement(lexer *p, ghostcell *pgc)
     dxmin = MIN(dxmin, amr_hfac * p->DYN[JP]);
 
     KLOOP
+    dxmin = MIN(dxmin, amr_vfac * p->DZN[KP]);
+
+    tri_x_r.resize(tricount, vector<double>(3, 0.0));
+    tri_y_r.resize(tricount, vector<double>(3, 0.0));
+    tri_z_r.resize(tricount, vector<double>(3, 0.0));
+
+    for(int i = 0; i < tricount; i++)
+    {
+        for(int j = 0; j < 3; j++)
+        {
+            dxmin = 1.0e10;
+
+            double xm = (1.0 / 3.0) * (x0 + x1 + x2);
+            double ym = (1.0 / 3.0) * (y0 + y1 + y2);
+            double zm = (1.0 / 3.0) * (z0 + z1 + z2);
+
+            i = p->posc_i(xm);
+            j = p->posc_j(ym);
+            k = p->posc_k(zm);
+
+            dxmin = MIN(dxmin, amr_hfac * p->DXN[IP]);
+
+            if(p->j_dir == 1)
+                dxmin = MIN(dxmin, amr_hfac * p->DYN[JP]);
+
+            dxmin = MIN(dxmin, amr_vfac * p->DZN[KP]);
+        }
+    }
+
+    double critL = amr_hfac * p->DXM * p->X186;
+
+    double dxmin = 1.0e10;
+
+    ILOOP
+    dxmin = MIN(dxmin, amr_hfac * p->DXN[IP]);
+
+    if(p->j_dir == 1)
+        JLOOP
+    dxmin = MIN(dxmin, amr_hfac * p->DYN[JP]);
+
+    KLOOP
     dxmin = MIN(dxmin, p->DZN[KP]);
 
     for(int n = 0; n < tri_x_r.size(); n++)

@@ -54,6 +54,18 @@ Author: Hans Bihs
 //  residual RH = R often recovers it within a few iterations (restarts receives their number).
 //  If it stagnates again after a restart and the relative residual is below stagtol (0: never),
 //  the solve stops there (stalls receives their number) instead of running to maxiter.
+//  Such a space is also restarted at a breakdown, RH.R = 0 to round-off: with RH = R0 this
+//  happens when the right-hand side is local and the preconditioner exact around it (SFLOW AMR
+//  Boussinesq, u_a of a dam break: the residual of the first iteration lives only at the
+//  coarse-fine boundaries, outside the support of R0).
+//
+//  halfexit: the standard half-step exit (as REEFMG, reefmg_core::solve): if S = R - alp*VV is
+//  already below the tolerance, x += alp*PH (op_x with om 0: R = S) and the second
+//  preconditioner and operator application of the iteration are skipped (one dot product more
+//  per iteration).  The solve then ends with a residual below tol as before, half an iteration
+//  earlier where the preconditioner reduces the residual strongly (FNPF AMR: about 500 per
+//  iteration, the psi solves of a floating body need 1-3 iterations).  Off by default: the other
+//  solves are bitwise unchanged.
 
 // default vector indices (a module may use its own)
 enum { REEFAMR_NR = 0,
@@ -69,7 +81,7 @@ enum { REEFAMR_NR = 0,
 
 template<class S>
 int reefamr_bicgstab(S &sp, double tol, int maxiter, double &bn, double &rn, double *tprec = nullptr, double *tapply = nullptr,
-                     int *restarts = nullptr, double stagtol = 0.0, int *stalls = nullptr)
+                     int *restarts = nullptr, double stagtol = 0.0, int *stalls = nullptr, bool halfexit = false)
 {
     const int RESTART_WIN = 8;
 
@@ -86,6 +98,17 @@ int reefamr_bicgstab(S &sp, double tol, int maxiter, double &bn, double &rn, dou
         while(rn / bn > tol && it < maxiter)
         {
             double rhon = sp.dot(S::RH, S::R);
+
+            if constexpr(requires { sp.op_restart(); })
+                if(it > 0 && fabs(rhon) <= 1.0e-12 * rn * sqrt(sp.dot(S::RH, S::RH)))
+                {
+                    sp.op_restart();
+                    rho = alp = om = 1.0;
+                    rhon = rn * rn;
+                    if(restarts)
+                        ++(*restarts);
+                }
+
             double beta = (rhon / rho) * (alp / om);
             rho = rhon;
 
@@ -102,6 +125,18 @@ int reefamr_bicgstab(S &sp, double tol, int maxiter, double &bn, double &rn, dou
             alp = rho / sp.dot(S::RH, S::VV);
 
             sp.op_s(alp);
+
+            if(halfexit)
+            {
+                const double sn = sqrt(sp.dot(S::S, S::S));
+                if(sn / bn <= tol)
+                {
+                    sp.op_x(alp, 0.0);
+                    rn = sn;
+                    ++it;
+                    break;
+                }
+            }
 
             ta = MPI_Wtime();
             sp.prec(S::S, S::SH);
@@ -121,34 +156,70 @@ int reefamr_bicgstab(S &sp, double tol, int maxiter, double &bn, double &rn, dou
 
             if constexpr(requires { sp.op_restart(); })
             {
-                if(rn < 0.95 * rbest)
-                {
-                    rbest = rn;
-                    ibest = it;
-                    nostep = 0;
-                }
-                else if(it - ibest >= RESTART_WIN && rn / bn > tol)
-                {
-                    // stagnated again after a restart, close enough: stop
-                    if(nostep > 0 && rn / bn <= stagtol)
-                    {
-                        if(stalls)
-                            ++(*stalls);
-                        break;
-                    }
+                double rhon = sp.dot(S::RH, S::R);
+                double beta = (rhon / rho) * (alp / om);
+                rho = rhon;
 
-                    ++nostep;
-                    sp.op_restart();
-                    rho = alp = om = 1.0;
-                    rbest = rn;
-                    ibest = it;
-                    if(restarts)
-                        ++(*restarts);
+                sp.op_p(beta, om);
+
+                double ta = MPI_Wtime();
+                sp.prec(S::PV, S::PH);
+                double tb = MPI_Wtime();
+                sp.apply(S::PH, S::VV);
+                if(tprec)
+                    *tprec += tb - ta;
+                if(tapply)
+                    *tapply += MPI_Wtime() - tb;
+                alp = rho / sp.dot(S::RH, S::VV);
+
+                sp.op_s(alp);
+
+                ta = MPI_Wtime();
+                sp.prec(S::S, S::SH);
+                tb = MPI_Wtime();
+                sp.apply(S::SH, S::T);
+                if(tprec)
+                    *tprec += tb - ta;
+                if(tapply)
+                    *tapply += MPI_Wtime() - tb;
+                double tt = sp.dot(S::T, S::T);
+                om = tt > 0.0 ? sp.dot(S::T, S::S) / tt : 0.0;
+
+                sp.op_x(alp, om);
+
+                rn = sqrt(sp.dot(S::R, S::R));
+                ++it;
+
+                if constexpr(requires { sp.op_restart(); })
+                {
+                    if(rn < 0.95 * rbest)
+                    {
+                        rbest = rn;
+                        ibest = it;
+                        nostep = 0;
+                    }
+                    else if(it - ibest >= RESTART_WIN && rn / bn > tol)
+                    {
+                        // stagnated again after a restart, close enough: stop
+                        if(nostep > 0 && rn / bn <= stagtol)
+                        {
+                            if(stalls)
+                                ++(*stalls);
+                            break;
+                        }
+
+                        ++nostep;
+                        sp.op_restart();
+                        rho = alp = om = 1.0;
+                        rbest = rn;
+                        ibest = it;
+                        if(restarts)
+                            ++(*restarts);
+                    }
                 }
             }
-        }
 
-    return it;
-}
+            return it;
+        }
 
 #endif

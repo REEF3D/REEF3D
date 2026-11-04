@@ -1,0 +1,11 @@
+{
+ "np": 2,
+ "steps": 200,
+ "tags": ["3d", "nhflow", "semi_implicit", "curvilinear", "multiblock", "river", "tide", "mpi"],
+ "description": "nhflow_3d_si_mb_split_open on 2 ranks with G 55 2 and G 56 0.5 0: the blocks placed and cut by their load (all cells wet here, so the cuts at equal parts of the load), the placement improved by moves and swaps. The same solution as nhflow_3d_si_mb_split_open to the tolerance of the eta solve.",
+ "covers": [
+  "geo_mesh::split_blocks with G 56 (cuts at equal load), reefamr::blocks_setup with G 56 (weighted loads, moves and swaps)"
+ ],
+ "solver": "nhflow",
+ "files": ["blocks.dat"]
+}

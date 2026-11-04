@@ -1,0 +1,9 @@
+{
+ "description": "NHFLOW 3D fixed membrane bag 'membrane cylcone' in a current with 'mobility sharp' (nhflow_thinbody): discharge inflow B60=1 with potential-flow start (I11=1), HLLC (A511=2); wall fluxes and guarded local fluxes near the bag, Rhie-Chow + lid correction below the cone floor. Coarse grid.",
+ "solver": "nhflow",
+ "np": 2,
+ "steps": 40,
+ "files": ["membrane.dat"],
+ "tags": ["3d", "nhflow", "membrane", "current", "mpi"],
+ "covers": ["nhflow_thinbody flux_hook near-body fluxes", "lid_correction in a current", "link_loads sharp"]
+}

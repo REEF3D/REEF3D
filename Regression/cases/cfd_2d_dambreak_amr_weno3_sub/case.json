@@ -1,0 +1,26 @@
+{
+ "base": "cfd_2d_dambreak",
+ "np": 1,
+ "steps": 60,
+ "ctrl_set": {
+  "D 10": "7",
+  "F 35": "8"
+ },
+ "ctrl_add": [
+  "G 1 1",
+  "G 7 1",
+  "G 15 0.0 0.3 0.0 1.0 0.0 0.4"
+ ],
+ "description": "CFD mesh refinement with WENO3 (D 10 7 flux form, F 35 8 HJ form for the level set), subcycling: the patch builds its own WENO3 coefficient tables.",
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "levelset",
+  "amr"
+ ],
+ "covers": [
+  "cfd_amr::patch_objects with weno3_flux, weno3_hj",
+  "weno3_nug_func: own tables on a second grid (own_ini)"
+ ]
+}

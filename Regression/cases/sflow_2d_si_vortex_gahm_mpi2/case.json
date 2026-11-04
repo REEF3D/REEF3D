@@ -1,0 +1,23 @@
+{
+ "description": "Parametric vortex (W 200 3, GAHM W 215 2) from a fitted synthetic best track (met-vortex.trk, tools/met_track.py, Vmax 110 kt, asymmetric 34/50/64 kt radii, moving NNE at 6 m/s) over a 400 km x 400 km basin, 50 m deep, Flather edges with the inverse barometer (pref 101200 Pa, W 209), Coriolis per cell from the frame (W 211 2, W 205 -86 26, W 206), SFLOW semi-implicit dt 300 s, drag law auto (W 207 0 -> 5, Garratt capped at 2.5e-3), 2 ranks.",
+ "solver": "sflow",
+ "np": 2,
+ "steps": 60,
+ "files": [
+  "met-vortex.trk"
+ ],
+ "tags": [
+  "2d",
+  "sflow",
+  "semi_implicit",
+  "mpi",
+  "met",
+  "vortex"
+ ],
+ "covers": [
+  "met_vortex GAHM",
+  "met_source_vortex on the model grid",
+  "W 207 0 -> 5",
+  "track time interpolation"
+ ]
+}

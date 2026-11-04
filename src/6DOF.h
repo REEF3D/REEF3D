@@ -23,6 +23,7 @@ Author: Hans Bihs
 #ifndef SIXDOF_H_
 #define SIXDOF_H_
 
+#include <functional>
 #include <vector>
 
 class lexer;
@@ -54,7 +55,29 @@ public:
     virtual void membrane_reforce_nhflow(lexer *, fdm_nhf *, ghostcell *, double, double *, double *, double *, slice &) {};
     virtual bool membrane_couple_nhflow(lexer *, fdm_nhf *, ghostcell *, int, double, slice &, int) { return true; };
 
+    // pierced-column water level (X 13, nhflow_fsf_body): signed distance of the top cell centre of
+    // every column to the hull at the pose of stage iter (negative inside); false: not available,
+    // the caller falls back to d->FB of the last ray cast
+    virtual bool top_phi_nhflow(lexer *, fdm_nhf *, ghostcell *, int, slice &, slice &) { return false; };
+
+    // hull as the top of the water columns (X 13 2, nhflow_fsf_hull): keel height S, cover and the
+    // body velocity (us, vs, ws) at the keel point of every column at the pose of stage iter;
+    // false: not available
+    virtual bool keel_nhflow(lexer *, fdm_nhf *, ghostcell *, int, slice &, slice &, slice &, slice &, slice &, slice &) { return false; };
+
     virtual void ini(lexer *, ghostcell *) = 0;
+    // runtime coupling (reefcouple, I 243): number of bodies and the state of body n: CoG (3), velocity
+    // (3), angular velocity (3, inertial frame), rotation body -> inertial (9, row-major)
+    virtual int body_count() const { return 0; }
+    virtual void body_state(int, double *) const {}
+
+    // checkpoints (P 48, I 45): the state of the bodies (the same on all ranks); restore false: the
+    // checkpoint does not fit the bodies of this run
+    virtual void ckpt_state(lexer *, std::vector<double> &) {}
+    virtual bool ckpt_restore(lexer *, ghostcell *, const std::vector<double> &) { return true; }
+    virtual double *ckpt_slice() { return nullptr; }  // a slice of the grid kept over the steps (NHFLOW ship-wave pressure patch)
+    // the slices of the bodies on a horizontal grid (SFLOW): name, kind S, pointer
+    virtual void ckpt_fields(const std::function<void(const char *, char, double *)> &, const std::function<void(const char *, char, int *)> &) {}
     virtual void initialize(lexer *, fdm *, ghostcell *) = 0;
     virtual void initialize(lexer *, fdm2D *, ghostcell *) = 0;
     virtual void initialize(lexer *, fdm_nhf *, ghostcell *) = 0;

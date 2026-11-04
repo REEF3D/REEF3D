@@ -23,6 +23,7 @@ Authors: Tobias Martin, Ahmet Soydan, Hans Bihs
 #include "6DOF_obj_cfd.h"
 #include "fdm.h"
 #include "ghostcell.h"
+#include "heaviside.h"
 #include "lexer.h"
 
 void sixdof_obj_cfd::update_forcing(lexer *p, fdm *a, ghostcell *pgc, field &uvel, field &vvel, field &wvel, field &fx, field &fy, field &fz, int iter)
@@ -40,23 +41,85 @@ void sixdof_obj_cfd::update_forcing(lexer *p, fdm *a, ghostcell *pgc, field &uve
     {
         ULOOP
         {
+            if(amr_cover != nullptr && amr_cover[IJK])
+                continue;
+
             uf = u_fb(0) + u_fb(4) * (p->pos1_z() - c_(2)) - u_fb(5) * (p->pos1_y() - c_(1));
 
             if(uf != uf)
             {
-                cout << "UF " << uf << " " << u_fb(0) << " " << u_fb(4) << " " << (p->pos1_z() - c_(2)) << " " << u_fb(5) << " " << (p->pos1_y() - c_(1)) << endl;
+                uf = u_fb(0) + u_fb(4) * (p->pos1_z() - c_(2)) - u_fb(5) * (p->pos1_y() - c_(1));
+
+                if(uf != uf)
+                {
+                    cout << "UF " << uf << " " << u_fb(0) << " " << u_fb(4) << " " << (p->pos1_z() - c_(2)) << " " << u_fb(5) << " " << (p->pos1_y() - c_(1)) << endl;
+                }
+
+                H = Hsolidface(p, a, 1, 0, 0);
+
+                if(H != H)
+                    cout << "H " << uf << endl;
+
+                fx(i, j, k) += H * (uf - uvel(i, j, k)) / (alpha[iter] * p->dt);
+                a->fbh1(i, j, k) = min(a->fbh1(i, j, k) + H, 1.0);
+            }
+            VLOOP
+            {
+                vf = u_fb(1) + u_fb(5) * (p->pos2_x() - c_(0)) - u_fb(3) * (p->pos2_z() - c_(2));
+
+                if(vf != vf)
+                    cout << "VF " << vf << endl;
+
+                H = Hsolidface(p, a, 0, 1, 0);
+
+                if(H != H)
+                    cout << "H " << uf << endl;
+
+                fy(i, j, k) += H * (vf - vvel(i, j, k)) / (alpha[iter] * p->dt);
+                a->fbh2(i, j, k) = min(a->fbh2(i, j, k) + H, 1.0);
+            }
+            WLOOP
+            {
+                wf = u_fb(2) + u_fb(3) * (p->pos3_y() - c_(1)) - u_fb(4) * (p->pos3_x() - c_(0));
+
+                if(wf != wf)
+                    cout << "WF " << wf << endl;
+
+                H = Hsolidface(p, a, 0, 0, 1);
+
+                if(H != H)
+                    cout << "H " << uf << endl;
+
+                fz(i, j, k) += H * (wf - wvel(i, j, k)) / (alpha[iter] * p->dt);
+                a->fbh3(i, j, k) = min(a->fbh3(i, j, k) + H, 1.0);
+            }
+            LOOP
+            {
+                H = Hsolidface(p, a, 0, 0, 0);
+                a->fbh4(i, j, k) = min(a->fbh4(i, j, k) + H, 1.0);
             }
 
-            H = Hsolidface(p, a, 1, 0, 0);
+            psi = 1.1 * (1.0 / 3.0) * (p->DXN[IP] + p->DYN[JP] + p->DZN[KP]);
 
-            if(H != H)
-                cout << "H " << uf << endl;
+            if(p->j_dir == 0)
+                psi = 1.1 * (1.0 / 2.0) * (p->DXN[IP] + p->DZN[KP]);
 
-            fx(i, j, k) += H * (uf - uvel(i, j, k)) / (alpha[iter] * p->dt);
-            a->fbh1(i, j, k) = min(a->fbh1(i, j, k) + H, 1.0);
+            LOOP
+            {
+                dirac = 0.0;
+                if(fabs(a->fb(i, j, k)) < psi)
+                    dirac = (0.5 / psi) * (1.0 + cos((PI * (a->fb(i, j, k))) / psi));
+
+                a->fbh5(i, j, k) = 1.0 - MIN(dirac, 1.0);
+            }
         }
-        VLOOP
+
+        // Construct solid heaviside function
+        if(p->X14 >= 1)
         {
+            if(amr_cover != nullptr && amr_cover[IJK])
+                continue;
+
             vf = u_fb(1) + u_fb(5) * (p->pos2_x() - c_(0)) - u_fb(3) * (p->pos2_z() - c_(2));
 
             if(vf != vf)
@@ -72,6 +135,9 @@ void sixdof_obj_cfd::update_forcing(lexer *p, fdm *a, ghostcell *pgc, field &uve
         }
         WLOOP
         {
+            if(amr_cover != nullptr && amr_cover[IJK])
+                continue;
+
             wf = u_fb(2) + u_fb(3) * (p->pos3_y() - c_(1)) - u_fb(4) * (p->pos3_x() - c_(0));
 
             if(wf != wf)
@@ -87,17 +153,26 @@ void sixdof_obj_cfd::update_forcing(lexer *p, fdm *a, ghostcell *pgc, field &uve
         }
         LOOP
         {
+            if(amr_cover != nullptr && amr_cover[IJK])
+                continue;
+
             H = Hsolidface(p, a, 0, 0, 0);
             a->fbh4(i, j, k) = min(a->fbh4(i, j, k) + H, 1.0);
         }
 
         psi = 1.1 * (1.0 / 3.0) * (p->DXN[IP] + p->DYN[JP] + p->DZN[KP]);
 
-        if(p->j_dir == 0)
-            psi = 1.1 * (1.0 / 2.0) * (p->DXN[IP] + p->DZN[KP]);
+        if(uf != uf)
+            cout << "UF " << uf << endl;
 
         LOOP
         {
+            if(amr_cover != nullptr && amr_cover[IJK])
+            {
+                a->fbh5(i, j, k) = 1.0;
+                continue;
+            }
+
             dirac = 0.0;
             if(fabs(a->fb(i, j, k)) < psi)
                 dirac = (0.5 / psi) * (1.0 + cos((PI * (a->fb(i, j, k))) / psi));
@@ -106,12 +181,20 @@ void sixdof_obj_cfd::update_forcing(lexer *p, fdm *a, ghostcell *pgc, field &uve
         }
     }
 
+    pgc->start1(p, a->fbh1, 10);
+    pgc->start2(p, a->fbh2, 11);
+    pgc->start3(p, a->fbh3, 12);
+    pgc->start4(p, a->fbh4, 40);
+
     // Construct solid heaviside function
     if(p->X14 >= 1)
     {
 
         ULOOP
         {
+            if(amr_cover != nullptr && amr_cover[IJK])
+                continue;
+
             uf = u_fb(0) + u_fb(4) * (p->pos1_z() - c_(2)) - u_fb(5) * (p->pos1_y() - c_(1));
 
             if(uf != uf)
@@ -147,6 +230,9 @@ void sixdof_obj_cfd::update_forcing(lexer *p, fdm *a, ghostcell *pgc, field &uve
         if(p->j_dir == 1)
             VLOOP
             {
+                if(amr_cover != nullptr && amr_cover[IJK])
+                    continue;
+
                 vf = u_fb(1) + u_fb(5) * (p->pos2_x() - c_(0)) - u_fb(3) * (p->pos2_z() - c_(2));
 
                 if(vf != vf)
@@ -181,6 +267,9 @@ void sixdof_obj_cfd::update_forcing(lexer *p, fdm *a, ghostcell *pgc, field &uve
 
         WLOOP
         {
+            if(amr_cover != nullptr && amr_cover[IJK])
+                continue;
+
             wf = u_fb(2) + u_fb(3) * (p->pos3_y() - c_(1)) - u_fb(4) * (p->pos3_x() - c_(0));
 
             if(wf != wf)
@@ -216,6 +305,9 @@ void sixdof_obj_cfd::update_forcing(lexer *p, fdm *a, ghostcell *pgc, field &uve
 
         LOOP
         {
+            if(amr_cover != nullptr && amr_cover[IJK])
+                continue;
+
             H = Hsolidface(p, a, 0, 0, 0);
             Ht = Hsolidface_t(p, a, 0, 0, 0);
             a->fbh4(i, j, k) = min(a->fbh4(i, j, k) + H, 1.0);
@@ -230,6 +322,12 @@ void sixdof_obj_cfd::update_forcing(lexer *p, fdm *a, ghostcell *pgc, field &uve
 
         LOOP
         {
+            if(amr_cover != nullptr && amr_cover[IJK])
+            {
+                a->fbh5(i, j, k) = 1.0;
+                continue;
+            }
+
             dirac = 0.0;
             if(fabs(a->fb(i, j, k)) < psi)
                 dirac = (0.5 / psi) * (1.0 + cos((PI * (a->fb(i, j, k))) / psi));
@@ -260,14 +358,7 @@ double sixdof_obj_cfd::Hsolidface(lexer *p, fdm *a, int aa, int bb, int cc)
     // Construct solid heaviside function
     phival_fb = 0.5 * (a->fb(i, j, k) + a->fb(i + aa, j + bb, k + cc));
 
-    if(-phival_fb > psi)
-        H = 1.0;
-
-    else if(-phival_fb < -psi)
-        H = 0.0;
-
-    else
-        H = 0.5 * (1.0 + -phival_fb / psi + (1.0 / PI) * sin((PI * -phival_fb) / psi));
+    H = heaviside(-phival_fb, psi);
 
     return H;
 }
@@ -285,14 +376,7 @@ double sixdof_obj_cfd::Hsolidface_t(lexer *p, fdm *a, int aa, int bb, int cc)
     // Construct solid heaviside function
     phival_fb = 0.5 * (a->fb(i, j, k) + a->fb(i + aa, j + bb, k + cc));
 
-    if(-phival_fb > psi)
-        H = 1.0;
-
-    else if(-phival_fb < -psi)
-        H = 0.0;
-
-    else
-        H = 0.5 * (1.0 + -phival_fb / psi + (1.0 / PI) * sin((PI * -phival_fb) / psi));
+    H = heaviside(-phival_fb, psi);
 
     return H;
 }

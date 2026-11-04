@@ -1,0 +1,9 @@
+{
+ "description": "SFLOW closed basin 20 x 10 m (walls on all sides), dam break from one corner over an MPM sand bed (S 11 2, d50 0.5 mm, S 35 20), default Exner S 31 2 / S 32 1 with the bed filter. Closed domain: the bed volume is conserved, flow towards the walls.",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 300,
+ "tags": ["quick", "2d", "sflow", "sediment", "closed"],
+ "covers": ["SFLOW sediment initialisation (DFBED from flagslice4)", "sediment_exner topovel2 with face_closure at closed walls",
+            "sediment_fou", "bedshear_sflow S 16 1", "bedload_MPM", "sediment_exner_filter", "regression dump: SFLOW bed"]
+}

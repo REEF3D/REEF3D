@@ -1,0 +1,7 @@
+{
+ "base": "fnpf_2d_irregular_decomp",
+ "description": "fnpf_2d_irregular_decomp with a second irregular source (B 500 2 31, own seed B 504): decomposed precalc (B 89 1) of both sources in FNPF.",
+ "tags": ["quick", "2d", "fnpf", "waves", "iowave", "wave_field", "irregular", "decomp"],
+ "covers": ["B 89 1 with several sources (FNPF)"],
+ "ctrl_add": ["B 500 2 31 2.0 8.0", "B 504 2 4242"]
+}

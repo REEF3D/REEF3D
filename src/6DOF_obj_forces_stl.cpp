@@ -21,10 +21,12 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include "6DOF_obj_cfd.h"
+#include "amr_grid_lookup.h"
 #include "fdm.h"
 #include "ghostcell.h"
 #include "lexer.h"
 #include <math.h>
+#include <vector>
 
 void sixdof_obj_cfd::forces_stl(lexer *p, fdm *a, ghostcell *pgc, field &uvel, field &vvel, field &wvel, int iter, bool finalize)
 {
@@ -45,8 +47,32 @@ void sixdof_obj_cfd::forces_stl(lexer *p, fdm *a, ghostcell *pgc, field &uvel, f
     Xe = Ye = Ze = Ke = Me = Ne = 0.0;
     Xe_p = Ye_p = Ze_p = Xe_v = Ye_v = Ze_v = 0.0;
 
+    A = 0.0;
+    Xe = Ye = Ze = Ke = Me = Ne = 0.0;
+    Xe_p = Ye_p = Ze_p = Xe_v = Ye_v = Ze_v = 0.0;
+
+    // distributed loads (REEF3D::CORAL fluid_member): the hull forces binned along the member, this rank's part
+    external_strips_zero();
+
     // Set new time
     curr_time = p->simtime;
+
+    // the triangles of this rank: in its level-0 box; with the placement of the CFD patches (G 40)
+    // the rank of the finest grid at the triangle
+    std::vector<char> mine;
+    if(amr_loads != nullptr && amr_loads->placed())
+    {
+        std::vector<double> cx(tricount), cy(tricount), cz(tricount);
+        std::vector<int> fl(tricount);
+        for(int n = 0; n < tricount; ++n)
+        {
+            cx[n] = (tri_x[n][0] + tri_x[n][1] + tri_x[n][2]) / 3.0;
+            cy[n] = (tri_y[n][0] + tri_y[n][1] + tri_y[n][2]) / 3.0;
+            cz[n] = (tri_z[n][0] + tri_z[n][1] + tri_z[n][2]) / 3.0;
+            fl[n] = (cx[n] >= p->originx && cx[n] < p->endx && cy[n] >= p->originy && cy[n] < p->endy && cz[n] >= p->originz && cz[n] < p->endz) ? 1 : 0;
+        }
+        amr_cfd_mine(amr_loads, tricount, cx.data(), cy.data(), cz.data(), fl.data(), mine);
+    }
 
     for(int n = 0; n < tricount; ++n)
     {
@@ -68,34 +94,27 @@ void sixdof_obj_cfd::forces_stl(lexer *p, fdm *a, ghostcell *pgc, field &uvel, f
         yc = (y0 + y1 + y2) / 3.0;
         zc = (z0 + z1 + z2) / 3.0;
 
-        /*at = sqrt(pow(x1-x0,2.0) + pow(y1-y0,2.0) + pow(z1-z0,2.0));
-       bt = sqrt(pow(x1-x2,2.0) + pow(y1-y2,2.0) + pow(z1-z2,2.0));
-       ct = sqrt(pow(x2-x0,2.0) + pow(y2-y0,2.0) + pow(z2-z0,2.0));
-
-       st = 0.5*(at+bt+ct);
-
-       A_triang = sqrt(MAX(0.0,st*(st-at)*(st-bt)*(st-ct)));
-
-
-       // Normal vectors (always pointing outwards)
-       nx = (y1 - y0)*(z2 - z0) - (y2 - y0)*(z1 - z0);
-       ny = (x2 - x0)*(z1 - z0) - (x1 - x0)*(z2 - z0);
-       nz = (x1 - x0)*(y2 - y0) - (x2 - x0)*(y1 - y0);
-
-       norm = sqrt(nx*nx + ny*ny + nz*nz);
-
-       nx /= norm > 1.0e-20 ? norm : 1.0e20;
-       ny /= norm > 1.0e-20 ? norm : 1.0e20;
-       nz /= norm > 1.0e-20 ? norm : 1.0e20;*/
-
-        if(xc >= p->originx && xc < p->endx &&
-           yc >= p->originy && yc < p->endy &&
-           zc >= p->originz && zc < p->endz)
+        if(mine.empty() ? (xc >= p->originx && xc < p->endx &&
+                           yc >= p->originy && yc < p->endy &&
+                           zc >= p->originz && zc < p->endz)
+                        : mine[n] != 0)
         {
+            // the grid of the loads: with the mesh refinement the finest grid at the triangle
+            // (its pressure, density, viscosity, velocities and spacing), else level 0
+            lexer *q = p;
+            fdm *fa = a;
+            field *U = &uvel, *V = &vvel, *W = &wvel;
+            if(amr_loads != nullptr && amr_loads->finest_grid(xc, yc, zc, q, fa))
+            {
+                U = &fa->u;
+                V = &fa->v;
+                W = &fa->w;
+            }
+
             // Position of triangle
-            i = p->posc_i(xc);
-            j = p->posc_j(yc);
-            k = p->posc_k(zc);
+            i = q->posc_i(xc);
+            j = q->posc_j(yc);
+            k = q->posc_k(zc);
 
             // Area of triangle using Heron's formula
             at = sqrt(pow(x1 - x0, 2.0) + pow(y1 - y0, 2.0) + pow(z1 - z0, 2.0));
@@ -121,18 +140,27 @@ void sixdof_obj_cfd::forces_stl(lexer *p, fdm *a, ghostcell *pgc, field &uvel, f
             if(p->j_dir == 0)
                 ny = 0.0;
 
-            // Add normal stress contributions
-            xlocp = xc + p->X42 * nx * p->DXP[IP];
-            ylocp = yc + p->X42 * ny * p->DYP[JP];
-            zlocp = zc + p->X42 * nz * p->DZP[KP];
+            norm = sqrt(nx * nx + ny * ny + nz * nz);
 
-            p_int = p->ccipol4a(a->press, xlocp, ylocp, zlocp) - p->pressgage;
+            nx /= norm > 1.0e-20 ? norm : 1.0e20;
+            ny /= norm > 1.0e-20 ? norm : 1.0e20;
+            nz /= norm > 1.0e-20 ? norm : 1.0e20;
+
+            if(q->j_dir == 0)
+                ny = 0.0;
+
+            // Add normal stress contributions
+            xlocp = xc + q->X42 * nx * q->DXP[IP];
+            ylocp = yc + q->X42 * ny * q->DYP[JP];
+            zlocp = zc + q->X42 * nz * q->DZP[KP];
+
+            p_int = q->ccipol4a(fa->press, xlocp, ylocp, zlocp) - p->pressgage;
 
             Fp_x = -nx * p_int * A_triang;
             Fp_y = -ny * p_int * A_triang;
             Fp_z = -nz * p_int * A_triang;
 
-            if(p->j_dir == 0)
+            if(q->j_dir == 0)
                 Fp_y = 0.0;
 
             // Add viscous stress contributions
@@ -146,35 +174,168 @@ void sixdof_obj_cfd::forces_stl(lexer *p, fdm *a, ghostcell *pgc, field &uvel, f
             double ks;
             double dir;
 
-            if(p->X38 == 0)
+            // the viscous force of the triangle is set by the branch of X 38 (0-3); without one, or where a branch
+            // leaves the gradients unset (X 38 3 uses those of X 38 0/1), it was a value of the previous triangle
+            Fv_x = Fv_y = Fv_z = 0.0;
+            dudx = dudy = dudz = dvdx = dvdy = dvdz = dwdx = dwdy = dwdz = 0.0;
+            density = 0.0;
+
+            if(q->X38 == 0)
             {
-                xlocvel = xc + p->X43 * nx * p->DXP[IP];
-                ylocvel = yc + p->X43 * ny * p->DYP[JP];
-                zlocvel = zc + p->X43 * nz * p->DZP[KP];
+                xlocvel = xc + q->X43 * nx * q->DXP[IP];
+                ylocvel = yc + q->X43 * ny * q->DYP[JP];
+                zlocvel = zc + q->X43 * nz * q->DZP[KP];
 
-                nu_int = p->ccipol4a(a->visc, xlocvel, ylocvel, zlocvel);
-                enu_int = 0.0;  // p->ccipol4a(a->eddyv,xlocvel,ylocvel,zlocvel);
-                rho_int = p->ccipol4a(a->ro, xlocvel, ylocvel, zlocvel);
+                nu_int = q->ccipol4a(fa->visc, xlocvel, ylocvel, zlocvel);
+                enu_int = 0.0;  // q->ccipol4a(fa->eddyv,xlocvel,ylocvel,zlocvel);
+                rho_int = q->ccipol4a(fa->ro, xlocvel, ylocvel, zlocvel);
 
-                i = p->posc_i(xlocvel);
-                j = p->posc_j(ylocvel);
-                k = p->posc_k(zlocvel);
+                i = q->posc_i(xlocvel);
+                j = q->posc_j(ylocvel);
+                k = q->posc_k(zlocvel);
 
-                dudx = (uvel(i + 1, j, k) - uvel(i - 1, j, k)) / (p->DXP[IP] + p->DXP[IM1]);
-                dudy = (uvel(i, j + 1, k) - uvel(i, j - 1, k)) / (p->DYP[JP] + p->DYP[JM1]);
-                dudz = (uvel(i, j, k + 1) - uvel(i, j, k - 1)) / (p->DZP[KP] + p->DZP[KM1]);
+                dudx = ((*U)(i + 1, j, k) - (*U)(i - 1, j, k)) / (q->DXP[IP] + q->DXP[IM1]);
+                dudy = ((*U)(i, j + 1, k) - (*U)(i, j - 1, k)) / (q->DYP[JP] + q->DYP[JM1]);
+                dudz = ((*U)(i, j, k + 1) - (*U)(i, j, k - 1)) / (q->DZP[KP] + q->DZP[KM1]);
+
+                dvdx = ((*V)(i + 1, j, k) - (*V)(i - 1, j, k)) / (q->DXP[IP] + q->DXP[IM1]);
+                dvdy = ((*V)(i, j + 1, k) - (*V)(i, j - 1, k)) / (q->DYP[JP] + q->DYP[JM1]);
+                dvdz = ((*V)(i, j, k + 1) - (*V)(i, j, k - 1)) / (q->DZP[KP] + q->DZP[KM1]);
+
+                dwdx = ((*W)(i + 1, j, k) - (*W)(i - 1, j, k)) / (q->DXP[IP] + q->DXP[IM1]);
+                dwdy = ((*W)(i, j + 1, k) - (*W)(i, j - 1, k)) / (q->DYP[JP] + q->DYP[JM1]);
+                dwdz = ((*W)(i, j, k + 1) - (*W)(i, j, k - 1)) / (q->DZP[KP] + q->DZP[KM1]);
+
+                Fv_x = rho_int * (nu_int + enu_int) * A_triang * (2.0 * dudx * nx + (dudy + dvdx) * ny + (dudz + dwdx) * nz);
+                Fv_y = rho_int * (nu_int + enu_int) * A_triang * ((dudy + dvdx) * nx + 2.0 * dvdy * ny + (dvdz + dwdy) * nz);
+                Fv_z = rho_int * (nu_int + enu_int) * A_triang * ((dudz + dwdx) * nx + (dvdz + dwdy) * ny + 2.0 * dwdz * nz);
+            }
+
+            if(q->X38 == 1)
+            {
+                xlocvel = xc + q->X43 * nx * q->DXP[IP];
+                ylocvel = yc + q->X43 * ny * q->DYP[JP];
+                zlocvel = zc + q->X43 * nz * q->DZP[KP];
+
+                nu_int = q->ccipol4a(fa->visc, xlocvel, ylocvel, zlocvel);
+                enu_int = q->ccipol4a(fa->eddyv, xlocvel, ylocvel, zlocvel);
+                rho_int = q->ccipol4a(fa->ro, xlocvel, ylocvel, zlocvel);
+
+                uval = q->ccipol1(*U, xlocvel, ylocvel, zlocvel);
+                vval = q->ccipol2(*V, xlocvel, ylocvel, zlocvel);
+                wval = q->ccipol3(*W, xlocvel, ylocvel, zlocvel);
+
+                i = q->posc_i(xlocvel);
+                j = q->posc_j(ylocvel);
+                k = q->posc_k(zlocvel);
+
+                double delta = sqrt(pow(xc - xlocvel, 2.0) + pow(yc - ylocvel, 2.0) + pow(zc - zlocvel, 2.0));
+
+                dudx = (uval) / delta;
+                dudy = (uval) / delta;
+                dudz = (uval) / delta;
+
+                dvdx = (vval) / delta;
+                dvdy = (vval) / delta;
+                dvdz = (vval) / delta;
+
+                dwdx = (wval) / delta;
+                dwdy = (wval) / delta;
+                dwdz = (wval) / delta;
+
+                u_abs = sqrt(uval * uval + vval * vval + wval * wval);
+
+                Fv_x = -rho_int * (nu_int + enu_int) * A_triang * (2.0 * dudx * nx + (dudy + dvdx) * ny + (dudz + dwdx) * nz);
+                Fv_y = -rho_int * (nu_int + enu_int) * A_triang * ((dudy + dvdx) * nx + 2.0 * dvdy * ny + (dvdz + dwdy) * nz);
+                Fv_z = -rho_int * (nu_int + enu_int) * A_triang * ((dudz + dwdx) * nx + (dvdz + dwdy) * ny + 2.0 * dwdz * nz);
+            }
+
+            if(q->X38 == 2)
+            {
+                xlocvel = xc + q->X43 * nx * q->DXP[IP];
+                ylocvel = yc + q->X43 * ny * q->DYP[JP];
+                zlocvel = zc + q->X43 * nz * q->DZP[KP];
+
+                nu_int = q->ccipol4a(fa->visc, xlocvel, ylocvel, zlocvel);
+                enu_int = q->ccipol4a(fa->eddyv, xlocvel, ylocvel, zlocvel);
+                rho_int = q->ccipol4a(fa->ro, xlocvel, ylocvel, zlocvel);
+
+                i = q->posc_i(xlocvel);
+                j = q->posc_j(ylocvel);
+                k = q->posc_k(zlocvel);
+
+                uval = q->ccipol1(*U, xlocvel, ylocvel, zlocvel);
+                vval = q->ccipol2(*V, xlocvel, ylocvel, zlocvel);
+                wval = q->ccipol3(*W, xlocvel, ylocvel, zlocvel);
+
+                dist = fabs(q->ccipol4(fa->fb, xlocvel, ylocvel, zlocvel));
+
+                ks = 0.00001;
+
+                // x-dir
+                uplus = (1.0 / kappa) * log(30.0 * (dist / ks));
+
+                dir = uval / (fabs(uval) > 0.0 ? uval : 1.0e20);
+
+                Fv_x = dir * fabs(sqrt(ny * ny + nz * nz) * A_triang * rho_int * (uval * uval) / pow((uplus > 0.0 ? uplus : 1.0e20), 2.0));
+
+                // y-dir
+                vplus = (1.0 / kappa) * log(30.0 * (dist / ks));
+
+                dir = vval / (fabs(vval) > 0.0 ? vval : 1.0e20);
+
+                Fv_y = dir * fabs(sqrt(nx * nx + nz * nz) * A_triang * rho_int * (vval * vval) / pow((vplus > 0.0 ? vplus : 1.0e20), 2.0));
+
+                // z-dir
+                wplus = (1.0 / kappa) * log(30.0 * (dist / ks));
+
+                dir = wval / (fabs(wval) > 0.0 ? wval : 1.0e20);
+
+                Fv_z = dir * fabs(sqrt(nx * nx + ny * ny) * A_triang * rho_int * (wval * wval) / pow((wplus > 0.0 ? wplus : 1.0e20), 2.0));
+            }
+
+            if(q->X38 == 3)
+            {
+                xlocvel = xc + q->X43 * nx * q->DXP[IP];
+                ylocvel = yc + q->X43 * ny * q->DYP[JP];
+                zlocvel = zc + q->X43 * nz * q->DZP[KP];
+
+                nu_int = q->ccipol4a(fa->visc, xlocvel, ylocvel, zlocvel);
+                enu_int = q->ccipol4a(fa->eddyv, xlocvel, ylocvel, zlocvel);
+                rho_int = q->ccipol4a(fa->ro, xlocvel, ylocvel, zlocvel);
+
+                uval = q->ccipol1(*U, xlocvel, ylocvel, zlocvel);
+                vval = q->ccipol2(*V, xlocvel, ylocvel, zlocvel);
+                wval = q->ccipol3(*W, xlocvel, ylocvel, zlocvel);
+
+                i = q->posc_i(xlocvel);
+                j = q->posc_j(ylocvel);
+                k = q->posc_k(zlocvel);
+
+                double delta = sqrt(pow(xc - xlocvel, 2.0) + pow(yc - ylocvel, 2.0) + pow(zc - zlocvel, 2.0));
+
+                nu_int = q->ccipol4a(fa->visc, xlocvel, ylocvel, zlocvel);
+                enu_int = q->ccipol4a(fa->eddyv, xlocvel, ylocvel, zlocvel);
+                rho_int = q->ccipol4a(fa->ro, xlocvel, ylocvel, zlocvel);
 
                 dvdx = (vvel(i + 1, j, k) - vvel(i - 1, j, k)) / (p->DXP[IP] + p->DXP[IM1]);
                 dvdy = (vvel(i, j + 1, k) - vvel(i, j - 1, k)) / (p->DYP[JP] + p->DYP[JM1]);
                 dvdz = (vvel(i, j, k + 1) - vvel(i, j, k - 1)) / (p->DZP[KP] + p->DZP[KM1]);
 
-                dwdx = (wvel(i + 1, j, k) - wvel(i - 1, j, k)) / (p->DXP[IP] + p->DXP[IM1]);
-                dwdy = (wvel(i, j + 1, k) - wvel(i, j - 1, k)) / (p->DYP[JP] + p->DYP[JM1]);
-                dwdz = (wvel(i, j, k + 1) - wvel(i, j, k - 1)) / (p->DZP[KP] + p->DZP[KM1]);
+                u_abs = sqrt(uval * uval + vval * vval + wval * wval);
 
-                Fv_x = rho_int * (nu_int + enu_int) * A_triang * (2.0 * dudx * nx + (dudy + dvdx) * ny + (dudz + dwdx) * nz);
-                Fv_y = rho_int * (nu_int + enu_int) * A_triang * ((dudy + dvdx) * nx + 2.0 * dvdy * ny + (dvdz + dwdy) * nz);
-                Fv_z = rho_int * (nu_int + enu_int) * A_triang * ((dudz + dwdx) * nx + (dvdz + dwdy) * ny + 2.0 * dwdz * nz);
+                tau = density * (nu_int + enu_int) * (u_abs / delta);
+
+                Fv_x = -rho_int * (nu_int + enu_int) * A_triang * (2.0 * dudx * nx + (dudy + dvdx) * ny + (dudz + dwdx) * nz);
+                Fv_y = -rho_int * (nu_int + enu_int) * A_triang * ((dudy + dvdx) * nx + 2.0 * dvdy * ny + (dvdz + dwdy) * nz);
+                Fv_z = -rho_int * (nu_int + enu_int) * A_triang * ((dudz + dwdx) * nx + (dvdz + dwdy) * ny + 2.0 * dwdz * nz);
+            }
+
+            if(q->X38 == 4)
+            {
+                // zval = s->bedzh(i,j) + 0.5*q->DZN[KP];
+
+                // tau=density*pturb->ccipol_a_kinval(p,pgc,xip,yip,zval)*0.3;
             }
 
             if(p->X38 == 1)
@@ -323,9 +484,15 @@ void sixdof_obj_cfd::forces_stl(lexer *p, fdm *a, ghostcell *pgc, field &uvel, f
             Ye += Fy;
             Ze += Fz;
 
-            Ke += (yc - c_(1)) * Fz - (zc - c_(2)) * Fy;
-            Me += (zc - c_(2)) * Fx - (xc - c_(0)) * Fz;
-            Ne += (xc - c_(0)) * Fy - (yc - c_(1)) * Fx;
+            // strips: the pressure of the triangle (constant) split at the strip boundaries, the viscous
+            // force at its centre
+            if(external_strips_on())
+            {
+                const double ta[3] = {x0, y0, z0}, tb[3] = {x1, y1, z1}, tc[3] = {x2, y2, z2};
+                const double pm[3] = {p_int, p_int, p_int};
+                external_strips_tri(ta, tb, tc, pm, nx, ny, nz);
+                external_strips_add(xc, yc, zc, Fv_x, Fv_y, Fv_z);
+            }
 
             Xe_p += Fp_x;
             Ye_p += Fp_y;
@@ -359,9 +526,6 @@ void sixdof_obj_cfd::forces_stl(lexer *p, fdm *a, ghostcell *pgc, field &uvel, f
 
     // Add gravity force
 
-    if(p->mpirank == 0)
-        cout << "Hydrodynamic Forces:  Fx_p: " << Xe_p << " Fy_p: " << Ye_p << " Fz_p: " << Ze_p << "  |  Fx_v: " << Xe_v << " Fy_v: " << Ye_v << " Fz_v: " << Ze_v << endl;
-
     Xe += a->gi * Mass_fb;
     Ye += a->gj * Mass_fb;
     Ze += a->gk * Mass_fb;
@@ -373,8 +537,8 @@ void sixdof_obj_cfd::forces_stl(lexer *p, fdm *a, ghostcell *pgc, field &uvel, f
 
         printforce << curr_time << " \t " << Xe << " \t " << Ye << " \t " << Ze << " \t " << Ke
                    << " \t " << Me << " \t " << Ne << " \t " << Xe_p << " \t " << Ye_p << " \t " << Ze_p << " \t " << Xe_v << " \t " << Ye_v << " \t " << Ze_v << endl;
-    }
 
-    if(p->mpirank == 0)
-        cout << "Xe: " << Xe << " Ye: " << Ye << " Ze: " << Ze << " Ke: " << Ke << " Me: " << Me << " Ne: " << Ne << endl;
+        A += A_triang;
+    }
+}
 }

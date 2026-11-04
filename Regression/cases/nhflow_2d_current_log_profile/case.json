@@ -1,0 +1,8 @@
+{
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 300,
+ "description": "Channel 1 km, 5 m deep, 20 sigma layers: constant current 1 m/s (B 510 mode 3, B 514) through Riemann edges at x- and x+, with a log-law vertical profile (B 513 profile 1, z0 1 mm) at the inflow; B 529 mass balance.",
+ "tags": ["quick", "2d", "nhflow", "current", "iowave", "bc_zone", "background", "profile"],
+ "covers": ["B 513 log profile on a Riemann inflow edge", "depth mean of the profile kept"]
+}

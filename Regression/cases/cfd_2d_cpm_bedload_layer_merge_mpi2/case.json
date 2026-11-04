@@ -1,0 +1,16 @@
+{
+ "base": "cfd_2d_cpm_bedload_layer_mpi2",
+ "ctrl_set": {
+  "Q 78": "4"
+ },
+ "tags": [
+  "2d",
+  "cpm",
+  "mpi"
+ ],
+ "description": "as cfd_2d_cpm_bedload_layer_mpi2 with parcel merge and split (Q 78 4): 9 seeded parcels per cell, the resting grains of the jammed bed merge in pairs (target weight 2), on 2 ranks",
+ "covers": [
+  "CPM parcel weights across the parallel transfer (packed exchange with the weights)",
+  "CPM parcel_resample on 2 ranks"
+ ]
+}

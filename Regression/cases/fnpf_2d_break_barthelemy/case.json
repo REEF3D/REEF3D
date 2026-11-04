@@ -1,0 +1,12 @@
+{
+ "description": "FNPF A 350 4 (crest tracking, onset B = u_s/C > A 359, bore / D18 strength, per-crest energy-matched viscosity) on the Ting & Kirby (1995) plunging breaker of the benchmark fnpf_ting_kirby_plunging (nightly grid dx 0.05 m), surf-zone settings A 352 0, A 341 10. The first wave reaches B = 0.85 at x = 13.9 m (t = 10.8 s).",
+ "solver": "fnpf",
+ "np": 1,
+ "steps": 600,
+ "tags": ["2d", "fnpf", "waves", "breaking", "coastline"],
+ "covers": [
+  "fnpf_breaking::breaking_barthelemy: extrema, gather, crest matching, crest speed, B, onset, front-face integral, viscosity",
+  "fnpf_breaking::coast_viscosity with A 350 4",
+  "REEF3D_FNPF_Breaking_Log/REEF3D-FNPF-Breaking-Crests.dat (P 59 1)"
+ ]
+}

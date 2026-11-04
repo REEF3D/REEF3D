@@ -1,0 +1,20 @@
+{
+ "np": 1,
+ "steps": 40,
+ "tags": [
+  "3d",
+  "nhflow",
+  "amr",
+  "bend",
+  "curvilinear",
+  "sediment"
+ ],
+ "description": "The transverse bed slope effect (S 86 1) on the mesh refinement of NHFLOW, two levels of patches following the surface on a curvilinear grid turned by 90 deg: patches that meet compute the same slope flux (the bed of the cells around them from their source, not the flow bed of a fresh patch); the bed volume over the leaf cells is conserved (sediment_curvilinear/t4).",
+ "covers": [
+  "amr_qb with bend_prep, the fill of the bend fields (nhflow_amr_sed: block_up, fill_run)"
+ ],
+ "solver": "nhflow",
+ "files": [
+  "curvgrid.dat"
+ ]
+}

@@ -1,0 +1,19 @@
+{
+ "base": "sflow_2d_amr_bar_nh_sub",
+ "ctrl_set": {
+  "P 48": "10",
+  "P 49": "0"
+ },
+ "description": "sflow_2d_amr_bar_nh_sub with a checkpoint every 10 steps, all kept (P 48 10, P 49 0): the uninterrupted run of sflow_2d_amr_bar_nh_sub_restart.",
+ "tags": [
+  "2d",
+  "sflow",
+  "amr",
+  "nh",
+  "subcycling",
+  "checkpoint"
+ ],
+ "covers": [
+  "sflow_amr::ckpt_write: the non-hydrostatic bar subcycled (G 7 1, A 220 1, B 95 -1)"
+ ]
+}

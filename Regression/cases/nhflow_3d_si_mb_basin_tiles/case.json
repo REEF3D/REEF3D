@@ -1,0 +1,15 @@
+{
+ "base": "nhflow_3d_si_mb_basin_fine",
+ "description": "nhflow_3d_si_mb_basin_fine with the blocks cut into 2 x 2 tiles (G 55 8, G 58 1: 13 grids on one rank, corners of four pieces) and the two-level eta preconditioner (G 57 4: Galerkin coarse space of 4 x 4 cell aggregates across all grids, solved by sparse LU, multiplicative with the P7 Schwarz step). Equal to the uncut grid to solver tolerance (2.7e-8 m); eta iterations per pass 17.5 uncut, 22.3 tiles, 8.0 tiles + G 57.",
+ "ctrl_add": [
+  "G 55 8",
+  "G 58 1",
+  "G 57 4"
+ ],
+ "same_as": "nhflow_3d_si_mb_basin_fine",
+ "same_as_rtol": 1e-06,
+ "covers": [
+  "geo_mesh_split: tiles (G 58)",
+  "nhflow_amr: si_cs_build, si_cs_correct, si_prec two-level (G 57)"
+ ]
+}

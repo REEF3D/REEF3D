@@ -1,0 +1,13 @@
+# Rapp & Melville (1990) focused wave packets, as simulated by Derakhti & Kirby (2016) -- REFERENCE VALUES ONLY
+# Rapp, R.J. & Melville, W.K. (1990) Laboratory measurements of deep-water breaking waves. Phil. Trans. R. Soc. Lond. A 331, 735-800.
+# Derakhti, M. & Kirby, J.T. (2016) Breaking-onset, energy and momentum flux in unsteady focused wave packets.
+#   J. Fluid Mech. 790, 553-581. https://data-ww3.ifremer.fr/BIB/Derakhti_Kirby_JFM2016.pdf
+# Table 1 (intermediate depth, constant amplitude): d = 0.6 m, d/L_c = 0.3, f_c = 0.88 Hz, df/f_c = 0.73, N = 32,
+#   a_i = S/(k_c N), x_b = 8.5 m, t_b = 20.5 s (linear focus), numerical flume 22.0 x 0.8 m.
+#   RN S = 0.150 non-breaking; RI 0.256 incipient; RS1 0.278 spilling; RP1 0.352 plunging; RP2 0.388 plunging.
+# Table 2 (LES, Derakhti & Kirby; agrees with the measured eta^2 of Rapp & Melville 1990 fig. 11b, their fig. 4):
+#   loss = Delta eta^2 / eta_1^2 (eta^2 time-averaged, spatially averaged over ~2 m upstream / downstream of the break point)
+#   case  S      loss (%)   Delta F_E / F_E1 (%)
+#   RS1   0.278  14.0       10.1
+#   RP1   0.352  28.9       19.5
+#   RP2   0.388  31.7       21.7

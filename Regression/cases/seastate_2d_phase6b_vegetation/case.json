@@ -1,0 +1,17 @@
+{
+ "description": "REEF3D::SEASTATE vegetation (A 754 1, Phase 6b, as SWAN VEGETATION 1: Dalrymple et al. 1984, Suzuki et al. 2011): Hs 0.4 m, Tp 4 s in a flume of 100 x 10 cells of 2 m, depth 2 m, submerged vegetation 1 m high, 0.01 m stems, 100 per m^2, Cd 1. Validation in Dropbox SEASTATE/validation/38_vegetation (SWAN, Mendez and Losada 2004).",
+ "solver": "seastate",
+ "np": 1,
+ "steps": 1,
+ "files": [
+  "seastate-bathy.dat"
+ ],
+ "tags": [
+  "quick",
+  "2d",
+  "seastate"
+ ],
+ "covers": [
+  "seastate_source vegetation (IVEG 1)"
+ ]
+}

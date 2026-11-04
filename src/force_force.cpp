@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include "force.h"
+#include "amr_grid_lookup.h"
 #include "fdm.h"
 #include "ghostcell.h"
 #include "lexer.h"
@@ -28,18 +29,36 @@ Author: Hans Bihs
 
 void force::force_calc(lexer *p, fdm *a, ghostcell *pgc)
 {
+    // this rank's pieces of the surface; with the mesh refinement those of its patches
+    double F[7] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+
+    force_sum(p, a, F);
+
+    if(amr != nullptr)
+        amr->solid_forces(ID, F);
+
+    Fx = pgc->globalsum(F[0]);
+    Fy = pgc->globalsum(F[1]);
+    Fz = pgc->globalsum(F[2]);
+
+    const double Ax = pgc->globalsum(F[4]);
+    const double Ay = pgc->globalsum(F[5]);
+    A_tot = pgc->globalsum(F[3]);
+    const double Px = pgc->globalsum(F[6]);
+
+    // if(p->mpirank==0)
+    // cout<<"Ax : "<<Ax<<" Ay: "<<Ay<<" A_tot: "<<A_tot<<endl;
+}
+
+// the pieces of this grid: F = Fx, Fy, Fz, area, Ax, Ay, Px (added)
+void force::force_sum(lexer *p, fdm *a, double *F)
+{
     double ux, vy, wz, vel, pressure, density, viscosity;
     double du, dv, dw, dn, un;
     double xloc, yloc, zloc;
     double xlocvel, ylocvel, zlocvel;
     double sgnx, sgny, sgnz;
-    double Ax = 0.0;
-    double Ay = 0.0;
-    double Px = 0.0;
     double xp1, xp2, yp1, yp2, zp1, zp2;
-
-    Fx = Fy = Fz = 0.0;
-    A_tot = 0.0;
 
     for(n = 0; n < polygon_num; ++n)
     {
@@ -95,24 +114,12 @@ void force::force_calc(lexer *p, fdm *a, ghostcell *pgc)
             yc = (1.0 / 4.0) * (y1 + y2 + y3 + y4);
             zc = (1.0 / 4.0) * (z1 + z2 + z3 + z4);
 
-            // tri1
-            at = sqrt(pow(x2 - x1, 2.0) + pow(y2 - y1, 2.0) + pow(z2 - z1, 2.0));
-            bt = sqrt(pow(x2 - x3, 2.0) + pow(y2 - y3, 2.0) + pow(z2 - z3, 2.0));
-            ct = sqrt(pow(x3 - x1, 2.0) + pow(y3 - y1, 2.0) + pow(z3 - z1, 2.0));
-
-            st = 0.5 * (at + bt + ct);
-
-            A = sqrt(MAX(0.0, st * (st - at) * (st - bt) * (st - ct)));
-
-            // tri2
-            at = sqrt(pow(x3 - x1, 2.0) + pow(y3 - y1, 2.0) + pow(z3 - z1, 2.0));
-            bt = sqrt(pow(x4 - x3, 2.0) + pow(y4 - y3, 2.0) + pow(z4 - z3, 2.0));
-            ct = sqrt(pow(x4 - x1, 2.0) + pow(y4 - y1, 2.0) + pow(z4 - z1, 2.0));
-
-            st = 0.5 * (at + bt + ct);
-
             A += sqrt(MAX(0.0, st * (st - at) * (st - bt) * (st - ct)));
         }
+
+        // the mesh refinement: the piece belongs to the finest grid at its centre
+        if(amr != nullptr && !amr_own(xc, yc, zc))
+            continue;
 
         xp1 = x2 - x1;
         yp1 = y2 - y1;
@@ -182,30 +189,18 @@ void force::force_calc(lexer *p, fdm *a, ghostcell *pgc)
         // Force
         if((phival > -1.6 * p->DXM || p->P92 == 1) && a->topo(i, j, k) > 0.0)
         {
-            Fx += -(pval)*A * nx + density * viscosity * A * du;
+            F[0] += -(pval)*A * nx + density * viscosity * A * du;
 
-            Fy += -(pval)*A * ny + density * viscosity * A * dv;
+            F[1] += -(pval)*A * ny + density * viscosity * A * dv;
 
-            Fz += -(pval)*A * nz + density * viscosity * A * dw;
+            F[2] += -(pval)*A * nz + density * viscosity * A * dw;
         }
-        Ax += A * nx;
-        Ay += A * ny;
+        F[4] += A * nx;
+        F[5] += A * ny;
 
-        Px += pval * nx / fabs(nx);
+        F[6] += pval * nx / fabs(nx);
 
-        A_tot += A;
+        F[3] += A;
     }
-
-    Fx = pgc->globalsum(Fx);
-    Fy = pgc->globalsum(Fy);
-    Fz = pgc->globalsum(Fz);
-
-    Ax = pgc->globalsum(Ax);
-    Ay = pgc->globalsum(Ay);
-    A_tot = pgc->globalsum(A_tot);
-    Px = pgc->globalsum(Px);
-
-    // if(p->mpirank==0)
-    // cout<<"Ax : "<<Ax<<" Ay: "<<Ay<<" A_tot: "<<A_tot<<endl;
 }
 

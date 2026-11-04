@@ -1,0 +1,9 @@
+{
+ "description": "REEF3D::SEASTATE surfbeat coupled with SFLOW on 2 ranks, vortex force (A 751 2) with roller: short-crested wave groups (Mitsuyasu spreading, main direction 20 deg) on the GLOBEX profile, 90 m x 20 m basin, 180 x 40 cells of 0.5 m, rows of the boundary series on the rank of the x- side, halo exchange with 2 layers (second-order group advection), 60 s.",
+ "solver": "sflow",
+ "np": 2,
+ "steps": 1500,
+ "time": 60.0,
+ "tags": ["2d", "sflow", "seastate", "mpi"],
+ "covers": ["seastate_coupling vortex force with roller dissipation and roller mass flux", "seastate_surfbeat short-crested groups, rows along y", "seastate_exchange 2 layers", "seastate_roller MPI sweeps"]
+}

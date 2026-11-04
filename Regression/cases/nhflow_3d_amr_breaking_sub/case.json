@@ -1,0 +1,20 @@
+{
+ "description": "nhflow_3d_amr_breaking with subcycling (G 7 1): RK2, breaking (A 550 1) with the implicit diffusion per grid, wetting and drying in the patches (G 30 1).",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 30,
+ "tags": [
+  "3d",
+  "nhflow",
+  "amr",
+  "breaking",
+  "subcycling"
+ ],
+ "covers": [
+  "nhflow_amr_sub: RK2 weights and times, wet flags of the time-interpolated fills, restrict_flags in a level window"
+ ],
+ "base": "nhflow_3d_amr_breaking",
+ "ctrl_add": [
+  "G 7 1"
+ ]
+}

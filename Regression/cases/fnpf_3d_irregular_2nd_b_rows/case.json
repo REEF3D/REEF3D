@@ -1,0 +1,8 @@
+{
+ "description": "FNPF 3D, long-crested 2nd-order irregular waves B (B 92 33, 128 components) along x, 2 ranks: the 10 cells j of a zone row have the same phases, eta and the potential at the surface once per row (wave_lib_zgroup.h); the potential of the difference terms of the low-rank block summed with the pair phase in the loop.",
+ "solver": "fnpf",
+ "np": 2,
+ "steps": 60,
+ "tags": ["3d", "fnpf", "waves", "iowave", "irregular", "mpi"],
+ "covers": ["wave_lib_zgroup: eta and potential per group", "wave_lib_irregular_2nd_terms::kin_t fused difference-term potential"]
+}

@@ -35,6 +35,8 @@ Author: Hans Bihs
 #include "fdm.h"
 #include "heat.h"
 #include "lexer.h"
+#include "outflow_pressure.h"
+#include "reef3d_mpmd.h"
 #include <mpi.h>
 
 poisson_pcorr::poisson_pcorr(lexer *p, heat *&pheat, concentration *&pconc)
@@ -150,14 +152,17 @@ void poisson_pcorr::start(lexer *p, fdm *a, field &press)
 
     // closed domain (no inflow/outflow/open boundary anywhere): the Neumann problem is singular,
     // so one face (on the lowest rank that has one) keeps the fixed value as a pressure level
+    // (not on a patch of the mesh refinement, cfd_amr: the level of the composite problem is set on
+    // level 0, and the patches are not collective)
     int nd_glob = 0;
-    MPI_Allreduce(&ndirichlet, &nd_glob, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+    if(p->amr_patch == 0)
+        MPI_Allreduce(&ndirichlet, &nd_glob, 1, MPI_INT, MPI_SUM, reef3d_comm());
 
-    if(nd_glob == 0)
+    if(nd_glob == 0 && p->amr_patch == 0 && p->W32 == 0)
     {
         int myrank = (pin_n >= 0) ? p->mpirank : 1 << 30;
         int pinrank = 1 << 30;
-        MPI_Allreduce(&myrank, &pinrank, 1, MPI_INT, MPI_MIN, MPI_COMM_WORLD);
+        MPI_Allreduce(&myrank, &pinrank, 1, MPI_INT, MPI_MIN, reef3d_comm());
 
         if(p->mpirank == pinrank && pin_n >= 0)
         {
@@ -168,9 +173,32 @@ void poisson_pcorr::start(lexer *p, fdm *a, field &press)
         }
     }
 
+    // patch outlets: the ghost pressure holds the patch pressure (patchBC_pressure via pressure_io);
+    // Dirichlet value of the correction = patch pressure - cell pressure, so that the pressure next
+    // to the outlet relaxes to the patch pressure (the boundary face velocity is not part of the
+    // momentum step, the ghost pressure alone would have no effect)
+    bc_noflux_mask(p, outlet, BC_PATCH_OUTLET);
+
     n = 0;
     LOOP
     {
+        int pf = outlet[IJK];
+
+        if(pf != 0)
+        {
+            const int di[6] = {-1, 0, 0, 1, 0, 0};
+            const int dj[6] = {0, 1, -1, 0, 0, 0};
+            const int dk[6] = {0, 0, 0, 0, -1, 1};
+            double *coef[6] = {&a->M.s[n], &a->M.w[n], &a->M.e[n], &a->M.n[n], &a->M.b[n], &a->M.t[n]};  // cs = 1..6
+
+            for(int cs = 1; cs <= 6; ++cs)
+                if(pf & (1 << (cs - 1)))
+                {
+                    a->rhsvec.V[n] -= *coef[cs - 1] * (a->press(i + di[cs - 1], j + dj[cs - 1], k + dk[cs - 1]) - a->press(i, j, k));
+                    *coef[cs - 1] = 0.0;
+                }
+        }
+
         // inflow
         if(p->flag4[Im1JK] < 0 && (i + p->origin_i > 0 || p->periodic1 == 0))
         {
@@ -207,43 +235,17 @@ void poisson_pcorr::start(lexer *p, fdm *a, field &press)
         a->M.s[n] = 0.0;
         }*/
 
-        // outflow
-        if(p->flag4[Ip1JK] < 0 && (i + p->origin_i < p->gknox - 1 || p->periodic1 == 0) && (p->IO[Ip1JK] != 2 || (p->B60 != 1 && p->B99 < 3)))
+        // outflow (IO 2): the ghost pressure is outflow_pressure(), the value pressure_io has put
+        // into the ghost cells before the projection, so the correction there is its difference
+        if(p->flag4[Ip1JK] < 0 && (i + p->origin_i < p->gknox - 1 || p->periodic1 == 0) && p->IO[Ip1JK] == 2)
+        {
+            a->rhsvec.V[n] -= a->M.n[n] * (outflow_pressure(p, a, i, j, k) - a->press(i + 1, j, k));
+            a->M.n[n] = 0.0;
+        }
+
+        if(p->flag4[Ip1JK] < 0 && (i + p->origin_i < p->gknox - 1 || p->periodic1 == 0))
         {
             a->rhsvec.V[n] -= a->M.n[n] * press(i + 1, j, k);
-            a->M.n[n] = 0.0;
-        }
-
-        // controlled outflow
-        if((p->IO[Ip1JK] == 2))
-        {
-            if(p->B77 == 1)
-            {
-                if(p->F50 == 2 || p->F50 == 3)
-                    pval = (p->fsfout - p->pos_z()) * a->ro(i, j, k) * fabs(p->W22);
-
-                if(p->F50 == 1 || p->F50 == 4)
-                    pval = a->press(i, j, k);
-            }
-
-            if(p->B77 == 2)
-            {
-                pval = a->press(i, j, k);
-            }
-
-            if(p->B77 == 10)
-                pval = 0.0;
-
-            a->rhsvec.V[n] -= a->M.n[n] * (-a->press(i, j, k) + pval);
-            a->M.n[n] = 0.0;
-        }
-
-        // AWA outflow
-        if(p->flag4[Ip1JK] < 0 && (i + p->origin_i < p->gknox - 1 || p->periodic1 == 0) && (p->IO[Ip1JK] == 2 && p->B90 == 1 && p->B99 > 2))
-        {
-            pval = (p->fsfout - p->pos_z()) * a->ro(i, j, k) * fabs(p->W22);
-
-            a->rhsvec.V[n] -= a->M.n[n] * (-a->press(i, j, k) + pval);
             a->M.n[n] = 0.0;
         }
 

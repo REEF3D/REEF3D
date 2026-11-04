@@ -1,0 +1,36 @@
+{
+ "base": "cfd_2d_nwt",
+ "ctrl_set": {
+  "B 92": "31",
+  "B 96": "0.0 8.0"
+ },
+ "ctrl_add": [
+  "B 85 2",
+  "B 86 32",
+  "B 87 0.6 3.0",
+  "B 88 3.3",
+  "B 139 16000",
+  "B 89 1",
+  "B 500 2 31 0.01 2.5",
+  "B 504 2 4242",
+  "B 520 1 1 1",
+  "B 521 1 1 0.0 0.0 4.0",
+  "B 524 1 2"
+ ],
+ "description": "CFD 2D flume, decomposed precalc (B 89 1) with two irregular sources (B 92 31 and source 2, own seed B 504); the B 520 generation zone at x- selects source 2 only (B 524), so the components of the B 92 wave get space parts 0 there.",
+ "tags": [
+  "quick",
+  "2d",
+  "cfd",
+  "waves",
+  "iowave",
+  "bc_zone",
+  "wave_field",
+  "irregular",
+  "decomp"
+ ],
+ "covers": [
+  "B 524 with B 89 1 in CFD (iowave_precalc_decomp_space / _relax)",
+  "source selection in the decomposition"
+ ]
+}

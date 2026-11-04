@@ -1,0 +1,23 @@
+{
+ "description": "nhflow_3d_amr_heave_sub with placed patches (G 40 1): the loads of the finest stages on the rank of the finest grid at the triangle centroids.",
+ "solver": "nhflow",
+ "np": 2,
+ "steps": 40,
+ "tags": [
+  "3d",
+  "nhflow",
+  "amr",
+  "6dof",
+  "subcycling",
+  "mpi",
+  "place"
+ ],
+ "covers": [
+  "nhflow_amr_sub with a floating body and placed patches"
+ ],
+ "base": "nhflow_3d_amr_heave_mpi2",
+ "ctrl_add": [
+  "G 40 1",
+  "G 7 1"
+ ]
+}

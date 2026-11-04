@@ -56,6 +56,10 @@ void sixdof_obj_nhflow::solve_eqmotion_nhflow(lexer *p, fdm_nhf *d, ghostcell *p
 {
     externalForces_nhflow(p, d, pgc, alpha[iter], finalize);
 
+    // power take-off (X 500): load of the stage, as in FNPF
+    if(pto_on_)
+        pto_forces(p, pgc, iter);
+
     // load models (ship module) sample the NHFLOW velocity
     sixdof_fluid_nhflow fluid(p, d, pgc);
     pfluid = &fluid;
@@ -67,6 +71,10 @@ void sixdof_obj_nhflow::solve_eqmotion_nhflow(lexer *p, fdm_nhf *d, ghostcell *p
     // membranes (X 330) attached to the body: added-mass stabilisation of the partitioned coupling
     if(p->X330 > 0)
         membrane_stabilisation(p, iter);
+
+    // the hull as a sharp thin body (X 15 8): added-mass stabilisation of the partitioned coupling
+    if(p->X15 == 8 && d->hullbody != nullptr)
+        hull_stabilisation(p, iter);
 
     // porous floating body: linearly implicit drag
     if(p->X16 == 1)

@@ -1,0 +1,24 @@
+{
+ "base": "cfd_2d_dambreak",
+ "np": 2,
+ "steps": 80,
+ "ctrl_add": [
+  "G 1 1",
+  "G 24 3",
+  "G 2 2",
+  "G 5 0"
+ ],
+ "description": "Adaptive CFD mesh refinement on 2 ranks: patches move across the rank boundary.",
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "levelset",
+  "amr",
+  "adaptive",
+  "mpi"
+ ],
+ "covers": [
+  "regrid on two ranks: global flags, transfer from patches of the other rank"
+ ]
+}

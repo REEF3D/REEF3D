@@ -1,0 +1,7 @@
+{
+ "base": "nhflow_2d_tide_flather",
+ "description": "nhflow_2d_tide_flather with a clamped level edge (B 520 method 5) at x-: the water level of the tide, the normal velocity of the interior; edge mass balance log (B 529).",
+ "tags": ["quick", "2d", "nhflow", "tide", "iowave", "bc_zone", "background", "clamped"],
+ "covers": ["clamped level edge x-", "B 529 edge mass balance"],
+ "ctrl_set": {"B 520": ["1 5 0", "2 4 0"], "B 529": "20"}
+}

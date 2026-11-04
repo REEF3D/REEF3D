@@ -1,0 +1,19 @@
+{
+ "base": "nhflow_3d_si_amr_basin",
+ "np": 2,
+ "control_set": {
+  "M 10": "2"
+ },
+ "description": "nhflow_3d_si_amr_basin on 2 ranks.",
+ "tags": [
+  "3d",
+  "nhflow",
+  "semi_implicit",
+  "amr",
+  "mpi"
+ ],
+ "covers": [
+  "reefamr_si remote"
+ ],
+ "architect": "Hans Bihs"
+}

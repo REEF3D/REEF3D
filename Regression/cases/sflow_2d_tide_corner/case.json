@@ -1,0 +1,15 @@
+{
+ "solver": "sflow",
+ "np": 1,
+ "steps": 400,
+ "tags": [
+  "2d",
+  "sflow",
+  "tide",
+  "quick"
+ ],
+ "description": "SFLOW on the Cartesian channel with a Riemann tide edge on x- and a Flather edge on y- meeting in a corner cell: the ghost depth per edge (iowave::sflow_open_edges, sflow_open_edges_eta).",
+ "covers": [
+  "iowave::sflow_open_edges, sflow_open_edges_eta: edge_h per side"
+ ]
+}

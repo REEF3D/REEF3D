@@ -23,35 +23,37 @@ Author: Hans Bihs
 #ifndef SANDSLIDE_F2_H_
 #define SANDSLIDE_F2_H_
 
-#include"norm_vec.h"
-#include"bedslope.h"
-#include"slice4.h"
-#include"sandslide.h"
+#include "bedslope.h"
+#include "norm_vec.h"
+#include "sandslide.h"
+#include "slice4.h"
 
 using namespace std;
 
-class sandslide_f2 final :  public sandslide, public norm_vec, public bedslope
+class sandslide_f2 final : public sandslide, public norm_vec, public bedslope
 {
 public:
-    sandslide_f2(lexer*);
+    sandslide_f2(lexer *);
     virtual ~sandslide_f2();
 
-	void start(lexer*,ghostcell*, sediment_fdm*) override final;
+    void start(lexer *, ghostcell *, sediment_fdm *) override final;
+    int amr_sweep(lexer *, ghostcell *, sediment_fdm *) override;
+    slice *amr_fh() override { return &fh; }
 
 private:
-
-    void slide(lexer*,ghostcell*, sediment_fdm*);
+    void slide(lexer *, ghostcell *, sediment_fdm *);
+    void slide_curv(lexer *p, ghostcell *pgc, sediment_fdm *s);  // curvilinear grid (G 50)
 
     slice4 fh;
-    
-    int gcval_topo,count;
+
+    int gcval_topo, count;
 
     double fac1, fac2;
-    double dh,maxdh,maxdhs,dh_corr;
-    double slide_dh,slide_dhs;
-	double teta, alpha, beta, gamma;
+    double dh, maxdh, maxdhs, dh_corr;
+    double slide_dh, slide_dhs;
+    double teta, alpha, beta, gamma;
     double phi;
-}; 
+};
 
 #endif
 

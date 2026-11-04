@@ -25,11 +25,13 @@ Architect: Hans Bihs
 #include "lexer.h"
 #include "seastate_f.h"
 #include "seastate_grid.h"
+#include "seastate_implicit.h"
 #include "seastate_param.h"
 #include "seastate_store.h"
 #include "wave_lib_spectrum.h"
 #include <algorithm>
 #include <cmath>
+#include <functional>
 #include <iomanip>
 #include <iostream>
 #include <string>
@@ -51,26 +53,34 @@ E(sig,theta) = S(sig) D(sig,theta), N = E/sig. D is normalised on the
 discrete directional grid for every frequency, so the directional
 spreading conserves the energy of S exactly.
 
-  parametric_spectrum   the spectrum of one cell, also used as the
-                        boundary spectrum (A 711 1)
+  parametric_spectrum   the spectrum of one cell on the grid g, also
+                        used as the boundary spectrum (A 711 1) and as
+                        the input spectrum of the surfbeat boundary
+                        (A 770 1, multi-frequency grid A 701-703)
   initial_parametric    the same spectrum in every active cell (A 710 1)
 --------------------------------------------------------------------*/
 
 void seastate_f::initial_parametric(lexer *p, ghostcell *pgc)
 {
     std::vector<float> N;
-    parametric_spectrum(p, pgc, N, "A 710 1");
+    parametric_spectrum(p, pgc, *e->grid, N, "A 710 1");
 
-    IMALOOP
-    JMALOOP
-    if(e->wet(i, j) == 1)
+    // the rows shared out to the threads (A 798, Phase 13): they touch the pages of the spectra first
+    const int nt = std::max(1, std::min(p->A798, p->knox + 2 * p->margin));
+    const std::function<void(int)> job = [&](int t)
     {
-        float *s = e->N->spec(i, j);
-        std::copy(N.begin(), N.end(), s);
-    }
+        for(int ii = -p->margin + t; ii < p->knox + p->margin; ii += nt)
+            for(int jj = -p->margin; jj < p->knoy + p->margin; ++jj)
+                if(e->wet(ii, jj) == 1)
+                {
+                    float *s = e->N->spec(ii, jj);
+                    std::copy(N.begin(), N.end(), s);
+                }
+    };
+    seastate_implicit::run_threads(nt, job);
 }
 
-void seastate_f::parametric_spectrum(lexer *p, ghostcell *pgc, std::vector<float> &N, const char *key)
+void seastate_f::parametric_spectrum(lexer *p, ghostcell *pgc, const seastate_grid &g, std::vector<float> &N, const char *key)
 {
     const double pi = 3.14159265358979323846;
     std::string msg;
@@ -92,8 +102,6 @@ void seastate_f::parametric_spectrum(lexer *p, ghostcell *pgc, std::vector<float
         pgc->final(true);
     }
 
-    const seastate_grid &g = *e->grid;
-
     p->wHs = p->B93_1;
     p->wTp = p->B93_2;
     p->wwp = 2.0 * pi / p->wTp;
@@ -106,7 +114,7 @@ void seastate_f::parametric_spectrum(lexer *p, ghostcell *pgc, std::vector<float
     double mw = std::fmod(main, 2.0 * pi);
     if(mw < 0.0)
         mw += 2.0 * pi;
-    const int mmain = int(std::lround(mw / g.dtheta)) % g.ndir;
+    const int mmain = g.direction_bin(mw);
 
     N.assign(g.nbin, 0.0f);
     std::vector<double> D(g.ndir);
@@ -137,7 +145,25 @@ void seastate_f::parametric_spectrum(lexer *p, ghostcell *pgc, std::vector<float
                 if(!(D[m] > 0.0))
                     D[m] = 0.0;
 
-                sum += D[m] * g.dtheta;
+                sum += D[m] * g.dth[m];
+            }
+
+            // compact computational sector (A 717, Phase 12): normalised over the full circle as well, the
+            // directions beyond the sector (theta0 + m dtheta, m >= ndir) added
+            if(g.compact)
+            {
+                const int nfull = int(std::lround(2.0 * pi / g.dtheta));
+                for(int m = g.ndir; m < nfull; ++m)
+                {
+                    double beta = g.theta0 + double(m) * g.dtheta;
+                    while(beta - main > pi)
+                        beta -= 2.0 * pi;
+                    while(beta - main < -pi)
+                        beta += 2.0 * pi;
+                    const double d = spec.spreading_function(p, beta, g.sig[l]);
+                    if(d > 0.0)
+                        sum += d * g.dtheta;
+                }
             }
 
             p->B131 = b131;
@@ -148,11 +174,24 @@ void seastate_f::parametric_spectrum(lexer *p, ghostcell *pgc, std::vector<float
         {
             std::fill(D.begin(), D.end(), 0.0);
             D[mmain] = 1.0;
-            sum = g.dtheta;
+            sum = g.dth[mmain];
+
+            // compact computational sector (A 717): no energy if the main direction lies outside the sector
+            if(g.compact)
+            {
+                double d = std::fmod(mw - g.theta0, 2.0 * pi);
+                if(d < 0.0)
+                    d += 2.0 * pi;
+                const int nfull = int(std::lround(2.0 * pi / g.dtheta));
+                if(int(std::lround(d / g.dtheta)) % nfull >= g.ndir)
+                    D[mmain] = 0.0;
+            }
         }
 
+        // normalised over the full circle; with a computational sector (A 717) the directions outside hold
+        // no energy (as SWAN, the part of the spectrum outside the sector is not imposed)
         for(int m = 0; m < g.ndir; ++m)
-            N[g.bin(l, m)] = float(S * D[m] / sum / g.sig[l]);
+            N[g.bin(l, m)] = (g.act.empty() || g.act[m]) ? float(S * D[m] / sum / g.sig[l]) : 0.0f;
     }
 
     seastate_param sp;
@@ -166,3 +205,93 @@ void seastate_f::parametric_spectrum(lexer *p, ghostcell *pgc, std::vector<float
         cout << setprecision(6);
     }
 }
+
+/*--------------------------------------------------------------------
+Automatic fine direction sector (A 716 w margin): the directions of the
+parametric boundary spectrum (B 130, B 131, B 134; A 711 1) and A 716
+margin on both sides are divided so that their bins are at most w wide
+(A 715 th1 th2 k with k = ceil(dtheta/w)).
+
+The directional distribution is the energy-weighted mean over the
+frequencies of the grid, D(theta) = sum S(sig) D(theta,sig) dsig, on
+0.25 deg steps. The sector covers the directions around B 131 where D
+is at least 1e-4 of its maximum (cos^40: +-37 deg), plus the margin for
+refraction and diffraction away from the incident directions. With B 130
+0 (unidirectional) the sector is B 131 +- margin.
+--------------------------------------------------------------------*/
+
+void seastate_f::auto_sector(lexer *p, ghostcell *pgc, const seastate_grid &g)
+{
+    const double pi = 3.14159265358979323846, deg = pi / 180.0;
+
+    p->wHs = p->B93_1;
+    p->wTp = p->B93_2;
+    p->wwp = 2.0 * pi / p->wTp;
+
+    wave_lib_spectrum spec;
+    const double main = p->B131 * deg;
+
+    // D(theta) on theta = main + a, a in [-180, 180) deg
+    const int na = 1440;
+    std::vector<double> D(na, 0.0);
+
+    if(p->B130 > 0)
+    {
+        const double b131 = p->B131;
+        p->B131 = main;
+
+        for(int l = 0; l < g.nsig; ++l)
+        {
+            const double S = spec.wave_spectrum(p, g.sig[l]);
+            if(!(S > 0.0))
+                continue;
+
+            for(int n = 0; n < na; ++n)
+            {
+                const double a = (-180.0 + 0.25 * double(n)) * deg;
+                const double v = spec.spreading_function(p, main + a, g.sig[l]);
+                if(v > 0.0)
+                    D[n] += S * v * g.dsig[l];
+            }
+        }
+
+        p->B131 = b131;
+    }
+
+    const double dmax = *std::max_element(D.begin(), D.end());
+    double a1 = 0.0, a2 = 0.0;
+
+    if(dmax > 0.0)
+    {
+        const int c = na / 2;  // a = 0
+        int n1 = c, n2 = c;
+        while(n1 > 0 && D[n1 - 1] >= 1.0e-4 * dmax)
+            --n1;
+        while(n2 < na - 1 && D[n2 + 1] >= 1.0e-4 * dmax)
+            ++n2;
+        a1 = -180.0 + 0.25 * double(n1);
+        a2 = -180.0 + 0.25 * double(n2);
+    }
+
+    a1 -= p->A716_m;
+    a2 += p->A716_m;
+
+    const double dth = g.dtheta / deg;
+    const int k = std::max(1, int(std::ceil(dth / p->A716_w - 1.0e-9)));
+
+    if(a2 - a1 >= 360.0)
+    {
+        a1 = -180.0;
+        a2 = 180.0 - 1.0e-6;
+    }
+
+    p->A715_th1 = p->B131 + a1;
+    p->A715_th2 = p->B131 + a2;
+    p->A715_k = k;
+
+    if(p->mpirank == 0)
+        cout << "SEASTATE automatic direction sector (A 716): the boundary spreading within " << a1 + p->A716_m << " to " << a2 - p->A716_m
+             << " deg of " << p->B131 << " deg, margin " << p->A716_m << " deg: sector " << p->A715_th1 << " to " << p->A715_th2
+             << " deg, A 703 bins divided by " << k << " (" << dth / double(k) << " deg)" << endl;
+}
+

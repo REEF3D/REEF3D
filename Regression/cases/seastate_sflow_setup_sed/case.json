@@ -1,0 +1,43 @@
+{
+ "base": "seastate_sflow_setup",
+ "control_set": {
+  "S 61": null,
+  "T 61": "200.0 800.0 -1.0 21.0 0.0 12.0"
+ },
+ "ctrl_add": [
+  "S 10 1",
+  "S 11 6",
+  "S 16 2",
+  "S 20 0.0002",
+  "S 21 3.0",
+  "S 15 3",
+  "S 17 1.0",
+  "S 35 10.0",
+  "S 41 1",
+  "S 43 200",
+  "S 44 1",
+  "S 110 1",
+  "S 118 1",
+  "S 120 2",
+  "S 90 1",
+  "P 76 1",
+  "P 79 1"
+ ],
+ "np": 1,
+ "steps": 1200,
+ "description": "seastate_sflow_setup (stationary JONSWAP Hs 1.5 m, Tp 8 s, radiation stress, closed basin) on an erodible plane beach (T 61) with Soulsby-van Rijn (S 11 6), the wave field of SEASTATE (S 110 1, Baldock stirring S 118 1), the Eulerian current of the sediment transport (S 119 0: host velocity minus the Stokes drift, the undertow), the depth-averaged suspended load (S 120 2), sand slide (S 90 1) and morphological factor 10 from step 200: field-scale cross-shore profile.",
+ "tags": [
+  "quick",
+  "1d",
+  "sflow",
+  "seastate",
+  "sediment",
+  "waves",
+  "suspended"
+ ],
+ "covers": [
+  "seastate_coupling::bed_waves (multi-frequency spectra)",
+  "sediment_waves::eulerian",
+  "sediment_susp2D Eulerian flux S 119 0 with the radiation stress host"
+ ]
+}

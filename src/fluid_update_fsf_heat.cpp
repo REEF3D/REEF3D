@@ -20,130 +20,142 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"fluid_update_fsf_heat.h"
-#include"lexer.h"
-#include"fdm.h"
-#include"ghostcell.h"
-#include"heat.h"
+#include "fluid_update_fsf_heat.h"
+#include "fdm.h"
+#include "ghostcell.h"
+#include "heat.h"
+#include "heaviside.h"
+#include "interface_width.h"
+#include "lexer.h"
 
-fluid_update_fsf_heat::fluid_update_fsf_heat(lexer *p, fdm* a, ghostcell* pgc, heat *&ppheat) : dx(p->DXM)
+fluid_update_fsf_heat::fluid_update_fsf_heat(lexer *p, fdm *a, ghostcell *pgc, heat *&ppheat) : dx(p->DXM)
 {
-    gcval_ro=1;
-	gcval_visc=1;
+    gcval_ro = 1;
+    gcval_visc = 1;
 
-	visc_2 = p->W4;
-	visc_1 = p->W2;
-	ro_2 = p->W3;
-	ro_1 = p->W1;
-	alpha_air = p->H2;
-	alpha_water = p->H1;
+    visc_2 = p->W4;
+    visc_1 = p->W2;
+    ro_2 = p->W3;
+    ro_1 = p->W1;
+    alpha_air = p->H2;
+    alpha_water = p->H1;
 
-	material(p,a,pgc);
-	
-	pheat = ppheat;
+    material(p, a, pgc);
+
+    pheat = ppheat;
 }
 
 fluid_update_fsf_heat::~fluid_update_fsf_heat()
 {
 }
 
-void fluid_update_fsf_heat::start(lexer *p, fdm* a, ghostcell* pgc, field &u, field &v, field &w)
+void fluid_update_fsf_heat::start(lexer *p, fdm *a, ghostcell *pgc, field &u, field &v, field &w)
 {
-	double H=0.0;
-	double temp;
-	p->volume1=0.0;
-	p->volume2=0.0;
+    double H = 0.0;
+    double temp;
+    p->volume1 = 0.0;
+    p->volume2 = 0.0;
 
-    if(p->count>iter)
-    iocheck=0;
-	iter=p->count;
-    
-    if(p->j_dir==0)        
-    epsi = p->F45*(1.0/2.0)*(p->DXM+p->DZM);
-        
-    if(p->j_dir==1)
-    epsi = p->F45*(1.0/3.0)*(p->DXM+p->DYM+p->DZM);
+    if(p->count > iter)
+        iocheck = 0;
+    iter = p->count;
 
-   //
-	LOOP
-	{
-        temp = pheat->val(i,j,k);
-	    
-        if(p->H9==1)
-        {
-	    ro_1 = material_ipol(water_density,water_density_num, temp);
-	    ro_2 = material_ipol(air_density,air_density_num, temp);
-
-	    visc_1 = material_ipol(water_viscosity,water_viscosity_num, temp);
-	    visc_2 = material_ipol(air_viscosity,air_viscosity_num, temp);
-        }
-        
-        if(p->H9==2)
-        {
-	    ro_1 = material_ipol(air_density,air_density_num, temp);
-        ro_2 = material_ipol(water_density,water_density_num, temp);
-
-	    visc_1 = material_ipol(air_viscosity,air_viscosity_num, temp);
-        visc_2 = material_ipol(water_viscosity,water_viscosity_num, temp);
-        }
-
-		if(a->phi(i,j,k)>epsi)
-		H=1.0;
-
-		if(a->phi(i,j,k)<-epsi)
-		H=0.0;
-
-		if(fabs(a->phi(i,j,k))<=epsi)
-		H=0.5*(1.0 + a->phi(i,j,k)/epsi + (1.0/PI)*sin((PI*a->phi(i,j,k))/epsi));
-
-		a->ro(i,j,k)=      ro_1*H +   ro_2*(1.0-H);
-		a->visc(i,j,k)= visc_1*H + visc_2*(1.0-H);
-
-		p->volume1 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(H-(1.0-PORVAL4));
-		p->volume2 += p->DXN[IP]*p->DYN[JP]*p->DZN[KP]*(1.0-H-(1.0-PORVAL4));
-	}
-
-	pgc->start4(p,a->ro,gcval_ro);
-	pgc->start4(p,a->visc,gcval_visc);
-
-	p->volume1 = pgc->globalsum(p->volume1);
-	p->volume2 = pgc->globalsum(p->volume2);
-
-    if(p->mpirank==0 && iocheck==0 && (p->count%p->P12==0))
+    //
+    LOOP
     {
-	cout<<"Volume 1: "<<p->volume1<<endl;
-	cout<<"Volume 2: "<<p->volume2<<endl;
+        temp = pheat->val(i, j, k);
+
+        if(p->H9 == 1)
+        {
+            ro_1 = material_ipol(water_density, water_density_num, temp);
+            ro_2 = material_ipol(air_density, air_density_num, temp);
+
+            visc_1 = material_ipol(water_viscosity, water_viscosity_num, temp);
+            visc_2 = material_ipol(air_viscosity, air_viscosity_num, temp);
+        }
+
+        if(p->H9 == 2)
+        {
+            ro_1 = material_ipol(air_density, air_density_num, temp);
+            ro_2 = material_ipol(water_density, water_density_num, temp);
+
+            visc_1 = material_ipol(air_viscosity, air_viscosity_num, temp);
+            visc_2 = material_ipol(water_viscosity, water_viscosity_num, temp);
+        }
+
+        H = heaviside(a->phi(i, j, k), interface_width(p, a->phi, i, j, k));
+
+        a->ro(i, j, k) = ro_1 * H + ro_2 * (1.0 - H);
+        a->visc(i, j, k) = visc_1 * H + visc_2 * (1.0 - H);
+
+        p->volume1 += p->DXN[IP] * p->DYN[JP] * p->DZN[KP] * H * PORVAL4;
+        p->volume2 += p->DXN[IP] * p->DYN[JP] * p->DZN[KP] * (1.0 - H) * PORVAL4;
+    }
+
+    pgc->start4(p, a->ro, gcval_ro);
+    pgc->start4(p, a->visc, gcval_visc);
+
+    p->volume1 = pgc->globalsum(p->volume1);
+    p->volume2 = pgc->globalsum(p->volume2);
+
+    if(p->mpirank == 0 && iocheck == 0 && (p->count % p->P12 == 0))
+    {
+        cout << "Volume 1: " << p->volume1 << endl;
+        cout << "Volume 2: " << p->volume2 << endl;
     }
     ++iocheck;
+}
 
+void fluid_update_fsf_heat::props(lexer *p, double temp, double &r1, double &r2, double &v1, double &v2)
+{
+    r1 = p->W1;
+    r2 = p->W3;
+    v1 = p->W2;
+    v2 = p->W4;
+
+    if(p->H9 == 1)
+    {
+        r1 = material_ipol(water_density, water_density_num, temp);
+        r2 = material_ipol(air_density, air_density_num, temp);
+        v1 = material_ipol(water_viscosity, water_viscosity_num, temp);
+        v2 = material_ipol(air_viscosity, air_viscosity_num, temp);
+    }
+
+    if(p->H9 == 2)
+    {
+        r1 = material_ipol(air_density, air_density_num, temp);
+        r2 = material_ipol(water_density, water_density_num, temp);
+        v1 = material_ipol(air_viscosity, air_viscosity_num, temp);
+        v2 = material_ipol(water_viscosity, water_viscosity_num, temp);
+    }
 }
 
 double fluid_update_fsf_heat::material_ipol(double **pm, int num, double temp)
 {
-    double val=0.0;
+    double val = 0.0;
     int n;
 
-    for(n=0; n<num-1; ++n)
+    for(n = 0; n < num - 1; ++n)
     {
-        if(temp>pm[n][0] && temp<= pm[n+1][0])
-        val = ((pm[n+1][1]-pm[n][1])/ (pm[n+1][0]-pm[n][0]))*(temp-pm[n][0]) + pm[n][1];
+        if(temp > pm[n][0] && temp <= pm[n + 1][0])
+            val = ((pm[n + 1][1] - pm[n][1]) / (pm[n + 1][0] - pm[n][0])) * (temp - pm[n][0]) + pm[n][1];
     }
 
-    if(temp<=pm[0][0])
-    val=pm[0][1];
+    if(temp <= pm[0][0])
+        val = pm[0][1];
 
-    if(temp>pm[num-1][0])
-    val=pm[num-1][1];
+    if(temp > pm[num - 1][0])
+        val = pm[num - 1][1];
 
     return val;
 }
 
-void fluid_update_fsf_heat::material(lexer *p, fdm* a, ghostcell* pgc)
+void fluid_update_fsf_heat::material(lexer *p, fdm *a, ghostcell *pgc)
 {
-	p->Darray(water_density,20,2);
-	p->Darray(air_density,20,2);
-	p->Darray(water_viscosity,20,2);
-	p->Darray(air_viscosity,20,2);
+    p->Darray(water_density, 20, 2);
+    p->Darray(air_density, 20, 2);
+    p->Darray(water_viscosity, 20, 2);
+    p->Darray(air_viscosity, 20, 2);
 
     water_density[0][0] = -30.0;
     water_density[0][1] = 983.854;
@@ -347,7 +359,6 @@ void fluid_update_fsf_heat::material(lexer *p, fdm* a, ghostcell* pgc)
     air_viscosity[17][1] = 62.53e-6;
 
     air_viscosity_num = 18;
-
 }
 
 int fluid_update_fsf_heat::iocheck;

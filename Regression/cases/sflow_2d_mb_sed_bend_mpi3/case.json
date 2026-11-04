@@ -1,0 +1,21 @@
+{
+ "np": 3,
+ "steps": 40,
+ "tags": [
+  "2d",
+  "sflow",
+  "multiblock",
+  "mpi",
+  "bend",
+  "curvilinear",
+  "sediment"
+ ],
+ "description": "The bend terms (S 86 1, S 95 1, S 31 2) on the multi-block grid of t5 with SFLOW on three ranks: the same bed as one block to round-off, the bed volume conserved (sediment_curvilinear/t5).",
+ "covers": [
+  "the bend fields qb/f, tan(delta), the bed and the open flag of the slope flux filled around the blocks (sediment_exner::amr_field)"
+ ],
+ "solver": "sflow",
+ "files": [
+  "blocks.dat"
+ ]
+}

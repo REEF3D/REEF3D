@@ -1,0 +1,8 @@
+{
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 400,
+ "description": "Linear waves (H 0.1 m, T 6 s) on a 1 m set-up of a 4 m deep channel (constant background, B 514 eta 1 m) with B 530 1 10: k on h_eff = 5 m.",
+ "tags": ["quick", "2d", "nhflow", "iowave", "bc_zone", "background", "doppler"],
+ "covers": ["B 530 mode 1", "h_eff from the background level"]
+}

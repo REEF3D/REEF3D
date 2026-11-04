@@ -1,0 +1,23 @@
+{
+ "base": "cfd_2d_dambreak",
+ "np": 1,
+ "steps": 120,
+ "ctrl_add": [
+  "G 1 1",
+  "G 24 3",
+  "G 2 2",
+  "G 5 0"
+ ],
+ "description": "Adaptive CFD mesh refinement: the patches follow the free surface (cells with |phi| < 3 psi flagged, G 24 3), regrid every 2 steps without hysteresis (G 2 2, G 5 0).",
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "levelset",
+  "amr",
+  "adaptive"
+ ],
+ "covers": [
+  "cfd_amr::flags (G 24), regrid: transfer from the old patches, prolongation into new cells, freeing of patches"
+ ]
+}

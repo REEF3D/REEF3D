@@ -240,6 +240,88 @@ void fem_solid::read(std::istream &is)
             add_material(mt);
             cur_mat = mt.id;
         }
+        else if(kw == "rebar" || kw == "reinforcement")
+        {
+            // rebar [B500A|B500B|B500C|GR60] [fy v] [E v] [H v] [eps_u v] [x r] [y r] [z r] [skin t | uniform]
+            // reinforcement of the last concrete material: r = steel volume fraction
+            // of the member for bars along x, y or z (As / Ac of the gross section,
+            // '1%' or 0.01); the bars lie in the skin of thickness t [m] (default: the
+            // outer element layer), 'uniform' spreads them over the section
+            if(cur_mat < 0)
+                fail("rebar: no material defined before");
+            material *mp = nullptr;
+            for(material &m0 : mats)
+                if(m0.id == cur_mat)
+                    mp = &m0;
+            if(!mp || mp->type != MAT_CONCRETE)
+                fail("rebar: the last material must be concrete");
+            material mt = *mp;
+            if(!rebar_preset("B500B", mt))
+                fail("rebar: preset missing");
+            std::vector<std::string> tok;
+            std::string w;
+            while(ls >> w)
+                tok.push_back(w);
+            auto num = [&](const std::string &t) -> double
+            {
+                std::string u = t;
+                double sc = 1.0;
+                if(!u.empty() && u.back() == '%')
+                {
+                    u.pop_back();
+                    sc = 0.01;
+                }
+                char *e = nullptr;
+                const double v = std::strtod(u.c_str(), &e);
+                if(!(e && *e == '\0') || u.empty())
+                    fail("rebar: cannot read the number '" + t + "'");
+                return v * sc;
+            };
+            bool dir = false;
+            for(size_t q = 0; q < tok.size(); ++q)
+            {
+                const std::string &k = tok[q];
+                if(q == 0 && rebar_preset(k, mt))
+                    continue;
+                if(k == "uniform")
+                {
+                    mt.rskin = 0.0;
+                    continue;
+                }
+                if(q + 1 >= tok.size())
+                    fail("rebar: value missing for '" + k + "'");
+                const double v = num(tok[++q]);
+                if(k == "x" || k == "y" || k == "z")
+                {
+                    if(v < 0.0 || v > 0.2)
+                        fail("rebar: steel fraction must be between 0 and 20 %");
+                    mt.rs[k == "x" ? 0 : k == "y" ? 1
+                                                  : 2] = v;
+                    dir = true;
+                }
+                else if(k == "fy")
+                    mt.sfy = v;
+                else if(k == "E")
+                    mt.sE = v;
+                else if(k == "H")
+                    mt.sH = v;
+                else if(k == "eps_u")
+                    mt.seu = v;
+                else if(k == "skin")
+                {
+                    if(v <= 0.0)
+                        fail("rebar: skin must be positive [m] (or 'uniform')");
+                    mt.rskin = v;
+                }
+                else
+                    fail("rebar: unknown parameter '" + k + "' (B500A B500B B500C GR60, fy E H eps_u, x y z, skin, uniform)");
+            }
+            if(!dir)
+                fail("rebar: give the steel fraction of at least one direction (e.g. 'rebar B500B z 1.5%')");
+            if(mt.sfy <= 0.0 || mt.sE <= 0.0 || mt.sH < 0.0 || mt.seu < 0.0)
+                fail("rebar: invalid steel constants");
+            add_material(mt);
+        }
         else if(kw == "box")
         {
             double a[6];
@@ -323,18 +405,56 @@ void fem_solid::read(std::istream &is)
         {
             std::string type;
             need(static_cast<bool>(ls >> type));
+            // element adaptive [frac] | reduced [hg] | full
             if(type == "full")
                 full_int = 1;
             else if(type == "reduced")
                 full_int = 0;
+            else if(type == "adaptive")
+                full_int = 2;
             else
-                fail("element type must be 'full' or 'reduced'");
-            double hg;
-            if(ls >> hg)
-                hg_coef = hg;
+                fail("element type must be 'adaptive', 'full' or 'reduced'");
+            double v;
+            if(ls >> v)
+            {
+                if(full_int == 2)
+                {
+                    need(v > 0.0 && v <= 1.0);
+                    adapt_frac = v;
+                }
+                else
+                    hg_coef = v;
+            }
         }
         else if(kw == "cfl")
             need(static_cast<bool>(ls >> cfl) && cfl > 0.0 && cfl <= 1.0);
+        else if(kw == "distribute")
+        {
+            // distribute auto|on|off: the solid split over the MPI ranks
+            std::string t;
+            need(static_cast<bool>(ls >> t));
+            if(t == "auto")
+                dist_req = -1;
+            else if(t == "on")
+                dist_req = 1;
+            else if(t == "off")
+                dist_req = 0;
+            else
+                fail("distribute: auto, on or off");
+        }
+        else if(kw == "threads")
+        {
+            // threads <n> | threads auto: threads of the solid (OpenMP builds)
+            std::string t;
+            need(static_cast<bool>(ls >> t));
+            if(t == "auto")
+                nthr_req = 0;
+            else
+            {
+                std::istringstream ts(t);
+                need(static_cast<bool>(ts >> nthr_req) && nthr_req >= 1);
+            }
+        }
         else if(kw == "damping")
         {
             // damping 2%  |  damping 0.02  |  damping off  |  damping mass alpha[1/s]
@@ -510,6 +630,32 @@ void fem_solid::read(std::istream &is)
             need(static_cast<bool>(ls >> copt.hybrid_tau));
         else if(kw == "added_mass")
             need(static_cast<bool>(ls >> copt.added_mass) && copt.added_mass >= 0.0);
+        else if(kw == "strong" || kw == "strong_coupling")
+        {
+            // strong on|off|test [max passes] [tolerance]
+            std::string t;
+            need(static_cast<bool>(ls >> t));
+            if(t == "on")
+                copt.strong = 1;
+            else if(t == "off")
+                copt.strong = 0;
+            else if(t == "test")
+                copt.strong = 2;
+            else
+                fail("strong: on, off or test");
+            int n;
+            if(ls >> n)
+            {
+                need(n >= 2 && n <= 50);
+                copt.strong_maxit = n;
+            }
+            double tol;
+            if(ls >> tol)
+            {
+                need(tol > 0.0 && tol < 1.0);
+                copt.strong_tol = tol;
+            }
+        }
         else if(kw == "rigid_contact_speed")
             need(static_cast<bool>(ls >> c_rigid) && c_rigid > 0.0);
         else if(kw == "debris_damping")

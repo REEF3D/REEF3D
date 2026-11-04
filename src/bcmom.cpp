@@ -99,14 +99,9 @@ void bcmom::wall_law_u(fdm *a, lexer *p, turbulence *pturb, field &b, int ii, in
 
     z0 = 0.5 * deltaZ;
 
-    ks = ks_val(p, a, ii, jj, kk, cs, bc);
-
-    if(30.0 * z0 < ks)
-        z0 = ks / 30.0;
-
     uplus = (1.0 / kappa) * MAX(1.0, log(30.0 * (z0 / ks)));
 
-    a->F(i, j, k) -= ((fabs(a->u(i, j, k)) * a->u(i, j, k)) / (uplus * uplus * deltaZ));
+    a->F(i, j, k) -= ((fabs(b(i, j, k)) * b(i, j, k)) / (uplus * uplus * deltaZ));  // b: velocity of the RK stage
 }
 
 void bcmom::wall_law_v(fdm *a, lexer *p, turbulence *pturb, field &b, int ii, int jj, int kk, int cs, int bc, double dist)
@@ -121,16 +116,7 @@ void bcmom::wall_law_v(fdm *a, lexer *p, turbulence *pturb, field &b, int ii, in
     if(cs == 5 || cs == 6)
         deltaZ = p->DZN[KP];
 
-    z0 = 0.5 * deltaZ;
-
-    ks = ks_val(p, a, ii, jj, kk, cs, bc);
-
-    if(30.0 * z0 < ks)
-        z0 = ks / 30.0;
-
-    uplus = (1.0 / kappa) * MAX(1.0, log(30.0 * (z0 / ks)));
-
-    a->G(i, j, k) -= ((fabs(a->v(i, j, k)) * a->v(i, j, k)) / (uplus * uplus * deltaZ));
+    a->G(i, j, k) -= ((fabs(b(i, j, k)) * b(i, j, k)) / (uplus * uplus * deltaZ));  // b: velocity of the RK stage
 }
 
 void bcmom::wall_law_w(fdm *a, lexer *p, turbulence *pturb, field &b, int ii, int jj, int kk, int cs, int bc, double dist)
@@ -145,15 +131,6 @@ void bcmom::wall_law_w(fdm *a, lexer *p, turbulence *pturb, field &b, int ii, in
     if(cs == 2 || cs == 3)
         deltaZ = p->DYN[JP];
 
-    z0 = 0.5 * deltaZ;
-
-    ks = ks_val(p, a, ii, jj, kk, cs, bc);
-
-    if(30.0 * z0 < ks)
-        z0 = ks / 30.0;
-
-    uplus = (1.0 / kappa) * MAX(1.0, log(30.0 * (z0 / ks)));
-
-    a->H(i, j, k) -= ((fabs(a->w(i, j, k)) * a->w(i, j, k)) / (uplus * uplus * deltaZ));
+    a->H(i, j, k) -= ((fabs(b(i, j, k)) * b(i, j, k)) / (uplus * uplus * deltaZ));  // b: velocity of the RK stage
 }
 

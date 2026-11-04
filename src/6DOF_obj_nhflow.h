@@ -24,6 +24,7 @@ Authors: Hans Bihs, Tobias Martin
 #define SIXDOF_OBJ_NHFLOW_H_
 
 #include "6DOF_obj_2D.h"
+#include <array>
 
 class nhflow_reinidisc_fsf;
 
@@ -54,19 +55,25 @@ public:
     void initialize_wavemaker(lexer *, fdm_nhf *, ghostcell *, slice &, slice &);
     void hydrodynamic_forces_nhflow(lexer *, fdm_nhf *, ghostcell *, slice &, bool);
     void update_position_nhflow(lexer *, fdm_nhf *, ghostcell *, slice &, bool);
-    void update_wavemaker_nhflow(lexer *, fdm_nhf *, ghostcell *, slice &, bool);
+    void update_wavemaker_nhflow(lexer *, fdm_nhf *, ghostcell *, slice &, int, bool);
+    void ini_band(lexer *, ghostcell *);
     void solve_eqmotion_nhflow(lexer *, fdm_nhf *, ghostcell *, int, bool);
     void solve_eqmotion_oneway_nhflow(lexer *, ghostcell *, int, bool);
     void update_forcing_nhflow(lexer *, fdm_nhf *, ghostcell *, double *, double *, double *, double *, double *, double *, slice &, slice &, int);
     void update_forcing_nhflow_wavemaker(lexer *, fdm_nhf *, ghostcell *, double *, double *, double *, double *, double *, double *, slice &, slice &, int);
     double Hsolidface_nhflow(lexer *, fdm_nhf *, int, int, int);
     double Hpsi_nhflow(lexer *, fdm_nhf *);
+    void fbnormal_curv(lexer *, fdm_nhf *, double &, double &);  // curvilinear grid: horizontal part of -grad(FB)
+    void forcing_kernel_nhflow(lexer *, fdm_nhf *, ghostcell *, double *, double *, double *, double *, double *, double *, slice &, int, bool);
+    void target_velocity(lexer *, bool, double &, double &, double &);
     void membrane_forcing_nhflow(lexer *, fdm_nhf *, ghostcell *, double, double *, double *, double *, slice &);
     void membrane_reaction_nhflow(lexer *, fdm_nhf *, ghostcell *, double, slice &, bool);
     bool membrane_iterated();
     void membrane_reforce_nhflow(lexer *, fdm_nhf *, ghostcell *, double, double *, double *, double *, slice &);
     bool membrane_couple_nhflow(lexer *, fdm_nhf *, ghostcell *, int, double, slice &, int);
     void membrane_stabilisation(lexer *, int);
+    void hull_stabilisation(lexer *, int);
+    void coupling_stabilisation(lexer *, int, double, Eigen::Matrix3d, const Eigen::Matrix3d &);
     Eigen::Vector3d umem_n_ = Eigen::Vector3d::Zero(), amem_n_ = Eigen::Vector3d::Zero();
     double tmem_n_ = -1.0;
     Eigen::Vector3d wmem_n_ = Eigen::Vector3d::Zero(), almem_n_ = Eigen::Vector3d::Zero();
@@ -77,19 +84,51 @@ public:
 
     // actuator disks of the load models (body-force propellers): momentum source of the
     // component comp (0 x, 1 y, 2 z) added to the right-hand side F (NHFLOW form, times WL)
-    void actuator_source(lexer *, fdm_nhf *, ghostcell *, slice &, int, double *);
+    // patch: the source on an NHFLOW AMR patch (nhflow_amr_6dof). A disk that lies completely in
+    // the computed cells of the patch is distributed with the sums of the patch (exactly T and Q on
+    // the fine grid); a disk across the patch boundary uses the sums of the last level-0 call
+    void actuator_source(lexer *, fdm_nhf *, ghostcell *, slice &, int, double *, bool patch = false);
     bool actuator_warned = false;
+    bool actuator_warned_patch = false;
+    vector<std::array<sixdof_actuator_disk::sums, 3>> actuator_S0;  // level-0 sums per disk
     double nhflow_dsm() const { return DSM; }
+    double nhflow_nb() const { return NB; }
+
+    // X 13: signed distance of the top cell centre of every column to the hull (negative inside,
+    // |phi| <= band), from the current trimesh on the grid of p (level 0 or a patch)
+    void top_phi_nhflow(lexer *, fdm_nhf *, slice &, double, slice &);
+    // X 13 2 (nhflow_fsf_hull): keel height (lowest crossing of the vertical ray through the column
+    // centre with the trimesh), cover (1: keel below the water level WL of the column) and the body
+    // velocity at the keel point; the loads of the footprint columns into the body (gravity added,
+    // force file written)
+    void keel_nhflow(lexer *, fdm_nhf *, slice &, slice &, slice &, slice &, slice &, slice &);
+    void hull_loads_nhflow(lexer *, ghostcell *, bool, double, double, double, double, double, double);
+    // hr: the spacing of the grid relative to level 0 for the band of the loads (0: DXM of the grid / DXM of level 0;
+    // the blocks of a multi-block grid have their own logical DXM)
     struct nhflow_grid
     {
         lexer *p;
         fdm_nhf *d;
         slice *WL;
+        double hr = 0.0;
     };
     std::function<nhflow_grid(double, double)> amr_grid_nhflow;
+    // mesh refinement with the hull as a sharp thin body (X 15 8): every grid of this rank (level 0 and the
+    // patches) with the water level of the loads, for the sum of the hull loads over the leaf grids
+    std::function<void(const std::function<void(const nhflow_grid &)> &)> amr_grids_nhflow;
+    // multi-block grid: every quadrature point of a triangle on the grid of this rank that holds it (a hull triangle
+    // reaches across the faces of the blocks), the grid of the centroid where none does
+    static inline bool amr_point_grid = false;
+    void amr_point_nhflow(lexer *, double, double, lexer *, fdm_nhf *, slice *, lexer *&, fdm_nhf *&, slice *&);
     // mesh refinement with placed patches (G 40 1): this rank takes the triangle with the centroid
     // (x,y) (it holds the finest grid there), instead of the level-0 subdomain test
     std::function<bool(double, double)> amr_owner_nhflow;
+
+    // mesh refinement with subcycling (nhflow_amr, G 7 1, 6DOF_obj_nhflow_amr.cpp): the finest
+    // level advances the body; the coarser levels step before it with a predicted copy
+    // (sixdof_obj::amr_save, amr_restore)
+    // external: the pose was set by the external solver (external_set_state), no RK stage
+    void amr_stage(lexer *, fdm_nhf *, ghostcell *, int, bool, bool external = false);
 
 private:
     void hydrodynamic_forces_nhflow_volume(lexer *, fdm_nhf *, ghostcell *, double *, double *, double *, slice &, int, bool);
@@ -106,7 +145,6 @@ private:
     void print_force(lexer *, fdm_nhf *, ghostcell *);
     void forces_nhflow(lexer *, fdm_nhf *, ghostcell *);
     void force_calc_stl(lexer *, fdm_nhf *, ghostcell *, slice &, bool);
-    void force_calc_stl2(lexer *, fdm_nhf *, ghostcell *, slice &, bool);
     void hydrodynamic_viscous_forces_nhflow(lexer *, fdm_nhf *, ghostcell *, slice &, double &, double &, double &, double, double, double, double, double, double, double);
     void force_calc_lsm(lexer *, fdm_nhf *, ghostcell *, slice &);
     void triangulation(lexer *, fdm_nhf *, ghostcell *);
@@ -114,9 +152,7 @@ private:
     void addpoint(lexer *, fdm_nhf *, int, int);
     void finalize(lexer *, fdm_nhf *);
     double triangle_area(lexer *, double, double, double, double, double, double, double, double, double);
-    double clip_edge(double, double);
     double clip_edge_vol(double, double, double);
-    bool clip_facet(lexer *, double, double, double, double, double, double, double, double, double, double, double, double, double &, double &, double &, double &);
     void buoyancy_nhflow(lexer *, fdm_nhf *, ghostcell *, double, double &, double &, double &, double &);
 
     nhflow_reinidisc_fsf *pnhfrdisc;

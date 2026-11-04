@@ -1,0 +1,26 @@
+{
+ "base": "sflow_2d_amr_met_low",
+ "np": 2,
+ "ctrl_add": [
+  "G 40 2"
+ ],
+ "same_as": "sflow_2d_amr_met_low",
+ "same_as_skip": [
+  "REEF3D_SFLOW_AMR/REEF3D_SFLOW_AMR_log.dat"
+ ],
+ "description": "sflow_2d_amr_met_low on 2 ranks in the placement test mode (G 40 2): the patches away from the rank below read the met file on their rank (the window grown beyond the rank box); regression.py ranks: bitwise the run on 1 rank.",
+ "tags": [
+  "2d",
+  "sflow",
+  "amr",
+  "adaptive",
+  "subcycling",
+  "met",
+  "mpi",
+  "place"
+ ],
+ "covers": [
+  "met_forcing on placed patches (G 40 2)"
+ ],
+ "architect": "Hans Bihs"
+}

@@ -1,0 +1,20 @@
+{
+ "description": "nhflow_3d_amr_adaptive with subcycling (G 7 1): ring wave, a regrid every level-0 step, mass to round-off (refluxing).",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 20,
+ "tags": [
+  "3d",
+  "nhflow",
+  "amr",
+  "adaptive",
+  "subcycling"
+ ],
+ "covers": [
+  "nhflow_amr_sub: registers, refluxing, several patches in the level solve (two block passes)"
+ ],
+ "base": "nhflow_3d_amr_adaptive",
+ "ctrl_add": [
+  "G 7 1"
+ ]
+}

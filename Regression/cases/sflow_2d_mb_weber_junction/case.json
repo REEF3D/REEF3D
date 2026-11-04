@@ -1,0 +1,21 @@
+{
+ "np": 1,
+ "steps": 200,
+ "solver": "sflow",
+ "files": [
+  "blocks.dat"
+ ],
+ "tags": [
+  "2d",
+  "sflow",
+  "curvilinear",
+  "multiblock",
+  "river",
+  "turbulence"
+ ],
+ "description": "The 90 deg open-channel junction of Weber et al. (2001) on three blocks (W/dx 8): the main channel downstream of the junction block 0 with the native outflow, the main channel upstream and the junction block 1 with its inflow (G 54 1 1), the branch block 2 with its inflow (G 54 2 1) on a part of block 1's +j face; a vertex of three blocks at the downstream corner of the branch; the parabolic eddy viscosity (A 260 4).",
+ "covers": [
+  "the partial interface of block 1 and the vertex of three blocks with the inflow of two blocks",
+  "sflow_ediff::curv_stress across the block interfaces"
+ ]
+}

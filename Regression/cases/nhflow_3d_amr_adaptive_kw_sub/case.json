@@ -1,0 +1,18 @@
+{
+ "base": "nhflow_3d_amr_adaptive_kw",
+ "ctrl_add": [
+  "G 7 1"
+ ],
+ "description": "nhflow_3d_amr_adaptive_kw (adaptive patches, k-omega on every grid) with subcycling (G 7 1): every step of a level starts with the turbulence step of its patches with the time step of the level, the cells around them from the level or the parent (turb_level); after the two steps of a level its fields are restricted into the covered cells of the parent (turb_sync).",
+ "tags": [
+  "3d",
+  "nhflow",
+  "amr",
+  "turbulence",
+  "subcycling"
+ ],
+ "covers": [
+  "nhflow_amr::turb_level, turb_sync",
+  "A 560 with G 7 1 no longer refused"
+ ]
+}

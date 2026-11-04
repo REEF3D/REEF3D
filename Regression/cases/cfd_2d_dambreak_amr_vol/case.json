@@ -1,0 +1,5 @@
+{"base": "cfd_2d_dambreak", "np": 1, "steps": 40,
+ "ctrl_add": ["G 1 1", "F 46 2", "G 15 0.0 0.3 0.0 1.0 0.0 0.4"],
+ "description": "CFD mesh refinement, one step for all levels, with the volume correction over the leaf cells of all grids (F 46 2: the volume at the start of the step).",
+ "tags": ["quick", "2d", "dambreak", "levelset", "amr"],
+ "covers": ["cfd_amr::volume_correct (F 46 2) with the composite projection"]}

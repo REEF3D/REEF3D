@@ -1,0 +1,8 @@
+{
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 300,
+ "description": "Ship frame: head waves (H 0.07 m) at the encounter period 1.5644 s on a following current of 1.176 m/s (B 514, no spin-up), Doppler (B 530 2 10), the current in the whole domain from the start (B 531 1); h 3.5 m, dx 0.3 m, 20 stretched layers, Riemann edges, generation zone and beach with the background (Ship Hydrodynamics validation 23).",
+ "tags": ["quick", "2d", "nhflow", "iowave", "bc_zone", "background", "current", "doppler"],
+ "covers": ["B 531 1", "iowave::background_initialize_nhflow"]
+}

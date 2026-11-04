@@ -20,122 +20,136 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"nhflow_probe_press.h"
-#include"lexer.h"
-#include"fdm_nhf.h"
-#include"ghostcell.h"
-#include<sys/stat.h>
-#include<sys/types.h>
+#include "nhflow_probe_press.h"
+#include "fdm_nhf.h"
+#include "ghostcell.h"
+#include "lexer.h"
+#include "probe_core.h"
+#include <sys/stat.h>
+#include <sys/types.h>
 
 nhflow_probe_press::nhflow_probe_press(lexer *p, fdm_nhf *d) : probenum(p->P64)
 {
 
-    p->Iarray(iloc,probenum);
-	p->Iarray(jloc,probenum);
-	p->Iarray(kloc,probenum);
-	p->Iarray(flag,probenum);
-	
-	// Create Folder
-	if(p->mpirank==0)
-	mkdir("./REEF3D_NHFLOW_ProbePoint",0777);
-	
-	pout = new ofstream[probenum];
-	
-    if(p->mpirank==0 && probenum>0)
+    p->Iarray(iloc, probenum);
+    p->Iarray(jloc, probenum);
+    p->Iarray(kloc, probenum);
+    p->Iarray(flag, probenum);
+    p->Darray(val, probenum * 1);
+
+    // Create Folder
+    if(p->mpirank == 0)
+        mkdir("./REEF3D_NHFLOW_ProbePoint", 0777);
+
+    pout = new ofstream[probenum];
+
+    if(p->mpirank == 0 && probenum > 0)
     {
-		cout<<"probepoint_num: "<<probenum<<endl;
-		// open file
-		for(n=0;n<probenum;++n)
-		{
-		sprintf(name,"./REEF3D_NHFLOW_ProbePoint/REEF3D-NHFLOW-Probe_Press-%i.dat",n+1);
-		
-		pout[n].open(name);
-        
-        //cout<<pout[n].is_open()<<" "<<n+1<<endl;
+        cout << "probepoint_num: " << probenum << endl;
+        // open file
+        for(n = 0; n < probenum; ++n)
+        {
+            sprintf(name, "./REEF3D_NHFLOW_ProbePoint/REEF3D-NHFLOW-Probe_Press-%i.dat", n + 1);
 
-	    pout[n]<<"Vel Probe ID:  "<<n+1<<endl<<endl;
-		pout[n]<<"x_coord     y_coord     z_coord"<<endl;
-		
-		pout[n]<<n+1<<"\t "<<p->Xout(p->P64_x[n],p->P64_y[n])<<"\t "<<p->Yout(p->P64_x[n],p->P64_y[n])<<"\t "<<p->P64_z[n]<<endl;
+            pout[n].open(name);
 
-		pout[n]<<endl<<endl;
-		
-		pout[n]<<"t \t U \t V \t W "<<endl;
-		
-		}
+            // cout<<pout[n].is_open()<<" "<<n+1<<endl;
+
+            pout[n] << "Pressure Probe ID:  " << n + 1 << endl
+                    << endl;
+            pout[n] << "x_coord     y_coord     z_coord" << endl;
+
+            pout[n] << n + 1 << "\t " << p->Xout(p->P64_x[n], p->P64_y[n]) << "\t " << p->Yout(p->P64_x[n], p->P64_y[n]) << "\t " << p->P64_z[n] << endl;
+
+            pout[n] << endl
+                    << endl;
+
+            pout[n] << "t \t P " << endl;
+        }
     }
-	
 }
 
 nhflow_probe_press::~nhflow_probe_press()
 {
-    for(n=0;n<probenum;++n)
-    pout[n].close();
-    
-    delete [] pout;
+    for(n = 0; n < probenum; ++n)
+        pout[n].close();
+
+    delete[] pout;
 }
 
 void nhflow_probe_press::start(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
-    double xp,yp,zp;
-    
-    ini_location(p,d);
-	
-	for(n=0;n<probenum;++n)
-	{
-	pval=-1.0e20;
-	
-		if(flag[n]>0)
-		{
-		xp=p->P64_x[n];
-		yp=p->P64_y[n];
-		zp=p->P64_z[n];
-    
-		pdyn = p->ccipol4V(d->P, d->WL, d->bed, xp, yp, zp);
-         etaval = p->ccslipol4(d->eta,xp,yp);  
-         phs = (p->wd + etaval - zp)*p->W1*fabs(p->W22);
-         
-         pval = pdyn + phs;
-         
-         if(zp > p->wd + etaval)
-         pval = 0.0;
-		}
-	
-	pval=pgc->globalmax(pval);
+    double xp, yp, zp;
 
+    ini_location(p, d);
 
-	
-	if(p->mpirank==0)
-	pout[n]<<setprecision(9)<<p->simtime<<" \t "<<pval<<endl;
-	}	
+    // the mesh refinement: the finest grid at the probe (one rank writes it)
+    amr_points ap;
+    if(amr != nullptr)
+        ap.find(amr, p, probenum, p->P64_x, p->P64_y, flag);
+
+    for(n = 0; n < probenum; ++n)
+    {
+        pval = -1.0e20;
+
+        if(amr == nullptr ? flag[n] > 0 : ap.mine[n] != 0)
+        {
+            xp = p->P64_x[n];
+            yp = p->P64_y[n];
+            zp = p->P64_z[n];
+
+            lexer *q = p;
+            fdm_nhf *g = d;
+            if(amr != nullptr && ap.f[n] != nullptr)
+            {
+                q = ap.q[n];
+                g = static_cast<fdm_nhf *>(ap.f[n]);
+            }
+
+            // the non-hydrostatic pressure P lives on the vertical cell faces (FIJK, kmax+2 levels),
+            // so it is read with the face interpolation ccipol7V as in nhflow_force_forcecalc.cpp;
+            // ccipol4V is for cell-centred arrays (IJK) and reads P with the wrong layout
+            pdyn = q->ccipol7V(g->P, g->WL, g->bed, xp, yp, zp);
+            etaval = q->ccslipol4(g->eta, xp, yp);
+            phs = (p->wd + etaval - zp) * p->W1 * fabs(p->W22);
+
+            pval = pdyn + phs;
+
+            if(zp > p->wd + etaval)
+                pval = 0.0;
+        }
+
+        val[n * 1 + 0] = pval;
+    }
+
+    probe_rows(p, pgc, pout, val, probenum, 1);
 }
 
 void nhflow_probe_press::ini_location(lexer *p, fdm_nhf *d)
 {
     int check;
 
-    for(n=0;n<probenum;++n)
+    for(n = 0; n < probenum; ++n)
     {
-    check=0;
-    
-    iloc[n]=p->posc_i(p->P64_x[n]);
-    
-    if(p->j_dir==0)
-    jloc[n]=0;
-    
-    if(p->j_dir==1)
-    jloc[n]=p->posc_j(p->P64_y[n]);
-    
-	//kloc[n]=p->posf_sig(iloc[n],jloc[n],p->P64_z[n]);
-    //check=boundcheck(p,iloc[n],jloc[n],kloc[n],0);
-    
-    if(iloc[n]>=0 && iloc[n]<p->knox)
-    if((jloc[n]>=0 && jloc[n]<p->knoy) || p->j_dir==0)
-    check=1;
-    
-    //cout<<p->mpirank<<" PROBE check: "<<check<<" i: "<<iloc[n]<<" j: "<<jloc[n]<<" k: "<<kloc[n]<<" ZSN: "<<p->ZSN[10+marge]<<endl;
-    if(check==1)
-    flag[n]=1;
+        check = 0;
+
+        iloc[n] = p->posc_i(p->P64_x[n]);
+
+        if(p->j_dir == 0)
+            jloc[n] = 0;
+
+        if(p->j_dir == 1)
+            jloc[n] = p->posc_j(p->P64_y[n]);
+
+        // kloc[n]=p->posf_sig(iloc[n],jloc[n],p->P64_z[n]);
+        // check=boundcheck(p,iloc[n],jloc[n],kloc[n],0);
+
+        if(iloc[n] >= 0 && iloc[n] < p->knox)
+            if((jloc[n] >= 0 && jloc[n] < p->knoy) || p->j_dir == 0)
+                check = 1;
+
+        // cout<<p->mpirank<<" PROBE check: "<<check<<" i: "<<iloc[n]<<" j: "<<jloc[n]<<" k: "<<kloc[n]<<" ZSN: "<<p->ZSN[10+marge]<<endl;
+        if(check == 1)
+            flag[n] = 1;
     }
-    
 }

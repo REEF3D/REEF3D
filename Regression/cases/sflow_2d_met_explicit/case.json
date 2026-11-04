@@ -1,0 +1,20 @@
+{
+ "base": "sflow_2d_si_met_file",
+ "description": "sflow_2d_si_met_file with the explicit HLL scheme (A 226 0, SSP-RK3): the met forcing in sflow_momentum_func::stage.",
+ "ctrl_set": {
+  "A 226": "0",
+  "A 227": null,
+  "A 228": null
+ },
+ "steps": 120,
+ "tags": [
+  "quick",
+  "2d",
+  "sflow",
+  "wind",
+  "met"
+ ],
+ "covers": [
+  "met_forcing::source_sflow (RK3 stage)"
+ ]
+}

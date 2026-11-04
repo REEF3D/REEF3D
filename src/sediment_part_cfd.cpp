@@ -21,6 +21,7 @@ Authors: Hans Bihs, Alexander Hanke
 --------------------------------------------------------------------*/
 
 #include "CPM.h"
+#include "amr_load.h"
 #include "bedshear.h"
 #include "bedshear_reduction.h"
 #include "bedslope.h"
@@ -28,10 +29,12 @@ Authors: Hans Bihs, Alexander Hanke
 #include "lexer.h"
 #include "sediment_fdm.h"
 #include "sediment_part.h"
+#include <mpi.h>
 
 void sediment_part::sediment_algorithm_cfd(lexer *p, fdm *a, ghostcell *pgc, ioflow *pflow, reinitopo *preto)
 {
     double starttime = pgc->timer();
+    const double lm_t0 = MPI_Wtime(), lm_m0 = amr_clock::mpi;
 
     // sediment
     fill_PQ_cfd(p, a, pgc);
@@ -46,10 +49,14 @@ void sediment_part::sediment_algorithm_cfd(lexer *p, fdm *a, ghostcell *pgc, iof
     pst->move(p, a, pgc, s, pturb);
     pst->sedlog(p, pgc);
 
-    /// topo update
-    update_cfd(p, a, pgc, pflow, preto);
+    /// topo update; fixed bed (Q 44 1): all parcels are fixed and the bed does not change
+    if(p->Q44 != 1)
+        update_cfd(p, a, pgc, pflow, preto);
 
     p->sedsimtime = pgc->timer() - starttime;
+
+    // load map (G 45): the busy time of the sediment step
+    pst->loadmap_step(p, a, pgc, MPI_Wtime() - lm_t0, amr_clock::mpi - lm_m0);
 
     ++p->sediter;
 }

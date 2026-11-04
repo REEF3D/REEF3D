@@ -23,16 +23,16 @@ Author: Hans Bihs
 #ifndef FNPF_PRINT_WSFLINE_Y_H_
 #define FNPF_PRINT_WSFLINE_Y_H_
 
-#include"boundarycheck.h"
-#include<iostream>
-#include<fstream>
+#include "boundarycheck.h"
+#include <fstream>
+#include <iostream>
 
 class lexer;
+class wsfline_core;
 class fdm_fnpf;
 class ghostcell;
 class field;
 class ioflow;
-class wave_theory;
 class slice;
 
 using namespace std;
@@ -40,31 +40,18 @@ using namespace std;
 class fnpf_print_wsfline_y : public boundarycheck
 {
 public:
-    fnpf_print_wsfline_y(lexer*,fdm_fnpf*,ghostcell*);
-	virtual ~fnpf_print_wsfline_y();
+    fnpf_print_wsfline_y(lexer *, fdm_fnpf *, ghostcell *);
+    virtual ~fnpf_print_wsfline_y();
 
-	void start(lexer*, fdm_fnpf*, ghostcell*,ioflow*,slice &f);
-
+    void start(lexer *, fdm_fnpf *, ghostcell *, ioflow *, slice &f);
 
 private:
-    void ini_location(lexer*, fdm_fnpf*, ghostcell*);
-    void sort(double*, double*, int*, int,int);
-    void remove_multientry(lexer*,double*, double*, int*, int&);
-
-    int conv(double);
-    int *iloc,**flag,**flag_all,*rowflag,*wsfpoints;
-    double **wsf,**wsf_all;
-    double **yloc, **yloc_all;
-    double *xloc;
-    int n,q;
+    void ini_location(lexer *, fdm_fnpf *, ghostcell *);
+    int *iloc;
+    int n, q;
     ofstream wsfout;
 
-    double xcoor;
-	
-	wave_theory *pwave;
-
-    int maxknoy,sumknoy;
-
+    wsfline_core *pcore;
 };
 
 #endif

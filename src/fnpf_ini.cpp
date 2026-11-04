@@ -20,19 +20,19 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"fnpf_ini.h"
-#include"lexer.h"
-#include"fdm_fnpf.h"
-#include"ghostcell.h"
-#include"reini.h"
-#include"convection.h"
-#include"ioflow.h"
+#include "fnpf_ini.h"
+#include "convection.h"
+#include "fdm_fnpf.h"
+#include "ghostcell.h"
+#include "ioflow.h"
+#include "lexer.h"
+#include "reini.h"
 
-fnpf_ini::fnpf_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_fsf_update(p,c,pgc), fnpf_bed_update(p)
+fnpf_ini::fnpf_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_fsf_update(p, c, pgc), fnpf_bed_update(p)
 {
-    gcval_u=10;
-	gcval_v=11;
-	gcval_w=12;
+    gcval_u = 10;
+    gcval_v = 11;
+    gcval_w = 12;
 }
 
 fnpf_ini::~fnpf_ini()
@@ -40,14 +40,5 @@ fnpf_ini::~fnpf_ini()
 }
 
 void fnpf_ini::ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pflow, reini *preini)
-{	
-}
-
-void fnpf_ini::lsm_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pflow)
 {
-}
-
-void fnpf_ini::velcalc(lexer *p, fdm_fnpf *c, ghostcell *pgc, field &f)
-{
-   
 }

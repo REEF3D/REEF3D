@@ -21,6 +21,7 @@ Author: Tobias Martin
 --------------------------------------------------------------------*/
 
 #include "mooring_dynamic.h"
+#include "ckpt_pack.h"
 #include "ghostcell.h"
 #include "lexer.h"
 
@@ -62,172 +63,11 @@ void mooring_dynamic::start(lexer *p, ghostcell *pgc)
 
 void mooring_dynamic::updateFluidVel(lexer *p, ghostcell *pgc, int cmp)
 {
-    /*
-    int *recVel, *count;
+}
 
-    p->Iarray(count,p->mpi_size);
-    p->Iarray(recVel,Ne + 1);
-
-    // Get velocities on own processor
-    for (int i = 0; i < Ne + 1; i++)
-    {
-        fluid_vel[i][cmp] = 0.0;
-
-        if
-        (
-            c_moor(0,i) >= xstart[p->mpirank] && c_moor(0,i) < xend[p->mpirank] &&
-            c_moor(1,i) >= ystart[p->mpirank] && c_moor(1,i) < yend[p->mpirank] &&
-            c_moor(2,i) >= zstart[p->mpirank] && c_moor(2,i) < zend[p->mpirank]
-        )
-        {
-            if (cmp==0)
-            {
-                fluid_vel[i][cmp] = p->ccipol1_a(a->u,c_moor(0,i),c_moor(1,i),c_moor(2,i));
-            }
-            else if (cmp==1)
-            {
-                fluid_vel[i][cmp] = p->ccipol2_a(a->v,c_moor(0,i),c_moor(1,i),c_moor(2,i));
-            }
-            else
-            {
-                fluid_vel[i][cmp] = p->ccipol3_a(a->w,c_moor(0,i),c_moor(1,i),c_moor(2,i));
-            }
-
-            recVel[i] = -1;
-            count[p->mpirank]++;
-        }
-        else
-        {
-            for (int j = 0; j < p->mpi_size; j++)
-            {
-                if
-                (
-                    c_moor(0,i) >= xstart[j] && c_moor(0,i) < xend[j] &&
-                    c_moor(1,i) >= ystart[j] && c_moor(1,i) < yend[j] &&
-                    c_moor(2,i) >= zstart[j] && c_moor(2,i) < zend[j]
-                )
-                {
-                    recVel[i] = j;
-                    count[j]++;
-                    break;
-                }
-                else
-                {
-                    recVel[i] = -2;
-                }
-            }
-        }
-    }
-
-
-    // Fill array for sending
-    double *sendVel;
-    p->Darray(sendVel, count[p->mpirank]);
-
-    int counts = 0;
-    for (int i = 0; i < Ne + 1; i++)
-    {
-        if (recVel[i]==-1)
-        {
-            sendVel[counts] = fluid_vel[i][cmp];
-            counts++;
-        }
-    }
-
-
-    // Prepare arrays for receiving
-    double **recvVel;
-
-    recvVel = new double*[p->mpi_size];
-
-    for (int n = 0; n < p->mpi_size; ++n)
-    {
-        recvVel[n] = new double[count[n]];
-
-        for (int m = 0; m < count[n]; ++m)
-        {
-            recvVel[n][m] = 0.0;
-        }
-    }
-
-
-    // Send and receive
-    vector<MPI_Request> sreq(p->mpi_size, MPI_REQUEST_NULL);
-    vector<MPI_Request> rreq(p->mpi_size, MPI_REQUEST_NULL);
-    MPI_Status status;
-
-    for (int j = 0; j < p->mpi_size; j++)
-    {
-        if (j!=p->mpirank)
-        {
-            if (count[p->mpirank] > 0)
-            {
-            //	cout<<"Processor "<<p->mpirank<<" sends "<<count[p->mpirank]<<" elements to processor "<<j<<endl;
-
-                MPI_Isend(sendVel,count[p->mpirank],MPI_DOUBLE,j,1,pgc->mpi_comm,&sreq[j]);
-            }
-
-            if (count[j] > 0)
-            {
-            //	cout<<"Processor "<<p->mpirank<<" receives "<<count[j]<<" elements from processor "<<j<<endl;
-
-                MPI_Irecv(recvVel[j],count[j],MPI_DOUBLE,j,1,pgc->mpi_comm,&rreq[j]);
-            }
-        }
-    }
-
-    // Wait until transmitted
-    for (int j = 0; j < p->mpi_size; j++)
-    {
-        MPI_Wait(&sreq[j],&status);
-        MPI_Wait(&rreq[j],&status);
-    }
-
-
-    // Fill velocity vector
-    for (int j = 0; j < p->mpi_size; j++)
-    {
-        if (j!=p->mpirank)
-        {
-            count[j] = 0;
-        }
-    }
-
-    for (int i = 0; i < Ne + 1; i++)
-    {
-        for (int j = 0; j < p->mpi_size; j++)
-        {
-            if (recVel[i]==j)
-            {
-                fluid_vel[i][cmp] = recvVel[j][count[j]];
-                count[j]++;
-            }
-        }
-    }
-
-    for (int i = 0; i < Ne + 1; i++)
-    {
-        fluid_vel[i][cmp] += 1e-10;
-    }
-
-
-    // Delete arrays
-    if (count[p->mpirank] > 0)
-    {
-        p->del_Darray(sendVel, count[p->mpirank]);
-    }
-
-    for(int i = 0; i < p->mpi_size; ++i)
-    {
-        if (count[i] > 0)
-        {
-            delete [ ] recvVel[i];
-        }
-    }
-    delete [ ] recvVel;
-
-    p->del_Iarray(count,p->mpi_size);
-    p->del_Iarray(recVel,Ne + 1);*/
+p->del_Iarray(count, p->mpi_size);
+p->del_Iarray(recVel, Ne + 1);
+*/
 }
 
 void mooring_dynamic::updateFields(lexer *p, ghostcell *pgc)
@@ -304,4 +144,38 @@ void mooring_dynamic::saveMooringPoint(lexer *p)
     Xme_ = -tension(0);
     Yme_ = -tension(1);
     Zme_ = -tension(2);
+}
+
+void mooring_dynamic::ckpt_state(std::vector<double> &v) const
+{
+    ckpt_beam_state(v);
+    ckpt_put w{v};
+    for(const Matrix3Xd *a : {&c_moor, &c_moor_n, &cdot_moor, &cdot_moor_n, &cdotdot_moor})
+        w.m(*a);
+    for(const vector<vector<double>> *a : {&fluid_vel, &fluid_vel_n, &fluid_acc})
+        for(const vector<double> &e : *a)
+            w.vd(e);
+    for(double x : {Xme_, Yme_, Zme_, phi_mooring, t_mooring_n, t_mooring})
+        w.d(x);
+    w.m(fixPoint);
+    w.m(a_O);
+    w.b(broken);
+}
+
+void mooring_dynamic::ckpt_restore(const std::vector<double> &v, size_t &k)
+{
+    ckpt_beam_restore(v, k);
+    ckpt_get r{v};
+    r.k = k;
+    for(Matrix3Xd *a : {&c_moor, &c_moor_n, &cdot_moor, &cdot_moor_n, &cdotdot_moor})
+        r.m(*a);
+    for(vector<vector<double>> *a : {&fluid_vel, &fluid_vel_n, &fluid_acc})
+        for(vector<double> &e : *a)
+            r.vd(e);
+    for(double *a : {&Xme_, &Yme_, &Zme_, &phi_mooring, &t_mooring_n, &t_mooring})
+        r.d(*a);
+    r.m(fixPoint);
+    r.m(a_O);
+    r.b(broken);
+    k = r.k;
 }

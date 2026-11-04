@@ -23,9 +23,9 @@ Author: Hans Bihs
 #ifndef FNPF_VEL_PROBE_THEORY_H_
 #define FNPF_VEL_PROBE_THEORY_H_
 
-#include"boundarycheck.h"
-#include<iostream>
-#include<fstream>
+#include "boundarycheck.h"
+#include <fstream>
+#include <iostream>
 
 class lexer;
 class fdm_fnpf;
@@ -38,28 +38,23 @@ using namespace std;
 class fnpf_vel_probe_theory : public boundarycheck
 {
 public:
-    fnpf_vel_probe_theory(lexer*,fdm_fnpf*);
-	virtual ~fnpf_vel_probe_theory();
+    fnpf_vel_probe_theory(lexer *, fdm_fnpf *);
+    virtual ~fnpf_vel_probe_theory();
 
-	void start(lexer*, fdm_fnpf*, ghostcell*,ioflow*);
-
+    void start(lexer *, fdm_fnpf *, ghostcell *, ioflow *);
 
 private:
-    void ini_location(lexer*, fdm_fnpf*);
+    void ini_location(lexer *, fdm_fnpf *);
 
+    char name[100];
 
-	char name[100];
-
-    int *iloc,*jloc,*kloc,*flag;
-    int n,q;
-	const int probenum;
+    int *iloc, *jloc, *kloc, *flag;
+    int n, q;
+    const int probenum;
     ofstream *pout;
-	
-	double uval,vval,wval,pval,kval,eval,edval;
-    
-    
-    
+    double *val;
 
+    double uval, vval, wval, pval, kval, eval, edval;
 };
 
 #endif

@@ -1,0 +1,7 @@
+{
+ "description": "Fully developed rough-wall closed channel (walls at z = 0 and z = 2 m, half height H = 1 m), k-omega (T 10 2) with wall functions (B 10 1), periodic in x, driven by a body force g_x = u*^2/H (u* = 0.2 m/s, ks = 0.01 m, nu = 1e-6). After 400 s (steady) the velocity in the lower 15 % must follow the rough log law u = (u*/kappa) ln(30 z/ks).",
+ "np": 1,
+ "time": 400.0,
+ "tags": ["turbulence", "2d", "walls"],
+ "check": {"type": "log_law", "u_star": 0.2, "ks": 0.01, "kappa": 0.4, "tol": 0.05}
+}

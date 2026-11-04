@@ -24,6 +24,9 @@ Authors: Hans Bihs, Tobias Martin
 #define SIXDOF_OBJ_CFD_H_
 
 #include "6DOF_obj.h"
+#include "amr_grid_lookup.h"
+
+class reinidisc_f;
 
 //  Fluid access of the load models (ship module) in REEF3D::CFD: velocity interpolated from the
 //  staggered velocity fields
@@ -60,6 +63,20 @@ public:
 
     using sixdof_obj::print_vtp;
 
+    // mesh refinement (cfd_amr, 6DOF_obj_cfd_amr.cpp): the level set of the body on the grid of a
+    // patch, the cells around the patch included, with the workspace of that grid; both work in
+    // the box of the body on the grid (box: is, ie, js, je, ks, ke, set by ray_cast_amr)
+    void ray_cast_amr(lexer *, fdm *, ghostcell *, fieldint5 &, fieldint5 &, fieldint5 &, int *);
+    void reini_amr(lexer *, fdm *, ghostcell *, field &, reinidisc_f *, field4a &, field4a &, field4a &, const int *);
+    // ... the loads (X 60 1) from the finest grid at each hull triangle (set by cfd_amr, G 7 1)
+    const amr_grid_lookup *amr_loads = nullptr;
+    // ... G 7 1: the level-0 cells under the patches (1, per cell of the level-0 arrays): the
+    // predicted copy of level 0 does not force the body there (set by cfd_amr for its step)
+    const char *amr_cover = nullptr;
+    // ... G 7 1: stage iter of the body with the step of a level (p->dt): the loads of its last
+    // stage, the pose and the body velocities (the hull is cast on the patches, not on level 0)
+    void amr_stage_cfd(lexer *, fdm *, ghostcell *, int);
+
 private:
     void ini_parameter_stl(lexer *, fdm *, ghostcell *);
     void externalForces_cfd(lexer *, fdm *, ghostcell *, double, bool);
@@ -76,8 +93,6 @@ private:
     void forces_lsm_calc(lexer *p, fdm *a, ghostcell *pgc, int, bool);
     void print_force(lexer *, fdm *, ghostcell *);
     void print_ini(lexer *, fdm *, ghostcell *);
-    void print_vtp(lexer *, fdm *, ghostcell *);
-    void pvtp(lexer *, int);
     void update_trimesh_3D(lexer *, fdm *, ghostcell *, bool);
     void ray_cast(lexer *, fdm *, ghostcell *);
     void reini_RK2(lexer *, fdm *, ghostcell *, field &);

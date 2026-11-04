@@ -1,0 +1,10 @@
+{
+ "base": "nhflow_2d_si_harmonic_p160",
+ "ctrl_set": {
+  "P 48": "2000",
+  "P 49": "0"
+ },
+ "description": "nhflow_2d_si_harmonic_p160 (31 days, long-run statistics P 160 from day 1, maps every 10 days) with a checkpoint every 2000 steps, all kept: the uninterrupted run of nhflow_2d_si_harmonic_p160_restart.",
+ "tags": ["2d", "nhflow", "semi_implicit", "tide", "checkpoint"],
+ "covers": ["nhflow_longrun::ckpt_write (the record and the sums of the native grid)"]
+}

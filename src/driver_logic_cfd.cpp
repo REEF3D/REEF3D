@@ -23,6 +23,7 @@ Author: Hans Bihs
 #include "6DOF_header.h"
 #include "FSI_header.h"
 #include "benchmark_header.h"
+#include "cfd_amr.h"
 #include "concentration_header.h"
 #include "convection_header.h"
 #include "dem_header.h"
@@ -73,6 +74,12 @@ void driver::logic_cfd()
     removed_option(p, pgc, p->F80 == 1 || p->F80 == 3, "F 80 1/3: VOF_AB and VOF_RK3 have been removed, use F 80 4 (PLIC) or the level set (F 30).");
     removed_option(p, pgc, p->F85 >= 51 && p->F85 <= 53, "F 85 51/52/53: HRIC, HRIC_mod and CICSAM have been removed.");
 
+    // unknown turbulence options: no model or convection scheme would be created and the run would crash later
+    const bool T10_ok = (p->T10 == 0 || p->T10 == 1 || p->T10 == 21 || p->T10 == 2 || p->T10 == 22 || p->T10 == 31 || p->T10 == 33 || p->T10 == 12);
+    removed_option(p, pgc, !T10_ok, "T 10: unknown turbulence model; use 0 (laminar), 1/21 (k-epsilon), 2/22 (k-omega), 31 (LES Smagorinsky) or 33 (LES WALE).");
+    removed_option(p, pgc, p->T10 > 0 && p->T12 != 0 && p->T12 != 1 && p->T12 != 5 && p->T12 != 55, "T 12: unknown convection scheme for k, epsilon/omega; use 0, 1 (first-order upwind), 5 or 55 (WENO).");
+    removed_option(p, pgc, (p->T10 == 31 || p->T10 == 33) && p->T21 != 0 && p->T21 != 1 && p->T21 != 2, "T 21: unknown LES filter; use 0, 1 or 2.");
+
     // time stepping
     if(p->N48 == 0)
         ptstep = new fixtimestep(p);
@@ -111,11 +118,19 @@ void driver::logic_cfd()
     if(p->D10 == 4)
         pconvec = new weno_flux_nug(p);
 
-    if(p->D10 == 5)
-        pconvec = new weno_hj_nug(p);
+    if(p->D10 == 4)
+    {
+        weno_flux_nug *pweno = new weno_flux_nug(p);
+        pweno->set_weno_weights(p->D12, p->D13);  // D 12: 0 WENO-JS, 1 WENO-Z, 2 TENO5
+        pconvec = pweno;
+    }
 
-    if(p->D10 == 6)
-        pconvec = new cds4(p);
+    if(p->D10 == 5)
+    {
+        weno_hj_nug *pweno = new weno_hj_nug(p);
+        pweno->set_weno_weights(p->D12, p->D13);
+        pconvec = pweno;
+    }
 
     if(p->D10 == 7)
         pconvec = new weno3_flux(p);
@@ -143,8 +158,9 @@ void driver::logic_cfd()
     if(p->F35 == 0 && p->F85 == 0)
         pfsfdisc = new convection_void(p);
 
-    if(p->F35 == 1)
-        pfsfdisc = new fou(p);
+    // T 12 55 (implicit WENO for uniform grids) is T 12 5
+    if(p->T12 == 55)
+        pturbdisc = new iweno_hj_df_nug(p);
 
     if(p->F35 == 2)
         pfsfdisc = new cds2_alt(p);
@@ -161,11 +177,19 @@ void driver::logic_cfd()
     if(p->F35 == 6)
         pfsfdisc = new cds4(p);
 
-    if(p->F35 == 7)
-        pfsfdisc = new weno3_flux(p);
+    if(p->F35 == 4)
+    {
+        weno_flux_nug *pweno = new weno_flux_nug(p);
+        pweno->set_weno_weights(p->F37, p->F38);  // F 37: 0 WENO-JS, 1 WENO-Z, 2 TENO5
+        pfsfdisc = pweno;
+    }
 
-    if(p->F35 == 8)
-        pfsfdisc = new weno3_hj(p);
+    if(p->F35 == 5)
+    {
+        weno_hj_df_nug *pweno = new weno_hj_df_nug(p);
+        pweno->set_weno_weights(p->F37, p->F38);
+        pfsfdisc = pweno;
+    }
 
     if(p->F35 >= 10 && p->F35 < 30)
         pfsfdisc = new hires(p, p->F35);
@@ -189,11 +213,28 @@ void driver::logic_cfd()
     if(p->F305 == 4)
         pmpconvec = new weno_flux_nug(p);
 
+    if(p->F305 == 4)
+    {
+        weno_flux_nug *pweno = new weno_flux_nug(p);
+        pweno->set_weno_weights(p->F37, p->F38);
+        pmpconvec = pweno;
+    }
+
     if(p->F305 == 5)
-        pmpconvec = new weno_hj_nug(p);
+    {
+        weno_hj_nug *pweno = new weno_hj_nug(p);
+        pweno->set_weno_weights(p->F37, p->F38);
+        pmpconvec = pweno;
+    }
 
     if(p->F305 == 6)
         pmpconvec = new cds4(p);
+
+    if(p->F305 >= 10 && p->F305 < 30)
+        pmpconvec = new hires(p, p->F305);
+
+    if(p->F305 >= 40 && p->F305 < 50)
+        pmpconvec = new hires(p, p->F305);
 
     if(p->F305 >= 10 && p->F305 < 30)
         pmpconvec = new hires(p, p->F305);
@@ -232,8 +273,12 @@ void driver::logic_cfd()
     if(p->C15 >= 10 && p->C15 < 30)
         pconcdisc = new hires(p, p->C15);
 
-    if(p->C15 >= 40 && p->C15 < 50)
-        pconcdisc = new hires(p, p->C15);
+    if(p->S12 >= 1)
+        pconcdisc = new iweno_hj_df_nug(p);
+
+    // turbulence model
+    if(p->T10 == 0)
+        pturb = new kepsilon_void(p, a, pgc);
 
     if(p->S12 >= 1)
         pconcdisc = new iweno_hj(p);
@@ -308,8 +353,9 @@ void driver::logic_cfd()
     if(p->H15 == 8)
         pheatdisc = new weno3_hj(p);
 
+    // H 15 9 (WENO flux for uniform grids) is H 15 4
     if(p->H15 == 9)
-        pheatdisc = new weno_flux(p);
+        pheatdisc = new weno_flux_nug(p);
 
     if(p->H15 >= 10 && p->H15 < 30)
         pheatdisc = new hires(p, p->H15);
@@ -331,6 +377,9 @@ void driver::logic_cfd()
     //  momentum and scalars
     if(p->D20 == 0)
         pdiff = new diff_void;
+
+    if(p->D20 == 0 && p->T10 > 0 && p->mpirank == 0)
+        cout << "CFD warning: turbulence model T 10 " << p->T10 << " with D 20 0: no diffusion, the eddy viscosity does not enter the momentum equations and k, eps/omega are not diffused" << endl;
 
     if(p->D20 == 1 && p->j_dir == 1)
         pdiff = new ediff2(p);
@@ -424,8 +473,21 @@ void driver::logic_cfd()
     if(p->D30 == 0)
         ppress = new pressure_void(p);
 
-    if((p->D30 == 1 || p->D30 == 2 || p->D30 == 3))
-        ppress = new pjm_corr(p, a, pgc, pheat, pconc);
+    // air compressibility
+    if(p->W32 > 0 && ((p->D30 != 1 && p->D30 != 2 && p->D30 != 3) || p->F80 > 0 || p->W30 > 0))
+    {
+        if(p->mpirank == 0)
+            cout << "W 32 requires D 30 1, 2 or 3 and the level set method (F 80 0), and cannot be combined with W 30" << endl;
+
+        exit(1);
+    }
+
+    if(p->W32 > 0 && p->mpirank == 0 && (p->B200 == 1 || (p->B200 == 0 && p->S10 == 2 && p->Q10 == 0) || p->X10 > 0))
+        cout << "W 32 is not verified with porous media (B 210 to B 214, S 10 2) or floating bodies (X 10): the compressibility is not scaled by the porosity" << endl;
+
+    // pressure scheme
+    if(p->D30 == 0)
+        ppress = new pressure_void(p);
 
     if(p->D30 == 10)
         ppress = new pjm_hydrostatic(p, a, pheat, pconc);
@@ -466,10 +528,14 @@ void driver::logic_cfd()
 #endif
 
     // VRANS
-    if(p->B200 == 0)
+    //  porous structures (B 200 1) or the continuum VRANS sediment bed (S 10 2, Q 10 0); the particle
+    //  sediment (Q 10 >= 1) has its own vrans_f for the porosity, its drag is in the particle coupling
+    const bool vrans_porous = p->B200 == 1 || (p->B200 == 0 && p->S10 == 2 && p->Q10 == 0);
+
+    if(p->B200 == 0 && !vrans_porous)
         pvrans = new vrans_v(p, pgc);
 
-    if(p->B200 == 1)
+    if(vrans_porous)
         pvrans = new vrans_f(p, pgc);
 
     if(p->B200 == 2)
@@ -526,14 +592,12 @@ void driver::logic_cfd()
     // Printer
     pprint = new printer_CFD(p, a, pgc);
 
-    if(p->P150 == 0)
-        pdata = new expdata_void(p, a, pgc);
-
-    if(p->P150 > 0)
-        pdata = new expdata_f(p, a, pgc);
-
     // Sediment
-    if(p->S10 > 0)
+    // CPM on the mesh refinement (G 1 > 0): the refinement runs it on the grid of its finest level
+    // (cfd_amr_cpm.cpp), level 0 has no sediment step of its own
+    const bool amrcpm = p->S10 == 1 && p->Q10 >= 1 && p->G1 > 0 && cfd_amr::scope(p, pgc);
+
+    if(p->S10 > 0 && !amrcpm)
     {
         if(p->Q10 == 0)
             psed = new sediment_f(p, pgc, pturb, pBC);
@@ -557,7 +621,14 @@ void driver::logic_cfd()
         preso = new reinitopo_void();
 
     if(p->solidread == 1 && p->G540 > 0)
-        preso = new reinisolid_RK3(p);
+        preso = new reinitopo_RK3(p, "solid");
+
+    // 6DOF
+    if(p->X10 == 0)
+        p6dof = new sixdof_void(p, pgc);
+
+    if(p->X10 == 1)
+        p6dof = new sixdof_cfd(p, a, pgc);
 
     // 6DOF
     if(p->X10 == 0)
@@ -574,12 +645,12 @@ void driver::logic_cfd()
 
     momentum_forcing::pdem = pdem;
 
-    if(p->E10 > 0 && p->N40 == 14 && p->E11 > 0 && p->mpirank == 0)
-        cout << "DEM: warning, the DEM fluid forcing is not applied with N 40 14, use N 40 3" << endl;
-
     // FSI
     if(p->Z10 == 0)
         pfsi = new fsi_void(p, pgc);
+
+    if(p->Z10 == 1)
+        pfsi = new fsi_strips(p, pgc);
 
     if(p->Z10 == 1)
         pfsi = new fsi_strips(p, pgc);
@@ -590,8 +661,22 @@ void driver::logic_cfd()
 
     // RK2, RK3 and low-storage RK3 with the level set outside (12, 13, 44) or inside the stages
     // (2, 3, 4), conservative form (33)
+    bool mom_rk = false;
+
     if(p->N40 == 2 || p->N40 == 22 || p->N40 == 12 || p->N40 == 44 || ((p->N40 == 3 || p->N40 == 23 || p->N40 == 4 || p->N40 == 24 || p->N40 == 13 || p->N40 == 33) && p->F80 != 4))
+    {
         pmom = new momentum_rk(p, a, pgc, pconvec, pfsfdisc, pdiff, ppress, ppois, pturb, psolv, ppoissonsolv, pflow, pheat, pconc, preini, pfsi);
+        mom_rk = true;
+    }
+
+    // the point-implicit VRANS resistance (B 268 1) is in momentum_rk, explicit for the other schemes
+    if(!mom_rk && p->B268 == 1)
+    {
+        p->B268 = 0;
+
+        if(p->mpirank == 0 && (p->B200 == 1 || p->S10 == 2))
+            cout << "VRANS: B 268 1 needs momentum_rk, explicit resistance used" << endl;
+    }
 
     if((p->N40 == 3 || p->N40 == 23) && p->F80 == 4)
         pmom = new momentum_FC3_PLIC(p, a, pgc, pconvec, pdiff, ppress, ppois, pturb, psolv, ppoissonsolv, pflow, pheat, pconc, preini, pfsi);
@@ -601,18 +686,6 @@ void driver::logic_cfd()
 
     if(p->N40 == 33 && p->F80 == 4)
         pmom = new momentum_FCC3_PLIC(p, a, pgc, pconvec, pdiff, ppress, ppois, pturb, psolv, ppoissonsolv, pflow, pheat, pconc, preini, pfsi);
-
-    if(p->N40 == 14 && (p->X10 == 0 && p->Z10 == 0))
-    {
-        pmom_sf = new momentum_RKLS3_sf(p, a, pgc, pconvec, pdiff, ppress, ppois, pturb, psolv, ppoissonsolv, pflow);
-        pmom = new momentum_void();
-    }
-
-    if(p->N40 == 14 && (p->X10 == 1 || p->Z10 > 0))
-    {
-        pmom_df = new momentum_RKLS3_df(p, a, pgc, pconvec, pdiff, ppress, ppois, pturb, psolv, ppoissonsolv, pflow);
-        pmom = new momentum_void();
-    }
 }
 
 void driver::patchBC_logic()

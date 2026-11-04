@@ -1,0 +1,24 @@
+{
+ "base": "fnpf_2d_regular",
+ "ctrl_set": {
+  "B 98": "7",
+  "B 99": "7",
+  "B 96": "0.0 0.0"
+ },
+ "ctrl_add": [
+  "B 528 2.0"
+ ],
+ "steps": 1200,
+ "description": "FNPF two-band active absorption at the wavemaker (B 98 7) and the beach (B 99 7), reference period B 528 2 s.",
+ "tags": [
+  "quick",
+  "2d",
+  "waves",
+  "iowave",
+  "awa",
+  "fnpf"
+ ],
+ "covers": [
+  "ab2_ini, ab2_lowpass, ab2_prof; dirichlet_wavegen_fnpf and active_beach_fnpf two-band"
+ ]
+}

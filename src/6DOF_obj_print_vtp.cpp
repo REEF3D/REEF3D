@@ -20,6 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
+#include "6DOF_external.h"
 #include "6DOF_obj.h"
 #include "ghostcell.h"
 #include "lagoon_store.h"
@@ -67,11 +68,11 @@ void sixdof_obj::print_vtp(lexer *p, ghostcell *pgc)
 
         if(p->P185 > 0)
             for(int qn = 0; qn < p->P185; ++qn)
-                if(p->simtime > printtime_wT[qn] && p->simtime >= p->P185_ts[qn] && p->simtime <= (p->P185_te[qn] + 0.5 * p->P185_dt[qn]))
+                if(p->simtime > printtime_wF[qn] && p->simtime >= p->P185_ts[qn] && p->simtime <= (p->P185_te[qn] + 0.5 * p->P185_dt[qn]))
                 {
                     printflag = true;
 
-                    printtime_wT[qn] += p->P185_dt[qn];
+                    printtime_wF[qn] += p->P185_dt[qn];
                 }
     }
 
@@ -82,17 +83,13 @@ void sixdof_obj::print_vtp(lexer *p, ghostcell *pgc)
             if(((p->count % p->P20 == 0) && p->P30 < 0.0) || (p->simtime > printtime && p->P30 > 0.0) || (p->count == 0 && p->P35 == 0))
                 printflag = true;
 
-        if(p->P19 == 2)
-            if(((p->count % p->P181 == 0) && p->P182 < 0.0) || (p->simtime > printtime && p->P182 > 0.0) || (p->count == 0 && p->P185 == 0))
-                printflag = true;
-
         if(p->P185 > 0)
             for(int qn = 0; qn < p->P185; ++qn)
-                if(p->simtime > printtime_wT[qn] && p->simtime >= p->P185_ts[qn] && p->simtime <= (p->P185_te[qn] + 0.5 * p->P185_dt[qn]))
+                if(p->simtime > printtime_wF[qn] && p->simtime >= p->P185_ts[qn] && p->simtime <= (p->P185_te[qn] + 0.5 * p->P185_dt[qn]))
                 {
                     printflag = true;
 
-                    printtime_wT[qn] += p->P185_dt[qn];
+                    printtime_wF[qn] += p->P185_dt[qn];
                 }
     }
 
@@ -162,6 +159,11 @@ void sixdof_obj::print_vtp(lexer *p, ghostcell *pgc)
             const double R[9] = {R_(0, 0), R_(0, 1), R_(0, 2), R_(1, 0), R_(1, 1), R_(1, 2), R_(2, 0), R_(2, 1), R_(2, 2)};
             const double c[3] = {c_(0), c_(1), c_(2)};
             stored = lagoon_body_writer(p)->output(n6DOF, 3 * tricount, x0.data(), x.data(), R, c, p->simtime, num);
+
+            // the objects of the external dynamics (REEF3D::CORAL: the mooring lines) with the outputs of the
+            // first body, at its time and output number
+            if(n6DOF == 0 && sixdof_external::instance() != nullptr)
+                sixdof_external::instance()->store_output(p, p->simtime, num);
         }
         if(stored && p->P18 == 1)
         {

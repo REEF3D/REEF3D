@@ -1,0 +1,9 @@
+{
+ "base": "sflow_1d_channel_ke",
+ "description": "as sflow_1d_channel_ke with the B 60 inflow replaced by patches on walls (C 11 21, C 14 21): discharge inlet (B 440 1, B 411) at x- and water level outlet (B 440 2, B 413) at x+ (patchBC_2D).",
+ "control_set": {"C 11": "21", "C 14": "21"},
+ "ctrl_set": {"B 60": null},
+ "ctrl_add": ["B 440 1 1 -1.0 1.0 -1.0 11.0", "B 411 1 10.0", "B 440 2 4 999.0 1001.0 -1.0 11.0", "B 413 2 1.0"],
+ "tags": ["sflow", "patchBC"],
+ "covers": ["patchBC_2D inlet / outlet", "sflow_momentum_func::vel_bc patch faces", "sflow_HLL patch flux"]
+}

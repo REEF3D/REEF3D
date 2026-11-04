@@ -1,0 +1,19 @@
+{
+ "description": "REEF3D::SEASTATE static mesh refinement (G 1 1) with the east and north edges of the refinement box (G 10) on the rank borders of the _mpi2 twin (x = 3200 m): swell (JONSWAP Hs 2 m, Tp 10 s from 20 deg) over a 6.4 x 3.2 km basin of 100 m cells, 20 m deep with a shoal to 8 m from the bathymetry raster, stationary to A 708 1e-7; handover points downstream of the patch and in it. Validation in Dropbox SEASTATE/validation/65_faces_ranks.",
+ "solver": "seastate",
+ "np": 1,
+ "steps": 1,
+ "time": 1.0,
+ "files": [
+  "seastate-bathy.dat"
+ ],
+ "tags": [
+  "quick",
+  "2d",
+  "seastate",
+  "amr"
+ ],
+ "covers": [
+  "seastate_amr faces of the covered level-0 cells (Phase 16: also towards the halo)"
+ ]
+}

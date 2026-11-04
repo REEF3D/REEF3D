@@ -1,0 +1,24 @@
+{
+ "base": "nhflow_3d_si_mb_basin_tiles",
+ "same_as": "nhflow_3d_si_mb_basin_fine_tracers",
+ "same_as_rtol": 1e-06,
+ "description": "nhflow_3d_si_mb_basin_fine_tracers with the blocks cut into 2 x 2 tiles (G 55 8, G 58 1) and the coarse space G 57 4: the same to solver tolerance (5e-7 of the range at the gauges).",
+ "ctrl_add": [
+  "A 600 2",
+  "A 602 900.0 0.0 0.0 1100.0 0.0 30.0",
+  "A 603 0.0 300.0 10.0 0.0 700.0 20.0",
+  "A 604 1.0",
+  "A 605 0.7 1.0e-4"
+ ],
+ "tags": [
+  "3d",
+  "nhflow",
+  "semi_implicit",
+  "curvilinear",
+  "multiblock",
+  "tracer"
+ ],
+ "covers": [
+  "tracers across the faces between tiles (corners of four pieces)"
+ ]
+}

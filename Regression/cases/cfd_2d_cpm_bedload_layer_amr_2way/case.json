@@ -1,0 +1,15 @@
+{
+ "base": "cfd_2d_cpm_bedload_layer_amr",
+ "ctrl_set": {
+  "Q 50": "1"
+ },
+ "description": "cfd_2d_cpm_bedload_layer_amr with the two-way coupling (Q 50 1, Q 11 2): the drag of the parcels of CPM onto the patch and level 0 (the mean of the cells of CPM, the cell around every grid too), taken by the momentum of every grid in its stages",
+ "covers": [
+  "cfd_amr::cpm_forcing (momentum_forcing::amr_psed), the drag in cfd_amr::cpm_push"
+ ],
+ "tags": [
+  "2d",
+  "cpm",
+  "amr"
+ ]
+}

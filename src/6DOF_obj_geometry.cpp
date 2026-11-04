@@ -27,6 +27,8 @@ Authors: Tobias Martin, Hans Bihs
 #include "ghostcell.h"
 #include "lexer.h"
 
+// subexpressions f1, f2, f3, g0, g1, g2 of D. Eberly, Polyhedral Mass Properties (Revisited),
+// Geometric Tools, 2002, used by geometry_parameters
 void sixdof_obj::geometry_f(double &w0, double &w1, double &w2, double &f1, double &f2, double &f3, double &g0, double &g1, double &g2)
 {
     double temp0 = w0 + w1;
@@ -223,7 +225,7 @@ void sixdof_obj_nhflow::geometry_ls_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     LOOP
     {
         H = Hsolidface_nhflow(p, d, 0, 0, 0);
-        Vfb += p->DXN[IP] * p->DYN[JP] * p->DZN[KP] * H * d->WL(i, j);
+        Vfb += p->cellarea(i, j) * p->DZN[KP] * H * d->WL(i, j);  // curvilinear grid: AREA2D (cellarea, bit for bit DXN DYN else)
     }
 
     Vfb = pgc->globalsum(Vfb);
@@ -262,60 +264,52 @@ void sixdof_obj_nhflow::geometry_ls_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
     // Center of Gravity
 
-    if(p->X23 == 0)
+    Vol = (p->geo_curv == 1) ? H * p->AREA2D[IJ] * p->DZN[KP] * d->WL(i, j) : H * p->DXN[IP] * p->DYN[JP] * p->DZN[KP] * d->WL(i, j);
+
+    c_(0) = pgc->globalsum(c_(0));
+    c_(1) = pgc->globalsum(c_(1));
+    c_(2) = pgc->globalsum(c_(2));
+
+    c_(0) += xorig;
+    c_(1) += yorig;
+    c_(2) += zorig;
+}
+
+else if(p->X23 == 1)
+{
+    c_(0) = p->X23_x;
+    c_(1) = p->X23_y;
+    c_(2) = p->X23_z;
+}
+
+if(p->mpirank == 0)
+    cout << "Center of Gravity   xg: " << c_(0) << " yg: " << c_(1) << " zg: " << c_(2) << endl;
+
+double xgn = c_(0);
+double ygn = c_(1);
+double zgn = c_(2);
+
+// Moments of Inertia
+
+double Ix, Iy, Iz;
+
+I_.setZero();
+
+if(p->X24 == 0)
+{
+    Ix = Iy = Iz = 0.0;
+
+    // Non-homogenious body just needs rho as a function of space, integration is the same
+
+    LOOP
     {
+        rx = p->pos_x() - c_(0);
+        ry = p->pos_y() - c_(1);
+        rz = p->pos_z() - c_(2);
 
-        c_(0) = c_(1) = c_(2) = 0.0;
+        H = Hsolidface_nhflow(p, d, 0, 0, 0);
 
-        LOOP
-        {
-            rx = p->pos_x() - xorig;
-            ry = p->pos_y() - yorig;
-            rz = p->pos_z() - zorig;
-
-            // cout<<p->mpirank<<" CG: "<<rx<<" "<<ry<<" "<<rz<<" . "<<a->fb(i,j,k)<<endl;
-
-            H = Hsolidface_nhflow(p, d, 0, 0, 0);
-
-            Vol = H * p->DXN[IP] * p->DYN[JP] * p->DZN[KP] * d->WL(i, j);
-
-            c_(0) += (1.0 / Mass_fb) * rx * Rfb * Vol;
-            c_(1) += (1.0 / Mass_fb) * ry * Rfb * Vol;
-            c_(2) += (1.0 / Mass_fb) * rz * Rfb * Vol;
-        }
-
-        c_(0) = pgc->globalsum(c_(0));
-        c_(1) = pgc->globalsum(c_(1));
-        c_(2) = pgc->globalsum(c_(2));
-
-        c_(0) += xorig;
-        c_(1) += yorig;
-        c_(2) += zorig;
-    }
-
-    else if(p->X23 == 1)
-    {
-        c_(0) = p->X23_x;
-        c_(1) = p->X23_y;
-        c_(2) = p->X23_z;
-    }
-
-    if(p->mpirank == 0)
-        cout << "Center of Gravity   xg: " << c_(0) << " yg: " << c_(1) << " zg: " << c_(2) << endl;
-
-    double xgn = c_(0);
-    double ygn = c_(1);
-    double zgn = c_(2);
-
-    // Moments of Inertia
-
-    double Ix, Iy, Iz;
-
-    I_.setZero();
-
-    if(p->X24 == 0)
-    {
-        Ix = Iy = Iz = 0.0;
+        Vol = (p->geo_curv == 1) ? H * p->AREA2D[IJ] * p->DZN[KP] * d->WL(i, j) : H * p->DXN[IP] * p->DYN[JP] * p->DZN[KP] * d->WL(i, j);
 
         // Non-homogenious body just needs rho as a function of space, integration is the same
 

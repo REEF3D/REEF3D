@@ -1,0 +1,19 @@
+{
+ "base": "fnpf_2d_regular",
+ "ctrl_set": {
+  "B 99": "6"
+ },
+ "steps": 1200,
+ "description": "FNPF combined beach B 99 6: relaxation of eta and the surface potential to the low-passed state over the beach, active beach at x+.",
+ "tags": [
+  "quick",
+  "2d",
+  "waves",
+  "iowave",
+  "awa",
+  "fnpf"
+ ],
+ "covers": [
+  "B 99 6 in FNPF (fifsf_relax / eta_relax beach_target, active_beach_fnpf)"
+ ]
+}

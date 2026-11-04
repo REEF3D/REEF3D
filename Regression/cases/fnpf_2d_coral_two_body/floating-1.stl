@@ -1,0 +1,86 @@
+solid boxes
+ facet normal 0 0 -1
+  outer loop
+   vertex 7.6 0 0.3
+   vertex 8 0.05 0.3
+   vertex 8 0 0.3
+  endloop
+ endfacet
+ facet normal 0 0 -1
+  outer loop
+   vertex 7.6 0 0.3
+   vertex 7.6 0.05 0.3
+   vertex 8 0.05 0.3
+  endloop
+ endfacet
+ facet normal 0 0 1
+  outer loop
+   vertex 7.6 0 0.7
+   vertex 8 0 0.7
+   vertex 8 0.05 0.7
+  endloop
+ endfacet
+ facet normal 0 0 1
+  outer loop
+   vertex 7.6 0 0.7
+   vertex 8 0.05 0.7
+   vertex 7.6 0.05 0.7
+  endloop
+ endfacet
+ facet normal 0 -1 0
+  outer loop
+   vertex 7.6 0 0.3
+   vertex 8 0 0.3
+   vertex 8 0 0.7
+  endloop
+ endfacet
+ facet normal 0 -1 0
+  outer loop
+   vertex 7.6 0 0.3
+   vertex 8 0 0.7
+   vertex 7.6 0 0.7
+  endloop
+ endfacet
+ facet normal 0 1 0
+  outer loop
+   vertex 8 0.05 0.3
+   vertex 7.6 0.05 0.3
+   vertex 7.6 0.05 0.7
+  endloop
+ endfacet
+ facet normal 0 1 -0
+  outer loop
+   vertex 8 0.05 0.3
+   vertex 7.6 0.05 0.7
+   vertex 8 0.05 0.7
+  endloop
+ endfacet
+ facet normal 1 0 0
+  outer loop
+   vertex 8 0 0.3
+   vertex 8 0.05 0.3
+   vertex 8 0.05 0.7
+  endloop
+ endfacet
+ facet normal 1 0 0
+  outer loop
+   vertex 8 0 0.3
+   vertex 8 0.05 0.7
+   vertex 8 0 0.7
+  endloop
+ endfacet
+ facet normal -1 0 0
+  outer loop
+   vertex 7.6 0 0.3
+   vertex 7.6 0 0.7
+   vertex 7.6 0.05 0.7
+  endloop
+ endfacet
+ facet normal -1 0 0
+  outer loop
+   vertex 7.6 0 0.3
+   vertex 7.6 0.05 0.7
+   vertex 7.6 0.05 0.3
+  endloop
+ endfacet
+endsolid boxes

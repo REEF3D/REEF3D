@@ -1,0 +1,17 @@
+{
+ "base": "seastate_2d_phase6b_coasts",
+ "ctrl_add": [
+  "A 758 2 4"
+ ],
+ "description": "as seastate_2d_phase6b_coasts (reflecting coasts A 723 with diffuse reflection, a reflecting line obstacle, spectral sparsity A 795) with the FAS V-cycle on the uniform grid (A 758 2 4, Phase 15): every coarse grid has its own coast and obstacle faces, no correction under a coarse cell with a blocked fine face between its children; with the sparsity the bins that are zero in all children are held at zero on the coarse grid and the inactive fine bins give no residual. Validation in Dropbox SEASTATE/validation/61_fas_obstacles.",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate"
+ ],
+ "covers": [
+  "seastate_fas2 coarse obstacle faces (seastate_obstacle::build on the coarse lexer, update)",
+  "seastate_fas2 coast rule for blocked fine faces",
+  "seastate_implicit fas_source hold_zero, residual of inactive sparse bins"
+ ]
+}

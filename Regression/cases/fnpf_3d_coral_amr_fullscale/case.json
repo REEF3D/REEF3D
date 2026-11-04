@@ -1,0 +1,10 @@
+{
+ "description": "fnpf_3d_coral_amr at full scale (Froude x100: dx 8 m, depth 100 m, the point absorber 30 m wide): REEF3D::CORAL drives the floating body on a refined mesh (G 1 1, zone around the body), heave decay. The FAC preconditioner of the composite psi solves (pressure and added mass) restricted the patch residual together with the increment of the previous sweep left at the resolved-body nodes; at model scale that term is small against the residual (it scales with dx^2 relative to it), at full scale it changed the preconditioner between Krylov steps and the psi solves diverged to NaN at the first step (CORAL: time step failed at t = 0). A33 4.78e6 kg, 1e6 times that of fnpf_3d_coral_amr within 0.6 %. REEF3D_FNPF_6DOF and REEF3D_CORAL compared.",
+ "solver": "fnpf",
+ "np": 1,
+ "steps": 20,
+ "ctrl_add": ["Z 40 1"],
+ "files": ["coral.txt", "floating.stl"],
+ "tags": ["3d", "fnpf", "amr", "6dof", "floating", "coral", "fullscale"],
+ "covers": ["fnpf_amr composite psi solve with a resolved body at full scale (lap_prec, lap_prec_win: NRP of the patches cleared every sweep)"]
+}

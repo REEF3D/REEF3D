@@ -1,0 +1,21 @@
+{
+ "base": "sflow_2d_curv_lake_island",
+ "ctrl_add": [
+  "A 226 1",
+  "A 227 0.55",
+  "A 228 0.5"
+ ],
+ "description": "sflow_2d_curv_lake_island semi-implicit (A 226 1) on the wavy curvilinear grid (G 50 2) with the emerged island: wetting and drying on the curvilinear grid. Not at rest: the 1 mm film that the initialisation leaves on the island (WL 0.001 in the dry cells) drains through the open thin faces (H_f = eta_up + min(d) > A 244) into the thin shoreline cells, whose velocities (UH/WL) reach 0.2-0.4 m/s; the Cartesian semi-implicit scheme does the same (0.01 m/s on sflow_2d_si_basin_bar with F 60 0.5).",
+ "tags": [
+  "quick",
+  "2d",
+  "sflow",
+  "semi_implicit",
+  "curvilinear",
+  "wetdry"
+ ],
+ "covers": [
+  "sflow_momentum_SI curvilinear (fdn, fnorm, carea)"
+ ],
+ "architect": "Hans Bihs"
+}

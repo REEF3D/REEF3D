@@ -1,0 +1,18 @@
+{
+ "base": "sflow_2d_si_curv_lake_island",
+ "ctrl_set": {
+  "F 60": "3.0"
+ },
+ "description": "sflow_2d_si_curv_lake_island with the island submerged (F 60 3.0): the lake at rest on the wavy, skewed curvilinear grid stays exactly at rest (eta solve 0 iterations).",
+ "tags": [
+  "quick",
+  "2d",
+  "sflow",
+  "semi_implicit",
+  "curvilinear"
+ ],
+ "covers": [
+  "sflow_momentum_SI curvilinear well balancing"
+ ],
+ "architect": "Hans Bihs"
+}

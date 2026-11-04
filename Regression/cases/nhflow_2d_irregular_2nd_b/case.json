@@ -1,0 +1,9 @@
+{
+ "base": "nhflow_2d_nwt_stokes5",
+ "steps": 100,
+ "description": "NHFLOW 2D, 2nd-order irregular waves B (B 92 33, JONSWAP Hs 0.2 m Tp 4.5 s, 32 components) in the relaxation zone. Cached-point evaluation of the pair terms (wave_lib_irregular_2nd_cache.h).",
+ "tags": ["quick", "2d", "nhflow", "waves", "iowave", "irregular"],
+ "covers": ["wave_lib_irregular_2nd_b cached evaluation"],
+ "ctrl_set": {"B 92": "33", "B 93": "0.2 4.5"},
+ "ctrl_add": ["B 84 2", "B 85 2", "B 86 32", "B 87 0.6 3.0", "B 88 3.3", "B 139 16000"]
+}

@@ -23,12 +23,12 @@ Author: Hans Bihs
 #ifndef FIELD4A_H_
 #define FIELD4A_H_
 
-#include"field.h"
+#include "field.h"
 
 class field4a final : public field
 {
 public:
-    field4a(lexer* p) : field(p) {}
+    field4a(lexer *p, bool allocate = true) : field(p, allocate) {}
     virtual ~field4a() = default;
 };
 

@@ -1,0 +1,19 @@
+{
+ "base": "fnpf_2d_regular",
+ "description": "FNPF wind input by modified Jeffreys sheltering (A 373 4), Smith and Banke drag (A 370 3), U10 10 m/s along x, critical slope 0.004 (below the steepest faces of the 4 cm waves), celerity of the wave generation (A 376 0.5 0.004 0).",
+ "ctrl_add": [
+  "A 370 3",
+  "A 371 10.0 0.0",
+  "A 373 4",
+  "A 376 0.5 0.004 0.0"
+ ],
+ "tags": [
+  "2d",
+  "fnpf",
+  "wind"
+ ],
+ "covers": [
+  "wind_f::wind_forcing_fnpf A 373 4",
+  "wind_pressure mode 4"
+ ]
+}

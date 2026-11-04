@@ -1,0 +1,21 @@
+{
+ "base": "sflow_2d_mb_amr",
+ "ctrl_add": [
+  "A 226 1",
+  "A 227 0.55",
+  "A 228 0.2"
+ ],
+ "description": "sflow_2d_mb_amr semi-implicit: patches cut at the turned block faces, composite eta system with block-face matching.",
+ "tags": [
+  "2d",
+  "sflow",
+  "semi_implicit",
+  "curvilinear",
+  "multiblock",
+  "amr"
+ ],
+ "covers": [
+  "reefamr_si block-face matches (sgn)"
+ ],
+ "architect": "Hans Bihs"
+}

@@ -1,0 +1,18 @@
+{
+ "description": "REEF3D::SEASTATE reflecting coasts (A 723 0.5 4: Kr 0.5, diffuse cos^4; Phase 6b): swell at 30 deg (JONSWAP gamma 10, cos^50, Tp 8 s) on a coast at 120 deg (bathymetry raster, staircase of 30 m cells), the coastline normal from the land cells within 2 cells (A 724 2), and a reflecting line obstacle with diffuse reflection (A 722, A 726); spectral sparsity A 795 (whole quadrant in the reflecting cells). 50 x 50 cells of 30 m, depth 20 m. Validation in Dropbox SEASTATE/validation/36_coasts (SWAN OBSTACLE REFL along the coast).",
+ "solver": "seastate",
+ "np": 1,
+ "steps": 1,
+ "files": [
+  "seastate-bathy.dat"
+ ],
+ "tags": [
+  "quick",
+  "2d",
+  "seastate"
+ ],
+ "covers": [
+  "seastate_obstacle coast faces and the coast normal",
+  "seastate_implicit diffuse reflection, sparsity windows of reflecting cells"
+ ]
+}

@@ -1,0 +1,11 @@
+# weak concrete wall holding the water column, reinforced with a weak model steel:
+# it cracks at the base, the bars yield and keep the wall standing
+# Architect: Hans Bihs
+lattice 0.005 0.01 0.005  0 0 0
+material 1 concrete 2400 3.0e8 0.2  2.0e4 2.0  2.0e6 2000
+rebar fy 3e7 E 2e10 H 2e8 eps_u 0.05 z 1%
+box 0.15 0.17 0.0 0.01 0.0 0.25 1
+fix -1 1 -1 1 -0.0001 0.0001 xyz
+ground 0.0
+contact on
+monitor top 0.15 0.0 0.25

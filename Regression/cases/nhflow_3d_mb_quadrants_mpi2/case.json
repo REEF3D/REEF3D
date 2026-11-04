@@ -1,0 +1,15 @@
+{
+ "base": "nhflow_3d_mb_quadrants",
+ "np": 2,
+ "description": "As nhflow_3d_mb_quadrants on 2 ranks: blocks on other ranks than the native cells next to them (remote fills of the blocks and of the ring, the ring in the partition halo).",
+ "tags": [
+  "3d",
+  "nhflow",
+  "curvilinear",
+  "multiblock",
+  "mpi"
+ ],
+ "covers": [
+  "ring_halo, remote fills of fill_run0 in the composite solve, the porosity below the bed in the partition halo (nhflow_f::ini)"
+ ]
+}

@@ -56,6 +56,27 @@ Architect: Hans Bihs
 #include <string>
 #include <vector>
 
+// OpenMP pragmas of the solid (nothing without OpenMP, no unknown-pragma warnings)
+#ifdef _OPENMP
+#include <omp.h>
+#define FEM_OMP_STR(...) #__VA_ARGS__
+#define FEM_OMP(...) _Pragma(FEM_OMP_STR(__VA_ARGS__))
+#else
+#define FEM_OMP(...)
+#endif
+
+// communicator of the distributed solid (MPI ranks in the coupling, threads in the unit test):
+// all ranks hold the whole solid; the elements are computed and the nodes moved by their owners
+struct fem_comm
+{
+    virtual ~fem_comm() = default;
+    virtual int size() const = 0;
+    virtual int rank() const = 0;
+    // concatenation of the bytes of all ranks in rank order (counts and displacements in bytes)
+    virtual void allgatherv(const void *send, int nbytes, void *recv, const int *counts, const int *displs) = 0;
+    virtual void allgather_int(int v, int *all) = 0;  // one int per rank
+};
+
 class fem_solid
 {
 public:
@@ -87,6 +108,17 @@ public:
         // and crushing force [N] that caps the contact force (0: no cap);
         // 2D: per metre width
         double kdebris = 0.0, fcrush = 0.0;
+        // reinforcement of concrete (smeared bars, perfect bond): steel volume
+        // fraction of the member for bars along x, y, z (As / Ac of the gross
+        // section for longitudinal bars), placed in the outer 'rskin' element
+        // zone of the member (rskin: thickness [m], -1: the outer element layer,
+        // 0: uniform over the section); steel elastic-plastic with linear kinematic
+        // hardening, bars rupture at the strain seu
+        double rs[3] = {0.0, 0.0, 0.0};
+        double sfy = 0.0, sE = 2.0e11, sH = 0.0, seu = 0.0;
+        double rskin = -1.0;
+        std::string sname;
+        bool reinforced() const { return rs[0] > 0.0 || rs[1] > 0.0 || rs[2] > 0.0; }
     };
 
     // history variables of one integration point
@@ -96,6 +128,8 @@ public:
         double d = 0.0;                     // total damage
         double ep = 0.0;                    // equivalent plastic strain
         double Ep[6] = {0, 0, 0, 0, 0, 0};  // plastic Green-Lagrange strain (xx yy zz xy yz zx)
+        double es[3] = {0, 0, 0};           // plastic strain of the bars along x y z
+        unsigned char sfail = 0;            // ruptured bars (bit per direction)
     };
 
     struct element
@@ -107,9 +141,13 @@ public:
         int shape = -1;  // input shape that created the element
         bool alive = true;
         bool rigid = false;  // part of a rigid body: no internal forces
+        bool full = false;   // 2x2x2 integration (element full, or switched by element adaptive)
         double svm = 0.0;    // von Mises (Cauchy) stress, averaged over the GPs
         double util = -1.0;  // utilisation (stress / strength), -1: elastic material
         double J = 1.0;
+        double rs[3] = {0.0, 0.0, 0.0};  // local steel volume fraction of the bars along x y z
+        double sutil = -1.0;             // steel utilisation |sigma_s| / f_y, -1: no reinforcement
+        bool reinforced() const { return rs[0] > 0.0 || rs[1] > 0.0 || rs[2] > 0.0; }
     };
 
     // reference geometry of a hex8 element
@@ -155,11 +193,16 @@ public:
         int shear = 0;                 // 1: tangential (no-slip) reaction of the parcels on the solid
         int air_forcing = 0;           // 1: direct forcing also in the air (more than 1.5 cells from the water)
         int walls = 1;                 // 1: the boundaries of the fluid domain are walls for free bodies and debris
-        double added_mass = 1.0;       // factor on the added-mass estimate of rigid bodies (stabilisation), 0: off
+        double added_mass = -1.0;      // factor on the added-mass estimate of rigid bodies (stabilisation), 0: off,
+                                       // < 0: default of the flow solver (CFD 1, NHFLOW 5)
         int settle = 1;                // 1: settle under gravity before the flow starts
         int check = 0;                 // 1: write the check report and stop
         double resolution = 1.0;       // element size in fluid cells if no lattice is given
         int fix_bed = 0;               // 1: fix nodes touching the bed / solids of the fluid grid
+        int strong = 0;                // NHFLOW: 1 the fluid step is repeated until the motion of the rigid
+                                       // bodies converges (strong coupling), 2 test: repeated once unchanged
+        int strong_maxit = 8;          // strong coupling: at most this many passes of a fluid step
+        double strong_tol = 1.0e-3;    // strong coupling: relative change of the body velocities
     };
 
     // results of the check mode
@@ -196,7 +239,12 @@ public:
     void add_box(double x0, double x1, double y0, double y1, double z0, double z1, int matid);
     void remove_box(double x0, double x1, double y0, double y1, double z0, double z1);
     void add_fix(double x0, double x1, double y0, double y1, double z0, double z1, bool fx, bool fy, bool fz);
+    // 0 reduced (one point + hourglass control), 1 full (2x2x2), 2 adaptive: one point while the
+    // element is far from its first nonlinearity (cracking, yield), 2x2x2 from then on
     void set_element_type(int full) { full_int = full; }
+    void set_adaptive_fraction(double f) { adapt_frac = f; }
+    int n_full_elements() const;  // intact elements with 2x2x2 integration
+    int element_type() const { return full_int; }
     void set_hourglass(double c) { hg_coef = c; }
     void set_cfl(double c) { cfl = c; }
     void set_damping(double a) { alpha_damp = a; }
@@ -244,6 +292,8 @@ public:
         double fcstep = 0.0;                         // max contact force in the last fluid step
         double Vol = 0.0;                            // volume
         double Aunit = 0.0, A = 0.0;                 // added mass for the stabilisation: per unit fluid density, current
+        double Aface = 0.0;                          // largest face (terminal speed)
+        int nlimit = 0;                              // fluid steps with the relative speed limited
         Vec3 V0 = Vec3::Zero(), w0 = Vec3::Zero(), a_prev = Vec3::Zero(), al_prev = Vec3::Zero();
         // impact: effective contact stiffness [N/m] (debris acting as a spring), crushing force cap [N],
         // length of the axial bar, how k was obtained (0 given, 1 E A/L, 2 rigid_contact_speed)
@@ -253,6 +303,16 @@ public:
         Vec3 Jc = Vec3::Zero(), Hc = Vec3::Zero();  // contact impulse and its moment over the fluid step
     };
     void set_rigid_added_mass(int k, double A) { rbs[k].A = A; }
+    // strong coupling: acceleration of the last fluid step used by the added-mass stabilisation,
+    // mean velocity of a node over the step (seen by the fluid forcing)
+    void set_rigid_accel(int k, const Vec3 &a, const Vec3 &al)
+    {
+        rbs[k].a_prev = a;
+        rbs[k].al_prev = al;
+    }
+    void set_vel_mean(int i, const Vec3 &vv) { vbar[i] = vv; }
+    double rigid_terminal_speed(int k, double rho_f, double g) const;
+    void limit_rigid_speed(int k, const Vec3 &uf, double vmax);  // after advance: speed relative to the water uf
     int rigid_of_node(int i) const { return rnode.empty() ? -1 : rnode[i]; }
     int n_rigid() const { return (int)rbs.size(); }
     const rigid_body &rigid(int k) const { return rbs[k]; }
@@ -300,10 +360,23 @@ public:
         mu_contact = mu;
     }
     void set_snap(bool on) { snap_on = on; }
+    // threads for the solid (OpenMP builds); 0: automatic (cores / MPI ranks on the node)
+    void set_threads(int n) { nthr_req = n; }
+    // distribution over ranks: -1 auto (more than 1 rank and at least dist_min deformable elements), 0 off, 1 on
+    void set_distribute(int d) { dist_req = d; }
+    int distribute_requested() const { return dist_req; }
+    void set_comm(fem_comm *c) { comm = c; }
+    bool distributed() const { return dist; }
+    int threads_requested() const { return nthr_req; }
+    void use_threads(int n) { nthr = std::max(1, n); }
+    int threads() const { return nthr; }
+    static int max_threads();  // 1 without OpenMP
     bool lattice_given() const { return hx > 0.0 && hy > 0.0 && hz > 0.0; }
     void set_default_spacing(double h, double hy = -1.0);  // lattice spacing when the input has none (resolution)
     bool ground() const { return ground_on; }
+    double ground_level() const { return zground; }
     static bool preset(const std::string &type, const std::string &name, material &);  // material presets
+    static bool rebar_preset(const std::string &name, material &);                     // reinforcing steel: B500A B500B B500C GR60
     static std::string preset_list();
 
     // ------------------------------------------------------------------
@@ -321,6 +394,10 @@ public:
     double max_utilisation(int *elem = nullptr) const;
     double max_damage(int *elem = nullptr) const;
     double max_plastic_strain(int *elem = nullptr) const;
+    double max_steel_utilisation(int *elem = nullptr) const;  // -1: no reinforcement
+    bool steel_yielded(int *elem = nullptr) const;
+    int bars_ruptured() const;  // integration points with ruptured bars
+    bool any_reinforcement() const;
     Vec3 elem_centre(int e) const;
     Vec3 support_moment() const;  // overturning moment of the support forces about the base centre
     Vec3 base_centre() const { return base_c; }
@@ -358,7 +435,8 @@ public:
     void set_pos(int i, const Vec3 &xx) { x[i] = xx; }
     const element &elem(int e) const { return elems[e]; }
     const gpstate &gp(int e, int q) const { return gps[e * ngp + q]; }
-    int ngauss() const { return ngp; }
+    int ngauss() const { return ngp; }                         // integration points stored per element (1 or 8)
+    int ngauss(int e) const { return elems[e].full ? 8 : 1; }  // integration points of element e
     const std::vector<face> &surface() const { return faces; }
     const std::vector<int> &debris() const { return orphan; }
     bool is_debris(int i) const { return nalive[i] == 0; }
@@ -400,8 +478,8 @@ public:
     int n_alive() const;
     int n_eroded() const { return nelem() - n_alive(); }
     double kinetic_energy() const;
-    double strain_energy() const;  // elastic strain energy (undamaged part)
-    double dissipated_energy() const { return wdiss; }
+    double strain_energy() const;                                                                // elastic strain energy (undamaged part)
+    double dissipated_energy() const;                                                            // sum over the elements (any number of threads or ranks)
     Vec3 support_force() const;                                                                  // force of the structure on its supports
     Vec3 support_force(double x0, double x1, double y0, double y1, double z0, double z1) const;  // supports inside a box
     Vec3 total_load() const;                                                                     // sum of the external (fluid) loads
@@ -432,7 +510,11 @@ private:
     // element / material
     void shape_derivatives();
     void internal_forces(double dts);
-    void stress(const material &, gpstate &, const Mat3 &F, const Mat3 &Fdot, double h, double w, Mat3 &P, double &svm, bool &failed);
+    // wl, wn: log of the dissipated-energy increments of the element (threads), else added to wdiss
+    void stress(const material &, gpstate &, const Mat3 &F, const Mat3 &Fdot, double h, double w, Mat3 &P, double &svm, bool &failed, const double *rs = nullptr,
+                double *wl = nullptr, unsigned char *wn = nullptr);
+    void setup_rebar();                     // local steel fractions of the elements of reinforced materials
+    double elem_cp(const element &) const;  // wave speed incl. the bars
     double damage_exp(double kappa, double e0, double ef) const;
 
     // contact
@@ -494,6 +576,32 @@ private:
     std::vector<unsigned char> fixed;             // bit 0,1,2: fixed dof
     std::vector<int> nalive;                      // number of intact elements per node
     std::vector<int> node_elem_start, node_elem;  // node -> elements (CSR)
+    std::vector<unsigned char> node_elem_a;       // local index of the node in the element
+    // threads: the element forces go to per-element buffers and are gathered per node in
+    // the order of the elements, so the results do not depend on the number of threads
+    int nthr = 1;
+    // threads only for loops with enough work (small solids: the fork costs more than it saves)
+    static const int PAR_NODES = 1024, PAR_ELEMS = 16;
+    bool par(int n, int nmin) const { return nthr > 1 && n >= nmin; }
+    static int thread_num()  // in a parallel region (0 outside)
+    {
+#ifdef _OPENMP
+        return omp_get_thread_num();
+#else
+        return 0;
+#endif
+    }
+    std::vector<int> act;                     // intact deformable elements
+    int nalive_el = 0;                        // intact elements (valid while !act_dirty)
+    bool act_dirty = true;                    // elements failed or became rigid: rebuild act and the gather lists
+    std::vector<int> g_node, g_start, g_off;  // nodes of act, their (element, local node) entries as offsets into fe_buf
+    std::vector<int> g_elem;
+    void build_gather();
+    std::vector<double> fe_buf;        // element nodal forces (24 per element)
+    std::vector<unsigned char> fe_on;  // element contributes in this substep
+    static const int WLOG = 32;        // dissipation increments per element and substep (8 points x 4)
+    std::vector<double> wl_buf;
+    std::vector<unsigned char> wl_n;
     std::vector<int> orphan;
     std::vector<double> mfl;
     std::vector<Vec3> Mcpl;  // attached fluid mass per direction
@@ -517,7 +625,8 @@ private:
     coupling_options copt;
 
     // options
-    int full_int = 0;
+    int full_int = 2;
+    double adapt_frac = 0.5;  // adaptive: switch at this fraction of the first nonlinear strain
     double hg_coef = 0.1;
     double cfl = 0.5;
     double alpha_damp = 0.0;
@@ -530,12 +639,20 @@ private:
     };  // n.x >= d is outside the wall
     std::vector<cplane> planes;
     bool bed_on = false;
+    double dt_last = 0.0;  // last fluid step (advance)
     std::vector<unsigned char> bed_ok;
     std::vector<double> bed_phi;
     std::vector<Vec3> bed_n, bed_x;
     void contact_surface(int i, double pen, const Vec3 &n, double mu);
     // contact of rigid bodies: every rigid body acts as one spring of its effective
     // stiffness k against each partner (wall, bed, another body, the deformable parts)
+    // node contact: list of the node pairs within the contact distance plus a skin
+    // that can touch (not of one element, not of one rigid body), rebuilt when the
+    // candidate nodes, the failed elements or the rigid bodies change, or a node
+    // has moved more than half the skin since the last build (contact_nodes)
+    std::vector<int> nl_cand, nl_start, nl_nb;
+    std::vector<Vec3> nl_x0;
+    int nl_builds = 0, nl_neroded = -1, nl_nrigid = -1;
     struct rpair
     {
         int a, b;
@@ -543,6 +660,24 @@ private:
         Vec3 n;
         double pen, vn;
     };
+    // per-thread buffers of the contact (kept between the substeps)
+    struct cevent
+    {
+        int a, b;
+        Vec3 F;
+        bool rigid;
+        rpair rp;
+    };
+    // (each on its own cache line: no false sharing between the threads)
+    template<class T>
+    struct alignas(64) tls
+    {
+        T v;
+    };
+    std::vector<tls<std::vector<rpair>>> thr_rp;
+    std::vector<tls<std::vector<int>>> thr_i;
+    std::vector<tls<std::vector<cevent>>> thr_ev;
+    std::vector<tls<std::vector<std::pair<int, int>>>> thr_near;
     std::vector<rpair> rpairs;
     std::map<std::pair<long long, long long>, double> rset;  // permanent set of crushed contact points (group, point)
     void rigid_contact_forces();
@@ -582,7 +717,25 @@ private:
     bool rigid_contact_near(double dt) const;
     int nsub_last = 0;
     double wdiss = 0.0;
+    std::vector<double> wde;  // dissipated energy per element
     bool built = false;
+    int nthr_req = 0;
+    // distribution over ranks
+    fem_comm *comm = nullptr;
+    int dist_req = -1;
+    static const int dist_min = 1000;  // auto: at least this many deformable elements
+    bool dist = false;                 // distributed in the current fluid step
+    int myrank = 0, nranks = 1;
+    std::vector<int> nown;                         // owner rank of a node (-1: rigid body node, moved by all)
+    std::vector<int> eown;                         // owner rank of a deformable element (-1: none)
+    std::vector<unsigned char> ecomp;              // element computed here (a node of it is owned here)
+    std::vector<std::vector<int>> rnodes, relems;  // owned nodes / elements of every rank, ascending
+    std::vector<int> cnt, dsp;                     // byte counts and displacements of an exchange
+    std::vector<char> sbuf, rbuf;
+    void dist_partition();                         // at the start of a fluid step
+    void dist_exchange_nodes(bool end);            // x, v of the owned nodes (end: vbar and fint)
+    void dist_exchange_elements();                 // integration points and element data, at the end of a fluid step
+    void dist_failures(std::vector<int> &failed);  // elements failed in the substep on any rank
 };
 
 #endif

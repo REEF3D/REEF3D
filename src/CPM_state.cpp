@@ -23,6 +23,7 @@ Author: Hans Bihs
 #include "CPM.h"
 #include "ghostcell.h"
 #include "lexer.h"
+#include "reefckpt.h"
 #include "sediment_fdm.h"
 #include <cstdio>
 #include <fstream>
@@ -47,15 +48,24 @@ void CPM::state_write(lexer *p, int num)
         if(P.Flag[n] >= ACTIVE)
             ++numpt;
 
-    // version 2: the hop length of the bedload layer (Q 58) follows the 8 values of a parcel
-    int version = 2;
+    // version 2: the hop length of the bedload layer (Q 58) follows the 8 values of a parcel;
+    // version 3: and the parcel weight (merge and split, Q 78), written only if a parcel of the file has a weight
+    // other than 1 (the files of runs without merged parcels stay as they were)
+    int wtd = 0;
+
+    for(n = 0; n < P.index; ++n)
+        if(P.Flag[n] >= ACTIVE && P.Wt[n] != 1.0)
+            wtd = 1;
+
+    int version = wtd ? 3 : 2;
     result.write((char *)&version, sizeof(int));
     result.write((char *)&numpt, sizeof(int));
     result.write((char *)&P.ParcelFactor, sizeof(double));
     result.write((char *)&outvol, sizeof(double));
 
-    double val[9];
+    double val[10];
     int flag;
+    const int nwr = version >= 3 ? 10 : 9;
 
     for(n = 0; n < P.index; ++n)
         if(P.Flag[n] >= ACTIVE)
@@ -69,9 +79,10 @@ void CPM::state_write(lexer *p, int num)
             val[6] = P.D[n];
             val[7] = P.RO[n];
             val[8] = P.Hop[n];
+            val[9] = P.Wt[n];
             flag = P.Flag[n];
 
-            result.write((char *)val, 9 * sizeof(double));
+            result.write((char *)val, nwr * sizeof(double));
             result.write((char *)&flag, sizeof(int));
         }
 
@@ -93,7 +104,24 @@ void CPM::state_read(lexer *p, ghostcell *pgc, int num)
     if(ok == 0)
     {
         if(p->mpirank == 0)
-            cout << "CPM hotstart: no parcel state file found, the parcels are seeded from the bed" << endl;
+            cout << "CPM hotstart: no parcel state file found, the parcels are seeded from the bed of the state" << endl;
+
+        // the parcels seeded from the grid bed before the state was read are removed: ini_cfd seeds again
+        // from the bed of the state (it added a second set of parcels to the first before)
+        for(n = 0; n < P.index; ++n)
+            P.Flag[n] = EMPTY;
+
+        P.index_empty = 0;
+        for(n = P.index - 1; n >= 0; --n)
+        {
+            P.Empty[P.index_empty] = n;
+            ++P.index_empty;
+        }
+
+        // the bed level of the layer starts again from the new parcels (the relaxed level seen by the fluid
+        // kept the grid bed and pulled the fluid bed back to it)
+        zbf_ini = 0;
+        zbl_ok = 0;
 
         return;
     }
@@ -118,10 +146,11 @@ void CPM::state_read(lexer *p, ghostcell *pgc, int num)
         ++P.index_empty;
     }
 
-    double val[9];
+    double val[10];
     int flag;
-    const int nval = version >= 2 ? 9 : 8;
+    const int nval = version >= 3 ? 10 : (version >= 2 ? 9 : 8);
     val[8] = 0.0;
+    val[9] = 1.0;
 
     for(int q = 0; q < numpt; ++q)
     {
@@ -141,6 +170,7 @@ void CPM::state_read(lexer *p, ghostcell *pgc, int num)
         P.RO[n] = val[7];
         P.Flag[n] = flag;
         P.Hop[n] = val[8];
+        P.Wt[n] = val[9];
 
         // fixed parcels are released unless all parcels stay fixed (Q 44 1),
         // the open boundaries fix theirs again below
@@ -166,6 +196,32 @@ void CPM::state_read(lexer *p, ghostcell *pgc, int num)
 void CPM::sedlog(lexer *p, ghostcell *pgc)
 {
     const double vpar = P.ParcelFactor * Vp;
+
+    double vol = 0.0, qx = 0.0, qy = 0.0, vmov = 0.0, vbl = 0.0, qbx = 0.0;
+    int np = 0;
+
+    for(n = 0; n < P.index; ++n)
+        if(P.Flag[n] >= ACTIVE)
+        {
+            const double vp = vpar * P.Wt[n];
+
+            ++np;
+            vol += vp;
+            qx += vp * P.U[n];
+            qy += vp * P.V[n];
+
+            if(P.U[n] * P.U[n] + P.V[n] * P.V[n] + P.W[n] * P.W[n] > 1.0e-6)
+                vmov += vp;
+
+            if(P.Hop[n] > 0.0)
+            {
+                vbl += vp;
+                qbx += vp * P.U[n];
+            }
+        }
+
+    // mean bed shear stress of the bedload layer (Q 58)
+    double tb = 0.0, nb = 0.0;
 
     double vol = 0.0, qx = 0.0, qy = 0.0, vmov = 0.0, vbl = 0.0, qbx = 0.0;
     int np = 0;
@@ -213,7 +269,38 @@ void CPM::sedlog(lexer *p, ghostcell *pgc)
     int npick = pgc->globalisum(bl_npick);
     int ndep = pgc->globalisum(bl_ndep);
     int nsus = pgc->globalisum(bl_nsus);
-    bl_npick = bl_ndep = bl_nsus = 0;
+    int nset = pgc->globalisum(bl_nset);
+    int nsl = pgc->globalisum(bl_nslide);
+    double nslp = pgc->globalsum(double(bl_nsleep));
+    double nupd = pgc->globalsum(double(bl_nupd));
+    bl_npick = bl_ndep = bl_nsus = bl_nset = bl_nslide = bl_nsleep = bl_nupd = 0;
+
+    // sleeping grains of the jammed bed (bed_asleep): share of the parcel updates (parcels not in a hop)
+    // skipped since the last line
+    if(nupd > 0.0 && p->mpirank == 0)
+    {
+        std::streamsize prec = cout.precision();
+        cout << "CPM sleeping grains: " << setprecision(3) << 100.0 * nslp / nupd << " % of the parcel updates" << endl;
+        cout.precision(prec);
+    }
+
+    // parcel merge and split (Q 78): since the last line, on the screen
+    if(p->Q78 > 0)
+    {
+        int nmg = pgc->globalisum(rs_nmerge);
+        int nsp = pgc->globalisum(rs_nsplit);
+        rs_nmerge = rs_nsplit = 0;
+
+        if(p->mpirank == 0)
+            cout << "CPM merge and split (Q 78): " << nmg << " merged, " << nsp << " split, " << np << " parcels" << endl;
+    }
+
+    // sand slide (Q 75): moved grains since the last line, on the screen (the log keeps its columns)
+    if(p->Q75 > 0.0 && nsl > 0 && p->mpirank == 0)
+        cout << "CPM sand slide: " << nsl << " parcels" << endl;
+
+    // hybrid suspension (Q 58 3): sediment volume in the concentration
+    double vsus = afdm != nullptr ? susp_volume(p, afdm, pgc) : 0.0;
     double vout = pgc->globalsum(outvol);
 
     double Lx = p->global_xmax - p->global_xmin;
@@ -224,11 +311,12 @@ void CPM::sedlog(lexer *p, ghostcell *pgc)
         if(logini == 0)
         {
             mkdir("./REEF3D_CFD_CPM_Particle", 0777);
-            logout.open("./REEF3D_CFD_CPM_Particle/REEF3D-CFD-CPM-Log.dat");
-            logout << "time\tparcels\tsediment_volume[m3]\toutflow_volume[m3]\tmoving_volume[m3]\tqx[m2/s]\tqy[m2/s]\tbedload_volume[m3]\tpickups\tdeposits\treleases\ttau_b[Pa]\tqx_bedload[m2/s]" << endl;
+            // a restart (I 45): continued from the checkpoint
+            if(reefckpt_open(logout, "./REEF3D_CFD_CPM_Particle/REEF3D-CFD-CPM-Log.dat", p->I45))
+                logout << "time\tparcels\tsediment_volume[m3]\toutflow_volume[m3]\tmoving_volume[m3]\tqx[m2/s]\tqy[m2/s]\tbedload_volume[m3]\tpickups\tdeposits\treleases\ttau_b[Pa]\tqx_bedload[m2/s]\tsuspended_volume[m3]\tsettled_from_suspension" << endl;
             logini = 1;
         }
 
-        logout << p->simtime << "\t" << np << "\t" << vol << "\t" << vout << "\t" << vmov << "\t" << qx / (Lx * Ly) << "\t" << qy / (Lx * Ly) << "\t" << vbl << "\t" << npick << "\t" << ndep << "\t" << nsus << "\t" << tb << "\t" << qbx / (Lx * Ly) << endl;
+        logout << p->simtime << "\t" << np << "\t" << vol << "\t" << vout << "\t" << vmov << "\t" << qx / (Lx * Ly) << "\t" << qy / (Lx * Ly) << "\t" << vbl << "\t" << npick << "\t" << ndep << "\t" << nsus << "\t" << tb << "\t" << qbx / (Lx * Ly) << "\t" << vsus << "\t" << nset << endl;
     }
 }

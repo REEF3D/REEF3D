@@ -1,0 +1,10 @@
+# REEF3D::CORAL model for fnpf_2d_coral_drag: the FNPF box of fnpf_2d_6dof_box heaving through a prismatic joint
+# with a quadratic heave drag (Cd 1 on the bottom, 0.8 m x 0.05 m) instead of a PTO; mass and inertia from REEF3D.
+# Architect: Hans Bihs
+rho 1000
+time dt 0.005 end 100
+output dt 0.01 file box.dat
+body box mass 1.0 cog 6.0 0.025 0.53
+joint heave prismatic ground box point 6.0 0.025 0.53 axis 0 0 1
+drag visc body box Cd 1.0 area 0.04
+fluid_body box

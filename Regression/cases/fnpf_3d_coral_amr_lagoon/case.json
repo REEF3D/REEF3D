@@ -1,0 +1,26 @@
+{
+ "base": "fnpf_3d_coral_amr",
+ "ctrl_set": {
+  "P 18": "1",
+  "P 30": "100.0"
+ },
+ "ctrl_add": [
+  "P 180 1",
+  "P 182 0.05"
+ ],
+ "same_as": "fnpf_3d_coral_amr",
+ "tags": [
+  "3d",
+  "fnpf",
+  "amr",
+  "6dof",
+  "floating",
+  "coral",
+  "lagoon"
+ ],
+ "description": "as fnpf_3d_coral_amr, its free surface and its refined patches written to the LAGOON store (P 18 1) at the free surface interval (P 180 1, P 182 0.05) although the 3D output is off (P 10 0, P 30 100): REEF3D_FNPF.lagoon with the AMR set fnpf_amr every 0.05 s (before, the AMR grids came at P 30 / P 20 only, and not at all with P 10 0), its cell fields eta, elevation, Fifsf, the free surface velocity u, v, w and bed; the solution is that of fnpf_3d_coral_amr.",
+ "covers": [
+  "fnpf_amr::print at the free surface interval (P 180, P 182)",
+  "fnpf_amr::print_lagoon with the free surface velocity u, v, w (fidx at knoz) on level 0 and the patches"
+ ]
+}

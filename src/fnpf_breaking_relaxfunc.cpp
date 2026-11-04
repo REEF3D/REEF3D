@@ -20,31 +20,19 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"fnpf_breaking.h"
-#include"lexer.h"
-#include"fdm_fnpf.h"
-#include"ghostcell.h"
+#include "fdm_fnpf.h"
+#include "fnpf_breaking.h"
+#include "ghostcell.h"
+#include "lexer.h"
 
 double fnpf_breaking::rb3(lexer *p, double x)
 {
-    double r=0.0;
+    double r = 0.0;
 
-    x=(dist3-fabs(x))/(dist3);
-    x=MAX(x,0.0);
-    
-    r = 1.0 - (exp(pow(x,3.5))-1.0)/(EE-1.0);
+    x = (dist3 - fabs(x)) / (dist3);
+    x = MAX(x, 0.0);
 
-	return r;
-}
+    r = 1.0 - (exp(pow(x, 3.5)) - 1.0) / (EE - 1.0);
 
-double fnpf_breaking::rb4(lexer *p, double x)
-{
-    double r=0.0;
-
-    x=(dist4-fabs(x))/(dist4);
-    x=MAX(x,0.0);
-    
-    r = 1.0 - (exp(pow(x,3.5))-1.0)/(EE-1.0);
-
-	return r;
+    return r;
 }

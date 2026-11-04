@@ -23,69 +23,71 @@ Author: Tobias Martin
 #ifndef MOORING_BARQUASISTATIC_H_
 #define MOORING_BARQUASISTATIC_H_
 
-#include"mooring.h"
-#include"mooring_Catenary.h"
-#include"field1.h"
-#include"field2.h"
-#include"field3.h"
-#include"field4.h"
-#include"field5.h"
-#include"fieldint5.h"
-#include"vec.h"
-#include<fstream>
-#include<iostream>
-#include<vector>
-
+#include "field1.h"
+#include "field2.h"
+#include "field3.h"
+#include "field4.h"
+#include "field5.h"
+#include "fieldint5.h"
+#include "mooring.h"
+#include "mooring_Catenary.h"
+#include "vec.h"
+#include <fstream>
+#include <iostream>
+#include <vector>
 
 using namespace std;
 
 class mooring_barQuasiStatic final : public mooring
 {
 public:
-	mooring_barQuasiStatic(int);
-	virtual ~mooring_barQuasiStatic();
-	
-	void start(lexer*, ghostcell*) override final;
-	void initialize(lexer*, ghostcell*) override final;
-	void mooringForces(double&, double&, double&) override final;
-	
-private:	
-	// Runtime
-	vector< vector<double> > solveGauss(vector< vector<double> >, vector< vector<double> >);
-    vector<double> getC(double);
-    void print(lexer*,ghostcell*);
-    void buildLine(lexer*,ghostcell*);
-    void checkBottom(lexer*,ghostcell*);
-	
-	// ------ 
-	
-	// Parallelisation
-	int line;
-	
-	// Material constants
-	double w, EA, L, rho_c, d_c;
-	
-	// Mesh
-	int sigma;
-	double dx, dy, dz;
-	vector<double> l0, l;
-	double *x, *y, *z;
-	
-	// Fields
-    vector< vector<double> > u_, v_, w_, A, B, f, R, v;
-	
-	// Forces
-	double *T, *Fb;
-	vector< vector<double> > e, c_coeff, e_q, e_d, e_l;
-	double Xme_, Yme_, Zme_;
-	
-	// Print
-	char name[100];
-	ofstream eTout;
-	double printtime;
+    mooring_barQuasiStatic(int);
+    virtual ~mooring_barQuasiStatic();
+
+    void start(lexer *, ghostcell *) override final;
+    void initialize(lexer *, ghostcell *) override final;
+    void mooringForces(double &, double &, double &) override final;
+    // checkpoints (P 48, I 45): the start values of the iteration (forces A, directions f, lengths l),
+    // the forces, broken, the print time
+    void ckpt_state(std::vector<double> &) const override;
+    void ckpt_restore(const std::vector<double> &, size_t &) override;
+
+private:
+    // Runtime
+    vector<vector<double>> solveGauss(vector<vector<double>>, vector<vector<double>>);
+    void print(lexer *, ghostcell *);
+    void buildLine(lexer *, ghostcell *);
+    void checkBottom(lexer *, ghostcell *);
+
+    // ------
+
+    // Parallelisation
+    int line;
+
+    // Material constants
+    double w, EA, L, rho_c, d_c;
+
+    // Mesh
+    int sigma;
+    double dx, dy, dz;
+    vector<double> l0, l;
+    double *x, *y, *z;
+
+    // Fields
+    vector<vector<double>> u_, v_, w_, A, B, f, R, v;
+
+    // Forces
+    double *T, *Fb;
+    vector<vector<double>> e, c_coeff, e_q, e_d, e_l;
+    double Xme_, Yme_, Zme_;
+
+    // Print
+    char name[100];
+    ofstream eTout;
+    double printtime;
 
     // Catenary
-	mooring_Catenary *pcatenary;
+    mooring_Catenary *pcatenary;
 
     // Breaking
     bool broken;

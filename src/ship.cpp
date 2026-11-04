@@ -24,12 +24,16 @@ Architect: Hans Bihs
 #include "6DOF_geometry.h"
 #include "6DOF_output_dir.h"
 #include "6DOF_rigidbody.h"
+#include "increment.h"
 #include "lexer.h"
+#include "reef3d_mpmd.h"
+#include "reefckpt.h"
 #include "ship_hull.h"
 #include "ship_models.h"
 #include <cmath>
 #include <cstdio>
 #include <iostream>
+#include <mpi.h>
 #include <sstream>
 
 namespace {
@@ -62,8 +66,8 @@ ship::ship(lexer *p, int number) : id(number), initialized(false),
                                    zz_sign(1), zz_started(false),
                                    alphaR(0.0), UR(0.0), FN(0.0), XR(0.0), YR(0.0), NR(0.0), KR(0.0),
                                    mmg(false), mmg_am(false), pwake_mmg(false), mmg_draft_in(false), mmg_fluid(1),
-                                   mmg_mx(0.0), mmg_my(0.0), mmg_Jz(0.0), mmg_d(0.0), xm(0.0), Umin(0.0), rho_am(1000.0),
-                                   wC1(0.0), wC2p(1.0), wC2n(1.0), wxP(0.0), XH(0.0), YH(0.0), NH(0.0),
+                                   mmg_mx(0.0), mmg_my(0.0), mmg_Jz(0.0), mmg_d(0.0), xm(0.0), Umin(0.0), rho_am(1000.0), hyb_dm(-1.0), hyb_surge(0),
+                                   wC1(0.0), wC2p(1.0), wC2n(1.0), wxP(0.0), XH(0.0), YH(0.0), NH(0.0), NM(0.0), appr(false), appr_done(false), appr_U(0.0), appr_tr(0.0), appr_tf(0.0), Xc(0.0), Yc(0.0), Nc(0.0),
                                    ub(0.0), vb(0.0), wb(0.0), pb(0.0), qb(0.0), rb_(0.0),
                                    Re(0.0), CF(0.0), XF(0.0), Ycf(0.0), Ncf(0.0), Kroll(0.0)
 {
@@ -176,6 +180,12 @@ void ship::read(lexer *p)
 
         else if(key == "current")
             ls >> Ucur[0] >> Ucur[1];
+
+        else if(key == "approach")
+        {
+            ls >> appr_U >> appr_tr >> appr_tf;
+            appr = true;
+        }
 
         else if(key == "thrust")
         {
@@ -316,6 +326,12 @@ void ship::read(lexer *p)
         else if(key == "mmg_fluid")
             ls >> mmg_fluid;
 
+        else if(key == "hybrid_munk")
+            ls >> hyb_dm;
+
+        else if(key == "hybrid_surge")
+            ls >> hyb_surge;
+
         else if(key == "mmg_draft")
         {
             ls >> mmg_d;
@@ -335,8 +351,10 @@ void ship::read(lexer *p)
 
 void ship::ini(lexer *p, const sixdof_rigidbody &b, const sixdof_geometry &g)
 {
-    // still water level in the body frame of the initial position (level hull)
-    zw = p->F60 - b.c(2);
+    // still water level in the body frame of the initial position (level hull; a restart from a
+    // checkpoint keeps that of the run's start)
+    if(!ck_restored)
+        zw = p->F60 - b.c(2);
 
     ship_hull::waterline_extent(g.tri_x0, g.tri_y0, g.tri_z0, g.tricount, zw, xa, xf);
 
@@ -373,12 +391,17 @@ void ship::ini(lexer *p, const sixdof_rigidbody &b, const sixdof_geometry &g)
     // velocity limit in the denominators of the MMG polynomials
     Umin = 0.01 * sqrt(9.81 * (lpp > 0.0 ? lpp : 1.0));
 
-    // actuator disk thickness: resolved by at least 4 cells
+    // actuator disk thickness: resolved by at least 4 cells, with the horizontal cell size at the
+    // disk (DXM, the mean cell size, is far too large on a stretched sigma grid)
     if(prop && thick <= 0.0)
-        thick = 0.2 * Dp > 4.0 * p->DXM ? 0.2 * Dp : 4.0 * p->DXM;
+    {
+        const double h = cell_size_at(p, b.c + b.R * Eigen::Vector3d(xp, yp, zp));
+        thick = 0.2 * Dp > 4.0 * h ? 0.2 * Dp : 4.0 * h;
+    }
 
-    // heading
-    psi_last = psi_c = b.psi;
+    // heading (a restart from a checkpoint keeps the unwrapped heading of the checkpoint)
+    if(!ck_restored)
+        psi_last = psi_c = b.psi;
 
     if(p->mpirank == 0)
     {
@@ -396,10 +419,63 @@ void ship::ini(lexer *p, const sixdof_rigidbody &b, const sixdof_geometry &g)
 
         if(mmg || mmg_am)
             cout << "ship " << id << ": MMG hull " << mmg << ", added mass " << mmg_am << ", L = " << lpp << " m, d = " << mmg_d
-                 << " m, midship at x = " << xm << " m from the CoG, fluid loads in surge/sway/yaw " << (mmg_fluid == 1 ? "on" : "off") << endl;
+                 << " m, midship at x = " << xm << " m from the CoG, fluid loads in surge/sway/yaw "
+                 << (mmg_fluid == 1 ? "on" : (mmg_fluid == 2 ? "on, hybrid (ideal-fluid loads from the solver, Munk moment out of N'v)" : "off")) << endl;
+
+        if(mmg_fluid == 2 && mmg && !mmg_am)
+            cout << "ship " << id << ": mmg_fluid 2 without mmg_added_mass: the Munk moment stays in N'v and is counted twice" << endl;
+
+        if(mmg_fluid == 2 && mmg && mmg_am)
+        {
+            const double fm = 0.5 * p->W1 * lpp * lpp * mmg_d;
+            cout << "ship " << id << ": Munk moment taken out of N'v with A22 - A11 = " << (hyb_dm >= 0.0 ? hyb_dm : (mmg_my - mmg_mx) * fm) << " kg"
+                 << (hyb_dm >= 0.0 ? " (hybrid_munk)" : " (my - mx of mmg_added_mass)") << endl;
+
+            if(hyb_surge == 1)
+                cout << "ship " << id << ": hybrid_surge 1: the MMG surge velocity term my vm r - mx v r is added (v at the CoG)" << endl;
+        }
     }
 
     initialized = true;
+}
+
+// horizontal cell size at the point x (inertial frame): the larger of dx and dy of the cell that
+// holds x, found by the rank that owns it; the mean cell size DXM outside the grid or on a
+// curvilinear grid (G 50). All ranks call it (ini, from add_load).
+double ship::cell_size_at(lexer *p, const Eigen::Vector3d &x) const
+{
+    double h = 0.0;
+    const int m = increment::marge;  // the node arrays XN, YN
+
+    if(p->geo_curv != 1 && p->knox > 0)
+    {
+        int ci = -1, cj = 0;
+
+        for(int ii = 0; ii < p->knox; ++ii)
+            if(x(0) >= p->XN[ii + m] && x(0) < p->XN[ii + 1 + m])
+                ci = ii;
+
+        if(p->j_dir == 1)
+        {
+            cj = -1;
+
+            for(int jj = 0; jj < p->knoy; ++jj)
+                if(x(1) >= p->YN[jj + m] && x(1) < p->YN[jj + 1 + m])
+                    cj = jj;
+        }
+
+        if(ci >= 0 && cj >= 0)
+        {
+            h = p->XN[ci + 1 + m] - p->XN[ci + m];
+
+            if(p->j_dir == 1)
+                h = MAX(h, p->YN[cj + 1 + m] - p->YN[cj + m]);
+        }
+    }
+
+    MPI_Allreduce(MPI_IN_PLACE, &h, 1, MPI_DOUBLE, MPI_MAX, reef3d_comm());
+
+    return h > 0.0 ? h : p->DXM;
 }
 
 void ship::steering(lexer *p, double psi, double r)
@@ -413,31 +489,32 @@ void ship::steering(lexer *p, double psi, double r)
 
     double cmd = 0.0;
 
-    if(rmode == 0)
+    // rudder at 0 during the approach phase
+    const bool hold = appr && p->simtime < appr_tf;
+
+    if(rmode == 0 && !hold)
         cmd = rcmd;
 
-    if(rmode == 1 && p->simtime >= zz_t0)
+    if(rmode == 1 && p->simtime >= zz_t0 && !hold)
     {
-        // zig-zag: starboard rudder first (heading decreases), counter rudder at -psi / +psi
+        // zig-zag: first rudder with the sign of d (d > 0 starboard, heading decreases; d < 0 port),
+        // counter rudder when the heading change reaches psi against the rudder
         if(!zz_started)
         {
             zz_started = true;
             psi0 = psi;
-            zz_sign = 1;
+            zz_sign = zz_d < 0.0 ? -1 : 1;
         }
 
         const double dpsi = psi - psi0;
 
-        if(zz_sign > 0 && dpsi <= -zz_psi)
-            zz_sign = -1;
+        if(double(zz_sign) * dpsi <= -fabs(zz_psi))
+            zz_sign = -zz_sign;
 
-        else if(zz_sign < 0 && dpsi >= zz_psi)
-            zz_sign = 1;
-
-        cmd = double(zz_sign) * zz_d;
+        cmd = double(zz_sign) * fabs(zz_d);
     }
 
-    if(rmode == 2)
+    if(rmode == 2 && !hold)
     {
         // heading error > 0: turn to port, i.e. rudder to port (delta < 0)
         const double e = wrap_angle(ap_psi - psi);
@@ -546,15 +623,48 @@ void ship::add_load(lexer *p, const sixdof_rigidbody &b, const sixdof_geometry &
     Fs(0) = XF + thrust;
     Fs(1) = Ycf;
 
+    // approach phase: the speed relative to the water follows a smooth ramp 0 -> U (sin^2 over
+    // t_ramp) and is held until t_free by a controller with feed-forward; sway and yaw are held
+    // at 0. The rudder stays at 0 until t_free. No impulsive start (no start-up transient of
+    // the flow, no surge oscillation of the free surface)
+    Xc = Yc = Nc = 0.0;
+
+    if(appr && p->simtime < appr_tf)
+    {
+        const double tau = MAX(1.0, 10.0 * p->dt);
+        const double tr = MAX(appr_tr, 1.0e-10);
+        const double sr = MIN(p->simtime / tr, 1.0);
+        const double Ur = appr_U * pow(sin(0.5 * PI * sr), 2.0);
+        const double dUr = p->simtime < tr ? appr_U * 0.5 * PI / tr * sin(PI * sr) : 0.0;
+        const double fm = 0.5 * p->W1 * lpp * lpp * mmg_d;
+        const double mx = (mmg_am ? mmg_mx * fm : 0.0), my = (mmg_am ? mmg_my * fm : 0.0);
+        const double Jz = (mmg_am ? mmg_Jz * fm * lpp * lpp : 0.0);
+
+        Xc = (b.mass + mx) * (dUr + (Ur - ub) / tau);
+        Yc = -(b.mass + my) * vb / tau;
+        Nc = -(b.I(2, 2) + Jz) * rb_ / tau;
+
+        Fs(0) += Xc;
+        Fs(1) += Yc;
+    }
+    else if(appr && !appr_done)
+    {
+        appr_done = true;
+
+        if(p->mpirank == 0)
+            cout << "ship " << id << ": approach ended at t = " << p->simtime << " s, u = " << ub << " m/s, the ship is free" << endl;
+    }
+
     Ms(0) = Kroll;
+    // r x F with r = (x, 0, z), F = (T, 0, 0): only the pitch moment z T (x is on the line of action)
     Ms(1) = zthrust * thrust;
-    Ms(2) = Ncf;
+    Ms(2) = Ncf + Nc;
 
     // MMG hull forces about midship (xG = -xm: CoG ahead of midship), moved to the CoG
     const double xG = -xm;
     const double vm = vb - xG * rb_;
 
-    XH = YH = NH = 0.0;
+    XH = YH = NH = NM = 0.0;
 
     if(mmg)
     {
@@ -567,7 +677,7 @@ void ship::add_load(lexer *p, const sixdof_rigidbody &b, const sixdof_geometry &
 
     // MMG added mass: velocity terms of the equations of motion (the acceleration terms are
     // solved by the coupling with added_mass()); the Munk moment is part of N'v
-    if(mmg_am)
+    if(mmg_am && mmg_fluid != 2)
     {
         const double fm = 0.5 * p->W1 * lpp * lpp * mmg_d;
         const double mx = mmg_mx * fm, my = mmg_my * fm;
@@ -575,6 +685,26 @@ void ship::add_load(lexer *p, const sixdof_rigidbody &b, const sixdof_geometry &
         Fs(0) += my * vm * rb_ - mx * vb * rb_;
         Fs(1) += (my - mx) * ub * rb_;
         Ms(2) += xG * (mx - my) * ub * rb_;
+    }
+
+    // hybrid with a potential-flow solver (mmg_fluid 2): the solver has the ideal-fluid loads
+    // (added mass, its velocity terms, the Munk moment -(my - mx) u vm about midship, waves),
+    // so the Munk moment contained in N'v is taken out of the MMG hull moment
+    if(mmg && mmg_am && mmg_fluid == 2)
+    {
+        const double fm = 0.5 * p->W1 * lpp * lpp * mmg_d;
+        const double mx = mmg_mx * fm, my = mmg_my * fm;
+        const double dm = hyb_dm >= 0.0 ? hyb_dm : my - mx;
+
+        NM = -dm * ub * vm;
+        Ms(2) -= NM;
+
+        // hybrid_surge 1: the ideal-fluid surge force in a turn, my vm r - mx v r from the MMG model
+        // (vm at midship, v at the CoG: the -mx v r takes the mx part out of the rigid-body Coriolis
+        // term of the implicit added mass, as for mmg_added_mass above; the solver's surge force from
+        // the combined sway and yaw is grid-sensitive, validation 12)
+        if(hyb_surge == 1)
+            Fs(0) += my * vm * rb_ - mx * vb * rb_;
     }
 
     // propeller
@@ -650,7 +780,7 @@ bool ship::added_mass(const sixdof_rigidbody &b, Eigen::Matrix<double, 6, 6> &A)
 {
     // MMG added masses about midship moved to the CoG (kinetic energy with vm = v - xG r):
     // surge mx, sway my, yaw Jz + my xG^2, sway-yaw -my xG
-    if(!mmg_am || !initialized)
+    if(!mmg_am || !initialized || mmg_fluid == 2)
         return false;
 
     const double f = 0.5 * rho_am * lpp * lpp * mmg_d;
@@ -674,7 +804,7 @@ void ship::fluid_mask(double *w) const
 
 void ship::actuator_disks(vector<sixdof_actuator_disk> &d) const
 {
-    if(prop && psource == 1 && initialized)
+    if(prop && psource == 1 && (initialized || ck_restored))  // (a restart: the disk of the checkpoint)
         d.push_back(disk);
 }
 
@@ -687,15 +817,20 @@ void ship::print(lexer *p)
     {
         char name[1000];
         snprintf(name, sizeof(name), "%s/REEF3D_ship_%i.dat", sixdof_output_dir(p), id);
-        out.open(name);
-        out << "time \t u [m/s] \t v [m/s] \t r [rad/s] \t psi [deg] \t Re \t C_F \t X_F [N] \t Y_cf [N] \t N_cf [Nm] \t K_roll [Nm] \t T_const [N]"
-            << " \t n [1/s] \t Va [m/s] \t J \t KT \t KQ \t T [N] \t Q [Nm]"
-            << " \t delta [deg] \t alpha_R [deg] \t U_R [m/s] \t F_N [N] \t X_R [N] \t Y_R [N] \t N_R [Nm]";
+        if(reefckpt_open(out, name, p->I45))
+        {
+            out << "time \t u [m/s] \t v [m/s] \t r [rad/s] \t psi [deg] \t Re \t C_F \t X_F [N] \t Y_cf [N] \t N_cf [Nm] \t K_roll [Nm] \t T_const [N]"
+                << " \t n [1/s] \t Va [m/s] \t J \t KT \t KQ \t T [N] \t Q [Nm]"
+                << " \t delta [deg] \t alpha_R [deg] \t U_R [m/s] \t F_N [N] \t X_R [N] \t Y_R [N] \t N_R [Nm]";
 
-        if(mmg)
-            out << " \t X_H [N] \t Y_H [N] \t N_H [Nm] (midship)";
+            if(mmg)
+                out << " \t X_H [N] \t Y_H [N] \t N_H [Nm] (midship)";
 
-        out << endl;
+            if(mmg && mmg_fluid == 2)
+                out << " \t N_Munk [Nm] (taken out)";
+
+            out << endl;
+        }
     }
 
     out << p->simtime << " \t " << ub << " \t " << vb << " \t " << rb_ << " \t " << psi_c / DEG << " \t " << Re << " \t " << CF << " \t " << XF << " \t " << Ycf << " \t " << Ncf << " \t " << Kroll << " \t " << thrust
@@ -705,5 +840,50 @@ void ship::print(lexer *p)
     if(mmg)
         out << " \t " << XH << " \t " << YH << " \t " << NH;
 
+    if(mmg && mmg_fluid == 2)
+        out << " \t " << NM;
+
     out << endl;
+}
+
+// checkpoints (P 48, I 45): the rudder machine, the autopilot and zig-zag state, the unwrapped heading,
+// the approach phase, the thickness of the actuator disk and the still water level in the body frame
+// (both set at the first load from the position then), and the loads of the last evaluation with the
+// actuator disk (the fluid source of the next stage uses them before the next evaluation)
+void ship::ckpt_state(std::vector<double> &v) const
+{
+    for(double x : {delta, tlast, psi_c, psi_last, psi0, eint, double(zz_sign), zz_started ? 1.0 : 0.0, appr_done ? 1.0 : 0.0, thick, Xc, Yc, Nc, zw,
+                    Va, J, KT, KQ, Tp, Qp, alphaR, UR, FN, XR, YR, NR, KR, XH, YH, NH, NM, ub, vb, wb, pb, qb, rb_, Re, CF, XF, Ycf, Ncf, Kroll,
+                    disk.centre(0), disk.centre(1), disk.centre(2), disk.axis(0), disk.axis(1), disk.axis(2),
+                    disk.R, disk.Rh, disk.thickness, disk.T, disk.Q, double(disk.sense)})
+        v.push_back(x);
+}
+
+void ship::ckpt_restore(const std::vector<double> &v, size_t &k)
+{
+    if(k + 55 > v.size())
+    {
+        k = v.size();
+        return;
+    }
+    delta = v[k++];
+    tlast = v[k++];
+    psi_c = v[k++];
+    psi_last = v[k++];
+    psi0 = v[k++];
+    eint = v[k++];
+    zz_sign = int(v[k++]);
+    zz_started = v[k++] > 0.5;
+    appr_done = v[k++] > 0.5;
+    thick = v[k++];
+    Xc = v[k++];
+    Yc = v[k++];
+    Nc = v[k++];
+    zw = v[k++];
+    for(double *x : {&Va, &J, &KT, &KQ, &Tp, &Qp, &alphaR, &UR, &FN, &XR, &YR, &NR, &KR, &XH, &YH, &NH, &NM, &ub, &vb, &wb, &pb, &qb, &rb_,
+                     &Re, &CF, &XF, &Ycf, &Ncf, &Kroll, &disk.centre(0), &disk.centre(1), &disk.centre(2),
+                     &disk.axis(0), &disk.axis(1), &disk.axis(2), &disk.R, &disk.Rh, &disk.thickness, &disk.T, &disk.Q})
+        *x = v[k++];
+    disk.sense = int(v[k++]);
+    ck_restored = true;
 }

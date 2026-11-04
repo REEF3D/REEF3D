@@ -85,7 +85,8 @@ void sixdof_obj_nhflow::ray_cast_nhflow_grid(lexer *p, fdm_nhf *d, ghostcell *pg
         if(fabs(d->FB[IJK]) < fb_eps)
             d->FB[IJK] = 0.0;
 
-        d->test[IJK] = IO[IJK];
+        if(d->test != nullptr)
+            d->test[IJK] = IO[IJK];
     }
 
     LOOP WETDRY

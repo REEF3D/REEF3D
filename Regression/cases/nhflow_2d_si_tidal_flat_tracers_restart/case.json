@@ -1,0 +1,32 @@
+{
+ "base": "nhflow_2d_si_tidal_flat_tracers_ckpt",
+ "same_as": "nhflow_2d_si_tidal_flat_tracers_ckpt",
+ "chain": [
+  {
+   "case": "nhflow_2d_si_tidal_flat_tracers_ckpt",
+   "copy": [
+    "REEF3D_Checkpoint",
+    "REEF3D_NHFLOW_Log",
+    "REEF3D_NHFLOW_WSF",
+    "REEF3D_NHFLOW_Tidal"
+   ]
+  }
+ ],
+ "ctrl_set": {
+  "I 45": "150"
+ },
+ "description": "the restart of nhflow_2d_si_tidal_flat_tracers_ckpt from step 150: regression.py ranks, the final state (salinity, temperature) and the text outputs (tracer log and gauges) bitwise those of the uninterrupted run.",
+ "tags": [
+  "2d",
+  "nhflow",
+  "semi_implicit",
+  "wetdry",
+  "turbulence",
+  "tide",
+  "tracer",
+  "checkpoint"
+ ],
+ "covers": [
+  "nhflow_tracer_SI: the restart (I 45), the bitwise continuation"
+ ]
+}

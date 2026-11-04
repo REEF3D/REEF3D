@@ -1,0 +1,7 @@
+{
+ "base": "nhflow_2d_waves_current_doppler",
+ "np": 2,
+ "description": "nhflow_2d_waves_current_doppler on 2 ranks: the generation zone on rank 1, the k update reduced over both ranks.",
+ "tags": ["quick", "2d", "nhflow", "iowave", "bc_zone", "background", "doppler", "mpi"],
+ "covers": ["B 530 on a decomposed grid"]
+}

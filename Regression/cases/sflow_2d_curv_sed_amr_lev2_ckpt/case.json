@@ -1,0 +1,20 @@
+{
+ "base": "sflow_2d_curv_sed_amr_lev2_mpi2",
+ "np": 1,
+ "ctrl_set": {
+  "P 48": "20",
+  "P 49": "0"
+ },
+ "description": "sflow_2d_curv_sed_amr_lev2_mpi2 on one rank with a checkpoint every 20 steps, all kept (P 48 20, P 49 0): the uninterrupted run of sflow_2d_curv_sed_amr_lev2_restart.",
+ "tags": [
+  "2d",
+  "sflow",
+  "amr",
+  "curvilinear",
+  "sediment",
+  "checkpoint"
+ ],
+ "covers": [
+  "sflow_amr::ckpt_write: sediment transport (S 10 1) with two levels on a curvilinear grid, on one rank"
+ ]
+}

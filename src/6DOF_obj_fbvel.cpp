@@ -30,6 +30,15 @@ void sixdof_obj::update_fbvel(lexer *p, ghostcell *pgc)
     // Determine floating body velocities (free: momentum, prescribed: motionext)
     rb.velocity(u_fb);
 
+    // external dynamics: all six components from the external solver (its joints, not X 11)
+    if(ext_on_)
+    {
+        rb.omega_I = ext_w_;
+        rb.omega_B = R_.transpose() * ext_w_;
+        u_fb.head<3>() = ext_v_;
+        u_fb.tail<3>() = ext_w_;
+    }
+
     // Velocities
     p->ufbi = p_(0) / Mass_fb;
     p->vfbi = p_(1) / Mass_fb;
@@ -53,7 +62,9 @@ void sixdof_obj::update_fbvel(lexer *p, ghostcell *pgc)
 
 void sixdof_obj::saveTimeStep(lexer *p, int iter)
 {
-    rb.save_history(alpha[iter] * p->dt);
+    // alpha holds three stages; the fourth stage of FNPF RK4 (iter 3) read past the array (the stage time step is only
+    // stored with the history and the checkpoint)
+    rb.save_history(((iter >= 0 && iter < 3) ? alpha[iter] : 1.0) * p->dt);
 }
 
 void sixdof_obj::maxvel(lexer *p, ghostcell *pgc)

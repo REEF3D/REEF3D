@@ -1,0 +1,13 @@
+{
+ "description": "NHFLOW 2D: a very light rigid body (empty 20 ft container, 59.3 kg/m3) falls 5 m onto 4 m deep still water, slams into it and comes to float.",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 160,
+ "files": ["fem.dat"],
+ "tags": ["2d", "nhflow", "fem", "fsi", "floating", "debris"],
+ "covers": [
+  "added-mass factor of very light rigid bodies in NHFLOW (5 times the estimate, at most 30 body masses: here 2.1)",
+  "probed pressure of rigid bodies without the low-pass filter of the non-hydrostatic part",
+  "rigid body falling through air into the water (dry and wet surface points), slam and rebound"
+ ]
+}

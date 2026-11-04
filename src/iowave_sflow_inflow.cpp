@@ -20,71 +20,56 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"iowave.h"
-#include"lexer.h"
-#include"fdm2D.h"
-#include"ghostcell.h"
-#include"patchBC_interface.h"
+#include "fdm2D.h"
+#include "ghostcell.h"
+#include "iowave.h"
+#include "lexer.h"
+#include "patchBC_interface.h"
 
-void iowave::inflow2D(lexer *p, fdm2D* b, ghostcell* pgc, slice &P, slice &Q, slice &bed, slice &eta)
+void iowave::inflow2D(lexer *p, fdm2D *b, ghostcell *pgc, slice &P, slice &Q, slice &bed, slice &eta)
 {
-    if(p->B98==0)
-    inflow2D_plain(p,b,pgc,P,Q,eta);
-    
-	if(p->B98==3 || p->B98==4)
-	wavegen2D(p,b,pgc,P,Q,bed,eta);
-	
-	if(p->B99==3 || p->B99==4)
-	active_beach2D(p,b,pgc,P,Q,bed,eta);
-    
-    pBC->patchBC_ioflow2D(p,pgc,P,Q,bed,eta);
+    if(p->B98 == 0)
+        inflow2D_plain(p, b, pgc, P, Q, eta);
+
+    if(p->B98 == 3 || p->B98 == 4)
+        wavegen2D(p, b, pgc, P, Q, bed, eta);
+
+    // B 99 3 / 4 (and B 99 6): absorbing Riemann edge at x+ (iowave_sflow_tide.cpp) when
+    // there is an outflow side; the former SFLOW active beach otherwise
+    if((p->B99 == 3 || p->B99 == 4) && !nhf_active_edge)
+        active_beach2D(p, b, pgc, P, Q, bed, eta);
+
+    pBC->patchBC_ioflow2D(p, pgc, P, Q, bed, eta);
+
+    // Riemann / Flather / clamped edges (B 520 methods 3-6)
+    sflow_open_edges(p, b, pgc, P, Q);
 }
 
-void iowave::rkinflow2D(lexer *p, fdm2D* b, ghostcell* pgc, slice &P, slice &Q, slice &U, slice &V)
+void iowave::inflow2D_plain(lexer *p, fdm2D *b, ghostcell *pgc, slice &P, slice &Q, slice &eta)
 {
-    for(n=0;n<p->gcslin_count;n++)
+    for(n = 0; n < p->gcslin_count; n++)
     {
-    i=p->gcslin[n][0];
-    j=p->gcslin[n][1];
+        i = p->gcslin[n][0];
+        j = p->gcslin[n][1];
 
+        P(i - 1, j) = p->Ui;
+        P(i - 2, j) = p->Ui;
+        P(i - 3, j) = p->Ui;
 
-        P(i-1,j)=U(i-1,j);
-        P(i-2,j)=U(i-2,j);
-        P(i-3,j)=U(i-3,j);
+        Q(i - 1, j) = 0.0;
+        Q(i - 2, j) = 0.0;
+        Q(i - 3, j) = 0.0;
 
-        Q(i-1,j)=V(i-1,j);
-        Q(i-2,j)=V(i-2,j);
-        Q(i-3,j)=V(i-3,j);
-    }
-    
-    pBC->patchBC_rkioflow2D(p,pgc,P,Q,U,V);
-}
+        eta(i - 1, j) = 0.0;
+        eta(i - 2, j) = 0.0;
+        eta(i - 3, j) = 0.0;
 
-void iowave::inflow2D_plain(lexer *p, fdm2D* b, ghostcell* pgc, slice &P, slice &Q, slice &eta)
-{
-    for(n=0;n<p->gcslin_count;n++)
-    {
-    i=p->gcslin[n][0];
-    j=p->gcslin[n][1];
+        b->hx(i - 1, j) = b->eta(i - 1, j) + b->depth(i - 1, j);
+        b->hx(i - 2, j) = b->eta(i - 2, j) + b->depth(i - 2, j);
+        b->hx(i - 3, j) = b->eta(i - 3, j) + b->depth(i - 3, j);
 
-        P(i-1,j)=p->Ui;
-        P(i-2,j)=p->Ui;
-        P(i-3,j)=p->Ui;
-
-		Q(i-1,j)=0.0;
-        Q(i-2,j)=0.0;
-        Q(i-3,j)=0.0;
-        
-        eta(i-1,j)=0.0;
-        eta(i-2,j)=0.0;
-        eta(i-3,j)=0.0;
-
-        b->hx(i-1,j)=b->eta(i-1,j) + b->depth(i-1,j);
-        b->hx(i-2,j)=b->eta(i-2,j) + b->depth(i-2,j);
-        b->hx(i-3,j)=b->eta(i-3,j) + b->depth(i-3,j);
-        
-        b->hy(i-1,j)=b->eta(i-1,j) + b->depth(i-1,j);
-        b->hy(i-2,j)=b->eta(i-2,j) + b->depth(i-2,j);
-        b->hy(i-3,j)=b->eta(i-3,j) + b->depth(i-3,j);
+        b->hy(i - 1, j) = b->eta(i - 1, j) + b->depth(i - 1, j);
+        b->hy(i - 2, j) = b->eta(i - 2, j) + b->depth(i - 2, j);
+        b->hy(i - 3, j) = b->eta(i - 3, j) + b->depth(i - 3, j);
     }
 }

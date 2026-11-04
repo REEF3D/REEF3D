@@ -23,49 +23,51 @@ Author: Hans Bihs
 #ifndef VRANS_F_H_
 #define VRANS_F_H_
 
-#include"vrans.h"
-#include"increment.h"
-#include"field4a.h"
+#include "field4a.h"
+#include "increment.h"
+#include "vrans.h"
 
 using namespace std;
 
 class vrans_f final : public vrans, public increment
 {
 public:
-	vrans_f(lexer*, ghostcell*);
-	virtual ~vrans_f();
+    vrans_f(lexer *, ghostcell *);
+    virtual ~vrans_f();
 
-	void initialize_cfd(lexer*, fdm*, ghostcell*) override final;	
-	void start(lexer*, fdm*, ghostcell*, int) override final {};
-    void sed_update(lexer*, fdm*, ghostcell*) override final;	
-    void sedpart_update(lexer*, fdm*, ghostcell*, field&, field&) override final;
-	
-	void u_source(lexer*, fdm*) override final;
-	void v_source(lexer*, fdm*) override final;
-	void w_source(lexer*, fdm*) override final;
-    
-    void ke_source(lexer*, fdm*, field&) override final;
-    void kw_source(lexer*, fdm*, field&) override final;
-    void eps_source(lexer*, fdm*, field&, field&) override final;
-    void omega_source(lexer*, fdm*, field&, field&) override final;
-    
-    void eddyv_func(lexer*, fdm*) override final;
-    
-    void veltimesave(lexer*,fdm*,ghostcell*) override final;
-	
+    void initialize_cfd(lexer *, fdm *, ghostcell *) override final;
+    void initialize_patch(lexer *, fdm *);  // a grid of the mesh refinement: all cells, no exchange
+    void start(lexer *, fdm *, ghostcell *, int) override final {};
+    void sed_update(lexer *, fdm *, ghostcell *) override final;
+    void sedpart_update(lexer *, fdm *, ghostcell *, field &, field &) override final;
+
+    void u_source(lexer *, fdm *) override final;
+    void v_source(lexer *, fdm *) override final;
+    void w_source(lexer *, fdm *) override final;
+    void implicit_drag(lexer *, fdm *, int, double, field &, field &, field &, field &) override final;
+
+    void ke_source(lexer *, fdm *, field &) override final;
+    void kw_source(lexer *, fdm *, field &) override final;
+    void eps_source(lexer *, fdm *, field &, field &) override final;
+    void omega_source(lexer *, fdm *, field &, field &) override final;
+
+    void eddyv_func(lexer *, fdm *) override final;
+
+    void veltimesave(lexer *, fdm *, ghostcell *) override final;
+
 private:
-	
-	field4a alpha,beta;
-	
-	double Apor(double,double,double,double);
-	double Bpor(double,double,double);
-	
-	int count;
-    
-    double Aporval,Bporval,porval,partval,alphaval,betaval,viscval;
-	double val;
-	double porousterm;
-	const double Cval;
+    // porous zones: porosity, d50 and the resistance coefficients a->porA, a->porB of a cell
+    void structures(lexer *, fdm *);
+    void structure_cell(lexer *, fdm *);
+    void sediment_bed(lexer *, fdm *);
+    void set_cell(lexer *, fdm *, double, double, double, double);
+    void exchange(lexer *, fdm *, ghostcell *);
+
+    // resistance per unit Darcy velocity A + B |U| at the face of component c
+    double drag_rate(lexer *, fdm *, int, field &, field &, field &);
+
+    int count;
+    const double Cval;
 };
 
 #endif

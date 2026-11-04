@@ -6,7 +6,7 @@ This file is part of REEF3D.
 
 REEF3D is free software; you can redistribute it and/or modify it
 under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 3 of the B117, or
+the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
@@ -23,7 +23,7 @@ Author: Hans Bihs
 #ifndef FNPF_FSF_UPDATE_H_
 #define FNPF_FSF_UPDATE_H_
 
-#include"increment.h"
+#include "increment.h"
 
 class lexer;
 class fdm_fnpf;
@@ -38,23 +38,16 @@ using namespace std;
 class fnpf_fsf_update : public increment
 {
 public:
-    fnpf_fsf_update(lexer*, fdm_fnpf*, ghostcell*);
-	virtual ~fnpf_fsf_update();
-    
-    void fsfepol(lexer*, fdm_fnpf*, ghostcell*,slice&,field&);
-	void fsfupdate(lexer*, fdm_fnpf*, ghostcell*,ioflow*,slice&);
-    void etaloc_sig(lexer*, fdm_fnpf*, ghostcell*);
-    void etaloc(lexer*, fdm_fnpf*, ghostcell*);
-    void fsfbc_sig(lexer*, fdm_fnpf*, ghostcell*,slice&,double*);
-    void fsfbc(lexer*, fdm_fnpf*, ghostcell*,slice&,field&);
-    
-    void velcalc(lexer*, fdm_fnpf*, ghostcell *pgc, field&);
-    void velcalc_sig(lexer*, fdm_fnpf*, ghostcell *pgc, double*);
-    
-private: 
-    int gcval,gcval_u,gcval_v,gcval_w;
+    fnpf_fsf_update(lexer *, fdm_fnpf *, ghostcell *);
+    virtual ~fnpf_fsf_update();
 
+    void etaloc_sig(lexer *, fdm_fnpf *, ghostcell *);
+    void fsfbc_sig(lexer *, fdm_fnpf *, ghostcell *, slice &, double *);
 
+    void velcalc_sig(lexer *, fdm_fnpf *, ghostcell *pgc, double *);
+
+private:
+    int gcval, gcval_u, gcval_v, gcval_w;
 };
 
 #endif

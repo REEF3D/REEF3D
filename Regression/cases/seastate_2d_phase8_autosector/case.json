@@ -1,0 +1,7 @@
+{
+ "base": "seastate_2d_handover",
+ "ctrl_add": ["A 716 2.5 15.0", "A 795 1.0e-6"],
+ "description": "as seastate_2d_handover with the automatic fine direction sector (A 716 2.5 15, Phase 8): the directions of the Mitsuyasu boundary spectrum (B 130 2, B 134 5, B 131 20 deg) where its energy-weighted directional distribution is at least 1e-4 of the maximum (-133 to 133 deg of 20 deg) plus 15 deg on both sides are divided into 2.5 deg bins (A 715 -128 168 4), with spectral sparsity (A 795 1e-6). Validation in Dropbox SEASTATE/validation/41_windsea_speed_gse.",
+ "tags": ["quick", "2d", "seastate"],
+ "covers": ["seastate_f auto_sector (A 716)", "seastate_grid sector with spectral sparsity", "handover on a non-uniform direction grid"]
+}

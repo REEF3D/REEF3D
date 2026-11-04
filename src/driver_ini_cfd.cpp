@@ -19,7 +19,9 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 --------------------------------------------------------------------*/
 
+#include "6DOF_cfd.h"
 #include "6DOF_header.h"
+#include "6DOF_obj.h"
 #include "FSI_header.h"
 #include "benchmark_header.h"
 #include "concentration_header.h"
@@ -58,6 +60,19 @@ void driver::driver_ini_cfd()
         cout << "starting driver_ini" << endl;
 
     // 6DOF_df and FSI
+    // with the mesh refinement the hull triangles (X 185) are sized for the finest level
+    // (sixdof_obj::amr_hfac, as nhflow_amr), before the initialisation builds them: sized for
+    // level 0 a propeller of D = 6 level-0 cells came out as 186 triangles on the patches.  The CFD
+    // patches are refined in the vertical as well (amr_vfac): sized for the level-0 dz the walls
+    // of a box had half the triangles of the uniform grid of the finest cells
+    if(p->X10 == 1 && p->G1 > 0)
+        if(sixdof_cfd *b6 = dynamic_cast<sixdof_cfd *>(p6dof))
+            for(int nb = 0; nb < b6->objects(); ++nb)
+            {
+                b6->object(nb)->amr_hfac = 1.0 / double(1 << MAX(p->G1, 0));
+                b6->object(nb)->amr_vfac = b6->object(nb)->amr_hfac;
+            }
+
     p6dof->initialize(p, a, pgc);
 
     if(p->mpirank == 0)
@@ -196,11 +211,26 @@ void driver::driver_ini_cfd()
     {
         pini->stateini(p, a, pgc, pturb, psed);
 
+        pgc->start4(p, a->press, 40);
+        ppress->ini(p, a, pgc);
+
+        pgc->start1(p, a->u, 10);
+        pgc->start2(p, a->v, 11);
+        pgc->start3(p, a->w, 12);
+        if(p->X10 == 0)
+            ptstep->start(a, p, pgc, pturb);
+
+        p->dt *= 0.1;
+
         if(p->S10 == 1 || (p->Q10 >= 1 && p->S10 == 2))
             psed->ini_cfd(p, a, pgc);
     }
 
     pgc->start4(p, a->press, 40);
+
+    // the first output (not on a restart, I 45 1: the checkpoint is a state already printed)
+    if(p->I45 != 1)
+        pprint->start(p, a, pgc, pturb, pheat, pflow, pdata, pconc, pmp, psed);
 
     pprint->start(p, a, pgc, pturb, pheat, pflow, pdata, pconc, pmp, psed);
 

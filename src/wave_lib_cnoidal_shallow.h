@@ -23,34 +23,35 @@ Author: Hans Bihs
 #ifndef WAVE_LIB_CNOIDAL_SHALLOW_H_
 #define WAVE_LIB_CNOIDAL_SHALLOW_H_
 
-#include"wave_lib_precalc.h"
-#include"wave_lib_parameters.h"
-#include"wave_lib_elliptic.h"
-#include"increment.h"
+#include "increment.h"
+#include "wave_lib_elliptic.h"
+#include "wave_lib_parameters.h"
+#include "wave_lib_precalc.h"
+#include "wave_lib_steady_fi.h"
 
 using namespace std;
 
-class wave_lib_cnoidal_shallow final : public wave_lib_precalc, public wave_lib_parameters, public wave_lib_elliptic,
-                                 public increment
+class wave_lib_cnoidal_shallow final : public wave_lib_precalc, public wave_lib_parameters, public wave_lib_elliptic, public increment
 {
 public:
-    wave_lib_cnoidal_shallow(lexer*, ghostcell*);
-	virtual ~wave_lib_cnoidal_shallow();
+    int wave_lexer_fields() const override { return 0; }
+    wave_lib_cnoidal_shallow(lexer *, ghostcell *);
+    virtual ~wave_lib_cnoidal_shallow();
 
-    double wave_horzvel(lexer*,double,double,double);
-    
-    double wave_u(lexer*,double,double,double) override final;
-    double wave_v(lexer*,double,double,double) override final;
-    double wave_w(lexer*,double,double,double) override final;
-    double wave_eta(lexer*,double,double) override final;
-    double wave_fi(lexer*,double,double,double) override final;
-    
-    
-    void parameters(lexer*,ghostcell*) override final;
-    void wave_prestep(lexer*,ghostcell*) override final;
+    double wave_horzvel(lexer *, double, double, double);
+
+    double wave_u(lexer *, double, double, double) override final;
+    double wave_v(lexer *, double, double, double) override final;
+    double wave_w(lexer *, double, double, double) override final;
+    double wave_eta(lexer *, double, double) override final;
+    double wave_fi(lexer *, double, double, double) override final;
+
+    void parameters(lexer *, ghostcell *) override final;
+    void wave_prestep(lexer *, ghostcell *) override final;
 
 private:
-    double singamma,cosgamma;
+    wave_lib_steady_fi sfi;  // the velocity potential (wave_lib_steady_fi.h)
+    double singamma, cosgamma;
 };
 
 #endif

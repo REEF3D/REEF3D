@@ -1,0 +1,21 @@
+{
+ "solver": "nhflow",
+ "np": 2,
+ "steps": 60,
+ "files": [
+  "blocks.dat"
+ ],
+ "tags": [
+  "3d",
+  "nhflow",
+  "curvilinear",
+  "multiblock",
+  "breaking",
+  "mpi"
+ ],
+ "description": "nhflow_3d_mb_breaking with the blocks cut into 7 pieces on two ranks (G 55 3): the interfaces between the pieces exchange the breaking as those between the blocks (the same solution as the whole blocks on one rank to 2e-10 m/s after 0.5 s, validation 05_block_breaking).",
+ "covers": [
+  "nhflow_amr::brk_exchange0 across ranks (fill_run0 plans), the partition halos of block 0",
+  "G 55 pieces with breaking"
+ ]
+}

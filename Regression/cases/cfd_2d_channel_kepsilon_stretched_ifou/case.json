@@ -1,0 +1,1 @@
+{"description": "CFD 2D open channel on a grid stretched in x (B 101 1, B 111 2.0), k-eps with implicit first-order upwind convection (T 12 1).", "solver": "cfd", "np": 1, "steps": 300, "tags": ["cfd", "turbulence", "stretched"], "covers": ["ifou per-face conservative upwind on stretched grids", "kepsilon"]}

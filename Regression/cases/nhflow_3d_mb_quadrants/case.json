@@ -1,0 +1,21 @@
+{
+ "description": "NHFLOW multi-block grid (G 50 1, DIVEMesh R 20 1): four curvilinear blocks around a regular vertex, their indices turned by 0, 90, 180 and 270 deg, wavy skewed grid, bumpy bed, non-hydrostatic dam break over the vertex (A 520 2). The same solution as one block (G 52 1) to round-off (nhflow_multiblock/t2).",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 20,
+ "files": [
+  "blocks.dat"
+ ],
+ "tags": [
+  "3d",
+  "nhflow",
+  "curvilinear",
+  "multiblock",
+  "quick"
+ ],
+ "covers": [
+  "nhflow_amr_block: blocks 1.. as level-0 patches, fill_level0 (stage input of the blocks and of the ring), fill_bed0, blocks_ini",
+  "composite pressure over the blocks: the ring no unknown, pr_fill0, block-local V-cycles, the coarse space across the blocks (G 53)",
+  "G 52 1: the i-walls as the j-walls (pair_bc, iwall_sym, the Neumann rows of the pressure correction); block_node_any through the interface first"
+ ]
+}

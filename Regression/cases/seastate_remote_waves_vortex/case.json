@@ -1,0 +1,8 @@
+{
+ "part_of": "seastate_sflow_vortex_si_remote",
+ "solver": "seastate",
+ "np": 1,
+ "files": ["met-vortex.trk"],
+ "description": "the wave model of seastate_sflow_vortex_si_remote: SEASTATE (A 10 7, A 750 2) on 20 x 20 cells of 20 km, the GAHM vortex as its wind (A 730 2, W 200 3, drag W 207 via A 729 1).",
+ "tags": ["2d", "seastate", "mpmd", "met", "vortex"]
+}

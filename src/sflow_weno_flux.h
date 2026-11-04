@@ -23,8 +23,8 @@ Author: Hans Bihs
 #ifndef SFLOW_WENO_FLUX_H_
 #define SFLOW_WENO_FLUX_H_
 
-#include"sflow_convection.h"
-#include"increment.h"
+#include "increment.h"
+#include "sflow_convection.h"
 
 class sflow_flux;
 
@@ -33,44 +33,41 @@ using namespace std;
 class sflow_weno_flux final : public sflow_convection, public increment
 {
 public:
-	sflow_weno_flux(lexer*);
-	virtual ~sflow_weno_flux();
+    sflow_weno_flux(lexer *);
+    virtual ~sflow_weno_flux();
 
-	void start(lexer*,fdm2D*,slice&,int,slice&,slice&) override final;
+    void start(lexer *, fdm2D *, slice &, int, slice &, slice &) override final;
 
 private:
-    double aij(lexer*, fdm2D*, slice&, int, slice&, slice&);
-    
-    double aij_fou(lexer*, fdm2D*, slice&, int, slice&, slice&);
+    double aij(lexer *, fdm2D *, slice &, int, slice &, slice &);
 
-	double fx(lexer*, fdm2D*, slice&, int, double);
-	double fy(lexer*, fdm2D*, slice&, int, double);
-	void iqmin(lexer*, fdm2D*, slice&, int);
-	void jqmin(lexer*, fdm2D*, slice&, int);
-	void iqmax(lexer*, fdm2D*, slice&, int);
-	void jqmax(lexer*, fdm2D*, slice&, int);
+    double fx(lexer *, fdm2D *, slice &, int, double);
+    double fy(lexer *, fdm2D *, slice &, int, double);
+    void iqmin(lexer *, fdm2D *, slice &, int);
+    void jqmin(lexer *, fdm2D *, slice &, int);
+    void iqmax(lexer *, fdm2D *, slice &, int);
+    void jqmax(lexer *, fdm2D *, slice &, int);
 
+    double L, grad;
+    double dx, dy;
+    double ul, ur, vl, vr;
 
-	double L,grad;
-    double dx,dy;
-	double ul,ur,vl,vr;
-    
-	const double tttw,fourth,third,sevsix,elvsix,sixth,fivsix,tenth;
-	const double sixten,treten;
-	const double epsilon;
-	double is1,is2,is3;
-	double alpha1,alpha2,alpha3;
-	double w1,w2,w3;
-	double q1,q2,q3,q4,q5;
-	double gradx, grady, gradz;
-	double fu1,fv1,fu2,fv2;
+    const double tttw, fourth, third, sevsix, elvsix, sixth, fivsix, tenth;
+    const double sixten, treten;
+    const double epsilon;
+    double is1, is2, is3;
+    double alpha1, alpha2, alpha3;
+    double w1, w2, w3;
+    double q1, q2, q3, q4, q5;
+    double gradx, grady, gradz;
+    double fu1, fv1, fu2, fv2;
 
-	void is(slice&);
-	void alpha();
-	void weight();
-    
+    void is(slice &);
+    void alpha();
+    void weight();
+
     sflow_flux *pflux;
-    double ivel1,ivel2,jvel1,jvel2;
+    double ivel1, ivel2, jvel1, jvel2;
 };
 
 #endif

@@ -1,13 +1,78 @@
 REEF3D
-Copyright (c) 2026 Hans Bihs
+Copyright (c) 2008-2026 Hans Bihs and the REEF3D contributors
 
 This product is licensed under the GNU General Public License, version 3
 or (at your option) any later version (GPL-3.0-or-later). See the file
-COPYING (or LICENSE) for the full license text.
+LICENSE for the full license text.
 
-This product bundles and/or links against the following third-party
-software. These components retain their own copyright and license terms,
-which are not affected by REEF3D's GPL-3.0-or-later license.
+Parts of the REEF3D source code are translations of code from other
+open-source projects, and REEF3D bundles and/or links against further
+third-party software. These parts and components retain their own
+copyright and license terms, listed below.
+
+========================================================================
+Code incorporated in REEF3D source files
+========================================================================
+
+------------------------------------------------------------------------
+SWAN (Simulating WAves Nearshore), version 41.51
+------------------------------------------------------------------------
+Files: src/seastate_source.cpp, src/seastate_source.h
+
+Parts of these files are C++ translations of SWAN routines: FAC4WW and
+SWSNL1 (DIA quadruplets), FAC3WW and SWLTA (LTA triads), SWIND5 (wind
+input), SWCAP with IWCAP 7 (whitecapping), SSURF (Battjes-Janssen
+linearisation), SINTGRL (maximum energy) and SVEG (vegetation).
+
+  SWAN (Simulating WAves Nearshore); a third generation wave model
+  Copyright (C) 1993-2024  Delft University of Technology
+
+  SWAN is free software: you can redistribute it and/or modify it
+  under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+SWAN: https://swanmodel.sourceforge.io
+
+------------------------------------------------------------------------
+RADAU5 and DECSOL (E. Hairer and G. Wanner)
+------------------------------------------------------------------------
+Files: src/beam.h, src/beam_solver.cpp, src/beam_solver_routines.cpp
+
+The stiff ODE integrator of the beam solver is a C++ translation of
+RADAU5 (radau5.f) and its linear algebra routines (decsol.f) by
+E. Hairer and G. Wanner, Universite de Geneve, via the C++ version of
+Blake Ashby (2002). The original code is distributed under the
+following terms:
+
+  Copyright (c) 2004, Ernst Hairer
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are
+  met:
+
+  - Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  - Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS **AS
+  IS** AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+  TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+  PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE REGENTS OR
+  CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+  EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+  PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+========================================================================
+Bundled and linked third-party software
+========================================================================
 
 ------------------------------------------------------------------------
 hypre
@@ -27,16 +92,32 @@ hypre's source.)
 ------------------------------------------------------------------------
 Eigen
 ------------------------------------------------------------------------
-Eigen is a C++ template library for linear algebra. The Core, Dense, and
-Geometry modules used by REEF3D are licensed under the Mozilla Public
-License 2.0 (MPL2). Individual Eigen source files carry their own
-copyright notices from multiple contributors; see the source headers
-and https://gitlab.com/libeigen/eigen/-/blob/master/COPYING.MPL2 for the
-full license text.
+Eigen is a C++ template library for linear algebra, bundled unmodified
+in ThirdParty/eigen-5.0.0. REEF3D uses the Dense (Core, LU, Cholesky,
+QR, SVD, Geometry, Eigenvalues), Sparse and SparseLU modules and the
+unsupported FFT module with its built-in kissfft backend. REEF3D is
+compiled with EIGEN_MPL2_ONLY, so only Eigen code licensed under the
+Mozilla Public License 2.0 (MPL2) is used. Individual Eigen source files
+carry their own copyright notices from multiple contributors, and some
+contain third-party code relicensed for Eigen under MPL2 (see
+ThirdParty/eigen-5.0.0/COPYING.README and the source headers).
+
+Full text: ThirdParty/eigen-5.0.0/COPYING.MPL2
+See also: https://gitlab.com/libeigen/eigen/-/blob/master/COPYING.MPL2
 
 Per the MPL 2.0, source code for any modified Eigen (MPL2-covered)
 files must remain available under MPL 2.0 terms. REEF3D does not modify
 Eigen; unmodified upstream source is used as-is.
+
+------------------------------------------------------------------------
+zlib
+------------------------------------------------------------------------
+REEF3D links against the system zlib library (compressed LAGOON output).
+
+  Copyright (C) 1995-2024 Jean-loup Gailly and Mark Adler
+
+zlib is licensed under the zlib License.
+Full text: https://zlib.net/zlib_license.html
 
 ------------------------------------------------------------------------
 
@@ -44,3 +125,4 @@ The full license texts for the above components can be found at:
   - GNU GPL v3:          https://www.gnu.org/licenses/gpl-3.0.html
   - MIT License:        https://opensource.org/license/mit/
   - Mozilla Public License 2.0: https://www.mozilla.org/MPL/2.0/
+  - zlib License:       https://zlib.net/zlib_license.html

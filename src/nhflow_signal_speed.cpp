@@ -11,7 +11,7 @@ the Free Software Foundation; either version 3 of the License, or
 
 This program is distributed in the hope that it will be useful, but WITHOUT
 ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE. d->Se[IJK]e the GNU General Public License
+FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
 You should have received a copy of the GNU General Public License
@@ -24,7 +24,9 @@ Author: Hans Bihs
 #include "fdm_nhf.h"
 #include "ghostcell.h"
 #include "lexer.h"
+#include "nhflow_flux_face.h"
 #include "patchBC_interface.h"
+#include "vrans_definitions.h"
 
 nhflow_signal_speed::nhflow_signal_speed(lexer *p)
 {
@@ -41,6 +43,8 @@ void nhflow_signal_speed::signal_speed_update(lexer *p, ghostcell *pgc, fdm_nhf 
     // Same expressions as before; the celerities sqrt(9.81*D) depend only on
     // the column and are evaluated once per (i,j) instead of 4-6 times per cell.
 
+    const bool porous = (p->B200 == 1 && p->B206 == 1);
+
     // signal speed x-dir  (ULOOP)
     for(i = 0; i < p->knox - p->ulast; ++i)
         for(j = 0; j < p->knoy; ++j)
@@ -50,93 +54,139 @@ void nhflow_signal_speed::signal_speed_update(lexer *p, ghostcell *pgc, fdm_nhf 
             const int wP = p->wet[IJ];
             const int wN = p->wet[Ip1J];
 
-            for(k = 0; k < p->knoz; ++k)
-                if(p->flag1[IJK] > 0)
+            if((wP == 1 && wN == 1) && (dfP == 1 && dfN == 1))
+            {
+                d->Ss[IJK] = MIN(us - cs, usx - dsx);
+                d->Sn[IJK] = MAX(un + cn, usx + dsx);
+            }
+
+            else if((wP == 0 && wN == 1) || (dfP < 0 && dfN == 1))  // left dry
+            {
+                d->Ss[IJK] = un - 2.0 * cn;
+                d->Sn[IJK] = un + cn;
+            }
+
+            else if((wP == 1 && wN == 0) || (dfP == 1 && dfN < 0))  // right dry
+            {
+                d->Ss[IJK] = us - cs;
+                d->Sn[IJK] = us + 2.0 * cs;
+            }
+
+            else if((wP == 0 && wN == 0) || (dfP < 0 && dfN < 0))
+            {
+                d->Ss[IJK] = 0.0;
+                d->Sn[IJK] = 0.0;
+            }
+
+            // VRANS (B 206 1): wave speeds of the porous equations (nhflow_face::por_speed), Davis bounds
+            if(porous)
+            {
+                const double nf = PORVALNH1;
+
+                if(nf < 1.0 - 1.0e-10)
                 {
-                    const double us = Us[IJK];
-                    const double un = Un[IJK];
-                    const double usx = 0.5 * (us + un) + cs - cn;
-                    const double dsx = 0.5 * (cs + cn) + 0.25 * (us - un);
-                    const int dfP = p->DF[IJK];
-                    const int dfN = p->DF[Ip1JK];
+                    const double ns = nhflow_face::por_surf_x(p, d, i, j);
+                    double as, bs, an, bn;
+                    nhflow_face::por_speed(p, nf, ns, us, Ds(i, j), as, bs);
+                    nhflow_face::por_speed(p, nf, ns, un, Dn(i, j), an, bn);
 
                     if((wP == 1 && wN == 1) && (dfP == 1 && dfN == 1))
                     {
-                        d->Ss[IJK] = MIN(us - cs, usx - dsx);
-                        d->Sn[IJK] = MAX(un + cn, usx + dsx);
-                        d->SSx[IJK] = usx;
+                        d->Ss[IJK] = MIN(as - bs, an - bn);
+                        d->Sn[IJK] = MAX(as + bs, an + bn);
                     }
 
-                    else if((wP == 0 && wN == 1) || (dfP < 0 && dfN == 1))  // left dry
+                    else if((wP == 0 && wN == 1) || (dfP < 0 && dfN == 1))
                     {
-                        d->Ss[IJK] = un - 2.0 * cn;
-                        d->Sn[IJK] = un + cn;
-                        d->SSx[IJK] = d->Ss[IJK];
+                        d->Ss[IJK] = an - 2.0 * bn;
+                        d->Sn[IJK] = an + bn;
                     }
 
-                    else if((wP == 1 && wN == 0) || (dfP == 1 && dfN < 0))  // right dry
+                    else if((wP == 1 && wN == 0) || (dfP == 1 && dfN < 0))
                     {
-                        d->Ss[IJK] = us - cs;
-                        d->Sn[IJK] = us + cs;
-                        d->SSx[IJK] = d->Sn[IJK];
+                        d->Ss[IJK] = as - bs;
+                        d->Sn[IJK] = as + 2.0 * bs;
+                    }
+                }
+            }
+        }
+}
+
+// signal speed y-dir  (VLOOP)
+if(p->j_dir == 1)
+    for(i = 0; i < p->knox; ++i)
+        for(j = 0; j < p->knoy - p->vlast; ++j)
+        {
+            const double ce = sqrt(9.81 * De(i, j));
+            const double cw = sqrt(9.81 * Dw(i, j));
+            const int wP = p->wet[IJ];
+            const int wN = p->wet[IJp1];
+
+            for(k = 0; k < p->knoz; ++k)
+                if(p->flag2[IJK] > 0)
+                {
+                    const double ve = Ve[IJK];
+                    const double vw = Vw[IJK];
+                    const double usy = 0.5 * (ve + vw) + ce - cw;
+                    const double dsy = 0.5 * (ce + cw) + 0.25 * (ve - vw);
+                    const int dfP = p->DF[IJK];
+                    const int dfN = p->DF[IJp1K];
+
+                    if((wP == 1 && wN == 1) && (dfP == 1 && dfN == 1))
+                    {
+                        d->Se[IJK] = MIN(ve - ce, usy - dsy);
+                        d->Sw[IJK] = MAX(vw + cw, usy + dsy);
+                    }
+
+                    else if((wP == 0 && wN == 1) || (dfP < 0 && dfN == 1))
+                    {
+                        d->Se[IJK] = vw - 2.0 * cw;
+                        d->Sw[IJK] = vw + cw;
+                    }
+
+                    else if((wP == 1 && wN == 0) || (dfP == 1 && dfN < 0))
+                    {
+                        d->Se[IJK] = ve - ce;
+                        d->Sw[IJK] = ve + 2.0 * ce;
                     }
 
                     else if((wP == 0 && wN == 0) || (dfP < 0 && dfN < 0))
                     {
-                        d->Ss[IJK] = 0.0;
-                        d->Sn[IJK] = 0.0;
-                        d->SSx[IJK] = 0.0;
+                        d->Se[IJK] = 0.0;
+                        d->Sw[IJK] = 0.0;
+                    }
+
+                    // VRANS (B 206 1): wave speeds of the porous equations (nhflow_face::por_speed), Davis bounds
+                    if(porous)
+                    {
+                        const double nf = PORVALNH2;
+
+                        if(nf < 1.0 - 1.0e-10)
+                        {
+                            const double ns = nhflow_face::por_surf_y(p, d, i, j);
+                            double ae, be, aw, bw;
+                            nhflow_face::por_speed(p, nf, ns, ve, De(i, j), ae, be);
+                            nhflow_face::por_speed(p, nf, ns, vw, Dw(i, j), aw, bw);
+
+                            if((wP == 1 && wN == 1) && (dfP == 1 && dfN == 1))
+                            {
+                                d->Se[IJK] = MIN(ae - be, aw - bw);
+                                d->Sw[IJK] = MAX(ae + be, aw + bw);
+                            }
+
+                            else if((wP == 0 && wN == 1) || (dfP < 0 && dfN == 1))
+                            {
+                                d->Se[IJK] = aw - 2.0 * bw;
+                                d->Sw[IJK] = aw + bw;
+                            }
+
+                            else if((wP == 1 && wN == 0) || (dfP == 1 && dfN < 0))
+                            {
+                                d->Se[IJK] = ae - be;
+                                d->Sw[IJK] = ae + 2.0 * be;
+                            }
+                        }
                     }
                 }
         }
-
-    // signal speed y-dir  (VLOOP)
-    if(p->j_dir == 1)
-        for(i = 0; i < p->knox; ++i)
-            for(j = 0; j < p->knoy - p->vlast; ++j)
-            {
-                const double ce = sqrt(9.81 * De(i, j));
-                const double cw = sqrt(9.81 * Dw(i, j));
-                const int wP = p->wet[IJ];
-                const int wN = p->wet[IJp1];
-
-                for(k = 0; k < p->knoz; ++k)
-                    if(p->flag2[IJK] > 0)
-                    {
-                        const double ve = Ve[IJK];
-                        const double vw = Vw[IJK];
-                        const double usy = 0.5 * (ve + vw) + ce - cw;
-                        const double dsy = 0.5 * (ce + cw) + 0.25 * (ve - vw);
-                        const int dfP = p->DF[IJK];
-                        const int dfN = p->DF[IJp1K];
-
-                        if((wP == 1 && wN == 1) && (dfP == 1 && dfN == 1))
-                        {
-                            d->Se[IJK] = MIN(ve - ce, usy - dsy);
-                            d->Sw[IJK] = MAX(vw + cw, usy + dsy);
-                            d->SSy[IJK] = usy;
-                        }
-
-                        else if((wP == 0 && wN == 1) || (dfP < 0 && dfN == 1))
-                        {
-                            d->Se[IJK] = vw - 2.0 * cw;
-                            d->Sw[IJK] = vw + cw;
-                            d->SSy[IJK] = d->Se[IJK];
-                        }
-
-                        else if((wP == 1 && wN == 0) || (dfP == 1 && dfN < 0))
-                        {
-                            d->Se[IJK] = ve - ce;
-                            d->Sw[IJK] = ve + 2.0 * ce;
-                            d->SSy[IJK] = d->Sw[IJK];
-                        }
-
-                        else if((wP == 0 && wN == 0) || (dfP < 0 && dfN < 0))
-                        {
-                            d->Se[IJK] = 0.0;
-                            d->Sw[IJK] = 0.0;
-                            d->SSy[IJK] = 0.0;
-                        }
-                    }
-            }
 }

@@ -32,7 +32,6 @@ Authors: Tobias Martin, Hans Bihs
 #include "net_interface.h"
 #include "nhflow_reinidisc_fsf.h"
 #include "reinidisc_f.h"
-#include "reinidisc_fsf.h"
 #include "ship.h"
 
 sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc, int number) : ddweno_f_nug(p),
@@ -45,7 +44,7 @@ sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc, int number) : ddweno_f_nug(p),
                                                                omega_B(rb.omega_B), omega_I(rb.omega_I),
                                                                phi(rb.phi), theta(rb.theta), psi(rb.psi),
                                                                Ffb_(rb.F), Mfb_(rb.M),
-                                                               geom(number), amr_hfac(geom.amr_hfac),
+                                                               geom(number), amr_hfac(geom.amr_hfac), amr_vfac(geom.amr_vfac),
                                                                tri_x(geom.tri_x), tri_y(geom.tri_y), tri_z(geom.tri_z),
                                                                tri_x0(geom.tri_x0), tri_y0(geom.tri_y0), tri_z0(geom.tri_z0),
                                                                entity_sum(geom.entity_sum), tstart(geom.tstart), tend(geom.tend),
@@ -58,6 +57,19 @@ sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc, int number) : ddweno_f_nug(p),
     rb.dof[3] = p->X11_p;
     rb.dof[4] = p->X11_q;
     rb.dof[5] = p->X11_r;
+
+    // single bodies (X 111 id u v w p q r): own DOF modes, e.g. prescribed lock gates and a free ship
+    for(int n = 0; n < p->X111; ++n)
+        if(p->X111_id[n] == number)
+        {
+            rb.dof[0] = p->X111_u[n];
+            rb.dof[1] = p->X111_v[n];
+            rb.dof[2] = p->X111_w[n];
+            rb.dof[3] = p->X111_p[n];
+            rb.dof[4] = p->X111_q[n];
+            rb.dof[5] = p->X111_r[n];
+        }
+
     rb.twoD = (p->j_dir == 0);
     rb.Cdamp_t[0] = p->X26_Cu;
     rb.Cdamp_t[1] = p->X26_Cv;
@@ -66,11 +78,10 @@ sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc, int number) : ddweno_f_nug(p),
     rb.Cdamp_r[1] = p->X25_Cq;
     rb.Cdamp_r[2] = p->X25_Cr;
 
-    // ship module (X 350): hull resistance, damping and propulsion models from ship.dat
-    if(p->X350 == 1)
-        pload.push_back(new ship(p, number));
-
-    pnetinter = new net_interface(p, pgc);
+    // nets and membranes (X 320, X 330) act in CFD and NHFLOW only; their interface holds six fields of the whole
+    // grid, which a FNPF body (A 10 3) never uses: with many bodies they were most of the memory (20 FNPF floats,
+    // 3.7 M nodes: 5.5 GB)
+    pnetinter = (p->A10 != 3) ? new net_interface(p, pgc) : nullptr;
 
     triangle_token = 0;
     printnormal_count = 0;
@@ -116,22 +127,43 @@ sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc, int number) : ddweno_f_nug(p),
         zeta[2] = 0.0;
     }
 
-    if(p->X210 == 0 && p->X211 == 0)
-        pmotion = new sixdof_motionext_void(p, pgc);
-
-    if((p->X210 == 1 || p->X211 == 1) && p->X240 == 0)
-        pmotion = new sixdof_motionext_fixed(p, pgc);
-
-    if(p->X240 == 1)
-        pmotion = new sixdof_motionext_file(p, pgc);
-
-    if(p->X240 == 11)
-        pmotion = new sixdof_motionext_file_CoG(p, pgc);
+    // external motion: motion files (X 240 1, 11) with 6DOF_motion-<id>.dat of the body, otherwise
+    // 6DOF_motion.dat; a body without prescribed DOF (X 111) needs none
+    bool prescribed = false;
+    for(int n = 0; n < 6; ++n)
+        if(rb.dof[n] == 2)
+            prescribed = true;
 
     if(p->X240 == 21)
         pmotion = new sixdof_motionext_wavemaker(p, pgc);
 
+    else if(p->X240 == 1 && prescribed)
+        pmotion = new sixdof_motionext_file(p, pgc, number);
+
+    else if(p->X240 == 11 && prescribed)
+        pmotion = new sixdof_motionext_file_CoG(p, pgc, number);
+
+    else if((p->X210 == 1 || p->X211 == 1) && p->X240 == 0)
+        pmotion = new sixdof_motionext_fixed(p, pgc);
+
+    else
+        pmotion = new sixdof_motionext_void(p, pgc);
+
+    // the prescribed DOF of this body (X 11 or X 111)
+    pmotion->set_dof(rb.dof);
+
     Mass_fb = Rfb = Vfb = 1.0;
+
+    // body velocity and added mass: Eigen does not zero them, and the wavemaker (X 10 4) and the
+    // NHFLOW body (no FNPF added mass) never set them before use
+    u_fb.setZero();
+    Aadd_.setZero();
+
+    // wavemaker kinematics
+    timecount = 1;
+    timecount_old = 0;
+    ptnum = 0;
+    xwm1 = zwm1 = xwm2 = zwm2 = 0.0;
 
     // porous floating body (X 16): Darcy-Forchheimer coefficients, same closure as vrans_nhflow_f
     // K = Apor_fb*visc + Bpor_fb*|u - u_fb|  [1/s]

@@ -34,6 +34,8 @@ class nhflow_fsf_reconstruct;
 class nhflow_momentum_func;
 class nhflow_forcing;
 class sixdof;
+class nhflow_fsf_body;
+class nhflow_fsf_hull;
 
 using namespace std;
 
@@ -88,6 +90,10 @@ public:
     virtual void step_begin(lexer *, fdm_nhf *, ghostcell *, nhflow_stage_obj &) = 0;
     virtual void phase_F(lexer *, fdm_nhf *, ghostcell *, nhflow_stage_obj &, int) = 0;
     virtual void phase_M(lexer *, fdm_nhf *, ghostcell *, nhflow_stage_obj &, int) = 0;
+    // the implicit diffusion of stage s alone, component m (0 UH, 1 VH, 2 WH), with the arguments
+    // phase_M gives it: nhflow_amr (G 31 1) assembles it on all grids for one composite solve and
+    // then runs phase_M with a diffusion object that keeps the result
+    virtual void phase_D(lexer *, fdm_nhf *, ghostcell *, nhflow_stage_obj &, int, int) = 0;
     void phase_P(lexer *, fdm_nhf *, ghostcell *, nhflow_stage_obj &, int);
     virtual void phase_P1(lexer *, fdm_nhf *, ghostcell *, nhflow_stage_obj &, int) = 0;  // velocities, forcing
     virtual void phase_P2(lexer *, fdm_nhf *, ghostcell *, nhflow_stage_obj &, int) = 0;  // velocities, reforcing
@@ -103,6 +109,14 @@ public:
     // membranes (X 330, membrane.dat 'coupling iterated'): phase_P repeats the projection (nhflow_forcing::projection)
     nhflow_forcing *pmfrc = nullptr;
     sixdof *pm6dof = nullptr;
+
+    // water level in the columns pierced by a floating body (X 13 1): level() after the water level update
+    // of a stage (phase_F), momentum() before velcalc (phase_P1), print() at the end of the step (phase_P2)
+    nhflow_fsf_body *pfsfbody = nullptr;
+    // X 13 2 (nhflow_fsf_hull): the hull as the top of the water columns, hooks as pfsfbody plus
+    // upgrad() in the momentum stage and correct() after velcalc of phase_P1
+    nhflow_fsf_hull *phull = nullptr;
+    void fsfbody_ckpt_fields(const std::function<void(const char *, char, double *)> &);  // checkpoints: X 13
 
     int gcval_u, gcval_v, gcval_w;
     int gcval_uh, gcval_vh, gcval_wh;

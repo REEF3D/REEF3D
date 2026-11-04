@@ -23,10 +23,10 @@ Author: Hans Bihs
 #ifndef SFLOW_TURB_IO_VOID_H_
 #define SFLOW_TURB_IO_VOID_H_
 
-#include"sflow_turbulence.h"
-#include"increment.h"
-#include"slice4.h"
-#include<fstream>
+#include "increment.h"
+#include "sflow_turbulence.h"
+#include "slice4.h"
+#include <fstream>
 
 class fdm2D;
 class lexer;
@@ -38,23 +38,21 @@ class sflow_turb_io_void : public sflow_turbulence, public increment
 {
 
 public:
-    sflow_turb_io_void(lexer*);
-	virtual ~sflow_turb_io_void();
-    
-    void print_2D(lexer*, fdm2D*, ghostcell*,ofstream&) override final;
-    
-    void kinget(int,int,double) override final;
-    void epsget(int,int,double) override final;
-    
-    double kinval(int,int) override final;
-    double epsval(int,int) override final;
-    
-	void name_pvtp(lexer*, fdm2D*, ghostcell*,ofstream&) override final;
-    void name_vtp(lexer*, fdm2D*, ghostcell*,ofstream&, int*, int &) override final;
-    
-    void offset_ParaView_2D(lexer*, int*, int &) override final;
-    
+    sflow_turb_io_void(lexer *);
+    virtual ~sflow_turb_io_void();
 
+    void print_2D(lexer *, fdm2D *, ghostcell *, std::ostream &) override final;
+
+    void kinget(int, int, double) override final;
+    void epsget(int, int, double) override final;
+
+    double kinval(int, int) override final;
+    double epsval(int, int) override final;
+
+    void name_pvtp(lexer *, fdm2D *, ghostcell *, ofstream &) override final;
+    void name_vtp(lexer *, fdm2D *, ghostcell *, std::ostream &, int *, int &) override final;
+
+    void offset_ParaView_2D(lexer *, int *, int &) override final;
 };
 
 #endif

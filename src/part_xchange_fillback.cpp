@@ -25,20 +25,6 @@ Author: Hans Bihs
 #include "part.h"
 #include "slice.h"
 
-void part::xchange_fillback(lexer *p, ghostcell *pgc, double *F)
-{
-    index_empty = index_empty0;
-
-    // fill recv into F
-    // Empty[0..index_empty-1] holds the free slots
-    for(n = 0; n < 6; ++n)
-        for(q = 0; q < recvnum[n]; ++q)
-        {
-            --index_empty;
-            F[Empty[index_empty]] = recv[n][q];
-        }
-}
-
 void part::xchange_fillback_flag(lexer *p, ghostcell *pgc, slice &bedch, int mode)
 {
     index_empty = index_empty0;
@@ -65,27 +51,6 @@ void part::xchange_fillback_flag(lexer *p, ghostcell *pgc, slice &bedch, int mod
                 XRK1[n] += sh;
             }
 
-            if(p->periodic2 == 2 && p->j_dir == 1)
-            {
-                double Ly = p->global_ymax - p->global_ymin;
-                double yt = mode == 1 ? YRK1[n] : Y[n];
-                double sh = yt >= p->global_ymax ? -Ly : (yt < p->global_ymin ? Ly : 0.0);
-                Y[n] += sh;
-                YRK1[n] += sh;
-            }
-
-            // bedch
-            if(mode == 1)
-            {
-                i = p->posc_i(XRK1[n]);
-                j = p->posc_j(YRK1[n]);
-            }
-            else if(mode == 2)
-            {
-                i = p->posc_i(X[n]);
-                j = p->posc_j(Y[n]);
-            }
-
-            bedch(i, j) += ParcelFactor;
+            bedch(i, j) += ParcelFactor * Wt[n];
         }
 }

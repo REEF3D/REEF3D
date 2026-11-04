@@ -1,0 +1,20 @@
+{
+ "base": "sflow_2d_si_amr_basin_bar",
+ "steps": 60,
+ "ctrl_set": {
+  "P 48": "10",
+  "P 49": "0"
+ },
+ "description": "sflow_2d_si_amr_basin_bar with a checkpoint every 10 steps (P 48 10, P 49 0): the uninterrupted run of sflow_2d_si_amr_basin_bar_restart.",
+ "tags": [
+  "2d",
+  "sflow",
+  "semi_implicit",
+  "amr",
+  "checkpoint"
+ ],
+ "covers": [
+  "sflow_amr_ckpt: the semi-implicit state of the patches (psim)"
+ ],
+ "architect": "Hans Bihs"
+}

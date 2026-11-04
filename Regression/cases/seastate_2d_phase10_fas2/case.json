@@ -1,0 +1,21 @@
+{
+ "base": "seastate_2d_phase9_width",
+ "ctrl_add": [
+  "A 758 2 4"
+ ],
+ "ctrl_set": {
+  "G 1": "2",
+  "A 762": "8",
+  "A 708": "1.0e-5",
+  "A 709": "100.0"
+ },
+ "description": "as seastate_2d_phase9_width (open sea and a 600 m wide fjord, refinement by water width) with two levels (G 1 2, A 762 8: 100 m along the fjord, 50 m in it) and the FAS coarse-grid correction (A 758 2 4, Phase 10): the residuals of all patch levels, restricted level by level into the covered cells, tau on level 0, the coarse change into all cells under a coarse cell on every level; tight convergence for several corrections. Validation in Dropbox SEASTATE/validation/48_performance_iii.",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate"
+ ],
+ "covers": [
+  "seastate_amr fas with two levels (residual restriction, prolongation to all levels)"
+ ]
+}

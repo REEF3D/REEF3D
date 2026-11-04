@@ -1,0 +1,17 @@
+{
+ "base": "seastate_2d_phase16_faces",
+ "np": 2,
+ "same_as": "seastate_2d_phase16_faces",
+ "same_as_rtol": 1e-05,
+ "description": "as seastate_2d_phase16_faces on 2 ranks: the east edge of the patch on the rank border, so the level-0 cells of rank 1 next to it take the faces of the covered cells of rank 0 (Phase 16: covered halo cells, faces sent after every halo exchange); the converged result of one rank within 1e-5 (regression.py ranks; before Phase 16 0.7 % downstream of the patch).",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate",
+  "amr",
+  "mpi"
+ ],
+ "covers": [
+  "seastate_amr::remote_faces_plan, remote_faces, seastate_halo1, seastate_halo_list"
+ ]
+}

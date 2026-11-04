@@ -1,0 +1,19 @@
+{
+ "description": "SFLOW multi-block grid with a singular vertex: a hexagon split into three blocks (three cells around the centre node), dam break over the vertex, two levels in a box and following the surface jumps: degenerate ring corner cells solid, no refinement around the vertex (p2tests/t6).",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 60,
+ "files": [
+  "blocks.dat"
+ ],
+ "tags": [
+  "2d",
+  "sflow",
+  "curvilinear",
+  "multiblock",
+  "amr"
+ ],
+ "covers": [
+  "singular vertices (blocks_refine_setup), degenerate ring cells (lexer::geometry_ini), corner cells through one face"
+ ]
+}

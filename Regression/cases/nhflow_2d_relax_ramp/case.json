@@ -1,0 +1,19 @@
+{
+ "description": "NHFLOW 2D wave tank, linear waves (B 92 2, H 0.5 m, T 4.5 s, h 4 m) from a relaxation zone (B 98 2) with the start-up ramp B 101 1 over two periods (B 102 2); beach B 99 1. The ramp acts on the wave only: before hans_dev fe03b66a it also scaled the still water depth of the zone (WL target 0 at t = 0, umax 5 m/s in this case).",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 100,
+ "tags": [
+  "quick",
+  "2d",
+  "nhflow",
+  "waves",
+  "iowave",
+  "ramp"
+ ],
+ "covers": [
+  "iowave::WL_relax B 101 ramp",
+  "iowave_nhflow_relax",
+  "iowave::ramp"
+ ]
+}

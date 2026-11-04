@@ -33,9 +33,10 @@ using namespace std;
 class picard
 {
 public:
-    virtual void volcalc(lexer*, fdm*, ghostcell*, field&)=0;
-    virtual void correct_ls(lexer*, fdm*, ghostcell*, field&)=0;
+    virtual ~picard() = default;
 
+    virtual void volcalc(lexer *, fdm *, ghostcell *, field &) = 0;
+    virtual void correct_ls(lexer *, fdm *, ghostcell *, field &) = 0;
 };
 
 #endif

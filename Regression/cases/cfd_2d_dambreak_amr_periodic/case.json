@@ -1,0 +1,33 @@
+{
+ "base": "cfd_2d_dambreak",
+ "np": 1,
+ "steps": 120,
+ "control_add": [
+  "C 21 1"
+ ],
+ "ctrl_set": {
+  "F 54": "0.20"
+ },
+ "ctrl_add": [
+  "F 51 0.05",
+  "G 1 1",
+  "G 24 3",
+  "G 2 2",
+  "G 5 0"
+ ],
+ "description": "Adaptive CFD refinement in a tank periodic in x (C 21 1): the water column x 0.05-0.20 collapses to both sides, the left front runs across the periodic edge. The refined region is kept alike on both sides of the edge (tiles added), the margin of the patches across it comes from the patches at the other end (siblings); the level-0 multigrid of the composite solve periodic.",
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "levelset",
+  "amr",
+  "adaptive",
+  "periodic"
+ ],
+ "covers": [
+  "reefamr3d: wrapped tiles, nesting and fills across a periodic edge (seam)",
+  "cfd_amr: the level-0 halo of the composite vectors (gc_periodic), REEFMG periodic",
+  "the joint multigrid of patches next to each other across the edge"
+ ]
+}

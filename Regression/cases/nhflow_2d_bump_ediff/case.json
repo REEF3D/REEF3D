@@ -1,0 +1,1 @@
+{"description": "NHFLOW 2D flow over a bump, constant viscosity W 2 0.01, explicit momentum diffusion (A 512 1), bed shear A 519 1: sigma face metrics and the A 513 wall rule in nhflow_ediff, viscous time-step limit.", "solver": "nhflow", "np": 1, "steps": 300, "tags": ["nhflow", "diffusion"], "covers": ["nhflow_ediff", "nhflow_timestep viscous limit"]}

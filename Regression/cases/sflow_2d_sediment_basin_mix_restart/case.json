@@ -1,0 +1,29 @@
+{
+ "base": "sflow_2d_sediment_basin_mix_ckpt",
+ "np": 1,
+ "steps": 300,
+ "same_as": "sflow_2d_sediment_basin_mix_ckpt",
+ "chain": [
+  {
+   "case": "sflow_2d_sediment_basin_mix_ckpt",
+   "copy": [
+    "REEF3D_Checkpoint"
+   ]
+  }
+ ],
+ "ctrl_set": {
+  "I 45": "200"
+ },
+ "description": "the restart of sflow_2d_sediment_basin_mix_ckpt from its checkpoint at step 200 (I 45 200): the SFLOW registry (tag reg) with the sediment and mixture slices, the fraction flags and the mixture log; regression.py ranks: the final state bitwise those of the uninterrupted run.",
+ "tags": [
+  "2d",
+  "sflow",
+  "sediment",
+  "mixture",
+  "checkpoint"
+ ],
+ "covers": [
+  "cfd_ckpt_write/read tag reg (SFLOW)",
+  "sediment_f::ckpt_state (mixture)"
+ ]
+}

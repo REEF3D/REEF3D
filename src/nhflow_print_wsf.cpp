@@ -24,6 +24,8 @@ Author: Hans Bihs
 #include "fdm_nhf.h"
 #include "ghostcell.h"
 #include "lexer.h"
+#include "probe_core.h"
+#include "reefckpt.h"
 #include "runlog.h"
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -42,25 +44,37 @@ nhflow_print_wsf::nhflow_print_wsf(lexer *p, fdm_nhf *d) : fileFlushMaxCount(100
     if(p->mpirank == 0 && p->P51 > 0)
     {
         // open WSF file
-        wsfout.open("./REEF3D_NHFLOW_WSF/REEF3D-NHFLOW-WSF-HG.dat");
+        const bool head = reefckpt_open(wsfout, "./REEF3D_NHFLOW_WSF/REEF3D-NHFLOW-WSF-HG.dat", p->I45);  // I 45: continued
         if(p->plog)
             p->plog->table_file(p, "wsf", "gauges", "./REEF3D_NHFLOW_WSF/REEF3D-NHFLOW-WSF-HG.dat");
 
-        wsfout << "number of gauges:  " << gauge_num << endl
-               << endl;
-        wsfout << "x_coord     y_coord" << endl;
-        for(n = 0; n < gauge_num; ++n)
-            wsfout << n + 1 << "\t " << p->Xout(x[n], y[n]) << "\t " << y[n] << endl;
+        if(head)
+        {
+            wsfout << "number of gauges:  " << gauge_num << endl
+                   << endl;
+            wsfout << "x_coord     y_coord" << endl;
+            for(n = 0; n < gauge_num; ++n)
+                wsfout << n + 1 << "\t " << p->Xout(x[n], y[n]) << "\t " << y[n] << endl;
 
-        wsfout << endl
-               << endl;
+            wsfout << endl
+                   << endl;
 
-        wsfout << "time";
-        for(n = 0; n < gauge_num; ++n)
-            wsfout << "\tP" << n + 1;
+            wsfout << "time";
+            for(n = 0; n < gauge_num; ++n)
+                wsfout << "\tP" << n + 1;
 
-        wsfout << endl;
+            wsfout << endl;
+        }
     }
+
+    //-------------------
+
+    p->Iarray(iloc, gauge_num);
+    p->Iarray(jloc, gauge_num);
+    p->Iarray(flag, gauge_num);
+    p->Darray(wsf, gauge_num);
+    p->Darray(deta, gauge_num);
+    p->Darray(Uhorz, gauge_num);
 
     //-------------------
 
@@ -81,6 +95,11 @@ nhflow_print_wsf::~nhflow_print_wsf()
 
 void nhflow_print_wsf::height_gauge(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &f)
 {
+
+    fill_eta(p, d, pgc, f);
+
+    // write to file
+    gauge_row(p, wsfout, wsf, gauge_num, fileFlushMaxCount);
 
     fill_eta(p, d, pgc, f);
 
@@ -106,19 +125,26 @@ void nhflow_print_wsf::fill_eta(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &f)
     for(n = 0; n < gauge_num; ++n)
         wsf[n] = -1.0e20;
 
+    // the mesh refinement: the finest grid at the gauge (one rank writes it)
+    amr_points ap;
+    if(amr != nullptr)
+        ap.find(amr, p, gauge_num, x, y, flag);
+
     for(n = 0; n < gauge_num; ++n)
-        if(flag[n] > 0)
+        if(amr == nullptr ? flag[n] > 0 : ap.mine[n] != 0)
         {
             zval = 0.0;
 
             i = iloc[n];
             j = jloc[n];
 
-            wsf[n] = p->ccslipol4(f, x[n], y[n]);
+            if(amr != nullptr && ap.f[n] != nullptr)
+                wsf[n] = ap.q[n]->ccslipol4(static_cast<fdm_nhf *>(ap.f[n])->eta, x[n], y[n]);
+            else
+                wsf[n] = p->ccslipol4(f, x[n], y[n]);
         }
 
-    for(n = 0; n < gauge_num; ++n)
-        wsf[n] = pgc->globalmax(wsf[n]);
+    pgc->globalmax(wsf, gauge_num);  // one reduction for all gauges
 }
 
 void nhflow_print_wsf::fill_deta(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &f)

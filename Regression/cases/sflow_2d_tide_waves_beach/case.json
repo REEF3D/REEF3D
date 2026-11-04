@@ -1,0 +1,19 @@
+{
+ "solver": "sflow",
+ "np": 1,
+ "steps": 300,
+ "description": "SFLOW channel 2 km: tide through Riemann edges, linear waves (H 0.5 m, T 6 s) from a relaxation zone with background + waves (B 523), beach zone relaxing to the tide.",
+ "tags": [
+  "quick",
+  "2d",
+  "sflow",
+  "tide",
+  "iowave",
+  "bc_zone",
+  "background"
+ ],
+ "covers": [
+  "backgrounds in SFLOW relaxation and beach zones (eta, U)",
+  "B 520 beach zones in SFLOW"
+ ]
+}

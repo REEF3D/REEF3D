@@ -24,6 +24,7 @@ Author: Tobias Martin
 #include "ghostcell.h"
 #include "lexer.h"
 #include "net_barQuasiStatic.h"
+#include "reefckpt.h"
 #include <sys/stat.h>
 
 void net_barQuasiStatic::cyl_ini(lexer *p, ghostcell *pgc)
@@ -431,7 +432,7 @@ void net_barQuasiStatic::cyl_ini(lexer *p, ghostcell *pgc)
     }
 
     // Geometrical constraints for boundary meshes, positiv clockwise
-    int addOwner, addNeigh;
+    int addOwner = -1, addNeigh = -1;
 
     for(int i = 0; i < nd; i++)
     {
@@ -519,8 +520,10 @@ void net_barQuasiStatic::cyl_ini(lexer *p, ghostcell *pgc)
     {
         char str[1000];
         sprintf(str, "./REEF3D_CFD_6DOF/REEF3D_6DOF_Net_Forces_%i.dat", nNet);
-        eTout.open(str);
-        eTout << "time [s] \t Tmax [N] \t Fx [N] \t Fy [N] \t Fz [N]" << endl;
+        if(reefckpt_open(eTout, str, p->I45))  // I 45: continued from the checkpoint
+        {
+            eTout << "time [s] \t Tmax [N] \t Fx [N] \t Fy [N] \t Fz [N]" << endl;
+        }
     }
     printtime = 0.0;
 

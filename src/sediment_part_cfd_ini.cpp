@@ -12,7 +12,7 @@ the Free Software Foundation; either version 3 of the License, or
 This program is distributed in the hope that it will be useful, but WITHOUT
 ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
-for more details->
+for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
@@ -40,7 +40,7 @@ void sediment_part::ini_cfd(lexer *p, fdm *a, ghostcell *pgc)
         KLOOP
         PBASECHECK
         if(a->topo(i, j, k - 1) < 0.0 && a->topo(i, j, k) > 0.0)
-            h = -(a->topo(i, j, k - 1) * p->DZP[KP]) / (a->topo(i, j, k) - a->topo(i, j, k - 1)) + p->pos_z() - p->DZP[KP];
+            h = -(a->topo(i, j, k - 1) * p->DZP[KM1]) / (a->topo(i, j, k) - a->topo(i, j, k - 1)) + p->pos_z() - p->DZP[KM1];
 
         s->bedzh(i, j) = h;
         s->bedzh0(i, j) = h;
@@ -72,6 +72,14 @@ void sediment_part::ini_cfd(lexer *p, fdm *a, ghostcell *pgc)
 
     pst->ini_fields(p, a, pgc, s);
     pst->print_particles(p, s);
+
+    // the turbulence model for the bed shear stress of the layer (Q 68 1) before the first call of move: the bed
+    // shear stress of the start (and of the first bed file after a restart) was without the k term
+    pst->set_turbulence(pturb);
+    pst->ini_fields(p, a, pgc, s);
+    // a restart (I 45): the particle files continue from the checkpoint
+    if(p->I45 != 1)
+        pst->print_particles(p, s);
 
     // S 10 2 two-way (Q 50 1): the bed is no solid for the fluid, the fluid flows through
     // the parcels and feels their drag; topo stays as the bed level for output

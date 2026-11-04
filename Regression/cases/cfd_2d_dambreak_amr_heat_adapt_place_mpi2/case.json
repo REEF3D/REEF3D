@@ -1,0 +1,22 @@
+{
+ "base": "cfd_2d_dambreak_amr_heat_adapt_mpi2",
+ "np": 2,
+ "ctrl_add": [
+  "G 40 1"
+ ],
+ "description": "Heat with adaptive refinement, G 7 1 and the placement (G 40 1) on 2 ranks: the coarse fluxes of the flux registers from the shadows, the refluxing added on the rank of the coarse cell.",
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "levelset",
+  "amr",
+  "adaptive",
+  "mpi",
+  "heat",
+  "place"
+ ],
+ "covers": [
+  "sc_record_shadows, sc_reflux through pu_cc"
+ ]
+}

@@ -1,0 +1,7 @@
+{
+ "base": "nhflow_2d_current_log_profile",
+ "description": "nhflow_2d_current_log_profile with the 1/7 power law (B 513 profile 2, n 7).",
+ "tags": ["quick", "2d", "nhflow", "current", "iowave", "bc_zone", "background", "profile"],
+ "covers": ["B 513 power-law profile"],
+ "ctrl_set": {"B 513": "1 2 7.0"}
+}

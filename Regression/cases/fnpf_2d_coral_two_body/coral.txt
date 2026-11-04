@@ -1,0 +1,12 @@
+# CORAL model of the two-body absorber: the spar on a heave joint to the ground, the float (released 2 cm high)
+# on a prismatic joint to the spar with a PTO damper
+# Architect: Hans Bihs
+time dt 0.005 end 100
+output dt 0.01 file two.dat
+body float mass 1.0 cog 6.0 0.025 0.52
+body spar mass 1.0 cog 7.8 0.025 0.5
+joint spar_heave prismatic ground spar point 7.8 0.025 0.5 axis 0 0 1
+joint link prismatic spar float point 6.0 0.025 0.52 axis 0 0 1
+pto pto joint link c 30.0
+fluid_body float n 0
+fluid_body spar n 1

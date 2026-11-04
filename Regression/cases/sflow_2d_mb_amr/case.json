@@ -1,0 +1,21 @@
+{
+ "base": "sflow_2d_mb_quadrants",
+ "ctrl_add": [
+  "G 1 2",
+  "G 2 0",
+  "G 3 2",
+  "G 4 8",
+  "G 10 13.0 22.0 12.0 21.0"
+ ],
+ "description": "As sflow_2d_mb_quadrants with two refinement levels in a static box over the vertex: patches in all four blocks, cut at the block faces, filled and flux-matched across the turned interfaces. The same solution as one block with the same box to round-off (p2tests/t4).",
+ "tags": [
+  "2d",
+  "sflow",
+  "curvilinear",
+  "multiblock",
+  "amr"
+ ],
+ "covers": [
+  "canonical fills across block faces, block_face_map (turned flux matching, sgn), tile maps over the block index space, blocks_propagate, bed_at/area_at of the blocks"
+ ]
+}

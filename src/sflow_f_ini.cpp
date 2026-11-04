@@ -31,6 +31,7 @@ Author: Hans Bihs
 #include "hypre_struct2D.h"
 #endif
 #include "6DOF_sflow.h"
+#include "reefrun_ckpt.h"
 #include "sflow_amr.h"
 #include "sflow_eta.h"
 #include "sflow_etimestep.h"
@@ -67,9 +68,14 @@ void sflow_f::ini(lexer *p, fdm2D *b, ghostcell *pgc)
 
     TPSLICELOOP
     {
-        ++count;
-        ++p->pointnum2D;
-        b->nodeval(i, j) = count;
+        SLICELOOP4
+        {
+            // (one cell in y: the y neighbours are the cell itself, the value of its Neumann ghost cells)
+            const int js = (p->j_dir == 1) ? j - 1 : j, jn = (p->j_dir == 1) ? j + 1 : j;
+            b->bed(i, j) = b->bed0(i, j) = 0.5 * b->bed(i, j) + 0.125 * (b->bed(i - 1, j) + b->bed(i + 1, j) + b->bed(i, js) + b->bed(i, jn));
+        }
+
+        pgc->gcsl_start4(p, b->bed, 50);
     }
 
     SLICEBASELOOP
@@ -167,6 +173,9 @@ void sflow_f::ini(lexer *p, fdm2D *b, ghostcell *pgc)
     // potential flow ini: sets the cell-centred U,V directly (I 11 1)
     potflow->start(p, b, ppoissonsolv, pgc);
 
+    // steady 1D river flow (F 65 2): velocities of the wet cells
+    ini_river(p, b, pgc, 1);
+
     // FSF ini
     ini_fsf_2(p, b, pgc);
 
@@ -183,6 +192,10 @@ void sflow_f::ini(lexer *p, fdm2D *b, ghostcell *pgc)
     SLICELOOP4
     b->ks(i, j) = p->B50;
 
+    // a roughness without bed friction (A 218 0): B 50 then acts only in the turbulence models and the sediment
+    if(p->mpirank == 0 && p->A218 == 0 && p->B50 != 0.0001)
+        cout << "!!! B 50 " << p->B50 << " is set but A 218 0: no bed friction (A 218 1: Manning, n = ks^(1/6)/20)" << endl;
+
     pgc->gcsl_start4(p, b->ks, 50);
 
     // sediment ini
@@ -192,16 +205,29 @@ void sflow_f::ini(lexer *p, fdm2D *b, ghostcell *pgc)
     if(pamr != nullptr)
     {
         pamr->ini(p, b, pgc);
+        pprint->amr_columns(pamr);  // the wave gauges and probes on the finest grid
+        pamr->sed_attach(psed);
         pamr->timestep(p, b, pgc);
-        pamr->print(p, b, pgc);
+        if(p->I45 != 1)
+            pamr->print(p, b, pgc);
     }
+
+    // checkpoints (P 48): a case they do not cover says so now, not only at the first checkpoint
+    if(p->P48 > 0 || p->P48_dt > 0.0)
+        ckpt(p, b, pgc);
+
+    // restart from the latest checkpoint (I 45 1): the state at the end of its step
+    if(p->I45 == 1)
+        ckpt(p, b, pgc).read();
 
     // print
     log_ini(p);
-    print_debug(p, b, pgc);
-    pprint->start(p, b, pgc, pflow, pturb, psed);
-
-    pprintbed->start(p, b, pgc, psed);
+    if(p->I45 != 1)
+    {
+        print_debug(p, b, pgc);
+        pprint->start(p, b, pgc, pflow, pturb, psed);
+        pprintbed->start(p, b, pgc, psed);
+    }
 }
 
 void sflow_f::ini_fsf(lexer *p, fdm2D *b, ghostcell *pgc)
@@ -218,6 +244,14 @@ void sflow_f::ini_fsf(lexer *p, fdm2D *b, ghostcell *pgc)
         p->wd = p->F60;
     }
 
+    // river free-surface initialisation (F 65): reference level at the outflow when F 60 is not given
+    if(p->F65 > 0 && p->F60 < -1.0e19 && p->F62 > -1.0e19)
+    {
+        p->phimean = p->F62;
+        p->phiout = p->F62;
+        p->wd = p->F62;
+    }
+
     // eta plain
     SLICELOOP4
     b->eta(i, j) = 0.0;
@@ -227,19 +261,31 @@ void sflow_f::ini_fsf(lexer *p, fdm2D *b, ghostcell *pgc)
         SLICELOOP4
     b->eta(i, j) = -p->A251_val * (p->XP[IP] - p->global_xmin);
 
-    // eta box area
-    for(int qn = 0; qn < p->F72; ++qn)
-    {
-        istart = p->posc_i(p->F72_xs[qn]);
-        iend = p->posc_i(p->F72_xe[qn]);
+    // eta box area (curvilinear grid: the cells whose centroid lies in the box)
+    if(p->geo_curv == 1)
+        for(int qn = 0; qn < p->F72; ++qn)
+        {
+            SLICELOOP4
+            if(p->XC2D[IJ] >= p->F72_xs[qn] && p->XC2D[IJ] < p->F72_xe[qn] && p->YC2D[IJ] >= p->F72_ys[qn] && p->YC2D[IJ] < p->F72_ye[qn])
+                b->eta(i, j) = p->F72_h[qn] - p->wd;
+        }
 
-        jstart = p->posc_j(p->F72_ys[qn]);
-        jend = p->posc_j(p->F72_ye[qn]);
+    if(p->geo_curv == 0)
+        for(int qn = 0; qn < p->F72; ++qn)
+        {
+            istart = p->posc_i(p->F72_xs[qn]);
+            iend = p->posc_i(p->F72_xe[qn]);
 
-        SLICELOOP4
-        if(i >= istart && i < iend && j >= jstart && j < jend)
-            b->eta(i, j) = p->F72_h[qn] - p->wd;
-    }
+            jstart = p->posc_j(p->F72_ys[qn]);
+            jend = p->posc_j(p->F72_ye[qn]);
+
+            SLICELOOP4
+            if(i >= istart && i < iend && j >= jstart && j < jend)
+                b->eta(i, j) = p->F72_h[qn] - p->wd;
+        }
+
+    // river free-surface initialisation along the i-direction (F 65)
+    ini_river(p, b, pgc, 0);
 
     // ini hxy
     SLICELOOP1
@@ -254,9 +300,9 @@ void sflow_f::ini_fsf(lexer *p, fdm2D *b, ghostcell *pgc)
         i = p->gcslin[n][0];
         j = p->gcslin[n][1];
 
-        b->eta(i - 1, j) = 0.0;
-        b->eta(i - 2, j) = 0.0;
-        b->eta(i - 3, j) = 0.0;
+        b->eta(i - 1, j) = p->F65 > 0 ? b->eta(i, j) : 0.0;
+        b->eta(i - 2, j) = p->F65 > 0 ? b->eta(i, j) : 0.0;
+        b->eta(i - 3, j) = p->F65 > 0 ? b->eta(i, j) : 0.0;
 
         b->hp(i - 1, j) = MAX(b->eta(i - 1, j) + p->wd - b->bed(i, j), 0.0);
         b->hp(i - 2, j) = MAX(b->eta(i - 2, j) + p->wd - b->bed(i, j), 0.0);
@@ -285,9 +331,10 @@ void sflow_f::ini_fsf(lexer *p, fdm2D *b, ghostcell *pgc)
 
         if(p->gcbsl1[n][4] == 1)
         {
-            b->hx(i - 1, j) = MAX(p->wd - b->bed(i, j), 0.0);
-            b->hx(i - 2, j) = MAX(p->wd - b->bed(i, j), 0.0);
-            b->hx(i - 3, j) = MAX(p->wd - b->bed(i, j), 0.0);
+            const double wli = p->F65 > 0 ? b->eta(i, j) + p->wd : p->wd;
+            b->hx(i - 1, j) = MAX(wli - b->bed(i, j), 0.0);
+            b->hx(i - 2, j) = MAX(wli - b->bed(i, j), 0.0);
+            b->hx(i - 3, j) = MAX(wli - b->bed(i, j), 0.0);
         }
 
         if(p->gcbsl1[n][4] == 2)
@@ -298,6 +345,58 @@ void sflow_f::ini_fsf(lexer *p, fdm2D *b, ghostcell *pgc)
         }
     }
 
+    if(p->gcbsl1[n][4] == 2)
+    {
+        b->hx(i + 1, j) = MAX(p->wd - b->bed(i, j), 0.0);
+        b->hx(i + 2, j) = MAX(p->wd - b->bed(i, j), 0.0);
+        b->hx(i + 3, j) = MAX(p->wd - b->bed(i, j), 0.0);
+    }
+}
+
+GCSL2LOOP
+{
+    i = p->gcbsl2[n][0];
+    j = p->gcbsl2[n][1];
+
+    if(p->gcbsl2[n][4] == 1)
+    {
+        const double wli = p->F65 > 0 ? b->eta(i, j) + p->wd : p->wd;
+        b->hy(i - 1, j) = MAX(wli - b->bed(i, j), 0.0);
+        b->hy(i - 2, j) = MAX(wli - b->bed(i, j), 0.0);
+        b->hy(i - 3, j) = MAX(wli - b->bed(i, j), 0.0);
+    }
+
+    if(p->gcbsl2[n][4] == 2)
+    {
+        b->hy(i + 1, j) = MAX(p->wd - b->bed(i, j), 0.0);
+        b->hy(i + 2, j) = MAX(p->wd - b->bed(i, j), 0.0);
+        b->hy(i + 3, j) = MAX(p->wd - b->bed(i, j), 0.0);
+    }
+}
+
+if(p->gcbsl2[n][4] == 2)
+{
+    b->hy(i + 1, j) = MAX(p->wd - b->bed(i, j), 0.0);
+    b->hy(i + 2, j) = MAX(p->wd - b->bed(i, j), 0.0);
+    b->hy(i + 3, j) = MAX(p->wd - b->bed(i, j), 0.0);
+}
+}
+
+if(p->F61 > -1.0e20)
+{
+    GCSL1LOOP
+    {
+        i = p->gcbsl1[n][0];
+        j = p->gcbsl1[n][1];
+
+        if(p->gcbsl1[n][4] == 1)
+        {
+            b->hx(i - 1, j) = MAX(p->F61 - b->bed(i, j), 0.0);
+            b->hx(i - 2, j) = MAX(p->F61 - b->bed(i, j), 0.0);
+            b->hx(i - 3, j) = MAX(p->F61 - b->bed(i, j), 0.0);
+        }
+    }
+
     GCSL2LOOP
     {
         i = p->gcbsl2[n][0];
@@ -305,111 +404,76 @@ void sflow_f::ini_fsf(lexer *p, fdm2D *b, ghostcell *pgc)
 
         if(p->gcbsl2[n][4] == 1)
         {
-            b->hy(i - 1, j) = MAX(p->wd - b->bed(i, j), 0.0);
-            b->hy(i - 2, j) = MAX(p->wd - b->bed(i, j), 0.0);
-            b->hy(i - 3, j) = MAX(p->wd - b->bed(i, j), 0.0);
+            b->hy(i - 1, j) = MAX(p->F61 - b->bed(i, j), 0.0);
+            b->hy(i - 2, j) = MAX(p->F61 - b->bed(i, j), 0.0);
+            b->hy(i - 3, j) = MAX(p->F61 - b->bed(i, j), 0.0);
         }
+    }
+}
+
+if(p->F62 > -1.0e20 && p->F64 == 0)
+{
+    GCSL1LOOP
+    {
+        i = p->gcbsl1[n][0];
+        j = p->gcbsl1[n][1];
+
+        if(p->gcbsl1[n][4] == 2)
+        {
+            b->hx(i + 1, j) = MAX(p->F62 - b->bed(i, j), 0.0);
+            b->hx(i + 2, j) = MAX(p->F62 - b->bed(i, j), 0.0);
+            b->hx(i + 3, j) = MAX(p->F62 - b->bed(i, j), 0.0);
+        }
+    }
+
+    GCSL2LOOP
+    {
+        i = p->gcbsl2[n][0];
+        j = p->gcbsl2[n][1];
 
         if(p->gcbsl2[n][4] == 2)
         {
-            b->hy(i + 1, j) = MAX(p->wd - b->bed(i, j), 0.0);
-            b->hy(i + 2, j) = MAX(p->wd - b->bed(i, j), 0.0);
-            b->hy(i + 3, j) = MAX(p->wd - b->bed(i, j), 0.0);
+            b->hy(i + 1, j) = MAX(p->F62 - b->bed(i, j), 0.0);
+            b->hy(i + 2, j) = MAX(p->F62 - b->bed(i, j), 0.0);
+            b->hy(i + 3, j) = MAX(p->F62 - b->bed(i, j), 0.0);
         }
     }
 
-    if(p->F61 > -1.0e20)
+    for(n = 0; n < p->gcslout_count; n++)
     {
-        GCSL1LOOP
-        {
-            i = p->gcbsl1[n][0];
-            j = p->gcbsl1[n][1];
+        i = p->gcslout[n][0];
+        j = p->gcslout[n][1];
 
-            if(p->gcbsl1[n][4] == 1)
-            {
-                b->hx(i - 1, j) = MAX(p->F61 - b->bed(i, j), 0.0);
-                b->hx(i - 2, j) = MAX(p->F61 - b->bed(i, j), 0.0);
-                b->hx(i - 3, j) = MAX(p->F61 - b->bed(i, j), 0.0);
-            }
-        }
+        b->eta(i, j) = p->F62 - p->wd;
+        b->eta(i + 1, j) = p->F62 - p->wd;
+        b->eta(i + 2, j) = p->F62 - p->wd;
+        b->eta(i + 3, j) = p->F62 - p->wd;
 
-        GCSL2LOOP
-        {
-            i = p->gcbsl2[n][0];
-            j = p->gcbsl2[n][1];
-
-            if(p->gcbsl2[n][4] == 1)
-            {
-                b->hy(i - 1, j) = MAX(p->F61 - b->bed(i, j), 0.0);
-                b->hy(i - 2, j) = MAX(p->F61 - b->bed(i, j), 0.0);
-                b->hy(i - 3, j) = MAX(p->F61 - b->bed(i, j), 0.0);
-            }
-        }
+        b->hp(i, j) = MAX(b->eta(i + 1, j) + p->wd - b->bed(i, j), 0.0);
+        b->hp(i + 1, j) = MAX(b->eta(i + 1, j) + p->wd - b->bed(i, j), 0.0);
+        b->hp(i + 2, j) = MAX(b->eta(i + 2, j) + p->wd - b->bed(i, j), 0.0);
+        b->hp(i + 3, j) = MAX(b->eta(i + 3, j) + p->wd - b->bed(i, j), 0.0);
     }
+}
 
-    if(p->F62 > -1.0e20 && p->F64 == 0)
-    {
-        GCSL1LOOP
-        {
-            i = p->gcbsl1[n][0];
-            j = p->gcbsl1[n][1];
+ini_wl(p, b, pgc);
 
-            if(p->gcbsl1[n][4] == 2)
-            {
-                b->hx(i + 1, j) = MAX(p->F62 - b->bed(i, j), 0.0);
-                b->hx(i + 2, j) = MAX(p->F62 - b->bed(i, j), 0.0);
-                b->hx(i + 3, j) = MAX(p->F62 - b->bed(i, j), 0.0);
-            }
-        }
+int gcval_eta;
 
-        GCSL2LOOP
-        {
-            i = p->gcbsl2[n][0];
-            j = p->gcbsl2[n][1];
+if(p->F50 == 1)
+    gcval_eta = 51;
 
-            if(p->gcbsl2[n][4] == 2)
-            {
-                b->hy(i + 1, j) = MAX(p->F62 - b->bed(i, j), 0.0);
-                b->hy(i + 2, j) = MAX(p->F62 - b->bed(i, j), 0.0);
-                b->hy(i + 3, j) = MAX(p->F62 - b->bed(i, j), 0.0);
-            }
-        }
+if(p->F50 == 2)
+    gcval_eta = 52;
 
-        for(n = 0; n < p->gcslout_count; n++)
-        {
-            i = p->gcslout[n][0];
-            j = p->gcslout[n][1];
+if(p->F50 == 3)
+    gcval_eta = 53;
 
-            b->eta(i, j) = p->F62 - p->wd;
-            b->eta(i + 1, j) = p->F62 - p->wd;
-            b->eta(i + 2, j) = p->F62 - p->wd;
-            b->eta(i + 3, j) = p->F62 - p->wd;
+if(p->F50 == 4)
+    gcval_eta = 54;
 
-            b->hp(i, j) = MAX(b->eta(i + 1, j) + p->wd - b->bed(i, j), 0.0);
-            b->hp(i + 1, j) = MAX(b->eta(i + 1, j) + p->wd - b->bed(i, j), 0.0);
-            b->hp(i + 2, j) = MAX(b->eta(i + 2, j) + p->wd - b->bed(i, j), 0.0);
-            b->hp(i + 3, j) = MAX(b->eta(i + 3, j) + p->wd - b->bed(i, j), 0.0);
-        }
-    }
-
-    ini_wl(p, b, pgc);
-
-    int gcval_eta;
-
-    if(p->F50 == 1)
-        gcval_eta = 51;
-
-    if(p->F50 == 2)
-        gcval_eta = 52;
-
-    if(p->F50 == 3)
-        gcval_eta = 53;
-
-    if(p->F50 == 4)
-        gcval_eta = 54;
-
-    pgc->gcsl_start1(p, b->hx, gcval_eta);
-    pgc->gcsl_start2(p, b->hy, gcval_eta);
+pgc->gcsl_start1(p, b->hx, gcval_eta);
+pgc->gcsl_start2(p, b->hy, gcval_eta);
 }
 
 void sflow_f::ini_fsf_2(lexer *p, fdm2D *b, ghostcell *pgc)

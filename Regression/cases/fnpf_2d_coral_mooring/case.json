@@ -1,0 +1,9 @@
+{
+ "description": "REEF3D::CORAL mooring on an FNPF body (Z 40 1, fluid_body): the FNPF 2D box of validation 15 in regular waves, surge, heave and pitch through a planar joint, moored fore by a quasi-static line (elastic catenary with seabed) and aft by a dynamic line (lumped mass); REEF3D_FNPF_6DOF and REEF3D_CORAL (with the line forces) compared.",
+ "np": 1,
+ "steps": 200,
+ "ctrl_add": ["Z 40 1"],
+ "files": ["coral.txt"],
+ "tags": ["2d", "fnpf", "6dof", "floating", "mooring", "coral"],
+ "covers": ["CORAL mooring quasi_static and dynamic on a fluid body"]
+}

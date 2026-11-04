@@ -1,0 +1,27 @@
+{
+ "base": "nhflow_3d_mb_quadrants",
+ "steps": 20,
+ "ctrl_set": {
+  "F 72": null
+ },
+ "ctrl_add": [
+  "X 10 1",
+  "X 11 1 1 1 1 1 1",
+  "X 21 500.0",
+  "X 110 0.97999999999999998 1.3799999999999999 0.97000000000000008 1.1700000000000002 0.2 0.4",
+  "X 101 0.0 0.0 10.0",
+  "X 102 0.05 0.02 0.0",
+  "X 103 0.1 0.1 0.05"
+ ],
+ "description": "As nhflow_3d_mb_quadrants with a floating box over the vertex of the four turned blocks (sixdof_curvilinear/t3): the hull cast on every block, the loads of every triangle from the grid that holds each quadrature point, the triangle by the rank of the native cell (not the ring) or of the block piece that holds its centroid.",
+ "tags": [
+  "3d",
+  "nhflow",
+  "curvilinear",
+  "multiblock",
+  "6dof"
+ ],
+ "covers": [
+  "nhflow_amr: 6DOF on the blocks (body_patch at blocks_sigma, amr_owner/amr_grid with the blocks, amr_point_grid)"
+ ]
+}

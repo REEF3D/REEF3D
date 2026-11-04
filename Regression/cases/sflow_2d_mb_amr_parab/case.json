@@ -1,0 +1,20 @@
+{
+ "base": "sflow_2d_mb_amr",
+ "ctrl_add": [
+  "A 260 4",
+  "W 2 0.005"
+ ],
+ "tags": [
+  "2d",
+  "sflow",
+  "curvilinear",
+  "multiblock",
+  "amr",
+  "turbulence"
+ ],
+ "description": "As sflow_2d_mb_amr (four turned blocks around a vertex, two refinement levels) with the horizontal diffusion of W 2 and the parabolic eddy viscosity (A 260 4) on every grid: the stress through the faces of the blocks and of the patches from the ghost cells (both cells of a face the same flux).",
+ "covers": [
+  "sflow_amr: sflow_ediff of the patches and blocks with own_eddyv, the eddy viscosity of the first ghost layer",
+  "sflow_f_logic: A 260 3/4 with REEFAMR (sflow_turb_void on level 0)"
+ ]
+}

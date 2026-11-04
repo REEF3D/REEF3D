@@ -1,0 +1,20 @@
+{
+ "base": "nhflow_2d_si_harmonic_p160_ckpt",
+ "same_as": "nhflow_2d_si_harmonic_p160_ckpt",
+ "chain": [
+  {
+   "case": "nhflow_2d_si_harmonic_p160_ckpt",
+   "copy": [
+    "REEF3D_Checkpoint",
+    "REEF3D_NHFLOW_Tidal",
+    "REEF3D_NHFLOW_WSF"
+   ]
+  }
+ ],
+ "ctrl_set": {
+  "I 45": "2000"
+ },
+ "description": "the restart of nhflow_2d_si_harmonic_p160_ckpt from step 2000 (day 13.7, inside the record of P 160): the record and its sums from the checkpoint; regression.py ranks: the maps of days 20 and 30 (REEF3D_NHFLOW_Tidal), the final state and the text outputs bitwise those of the uninterrupted run.",
+ "tags": ["2d", "nhflow", "semi_implicit", "tide", "checkpoint"],
+ "covers": ["nhflow_longrun::ckpt_read: the bitwise continuation of the long-run statistics"]
+}

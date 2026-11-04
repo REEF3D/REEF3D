@@ -1,0 +1,21 @@
+{
+ "np": 1,
+ "steps": 20,
+ "solver": "nhflow",
+ "files": [
+  "curvgrid.dat"
+ ],
+ "tags": [
+  "3d",
+  "nhflow",
+  "curvilinear",
+  "6dof"
+ ],
+ "description": "Floating box (X 10 1, all degrees of freedom, initial linear and angular velocities) on a curvilinear grid turned by 30 deg at UTM coordinates (sixdof_curvilinear/t1): the hull on the sigma grid by the physical cell centres, the loads by the bilinear interpolation on the curvilinear cells.",
+ "covers": [
+  "sigma_io/sigma_band and fbnormal_curv on G 50",
+  "ccipol7V/ccslipol4/posc_sig curvilinear branches",
+  "geometry parameters about the body centre",
+  "remeshing length from the mean physical cell width"
+ ]
+}

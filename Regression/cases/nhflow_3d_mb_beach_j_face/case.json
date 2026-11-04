@@ -1,0 +1,20 @@
+{
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 100,
+ "files": [
+  "blocks.dat"
+ ],
+ "tags": [
+  "3d",
+  "nhflow",
+  "curvilinear",
+  "multiblock",
+  "tide",
+  "quick"
+ ],
+ "description": "A beach zone (B 520 3 2, 0.5 m) on the -j face of block 1 next to the Riemann tide edge on its -i face; the blocks turned in DIVEMesh to 1e-13 m (validation/13_j_face_zones).",
+ "covers": [
+  "ioflow_amr_block::zones on the j faces (one zone per face)"
+ ]
+}

@@ -1,0 +1,20 @@
+{
+ "base": "cfd_2d_cpm_bedload_layer_merge_mpi2",
+ "ctrl_set": {
+  "Q 180": "1",
+  "Q 182": "0.1",
+  "P 18": "2"
+ },
+ "same_as": "cfd_2d_cpm_bedload_layer_merge_mpi2",
+ "tags": [
+  "2d",
+  "cpm",
+  "mpi"
+ ],
+ "description": "as cfd_2d_cpm_bedload_layer_merge_mpi2 with the parcel output (Q 180 1, Q 182 0.1) as VTP files and in the LAGOON store (P 18 2): the parcels' numbers (id) and the store's particle set cfd_particles do not change the run (same_as, bitwise)",
+ "covers": [
+  "part::number and the parcel number ID across the parallel transfer, merge and split (Q 78)",
+  "CPM::print_lagoon (P 18): the parcels gathered on rank 0 into ./REEF3D_CFD.lagoon",
+  "CPM_print_vtp: the id array, the bed files (Q 58)"
+ ]
+}

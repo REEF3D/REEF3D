@@ -1,0 +1,30 @@
+{
+ "base": "nhflow_3d_si_amr_basin_ckpt",
+ "same_as": "nhflow_3d_si_amr_basin_ckpt",
+ "chain": [
+  {
+   "case": "nhflow_3d_si_amr_basin_ckpt",
+   "copy": [
+    "REEF3D_Checkpoint",
+    "REEF3D_NHFLOW_Log",
+    "REEF3D_NHFLOW_WSF",
+    "REEF3D_NHFLOW_AMR"
+   ]
+  }
+ ],
+ "ctrl_set": {
+  "I 45": "30"
+ },
+ "description": "the restart of nhflow_3d_si_amr_basin_ckpt from step 30 (I 45 30): the final state bitwise that of the uninterrupted run.",
+ "tags": [
+  "3d",
+  "nhflow",
+  "semi_implicit",
+  "amr",
+  "checkpoint"
+ ],
+ "covers": [
+  "nhflow_amr ckpt of the SI face discharges of the patches"
+ ],
+ "architect": "Hans Bihs"
+}

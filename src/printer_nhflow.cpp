@@ -33,6 +33,7 @@ Author: Hans Bihs
 #include "nhflow_print_Hs.h"
 #include "nhflow_print_runup_gage_x.h"
 #include "nhflow_print_runup_max_gage_x.h"
+#include "nhflow_print_scour.h"
 #include "nhflow_print_timeavg_wsfline.h"
 #include "nhflow_print_timeavg_wsfline_y.h"
 #include "nhflow_print_wsf.h"
@@ -43,6 +44,7 @@ Author: Hans Bihs
 #include "nhflow_probe_vel.h"
 #include "nhflow_probe_vel_theory.h"
 #include "nhflow_profile_u.h"
+#include "nhflow_scour.h"
 #include "nhflow_state.h"
 #include "nhflow_timeavg_vel_profile.h"
 #include "nhflow_turbulence.h"
@@ -86,8 +88,10 @@ printer_nhflow::printer_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     printcount = 0;
 
     p->Darray(printtime_wT, p->P35);
+    nP35 = p->P35;
     p->Iarray(printfsfiter_wI, p->P184);
     p->Darray(printfsftime_wT, p->P185);
+    nP185 = p->P185;
 
     for(int qn = 0; qn < p->P35; ++qn)
         printtime_wT[qn] = p->P35_ts[qn];
@@ -122,8 +126,11 @@ printer_nhflow::printer_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
     if(p->P148 > 0)
         ptimeavgvelprofile = new nhflow_timeavg_vel_profile(p, d);
 
-    if(p->P64 > 0)
-        ppressprobe = new nhflow_probe_press(p, d);
+    if(p->P83 > 0 || p->P84 > 0)
+        pscour = new nhflow_print_scour(p, d);
+
+    if(p->P67 > 0)
+        puprofile = new nhflow_profile_u(p, d);
 
     if(p->P65 > 0)
         pvel = new nhflow_probe_vel(p, d);
@@ -173,10 +180,32 @@ printer_nhflow::printer_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
         pfsf = new nhflow_vtp_fsf(p, d, pgc);
 
     pbed = new nhflow_vtp_bed(p);
+
+    // P 187: scour parameters in the bed output, written with the free surface, P 198: scour gauges
+    // (not with mesh refinement)
+    const bool scour = p->P187 == 1 || p->P198 > 0;
+
+    if(scour && p->G1 > 0 && p->mpirank == 0)
+        cout << "NHFLOW scour (P 187, P 198) is not available with mesh refinement (G 1), off" << endl;
+
+    if(scour && p->G1 <= 0)
+    {
+        pscourbed = new nhflow_scour(p, d, pgc);
+
+        if(p->P187 == 1)
+            pbed->scour = pscourbed;
+    }
 }
 
 void printer_nhflow::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, nhflow_turbulence *pnhfturb, sediment *psed)
 {
+    // P 187, P 198: near-bed velocity statistics, every time step, and the scour gauges
+    if(pscourbed != nullptr)
+    {
+        pscourbed->sample(p, d, pgc);
+        pscourbed->gauges(p, pgc);
+    }
+
     // Gages
     if(p->P51 > 0)
         pwsf->height_gauge(p, d, pgc, d->eta);
@@ -193,11 +222,14 @@ void printer_nhflow::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, 
     if(p->P134 > 0)
         prunupmaxx->start(p, d, pgc, pflow, d->eta);
 
-    if(p->P64 > 0)
-        ppressprobe->start(p, d, pgc);
+    if(pscour != nullptr)
+        pscour->start(p, d, pgc);
 
-    if(p->P65 > 0)
-        pvel->start(p, d, pgc);
+    if(p->P66 > 0)
+        pveltheo->start(p, d, pgc, pflow);
+
+    if(pfsf != nullptr)
+        pfsf->preproc(p, d, pgc);
 
     if(p->P66 > 0)
         pveltheo->start(p, d, pgc, pflow);
@@ -242,28 +274,28 @@ void printer_nhflow::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, 
     // Print FSF + Bed
     if(((p->count % p->P181 == 0 && p->P182 < 0.0 && p->P183 < 0.0 && p->P180 == 1) || (p->count == 0 && p->P182 < 0.0 && p->P180 == 1)) && p->P181 > 0)
     {
-        pfsf->start(p, d, pgc, psed);
+        print_fsf(p, d, pgc, psed, pnhfturb);
 
-        if(p->S10 > 0)
-            pbed->start(p, d, pgc, psed);
+        if(p->S10 > 0 || p->P187 == 1)
+            print_bed(p, d, pgc, psed);
     }
 
-    if((p->simtime > p->fsfprinttime && p->P182 > 0.0 && p->P183 < 0.0 && p->P180 == 1) || (p->count == 0 && p->P182 > 0.0))
+    if((p->simtime > p->fsfprinttime && p->P182 > 0.0 && p->P183 < 0.0 && p->P180 == 1) || (p->count == 0 && p->P182 > 0.0 && p->P180 == 1))
     {
-        pfsf->start(p, d, pgc, psed);
+        print_fsf(p, d, pgc, psed, pnhfturb);
 
-        if(p->S10 > 0)
-            pbed->start(p, d, pgc, psed);
+        if(p->S10 > 0 || p->P187 == 1)
+            print_bed(p, d, pgc, psed);
 
         p->fsfprinttime += p->P182;
     }
 
     if((p->sedtime > p->fsfsedprinttime && p->P182 < 0.0 && p->P183 > 0.0 && p->P180 == 1) || (p->count == 0 && p->P183 > 0.0))
     {
-        pfsf->start(p, d, pgc, psed);
+        print_fsf(p, d, pgc, psed, pnhfturb);
 
-        if(p->S10 > 0)
-            pbed->start(p, d, pgc, psed);
+        if(p->S10 > 0 || p->P187 == 1)
+            print_bed(p, d, pgc, psed);
 
         p->fsfsedprinttime += p->P183;
     }
@@ -272,27 +304,29 @@ void printer_nhflow::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, 
         for(int qn = 0; qn < p->P184; ++qn)
             if(p->count % p->P184_dit[qn] == 0 && p->count >= p->P184_its[qn] && p->count <= (p->P184_ite[qn]))
             {
-                pfsf->start(p, d, pgc, psed);
+                print_fsf(p, d, pgc, psed, pnhfturb);
 
-                if(p->S10 > 0)
-                    pbed->start(p, d, pgc, psed);
+                if(p->S10 > 0 || p->P187 == 1)
+                    print_bed(p, d, pgc, psed);
             }
 
     if(p->P180 == 1 && p->P185 > 0)
         for(int qn = 0; qn < p->P185; ++qn)
             if(p->simtime > printfsftime_wT[qn] && p->simtime >= p->P185_ts[qn] && p->simtime <= (p->P185_te[qn] + 0.5 * p->P185_dt[qn]))
             {
-                pfsf->start(p, d, pgc, psed);
+                print_fsf(p, d, pgc, psed, pnhfturb);
 
-                if(p->S10 > 0)
-                    pbed->start(p, d, pgc, psed);
+                if(p->S10 > 0 || p->P187 == 1)
+                    print_bed(p, d, pgc, psed);
 
                 printfsftime_wT[qn] += p->P185_dt[qn];
             }
 
     // Print BED
-    if(p->count == 0 && p->S10 == 0)
-        pbed->start(p, d, pgc, psed);
+    // the fixed bed: at the start, and at the first output of a restart (I 45: a new LAGOON store)
+    // (with P 187 the bed is written with the free surface: here only when that has not happened yet)
+    if(((p->count == 0 && p->P187 != 1) || !bed_printed) && p->S10 == 0)
+        print_bed(p, d, pgc, psed);
 
     // Gages
     if((p->P52 > 0 && p->count % p->P54 == 0 && p->P55 < 0.0) || ((p->P52 > 0 && p->simtime > p->probeprinttime && p->P55 > 0.0) || (p->count == 0 && p->P55 > 0.0)))
@@ -321,13 +355,13 @@ void printer_nhflow::start(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, 
         pdepandtimeavgline->start(p, d, pgc);
 
     // Print state out based on iteration
-    if(p->count % p->P41 == 0 && p->P42 < 0.0 && p->P40 > 0 && (p->P46 == 0 || (p->count >= p->P46_is && p->count < p->P46_ie)))
+    if(p->P40 > 0 && p->P41 > 0 && p->count % p->P41 == 0 && p->P42 < 0.0 && (p->P46 == 0 || (p->count >= p->P46_is && p->count < p->P46_ie)))
     {
         pstate->write(p, d, pgc);
     }
 
     // Print sate out based on time
-    if((p->simtime > p->stateprinttime && p->P42 > 0.0 || (p->count == 0 && p->P42 > 0.0)) && p->P40 > 0 && (p->P47 == 0 || (p->count >= p->P47_ts && p->count < p->P47_te)))
+    if(p->P40 > 0 && p->P42 > 0.0 && (p->simtime > p->stateprinttime || p->count == 0) && (p->P47 == 0 || (p->simtime >= p->P47_ts && p->simtime < p->P47_te)))
     {
         pstate->write(p, d, pgc);
 
@@ -356,18 +390,60 @@ void printer_nhflow::print_stop(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pf
 {
     print(p, d, pgc, pnhfturb, psed);
 
-    if(p->S10 > 0)
-        pbed->start(p, d, pgc, psed);
+    if(p->S10 > 0 || p->P187 == 1)
+        print_bed(p, d, pgc, psed);
 
     if(p->P180 == 1)
-        pfsf->start(p, d, pgc, psed);
+        print_fsf(p, d, pgc, psed, pnhfturb);
+
+    if(pscourbed != nullptr)
+        pscourbed->gauge_flush();
 
     if(plagoon)  // the last output of the LAGOON store is counted
         plagoon->finish(p, pgc);
+    lagoon_output::finish_all(p, pgc);  // and those of the free surface and bed
+}
+
+void printer_nhflow::print_end(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, nhflow_turbulence *pnhfturb, sediment *psed)
+{
+    if(pscourbed != nullptr)
+        pscourbed->gauge_flush();
+
+    // the state at the end of the run, also when it ends between two outputs (N 45 before P 30)
+    const bool volume = (p->P20 > 0 && p->P30 < 0.0 && p->P34 < 0.0) || p->P30 > 0.0 || p->P34 > 0.0 || p->P35 > 0;
+    const bool fsf = p->P180 == 1 && (p->P181 > 0 || p->P182 > 0.0 || p->P183 > 0.0 || p->P184 > 0 || p->P185 > 0);
+
+    if(fsf && last_fsf != p->count)
+    {
+        print_fsf(p, d, pgc, psed, pnhfturb);
+
+        if(p->S10 > 0 || p->P187 == 1)
+            print_bed(p, d, pgc, psed);
+    }
+
+    if(volume && last_print != p->count)
+        print(p, d, pgc, pnhfturb, psed);
+}
+
+void printer_nhflow::print_bed(lexer *p, fdm_nhf *d, ghostcell *pgc, sediment *psed)
+{
+    if(pbed->scour != nullptr)
+        pscourbed->evaluate(p, pgc);
+
+    pbed->start(p, d, pgc, psed);
+    bed_printed = true;
+}
+
+void printer_nhflow::print_fsf(lexer *p, fdm_nhf *d, ghostcell *pgc, sediment *psed, nhflow_turbulence *pnhfturb)
+{
+    pfsf->start(p, d, pgc, psed, pnhfturb);
+    last_fsf = p->count;
 }
 
 void printer_nhflow::print(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_turbulence *pnhfturb, sediment *psed)
 {
+    last_print = p->count;
+
     if(p->P10 == vtk3D::type::vtu || p->P10 == vtk3D::type::vts)
     {
         /*
@@ -379,15 +455,16 @@ void printer_nhflow::print(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_turbulen
 
         SLICELOOP4
         {
-            if(d->breaking(i, j) == 1)
-                d->breaking_print(i, j) = 1.0;
+            if(d->breaking(i, j) >= 1)
+                d->breaking_print(i, j) = double(d->breaking(i, j));
             else if(d->breaking(i, j) == 0)
                 d->breaking_print(i, j) = 0.0;
         }
 
         pgc->gcsl_start4(p, d->bed, 50);
         pgc->gcsl_start4(p, d->breaking_print, 50);
-        pgc->start5V(p, d->test, 1);
+        if(d->test != nullptr)
+            pgc->start5V(p, d->test, 1);
 
         pgc->dgcslpol(p, d->WL, p->dgcsl4, p->dgcsl4_count, 14);
         pgc->dgcslpol(p, d->breaking_print, p->dgcsl4, p->dgcsl4_count, 14);
@@ -475,6 +552,14 @@ void printer_nhflow::print(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_turbulen
                 ++n;
             }
 
+            // tracers (A 600): salinity, temperature
+            for(int tr = 0; tr < 2; ++tr)
+                if((tr == 0 ? d->SALT : d->TEMP) != nullptr)
+                {
+                    offset[n] = offset[n - 1] + sizeof(float) * p->pointnum + sizeof(int);
+                    ++n;
+                }
+
             // floating
             if(p->P28 == 1)
             {
@@ -484,6 +569,13 @@ void printer_nhflow::print(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_turbulen
 
             //  vrans
             if(p->B200 == 1)
+            {
+                offset[n] = offset[n - 1] + sizeof(float) * p->pointnum + sizeof(int);
+                ++n;
+            }
+
+            //  porosity (B 202 porous layers)
+            if(p->B200 == 1 && p->B202 > 0)
             {
                 offset[n] = offset[n - 1] + sizeof(float) * p->pointnum + sizeof(int);
                 ++n;
@@ -547,9 +639,22 @@ void printer_nhflow::print(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_turbulen
             ++n;
         }
 
+        for(int tr = 0; tr < 2; ++tr)
+            if((tr == 0 ? d->SALT : d->TEMP) != nullptr)
+            {
+                result << "<DataArray type=\"Float32\" Name=\"" << (tr == 0 ? "salinity" : "temperature") << "\" format=\"appended\" offset=\"" << offset[n] << "\"/>\n";
+                ++n;
+            }
+
         if(p->P28 == 1)
         {
             result << "<DataArray type=\"Float32\" Name=\"floating\" format=\"appended\" offset=\"" << offset[n] << "\"/>\n";
+            ++n;
+        }
+
+        if(p->B200 == 1 && p->B202 > 0)
+        {
+            result << "<DataArray type=\"Float32\" Name=\"porosity\" format=\"appended\" offset=\"" << offset[n] << "\"/>\n";
             ++n;
         }
 
@@ -778,6 +883,31 @@ void printer_nhflow::print(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_turbulen
             }
         }
 
+        //  tracers (A 600)
+        for(int tr = 0; tr < 2; ++tr)
+            if((tr == 0 ? d->SALT : d->TEMP) != nullptr)
+            {
+                const double *C = tr == 0 ? d->SALT : d->TEMP;
+                iin = sizeof(float) * p->pointnum;
+                std::memcpy(&buffer[file_offset], &iin, sizeof(int));
+                file_offset += sizeof(int);
+                TPLOOP
+                {
+                    if(p->j_dir == 0)
+                    {
+                        jj = j;
+                        j = 0;
+                        ffn = float(0.25 * (C[IJK] + C[Ip1JK] + C[IJKp1] + C[Ip1JKp1]));
+                        j = jj;
+                    }
+                    else if(p->j_dir == 1)
+                        ffn = float(0.125 * (C[IJK] + C[Ip1JK] + C[IJp1K] + C[Ip1Jp1K] + C[IJKp1] + C[Ip1JKp1] + C[IJp1Kp1] + C[Ip1Jp1Kp1]));
+
+                    std::memcpy(&buffer[file_offset], &ffn, sizeof(float));
+                    file_offset += sizeof(float);
+                }
+            }
+
         //  floating
         if(p->P28 == 1)
         {
@@ -824,6 +954,29 @@ void printer_nhflow::print(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_turbulen
             }
         }
 
+        //  porosity (B 202 porous layers)
+        if(p->B200 == 1 && p->B202 > 0)
+        {
+            iin = sizeof(float) * p->pointnum;
+            std::memcpy(&buffer[file_offset], &iin, sizeof(int));
+            file_offset += sizeof(int);
+            TPLOOP
+            {
+                if(p->j_dir == 0)
+                {
+                    jj = j;
+                    j = 0;
+                    ffn = float(0.25 * (d->POR[IJK] + d->POR[Ip1JK] + d->POR[IJKp1] + d->POR[Ip1JKp1]));
+                    j = jj;
+                }
+                else if(p->j_dir == 1)
+                    ffn = float(0.125 * (d->POR[IJK] + d->POR[Ip1JK] + d->POR[IJp1K] + d->POR[Ip1Jp1K] + d->POR[IJKp1] + d->POR[Ip1JKp1] + d->POR[IJp1Kp1] + d->POR[Ip1Jp1Kp1]));
+
+                std::memcpy(&buffer[file_offset], &ffn, sizeof(float));
+                file_offset += sizeof(float);
+            }
+        }
+
         // -----------------------
 
         outputFormat->structureWrite(p, d, buffer, file_offset);
@@ -835,6 +988,73 @@ void printer_nhflow::print(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_turbulen
         if(lagoon_output::vtu_files(p))
             writeFile(name, total_size);
 
+        release_buffer();
+
         ++printcount;
     }
+}
+
+// the mesh refinement: the wave gauges (P 51), the probes (P 64, P 65) and the forces (P 81) on the finest grid
+void printer_nhflow::amr_columns(lexer *p, const amr_column_lookup *amr)
+{
+    pwsf->amr = amr;
+    if(p->P64 > 0)
+        ppressprobe->amr = amr;
+    if(p->P65 > 0)
+        pvel->amr = amr;
+    // the forces on the solids (P 81) on the finest grid
+    for(int n = 0; n < p->P81; ++n)
+        pforce[n]->amr_attach(amr, nullptr);
+}
+
+// checkpoints (P 48, I 45): the file numbers of the outputs and the print windows (P 35, P 185)
+void printer_nhflow::ckpt_state(std::vector<double> &v)
+{
+    v.clear();
+    v.push_back(printcount);
+    v.push_back(pfsf != nullptr ? pfsf->print_counter() : 0);
+    v.push_back(pbed != nullptr ? pbed->print_counter() : 0);
+    v.push_back(nP35);
+    for(int qn = 0; qn < nP35; ++qn)
+        v.push_back(printtime_wT[qn]);
+    v.push_back(nP185);
+    for(int qn = 0; qn < nP185; ++qn)
+        v.push_back(printfsftime_wT[qn]);
+    if(pscour != nullptr)
+        pscour->ckpt_state(v);  // the scour gauges P 83, P 84
+}
+
+void printer_nhflow::ckpt_restore(const std::vector<double> &v)
+{
+    size_t q = 0;
+    auto nx = [&]()
+    { return q < v.size() ? v[q++] : 0.0; };
+    printcount = int(nx());
+    const int a = int(nx()), b = int(nx());
+    if(pfsf != nullptr)
+        pfsf->print_counter() = a;
+    if(pbed != nullptr)
+        pbed->print_counter() = b;
+    const int n35 = int(nx());
+    for(int qn = 0; qn < n35; ++qn)
+    {
+        const double t = nx();
+        if(qn < nP35)
+            printtime_wT[qn] = t;
+    }
+    const int n185 = int(nx());
+    for(int qn = 0; qn < n185; ++qn)
+    {
+        const double t = nx();
+        if(qn < nP185)
+            printfsftime_wT[qn] = t;
+    }
+    if(pscour != nullptr)
+        pscour->ckpt_restore(v, q);
+}
+
+void printer_nhflow::flush_outputs()
+{
+    if(pwsf != nullptr)
+        pwsf->flush_files();
 }

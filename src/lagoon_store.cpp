@@ -21,8 +21,10 @@ Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include "lagoon_store.h"
+#include "georef.h"
 
 #include <algorithm>
+#include <atomic>
 #include <cctype>
 #include <cerrno>
 #include <cmath>
@@ -31,13 +33,17 @@ Architect: Hans Bihs
 #include <cstdlib>
 #include <cstring>
 #include <ctime>
+#include <dirent.h>
 #include <fstream>
 #include <iostream>
 #include <limits>
+#include <mutex>
+#include <set>
 #include <sstream>
 #include <stdexcept>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <thread>
 #include <zlib.h>
 
 namespace {
@@ -105,22 +111,88 @@ uint32_t crc32c(const unsigned char *data, size_t n)
     return crc ^ 0xFFFFFFFFu;
 }
 
-std::string gzip(const std::vector<unsigned char> &raw, int level)
+// a byte plane whose bytes are this spread out (Shannon entropy, bits per byte) is
+// noise to deflate: the low bytes of the mantissas. Huffman coding would save less
+// than 5 %, and searching it for matches takes most of the time of a chunk.
+const double NOISE_BITS = 7.6;
+
+double byte_entropy(const unsigned char *data, size_t n)
+{
+    size_t counts[256] = {0};
+    for(size_t i = 0; i < n; ++i)
+        ++counts[data[i]];
+    double bits = 0.0;
+    for(int c = 0; c < 256; ++c)
+        if(counts[c])
+        {
+            const double share = double(counts[c]) / double(n);
+            bits -= share * std::log2(share);
+        }
+    return bits;
+}
+
+// one z_stream per thread, reset for each chunk (deflateInit2 allocates and clears
+// a few hundred kilobytes)
+struct deflater
 {
     z_stream zs;
-    std::memset(&zs, 0, sizeof(zs));
-    if(deflateInit2(&zs, level, Z_DEFLATED, 15 + 16, 8, Z_DEFAULT_STRATEGY) != Z_OK)  // 15+16: gzip
-        throw std::runtime_error("lagoon_store: deflateInit2 failed");
-    std::string out(deflateBound(&zs, raw.size()) + 32, '\0');
-    zs.next_in = const_cast<unsigned char *>(raw.data());
-    zs.avail_in = raw.size();
-    zs.next_out = reinterpret_cast<unsigned char *>(&out[0]);
-    zs.avail_out = out.size();
-    const int status = deflate(&zs, Z_FINISH);
-    deflateEnd(&zs);
-    if(status != Z_STREAM_END)
-        throw std::runtime_error("lagoon_store: deflate failed");
-    out.resize(zs.total_out);
+    bool ready = false;
+    ~deflater()
+    {
+        if(ready)
+            deflateEnd(&zs);
+    }
+};
+
+// gzip of a byte-shuffled chunk (count values of itemsize bytes, all first bytes,
+// then all second bytes, ...): one gzip stream, as the gzip codec reads it, whose
+// noise planes (NOISE_BITS) are stored rather than compressed (deflate level 0)
+std::string gzip_shuffled(const unsigned char *shuffled, size_t count, int itemsize, int level)
+{
+    thread_local deflater d;
+    z_stream &zs = d.zs;
+    if(!d.ready)
+    {
+        std::memset(&zs, 0, sizeof(zs));
+        if(deflateInit2(&zs, level, Z_DEFLATED, 15 + 16, 8, Z_DEFAULT_STRATEGY) != Z_OK)  // 15+16: gzip
+            throw std::runtime_error("lagoon_store: deflateInit2 failed");
+        d.ready = true;
+    }
+    else if(deflateReset(&zs) != Z_OK)
+        throw std::runtime_error("lagoon_store: deflateReset failed");
+    const size_t bytes = count * size_t(itemsize);
+    std::string out(deflateBound(&zs, bytes) + 64 * size_t(itemsize) + 64, '\0');
+    size_t written = 0;
+    int current = -1;
+    for(int b = 0; b < itemsize; ++b)
+    {
+        const unsigned char *plane = shuffled + size_t(b) * count;
+        if(out.size() - written < count + 1024)
+            out.resize(written + 2 * count + 1024);
+        zs.next_out = reinterpret_cast<unsigned char *>(&out[written]);
+        zs.avail_out = uInt(out.size() - written);
+        const int want = level > 0 && count >= 256 && byte_entropy(plane, count) > NOISE_BITS ? 0 : level;
+        if(want != current && deflateParams(&zs, want, Z_DEFAULT_STRATEGY) == Z_OK)
+            current = want;
+        written = out.size() - zs.avail_out;  // deflateParams may flush a block
+        const int flush = b == itemsize - 1 ? Z_FINISH : Z_NO_FLUSH;
+        zs.next_in = const_cast<unsigned char *>(plane);
+        zs.avail_in = uInt(count);
+        int status;
+        do
+        {
+            if(written == out.size())
+                out.resize(2 * out.size());
+            zs.next_out = reinterpret_cast<unsigned char *>(&out[written]);
+            zs.avail_out = uInt(out.size() - written);
+            status = deflate(&zs, flush);
+            written = out.size() - zs.avail_out;
+            if(status == Z_STREAM_ERROR)
+                throw std::runtime_error("lagoon_store: deflate failed");
+        }
+        while(flush == Z_FINISH ? status != Z_STREAM_END : zs.avail_in > 0 || zs.avail_out == 0);
+    }
+    out.resize(written);
     return out;
 }
 
@@ -178,10 +250,13 @@ std::string shuffled_gzip(const void *data, size_t count, int itemsize, int leve
 {
     const unsigned char *bytes = static_cast<const unsigned char *>(data);
     std::vector<unsigned char> shuffled(count * itemsize);
-    for(size_t e = 0; e < count; ++e)
-        for(int b = 0; b < itemsize; ++b)
-            shuffled[b * count + e] = bytes[size_t(itemsize) * e + b];
-    return gzip(shuffled, level);
+    for(int b = 0; b < itemsize; ++b)
+    {
+        unsigned char *plane = &shuffled[b * count];
+        for(size_t e = 0; e < count; ++e)
+            plane[e] = bytes[size_t(itemsize) * e + b];
+    }
+    return gzip_shuffled(shuffled.data(), count, itemsize, level);
 }
 
 // zarr.json of a regular-chunked, compressed array
@@ -209,6 +284,23 @@ bool exists(const std::string &file)
     return stat(file.c_str(), &info) == 0;
 }
 
+// a directory with nothing in it (or none): no store of an earlier run
+bool empty_dir(const std::string &dir)
+{
+    DIR *d = opendir(dir.c_str());
+    if(d == nullptr)
+        return true;
+    bool empty = true;
+    while(struct dirent *entry = readdir(d))
+        if(std::strcmp(entry->d_name, ".") != 0 && std::strcmp(entry->d_name, "..") != 0)
+        {
+            empty = false;
+            break;
+        }
+    closedir(d);
+    return empty;
+}
+
 // a plain (unsharded, uncompressed) float64 or int64 array in one chunk
 void write_plain_array(const std::string &dir, const std::vector<double> &values,
                        const std::string &dimension, const std::string &units)
@@ -227,6 +319,28 @@ void write_plain_array(const std::string &dir, const std::vector<double> &values
     write_file(dir + "/zarr.json", j.str());
     std::string bytes(reinterpret_cast<const char *>(values.data()), n * sizeof(double));
     write_file(dir + "/c/0", bytes);
+}
+
+// a plain float64 array of ny rows of nx values (x fastest) in one chunk
+void write_plain_grid(const std::string &dir, const std::vector<double> &values, size_t ny, size_t nx,
+                      const std::string &units)
+{
+    if(values.size() != ny * nx)
+        throw std::runtime_error(dir + ": " + std::to_string(values.size()) + " values for a grid of " + std::to_string(ny) + " x " + std::to_string(nx));
+    make_dirs(dir + "/c/0");
+    std::ostringstream j;
+    j << "{\"zarr_format\": 3, \"node_type\": \"array\", \"shape\": [" << ny << ", " << nx << "], "
+      << "\"data_type\": \"float64\", "
+      << "\"chunk_grid\": {\"name\": \"regular\", \"configuration\": {\"chunk_shape\": ["
+      << std::max<size_t>(ny, 1) << ", " << std::max<size_t>(nx, 1) << "]}}, "
+      << "\"chunk_key_encoding\": {\"name\": \"default\", \"configuration\": {\"separator\": \"/\"}}, "
+      << "\"fill_value\": \"NaN\", "
+      << "\"codecs\": [{\"name\": \"bytes\", \"configuration\": {\"endian\": \"little\"}}], "
+      << "\"dimension_names\": [\"y\", \"x\"], "
+      << "\"attributes\": {" << (units.empty() ? "" : "\"units\": \"" + units + "\"") << "}}";
+    write_file(dir + "/zarr.json", j.str());
+    std::string bytes(reinterpret_cast<const char *>(values.data()), values.size() * sizeof(double));
+    write_file(dir + "/c/0/0", bytes);
 }
 }  // namespace
 
@@ -261,21 +375,82 @@ void lagoon_store::create_root(const std::string &solver, const std::string &run
     make_dirs(path);
     std::ostringstream j;
     j << "{\"zarr_format\": 3, \"node_type\": \"group\", \"attributes\": {"
-      << "\"lagoon\": {\"format\": \"lagoon\", \"version\": \"0.3\", \"solver\": " << json_string(solver)
+      << "\"lagoon\": {\"format\": \"lagoon\", \"version\": \"0.5\", \"solver\": " << json_string(solver)
       << ", \"outputs\": [], \"created_by\": \"REEF3D\", \"created\": \"" << utc_now()
       << "\", \"source\": \"REEF3D\"}";
     if(!run_json.empty())
         j << ", \"reef3d_run\": " << run_json;
+    // where the model lies on the Earth (SPEC 1.2): the case's georef.json, unchanged
+    const std::string georef = georef_json();
+    if(!georef.empty())
+        j << ", \"georef\": " << georef;
     j << "}}";
     write_file(path + "/zarr.json", j.str());
+}
+
+std::string lagoon_store::run_id(const std::string &json)
+{
+    const size_t record = json.find("\"reef3d_run\"");
+    const std::string key = "\"run\": \"";
+    const size_t at = json.find(key, record == std::string::npos ? 0 : record);
+    if(at == std::string::npos)
+        return "";
+    const size_t end = json.find('"', at + key.size());
+    return end == std::string::npos ? "" : json.substr(at + key.size(), end - at - key.size());
+}
+
+std::string lagoon_store::begin_run(const std::string &solver, const std::string &run_json)
+{
+    // the stores begun in this run: the first writer moves an earlier run's store
+    // aside, the others write into the new one (writers may start in their threads)
+    static std::mutex guard;
+    static std::set<std::string> begun;
+    std::lock_guard<std::mutex> lock(guard);
+    if(!begun.insert(path).second)
+        return "";
+    std::string aside;
+    if(exists(path) && !empty_dir(path))
+    {
+        std::string root;
+        {
+            std::ifstream in((path + "/zarr.json").c_str());
+            std::stringstream text;
+            text << in.rdbuf();
+            root = text.str();
+        }
+        const std::string mine = run_id(run_json);
+        const std::string theirs = run_id(root);
+        if(!mine.empty() && theirs == mine && !root.empty())
+            return "";  // already this run's store
+        std::string stem = path;
+        const std::string suffix = ".lagoon";
+        if(stem.size() > suffix.size() && stem.compare(stem.size() - suffix.size(), suffix.size(), suffix) == 0)
+            stem.erase(stem.size() - suffix.size());
+        const std::string base = stem + "-" + (theirs.empty() ? std::string("earlier") : theirs);
+        aside = base + ".lagoon-earlier";
+        for(int n = 2; exists(aside); ++n)  // a run moved aside before, by the same name
+            aside = base + "-" + std::to_string(n) + ".lagoon-earlier";
+        if(std::rename(path.c_str(), aside.c_str()) != 0)
+        {
+            std::cout << "LAGOON: could not move the store of the earlier run aside (" << std::strerror(errno)
+                      << "); the new run writes over it" << std::endl;
+            aside.clear();
+        }
+        else
+            std::cout << "LAGOON: the store of the earlier run is now " << aside << std::endl;
+    }
+    create_root(solver, run_json);
+    return aside;
 }
 
 void lagoon_store::create_output(const std::string &output, const std::string &grid,
                                  const std::vector<double> &x, const std::vector<double> &y,
                                  const std::vector<double> &levels,
                                  const std::vector<variable> &variables,
-                                 int blocks, const std::string &source)
+                                 int blocks, const std::string &source,
+                                 const std::vector<double> *xc, const std::vector<double> *yc)
 {
+    const bool curvilinear = xc != nullptr && yc != nullptr;
     const std::string dir = path + "/" + output;
     make_dirs(dir + "/blocks");
     std::ostringstream j;
@@ -284,7 +459,10 @@ void lagoon_store::create_output(const std::string &output, const std::string &g
       << ", \"shape\": {\"x\": " << x.size() << ", \"y\": " << y.size();
     if(grid == "sigma" || grid == "cartesian")
         j << ", \"level\": " << levels.size();
-    j << "}, \"variables\": {";
+    j << "}";
+    if(curvilinear)
+        j << ", \"horizontal\": \"curvilinear\"";
+    j << ", \"variables\": {";
     for(size_t v = 0; v < variables.size(); ++v)
     {
         j << (v ? ", " : "") << json_string(variables[v].name) << ": {\"components\": "
@@ -301,6 +479,11 @@ void lagoon_store::create_output(const std::string &output, const std::string &g
     write_file(dir + "/blocks/zarr.json", "{\"zarr_format\": 3, \"node_type\": \"group\", \"attributes\": {}}");
     write_plain_array(dir + "/x", x, "x", "m");
     write_plain_array(dir + "/y", y, "y", "m");
+    if(curvilinear)
+    {
+        write_plain_grid(dir + "/xc", *xc, y.size(), x.size(), "m");
+        write_plain_grid(dir + "/yc", *yc, y.size(), x.size(), "m");
+    }
     if(grid == "sigma")
         write_plain_array(dir + "/sigma", levels, "level", "");
     if(grid == "cartesian")
@@ -490,45 +673,71 @@ void lagoon_store::write_shard(const array_info &a, int t, const float *data) co
             throw std::runtime_error("lagoon_store: cannot write " + file);
     }
 
-    // the inner chunks of output t: appended after everything there is
-    std::fseek(f, data_end, SEEK_SET);
-    long long offset = data_end;
+    // the inner chunks of output t, compressed by `threads` threads, then appended
+    // after everything there is
     const int comps = a.components;
-    std::vector<float> chunk(size_t(a.cz) * a.cy * a.cx * comps);
-    std::vector<unsigned char> shuffled(chunk.size() * 4);
-    for(int kc = 0; kc < nzc; ++kc)
-        for(int jc = 0; jc < nyc; ++jc)
-            for(int ic = 0; ic < nxc; ++ic)
-            {
-                bool all_fill = true;
-                size_t m = 0;
-                for(int k = kc * a.cz; k < (kc + 1) * a.cz; ++k)
-                    for(int j = jc * a.cy; j < (jc + 1) * a.cy; ++j)
-                        for(int i = ic * a.cx; i < (ic + 1) * a.cx; ++i)
-                            for(int c = 0; c < comps; ++c)
+    const size_t chunks = size_t(nzc) * nyc * nxc;
+    std::vector<std::string> packed(chunks);
+    uint32_t fill_bits;
+    std::memcpy(&fill_bits, &a.fill, 4);
+    const bool fill_nan = std::isnan(a.fill);
+    std::atomic<size_t> next(0);
+    auto encode = [&]()
+    {
+        const size_t n = size_t(a.cz) * a.cy * a.cx * comps;
+        std::vector<unsigned char> shuffled(4 * n);
+        for(size_t c = next++; c < chunks; c = next++)
+        {
+            const int ic = int(c % nxc), jc = int((c / nxc) % nyc), kc = int(c / (size_t(nxc) * nyc));
+            // gathered straight into the byte planes (little endian)
+            unsigned char *p0 = &shuffled[0], *p1 = &shuffled[n], *p2 = &shuffled[2 * n], *p3 = &shuffled[3 * n];
+            bool all_fill = true;
+            size_t m = 0;
+            for(int k = kc * a.cz; k < (kc + 1) * a.cz; ++k)
+                for(int j = jc * a.cy; j < (jc + 1) * a.cy; ++j)
+                {
+                    const bool row = k < a.nz && j < a.ny;
+                    const float *line = row ? data + (size_t(k) * a.ny + j) * a.nx * comps : nullptr;
+                    for(int i = ic * a.cx; i < (ic + 1) * a.cx; ++i)
+                        for(int q = 0; q < comps; ++q, ++m)
+                        {
+                            uint32_t v = fill_bits;
+                            if(row && i < a.nx)
                             {
-                                float v = a.fill;
-                                if(k < a.nz && j < a.ny && i < a.nx)
-                                    v = data[((size_t(k) * a.ny + j) * a.nx + i) * comps + c];
-                                chunk[m++] = v;
-                                if(!(v == a.fill || (std::isnan(v) && std::isnan(a.fill))))
+                                std::memcpy(&v, line + size_t(i) * comps + q, 4);
+                                if(v != fill_bits && !(fill_nan && (v & 0x7fffffffu) > 0x7f800000u))
                                     all_fill = false;
                             }
-                if(all_fill)
-                    continue;
-                // byte shuffle: all first bytes, then all second bytes, ... (little endian)
-                const unsigned char *bytes = reinterpret_cast<const unsigned char *>(chunk.data());
-                const size_t n = chunk.size();
-                for(size_t e = 0; e < n; ++e)
-                    for(int b = 0; b < 4; ++b)
-                        shuffled[b * n + e] = bytes[4 * e + b];
-                const std::string packed = gzip(shuffled, gzip_level);
-                std::fwrite(packed.data(), 1, packed.size(), f);
-                const size_t entry = ((size_t(local) * nzc + kc) * nyc + jc) * nxc + ic;
-                index[2 * entry] = offset;
-                index[2 * entry + 1] = packed.size();
-                offset += packed.size();
-            }
+                            p0[m] = (unsigned char)(v);
+                            p1[m] = (unsigned char)(v >> 8);
+                            p2[m] = (unsigned char)(v >> 16);
+                            p3[m] = (unsigned char)(v >> 24);
+                        }
+                }
+            if(!all_fill)
+                packed[c] = gzip_shuffled(shuffled.data(), n, 4, gzip_level);
+        }
+    };
+    const int workers = int(std::min<size_t>(size_t(std::max(threads, 1)), chunks)) - 1;
+    std::vector<std::thread> pool;
+    for(int w = 0; w < workers; ++w)
+        pool.emplace_back(encode);
+    encode();
+    for(std::thread &w : pool)
+        w.join();
+
+    std::fseek(f, data_end, SEEK_SET);
+    long long offset = data_end;
+    for(size_t c = 0; c < chunks; ++c)
+    {
+        if(packed[c].empty())  // all fill: not stored
+            continue;
+        std::fwrite(packed[c].data(), 1, packed[c].size(), f);
+        const size_t entry = size_t(local) * chunks + c;
+        index[2 * entry] = offset;
+        index[2 * entry + 1] = packed[c].size();
+        offset += packed[c].size();
+    }
     // the new index after the chunks, with its checksum
     std::string tail;
     tail.reserve(index_bytes);
@@ -731,9 +940,7 @@ void lagoon_bodies::quaternion(const double R[9], double q[4])
 
 void lagoon_bodies::start()
 {
-    make_dirs(path);
-    if(!exists(path + "/zarr.json"))  // no P 18 volume output: the store is made here
-        store.create_root(solver, run_json);
+    store.begin_run(solver, run_json);  // a new run: a new store (the volume's, if any)
     make_dirs(path + "/bodies");
     if(!exists(path + "/bodies/zarr.json"))
         write_file(path + "/bodies/zarr.json", "{\"zarr_format\": 3, \"node_type\": \"group\", \"attributes\": {}}");
@@ -938,9 +1145,7 @@ std::string lagoon_particles::fields_json(const std::vector<field> &list) const
 
 void lagoon_particles::start()
 {
-    make_dirs(path);
-    if(!exists(path + "/zarr.json"))
-        store.create_root(solver, run_json);
+    store.begin_run(solver, run_json);  // a new run: a new store (the volume's, if any)
     make_dirs(path + "/particles");
     if(!exists(path + "/particles/zarr.json"))
         write_group(path + "/particles");
@@ -1196,15 +1401,13 @@ lagoon_amr::lagoon_amr(const std::string &path_, const std::string &solver_, con
                        const std::vector<field> &fields_, int gzip_level_)
     : path(path_), solver(solver_), key(key_), source(source_), run_json(run_json_),
       dir(path_ + "/amr/" + key_), fields(fields_), gzip_level(gzip_level_), ok(true), started(false),
-      x_end(0), y_end(0), cell_end(0), store(path_), rw(gzip_level_)
+      dims(2), x_end(0), y_end(0), z_end(0), cell_end(0), store(path_), rw(gzip_level_)
 {
 }
 
 void lagoon_amr::start()
 {
-    make_dirs(path);
-    if(!exists(path + "/zarr.json"))
-        store.create_root(solver, run_json);
+    store.begin_run(solver, run_json);  // a new run: a new store (the volume's, if any)
     make_dirs(path + "/amr");
     if(!exists(path + "/amr/zarr.json"))
         write_group(path + "/amr");
@@ -1219,18 +1422,23 @@ void lagoon_amr::start()
           << (fields[f].integer ? "int32" : "float32") << "\", \"array\": "
           << lagoon_store::json_string(array_name(fields[f].name)) << "}";
     j << "}, \"dataset\": " << lagoon_store::json_string(key)
-      << ", \"role\": \"amr\", \"refinement\": 2"
+      << ", \"role\": \"amr\", \"refinement\": 2" << (dims == 3 ? ", \"dims\": 3" : "")
       << ", \"source\": " << lagoon_store::json_string(source) << "}}}";
     write_file(dir + "/zarr.json", j.str());
 
     table = {lagoon_rows::make(dir + "/grids/level", "int32", 1, false, "grid"),
              lagoon_rows::make(dir + "/grids/rank", "int32", 1, false, "grid"),
-             lagoon_rows::make(dir + "/grids/size", "int32", 2, false, "grid"),
+             lagoon_rows::make(dir + "/grids/size", "int32", dims, false, "grid"),
              lagoon_rows::make(dir + "/grids/x_end", "int64", 1, false, "grid"),
              lagoon_rows::make(dir + "/grids/y_end", "int64", 1, false, "grid"),
              lagoon_rows::make(dir + "/grids/cell_end", "int64", 1, false, "grid")};
     nodes = {lagoon_rows::make(dir + "/x", "float64", 1, true, "node"),
              lagoon_rows::make(dir + "/y", "float64", 1, true, "node")};
+    if(dims == 3)  // a block's z, and where it ends
+    {
+        table.push_back(lagoon_rows::make(dir + "/grids/z_end", "int64", 1, false, "grid"));
+        nodes.push_back(lagoon_rows::make(dir + "/z", "float64", 1, true, "node"));
+    }
     cells.clear();
     for(const field &f : fields)
         cells.push_back(lagoon_rows::make(dir + "/cell_data/" + array_name(f.name),
@@ -1254,19 +1462,23 @@ bool lagoon_amr::output(double time, long long step, const std::vector<grid> &gr
     try
     {
         const size_t nf = fields.size();
+        if(!started && !grids.empty())
+            dims = grids.front().nz > 0 ? 3 : 2;  // the first output says what the set holds
         std::vector<int32_t> level, rank, size;
-        std::vector<int64_t> xe, ye, ce;
-        std::vector<double> x, y;
+        std::vector<int64_t> xe, ye, ze, ce;
+        std::vector<double> x, y, z;
         std::vector<std::vector<unsigned char>> values(nf);
         for(const grid &g : grids)
         {
-            const size_t n = size_t(g.nx) * size_t(g.ny);
-            if(g.nx < 1 || g.ny < 1 || g.x.size() != size_t(g.nx + 1) || g.y.size() != size_t(g.ny + 1) || g.values.size() != nf * n)
+            const size_t n = size_t(g.nx) * size_t(g.ny) * size_t(dims == 3 ? g.nz : 1);
+            if(g.nx < 1 || g.ny < 1 || g.x.size() != size_t(g.nx + 1) || g.y.size() != size_t(g.ny + 1) || g.values.size() != nf * n || (dims == 3) != (g.nz > 0) || (dims == 3 && g.z.size() != size_t(g.nz + 1)))
                 throw std::runtime_error("lagoon_amr: a grid's sizes do not fit");
             level.push_back(g.level);
             rank.push_back(g.rank);
             size.push_back(g.nx);
             size.push_back(g.ny);
+            if(dims == 3)
+                size.push_back(g.nz);
             x.insert(x.end(), g.x.begin(), g.x.end());
             y.insert(y.end(), g.y.begin(), g.y.end());
             x_end += g.nx + 1;
@@ -1275,6 +1487,12 @@ bool lagoon_amr::output(double time, long long step, const std::vector<grid> &gr
             xe.push_back(x_end);
             ye.push_back(y_end);
             ce.push_back(cell_end);
+            if(dims == 3)
+            {
+                z.insert(z.end(), g.z.begin(), g.z.end());
+                z_end += g.nz + 1;
+                ze.push_back(z_end);
+            }
             for(size_t f = 0; f < nf; ++f)
             {
                 std::vector<unsigned char> &out = values[f];
@@ -1304,12 +1522,16 @@ bool lagoon_amr::output(double time, long long step, const std::vector<grid> &gr
             rw.append(cells[f], values[f].data(), values[f].size() / 4);
         rw.append(nodes[0], reinterpret_cast<const unsigned char *>(x.data()), x.size());
         rw.append(nodes[1], reinterpret_cast<const unsigned char *>(y.data()), y.size());
+        if(dims == 3)
+            rw.append(nodes[2], reinterpret_cast<const unsigned char *>(z.data()), z.size());
         rw.append(table[0], reinterpret_cast<const unsigned char *>(level.data()), ng);
         rw.append(table[1], reinterpret_cast<const unsigned char *>(rank.data()), ng);
         rw.append(table[2], reinterpret_cast<const unsigned char *>(size.data()), ng);
         rw.append(table[3], reinterpret_cast<const unsigned char *>(xe.data()), ng);
         rw.append(table[4], reinterpret_cast<const unsigned char *>(ye.data()), ng);
         rw.append(table[5], reinterpret_cast<const unsigned char *>(ce.data()), ng);
+        if(dims == 3)
+            rw.append(table[6], reinterpret_cast<const unsigned char *>(ze.data()), ng);
         grid_end.push_back((grid_end.empty() ? 0 : grid_end.back()) + (long long)ng);
         rw.write_ends(dir + "/grid_end", grid_end, "time");
         store.commit("amr/" + key, int(grid_end.size() - 1), time, step);  // step, then time
@@ -1331,9 +1553,16 @@ void lagoon_amr::pack(const std::vector<grid> &grids, int nf, std::vector<double
         out.push_back(g.level);
         out.push_back(g.nx);
         out.push_back(g.ny);
+        out.push_back(g.nz);
         out.insert(out.end(), g.x.begin(), g.x.end());
         out.insert(out.end(), g.y.begin(), g.y.end());
-        const size_t n = size_t(nf) * size_t(g.nx) * size_t(g.ny);
+        if(g.nz > 0)
+        {
+            if(g.z.size() != size_t(g.nz + 1))
+                throw std::runtime_error("lagoon_amr: a block's z does not fit its size");
+            out.insert(out.end(), g.z.begin(), g.z.end());
+        }
+        const size_t n = size_t(nf) * size_t(g.nx) * size_t(g.ny) * size_t(g.nz > 0 ? g.nz : 1);
         if(g.values.size() != n)
             throw std::runtime_error("lagoon_amr: a grid's values do not fit its size");
         out.insert(out.end(), g.values.begin(), g.values.end());
@@ -1348,22 +1577,29 @@ bool lagoon_amr::unpack(const double *data, size_t n, int nf, int rank, std::vec
     const long long count = (long long)data[at++];
     for(long long q = 0; q < count; ++q)
     {
-        if(at + 3 > n)
+        if(at + 4 > n)
             return false;
         grid g;
         g.level = int(data[at]);
         g.nx = int(data[at + 1]);
         g.ny = int(data[at + 2]);
+        g.nz = int(data[at + 3]);
         g.rank = rank;
-        at += 3;
-        const size_t need = size_t(g.nx + 1) + size_t(g.ny + 1) + size_t(nf) * size_t(g.nx) * size_t(g.ny);
-        if(g.nx < 1 || g.ny < 1 || at + need > n)
+        at += 4;
+        const size_t layers = size_t(g.nz > 0 ? g.nz : 1);
+        const size_t nv = size_t(nf) * size_t(g.nx) * size_t(g.ny) * layers;
+        const size_t need = size_t(g.nx + 1) + size_t(g.ny + 1) + (g.nz > 0 ? size_t(g.nz + 1) : 0) + nv;
+        if(g.nx < 1 || g.ny < 1 || g.nz < 0 || at + need > n)
             return false;
         g.x.assign(data + at, data + at + g.nx + 1);
         at += g.nx + 1;
         g.y.assign(data + at, data + at + g.ny + 1);
         at += g.ny + 1;
-        const size_t nv = size_t(nf) * size_t(g.nx) * size_t(g.ny);
+        if(g.nz > 0)
+        {
+            g.z.assign(data + at, data + at + g.nz + 1);
+            at += g.nz + 1;
+        }
         g.values.assign(data + at, data + at + nv);
         at += nv;
         out.push_back(std::move(g));

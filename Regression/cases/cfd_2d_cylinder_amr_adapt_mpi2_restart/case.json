@@ -1,0 +1,31 @@
+{
+ "base": "cfd_2d_cylinder_amr_adapt_mpi2_ckpt",
+ "same_as": "cfd_2d_cylinder_amr_adapt_mpi2_ckpt",
+ "chain": [
+  {
+   "case": "cfd_2d_cylinder_amr_adapt_mpi2_ckpt",
+   "copy": [
+    "REEF3D_Checkpoint",
+    "REEF3D_CFD_Force",
+    "REEF3D_CFD_ProbePoint"
+   ]
+  }
+ ],
+ "ctrl_set": {
+  "I 45": "40"
+ },
+ "description": "the restart of cfd_2d_cylinder_amr_adapt_mpi2_ckpt from step 40 (I 45 40) on 2 ranks: the solid of the patches from the checkpoint, the force objects of the patches made anew after the restart, the force file cut back and continued; regression.py ranks: bitwise the uninterrupted run.",
+ "tags": [
+  "2d",
+  "singlephase",
+  "inflow",
+  "solid",
+  "amr",
+  "adaptive",
+  "mpi",
+  "checkpoint"
+ ],
+ "covers": [
+  "cfd_amr::ckpt_read with solids on the patches; cfd_amr::patch_forces after a restart"
+ ]
+}

@@ -1,0 +1,19 @@
+{
+ "base": "sflow_2d_si_vortex_max_mpi2",
+ "ctrl_set": {
+  "P 48": "10",
+  "P 49": "0"
+ },
+ "description": "sflow_2d_si_vortex_max_mpi2 with a checkpoint every 10 steps, all kept (P 48 10, P 49 0): the uninterrupted run of sflow_2d_si_vortex_max_restart.",
+ "tags": [
+  "2d",
+  "sflow",
+  "semi_implicit",
+  "mpi",
+  "maxima",
+  "checkpoint"
+ ],
+ "covers": [
+  "the maxima (P 112) in the checkpoints"
+ ]
+}

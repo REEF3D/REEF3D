@@ -1,0 +1,18 @@
+{
+ "base": "cfd_2d_cylinder_amr",
+ "ctrl_add": [
+  "G 7 1"
+ ],
+ "description": "cfd_2d_cylinder_amr with subcycling (G 7 1): the force on the cylinder (P 81) at the end of the level-0 step, the patches at the same time.",
+ "tags": [
+  "quick",
+  "2d",
+  "singlephase",
+  "inflow",
+  "solid",
+  "amr"
+ ],
+ "covers": [
+  "cfd_amr::patch_forces with G 7 1"
+ ]
+}

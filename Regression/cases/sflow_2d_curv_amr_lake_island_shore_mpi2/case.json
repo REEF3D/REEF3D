@@ -1,0 +1,24 @@
+{
+ "base": "sflow_2d_curv_lake_island",
+ "np": 2,
+ "steps": 40,
+ "tags": [
+  "2d",
+  "sflow",
+  "curvilinear",
+  "amr",
+  "wetdry",
+  "mpi"
+ ],
+ "description": "sflow_2d_curv_lake_island with two levels along the shoreline (G 22 1), regrid every 5 steps, two ranks: the restricted surface in the level-0 halo.",
+ "covers": [
+  "sflow_amr shoreline on several ranks (sfs0 halo), regridding along the shoreline"
+ ],
+ "ctrl_add": [
+  "G 1 2",
+  "G 2 5",
+  "G 3 2",
+  "G 4 8",
+  "G 22 1"
+ ]
+}

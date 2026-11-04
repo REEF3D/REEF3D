@@ -1,5 +1,5 @@
 {
- "description": "REEF3D::SEASTATE stationary shoaling (A 700 2): unidirectional JONSWAP Hs 1 m Tp 8 s from x- (A 711 1, A 712 1 0 0 0) on a plane slope 20 m -> 2 m (DIVEMesh wedge S 61), 100 x 2 cells. Validation in Dropbox SpectralWave/validation/01_shoaling (Hs within 0.9 % of energy-flux conservation).",
+ "description": "REEF3D::SEASTATE stationary shoaling (A 700 2): unidirectional JONSWAP Hs 1 m Tp 8 s from x- (A 711 1, A 712 1 0 0 0) on a plane slope 20 m -> 2 m (DIVEMesh wedge S 61), 100 x 2 cells. Validation in Dropbox SEASTATE/validation/01_shoaling (Hs within 0.9 % of energy-flux conservation).",
  "solver": "seastate",
  "np": 1,
  "steps": 1,

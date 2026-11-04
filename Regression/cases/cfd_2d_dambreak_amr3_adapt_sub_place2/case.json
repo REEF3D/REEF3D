@@ -1,0 +1,24 @@
+{
+ "base": "cfd_2d_dambreak_amr3_adapt_sub",
+ "np": 2,
+ "ctrl_add": [
+  "G 40 2"
+ ],
+ "description": "Two adaptive levels with subcycling (G 7 1) and the test of the placement (G 40 2): small units placed anew at every regrid on the least loaded rank, so the coarser level and the old patches are mostly on the other rank.",
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "levelset",
+  "amr",
+  "adaptive",
+  "mpi",
+  "place"
+ ],
+ "covers": [
+  "regrid_old: new patches from old patches of the other rank",
+  "level-2 patches cut at the units, units with an edge of level 2 on their common face on one rank",
+  "the level projection and the synchronisation through the shadows"
+ ],
+ "steps": 20
+}

@@ -23,16 +23,16 @@ Author: Hans Bihs
 #ifndef SFLOW_PRINT_WSFLINE_H_
 #define SFLOW_PRINT_WSFLINE_H_
 
-#include"boundarycheck.h"
-#include<iostream>
-#include<fstream>
+#include "boundarycheck.h"
+#include <fstream>
+#include <iostream>
 
 class lexer;
+class wsfline_core;
 class fdm2D;
 class ghostcell;
 class field;
 class ioflow;
-class wave_theory;
 class slice;
 
 using namespace std;
@@ -40,31 +40,18 @@ using namespace std;
 class sflow_print_wsfline : public boundarycheck
 {
 public:
-    sflow_print_wsfline(lexer*,fdm2D*,ghostcell*);
-	virtual ~sflow_print_wsfline();
+    sflow_print_wsfline(lexer *, fdm2D *, ghostcell *);
+    virtual ~sflow_print_wsfline();
 
-	void start(lexer*, fdm2D*, ghostcell*,ioflow*,slice &f);
-
+    void start(lexer *, fdm2D *, ghostcell *, ioflow *, slice &f);
 
 private:
-    void ini_location(lexer*, fdm2D*, ghostcell*);
-    void sort(double*, double*, int*, int,int);
-    void remove_multientry(lexer*,double*, double*, int*, int&);
-
-    int conv(double);
-    int *jloc,**flag,**flag_all,*rowflag,*wsfpoints;
-    double **wsf,**wsf_all;
-    double **xloc, **xloc_all;
-    double *yloc;
-    int n,q;
+    void ini_location(lexer *, fdm2D *, ghostcell *);
+    int *jloc;
+    int n, q;
     ofstream wsfout;
 
-    double xcoor;
-	
-	wave_theory *pwave;
-
-    int maxknox,sumknox;
-
+    wsfline_core *pcore;
 };
 
 #endif

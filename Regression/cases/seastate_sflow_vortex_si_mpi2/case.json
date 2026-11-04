@@ -1,0 +1,8 @@
+{
+ "base": "seastate_sflow_vortex_mpi2",
+ "ctrl_add": ["A 220 0", "A 226 1", "A 227 0.55", "A 228 600.0", "A 229 1"],
+ "description": "seastate_sflow_vortex_mpi2 with the semi-implicit SFLOW (dt <= 600 s = the coupling interval A 706): one met provider for surge and waves, radiation stress back to SFLOW SI, Flather edges with the met pressure; 2 ranks.",
+ "steps": 30,
+ "tags": ["2d", "sflow", "semi_implicit", "seastate", "mpi", "met", "vortex"],
+ "covers": ["sflow_momentum_SI with SEASTATE and the met forcing", "coupling interval on the large SI step"]
+}

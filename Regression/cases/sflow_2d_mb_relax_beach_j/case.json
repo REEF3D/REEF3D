@@ -1,0 +1,19 @@
+{
+ "solver": "sflow",
+ "np": 1,
+ "steps": 400,
+ "files": [
+  "blocks.dat"
+ ],
+ "tags": [
+  "2d",
+  "sflow",
+  "curvilinear",
+  "multiblock",
+  "waves"
+ ],
+ "description": "sflow_2d_mb_relax_beach with the zones on the j faces of the blocks (turned); the i faces to 1e-8 m after 6 s (validation/12_sflow_block_zones).",
+ "covers": [
+  "SFLOW zones on turned blocks"
+ ]
+}

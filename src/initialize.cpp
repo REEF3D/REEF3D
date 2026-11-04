@@ -82,6 +82,28 @@ void initialize::inifdm(lexer *p, fdm *a, ghostcell *pgc)
 
         a->press(i, j, k) = p->I55;
 
+        if(a->Fi.V != nullptr)  // unallocated on the patches of the mesh refinement (fdm lean)
+            a->Fi(i, j, k) = 0.0;
+
+        a->ro(i, j, k) = p->W1;
+        a->visc(i, j, k) = p->W2;
+        a->eddyv(i, j, k) = 0.0;
+        a->phi(i, j, k) = 1.0;
+        if(a->vof.V != nullptr)
+            a->vof(i, j, k) = 1.0;
+
+        if(a->conc.V != nullptr)
+            a->conc(i, j, k) = 0.0;
+    }
+
+    LOOP
+    {
+        a->F(i, j, k) = 0.0;
+        a->G(i, j, k) = 0.0;
+        a->H(i, j, k) = 0.0;
+
+        a->press(i, j, k) = p->I55;
+
         a->Fi(i, j, k) = 0.0;
 
         a->ro(i, j, k) = p->W1;
@@ -116,19 +138,17 @@ void initialize::nodecalc(lexer *p, fdm *a)
     int count = 0;
     p->pointnum = 0;
     p->cellnum = 0;
-    i = 0;
+    p->tpcellnum = 0;
+    p->pointnum2D = 0;
 
     // 3D
     TPLOOP
     {
         ++count;
         ++p->pointnum;
-        a->nodeval(i, j, k) = count;
+        if(a->nodeval.V != nullptr)
+            a->nodeval(i, j, k) = count;
     }
-
-    LOOP++ p->cellnum;
-
-    LOOP++ p->tpcellnum;
 
     // 2D
     count = 0;

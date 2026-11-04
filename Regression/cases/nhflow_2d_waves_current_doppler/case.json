@@ -1,0 +1,8 @@
+{
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 400,
+ "description": "Linear waves (H 0.1 m, T 4 s, h 5 m) on a following current (B 514, U 1 m/s, spin-up 30 s) with Doppler (B 530 2 10): k re-solved from omega = sigma + k U every 10 steps and blended, Riemann edges, generation zone and beach with the background.",
+ "tags": ["quick", "2d", "nhflow", "iowave", "bc_zone", "background", "doppler"],
+ "covers": ["B 530 mode 2", "k blend during the current spin-up", "wave_lib_linear wave_state"]
+}

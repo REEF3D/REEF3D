@@ -1,0 +1,23 @@
+{
+ "base": "fnpf_2d_irregular_2nd_b",
+ "description": "fnpf_2d_irregular_2nd_b with the mean set-down and return current of the 2nd-order waves (B 531 1, FNPF only): -sum a^2 k / (2 sinh 2kh) added to eta and -sum g a^2 k / (2 omega h) to u and Fi (relaxation zone targets, start-up time series).",
+ "tags": [
+  "quick",
+  "2d",
+  "fnpf",
+  "iowave",
+  "waves",
+  "irregular",
+  "2nd_order",
+  "setdown"
+ ],
+ "covers": [
+  "B 531 1",
+  "wave_lib_irregular_2nd_terms::setdown",
+  "eta0 in eta and series",
+  "return current in wave_fi, wave_u (wave_mean)"
+ ],
+ "ctrl_add": [
+  "B 531 1"
+ ]
+}

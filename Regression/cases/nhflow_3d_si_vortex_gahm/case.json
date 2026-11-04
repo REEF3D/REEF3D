@@ -1,0 +1,38 @@
+{
+ "base": "sflow_2d_si_vortex_gahm_mpi2",
+ "description": "The GAHM vortex of sflow_2d_si_vortex_gahm_mpi2 on NHFLOW hydrostatic semi-implicit, 3 sigma layers, one rank: stress in the top layer, pressure gradient and Coriolis in every layer.",
+ "solver": "nhflow",
+ "np": 1,
+ "control_set": {
+  "C 16": "3",
+  "B 10": "0.0 400000.0 0.0 400000.0 0.0 50.0"
+ },
+ "control_add": [
+  "B 2 40 40 3"
+ ],
+ "ctrl_set": {
+  "A 10": "5",
+  "A 220": null,
+  "A 218": null,
+  "A 226": null,
+  "A 227": null,
+  "A 228": null
+ },
+ "ctrl_add": [
+  "A 520 0",
+  "A 534 1",
+  "A 535 0.55",
+  "A 536 300.0",
+  "A 519 1"
+ ],
+ "tags": [
+  "3d",
+  "nhflow",
+  "semi_implicit",
+  "met",
+  "vortex"
+ ],
+ "covers": [
+  "met_vortex GAHM in NHFLOW"
+ ]
+}

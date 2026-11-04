@@ -125,35 +125,141 @@ void CPM::coupling_update(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
 
                 slip = sqrt((uf - P.U[n]) * (uf - P.U[n]) + (vf - P.V[n]) * (vf - P.V[n]) + (wf - P.W[n]) * (wf - P.W[n]));
                 D = drag_model(p, P.D[n], P.RO[n], slip, 0.0);
-                double mD = P.RO[n] * vpar * D;
+                double mD = P.RO[n] * (vpar * P.Wt[n]) * D;
 
                 double kf = 1.0, kux = P.U[n], kuy = P.V[n], kuz = P.W[n];
                 double xk = P.X[n], yk = P.Y[n], zk = P.Z[n];
 
                 if(topo < 0.0)
                 {
-                    // exposed grain: drag with the grain-scale velocity u_g = w fac u_ref + (1-w) u_s,
-                    // reaction at the reference point of u_ref; a grain at rest is part of the bed
-                    // roughness (its drag is in the wall function), the reaction of the moving grains
-                    // takes the momentum they carry away from the near-bed flow (Bagnold)
-                    double ug2 = uf * uf + vf * vf + wf * wf;
-                    double up2 = P.U[n] * P.U[n] + P.V[n] * P.V[n] + P.W[n] * P.W[n];
-                    double fm = MIN(1.0, sqrt(up2 / MAX(0.01 * ug2, 1.0e-20)));
-
-                    if(fm <= 1.0e-6)
-                        continue;
-
-                    mD *= fm;
-                    kf = nb_w * nb_fac;
-                    kux = P.U[n] - (1.0 - nb_w) * nb_ug;
-                    kuy = P.V[n] - (1.0 - nb_w) * nb_vg;
-                    kuz = P.W[n] - (1.0 - nb_w) * nb_wg;
-                    xk = nb_xr;
-                    yk = nb_yr;
-                    zk = nb_zr;
+                    Kc(i, j, k) = 0.0;
+                    KUx(i, j, k) = 0.0;
+                    KUy(i, j, k) = 0.0;
+                    KUz(i, j, k) = 0.0;
                 }
 
-                kernel(p, xk, yk, zk);
+                const bool porous = p->S10 == 2;
+
+                for(n = 0; n < P.index; ++n)
+                    if(P.Flag[n] >= ACTIVE && P.Hop[n] <= 0.0)
+                    {
+                        // S 10 1: the bed is a solid boundary for the fluid (wall function at the bed),
+                        // see the comment at the top: only moving grains act on the fluid
+                        if(!porous)
+                        {
+                            uf = p->ccipol1c(a->u, P.X[n], P.Y[n], P.Z[n]);
+                            vf = p->j_dir == 1 ? p->ccipol2c(a->v, P.X[n], P.Y[n], P.Z[n]) : 0.0;
+                            wf = p->ccipol3c(a->w, P.X[n], P.Y[n], P.Z[n]);
+
+                            nearbed_velocity(p, a, P.X[n], P.Y[n], P.Z[n], P.D[n]);
+
+                            double topo = ptopo(p, a, P.X[n], P.Y[n], P.Z[n]);
+
+                            // grains inside the bed below the exposed layer: no coupling
+                            if(topo < 0.0 && nb_w <= 0.0)
+                                continue;
+
+                            slip = sqrt((uf - P.U[n]) * (uf - P.U[n]) + (vf - P.V[n]) * (vf - P.V[n]) + (wf - P.W[n]) * (wf - P.W[n]));
+                            D = drag_model(p, P.D[n], P.RO[n], slip, 0.0);
+                            double mD = P.RO[n] * vpar * D;
+
+                            double kf = 1.0, kux = P.U[n], kuy = P.V[n], kuz = P.W[n];
+                            double xk = P.X[n], yk = P.Y[n], zk = P.Z[n];
+
+                            if(topo < 0.0)
+                            {
+                                // exposed grain: drag with the grain-scale velocity u_g = w fac u_ref + (1-w) u_s,
+                                // reaction at the reference point of u_ref; a grain at rest is part of the bed
+                                // roughness (its drag is in the wall function), the reaction of the moving grains
+                                // takes the momentum they carry away from the near-bed flow (Bagnold)
+                                double ug2 = uf * uf + vf * vf + wf * wf;
+                                double up2 = P.U[n] * P.U[n] + P.V[n] * P.V[n] + P.W[n] * P.W[n];
+                                double fm = MIN(1.0, sqrt(up2 / MAX(0.01 * ug2, 1.0e-20)));
+
+                                if(fm <= 1.0e-6)
+                                    continue;
+
+                                mD *= fm;
+                                kf = nb_w * nb_fac;
+                                kux = P.U[n] - (1.0 - nb_w) * nb_ug;
+                                kuy = P.V[n] - (1.0 - nb_w) * nb_vg;
+                                kuz = P.W[n] - (1.0 - nb_w) * nb_wg;
+                                xk = nb_xr;
+                                yk = nb_yr;
+                                zk = nb_zr;
+                            }
+
+                            kernel(p, xk, yk, zk);
+
+                            for(qi = 0; qi < 2; ++qi)
+                                for(qj = 0; qj < 2; ++qj)
+                                    for(qk = 0; qk < 2; ++qk)
+                                    {
+                                        w = kw[qi][qj][qk];
+
+                                        if(w > 0.0)
+                                        {
+                                            Kc(ki[qi], kj[qj], kk[qk]) += w * mD * kf;
+                                            KUx(ki[qi], kj[qj], kk[qk]) += w * mD * kux;
+                                            KUy(ki[qi], kj[qj], kk[qk]) += w * mD * kuy;
+                                            KUz(ki[qi], kj[qj], kk[qk]) += w * mD * kuz;
+                                        }
+                                    }
+
+                            continue;
+                        }
+
+                        Tsp = p->ccipol4a(Ts, P.X[n], P.Y[n], P.Z[n]);
+                        eps = MAX(1.0 - Tsp, 1.0 - theta_max);
+                        eps = MIN(eps, 1.0);
+
+                        // interstitial fluid velocity
+                        us = p->ccipol1c(a->u, P.X[n], P.Y[n], P.Z[n]) / eps;
+                        vs = p->j_dir == 1 ? p->ccipol2c(a->v, P.X[n], P.Y[n], P.Z[n]) / eps : 0.0;
+                        ws = p->ccipol3c(a->w, P.X[n], P.Y[n], P.Z[n]) / eps;
+
+                        slip = sqrt((us - P.U[n]) * (us - P.U[n]) + (vs - P.V[n]) * (vs - P.V[n]) + (ws - P.W[n]) * (ws - P.W[n]));
+
+                        D = drag_model(p, P.D[n], P.RO[n], slip, Tsp);
+
+                        // drag coefficient of the fluid source F/eps, per unit fluid velocity of the solver
+                        double mD = P.RO[n] * vpar * D / eps;
+
+                        kernel(p, P.X[n], P.Y[n], P.Z[n]);
+
+                        for(qi = 0; qi < 2; ++qi)
+                            for(qj = 0; qj < 2; ++qj)
+                                for(qk = 0; qk < 2; ++qk)
+                                {
+                                    w = kw[qi][qj][qk];
+
+                                    if(w > 0.0)
+                                    {
+                                        Kc(ki[qi], kj[qj], kk[qk]) += w * mD / eps;
+                                        KUx(ki[qi], kj[qj], kk[qk]) += w * mD * P.U[n];
+                                        KUy(ki[qi], kj[qj], kk[qk]) += w * mD * P.V[n];
+                                        KUz(ki[qi], kj[qj], kk[qk]) += w * mD * P.W[n];
+                                    }
+                                }
+                    }
+
+                Tsp = cip4a(p, Ts, P.X[n], P.Y[n], P.Z[n]);
+                eps = MAX(1.0 - Tsp, 1.0 - theta_max);
+                eps = MIN(eps, 1.0);
+
+                // interstitial fluid velocity
+                us = p->ccipol1c(a->u, P.X[n], P.Y[n], P.Z[n]) / eps;
+                vs = p->j_dir == 1 ? p->ccipol2c(a->v, P.X[n], P.Y[n], P.Z[n]) / eps : 0.0;
+                ws = p->ccipol3c(a->w, P.X[n], P.Y[n], P.Z[n]) / eps;
+
+                slip = sqrt((us - P.U[n]) * (us - P.U[n]) + (vs - P.V[n]) * (vs - P.V[n]) + (ws - P.W[n]) * (ws - P.W[n]));
+
+                D = drag_model(p, P.D[n], P.RO[n], slip, Tsp);
+
+                // drag coefficient of the fluid source F/eps, per unit fluid velocity of the solver
+                double mD = P.RO[n] * (vpar * P.Wt[n]) * D / eps;
+
+                kernel(p, P.X[n], P.Y[n], P.Z[n], n);
 
                 for(qi = 0; qi < 2; ++qi)
                     for(qj = 0; qj < 2; ++qj)
@@ -163,166 +269,130 @@ void CPM::coupling_update(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
 
                             if(w > 0.0)
                             {
-                                Kc(ki[qi], kj[qj], kk[qk]) += w * mD * kf;
-                                KUx(ki[qi], kj[qj], kk[qk]) += w * mD * kux;
-                                KUy(ki[qi], kj[qj], kk[qk]) += w * mD * kuy;
-                                KUz(ki[qi], kj[qj], kk[qk]) += w * mD * kuz;
+                                Kc(ki[qi], kj[qj], kk[qk]) += w * mD / eps;
+                                KUx(ki[qi], kj[qj], kk[qk]) += w * mD * P.U[n];
+                                KUy(ki[qi], kj[qj], kk[qk]) += w * mD * P.V[n];
+                                KUz(ki[qi], kj[qj], kk[qk]) += w * mD * P.W[n];
                             }
                         }
-
-                continue;
             }
 
-            Tsp = p->ccipol4a(Ts, P.X[n], P.Y[n], P.Z[n]);
-            eps = MAX(1.0 - Tsp, 1.0 - theta_max);
-            eps = MIN(eps, 1.0);
+            pfold(p, Kc);
 
-            // interstitial fluid velocity
-            us = p->ccipol1c(a->u, P.X[n], P.Y[n], P.Z[n]) / eps;
-            vs = p->j_dir == 1 ? p->ccipol2c(a->v, P.X[n], P.Y[n], P.Z[n]) / eps : 0.0;
-            ws = p->ccipol3c(a->w, P.X[n], P.Y[n], P.Z[n]) / eps;
+            pgc->start4a_sum(p, Kc, 1);
+            pfold(p, KUx);
+            pgc->start4a_sum(p, KUx, 1);
+            pfold(p, KUy);
+            pgc->start4a_sum(p, KUy, 1);
+            pfold(p, KUz);
+            pgc->start4a_sum(p, KUz, 1);
 
-            slip = sqrt((us - P.U[n]) * (us - P.U[n]) + (vs - P.V[n]) * (vs - P.V[n]) + (ws - P.W[n]) * (ws - P.W[n]));
+            BASELOOP
+            {
+                double rV = p->W1 * p->DXN[IP] * p->DYN[JP] * p->DZN[KP];
 
-            D = drag_model(p, P.D[n], P.RO[n], slip, Tsp);
+                Kc(i, j, k) /= rV;
+                KUx(i, j, k) /= rV;
+                KUy(i, j, k) /= rV;
+                KUz(i, j, k) /= rV;
+            }
 
-            // drag coefficient of the fluid source F/eps, per unit fluid velocity of the solver
-            double mD = P.RO[n] * vpar * D / eps;
-
-            kernel(p, P.X[n], P.Y[n], P.Z[n]);
-
-            for(qi = 0; qi < 2; ++qi)
-                for(qj = 0; qj < 2; ++qj)
-                    for(qk = 0; qk < 2; ++qk)
-                    {
-                        w = kw[qi][qj][qk];
-
-                        if(w > 0.0)
-                        {
-                            Kc(ki[qi], kj[qj], kk[qk]) += w * mD / eps;
-                            KUx(ki[qi], kj[qj], kk[qk]) += w * mD * P.U[n];
-                            KUy(ki[qi], kj[qj], kk[qk]) += w * mD * P.V[n];
-                            KUz(ki[qi], kj[qj], kk[qk]) += w * mD * P.W[n];
-                        }
-                    }
+            pgc->start4a(p, Kc, 1);
+            pgc->start4a(p, KUx, 1);
+            pgc->start4a(p, KUy, 1);
+            pgc->start4a(p, KUz, 1);
         }
 
-    pfold(p, Kc);
-
-    pgc->start4a_sum(p, Kc, 1);
-    pfold(p, KUx);
-    pgc->start4a_sum(p, KUx, 1);
-    pfold(p, KUy);
-    pgc->start4a_sum(p, KUy, 1);
-    pfold(p, KUz);
-    pgc->start4a_sum(p, KUz, 1);
-
-    BASELOOP
+    // momentum source of the parcels on the fluid, called in each RK stage of the momentum equation
+    void CPM::fluid_forcing(lexer * p, fdm * a, ghostcell * pgc, double alpha, field &u, field &v, field &w)
     {
-        double rV = p->W1 * p->DXN[IP] * p->DYN[JP] * p->DZN[KP];
+        if(p->Q50 != 1)
+            return;
 
-        Kc(i, j, k) /= rV;
-        KUx(i, j, k) /= rV;
-        KUy(i, j, k) /= rV;
-        KUz(i, j, k) /= rV;
-    }
+        double K, KU, adt = alpha * p->dt;
 
-    pgc->start4a(p, Kc, 1);
-    pgc->start4a(p, KUx, 1);
-    pgc->start4a(p, KUy, 1);
-    pgc->start4a(p, KUz, 1);
-}
-
-// momentum source of the parcels on the fluid, called in each RK stage of the momentum equation
-void CPM::fluid_forcing(lexer *p, fdm *a, ghostcell *pgc, double alpha, field &u, field &v, field &w)
-{
-    if(p->Q50 != 1)
-        return;
-
-    double K, KU, adt = alpha * p->dt;
-
-    ULOOP
-    {
-        K = 0.5 * (Kc(i, j, k) + Kc(i + 1, j, k));
-        KU = 0.5 * (KUx(i, j, k) + KUx(i + 1, j, k));
-
-        u(i, j, k) = (u(i, j, k) + adt * KU) / (1.0 + adt * K);
-    }
-
-    if(p->j_dir == 1)
-        VLOOP
+        ULOOP
         {
-            K = 0.5 * (Kc(i, j, k) + Kc(i, j + 1, k));
-            KU = 0.5 * (KUy(i, j, k) + KUy(i, j + 1, k));
+            K = 0.5 * (Kc(i, j, k) + Kc(i + 1, j, k));
+            KU = 0.5 * (KUx(i, j, k) + KUx(i + 1, j, k));
 
-            v(i, j, k) = (v(i, j, k) + adt * KU) / (1.0 + adt * K);
+            u(i, j, k) = (u(i, j, k) + adt * KU) / (1.0 + adt * K);
         }
-
-    WLOOP
-    {
-        K = 0.5 * (Kc(i, j, k) + Kc(i, j, k + 1));
-        KU = 0.5 * (KUz(i, j, k) + KUz(i, j, k + 1));
-
-        w(i, j, k) = (w(i, j, k) + adt * KU) / (1.0 + adt * K);
-    }
-
-    pgc->start1(p, u, 10);
-    pgc->start2(p, v, 11);
-    pgc->start3(p, w, 12);
-}
-
-void CPM::continuity_source(lexer *p, ghostcell *pgc)
-{
-    double qe, qw, qn, qs, qt, qb;
-
-    // solid volume flux theta u_p, cell centred
-    // KUx, KUy, KUz serve as work fields, they are filled afterwards
-    BASELOOP
-    {
-        KUx(i, j, k) = Ts(i, j, k) * Us(i, j, k);
-        KUy(i, j, k) = Ts(i, j, k) * Vs(i, j, k);
-        KUz(i, j, k) = Ts(i, j, k) * Ws(i, j, k);
-    }
-
-    pgc->start4a(p, KUx, 1);
-    pgc->start4a(p, KUy, 1);
-    pgc->start4a(p, KUz, 1);
-
-    BASELOOP
-    {
-        qe = wallcell(p, i + 1, j, k) ? 0.0 : 0.5 * (KUx(i, j, k) + KUx(i + 1, j, k));
-        qw = wallcell(p, i - 1, j, k) ? 0.0 : 0.5 * (KUx(i, j, k) + KUx(i - 1, j, k));
-        qt = wallcell(p, i, j, k + 1) ? 0.0 : 0.5 * (KUz(i, j, k) + KUz(i, j, k + 1));
-        qb = wallcell(p, i, j, k - 1) ? 0.0 : 0.5 * (KUz(i, j, k) + KUz(i, j, k - 1));
-
-        qn = qs = 0.0;
 
         if(p->j_dir == 1)
+            VLOOP
+            {
+                K = 0.5 * (Kc(i, j, k) + Kc(i, j + 1, k));
+                KU = 0.5 * (KUy(i, j, k) + KUy(i, j + 1, k));
+
+                v(i, j, k) = (v(i, j, k) + adt * KU) / (1.0 + adt * K);
+            }
+
+        WLOOP
         {
-            qn = wallcell(p, i, j + 1, k) ? 0.0 : 0.5 * (KUy(i, j, k) + KUy(i, j + 1, k));
-            qs = wallcell(p, i, j - 1, k) ? 0.0 : 0.5 * (KUy(i, j, k) + KUy(i, j - 1, k));
+            K = 0.5 * (Kc(i, j, k) + Kc(i, j, k + 1));
+            KU = 0.5 * (KUz(i, j, k) + KUz(i, j, k + 1));
+
+            w(i, j, k) = (w(i, j, k) + adt * KU) / (1.0 + adt * K);
         }
 
-        Dsrc(i, j, k) = -(qe - qw) / p->DXN[IP] - (qn - qs) / p->DYN[JP] - (qt - qb) / p->DZN[KP];
+        pgc->start1(p, u, 10);
+        pgc->start2(p, v, 11);
+        pgc->start3(p, w, 12);
     }
 
-    pgc->start4a(p, Dsrc, 1);
-}
+    void CPM::continuity_source(lexer * p, ghostcell * pgc)
+    {
+        double qe, qw, qn, qs, qt, qb;
 
-// no coupling before the parcels move
-void CPM::coupling_reset(lexer *p, ghostcell *pgc)
-{
-    if(p->Q50 != 1 || p->Q11 != 2)
-        return;
+        // solid volume flux theta u_p, cell centred
+        // KUx, KUy, KUz serve as work fields, they are filled afterwards
+        BASELOOP
+        {
+            KUx(i, j, k) = Ts(i, j, k) * Us(i, j, k);
+            KUy(i, j, k) = Ts(i, j, k) * Vs(i, j, k);
+            KUz(i, j, k) = Ts(i, j, k) * Ws(i, j, k);
+        }
 
-    for(i = -1; i < p->knox + 1; ++i)
-        for(j = -1; j < p->knoy + 1; ++j)
-            for(k = -1; k < p->knoz + 1; ++k)
+        pgc->start4a(p, KUx, 1);
+        pgc->start4a(p, KUy, 1);
+        pgc->start4a(p, KUz, 1);
+
+        BASELOOP
+        {
+            qe = wallcell(p, i + 1, j, k) ? 0.0 : 0.5 * (KUx(i, j, k) + KUx(i + 1, j, k));
+            qw = wallcell(p, i - 1, j, k) ? 0.0 : 0.5 * (KUx(i, j, k) + KUx(i - 1, j, k));
+            qt = wallcell(p, i, j, k + 1) ? 0.0 : 0.5 * (KUz(i, j, k) + KUz(i, j, k + 1));
+            qb = wallcell(p, i, j, k - 1) ? 0.0 : 0.5 * (KUz(i, j, k) + KUz(i, j, k - 1));
+
+            qn = qs = 0.0;
+
+            if(p->j_dir == 1)
             {
-                Kc(i, j, k) = 0.0;
-                KUx(i, j, k) = 0.0;
-                KUy(i, j, k) = 0.0;
-                KUz(i, j, k) = 0.0;
-                Dsrc(i, j, k) = 0.0;
+                qn = wallcell(p, i, j + 1, k) ? 0.0 : 0.5 * (KUy(i, j, k) + KUy(i, j + 1, k));
+                qs = wallcell(p, i, j - 1, k) ? 0.0 : 0.5 * (KUy(i, j, k) + KUy(i, j - 1, k));
             }
-}
+
+            Dsrc(i, j, k) = -(qe - qw) / p->DXN[IP] - (qn - qs) / p->DYN[JP] - (qt - qb) / p->DZN[KP];
+        }
+
+        pgc->start4a(p, Dsrc, 1);
+    }
+
+    // no coupling before the parcels move
+    void CPM::coupling_reset(lexer * p, ghostcell * pgc)
+    {
+        if(p->Q50 != 1 || p->Q11 != 2)
+            return;
+
+        for(i = -1; i < p->knox + 1; ++i)
+            for(j = -1; j < p->knoy + 1; ++j)
+                for(k = -1; k < p->knoz + 1; ++k)
+                {
+                    Kc(i, j, k) = 0.0;
+                    KUx(i, j, k) = 0.0;
+                    KUy(i, j, k) = 0.0;
+                    KUz(i, j, k) = 0.0;
+                    Dsrc(i, j, k) = 0.0;
+                }
+    }

@@ -22,111 +22,15 @@ Author: Hans Bihs
 
 #include "fdm.h"
 #include "ghostcell.h"
+#include "ioflow_gcio.h"
 #include "iowave.h"
 #include "lexer.h"
 #include "patchBC_interface.h"
 #include "vrans.h"
 
-int iowave::iozonecheck(lexer *p, fdm *a)
-{
-    int check = 1;
-
-    dg = distgen(p);
-    db = distbeach(p);
-
-    if(p->B98 == 2)
-        if(dg < dist1 || db < dist2)
-            check = 0;
-
-    return check;
-}
-
 void iowave::gcio_update(lexer *p, fdm *a, ghostcell *pgc)
 {
-
-    int count1, count2;
-
-    count1 = 0;
-    count2 = 0;
-    GC4LOOP
-    {
-        i = p->gcb4[n][0];
-        j = p->gcb4[n][1];
-        k = p->gcb4[n][2];
-
-        if((p->gcb4[n][4] == 1 || p->gcb4[n][4] == 6) && p->flagsf4[IJK] > 0)
-            ++count1;
-
-        if((p->gcb4[n][4] == 2 || p->gcb4[n][4] == 7 || p->gcb4[n][4] == 8) && p->flagsf4[IJK] > 0)
-            ++count2;
-    }
-
-    // cout<<p->mpirank<<"  gcin_count: "<<p->gcin_count<<" count1: "<<count1<<"  gcout_count: "<<p->gcout_count<<" count2: "<<count2<<endl;
-
-    p->Iresize(p->gcin, p->gcin_count, count1, 6, 6);
-    p->Iresize(p->gcout, p->gcout_count, count2, 6, 6);
-
-    count1 = 0;
-    count2 = 0;
-    GC4LOOP
-    {
-        i = p->gcb4[n][0];
-        j = p->gcb4[n][1];
-        k = p->gcb4[n][2];
-
-        if((p->gcb4[n][4] == 1 || p->gcb4[n][4] == 6) && p->flagsf4[IJK] > 0)
-        {
-            p->gcin[count1][0] = p->gcb4[n][0];
-            p->gcin[count1][1] = p->gcb4[n][1];
-            p->gcin[count1][2] = p->gcb4[n][2];
-            p->gcin[count1][3] = p->gcb4[n][3];
-            p->gcin[count1][5] = p->gcb4[n][5];
-            ++count1;
-        }
-
-        if((p->gcb4[n][4] == 2 || p->gcb4[n][4] == 7 || p->gcb4[n][4] == 8) && p->flagsf4[IJK] > 0)
-        {
-            p->gcout[count2][0] = p->gcb4[n][0];
-            p->gcout[count2][1] = p->gcb4[n][1];
-            p->gcout[count2][2] = p->gcb4[n][2];
-            p->gcout[count2][3] = p->gcb4[n][3];
-            p->gcout[count2][5] = p->gcb4[n][5];
-            ++count2;
-        }
-    }
-
-    p->gcin_count = count1;
-    p->gcout_count = count2;
-
-    // 4a ---------------
-
-    count1 = 0;
-    count2 = 0;
-    GC4ALOOP
-    {
-        if(p->gcb4a[n][4] == 1)
-        {
-            p->gcin4a[count1][0] = p->gcb4a[n][0];
-            p->gcin4a[count1][1] = p->gcb4a[n][1];
-            p->gcin4a[count1][2] = p->gcb4a[n][2];
-            p->gcin4a[count1][3] = p->gcb4a[n][3];
-            p->gcin4a[count1][5] = p->gcb4a[n][5];
-            ++count1;
-        }
-
-        if(p->gcb4a[n][4] == 2)
-        {
-            p->gcout4a[count2][0] = p->gcb4a[n][0];
-            p->gcout4a[count2][1] = p->gcb4a[n][1];
-            p->gcout4a[count2][2] = p->gcb4a[n][2];
-            p->gcout4a[count2][3] = p->gcb4a[n][3];
-            p->gcout4a[count2][5] = p->gcb4a[n][5];
-            ++count2;
-        }
-    }
-
-    p->gcin4a_count = count1;
-    p->gcout4a_count = count2;
+    ioflow_gcio_lists(p, p->flagsf4, nullptr);
 
     if(p->I10 == 1)
         velini(p, a, pgc);
@@ -137,300 +41,35 @@ void iowave::gcio_update(lexer *p, fdm *a, ghostcell *pgc)
     if(p->B99 == 3 || p->B99 == 4 || p->B99 == 5)
         awa_ini(p, a, pgc);
 
-    // IO update
-    MALOOP
-    p->IO[IJK] = 0;
-
-    GC4LOOP
-    {
-        if(p->gcb4[n][4] == 1 || p->gcb4[n][4] == 6)
-        {
-            i = p->gcb4[n][0];
-            j = p->gcb4[n][1];
-            k = p->gcb4[n][2];
-
-            if(p->flagsf4[IJK] > 0)
-            {
-                // inflow
-                if(p->gcb4[n][3] == 1)
-                    p->IO[Im1JK] = 1;
-
-                if(p->gcb4[n][3] == 4)
-                    p->IO[Ip1JK] = 1;
-
-                if(p->gcb4[n][3] == 3)
-                    p->IO[IJm1K] = 1;
-
-                if(p->gcb4[n][3] == 2)
-                    p->IO[IJp1K] = 1;
-
-                if(p->gcb4[n][3] == 5)
-                    p->IO[IJKm1] = 1;
-
-                if(p->gcb4[n][3] == 6)
-                    p->IO[IJKp1] = 1;
-            }
-        }
-
-        if((p->gcb4[n][4] == 2 || p->gcb4[n][4] == 7 || p->gcb4[n][4] == 8))
-        {
-            i = p->gcb4[n][0];
-            j = p->gcb4[n][1];
-            k = p->gcb4[n][2];
-
-            if(p->flagsf4[IJK] > 0)
-            {
-
-                // outflow
-                if(p->gcb4[n][3] == 1)
-                    p->IO[Im1JK] = 2;
-
-                if(p->gcb4[n][3] == 4)
-                    p->IO[Ip1JK] = 2;
-
-                if(p->gcb4[n][3] == 3)
-                    p->IO[IJm1K] = 2;
-
-                if(p->gcb4[n][3] == 2)
-                    p->IO[IJp1K] = 2;
-
-                if(p->gcb4[n][3] == 5)
-                    p->IO[IJKm1] = 2;
-
-                if(p->gcb4[n][3] == 6)
-                    p->IO[IJKp1] = 2;
-            }
-        }
-    }
-
-    for(int qq = 0; qq < pBC->obj_count; ++qq)
-        for(n = 0; n < pBC->patch[qq]->gcb_count; ++n)
-        {
-
-            if(pBC->patch[qq]->gcb[n][3] == 1)
-                p->IO[Im1JK] = 1;
-
-            if(pBC->patch[qq]->gcb[n][3] == 4)
-                p->IO[Ip1JK] = 1;
-
-            if(pBC->patch[qq]->gcb[n][3] == 3)
-                p->IO[IJm1K] = 1;
-
-            if(pBC->patch[qq]->gcb[n][3] == 2)
-                p->IO[IJp1K] = 1;
-
-            if(pBC->patch[qq]->gcb[n][3] == 5)
-                p->IO[IJKm1] = 1;
-
-            if(pBC->patch[qq]->gcb[n][3] == 6)
-                p->IO[IJKp1] = 1;
-        }
+    ioflow_gcio_marks(p, p->flagsf4, pBC);
 }
 
 void iowave::gcio_update_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
+    ioflow_gcio_lists(p, p->DF, nullptr);
 
-    int count1, count2;
-
-    count1 = 0;
-    count2 = 0;
-    GC4LOOP
+    // the legacy inflow ghost cells (gcin) are written along x: an open y edge must be an outflow side in DIVEMesh
+    if(p->open_ym == 1 || p->open_yp == 1)
     {
-        i = p->gcb4[n][0];
-        j = p->gcb4[n][1];
-        k = p->gcb4[n][2];
+        int yin = 0;
+        for(n = 0; n < p->gcin_count; ++n)
+            if((p->open_ym == 1 && p->gcin[n][3] == 3) || (p->open_yp == 1 && p->gcin[n][3] == 2))
+                ++yin;
 
-        if((p->gcb4[n][4] == 1 || p->gcb4[n][4] == 6) && p->flagsf4[IJK] > 0)
-            ++count1;
-
-        if((p->gcb4[n][4] == 2 || p->gcb4[n][4] == 7 || p->gcb4[n][4] == 8) && p->flagsf4[IJK] > 0)
-            ++count2;
-    }
-
-    // cout<<p->mpirank<<"  gcin_count: "<<p->gcin_count<<" count1: "<<count1<<"  gcout_count: "<<p->gcout_count<<" count2: "<<count2<<endl;
-
-    p->Iresize(p->gcin, p->gcin_count, count1, 6, 6);
-    p->Iresize(p->gcout, p->gcout_count, count2, 6, 6);
-
-    count1 = 0;
-    count2 = 0;
-    GC4LOOP
-    {
-        i = p->gcb4[n][0];
-        j = p->gcb4[n][1];
-        k = p->gcb4[n][2];
-
-        if((p->gcb4[n][4] == 1 || p->gcb4[n][4] == 6) && p->flagsf4[IJK] > 0)
+        if(pgc->globalisum(yin) > 0)
         {
-            p->gcin[count1][0] = p->gcb4[n][0];
-            p->gcin[count1][1] = p->gcb4[n][1];
-            p->gcin[count1][2] = p->gcb4[n][2];
-            p->gcin[count1][3] = p->gcb4[n][3];
-            p->gcin[count1][5] = p->gcb4[n][5];
-            ++count1;
-        }
-
-        if((p->gcb4[n][4] == 2 || p->gcb4[n][4] == 7 || p->gcb4[n][4] == 8) && p->flagsf4[IJK] > 0)
-        {
-            p->gcout[count2][0] = p->gcb4[n][0];
-            p->gcout[count2][1] = p->gcb4[n][1];
-            p->gcout[count2][2] = p->gcb4[n][2];
-            p->gcout[count2][3] = p->gcb4[n][3];
-            p->gcout[count2][5] = p->gcb4[n][5];
-            ++count2;
+            if(p->mpirank == 0)
+                cout << endl
+                     << "!!! iowave: a Riemann / Flather edge at y- or y+ needs that side flagged as outflow in DIVEMesh (C 12 / C 13 2) !!!" << endl
+                     << endl;
+            exit(1);
         }
     }
-
-    p->gcin_count = count1;
-    p->gcout_count = count2;
 
     // if(p->I10==1)
     // velini(p,a,pgc);
 
-    // IO update
-    MALOOP
-    p->IO[IJK] = 0;
-
-    GC4LOOP
-    {
-        if(p->gcb4[n][4] == 1 || p->gcb4[n][4] == 6)
-        {
-            i = p->gcb4[n][0];
-            j = p->gcb4[n][1];
-            k = p->gcb4[n][2];
-
-            if(p->flagsf4[IJK] > 0)
-            {
-                // inflow
-                if(p->gcb4[n][3] == 1)
-                    p->IO[Im1JK] = 1;
-
-                if(p->gcb4[n][3] == 4)
-                    p->IO[Ip1JK] = 1;
-
-                if(p->gcb4[n][3] == 3)
-                    p->IO[IJm1K] = 1;
-
-                if(p->gcb4[n][3] == 2)
-                    p->IO[IJp1K] = 1;
-
-                if(p->gcb4[n][3] == 5)
-                    p->IO[IJKm1] = 1;
-
-                if(p->gcb4[n][3] == 6)
-                    p->IO[IJKp1] = 1;
-            }
-        }
-
-        if((p->gcb4[n][4] == 2 || p->gcb4[n][4] == 7 || p->gcb4[n][4] == 8))
-        {
-            i = p->gcb4[n][0];
-            j = p->gcb4[n][1];
-            k = p->gcb4[n][2];
-
-            if(p->flagsf4[IJK] > 0)
-            {
-
-                // outflow
-                if(p->gcb4[n][3] == 1)
-                    p->IO[Im1JK] = 2;
-
-                if(p->gcb4[n][3] == 4)
-                    p->IO[Ip1JK] = 2;
-
-                if(p->gcb4[n][3] == 3)
-                    p->IO[IJm1K] = 2;
-
-                if(p->gcb4[n][3] == 2)
-                    p->IO[IJp1K] = 2;
-
-                if(p->gcb4[n][3] == 5)
-                    p->IO[IJKm1] = 2;
-
-                if(p->gcb4[n][3] == 6)
-                    p->IO[IJKp1] = 2;
-            }
-        }
-    }
-
-    for(int qq = 0; qq < pBC->obj_count; ++qq)
-        for(n = 0; n < pBC->patch[qq]->gcb_count; ++n)
-        {
-
-            if(pBC->patch[qq]->gcb[n][3] == 1)
-                p->IO[Im1JK] = 1;
-
-            if(pBC->patch[qq]->gcb[n][3] == 4)
-                p->IO[Ip1JK] = 1;
-
-            if(pBC->patch[qq]->gcb[n][3] == 3)
-                p->IO[IJm1K] = 1;
-
-            if(pBC->patch[qq]->gcb[n][3] == 2)
-                p->IO[IJp1K] = 1;
-
-            if(pBC->patch[qq]->gcb[n][3] == 5)
-                p->IO[IJKm1] = 1;
-
-            if(pBC->patch[qq]->gcb[n][3] == 6)
-                p->IO[IJKp1] = 1;
-        }
-}
-
-void iowave::iogcb_update(lexer *p, fdm *a, ghostcell *pgc)
-{
-    int count1, count2;
-
-    count1 = 0;
-    count2 = 0;
-    GC4LOOP
-    {
-        if(p->gcb4[n][4] == 1 || p->gcb4[n][4] == 6)
-            ++count1;
-
-        if(p->gcb4[n][4] == 2 || p->gcb4[n][4] == 7 || p->gcb4[n][4] == 8)
-            ++count2;
-    }
-
-    p->Iresize(p->gcin, p->gcin_count, count1, 6, 6);
-    p->Iresize(p->gcout, p->gcout_count, count2, 6, 6);
-
-    count1 = 0;
-    count2 = 0;
-    GC4LOOP
-    {
-        if(p->gcb4[n][4] == 1 || p->gcb4[n][4] == 6)
-        {
-            p->gcin[count1][0] = p->gcb4[n][0];
-            p->gcin[count1][1] = p->gcb4[n][1];
-            p->gcin[count1][2] = p->gcb4[n][2];
-            p->gcin[count1][3] = p->gcb4[n][3];
-            p->gcin[count1][5] = p->gcb4[n][5];
-            ++count1;
-        }
-
-        if(p->gcb4[n][4] == 2 || p->gcb4[n][4] == 7 || p->gcb4[n][4] == 8)
-        {
-            p->gcout[count2][0] = p->gcb4[n][0];
-            p->gcout[count2][1] = p->gcb4[n][1];
-            p->gcout[count2][2] = p->gcb4[n][2];
-            p->gcout[count2][3] = p->gcb4[n][3];
-            p->gcout[count1][5] = p->gcb4[n][5];
-            ++count2;
-        }
-    }
-
-    p->gcin_count = count1;
-    p->gcout_count = count2;
-
-    if(p->I10 == 1)
-        velini(p, a, pgc);
-
-    if(p->B98 == 4)
-        gen_ini(p, a, pgc);
-
-    if(p->B99 == 3 || p->B99 == 4 || p->B99 == 5)
-        awa_ini(p, a, pgc);
+    ioflow_gcio_marks(p, p->DF, pBC);
 }
 
 void iowave::awa_ini(lexer *p, fdm *a, ghostcell *pgc)

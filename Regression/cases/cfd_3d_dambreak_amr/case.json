@@ -1,0 +1,4 @@
+{"np": 2, "steps": 20,
+ "description": "CFD mesh refinement in 3D: dam break in a closed box, one refined level around the water column (3D boxes, refinement in x, y, z), 2 ranks.",
+ "tags": ["quick", "3d", "dambreak", "levelset", "amr", "mpi"],
+ "covers": ["reefamr3d 3D tiles and boxes", "cfd_amr 3D fills and faces", "bicgstab_ijk diffusion on a patch with Dirichlet values around it"]}

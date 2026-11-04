@@ -1,0 +1,20 @@
+{
+ "np": 1,
+ "steps": 30,
+ "tags": [
+  "2d",
+  "sflow",
+  "curvilinear",
+  "amr"
+ ],
+ "description": "SFLOW AMR on a curvilinear grid (the Cartesian one rotated by 90 deg): undular bore of a small step with Boussinesq (A 220 4), two levels following the surface (G 20), regrid every 4 steps, subcycling (G 7 1); the same as the Cartesian run per cell index.",
+ "covers": [
+  "sflow_amr curvilinear: area-weighted restriction, patch geometry from the curvilinear nodes, VTS output",
+  "sflow_amr_bous: 5-point rows, fills of the grid-aligned components in time (G 7 1)",
+  "sflow_amr_sub refluxing with face lengths"
+ ],
+ "solver": "sflow",
+ "files": [
+  "curvgrid.dat"
+ ]
+}

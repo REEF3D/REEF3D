@@ -1,0 +1,15 @@
+{
+ "description": "FNPF AMR wave basin: regular waves (B 92 4) through a static box (G 10), one level, the composite Laplace.",
+ "solver": "fnpf",
+ "np": 1,
+ "steps": 40,
+ "tags": [
+  "3d",
+  "fnpf",
+  "amr",
+  "waves"
+ ],
+ "covers": [
+  "fnpf_amr static box: fills, restrict_sl/col, composite Laplace"
+ ]
+}

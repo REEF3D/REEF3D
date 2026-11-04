@@ -35,6 +35,10 @@ using namespace std;
 class sixdof_cfd final : public sixdof, public increment
 {
 public:
+    // runtime coupling (reefcouple, I 243): state of the bodies
+    int body_count() const override { return int(fb_obj.size()); }
+    void body_state(int, double *) const override;
+
     sixdof_cfd(lexer *, fdm *, ghostcell *);
     virtual ~sixdof_cfd();
 
@@ -44,6 +48,8 @@ public:
 
     void reforce_nhflow(lexer *, fdm_nhf *, ghostcell *, int, double *, double *, double *, double *, double *, double *, slice &, slice &, bool) override final {};
 
+    void ckpt_state(lexer *, std::vector<double> &) override final;
+    bool ckpt_restore(lexer *, ghostcell *, const std::vector<double> &) override final;
     void ini(lexer *, ghostcell *) override final;
     void initialize(lexer *, fdm *, ghostcell *) override final;
     void initialize(lexer *, fdm2D *, ghostcell *) override final;
@@ -60,8 +66,34 @@ public:
     void isource2D(lexer *, fdm2D *, ghostcell *) override final;
     void jsource2D(lexer *, fdm2D *, ghostcell *) override final;
 
+    // the bodies, for the CFD mesh refinement (cfd_amr)
+    int objects() const { return number6DOF; }
+    sixdof_obj_cfd *object(int nb) { return fb_obj[nb]; }
+    // ... G 7 1: level 0 steps with a predicted copy of the bodies (the loads of the last stage of
+    // the finest level, no output); the finest level advances them (sixdof_obj_cfd::amr_stage_cfd)
+    bool amr_predict = false;
+
 private:
     void setup(lexer *, fdm *, ghostcell *);
+
+    // external solver of the bodies (6DOF_external.h, REEF3D::CORAL fluid_body; 6DOF_cfd_external.cpp)
+    void ext_connect(lexer *, ghostcell *);
+    void ext_nodes(lexer *, int, double &, double &, int &) const;
+    void ext_loads(lexer *, double, bool);
+    bool ext_drives(int) const;
+    void ext_stage(lexer *, int);
+    class sixdof_external *pext = nullptr;
+    bool ext_checked = false;
+    bool ext_twoway = false;
+
+    int number6DOF;
+    vector<sixdof_obj_cfd *> fb_obj;
+
+    // several bodies: the level set of all bodies (minimum) in a->fb after their update; the ray cast
+    // of a body overwrites a->fb with its own, the forcing of the body uses that one
+    void fb_combine(lexer *, fdm *, int);
+    void fb_finish(lexer *, fdm *, ghostcell *);
+    field4a *fball = nullptr;
 
     int number6DOF;
     vector<sixdof_obj_cfd *> fb_obj;

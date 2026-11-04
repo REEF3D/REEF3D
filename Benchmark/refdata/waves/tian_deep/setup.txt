@@ -1,0 +1,12 @@
+# Tian, Perlin & Choi (2010, 2012) deep-water focused wave packets, as simulated by Derakhti & Kirby (2016) -- REFERENCE VALUES ONLY
+# Tian, Z., Perlin, M. & Choi, W. (2010) Energy dissipation in two-dimensional unsteady plunging breakers and an eddy
+#   viscosity model. J. Fluid Mech. 655, 217-257.
+# Derakhti, M. & Kirby, J.T. (2016) Breaking-onset, energy and momentum flux in unsteady focused wave packets.
+#   J. Fluid Mech. 790, 553-581, Table 1 (deep water, constant steepness): d = 0.62 m, f_c = 1.7 Hz, df/f_c = 0.824,
+#   N = 128 components uniformly spaced over f_c +- df/2, a_i = S/(k_i N), x_b = 7.0 m, t_b = 25.0 s (linear focus).
+#   TN S = 0.256 non-breaking; TP1 0.410; TP2 0.576; TP3 0.742 plunging.
+# Table 2 (LES): loss = Delta eta^2 / eta_1^2 (eta^2 time-averaged, spatially averaged upstream / downstream of the break point)
+#   case  S      loss (%)
+#   TP1   0.410  13.3
+#   TP2   0.576  25.0
+#   TP3   0.742  30.3

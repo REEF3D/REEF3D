@@ -1,0 +1,25 @@
+{
+ "description": "nhflow_3d_amr_waves_place with subcycling (G 7 1) and the step-size consistent relaxation (B 95 -1): placed patches on 2 ranks, remote fills in time, remote refluxing, the level solve across ranks.",
+ "solver": "nhflow",
+ "np": 2,
+ "steps": 30,
+ "tags": [
+  "3d",
+  "nhflow",
+  "amr",
+  "subcycling",
+  "mpi",
+  "place",
+  "relax"
+ ],
+ "covers": [
+  "nhflow_amr_sub across ranks (face_run_at, fill_run, block plans)",
+  "iowave::wavegen_stage_nhflow, relax_stage_factor"
+ ],
+ "base": "nhflow_3d_amr_waves_mpi2",
+ "ctrl_add": [
+  "G 40 1",
+  "G 7 1",
+  "B 95 -1"
+ ]
+}

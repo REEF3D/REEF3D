@@ -1,0 +1,18 @@
+{
+ "base": "nhflow_2d_combined_beach",
+ "ctrl_set": {
+  "B 98": "6"
+ },
+ "description": "NHFLOW combined generation B 98 6: relaxation zone to target + low-passed deviation (B 527 default Tp / 4), Riemann edge with the waves at x-; combined beach B 99 6.",
+ "tags": [
+  "quick",
+  "2d",
+  "waves",
+  "iowave",
+  "awa",
+  "nhflow"
+ ],
+ "covers": [
+  "B 98 6 in NHFLOW (gen_dev in WL/U/V/W_relax, nhflow_gen_edge)"
+ ]
+}

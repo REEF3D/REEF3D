@@ -24,6 +24,7 @@ Author: Tobias Martin
 #include "6DOF_output_dir.h"
 #include "ghostcell.h"
 #include "lexer.h"
+#include "reefckpt.h"
 
 mooring_Spring::mooring_Spring(int number) : line(number) {}
 
@@ -46,8 +47,8 @@ void mooring_Spring::initialize(lexer *p, ghostcell *pgc)
     {
         char str[1000];
         sprintf(str, "%s/REEF3D_6DOF_mooring_force_%i.dat", sixdof_output_dir(p), line);
-        eTout.open(str);
-        eTout << "time \t T" << endl;
+        if(reefckpt_open(eTout, str, p->I45))
+            eTout << "time \t T" << endl;
     }
 
     printtime = 0.0;
@@ -58,7 +59,9 @@ void mooring_Spring::initialize(lexer *p, ghostcell *pgc)
     breakTension = p->X314 > 0 ? p->X314_T[line] : 0.0;
     breakTime = p->X315 > 0 ? p->X315_t[line] : 0.0;
 
-    print(p);
+    // the first output (not on a restart from a checkpoint, I 45 1: printed already)
+    if(p->I45 != 1)
+        print(p);
 }
 
 void mooring_Spring::start(lexer *p, ghostcell *pgc)

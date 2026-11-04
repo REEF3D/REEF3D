@@ -21,6 +21,7 @@ Authors: Hans Bihs, Alexander Hanke
 --------------------------------------------------------------------*/
 
 #include "printer_CFD.h"
+#include "amr_grid_lookup.h"
 #include "cfd_state.h"
 #include "concentration.h"
 #include "expdata.h"
@@ -94,7 +95,9 @@ printer_CFD::printer_CFD(lexer *p, fdm *a, ghostcell *pgc)
     p->printcount = 0;
 
     p->Darray(printtime_wT, p->P35);
+    nP35 = p->P35;
     p->Darray(printfsftime_wT, p->P185);
+    nP185 = p->P185;
 
     for(int qn = 0; qn < p->P35; ++qn)
         printtime_wT[qn] = p->P35_ts[qn];
@@ -138,6 +141,7 @@ printer_CFD::printer_CFD(lexer *p, fdm *a, ghostcell *pgc)
     if(p->P81 > 0)
     {
         pforce = new force *[p->P81];
+        nforce = p->P81;
 
         for(n = 0; n < p->P81; ++n)
             pforce[n] = new force(p, a, pgc, n);
@@ -255,6 +259,18 @@ void printer_CFD::start(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb, hea
         for(n = 0; n < p->P81; ++n)
             pforce[n]->start(p, a, pgc);
 
+    if(p->P168 > 0)
+        pqw->start(p, a, pgc);
+
+    if((p->count == 0 || p->count == p->count_statestart || force_ini_pending) && p->P81 > 0)
+        for(n = 0; n < p->P81; ++n)
+            pforce[n]->ini(p, a, pgc, !force_ini_pending);
+    force_ini_pending = false;
+
+    if(p->count > 1 && p->P81 > 0)
+        for(n = 0; n < p->P81; ++n)
+            pforce[n]->start(p, a, pgc);
+
     if(p->P101 > 0)
         pslosh->start(p, a, pgc);
 
@@ -263,11 +279,11 @@ void printer_CFD::start(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb, hea
 
     // Print FSF
     if(((p->count % p->P181 == 0 && p->P182 < 0.0 && p->P180 == 1) || (p->count == 0 && p->P182 < 0.0 && p->P180 == 1)) && p->P181 > 0)
-        pfsf->start(p, a, pgc);
+        print_fsf(p, a, pgc);
 
     if((p->simtime > p->fsfprinttime && p->P182 > 0.0 && p->P180 == 1) || (p->count == 0 && p->P182 > 0.0))
     {
-        pfsf->start(p, a, pgc);
+        print_fsf(p, a, pgc);
         p->fsfprinttime += p->P182;
     }
 
@@ -275,14 +291,14 @@ void printer_CFD::start(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb, hea
         for(int qn = 0; qn < p->P184; ++qn)
             if(p->count % p->P184_dit[qn] == 0 && p->count >= p->P184_its[qn] && p->count <= (p->P184_ite[qn]))
             {
-                pfsf->start(p, a, pgc);
+                print_fsf(p, a, pgc);
             }
 
     if(p->P180 == 1 && p->P185 > 0)
         for(int qn = 0; qn < p->P185; ++qn)
             if(p->simtime > printfsftime_wT[qn] && p->simtime >= p->P185_ts[qn] && p->simtime <= (p->P185_te[qn] + 0.5 * p->P185_dt[qn]))
             {
-                pfsf->start(p, a, pgc);
+                print_fsf(p, a, pgc);
 
                 printfsftime_wT[qn] += p->P185_dt[qn];
             }
@@ -317,13 +333,13 @@ void printer_CFD::start(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb, hea
         pflowfile->start(p, a, pgc, pturb);
 
     // Print state out based on iteration
-    if(p->count % p->P41 == 0 && p->P42 < 0.0 && p->P40 > 0 && p->P41 > 0 && (p->P46 == 0 || (p->count >= p->P46_is && p->count << p->P46_ie)))
+    if(p->P40 > 0 && p->P41 > 0 && p->count % p->P41 == 0 && p->P42 < 0.0 && (p->P46 == 0 || (p->count >= p->P46_is && p->count < p->P46_ie)))
     {
         pstate->write(p, a, pgc, pturb, psed);
     }
 
     // Print state out based on time
-    if((p->simtime > p->stateprinttime && p->P42 > 0.0 || (p->count == 0 && p->P42 > 0.0)) && p->P40 > 0 && (p->P47 == 0 || (p->count >= p->P47_ts && p->count << p->P47_te)))
+    if(p->P40 > 0 && p->P42 > 0.0 && (p->simtime > p->stateprinttime || p->count == 0) && (p->P47 == 0 || (p->simtime >= p->P47_ts && p->simtime < p->P47_te)))
     {
         pstate->write(p, a, pgc, pturb, psed);
 
@@ -340,16 +356,38 @@ void printer_CFD::start(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb, hea
 void printer_CFD::print_stop(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb, heat *pheat, ioflow *pflow, expdata *pdata, concentration *pconc, multiphase *pmp, sediment *psed)
 {
     if(p->P180 == 1)
-        pfsf->start(p, a, pgc);
+        print_fsf(p, a, pgc);
 
     print3D(p, a, pgc, pturb, pheat, pdata, pconc, pmp, psed);
 
     if(plagoon)  // the last output of the LAGOON store is counted
         plagoon->finish(p, pgc);
+    lagoon_output::finish_all(p, pgc);  // and those of the free surface and bed
+}
+
+void printer_CFD::print_end(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb, heat *pheat, ioflow *pflow, expdata *pdata, concentration *pconc, multiphase *pmp, sediment *psed)
+{
+    // the state at the end of the run, also when it ends between two outputs (N 45 before P 30)
+    const bool volume = (p->P20 > 0 && p->P30 < 0.0 && p->P34 < 0.0) || p->P30 > 0.0 || p->P34 > 0.0 || p->P35 > 0;
+    const bool fsf = p->P180 == 1 && (p->P181 > 0 || p->P182 > 0.0 || p->P184 > 0 || p->P185 > 0);
+
+    if(fsf && last_fsf != p->count)
+        print_fsf(p, a, pgc);
+
+    if(volume && last_print != p->count)
+        print3D(p, a, pgc, pturb, pheat, pdata, pconc, pmp, psed);
+}
+
+void printer_CFD::print_fsf(lexer *p, fdm *a, ghostcell *pgc)
+{
+    pfsf->start(p, a, pgc);
+    last_fsf = p->count;
 }
 
 void printer_CFD::print3D(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb, heat *pheat, expdata *pdata, concentration *pconc, multiphase *pmp, sediment *psed)
 {
+    last_print = p->count;
+
     if(p->P10 != vtk3D::type::none)
     {
         pgc->start4a(p, a->test, 1);
@@ -875,6 +913,8 @@ void printer_CFD::print3D(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb, h
         if(lagoon_output::vtu_files(p))
             writeFile(name, total_size);
 
+        release_buffer();
+
         ++p->printcount;
 
         pgc->start1(p, a->u, 114);
@@ -883,4 +923,60 @@ void printer_CFD::print3D(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb, h
 
         pgc->start4a(p, a->topo, 150);
     }
+}
+
+// CFD mesh refinement: the point probes (P 61), pressure probes (P 64) and wave gauges (P 51) read
+// the finest grid at their position, the forces on the solids (P 81) integrate every piece of the
+// surface on the finest grid at its centre
+void printer_CFD::amr_probes(const amr_grid_lookup *amr)
+{
+    pprobe->amr = amr;
+    ppressprobe->amr = amr;
+    pwsf->amr = amr;
+
+    for(int n = 0; n < nforce; ++n)
+        pforce[n]->amr_level0(amr);
+}
+
+// checkpoints (P 48, I 45): the times of the next outputs of the windows P 35 and P 185 and the counters of the
+// surface and bed files (the times of the others are in the run scalars of reefrun_ckpt)
+void printer_CFD::ckpt_state(std::vector<double> &v)
+{
+    v.push_back(2.0);
+    v.push_back(pfsf != nullptr ? pfsf->print_counter() : 0);
+    v.push_back(ptopo != nullptr ? ptopo->print_counter() : 0);
+    v.push_back(double(nP35));
+    for(int qn = 0; qn < nP35; ++qn)
+        v.push_back(printtime_wT[qn]);
+    v.push_back(double(nP185));
+    for(int qn = 0; qn < nP185; ++qn)
+        v.push_back(printfsftime_wT[qn]);
+}
+
+void printer_CFD::ckpt_restore(const std::vector<double> &v)
+{
+    force_ini_pending = true;
+    if(v.size() < 4 || (int(v[0]) != 1 && int(v[0]) != 2))
+        return;
+    if(pfsf != nullptr)
+        pfsf->print_counter() = int(v[1]);
+    if(ptopo != nullptr)
+        ptopo->print_counter() = int(v[2]);
+    size_t q = 3;
+    const int n = int(v[q++]);
+    for(int qn = 0; qn < n && q < v.size(); ++qn, ++q)
+        if(qn < nP35)
+            printtime_wT[qn] = v[q];
+    if(int(v[0]) < 2 || q >= v.size())
+        return;
+    const int m = int(v[q++]);
+    for(int qn = 0; qn < m && q < v.size(); ++qn, ++q)
+        if(qn < nP185)
+            printfsftime_wT[qn] = v[q];
+}
+
+void printer_CFD::flush_outputs()
+{
+    if(pwsf != nullptr)
+        pwsf->flush_files();
 }

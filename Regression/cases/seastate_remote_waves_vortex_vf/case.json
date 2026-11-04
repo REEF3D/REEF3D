@@ -1,0 +1,8 @@
+{
+ "base": "seastate_remote_waves_vortex",
+ "part_of": "seastate_sflow_vortex_si_remote_vf_cd7",
+ "ctrl_set": {"A 751": "2", "A 729": "2"},
+ "ctrl_add": ["A 728 4"],
+ "description": "the wave model of seastate_sflow_vortex_si_remote_vf_cd7: vortex force, Zijlema drag of its own for the wind input (A 729 2, A 728 4).",
+ "tags": ["2d", "seastate", "mpmd", "met", "vortex"]
+}

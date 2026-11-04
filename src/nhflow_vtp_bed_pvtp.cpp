@@ -23,6 +23,7 @@ Author: Hans Bihs
 #include "lexer.h"
 #include "nhflow_vtp_bed.h"
 #include "runlog.h"
+#include "scour_core.h"
 #include "sediment.h"
 
 void nhflow_vtp_bed::pvtp(lexer *p, sediment *psed, int num)
@@ -40,6 +41,9 @@ void nhflow_vtp_bed::pvtp(lexer *p, sediment *psed, int num)
     result << "<PDataArray type=\"Float32\" Name=\"velocity\" NumberOfComponents=\"3\"/>\n";
     result << "<PDataArray type=\"Float32\" Name=\"elevation\"/>\n";
     result << "<PDataArray type=\"Float32\" Name=\"depth\"/>\n";
+    if(scour != nullptr)
+        for(int q = 0; q < scour_core::NQ; ++q)
+            result << "<PDataArray type=\"Float32\" Name=\"" << scour_core::name(q) << "\"/>\n";
     if(p->P76 == 1)
         psed->name_ParaView_parallel_bedload(p, result);
     if(p->P77 == 1)

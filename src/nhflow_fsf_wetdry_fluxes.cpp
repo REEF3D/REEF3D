@@ -27,6 +27,8 @@ Author: Hans Bihs
 
 void nhflow_fsf_f::wetdry_fluxes(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL, double *U, double *V, double *W, double *UH, double *VH, double *WH)
 {
+    // (the tangential face states Vs..Ww exist only for HLLC, the curvilinear grid and the semi-implicit
+    //  momentum, nhflow_tangential_faces: nullptr otherwise)
     // wetdry fluxes
     if(p->A540 == 1)
     {
@@ -227,203 +229,359 @@ void nhflow_fsf_f::wetdry_fluxes(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL
 
     // Forcing Fluxes
     // U,UH
-    // the forcing-flux branches below only fire next to cells with DF<0
-    // (solids / floating bodies); skip the three sweeps when there are none
-    // (whole array incl. ghost/halo layers, since the neighbour DF is read)
-    int anydf = 0;
+    // (the branches below only fire at wet/dry column interfaces: columns
+    //  where both neighbours are wet are skipped without touching k)
+    for(i = 0; i < p->knox - p->ulast; ++i)
+        for(j = 0; j < p->knoy; ++j)
+            if(!(p->wet[IJ] == 1 && p->wet[Ip1J] == 1))
+                for(k = 0; k < p->knoz; ++k)
+                    if(p->flag1[IJK] > 0)
+                    {
+                        if(p->wet[IJ] == 1 && p->wet[Ip1J] == 0)
+                        {
+                            d->Un[IJK] = 0.0;
+                            if(d->Vn != nullptr)
+                                d->Vn[IJK] = 0.0;
+                            if(d->Wn != nullptr)
+                                d->Wn[IJK] = 0.0;
 
-    if(p->A521 == 0)
+                            d->UHn[IJK] = 0.0;
+                            d->VHn[IJK] = 0.0;
+                            d->WHn[IJK] = 0.0;
+
+                            d->Us[IJK] = 0.0;
+                            if(d->Vs != nullptr)
+                                d->Vs[IJK] = 0.0;
+                            if(d->Ws != nullptr)
+                                d->Ws[IJK] = 0.0;
+
+                            d->UHs[IJK] = 0.0;
+                            d->VHs[IJK] = 0.0;
+                            d->WHs[IJK] = 0.0;
+                        }
+
+                        else if(p->wet[IJ] == 0 && p->wet[Ip1J] == 1)
+                        {
+                            d->Un[IJK] = 0.0;
+                            if(d->Vn != nullptr)
+                                d->Vn[IJK] = 0.0;
+                            if(d->Wn != nullptr)
+                                d->Wn[IJK] = 0.0;
+
+                            d->UHn[IJK] = 0.0;
+                            d->VHn[IJK] = 0.0;
+                            d->WHn[IJK] = 0.0;
+
+                            d->Us[IJK] = 0.0;
+                            if(d->Vs != nullptr)
+                                d->Vs[IJK] = 0.0;
+                            if(d->Ws != nullptr)
+                                d->Ws[IJK] = 0.0;
+
+                            d->UHs[IJK] = 0.0;
+                            d->VHs[IJK] = 0.0;
+                            d->WHs[IJK] = 0.0;
+                        }
+
+                        else if(p->wet[IJ] == 0 && p->wet[Ip1J] == 0)
+                        {
+                            d->Un[IJK] = 0.0;
+                            if(d->Vn != nullptr)
+                                d->Vn[IJK] = 0.0;
+                            if(d->Wn != nullptr)
+                                d->Wn[IJK] = 0.0;
+
+                            d->UHn[IJK] = 0.0;
+                            d->VHn[IJK] = 0.0;
+                            d->WHn[IJK] = 0.0;
+
+                            d->Us[IJK] = 0.0;
+                            if(d->Vs != nullptr)
+                                d->Vs[IJK] = 0.0;
+                            if(d->Ws != nullptr)
+                                d->Ws[IJK] = 0.0;
+
+                            d->UHs[IJK] = 0.0;
+                            d->VHs[IJK] = 0.0;
+                            d->WHs[IJK] = 0.0;
+                        }
+                    }
+
+    for(i = 0; i < p->knox; ++i)
+        for(j = 0; j < p->knoy - p->vlast; ++j)
+            if(!(p->wet[IJ] == 1 && p->wet[IJp1] == 1))
+                for(k = 0; k < p->knoz; ++k)
+                    if(p->flag2[IJK] > 0)
+                    {
+
+                        if(p->wet[IJ] == 1 && p->wet[IJp1] == 0)
+                        {
+                            if(d->Uw != nullptr)
+                                d->Uw[IJK] = 0.0;
+                            d->Vw[IJK] = 0.0;
+                            if(d->Ww != nullptr)
+                                d->Ww[IJK] = 0.0;
+
+                            d->UHw[IJK] = 0.0;
+                            d->VHw[IJK] = 0.0;
+                            d->WHw[IJK] = 0.0;
+
+                            if(d->Ue != nullptr)
+                                d->Ue[IJK] = 0.0;
+                            d->Ve[IJK] = 0.0;
+                            if(d->We != nullptr)
+                                d->We[IJK] = 0.0;
+
+                            d->UHe[IJK] = 0.0;
+                            d->VHe[IJK] = 0.0;
+                            d->WHe[IJK] = 0.0;
+                        }
+
+                        else if(p->wet[IJ] == 0 && p->wet[IJp1] == 1)
+                        {
+                            if(d->Uw != nullptr)
+                                d->Uw[IJK] = 0.0;
+                            d->Vw[IJK] = 0.0;
+                            if(d->Ww != nullptr)
+                                d->Ww[IJK] = 0.0;
+
+                            d->UHw[IJK] = 0.0;
+                            d->VHw[IJK] = 0.0;
+                            d->WHw[IJK] = 0.0;
+
+                            if(d->Ue != nullptr)
+                                d->Ue[IJK] = 0.0;
+                            d->Ve[IJK] = 0.0;
+                            if(d->We != nullptr)
+                                d->We[IJK] = 0.0;
+
+                            d->UHe[IJK] = 0.0;
+                            d->VHe[IJK] = 0.0;
+                            d->WHe[IJK] = 0.0;
+                        }
+
+                        else if(p->wet[IJ] == 0 && p->wet[IJp1] == 0)
+                        {
+                            if(d->Uw != nullptr)
+                                d->Uw[IJK] = 0.0;
+                            d->Vw[IJK] = 0.0;
+                            if(d->Ww != nullptr)
+                                d->Ww[IJK] = 0.0;
+
+                            d->UHw[IJK] = 0.0;
+                            d->VHw[IJK] = 0.0;
+                            d->WHw[IJK] = 0.0;
+
+                            if(d->Ue != nullptr)
+                                d->Ue[IJK] = 0.0;
+                            d->Ve[IJK] = 0.0;
+                            if(d->We != nullptr)
+                                d->We[IJK] = 0.0;
+
+                            d->UHe[IJK] = 0.0;
+                            d->VHe[IJK] = 0.0;
+                            d->WHe[IJK] = 0.0;
+                        }
+                    }
+}
+
+// Forcing Fluxes
+// U,UH
+// the forcing-flux branches below only fire next to cells with DF<0
+// (solids / floating bodies); skip the three sweeps when there are none
+// (whole array incl. ghost/halo layers, since the neighbour DF is read)
+int anydf = 0;
+
+if(p->A521 == 0)
+{
+    const int ndf = p->imax * p->jmax * p->kmax;
+
+    for(int q = 0; q < ndf; ++q)
+        if(p->DF[q] < 0)
+        {
+            anydf = 1;
+            break;
+        }
+}
+
+if(p->A521 == 0 && anydf == 1)
+{
+    ULOOP
     {
-        const int ndf = p->imax * p->jmax * p->kmax;
+        d->Un[IJK] = 0.0;
+        if(d->Vn != nullptr)
+            d->Vn[IJK] = 0.0;
+        if(d->Wn != nullptr)
+            d->Wn[IJK] = 0.0;
 
-        for(int q = 0; q < ndf; ++q)
-            if(p->DF[q] < 0)
-            {
-                anydf = 1;
-                break;
-            }
+        d->UHn[IJK] = 0.0;
+        d->VHn[IJK] = 0.0;
+        d->WHn[IJK] = 0.0;
+
+        d->Us[IJK] = 0.0;
+        if(d->Vs != nullptr)
+            d->Vs[IJK] = 0.0;
+        if(d->Ws != nullptr)
+            d->Ws[IJK] = 0.0;
+
+        d->UHs[IJK] = 0.0;
+        d->VHs[IJK] = 0.0;
+        d->WHs[IJK] = 0.0;
     }
 
-    if(p->A521 == 0 && anydf == 1)
+    else if((p->DF[IJK] == -1 && p->DF[Ip1JK] == 1))
     {
-        ULOOP
-        {
-            if((p->DF[IJK] == 1 && p->DF[Ip1JK] == -1))
-            {
-                d->Un[IJK] = 0.0;
-                d->Vn[IJK] = 0.0;
-                d->Wn[IJK] = 0.0;
+        d->Un[IJK] = 0.0;
+        if(d->Vn != nullptr)
+            d->Vn[IJK] = 0.0;
+        if(d->Wn != nullptr)
+            d->Wn[IJK] = 0.0;
 
-                d->UHn[IJK] = 0.0;
-                d->VHn[IJK] = 0.0;
-                d->WHn[IJK] = 0.0;
+        d->UHn[IJK] = 0.0;
+        d->VHn[IJK] = 0.0;
+        d->WHn[IJK] = 0.0;
 
-                d->Us[IJK] = 0.0;
-                d->Vs[IJK] = 0.0;
-                d->Ws[IJK] = 0.0;
+        d->Us[IJK] = 0.0;
+        if(d->Vs != nullptr)
+            d->Vs[IJK] = 0.0;
+        if(d->Ws != nullptr)
+            d->Ws[IJK] = 0.0;
 
-                d->UHs[IJK] = 0.0;
-                d->VHs[IJK] = 0.0;
-                d->WHs[IJK] = 0.0;
-            }
-
-            else if((p->DF[IJK] == -1 && p->DF[Ip1JK] == 1))
-            {
-                d->Un[IJK] = 0.0;
-                d->Vn[IJK] = 0.0;
-                d->Wn[IJK] = 0.0;
-
-                d->UHn[IJK] = 0.0;
-                d->VHn[IJK] = 0.0;
-                d->WHn[IJK] = 0.0;
-
-                d->Us[IJK] = 0.0;
-                d->Vs[IJK] = 0.0;
-                d->Ws[IJK] = 0.0;
-
-                d->UHs[IJK] = 0.0;
-                d->VHs[IJK] = 0.0;
-                d->WHs[IJK] = 0.0;
-            }
-
-            else if((p->DF[IJK] == -1 && p->DF[Ip1JK] == -1))
-            {
-                d->Un[IJK] = 0.0;
-                d->Vn[IJK] = 0.0;
-                d->Wn[IJK] = 0.0;
-
-                d->UHn[IJK] = 0.0;
-                d->VHn[IJK] = 0.0;
-                d->WHn[IJK] = 0.0;
-
-                d->Us[IJK] = 0.0;
-                d->Vs[IJK] = 0.0;
-                d->Ws[IJK] = 0.0;
-
-                d->UHs[IJK] = 0.0;
-                d->VHs[IJK] = 0.0;
-                d->WHs[IJK] = 0.0;
-            }
-        }
-
-        VLOOP
-        {
-            if((p->DF[IJK] == 1 && p->DF[IJp1K] == -1))
-            {
-                d->Uw[IJK] = 0.0;
-                d->Vw[IJK] = 0.0;
-                d->Ww[IJK] = 0.0;
-
-                d->UHw[IJK] = 0.0;
-                d->VHw[IJK] = 0.0;
-                d->WHw[IJK] = 0.0;
-
-                d->Ue[IJK] = 0.0;
-                d->Ve[IJK] = 0.0;
-                d->We[IJK] = 0.0;
-
-                d->UHe[IJK] = 0.0;
-                d->VHe[IJK] = 0.0;
-                d->WHe[IJK] = 0.0;
-            }
-
-            else if((p->DF[IJK] == -1 && p->DF[IJp1K] == 1))
-            {
-                d->Uw[IJK] = 0.0;
-                d->Vw[IJK] = 0.0;
-                d->Ww[IJK] = 0.0;
-
-                d->UHw[IJK] = 0.0;
-                d->VHw[IJK] = 0.0;
-                d->WHw[IJK] = 0.0;
-
-                d->Ue[IJK] = 0.0;
-                d->Ve[IJK] = 0.0;
-                d->We[IJK] = 0.0;
-
-                d->UHe[IJK] = 0.0;
-                d->VHe[IJK] = 0.0;
-                d->WHe[IJK] = 0.0;
-            }
-
-            else if((p->DF[IJK] == -1 && p->DF[IJp1K] == -1))
-            {
-                d->Uw[IJK] = 0.0;
-                d->Vw[IJK] = 0.0;
-                d->Ww[IJK] = 0.0;
-
-                d->UHw[IJK] = 0.0;
-                d->VHw[IJK] = 0.0;
-                d->WHw[IJK] = 0.0;
-
-                d->Ue[IJK] = 0.0;
-                d->Ve[IJK] = 0.0;
-                d->We[IJK] = 0.0;
-
-                d->UHe[IJK] = 0.0;
-                d->VHe[IJK] = 0.0;
-                d->WHe[IJK] = 0.0;
-            }
-        }
-
-        WLOOP
-        {
-            if((p->DF[IJK] == 1 && p->DF[IJKp1] == -1))
-            {
-                d->Ut[IJK] = 0.0;
-                d->Vt[IJK] = 0.0;
-                d->Wt[IJK] = 0.0;
-
-                d->UHt[IJK] = 0.0;
-                d->VHt[IJK] = 0.0;
-                d->WHt[IJK] = 0.0;
-
-                d->Ub[IJK] = 0.0;
-                d->Vb[IJK] = 0.0;
-                d->Wb[IJK] = 0.0;
-
-                d->UHb[IJK] = 0.0;
-                d->VHb[IJK] = 0.0;
-                d->WHb[IJK] = 0.0;
-            }
-
-            else if((p->DF[IJK] == -1 && p->DF[IJKp1] == 1))
-            {
-                d->Ut[IJK] = 0.0;
-                d->Vt[IJK] = 0.0;
-                d->Wt[IJK] = 0.0;
-
-                d->UHt[IJK] = 0.0;
-                d->VHt[IJK] = 0.0;
-                d->WHt[IJK] = 0.0;
-
-                d->Ub[IJK] = 0.0;
-                d->Vb[IJK] = 0.0;
-                d->Wb[IJK] = 0.0;
-
-                d->UHb[IJK] = 0.0;
-                d->VHb[IJK] = 0.0;
-                d->WHb[IJK] = 0.0;
-            }
-
-            else if((p->DF[IJK] == -1 && p->DF[IJKp1] == -1))
-            {
-                d->Ut[IJK] = 0.0;
-                d->Vt[IJK] = 0.0;
-                d->Wt[IJK] = 0.0;
-
-                d->UHt[IJK] = 0.0;
-                d->VHt[IJK] = 0.0;
-                d->WHt[IJK] = 0.0;
-
-                d->Ub[IJK] = 0.0;
-                d->Vb[IJK] = 0.0;
-                d->Wb[IJK] = 0.0;
-
-                d->UHb[IJK] = 0.0;
-                d->VHb[IJK] = 0.0;
-                d->WHb[IJK] = 0.0;
-            }
-        }
+        d->UHs[IJK] = 0.0;
+        d->VHs[IJK] = 0.0;
+        d->WHs[IJK] = 0.0;
     }
+
+    VLOOP
+    {
+        d->Un[IJK] = 0.0;
+        if(d->Vn != nullptr)
+            d->Vn[IJK] = 0.0;
+        if(d->Wn != nullptr)
+            d->Wn[IJK] = 0.0;
+
+        d->UHn[IJK] = 0.0;
+        d->VHn[IJK] = 0.0;
+        d->WHn[IJK] = 0.0;
+
+        d->Us[IJK] = 0.0;
+        if(d->Vs != nullptr)
+            d->Vs[IJK] = 0.0;
+        if(d->Ws != nullptr)
+            d->Ws[IJK] = 0.0;
+
+        d->UHs[IJK] = 0.0;
+        d->VHs[IJK] = 0.0;
+        d->WHs[IJK] = 0.0;
+    }
+}
+
+VLOOP
+{
+    if((p->DF[IJK] == 1 && p->DF[IJp1K] == -1))
+    {
+        if(d->Uw != nullptr)
+            d->Uw[IJK] = 0.0;
+        d->Vw[IJK] = 0.0;
+        if(d->Ww != nullptr)
+            d->Ww[IJK] = 0.0;
+
+        d->UHw[IJK] = 0.0;
+        d->VHw[IJK] = 0.0;
+        d->WHw[IJK] = 0.0;
+
+        if(d->Ue != nullptr)
+            d->Ue[IJK] = 0.0;
+        d->Ve[IJK] = 0.0;
+        if(d->We != nullptr)
+            d->We[IJK] = 0.0;
+
+        d->UHe[IJK] = 0.0;
+        d->VHe[IJK] = 0.0;
+        d->WHe[IJK] = 0.0;
+    }
+
+    else if((p->DF[IJK] == -1 && p->DF[IJp1K] == 1))
+    {
+        if(d->Uw != nullptr)
+            d->Uw[IJK] = 0.0;
+        d->Vw[IJK] = 0.0;
+        if(d->Ww != nullptr)
+            d->Ww[IJK] = 0.0;
+
+        d->UHw[IJK] = 0.0;
+        d->VHw[IJK] = 0.0;
+        d->WHw[IJK] = 0.0;
+
+        if(d->Ue != nullptr)
+            d->Ue[IJK] = 0.0;
+        d->Ve[IJK] = 0.0;
+        if(d->We != nullptr)
+            d->We[IJK] = 0.0;
+
+        d->UHe[IJK] = 0.0;
+        d->VHe[IJK] = 0.0;
+        d->WHe[IJK] = 0.0;
+    }
+
+    else if((p->DF[IJK] == -1 && p->DF[IJp1K] == -1))
+    {
+        if(d->Uw != nullptr)
+            d->Uw[IJK] = 0.0;
+        d->Vw[IJK] = 0.0;
+        if(d->Ww != nullptr)
+            d->Ww[IJK] = 0.0;
+
+        d->UHw[IJK] = 0.0;
+        d->VHw[IJK] = 0.0;
+        d->WHw[IJK] = 0.0;
+
+        if(d->Ue != nullptr)
+            d->Ue[IJK] = 0.0;
+        d->Ve[IJK] = 0.0;
+        if(d->We != nullptr)
+            d->We[IJK] = 0.0;
+
+        d->UHe[IJK] = 0.0;
+        d->VHe[IJK] = 0.0;
+        d->WHe[IJK] = 0.0;
+    }
+}
+
+WLOOP
+{
+    if((p->DF[IJK] == 1 && p->DF[IJKp1] == -1))
+    {
+        d->Ut[IJK] = 0.0;
+        d->Vt[IJK] = 0.0;
+        d->Wt[IJK] = 0.0;
+
+        d->Ub[IJK] = 0.0;
+        d->Vb[IJK] = 0.0;
+        d->Wb[IJK] = 0.0;
+    }
+
+    else if((p->DF[IJK] == -1 && p->DF[IJKp1] == 1))
+    {
+        d->Ut[IJK] = 0.0;
+        d->Vt[IJK] = 0.0;
+        d->Wt[IJK] = 0.0;
+
+        d->Ub[IJK] = 0.0;
+        d->Vb[IJK] = 0.0;
+        d->Wb[IJK] = 0.0;
+    }
+
+    else if((p->DF[IJK] == -1 && p->DF[IJKp1] == -1))
+    {
+        d->Ut[IJK] = 0.0;
+        d->Vt[IJK] = 0.0;
+        d->Wt[IJK] = 0.0;
+
+        d->Ub[IJK] = 0.0;
+        d->Vb[IJK] = 0.0;
+        d->Wb[IJK] = 0.0;
+    }
+}
+}
 }

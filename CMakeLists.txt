@@ -88,6 +88,10 @@ else()
   message(STATUS "Building without HYPRE (default): Poisson solves with REEFMG (N 10 1); -DREEF3D_USE_HYPRE=ON to enable")
 endif()
 
+# ── Metal (REEFMG on the Apple Silicon GPU, N 16 1) ──────────────────────────
+# src/reefmg_device_metal.cpp is part of every macOS build; Metal is loaded at run time, so nothing
+# is linked and nothing needs to be switched on (-DREEF3D_NO_METAL leaves it out).
+
 # ── Eigen ─────────────────────────────────────────────────────────────────────
 
 set(EIGEN_LOCAL_DIR "${PROJECT_SOURCE_DIR}/ThirdParty/eigen-${REEF3D_EIGEN_VERSION}")
@@ -120,16 +124,34 @@ file(GLOB SOURCES CONFIGURE_DEPENDS src/*.cpp)
 if(NOT REEF3D_USE_HYPRE)
   list(FILTER SOURCES EXCLUDE REGEX "/hypre_[^/]*\\.cpp$")
 endif()
+# REEF3D::CORAL (src/coral/<folder>/): every folder except app/ (the standalone CORAL executable)
+file(GLOB_RECURSE CORAL_SOURCES CONFIGURE_DEPENDS src/coral/*.cpp)
+list(FILTER CORAL_SOURCES EXCLUDE REGEX "/src/coral/app/")
+list(APPEND SOURCES ${CORAL_SOURCES})
 add_executable(REEF3D ${SOURCES})
+# includes of CORAL start at src/ (#include"coral/core/coral_types.h")
+target_include_directories(REEF3D PRIVATE ${PROJECT_SOURCE_DIR}/src)
+
+# REEF3D::CORAL standalone executable (no fluid grid, no MPI): src/coral without reef3d/, with app/
+file(GLOB_RECURSE CORAL_APP_SOURCES CONFIGURE_DEPENDS src/coral/*.cpp)
+list(FILTER CORAL_APP_SOURCES EXCLUDE REGEX "/src/coral/reef3d/")
+add_executable(CORAL EXCLUDE_FROM_ALL ${CORAL_APP_SOURCES})
+set_target_properties(CORAL PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin")
+target_include_directories(CORAL PRIVATE ${PROJECT_SOURCE_DIR}/src)
+target_link_libraries(CORAL PRIVATE Eigen3::Eigen)
+target_compile_features(CORAL PRIVATE cxx_std_20)
 
 set_target_properties(REEF3D PROPERTIES
   RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin")
 
 # ── Compile definitions ───────────────────────────────────────────────────────
 
+# The git version is printed only by driver.cpp and driver_log.cpp: defined for these two files
+# alone, a new commit (re-configure) recompiles them instead of every source
+set_source_files_properties(src/driver.cpp src/driver_log.cpp PROPERTIES
+  COMPILE_DEFINITIONS "VERSION=\"${GIT_VERSION}\";BRANCH=\"${GIT_BRANCH}\"")
+
 target_compile_definitions(REEF3D PRIVATE
-  VERSION="${GIT_VERSION}"
-  BRANCH="${GIT_BRANCH}"
   $<$<CONFIG:Release>:NDEBUG;EIGEN_NO_DEBUG;BUILD="release">
   $<$<CONFIG:Debug>:BUILD="debug">
   $<$<CONFIG:Dev>:BUILD="dev">
@@ -140,12 +162,36 @@ target_compile_definitions(REEF3D PRIVATE
 # CMAKE_CXX_FLAGS_<CONFIG> already covers Dev/All (set above).
 # Generator expressions handle Release and Debug overrides.
 
+# Release LTO: clang uses ThinLTO (parallel, and incremental with the cache on macOS); full LTO
+# (-flto with clang) runs single-threaded over all objects on every link. GCC: -flto=auto.
+option(REEF3D_USE_LTO "Link-time optimisation in Release" ON)
+set(_lto_clang "$<AND:$<CONFIG:Release>,$<BOOL:${REEF3D_USE_LTO}>,$<CXX_COMPILER_ID:Clang,AppleClang>>")
+set(_lto_gnu   "$<AND:$<CONFIG:Release>,$<BOOL:${REEF3D_USE_LTO}>,$<NOT:$<CXX_COMPILER_ID:Clang,AppleClang>>>")
+
 target_compile_options(REEF3D PRIVATE
-  $<$<CONFIG:Release>:-O3;-march=native;-flto;-w>
+  $<$<CONFIG:Release>:-O3;-march=native;-w>
+  $<${_lto_clang}:-flto=thin>
+  $<${_lto_gnu}:-flto=auto>
   $<$<CONFIG:Debug>:-O0;-g;-g3;-Wall>)
 
 target_link_options(REEF3D PRIVATE
-  $<$<CONFIG:Release>:-flto=auto>)
+  $<${_lto_clang}:-flto=thin>
+  $<${_lto_gnu}:-flto=auto>)
+if(APPLE)
+  target_link_options(REEF3D PRIVATE
+    $<${_lto_clang}:-Wl,-cache_path_lto,${CMAKE_BINARY_DIR}/lto-cache>)
+endif()
+
+# ── Precompiled header ───────────────────────────────────────────────────────
+# Standard library, MPI and Eigen (src/reef3d_pch.h): parsing them is ~80% of the compile time
+# of a typical source without it.
+option(REEF3D_USE_PCH "Precompiled header src/reef3d_pch.h" ON)
+if(REEF3D_USE_PCH)
+  target_precompile_headers(REEF3D PRIVATE ${PROJECT_SOURCE_DIR}/src/reef3d_pch.h)
+  # own language flags (-fopenmp-simd, -fno-math-errno): these cannot use the shared PCH
+  set_source_files_properties(src/wave_lib_irregular_1st.cpp src/wave_lib_irregular_2nd_a.cpp
+    src/wave_lib_irregular_2nd_b.cpp PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
+endif()
 
 # ── Link libraries ────────────────────────────────────────────────────────────
 
@@ -160,6 +206,27 @@ target_link_libraries(REEF3D PRIVATE
   $<$<BOOL:${REEF3D_USE_HYPRE}>:HYPRE::HYPRE>
   Eigen3::Eigen)
 
+# ── OpenMP threads for the FEM solid (Z 30) ──────────────────────────────────
+# On by default when the compiler supports OpenMP; without it the solid runs on one
+# thread per MPI rank. Apple clang: brew install libomp (found with brew --prefix libomp).
+option(REEF3D_USE_OPENMP "OpenMP threads for the FEM solid" ON)
+if(REEF3D_USE_OPENMP)
+  if(APPLE AND NOT OpenMP_ROOT AND NOT DEFINED ENV{OpenMP_ROOT})
+    execute_process(COMMAND brew --prefix libomp
+      OUTPUT_VARIABLE _libomp_prefix OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_QUIET)
+    if(_libomp_prefix AND EXISTS "${_libomp_prefix}")
+      set(OpenMP_ROOT "${_libomp_prefix}")
+    endif()
+  endif()
+  find_package(OpenMP COMPONENTS CXX)
+  if(OpenMP_CXX_FOUND)
+    target_link_libraries(REEF3D PRIVATE OpenMP::OpenMP_CXX)
+    message(STATUS "OpenMP ${OpenMP_CXX_VERSION}: threads for the FEM solid")
+  else()
+    message(STATUS "OpenMP not found: the FEM solid runs on one thread per MPI rank")
+  endif()
+endif()
+
 # ── Vectorised libm for irregular-wave generation (glibc libmvec) ──────────────
 # wave_lib_irregular_1st sums sin/cos/cosh over all spectral components for every
 # relaxation-zone cell each step; with libmvec this is ~4.5x faster.
@@ -168,4 +235,13 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     COMPILE_OPTIONS "-fopenmp-simd;-fno-math-errno"
     COMPILE_DEFINITIONS "REEF3D_SIMD_MATH")
   target_link_libraries(REEF3D PRIVATE mvec)
+elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+  set_source_files_properties(src/wave_lib_irregular_1st.cpp PROPERTIES
+    COMPILE_OPTIONS "-fopenmp-simd")
+endif()
+
+# SIMD reductions over the second-order irregular-wave terms (#pragma omp simd)
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+  set_source_files_properties(src/wave_lib_irregular_2nd_a.cpp src/wave_lib_irregular_2nd_b.cpp PROPERTIES
+    COMPILE_OPTIONS "-fopenmp-simd")
 endif()

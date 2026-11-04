@@ -1,0 +1,9 @@
+{
+ "description": "NHFLOW 3D flexible membrane bag 'membrane cylcone' with 'mobility sharp': filling 0.98 pumped out of the bag interior over 0.2 s (drain), staggered coupling with the added mass m_a, bending hinges, smoothed geometry for the fluid, normal wall velocities, hysteresis of the sides; current from a hydrograph inflow ramp (B60=2). Coarse grid.",
+ "solver": "nhflow",
+ "np": 2,
+ "steps": 60,
+ "files": ["membrane.dat", "hydrograph.dat"],
+ "tags": ["3d", "nhflow", "membrane", "flexible", "current", "mpi"],
+ "covers": ["net_membrane sharp flexible (advance_structure with added mass, bending hinges)", "smooth_geometry / restore_geometry", "link_mobility hysteresis and node consistency", "nhflow_thinbody top_region, moving floor lid target, inner_volume"]
+}

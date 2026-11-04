@@ -24,110 +24,117 @@ Author: Hans Bihs
 #include "ghostcell.h"
 #include "ioflow.h"
 #include "lexer.h"
+#include "nhflow_curv.h"
 #include "nhflow_fsf_f.h"
 
-void nhflow_fsf_f::ini(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, double *U, double *V, double *W)
+SLICELOOP4
+d->detadt(i, j) = 0.0;
+
+pgc->gcsl_start4(p, d->detadt, 1);
+
+LOOP
 {
-    pgc->gcsl_start4Vint(p, p->wet, 50);
-
-    wetdry(p, d, pgc, U, V, W, d->WL);
-
-    SLICELOOP4
-    d->detadt(i, j) = 0.0;
-
-    pgc->gcsl_start4(p, d->detadt, 1);
-
-    LOOP
+    if(p->geo_curv == 1)
+        d->detadt(i, j) += -p->DZN[KP] * nhflow_curv::divh(p, d->FEx, d->FEy, i, j, k);
+    else
         d->detadt(i, j) += -p->DZN[KP] * ((d->FEx[IJK] - d->FEx[Im1JK]) / p->DXN[IP] + (d->FEy[IJK] - d->FEy[IJm1K]) / p->DYN[JP] * p->y_dir);
+}
 
-    pgc->gcsl_start4(p, d->detadt, 1);
+pgc->gcsl_start4(p, d->detadt, 1);
 
-    pgc->start1V(p, d->FEx, 10);
+pgc->start1V(p, d->FEx, 10);
 
-    // FSF seward
-    if(p->F68 == 1)
+// FSF seward
+if(p->F68 == 1)
+{
+    int iloc, jloc;
+    int maxiter = MAX(p->knox, p->knoy);
+    sliceint4 sea(p);
+
+    SLICELOOP4
+    sea(i, j);
+
+    if(p->F68_x >= p->originx && p->F68_x < p->endx && p->F68_y >= p->originy && p->F68_y < p->endy)
     {
-        int iloc, jloc;
-        int maxiter = MAX(p->knox, p->knoy);
-        sliceint4 sea(p);
+        iloc = p->posf_i(p->F68_x);
+        jloc = p->posf_j(p->F68_y);
 
-        SLICELOOP4
-        sea(i, j);
-
-        if(p->F68_x >= p->originx && p->F68_x < p->endx && p->F68_y >= p->originy && p->F68_y < p->endy)
+        // forward
+        for(i = iloc + 1; i < p->knox; ++i)
         {
-            iloc = p->posf_i(p->F68_x);
-            jloc = p->posf_j(p->F68_y);
+            if(d->bed(i, j) > p->F68_z + p->A544)
+                sea(i, j) = 1;
 
-            // forward
-            for(i = iloc + 1; i < p->knox; ++i)
-            {
-                if(d->bed(i, j) > p->F68_z + p->A544)
-                    sea(i, j) = 1;
-
-                if(d->bed(i, j) <= p->F68_z + p->A544)
-                    break;
-            }
-
-            // backward
-            for(i = iloc - 1; i >= 0; --i)
-            {
-                if(d->bed(i, j) > p->F68_z + p->A544)
-                    sea(i, j) = 1;
-
-                if(d->bed(i, j) <= p->F68_z + p->A544)
-                    break;
-            }
+            if(d->bed(i, j) <= p->F68_z + p->A544)
+                break;
         }
 
-        SLICELOOP4
-        if(d->bed(i, j) > p->F68_z + p->A544)
+        // backward
+        for(i = iloc - 1; i >= 0; --i)
         {
-            // test
+            if(d->bed(i, j) > p->F68_z + p->A544)
+                sea(i, j) = 1;
+
+            if(d->bed(i, j) <= p->F68_z + p->A544)
+                break;
         }
     }
 
-    // FSF Box
-    if(p->F72 > 0)
+    SLICELOOP4
+    if(d->bed(i, j) > p->F68_z + p->A544)
     {
-        int istart, iend, jstart, jend, kstart, kend;
+        // test
+    }
+}
 
-        for(int qn = 0; qn < p->F72; ++qn)
-        {
-            istart = p->posc_i(p->F72_xs[qn]);
-            iend = p->posc_i(p->F72_xe[qn]);
+// FSF Box
+if(p->F72 > 0)
+{
+    int istart, iend, jstart, jend, kstart, kend;
 
-            jstart = p->posc_j(p->F72_ys[qn]);
-            jend = p->posc_j(p->F72_ye[qn]);
+    for(int qn = 0; qn < p->F72; ++qn)
+    {
+        istart = p->posc_i(p->F72_xs[qn]);
+        iend = p->posc_i(p->F72_xe[qn]);
 
+        jstart = p->posc_j(p->F72_ys[qn]);
+        jend = p->posc_j(p->F72_ye[qn]);
+
+        // curvilinear grid: the cells whose centre lies in the box
+        if(p->geo_curv == 1)
             SLICELOOP4
-            if(i >= istart && i < iend && j >= jstart && j < jend)
-                d->eta(i, j) = p->F72_h[qn] - p->F60;
-        }
+        if(p->XC2D[IJ] >= p->F72_xs[qn] && p->XC2D[IJ] < p->F72_xe[qn] && p->YC2D[IJ] >= p->F72_ys[qn] && p->YC2D[IJ] < p->F72_ye[qn])
+            d->eta(i, j) = p->F72_h[qn] - p->F60;
 
-        // water level and wet flags of the boxes, as nhflow_f::ini sets them for eta = 0: a cell
-        // a box raises above the bed is wet, a cell it lowers below the bed is dry
-        SLICELOOP4
-        {
-            d->WL(i, j) = d->eta(i, j) + d->depth(i, j);
-            p->wet[IJ] = (d->WL(i, j) < p->A544) ? 0 : 1;
-        }
-
-        pgc->gcsl_start4Vint(p, p->wet, 50);
+        if(p->geo_curv == 0)
+            SLICELOOP4
+        if(i >= istart && i < iend && j >= jstart && j < jend)
+            d->eta(i, j) = p->F72_h[qn] - p->F60;
     }
 
-    wetdry(p, d, pgc, U, V, W, d->WL);
-
+    // water level and wet flags of the boxes, as nhflow_f::ini sets them for eta = 0: a cell
+    // a box raises above the bed is wet, a cell it lowers below the bed is dry
     SLICELOOP4
-    d->WL(i, j) = MAX(p->A544, d->eta(i, j) + d->depth(i, j));
+    {
+        d->WL(i, j) = d->eta(i, j) + d->depth(i, j);
+        p->wet[IJ] = (d->WL(i, j) < p->A544) ? 0 : 1;
+    }
 
-    SLICELOOP4
-    d->eta_n(i, j) = d->eta(i, j);
-
-    pgc->gcsl_start4(p, d->eta, 50);
-    pgc->gcsl_start4(p, d->WL, 50);
     pgc->gcsl_start4Vint(p, p->wet, 50);
+}
 
-    pgc->start1V(p, d->FEx, 10);
-    pgc->start2V(p, d->FEy, 10);
+wetdry(p, d, pgc, U, V, W, d->WL);
+
+SLICELOOP4
+d->WL(i, j) = MAX(p->A544, d->eta(i, j) + d->depth(i, j));
+
+SLICELOOP4
+d->eta_n(i, j) = d->eta(i, j);
+
+pgc->gcsl_start4(p, d->eta, 50);
+pgc->gcsl_start4(p, d->WL, 50);
+pgc->gcsl_start4Vint(p, p->wet, 50);
+
+pgc->start1V(p, d->FEx, 10);
+pgc->start2V(p, d->FEy, 10);
 }

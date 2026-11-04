@@ -146,8 +146,14 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
 
     LOOP
     {
-        a->vof(i, j, k) = vof_rk1(i, j, k);
-        a->L(i, j, k) = 0.0;
+        pplic->RK_redistance(a, p, pgc);
+        pgc->start4(p, a->phi, gcval_phi);
+
+        p->reini_iter = 3;
+        if(p->count > 0)  // at count 0 reini_RK3 corrects the volume itself
+            ppicard->volcalc(p, a, pgc, a->phi);
+        preini->start(a, p, a->phi, pgc, pflow);
+        ppicard->correct_ls(p, a, pgc, a->phi);
     }
     pgc->start4(p, a->vof, gcval_vof);
 
@@ -390,8 +396,14 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
 
     LOOP
     {
-        a->vof(i, j, k) = vof_rk2(i, j, k);
-        a->L(i, j, k) = 0.0;
+        pplic->RK_redistance(a, p, pgc);
+        pgc->start4(p, a->phi, gcval_phi);
+
+        p->reini_iter = 3;
+        if(p->count > 0)  // at count 0 reini_RK3 corrects the volume itself
+            ppicard->volcalc(p, a, pgc, a->phi);
+        preini->start(a, p, a->phi, pgc, pflow);
+        ppicard->correct_ls(p, a, pgc, a->phi);
     }
     pgc->start4(p, a->vof, gcval_vof);
 
@@ -487,7 +499,7 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
 
     pturb->isource(p, a);
     pflow->isource(p, a, pgc, pvrans);
-    bcmomPLIC_start(a, p, pgc, pturb, pplic, a->u, gcval_u);
+    bcmomPLIC_start(a, p, pgc, pturb, pplic, urk1, gcval_u);  // wall shear with the stage velocity
     ppress->upgrad(p, a, a->eta, a->eta_n);
     irhs(p, a, pgc, urk1, urk1, vrk1, wrk1, 0.25);
     // combine the explicit terms first, then solve the implicit diffusion with the stage weight
@@ -511,7 +523,7 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
 
     pturb->jsource(p, a);
     pflow->jsource(p, a, pgc, pvrans);
-    bcmomPLIC_start(a, p, pgc, pturb, pplic, a->v, gcval_v);
+    bcmomPLIC_start(a, p, pgc, pturb, pplic, vrk1, gcval_v);  // wall shear with the stage velocity
     ppress->vpgrad(p, a, a->eta, a->eta_n);
     jrhs(p, a, pgc, vrk1, urk1, vrk1, wrk1, 0.25);
     // combine the explicit terms first, then solve the implicit diffusion with the stage weight
@@ -535,7 +547,7 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
 
     pturb->ksource(p, a);
     pflow->ksource(p, a, pgc, pvrans);
-    bcmomPLIC_start(a, p, pgc, pturb, pplic, a->w, gcval_w);
+    bcmomPLIC_start(a, p, pgc, pturb, pplic, wrk1, gcval_w);  // wall shear with the stage velocity
     ppress->wpgrad(p, a, a->eta, a->eta_n);
     krhs(p, a, pgc, wrk1, urk1, vrk1, wrk1, 0.25);
     // combine the explicit terms first, then solve the implicit diffusion with the stage weight
@@ -610,12 +622,14 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
 
     LOOP
     {
-        a->vof(i, j, k) = (1.0 / 3.0) * VoF(i, j, k) + (2.0 / 3.0) * vof_rk2(i, j, k) + (2.0 / 3.0) * a->L(i, j, k);
+        pplic->RK_redistance(a, p, pgc);
+        pgc->start4(p, a->phi, gcval_phi);
 
-        if(a->vof(i, j, k) < 0.0)
-            a->vof(i, j, k) = 0.0;
-        if(a->vof(i, j, k) > 1.0)
-            a->vof(i, j, k) = 1.0;
+        p->reini_iter = 4;
+        if(p->count > 0)  // at count 0 reini_RK3 corrects the volume itself
+            ppicard->volcalc(p, a, pgc, a->phi);
+        preini->start(a, p, a->phi, pgc, pflow);
+        ppicard->correct_ls(p, a, pgc, a->phi);
     }
 
     // pplic->updatePlaneData(p,a,pgc,a->vof);
@@ -717,7 +731,7 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
 
     pturb->isource(p, a);
     pflow->isource(p, a, pgc, pvrans);
-    bcmomPLIC_start(a, p, pgc, pturb, pplic, a->u, gcval_u);
+    bcmomPLIC_start(a, p, pgc, pturb, pplic, urk2, gcval_u);  // wall shear with the stage velocity
     ppress->upgrad(p, a, a->eta, a->eta_n);
     irhs(p, a, pgc, urk2, urk2, vrk2, wrk2, 2.0 / 3.0);
     // combine the explicit terms first, then solve the implicit diffusion with the stage weight
@@ -741,7 +755,7 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
 
     pturb->jsource(p, a);
     pflow->jsource(p, a, pgc, pvrans);
-    bcmomPLIC_start(a, p, pgc, pturb, pplic, a->v, gcval_v);
+    bcmomPLIC_start(a, p, pgc, pturb, pplic, vrk2, gcval_v);  // wall shear with the stage velocity
     ppress->vpgrad(p, a, a->eta, a->eta_n);
     jrhs(p, a, pgc, vrk2, urk2, vrk2, wrk2, 2.0 / 3.0);
     // combine the explicit terms first, then solve the implicit diffusion with the stage weight
@@ -765,7 +779,7 @@ void momentum_FCC3_PLIC::start(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
 
     pturb->ksource(p, a);
     pflow->ksource(p, a, pgc, pvrans);
-    bcmomPLIC_start(a, p, pgc, pturb, pplic, a->w, gcval_w);
+    bcmomPLIC_start(a, p, pgc, pturb, pplic, wrk2, gcval_w);  // wall shear with the stage velocity
     ppress->wpgrad(p, a, a->eta, a->eta_n);
     krhs(p, a, pgc, wrk2, urk2, vrk2, wrk2, 2.0 / 3.0);
     // combine the explicit terms first, then solve the implicit diffusion with the stage weight

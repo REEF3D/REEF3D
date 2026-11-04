@@ -1,0 +1,4 @@
+{"base": "sflow_2d_stokes2", "ctrl_set": {"A 213": "0"},
+ "description": "as sflow_2d_stokes2 with the previous WENO-JS weights (A 213 0) in sflow_reconstruct_weno (default is WENO-Z since A 213 was added).",
+ "tags": ["quick", "2d", "sflow", "waves", "weno"],
+ "covers": ["A 213 0 sflow_reconstruct_weno WENO-JS"]}

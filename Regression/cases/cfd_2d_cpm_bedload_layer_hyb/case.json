@@ -1,0 +1,8 @@
+{
+ "base": "cfd_2d_cpm_bedload_layer",
+ "ctrl_set": {"Q 58": "3", "W 20": "10.0", "Q 65": "20.0"},
+ "steps": 200,
+ "tags": ["quick", "2d", "cpm"],
+ "description": "as cfd_2d_cpm_bedload_layer with the hybrid suspension (Q 58 3): Eulerian suspended concentration over the parcel bed; MORFAC Q 65 20 so that parcels go into the concentration within the run",
+ "covers": ["CPM hybrid suspension: van Rijn erosion from the bedload layer into the Eulerian concentration (suspended_IM1), parcels taken out of the bed through the column accounts, closed faces of the concentration to the bed, suspended volume in the CPM log"]
+}

@@ -23,31 +23,30 @@ Author: Hans Bihs
 #ifndef NHFLOW_IDIFF_2D_H_
 #define NHFLOW_IDIFF_2D_H_
 
-#include"nhflow_diffusion.h"
-#include"increment.h"
+#include "increment.h"
+#include "nhflow_diffusion.h"
 
 using namespace std;
 
 class nhflow_idiff_2D final : public nhflow_diffusion, public increment
 {
 public:
-    nhflow_idiff_2D(lexer*);
-	virtual ~nhflow_idiff_2D();
+    nhflow_idiff_2D(lexer *);
+    virtual ~nhflow_idiff_2D();
 
-    void diff_u(lexer*, fdm_nhf*, ghostcell*, ioflow*, solver*, double*, double*, double*, double*, double*, slice&, double) override final;
-    void diff_v(lexer*, fdm_nhf*, ghostcell*, ioflow*, solver*, double*, double*, double*, double*, double*, slice&, double) override final;
-    void diff_w(lexer*, fdm_nhf*, ghostcell*, ioflow*, solver*, double*, double*, double*, double*, double*, slice&, double) override final;
-    void diff_scalar(lexer*, fdm_nhf*, ghostcell*, solver*, double*, double, double) override final;
-    
+    void diff_u(lexer *, fdm_nhf *, ghostcell *, ioflow *, solver *, double *, double *, double *, double *, double *, slice &, double) override final;
+    void diff_v(lexer *, fdm_nhf *, ghostcell *, ioflow *, solver *, double *, double *, double *, double *, double *, slice &, double) override final;
+    void diff_w(lexer *, fdm_nhf *, ghostcell *, ioflow *, solver *, double *, double *, double *, double *, double *, slice &, double) override final;
+    void diff_scalar(lexer *, fdm_nhf *, ghostcell *, solver *, double *, double, double) override final;
+
 private:
-    int gcval_u,gcval_v,gcval_w;
-    int gcval_uh,gcval_vh,gcval_wh;
-    
-    double time,starttime,endtime;
-    
-    double visc;
-    double sigxyz2;
+    int gcval_u, gcval_v, gcval_w;
+    int gcval_uh, gcval_vh, gcval_wh;
 
+    double time, starttime, endtime;
+
+    double visc;
+    double sigxyz2, sigxyz2_b, sigxyz2_t;
 };
 
 #endif

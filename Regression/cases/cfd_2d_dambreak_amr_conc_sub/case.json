@@ -1,0 +1,5 @@
+{"base": "cfd_2d_dambreak", "np": 1, "steps": 60,
+ "ctrl_add": ["G 1 1", "G 7 1", "G 15 0.0 0.3 0.0 1.0 0.0 0.4", "C 10 3", "C 15 4", "C 50 1.0 0.0", "C 51 0.0", "C 52 -1.0", "C 53 0.0", "C 54 0.1", "C 55 1.0", "C 56 0.3"],
+ "description": "Concentration on the CFD patches with subcycling (G 7 1): the refinement transports C on all grids (WENO face values C 15 4, implicit diffusion D 20 2 with the viscosity of the mixture), the density from C at the patch edges and the cells around the patch (C 1, C 3); C zero in the air as concentration_RK3.",
+ "tags": ["quick", "2d", "dambreak", "levelset", "amr", "concentration"],
+ "covers": ["cfd_amr_scalar: concentration, refluxing (G 7 1)", "rmix/vmix: density from C (fluid_update_fsf_concentration)"]}

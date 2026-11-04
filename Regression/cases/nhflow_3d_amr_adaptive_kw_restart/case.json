@@ -1,0 +1,31 @@
+{
+ "base": "nhflow_3d_amr_adaptive_kw_ckpt",
+ "same_as": "nhflow_3d_amr_adaptive_kw_ckpt",
+ "chain": [
+  {
+   "case": "nhflow_3d_amr_adaptive_kw_ckpt",
+   "copy": [
+    "REEF3D_Checkpoint",
+    "REEF3D_NHFLOW_AMR",
+    "REEF3D_NHFLOW_WSF"
+   ]
+  }
+ ],
+ "ctrl_set": {
+  "I 45": "20"
+ },
+ "description": "the restart of nhflow_3d_amr_adaptive_kw_ckpt from its checkpoint at step 20 (I 45 20, not the latest) on the same rank, with the outputs of the full run copied in (refinement log and gauges, wave gauges): the patches of the checkpoint rebuilt from its tile maps and filled from its arrays (k, omega, eddy viscosity included), the adaptive regrids continue; regression.py ranks: the final state and every text output bitwise those of the uninterrupted run.",
+ "tags": [
+  "3d",
+  "nhflow",
+  "amr",
+  "turbulence",
+  "checkpoint"
+ ],
+ "covers": [
+  "nhflow_amr::ckpt_read (reefamr::ckpt_read_layout, regrid to the tile maps of the checkpoint, ckpt_read_patches)",
+  "nhflow_momentum_func::ckpt_restored on the patches",
+  "reefckpt_open: the refinement log cut back to the checkpoint",
+  "the bitwise restart of NHFLOW + adaptive mesh refinement + k-omega"
+ ]
+}

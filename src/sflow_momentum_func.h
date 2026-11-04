@@ -42,6 +42,7 @@ class sflow_roughness;
 class sflow_rheology;
 class sflow_boussinesq;
 class sflow_amr;
+class met_forcing;
 
 using namespace std;
 
@@ -115,12 +116,15 @@ protected:
     sflow_roughness *prough;
     sflow_rheology *prheo;
     sflow_boussinesq *pbous;
+    met_forcing *pmet = nullptr;  // atmospheric forcing (W 200)
 
     slice4 UHDIFF, VHDIFF, WHDIFF;
     slice4 Un, Vn, etaS;
 
 private:
     int q;
+    int gd = 3;  // ghost depth of the current boundary entry: the solid depth, column [2] of gcbsl4 (gcb_seed)
+    int ghost_depth(lexer *, int);
     int df_iter = 0;
     bool df_finalize = false;
     bool bous_solved = false;
@@ -129,7 +133,9 @@ private:
     void vel_bc(lexer *, fdm2D *, ghostcell *, slice &, slice &, slice &);
 
     void mirror(lexer *, slice &, int, double);
+    void wall_bc(lexer *, slice &, slice &, slice &, int);  // free-slip wall of boundary cell (i,j), side cs
     void neumann(lexer *, slice &, int);
+    void outflow_clip(lexer *, slice &, slice &);  // outflow ghost cells of boundary cell (i,j): no backflow
 };
 
 #endif

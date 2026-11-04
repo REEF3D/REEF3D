@@ -20,14 +20,19 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"iowave.h"
-#include"lexer.h"
-#include"ghostcell.h"
-#include"slice.h"
-#include"fdm2D.h"
-#include"patchBC_interface.h"
+#include "fdm2D.h"
+#include "ghostcell.h"
+#include "iowave.h"
+#include "lexer.h"
+#include "patchBC_interface.h"
+#include "slice.h"
 
 void iowave::waterlevel2D(lexer *p, fdm2D *b, ghostcell *pgc, slice &eta)
 {
-    
+    // Riemann / clamped level edges: ghost level from the step's characteristics
+    sflow_open_edges_eta(p, b, eta);
+
+    // edge mass balance (B 529): boundary fluxes of this RK stage
+    if(p->B529 > 0)
+        sflow_mass_flux_stage(p, b, pgc);
 }

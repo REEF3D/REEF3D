@@ -26,7 +26,8 @@ Author: Hans Bihs
 #include "ghostcell.h"
 #include "lexer.h"
 #include "matrix_diag.h"
-#include "vec.h"
+#include "matrix_diag_hash.h"
+#include "solver_print.h"
 #ifdef REEF3D_USE_HYPRE
 #include "hypre_struct.h"
 #endif
@@ -83,6 +84,24 @@ reefmg::reefmg(lexer *p, ghostcell *pgc, int solve_input, int precon_input)
     //  V-cycle, which may pay at high rank counts.  Must precede setup().
     mg.set_agglomeration(p->N15 == 1 ? 1 : 0);
 
+    //  N 16: the V-cycle on a device - 1 the Apple Silicon GPU (Metal, in
+    //  every macOS build), 2 the reference device (the GPU kernels on the
+    //  CPU, for tests).  One single-precision hierarchy of the whole domain
+    //  on the device, built and cycled by rank 0 for all ranks through an
+    //  MPI shared-memory window (all ranks on one node); red-black line
+    //  smoothing whatever N 12 says.  BiCGStab and the exact operator stay
+    //  distributed on the CPU ranks in double.  Falls back to the CPU with a
+    //  message if the device is not available.  Must precede setup().
+    mg.set_device(p->N16);
+
+    //  N 17 / N 19: V-cycles per preconditioner application and smoothing
+    //  sweeps on the device (0: 2 and 2)
+    mg.set_device_cycle(p->N17, p->N19);
+
+    //  N 21: the device smoother's coefficients in half precision (16, the
+    //  default) or single (32)
+    mg.set_device_precision(p->N21);
+
     //  In fp32 mode reefmg stores no double coefficients; BiCGStab takes the
     //  exact operator from REEF3D's own matrix through fine_apply().
     Mcur = 0;
@@ -119,14 +138,13 @@ void reefmg::topology(lexer *p, ghostcell *pgc)
     cx = crd[0];
     cy = nd > 1 ? crd[1] : 0;
 
-    //  Periodic boundaries wrap the matrix around the global edge; the halo
-    //  exchange here has no wraparound, so the operator would silently be the
-    //  wrong one.  Refuse rather than solve a different problem.
-    if(p->periodic1 > 0 || p->periodic2 > 0 || p->periodic3 > 0)
+    //  Periodic x/y boundaries: the halo exchange wraps around (setup).  A
+    //  periodic z direction would need cyclic column solves.
+    if(p->periodic3 > 0)
     {
         if(p->mpirank == 0)
-            cout << "REEFMG periodic boundaries are not supported yet - the halo "
-                 << "exchange has no wraparound.  " << REEFMG_ALT << endl;
+            cout << "REEFMG periodic boundaries in z are not supported - the vertical "
+                 << "line solver needs closed columns.  " << REEFMG_ALT << endl;
 
         MPI_Abort(MPI_COMM_WORLD, -2749);
     }
@@ -189,7 +207,8 @@ void reefmg::topology(lexer *p, ghostcell *pgc)
     //  grids behave instead of costing iterations.
     if(!mg.setup(pgc->cart(),
                  p->knox, p->knoy, p->knoz, p->gknox, p->gknoy, p->N13,
-                 p->DXN + p->marge - 1, p->DYN + p->marge - 1))
+                 p->DXN + p->marge - 1, p->DYN + p->marge - 1,
+                 p->periodic1 > 0, p->periodic2 > 0 && p->j_dir == 1))
     {
         if(p->mpirank == 0)
             cout << "REEFMG " << mg.err() << endl;
@@ -206,9 +225,14 @@ void reefmg::topology(lexer *p, ghostcell *pgc)
         if(mg.agglomerated())
             cout << "REEFMG coarse-grid agglomeration: " << mg.agglomerated_cells()
                  << " cells gathered on every rank" << endl;
+        else if(p->N15 == 1 && npx * npy > 1 && (p->periodic1 > 0 || p->periodic2 > 0))
+            cout << "REEFMG coarse-grid agglomeration is not used with periodic boundaries" << endl;
         else if(p->N15 == 1 && npx * npy > 1)
             cout << "REEFMG coarse-grid agglomeration refused: the gathered problem ("
                  << mg.agglomerated_cells() << " cells) is too large to hold on every rank" << endl;
+
+        if(p->N16 > 0)
+            cout << "REEFMG " << mg.device_status() << endl;
 
         /*if(p->knox%2!=0 || (p->knoy>1 && p->knoy%2!=0))
         cout<<"REEFMG note - odd local cell numbers give ragged coarse cells.  "
@@ -306,7 +330,8 @@ void reefmg::start_solver44(lexer *p, fdm *a, ghostcell *pgc, field *ff, double 
 
     if(!pot.setup(pgc->cart(),
                   p->knox, p->knoy, p->knoz, p->gknox, p->gknoy, 0,
-                  p->DXN + p->marge - 1, p->DYN + p->marge - 1))
+                  p->DXN + p->marge - 1, p->DYN + p->marge - 1,
+                  p->periodic1 > 0, p->periodic2 > 0 && p->j_dir == 1))
     {
         if(p->mpirank == 0)
             cout << "REEFMG potential: " << pot.err() << endl;
@@ -477,8 +502,38 @@ void reefmg::start_solver8(lexer *p, ghostcell *pgc, double *f, vec &rhs,
     //  Coarse operators are rebuilt from the fine coefficients every solve.
     //  This is a sweep over 4/3 of the fine grid with no RAP, so the moving
     //  free surface costs essentially nothing.
+    //  The same rows as the last solve (and the same wet/dry pattern): the
+    //  coarse levels and line factorisations are kept, bit for bit those a
+    //  coarsen() would make.  The psi solves of the FNPF floating bodies
+    //  (fnpf_6DOF: pressure every stage, the unit modes of the added mass)
+    //  have the rows of the phi solve before them: the coarsening was 10-15 %
+    //  of such a 3-cycle solve.  The rows are compared by their hash
+    //  (matrix_diag_hash.h, no copy); the fine level and the Krylov operator
+    //  are filled from the rows every solve as before.  The decision is the
+    //  same on all ranks (the coarse-grid agglomeration is collective).  Only
+    //  where solves with the same rows follow each other: FNPF with resolved
+    //  bodies (X 10 1) or the Picard passes of A 324; otherwise every solve
+    //  has new rows and the hash (about a sixth of a coarsening) is not made.
     starttime = pgc->timer();
-    mg.coarsen();
+    if(p->A10 == 3 && (p->X10 == 1 || p->A324 > 0))
+    {
+        matrix_diag_hash_state H;
+        H.add(M);
+        const unsigned long long h = H.value() ^ (mixed ? 1ULL : 0ULL);
+
+        int changed = (!mkey_ok || fill_topo || h != mkey) ? 1 : 0;
+        if(pgc->globalisum(changed) > 0)
+        {
+            mg.coarsen();
+            mkey = h;
+            mkey_ok = true;
+        }
+    }
+    else
+    {
+        mg.coarsen();
+        mkey_ok = false;
+    }
     const double coarsentime = pgc->timer() - starttime;
 
     starttime = pgc->timer();
@@ -490,11 +545,19 @@ void reefmg::start_solver8(lexer *p, ghostcell *pgc, double *f, vec &rhs,
 
     fillbackvec8(p, f);
 
-    if(p->mpirank == 0 && p->count % p->P12 == 0)
+    if(p->mpirank == 0 && p->count % p->P12 == 0 && !solver_print_quiet())
         cout << "REEFMG cycles " << p->solveriter
              << "  res " << setprecision(3) << relres
              << "  coarsen " << setprecision(3) << coarsentime
              << " s  solve " << setprecision(3) << solvetime << " s" << endl;
+
+    //  N 16: where the time of this coarsen and solve went (rank 0)
+    if(mg.on_device())
+    {
+        if(p->mpirank == 0 && p->count % p->P12 == 0 && !solver_print_quiet())
+            cout << "REEFMG device: " << mg.device_timing() << endl;
+        mg.reset_timers();
+    }
 
     if(p->solveriter >= p->N46 && p->mpirank == 0)
         cout << "REEFMG WARNING - iteration limit N 46 = " << p->N46 << " reached, res "
@@ -509,10 +572,10 @@ void reefmg::fill_matrix8(lexer *p, double *f, vec &rhs, matrix_diag &M)
 
     Mcur = &M;
 
-    //  A 328 1: the Laplace assembly has sized the cross-couplings nt..eb.
-    //  BiCGStab then multiplies through fine_apply(), which needs rowmap and
-    //  colrow0 also in fp64 mode.
-    mixed = (p->A328 == 1 && !M.nt.empty() && M.nt.size() == M.p.size());
+    //  A 328 1 (FNPF) / A 529 1 (NHFLOW): the Laplace / Poisson assembly has sized
+    //  the cross-couplings nt..eb. BiCGStab then multiplies through fine_apply(),
+    //  which needs rowmap and colrow0 also in fp64 mode.
+    mixed = ((p->A328 == 1 || p->A529 == 1) && !M.nt.empty() && M.nt.size() == M.p.size());
     const bool rmap = fp32 || mixed;
 
     //  First call: zero everything once (this also leaves the halo of the
@@ -582,6 +645,8 @@ void reefmg::fill_matrix8(lexer *p, double *f, vec &rhs, matrix_diag &M)
                 topo = true;
                 break;
             }
+
+    fill_topo = topo;
 
     if(topo)
     {
@@ -840,6 +905,7 @@ void reefmg::start_solver5(lexer *p, ghostcell *pgc, field &f, vec &rhs, matrix_
 
     starttime = pgc->timer();
     mg.coarsen();
+    mkey_ok = false;
     const double coarsentime = pgc->timer() - starttime;
 
     starttime = pgc->timer();
@@ -851,11 +917,19 @@ void reefmg::start_solver5(lexer *p, ghostcell *pgc, field &f, vec &rhs, matrix_
 
     fillbackvec5(p, f);
 
-    if(p->mpirank == 0 && p->count % p->P12 == 0)
+    if(p->mpirank == 0 && p->count % p->P12 == 0 && !solver_print_quiet())
         cout << "REEFMG cycles " << p->solveriter
              << "  res " << setprecision(3) << relres
              << "  coarsen " << setprecision(3) << coarsentime
              << " s  solve " << setprecision(3) << solvetime << " s" << endl;
+
+    //  N 16: where the time of this coarsen and solve went (rank 0)
+    if(mg.on_device())
+    {
+        if(p->mpirank == 0 && p->count % p->P12 == 0 && !solver_print_quiet())
+            cout << "REEFMG device: " << mg.device_timing() << endl;
+        mg.reset_timers();
+    }
 
     if(p->solveriter >= p->N46 && p->mpirank == 0)
         cout << "REEFMG WARNING - iteration limit N 46 = " << p->N46 << " reached, res "

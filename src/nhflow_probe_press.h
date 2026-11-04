@@ -23,9 +23,10 @@ Author: Hans Bihs
 #ifndef NHFLOW_PROBE_PRESS_H_
 #define NHFLOW_PROBE_PRESS_H_
 
-#include"boundarycheck.h"
-#include<iostream>
-#include<fstream>
+#include "amr_grid_lookup.h"
+#include "boundarycheck.h"
+#include <fstream>
+#include <iostream>
 
 class lexer;
 class fdm_nhf;
@@ -37,28 +38,26 @@ using namespace std;
 class nhflow_probe_press : public boundarycheck
 {
 public:
-    nhflow_probe_press(lexer*,fdm_nhf*);
-	virtual ~nhflow_probe_press();
+    // the mesh refinement: the points read the finest grid (amr_grid_lookup.h), nullptr: level 0
+    const amr_column_lookup *amr = nullptr;
 
-	void start(lexer*, fdm_nhf*, ghostcell*);
+    nhflow_probe_press(lexer *, fdm_nhf *);
+    virtual ~nhflow_probe_press();
 
+    void start(lexer *, fdm_nhf *, ghostcell *);
 
 private:
-    void ini_location(lexer*, fdm_nhf*);
+    void ini_location(lexer *, fdm_nhf *);
 
+    char name[100];
 
-	char name[100];
-
-    int *iloc,*jloc,*kloc,*flag;
-    int n,q;
-	const int probenum;
+    int *iloc, *jloc, *kloc, *flag;
+    int n, q;
+    const int probenum;
     ofstream *pout;
-	
-	double pval,pdyn,phs,etaval;
-    
-    
-    
+    double *val;
 
+    double pval, pdyn, phs, etaval;
 };
 
 #endif

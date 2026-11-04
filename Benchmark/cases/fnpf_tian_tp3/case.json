@@ -1,0 +1,23 @@
+{
+ "base": "fnpf_tian_tp2",
+ "description": "Deep-water focused wave packet TP3 (plunging) of Tian, Perlin & Choi (2010), S = 0.742, in the set-up of Derakhti & Kirby (2016): depth 0.62 m (k_c d = 7.2), f_c = 1.7 Hz, df/f_c = 0.824, 128 components of constant steepness a_i = S/(k_i N), linear focus x = 7.0 m, t = 25.0 s (B 92 51, relaxation zone 1.2 m, beach 4 m, flume 16 m, dx 0.01 m, 20 layers; nightly dx 0.0135 m = L_c/40, 10 layers), FNPF with A 350 4. Energy loss = 1 - <int eta^2 dt> over x = 9-11 m / over x = 2.5-4.5 m. At L_c/40 the crests of TP1-TP3 reach B = 0.78-0.96 only (TN 0.47) instead of 0.85 and more; the onset threshold of deep and intermediate water A 359 - A 369/sqrt(N), 0.59 at N = 40 (NHFLOW Breaking patch 0015), starts the events.",
+ "generate": {
+  "script": "tian_waverecon.py",
+  "args": [
+   0.742
+  ]
+ },
+ "check": {
+  "type": "packet_energy_loss",
+  "up": [
+   2.5,
+   4.5
+  ],
+  "down": [
+   9.0,
+   11.0
+  ],
+  "loss_ref": 0.303,
+  "tol": 0.07
+ }
+}

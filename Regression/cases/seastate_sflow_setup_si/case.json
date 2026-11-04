@@ -1,0 +1,8 @@
+{
+ "base": "seastate_sflow_setup",
+ "ctrl_add": ["A 220 0", "A 226 1", "A 227 0.55", "A 228 5.0", "A 229 1"],
+ "description": "seastate_sflow_setup with the semi-implicit SFLOW (A 226 1, dt <= 5 s, Courant ~ 5 offshore): radiation stress (A 751 1) in the SI predictor, SEASTATE every 30 s on the large step; set-down and set-up on the plane beach with wetting and drying. Validation in Dropbox Storm Surge/validation/11_wave_setup_si.",
+ "steps": 100,
+ "tags": ["quick", "2d", "sflow", "semi_implicit", "seastate", "wetdry"],
+ "covers": ["sflow_momentum_SI wave source (A 750 1, A 751 1)", "SEASTATE coupling interval on the SI step"]
+}

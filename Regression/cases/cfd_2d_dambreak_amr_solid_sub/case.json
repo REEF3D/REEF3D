@@ -1,0 +1,17 @@
+{
+ "np": 1,
+ "steps": 80,
+ "description": "cfd_2d_dambreak_amr_solid with subcycling (G 7 1).",
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "levelset",
+  "amr",
+  "adaptive",
+  "solid"
+ ],
+ "covers": [
+  "solid forcing on subcycled patches"
+ ]
+}

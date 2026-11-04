@@ -1,0 +1,21 @@
+{
+ "base": "cfd_3d_dambreak_amr",
+ "np": 2,
+ "ctrl_add": [
+  "N 16 2"
+ ],
+ "same_as": "cfd_3d_dambreak_amr",
+ "same_as_rtol": 0.001,
+ "description": "cfd_3d_dambreak_amr with the level-0 V-cycle of the composite REEFAMR preconditioner on the reference device (N 16 2: one single-precision hierarchy of the whole level-0 grid for all ranks, the GPU kernels of reefmg_device_kernels.h in loops on the CPU, called by the host as a defect-correction step); the patch-local cycles on the CPU; the CFD pressure of 2 ranks; within 1e-3 of the CPU run (the level set of a dam break carries the solver tolerance into the interface)",
+ "tags": [
+  "3d",
+  "dambreak",
+  "amr",
+  "solver",
+  "mpi"
+ ],
+ "covers": [
+  "REEFMG device path (N 16) for the REEFAMR level 0, reference device",
+  "CFD AMR level-0 multigrid on the device"
+ ]
+}

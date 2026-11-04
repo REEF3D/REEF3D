@@ -1,0 +1,17 @@
+{
+ "description": "NHFLOW AMR: a box towed at 0.5 m/s (X 10 1 with X 11 2, direct forcing X 15 1) under a fixed refinement box over the tow path (G 10, no zone around the body) with doubled sigma layers (G 6 1): the hull triangles sized for the finest level horizontally and vertically (patch 0028; validation 23 of Ship Hydrodynamics).",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 40,
+ "tags": [
+  "3d",
+  "nhflow",
+  "amr",
+  "6dof"
+ ],
+ "covers": [
+  "nhflow_amr: amr_hfac/amr_vfac without G 12 (keys_ok)",
+  "6DOF_geometry_remesh: X 185 4 with amr_vfac on NHFLOW",
+  "G 10 box with a floating body"
+ ]
+}

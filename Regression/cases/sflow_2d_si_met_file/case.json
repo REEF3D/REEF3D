@@ -1,0 +1,25 @@
+{
+ "base": "sflow_2d_si_basin_bar",
+ "description": "Met forcing W 200 2 in the SFLOW semi-implicit 2D basin with the bar (sflow_2d_si_basin_bar): met file with u10, v10, pa linear in x, y, t (25 m spacing, 10 min records), model time 0 = 2018-10-10 12:05 (W 203), Wu drag (W 207 2): x and y stress, wet cells.",
+ "ctrl_add": [
+  "W 200 2",
+  "W 203 20181010.120500",
+  "W 207 2"
+ ],
+ "files": [
+  "met-forcing.r3m"
+ ],
+ "tags": [
+  "quick",
+  "2d",
+  "sflow",
+  "semi_implicit",
+  "wind",
+  "met"
+ ],
+ "covers": [
+  "met_forcing::source_sflow (SI, x and y)",
+  "met_file",
+  "W 207 2"
+ ]
+}

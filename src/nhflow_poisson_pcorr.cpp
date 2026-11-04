@@ -30,7 +30,10 @@ Author: Hans Bihs
 #include "fdm_nhf.h"
 #include "heat.h"
 #include "lexer.h"
+#include "nhflow_curv.h"
 #include "nhflow_membrane_beta.h"
+#include "nhflow_poisson_cross.h"
+#include "nhflow_xwall.h"
 #include "vrans.h"
 #include "vrans_definitions.h"
 
@@ -46,6 +49,13 @@ void nhflow_poisson_pcorr::start(lexer *p, fdm_nhf *d, double *P)
 {
     double ab, denom;
     double cP, cN, cS, cW, cE, cT, cB;
+
+    // sigma cross terms: A 529 implicit / explicit, A 530 in porous cells (nhflow_poisson_cross.h)
+    const bool cross_impl = nhflow_poisson_cross::implicit(p, d);
+    nhflow_poisson_cross::ini(p, d, cross_impl);
+
+    if(p->A529 == 1 && !cross_impl && p->mpirank == 0 && p->count == 0)
+        cout << "NHFLOW Poisson: A 529 1 needs N 10 1 on the Cartesian grid without mesh refinement, multi-block grid or membranes, explicit cross terms used" << endl;
 
     n = 0;
     FBASELOOP
@@ -84,25 +94,71 @@ void nhflow_poisson_pcorr::start(lexer *p, fdm_nhf *d, double *P)
             cT = CPORNHval(d->POR[IJK]);
             cB = CPORNHval(d->POR[IJKm1]);
 
-            d->M.p[n] = cN / (p->W1 * p->DXP[IP] * p->DXN[IP]) + cS / (p->W1 * p->DXP[IM1] * p->DXN[IP])
+            // curvilinear grid (G 50): compact horizontal rows (face length over area and the centre
+            // distance along the normal), the cross terms by the chain rule, the non-orthogonal part of
+            // the horizontal Laplacian deferred with the pressure P of the right-hand side (nhflow_curv.h)
+            if(p->geo_curv == 1)
+            {
+                double cIp, cIm, cJp, cJm;
+                nhflow_curv::lapcoef(p, i, j, cIp, cIm, cJp, cJm);
 
-                        + cW / (p->W1 * p->DYP[JP] * p->DYN[JP]) * p->y_dir + cE / (p->W1 * p->DYP[JM1] * p->DYN[JP]) * p->y_dir
+                d->M.p[n] = (cN * cIp + cS * cIm + cW * cJp + cE * cJm) / p->W1
 
-                        + cT * (sigxyz2) / (p->W1 * p->DZP[KM1] * p->DZN[KP]) + cB * (sigxyz2) / (p->W1 * p->DZP[KM1] * p->DZN[KM1]);
+                            + cT * (sigxyz2) / (p->W1 * p->DZP[KM1] * p->DZN[KP]) + cB * (sigxyz2) / (p->W1 * p->DZP[KM1] * p->DZN[KM1]);
 
-            d->M.n[n] = -cN / (p->W1 * p->DXP[IP] * p->DXN[IP]);
-            d->M.s[n] = -cS / (p->W1 * p->DXP[IM1] * p->DXN[IP]);
+                d->M.n[n] = -cN * cIp / p->W1;
+                d->M.s[n] = -cS * cIm / p->W1;
+                d->M.w[n] = -cW * cJp / p->W1;
+                d->M.e[n] = -cE * cJm / p->W1;
 
-            d->M.w[n] = -cW / (p->W1 * p->DYP[JP] * p->DYN[JP]) * p->y_dir;
-            d->M.e[n] = -cE / (p->W1 * p->DYP[JM1] * p->DYN[JP]) * p->y_dir;
+                d->M.t[n] = -cT * sigxyz2 / (p->W1 * p->DZP[KM1] * p->DZN[KP]) - cP * p->sigxx[FIJK] / (p->W1 * (p->DZN[KP] + p->DZN[KM1]));
 
-            d->M.t[n] = -cT * sigxyz2 / (p->W1 * p->DZP[KM1] * p->DZN[KP]) - cP * p->sigxx[FIJK] / (p->W1 * (p->DZN[KP] + p->DZN[KM1]));
+                d->M.b[n] = -cB * sigxyz2 / (p->W1 * p->DZP[KM1] * p->DZN[KM1]) + cP * p->sigxx[FIJK] / (p->W1 * (p->DZN[KP] + p->DZN[KM1]));
 
-            d->M.b[n] = -cB * sigxyz2 / (p->W1 * p->DZP[KM1] * p->DZN[KM1]) + cP * p->sigxx[FIJK] / (p->W1 * (p->DZN[KP] + p->DZN[KM1]));
+                const int kk = k;
+                auto ok = [&](int a, int b)
+                {
+                    const int fq = (a - p->imin) * p->jmax * p->kmaxF + (b - p->jmin) * p->kmaxF + kk - p->kmin;
+                    const int q = (a - p->imin) * p->jmax + (b - p->jmin);
+                    return p->flag7[fq] > 0 && p->wet[q] == 1 && p->deep[q] == 1;
+                };
 
-            d->rhsvec.V[n] += cP * (2.0 * p->sigx[FIJK] * (P[FIp1JKp1] - P[FIm1JKp1] - P[FIp1JKm1] + P[FIm1JKm1]) / (p->W1 * (p->DXP[IP] + p->DXP[IM1]) * (p->DZN[KP] + p->DZN[KM1]))
+                if(nhflow_poisson_cross::active(p, d, i, j, k))
+                    d->rhsvec.V[n] += cP * (nhflow_curv::sigma_cross(p, P, i, j, k) + nhflow_curv::kflux_level(p, P, i, j, k, ok)) / p->W1;
 
-                                    + 2.0 * p->sigy[FIJK] * (P[FIJp1Kp1] - P[FIJm1Kp1] - P[FIJp1Km1] + P[FIJm1Km1]) / (p->W1 * (p->DYP[JP] + p->DYP[JM1]) * (p->DZN[KP] + p->DZN[KM1])) * p->y_dir);
+                else
+                    d->rhsvec.V[n] += cP * nhflow_curv::kflux_level(p, P, i, j, k, ok) / p->W1;
+            }
+
+            if(p->geo_curv == 0)
+            {
+                d->M.p[n] = cN / (p->W1 * p->DXP[IP] * p->DXN[IP]) + cS / (p->W1 * p->DXP[IM1] * p->DXN[IP])
+
+                            + cW / (p->W1 * p->DYP[JP] * p->DYN[JP]) * p->y_dir + cE / (p->W1 * p->DYP[JM1] * p->DYN[JP]) * p->y_dir
+
+                            + cT * (sigxyz2) / (p->W1 * p->DZP[KM1] * p->DZN[KP]) + cB * (sigxyz2) / (p->W1 * p->DZP[KM1] * p->DZN[KM1]);
+
+                d->M.n[n] = -cN / (p->W1 * p->DXP[IP] * p->DXN[IP]);
+                d->M.s[n] = -cS / (p->W1 * p->DXP[IM1] * p->DXN[IP]);
+
+                d->M.w[n] = -cW / (p->W1 * p->DYP[JP] * p->DYN[JP]) * p->y_dir;
+                d->M.e[n] = -cE / (p->W1 * p->DYP[JM1] * p->DYN[JP]) * p->y_dir;
+
+                d->M.t[n] = -cT * sigxyz2 / (p->W1 * p->DZP[KM1] * p->DZN[KP]) - cP * p->sigxx[FIJK] / (p->W1 * (p->DZN[KP] + p->DZN[KM1]));
+
+                d->M.b[n] = -cB * sigxyz2 / (p->W1 * p->DZP[KM1] * p->DZN[KM1]) + cP * p->sigxx[FIJK] / (p->W1 * (p->DZN[KP] + p->DZN[KM1]));
+
+                if(nhflow_poisson_cross::active(p, d, i, j, k))
+                {
+                    if(cross_impl)
+                        nhflow_poisson_cross::assemble(p, d, P, i, j, k, n, cP);
+
+                    else
+                        d->rhsvec.V[n] += cP * (2.0 * p->sigx[FIJK] * (P[FIp1JKp1] - P[FIm1JKp1] - P[FIp1JKm1] + P[FIm1JKm1]) / (p->W1 * (p->DXP[IP] + p->DXP[IM1]) * (p->DZN[KP] + p->DZN[KM1]))
+
+                                                + 2.0 * p->sigy[FIJK] * (P[FIJp1Kp1] - P[FIJm1Kp1] - P[FIJp1Km1] + P[FIJm1Km1]) / (p->W1 * (p->DYP[JP] + p->DYP[JM1]) * (p->DZN[KP] + p->DZN[KM1])) * p->y_dir);
+                }
+            }
 
             // impermeable membranes (X 330): reduced mobility in the membrane layer
             if(d->MBETA != nullptr)
@@ -132,12 +188,40 @@ void nhflow_poisson_pcorr::start(lexer *p, fdm_nhf *d, double *P)
         ++n;
     }
 
+    // walls at the x sides: slip walls with dp/dn = 0, except where waves along x are generated / absorbed (nhflow_xwall.h)
+    const bool xslip_s = nhflow_xwall_slip(p, 1);
+    const bool xslip_n = nhflow_xwall_slip(p, 4);
+
     n = 0;
     LOOP
     {
         WETDRYDEEP
         {
+            // G 52 1 (curvilinear, multi-block): the i-walls as the j-walls (homogeneous Neumann)
+            if(p->G52 == 1 && p->geo_curv == 1 && p->flag7[FIm1JK] < 0 && p->IO[Im1JK] == 0)
+            {
+                d->M.p[n] += d->M.s[n];
+                d->M.s[n] = 0.0;
+            }
+
+            if(p->G52 == 1 && p->geo_curv == 1 && p->flag7[FIp1JK] < 0 && p->IO[Ip1JK] == 0)
+            {
+                d->M.p[n] += d->M.n[n];
+                d->M.n[n] = 0.0;
+            }
+
             // South
+            // solid wall (IO 0): homogeneous Neumann dp/dn=0 as at the East / West walls. The term below
+            // (rhs -= M.s P) is the Neumann condition of nhflow_poisson for the pressure itself, but P is the
+            // correction here, 0 before the solve, so it left p=0 at the wall: in a flume along y the walls at
+            // x took out most of the non-hydrostatic pressure of the narrow channel and the waves decayed
+            if(p->flag7[FIm1JK] < 0 && p->IO[Im1JK] == 0 && xslip_s)
+            {
+                d->M.p[n] += d->M.s[n];
+                d->M.s[n] = 0.0;
+            }
+
+            // dry / shallow neighbour, or the side where waves along x are generated (nhflow_xwall.h): p=0
             if((p->flag7[FIm1JK] < 0 || p->wet[Im1J] == 0 || p->deep[Im1J] == 0) && p->IO[Im1JK] == 0)
             {
                 d->rhsvec.V[n] -= d->M.s[n] * P[FIJK];
@@ -149,21 +233,28 @@ void nhflow_poisson_pcorr::start(lexer *p, fdm_nhf *d, double *P)
             {
                 if(p->B76 == 0 || p->B90 == 1)
                 {
-                    pval = 0.0;
+                    // iowave open edge with waves: the non-hydrostatic pressure of the incoming waves
+                    pval = d->Pbc != nullptr ? d->Pbc[FIm1JK] : 0.0;
                     d->rhsvec.V[n] -= d->M.s[n] * (-d->P[FIJK] + pval);
                     d->M.s[n] = 0.0;
                 }
 
                 if(p->B76 == 1 && p->B90 == 0)
                 {
-                    pval = d->P[FIJK];
+                    pval = 0.0;
 
                     d->rhsvec.V[n] -= d->M.s[n] * (-d->P[FIJK] + pval);
                     d->M.s[n] = 0.0;
                 }
             }
 
-            // North
+            // North: solid wall Neumann, dry / shallow neighbour or beach of waves along x p=0 (as South)
+            if(p->flag7[FIp1JK] < 0 && p->IO[Ip1JK] == 0 && xslip_n)
+            {
+                d->M.p[n] += d->M.n[n];
+                d->M.n[n] = 0.0;
+            }
+
             if((p->flag7[FIp1JK] < 0 || p->wet[Ip1J] == 0 || p->deep[Ip1J] == 0) && p->IO[Ip1JK] == 0)
             {
                 d->M.n[n] = 0.0;
@@ -172,7 +263,8 @@ void nhflow_poisson_pcorr::start(lexer *p, fdm_nhf *d, double *P)
             // pcorr outflow
             if((p->flag7[FIp1JK] < 0) && p->IO[Ip1JK] == 2)
             {
-                pval = 0.0;
+                // 0, or the non-hydrostatic pressure of the outgoing wave predicted at an absorbing edge (B 99 8)
+                pval = d->Pbc != nullptr ? d->Pbc[FIp1JK] : 0.0;
                 d->rhsvec.V[n] -= d->M.n[n] * (-d->P[FIJK] + pval);
                 d->M.n[n] = 0.0;
             }

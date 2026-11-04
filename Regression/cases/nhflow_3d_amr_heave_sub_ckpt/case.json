@@ -1,0 +1,20 @@
+{
+ "base": "nhflow_3d_amr_heave_sub",
+ "ctrl_set": {
+  "P 48": "10",
+  "P 49": "0"
+ },
+ "description": "nhflow_3d_amr_heave_sub (NHFLOW, floating box with the body zone and subcycling G 7 1, the zone across the partition edge, 2 ranks) with a checkpoint every 10 steps, all kept (P 48 10, P 49 0): the uninterrupted run of nhflow_3d_amr_heave_sub_restart.",
+ "tags": [
+  "3d",
+  "nhflow",
+  "amr",
+  "6dof",
+  "subcycling",
+  "mpi",
+  "checkpoint"
+ ],
+ "covers": [
+  "nhflow_amr::ckpt_write with a floating body and subcycling"
+ ]
+}

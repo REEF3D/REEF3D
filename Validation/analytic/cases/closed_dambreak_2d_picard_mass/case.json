@@ -1,0 +1,8 @@
+{
+ "base": "closed_dambreak_2d_div",
+ "description": "As closed_dambreak_2d_mass with the Picard volume correction (F 46 2): the uniform shift of the level set from the volume error and dV/dw must keep the mass (integral of the density over the closed tank) constant.",
+ "ctrl_set": {"F 46": "2"},
+ "steps": 300,
+ "tags": ["levelset", "closed", "2d", "picard"],
+ "check": {"type": "conserved_integral", "field": "ro", "tol": 1e-8}
+}

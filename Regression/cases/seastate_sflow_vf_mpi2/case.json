@@ -1,0 +1,9 @@
+{
+ "description": "REEF3D::SEASTATE coupled with SFLOW on 2 ranks, vortex force (A 751 2): Stokes transport in the SFLOW continuity, dissipation, bottom-slope and wave-pressure forces, vortex force; oblique Mitsuyasu spectrum (20 deg) on the plane beach of seastate_sflow_setup, handover spectrum at x = 300 m (A 760, sector 60 deg).",
+ "solver": "sflow",
+ "np": 2,
+ "steps": 1200,
+ "time": 300.0,
+ "tags": ["quick", "2d", "sflow", "seastate", "mpi"],
+ "covers": ["seastate_sflow vortex force and mass source", "handover in coupled runs", "coupling across ranks"]
+}

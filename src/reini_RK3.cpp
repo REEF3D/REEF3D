@@ -5,16 +5,16 @@ Copyright 2008-2026 Hans Bihs
 This file is part of REEF3D.
 
 REEF3D is free software; you can redistribute it and/or modify it
-under the terms of the GNU General Public a->License as published by
-the Free Software Foundation; either version 3 of the a->License, or
+under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTABIa->LITY or
-FITNESS FOR A PARTICUa->LAR PURPOSE. See the GNU General Public a->License
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 for more details.
 
-You should have received a copy of the GNU General Public a->License
+You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
 Author: Hans Bihs
@@ -29,9 +29,8 @@ Author: Hans Bihs
 #include "picard_lsm.h"
 #include "picard_void.h"
 #include "reinidisc_f.h"
-#include "reinidisc_fsf.h"
 
-reini_RK3::reini_RK3(lexer *p, int type) : epsi(p->F45 * p->DXM), frk1(p), frk2(p), dt(p)
+reini_RK3::reini_RK3(lexer *p, int type) : frk1(p), frk2(p), dt(p)
 {
     if(p->F50 == 1)
         gcval_phi = 51;
@@ -50,17 +49,8 @@ reini_RK3::reini_RK3(lexer *p, int type) : epsi(p->F45 * p->DXM), frk1(p), frk2(
     if((p->F61 > 1.0e-20 || p->F60 > 1.0e-20) && p->F50 == 1)
         gcval_iniphi = 51;
 
-    if((p->F62 > 1.0e-20 || p->F60 > 1.0e-20) && p->F50 == 2)
-        gcval_iniphi = 52;
-
-    if(((p->F61 > 1.0e-20 && p->F62 > 1.0e-20) || p->F60 > 1.0e-20) && p->F50 == 3)
-        gcval_iniphi = 53;
-
-    gcval_ro = 1;
-
-    if(type == 41)
-        gcval_iniphi = 50;
-
+    // volume correction (F 46) only for the initial reinitialisation (count 0);
+    // during the time stepping it is done once per time step by the level-set / momentum classes
     if(p->F46 == 2)
         ppicard = new picard_f(p);
     else if(p->F46 == 3)
@@ -68,13 +58,20 @@ reini_RK3::reini_RK3(lexer *p, int type) : epsi(p->F45 * p->DXM), frk1(p), frk2(
     else
         ppicard = new picard_void(p);
 
-    prdisc = new reinidisc_f(p);
+    // level-set reini discretisation, nonlinear weights F 37: 0 WENO-JS, 1 WENO-Z, 2 TENO5
+    reinidisc_f *prdisc_f = new reinidisc_f(p);
+    prdisc_f->set_weno_weights(p->F37, p->F38);
+    prdisc = prdisc_f;
 
     time_preproc(p);
+
+    p->reini_iter = p->F44;
 }
 
 reini_RK3::~reini_RK3()
 {
+    delete ppicard;
+    delete prdisc;
 }
 
 void reini_RK3::start(fdm *a, lexer *p, field &f, ghostcell *pgc, ioflow *pflow)
@@ -83,6 +80,35 @@ void reini_RK3::start(fdm *a, lexer *p, field &f, ghostcell *pgc, ioflow *pflow)
 
     if(p->count == 0)
         gcval = gcval_iniphi;
+
+    if(p->count > 0)
+        gcval = gcval_phi;
+
+    if(p->count == 0)
+        ppicard->volcalc(p, a, pgc, f);
+
+    if(p->count == 0)
+    {
+        if(p->mpirank == 0)
+            cout << "initializing level set..." << endl
+                 << endl;
+        reiniter = 2 * int(p->maxlength / (p->F43 * p->DXM));
+        pgc->start4(p, f, gcval_iniphi);
+    }
+
+    if(p->count > 0)
+        step(p, a);
+
+    // patch of the mesh refinement (cfd_amr): the cells around the patch keep the values filled
+    // into f (no exchange on a patch), the stage fields take them over
+    if(p->amr_patch == 1)
+        for(int n = 0; n < p->imax * p->jmax * p->kmax; ++n)
+            frk1.V[n] = frk2.V[n] = f.V[n];
+
+    pflow->fsfrkin(p, a, pgc, frk1);
+    pflow->fsfrkin(p, a, pgc, frk2);
+    pflow->fsfrkout(p, a, pgc, frk1);
+    pflow->fsfrkout(p, a, pgc, frk2);
 
     if(p->count > 0)
         gcval = gcval_phi;
@@ -133,14 +159,15 @@ void reini_RK3::start(fdm *a, lexer *p, field &f, ghostcell *pgc, ioflow *pflow)
         pgc->start4(p, f, gcval);
     }
 
-    ppicard->correct_ls(p, a, pgc, f);
+    if(p->count == 0)
+        ppicard->correct_ls(p, a, pgc, f);
 
     p->reinitime += pgc->timer() - starttime;
 }
 
 void reini_RK3::step(lexer *p, fdm *a)
 {
-    reiniter = p->F44;
+    reiniter = p->reini_iter;
 }
 
 void reini_RK3::time_preproc(lexer *p)

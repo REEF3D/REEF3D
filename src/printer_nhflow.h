@@ -45,9 +45,11 @@ class nhflow_depavg_vel_lineprobe;
 class nhflow_depandtime_avg_vel_lineprobe;
 class nhflow_vtp_fsf;
 class nhflow_vtp_bed;
+class nhflow_scour;
 class nhflow_state;
 class nhflow_breaking_log;
 class nhflow_probe_vel;
+class nhflow_print_scour;
 class nhflow_probe_press;
 class nhflow_probe_vel_theory;
 class nhflow_print_Hs;
@@ -64,13 +66,24 @@ class printer_nhflow final : public printer, public increment
 {
 
 public:
+    void amr_columns(lexer *, const amr_column_lookup *) override;
+
     printer_nhflow(lexer *, fdm_nhf *, ghostcell *);
     virtual ~printer_nhflow() = default;
     void start(lexer *, fdm_nhf *, ghostcell *, ioflow *, nhflow_turbulence *, sediment *) override final;
     void print_stop(lexer *, fdm_nhf *, ghostcell *, ioflow *, nhflow_turbulence *, sediment *) override final;
+    void print_end(lexer *, fdm_nhf *, ghostcell *, ioflow *, nhflow_turbulence *, sediment *) override final;
+    void ckpt_state(std::vector<double> &) override;
+    void ckpt_restore(const std::vector<double> &) override;
+    void flush_outputs() override;
 
 private:
+    bool bed_printed = false;  // the fixed bed of this run (also after a restart, I 45: a new LAGOON store)
     void print(lexer *, fdm_nhf *, ghostcell *, nhflow_turbulence *, sediment *);
+    void print_fsf(lexer *, fdm_nhf *, ghostcell *, sediment *, nhflow_turbulence *);
+    void print_bed(lexer *, fdm_nhf *, ghostcell *, sediment *);  // the bed with the free surface (S 10 > 0 or P 187)
+    int last_print = -1;                                          // the iteration of the last volume output (print_end)
+    int last_fsf = -1;                                            // and of the last free surface output (with the bed, S 10)
     void parallel(lexer *, fdm_nhf *, ghostcell *, nhflow_turbulence *, sediment *, int);
 
     vtk3D *outputFormat;
@@ -87,8 +100,9 @@ private:
     int *printfsfiter_wI;
 
     int printcount;
+    int nP35 = 0, nP185 = 0;  // sizes of printtime_wT, printfsftime_wT
 
-    nhflow_print_wsf *pwsf;
+    nhflow_print_wsf *pwsf = nullptr;
     nhflow_print_wsf_theory *pwsf_theory;
     nhflow_print_wsfline *pwsfline;
     nhflow_print_wsfline_y *pwsfline_y;
@@ -100,11 +114,13 @@ private:
     nhflow_profile_u *puprofile;
     nhflow_depavg_vel_lineprobe *pdepavgline;
     nhflow_depandtime_avg_vel_lineprobe *pdepandtimeavgline;
-    nhflow_vtp_fsf *pfsf;
-    nhflow_vtp_bed *pbed;
+    nhflow_vtp_fsf *pfsf = nullptr;
+    nhflow_vtp_bed *pbed = nullptr;
+    nhflow_scour *pscourbed = nullptr;  // P 187: scour parameters in the bed output, P 198: scour gauges
     nhflow_state *pstate;
     nhflow_breaking_log *pbreaklog;
     nhflow_probe_vel *pvel;
+    nhflow_print_scour *pscour = nullptr;  // P 83, P 84: scour gauges
     nhflow_probe_vel_theory *pveltheo;
     nhflow_probe_press *ppressprobe;
     nhflow_print_Hs *phs;

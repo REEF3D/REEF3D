@@ -58,6 +58,7 @@ struct Parameters
 class wave_lib_ssgw final : public wave_lib_precalc, public wave_lib_parameters, public increment
 {
 public:
+    int wave_lexer_fields() const override { return 0; }  // evaluation reads only p->wavetime
     wave_lib_ssgw(lexer *, ghostcell *);
     virtual ~wave_lib_ssgw();
 
@@ -80,7 +81,6 @@ private:
     bool computeSurfaceVariables();
     void writeResult(const std::string folderName);
     void computeVelocityField(std::vector<double> &x, std::vector<double> &y, std::vector<double> &u, std::vector<double> &v);
-    void computePotentialField(std::vector<double> &x, std::vector<double> &y, std::vector<double> &phi);
     Parameters ParameterValue;
     std::vector<double> xs, ys, us, vs, phis;
 

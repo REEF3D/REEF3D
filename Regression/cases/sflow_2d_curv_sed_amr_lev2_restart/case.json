@@ -1,0 +1,31 @@
+{
+ "base": "sflow_2d_curv_sed_amr_lev2_ckpt",
+ "same_as": "sflow_2d_curv_sed_amr_lev2_ckpt",
+ "chain": [
+  {
+   "case": "sflow_2d_curv_sed_amr_lev2_ckpt",
+   "copy": [
+    "REEF3D_Checkpoint",
+    "REEF3D_SFLOW_AMR",
+    "REEF3D_SFLOW_WSF",
+    "REEF3D_SFLOW_ProbePoint",
+    "REEF3D_SFLOW_WSFLINE"
+   ]
+  }
+ ],
+ "ctrl_set": {
+  "I 45": "20"
+ },
+ "description": "the restart of sflow_2d_curv_sed_amr_lev2_ckpt from step 20 (I 45 20) with its outputs copied in: sediment transport (S 10 1) with two levels on a curvilinear grid, on one rank: the bed, the sediment arrays and scalars of the patches and the still water depths of their filled cells continue from the checkpoint; regression.py ranks: the final state and the text outputs bitwise those of the uninterrupted run.",
+ "tags": [
+  "2d",
+  "sflow",
+  "amr",
+  "curvilinear",
+  "sediment",
+  "checkpoint"
+ ],
+ "covers": [
+  "the bitwise restart of SFLOW + mesh refinement: sediment transport (S 10 1) with two levels on a curvilinear grid, on one rank"
+ ]
+}

@@ -23,8 +23,9 @@ Authors: Tobias Martin, Hans Bihs
 #ifndef NET_H_
 #define NET_H_
 
-#include<vector>
 #include <Eigen/Dense>
+#include <cstddef>
+#include <vector>
 
 class lexer;
 class fdm;
@@ -35,22 +36,26 @@ class sixdof;
 using namespace std;
 
 class net
-{    
+{
 public:
-    
     typedef vector<Eigen::Vector3d> EigenMat;
-        
-	virtual void start_cfd(lexer*, fdm*, ghostcell*, double,Eigen::Matrix3d&, bool)=0;
-    virtual void start_nhflow(lexer*, fdm_nhf*, ghostcell*, double,Eigen::Matrix3d&, bool)=0;
-    
-	virtual void initialize_cfd(lexer*, fdm*, ghostcell*)=0;
-    virtual void initialize_nhflow(lexer*, fdm_nhf*, ghostcell*)=0;
-	virtual void netForces(lexer*, double&, double&, double&, double&, double&, double&)=0;
-    
-    virtual const EigenMat& getLagrangePoints()=0;
-    virtual const EigenMat& getLagrangeForces()=0;
-    virtual const EigenMat& getCollarVel()=0;
-    virtual const EigenMat& getCollarPoints()=0;
+
+    virtual void start_cfd(lexer *, fdm *, ghostcell *, double, Eigen::Matrix3d &, bool) = 0;
+    virtual void start_nhflow(lexer *, fdm_nhf *, ghostcell *, double, Eigen::Matrix3d &, bool) = 0;
+
+    virtual void initialize_cfd(lexer *, fdm *, ghostcell *) = 0;
+    virtual void initialize_nhflow(lexer *, fdm_nhf *, ghostcell *) = 0;
+    virtual void netForces(lexer *, double &, double &, double &, double &, double &, double &) = 0;
+
+    virtual const EigenMat &getLagrangePoints() = 0;
+    virtual const EigenMat &getLagrangeForces() = 0;
+    virtual const EigenMat &getCollarVel() = 0;
+    virtual const EigenMat &getCollarPoints() = 0;
+
+    // checkpoints (P 48, I 45): the state of the net over the steps, the same on all ranks (in the blob of
+    // its 6DOF body, net_interface::ckpt_state); restore after the initialisation of the net
+    virtual void ckpt_state(std::vector<double> &) const {}
+    virtual void ckpt_restore(const std::vector<double> &, size_t &) {}
 };
 
 #endif

@@ -1,0 +1,23 @@
+{
+ "base": "sflow_2d_mb_quadrants",
+ "steps": 60,
+ "ctrl_add": [
+  "G 1 2",
+  "G 2 4",
+  "G 3 2",
+  "G 4 8",
+  "G 20 0.02"
+ ],
+ "description": "As sflow_2d_mb_quadrants with two levels following the surface jumps (G 20), a regrid every 4 steps: the refined region moves across the interfaces. The same solution as one block to round-off (p2tests/t5).",
+ "tags": [
+  "2d",
+  "sflow",
+  "curvilinear",
+  "multiblock",
+  "amr",
+  "adaptive"
+ ],
+ "covers": [
+  "tagging of the blocks, regrid with the blocks kept first, level-0 refill before the regrid (regrid_prepare), ini_patch_old in the blocks"
+ ]
+}

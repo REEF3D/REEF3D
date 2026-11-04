@@ -1,0 +1,17 @@
+{
+ "description": "fnpf_3d_amr_basin on 2 ranks, the box cut at the rank boxes (G 40 0).",
+ "solver": "fnpf",
+ "np": 2,
+ "steps": 40,
+ "tags": [
+  "3d",
+  "fnpf",
+  "amr",
+  "waves",
+  "mpi"
+ ],
+ "covers": [
+  "fnpf_amr owner placement"
+ ],
+ "base": "fnpf_3d_amr_basin"
+}

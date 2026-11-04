@@ -23,6 +23,7 @@ Author: Hans Bihs
 #include "fdm.h"
 #include "gage_discharge_window_x.h"
 #include "ghostcell.h"
+#include "heaviside.h"
 #include "lexer.h"
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -89,11 +90,7 @@ void gage_discharge_window_x::start(lexer *p, fdm *a, ghostcell *pgc)
             {
                 epsi = 1.6 * p->DXN[KP];
 
-                if(a->phi(i, j, k) > epsi)
-                    H = 1.0;
-
-                if(a->phi(i, j, k) < -epsi)
-                    H = 0.0;
+                H = heaviside(a->phi(i, j, k), epsi);
 
                 if(fabs(a->phi(i, j, k)) <= epsi)
                     H = 0.5 * (1.0 + a->phi(i, j, k) / epsi + (1.0 / PI) * sin((PI * a->phi(i, j, k)) / epsi));

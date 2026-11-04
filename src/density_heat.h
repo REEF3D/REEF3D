@@ -23,13 +23,12 @@ Author: Hans Bihs
 #ifndef DENSITY_HEAT_H_
 #define DENSITY_HEAT_H_
 
-#include"density.h"
-#include"increment.h"
+#include "density.h"
+#include "increment.h"
 
 class fdm;
 class lexer;
 class heat;
-
 
 using namespace std;
 
@@ -37,34 +36,32 @@ class density_heat final : public density, virtual public increment
 {
 
 public:
-    density_heat(lexer*,heat*&);
-	virtual ~density_heat();
+    density_heat(lexer *, heat *&);
+    virtual ~density_heat();
 
-	double roface(lexer*,fdm*,int,int,int) override final;
-	
-	double H,roval,phival;
-	int ii,jj,kk;
-	const double epsi,eps;
-    double psi;
-    
+    double roface(lexer *, fdm *, int, int, int) override final;
+
+    double H, roval, phival;
+    int ii, jj, kk;
+
     heat *pheat;
+
 private:
-    void material(lexer*);
-    double material_ipol(double**,int,double);
+    void material(lexer *);
+    double material_ipol(double **, int, double);
 
-    static int iocheck,iter;
+    static int iocheck, iter;
     //--
-    double visc_1,visc_2,ro_1,ro_2,alpha_air,alpha_water;
-	double **water_density;
-	double **water_viscosity;
-	double **air_density;
-	double **air_viscosity;
+    double visc_1, visc_2, ro_1, ro_2, alpha_air, alpha_water;
+    double **water_density;
+    double **water_viscosity;
+    double **air_density;
+    double **air_viscosity;
 
-	int water_density_num;
-	int water_viscosity_num;
-	int air_density_num;
-	int air_viscosity_num;
-
+    int water_density_num;
+    int water_viscosity_num;
+    int air_density_num;
+    int air_viscosity_num;
 };
 
 #endif

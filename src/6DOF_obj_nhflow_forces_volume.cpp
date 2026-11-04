@@ -136,13 +136,6 @@ void sixdof_obj_nhflow::hydrodynamic_forces_nhflow_volume(
     Xe += p->W20 * Mass_fb;
     Ye += p->W21 * Mass_fb;
     Ze += p->W22 * Mass_fb;
-
-    if(p->mpirank == 0 && finalize == 1)
-    {
-        cout << "Vsub: " << Vsub << " (m/rho_f = " << Mass_fb / p->W1 << ")"
-             << " xB: " << xB << " zB: " << zB << endl;
-        cout << "Xe: " << Xe << " Ze: " << Ze << " Me: " << Me << endl;
-    }
 }
 
 void sixdof_obj_nhflow::buoyancy_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double fsf_z,

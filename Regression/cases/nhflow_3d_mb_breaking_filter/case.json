@@ -1,0 +1,21 @@
+{
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 40,
+ "files": [
+  "blocks.dat"
+ ],
+ "tags": [
+  "3d",
+  "nhflow",
+  "curvilinear",
+  "multiblock",
+  "breaking",
+  "quick"
+ ],
+ "description": "nhflow_3d_mb_breaking with the breaking filter (A 552 3): the filtered water level exchanged between the level-0 grids after the filter (nhflow_amr::brk_exchange0). The filter sweeps (Gauss-Seidel) depend on the order of the cells, so the blocks differ from one block as a cut into ranks does: 4e-3 m after 0.2 s, one block on 2 ranks with the bore at the rank boundary 4e-3 m (validation/11_block_kennedy_filter).",
+ "covers": [
+  "nhflow_amr::brk_exchange0: WL after A 552",
+  "nhflow_breaking::brk_wl"
+ ]
+}

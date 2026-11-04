@@ -23,17 +23,24 @@ Author: Hans Bihs
 #ifndef SFLOW_AMR_H_
 #define SFLOW_AMR_H_
 
+#include "amr_grid_lookup.h"
 #include "reefamr.h"
+#include "reefamr_xzlu.h"
+#include "sediment_f.h"
+#include "slice4.h"
 #include <cstdint>
 #include <fstream>
+#include <map>
 #include <unordered_map>
 #include <vector>
 
 class lexer;
+class reefckpt;
 class fdm2D;
 class ghostcell;
 class slice;
 class ioflow;
+class ioflow_amr_block;
 class sixdof;
 class patchBC_interface;
 class sflow_HLL;
@@ -44,6 +51,7 @@ class sflow_pressure;
 class sflow_fsf;
 class sflow_forcing;
 class sflow_momentum_RK3;
+class sflow_momentum_SI;
 class sflow_pressure_nh;
 class reefmg_core;
 class reefmg2D;
@@ -51,6 +59,11 @@ class vec2D;
 class sixdof_sflow;
 class sflow_amr_ship;
 class solver2D;
+class sflow_turbulence;
+class sflow_turb_io;
+class seastate_sflow;
+
+#include <functional>
 
 using namespace std;
 
@@ -74,13 +87,32 @@ using namespace std;
 //   - a coarse face on a coarse-fine interface takes the mean of the two fine
 //     face fluxes and face depths (sflow_HLL calls hll_hook between flux_bc and
 //     the divergence); across a partition edge the fine values are sent
-//   - one global time step, the stages of all grids in lockstep
+//   - one global time step, the stages of all grids in lockstep; with G 7 1
+//     (sflow_amr_sub.cpp) every level takes two steps of half the size per step of the next
+//     coarser level (Berger-Oliger): the cells around a patch are filled from the parent state
+//     interpolated in time between the start and the end of its step, the coarse cells next to
+//     a patch are corrected afterwards by the difference of the fine and coarse face fluxes
+//     summed over the steps (flux registers, refluxing); the non-hydrostatic pressure and the
+//     Boussinesq u_a are solved level by level, the body is taken linear in time
+//     (sflow_amr_subnh.cpp, sflow_amr_ship.cpp)
 //   - every G 2 steps the patches are rebuilt from refinement flags (G 20
-//     surface jump, G 22 shoreline, G 10 boxes) with a buffer of G 3 cells.
+//     surface jump, G 21 second difference of the surface, G 22 shoreline, G 23 breaking,
+//     G 10 boxes) with a buffer of G 3 cells.  A fresh patch takes the breaking flags of the old
+//     patch or of its parent with breaking persistence (A 248 1).
+//     No refinement in the G 11 boxes, next to in- and outflow boundaries and in the
+//     relaxation zones of the wave generation and the numerical beach (ioflow::relax_boxes):
+//     the patches run without the in- and outflow, so the restriction would replace the
+//     relaxed level-0 cells by unrelaxed ones.
+//     The shoreline flag marks both sides of a wet-dry change; its buffer is at least the
+//     distance the shoreline can travel until the next regrid (sflow_amr::tag).
 //     Flags mark tiles of G 4 cells on the global index space of each level;
 //     the tile maps are global, so the refined region does not depend on the
 //     domain decomposition.  Marked tiles are merged into rectangles and cut at
-//     the partition edges.
+//     the partition edges, or with G 40 1 placed for the load of the ranks
+//     (parents and old patches on other ranks through the block plans and old_run
+//     of the core: restrict_levels, ini_patch_old, ini_patch_prolong; with the moving
+//     body the level-0 level set below a patch from the ranks that hold it,
+//     ship_fs_exchange)
 //   - Boussinesq (A 220 4): u_a is solved on the leaf cells of all levels together
 //     (sflow_amr_bous.cpp), the patch stages stop before it and continue afterwards
 //   - moving body (X 10 2/3): the body stays on level 0 (sixdof_sflow); the patches
@@ -90,8 +122,21 @@ using namespace std;
 //     kernels.  G 12 refines a margin around the hull, G 13 a wake wedge behind the bow,
 //     both moving with the body.
 
+// G 7 1: state of a grid at the start of its step (WL, UH, VH, WH and the wet flags), the
+// parent state of the time-interpolated fills
+// (A 220 1-3: and the pressure; A 220 4: and UA, VA, MX, MY)
+struct sflow_amr_told
+{
+    static const int NF = 9;  // WL UH VH WH press UA VA MX MY
+    slice *f[NF] = {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr};
+    vector<int> wet;
+};
+
 struct sflow_amr_patch : public reefamr_patch
 {
+    sediment_f *sed = nullptr;  // S 10: the sediment transport of the grid (sflow_amr_sed.cpp)
+    int fsb = -1;               // G 40 with the body: its box of the level-0 level set (fs0c)
+    vector<double> sedrec[4];   // S 10: Exner face fluxes on the box faces, per side
     fdm2D *b;
     sflow_HLL *phll;
     sflow_signal_speed *pss;
@@ -101,6 +146,7 @@ struct sflow_amr_patch : public reefamr_patch
     sflow_fsf *pfsf;
     sflow_forcing *psfdf;
     sflow_momentum_RK3 *pmom;
+    sflow_momentum_SI *psim = nullptr;  // semi-implicit free surface (A 226 1): the step of the grid (sflow_amr_si.cpp)
 
     // boundary face values recorded by hll_hook: rec[ipol][side][fine index]
     // side 0: low x, 1: high x, 2: low y, 3: high y; ipol 0 holds dfx/dfy
@@ -109,23 +155,76 @@ struct sflow_amr_patch : public reefamr_patch
     // non-hydrostatic pressure (A 220 1), solved on all grids together
     sflow_pressure_nh *pnh = nullptr;
     vector<slice *> nv;         // Krylov vectors
-    vector<int> bqneed[2];      // Boussinesq u_a: fill entries next to a leaf cell along x, y
     vector<signed char> act;    // -2 no row, -1 covered by a finer patch, 0 q = 0 row, 1 active
     vector<int> row;            // matrix row of a cell (SLICELOOP4 order), -1 none
     reefmg_core *mg = nullptr;  // patch-local multigrid of the preconditioner
+    reefamr_xzlu xz;            // 2D grid: exact solve of the patch line in its place
     vector<double> qrec[4];     // boundary face gradients of q
 
     // moving body on the patch (X 10 2/3)
     sflow_amr_ship *pship = nullptr;
 
+    // multi-block: in- and outflow of a block 1.. through its open faces (G 54), nullptr: walls
+    ioflow_amr_block *pio = nullptr;
+
+    // its grid id (Boussinesq u_a, set by bq_setup)
+    int bqid = -1;
+
     // line solver of the Boussinesq u_a inversion (A 220 4)
     solver2D *psolv = nullptr;
+
+    // turbulence k-epsilon / k-omega (A 260 1/2, sflow_amr_turb.cpp): the model of the patch and its solver (the
+    // cells around the patch as Dirichlet values)
+    sflow_turbulence *pturb = nullptr;
+    solver2D *ptsolv = nullptr;
+    // regrid: blocks of a fresh patch that took the state of an old patch
+    vector<char> blkold;
+
+    // shoreline: offset of the water surface of a cell a finer patch covers at a shoreline (from its wet children,
+    // restriction) from its mean water level plus mean bed, NaN where no child is dry or the cell is not covered
+    // (lij index)
+    vector<double> sfc;
+
+    // shoreline: water surface of the parent of a ghost cell (prolonged ghost cells), NaN where the parent is dry
+    // or the cell is not a prolonged ghost cell (lij index)
+    vector<double> gsf;
+
+    // G 7 1: state at the start of the step, fine face fluxes summed over the steps of the
+    // patch within one step of its parent (dt * RK weight), freg[ipol][side][fine index]
+    sflow_amr_told told;
+    vector<double> freg[5][4];
+
+    // G 7 1, A 220 1-3: constraint residual at the end of the patch's own step (synchronisation)
+    vector<double> rend;
 };
 
-class sflow_amr : public reefamr
+class sflow_amr : public reefamr, public amr_column_lookup, public sediment_grids
 {
 public:
-    sflow_amr(lexer *, fdm2D *, ghostcell *, patchBC_interface *, sixdof *, sflow_HLL *, sflow_momentum_RK3 *);
+    // the output on the finest grid (amr_grid_lookup.h): the finest patch of this rank at (x,y)
+    int finest_column(double x, double y, lexer *&q, void *&f) const override
+    {
+        int id;
+        const int L = finest_point(x, y, id);
+        if(L > 0)
+        {
+            q = P[id]->pp;
+            f = static_cast<sflow_amr_patch *>(P[id])->b;
+        }
+        return L;
+    }
+
+    // the cells around the patches that a patch of the same level fills hold its end-of-step state when the
+    // outputs read them (step_end, sub_level: fill_level before the wet-dry update; the face velocities at the
+    // end of step_end), so the outputs on the finest grid may interpolate across them (reefamr::finest_point),
+    // as NHFLOW (fill_out).  Not on multi-block grids, and not with the semi-implicit free surface (A 226 1:
+    // si_step fills the cells around the patches at the start of the step)
+    bool fills_current() const override { return nblk == 0 && si == 0; }
+
+    // S 10: sediment transport on all grids (sflow_amr_sed.cpp): the level-0 sediment_f hands its step over
+    void sed_attach(sediment *);
+    void sediment_step_sflow(lexer *, fdm2D *, ghostcell *, ioflow *, sediment_f *) override;
+    sflow_amr(lexer *, fdm2D *, ghostcell *, patchBC_interface *, sixdof *, ioflow *, sflow_HLL *, sflow_momentum_RK3 *);
     virtual ~sflow_amr();
 
     void ini(lexer *, fdm2D *, ghostcell *);
@@ -135,13 +234,42 @@ public:
     void step_end(lexer *, fdm2D *, ghostcell *);
     void timestep(lexer *, fdm2D *, ghostcell *);
     void print(lexer *, fdm2D *, ghostcell *);
+    // checkpoints (P 48, I 45; sflow_amr_ckpt.cpp) and the outputs before a rebalance stop (G 46)
+    void ckpt_write(reefckpt &);
+    bool ckpt_read(reefckpt &, string &);
+    void flush_outputs()
+    {
+        gaugeout.flush();
+        logout.flush();
+    }
+    // the arrays of the refinement on level 0 that carry over to the next step (shoreline offsets)
+    void ckpt_fields0(const std::function<void(const char *, char, double *)> &fd, const std::function<void(const char *, char, int *)> &)
+    {
+        if(sfs0 != nullptr)
+            fd("amr_sfs0", 'S', sfs0->V);
+    }
+    void dump_grids(lexer *);  // REEF3D_AMR_DUMP: every grid of the rank (own cells) to <dir>/amr_r<rank>.bin (tests)
 
     // called by sflow_HLL between flux_bc and the divergence (ipol 1-4)
     void hll_hook(lexer *, fdm2D *, int, int);
 
+    // semi-implicit free surface (A 226 1, sflow_amr_si.cpp): the level-0 object, the step of all grids with one eta
+    // system over their leaf cells (reefamr_si.cpp)
+    void si_attach(sflow_momentum_SI *);
+    void si_step(lexer *, fdm2D *, ghostcell *);
+
+    // turbulence k-epsilon / k-omega (A 260 1/2, sflow_amr_turb.cpp): the level-0 model, the step of the patches after
+    // the step of level 0 (sflow_f::mainloop)
+    void turb_attach(sflow_turbulence *);
+    void turb_step(lexer *, fdm2D *, ghostcell *);
+
     // composite non-hydrostatic pressure, called by the level-0 sflow_pjm_lin after its assembly
-    bool nh_patches() const { return maxlev > 0 && patches_total > 0 && nh == 1; }
+    // (G 7 1: level 0 solves alone, the patches level by level in sflow_amr_sub.cpp)
+    bool nh_patches() const { return maxlev > 0 && patches_total > 0 && nh == 1 && sub == 0; }
     void nh_solve(lexer *, fdm2D *, ghostcell *, slice &, slice &, slice &, slice &, double);
+    // G 7 1: the level-0 pressure with the cells under level 1 fixed (sflow_amr_nh.cpp)
+    bool nh_level0() const { return maxlev > 0 && patches_total > 0 && nh == 1 && sub == 1; }
+    void nh_solve0(lexer *, fdm2D *, ghostcell *);
 
     // vector space of the composite solve (reefamr_krylov.h)
     void nh_apply(int, int);
@@ -152,9 +280,12 @@ public:
     void op_s(double);
     void op_x(double, double);
 
+    // level-0 non-hydrostatic pressure (G 7 1: the synchronisation projection assembles its rows)
+    sflow_pressure_nh *pnh0 = nullptr;
+
     // Boussinesq u_a on the leaf cells of all levels, called by the level-0 stage after its rows
     // (sflow_momentum_func::stage); the patch stages continue afterwards
-    bool bous_patches() const { return maxlev > 0 && patches_total > 0 && bous == 1; }
+    bool bous_patches() const { return maxlev > 0 && patches_total > 0 && bous == 1 && sub == 0; }
     void bous_solve(ghostcell *);
 
     // vector space of the composite u_a solve (sflow_amr_bous.cpp)
@@ -165,6 +296,11 @@ public:
     void bq_p(double, double);
     void bq_s(double);
     void bq_x(double, double);
+    void bq_restart();
+    void cq_apply(int, int, bool, int);
+    void cq_prec(int, int, int);
+    double cq_dot(int, int, int);
+    void cq_ops(int, double, double, int);
 
 protected:
     // REEFAMR hooks
@@ -181,8 +317,51 @@ protected:
     double serve_aux(int, int, int) override;
     void zone_bodies(vector<sixdof_obj *> &) override;
 
+    // semi-implicit free surface (sflow_amr_si.cpp)
+    bool rsi_rows_of(int, rsi_rows &) override;
+    void rsi_bound() override;
+
 private:
     sflow_amr_patch *SP(int n) { return static_cast<sflow_amr_patch *>(P[n]); }
+
+    // turbulence k-epsilon / k-omega (A 260 1/2, sflow_amr_turb.cpp)
+    int turb = 0;                     // the patches have their own model (A 260 1/2, Cartesian, no multi-block)
+    sflow_turbulence *tb0 = nullptr;  // the level-0 model
+    sflow_turb_io *tio(int g);        // the model of grid g (-1: level 0)
+    solver2D *turb_solver(lexer *, ghostcell *);
+    void turb_objects(sflow_amr_patch &, ghostcell *);
+    void turb_faces(sflow_amr_patch &);
+    void turb_fill(ghostcell *, int);
+    void turb_run(ghostcell *, sflow_amr_patch &);
+    void turb_save(ghostcell *, sflow_amr_patch &);
+    void turb_regrid(ghostcell *, int, vector<reefamr_patch *> &);
+
+    // SEASTATE coupling (A 750, sflow_amr_wave.cpp): the wave force, div(M) and Hs, Tp of the patches from their
+    // parents after every change on level 0 and every regrid
+    int wave_seen = -1;
+    bool wave_dirty = true;
+    void wave_sync(ghostcell *);
+    void wave_fields(ghostcell *);
+    seastate_sflow *wv(int g);
+
+    // semi-implicit free surface (sflow_amr_si.cpp)
+    int si = 0;                          // A 226 1
+    bool si_lv = false;                  // patches in the step
+    sflow_momentum_SI *psim0 = nullptr;  // level 0
+    ghostcell *sipgc = nullptr;
+    sflow_momentum_SI *gsi(int g);
+    template<class F>
+    void si_level0(ghostcell *, F);
+    template<class F>
+    void si_level(ghostcell *, int, F);
+    template<class F>
+    void si_all(ghostcell *, F);
+    void si_fillS(ghostcell *, int, int, const std::function<slice &(int, int)> &);
+    double si_interp(lexer *, fdm2D *, slice &, int, int, int, int);
+    void si_hooks(bool);
+    void si_match(int);  // 0: q^E, q^n before the right-hand sides; 1: q after the face update
+    void si_timestep(lexer *, ghostcell *);
+    void si_log(lexer *, ghostcell *);
     static sflow_amr_patch *SP(reefamr_patch *c) { return static_cast<sflow_amr_patch *>(c); }
 
     // composite non-hydrostatic solve (sflow_amr_nh.cpp)
@@ -197,7 +376,10 @@ private:
     };
     nhg nh_grid(int);
     slice &nh_vec(int, int);  // grid, vector (-1: press)
-    void nh_prepare(ghostcell *);
+    void nh_prepare(ghostcell *, bool);
+    void nh_core(lexer *);
+    void nh_prolong(int, int);
+    double nh_eval_t(const reefamr_fill &, double, int);
     void nh_restrict_vec(int);
     void nh_sync(int);
     void nh_qfill(int, int);
@@ -211,6 +393,14 @@ private:
     vec2D *nhr0 = nullptr;
     bool nh_rebuild0;
     long nh_it_total, nh_solves;
+    // G 7 1: level window of the composite solve (wlo..wtop; all levels without subcycling), the
+    // cells around the patches of level wlo > 0 fixed (nh_edge)
+    int wlo = 0, whi = -1;
+    int wtop() const { return whi < 0 ? maxlev : whi; }
+    bool nh_edge = false;
+    bool nh_m0_new = true;  // level-0 rows changed since the last level-0 multigrid setup
+    long sub_lv_it = 0, sub_lv_n = 0, sub_sy_it = 0, sub_sy_n = 0;
+    vector<double> nh0_rend;
     long bq_it_total = 0, bq_solves = 0;
     int nh_it_last;
 
@@ -218,8 +408,35 @@ private:
     int shipmode;  // X 10 of the body, 0: none
     sixdof_sflow *ship6;
     void ship_fields(sflow_amr_patch &, bool);
+    void ship_fields_curv(sflow_amr_patch &, bool);
     void ship_patches(bool);
     double fs0_at(sflow_amr_patch &, int, int);
+    // G 40 with the body: a placed patch may lie on another rank than the level-0 cells below it.  The
+    // level-0 level set of the bodies around the patches of this rank, with the level-0 cell centres,
+    // is taken from the ranks that hold it (ship_fs_exchange, collective) before the body fields are
+    // evaluated; fs0_at reads it there.  Per patch (index into P): the global level-0 box
+    struct fs0box
+    {
+        int i0 = 0, i1 = -1, j0 = 0, j1 = -1;
+        vector<double> x, y, v;
+    };
+    vector<fs0box> fs0c;
+    void ship_fs_exchange(int);
+    void fs0_range(sflow_amr_patch &, int &, int &, int &, int &);
+    double fs0_place(sflow_amr_patch &, int, int);
+    // G 7 1: the level-0 body at the start of the level-0 step (hull triangles, level set, u, c);
+    // the patches take it linear in time between the start and the end of that step
+    struct shipsave
+    {
+        vector<double> t[3], fs;
+        double u[6], c[3];
+    };
+    vector<shipsave> sh_old, sh_new;
+    double ship_th = -1.0;  // weight of the end of the level-0 step, < 0: the current body
+    double sub_t0 = 0.0, sub_dt0 = 1.0;
+    void ship_save(vector<shipsave> &);
+    void ship_put(const vector<shipsave> &, const vector<shipsave> *, double);
+    void ship_level(int, double, bool);
 
     // grid handles: id -1 is level 0, otherwise an index into P
     struct gh
@@ -234,28 +451,101 @@ private:
     // regridding
     void tag_level(int, vector<unsigned char> &);
     double bed_at(int, int, int);
+    double block_bed(int, int, int);
+    double native_bed(int, int);
+    double area_at(int, int, int);
     unordered_map<uint64_t, double> bedmemo;  // the bed is static (S 10 0)
-    void ini_patch_state(lexer *, ghostcell *, sflow_amr_patch &, vector<reefamr_patch *> &);
+    void ini_patch_defaults(sflow_amr_patch &);
+    // S 10 (sflow_amr_sed.cpp)
+    sediment_f *sed0 = nullptr;
+    sediment_f *gsed(int g) { return (g < 0) ? sed0 : SP(g)->sed; }
+    void sed_patch_ini(ghostcell *, sflow_amr_patch &);
+    void sed_bed_regrid(ghostcell *, int, vector<reefamr_patch *> &);
+    void sed_fill_bed(ghostcell *, int);
+    void sed_fill_bed0(ghostcell *);
+    double sed_plin(slice &, lexer *, int, int, int, int);
+    vector<vector<double>> sedr;
+    void ini_patch_old(int, vector<reefamr_patch *> &);
+    void ini_patch_prolong(int);
+    void ini_block(sflow_amr_patch &, int, int, const double *);
+    void shore_fit(sflow_amr_patch &, int, int, const double *);
+    void ini_patch_finish(lexer *, sflow_amr_patch &);
+    bool block_solid(sflow_amr_patch &, int, int);
 
     // coupling
     void cache_stage(int);
     void fill_level(ghostcell *, int, int);
+    // multi-block level 0 (reefamr_block.cpp): the blocks 1.. run as level-0 patches
+    bool active() const { return maxlev >= 1 || nblk > 0; }
+    void blocks_ini(lexer *, ghostcell *);
+    void fill_level0(ghostcell *, int);
+    void store_native(int, int, const double *);
     // Boussinesq (A 220 4): u_a on the leaf cells of all levels (sflow_amr_bous.cpp)
     void bq_setup();
     void bq_sync(int, int);
+    // curvilinear grid: the pairs (a, b) of the grid-aligned components, matrix-free operator
+    void bous_window_curv(ghostcell *, int, double);
+    slice &cq_vec(int, int, int);
+    void cq_sync(int);
     int bq_layout = -1;
+    // leaf cells, line segments (start, length), the fill entries of a patch next to a leaf cell
+    // along x, y
     struct bqgrid
     {
         vector<int> leaf, seg[2];
-    };                   // leaf cells, line segments (start, length)
-    vector<bqgrid> bqg;  // [g+1]
+    };
+    map<int, vector<bqgrid>> bqw;   // per level window (G 7 1), [g+1]
+    vector<bqgrid> *bqc = nullptr;  // the current one
+    int nh_keep = -1;               // vector whose fixed cells around the patches keep their values (nh_edge)
+    // G 7 1: u_a of the level-l stage, the coarse u_a after a synchronisation
+    void bous_level(lexer *, ghostcell *, int, int, int);
+    void bous_sync(lexer *, ghostcell *, int, int);
+    void bous_window(ghostcell *, int, double);
     void eval_fill(const reefamr_fill &, double *);
     void store_fill(sflow_amr_patch *, int, int, int, const double *);
     void prolong(int, int, int, int, int, double, double *);
+    static const int NPR = 10;  // values of prolong_parts
+    void prolong_parts(int, int, int, int, int, double *);
+    void prolong_finish(const double *, double, double *);
+
+    // shoreline (well balanced at rest): the restricted water surface of the covered cells at a shoreline (sfc, as
+    // the offset from the mean water level plus mean bed), level 0 (a slice: its halo) and the patches; children
+    // of a dry parent whose bed lies above the surface of its wet neighbours are wet below that surface (the
+    // initial hierarchy: dryfill)
+    slice4 *sfs0 = nullptr;
+    double *sfc_of(int);
+    void sfc_reset(int);
+    void sfc_stage(int);
+    bool dryfill = false;
+    bool ini_pass = false;  // the initial hierarchy (sflow_amr::ini)
     void apply_bc(ghostcell *, sflow_amr_patch &, int);
-    void restrict_patch(lexer *, sflow_amr_patch &, int);
-    void exchange_level0(lexer *, fdm2D *, ghostcell *, int);
+    void restrict_levels(lexer *, int);      // all patches into their parents, finest first (block plans)
+    void restrict_level(lexer *, int, int);  // the level-l patches into their parents
+    void exchange_level0(lexer *, fdm2D *, ghostcell *, int, bool = false);
     void exchange_fluxes(int);
+
+    // G 7 1: subcycling (sflow_amr_sub.cpp)
+    int sub;                                     // 1: subcycled (G 7 1, hydrostatic)
+    int hstage;                                  // RK3 stage of the grids running (flux register weights)
+    double tint;                                 // fill time of the parent level in its step [0,1], <0: synchronous
+    sflow_amr_told told0;                        // level 0
+    vector<vector<double>> cregL, cregR, rflux;  // [id+1]: coarse face fluxes summed over the step (5 per match / rmatch entry), received fine sums
+    sflow_amr_told &told(int);
+    void told_free(sflow_amr_told &);
+    void sub_snapshot(int);
+    void sub_creg_reset(int);
+    void sub_dfx();
+    void sub_begin(lexer *, fdm2D *, ghostcell *);
+    void sub_end(lexer *, fdm2D *, ghostcell *);
+    void sub_level(lexer *, ghostcell *, int, int, double, double);
+    void sub_sync(lexer *, ghostcell *, int, int, double);
+    void sub_reflux(int);
+    long sub_steps[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+    // A 220 1-3 (sflow_amr_subnh.cpp): level solves, synchronisation projection
+    void nh_level(lexer *, ghostcell *, int, int, int);
+    void nh_project(lexer *, ghostcell *, int, double);
+    void nh_resid(int, vector<double> &);
+    void nh_store_end(int);
 
     double mass(lexer *, fdm2D *, ghostcell *);
     void write_vtr(lexer *, sflow_amr_patch &, int);
@@ -265,7 +555,10 @@ private:
     ofstream gaugeout;
 
     double tol_eta;
+    double tol_curv = 0.0;   // G 21: second difference of the surface
+    bool flagbreak = false;  // G 23 1: breaking cells (A 246 1/2)
     int shore;
+    int nrelax = 0;  // relaxation zones kept unrefined (ioflow::relax_boxes)
 
     // cached stage input arrays per grid (index id+1)
     vector<slice *> sWL, sUH, sVH, sWH;
@@ -276,14 +569,17 @@ private:
     patchBC_interface *pBC;
     sixdof *p6dof;
     ioflow *pflow_void;
+    ioflow *pflow_of(sflow_amr_patch *);  // the in- and outflow of a grid: its open faces (G 54) or none
 
     double m0, printtime_amr;
     double tm[10];
     int printcount_amr;
     ofstream logout;
     const double eps;
-    static const int NVMAX = 14;
-    int NV;    // values per filled cell: WL UH VH eta U V wet deep WH W (+ Boussinesq: UA VA MX MY)
+    static const int NVMAX = 16;
+    int NV;    // values per filled cell: WL UH VH eta U V wet deep WH W (+ Boussinesq: UA VA MX MY), the parent surface, the shoreline offset
+    int ISF;   // index of the parent surface in the filled values (NV-2)
+    int ISC;   // index of the shoreline offset (sfc) of a cell filled from a grid of its level (NV-1)
     int bous;  // Boussinesq (A 220 4): UH,VH hold V, u_a and M are filled as well
 };
 

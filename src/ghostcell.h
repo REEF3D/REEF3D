@@ -24,7 +24,9 @@ Author: Hans Bihs
 #define GHOSTCELL_H_
 
 #include "increment.h"
+#include <cstdint>
 #include <mpi.h>
+#include <vector>
 
 class fdm;
 class fdm2D;
@@ -47,6 +49,8 @@ class ghostcell : public increment
 {
 public:
     ghostcell(int &, char **, lexer *);
+    // a second ghostcell of the run (MPI initialised): its own communicator, for a second grid (cfd_amr_cpm.cpp)
+    explicit ghostcell(lexer *);
     virtual ~ghostcell() = default;
 
     void final(bool error = false);
@@ -83,6 +87,29 @@ public:
     void startintV(lexer *, int *, int);
     void startintVF(lexer *, int *, int);
 
+    void dgcpol(lexer *, field &, int **, int);
+
+    void start1V(lexer *, double *, int);
+    void start2V(lexer *, double *, int);
+    void start3V(lexer *, double *, int);
+    void start4V(lexer *, double *, int);
+    void start4V_par(lexer *, double *, int);
+    void start5V(lexer *, double *, int);
+    void start5Vfull(lexer *, double *, int);
+
+    void start20V(lexer *, double *, int);
+    void start24V(lexer *, double *, int);
+    void start30V(lexer *, double *, int);
+    void start49V(lexer *, double *, int);
+    void start60V(lexer *, double *, int);
+
+    void start7V(lexer *, double *, sliceint &, int);
+    void start7S(lexer *, double *, int);
+    void start7P(lexer *, double *, int);
+
+    void startintV(lexer *, int *, int);
+    void startintVF(lexer *, int *, int);
+
     void dgcpol1(lexer *, field &, int);
     void dgcpol2(lexer *, field &, int);
     void dgcpol3(lexer *, field &, int);
@@ -92,49 +119,27 @@ public:
     void gcpartnum(int[6], int[6]);
     void gcpartx(int[6], int[6], double *[6], double *[6]);
 
-    //  Update
-    void facenbx(lexer *, fieldint &, int *);
-    void flagx(lexer *, int *);
-    void flagx7(lexer *, int *);
-    void rangex(lexer *, int *, int);
-    void gcxupdate(lexer *);
-
-    void rownum4_update(lexer *, fieldint &);
-    void rownum7_update(lexer *, int *);
-
-    void sizeM_update(lexer *, fdm *);
-
-    void fdm2D_update(fdm2D *);
-    void fdm_fnpf_update(fdm_fnpf *);
-    void fdm_nhf_update(fdm_nhf *);
-    void fdm_update(fdm *);
-
-    void gcb_velflagio(lexer *, fdm *);
-
-    // 2D CPT_
-
     void sizeS_update(lexer *);
 
     // Forcing CFD
     void solid_forcing(lexer *, fdm *, double, field &, field &, field &, field &, field &, field &);
     void solid_forcing_ini(lexer *, fdm *);
     void solid_forcing_flag_update(lexer *, fdm *);
+    bool geometry_changed(lexer *, fdm *);  // signs of solid/topo/fb changed since the last call (on any rank)
     void solid_forcing_lsm(lexer *, fdm *, field &);
     void solid_forcing_eta(lexer *, slice &);
     void solid_forcing_bed(lexer *, slice &);
     double Hsolidface(lexer *, fdm *, int, int, int);
     double Hsolidface_t(lexer *, fdm *, int, int, int);
 
-    // 6DOF update gcdf
-    void gcdf_update(lexer *, fdm *);
-    void gcsldf_update(lexer *);
+    void rownum4_update(lexer *, fieldint &);
+    void rownum7_update(lexer *, int *);
 
-    // IBM
-    void flagfield(lexer *);
-    void flagbase(lexer *, fdm *);
+    void sizeM_update(lexer *, fdm *);
 
     // PARALLEL
     void gcparax(lexer *, field &, int);
+    void gcparax_co(lexer *, field &, int);
     void gcparaxint(lexer *, fieldint &, int);
     void gcparaxijk_single(lexer *, double *, int);
     void gcparax7(lexer *, double *&, int);
@@ -196,7 +201,6 @@ public:
     void gcsl_start1(lexer *, slice &, int);
     void gcsl_start2(lexer *, slice &, int);
     void gcsl_start4(lexer *, slice &, int);
-    void gcsl_start4a(lexer *, slice &, int);
 
     void gcsl_start1int(lexer *, sliceint &, int);
     void gcsl_start2int(lexer *, sliceint &, int);
@@ -206,7 +210,6 @@ public:
     void gcsldistro1(lexer *, slice &, int, int, int, int, int, int);
     void gcsldistro2(lexer *, slice &, int, int, int, int, int, int);
     void gcsldistro4(lexer *, slice &, int, int, int, int, int, int);
-    void gcsldistro4a(lexer *, slice &, int, int, int, int, int, int);
 
     void gcsldistro1int(lexer *, sliceint &, int, int, int, int, int, int);
     void gcsldistro2int(lexer *, sliceint &, int, int, int, int, int, int);
@@ -262,31 +265,19 @@ public:
     void gcdistro4(lexer *, field &, int, int, int, int, double, int, int, int);
     void gcdistro4a(lexer *, field &, int, int, int, int, double, int, int, int);
 
-    int gceval1(lexer *, int, int, int);
-    int gceval2(lexer *, int, int, int);
-    int gceval3(lexer *, int, int, int);
-    int gceval4(lexer *, int, int, int);
-    int gceval4a(lexer *, int, int, int);
-
     void dirichlet_para(lexer *, field &, double, int, int, int);
     void dirichlet_ortho(lexer *, field &, double, int, int, int);
     void dirichlet_para_reflect(lexer *, field &, double, int, int, int);
     void dirichlet_ortho_reflect(lexer *, field &, double, int, int, int);
     void neumann(field &, int, int, int);
-    void gcb_debug(field &, int, int, int);
     void extend(lexer *, field &, double, int, int, int);
     void outflow(lexer *, field &, int, int, int);
-    void sommerfeld(lexer *, field &, int, int, int);
     void potentialbc(lexer *, field &, int, int);
-    void neumann_all(field &, int, int, int);
-    void lsm(lexer *, field &, double, int, int, int);
     void noslip(field &, double, int, int, int);
     void imagepoint(lexer *, field &, double &, double &, double, int);
     void atmosphere(lexer *, field &, int, int, int);
     void heatbc(lexer *, field &, int, int, int);
-    void gravity_press(lexer *, field &, double, int, int, int);
     void nhpress(lexer *, field &, double, int, int, int);
-    void kinematic_bed(lexer *, field &, double, int, int, int);
     void fivec(lexer *, double *, sliceint &);
     void fivec2D(lexer *, double *, sliceint &);
     void fivec_vel(lexer *, double *, sliceint &);
@@ -321,15 +312,22 @@ private:
     // PARALLEL
     void Sendrecv_double(int, int, int, int, int, int);
     void Sendrecv_int(int, int, int, int, int, int);
-    void Sendrecv_1D(const void *[6], int[6], void *[6], int[6], MPI_Datatype);
-    void Sendrecv_2D(const void *[6], int[6], void *[6], int[6], MPI_Datatype);
-    void Sendrecv_3D(const void *[6], int[6], void *[6], int[6], MPI_Datatype);
+    void Sendrecv(const void *[6], int[6], void *[6], int[6], MPI_Datatype);
 
     MPI_Comm cart_comm = MPI_COMM_NULL;
     int neighbors[6] = {MPI_PROC_NULL, MPI_PROC_NULL, MPI_PROC_NULL,
                         MPI_PROC_NULL, MPI_PROC_NULL, MPI_PROC_NULL};
     bool do_comms = true;
+    double *curv_upart = nullptr;   // curvilinear NHFLOW: U of the pair whose V comes next (start4V)
+    double *curv_uhpart = nullptr;  // curvilinear NHFLOW: UH of the pair whose VH comes next (start4V)
     bool local_red = false;
+    bool periodic_comms = true;     // any rank has periodic partition neighbours (gcperiodicx)
+    std::vector<uint16_t> geo_sig;  // geometry_changed: per cell sign classes of solid, topo, fb
+
+    void gcparax_pack(lexer *, field &, int);
+    void gcparax_unpack(lexer *, field &, int);
+    void gcparaco_pack(lexer *, field &, const int *);
+    void gcparaco_unpack(lexer *, field &, const int *);
 
     int ndims;
 

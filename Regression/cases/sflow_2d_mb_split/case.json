@@ -1,0 +1,9 @@
+{
+ "np": 1,
+ "steps": 100,
+ "tags": ["2d", "sflow", "curvilinear", "multiblock"],
+ "description": "SFLOW on the turned three-block channel of nhflow_3d_mb_split_mpi2 with G 55 4: the blocks 1 and 2 cut into two pieces each (block 1 along j, block 2 along i), two dam breaks; without G 55 the same solution to round-off.",
+ "covers": ["geo_mesh::split_blocks with SFLOW (sflow_amr::blocks_setup)"],
+ "solver": "sflow",
+ "files": ["blocks.dat"]
+}

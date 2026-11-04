@@ -1,0 +1,24 @@
+{
+ "base": "sflow_2d_curv_lake_island",
+ "np": 1,
+ "steps": 60,
+ "tags": [
+  "2d",
+  "sflow",
+  "curvilinear",
+  "amr",
+  "wetdry",
+  "quick"
+ ],
+ "description": "Lake at rest with an emerged island on the wavy, skewed curvilinear grid (sflow_2d_curv_lake_island) with a static patch (G 10) whose boundary runs through the island: the shoreline crosses the patch boundary and the coarse grid does not resolve it. At rest to the round-off of the wetting and drying (before: 0.1 m/s at the shoreline).",
+ "covers": [
+  "sflow_amr shoreline: restricted surface of the covered cells (sfc), ghost cells and initial hierarchy below the surface of the wet neighbours (dryfill), walls of the parent at faces between two dry cells (hll_hook)"
+ ],
+ "ctrl_add": [
+  "G 1 1",
+  "G 2 0",
+  "G 3 2",
+  "G 4 8",
+  "G 10 6.0 17.0 6.0 28.0"
+ ]
+}

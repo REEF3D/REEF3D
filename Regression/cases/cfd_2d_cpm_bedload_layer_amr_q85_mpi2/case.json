@@ -1,0 +1,14 @@
+{
+ "base": "cfd_2d_cpm_bedload_layer_amr_q85",
+ "np": 2,
+ "description": "cfd_2d_cpm_bedload_layer_amr_q85 on 2 ranks: the interpolation from level 0 and the means of the bed across the ranks; its own reference",
+ "covers": [
+  "cfd_amr::cpm_plans, cpm_bplans on several ranks"
+ ],
+ "tags": [
+  "2d",
+  "cpm",
+  "amr",
+  "mpi"
+ ]
+}

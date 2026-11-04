@@ -1,0 +1,21 @@
+{
+ "np": 1,
+ "steps": 40,
+ "tags": [
+  "3d",
+  "nhflow",
+  "quick",
+  "curvilinear",
+  "sediment"
+ ],
+ "description": "Sediment transport (S 10 1, bed load, S 31 1) with NHFLOW on a curvilinear grid (G 50 2): bed-load dam break over a flat erodible bed, the grid the Cartesian one turned by 90 deg and shifted; per cell index the Cartesian run to round-off (sediment_curvilinear/t1).",
+ "covers": [
+  "sediment_curv: face normals P, Q, contravariant cell velocity, face sign, chain-rule bed gradient",
+  "sediment_exner_curv (topovel_curv), the symmetric filter of the curvilinear grid (sediment_xfilter)",
+  "bedslope, bedload direction, bed shear on the curvilinear grid; the curvilinear time step of NHFLOW"
+ ],
+ "solver": "nhflow",
+ "files": [
+  "curvgrid.dat"
+ ]
+}

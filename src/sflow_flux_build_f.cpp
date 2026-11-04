@@ -25,6 +25,7 @@ Author: Hans Bihs
 #include "ghostcell.h"
 #include "lexer.h"
 #include "patchBC_interface.h"
+#include "sflow_curv.h"
 #include "slice.h"
 
 sflow_flux_build_f::sflow_flux_build_f(lexer *p, ghostcell *ppgc, patchBC_interface *ppBC)
@@ -38,6 +39,13 @@ sflow_flux_build_f::~sflow_flux_build_f()
 
 void sflow_flux_build_f::start_U(lexer *p, fdm2D *b, ghostcell *pgc)
 {
+    // curvilinear grid: normal fluxes of the faces
+    if(p->geo_curv == 1)
+    {
+        sflow_curv::flux(p, b, 1);
+        return;
+    }
+
     // flux x-dir
     SLICELOOP1
     {
@@ -58,6 +66,13 @@ void sflow_flux_build_f::start_U(lexer *p, fdm2D *b, ghostcell *pgc)
 
 void sflow_flux_build_f::start_V(lexer *p, fdm2D *b, ghostcell *pgc)
 {
+    // curvilinear grid: normal fluxes of the faces
+    if(p->geo_curv == 1)
+    {
+        sflow_curv::flux(p, b, 2);
+        return;
+    }
+
     if(p->j_dir == 1)
     {
         // flux x-dir
@@ -80,6 +95,13 @@ void sflow_flux_build_f::start_V(lexer *p, fdm2D *b, ghostcell *pgc)
 
 void sflow_flux_build_f::start_W(lexer *p, fdm2D *b, ghostcell *pgc)
 {
+    // curvilinear grid: normal fluxes of the faces
+    if(p->geo_curv == 1)
+    {
+        sflow_curv::flux(p, b, 3);
+        return;
+    }
+
     // flux x-dir
     SLICELOOP1
     {
@@ -100,6 +122,13 @@ void sflow_flux_build_f::start_W(lexer *p, fdm2D *b, ghostcell *pgc)
 
 void sflow_flux_build_f::start_E(lexer *p, fdm2D *b, ghostcell *pgc)
 {
+    // curvilinear grid: normal fluxes of the faces
+    if(p->geo_curv == 1)
+    {
+        sflow_curv::flux(p, b, 4);
+        return;
+    }
+
     // flux x-dir
     SLICELOOP1
     {

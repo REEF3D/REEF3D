@@ -1,0 +1,18 @@
+{
+ "np": 1,
+ "steps": 40,
+ "tags": [
+  "3d",
+  "nhflow",
+  "curvilinear",
+  "quick"
+ ],
+ "description": "NHFLOW on a wavy, skewed curvilinear grid: lake at rest over a submerged bump (A 520 2), velocities and pressure stay at round-off.",
+ "covers": [
+  "nhflow_curv well balancing (bed-slope source, non-orthogonal Poisson rows)"
+ ],
+ "solver": "nhflow",
+ "files": [
+  "curvgrid.dat"
+ ]
+}

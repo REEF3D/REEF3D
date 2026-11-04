@@ -26,6 +26,7 @@ Author: Hans Bihs
 #include "net_interface.h"
 #include "net_membrane.h"
 #include "nhflow_membrane_beta.h"
+#include "nhflow_thinbody.h"
 #include "slice.h"
 #include "vrans_definitions.h"
 #include <fstream>
@@ -70,6 +71,14 @@ Author: Hans Bihs
 //                                      (R_t default 0), the normal resistance of the layer stays. Loads: momentum taken
 //                                      out by the forcing + pressure difference across the blocked links.
 //                                      Link mode: projections 1, coupling staggered (flexible), delta >= cell size
+//               sharp                  only the links crossing the membrane are blocked (mobility 1/(1 + a R_n/l),
+//                                      default R_n 1e5 m/s), no layer forcing: the cells on either side are free fluid.
+//                                      Wall fluxes at the blocked faces, wall velocity at the blocked links in the
+//                                      projection, cut cells below/above a floor, hydrostatic head below closed floors
+//                                      from the outer free surface (no floorpressure); see nhflow_thinbody.h.
+//                                      A 520 1, projections 1, structure fixed, rigid or flexible (flexible: staggered
+//                                      coupling with an added mass, see addedmass, bending, smoothing). Loads: pressure
+//                                      jump across the blocked links (no shear)
 //   poisson     0|1                    membrane mobility in the pressure Poisson equation; default 1
 //                                      (0 only to demonstrate the splitting leakage of the projection)
 //
@@ -83,8 +92,21 @@ Author: Hans Bihs
 //   stiffness   Et                     membrane stiffness E t [N/m]; default 5e5
 //   damping     zeta                   damping ratio of the edge dampers; default 0.1
 //   compression f                      edge stiffness in compression as a fraction of E t (wrinkling); default 0.01
+//   smoothing   n                      mobility sharp, structure flexible: smoothing passes of the membrane geometry that
+//                                      the fluid sees (node displacement and velocity, neighbour average, removes folds
+//                                      at the scale of the mesh); default 2, 0: off
+//   bending     EI                     bending stiffness [N m] of the flexible membrane, a regularisation against folds
+//                                      at the scale of the mesh (quadratic hinge model, flat rest state, Bergou et al.
+//                                      2006); default 1e-3 with mobility sharp (the sharp walls need a membrane that is
+//                                      smooth at the cell scale), 0 otherwise
 //   sinker      w                      submerged weight along the floor edge [N/m]; default 0
 //   attach      z                      nodes at or above z are attached; default the top edge z_top
+//   addedmass   m_a                    mobility sharp, structure flexible: added mass per area [kg/m^2] of the
+//                                      staggered coupling (the fabric is integrated with m + m_a against the load of
+//                                      the last fluid step; stable for m_a above the added mass of the water, which
+//                                      is ~ rho times the bag size); default 2 rho (L + H), L the radius (cylinder) or
+//                                      half the smaller width (box), H the depth of the bag bottom below the still
+//                                      water level. The extra inertia slows the dynamics, not the equilibrium
 //   bodyaddedmass M                    added mass [kg] of the stabilised coupling to the floating body
 //                                      (translation); default 2 rho V_bag (water of the bag below the still
 //                                      water level) for a rigid membrane, 0 for a flexible one (its top
@@ -218,6 +240,7 @@ void net_interface::membrane_ini_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
             if(!(ls >> mp.back().Rn))
                 error = true;
             ls >> mp.back().Rt;
+            mp.back().Rngiven = 1;
         }
         else if(key == "thickness")
         {
@@ -232,6 +255,16 @@ void net_interface::membrane_ini_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
         else if(key == "fill")
         {
             if(!(ls >> mp.back().fill))
+                error = true;
+        }
+        else if(key == "smoothing")
+        {
+            if(!(ls >> mp.back().smooth) || mp.back().smooth < 0)
+                error = true;
+        }
+        else if(key == "bending")
+        {
+            if(!(ls >> mp.back().EI) || mp.back().EI < 0.0)
                 error = true;
         }
         else if(key == "compression")
@@ -273,6 +306,8 @@ void net_interface::membrane_ini_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
                 mp.back().link = 0;
             else if(mode == "link")
                 mp.back().link = 1;
+            else if(mode == "sharp")
+                mp.back().link = 2;
             else
                 error = true;
         }
@@ -354,6 +389,11 @@ void net_interface::membrane_ini_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
                 error = true;
             else
                 mp.back().moor.push_back(m);
+        }
+        else if(key == "addedmass")
+        {
+            if(!(ls >> mp.back().ma) || mp.back().ma < 0.0)
+                error = true;
         }
         else if(key == "bodyaddedmass")
         {
@@ -488,11 +528,14 @@ void net_interface::membrane_ini_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
     // link mode: Rhie-Chow flux of the single projection (the converged wide divergence would average the cell
     // velocities across the blocked links)
-    bool link = false;
+    bool link = false, sharp = false;
 
     for(size_t m = 0; m < mp.size(); ++m)
-        if(mp[m].link == 1)
+        if(mp[m].link >= 1)
         {
+            if(mp[m].link == 2)
+                sharp = true;
+
             link = true;
 
             if(mp[m].projections > 1 && p->mpirank == 0)
@@ -507,225 +550,257 @@ void net_interface::membrane_ini_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
         p->Darray(d->MBY, p->imax * p->jmax * (p->kmax + 2));
         p->Darray(d->MBZ, p->imax * p->jmax * (p->kmax + 2));
 
+        // sharp mode: thin-body service (wall fluxes, projection right-hand side, cut cells, head below the floors)
+        if(sharp && d->thinbody == nullptr)
+            d->thinbody = new nhflow_thinbody(p, d, pgc);
+
+        for(size_t m = 0; m < mp.size(); ++m)
+        {
+            pmem.push_back(new net_membrane(m, mp[m]));
+
+            if(mp[m].link == 2)
+                pmem.back()->tb_ = d->thinbody;
+
+            pmem.back()->initialize_nhflow(p, d, pgc);
+            pmem.back()->fill_nhflow(p, d, pgc);
+        }
+
+        // sharp mode: blocked links of the initial state, so that the first fluxes already see the walls
+        if(d->thinbody != nullptr)
+        {
+            membrane_links_nhflow(p, d, pgc, 1.0);
+
+            const int nl = d->thinbody->nlower(p, pgc);
+
+            if(p->mpirank == 0)
+                cout << "X 330 sharp: " << nl << " cells below closed floors" << endl;
+        }
+    }
+
+    void net_interface::membrane_links_nhflow(lexer * p, fdm_nhf * d, ghostcell * pgc, double alpha)
+    {
+        // 1. mobility field beta (also builds the membrane cell maps for this stage)
         for(int qn = 0; qn < p->imax * p->jmax * (p->kmax + 2); ++qn)
-            d->MBX[qn] = d->MBY[qn] = d->MBZ[qn] = 1.0;
+            d->MBETA[qn] = 1.0;
+
+        if(d->MBX != nullptr)
+            for(int qn = 0; qn < p->imax * p->jmax * (p->kmax + 2); ++qn)
+                d->MBX[qn] = d->MBY[qn] = d->MBZ[qn] = 1.0;
+
+        if(d->thinbody != nullptr)
+            d->thinbody->begin(p);
+
+        for(auto m : pmem)
+            m->mobility_nhflow(p, d, pgc, alpha);
+
+        pgc->start4V(p, d->MBETA, 1);
+
+        if(d->MBX != nullptr)
+        {
+            pgc->start4V(p, d->MBX, 1);
+            pgc->start4V(p, d->MBY, 1);
+            pgc->start4V(p, d->MBZ, 1);
+        }
+
+        if(d->thinbody != nullptr)
+            d->thinbody->finish(p, d, pgc);
     }
 
-    for(size_t m = 0; m < mp.size(); ++m)
-        d->MPROJ = MAX(d->MPROJ, mp[m].projections);
-
-    for(size_t m = 0; m < mp.size(); ++m)
+    void net_interface::membrane_forcing_nhflow(lexer * p, fdm_nhf * d, ghostcell * pgc, double alpha,
+                                                double *UH, double *VH, double *WH, slice &WL)
     {
-        pmem.push_back(new net_membrane(m, mp[m]));
-        pmem.back()->initialize_nhflow(p, d, pgc);
-        pmem.back()->fill_nhflow(p, d, pgc);
-    }
-}
+        // 0. membrane positions for this stage (moving membranes)
+        for(auto m : pmem)
+            m->kinematics_nhflow(p, d, pgc);
 
-void net_interface::membrane_forcing_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha,
-                                            double *UH, double *VH, double *WH, slice &WL)
-{
-    // 0. membrane positions for this stage (moving membranes)
-    for(auto m : pmem)
-        m->kinematics_nhflow(p, d, pgc);
+        // 1. mobility field beta, blocked links (also builds the membrane cell maps for this stage)
+        membrane_links_nhflow(p, d, pgc, alpha);
 
-    // 1. mobility field beta (also builds the membrane cell maps for this stage)
-    for(int qn = 0; qn < p->imax * p->jmax * (p->kmax + 2); ++qn)
-        d->MBETA[qn] = 1.0;
+        // sharp mode: cells that crossed the body with the moving sigma grid
+        if(d->thinbody != nullptr)
+            d->thinbody->side_change(p, d, UH, VH, WH, WL);
 
-    if(d->MBX != nullptr)
+        // 2. static overpressure of the bag below its floor (prescribed pressure, see net_membrane)
         for(int qn = 0; qn < p->imax * p->jmax * (p->kmax + 2); ++qn)
-            d->MBX[qn] = d->MBY[qn] = d->MBZ[qn] = 1.0;
+            d->MCHI[qn] = 0.0;
 
-    for(auto m : pmem)
-        m->mobility_nhflow(p, d, pgc, alpha);
+        for(auto m : pmem)
+            m->static_pressure_nhflow(p, d, pgc, alpha, UH, VH, WH, WL);
 
-    pgc->start4V(p, d->MBETA, 1);
+        pgc->start4V(p, d->MCHI, 1);
 
-    if(d->MBX != nullptr)
-    {
-        pgc->start4V(p, d->MBX, 1);
-        pgc->start4V(p, d->MBY, 1);
-        pgc->start4V(p, d->MBZ, 1);
+        // 3. implicit porous-jump forcing
+        //    Incremental pressure scheme (A 520 2): the predictor already contains the old non-hydrostatic
+        //    pressure gradient, -a C/rho G P^n. For the projection to stay consistent, P^n has to act with
+        //    the same mobility as the pressure correction (beta_h horizontal, beta vertical), not with the
+        //    implicit forcing factor (I + a A)^-1 in the layer or 1 next to it. It is taken out before the
+        //    forcing and put back with the correction mobility afterwards; without this the pressure
+        //    increments accumulate in the layer and the scheme diverges.
+        const bool incremental = (p->A520 == 2);
+
+        if(incremental)
+            membrane_pgrad(p, d, alpha, UH, VH, WH, WL, 1);
+
+        for(auto m : pmem)
+            m->forcing_nhflow(p, d, pgc, alpha, UH, VH, WH, WL);
+
+        if(incremental)
+            membrane_pgrad(p, d, alpha, UH, VH, WH, WL, -1);
+
+        // sharp mode: vertical velocity of the cut cells (below / above a floor)
+        if(d->thinbody != nullptr)
+            d->thinbody->cut_forcing(p, d, UH, VH, WH, WL);
     }
 
-    // 2. static overpressure of the bag below its floor (prescribed pressure, see net_membrane)
-    for(int qn = 0; qn < p->imax * p->jmax * (p->kmax + 2); ++qn)
-        d->MCHI[qn] = 0.0;
-
-    for(auto m : pmem)
-        m->static_pressure_nhflow(p, d, pgc, alpha, UH, VH, WH, WL);
-
-    pgc->start4V(p, d->MCHI, 1);
-
-    // 3. implicit porous-jump forcing
-    //    Incremental pressure scheme (A 520 2): the predictor already contains the old non-hydrostatic
-    //    pressure gradient, -a C/rho G P^n. For the projection to stay consistent, P^n has to act with
-    //    the same mobility as the pressure correction (beta_h horizontal, beta vertical), not with the
-    //    implicit forcing factor (I + a A)^-1 in the layer or 1 next to it. It is taken out before the
-    //    forcing and put back with the correction mobility afterwards; without this the pressure
-    //    increments accumulate in the layer and the scheme diverges.
-    const bool incremental = (p->A520 == 2);
-
-    if(incremental)
-        membrane_pgrad(p, d, alpha, UH, VH, WH, WL, 1);
-
-    for(auto m : pmem)
-        m->forcing_nhflow(p, d, pgc, alpha, UH, VH, WH, WL);
-
-    if(incremental)
-        membrane_pgrad(p, d, alpha, UH, VH, WH, WL, -1);
-}
-
-void net_interface::membrane_pgrad(lexer *p, fdm_nhf *d, double alpha, double *UH, double *VH, double *WH, slice &WL, int mode)
-{
-    // Incremental scheme (A 520 2): the predictor contains the old pressure gradient -a C/rho G P^n
-    // (nhflow_pjm_corr::upgrad, vpgrad, wpgrad: plain wide gradient). Next to the membrane it has to act
-    // through the same operator as the pressure correction, i.e. with the face mobilities
-    // (nhflow_membrane_gradx/grady) and beta on the vertical and sigma terms, not with the implicit
-    // forcing factor (I + a A)^-1 in the layer or with mobility 1 next to it. Then P^n and PCORR act
-    // like one full pressure P^{n+1} and the scheme is the projection of A 520 1.
-    //   mode  1: take the plain gradient out before the forcing
-    //   mode -1: put it back with the mobilities after the forcing
-    double gx, gy, gz, sx, sy, a;
-    const double *P = d->P;
-
-    LOOP WETDRYDEEP
+    void net_interface::membrane_pgrad(lexer * p, fdm_nhf * d, double alpha, double *UH, double *VH, double *WH, slice &WL, int mode)
     {
-        if(!nhflow_membrane_active(p, d, i, j, k))
-            continue;
+        // Incremental scheme (A 520 2): the predictor contains the old pressure gradient -a C/rho G P^n
+        // (nhflow_pjm_corr::upgrad, vpgrad, wpgrad: plain wide gradient). Next to the membrane it has to act
+        // through the same operator as the pressure correction, i.e. with the face mobilities
+        // (nhflow_membrane_gradx/grady) and beta on the vertical and sigma terms, not with the implicit
+        // forcing factor (I + a A)^-1 in the layer or with mobility 1 next to it. Then P^n and PCORR act
+        // like one full pressure P^{n+1} and the scheme is the projection of A 520 1.
+        //   mode  1: take the plain gradient out before the forcing
+        //   mode -1: put it back with the mobilities after the forcing
+        double gx, gy, gz, sx, sy, a;
+        const double *P = d->P;
 
-        a = alpha * p->dt * CPORNH;
-        const double bv = nhflow_mbz(d, IJK);
-        const double dPk = (P[FIJKp1] - P[FIJK]) / p->DZN[KP];
-
-        sx = 0.5 * (p->sigx[FIJK] + p->sigx[FIJKp1]) * dPk;
-        sy = 0.5 * (p->sigy[FIJK] + p->sigy[FIJKp1]) * dPk;
-
-        if(mode == 1)
+        LOOP WETDRYDEEP
         {
-            gx = (0.5 * (P[FIp1JKp1] + P[FIp1JK]) - 0.5 * (P[FIm1JKp1] + P[FIm1JK])) / (p->DXP[IP] + p->DXP[IM1]) + sx;
-            gy = p->j_dir == 1 ? (0.5 * (P[FIJp1Kp1] + P[FIJp1K]) - 0.5 * (P[FIJm1Kp1] + P[FIJm1K])) / (p->DYP[JP] + p->DYP[JM1]) + sy : 0.0;
-            gz = dPk;
+            if(!nhflow_membrane_active(p, d, i, j, k))
+                continue;
+
+            a = alpha * p->dt * CPORNH;
+            const double bv = nhflow_mbz(d, IJK);
+            const double dPk = (P[FIJKp1] - P[FIJK]) / p->DZN[KP];
+
+            sx = 0.5 * (p->sigx[FIJK] + p->sigx[FIJKp1]) * dPk;
+            sy = 0.5 * (p->sigy[FIJK] + p->sigy[FIJKp1]) * dPk;
+
+            if(mode == 1)
+            {
+                gx = (0.5 * (P[FIp1JKp1] + P[FIp1JK]) - 0.5 * (P[FIm1JKp1] + P[FIm1JK])) / (p->DXP[IP] + p->DXP[IM1]) + sx;
+                gy = p->j_dir == 1 ? (0.5 * (P[FIJp1Kp1] + P[FIJp1K]) - 0.5 * (P[FIJm1Kp1] + P[FIJm1K])) / (p->DYP[JP] + p->DYP[JM1]) + sy : 0.0;
+                gz = dPk;
+            }
+            else
+            {
+                gx = -(nhflow_membrane_gradx(p, d, P, i, j, k) + bv * sx);
+                gy = p->j_dir == 1 ? -(nhflow_membrane_grady(p, d, P, i, j, k) + bv * sy) : 0.0;
+                gz = -bv * dPk;
+            }
+
+            // wpgrad acts on WH without the water depth: dW = -a C/rho dP/(DZN WL)
+            gx *= 1.0 / p->W1;
+            gy *= 1.0 / p->W1;
+            gz *= 1.0 / (p->W1 * MAX(WL(i, j), 1.0e-20));
+
+            d->U[IJK] += a * gx;
+            UH[IJK] += a * gx * WL(i, j);
+
+            if(p->j_dir == 1)
+            {
+                d->V[IJK] += a * gy;
+                VH[IJK] += a * gy * WL(i, j);
+            }
+
+            d->W[IJK] += a * gz;
+            WH[IJK] += a * gz * WL(i, j);
         }
-        else
-        {
-            gx = -(nhflow_membrane_gradx(p, d, P, i, j, k) + bv * sx);
-            gy = p->j_dir == 1 ? -(nhflow_membrane_grady(p, d, P, i, j, k) + bv * sy) : 0.0;
-            gz = -bv * dPk;
-        }
-
-        // wpgrad acts on WH without the water depth: dW = -a C/rho dP/(DZN WL)
-        gx *= 1.0 / p->W1;
-        gy *= 1.0 / p->W1;
-        gz *= 1.0 / (p->W1 * MAX(WL(i, j), 1.0e-20));
-
-        d->U[IJK] += a * gx;
-        UH[IJK] += a * gx * WL(i, j);
-
-        if(p->j_dir == 1)
-        {
-            d->V[IJK] += a * gy;
-            VH[IJK] += a * gy * WL(i, j);
-        }
-
-        d->W[IJK] += a * gz;
-        WH[IJK] += a * gz * WL(i, j);
     }
-}
 
-void net_interface::membrane_reaction_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, slice &WL, bool finalize)
-{
-    for(auto m : pmem)
-        m->reaction_nhflow(p, d, pgc, alpha, WL, finalize);
-}
-
-bool net_interface::membrane_iterated()
-{
-    for(auto m : pmem)
-        if(m->iterated())
-            return true;
-
-    return false;
-}
-
-void net_interface::membrane_reforce_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, double *UH, double *VH, double *WH, slice &WL)
-{
-    // strong coupling: forcing update for the node velocities of the next iteration
-    for(auto m : pmem)
-        m->reforce_nhflow(p, d, pgc, alpha, UH, VH, WH, WL);
-}
-
-bool net_interface::membrane_couple_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, int iter, double alpha, slice &WL, int it)
-{
-    // strong coupling: loads of the projected velocity, structure, next node velocities; true when all converged
-    bool conv = true;
-
-    for(auto m : pmem)
-        conv = m->couple_nhflow(p, d, pgc, iter, alpha, WL, it) && conv;
-
-    return conv;
-}
-
-void net_interface::membrane_attach_nhflow(lexer *p, const Eigen::Vector3d &c, const Eigen::Matrix3d &R)
-{
-    for(auto m : pmem)
-        m->attach_body(p, c, R);
-}
-
-void net_interface::membrane_body_nhflow(const Eigen::Vector3d &c, const Eigen::Matrix3d &R, const Eigen::Vector3d &v, const Eigen::Vector3d &w)
-{
-    for(auto m : pmem)
-        m->set_body(c, R, v, w);
-}
-
-void net_interface::membraneForces_nhflow(lexer *p, const Eigen::Vector3d &c, const Eigen::Matrix3d &R, double &X, double &Y, double &Z, double &K, double &M, double &N)
-{
-    // load of all membranes on the floating body at its current position c and orientation R (flexible membranes:
-    // linearised in the body motion since the last membrane step), moment about c; identical on all ranks
-    X = Y = Z = K = M = N = 0.0;
-
-    for(auto m : pmem)
+    void net_interface::membrane_reaction_nhflow(lexer * p, fdm_nhf * d, ghostcell * pgc, double alpha, slice &WL, bool finalize)
     {
-        double x, y, z, k, mm, n;
-        m->body_load(p, c, R, x, y, z, k, mm, n);
-
-        X += x;
-        Y += y;
-        Z += z;
-        K += k;
-        M += mm;
-        N += n;
+        for(auto m : pmem)
+            m->reaction_nhflow(p, d, pgc, alpha, WL, finalize);
     }
-}
 
-Eigen::Matrix3d net_interface::membrane_addedinertia_nhflow(lexer *p)
-{
-    Eigen::Matrix3d I = Eigen::Matrix3d::Zero();
+    bool net_interface::membrane_iterated()
+    {
+        for(auto m : pmem)
+            if(m->iterated())
+                return true;
 
-    for(auto m : pmem)
-        I += m->body_addedinertia(p);
+        return false;
+    }
 
-    return I;
-}
+    void net_interface::membrane_reforce_nhflow(lexer * p, fdm_nhf * d, ghostcell * pgc, double alpha, double *UH, double *VH, double *WH, slice &WL)
+    {
+        // strong coupling: forcing update for the node velocities of the next iteration
+        for(auto m : pmem)
+            m->reforce_nhflow(p, d, pgc, alpha, UH, VH, WH, WL);
+    }
 
-double net_interface::membrane_addedmass_nhflow(lexer *p)
-{
-    double Ma = 0.0;
+    bool net_interface::membrane_couple_nhflow(lexer * p, fdm_nhf * d, ghostcell * pgc, int iter, double alpha, slice &WL, int it)
+    {
+        // strong coupling: loads of the projected velocity, structure, next node velocities; true when all converged
+        bool conv = true;
 
-    for(auto m : pmem)
-        Ma += m->body_addedmass(p);
+        for(auto m : pmem)
+            conv = m->couple_nhflow(p, d, pgc, iter, alpha, WL, it) && conv;
 
-    return Ma;
-}
+        return conv;
+    }
 
-Eigen::Matrix3d net_interface::membrane_stiffness_nhflow(lexer *p)
-{
-    // d F / d (body translation) of the flexible membranes attached to the body
-    Eigen::Matrix3d J = Eigen::Matrix3d::Zero();
+    void net_interface::membrane_attach_nhflow(lexer * p, const Eigen::Vector3d &c, const Eigen::Matrix3d &R)
+    {
+        for(auto m : pmem)
+            m->attach_body(p, c, R);
+    }
 
-    for(auto m : pmem)
-        J += m->body_stiffness();
+    void net_interface::membrane_body_nhflow(const Eigen::Vector3d &c, const Eigen::Matrix3d &R, const Eigen::Vector3d &v, const Eigen::Vector3d &w)
+    {
+        for(auto m : pmem)
+            m->set_body(c, R, v, w);
+    }
 
-    return J;
-}
+    void net_interface::membraneForces_nhflow(lexer * p, const Eigen::Vector3d &c, const Eigen::Matrix3d &R, double &X, double &Y, double &Z, double &K, double &M, double &N)
+    {
+        // load of all membranes on the floating body at its current position c and orientation R (flexible membranes:
+        // linearised in the body motion since the last membrane step), moment about c; identical on all ranks
+        X = Y = Z = K = M = N = 0.0;
+
+        for(auto m : pmem)
+        {
+            double x, y, z, k, mm, n;
+            m->body_load(p, c, R, x, y, z, k, mm, n);
+
+            X += x;
+            Y += y;
+            Z += z;
+            K += k;
+            M += mm;
+            N += n;
+        }
+    }
+
+    Eigen::Matrix3d net_interface::membrane_addedinertia_nhflow(lexer * p)
+    {
+        Eigen::Matrix3d I = Eigen::Matrix3d::Zero();
+
+        for(auto m : pmem)
+            I += m->body_addedinertia(p);
+
+        return I;
+    }
+
+    double net_interface::membrane_addedmass_nhflow(lexer * p)
+    {
+        double Ma = 0.0;
+
+        for(auto m : pmem)
+            Ma += m->body_addedmass(p);
+
+        return Ma;
+    }
+
+    Eigen::Matrix3d net_interface::membrane_stiffness_nhflow(lexer * p)
+    {
+        // d F / d (body translation) of the flexible membranes attached to the body
+        Eigen::Matrix3d J = Eigen::Matrix3d::Zero();
+
+        for(auto m : pmem)
+            J += m->body_stiffness();
+
+        return J;
+    }

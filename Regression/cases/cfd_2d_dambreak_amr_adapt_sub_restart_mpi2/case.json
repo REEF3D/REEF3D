@@ -1,0 +1,19 @@
+{
+ "base": "cfd_2d_dambreak_amr_adapt_sub_restart",
+ "np": 2,
+ "same_as": "cfd_2d_dambreak_amr_adapt_sub_ckpt",
+ "same_as_rtol": 0.0001,
+ "description": "cfd_2d_dambreak_amr_adapt_sub_restart on 2 ranks: the checkpoint of the one-rank run on another decomposition (the patches cut at the new rank boxes take their cells from the patches of the checkpoint). The text outputs have the rows of the uninterrupted one-rank run, within 1e-4 of their largest value.",
+ "tags": [
+  "2d",
+  "dambreak",
+  "levelset",
+  "amr",
+  "adaptive",
+  "checkpoint",
+  "mpi"
+ ],
+ "covers": [
+  "cfd_amr::ckpt_read on another decomposition (patches of another box from the patches of the checkpoint)"
+ ]
+}

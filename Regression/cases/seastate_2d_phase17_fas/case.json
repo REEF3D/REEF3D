@@ -1,0 +1,16 @@
+{
+ "base": "seastate_2d_phase17_windsea",
+ "ctrl_add": [
+  "A 758 2 4"
+ ],
+ "description": "as seastate_2d_phase17_windsea with the FAS coarse-grid correction (A 758 2 4) on the two levels and the composite sweep (Phase 17).",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate",
+  "amr"
+ ],
+ "covers": [
+  "seastate_amr::fas with the composite sweep"
+ ]
+}

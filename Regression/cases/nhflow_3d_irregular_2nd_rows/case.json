@@ -1,0 +1,8 @@
+{
+ "description": "NHFLOW 3D, long-crested 2nd-order irregular waves A (B 92 32, 128 components: low-rank pair sums) along x, 2 ranks: the 12 cells j of a zone column row have the same phases, eta once per row, u, v, w from the Chebyshev tables in z of the row (wave_lib_zgroup.h).",
+ "solver": "nhflow",
+ "np": 2,
+ "steps": 30,
+ "tags": ["3d", "nhflow", "waves", "iowave", "irregular", "mpi"],
+ "covers": ["wave_lib_zgroup: groups of points with the same phases, tables in z (2nd order)"]
+}

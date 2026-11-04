@@ -64,6 +64,13 @@ private:
     double rr11, rr22, rr33, rr12, rr13, rr23;
     double q11, q22, q33, q12, q13, q23;
     double pkterm, s, q, val;
+
+    double s11, s22, s33, s12, s13, s23;
+    double r11, r22, r33, r12, r13, r23;
+    double ss11, ss22, ss33, ss12, ss13, ss23;
+    double rr11, rr22, rr33, rr12, rr13, rr23;
+    double q11, q22, q33, q12, q13, q23;
+    double pkterm, s, q, val;
     const double epsi;
 };
 

@@ -1,0 +1,9 @@
+{
+ "base": "cfd_2d_sediment_flume",
+ "ctrl_set": {"S 16": "10"},
+ "ctrl_add": ["S 63 2.0"],
+ "steps": 150,
+ "tags": ["quick", "2d", "cfd", "sediment", "structure", "inflow"],
+ "description": "as cfd_2d_sediment_flume with the bed shear stress S 16 10 (shared with the CPM bedload layer): log law 2 cells above the bed level (S 63 2.0), max(log law, 0.3 rho k) with k of the first fluid cell; flow over and behind the submerged block (separation, reattachment)",
+ "covers": ["bedshear::column_tau (S 16 10, S 63): reference cell from the topo level set, solid body above the bed, reference height capped by the solid and the free surface, k term"]
+}

@@ -1,0 +1,24 @@
+{
+ "description": "sflow_2d_amr_bar_bous subcycled (G 7 1, B 95 -1): u_a per level with the parent u_a linear in time, the coarse u_a rebuilt after refluxing.",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 20,
+ "tags": [
+  "2d",
+  "sflow",
+  "amr",
+  "bous",
+  "subcycling"
+ ],
+ "covers": [
+  "sflow_amr_bous: bous_window, bous_level, bous_sync"
+ ],
+ "base": "sflow_2d_amr_bar_nh",
+ "ctrl_set": {
+  "A 220": "4"
+ },
+ "ctrl_add": [
+  "G 7 1",
+  "B 95 -1"
+ ]
+}

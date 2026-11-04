@@ -20,36 +20,38 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"vrans_nhflow_f.h"
-#include"lexer.h"
-#include"fdm_nhf.h"
-#include"ghostcell.h"
-#include"nhflow_reinidisc_fsf.h"
+#include "fdm_nhf.h"
+#include "ghostcell.h"
+#include "lexer.h"
+#include "nhflow_reinidisc_fsf.h"
+#include "vrans_nhflow_f.h"
+
+// half width of the porous Heaviside at cell (i,j,k): B209 dx
+double vrans_nhflow_f::porpsi(lexer *p, fdm_nhf *d)
+{
+    if(p->j_dir == 0)
+        return p->B209 * p->DXN[IP];
+
+    return p->B209 * 0.5 * (p->DXN[IP] + p->DYN[JP]);
+}
 
 double vrans_nhflow_f::Hporface(lexer *p, fdm_nhf *d, int aa, int bb, int cc)
 {
-    double psi, H, phival_sf,dirac;
-    
-    if (p->j_dir==0)
-    psi = p->B209*(1.0/1.0)*(p->DXN[IP]);
-	
-    if (p->j_dir==1)
-    psi = p->B209*(1.0/2.0)*(p->DXN[IP]+p->DYN[JP]);
+    double psi, H, phival_sf, dirac;
 
+    psi = porpsi(p, d);
 
     // Construct solid heaviside function
     phival_sf = d->PORSTRUC[IJK];
-    
-	
+
     if(-phival_sf > psi)
-    H = 1.0;
+        H = 1.0;
 
     if(-phival_sf < -psi)
-    H = 0.0;
+        H = 0.0;
 
-    if(fabs(phival_sf)<=psi)
-    H = 0.5*(1.0 + -phival_sf/psi + (1.0/PI)*sin((PI*-phival_sf)/psi));
-        
+    if(fabs(phival_sf) <= psi)
+        H = 0.5 * (1.0 + -phival_sf / psi + (1.0 / PI) * sin((PI * -phival_sf) / psi));
 
     return H;
 }

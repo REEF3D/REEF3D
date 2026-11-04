@@ -1,0 +1,17 @@
+{
+ "base": "seastate_2d_phase16_faces_composite",
+ "np": 4,
+ "same_as": "seastate_2d_phase16_faces_composite",
+ "description": "as seastate_2d_phase16_faces_composite (two levels from the depth criterion, composite sweep) on 4 ranks: the composite sweep pipelined across the ranks (A 781 1, Phase 17), patches cut at three rank borders; bitwise the result of one rank (regression.py ranks). Validation in Dropbox SEASTATE/validation/66_pipeline_refined.",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate",
+  "amr",
+  "mpi"
+ ],
+ "covers": [
+  "seastate_amr::pipeline_setup, kba_size, kba_pack, kba_unpack",
+  "seastate_implicit::sweep_threads with the extra payload of the boundary tiles"
+ ]
+}

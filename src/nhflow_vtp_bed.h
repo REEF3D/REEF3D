@@ -23,30 +23,39 @@ Author: Hans Bihs
 #ifndef NHFLOW_VTP_BED_H_
 #define NHFLOW_VTP_BED_H_
 
-#include"increment.h"
-#include"vtp3D.h"
+#include "increment.h"
+#include "vtp3D.h"
+#include <utility>
+#include <vector>
 
 class lexer;
 class fdm_nhf;
 class ghostcell;
 class sediment;
+class scour_core;
+class slice;
 
 using namespace std;
 
 class nhflow_vtp_bed : public increment, private vtp3D
 {
 public:
-    nhflow_vtp_bed(lexer*);
+    int &print_counter() { return printcount; }  // checkpoints (P 48, I 45)
+    nhflow_vtp_bed(lexer *);
     virtual ~nhflow_vtp_bed() = default;
 
-    void start(lexer*,fdm_nhf*,ghostcell*,sediment*);
+    void start(lexer *, fdm_nhf *, ghostcell *, sediment *);
+
+    // P 187: the scour parameters as further point data of the bed
+    scour_core *scour = nullptr;
 
 private:
-    void print2D(lexer*,fdm_nhf*,ghostcell*,sediment*);
-    void pvtp(lexer*,sediment*,int);
+    void print2D(lexer *, fdm_nhf *, ghostcell *, sediment *);
+    void pvtp(lexer *, sediment *, int);
+    static std::vector<std::pair<const char *, slice *>> scour_fields(scour_core *);
 
     char name[200];
-    int n,iin,offset[200];
+    int n, iin, offset[200];
     float ffn;
     int jj;
 

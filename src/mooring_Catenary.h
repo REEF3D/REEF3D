@@ -23,66 +23,84 @@ Author: Tobias Martin
 #ifndef MOORING_CATENARY_H_
 #define MOORING_CATENARY_H_
 
-#include"mooring.h"
-#include"field1.h"
-#include"field2.h"
-#include"field3.h"
-#include"field4.h"
-#include"field5.h"
-#include"fieldint5.h"
-#include"vec.h"
-#include<fstream>
-#include<iostream>
-#include<vector>
+#include "field1.h"
+#include "field2.h"
+#include "field3.h"
+#include "field4.h"
+#include "field5.h"
+#include "fieldint5.h"
+#include "mooring.h"
+#include "vec.h"
 #include <Eigen/Dense>
+#include <fstream>
+#include <iostream>
+#include <vector>
 
 using namespace std;
 
 class mooring_Catenary final : public mooring
 {
 public:
-	mooring_Catenary(int);
-	virtual ~mooring_Catenary();
-	
-	void start(lexer*, ghostcell*) override final;
-	void initialize(lexer*, ghostcell*) override final;
-	void mooringForces(double&, double&, double&) override final;
-	
-	void getForce(lexer*, ghostcell*, double&, double&);
-	void getShape(lexer*, ghostcell*, double*&, double*&, double*&, double*&);
-	void iniShape(lexer*, ghostcell*, Eigen::VectorXd&, Eigen::VectorXd&, Eigen::VectorXd&);
-	
-private:	
+    void ckpt_state(std::vector<double> &v) const override
+    {
+        for(double x : {FH, FV, FH_0, FV_0, Xme_, Yme_, Zme_, printtime, broken ? 1.0 : 0.0, curr_time})
+            v.push_back(x);
+    }
+    void ckpt_restore(const std::vector<double> &v, size_t &k) override
+    {
+        if(k + 10 > v.size())
+            return;
+        FH = v[k++];
+        FV = v[k++];
+        FH_0 = v[k++];
+        FV_0 = v[k++];
+        Xme_ = v[k++];
+        Yme_ = v[k++];
+        Zme_ = v[k++];
+        printtime = v[k++];
+        broken = v[k++] > 0.5;
+        curr_time = v[k++];
+    }
+    mooring_Catenary(int);
+    virtual ~mooring_Catenary();
 
-    void calcForce(lexer*, ghostcell*);
+    void start(lexer *, ghostcell *) override final;
+    void initialize(lexer *, ghostcell *) override final;
+    void mooringForces(double &, double &, double &) override final;
 
-	// Print
-	void print(lexer*);
-	void buildLine(lexer*);
-	
-	// ------ 
-	
-	// Line number
-	int line;
-	
-	// Material constants
-	double w, L, lms, rho_c, EA;
-	
-	// Mesh
-	int H;
-	double *x, *y, *z, *B, *F, **A;
-	double xs, ys, zs, dx, dy, dz, dxy_aim;
-	
-	// Forces
-	double *T;	
-	double FH, FV, FH_0, FV_0, f_Fh, ddf_Fh;
-	double Xme_, Yme_, Zme_;
-	
-	// Print
-	char name[100];
-	ofstream eTout;
-	double printtime;
-	
+    void getShape(lexer *, ghostcell *, double *&, double *&, double *&, double *&);
+    void iniShape(lexer *, ghostcell *, Eigen::VectorXd &, Eigen::VectorXd &, Eigen::VectorXd &);
+
+private:
+    void calcForce(lexer *, ghostcell *);
+
+    // Print
+    void print(lexer *);
+    void buildLine(lexer *);
+
+    // ------
+
+    // Line number
+    int line;
+
+    // Material constants
+    double w, L, lms, rho_c, EA;
+
+    // Mesh
+    int H;
+    double *x, *y, *z, *B, *F, **A;
+    double xs, ys, zs, dx, dy, dz, dxy_aim;
+
+    // Forces
+    double *T;
+    double FH, FV, FH_0, FV_0, f_Fh, ddf_Fh;
+    double Xme_, Yme_, Zme_;
+
+    // Print
+    char name[100];
+    ofstream eTout;
+    double printtime;
+
     // Breaking
     bool broken;
     double breakTension, breakTime, curr_time;

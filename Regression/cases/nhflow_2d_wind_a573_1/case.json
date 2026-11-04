@@ -1,0 +1,19 @@
+{
+ "base": "nhflow_2d_nwt_stokes5",
+ "description": "NHFLOW wind forcing A 570-573 on Stokes waves: Garratt drag (A 570 1), U10 15 m/s along x (A 571), surface stress in the top layer (A 573 1). The reference of the met forcing W 200 1 (nhflow_2d_met_uniform gives bitwise the same).",
+ "ctrl_add": [
+  "A 570 1",
+  "A 571 15.0 0.0",
+  "A 573 1"
+ ],
+ "tags": [
+  "quick",
+  "2d",
+  "nhflow",
+  "wind"
+ ],
+ "covers": [
+  "wind_f::wind_forcing_nhf_dir A 573 1",
+  "wind_f_drag_coeff Garratt"
+ ]
+}

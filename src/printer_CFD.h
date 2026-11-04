@@ -67,9 +67,17 @@ public:
     virtual ~printer_CFD() = default;
     void start(lexer *, fdm *, ghostcell *, turbulence *, heat *, ioflow *, expdata *, concentration *, multiphase *, sediment *) override final;
     void print_stop(lexer *, fdm *, ghostcell *, turbulence *, heat *, ioflow *, expdata *, concentration *, multiphase *, sediment *) override final;
+    void print_end(lexer *, fdm *, ghostcell *, turbulence *, heat *, ioflow *, expdata *, concentration *, multiphase *, sediment *) override final;
+    void amr_probes(const amr_grid_lookup *) override final;
+    void ckpt_state(std::vector<double> &) override final;
+    void ckpt_restore(const std::vector<double> &) override final;
+    void flush_outputs() override final;
 
 private:
     void print3D(lexer *, fdm *, ghostcell *, turbulence *, heat *, expdata *, concentration *, multiphase *, sediment *);
+    void print_fsf(lexer *, fdm *, ghostcell *);
+    int last_print = -1;  // the iteration of the last volume output (print_end)
+    int last_fsf = -1;    // and of the last free surface output
     void parallel(lexer *, fdm *, ghostcell *, turbulence *, heat *, expdata *, concentration *, multiphase *, sediment *, int);
 
     vtk3D *outputFormat;
@@ -87,6 +95,7 @@ private:
     print_wsfline_x *pwsfline_x;
     print_wsfline_y *pwsfline_y;
     force **pforce;
+    int nforce = 0;  // P 81
     vorticity *pvort;
     probe_point *pprobe;
     probe_pressure *ppressprobe;
@@ -94,8 +103,11 @@ private:
 
     gage_discharge_x *pq;
     gage_discharge_window_x *pqw;
-    fsf_vtp *pfsf;
-    topo_vtp *ptopo;
+    fsf_vtp *pfsf = nullptr;
+    topo_vtp *ptopo = nullptr;
+    int nP35 = 0;
+    int nP185 = 0;
+    bool force_ini_pending = false;  // restart from a checkpoint: the force surfaces once more
     cfd_state *pstate;
     cfd_state *pstate_restart;
     sloshing_force *pslosh;

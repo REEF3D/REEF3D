@@ -1,0 +1,20 @@
+{
+ "np": 1,
+ "steps": 100,
+ "tags": [
+  "3d",
+  "nhflow",
+  "curvilinear",
+  "river",
+  "wetdry"
+ ],
+ "description": "NHFLOW on a curvilinear grid: the sloping bend with a rising hydrograph (B 60 2, 10 to 120 m3/s in 10 s), log inflow profile (B 61 2) distributed across the inflow face by conveyance (B 62 1)",
+ "covers": [
+  "Qin_nhf conveyance sum, inflow_log_nhflow column factor (B 62 1)"
+ ],
+ "solver": "nhflow",
+ "files": [
+  "curvgrid.dat",
+  "hydrograph.dat"
+ ]
+}

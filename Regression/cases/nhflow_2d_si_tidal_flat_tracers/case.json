@@ -1,0 +1,25 @@
+{
+ "base": "nhflow_2d_si_tidal_flat_kepsilon",
+ "description": "nhflow_2d_si_tidal_flat_kepsilon with salinity and temperature (A 600 2): linear initial fields (A 602, A 603), the sea values at the clamped edge with the Thatcher-Harleman return of 1800 s (A 607, A 608), vertical diffusion from k-epsilon (A 605), TVD van Leer (A 609 2) with substeps. The tracer mass changes by the boundary inflow only (to 4e-15 of the mass per step, REEF3D_NHFLOW_tracer.dat), no value leaves the bounds of its neighbours. Long-run statistics (P 160) from 1 h with the tracer maps (mean of the depth mean, bottom and top, max and min).",
+ "ctrl_add": [
+  "A 600 2",
+  "A 602 0.0 25.0 35.0 10000.0 25.0 0.0",
+  "A 603 0.0 25.0 12.0 10000.0 25.0 18.0",
+  "A 607 35.0 12.0",
+  "A 608 1800.0",
+  "P 160 3600.0 3600.0"
+ ],
+ "tags": [
+  "2d",
+  "nhflow",
+  "semi_implicit",
+  "wetdry",
+  "turbulence",
+  "tide",
+  "tracer"
+ ],
+ "covers": [
+  "nhflow_tracer_SI: omega of the transport, TVD faces, column operator, Thatcher-Harleman, substeps, flushed shoreline layers, log and gauges",
+  "nhflow_longrun: the tracer sums and maps"
+ ]
+}

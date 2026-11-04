@@ -23,13 +23,12 @@ Author: Hans Bihs
 #ifndef DENSITY_CONC_H_
 #define DENSITY_CONC_H_
 
-#include"density.h"
-#include"increment.h"
+#include "density.h"
+#include "increment.h"
 
 class fdm;
 class lexer;
 class concentration;
-
 
 using namespace std;
 
@@ -37,14 +36,13 @@ class density_conc final : public density, virtual public increment
 {
 
 public:
-    density_conc(lexer*,concentration*&);
-	virtual ~density_conc();
+    density_conc(lexer *, concentration *&);
+    virtual ~density_conc();
 
-	double roface(lexer*,fdm*,int,int,int) override final;
-	
+    double roface(lexer *, fdm *, int, int, int) override final;
+
 private:
-	double H,roval,phival;
-    double psi;
+    double H, roval, phival;
 
     concentration *pconc;
 };

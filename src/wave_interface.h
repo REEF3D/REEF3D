@@ -54,6 +54,9 @@ public:
     double wave_fi_c(lexer *, ghostcell *, int, double);
     void wave_uvw_c(lexer *, ghostcell *, int, double, double &, double &, double &);
     double wave_um(lexer *, ghostcell *, double, double);
+
+    // eta of the B 92 wave at one point for the times tv (iowave::timeseries); false with additional sources
+    bool wave_eta_series(lexer *, ghostcell *, double, double, const std::vector<double> &, std::vector<double> &);
     double wave_vm(lexer *, ghostcell *, double, double);
 
     // decomp
@@ -84,17 +87,32 @@ public:
 
     void wave_prestep(lexer *, ghostcell *);
 
+    // decomposed precalc (B 89 1): number of components of all sources (the B 92 wave first);
+    // components from decomp_L on belong to the additional sources (wave_field)
+    int decomp_ncomp(lexer *);
+    // direction (rad, relative to B 105) of decomposed component n: the B 92 wave from its library,
+    // the additional sources along their main direction (I 30 2 exposure masks)
+    double decomp_dir(lexer *, int);
+
     // sources used by the cached evaluation (wave_eta_c, wave_fi_c, wave_uvw_c):
     // ids as in B 524 (1: the B 92 wave); nullptr: all sources
     void select_sources(const std::vector<int> *);
     bool source_exists(int) const;
 
+    // all sources, n = 0 the B 92 wave, n >= 1 the B 500 ones: library, id, B 92 type, direction relative to B 105 [deg]
+    int wave_nsources() const;
+    wave_lib *wave_source_lib(int n, int &id, int &type, double &rot) const;
+
     double wave_paddle_Q(lexer *, ghostcell *, double);
+    double wave_eta_arc(lexer *, ghostcell *, double);
+    bool wave_arc();
+    void wave_paddle_setup(lexer *, ghostcell *, double);
 
 private:
-    wave_lib *pwave;     // source 1: the B 92 wave, unchanged path
-    wave_field *pfield;  // additional sources (B 500-504), summed on top
-    bool legacy_on;      // the B 92 wave is among the selected sources
+    wave_lib *pwave;         // source 1: the B 92 wave, unchanged path
+    wave_field *pfield;      // additional sources (B 500-504), summed on top
+    bool legacy_on;          // the B 92 wave is among the selected sources
+    int decomp_L = 1 << 30;  // decomposed components of the B 92 wave (set by decomp_ncomp)
 
     int n, m, count;
     int wtype;

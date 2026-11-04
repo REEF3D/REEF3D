@@ -1,0 +1,24 @@
+{
+ "base": "cfd_2d_dambreak",
+ "np": 1,
+ "steps": 60,
+ "ctrl_add": [
+  "G 1 2",
+  "G 7 1",
+  "G 24 3",
+  "G 2 4"
+ ],
+ "description": "Two adaptive levels with subcycling (G 7 1): several patches per level that touch each other; the joint multigrid of a level in the level projections and the synchronisation, the pressure of level 1 held at its end value for level 2.",
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "levelset",
+  "amr",
+  "adaptive"
+ ],
+ "covers": [
+  "cfd_amr::pr_level_mg_setup, pr_level_mg_fill, pr_level_mg_fill_comp, pr_level_solve (joint multigrids of the patches of a level)",
+  "cfd_amr::interp: the pressure of a patch not extrapolated in time"
+ ]
+}

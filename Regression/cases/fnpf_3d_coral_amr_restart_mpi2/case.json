@@ -1,0 +1,23 @@
+{
+ "base": "fnpf_3d_coral_amr_restart",
+ "np": 2,
+ "same_as": "fnpf_3d_coral_amr_ckpt",
+ "same_as_rtol": 0.0001,
+ "description": "fnpf_3d_coral_amr_restart on 2 ranks: the checkpoint of the one-rank run on another decomposition, the outputs cut back on rank 0. The text outputs (CORAL, 6DOF, wave gauges) have the rows of the uninterrupted one-rank run, their values within 1e-4 of its largest value (the last 10 steps solved on 2 ranks: about 1e-5); the log of the refinement (ranks, iterations) not compared.",
+ "tags": [
+  "3d",
+  "fnpf",
+  "amr",
+  "6dof",
+  "floating",
+  "coral",
+  "checkpoint",
+  "mpi"
+ ],
+ "covers": [
+  "the restart of FNPF + mesh refinement + CORAL on another decomposition"
+ ],
+ "same_as_skip": [
+  "REEF3D_FNPF_AMR/REEF3D_FNPF_AMR_log.dat"
+ ]
+}

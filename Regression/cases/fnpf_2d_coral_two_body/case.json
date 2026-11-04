@@ -1,0 +1,9 @@
+{
+ "description": "REEF3D::CORAL two-body absorber in FNPF 2D (X 20 2, STL): a float released 2 cm above its equilibrium and a deeper second float (\"spar\") 1.2 m away in regular waves, the spar on a heave joint to the ground, the float on a prismatic joint to the spar with a PTO damper; the FNPF loads and the added mass with the cross terms of the two bodies go to CORAL; REEF3D_FNPF_6DOF and REEF3D_CORAL compared.",
+ "np": 1,
+ "steps": 150,
+ "ctrl_add": ["Z 40 1"],
+ "files": ["coral.txt", "floating.stl", "floating-1.stl"],
+ "tags": ["2d", "fnpf", "6dof", "floating", "coral"],
+ "covers": ["fnpf_6DOF_external with two bodies", "CORAL joint between fluid bodies, PTO in it"]
+}

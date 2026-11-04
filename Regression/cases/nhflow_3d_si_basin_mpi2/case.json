@@ -1,0 +1,16 @@
+{
+ "description": "NHFLOW hydrostatic semi-implicit on 2 ranks: closed basin 2 x 1 km, 4 sigma layers, initial step of the water level (F 72), bed friction; MPI exchanges of the layer face discharges, the eta system across the partition; np 1 and np 2 agree to round-off.",
+ "solver": "nhflow",
+ "np": 2,
+ "steps": 60,
+ "tags": [
+  "3d",
+  "nhflow",
+  "semi_implicit",
+  "mpi"
+ ],
+ "covers": [
+  "exchangeF, exchangeC",
+  "si_eta2D across ranks"
+ ]
+}

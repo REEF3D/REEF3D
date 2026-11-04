@@ -24,9 +24,11 @@ Author: Hans Bihs
 #include "fdm_fnpf.h"
 #include "fnpf_bed_update.h"
 #include "fnpf_laplace_body_bc.h"
+#include "fnpf_sigma_col.h"
 #include "ghostcell.h"
 #include "lexer.h"
 #include "solver.h"
+#include "solver_print.h"
 
 fnpf_laplace_cds2::fnpf_laplace_cds2(lexer *p)
 {
@@ -42,6 +44,12 @@ fnpf_laplace_cds2::fnpf_laplace_cds2(lexer *p)
 
 fnpf_laplace_cds2::~fnpf_laplace_cds2()
 {
+}
+
+void fnpf_laplace_cds2::picard_bc(lexer *p, fdm_fnpf *c, ghostcell *pgc, double *f, fnpf_fsf *pf)
+{
+    pbed->bedbc_sig(p, c, pgc, f, pf);
+    pgc->start7V(p, f, c->bc, gcval);
 }
 
 void fnpf_laplace_cds2::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, fnpf_fsf *pf, double *f, slice &Fifsf)
@@ -169,6 +177,12 @@ void fnpf_laplace_cds2::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *pso
             const double bx = c->Bx(i, j);
             const double by = c->By(i, j);
 
+            // the sigma metrics of the column (without the 3D arrays, fnpf_sigma_col.h)
+            fnpf_sigma_col col;
+
+            if(sigx == nullptr)
+                col.set(p, c, i, j);
+
             KLOOP
             if(p->flag4[IJK] > 0)
             {
@@ -176,9 +190,21 @@ void fnpf_laplace_cds2::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *pso
 
                 if(wP == 1 && flag7[q] > 0 && !body.body(q))
                 {
-                    const double sx = sigx[q];
-                    const double sy = sigy[q];
-                    const double sxx = sigxx[q];
+                    double sx, sy, sxx;
+
+                    if(sigx != nullptr)
+                    {
+                        sx = sigx[q];
+                        sy = sigy[q];
+                        sxx = sigxx[q];
+                    }
+                    else
+                    {
+                        const double s = p->ZN[KP];
+                        sx = col.sx(s);
+                        sy = col.sy(s);
+                        sxx = col.sxx(s, sx, sy);
+                    }
                     const double s2 = sx * sx + sy * sy + sz * sz;
                     const double dzc = p->DZN[KP] + p->DZN[KM1];
 
@@ -375,18 +401,322 @@ void fnpf_laplace_cds2::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *pso
                         }
                     }
 
-                    // east
-                    if(flag7[q - sJ] < 0 || wE == 0)
-                    {
-                        mp += me;
-                        me = 0.0;
-                    }
+                    starttime = pgc->timer();
+                }
 
-                    // west
-                    if(flag7[q + sJ] < 0 || wW == 0)
+                if(nouter > 1)
+                    FLOOP
+                fold[FIJK] = f[FIJK];
+
+                n = 0;
+                ILOOP
+                JLOOP
+                {
+                    k = 0;
+                    const int c0 = FIJK;
+
+                    const int wP = p->wet[IJ];
+                    const int wS = p->wet[Im1J];
+                    const int wN = p->wet[Ip1J];
+                    const int wE = p->wet[IJm1];
+                    const int wW = p->wet[IJp1];
+                    const int bcS = c->bc(i - 1, j);
+                    const int bcN = c->bc(i + 1, j);
+
+                    const double dxn = 1.0 / (p->DXP[IP] * p->DXN[IP]);
+                    const double dxs = 1.0 / (p->DXP[IM1] * p->DXN[IP]);
+                    const double dyw = 1.0 / (p->DYP[JP] * p->DYN[JP]) * ydir;
+                    const double dye = 1.0 / (p->DYP[JM1] * p->DYN[JP]) * ydir;
+                    const double hxy = dxn + dxs + dyw + dye;
+
+                    const double dxc = p->DXP[IP] + p->DXP[IM1];
+                    const double dyc = p->DYP[JP] + p->DYP[JM1];
+
+                    const double sz = p->sigz[IJ];
+                    const double bx = c->Bx(i, j);
+                    const double by = c->By(i, j);
+
+                    KLOOP
+                    if(p->flag4[IJK] > 0)
                     {
-                        mp += mw;
-                        mw = 0.0;
+                        const int q = c0 + k;
+
+                        if(wP == 1 && flag7[q] > 0 && !body.body(q))
+                        {
+                            const double sx = sigx[q];
+                            const double sy = sigy[q];
+                            const double sxx = sigxx[q];
+                            const double s2 = sx * sx + sy * sy + sz * sz;
+                            const double dzc = p->DZN[KP] + p->DZN[KM1];
+
+                            double mp = hxy + (s2 / (p->DZP[KM1] * p->DZN[KP])) + (s2 / (p->DZP[KM1] * p->DZN[KM1]));
+                            double mn = -dxn;
+                            double ms = -dxs;
+                            double mw = -dyw;
+                            double me = -dye;
+                            double mt = -(s2 / (p->DZP[KM1] * p->DZN[KP]) + sxx / dzc);
+                            double mb = -(s2 / (p->DZP[KM1] * p->DZN[KM1]) - sxx / dzc);
+
+                            // active beach (B99>2) at the north boundary replaces the x mixed
+                            // term by its Uin form below
+                            const bool xdrop = (p->B99 > 2 && flag7[q + sI] < 0 && bcN == 2 && p->A329 >= 1);
+
+                            double rv;
+                            double cnt = 0.0, cnb = 0.0, cst = 0.0, csb = 0.0, cwt = 0.0, cwb = 0.0, cet = 0.0, ceb = 0.0;
+
+                            if(!mix)
+                                rv = 2.0 * sx * (f[q + sI + 1] - f[q - sI + 1] - f[q + sI - 1] + f[q - sI - 1]) / (dxc * dzc) + 2.0 * sy * (f[q + sJ + 1] - f[q - sJ + 1] - f[q + sJ - 1] + f[q - sJ - 1]) / (dyc * dzc) * ydir;
+
+                            else
+                            {
+                                // rhs term Mx(f): +cx at (i+1,k+1),(i-1,k-1), -cx at (i-1,k+1),(i+1,k-1)
+                                const double cx = xdrop ? 0.0 : 2.0 * sx / (dxc * dzc);
+                                const double cy = 2.0 * sy / (dyc * dzc) * ydir;
+                                const int kt = k + 1, kb = k - 1;
+
+                                rv = 0.0;
+
+                                // neighbour q+off at level kn in column with wet flag wc is an unknown
+                                auto unk = [&](int qq, int kn, int wc)
+                                { return kn >= 0 && kn < p->knoz && flag7[qq] > 0 && wc == 1; };
+
+                                // top neighbours: unknown or surface/wall (explicit)
+                                if(unk(q + sI + 1, kt, wN))
+                                    cnt = -cx;
+                                else
+                                    rv += cx * f[q + sI + 1];
+                                if(unk(q - sI + 1, kt, wS))
+                                    cst = cx;
+                                else
+                                    rv -= cx * f[q - sI + 1];
+                                if(unk(q + sJ + 1, kt, wW))
+                                    cwt = -cy;
+                                else
+                                    rv += cy * f[q + sJ + 1];
+                                if(unk(q - sJ + 1, kt, wE))
+                                    cet = cy;
+                                else
+                                    rv -= cy * f[q - sJ + 1];
+
+                                // bottom neighbours; at k=0 the bed ghost is f(k=0) of that column
+                                // plus the slope part, so f(k=0) goes into the n/s/w/e coupling
+                                if(unk(q + sI - 1, kb, wN))
+                                    cnb = cx;
+                                else if(k == 0 && unk(q + sI, k, wN))
+                                {
+                                    mn += cx;
+                                    rv -= cx * (f[q + sI - 1] - f[q + sI]);
+                                }
+                                else
+                                    rv -= cx * f[q + sI - 1];
+
+                                if(unk(q - sI - 1, kb, wS))
+                                    csb = -cx;
+                                else if(k == 0 && unk(q - sI, k, wS))
+                                {
+                                    ms -= cx;
+                                    rv += cx * (f[q - sI - 1] - f[q - sI]);
+                                }
+                                else
+                                    rv += cx * f[q - sI - 1];
+
+                                if(unk(q + sJ - 1, kb, wW))
+                                    cwb = cy;
+                                else if(k == 0 && unk(q + sJ, k, wW))
+                                {
+                                    mw += cy;
+                                    rv -= cy * (f[q + sJ - 1] - f[q + sJ]);
+                                }
+                                else
+                                    rv -= cy * f[q + sJ - 1];
+
+                                if(unk(q - sJ - 1, kb, wE))
+                                    ceb = -cy;
+                                else if(k == 0 && unk(q - sJ, k, wE))
+                                {
+                                    me -= cy;
+                                    rv += cy * (f[q - sJ - 1] - f[q - sJ]);
+                                }
+                                else
+                                    rv += cy * f[q - sJ - 1];
+                            }
+
+                            // KBEDBC
+                            if(flag7[q - 1] < 0)
+                            {
+                                const double ab = mb;
+                                denom = sz + bx * sx + by * sy;
+
+                                mn += ab * 2.0 * p->DZN[KP] * bx / (denom * dxc);
+                                ms += -ab * 2.0 * p->DZN[KP] * bx / (denom * dxc);
+
+                                mw += ab * 2.0 * p->DZN[KP] * by / (denom * dyc);
+                                me += -ab * 2.0 * p->DZN[KP] * by / (denom * dyc);
+
+                                mt += ab;
+                                mb = 0.0;
+                            }
+
+                            body.faces(q, sI, sJ, p->DXP[IM1], p->DXP[IP], p->DYP[JM1], p->DYP[JP], p->DZN[KP], p->DZN[KM1], sz,
+                                       mp, ms, mn, me, mw, mt, mb, rv);
+
+                            // south
+                            const bool sdry = (flag7[q - sI] < 0 || wS == 0);
+
+                            if(p->B98 <= 2)
+                                if(sdry)
+                                {
+                                    mp += ms;
+                                    ms = 0.0;
+                                }
+
+                            if(p->B98 > 2)
+                            {
+                                if(sdry && bcS == 0)
+                                {
+                                    mp += ms;
+                                    ms = 0.0;
+                                }
+
+                                if(flag7[q - sI] < 0 && bcS == 1 && p->A329 == 1)
+                                {
+                                    rv += ms * Uin[q - sI] * p->DXP[IM1];
+                                    mp += ms;
+                                    ms = 0.0;
+                                }
+
+                                if(flag7[q - sI] < 0 && bcS == 1 && p->A329 >= 2)
+                                {
+                                    denom = -1.5 * p->XP[IM1] + 2.0 * p->XP[IP] - 0.5 * p->XP[IP1];
+
+                                    rv += (2.0 / 3.0) * ms * Uin[q - sI] * denom;
+                                    mp += (4.0 / 3.0) * ms;
+                                    mn -= (1.0 / 3.0) * ms;
+                                    ms = 0.0;
+                                }
+                            }
+
+                            // north
+                            const bool ndry = (flag7[q + sI] < 0 || wN == 0);
+
+                            if(p->B99 <= 2)
+                                if(ndry)
+                                {
+                                    mp += mn;
+                                    mn = 0.0;
+                                }
+
+                            if(p->B99 > 2)
+                            {
+                                if(ndry && bcN == 0)
+                                {
+                                    mp += mn;
+                                    mn = 0.0;
+                                }
+
+                                if(flag7[q + sI] < 0 && bcN == 2 && p->A329 == 1)
+                                {
+                                    if(!mix)
+                                        rv -= 2.0 * sx * (f[q + sI + 1] - f[q - sI + 1] - f[q + sI - 1] + f[q - sI - 1]) / (dxc * dzc) * xdir;
+
+                                    rv += 2.0 * sx * (Uin[q + sI + 1] - Uin[q + sI - 1]) / (dzc)*xdir;
+
+                                    rv -= mn * Uin[q + sI] * p->DXP[IP1];
+                                    mp += mn;
+                                    mn = 0.0;
+                                }
+
+                                if(flag7[q + sI] < 0 && bcN == 2 && p->A329 >= 2)
+                                {
+                                    if(!mix)
+                                        rv -= 2.0 * sx * (f[q + sI + 1] - f[q - sI + 1] - f[q + sI - 1] + f[q - sI - 1]) / (dxc * dzc) * xdir;
+
+                                    rv += 2.0 * sx * (Uin[q + sI + 1] - Uin[q + sI - 1]) / (dzc)*xdir;
+
+                                    denom = -0.5 * p->XP[IM1] + 2.0 * p->XP[IP] - 1.5 * p->XP[IP1];
+
+                                    rv += (2.0 / 3.0) * mn * Uin[q + sI] * denom;
+                                    mp += (4.0 / 3.0) * mn;
+                                    ms -= (1.0 / 3.0) * mn;
+                                    mn = 0.0;
+                                }
+                            }
+
+                            // east
+                            if(flag7[q - sJ] < 0 || wE == 0)
+                            {
+                                mp += me;
+                                me = 0.0;
+                            }
+
+                            // west
+                            if(flag7[q + sJ] < 0 || wW == 0)
+                            {
+                                mp += mw;
+                                mw = 0.0;
+                            }
+
+                            // FSFBC
+                            if(flag7[q + 2] < 0 && flag7[q + 1] > 0)
+                            {
+                                rv -= mt * f[q + 2];
+                                mt = 0.0;
+                            }
+
+                            Mp[n] = mp;
+                            Mn[n] = mn;
+                            Ms[n] = ms;
+                            Mw[n] = mw;
+                            Me[n] = me;
+                            Mt[n] = mt;
+                            Mb[n] = mb;
+                            rhs[n] = rv;
+
+                            if(mix)
+                            {
+                                Xnt[n] = cnt;
+                                Xnb[n] = cnb;
+                                Xst[n] = cst;
+                                Xsb[n] = csb;
+                                Xwt[n] = cwt;
+                                Xwb[n] = cwb;
+                                Xet[n] = cet;
+                                Xeb[n] = ceb;
+                            }
+                        }
+
+                        else if(wP == 1 && flag7[q] > 0)  // resolved-body node: keep its value
+                        {
+                            Mp[n] = 1.0;
+                            Mn[n] = Ms[n] = Mw[n] = Me[n] = Mt[n] = Mb[n] = 0.0;
+                            rhs[n] = f[q];
+
+                            if(mix)
+                            {
+                                Xnt[n] = Xnb[n] = Xst[n] = Xsb[n] = 0.0;
+                                Xwt[n] = Xwb[n] = Xet[n] = Xeb[n] = 0.0;
+                            }
+                        }
+
+                        else if(wP == 0 || flag7[q] < 0)
+                        {
+                            Mp[n] = 1.0;
+                            Mn[n] = 0.0;
+                            Ms[n] = 0.0;
+                            Mw[n] = 0.0;
+                            Me[n] = 0.0;
+                            Mt[n] = 0.0;
+                            Mb[n] = 0.0;
+                            rhs[n] = 0.0;
+
+                            if(mix)
+                            {
+                                Xnt[n] = Xnb[n] = Xst[n] = Xsb[n] = 0.0;
+                                Xwt[n] = Xwb[n] = Xet[n] = Xeb[n] = 0.0;
+                            }
+                        }
+
+                        ++n;
                     }
 
                     // FSFBC
@@ -442,6 +772,12 @@ void fnpf_laplace_cds2::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *pso
                     Mb[n] = 0.0;
                     rhs[n] = 0.0;
 
+                    // mesh refinement (assemble_only): a dry column keeps its Fi, as in REEFMG, which
+                    // leaves the dry columns out of the solve. Fi=0 there would enter the explicit sigma
+                    // cross-derivative of the wet front column next to it as a jump of the size of Fi
+                    if(assemble_only && wP == 0 && flag7[q] > 0)
+                        rhs[n] = f[q];
+
                     if(mix)
                     {
                         Xnt[n] = Xnb[n] = Xst[n] = Xsb[n] = 0.0;
@@ -453,22 +789,9 @@ void fnpf_laplace_cds2::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *pso
             }
         }
 
-        // mesh refinement: the rows are solved together with those of the patches (fnpf_amr)
-        if(assemble_only)
-            return;
+        p->laplacetime += p->poissontime;
 
-        endtime = pgc->timer();
-        // if(p->mpirank==0 && (p->count%p->P12==0))
-        // cout<<"LAPLCE_time: "<<endtime-starttime<<endl;
-
-        starttime = pgc->timer();
-        psolv->startF(p, pgc, f, c->rhsvec, c->M, 8);
-        endtime = pgc->timer();
-
-        p->poissoniter += p->solveriter;
-        p->poissontime += endtime - starttime;
-
-        if(nouter > 1)
+        if(p->mpirank == 0 && (p->count % p->P12 == 0))
         {
             double dmax = 0.0;
 
@@ -487,7 +810,7 @@ void fnpf_laplace_cds2::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *pso
 
     p->laplacetime += p->poissontime;
 
-    if(p->mpirank == 0 && (p->count % p->P12 == 0))
+    if(p->mpirank == 0 && (p->count % p->P12 == 0) && !solver_print_quiet())
     {
         cout << "Fi_iter: " << p->poissoniter;
         // cout<<" Final_residual: "<<p->final_res;

@@ -1,0 +1,7 @@
+{
+ "description": "2D closed lock gate (fixed 6DOF body of the direct forcing, from the bed to above both water levels, 0.50 m and 0.70 m) and a box on the high side whose heave is prescribed from its own motion file 6DOF_motion-1.dat (X 111 1 0 0 2 0 0 0, X 240 1), the other body fixed by X 11; the level set inside the bodies extrapolated from the fluid (X 48 3) with the level set of both bodies (patches 0033-0035).",
+ "np": 1, "steps": 40,
+ "files": ["floating.stl", "floating-1.stl", "6DOF_motion-1.dat"],
+ "tags": ["quick", "2d", "6dof", "levelset", "closed"],
+ "covers": ["X 111 DOF modes of single bodies", "sixdof_motionext_file 6DOF_motion-<id>.dat", "sixdof_cfd::fb_combine", "levelset_solid_extend X 48 3 (6DOF bodies)"]
+}

@@ -1,0 +1,22 @@
+{
+ "base": "fnpf_3d_coral_array_x36",
+ "np": 2,
+ "same_as": "fnpf_3d_coral_array_x36",
+ "same_as_rtol": 0.0001,
+ "same_as_skip": [
+  "REEF3D_FNPF_AMR/REEF3D_FNPF_AMR_log.dat"
+ ],
+ "description": "fnpf_3d_coral_array_x36 on 2 ranks: the patches cut at the rank boxes, a window over both ranks. The pieces of a patch that do not reach into the zone are not in the window, so the windows differ from those of one rank; the outputs within 1e-4 of their largest value, the log of the refinement not compared.",
+ "tags": [
+  "3d",
+  "fnpf",
+  "amr",
+  "6dof",
+  "floating",
+  "coral",
+  "mpi"
+ ],
+ "covers": [
+  "X 36 on 2 ranks: the windows from the patches of all ranks (Allgatherv of their boxes, the global patch table), the restriction of a skipped child on another rank (reefamr::block_up sends NaN)"
+ ]
+}

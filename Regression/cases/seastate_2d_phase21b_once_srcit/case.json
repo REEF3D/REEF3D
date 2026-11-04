@@ -1,0 +1,15 @@
+{
+ "base": "seastate_2d_phase7b_windsea",
+ "ctrl_add": [
+  "A 767 1"
+ ],
+ "description": "as seastate_2d_phase7b_windsea (source iterations per cell A 738 8, A 739 1e-4, convergence test A 799 1) with A 767 1 (Phase 21b): the first solve of a cell takes the kept terms, the further source iterations evaluate them again as before.",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate"
+ ],
+ "covers": [
+  "A 767 1 with the source iterations A 738"
+ ]
+}

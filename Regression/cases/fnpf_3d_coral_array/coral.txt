@@ -1,0 +1,17 @@
+# REEF3D::CORAL model for fnpf_3d_coral_array: three point absorbers released 3, 2 and 1 cm above equilibrium,
+# each on a heave joint to the ground with a PTO damper of 50 N s/m
+# Architect: Hans Bihs
+time dt 0.005 end 100
+output dt 0.01 file array.dat
+body pa1 mass 1.0 cog 4.0 1.00005 1.05161
+joint heave1 prismatic ground pa1 point 4.0 1.00005 1.05161 axis 0 0 1
+pto pto1 joint heave1 c 50.0
+fluid_body pa1 n 0
+body pa2 mass 1.0 cog 5.00001 0.999997 1.04161
+joint heave2 prismatic ground pa2 point 5.00001 0.999997 1.04161 axis 0 0 1
+pto pto2 joint heave2 c 50.0
+fluid_body pa2 n 1
+body pa3 mass 1.0 cog 5.99999 0.999979 1.03176
+joint heave3 prismatic ground pa3 point 5.99999 0.999979 1.03176 axis 0 0 1
+pto pto3 joint heave3 c 50.0
+fluid_body pa3 n 2

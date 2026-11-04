@@ -1,0 +1,5 @@
+{"base": "cfd_2d_dambreak", "np": 1, "steps": 60,
+ "ctrl_add": ["G 1 1", "G 15 0.0 0.3 0.0 1.0 0.0 0.4", "D 20 1", "H 10 3", "H 15 1", "H 50 40.0 10.0", "H 51 0.0", "H 52 -1.0", "H 53 0.0", "H 54 0.1", "H 55 1.0", "H 56 0.3"],
+ "description": "Heat on the CFD patches, all levels with one step (G 7 0): the refinement transports T on all grids in flux form (SSP-RK3, first-order upwind face values H 15 1, explicit diffusion D 20 1 in the stages); warm water in the dam column, the front crosses the patch edge x = 0.3; flux registers per step.",
+ "tags": ["quick", "2d", "dambreak", "levelset", "amr", "heat"],
+ "covers": ["cfd_amr_scalar: sc_step_comp, explicit diffusion, first-order upwind faces, refluxing (G 7 0)", "rmix/vmix: density from T at the patch edges"]}

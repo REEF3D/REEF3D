@@ -1,0 +1,17 @@
+{
+ "base": "sflow_2d_curv_bend_mpi2",
+ "ctrl_set": {"P 10": "1", "P 181": "25", "P 18": "2"},
+ "tags": [
+  "2d",
+  "sflow",
+  "curvilinear",
+  "river",
+  "mpi",
+  "lagoon"
+ ],
+ "description": "as sflow_2d_curv_bend_mpi2, its free surface and bed written to the LAGOON store as well as to the VTP files (P 18 2): on the curvilinear grid the outputs carry xc and yc, where every grid point lies (LAGOON SPEC 2.2).",
+ "covers": [
+  "lagoon_surface on a curvilinear grid (G 50): xc, yc from lexer::curv_node",
+  "lagoon_store::create_output with xc, yc"
+ ]
+}

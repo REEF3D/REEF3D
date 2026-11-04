@@ -32,6 +32,8 @@ Author: Hans Bihs
 using namespace std;
 
 class sediment_mixture;
+class sediment_waves;
+class sediment_inflow;
 
 class sediment_fdm
 {
@@ -59,6 +61,8 @@ public:
 
     slice4 qb, qbe, qbs;
     slice4 cbe, cb, cbn, conc;
+    slice4 ub, vb;  // curvilinear grid (G 50): near-bed velocity of the cells (Cartesian components, sediment_curv)
+    slice4 dryd;    // NHFLOW: suspended sediment volume per area of columns that fell dry, deposited at the next bed update
 
     slice4 waterlevel;
     slice4 guard;
@@ -72,6 +76,16 @@ public:
 
     // multi-fraction bed model (S51>0), nullptr otherwise
     sediment_mixture *pmix;
+
+    // SFLOW, NHFLOW: waves in the sediment transport (S 110 > 0), nullptr otherwise
+    sediment_waves *pwave = nullptr;
+
+    // sediment supply at the inflow (S 129, S 124, sediment_inflow.h)
+    sediment_inflow *pinflow = nullptr;
+
+    // SFLOW: mean exchange rate E - D of the depth-averaged suspended load since the last bed update
+    // (S 120 > 0, sediment_susp2D), nullptr otherwise
+    slice4 *edrate = nullptr;
 };
 
 #endif

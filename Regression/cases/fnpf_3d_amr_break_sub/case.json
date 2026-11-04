@@ -1,0 +1,22 @@
+{
+ "description": "fnpf_3d_amr_break with subcycling (G 7 1): the breaking detection and the damping on the level of each substep.",
+ "solver": "fnpf",
+ "np": 1,
+ "steps": 160,
+ "base": "fnpf_3d_amr_break",
+ "ctrl_add": [
+  "G 7 1"
+ ],
+ "tags": [
+  "3d",
+  "fnpf",
+  "amr",
+  "waves",
+  "breaking",
+  "coastline",
+  "subcycling"
+ ],
+ "covers": [
+  "fnpf_amr_sub: patch_damping and patch_breaking(l) in sub_stage"
+ ]
+}

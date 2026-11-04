@@ -1,0 +1,30 @@
+{
+ "base": "nhflow_3d_net_wall_dyn_ckpt",
+ "np": 2,
+ "steps": 30,
+ "same_as": "nhflow_3d_net_wall_dyn_ckpt",
+ "chain": [
+  {
+   "case": "nhflow_3d_net_wall_dyn_ckpt",
+   "copy": [
+    "REEF3D_Checkpoint",
+    "REEF3D_CFD_6DOF",
+    "REEF3D_NHFLOW_WSF"
+   ]
+  }
+ ],
+ "ctrl_set": {
+  "I 45": "20"
+ },
+ "description": "the restart of nhflow_3d_net_wall_dyn_ckpt from its checkpoint at step 20 (I 45 20), with its outputs copied in (cut back to step 20 and continued): the dynamic net (history of the knots, tensions, fluid at the knots); regression.py ranks: the final state and the text outputs bitwise those of the uninterrupted run.",
+ "tags": [
+  "3d",
+  "net",
+  "nhflow",
+  "mpi",
+  "checkpoint"
+ ],
+ "covers": [
+  "net_barDyn::ckpt_state"
+ ]
+}

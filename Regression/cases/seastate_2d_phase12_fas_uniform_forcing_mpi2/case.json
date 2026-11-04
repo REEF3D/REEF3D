@@ -1,0 +1,15 @@
+{
+ "base": "seastate_2d_wind_field_mpi2",
+ "ctrl_add": [
+  "A 758 1 4"
+ ],
+ "description": "as seastate_2d_wind_field_mpi2 (nonstationary, wind field A 730 2 and boundary spectra per side cell A 711 3, 2 ranks) with the FAS V-cycle on the uniform grid after the first iteration of every step (A 758 1 4, Phase 12): restricted N0, boundary spectra and wind on the coarse grids.",
+ "tags": [
+  "2d",
+  "seastate",
+  "mpi"
+ ],
+ "covers": [
+  "seastate_fas2 nonstationary (N0), boundary sides and wind field on the coarse grids"
+ ]
+}

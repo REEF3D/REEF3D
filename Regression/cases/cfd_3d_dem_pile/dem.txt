@@ -1,0 +1,17 @@
+# 250 mixed small particles (unresolved) raining into a water tank
+material 1 2650 0.5 0.3
+wall_material 0.5 0.3
+node_spacing 0.2
+shape 1 sphere 0.003
+shape 2 box 0.008 0.006 0.004
+shape 3 cylinder 0.003 0.008
+shape 4 ellipsoid 0.005 0.003 0.002
+wall 0 0 1  0 0 0
+wall 1 0 0  0 0 0
+wall -1 0 0  0.2 0 0
+wall 0 1 0  0 0 0
+wall 0 -1 0  0 0.2 0
+block 1 1  5 5 3  0.05 0.05 0.22  0.025 0.025 0.02
+block 2 1  5 5 2  0.0625 0.0625 0.28  0.025 0.025 0.02 1 7
+block 3 1  5 5 2  0.05 0.0625 0.32  0.025 0.025 0.02 1 8
+block 4 1  5 5 3  0.0625 0.05 0.36  0.025 0.025 0.012 1 9

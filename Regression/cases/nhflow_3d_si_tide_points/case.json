@@ -1,0 +1,20 @@
+{
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 120,
+ "files": [
+  "background-1.dat"
+ ],
+ "description": "NHFLOW hydrostatic semi-implicit, 3 km x 3 km basin 10 m deep: clamped level edges on x- and y+ with one background given at 3 points (B 510 mode 4): the tide varies along the edges (0.10 m at the SW corner, 0.30 m / 30 deg at the NW corner, 0.20 m / 60 deg at the NE corner, linear in between). The edge gauges follow the interpolated level.",
+ "tags": [
+  "quick",
+  "3d",
+  "nhflow",
+  "semi_implicit",
+  "tide",
+  "background"
+ ],
+ "covers": [
+  "B 510 mode 4: projection on the polyline (two segments, both edges), clamped level edges x- and y+ with SI"
+ ]
+}

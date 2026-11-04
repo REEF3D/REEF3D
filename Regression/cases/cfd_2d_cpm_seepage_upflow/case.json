@@ -1,0 +1,8 @@
+{
+ "description": "CPM sand bed (5 cm) in still water with an excess pore pressure of 700 Pa at the bottom (1.44 x the fluidisation pressure), seepage flow in the bed Q 69 1, Q 70",
+ "covers": ["CPM seepage: Laplace equation for the pore pressure in the bed (red-black SOR, Dirichlet from the fluid, excess pressure at the bottom)",
+            "CPM effective stress of the contact network with the seepage force, unloading of the jammed bed, heave of a fluidised bed",
+            "CPM pressure gradient at the parcels from the pore pressure next to and inside the bed"],
+ "np": 1, "steps": 150,
+ "tags": ["quick", "2d", "cpm"]
+}

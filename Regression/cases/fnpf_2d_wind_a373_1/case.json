@@ -1,0 +1,19 @@
+{
+ "base": "fnpf_2d_regular",
+ "description": "FNPF wind setup (A 373 1): Garratt drag (A 370 1), U10 15 m/s along x, along-wind potential with the reference depth of the forcing area (A 377 0).",
+ "ctrl_add": [
+  "A 370 1",
+  "A 371 15.0 0.0",
+  "A 373 1"
+ ],
+ "tags": [
+  "quick",
+  "2d",
+  "fnpf",
+  "wind"
+ ],
+ "covers": [
+  "wind_f::wind_forcing_fnpf A 373 1",
+  "h_ref from the wet cells"
+ ]
+}

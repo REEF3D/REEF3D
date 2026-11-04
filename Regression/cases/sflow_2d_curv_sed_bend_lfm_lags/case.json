@@ -1,0 +1,22 @@
+{
+ "np": 1,
+ "steps": 400,
+ "tags": [
+  "2d",
+  "sflow",
+  "river",
+  "bend",
+  "lags",
+  "curvilinear",
+  "sediment"
+ ],
+ "description": "The lags of the bend morphology (P7) in the LFM bend of sflow_2d_curv_sed_bend_lfm: the spiral-flow intensity relaxed along the flow over its adaptation length L_a = (m-1) h/(2 kappa^2) (S 95 2, Kalkwijk & Booij 1986), 75 % of the transport suspended and relaxed over L_s = h U/(S65 w_s) (S 64 0.75, S 65 4); the spiral flow and the slope turn the total load (sediment_curvilinear/t7, t8).",
+ "covers": [
+  "sediment_exner_lag: relax_along (upwind along the flow, contravariant on the curvilinear grid, Gauss-Seidel with alternating sweeps), susp_split, spiral_lag, spiral_apply",
+  "qb/f of the slope flux with the lagged suspended load (bend_K)"
+ ],
+ "solver": "sflow",
+ "files": [
+  "curvgrid.dat"
+ ]
+}

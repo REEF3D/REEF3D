@@ -1,0 +1,22 @@
+{
+ "base": "cfd_3d_heave_amr_mpi2_sub",
+ "np": 2,
+ "ctrl_add": [
+  "G 40 1"
+ ],
+ "description": "3D heave of a floating box with G 7 1 and the placement (G 40 1) on 2 ranks: the loads of the hull triangles on the rank of the finest grid (amr_cfd_mine), not the rank of the level-0 cell; the body forcing of the patches through the shadows.",
+ "tags": [
+  "quick",
+  "3d",
+  "6dof",
+  "floating",
+  "levelset",
+  "amr",
+  "mpi",
+  "place"
+ ],
+ "covers": [
+  "6DOF_obj_forces_stl with amr_cfd_mine",
+  "the shadows with a body"
+ ]
+}

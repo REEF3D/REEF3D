@@ -42,6 +42,14 @@ void fnpf_breaking::breaking_kennedy(lexer *p, fdm_fnpf *c, ghostcell *pgc, slic
         //---------------
         // Shallow Water
         //---------------
+        // dry cells (A 343 2/3) do not break: WL = 0 there gives a zero onset threshold
+        if(p->wet[IJ] == 0)
+        {
+            c->breaking(i, j) = 0;
+            B_coeff(i, j) = 0.0;
+            continue;
+        }
+
         if((p->A351 == 1 || p->A351 == 3) && p->count > 1)
         {
             // Onset threshold: eta_t > eta_I * sqrt(g * h)
@@ -79,7 +87,8 @@ void fnpf_breaking::breaking_kennedy(lexer *p, fdm_fnpf *c, ghostcell *pgc, slic
             }
 
             // Check for breaking cessation
-            if(c->breaking(i, j) == 2 && (fabs(c->Ex(i, j)) < p->A356 * p->A355 && (fabs(c->Ey(i, j)) < p->A356 * p->A355) || p->j_dir == 0))
+            // was (|Ex|<.. && |Ey|<..) || j_dir==0: in 2D every flag 2 was cleared in the step it was set
+            if(c->breaking(i, j) == 2 && fabs(c->Ex(i, j)) < p->A356 * p->A355 && (p->j_dir == 0 || fabs(c->Ey(i, j)) < p->A356 * p->A355))
             {
                 c->breaking(i, j) = 0;
                 B_coeff(i, j) = 0.0;
@@ -89,10 +98,16 @@ void fnpf_breaking::breaking_kennedy(lexer *p, fdm_fnpf *c, ghostcell *pgc, slic
     }
 
     // calculate viscosity
+    // pass 1: viscosity of the breaking cells (vb_brk), pass 2: spread over +-2 cells in x and y
+    // (max of the sources). The spreading used to write vb(i+1,j), vb(i+2,j), ... inside the cell
+    // loop, so the else branch of the following cells reset it to 0 again: it only reached
+    // the cells with smaller i or j and never crossed a processor boundary.
     double T_ramp, dt_break;
 
     SLICELOOP4
     {
+        vb_brk(i, j) = 0.0;
+
         if(c->breaking(i, j) == 1 || c->breaking(i, j) == 2)
         {
 
@@ -115,6 +130,8 @@ void fnpf_breaking::breaking_kennedy(lexer *p, fdm_fnpf *c, ghostcell *pgc, slic
             // Eddy viscosity: c->vb = B * delta_b^2 * h * |eta_t|
             // Using |eta_t| to ensure positive viscosity
             // visc = B_coeff(i,j) * p->A365 * p->A365 * c->WL(i,j) * fabs(eta_t(i, j));
+            visc = 0.0;
+
             if(c->breaking(i, j) == 1)
                 visc = p->A365 * p->A365 * c->WL(i, j) * fabs(eta_t(i, j));
 
@@ -124,45 +141,28 @@ void fnpf_breaking::breaking_kennedy(lexer *p, fdm_fnpf *c, ghostcell *pgc, slic
             visc = MIN(visc, vb_max);
             visc = MAX(visc, 0.0);
 
-            c->vb(i, j) = visc;
-
-            c->vb(i - 1, j) = visc;
-            c->vb(i + 1, j) = visc;
-
-            c->vb(i - 2, j) = visc;
-            c->vb(i + 2, j) = visc;
-
-            if(p->j_dir == 1)
-            {
-                c->vb(i, j - 1) = visc;
-                c->vb(i, j + 1) = visc;
-
-                c->vb(i, j - 2) = visc;
-                c->vb(i, j + 2) = visc;
-            }
-
-            // cout<<"c->vb(i,j): "<<c->vb(i,j)<<"  breaking: "<<c->breaking(i, j)<<" eta_t: "<<eta_t(i, j)<<endl;
+            vb_brk(i, j) = visc;
         }
-
-        /*else
-        if(c->breaking(i,j)==2)
-        {
-        c->vb(i,j) = p->A365;
-        c->vb(i-1,j) = p->A365;
-        c->vb(i+1,j) = p->A365;
-
-        if(p->j_dir==1)
-        {
-        c->vb(i,j-1) = p->A365;
-        c->vb(i,j+1) = p->A365;
-        }
-        }*/
 
         else
-        {
-            c->vb(i, j) = 0.0;
             B_coeff(i, j) = 0.0;
+    }
+
+    pgc->gcsl_start4(p, vb_brk, 1);
+
+    SLICELOOP4
+    {
+        visc = 0.0;
+
+        for(int q = -2; q <= 2; ++q)
+        {
+            visc = MAX(visc, vb_brk(i + q, j));
+
+            if(p->j_dir == 1)
+                visc = MAX(visc, vb_brk(i, j + q));
         }
+
+        c->vb(i, j) = (p->wet[IJ] == 1) ? visc : 0.0;
     }
 
     pgc->gcsl_start4(p, c->vb, 1);

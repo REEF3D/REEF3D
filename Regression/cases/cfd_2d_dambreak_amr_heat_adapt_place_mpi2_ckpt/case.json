@@ -1,0 +1,21 @@
+{
+ "base": "cfd_2d_dambreak_amr_heat_adapt_place_mpi2",
+ "ctrl_set": {
+  "P 48": "20",
+  "P 49": "0"
+ },
+ "description": "cfd_2d_dambreak_amr_heat_adapt_place_mpi2 (heat on all grids, G 7 1, adaptive, the units placed for the load of the 2 ranks, G 40 1) with a checkpoint every 20 steps (P 48 20, P 49 0): the uninterrupted run of the restart.",
+ "tags": [
+  "2d",
+  "dambreak",
+  "levelset",
+  "amr",
+  "adaptive",
+  "heat",
+  "mpi",
+  "checkpoint"
+ ],
+ "covers": [
+  "cfd_amr::ckpt_write with G 40 1 (shadows) and heat"
+ ]
+}

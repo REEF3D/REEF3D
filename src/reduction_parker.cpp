@@ -48,10 +48,13 @@ void reduction_parker::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
 
         alphaval = fabs(alphaval);
 
-        mu = atan(1.0 / phival);
+        // friction coefficient tan(phi) (atan(1/phi) gave 1.02 instead of 0.70 at phi = 35 deg)
+        mu = tan(phival);
         d = (4.0 / 3.0) * mu * 0.85 * 0.74;
 
         pval = (2.0 / (1.0 - d)) * (d / sqrt(1.0 + tan(alphaval) * tan(alphaval) + tan(tetaval) * tan(tetaval)) + sin(tetaval) / mu);
+
+        qval = ((1.0 + d) / (1.0 - d)) * (1.0 / (1.0 + tan(alphaval) * tan(alphaval) + tan(tetaval) * tan(tetaval))) * (-1.0 + ((tan(alphaval) * tan(alphaval) + tan(tetaval) * tan(tetaval)) / (mu * mu)));
 
         qval = ((1.0 + d) / (1.0 - d)) * (1.0 / (1.0 + tan(alphaval) * tan(alphaval) + tan(tetaval) * tan(tetaval))) * (-1.0 + ((tan(alphaval) * tan(alphaval) + tan(tetaval) * tan(tetaval)) / mu));
 
@@ -62,24 +65,15 @@ void reduction_parker::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
         // limiter
         if(((1.0 + tan(alphaval) * tan(alphaval) + tan(tetaval) * tan(tetaval)) < 0.0 || (pval * pval * 0.25 - qval) < 0.0) || r < 0.0)
         {
-            if(p->S84 == 1)
-            {
-                r = cos(tetaval) * (1.0 - tan(tetaval / tanphi));
-                r *= cos(alphaval) * sqrt(1.0 - pow(tan(alphaval), 2.0) / pow(tanphi, 2.0));
-            }
-
-            if(p->S84 == 2)
-                r = 0.1 / (fabs(s->gamma(i, j)) + 0.0000001) + 0.1;
+            r = cos(tetaval) * (1.0 - tan(tetaval) / tanphi);
+            r *= cos(alphaval) * sqrt(1.0 - pow(tan(alphaval), 2.0) / pow(tanphi, 2.0));
         }
 
         r = MAX(r, 0.01);
         r = MIN(r, 1.5);
 
-        if(p->pos_x() < p->S71)
-            r = 1.0;
-
         if(p->pos_x() > p->S72)
-            r = 1.0;
+            r = 10.0;
 
         s->reduce(i, j) = r;
     }

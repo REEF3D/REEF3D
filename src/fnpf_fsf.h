@@ -34,23 +34,31 @@ class fnpf_etadisc;
 
 using namespace std;
 
-class fnpf_fsf 
+class ioflow;
+
+class fnpf_fsf
 {
 public:
-   
-    virtual void fsfdisc(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&)=0;
-    virtual void fsfdisc_ini(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&)=0;
-    virtual void kfsfbc(lexer*,fdm_fnpf*,ghostcell*)=0;
-    virtual void dfsfbc(lexer*,fdm_fnpf*,ghostcell*,slice&)=0;
-    virtual void fsfwvel(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&)=0;
-    virtual void wetdry(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&)=0;
-    virtual void breaking(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&,slice&,double)=0;
-    virtual void coastline_eta(lexer*,fdm_fnpf*,ghostcell*,slice&)=0;
-    virtual void coastline_fi(lexer*,fdm_fnpf*,ghostcell*,slice&)=0;
-    virtual void coastline_fi_ini(lexer*,fdm_fnpf*,ghostcell*,slice&)=0;
-    virtual void coastline_vel(lexer*,fdm_fnpf*,ghostcell*,double*)=0;
-    virtual void damping(lexer*,fdm_fnpf*,ghostcell*,slice&,int,double)=0;
-    
+    // deleted through fnpf_fsf* (fnpf_amr): without a virtual destructor the derived destructors (fnpf_breaking: the
+    // crest tracking) did not run
+    virtual ~fnpf_fsf() {}
+
+    virtual void fsfdisc(lexer *, fdm_fnpf *, ghostcell *, slice &, slice &) = 0;
+    virtual void fsfdisc_ini(lexer *, fdm_fnpf *, ghostcell *, slice &, slice &) = 0;
+    virtual void kfsfbc(lexer *, fdm_fnpf *, ghostcell *) = 0;
+    virtual void dfsfbc(lexer *, fdm_fnpf *, ghostcell *, slice &) = 0;
+    virtual void fsfwvel(lexer *, fdm_fnpf *, ghostcell *, slice &, slice &) = 0;
+    virtual void wetdry(lexer *, fdm_fnpf *, ghostcell *, slice &, slice &) = 0;
+    virtual void breaking(lexer *, fdm_fnpf *, ghostcell *, slice &, slice &, slice &, double) = 0;
+    // the relaxation zones for the breaking models (A 350 4), once
+    virtual void breaking_zones(lexer *, ioflow *) {}
+    virtual void coastline_eta(lexer *, fdm_fnpf *, ghostcell *, slice &) = 0;
+    virtual void coastline_fi(lexer *, fdm_fnpf *, ghostcell *, slice &) = 0;
+    virtual void coastline_fi_ini(lexer *, fdm_fnpf *, ghostcell *, slice &) = 0;
+    virtual void coastline_vel(lexer *, fdm_fnpf *, ghostcell *, double *) = 0;
+    // the same on the surface velocities (no 3D U, V, W, fnpf_memory.h)
+    virtual void coastline_vel_sl(lexer *, fdm_fnpf *, ghostcell *, slice &) {}
+    virtual void damping(lexer *, fdm_fnpf *, ghostcell *, slice &, int, double) = 0;
 };
 
 #endif

@@ -46,51 +46,27 @@ void komega_func::clearfield(lexer *p, fdm *a, field &b)
         b(i, j, k) = 0.0;
 }
 
-void komega_func::isource(lexer *p, fdm *a)
-{
-    if(p->T33 == 0)
-        ULOOP
-    a->F(i, j, k) = 0.0;
+if(a->phi(i, j, k) < 0.0)
+    a->eddyv(i, j, k) = MIN(a->eddyv(i, j, k), 1.0e-4);
 
-    if(p->T33 == 1)
-        ULOOP
-    a->F(i, j, k) = -(2.0 / 3.0) * (kin(i + 1, j, k) - kin(i, j, k)) / p->DXP[IP];
+if(a->phi(i, j, k) >= 0.0)
+    a->eddyv(i, j, k) = MAX(MIN(MAX(kin(i, j, k) / ((eps(i, j, k)) > (1.0e-20) ? (eps(i, j, k)) : (1.0e20)), 0.0), fabs(p->T31 *kin(i, j, k)) / (strainterm(p, a) + 1.0e-20)),
+                            0.0001 * a->visc(i, j, k));
+}
 }
 
-void komega_func::jsource(lexer *p, fdm *a)
+// free surface eddyv minimum
+if(p->T39 == 1)
 {
-    if(p->T33 == 0)
-        VLOOP
-    a->G(i, j, k) = 0.0;
+    double sgs_val;
+    double c_sgs = 0.2;
+    double factor = 1.0;
 
-    if(p->T33 == 1)
-        VLOOP
-    a->G(i, j, k) = -(2.0 / 3.0) * (kin(i, j + 1, k) - kin(i, j, k)) / p->DYP[JP];
-}
-
-void komega_func::ksource(lexer *p, fdm *a)
-{
-    if(p->T33 == 0)
-        WLOOP
-    a->H(i, j, k) = 0.0;
-
-    if(p->T33 == 1)
-        WLOOP
-    a->H(i, j, k) = -(2.0 / 3.0) * (kin(i, j, k + 1) - kin(i, j, k)) / p->DZP[KP];
-}
-
-void komega_func::eddyvisc(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans)
-{
-    double factor;
-    double H;
-    int n;
-
-    if(p->T34 == 0)
-        LOOP
-        {
-            eddyv0(i, j, k) = MAX(MAX(kin(i, j, k) / ((eps(i, j, k)) > (1.0e-20) ? (eps(i, j, k)) : (1.0e20)), 0.0),
-                                  0.0001 * a->visc(i, j, k));
-        }
+    LOOP
+    {
+        eddyv0(i, j, k) = MAX(MAX(kin(i, j, k) / ((eps(i, j, k)) > (1.0e-20) ? (eps(i, j, k)) : (1.0e20)), 0.0),
+                              0.0001 * a->visc(i, j, k));
+    }
 
     if(p->T34 == 1)
         LOOP

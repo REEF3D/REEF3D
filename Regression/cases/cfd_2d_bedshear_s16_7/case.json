@@ -1,0 +1,19 @@
+{
+ "description": "CFD 2D periodic channel 8 x 13 cells with a slip lid, single phase, k-omega, driven by the body force W 20 0.49, MPM sand bed (d50 1 mm, S 35 50), bed shear S 16 7 (horizontal velocity at half the first cell, grain roughness). Before the lint*_2D fix ccipol2 left j = -1 and S 16 7 read ks at j = -1 (tau x 0.025, no transport).",
+ "solver": "cfd",
+ "np": 1,
+ "steps": 300,
+ "tags": [
+  "quick",
+  "2d",
+  "cfd",
+  "sediment",
+  "periodic",
+  "singlephase"
+ ],
+ "covers": [
+  "bedshear_cfd S 16 7 in 2D",
+  "interpolation lint*_2D keeps the caller's j"
+ ],
+ "architect": "Hans Bihs"
+}

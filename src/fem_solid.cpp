@@ -21,10 +21,16 @@ Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include "fem_solid.h"
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 #include <algorithm>
 #include <cmath>
+#include <map>
+#include <set>
 #include <sstream>
 #include <stdexcept>
+#include <tuple>
 
 fem_solid::fem_solid()
 {
@@ -32,6 +38,15 @@ fem_solid::fem_solid()
 
 fem_solid::~fem_solid()
 {
+}
+
+int fem_solid::max_threads()
+{
+#ifdef _OPENMP
+    return omp_get_max_threads();
+#else
+    return 1;
+#endif
 }
 
 void fem_solid::set_lattice(double ox_, double oy_, double oz_, double hx_, double hy_, double hz_)
@@ -62,6 +77,84 @@ int fem_solid::add_material(const material &mt)
     return (int)mats.size() - 1;
 }
 
+double fem_solid::elem_cp(const element &e) const
+{
+    // dilatational wave speed, with the axial stiffness of the bars of reinforced elements
+    const material &mt = mats[e.mat];
+    if(!e.reinforced())
+        return mt.cp;
+    const double rsm = std::max(e.rs[0], std::max(e.rs[1], e.rs[2]));
+    return std::sqrt((mt.lambda + 2.0 * mt.mu + rsm * mt.sE) / mt.rho);
+}
+
+void fem_solid::setup_rebar()
+{
+    // Smeared bars of reinforced concrete materials. For bars along direction d
+    // the steel of every layer of a member (elements of one material and one body
+    // with the same lattice index along d) is placed in its skin: the elements
+    // within rskin of the member surface, seen across the bars (in 2D
+    // plane strain only within the plane). The steel volume of the layer is kept:
+    // local fraction = rs * (elements of the layer) / (skin elements of the layer).
+    bool any = false;
+    for(const material &mt : mats)
+        if(mt.type == MAT_CONCRETE && mt.reinforced())
+            any = true;
+    for(element &el : elems)
+        el.rs[0] = el.rs[1] = el.rs[2] = 0.0;
+    if(!any)
+        return;
+
+    auto key = [](int i, int j, int k, int mat)
+    { return std::make_tuple(i, j, k, mat); };
+    std::set<std::tuple<int, int, int, int>> occ;
+    for(const element &el : elems)
+        if(el.alive && !el.rigid && mats[el.mat].type == MAT_CONCRETE && mats[el.mat].reinforced())
+            occ.insert(key(el.ix, el.iy, el.iz, el.mat));
+
+    for(int d = 0; d < 3; ++d)
+    {
+        std::map<std::tuple<int, int, int>, std::pair<int, int>> layer;  // (body, material, index along d) -> (all, skin)
+        std::vector<char> skin(elems.size(), 0);
+        for(size_t e = 0; e < elems.size(); ++e)
+        {
+            const element &el = elems[e];
+            const material &mt = mats[el.mat];
+            if(!el.alive || el.rigid || mt.type != MAT_CONCRETE || mt.rs[d] <= 0.0)
+                continue;
+            const int idx[3] = {el.ix, el.iy, el.iz};
+            const double hl[3] = {hx, hy, hz};
+            bool sk = (mt.rskin == 0.0);
+            for(int p = 0; p < 3 && !sk; ++p)
+            {
+                if(p == d || (plane_strain && p == 1))
+                    continue;
+                const int nl = mt.rskin < 0.0 ? 1 : std::max(1, (int)std::lround(mt.rskin / hl[p]));
+                for(int s0 = 1; s0 <= nl && !sk; ++s0)
+                    for(int sg = -1; sg <= 1 && !sk; sg += 2)
+                    {
+                        int j[3] = {idx[0], idx[1], idx[2]};
+                        j[p] += sg * s0;
+                        if(!occ.count(key(j[0], j[1], j[2], el.mat)))
+                            sk = true;
+                    }
+            }
+            skin[e] = sk;
+            auto &c = layer[std::make_tuple(body[el.n[0]], el.mat, idx[d])];
+            ++c.first;
+            if(sk)
+                ++c.second;
+        }
+        for(size_t e = 0; e < elems.size(); ++e)
+            if(skin[e])
+            {
+                element &el = elems[e];
+                const int idx[3] = {el.ix, el.iy, el.iz};
+                const auto &c = layer[std::make_tuple(body[el.n[0]], el.mat, idx[d])];
+                el.rs[d] = mats[el.mat].rs[d] * double(c.first) / double(std::max(1, c.second));
+            }
+    }
+}
+
 void fem_solid::add_box(double x0, double x1, double y0, double y1, double z0, double z1, int matid)
 {
     shape_box b = {x0, x1, y0, y1, z0, z1, matid, false};
@@ -88,6 +181,7 @@ void fem_solid::add_fix(double x0, double x1, double y0, double y1, double z0, d
 
 void fem_solid::build()
 {
+    act_dirty = true;
     if(mats.empty())
         throw std::runtime_error("FEM: no material defined");
 
@@ -162,6 +256,7 @@ void fem_solid::build()
     build_surface();
     count_bodies();
     setup_rigid();
+    setup_rebar();
 
     // critical time step of the explicit scheme (hex8, lumped mass); rigid
     // bodies have no internal forces and only need the contact time step
@@ -174,7 +269,7 @@ void fem_solid::build()
         hmax = std::max(hmax, G.h);
         if(e.rigid)
             continue;
-        const double c = mats[e.mat].cp;
+        const double c = elem_cp(e);
         dtcrit = std::min(dtcrit, G.L / c);
         cp_contact = std::max(cp_contact, c);
     }
@@ -184,7 +279,7 @@ void fem_solid::build()
     for(const element &e : elems)
         if(!e.rigid)
             for(int a = 0; a < 8; ++a)
-                cnode[e.n[a]] = std::max(cnode[e.n[a]], mats[e.mat].cp);
+                cnode[e.n[a]] = std::max(cnode[e.n[a]], elem_cp(e));
 
     // rigid bodies: the impact (duration pi sqrt(M/k)) is resolved with at least
     // 20 time steps when a body can touch a wall, the ground, the bed or another
@@ -288,6 +383,15 @@ void fem_solid::advance(double dt)
 
     if(dt <= 0.0)
         return;
+    dt_last = dt;
+
+    // distribution over the ranks (fixed over the fluid step)
+    const bool dist_was = dist;
+    dist = comm != nullptr && comm->size() > 1 && (dist_req == 1 || (dist_req < 0 && n_deformable() >= dist_min));
+    if(dist)
+        dist_partition();
+    else if(dist_was)
+        act_dirty = true;
 
     // effective masses: the enclosed fluid reduces the mass that is accelerated
     // by the structural forces (at most to 10 %), the time step follows
@@ -342,10 +446,14 @@ void fem_solid::advance(double dt)
 
     for(int s = 0; s < nsub; ++s)
     {
-        std::fill(fint.begin(), fint.end(), Vec3::Zero());
-        std::fill(fcon.begin(), fcon.end(), Vec3::Zero());
+        {
+            const int nn = nnode();
+            FEM_OMP(omp parallel for schedule(static) num_threads(nthr) if(par(nn,8*PAR_NODES)))
+            for(int i = 0; i < nn; ++i)
+                fcon[i].setZero();
+        }
 
-        internal_forces(dts);
+        internal_forces(dts);  // sets fint of all nodes
 
         rpairs.clear();
         if(ground_on || !planes.empty() || bed_on)
@@ -363,9 +471,15 @@ void fem_solid::advance(double dt)
         if(alpha_struct > 0.0)
             rigid_velocity(vrig);
 
-        for(int i = 0; i < nnode(); ++i)
+        const int nn = nnode();
+        int bad = nn;  // first node with a non-finite velocity
+        FEM_OMP(omp parallel for schedule(static) num_threads(nthr) if(par(nn,PAR_NODES)) reduction(min:bad))
+        for(int i = 0; i < nn; ++i)
         {
             if(m[i] <= 0.0)
+                continue;
+            // distributed: the owner moves a node; all ranks move the rigid bodies
+            if(dist && nown[i] != myrank && (rnode.empty() || rnode[i] < 0))
                 continue;
 
             const Vec3 F = fext[i] + fcon[i] + fpar[i] - fint[i] + mr[i] * grav;
@@ -390,22 +504,39 @@ void fem_solid::advance(double dt)
 
             if(!v[i].allFinite())
             {
-                std::ostringstream os;
-                os << "FEM: non-finite velocity at node " << i << " x " << x[i].transpose() << " m " << m[i] << " m_f " << mfl[i]
-                   << " M_cpl " << Mcpl[i].transpose() << " M u_f " << Mu_cpl[i].transpose() << " f_ext " << fext[i].transpose() << " f_int " << fint[i].transpose()
-                   << " f_con " << fcon[i].transpose() << " intact elements " << nalive[i];
-                throw std::runtime_error(os.str());
+                bad = std::min(bad, i);
+                continue;
             }
 
             x[i] += dts * v[i];
             vsum[i] += v[i];
         }
 
+        if(dist)
+        {
+            std::vector<int> all(nranks);
+            comm->allgather_int(bad, all.data());
+            bad = *std::min_element(all.begin(), all.end());
+            if(bad >= nn)
+                dist_exchange_nodes(false);
+        }
+        if(bad < nn)
+        {
+            const int i = bad;
+            std::ostringstream os;
+            os << "FEM: non-finite velocity at node " << i << " x " << x[i].transpose() << " m " << m[i] << " m_f " << mfl[i]
+               << " M_cpl " << Mcpl[i].transpose() << " M u_f " << Mu_cpl[i].transpose() << " f_ext " << fext[i].transpose() << " f_int " << fint[i].transpose()
+               << " f_con " << fcon[i].transpose() << " intact elements " << nalive[i];
+            throw std::runtime_error(os.str());
+        }
+
         if(!rbs.empty())
         {
             rigid_step(dts, frig);
-            for(const rigid_body &rb : rbs)
-                for(int i : rb.nodes)
+            const int nb = (int)rbs.size();
+            FEM_OMP(omp parallel for schedule(dynamic,1) num_threads(std::min(nthr,nb)) if(nb>1 && par(nnode(),PAR_NODES)))
+            for(int k = 0; k < nb; ++k)
+                for(int i : rbs[k].nodes)
                     vsum[i] += v[i];
         }
 
@@ -414,6 +545,13 @@ void fem_solid::advance(double dt)
 
     for(int i = 0; i < nnode(); ++i)
         vbar[i] = vsum[i] / double(nsub);
+
+    // distributed: mean velocities and internal forces of the nodes, integration points
+    if(dist)
+    {
+        dist_exchange_nodes(true);
+        dist_exchange_elements();
+    }
 
     // accelerations of the rigid bodies over the fluid step without the contact
     // (added-mass stabilisation of the fluid loads)
@@ -452,8 +590,20 @@ void fem_solid::advance(double dt)
 // diagnostics
 // ----------------------------------------------------------------------
 
+int fem_solid::n_full_elements() const
+{
+    int n = 0;
+    for(const element &e : elems)
+        if(e.alive && !e.rigid && e.full)
+            ++n;
+    return n;
+}
+
 int fem_solid::n_alive() const
 {
+    // counted with the active list (build_gather), else here
+    if(!act_dirty)
+        return nalive_el;
     int n = 0;
     for(const element &e : elems)
         if(e.alive)
@@ -481,13 +631,14 @@ double fem_solid::strain_energy() const
 
         const material &mt = mats[el.mat];
 
-        for(int g = 0; g < ngp; ++g)
+        const int ng = el.full ? 8 : 1;
+        for(int g = 0; g < ng; ++g)
         {
             Mat3 F = Mat3::Zero();
             for(int a = 0; a < 8; ++a)
                 for(int i = 0; i < 3; ++i)
                     for(int J = 0; J < 3; ++J)
-                        F(i, J) += x[el.n[a]](i) * (ngp == 1 ? geom(el).dN0[a][J] : geom(el).dNg[g][a][J]);
+                        F(i, J) += x[el.n[a]](i) * (ng == 1 ? geom(el).dN0[a][J] : geom(el).dNg[g][a][J]);
 
             Mat3 E = 0.5 * (F.transpose() * F - Mat3::Identity());
             const gpstate &st = gps[e * ngp + g];
@@ -507,7 +658,7 @@ double fem_solid::strain_energy() const
 
             const double tr = E.trace();
             Mat3 S = mt.lambda * tr * Mat3::Identity() + 2.0 * mt.mu * E;
-            es += (1.0 - st.d) * 0.5 * (S.array() * E.array()).sum() * (ngp == 1 ? geom(el).V : geom(el).wg[g]);
+            es += (1.0 - st.d) * 0.5 * (S.array() * E.array()).sum() * (ng == 1 ? geom(el).V : geom(el).wg[g]);
         }
     }
     return es;
@@ -577,6 +728,7 @@ void fem_solid::setup_rigid()
     rnode.assign(nnode(), -1);
     for(element &e : elems)
         e.rigid = false;
+    act_dirty = true;
 
     bool any = false;
     for(const material &mt : mats)
@@ -660,12 +812,14 @@ void fem_solid::rigid_props(rigid_body &rb, int k)
     {
         const double L1 = std::max(L(0), L(2));
         rb.Aunit = 0.25 * 3.14159265358979 * L1 * L1 * L(1);
+        rb.Aface = L1 * L(1);
     }
     else
     {
         double d[3] = {L(0), L(1), L(2)};
         std::sort(d, d + 3);
         rb.Aunit = 0.25 * 3.14159265358979 * d[2] * d[1] * d[1];
+        rb.Aface = d[2] * d[1];
     }
 
     // impact stiffness of the debris: given, or the axial stiffness of a
@@ -718,8 +872,13 @@ void fem_solid::rigid_props(rigid_body &rb, int k)
 
 void fem_solid::rigid_step(double dts, const std::vector<Vec3> &F)
 {
-    for(rigid_body &rb : rbs)
+    // the bodies are independent (own nodes): threads over the bodies
+    const int nb = (int)rbs.size();
+    int bad = 0;
+    FEM_OMP(omp parallel for schedule(dynamic,1) num_threads(std::min(nthr,nb)) if(nb>1 && par(nnode(),PAR_NODES)) reduction(max:bad))
+    for(int kb = 0; kb < nb; ++kb)
     {
+        rigid_body &rb = rbs[kb];
         Vec3 Ft = Vec3::Zero(), T = Vec3::Zero(), Fc = Vec3::Zero(), Tc = Vec3::Zero();
         for(int i : rb.nodes)
         {
@@ -792,13 +951,15 @@ void fem_solid::rigid_step(double dts, const std::vector<Vec3> &F)
         }
 
         if(!rb.c.allFinite() || !rb.V.allFinite())
-            throw std::runtime_error("FEM: non-finite rigid body motion");
+            bad = 1;
 
         rb.vmax = std::max(rb.vmax, rb.V.norm());
         rb.dmax = std::max(rb.dmax, (rb.c - rb.c0).norm());
         rb.fcmax = std::max(rb.fcmax, Fc.norm());
         rb.fcstep = std::max(rb.fcstep, Fc.norm());
     }
+    if(bad)
+        throw std::runtime_error("FEM: non-finite rigid body motion");
 }
 
 bool fem_solid::bodies_near() const
@@ -810,12 +971,36 @@ bool fem_solid::bodies_near() const
     const int nb = (int)body_fixed.size();
     if(nb < 2)
         return false;
-    std::vector<Vec3> lo(nb, Vec3::Constant(1.0e300)), hi(nb, Vec3::Constant(-1.0e300));
-    for(int i = 0; i < nnode(); ++i)
-        if(body[i] >= 0)
+    // bounding boxes of the bodies (min / max: exact in any order, threads)
+    const int nn = nnode();
+    const int nt = par(nn, PAR_NODES) ? nthr : 1;
+    std::vector<tls<std::vector<Vec3>>> lt(nt), ht(nt);
+    for(int tn = 0; tn < nt; ++tn)
+    {
+        lt[tn].v.assign(nb, Vec3::Constant(1.0e300));
+        ht[tn].v.assign(nb, Vec3::Constant(-1.0e300));
+    }
+    FEM_OMP(omp parallel num_threads(nthr) if(par(nn, PAR_NODES)))
+    {
+        const int tn = thread_num();
+        std::vector<Vec3> &l = lt[tn].v;
+        std::vector<Vec3> &h = ht[tn].v;
+        FEM_OMP(omp for schedule(static))
+        for(int i = 0; i < nn; ++i)
         {
-            lo[body[i]] = lo[body[i]].cwiseMin(x[i]);
-            hi[body[i]] = hi[body[i]].cwiseMax(x[i]);
+            const int b = body[i];
+            if(b < 0)
+                continue;
+            l[b] = l[b].cwiseMin(x[i]);
+            h[b] = h[b].cwiseMax(x[i]);
+        }
+    }
+    std::vector<Vec3> lo(nb, Vec3::Constant(1.0e300)), hi(nb, Vec3::Constant(-1.0e300));
+    for(int tn = 0; tn < nt; ++tn)
+        for(int b = 0; b < nb; ++b)
+        {
+            lo[b] = lo[b].cwiseMin(lt[tn].v[b]);
+            hi[b] = hi[b].cwiseMax(ht[tn].v[b]);
         }
     const double d0 = contact_dist * hmin();
     for(int a = 0; a < nb; ++a)
@@ -823,6 +1008,38 @@ bool fem_solid::bodies_near() const
             if((lo[a].array() - d0 <= hi[b].array()).all() && (lo[b].array() - d0 <= hi[a].array()).all())
                 return true;
     return false;
+}
+
+double fem_solid::rigid_terminal_speed(int k, double rho_f, double g) const
+{
+    // speed at which the drag on the largest face (cd 1) balances buoyancy minus weight
+    const rigid_body &rb = rbs[k];
+    if(rb.Aface <= 0.0 || rho_f <= 0.0)
+        return 1.0;
+    return std::max(1.0, std::sqrt(2.0 * g * std::fabs(rho_f * rb.Vol - rb.M) / (rho_f * rb.Aface)));
+}
+
+void fem_solid::limit_rigid_speed(int k, const Vec3 &uf, double vmax)
+{
+    // speed of rigid body k relative to the water uf after the fluid step: the
+    // velocity change without the contact impulse may not raise it above
+    // max(vmax, speed at the start of the step), and above vmax if it reverses
+    rigid_body &rb = rbs[k];
+    const Vec3 vc = rb.Jc / rb.M;
+    const Vec3 vf = rb.V - vc;
+    const Vec3 w0 = rb.V0 - uf, w1 = vf - uf;
+    const double n1 = w1.norm();
+    const double lim = w1.dot(w0) < 0.0 ? vmax : std::max(vmax, w0.norm());
+    if(n1 <= lim)
+        return;
+    Vec3 dV = uf + (lim / n1) * w1 - vf;
+    if(plane_strain)
+        dV(1) = 0.0;
+    rb.V += dV;
+    rb.a_prev += dV / std::max(dt_last, 1.0e-30);
+    for(int i : rb.nodes)
+        v[i] += dV;
+    ++rb.nlimit;
 }
 
 bool fem_solid::rigid_contact_near(double dt) const
@@ -894,6 +1111,7 @@ void fem_solid::make_rigid_fragments(const std::vector<unsigned char> &was_suppo
             rbs.push_back(rigid_body());
             rbs.back().fragment = true;
         }
+    act_dirty = true;
     for(element &e : elems)
         if(e.alive && body[e.n[0]] >= 0 && rid[body[e.n[0]]] >= 0)
         {
@@ -959,7 +1177,7 @@ void fem_solid::update_time_steps()
     dtcrit_el = 1.0e30;
     for(const element &e : elems)
         if(!e.rigid)
-            dtcrit_el = std::min(dtcrit_el, geom(e).L / mats[e.mat].cp);
+            dtcrit_el = std::min(dtcrit_el, geom(e).L / elem_cp(e));
     dtcrit_rig = 1.0e30;
     double Mmin = 1.0e300, kmax = 0.0;
     for(const rigid_body &rb : rbs)

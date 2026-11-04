@@ -1,0 +1,29 @@
+{
+ "base": "cfd_2d_cylinder_singlephase",
+ "np": 2,
+ "steps": 60,
+ "ctrl_add": [
+  "G 1 1",
+  "G 25 4",
+  "G 26 1.0",
+  "G 2 2",
+  "G 3 1",
+  "G 5 0"
+ ],
+ "description": "cfd_2d_cylinder_singlephase on 2 ranks with adaptive refinement: the cells within 4 cells of the cylinder (G 25 4) and the vorticity of the boundary layer and the wake (G 26 1), regrid every 2 steps. The new patches of a regrid cast the cylinder at their resolution, their force objects are made anew (P 81 on both ranks, the pieces of a patch on the rank that holds it).",
+ "tags": [
+  "quick",
+  "2d",
+  "singlephase",
+  "inflow",
+  "solid",
+  "amr",
+  "adaptive",
+  "mpi"
+ ],
+ "covers": [
+  "cfd_amr::regrid: patch_geometry of the new patches",
+  "cfd_amr::free_patch: the force objects of a patch",
+  "cfd_amr::patch_forces on 2 ranks (the sums over the ranks of force_calc)"
+ ]
+}

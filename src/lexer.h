@@ -54,16 +54,48 @@ public:
     lexer(const lexer &b, int);
     virtual ~lexer();
 
+    lexer();
+    // SFLOW AMR patch: control keys copied from b, the patch geometry is set by sflow_amr
+    lexer(const lexer &b, int);
+
+    // the grids of a mesh refinement (lexer_amr.cpp): the runtime state of level 0 at the
+    // construction, the members level 0 changes during the run before every step of a grid
+    void amr_inherit(const lexer &b);
+    void amr_follow(const lexer &b);
+    std::vector<double> amr_last;  // amr_follow: the values it set (the contract check)
+    int amr_own_io = 0;            // a block with open faces (G 54): the IO members of the RUN group are its own (lexer_amr.cpp)
+    int amr_block = 0;             // multi-block grid: the block 1.. of DIVEMesh of a block's level-0 lexer (G 55: of its piece), 0 the native grid (its edge zones, B 522)
+    virtual ~lexer();
+
     //-----functions------------------
     //---- setup
     void lexer_read(ghostcell *);
     void flagini();
+    void flagfree_fnpf();  // FNPF: the 3D flags only the grid set-up reads, given back after the initialisation
     void gridini(ghostcell *);
-    void grid_solids(ghostcell *);  // solids and topography of the grid file for all modules
+    void grid_solids(ghostcell *);   // solids and topography of the grid file for all modules
+    void geometry_ini(ghostcell *);  // horizontal geometry layer of the grid (lexer_geometry.cpp)
+    void curv_report();              // checks of the CURV corridor grid of the geometry file
+    void curv_nodes(ghostcell *);    // G 50: 2D nodes of the curvilinear grid
+    void geometry_bed();             // G 50: cell bed levels from the curvilinear nodes
+    vector<double> geo_zbn;          // G 50: bed level at the 2D nodes
+    int curv_ni = 0, curv_nj = 0;    // G 50: the global nodes of the curvilinear grid
+    vector<double> curv_gx, curv_gy, curv_gz;
+    void curv_node(int K, int L, double &x, double &y, double &z) const;
+    // G 50: the continuous logical coordinates (X, Y) of the physical point (x, y) in the global grid, in level-0
+    // node units (cell K holds K <= X < K+1; the patches of level l subdivide them by 2^l); false: outside the
+    // domain. The same on every rank (one table over the global nodes, built on the first call)
+    struct curv_logical_cache *curvloc = nullptr;
+    bool curv_logical(double x, double y, double &X, double &Y);
+    void curv_logical_free();
     void gcd_ini(ghostcell *);
     void makeflag(int *);
 
     void read_grid();
+    // a grid of this rank given in memory (the box grid of CPM on the mesh refinement, cfd_amr_cpm.cpp): read_grid
+    // takes it instead of the files, and the grid has no geometry entities (its fields are set by its owner)
+    std::vector<char> grid_mem;
+    bool grid_inmem = false;
     void control_calc();
     void gridsize();
     void vecsize(ghostcell *);
@@ -99,6 +131,7 @@ public:
     int *wet, *wet_n;
     int *deep;
     int *wetfix = nullptr;    // mesh refinement (NHFLOW G 30): flag a cell keeps through wetdry, -1 none
+    int amr_patch = 0;        // mesh refinement (CFD, G 15): 1 on the lexer of a patch
     double *amrvb = nullptr;  // mesh refinement (NHFLOW A 550): breaking viscosity of the source of a filled cell, -1 none
     int gcbextra;
     int solidread, toporead, porousread, topoforcing;
@@ -108,6 +141,13 @@ public:
     int **gcb1, **gcb2, **gcb3, **gcb4, **gcb4a;
     int **gcin, **gcout, **gcpress;
     int **gcin4a, **gcout4a;
+    double *gcd1, *gcd2, *gcd3, *gcd4, *gcd4a;
+    double **gcn;
+    int gcextra1, gcextra2, gcextra3, gcextra4, gcextra4a, gcextra6;
+
+    // GHOSTCELL
+    int **gcb1, **gcb2, **gcb3, **gcb4, **gcb4a;
+    int **gcin, **gcout, **gcpress;
     double *gcd1, *gcd2, *gcd3, *gcd4, *gcd4a;
     double **gcn;
     int gcextra1, gcextra2, gcextra3, gcextra4, gcextra4a, gcextra6;
@@ -122,7 +162,6 @@ public:
     int **gcsldfeta4, **gcsldfbed4;
 
     int gcwall_count, gcin_count, gcout_count, gcpress_count, gcfsf_count, gcbed_count;
-    int gcin4a_count, gcout4a_count;
     int gcb1_count, gcb2_count, gcb3_count, gcb4_count, gcb4a_count;
     int gcpara_sum, gcparaco_sum;
     int gcb_fix, gcb_solid, gcb_topo, gcb_fb, solid_gcb_est, topo_gcb_est, solid_gcbextra_est, topo_gcbextra_est, tot_gcbextra_est;
@@ -252,7 +291,8 @@ public:
     double field4time;
     double printtime, sedprinttime, fsfprinttime, fsfsedprinttime, probeprinttime, stateprinttime, exportprinttime;
     double wavetime;
-    int open_xm, open_xp;  // iowave Riemann / Flather edge on x- / x+ (NHFLOW): ghost cells set by iowave
+    int open_xm, open_xp, open_ym, open_yp;  // iowave Riemann / Flather edge on x- / x+ / y- / y+ (NHFLOW): ghost cells set by iowave
+    int river_xm = 1, river_xp = 1;          // NHFLOW B 60: the -i / +i walls are in- / outflow faces (0: walls; a block with one open face, G 54)
 
     // solver watch
     int uiter, viter, witer;
@@ -287,6 +327,7 @@ public:
 
     // free surface
     double psi, psi0;
+    int reini_iter;  // reinitialisation iterations of the next reini call (the momentum classes set it per stage, default F44)
     int pressval;
 
     // PARALELL

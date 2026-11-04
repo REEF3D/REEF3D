@@ -1,0 +1,20 @@
+{
+ "solver": "sflow",
+ "np": 1,
+ "steps": 400,
+ "files": [
+  "blocks.dat"
+ ],
+ "tags": [
+  "2d",
+  "sflow",
+  "curvilinear",
+  "multiblock",
+  "waves"
+ ],
+ "description": "SFLOW relaxation and beach zones on the faces of the blocks (B 520 methods 1, 2 with B 522): a 2 m relaxation zone generating linear waves (B 92 2, H 2 cm, T 1.5 s) on block 1 at x = 0 and a 3 m beach on block 2 at x = 14.4 (ioflow_amr_block::zones2D); the zones of iowave on a Cartesian grid of the same cells to 4e-6 m after 2 s (validation/12_sflow_block_zones).",
+ "covers": [
+  "ioflow_amr_block: SFLOW relaxation (eta, U, V) and beach zones, zones_ini2D",
+  "sflow_amr::patch_objects: open_zones"
+ ]
+}

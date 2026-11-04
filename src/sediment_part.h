@@ -56,7 +56,7 @@ public:
     void start_cfd(lexer *, fdm *, ghostcell *, ioflow *, reinitopo *, solver *) override final;
     void topo_flags_off(lexer *, fdm *, ghostcell *);
     void ini_cfd(lexer *, fdm *, ghostcell *) override final;
-    void start_susp(lexer *, fdm *, ghostcell *, ioflow *, solver *) override final {};
+    void start_susp(lexer *, fdm *, ghostcell *, ioflow *, solver *) override final;
     void update_cfd(lexer *, fdm *, ghostcell *, ioflow *, reinitopo *) override final;
 
     // NHFLOW interface
@@ -114,33 +114,50 @@ private:
     void print_probes(lexer *, ghostcell *, sediment_fdm *, ioflow *) override final {};
     void print_particles(lexer *, sediment_fdm *) override final;
 
-    void print_2D_bedload(lexer *, ghostcell *, ofstream &) override final {};
+    void print_2D_bedload(lexer *, ghostcell *, std::ostream &) override final {};
     void print_3D_bedload(lexer *, ghostcell *, std::vector<char> &, size_t &) override final {};
     void name_ParaView_parallel_bedload(lexer *, ofstream &) override final {};
     void name_ParaView_bedload(lexer *, ostream &, int *, int &) override final {};
     void offset_ParaView_2D_bedload(lexer *, int *, int &) override final {};
     void offset_ParaView_bedload(lexer *, int *, int &) override final {};
 
-    void print_2D_bedshear(lexer *, ghostcell *, ofstream &) override final {};
+    void print_2D_bedshear(lexer *, ghostcell *, std::ostream &) override final {};
     void print_3D_bedshear(lexer *, ghostcell *, std::vector<char> &, size_t &) override final {};
     void name_ParaView_parallel_bedshear(lexer *, ofstream &) override final {};
     void name_ParaView_bedshear(lexer *, ostream &, int *, int &) override final {};
     void offset_ParaView_2D_bedshear(lexer *, int *, int &) override final {};
     void offset_ParaView_bedshear(lexer *, int *, int &) override final {};
 
-    void print_2D_parameter1(lexer *, ghostcell *, ofstream &) override final {};
+    void print_2D_parameter1(lexer *, ghostcell *, std::ostream &) override final {};
     void print_3D_parameter1(lexer *, ghostcell *, std::vector<char> &, size_t &) override final {};
     void name_ParaView_parallel_parameter1(lexer *, ofstream &) override final {};
     void name_ParaView_parameter1(lexer *, ostream &, int *, int &) override final {};
     void offset_ParaView_2D_parameter1(lexer *, int *, int &) override final {};
     void offset_ParaView_parameter1(lexer *, int *, int &) override final {};
 
-    void print_2D_parameter2(lexer *, ghostcell *, ofstream &) override final {};
+    void print_2D_parameter2(lexer *, ghostcell *, std::ostream &) override final {};
     void print_3D_parameter2(lexer *, ghostcell *, std::vector<char> &, size_t &) override final {};
     void name_ParaView_parallel_parameter2(lexer *, ofstream &) override final {};
     void name_ParaView_parameter2(lexer *, ostream &, int *, int &) override final {};
     void offset_ParaView_2D_parameter2(lexer *, int *, int &) override final {};
     void offset_ParaView_parameter2(lexer *, int *, int &) override final {};
+
+    void print_3D_CPM(lexer *, ghostcell *, std::vector<char> &, size_t &) override final;
+
+    void forcing_cfd(lexer *, fdm *, ghostcell *, double, field &, field &, field &) override final;
+
+    // checkpoints (P 48, I 45): the scalars of the bed update and the bed shear, the CPM parcels of the rank
+    void ckpt_state(lexer *, std::vector<double> &) override final;
+    bool ckpt_restore(lexer *, ghostcell *, const std::vector<double> &) override final;
+    void ckpt_rank_state(lexer *, std::vector<double> &) override final;
+    bool ckpt_rank_restore(lexer *, ghostcell *, const std::vector<std::vector<double>> &, bool) override final;
+    void loadmap(lexer *, fdm *, ghostcell *) override final;
+
+    void state_write(lexer *, int) override final;
+    void state_read(lexer *, ghostcell *, int) override final;
+    void name_ParaView_parallel_CPM(lexer *, ofstream &) override final;
+    void name_ParaView_CPM(lexer *, ostream &, int *, int &) override final;
+    void offset_ParaView_CPM(lexer *, int *, int &) override final;
 
     void print_3D_CPM(lexer *, ghostcell *, std::vector<char> &, size_t &) override final;
 
@@ -164,9 +181,9 @@ private:
     topo_relax *prelax;
     bedshear_reduction *preduce;
     topo *ptopo;
-    suspended *psusp;
-    diffusion *psuspdiff;
-    convection *psuspdisc;
+    suspended *psusp = nullptr;
+    diffusion *psuspdiff = nullptr;
+    convection *psuspdisc = nullptr;
     bedshear *pbedshear;
     patchBC_interface *pBC;
     bedload_direction *pbeddir;

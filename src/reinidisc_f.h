@@ -23,20 +23,20 @@ Author: Hans Bihs
 #ifndef REINIDISC_F_H_
 #define REINIDISC_F_H_
 
-#include "ddweno_nug_sf.h"
+#include "ddweno_nug.h"
 #include "field.h"
 #include "reinidisc.h"
 
-class picard;
-
 using namespace std;
 
-class reinidisc_f final : public reinidisc, public ddweno_nug_sf
+class reinidisc_f final : public reinidisc, public ddweno_nug
 {
 public:
-    reinidisc_f(lexer *p);
+    reinidisc_f(lexer *p, bool fixed_interface = false);
     virtual ~reinidisc_f();
     void start(lexer *, fdm *, ghostcell *, field &, field &, int) override final;
+    // the fluid cells (flag4 > 0) of the box b = is, ie, js, je, ks, ke only; L elsewhere untouched
+    void start_box(lexer *, fdm *, ghostcell *, field &, field &, const int *);
 
 private:
     void disc(lexer *, fdm *, ghostcell *, field &, field &);
@@ -50,6 +50,8 @@ private:
     double sx, sy, sz, snorm, op;
 
     double deltax, denom;
+
+    const bool fixed_interface;
 };
 
 #endif

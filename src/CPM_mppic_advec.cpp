@@ -38,9 +38,9 @@ void CPM::advec_mppic(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulence *pt
                       double &F, double &G, double &H, double dt)
 {
     // fluid pressure gradient
-    dPx_val = p->ccipol4a(dPx, PX[n], PY[n], PZ[n]);
-    dPy_val = p->j_dir == 1 ? p->ccipol4a(dPy, PX[n], PY[n], PZ[n]) : 0.0;
-    dPz_val = p->ccipol4a(dPz, PX[n], PY[n], PZ[n]);
+    dPx_val = cip4a(p, dPx, PX[n], PY[n], PZ[n]);
+    dPy_val = p->j_dir == 1 ? cip4a(p, dPy, PX[n], PY[n], PZ[n]) : 0.0;
+    dPz_val = cip4a(p, dPz, PX[n], PY[n], PZ[n]);
 
     // gravity
     Bx = p->W20;
@@ -72,17 +72,29 @@ void CPM::advec_mppic(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulence *pt
         // level are part of the bed surface, they are moved by the layer only (fluid at rest at the
         // grain level); moving grains (suspension, settling, avalanches) see the resolved flow
         // reduced towards the bed, u delta/h
-        if(p->Q58 > 0)
+        // Q 74 1: the grains of the bed that were not released into the suspension (Hop = 0) see no resolved
+        // flow anywhere: they are moved by the layer, gravity and the packed bed only. Without it a bed grain
+        // more than a cell above the fluid bed (deposited on a crest, lifted by the flow up a lee slope) took
+        // the full resolved drag, a second pickup without a closure and not accelerated by Q 65 (pipeline:
+        // 0.1-0.8 times the flux of the layer on the lee slope and the only flux beyond the crest of the mound,
+        // validations 18 and 21)
+        if(p->Q58 > 0 && p->Q74 == 1 && P.Hop[n] == 0.0)
+        {
+            uf = vf = wf = 0.0;
+            liftx = lifty = liftz = 0.0;
+        }
+
+        else if(p->Q58 > 0)
         {
             double topo = ptopo(p, a, PX[n], PY[n], PZ[n]);
 
             if(topo >= 0.0)
             {
-                i = p->posc_i(PX[n]);
-                j = p->posc_j(PY[n]);
-                k = p->posc_k(PZ[n]);
+                i = pci(p, n, PX[n]);
+                j = pcj(p, n, PY[n]);
+                k = pck(p, n, PZ[n]);
 
-                double h = p->j_dir == 1 ? (1.0 / 3.0) * (p->DXN[IP] + p->DYN[JP] + p->DZN[KP]) : 0.5 * (p->DXN[IP] + p->DZN[KP]);
+                double h = p->DZN[KP];
 
                 if(topo < h)
                 {
@@ -101,7 +113,7 @@ void CPM::advec_mppic(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulence *pt
     // two-way coupling, S 10 2 (porous bed): interstitial velocity u/eps
     if(p->Q50 == 1 && p->S10 == 2)
     {
-        double eps = MAX(1.0 - p->ccipol4a(Ts, PX[n], PY[n], PZ[n]), 1.0 - theta_max);
+        double eps = MAX(1.0 - cip4a(p, Ts, PX[n], PY[n], PZ[n]), 1.0 - theta_max);
         eps = MIN(eps, 1.0);
         uf /= eps;
         vf /= eps;
@@ -117,7 +129,7 @@ void CPM::advec_mppic(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulence *pt
     Vrel = vf - PV[n];
     Wrel = wf - PW[n];
 
-    Tsval = p->ccipol4a(Ts, PX[n], PY[n], PZ[n]);
+    Tsval = cip4a(p, Ts, PX[n], PY[n], PZ[n]);
 
     // drag coefficient
     Dpx = drag_model(p, P.D[n], P.RO[n], sqrt(Urel * Urel + Vrel * Vrel + Wrel * Wrel), Tsval);
@@ -131,9 +143,9 @@ void CPM::advec_mppic(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulence *pt
     // inter-particle normal stress
     if(p->Q12 > 0)
     {
-        dTx_val = p->ccipol4a(dTx, PX[n], PY[n], PZ[n]);
-        dTy_val = p->j_dir == 1 ? p->ccipol4a(dTy, PX[n], PY[n], PZ[n]) : 0.0;
-        dTz_val = p->ccipol4a(dTz, PX[n], PY[n], PZ[n]);
+        dTx_val = cip4a(p, dTx, PX[n], PY[n], PZ[n]);
+        dTy_val = p->j_dir == 1 ? cip4a(p, dTy, PX[n], PY[n], PZ[n]) : 0.0;
+        dTz_val = cip4a(p, dTz, PX[n], PY[n], PZ[n]);
 
         double Tdiv = P.RO[n] * MAX(Tsval, 0.5 * theta_bed);
 
@@ -150,26 +162,52 @@ void CPM::advec_mppic(lexer *p, fdm *a, part &P, sediment_fdm *s, turbulence *pt
     // solid forcing
     double fx, fy, fz;
 
-    // with the bedload layer (Q 58) the bed level of the fluid is not the bed of the parcels (single
-    // valued, relaxed in time): the parcels feel the forcing of the solid bodies and of their own bed
-    // (iso-surface of the solid fraction), as the forcing of the fluid does without the layer
+    // jammed bed (Q 58, S 10 1): below a mobile surface layer of thickness psi = Q 64 h the bed of the
+    // parcels (iso-surface of the solid fraction) is rigid, as are the solid bodies. The surface layer
+    // is free (no constraint), the transition to the rigid bed is a smooth Heaviside over -2 psi .. -psi.
+    // Slopes then fail by avalanches of the surface layer, held by the Coulomb friction (repose);
+    // deep failures need the yield of the column, Q 67.
+    // The constraint is applied to the new velocity after drag and friction, u -> (1 - Hs) u
+    // (Hjam, in the time schemes): an explicit forcing would leave the velocity dt*F of the
+    // other forces in the jammed bed, a creep of mm/s. A partial constraint is a relaxation per
+    // sub-step, so it is kept out of the mobile layer.
+    // (Without the layer the forcing of the fluid does the same with the fluid's bed, X 41.)
+    Hjam = 0.0;
+
     if(p->Q58 > 0 && p->S10 == 1)
     {
-        i = p->posc_i(PX[n]);
-        j = p->posc_j(PY[n]);
-        k = p->posc_k(PZ[n]);
+        i = pci(p, n, PX[n]);
+        j = pcj(p, n, PY[n]);
+        k = pck(p, n, PZ[n]);
 
-        double psi = p->X41 * (p->j_dir == 1 ? (1.0 / 3.0) * (p->DXN[IP] + p->DYN[JP] + p->DZN[KP]) : 0.5 * (p->DXN[IP] + p->DZN[KP]));
+        double psi = p->Q64 * p->DZN[KP];
         double phi = ptopo(p, a, PX[n], PY[n], PZ[n]);
 
         if(p->solidread > 0)
             phi = MIN(phi, p->ccipol4_b(a->solid, PX[n], PY[n], PZ[n]));
 
-        double Hs = phi >= psi ? 0.0 : (phi <= -psi ? 1.0 : 0.5 * (1.0 - phi / psi - (1.0 / PI) * sin(PI * phi / psi)));
+        double xi = phi + 1.5 * psi;
+        double hw = 0.5 * psi;
+        Hjam = xi >= hw ? 0.0 : (xi <= -hw ? 1.0 : 0.5 * (1.0 - xi / hw - (1.0 / PI) * sin(PI * xi / hw)));
 
-        fx = Hs * (0.0 - PU[n]) / dt;
-        fy = Hs * (0.0 - PV[n]) / dt;
-        fz = Hs * (0.0 - PW[n]) / dt;
+        // Q 67: the bed below the surface layer is jammed only within the Mohr-Coulomb yield of its column
+        if(p->Q67 > 0 && Hjam > 0.0)
+            Hjam *= yield_weight(p, PX[n], PY[n], PZ[n]);
+
+        // Q 69: the bed is jammed only where the seepage leaves its contact network loaded,
+        // ratio of the overburden with and without the seepage: none below 5 %, full above 30 %
+        if(p->Q69 > 0 && Hjam > 0.0)
+        {
+            double pn = cip4a(p, Pnos, PX[n], PY[n], PZ[n]);
+
+            if(pn > 1.0e-12)
+            {
+                double r = cip4a(p, Pov, PX[n], PY[n], PZ[n]) / pn;
+                Hjam *= MAX(0.0, MIN(1.0, (r - 0.05) / 0.25));
+            }
+        }
+
+        fx = fy = fz = 0.0;
     }
     else
     {
@@ -223,17 +261,17 @@ void CPM::nearbed_velocity(lexer *p, fdm *a, double xp, double yp, double zp, do
     if(topo >= 0.0)
         return;
 
-    i = p->posc_i(xp);
-    j = p->posc_j(yp);
-    k = p->posc_k(zp);
+    i = pci(p, n, xp);
+    j = pcj(p, n, yp);
+    k = pck(p, n, zp);
 
-    double h = p->j_dir == 1 ? (1.0 / 3.0) * (p->DXN[IP] + p->DYN[JP] + p->DZN[KP]) : 0.5 * (p->DXN[IP] + p->DZN[KP]);
+    double h = p->DZN[KP];
     double delta = -topo;
 
     // pore water with the grains
-    double ug = p->ccipol4a(Us, xp, yp, zp);
-    double vg = p->j_dir == 1 ? p->ccipol4a(Vs, xp, yp, zp) : 0.0;
-    double wg = p->ccipol4a(Ws, xp, yp, zp);
+    double ug = cip4a(p, Us, xp, yp, zp);
+    double vg = p->j_dir == 1 ? cip4a(p, Vs, xp, yp, zp) : 0.0;
+    double wg = cip4a(p, Ws, xp, yp, zp);
 
     nb_ug = ug;
     nb_vg = vg;
@@ -362,7 +400,7 @@ void CPM::bagnold_update(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
         for(j = 0; j < p->knoy; ++j)
         {
             k = MAX(0, MIN(p->knoz - 1, p->posc_k(s->bedzh(i, j))));
-            double h = p->j_dir == 1 ? (1.0 / 3.0) * (p->DXN[IP] + p->DYN[JP] + p->DZN[KP]) : 0.5 * (p->DXN[IP] + p->DZN[KP]);
+            double h = p->DZN[KP];
             double zr = s->bedzh(i, j) + 0.5 * h;
 
             double ur = p->ccipol1c(a->u, p->XP[IP], p->YP[JP], zr);
@@ -380,14 +418,14 @@ void CPM::bagnold_update(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
     for(n = 0; n < P.index; ++n)
         if(P.Flag[n] == ACTIVE)
         {
-            i = p->posc_i(P.X[n]);
-            j = p->j_dir == 1 ? p->posc_j(P.Y[n]) : 0;
+            i = pci(p, n, P.X[n]);
+            j = p->j_dir == 1 ? pcj(p, n, P.Y[n]) : 0;
 
             if(i < 0 || i >= p->knox || j < 0 || j >= p->knoy)
                 continue;
 
-            k = p->posc_k(P.Z[n]);
-            double h = p->j_dir == 1 ? (1.0 / 3.0) * (p->DXN[IP] + p->DYN[JP] + p->DZN[KP]) : 0.5 * (p->DXN[IP] + p->DZN[KP]);
+            k = pck(p, n, P.Z[n]);
+            double h = p->DZN[KP];
 
             // grains of the bed below the exposed layer do not count
             if(ptopo(p, a, P.X[n], P.Y[n], P.Z[n]) < -2.0 * MIN(P.D[n], 0.25 * h))
@@ -397,7 +435,7 @@ void CPM::bagnold_update(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
             double sp = sqrt(P.U[n] * P.U[n] + P.V[n] * P.V[n] + P.W[n] * P.W[n]);
             double fm = MIN(1.0, sp / MAX(0.1 * ustar, 1.0e-10));
 
-            tauG[(i + 1) * nj + j + 1] += fm * mu_s * vpar * (p->S22 - p->W1) * gmag / (p->DXN[IP] * p->DYN[JP]);
+            tauG[(i + 1) * nj + j + 1] += fm * mu_s * (vpar * P.Wt[n]) * (p->S22 - p->W1) * gmag / (p->DXN[IP] * p->DYN[JP]);
         }
 
     // a parcel stands for many grains and a bed column holds less than one moving parcel
@@ -454,8 +492,8 @@ double CPM::shelter_factor(lexer *p, sediment_fdm *s, double xp, double yp, doub
     if(p->Q57 != 1 || tauG.empty())
         return 1.0;
 
-    int ii = p->posc_i(xp);
-    int jj = p->j_dir == 1 ? p->posc_j(yp) : 0;
+    int ii = pci(p, n, xp);
+    int jj = p->j_dir == 1 ? pcj(p, n, yp) : 0;
 
     if(ii < 0 || ii >= p->knox || jj < 0 || jj >= p->knoy)
         return 1.0;
@@ -494,46 +532,63 @@ void CPM::exposure_update(lexer *p, fdm *a)
     expo.assign(P.index, 0.0);
 
     const int nj = p->knoy + 2;
+    const size_t nc = size_t(p->knox + 2) * nj;
     const double vpar = P.ParcelFactor * Vp;
 
-    std::vector<std::vector<std::pair<double, int>>> col((p->knox + 2) * nj);
+    // the bed parcels of each column (flat lists, in the order of the parcels), then sorted from the top
+    std::vector<int> &cn = ex_col;
+    cn.assign(P.index, -1);
+    ex_off.assign(nc + 1, 0);
 
     for(n = 0; n < P.index; ++n)
         if(P.Flag[n] >= ACTIVE)
         {
-            i = p->posc_i(P.X[n]);
-            j = p->j_dir == 1 ? p->posc_j(P.Y[n]) : 0;
+            i = pci(p, n, P.X[n]);
+            j = p->j_dir == 1 ? pcj(p, n, P.Y[n]) : 0;
 
             if(i < 0 || i >= p->knox || j < 0 || j >= p->knoy)
                 continue;
 
-            if(ptopo(p, a, P.X[n], P.Y[n], P.Z[n]) >= 0.0 || P.Hop[n] > 0.0)
+            if(ptopo_p(p, a, int(n), P.X[n], P.Y[n], P.Z[n]) >= 0.0 || P.Hop[n] > 0.0)
                 continue;
 
-            col[(i + 1) * nj + j + 1].push_back(std::make_pair(P.Z[n], int(n)));
+            cn[n] = (i + 1) * nj + j + 1;
+            ++ex_off[cn[n] + 1];
         }
+
+    for(size_t c = 0; c < nc; ++c)
+        ex_off[c + 1] += ex_off[c];
+
+    ex_list.resize(ex_off[nc]);
+    ex_fill.assign(ex_off.begin(), ex_off.end() - 1);
+
+    for(n = 0; n < P.index; ++n)
+        if(cn[n] >= 0)
+            ex_list[ex_fill[cn[n]]++] = std::make_pair(P.Z[n], int(n));
 
     for(i = 0; i < p->knox; ++i)
         for(j = 0; j < p->knoy; ++j)
         {
-            auto &c = col[(i + 1) * nj + j + 1];
+            const size_t c = size_t(i + 1) * nj + j + 1;
+            auto b = ex_list.begin() + ex_off[c];
+            auto e = ex_list.begin() + ex_off[c + 1];
 
-            if(c.empty())
+            if(b == e)
                 continue;
 
-            std::sort(c.begin(), c.end(), [](const std::pair<double, int> &a1, const std::pair<double, int> &a2)
+            std::sort(b, e, [](const std::pair<double, int> &a1, const std::pair<double, int> &a2)
                       { return a1.first > a2.first; });
 
             double Ve = theta_0 * p->S20 * p->DXN[IP] * p->DYN[JP];
 
-            for(size_t q = 0; q < c.size() && Ve > 0.0; ++q)
+            for(auto q = b; q != e && Ve > 0.0; ++q)
             {
-                int nn = c[q].second;
-                double f = MIN(1.0, Ve / vpar);
+                int nn = q->second;
+                const double vp = vpar * P.Wt[nn];
+                double f = MIN(1.0, Ve / vp);
 
                 // exposure weight: share of the parcel in the top grain layer
                 expo[nn] = f;
-                Ve -= f * vpar;
+                Ve -= f * vp;
             }
         }
-}

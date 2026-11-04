@@ -1,0 +1,8 @@
+{
+ "base": "nhflow_2d_awa",
+ "ctrl_add": ["B 532 1"],
+ "steps": 1000,
+ "description": "nhflow_2d_awa with the beach relative to the wave theory (B 532 1): the Riemann edge at x+ has the waves of the theory outside (surface, velocity per level, non-hydrostatic pressure), started at x / c_g; 1000 steps so that the waves reach the beach.",
+ "tags": ["2d", "nhflow", "iowave", "waves", "riemann"],
+ "covers": ["B 532 1 (NHFLOW beach edge with sources)", "nhflow_edge_pressure at x+", "iowave::ramp_beach"]
+}

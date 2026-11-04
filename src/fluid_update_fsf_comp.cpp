@@ -23,6 +23,8 @@ Author: Hans Bihs
 #include "fluid_update_fsf_comp.h"
 #include "fdm.h"
 #include "ghostcell.h"
+#include "heaviside.h"
+#include "interface_width.h"
 #include "lexer.h"
 
 fluid_update_fsf_comp::fluid_update_fsf_comp(lexer *p, fdm *a, ghostcell *pgc) : dx(p->DXM),
@@ -48,13 +50,33 @@ void fluid_update_fsf_comp::start(lexer *p, fdm *a, ghostcell *pgc, field &u, fi
         iocheck = 0;
     iter = p->count;
 
-    if(p->j_dir == 0)
-        epsi = p->F45 * (1.0 / 2.0) * (p->DXM + p->DZM);
-
-    if(p->j_dir == 1)
-        epsi = p->F45 * (1.0 / 3.0) * (p->DXM + p->DYM + p->DZM);
-
     LOOP
+    {
+
+        ro_air = (0.0035 * (101325.0 + a->press(i, j, k))) / (273.15 + p->W31);
+
+        H = heaviside(a->phi(i, j, k), interface_width(p, a->phi, i, j, k));
+
+        if(a->phi(i, j, k) >= 0.0)
+            Hro = 1.0;
+
+        if(a->phi(i, j, k) < 0.0)
+            Hro = 0.0;
+
+        a->ro(i, j, k) = ro_water * H + ro_air * (1.0 - H);
+        a->visc(i, j, k) = visc_water * H + visc_air * (1.0 - H);
+
+        p->volume1 += p->DXN[IP] * p->DYN[JP] * p->DZN[KP] * H * PORVAL4;
+        p->volume2 += p->DXN[IP] * p->DYN[JP] * p->DZN[KP] * (1.0 - H) * PORVAL4;
+    }
+
+    pgc->start4(p, a->ro, gcval_ro);
+    pgc->start4(p, a->visc, gcval_visc);
+
+    p->volume1 = pgc->globalsum(p->volume1);
+    p->volume2 = pgc->globalsum(p->volume2);
+
+    if(p->mpirank == 0 && iocheck == 0 && (p->count % p->P12 == 0))
     {
 
         ro_air = (0.0035 * (101325.0 + a->press(i, j, k))) / (273.15 + p->W31);

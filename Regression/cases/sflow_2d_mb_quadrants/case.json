@@ -1,0 +1,19 @@
+{
+ "description": "SFLOW multi-block level 0 (G 50 1, DIVEMesh R 20 1): four curvilinear blocks around a regular vertex, their indices turned by 0, 90, 180 and 270 deg, dam break over the vertex, bumpy bed. The same solution as one block to round-off (p2tests/t2).",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 40,
+ "files": [
+  "blocks.dat"
+ ],
+ "tags": [
+  "2d",
+  "sflow",
+  "curvilinear",
+  "multiblock"
+ ],
+ "covers": [
+  "reefamr_block: blocks 1.. as level-0 patches, block_resolve (two hops at the vertex), fill_run0, ring of the native grid",
+  "DIVEMesh R 20 1: interfaces, transforms, BLKS section; geo_mesh BLKS reader"
+ ]
+}

@@ -29,6 +29,7 @@ Author: Hans Bihs
 #include <vector>
 
 class wind;
+class met_forcing;
 class vrans;
 class sediment;
 
@@ -47,12 +48,25 @@ public:
     void step_begin(lexer *, fdm_nhf *, ghostcell *, nhflow_stage_obj &) override final;
     void phase_F(lexer *, fdm_nhf *, ghostcell *, nhflow_stage_obj &, int) override final;
     void phase_M(lexer *, fdm_nhf *, ghostcell *, nhflow_stage_obj &, int) override final;
+    void phase_D(lexer *, fdm_nhf *, ghostcell *, nhflow_stage_obj &, int, int) override final;
     void phase_P1(lexer *, fdm_nhf *, ghostcell *, nhflow_stage_obj &, int) override final;
     void phase_P2(lexer *, fdm_nhf *, ghostcell *, nhflow_stage_obj &, int) override final;
     double stage_alpha(int s) const override final { return s == 0 ? 1.0 : 0.5; }
     void phase_E(lexer *, fdm_nhf *, ghostcell *, nhflow_stage_obj &, int) override final;
     slice &stage_WL(fdm_nhf *, int) override final;
     double *stage_UH(fdm_nhf *, int, int) override final;
+
+    void ckpt_fields(const std::function<void(const char *, char, double *)> &fd, const std::function<void(const char *, char, int *)> &fi) override
+    {
+        fd("mom_UHDIFF", 'C', UHDIFF);
+        fd("mom_VHDIFF", 'C', VHDIFF);
+        fd("mom_WHDIFF", 'C', WHDIFF);
+        fsfbody_ckpt_fields(fd);
+        fd("mom_UHRK1", 'C', UHRK1);
+        fd("mom_VHRK1", 'C', VHRK1);
+        fd("mom_WHRK1", 'C', WHRK1);
+        fd("mom_WLRK1", 'S', WLRK1.V);
+    }
 
     double *UHDIFF, *VHDIFF, *WHDIFF;
     double *UHRK1, *VHRK1, *WHRK1;
@@ -68,6 +82,7 @@ private:
     sixdof *p6dof;
     nhflow_forcing *pnhfdf;
     wind *pwind;
+    met_forcing *pmet = nullptr;  // atmospheric forcing (W 200)
     vrans_nhflow *pvrans;
     sediment *psed;
 };

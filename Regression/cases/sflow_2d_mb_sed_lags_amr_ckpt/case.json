@@ -1,0 +1,22 @@
+{
+ "base": "sflow_2d_mb_sed_lags_amr",
+ "ctrl_set": {
+  "P 48": "20",
+  "P 49": "0"
+ },
+ "description": "sflow_2d_mb_sed_lags_amr with a checkpoint every 20 steps, all kept (P 48 20, P 49 0): the uninterrupted run of sflow_2d_mb_sed_lags_amr_restart.",
+ "tags": [
+  "2d",
+  "sflow",
+  "multiblock",
+  "amr",
+  "bend",
+  "lags",
+  "curvilinear",
+  "sediment",
+  "checkpoint"
+ ],
+ "covers": [
+  "sflow_amr::ckpt_write: sediment transport (S 10 1) on the multi-block grid with refinement"
+ ]
+}

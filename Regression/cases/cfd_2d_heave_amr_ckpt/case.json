@@ -1,0 +1,20 @@
+{
+ "base": "cfd_2d_heave_amr",
+ "steps": 40,
+ "ctrl_set": {
+  "P 48": "10",
+  "P 49": "0"
+ },
+ "description": "cfd_2d_heave_amr (heave decay of a light box, density 500, G 7 0: the loads from the patches, the coupling with the artificial added mass) with a checkpoint every 10 steps: the uninterrupted run of cfd_2d_heave_amr_restart.",
+ "tags": [
+  "2d",
+  "6dof",
+  "floating",
+  "levelset",
+  "amr",
+  "checkpoint"
+ ],
+ "covers": [
+  "sixdof_obj::cfd_added_mass and its state (the acceleration of the last stage) in the checkpoint"
+ ]
+}

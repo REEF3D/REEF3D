@@ -44,30 +44,4 @@ void nhflow_sigma::bed_acceleration(lexer *p, fdm_nhf *d, ghostcell *pgc, slice 
         d->un(i, j) = U[IJK];
         d->vn(i, j) = V[IJK];
     }
-
-    /*
-    double du,dv;
-    double Uda,Vda;
-    k=0;
-    SLICELOOP4
-    {
-
-        Uda=Vda=0.0;
-        KLOOP
-        {
-        Uda += d->U[IJK]*p->DZN[KP]*d->WL(i,j);
-        Vda += d->V[IJK]*p->DZN[KP]*d->WL(i,j);
-        }
-
-        Uda=Uda/d->WL(i,j);
-        Vda=Vda/d->WL(i,j);
-
-    du = (Uda - d->un(i,j))/p->dt;
-    dv = (Vda - d->vn(i,j))/p->dt;
-
-    d->dudt(i,j) = sqrt(du*du + dv*dv);
-
-    d->un(i,j) = Uda;
-    d->vn(i,j) = Vda;
-    }*/
 }

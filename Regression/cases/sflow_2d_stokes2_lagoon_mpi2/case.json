@@ -1,0 +1,17 @@
+{
+ "base": "sflow_2d_stokes2",
+ "np": 2,
+ "ctrl_set": {"P 10": "1", "P 181": "100", "P 18": "1"},
+ "tags": [
+  "2d",
+  "sflow",
+  "waves",
+  "mpi",
+  "lagoon"
+ ],
+ "description": "as sflow_2d_stokes2 on 2 MPI ranks, its free surface and bed written to the LAGOON store instead of the VTP files (P 18 1): REEF3D_SFLOW.lagoon, outputs free_surface and bed; the solution is that of the case without the store.",
+ "covers": [
+  "lagoon_surface for SFLOW (sflow_vtp_fsf, sflow_vtp_bed), P 18 1 without the pvtp",
+  "lagoon_output::finish_all at the end of the SFLOW loop"
+ ]
+}

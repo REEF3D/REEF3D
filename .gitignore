@@ -1,14 +1,15 @@
 # Codelite build files
 src/Makefile*
 **/.codelite
-.DS_Store
-**/.DS_Store
 All
 Release
 Dev
 Debug
 src/*.txt
 src/*.mk
+# CodeLite precompiled header (built from src/reef3d_pch.h)
+src/reef3d_pch.h.pch
+src/reef3d_pch.h.gch
 # GNUMake build files
 bin
 build
@@ -24,6 +25,8 @@ src/.ctagsd
 *.json
 # MacOS files
 .DS_Store
+# Git patch files
+*.patch
 
 # regression suite run directories
 tests/regression/runs/

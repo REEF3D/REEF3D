@@ -1,0 +1,30 @@
+{
+ "base": "sflow_2d_amr_bar_bous_ckpt",
+ "same_as": "sflow_2d_amr_bar_bous_ckpt",
+ "chain": [
+  {
+   "case": "sflow_2d_amr_bar_bous_ckpt",
+   "copy": [
+    "REEF3D_Checkpoint",
+    "REEF3D_SFLOW_AMR",
+    "REEF3D_SFLOW_WSF",
+    "REEF3D_SFLOW_ProbePoint",
+    "REEF3D_SFLOW_WSFLINE"
+   ]
+  }
+ ],
+ "ctrl_set": {
+  "I 45": "50"
+ },
+ "description": "the restart of sflow_2d_amr_bar_bous_ckpt from step 50 (I 45 50) with its outputs copied in: the Boussinesq bar (A 220 4): u_a and M on all levels continue from the checkpoint; regression.py ranks: the final state and the text outputs bitwise those of the uninterrupted run.",
+ "tags": [
+  "2d",
+  "sflow",
+  "amr",
+  "bous",
+  "checkpoint"
+ ],
+ "covers": [
+  "the bitwise restart of SFLOW + mesh refinement: the Boussinesq bar (A 220 4)"
+ ]
+}

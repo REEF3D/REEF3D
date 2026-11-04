@@ -1,0 +1,16 @@
+{
+ "base": "seastate_2d_phase17_fas",
+ "np": 2,
+ "same_as": "seastate_2d_phase17_fas",
+ "description": "as seastate_2d_phase17_fas on 2 ranks: the composite sweeps pipelined, the coarse sweeps of level 0 pipelined as on a uniform grid (no patch values in their boundary tiles), the residual sweeps from the current halo; bitwise the result of one rank (regression.py ranks).",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate",
+  "amr",
+  "mpi"
+ ],
+ "covers": [
+  "FAS with the pipelined sweeps of the refinement"
+ ]
+}

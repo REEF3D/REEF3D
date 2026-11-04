@@ -1,0 +1,20 @@
+{
+ "base": "sflow_2d_mb_quadrants",
+ "ctrl_add": [
+  "A 226 1",
+  "A 227 0.55",
+  "A 228 0.2"
+ ],
+ "description": "sflow_2d_mb_quadrants semi-implicit: four turned curvilinear blocks (G 50 1), the eta system over all blocks (level-0 RAS).",
+ "tags": [
+  "2d",
+  "sflow",
+  "semi_implicit",
+  "curvilinear",
+  "multiblock"
+ ],
+ "covers": [
+  "reefamr_si blocks (level 0, turned faces)"
+ ],
+ "architect": "Hans Bihs"
+}

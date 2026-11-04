@@ -1,0 +1,18 @@
+{
+ "description": "2D sealed box, half water, all walls closed; a piston (B 92 21 from wavemaker.dat, B 110 below the free surface) pushes water in and compresses the air pocket. Isentropic air compressibility in the continuity equation, W 32 2. In longer runs (4 s) the air pressure follows p0 (V0/V)^1.4 to within 0.3 % after start-up. Incompressible air has no solution here.",
+ "np": 1,
+ "steps": 100,
+ "files": ["wavemaker.dat"],
+ "tags": [
+  "quick",
+  "2d",
+  "levelset",
+  "compressible"
+ ],
+ "covers": [
+  "W 32 2 pjm_corr comp_terms (dp/dt and u.grad p)",
+  "closed domain without pressure pinning (poisson_pcorr)",
+  "piston wavemaker B 92 21 with B 110",
+  "pressure probes P64"
+ ]
+}

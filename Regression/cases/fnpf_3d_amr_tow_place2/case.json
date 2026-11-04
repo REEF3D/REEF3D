@@ -1,0 +1,21 @@
+{
+ "description": "fnpf_3d_amr_tow on 2 ranks, placement test mode (G 40 2): migration at every regrid, body grids of placed patches, triangle ownership.",
+ "solver": "fnpf",
+ "np": 2,
+ "steps": 12,
+ "tags": [
+  "3d",
+  "fnpf",
+  "amr",
+  "6dof",
+  "mpi",
+  "place"
+ ],
+ "covers": [
+  "FNPF placement: old_run, prolong_cols, owns_point"
+ ],
+ "base": "fnpf_3d_amr_tow",
+ "ctrl_add": [
+  "G 40 2"
+ ]
+}

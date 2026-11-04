@@ -20,108 +20,105 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"nhflow_les_io.h"
-#include"lexer.h"
-#include"fdm_nhf.h"
-#include"ghostcell.h"
-#include<cstring>
+#include "nhflow_les_io.h"
+#include "fdm_nhf.h"
+#include "ghostcell.h"
+#include "lexer.h"
+#include <cstring>
 
-nhflow_les_io::nhflow_les_io(lexer *p, fdm_nhf *d) : nhflow_strain(p,d)
+nhflow_les_io::nhflow_les_io(lexer *p, fdm_nhf *d) : nhflow_strain(p, d)
 {
-
 }
 
 nhflow_les_io::~nhflow_les_io()
 {
 }
 
-void nhflow_les_io::print_3D(lexer* p, fdm_nhf *d, ghostcell *pgc,  std::vector<char> &buffer, size_t &m)
+void nhflow_les_io::print_3D(lexer *p, fdm_nhf *d, ghostcell *pgc, std::vector<char> &buffer, size_t &m)
 {
-    
+
     // eddyv
-    iin=4*(p->pointnum);
-    std::memcpy(&buffer[m],&iin,sizeof(int));
-    m+=sizeof(int);
+    iin = 4 * (p->pointnum);
+    std::memcpy(&buffer[m], &iin, sizeof(int));
+    m += sizeof(int);
 
     TPLOOP
-	{
-	if(p->j_dir==0)
     {
-    jj=j;
-    j=0;
-	ffn=float(0.5*(d->EV[IJK]+d->EV[IJKp1]));
-    j=jj;
-    }
-    
-    if(p->j_dir==1)
-	ffn=float(0.25*(d->EV[IJK]+d->EV[IJKp1]+d->EV[IJp1K]+d->EV[IJp1Kp1]));
-        
-        
-	std::memcpy(&buffer[m],&ffn,sizeof(float));
-	m+=sizeof(float);
-	}
+        if(p->j_dir == 0)
+        {
+            jj = j;
+            j = 0;
+            ffn = float(0.25 * (d->EV[IJK] + d->EV[Ip1JK] + d->EV[IJKp1] + d->EV[Ip1JKp1]));
+            j = jj;
+        }
 
+        if(p->j_dir == 1)
+            ffn = float(0.125 * (d->EV[IJK] + d->EV[Ip1JK] + d->EV[IJp1K] + d->EV[Ip1Jp1K] + d->EV[IJKp1] + d->EV[Ip1JKp1] + d->EV[IJp1Kp1] + d->EV[Ip1Jp1Kp1]));
+
+        std::memcpy(&buffer[m], &ffn, sizeof(float));
+        m += sizeof(float);
+    }
 }
 
 double nhflow_les_io::ccipol_kinval(lexer *p, ghostcell *pgc, double xp, double yp, double zp)
 {
-    double val=0.0;
+    double val = 0.0;
 
-    //val=p->ccipol4( kin, xp, yp, zp);
+    // val=p->ccipol4( kin, xp, yp, zp);
 
     return val;
 }
 
 double nhflow_les_io::ccipol_epsval(lexer *p, ghostcell *pgc, double xp, double yp, double zp)
 {
-    double val=0.0;
+    double val = 0.0;
 
-    //val=p->ccipol4( eps, xp, yp, zp);
+    // val=p->ccipol4( eps, xp, yp, zp);
 
     return val;
 }
 
 double nhflow_les_io::ccipol_a_kinval(lexer *p, ghostcell *pgc, double xp, double yp, double zp)
 {
-    double val=0.0;
+    double val = 0.0;
 
-    //val=p->ccipol4a( kin, xp, yp, zp);
+    // val=p->ccipol4a( kin, xp, yp, zp);
 
     return val;
 }
 
 double nhflow_les_io::ccipol_a_epsval(lexer *p, ghostcell *pgc, double xp, double yp, double zp)
 {
-    double val=0.0;
+    double val = 0.0;
 
-    //val=p->ccipol4a( eps, xp, yp, zp);
+    // val=p->ccipol4a( eps, xp, yp, zp);
 
     return val;
 }
 
 double nhflow_les_io::kinval(int ii, int jj, int kk)
 {
-    double val=0.0;
+    double val = 0.0;
 
-    //val=kin(ii,jj,kk);
+    // val=kin(ii,jj,kk);
 
     return val;
 }
 
 double nhflow_les_io::epsval(int ii, int jj, int kk)
 {
-    double val=0.0;
+    double val = 0.0;
 
-    //val=eps(ii,jj,kk);
+    // val=eps(ii,jj,kk);
 
     return val;
 }
 
-void nhflow_les_io::kinget(int ii, int jj, int kk,double val)
+void nhflow_les_io::kinget(int ii, int jj, int kk, double val)
 {
 }
 
-void nhflow_les_io::epsget(int ii, int jj, int kk,double val)
+void nhflow_les_io::epsget(int ii, int jj, int kk, double val)
 {
 }
 
@@ -131,53 +128,47 @@ void nhflow_les_io::gcupdate(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
 void nhflow_les_io::name_ParaView_parallel(lexer *p, ofstream &result)
 {
-    result<<"<PDataArray type=\"Float32\" Name=\"eddyv\"/>\n";
+    result << "<PDataArray type=\"Float32\" Name=\"eddyv\"/>\n";
 }
 
 void nhflow_les_io::name_ParaView(lexer *p, std::stringstream &result, int *offset, int &n)
 {
-    result<<"<DataArray type=\"Float32\" Name=\"eddyv\" format=\"appended\" offset=\""<<offset[n]<<"\"/>\n";
+    result << "<DataArray type=\"Float32\" Name=\"eddyv\" format=\"appended\" offset=\"" << offset[n] << "\"/>\n";
     ++n;
 }
 
 void nhflow_les_io::offset_ParaView(lexer *p, int *offset, int &n)
 {
-    offset[n]=offset[n-1]+4*(p->pointnum)+4;
-	++n;
+    offset[n] = offset[n - 1] + 4 * (p->pointnum) + 4;
+    ++n;
 }
 
-
-void nhflow_les_io::ini(lexer* p, fdm_nhf *d, ghostcell* pgc)
+void nhflow_les_io::ini(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
 }
 
-
-void nhflow_les_io::plain_wallfunc(lexer* p, fdm_nhf *d, ghostcell* pgc)
+void nhflow_les_io::inflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
 }
 
-void nhflow_les_io::inflow(lexer* p, fdm_nhf *d, ghostcell* pgc)
-{
-}
-
-void nhflow_les_io::tau_calc(fdm_nhf *d, lexer* p, double maxwdist)
+void nhflow_les_io::tau_calc(fdm_nhf *d, lexer *p, double maxwdist)
 {
 }
 
 void nhflow_les_io::isource(lexer *p, fdm_nhf *d)
 {
-	LOOP
-	d->F[IJK]=0.0;
+    LOOP
+        d->F[IJK] = 0.0;
 }
 
 void nhflow_les_io::jsource(lexer *p, fdm_nhf *d)
 {
-	LOOP
-	d->G[IJK]=0.0;
+    LOOP
+        d->G[IJK] = 0.0;
 }
 
 void nhflow_les_io::ksource(lexer *p, fdm_nhf *d)
 {
-	LOOP
-	d->H[IJK]=0.0;
+    LOOP
+        d->H[IJK] = 0.0;
 }

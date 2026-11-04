@@ -1,0 +1,7 @@
+# REEF3D::CORAL model for nhflow_3d_coral_amr_sub: the 3D box (24 kg) of nhflow_3d_amr_heave on a heave joint
+# Architect: Hans Bihs
+time dt 0.005 end 100
+output dt 0.01 file box.dat
+body box mass 1.0 cog 2.0 1.0 0.53
+joint heave prismatic ground box point 2.0 1.0 0.53 axis 0 0 1
+fluid_body box

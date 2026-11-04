@@ -20,13 +20,16 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"nhflow_idiff_2D.h"
-#include"lexer.h"
-#include"fdm_nhf.h"
-#include"ghostcell.h"
-#include"ioflow.h"
-#include"solver.h"
+#include "fdm_nhf.h"
+#include "ghostcell.h"
+#include "ioflow.h"
+#include "lexer.h"
+#include "nhflow_idiff_2D.h"
+#include "solver.h"
 
 void nhflow_idiff_2D::diff_v(lexer *p, fdm_nhf *d, ghostcell *pgc, ioflow *pflow, solver *psolv, double *VHdiff, double *VHin, double *UH, double *VH, double *WH, slice &WL, double alpha)
 {
+    // 2D (no y direction): no v diffusion, but VHdiff has to hold the input (it was left unset)
+    LOOP
+        VHdiff[IJK] = VHin[IJK];
 }

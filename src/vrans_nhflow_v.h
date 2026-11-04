@@ -39,8 +39,20 @@ public:
     vrans_nhflow_v(lexer *, fdm_nhf *, ghostcell *) {};
     virtual ~vrans_nhflow_v() {};
 
-    void initialize(lexer *, fdm_nhf *, ghostcell *) override final {};
-    void update(lexer *, fdm_nhf *, ghostcell *, double, int) override final {};
+    void u_source(lexer *, fdm_nhf *, slice &) override final {};
+    void v_source(lexer *, fdm_nhf *, slice &) override final {};
+    void w_source(lexer *, fdm_nhf *, slice &) override final {};
+
+    void implicit_drag(lexer *, fdm_nhf *, double *, double, int) override final {};
+
+    void ke_source(lexer *, fdm_nhf *, double *, double *) override final {};
+    void kw_source(lexer *, fdm_nhf *, double *, double *) override final {};
+    void eps_source(lexer *, fdm_nhf *, double *, double *) override final {};
+    void omega_source(lexer *, fdm_nhf *, double *, double *, double) override final {};
+
+    void eddyv_func(lexer *, fdm_nhf *) override final {};
+
+    void force_calc(lexer *, fdm_nhf *, ghostcell *, double, int) override final {};
 
     void u_source(lexer *, fdm_nhf *, slice &) override final {};
     void v_source(lexer *, fdm_nhf *, slice &) override final {};

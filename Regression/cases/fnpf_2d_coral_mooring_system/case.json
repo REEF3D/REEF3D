@@ -1,0 +1,7 @@
+{
+ "description": "REEF3D::CORAL mooring system on an FNPF body (Z 40 1, fluid_body): the moored box of fnpf_2d_coral_mooring with fore a chain-rope-chain line (line types, sections joined at points), aft two chains through a clump weight (free point), and a cable with bending stiffness clamped to the box that lets go of the ground at 1.5 s; the seabed is the bed of the FNPF fluid (bathymetry fluid); REEF3D_FNPF_6DOF and REEF3D_CORAL (line forces, point, broken channel) compared.",
+ "base": "fnpf_2d_coral_mooring",
+ "files": ["coral.txt"],
+ "tags": ["2d", "fnpf", "6dof", "floating", "mooring", "coral"],
+ "covers": ["CORAL mooring systems: free points, sections, line failure, bending stiffness, bathymetry fluid"]
+}

@@ -1,0 +1,7 @@
+{
+ "description": "CPM submerged 40 degree sand wedge in still water, bedload layer Q 58 1, jammed bed within the Mohr-Coulomb yield of the column (Q 67 1)",
+ "covers": ["CPM jammed bed below the surface layer (Q 64) limited by the column yield ratio (Q 67, stress_yield)",
+            "CPM packed-bed stress: overburden column integration, Coulomb/mu(I) friction, deep slope failure"],
+ "np": 1, "steps": 300,
+ "tags": ["quick", "2d", "cpm"]
+}

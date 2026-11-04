@@ -1,0 +1,20 @@
+{
+ "base": "fnpf_2d_regular",
+ "ctrl_set": {
+  "B 98": "6",
+  "B 99": "6"
+ },
+ "steps": 1200,
+ "description": "FNPF combined generation B 98 6 (relaxation to target + low-passed deviation, active generation edge at x-) with the combined beach B 99 6.",
+ "tags": [
+  "quick",
+  "2d",
+  "waves",
+  "iowave",
+  "awa",
+  "fnpf"
+ ],
+ "covers": [
+  "B 98 6 (gen_dev, fnpf_precalc_edge, relax_gen)"
+ ]
+}

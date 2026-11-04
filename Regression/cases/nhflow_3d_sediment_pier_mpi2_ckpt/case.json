@@ -1,0 +1,21 @@
+{
+ "base": "nhflow_3d_sediment_pier_mpi2",
+ "np": 2,
+ "steps": 150,
+ "ctrl_set": {
+  "P 48": "50",
+  "P 49": "0"
+ },
+ "description": "nhflow_3d_sediment_pier_mpi2 with a checkpoint every 50 steps, all kept (P 48 50, P 49 0): the uninterrupted run of nhflow_3d_sediment_pier_mpi2_restart.",
+ "tags": [
+  "3d",
+  "nhflow",
+  "sediment",
+  "mpi",
+  "checkpoint"
+ ],
+ "covers": [
+  "cfd_ckpt_write/read tag reg (NHFLOW)",
+  "sediment_f::ckpt_state (NHFLOW)"
+ ]
+}

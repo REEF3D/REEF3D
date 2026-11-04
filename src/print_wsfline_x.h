@@ -23,46 +23,34 @@ Author: Hans Bihs
 #ifndef PRINT_WSFLINE_X_H_
 #define PRINT_WSFLINE_X_H_
 
-#include"boundarycheck.h"
-#include<iostream>
-#include<fstream>
+#include "boundarycheck.h"
+#include <fstream>
+#include <iostream>
 
 class lexer;
+class wsfline_core;
 class fdm;
 class ghostcell;
 class field;
 class ioflow;
-class wave_theory;
 
 using namespace std;
 
 class print_wsfline_x : public boundarycheck
 {
 public:
-    print_wsfline_x(lexer*,fdm*,ghostcell*);
-	virtual ~print_wsfline_x();
+    print_wsfline_x(lexer *, fdm *, ghostcell *);
+    virtual ~print_wsfline_x();
 
-	void wsfline(lexer*, fdm*, ghostcell*,ioflow*);
-
+    void wsfline(lexer *, fdm *, ghostcell *, ioflow *);
 
 private:
-    void ini_location(lexer*, fdm*, ghostcell*);
-    void sort(double*, double*, int*, int,int);
-    void remove_multientry(lexer*,double*, double*, int*, int&);
-
-    int *jloc,**flag,**flag_all,*rowflag,*wsfpoints;
-    double **wsf,**wsf_all;
-    double **xloc, **xloc_all;
-    double *yloc;
-    int n,q;
+    void ini_location(lexer *, fdm *, ghostcell *);
+    int *jloc;
+    int n, q;
     ofstream wsfout;
 
-    double xcoor;
-	
-	wave_theory *pwave;
-
-    int maxknox,sumknox;
-
+    wsfline_core *pcore;
 };
 
 #endif

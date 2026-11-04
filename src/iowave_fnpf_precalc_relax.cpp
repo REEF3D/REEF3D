@@ -40,7 +40,7 @@ void iowave::fnpf_precalc_relax(lexer *p, ghostcell *pgc)
     // of the relaxation functions (SLICELOOP4 order).
     count = 0;
 
-    if(p->B98 == 2)
+    if(relax_gen)
         for(size_t q = 0; q < gen_i.size(); ++q)
         {
             i = gen_i[q];
@@ -51,19 +51,27 @@ void iowave::fnpf_precalc_relax(lexer *p, ghostcell *pgc)
 
             PSLICECHECK4
             {
-                eta(i, j) = wave_eta_c(p, pgc, int(q));
+                i = gen_i[q];
+                j = gen_j[q];
 
-                if(f_switch == 1)
+                if(zsel)
+                    select_sources(gen_src[q]);
+
+                PSLICECHECK4
                 {
-                    Fifsfval[count] = wave_fi_c(p, pgc, int(q), eta(i, j));
-                    ++count;
+                    eta(i, j) = wave_eta_c(p, pgc, int(q));
+
+                    if(f_switch == 1)
+                    {
+                        Fifsfval[count] = wave_fi_c(p, pgc, int(q), eta(i, j));
+                        ++count;
+                    }
                 }
             }
+
+            if(zsel)
+                select_sources(nullptr);
+
+            pgc->gcsl_start4(p, eta, 50);
         }
-
-    if(zsel)
-        select_sources(nullptr);
-
-    pgc->gcsl_start4(p, eta, 50);
-}
 

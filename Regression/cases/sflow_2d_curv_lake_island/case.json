@@ -1,0 +1,20 @@
+{
+ "np": 1,
+ "steps": 60,
+ "tags": [
+  "2d",
+  "sflow",
+  "curvilinear",
+  "wetdry",
+  "quick"
+ ],
+ "description": "SFLOW on a wavy, skewed curvilinear grid (G 50 2): lake at rest with an emerged island (wetting and drying), bed levels from the grid nodes.",
+ "covers": [
+  "sflow_curv well balancing (closure of the face vectors)",
+  "lexer::geometry_bed"
+ ],
+ "solver": "sflow",
+ "files": [
+  "curvgrid.dat"
+ ]
+}

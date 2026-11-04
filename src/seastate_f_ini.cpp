@@ -23,63 +23,170 @@ Architect: Hans Bihs
 #include "fdm_seastate.h"
 #include "ghostcell.h"
 #include "lexer.h"
+#include "met_drag.h"
+#include "reefckpt.h"
 #include "runlog.h"
+#include "seastate_amr.h"
+#include "seastate_bathy.h"
 #include "seastate_exchange.h"
 #include "seastate_f.h"
+#include "seastate_fas2.h"
 #include "seastate_grid.h"
 #include "seastate_implicit.h"
+#include "seastate_obstacle.h"
+#include "seastate_roller.h"
+#include "seastate_source.h"
 #include "seastate_store.h"
 #include "seastate_vtp.h"
+#include "slice4.h"
 #include <algorithm>
+#include <cmath>
+#include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <sstream>
+#include <string>
 #include <sys/stat.h>
 #include <sys/types.h>
 
+namespace {
+// a number as cout prints it (printouts)
+std::string fmt(double v)
+{
+    std::ostringstream o;
+    o << v;
+    return o.str();
+}
+}  // namespace
+
 void seastate_f::ini(lexer *p, ghostcell *pgc)
 {
+    ini_common(p, pgc, false);
+}
+
+void seastate_f::ini_coupled(lexer *p, ghostcell *pgc)
+{
+    ini_common(p, pgc, true);
+}
+
+void seastate_f::ini_remote(lexer *p, ghostcell *pgc)
+{
+    // remote waves (A 750 2): coupled (wave steps, environment and printing by seastate_remote_wave), but on the own
+    // grid of this model: point counts, still water level and bed as stand-alone
+    remote = true;
+    ini_common(p, pgc, true);
+}
+
+void seastate_f::ini_common(lexer *p, ghostcell *pgc, bool coupled_)
+{
+    coupled = coupled_;
+    restart = (!coupled && p->I45 == 1);
+    g1 = (coupled && !remote) ? 0 : p->G1;
+
     check_keys(p, pgc);
 
-    p->count = 0;
-    p->printcount = 0;
-    p->dt = p->A706;
+    dtw = p->A706;
 
-    // 2D points and polygons for the output (as SFLOW)
-    int count = 0;
-    p->pointnum2D = 0;
-    p->cellnum2D = 0;
-    p->polygon_sum = 0;
-
-    TPSLICELOOP
+    if(!coupled || remote)
     {
-        ++count;
-        ++p->pointnum2D;
-        e->nodeval(i, j) = count;
+        p->count = 0;
+        p->printcount = 0;
+        p->dt = p->A706;
+
+        // 2D points and polygons for the output (as SFLOW)
+        int count = 0;
+        p->pointnum2D = 0;
+        p->cellnum2D = 0;
+        p->polygon_sum = 0;
+
+        TPSLICELOOP
+        {
+            ++count;
+            ++p->pointnum2D;
+            e->nodeval(i, j) = count;
+        }
+
+        SLICEBASELOOP
+        ++p->polygon_sum;
+
+        p->polygon_sum *= 2;
+
+        SLICELOOP4
+        ++p->cellnum2D;
+
+        p->cellnumtot2D = pgc->globalisum(p->cellnum2D);
     }
+    else
+    {
+        // the host has set the point and polygon counts (same 2D grid, same numbering as SFLOW)
+        int count = 0;
 
-    SLICEBASELOOP
-    ++p->polygon_sum;
-
-    p->polygon_sum *= 2;
-
-    SLICELOOP4
-    ++p->cellnum2D;
-
-    p->cellnumtot2D = pgc->globalisum(p->cellnum2D);
+        TPSLICELOOP
+        {
+            ++count;
+            e->nodeval(i, j) = count;
+        }
+    }
 
     environment(p, pgc);
     storage(p, pgc);
     kinematics(p, pgc, 0.0);
     initial(p, pgc);
+
+    if(p->A711 == 3 || p->A730 == 2)
+        forcing_ini(p, pgc);
+
     boundary(p, pgc);
 
     // transport
     // nonstationary: 2 iterations on several ranks, so that the lagged halo values of the first
-    // sweep are corrected (energy conservation across rank borders)
-    iter_max = p->A707 > 0 ? p->A707 : (p->A700 == 2 ? 50 : (p->M10 > 1 ? 2 : 1));
+    // sweep are corrected (energy conservation across rank borders); surfbeat: always 2 (the
+    // second-order correction is lagged, results independent of the decomposition)
+    iter_max = p->A707 > 0 ? p->A707 : (p->A700 == 2 ? 50 : ((p->M10 > 1 || p->A770 == 1) ? 2 : 1));
 
-    pex = new seastate_exchange(p, e->grid->nbin, 1);
+    // surfbeat with second-order advection (A 775 2): 2 halo layers
+    const bool second = (p->A770 == 1 && p->A775 == 2);
+
+    pex = new seastate_exchange(p, e->grid->nbin, (second || p->A796 == 2) ? 2 : 1);
     psolv = new seastate_implicit(p, e);
+    psolv->sparsity(p->A795);
+    psolv->geographic_order(p->A796);
+    psolv->threads(p->A798);
+
+    // Phase 18: the measured work of the cells for the load map (G 45) and the rebalance (G 46)
+    if(!coupled && (p->G45 > 0 || p->G46 > 0.0))
+    {
+        wk0 = new slice4(p);
+        psolv->work_field(wk0);
+    }
+
+    if(p->A700 == 2)
+        psolv->source_iterations(p->A738, p->A739);
+    psolv->source_once(p->A767 == 1);
+    psolv->lagging(seastate_implicit::lag_wanted(p->A700, p->A730, p->A732, p->A768, p->A770), p);
+
+    if(sb != nullptr)
+        psolv->boundary_rows(&Nbx, &Nbx0);
+
+    if(bser != nullptr)
+    {
+        const std::vector<float> *s[4] = {&Nside[0], &Nside[1], &Nside[2], &Nside[3]};
+        psolv->boundary_sides(s);
+    }
+
+    if(wmet != nullptr)
+        psolv->wind_field(wU10, wdir);
+
+    if(bser != nullptr || wmet != nullptr)
+        forcing_update(p, pgc, p->simtime);
+
+    psolv->second_order(second);
+
+    sources(p, pgc);
+
+    // surfbeat roller (source: Roelvink breaking)
+    if(p->A770 == 1 && p->A748 == 1 && p->A740 == 2)
+        proll = new seastate_roller(p, e, p->A749);
 
     if(p->A700 == 1 && iter_max > 1)
     {
@@ -87,17 +194,167 @@ void seastate_f::ini(lexer *p, ghostcell *pgc)
         N0->build(e->wet.V);
     }
 
+    // Phase 6: diffraction (A 718): Ca and its gradient per cell and frequency
+    if(p->A718 >= 1)
+    {
+        const int ns = e->grid->nsig;
+        dca = new seastate_store(p->imin, p->jmin, p->imax, p->jmax, ns, p->A704);
+        dcax = new seastate_store(p->imin, p->jmin, p->imax, p->jmax, ns, p->A704);
+        dcay = new seastate_store(p->imin, p->jmin, p->imax, p->jmax, ns, p->A704);
+        dca->build(e->wet.V);
+        dcax->build(e->wet.V);
+        dcay->build(e->wet.V);
+        dfS = new slice4(p);
+        dfT = new slice4(p);
+        dfK = new slice4(p);
+        dfC = new slice4(p);
+        if(g1 > 0)
+            dfE = new slice4(p);
+        psolv->diffraction(dca, dcax, dcay);
+    }
+
+    // Phase 6: line obstacles (A 722), structures (A 725), reflecting coasts (A 723)
+    if(p->A722 > 0 || p->A723_kr > 0.0)
+    {
+        pobs = new seastate_obstacle(p, e->grid);
+        pobs->build(p, e, p->origin_i, p->origin_j, p->gknox, p->gknoy, pgc);
+        psolv->obstacles(pobs);
+
+        const double nf = pgc->globalsum(double(pobs->faces_blocked() - pobs->faces_coast()));
+        const double nc = pgc->globalsum(double(pobs->faces_coast()));
+        if(p->mpirank == 0)
+        {
+            if(p->A722 > 0)
+                cout << "SEASTATE obstacles: " << p->A722 << " (A 722), faces blocked " << long(nf) << " (incl. ghost cells)" << endl;
+            for(int k = 0; k < p->A725; ++k)
+            {
+                const int t = int(std::lround(p->A725_t[k]));
+                cout << "SEASTATE structure (A 725): obstacle " << int(std::lround(p->A725_n[k])) << ", "
+                     << (t == 1 ? "d'Angremond et al. (1996)" : t == 2 ? "Kt, Kr per frequency from seastate-obstacle-n.dat"
+                                                                       : "porous (Madsen 1974)")
+                     << endl;
+            }
+            if(p->A723_kr > 0.0)
+                cout << "SEASTATE reflecting coasts (A 723): Kr " << p->A723_kr << (p->A723_pown > 0.0 ? ", diffuse cos^" : ", specular")
+                     << (p->A723_pown > 0.0 ? fmt(p->A723_pown) : std::string("")) << ", coastline from the faces within " << std::min(std::max(p->A724, 0), 3)
+                     << " cells (A 724), coast faces " << long(nc) << " (incl. ghost cells)" << endl;
+        }
+    }
+
+    // Phase 6b: vegetation field (A 756 1)
+    if(p->A754 > 0 && p->A756 == 1)
+        vegetation_ini(p, pgc);
+
     pex->start(p, pgc, *e->N);
+
+    // Phase 14: the sweeps pipelined across the ranks (A 781 1) on a grid without refinement: the result of one rank,
+    // so nonstationary one iteration per step as on one rank (unless A 707, FAS or surfbeat)
+    if(p->A781 == 1 && p->M10 > 1 && g1 < 1 && !second)
+    {
+        kba = psolv->pipeline(p, pgc);
+        if(kba && p->A700 == 1 && p->A707 <= 0 && p->A758_n <= 0 && p->A770 != 1)
+        {
+            iter_max = 1;
+            delete N0;
+            N0 = nullptr;
+        }
+        if(p->mpirank == 0)
+            cout << "SEASTATE sweeps pipelined across the " << p->M10 << " ranks (A 781 1)"
+                 << (kba ? ": the result of one rank; tiles of " + std::to_string(psolv->pipeline_tile(0)) + " x " + std::to_string(psolv->pipeline_tile(1)) + " cells" : ": not possible, the ranks are not aligned; each rank from the halo of the last exchange") << endl;
+    }
+
+    // Phase 12: FAS on a uniform grid (A 758 without mesh refinement): a V-cycle over coarse grids of 2 x 2 cells
+    if(p->A758_n > 0 && g1 < 1)
+    {
+        const std::vector<float> *s[4] = {&Nside[0], &Nside[1], &Nside[2], &Nside[3]};
+        pfas = new seastate_fas2(p, pgc, e, psolv, pex, psrc, bser != nullptr ? s : nullptr, wmet != nullptr ? wU10 : nullptr,
+                                 wmet != nullptr ? wdir : nullptr, 1, 6, nullptr, pobs);
+        if(p->mpirank == 0)
+        {
+            cout << "SEASTATE FAS on the uniform grid (A 758 " << p->A758_n << " " << p->A758_m << "): " << pfas->levels() << " coarse grids of 2 x 2 cells each, active cells";
+            for(int k = 1; k <= pfas->levels(); ++k)
+                cout << " " << pfas->cells_of_level(k);
+            cout << endl;
+        }
+    }
+
+    // mesh refinement (G 1): static hierarchy of patches
+    if(g1 > 0)
+    {
+        pamr = new seastate_amr(p, pgc);
+        seastate_amr::level0 l0 = {e, psolv, pex, psrc, N0, bathy, wmet, tref, pobs, vegr};
+        pamr->ini(p, pgc, l0);
+
+        if(wk0 != nullptr)
+            pamr->work_fields();
+
+        if(wmet != nullptr)
+            pamr->wind(tref + p->simtime);
+
+        // Phase 17: the composite sweep (A 797 1) pipelined across the ranks (A 781 1): the level-0 tiles of all ranks
+        // form one dependency graph, and the boundary tiles also carry the faces of the covered cells and the ring cells
+        // of the patches downstream, so that the sweep sees what it sees on one rank
+        if(p->A781 == 1 && p->M10 > 1 && p->A797 == 1 && !second && pamr->active())
+        {
+            kba = psolv->pipeline(p, pgc);
+            if(kba)
+                pamr->pipeline_setup(p, pgc);
+            if(p->mpirank == 0)
+                cout << "SEASTATE sweeps pipelined across the " << p->M10 << " ranks (A 781 1) with the composite sweep of the refinement (A 797 1)"
+                     << (kba ? ": the result of one rank; tiles of " + std::to_string(psolv->pipeline_tile(0)) + " x " + std::to_string(psolv->pipeline_tile(1)) + " cells" : ": not possible, the ranks are not aligned; each rank from the halo of the last exchange") << endl;
+        }
+
+        // the level-by-level sweeps (A 797 0) are not pipelined: their result depends on the order of the patches of a level,
+        // which the rank boxes cut
+        if(p->A781 == 1 && p->M10 > 1 && p->A797 != 1 && p->mpirank == 0 && pamr->active())
+            cout << "SEASTATE note: the level-by-level sweeps of the refinement (A 797 0) are not pipelined across the ranks; each rank"
+                 << " sweeps from the halo of the last exchange. The composite sweep (A 797 1) is pipelined and gives the result of one rank" << endl;
+    }
 
     parameters(p, pgc);
 
-    pprint = new seastate_vtp(p, e, pgc);
+    pprint = new seastate_vtp(p, e, pgc, coupled);
+
+    if(wmet != nullptr)
+    {
+        pprint->add_field("U10x", wUx);
+        pprint->add_field("U10y", wUy);
+    }
+
+    if(proll != nullptr)
+    {
+        pprint->add_field("roller", &proll->R);
+        pprint->add_field("Dr", &proll->Dr);
+        pprint->add_field("Dw", &proll->Dw);
+    }
 
     log_ini(p);
 
-    // initial state
-    pprint->start(p, e, pgc);
-    log_step(p);
+    // initial state (coupled: printed by the host after it has added its fields; a restart continues the outputs)
+    if(!coupled && !restart)
+    {
+        const int pc = p->printcount;
+        pprint->start(p, e, pgc);
+        if(pamr != nullptr && p->printcount != pc)
+            pamr->print(p, pgc);
+    }
+
+    if(!restart)
+        log_step(p);
+
+    if(coupled && p->A760 > 0)
+        handover(p, pgc);
+
+    // nesting output (A 785 1): header and the record of the start
+    if(p->A785 == 1)
+    {
+        spcout_ini(p, pgc);
+        spcout(p, pgc, !restart);
+    }
+
+    // online collocation (A 787 1)
+    if(p->A787 == 1)
+        colloc_ini(p, pgc);
 }
 
 void seastate_f::check_keys(lexer *p, ghostcell *pgc)
@@ -118,10 +375,228 @@ void seastate_f::check_keys(lexer *p, ghostcell *pgc)
         msg = "A 708: the convergence criterion must be positive";
     else if(p->A710 != 0 && p->A710 != 1)
         msg = "A 710: initial spectrum must be 0 (zero) or 1 (parametric)";
-    else if(p->A711 < 0 || p->A711 > 2)
-        msg = "A 711: boundary spectrum must be 0 (none), 1 (parametric) or 2 (SWAN spectrum file)";
+    else if(p->A711 < 0 || p->A711 > 3)
+        msg = "A 711: boundary spectrum must be 0 (none), 1 (parametric), 2 (SWAN spectrum file) or 3 (time series of spectra at many locations)";
+    else if(p->A712_xm < 0 || p->A712_xm > 2 || p->A712_xp < 0 || p->A712_xp > 2 || p->A712_ym < 0 || p->A712_ym > 2 || p->A712_yp < 0 || p->A712_yp > 2)
+        msg = "A 712: each side must be 0 (open), 1 (boundary spectrum) or 2 (zero gradient)";
     else if(p->A720 != 0 && p->A720 != 1)
         msg = "A 720: prescribed current must be 0 (none) or 1 (linear in x, A 721)";
+    else if(p->A730 < 0 || p->A730 > 2)
+        msg = "A 730: wind must be 0 (none), 1 (uniform, A 731) or 2 (the met forcing W 200: uniform, met-forcing.r3m, vortex or blend)";
+    else if(p->A730 == 2 && p->W200 == 0 && std::ifstream("seastate-wind.dat").good())
+        msg = "A 730 2: seastate-wind.dat is retired, the wind field is that of the met forcing W 200: convert it with"
+              " 'python3 tools/met_forcing.py seastate seastate-wind.dat -o met-forcing.r3m' and set W 200 2";
+    else if(p->A730 == 2 && p->W200 == 0)
+        msg = "A 730 2: the wind field is that of the met forcing W 200 (W 200 1 uniform, 2 met-forcing.r3m, 3 vortex, 4 blend)";
+    else if(p->A729 < 0 || p->A729 > 2)
+        msg = "A 729: drag of the wind input must be 0 (Wu 1982, as SWAN), 1 (the met drag law W 207 with W 213, W 214) or 2 (its own law A 728)";
+    else if(p->A729 == 1 && (p->W207 < 0 || p->W207 > 6 || !(p->W213 > 0.0) || !(p->W214 >= 0.0)))
+        msg = "A 729 1: W 207 must be a drag law 0-6 (the wave-dependent law 7 is the drag of the surge; for the waves use A 729 2), W 213 positive and W 214 not negative";
+    else if(p->A785 < 0 || p->A785 > 1)
+        msg = "A 785: nesting output must be 0 (off) or 1 (the points of seastate-spcout.dat)";
+    else if(p->A785 == 1 && !(p->A786 >= 0.0))
+        msg = "A 786: the time between the nesting outputs must not be negative";
+    else if(p->A729 == 2 && (p->A728 < 1 || p->A728 > 6 || !(p->W213 > 0.0) || !(p->W214 >= 0.0)))
+        msg = "A 729 2: A 728 must be a drag law 1-6 (numbered as W 207), W 213 positive and W 214 not negative";
+    else if(p->A730 == 1 && !(p->A731_u10 >= 0.0))
+        msg = "A 731: the wind speed must not be negative";
+    else if(p->A730 >= 1 && p->A732 < 1)
+        msg = "A 730: wind input needs the deep-water physics A 732 1 (Komen), 2 (van der Westhuysen), 3 (Ardhuin et al. 2010) or 4 (Janssen and Bidlot 2023)";
+    else if(p->A732 < 0 || p->A732 > 4)
+        msg = "A 732: deep-water physics must be 0 (off), 1 (Komen), 2 (van der Westhuysen et al. 2007, SWAN GEN3 WESTH), 3 (Ardhuin et al. 2010, ecWAM IPHYS 1) or 4 (Janssen and Bidlot 2023 input with the Ardhuin dissipation, ecWAM operational)";
+    else if(p->A732 >= 3 && (!(p->A763 >= 0.0) || p->A764 >= 1.0 || (p->A765 != 0 && p->A765 != 1) || (p->A766 != 0 && p->A766 != 1)))
+        msg = "A 763-766: beta_max must not be negative (0: the default), the sheltering below 1 (negative: the default), the tail and the swell damping 0 or 1";
+    else if(p->A732 >= 3 && (p->A716_w > 0.0 || p->A715_k > 1))
+        msg = "A 732 3, 4: the saturation of the Ardhuin whitecapping needs uniform directions (no A 715, A 716)";
+    else if(p->A758_n < 0 || p->A758_m < 0)
+        msg = "A 758: the FAS period and the coarse iterations must not be negative";
+    else if(p->A758_n > 0 && g1 < 1 && (p->A718 >= 1 || p->A754 > 0))
+        msg = "A 758: the FAS coarse grid of a uniform grid (no G 1) is not available with diffraction (A 718) or vegetation (A 754)";
+    else if(p->A758_n > 0 && g1 < 1 && coupled)
+        msg = "A 758: the FAS coarse grid of a uniform grid (no G 1) is not available in a coupled run";
+    else if(p->A758_n > 0 && p->A700 == 1 && (p->A707 > 0 ? p->A707 : (p->M10 > 1 ? 2 : 1)) < 2)
+        msg = "A 758: nonstationary, the FAS coarse-grid correction needs at least 2 iterations per step (A 707), a fine iteration after each correction";
+    else if(p->A758_n > 0 && p->A770 == 1)
+        msg = "A 758: the FAS coarse-grid correction is not available with the surfbeat model (A 770 1)";
+    else if(p->A732 == 2 && (!(p->A757_cds2 > 0.0) || !(p->A757_br > 0.0)))
+        msg = "A 757: Cds2 and B_r of the Westhuysen whitecapping must be positive";
+    else if(p->A733 != 0 && p->A733 != 1)
+        msg = "A 733: quadruplets must be 0 (off) or 1 (DIA)";
+    else if(!(p->A734 >= 0.0))
+        msg = "A 734: the linear growth coefficient must not be negative";
+    else if(!(p->A735 >= 0.0))
+        msg = "A 735: the limiter coefficient must not be negative";
+    else if(p->A740 != 0 && p->A740 != 1 && p->A740 != 2)
+        msg = "A 740: depth-induced breaking must be 0 (off), 1 (Battjes-Janssen) or 2 (Roelvink, surfbeat)";
+    else if(p->A740 == 2 && p->A770 != 1)
+        msg = "A 740 2: Roelvink breaking is the breaking of the surfbeat model (A 770 1)";
+    else if(p->A740 == 1 && p->A770 == 1)
+        msg = "A 740 1: the surfbeat model (A 770 1) needs Roelvink breaking (A 740 2) or none";
+    else if(p->A740 >= 1 && !(p->A741_alpha > 0.0 && p->A741_gamma > 0.0))
+        msg = "A 741: the breaking coefficients alpha and gamma must be positive";
+    else if(p->A742 != 0 && p->A742 != 1)
+        msg = "A 742: bottom friction must be 0 (off) or 1 (JONSWAP)";
+    else if(!(p->A743 >= 0.0))
+        msg = "A 743: the friction coefficient must not be negative";
+    else if(p->A744 != 0 && p->A744 != 1)
+        msg = "A 744: triads must be 0 (off) or 1 (LTA)";
+    else if(!(p->A745 >= 0.0))
+        msg = "A 745: the triad coefficient must not be negative";
+    else if(!(p->A736_cutfr > 1.0) || !(p->A736_urcrit > 0.0) || !(p->A736_urslim >= 0.0))
+        msg = "A 736: the triad parameters cutfr (> 1), urcrit (> 0) and urslim (>= 0) are out of range";
+    else if(p->A737 != 0 && p->A737 != 1)
+        msg = "A 737: the maximum energy must be 0 (off) or 1 (on)";
+    else if(p->A750 < 0 || p->A750 > 2)
+        msg = "A 750: the coupling must be 0 (off), 1 (in-process with SFLOW/NHFLOW) or 2 (remote waves: SEASTATE as its own model next to SFLOW/NHFLOW)";
+    else if(p->A750 == 1 && p->A10 != 2 && p->A10 != 5)
+        msg = "A 750 1: the coupling needs SFLOW (A 10 2) or NHFLOW (A 10 5) as the host model";
+    else if(p->A750 == 2 && p->A770 == 1)
+        msg = "A 750 2: the surfbeat model (A 770 1) runs on the host grid and step (A 750 1)";
+    else if(p->A750 >= 1 && p->A751 != 1 && p->A751 != 2)
+        msg = "A 751: the wave forcing must be 1 (radiation stress) or 2 (vortex force)";
+    else if(p->A750 >= 1 && (p->A753 < 0 || p->A753 > 2))
+        msg = "A 753: the feedback must be 0 (none), 1 (water level) or 2 (water level and currents)";
+    else if(!(p->A752 >= 0.0))
+        msg = "A 752: the ramp-up time must not be negative";
+    else if(!(p->A761 > 0.0))
+        msg = "A 761: the half-width of the handover sector must be positive";
+    else if(p->A770 != 0 && p->A770 != 1)
+        msg = "A 770: surfbeat must be 0 (off) or 1 (on)";
+    else if(p->A770 == 1 && p->A700 != 1)
+        msg = "A 770 1: the surfbeat model is nonstationary (A 700 1)";
+    else if(p->A770 == 1 && (p->A730 != 0 || p->A732 != 0 || p->A744 != 0))
+        msg = "A 770 1: wind input, whitecapping, quadruplets and triads need a frequency spectrum (A 730 0, A 732 0, A 744 0)";
+    else if(p->A770 == 1 && p->A760 > 0)
+        msg = "A 770 1: the handover (A 760) needs a frequency spectrum, not the wave groups";
+    else if(p->A770 == 1 && p->A710 != 0)
+        msg = "A 770 1: the surfbeat model starts from rest (A 710 0)";
+    else if(p->A780 < 0.0 || (p->A780 > 0.0 && p->A780 < 10000101.0))
+        msg = "A 780: the start date-time must be YYYYMMDD.HHMMSS (or 0)";
+    else if(!(p->A709 > 0.0) || p->A709 > 100.0)
+        msg = "A 709: the percentage of converged cells must be in (0, 100]";
+    else if(p->A790 != 0 && p->A790 != 1)
+        msg = "A 790: the bathymetry raster must be 0 (off) or 1 (seastate-bathy.dat)";
+    else if(p->A790 == 1 && coupled && !remote)
+        msg = "A 790 1: the bathymetry raster is for stand-alone runs (A 10 7); a host model sets the bed";
+    else if(g1 > 0 && coupled)
+        msg = "G 1: mesh refinement of SEASTATE is for stand-alone runs (A 10 7), not for the remote waves (A 750 2; in-process, A 750 1, G 1 refines the host, the waves run on its level 0)";
+    else if(g1 > 0 && p->A770 == 1)
+        msg = "G 1: mesh refinement is not available with the surfbeat model (A 770 1)";
+    else if(g1 > 0 && p->G40 != 0)
+        msg = "G 40: SEASTATE patches are cut at the rank boxes (G 40 0)";
+    else if(g1 > 0 && (p->G4 < 4 || p->G4 % 2 != 0))
+        msg = "G 4: the tile size must be even and at least 4";
+    else if(p->A791 < 0.0 || p->A792 < 0 || p->A792 > 3 || p->A793 < 0.0 || p->A794 < 0 || p->A762 < 0)
+        msg = "A 791-794, A 762: the refinement criteria must not be negative (A 792 at most 3)";
+    else if(p->A770 == 1 && p->A711 != 1 && p->A711 != 2)
+        msg = "A 770 1: the surfbeat model needs a boundary spectrum (A 711 1 parametric or 2 SWAN file)";
+    else if(p->A770 == 1 && p->A712_xm != 1)
+        msg = "A 770 1: the wave groups enter through the x- side (A 712 1 ...)";
+    else if(p->A770 == 1 && !(p->A772 > 0.0))
+        msg = "A 772: the record length must be positive";
+    else if(p->A770 == 1 && p->A771 < 0.0)
+        msg = "A 771: the representative period must not be negative";
+    else if(p->A770 == 1 && (p->A774 < 0 || p->A774 > 1))
+        msg = "A 774: the long waves must be 0 (absorbing only) or 1 (bound long wave)";
+    else if(p->A770 == 1 && (p->A748 < 0 || p->A748 > 1))
+        msg = "A 748: the roller must be 0 (off) or 1 (on)";
+    else if(p->A770 == 1 && !(p->A749 > 0.0))
+        msg = "A 749: the roller slope must be positive";
+    else if(p->A770 == 1 && !(p->A746 > 0.0))
+        msg = "A 746: the Roelvink exponent must be positive";
+    else if(p->A770 == 1 && p->A775 != 1 && p->A775 != 2)
+        msg = "A 775: the advection of the wave groups must be 1 (first-order upwind) or 2 (second order)";
+    else if(p->A770 == 1 && p->A747 < 0.0)
+        msg = "A 747: the maximum H/h must not be negative";
+    else if(p->A795 < 0.0 || p->A795 >= 1.0)
+        msg = "A 795: the threshold of the spectral sparsity must be in [0,1)";
+    else if(p->A795 > 0.0 && p->A700 != 2)
+        msg = "A 795: the spectral sparsity is for stationary runs (A 700 2)";
+    else if(p->A796 != 1 && p->A796 != 2)
+        msg = "A 796: the geographic advection must be 1 (first-order upwind) or 2 (second order)";
+    else if(p->A796 == 2 && p->A770 == 1)
+        msg = "A 796 2: not with the surfbeat model (its advection is set by A 775)";
+    else if(p->A797 != 0 && p->A797 != 1)
+        msg = "A 797: the sweeps with mesh refinement must be 0 (level by level) or 1 (composite)";
+    else if(p->A715_k < 1)
+        msg = "A 715: the division of the sector directions must be at least 1";
+    else if(p->A717 == 1 && p->A770 == 1)
+        msg = "A 717: the computational direction sector is not available with the surfbeat model (A 770 1)";
+    else if(p->A715_k > 1 && p->A770 == 1)
+        msg = "A 715: the fine direction sector is not available with the surfbeat model (A 770 1)";
+    else if(p->A716_w < 0.0 || p->A716_m < 0.0)
+        msg = "A 716: the bin width and the margin of the automatic direction sector must not be negative";
+    else if(p->A716_w > 0.0 && p->A715_k > 1)
+        msg = "A 716: the automatic direction sector replaces A 715, give only one of them";
+    else if(p->A716_w > 0.0 && (p->A711 != 1 || p->A770 == 1))
+        msg = "A 716: the automatic direction sector needs the parametric boundary spectrum (A 711 1, B 85, B 93, B 130, B 131), not the surfbeat model";
+    else if(p->A716_w > 0.0 && p->A732 >= 1 && p->A733 == 1)
+        msg = "A 716: the DIA quadruplets (A 733 1) need uniform directions";
+    else if(p->A715_k > 1 && p->A732 >= 1 && p->A733 == 1)
+        msg = "A 715: the DIA quadruplets (A 733 1) need uniform directions";
+    else if(p->A738 < 1 || !(p->A739 >= 0.0))
+        msg = "A 738, A 739: at least one source iteration, the tolerance must not be negative";
+    else if(p->A798 < 1)
+        msg = "A 798: at least one thread per rank";
+    else if(p->A767 != 0 && p->A767 != 1)
+        msg = "A 767: the source terms once per iteration must be 0 (off) or 1 (on)";
+    else if(p->A787 != 0 && p->A787 != 1)
+        msg = "A 787: the online collocation must be 0 (off) or 1 (seastate-collocation.csv)";
+    else if(p->A789 < 0.0)
+        msg = "A 789: the interval of the collocation summary must not be negative (0: at the end only)";
+    else if(p->A768 != 0 && p->A768 != 1)
+        msg = "A 768: u* of A 732 3 and 4 must be 0 (the fixed point in every evaluation) or 1 (from the wave stress of the last time step, ecWAM)";
+    else if(p->A799 != 0 && p->A799 != 1)
+        msg = "A 799: the convergence test must be 0 (change per iteration) or 1 (estimated distance to the solution)";
+    else if(p->A718 < 0 || p->A718 > 2)
+        msg = "A 718: diffraction must be 0 (off), 1 (as SWAN, total energy) or 2 (per frequency)";
+    else if(p->A718 >= 1 && p->A770 == 1)
+        msg = "A 718: diffraction is not available with the surfbeat model (A 770 1)";
+
+    else if(p->A719 < 0)
+        msg = "A 719: the number of smoothing steps must not be negative";
+    else if((p->A722 > 0 || p->A723_kr > 0.0) && p->A770 == 1)
+        msg = "A 722, A 723: obstacles and reflecting coasts are not available with the surfbeat model (A 770 1)";
+    else if(p->A723_kr < 0.0 || p->A723_kr > 1.0 || p->A723_pown < 0.0)
+        msg = "A 723: the coast reflection Kr must be in [0,1], pown not negative";
+    else if(p->A724 < 0 || p->A724 > 3)
+        msg = "A 724: the coast normal needs 0 to 3 cells";
+    else if(p->A754 < 0 || p->A754 > 2)
+        msg = "A 754: vegetation must be 0 (off), 1 (Dalrymple, Suzuki et al. 2011) or 2 (per frequency, Jacobsen et al. 2019)";
+    else if(p->A754 > 0 && (p->A755_h <= 0.0 || p->A755_d <= 0.0 || p->A755_cd < 0.0 || (p->A756 != 1 && p->A755_n <= 0.0)))
+        msg = "A 755: vegetation needs a positive height, stem diameter and number of stems per m^2, and a drag coefficient >= 0";
+    else if(p->A754 > 0 && p->A770 == 1)
+        msg = "A 754: vegetation is not available with the surfbeat model (A 770 1)";
+    else if(p->A756 != 0 && p->A756 != 1)
+        msg = "A 756: the vegetation field must be 0 (A 755) or 1 (seastate-vegetation.dat)";
+
+    for(int n = 0; n < p->A722 && msg == nullptr; ++n)
+    {
+        if(p->A722_kt[n] > 1.0 || p->A722_kr[n] < 0.0 || p->A722_kr[n] > 1.0)
+            msg = "A 722: Kt must be at most 1 (or negative for Goda), Kr in [0,1]";
+        else if(p->A722_kt[n] >= 0.0 && p->A722_kt[n] * p->A722_kt[n] + p->A722_kr[n] * p->A722_kr[n] > 1.0 + 1.0e-9)
+            msg = "A 722: Kt^2 + Kr^2 must not exceed 1";
+    }
+
+    for(int k = 0; k < p->A725 && msg == nullptr; ++k)
+    {
+        const int n = int(std::lround(p->A725_n[k])), t = int(std::lround(p->A725_t[k]));
+        if(n < 1 || n > p->A722)
+            msg = "A 725: the obstacle number must refer to an A 722 obstacle (counted from 1)";
+        else if(t < 1 || t > 3)
+            msg = "A 725: the structure type must be 1 (d'Angremond), 2 (per frequency from seastate-obstacle-n.dat) or 3 (porous)";
+        else if(t == 1 && (!(p->A725_a[k] > 0.0) || p->A725_a[k] >= 90.0 || p->A725_b[k] < 0.0))
+            msg = "A 725 n 1: the slope must be in (0,90) deg and the crest width not negative";
+        else if(t == 3 && (!(p->A725_a[k] > 0.0) || !(p->A725_b[k] > 0.0) || p->A725_b[k] >= 1.0 || !(p->A725_c[k] > 0.0)))
+            msg = "A 725 n 3: the porous structure needs a positive width, a porosity in (0,1) and a positive stone diameter";
+    }
+
+    for(int k = 0; k < p->A726 && msg == nullptr; ++k)
+    {
+        const int n = int(std::lround(p->A726_n[k]));
+        if(n < 1 || n > p->A722 || p->A726_p[k] < 0.0)
+            msg = "A 726: the obstacle number must refer to an A 722 obstacle (counted from 1), pown not negative";
+    }
 
     if(msg != nullptr)
     {
@@ -136,14 +611,39 @@ void seastate_f::check_keys(lexer *p, ghostcell *pgc)
 
 void seastate_f::environment(lexer *p, ghostcell *pgc)
 {
-    // bathymetry from the 2D grid; still water level F 60 (as SFLOW)
-    p->phimean = p->wd = p->F60;
+    // bathymetry from the 2D grid; still water level F 60 (as SFLOW); a coupled host has set it
+    if(!coupled || remote)
+        p->phimean = p->wd = p->F60;
 
     ILOOP
     JLOOP
     e->bed(i, j) = p->bed[IJ];
 
     pgc->gcsl_start4(p, e->bed, 50);
+
+    // bathymetry raster (A 790 1): the bed of every cell (halo included) from seastate-bathy.dat
+    if(p->A790 == 1)
+    {
+        bathy = new seastate_bathy;
+        std::string err;
+
+        if(!bathy->read("seastate-bathy.dat", err))
+        {
+            if(p->mpirank == 0)
+                cout << endl
+                     << "SEASTATE input error  --  A 790 1: " << err << endl
+                     << endl;
+
+            pgc->final(true);
+        }
+
+        IMALOOP
+        JMALOOP
+        e->bed(i, j) = bathy->cell(p->XN[IP], p->XN[IP1], p->YN[JP], p->YN[JP1], p->wd - p->A705);
+
+        if(p->mpirank == 0)
+            cout << "SEASTATE bathymetry (A 790 1): seastate-bathy.dat, " << bathy->nx << " x " << bathy->ny << " nodes, spacing " << bathy->dx << " x " << bathy->dy << " m" << endl;
+    }
 
     IMALOOP
     JMALOOP
@@ -163,12 +663,99 @@ void seastate_f::environment(lexer *p, ghostcell *pgc)
 
         e->depth(i, j) = (inside && p->flagslice4[IJ] > 0) ? std::max(p->wd - e->bed(i, j), 0.0) : 0.0;
         e->wet(i, j) = (inside && p->flagslice4[IJ] > 0 && e->depth(i, j) >= p->A705) ? 1 : 0;
+        e->wet0(i, j) = e->wet(i, j);
     }
+
+    // Phase 14: the second halo layer at the rank boundaries for the second-order fluxes (A 796 2, surfbeat A 775 2):
+    // bed, depth and wet flag of the neighbour rank. The grid flags mark only the first halo layer, so that the faces
+    // next to a rank boundary stayed first order on several ranks
+    if((!coupled || remote) && (p->A796 == 2 || (p->A770 == 1 && p->A775 == 2)))
+        seastate_halo2(p, pgc, 4, [&](int ii, int jj, double *v)
+                       {v[0]=e->bed(ii,jj); v[1]=e->depth(ii,jj); v[2]=e->wet(ii,jj); v[3]=e->wet0(ii,jj); }, [&](int ii, int jj, const double *v)
+                       {e->bed(ii,jj)=v[0]; e->depth(ii,jj)=v[1]; e->wet(ii,jj)=int(v[2]); e->wet0(ii,jj)=int(v[3]); });
 }
 
 void seastate_f::storage(lexer *p, ghostcell *pgc)
 {
-    e->grid = new seastate_grid(p->A701, p->A702_fmin, p->A702_fmax, p->A703);
+    // surfbeat: one representative frequency, from the boundary spectrum on the grid A 701-703
+    if(p->A770 == 1)
+    {
+        surfbeat_input(p, pgc);
+        e->grid = new seastate_grid(1.0 / trep, p->A703);
+    }
+    else
+    {
+        e->grid = new seastate_grid(p->A701, p->A702_fmin, p->A702_fmax, p->A703);
+
+        // automatic fine direction sector around the boundary spectrum (A 716): sets A 715
+        if(p->A716_w > 0.0 && e->grid->valid())
+            auto_sector(p, pgc, *e->grid);
+
+        // fine direction sector (A 715)
+        if(p->A715_k > 1 && e->grid->valid())
+            e->grid->sector(p->A715_th1 * 3.14159265358979323846 / 180.0, p->A715_th2 * 3.14159265358979323846 / 180.0, p->A715_k);
+
+        // computational direction sector (A 717)
+        if(p->A717 == 1 && e->grid->valid())
+        {
+            const double t1 = p->A717_th1 * 3.14159265358979323846 / 180.0, t2 = p->A717_th2 * 3.14159265358979323846 / 180.0;
+            const int nfull = e->grid->ndir;
+
+            const bool contiguous = e->grid->computational_sector(t1, t2);
+
+            if(!contiguous || e->grid->active() == 0)
+            {
+                // computational_sector checks that the active directions of every 90 deg quadrant are one
+                // contiguous range: the two ends of the sector must not lie in the same quadrant with the
+                // gap of the sector between them (possible only for sectors wider than 270 deg)
+                if(p->mpirank == 0 && !contiguous)
+                    cout << endl
+                         << "SEASTATE input error  --  A 717: the gap outside the computational sector lies inside one 90 deg quadrant;"
+                         << " the active directions of every quadrant must be contiguous, narrow the sector or move its ends to different quadrants" << endl
+                         << endl;
+
+                if(p->mpirank == 0 && contiguous)
+                    cout << endl
+                         << "SEASTATE input error  --  A 717: the computational sector holds no direction" << endl
+                         << endl;
+
+                pgc->final(true);
+            }
+
+            // Phase 12: on uniform directions the spectra hold only the directions of the sector
+            const bool compact = e->grid->compact_sector(t1, t2);
+
+            // Phase 15: a quadrant that holds only a direction on an axis (the end of the sector) is swept with its neighbour
+            const int merged = compact ? e->grid->merge_axis_quadrants() : 0;
+            int nsweep = 0;
+            for(int q = 0; q < 4; ++q)
+                if(std::count(e->grid->quad.begin(), e->grid->quad.end(), q) > 0)
+                    ++nsweep;
+
+            if(p->mpirank == 0)
+                cout << "SEASTATE computational direction sector (A 717): " << p->A717_th1 << " to " << p->A717_th2 << " deg (ccw), " << e->grid->active() << " of " << nfull << " directions computed"
+                     << (compact ? " and stored" : "") << ", " << nsweep << " sweeps per iteration"
+                     << (merged > 0 ? " (the direction on the axis at the end of the sector swept with the neighbouring quadrant)" : "") << endl;
+        }
+    }
+
+    // spectral sparsity (A 795): the ranges of directions are stored in one byte each
+    if(p->A795 > 0.0 && e->grid->valid())
+    {
+        int nq[4] = {0, 0, 0, 0};
+        for(int m = 0; m < e->grid->ndir; ++m)
+            ++nq[e->grid->quad[m]];
+
+        if(std::max(std::max(nq[0], nq[1]), std::max(nq[2], nq[3])) > 250)
+        {
+            if(p->mpirank == 0)
+                cout << endl
+                     << "SEASTATE input error  --  A 795: the spectral sparsity allows at most 250 directions per quadrant (A 703, A 715)" << endl
+                     << endl;
+
+            pgc->final(true);
+        }
+    }
 
     if(!e->grid->valid())
     {
@@ -212,14 +799,64 @@ void seastate_f::storage(lexer *p, ghostcell *pgc)
 
         cout << endl
              << "SEASTATE grid: " << g.nsig << " frequencies " << fixed << setprecision(3) << g.fmin << " - " << g.fmax << " Hz (ratio " << setprecision(4) << g.ratio << "), "
-             << g.ndir << " directions (" << setprecision(2) << g.dtheta * 180.0 / 3.14159265358979323846 << " deg), " << g.nbin << " bins" << endl;
+             << g.ndir << " directions (" << setprecision(2) << g.dtheta * 180.0 / 3.14159265358979323846 << " deg";
+        if(!g.uniform)
+            cout << ", fine sector " << p->A715_th1 << " to " << p->A715_th2 << " deg divided by " << p->A715_k;
+        cout << "), " << g.nbin << " bins" << endl;
 
         cout << "SEASTATE storage: active cells " << long(cells_active) << " of " << p->cellnumtot2D
              << ", allocated cells (incl. ghost cells) " << long(cells_alloc)
              << ", tiles " << long(tiles_alloc) << " of " << long(tiles_total) << " (" << p->A704 << " x " << p->A704 << ")" << endl;
 
         cout << "SEASTATE memory: N " << setprecision(1) << mb << " MB float32 (dense: " << mb_dense << " MB), max per rank " << mb_rank << " MB; k and cg " << mb_kin << " MB" << endl;
-        cout << "SEASTATE mode: " << (p->A700 == 2 ? "stationary" : "nonstationary") << ", time step " << p->A706 << " s, refraction " << p->A713 << ", frequency shift " << p->A714 << endl;
+        if(p->A770 == 1)
+            cout << "SEASTATE mode: surfbeat, nonstationary, time step " << (coupled ? "of the host" : "A 706") << ", refraction " << p->A713 << ", no frequency shift" << endl;
+        else
+            cout << "SEASTATE mode: " << (p->A700 == 2 ? "stationary" : "nonstationary") << ", time step " << p->A706 << " s, refraction " << p->A713 << ", frequency shift " << p->A714 << endl;
+        if(p->A795 > 0.0 || p->A796 == 2 || (p->A797 == 1 && g1 > 0))
+        {
+            cout << "SEASTATE solver:";
+            if(p->A795 > 0.0)
+                cout << " spectral sparsity (A 795, threshold " << scientific << setprecision(1) << p->A795 << defaultfloat << setprecision(6) << " of the cell energy per bin)";
+            if(p->A796 == 2)
+                cout << (p->A795 > 0.0 ? "," : "") << " second-order geographic advection (A 796 2)";
+            if(p->A797 == 1 && g1 > 0)
+                cout << (p->A795 > 0.0 || p->A796 == 2 ? "," : "") << " composite sweep across the refinement levels (A 797 1)";
+            cout << endl;
+        }
+        if(p->A798 > 1 || (p->A700 == 2 && (p->A738 > 1 || p->A799 == 1)))
+        {
+            cout << "SEASTATE solver (Phase 7b):";
+            if(p->A798 > 1)
+                cout << " " << p->A798 << " threads per rank (A 798)" << (p->A770 == 1 ? ", not used with surfbeat" : "");
+            if(p->A700 == 2 && p->A738 > 1)
+                cout << (p->A798 > 1 ? "," : "") << " up to " << p->A738 << " source iterations per cell, tolerance " << scientific << setprecision(1) << p->A739 << defaultfloat << setprecision(6) << " (A 738, A 739)";
+            if(p->A700 == 2 && p->A799 == 1)
+                cout << (p->A798 > 1 || p->A738 > 1 ? "," : "") << " convergence test on the estimated distance to the solution (A 799 1)";
+            cout << endl;
+        }
+        if(p->A767 == 1)
+        {
+            const bool ws = (p->A730 == 1 || p->A730 == 2 || (p->A732 >= 1 && p->A733 == 1));
+            cout << "SEASTATE solver (Phase 21b): the source terms of a cell once per iteration (A 767 1)";
+            if(ws)
+                cout << ", evaluated in the sweep of the first quadrant and kept for the others (floats, the bins of the other quadrants per wet cell)";
+            else
+                cout << ", not used: no wind input or DIA";
+            if(p->A770 == 1)
+                cout << ", not with surfbeat";
+            if(p->A797 == 1 && g1 > 0)
+                cout << ", not in the composite sweep (A 797 1)";
+            cout << endl;
+        }
+        if(p->A718 >= 1)
+        {
+            cout << "SEASTATE solver (Phase 6):";
+            cout << " diffraction" << (p->A718 == 1 ? " (total energy, as SWAN)" : " (per frequency)") << ", smoothing " << (p->A719 > 0 ? std::to_string(p->A719) + " steps" : std::string("from the wavelength")) << " (A 718, A 719)";
+            if(g1 > 0)
+                cout << ", on every refinement level";
+            cout << endl;
+        }
         if(p->A720 == 1)
             cout << "SEASTATE current: U " << p->A721_us << " m/s at x " << p->A721_xs << " m to " << p->A721_ue << " m/s at x " << p->A721_xe << " m" << endl;
         cout << endl;
@@ -231,7 +868,7 @@ void seastate_f::storage(lexer *p, ghostcell *pgc)
 void seastate_f::initial(lexer *p, ghostcell *pgc)
 {
     if(p->A710 == 0)
-        e->N->fill(0.0f);
+        e->N->fill(0.0f, p->A798);
 
     if(p->A710 == 1)
         initial_parametric(p, pgc);
@@ -245,11 +882,13 @@ void seastate_f::log_ini(lexer *p)
     mkdir("./REEF3D_SEASTATE_Log", 0777);
 
     const char *path = "./REEF3D_SEASTATE_Log/REEF3D_SEASTATE_integral.dat";
-    integral.open(path);
-
-    integral << "REEF3D::SEASTATE integral wave parameters" << endl;
-    integral << "active cells: " << long(cells_active) << endl;
-    integral << "#iteration \t #simtime \t #E_tot [m^4] \t #Hs_max [m] \t #Hs_mean [m] \t #N_min \t #solver_iterations" << endl;
+    // a restart (I 45 1) continues the file
+    if(reefckpt_open(integral, path, restart ? 1 : 0))
+    {
+        integral << "REEF3D::SEASTATE integral wave parameters" << endl;
+        integral << "active cells: " << long(cells_active) << endl;
+        integral << "#iteration \t #simtime \t #E_tot [m^4] \t #Hs_max [m] \t #Hs_mean [m] \t #N_min \t #solver_iterations" << endl;
+    }
 
     if(p->plog)
         p->plog->table_file(p, "seastate_integral", "integral", path);
@@ -261,4 +900,137 @@ void seastate_f::log_step(lexer *p)
         return;
 
     integral << p->count << " \t " << setprecision(10) << p->simtime << " \t " << etot << " \t " << hsmax << " \t " << hsmean << " \t " << nmin << " \t " << iter_done << endl;
+}
+
+void seastate_f::sources(lexer *p, ghostcell *pgc)
+{
+    seastate_source_param sp;
+
+    sp.wind = (p->A730 == 1 || p->A730 == 2);
+    sp.U10 = p->A731_u10;
+    sp.wdir = p->A731_dir * 3.14159265358979323846 / 180.0;
+    sp.Alin = p->A734;
+
+    // drag of the wind input (A 729): Wu (1982), the met drag law of the surge (W 207, auto as W 200), or a law of
+    // its own (A 728, e.g. Zijlema for the waves while the surge keeps a higher cap); cap and floor W 213, W 214
+    if(p->A729 == 1 || p->A729 == 2)
+    {
+        sp.drag = (p->A729 == 1) ? met_drag_law(p->W207, p->W200) : p->A728;
+        sp.drag_cap = p->W213;
+        sp.drag_floor = p->W214;
+    }
+
+    sp.komen = (p->A732 >= 1);
+    sp.westh = (p->A732 == 2);
+    sp.st4 = (p->A732 == 3 || p->A732 == 4);
+    if(p->A732 == 4)
+        sp.st4p = seastate_st4_param::jb2023();
+    if(p->A763 > 0.0)
+        sp.st4p.betamax = p->A763;
+    if(p->A764 >= 0.0)
+        sp.st4p.tauwshelter = p->A764;
+    sp.st4p.tail = (p->A765 == 1);
+    sp.st4p.swell = (p->A766 == 1);
+    sp.cds2 = p->A757_cds2;
+    sp.br = p->A757_br;
+    sp.dia = (p->A732 >= 1 && p->A733 == 1);
+    sp.limiter = p->A735;
+
+    sp.breaking = (p->A740 == 1 || p->A740 == 2);
+    sp.breaking_model = (p->A740 == 2) ? 2 : 1;
+    sp.alpha = p->A741_alpha;
+    sp.gamma = p->A741_gamma;
+    sp.nroel = p->A746;
+
+    sp.friction = (p->A742 == 1);
+    sp.Cb = p->A743;
+
+    sp.triads = (p->A744 == 1);
+    sp.alphaEB = p->A745;
+    sp.cutfr = p->A736_cutfr;
+    sp.urcrit = p->A736_urcrit;
+    sp.urslim = p->A736_urslim;
+    sp.emax = (p->A740 == 1 && p->A737 == 1);
+
+    sp.vegetation = p->A754;
+    sp.vh = p->A755_h;
+    sp.vd = p->A755_d;
+    sp.vn = p->A755_n;
+    sp.vcd = p->A755_cd;
+
+    if(!sp.any())
+        return;
+
+    psrc = new seastate_source(*e->grid, sp);
+    psolv->sources(psrc);
+
+    if(p->mpirank == 0)
+    {
+        cout << "SEASTATE source terms:";
+        if(sp.wind && p->A730 == 1)
+            cout << " wind U10 " << sp.U10 << " m/s to " << p->A731_dir << " deg (" << (sp.st4 ? (sp.st4p.gc ? "Janssen-Bidlot" : "Ardhuin") : (sp.westh ? "Yan" : "Komen")) << ", linear growth " << sp.Alin << "),";
+        if(sp.wind && p->A730 == 2)
+            cout << " wind field of the met forcing W 200 " << p->W200 << " (" << (sp.st4 ? (sp.st4p.gc ? "Janssen-Bidlot" : "Ardhuin") : (sp.westh ? "Yan" : "Komen")) << ", linear growth " << sp.Alin << "),";
+        if(sp.wind && sp.drag > 0 && !sp.st4)
+            cout << " drag of u* the met law " << sp.drag << (p->A729 == 2 ? " (A 729 2, A 728)," : " (A 729 1, W 207),");
+        if(sp.komen && !sp.westh && !sp.st4)
+            cout << " whitecapping (Komen),";
+        if(sp.westh)
+            cout << " whitecapping (van der Westhuysen, cds2 " << sp.cds2 << ", br " << sp.br << "),";
+        if(sp.st4)
+            cout << (sp.st4p.gc ? " Janssen and Bidlot 2023 (ecWAM IPHYS 1 with LLGCBZ0, LLNORMAGAM: gravity-capillary roughness, renormalised growth rate," : " Ardhuin et al. 2010 (ecWAM IPHYS 1:") << " beta_max " << sp.st4p.betamax << ", sheltering " << sp.st4p.tauwshelter << ", swell damping "
+                 << (sp.st4p.swell ? "on" : "off") << ", saturation whitecapping, diagnostic tail " << (sp.st4p.tail ? "on" : "off")
+                 << (sp.wind ? (seastate_implicit::lag_wanted(p->A700, p->A730, p->A732, p->A768, p->A770) ? ", u* from the wave stress of the last time step as ecWAM (A 768 1)" : ", u* from the fixed point with the wave stress in every evaluation") : "") << "),";
+        if(sp.dia)
+            cout << " quadruplets (DIA),";
+        if(sp.komen)
+            cout << " action density limiter " << sp.limiter << ",";
+        if(sp.breaking && sp.breaking_model == 1)
+            cout << " breaking (Battjes-Janssen, alpha " << sp.alpha << ", gamma " << sp.gamma << "),";
+        if(sp.breaking && sp.breaking_model == 2)
+            cout << " breaking (Roelvink, alpha " << sp.alpha << ", gamma " << sp.gamma << ", n " << sp.nroel << "),";
+        if(sp.friction)
+            cout << " bottom friction (JONSWAP, " << sp.Cb << " m^2/s^3),";
+        if(sp.emax)
+            cout << " maximum energy (gamma d)^2/4,";
+        if(sp.triads)
+            cout << " triads (LTA, alpha " << sp.alphaEB << ", cutfr " << sp.cutfr << ", urcrit " << sp.urcrit << ", urslim " << sp.urslim << "),";
+        if(sp.vegetation > 0)
+            cout << " vegetation (" << (sp.vegetation == 1 ? "Dalrymple, Suzuki et al. 2011" : "per frequency, Jacobsen et al. 2019") << ", height " << sp.vh << " m, diameter " << sp.vd
+                 << " m, " << (p->A756 == 1 ? std::string("stems from seastate-vegetation.dat") : fmt(sp.vn) + " stems/m^2") << ", Cd " << sp.vcd << "),";
+        cout << endl;
+
+        if(p->A700 == 2 && sp.komen)
+            cout << "SEASTATE stationary with the deep-water physics: pseudo time step " << p->A706 << " s" << endl;
+
+        cout << endl;
+    }
+}
+
+// vegetation field (A 756 1): stems per m^2 of every cell (halo included) from seastate-vegetation.dat, the
+// mean of the raster nodes inside the cell (raster format of seastate-bathy.dat)
+void seastate_f::vegetation_ini(lexer *p, ghostcell *pgc)
+{
+    vegr = new seastate_bathy;
+    std::string err;
+
+    if(!vegr->read("seastate-vegetation.dat", err))
+    {
+        if(p->mpirank == 0)
+            cout << endl
+                 << "SEASTATE input error  --  A 756 1: " << err << endl
+                 << endl;
+
+        pgc->final(true);
+    }
+
+    vegN = new slice4(p);
+
+    IMALOOP
+    JMALOOP (*vegN)(i, j) = std::max(vegr->cell(p->XN[IP], p->XN[IP1], p->YN[JP], p->YN[JP1]), 0.0);
+
+    psolv->vegetation_field(vegN);
+
+    if(p->mpirank == 0)
+        cout << "SEASTATE vegetation field (A 756 1): seastate-vegetation.dat, " << vegr->nx << " x " << vegr->ny << " nodes, spacing " << vegr->dx << " x " << vegr->dy << " m" << endl;
 }

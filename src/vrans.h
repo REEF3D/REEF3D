@@ -23,8 +23,8 @@ Author: Hans Bihs
 #ifndef VRANS_H_
 #define VRANS_H_
 
-#include<vector>
-#include"vrans_definitions.h"
+#include "vrans_definitions.h"
+#include <vector>
 
 class lexer;
 class fdm;
@@ -36,24 +36,27 @@ using namespace std;
 class vrans
 {
 public:
+    virtual ~vrans() {}
+    virtual void initialize_cfd(lexer *, fdm *, ghostcell *) = 0;
+    virtual void start(lexer *, fdm *, ghostcell *, int) = 0;
+    virtual void sed_update(lexer *, fdm *, ghostcell *) = 0;
+    virtual void sedpart_update(lexer *, fdm *, ghostcell *, field &, field &) = 0;
 
-	virtual void initialize_cfd(lexer*, fdm*, ghostcell*)=0;	
-	virtual void start(lexer*, fdm*, ghostcell*, int)=0;
-    virtual void sed_update(lexer*, fdm*, ghostcell*)=0;	
-    virtual void sedpart_update(lexer*, fdm*, ghostcell*, field&, field&)=0;	
-	
-	virtual void u_source(lexer*, fdm*)=0;
-	virtual void v_source(lexer*, fdm*)=0;
-	virtual void w_source(lexer*, fdm*)=0;
-    
-    virtual void ke_source(lexer*, fdm*, field&)=0;
-    virtual void kw_source(lexer*, fdm*, field&)=0;
-    virtual void eps_source(lexer*, fdm*, field&, field&)=0;
-    virtual void omega_source(lexer*, fdm*, field&, field&)=0;
-    
-    virtual void eddyv_func(lexer*, fdm*)=0;
-    
-    virtual void veltimesave(lexer*,fdm*,ghostcell*)=0;
+    virtual void u_source(lexer *, fdm *) = 0;
+    virtual void v_source(lexer *, fdm *) = 0;
+    virtual void w_source(lexer *, fdm *) = 0;
+
+    // point-implicit resistance in a Runge-Kutta stage: f <- f/(1 + w dt CPOR n K(U,V,W)) for component c
+    virtual void implicit_drag(lexer *, fdm *, int, double, field &, field &, field &, field &) = 0;
+
+    virtual void ke_source(lexer *, fdm *, field &) = 0;
+    virtual void kw_source(lexer *, fdm *, field &) = 0;
+    virtual void eps_source(lexer *, fdm *, field &, field &) = 0;
+    virtual void omega_source(lexer *, fdm *, field &, field &) = 0;
+
+    virtual void eddyv_func(lexer *, fdm *) = 0;
+
+    virtual void veltimesave(lexer *, fdm *, ghostcell *) = 0;
 };
 
 #endif

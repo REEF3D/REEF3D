@@ -28,9 +28,12 @@ Author: Hans Bihs
 #include "lexer.h"
 #include "nhflow_bcmom.h"
 #include "nhflow_convection.h"
+#include "nhflow_curv.h"
 #include "nhflow_diffusion.h"
 #include "nhflow_forcing.h"
 #include "nhflow_fsf.h"
+#include "nhflow_fsf_body.h"
+#include "nhflow_fsf_hull.h"
 #include "nhflow_pressure.h"
 #include "nhflow_reconstruct.h"
 #include "nhflow_signal_speed.h"
@@ -50,10 +53,19 @@ nhflow_momentum_func::nhflow_momentum_func(lexer *p, fdm_nhf *d, ghostcell *pgc)
     gcval_uh = 14;
     gcval_vh = 15;
     gcval_wh = 16;
+
+    pfsfbody = new nhflow_fsf_body(p);
+
+    phull = new nhflow_fsf_hull(p);
+
+    if(phull->active())
+        d->hull = phull;
 }
 
 nhflow_momentum_func::~nhflow_momentum_func()
 {
+    delete pfsfbody;
+    delete phull;
 }
 
 void nhflow_momentum_func::reconstruct(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_fsf *pfsf, nhflow_signal_speed *pss,
@@ -61,15 +73,18 @@ void nhflow_momentum_func::reconstruct(lexer *p, fdm_nhf *d, ghostcell *pgc, nhf
 {
     starttime = pgc->timer();
 
-    // reconstruct eta
-    precon->reconstruct_2D_x(p, pgc, d, d->eta, d->ETAs, d->ETAn);
-    precon->reconstruct_2D_y(p, pgc, d, d->eta, d->ETAe, d->ETAw);
+    // reconstruct eta (X 13 2: the level of the hydrostatic terms, d->zeta)
+    slice4 &E = d->zeta != nullptr ? *d->zeta : d->eta;
+
+    precon->reconstruct_2D_x(p, pgc, d, E, d->ETAs, d->ETAn);
+    precon->reconstruct_2D_y(p, pgc, d, E, d->ETAe, d->ETAw);
     precon->reconstruct_2D_WL(p, pgc, d);
 
     // reconstruct U
     // Vs,Vn,Ws,Wn,Ue,Uw,We,Ww are only read by the HLLC flux (wave-speed scaling);
-    // HLL (A511=1) and HLLYL (A520=3) never use them -> skip 4 of 12 horizontal reconstructions
-    const bool hllc = (p->A511 == 2 && p->A520 != 3);
+    // HLL (A511=1) never uses them -> skip 4 of 12 horizontal reconstructions
+    // curvilinear grid (G 50): both components on both face directions (normal velocity)
+    const bool hllc = p->A511 == 2 || p->geo_curv == 1;
 
     precon->reconstruct_3D_x(p, pgc, d, U, d->Us, d->Un);
     if(hllc)
@@ -105,6 +120,10 @@ void nhflow_momentum_func::reconstruct(lexer *p, fdm_nhf *d, ghostcell *pgc, nhf
     // wetdry
     pfsf->wetdry_fluxes(p, d, pgc, WL, U, V, W, UH, VH, WH);
 
+    // curvilinear grid: Us/Un, Ve/Vw become the face-normal velocities
+    if(p->geo_curv == 1)
+        nhflow_curv::normal_velocities(p, d);
+
     pss->signal_speed_update(p, pgc, d, d->Us, d->Un, d->Ve, d->Vw, d->Ds, d->Dn, d->De, d->Dw);
 
     p->recontime += pgc->timer() - starttime;
@@ -112,9 +131,9 @@ void nhflow_momentum_func::reconstruct(lexer *p, fdm_nhf *d, ghostcell *pgc, nhf
 
 void nhflow_momentum_func::velcalc(lexer *p, fdm_nhf *d, ghostcell *pgc, double *UH, double *VH, double *WH, slice &WL, double alpha)
 {
-    // Froude-number limiters + U=UH/WL + DWDT, fused into one sweep.
+    // Froude-number limiters + U=UH/WL, fused into one sweep.
     // Every operation is per cell, so the result is identical to the former
-    // sequence of separate loops (limiter A532, limiter B60, DWDT, U, dry, DWDT).
+    // sequence of separate loops (limiter A532, limiter B60, U, dry).
     LOOP
     {
         if(p->wet[IJ] == 1 && (p->A532 == 1 || (p->A532 == 2 && p->deep[IJ] == 0)))
@@ -154,6 +173,15 @@ void nhflow_momentum_func::velcalc(lexer *p, fdm_nhf *d, ghostcell *pgc, double 
             d->W[IJK] = WH[IJK] / wl;
 
             d->DWDT[IJK] = (d->W[IJK] - wold) / (alpha * p->dt);
+        }
+
+        else if(p->wet[IJ] == 0)
+        {
+            const double wl = WLVL;
+
+            d->U[IJK] = UH[IJK] / wl;
+            d->V[IJK] = VH[IJK] / wl;
+            d->W[IJK] = WH[IJK] / wl;
         }
 
         else if(p->wet[IJ] == 0)
@@ -231,3 +259,9 @@ void nhflow_momentum_func::inidisc(lexer *p, fdm_nhf *d, ghostcell *pgc, nhflow_
     velcalc(p, d, pgc, d->UH, d->VH, d->WH, d->WL, 1.0);
 }
 
+// checkpoints (P 48, I 45): the arrays of the water level in the pierced columns (X 13)
+void nhflow_momentum_func::fsfbody_ckpt_fields(const std::function<void(const char *, char, double *)> &fd)
+{
+    if(pfsfbody != nullptr)
+        pfsfbody->ckpt_fields(fd);
+}

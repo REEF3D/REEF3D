@@ -1,0 +1,21 @@
+{
+ "np": 2,
+ "steps": 40,
+ "tags": [
+  "2d",
+  "sflow",
+  "multiblock",
+  "amr",
+  "mpi",
+  "curvilinear",
+  "sediment"
+ ],
+ "description": "P8a: the non-equilibrium bed load (S 33 4, Ls = 2h) on the four turned quadrants of t5 with a refinement box over the vertex, two ranks: the relaxation holds the cells around every grid and its covered cells, passes across the grids; four blocks = one block to the tolerance of the relaxation (sediment_curvilinear/t5).",
+ "covers": [
+  "non_equillibrium_solve_curv with lagfix, the passes of lag_refresh for S 33, remote fills of qbn"
+ ],
+ "solver": "sflow",
+ "files": [
+  "blocks.dat"
+ ]
+}

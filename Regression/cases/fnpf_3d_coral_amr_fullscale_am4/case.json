@@ -1,0 +1,10 @@
+{
+ "description": "fnpf_3d_coral_amr_fullscale with the added mass every 4 time steps (X 28 4), earlier once the body has moved by more than 0.5 m (X 29 0.5 0): the heave decay from 5 m triggers the motion criterion. A checkpoint every 7 steps (P 48 7) for fnpf_3d_coral_amr_fullscale_am4_restart.",
+ "solver": "fnpf",
+ "np": 1,
+ "steps": 20,
+ "base": "fnpf_3d_coral_amr_fullscale",
+ "ctrl_add": ["X 28 4", "X 29 0.5 0.0", "P 48 7"],
+ "tags": ["3d", "fnpf", "amr", "6dof", "floating", "coral", "fullscale", "checkpoint"],
+ "covers": ["fnpf_6DOF::am_due (X 28, X 29) with mesh refinement", "fnpf_6DOF::ckpt_state version 2 (the added mass)"]
+}

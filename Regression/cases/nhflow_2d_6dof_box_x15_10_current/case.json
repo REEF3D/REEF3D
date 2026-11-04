@@ -1,0 +1,4 @@
+{"base": "nhflow_2d_6dof_box_x15_8_current", "ctrl_set": {"X 15": "10"},
+ "description": "nhflow_2d_6dof_box_x15_8_current with X 15 10 (cut faces): 2D box fixed in surge, heave free, in a current of 1 m/s from the start; the waterline at the box sides moves through the cells as the box heaves. Ship Hydrodynamics validation 31.",
+ "tags": ["quick", "2d", "nhflow", "6dof", "floating", "background", "current"],
+ "covers": ["X 15 10 with a current", "the head of the covered columns (open fraction of the free surface)"]}

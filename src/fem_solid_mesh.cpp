@@ -340,8 +340,12 @@ void fem_solid::make_nodes_elements()
                 elems.push_back(e);
             }
 
+    // stored integration points per element: 8 for full and adaptive integration
     ngp = full_int ? 8 : 1;
     gps.assign(elems.size() * ngp, gpstate());
+    wde.assign(elems.size(), 0.0);
+    for(element &e : elems)
+        e.full = (full_int == 1);
 
     // node -> element connectivity (CSR)
     const int nn = (int)X.size();
@@ -352,10 +356,14 @@ void fem_solid::make_nodes_elements()
     for(int i = 0; i < nn; ++i)
         node_elem_start[i + 1] += node_elem_start[i];
     node_elem.assign(node_elem_start[nn], 0);
+    node_elem_a.assign(node_elem_start[nn], 0);
     std::vector<int> fill(node_elem_start.begin(), node_elem_start.end() - 1);
     for(int e = 0; e < (int)elems.size(); ++e)
         for(int a = 0; a < 8; ++a)
+        {
+            node_elem_a[fill[elems[e].n[a]]] = (unsigned char)a;
             node_elem[fill[elems[e].n[a]]++] = e;
+        }
 }
 
 void fem_solid::build_surface()

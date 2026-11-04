@@ -1,0 +1,3 @@
+{"base": "cfd_2d_dambreak", "ctrl_set": {"F 46": "2"},
+ "description": "as cfd_2d_dambreak with the Picard volume correction (F46=2, picard_f) once per time step.",
+ "tags": ["2d", "dambreak", "levelset"], "covers": ["F46=2 picard_f", "reini_RK3 initial volume correction"]}

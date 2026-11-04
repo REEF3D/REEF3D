@@ -24,8 +24,11 @@ Author: Hans Bihs
 #include "fdm2D.h"
 #include "fnpf_print_Hs.h"
 #include "ghostcell.h"
+#include "lagoon_output.h"
 #include "lexer.h"
+#include "met_forcing.h"
 #include "sediment.h"
+#include "sflow_print_max.h"
 #include "sflow_print_probe_da.h"
 #include "sflow_print_wsf.h"
 #include "sflow_print_wsf_theory.h"
@@ -33,13 +36,23 @@ Author: Hans Bihs
 #include "sflow_print_wsfline_y.h"
 #include "sflow_state.h"
 #include "sflow_turbulence.h"
+#include "vtp_piece_buffer.h"
+#include <sstream>
 #include <sys/stat.h>
 #include <sys/types.h>
+
+namespace {
+lagoon_surface *lagoon_free_surface = nullptr;  // P 18
+}
 
 sflow_vtp_fsf::sflow_vtp_fsf(lexer *p, fdm2D *b, ghostcell *pgc)
 {
     if(p->I40 == 0)
+    {
         p->printtime = 0.0;
+        p->probeprinttime = 0.0;
+        p->stateprinttime = 0.0;
+    }
 
     p->printcount = 0;
 
@@ -65,18 +78,26 @@ sflow_vtp_fsf::sflow_vtp_fsf(lexer *p, fdm2D *b, ghostcell *pgc)
 
     if(p->P110 == 1)
         phs = new fnpf_print_Hs(p, b->Hs);
+
+    // maxima of the run (P 112, P 115)
+    if(sflow_print_max::active(p))
+        pmax = new sflow_print_max(p, b, pgc);
 }
 
 void sflow_vtp_fsf::start(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *pflow, sflow_turbulence *pturb, sediment *psed)
 {
+    // maxima of the run (P 112, P 115): the state at the end of the step
+    if(pmax != nullptr && p->count > 0)
+        pmax->update(p, b, pgc);
+
     // Print out based on iteration
-    if((p->count % p->P181 == 0 && p->P182 < 0.0 && p->P10 == 1 && p->P181 > 0) || (p->count == 0 && p->P182 < 0.0))
+    if((p->count % p->P181 == 0 && p->P182 < 0.0 && p->P10 > 0 && p->P181 > 0) || (p->count == 0 && p->P182 < 0.0))
     {
         print2D(p, b, pgc, pturb, psed);
     }
 
     // Print out based on time
-    if((p->simtime > p->printtime && p->P182 > 0.0 && p->P10 == 1) || (p->count == 0 && p->P182 > 0.0))
+    if((p->simtime > p->printtime && p->P182 > 0.0 && p->P10 > 0) || (p->count == 0 && p->P182 > 0.0))
     {
         print2D(p, b, pgc, pturb, psed);
 
@@ -111,30 +132,42 @@ void sflow_vtp_fsf::start(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *pflow, sfl
     }*/
 
     // Print state out based on iteration
-    if(p->count % p->P41 == 0 && p->P42 < 0.0 && p->P40 > 0 && (p->P46 == 0 || (p->count >= p->P46_is && p->count < p->P46_ie)))
+    if(p->P40 > 0 && p->P41 > 0 && p->count % p->P41 == 0 && p->P42 < 0.0 && (p->P46 == 0 || (p->count >= p->P46_is && p->count < p->P46_ie)))
     {
         pstate->write(p, b, pgc);
     }
 
     // Print state out based on time
-    if((p->simtime > p->stateprinttime && p->P42 > 0.0 || (p->count == 0 && p->P42 > 0.0)) && p->P40 > 0 && (p->P47 == 0 || (p->count >= p->P47_ts && p->count < p->P47_te)))
+    if(p->P40 > 0 && p->P42 > 0.0 && (p->simtime > p->stateprinttime || p->count == 0) && (p->P47 == 0 || (p->simtime >= p->P47_ts && p->simtime < p->P47_te)))
     {
         pstate->write(p, b, pgc);
 
         p->stateprinttime += p->P42;
     }
 
-    if((p->simtime > p->probeprinttime && p->P55 > 0.0) || (p->count == 0 && p->P55 > 0.0))
+    if(p->P55 > 0.0 && (p->simtime > p->probeprinttime || p->count == 0))
         p->probeprinttime += p->P55;
+}
+
+void sflow_vtp_fsf::print_end(lexer *p, fdm2D *b, ghostcell *pgc, sflow_turbulence *pturb, sediment *psed)
+{
+    // the state at the end of the run, also when it ends between two outputs (N 45 before P 182)
+    if(p->P10 > 0 && (p->P181 > 0 || p->P182 > 0.0) && last_print != p->count)
+        print2D(p, b, pgc, pturb, psed);
 }
 
 void sflow_vtp_fsf::print2D(lexer *p, fdm2D *b, ghostcell *pgc, sflow_turbulence *pturb, sediment *psed)
 {
+    last_print = p->count;
+
     int num = 0;
     if(p->P15 == 1)
         num = p->printcount;
     else if(p->P15 == 2)
         num = p->count;
+
+    if(p->mpirank == 0 && lagoon_output::vtu_files(p))  // P 18 1: the store instead
+        pvtp(p, b, pgc, pturb, psed, num);
 
     if(p->mpirank == 0)
         pvtp(p, b, pgc, pturb, psed, num);
@@ -228,6 +261,10 @@ void sflow_vtp_fsf::print2D(lexer *p, fdm2D *b, ghostcell *pgc, sflow_turbulence
         ++n;
     }
 
+    // atmospheric forcing (W 200)
+    if(b->met != nullptr)
+        b->met->offset_vtp(p, offset, n);
+
     // Cells
     offset[n] = offset[n - 1] + sizeof(int) * p->polygon_sum * 3 + sizeof(int);
     ++n;
@@ -236,8 +273,10 @@ void sflow_vtp_fsf::print2D(lexer *p, fdm2D *b, ghostcell *pgc, sflow_turbulence
 
     // Open File
     sprintf(name, "./REEF3D_SFLOW_VTP_FSF/REEF3D-SFLOW-FSF-%08i-%06i.vtp", num, p->mpirank + 1);
-    ofstream result;
-    result.open(name, ios::binary);
+    // the piece in memory: lagoon_surface::piece writes the file where it is wanted (vtp_piece_buffer.h)
+    std::ostringstream result(std::ios::out | std::ios::binary);
+    vtp_piece_buffer bin;
+    bin.s.reserve(size_t(p->pointnum2D) * 80);
 
     vtp3D::beginning(p, result, p->pointnum2D, 0, 0, 0, p->polygon_sum);
 
@@ -278,6 +317,8 @@ void sflow_vtp_fsf::print2D(lexer *p, fdm2D *b, ghostcell *pgc, sflow_turbulence
         result << "<DataArray type=\"Float32\" Name=\"Hs\" format=\"appended\" offset=\"" << offset[n] << "\"/>\n";
         ++n;
     }
+    if(b->met != nullptr)
+        b->met->name_vtp(result, offset, n);
     result << "</PointData>\n";
 
     vtp3D::polys(result, offset, n);
@@ -288,14 +329,14 @@ void sflow_vtp_fsf::print2D(lexer *p, fdm2D *b, ghostcell *pgc, sflow_turbulence
 
     //  XYZ
     iin = sizeof(float) * p->pointnum2D * 3;
-    result.write((char *)&iin, sizeof(int));
+    bin.write((char *)&iin, sizeof(int));
     TPSLICELOOP
     {
-        ffn = p->XN[IP1];
-        result.write((char *)&ffn, sizeof(float));
+        ffn = (p->geo_curv == 1) ? p->XN2D[p->nij(i + 1, j + 1)] : p->XN[IP1];
+        bin.write((char *)&ffn, sizeof(float));
 
-        ffn = p->YN[JP1];
-        result.write((char *)&ffn, sizeof(float));
+        ffn = (p->geo_curv == 1) ? p->YN2D[p->nij(i + 1, j + 1)] : p->YN[JP1];
+        bin.write((char *)&ffn, sizeof(float));
 
         if(p->P73 == 0)
         {
@@ -312,90 +353,94 @@ void sflow_vtp_fsf::print2D(lexer *p, fdm2D *b, ghostcell *pgc, sflow_turbulence
         else
             ffn = 0;
 
-        result.write((char *)&ffn, sizeof(float));
+        bin.write((char *)&ffn, sizeof(float));
     }
 
     //  Velocities
     iin = sizeof(float) * p->pointnum2D * 3;
-    result.write((char *)&iin, sizeof(int));
+    bin.write((char *)&iin, sizeof(int));
     TPSLICELOOP
     {
         ffn = float(p->sl_ipol4(b->U));
-        result.write((char *)&ffn, sizeof(float));
+        bin.write((char *)&ffn, sizeof(float));
 
         ffn = float(p->sl_ipol4(b->V));
-        result.write((char *)&ffn, sizeof(float));
+        bin.write((char *)&ffn, sizeof(float));
 
         ffn = float(p->sl_ipol4(b->ws));
-        result.write((char *)&ffn, sizeof(float));
+        bin.write((char *)&ffn, sizeof(float));
     }
 
     //  Pressure
     iin = sizeof(float) * p->pointnum2D;
-    result.write((char *)&iin, sizeof(int));
+    bin.write((char *)&iin, sizeof(int));
     TPSLICELOOP
     {
         ffn = float(p->sl_ipol4(b->press));
-        result.write((char *)&ffn, sizeof(float));
+        bin.write((char *)&ffn, sizeof(float));
     }
 
     //  eddyv
     iin = sizeof(float) * p->pointnum2D;
-    result.write((char *)&iin, sizeof(int));
+    bin.write((char *)&iin, sizeof(int));
     TPSLICELOOP
     {
         ffn = float(p->sl_ipol4(b->eddyv));
-        result.write((char *)&ffn, sizeof(float));
+        bin.write((char *)&ffn, sizeof(float));
     }
 
     //  turbulence
-    pturb->print_2D(p, b, pgc, result);
+    {
+        std::ostringstream part(std::ios::out | std::ios::binary);
+        pturb->print_2D(p, b, pgc, part);
+        bin.s += part.str();
+    }
 
     //  Eta
     iin = sizeof(float) * p->pointnum2D;
-    result.write((char *)&iin, sizeof(int));
+    bin.write((char *)&iin, sizeof(int));
     TPSLICELOOP
     {
         ffn = float(p->sl_ipol4eta_wd(p->wet, b->eta, b->bed));
-        result.write((char *)&ffn, sizeof(float));
+        bin.write((char *)&ffn, sizeof(float));
     }
 
     //  Waterlevel
     iin = sizeof(float) * p->pointnum2D;
-    result.write((char *)&iin, sizeof(int));
+    bin.write((char *)&iin, sizeof(int));
     TPSLICELOOP
     {
         ffn = float(p->sl_ipol4(b->hp));
-        result.write((char *)&ffn, sizeof(float));
+        bin.write((char *)&ffn, sizeof(float));
     }
 
     //  wetdry
     iin = sizeof(float) * p->pointnum2D;
-    result.write((char *)&iin, sizeof(int));
+    bin.write((char *)&iin, sizeof(int));
     TPSLICELOOP
     {
         ffn = 0.25 * float((p->wet[IJ] + p->wet[Ip1J] + p->wet[IJp1] + p->wet[Ip1Jp1]));
-        result.write((char *)&ffn, sizeof(float));
+        bin.write((char *)&ffn, sizeof(float));
     }
 
     //  Breaking
     iin = sizeof(float) * p->pointnum2D;
-    result.write((char *)&iin, sizeof(int));
+    bin.write((char *)&iin, sizeof(int));
     TPSLICELOOP
     {
         ffn = float(p->sl_ipol4(b->breaking_print));
-        result.write((char *)&ffn, sizeof(float));
+        bin.write((char *)&ffn, sizeof(float));
     }
 
     //  test
     if(p->P23 == 1)
     {
         iin = sizeof(float) * p->pointnum2D;
-        result.write((char *)&iin, sizeof(int));
+        bin.write((char *)&iin, sizeof(int));
         TPSLICELOOP
         {
             ffn = float(p->sl_ipol4(b->test));
-            result.write((char *)&ffn, sizeof(float));
+            bin.write((char *)&ffn, sizeof(float));
         }
     }
 
@@ -403,11 +448,11 @@ void sflow_vtp_fsf::print2D(lexer *p, fdm2D *b, ghostcell *pgc, sflow_turbulence
     if(p->P28 == 1)
     {
         iin = sizeof(float) * p->pointnum2D;
-        result.write((char *)&iin, sizeof(int));
+        bin.write((char *)&iin, sizeof(int));
         TPSLICELOOP
         {
             ffn = float(p->sl_ipol4(b->fs));
-            result.write((char *)&ffn, sizeof(float));
+            bin.write((char *)&ffn, sizeof(float));
         }
     }
 
@@ -415,52 +460,95 @@ void sflow_vtp_fsf::print2D(lexer *p, fdm2D *b, ghostcell *pgc, sflow_turbulence
     if(p->P110 == 1)
     {
         iin = sizeof(float) * p->pointnum2D;
-        result.write((char *)&iin, sizeof(int));
+        bin.write((char *)&iin, sizeof(int));
         TPSLICELOOP
         {
             ffn = float(p->sl_ipol4(b->Hs));
-            result.write((char *)&ffn, sizeof(float));
+            bin.write((char *)&ffn, sizeof(float));
         }
+    }
+
+    //  wind10, air_pressure, wind_stress (W 200)
+    if(b->met != nullptr)
+    {
+        std::ostringstream part(std::ios::out | std::ios::binary);
+        b->met->print_vtp(p, part);
+        bin.s += part.str();
     }
 
     //  Connectivity
     iin = sizeof(int) * p->polygon_sum * 3;
-    result.write((char *)&iin, sizeof(int));
+    bin.write((char *)&iin, sizeof(int));
     SLICEBASELOOP
     {
         // Triangle 1
         iin = int(b->nodeval(i - 1, j - 1)) - 1;
-        result.write((char *)&iin, sizeof(int));
+        bin.write((char *)&iin, sizeof(int));
 
         iin = int(b->nodeval(i, j - 1)) - 1;
-        result.write((char *)&iin, sizeof(int));
+        bin.write((char *)&iin, sizeof(int));
 
         iin = int(b->nodeval(i, j)) - 1;
-        result.write((char *)&iin, sizeof(int));
+        bin.write((char *)&iin, sizeof(int));
 
         // Triangle 2
         iin = int(b->nodeval(i - 1, j - 1)) - 1;
-        result.write((char *)&iin, sizeof(int));
+        bin.write((char *)&iin, sizeof(int));
 
         iin = int(b->nodeval(i, j)) - 1;
-        result.write((char *)&iin, sizeof(int));
+        bin.write((char *)&iin, sizeof(int));
 
         iin = int(b->nodeval(i - 1, j)) - 1;
-        result.write((char *)&iin, sizeof(int));
+        bin.write((char *)&iin, sizeof(int));
     }
 
     // Offset of Connectivity
     iin = sizeof(int) * p->polygon_sum;
-    result.write((char *)&iin, sizeof(int));
+    bin.write((char *)&iin, sizeof(int));
     for(n = 0; n < p->polygon_sum; ++n)
     {
         iin = (n + 1) * 3;
-        result.write((char *)&iin, sizeof(int));
+        bin.write((char *)&iin, sizeof(int));
     }
 
-    vtp3D::footer(result);
+    // the header, the binary part and the footer
+    std::string piece = result.str();
+    piece += bin.s;
+    {
+        std::ostringstream foot;
+        vtp3D::footer(foot);
+        piece += foot.str();
+    }
 
-    result.close();
+    // P 18: the piece in the LAGOON store (P 18 1: instead of the file, P 18 2: as well)
+    lagoon_surface::piece(p, pgc, lagoon_free_surface, "SFLOW", "free_surface", "REEF3D_SFLOW_VTP_FSF", name, num, piece);
 
     ++p->printcount;
+
+    // the maxima so far (P 112, P 115), with every print of the free surface
+    if(pmax != nullptr)
+        pmax->write(p, b, pgc);
+}
+
+void sflow_vtp_fsf::amr_columns(const amr_column_lookup *amr)
+{
+    pwsf->amr = amr;
+    pprobe->amr = amr;
+}
+
+void sflow_vtp_fsf::flush_outputs()
+{
+    pwsf->flush_files();
+}
+
+void sflow_vtp_fsf::finish(lexer *p, fdm2D *b, ghostcell *pgc)
+{
+    if(pmax != nullptr)
+        pmax->write(p, b, pgc);
+}
+
+void sflow_vtp_fsf::ckpt_fields(const std::function<void(const char *, char, double *)> &fd, const std::function<void(const char *, char, int *)> &fi)
+{
+    if(pmax != nullptr)
+        pmax->ckpt_fields(fd, fi);
 }

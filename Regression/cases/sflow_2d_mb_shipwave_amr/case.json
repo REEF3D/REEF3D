@@ -1,0 +1,31 @@
+{
+ "base": "sflow_2d_mb_quadrants",
+ "steps": 30,
+ "ctrl_set": {
+  "F 72": null
+ },
+ "ctrl_add": [
+  "X 10 3",
+  "X 11 2 2 0 0 0 0",
+  "X 400 10",
+  "X 110 14.399999999999999 20.399999999999999 16.100000000000001 18.100000000000001 0.7 1.3",
+  "X 210 0.8 0.0 0.0",
+  "G 1 1",
+  "G 2 4",
+  "G 3 2",
+  "G 4 8",
+  "G 12 1.0"
+ ],
+ "description": "As sflow_2d_mb_quadrants with the ship pressure of a hull (X 10 3, X 400 10) moving over the vertex of the four turned blocks and the refinement zone around it (sixdof_curvilinear/t3): the same solution as one block to round-off.",
+ "tags": [
+  "2d",
+  "sflow",
+  "curvilinear",
+  "multiblock",
+  "6dof",
+  "amr"
+ ],
+ "covers": [
+  "sflow_amr ship on the blocks 1.. (ship_fields_curv, the initial draft depression in blocks_ini)"
+ ]
+}

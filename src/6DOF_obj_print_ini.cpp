@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include "fdm.h"
 #include "ghostcell.h"
 #include "lexer.h"
+#include "reefckpt.h"
 #include "runlog.h"
 #include <fstream>
 #include <iostream>
@@ -67,14 +68,15 @@ void sixdof_obj::print_ini_vtp(lexer *p, ghostcell *pgc)
     if(p->A10 == 6)
         sprintf(str, "./REEF3D_CFD_6DOF/REEF3D_6DOF_position_%i.dat", n6DOF);
 
-    printpos.open(str);
+    const bool printpos_new = reefckpt_open(printpos, str, p->I45);
     {
         char sname[32];
         snprintf(sname, sizeof(sname), "motion%i", n6DOF);
         if(p->plog)
             p->plog->table_file(p, sname, "motion", str);
     }
-    printpos << "time \t XG \t YG \t ZG \t Phi \t Theta \t Psi" << endl;
+    if(printpos_new)
+        printpos << "time \t XG \t YG \t ZG \t Phi \t Theta \t Psi" << endl;
 
     // velocity
     if(p->A10 == 2)
@@ -86,14 +88,15 @@ void sixdof_obj::print_ini_vtp(lexer *p, ghostcell *pgc)
     if(p->A10 == 6)
         sprintf(str, "./REEF3D_CFD_6DOF/REEF3D_6DOF_velocity_%i.dat", n6DOF);
 
-    printvel.open(str);
+    const bool printvel_new = reefckpt_open(printvel, str, p->I45);
     {
         char sname[32];
         snprintf(sname, sizeof(sname), "velocity%i", n6DOF);
         if(p->plog)
             p->plog->table_file(p, sname, "body_velocity", str);
     }
-    printvel << "time \t Ue [m/s] \t Ve [m/s] \t We [m/s] \t Pe [rad/s] \t Qe [rad/s] \t Re [rad/s]" << endl;
+    if(printvel_new)
+        printvel << "time \t Ue [m/s] \t Ve [m/s] \t We [m/s] \t Pe [rad/s] \t Qe [rad/s] \t Re [rad/s]" << endl;
 
     // force
     if(p->A10 == 2)
@@ -105,21 +108,28 @@ void sixdof_obj::print_ini_vtp(lexer *p, ghostcell *pgc)
     if(p->A10 == 6)
         sprintf(str, "./REEF3D_CFD_6DOF/REEF3D_6DOF_forces_%i.dat", n6DOF);
 
-    printforce.open(str);
+    const bool printforce_new = reefckpt_open(printforce, str, p->I45);
     {
         char sname[32];
         snprintf(sname, sizeof(sname), "forces%i", n6DOF);
         if(p->plog)
             p->plog->table_file(p, sname, "forces", str);
     }
-    printforce << "time \t Fx \t Fy \t Fz \t Mx \t My \t Mz \t Fx_p \t Fy_p \t Fz_p \t Fx_v \t Fy_v \t Fz_v" << endl;
+    if(printforce_new)
+        printforce << "time \t Fx \t Fy \t Fz \t Mx \t My \t Mz \t Fx_p \t Fy_p \t Fz_p \t Fx_v \t Fy_v \t Fz_v" << endl;
 
     curr_time = 0.0;
 
-    p->Darray(printtime_wT, p->P35);
-
     for(int qn = 0; qn < p->P35; ++qn)
         printtime_wT[qn] = p->P35_ts[qn];
+
+    // the P 185 windows (SFLOW, NHFLOW) have their own times: indexed with the P 35 array, a run with more P 185
+    // than P 35 windows wrote past its end (segmentation fault in print_vtp at the start of a run with P 185 only)
+    if(printtime_wF == nullptr)
+        p->Darray(printtime_wF, p->P185);
+
+    for(int qn = 0; qn < p->P185; ++qn)
+        printtime_wF[qn] = p->P185_ts[qn];
 }
 
 void sixdof_obj::print_ini_stl(lexer *p, ghostcell *pgc)
@@ -158,8 +168,8 @@ void sixdof_obj::print_ini_stl(lexer *p, ghostcell *pgc)
     if(p->A10 == 6)
         sprintf(str, "./REEF3D_CFD_6DOF/REEF3D_6DOF_position_%i.dat", n6DOF);
 
-    print.open(str);
-    print << "time \t XG \t YG \t ZG \t Phi \t Theta \t Psi" << endl;
+    if(reefckpt_open(print, str, p->I45))
+        print << "time \t XG \t YG \t ZG \t Phi \t Theta \t Psi" << endl;
     print.close();
 
     if(p->A10 == 2)
@@ -171,8 +181,8 @@ void sixdof_obj::print_ini_stl(lexer *p, ghostcell *pgc)
     if(p->A10 == 6)
         sprintf(str, "./REEF3D_CFD_6DOF/REEF3D_6DOF_velocity_%i.dat", n6DOF);
 
-    print.open(str);
-    print << "time \t Ue [m/s] \t Ve [m/s] \t We [m/s] \t Pe [rad/s] \t Qe [rad/s] \t Re [rad/s]" << endl;
+    if(reefckpt_open(print, str, p->I45))
+        print << "time \t Ue [m/s] \t Ve [m/s] \t We [m/s] \t Pe [rad/s] \t Qe [rad/s] \t Re [rad/s]" << endl;
     print.close();
 
     if(p->A10 == 2)
@@ -184,14 +194,20 @@ void sixdof_obj::print_ini_stl(lexer *p, ghostcell *pgc)
     if(p->A10 == 6)
         sprintf(str, "./REEF3D_CFD_6DOF/REEF3D_6DOF_forces_%i.dat", n6DOF);
 
-    print.open(str);
-    print << "time \t Fx \t Fy \t Fz \t Mx \t My \t Mz \t Fx_p \t Fy_p \t Fz_p \t Fx_v \t Fy_v \t Fz_v" << endl;
+    if(reefckpt_open(print, str, p->I45))
+        print << "time \t Fx \t Fy \t Fz \t Mx \t My \t Mz \t Fx_p \t Fy_p \t Fz_p \t Fx_v \t Fy_v \t Fz_v" << endl;
     print.close();
 
     curr_time = 0.0;
 
-    p->Darray(printtime_wT, p->P35);
-
     for(int qn = 0; qn < p->P35; ++qn)
         printtime_wT[qn] = p->P35_ts[qn];
+
+    // the P 185 windows (SFLOW, NHFLOW) have their own times: indexed with the P 35 array, a run with more P 185
+    // than P 35 windows wrote past its end (segmentation fault in print_vtp at the start of a run with P 185 only)
+    if(printtime_wF == nullptr)
+        p->Darray(printtime_wF, p->P185);
+
+    for(int qn = 0; qn < p->P185; ++qn)
+        printtime_wF[qn] = p->P185_ts[qn];
 }

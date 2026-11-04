@@ -24,6 +24,7 @@ Author: Tobias Martin
 #include "ghostcell.h"
 #include "lexer.h"
 #include "mooring_Catenary.h"
+#include "reefckpt.h"
 #include <sys/stat.h>
 
 void mooring_Catenary::initialize(lexer *p, ghostcell *pgc)
@@ -54,8 +55,8 @@ void mooring_Catenary::initialize(lexer *p, ghostcell *pgc)
     {
         char str[1000];
         sprintf(str, "%s/REEF3D_6DOF_mooring_force_%i.dat", sixdof_output_dir(p), line);
-        eTout.open(str);
-        eTout << "time \t T" << endl;
+        if(reefckpt_open(eTout, str, p->I45))
+            eTout << "time \t T" << endl;
     }
     printtime = 0.0;
 
@@ -68,5 +69,8 @@ void mooring_Catenary::initialize(lexer *p, ghostcell *pgc)
     FH_0 = 0.01;
     FV_0 = 0.01;
     calcForce(p, pgc);
-    print(p);
+
+    // the first output (not on a restart from a checkpoint, I 45 1: printed already)
+    if(p->I45 != 1)
+        print(p);
 }

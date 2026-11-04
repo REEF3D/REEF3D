@@ -1,0 +1,7 @@
+{
+ "base": "seastate_2d_handover",
+ "ctrl_add": ["A 715 330.0 70.0 3"],
+ "description": "as seastate_2d_handover with a fine direction sector (A 715 330 70 3, Phase 7b): the 10 deg directions with centres from 330 to 70 deg divided into 3 bins each (58 directions: 33 of 3.3 deg, 25 of 10 deg), boundary spectrum normalised with the bin widths, theta fluxes divided by the bin widths, moments and handover spectra (written on uniform directions of the smallest width, linear between the bin centres). Validation in Dropbox SEASTATE/validation/32_direction_sector.",
+ "tags": ["quick", "2d", "seastate"],
+ "covers": ["seastate_grid sector, direction_bin, dth/wth", "seastate_implicit theta fluxes with variable bin width", "seastate_f handover on a non-uniform direction grid"]
+}

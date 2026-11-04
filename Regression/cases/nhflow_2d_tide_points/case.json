@@ -1,0 +1,25 @@
+{
+ "base": "nhflow_2d_tide_timeseries",
+ "same_as": "nhflow_2d_tide_timeseries",
+ "ctrl_set": {
+  "B 510": [
+   "1 4 0.0 600.0",
+   "2 3 0.0 0.0"
+  ]
+ },
+ "files": [
+  "background-1.dat"
+ ],
+ "description": "nhflow_2d_tide_timeseries with the background given at points (B 510 mode 4, background-1.dat: points 2, the same series at both): regression.py ranks: bitwise the time-series case.",
+ "tags": [
+  "quick",
+  "2d",
+  "nhflow",
+  "tide",
+  "iowave",
+  "background"
+ ],
+ "covers": [
+  "background_state::read_points, locate, project (B 510 mode 4)"
+ ]
+}

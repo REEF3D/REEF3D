@@ -1,0 +1,4 @@
+{"base": "nhflow_3d_x15_10_hemisphere", "np": 2,
+ "description": "nhflow_3d_x15_10_hemisphere on two ranks: the apertures, the solid cells, the head of the covered columns and the loads across the subdomain border.",
+ "tags": ["3d", "nhflow", "6dof", "floating", "mpi"],
+ "covers": ["X 15 10 on several ranks"]}

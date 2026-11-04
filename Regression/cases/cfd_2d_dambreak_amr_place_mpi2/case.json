@@ -1,0 +1,21 @@
+{
+ "base": "cfd_2d_dambreak_amr",
+ "np": 2,
+ "ctrl_add": [
+  "G 40 1"
+ ],
+ "description": "CFD AMR with the placement of the patches (G 40 1) on 2 ranks: the refined box (on rank 0's level 0) cut vertically into two units filling the ranks to the mean work, the unit on rank 1 reads its coarser level from its shadow (a copy of the level-0 cells under it and around it), the restriction, the coarse faces and the fluxes of the patch edges go back to rank 0.",
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "levelset",
+  "amr",
+  "mpi",
+  "place"
+ ],
+ "covers": [
+  "reefamr3d::place_units (fill the ranks, conforming vertical cut)",
+  "the shadows: down (fills, predictor, KC), up (restriction, coarse faces, pr_apply, folds, multigrid couplings)"
+ ]
+}

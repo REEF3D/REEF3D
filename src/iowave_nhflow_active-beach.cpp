@@ -35,167 +35,223 @@ void iowave::nhflow_active_beach(lexer *p, fdm_nhf *d, ghostcell *pgc, double *U
     double fac1, fac, multiplier;
     int aa, bb;
 
+    // B 99 8: gauges and filter once per step on all ranks (global sums)
+    if(sirw_out.on)
+        sirw_out.update(p, pgc, d->eta, p->simtime);
+
     // UVEL
     for(n = 0; n < p->gcslout_count; ++n)
     {
         i = p->gcslout[n][0];
         j = p->gcslout[n][1];
 
-        eta_T = 0.0;
-        eta_M = d->eta(i, j);
-        eta_R = eta_M - eta_T;
-
-        if(eta_R >= 0.0)
-            fac1 = 1.0;
-
-        if(eta_R < 0.0)
-            fac1 = 0.0;
-
-        fx = 1.0;
-
-        if(p->B99 == 3)
-            Uc = eta_R * sqrt(9.81 / p->wd);
-
-        if(p->wet[IJ] == 1)
-            KLOOP
-            {
-                if(p->pos_z() <= p->phimean)
-                    z = -(fabs(p->phimean - p->pos_z()));
-
-                if(p->pos_z() > p->phimean)
-                    z = (fabs(p->phimean - p->pos_z()));
-
-                if(p->B99 == 4)
-                    Uc = eta_R * p->ww * (cosh(p->wk * (p->wd + z)) / sinh(p->wk * p->wd));
-
-                if(p->B99 == 5)
-                {
-                    if(p->ZP[KP] > p->B123)
-                    {
-                        fac = (p->pos_z() - p->B123) / (wsf - p->B123);
-                        multiplier = 2.0 * ((wsf) / (wsf - p->B123));
-                        Uc = multiplier * fac * eta_R * sqrt(9.81 / p->wd);
-                    }
-
-                    if(p->ZP[KP] <= p->B123)
-                        Uc = 0.0;
-                }
-
-                U[Ip1JK] = Uc * fx;
-                U[Ip2JK] = Uc * fx;
-                U[Ip3JK] = Uc * fx;
-
-                UH[Ip1JK] = p->WL[IJ] * Uc * fx;
-                UH[Ip2JK] = p->WL[IJ] * Uc * fx;
-                UH[Ip3JK] = p->WL[IJ] * Uc * fx;
-            }
-    }
-    //-----------------------------------------------
-    // VVEL
-
-    for(n = 0; n < p->gcslout_count; ++n)
-    {
-        i = p->gcslout[n][0];
-        j = p->gcslout[n][1];
+        // x+ handled as an absorbing Riemann edge (nhflow_active_beach_edge)
+        if(nhf_active_edge && p->gcslout[n][3] == 4)
+            continue;
 
         eta_T = 0.0;
         eta_M = d->eta(i, j);
         eta_R = eta_M - eta_T;
+        // B 99 5: water level of the column (the linear profile above the hinge B 123 reaches it)
+        wsf = p->phimean + eta_M;
 
-        if(eta_R >= 0.0)
-            fac1 = 1.0;
+        // UVEL
+        for(n = 0; n < p->gcslout_count; ++n)
+        {
+            i = p->gcslout[n][0];
+            j = p->gcslout[n][1];
 
-        if(eta_R < 0.0)
-            fac1 = 0.0;
+            fx = 1.0;
 
-        aa = bb = 0;
-        if(p->gcslout[n][3] == 1)
-            aa = -1;
+            if(p->B99 == 3)
+                Uc = eta_R * sqrt(9.81 / p->wd);
 
-        if(p->gcslout[n][3] == 4)
-            aa = 1;
+            // B 99 8 (SIRW): the band from the two gauges per level (below), shallow water for what the predicted
+            // outgoing wave does not explain
+            const double eLs = sirw_out.on ? eta_R - sirw_out.eta(p->simtime) : 0.0;
 
-        if(p->gcslout[n][3] == 3)
-            bb = -1;
-
-        if(p->gcslout[n][3] == 2)
-            bb = 1;
-
-        fy = 0.0;  // !
-
-        if(p->wet[IJ] == 1)
-            KLOOP
-            {
-                if(p->pos_z() <= p->phimean)
-                    z = -(fabs(p->phimean - p->pos_z()));
-
-                if(p->pos_z() > p->phimean)
-                    z = (fabs(p->phimean - p->pos_z()));
-
-                if(p->B99 == 3)
-                    Uc = eta_R * sqrt(9.81 / p->wd);
-
-                if(p->B99 == 4)
-                    Uc = eta_R * p->ww * (cosh(p->wk * (p->wd + z)) / sinh(p->wk * p->wd));
-
-                if(p->B99 == 5)
+            if(p->wet[IJ] == 1)
+                KLOOP
                 {
-                    if(p->pos_z() > p->B123)
+                    if(p->pos_z() <= p->phimean)
+                        z = -(fabs(p->phimean - p->pos_z()));
+
+                    if(p->pos_z() > p->phimean)
+                        z = (fabs(p->phimean - p->pos_z()));
+
+                    if(p->B99 == 4)
+                        Uc = eta_R * p->ww * (cosh(p->wk * (p->wd + z)) / sinh(p->wk * p->wd));
+
+                    if(sirw_out.on)
+                        Uc = eLs * sqrt(9.81 / p->wd) + sirw_out.velocity(p->simtime, p->ZSP[IJK] - p->phimean);
+
+                    if(p->B99 == 5)
                     {
-                        fac = (p->pos_z() - p->B123) / (wsf - p->B123);
-                        multiplier = 2.0 * ((wsf) / (wsf - p->B123));
-                        Uc = multiplier * fac * eta_R * sqrt(9.81 / p->wd);
+                        if(p->pos_z() > p->B123 && wsf > p->B123)
+                        {
+                            fac = (p->pos_z() - p->B123) / (wsf - p->B123);
+                            multiplier = 2.0 * ((wsf) / (wsf - p->B123));
+                            Uc = multiplier * fac * eta_R * sqrt(9.81 / p->wd);
+                        }
+
+                        else
+                            Uc = 0.0;
                     }
 
-                    if(p->pos_z() <= p->B123)
-                        Uc = 0.0;
+                    U[Ip1JK] = Uc * fx;
+                    U[Ip2JK] = Uc * fx;
+                    U[Ip3JK] = Uc * fx;
+
+                    UH[Ip1JK] = p->WL[IJ] * Uc * fx;
+                    UH[Ip2JK] = p->WL[IJ] * Uc * fx;
+                    UH[Ip3JK] = p->WL[IJ] * Uc * fx;
+                }
+        }
+        //-----------------------------------------------
+        // VVEL
+
+        for(n = 0; n < p->gcslout_count; ++n)
+        {
+            i = p->gcslout[n][0];
+            j = p->gcslout[n][1];
+
+            // x+ handled as an absorbing Riemann edge (nhflow_active_beach_edge)
+            if(nhf_active_edge && p->gcslout[n][3] == 4)
+                continue;
+
+            eta_T = 0.0;
+            eta_M = d->eta(i, j);
+            eta_R = eta_M - eta_T;
+            // B 99 5: water level of the column (the linear profile above the hinge B 123 reaches it)
+            wsf = p->phimean + eta_M;
+
+            if(eta_R >= 0.0)
+                fac1 = 1.0;
+
+            if(eta_R < 0.0)
+                fac1 = 0.0;
+
+            aa = bb = 0;
+            if(p->gcslout[n][3] == 1)
+                aa = -1;
+
+            if(p->gcslout[n][3] == 4)
+                aa = 1;
+
+            if(p->gcslout[n][3] == 3)
+                bb = -1;
+
+            if(p->gcslout[n][3] == 2)
+                bb = 1;
+
+            fy = 0.0;  // !
+
+            if(p->wet[IJ] == 1)
+                KLOOP
+                {
+                    if(p->pos_z() <= p->phimean)
+                        z = -(fabs(p->phimean - p->pos_z()));
+
+                    if(p->pos_z() > p->phimean)
+                        z = (fabs(p->phimean - p->pos_z()));
+
+                    if(p->B99 == 3)
+                        Uc = eta_R * sqrt(9.81 / p->wd);
+
+                    if(p->B99 == 4)
+                        Uc = eta_R * p->ww * (cosh(p->wk * (p->wd + z)) / sinh(p->wk * p->wd));
+
+                    if(p->B99 == 5)
+                    {
+                        if(p->pos_z() > p->B123 && wsf > p->B123)
+                        {
+                            fac = (p->pos_z() - p->B123) / (wsf - p->B123);
+                            multiplier = 2.0 * ((wsf) / (wsf - p->B123));
+                            Uc = multiplier * fac * eta_R * sqrt(9.81 / p->wd);
+                        }
+
+                        else
+                            Uc = 0.0;
+                    }
+
+                    V[(i - p->imin + 1 * aa) * p->jmax * p->kmax + (j - p->jmin + 1 * bb) * p->kmax + k - p->kmin] = Uc * fy;
+                    V[(i - p->imin + 2 * aa) * p->jmax * p->kmax + (j - p->jmin + 2 * bb) * p->kmax + k - p->kmin] = Uc * fy;
+                    V[(i - p->imin + 3 * aa) * p->jmax * p->kmax + (j - p->jmin + 3 * bb) * p->kmax + k - p->kmin] = Uc * fy;
+
+                    VH[(i - p->imin + 1 * aa) * p->jmax * p->kmax + (j - p->jmin + 1 * bb) * p->kmax + k - p->kmin] = (d->eta(i, j) + d->depth(i, j)) * Uc * fy;
+                    VH[(i - p->imin + 2 * aa) * p->jmax * p->kmax + (j - p->jmin + 2 * bb) * p->kmax + k - p->kmin] = (d->eta(i, j) + d->depth(i, j)) * Uc * fy;
+                    VH[(i - p->imin + 3 * aa) * p->jmax * p->kmax + (j - p->jmin + 3 * bb) * p->kmax + k - p->kmin] = (d->eta(i, j) + d->depth(i, j)) * Uc * fy;
                 }
 
-                V[(i - p->imin + 1 * aa) * p->jmax * p->kmax + (j - p->jmin + 1 * bb) * p->kmax + k - p->kmin] = Uc * fy;
-                V[(i - p->imin + 2 * aa) * p->jmax * p->kmax + (j - p->jmin + 2 * bb) * p->kmax + k - p->kmin] = Uc * fy;
-                V[(i - p->imin + 3 * aa) * p->jmax * p->kmax + (j - p->jmin + 3 * bb) * p->kmax + k - p->kmin] = Uc * fy;
+            if(p->wet[IJ] == 0)
+                KLOOP
+                {
+                    V[(i - p->imin + 1 * aa) * p->jmax * p->kmax + (j - p->jmin + 1 * bb) * p->kmax + k - p->kmin] = 0.0;
+                    V[(i - p->imin + 2 * aa) * p->jmax * p->kmax + (j - p->jmin + 2 * bb) * p->kmax + k - p->kmin] = 0.0;
+                    V[(i - p->imin + 3 * aa) * p->jmax * p->kmax + (j - p->jmin + 3 * bb) * p->kmax + k - p->kmin] = 0.0;
 
-                VH[(i - p->imin + 1 * aa) * p->jmax * p->kmax + (j - p->jmin + 1 * bb) * p->kmax + k - p->kmin] = (d->eta(i, j) + d->depth(i, j)) * Uc * fy;
-                VH[(i - p->imin + 2 * aa) * p->jmax * p->kmax + (j - p->jmin + 2 * bb) * p->kmax + k - p->kmin] = (d->eta(i, j) + d->depth(i, j)) * Uc * fy;
-                VH[(i - p->imin + 3 * aa) * p->jmax * p->kmax + (j - p->jmin + 3 * bb) * p->kmax + k - p->kmin] = (d->eta(i, j) + d->depth(i, j)) * Uc * fy;
-            }
+                    VH[(i - p->imin + 1 * aa) * p->jmax * p->kmax + (j - p->jmin + 1 * bb) * p->kmax + k - p->kmin] = 0.0;
+                    VH[(i - p->imin + 2 * aa) * p->jmax * p->kmax + (j - p->jmin + 2 * bb) * p->kmax + k - p->kmin] = 0.0;
+                    VH[(i - p->imin + 3 * aa) * p->jmax * p->kmax + (j - p->jmin + 3 * bb) * p->kmax + k - p->kmin] = 0.0;
+                }
+        }
 
-        if(p->wet[IJ] == 0)
-            KLOOP
+        //-----------------------------------------------
+        // PRESSURE
+        for(n = 0; n < p->gcslout_count; n++)
+        {
+            i = p->gcslout[n][0];
+            j = p->gcslout[n][1];
+
+            // x+ handled as an absorbing Riemann edge (nhflow_active_beach_edge)
+            if(nhf_active_edge && p->gcslout[n][3] == 4)
+                continue;
+
+            aa = bb = 0;
+
+            if(p->gcslout[n][3] == 1)
+                aa = -1;
+
+            if(p->gcslout[n][3] == 4)
+                aa = 1;
+
+            if(p->gcslout[n][3] == 3)
+                bb = -1;
+
+            if(p->gcslout[n][3] == 2)
+                bb = 1;
+
+            eta_T = 0.0;
+            eta_M = d->eta(i, j);
+            eta_R = fabs(eta_M - eta_T);
+        }
+
+        // curvilinear grid (G 50): the outflow velocity of the x+ edge along the normal of the edge face
+        if(p->geo_curv == 1)
+            for(n = 0; n < p->gcslout_count; ++n)
             {
-                V[(i - p->imin + 1 * aa) * p->jmax * p->kmax + (j - p->jmin + 1 * bb) * p->kmax + k - p->kmin] = 0.0;
-                V[(i - p->imin + 2 * aa) * p->jmax * p->kmax + (j - p->jmin + 2 * bb) * p->kmax + k - p->kmin] = 0.0;
-                V[(i - p->imin + 3 * aa) * p->jmax * p->kmax + (j - p->jmin + 3 * bb) * p->kmax + k - p->kmin] = 0.0;
+                i = p->gcslout[n][0];
+                j = p->gcslout[n][1];
 
-                VH[(i - p->imin + 1 * aa) * p->jmax * p->kmax + (j - p->jmin + 1 * bb) * p->kmax + k - p->kmin] = 0.0;
-                VH[(i - p->imin + 2 * aa) * p->jmax * p->kmax + (j - p->jmin + 2 * bb) * p->kmax + k - p->kmin] = 0.0;
-                VH[(i - p->imin + 3 * aa) * p->jmax * p->kmax + (j - p->jmin + 3 * bb) * p->kmax + k - p->kmin] = 0.0;
+                if(p->gcslout[n][3] != 4 || nhf_active_edge || p->wet[IJ] == 0)
+                    continue;
+
+                const int qf = (i - p->imin) * p->jmax + (j - p->jmin);
+                const double len = p->LEN1[qf];
+                const double nx = len > 0.0 ? p->SX1[qf] / len : 1.0, ny = len > 0.0 ? p->SY1[qf] / len : 0.0;
+
+                KLOOP
+                {
+                    const int c[3] = {Ip1JK, Ip2JK, Ip3JK};
+
+                    for(int q = 0; q < 3; ++q)
+                    {
+                        const double un = U[c[q]], uhn = UH[c[q]];
+                        U[c[q]] = un * nx;
+                        V[c[q]] = un * ny;
+                        UH[c[q]] = uhn * nx;
+                        VH[c[q]] = uhn * ny;
+                    }
+                }
             }
     }
-
-    //-----------------------------------------------
-    // PRESSURE
-    for(n = 0; n < p->gcslout_count; n++)
-    {
-        i = p->gcslout[n][0];
-        j = p->gcslout[n][1];
-
-        aa = bb = 0;
-
-        if(p->gcslout[n][3] == 1)
-            aa = -1;
-
-        if(p->gcslout[n][3] == 4)
-            aa = 1;
-
-        if(p->gcslout[n][3] == 3)
-            bb = -1;
-
-        if(p->gcslout[n][3] == 2)
-            bb = 1;
-
-        eta_T = 0.0;
-        eta_M = d->eta(i, j);
-        eta_R = fabs(eta_M - eta_T);
-    }
-}

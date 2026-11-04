@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include "fdm_fnpf.h"
 #include "ghostcell.h"
 #include "lexer.h"
+#include "probe_core.h"
 #include <sys/stat.h>
 #include <sys/types.h>
 
@@ -34,6 +35,7 @@ fnpf_vel_probe::fnpf_vel_probe(lexer *p, fdm_fnpf *c) : probenum(p->P65)
     p->Iarray(jloc, probenum);
     p->Iarray(kloc, probenum);
     p->Iarray(flag, probenum);
+    p->Darray(val, probenum * 4);
 
     // Create Folder
     if(p->mpirank == 0)
@@ -81,30 +83,42 @@ void fnpf_vel_probe::start(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 
     ini_location(p, c);
 
+    // the mesh refinement: the finest grid at the probe (one rank writes it)
+    amr_points ap;
+    if(amr != nullptr)
+        ap.find(amr, p, probenum, p->P65_x, p->P65_y, flag);
+
     for(n = 0; n < probenum; ++n)
     {
         uval = vval = wval = fival = -1.0e20;
 
-        if(flag[n] > 0)
+        if(amr == nullptr ? flag[n] > 0 : ap.mine[n] != 0)
         {
             xp = p->P65_x[n];
             yp = p->P65_y[n];
             zp = p->P65_z[n];
 
-            uval = p->ccipol7V(c->U, c->WL, c->bed, xp, yp, zp);
-            vval = p->ccipol7V(c->V, c->WL, c->bed, xp, yp, zp);
-            wval = p->ccipol7V(c->W, c->WL, c->bed, xp, yp, zp);
-            fival = p->ccipol7V(c->Fi, c->WL, c->bed, xp, yp, zp);
+            lexer *q = p;
+            fdm_fnpf *g = c;
+            if(amr != nullptr && ap.f[n] != nullptr)
+            {
+                q = ap.q[n];
+                g = static_cast<fdm_fnpf *>(ap.f[n]);
+            }
+
+            uval = q->ccipol7V(g->U, g->WL, g->bed, xp, yp, zp);
+            vval = q->ccipol7V(g->V, g->WL, g->bed, xp, yp, zp);
+            wval = q->ccipol7V(g->W, g->WL, g->bed, xp, yp, zp);
+            fival = q->ccipol7V(g->Fi, g->WL, g->bed, xp, yp, zp);
         }
 
-        uval = pgc->globalmax(uval);
-        vval = pgc->globalmax(vval);
-        wval = pgc->globalmax(wval);
-        fival = pgc->globalmax(fival);
-
-        if(p->mpirank == 0)
-            pout[n] << setprecision(9) << p->simtime << " \t " << uval << " \t " << vval << " \t " << wval << " \t " << fival << endl;
+        val[n * 4 + 0] = uval;
+        val[n * 4 + 1] = vval;
+        val[n * 4 + 2] = wval;
+        val[n * 4 + 3] = fival;
     }
+
+    probe_rows(p, pgc, pout, val, probenum, 4);
 }
 
 void fnpf_vel_probe::ini_location(lexer *p, fdm_fnpf *c)

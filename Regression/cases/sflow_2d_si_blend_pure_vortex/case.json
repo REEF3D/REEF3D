@@ -1,0 +1,25 @@
+{
+ "base": "sflow_2d_si_blend_mpi2",
+ "description": "sflow_2d_si_blend_mpi2 with the vortex weight 1 everywhere (W 222 3 1e8 2e8 m, W 223 0, W 224 0) and model time 0 at the first track record: bitwise sflow_2d_si_vortex_gahm_mpi2 (W 200 3), checked by 'regression.py ranks'.",
+ "same_as": "sflow_2d_si_vortex_gahm_mpi2",
+ "ctrl_set": {
+  "W 203": "20181010.000000"
+ },
+ "ctrl_add": [
+  "W 222 3 1.0e8 2.0e8",
+  "W 223 0",
+  "W 224 0.0"
+ ],
+ "tags": [
+  "2d",
+  "sflow",
+  "semi_implicit",
+  "mpi",
+  "met",
+  "vortex",
+  "blend"
+ ],
+ "covers": [
+  "met_source_blend: weight 1 = the vortex source bitwise"
+ ]
+}

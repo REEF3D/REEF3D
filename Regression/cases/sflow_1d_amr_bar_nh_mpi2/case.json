@@ -1,0 +1,15 @@
+{
+ "base": "sflow_1d_amr_bar_nh",
+ "description": "sflow_1d_amr_bar_nh on 2 ranks (level-0 V-cycle, the patch line solves exact).",
+ "np": 2,
+ "tags": [
+  "1d",
+  "sflow",
+  "amr",
+  "nh",
+  "mpi"
+ ],
+ "covers": [
+  "sflow_amr on a 2D grid across ranks"
+ ]
+}

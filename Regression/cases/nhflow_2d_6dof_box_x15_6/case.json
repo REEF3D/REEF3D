@@ -1,0 +1,4 @@
+{"base": "nhflow_2d_6dof_box",
+ "ctrl_add": ["X 15 6", "A 520 1"],
+ "description": "as nhflow_2d_6dof_box with X 15 6 and the full projection (A 520 1): X 15 1 forcing, the faces between body and fluid cells reflective walls in the HLL fluxes (no mass and tangential momentum flux, normal momentum of the mirror state) (needs patch 0021).",
+ "tags": ["2d", "nhflow", "6dof", "floating"], "covers": ["forcing_kernel_nhflow X15=6", "nhflow_HLL hll_sweep_x mirror_flux (continuity, normal, tangential)"]}

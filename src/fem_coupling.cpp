@@ -27,6 +27,7 @@ Architect: Hans Bihs
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
+#include <cstdlib>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
@@ -34,6 +35,9 @@ Architect: Hans Bihs
 #include <sstream>
 #include <sys/stat.h>
 #include <sys/types.h>
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 fem_coupling::fem_coupling(lexer *p, ghostcell *pgc) : surf_version(-1), dxmin(0.0), rho_w(1000.0), initialised(false), force_scale(1.0), nstep(0), printtime(0.0), printcount(0), starttime(0.0)
 {
@@ -71,15 +75,19 @@ fem_coupling::fem_coupling(lexer *p, ghostcell *pgc) : surf_version(-1), dxmin(0
 
     rho_w = p->W1;
 
+    nhflow = (p->A10 == 5);
+
     // smallest fluid cell size: spacing of the Lagrangian points, default element size
+    // (NHFLOW: horizontal cells, the sigma layers change with the water depth)
     double h = 1.0e20;
     for(int ii = 0; ii < p->knox; ++ii)
         h = std::min(h, p->DXN[ii + marge]);
     if(p->j_dir == 1)
         for(int jj = 0; jj < p->knoy; ++jj)
             h = std::min(h, p->DYN[jj + marge]);
-    for(int kk = 0; kk < p->knoz; ++kk)
-        h = std::min(h, p->DZN[kk + marge]);
+    if(!nhflow)
+        for(int kk = 0; kk < p->knoz; ++kk)
+            h = std::min(h, p->DZN[kk + marge]);
     dxmin = pgc->globalmin(h);
 
     try
@@ -105,6 +113,54 @@ fem_coupling::fem_coupling(lexer *p, ghostcell *pgc) : surf_version(-1), dxmin(0
         MPI_Abort(pgc->mpi_comm, 1);
     }
 
+    // threads of the solid (OpenMP builds): 'threads <n>' in fem.dat, else the cores of the
+    // node shared by its MPI ranks (every rank computes the whole solid), at most OMP_NUM_THREADS:
+    // more threads than cores (ranks x threads) slow the run down many times
+    int nthr = fs.threads_requested();
+#ifdef _OPENMP
+    if(nthr <= 0)
+    {
+        MPI_Comm node;
+        MPI_Comm_split_type(pgc->mpi_comm, MPI_COMM_TYPE_SHARED, 0, MPI_INFO_NULL, &node);
+        int nlocal = 1;
+        MPI_Comm_size(node, &nlocal);
+        MPI_Comm_free(&node);
+        nthr = std::max(1, omp_get_num_procs() / std::max(1, nlocal));
+        if(std::getenv("OMP_NUM_THREADS"))
+            nthr = std::min(nthr, omp_get_max_threads());
+    }
+#else
+    nthr = 1;
+#endif
+    fs.use_threads(nthr);
+
+    // distribution of the solid over the ranks (fem.dat 'distribute', default auto)
+    struct comm_mpi : public fem_comm
+    {
+        MPI_Comm c;
+        int n, r;
+        explicit comm_mpi(MPI_Comm cc) : c(cc)
+        {
+            MPI_Comm_size(c, &n);
+            MPI_Comm_rank(c, &r);
+        }
+        int size() const override { return n; }
+        int rank() const override { return r; }
+        void allgatherv(const void *send, int nbytes, void *recv, const int *counts, const int *displs) override
+        {
+            MPI_Allgatherv(send, nbytes, MPI_BYTE, recv, counts, displs, MPI_BYTE, c);
+        }
+        void allgather_int(int v, int *all) override
+        {
+            MPI_Allgather(&v, 1, MPI_INT, all, 1, MPI_INT, c);
+        }
+    };
+    if(p->mpi_size > 1 && fs.distribute_requested() != 0)
+    {
+        dcomm = new comm_mpi(pgc->mpi_comm);
+        fs.set_comm(dcomm);
+    }
+
     force_scale = (p->j_dir == 0) ? 1.0 / fs.lattice_h(1) : 1.0;
     outdir = "./REEF3D_FEM";
 
@@ -115,8 +171,10 @@ fem_coupling::fem_coupling(lexer *p, ghostcell *pgc) : surf_version(-1), dxmin(0
     }
 }
 
-void fem_coupling::first_call(lexer *p, fdm *a, ghostcell *pgc)
+void fem_coupling::first_call(lexer *p, ghostcell *pgc)
 {
+    fdm *a = cfd;
+
     initialised = true;
 
     // supports on the bed and the solids of the fluid grid
@@ -125,7 +183,10 @@ void fem_coupling::first_call(lexer *p, fdm *a, ghostcell *pgc)
     {
         fs.add_contact_plane(fem_solid::Vec3(1, 0, 0), p->global_xmin);
         fs.add_contact_plane(fem_solid::Vec3(-1, 0, 0), -p->global_xmax);
-        fs.add_contact_plane(fem_solid::Vec3(0, 0, 1), p->global_zmin);
+        // the floor of the domain only below a ground plane: both at the same height
+        // were two springs, twice the stiffness and the crushing force of debris
+        if(!fs.ground() || fs.ground_level() < p->global_zmin - 1.0e-9)
+            fs.add_contact_plane(fem_solid::Vec3(0, 0, 1), p->global_zmin);
         if(p->j_dir == 1)
         {
             fs.add_contact_plane(fem_solid::Vec3(0, 1, 0), p->global_ymin);
@@ -141,7 +202,12 @@ void fem_coupling::first_call(lexer *p, fdm *a, ghostcell *pgc)
             fem_solid::Vec3 x = fs.ref_pos(i);
             if(p->j_dir == 0)
                 x(1) = p->YP[marge];
-            if(x(0) >= p->originx && x(0) < p->endx && (p->j_dir == 0 || (x(1) >= p->originy && x(1) < p->endy)) && x(2) >= p->originz && x(2) < p->endz)
+            if(nhflow)
+            {
+                if(x(0) >= p->originx && x(0) < p->endx && (p->j_dir == 0 || (x(1) >= p->originy && x(1) < p->endy)))
+                    lv[i] = nhf_level(p, x);
+            }
+            else if(x(0) >= p->originx && x(0) < p->endx && (p->j_dir == 0 || (x(1) >= p->originy && x(1) < p->endy)) && x(2) >= p->originz && x(2) < p->endz)
                 lv[i] = std::min(p->ccipol4a(a->topo, x(0), x(1), x(2)), p->ccipol4a(a->solid, x(0), x(1), x(2)));
         }
         if(!lv.empty())
@@ -174,7 +240,13 @@ void fem_coupling::first_call(lexer *p, fdm *a, ghostcell *pgc)
             fem_solid::Vec3 c = 0.25 * (fs.pos(f.n[0]) + fs.pos(f.n[1]) + fs.pos(f.n[2]) + fs.pos(f.n[3]));
             if(p->j_dir == 0)
                 c(1) = p->YP[marge];
-            if(c(0) >= p->originx && c(0) < p->endx && (p->j_dir == 0 || (c(1) >= p->originy && c(1) < p->endy)) && c(2) >= p->originz && c(2) < p->endz)
+            if(nhflow)
+            {
+                if(c(0) >= p->originx && c(0) < p->endx && (p->j_dir == 0 || (c(1) >= p->originy && c(1) < p->endy)))
+                    if(nhf_wet_column(p, c(0), c(1)) && c(2) <= nhf_surface(p, c(0), c(1)))
+                        wet += 0.5 * ((fs.pos(f.n[2]) - fs.pos(f.n[0])).cross(fs.pos(f.n[3]) - fs.pos(f.n[1]))).norm();
+            }
+            else if(c(0) >= p->originx && c(0) < p->endx && (p->j_dir == 0 || (c(1) >= p->originy && c(1) < p->endy)) && c(2) >= p->originz && c(2) < p->endz)
                 if(p->ccipol4(a->phi, c(0), c(1), c(2)) >= 0.0)
                     wet += 0.5 * ((fs.pos(f.n[2]) - fs.pos(f.n[0])).cross(fs.pos(f.n[3]) - fs.pos(f.n[1]))).norm();
         }
@@ -210,8 +282,9 @@ void fem_coupling::first_call(lexer *p, fdm *a, ghostcell *pgc)
     {
         std::vector<fem_solid::Vec3> F0;
         // initial pressure field, or hydrostatic below the initial free
-        // surface if the flow solver starts without one (I 12 0)
-        pressure_loads(p, a, pgc, F0, p->I12 < 1);
+        // surface if the flow solver starts without one (I 12 0; NHFLOW: the
+        // hydrostatic part is always taken from the free surface)
+        pressure_loads(p, pgc, F0, p->I12 < 1);
         fem_solid::Vec3 Ft = fem_solid::Vec3::Zero();
         fs.clear_loads();
         for(int i = 0; i < fs.nnode(); ++i)
@@ -355,6 +428,37 @@ void fem_coupling::update_summary(lexer *p, bool write)
             sm.t_util = t;
             sm.x_util = fs.elem_centre(e);
         }
+        const double us = fs.max_steel_utilisation();
+        if(us > sm.sutil)
+        {
+            sm.sutil = us;
+            sm.t_sutil = t;
+        }
+    }
+
+    // reinforcement: first yielding of the bars, ruptured bars
+    if(sm.t_syield < 0.0 && fs.any_reinforcement())
+    {
+        int ey = -1;
+        if(fs.steel_yielded(&ey))
+        {
+            sm.t_syield = t;
+            sm.x_syield = fs.elem_centre(ey);
+            event = true;
+            if(p->mpirank == 0)
+                std::cout << "FEM: first yielding of the reinforcement at t = " << t << " s at (" << sm.x_syield.transpose() << ")" << std::endl;
+        }
+    }
+    if(sm.t_syield >= 0.0)
+    {
+        const int nr = fs.bars_ruptured();
+        if(nr > sm.nrupt)
+        {
+            if(sm.nrupt == 0 && p->mpirank == 0)
+                std::cout << "FEM: first rupture of the reinforcement at t = " << t << " s" << std::endl;
+            event = event || sm.nrupt == 0;
+            sm.nrupt = nr;
+        }
     }
 
     // first cracking / yielding: every step (it can precede the first failure by a few steps only)
@@ -408,6 +512,10 @@ void fem_coupling::write_summary(lexer *p)
         st << "COLLAPSED: " << std::setprecision(3) << 100.0 * ef << " % of the mass has failed" << fr.str();
     else if(ef > 0.0 || ff > 0.0)
         st << "PARTLY FAILED: " << std::setprecision(3) << 100.0 * ef << " % of the mass has failed" << fr.str();
+    else if(sm.t_crack >= 0.0 && sm.t_syield >= 0.0)
+        st << "CRACKED, REINFORCEMENT YIELDED" << (sm.nrupt > 0 ? " AND PARTLY RUPTURED" : "") << ", no failure";
+    else if(sm.t_crack >= 0.0 && fs.any_reinforcement())
+        st << "CRACKED, reinforcement elastic, no failure";
     else if(sm.t_crack >= 0.0)
         st << (sm.yielding ? "YIELDED, no failure" : "CRACKED, no failure");
     else if(sm.util >= 0.0)
@@ -434,11 +542,21 @@ void fem_coupling::write_summary(lexer *p)
             f << "first " << (sm.yielding ? "yielding:          " : "cracking:          ") << "t = " << sm.t_crack << " s at (" << sm.x_crack.transpose() << ")\n";
         else
             f << "first cracking:          none\n";
+        if(fs.any_reinforcement())
+        {
+            f << "max steel utilisation:   " << std::max(sm.sutil, 0.0) << "  at t = " << sm.t_sutil << " s   (bar stress / f_y, 1: yielding)\n";
+            if(sm.t_syield >= 0.0)
+                f << "first yield of the bars: t = " << sm.t_syield << " s at (" << sm.x_syield.transpose() << ")" << (sm.nrupt > 0 ? ", bars ruptured" : "") << "\n";
+            else
+                f << "first yield of the bars: none\n";
+        }
         if(sm.t_fail >= 0.0)
             f << "first element failure:   t = " << sm.t_fail << " s at (" << sm.x_fail.transpose() << ")\n";
         else
             f << "first element failure:   none\n";
         f << "failed mass:             " << 100.0 * ef << " %,  debris particles " << fs.debris().size() << "\n";
+        if(fs.element_type() == 2 && fs.n_full_elements() > 0)
+            f << "2x2x2 integration:       " << fs.n_full_elements() << " of " << fs.n_deformable() << " intact deformable elements (adaptive: near cracking or yield)\n";
     }
 
     // rigid bodies: floating and drifting debris
@@ -471,11 +589,29 @@ void fem_coupling::write_summary(lexer *p)
                 f << "-";
             f << "  " << src[rb.ksrc] << "\n";
         }
+        // NHFLOW: fluid steps in which the speed relative to the water was limited
+        int nl = 0;
+        for(int k = 0; k < fs.n_rigid(); ++k)
+            nl += fs.rigid(k).nlimit;
+        if(nl > 0)
+        {
+            f << "  speed relative to the water limited to the terminal speed (NHFLOW, fluid steps):";
+            for(int k = 0; k < fs.n_rigid(); ++k)
+                if(fs.rigid(k).nlimit > 0)
+                    f << " body " << k + 1 << ": " << fs.rigid(k).nlimit;
+            f << "\n";
+        }
     }
+    if(fs.coupling().strong == 1 && sc_steps > 0)
+        f << "strong coupling:         " << sc_steps << " fluid steps repeated until the rigid bodies converged, "
+          << double(sc_passes) / double(sc_steps) << " passes on average"
+          << (sc_unconv > 0 ? ", " + std::to_string(sc_unconv) + " not converged within strong_maxit" : std::string()) << "\n";
 }
 
 fem_coupling::~fem_coupling()
 {
+    delete sc;
+    delete dcomm;
 }
 
 void fem_coupling::ini_points(lexer *p, ghostcell *pgc)
@@ -525,6 +661,7 @@ void fem_coupling::ini_points(lexer *p, ghostcell *pgc)
     }
 
     surf_version = fs.surface_version();
+    pnh_bar.clear();  // NHFLOW pressure filter: new points
 
     buf.assign(14 * (pts.size() + fs.debris().size()) + 2 * size_t(fs.nnode()), 0.0);
     fdeb.assign(fs.debris().size(), fem_solid::Vec3::Zero());

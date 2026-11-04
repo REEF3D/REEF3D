@@ -1,0 +1,19 @@
+{
+ "description": "nhflow_3d_amr_still with subcycling (G 7 1): still water over the bed ramps under the patch edges stays still with level projections, time-interpolated fills and the synchronisation projection.",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 40,
+ "tags": [
+  "3d",
+  "nhflow",
+  "amr",
+  "subcycling"
+ ],
+ "covers": [
+  "nhflow_amr_sub: level pressure solve, sync projection, fine face depth on the coarse faces"
+ ],
+ "base": "nhflow_3d_amr_still",
+ "ctrl_add": [
+  "G 7 1"
+ ]
+}

@@ -1,0 +1,24 @@
+{
+ "base": "nhflow_3d_si_vortex_gahm",
+ "description": "The blend of sflow_2d_si_blend_mpi2 (background met-forcing.r3m and the GAHM vortex, W 200 4 defaults) on NHFLOW hydrostatic semi-implicit, 3 sigma layers, one rank.",
+ "ctrl_set": {
+  "W 200": "4"
+ },
+ "ctrl_add": [
+  "W 203 20181010.030000"
+ ],
+ "files": [
+  "../sflow_2d_si_blend_mpi2/met-forcing.r3m"
+ ],
+ "tags": [
+  "3d",
+  "nhflow",
+  "semi_implicit",
+  "met",
+  "vortex",
+  "blend"
+ ],
+ "covers": [
+  "met_source_blend in NHFLOW"
+ ]
+}

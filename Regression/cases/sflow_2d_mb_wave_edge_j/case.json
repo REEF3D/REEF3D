@@ -1,0 +1,21 @@
+{
+ "solver": "sflow",
+ "np": 1,
+ "steps": 400,
+ "files": [
+  "blocks.dat"
+ ],
+ "tags": [
+  "2d",
+  "sflow",
+  "curvilinear",
+  "multiblock",
+  "waves",
+  "quick"
+ ],
+ "description": "sflow_2d_mb_edges on the blocks with the open faces on their j faces (turned), the Riemann edge carrying the B 92 linear waves (B 524 1, averaged over B 160 + 1 levels) on the tide.",
+ "covers": [
+  "ioflow_amr_block::edges2D with waves",
+  "geo_mesh::turn_blocks with SFLOW"
+ ]
+}

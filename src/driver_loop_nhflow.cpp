@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include "benchmark_header.h"
 #include "concentration_header.h"
 #include "convection_header.h"
+#include "coral/reef3d/coral_reef3d.h"
 #include "dem.h"
 #include "driver.h"
 #include "fdm_header.h"
@@ -32,16 +33,22 @@ Author: Hans Bihs
 #include "freesurface_header.h"
 #include "ghostcell.h"
 #include "heat_header.h"
+#include "lagoon_output.h"
 #include "lexer.h"
 #include "momentum_header.h"
 #include "nhflow_amr.h"
 #include "nhflow_header.h"
+#include "nhflow_longrun.h"
 #include "pressure_header.h"
+#include "reefcouple.h"
+#include "reefrun_ckpt.h"
 #include "regression_dump.h"
 #include "runlog.h"
+#include "seastate_nhflow.h"
 #include "sediment_header.h"
 #include "solver_header.h"
 #include "turbulence_header.h"
+#include "wave_lib_fnpf_couple.h"
 
 void driver::loop_nhflow()
 {
@@ -70,7 +77,16 @@ void driver::loop_nhflow()
         }
 
         pflow->flowfile(p, a, pgc, pturb);
+
+        // runtime coupling (B 92 62): feedback of the bodies to FNPF at the start of the step (I 243)
+        if(reefcouple::recv != nullptr)
+            reefcouple::recv->feedback(p, pgc, p6dof, nullptr);
+
         pflow->wavegen_precalc_nhflow(p, d, pgc);
+
+        // REEF3D::SEASTATE: wave step and wave forcing (A 750 1)
+        if(d->wave != nullptr)
+            d->wave->start(p, d, pgc);
 
         pnhfturb->start(p, d, pgc, pnhfscalarconvec, pnhfturbdiff, psolv, pflow, pnhfvrans);
 
@@ -85,16 +101,31 @@ void driver::loop_nhflow()
         // DEM
         pdem->start_nhflow(p, d, pgc);
 
-        pnhfmom->start(p, d, pgc, pflow, pss, precon, pnhfconvec, pnhfdiff,
-                       pnhpress, ppoissonsolv, psolv, pnhf, pnhfsf, pnhfturb, pnhfvrans);
+        // FEM strong coupling (Z 30): the momentum step is repeated until the motion of the
+        // rigid bodies converges (no repetition without it)
+        pnhfdf->fem_step_begin(p, d, pgc);
+        do
+        {
+            pnhfmom->start(p, d, pgc, pflow, pss, precon, pnhfconvec, pnhfdiff,
+                           pnhpress, ppoissonsolv, psolv, pnhf, pnhfsf, pnhfturb, pnhfvrans);
+        }
+        while(pnhfdf->fem_step_redo(p, d, pgc));
 
         // save previous timestep
         pnhfturb->ktimesave(p, d, pgc);
         pnhfturb->etimesave(p, d, pgc);
         // pflow->veltimesave(p,a,pgc,pvrans);
 
+        // REEF3D::CORAL (Z 40): structural model from simtime to simtime + dt
+        if(pcoral != nullptr)
+            pcoral->step(p, pgc);
+
         // timestep control
         p->simtime += p->dt;
+
+        // long-run statistics (P 160), weight dt of the step just done
+        if(plongrun != nullptr)
+            plongrun->step(p, d, pgc, pnhfamr);
 
         // Lagrangian particles: Heun corrector with the new field, exchange, output
         pnhfpart->step_end(p, d, pgc);
@@ -103,6 +134,7 @@ void driver::loop_nhflow()
 
         // printer
         pprint->start(p, d, pgc, pflow, pnhfturb, psed);
+        lagoon_output::poll_all(p, pgc);  // outputs of the LAGOON store written by now (P 18)
         preg->nhflow_step(p, d, pgc);
 
         if(pnhfamr != nullptr)
@@ -142,40 +174,69 @@ void driver::loop_nhflow()
             solverlog(p);
         }
 
-        volumelog(p);
-
-        p->gctime = 0.0;
-        p->xtime = 0.0;
-        p->reinitime = 0.0;
-        p->wavecalctime = 0.0;
-        p->field4time = 0.0;
-        p->fbtime = 0.0;
-        p->matrixtime = 0.0;
-        p->poissontime = 0.0;
-
-        stop(p, a, pgc);
+        // Write log files
+        mainlog(p);
+        maxlog(p);
+        solverlog(p);
     }
 
-    if(p->mpirank == 0)
-    {
-        cout << endl
-             << "******************************" << endl
-             << endl;
+    volumelog(p);
 
-        if(p->plog)
-            p->plog->end(p, "finished");
+    p->gctime = 0.0;
+    p->xtime = 0.0;
+    p->reinitime = 0.0;
+    p->wavecalctime = 0.0;
+    p->field4time = 0.0;
+    p->fbtime = 0.0;
+    p->matrixtime = 0.0;
+    p->poissontime = 0.0;
 
-        cout << "modelled time: " << p->simtime << endl;
-        cout << endl;
+    // checkpoint on any decomposition (P 48), rebalance on the measured load (G 46): after the logs of the
+    // step, so that a restart cuts them back behind this step (reefckpt_open)
+    ckpt().step();
 
-        mainlogout.close();
-        maxlogout.close();
-        vollogout.close();
-        solvlogout.close();
-    }
+    stop(p, a, pgc);
+}
 
-    preg->nhflow_final(p, d, pgc);
+// the state at the end of the run (N 45, N 41, S 19), unless the last step wrote it: before the
+// checkpoint, which keeps the output counters
+pprint->print_end(p, d, pgc, pflow, pnhfturb, psed);
 
-    pgc->final();
+// a checkpoint at the end of the run (P 48): it can be continued with a later end (I 45 1)
+ckpt().finish();
+
+// the last outputs of the LAGOON store are counted (P 18)
+lagoon_output::finish_all(p, pgc);
+
+if(p->mpirank == 0)
+{
+    cout << endl
+         << "******************************" << endl
+         << endl;
+
+    stop(p, a, pgc);
+}
+
+if(p->mpirank == 0)
+{
+    cout << endl
+         << "******************************" << endl
+         << endl;
+
+    if(p->plog)
+        p->plog->end(p, "finished");
+
+    cout << "modelled time: " << p->simtime << endl;
+    cout << endl;
+
+    mainlogout.close();
+    maxlogout.close();
+    vollogout.close();
+    solvlogout.close();
+}
+
+preg->nhflow_final(p, d, pgc);
+
+pgc->final();
 }
 

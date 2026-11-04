@@ -24,8 +24,9 @@ Author: Hans Bihs
 #define REEFMG2D_H_
 
 #include "increment.h"
+#include "reefamr_xzlu.h"
 #include "reefmg_core.h"
-#include "solver2D.h"
+#include <mpi.h>
 #include <vector>
 
 class lexer;
@@ -61,6 +62,9 @@ class reefmg2D final : public solver2D, public increment, public sc_operator
 {
 public:
     reefmg2D(lexer *, ghostcell *);
+    //  local: the grid of this rank alone (a block of a multi-block grid, nhflow_amr_si): a 1 x 1
+    //  topology on MPI_COMM_SELF, no reductions over the ranks; for vcycle() as a preconditioner
+    reefmg2D(lexer *, ghostcell *, bool local);
     virtual ~reefmg2D();
 
     void start(lexer *, ghostcell *, slice &, matrix2D &, vec2D &, vec2D &, int) override final;
@@ -69,6 +73,10 @@ public:
     //  preconditioner of the composite non-hydrostatic solve (SFLOW mesh
     //  refinement).  rebuild: M changed, coarsen again.
     void vcycle(lexer *, ghostcell *, slice &, matrix2D &, vec2D &, bool);
+
+    //  vcycle(): on a grid with one cell in y, the exact solve of the x line (several ranks: of all ranks)
+    //  (reefamr_xzlu) in place of the V-cycle (SFLOW mesh refinement on a 2D grid)
+    void set_exact_line(bool on) { exact_line = on; }
 
     //  exact fine operator for the Krylov iteration in fp32 mode (sc_operator)
     void fine_apply(const sc_level &L, const double *x, double *y) override;
@@ -89,6 +97,8 @@ private:
     int screened_levels(double ldx, int nlev) const;
 
     reefmg_core mg;
+    reefamr_xzlu xz;
+    bool exact_line = false, xzon = false;
 
     matrix2D *Mcur;                  // matrix of the current solve (fine_apply)
     std::vector<int> cval;           // slice index IJ -> matrix2D row, -1 if none
@@ -101,6 +111,8 @@ private:
 
     int solve_mode, presweep, postsweep;
     int npx, npy, ndir;
+    bool local = false;
+    MPI_Comm cartc = MPI_COMM_NULL;
     double starttime;
 };
 

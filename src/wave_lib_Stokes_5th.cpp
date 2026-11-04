@@ -20,26 +20,37 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"wave_lib_Stokes_5th.h"
-#include"lexer.h"
-#include"fdm.h"
-#include"ghostcell.h"
+#include "wave_lib_Stokes_5th.h"
+#include "fdm.h"
+#include "ghostcell.h"
+#include "lexer.h"
 
-wave_lib_Stokes_5th::wave_lib_Stokes_5th(lexer *p, ghostcell *pgc) : pshift(p->B120*(PI/180.0))
-{   
-    wave_parameters(p,pgc);
-    parameters(p,pgc);
-    
+wave_lib_Stokes_5th::wave_lib_Stokes_5th(lexer *p, ghostcell *pgc) : pshift(p->B120 * (PI / 180.0))
+{
+    wave_parameters(p, pgc);
+
+    // waves on a background (B 530): depth of the coefficients, as constructed
+    wdk = wdt;
+
+    parameters(p, pgc);
+
+    // waves on a background (B 530): intrinsic frequency and height, as constructed
+    wsig = ww;
+    wH0 = wH;
+    waf = 1.0;
+    wkin = wk;
+    wsin = ww;
+
     // ----------
-    if(p->mpirank==0)
+    if(p->mpirank == 0)
     {
-    cout<<"Wave_Lib: 5th-order Stokes waves "<<endl;
-    cout<<"k: "<<wk<<" w: "<<ww<<" f: "<<wf<<" T: "<<wT<<" L: "<<wL<<" d: "<<wdt<<" kd: "<<wdt*wk<<" c: "<<p->wC<<endl;
-    cout<<"d/gT^2: "<<wdt/(fabs(p->W22)*wT*wT)<<" H/gT^2: "<<wH/(fabs(p->W22)*wT*wT)<<endl;
+        cout << "Wave_Lib: 5th-order Stokes waves " << endl;
+        cout << "k: " << wk << " w: " << ww << " f: " << wf << " T: " << wT << " L: " << wL << " d: " << wdt << " kd: " << wdt * wk << " c: " << p->wC << endl;
+        cout << "d/gT^2: " << wdt / (fabs(p->W22) * wT * wT) << " H/gT^2: " << wH / (fabs(p->W22) * wT * wT) << endl;
     }
-    
-    singamma = sin((p->B105_1)*(PI/180.0));
-    cosgamma = cos((p->B105_1)*(PI/180.0));
+
+    singamma = sin((p->B105_1) * (PI / 180.0));
+    cosgamma = cos((p->B105_1) * (PI / 180.0));
 }
 
 wave_lib_Stokes_5th::~wave_lib_Stokes_5th()
@@ -49,32 +60,32 @@ wave_lib_Stokes_5th::~wave_lib_Stokes_5th()
 // U -------------------------------------------------------------
 double wave_lib_Stokes_5th::wave_u(lexer *p, double x, double y, double z)
 {
-	
-	vel = wave_horzvel(p,x,y,z);
 
-    return cosgamma*vel;
+    vel = wave_horzvel(p, x, y, z);
+
+    return cosgamma * vel;
 }
 
 double wave_lib_Stokes_5th::wave_u_space_sin(lexer *p, double x, double y, double z, int n)
 {
 
-	vel = wave_horzvel_space_sin(p,x,y,z,n);
+    vel = wave_horzvel_space_sin(p, x, y, z, n);
 
-    return cosgamma*vel;
+    return cosgamma * vel;
 }
 
 double wave_lib_Stokes_5th::wave_u_space_cos(lexer *p, double x, double y, double z, int n)
 {
 
-	vel = wave_horzvel_space_cos(p,x,y,z,n);
+    vel = wave_horzvel_space_cos(p, x, y, z, n);
 
-    return cosgamma*vel;
+    return cosgamma * vel;
 }
 
 double wave_lib_Stokes_5th::wave_u_time_sin(lexer *p, int n)
 {
 
-	vel = wave_horzvel_time_sin(p,n);
+    vel = wave_horzvel_time_sin(p, n);
 
     return vel;
 }
@@ -82,7 +93,7 @@ double wave_lib_Stokes_5th::wave_u_time_sin(lexer *p, int n)
 double wave_lib_Stokes_5th::wave_u_time_cos(lexer *p, int n)
 {
 
-	vel = wave_horzvel_time_cos(p,n);
+    vel = wave_horzvel_time_cos(p, n);
 
     return vel;
 }
@@ -91,77 +102,76 @@ double wave_lib_Stokes_5th::wave_u_time_cos(lexer *p, int n)
 double wave_lib_Stokes_5th::wave_v(lexer *p, double x, double y, double z)
 {
 
-	vel = wave_horzvel(p,x,y,z);
+    vel = wave_horzvel(p, x, y, z);
 
-    return singamma*vel;
+    return singamma * vel;
 }
 
 double wave_lib_Stokes_5th::wave_v_space_sin(lexer *p, double x, double y, double z, int n)
 {
 
-	vel = wave_horzvel_space_sin(p,x,y,z,n);
+    vel = wave_horzvel_space_sin(p, x, y, z, n);
 
-    return singamma*vel;
+    return singamma * vel;
 }
 
 double wave_lib_Stokes_5th::wave_v_space_cos(lexer *p, double x, double y, double z, int n)
 {
 
-	vel = wave_horzvel_space_cos(p,x,y,z,n);
+    vel = wave_horzvel_space_cos(p, x, y, z, n);
 
-    return singamma*vel;
+    return singamma * vel;
 }
 
 double wave_lib_Stokes_5th::wave_v_time_sin(lexer *p, int n)
 {
-	vel = wave_horzvel_time_sin(p,n);
+    vel = wave_horzvel_time_sin(p, n);
 
     return vel;
 }
 
 double wave_lib_Stokes_5th::wave_v_time_cos(lexer *p, int n)
 {
-	
-	vel = wave_horzvel_time_cos(p,n);
+
+    vel = wave_horzvel_time_cos(p, n);
 
     return vel;
 }
 
-
 // HORZVEL -------------------------------------------------------------
 double wave_lib_Stokes_5th::wave_horzvel(lexer *p, double x, double y, double z)
 {
-	T = wk*x-ww*(p->wavetime) + pshift;
-    
-    vel = c0*sqrt(9.81/wk)
-         *((eps*a11 + pow(eps,3.0)*a31 + pow(eps,5.0)*a51)*cosh(wk*(wdt+z))*cos(T)
-         + 2.0*(pow(eps,2.0)*a22 + pow(eps,4.0)*a42)*cosh(2.0*wk*(wdt+z))*cos(2.0*T)
-         + 3.0*(pow(eps,3.0)*a33 + pow(eps,5.0)*a53)*cosh(3.0*wk*(wdt+z))*cos(3.0*T)
-         + 4.0*(pow(eps,4.0)*a44)*cosh(4.0*wk*(wdt+z))*cos(4.0*T)
-         + 5.0*(pow(eps,5.0)*a55)*cosh(5.0*wk*(wdt+z))*cos(5.0*T));
+    T = wk * x - ww * (p->wavetime) + pshift;
+
+    vel = U0 * (A1 * cosh(wk * (wdt + z)) * cos(T) + A2 * cosh(2.0 * wk * (wdt + z)) * cos(2.0 * T) + A3 * cosh(3.0 * wk * (wdt + z)) * cos(3.0 * T) + A4 * cosh(4.0 * wk * (wdt + z)) * cos(4.0 * T) + A5 * cosh(5.0 * wk * (wdt + z)) * cos(5.0 * T));
 
     return vel;
 }
 
 double wave_lib_Stokes_5th::wave_horzvel_space_sin(lexer *p, double x, double y, double z, int n)
 {
-	T = wk*x;
+    T = wk * x;
 
     switch(n)
     {
-        case 0: vel = 1.0*c0*sqrt(9.81/wk)*(eps*a11 + pow(eps,3.0)*a31 + pow(eps,5.0)*a51)*cosh(wk*(wdt+z))*sin(1.0*T);
+    case 0:
+        vel = 1.0 * c0 * sqrt(9.81 / wk) * (eps * a11 + pow(eps, 3.0) * a31 + pow(eps, 5.0) * a51) * cosh(wk * (wdt + z)) * sin(1.0 * T);
         break;
-             
-        case 1: vel = 2.0*c0*sqrt(9.81/wk)*(pow(eps,2.0)*a22 + pow(eps,4.0)*a42)*cosh(2.0*wk*(wdt+z))*sin(2.0*T);
+
+    case 1:
+        vel = 2.0 * c0 * sqrt(9.81 / wk) * (pow(eps, 2.0) * a22 + pow(eps, 4.0) * a42) * cosh(2.0 * wk * (wdt + z)) * sin(2.0 * T);
         break;
-             
-        case 2: vel = 3.0*c0*sqrt(9.81/wk)*(pow(eps,3.0)*a33 + pow(eps,5.0)*a53)*cosh(3.0*wk*(wdt+z))*sin(3.0*T);
+
+    case 2:
+        vel = 3.0 * c0 * sqrt(9.81 / wk) * (pow(eps, 3.0) * a33 + pow(eps, 5.0) * a53) * cosh(3.0 * wk * (wdt + z)) * sin(3.0 * T);
         break;
-             
-        case 3: vel = 4.0*c0*sqrt(9.81/wk)*(pow(eps,4.0)*a44)*cosh(4.0*wk*(wdt+z))*sin(4.0*T);
+
+    case 3:
+        vel = 4.0 * c0 * sqrt(9.81 / wk) * (pow(eps, 4.0) * a44) * cosh(4.0 * wk * (wdt + z)) * sin(4.0 * T);
         break;
-             
-        case 4: vel = 5.0*c0*sqrt(9.81/wk)*(pow(eps,5.0)*a55)*cosh(5.0*wk*(wdt+z))*sin(5.0*T);
+
+    case 4:
+        vel = 5.0 * c0 * sqrt(9.81 / wk) * (pow(eps, 5.0) * a55) * cosh(5.0 * wk * (wdt + z)) * sin(5.0 * T);
         break;
     }
 
@@ -171,23 +181,28 @@ double wave_lib_Stokes_5th::wave_horzvel_space_sin(lexer *p, double x, double y,
 double wave_lib_Stokes_5th::wave_horzvel_space_cos(lexer *p, double x, double y, double z, int n)
 {
 
-	T = wk*x;
+    T = wk * x;
 
     switch(n)
     {
-        case 0: vel = 1.0*c0*sqrt(9.81/wk)*(eps*a11 + pow(eps,3.0)*a31 + pow(eps,5.0)*a51)*cosh(wk*(wdt+z))*cos(1.0*T);
+    case 0:
+        vel = 1.0 * c0 * sqrt(9.81 / wk) * (eps * a11 + pow(eps, 3.0) * a31 + pow(eps, 5.0) * a51) * cosh(wk * (wdt + z)) * cos(1.0 * T);
         break;
-             
-        case 1: vel = 2.0*c0*sqrt(9.81/wk)*(pow(eps,2.0)*a22 + pow(eps,4.0)*a42)*cosh(2.0*wk*(wdt+z))*cos(2.0*T);
+
+    case 1:
+        vel = 2.0 * c0 * sqrt(9.81 / wk) * (pow(eps, 2.0) * a22 + pow(eps, 4.0) * a42) * cosh(2.0 * wk * (wdt + z)) * cos(2.0 * T);
         break;
-             
-        case 2: vel = 3.0*c0*sqrt(9.81/wk)*(pow(eps,3.0)*a33 + pow(eps,5.0)*a53)*cosh(3.0*wk*(wdt+z))*cos(3.0*T);
+
+    case 2:
+        vel = 3.0 * c0 * sqrt(9.81 / wk) * (pow(eps, 3.0) * a33 + pow(eps, 5.0) * a53) * cosh(3.0 * wk * (wdt + z)) * cos(3.0 * T);
         break;
-             
-        case 3: vel = 4.0*c0*sqrt(9.81/wk)*(pow(eps,4.0)*a44)*cosh(4.0*wk*(wdt+z))*cos(4.0*T);
+
+    case 3:
+        vel = 4.0 * c0 * sqrt(9.81 / wk) * (pow(eps, 4.0) * a44) * cosh(4.0 * wk * (wdt + z)) * cos(4.0 * T);
         break;
-             
-        case 4: vel = 5.0*c0*sqrt(9.81/wk)*(pow(eps,5.0)*a55)*cosh(5.0*wk*(wdt+z))*cos(5.0*T);
+
+    case 4:
+        vel = 5.0 * c0 * sqrt(9.81 / wk) * (pow(eps, 5.0) * a55) * cosh(5.0 * wk * (wdt + z)) * cos(5.0 * T);
         break;
     }
 
@@ -196,23 +211,28 @@ double wave_lib_Stokes_5th::wave_horzvel_space_cos(lexer *p, double x, double y,
 
 double wave_lib_Stokes_5th::wave_horzvel_time_sin(lexer *p, int n)
 {
-	T = -ww*(p->wavetime) + pshift;
+    T = -ww * (p->wavetime) + pshift;
 
     switch(n)
     {
-        case 0: vel = sin(1.0*T);
+    case 0:
+        vel = sin(1.0 * T);
         break;
-             
-        case 1: vel = sin(2.0*T);
+
+    case 1:
+        vel = sin(2.0 * T);
         break;
-             
-        case 2: vel = sin(3.0*T);
+
+    case 2:
+        vel = sin(3.0 * T);
         break;
-             
-        case 3: vel = sin(4.0*T);
+
+    case 3:
+        vel = sin(4.0 * T);
         break;
-             
-        case 4: vel = sin(5.0*T);
+
+    case 4:
+        vel = sin(5.0 * T);
         break;
     }
 
@@ -221,69 +241,74 @@ double wave_lib_Stokes_5th::wave_horzvel_time_sin(lexer *p, int n)
 
 double wave_lib_Stokes_5th::wave_horzvel_time_cos(lexer *p, int n)
 {
-    T = -ww*(p->wavetime) + pshift;
+    T = -ww * (p->wavetime) + pshift;
 
     switch(n)
     {
-        case 0: vel = cos(1.0*T);
+    case 0:
+        vel = cos(1.0 * T);
         break;
-             
-        case 1: vel = cos(2.0*T);
+
+    case 1:
+        vel = cos(2.0 * T);
         break;
-             
-        case 2: vel = cos(3.0*T);
+
+    case 2:
+        vel = cos(3.0 * T);
         break;
-             
-        case 3: vel = cos(4.0*T);
+
+    case 3:
+        vel = cos(4.0 * T);
         break;
-             
-        case 4: vel = cos(5.0*T);
+
+    case 4:
+        vel = cos(5.0 * T);
         break;
     }
 
     return vel;
 }
 
-
 // W -------------------------------------------------------------
 double wave_lib_Stokes_5th::wave_w(lexer *p, double x, double y, double z)
 {
-	
-	T = wk*x-ww*(p->wavetime) + pshift;
 
-    vel = c0*sqrt(9.81/wk)
-         *((eps*a11 + pow(eps,3.0)*a31 + pow(eps,5.0)*a51)*sinh(wk*(wdt+z))*sin(T)
-         + 2.0*(pow(eps,2.0)*a22 + pow(eps,4.0)*a42)*sinh(2.0*wk*(wdt+z))*sin(2.0*T)
-         + 3.0*(pow(eps,3.0)*a33 + pow(eps,5.0)*a53)*sinh(3.0*wk*(wdt+z))*sin(3.0*T)
-         + 4.0*(pow(eps,4.0)*a44)*sinh(4.0*wk*(wdt+z))*sin(4.0*T)
-         + 5.0*(pow(eps,5.0)*a55)*sinh(5.0*wk*(wdt+z))*sin(5.0*T));
+    T = wk * x - ww * (p->wavetime) + pshift;
+
+    vel = U0 * (A1 * sinh(wk * (wdt + z)) * sin(T) + A2 * sinh(2.0 * wk * (wdt + z)) * sin(2.0 * T) + A3 * sinh(3.0 * wk * (wdt + z)) * sin(3.0 * T) + A4 * sinh(4.0 * wk * (wdt + z)) * sin(4.0 * T) + A5 * sinh(5.0 * wk * (wdt + z)) * sin(5.0 * T));
 
     return vel;
 }
 
 double wave_lib_Stokes_5th::wave_w_space_sin(lexer *p, double x, double y, double z, int n)
 {
-	
-	T = wk*x;
-    
+
+    T = wk * x;
+
     switch(n)
     {
-        case 0: vel = 1.0*c0*sqrt(9.81/wk)*(eps*a11 + pow(eps,3.0)*a31 + pow(eps,5.0)*a51)*sinh(wk*(wdt+z))*sin(1.0*T);
+    case 0:
+        vel = 1.0 * c0 * sqrt(9.81 / wk) * (eps * a11 + pow(eps, 3.0) * a31 + pow(eps, 5.0) * a51) * sinh(wk * (wdt + z)) * sin(1.0 * T);
         break;
-         
-        case 1: vel = 2.0*c0*sqrt(9.81/wk)*(pow(eps,2.0)*a22 + pow(eps,4.0)*a42)*sinh(2.0*wk*(wdt+z))*sin(2.0*T);
+
+    case 1:
+        vel = 2.0 * c0 * sqrt(9.81 / wk) * (pow(eps, 2.0) * a22 + pow(eps, 4.0) * a42) * sinh(2.0 * wk * (wdt + z)) * sin(2.0 * T);
         break;
-        
-        case 2: vel = 3.0*c0*sqrt(9.81/wk)*(pow(eps,3.0)*a33 + pow(eps,5.0)*a53)*sinh(3.0*wk*(wdt+z))*sin(3.0*T);
+
+    case 2:
+        vel = 3.0 * c0 * sqrt(9.81 / wk) * (pow(eps, 3.0) * a33 + pow(eps, 5.0) * a53) * sinh(3.0 * wk * (wdt + z)) * sin(3.0 * T);
         break;
-        
-        case 3: vel = 4.0*c0*sqrt(9.81/wk)*(pow(eps,4.0)*a44)*sinh(4.0*wk*(wdt+z))*sin(4.0*T);
+
+    case 3:
+        vel = 4.0 * c0 * sqrt(9.81 / wk) * (pow(eps, 4.0) * a44) * sinh(4.0 * wk * (wdt + z)) * sin(4.0 * T);
         break;
-        
-        case 4: vel = 5.0*c0*sqrt(9.81/wk)*(pow(eps,5.0)*a55)*sinh(5.0*wk*(wdt+z))*sin(5.0*T);
+
+    case 4:
+        vel = 5.0 * c0 * sqrt(9.81 / wk) * (pow(eps, 5.0) * a55) * sinh(5.0 * wk * (wdt + z)) * sin(5.0 * T);
         break;
-        
-        default: vel = 0.0;
+
+    default:
+        vel = 0.0;
         break;
     }
 
@@ -292,26 +317,32 @@ double wave_lib_Stokes_5th::wave_w_space_sin(lexer *p, double x, double y, doubl
 
 double wave_lib_Stokes_5th::wave_w_space_cos(lexer *p, double x, double y, double z, int n)
 {
-	T = wk*x;
-    
+    T = wk * x;
+
     switch(n)
     {
-        case 0: vel = 1.0*c0*sqrt(9.81/wk)*(eps*a11 + pow(eps,3.0)*a31 + pow(eps,5.0)*a51)*sinh(wk*(wdt+z))*cos(1.0*T);
+    case 0:
+        vel = 1.0 * c0 * sqrt(9.81 / wk) * (eps * a11 + pow(eps, 3.0) * a31 + pow(eps, 5.0) * a51) * sinh(wk * (wdt + z)) * cos(1.0 * T);
         break;
-         
-        case 1: vel = 2.0*c0*sqrt(9.81/wk)*(pow(eps,2.0)*a22 + pow(eps,4.0)*a42)*sinh(2.0*wk*(wdt+z))*cos(2.0*T);
+
+    case 1:
+        vel = 2.0 * c0 * sqrt(9.81 / wk) * (pow(eps, 2.0) * a22 + pow(eps, 4.0) * a42) * sinh(2.0 * wk * (wdt + z)) * cos(2.0 * T);
         break;
-        
-        case 2: vel = 3.0*c0*sqrt(9.81/wk)*(pow(eps,3.0)*a33 + pow(eps,5.0)*a53)*sinh(3.0*wk*(wdt+z))*cos(3.0*T);
+
+    case 2:
+        vel = 3.0 * c0 * sqrt(9.81 / wk) * (pow(eps, 3.0) * a33 + pow(eps, 5.0) * a53) * sinh(3.0 * wk * (wdt + z)) * cos(3.0 * T);
         break;
-        
-        case 3: vel = 4.0*c0*sqrt(9.81/wk)*(pow(eps,4.0)*a44)*sinh(4.0*wk*(wdt+z))*cos(4.0*T);
+
+    case 3:
+        vel = 4.0 * c0 * sqrt(9.81 / wk) * (pow(eps, 4.0) * a44) * sinh(4.0 * wk * (wdt + z)) * cos(4.0 * T);
         break;
-        
-        case 4: vel = 5.0*c0*sqrt(9.81/wk)*(pow(eps,5.0)*a55)*sinh(5.0*wk*(wdt+z))*cos(5.0*T);
+
+    case 4:
+        vel = 5.0 * c0 * sqrt(9.81 / wk) * (pow(eps, 5.0) * a55) * sinh(5.0 * wk * (wdt + z)) * cos(5.0 * T);
         break;
-        
-        default: vel = 0.0;
+
+    default:
+        vel = 0.0;
         break;
     }
 
@@ -320,26 +351,32 @@ double wave_lib_Stokes_5th::wave_w_space_cos(lexer *p, double x, double y, doubl
 
 double wave_lib_Stokes_5th::wave_w_time_sin(lexer *p, int n)
 {
-	T = -ww*(p->wavetime) + pshift;
+    T = -ww * (p->wavetime) + pshift;
 
     switch(n)
     {
-        case 0: vel = sin(1.0*T);
+    case 0:
+        vel = sin(1.0 * T);
         break;
-             
-        case 1: vel = sin(2.0*T);
+
+    case 1:
+        vel = sin(2.0 * T);
         break;
-             
-        case 2: vel = sin(3.0*T);
+
+    case 2:
+        vel = sin(3.0 * T);
         break;
-             
-        case 3: vel = sin(4.0*T);
+
+    case 3:
+        vel = sin(4.0 * T);
         break;
-             
-        case 4: vel = sin(5.0*T);
+
+    case 4:
+        vel = sin(5.0 * T);
         break;
-        
-        default: vel = 0.0;
+
+    default:
+        vel = 0.0;
         break;
     }
 
@@ -348,26 +385,32 @@ double wave_lib_Stokes_5th::wave_w_time_sin(lexer *p, int n)
 
 double wave_lib_Stokes_5th::wave_w_time_cos(lexer *p, int n)
 {
-	T = -ww*(p->wavetime) + pshift;
+    T = -ww * (p->wavetime) + pshift;
 
     switch(n)
     {
-        case 0: vel = cos(1.0*T);
+    case 0:
+        vel = cos(1.0 * T);
         break;
-             
-        case 1: vel = cos(2.0*T);
+
+    case 1:
+        vel = cos(2.0 * T);
         break;
-             
-        case 2: vel = cos(3.0*T);
+
+    case 2:
+        vel = cos(3.0 * T);
         break;
-             
-        case 3: vel = cos(4.0*T);
+
+    case 3:
+        vel = cos(4.0 * T);
         break;
-             
-        case 4: vel = cos(5.0*T);
+
+    case 4:
+        vel = cos(5.0 * T);
         break;
-        
-        default: vel = 0.0;
+
+    default:
+        vel = 0.0;
         break;
     }
 
@@ -378,87 +421,98 @@ double wave_lib_Stokes_5th::wave_w_time_cos(lexer *p, int n)
 double wave_lib_Stokes_5th::wave_eta(lexer *p, double x, double y)
 {
     double eta;
-	
-	T = wk*x-ww*(p->wavetime) + pshift;
 
-    eta =  (1.0/wk)*((eps + pow(eps,3.0)*b31 - pow(eps,5.0)*(b53 + b55))*cos(T)
-                    + (pow(eps,2.0)*b22 + pow(eps,4.0)*b42)*cos(2.0*T)
-                    + (-pow(eps,3.0)*b31 + pow(eps,5.0)*b53)*cos(3.0*T)
-                    + pow(eps,4.0)*b44*cos(4.0*T)
-                    + pow(eps,5.0)*b55*cos(5.0*T));
+    T = wk * x - ww * (p->wavetime) + pshift;
+
+    eta = (1.0 / wk) * (E1 * cos(T) + E2 * cos(2.0 * T) + E3 * cos(3.0 * T) + E4 * cos(4.0 * T) + E5 * cos(5.0 * T));
 
     return eta;
 }
 
 double wave_lib_Stokes_5th::wave_eta_space_sin(lexer *p, double x, double y, int n)
 {
-	T = wk*x;
-    
+    T = wk * x;
+
     switch(n)
     {
-        case 0: eta =  (1.0/wk)*(eps + pow(eps,3.0)*b31 - pow(eps,5.0)*(b53 + b55))*sin(1.0*T);
+    case 0:
+        eta = (1.0 / wk) * (eps + pow(eps, 3.0) * b31 - pow(eps, 5.0) * (b53 + b55)) * sin(1.0 * T);
         break;
-        
-        case 1: eta =  (1.0/wk)*(pow(eps,2.0)*b22 + pow(eps,4.0)*b42)*sin(2.0*T);
+
+    case 1:
+        eta = (1.0 / wk) * (pow(eps, 2.0) * b22 + pow(eps, 4.0) * b42) * sin(2.0 * T);
         break;
-        
-        case 2: eta =  (1.0/wk)*(-pow(eps,3.0)*b31 + pow(eps,5.0)*b53)*sin(3.0*T);
+
+    case 2:
+        eta = (1.0 / wk) * (-pow(eps, 3.0) * b31 + pow(eps, 5.0) * b53) * sin(3.0 * T);
         break;
-        
-        case 3: eta =  (1.0/wk)*pow(eps,4.0)*b44*sin(4.0*T);
+
+    case 3:
+        eta = (1.0 / wk) * pow(eps, 4.0) * b44 * sin(4.0 * T);
         break;
-        
-        case 4: eta =  (1.0/wk)*pow(eps,5.0)*b55*sin(5.0*T);
+
+    case 4:
+        eta = (1.0 / wk) * pow(eps, 5.0) * b55 * sin(5.0 * T);
         break;
     }
-    
+
     return eta;
 }
 
 double wave_lib_Stokes_5th::wave_eta_space_cos(lexer *p, double x, double y, int n)
 {
-	T = wk*x;
-    
+    T = wk * x;
+
     switch(n)
     {
-        case 0: eta =  (1.0/wk)*(eps + pow(eps,3.0)*b31 - pow(eps,5.0)*(b53 + b55))*cos(1.0*T);
+    case 0:
+        eta = (1.0 / wk) * (eps + pow(eps, 3.0) * b31 - pow(eps, 5.0) * (b53 + b55)) * cos(1.0 * T);
         break;
-        
-        case 1: eta =  (1.0/wk)*(pow(eps,2.0)*b22 + pow(eps,4.0)*b42)*cos(2.0*T);
+
+    case 1:
+        eta = (1.0 / wk) * (pow(eps, 2.0) * b22 + pow(eps, 4.0) * b42) * cos(2.0 * T);
         break;
-        
-        case 2: eta =  (1.0/wk)*(-pow(eps,3.0)*b31 + pow(eps,5.0)*b53)*cos(3.0*T);
+
+    case 2:
+        eta = (1.0 / wk) * (-pow(eps, 3.0) * b31 + pow(eps, 5.0) * b53) * cos(3.0 * T);
         break;
-        
-        case 3: eta =  (1.0/wk)*pow(eps,4.0)*b44*cos(4.0*T);
+
+    case 3:
+        eta = (1.0 / wk) * pow(eps, 4.0) * b44 * cos(4.0 * T);
         break;
-        
-        case 4: eta =  (1.0/wk)*pow(eps,5.0)*b55*cos(5.0*T);
+
+    case 4:
+        eta = (1.0 / wk) * pow(eps, 5.0) * b55 * cos(5.0 * T);
         break;
     }
-    
+
     return eta;
 }
 
 double wave_lib_Stokes_5th::wave_eta_time_sin(lexer *p, int n)
 {
-	T = -ww*(p->wavetime) + pshift;
+    T = -ww * (p->wavetime) + pshift;
 
     switch(n)
     {
-        case 0: eta = sin(1.0*T);
+    case 0:
+        eta = sin(1.0 * T);
         break;
-             
-        case 1: eta = sin(2.0*T);
+
+    case 1:
+        eta = sin(2.0 * T);
         break;
-             
-        case 2: eta = sin(3.0*T);
+
+    case 2:
+        eta = sin(3.0 * T);
         break;
-             
-        case 3: eta = sin(4.0*T);
+
+    case 3:
+        eta = sin(4.0 * T);
         break;
-             
-        case 4: eta = sin(5.0*T);
+
+    case 4:
+        eta = sin(5.0 * T);
         break;
     }
 
@@ -467,23 +521,28 @@ double wave_lib_Stokes_5th::wave_eta_time_sin(lexer *p, int n)
 
 double wave_lib_Stokes_5th::wave_eta_time_cos(lexer *p, int n)
 {
-	T = -ww*(p->wavetime) + pshift;
+    T = -ww * (p->wavetime) + pshift;
 
     switch(n)
     {
-        case 0: eta = cos(1.0*T);
+    case 0:
+        eta = cos(1.0 * T);
         break;
-             
-        case 1: eta = cos(2.0*T);
+
+    case 1:
+        eta = cos(2.0 * T);
         break;
-             
-        case 2: eta = cos(3.0*T);
+
+    case 2:
+        eta = cos(3.0 * T);
         break;
-             
-        case 3: eta = cos(4.0*T);
+
+    case 3:
+        eta = cos(4.0 * T);
         break;
-             
-        case 4: eta = cos(5.0*T);
+
+    case 4:
+        eta = cos(5.0 * T);
         break;
     }
 
@@ -494,58 +553,44 @@ double wave_lib_Stokes_5th::wave_eta_time_cos(lexer *p, int n)
 double wave_lib_Stokes_5th::wave_fi(lexer *p, double x, double y, double z)
 {
     double fi;
-    
-    T = wk*x-ww*(p->wavetime) + pshift;
 
-    fi = c0*sqrt(9.81/pow(wk,3.0))
-         *((eps*a11 + pow(eps,3.0)*a31 + pow(eps,5.0)*a51)*cosh(wk*(wdt+z))*sin(T)
-         + 2.0*(pow(eps,2.0)*a22 + pow(eps,4.0)*a42)*cosh(2.0*wk*(wdt+z))*sin(2.0*T)
-         + 3.0*(pow(eps,3.0)*a33 + pow(eps,5.0)*a53)*cosh(3.0*wk*(wdt+z))*sin(3.0*T)
-         + 4.0*(pow(eps,4.0)*a44)*cosh(4.0*wk*(wdt+z))*sin(4.0*T)
-         + 5.0*(pow(eps,5.0)*a55)*cosh(5.0*wk*(wdt+z))*sin(5.0*T));
-        
+    T = wk * x - ww * (p->wavetime) + pshift;
+
+    fi = F0 * (A1 * cosh(wk * (wdt + z)) * sin(T) + A2 * cosh(2.0 * wk * (wdt + z)) * sin(2.0 * T) + A3 * cosh(3.0 * wk * (wdt + z)) * sin(3.0 * T) + A4 * cosh(4.0 * wk * (wdt + z)) * sin(4.0 * T) + A5 * cosh(5.0 * wk * (wdt + z)) * sin(5.0 * T));
+
     return fi;
-}
-
-void wave_lib_Stokes_5th::wave_fi_precalc_xy_ini(lexer*,int)
-{
-    
-}
-
-void wave_lib_Stokes_5th::wave_fi_precalc_xy(lexer*,double,double,int)
-{
-    
-}
-
-void wave_lib_Stokes_5th::wave_fi_precalc_n(lexer*)
-{
-    
 }
 
 double wave_lib_Stokes_5th::wave_fi_space_sin(lexer *p, double x, double y, double z, int n)
 {
     double fi;
-    
-    T = wk*x;
-    
+
+    T = wk * x;
+
     switch(n)
     {
-        case 0: vel = 1.0*c0*sqrt(9.81/pow(wk,3.0))*(eps*a11 + pow(eps,3.0)*a31 + pow(eps,5.0)*a51)*cosh(wk*(wdt+z))*sin(1.0*T);
+    case 0:
+        vel = 1.0 * c0 * sqrt(9.81 / pow(wk, 3.0)) * (eps * a11 + pow(eps, 3.0) * a31 + pow(eps, 5.0) * a51) * cosh(wk * (wdt + z)) * sin(1.0 * T);
         break;
-         
-        case 1: vel = 2.0*c0*sqrt(9.81/pow(wk,3.0))*(pow(eps,2.0)*a22 + pow(eps,4.0)*a42)*cosh(2.0*wk*(wdt+z))*sin(2.0*T);
+
+    case 1:
+        vel = 2.0 * c0 * sqrt(9.81 / pow(wk, 3.0)) * (pow(eps, 2.0) * a22 + pow(eps, 4.0) * a42) * cosh(2.0 * wk * (wdt + z)) * sin(2.0 * T);
         break;
-        
-        case 2: vel = 3.0*c0*sqrt(9.81/pow(wk,3.0))*(pow(eps,3.0)*a33 + pow(eps,5.0)*a53)*cosh(3.0*wk*(wdt+z))*sin(3.0*T);
+
+    case 2:
+        vel = 3.0 * c0 * sqrt(9.81 / pow(wk, 3.0)) * (pow(eps, 3.0) * a33 + pow(eps, 5.0) * a53) * cosh(3.0 * wk * (wdt + z)) * sin(3.0 * T);
         break;
-        
-        case 3: vel = 4.0*c0*sqrt(9.81/pow(wk,3.0))*(pow(eps,4.0)*a44)*cosh(4.0*wk*(wdt+z))*sin(4.0*T);
+
+    case 3:
+        vel = 4.0 * c0 * sqrt(9.81 / pow(wk, 3.0)) * (pow(eps, 4.0) * a44) * cosh(4.0 * wk * (wdt + z)) * sin(4.0 * T);
         break;
-        
-        case 4: vel = 5.0*c0*sqrt(9.81/pow(wk,3.0))*(pow(eps,5.0)*a55)*cosh(5.0*wk*(wdt+z))*sin(5.0*T);
+
+    case 4:
+        vel = 5.0 * c0 * sqrt(9.81 / pow(wk, 3.0)) * (pow(eps, 5.0) * a55) * cosh(5.0 * wk * (wdt + z)) * sin(5.0 * T);
         break;
-        
-        default: fi = 0.0;
+
+    default:
+        fi = 0.0;
         break;
     }
 
@@ -555,27 +600,33 @@ double wave_lib_Stokes_5th::wave_fi_space_sin(lexer *p, double x, double y, doub
 double wave_lib_Stokes_5th::wave_fi_space_cos(lexer *p, double x, double y, double z, int n)
 {
     double fi;
-    
-    T = wk*x;
-    
+
+    T = wk * x;
+
     switch(n)
     {
-        case 0: vel = 1.0*c0*sqrt(9.81/pow(wk,3.0))*(eps*a11 + pow(eps,3.0)*a31 + pow(eps,5.0)*a51)*cosh(wk*(wdt+z))*cos(1.0*T);
+    case 0:
+        vel = 1.0 * c0 * sqrt(9.81 / pow(wk, 3.0)) * (eps * a11 + pow(eps, 3.0) * a31 + pow(eps, 5.0) * a51) * cosh(wk * (wdt + z)) * cos(1.0 * T);
         break;
-         
-        case 1: vel = 2.0*c0*sqrt(9.81/pow(wk,3.0))*(pow(eps,2.0)*a22 + pow(eps,4.0)*a42)*cosh(2.0*wk*(wdt+z))*cos(2.0*T);
+
+    case 1:
+        vel = 2.0 * c0 * sqrt(9.81 / pow(wk, 3.0)) * (pow(eps, 2.0) * a22 + pow(eps, 4.0) * a42) * cosh(2.0 * wk * (wdt + z)) * cos(2.0 * T);
         break;
-        
-        case 2: vel = 3.0*c0*sqrt(9.81/pow(wk,3.0))*(pow(eps,3.0)*a33 + pow(eps,5.0)*a53)*cosh(3.0*wk*(wdt+z))*cos(3.0*T);
+
+    case 2:
+        vel = 3.0 * c0 * sqrt(9.81 / pow(wk, 3.0)) * (pow(eps, 3.0) * a33 + pow(eps, 5.0) * a53) * cosh(3.0 * wk * (wdt + z)) * cos(3.0 * T);
         break;
-        
-        case 3: vel = 4.0*c0*sqrt(9.81/pow(wk,3.0))*(pow(eps,4.0)*a44)*cosh(4.0*wk*(wdt+z))*cos(4.0*T);
+
+    case 3:
+        vel = 4.0 * c0 * sqrt(9.81 / pow(wk, 3.0)) * (pow(eps, 4.0) * a44) * cosh(4.0 * wk * (wdt + z)) * cos(4.0 * T);
         break;
-        
-        case 4: vel = 5.0*c0*sqrt(9.81/pow(wk,3.0))*(pow(eps,5.0)*a55)*cosh(5.0*wk*(wdt+z))*cos(5.0*T);
+
+    case 4:
+        vel = 5.0 * c0 * sqrt(9.81 / pow(wk, 3.0)) * (pow(eps, 5.0) * a55) * cosh(5.0 * wk * (wdt + z)) * cos(5.0 * T);
         break;
-        
-        default: fi = 0.0;
+
+    default:
+        fi = 0.0;
         break;
     }
 
@@ -584,26 +635,32 @@ double wave_lib_Stokes_5th::wave_fi_space_cos(lexer *p, double x, double y, doub
 
 double wave_lib_Stokes_5th::wave_fi_time_sin(lexer *p, int n)
 {
-    T = -ww*(p->wavetime) + pshift;
+    T = -ww * (p->wavetime) + pshift;
 
     switch(n)
     {
-        case 0: vel = sin(1.0*T);
+    case 0:
+        vel = sin(1.0 * T);
         break;
-             
-        case 1: vel = sin(2.0*T);
+
+    case 1:
+        vel = sin(2.0 * T);
         break;
-             
-        case 2: vel = sin(3.0*T);
+
+    case 2:
+        vel = sin(3.0 * T);
         break;
-             
-        case 3: vel = sin(4.0*T);
+
+    case 3:
+        vel = sin(4.0 * T);
         break;
-             
-        case 4: vel = sin(5.0*T);
+
+    case 4:
+        vel = sin(5.0 * T);
         break;
-        
-        default: vel = 0.0;
+
+    default:
+        vel = 0.0;
         break;
     }
 
@@ -612,26 +669,32 @@ double wave_lib_Stokes_5th::wave_fi_time_sin(lexer *p, int n)
 
 double wave_lib_Stokes_5th::wave_fi_time_cos(lexer *p, int n)
 {
-    T = -ww*(p->wavetime) + pshift;
+    T = -ww * (p->wavetime) + pshift;
 
     switch(n)
     {
-        case 0: vel = cos(1.0*T);
+    case 0:
+        vel = cos(1.0 * T);
         break;
-             
-        case 1: vel = cos(2.0*T);
+
+    case 1:
+        vel = cos(2.0 * T);
         break;
-             
-        case 2: vel = cos(3.0*T);
+
+    case 2:
+        vel = cos(3.0 * T);
         break;
-             
-        case 3: vel = cos(4.0*T);
+
+    case 3:
+        vel = cos(4.0 * T);
         break;
-             
-        case 4: vel = cos(5.0*T);
+
+    case 4:
+        vel = cos(5.0 * T);
         break;
-        
-        default: vel = 0.0;
+
+    default:
+        vel = 0.0;
         break;
     }
 
@@ -640,128 +703,125 @@ double wave_lib_Stokes_5th::wave_fi_time_cos(lexer *p, int n)
 
 void wave_lib_Stokes_5th::wave_parameters(lexer *p, ghostcell *pgc)
 {
-    
-    p->phiin=p->phimean;
 
-	wtype=p->B92;
+    p->phiin = p->phimean;
+
+    wtype = p->B92;
 
     p->wd = p->phimean;
 
-    if(p->B94==0)
-	wdt=p->phimean;
+    if(p->B94 == 0)
+        wdt = p->phimean;
 
-	if(p->B94==1)
-	wdt=p->B94_wdt;
+    if(p->B94 == 1)
+        wdt = p->B94_wdt;
 
-// Wave Length given ----------------------------------------
-    if(p->B91==1)
+    // Wave Length given ----------------------------------------
+    if(p->B91 == 1)
     {
 
-     // define wave parameters
-    wa = 0.5*p->B91_1;
-    wH = p->B91_1;
-    wL = p->B91_2;
+        // define wave parameters
+        wa = 0.5 * p->B91_1;
+        wH = p->B91_1;
+        wL = p->B91_2;
 
-    wk= (2.0*PI)/(wL>1.0e-20?wL:1.0e20);
+        wk = (2.0 * PI) / (wL > 1.0e-20 ? wL : 1.0e20);
 
         // 5th-order Stokes
-	    eps = 0.5*wk*wH;
-	    S = 1.0/cosh(2.0*wk*wdt);
-	    C = 1.0 - S;
+        eps = 0.5 * wk * wH;
+        S = 1.0 / cosh(2.0 * wk * wdt);
+        C = 1.0 - S;
 
-	    c0 = sqrt(tanh(wk*wdt));
-        c2 = (c0*(2.0 + 7.0*S*S)/(4.0*C*C));
-        c4 = (c0*(4.0 + 32.0*S -116.0*S*S - 400.0*S*S*S - 71.0*pow(S,4.0) + 146.0*pow(S,5.0)))/(32.0*pow(C,5.0));
-        
-	    wT= (2.0*PI)/(sqrt(9.81*wk)*(c0 + eps*eps*c2 + eps*eps*eps*eps*c4));
-	    wf = 1.0/wT;
-	    ww = 2.0*PI*wf;
+        c0 = sqrt(tanh(wk * wdt));
+        c2 = (c0 * (2.0 + 7.0 * S * S) / (4.0 * C * C));
+        c4 = (c0 * (4.0 + 32.0 * S - 116.0 * S * S - 400.0 * S * S * S - 71.0 * pow(S, 4.0) + 146.0 * pow(S, 5.0))) / (32.0 * pow(C, 5.0));
 
-	    wC = ww/wk;
-	    ubar = (c0 + eps*eps*c2 + eps*eps*eps*eps*c4)/sqrt(wk/9.81);
-        
-    p->wT = wT;
+        wT = (2.0 * PI) / (sqrt(9.81 * wk) * (c0 + eps * eps * c2 + eps * eps * eps * eps * c4));
+        wf = 1.0 / wT;
+        ww = 2.0 * PI * wf;
+
+        wC = ww / wk;
+        ubar = (c0 + eps * eps * c2 + eps * eps * eps * eps * c4) / sqrt(wk / 9.81);
+
+        p->wT = wT;
     }
 
-// Wave Period given ----------------------------------------
-    if(p->B93==1)
+    // Wave Period given ----------------------------------------
+    if(p->B93 == 1)
     {
-		// define wave parameters
-		wa = 0.5*p->B93_1;
-		wH = p->B93_1;
-		wT = p->B93_2;
+        // define wave parameters
+        wa = 0.5 * p->B93_1;
+        wH = p->B93_1;
+        wT = p->B93_2;
         p->wT = wT;
 
         // ini
-		wL0 = (9.81/(2.0*PI))*wT*wT;
-		k0 = (2.0*PI)/wL0;
-		S0 = sqrt(k0*wdt) * (1.0 + (k0*wdt)/6.0 + (k0*k0*wdt*wdt)/30.0);
+        wL0 = (9.81 / (2.0 * PI)) * wT * wT;
+        k0 = (2.0 * PI) / wL0;
+        S0 = sqrt(k0 * wdt) * (1.0 + (k0 * wdt) / 6.0 + (k0 * k0 * wdt * wdt) / 30.0);
 
-		wL = wL0*tanh(S0);
+        wL = wL0 * tanh(S0);
 
-        for(int qn=0; qn<500; ++qn)
-        wL = wL0*tanh(2.0*PI*wdt/wL);
-    
-        int qn=0;
-            do
-            {
-            wk_temp = (2.0*PI)/(wL>1.0e-20?wL:1.0e20); 
+        for(int qn = 0; qn < 500; ++qn)
+            wL = wL0 * tanh(2.0 * PI * wdt / wL);
 
-            eps = 0.5*wk_temp*wH;
-            S = 1.0/cosh(2.0*wk_temp*wdt);
+        int qn = 0;
+        do
+        {
+            wk_temp = (2.0 * PI) / (wL > 1.0e-20 ? wL : 1.0e20);
+
+            eps = 0.5 * wk_temp * wH;
+            S = 1.0 / cosh(2.0 * wk_temp * wdt);
             C = 1.0 - S;
 
-            c0 = sqrt(tanh(wk_temp*wdt));
-            c2 = (c0*(2.0 + 7.0*S*S)/(4.0*C*C));
-            c4 = (c0*(4.0 + 32.0*S -116.0*S*S - 400.0*S*S*S - 71.0*pow(S,4.0) + 146.0*pow(S,5.0)))/(32.0*pow(C,5.0));
-            
+            c0 = sqrt(tanh(wk_temp * wdt));
+            c2 = (c0 * (2.0 + 7.0 * S * S) / (4.0 * C * C));
+            c4 = (c0 * (4.0 + 32.0 * S - 116.0 * S * S - 400.0 * S * S * S - 71.0 * pow(S, 4.0) + 146.0 * pow(S, 5.0))) / (32.0 * pow(C, 5.0));
 
-            wT_temp = (2.0*PI)/(sqrt(9.81*wk_temp)*(c0 + eps*eps*c2 + eps*eps*eps*eps*c4));
+            wT_temp = (2.0 * PI) / (sqrt(9.81 * wk_temp) * (c0 + eps * eps * c2 + eps * eps * eps * eps * c4));
 
-            diff=wT_temp-wT;
-            
-            //if(p->mpirank==0)
-            //cout<<"wT_temp: "<<wT_temp<<" wT: "<<wT<<" wL: "<<wL<<" diff: "<<diff<<" qn: "<<qn<<endl;
+            diff = wT_temp - wT;
 
-            if(diff>0.0001)
-            wL-=0.0001;
+            // if(p->mpirank==0)
+            // cout<<"wT_temp: "<<wT_temp<<" wT: "<<wT<<" wL: "<<wL<<" diff: "<<diff<<" qn: "<<qn<<endl;
 
-            if(diff<-0.0001)
-            wL+=0.0001;
-                ++qn;
-            
-            }while(fabs(diff)>0.0001 && qn<220000);
-            
-            if(p->mpirank==0)
-            cout<<"wT_temp: "<<wT_temp<<" wT: "<<wT<<" wL: "<<wL<<" diff: "<<diff<<" qn: "<<qn<<endl;
-            
-            
-            wf = 1.0/wT;
-            ww = wf*2.0*PI;
+            if(diff > 0.0001)
+                wL -= 0.0001;
 
-            wk= (2.0*PI)/(wL>1.0e-20?wL:1.0e20);
+            if(diff < -0.0001)
+                wL += 0.0001;
+            ++qn;
+        }
+        while(fabs(diff) > 0.0001 && qn < 220000);
 
-            wf = 1.0/wT;
-            ww = 2.0*PI*wf;
+        if(p->mpirank == 0)
+            cout << "wT_temp: " << wT_temp << " wT: " << wT << " wL: " << wL << " diff: " << diff << " qn: " << qn << endl;
 
-            wC = ww/wk;
-            ubar = (c0 + eps*eps*c2 + eps*eps*eps*eps*c4)/sqrt(wk/9.81);
-		
+        wf = 1.0 / wT;
+        ww = wf * 2.0 * PI;
+
+        wk = (2.0 * PI) / (wL > 1.0e-20 ? wL : 1.0e20);
+
+        wf = 1.0 / wT;
+        ww = 2.0 * PI * wf;
+
+        wC = ww / wk;
+        ubar = (c0 + eps * eps * c2 + eps * eps * eps * eps * c4) / sqrt(wk / 9.81);
+
         // test
         // 5th-order Stokes
-	    eps = 0.5*wk*wH;
-	    S = 1.0/cosh(2.0*wk*wdt);
-	    C = 1.0 - S;
+        eps = 0.5 * wk * wH;
+        S = 1.0 / cosh(2.0 * wk * wdt);
+        C = 1.0 - S;
 
-	    c0 = sqrt(tanh(wk*wdt));
-        c2 = (c0*(2.0 + 7.0*S*S)/(4.0*C*C));
-        c4 = (c0*(4.0 + 32.0*S -116.0*S*S - 400.0*S*S*S - 71.0*pow(S,4.0) + 146.0*pow(S,5.0)))/(32.0*pow(C,5.0));
-        
-	    wT_test= (2.0*PI)/(sqrt(9.81*wk)*(c0 + eps*eps*c2 + eps*eps*eps*eps*c4));
-        
-        if(p->mpirank==0)
-        cout<<"wT_test: "<<wT_test<<endl;
-    
+        c0 = sqrt(tanh(wk * wdt));
+        c2 = (c0 * (2.0 + 7.0 * S * S) / (4.0 * C * C));
+        c4 = (c0 * (4.0 + 32.0 * S - 116.0 * S * S - 400.0 * S * S * S - 71.0 * pow(S, 4.0) + 146.0 * pow(S, 5.0))) / (32.0 * pow(C, 5.0));
+
+        wT_test = (2.0 * PI) / (sqrt(9.81 * wk) * (c0 + eps * eps * c2 + eps * eps * eps * eps * c4));
+
+        if(p->mpirank == 0)
+            cout << "wT_test: " << wT_test << endl;
     }
 
     p->wT = wT;
@@ -772,69 +832,179 @@ void wave_lib_Stokes_5th::wave_parameters(lexer *p, ghostcell *pgc)
     p->ww = ww;
     p->wC = wC;
 }
-    
+
 void wave_lib_Stokes_5th::parameters(lexer *p, ghostcell *pgc)
 {
-    eps = 0.5*wk*wH;
+    eps = 0.5 * wk * wH;
 
-
-    S = 1.0/cosh(2*wk*wdt);
+    S = 1.0 / cosh(2 * wk * wdk);
     C = 1.0 - S;
 
+    a11 = 1.0 / sinh(wk * wdk);
 
-    a11 = 1.0/sinh(wk*wdt);
+    a22 = 3.0 * S * S / (2.0 * C * C);
 
-    a22 = 3.0*S*S/(2.0*C*C);
+    a31 = (-4.0 - 20.0 * S + 10.0 * S * S - 13.0 * S * S * S) / (8.0 * sinh(wk * wdk) * C * C * C);
 
-    a31 = (-4.0 - 20.0*S + 10.0*S*S -13.0*S*S*S)/(8.0*sinh(wk*wdt)*C*C*C);
+    a33 = (-2.0 * S * S + 11 * S * S * S) / (8.0 * sinh(wk * wdk) * C * C * C);
 
-    a33 = (-2.0*S*S + 11*S*S*S)/(8.0*sinh(wk*wdt)*C*C*C);
+    a42 = (12.0 * S - 14.0 * S * S - 264.0 * S * S * S - 45.0 * pow(S, 4.0) - 13.0 * pow(S, 5.0)) / (24.0 * pow(C, 5.0));
 
-    a42 = (12.0*S - 14.0*S*S - 264.0*S*S*S - 45.0*pow(S,4.0) - 13.0*pow(S,5.0))/(24.0*pow(C,5.0));
+    a44 = (10.0 * S * S * S - 174.0 * pow(S, 4.0) + 291.0 * pow(S, 5.0) + 278.0 * pow(S, 6.0)) / (48.0 * (3.0 + 2.0 * S) * pow(C, 5.0));
 
-    a44 = (10.0*S*S*S - 174.0*pow(S,4.0) + 291.0*pow(S,5.0) + 278.0*pow(S,6.0))/(48.0*(3.0 + 2.0*S)*pow(C,5.0));
+    a51 = (-1184.0 + 32.0 * S + 13232.0 * S * S + 21712.0 * S * S * S + 20940.0 * pow(S, 4.0) + 12554.0 * pow(S, 5.0) - 500.0 * pow(S, 6.0) - 3341.0 * pow(S, 7.0) - 670.0 * pow(S, 8.0)) / (64.0 * sinh(wk * wdk) * (3.0 + 2.0 * S) * (4.0 + S) * pow(C, 6.0));
 
-    a51 = (-1184.0 + 32.0*S + 13232.0*S*S + 21712.0*S*S*S + 20940.0*pow(S,4.0) + 12554.0*pow(S,5.0)
-           -500.0*pow(S,6.0) - 3341.0*pow(S,7.0) - 670.0*pow(S,8.0))/(64.0*sinh(wk*wdt)*(3.0 + 2.0*S)*(4.0 + S)*pow(C,6.0));
+    a53 = (4.0 * S + 105.0 * pow(S, 2.0) + 198.0 * pow(S, 3.0) - 1376.0 * pow(S, 4.0) - 1302.0 * pow(S, 5.0) - 117.0 * pow(S, 6.0) + 58.0 * pow(S, 7.0)) / (32.0 * sinh(wk * wdk) * (3.0 + 2.0 * S) * pow(C, 6.0));
 
-    a53 = (4.0*S + 105.0*pow(S,2.0) + 198.0*pow(S,3.0) - 1376.0*pow(S,4.0) - 1302.0*pow(S,5.0) - 117.0*pow(S,6.0) + 58.0*pow(S,7.0))
-          /(32.0*sinh(wk*wdt)*(3.0 + 2.0*S)*pow(C,6.0));
+    a55 = (-6.0 * S * S * S + 272.0 * pow(S, 4.0) - 1552.0 * pow(S, 5.0) + 852.0 * pow(S, 6.0) + 2029.0 * pow(S, 7.0) + 430.0 * pow(S, 8.0)) / (64.0 * sinh(wk * wdk) * (3.0 + 2.0 * S) * (4.0 + S) * pow(C, 6.0));
 
-    a55 = (-6.0*S*S*S + 272.0*pow(S,4.0) - 1552.0*pow(S,5.0) + 852.0*pow(S,6.0) + 2029.0*pow(S,7.0) + 430.0*pow(S,8.0))
-          /(64.0*sinh(wk*wdt)*(3.0 + 2.0*S)*(4.0 + S)*pow(C,6.0));
-          
+    b22 = ((cosh(wk * wdk) / sinh(wk * wdk)) * (1.0 + 2.0 * S)) / (2.0 * C);
 
+    b31 = (-3.0 * (1.0 + 3.0 * S + 3.0 * S * S + 2.0 * S * S * S)) / (8.0 * C * C * C);
 
-    b22 = ((cosh(wk*wdt)/sinh(wk*wdt))*(1.0 + 2.0*S))/(2.0*C);
+    b42 = ((cosh(wk * wdk) / sinh(wk * wdk)) * (6.0 - 26.0 * S - 182.0 * S * S - 204.0 * S * S * S - 25.0 * pow(S, 4.0) + 26 * pow(S, 5.0))) / (6.0 * (3.0 + 2.0 * S) * pow(C, 4.0));
 
-    b31 = (-3.0*(1.0 + 3.0*S + 3.0*S*S + 2.0*S*S*S))/(8.0*C*C*C);
+    b44 = ((cosh(wk * wdk) / sinh(wk * wdk)) * (24.0 + 92.0 * S + 122.0 * S * S + 66.0 * S * S * S + 67.0 * pow(S, 4.0) + 34.0 * pow(S, 5.0))) / (24.0 * (3.0 + 2.0 * S) * pow(C, 4.0));
 
-    b42 = ((cosh(wk*wdt)/sinh(wk*wdt))*(6.0 - 26.0*S - 182.0*S*S - 204.0*S*S*S - 25.0*pow(S,4.0) + 26*pow(S,5.0)))
-          /(6.0*(3.0 + 2.0*S)*pow(C,4.0));
+    b53 = (9.0 * (132.0 + 17.0 * S - 2216.0 * S * S - 5897.0 * S * S * S - 6292.0 * pow(S, 4.0) - 2687.0 * pow(S, 5.0) + 194.0 * pow(S, 6.0) + 467.0 * pow(S, 7.0) + 82.0 * pow(S, 8.0))) / (128.0 * (3.0 + 2.0 * S) * (4.0 + S) * pow(C, 6.0));
 
-    b44 = ((cosh(wk*wdt)/sinh(wk*wdt))*(24.0 + 92.0*S + 122.0*S*S + 66.0*S*S*S + 67.0*pow(S,4.0) + 34.0*pow(S,5.0)))
-          /(24.0*(3.0 + 2.0*S)*pow(C,4.0));
+    b55 = (5.0 * (300.0 + 1579.0 * S + 3176.0 * S * S + 2949.0 * S * S * S + 1188.0 * pow(S, 4.0) + 675.0 * pow(S, 5.0) + 1326.0 * pow(S, 6.0) + 827.0 * pow(S, 7.0) + 130.0 * pow(S, 8.0))) / (384.0 * (3.0 + 2.0 * S) * (4.0 + S) * pow(C, 6.0));
 
-    b53 = (9.0*(132.0 + 17.0*S - 2216.0*S*S - 5897.0*S*S*S - 6292.0*pow(S,4.0) - 2687.0*pow(S,5.0) + 194.0*pow(S,6.0)
-                + 467.0*pow(S,7.0) + 82.0*pow(S,8.0)))/(128.0*(3.0 + 2.0*S)*(4.0 + S)*pow(C,6.0));
+    c0 = sqrt(tanh(wk * wdk));
 
-    b55 = (5.0*(300.0 + 1579.0*S + 3176.0*S*S + 2949.0*S*S*S + 1188.0*pow(S,4.0) + 675.0*pow(S,5.0) + 1326.0*pow(S,6.0)
-                + 827.0*pow(S,7.0) + 130.0*pow(S,8.0)))/(384.0*(3.0 + 2.0*S)*(4.0 + S)*pow(C,6.0));
+    c2 = (c0 * (2.0 + 7.0 * S * S) / (4.0 * C * C));
 
+    c4 = (c0 * (4.0 + 32.0 * S - 116.0 * S * S - 400.0 * S * S * S - 71.0 * pow(S, 4.0) + 146.0 * pow(S, 5.0))) / (32.0 * pow(C, 5.0));
 
-    c0 = sqrt(tanh(wk*wdt));
+    e2 = (tanh(wk * wdk) * (2.0 + 2.0 * S + 5.0 * S * S)) / (4.0 * pow(1.0 - S, 2.0));
 
-    c2 = (c0*(2.0 + 7.0*S*S)/(4.0*C*C));
+    e4 = (tanh(wk * wdk) * (8.0 + 12.0 * S - 152.0 * S * S - 308.0 * pow(S, 3.0) - 42.0 * pow(S, 4.0) + 77.0 * pow(S, 5.0))) / (32.0 * pow(1.0 - S, 5.0));
 
-    c4 = (c0*(4.0 + 32.0*S - 116.0*S*S - 400.0*S*S*S - 71.0*pow(S,4.0) + 146.0*pow(S,5.0)))/(32.0*pow(C,5.0));
+    // coefficients of the harmonics, once (they were recomputed with 10 pow per evaluation;
+    // same expressions, so the same values)
+    U0 = c0 * sqrt(9.81 / wk);
+    F0 = c0 * sqrt(9.81 / pow(wk, 3.0));
+    A1 = (eps * a11 + pow(eps, 3.0) * a31 + pow(eps, 5.0) * a51);
+    A2 = 2.0 * (pow(eps, 2.0) * a22 + pow(eps, 4.0) * a42);
+    A3 = 3.0 * (pow(eps, 3.0) * a33 + pow(eps, 5.0) * a53);
+    A4 = 4.0 * (pow(eps, 4.0) * a44);
+    A5 = 5.0 * (pow(eps, 5.0) * a55);
+    E1 = (eps + pow(eps, 3.0) * b31 - pow(eps, 5.0) * (b53 + b55));
+    E2 = (pow(eps, 2.0) * b22 + pow(eps, 4.0) * b42);
+    E3 = (-pow(eps, 3.0) * b31 + pow(eps, 5.0) * b53);
+    E4 = pow(eps, 4.0) * b44;
+    E5 = pow(eps, 5.0) * b55;
+}
 
+void wave_lib_Stokes_5th::wave_uvw_c(lexer *p, int q, double z, double &u, double &v, double &w)
+{
+    const double vh = wave_horzvel(p, cache_x[q], cache_y[q], z);
 
-    e2 = (tanh(wk*wdt)*(2.0 + 2.0*S + 5.0*S*S))/(4.0*pow(1.0 - S,2.0));
-
-    e4 = (tanh(wk*wdt)*(8.0 + 12.0*S - 152.0*S*S - 308.0*pow(S,3.0) - 42.0*pow(S,4.0) + 77.0*pow(S,5.0)))/(32.0*pow(1.0 - S, 5.0));
-    
+    u = cosgamma * vh;
+    v = singamma * vh;
+    w = wave_w(p, cache_x[q], cache_y[q], z);
 }
 
 void wave_lib_Stokes_5th::wave_prestep(lexer *p, ghostcell *pgc)
 {
 }
+
+/*--------------------------------------------------------------------
+Waves on the background (iowave B 530)
+
+iowave re-solves k of the component from the linear Doppler relation and
+hands back k and sigma = omega - k U_n. The Stokes waves keep the absolute
+frequency omega in the phase k x - omega t; the coefficients, the orbital
+velocities (Fenton's first definition of the wave speed, zero Eulerian
+mean velocity in the wave) and the surface elevation follow k and the
+depth h_eff. k is refined here with the 5th-order dispersion relation
+
+    omega = k (c_E(k,H,h_eff) + U_n),   c_E = sqrt(g/k) (c0 + eps^2 c2 + eps^4 c4)
+
+with U_n = (omega - sigma)/k of iowave, so that without a current the
+constructed k is recovered. The amplitude factor af scales H (blocked
+waves: af -> 0).
+--------------------------------------------------------------------*/
+void wave_lib_Stokes_5th::wave_comp(int n, double &k, double &omega, double &sigma, double &beta, double &af) const
+{
+    k = wk;
+    omega = ww;
+    sigma = wsig;
+    beta = 0.0;
+    af = waf;
+}
+
+void wave_lib_Stokes_5th::wave_comp_set(int n, double k, double sigma, double af)
+{
+    wkin = k;
+    wsin = sigma;
+    waf = af;
+}
+
+// intrinsic phase speed of 5th-order Stokes waves, Fenton's first definition
+double wave_lib_Stokes_5th::celerity5(double k, double H, double d) const
+{
+    const double ep = 0.5 * k * H;
+    const double Sk = 1.0 / cosh(2.0 * k * d);
+    const double Ck = 1.0 - Sk;
+    const double cc0 = sqrt(tanh(k * d));
+    const double cc2 = cc0 * (2.0 + 7.0 * Sk * Sk) / (4.0 * Ck * Ck);
+    const double cc4 = cc0 * (4.0 + 32.0 * Sk - 116.0 * Sk * Sk - 400.0 * Sk * Sk * Sk - 71.0 * pow(Sk, 4.0) + 146.0 * pow(Sk, 5.0)) / (32.0 * pow(Ck, 5.0));
+
+    return sqrt(9.81 / k) * (cc0 + ep * ep * cc2 + ep * ep * ep * ep * cc4);
+}
+
+void wave_lib_Stokes_5th::wave_comp_update()
+{
+    if(wkin <= 0.0)
+        return;
+
+    const double un = (ww - wsin) / wkin;
+    const double H = wH0 * waf;
+
+    // omega = k (c_E + U_n): secant iteration from the linear k of iowave
+    auto F = [&](double kk)
+    { return kk * (celerity5(kk, H, wdk) + un) - ww; };
+
+    double k0 = wkin;
+    double k1 = 1.01 * wkin;
+    double f0 = F(k0);
+    double f1 = F(k1);
+    double k = wkin;
+    bool ok = false;
+
+    for(int q = 0; q < 50; ++q)
+    {
+        if(fabs(f1 - f0) < 1.0e-300)
+            break;
+
+        const double k2 = k1 - f1 * (k1 - k0) / (f1 - f0);
+
+        if(!(k2 > 0.0) || !std::isfinite(k2))
+            break;
+
+        k0 = k1;
+        f0 = f1;
+        k1 = k2;
+        f1 = F(k1);
+
+        if(fabs(k1 - k0) <= 1.0e-13 * k1)
+        {
+            ok = true;
+            break;
+        }
+    }
+
+    // no root near the linear k (strong opposing current): keep the linear k of iowave
+    if(ok)
+        k = k1;
+
+    wk = k;
+    wL = 2.0 * PI / wk;
+    wH = H;
+    wa = 0.5 * wH;
+    wsig = ww - wk * un;
+
+    parameters(nullptr, nullptr);
+}
+

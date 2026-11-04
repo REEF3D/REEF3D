@@ -1,0 +1,18 @@
+{
+ "base": "fnpf_3d_ship_box_hybrid",
+ "ctrl_add": [
+  "X 18 0.5"
+ ],
+ "description": "as fnpf_3d_ship_box_hybrid with X 18 0.5: the running mean of chi at body-fixed points (second-order low-pass, time constant 0.5 s per stage) is removed from the psi_0 free-surface data next to the hull.",
+ "tags": [
+  "3d",
+  "fnpf",
+  "6dof",
+  "ship",
+  "waves",
+  "mpi"
+ ],
+ "covers": [
+  "FNPF X 18: second-order running mean of chi on a body-frame grid, removed next to the body (sixdof_obj_fnpf::chi_mean)"
+ ]
+}

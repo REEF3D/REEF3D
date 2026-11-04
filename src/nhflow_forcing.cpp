@@ -24,9 +24,11 @@ Author: Hans Bihs
 #include "6DOF.h"
 #include "dem.h"
 #include "fdm_nhf.h"
+#include "fem_coupling.h"
 #include "ghostcell.h"
 #include "lexer.h"
 #include "nhflow_geometry.h"
+#include "nhflow_hullbody.h"
 #include "nhflow_reinidisc_fsf.h"
 #include "rodtree_coupling.h"
 #include "vrans.h"
@@ -41,9 +43,19 @@ nhflow_forcing::nhflow_forcing(lexer *p, fdm_nhf *d, ghostcell *pgc) : nhflow_ge
     if(dlm_flag == 1)
         dlm_forcing_ini(p, pgc);
 
+    // fixed direct forcing solids are impermeable for the continuity fluxes as well:
+    // the wall states at the forcing faces (A 521 0, nhflow_fsf_f::wetdry_fluxes) leave
+    // the HLL jump term Sn Ss (Dn - Ds), which carries water into and through the solid
+    if(solid_flag == 1 && p->A521 == 0)
+        d->solid_flux = 2;
+
     prodtree = nullptr;
     if(p->Z20 > 0)
         prodtree = new rodtree_coupling(p, pgc);
+
+    pfem = nullptr;
+    if(p->Z30 > 0)
+        pfem = new fem_coupling(p, pgc);
 
     if(p->F50 == 1)
         gcval_eta = 51;
@@ -69,6 +81,7 @@ nhflow_forcing::nhflow_forcing(lexer *p, fdm_nhf *d, ghostcell *pgc) : nhflow_ge
 nhflow_forcing::~nhflow_forcing()
 {
     delete prodtree;
+    delete pfem;
     delete[] FX;
     delete[] FY;
     delete[] FZ;
@@ -84,10 +97,8 @@ void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *p6dof
     // nothing to force (no solids, floating bodies, DLM, 6DOF, moorings or nets): the remaining
     // halo updates of eta, WL, bed, U, V, W, UH, VH, WH would all be redundant
     // (bed only changes with sediment transport, hence the S10 guard)
-    if(forcing_flag == 0 && solid_flag == 0 && dlm_flag == 0 && p->X10 == 0 && p->S10 == 0 && p->X310 == 0 && p->X320 == 0 && p->X330 == 0 && prodtree == nullptr)
+    if(forcing_flag == 0 && solid_flag == 0 && dlm_flag == 0 && p->X10 == 0 && p->S10 == 0 && p->X310 == 0 && p->X320 == 0 && p->X330 == 0 && prodtree == nullptr && pfem == nullptr)
         return;
-
-    starttime = pgc->timer();
 
     // ini forcing terms
     reset(p, d, pgc);
@@ -106,6 +117,10 @@ void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *p6dof
 
     // 6DOF forcing
     p6dof->start_nhflow(p, d, pgc, iter, d->U, d->V, d->W, FX, FY, FZ, WL, fe, finalize);
+
+    // X 15 8: the hull as a sharp thin body at the pose of the stage (no direct forcing)
+    if(d->hullbody != nullptr)
+        d->hullbody->stage(p, d, pgc, alpha, UH, VH, WH, WL);
 
     if(forcing_flag == 1)
     {
@@ -220,6 +235,10 @@ void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *p6dof
     if(prodtree != nullptr)
         prodtree->start_nhflow(p, d, pgc, alpha, UH, VH, WH, WL, finalize);
 
+    // FEM solid structures: surface direct forcing, fluid loads, advance solid (final stage)
+    if(pfem != nullptr)
+        pfem->start_nhflow(p, d, pgc, alpha, UH, VH, WH, WL, solid_flag == 1, forcing_flag == 1, finalize);
+
     pgc->gcsl_start4(p, d->eta, gcval_eta);
     pgc->gcsl_start4(p, WL, gcval_eta);
     pgc->gcsl_start4(p, d->bed, 1);
@@ -237,3 +256,13 @@ void nhflow_forcing::forcing(lexer *p, fdm_nhf *d, ghostcell *pgc, sixdof *p6dof
     p->dftime += pgc->timer() - starttime;
 }
 
+void nhflow_forcing::fem_step_begin(lexer *p, fdm_nhf *d, ghostcell *pgc)
+{
+    if(pfem != nullptr)
+        pfem->nhf_step_begin(p, d, pgc);
+}
+
+bool nhflow_forcing::fem_step_redo(lexer *p, fdm_nhf *d, ghostcell *pgc)
+{
+    return pfem != nullptr && pfem->nhf_step_redo(p, d, pgc);
+}

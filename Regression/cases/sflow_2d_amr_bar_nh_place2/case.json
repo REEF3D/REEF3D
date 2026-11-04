@@ -1,0 +1,21 @@
+{
+ "description": "sflow_2d_amr_bar_nh on 2 ranks, placement test mode (G 40 2).",
+ "solver": "sflow",
+ "np": 2,
+ "steps": 100,
+ "tags": [
+  "2d",
+  "sflow",
+  "amr",
+  "nh",
+  "mpi",
+  "place"
+ ],
+ "covers": [
+  "sflow_amr_nh through the block plans"
+ ],
+ "base": "sflow_2d_amr_bar_nh",
+ "ctrl_add": [
+  "G 40 2"
+ ]
+}

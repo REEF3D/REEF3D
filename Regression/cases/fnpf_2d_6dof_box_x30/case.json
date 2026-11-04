@@ -1,0 +1,11 @@
+{
+ "base": "fnpf_2d_6dof_box",
+ "np": 1,
+ "steps": 200,
+ "ctrl_add": [
+  "X 30 100"
+ ],
+ "description": "fnpf_2d_6dof_box with the psi solves of the loads to 100 x N 44 (X 30 100) on the uniform grid (REEFMG reads N 44 at every solve; fnpf_psi_tol around solve_psi).",
+ "tags": ["2d", "fnpf", "6dof", "floating"],
+ "covers": ["fnpf_psi_tol: X 30 tolerance of the psi solves (fnpf_6DOF solve_psi, REEFMG)"]
+}

@@ -1,0 +1,25 @@
+{
+ "base": "cfd_2d_compressible_box",
+ "np": 1,
+ "steps": 100,
+ "ctrl_add": [
+  "G 1 2",
+  "G 7 1",
+  "G 15 0.5 1.5 0.0 0.05 0.8 1.3",
+  "P 64 1.0 0.025 1.20"
+ ],
+ "description": "cfd_2d_compressible_box_amr with subcycling (G 7 1): the patch edges across the free surface, the synchronisation projection with the volume registers of the patch edges in the compressible rows and its correction restricted onto the covered cells. Over 2.5 s the air pressure follows p0 (V0/V)^1.4 within +0.6 % (rms 23 Pa; G 7 0 9 Pa, no refinement 27 Pa); hans_dev compressed the air twice (+81 %). Validation in Dropbox REEFAMR/validation (P6).",
+ "tags": [
+  "quick",
+  "2d",
+  "levelset",
+  "compressible",
+  "amr",
+  "subcycling"
+ ],
+ "covers": [
+  "cfd_amr::vr_record, vr_sync_rhs: the volume registers of the patch edges (W 32, G 7 1)",
+  "pr_sync_project: the compressible rows, the correction restricted onto the covered cells",
+  "cfd_amr::scope: W 32 with G 7 1"
+ ]
+}

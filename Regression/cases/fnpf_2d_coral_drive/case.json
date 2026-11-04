@@ -1,0 +1,9 @@
+{
+ "description": "REEF3D::CORAL forced heave of the FNPF box of fnpf_2d_6dof_box (Z 40 1, fluid_body, drive: a prescribed sine of the joint coordinate with a ramp) in still water: the hydrodynamic load of a forced oscillation; REEF3D_FNPF_6DOF and REEF3D_CORAL compared.",
+ "base": "fnpf_2d_6dof_box",
+ "ctrl_set": {"X 11": "0 0 1 0 0 0", "B 93": "0.0 2.0"},
+ "ctrl_add": ["Z 40 1"],
+ "files": ["coral.txt"],
+ "tags": ["2d", "fnpf", "6dof", "coral"],
+ "covers": ["CORAL joint_drive (drive)", "two-way FNPF with a prescribed motion"]
+}

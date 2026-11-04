@@ -1,0 +1,8 @@
+{
+ "description": "As cfd_2d_sediment_flume with suspended load (S 12 1), finer sand (d = 0.15 mm), a higher discharge (W 10 0.0015) and sediment from step 5: CFD 2D flume, k-omega, MPM bedload and the Eulerian suspended load (suspended_IM1, van Rijn reference concentration) over a sand bed with a submerged block, S 35 50. The faces of the concentration to the bed, the block, the air and the walls are closed, so the bed exchange is only erosion w_s c_be and deposition w_s c_1 (patch 0018). The suspended concentration is not in the regression dump; it is checked through the bed (topo).",
+ "solver": "cfd",
+ "np": 1,
+ "steps": 200,
+ "tags": ["quick", "2d", "cfd", "sediment", "suspended", "structure", "inflow"],
+ "covers": ["suspended_IM1 bcsusp_start closed faces (bed, solid, air, walls)", "suspended_IM1 suspsource", "sediment_exner susp_ED", "bedconc_VR"]
+}

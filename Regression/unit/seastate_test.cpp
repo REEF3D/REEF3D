@@ -1,13 +1,22 @@
 // Architect: Hans Bihs
 // Standalone verification of the REEF3D::SEASTATE kernels: spectral grid, block-sparse action
-// storage, integrated wave parameters, dispersion relation, SWAN spectrum files. No MPI, no REEF3D binary.
-// Build:  g++ -O2 -std=c++20 -I../../src seastate_test.cpp ../../src/seastate_grid.cpp ../../src/seastate_store.cpp ../../src/seastate_param.cpp ../../src/seastate_dispersion.cpp ../../src/seastate_swan_spc.cpp -o seastate_test
+// storage, integrated wave parameters, dispersion relation, SWAN spectrum files, source terms (incl. vegetation), surfbeat boundary generator, forcing files,
+// structure formulas (d'Angremond, porous), the DIA of a sweep window (Phase 8). No MPI, no REEF3D binary.
+// Build:  g++ -O2 -std=c++20 -I../../src seastate_test.cpp ../../src/seastate_grid.cpp ../../src/seastate_store.cpp ../../src/seastate_param.cpp ../../src/seastate_dispersion.cpp ../../src/seastate_swan_spc.cpp ../../src/seastate_source.cpp ../../src/seastate_st4.cpp ../../src/seastate_surfbeat.cpp ../../src/seastate_forcing.cpp ../../src/seastate_collocation.cpp ../../src/seastate_bathy.cpp ../../src/seastate_structure.cpp seastate_test_threads.cpp -o seastate_test
 // Run:    ./seastate_test
+#include "seastate_bathy.h"
+#include "seastate_collocation.h"
 #include "seastate_dispersion.h"
+#include "seastate_forcing.h"
 #include "seastate_grid.h"
 #include "seastate_param.h"
+#include "seastate_source.h"
+#include "seastate_st4.h"
 #include "seastate_store.h"
+#include "seastate_structure.h"
+#include "seastate_surfbeat.h"
 #include "seastate_swan_spc.h"
+#include <algorithm>
 #include <cmath>
 #include <cstdio>
 #include <fstream>
@@ -64,6 +73,69 @@ static void test_grid()
     check(!seastate_grid(32, 0.5, 0.1, 36).valid(), "fmax <= fmin rejected");
     check(!seastate_grid(32, 0.0, 1.0, 36).valid(), "fmin <= 0 rejected");
     check(!seastate_grid(32, 0.04, 1.0, 2).valid(), "ndir < 4 rejected");
+
+    // computational direction sector (A 717, Phase 10)
+    {
+        seastate_grid sc(20, 0.08, 1.0, 24);
+        check(sc.active() == 24, "full circle: all directions active");
+        const bool ok1 = sc.computational_sector(270.0 * pi / 180.0, 90.0 * pi / 180.0);
+        check(ok1 && sc.active() == 13, "sector 270 -> 90 deg (ccw, through 0): 13 of 24 directions, both edges included");
+        check(sc.act[0] && sc.act[6] && !sc.act[7] && !sc.act[17] && sc.act[18] && sc.act[23], "sector 270 -> 90: directions 0..90 and 270..345 active");
+        int nq[4] = {0, 0, 0, 0};
+        for(int m = 0; m < sc.ndir; ++m)
+            if(sc.act[m])
+                ++nq[sc.quad[m]];
+        check(nq[0] == 6 && nq[1] == 1 && nq[2] == 0 && nq[3] == 6, "sector 270 -> 90: quadrants hold 6, 1, 0, 6 active directions");
+        seastate_grid s72(20, 0.08, 1.0, 72);
+        check(s72.computational_sector(pi, 2.0 * pi) && s72.active() == 37, "SWAN SEC -90 90 (nautical) = 180 -> 360 deg: 37 of 72 directions, as SWAN");
+        check(!s72.computational_sector(60.0 * pi / 180.0, 30.0 * pi / 180.0), "a sector of 330 deg (60 -> 30 deg) splits quadrant 0: rejected");
+    }
+
+    // compact computational sector (A 717, Phase 12): the grid holds only the directions of the sector
+    {
+        seastate_grid full(20, 0.08, 1.0, 24), cs(20, 0.08, 1.0, 24);
+        const bool ok = cs.compact_sector(270.0 * pi / 180.0, 90.0 * pi / 180.0);
+        check(ok && cs.ndir == 13 && cs.nbin == 20 * 13 && cs.compact && !cs.periodic, "compact sector 270 -> 90: 13 directions stored, nbin = nsig*13, not periodic");
+        check(close(cs.theta0, 270.0 * pi / 180.0, 1e-14) && close(cs.theta[0], cs.theta0, 1e-14) && close(cs.theta[12], 2.0 * pi + 0.5 * pi, 1e-12), "compact sector: theta from 270 deg on, beyond 2 pi through 0 to 90 deg");
+        bool same = true, mono = true;
+        for(int k = 0; k < 13; ++k)
+        {
+            const int m = (18 + k) % 24;
+            same = same && cs.costh[k] == full.costh[m] && cs.sinth[k] == full.sinth[m] && cs.costhf[k] == full.costhf[m] && cs.costhl[k] == full.costhl[m] && cs.quad[k] == full.quad[m];
+            if(k > 0)
+                mono = mono && cs.theta[k] > cs.theta[k - 1];
+        }
+        check(same && mono, "compact sector: cos/sin, faces and quadrants those of the full grid, theta increasing");
+        check(cs.prev(0) == -1 && cs.next(12) == -1 && cs.prev(5) == 4 && full.prev(0) == 23 && full.next(23) == 0, "neighbour directions: none beyond the ends of the sector, periodic on the full circle");
+        check(cs.direction_bin(0.0) == 6 && cs.direction_bin(300.0 * pi / 180.0) == 2 && cs.direction_bin(100.0 * pi / 180.0) == 12 && cs.direction_bin(250.0 * pi / 180.0) == 0, "compact sector: direction_bin inside the sector, nearest end outside");
+        bool lf = true;
+        for(int m = 0; m < 24; ++m)
+            lf = lf && full.costhl[m] == full.costhf[(m + 23) % 24] && full.sinthl[m] == full.sinthf[(m + 23) % 24];
+        check(lf, "lower faces = upper faces of the previous direction (full circle)");
+        seastate_grid all(20, 0.08, 1.0, 24);
+        check(!all.compact_sector(0.0, 2.0 * pi - 1.0e-12) || all.ndir == 24, "a sector of all directions is not compacted");
+
+        // Phase 15: a quadrant that holds only a direction on an axis joins the neighbouring quadrant that sweeps the
+        // same way along the axis (270 -> 90: the direction 90 deg, alone in quadrant 1, joins quadrant 0)
+        const int mv = cs.merge_axis_quadrants();
+        int nq = 0;
+        for(int q = 0; q < 4; ++q)
+            if(std::count(cs.quad.begin(), cs.quad.end(), q) > 0)
+                ++nq;
+        check(mv == 1 && cs.quad[12] == 0 && cs.quad[11] == 0 && cs.quad[0] == 3 && nq == 2, "axis quadrant: 270 -> 90, the direction 90 deg joins quadrant 0, two sweeps");
+        seastate_grid tr(31, 0.05, 1.0, 72);
+        tr.compact_sector(180.0 * pi / 180.0, 360.0 * pi / 180.0);
+        const int mt = tr.merge_axis_quadrants();
+        nq = 0;
+        for(int q = 0; q < 4; ++q)
+            if(std::count(tr.quad.begin(), tr.quad.end(), q) > 0)
+                ++nq;
+        check(mt == 1 && tr.quad[tr.ndir - 1] == 3 && tr.quad[0] == 2 && nq == 2, "axis quadrant: 180 -> 360 (Trondheimsfjorden), the direction 0 deg joins quadrant 3, two sweeps");
+        seastate_grid ns(20, 0.08, 1.0, 24);
+        ns.compact_sector(200.0 * pi / 180.0, 340.0 * pi / 180.0);
+        check(ns.merge_axis_quadrants() == 0, "axis quadrant: a sector without a direction on an axis is unchanged");
+        check(full.merge_axis_quadrants() == 0, "axis quadrant: the full circle is unchanged");
+    }
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -345,9 +417,9 @@ static void test_swan_spc()
     } cases[3] = {{false, false, "CDIR VaDens"}, {true, false, "NDIR VaDens"}, {false, true, "CDIR EnDens"}};
     for(auto &c : cases)
     {
-        write_spc("seastate_test.spc", 1.5, 9.0, 40.0, 8.0, c.naut, c.energy);
+        write_spc("seastate_test_tmp.spc", 1.5, 9.0, 40.0, 8.0, c.naut, c.energy);
         seastate_swan_spc spc;
-        const bool ok = spc.read("seastate_test.spc", err);
+        const bool ok = spc.read("seastate_test_tmp.spc", err);
         check(ok && spc.f.size() == 40 && spc.dir.size() == 36, std::string(c.name) + ": read 40 x 36 spectrum");
         std::vector<float> N;
         spc.to_grid(sg, N);
@@ -357,10 +429,1120 @@ static void test_swan_spc()
         check(std::fabs(sp.dir - 40.0) < 0.5, std::string(c.name) + ": mean direction 40 deg (Cartesian)");
         check(spc.x == 100.0 && spc.y == 200.0, std::string(c.name) + ": location");
     }
-    std::remove("seastate_test.spc");
+    std::remove("seastate_test_tmp.spc");
 
     seastate_swan_spc bad;
     check(!bad.read("no_such_file.spc", err), "missing file reported");
+}
+
+// ---------------------------------------------------------------------------------------------
+// source terms
+// ---------------------------------------------------------------------------------------------
+struct cell_kin
+{
+    std::vector<float> k, cg;
+    cell_kin(const seastate_grid &sg, double d) : k(sg.nsig), cg(sg.nsig)
+    {
+        for(int l = 0; l < sg.nsig; ++l)
+        {
+            k[l] = float(seastate_wavenumber(sg.sig[l], d));
+            cg[l] = float(seastate_cg(sg.sig[l], k[l], d));
+        }
+    }
+};
+
+// directionally integrated energy rate sig*S(sig) [m^2/rad], energy and action budgets
+struct budget
+{
+    std::vector<double> s1d;
+    double dE = 0.0, absE = 0.0, dA = 0.0, absA = 0.0;
+    budget(const seastate_grid &sg, const std::vector<double> &S) : s1d(sg.nsig, 0.0)
+    {
+        for(int l = 0; l < sg.nsig; ++l)
+            for(int m = 0; m < sg.ndir; ++m)
+            {
+                const double a = S[sg.bin(l, m)] * sg.dsig[l] * sg.dtheta;
+                s1d[l] += sg.sig[l] * S[sg.bin(l, m)] * sg.dtheta;
+                dE += sg.sig[l] * a;
+                absE += std::fabs(sg.sig[l] * a);
+                dA += a;
+                absA += std::fabs(a);
+            }
+    }
+};
+
+static void test_source()
+{
+    std::cout << "seastate_source" << std::endl;
+
+    seastate_grid sg(36, 0.04, 1.0, 36);
+    const int nb = sg.nbin;
+    std::vector<double> P(nb), D(nb), S(nb);
+
+    // Battjes-Janssen fraction of breaking waves: SWAN FRABRE vs. the implicit relation (1-Qb)/(-ln Qb) = (Hrms/Hm)^2
+    check(seastate_source::Qb_bj(0.2, 1.0) == 0.0 && seastate_source::Qb_bj(1.0, 1.0) == 1.0 && seastate_source::Qb_bj(1.3, 1.0) == 1.0, "Qb = 0 for Hrms/Hm <= 0.2, 1 for Hrms/Hm >= 1");
+    double qerr = 0.0;
+    for(double b = 0.3; b < 0.99; b += 0.05)
+    {
+        double lo = 1e-300, hi = 1.0 - 1e-15;  // bisection of the exact relation
+        for(int it = 0; it < 200; ++it)
+        {
+            const double q = 0.5 * (lo + hi);
+            ((1.0 - q) / (-std::log(q)) < b * b ? lo : hi) = q;
+        }
+        qerr = std::max(qerr, std::fabs(seastate_source::Qb_bj(b, 1.0) - 0.5 * (lo + hi)));
+    }
+    std::cout << "        Qb: max. deviation from the implicit relation " << qerr << std::endl;
+    check(qerr < 0.02, "Qb within 0.02 of the implicit Battjes-Janssen relation for Hrms/Hm 0.3 - 0.95");
+
+    // bottom friction (JONSWAP): D = Cb/g^2 (sig/sinh(kd))^2, P = 0
+    {
+        seastate_source_param sp;
+        sp.friction = true;
+        seastate_source src(sg, sp);
+        const double d = 8.0;
+        cell_kin ck(sg, d);
+        std::vector<float> N = make_spectrum(sg, 1.0, 8.0, 3.3, 0.0, 10.0);
+        src.compute(N.data(), d, ck.k.data(), ck.cg.data(), P.data(), D.data());
+        double err = 0.0, pmax = 0.0;
+        for(int l = 0; l < sg.nsig; ++l)
+            for(int m = 0; m < sg.ndir; ++m)
+            {
+                const double ex = 0.038 / (g * g) * std::pow(sg.sig[l] / std::sinh(std::min(30.0, double(ck.k[l]) * d)), 2.0);
+                err = std::max(err, std::fabs(D[sg.bin(l, m)] - ex) / ex);
+                pmax = std::max(pmax, std::fabs(P[sg.bin(l, m)]));
+            }
+        check(err < 1e-6 && pmax == 0.0, "friction: D = C_b/g^2 (sig/sinh kd)^2, P = 0");
+    }
+
+    // depth-induced breaking (Battjes-Janssen)
+    {
+        seastate_source_param sp;
+        sp.breaking = true;
+        seastate_source src(sg, sp);
+        const double d = 1.5;
+        cell_kin ck(sg, d);
+        std::vector<float> N = make_spectrum(sg, 1.5, 8.0, 3.3, 0.0, 10.0);  // Hrms = 1.06 m > Hm = 1.095 m? -> close to saturation
+        src.compute(N.data(), d, ck.k.data(), ck.cg.data(), P.data(), D.data());
+        const double Hrms = std::sqrt(8.0 * src.Etot), Hm = 0.73 * d, bb = Hrms * Hrms / (Hm * Hm);
+        const double Qb = seastate_source::Qb_bj(Hrms, Hm);
+        const double ex = (bb < 1.0 ? Qb / bb : 1.0) * src.sigm01 / pi;
+        std::cout << "        breaking: Hrms/Hm " << Hrms / Hm << ", Qb " << src.Qb << ", D " << D[0] << " 1/s" << std::endl;
+        const double sbrd = ex * (1.0 - Qb) / (bb - Qb);
+        double nerr = 0.0;
+        for(int b : {0, 100, nb - 1})
+            nerr = std::max(nerr, std::fabs((P[b] - D[b] * N[b]) - (-ex * N[b])) / (ex * N[b] + 1e-300));
+        check(close(D[0], ex + sbrd, 1e-12) && close(D[nb - 1], ex + sbrd, 1e-12) && close(P[100], sbrd * N[100], 1e-12) && src.Qb == Qb, "breaking: D = ws + sbrd, P = sbrd N (Newton linearisation, SWAN SbrD), ws = alpha/pi Qb sig_01 Hm^2/Hrms^2");
+        check(nerr < 1e-6, "breaking: net source P - D N = -ws N at the linearisation point");
+        std::vector<float> N2 = make_spectrum(sg, 3.0, 8.0, 3.3, 0.0, 10.0);
+        src.compute(N2.data(), d, ck.k.data(), ck.cg.data(), P.data(), D.data());
+        check(src.Qb == 1.0 && close(D[0], src.sigm01 / pi, 1e-12), "breaking: Hrms >= Hm gives Qb = 1 and D = alpha/pi sig_01");
+        std::vector<float> N3 = make_spectrum(sg, 0.1, 8.0, 3.3, 0.0, 10.0);
+        src.compute(N3.data(), 20.0, ck.k.data(), ck.cg.data(), P.data(), D.data());
+        check(src.Qb == 0.0 && D[0] == 0.0, "breaking: no dissipation for Hrms/Hm <= 0.2");
+    }
+
+    // integral parameters with the sig^-4 tail: Pierson-Moskowitz, Tm01 = 0.772 Tp
+    {
+        seastate_source_param sp;
+        sp.friction = true;
+        seastate_source src(sg, sp);
+        cell_kin ck(sg, 1000.0);
+        std::vector<float> N = make_spectrum(sg, 2.0, 10.0, 1.0, 0.0, 10.0);
+        src.compute(N.data(), 1000.0, ck.k.data(), ck.cg.data(), P.data(), D.data());
+        std::cout << "        PM Hs 2 m, Tp 10 s: Hs " << src.Hs << ", Tm01 " << 2.0 * pi / src.sigm01 << ", Tm-10 " << 2.0 * pi / src.sigm_10 << std::endl;
+        check(close(src.Hs, 2.0, 0.01) && close(2.0 * pi / src.sigm01, 7.72, 0.01) && close(2.0 * pi / src.sigm_10, 8.57, 0.01), "moments with tail: PM Hs, Tm01 = 0.772 Tp, Tm-1,0 = 0.857 Tp within 1 %");
+        const double kp = std::pow(2.0 * pi / 10.0, 2.0) / g;
+        check(src.km_wam > kp && src.km_wam < 2.0 * kp, "k_WAM between k_p and 2 k_p");
+    }
+
+    // van der Westhuysen et al. (2007) as SWAN GEN3 WESTH (A 732 2, Phase 9): whitecapping of SWCAP (IWCAP 7) and the
+    // Yan wind input of SWIND5, recomputed here from the formulas
+    {
+        seastate_source_param sp;
+        sp.komen = true;
+        sp.westh = true;
+        sp.wind = true;
+        sp.U10 = 12.0;
+        sp.wdir = 0.3;
+        seastate_source src(sg, sp);
+        const double d = 30.0;
+        cell_kin ck(sg, d);
+        std::vector<float> N = make_spectrum(sg, 1.5, 5.0, 3.3, 0.3, 10.0);
+        src.compute(N.data(), d, ck.k.data(), ck.cg.data(), P.data(), D.data());
+        // u* of Wu (1982) as the source terms, k_WAM, sig_-10, E_tot from the source object
+        const double us = src.ustar, stp = src.km_wam * std::sqrt(src.Etot) / std::sqrt(3.02e-3), ck_ = 3.0e-5 * std::pow(stp, 4.0);
+        double ew = 0.0, ey = 0.0;
+        for(int l = 2; l < sg.nsig; l += 5)
+        {
+            double El = 0.0;
+            for(int m = 0; m < sg.ndir; ++m)
+                El += N[sg.bin(l, m)];
+            El *= sg.sig[l] * sg.dtheta;
+            const double kl = ck.k[l], B = ck.cg[l] * kl * kl * kl * El;
+            const double fbr = 0.5 * (1.0 + std::tanh(10.0 * (std::sqrt(B / 1.75e-3) - 1.0)));
+            const double pp = 3.0 + std::tanh(25.76 * (us * kl / sg.sig[l] - 0.1));
+            const double fac2 = std::sqrt(g * kl);
+            const double wc = fbr * 5.0e-5 * std::pow(B / 1.75e-3, 0.5 * pp) * std::pow(fac2 / sg.sig[l], 0.5 * pp - 1.0) * fac2 + (1.0 - fbr) * ck_ * src.sigm_10 * kl / src.km_wam;
+            ew = std::max(ew, std::fabs(D[sg.bin(l, 5)] - wc) / wc);
+            // Yan: max(0, ((0.04 x^2 + 0.00552 x + 0.000052) cos - 0.000302) sig) N with x = u* k/sig, plus the linear growth (P without N)
+            const double x = us * kl / sg.sig[l], cosd = std::cos(sg.theta[5] - 0.3);
+            const double yan = std::max(0.0, ((0.04 * x * x + 0.00552 * x + 0.000052) * cosd - 0.000302) * sg.sig[l]);
+            seastate_source_param sl = sp;
+            sl.komen = false;
+            sl.westh = false;
+            seastate_source lin(sg, sl);
+            std::vector<double> P0(nb), D0(nb);
+            lin.compute(N.data(), d, ck.k.data(), ck.cg.data(), P0.data(), D0.data());
+            const double py = P[sg.bin(l, 5)] - P0[sg.bin(l, 5)];
+            if(yan * N[sg.bin(l, 5)] > 0.0)
+                ey = std::max(ey, std::fabs(py - yan * N[sg.bin(l, 5)]) / (yan * N[sg.bin(l, 5)]));
+        }
+        std::cout << "        Westhuysen: max. rel. difference of D " << ew << ", of the Yan input " << ey << std::endl;
+        check(ew < 1e-9 && ey < 1e-9, "van der Westhuysen whitecapping (SWAN IWCAP 7) and Yan wind input (SWIND5) as the formulas");
+    }
+
+    // whitecapping (Komen): D proportional to k^2, value
+    {
+        seastate_source_param sp;
+        sp.komen = true;
+        seastate_source src(sg, sp);
+        cell_kin ck(sg, 1000.0);
+        std::vector<float> N = make_spectrum(sg, 2.0, 8.0, 3.3, 0.0, 10.0);
+        src.compute(N.data(), 1000.0, ck.k.data(), ck.cg.data(), P.data(), D.data());
+        const double stp = src.km_wam * std::sqrt(src.Etot) / std::sqrt(3.02e-3);
+        const double ex = 2.36e-5 * std::pow(stp, 4.0) * src.sigm_10 * std::pow(ck.k[20] / src.km_wam, 2.0);
+        check(close(D[sg.bin(20, 3)], ex, 1e-10) && close(D[sg.bin(30, 0)] / D[sg.bin(10, 0)], std::pow(double(ck.k[30]) / ck.k[10], 2.0), 1e-6), "whitecapping: D = C_ds (s/s_PM)^4 sig_-10 (k/k_WAM)^2");
+    }
+
+    // wind input
+    {
+        seastate_source_param sp;
+        sp.wind = true;
+        sp.komen = true;
+        sp.U10 = 20.0;
+        sp.wdir = 0.0;
+        seastate_source src(sg, sp);
+        const double us = seastate_source::ustar_wu(20.0);
+        check(close(us, std::sqrt((0.8 + 0.065 * 20.0) * 1e-3) * 20.0, 1e-12) && close(seastate_source::ustar_wu(5.0), std::sqrt(1.2875e-3) * 5.0, 1e-12), "u* with the drag of Wu (1982)");
+        cell_kin ck(sg, 1000.0);
+        std::vector<float> N0(nb, 0.0f);
+        src.compute(N0.data(), 1000.0, ck.k.data(), ck.cg.data(), P.data(), D.data());
+        const int l = 20;
+        const double sig = sg.sig[l], spm = g / (28.0 * us);
+        const double exA = 1.5e-3 / (2.0 * pi * g * g * sig) * std::pow(us, 4.0) * std::exp(-std::pow(std::min(2.0, spm / sig), 4.0));
+        check(close(P[sg.bin(l, 0)], exA, 1e-10) && P[sg.bin(l, 18)] == 0.0 && P[sg.bin(l, 9)] < 1e-12 * P[sg.bin(l, 0)], "linear growth along the wind, none across or against it");
+        check(P[sg.bin(0, 0)] == 0.0, "no linear growth below 0.7 sig_PM");
+        std::vector<float> N = make_spectrum(sg, 0.5, 4.0, 3.3, 0.0, 10.0);
+        std::vector<double> P1(nb), D1(nb);
+        src.compute(N.data(), 1000.0, ck.k.data(), ck.cg.data(), P1.data(), D1.data());
+        sp.dia = false;
+        const double B = std::max(0.0, 0.25 * 1.28 / 1025.0 * (28.0 * us * ck.k[l] / sig - 1.0)) * sig;
+        check(close(P1[sg.bin(l, 0)] - P[sg.bin(l, 0)], B * N[sg.bin(l, 0)], 1e-6), "exponential growth B N (Komen) along the wind");
+        check(P1[sg.bin(l, 18)] == 0.0, "no exponential growth against the wind");
+    }
+
+    // quadruplets (DIA)
+    {
+        seastate_source_param sp;
+        sp.komen = true;
+        sp.dia = true;
+        seastate_source src(sg, sp);
+        cell_kin ck(sg, 1000.0);
+        std::vector<float> N = make_spectrum(sg, 4.0, 10.0, 3.3, 0.0, 10.0);
+        src.quadruplets(N.data(), 1000.0, ck.k.data(), S.data());
+        budget bu(sg, S);
+        const double fp = 0.1;
+        auto at = [&](double f)
+        {int lb=0; for(int l=0;l<sg.nsig;++l) if(std::fabs(sg.f[l]-f)<std::fabs(sg.f[lb]-f)) lb=l; return bu.s1d[lb]; };
+        std::cout << "        DIA (JONSWAP Hs 4 m, Tp 10 s, deep): energy balance " << bu.dE / bu.absE << ", action balance " << bu.dA / bu.absA
+                  << "; sig S(sig) at 0.85 fp " << at(0.085) << ", 1.4 fp " << at(0.14) << ", 2.5 fp " << at(0.25) << std::endl;
+        check(std::fabs(bu.dE / bu.absE) < 2e-3, "DIA conserves energy (relative to the transferred energy)");
+        check(std::fabs(bu.dA / bu.absA) < 2e-2, "DIA conserves action (within the grid interpolation)");
+        check(at(0.085) > 0.0 && at(0.14) < 0.0 && at(0.25) > 0.0, "DIA: gain below the peak, loss above it, gain in the tail");
+        double asym = 0.0, smax = 0.0;
+        for(int l = 0; l < sg.nsig; ++l)
+            for(int m = 1; m < sg.ndir; ++m)
+            {
+                asym = std::max(asym, std::fabs(S[sg.bin(l, m)] - S[sg.bin(l, sg.ndir - m)]));
+                smax = std::max(smax, std::fabs(S[sg.bin(l, m)]));
+            }
+        check(asym <= 1e-10 * smax, "DIA symmetric for a spectrum symmetric in theta");
+        // diagonal derivative dS/dN against a finite difference (depth scaling and k_WAM frozen: deep water)
+        std::vector<double> L(nb), Sp(nb), Sm(nb);
+        src.quadruplets(N.data(), 1000.0, ck.k.data(), S.data(), L.data());
+        double derr = 0.0;
+        for(int l : {8, 10, 13, 20})
+        {
+            const int b = sg.bin(l, 0);
+            std::vector<float> Np = N, Nm = N;
+            const double h = 1e-3 * N[b];
+            Np[b] += float(h);
+            Nm[b] -= float(h);
+            const double hh = double(Np[b]) - double(Nm[b]);
+            src.quadruplets(Np.data(), 1000.0, ck.k.data(), Sp.data());
+            src.quadruplets(Nm.data(), 1000.0, ck.k.data(), Sm.data());
+            const double fd = (Sp[b] - Sm[b]) / hh;
+            derr = std::max(derr, std::fabs(fd - L[b]) / std::fabs(fd));
+        }
+        std::cout << "        DIA: diagonal derivative vs. finite difference, max. rel. deviation " << derr << std::endl;
+        check(derr < 1e-6, "DIA: diagonal derivative dS/dN (SWAN DSNL) matches a central finite difference");
+        std::vector<double> S2(nb);
+        src.quadruplets(N.data(), 5.0, ck.k.data(), S2.data());
+        check(std::fabs(S2[sg.bin(9, 0)]) > std::fabs(S[sg.bin(9, 0)]), "DIA enhanced in shallow water (WAM depth scaling)");
+        std::vector<float> Z(nb, 0.0f);
+        src.quadruplets(Z.data(), 1000.0, ck.k.data(), S2.data());
+        double z = 0.0;
+        for(double v : S2)
+            z = std::max(z, std::fabs(v));
+        check(z == 0.0, "DIA: zero spectrum, zero transfer");
+    }
+
+    // triads (LTA)
+    {
+        seastate_source_param sp;
+        sp.triads = true;
+        seastate_source src(sg, sp);
+        const double d = 2.0;
+        cell_kin ck(sg, d);
+        std::vector<float> N = make_spectrum(sg, 0.6, 8.0, 3.3, 0.0, 20.0);
+        src.triads(N.data(), d, ck.k.data(), ck.cg.data(), S.data());
+        budget bu(sg, S);
+        int lp = 0;
+        for(int l = 0; l < sg.nsig; ++l)
+            if(std::fabs(sg.f[l] - 0.125) < std::fabs(sg.f[lp] - 0.125))
+                lp = l;
+        int l2 = 0;
+        for(int l = 0; l < sg.nsig; ++l)
+            if(std::fabs(sg.f[l] - 0.25) < std::fabs(sg.f[l2] - 0.25))
+                l2 = l;
+        std::cout << "        LTA (Hs 0.6 m, Tp 8 s, d 2 m): Ursell " << src.ursell << ", energy balance " << bu.dE / bu.absE
+                  << "; sig S(sig) at fp " << bu.s1d[lp] << ", 2 fp " << bu.s1d[l2] << std::endl;
+        check(src.ursell >= 0.1, "LTA case is above the Ursell limit");
+        check(std::fabs(bu.dE / bu.absE) < 0.03, "LTA conserves energy (within the interpolation at 2 sig)");
+        check(bu.s1d[lp] < 0.0 && bu.s1d[l2] > 0.0, "LTA: energy from the peak to the second harmonic");
+        std::vector<float> Nd = make_spectrum(sg, 0.6, 8.0, 3.3, 0.0, 20.0);
+        cell_kin ckd(sg, 50.0);
+        src.triads(Nd.data(), 50.0, ckd.k.data(), ckd.cg.data(), S.data());
+        double z = 0.0;
+        for(double v : S)
+            z = std::max(z, std::fabs(v));
+        check(src.ursell < 0.1 && z == 0.0, "LTA inactive below the Ursell limit");
+    }
+
+    // Patankar split of all terms together: P >= 0, D >= 0
+    {
+        seastate_source_param sp;
+        sp.wind = true;
+        sp.U10 = 15.0;
+        sp.wdir = 0.5;
+        sp.komen = true;
+        sp.dia = true;
+        sp.breaking = true;
+        sp.friction = true;
+        sp.triads = true;
+        seastate_source src(sg, sp);
+        const double d = 3.0;
+        cell_kin ck(sg, d);
+        std::vector<float> N = make_spectrum(sg, 1.2, 7.0, 3.3, 0.3, 5.0);
+        src.compute(N.data(), d, ck.k.data(), ck.cg.data(), P.data(), D.data());
+        double pmin = 0.0, dmin = 0.0;
+        for(int b = 0; b < nb; ++b)
+        {
+            pmin = std::min(pmin, P[b]);
+            dmin = std::min(dmin, D[b]);
+        }
+        check(pmin >= 0.0 && dmin >= 0.0, "Patankar split: P >= 0 and D >= 0 with all source terms");
+    }
+}
+
+// ---------------------------------------------------------------------------------------------
+// surfbeat: single-frequency grid, Roelvink breaking, wave-group boundary generator, bound wave
+// ---------------------------------------------------------------------------------------------
+static void test_surfbeat()
+{
+    std::cout << "seastate_surfbeat" << std::endl;
+
+    // single-frequency grid of the wave-group model
+    {
+        seastate_grid sg(0.1, 24);
+        check(sg.valid() && sg.nsig == 1 && sg.nbin == 24 && sg.dsig[0] == 1.0 && close(sg.sig[0], 2.0 * pi * 0.1, 1e-15), "single-frequency grid: nsig 1, nbin = ndir, dsig 1");
+        seastate_grid bad(0.0, 24);
+        check(!bad.valid(), "single-frequency grid: f_rep <= 0 rejected");
+    }
+
+    // Roelvink (1993) breaking: D/E = 2 alpha f_rep Qb H/h, Qb = 1 - exp(-(H/(gamma h))^n)
+    {
+        seastate_grid sg(0.1, 24);
+        seastate_source_param sp;
+        sp.breaking = true;
+        sp.breaking_model = 2;
+        sp.alpha = 1.0;
+        sp.gamma = 0.55;
+        sp.nroel = 10.0;
+        seastate_source src(sg, sp);
+        const double d = 2.0, H = 1.0;
+        cell_kin ck(sg, d);
+        std::vector<float> N(sg.nbin, 0.0f);
+        N[0] = float(H * H / 8.0 / sg.dtheta / sg.sig[0]);  // E = sig N dsig dtheta = H^2/8
+        std::vector<double> P(sg.nbin), D(sg.nbin);
+        src.compute(N.data(), d, ck.k.data(), ck.cg.data(), P.data(), D.data());
+        const double Qb = 1.0 - std::exp(-std::pow(H / (0.55 * d), 10.0));
+        const double ex = 2.0 * 0.1 * Qb * H / d;
+        std::cout << "        Roelvink: Qb " << Qb << ", D/E " << D[5] << " (exact " << ex << ")" << std::endl;
+        check(close(D[0], ex, 1e-5) && close(D[5], ex, 1e-5) && close(src.brk_rate, ex, 1e-5) && P[0] == 0.0, "Roelvink breaking: D/E = 2 alpha f_rep Qb H/h in every direction, P = 0");
+        std::fill(N.begin(), N.end(), 0.0f);
+        N[0] = float(0.01 / 8.0 / sg.dtheta / sg.sig[0]);
+        src.compute(N.data(), d, ck.k.data(), ck.cg.data(), P.data(), D.data());
+        check(D[0] < 1e-12, "Roelvink breaking: no dissipation for small waves");
+    }
+
+    // Herbers (1994) coefficient vs. Longuet-Higgins and Stewart (1962) for narrow-band collinear groups
+    for(double kh : {0.8, 1.2, 2.0})
+    {
+        const double h = 2.0, k1 = kh / h;
+        const double w1 = std::sqrt(g * k1 * std::tanh(kh));
+        const double f1 = w1 / (2.0 * pi), f2 = f1 * 1.001;
+        const double k2 = seastate_wavenumber(2.0 * pi * f2, h);
+        double c3, th3;
+        const double D = seastate_surfbeat::herbers(f1, 0.0, k1, f2, 0.0, k2, h, c3, th3);
+        const double cg = seastate_cg(w1, k1, h), n = cg / (w1 / k1);
+        const double lhs = -g * (2.0 * n - 0.5) / (g * h - cg * cg);
+        std::cout << "        kh " << kh << ": D " << D << ", LHS62 " << lhs << ", c3/cg " << c3 / cg << std::endl;
+        check(close(D, lhs, 0.01) && std::fabs(th3) < 1e-12, "Herbers D -> LHS62 -g(2n-1/2)/(gh-cg^2) for narrow-band collinear waves, kh " + std::to_string(kh).substr(0, 3));
+    }
+
+    // bichromatic waves: envelope and bound wave time series
+    {
+        seastate_grid sg(0.4, 24);
+        std::vector<float> N0(sg.nbin, 0.0f);
+        seastate_surfbeat sb(sg, N0.data(), 1.0, 1);
+        check(sb.K == 0, "generator: empty spectrum gives no components");
+
+        const double h = 0.85, T = 15.0, f1 = 6.0 / 15.0, f2 = 7.0 / 15.0, a1 = 0.09, a2 = 0.01;  // GLOBEX B1
+        sb.trec = T;
+        sb.df = 1.0 / T;
+        sb.trep = 1.0 / f1;
+        sb.frep = f1;
+        sb.m0 = 0.5 * (a1 * a1 + a2 * a2);
+        sb.fk = {f1, f2};
+        sb.ak = {a1, a2};
+        sb.thk = {0.0, 0.0};
+        sb.phk = {0.3, 1.1};
+        sb.K = 2;
+        sb.series({0.0}, {h}, true);
+        const double k1 = seastate_wavenumber(2.0 * pi * f1, h), k2 = seastate_wavenumber(2.0 * pi * f2, h);
+        double c3, th3;
+        const double D = seastate_surfbeat::herbers(f1, 0.0, k1, f2, 0.0, k2, h, c3, th3);
+        double eE = 0.0, eZ = 0.0, eQ = 0.0;
+        for(int n = 0; n < 60; ++n)
+        {
+            const double t = n * 0.25;
+            double E, z, qx, qy;
+            sb.at(0, t, E, z, qx, qy);
+            const double ps = 2.0 * pi * (f2 - f1) * t + 1.1 - 0.3;
+            eE = std::max(eE, std::fabs(E - 0.5 * (a1 * a1 + a2 * a2 + 2.0 * a1 * a2 * std::cos(ps))));
+            eZ = std::max(eZ, std::fabs(z - D * a1 * a2 * std::cos(ps)));
+            eQ = std::max(eQ, std::fabs(qx - c3 * D * a1 * a2 * std::cos(ps)) + std::fabs(qy));
+        }
+        std::cout << "        bichromatic: D " << D << " 1/m, bound amplitude " << D * a1 * a2 << " m, max. errors E " << eE << ", zeta " << eZ << ", q " << eQ << std::endl;
+        check(eE < 2e-4 * sb.m0 && eZ < 2e-3 * std::fabs(D * a1 * a2) && eQ < 2e-3 * std::fabs(c3 * D * a1 * a2), "bichromatic: E = (a1^2+a2^2+2a1a2 cos)/2, zeta_b = D a1 a2 cos, q = c3 zeta_b (time interpolation)");
+    }
+
+    // random-phase generator from a directional JONSWAP spectrum
+    {
+        seastate_grid sg(36, 0.04, 1.0, 36);
+        std::vector<float> N = make_spectrum(sg, 1.0, 8.0, 3.3, 0.2, 10.0);
+        seastate_param prm;
+        prm.compute(sg, N.data());
+        seastate_surfbeat sb(sg, N.data(), 1200.0, 7), sb2(sg, N.data(), 1200.0, 7), sb3(sg, N.data(), 1200.0, 8);
+        double var = 0.0, dsum = 0.0, cx = 0.0, cy = 0.0;
+        for(int m = 0; m < sb.K; ++m)
+        {
+            var += 0.5 * sb.ak[m] * sb.ak[m];
+            cx += sb.ak[m] * sb.ak[m] * std::cos(sb.thk[m]);
+            cy += sb.ak[m] * sb.ak[m] * std::sin(sb.thk[m]);
+        }
+        for(double d : sb.Dbar)
+            dsum += d * sg.dtheta;
+        const double mth = std::atan2(cy, cx);
+        std::cout << "        JONSWAP Hs 1 m: " << sb.K << " components, Hm0 " << 4.0 * std::sqrt(var) << ", T_rep " << sb.trep << " s, mean component direction " << mth << " rad" << std::endl;
+        check(sb.K > 100 && close(var, sb.m0, 1e-12) && close(4.0 * std::sqrt(sb.m0), 1.0, 0.01), "generator: component variance = m0 of the spectrum");
+        check(close(sb.trep, prm.Tm10, 0.05) && close(dsum, 1.0, 1e-12) && std::fabs(mth - 0.2) < 0.05, "generator: T_rep = Tm-1,0, mean directional distribution normalised, directions around the main direction");
+        sb.series({0.0, 50.0}, {8.0, 8.0}, true);
+        sb2.series({0.0, 50.0}, {8.0, 8.0}, true);
+        sb3.series({0.0, 50.0}, {8.0, 8.0}, true);
+        const int nt = int(std::lround(sb.trec / sb.dtbc));
+        double Em = 0.0, Zm = 0.0, Z2 = 0.0, Emax = 0.0, dif2 = 0.0, dif3 = 0.0, dify = 0.0;
+        for(int n = 0; n < nt; ++n)
+        {
+            double E, z, qx, qy, E2, z2, qx2, qy2, E3, z3, qx3, qy3, Ey, zy, qxy, qyy;
+            sb.at(0, n * sb.dtbc, E, z, qx, qy);
+            sb2.at(0, n * sb.dtbc, E2, z2, qx2, qy2);
+            sb3.at(0, n * sb.dtbc, E3, z3, qx3, qy3);
+            sb.at(1, n * sb.dtbc, Ey, zy, qxy, qyy);
+            Em += E / nt;
+            Zm += z / nt;
+            Z2 += z * z / nt;
+            Emax = std::max(Emax, E);
+            dif2 = std::max(dif2, std::fabs(E - E2) + std::fabs(z - z2) + std::fabs(qx - qx2));
+            dif3 = std::max(dif3, std::fabs(E - E3));
+            dify = std::max(dify, std::fabs(E - Ey));
+        }
+        std::cout << "        envelope mean " << Em << " (m0 " << sb.m0 << "), max/mean " << Emax / Em << ", bound wave mean " << Zm << " m, rms " << std::sqrt(Z2) << " m" << std::endl;
+        check(close(Em, sb.m0, 1e-10) && std::fabs(Zm) < 1e-12 && std::sqrt(Z2) > 1e-4 && std::sqrt(Z2) < 0.05, "envelope mean = m0 over T_rec, bound wave zero-mean and small");
+        check(dif2 == 0.0 && dif3 > 0.1 * sb.m0 && dify > 0.1 * sb.m0, "generator: identical for the same seed, different for another seed and along the boundary");
+    }
+}
+
+// ---------------------------------------------------------------------------------------------
+// external forcing: date-times, series of SWAN spectra (the wind field: met_test.cpp)
+// ---------------------------------------------------------------------------------------------
+static void test_forcing()
+{
+    std::cout << "seastate_forcing" << std::endl;
+
+    check(seastate_datetime(19700101.000000) == 0.0 && seastate_datetime(20000301.000000) == 951868800.0 && seastate_datetime(20261005.123045) == 1791203445.0 && seastate_datetime(19991231.235959) == 946684799.0,
+          "date-time YYYYMMDD.HHMMSS -> seconds since 1970 (leap years, end of year)");
+
+    // series of spectra: 2 locations, 3 times (1 h apart), nautical directions, energy density
+    seastate_grid sg(20, 0.05, 0.5, 24);
+    const char *spc = "/tmp/seastate_test_series.spc";
+    {
+        std::ofstream o(spc);
+        o << "SWAN   1\n$ test\nTIME\n     1\nLOCATIONS\n     2\n   0.0  0.0\n   0.0  1000.0\nAFREQ\n     3\n 0.08\n 0.10\n 0.12\nNDIR\n     4\n 0.0\n 90.0\n 180.0\n 270.0\n";
+        o << "QUANT\n     1\nEnDens\nJ/m2/Hz/degr\n -0.9900E+02\n";
+        const char *t[3] = {"20261005.000000", "20261005.010000", "20261005.020000"};
+        for(int k = 0; k < 3; ++k)
+        {
+            o << t[k] << "\n";
+            for(int l = 0; l < 2; ++l)
+            {
+                if(k == 1 && l == 1)
+                {
+                    o << "ZERO\n";
+                    continue;
+                }
+                o << "FACTOR\n  1.0\n";
+                for(int fq = 0; fq < 3; ++fq)
+                    o << "  " << (k + 1) * (l + 1) * 10.0 * 1025.0 * 9.81 << "  0  0  " << (fq == 1 ? -99 : 0) << "\n";  // waves from north (nautical 0): propagate to -y
+            }
+        }
+    }
+    seastate_spc_series ser;
+    std::string err;
+    const bool ok = ser.open(spc, sg, err);
+    if(!ok)
+        std::cout << "        " << err << std::endl;
+    check(ok && ser.nloc == 2 && ser.ys[1] == 1000.0 && !ser.stationary() && ser.time(0) == seastate_datetime(20261005.0) && ser.time(1) - ser.time(0) == 3600.0,
+          "spectra series: header, locations, first two records");
+
+    // reference: the same record through the stationary reader's interpolation
+    seastate_swan_spc ref;
+    ref.f = {0.08, 0.10, 0.12};
+    ref.dir = {0.0, 90.0, 180.0, 270.0};
+    ref.E.assign(12, 0.0);
+    for(int fq = 0; fq < 3; ++fq)
+        ref.E[fq * 4 + 3] = 10.0;  // nautical 0 -> Cartesian 270 (to -y), sorted last
+    std::vector<float> Nr;
+    ref.to_grid(sg, Nr);
+    double e0 = 0.0, e1 = 0.0;
+    for(int b = 0; b < sg.nbin; ++b)
+    {
+        e0 = std::max(e0, double(std::fabs(ser.N(0, 0)[b] - Nr[b]) + std::fabs(ser.N(0, 1)[b] - 2.0f * Nr[b])));
+        e1 = std::max(e1, double(std::fabs(ser.N(1, 1)[b])));
+    }
+    check(e0 < 2e-5 * Nr[sg.bin(5, 18)] && e1 == 0.0 && Nr[sg.bin(5, 18)] > 0.0f, "spectra series: EnDens / rho g, nautical -> Cartesian, exception value, ZERO block");
+    const double t2 = ser.time(0) + 5400.0;
+    const bool adv = ser.advance(t2, err);
+    check(adv && ser.time(0) == seastate_datetime(20261005.01) && ser.time(1) == seastate_datetime(20261005.02) && std::fabs(ser.weight(t2) - 0.5) < 1e-12 && std::fabs(ser.N(1, 0)[sg.bin(5, 18)] - 3.0f * Nr[sg.bin(5, 18)]) < 2e-5 * Nr[sg.bin(5, 18)], "spectra series: advance and linear time weight");
+    ser.advance(ser.time(1) + 1e5, err);
+    check(ser.weight(ser.time(1) + 1e5) == 1.0 && ser.records == 3, "spectra series: clamped after the last record");
+
+    // the wind field of SEASTATE is the met forcing (A 730 2, W 200, met-forcing.r3m) since hans_dev 221581380; its
+    // reader (bilinear in space, linear in time, windows, clamping) is tested in met_test.cpp
+}
+
+// Phase 24: online collocation (A 787 1): the file of the observations, the times, the statistics
+static void test_collocation()
+{
+    std::cout << "seastate_collocation" << std::endl;
+
+    double t1, t2, t3;
+    check(seastate_collocation::parse_time("20220129.061231", t1) && seastate_collocation::parse_time("2022-01-29 06:12:31", t2) && seastate_collocation::parse_time("2022-01-29T06:12:31.250", t3) && t1 == t2 && std::fabs(t3 - t1 - 0.25) < 1e-6 && t1 == seastate_datetime(20220129.061231), "times: YYYYMMDD.HHMMSS, ISO with a space or T, fractions of a second");
+    double tx;
+    check(!seastate_collocation::parse_time("29/01/2022", tx) && !seastate_collocation::parse_time("2022-13-01", tx), "times: other formats rejected");
+    check(seastate_collocation::stamp(t1) == "20220129.061231", "stamp: seconds since 1970 -> YYYYMMDD.HHMMSS");
+
+    const char *f = "seastate_test_colloc.csv";
+    {
+        std::ofstream o(f);
+        o << "# observations\nhs,time,y,x,source,id,extra\n";
+        o << "2.5,2022-01-29 07:00:00,20.0,10.0,buoy,ekofisk,1\n";
+        o << "3.0,2022-01-29 06:00:00,0.0,-5.0,alti,jason-3,1\n";
+        o << "\n4.0,2022-01-29 06:30:00,5.0,6.0,alti,saral,1  # comment\n";
+    }
+    seastate_collocation c;
+    std::string err;
+    const double tref = seastate_datetime(20220129.0);
+    const bool ok = c.read(f, tref, err);
+    if(!ok)
+        std::cout << "        " << err << std::endl;
+    check(ok && c.obs.size() == 3 && c.sources.size() == 2 && c.ids.size() == 3, "file: columns by name, comments, empty lines");
+    check(ok && c.obs[0].t == 6.0 * 3600.0 && c.obs[1].t == 6.5 * 3600.0 && c.obs[2].t == 7.0 * 3600.0 && c.obs[0].x == -5.0 && c.obs[2].y == 20.0 && c.sources[c.obs[2].src] == "buoy" && c.ids[c.obs[1].id] == "saral", "file: sorted by time, model time from tref, x, y, source, id");
+    {
+        std::ofstream o("seastate_test_colloc_bad.csv");
+        o << "time,x,hs\n2022-01-29 06:00:00,1,2\n";
+    }
+    seastate_collocation b;
+    check(!b.read("seastate_test_colloc_bad.csv", 0.0, err) && !b.read("no_such_file.csv", 0.0, err), "file without y, missing file: rejected");
+    std::remove(f);
+    std::remove("seastate_test_colloc_bad.csv");
+
+    // statistics against a direct computation
+    const double o[5] = {1.0, 2.0, 3.0, 4.0, 5.0}, m[5] = {1.2, 1.9, 3.5, 4.4, 4.8};
+    seastate_colloc_stats s;
+    double bd = 0.0, sd2 = 0.0;
+    for(int k = 0; k < 5; ++k)
+    {
+        s.add(o[k], m[k]);
+        bd += m[k] - o[k];
+        sd2 += (m[k] - o[k]) * (m[k] - o[k]);
+    }
+    bd /= 5.0;
+    double var = 0.0;
+    for(int k = 0; k < 5; ++k)
+        var += (m[k] - o[k] - bd) * (m[k] - o[k] - bd);
+    var /= 5.0;
+    double mo = 3.0, mm = 0.0, cxy = 0.0, cxx = 0.0, cyy = 0.0;
+    for(int k = 0; k < 5; ++k)
+        mm += m[k] / 5.0;
+    for(int k = 0; k < 5; ++k)
+    {
+        cxy += (o[k] - mo) * (m[k] - mm);
+        cxx += (o[k] - mo) * (o[k] - mo);
+        cyy += (m[k] - mm) * (m[k] - mm);
+    }
+    check(s.n == 5 && std::fabs(s.bias() - bd) < 1e-12 && std::fabs(s.rmse() - std::sqrt(sd2 / 5.0)) < 1e-12 && std::fabs(s.si() - std::sqrt(var) / 3.0) < 1e-12 && std::fabs(s.r() - cxy / std::sqrt(cxx * cyy)) < 1e-12, "statistics: bias, RMSE, scatter index, correlation");
+}
+
+// Phase 5b: bathymetry raster (A 790 1) and the maximum energy of SWAN (A 737 1)
+static void test_bathy()
+{
+    std::cout << "seastate_bathy, maximum energy" << std::endl;
+
+    // raster of a linear bed z = -20 + 0.01 x - 0.02 y on 6 x 4 nodes, 50 m x 100 m spacing, origin (1000, 2000)
+    const std::string f = "seastate_test_bathy.dat";
+    {
+        std::ofstream o(f);
+        o << "$ test raster\n6 4   $ nodes\n1000 2000 50 100\n";
+        for(int j = 0; j < 4; ++j)
+        {
+            for(int i = 0; i < 6; ++i)
+                o << (-20.0 + 0.01 * (1000.0 + 50.0 * i) - 0.02 * (2000.0 + 100.0 * j)) << " ";
+            o << "\n";
+        }
+    }
+    auto zl = [](double x, double y)
+    { return -20.0 + 0.01 * x - 0.02 * y; };
+
+    seastate_bathy b;
+    std::string err;
+    const bool ok = b.read(f, err);
+    if(!ok)
+        std::cout << "        " << err << std::endl;
+    check(ok && b.nx == 6 && b.ny == 4 && b.dx == 50.0 && b.dy == 100.0, "raster header and values read ($ comments)");
+
+    double e1 = 0.0;
+    for(double x : {1000.0, 1033.0, 1210.0, 1250.0})
+        for(double y : {2000.0, 2077.0, 2300.0})
+            e1 = std::max(e1, std::fabs(b.at(x, y) - zl(x, y)));
+    check(e1 < 1e-12, "bilinear interpolation exact for a linear bed");
+    check(std::fabs(b.at(0.0, 0.0) - zl(1000.0, 2000.0)) < 1e-12 && std::fabs(b.at(5000.0, 9000.0) - zl(1250.0, 2300.0)) < 1e-12, "clamped outside the raster");
+
+    // cell [1000,1100) x [2000,2200): nodes x 1000, 1050 and y 2000, 2100 -> mean at (1025, 2050)
+    check(std::fabs(b.cell(1000.0, 1100.0, 2000.0, 2200.0) - zl(1025.0, 2050.0)) < 1e-12, "cell value: mean of the nodes inside the cell");
+    // cell finer than the raster: no node inside -> bilinear at the centre
+    check(std::fabs(b.cell(1010.0, 1030.0, 2010.0, 2030.0) - zl(1020.0, 2020.0)) < 1e-12, "cell without nodes: bilinear at the centre");
+
+    // majority rule with zdry: a cell with 3 dry nodes (z = +2) and 1 wet node (z = -10) is dry (bed +2),
+    // with 1 dry and 3 wet nodes wet with the mean of the wet nodes (-10), without zdry the plain mean
+    {
+        std::ofstream o("seastate_test_bathy2.dat");
+        o << "islet\n2 2\n0 0 10 10\n2 2\n2 -10\n";
+        std::ofstream o2("seastate_test_bathy3.dat");
+        o2 << "islet\n2 2\n0 0 10 10\n-10 -10\n2 -10\n";
+    }
+    seastate_bathy b2, b3;
+    b2.read("seastate_test_bathy2.dat", err);
+    b3.read("seastate_test_bathy3.dat", err);
+    check(std::fabs(b2.cell(-5.0, 15.0, -5.0, 15.0, -0.05) - 2.0) < 1e-12 && std::fabs(b3.cell(-5.0, 15.0, -5.0, 15.0, -0.05) + 10.0) < 1e-12, "cell: majority of wet/dry nodes, mean bed of the majority");
+    check(std::fabs(b2.cell(-5.0, 15.0, -5.0, 15.0) + 1.0) < 1e-12, "cell without zdry: mean of all nodes");
+
+    {
+        std::ofstream o("seastate_test_bathy_bad.dat");
+        o << "title\n3 3\n0 0 1 1\n1 2 3\n4 5\n";
+    }
+    seastate_bathy bb;
+    check(!bb.read("seastate_test_bathy_bad.dat", err), "incomplete raster rejected");
+    check(!bb.read("does_not_exist.dat", err), "missing file rejected");
+
+    // maximum energy: E_tot (tail included) <= (gamma d)^2/4 with Battjes-Janssen breaking
+    seastate_grid sg(30, 0.05, 1.0, 24);
+    std::vector<float> N = make_spectrum(sg, 3.0, 8.0, 3.3, 0.0, 10.0);
+    std::vector<float> Nc = N;
+
+    seastate_source_param sp;
+    sp.breaking = true;
+    sp.emax = true;
+    sp.gamma = 0.73;
+    seastate_source src(sg, sp);
+    const double d = 2.0;
+    const bool capped = src.cap(Nc.data(), d);
+
+    cell_kin ck(sg, d);
+    seastate_param pm;
+    pm.compute(sg, Nc.data());
+    std::vector<double> P(sg.nbin), D(sg.nbin);
+    src.compute(Nc.data(), d, ck.k.data(), ck.cg.data(), P.data(), D.data());
+    const double emax = 0.25 * (0.73 * d) * (0.73 * d);
+    std::cout << "        E_tot after the cap " << src.Etot << ", (gamma d)^2/4 = " << emax << std::endl;
+    check(capped && std::fabs(src.Etot - emax) < 1e-6 * emax, "cap: E_tot (with tail) = (gamma d)^2/4");
+    double rat = -1.0;
+    bool shape = true;
+    for(int bn = 0; bn < sg.nbin; ++bn)
+        if(N[bn] > 0.0f)
+        {
+            const double r = double(Nc[bn]) / double(N[bn]);
+            if(rat < 0.0)
+                rat = r;
+            else if(std::fabs(r - rat) > 1e-5 * rat)
+                shape = false;
+        }
+    check(shape, "cap: the spectral shape is kept (one factor)");
+
+    std::vector<float> N2 = N;
+    check(!src.cap(N2.data(), 50.0) && N2 == N, "no cap in deep water");
+    seastate_source_param sp0;
+    sp0.breaking = true;
+    sp0.emax = false;
+    seastate_source src0(sg, sp0);
+    std::vector<float> N3 = N;
+    check(!src0.cap(N3.data(), d) && N3 == N, "no cap with A 737 0");
+}
+
+// ---------------------------------------------------------------------------------------------
+// Phase 6b: vegetation (Dalrymple / Suzuki et al. 2011, Jacobsen et al. 2019), structures
+// ---------------------------------------------------------------------------------------------
+static void test_vegetation()
+{
+    std::cout << "seastate_source: vegetation" << std::endl;
+
+    seastate_grid sg(36, 0.04, 1.0, 36);
+    const int nb = sg.nbin;
+    std::vector<double> P(nb), D(nb);
+    const double d = 2.0, ah = 1.0, bv = 0.01, nv = 1000.0, cd = 1.0;
+
+    // IVEG 1: the dissipation rate D E_tot equals eps/(rho g) of Mendez and Losada (2004) for Hrms = sqrt(8 E_tot),
+    // eps = 1/(2 sqrt(pi)) rho Cd bv Nv (g k/(2 sig))^3 (sinh^3 k ah + 3 sinh k ah)/(3 k cosh^3 k d) Hrms^3, with the
+    // k and sig of the source term (k_WAM, sig_01)
+    {
+        seastate_source_param sp;
+        sp.vegetation = 1;
+        sp.vh = ah;
+        sp.vd = bv;
+        sp.vn = nv;
+        sp.vcd = cd;
+        seastate_source src(sg, sp);
+        cell_kin ck(sg, d);
+        std::vector<float> N = make_spectrum(sg, 0.4, 4.0, 3.3, 0.0, 50.0);
+        src.compute(N.data(), d, ck.k.data(), ck.cg.data(), P.data(), D.data());
+        const double k = src.km_wam, s = src.sigm01, H = std::sqrt(8.0 * src.Etot);
+        const double sh = std::sinh(k * ah), ch = std::cosh(k * d);
+        const double eps = 1.0 / (2.0 * std::sqrt(pi)) * cd * bv * nv * std::pow(g * k / (2.0 * s), 3.0) * (sh * sh * sh + 3.0 * sh) / (3.0 * k * ch * ch * ch) * H * H * H / g;
+        bool uni = true;
+        for(int b = 1; b < nb; ++b)
+            uni = uni && D[b] == D[0];
+        std::cout << "        D E_tot " << D[0] * src.Etot << ", eps/(rho g) " << eps << std::endl;
+        check(uni, "IVEG 1: the same dissipation rate in all bins");
+        check(close(D[0] * src.Etot, eps, 1e-10), "IVEG 1: D E_tot = eps/(rho g) of Mendez and Losada (2004)");
+
+        // emergent vegetation: the height is limited to the depth
+        seastate_source_param sp2 = sp;
+        sp2.vh = 5.0;
+        seastate_source src2(sg, sp2), src3(sg, [&]
+                                            {seastate_source_param q=sp; q.vh=d; return q; }());
+        std::vector<double> D2(nb), D3(nb);
+        src2.compute(N.data(), d, ck.k.data(), ck.cg.data(), P.data(), D2.data());
+        src3.compute(N.data(), d, ck.k.data(), ck.cg.data(), P.data(), D3.data());
+        check(D2[0] == D3[0], "IVEG 1: emergent vegetation (height > depth) acts over the water depth");
+    }
+
+    // IVEG 2 (per frequency) for a spectrum in one frequency: int_0^ah S_u sqrt(mu) dz with S_u = (sig cosh kz/sinh kd)^2 E
+    // gives sqrt(2/pi)/g Cd bv Nv sig^3 sqrt(E) (sinh^3 k ah + 3 sinh k ah)/(3 k sinh^3 kd), with the dispersion relation
+    // equal to IVEG 1 at k and sig of that frequency (Simpson with 20 intervals)
+    {
+        cell_kin ck(sg, d);
+        std::vector<float> N(nb, 0.0f);
+        const int l0 = 12;
+        for(int m = 0; m < sg.ndir; ++m)
+            N[sg.bin(l0, m)] = (m == 0) ? 0.05f : 0.0f;
+        seastate_source_param sp;
+        sp.vegetation = 2;
+        sp.vh = ah;
+        sp.vd = bv;
+        sp.vn = nv;
+        sp.vcd = cd;
+        seastate_source src(sg, sp);
+        src.compute(N.data(), d, ck.k.data(), ck.cg.data(), P.data(), D.data());
+        const double k = ck.k[l0], s = sg.sig[l0];
+        const double E = 0.05 * s * sg.dsig[l0] * sg.dtheta;
+        const double sh = std::sinh(k * ah), sd = std::sinh(k * d);
+        const double ref = std::sqrt(2.0 / pi) / g * cd * bv * nv * s * s * s * std::sqrt(E) * (sh * sh * sh + 3.0 * sh) / (3.0 * k * sd * sd * sd);
+        std::cout << "        IVEG 2 one frequency " << D[sg.bin(l0, 0)] << ", closed form " << ref << std::endl;
+        check(close(D[sg.bin(l0, 0)], ref, 2e-4), "IVEG 2: one frequency, Simpson integral within 2e-4 of the closed form");
+        const double ch = std::cosh(k * d);
+        const double v1 = std::sqrt(2.0 / pi) * g * g * std::pow(k / s, 3.0) * std::sqrt(E) / (3.0 * k * ch * ch * ch) * cd * bv * nv * (sh * sh * sh + 3.0 * sh);
+        check(close(ref, v1, 1e-5), "IVEG 2 = IVEG 1 for one frequency (dispersion relation, k in single precision)");
+    }
+}
+
+static void test_structure()
+{
+    std::cout << "seastate_structure" << std::endl;
+
+    // d'Angremond et al. (1996), as SWAN DAM DANGREMOND
+    {
+        const double Tp = 8.0, Hs = 1.0, sl = 26.565;
+        const double xi = std::tan(sl * pi / 180.0) / std::sqrt(Hs / (1.5613 * Tp * Tp));
+        const double a = -0.4 * 0.5 + 0.64 * std::pow(4.0, -0.31) * (1.0 - std::exp(-0.5 * xi));
+        check(close(seastate_dangremond(0.5, Hs, Tp, sl, 4.0), a, 1e-14), "d'Angremond: B/Hs < 8");
+        const double b = -0.35 * (-0.2) + 0.51 * std::pow(15.0, -0.65) * (1.0 - std::exp(-0.41 * xi));
+        check(close(seastate_dangremond(-0.2, Hs, Tp, sl, 15.0), std::max(std::min(b, 0.93 - 0.006 * 15.0), 0.05), 1e-14), "d'Angremond: B/Hs > 12");
+        check(seastate_dangremond(3.0, Hs, Tp, sl, 4.0) == 0.075 && seastate_dangremond(-3.0, Hs, Tp, sl, 4.0) == 0.9, "d'Angremond: limits 0.075 and 0.9");
+        const double k8 = seastate_dangremond(0.3, Hs, Tp, sl, 8.0), k12 = seastate_dangremond(0.3, Hs, Tp, sl, 12.0), k10 = seastate_dangremond(0.3, Hs, Tp, sl, 10.0);
+        check(std::fabs(k10 - 0.5 * (k8 + k12)) < 0.02, "d'Angremond: 8 < B/Hs < 12 between the two branches");
+    }
+
+    // porous slab: the grid and spectrum of porous_ref.py (validation 37), Hs 1 m, depth 10 m, B 8 m, n 0.4, D50 0.5 m
+    seastate_grid sg(20, 0.06, 0.3, 36);
+    std::vector<double> E(sg.nsig);
+    double m0 = 0.0;
+    for(int l = 0; l < sg.nsig; ++l)
+    {
+        E[l] = std::exp(-std::pow((sg.sig[l] - 0.8) / 0.12, 2.0));
+        m0 += E[l] * sg.dsig[l];
+    }
+    for(int l = 0; l < sg.nsig; ++l)
+        E[l] *= 1.0 / 16.0 / m0;
+    std::vector<float> kt2(sg.nsig), kr2(sg.nsig);
+    const double q = seastate_porous(sg, E.data(), 10.0, 8.0, 0.4, 0.5, kt2.data(), kr2.data());
+    const int ls[4] = {2, 6, 10, 15};
+    const double rt[4] = {0.20019382200794292, 0.16897093535502558, 0.11834474190989125, 0.04646329078514286};
+    const double rr[4] = {0.3244055517575106, 0.37460072513004794, 0.44970520824901283, 0.44808032888830795};
+    double dev = 0.0;
+    for(int k = 0; k < 4; ++k)
+        dev = std::max(dev, std::max(std::fabs(kt2[ls[k]] - rt[k]) / rt[k], std::fabs(kr2[ls[k]] - rr[k]) / rr[k]));
+    std::cout << "        q_rms " << q << " (reference 0.0783368), max. relative deviation of Kt^2, Kr^2 " << dev << std::endl;
+    check(std::fabs(q - 0.0783368) < 2e-3 * 0.0783368, "porous: rms discharge velocity of the independent reference (porous_ref.py) within 0.2 %");
+    check(dev < 5e-3, "porous: Kt^2, Kr^2 at four frequencies within 0.5 % of the independent reference");
+
+    // stronger resistance (D50 0.2 m, depth 20 m): the progressive mode by continuation from the root without resistance
+    {
+        std::vector<float> a2(sg.nsig), b2(sg.nsig);
+        const double qq = seastate_porous(sg, E.data(), 20.0, 10.0, 0.4, 0.2, a2.data(), b2.data());
+        const int lt[3] = {3, 8, 13};
+        const double at[3] = {0.16103970538356113, 0.06660913899566258, 0.020084685873719924};
+        const double bt[3] = {0.35228954274549995, 0.5135362697553263, 0.5347080822396175};
+        double dv = 0.0;
+        for(int k = 0; k < 3; ++k)
+            dv = std::max(dv, std::max(std::fabs(a2[lt[k]] - at[k]) / at[k], std::fabs(b2[lt[k]] - bt[k]) / bt[k]));
+        std::cout << "        D50 0.2 m: q_rms " << qq << " (reference 0.0367835), max. relative deviation " << dv << std::endl;
+        check(std::fabs(qq - 0.0367835) < 2e-3 * 0.0367835 && dv < 5e-3, "porous, stronger resistance: within 0.5 % of the independent reference");
+    }
+
+    // lossless limit (very coarse stones: no resistance): Kt^2 + Kr^2 = 1
+    seastate_porous(sg, E.data(), 10.0, 8.0, 0.4, 1.0e6, kt2.data(), kr2.data());
+    double loss = 0.0;
+    for(int l = 0; l < sg.nsig; ++l)
+        loss = std::max(loss, std::fabs(1.0 - double(kt2[l]) - double(kr2[l])));
+    check(loss < 1e-5, "porous: Kt^2 + Kr^2 = 1 without resistance (energy conservation of the matching)");
+
+    // long waves without resistance: Madsen (1974), gamma = n/sqrt(s), k_s = k sqrt(s)
+    seastate_grid sl(3, 0.005, 0.01, 36);
+    std::vector<double> El(3, 1.0e-4);
+    seastate_porous(sl, El.data(), 2.0, 20.0, 0.4, 1.0e6, kt2.data(), kr2.data());
+    const double s = 1.0 + 0.34 * 0.6 / 0.4, kk = sl.sig[1] / std::sqrt(g * 2.0), ga = 0.4 / std::sqrt(s), ph = kk * std::sqrt(s) * 20.0;
+    const double t2 = 16.0 * ga * ga / (std::pow((1 + ga) * (1 + ga) - (1 - ga) * (1 - ga), 2.0) * std::pow(std::cos(ph), 2.0) + std::pow((1 + ga) * (1 + ga) + (1 - ga) * (1 - ga), 2.0) * std::pow(std::sin(ph), 2.0));
+    std::cout << "        long wave Kt^2 " << kt2[1] << ", Madsen (1974) " << t2 << std::endl;
+    check(std::fabs(kt2[1] - t2) < 2e-3, "porous: long waves within 2e-3 of Madsen (1974)");
+
+    // Phase 15: strong resistance after the first iteration of q (regular waves of growing height on small stones,
+    // depth 1 m, width 2 m, n 0.45, D50 5 cm): the root is followed in steps of at most 0.05 max(1, f) of the
+    // resistance; with 4 steps it jumped to a damped mode (H 0.3 m: Kt 0.004, Kr 0.95). Kt falls with H; at H 0.3 m
+    // the values of a continuation in steps of 0.002
+    {
+        seastate_grid sr(0.5, 4);
+        std::vector<float> a(1), b(1);
+        const double H[6] = {0.05, 0.1, 0.15, 0.2, 0.25, 0.3};
+        double kp = 1.0;
+        bool mono = true;
+        for(int k = 0; k < 6; ++k)
+        {
+            double Er = 0.5 * (0.5 * H[k]) * (0.5 * H[k]) / sr.dsig[0];
+            seastate_porous(sr, &Er, 1.0, 2.0, 0.45, 0.05, a.data(), b.data());
+            mono = mono && std::sqrt(a[0]) < kp;
+            kp = std::sqrt(a[0]);
+        }
+        std::cout << "        regular waves T 2 s, H 0.3 m: Kt " << kp << ", Kr " << std::sqrt(b[0]) << " (continuation in small steps: 0.0392, 0.7088)" << std::endl;
+        check(mono && std::fabs(kp - 0.039216) < 1e-3 && std::fabs(std::sqrt(b[0]) - 0.708849) < 1e-3, "porous: strong resistance on the progressive mode (Kt falls with H, H 0.3 m: Kt 0.039, Kr 0.709)");
+    }
+}
+
+// ---------------------------------------------------------------------------------------------
+// Phase 8: DIA of the window of a sweep (only the interaction terms it needs, periodic directions)
+// ---------------------------------------------------------------------------------------------
+static void test_dia_window()
+{
+    std::cout << "DIA of a sweep window (Phase 8)" << std::endl;
+
+    for(int ndir : {36, 72})
+    {
+        seastate_grid sg(31, 0.04, 1.0, ndir);
+        const int nb = sg.nbin;
+        seastate_source_param sp;
+        sp.dia = true;
+        seastate_source src(sg, sp);
+        const double d = 15.0;
+        cell_kin ck(sg, d);
+        std::vector<float> N = make_spectrum(sg, 1.5, 6.0, 3.3, 0.6, 4.0);
+        for(int b = 0; b < nb; b += 7)
+            N[b] = 0.0f;  // some empty bins
+
+        // the full DIA, split as in compute: P = S+ - L- N, D = -S-/N - L-
+        std::vector<double> S(nb), L(nb), P(nb), D(nb);
+        src.quadruplets(N.data(), d, ck.k.data(), S.data(), L.data());
+        double err = 0.0;
+        for(int q = 0; q < 4; ++q)
+            for(int sub = 0; sub < 2; ++sub)
+            {
+                const int a = q * ndir / 4 + sub, b = (q + 1) * ndir / 4 - 1 - 2 * sub, la = 3 * sub, lb = sg.nsig - 1 - 4 * sub;
+                std::fill(P.begin(), P.end(), 0.0);
+                std::fill(D.begin(), D.end(), 0.0);
+                src.compute(N.data(), d, ck.k.data(), ck.cg.data(), P.data(), D.data(), a, b, la, lb);
+                for(int l = la; l <= lb; ++l)
+                    for(int m = a; m <= b; ++m)
+                    {
+                        const int x = sg.bin(l, m);
+                        const double s = S[x], v = N[x], ln = std::min(L[x], 0.0);
+                        const double pe = std::max(s, 0.0) - ln * v, de = ((s < 0.0 && v > 0.0) ? -s / v : 0.0) - ln;
+                        err = std::max(err, std::fabs(P[x] - pe) / (std::fabs(pe) + std::fabs(de) * v + 1e-300));
+                        err = std::max(err, std::fabs(D[x] - de) / (std::fabs(de) + 1e-300));
+                    }
+            }
+        std::cout << "        " << ndir << " directions: windows (quadrants and sub-windows) vs the full DIA, max. rel. difference " << err << std::endl;
+        check(err < 1e-10, "DIA of a window equals the full DIA in the window (to round-off), " + std::to_string(ndir) + " directions");
+    }
+}
+
+// ---------------------------------------------------------------------------------------------
+// Phase 20: Ardhuin et al. (2010) as ecWAM IPHYS 1 (A 732 3), against the Python port of ecWAM
+// (validation 69, ecwam_st4.py) on the same spectrum
+// ---------------------------------------------------------------------------------------------
+static void test_st4()
+{
+    std::cout << "seastate_st4 (A 732 3)" << std::endl;
+
+    // Kelvin functions of KZEONE (series) against scipy.special.ker/kei
+    {
+        double ker, kei;
+        seastate_st4::kerkei(0.5, ker, kei);
+        const bool a = close(ker, 0.8559058721186341, 1e-9) && close(kei, -0.6715816950943675, 1e-9);
+        seastate_st4::kerkei(1.0, ker, kei);
+        const bool b = close(ker, 0.28670620872831604, 1e-9) && close(kei, -0.49499463651872, 1e-9);
+        check(a && b, "ST4: ker, kei (KZEONE) as scipy to 1e-9");
+    }
+
+    // JONSWAP fp 0.12 Hz, alpha 0.01, cos^2 spreading about 0.3 rad, U10 20 m/s to 0.3 rad, deep water
+    const int nsig = 36, ndir = 36;
+    seastate_grid sg(nsig, 0.0345, 0.0345 * std::pow(1.1, 35), ndir);
+    std::vector<float> k(nsig), cg(nsig), N(sg.nbin);
+    const double wdir = 0.3, fp = 0.12, al = 0.01;
+    for(int l = 0; l < nsig; ++l)
+    {
+        const double s = sg.sig[l];
+        k[l] = float(s * s / g);
+        cg[l] = float(g / (2 * s));
+        const double f = sg.f[l], sgm = f < fp ? 0.07 : 0.09;
+        const double Ef = al * g * g * std::pow(2 * pi, -4) * std::pow(f, -5) * std::exp(-1.25 * std::pow(fp / f, 4)) * std::pow(3.3, std::exp(-(f - fp) * (f - fp) / (2 * sgm * sgm * fp * fp)));
+        double norm = 0.0;
+        for(int m = 0; m < ndir; ++m)
+        {
+            const double c = std::cos(sg.theta[m] - wdir);
+            norm += c > 0 ? c * c : 0.0;
+        }
+        norm *= sg.dtheta;
+        for(int m = 0; m < ndir; ++m)
+        {
+            const double c = std::cos(sg.theta[m] - wdir);
+            N[sg.bin(l, m)] = float(Ef * (c > 0 ? c * c : 0.0) / norm / (2 * pi * s));
+        }
+    }
+    std::vector<double> row(nsig, 0.0);
+    for(int l = 0; l < nsig; ++l)
+        for(int m = 0; m < ndir; ++m)
+            row[l] += N[sg.bin(l, m)];
+
+    seastate_st4 s4;
+    s4.init(sg, seastate_st4_param(), g);
+    s4.wind(N.data(), row.data(), k.data(), cg.data(), 20.0, wdir, false);
+    std::cout << "        u* " << s4.ust << " (ecWAM port 0.8879935003), z0 " << s4.z0 << ", tau_w " << s4.tauw << ", cut-off " << s4.lc << ", " << s4.iters << " iterations" << std::endl;
+    check(close(s4.ust, 8.879935002613e-01, 1e-9) && close(s4.z0, 1.221091203245e-03, 1e-8) && close(s4.tauw, 6.441716702711e-01, 1e-8) && s4.lc == 24,
+          "ST4: u*, z0, tau_w and the cut-off of the fixed point as the ecWAM port (TAUT_Z0, STRESSO, TAU_PHI_HF, FRCUTINDEX; Phase 23: secant steps and regula falsi on tau_w)");
+
+    // growth rate, swell damping, whitecapping of single bins (SINPUT_ARD, SDISSIP_ARD)
+    {
+        const int L[6] = {10, 15, 20, 24, 30, 12}, M[6] = {3, 3, 5, 2, 0, 20};
+        const double G[6] = {6.308145339232e-05, 2.753747753253e-04, 8.139743692240e-04, 3.069853843187e-03, 1.639892197144e-02, 0.0};
+        const double S[6] = {4.187106183898e-06, 1.083687952252e-05, 3.385221737127e-05, 5.760474515341e-05, 1.922043361363e-04, 2.514071247881e-05};
+        const double W[6] = {0.0, 4.259986008461e-05, 1.704806203015e-04, 4.454028985701e-04, 7.425627128331e-04, 0.0};
+        std::vector<double> P(sg.nbin, 0.0), D(sg.nbin, 0.0), Dl(ndir);
+        s4.add(N.data(), k.data(), cg.data(), 0, nsig - 1, 0, ndir - 1, P.data(), D.data());
+        bool ok = true;
+        for(int i = 0; i < 6; ++i)
+        {
+            const int b = sg.bin(L[i], M[i]);
+            s4.dissipation(N.data(), k.data(), cg.data(), L[i], Dl.data());
+            const double gm = s4.rate(b), wc = Dl[M[i]], sw = D[b] - wc;
+            ok = ok && std::fabs(gm - G[i]) <= 1e-8 * std::max(G[i], 1e-6) && std::fabs(sw - S[i]) <= 1e-8 * S[i] && std::fabs(wc - W[i]) <= 1e-8 * std::max(W[i], 1e-6) && std::fabs(P[b] - gm * N[b]) <= 1e-12 * std::max(P[b], 1e-30);
+        }
+        check(ok, "ST4: growth rate, swell damping and whitecapping of 6 bins as the ecWAM port (1e-8)");
+    }
+
+    // in seastate_source: P, D >= 0, the tail above the cut-off, the upper bound, frozen = the same P, D, calm = whitecapping only
+    {
+        seastate_source_param sp;
+        sp.wind = true;
+        sp.U10 = 20.0;
+        sp.wdir = wdir;
+        sp.komen = true;
+        sp.st4 = true;
+        sp.dia = true;
+        seastate_source src(sg, sp);
+        std::vector<double> P(sg.nbin), D(sg.nbin), P2(sg.nbin), D2(sg.nbin);
+        src.compute(N.data(), 5000.0, k.data(), cg.data(), P.data(), D.data());
+        double pmin = 0.0, dmin = 0.0;
+        for(int b = 0; b < sg.nbin; ++b)
+        {
+            pmin = std::min(pmin, P[b]);
+            dmin = std::min(dmin, D[b]);
+        }
+        check(pmin >= 0.0 && dmin >= 0.0, "ST4 with DIA: P >= 0, D >= 0");
+        const int lc = src.st4().lc, l = lc + 3, m = 8;
+        const double kc = k[lc], kl = k[l];
+        const double nt = double(N[sg.bin(lc, m)]) * (kc * kc * kc * cg[lc]) / (kl * kl * kl * cg[l]) * sg.sig[lc] / sg.sig[l];
+        std::vector<float> Nt(N);
+        src.project(Nt.data(), k.data(), cg.data(), 0, ndir - 1);
+        check(close(Nt[sg.bin(l, m)], nt, 1e-6) && Nt[sg.bin(lc, m)] == N[sg.bin(lc, m)] && src.tail_from() == lc + 1,
+              "ST4: after a solve N above the cut-off is set to the saturation of the cut-off (IMPHFTAIL)");
+        const double nmax = (0.031 / pi) / (std::pow(2 * pi, 4) / (g * g) * std::pow(sg.f[20], 5)) / (2 * pi * sg.sig[20]);
+        check(src.upper() != nullptr && close(src.upper()[20], nmax, 1e-12), "ST4: upper bound of N (FLMAX, alpha_p 0.031)");
+        src.freeze(true);
+        src.compute(N.data(), 5000.0, k.data(), cg.data(), P2.data(), D2.data(), 5, 12, 10, 20);
+        src.freeze(false);
+        bool same = true;
+        for(int l2 = 10; l2 <= 20; ++l2)
+            for(int m2 = 5; m2 <= 12; ++m2)
+            {
+                const int b = sg.bin(l2, m2);
+                same = same && P2[b] == P[b] && D2[b] == D[b];
+            }
+        check(same, "ST4: a frozen compute of a window gives the P, D of the full compute");
+        seastate_source_param sn = sp;
+        sn.wind = false;
+        sn.dia = false;
+        seastate_source calm(sg, sn);
+        calm.compute(N.data(), 5000.0, k.data(), cg.data(), P.data(), D.data());
+        std::vector<double> Dl(ndir);
+        s4.dissipation(N.data(), k.data(), cg.data(), 20, Dl.data());
+        double pmax = 0.0;
+        for(int b = 0; b < sg.nbin; ++b)
+            pmax = std::max(pmax, P[b]);
+        check(pmax == 0.0 && close(D[sg.bin(20, 8)], Dl[8], 1e-14), "ST4 without wind: whitecapping alone, no input");
+    }
+
+    // Phase 21: Janssen and Bidlot (2023), ecWAM LLGCBZ0 and LLNORMAGAM (A 732 4), the same spectrum
+    {
+        seastate_st4 jb;
+        jb.init(sg, seastate_st4_param::jb2023(), g);
+        jb.wind(N.data(), row.data(), k.data(), cg.data(), 20.0, wdir, false);
+        std::cout << "        JB2023: u* " << jb.ust << " (ecWAM port 0.8515787410), z0 " << jb.z0 << ", tau_w " << jb.tauw << ", cut-off " << jb.lc << std::endl;
+        check(close(jb.ust, 8.515787409550e-01, 1e-9) && close(jb.z0, 8.322098376792e-04, 1e-8) && close(jb.tauw, 5.503336362325e-01, 1e-8) && jb.lc == 24,
+              "JB2023: u*, z0, tau_w with the gravity-capillary stress (STRESS_GC, HALPHAP) and the renormalisation as the ecWAM port");
+        const int L[6] = {10, 15, 20, 24, 30, 12}, M[6] = {3, 3, 5, 2, 0, 20};
+        const double G[6] = {5.933334901921e-05, 2.423932165655e-04, 7.061215647255e-04, 2.565932876686e-03, 1.378771860980e-02, 0.0};
+        const double S[6] = {4.001609971511e-06, 1.038507796354e-05, 3.261726241126e-05, 5.568818370292e-05, 1.873152767456e-04, 2.392271909870e-05};
+        std::vector<double> P(sg.nbin, 0.0), D(sg.nbin, 0.0), Dl(ndir);
+        jb.add(N.data(), k.data(), cg.data(), 0, nsig - 1, 0, ndir - 1, P.data(), D.data());
+        bool ok = true;
+        for(int i = 0; i < 6; ++i)
+        {
+            const int b = sg.bin(L[i], M[i]);
+            jb.dissipation(N.data(), k.data(), cg.data(), L[i], Dl.data());
+            ok = ok && std::fabs(jb.rate(b) - G[i]) <= 1e-8 * std::max(G[i], 1e-6) && std::fabs(D[b] - Dl[M[i]] - S[i]) <= 1e-8 * S[i];
+        }
+        check(ok, "JB2023: renormalised growth rate and swell damping of 6 bins as the ecWAM port (1e-8)");
+    }
+
+    // Phase 23 (A 768 1): u* from the wave stress of the last time step (tau_w 0.5, direction 0.2, u* 0.9), the two
+    // calls of SINFLX of ecWAM, against the port for A 732 3 and 4
+    {
+        const int L[6] = {10, 15, 20, 24, 30, 12}, M[6] = {3, 3, 5, 2, 0, 20};
+        const double G3[6] = {6.228759928700e-05, 2.679541733596e-04, 7.895926672388e-04, 2.950394330914e-03, 1.579989257710e-02, 0.0};
+        const double S3[6] = {4.170512630059e-06, 1.079410145284e-05, 3.368423134870e-05, 5.739948804012e-05, 1.914698793028e-04, 2.492237419897e-05};
+        const double G4[6] = {5.893976626029e-05, 2.389425449259e-04, 6.948053849081e-04, 2.512930181466e-03, 1.351597776942e-02, 0.0};
+        const double S4[6] = {3.973116517751e-06, 1.031117328269e-05, 3.239740209534e-05, 5.528790466337e-05, 1.859978583966e-04, 2.379112528140e-05};
+        for(int ph = 3; ph <= 4; ++ph)
+        {
+            seastate_st4 s;
+            s.init(sg, ph == 3 ? seastate_st4_param() : seastate_st4_param::jb2023(), g);
+            s.lag(0.5, 0.2, 0.9);
+            s.wind(N.data(), row.data(), k.data(), cg.data(), 20.0, wdir, false);
+            const double *Gr = ph == 3 ? G3 : G4, *Sr = ph == 3 ? S3 : S4;
+            std::vector<double> P(sg.nbin, 0.0), D(sg.nbin, 0.0), Dl(ndir);
+            s.add(N.data(), k.data(), cg.data(), 0, nsig - 1, 0, ndir - 1, P.data(), D.data());
+            bool ok = s.iters == 2 && s.lc == 24;
+            if(ph == 3)
+                ok = ok && close(s.ust, 8.789308424516e-01, 1e-9) && close(s.z0, 1.112585891977e-03, 1e-8) && close(s.tauw, 6.350151838146e-01, 1e-8);
+            else
+                ok = ok && close(s.ust, 8.473414515639e-01, 1e-9) && close(s.z0, 7.939800853609e-04, 1e-8) && close(s.tauw, 5.435005037898e-01, 1e-8);
+            for(int i = 0; i < 6; ++i)
+            {
+                const int b = sg.bin(L[i], M[i]);
+                s.dissipation(N.data(), k.data(), cg.data(), L[i], Dl.data());
+                ok = ok && std::fabs(s.rate(b) - Gr[i]) <= 1e-8 * std::max(Gr[i], 1e-6) && std::fabs(D[b] - Dl[M[i]] - Sr[i]) <= 1e-8 * Sr[i];
+            }
+            check(ok, ph == 3 ? "ST4, Phase 23: u* from the wave stress of the last time step (two calls of SINFLX) as the ecWAM port"
+                              : "JB2023, Phase 23: u* from the wave stress of the last time step (two calls of SINFLX) as the ecWAM port");
+        }
+
+        // in seastate_source: lag() for one compute only, the state for the next step; the fixed point again after it
+        seastate_source_param sp;
+        sp.wind = true;
+        sp.U10 = 20.0;
+        sp.wdir = wdir;
+        sp.komen = true;
+        sp.st4 = true;
+        sp.dia = true;
+        seastate_source src(sg, sp);
+        std::vector<double> P(sg.nbin), D(sg.nbin);
+        src.lag(0.5, 0.2, 0.9);
+        src.compute(N.data(), 5000.0, k.data(), cg.data(), P.data(), D.data());
+        const bool a = close(src.lag_ustar(), 8.789308424516e-01, 1e-9) && close(src.lag_tauw(), 6.350151838146e-01, 1e-8) && src.st4().iters == 2;
+        src.compute(N.data(), 5000.0, k.data(), cg.data(), P.data(), D.data());
+        const bool b = close(src.lag_ustar(), 8.879935002613e-01, 1e-9) && src.st4().iters > 2;
+        check(a && b, "ST4, Phase 23: seastate_source::lag() acts on the next compute() only");
+    }
 }
 
 int main()
@@ -370,7 +1552,16 @@ int main()
     test_param();
     test_dispersion();
     test_swan_spc();
+    test_source();
+    test_surfbeat();
+    test_forcing();
+    test_collocation();
+    test_bathy();
+    test_vegetation();
+    test_structure();
+    test_dia_window();
     test_memory();
+    test_st4();
 
     std::cout << std::endl
               << (nfail ? "FAILED: " : "all passed") << (nfail ? std::to_string(nfail) : std::string()) << std::endl;

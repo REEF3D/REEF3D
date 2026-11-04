@@ -1,0 +1,24 @@
+{
+ "base": "cfd_2d_dambreak",
+ "np": 1,
+ "steps": 60,
+ "ctrl_set": {
+  "D 10": "13",
+  "F 35": "13"
+ },
+ "ctrl_add": [
+  "G 1 1",
+  "G 15 0.0 0.3 0.0 1.0 0.0 0.4"
+ ],
+ "description": "CFD mesh refinement (G 7 0) with a TVD scheme (hires, van Albada: D 10 13, F 35 13) on all grids.",
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "levelset",
+  "amr"
+ ],
+ "covers": [
+  "cfd_amr::patch_objects with hires (limiters 10-16)"
+ ]
+}

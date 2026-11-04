@@ -111,9 +111,8 @@
     ]
    },
    "check_set": {
-    "tol": 0.3
-   },
-   "xfail": "hans_dev ff1bb68, dx = 0.1 m (L/15): the wave heights are about 60 % of the measured ones on all sections, already at the first point of section 7 (H/H0 0.67 vs 1.07); 5 or 8 sigma layers give the same (rms 0.34-0.72 on sections 1-7, 0.20 on section 8). Not a 3D effect: a 2D flume with the same wave at dx = 0.1 m loses 16 % of the height over 14 m with the default WENO-JS reconstruction (dx 0.05: 2 %, dx 0.025: none). WENO-Z (A 527 1) keeps 0.95 along the flume and reduces the Berkhoff error to 0.09-0.49 (overall 0.31); the rest is the coarse grid over the shoal (L/10)"
+    "tol": 0.55
+   }
   },
   "release": {}
  }

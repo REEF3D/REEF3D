@@ -1,0 +1,22 @@
+{
+ "base": "sflow_2d_si_vortex_gahm_mpi2",
+ "description": "sflow_2d_si_vortex_gahm_mpi2 with the Holland et al. (2010) vortex (W 215 3), no inflow angle (W 218 0), Zijlema with the floor (W 207 6), one rank.",
+ "np": 1,
+ "ctrl_add": [
+  "W 215 3",
+  "W 218 0",
+  "W 207 6"
+ ],
+ "tags": [
+  "2d",
+  "sflow",
+  "semi_implicit",
+  "met",
+  "vortex"
+ ],
+ "covers": [
+  "met_vortex Holland 2010",
+  "W 218 0",
+  "W 207 6"
+ ]
+}

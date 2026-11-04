@@ -1,0 +1,23 @@
+{
+ "base": "cfd_2d_dambreak",
+ "np": 1,
+ "steps": 60,
+ "ctrl_add": [
+  "G 1 2",
+  "G 24 3",
+  "G 2 2",
+  "G 5 0"
+ ],
+ "description": "Adaptive CFD mesh refinement with two levels: the flags of level 1 from its own patches, nesting of level 2 inside level 1.",
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "levelset",
+  "amr",
+  "adaptive"
+ ],
+ "covers": [
+  "regrid of two levels: new level-1 patches prolonged from level 0, level 2 from the new level 1"
+ ]
+}

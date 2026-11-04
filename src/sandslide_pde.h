@@ -23,35 +23,37 @@ Author: Hans Bihs
 #ifndef SANDSLIDE_PDE_H_
 #define SANDSLIDE_PDE_H_
 
-#include"norm_vec.h"
-#include"bedslope.h"
-#include"slice4.h"
-#include"sandslide.h"
+#include "bedslope.h"
+#include "norm_vec.h"
+#include "sandslide.h"
+#include "slice4.h"
 
 using namespace std;
 
-class sandslide_pde final :  public sandslide, public norm_vec, public bedslope
+class sandslide_pde final : public sandslide, public norm_vec, public bedslope
 {
 public:
-    sandslide_pde(lexer*);
+    sandslide_pde(lexer *);
     virtual ~sandslide_pde();
 
-	void start(lexer*,ghostcell*,sediment_fdm*) override final;
+    void start(lexer *, ghostcell *, sediment_fdm *) override final;
+    int amr_sweep(lexer *, ghostcell *, sediment_fdm *) override;
+    slice *amr_fh() override { return &fh; }
 
 private:
+    void slide(lexer *, ghostcell *, sediment_fdm *);
+    void slide_curv(lexer *p, ghostcell *pgc, sediment_fdm *s);  // curvilinear grid (G 50)
 
-    void slide(lexer*,ghostcell*,sediment_fdm*);
-    void diff_update(lexer*,ghostcell*,sediment_fdm*);
+    slice4 fh;
 
-    slice4 fh,ci;
-    
-    int gcval_topo,count;
+    int gcval_topo, count;
 
     double fac1, fac2;
-    double dh,maxdh,maxdhs,dxs,dh_corr;
-    double slide_dh,slide_dhs;
-	double teta, alpha, beta, gamma;
-}; 
+    double tol;
+    double dh, maxdh, maxdhs, dxs, dh_corr;
+    double slide_dh, slide_dhs;
+    double teta, alpha, beta, gamma;
+};
 
 #endif
 

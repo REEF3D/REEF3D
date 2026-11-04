@@ -1,0 +1,24 @@
+{
+ "description": "fnpf_3d_amr_coast_wd_sub on 2 ranks with placed patches (G 40 1).",
+ "solver": "fnpf",
+ "np": 2,
+ "steps": 160,
+ "base": "fnpf_3d_amr_coast_wd_sub",
+ "ctrl_add": [
+  "G 40 1"
+ ],
+ "tags": [
+  "3d",
+  "fnpf",
+  "amr",
+  "waves",
+  "breaking",
+  "coastline",
+  "wetdry",
+  "subcycling",
+  "mpi"
+ ],
+ "covers": [
+  "placed patches with wetting and drying and breaking"
+ ]
+}

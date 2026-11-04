@@ -20,117 +20,104 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"ioflow_f.h"
-#include"lexer.h"
-#include"fdm.h"
-#include"ghostcell.h"
-#include<fstream>
+#include "fdm.h"
+#include "ghostcell.h"
+#include "ioflow_f.h"
+#include "lexer.h"
+#include <fstream>
 
-
-double ioflow_f::hydrograph_ipol(lexer *p, ghostcell* pgc, double ** hydro, int hydrocount)
+double ioflow_f::hydrograph_ipol(lexer *p, ghostcell *pgc, double **hydro, int hydrocount)
 {
-	double val;
-    
-    for(n=0;n<hydrocount-1;++n)
-    if(p->simtime>=hydro[n][0] && p->simtime<hydro[n+1][0])
-	{
-    val = ((hydro[n+1][1]-hydro[n][1])/(hydro[n+1][0]-hydro[n][0]))*(p->simtime-hydro[n][0]) + hydro[n][1];
-	}
-    
-    if(p->count==0 )
-    val = hydro[0][1];
-	
-	if(p->simtime>=hydro[hydrocount-1][0])
-	val=hydro[hydrocount-1][1];
-	
-	return val;
-	
+    // before the first time of the series: its first value (was unset after the first step)
+    double val = hydro[0][1];
+
+    for(n = 0; n < hydrocount - 1; ++n)
+        if(p->simtime >= hydro[n][0] && p->simtime < hydro[n + 1][0])
+        {
+            val = ((hydro[n + 1][1] - hydro[n][1]) / (hydro[n + 1][0] - hydro[n][0])) * (p->simtime - hydro[n][0]) + hydro[n][1];
+        }
+
+    if(p->count == 0)
+        val = hydro[0][1];
+
+    if(p->simtime >= hydro[hydrocount - 1][0])
+        val = hydro[hydrocount - 1][1];
+
+    return val;
 }
 
-void ioflow_f::hydrograph_in_read(lexer *p, ghostcell* pgc)
+void ioflow_f::hydrograph_in_read(lexer *p, ghostcell *pgc)
 {
-	char name[100];
-	double val;
-	int count;
-	
-	sprintf(name,"hydrograph.dat");
+    char name[100];
+    double val;
+    int count;
 
-// open file------------
-	ifstream hg(name, ios_base::in);
-	
-	if(!hg)
-	{
-		cout<<endl<<("no 'hydrograph.dat' file found")<<endl<<endl;
+    sprintf(name, "hydrograph.dat");
 
-	}
-	
-	count=0;
-	while(!hg.eof())
-	{
-	hg>>val;
-	++count;
-	}
-	
-	hg.close();
-	
-	count/=2;
-    
-    
-    hydro_in_count=count;
-	
-	p->Darray(hydro_in,hydro_in_count,2);
-	
-	hg.open ("hydrograph.dat", ios_base::in);
-	
-	count=0;
-	while(!hg.eof())
-	{
-	hg>>hydro_in[count][0]>>hydro_in[count][1];
-	++count;
-	}
-    
+    // open file------------
+    ifstream hg(name, ios_base::in);
+
+    if(!hg)
+    {
+        cout << endl
+             << ("no 'hydrograph.dat' file found") << endl
+             << endl;
+    }
+
+    // number of (time, value) pairs; the eof() loops counted one value too many with a final
+    // newline and then read one pair past the end of the array
+    count = 0;
+    double val2;
+    while(hg >> val >> val2)
+        ++count;
+
+    hg.close();
+
+    hydro_in_count = count;
+
+    p->Darray(hydro_in, hydro_in_count, 2);
+
+    hg.open("hydrograph.dat", ios_base::in);
+
+    count = 0;
+    while(count < hydro_in_count && hg >> hydro_in[count][0] >> hydro_in[count][1])
+        ++count;
 }
 
-void ioflow_f::hydrograph_out_read(lexer *p, ghostcell* pgc)
+void ioflow_f::hydrograph_out_read(lexer *p, ghostcell *pgc)
 {
-	char name[100];
-	double val;
-	int count;
-	
-	sprintf(name,"hydrograph_out.dat");
+    char name[100];
+    double val;
+    int count;
 
-// open file------------
-	ifstream hg(name, ios_base::in);
-	
-	if(!hg)
-	{
-		cout<<endl<<("no 'hydrograph_out.dat' file found")<<endl<<endl;
+    sprintf(name, "hydrograph_out.dat");
 
-	}
-	
-	count=0;
-	while(!hg.eof())
-	{
-	hg>>val;
-	++count;
-	}
-	
-	hg.close();
-	
-	count/=2;
-    
-    
-    hydro_out_count=count;
-	
-	p->Darray(hydro_out,hydro_out_count,2);
-	
-	hg.open ("hydrograph_out.dat", ios_base::in);
-	
-	count=0;
-	while(!hg.eof())
-	{
-	hg>>hydro_out[count][0]>>hydro_out[count][1];
-	++count;
-	}
-    
+    // open file------------
+    ifstream hg(name, ios_base::in);
+
+    if(!hg)
+    {
+        cout << endl
+             << ("no 'hydrograph_out.dat' file found") << endl
+             << endl;
+    }
+
+    // number of (time, value) pairs; the eof() loops counted one value too many with a final
+    // newline and then read one pair past the end of the array
+    count = 0;
+    double val2;
+    while(hg >> val >> val2)
+        ++count;
+
+    hg.close();
+
+    hydro_out_count = count;
+
+    p->Darray(hydro_out, hydro_out_count, 2);
+
+    hg.open("hydrograph_out.dat", ios_base::in);
+
+    count = 0;
+    while(count < hydro_out_count && hg >> hydro_out[count][0] >> hydro_out[count][1])
+        ++count;
 }

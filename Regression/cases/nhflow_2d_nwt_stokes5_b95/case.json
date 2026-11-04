@@ -1,0 +1,19 @@
+{
+ "description": "nhflow_2d_nwt_stokes5 with the step-size consistent relaxation zones (B 95 0.01): targets at the stage output times, relaxation factor r^(dt/0.01).",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 100,
+ "tags": [
+  "2d",
+  "nhflow",
+  "waves",
+  "relax"
+ ],
+ "covers": [
+  "iowave::wavegen_stage_nhflow, relax_stage_factor, ramp at the stage time"
+ ],
+ "base": "nhflow_2d_nwt_stokes5",
+ "ctrl_add": [
+  "B 95 0.01"
+ ]
+}

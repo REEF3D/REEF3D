@@ -20,12 +20,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Authors: Hans Bihs, Alexander Hanke
 --------------------------------------------------------------------*/
 
-#include"part.h"
-#include"lexer.h"
-#include"ghostcell.h"
-
-void part::add(lexer *p, ghostcell *pgc, double xp, double yp, double zp, double d, double ro)
-{
-
-}
+#include "ghostcell.h"
+#include "lexer.h"
+#include "part.h"
 

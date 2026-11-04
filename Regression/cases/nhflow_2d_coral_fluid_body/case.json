@@ -1,0 +1,9 @@
+{
+ "description": "NHFLOW 2D floating box of nhflow_2d_6dof_box driven by REEF3D::CORAL (Z 40 1, fluid_body, two-way): heave only through a CORAL prismatic joint with a PTO damper; the NHFLOW loads of the stage ends go to CORAL (provisional at the predicted pose, committed at the step's end), CORAL's artificial added mass (added_mass) keeps the coupling implicit; REEF3D_NHFLOW_6DOF and REEF3D_CORAL compared.",
+ "base": "nhflow_2d_6dof_box",
+ "ctrl_set": {"X 11": "0 0 1 0 0 0"},
+ "ctrl_add": ["Z 40 1"],
+ "files": ["coral.txt"],
+ "tags": ["2d", "nhflow", "6dof", "floating", "coral"],
+ "covers": ["6DOF_nhflow_external two-way", "sixdof_external", "coral_reef3d fluid bodies", "CORAL fluid_load artificial added mass"]
+}

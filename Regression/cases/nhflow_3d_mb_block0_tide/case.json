@@ -1,0 +1,20 @@
+{
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 100,
+ "files": [
+  "blocks.dat"
+ ],
+ "tags": [
+  "3d",
+  "nhflow",
+  "curvilinear",
+  "multiblock",
+  "tide",
+  "quick"
+ ],
+ "description": "B 520 on block 0 of a multi-block grid alone (as the tide of the Tagus case): a Riemann edge with a 5 mm tide on the native y- edge of block 0 (B 90 1, DIVEMesh C 13 2), the faces of blocks 1 and 2 walls.",
+ "covers": [
+  "iowave::nhflow_open_edges on block 0 of an R 20 1 grid"
+ ]
+}

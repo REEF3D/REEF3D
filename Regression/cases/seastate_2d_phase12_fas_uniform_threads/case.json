@@ -1,0 +1,16 @@
+{
+ "base": "seastate_2d_phase12_fas_uniform",
+ "ctrl_add": [
+  "A 798 2"
+ ],
+ "description": "as seastate_2d_phase12_fas_uniform with 2 threads (A 798 2, Phase 12: persistent worker threads, the solver copies kept from sweep to sweep) on the fine and the coarse grids, including the residual sweeps; bitwise the reference of seastate_2d_phase12_fas_uniform.",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate"
+ ],
+ "covers": [
+  "seastate_implicit thread pool and worker cache (copy_config)",
+  "threaded residual and coarse sweeps"
+ ]
+}

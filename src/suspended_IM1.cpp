@@ -104,7 +104,9 @@ void suspended_IM1::suspsource(lexer *p, fdm *a, field &conc, sediment_fdm *s)
     count = 0;
     LOOP
     {
-        if(p->DF[IJK] > 0)
+        // exchange with the bed only where the Exner equation applies it (DFBED>0, erodible window
+        // S 71 - S 72) and in water: erosion into an air cell is deleted by sedfsf()
+        if(p->DF[IJK] > 0 && p->DFBED[IJ] > 0 && p->XP[IP] >= p->S71 && p->XP[IP] <= p->S72 && a->phi(i, j, k) >= 0.0)
             if(a->topo(i, j, k) > 0.0 && a->topo(i, j, k - 1) < 0.0)
             {
                 zdist = p->DZN[KP];
@@ -122,9 +124,78 @@ void suspended_IM1::bcsusp_start(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm 
 {
     double cval;
 
+    // The bed exchanges with the concentration only through suspsource (erosion w_s c_be, deposition
+    // w_s c_1), which the Exner equation (susp_ED) and the CPM hybrid (Q 58 3, 4) apply to the bed.
+    // The faces to the cells of the bed (topo < 0), of solid bodies, to the air and to the walls of the
+    // domain are closed: no settling, convective or diffusive flux (the outflow and diffusion terms of
+    // the face are taken out of the diagonal); in- and outflow boundaries stay open. With the bed face
+    // open, the deposition left the water a second time by settling through the face, and the bed never
+    // received it: most of the sand eroded into suspension was lost (pipeline scour: 73-91 %).
+    // Above a fixed, non-erodible bed (no exchange) the sand stays in suspension.
+
+    auto closed = [&](int ii, int jj, int kk)
+    {
+        // walls at the bottom, top and the y sides of the domain (in- and outflow in x stay open)
+        if((kk < 0 && p->nb5 < 0 && p->periodic3 == 0) || (kk >= p->knoz && p->nb6 < 0 && p->periodic3 == 0))
+            return true;
+
+        if(p->j_dir == 1 && ((jj < 0 && p->nb3 < 0 && p->periodic2 == 0) || (jj >= p->knoy && p->nb2 < 0 && p->periodic2 == 0)))
+            return true;
+
+        // bed, solid bodies, air above the free surface
+        return a->topo(ii, jj, kk) < 0.0 || (p->solidread > 0 && a->solid(ii, jj, kk) < 0.0) || a->phi(ii, jj, kk) < 0.0;
+    };
+
     n = 0;
     LOOP
     {
+        {
+            const double dx = p->DXN[IP], dy = p->DYN[JP], dz = p->DZN[KP];
+            double vel;
+
+            if(closed(i - 1, j, k))
+            {
+                vel = a->u(i - 1, j, k);
+                a->M.p[n] += (a->M.s[n] + MAX(vel, 0.0) / dx) + MIN(vel, 0.0) / dx;
+                a->M.s[n] = 0.0;
+            }
+
+            if(closed(i + 1, j, k))
+            {
+                vel = a->u(i, j, k);
+                a->M.p[n] += (a->M.n[n] - MIN(vel, 0.0) / dx) - MAX(vel, 0.0) / dx;
+                a->M.n[n] = 0.0;
+            }
+
+            if(p->j_dir == 1 && closed(i, j - 1, k))
+            {
+                vel = a->v(i, j - 1, k);
+                a->M.p[n] += (a->M.e[n] + MAX(vel, 0.0) / dy) + MIN(vel, 0.0) / dy;
+                a->M.e[n] = 0.0;
+            }
+
+            if(p->j_dir == 1 && closed(i, j + 1, k))
+            {
+                vel = a->v(i, j, k);
+                a->M.p[n] += (a->M.w[n] - MIN(vel, 0.0) / dy) - MAX(vel, 0.0) / dy;
+                a->M.w[n] = 0.0;
+            }
+
+            if(closed(i, j, k - 1))
+            {
+                vel = wvel(i, j, k - 1);
+                a->M.p[n] += (a->M.b[n] + MAX(vel, 0.0) / dz) + MIN(vel, 0.0) / dz;
+                a->M.b[n] = 0.0;
+            }
+
+            if(closed(i, j, k + 1))
+            {
+                vel = wvel(i, j, k);
+                a->M.p[n] += (a->M.t[n] - MIN(vel, 0.0) / dz) - MAX(vel, 0.0) / dz;
+                a->M.t[n] = 0.0;
+            }
+        }
+
         if(p->flag4[Im1JK] < 0 || (p->flagsf4[IJK] > 0 && p->flagsf4[Im1JK] < 0))
         {
             a->rhsvec.V[n] -= a->M.s[n] * conc(i - 1, j, k);
@@ -188,17 +259,20 @@ void suspended_IM1::bcsusp_start(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm 
 
 void suspended_IM1::fillconc(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
 {
-    GCDF4LOOP
+    // near-bed concentration of the first fluid cell above the bed (s->bedk), the cell of the
+    // bed exchange in suspsource(). (The loop over the solid-forcing cells gcdf4 kept the last
+    // entry of each column: next to structures and walls a cell high up the structure.)
+    // The reference concentration cbe is given at the same cell centre (bedconc_VR), so cb is the
+    // cell value; S 61 2 (Rouse transfer to z = 2 d50) would compare two different levels.
+    SLICELOOP4
     {
-        i = p->gcdf4[n][0];
-        j = p->gcdf4[n][1];
-        k = p->gcdf4[n][2];
+        s->cb(i, j) = 0.0;
 
-        if(p->S61 == 1)
-            s->cb(i, j) = a->conc(i, j, k);
+        k = s->bedk(i, j);
 
-        if(p->S61 == 2)
-            s->cb(i, j) = Rouse_formula(p, a, s, a->conc(i, j, k));
+        if(k >= 0 && k < p->knoz)
+            if(a->phi(i, j, k) >= 0.0)
+                s->cb(i, j) = MAX(a->conc(i, j, k), 0.0);
     }
 
     pgc->gcsl_start4(p, s->cb, 1);

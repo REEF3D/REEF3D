@@ -1,0 +1,21 @@
+{
+ "description": "sflow_2d_amr_bar_nh subcycled (G 7 1, B 95 -1): level 0 with its own pressure, level solves of the patches with the parent pressure linear in time, synchronisation projection after refluxing.",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 20,
+ "tags": [
+  "2d",
+  "sflow",
+  "amr",
+  "nh",
+  "subcycling"
+ ],
+ "covers": [
+  "sflow_amr_subnh: nh_level, nh_project, nh_resid; sflow_amr_nh level window, coarse correction on level 0"
+ ],
+ "base": "sflow_2d_amr_bar_nh",
+ "ctrl_add": [
+  "G 7 1",
+  "B 95 -1"
+ ]
+}

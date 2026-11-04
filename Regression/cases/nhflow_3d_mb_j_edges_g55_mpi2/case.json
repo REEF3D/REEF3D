@@ -1,0 +1,21 @@
+{
+ "solver": "nhflow",
+ "np": 2,
+ "steps": 100,
+ "files": [
+  "blocks.dat"
+ ],
+ "tags": [
+  "3d",
+  "nhflow",
+  "curvilinear",
+  "multiblock",
+  "tide",
+  "mpi"
+ ],
+ "description": "Edge zones on the j faces of the blocks (B 521 edges 3 and 4 with B 522): a Riemann edge with a 5 mm tide on the +j face of block 1 (x = 0), a Flather edge on the -j face of block 2 (x = 14.4); the blocks are turned and cut into pieces on two ranks (G 55 2). The same solution as the faces on -i / +i of the whole blocks (3e-14 m, validation 06_turned_blocks).",
+ "covers": [
+  "geo_mesh::turn_blocks before split_blocks",
+  "B 522 on the j faces (bc_zone, reefamr::blocks_open)"
+ ]
+}

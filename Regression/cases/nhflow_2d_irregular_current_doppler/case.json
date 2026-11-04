@@ -1,0 +1,8 @@
+{
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 300,
+ "description": "JONSWAP irregular waves (B 92 31, 20 components, Hs 0.1 m, Tp 4 s, h 5 m) on a following current (B 514, U 1 m/s) with Doppler (B 530 2 10): k of every component from omega = sigma + k U, cached generation-zone phases rebuilt.",
+ "tags": ["quick", "2d", "nhflow", "iowave", "bc_zone", "background", "doppler"],
+ "covers": ["B 530 with irregular waves", "wave_lib_irregular_1st wave_comp_update"]
+}

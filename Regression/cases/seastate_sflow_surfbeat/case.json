@@ -1,0 +1,9 @@
+{
+ "description": "REEF3D::SEASTATE surfbeat (A 770 1) coupled with SFLOW (A 10 2, A 750 1), radiation stress with roller (A 748 1): wave groups from a JONSWAP spectrum Hs 0.2 m, Tp 2.25 s on the GLOBEX profile (0.85 m deep, 1:80 slope from x = 16.57 m, shoreline at 84.57 m), Roelvink breaking (A 740 2), second-order group advection (A 775 2), bound long wave in and absorbing long-wave boundary at x- (A 774 1); 450 x 2 cells of 0.2 m, 60 s. Validation in Dropbox SEASTATE/validation/13_globex.",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 3000,
+ "time": 60.0,
+ "tags": ["quick", "2d", "sflow", "seastate"],
+ "covers": ["seastate_surfbeat generator and bound wave", "seastate_f surfbeat mode, single-frequency grid", "seastate_roller", "seastate_coupling radiation stress with roller", "seastate_sflow long-wave ghost cells and x- fluxes", "seastate_source Roelvink breaking", "seastate_implicit second-order advection and boundary rows"]
+}

@@ -1,0 +1,17 @@
+{
+ "base": "seastate_2d_phase9_width",
+ "ctrl_add": [
+  "A 797 1",
+  "A 798 2"
+ ],
+ "description": "as seastate_2d_phase9_width with the composite sweep (A 797 1) and 2 threads per rank (A 798 2, Phase 10): the level-0 wavefront visits the covered cells with the thread index, each thread solves the patch cells under them with its own copies of the patch solvers and source terms; bitwise the result of one thread (A/B against the build before Phase 10, whose composite sweep runs serial). Validation in Dropbox SEASTATE/validation/48_performance_iii.",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate"
+ ],
+ "covers": [
+  "seastate_amr composite sweep with threads (per-thread patch solvers, ring cells)",
+  "seastate_implicit visit_threads"
+ ]
+}

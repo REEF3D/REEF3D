@@ -20,61 +20,21 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"part.h"
-#include"lexer.h"
-#include"ghostcell.h"
+#include "ghostcell.h"
+#include "lexer.h"
+#include "part.h"
 
 void part::xchange_sendid(lexer *p, ghostcell *pgc, int mode)
 {
-    for(q=0;q<6;++q)
-        sendnum[q]=0;
+    for(q = 0; q < 6; ++q)
+        sendnum[q] = 0;
 
-    // count particles for xchange
-    for(n=0;n<index;++n)
-    if(Flag[n]==ACTIVE)
-    {
-        if(mode==1)
+    // target sides from xchange_count (the positions have not changed since)
+    for(n = 0; n < index; ++n)
+        if(Flag[n] == ACTIVE && xdest[n] > 0)
         {
-            i=p->posc_i(XRK1[n]);
-            j=p->posc_j(YRK1[n]);
-            k=p->posc_k(ZRK1[n]);
+            q = xdest[n] - 1;
+            sendid[q][sendnum[q]] = n;
+            ++sendnum[q];
         }
-        else if(mode==2)
-        {
-            i=p->posc_i(X[n]);
-            j=p->posc_j(Y[n]);
-            k=p->posc_k(Z[n]);
-        }
-
-        if(p->flag5[IJK]==-1)
-        {
-            sendid[0][sendnum[0]]=n;
-            ++sendnum[0];
-        }
-        else if(p->flag5[IJK]==-2)
-        {
-            sendid[1][sendnum[1]]=n;
-            ++sendnum[1];
-        }
-        else if(p->flag5[IJK]==-3)
-        {
-            sendid[2][sendnum[2]]=n;
-            ++sendnum[2];
-        }
-        else if(p->flag5[IJK]==-4)
-        {
-            sendid[3][sendnum[3]]=n;
-            ++sendnum[3];
-        }
-        else if(p->flag5[IJK]==-5)
-        {
-            sendid[4][sendnum[4]]=n;
-            ++sendnum[4];
-        }
-        else if(p->flag5[IJK]==-6)
-        {
-            sendid[5][sendnum[5]]=n;
-            ++sendnum[5];
-        }
-    }
 }

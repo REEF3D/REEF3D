@@ -23,9 +23,11 @@ Author: Hans Bihs
 #include "ghostcell.h"
 #include "lexer.h"
 #include "sandslide_weighted_multidir.h"
+#include "sediment_curv.h"
 #include "sediment_fdm.h"
 #include "sediment_mixture.h"
 #include "sliceint.h"
+#include <algorithm>
 
 sandslide_weighted_multidir::sandslide_weighted_multidir(lexer *p) : norm_vec(p), bedslope(p), fh(p)
 {
@@ -46,11 +48,14 @@ sandslide_weighted_multidir::sandslide_weighted_multidir(lexer *p) : norm_vec(p)
 
     relax = 0.5;
 
-    // S94: weighting method
-    // 1 = linear (proportional to excess)
-    // 2 = quadratic (smoother)
-    // 3 = slope-based
-    weight_method = 2;
+    fac1 = p->S92 * (1.0 / 6.0);
+    fac2 = p->S92 * (1.0 / 12.0);
+
+    // S 92: correction factor of the transfers (1: each over-steep pair alone is brought exactly to phi)
+    relax = p->S92;
+
+    // converged when no neighbour pair is steeper than phi by more than tol (height)
+    tol = 1.0e-4 * MAX(p->S20, 1.0e-6);
 }
 
 sandslide_weighted_multidir::~sandslide_weighted_multidir()
@@ -108,126 +113,100 @@ void sandslide_weighted_multidir::start(lexer *p, ghostcell *pgc, sediment_fdm *
 
 void sandslide_weighted_multidir::compute_fh(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
-    // Neighbor offsets: 8-connectivity
+    // curvilinear grid (G 50): sediment_curv.h
+    if(p->geo_curv == 1)
+    {
+        compute_fh_curv(p, pgc, s);
+        return;
+    }
+
+    // Every cell sends to each lower neighbour k (8-connectivity) whose slope exceeds the angle of
+    // repose a share of half the excess height e_k = dz_k - d_k*tan(phi):
+    //      t_k = relax * 0.5*e_k * e_k/sum(e)
+    // A single over-steep pair gets exactly half its excess (pair equilibrium for equal cells);
+    // the total outflow is at most half the largest excess, and every pair keeps draining until
+    // it reaches phi.
+    // (was: total 0.5*relax*min(excess) with relax 0.5, shared out by excess-slope^2 weights:
+    // min(excess) -> 0 as soon as one neighbour is close to phi, so the cell stopped draining its
+    // steeper neighbours; the cone of validation case 03 stalled at 39 deg on the diagonals)
     int di_arr[8] = {-1, 0, 1, -1, 1, -1, 0, 1};
     int dj_arr[8] = {-1, -1, -1, 0, 0, 1, 1, 1};
 
+    auto open = [&](int di, int dj)
+    {
+        return SLIDE_NB(di, dj) && p->DFBED[(i - p->imin + di) * p->jmax + (j - p->jmin + dj)] > 0;
+    };
+
     SEDSLICELOOP
+    SLIDE_DONOR
     {
         double z0 = s->bedzh(i, j);
 
-        // Storage for over-steep neighbors
-        double weights[8];
         double excess[8];
-        double dist[8];
         int ni[8], nj[8];
-        double total_weight = 0.0;
-        double dx = 0.5 * (p->DXN[IP] + p->DYN[JP]);
-
+        double total_excess = 0.0;
         int count = 0;
+        int over = 0;
 
-        // Check all 8 neighbors
+        tan_phi = tan(s->phi(i, j));
+
         for(int k = 0; k < 8; ++k)
         {
             int di = di_arr[k];
             int dj = dj_arr[k];
 
-            if((di == 0 && dj == 0) || p->DFBED[(i - p->imin + di) * p->jmax + (j - p->jmin + dj)] < 0)
+            // no transfer into structures, physical boundary ghost cells or across rows in 2D;
+            // a diagonal needs at least one of the two cells beside it open
+            if(!open(di, dj))
                 continue;
 
-            tan_phi = tan(s->phi(i, j));
+            if(di != 0 && dj != 0 && !open(di, 0) && !open(0, dj))
+                continue;
 
-            // Compute distance
-            double d;
-            if(di != 0 && dj != 0)
-                d = dx * sqrt(2.0);
-            else
-                d = dx;
+            // distance between the cell centres
+            double ddx = di < 0 ? p->DXP[IM1] : (di > 0 ? p->DXP[IP] : 0.0);
+            double ddy = dj < 0 ? p->DYP[JM1] : (dj > 0 ? p->DYP[JP] : 0.0);
+            double d = sqrt(ddx * ddx + ddy * ddy);
 
-            // Elevation difference (positive = downslope)
-            double dz = z0 - s->bedzh(i + di, j + dj);
+            // excess height over the angle of repose (positive: steeper than phi, downslope)
+            double e = (z0 - s->bedzh(i + di, j + dj)) - tan_phi * d;
 
-            // Current slope
-            double slope = dz / d;
-
-            // Check if slope exceeds angle of repose
-            if(slope > tan_phi)
+            if(e > 0.0)
             {
-                // Excess height that needs to be redistributed
-                // This is the height above what would give exactly tan_phi slope
-                double excess_height = dz - tan_phi * d;
-
-                // Excess slope for weighting
-                double excess_slope = slope - tan_phi;
-
-                // Store neighbor info
                 ni[count] = i + di;
                 nj[count] = j + dj;
-                dist[count] = d;
-                excess[count] = excess_height;
-                weights[count] = compute_weight(excess_slope, weight_method);
-                total_weight += weights[count];
+                excess[count] = e;
+                total_excess += e;
                 ++count;
-                ++slidecount;
+
+                if(e > tol)
+                    over = 1;
             }
         }
 
-        // Distribute flux to over-steep neighbors
-        if(count > 0 && total_weight > 0.0)
+        slidecount += over;
+
+        for(int k = 0; k < count; ++k)
         {
-            // Total volume to move (use minimum excess to ensure stability)
-            double min_excess = excess[0];
-            for(int k = 1; k < count; ++k)
-                min_excess = MIN(min_excess, excess[k]);
+            double t = relax * 0.5 * excess[k] * excess[k] / total_excess;
 
-            // Apply relaxation factor for stability
-            // Factor 0.5 ensures we don't overshoot equilibrium
-            double total_flux = relax * 0.5 * min_excess;
+            fh(i, j) -= t;
+            fh(ni[k], nj[k]) += t * SLIDE_AR(ni[k] - i, nj[k] - j);
 
-            // Alternative: use weighted average of excess
-            // double total_flux = 0.0;
-            // for(int k = 0; k < count; ++k)
-            //     total_flux += excess[k] * weights[k] / total_weight;
-            // total_flux *= relax * 0.5;
-
-            // Flux out of current cell
-            fh(i, j) -= total_flux;
-
-            // Distribute to neighbors proportionally
-            for(int k = 0; k < count; ++k)
-            {
-                double fraction = weights[k] / total_weight;
-                fh(ni[k], nj[k]) += total_flux * fraction;
-
-                if(s->pmix != nullptr)
-                    s->pmix->slide_transfer(i, j, ni[k], nj[k], total_flux * fraction);
-            }
+            if(s->pmix != nullptr)
+                s->pmix->slide_transfer(i, j, ni[k], nj[k], t);
         }
-    }
-}
-
-double sandslide_weighted_multidir::compute_weight(double excess_slope, int method)
-{
-    // Different weighting schemes for flux distribution
-
-    switch(method)
-    {
-    case 1:  // Linear: weight proportional to excess slope
-        return excess_slope;
-
-    case 2:  // Quadratic: smoother distribution, less channeling
-        return excess_slope * excess_slope;
-
-    case 3:  // Power law: more aggressive toward steepest
-        return pow(excess_slope, 1.5);
-
-    default:
-        return excess_slope;
     }
 }
 
 double sandslide_weighted_multidir::compute_slope(lexer *p, slice &zh, int i, int j, int di, int dj)
 {
+    // curvilinear grid (G 50): sediment_curv.h
+    if(p->geo_curv == 1)
+    {
+        return compute_slope_curv(p, zh, i, j, di, dj);
+    }
+
     // Compute distance to neighbor (accounting for diagonal)
     double dist;
     double dx = 0.5 * (p->DXN[IP] + p->DYN[JP]);
@@ -241,4 +220,120 @@ double sandslide_weighted_multidir::compute_slope(lexer *p, slice &zh, int i, in
     double dz = zh(i, j) - zh(i + di, j + dj);
 
     return dz / dist;
+}
+
+// ---- curvilinear grid (G 50): the functions above with the geometry of sediment_curv.h
+
+void sandslide_weighted_multidir::compute_fh_curv(lexer *p, ghostcell *pgc, sediment_fdm *s)
+{
+    // Every cell sends to each lower neighbour k (8-connectivity) whose slope exceeds the angle of
+    // repose a share of half the excess height e_k = dz_k - d_k*tan(phi):
+    //      t_k = relax * 0.5*e_k * e_k/sum(e)
+    // A single over-steep pair gets exactly half its excess (pair equilibrium for equal cells);
+    // the total outflow is at most half the largest excess, and every pair keeps draining until
+    // it reaches phi.
+    // (was: total 0.5*relax*min(excess) with relax 0.5, shared out by excess-slope^2 weights:
+    // min(excess) -> 0 as soon as one neighbour is close to phi, so the cell stopped draining its
+    // steeper neighbours; the cone of validation case 03 stalled at 39 deg on the diagonals)
+    int di_arr[8] = {-1, 0, 1, -1, 1, -1, 0, 1};
+    int dj_arr[8] = {-1, -1, -1, 0, 0, 1, 1, 1};
+
+    auto open = [&](int di, int dj)
+    {
+        return SLIDE_NB(di, dj) && p->DFBED[(i - p->imin + di) * p->jmax + (j - p->jmin + dj)] > 0;
+    };
+
+    SEDSLICELOOP
+    SLIDE_DONOR
+    {
+        double z0 = s->bedzh(i, j);
+
+        double excess[8];
+        int ni[8], nj[8];
+        double total_excess = 0.0;
+        int count = 0;
+        int over = 0;
+
+        tan_phi = tan(s->phi(i, j));
+
+        for(int k = 0; k < 8; ++k)
+        {
+            int di = di_arr[k];
+            int dj = dj_arr[k];
+
+            // no transfer into structures, physical boundary ghost cells or across rows in 2D;
+            // a diagonal needs at least one of the two cells beside it open
+            if(!open(di, dj))
+                continue;
+
+            if(di != 0 && dj != 0 && !open(di, 0) && !open(0, dj))
+                continue;
+
+            // distance between the cell centres
+            double ddx = di < 0 ? p->DXP[IM1] : (di > 0 ? p->DXP[IP] : 0.0);
+            double ddy = dj < 0 ? p->DYP[JM1] : (dj > 0 ? p->DYP[JP] : 0.0);
+            double d = sqrt(ddx * ddx + ddy * ddy);
+            if(p->geo_curv == 1)
+                d = sediment_curv::dist(p, i, j, di, dj);
+
+            // excess height over the angle of repose (positive: steeper than phi, downslope)
+            double e = (z0 - s->bedzh(i + di, j + dj)) - tan_phi * d;
+
+            if(e > 0.0)
+            {
+                ni[count] = i + di;
+                nj[count] = j + dj;
+                excess[count] = e;
+                total_excess += e;
+                ++count;
+
+                if(e > tol)
+                    over = 1;
+            }
+        }
+
+        slidecount += over;
+
+        for(int k = 0; k < count; ++k)
+        {
+            double t = relax * 0.5 * excess[k] * excess[k] / total_excess;
+
+            fh(i, j) -= t;
+            fh(ni[k], nj[k]) += t * SLIDE_ARC(ni[k] - i, nj[k] - j);
+
+            if(s->pmix != nullptr)
+                s->pmix->slide_transfer(i, j, ni[k], nj[k], t);
+        }
+    }
+}
+
+double sandslide_weighted_multidir::compute_slope_curv(lexer *p, slice &zh, int i, int j, int di, int dj)
+{
+    // Compute distance to neighbor (accounting for diagonal)
+    double dist;
+    double dx = 0.5 * (p->DXN[IP] + p->DYN[JP]);
+
+    if(di != 0 && dj != 0)
+        dist = dx * sqrt(2.0);  // diagonal
+    else
+        dist = dx;  // cardinal direction
+
+    if(p->geo_curv == 1)
+        dist = sediment_curv::dist(p, i, j, di, dj);
+
+    // Slope = elevation difference / horizontal distance
+    double dz = zh(i, j) - zh(i + di, j + dj);
+
+    return dz / dist;
+}
+
+// mesh refinement and multi-block grids: one iteration of start() (sandslide.h)
+int sandslide_weighted_multidir::amr_sweep(lexer *p, ghostcell *pgc, sediment_fdm *s)
+{
+    slidecount = 0;
+    std::fill(fh.V, fh.V + p->imax * p->jmax, 0.0);
+
+    compute_fh(p, pgc, s);
+
+    return slidecount;
 }

@@ -45,8 +45,20 @@ public:
     virtual void motionext_rot(lexer *, Eigen::Vector3d &, Eigen::Vector3d &, Eigen::Vector4d &, Eigen::Matrix<double, 3, 4> &, Eigen::Matrix3d &) = 0;
 
     virtual void ini(lexer *, ghostcell *) = 0;
+    // checkpoints (P 48, I 45): the time index in the motion file and the prescribed velocities
+    virtual void ckpt_state(std::vector<double> &) const {}
+    virtual void ckpt_restore(const std::vector<double> &, size_t &) {}
+
+    // DOF modes of the body (X 11, X 111 for single bodies): 2 is prescribed by this motion
+    void set_dof(const int *d)
+    {
+        for(int n = 0; n < 6; ++n)
+            dof[n] = d[n];
+    }
 
 protected:
+    int dof[6] = {1, 1, 1, 1, 1, 1};
+
     inline std::vector<std::vector<double>> readTable(const std::string &path, size_t M)
     {
         std::ifstream file(path);

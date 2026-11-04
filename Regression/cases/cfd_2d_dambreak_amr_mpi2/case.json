@@ -1,0 +1,5 @@
+{"base": "cfd_2d_dambreak", "np": 2, "steps": 40,
+ "ctrl_add": ["G 1 1", "G 4 4", "G 15 0.0 0.295 0.0 1.0 0.0 0.4"],
+ "description": "CFD mesh refinement on 2 ranks: the box ends at the partition edge (tiles of 4), so the refined region is extended across it; patches on both ranks, remote fills, siblings across the partition edge.",
+ "tags": ["quick", "2d", "dambreak", "levelset", "amr", "mpi"],
+ "covers": ["reefamr3d: patch edges kept off the partition edges", "remote fills", "sibling patches in the projection and the reinitialisation"]}

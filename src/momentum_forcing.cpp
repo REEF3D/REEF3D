@@ -31,6 +31,7 @@ Author: Hans Bihs
 #include "rodtree_coupling.h"
 #include "sediment.h"
 #include "turbulence.h"
+#include <algorithm>
 
 momentum_forcing::momentum_forcing(lexer *p) : prodtree(nullptr), pfem(nullptr)
 {
@@ -50,6 +51,27 @@ void momentum_forcing::momentum_forcing_start(fdm *a, lexer *p, ghostcell *pgc, 
 {
 
     starttime = pgc->timer();
+
+    // Forcing: zero everywhere, halos included (only the interior is applied to u/v/w below,
+    // the forcing modules that spread into fx/fy/fz update the halos themselves)
+    std::fill(fx.V, fx.V + p->imax * p->jmax * p->kmax, 0.0);
+    std::fill(fy.V, fy.V + p->imax * p->jmax * p->kmax, 0.0);
+    std::fill(fz.V, fz.V + p->imax * p->jmax * p->kmax, 0.0);
+
+    pgc->solid_forcing(p, a, alpha, u, v, w, fx, fy, fz);
+
+    p6dof->start_cfd(p, a, pgc, iter, u, v, w, fx, fy, fz, final);
+
+    pfsi->forcing(p, a, pgc, alpha, u, v, w, fx, fy, fz, final);
+
+    // flexible rod trees: sample, spread reaction, advance structure (final stage)
+    if(p->Z20 > 0)
+    {
+        if(prodtree == nullptr)
+            prodtree = new rodtree_coupling(p, pgc);
+
+        prodtree->start_cfd(p, a, pgc, alpha, u, v, w, fx, fy, fz, final);
+    }
 
     // Forcing
     ULOOP
@@ -129,9 +151,28 @@ void momentum_forcing::momentum_forcing_start(fdm *a, lexer *p, ghostcell *pgc, 
     if(psed != nullptr)
         psed->forcing_cfd(p, a, pgc, alpha, u, v, w);
 
-    // ghostcell update
-    pgc->solid_forcing_flag_update(p, a);
-    pgc->gcdf_update(p, a);
-    pgc->gcb_velflagio(p, a);
+    // DEM: resolved particle forcing and unresolved momentum source
+    if(pdem != nullptr)
+        pdem->forcing_cfd(p, a, pgc, iter, alpha, u, v, w, final);
+
+    // particle sediment (CPM): two-way coupling
+    if(psed != nullptr)
+        psed->forcing_cfd(p, a, pgc, alpha, u, v, w);
+
+    // ghostcell update: the flags depend on the geometry only (solid, topo, fb), rebuild when it changed
+    if(pgc->geometry_changed(p, a))
+    {
+        pgc->solid_forcing_flag_update(p, a);
+        pgc->gcdf_update(p, a);
+        pgc->gcb_velflagio(p, a);
+    }
+
+    // ghost cells of the forced velocities: the implicit diffusion (combine first, then solve)
+    // sets the ghost cells of the stage velocities before the forcing, so the outflow/wall ghost
+    // cells inside solids and the bed would keep the unforced values for the projection
+    // (D 22 2 with topo: unstable at the outflow); refresh them from the forced interior
+    pgc->start1(p, u, gcval_u);
+    pgc->start2(p, v, gcval_v);
+    pgc->start3(p, w, gcval_w);
 }
 

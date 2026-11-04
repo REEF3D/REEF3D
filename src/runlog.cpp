@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include "runlog.h"
+#include "georef.h"
 #include "lexer.h"
 #include <cstdint>
 #include <cstdio>
@@ -96,8 +97,14 @@ void runlog::start(lexer *p)
          << ",\"units\":{\"length\":\"m\",\"time\":\"s\",\"mass\":\"kg\",\"force\":\"N\"}"
          << ",\"still_water_level\":" << number(p->phimean)
          << ",\"domain\":{\"min\":[" << number(p->global_xmin) << "," << number(p->global_ymin) << "," << number(p->global_zmin)
-         << "],\"max\":[" << number(p->global_xmax) << "," << number(p->global_ymax) << "," << number(p->global_zmax) << "]}"
-         << ",\"streams\":{}}";
+         << "],\"max\":[" << number(p->global_xmax) << "," << number(p->global_ymax) << "," << number(p->global_zmax) << "]}";
+
+    // where the model lies on the Earth: the case's georef.json, unchanged
+    const std::string georef = georef_json();
+    if(!georef.empty())
+        line << ",\"georef\":" << georef;
+
+    line << ",\"streams\":{}}";
     write(line.str());
 }
 
@@ -149,11 +156,46 @@ void runlog::output(lexer *p, int step, const char *stream_name, const char *rol
         stream(stream_name, spec.str());
     }
 
+    output_line(step, p->simtime, p->count, stream_name);
+}
+
+void runlog::stored(lexer *p, int step, double time, long long iteration, const char *stream_name,
+                    const char *role, const char *store, const char *group, int pieces)
+{
+    if(!active || ended)
+        return;
+
+    start(p);
+
+    if(known.find(stream_name) == known.end())
+    {
+        std::string folder = store;
+        if(folder.rfind("./", 0) == 0)
+            folder = folder.substr(2);
+
+        std::ostringstream spec;
+        spec << "{\"role\":" << quote(role)
+             << ",\"folder\":" << quote(folder)
+             << ",\"group\":" << quote(group)
+             << ",\"format\":\"zarr\"";
+        if(pieces > 0)
+            spec << ",\"pieces\":" << pieces;
+        if(step > 0)
+            spec << ",\"first_step\":" << step;
+        spec << "}";
+        stream(stream_name, spec.str());
+    }
+
+    output_line(step, time, iteration, stream_name);
+}
+
+void runlog::output_line(int step, double time, long long iteration, const char *stream_name)
+{
     std::ostringstream line;
     line << "{\"type\":\"output\",\"run\":" << quote(run_id)
          << ",\"step\":" << step
-         << ",\"time\":" << number(p->simtime)
-         << ",\"iteration\":" << p->count
+         << ",\"time\":" << number(time)
+         << ",\"iteration\":" << iteration
          << ",\"streams\":[" << quote(stream_name) << "]}";
     write(line.str());
 }

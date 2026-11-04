@@ -1,0 +1,29 @@
+{
+ "base": "nhflow_3d_curv_sed_amr_adaptive_ckpt",
+ "same_as": "nhflow_3d_curv_sed_amr_adaptive_ckpt",
+ "chain": [
+  {
+   "case": "nhflow_3d_curv_sed_amr_adaptive_ckpt",
+   "copy": [
+    "REEF3D_Checkpoint",
+    "REEF3D_NHFLOW_AMR",
+    "REEF3D_NHFLOW_WSF"
+   ]
+  }
+ ],
+ "ctrl_set": {
+  "I 45": "20"
+ },
+ "description": "the restart of nhflow_3d_curv_sed_amr_adaptive_ckpt from step 20 (I 45 20): the adaptive layout and the bed and sediment state of every patch from the checkpoint, the regrids and the sediment steps continue; regression.py ranks: the final state and the text outputs bitwise those of the uninterrupted run.",
+ "tags": [
+  "3d",
+  "nhflow",
+  "amr",
+  "curvilinear",
+  "sediment",
+  "checkpoint"
+ ],
+ "covers": [
+  "the bitwise restart of NHFLOW + adaptive mesh refinement + sediment"
+ ]
+}

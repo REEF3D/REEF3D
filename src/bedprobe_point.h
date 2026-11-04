@@ -23,9 +23,9 @@ Author: Hans Bihs
 #ifndef BEDPROBE_POINT_H_
 #define BEDPROBE_POINT_H_
 
-#include"boundarycheck.h"
-#include<iostream>
-#include<fstream>
+#include "boundarycheck.h"
+#include <fstream>
+#include <iostream>
 
 class lexer;
 class sediment_fdm;
@@ -37,22 +37,18 @@ using namespace std;
 class bedprobe_point : public boundarycheck
 {
 public:
-    bedprobe_point(lexer*, ghostcell*, sediment_fdm*);
-	virtual ~bedprobe_point();
+    bedprobe_point(lexer *, ghostcell *, sediment_fdm *);
+    virtual ~bedprobe_point();
 
-	void bed_gauge(lexer*, ghostcell*, sediment_fdm*);
-
+    void bed_gauge(lexer *, ghostcell *, sediment_fdm *);
 
 private:
-    void ini_location(lexer*, ghostcell*, sediment_fdm*);
-    void write(lexer*, ghostcell*, sediment_fdm*);
-    int conv(double);
+    void ini_location(lexer *, ghostcell *, sediment_fdm *);
 
-    int *iloc,*jloc,*flag;
+    int *iloc, *jloc, *flag;
     double *wsf;
     int n;
     ofstream wsfout;
-
 };
 
 #endif

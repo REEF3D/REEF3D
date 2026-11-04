@@ -1,0 +1,9 @@
+{
+ "description": "NHFLOW closed basin 20 x 10 m with a 1 x 2 m pier (DIVEMesh solid), dam break across the full width hitting the pier, MPM bedload (S 35 20), default Exner S 31 2, sand slide S 90 1, two subdomains. Before the Exner face closure about a fifth of the eroded sediment disappeared into the pier.",
+ "solver": "nhflow",
+ "np": 2,
+ "steps": 250,
+ "tags": ["3d", "nhflow", "sediment", "closed", "structure", "mpi"],
+ "covers": ["sediment_exner face_closure at DFBED<0 cells", "qb_clear", "dfbed_comms", "bedshear_nhflow S 16 1 with the thin-water clamp (uplus)",
+            "sandslide_f (SLIDE_AR, SLIDE_NB)", "bedload_direction_f one-sided slope at the pier"]
+}

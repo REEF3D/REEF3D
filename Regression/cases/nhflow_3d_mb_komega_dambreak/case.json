@@ -1,0 +1,21 @@
+{
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 60,
+ "files": [
+  "blocks.dat"
+ ],
+ "tags": [
+  "3d",
+  "nhflow",
+  "curvilinear",
+  "multiblock",
+  "turbulence",
+  "quick"
+ ],
+ "description": "k-omega (A 560 2) on a multi-block grid: the wavy channel of 144 x 12 cells as three blocks in a row (blocks 1 and 2 turned by 180 deg in their indices), a 0.6 m dam break over 0.25 m with its step at the interface of blocks 0 and 2 (F 72), the implicit diffusion (A 512 2). The k and omega equations of level 0 are solved as one composite system over block 0 and the blocks (nhflow_amr::turb_composite0), so the blocks give one block: eta to 1e-14 m, EV to 7e-15 m2/s after 0.5 s (Dropbox Tagus_NHFLOW_multiblock/validation/10_block_turbulence).",
+ "covers": [
+  "nhflow_amr::turb_composite0 (k / omega systems of all level-0 grids in one composite solve, sigma metrics with the end-of-step level of the ring)",
+  "nhflow_turbulence::defer, start_part (nhflow_komega_IM1 parts 0..2)"
+ ]
+}

@@ -20,14 +20,14 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"vrans_f.h"
-#include"lexer.h"
-#include"fdm.h"
-#include"ghostcell.h"
+#include "vrans_f.h"
+#include "fdm.h"
+#include "ghostcell.h"
+#include "lexer.h"
 
-vrans_f::vrans_f(lexer *p, ghostcell *pgc) : Cval(p->B264), alpha(p), beta(p)
+vrans_f::vrans_f(lexer *p, ghostcell *pgc) : Cval(p->B264)
 {
-	//initialize(p,a,pgc);
+    // initialize(p,a,pgc);
 }
 
 vrans_f::~vrans_f()

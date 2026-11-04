@@ -1,0 +1,13 @@
+{
+ "base": "seastate_2d_phase6b_coasts_mpi2",
+ "np": 1,
+ "description": "seastate_2d_phase6b_coasts_mpi2 on one rank (Phase 14: the reference of the MPI case).",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate"
+ ],
+ "covers": [
+  "Phase 14 reference"
+ ]
+}

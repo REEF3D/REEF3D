@@ -20,38 +20,39 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Thomas Becker
 --------------------------------------------------------------------*/
 
-#include"nhflow_print_timeavg_wsfline.h"
-#include"lexer.h"
-#include"fdm_nhf.h"
-#include"ghostcell.h"
-#include"ioflow.h"
-#include"wave_interface.h"
-#include<iomanip>
-#include<sys/stat.h>
-#include<sys/types.h>
+#include "nhflow_print_timeavg_wsfline.h"
+#include "fdm_nhf.h"
+#include "ghostcell.h"
+#include "ioflow.h"
+#include "lexer.h"
+#include "wave_interface.h"
+#include "wsfline_ipol.h"
+#include <iomanip>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 nhflow_print_timeavg_wsfline::nhflow_print_timeavg_wsfline(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
-    p->Iarray(jloc,p->P146);
+    p->Iarray(jloc, p->P146);
 
-    maxknox=pgc->globalimax(p->knox);
-    sumknox=pgc->globalisum(maxknox);
+    maxknox = pgc->globalimax(p->knox);
+    sumknox = pgc->globalisum(maxknox);
 
-    p->Darray(xloc,p->P146,maxknox);
-    p->Darray(wsf,p->P146,maxknox);
-    p->Iarray(flag,p->P146,maxknox);
-    p->Iarray(wsfpoints,p->P146);
+    p->Darray(xloc, p->P146, maxknox);
+    p->Darray(wsf, p->P146, maxknox);
+    p->Iarray(flag, p->P146, maxknox);
+    p->Iarray(wsfpoints, p->P146);
 
-    p->Darray(xloc_all,p->P146,sumknox);
-    p->Darray(wsf_all,p->P146,sumknox);
-    p->Iarray(flag_all,p->P146,sumknox);
+    p->Darray(xloc_all, p->P146, sumknox);
+    p->Darray(wsf_all, p->P146, sumknox);
+    p->Iarray(flag_all, p->P146, sumknox);
 
-    p->Darray(time_accum,p->P146);
-    p->Darray(start_time,p->P146);
+    p->Darray(time_accum, p->P146);
+    p->Darray(start_time, p->P146);
     started = new bool[p->P146];
     printed = new bool[p->P146];
 
-    for(q=0;q<p->P146;++q)
+    for(q = 0; q < p->P146; ++q)
     {
         time_accum[q] = 0.0;
         start_time[q] = 0.0;
@@ -59,27 +60,26 @@ nhflow_print_timeavg_wsfline::nhflow_print_timeavg_wsfline(lexer *p, fdm_nhf *d,
         printed[q] = false;
     }
 
-    for(q=0;q<p->P146;++q)
-    for(n=0;n<maxknox;++n)
-    {
-        xloc[q][n] = 1.0e20;
-        wsf[q][n] = 0.0;
-        flag[q][n] = 0;
-    }
+    for(q = 0; q < p->P146; ++q)
+        for(n = 0; n < maxknox; ++n)
+        {
+            xloc[q][n] = 1.0e20;
+            wsf[q][n] = 0.0;
+            flag[q][n] = 0;
+        }
 
-    for(q=0;q<p->P146;++q)
-    for(n=0;n<sumknox;++n)
-    {
-        xloc_all[q][n] = 0.0;
-        wsf_all[q][n] = 0.0;
-        flag_all[q][n] = 0;
-    }
+    for(q = 0; q < p->P146; ++q)
+        for(n = 0; n < sumknox; ++n)
+        {
+            xloc_all[q][n] = 0.0;
+            wsf_all[q][n] = 0.0;
+            flag_all[q][n] = 0;
+        }
 
     location_ready = 0;
 
-    if(p->mpirank==0)
-        mkdir("./REEF3D_NHFLOW_TIME_AVG_WSFLINE",0777);
-
+    if(p->mpirank == 0)
+        mkdir("./REEF3D_NHFLOW_TIME_AVG_WSFLINE", 0777);
 }
 
 nhflow_print_timeavg_wsfline::~nhflow_print_timeavg_wsfline()
@@ -91,27 +91,27 @@ void nhflow_print_timeavg_wsfline::start(lexer *p, fdm_nhf *d, ghostcell *pgc, i
 {
     char name[250];
 
-    if(location_ready==0)
+    if(location_ready == 0)
     {
-        bool ready=false;
+        bool ready = false;
 
-        for(q=0;q<p->P146;++q)
-            if(p->simtime>=p->P146_tbegin[q] && printed[q]==false)
+        for(q = 0; q < p->P146; ++q)
+            if(p->simtime >= p->P146_tbegin[q] && printed[q] == false)
             {
-                ready=true;
+                ready = true;
                 break;
             }
 
-        if(ready==false)
+        if(ready == false)
             return;
 
-        ini_location(p,d,pgc);
+        ini_location(p, d, pgc);
         location_ready = 1;
     }
 
-    for(q=0;q<p->P146;++q)
+    for(q = 0; q < p->P146; ++q)
     {
-        if(flag[q][0]<0 || printed[q]==true)
+        if(flag[q][0] < 0 || printed[q] == true)
             continue;
 
         const double tbegin = p->P146_tbegin[q];
@@ -119,28 +119,28 @@ void nhflow_print_timeavg_wsfline::start(lexer *p, fdm_nhf *d, ghostcell *pgc, i
         const double t0 = p->simtime - p->dt_old;
         const double t1 = p->simtime;
 
-        if(tend<=tbegin)
+        if(tend <= tbegin)
         {
             printed[q] = true;
             continue;
         }
 
-        if(t1<=tbegin)
+        if(t1 <= tbegin)
             continue;
 
-        const double effective_t0 = MAX(t0,tbegin);
-        const double effective_t1 = MIN(t1,tend);
+        const double effective_t0 = MAX(t0, tbegin);
+        const double effective_t1 = MIN(t1, tend);
         const double effective_dt = effective_t1 - effective_t0;
 
-        if(effective_dt<=0.0)
+        if(effective_dt <= 0.0)
         {
-            if(t1>=tend-1.0e-12)
+            if(t1 >= tend - 1.0e-12)
                 printed[q] = true;
 
             continue;
         }
 
-        if(started[q]==false)
+        if(started[q] == false)
         {
             started[q] = true;
             start_time[q] = effective_t0;
@@ -152,52 +152,53 @@ void nhflow_print_timeavg_wsfline::start(lexer *p, fdm_nhf *d, ghostcell *pgc, i
         {
             jloc[q] = p->posc_j(yline);
 
-            if(p->j_dir==0)
+            if(p->j_dir == 0)
                 jloc[q] = 0;
 
-            if(jloc[q]>=0 && jloc[q]<p->knoy)
+            if(jloc[q] >= 0 && jloc[q] < p->knoy)
             {
                 flag[q][i] = 1;
                 xloc[q][i] = p->pos_x();
-                wsf[q][i] += effective_dt*(f(i,jloc[q]) + p->phimean);
+                wsf[q][i] += effective_dt * (wsfline_at_y(p, f, i, jloc[q], yline) + p->phimean);
             }
         }
 
         time_accum[q] += effective_dt;
 
-        if(t1<tend-1.0e-12)
+        if(t1 < tend - 1.0e-12)
             continue;
 
-        if(time_accum[q]<=0.0)
+        if(time_accum[q] <= 0.0)
             continue;
 
-        wsfpoints[q]=sumknox;
+        wsfpoints[q] = sumknox;
 
-        pgc->gather_double(xloc[q],maxknox,xloc_all[q],maxknox);
-        pgc->gather_double(wsf[q],maxknox,wsf_all[q],maxknox);
-        pgc->gather_int(flag[q],maxknox,flag_all[q],maxknox);
+        pgc->gather_double(xloc[q], maxknox, xloc_all[q], maxknox);
+        pgc->gather_double(wsf[q], maxknox, wsf_all[q], maxknox);
+        pgc->gather_int(flag[q], maxknox, flag_all[q], maxknox);
 
-        if(p->mpirank==0)
+        if(p->mpirank == 0)
         {
-            sort(xloc_all[q], wsf_all[q], flag_all[q], 0, wsfpoints[q]-1);
-            remove_multientry(p,xloc_all[q], wsf_all[q], flag_all[q], wsfpoints[q]);
+            sort(xloc_all[q], wsf_all[q], flag_all[q], 0, wsfpoints[q] - 1);
+            remove_multientry(p, xloc_all[q], wsf_all[q], flag_all[q], wsfpoints[q]);
 
-            sprintf(name,"./REEF3D_NHFLOW_TIME_AVG_WSFLINE/REEF3D-NHFLOW-TimeAvgWsfLine-%i-%i.dat",q+1,p->count);
+            sprintf(name, "./REEF3D_NHFLOW_TIME_AVG_WSFLINE/REEF3D-NHFLOW-TimeAvgWsfLine-%i-%i.dat", q + 1, p->count);
             wsfout.open(name);
 
-            wsfout<<"Time-Averaged Water Surface Lineprobe ID:  "<<q+1<<"\n\n"
-                  <<"simtime:  "<<p->simtime<<"\n"
-                  <<"starttime:  "<<start_time[q]<<"\n"
-                  <<"averaging_time:  "<<time_accum[q]<<"\n\n"
-                  <<"line_No     y_coord\n"
-                  <<q+1<<"\t "<<p->Yout(0.0,yline)<<"\n\n"
-                  <<"X "<<q+1
-                  <<"\t P "<<q+1<<"\n"<<endl;
+            wsfout << "Time-Averaged Water Surface Lineprobe ID:  " << q + 1 << "\n\n"
+                   << "simtime:  " << p->simtime << "\n"
+                   << "starttime:  " << start_time[q] << "\n"
+                   << "averaging_time:  " << time_accum[q] << "\n\n"
+                   << "line_No     y_coord\n"
+                   << q + 1 << "\t " << p->Yout(0.0, yline) << "\n\n"
+                   << "X " << q + 1
+                   << "\t P " << q + 1 << "\n"
+                   << endl;
 
-            for(n=0;n<sumknox;++n)
+            for(n = 0; n < sumknox; ++n)
             {
-                if(flag_all[q][n]>0 && xloc_all[q][n]<1.0e20)
-                    wsfout<<setprecision(12)<<p->Xout(xloc_all[q][n],0.0)<<" \t "<<(wsf_all[q][n]/time_accum[q])<<endl;
+                if(flag_all[q][n] > 0 && xloc_all[q][n] < 1.0e20)
+                    wsfout << setprecision(12) << p->Xout(xloc_all[q][n], 0.0) << " \t " << (wsf_all[q][n] / time_accum[q]) << endl;
             }
 
             wsfout.close();
@@ -208,18 +209,18 @@ void nhflow_print_timeavg_wsfline::start(lexer *p, fdm_nhf *d, ghostcell *pgc, i
 
 void nhflow_print_timeavg_wsfline::ini_location(lexer *p, fdm_nhf *d, ghostcell *pgc)
 {
-    for(q=0;q<p->P146;++q)
+    for(q = 0; q < p->P146; ++q)
     {
-        int count=0;
+        int count = 0;
         ILOOP
         {
-            if(p->j_dir==0)
-                jloc[q]=0;
-            else if(p->j_dir==1)
-                jloc[q]=p->posc_j(p->P146_y[q]);
+            if(p->j_dir == 0)
+                jloc[q] = 0;
+            else if(p->j_dir == 1)
+                jloc[q] = p->posc_j(p->P146_y[q]);
 
-            if(jloc[q]>=0 && jloc[q]<p->knoy)
-                flag[q][count]=1;
+            if(jloc[q] >= 0 && jloc[q] < p->knoy)
+                flag[q][count] = 1;
 
             ++count;
         }
@@ -228,17 +229,21 @@ void nhflow_print_timeavg_wsfline::ini_location(lexer *p, fdm_nhf *d, ghostcell 
 
 void nhflow_print_timeavg_wsfline::sort(double *a, double *b, int *c, int left, int right)
 {
-    if (left < right)
+    if(left < right)
     {
         double pivot = a[right];
         int l = left;
         int r = right;
 
-        do {
-            while (a[l] < pivot) l++;
-            while (a[r] > pivot) r--;
+        do
+        {
+            while(a[l] < pivot)
+                l++;
+            while(a[r] > pivot)
+                r--;
 
-            if (l <= r) {
+            if(l <= r)
+            {
                 double swap = a[l];
                 double swapd = b[l];
                 int swapc = c[l];
@@ -255,55 +260,56 @@ void nhflow_print_timeavg_wsfline::sort(double *a, double *b, int *c, int left, 
                 l++;
                 r--;
             }
-        } while (l <= r);
+        }
+        while(l <= r);
 
-        sort(a,b,c, left, r);
-        sort(a,b,c, l, right);
+        sort(a, b, c, left, r);
+        sort(a, b, c, l, right);
     }
 }
 
-void nhflow_print_timeavg_wsfline::remove_multientry(lexer *p, double* b, double* c, int *d, int& num)
+void nhflow_print_timeavg_wsfline::remove_multientry(lexer *p, double *b, double *c, int *d, int &num)
 {
-    int oldnum=num;
-    double xval=-1.12e23;
-    int count=0;
+    int oldnum = num;
+    double xval = -1.12e23;
+    int count = 0;
 
-    double *f,*g;
+    double *f, *g;
     int *h;
 
-    p->Darray(f,num);
-    p->Darray(g,num);
-    p->Iarray(h,num);
+    p->Darray(f, num);
+    p->Darray(g, num);
+    p->Iarray(h, num);
 
-    for(n=0;n<num;++n)
-        g[n]=-1.12e22;
+    for(n = 0; n < num; ++n)
+        g[n] = -1.12e22;
 
-    for(n=0;n<oldnum;++n)
+    for(n = 0; n < oldnum; ++n)
     {
-        if(xval<=b[n]+0.001*p->DXM && xval>=b[n]-0.001*p->DXM && count>0)
-            g[count-1]=MAX(g[count-1],c[n]);
+        if(xval <= b[n] + 0.001 * p->DXM && xval >= b[n] - 0.001 * p->DXM && count > 0)
+            g[count - 1] = MAX(g[count - 1], c[n]);
 
-        if(xval>b[n]+0.001*p->DXM || xval<b[n]-0.001*p->DXM)
+        if(xval > b[n] + 0.001 * p->DXM || xval < b[n] - 0.001 * p->DXM)
         {
-            f[count]=b[n];
-            g[count]=c[n];
-            h[count]=d[n];
+            f[count] = b[n];
+            g[count] = c[n];
+            h[count] = d[n];
             ++count;
         }
 
-        xval=b[n];
+        xval = b[n];
     }
 
-    for(n=0;n<count;++n)
+    for(n = 0; n < count; ++n)
     {
-        b[n]=f[n];
-        c[n]=g[n];
-        d[n]=h[n];
+        b[n] = f[n];
+        c[n] = g[n];
+        d[n] = h[n];
     }
 
-    p->del_Darray(f,num);
-    p->del_Darray(g,num);
-    p->del_Iarray(h,num);
+    p->del_Darray(f, num);
+    p->del_Darray(g, num);
+    p->del_Iarray(h, num);
 
-    num=count;
+    num = count;
 }

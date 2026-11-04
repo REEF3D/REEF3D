@@ -1,0 +1,21 @@
+{
+ "base": "nhflow_2d_si_tidal_flat_tracers",
+ "description": "nhflow_2d_si_tidal_flat_tracers with a checkpoint every 150 steps, all kept: the uninterrupted run of nhflow_2d_si_tidal_flat_tracers_restart.",
+ "ctrl_set": {
+  "P 48": "150",
+  "P 49": "0"
+ },
+ "tags": [
+  "2d",
+  "nhflow",
+  "semi_implicit",
+  "wetdry",
+  "turbulence",
+  "tide",
+  "tracer",
+  "checkpoint"
+ ],
+ "covers": [
+  "nhflow_tracer_SI::ckpt_fields (SALT, TEMP, the Thatcher-Harleman state)"
+ ]
+}

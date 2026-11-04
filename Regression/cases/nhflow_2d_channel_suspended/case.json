@@ -1,0 +1,20 @@
+{
+ "description": "NHFLOW 2D open channel (h 0.3 m, U 0.6 m/s), discharge inflow and outflow, k-epsilon, van Rijn suspended load only (S 11 0, S 12 1), erodible bed for x >= 2 m (S 71). Suspended sediment leaves through the outflow.",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 400,
+ "tags": [
+  "quick",
+  "2d",
+  "nhflow",
+  "sediment",
+  "suspended",
+  "inflow"
+ ],
+ "covers": [
+  "nhflow_scalar_ifou::start_conservative (open inflow/outflow faces from FEx)",
+  "nhflow_suspended_IM1::suspsource (exchange only in the erodible region)",
+  "nhflow_suspended_IM1::bcsusp_start (implicit zero gradient at closed faces)",
+  "nhflow_idiff_2D::diff_scalar with k-epsilon eddy viscosity"
+ ]
+}

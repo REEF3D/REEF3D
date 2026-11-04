@@ -1,0 +1,17 @@
+# REEF3D::CORAL model for fnpf_2d_coral_kinematics: a rigid pile (Morison on whole strips) and a flexible pile
+# (frame, Morison along the member) at x = 20 m in 2 m of water; CORAL's still water level is REEF3D's z = 2.
+# Architect: Hans Bihs
+rho 1000
+time dt 0.01 end 100
+output dt 0.02 file piles.dat
+waves regular H 0.04 T 4
+waves depth 2
+fluid_kinematics order 2
+fluid_coupling origin 0 0 2
+body pile mass 10 inertia 1 1 1 cog 20 0.05 -1
+joint hold fixed ground pile point 20 0.05 -1
+morison rigid body pile p1 20 0.05 -2 p2 20 0.05 0.1 D 0.1 Cd 1 Ca 1 n 21
+section tube tube D 0.1 t 0.005 E 2.1e11 G 8.08e10 rho 7850
+member flex p1 20 0.05 -2 p2 20 0.05 1 n 6 section tube orient 1 0 0 end1 ground
+point_mass flex:6 mass 5
+morison wave member flex Cd 1 Ca 1 n 4

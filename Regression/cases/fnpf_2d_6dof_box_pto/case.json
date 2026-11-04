@@ -1,0 +1,8 @@
+{
+ "description": "FNPF 2D floating box of fnpf_2d_6dof_box, heave only, with the 6DOF power take-off (X 500 2): heave joint at the CoG, PTO damper (X 502) and stiff end stops 1 mm below the equilibrium and 5 mm above the start (X 504), as the CORAL PTO of fnpf_2d_coral_fluid_body; REEF3D_FNPF_6DOF (with REEF3D_6DOF_pto_0.dat) compared.",
+ "base": "fnpf_2d_6dof_box",
+ "ctrl_set": {"X 11": "0 0 1 0 0 0"},
+ "ctrl_add": ["X 500 2", "X 502 30.0", "X 504 -0.032 0.005 2.0e5 0.0"],
+ "tags": ["2d", "fnpf", "6dof", "floating", "pto"],
+ "covers": ["coral_sixdof_pto (X 500 2, X 502, X 504)", "PTO element library in the 6DOF kernel", "REEF3D_6DOF_pto output"]
+}

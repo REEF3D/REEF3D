@@ -1,0 +1,30 @@
+{
+ "base": "cfd_2d_cpm_bedload_layer_merge_mpi2_ckpt",
+ "np": 2,
+ "steps": 150,
+ "same_as": "cfd_2d_cpm_bedload_layer_merge_mpi2_ckpt",
+ "chain": [
+  {
+   "case": "cfd_2d_cpm_bedload_layer_merge_mpi2_ckpt",
+   "copy": [
+    "REEF3D_Checkpoint",
+    "REEF3D_CFD_CPM_Particle"
+   ]
+  }
+ ],
+ "ctrl_set": {
+  "I 45": "100"
+ },
+ "description": "the restart of cfd_2d_cpm_bedload_layer_merge_mpi2_ckpt from its checkpoint at step 100 (I 45 100), with its outputs copied in (cut back to step 100 and continued): the CPM parcels of every rank with the free-slot stack, the random generators of the bedload layer, the bed fields, the CPM log continued; regression.py ranks: the final state and the text outputs bitwise those of the uninterrupted run.",
+ "tags": [
+  "2d",
+  "cfd",
+  "sediment",
+  "cpm",
+  "mpi",
+  "checkpoint"
+ ],
+ "covers": [
+  "CPM::ckpt_rank_state with merged parcels (Wt), the merge/split counters"
+ ]
+}

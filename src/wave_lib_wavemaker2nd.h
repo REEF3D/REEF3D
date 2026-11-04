@@ -85,6 +85,17 @@ public:
     // Q at time t and elevation z (relative to still water level)
     double paddle_Q(double t, double z) const;
 
+    // active absorption at the wavemaker (FNPF B 98 4/7): tabulates the linear surface elevation of the paddle
+    // signal (kin[q][1], as used, i.e. after a B113 correction) at distance x0 from the paddle, progressive and
+    // J evanescent modes, all components in the band fmin..fmax (fmax<=0: automatic)
+    void make_etatable(lexer *, ghostcell *, double **kin, int ptnum, double h, int shape, double zs, double ze, double x0);
+    double eta_target(double t) const;
+    double eta_target_x0() const { return Ex0; }
+    bool eta_target_ready() const { return Ent > 1; }
+
+    static void compute_eta_x_multi(double g, double h, const std::vector<shape_t> &shp, int J, double fmin, double fmax,
+                                    const std::vector<std::vector<double>> &x, double dt, double x0, std::vector<double> &eta);
+
     // ---- core, general paddle (P segments) ----
 
     // first-order components on an integer frequency grid omega_n = bin[n]*dw,
@@ -105,9 +116,11 @@ public:
                              const std::vector<std::vector<double>> &x, double dt, std::vector<std::vector<double>> &x2);
 
     // progressive-mode projection of Q on nlev equidistant levels s=z+h in [0,h], Q[l*npts+q]
+    // f2min [Hz]: lowest second-order frequency included (<0: none, 0: 0.1 x peak frequency)
     static void compute_paddle_Q_multi(double g, double h, const std::vector<shape_t> &shp,
                                        int J, double fmin, double fmax, int nmax,
-                                       const std::vector<std::vector<double>> &x, double dt, int nlev, std::vector<float> &Q);
+                                       const std::vector<std::vector<double>> &x, double dt, int nlev, std::vector<float> &Q,
+                                       double f2min = -1.0);
 
     // ---- core, single segment (shape: 1 piston, 2 flap; zs,ze from the bed) ----
     static int compute(double g, double h, int shape, double zs, double ze,
@@ -132,6 +145,9 @@ private:
                           const std::vector<shape_t> &shp, const std::vector<int> &col);
 
     std::vector<float> Qtab;
+    std::vector<double> Etab;
+    int Ent = 0;
+    double Et0 = 0.0, Edt = 1.0, Ex0 = -1.0;
     int Qnlev = 0, Qnt = 0;
     double Qt0 = 0.0, Qdt = 1.0, Qh = 1.0;
 };

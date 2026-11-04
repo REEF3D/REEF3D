@@ -20,49 +20,53 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"sflow_print_probe_da.h"
-#include"lexer.h"
-#include"fdm2D.h"
-#include"ghostcell.h"
-#include"turbulence.h"
-#include<sys/stat.h>
-#include<sys/types.h>
+#include "sflow_print_probe_da.h"
+#include "fdm2D.h"
+#include "ghostcell.h"
+#include "lexer.h"
+#include "reefckpt.h"
+#include "turbulence.h"
+#include <sys/stat.h>
+#include <sys/types.h>
 
 sflow_print_probe_da::sflow_print_probe_da(lexer *p, fdm2D *b, ghostcell *pgc) : probenum(p->P63)
 {
-    p->Iarray(iloc,probenum);
-	p->Iarray(jloc,probenum);
-	p->Iarray(flag,probenum);
-	
-	// Create Folder
-	if(p->mpirank==0)
-	mkdir("./REEF3D_SFLOW_ProbePoint",0777);
-	
-	pout = new ofstream[probenum];
-	
-    if(p->mpirank==0 && probenum>0)
+    p->Iarray(iloc, probenum);
+    p->Iarray(jloc, probenum);
+    p->Iarray(flag, probenum);
+
+    // Create Folder
+    if(p->mpirank == 0)
+        mkdir("./REEF3D_SFLOW_ProbePoint", 0777);
+
+    pout = new ofstream[probenum];
+
+    if(p->mpirank == 0 && probenum > 0)
     {
-		cout<<"probepoint_num: "<<probenum<<endl;
-		// open file
-		for(n=0;n<probenum;++n)
-		{
-		sprintf(name,"./REEF3D_SFLOW_ProbePoint/REEF3D-SFLOW-Probe-Point-%i.dat",n+1);
-		
-		pout[n].open(name);
+        cout << "probepoint_num: " << probenum << endl;
+        // open file
+        for(n = 0; n < probenum; ++n)
+        {
+            sprintf(name, "./REEF3D_SFLOW_ProbePoint/REEF3D-SFLOW-Probe-Point-%i.dat", n + 1);
 
-	    pout[n]<<"Depth Averaged Point Probe ID:  "<<n<<endl<<endl;
-		pout[n]<<"x_coord     y_coord"<<endl;
-		
-		pout[n]<<n+1<<"\t "<<p->P63_x[n]<<"\t "<<p->P63_y[n]<<endl;
+            if(reefckpt_open(pout[n], name, p->I45))  // I 45: continued
+            {
+                pout[n] << "Depth Averaged Point Probe ID:  " << n << endl
+                        << endl;
+                pout[n] << "x_coord     y_coord" << endl;
 
-		pout[n]<<endl<<endl;
-		
-		pout[n]<<"t \t Um \t Vm \t Wm \t Pm \t eta \t bed"<<endl;
-        pout[n].close();
+                pout[n] << n + 1 << "\t " << p->P63_x[n] << "\t " << p->P63_y[n] << endl;
+
+                pout[n] << endl
+                        << endl;
+
+                pout[n] << "t \t Um \t Vm \t Wm \t Pm \t eta \t bed" << endl;
+            }
+            pout[n].close();
         }
     }
-	
-    ini_location(p,b,pgc);
+
+    ini_location(p, b, pgc);
 }
 
 sflow_print_probe_da::~sflow_print_probe_da()
@@ -71,78 +75,86 @@ sflow_print_probe_da::~sflow_print_probe_da()
 
 void sflow_print_probe_da::start(lexer *p, fdm2D *b, ghostcell *pgc)
 {
-	double xp,yp;
+    double xp, yp;
+    // the mesh refinement: the finest grid at the probe (one rank writes it)
+    amr_points ap;
+    if(amr != nullptr)
+        ap.find(amr, p, probenum, p->P63_x, p->P63_y, flag);
+
     // find values and write
-	for(n=0;n<probenum;++n)
-	{
-	uval=vval=wval=pval=eval=-1.0e20;
-	double bval=-1.0e20;
-		if(flag[n]>0)
-		{
-		xp=p->P63_x[n];
-		yp=p->P63_y[n];
-        
-		uval = p->ccslipol1(b->P, xp, yp);
-		vval = p->ccslipol2(b->Q, xp, yp);
-		wval = p->ccslipol4(b->ws,xp,yp); 
-		pval = p->ccslipol4(b->press,xp,yp);
-        eval = p->ccslipol4(b->eta,xp,yp);
-        bval = p->ccslipol4(b->bed,xp,yp); 
-		}
-	
-	uval=pgc->globalmax(uval);
-	vval=pgc->globalmax(vval);
-	wval=pgc->globalmax(wval);
-	pval=pgc->globalmax(pval);
-    eval=pgc->globalmax(eval);
-    bval=pgc->globalmax(bval);
-	
-        if(p->mpirank==0)
+    for(n = 0; n < probenum; ++n)
+    {
+        uval = vval = wval = pval = eval = -1.0e20;
+        double bval = -1.0e20;
+        if(amr == nullptr ? flag[n] > 0 : ap.mine[n] != 0)
         {
-            sprintf(name,"./REEF3D_SFLOW_ProbePoint/REEF3D-SFLOW-Probe-Point-%i.dat",n+1);
+            xp = p->P63_x[n];
+            yp = p->P63_y[n];
+
+            lexer *q = p;
+            fdm2D *g = b;
+            if(amr != nullptr && ap.f[n] != nullptr)
+            {
+                q = ap.q[n];
+                g = static_cast<fdm2D *>(ap.f[n]);
+            }
+
+            uval = q->ccslipol1(g->P, xp, yp);
+            vval = q->ccslipol2(g->Q, xp, yp);
+            wval = q->ccslipol4(g->ws, xp, yp);
+            pval = q->ccslipol4(g->press, xp, yp);
+            eval = q->ccslipol4(g->eta, xp, yp);
+            bval = q->ccslipol4(g->bed, xp, yp);
+        }
+
+        uval = pgc->globalmax(uval);
+        vval = pgc->globalmax(vval);
+        wval = pgc->globalmax(wval);
+        pval = pgc->globalmax(pval);
+        eval = pgc->globalmax(eval);
+        bval = pgc->globalmax(bval);
+
+        if(p->mpirank == 0)
+        {
+            sprintf(name, "./REEF3D_SFLOW_ProbePoint/REEF3D-SFLOW-Probe-Point-%i.dat", n + 1);
             pout[n].open(name, std::ofstream::out | std::ofstream::app);
-            pout[n]<<setprecision(9)<<p->simtime<<" \t "<<uval<<" \t "<<vval<<" \t "<<wval<<" \t "<<pval<<" \t "<<eval<<" \t "<<bval<<endl;
+            pout[n] << setprecision(9) << p->simtime << " \t " << uval << " \t " << vval << " \t " << wval << " \t " << pval << " \t " << eval << " \t " << bval << endl;
             pout[n].close();
         }
     }
-}
-
-void sflow_print_probe_da::write(lexer *p, fdm2D *b, ghostcell *pgc)
-{
 }
 
 void sflow_print_probe_da::ini_location(lexer *p, fdm2D *b, ghostcell *pgc)
 {
     int check;
 
-    for(n=0;n<probenum;++n)
+    for(n = 0; n < probenum; ++n)
     {
-    check=0;
-    
-    iloc[n]=p->posc_i(p->P63_x[n]);
-    
-    if(p->j_dir==0)
-    jloc[n]=0;
-  
-    if(p->j_dir==1)
-    jloc[n]=p->posc_j(p->P63_y[n]);
-    
-    if(iloc[n]>=0 && iloc[n]<p->knox)
-    if(jloc[n]>=0 && jloc[n]<p->knoy)
-    check=1;
-    
-    if(check==1)
-    {
-    i = iloc[n];
-    j = jloc[n];
-    
-    if(p->flagslice4[IJ]<0)
-    check=0;
-    }
+        check = 0;
 
-    if(check==1)
-    flag[n]=1;
+        iloc[n] = p->posc_i(p->P63_x[n]);
+
+        if(p->j_dir == 0)
+            jloc[n] = 0;
+
+        if(p->j_dir == 1)
+            jloc[n] = p->posc_j(p->P63_y[n]);
+
+        if(iloc[n] >= 0 && iloc[n] < p->knox)
+            if(jloc[n] >= 0 && jloc[n] < p->knoy)
+                check = 1;
+
+        if(check == 1)
+        {
+            i = iloc[n];
+            j = jloc[n];
+
+            if(p->flagslice4[IJ] < 0)
+                check = 0;
+        }
+
+        if(check == 1)
+            flag[n] = 1;
     }
 }
-
 

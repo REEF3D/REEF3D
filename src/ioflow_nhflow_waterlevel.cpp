@@ -20,125 +20,135 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 Author: Hans Bihs
 --------------------------------------------------------------------*/
 
-#include"ioflow_f.h"
-#include"lexer.h"
-#include"fdm_nhf.h"
-#include"ghostcell.h"
-#include"patchBC_interface.h"
+#include "fdm_nhf.h"
+#include "ghostcell.h"
+#include "ioflow_f.h"
+#include "lexer.h"
+#include "patchBC_interface.h"
 
-void ioflow_f::fsfinflow_nhflow(lexer *p, fdm_nhf* d, ghostcell* pgc, slice &WL)
+void ioflow_f::fsfinflow_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc, slice &WL)
 {
     // -------------------------------------
-     // fsf out
-    p->phiout=0.0;
-    count=0;
-    for(n=0;n<p->gcslout_count;n++)
+    // fsf out
+    // mean surface over the wet outflow cells only: a dry cell holds eta = bed - wd + A 544,
+    // so an outflow edge that also crosses dry land (a river in a wider domain) would lift
+    // the mean by the height of the banks
+    p->phiout = 0.0;
+    count = 0;
+    for(n = 0; n < p->gcslout_count; n++)
     {
-        i=p->gcslout[n][0];
-        j=p->gcslout[n][1];
-        
-        p->phiout+=d->eta(i,j);
-        
-        ++count;
+        i = p->gcslout[n][0];
+        j = p->gcslout[n][1];
+
+        if(p->wet[IJ] == 1)
+        {
+            p->phiout += d->eta(i, j);
+
+            ++count;
+        }
     }
-    
-    p->phiout=pgc->globalsum(p->phiout);
-    count=pgc->globalisum(count);
-    
-    p->phiout=p->phiout/(int(count)>0?int(count):1.0e20);
-    
+
+    p->phiout = pgc->globalsum(p->phiout);
+    count = pgc->globalisum(count);
+
+    p->phiout = p->phiout / (int(count) > 0 ? int(count) : 1.0e20);
+
     p->phiout += p->phimean;
-    
-    
+
     // -------------------------------------
     // Find Hi
+    // mean surface over the wet inflow cells only (see fsf out): with dry cells on the inflow
+    // edge, Hi was lifted to the mean bank height and the ghost water level of the wet inflow
+    // cells, Hi - bed, became far too large.  Without a wet inflow cell the surface is taken
+    // at rest (eta 0).
     double eta_in;
-    count=0;
-    zval=0.0;
-    for(n=0;n<p->gcslin_count;n++)
+    count = 0;
+    zval = 0.0;
+    for(n = 0; n < p->gcslin_count; n++)
     {
-        i=p->gcslin[n][0];
-        j=p->gcslin[n][1];
+        i = p->gcslin[n][0];
+        j = p->gcslin[n][1];
 
-        zval+=d->eta(i,j);
-        ++count;
-
+        if(p->wet[IJ] == 1)
+        {
+            zval += d->eta(i, j);
+            ++count;
+        }
     }
 
-    count=pgc->globalisum(count);
-    zval=pgc->globalsum(zval);
-    
-    eta_in=zval/double(count);
-    
-    p->Hi = p->wd+eta_in;
-    
+    count = pgc->globalisum(count);
+    zval = pgc->globalsum(zval);
+
+    eta_in = count > 0 ? zval / double(count) : 0.0;
+
+    p->Hi = p->wd + eta_in;
+
     // -------------------------------------
     // set fsf  inflow
-    for(n=0;n<p->gcslin_count;n++)
+    for(n = 0; n < p->gcslin_count; n++)
     {
-        i=p->gcslin[n][0];
-        j=p->gcslin[n][1];
+        i = p->gcslin[n][0];
+        j = p->gcslin[n][1];
 
-        if(p->F50==2 || p->F50==4)
-        if(p->wet[IJ]==1)
-        {
-        WL(i-1,j) = p->Hi - d->bed(i,j);
-        WL(i-2,j) = p->Hi - d->bed(i,j);
-        WL(i-3,j) = p->Hi - d->bed(i,j);
-        
-        //cout<<"WL(i-1,j): "<<WL(i-1,j)<<endl;
-        
-        d->eta(i-1,j) = WL(i-1,j) - d->depth(i,j);
-        d->eta(i-2,j) = WL(i-2,j) - d->depth(i,j);
-        d->eta(i-3,j) = WL(i-3,j) - d->depth(i,j);
-        }
+        if(p->F50 == 2 || p->F50 == 4)
+            if(p->wet[IJ] == 1)
+            {
+                WL(i - 1, j) = p->Hi - d->bed(i, j);
+                WL(i - 2, j) = p->Hi - d->bed(i, j);
+                WL(i - 3, j) = p->Hi - d->bed(i, j);
+
+                // cout<<"WL(i-1,j): "<<WL(i-1,j)<<endl;
+
+                d->eta(i - 1, j) = WL(i - 1, j) - d->depth(i, j);
+                d->eta(i - 2, j) = WL(i - 2, j) - d->depth(i, j);
+                d->eta(i - 3, j) = WL(i - 3, j) - d->depth(i, j);
+            }
     }
-    
+
     // -------------------------------------
     // set fsf  outflow
-    double wsfout=p->phimean;
-    double f=1.0;
-    
-    if(p->F62>1.0e-20)
+    double wsfout = p->phimean;
+    double f = 1.0;
+
+    if(p->F62 > 1.0e-20)
     {
-        if(p->F64==0)
-        wsfout=p->F62;
-        
-        if(p->F64>0)
+        if(p->F64 == 0)
+            wsfout = p->F62;
+
+        if(p->F64 > 0)
         {
-        if(p->count<p->F64)
-        f = 0.5*cos(PI + PI*double(p->count)/double(p->F64)) + 0.5;
-        
-        if(p->count>=p->F64)
-        f = 1.0;
-        
-        wsfout = f*p->F62 + (1.0-f)*p->F60;
-        //cout<<"wsfout: "<<wsfout<<" f: "<<f<<endl;
+            if(p->count < p->F64)
+                f = 0.5 * cos(PI + PI * double(p->count) / double(p->F64)) + 0.5;
+
+            if(p->count >= p->F64)
+                f = 1.0;
+
+            wsfout = f * p->F62 + (1.0 - f) * p->F60;
+            // cout<<"wsfout: "<<wsfout<<" f: "<<f<<endl;
         }
     }
-    
-    //cout<<"wsfout: "<<wsfout<<" phiout: "<< p->phiout<<endl;
-    
-    for(n=0;n<p->gcslout_count;n++)
+
+    // cout<<"wsfout: "<<wsfout<<" phiout: "<< p->phiout<<endl;
+
+    for(n = 0; n < p->gcslout_count; n++)
     {
-        i=p->gcslout[n][0];
-        j=p->gcslout[n][1];
-        
-        if(p->F50==2 || p->F50==4)
-        if(p->wet[IJ]==1)
-        {
-        
-    //cout<<"wsfout: "<<wsfout<<" phiout: "<< wsfout-d->bed(i,j)<<endl;
-        WL(i,j)   = wsfout - d->bed(i,j);
-        WL(i+1,j) = wsfout - d->bed(i,j);
-        WL(i+2,j) = wsfout - d->bed(i,j);
-        WL(i+3,j) = wsfout - d->bed(i,j);
-        
-        d->eta(i,j)   = WL(i,j)   - d->depth(i,j);
-        d->eta(i+1,j) = WL(i+1,j) - d->depth(i,j);
-        d->eta(i+2,j) = WL(i+2,j) - d->depth(i,j);
-        d->eta(i+3,j) = WL(i+3,j) - d->depth(i,j);
-        }
-        
+        i = p->gcslout[n][0];
+        j = p->gcslout[n][1];
+
+        if(p->F50 == 2 || p->F50 == 4)
+            if(p->wet[IJ] == 1)
+            {
+
+                // cout<<"wsfout: "<<wsfout<<" phiout: "<< wsfout-d->bed(i,j)<<endl;
+                WL(i, j) = wsfout - d->bed(i, j);
+                WL(i + 1, j) = wsfout - d->bed(i, j);
+                WL(i + 2, j) = wsfout - d->bed(i, j);
+                WL(i + 3, j) = wsfout - d->bed(i, j);
+
+                d->eta(i, j) = WL(i, j) - d->depth(i, j);
+                d->eta(i + 1, j) = WL(i + 1, j) - d->depth(i, j);
+                d->eta(i + 2, j) = WL(i + 2, j) - d->depth(i, j);
+                d->eta(i + 3, j) = WL(i + 3, j) - d->depth(i, j);
+            }
     }
 }

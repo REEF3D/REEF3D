@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include "ghostcell.h"
 #include "lexer.h"
 #include "matrix2D.h"
+#include "reef3d_mpmd.h"
 #include "slice.h"
 #include "vec2D.h"
 #ifdef REEF3D_USE_HYPRE
@@ -58,6 +59,9 @@ reefmg2D::reefmg2D(lexer *p, ghostcell *pgc)
     mg.set_ordering(p->N12 == 2 ? 1 : 0);
     mg.set_precision(p->N14 == 32 ? 32 : 64);
     mg.set_agglomeration(p->N15 == 1 ? 1 : 0);
+    mg.set_device(p->N16);  // N 16, see reefmg.cpp
+    mg.set_device_cycle(p->N17, p->N19);
+    mg.set_device_precision(p->N21);
 
     Mcur = 0;
     mg.set_fine_operator(this);
@@ -65,8 +69,49 @@ reefmg2D::reefmg2D(lexer *p, ghostcell *pgc)
     topology(p, pgc);
 }
 
+reefmg2D::reefmg2D(lexer *p, ghostcell *pgc, bool loc)
+{
+    solve_mode = 1;
+
+    presweep = 1;
+    postsweep = 1;
+
+    mg.set_sweepstyle(p->N12 == 1 ? 1 : 0);
+    mg.set_ordering(p->N12 == 2 ? 1 : 0);
+    mg.set_precision(p->N14 == 32 ? 32 : 64);
+    mg.set_agglomeration(0);
+    mg.set_device(p->N16);  // N 16, see reefmg.cpp
+    mg.set_device_cycle(p->N17, p->N19);
+    mg.set_device_precision(p->N21);
+
+    Mcur = 0;
+    mg.set_fine_operator(this);
+
+    local = loc;
+
+    if(local)
+    {
+        int dims[2] = {1, 1}, per[2] = {0, 0};
+        MPI_Cart_create(MPI_COMM_SELF, 2, dims, per, 0, &cartc);
+        npx = npy = 1;
+        ndir = (p->knoy > 1) ? 2 : 1;
+
+        if(!mg.setup(cartc, p->knox, p->knoy, 1, p->knox, p->knoy, p->N13,
+                     p->DXN + p->marge - 1, p->DYN + p->marge - 1))
+        {
+            cout << "REEFMG2D (local) " << mg.err() << endl;
+            MPI_Abort(MPI_COMM_WORLD, -2765);
+        }
+    }
+
+    else
+        topology(p, pgc);
+}
+
 reefmg2D::~reefmg2D()
 {
+    if(cartc != MPI_COMM_NULL)
+        MPI_Comm_free(&cartc);
 }
 
 void reefmg2D::topology(lexer *p, ghostcell *pgc)
@@ -163,6 +208,9 @@ void reefmg2D::topology(lexer *p, ghostcell *pgc)
         if(mg.agglomerated())
             cout << "REEFMG2D coarse-grid agglomeration: " << mg.agglomerated_cells()
                  << " cells gathered on every rank" << endl;
+
+        if(p->N16 > 0)
+            cout << "REEFMG2D " << mg.device_status() << endl;
     }
 }
 
@@ -243,11 +291,25 @@ void reefmg2D::vcycle(lexer *p, ghostcell *pgc, slice &z, matrix2D &M, vec2D &r,
         if(p->N13 == 0)
             mg.set_active_levels(screened_levels(ldx, mg.levels()));
 
-        mg.coarsen();
+        // (several ranks: collective, the problem of all ranks on every rank)
+        xzon = false;
+        if(exact_line && (local || p->mpi_size == 1))
+        {
+            xzon = xz.usable(mg.fine());
+            if(xzon)
+                xz.factor(mg.fine(), mg.precision());
+        }
+        else if(exact_line)
+            xzon = xz.factor_mpi(mg.fine(), mg.precision(), reef3d_comm(), p->origin_i, p->gknox);
+        if(!xzon)
+            mg.coarsen();
     }
 
     //  fill() leaves u = 0 and f = 0 on the rows outside the multigrid
-    mg.vcycle(0, presweep, postsweep);
+    if(xzon)
+        xz.solve(mg.fine(), mg.fine().f, mg.fine().u);
+    else
+        mg.vcycle(0, presweep, postsweep);
 
     fillback(p, mg, z);
 }
@@ -449,10 +511,15 @@ double reefmg2D::fill(lexer *p, ghostcell *pgc, reefmg_core &core, slice &f, mat
     if(err)
         p->solver_error = 1;
 
-    excmax = pgc->globalmax(excmax);
+    if(!local)
+    {
+        excmax = pgc->globalmax(excmax);
+        ldx = pgc->globalmax(ldx);
+    }
+
     singular = (excmax < 1.0e-10);
 
-    return pgc->globalmax(ldx);
+    return ldx;
 }
 
 void reefmg2D::fillback(lexer *p, reefmg_core &core, slice &f)
@@ -593,13 +660,13 @@ void reefmg2D::solve_neumann(lexer *p, ghostcell *pgc, slice &f, matrix2D &M, ve
     p->final_res = relres;
 
     //  An inconsistent pure-Neumann system - prescribed in- and outflow that
-    //  do not balance - has no solution, and BiCGStab then drifts off instead
-    //  of stopping.  Do not hand that back: restart from the initial guess
-    //  with hypre, i.e. behave exactly as without REEFMG.
-    if(!(relres <= 1.0))
+    //  do not balance - has no solution, and BiCGStab then drifts off or
+    //  stalls instead of converging.  Do not hand that back: restart from the
+    //  initial guess with hypre, i.e. behave exactly as without REEFMG.
+    if(!(relres <= 1.0e3 * p->N44))
     {
         if(p->mpirank == 0)
-            cout << "REEFMG2D pure-Neumann solve diverged (res " << relres << ") - the system is "
+            cout << "REEFMG2D pure-Neumann solve did not converge (res " << relres << ") - the system is "
                  << "probably inconsistent (in- and outflow do not balance).  Handing it to "
                  << "hypre GMRES+PFMG." << endl;
 

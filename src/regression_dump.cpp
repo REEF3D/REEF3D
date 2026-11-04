@@ -312,10 +312,38 @@ void regression_dump::nhflow_collect(lexer *p, fdm_nhf *d)
         data.back()
             .push_back(d->EV[IJK]);
 
+    // (KIN and CONC are allocated only with a turbulence model / suspended sediment, nhflow_memory.h: zero without)
     add("KIN", p->cellnum);
     LOOP
         data.back()
-            .push_back(d->KIN[IJK]);
+            .push_back(d->KIN != nullptr ? d->KIN[IJK] : 0.0);
+
+    // sediment (zero without sediment transport): suspended concentration and bed level
+    add("CONC", p->cellnum);
+    LOOP
+        data.back()
+            .push_back(d->CONC != nullptr ? d->CONC[IJK] : 0.0);
+
+    add("bed", p->cellnum);
+    SLICELOOP4
+    data.back().push_back(d->bed(i, j));
+
+    // tracers of the semi-implicit NHFLOW (A 600), only when switched on
+    if(d->SALT != nullptr)
+    {
+        add("SALT", p->cellnum);
+        LOOP
+            data.back()
+                .push_back(d->SALT[IJK]);
+    }
+
+    if(d->TEMP != nullptr)
+    {
+        add("TEMP", p->cellnum);
+        LOOP
+            data.back()
+                .push_back(d->TEMP[IJK]);
+    }
 }
 
 void regression_dump::nhflow_state(lexer *p, fdm_nhf *d)
@@ -428,7 +456,13 @@ void regression_dump::fnpf_ini(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 
     steplog << "# count simtime dt  sum(Fi^2) sum(U^2) sum(W^2) sum(eta^2) sum(Fifsf^2) sum(WL^2)  (rank-local, hexfloat)" << std::endl;
 
+    // the 3D velocities when they are not stored (fnpf_memory.h)
+    const bool vel_tmp = c->vel3D_make(p, pgc);
+
     fnpf_state(p, c);
+
+    if(vel_tmp)
+        c->vel3D_free(p);
 }
 
 void regression_dump::fnpf_step(lexer *p, fdm_fnpf *c, ghostcell *pgc)
@@ -437,6 +471,9 @@ void regression_dump::fnpf_step(lexer *p, fdm_fnpf *c, ghostcell *pgc)
         return;
 
     double sfi = 0.0, su = 0.0, sw = 0.0, se = 0.0, sff = 0.0, swl = 0.0;
+
+    // the 3D velocities when they are not stored (fnpf_memory.h)
+    const bool vel_tmp = c->vel3D_make(p, pgc);
 
     FLOOP
     {
@@ -457,6 +494,9 @@ void regression_dump::fnpf_step(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 
     if(every > 0 && p->count % every == 0)
         fnpf_state(p, c);
+
+    if(vel_tmp)
+        c->vel3D_free(p);
 }
 
 void regression_dump::fnpf_final(lexer *p, fdm_fnpf *c, ghostcell *pgc)
@@ -465,7 +505,13 @@ void regression_dump::fnpf_final(lexer *p, fdm_fnpf *c, ghostcell *pgc)
         return;
 
     steplog.flush();
+
+    const bool vel_tmp = c->vel3D_make(p, pgc);
+
     fnpf_state(p, c);
+
+    if(vel_tmp)
+        c->vel3D_free(p);
 }
 
 // ---------------------------------------------------------------------
@@ -477,34 +523,39 @@ void regression_dump::sflow_collect(lexer *p, fdm2D *b)
     names.clear();
     data.clear();
 
-    add("P", p->cellnum);
+    add("P", p->cellnum2D);
     SLICELOOP1
     data.back().push_back(b->P(i, j));
 
-    add("Q", p->cellnum);
+    add("Q", p->cellnum2D);
     SLICELOOP2
     data.back().push_back(b->Q(i, j));
 
-    add("eta", p->cellnum);
+    add("eta", p->cellnum2D);
     SLICELOOP4
     data.back().push_back(b->eta(i, j));
 
-    add("WL", p->cellnum);
+    add("WL", p->cellnum2D);
     SLICELOOP4
     data.back().push_back(b->WL(i, j));
 
-    add("press", p->cellnum);
+    add("press", p->cellnum2D);
     SLICELOOP4
     data.back().push_back(b->press(i, j));
 
     // turbulence (zero without a turbulence model; kin is filled by the k-eps and k-omega models)
-    add("eddyv", p->cellnum);
+    add("eddyv", p->cellnum2D);
     SLICELOOP4
     data.back().push_back(b->eddyv(i, j));
 
-    add("kin", p->cellnum);
+    add("kin", p->cellnum2D);
     SLICELOOP4
     data.back().push_back(b->kin(i, j));
+
+    // bed level (changes with sediment transport)
+    add("bed", p->cellnum2D);
+    SLICELOOP4
+    data.back().push_back(b->bed(i, j));
 }
 
 void regression_dump::sflow_state(lexer *p, fdm2D *b)
@@ -609,6 +660,20 @@ void regression_dump::seastate_collect(lexer *p, fdm_seastate *e)
         for(int b = 0; b < nbin; ++b)
             data.back().push_back(double(s[b]));
     }
+
+    // Phase 14: the global cell indices and the wet flag, so that runs on different numbers of ranks can be compared
+    // cell by cell (regression.py ranks)
+    add("gi", p->cellnum2D);
+    SLICELOOP4
+    data.back().push_back(double(i + p->origin_i));
+
+    add("gj", p->cellnum2D);
+    SLICELOOP4
+    data.back().push_back(double(j + p->origin_j));
+
+    add("wet", p->cellnum2D);
+    SLICELOOP4
+    data.back().push_back(double(e->wet(i, j)));
 }
 
 void regression_dump::seastate_state(lexer *p, fdm_seastate *e)

@@ -1,0 +1,8 @@
+{
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 300,
+ "description": "2D box (B 1 m, T 0.4 m, density 500) as a sharp hull (X 15 8), fixed in surge, heave free, in a current of 1 m/s that fills the domain from the start (B 514, B 531 1): the ship frame of a towed hull (Ship Hydrodynamics validation 23; the box heaves +-5 cm in a sustained oscillation at 1.4 s).",
+ "tags": ["quick", "2d", "nhflow", "6dof", "floating", "background", "current"],
+ "covers": ["X 15 8 with a current", "B 531 1"]
+}

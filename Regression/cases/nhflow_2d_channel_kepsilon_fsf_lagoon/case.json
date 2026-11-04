@@ -1,0 +1,9 @@
+{
+ "base": "nhflow_2d_channel_kepsilon",
+ "np": 1,
+ "steps": 300,
+ "ctrl_set": {"P 180": "1", "P 181": "100", "P 18": "1"},
+ "tags": ["nhflow", "turbulence", "lagoon"],
+ "description": "as nhflow_2d_channel_kepsilon, its free surface with eddyv, kin and epsilon of the top layer (patch 0022) written to the LAGOON store instead of the VTP files (P 18 1); the solution is that of the case without the store.",
+ "covers": ["nhflow_vtp_fsf with the turbulence model's 2D output (nhflow_rans_io::print_2D, name_vtp, offset_ParaView_2D)", "lagoon_surface for NHFLOW with eddyv, kin, epsilon"]
+}

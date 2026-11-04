@@ -1,0 +1,24 @@
+{
+ "base": "cfd_2d_cpm_bedload_layer",
+ "np": 2,
+ "ctrl_set": {
+  "G 1": "1",
+  "Q 29": "1",
+  "G 2": "25"
+ },
+ "ctrl_add": [
+  "Q 85 0.0 0.1 -1.0 1.0 0.0 0.03",
+  "G 27 0.3"
+ ],
+ "description": "cfd_2d_cpm_bedload_layer with adaptive refinement by the mobile bed (G 27 0.3, a regrid every 25 steps, G 2) under the grid of CPM over the whole bed (Q 85), 2 ranks: no patch at the start, the patches where the bed shear stress of CPM exceeds 0.3 times the critical one; at every regrid the plans are made again and the bed of CPM goes onto the new patches",
+ "covers": [
+  "G 27: cfd_amr::cpm_mobile, cpm_flag",
+  "cfd_amr::cpm_regrid: the plans with the new patches, the bed of CPM onto them"
+ ],
+ "tags": [
+  "2d",
+  "cpm",
+  "amr",
+  "mpi"
+ ]
+}

@@ -1,0 +1,22 @@
+{
+ "base": "fnpf_3d_amr_runup_adapt",
+ "ctrl_set": {
+  "P 48": "80",
+  "P 49": "0"
+ },
+ "description": "fnpf_3d_amr_runup_adapt (FNPF, the patches follow the moving shoreline, the breaking cells and the steep surface, new patches every 4 steps: 22 layouts in 320 steps) with a checkpoint every 80 steps, all kept: the uninterrupted run of fnpf_3d_amr_runup_adapt_restart.",
+ "tags": [
+  "3d",
+  "fnpf",
+  "amr",
+  "breaking",
+  "coastline",
+  "wetdry",
+  "runup",
+  "adaptive",
+  "checkpoint"
+ ],
+ "covers": [
+  "fnpf_amr::ckpt_write with adaptive patches over the moving coastline"
+ ]
+}

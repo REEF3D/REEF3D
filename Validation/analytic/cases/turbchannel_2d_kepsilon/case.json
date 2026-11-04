@@ -1,0 +1,1 @@
+{"base": "turbchannel_2d_komega", "ctrl_set": {"T 10": "1"}, "description": "as turbchannel_2d_komega with k-epsilon (T 10 1).", "tags": ["turbulence", "2d", "walls"]}

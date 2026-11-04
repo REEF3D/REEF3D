@@ -1,0 +1,10 @@
+{
+ "base": "sflow_2d_sediment_basin",
+ "ctrl_set": {"S 35": "1.0"},
+ "ctrl_add": ["S 120 1", "S 122 0.01"],
+ "np": 1,
+ "steps": 300,
+ "description": "sflow_2d_sediment_basin with the depth-averaged suspended load (S 120 1: van Rijn reference concentration, Rouse profile factor, MUSCL, K0 = 0.01 m^2/s) and no morphological factor (S 35 1, S 15 3, S 17 1, S 44 1): closed basin, the sediment balance (suspended + bed + pending exchange) of the log stays at zero; the dam break wets and dries cells.",
+ "tags": ["quick", "2d", "sflow", "sediment", "suspended", "closed"],
+ "covers": ["sediment_susp2D with wetting and drying, Rouse factor, diffusion", "sediment_exner::susp_ED SFLOW branch"]
+}

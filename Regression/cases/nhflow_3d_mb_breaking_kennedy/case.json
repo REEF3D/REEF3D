@@ -1,0 +1,21 @@
+{
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 40,
+ "files": [
+  "blocks.dat"
+ ],
+ "tags": [
+  "3d",
+  "nhflow",
+  "curvilinear",
+  "multiblock",
+  "breaking",
+  "quick"
+ ],
+ "description": "Kennedy breaking (A 550 3) on the multi-block grid of nhflow_3d_mb_breaking (the bore of a dam break with its step at the interface of blocks 0 and 2): the parts of nhflow_breaking::kennedy_part run over all level-0 grids with exchanges of the ages, the band passes and the flags between them (nhflow_amr::kennedy_level0); one block to 1e-14 m after 0.2 s (validation/11_block_kennedy_filter).",
+ "covers": [
+  "nhflow_amr::kennedy_level0, ken_exchange0",
+  "nhflow_breaking::kennedy_part 0..4, kennedy_run, kn_band"
+ ]
+}

@@ -1,0 +1,14 @@
+{
+ "base": "seastate_2d_phase10_fas2",
+ "np": 2,
+ "description": "as seastate_2d_phase10_fas2 on 2 ranks: FAS with two refinement levels and the level-0 exchange of the coarse sweeps.",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate",
+  "mpi"
+ ],
+ "covers": [
+  "A 758 with G 1 2 on 2 ranks"
+ ]
+}

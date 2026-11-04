@@ -1,0 +1,20 @@
+{
+ "description": "CFD 2D oscillatory flow (U-tube type): periodic channel 8 x 13 cells with a slip lid (C 16 3), single phase, k-omega, oscillating body force B 180/181 (U = 0.3 sin(pi t) m/s, T 2 s), MPM sand bed (d50 1 mm, S 35 50). Bed shear S 16 9: max(log law at 1.6 DZN, wave friction 0.5 rho fw |u_w|^2 with Soulsby fw, A from the running mean and orbital amplitude of the sample), wave period from S 58.",
+ "solver": "cfd",
+ "np": 1,
+ "steps": 300,
+ "tags": [
+  "quick",
+  "2d",
+  "cfd",
+  "sediment",
+  "periodic",
+  "singlephase"
+ ],
+ "covers": [
+  "bedshear_cfd S 16 9 (tau_wave, tau_wave_step, running mean, du/dt amplitude)",
+  "S 58 read/broadcast",
+  "ioflow_gravity B 181 with S 10"
+ ],
+ "architect": "Hans Bihs"
+}

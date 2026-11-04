@@ -1,0 +1,20 @@
+{
+ "base": "fnpf_3d_coral_array_x36",
+ "ctrl_set": {
+  "P 48": "5",
+  "P 49": "3"
+ },
+ "description": "fnpf_3d_coral_array_x36 with a checkpoint every 5 steps (P 48 5, the newest three kept): the uninterrupted run of fnpf_3d_coral_array_x36_restart. The unit modes of the bodies 1, 2 live on the patches of their windows only (no level-0 arrays), in the checkpoint as fb_psi_<body>_<mode> of these patches; the calibration (the differences, the refresh it was made at) in the state of the bodies (version 3).",
+ "tags": [
+  "3d",
+  "fnpf",
+  "amr",
+  "6dof",
+  "floating",
+  "coral",
+  "checkpoint"
+ ],
+ "covers": [
+  "X 36: the unit modes of the bodies on the patches of their windows in the checkpoint (fb_psi_<body>_<mode>)"
+ ]
+}

@@ -23,10 +23,12 @@ Author: Hans Bihs
 #include "sandslide_pde.h"
 #include "ghostcell.h"
 #include "lexer.h"
+#include "sediment_curv.h"
 #include "sediment_fdm.h"
 #include "sediment_mixture.h"
+#include <algorithm>
 
-sandslide_pde::sandslide_pde(lexer *p) : norm_vec(p), bedslope(p), fh(p), ci(p)
+sandslide_pde::sandslide_pde(lexer *p) : norm_vec(p), bedslope(p), fh(p)
 {
     if(p->S50 == 1)
         gcval_topo = 151;
@@ -51,12 +53,14 @@ sandslide_pde::~sandslide_pde()
 
 void sandslide_pde::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
-
     SLICEBASELOOP
-    {
-        s->slide_fh(i, j) = 0.0;
-        ci(i, j) = 0.0;
-    }
+    s->slide_fh(i, j) = 0.0;
+
+    // converged when no neighbour pair is steeper than phi by more than tol (height)
+    tol = 1.0e-4 * MAX(p->S20, 1.0e-6);
+
+    // the pair uses the mean angle of repose of its two cells: neighbour values across ranks
+    pgc->gcsl_start4(p, s->phi, 1);
 
     // mainloop
     for(int qn = 0; qn < p->S91; ++qn)
@@ -65,20 +69,15 @@ void sandslide_pde::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
 
         // fill
         SLICEBASELOOP
-        {
-            fh(i, j) = 0.0;
-
-            diff_update(p, pgc, s);
-        }
+        fh(i, j) = 0.0;
 
         pgc->gcsl_start4(p, fh, 1);
 
         if(s->pmix != nullptr)
             s->pmix->slide_zero(p, pgc);
-        pgc->gcsl_start4(p, ci, 1);
 
-        // slide loop
-        SLICEBASELOOP
+        // slide loop: sediment cells in the S 77 window only
+        SEDSLICELOOP
         if(p->pos_x() > p->S77_xs && p->pos_x() < p->S77_xe)
         {
             slide(p, pgc, s);
@@ -87,7 +86,7 @@ void sandslide_pde::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
         pgc->gcslparax_fh(p, fh, 4);
 
         // fill back
-        SLICEBASELOOP
+        SEDSLICELOOP
         {
             s->slide_fh(i, j) += fh(i, j);
             s->bedzh(i, j) += fh(i, j);
@@ -107,51 +106,172 @@ void sandslide_pde::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
             break;
 
         if(p->mpirank == 0)
-            cout << "sandslide_ped corrections: " << p->slidecells << endl;
+            cout << "sandslide_pde corrections: " << p->slidecells << endl;
     }
 }
 
 void sandslide_pde::slide(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
-    double dt = 0.1 * p->DXM * p->DXM;
-    double sqd = (1.0 / (p->DXM * p->DXM));
-
-    fh(i, j) = dt * sqd * ((s->bedzh(i + 1, j) - s->bedzh(i, j)) * 0.5 * (ci(i + 1, j) + ci(i, j)) - (s->bedzh(i, j) - s->bedzh(i - 1, j)) * 0.5 * (ci(i, j) + ci(i - 1, j))
-
-                           + (s->bedzh(i, j + 1) - s->bedzh(i, j)) * 0.5 * (ci(i, j + 1) + ci(i, j)) - (s->bedzh(i, j) - s->bedzh(i, j - 1)) * 0.5 * (ci(i, j) + ci(i, j - 1)));
-
-    // multi-fraction bed: face fluxes with upwind composition
-    if(s->pmix != nullptr)
-        s->pmix->slide_pde(p, s, ci, i, j, dt * sqd);
-}
-
-void sandslide_pde::diff_update(lexer *p, ghostcell *pgc, sediment_fdm *s)
-{
-    double uvel, vvel;
-    double nx, ny, nz, norm;
-    double nx0, ny0;
-    double nz0, bx0, by0, gamma;
-
-    int kmem = 0;
-    double dH;
-
-    k = s->bedk(i, j);
-
-    dH = sqrt(pow((s->bedzh(i + 1, j) - s->bedzh(i - 1, j)) / p->DXM, 2.0) + pow((s->bedzh(i, j + 1) - s->bedzh(i, j - 1)) / p->DXM, 2.0));
-
-    bx0 = (s->bedzh(i + 1, j) - s->bedzh(i - 1, j)) / (p->DXP[IP] + p->DXP[IM1]);
-    by0 = (s->bedzh(i, j + 1) - s->bedzh(i, j - 1)) / (p->DYP[JP] + p->DYP[JM1]);
-
-    gamma = atan(sqrt(bx0 * bx0 + by0 * by0));
-
-    if(gamma > s->phi(i, j))
+    // curvilinear grid (G 50): sediment_curv.h
+    if(p->geo_curv == 1)
     {
-        ci(i, j) = 1.0;
-
-        ++count;
+        slide_curv(p, pgc, s);
+        return;
     }
 
-    if(gamma < s->phi(i, j))
-        ci(i, j) = 0.0;
+    // finite-volume relaxation of the bed towards the angle of repose: between the cell and each
+    // of its 8 neighbours (4 faces, 4 diagonals) the volume
+    //      V = K*min(A_i,A_n)*sign(z_n - z_i)*max(|z_n - z_i| - d*tan(phi), 0)
+    // is exchanged, d the distance of the cell centres, phi the mean of the two cells.
+    // Only the excess over the angle of repose moves, so the iteration converges to phi in
+    // every direction; the exchange is symmetric (conservative on non-uniform grids).
+    // (was: diffusion of the full height difference, switched on by the central-difference
+    // cell slope; it stopped at about 37 deg for phi = 35 deg, steeper on the faces and diagonals)
+    // Pairs to cells without an erodible bed (structures, DFBED<0, solids, domain boundary) and
+    // to cells outside the S 77 window are closed; a diagonal pair needs at least one of the two
+    // cells beside it open.
+    const double K = 0.1;
+    const int ni[8] = {1, -1, 0, 0, 1, 1, -1, -1};
+    const int nj[8] = {0, 0, 1, -1, 1, -1, 1, -1};
+    double flux[8];
+    const double Ai = p->DXN[IP] * p->DYN[JP];
+    int over = 0;
+
+    auto open = [&](int di, int dj)
+    {
+        int ii = i + di;
+        int jj = j + dj;
+
+        return SLIDE_NB(di, dj) && p->flagslice4[(ii - p->imin) * p->jmax + jj - p->jmin] > 0 && p->DFBED[(ii - p->imin) * p->jmax + jj - p->jmin] > 0 && p->XP[IP + di] > p->S77_xs && p->XP[IP + di] < p->S77_xe;
+    };
+
+    fh(i, j) = 0.0;
+
+    for(int f = 0; f < 8; ++f)
+    {
+        flux[f] = 0.0;
+
+        int di = ni[f];
+        int dj = nj[f];
+
+        if(!open(di, dj))
+            continue;
+
+        if(di != 0 && dj != 0 && !open(di, 0) && !open(0, dj))
+            continue;
+
+        double ddx = di < 0 ? p->DXP[IM1] : (di > 0 ? p->DXP[IP] : 0.0);
+        double ddy = dj < 0 ? p->DYP[JM1] : (dj > 0 ? p->DYP[JP] : 0.0);
+        double d = sqrt(ddx * ddx + ddy * ddy);
+        double An = p->DXN[IP + di] * p->DYN[JP + dj];
+
+        double dz = s->bedzh(i + di, j + dj) - s->bedzh(i, j);
+        double e = fabs(dz) - d * tan(0.5 * (s->phi(i, j) + s->phi(i + di, j + dj)));
+
+        if(e > 0.0)
+        {
+            flux[f] = K * (MIN(Ai, An) / Ai) * (dz > 0.0 ? e : -e);
+            fh(i, j) += flux[f];
+
+            if(e > tol)
+                over = 1;
+        }
+    }
+
+    count += over;
+
+    // multi-fraction bed: upwind composition for each pair
+    if(s->pmix != nullptr)
+        s->pmix->slide_pde(p, s, i, j, ni, nj, flux, 8);
 }
 
+// ---- curvilinear grid (G 50): the functions above with the geometry of sediment_curv.h
+
+void sandslide_pde::slide_curv(lexer *p, ghostcell *pgc, sediment_fdm *s)
+{
+    // finite-volume relaxation of the bed towards the angle of repose: between the cell and each
+    // of its 8 neighbours (4 faces, 4 diagonals) the volume
+    //      V = K*min(A_i,A_n)*sign(z_n - z_i)*max(|z_n - z_i| - d*tan(phi), 0)
+    // is exchanged, d the distance of the cell centres, phi the mean of the two cells.
+    // Only the excess over the angle of repose moves, so the iteration converges to phi in
+    // every direction; the exchange is symmetric (conservative on non-uniform grids).
+    // (was: diffusion of the full height difference, switched on by the central-difference
+    // cell slope; it stopped at about 37 deg for phi = 35 deg, steeper on the faces and diagonals)
+    // Pairs to cells without an erodible bed (structures, DFBED<0, solids, domain boundary) and
+    // to cells outside the S 77 window are closed; a diagonal pair needs at least one of the two
+    // cells beside it open.
+    const double K = 0.1;
+    const int ni[8] = {1, -1, 0, 0, 1, 1, -1, -1};
+    const int nj[8] = {0, 0, 1, -1, 1, -1, 1, -1};
+    double flux[8];
+    const double Ai = (p->geo_curv == 1) ? sediment_curv::area(p, i, j) : p->DXN[IP] * p->DYN[JP];
+    int over = 0;
+
+    auto xpos = [&](int di, int dj)
+    { return (p->geo_curv == 1) ? p->XC2D[(i + di - p->imin) * p->jmax + (j + dj - p->jmin)] : p->XP[IP + di]; };
+
+    auto open = [&](int di, int dj)
+    {
+        int ii = i + di;
+        int jj = j + dj;
+
+        return SLIDE_NB(di, dj) && p->flagslice4[(ii - p->imin) * p->jmax + jj - p->jmin] > 0 && p->DFBED[(ii - p->imin) * p->jmax + jj - p->jmin] > 0 && xpos(di, dj) > p->S77_xs && xpos(di, dj) < p->S77_xe;
+    };
+
+    fh(i, j) = 0.0;
+
+    for(int f = 0; f < 8; ++f)
+    {
+        flux[f] = 0.0;
+
+        int di = ni[f];
+        int dj = nj[f];
+
+        if(!open(di, dj))
+            continue;
+
+        if(di != 0 && dj != 0 && !open(di, 0) && !open(0, dj))
+            continue;
+
+        double ddx = di < 0 ? p->DXP[IM1] : (di > 0 ? p->DXP[IP] : 0.0);
+        double ddy = dj < 0 ? p->DYP[JM1] : (dj > 0 ? p->DYP[JP] : 0.0);
+        double d = sqrt(ddx * ddx + ddy * ddy);
+        if(p->geo_curv == 1)
+            d = sediment_curv::dist(p, i, j, di, dj);
+        double An = (p->geo_curv == 1) ? sediment_curv::area(p, i + di, j + dj) : p->DXN[IP + di] * p->DYN[JP + dj];
+
+        double dz = s->bedzh(i + di, j + dj) - s->bedzh(i, j);
+        double e = fabs(dz) - d * tan(0.5 * (s->phi(i, j) + s->phi(i + di, j + dj)));
+
+        if(e > 0.0)
+        {
+            flux[f] = K * (MIN(Ai, An) / Ai) * (dz > 0.0 ? e : -e);
+            fh(i, j) += flux[f];
+
+            if(e > tol)
+                over = 1;
+        }
+    }
+
+    count += over;
+
+    // multi-fraction bed: upwind composition for each pair
+    if(s->pmix != nullptr)
+        s->pmix->slide_pde(p, s, i, j, ni, nj, flux, 8);
+}
+
+// mesh refinement and multi-block grids: one iteration of start() (sandslide.h)
+int sandslide_pde::amr_sweep(lexer *p, ghostcell *pgc, sediment_fdm *s)
+{
+    tol = 1.0e-4 * MAX(p->S20, 1.0e-6);
+
+    count = 0;
+    std::fill(fh.V, fh.V + p->imax * p->jmax, 0.0);
+
+    SEDSLICELOOP
+    SLIDE_DONOR
+    if(p->pos_x() > p->S77_xs && p->pos_x() < p->S77_xe)
+        slide(p, pgc, s);
+
+    return count;
+}

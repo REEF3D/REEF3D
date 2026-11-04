@@ -1,0 +1,21 @@
+{
+ "description": "the GAHM vortex of sflow_2d_si_vortex_gahm_mpi2 driving both the surge (explicit SFLOW, W 200 3) and the waves (SEASTATE coupled, A 750 1, A 730 2: the same met provider, A 729 1), radiation stress back to SFLOW (A 751 1, ramp A 752), water level and currents to SEASTATE (A 753 2); 40 x 40 cells of 10 km, 50 m deep, 2 ranks.",
+ "solver": "sflow",
+ "np": 2,
+ "steps": 60,
+ "files": [
+  "met-vortex.trk"
+ ],
+ "tags": [
+  "2d",
+  "sflow",
+  "seastate",
+  "mpi",
+  "met",
+  "vortex"
+ ],
+ "covers": [
+  "one met provider for the hydrodynamics and the coupled SEASTATE (A 730 2 in a coupled run)",
+  "wave forcing with the vortex wind"
+ ]
+}

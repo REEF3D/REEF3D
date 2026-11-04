@@ -1,0 +1,14 @@
+{
+ "base": "nhflow_2d_amr_waves",
+ "description": "nhflow_2d_amr_waves on 2 ranks (level-0 V-cycle).",
+ "np": 2,
+ "tags": [
+  "2d",
+  "nhflow",
+  "amr",
+  "mpi"
+ ],
+ "covers": [
+  "nhflow_amr on a 2D grid across ranks"
+ ]
+}

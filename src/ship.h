@@ -50,10 +50,16 @@ using namespace std;
 //   crossflow      Cd           cross-flow drag coefficient            (default 0: off)
 //   strips         n            strips for the cross-flow drag         (default 40)
 //   thrust         T [x z]      constant thrust along the ship x-axis [N] at (x, z) relative
-//                               to the CoG in the ship frame           (default 0)
+//                               to the CoG in the ship frame           (default 0); the pitch
+//                               moment is z T, x lies on the line of action and has no effect
 //   current        Ux Uy        uniform current, inertial frame [m/s]: the hull, propeller and
 //                               rudder models use the velocity relative to it (ship held in a
 //                               current instead of towed)              (default 0 0)
+//   approach       U tr tf      approach phase: the speed relative to the water follows a smooth
+//                               ramp 0 -> U over tr [s] and is held until tf [s] by a controller
+//                               (surge with feed-forward, sway and yaw held at 0); the rudder
+//                               stays at 0 until tf. Start from rest instead of an initial
+//                               velocity (X 102): no impulsive start of the flow (default off)
 //
 //  propeller (body force, Hough-Ordway actuator disk)
 //   propeller      x y z D      disk centre relative to the CoG [m], diameter [m]
@@ -87,8 +93,19 @@ using namespace std;
 //   mmg_hull       R0 Xvv Xvr Xrr Xvvvv Yv Yr Yvvv Yvvr Yvrr Yrrr Nv Nr Nvvv Nvvr Nvrr Nrrr
 //                               hull hydrodynamic derivatives about midship
 //   mmg_added_mass mx my Jz     added masses (about midship); solved implicitly by the coupling
-//   mmg_fluid      0|1          0: the hydrodynamic loads of the solver in surge, sway and yaw
-//                               (inertial X, Y, N) are replaced by the MMG model (default 1)
+//   mmg_fluid      0|1|2        0: the hydrodynamic loads of the solver in surge, sway and yaw
+//                               (inertial X, Y, N) are replaced by the MMG model; 1: both are
+//                               added (default); 2: hybrid with a potential-flow solver (FNPF):
+//                               the solver supplies the ideal-fluid loads (added mass and its
+//                               velocity terms, Munk moment, waves, drift), the MMG model the
+//                               hull derivatives without the Munk moment -(my - mx) u vm (needs
+//                               mmg_added_mass for my, mx; no MMG added mass is solved)
+//   hybrid_munk    dm           mmg_fluid 2: A22 - A11 [kg] of the Munk moment -dm u vm taken out of
+//                               N'v, e.g. the value of the solver's computational hull from a
+//                               prescribed drift run (default: my - mx of mmg_added_mass)
+//   hybrid_surge   0|1          mmg_fluid 2: 1 adds the MMG surge velocity term my vm r - mx v r
+//                               (the ideal-fluid speed loss in a turn) to the MMG loads, for grids
+//                               on which the solver does not resolve it (validation 12; default 0)
 //   mmg_draft      d            draft for the nondimensionalisation    (default: from the hull)
 //   propeller_wake_mmg C1 C2p C2n xP   MMG wake in manoeuvring with wP0 = propeller_inflow wake,
 //                               xP: propeller position from midship in units of L
@@ -108,15 +125,19 @@ public:
     bool added_mass(const sixdof_rigidbody &, Eigen::Matrix<double, 6, 6> &) const override;
     void fluid_mask(double *) const override;
     void print(lexer *) override;
+    void ckpt_state(std::vector<double> &) const override;
+    void ckpt_restore(const std::vector<double> &, size_t &) override;
 
 private:
     void read(lexer *);
     void ini(lexer *, const sixdof_rigidbody &, const sixdof_geometry &);
+    double cell_size_at(lexer *, const Eigen::Vector3d &) const;
     void steering(lexer *, double, double);
     double propeller_inflow(const sixdof_rigidbody &, sixdof_fluid *, const Eigen::Vector3d &, const Eigen::Vector3d &);
 
     const int id;
     bool initialized;
+    bool ck_restored = false;  // restart from a checkpoint: heading and disk thickness of the checkpoint
 
     // hull
     double lpp, S, k, nu, B44, B44q, Cd, thrust, xthrust, zthrust, Ucur[2];
@@ -148,8 +169,12 @@ private:
     bool mmg, mmg_am, pwake_mmg, mmg_draft_in;
     int mmg_fluid;
     double mmgc[17], mmg_mx, mmg_my, mmg_Jz, mmg_d, xm, Umin, rho_am;
+    double hyb_dm;  // hybrid_munk: A22 - A11 of the Munk moment taken out (< 0: my - mx)
+    int hyb_surge;  // hybrid_surge: the MMG surge velocity term added in mmg_fluid 2
     double wC1, wC2p, wC2n, wxP;
-    double XH, YH, NH;
+    double XH, YH, NH, NM;
+    bool appr, appr_done;
+    double appr_U, appr_tr, appr_tf, Xc, Yc, Nc;
 
     // loads of the last evaluation, ship frame
     double ub, vb, wb, pb, qb, rb_;

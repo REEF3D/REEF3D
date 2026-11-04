@@ -30,6 +30,7 @@ Author: Hans Bihs
 #include "sediment_f.h"
 #include "sediment_fdm.h"
 #include "sediment_mixture.h"
+#include "sediment_susp2D.h"
 
 void sediment_f::ini_cfd(lexer *p, fdm *a, ghostcell *pgc)
 {
@@ -41,11 +42,14 @@ void sediment_f::ini_cfd(lexer *p, fdm *a, ghostcell *pgc)
     ILOOP
     JLOOP
     {
+        h = p->ZN[0 + marge];  // no crossing in the column: bottom of the grid (h was uninitialised)
+
         KLOOP
         PBASECHECK
         {
+            // zero crossing between the cell centres k-1 and k (distance DZP[KM1]; DZP[KP] is k to k+1)
             if(a->topo(i, j, k - 1) < 0.0 && a->topo(i, j, k) > 0.0)
-                h = -(a->topo(i, j, k - 1) * p->DZP[KP]) / (a->topo(i, j, k) - a->topo(i, j, k - 1)) + p->pos_z() - p->DZP[KP];
+                h = -(a->topo(i, j, k - 1) * p->DZP[KM1]) / (a->topo(i, j, k) - a->topo(i, j, k - 1)) + p->pos_z() - p->DZP[KM1];
         }
         s->bedzh(i, j) = h;
         s->bedzh0(i, j) = h;
@@ -81,7 +85,8 @@ void sediment_f::ini_cfd(lexer *p, fdm *a, ghostcell *pgc)
 
     ini_parameters(p, pgc);
     ini_guard(p, pgc);
-    log_ini(p);
+    if(amrgrid == 0)
+        log_ini(p);
 }
 
 void sediment_f::ini_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
@@ -111,7 +116,8 @@ void sediment_f::ini_nhflow(lexer *p, fdm_nhf *d, ghostcell *pgc)
 
     ini_parameters(p, pgc);
     ini_guard(p, pgc);
-    log_ini(p);
+    if(amrgrid == 0)
+        log_ini(p);
 
     pslope->slope_cds(p, pgc, s);
 }
@@ -139,12 +145,17 @@ void sediment_f::ini_sflow(lexer *p, fdm2D *b, ghostcell *pgc)
 
     active_ini_sflow(p, b, pgc);
 
+    // depth-averaged suspended load (S 120)
+    if(psusp2D != nullptr)
+        psusp2D->ini(p, b, pgc, s);
+
     if(s->pmix != nullptr)
         s->pmix->ini(p, pgc, s);
 
     ini_parameters(p, pgc);
     ini_guard(p, pgc);
-    log_ini(p);
+    if(amrgrid == 0)
+        log_ini(p);
 }
 
 void sediment_f::ini_parameters(lexer *p, ghostcell *pgc)
@@ -202,6 +213,12 @@ void sediment_f::ini_guard(lexer *p, ghostcell *pgc)
                 s->guard(i, j) = 0.0;
             }
     }
+
+    // S 76: fixed-bed zones, the bed is held but the cells keep their bed load (supply)
+    for(n = 0; n < p->S76; ++n)
+        SLICELOOP4
+    if(p->pos_x() >= p->S76_xs[n] && p->pos_x() <= p->S76_xe[n] && p->pos_y() >= p->S76_ys[n] && p->pos_y() <= p->S76_ye[n])
+        s->guard(i, j) = 0.0;
 
     pgc->gcsl_start4(p, s->guard, 1);
 }

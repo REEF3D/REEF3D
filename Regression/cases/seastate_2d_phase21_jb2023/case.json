@@ -1,0 +1,16 @@
+{
+ "base": "seastate_2d_wind",
+ "ctrl_set": {
+  "A 732": "4"
+ },
+ "description": "as seastate_2d_wind (stationary fetch-limited growth, 40 x 3 cells of 1 km, DIA, limiter) with the input of Janssen and Bidlot (2023) and the Ardhuin dissipation (A 732 4, Phase 21, ecWAM IPHYS 1 with LLGCBZ0 and LLNORMAGAM): the stress of the gravity-capillary waves in the background roughness (STRESS_GC, HALPHAP), the renormalised growth rate, no sheltering. Validation in Dropbox SEASTATE/validation/70_janssen_bidlot.",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate"
+ ],
+ "covers": [
+  "seastate_st4 TAUT_Z0 with LLGCBZ0, STRESS_GC, HALPHAP, the renormalisation in SINPUT_ARD and TAU_PHI_HF",
+  "A 732 4"
+ ]
+}

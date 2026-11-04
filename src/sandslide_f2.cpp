@@ -23,9 +23,11 @@ Author: Hans Bihs
 #include "sandslide_f2.h"
 #include "ghostcell.h"
 #include "lexer.h"
+#include "sediment_curv.h"
 #include "sediment_fdm.h"
 #include "sediment_mixture.h"
 #include "sliceint.h"
+#include <algorithm>
 
 sandslide_f2::sandslide_f2(lexer *p) : norm_vec(p), bedslope(p), fh(p)
 {
@@ -103,6 +105,13 @@ void sandslide_f2::start(lexer *p, ghostcell *pgc, sediment_fdm *s)
 
 void sandslide_f2::slide(lexer *p, ghostcell *pgc, sediment_fdm *s)
 {
+    // curvilinear grid (G 50): sediment_curv.h
+    if(p->geo_curv == 1)
+    {
+        slide_curv(p, pgc, s);
+        return;
+    }
+
     k = s->bedk(i, j);
 
     // 1
@@ -111,150 +120,426 @@ void sandslide_f2::slide(lexer *p, ghostcell *pgc, sediment_fdm *s)
     maxdh = tan(s->phi(i, j)) * p->DXP[IM1];
 
     if(dh > maxdh && fabs(dh) < 1.0e15)
-        if(p->DFBED[Im1J] > 0)
+        if(p->DFBED[Im1J] > 0 && SLIDE_NB(-1, 0))
         {
             dh_corr = (dh - maxdh) + tan(p->S93 * (PI / 180.0)) * p->DXP[IM1];
 
             fh(i, j) -= fac1 * dh_corr;
-            fh(i - 1, j) += fac1 * dh_corr;
+            fh(i - 1, j) += fac1 * dh_corr * SLIDE_AR(-1, 0);
 
-            if(s->pmix != nullptr)
-                s->pmix->slide_transfer(i, j, i - 1, j, fac1 * dh_corr);
+            // 1
+            dh = s->bedzh(i, j) - s->bedzh(i - 1, j);
 
-            ++count;
-        }
+            // 2
+            dh = s->bedzh(i, j) - s->bedzh(i + 1, j);
 
-    // 2
-    dh = s->bedzh(i, j) - s->bedzh(i + 1, j);
+            maxdh = tan(s->phi(i, j)) * p->DXP[IP];
 
-    maxdh = tan(s->phi(i, j)) * p->DXP[IP];
+            if(dh > maxdh && fabs(dh) < 1.0e15)
+                if(p->DFBED[Ip1J] > 0 && SLIDE_NB(1, 0))
+                {
+                    dh_corr = (dh - maxdh) + tan(p->S93 * (PI / 180.0)) * p->DXP[IP];
 
-    if(dh > maxdh && fabs(dh) < 1.0e15)
-        if(p->DFBED[Ip1J] > 0)
-        {
-            dh_corr = (dh - maxdh) + tan(p->S93 * (PI / 180.0)) * p->DXP[IP];
+                    fh(i, j) -= fac1 * dh_corr;
+                    fh(i + 1, j) += fac1 * dh_corr * SLIDE_AR(1, 0);
 
-            fh(i, j) -= fac1 * dh_corr;
-            fh(i + 1, j) += fac1 * dh_corr;
+                    if(s->pmix != nullptr)
+                        s->pmix->slide_transfer(i, j, i + 1, j, fac1 * dh_corr);
 
-            if(s->pmix != nullptr)
-                s->pmix->slide_transfer(i, j, i + 1, j, fac1 * dh_corr);
+                    ++count;
+                }
 
-            ++count;
-        }
+            // 3
+            dh = s->bedzh(i, j) - s->bedzh(i, j - 1);
 
-    // 3
-    dh = s->bedzh(i, j) - s->bedzh(i, j - 1);
+            maxdh = tan(s->phi(i, j)) * p->DYP[JM1];
 
-    maxdh = tan(s->phi(i, j)) * p->DYP[JM1];
+            if(dh > maxdh && fabs(dh) < 1.0e15)
+                if(p->DFBED[IJm1] > 0 && SLIDE_NB(0, -1))
+                {
+                    dh_corr = (dh - maxdh) + tan(p->S93 * (PI / 180.0)) * p->DYP[JM1];
 
-    if(dh > maxdh && fabs(dh) < 1.0e15)
-        if(p->DFBED[IJm1] > 0)
-        {
-            dh_corr = (dh - maxdh) + tan(p->S93 * (PI / 180.0)) * p->DYP[JM1];
+                    fh(i, j) -= fac1 * dh_corr;
+                    fh(i, j - 1) += fac1 * dh_corr * SLIDE_AR(0, -1);
 
-            fh(i, j) -= fac1 * dh_corr;
-            fh(i, j - 1) += fac1 * dh_corr;
+                    if(s->pmix != nullptr)
+                        s->pmix->slide_transfer(i, j, i, j - 1, fac1 * dh_corr);
 
-            if(s->pmix != nullptr)
-                s->pmix->slide_transfer(i, j, i, j - 1, fac1 * dh_corr);
+                    ++count;
+                }
 
-            ++count;
-        }
+            // 4
+            dh = s->bedzh(i, j) - s->bedzh(i, j + 1);
 
-    // 4
-    dh = s->bedzh(i, j) - s->bedzh(i, j + 1);
+            maxdh = tan(s->phi(i, j)) * p->DYP[JP];
 
-    maxdh = tan(s->phi(i, j)) * p->DYP[JP];
+            if(dh > maxdh && fabs(dh) < 1.0e15)
+                if(p->DFBED[IJp1] > 0 && SLIDE_NB(0, 1))
+                {
+                    dh_corr = (dh - maxdh) + tan(p->S93 * (PI / 180.0)) * p->DYP[JP];
 
-    if(dh > maxdh && fabs(dh) < 1.0e15)
-        if(p->DFBED[IJp1] > 0)
-        {
-            dh_corr = (dh - maxdh) + tan(p->S93 * (PI / 180.0)) * p->DYP[JP];
+                    fh(i, j) -= fac1 * dh_corr;
+                    fh(i, j + 1) += fac1 * dh_corr * SLIDE_AR(0, 1);
 
-            fh(i, j) -= fac1 * dh_corr;
-            fh(i, j + 1) += fac1 * dh_corr;
+                    if(s->pmix != nullptr)
+                        s->pmix->slide_transfer(i, j, i, j + 1, fac1 * dh_corr);
 
-            if(s->pmix != nullptr)
-                s->pmix->slide_transfer(i, j, i, j + 1, fac1 * dh_corr);
+                    ++count;
+                }
 
-            ++count;
-        }
+            // 5
+            dh = s->bedzh(i, j) - s->bedzh(i - 1, j - 1);
 
-    // 5
-    dh = s->bedzh(i, j) - s->bedzh(i - 1, j - 1);
+            maxdhs = tan(s->phi(i, j)) * sqrt(p->DXP[IM1] * p->DXP[IM1] + p->DYP[JM1] * p->DYP[JM1]);
 
-    maxdhs = tan(s->phi(i, j)) * sqrt(p->DXP[IM1] * p->DXP[IM1] + p->DYP[JM1] * p->DYP[JM1]);
+            if(dh > maxdhs && fabs(dh) < 1.0e15)
+                if(p->DFBED[Im1Jm1] > 0 && SLIDE_NB(-1, -1))
+                {
+                    dh_corr = (dh - maxdhs) + tan(p->S93 * (PI / 180.0)) * sqrt(p->DXP[IM1] * p->DXP[IM1] + p->DYP[JM1] * p->DYP[JM1]);
 
-    if(dh > maxdhs && fabs(dh) < 1.0e15)
-        if(p->DFBED[Im1Jm1] > 0)
-        {
-            dh_corr = (dh - maxdhs) + tan(p->S93 * (PI / 180.0)) * sqrt(p->DXP[IM1] * p->DXP[IM1] + p->DYP[JM1] * p->DYP[JM1]);
+                    fh(i, j) -= fac2 * dh_corr;
+                    fh(i - 1, j - 1) += fac2 * dh_corr * SLIDE_AR(-1, -1);
 
-            fh(i, j) -= fac2 * dh_corr;
-            fh(i - 1, j - 1) += fac2 * dh_corr;
+                    fh(i, j) -= fac1 * dh_corr;
+                    fh(i - 1, j) += fac1 * dh_corr;
 
-            if(s->pmix != nullptr)
-                s->pmix->slide_transfer(i, j, i - 1, j - 1, fac2 * dh_corr);
+                    if(s->pmix != nullptr)
+                        s->pmix->slide_transfer(i, j, i - 1, j, fac1 * dh_corr);
 
-            ++count;
-        }
+                    maxdhs = tan(s->phi(i, j)) * sqrt(p->DXP[IM1] * p->DXP[IM1] + p->DYP[JP] * p->DYP[JP]);
 
-    // 6
-    dh = s->bedzh(i, j) - s->bedzh(i - 1, j + 1);
+                    if(dh > maxdhs && fabs(dh) < 1.0e15)
+                        if(p->DFBED[Im1Jp1] > 0 && SLIDE_NB(-1, 1))
+                        {
+                            dh_corr = (dh - maxdhs) + tan(p->S93 * (PI / 180.0)) * sqrt(p->DXP[IM1] * p->DXP[IM1] + p->DYP[JP] * p->DYP[JP]);
 
-    maxdhs = tan(s->phi(i, j)) * sqrt(p->DXP[IM1] * p->DXP[IM1] + p->DYP[JP] * p->DYP[JP]);
+                            fh(i, j) -= fac2 * dh_corr;
+                            fh(i - 1, j + 1) += fac2 * dh_corr * SLIDE_AR(-1, 1);
 
-    if(dh > maxdhs && fabs(dh) < 1.0e15)
-        if(p->DFBED[Im1Jp1] > 0)
-        {
-            dh_corr = (dh - maxdhs) + tan(p->S93 * (PI / 180.0)) * sqrt(p->DXP[IM1] * p->DXP[IM1] + p->DYP[JP] * p->DYP[JP]);
+                            if(s->pmix != nullptr)
+                                s->pmix->slide_transfer(i, j, i - 1, j + 1, fac2 * dh_corr);
 
-            fh(i, j) -= fac2 * dh_corr;
-            fh(i - 1, j + 1) += fac2 * dh_corr;
+                            ++count;
+                        }
 
-            if(s->pmix != nullptr)
-                s->pmix->slide_transfer(i, j, i - 1, j + 1, fac2 * dh_corr);
+                    // 7
+                    dh = s->bedzh(i, j) - s->bedzh(i + 1, j - 1);
 
-            ++count;
-        }
+                    maxdhs = tan(s->phi(i, j)) * sqrt(p->DXP[IP] * p->DXP[IP] + p->DYP[JM1] * p->DYP[JM1]);
 
-    // 7
-    dh = s->bedzh(i, j) - s->bedzh(i + 1, j - 1);
+                    if(dh > maxdhs && fabs(dh) < 1.0e15)
+                        if(p->DFBED[Ip1Jm1] > 0 && SLIDE_NB(1, -1))
+                        {
+                            dh_corr = (dh - maxdhs) + tan(p->S93 * (PI / 180.0)) * sqrt(p->DXP[IP] * p->DXP[IP] + p->DYP[JM1] * p->DYP[JM1]);
 
-    maxdhs = tan(s->phi(i, j)) * sqrt(p->DXP[IP] * p->DXP[IP] + p->DYP[JM1] * p->DYP[JM1]);
+                            fh(i, j) -= fac2 * dh_corr;
+                            fh(i + 1, j - 1) += fac2 * dh_corr * SLIDE_AR(1, -1);
 
-    if(dh > maxdhs && fabs(dh) < 1.0e15)
-        if(p->DFBED[Ip1Jm1] > 0)
-        {
-            dh_corr = (dh - maxdhs) + tan(p->S93 * (PI / 180.0)) * sqrt(p->DXP[IP] * p->DXP[IP] + p->DYP[JM1] * p->DYP[JM1]);
+                            maxdh = tan(s->phi(i, j)) * p->DXP[IP];
 
-            fh(i, j) -= fac2 * dh_corr;
-            fh(i + 1, j - 1) += fac2 * dh_corr;
+                            if(dh > maxdh && fabs(dh) < 1.0e15)
+                                if(p->DFBED[Ip1J] > 0)
+                                {
+                                    dh_corr = (dh - maxdh) + tan(p->S93 * (PI / 180.0)) * p->DXP[IP];
 
-            if(s->pmix != nullptr)
-                s->pmix->slide_transfer(i, j, i + 1, j - 1, fac2 * dh_corr);
+                                    fh(i, j) -= fac1 * dh_corr;
+                                    fh(i + 1, j) += fac1 * dh_corr;
 
-            ++count;
-        }
+                                    if(s->pmix != nullptr)
+                                        s->pmix->slide_transfer(i, j, i + 1, j, fac1 * dh_corr);
 
-    // 8
-    dh = s->bedzh(i, j) - s->bedzh(i + 1, j + 1);
+                                    ++count;
+                                }
 
-    maxdhs = tan(s->phi(i, j)) * sqrt(p->DXP[IP] * p->DXP[IP] + p->DYP[JP] * p->DYP[JP]);
+                            if(dh > maxdhs && fabs(dh) < 1.0e15)
+                                if(p->DFBED[Ip1Jp1] > 0 && SLIDE_NB(1, 1))
+                                {
+                                    dh_corr = (dh - maxdhs) + tan(p->S93 * (PI / 180.0)) * sqrt(p->DXP[IP] * p->DXP[IP] + p->DYP[JP] * p->DYP[JP]);
 
-    if(dh > maxdhs && fabs(dh) < 1.0e15)
-        if(p->DFBED[Ip1Jp1] > 0)
-        {
-            dh_corr = (dh - maxdhs) + tan(p->S93 * (PI / 180.0)) * sqrt(p->DXP[IP] * p->DXP[IP] + p->DYP[JP] * p->DYP[JP]);
+                                    fh(i, j) -= fac2 * dh_corr;
+                                    fh(i + 1, j + 1) += fac2 * dh_corr * SLIDE_AR(1, 1);
 
-            fh(i, j) -= fac2 * dh_corr;
-            fh(i + 1, j + 1) += fac2 * dh_corr;
+                                    maxdh = tan(s->phi(i, j)) * p->DYP[JM1];
 
-            if(s->pmix != nullptr)
-                s->pmix->slide_transfer(i, j, i + 1, j + 1, fac2 * dh_corr);
+                                    if(dh > maxdh && fabs(dh) < 1.0e15)
+                                        if(p->DFBED[IJm1] > 0)
+                                        {
+                                            dh_corr = (dh - maxdh) + tan(p->S93 * (PI / 180.0)) * p->DYP[JM1];
 
-            ++count;
-        }
-}
+                                            fh(i, j) -= fac1 * dh_corr;
+                                            fh(i, j - 1) += fac1 * dh_corr;
 
+                                            if(s->pmix != nullptr)
+                                                s->pmix->slide_transfer(i, j, i, j - 1, fac1 * dh_corr);
+
+                                            ++count;
+                                        }
+
+                                    // 4
+                                    dh = s->bedzh(i, j) - s->bedzh(i, j + 1);
+
+                                    maxdh = tan(s->phi(i, j)) * p->DYP[JP];
+
+                                    if(dh > maxdh && fabs(dh) < 1.0e15)
+                                        if(p->DFBED[IJp1] > 0)
+                                        {
+                                            dh_corr = (dh - maxdh) + tan(p->S93 * (PI / 180.0)) * p->DYP[JP];
+
+                                            fh(i, j) -= fac1 * dh_corr;
+                                            fh(i, j + 1) += fac1 * dh_corr;
+
+                                            if(s->pmix != nullptr)
+                                                s->pmix->slide_transfer(i, j, i, j + 1, fac1 * dh_corr);
+
+                                            ++count;
+                                        }
+
+                                    // 5
+                                    dh = s->bedzh(i, j) - s->bedzh(i - 1, j - 1);
+
+                                    maxdhs = tan(s->phi(i, j)) * sqrt(p->DXP[IM1] * p->DXP[IM1] + p->DYP[JM1] * p->DYP[JM1]);
+
+                                    if(dh > maxdhs && fabs(dh) < 1.0e15)
+                                        if(p->DFBED[Im1Jm1] > 0)
+                                        {
+                                            dh_corr = (dh - maxdhs) + tan(p->S93 * (PI / 180.0)) * sqrt(p->DXP[IM1] * p->DXP[IM1] + p->DYP[JM1] * p->DYP[JM1]);
+
+                                            fh(i, j) -= fac2 * dh_corr;
+                                            fh(i - 1, j - 1) += fac2 * dh_corr;
+
+                                            if(s->pmix != nullptr)
+                                                s->pmix->slide_transfer(i, j, i - 1, j - 1, fac2 * dh_corr);
+
+                                            ++count;
+                                        }
+
+                                    // 6
+                                    dh = s->bedzh(i, j) - s->bedzh(i - 1, j + 1);
+
+                                    maxdhs = tan(s->phi(i, j)) * sqrt(p->DXP[IM1] * p->DXP[IM1] + p->DYP[JP] * p->DYP[JP]);
+
+                                    if(dh > maxdhs && fabs(dh) < 1.0e15)
+                                        if(p->DFBED[Im1Jp1] > 0)
+                                        {
+                                            dh_corr = (dh - maxdhs) + tan(p->S93 * (PI / 180.0)) * sqrt(p->DXP[IM1] * p->DXP[IM1] + p->DYP[JP] * p->DYP[JP]);
+
+                                            fh(i, j) -= fac2 * dh_corr;
+                                            fh(i - 1, j + 1) += fac2 * dh_corr;
+
+                                            if(s->pmix != nullptr)
+                                                s->pmix->slide_transfer(i, j, i - 1, j + 1, fac2 * dh_corr);
+
+                                            ++count;
+                                        }
+
+                                    // 7
+                                    dh = s->bedzh(i, j) - s->bedzh(i + 1, j - 1);
+
+                                    maxdhs = tan(s->phi(i, j)) * sqrt(p->DXP[IP] * p->DXP[IP] + p->DYP[JM1] * p->DYP[JM1]);
+
+                                    if(dh > maxdhs && fabs(dh) < 1.0e15)
+                                        if(p->DFBED[Ip1Jm1] > 0)
+                                        {
+                                            dh_corr = (dh - maxdhs) + tan(p->S93 * (PI / 180.0)) * sqrt(p->DXP[IP] * p->DXP[IP] + p->DYP[JM1] * p->DYP[JM1]);
+
+                                            fh(i, j) -= fac2 * dh_corr;
+                                            fh(i + 1, j - 1) += fac2 * dh_corr;
+
+                                            if(s->pmix != nullptr)
+                                                s->pmix->slide_transfer(i, j, i + 1, j - 1, fac2 * dh_corr);
+
+                                            ++count;
+                                        }
+
+                                    // 8
+                                    dh = s->bedzh(i, j) - s->bedzh(i + 1, j + 1);
+
+                                    maxdhs = tan(s->phi(i, j)) * sqrt(p->DXP[IP] * p->DXP[IP] + p->DYP[JP] * p->DYP[JP]);
+
+                                    if(dh > maxdhs && fabs(dh) < 1.0e15)
+                                        if(p->DFBED[Ip1Jp1] > 0)
+                                        {
+                                            dh_corr = (dh - maxdhs) + tan(p->S93 * (PI / 180.0)) * sqrt(p->DXP[IP] * p->DXP[IP] + p->DYP[JP] * p->DYP[JP]);
+
+                                            fh(i, j) -= fac2 * dh_corr;
+                                            fh(i + 1, j + 1) += fac2 * dh_corr;
+
+                                            if(s->pmix != nullptr)
+                                                s->pmix->slide_transfer(i, j, i + 1, j + 1, fac2 * dh_corr);
+
+                                            ++count;
+                                        }
+                                }
+
+                            // ---- curvilinear grid (G 50): the functions above with the geometry of sediment_curv.h
+
+                            void sandslide_f2::slide_curv(lexer * p, ghostcell * pgc, sediment_fdm * s)
+                            {
+                                k = s->bedk(i, j);
+
+                                // 1
+                                dh = s->bedzh(i, j) - s->bedzh(i - 1, j);
+
+                                maxdh = tan(s->phi(i, j)) * SLIDE_D(-1, 0, p->DXP[IM1]);
+
+                                if(dh > maxdh && fabs(dh) < 1.0e15)
+                                    if(p->DFBED[Im1J] > 0 && SLIDE_NB(-1, 0))
+                                    {
+                                        dh_corr = (dh - maxdh) + tan(p->S93 * (PI / 180.0)) * SLIDE_D(-1, 0, p->DXP[IM1]);
+
+                                        fh(i, j) -= fac1 * dh_corr;
+                                        fh(i - 1, j) += fac1 * dh_corr * SLIDE_ARC(-1, 0);
+
+                                        if(s->pmix != nullptr)
+                                            s->pmix->slide_transfer(i, j, i - 1, j, fac1 * dh_corr);
+
+                                        ++count;
+                                    }
+
+                                // 2
+                                dh = s->bedzh(i, j) - s->bedzh(i + 1, j);
+
+                                maxdh = tan(s->phi(i, j)) * SLIDE_D(1, 0, p->DXP[IP]);
+
+                                if(dh > maxdh && fabs(dh) < 1.0e15)
+                                    if(p->DFBED[Ip1J] > 0 && SLIDE_NB(1, 0))
+                                    {
+                                        dh_corr = (dh - maxdh) + tan(p->S93 * (PI / 180.0)) * SLIDE_D(1, 0, p->DXP[IP]);
+
+                                        fh(i, j) -= fac1 * dh_corr;
+                                        fh(i + 1, j) += fac1 * dh_corr * SLIDE_ARC(1, 0);
+
+                                        if(s->pmix != nullptr)
+                                            s->pmix->slide_transfer(i, j, i + 1, j, fac1 * dh_corr);
+
+                                        ++count;
+                                    }
+
+                                // 3
+                                dh = s->bedzh(i, j) - s->bedzh(i, j - 1);
+
+                                maxdh = tan(s->phi(i, j)) * SLIDE_D(0, -1, p->DYP[JM1]);
+
+                                if(dh > maxdh && fabs(dh) < 1.0e15)
+                                    if(p->DFBED[IJm1] > 0 && SLIDE_NB(0, -1))
+                                    {
+                                        dh_corr = (dh - maxdh) + tan(p->S93 * (PI / 180.0)) * SLIDE_D(0, -1, p->DYP[JM1]);
+
+                                        fh(i, j) -= fac1 * dh_corr;
+                                        fh(i, j - 1) += fac1 * dh_corr * SLIDE_ARC(0, -1);
+
+                                        if(s->pmix != nullptr)
+                                            s->pmix->slide_transfer(i, j, i, j - 1, fac1 * dh_corr);
+
+                                        ++count;
+                                    }
+
+                                // 4
+                                dh = s->bedzh(i, j) - s->bedzh(i, j + 1);
+
+                                maxdh = tan(s->phi(i, j)) * SLIDE_D(0, 1, p->DYP[JP]);
+
+                                if(dh > maxdh && fabs(dh) < 1.0e15)
+                                    if(p->DFBED[IJp1] > 0 && SLIDE_NB(0, 1))
+                                    {
+                                        dh_corr = (dh - maxdh) + tan(p->S93 * (PI / 180.0)) * SLIDE_D(0, 1, p->DYP[JP]);
+
+                                        fh(i, j) -= fac1 * dh_corr;
+                                        fh(i, j + 1) += fac1 * dh_corr * SLIDE_ARC(0, 1);
+
+                                        if(s->pmix != nullptr)
+                                            s->pmix->slide_transfer(i, j, i, j + 1, fac1 * dh_corr);
+
+                                        ++count;
+                                    }
+
+                                // 5
+                                dh = s->bedzh(i, j) - s->bedzh(i - 1, j - 1);
+
+                                maxdhs = tan(s->phi(i, j)) * SLIDE_D(-1, -1, sqrt(p->DXP[IM1] * p->DXP[IM1] + p->DYP[JM1] * p->DYP[JM1]));
+
+                                if(dh > maxdhs && fabs(dh) < 1.0e15)
+                                    if(p->DFBED[Im1Jm1] > 0 && SLIDE_NB(-1, -1))
+                                    {
+                                        dh_corr = (dh - maxdhs) + tan(p->S93 * (PI / 180.0)) * SLIDE_D(-1, -1, sqrt(p->DXP[IM1] * p->DXP[IM1] + p->DYP[JM1] * p->DYP[JM1]));
+
+                                        fh(i, j) -= fac2 * dh_corr;
+                                        fh(i - 1, j - 1) += fac2 * dh_corr * SLIDE_ARC(-1, -1);
+
+                                        if(s->pmix != nullptr)
+                                            s->pmix->slide_transfer(i, j, i - 1, j - 1, fac2 * dh_corr);
+
+                                        ++count;
+                                    }
+
+                                // 6
+                                dh = s->bedzh(i, j) - s->bedzh(i - 1, j + 1);
+
+                                maxdhs = tan(s->phi(i, j)) * SLIDE_D(-1, 1, sqrt(p->DXP[IM1] * p->DXP[IM1] + p->DYP[JP] * p->DYP[JP]));
+
+                                if(dh > maxdhs && fabs(dh) < 1.0e15)
+                                    if(p->DFBED[Im1Jp1] > 0 && SLIDE_NB(-1, 1))
+                                    {
+                                        dh_corr = (dh - maxdhs) + tan(p->S93 * (PI / 180.0)) * SLIDE_D(-1, 1, sqrt(p->DXP[IM1] * p->DXP[IM1] + p->DYP[JP] * p->DYP[JP]));
+
+                                        fh(i, j) -= fac2 * dh_corr;
+                                        fh(i - 1, j + 1) += fac2 * dh_corr * SLIDE_ARC(-1, 1);
+
+                                        if(s->pmix != nullptr)
+                                            s->pmix->slide_transfer(i, j, i - 1, j + 1, fac2 * dh_corr);
+
+                                        ++count;
+                                    }
+
+                                // 7
+                                dh = s->bedzh(i, j) - s->bedzh(i + 1, j - 1);
+
+                                maxdhs = tan(s->phi(i, j)) * SLIDE_D(1, -1, sqrt(p->DXP[IP] * p->DXP[IP] + p->DYP[JM1] * p->DYP[JM1]));
+
+                                if(dh > maxdhs && fabs(dh) < 1.0e15)
+                                    if(p->DFBED[Ip1Jm1] > 0 && SLIDE_NB(1, -1))
+                                    {
+                                        dh_corr = (dh - maxdhs) + tan(p->S93 * (PI / 180.0)) * SLIDE_D(1, -1, sqrt(p->DXP[IP] * p->DXP[IP] + p->DYP[JM1] * p->DYP[JM1]));
+
+                                        fh(i, j) -= fac2 * dh_corr;
+                                        fh(i + 1, j - 1) += fac2 * dh_corr * SLIDE_ARC(1, -1);
+
+                                        if(s->pmix != nullptr)
+                                            s->pmix->slide_transfer(i, j, i + 1, j - 1, fac2 * dh_corr);
+
+                                        ++count;
+                                    }
+
+                                // 8
+                                dh = s->bedzh(i, j) - s->bedzh(i + 1, j + 1);
+
+                                maxdhs = tan(s->phi(i, j)) * SLIDE_D(1, 1, sqrt(p->DXP[IP] * p->DXP[IP] + p->DYP[JP] * p->DYP[JP]));
+
+                                if(dh > maxdhs && fabs(dh) < 1.0e15)
+                                    if(p->DFBED[Ip1Jp1] > 0 && SLIDE_NB(1, 1))
+                                    {
+                                        dh_corr = (dh - maxdhs) + tan(p->S93 * (PI / 180.0)) * SLIDE_D(1, 1, sqrt(p->DXP[IP] * p->DXP[IP] + p->DYP[JP] * p->DYP[JP]));
+
+                                        fh(i, j) -= fac2 * dh_corr;
+                                        fh(i + 1, j + 1) += fac2 * dh_corr * SLIDE_ARC(1, 1);
+
+                                        if(s->pmix != nullptr)
+                                            s->pmix->slide_transfer(i, j, i + 1, j + 1, fac2 * dh_corr);
+
+                                        ++count;
+                                    }
+                            }
+
+                            // mesh refinement and multi-block grids: one iteration of start() (sandslide.h)
+                            int sandslide_f2::amr_sweep(lexer * p, ghostcell * pgc, sediment_fdm * s)
+                            {
+                                count = 0;
+                                std::fill(fh.V, fh.V + p->imax * p->jmax, 0.0);
+
+                                SEDSLICELOOP
+                                SLIDE_DONOR
+                                if(p->pos_x() > p->S77_xs && p->pos_x() < p->S77_xe)
+                                    slide(p, pgc, s);
+
+                                return count;
+                            }

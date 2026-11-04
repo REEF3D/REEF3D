@@ -1,0 +1,17 @@
+{
+ "description": "sflow_shipwave_box with mesh refinement around the towed pressure box (X 10 3, X 400 2, A 220 2): 2 levels, G 12 margin and G 13 wake wedge moving with the body, regrid every 4 steps.",
+ "solver": "sflow",
+ "np": 1,
+ "steps": 40,
+ "tags": [
+  "2d",
+  "sflow",
+  "amr",
+  "ship",
+  "6dof",
+  "nh"
+ ],
+ "covers": [
+  "sflow_amr_ship: body fields on the patches, moving refinement zone, sflow_pjm_quad composite pressure"
+ ]
+}

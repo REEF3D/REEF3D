@@ -21,12 +21,15 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include "probe_point.h"
+#include "amr_grid_lookup.h"
 #include "fdm.h"
 #include "ghostcell.h"
 #include "lexer.h"
+#include "reefckpt.h"
 #include "turbulence.h"
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <vector>
 
 probe_point::probe_point(lexer *p, fdm *a, ghostcell *pgc) : probenum(p->P61)
 {
@@ -48,6 +51,9 @@ probe_point::probe_point(lexer *p, fdm *a, ghostcell *pgc) : probenum(p->P61)
         for(n = 0; n < probenum; ++n)
         {
             sprintf(name, "./REEF3D_CFD_ProbePoint/REEF3D-CFD-Probe-Point-%i.dat", n + 1);
+
+            if(!reefckpt_open(pout[n], name, p->I45))  // I 45: continued
+                continue;
 
             pout[n].open(name);
 
@@ -78,37 +84,41 @@ probe_point::~probe_point()
 void probe_point::start(lexer *p, fdm *a, ghostcell *pgc, turbulence *pturb)
 {
     double xp, yp, zp;
+    std::vector<double> val(7 * probenum, -1.0e20);  // u v w p k eps eddyv per probe, one reduction for all
+
+    // the probes of this rank: on its level-0 grid; with the placement of the CFD patches (G 40)
+    // the rank of the finest grid there
+    std::vector<char> mine;
+    amr_cfd_mine(amr, probenum, p->P61_x, p->P61_y, p->P61_z, flag, mine);
 
     for(n = 0; n < probenum; ++n)
-    {
-        uval = vval = wval = pval = kval = eval = edval = -1.0e20;
-
-        if(flag[n] > 0)
+        if(mine[n])
         {
             xp = p->P61_x[n];
             yp = p->P61_y[n];
             zp = p->P61_z[n];
 
-            uval = p->ccipol1(a->u, xp, yp, zp);
-            vval = p->ccipol2(a->v, xp, yp, zp);
-            wval = p->ccipol3(a->w, xp, yp, zp);
-            pval = p->ccipol4a(a->press, xp, yp, zp) - p->pressgage;
-            kval = pturb->ccipol_kinval(p, pgc, xp, yp, zp);
-            eval = pturb->ccipol_epsval(p, pgc, xp, yp, zp);
-            edval = p->ccipol4a(a->eddyv, xp, yp, zp);
+            // the grid of the values: level 0, or the finest patch of a mesh refinement there
+            lexer *q = p;
+            fdm *fa = a;
+            turbulence *t = pturb;
+            if(amr != nullptr)
+                amr->finest_grid(xp, yp, zp, q, fa, t);
+
+            val[7 * n + 0] = q->ccipol1(fa->u, xp, yp, zp);
+            val[7 * n + 1] = q->ccipol2(fa->v, xp, yp, zp);
+            val[7 * n + 2] = q->ccipol3(fa->w, xp, yp, zp);
+            val[7 * n + 3] = q->ccipol4a(fa->press, xp, yp, zp) - p->pressgage;
+            val[7 * n + 4] = t->ccipol_kinval(q, pgc, xp, yp, zp);
+            val[7 * n + 5] = t->ccipol_epsval(q, pgc, xp, yp, zp);
+            val[7 * n + 6] = q->ccipol4a(fa->eddyv, xp, yp, zp);
         }
 
-        uval = pgc->globalmax(uval);
-        vval = pgc->globalmax(vval);
-        wval = pgc->globalmax(wval);
-        pval = pgc->globalmax(pval);
-        kval = pgc->globalmax(kval);
-        eval = pgc->globalmax(eval);
-        edval = pgc->globalmax(edval);
+    pgc->globalmax(val.data(), 7 * probenum);
 
-        if(p->mpirank == 0)
-            pout[n] << setprecision(9) << p->simtime << " \t " << uval << " \t " << vval << " \t " << wval << " \t " << pval << " \t " << kval << " \t " << eval << " \t " << edval << endl;
-    }
+    if(p->mpirank == 0)
+        for(n = 0; n < probenum; ++n)
+            pout[n] << setprecision(9) << p->simtime << " \t " << val[7 * n + 0] << " \t " << val[7 * n + 1] << " \t " << val[7 * n + 2] << " \t " << val[7 * n + 3] << " \t " << val[7 * n + 4] << " \t " << val[7 * n + 5] << " \t " << val[7 * n + 6] << endl;
 }
 
 void probe_point::ini_location(lexer *p, fdm *a, ghostcell *pgc)

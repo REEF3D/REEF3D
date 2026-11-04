@@ -1,0 +1,19 @@
+{
+ "base": "cfd_2d_dambreak_amr_adapt",
+ "np": 2,
+ "ctrl_add": [
+  "G 40 1",
+  "G 41 2.0"
+ ],
+ "description": "cfd_2d_dambreak_amr_adapt on 2 ranks with G 40 1 and a patch cell counted as two level-0 cells in the placement (G 41 2.0, patch 0070).",
+ "tags": [
+  "2d",
+  "dambreak",
+  "levelset",
+  "amr",
+  "mpi"
+ ],
+ "covers": [
+  "reefamr3d load_w with the weight of a patch cell (G 41 > 0)"
+ ]
+}

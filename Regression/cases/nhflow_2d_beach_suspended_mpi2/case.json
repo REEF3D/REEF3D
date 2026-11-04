@@ -1,0 +1,21 @@
+{
+ "description": "NHFLOW 2D wave flume with a 1:12 sand beach, Engelund-Fredsoe bedload + van Rijn suspended load (S 12 1), swash with wetting and drying, bed shear blending S 38, two subdomains. Waves reach the shoreline after about 400 steps.",
+ "solver": "nhflow",
+ "np": 2,
+ "steps": 700,
+ "tags": [
+  "2d",
+  "nhflow",
+  "sediment",
+  "suspended",
+  "waves",
+  "wetdry",
+  "mpi"
+ ],
+ "covers": [
+  "nhflow_suspended_IM1 (conservative D*C form, GCL time term, dry-column deposit)",
+  "nhflow_scalar_ifou::start_conservative (FEx/FEy face fluxes across the MPI interface)",
+  "sediment_exner::susp_ED (wet, DFBED, cbn)",
+  "bedconc_VR, bedload_EF, S 38"
+ ]
+}

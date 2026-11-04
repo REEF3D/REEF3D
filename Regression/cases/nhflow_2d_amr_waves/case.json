@@ -1,0 +1,15 @@
+{
+ "description": "NHFLOW AMR on a 2D grid (one cell in y, j_dir 0): regular waves (B 92 2) in a 24 m flume, one level over 5-10 m that the waves enter; x-only refinement (2x1 children), the patch and level-0 pressure solves exact (reefamr_xzlu).",
+ "solver": "nhflow",
+ "np": 1,
+ "steps": 300,
+ "tags": [
+  "2d",
+  "nhflow",
+  "amr"
+ ],
+ "covers": [
+  "nhflow_amr on a 2D grid: fill, prolongation, restriction, flux matching",
+  "nhflow_amr_press: reefamr_xzlu patch and level-0 solves"
+ ]
+}

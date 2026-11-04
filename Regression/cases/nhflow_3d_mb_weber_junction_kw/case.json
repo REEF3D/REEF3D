@@ -1,0 +1,24 @@
+{
+ "np": 1,
+ "steps": 150,
+ "solver": "nhflow",
+ "files": [
+  "blocks.dat"
+ ],
+ "tags": [
+  "3d",
+  "nhflow",
+  "curvilinear",
+  "multiblock",
+  "river",
+  "turbulence"
+ ],
+ "description": "The 90 deg junction of Weber et al. (2001) on three blocks with NHFLOW and k-omega (W/dx 6, 4 layers, bed friction A 519 1, free-surface omega A 567 3): the main channel downstream block 0 (native outflow), upstream and junction block 1 (inflow G 54 1 1), the branch block 2 (inflow G 54 2 1) on a part of block 1's +j face, both inflows with the log-law profile (B 61 2).  The corner where block 1's wall ends and the interface begins: before P6b the wall ghost cells there took the surface of the branch (a jet of 4 m/s).",
+ "covers": [
+  "reefamr::build_bc2D: the 2D wall lists of the own cells on multi-block grids",
+  "nhflow_amr_turb.cpp on blocks with open faces (G 54)",
+  "ioflow_amr_block::inflow_nhflow with B 61 2 (the log-law inflow on a face of a block)",
+  "nhflow_bcmom::wall_friction A 519 1 on the blocks",
+  "nhflow_komega_func::epsfsf A 567 3 on the blocks"
+ ]
+}

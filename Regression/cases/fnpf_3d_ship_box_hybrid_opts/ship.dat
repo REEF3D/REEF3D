@@ -1,0 +1,29 @@
+# Architect: Hans Bihs
+# box barge 1.0 x 0.3 m, draft 0.1 m in FNPF waves: MMG hybrid (KVLCC2 derivatives, mmg_fluid 2),
+# approach phase, propeller with inflow sampled from the FNPF velocity, MMG rudder at 35 deg
+# hybrid options: hybrid_munk (A22 - A11 of the Munk moment taken out), hybrid_surge 1 (MMG surge
+# velocity term), R0 reduced by the FNPF resistance
+lpp 1.0
+friction 0
+roll_damping 0.05 0.0
+mmg_hull 0.005 -0.040 0.002 0.011 0.771 -0.315 0.083 -1.607 0.379 -0.391 0.008 -0.137 -0.049 -0.030 -0.294 0.055 -0.013
+mmg_added_mass 0.022 0.223 0.011
+mmg_draft 0.1
+mmg_fluid 2
+propeller -0.52 0.0 -0.05 0.031
+propeller_kt 0.2931 -0.2753 -0.1385
+propeller_kq 0.03 -0.02 -0.01
+propeller_rps 27.5
+propeller_source 0
+propeller_inflow sample 0.03
+thrust_deduction 0.220
+rudder -0.54 -0.05 0.0011 2.20826
+rudder_mmg 0.387 0.312 -0.464 1.09 0.50 -0.710 0.395
+rudder_gamma 0.395 0.640
+rudder_falpha 2.747
+rudder_rate 31.5
+rudder_max 35
+rudder_angle fixed 35
+approach 0.4457 1.0 1.5
+hybrid_munk 8.0
+hybrid_surge 1

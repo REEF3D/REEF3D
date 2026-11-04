@@ -43,20 +43,34 @@ former iowave functions, so results stay bitwise identical, and adds the
 zones given directly (ctrl.txt, repeatable; read into lexer, control.h):
 
   B 520 id method priority     method 1: relaxation (wave generation), 2: beach,
-                               3: Riemann edge, 4: Flather edge (NHFLOW, edges 1 and 2)
+                               3: Riemann edge, 4: Flather edge, 5: clamped level edge,
+                               6: clamped discharge edge (3-6 NHFLOW; y edges in 3D only)
   B 521 id edge s0 s1 width    edge 1: x-, 2: x+, 3: y-, 4: y+; along-edge range
                                [s0,s1] from the edge's start (s1 <= s0: whole edge)
   B 524 id source              source of the zone (repeatable; 1: the B 92 wave); a Riemann
                                edge carries the waves of its B 524 sources (none without B 524)
   B 523 id background          tidal / current background of the zone (B 510); a relaxation
                                zone then targets background + waves, a beach the background,
-                               a Riemann or Flather edge the background
+                               a Riemann or Flather edge the background, a clamped level edge
+                               its level, a clamped discharge edge its normal current
+  B 525 id Q t_ramp            discharge [m3/s] into the domain through a clamped discharge
+                               edge, cosine ramp over t_ramp [s]; replaces the background current
+  B 522 id b                   multi-block grid (G 50 1): the zone lies on block b (1..), its B 521
+                               edge is a face of the block (1: -i, 2: +i, 3: -j, 4: +j; a block with
+                               zones on its j faces is turned so that they are its i faces,
+                               geo_mesh::turn_blocks; the parts of the face without interface, s0 s1
+                               unused): an edge (methods 3-6, B 524 waves at a Riemann edge) or a
+                               relaxation / beach zone (1, 2) reaching the B 521 width into the block
+                               from its face (the distance along the grid lines); kept apart from
+                               the zones of the native grid (bedges, ioflow_amr_block)
 --------------------------------------------------------------------*/
 
 enum class bc_method { relax,
                        beach,
                        riemann,
-                       flather };
+                       flather,
+                       clamp_level,
+                       clamp_q };
 
 class bc_zone
 {
@@ -75,6 +89,11 @@ public:
     std::vector<int> sources;  // B 524 source ids; empty: all sources
     int bg = 0;                // B 523 background id; 0: none (still water)
     int edge = 0;              // B 521 edge (1: x-, 2: x+, 3: y-, 4: y+), user zones only
+    int block = 0;             // B 522: the block 1.. of a multi-block grid the zone lies on; 0 the native grid
+    bool has_Q = false;        // B 525 given (clamped discharge edge)
+    int active = 0;            // NHFLOW active beach B 99 3 / 4 as a Riemann edge at x+ with still
+                               // water outside (the B 99 value; 0: a zone of the user)
+    double Q = 0.0, Q_tramp = 0.0;
     bc_method method;
     double xs, ys, xe, ye, d;  // reference line and half width
     double fac;                // beach: distance factor (2 for B 99 1)
@@ -87,6 +106,7 @@ class bc_zone_set
 {
 public:
     static bc_zone_set from_legacy(lexer *, ghostcell *);
+    static bc_zone_set from_input(lexer *);  // the B 520-525 zones only (multi-block: the zones of the blocks)
 
     // the relaxation zone that sets the target at (x,y): highest priority, then
     // first given; nullptr outside all relaxation zones
@@ -113,7 +133,16 @@ public:
     // ranges for old input (unchanged), plus the box of every B 520 zone
     void norefine_boxes(lexer *, std::vector<double> &) const;
 
+    // the edge zone (methods 3-6) and the relaxation or beach zone on face e (1: -i, 2: +i, 3: -j, 4: +j of
+    // DIVEMesh) of block b (B 522); nullptr: none
+    const bc_zone *block_edge(int b, int e) const;
+    const bc_zone *block_zone(int b, int e) const;
+
+    // the block of zone id (B 522), 0: the native grid (the zone's own input, without the checks)
+    static int zone_block(const lexer *, int);
+
     std::vector<bc_zone> relax, beach, edges;
+    std::vector<bc_zone> bedges;  // edge zones on the faces of the blocks 1.. (B 522)
 
 private:
     void read_input(lexer *, ghostcell *);
