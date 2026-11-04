@@ -34,6 +34,29 @@ fnpf_timestep::~fnpf_timestep()
 {
 }
 
+// N 51: speed of the CFL criterion dt = N47 dx / c of a column with the water depth h and the cell size dx
+//
+//  0  (default)   c = MAX(|u|, sqrt(g h_max)): the shallow-water wave speed of the deepest column
+//  1  dispersive  c = |u| + sqrt(g dx tanh(h/dx)), h the local water depth
+//
+// In potential flow no wave travels at sqrt(g h) on the grid scale: the fastest discrete mode is the shortest
+// wave the grid resolves, k = pi/dx, with omega = sqrt(g k tanh(k h)). The speed of N 51 1 (the gravity-wave
+// CFL of the Basilisk multilayer solver, Popinet 2020) is sqrt(g h) for h << dx, as N 51 0, and sqrt(g dx)
+// for h >> dx, i.e. the time step grows with sqrt(h/dx) in deep water. With RK3 (stable for omega dt < sqrt(3))
+// the linear limit in deep water is N47 < 0.98 in 2D and about 0.8 in 3D with dx = dy (k = pi sqrt(2)/dx).
+double fnpf_timestep::wave_speed(lexer *p, double u, double h, double dx, double hmax)
+{
+    if(p->N51==1)
+    {
+    const double g = fabs(p->W22)>0.0 ? fabs(p->W22) : 9.81;
+    h = MAX(h,0.0);
+    
+    return fabs(u) + sqrt(g*dx*tanh(h/dx));
+    }
+    
+    return fabs(MAX(u, sqrt(9.81*hmax)));
+}
+
 void fnpf_timestep::start(fdm_fnpf *c, lexer *p,ghostcell *pgc)
 {
     double depthmax=0.0;
@@ -96,6 +119,20 @@ void fnpf_timestep::start(fdm_fnpf *c, lexer *p,ghostcell *pgc)
     
     if(p->j_dir==0 || p->knoy==1)
     dx = p->DXN[IP];
+    
+    if(p->N51==1)
+    {
+    // dispersive: the local water depth of the wet columns
+    if(p->wet[IJ]==0)
+    continue;
+    
+    cu = MIN(cu, dx/wave_speed(p,p->umax,c->WL(i,j),dx,depthmax));
+    
+    if(p->j_dir==1)
+    cv = MIN(cv, dx/wave_speed(p,p->vmax,c->WL(i,j),dx,depthmax));
+    
+    continue;
+    }
     
     cu = MIN(cu, 1.0/((fabs(MAX(p->umax, sqrt(9.81*depthmax)))/dx)));
     
@@ -196,6 +233,13 @@ void fnpf_timestep::ini(fdm_fnpf* c, lexer* p,ghostcell* pgc)
     if(p->j_dir==0 || p->knoy==1)
     dx = p->DXN[IP];
     
+    
+    if(p->N51==1)
+    {
+    cu = MIN(cu, dx/wave_speed(p,p->umax,p->wd-c->bed(i,j),dx,depthmax));
+    cv = MIN(cv, dx/wave_speed(p,p->vmax,p->wd-c->bed(i,j),dx,depthmax));
+    continue;
+    }
     
     cu = MIN(cu, 1.0/((fabs(MAX(p->umax, sqrt(9.81*depthmax)))/dx)));
     cv = MIN(cv, 1.0/((fabs(MAX(p->vmax, sqrt(9.81*depthmax)))/dx)));

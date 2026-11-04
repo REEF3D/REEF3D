@@ -40,6 +40,9 @@ public:
 	void start(fdm_fnpf*, lexer*,ghostcell*);
 	void ini(fdm_fnpf*, lexer*,ghostcell*);
 
+    // N 51: the gravity wave speed of the CFL criterion (also used by fnpf_amr::timestep)
+    static double wave_speed(lexer*, double u, double h, double dx, double hmax);
+
 
 private:
 	double sqd,wallu,wallv,wallw;

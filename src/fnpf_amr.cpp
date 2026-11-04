@@ -22,6 +22,7 @@ Architect: Hans Bihs
 
 #include"reefckpt.h"
 #include"fnpf_amr.h"
+#include"fnpf_timestep.h"
 #include"lexer.h"
 #include"bc_zone.h"
 #include"fdm_fnpf.h"
@@ -1523,7 +1524,7 @@ void fnpf_amr::step_end(lexer *p, fdm_fnpf *c, ghostcell *pgc)
     load_step(p);
 }
 
-// time step of the finest grid, same CFL as fnpf_timestep
+// time step of the finest grid, same CFL as fnpf_timestep (N 51)
 void fnpf_amr::timestep(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 {
     if(maxlev<1)
@@ -1561,6 +1562,14 @@ void fnpf_amr::timestep(lexer *p, fdm_fnpf *c, ghostcell *pgc)
         if(pp->flagslice4[lij(pp,ii,jj)]>0)
         {
             double dx = sc(q)*((pp->j_dir==1) ? MIN(pp->DXN[ii+marge],pp->DYN[jj+marge]) : pp->DXN[ii+marge]);
+            if(p->N51==1)
+            {
+            // dispersive (N 51 1): the deepest column with the cell size of the patch (tanh(h/dx) saturates)
+            cu = MIN(cu, dx/fnpf_timestep::wave_speed(p,p->umax,depthmax,dx,depthmax));
+            cu = MIN(cu, dx/fnpf_timestep::wave_speed(p,p->vmax,depthmax,dx,depthmax));
+            continue;
+            }
+            
             cu = MIN(cu, 1.0/((fabs(MAX(p->umax, sqrt(9.81*depthmax)))/dx)));
             cu = MIN(cu, 1.0/((fabs(MAX(p->vmax, sqrt(9.81*depthmax)))/dx)));
         }
