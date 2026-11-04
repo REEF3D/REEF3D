@@ -1971,6 +1971,12 @@ void control::read_control(lexer* p)
                 case 72: ++F72;
                          clear(c,numint);
                          break;
+                case 78: control>>F78;
+                         clear(c,numint);
+                         break;
+                case 79: control>>F79;
+                         clear(c,numint);
+                         break;
                 case 80: control>>F80;
                          clear(c,numint);
                          break;

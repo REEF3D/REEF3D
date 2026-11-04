@@ -71,6 +71,8 @@ pic_f::pic_f(lexer *p, fdm *a, ghostcell *pgc, reini *ppreini, ioflow *ppflow, h
     // the density and viscosity follow it (the fluid update of the level set)
     surface = (p->F81==1 || p->F81==2);
     flipmode = (p->F81==2);
+    relaxzones = surface && p->B90>0 && (p->B98==2 || p->B99==1 || p->B99==2);
+    inflowsrc = surface && p->B60>0;
     preini = ppreini;
     pflow = ppflow;
     pupdate = nullptr;
@@ -151,6 +153,10 @@ void pic_f::ini(lexer *p, fdm *a, ghostcell *pgc)
 {
     seed(p,a,pgc);
 
+    // B 60: the particles of the inflow in its ghost cells
+    if(inflowsrc)
+    inflow_seed(p,a,pgc);
+
     // the free surface of the start from the particles
     if(surface)
     {
@@ -179,12 +185,26 @@ void pic_f::start(lexer *p, fdm *a, ghostcell *pgc)
     move(p,a,pgc);
     xchange(p,pgc);
 
+    // F 78: the redistribution against the rows and gaps of the particles
+    if(surface && p->F78>0 && p->count%p->F78==0)
+    redistribute(p,a,pgc);
+
     if(surface)
     {
     phi_build(p,a,pgc);
 
-    if(p->F86>0 && p->count%p->F86==0)
-    reseed(p,a,pgc);
+    // the relaxation zones: the columns of the particles to the relaxed surface (pic_f_relax.cpp)
+    if(relaxzones)
+    zone_stretch(p,a);
+
+    // the particles in the water (F 86) and, at every step, in the relaxation zones
+    const bool interior = p->F86>0 && p->count%p->F86==0;
+
+    if(interior || relaxzones)
+    reseed(p,a,pgc,interior);
+
+    if(inflowsrc)
+    inflow_seed(p,a,pgc);
     }
 
     if(print_due(p))

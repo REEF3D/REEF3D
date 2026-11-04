@@ -1549,6 +1549,10 @@ void control::ctrlsend()
     ii++;
     ictrl[ii] = F72;
     ii++;
+    ictrl[ii] = F78;
+    ii++;
+    dctrl[dd] = F79;
+    dd++;
     ictrl[ii] = F80;
     ii++;
     ictrl[ii] = F81;

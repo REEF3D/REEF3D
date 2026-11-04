@@ -735,8 +735,10 @@ void control::ini_default()
     F81=0;             // int PIC free surface flow: 1 single-phase, 2 water particles with Eulerian air (phase 1: phi from the particles), 10 passive particles
     F82=0.96;          // double PIC FLIP share of the particle velocity update (F 81 2), 1 - F82 PIC
     F83=2;             // int PIC particles per cell and direction
+    F78=30;            // int PIC redistribution of the particles every F78 steps (0: off)
     F86=1;             // int PIC particles kept in the water every F86 steps (0: off)
     F87=-1.0;          // double PIC output interval in seconds; <= 0: with the CFD output (P 30, P 20)
+    F79=0.1;           // double PIC redistribution step (particle spacings per unit of the neighbour push)
     F85=0;             // int convection scheme VOF
     F88=10;             // int normal calculation method for VOF PLIC,2D MYC as default
     F90=4;             // int vof transport scheme for VOF PLIC, 2D COSMIC as default

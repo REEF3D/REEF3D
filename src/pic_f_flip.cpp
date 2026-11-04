@@ -129,12 +129,14 @@ void pic_f::step_begin(lexer *p, fdm *a, ghostcell *pgc)
 // after the momentum step, before the particles move: the FLIP / PIC update of their velocity
 void pic_f::g2p(lexer *p, fdm *a)
 {
-    const double c = p->F82;
 
     for(auto &q : P)
     {
         double un,vn,wn;
         velocity(p,a,q.x,q.y,q.z,un,vn,wn);
+
+        // in the relaxation zones the particles take the relaxed velocity of the water (PIC)
+        const double c = (relaxzones && inzone(p,q.x,q.y)) ? 0.0 : p->F82;
 
         const double du = un - ipol(p,*uo,1,q.x,q.y,q.z);
         const double dv = p->j_dir==1 ? vn - ipol(p,*vo,2,q.x,q.y,q.z) : 0.0;

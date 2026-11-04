@@ -27,6 +27,7 @@ Architect: Hans Bihs
 #include"reini.h"
 #include"fluid_update.h"
 #include"levelset_solid_extend.h"
+#include"ioflow.h"
 #include<algorithm>
 #include<cmath>
 #include<iostream>
@@ -42,11 +43,12 @@ Architect: Hans Bihs
 // the surface in the cell. Near the surface (0.01 < c < 0.99, within about 1.7 h of it)
 //     phi = h d(c)
 // with d(c) the signed distance at which a flat surface gives the water fraction c (a table,
-// pic_f::fraction_table), so phi is a distance there and the reinitialisation hardly changes it.
+// pic_f::fraction_table): a distance for a flat surface on the lattice of the particles.
 // Deeper in the water (c >= 0.99) phi keeps its old value, at least the distance of the edge of
 // the band, higher in the air (c <= 0.01) likewise, and cells without particles within R the
-// smaller of the old value and -R. The reinitialisation of the level set (F 40, F 44 iterations) then gives the signed
-// distance, and the density and viscosity follow (the fluid update of the level set). The
+// smaller of the old value and -R. In the band the signed distance comes then directly from the zero
+// of h d(c) (pic_f::redistance), the reinitialisation of the level set (F 40, F 44 iterations) continues
+// it beyond the band, and the density and viscosity follow (the fluid update of the level set). The
 // particles of the neighbours near the subdomain boundary come in as a halo (pic_f::halo), so phi
 // does not depend on the decomposition.
 // (The mean position of the particles, Zhu & Bridson 2005, Chen 2017 eq. 3.21, was tried first:
@@ -296,7 +298,11 @@ void pic_f::phi_build(lexer *p, fdm *a, ghostcell *pgc)
         int nx=1, ny=1, nz=1;
 
         if(x-xglo_s<band[0])
+        {
+        // B 60: no images across the inflow, its particles are in the ghost cells (pic_f_inflow.cpp)
+        if(!inflowsrc)
         xs[nx++] = 2.0*xglo_s - x;
+        }
         else if(xglo_e-x<band[0])
         xs[nx++] = 2.0*xglo_e - x;
 
@@ -329,6 +335,8 @@ void pic_f::phi_build(lexer *p, fdm *a, ghostcell *pgc)
     images(H[m],H[m+1],H[m+2]);
 
     // the new level set: near the surface from the water fraction, the old one extended elsewhere
+    std::vector<char> inband(n,0);
+
     for(int ci=0; ci<p->knox; ++ci)
     for(int cj=0; cj<p->knoy; ++cj)
     for(int ck=0; ck<p->knoz; ++ck)
@@ -357,10 +365,27 @@ void pic_f::phi_build(lexer *p, fdm *a, ghostcell *pgc)
         else if(c<=EMPTY)
         phi = std::min(phi,-h*dfull);
         else
+        {
         phi = val;
+        inband[l] = 1;
+        }
     }
 
     pgc->start4(p,a->phi,gcval_phi);
+
+    // the signed distance in the band from the zero of h d(c) (pic_f_redist.cpp)
+    redistance(p,a,inband);
+    pgc->start4(p,a->phi,gcval_phi);
+
+    // the relaxation zones of the waves (B 98 2, B 99 1, 2): phi relaxed towards that of the waves,
+    // as for the level set; the columns of the particles there follow it (pic_f::zone_stretch)
+    if(relaxzones)
+    {
+    zone_surface(p,a,pgc,etap);
+    pflow->phi_relax(p,pgc,a->phi);
+    pgc->start4(p,a->phi,gcval_phi);
+    zone_surface(p,a,pgc,etar);
+    }
 
     // inside the solids of the direct forcing (and the 6DOF bodies with X 48 3) the level set is
     // continued from the fluid around, as for the level set (levelset_solid_extend.cpp)
@@ -370,6 +395,10 @@ void pic_f::phi_build(lexer *p, fdm *a, ghostcell *pgc)
     p->reini_iter = p->F44;
     preini->start(a,p,a->phi,pgc,pflow);
     pgc->start4(p,a->phi,gcval_phi);
+
+    // B 60: phi in the ghost cells of the inflow, as for the level set
+    if(inflowsrc)
+    pflow->fsfinflow(p,a,pgc);
 
     // density and viscosity
     pupdate->start(p,a,pgc,a->u,a->v,a->w);

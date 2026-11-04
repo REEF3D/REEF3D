@@ -24,6 +24,7 @@ Architect: Hans Bihs
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
+#include"ioflow.h"
 #include<algorithm>
 #include<cmath>
 #include<mpi.h>
@@ -37,8 +38,33 @@ Architect: Hans Bihs
 // depends only on the particles in the cell, so it is the same for any decomposition; the new
 // particles sit at the centres of their sub-cells and take the velocity of the water and ids
 // after those of the seeding.
+// In the relaxation zones of the wave generation and the numerical beach (B 98 2, B 99 1, 2; every
+// step) the particles above the relaxed surface go (the columns of the particles follow it,
+// pic_f::zone_stretch).
+// interior: the particles in the water (F 86).
 
-void pic_f::reseed(lexer *p, fdm *a, ghostcell *pgc)
+// in a relaxation zone: the cell column of the position (in the subdomain)
+bool pic_f::inzone(lexer *p, double x, double y)
+{
+    if(!relaxzones)
+    return false;
+
+    if(zcol.empty())
+    {
+        zcol.assign(size_t(p->knox)*p->knoy,0);
+
+        for(int i=0; i<p->knox; ++i)
+        for(int j=0; j<p->knoy; ++j)
+        zcol[size_t(i)*p->knoy + j] = pflow->relax_zone(p->XP[i+marge],p->YP[j+marge]) ? 1 : 0;
+    }
+
+    const int ci = std::min(std::max(cell(p->XN,p->knox,x),0),p->knox-1);
+    const int cj = p->j_dir==1 ? std::min(std::max(cell(p->YN,p->knoy,y),0),p->knoy-1) : 0;
+
+    return zcol[size_t(ci)*p->knoy + cj]!=0;
+}
+
+void pic_f::reseed(lexer *p, fdm *a, ghostcell *pgc, bool interior)
 {
     const int n = p->knox*p->knoy*p->knoz;
     const int ny = p->j_dir==1 ? npd : 1;
@@ -87,6 +113,17 @@ void pic_f::reseed(lexer *p, fdm *a, ghostcell *pgc)
     // crowded cells in the water: the particles with the largest ids go
     std::vector<char> drop(P.size(),0);
     long long mine_removed = 0;
+
+    // the relaxation zones: the particles above the relaxed surface
+    if(relaxzones)
+    for(size_t q=0; q<P.size(); ++q)
+    if(inzone(p,P[q].x,P[q].y) && ipol(p,a->phi,4,P[q].x,P[q].y,P[q].z)<0.0)
+    {
+    drop[q] = 1;
+    ++mine_removed;
+    }
+
+    if(interior)
     {
         std::vector<std::vector<size_t> > members(n);
 
@@ -101,6 +138,12 @@ void pic_f::reseed(lexer *p, fdm *a, ghostcell *pgc)
             auto &m = members[lid(p,ci,cj,ck)];
 
             if(m.empty() || !deep(ci,cj,ck))
+            continue;
+
+            // not twice
+            m.erase(std::remove_if(m.begin(),m.end(),[&](size_t s){ return drop[s]!=0; }),m.end());
+
+            if(m.size()<=size_t(2*npc))
             continue;
 
             std::sort(m.begin(), m.end(), [&](size_t s, size_t t){ return P[s].id > P[t].id; });
@@ -123,8 +166,7 @@ void pic_f::reseed(lexer *p, fdm *a, ghostcell *pgc)
     for(int ck=0; ck<p->knoz; ++ck)
     {
         const int l = lid(p,ci,cj,ck);
-
-        if(4*count[l]>=npc || !deep(ci,cj,ck))
+        if(!interior || 4*count[l]>=npc || !deep(ci,cj,ck))
         continue;
 
         const long long gcell = ((long long)(ck+p->origin_k)*(long long)p->gknoy + (long long)(cj+p->origin_j))*(long long)p->gknox

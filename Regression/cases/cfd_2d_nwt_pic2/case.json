@@ -1,0 +1,20 @@
+{
+ "base": "cfd_2d_nwt",
+ "ctrl_set": {
+  "F 81": "2"
+ },
+ "tags": [
+  "quick",
+  "2d",
+  "waves",
+  "pic"
+ ],
+ "description": "cfd_2d_nwt with the free surface and the momentum of the water from the PIC particles (F 81 2): phi of the particles relaxed in the zones of the wave generation and the numerical beach (B 98 2, B 99 2), the columns of the particles there stretched to the relaxed surface, PIC update of the particle velocities in the zones; the signed distance in the band of the surface from the zero of the water fraction; redistribution every 30 steps (F 78) (needs PICFSF patch 0005)",
+ "covers": [
+  "pic_f_relax: zone_surface (column reduction), zone_stretch",
+  "pic_f::inzone, pic_f_reseed in the zones, pic_f::g2p in the zones",
+  "pic_f_redist: redistance",
+  "pic_f_redistribute"
+ ],
+ "architect": "Hans Bihs"
+}

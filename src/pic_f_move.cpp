@@ -99,6 +99,10 @@ void pic_f::velocity(lexer *p, fdm *a, double xp, double yp, double zp, double &
 // alone (seed calls it in LOOP).
 bool pic_f::blocked(lexer *p, fdm *a, double xp, double yp, double zp)
 {
+    // B 60: the ghost cells of the inflow (pic_f_inflow.cpp)
+    if(inflowsrc && xp<xglo_s)
+    return ipol(p,a->topo,4,xp,yp,zp)<0.0;
+
     const int ii = cell(p->XN,p->knox,xp);
     const int jj = p->j_dir==1 ? cell(p->YN,p->knoy,yp) : 0;
     const int kk = cell(p->ZN,p->knoz,zp);
@@ -134,6 +138,28 @@ bool pic_f::domain(lexer *p, double &xp, double &yp, double &zp)
         if((xp<xglo_s && xloc_s==xglo_s) || (xp>=xglo_e && xloc_e==xglo_e))
         {
             const int f = p->flag1[(ib-p->imin)*p->jmax*p->kmax + (jj-p->jmin)*p->kmax + kk-p->kmin];
+
+            // B 60: the particles of the inflow live in its three ghost layers (pic_f_inflow.cpp)
+            if(inflowsrc && f==INFLOW_FLAG && xp<xglo_s)
+            {
+                if(xp<p->XN[marge-3])
+                return false;
+
+                auto clampw = [](double &c, double s, double e)
+                {
+                    const double eps = 1.0e-9*(e-s);
+                    if(c<s)
+                    c = 2.0*s - c;
+                    if(c>=e)
+                    c = 2.0*e - c;
+                    c = std::max(s+eps, std::min(c, e-eps));
+                };
+
+                if(p->j_dir==1)
+                clampw(yp,yglo_s,yglo_e);
+                clampw(zp,zglo_s,zglo_e);
+                return true;
+            }
 
             if(f==INFLOW_FLAG || f==OUTFLOW_FLAG)
             return false;

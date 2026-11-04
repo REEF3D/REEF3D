@@ -657,7 +657,7 @@ void driver::logic_cfd()
     removed_option(p,pgc,p->F81>0 && (p->F30<=0 || p->F80>0),"F 81: the PIC particles are seeded in the water of the level set (F 30); not with VOF (F 80) yet.");
     removed_option(p,pgc,p->F81>0 && p->G1>0,"F 81: PIC is not available with the mesh refinement (G 1) yet.");
     removed_option(p,pgc,p->F81>0 && p->F83<1,"F 83: PIC needs at least 1 particle per cell and direction.");
-    removed_option(p,pgc,picfsf && (p->B60>0 || p->B90>0),"F 81 1/2: no inflow (B 60) or wave generation (B 90) with the free surface from the particles yet (no particles enter the domain); F 81 10 gives passive particles.");
+    removed_option(p,pgc,picfsf && p->B90>0 && ((p->B98!=0 && p->B98!=2) || (p->B99!=0 && p->B99!=1 && p->B99!=2)),"F 81 1/2: waves only with the relaxation zones (B 98 2, B 99 1 or 2) with the free surface from the particles yet; the Dirichlet wave generation and the active absorption bring no particles in.");
     removed_option(p,pgc,p->F81==2 && (p->N40==0 || p->N40==33),"F 81 2: the momentum of the particles needs the non-conservative Runge-Kutta momentum (N 40 2, 3, 4, 12, 13, 22, 23, 24, 44).");
     removed_option(p,pgc,picfsf && p->F46>0,"F 81 1/2: the volume correction of the level set (F 46) does not apply to the free surface from the particles.");
 

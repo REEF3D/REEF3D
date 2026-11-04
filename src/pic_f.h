@@ -85,6 +85,7 @@ private:
     // the free surface from the particles (pic_f_phi.cpp; F 81 1, 2)
     void phi_ini(lexer*, fdm*, ghostcell*);
     void phi_build(lexer*, fdm*, ghostcell*);
+    void redistance(lexer*, fdm*, const std::vector<char>&);
     void support(lexer*, fdm*);
     void fraction_table(lexer*);
     double fraction_distance(double) const;
@@ -97,8 +98,19 @@ private:
     // the FLIP / PIC update of the particle velocities (pic_f_flip.cpp; F 81 2)
     void g2p(lexer*, fdm*);
 
-    // particles kept in the water (pic_f_reseed.cpp; F 86)
-    void reseed(lexer*, fdm*, ghostcell*);
+    // the redistribution of the particles (pic_f_redistribute.cpp; F 78, F 79)
+    void redistribute(lexer*, fdm*, ghostcell*);
+
+    // particles kept in the water (pic_f_reseed.cpp; F 86), and in the relaxation zones of the
+    // wave generation and the numerical beach (B 98 2, B 99 1, 2) the water of the relaxed phi
+    void reseed(lexer*, fdm*, ghostcell*, bool interior);
+    bool inzone(lexer*, double, double);
+    void zone_surface(lexer*, fdm*, ghostcell*, std::vector<double>&);
+    void zone_stretch(lexer*, fdm*);
+    std::vector<double> etap, etar, zbot;   // per column of the domain: surface of the particles, relaxed, bottom
+
+    // the particles of the inflow in the ghost cells (pic_f_inflow.cpp; B 60)
+    void inflow_seed(lexer*, fdm*, ghostcell*);
 
     // output (pic_f_print.cpp)
     void print(lexer*, ghostcell*);
@@ -117,6 +129,9 @@ private:
     int npc;                  // particles per cell
     bool surface;             // F 81 1, 2: the free surface (phi) from the particles; F 81 10: passive particles
     bool flipmode;            // F 81 2: the momentum of the water from the particles
+    bool relaxzones;          // the relaxation zones of the waves (B 90 with B 98 2, B 99 1, 2)
+    std::vector<char> zcol;   // per cell column of the subdomain: in a relaxation zone
+    bool inflowsrc;           // B 60: particles in the ghost cells of the inflow (x-min)
 
     // the free surface from the particles
     reini *preini;

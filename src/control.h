@@ -352,8 +352,8 @@ public:
     double *F71_xs, *F71_xe, *F71_ys, *F71_ye, *F71_zs, *F71_ze;
     int F72;
     double *F72_xs, *F72_xe, *F72_ys, *F72_ye, *F72_h;
-    int F80,F81,F83,F85,F86;
-    double F82,F87;
+    int F78,F80,F81,F83,F85,F86;
+    double F79,F82,F87;
 
     int F88,F90;
     double F91;
