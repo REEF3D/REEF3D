@@ -71,6 +71,7 @@ seastate_f::~seastate_f()
     delete pex;
     delete psolv;
     delete N0;
+    delete gNs;
     delete psrc;
     delete proll;
     delete bser;

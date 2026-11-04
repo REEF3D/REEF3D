@@ -234,6 +234,7 @@ private:
     void sources(lexer*, ghostcell*);
     void kinematics(lexer*, ghostcell*, double);
     void transport(lexer*, ghostcell*);
+    void gse_step(lexer*, ghostcell*);      // A 776 (Phase 25): the GSE closure after the transport of a step
     void parameters(lexer*, ghostcell*);
 
     void forcing_ini(lexer*, ghostcell*);
@@ -254,6 +255,7 @@ private:
     seastate_exchange *pex;
     seastate_implicit *psolv;
     seastate_store *N0;
+    seastate_store *gNs = nullptr;          // A 776: the spectra after the transport, the right-hand side of the GSE step
     seastate_source *psrc;
 
     std::vector<float> Nb;      // boundary spectrum

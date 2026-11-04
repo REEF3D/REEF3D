@@ -178,6 +178,10 @@ void seastate_f::transport(lexer *p, ghostcell *pgc)
         pfas->correct(p,pgc,N0,rdt,Nb,side,refraction,fshift,p->A758_m);
         }
 
+        // A 776 (Phase 25): the GSE closure over the step
+        if(p->A776>0)
+        gse_step(p,pgc);
+
         return;
     }
 

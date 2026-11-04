@@ -375,6 +375,12 @@ void seastate_f::check_keys(lexer *p, ghostcell *pgc)
     msg = "A 708: the convergence criterion must be positive";
     else if(p->A710!=0 && p->A710!=1)
     msg = "A 710: initial spectrum must be 0 (zero) or 1 (parametric)";
+    else if(p->A727_x1>=p->A727_x0 && (p->A710!=1 || !(p->A727_y1>=p->A727_y0)))
+    msg = "A 727: the box of the initial spectrum needs A 710 1 and y1 >= y0";
+    else if(p->A776<0 || p->A776>2 || (p->A776==1 && !(p->A777>0.0)) || (p->A776>0 && p->A778<1))
+    msg = "A 776: the GSE closure must be 0, 1 (with the age A 777 > 0) or 2, with A 778 >= 1 iterations";
+    else if(p->A776>0 && (p->A700!=1 || g1>0 || coupled))
+    msg = "A 776: the GSE closure is for nonstationary stand-alone runs on uniform grids (no refinement)";
     else if(p->A711<0 || p->A711>3)
     msg = "A 711: boundary spectrum must be 0 (none), 1 (parametric), 2 (SWAN spectrum file) or 3 (time series of spectra at many locations)";
     else if(p->A712_xm<0 || p->A712_xm>2 || p->A712_xp<0 || p->A712_xp>2 || p->A712_ym<0 || p->A712_ym>2 || p->A712_yp<0 || p->A712_yp>2)
@@ -814,6 +820,9 @@ void seastate_f::storage(lexer *p, ghostcell *pgc)
     cout<<"SEASTATE mode: surfbeat, nonstationary, time step "<<(coupled ? "of the host" : "A 706")<<", refraction "<<p->A713<<", no frequency shift"<<endl;
     else
     cout<<"SEASTATE mode: "<<(p->A700==2 ? "stationary" : "nonstationary")<<", time step "<<p->A706<<" s, refraction "<<p->A713<<", frequency shift "<<p->A714<<endl;
+    if(p->A776>0)
+    cout<<"SEASTATE GSE closure (A 776 "<<p->A776<<"): the flux inside a bin as a diffusion D = t_a Sigma over each step, t_a "
+        <<(p->A776==2 ? std::string("the model time") : std::to_string(p->A777)+" s")<<", "<<p->A778<<" Gauss-Seidel iterations (A 778)"<<endl;
     if(p->A795>0.0 || p->A796==2 || (p->A797==1 && g1>0))
     {
     cout<<"SEASTATE solver:";

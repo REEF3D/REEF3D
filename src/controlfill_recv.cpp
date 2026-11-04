@@ -736,6 +736,16 @@ void control::ctrlrecv()
     dd++;
     A721_xe = dctrl[dd];
     dd++;
+    A727_x0 = dctrl[dd];
+    dd++;
+    A727_x1 = dctrl[dd];
+    dd++;
+    A727_y0 = dctrl[dd];
+    dd++;
+    A727_y1 = dctrl[dd];
+    dd++;
+    A777 = dctrl[dd];
+    dd++;
     A730 = ictrl[ii];
     ii++;
     A729 = ictrl[ii];
@@ -879,6 +889,10 @@ void control::ctrlrecv()
     A767 = ictrl[ii];
     ii++;
     A769 = ictrl[ii];
+    ii++;
+    A776 = ictrl[ii];
+    ii++;
+    A778 = ictrl[ii];
     ii++;
     A758_m = ictrl[ii];
     ii++;

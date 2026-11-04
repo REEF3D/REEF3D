@@ -1675,6 +1675,7 @@
         <File Name="seastate_f_kinematics.cpp"/>
         <File Name="seastate_f_param.cpp"/>
         <File Name="seastate_f_transport.cpp"/>
+        <File Name="seastate_f_gse.cpp"/>
         <File Name="seastate_implicit.cpp"/>
         <File Name="seastate_f_handover.cpp"/>
         <File Name="seastate_roller.cpp"/>

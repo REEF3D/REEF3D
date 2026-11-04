@@ -870,6 +870,9 @@ void control::read_control(lexer* p)
                 case 721: control>>A721_us>>A721_ue>>A721_xs>>A721_xe;
                          clear(c,numint);
                          break;
+                case 727: control>>A727_x0>>A727_x1>>A727_y0>>A727_y1;
+                         clear(c,numint);
+                         break;
                 case 728: control>>A728;
                          clear(c,numint);
                          break;
@@ -1064,6 +1067,15 @@ void control::read_control(lexer* p)
                          clear(c,numint);
                          break;
                 case 769: control>>A769;
+                         clear(c,numint);
+                         break;
+                case 776: control>>A776;
+                         clear(c,numint);
+                         break;
+                case 777: control>>A777;
+                         clear(c,numint);
+                         break;
+                case 778: control>>A778;
                          clear(c,numint);
                          break;
                 case 758: control>>A758_n>>A758_m;
