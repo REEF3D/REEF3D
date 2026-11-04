@@ -928,6 +928,8 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `hydro_coupled_curv` | 1 | coupled with SFLOW on a curvilinear grid (G 50 2, `curvgrid.dat`): a valley on a quarter circle, SFLOW over its lower 45 degrees |
 | `hydro_coupled_ckpt`, `hydro_coupled_restart` | 1 | `hydro_coupled_chain_mid` with checkpoints (P 48 100) and its restart from step 100: final state and the budgets of both models bitwise (`regression.py ranks`) |
 | `hydro_catchment_reservoir`, `_release` | 1 | reservoir (R 110 1, `hydro_reservoir.dat`): a level pool of 5000 m2 with a weir in cell 10 of the chain, at the crest / 0.2 m below with a release series; `REEF3D-HYDRO-Reservoirs.dat` as text (validation 09: the level to 1e-10 m of an independent implicit solve) |
+| `sflow_2d_hydro_valley_banks_si` | 1 | REEF3D::HYDRO rain-on-grid (36 mm/h) and a point source of 1 m3/s on a valley of 1000 m x 100 m (10 m cells, side slopes 5 %, channel slope 1 %, free outfall), semi-implicit, 500 steps: the channel level lies below the bed of the banks; the face predictor weights the two cells by their water above the higher bed of the face (`sflow_momentum_SI::face_weights`, patch HYDRO/0009). Before 0009 the channel pushed half its momentum through the thin bank faces and the outlet surged by +-1 m3/s on 2 m3/s (validation/10_sflow_surges) |
+| `sflow_2d_hydro_valley_banks_mpi2` | 2 | the same on 2 ranks: the face weights from eta of the ghost cells at the rank boundary |
 | `cfd_2d_soil_stress_s217` | 1 | soil stress model S 200 1 (quasi-static Biot u-p, `soil_stress`): periodic box 2.8 m, 0.5 m of fine sand below a fixed bed (S 10 1, S 57 0), still water above, the bed pressure prescribed as a progressive wave 707 cos(kx - wt) Pa (S 217); MINRES with the Cholesky block preconditioner, BDF2, soil probes S 216 (p, u, liquefaction potential) (needs Soil Stress patch 0001) |
 | `cfd_2d_soil_stress_s217_mpi2` | 2 | the same on 2 ranks: the halo of the soil model, the parallel periodic direction, the column communicator of the liquefaction potential |
 | `cfd_3d_soil_stress_s217` | 1 | the same in 3D (3 cells in y, roller side walls S 211 1): uy and the xy, yz shear edges; uniform in y |
@@ -965,6 +967,13 @@ run `./regression.py run ... --cases <new>`, check it, then `bless`.
 - The cases of M3b (`hydro_coupled_two_outlets`, `_warm_spinup`, `_warm`, `_curv`, `_ckpt`, `_restart`,
   `hydro_catchment_reservoir`, `_release`) were blessed with 586679bda + HYDRO/0006-0008; `hydro_coupled_chain_down`,
   `_mid`, `_mpi2` re-blessed with 0008 (the SFLOW steps to the exchanges in equal parts; within 1e-6 of before).
+- Patch HYDRO/0009 (face predictor of the semi-implicit SFLOW in the HYDRO wetting mode) changes the semi-implicit
+  HYDRO cases with beds that step between cells; re-blessed with hans_dev 05b36b873 + 0009: `hydro_coupled_chain_down`,
+  `_mid`, `_mpi2`, `_ckpt`, `_restart`, `_curv`, `_two_outlets`, `_warm`, `sflow_1d_hydro_plane_manning_si`,
+  `_outfall_si`, `sflow_2d_curv_hydro_lake_island_si`, `sflow_2d_hydro_amr_adaptive_si`, `_amr_ckpt`, `_amr_restart`,
+  `_amr_source_si`, `_amr_source_mpi2`, `_curv_amr_si`, `_curv_amr_wet_si`, `_mb_quadrants_si`, `_raster_si`, `_source_si`,
+  `_source_mpi2`; new `sflow_2d_hydro_valley_banks_si`, `_mpi2`. All other cases (`sflow_*`, `hydro_*`) A/B bitwise; the
+  restarts bitwise to their full runs (`regression.py ranks`).
 - The HDC cases (`*_hdc*`) need DIVEMesh 95ae3a4 or later (state file names in
   `hdc_filename_in.cpp`); `nhflow_2d_hdc_nhflow` also needs the pressure skip in
   `hdc_read_nhflow.cpp` (NHFLOW state files with the default P 44 1).

@@ -500,6 +500,45 @@ void sflow_momentum_SI::face_depth(lexer *p, fdm2D *b, ghostcell *pgc)
     exchange2(p,pgc,Hy);
 }
 
+void sflow_momentum_SI::face_weights(lexer *p, fdm2D *b, int dir, int ii, int jj, double &wl, double &wr)
+{
+    // weights of the two cell predictors in the face predictor of face ii+1/2 (dir 1) or jj+1/2 (dir 2), REEF3D::HYDRO:
+    // w = the water of the cell above the higher bed of the face over the water depth of the cell (0..1), at t^n
+    // (eta of t^n, its ghost cells exchanged); the cell with the higher bed has w = 1, a deep channel cell below the bed
+    // of the bank w = 0, equal beds 1 and 1; the weights are normalised (wl + wr = 1: the steady sheet flow keeps the
+    // friction balance), and the mean where neither cell holds water
+    const int i2 = dir==1 ? ii+1 : ii;
+    const int j2 = dir==1 ? jj : jj+1;
+    const double df = MIN(b->depth(ii,jj),b->depth(i2,j2));
+
+    auto w = [&](int i1, int j1)
+    {
+        const double h = b->eta(i1,j1) + b->depth(i1,j1);
+
+        if(h<=p->A244)
+        return 0.0;
+
+        const double hc = b->eta(i1,j1) + df;
+        return hc<=0.0 ? 0.0 : (hc>=h ? 1.0 : hc/h);
+    };
+
+    wl = w(ii,jj);
+    wr = w(i2,j2);
+
+    if(wl+wr>0.0)
+    {
+    const double s = wl+wr;
+    wl /= s;
+    wr /= s;
+    }
+
+    else
+    {
+    wl = 0.5;
+    wr = 0.5;
+    }
+}
+
 void sflow_momentum_SI::friction(lexer *p, fdm2D *b)
 {
     // implicit Manning friction (A 218 1): d(UH)/dt = -gamma UH,  gamma = c_f |u|/H,
@@ -999,8 +1038,13 @@ void sflow_momentum_SI::si_assemble(lexer *p, fdm2D *b, ghostcell *pgc)
     // face predictor (momentum interpolation: the mean of the cell predictors, which carry
     // no gravity term of this step), explicit part of the face discharge, eta-system
     // coefficients a_f = theta dt (g theta dt alpha_f H_f + K_f)/dxp
+    // REEF3D::HYDRO rain and point sources (R 10, R 40, R 100 2): the face depth is that of the higher bed
+    // (face_depth), and the mean is weighted by the water of each cell above that bed (face_weights): a deep
+    // channel cell next to a bank whose bed lies above the channel level gave half its momentum to the thin
+    // face of the bank, pushed water up the bank against the gravity of the thin face and set off surges
     const bool cv = (p->geo_curv==1);
-    double nx,ny;
+    const bool hbed = hydro_sflow::wetting(p);
+    double nx,ny,wl,wr;
 
     SLICELOOP1
     {
@@ -1010,6 +1054,13 @@ void sflow_momentum_SI::si_assemble(lexer *p, fdm2D *b, ghostcell *pgc)
         fnorm(p,1,i,j,nx,ny);
         gx0(i,j) = (b->eta(i+1,j) - b->eta(i,j))/dn;
 
+        if(hbed)
+        {
+        face_weights(p,b,1,i,j,wl,wr);
+        qxE(i,j) = alx(i,j)*(wl*(UHp(i,j)*nx + VHp(i,j)*ny) + wr*(UHp(i+1,j)*nx + VHp(i+1,j)*ny) - dt*g*Hx(i,j)*(1.0-theta)*gx0(i,j));
+        }
+
+        else
         qxE(i,j) = alx(i,j)*(0.5*(UHp(i,j) + UHp(i+1,j))*nx + 0.5*(VHp(i,j) + VHp(i+1,j))*ny - dt*g*Hx(i,j)*(1.0-theta)*gx0(i,j));
 
         K = dissipation(p,qxn(i,j),Hx(i,j),dn);
@@ -1023,6 +1074,13 @@ void sflow_momentum_SI::si_assemble(lexer *p, fdm2D *b, ghostcell *pgc)
         {
         gx0(i,j) = (b->eta(i+1,j) - b->eta(i,j))/p->DXP[IP];
 
+        if(hbed)
+        {
+        face_weights(p,b,1,i,j,wl,wr);
+        qxE(i,j) = alx(i,j)*(wl*UHp(i,j) + wr*UHp(i+1,j) - dt*g*Hx(i,j)*(1.0-theta)*gx0(i,j));
+        }
+
+        else
         qxE(i,j) = alx(i,j)*(0.5*(UHp(i,j) + UHp(i+1,j)) - dt*g*Hx(i,j)*(1.0-theta)*gx0(i,j));
 
         K = dissipation(p,qxn(i,j),Hx(i,j),p->DXP[IP]);
@@ -1049,6 +1107,13 @@ void sflow_momentum_SI::si_assemble(lexer *p, fdm2D *b, ghostcell *pgc)
         fnorm(p,2,i,j,nx,ny);
         gy0(i,j) = (b->eta(i,j+1) - b->eta(i,j))/dn;
 
+        if(hbed)
+        {
+        face_weights(p,b,2,i,j,wl,wr);
+        qyE(i,j) = aly(i,j)*(wl*(UHp(i,j)*nx + VHp(i,j)*ny) + wr*(UHp(i,j+1)*nx + VHp(i,j+1)*ny) - dt*g*Hy(i,j)*(1.0-theta)*gy0(i,j));
+        }
+
+        else
         qyE(i,j) = aly(i,j)*(0.5*(UHp(i,j) + UHp(i,j+1))*nx + 0.5*(VHp(i,j) + VHp(i,j+1))*ny - dt*g*Hy(i,j)*(1.0-theta)*gy0(i,j));
 
         K = dissipation(p,qyn(i,j),Hy(i,j),dn);
@@ -1062,6 +1127,13 @@ void sflow_momentum_SI::si_assemble(lexer *p, fdm2D *b, ghostcell *pgc)
         {
         gy0(i,j) = (b->eta(i,j+1) - b->eta(i,j))/p->DYP[JP];
 
+        if(hbed)
+        {
+        face_weights(p,b,2,i,j,wl,wr);
+        qyE(i,j) = aly(i,j)*(wl*VHp(i,j) + wr*VHp(i,j+1) - dt*g*Hy(i,j)*(1.0-theta)*gy0(i,j));
+        }
+
+        else
         qyE(i,j) = aly(i,j)*(0.5*(VHp(i,j) + VHp(i,j+1)) - dt*g*Hy(i,j)*(1.0-theta)*gy0(i,j));
 
         K = dissipation(p,qyn(i,j),Hy(i,j),p->DYP[JP]);

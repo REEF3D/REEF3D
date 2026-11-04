@@ -1,0 +1,21 @@
+{
+ "description": "sflow_2d_hydro_valley_banks_si on 2 ranks: the face weights from eta of the ghost cells at the rank boundary.",
+ "solver": "sflow",
+ "np": 2,
+ "steps": 500,
+ "files": [
+  "geo.dat"
+ ],
+ "tags": [
+  "quick",
+  "2d",
+  "sflow",
+  "hydro",
+  "semi_implicit",
+  "wetdry",
+  "mpi"
+ ],
+ "covers": [
+  "sflow_momentum_SI::face_weights on several ranks"
+ ]
+}
