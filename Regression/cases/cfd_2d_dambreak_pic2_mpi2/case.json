@@ -1,0 +1,15 @@
+{
+ "base": "cfd_2d_dambreak_pic2",
+ "np": 2,
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "pic",
+  "mpi"
+ ],
+ "description": "as cfd_2d_dambreak_pic2 on 2 ranks: the halo of the particles (positions and velocities) for the water fraction and the P2G across the subdomain boundary",
+ "covers": [
+  "pic_f::halo with velocities, pic_f::sendrecv"
+ ]
+}

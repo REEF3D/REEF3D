@@ -2,7 +2,16 @@
  "base": "cfd_2d_dambreak_pic",
  "np": 2,
  "same_as": "cfd_2d_dambreak_mpi2",
- "tags": ["quick", "2d", "dambreak", "levelset", "pic", "mpi"],
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "levelset",
+  "pic",
+  "mpi"
+ ],
  "description": "as cfd_2d_dambreak_pic on 2 MPI ranks: the particles cross the subdomain boundary during the collapse (pic_f::xchange); the run stays bitwise cfd_2d_dambreak_mpi2 (same_as)",
- "covers": ["pic_f::xchange: particles sent to the x-neighbour"]
+ "covers": [
+  "pic_f::xchange: particles sent to the x-neighbour"
+ ]
 }

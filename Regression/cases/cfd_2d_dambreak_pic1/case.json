@@ -1,0 +1,21 @@
+{
+ "base": "cfd_2d_dambreak",
+ "ctrl_set": {
+  "F 81": "1",
+  "F 87": "0.02",
+  "P 18": "1"
+ },
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "pic"
+ ],
+ "description": "as cfd_2d_dambreak with the free surface from the PIC particles (F 81 1, phase 1): the level set is not transported, phi comes from the water fraction of the particles (kernel 2 cells, mirror images at the walls), reinitialised; the particles move with the water velocity extended into the air; particles kept in the water (F 86 1)",
+ "covers": [
+  "pic_f_phi: water fraction, table of the flat surface, band and old values, solid extension, reinitialisation, density update",
+  "pic_f_extend: the water velocity extended into the air",
+  "pic_f_reseed",
+  "momentum_rk without the level set (F 81 1)"
+ ]
+}

@@ -1,12 +1,21 @@
 {
  "base": "cfd_3d_dambreak_obstacle",
  "ctrl_set": {
-  "F 81": "1",
+  "F 81": "10",
   "F 87": "0.1",
   "P 18": "1"
  },
  "same_as": "cfd_3d_dambreak_obstacle",
- "tags": ["quick", "3d", "dambreak", "mpi", "solid", "pic"],
- "description": "as cfd_3d_dambreak_obstacle (4 ranks) with the PIC particles of phase 0 (F 81 1: 8 particles per cell) in the LAGOON store (P 18 1, set cfd_pic): 3D seeding, the box obstacle (flag4 < 0) the particles slide along, the exchange in x and y; the run stays bitwise cfd_3d_dambreak_obstacle (same_as)",
- "covers": ["pic_f: 3D seeding and advection, pic_f::slide at the solid cells, pic_f::xchange in x and y"]
+ "tags": [
+  "quick",
+  "3d",
+  "dambreak",
+  "mpi",
+  "solid",
+  "pic"
+ ],
+ "description": "as cfd_3d_dambreak_obstacle (4 ranks) with the passive PIC particles (F 81 10, phase 0: 8 particles per cell) in the LAGOON store (P 18 1, set cfd_pic): 3D seeding, the box obstacle (flag4 < 0) the particles slide along, the exchange in x and y; the run stays bitwise cfd_3d_dambreak_obstacle (same_as)",
+ "covers": [
+  "pic_f: 3D seeding and advection, pic_f::slide at the solid cells, pic_f::xchange in x and y"
+ ]
 }

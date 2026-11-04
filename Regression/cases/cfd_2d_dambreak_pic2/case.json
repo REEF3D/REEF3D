@@ -1,0 +1,18 @@
+{
+ "base": "cfd_2d_dambreak",
+ "ctrl_set": {
+  "F 81": "2",
+  "F 87": "0.02",
+  "P 18": "1"
+ },
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "pic"
+ ],
+ "description": "as cfd_2d_dambreak_pic1 with the momentum of the water from the particles (F 81 2, phase 2): particle velocities to the water faces before the momentum step, no convection on them, FLIP/PIC update of the particles (F 82 0.96); the air Eulerian",
+ "covers": [
+  "pic_f_flip: step_begin (P2G with the halo), mask_convection (momentum_rk::convection_start), g2p"
+ ]
+}
