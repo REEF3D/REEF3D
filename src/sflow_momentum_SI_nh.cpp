@@ -39,8 +39,10 @@ Author: Hans Bihs
 // compact face differences throughout (no checkerboard mode, the dispersion of the staggered grid). The cell
 // discharges take the mean of the non-hydrostatic face terms (as the gravity term, cell_update). phi, the bed
 // acceleration Dw_b/Dt, is explicit: the acceleration of the previous step (an estimate of U^{n+1} with P^n as in
-// sflow_pjm_quad is unstable for large steps with A 220 3). WH*: WH^n advected upwind with q^n. H of the step: the
-// water depth of t^n.
+// sflow_pjm_quad is unstable for large steps with A 220 3). WH*: WH^n advected upwind with q^n (Adams-Bashforth 2).
+// Time levels of the nonlinear terms (nh_levels): the depths of the gravity and A 220 3 terms at t^{n+1/2}, the depth
+// of the pressure terms and of the constraint at t^{n+1}, the advecting discharge at t^{n+1/2}, extrapolated from
+// t^n and t^{n-1}.
 //
 // Limits of the prototype (check()): one grid, 1D (one cell in y), Cartesian, serial, no wetting and drying
 // iteration; sparse direct solve (Eigen SparseLU). Non-hydrostatic cells: wet, deeper than 10 A 244, not
@@ -84,7 +86,49 @@ void sflow_momentum_SI::nh_ini(lexer *p)
     }
 
     SLICELOOP1
+    {
     qxN(i,j) = 0.0;
+    Hxo(i,j) = 0.0;
+    qxo(i,j) = 0.0;
+    }
+
+    SLICELOOP4
+    WLo(i,j) = -1.0;
+
+}
+
+void sflow_momentum_SI::nh_levels(lexer *p, fdm2D *b)
+{
+    // time levels of the nonlinear terms, extrapolated from t^n and t^{n-1}: with the depth of t^n the waves on the
+    // Beji & Battjes bar lagged in proportion to dt (0.05 s at dt 0.02 s after the bar crest) and the released
+    // harmonics grew by 5 %:
+    //  - face and cell depth of the gravity and A 220 3 terms at t^{n+1/2} (theta 1/2)
+    //  - depth of the pressure terms and of the constraint at t^{n+1} (P^{n+1} and the velocities of t^{n+1})
+    //  - discharge of the advection (predictor) at t^{n+1/2}
+    // the continuity equation keeps WL^n and q^n: the volume stays exact
+    const double r = p->dt/MAX(p->dt_old,1.0e-20);
+    const double e1 = 1.0 + 0.5*r, e0 = 0.5*r;
+
+    SLICELOOP1
+    {
+    const double h = Hx(i,j);
+
+        if(h>0.0 && Hxo(i,j)>0.0)
+        Hx(i,j) = MAX(e1*h - e0*Hxo(i,j), p->A244);
+
+    Hxo(i,j) = h;
+
+    qxa(i,j) = nh_first ? qxn(i,j) : e1*qxn(i,j) - e0*qxo(i,j);
+    qxo(i,j) = qxn(i,j);
+    }
+
+    SLICELOOP4
+    {
+    const bool ok = WLo(i,j)>0.0 && WL0(i,j)>p->A244;
+    WLh(i,j) = ok ? MAX(e1*WL0(i,j) - e0*WLo(i,j), p->A244) : WL0(i,j);
+    WLq(i,j) = ok ? MAX((1.0+r)*WL0(i,j) - r*WLo(i,j), p->A244) : WL0(i,j);
+    WLo(i,j) = WL0(i,j);
+    }
 }
 
 int sflow_momentum_SI::nh_active(lexer *p, fdm2D *b, int ii, int jj)
@@ -118,7 +162,7 @@ void sflow_momentum_SI::nh_predictor(lexer *p, fdm2D *b, ghostcell *pgc)
 
         if(Bdisp>0.0 && nh_active(p,b,i,j)==1)
         {
-        const double h = WL0(i,j);
+        const double h = WLh(i,j);
         const double ge = in(i+1,j) ? (eta0(i+1,j) - eta0(i,j))/p->DXP[IP] : 0.0;
         const double gw = in(i-1,j) ? (eta0(i,j) - eta0(i-1,j))/p->DXP[IM1] : 0.0;
         Lc0(i,j) = h*h*h*(ge - gw)/p->DXN[IP];
@@ -129,13 +173,21 @@ void sflow_momentum_SI::nh_predictor(lexer *p, fdm2D *b, ghostcell *pgc)
     auto Wn = [&](int a, int c) { return (in(a,c) && WL0(a,c)>p->A244) ? b->WH(a,c)/WL0(a,c) : 0.0; };
     auto fW = [&](int a, int c) { const double q = qxn(a,c); return q>=0.0 ? q*Wn(a,c) : q*Wn(a+1,c); };
 
+    // Adams-Bashforth 2 in time (the forward step gave 1.5 % too large harmonics on the lee side of a bar, dt 0.02 s)
+    const double r = dt/MAX(p->dt_old,1.0e-20);
+    const bool ab2 = !nh_first;
+
     SLICELOOP4
     {
+    const double A = p->wet[IJ]==1 ? (fW(i,j) - fW(i-1,j))/p->DXN[IP] : 0.0;
+
         if(p->wet[IJ]==1)
-        WHp(i,j) = b->WH(i,j) - dt*(fW(i,j) - fW(i-1,j))/p->DXN[IP];
+        WHp(i,j) = b->WH(i,j) - dt*(ab2 ? (1.0+0.5*r)*A - 0.5*r*AWo(i,j) : A);
 
         else
         WHp(i,j) = 0.0;
+
+    AWo(i,j) = A;
     }
 
     // U^n of the cells; the acceleration of the previous step, (U^n - U^{n-1})/dt, gives phi: the estimate of
@@ -220,7 +272,7 @@ void sflow_momentum_SI::nh_solve(lexer *p, fdm2D *b, ghostcell *pgc)
         if(Bdisp<=0.0 || !ac(a,c))
         return;
 
-        const double h3 = WL0(a,c)*WL0(a,c)*WL0(a,c)/p->DXN[a+marge];
+        const double h3 = WLh(a,c)*WLh(a,c)*WLh(a,c)/p->DXN[a+marge];
         const int n0 = cell[id(a,c)];
 
         if(in(a+1,c))
@@ -248,7 +300,7 @@ void sflow_momentum_SI::nh_solve(lexer *p, fdm2D *b, ghostcell *pgc)
 
         const double dxp = p->DXP[a+marge];
         const double dd = b->depth(a+1,c) - b->depth(a,c);
-        const double HL = WL0(a,c), HR = WL0(a+1,c);
+        const double HL = WLq(a,c), HR = WLq(a+1,c);
         const double s = dt*alx(a,c)/dxp;
         const int L = ce(a,c), R = ce(a+1,c);
 
@@ -367,7 +419,7 @@ void sflow_momentum_SI::nh_solve(lexer *p, fdm2D *b, ghostcell *pgc)
         continue;
         }
 
-    const double H = WL0(i,j);
+    const double H = WLq(i,j);
     const lin qe = fQ(i,j), qw = fQ(i-1,j);
 
     row(rp, qe,  1.0/p->DXN[IP]);
@@ -377,8 +429,8 @@ void sflow_momentum_SI::nh_solve(lexer *p, fdm2D *b, ghostcell *pgc)
     const double dx = p->DXP[IP] + p->DXP[IM1];
     const double dE = in(i+1,j) ? b->depth(i+1,j) : b->depth(i,j);
     const double dW = in(i-1,j) ? b->depth(i-1,j) : b->depth(i,j);
-    const double HE = in(i+1,j) ? WL0(i+1,j) : H;
-    const double HW = in(i-1,j) ? WL0(i-1,j) : H;
+    const double HE = in(i+1,j) ? WLq(i+1,j) : H;
+    const double HW = in(i-1,j) ? WLq(i-1,j) : H;
     const double sl = (2.0*(dE - dW) - (HE - HW))/dx;
 
     const double fe = Hx(i,j)>0.0 ? 1.0 : 0.0;
@@ -483,7 +535,7 @@ void sflow_momentum_SI::nh_cell(lexer *p, fdm2D *b, ghostcell *pgc)
         b->WH(i,j) = WHp(i,j);
 
         if(nh_active(p,b,i,j)==1)
-        b->WH(i,j) += dt*(cwn*b->press(i,j)/p->W1 + 0.25*WL0(i,j)*phiN(i,j));
+        b->WH(i,j) += dt*(cwn*b->press(i,j)/p->W1 + 0.25*WLq(i,j)*phiN(i,j));
         }
 
         else

@@ -262,6 +262,13 @@ private:
     void nh_predictor(lexer*, fdm2D*, ghostcell*);
     void nh_solve(lexer*, fdm2D*, ghostcell*);
     void nh_cell(lexer*, fdm2D*, ghostcell*);
+    // time levels of the nonlinear terms (nh_levels): face and cell depths of the gravity and A 220 3 terms at
+    // t^{n+1/2} (Hx, WLh), the depth of the pressure terms and of the constraint at t^{n+1} (WLq), the discharge of
+    // the advection at t^{n+1/2} (qxa), all extrapolated from t^n and t^{n-1} (Hxo, WLo, qxo); W advection
+    // Adams-Bashforth 2 (AWo: the tendency of the previous step)
+    slice1 Hxo, qxo, qxa;
+    slice4 WLh, WLo, AWo, WLq;
+    void nh_levels(lexer*, fdm2D*);
 };
 
 #endif

@@ -52,7 +52,7 @@ sflow_momentum_SI::sflow_momentum_SI(lexer *p, fdm2D *b, ghostcell *pgc, sflow_H
                                       eta0(p),WL0(p),UH0(p),VH0(p),UHa(p),VHa(p),UHb(p),VHb(p),UHp(p),VHp(p),
                                       WHz(p),dUH(p),dVH(p),etaI(p),alc(p),rhs(p),rhsW(p),bdiag(p),wsrc(p),hsrc(p),
                                       tU(p),tV(p),tUH(p),tVH(p),WLk(p),etaB(p),
-                                      qxN(p),phiN(p),WHp(p),Lc0(p),Unm1(p)
+                                      qxN(p),phiN(p),WHp(p),Lc0(p),Unm1(p),Hxo(p),qxo(p),qxa(p),WLh(p),WLo(p),AWo(p),WLq(p)
 {
     check(p);
 
@@ -209,6 +209,9 @@ void sflow_momentum_SI::step_single(lexer *p, fdm2D* b, ghostcell* pgc)
 {
     si_restore(p,b,pgc);
     si_begin(p,b,pgc);
+
+    if(nh)
+    nh_levels(p,b);
 
     // 3. predictor of the explicit terms
     for(int s=0; s<rk; ++s)
@@ -970,9 +973,11 @@ void sflow_momentum_SI::advection(lexer *p, fdm2D *b, ghostcell *pgc)
     precon->reconstruct_y(p, pgc, b, b->V, b->Ve, b->Vw);
     }
 
+    slice &qa = nh ? (slice&)qxa : (slice&)qxn;
+
     SLICELOOP1
     {
-    fxU(i,j) = qxn(i,j)>=0.0 ? qxn(i,j)*b->Us(i,j) : qxn(i,j)*b->Un(i,j);
+    fxU(i,j) = qa(i,j)>=0.0 ? qa(i,j)*b->Us(i,j) : qa(i,j)*b->Un(i,j);
     fxV(i,j) = 0.0;
 
     if(p->j_dir==1)
@@ -1445,6 +1450,9 @@ void sflow_momentum_SI::cell_update(lexer *p, fdm2D *b, ghostcell *pgc)
 
     auto wn = [&](int a, int c) { return etaI(a,c) + b->depth(a,c) > p->A244; };
 
+    // the depth of the gravity term (the non-hydrostatic step: extrapolated to t^{n+1/2}, nh_levels)
+    slice &Hg = nh ? (slice&)WLh : (slice&)WL0;
+
     SLICELOOP4
     {
         if(p->wet[IJ]==1)
@@ -1456,7 +1464,7 @@ void sflow_momentum_SI::cell_update(lexer *p, fdm2D *b, ghostcell *pgc)
         gn  = (ww*gx0(i-1,j) + we*gx0(i,j))/wsum;
         gn1 = (ww*(etaI(i,j) - etaI(i-1,j))/p->DXP[IM1] + we*(etaI(i+1,j) - etaI(i,j))/p->DXP[IP])/wsum;
 
-        b->UH(i,j) = alc(i,j)*(UHp(i,j) - dt*g*WL0(i,j)*(theta*gn1 + (1.0-theta)*gn));
+        b->UH(i,j) = alc(i,j)*(UHp(i,j) - dt*g*Hg(i,j)*(theta*gn1 + (1.0-theta)*gn));
 
         b->VH(i,j) = 0.0;
 
