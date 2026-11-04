@@ -2111,6 +2111,7 @@
           <File Name="sflow_hydrostatic.cpp"/>
         </VirtualDirectory>
         <VirtualDirectory Name="Momentum">
+          <File Name="sflow_momentum_SI_nh.cpp"/>
           <VirtualDirectory Name="Func">
             <File Name="sflow_momentum_func.cpp"/>
           </VirtualDirectory>

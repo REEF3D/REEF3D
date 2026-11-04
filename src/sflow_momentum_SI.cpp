@@ -51,7 +51,8 @@ sflow_momentum_SI::sflow_momentum_SI(lexer *p, fdm2D *b, ghostcell *pgc, sflow_H
                                       fxU(p),fxV(p),fyU(p),fyV(p),
                                       eta0(p),WL0(p),UH0(p),VH0(p),UHa(p),VHa(p),UHb(p),VHb(p),UHp(p),VHp(p),
                                       WHz(p),dUH(p),dVH(p),etaI(p),alc(p),rhs(p),rhsW(p),bdiag(p),wsrc(p),hsrc(p),
-                                      tU(p),tV(p),tUH(p),tVH(p),WLk(p),etaB(p)
+                                      tU(p),tV(p),tUH(p),tVH(p),WLk(p),etaB(p),
+                                      qxN(p),phiN(p),WHp(p),Lc0(p),Unm1(p),Hxo(p),qxo(p),qxa(p),WLh(p),WLo(p),AWo(p),WLq(p)
 {
     check(p);
 
@@ -67,6 +68,8 @@ sflow_momentum_SI::sflow_momentum_SI(lexer *p, fdm2D *b, ghostcell *pgc, sflow_H
 
     bc_method(p);
 
+    nh_ini(p);
+
     patch = block;
 
     if(p->mpirank==0 && !patch)
@@ -80,6 +83,9 @@ sflow_momentum_SI::sflow_momentum_SI(lexer *p, fdm2D *b, ghostcell *pgc, sflow_H
     cout<<", mass flux dissipation "<<p->A231;
 
     cout<<", thin-water velocities below "<<p->A232<<" m (A 232)";
+
+    if(nh)
+    cout<<", non-hydrostatic quadratic pressure (A 220 "<<p->A220<<") coupled implicitly, alpha "<<adisp;
 
     cout<<endl;
 
@@ -109,9 +115,25 @@ void sflow_momentum_SI::check(lexer *p)
         stop=1;
     };
 
-    // A 220 defaults to 2: the semi-implicit path needs A 220 0 in ctrl.txt
-    if(p->A220!=0)
-    msg("non-hydrostatic pressure and Boussinesq (A 220 > 0, default 2) are; set A 220 0,");
+    // A 220 defaults to 2: the quadratic non-hydrostatic pressure (A 220 2/3) is coupled into the eta system, as a
+    // prototype on one 1D Cartesian grid (one cell in y), serial, without the wetting and drying iteration
+    if(p->A220!=0 && p->A220!=2 && p->A220!=3)
+    msg("Boussinesq and the linear non-hydrostatic pressure (A 220 1, 4) are; set A 220 0, 2 or 3,");
+
+    if(p->A220==2 || p->A220==3)
+    {
+        if(p->j_dir==1)
+        msg("the non-hydrostatic pressure (A 220 2/3) in 2D is (prototype: one cell in y); set A 220 0,");
+
+        if(p->mpi_size>1)
+        msg("the non-hydrostatic pressure (A 220 2/3) with MPI is (prototype: serial); set A 220 0,");
+
+        if(p->geo_curv==1 || p->G1>0 || p->G50>0)
+        msg("the non-hydrostatic pressure (A 220 2/3) on curvilinear, multi-block and refined grids is; set A 220 0,");
+
+        if(p->A229==1)
+        msg("the non-hydrostatic pressure (A 220 2/3) with the wetting and drying iteration (A 229 1) is; set A 229 0,");
+    }
 
     // mesh refinement (G 1) and multi-block grids (G 50 1): one eta system over the leaf cells of all grids
     // (reefamr_si.cpp), one global time step
@@ -188,6 +210,9 @@ void sflow_momentum_SI::step_single(lexer *p, fdm2D* b, ghostcell* pgc)
     si_restore(p,b,pgc);
     si_begin(p,b,pgc);
 
+    if(nh)
+    nh_levels(p,b);
+
     // 3. predictor of the explicit terms
     for(int s=0; s<rk; ++s)
     {
@@ -200,6 +225,16 @@ void sflow_momentum_SI::step_single(lexer *p, fdm2D* b, ghostcell* pgc)
     si_assemble(p,b,pgc);
     si_rhs(p,b,pgc);
 
+    // non-hydrostatic pressure (A 220 2/3): eta and P from one coupled system
+    if(nh)
+    {
+    nh_predictor(p,b,pgc);
+    nh_solve(p,b,pgc);
+    wd_iter = 1;
+    wd_cells = 0;
+    }
+
+    else
     wd_iter = psi->solve_wetdry(p,pgc,ppoissonsolv,ax,ay,rhsW,b->depth,bdiag,etaI,p->A229==1 ? 20 : 1,wd_cells);
 
     si_end_faces(p,b,pgc);
@@ -938,9 +973,11 @@ void sflow_momentum_SI::advection(lexer *p, fdm2D *b, ghostcell *pgc)
     precon->reconstruct_y(p, pgc, b, b->V, b->Ve, b->Vw);
     }
 
+    slice &qa = nh ? (slice&)qxa : (slice&)qxn;
+
     SLICELOOP1
     {
-    fxU(i,j) = qxn(i,j)>=0.0 ? qxn(i,j)*b->Us(i,j) : qxn(i,j)*b->Un(i,j);
+    fxU(i,j) = qa(i,j)>=0.0 ? qa(i,j)*b->Us(i,j) : qa(i,j)*b->Un(i,j);
     fxV(i,j) = 0.0;
 
     if(p->j_dir==1)
@@ -1275,6 +1312,12 @@ void sflow_momentum_SI::face_update(lexer *p, fdm2D *b, ghostcell *pgc)
     SLICELOOP2
     qy(i,j) = Hy(i,j)>0.0 ? qyE(i,j) - ay(i,j)/tdt*(etaI(i,j+1) - etaI(i,j)) : 0.0;
 
+    // non-hydrostatic part of the face discharges (A 220 2/3, interior faces)
+    if(nh)
+    SLICELOOP1
+    if(Hx(i,j)>0.0)
+    qx(i,j) += qxN(i,j);
+
     exchange1(p,pgc,qx);
     exchange2(p,pgc,qy);
 
@@ -1407,6 +1450,9 @@ void sflow_momentum_SI::cell_update(lexer *p, fdm2D *b, ghostcell *pgc)
 
     auto wn = [&](int a, int c) { return etaI(a,c) + b->depth(a,c) > p->A244; };
 
+    // the depth of the gravity term (the non-hydrostatic step: extrapolated to t^{n+1/2}, nh_levels)
+    slice &Hg = nh ? (slice&)WLh : (slice&)WL0;
+
     SLICELOOP4
     {
         if(p->wet[IJ]==1)
@@ -1418,7 +1464,7 @@ void sflow_momentum_SI::cell_update(lexer *p, fdm2D *b, ghostcell *pgc)
         gn  = (ww*gx0(i-1,j) + we*gx0(i,j))/wsum;
         gn1 = (ww*(etaI(i,j) - etaI(i-1,j))/p->DXP[IM1] + we*(etaI(i+1,j) - etaI(i,j))/p->DXP[IP])/wsum;
 
-        b->UH(i,j) = alc(i,j)*(UHp(i,j) - dt*g*WL0(i,j)*(theta*gn1 + (1.0-theta)*gn));
+        b->UH(i,j) = alc(i,j)*(UHp(i,j) - dt*g*Hg(i,j)*(theta*gn1 + (1.0-theta)*gn));
 
         b->VH(i,j) = 0.0;
 
@@ -1515,6 +1561,10 @@ void sflow_momentum_SI::cell_update(lexer *p, fdm2D *b, ghostcell *pgc)
     b->WH(i,j) = 0.0;
     }
 
+    // non-hydrostatic pressure (A 220 2/3): UH with the mean of the face terms, WH
+    if(nh)
+    nh_cell(p,b,pgc);
+
     // velocities of the interior (Froude limiter A 531)
     velcalc(p,b,pgc,b->UH,b->VH,b->WH,b->WL,0);
 
@@ -1575,6 +1625,13 @@ void sflow_momentum_SI::relax(lexer *p, fdm2D *b, ghostcell *pgc)
 
     pflow->um_relax(p,pgc,b->U,b->UH,b->WL);
     pflow->vm_relax(p,pgc,b->V,b->VH,b->WL);
+
+    // non-hydrostatic pressure (A 220 2/3): W and P as the explicit stages
+    if(nh)
+    {
+    pflow->wm_relax(p,pgc,b->W,b->WH,b->WL);
+    pflow->pm_relax(p,pgc,b->press);
+    }
 
     SLICELOOP4
     vrelax += (b->WL(i,j) - rhs(i,j))*carea(p,i,j);
