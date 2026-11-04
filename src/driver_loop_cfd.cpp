@@ -108,6 +108,7 @@ void driver::loop_cfd(fdm* a)
         pflow->w_relax(p,a,pgc,a->w);
         pfsf->update(p,a,pgc,a->phi);
         pdem->start_cfd(p,a,pgc);
+        ppic->step_begin(p,a,pgc);   // PIC (F 81 2): the particle velocities to the water faces
         if(pcfdamr!=nullptr)
         pcfdamr->step(p,a,pgc,pvrans,p6dof);
         else

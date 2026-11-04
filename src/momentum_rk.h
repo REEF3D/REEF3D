@@ -30,6 +30,7 @@ Author: Hans Bihs
 #include"field2.h"
 #include"field3.h"
 #include"field4.h"
+#include<vector>
 
 class convection;
 class diffusion;
@@ -87,6 +88,8 @@ reconstructed from rho u / rho (vel_limiter) before the sources and the
 diffusion are added.
 --------------------------------------------------------------------*/
 
+class pic;
+
 class momentum_rk final : public momentum, public momentum_forcing, public bcmom
 {
 public:
@@ -94,6 +97,9 @@ public:
                 turbulence*, solver*, solver*, ioflow*, heat*&, concentration*&, reini*, fsi*);
 	virtual ~momentum_rk();
 	void start(lexer*, fdm*, ghostcell*, vrans*, sixdof*) override final;
+
+    // PIC (F 81 2, pic_f): the convection is left out on the faces in the water
+    static pic *ppic;
 
     // mesh refinement (cfd_amr, G 15): the SSP step in parts, called grid by grid with the fills of
     // the patches and the composite projection in between (step_ssp calls them in this order)
@@ -165,6 +171,7 @@ private:
     int stages;
     bool levelset;
     bool conservative;
+    std::vector<double> csave;   // the right-hand side before the convection (PIC, F 81 2)
 
     // SSP: u(s+1) = ssp_a[s] u(n) + ssp_b[s] (u(s) + dt F)
     double ssp_a[3], ssp_b[3];

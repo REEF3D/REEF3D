@@ -2679,6 +2679,10 @@
         <File Name="pic_f_xchange.cpp"/>
         <File Name="pic_f_print.cpp"/>
         <File Name="pic_f_ipol.cpp"/>
+        <File Name="pic_f_phi.cpp"/>
+        <File Name="pic_f_reseed.cpp"/>
+        <File Name="pic_f_extend.cpp"/>
+        <File Name="pic_f_flip.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="CPM">
         <VirtualDirectory Name="Bedload">

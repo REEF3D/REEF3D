@@ -47,6 +47,7 @@ Author: Hans Bihs
 #include"fluid_update_fsf_concentration.h"
 #include"fluid_update_rheology.h"
 #include"fluid_update_void.h"
+#include"pic.h"
 #include"heat.h"
 #include"concentration.h"
 #include"density_f.h"
@@ -119,6 +120,10 @@ momentum_rk::momentum_rk(lexer *p, fdm *a, ghostcell *pgc, convection *pconvecti
 
     if(p->N40==2 || p->N40==22 || p->N40==3 || p->N40==23 || p->N40==4 || p->N40==24 || p->N40==33)
     levelset = true;
+
+    // PIC (F 81 1, 2): the free surface comes from the particles (pic_f), not from the level set
+    if(p->F81==1 || p->F81==2)
+    levelset = false;
 
     conservative = (p->N40==33);
 
@@ -935,8 +940,20 @@ void momentum_rk::rhs(lexer *p, fdm *a, int c)
 	}
 }
 
+// PIC (F 81 2): no convection on the faces in the water, the particles carry the momentum there
+pic *momentum_rk::ppic = nullptr;
+
 void momentum_rk::convection_start(lexer *p, fdm *a, int c, field &f, field &U, field &V, field &W)
 {
+    if(ppic!=nullptr && ppic->flip())
+    {
+        field &F = FGH(a,c);
+        csave.assign(F.V, F.V + size_t(p->imax)*p->jmax*p->kmax);
+        pconvec->start(p,a,f,c+1,U,V,W);
+        ppic->mask_convection(p,a,c,csave.data(),F);
+        return;
+    }
+
     pconvec->start(p,a,f,c+1,U,V,W);
 }
 

@@ -25,6 +25,7 @@ Architect: Hans Bihs
 #include"fdm.h"
 #include"ghostcell.h"
 #include<algorithm>
+#include<cmath>
 
 // Phase 0: the particles move with the CFD velocity of the new time level, frozen over the
 // step (as the particles of PICIN move through the divergence-free grid velocity), with
@@ -65,6 +66,12 @@ void pic_f::move(lexer *p, fdm *a, ghostcell *pgc)
 
         slide(p,a,q,x0,y0,z0);
 
+        // floating bodies (X 10): a body that moved onto the particle pushes it out
+        if(p->X10>0)
+        push_out(p,a,q);
+
+        // the velocity at the new position (F 81 2: the particles carry their own, pic_f::g2p)
+        if(!flipmode)
         velocity(p,a,q.x,q.y,q.z,q.u,q.v,q.w);
 
         ++n;
@@ -76,9 +83,14 @@ void pic_f::move(lexer *p, fdm *a, ghostcell *pgc)
 
 void pic_f::velocity(lexer *p, fdm *a, double xp, double yp, double zp, double &up, double &vp, double &wp)
 {
-    up = ipol(p,a->u,1,xp,yp,zp);
-    vp = p->j_dir==1 ? ipol(p,a->v,2,xp,yp,zp) : 0.0;
-    wp = ipol(p,a->w,3,xp,yp,zp);
+    // F 81 1, 2: the velocity of the water extended into the air (pic_f_extend.cpp)
+    field &fu = surface ? (field&)*uw : (field&)a->u;
+    field &fv = surface ? (field&)*vw : (field&)a->v;
+    field &fw = surface ? (field&)*ww : (field&)a->w;
+
+    up = ipol(p,fu,1,xp,yp,zp);
+    vp = p->j_dir==1 ? ipol(p,fv,2,xp,yp,zp) : 0.0;
+    wp = ipol(p,fw,3,xp,yp,zp);
 }
 
 // a solid at the position: a blocked cell (flag4 < 0: topography, solid, object of the grid;
@@ -178,4 +190,38 @@ void pic_f::slide(lexer *p, fdm *a, pic_data &q, double x0, double y0, double z0
     }
 
     q.x=x0; q.y=y0; q.z=z0;
+}
+
+// a particle inside a floating body (its level set fb < 0, the body moved onto it) goes out along
+// the gradient of fb, to 0.1 cells outside
+void pic_f::push_out(lexer *p, fdm *a, pic_data &q)
+{
+    const double f = ipol(p,a->fb,4,q.x,q.y,q.z);
+
+    if(f>=0.0)
+    return;
+
+    const int ci = cell(p->XN,p->knox,q.x);
+    const double h = p->DXN[ci+marge];
+    const double d = 0.5*h;
+
+    const double gx = (ipol(p,a->fb,4,q.x+d,q.y,q.z) - ipol(p,a->fb,4,q.x-d,q.y,q.z))/(2.0*d);
+    const double gy = p->j_dir==1 ? (ipol(p,a->fb,4,q.x,q.y+d,q.z) - ipol(p,a->fb,4,q.x,q.y-d,q.z))/(2.0*d) : 0.0;
+    const double gz = (ipol(p,a->fb,4,q.x,q.y,q.z+d) - ipol(p,a->fb,4,q.x,q.y,q.z-d))/(2.0*d);
+    const double g = std::sqrt(gx*gx + gy*gy + gz*gz);
+
+    if(g<1.0e-12)
+    return;
+
+    const double s = (-f + 0.1*h)/g;
+    double x = q.x + s*gx/g;
+    double y = q.y + s*gy/g;
+    double z = q.z + s*gz/g;
+
+    if(!domain(p,x,y,z))
+    return;
+
+    q.x = x;
+    q.y = y;
+    q.z = z;
 }

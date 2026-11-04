@@ -38,7 +38,8 @@ Architect: Hans Bihs
 // Point fields: velocity, id (int32), rank (the MPI rank that has the particle).
 // When: every F 87 seconds; F 87 <= 0: with the CFD volume output (P 30 seconds or every
 // P 20 iterations). REEF3D_CFD_PIC/REEF3D-CFD-PIC-Log.dat: the number of particles, those
-// that left the domain and those sent between the ranks, at every output.
+// that left the domain, those sent between the ranks, those added and removed in the water
+// (pic_f::reseed) and the time of the free surface from the particles [s], at every output.
 
 double pic_f::print_interval(lexer *p) const
 {
@@ -83,7 +84,8 @@ void pic_f::print(lexer *p, ghostcell *pgc)
 
         const long long n = (long long)(all.size()/NG);
 
-        logout<<setprecision(9)<<p->simtime<<" \t "<<n<<" \t "<<lost_total<<" \t "<<sent_total<<endl;
+        logout<<setprecision(9)<<p->simtime<<" \t "<<n<<" \t "<<lost_total<<" \t "<<sent_total
+              <<" \t "<<added_total<<" \t "<<removed_total<<" \t "<<phitime<<endl;
 
         cout<<"PIC output "<<printcount<<": "<<n<<" particles, "<<lost_total<<" left the domain"
             <<(stored ? " (LAGOON store)" : "")<<endl;

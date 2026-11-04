@@ -31,8 +31,9 @@ Architect: Hans Bihs
 // whole domain would. (lexer::posc_i and the ccipol functions are meant for positions inside
 // the subdomain: beyond it they clamp to the outermost cell.)
 // Positions of the values: u(i,j,k) at (XN[i+1], YP[j], ZP[k]), v at (XP[i], YN[j+1], ZP[k]),
-// w at (XP[i], YP[j], ZN[k+1]), cell values (type 4) at (XP[i], YP[j], ZP[k]); indices with
-// the margin, i from -marge to knox+marge-1.
+// w at (XP[i], YP[j], ZN[k+1]), cell values (type 4) at (XP[i], YP[j], ZP[k]); the fields have
+// the ghost cells of the grid margin (fmarg = lexer::margin, 3), i from -fmarg to knox+fmarg-1;
+// the coordinate arrays are offset by increment::marge (5).
 
 namespace
 {
@@ -60,45 +61,65 @@ int pic_f::cell(const double *N, int n, double x) const
     const double *first = N;
     const double *last  = N + n + 2*marge + 1;
 
-    int q = int(std::upper_bound(first, last, x) - first) - 1 - marge;
+    const int q = int(std::upper_bound(first, last, x) - first) - 1 - marge;
 
-    return std::max(-marge, std::min(q, n+marge-1));
+    return std::max(-fmarg, std::min(q, n+fmarg-1));
 }
 
-double pic_f::ipol(lexer *p, field &f, int type, double xp, double yp, double zp) const
+// the corner values of the interpolation (pic_f::ipol) and their weights: n of them (8 in 3D, 4 in 2D)
+int pic_f::stencil(lexer *p, int type, double xp, double yp, double zp, int *ii, int *jj, int *kk, double *ww) const
 {
     int i0,j0=0,k0;
     double tx,ty=0.0,tz;
 
     // x: faces for u, centres else
     if(type==1)
-    bracket(p->XN, 1+marge, -marge, p->knox+marge-2, xp, i0, tx);
+    bracket(p->XN, 1+marge, -fmarg, p->knox+fmarg-2, xp, i0, tx);
     else
-    bracket(p->XP, marge, -marge, p->knox+marge-1, xp, i0, tx);
+    bracket(p->XP, marge, -fmarg, p->knox+fmarg-1, xp, i0, tx);
 
     if(p->j_dir==1)
     {
     if(type==2)
-    bracket(p->YN, 1+marge, -marge, p->knoy+marge-2, yp, j0, ty);
+    bracket(p->YN, 1+marge, -fmarg, p->knoy+fmarg-2, yp, j0, ty);
     else
-    bracket(p->YP, marge, -marge, p->knoy+marge-1, yp, j0, ty);
+    bracket(p->YP, marge, -fmarg, p->knoy+fmarg-1, yp, j0, ty);
     }
 
     if(type==3)
-    bracket(p->ZN, 1+marge, -marge, p->knoz+marge-2, zp, k0, tz);
+    bracket(p->ZN, 1+marge, -fmarg, p->knoz+fmarg-2, zp, k0, tz);
     else
-    bracket(p->ZP, marge, -marge, p->knoz+marge-1, zp, k0, tz);
+    bracket(p->ZP, marge, -fmarg, p->knoz+fmarg-1, zp, k0, tz);
 
     const double wx[2] = {1.0-tx, tx};
     const double wy[2] = {1.0-ty, ty};
     const double wz[2] = {1.0-tz, tz};
     const int ny = p->j_dir==1 ? 2 : 1;
 
-    double val=0.0;
+    int n=0;
     for(int a=0; a<2; ++a)
     for(int b=0; b<ny; ++b)
     for(int c=0; c<2; ++c)
-    val += wx[a]*wy[b]*wz[c]*f(i0+a, j0+b, k0+c);
+    {
+        ii[n] = i0+a;
+        jj[n] = j0+b;
+        kk[n] = k0+c;
+        ww[n] = wx[a]*wy[b]*wz[c];
+        ++n;
+    }
+
+    return n;
+}
+
+double pic_f::ipol(lexer *p, field &f, int type, double xp, double yp, double zp) const
+{
+    int ii[8], jj[8], kk[8];
+    double ww[8];
+    const int n = stencil(p,type,xp,yp,zp,ii,jj,kk,ww);
+
+    double val=0.0;
+    for(int m=0; m<n; ++m)
+    val += ww[m]*f(ii[m],jj[m],kk[m]);
 
     return val;
 }

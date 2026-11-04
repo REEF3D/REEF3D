@@ -28,9 +28,9 @@ Architect: Hans Bihs
 #include<iostream>
 
 // Every fluid cell (flag4 > 0) is split into F 83 sub-cells per direction (x, z; and y in 3D).
-// A particle is put near the centre of every sub-cell that lies in the water (phi > 0, the
-// level set interpolated to the sub-cell) and not in a solid (pic_f::blocked); the offset
-// from the centre is up to a quarter of the sub-cell, from a hash of the particle id, so the
+// A particle is put at the centre of every sub-cell that lies in the water (phi > 0, the level
+// set interpolated to the sub-cell) and not in a solid (pic_f::blocked); for passive particles
+// (F 81 10) up to a quarter of the sub-cell off the centre, from a hash of the particle id, so the
 // seeding does not depend on the decomposition.
 
 void pic_f::seed(lexer *p, fdm *a, ghostcell *pgc)
@@ -54,9 +54,13 @@ void pic_f::seed(lexer *p, fdm *a, ghostcell *pgc)
             const int s = (qi*ny + qj)*npd + qk;
             const uint64_t id = uint64_t(gcell)*uint64_t(npc) + uint64_t(s);
 
-            const double ox = 0.5*(hash_uniform(id,0)-0.5);
-            const double oy = 0.5*(hash_uniform(id,1)-0.5);
-            const double oz = 0.5*(hash_uniform(id,2)-0.5);
+            // F 81 10 (passive): up to a quarter of the sub-cell off its centre; F 81 1, 2: at the
+            // centre (a random offset makes the free surface rough, and in still water the
+            // roughness starts waves of a cell's length)
+            const double jit = surface ? 0.0 : 0.5;
+            const double ox = jit*(hash_uniform(id,0)-0.5);
+            const double oy = jit*(hash_uniform(id,1)-0.5);
+            const double oz = jit*(hash_uniform(id,2)-0.5);
 
             pic_data q;
             q.x = p->XN[IP] + (double(qi)+0.5+ox)/double(npd)*p->DXN[IP];

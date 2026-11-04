@@ -119,3 +119,96 @@ void pic_f::xchange(lexer *p, ghostcell *pgc)
     sent = (long long)pgc->globalsum(double(sent));
     sent_total += sent;
 }
+
+// The positions of the neighbours' particles within 3 cells of the subdomain boundary (the
+// kernel of the free surface, pic_f_phi.cpp; the velocities to the grid, pic_f_flip.cpp): x first,
+// then y with what came from x, then z with all, so those of the edge and corner neighbours arrive
+// too. H: x y z of each, with vel also u v w.
+void pic_f::halo(lexer *p, ghostcell *pgc, std::vector<double> &H, bool vel)
+{
+    const int band = 3;
+    const int st = vel ? 6 : 3;
+    H.clear();
+
+    for(int dir=0; dir<3; ++dir)
+    {
+        if(dir==1 && p->j_dir==0)
+        continue;
+
+        const double *N = dir==0 ? p->XN : (dir==1 ? p->YN : p->ZN);
+        const int nc = dir==0 ? p->knox : (dir==1 ? p->knoy : p->knoz);
+        const int nblo = dir==0 ? p->nb1 : (dir==1 ? p->nb3 : p->nb5);
+        const int nbhi = dir==0 ? p->nb4 : (dir==1 ? p->nb2 : p->nb6);
+
+        std::vector<double> lo, hi, recv;
+
+        auto pick = [&](const double *r)
+        {
+            const double c = r[dir==0 ? 0 : (dir==1 ? 1 : 2)];
+            const int ci = cell(N,nc,c);
+
+            if(ci<band && nblo!=-2)
+            lo.insert(lo.end(),r,r+st);
+
+            if(ci>=nc-band && nbhi!=-2)
+            hi.insert(hi.end(),r,r+st);
+        };
+
+        for(const auto &q : P)
+        {
+        const double r[6] = {q.x,q.y,q.z,q.u,q.v,q.w};
+        pick(r);
+        }
+
+        const size_t nh = H.size();
+        for(size_t m=0; m+st<=nh; m+=st)
+        pick(&H[m]);
+
+        sendrecv(pgc,nblo,nbhi,lo,hi,recv,8200+10*dir);
+
+        H.insert(H.end(),recv.begin(),recv.end());
+    }
+}
+
+// lo to the neighbour below (nblo), hi to the one above (nbhi); recv: what both sent here
+void pic_f::sendrecv(ghostcell *pgc, int nblo, int nbhi, std::vector<double> &lo, std::vector<double> &hi,
+                     std::vector<double> &recv, int tag)
+{
+    int nlo = int(lo.size()), nhi = int(hi.size());
+    int rlo = 0, rhi = 0;
+    MPI_Request req[8];
+    int nreq = 0;
+
+    // counts: down (to nblo) with tag, up (to nbhi) with tag+1
+    if(nblo!=-2)
+    {
+    MPI_Isend(&nlo,1,MPI_INT,nblo,tag,pgc->mpi_comm,&req[nreq++]);
+    MPI_Irecv(&rlo,1,MPI_INT,nblo,tag+1,pgc->mpi_comm,&req[nreq++]);
+    }
+    if(nbhi!=-2)
+    {
+    MPI_Isend(&nhi,1,MPI_INT,nbhi,tag+1,pgc->mpi_comm,&req[nreq++]);
+    MPI_Irecv(&rhi,1,MPI_INT,nbhi,tag,pgc->mpi_comm,&req[nreq++]);
+    }
+    MPI_Waitall(nreq,req,MPI_STATUSES_IGNORE);
+
+    std::vector<double> blo(size_t(rlo)+1), bhi(size_t(rhi)+1);
+    lo.push_back(0.0);
+    hi.push_back(0.0);
+    nreq = 0;
+
+    if(nblo!=-2)
+    {
+    MPI_Isend(lo.data(),nlo,MPI_DOUBLE,nblo,tag+2,pgc->mpi_comm,&req[nreq++]);
+    MPI_Irecv(blo.data(),rlo,MPI_DOUBLE,nblo,tag+3,pgc->mpi_comm,&req[nreq++]);
+    }
+    if(nbhi!=-2)
+    {
+    MPI_Isend(hi.data(),nhi,MPI_DOUBLE,nbhi,tag+3,pgc->mpi_comm,&req[nreq++]);
+    MPI_Irecv(bhi.data(),rhi,MPI_DOUBLE,nbhi,tag+2,pgc->mpi_comm,&req[nreq++]);
+    }
+    MPI_Waitall(nreq,req,MPI_STATUSES_IGNORE);
+
+    recv.assign(blo.begin(),blo.begin()+rlo);
+    recv.insert(recv.end(),bhi.begin(),bhi.begin()+rhi);
+}
