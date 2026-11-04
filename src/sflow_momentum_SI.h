@@ -30,9 +30,11 @@ Author: Hans Bihs
 #include<vector>
 #include<fstream>
 #include<functional>
+#include<memory>
 
 class si_eta2D;
 class sflow_amr;
+struct sflow_si_nh_lu;
 
 using namespace std;
 
@@ -84,8 +86,14 @@ using namespace std;
 // grids, fills the cells around them in between (the coarse faces next to a patch take its fine fluxes) and solves
 // one eta system over the leaf cells of all grids (reefamr_si.cpp).
 //
-// Not yet (stops in check()): non-hydrostatic pressure and Boussinesq (A 220 > 0), patch boundary conditions
-// (B 411-422), 6DOF / direct forcing, subcycling of the refinement (G 7 1), SEASTATE surfbeat.
+// Non-hydrostatic quadratic pressure (A 220 2/3), prototype (sflow_momentum_SI_nh.cpp): the pressure P^{n+1}
+// fully implicit and eta^{n+1} (theta) from one coupled system of the continuity equation and the
+// incompressibility constraint, so that neither the gravity nor the dispersive wave speed limits the time step;
+// one grid, 1D (one cell in y), Cartesian, serial, without wetting and drying iteration (A 229 0).
+//
+// Not yet (stops in check()): Boussinesq (A 220 4) and the non-hydrostatic pressure beyond the prototype limits,
+// patch boundary conditions (B 411-422), 6DOF / direct forcing, subcycling of the refinement (G 7 1), SEASTATE
+// surfbeat.
 // ---------------------------------------------------------------------------
 
 class sflow_momentum_SI final : public sflow_momentum_func
@@ -235,6 +243,25 @@ private:
     double Qin, Qout;       // discharge over the open boundaries of the step (theta weighted)
     double vrelax;          // volume change of the relaxation zones of the step
     ofstream silog;
+
+    // non-hydrostatic quadratic pressure (A 220 2/3) in the coupled eta-P system (sflow_momentum_SI_nh.cpp)
+    //  qxN : the non-hydrostatic part of the face discharges of the step (pressure gradient, bed pressure,
+    //        A 220 3 dispersion term), added to q in face_update and, as the mean of the faces, to UH
+    //  phiN: bed acceleration Dw_b/Dt of the step (the acceleration of the previous step), WHp: WH predictor
+    //  Lc0 : h^3 lap(eta^n) of the A 220 3 dispersion term, Unm1: U^{n-1} of the cells
+    bool nh = false;
+    double cb, cwn, adisp, Bdisp;
+    slice1 qxN;
+    slice4 phiN, WHp, Lc0, Unm1;
+    bool nh_first = true;
+    std::shared_ptr<sflow_si_nh_lu> nhlu;
+    int nh_cells_active = 0;
+    double nh_time = 0.0;
+    void nh_ini(lexer*);
+    int nh_active(lexer*, fdm2D*, int, int);
+    void nh_predictor(lexer*, fdm2D*, ghostcell*);
+    void nh_solve(lexer*, fdm2D*, ghostcell*);
+    void nh_cell(lexer*, fdm2D*, ghostcell*);
 };
 
 #endif
