@@ -1,0 +1,16 @@
+{
+ "base": "cfd_2d_dambreak",
+ "ctrl_set": {
+  "F 81": "1",
+  "F 87": "0.02",
+  "P 18": "2"
+ },
+ "same_as": "cfd_2d_dambreak",
+ "tags": ["quick", "2d", "dambreak", "levelset", "pic"],
+ "description": "as cfd_2d_dambreak with the PIC particles of phase 0 (F 81 1: 4 particles per cell seeded in the water, moved passively with the CFD velocity, closed tank) written every 0.02 s to the LAGOON store (particle set cfd_pic) and as VTP files (P 18 2): the particles do not change the run (same_as, bitwise)",
+ "covers": [
+  "pic_f: seeding (F 83), Ralston RK3 advection, wall reflection",
+  "pic_f::print_lagoon (P 18): the particles gathered on rank 0 into ./REEF3D_CFD.lagoon, set cfd_pic",
+  "pic_f::print_vtp, REEF3D_CFD_PIC/REEF3D-CFD-PIC-Log.dat"
+ ]
+}
