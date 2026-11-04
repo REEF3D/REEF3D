@@ -85,6 +85,7 @@ class nhflow;
 class multiphase;
 class nhflow_momentum;
 class nhflow_particle;
+class pic;
 class particle_base;
 class coral_reef3d;
 class soil_stress;
@@ -225,6 +226,7 @@ public:
     vrans_nhflow *pnhfvrans;
     sixdof *p6dof;
     dem *pdem;
+    pic *ppic = nullptr;   // PIC particles of the CFD free surface flow (F 81)
     turbulence *pturbcfd;
 
 private:

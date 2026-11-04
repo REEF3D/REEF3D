@@ -982,6 +982,11 @@
         <File Name="nhflow_particle_void.h"/>
         <File Name="nhflow_particle_f.h"/>
       </VirtualDirectory>
+      <VirtualDirectory Name="PIC">
+        <File Name="pic.h"/>
+        <File Name="pic_void.h"/>
+        <File Name="pic_f.h"/>
+      </VirtualDirectory>
       <VirtualDirectory Name="CPM">
         <File Name="CPM.h"/>
         <File Name="part.h"/>
@@ -2666,6 +2671,14 @@
         <File Name="nhflow_particle_f_seed.cpp"/>
         <File Name="nhflow_particle_f_print.cpp"/>
         <File Name="nhflow_particle_f_move.cpp"/>
+      </VirtualDirectory>
+      <VirtualDirectory Name="PIC">
+        <File Name="pic_f.cpp"/>
+        <File Name="pic_f_seed.cpp"/>
+        <File Name="pic_f_move.cpp"/>
+        <File Name="pic_f_xchange.cpp"/>
+        <File Name="pic_f_print.cpp"/>
+        <File Name="pic_f_ipol.cpp"/>
       </VirtualDirectory>
       <VirtualDirectory Name="CPM">
         <VirtualDirectory Name="Bedload">

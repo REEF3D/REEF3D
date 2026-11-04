@@ -23,6 +23,7 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 #include"ghostcell.h"
 #include"lexer.h"
 #include"fdm.h"
+#include"pic.h"
 #include"freesurface_header.h"
 #include"turbulence_header.h"
 #include"momentum_header.h"
@@ -238,6 +239,9 @@ void driver::driver_ini_cfd()
     // the first output (not on a restart, I 45 1: the checkpoint is a state already printed)
     if(p->I45!=1)
     pprint->start(p,a,pgc,pturb,pheat,pflow,pdata,pconc,pmp,psed);
+
+    // PIC particles (F 81): seeded in the water, first output
+    ppic->ini(p,a,pgc);
 
 // ini variables
     for(int qn=0; qn<2; ++qn)

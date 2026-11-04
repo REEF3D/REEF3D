@@ -41,6 +41,8 @@ Author: Hans Bihs
 #include"FSI_header.h"
 #include"vrans_header.h"
 #include"waves_header.h"
+#include"pic_f.h"
+#include"pic_void.h"
 
 // stop for input options whose code was removed
 static void removed_option(lexer *p, ghostcell *pgc, bool used, const char *msg)
@@ -643,6 +645,17 @@ void driver::logic_cfd()
     pdem = new dem_void();
 
     momentum_forcing::pdem = pdem;
+
+// PIC (F 81; phase 0: passive particles in the water, the CFD solution is unchanged)
+    removed_option(p,pgc,p->F81!=0 && p->F81!=1 && p->F81!=2,"F 81: unknown PIC option; use 1 (single-phase) or 2 (water particles, Eulerian air).");
+    removed_option(p,pgc,p->F81>0 && (p->F30<=0 || p->F80>0),"F 81: the PIC particles are seeded in the water of the level set (F 30); not with VOF (F 80) yet.");
+    removed_option(p,pgc,p->F81>0 && p->G1>0,"F 81: PIC is not available with the mesh refinement (G 1) yet.");
+    removed_option(p,pgc,p->F81>0 && p->F83<1,"F 83: PIC needs at least 1 particle per cell and direction.");
+
+    if(p->F81>0)
+    ppic = new pic_f(p,pgc);
+    else
+    ppic = new pic_void();
 
 // FSI
     if(p->Z10==0)

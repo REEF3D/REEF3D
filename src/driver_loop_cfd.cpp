@@ -24,6 +24,7 @@ Author: Hans Bihs
 #include"regression_dump.h"
 #include"coral/reef3d/coral_reef3d.h"
 #include"dem.h"
+#include"pic.h"
 #include"lexer.h"
 #include"fdm.h"
 #include"ghostcell.h"
@@ -125,6 +126,9 @@ void driver::loop_cfd(fdm* a)
 
         //timestep control
         p->simtime+=p->dt;
+
+        // PIC particles (F 81): moved over the step with the new velocity, exchanged, output
+        ppic->start(p,a,pgc);
 
         // soil stress model (S 200), at the new time level
         if(psoil!=nullptr)

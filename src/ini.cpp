@@ -732,6 +732,9 @@ void control::ini_default()
 	F71=0;             // int number of phi 2 ini boxes
 	F72=0;             // int number of phi 1 ini regions
 	F80=0;             // int time scheme VOF
+    F81=0;             // int PIC free surface flow: 1 single-phase, 2 water particles with Eulerian air (phase 0: passive particles)
+    F83=2;             // int PIC particles per cell and direction
+    F87=-1.0;          // double PIC output interval in seconds; <= 0: with the CFD output (P 30, P 20)
     F85=0;             // int convection scheme VOF
     F88=10;             // int normal calculation method for VOF PLIC,2D MYC as default
     F90=4;             // int vof transport scheme for VOF PLIC, 2D COSMIC as default
