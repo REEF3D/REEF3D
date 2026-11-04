@@ -262,6 +262,10 @@ void seastate_f::ini_common(lexer *p, ghostcell *pgc, bool coupled_)
             <<(kba ? ": the result of one rank; tiles of "+std::to_string(psolv->pipeline_tile(0))+" x "+std::to_string(psolv->pipeline_tile(1))+" cells" : ": not possible, the ranks are not aligned; each rank from the halo of the last exchange")<<endl;
     }
 
+    // Phase 26: the transported age of the GSE closure (A 776 3)
+    if(p->A776==3)
+    age_ini(p,pgc);
+
     // Phase 12: FAS on a uniform grid (A 758 without mesh refinement): a V-cycle over coarse grids of 2 x 2 cells
     if(p->A758_n>0 && g1<1)
     {
@@ -377,8 +381,10 @@ void seastate_f::check_keys(lexer *p, ghostcell *pgc)
     msg = "A 710: initial spectrum must be 0 (zero) or 1 (parametric)";
     else if(p->A727_x1>=p->A727_x0 && (p->A710!=1 || !(p->A727_y1>=p->A727_y0)))
     msg = "A 727: the box of the initial spectrum needs A 710 1 and y1 >= y0";
-    else if(p->A776<0 || p->A776>2 || (p->A776==1 && !(p->A777>0.0)) || (p->A776>0 && p->A778<1))
-    msg = "A 776: the GSE closure must be 0, 1 (with the age A 777 > 0) or 2, with A 778 >= 1 iterations";
+    else if(p->A776<0 || p->A776>3 || (p->A776==1 && !(p->A777>0.0)) || (p->A776==3 && !(p->A777>=0.0)) || (p->A776>0 && p->A778<1))
+    msg = "A 776: the GSE closure must be 0, 1 (with the age A 777 > 0), 2 or 3 (the transported age, A 777 >= 0 the age of the initial and boundary spectra), with A 778 >= 1 iterations";
+    else if(p->A776==3 && (restart || p->A770==1 || p->A795>0.0))
+    msg = "A 776 3: the transported age is not in the checkpoints (no restart I 45 1), not with the surfbeat model (A 770 1) or the spectral sparsity (A 795)";
     else if(p->A776>0 && (p->A700!=1 || g1>0 || coupled))
     msg = "A 776: the GSE closure is for nonstationary stand-alone runs on uniform grids (no refinement)";
     else if(p->A711<0 || p->A711>3)
@@ -822,7 +828,7 @@ void seastate_f::storage(lexer *p, ghostcell *pgc)
     cout<<"SEASTATE mode: "<<(p->A700==2 ? "stationary" : "nonstationary")<<", time step "<<p->A706<<" s, refraction "<<p->A713<<", frequency shift "<<p->A714<<endl;
     if(p->A776>0)
     cout<<"SEASTATE GSE closure (A 776 "<<p->A776<<"): the flux inside a bin as a diffusion D = t_a Sigma over each step, t_a "
-        <<(p->A776==2 ? std::string("the model time") : std::to_string(p->A777)+" s")<<", "<<p->A778<<" Gauss-Seidel iterations (A 778)"<<endl;
+        <<(p->A776==2 ? std::string("the model time") : p->A776==3 ? std::string("transported per bin, reset in the wind sea (1.7 U10 cos > c), initial and boundary age ")+std::to_string(p->A777)+" s" : std::to_string(p->A777)+" s")<<", "<<p->A778<<" Gauss-Seidel iterations (A 778)"<<endl;
     if(p->A795>0.0 || p->A796==2 || (p->A797==1 && g1>0))
     {
     cout<<"SEASTATE solver:";

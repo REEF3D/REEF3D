@@ -235,6 +235,10 @@ private:
     void kinematics(lexer*, ghostcell*, double);
     void transport(lexer*, ghostcell*);
     void gse_step(lexer*, ghostcell*);      // A 776 (Phase 25): the GSE closure after the transport of a step
+    void age_ini(lexer*, ghostcell*);       // A 776 3 (Phase 26): the transported age, its solver and stores
+    void age_start(lexer*);                 // A 776 3: the old time level of the age, before the transport of a step
+    void age_step(lexer*, ghostcell*);      // A 776 3: the age transported with the spectra, reset in the wind sea
+    void gse_age_step(lexer*, ghostcell*);  // A 776 3: the GSE step with the age per bin
     void parameters(lexer*, ghostcell*);
 
     void forcing_ini(lexer*, ghostcell*);
@@ -256,6 +260,12 @@ private:
     seastate_implicit *psolv;
     seastate_store *N0;
     seastate_store *gNs = nullptr;          // A 776: the spectra after the transport, the right-hand side of the GSE step
+    seastate_store *gM = nullptr;           // A 776 3: the age-weighted action t_a N per bin
+    seastate_store *gM0 = nullptr;          // A 776 3: its old time level with the ageing, M + dt N
+    seastate_store *gMs = nullptr;          // A 776 3: M after the transport, the right-hand side of its GSE step
+    seastate_implicit *pasolv = nullptr;    // A 776 3: the transport of M (no source terms)
+    std::vector<float> Mb, Mside[4];        // A 776 3: the boundary spectra times their age A 777
+    bool gMset = false;                     // A 776 3: M set from the initial spectra
     seastate_source *psrc;
 
     std::vector<float> Nb;      // boundary spectrum
