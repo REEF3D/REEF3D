@@ -1881,6 +1881,10 @@ void control::ctrlrecv()
     ii++;
     N51 = ictrl[ii];
     ii++;
+    N52 = dctrl[dd];
+    dd++;
+    N53 = dctrl[dd];
+    dd++;
     N61 = dctrl[dd];
     dd++;
 

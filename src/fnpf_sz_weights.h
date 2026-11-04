@@ -108,6 +108,9 @@ public:
         return 0.0;
     }
 
+    // the weights of the n-point stencil on the nodes knoz, knoz-1, ... (nullptr if not available)
+    const double* weights(int n) const { return (n>=2 && n<=maxpt && valid[n]) ? w[n] : nullptr; }
+
 private:
     static const int maxpt = 7;
 

@@ -25,6 +25,8 @@ Author: Hans Bihs
 #include"lexer.h"
 #include"fdm_fnpf.h"
 #include"ghostcell.h"
+#include"fnpf_sz_weights.h"
+#include<cmath>
 
 fnpf_timestep::fnpf_timestep(lexer* p):epsi(1.0e-3),maxtimestep(p->N49),c0_orig(p->N47)
 {
@@ -34,10 +36,17 @@ fnpf_timestep::~fnpf_timestep()
 {
 }
 
-// N 51: speed of the CFL criterion dt = N47 dx / c of a column with the water depth h and the cell size dx
+// N 51: the gravity-wave part of the time step
 //
-//  0  (default)   c = MAX(|u|, sqrt(g h_max)): the shallow-water wave speed of the deepest column
-//  1  dispersive  c = |u| + sqrt(g dx tanh(h/dx)), h the local water depth
+//  0  (default)   dt = N47 dx / MAX(|u|, sqrt(g h_max)): the shallow-water wave speed of the deepest column
+//  1  dispersive  dt = N47 dx / (|u| + sqrt(g dx tanh(h/dx))), h the local water depth
+//  2  discrete    dt = N47 C_RK / (omega_d + pi |u|/dx + pi |v|/dy), omega_d = sqrt(g D(k)) of the grid cut-off
+//                 mode with the discrete Dirichlet-to-Neumann operator D of the sigma grid (Laplace cds2 and the
+//                 free-surface sz stencil of A311/A327), C_RK = sqrt(3) (RK3), 2 sqrt(2) (RK4): N47 is the
+//                 fraction of the linear stability limit of the RK scheme (N47 < 1), for any depth, 2D and 3D
+//
+// N 52 T_min > 0, N 53 n: accuracy cap dt <= T_min/n (any N 51). Once the stability limit is no longer the
+// constraint, the RK damping of the short waves sets the accuracy (RK3: about (pi/12)(omega dt)^3 per period).
 //
 // In potential flow no wave travels at sqrt(g h) on the grid scale: the fastest discrete mode is the shortest
 // wave the grid resolves, k = pi/dx, with omega = sqrt(g k tanh(k h)). The speed of N 51 1 (the gravity-wave
@@ -55,6 +64,217 @@ double fnpf_timestep::wave_speed(lexer *p, double u, double h, double dx, double
     }
     
     return fabs(MAX(u, sqrt(9.81*hmax)));
+}
+
+std::vector<double> fnpf_timestep::tab_lq, fnpf_timestep::tab_g;
+double fnpf_timestep::tab_lqmin=-4.0, fnpf_timestep::tab_lqmax=6.0, fnpf_timestep::tab_dlq=0.0, fnpf_timestep::gmax_ratio=0.0;
+int fnpf_timestep::dtn_ok=0;
+
+double fnpf_timestep::rk_limit(lexer *p)
+{
+    return (p->A310==4) ? 2.0*sqrt(2.0) : sqrt(3.0);
+}
+
+// N 51 2: omega of the grid cut-off mode, kh2 = kx^2 + ky^2 the symbol of the horizontal cds2 Laplacian
+// at the Nyquist mode (4/dx^2 on a uniform grid), h the local water depth
+double fnpf_timestep::omega_discrete(lexer *p, double kh2, double h)
+{
+    if(dtn_ok==0)
+    dtn_table_ini(p);
+    
+    const double g = fabs(p->W22)>0.0 ? fabs(p->W22) : 9.81;
+    h = MAX(h,1.0e-10);
+    
+    const double gq = MAX(dtn_lookup(sqrt(kh2)*h), 0.0);
+    
+    return sqrt(g*gq/h);
+}
+
+void fnpf_timestep::accuracy_cap(lexer *p)
+{
+    if(p->N52>0.0)
+    p->dt = MIN(p->dt, p->N52/MAX(p->N53,1.0));
+}
+
+// weights w[m] of f[knoz-m] such that sz = sum_m w[m] f[knoz-m] (sigma units), as the sz() of the free-surface
+// discretisation chosen by A311: A327 1 Fornberg weights on the sigma nodes (fnpf_sz_weights), A327 0 the legacy
+// ratio form sum(a f)/sum(a ZN); weno3 (A311 3) uses Fornberg weights on 5 nodes in both cases
+int fnpf_timestep::sz_weights(lexer *p, double *w)
+{
+    const int N = p->knoz;
+    int np = 3;
+    
+    if(p->A311==2 || p->A311==3 || p->A311==4 || p->A311==5)
+    np = 5;
+    
+    if(p->A311==6)
+    np = 7;
+    
+    while(np>3 && N<np-1)
+    np -= 2;
+    
+    if(p->A327==1 || p->A311==3)
+    {
+        fnpf_sz_weights szw(p);
+        
+        const double *ww = szw.weights(np);
+        
+        if(ww==nullptr && np>3)
+        ww = szw.weights(np=3);
+        
+        if(ww==nullptr)
+        ww = szw.weights(np=2);
+        
+        for(int m=0;m<np;++m)
+        w[m] = ww[m];
+        
+        return np;
+    }
+    
+    double a[7];
+    
+    if(np==7)
+    {
+    a[0]=-49.0/20.0; a[1]=6.0; a[2]=-7.5; a[3]=20.0/3.0; a[4]=-3.75; a[5]=6.0/5.0; a[6]=-1.0/6.0;
+    }
+    
+    else if(np==5)
+    {
+    a[0]=-25.0/12.0; a[1]=4.0; a[2]=-3.0; a[3]=4.0/3.0; a[4]=-0.25;
+    }
+    
+    else
+    {
+    a[0]=-1.5; a[1]=2.0; a[2]=-0.5;
+    }
+    
+    double den=0.0;
+    for(int m=0;m<np;++m)
+    den += a[m]*p->ZN[N-m+marge];
+    
+    for(int m=0;m<np;++m)
+    w[m] = a[m]/den;
+    
+    return np;
+}
+
+// dimensionless discrete DtN g(q) = H D for q = kH on the sigma grid (flat bed): the vertical rows of
+// fnpf_laplace_cds2,  q^2 phi_k - [ (phi_k+1 - phi_k)/DZN_k - (phi_k - phi_k-1)/DZN_k-1 ]/DZP_k-1 = 0,
+// the bed ghost as KBEDBC (mt += mb), phi_knoz = 1, then g = sz(phi)
+double fnpf_timestep::dtn_discrete(lexer *p, double q)
+{
+    const int N = p->knoz;
+    std::vector<double> lo(N), di(N), up(N), rhs(N), phi(N+1);
+    double w[7];
+    
+    for(int kk=0;kk<N;++kk)
+    {
+        const int m = kk+marge;
+        const double at = 1.0/(p->DZP[m-1]*p->DZN[m]);
+        const double ab = 1.0/(p->DZP[m-1]*p->DZN[m-1]);
+        
+        di[kk]  = q*q + at + ab;
+        up[kk]  = -at;
+        lo[kk]  = -ab;
+        rhs[kk] = 0.0;
+        
+        if(kk==0)
+        {
+        up[kk] += lo[kk];
+        lo[kk]  = 0.0;
+        }
+        
+        if(kk==N-1)
+        {
+        rhs[kk] = at;   // phi_N = 1
+        up[kk]  = 0.0;
+        }
+    }
+    
+    for(int kk=1;kk<N;++kk)
+    {
+        const double f = lo[kk]/di[kk-1];
+        di[kk]  -= f*up[kk-1];
+        rhs[kk] -= f*rhs[kk-1];
+    }
+    
+    phi[N] = 1.0;
+    phi[N-1] = rhs[N-1]/di[N-1];
+    for(int kk=N-2;kk>=0;--kk)
+    phi[kk] = (rhs[kk] - up[kk]*phi[kk+1])/di[kk];
+    
+    const int np = sz_weights(p,w);
+    
+    double g=0.0;
+    for(int m=0;m<np;++m)
+    g += w[m]*phi[N-m];
+    
+    return g;
+}
+
+void fnpf_timestep::dtn_table_ini(lexer *p)
+{
+    const int nq = 801;
+    tab_lqmin = -4.0;
+    tab_lqmax =  6.0;
+    tab_dlq   = (tab_lqmax-tab_lqmin)/double(nq-1);
+    
+    tab_lq.resize(nq);
+    tab_g.resize(nq);
+    
+    int nneg=0;
+    gmax_ratio=0.0;
+    
+    for(int n=0;n<nq;++n)
+    {
+        tab_lq[n] = tab_lqmin + n*tab_dlq;
+        const double q = pow(10.0,tab_lq[n]);
+        tab_g[n] = dtn_discrete(p,q);
+        
+        if(tab_g[n]<=0.0)
+        ++nneg;
+        
+        gmax_ratio = MAX(gmax_ratio, tab_g[n]/(q*tanh(q)));
+    }
+    
+    dtn_ok=1;
+    
+    if(p->mpirank==0)
+    {
+        cout<<"FNPF time step N 51 2: discrete DtN of the sigma grid, knoz "<<p->knoz<<", A311 "<<p->A311<<", A327 "<<p->A327<<endl;
+        cout<<"        kH      g_disc   kH tanh(kH)"<<endl;
+        
+        const double qs[7]={0.1,1.0,3.0,10.0,30.0,100.0,1000.0};
+        for(int n=0;n<7;++n)
+        cout<<setw(10)<<qs[n]<<setw(12)<<setprecision(5)<<dtn_lookup(qs[n])<<setw(12)<<qs[n]*tanh(qs[n])<<endl;
+        
+        cout<<"max g_disc/(kH tanh kH): "<<setprecision(4)<<gmax_ratio<<endl;
+        
+        if(nneg>0)
+        cout<<"WARNING: discrete DtN <= 0 for "<<nneg<<" table entries, check the sigma grid and A311"<<endl;
+    }
+}
+
+double fnpf_timestep::dtn_lookup(double q)
+{
+    if(q<=0.0)
+    return 0.0;
+    
+    const double lq = log10(q);
+    
+    // shallow limit g ~ q^2, deep limit bounded by linear growth
+    if(lq<=tab_lqmin)
+    return tab_g[0]*pow(q/pow(10.0,tab_lqmin),2.0);
+    
+    if(lq>=tab_lqmax)
+    return tab_g.back()*q/pow(10.0,tab_lqmax);
+    
+    int n = int((lq-tab_lqmin)/tab_dlq);
+    n = MIN(n, int(tab_g.size())-2);
+    
+    const double r = (lq - tab_lq[n])/tab_dlq;
+    
+    return (1.0-r)*tab_g[n] + r*tab_g[n+1];
 }
 
 void fnpf_timestep::start(fdm_fnpf *c, lexer *p,ghostcell *pgc)
@@ -120,6 +340,22 @@ void fnpf_timestep::start(fdm_fnpf *c, lexer *p,ghostcell *pgc)
     if(p->j_dir==0 || p->knoy==1)
     dx = p->DXN[IP];
     
+    if(p->N51==2)
+    {
+    // discrete: the cut-off mode of the local grid in the local water depth, Doppler shift by the surface velocity
+    if(p->wet[IJ]==0)
+    continue;
+    
+    const int ydir = (p->j_dir==1 && p->knoy>1) ? 1 : 0;
+    const double kx2 = (2.0/p->DXP[IP] + 2.0/p->DXP[IM1])/p->DXN[IP];
+    const double ky2 = ydir==1 ? (2.0/p->DYP[JP] + 2.0/p->DYP[JM1])/p->DYN[JP] : 0.0;
+    
+    const double rate = omega_discrete(p,kx2+ky2,c->WL(i,j)) + PI*p->umax/p->DXN[IP] + (ydir==1 ? PI*p->vmax/p->DYN[JP] : 0.0);
+    
+    cu = MIN(cu, rk_limit(p)/(rate+1.0e-20));
+    continue;
+    }
+    
     if(p->N51==1)
     {
     // dispersive: the local water depth of the wet columns
@@ -165,7 +401,12 @@ void fnpf_timestep::start(fdm_fnpf *c, lexer *p,ghostcell *pgc)
     p->dt=maxtimestep;
     
     else
+    {
 	p->dt=MIN(p->dt,maxtimestep);
+    
+    // N 52, N 53: accuracy cap
+    accuracy_cap(p);
+    }
     
     
 }
@@ -241,6 +482,18 @@ void fnpf_timestep::ini(fdm_fnpf* c, lexer* p,ghostcell* pgc)
     continue;
     }
     
+    if(p->N51==2)
+    {
+    const int ydir = (p->j_dir==1 && p->knoy>1) ? 1 : 0;
+    const double kx2 = (2.0/p->DXP[IP] + 2.0/p->DXP[IM1])/p->DXN[IP];
+    const double ky2 = ydir==1 ? (2.0/p->DYP[JP] + 2.0/p->DYP[JM1])/p->DYN[JP] : 0.0;
+    
+    const double rate = omega_discrete(p,kx2+ky2,p->wd-c->bed(i,j)) + PI*p->umax/p->DXN[IP] + (ydir==1 ? PI*p->vmax/p->DYN[JP] : 0.0);
+    
+    cu = MIN(cu, rk_limit(p)/(rate+1.0e-20));
+    continue;
+    }
+    
     cu = MIN(cu, 1.0/((fabs(MAX(p->umax, sqrt(9.81*depthmax)))/dx)));
     cv = MIN(cv, 1.0/((fabs(MAX(p->vmax, sqrt(9.81*depthmax)))/dx)));
     }
@@ -251,7 +504,28 @@ void fnpf_timestep::ini(fdm_fnpf* c, lexer* p,ghostcell* pgc)
     
 	//p->dt=pgc->timesync(p->dt);
     p->dt=pgc->globalmin(p->dt);
+    
+    if(p->N48==1)
+    accuracy_cap(p);
+    
 	p->dt_old=p->dt;
+    
+    if(p->mpirank==0 && p->N51>0)
+    {
+        if(p->N51==1)
+        cout<<"FNPF time step N 51 1: c = |u| + sqrt(g dx tanh(h/dx)), N47 "<<p->N47<<" (deep-water RK3 limit N47 < 0.98 in 2D, 0.8 in 3D)"<<endl;
+        
+        if(p->N51==2)
+        {
+        cout<<"FNPF time step N 51 2: dt omega_max = N47 C_RK, C_RK = "<<setprecision(4)<<rk_limit(p)<<", N47 "<<p->N47<<endl;
+        
+        if(p->N47>1.0)
+        cout<<"WARNING: N47 > 1 is beyond the linear stability limit of the RK scheme with N 51 2"<<endl;
+        }
+    }
+    
+    if(p->mpirank==0 && p->N52>0.0)
+    cout<<"FNPF time step accuracy cap: dt <= N52/N53 = "<<p->N52<<"/"<<p->N53<<" = "<<p->N52/MAX(p->N53,1.0)<<" s"<<endl;
     
     if(p->B94==0)
 	wdt=p->phimean;

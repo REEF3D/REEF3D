@@ -1570,6 +1570,19 @@ void fnpf_amr::timestep(lexer *p, fdm_fnpf *c, ghostcell *pgc)
             continue;
             }
             
+            if(p->N51==2)
+            {
+            // discrete (N 51 2): the cut-off mode of the patch cells in the deepest column
+            const double dxp = sc(q)*pp->DXN[ii+marge];
+            const double dyp = sc(q)*pp->DYN[jj+marge];
+            const int ydir = (pp->j_dir==1 && pp->knoy>1) ? 1 : 0;
+            const double kh2 = 4.0/(dxp*dxp) + (ydir==1 ? 4.0/(dyp*dyp) : 0.0);
+            const double rate = fnpf_timestep::omega_discrete(p,kh2,depthmax) + PI*p->umax/dxp + (ydir==1 ? PI*p->vmax/dyp : 0.0);
+            
+            cu = MIN(cu, fnpf_timestep::rk_limit(p)/(rate+1.0e-20));
+            continue;
+            }
+            
             cu = MIN(cu, 1.0/((fabs(MAX(p->umax, sqrt(9.81*depthmax)))/dx)));
             cu = MIN(cu, 1.0/((fabs(MAX(p->vmax, sqrt(9.81*depthmax)))/dx)));
         }
@@ -1577,6 +1590,7 @@ void fnpf_amr::timestep(lexer *p, fdm_fnpf *c, ghostcell *pgc)
 
     double dtp = pgc->globalmin(p->N47*cu);
     p->dt = MIN(p->dt,dtp);
+    fnpf_timestep::accuracy_cap(p);
 }
 
 // --------------------------------------------------------------------- wetting and drying, breaking
