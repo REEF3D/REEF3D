@@ -99,7 +99,7 @@ void ghostcell::flagfield(lexer *p)
         p->flag3[IJK]=OBJ_FLAG;
     }
 
-    flagx(p,p->flag1);
-    flagx(p,p->flag2);
-    flagx(p,p->flag3);
+    flagx(p,p->flag1.data());
+    flagx(p,p->flag2.data());
+    flagx(p,p->flag3.data());
 }

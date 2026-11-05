@@ -22,7 +22,7 @@ Author: Hans Bihs
 
 #include"lexer.h"
 
-lexer::lexer() : flag4(this), position(this), interpolation(this), coordinates(this)
+lexer::lexer() : flag1(this), flag2(this), flag3(this), flag4(this), position(this), interpolation(this), coordinates(this)
 {
     // runtime state set only by the features that use it (the grids of a mesh refinement copy it:
     // lexer_amr.cpp)
@@ -77,7 +77,7 @@ lexer::lexer() : flag4(this), position(this), interpolation(this), coordinates(t
     gcsldfeta4=gcsldfbed4=nullptr;
 }
 
-lexer::lexer(const lexer &b, int) : flag4(this), control(b), position(this), interpolation(this), coordinates(this)
+lexer::lexer(const lexer &b, int) : flag1(this), flag2(this), flag3(this), flag4(this), control(b), position(this), interpolation(this), coordinates(this)
 {
     veclength=0;
     vec2Dlength=0;

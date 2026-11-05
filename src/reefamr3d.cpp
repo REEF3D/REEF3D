@@ -2287,9 +2287,9 @@ void reefamr3d::build_lexer(r3patch &c)
     pgc0->flagfield(pp);
 
     pgc0->flagx(pp,pp->flagsf4);
-    pgc0->flagx(pp,pp->flag1);
-    pgc0->flagx(pp,pp->flag2);
-    pgc0->flagx(pp,pp->flag3);
+    pgc0->flagx(pp,pp->flag1.data());
+    pgc0->flagx(pp,pp->flag2.data());
+    pgc0->flagx(pp,pp->flag3.data());
     pgc0->flagx(pp,pp->flag4.data());
     pgc0->gcxupdate(pp);
 

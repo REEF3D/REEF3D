@@ -89,7 +89,6 @@ public:
     bool curv_logical(double x, double y, double &X, double &Y);
     void curv_logical_free();
     void gcd_ini(ghostcell*);
-    void makeflag(int*);
 
 	void read_grid();
     // a grid of this rank given in memory (the box grid of CPM on the mesh refinement, cfd_amr_cpm.cpp): read_grid
@@ -120,8 +119,9 @@ public:
     int N4,N4_row,N4_col;
     int N7,N7_row,N7_col;
 	int surf_tot;
-	int *flag1,*flag2,*flag3,*flag5,*flag7;
+	int *flag5,*flag7;
     int *flagsf4;
+    ArrayWrapper3D flag1, flag2, flag3;
     ArrayWrapper3D flag4;
 
     // flag

@@ -89,9 +89,9 @@ void ghostcell::gcdf_update(lexer *p, fdm *a)
     p->flag3[IJK]=-10;
     }
     
-    flagx(p,p->flag1);
-    flagx(p,p->flag2);
-    flagx(p,p->flag3);
+    flagx(p,p->flag1.data());
+    flagx(p,p->flag2.data());
+    flagx(p,p->flag3.data());
     }
     
     /*
