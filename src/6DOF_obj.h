@@ -58,6 +58,7 @@ class nhflow_reinidisc_fsf;
 class mooring;
 class net_interface;
 class sixdof_motionext;
+class sixdof_deform;
  
 using namespace std;
 
@@ -162,6 +163,11 @@ public:
     void external_strips_tri(const double a[3], const double b[3], const double c[3], const double pm[3],
                              double nx, double ny, double nz);
     const std::vector<double> &external_strips() const {return strip_F_;}
+
+    // prescribed deformation (X 195, undulatory swimming, 6DOF_obj_deform.cpp): the time of the
+    // deformation for stage iter of the body (t^n + c_iter dt of its RK scheme), before its pose update
+    void deform_stage(lexer*, int);
+    bool deform_on() const {return fish_!=nullptr;}
 
     // read-only access for the SFLOW mesh refinement (sflow_amr)
     int amr_tricount() const {return tricount;}
@@ -396,6 +402,14 @@ protected:
     double am_cfd_ = 0.0;
     Eigen::Matrix<double,6,1> am_prev_ = Eigen::Matrix<double,6,1>::Zero();
     void cfd_added_mass(lexer*);
+    
+    // X 197: A from the added mass of the equivalent ellipsoid of the hull (2D: elliptic cylinder),
+    // body frame, about the CoG (am_ell_: the ellipsoid in the box of the hull, its centre off the
+    // CoG couples translations and rotations), plus the fluid inside the hull, instead of the displaced
+    // fluid alone: a slender body (a fish) has a lateral added mass of many times its mass
+    Eigen::Matrix<double,6,6> am_ell_ = Eigen::Matrix<double,6,6>::Zero();
+    bool am_ell_on_ = false;
+    void added_mass_ellipsoid(lexer*);
 
     // FNPF with several bodies (X 20 > 1): apply_added_mass only assembles the body's block
     // (Lc_, rc_), fnpf_6DOF solves the system of all bodies with the cross added mass and
@@ -427,6 +441,17 @@ protected:
     int pto_rk_ = 3;   // RK scheme of the body: 2 (NHFLOW A 510 2), 3 (TVD RK3), 4 (FNPF A 310 4)
     void pto_rk(int, double&, double&) const;
     ofstream printpto;
+    
+    // prescribed deformation (X 195): kinematics, velocity of the deformation at a point (inertial
+    // frame), the power of the body on the fluid by the deformation (load integration), log
+    sixdof_deform *fish_ = nullptr;
+    double fish_t_amr_ = 0.0;
+    double fish_power_ = 0.0;
+    void deform_setup(lexer*, ghostcell*);
+    void deform_time(double);
+    Eigen::Vector3d deform_vel(double, double, double) const;
+    void print_fish(lexer*, double);
+    ofstream printfish;
 };
 
 #endif

@@ -26,6 +26,7 @@ Author: Hans Bihs
 #include"sflow_f.h"
 #include"fnpf_RK3.h"
 #include"fnpf_RK4.h"
+#include"fnpf_theta.h"
 #include"printer_fnpf.h"
 #include"fnpf_timestep.h"
 

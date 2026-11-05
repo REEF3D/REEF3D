@@ -44,7 +44,9 @@ void driver::logic_fnpf()
     if(p->mpirank==0)
     cout<<"creating objects"<<endl;
     
-    p->phimean = p->F60;
+    // still-water level and depth reference: also without wave generation (B 90 0), where the wave
+    // library (wave_lib_parameters: wd = phimean) does not set wd and the water depth would be zero
+    p->phimean = p->wd = p->F60;
 
 // time stepping
 	pftstep=new fnpf_timestep(p);
@@ -107,6 +109,10 @@ void driver::logic_fnpf()
         
     if(p->A310==4)
     ppfsg = new fnpf_RK4(p,c,pgc);
+    
+    // theta-Robin, prototype (2D, serial)
+    if(p->A310==5)
+    ppfsg = new fnpf_theta(p,c,pgc);
     
 //  Mesh refinement
     if(p->G1>0)

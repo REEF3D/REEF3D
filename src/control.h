@@ -58,8 +58,8 @@ public:
     double A227,A228,A231,A232;
 
     // FNPF
-    int A309,A310,A311,A312,A313,A314,A315,A316,A317,A318,A320,A324,A327,A328,A329,A330,A332,A334,A336,A337,A338,A339,A343,A347,A348;
-    double A319,A325,A326,A331,A335,A341,A342,A344,A346,A349;
+    int A302,A309,A310,A311,A312,A313,A314,A315,A316,A317,A318,A320,A324,A327,A328,A329,A330,A332,A334,A336,A337,A338,A339,A343,A347,A348;
+    double A300,A301_1,A301_2,A319,A325,A326,A331,A335,A341,A342,A344,A346,A349;
     int A350,A351,A352,A357,A361,A362;
     double A354,A355,A356,A365,A366,A359,A360,A364,A369;
     int A367;
@@ -352,7 +352,7 @@ public:
     double *F71_xs, *F71_xe, *F71_ys, *F71_ye, *F71_zs, *F71_ze;
     int F72;
     double *F72_xs, *F72_xe, *F72_ys, *F72_ye, *F72_h;
-    int F78,F80,F81,F83,F85,F86;
+    int F77,F78,F80,F81,F83,F85,F86;
     double F79,F82,F87;
 
     int F88,F90;
@@ -708,6 +708,10 @@ public:
     double X182_dx,X182_dy,X182_dz;
     double X183_x,X183_y,X183_z,X183_phi,X183_theta,X183_psi;
     int X184,X185,X188,X189,X190;
+    int X195,X196;
+    int *X195_id,*X195_type;
+    double *X195_a,*X195_lambda,*X195_f,*X195_tramp;
+    double X197;
     double X186,X187;
     int X205;
     int X206,X207;

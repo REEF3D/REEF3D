@@ -1,0 +1,16 @@
+{
+ "base": "seastate_2d_phase14_windsea",
+ "ctrl_add": [
+  "A 707 6",
+  "A 779 0.01"
+ ],
+ "description": "seastate_2d_phase14_windsea (Komen with the SWAN limiter, 10 steps of 300 s) with A 779 0.01 and at most 6 iterations per step (A 707): the limiter relaxes with the iterations. Validation in Dropbox SEASTATE/validation/83_settle.",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate"
+ ],
+ "covers": [
+  "A 779 with the SWAN limiter"
+ ]
+}

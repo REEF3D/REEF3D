@@ -40,6 +40,18 @@ Architect: Hans Bihs
 //     v_p = F82 (v_p + I(u_new - u_old)) + (1 - F82) I(u_new)
 // with I the interpolation of the water velocity extended into the air (pic_f_extend.cpp)
 // (Brackbill & Ruppel 1986, Zhu & Bridson 2005; Chen et al. 2018: F 82 = 0.96).
+// F 77 1 (the default): APIC (Jiang et al. 2015). Each particle carries the velocity of the water
+// at it, I(u_new), and its gradients, b = grad I(u_new) (for the trilinear weights the gradient
+// of the interpolation), and gives a face the velocity
+//     v_p + b . (x_face - x_p)
+// instead of v_p. The transfer to the faces keeps so the linear part of the velocity field that
+// the weighted mean of the particle velocities smooths away. F 77 2: the affine velocities with
+// the FLIP/PIC update (F 82). Sloshing tank, first mode, 1 / 2 / 4 cells per wave height: decay
+// per period 4.3 / 2.8 / 1.7 % with FLIP/PIC, 1.2 / 1.4 / 0.9 % with APIC, 2.7 / 1.3 / 0.9 % with
+// F 77 2, 0.5 / 0.3 / 0.4 % with the level set; 1.5 % at 2 cells with the Eulerian momentum
+// (F 81 1), so what remains there comes from the free surface of the particles, not the transfer.
+// In the relaxation zones of the waves the update is the same as elsewhere: the PIC update there
+// (patch 0005) damped the waves of the generation by 8 %.
 
 namespace
 {
@@ -72,7 +84,8 @@ void pic_f::step_begin(lexer *p, fdm *a, ghostcell *pgc)
         std::fill(sw.begin(),sw.end(),0.0);
         std::fill(sv.begin(),sv.end(),0.0);
 
-        auto scatter = [&](double x, double y, double z, double val)
+        // APIC (F 77 1): the velocity of the particle plus its gradient times the distance to the face
+        auto scatter = [&](double x, double y, double z, double val, const double *b)
         {
             int ii[8], jj[8], kk[8];
             double ww[8];
@@ -81,16 +94,25 @@ void pic_f::step_begin(lexer *p, fdm *a, ghostcell *pgc)
             for(int m=0; m<n; ++m)
             {
                 const int g = fid(p,ii[m],jj[m],kk[m]);
+                double v = val;
+
+                if(apic)
+                {
+                double X[3];
+                node(p,c+1,ii[m],jj[m],kk[m],X);
+                v += b[0]*(X[0]-x) + b[1]*(X[1]-y) + b[2]*(X[2]-z);
+                }
+
                 sw[g] += ww[m];
-                sv[g] += ww[m]*val;
+                sv[g] += ww[m]*v;
             }
         };
 
         for(const auto &q : P)
-        scatter(q.x,q.y,q.z, c==0 ? q.u : (c==1 ? q.v : q.w));
+        scatter(q.x,q.y,q.z, c==0 ? q.u : (c==1 ? q.v : q.w), q.b+3*c);
 
-        for(size_t m=0; m+6<=H.size(); m+=6)
-        scatter(H[m],H[m+1],H[m+2],H[m+3+c]);
+        for(size_t m=0; m+15<=H.size(); m+=15)
+        scatter(H[m],H[m+1],H[m+2],H[m+3+c],&H[m+6+3*c]);
 
         for(int i=0; i<p->knox; ++i)
         for(int j=0; j<p->knoy; ++j)
@@ -135,8 +157,8 @@ void pic_f::g2p(lexer *p, fdm *a)
         double un,vn,wn;
         velocity(p,a,q.x,q.y,q.z,un,vn,wn);
 
-        // in the relaxation zones the particles take the relaxed velocity of the water (PIC)
-        const double c = (relaxzones && inzone(p,q.x,q.y)) ? 0.0 : p->F82;
+        // F 77 1: APIC, the velocity of the water at the particle and its gradients
+        const double c = p->F77==1 ? 0.0 : p->F82;
 
         const double du = un - ipol(p,*uo,1,q.x,q.y,q.z);
         const double dv = p->j_dir==1 ? vn - ipol(p,*vo,2,q.x,q.y,q.z) : 0.0;
@@ -145,7 +167,24 @@ void pic_f::g2p(lexer *p, fdm *a)
         q.u = c*(q.u + du) + (1.0-c)*un;
         q.v = p->j_dir==1 ? c*(q.v + dv) + (1.0-c)*vn : 0.0;
         q.w = c*(q.w + dw) + (1.0-c)*wn;
+
+        if(apic)
+        affine(p,q);
     }
+}
+
+// APIC: the gradients of the water velocity (extended into the air) at the particle
+void pic_f::affine(lexer *p, pic_data &q)
+{
+    double val;
+    ipol_grad(p,*uw,1,q.x,q.y,q.z,val,q.b);
+
+    if(p->j_dir==1)
+    ipol_grad(p,*vw,2,q.x,q.y,q.z,val,q.b+3);
+    else
+    q.b[3] = q.b[4] = q.b[5] = 0.0;
+
+    ipol_grad(p,*ww,3,q.x,q.y,q.z,val,q.b+6);
 }
 
 // momentum_rk: no convection on the faces in the water (the particles carry the momentum there)

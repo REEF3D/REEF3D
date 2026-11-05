@@ -68,6 +68,10 @@ void control::ini_default()
 
 
     // FNPF
+    A300=0.5;    // double FNPF theta of the theta-Robin time integration (A 310 5)
+    A301_1=0.0;  // double FNPF initial standing wave: amplitude [m], 0 off
+    A301_2=1.0;  // double FNPF initial standing wave: wave length [m]
+    A302=1;      // int FNPF theta-Robin (A 310 5): corrector passes (N at t^n+1/2 trapezoidal, sigma cross terms of the last solution)
     A309=1;      // int interpolation sweeps for bed
     A310=3;		  // int time scheme for FNPF velocities
     A311=5;		  // int convection scheme for FNPF velocities
@@ -740,6 +744,7 @@ void control::ini_default()
     F81=0;             // int PIC free surface flow: 1 single-phase, 2 water particles with Eulerian air (phase 1: phi from the particles), 10 passive particles
     F82=0.96;          // double PIC FLIP share of the particle velocity update (F 81 2), 1 - F82 PIC
     F83=2;             // int PIC particles per cell and direction
+    F77=1;             // int PIC velocity transfer (F 81 2): 0 FLIP/PIC (F 82), 1 APIC, 2 FLIP/PIC (F 82) with the affine velocities of APIC
     F78=30;            // int PIC redistribution of the particles every F78 steps (0: off)
     F86=1;             // int PIC particles kept in the water every F86 steps (0: off)
     F87=-1.0;          // double PIC output interval in seconds; <= 0: with the CFD output (P 30, P 20)
@@ -1589,6 +1594,9 @@ void control::ini_default()
     X189=10;    // int remeshing (X 185 4): number of iterations
     X190=2;     // int remeshing (X 185 4): cell size, 1 grid metric (anisotropic), 2 geometric mean of dx,dy,dz, 3 smallest spacing
     X188=1;     // int ray cast algorithm
+    X195=0;     // int deforming bodies (X 195 id type a lambda f t_ramp): undulatory swimming, number of entries; type 1 linear, 2 carangiform, 3 anguilliform envelope (lateral shear of the hull), 11-13 the same on an inextensible midline
+    X196=1;     // int deforming bodies (X 195): recoil correction (no net momentum and angular momentum of the deformation), 0 off
+    X197=0.0;   // double CFD: stabilised body coupling (M + A) a = F + A a_prev, A = X197 times (the added mass of the equivalent ellipsoid of the hull, 2D elliptic cylinder, + the fluid inside the hull); 0: off (mesh refinement G 7: 0.5 times the displaced fluid); neutrally buoyant slender bodies (X 195 fish): about 8-32, larger on finer grids (too small: the loads oscillate and grow)
     X205=1;     // type of ramp up function
     X206=0;     // int ramp up velocity
     X206_ts=0.0;   // double ramp start

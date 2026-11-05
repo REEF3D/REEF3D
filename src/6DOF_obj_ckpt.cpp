@@ -160,7 +160,11 @@ bool sixdof_obj::ckpt_restore(lexer *p, ghostcell *pgc, const std::vector<double
     if(r.ok && r.k<v.size())
     part([&](const std::vector<double> &s, size_t&){ if(s.size()==6) for(int n=0; n<6; ++n) am_prev_(n) = s[n]; });
 
-    // the pose: trimesh, body velocities and the lexer values of the body (CoG, angles, velocities)
+    // the pose: trimesh, body velocities and the lexer values of the body (CoG, angles, velocities);
+    // a deforming body (X 195) at the time of the checkpoint
+    if(fish_!=nullptr)
+    deform_time(p->simtime);
+    
     geom.transform(R_,c_);
     update_fbvel(p,pgc);
 

@@ -64,6 +64,10 @@ void sixdof_obj_cfd::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel
         }
         
         H = Hsolidface(p,a,1,0,0);
+        
+        // deforming body (X 195): velocity of the deformation (where the body forces the face)
+        if(fish_!=nullptr && H>0.0)
+        uf += deform_vel(p->pos1_x(),p->pos1_y(),p->pos1_z())(0);
         H = Hlimit(H,a->fbh1(i,j,k),sfh[0]!=nullptr ? (*sfh[0])(i,j,k) : 0.0);
         
         if(H!=H)
@@ -83,6 +87,10 @@ void sixdof_obj_cfd::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel
         cout<<"VF "<<vf<<endl;
         
         H = Hsolidface(p,a,0,1,0);
+        
+        // deforming body (X 195): velocity of the deformation (where the body forces the face)
+        if(fish_!=nullptr && H>0.0)
+        vf += deform_vel(p->pos2_x(),p->pos2_y(),p->pos2_z())(1);
         H = Hlimit(H,a->fbh2(i,j,k),sfh[1]!=nullptr ? (*sfh[1])(i,j,k) : 0.0);
         
         if(H!=H)
@@ -102,6 +110,10 @@ void sixdof_obj_cfd::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel
         cout<<"WF "<<wf<<endl;
         
         H = Hsolidface(p,a,0,0,1);
+        
+        // deforming body (X 195): velocity of the deformation (where the body forces the face)
+        if(fish_!=nullptr && H>0.0)
+        wf += deform_vel(p->pos3_x(),p->pos3_y(),p->pos3_z())(2);
         H = Hlimit(H,a->fbh3(i,j,k),sfh[2]!=nullptr ? (*sfh[2])(i,j,k) : 0.0);
         
         if(H!=H)
@@ -169,6 +181,10 @@ void sixdof_obj_cfd::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel
 
 
 		H = Hsolidface(p,a,1,0,0);
+        
+        // deforming body (X 195): velocity of the deformation (where the body forces the face)
+        if(fish_!=nullptr && H>0.0)
+        uf += deform_vel(p->pos1_x(),p->pos1_y(),p->pos1_z())(0);
         H = Hlimit(H,a->fbh1(i,j,k),sfh[0]!=nullptr ? (*sfh[0])(i,j,k) : 0.0);
 	    Ht = Hsolidface_t(p,a,1,0,0);
 	
@@ -211,6 +227,10 @@ void sixdof_obj_cfd::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel
 
         
          H = Hsolidface(p,a,0,1,0);
+        
+        // deforming body (X 195): velocity of the deformation (where the body forces the face)
+        if(fish_!=nullptr && H>0.0)
+        vf += deform_vel(p->pos2_x(),p->pos2_y(),p->pos2_z())(1);
         H = Hlimit(H,a->fbh2(i,j,k),sfh[1]!=nullptr ? (*sfh[1])(i,j,k) : 0.0);
 		Ht = Hsolidface_t(p,a,0,1,0);
 		
@@ -252,6 +272,10 @@ void sixdof_obj_cfd::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel
 
         
          H = Hsolidface(p,a,0,0,1);
+        
+        // deforming body (X 195): velocity of the deformation (where the body forces the face)
+        if(fish_!=nullptr && H>0.0)
+        wf += deform_vel(p->pos3_x(),p->pos3_y(),p->pos3_z())(2);
         H = Hlimit(H,a->fbh3(i,j,k),sfh[2]!=nullptr ? (*sfh[2])(i,j,k) : 0.0);
 		Ht = Hsolidface_t(p,a,0,0,1);
 

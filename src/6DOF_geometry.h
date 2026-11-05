@@ -29,6 +29,7 @@ Authors: Hans Bihs, Tobias Martin
 
 class lexer;
 class ghostcell;
+class sixdof_deform;
 
 using namespace std;
 
@@ -46,6 +47,8 @@ using namespace std;
 //  Set-up:  allocate() -> primitives() / read_stl() (and the wavemaker objects of sixdof_obj)
 //           -> orient() -> refine()   ... then store_body_frame(c) once the CoG is known
 //  Motion:  transform(R, c)
+//  Deformation: with deform set (X 195), transform puts the deformed body frame hull
+//               tri0 + d(tri0, t) into the pose (t: the time set in deform)
 
 class sixdof_geometry : public increment
 {
@@ -64,7 +67,10 @@ public:
     // ---- pose
     void store_body_frame(const Eigen::Vector3d&);                  // tri0 = tri - c
     void rotate(double, double, double, const Eigen::Vector3d&);    // rotate tri about c (Euler angles)
-    void transform(const Eigen::Matrix3d&, const Eigen::Vector3d&); // tri = R tri0 + c
+    void transform(const Eigen::Matrix3d&, const Eigen::Vector3d&); // tri = R (tri0 + d) + c
+    
+    // prescribed deformation of the body frame hull (X 195, owned by sixdof_obj; nullptr: rigid)
+    const sixdof_deform *deform = nullptr;
 
     // rotation of a point about (x0,y0,z0) with the Euler angles phi, theta, psi
     static void rotation_tri(double, double, double, double&, double&, double&,

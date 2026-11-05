@@ -50,6 +50,9 @@ void sixdof_obj::print_parameter(lexer *p, ghostcell *pgc, double t)
 
     }
     
+    // deforming body (X 195)
+    print_fish(p,t);
+    
     // load models (ship module)
     for(size_t ql=0; ql<pload.size(); ++ql)
     pload[ql]->print(p);

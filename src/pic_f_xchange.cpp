@@ -127,7 +127,7 @@ void pic_f::xchange(lexer *p, ghostcell *pgc)
 void pic_f::halo(lexer *p, ghostcell *pgc, std::vector<double> &H, bool vel)
 {
     const int band = 3;
-    const int st = vel ? 6 : 3;
+    const int st = vel ? 15 : 3;   // with velocities: and the gradients of APIC
     H.clear();
 
     for(int dir=0; dir<3; ++dir)
@@ -156,7 +156,7 @@ void pic_f::halo(lexer *p, ghostcell *pgc, std::vector<double> &H, bool vel)
 
         for(const auto &q : P)
         {
-        const double r[6] = {q.x,q.y,q.z,q.u,q.v,q.w};
+        const double r[15] = {q.x,q.y,q.z,q.u,q.v,q.w,q.b[0],q.b[1],q.b[2],q.b[3],q.b[4],q.b[5],q.b[6],q.b[7],q.b[8]};
         pick(r);
         }
 

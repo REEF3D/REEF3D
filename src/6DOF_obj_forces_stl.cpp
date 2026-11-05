@@ -47,6 +47,9 @@ void sixdof_obj_cfd::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, fi
     Xe=Ye=Ze=Ke=Me=Ne=0.0;
     Xe_p=Ye_p=Ze_p=Xe_v=Ye_v=Ze_v=0.0;
     
+    // deforming body (X 195): power of the deformation on the fluid, -sum F . u_def
+    double Pdef = 0.0;
+    
     // distributed loads (REEF3D::CORAL fluid_member): the hull forces binned along the member, this rank's part
     external_strips_zero();
     
@@ -344,6 +347,12 @@ void sixdof_obj_cfd::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, fi
 			Ye += Fy;
 			Ze += Fz;
             
+            if(fish_!=nullptr)
+            {
+            const Eigen::Vector3d vd = deform_vel(xc,yc,zc);
+            Pdef -= Fx*vd(0) + Fy*vd(1) + Fz*vd(2);
+            }
+            
             // strips: the pressure of the triangle (constant) split at the strip boundaries, the viscous
             // force at its centre
             if(external_strips_on())
@@ -380,6 +389,9 @@ void sixdof_obj_cfd::forces_stl(lexer* p, fdm *a, ghostcell *pgc,field& uvel, fi
 	Ke = pgc->globalsum(Ke);
 	Me = pgc->globalsum(Me);
 	Ne = pgc->globalsum(Ne);
+    
+    if(fish_!=nullptr)
+    fish_power_ = pgc->globalsum(Pdef);
 
 	Xe_p = pgc->globalsum(Xe_p);
 	Ye_p = pgc->globalsum(Ye_p);

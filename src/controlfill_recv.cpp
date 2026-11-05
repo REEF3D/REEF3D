@@ -196,6 +196,14 @@ void control::ctrlrecv()
     G7 = ictrl[ii];
     ii++;
 
+    A300 = dctrl[dd];
+    dd++;
+    A301_1 = dctrl[dd];
+    dd++;
+    A301_2 = dctrl[dd];
+    dd++;
+    A302 = ictrl[ii];
+    ii++;
     A309 = ictrl[ii];
     ii++;
     A310 = ictrl[ii];
@@ -1559,6 +1567,8 @@ void control::ctrlrecv()
     F71 = ictrl[ii];
     ii++;
     F72 = ictrl[ii];
+    ii++;
+    F77 = ictrl[ii];
     ii++;
     F78 = ictrl[ii];
     ii++;
@@ -3272,6 +3282,12 @@ void control::ctrlrecv()
     ii++;
     X190 = ictrl[ii];
     ii++;
+    X195 = ictrl[ii];
+    ii++;
+    X196 = ictrl[ii];
+    ii++;
+    X197 = dctrl[dd];
+    dd++;
     X205 = ictrl[ii];
     ii++;
     X206 = ictrl[ii];
@@ -4697,6 +4713,16 @@ void control::ctrlrecv()
         Darray(X102_u,X102);
         Darray(X102_v,X102);
         Darray(X102_w,X102);
+    }
+
+    if(X195>0)
+    {
+        Iarray(X195_id,X195);
+        Iarray(X195_type,X195);
+        Darray(X195_a,X195);
+        Darray(X195_lambda,X195);
+        Darray(X195_f,X195);
+        Darray(X195_tramp,X195);
     }
 
     if(X111>0)
@@ -6666,6 +6692,22 @@ void control::ctrlrecv()
         X102_v[n] = dctrl[dd];
         dd++;
         X102_w[n] = dctrl[dd];
+        dd++;
+    }
+
+    for(n=0;n<X195;++n)
+    {
+        X195_id[n] = ictrl[ii];
+        ii++;
+        X195_type[n] = ictrl[ii];
+        ii++;
+        X195_a[n] = dctrl[dd];
+        dd++;
+        X195_lambda[n] = dctrl[dd];
+        dd++;
+        X195_f[n] = dctrl[dd];
+        dd++;
+        X195_tramp[n] = dctrl[dd];
         dd++;
     }
 

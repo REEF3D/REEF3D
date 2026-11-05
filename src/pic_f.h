@@ -35,6 +35,7 @@ struct pic_data
     double x,y,z;   // position
     double u,v,w;   // velocity (phase 0: the CFD velocity at the particle)
     double id;      // global id, the same for any decomposition: seeding cell * F 83^dim + sub-position
+    double b[9] = {0,0,0,0,0,0,0,0,0};   // APIC (F 77 1, 2): the gradients of u, v, w at the particle
 };
 
 class field;
@@ -76,6 +77,10 @@ private:
     double ipol(lexer*, field&, int, double, double, double) const;
     int cell(const double*, int, double) const;
     int stencil(lexer*, int, double, double, double, int*, int*, int*, double*) const;
+    int stencil_grad(lexer*, int, double, double, double, int*, int*, int*, double*, double*) const;
+    void node(lexer*, int, int, int, int, double*) const;
+    void ipol_grad(lexer*, field&, int, double, double, double, double&, double*) const;
+    void affine(lexer*, pic_data&);   // APIC: the gradients of the water velocity at the particle
 
     // parallel (pic_f_xchange.cpp)
     void xchange(lexer*, ghostcell*);
@@ -105,7 +110,7 @@ private:
     // wave generation and the numerical beach (B 98 2, B 99 1, 2) the water of the relaxed phi
     void reseed(lexer*, fdm*, ghostcell*, bool interior);
     bool inzone(lexer*, double, double);
-    void zone_surface(lexer*, fdm*, ghostcell*, std::vector<double>&);
+    void zone_surface(lexer*, fdm*, ghostcell*, std::vector<double>&, const std::vector<double>&);
     void zone_stretch(lexer*, fdm*);
     std::vector<double> etap, etar, zbot;   // per column of the domain: surface of the particles, relaxed, bottom
 
@@ -129,6 +134,7 @@ private:
     int npc;                  // particles per cell
     bool surface;             // F 81 1, 2: the free surface (phi) from the particles; F 81 10: passive particles
     bool flipmode;            // F 81 2: the momentum of the water from the particles
+    bool apic;                // F 81 2 with F 77 1, 2: affine velocities (Jiang et al. 2015)
     bool relaxzones;          // the relaxation zones of the waves (B 90 with B 98 2, B 99 1, 2)
     std::vector<char> zcol;   // per cell column of the subdomain: in a relaxation zone
     bool inflowsrc;           // B 60: particles in the ghost cells of the inflow (x-min)
