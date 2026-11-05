@@ -79,9 +79,9 @@ fnpf_theta::fnpf_theta(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_ini(p,c,pgc
     gcval_fifsf = 160;
     }
     
-    theta = p->A300;
-    lsolv = (p->A305==2) ? 2 : 1;
-    ctol = p->A306;
+    theta = p->A305;
+    lsolv = (p->A306==2) ? 2 : 1;
+    ctol = p->A307;
     cycsum0 = cycsumc = 0;
     npt = 0;
     wsz = nullptr;
@@ -94,9 +94,9 @@ fnpf_theta::fnpf_theta(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_ini(p,c,pgc
     
     // limits
     int bad=0;
-    if(lsolv==2 && p->j_dir==1)     {bad=1; if(p->mpirank==0) cout<<"A 310 5: SparseLU (A 305 2) 2D only"<<endl;}
-    if(lsolv==2 && p->M10>1)        {bad=1; if(p->mpirank==0) cout<<"A 310 5: SparseLU (A 305 2) serial only (M 10 1)"<<endl;}
-    if(lsolv==1 && p->N10!=1)       {bad=1; if(p->mpirank==0) cout<<"A 310 5: needs REEFMG (N 10 1) or SparseLU (A 305 2)"<<endl;}
+    if(lsolv==2 && p->j_dir==1)     {bad=1; if(p->mpirank==0) cout<<"A 310 5: SparseLU (A 306 2) 2D only"<<endl;}
+    if(lsolv==2 && p->M10>1)        {bad=1; if(p->mpirank==0) cout<<"A 310 5: SparseLU (A 306 2) serial only (M 10 1)"<<endl;}
+    if(lsolv==1 && p->N10!=1)       {bad=1; if(p->mpirank==0) cout<<"A 310 5: needs REEFMG (N 10 1) or SparseLU (A 306 2)"<<endl;}
     if(p->A324>0)                   {bad=1; if(p->mpirank==0) cout<<"A 310 5: no Picard passes of the Laplace solve (A 324 0; the corrector passes iterate)"<<endl;}
     if(p->A343!=0)                  {bad=1; if(p->mpirank==0) cout<<"A 310 5: no wetting-drying (A 343 0)"<<endl;}
     if(p->X10>0)                    {bad=1; if(p->mpirank==0) cout<<"A 310 5: no resolved bodies (X 10)"<<endl;}
@@ -104,7 +104,7 @@ fnpf_theta::fnpf_theta(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_ini(p,c,pgc
     if(p->A311==3 || p->A327!=1)    {bad=1; if(p->mpirank==0) cout<<"A 310 5: needs the Fornberg sz stencil (A 327 1) and A 311 1, 2, 4, 5 or 6"<<endl;}
     if(p->A328==1)                  {bad=1; if(p->mpirank==0) cout<<"A 310 5: sigma cross terms explicit only (A 328 0)"<<endl;}
     if(p->B98>2 || p->B99>2)        {bad=1; if(p->mpirank==0) cout<<"A 310 5: relaxation zones only (B 98 0-2, B 99 0-2)"<<endl;}
-    if(theta<0.5)                   {bad=1; if(p->mpirank==0) cout<<"A 310 5: theta (A 300) >= 0.5"<<endl;}
+    if(theta<0.5)                   {bad=1; if(p->mpirank==0) cout<<"A 310 5: theta (A 305) >= 0.5"<<endl;}
     
     if(bad==1)
     pgc->final(true);
@@ -643,7 +643,7 @@ void fnpf_theta::sz_stencil(lexer *p, ghostcell *pgc)
     }
 }
 
-// A 305 1 (REEFMG). The Robin row of a column, with the surface node Fs = Fi(knoz) and Fi(knoz-m) its sz stencil,
+// A 306 1 (REEFMG). The Robin row of a column, with the surface node Fs = Fi(knoz) and Fi(knoz-m) its sz stencil,
 //   D Fs + A sum_m>=1 w_m Fi(knoz-m) = B,   A = r g theta^2 dt^2 sigz,  D = 1 + A w_0,  B = r R + T,
 // is eliminated into the top Laplace row (k = knoz-1), whose coupling to the surface node is mt:
 //   Fs = (B - A sum_m>=1 w_m Fi(knoz-m))/D,
@@ -717,7 +717,7 @@ void fnpf_theta::robin_build_mg(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *p
     }
 }
 
-// A 305 1: build and solve with REEFMG (warm start from the current Fi), Fs and w^n+1 from the Robin rows.
+// A 306 1: build and solve with REEFMG (warm start from the current Fi), Fs and w^n+1 from the Robin rows.
 // Returns the change of Fi and Fs relative to their size.
 double fnpf_theta::robin_solve_mg(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, slice &fs, slice &R, slice &fout, int pass)
 {
@@ -739,9 +739,9 @@ double fnpf_theta::robin_solve_mg(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver 
     fsold(i,j) = fs(i,j);
     }
     
-    // A 306 > 0: inexact solves when corrector passes follow (and in them): the residual is reduced by A 306
+    // A 307 > 0: inexact solves when corrector passes follow (and in them): the residual is reduced by A 307
     // relative to that of the warm start (REEFMG, tolerance < 0); the passes re-solve the whole problem,
-    // so the error of a pass does not accumulate, and the last one is A 306 times its (small) initial residual
+    // so the error of a pass does not accumulate, and the last one is A 307 times its (small) initial residual
     const double tol0 = p->N44;
     if(ctol>0.0 && npass>0)
     p->N44 = -ctol;

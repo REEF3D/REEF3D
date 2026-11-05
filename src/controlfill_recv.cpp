@@ -196,7 +196,7 @@ void control::ctrlrecv()
     G7 = ictrl[ii];
     ii++;
 
-    A300 = dctrl[dd];
+    A305 = dctrl[dd];
     dd++;
     A301_1 = dctrl[dd];
     dd++;
@@ -208,9 +208,9 @@ void control::ctrlrecv()
     dd++;
     A304 = dctrl[dd];
     dd++;
-    A305 = ictrl[ii];
+    A306 = ictrl[ii];
     ii++;
-    A306 = dctrl[dd];
+    A307 = dctrl[dd];
     dd++;
     A309 = ictrl[ii];
     ii++;

@@ -68,13 +68,13 @@ void control::ini_default()
 
 
     // FNPF
-    A300=0.5;    // double FNPF theta of the theta-Robin time integration (A 310 5)
+    A305=0.5;    // double FNPF theta of the theta-Robin time integration (A 310 5), A 300 before fnpf_theta_robin/0012
     A301_1=0.0;  // double FNPF initial standing wave: amplitude [m], 0 off
     A301_2=1.0;  // double FNPF initial standing wave: wave length [m]
     A304=1.0e-3; // double FNPF theta-Robin (A 310 5): corrector stops when the change is below A304 times the solution (0: always A302 passes)
     A303=-0.75;  // double FNPF theta-Robin (A 310 5): relaxation zones, >0: factors r^(dt/A303); 0: r per step; <0: per time as the three RK3 stages at N 47 -A303, per step at least as one RK3 step
-    A305=1;      // int FNPF theta-Robin (A 310 5): linear solver, 1 REEFMG (N 10 1, 2D/3D, MPI), 2 Eigen SparseLU (2D, serial)
-    A306=1.0e-2; // double FNPF theta-Robin (A 310 5), REEFMG with corrector passes: each solve reduces its residual by A306 from the warm start (0: N 44)
+    A306=1;      // int FNPF theta-Robin (A 310 5): linear solver, 1 REEFMG (N 10 1, 2D/3D, MPI), 2 Eigen SparseLU (2D, serial)
+    A307=1.0e-2; // double FNPF theta-Robin (A 310 5), REEFMG with corrector passes: each solve reduces its residual by A307 from the warm start (0: N 44)
     A302=4;      // int FNPF theta-Robin (A 310 5): max corrector passes (sigma grid of eta^n+1, N at t^n+1/2 trapezoidal, cross terms of the last solution)
     A309=1;      // int interpolation sweeps for bed
     A310=3;		  // int time scheme for FNPF velocities

@@ -55,10 +55,10 @@ using namespace std;
 // the linear gravity waves are unconditionally stable; theta = 1/2 is Crank-Nicolson (no damping), theta > 1/2
 // damps the grid-scale waves.
 //
-// The Laplace rows are those of fnpf_laplace_cds2 (assembled, not solved). A 305 1 (default, REEFMG): the Robin
+// The Laplace rows are those of fnpf_laplace_cds2 (assembled, not solved). A 306 1 (default, REEFMG): the Robin
 // row of each column is eliminated into its top Laplace row (Fs from the Robin row), which keeps the 7-point
 // structure for the V-cycle; the couplings of the sz stencil beyond k-1 (5 and 7 points) are in REEFMG's Krylov
-// operator only (matrix_diag::xcol). A 305 2: the surface nodes are added as unknowns and the system is solved
+// operator only (matrix_diag::xcol). A 306 2: the surface nodes are added as unknowns and the system is solved
 // with a sparse direct solver (Eigen SparseLU, 2D serial, the prototype of steps 1-3).
 //
 // Time levels (test-plan step 2):
@@ -71,7 +71,7 @@ using namespace std;
 //     mean of N^n and N^n+1 of the last solution (trapezoidal), and the cross-derivative terms with the last
 //     solution. A pass assembles the system on that grid; SparseLU makes one defect-correction step with the
 //     factorisation of pass 0, REEFMG solves it from the last solution (warm start). With REEFMG the solves are
-//     inexact (A 306, default 1e-2): each reduces its residual by A 306 relative to the warm start (BiCGStab,
+//     inexact (A 307, default 1e-2): each reduces its residual by A 307 relative to the warm start (BiCGStab,
 //     about one iteration). The passes re-solve the whole problem, so the solver error does not accumulate; the
 //     convergence of the passes is set by the nonlinear coupling, not by the linear solves (5 November 2026).
 //
@@ -98,9 +98,9 @@ using namespace std;
 // that of the unedited surface (as with the relaxation zones before patch 0006); when an edit changed eta or
 // Fifsf, a Dirichlet Laplace solve on the final grid follows (as the last RK3 stage). Breaking events only.
 //
-// A 305 linear solver (1 REEFMG, default; 2 SparseLU), A 306 residual reduction of the REEFMG solves (default
+// A 306 linear solver (1 REEFMG, default; 2 SparseLU), A 307 residual reduction of the REEFMG solves (default
 // 1e-2; 0: N 44).
-// A 300 theta (default 0.5: 0.55 damps 9 % per period at 21 steps), A 302 corrector passes (default 4),
+// A 305 theta (default 0.5: 0.55 damps 9 % per period at 21 steps), A 302 corrector passes (default 4),
 // A 303 relaxation zones: > 0 factors r^(dt/A 303), 0 r per step, < 0 (default -0.75) per time as the three RK3
 // stages of an RK3 run at N 47 -A 303; A 304 tolerance of the corrector (default 1e-3).
 // ---------------------------------------------------------------------------
@@ -131,8 +131,8 @@ private:
     // the relaxation of the zones as f -> R f + T (from f = 0 and f = 1), with the factors r^(dt/A 303)
     void relax_affine(lexer*, ghostcell*, ioflow*, int, slice&, slice&);
     
-    // A 305 1 (REEFMG): the Robin rows eliminated into the top Laplace rows, one solve per pass (N 44, or
-    // inexact with A 306); returns the change of the solution
+    // A 306 1 (REEFMG): the Robin rows eliminated into the top Laplace rows, one solve per pass (N 44, or
+    // inexact with A 307); returns the change of the solution
     double robin_solve_mg(lexer*, fdm_fnpf*, ghostcell*, solver*, slice&, slice&, slice&, int);
     void robin_build_mg(lexer*, fdm_fnpf*, ghostcell*, solver*, slice&, slice&);
     void sz_stencil(lexer*, ghostcell*);
@@ -156,8 +156,8 @@ private:
     slice4 fsold;          // REEFMG: Fifsf^n+1 of the last pass
     
     double theta;
-    int lsolv;             // A 305: 1 REEFMG, 2 SparseLU
-    double ctol;           // A 306: residual reduction of the inexact solves (REEFMG, 0: N 44)
+    int lsolv;             // A 306: 1 REEFMG, 2 SparseLU
+    double ctol;           // A 307: residual reduction of the inexact solves (REEFMG, 0: N 44)
     long cycsum0, cycsumc; // REEFMG cycles of pass 0 and of the corrector passes
     int npt;               // points of the sz stencil
     const double *wsz;     // its weights
