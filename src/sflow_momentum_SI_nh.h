@@ -96,9 +96,23 @@ struct sflow_si_nh_lu
         }
     }
 
-    // FGMRES
+    // FGMRES (the vectors kept from step to step, every entry is written before it is read)
     std::vector<std::vector<double>> V, Z;
     std::vector<double> H, cs, sn, g;
+    std::vector<double> h3c;    // h^3 of the cells (the A 220 3 preconditioner)
+    std::vector<int> fxs, fys;  // the faces of the cells, each once
+    std::vector<double> FX1, FX2, FY1, FY2;   // their discharges in the operator
+
+    void workspace(int m, int n2)
+    {
+        if((int)V.size()!=m+1 || (V.size()>0 && (int)V[0].size()!=n2))
+        {
+        V.assign(m+1,std::vector<double>(n2));
+        Z.assign(m,std::vector<double>(n2));
+        }
+        H.assign((m+1)*m,0.0);
+        cs.assign(m,0.0); sn.assign(m,0.0); g.assign(m+1,0.0);
+    }
 
     // open boundary face of x-face / y-face (i,j): index into bcf, -1 none
     std::vector<int> bfx, bfy;

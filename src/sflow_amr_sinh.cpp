@@ -57,7 +57,9 @@ void sflow_amr::si_nh_solve(lexer *p, ghostcell *pgc, rsi_result &res)
     const int ng = (int)G.size();
 
     // the grids of the system, their leaf cells and the own cells (leaf and covered)
-    struct gl { int g; lexer *q; fdm2D *b; sflow_momentum_SI *m; vector<int> leaf; int off; };
+    // tl: the cells of a level-1 patch with a parent on this rank (two-level preconditioner), its parent and the
+    // offsets of the interpolation
+    struct gl { int g; lexer *q; fdm2D *b; sflow_momentum_SI *m; vector<int> leaf; int off; vector<int> tl; };
     vector<gl> L(ng);
     int nc = 0;
 
@@ -80,6 +82,27 @@ void sflow_amr::si_nh_solve(lexer *p, ghostcell *pgc, rsi_result &res)
         }
 
         nc += (int)L[k].leaf.size()/2;
+
+        // the cells of a level-1 patch and their parents (the two-level preconditioner)
+        if(g>=0 && P[g]->lev==1 && nblk==0)
+        {
+            reefamr_patch *P0 = P[g];
+            lexer *q0 = p0;
+            auto inq0 = [&](int a, int d) { return a>=q0->imin && a<q0->imin+q0->imax && d>=q0->jmin && d<q0->jmin+q0->jmax; };
+
+            for(int ii=q->imin; ii<q->imin+q->imax; ++ii)
+            for(int jj=q->jmin; jj<q->jmin+q->jmax; ++jj)
+            {
+                const int I = ii-EXT+P0->I0, J = jj-EY+P0->J0;
+                const int ic = (I>>1) - O0i, jc = yparent(J) - O0j;
+
+                if(q->flagslice4[lij(q,ii,jj)]>0 && inq0(ic,jc) && q0->flagslice4[lij(q0,ic,jc)]>0)
+                {
+                const int ox = (I&1) ? 1 : -1, oy = (sy==1) ? ((J&1) ? 1 : -1) : 0;
+                L[k].tl.insert(L[k].tl.end(),{(ii-q->imin)*q->jmax + (jj-q->jmin),ic,jc,ox,oy});
+                }
+            }
+        }
     }
 
     // per grid on its own: f(grid entry), patches with the communication off
@@ -99,7 +122,8 @@ void sflow_amr::si_nh_solve(lexer *p, ghostcell *pgc, rsi_result &res)
     };
 
     // the coefficients of every grid (the cells around the grids hold the filled WLq, phi, Lc0 of si_step)
-    each([&](gl &c) { c.m->nh_assemble(c.q,c.b,pgc); c.m->nh_amr_cells(c.q,c.b); c.m->nh_amr_guess(c.q,c.b); });
+    each([&](gl &c) { c.m->nh_assemble(c.q,c.b,pgc); c.m->nh_amr_cells(c.q,c.b); c.m->nh_amr_guess(c.q,c.b);
+                      c.m->nh_amr_leaf(c.q,c.leaf); });
 
     // own cells of grid g (the rows of its preconditioner): leaf and covered cells
     auto ownf = [&](int g) { return [this,g](int ii, int jj) { return rsi_own(g,ii,jj); }; };
@@ -190,11 +214,7 @@ void sflow_amr::si_nh_solve(lexer *p, ghostcell *pgc, rsi_result &res)
         match();
 
         for(auto &c : L)
-        for(size_t k=0; k<c.leaf.size(); k+=2)
-        {
-        const int ii=c.leaf[k], jj=c.leaf[k+1], n=c.off+(int)k/2;
-        c.m->nh_amr_row(c.q,c.b,ii,jj,affine,y[2*n],y[2*n+1]);
-        }
+        c.m->nh_amr_rows(c.q,affine,y.data()+2*c.off);
     };
 
     auto dot = [&](const std::vector<double> &a, const std::vector<double> &c)
@@ -204,6 +224,8 @@ void sflow_amr::si_nh_solve(lexer *p, ghostcell *pgc, rsi_result &res)
         s += a[k]*c[k];
         return pgc->globalsum(s);
     };
+
+    std::vector<double> tw;     // the rows of a patch (two-level preconditioner)
 
     // z = M^-1 v: the residual of the leaf cells, the mean of the children in the covered cells
     auto precond = [&](const std::vector<double> &v, std::vector<double> &z)
@@ -239,7 +261,6 @@ void sflow_amr::si_nh_solve(lexer *p, ghostcell *pgc, rsi_result &res)
         // multiplicative); finer levels: their preconditioner on the residual alone (additive)
         sflow_momentum_SI *m0 = psim0;
         lexer *q0 = p0;
-        auto inq0 = [&](int a, int d) { return a>=q0->imin && a<q0->imin+q0->imax && d>=q0->jmin && d<q0->jmin+q0->jmax; };
 
         for(auto &c : L)
         {
@@ -254,35 +275,28 @@ void sflow_amr::si_nh_solve(lexer *p, ghostcell *pgc, rsi_result &res)
 
             if(two)
             {
-                // the interpolated level-0 correction on all cells of the patch
-                for(int ii=q->imin; ii<q->imin+q->imax; ++ii)
-                for(int jj=q->jmin; jj<q->jmin+q->jmax; ++jj)
+                // the interpolated level-0 correction on all cells of the patch (0 where the patch cell has no parent)
+                std::fill(m->nE.V,m->nE.V+(size_t)q->imax*q->jmax,0.0);
+                std::fill(m->nP.V,m->nP.V+(size_t)q->imax*q->jmax,0.0);
+
+                for(size_t k=0; k<c.tl.size(); k+=5)
                 {
-                    double ze=0.0, zp=0.0;
-                    const int I = ii-EXT+P0->I0, J = jj-EY+P0->J0;
-                    const int ic = (I>>1) - O0i, jc = yparent(J) - O0j;
-
-                    if(q->flagslice4[lij(q,ii,jj)]>0 && inq0(ic,jc) && q0->flagslice4[lij(q0,ic,jc)]>0)
-                    {
-                    const int ox = (I&1) ? 1 : -1, oy = (sy==1) ? ((J&1) ? 1 : -1) : 0;
-                    ze = rsi_interp(q0,m0->nZE,ic,jc,ox,oy);
-                    zp = rsi_interp(q0,m0->nZP,ic,jc,ox,oy);
-                    }
-
-                    m->nE(ii,jj) = ze;
-                    m->nP(ii,jj) = zp;
+                    const int qq = c.tl[k], ic = c.tl[k+1], jc = c.tl[k+2], ox = c.tl[k+3], oy = c.tl[k+4];
+                    m->nE.V[qq] = rsi_interp(q0,m0->nZE,ic,jc,ox,oy);
+                    m->nP.V[qq] = rsi_interp(q0,m0->nZP,ic,jc,ox,oy);
                 }
 
                 m->nh_amr_lap(q,pgc);
                 m->nh_amr_faces(q,false);
 
+                tw.resize(c.leaf.size());
+                m->nh_amr_rows(q,false,tw.data());
+
                 for(size_t k=0; k<c.leaf.size(); k+=2)
                 {
-                    const int ii=c.leaf[k], jj=c.leaf[k+1];
-                    double ym, yc;
-                    m->nh_amr_row(q,c.b,ii,jj,false,ym,yc);
-                    m->nRm(ii,jj) -= ym;
-                    m->nRc(ii,jj) -= yc;
+                    const int qq = m->nh_lq[k/2];
+                    m->nRm.V[qq] -= tw[k];
+                    m->nRc.V[qq] -= tw[k+1];
                 }
             }
 
@@ -307,7 +321,14 @@ void sflow_amr::si_nh_solve(lexer *p, ghostcell *pgc, rsi_result &res)
 
     const int m = 30, maxit = 300;
     const double tol = 1.0e-6;
-    std::vector<std::vector<double>> V(m+1,std::vector<double>(N2)), Z(m,std::vector<double>(N2));
+
+    // the Krylov vectors kept from step to step (every entry is written before it is read)
+    if((int)nhV.size()!=m+1 || (int)nhV[0].size()!=N2)
+    {
+    nhV.assign(m+1,std::vector<double>(N2));
+    nhZ.assign(m,std::vector<double>(N2));
+    }
+    std::vector<std::vector<double>> &V = nhV, &Z = nhZ;
     std::vector<double> H((m+1)*m,0.0), cs(m,0.0), sn(m,0.0), gg(m+1,0.0);
 
     res.iter = 0;

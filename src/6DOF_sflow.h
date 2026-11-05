@@ -70,6 +70,8 @@ public:
     
     void isource2D(lexer*,fdm2D*,ghostcell*) override final;
     void jsource2D(lexer*,fdm2D*,ghostcell*) override final;
+    void sflow_midpoint(bool on) override final {mid = on;}
+    bool sflow_press_step(lexer*, slice&) override final;
 
     // checkpoints (P 48, I 45): the bodies one after the other, each with its length; the pressure
     // patch of the ship waves as a slice
@@ -95,6 +97,8 @@ private:
     vector<sixdof_obj_2D*> fb_obj;
 
     slice4 press;
+    slice4 press_n;     // A 226 1 (sflow_midpoint): the pressure of the start of the step
+    bool mid = false;
 
 
 };

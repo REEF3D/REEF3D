@@ -38,6 +38,8 @@ Author: Hans Bihs
 #include"sflow_rheology.h"
 #include"sflow_curv.h"
 #include"sflow_amr.h"
+#include"6DOF.h"
+#include"sflow_forcing.h"
 #include<sys/stat.h>
 #include<sys/types.h>
 
@@ -56,7 +58,7 @@ sflow_momentum_SI::sflow_momentum_SI(lexer *p, fdm2D *b, ghostcell *pgc, sflow_H
                                       qyN(p),Hyo(p),qyo(p),qya(p),nyR(p),nyL(p),nyB(p),ny0(p),kyEL(p),kyER(p),kyPL(p),kyPR(p),ky1(p),ky2(p),
                                       phiN(p),WHp(p),Lc0(p),Unm1(p),Vnm1(p),WLh(p),WLo(p),AWo(p),WLq(p),
                                       nPW(p),nEb(p),nEo(p),nPo(p),nU(p),nV(p),nUs(p),nVs(p),nA(p),nsx(p),nsy(p),nE(p),nP(p),nL(p),nZ(p),nAE(p),nAP(p),nBE(p),nBP(p),
-                                      nF1x(p),nF2x(p),nF1y(p),nF2y(p),nH3(p),nW2(p),nCs(p),nRm(p),nRc(p),nZE(p),nZP(p)
+                                      nF1x(p),nF2x(p),nF1y(p),nF2y(p),nH3(p),nW2(p),nCs(p),nRm(p),nRc(p),nZE(p),nZP(p),sps(p)
 {
     check(p);
 
@@ -75,6 +77,10 @@ sflow_momentum_SI::sflow_momentum_SI(lexer *p, fdm2D *b, ghostcell *pgc, sflow_H
     nh_ini(p);
 
     patch = block;
+
+    // X 10 3: the ship pressure of the step is the mean of its start and its end (ship_level)
+    if(p->X10==3 && !patch)
+    p6dof->sflow_midpoint(true);
 
     if(p->mpirank==0 && !patch)
     {
@@ -138,8 +144,12 @@ void sflow_momentum_SI::check(lexer *p)
     if(p->B411>0 || p->B412>0 || p->B413>0 || p->B414>0 || p->B415>0 || p->B416>0 || p->B417>0 || p->B418>0 || p->B421>0 || p->B422>0)
     msg("patch boundary conditions (B 411-422) are");
 
-    if(p->X10>0)
-    msg("6DOF and direct forcing (X 10) are");
+    // X 10 3: ship waves from the pressure of the moving body (sixdof_sflow, X 400), with the gravity term
+    if(p->X10>0 && p->X10!=3)
+    msg("6DOF and direct forcing (X 10 1/2; the ship pressure X 10 3 is supported) are");
+
+    if(p->X10==3 && (p->G1>0 || p->G50>0 || p->geo_curv==1))
+    msg("the ship pressure (X 10 3) with mesh refinement, curvilinear and multi-block grids is");
 
     // SEASTATE coupling (A 750 1): the wave force in the predictor, the Stokes mass source (A 751 2) in the eta
     // system; surfbeat (A 770 1) needs the host's step for the wave groups and the long-wave boundary
@@ -203,6 +213,15 @@ void sflow_momentum_SI::start(lexer *p, fdm2D* b, ghostcell* pgc)
 void sflow_momentum_SI::step_single(lexer *p, fdm2D* b, ghostcell* pgc)
 {
     si_restore(p,b,pgc);
+
+    // X 10 3: the body moves to the end of the step, its pressure of the start is kept (sixdof_sflow::sflow_midpoint);
+    // the mean of the two goes with the gravity term (ship_level, si_assemble, cell_update)
+    if(p->X10==3)
+    {
+    psfdf->forcing(p,b,pgc,p6dof,p->count,1.0,b->UH,b->VH,b->WH,b->WL,true);
+    ship_level(p,b,pgc);
+    }
+
     si_begin(p,b,pgc);
 
     if(nh)
@@ -948,7 +967,8 @@ void sflow_momentum_SI::stage_rhs(lexer *p, fdm2D *b, ghostcell *pgc, slice &UHs
     // advection with the face discharges of t^n
     advection(p,b,pgc);
 
-    // sources and diffusion (as the explicit stage, without gravity and bed friction)
+    // sources and diffusion (as the explicit stage, without gravity and bed friction; the ship pressure X 10 3 with
+    // the gravity term, si_assemble and cell_update)
     prheo->u_source(p,b,b->U,b->V,WL0);
     if(pmet!=nullptr)
     pmet->source_sflow(p,pgc,b->F,0,WL0,UHs,VHs);
@@ -1213,6 +1233,20 @@ void sflow_momentum_SI::si_assemble(lexer *p, fdm2D *b, ghostcell *pgc)
         ky(i,j) = 0.0;
         ay(i,j) = 0.0;
         }
+    }
+
+    // X 10 3: the ship pressure as the surface level it holds, -p/(rho g), its compact face gradient with the gravity
+    // term (the mean of the pressure of the start and of the end of the step)
+    if(ship)
+    {
+        SLICELOOP1
+        if(Hx(i,j)>0.0)
+        qxE(i,j) -= alx(i,j)*dt*g*Hx(i,j)*(sps(i+1,j) - sps(i,j))/p->DXP[IP];
+
+        if(p->j_dir==1)
+        SLICELOOP2
+        if(Hy(i,j)>0.0)
+        qyE(i,j) -= aly(i,j)*dt*g*Hy(i,j)*(sps(i,j+1) - sps(i,j))/p->DYP[JP];
     }
 
     exchange1(p,pgc,gx0);
@@ -1503,6 +1537,9 @@ void sflow_momentum_SI::cell_update(lexer *p, fdm2D *b, ghostcell *pgc)
         gn  = (ww*gx0(i-1,j) + we*gx0(i,j))/wsum;
         gn1 = (ww*(etaI(i,j) - etaI(i-1,j))/p->DXP[IM1] + we*(etaI(i+1,j) - etaI(i,j))/p->DXP[IP])/wsum;
 
+        if(ship)
+        gn1 += (ww*(sps(i,j) - sps(i-1,j))/p->DXP[IM1] + we*(sps(i+1,j) - sps(i,j))/p->DXP[IP])/(wsum*theta);
+
         b->UH(i,j) = alc(i,j)*(UHp(i,j) - dt*g*Hg(i,j)*(theta*gn1 + (1.0-theta)*gn));
 
         b->VH(i,j) = 0.0;
@@ -1515,6 +1552,9 @@ void sflow_momentum_SI::cell_update(lexer *p, fdm2D *b, ghostcell *pgc)
 
             gn  = (ww*gy0(i,j-1) + we*gy0(i,j))/wsum;
             gn1 = (ww*(etaI(i,j) - etaI(i,j-1))/p->DYP[JM1] + we*(etaI(i,j+1) - etaI(i,j))/p->DYP[JP])/wsum;
+
+            if(ship)
+            gn1 += (ww*(sps(i,j) - sps(i,j-1))/p->DYP[JM1] + we*(sps(i,j+1) - sps(i,j))/p->DYP[JP])/(wsum*theta);
 
             b->VH(i,j) = alc(i,j)*(VHp(i,j) - dt*g*Hg(i,j)*(theta*gn1 + (1.0-theta)*gn));
             }
@@ -1824,4 +1864,18 @@ void sflow_momentum_SI::fnorm(lexer *p, int dir, int ii, int jj, double &nx, dou
 
     nx = dir==1 ? 1.0 : 0.0;
     ny = dir==1 ? 0.0 : 1.0;
+}
+
+void sflow_momentum_SI::ship_level(lexer *p, fdm2D *b, ghostcell *pgc)
+{
+    // X 10 3: the ship pressure of the step (sixdof_sflow::sflow_press_step, the mean of its start and end) as the
+    // surface level it holds, -p/(rho g); the stored pressure is minus the pressure on the water
+    ship = p6dof->sflow_press_step(p,sps);
+
+    if(ship)
+    for(int ii=p->imin; ii<p->imin+p->imax; ++ii)
+    for(int jj=p->jmin; jj<p->jmin+p->jmax; ++jj)
+    sps(ii,jj) = -sps(ii,jj)/(p->W1*g);
+
+    exchange4(p,pgc,sps);
 }

@@ -273,6 +273,12 @@ private:
     void nh_assemble(lexer*, fdm2D*, ghostcell*);    // nA, face and cell coefficients of the coupled system
     void nh_cell(lexer*, fdm2D*, ghostcell*);
 
+    // ship waves (X 10 3): the pressure of the moving body as the surface level it holds, in the face predictor and
+    // the cell momentum with the gravity term
+    bool ship = false;
+    slice4 sps;
+    void ship_level(lexer*, fdm2D*, ghostcell*);
+
     // the coupled system on the grids of the mesh refinement (sflow_momentum_SI_nh_amr.cpp; sflow_amr::si_nh_solve
     // runs the composite solve over the leaf cells of all grids): per grid the cell terms, the h^3 lap(eta) term and
     // the face discharges of (nE, nP), the rows, the preconditioner of the grid and the face terms of the solution
@@ -280,12 +286,20 @@ private:
     slice1 nF1x, nF2x;
     slice2 nF1y, nF2y;
     slice4 nH3, nW2, nCs, nRm, nRc, nZE, nZP;
+    std::vector<char> nh_own;              // the own cells of the solve (nh_amr_prec_setup)
+    std::vector<int> nh_cq;                // the cells in SLICELOOP4 order (nh_amr_prec_setup)
+    std::vector<double> nh_dxn, nh_dyn;    // their widths
+    std::vector<double> nh_lc;             // the coefficients of lap(nE) of the cells (nh_amr_cells)
+    std::vector<int> nh_lq;                // the leaf cells of the solve (nh_amr_leaf)
+    std::vector<double> nh_ldx, nh_ldy;    // their widths
     bool nh_rb1 = true, nh_rb2 = true;     // the V-cycle hierarchies of the preconditioner: rebuilt after nh_amr_prec_setup
     void nh_amr_cells(lexer*, fdm2D*);
     void nh_amr_guess(lexer*, fdm2D*);
     void nh_amr_lap(lexer*, ghostcell*);
     void nh_amr_faces(lexer*, bool affine);
     void nh_amr_row(lexer*, fdm2D*, int, int, bool affine, double &ym, double &yc);
+    void nh_amr_leaf(lexer*, const std::vector<int> &leaf);   // the leaf cells (i, j pairs) for nh_amr_rows
+    void nh_amr_rows(lexer*, bool affine, double *y);           // nh_amr_row of all leaf cells
     void nh_amr_prec_setup(lexer*, ghostcell*, const std::function<bool(int,int)> &own);
     void nh_amr_prec(lexer*, ghostcell*, const std::function<bool(int,int)> &own);
     void nh_amr_finish(lexer*, fdm2D*, ghostcell*);

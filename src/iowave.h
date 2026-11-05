@@ -307,6 +307,11 @@ private:
     void zones_check(lexer*);
     std::vector<int> gen_idx;
     bool gen_built=false;
+    // wavegen_2D_precalc: the values of the last evaluation (time, grid, bed of the zone columns); the SI step
+    // (A 226 1, B 95) evaluates t^{n+1} in its relaxation, the main loop of the next step the same time again
+    double pc2D_time=0.0;
+    const lexer *pc2D_p=nullptr;
+    std::vector<double> pc2D_bed;
     
     // tidal / current background (B 510-514, B 523; NHFLOW): background index of the
     // generation and beach zone of each column (IJ), -1: none; still water depth per column

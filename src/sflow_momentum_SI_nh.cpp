@@ -599,18 +599,53 @@ void sflow_momentum_SI::nh_solve(lexer *p, fdm2D *b, ghostcell *pgc)
 
     // x-face q (between q and q+J), y-face q (between q and q+1); mode 1: the constants of the mass row (the q^E of
     // the faces are in rhsW), mode 2: all constants
-    auto qxf = [&](int q, int mode)
+    // the faces of the cells (east and west, north and south), each once; FX1/FX2 (FY1/FY2): the face discharges
+    // of the mass row and of the constraint, the mass row of a cell takes the difference of its two faces
+    std::vector<int> &fxs = S.fxs, &fys = S.fys;
     {
-        double v = XEL[q]*E[q] + XER[q]*E[q+J] + XPL[q]*Pp[q] + XPR[q]*Pp[q+J];
-        if(bd) v += XB[q]*(Lp[q+J] - Lp[q]);
-        return v + (mode==1 ? X1[q] : (mode==2 ? X2[q] : 0.0));
-    };
+    std::vector<char> mk((size_t)p->imax*p->jmax*2+2*J+2,0);
+    const int o = J+1;
+    fxs.clear(); fys.clear();
+    for(int n=0; n<N; ++n)
+    for(int qq : {cq[n]-J, cq[n]})
+    if(!mk[qq+o]) { mk[qq+o]=1; fxs.push_back(qq); }
 
-    auto qyf = [&](int q, int mode)
+    if(yd)
     {
+    std::fill(mk.begin(),mk.end(),0);
+    for(int n=0; n<N; ++n)
+    for(int qq : {cq[n]-1, cq[n]})
+    if(!mk[qq+o]) { mk[qq+o]=1; fys.push_back(qq); }
+    }
+    }
+
+    const size_t nfa = (size_t)p->imax*p->jmax;
+    S.FX1.resize(nfa); S.FX2.resize(nfa); S.FY1.resize(nfa); S.FY2.resize(nfa);
+    double *FX1 = S.FX1.data(), *FX2 = S.FX2.data(), *FY1 = S.FY1.data(), *FY2 = S.FY2.data();
+
+    // the face values of qxf/qyf for the modes m1 (0, 1) and m2 (0, 2)
+    auto faces = [&](int m1, int m2, bool two, bool useL)
+    {
+        const bool bl = bd && useL;
+
+        for(int q : fxs)
+        {
+        double v = XEL[q]*E[q] + XER[q]*E[q+J] + XPL[q]*Pp[q] + XPR[q]*Pp[q+J];
+        if(bl) v += XB[q]*(Lp[q+J] - Lp[q]);
+        FX1[q] = v + (m1==1 ? X1[q] : 0.0);
+        if(two)
+        FX2[q] = v + (m2==2 ? X2[q] : 0.0);
+        }
+
+        if(yd)
+        for(int q : fys)
+        {
         double v = YEL[q]*E[q] + YER[q]*E[q+1] + YPL[q]*Pp[q] + YPR[q]*Pp[q+1];
-        if(bd) v += YB[q]*(Lp[q+1] - Lp[q]);
-        return v + (mode==1 ? Y1[q] : (mode==2 ? Y2[q] : 0.0));
+        if(bl) v += YB[q]*(Lp[q+1] - Lp[q]);
+        FY1[q] = v + (m1==1 ? Y1[q] : 0.0);
+        if(two)
+        FY2[q] = v + (m2==2 ? Y2[q] : 0.0);
+        }
     };
 
     auto lapL = [&]()
@@ -641,13 +676,15 @@ void sflow_momentum_SI::nh_solve(lexer *p, fdm2D *b, ghostcell *pgc)
 
         const int m1 = affine ? 1 : 0, m2 = affine ? 2 : 0;
 
+        faces(m1,m2,true,true);
+
         for(int n=0; n<N; ++n)
         {
         const int q = cq[n];
 
         // mass row
-        double dv = (qxf(q,m1) - qxf(q-J,m1))*idx[n];
-        if(yd) dv += (qyf(q,m1) - qyf(q-1,m1))*idy[n];
+        double dv = (FX1[q] - FX1[q-J])*idx[n];
+        if(yd) dv += (FY1[q] - FY1[q-1])*idy[n];
 
         y[2*n] = PW[q]*E[q] + tdt*dv;
 
@@ -657,8 +694,8 @@ void sflow_momentum_SI::nh_solve(lexer *p, fdm2D *b, ghostcell *pgc)
 
             else
             {
-            double cc = (qxf(q,m2) - qxf(q-J,m2))*idx[n];
-            if(yd) cc += (qyf(q,m2) - qyf(q-1,m2))*idy[n];
+            double cc = (FX2[q] - FX2[q-J])*idx[n];
+            if(yd) cc += (FY2[q] - FY2[q-1])*idy[n];
 
             cc += w2[n]*Pp[q];
 
@@ -808,6 +845,7 @@ void sflow_momentum_SI::nh_solve(lexer *p, fdm2D *b, ghostcell *pgc)
         if(!S.mg1)
         {
         S.mg1.reset(new reefmg2D(p,pgc));
+        S.mg1->set_keep_matrix(true);
         S.M1.reset(new matrix2D(p));
         S.r1.reset(new vec2D(p));
 
@@ -818,6 +856,9 @@ void sflow_momentum_SI::nh_solve(lexer *p, fdm2D *b, ghostcell *pgc)
         if(Bdisp>0.0 && !S.mg2)
         {
         S.mg2.reset(new reefmg2D(p,pgc));
+        S.mg2->set_keep_matrix(true);
+        // A2 is strongly screened (two levels in use): 2 sweeps on the coarse level do what 16 did
+        S.mg2->set_coarse_sweeps(2);
         S.M2.reset(new matrix2D(p));
         S.r2.reset(new vec2D(p));
 
@@ -892,6 +933,16 @@ void sflow_momentum_SI::nh_solve(lexer *p, fdm2D *b, ghostcell *pgc)
         {
             matrix2D &M2 = *S.M2;
 
+            // h^3 of the cells, computed once per cell (the faces take the mean of their two cells)
+            S.h3c.assign((size_t)p->imax*p->jmax,-1.0);
+            auto h3of = [&](int a, int c)
+            {
+                double &v = S.h3c[id(a,c)];
+                if(v<0.0)
+                v = pow(WLh(a,c),3.0);
+                return v;
+            };
+
             auto rho = [&](int dir, int a, int c, int a1, int c1)
             {
                 const double Hf = dir==1 ? Hx(a,c) : Hy(a,c);
@@ -903,7 +954,7 @@ void sflow_momentum_SI::nh_solve(lexer *p, fdm2D *b, ghostcell *pgc)
                 const double cB = dir==1 ? nxB(a,c) : nyB(a,c);
                 const double cc = 0.5*(dir==1 ? nxR(a,c) + nxL(a,c) : nyR(a,c) + nyL(a,c));
                 const double aE = 0.5*(nAE(a,c) + nAE(a1,c1));
-                const double h3 = 0.5*(pow(WLh(a,c),3.0) + pow(WLh(a1,c1),3.0));
+                const double h3 = 0.5*(h3of(a,c) + h3of(a1,c1));
                 const double K = af*aE + tdt*cc;
 
                 return K>0.0 ? tdt*cB*h3*aE/K : 0.0;
@@ -936,43 +987,28 @@ void sflow_momentum_SI::nh_solve(lexer *p, fdm2D *b, ghostcell *pgc)
         // z = M^-1 v for the coupled system
         auto precond = [&](const std::vector<double> &v, std::vector<double> &z)
         {
-            int n=0;
-            SLICELOOP4
-            {
-            const double rm = v[2*n], rc = v[2*n+1];
 
-                if(nA(i,j)>0.5)
-                {
-                nBE(i,j) = rm - tdt*rc;
-                nBP(i,j) = 0.0;
-                }
-
-                else
-                {
-                nBE(i,j) = 0.0;
-                nBP(i,j) = rc;
-                }
-            ++n;
-            }
-
-            // right-hand side: rm minus the mass row of (bE, bP), without the A 220 3 term (nL = 0)
+            // bE, bP of the cells and the right-hand side: rm minus the mass row of (bE, bP), without the
+            // A 220 3 term
             for(int n=0; n<N; ++n)
             {
             const int q = cq[n];
-            E[q]  = nBE.V[q];
-            Pp[q] = nBP.V[q];
-            Lp[q] = 0.0;
+            const double rm = v[2*n], rc = v[2*n+1];
+            const bool a = Ac[q]>0.5;
+            E[q]  = nBE.V[q] = a ? rm - tdt*rc : 0.0;
+            Pp[q] = nBP.V[q] = a ? 0.0 : rc;
             }
 
             exchange4(p,pgc,nE);
             exchange4(p,pgc,nP);
-            exchange4(p,pgc,nL);
+
+            faces(0,0,false,false);
 
             for(int n=0; n<N; ++n)
             {
             const int q = cq[n];
-            double dv = (qxf(q,0) - qxf(q-J,0))*idx[n];
-            if(yd) dv += (qyf(q,0) - qyf(q-1,0))*idy[n];
+            double dv = (FX1[q] - FX1[q-J])*idx[n];
+            if(yd) dv += (FY1[q] - FY1[q-1])*idy[n];
 
             S.r1->V[n] = v[2*n] - (E[q] + tdt*dv);
             nZ.V[q] = 0.0;
@@ -982,19 +1018,20 @@ void sflow_momentum_SI::nh_solve(lexer *p, fdm2D *b, ghostcell *pgc)
 
             if(Bdisp>0.0)
             {
-            n=0;
-            SLICELOOP4
-            S.r2->V[n++] = nZ(i,j);
+            for(int n=0; n<N; ++n)
+            S.r2->V[n] = nZ.V[cq[n]];
 
             S.mg2->vcycle(p,pgc,nZ,*S.M2,*S.r2,rebuild);
             }
 
-            n=0;
-            SLICELOOP4
+            // the matrices are fixed for the solve: the hierarchies of the first call are kept
+            rebuild = false;
+
+            for(int n=0; n<N; ++n)
             {
-            z[2*n]   = nBE(i,j) + nAE(i,j)*nZ(i,j);
-            z[2*n+1] = nBP(i,j) + nAP(i,j)*nZ(i,j);
-            ++n;
+            const int q = cq[n];
+            z[2*n]   = nBE.V[q] + nAE.V[q]*nZ.V[q];
+            z[2*n+1] = nBP.V[q] + nAP.V[q]*nZ.V[q];
             }
         };
 
@@ -1010,10 +1047,7 @@ void sflow_momentum_SI::nh_solve(lexer *p, fdm2D *b, ghostcell *pgc)
         // relative tolerance: 1e-6 and 1e-8 gave the same gauge records (8 digits) on the 2D shoal case
         const double tol = 1.0e-6;
 
-        S.V.assign(m+1,std::vector<double>(2*N));
-        S.Z.assign(m,std::vector<double>(2*N));
-        S.H.assign((m+1)*m,0.0);
-        S.cs.assign(m,0.0); S.sn.assign(m,0.0); S.g.assign(m+1,0.0);
+        S.workspace(m,2*N);
 
         const double bn = sqrt(dot(rv,rv));
         int it = 0;

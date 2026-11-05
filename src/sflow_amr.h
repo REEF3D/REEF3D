@@ -365,6 +365,7 @@ private:
     // A 220 2/3 (sflow_amr_si.cpp): the coupled eta-P system over the leaf cells of all grids (FGMRES, the
     // preconditioner of every grid on its own cells, the covered cells with the mean residual of their children)
     void si_nh_solve(lexer*, ghostcell*, rsi_result&);
+    std::vector<std::vector<double>> nhV, nhZ;    // si_nh_solve: the Krylov vectors
     void si_nh_quad(const std::function<slice&(int)> &F, bool wetonly);   // quadratic prolongation into the cells around the patches
     void si_nh_qrestrict();            // the face discharges of the covered coarse faces: the mean of the fine faces
     void si_timestep(lexer*, ghostcell*);
