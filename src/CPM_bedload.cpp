@@ -126,11 +126,14 @@ void CPM::bedload_columns(lexer *p, fdm *a, ghostcell *pgc, sediment_fdm *s)
         bool rest=false;
         
         // CPM on the mesh refinement: where the fluid comes from a coarser grid, the velocity and k at least at its
-        // first cell
+        // first cell. k is taken at the reference height only where that first cell sets it (above Q 66): with a
+        // higher Q 66 the stress is that of one grid, with k of the first fluid cell as without refinement (k at the
+        // reference height 2 cells above the bed, with Q 68 1, scoured the pipeline 0.09 D deeper with G 27 than with
+        // a static box, validation 32)
         const double ha = amr_href.empty() ? 0.0 : amr_href[(size_t)i*p->knoy+j];
         const double href = MAX(p->Q66, ha);
         
-        bedshear::column_tau(p,a,pturb_,i,j,s->bedzh(i,j),ks,href,(p->Q68==1||p->Q68==2)?p->Q68:0,p->W1,tx,ty,hc,rest,p->Q79==1?1:0,ha>0.0?1:0);
+        bedshear::column_tau(p,a,pturb_,i,j,s->bedzh(i,j),ks,href,(p->Q68==1||p->Q68==2)?p->Q68:0,p->W1,tx,ty,hc,rest,p->Q79==1?1:0,ha>p->Q66?1:0);
         
         blTx(i,j) = tx;
         blTy(i,j) = ty;
