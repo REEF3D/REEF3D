@@ -3023,6 +3023,7 @@
             <File Name="6DOF_obj_remesh.cpp"/>
             <File Name="6DOF_deform.cpp"/>
             <File Name="6DOF_obj_deform.cpp"/>
+            <File Name="6DOF_obj_cfd_momentum.cpp"/>
           </VirtualDirectory>
         </VirtualDirectory>
         <VirtualDirectory Name="Membrane">

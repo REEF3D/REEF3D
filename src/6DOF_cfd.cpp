@@ -39,6 +39,16 @@ sixdof_cfd::sixdof_cfd(lexer *p, fdm *a, ghostcell *pgc)
     
     number6DOF = p->X20;
     
+    // the fluid-momentum coupling (X 198) fits each body to the velocity in the region of the level set
+    // of the body, which holds all bodies (a->fb): one body only so far
+    if(p->X198>0 && number6DOF>1)
+    {
+        if(p->mpirank==0)
+        cout<<"!!! X 198 (fluid-momentum coupling) works with one body (X 20 1) so far: X 197 / the explicit coupling instead"<<endl;
+        
+        p->X198 = 0;
+    }
+    
     for (int nb = 0; nb < number6DOF; nb++)
     fb_obj.push_back(new sixdof_obj_cfd(p,pgc,nb));
     

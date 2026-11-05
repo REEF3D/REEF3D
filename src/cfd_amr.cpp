@@ -329,6 +329,16 @@ cfd_amr::cfd_amr(lexer *p, fdm *a, ghostcell *pgc, momentum *pmom, pressure *ppr
     // density 500, validation 51), with G 7 1 in pitch (a box 0.25 x 0.12 of density 500 heeled
     // 10 degrees: stopped after 0.11 s; two boxes 4 cm apart in heave: the vertical force changed
     // by 166 N from one finest step to the next after 1 s, validation 54)
+    // the fluid-momentum coupling (X 198) fits the body to the velocity of level 0, which the patches
+    // cover: not with the mesh refinement yet, the added-mass stabilisation instead
+    if(bodies && p0->X198>0)
+    {
+        if(p0->mpirank==0)
+        cout<<"!!! X 198 (fluid-momentum coupling) is not available with the mesh refinement (G 1) yet: X 197 / the added mass of half the displaced fluid instead"<<endl;
+        
+        p0->X198 = 0;
+    }
+    
     if(bodies)
     for(int nb=0; nb<b6->objects(); ++nb)
     {

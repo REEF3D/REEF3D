@@ -62,6 +62,12 @@ public:
     void hydrodynamic_forces_cfd(lexer*, fdm*, ghostcell*,field&,field&,field&,int,bool);
     void update_position_3D(lexer*, fdm*, ghostcell*, bool);
     
+    // X 198: fluid-momentum coupling (6DOF_obj_cfd_momentum.cpp): the rigid-body motion fitted to the
+    // predicted velocity of the stage in the hull region gives the loads of the body
+    void momentum_fit(lexer*, fdm*, ghostcell*, field&, field&, field&, int);
+    template<class G> Eigen::Matrix<double,6,1> momentum_lsq(lexer*, fdm*, ghostcell*, G, Eigen::Matrix<double,6,1>*);
+    void momentum_loads(lexer*, int);
+    
     // actuator disks of the load models (body-force propellers): acceleration of the fluid,
     // added to the forcing terms fx, fy, fz of the stage (water part of the cells outside the body)
     void actuator_forcing(lexer*, fdm*, ghostcell*, field&, field&, field&);
