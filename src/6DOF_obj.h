@@ -422,6 +422,7 @@ protected:
     // stage (low-storage RK3)
     double dcn_[6] = {0,0,0,0,0,0}, dck_[6] = {0,0,0,0,0,0}, dcr_[3] = {0,0,0};
     bool dc_on_ = false;
+    double dc_amr_[6+6+3+6] = {};      // amr_save: the correction, dcn_, dck_ (first 3), dcr_
 
     void added_mass_ellipsoid(lexer*);
 

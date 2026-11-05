@@ -344,8 +344,12 @@ void cfd_amr::patch_step(int l, double dt, double th0, double t)
         }
         edge_faces(l,s);
 
+        // X 198 (fluid-momentum coupling) on the finest level: the patches predict, the bodies are
+        // fitted to the predicted velocity of all of them and advanced, then the patches are forced
+        const bool fit = bodies && l==maxlev && p0->X198>0;
+        
         // the bodies at the output time of the stage
-        if(bodies)
+        if(bodies && !fit)
         body_stage(l,s,t,dt);
 
         {
@@ -353,8 +357,21 @@ void cfd_amr::patch_step(int l, double dt, double th0, double t)
         for(int id : lev[l])
         {
             pscope3 ps(pgc,CP(id)->a,a0);
-            CP(id)->pmom->amr_momentum(CP(id)->pp,CP(id)->a,pgc,CP(id)->pvrans,(sixdof*)CP(id)->p6dof,s,patch_forcing());
+            CP(id)->pmom->amr_momentum(CP(id)->pp,CP(id)->a,pgc,CP(id)->pvrans,(sixdof*)CP(id)->p6dof,s,fit ? 3 : patch_forcing());
         }
+        }
+        
+        if(fit)
+        {
+            body_fit(l,s,t);
+            body_stage(l,s,t,dt);
+            
+            cfd_amr_wclock wc(wtp);
+            for(int id : lev[l])
+            {
+                pscope3 ps(pgc,CP(id)->a,a0);
+                CP(id)->pmom->amr_forcing(CP(id)->pp,CP(id)->a,pgc,(sixdof*)CP(id)->p6dof,s);
+            }
         }
 
         // the projection of the level with the coarse flux at the patch edges
@@ -388,7 +405,10 @@ void cfd_amr::patch_step(int l, double dt, double th0, double t)
         const double dts = p0->dt;
         p0->dt = dt;
         for(int nb=0; nb<b6->objects(); ++nb)
+        {
         b6->object(nb)->saveTimeStep(p0,stages-1);
+        b6->object(nb)->deform_step_end();
+        }
         p0->dt = dts;
     }
 
@@ -573,6 +593,44 @@ void cfd_amr::body_stage(int l, int s, double t, double dt)
     for(int nb=0; nb<b6->objects(); ++nb)
     b6->object(nb)->amr_stage_cfd(p0,a0,pgc0,s);
     p0->dt = dts;
+    p0->simtime = ts;
+}
+
+// X 198: the rigid-body motion of the bodies fitted to the predicted velocity of stage s of the
+// patches of level l (the finest), and the rates of the discrete recoil correction of a deforming body
+// (the hull region of the patches at the pose of the last stage); the start of the finest step is t
+void cfd_amr::body_fit(int l, int s, double t)
+{
+    const double ts = p0->simtime;
+    p0->simtime = t;
+    
+    for(int nb=0; nb<b6->objects(); ++nb)
+    {
+        sixdof_obj_cfd *o = b6->object(nb);
+        
+        // the patches: no level-0 cover
+        const char *cover = o->amr_cover;
+        o->amr_cover = nullptr;
+        
+        o->momentum_deform_begin();
+        for(int id : lev[l])
+        {
+            pscope3 ps(pgc0,CP(id)->a,a0);
+            o->momentum_deform_add(CP(id)->pp,CP(id)->a);
+        }
+        o->momentum_deform_end(p0,pgc0);
+        
+        o->momentum_fit_begin(p0,s);
+        for(int id : lev[l])
+        {
+            pscope3 ps(pgc0,CP(id)->a,a0);
+            o->momentum_fit_add(CP(id)->pp,CP(id)->a,gmom(id)->amr_velout(CP(id)->a,0,s),gmom(id)->amr_velout(CP(id)->a,1,s),gmom(id)->amr_velout(CP(id)->a,2,s));
+        }
+        o->momentum_fit_end(p0,pgc0);
+        
+        o->amr_cover = cover;
+    }
+    
     p0->simtime = ts;
 }
 

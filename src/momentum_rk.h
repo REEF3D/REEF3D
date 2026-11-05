@@ -112,6 +112,9 @@ public:
     void amr_ls_reini(lexer*, fdm*, ghostcell*, int, int);
     int amr_reini_iters(lexer*, int) const;
     void amr_momentum(lexer*, fdm*, ghostcell*, vrans*, sixdof*, int, int);
+    // forcing 3 of amr_momentum: the predictor alone, the forcing of the bodies later (X 198: the
+    // fluid-momentum coupling fits the bodies to the predicted velocity of all patches first)
+    void amr_forcing(lexer*, fdm*, ghostcell*, sixdof*, int);
     void amr_project_after(lexer*, fdm*, ghostcell*, field&, field&, field&);
     void amr_projection(lexer*, fdm*, ghostcell*, int);
     void amr_solid_forcing(lexer*, fdm*, ghostcell*, field&, field&, field&, double);

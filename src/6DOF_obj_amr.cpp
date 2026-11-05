@@ -41,6 +41,22 @@ void sixdof_obj::amr_save()
     
     if(fish_!=nullptr)
     fish_t_amr_ = fish_->time();
+    
+    if(dc_on_)
+    {
+    const sixdof_deform::correction &c = fish_->corr();
+    const double v[6] = {c.tx, c.tl, c.psi, c.vx, c.vl, c.psit};
+    for(int q=0; q<6; ++q)
+    {
+    dc_amr_[q] = v[q];
+    dc_amr_[6+q] = dcn_[q];
+    }
+    for(int q=0; q<3; ++q)
+    {
+    dc_amr_[12+q] = dck_[q];
+    dc_amr_[15+q] = dcr_[q];
+    }
+    }
 }
 
 void sixdof_obj::pose_update(lexer *p, ghostcell *pgc)
@@ -61,6 +77,21 @@ void sixdof_obj::amr_restore(lexer *p, ghostcell *pgc)
     
     if(fish_!=nullptr)
     deform_time(fish_t_amr_);
+    
+    if(dc_on_)
+    {
+    sixdof_deform::correction c;
+    c.tx = dc_amr_[0]; c.tl = dc_amr_[1]; c.psi = dc_amr_[2];
+    c.vx = dc_amr_[3]; c.vl = dc_amr_[4]; c.psit = dc_amr_[5];
+    fish_->set_corr(c);
+    for(int q=0; q<6; ++q)
+    dcn_[q] = dc_amr_[6+q];
+    for(int q=0; q<3; ++q)
+    {
+    dck_[q] = dc_amr_[12+q];
+    dcr_[q] = dc_amr_[15+q];
+    }
+    }
     
     geom.transform(R_,c_);
     update_fbvel(p,pgc);

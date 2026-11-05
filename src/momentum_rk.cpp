@@ -391,6 +391,12 @@ void momentum_rk::amr_momentum(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, 
     amr_solid_forcing(p,a,pgc,uout,vout,wout,ssp_b[s]);
 }
 
+void momentum_rk::amr_forcing(lexer *p, fdm *a, ghostcell *pgc, sixdof *p6dof, int s)
+{
+    momentum_forcing_start(a, p, pgc, p6dof, pfsi,
+                           velout(a,0,s), velout(a,1,s), velout(a,2,s), fx, fy, fz, s, ssp_b[s], s==stages-1);
+}
+
 // the direct forcing of solids and topography alone (as momentum_forcing_start), and the drag of the parcels of
 // CPM on the mesh refinement
 void momentum_rk::amr_solid_forcing(lexer *p, fdm *a, ghostcell *pgc, field &u, field &v, field &w, double alpha)

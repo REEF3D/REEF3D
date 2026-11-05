@@ -607,6 +607,7 @@ private:
     void body_loads(int s, double t, bool fin);
     void body_end();
     int patch_forcing() const { return bodies ? 1 : (solids ? 2 : 0); }
+    void body_fit(int, int, double);
     field& kfield(int g, int m);        // kin (m 0), eps (m 1) of the turbulence model of grid g
     void turb_step(int l);              // the turbulence model on the patches of level l (cells around filled)
     cfd_amr_tlev *ts0 = nullptr;
