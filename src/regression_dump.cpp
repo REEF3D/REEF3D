@@ -143,7 +143,7 @@ void regression_dump::cfd_collect(lexer *p, fdm *a, turbulence *pturb, concentra
 
     add("flag4",p->cellnum);
     BASELOOP
-    data.back().push_back(double(p->flag4[IJK]));
+    data.back().push_back(double(p->flag4(i,j,k)));
 }
 
 void regression_dump::write_state(lexer *p)

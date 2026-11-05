@@ -61,7 +61,7 @@ void bicgstab_ijk::start(lexer* p,fdm* a, ghostcell* pgc, field &f, vec& rhsvec,
     
 	if(var==1)
     {
-    flag = p->flag1;
+    flag = p->flag1.data();
     ulast=p->ulast;
     vlast=0;
     wlast=0;
@@ -70,7 +70,7 @@ void bicgstab_ijk::start(lexer* p,fdm* a, ghostcell* pgc, field &f, vec& rhsvec,
 	
 	if(var==2)
     {
-    flag = p->flag2;
+    flag = p->flag2.data();
     ulast=0;
     vlast=p->vlast;
     wlast=0;
@@ -79,7 +79,7 @@ void bicgstab_ijk::start(lexer* p,fdm* a, ghostcell* pgc, field &f, vec& rhsvec,
 	
 	if(var==3)
     {
-    flag = p->flag3;
+    flag = p->flag3.data();
     ulast=0;
     vlast=0;
     wlast=p->wlast;
@@ -88,7 +88,7 @@ void bicgstab_ijk::start(lexer* p,fdm* a, ghostcell* pgc, field &f, vec& rhsvec,
 	
 	if(var==4||var==5)
     {
-    flag = p->flag4;
+    flag = p->flag4.data();
     ulast=0;
     vlast=0;
     wlast=0;
@@ -105,7 +105,7 @@ void bicgstab_ijk::startV(lexer* p, ghostcell* pgc, double *f, vec& rhsvec, matr
 {
     p->preconiter=0;
     
-    flag = p->flag4;
+    flag = p->flag4.data();
     ulast=0;
     vlast=0;
     wlast=0;

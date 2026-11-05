@@ -424,8 +424,8 @@ void reefmg::fill_matrix44(lexer *p, reefmg_core &core, field *ff, double *f, ve
     {
         const long q=L.idx(i,j,k);
 
-        const bool act = ff ? (p->flag4[IJK]>0 && M.p[CVAL4[IJK]]!=0.0)                  // CFD
-                            : (p->flag4[IJK]>0 && p->wet[IJ]==1 && p->DF[IJK]>0);     // NHFLOW
+        const bool act = ff ? (p->flag4(i,j,k)>0 && M.p[CVAL4[IJK]]!=0.0)                  // CFD
+                            : (p->flag4(i,j,k)>0 && p->wet[IJ]==1 && p->DF[IJK]>0);     // NHFLOW
         if(act)
         {
             n=CVAL4[IJK];
@@ -973,7 +973,7 @@ void reefmg::fill_matrix5(lexer *p, field &f, vec &rhs, matrix_diag &M)
         //  a zero diagonal would mean a row poisson_f left empty; keep it
         //  out of the problem rather than hand the smoother a zero pivot
         int r=-1;
-        if(p->flag4[IJK]>0)
+        if(p->flag4(i,j,k)>0)
         {
             r=CVAL4[IJK];
             if(M.p[r]==0.0) r=-1;

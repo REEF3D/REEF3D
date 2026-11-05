@@ -51,12 +51,12 @@ Architect: Hans Bihs
 
 inline void nhflow_wall_faces(lexer *p, int i, int j, int k, int *w)
 {
-    w[0] = (p->DF[Im1JK]<0 || (p->flag4[Im1JK]<0 && p->IO[Im1JK]==0)) && i+p->origin_i!=0;
-    w[1] = (p->DF[Ip1JK]<0 || (p->flag4[Ip1JK]<0 && p->IO[Ip1JK]==0)) && i+p->origin_i!=p->gknox-1;
-    w[2] = p->j_dir==1 && (p->DF[IJm1K]<0 || (p->flag4[IJm1K]<0 && p->IO[IJm1K]==0));
-    w[3] = p->j_dir==1 && (p->DF[IJp1K]<0 || (p->flag4[IJp1K]<0 && p->IO[IJp1K]==0));
-    w[4] = k==0 || p->flag4[IJKm1]<0 || p->DF[IJKm1]<0;
-    w[5] = k!=p->knoz-1 && (p->flag4[IJKp1]<0 || p->DF[IJKp1]<0);
+    w[0] = (p->DF[Im1JK]<0 || (p->flag4(i-1,j,k)<0 && p->IO[Im1JK]==0)) && i+p->origin_i!=0;
+    w[1] = (p->DF[Ip1JK]<0 || (p->flag4(i+1,j,k)<0 && p->IO[Ip1JK]==0)) && i+p->origin_i!=p->gknox-1;
+    w[2] = p->j_dir==1 && (p->DF[IJm1K]<0 || (p->flag4(i,j-1,k)<0 && p->IO[IJm1K]==0));
+    w[3] = p->j_dir==1 && (p->DF[IJp1K]<0 || (p->flag4(i,j+1,k)<0 && p->IO[IJp1K]==0));
+    w[4] = k==0 || p->flag4(i,j,k-1)<0 || p->DF[IJKm1]<0;
+    w[5] = k!=p->knoz-1 && (p->flag4(i,j,k+1)<0 || p->DF[IJKp1]<0);
 }
 
 // nearest wall with a turbulence wall function: distance of the cell centre, roughness and the velocity

@@ -420,7 +420,7 @@ void nhflow_hullbody::stage(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, 
         double u,v,w;
 
         // +x link to (i+1,j,k)
-        if(tb->sideC[Ip1JK]*s<0.0 && p->flag4[Ip1JK]>0 && p->wet[Ip1J]==1)
+        if(tb->sideC[Ip1JK]*s<0.0 && p->flag4(i+1,j,k)>0 && p->wet[Ip1J]==1)
         {
             normal_vel(IJK,Ip1JK, p->XP[IP]+0.5*p->DXN[IP], p->YP[JP], 0.5*(p->ZSP[IJK]+p->ZSP[Ip1JK]), u,v,w);
 
@@ -434,7 +434,7 @@ void nhflow_hullbody::stage(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, 
         }
 
         // +y link to (i,j+1,k)
-        if(p->j_dir==1 && tb->sideC[IJp1K]*s<0.0 && p->flag4[IJp1K]>0 && p->wet[IJp1]==1)
+        if(p->j_dir==1 && tb->sideC[IJp1K]*s<0.0 && p->flag4(i,j+1,k)>0 && p->wet[IJp1]==1)
         {
             normal_vel(IJK,IJp1K, p->XP[IP], p->YP[JP]+0.5*p->DYN[JP], 0.5*(p->ZSP[IJK]+p->ZSP[IJp1K]), u,v,w);
 

@@ -106,9 +106,9 @@ void sediment_part::topo_flags_off(lexer *p, fdm *a, ghostcell *pgc)
     std::vector<int> ci,cj,ck;
     
     BASELOOP
-    if(p->flag4[IJK]<0 && (p->solidread==0 || a->solid(i,j,k)>=psi))
+    if(p->flag4(i,j,k)<0 && (p->solidread==0 || a->solid(i,j,k)>=psi))
     {
-        p->flag4[IJK]=10;
+        p->flag4(i,j,k)=10;
         ci.push_back(i);
         cj.push_back(j);
         ck.push_back(k);
@@ -119,7 +119,7 @@ void sediment_part::topo_flags_off(lexer *p, fdm *a, ghostcell *pgc)
     if(p->mpirank==0)
     cout<<"CPM two-way: "<<nchg<<" topo cells become fluid cells"<<endl;
     
-    pgc->flagx(p,p->flag4);
+    pgc->flagx(p,p->flag4.data());
     
     // face flag: flag(face q,q+e) = flag4(q), -10 if flag4(q)>0 and flag4(q+e)<0
     auto face = [&](int *fl, int ii, int jj, int kk, int di, int dj, int dk)
@@ -160,22 +160,22 @@ void sediment_part::topo_flags_off(lexer *p, fdm *a, ghostcell *pgc)
     {
         i=ci[q]; j=cj[q]; k=ck[q];
         
-        face(p->flag1,i,j,k,1,0,0);
-        face(p->flag1,i-1,j,k,1,0,0);
+        face(p->flag1.data(),i,j,k,1,0,0);
+        face(p->flag1.data(),i-1,j,k,1,0,0);
         
         if(p->j_dir==1)
         {
-        face(p->flag2,i,j,k,0,1,0);
-        face(p->flag2,i,j-1,k,0,1,0);
+        face(p->flag2.data(),i,j,k,0,1,0);
+        face(p->flag2.data(),i,j-1,k,0,1,0);
         }
         else
-        p->flag2[IJK] = p->flag4[IJK];
+        p->flag2(i,j,k) = p->flag4(i,j,k);
         
-        face(p->flag3,i,j,k,0,0,1);
-        face(p->flag3,i,j,k-1,0,0,1);
+        face(p->flag3.data(),i,j,k,0,0,1);
+        face(p->flag3.data(),i,j,k-1,0,0,1);
     }
     
-    pgc->flagx(p,p->flag1);
-    pgc->flagx(p,p->flag2);
-    pgc->flagx(p,p->flag3);
+    pgc->flagx(p,p->flag1.data());
+    pgc->flagx(p,p->flag2.data());
+    pgc->flagx(p,p->flag3.data());
 }

@@ -181,7 +181,7 @@ void geo_raycast::cart_io(lexer *p, int dir, double **tri_x, double **tri_y, dou
     for(i=g.is; i<g.ie; ++i)
     for(j=g.js; j<g.je; ++j)
     for(k=g.ks; k<g.ke; ++k)
-    if(!g.interior || p->flag4[IJK]>0)
+    if(!g.interior || p->flag4(i,j,k)>0)
     {
         CL[IJK]=0;
         CR[IJK]=0;
@@ -275,7 +275,7 @@ void geo_raycast::cart_io(lexer *p, int dir, double **tri_x, double **tri_y, dou
     for(i=g.is; i<g.ie; ++i)
     for(j=g.js; j<g.je; ++j)
     for(k=g.ks; k<g.ke; ++k)
-    if(!g.interior || p->flag4[IJK]>0)
+    if(!g.interior || p->flag4(i,j,k)>0)
     {
         if(g.raymode==2)
         {

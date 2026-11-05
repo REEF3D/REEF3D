@@ -456,7 +456,7 @@ void nhflow_rans_io::walldist_h(lexer *p, fdm_nhf *d, ghostcell *pgc)
     double seeded = 0.0;
     
     LOOP
-    if(p->flag4[IJK]>0 && p->DF[IJK]>0)
+    if(p->flag4(i,j,k)>0 && p->DF[IJK]>0)
     {
         nhflow_wall_faces(p,i,j,k,w);
         
@@ -482,20 +482,20 @@ void nhflow_rans_io::walldist_h(lexer *p, fdm_nhf *d, ghostcell *pgc)
         double change = 0.0;
         
         LOOP
-        if(p->flag4[IJK]>0 && p->DF[IJK]>0)
+        if(p->flag4(i,j,k)>0 && p->DF[IJK]>0)
         {
             double dn = WDH[IJK];
             
-            if(p->flag4[Im1JK]>0 && p->DF[Im1JK]>0)
+            if(p->flag4(i-1,j,k)>0 && p->DF[Im1JK]>0)
             dn = MIN(dn, WDH[Im1JK] + p->DXP[IM1]);
             
-            if(p->flag4[Ip1JK]>0 && p->DF[Ip1JK]>0)
+            if(p->flag4(i+1,j,k)>0 && p->DF[Ip1JK]>0)
             dn = MIN(dn, WDH[Ip1JK] + p->DXP[IP]);
             
-            if(p->j_dir==1 && p->flag4[IJm1K]>0 && p->DF[IJm1K]>0)
+            if(p->j_dir==1 && p->flag4(i,j-1,k)>0 && p->DF[IJm1K]>0)
             dn = MIN(dn, WDH[IJm1K] + p->DYP[JM1]);
             
-            if(p->j_dir==1 && p->flag4[IJp1K]>0 && p->DF[IJp1K]>0)
+            if(p->j_dir==1 && p->flag4(i,j+1,k)>0 && p->DF[IJp1K]>0)
             dn = MIN(dn, WDH[IJp1K] + p->DYP[JP]);
             
             if(dn<WDH[IJK])
@@ -530,7 +530,7 @@ double nhflow_rans_io::sst_walldist(lexer *p, fdm_nhf *d)
         const int ksave = k;
         
         for(k=ksave; k<p->knoz-1; ++k)
-        if(p->flag4[IJKp1]<0 || p->DF[IJKp1]<0)
+        if(p->flag4(i,j,k+1)<0 || p->DF[IJKp1]<0)
         {
             const double ztop = p->ZN[KP1]*d->WL(i,j) + d->bed(i,j);
             k = ksave;

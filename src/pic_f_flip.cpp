@@ -78,7 +78,7 @@ void pic_f::step_begin(lexer *p, fdm *a, ghostcell *pgc)
         continue;
 
         field &f = c==0 ? static_cast<field&>(a->u) : (c==1 ? static_cast<field&>(a->v) : static_cast<field&>(a->w));
-        const int *flag = c==0 ? p->flag1 : (c==1 ? p->flag2 : p->flag3);
+        const int *flag = c==0 ? p->flag1.data() : (c==1 ? p->flag2.data() : p->flag3.data());
         const int di = c==0, dj = c==1, dk = c==2;
 
         std::fill(sw.begin(),sw.end(),0.0);
