@@ -52,7 +52,10 @@ sflow_momentum_SI::sflow_momentum_SI(lexer *p, fdm2D *b, ghostcell *pgc, sflow_H
                                       eta0(p),WL0(p),UH0(p),VH0(p),UHa(p),VHa(p),UHb(p),VHb(p),UHp(p),VHp(p),
                                       WHz(p),dUH(p),dVH(p),etaI(p),alc(p),rhs(p),rhsW(p),bdiag(p),wsrc(p),hsrc(p),
                                       tU(p),tV(p),tUH(p),tVH(p),WLk(p),etaB(p),
-                                      qxN(p),phiN(p),WHp(p),Lc0(p),Unm1(p),Hxo(p),qxo(p),qxa(p),WLh(p),WLo(p),AWo(p),WLq(p)
+                                      qxN(p),Hxo(p),qxo(p),qxa(p),nxR(p),nxL(p),nxB(p),nx0(p),kxEL(p),kxER(p),kxPL(p),kxPR(p),kx1(p),kx2(p),
+                                      qyN(p),Hyo(p),qyo(p),qya(p),nyR(p),nyL(p),nyB(p),ny0(p),kyEL(p),kyER(p),kyPL(p),kyPR(p),ky1(p),ky2(p),
+                                      phiN(p),WHp(p),Lc0(p),Unm1(p),Vnm1(p),WLh(p),WLo(p),AWo(p),WLq(p),
+                                      nPW(p),nEb(p),nEo(p),nPo(p),nU(p),nV(p),nUs(p),nVs(p),nA(p),nsx(p),nsy(p),nE(p),nP(p),nL(p),nZ(p),nAE(p),nAP(p),nBE(p),nBP(p)
 {
     check(p);
 
@@ -115,24 +118,15 @@ void sflow_momentum_SI::check(lexer *p)
         stop=1;
     };
 
-    // A 220 defaults to 2: the quadratic non-hydrostatic pressure (A 220 2/3) is coupled into the eta system, as a
-    // prototype on one 1D Cartesian grid (one cell in y), serial, without the wetting and drying iteration
+    // A 220 defaults to 2: the quadratic non-hydrostatic pressure (A 220 2/3) is coupled into the eta system, on one
+    // Cartesian grid, without the wetting and drying iteration
     if(p->A220!=0 && p->A220!=2 && p->A220!=3)
     msg("Boussinesq and the linear non-hydrostatic pressure (A 220 1, 4) are; set A 220 0, 2 or 3,");
 
     if(p->A220==2 || p->A220==3)
     {
-        if(p->j_dir==1)
-        msg("the non-hydrostatic pressure (A 220 2/3) in 2D is (prototype: one cell in y); set A 220 0,");
-
-        if(p->mpi_size>1)
-        msg("the non-hydrostatic pressure (A 220 2/3) with MPI is (prototype: serial); set A 220 0,");
-
         if(p->geo_curv==1 || p->G1>0 || p->G50>0)
         msg("the non-hydrostatic pressure (A 220 2/3) on curvilinear, multi-block and refined grids is; set A 220 0,");
-
-        if(p->A229==1)
-        msg("the non-hydrostatic pressure (A 220 2/3) with the wetting and drying iteration (A 229 1) is; set A 229 0,");
     }
 
     // mesh refinement (G 1) and multi-block grids (G 50 1): one eta system over the leaf cells of all grids
@@ -211,7 +205,7 @@ void sflow_momentum_SI::step_single(lexer *p, fdm2D* b, ghostcell* pgc)
     si_begin(p,b,pgc);
 
     if(nh)
-    nh_levels(p,b);
+    nh_levels(p,b,pgc);
 
     // 3. predictor of the explicit terms
     for(int s=0; s<rk; ++s)
@@ -230,8 +224,8 @@ void sflow_momentum_SI::step_single(lexer *p, fdm2D* b, ghostcell* pgc)
     {
     nh_predictor(p,b,pgc);
     nh_solve(p,b,pgc);
-    wd_iter = 1;
-    wd_cells = 0;
+    wd_iter = nh_wd_iter;
+    wd_cells = nh_wd_dry;
     }
 
     else
@@ -264,8 +258,19 @@ void sflow_momentum_SI::si_restore(lexer *p, fdm2D* b, ghostcell* pgc)
 void sflow_momentum_SI::si_begin(lexer *p, fdm2D* b, ghostcell* pgc)
 {
     // ghost cells of the open boundaries (ioflow discharge, iowave open edges), as the
-    // explicit integrators
+    // explicit integrators. B 98 4: the wave generation (iowave::wavegen2D) also sets eta of the first cell inside;
+    // here the wave stays in the ghost cells (the target of the Flather condition) and the cell keeps its level
+    std::vector<double> eta_in;
+
+    if(p->B98==4 && p->B90>0)
+    for(n=0;n<p->gcslin_count;n++)
+    eta_in.push_back(b->eta(p->gcslin[n][0],p->gcslin[n][1]));
+
     inflow(p,b,pgc,pflow);
+
+    if(p->B98==4 && p->B90>0)
+    for(n=0;n<p->gcslin_count;n++)
+    b->eta(p->gcslin[n][0],p->gcslin[n][1]) = eta_in[n];
 
     // state at t^n (one grid of several: all cells of the arrays, the cells around the grid filled)
     if(amrgrid)
@@ -428,6 +433,10 @@ void sflow_momentum_SI::si_end_cells(lexer *p, fdm2D* b, ghostcell* pgc)
 {
     // 8. WL, eta, wetting and drying
     eta_update(p,b,pgc);
+
+    // non-hydrostatic pressure: breaking persistence (A 248 1) with eta^{n+1} and eta^n, as the explicit stages
+    if(nh && p->A248==1)
+    pfsf->breaking_persist(p,b,pgc,b->eta,eta0,1.0);
 
     // 9.-10. cell momentum, relaxation zones, velocities, ghost cells
     cell_update(p,b,pgc);
@@ -739,11 +748,14 @@ void sflow_momentum_SI::bc_setup(lexer *p, fdm2D *b, ghostcell *pgc)
 
         else
         if((bc==1 || bc==6) && inflow_open==1)
-        f.type = bc_flux;
+        f.type = (p->B98==4 && p->B90>0) ? bc_flather : bc_flux;
 
         else
         if((bc==2 || bc==7 || bc==8) && outflow_open==1)
         f.type = ((p->F50==2 || p->F50==3) && p->B99<3) ? bc_level : bc_riemann;
+
+        // B 98 4: generating-absorbing inflow (Flather with the wave of the ghost cell, sflow_momentum_SI::si_begin)
+        const bool wgen = !(open_side[f.cs]==1 && method[f.cs]>0) && (bc==1 || bc==6) && inflow_open==1 && p->B98==4 && p->B90>0;
 
         // wall: the face stays closed
         if(f.type==0)
@@ -793,6 +805,18 @@ void sflow_momentum_SI::bc_setup(lexer *p, fdm2D *b, ghostcell *pgc)
             qf(f.fi,f.fj) = f.s*hi*uni;
         }
 
+        if(f.type==bc_flather && wgen)
+        {
+        // q_in = q_w + c (eta_w - eta^{n+1}): the wave (eta_w, u_w depth averaged) comes in, the reflected wave leaves
+        const double etaw = b->eta(f.gi,f.gj);
+        f.B = sqrt(g*hi);
+        f.A = ung*(hg>p->A244 ? hg : hi) + f.B*etaw;
+
+            if(!qini)
+            qf(f.fi,f.fj) = f.s*hi*uni;
+        }
+
+        else
         if(f.type==bc_flather)
         {
         f.B = sqrt(g*hi);
@@ -981,14 +1005,16 @@ void sflow_momentum_SI::advection(lexer *p, fdm2D *b, ghostcell *pgc)
     fxV(i,j) = 0.0;
 
     if(p->j_dir==1)
-    fxV(i,j) = qxn(i,j)>=0.0 ? qxn(i,j)*b->Vs(i,j) : qxn(i,j)*b->Vn(i,j);
+    fxV(i,j) = qa(i,j)>=0.0 ? qa(i,j)*b->Vs(i,j) : qa(i,j)*b->Vn(i,j);
     }
+
+    slice &qb = nh ? (slice&)qya : (slice&)qyn;
 
     if(p->j_dir==1)
     SLICELOOP2
     {
-    fyU(i,j) = qyn(i,j)>=0.0 ? qyn(i,j)*b->Ue(i,j) : qyn(i,j)*b->Uw(i,j);
-    fyV(i,j) = qyn(i,j)>=0.0 ? qyn(i,j)*b->Ve(i,j) : qyn(i,j)*b->Vw(i,j);
+    fyU(i,j) = qb(i,j)>=0.0 ? qb(i,j)*b->Ue(i,j) : qb(i,j)*b->Uw(i,j);
+    fyV(i,j) = qb(i,j)>=0.0 ? qb(i,j)*b->Ve(i,j) : qb(i,j)*b->Vw(i,j);
     }
 
     exchange1(p,pgc,fxU);
@@ -1314,9 +1340,16 @@ void sflow_momentum_SI::face_update(lexer *p, fdm2D *b, ghostcell *pgc)
 
     // non-hydrostatic part of the face discharges (A 220 2/3, interior faces)
     if(nh)
-    SLICELOOP1
-    if(Hx(i,j)>0.0)
-    qx(i,j) += qxN(i,j);
+    {
+        SLICELOOP1
+        if(Hx(i,j)>0.0)
+        qx(i,j) += qxN(i,j);
+
+        if(p->j_dir==1)
+        SLICELOOP2
+        if(Hy(i,j)>0.0)
+        qy(i,j) += qyN(i,j);
+    }
 
     exchange1(p,pgc,qx);
     exchange2(p,pgc,qy);
@@ -1477,7 +1510,7 @@ void sflow_momentum_SI::cell_update(lexer *p, fdm2D *b, ghostcell *pgc)
             gn  = (ww*gy0(i,j-1) + we*gy0(i,j))/wsum;
             gn1 = (ww*(etaI(i,j) - etaI(i,j-1))/p->DYP[JM1] + we*(etaI(i,j+1) - etaI(i,j))/p->DYP[JP])/wsum;
 
-            b->VH(i,j) = alc(i,j)*(VHp(i,j) - dt*g*WL0(i,j)*(theta*gn1 + (1.0-theta)*gn));
+            b->VH(i,j) = alc(i,j)*(VHp(i,j) - dt*g*Hg(i,j)*(theta*gn1 + (1.0-theta)*gn));
             }
 
             // curvilinear grid: per index direction the mean normal and the mean normal gradient of the open faces,

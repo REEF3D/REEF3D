@@ -259,6 +259,7 @@ void sflow_amr::ini(lexer *p, fdm2D *b, ghostcell *pgc)
     if(p->S10!=0 && (p->S10!=1 || p->S51>0 || p->S31==3 || p->S32>=3)) ok=0;
     if(p->X10>3) ok=0;
     if(p->W90!=0) ok=0;
+    if(p->A246==4) ok=0;                                           // breaking with crest tracking: one grid (sflow_breaking_kb)
     if(p->j_dir!=1 && (p->geo_mb>0 || p->geo_curv==1)) ok=0;     // 2D grid (one cell in y): Cartesian
 
     // multi-block grid (G 50 1, DIVEMesh R 20 1): hydrostatic, without subcycling; moving bodies X 10 2/3 (P5c: the
@@ -271,7 +272,7 @@ void sflow_amr::ini(lexer *p, fdm2D *b, ghostcell *pgc)
         if(ok==0)
         {
             if(p->mpirank==0)
-            cout<<"!!! SFLOW multi-block grid: only for A 220 0, A 210 3 (A 226 1: A 210 2/3), A 260 0/3/4, S 10 0/1 (S 51 0, S 31 1/2, S 32 1/2), X 10 0/2/3 (A 226 1: X 10 0), W 90 0, without G 7 1 !!!"<<endl;
+            cout<<"!!! SFLOW multi-block grid: only for A 246 0-2, A 220 0, A 210 3 (A 226 1: A 210 2/3), A 260 0/3/4, S 10 0/1 (S 51 0, S 31 1/2, S 32 1/2), X 10 0/2/3 (A 226 1: X 10 0), W 90 0, without G 7 1 !!!"<<endl;
             exit(1);
         }
     }
@@ -279,7 +280,7 @@ void sflow_amr::ini(lexer *p, fdm2D *b, ghostcell *pgc)
     if(ok==0)
     {
         if(p->mpirank==0)
-        cout<<"SFLOW AMR (G 1): only for A 220 0-4, A 210 3 (A 226 1: A 210 2/3, A 220 0, X 10 0, without G 7 1), A 260 0-4 (1/2 Cartesian), S 10 0/1 (S 51 0, S 31 1/2, S 32 1/2), X 10 0-3, W 90 0, and with one cell in y Cartesian -- refinement switched off"<<endl;
+        cout<<"SFLOW AMR (G 1): only for A 246 0-2, A 220 0-4, A 210 3 (A 226 1: A 210 2/3, A 220 0, X 10 0, without G 7 1), A 260 0-4 (1/2 Cartesian), S 10 0/1 (S 51 0, S 31 1/2, S 32 1/2), X 10 0-3, W 90 0, and with one cell in y Cartesian -- refinement switched off"<<endl;
         maxlev=0;
         return;
     }

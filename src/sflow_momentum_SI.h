@@ -86,12 +86,13 @@ using namespace std;
 // grids, fills the cells around them in between (the coarse faces next to a patch take its fine fluxes) and solves
 // one eta system over the leaf cells of all grids (reefamr_si.cpp).
 //
-// Non-hydrostatic quadratic pressure (A 220 2/3), prototype (sflow_momentum_SI_nh.cpp): the pressure P^{n+1}
-// fully implicit and eta^{n+1} (theta) from one coupled system of the continuity equation and the
-// incompressibility constraint, so that neither the gravity nor the dispersive wave speed limits the time step;
-// one grid, 1D (one cell in y), Cartesian, serial, without wetting and drying iteration (A 229 0).
+// Non-hydrostatic quadratic pressure (A 220 2/3) (sflow_momentum_SI_nh.cpp): the pressure P^{n+1} fully implicit
+// and eta^{n+1} (theta) from one coupled system of the continuity equation and the incompressibility constraint, so
+// that neither the gravity nor the dispersive wave speed limits the time step; 1D and 2D, MPI, one Cartesian grid,
+// without wetting and drying iteration (A 229 0).
 //
-// Not yet (stops in check()): Boussinesq (A 220 4) and the non-hydrostatic pressure beyond the prototype limits,
+// Not yet (stops in check()): Boussinesq (A 220 4); the non-hydrostatic pressure on curvilinear, multi-block and
+// refined grids and with the wetting and drying iteration,
 // patch boundary conditions (B 411-422), 6DOF / direct forcing, subcycling of the refinement (G 7 1), SEASTATE
 // surfbeat.
 // ---------------------------------------------------------------------------
@@ -245,30 +246,31 @@ private:
     ofstream silog;
 
     // non-hydrostatic quadratic pressure (A 220 2/3) in the coupled eta-P system (sflow_momentum_SI_nh.cpp)
-    //  qxN : the non-hydrostatic part of the face discharges of the step (pressure gradient, bed pressure,
-    //        A 220 3 dispersion term), added to q in face_update and, as the mean of the faces, to UH
+    //  qxN, qyN: the non-hydrostatic part of the face discharges of the step (pressure gradient, bed pressure,
+    //            A 220 3 dispersion term), added to q in face_update and, as the mean of the faces, to UH, VH
     //  phiN: bed acceleration Dw_b/Dt of the step (the acceleration of the previous step), WHp: WH predictor
-    //  Lc0 : h^3 lap(eta^n) of the A 220 3 dispersion term, Unm1: U^{n-1} of the cells
+    //  Lc0 : h^3 lap(eta^n) of the A 220 3 dispersion term, Unm1, Vnm1: U^{n-1}, V^{n-1} of the cells
+    //  time levels of the nonlinear terms (nh_levels): face and cell depths of the gravity and A 220 3 terms at
+    //  t^{n+1/2} (Hx, Hy, WLh), the depth of the pressure terms and of the constraint at t^{n+1} (WLq), the discharge
+    //  of the advection at t^{n+1/2} (qxa, qya), all extrapolated from t^n and t^{n-1} (Hxo, Hyo, WLo, qxo, qyo);
+    //  W advection Adams-Bashforth 2 (AWo: the tendency of the previous step)
+    //  face coefficients of the step (nh_solve): q_NH = -R P_R + L P_L + B (L_R - L_L) + c0
     bool nh = false;
     double cb, cwn, adisp, Bdisp;
-    slice1 qxN;
-    slice4 phiN, WHp, Lc0, Unm1;
-    bool nh_first = true;
-    std::shared_ptr<sflow_si_nh_lu> nhlu;
-    int nh_cells_active = 0;
+    slice1 qxN, Hxo, qxo, qxa, nxR, nxL, nxB, nx0, kxEL, kxER, kxPL, kxPR, kx1, kx2;
+    slice2 qyN, Hyo, qyo, qya, nyR, nyL, nyB, ny0, kyEL, kyER, kyPL, kyPR, ky1, ky2;
+    slice4 phiN, WHp, Lc0, Unm1, Vnm1, WLh, WLo, AWo, WLq;
+    slice4 nPW, nEb, nEo, nPo, nU, nV, nUs, nVs, nA, nsx, nsy, nE, nP, nL, nZ, nAE, nAP, nBE, nBP;   // scratch of the solve
+    bool nh_first = true, nh_krylov = false, nh_x0 = false;
+    int nh_cells_active = 0, nh_iter = 0, nh_wd_iter = 0, nh_wd_dry = 0;
     double nh_time = 0.0;
+    std::shared_ptr<sflow_si_nh_lu> nhlu;
     void nh_ini(lexer*);
+    void nh_levels(lexer*, fdm2D*, ghostcell*);
     int nh_active(lexer*, fdm2D*, int, int);
     void nh_predictor(lexer*, fdm2D*, ghostcell*);
     void nh_solve(lexer*, fdm2D*, ghostcell*);
     void nh_cell(lexer*, fdm2D*, ghostcell*);
-    // time levels of the nonlinear terms (nh_levels): face and cell depths of the gravity and A 220 3 terms at
-    // t^{n+1/2} (Hx, WLh), the depth of the pressure terms and of the constraint at t^{n+1} (WLq), the discharge of
-    // the advection at t^{n+1/2} (qxa), all extrapolated from t^n and t^{n-1} (Hxo, WLo, qxo); W advection
-    // Adams-Bashforth 2 (AWo: the tendency of the previous step)
-    slice1 Hxo, qxo, qxa;
-    slice4 WLh, WLo, AWo, WLq;
-    void nh_levels(lexer*, fdm2D*);
 };
 
 #endif

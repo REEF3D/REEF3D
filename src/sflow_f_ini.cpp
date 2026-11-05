@@ -172,6 +172,10 @@ void sflow_f::ini(lexer *p, fdm2D* b, ghostcell* pgc)
 
     pflow->ini2D(p,b,pgc);
     
+    // A 246 4: the breaking masks (relaxation zones, open boundaries)
+    if(pfsf!=nullptr)
+    pfsf->breaking_zones(p,pflow);
+    
     pgc->gcsl_start4(p,b->eta,gcval_eta);
     pgc->gcsl_start4(p,b->bed,50);
     

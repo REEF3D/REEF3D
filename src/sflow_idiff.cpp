@@ -43,6 +43,9 @@ double sflow_idiff::viscosity(lexer *p, fdm2D *b)
     if(p->A246==2 && b->breaking(i,j)==1)
     visc += p->A250;
     
+    if(p->A246==4)
+    visc += b->vb(i,j);
+    
     return visc;
 }
 

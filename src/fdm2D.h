@@ -121,6 +121,7 @@ public:
     sliceint5 nodeval;
     sliceint4 breaking; 
     slice4 breaking_print;
+    slice4 vb;          // breaking eddy viscosity (A 246 4, sflow_breaking_kb), m2/s
     
     sliceint1 wet1,deep1;
     sliceint2 wet2,deep2;

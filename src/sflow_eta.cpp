@@ -28,6 +28,7 @@ Author: Hans Bihs
 #include"hydro_sflow.h"
 #include"ioflow.h"
 #include"patchBC_interface.h"
+#include"sflow_breaking_kb.h"
 
 sflow_eta::sflow_eta(lexer *p, fdm2D *b , ghostcell *pgc, patchBC_interface *ppBC) : eps(1.0e-6), K(p)
 {   
@@ -55,11 +56,15 @@ sflow_eta::sflow_eta(lexer *p, fdm2D *b , ghostcell *pgc, patchBC_interface *ppB
     wd_criterion=p->A244;
     
     p->Iarray(temp,p->imax*p->jmax);
+    
+    if(p->A246==4)
+    pkb = new sflow_breaking_kb(p);
 }
 
 sflow_eta::~sflow_eta()
 {
     delete [] temp;
+    delete pkb;
 }
 
 void sflow_eta::update(lexer *p, fdm2D *b, ghostcell *pgc, ioflow *pflow, slice &WLout, slice &WL0, slice &WLs, double a)
@@ -259,4 +264,10 @@ void sflow_eta::ini(lexer *p, fdm2D *b , ghostcell *pgc, ioflow *pflow)
     pflow->eta_relax(p,pgc,b->eta);
     
     pgc->gcsl_start4(p,b->eta,gcval_eta);
+}
+
+void sflow_eta::breaking_zones(lexer *p, ioflow *pflow)
+{
+    if(pkb!=nullptr)
+    pkb->zones(p,pflow);
 }

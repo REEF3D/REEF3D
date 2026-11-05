@@ -65,6 +65,7 @@ void sflow_curv::check(lexer *p)
     // horizontal diffusion explicit (A 212 1, sflow_ediff::curv_stress) with W 2 and the algebraic eddy viscosity
     // (A 260 3 mixing length, A 260 4 parabolic); the implicit diffusion and the transport models not yet
     refuse(p->A212==2, "the implicit horizontal diffusion A 212 2 (use A 212 1)");
+    refuse(p->A246==4, "the breaking model with crest tracking A 246 4 (Cartesian grids; use A 246 1/2)");
     refuse(p->A260!=0 && p->A260!=3 && p->A260!=4, "the turbulence models A 260 1/2 (A 260 3 and 4 are)");
     refuse(p->B98>=1 || p->B90>=1, "wave generation and absorption (B 90, B 98)");
     refuse(p->B440>0 || p->B441>0 || p->B442>0, "patch boundary conditions (B 440-442)");

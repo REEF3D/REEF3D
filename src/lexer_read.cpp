@@ -34,7 +34,7 @@ void lexer::lexer_read(ghostcell *pgc)
     // SFLOW: A 212 not given in ctrl.txt -> explicit horizontal diffusion when a turbulence model is on (A 260 > 0),
     // so that the eddy viscosity reaches the momentum equations; no diffusion otherwise (the previous default)
     if(mpirank==0 && A212<0)
-    A212 = (A260>0) ? 1 : 0;
+    A212 = (A260>0) ? 1 : ((A246==4) ? 2 : 0);   // A 246 4: the breaking viscosity acts through the implicit diffusion (explicit: the viscosity grows within the step beyond the limit of the step)
 
     // NHFLOW: A 519 not given in ctrl.txt -> bed friction (log law in the bottom layer) with a turbulence model (A 560)
     // or sediment transport (S 10): without it the flow slips over the bed, the velocity profile of an open channel

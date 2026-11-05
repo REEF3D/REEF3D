@@ -597,6 +597,9 @@ void sflow_amr::si_timestep(lexer *p, ghostcell *pgc)
             if(p->A246==2 && pb->breaking(ii,jj)==1)
             visc += p->A250;
 
+            if(p->A246==4)
+            visc += pb->vb(ii,jj);
+
             const double lam = (pp->geo_curv==1) ? sflow_curv::inv2(pp,ii,jj)
                              : 1.0/(pp->DXN[ii+marge]*pp->DXN[ii+marge]) + p->y_dir/(pp->DYN[jj+marge]*pp->DYN[jj+marge]);
 

@@ -28,6 +28,7 @@ Author: Hans Bihs
 #include"slice4.h" 
 
 class patchBC_interface;
+class sflow_breaking_kb;
 
 using namespace std;
 
@@ -49,6 +50,7 @@ public:
     void wetdry_fluxes(lexer*, fdm2D*, ghostcell*, slice&) override final;
     void breaking(lexer*, fdm2D*, ghostcell*, slice&, slice&, double) override final;
     void breaking_persist(lexer*, fdm2D*, ghostcell*, slice&, slice&, double) override final;
+    void breaking_zones(lexer*, ioflow*) override final;
 
 private:
     void wetdrydeep(lexer*, fdm2D*, ghostcell*, slice&);
@@ -60,6 +62,7 @@ private:
     const double eps;
     
     patchBC_interface *pBC;
+    sflow_breaking_kb *pkb = nullptr;   // A 246 4
 	slice4 K;
     int *temp;
 };

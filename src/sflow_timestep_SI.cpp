@@ -42,6 +42,11 @@ double sflow_timestep_SI::advective(lexer *p, fdm2D* b, ghostcell* pgc, double &
     // sflow_etimestep, and the largest water depth
     double sigma,cmin=1.0e20;
 
+    // the non-hydrostatic pressure (A 220 2/3): the vertical momentum WH is advected with AB2 (upwind fluxes,
+    // stable up to the Courant number 0.5), so the advective limit is halved; in waves |u| is small and the
+    // cap A 228 decides, the limit acts in fast thin flows (run-down, bores)
+    const double nhfac = (p->A220>=2) ? 2.0 : 1.0;
+
     hmax = 0.0;
 
     SLICELOOP4
@@ -59,6 +64,8 @@ double sflow_timestep_SI::advective(lexer *p, fdm2D* b, ghostcell* pgc, double &
     sigma += fabs(b->V(i,j))/p->DYN[JP];
     }
 
+    sigma *= nhfac;
+
     if(sigma>1.0e-20)
     cmin = MIN(cmin,1.0/sigma);
 
@@ -73,6 +80,9 @@ double sflow_timestep_SI::advective(lexer *p, fdm2D* b, ghostcell* pgc, double &
 
     if(p->A246==2 && b->breaking(i,j)==1)
     visc += p->A250;
+
+    if(p->A246==4)
+    visc += b->vb(i,j);
 
     p->viscmax = MAX(p->viscmax,visc);
 

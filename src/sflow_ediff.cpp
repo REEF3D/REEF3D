@@ -97,6 +97,9 @@ double sflow_ediff::viscosity(lexer *p, fdm2D *b)
     if(p->A246==2 && b->breaking(i,j)==1)
     visc += p->A250;
     
+    if(p->A246==4)
+    visc += b->vb(i,j);
+    
     return visc;
 }
 
@@ -162,7 +165,7 @@ void sflow_ediff::curv_stress(lexer *p, fdm2D *b, slice &U, slice &V, slice &WL,
                                   fluid(a,d+1) ? f(a,d+1) : fc, fluid(a,d-1) ? f(a,d-1) : fc, gx, gy);
     };
 
-    auto nuh = [&](int a, int d) { return (p->W2 + b->eddyv(a,d) + ((p->A246==2 && b->breaking(a,d)==1) ? p->A250 : 0.0))*WL(a,d); };
+    auto nuh = [&](int a, int d) { return (p->W2 + b->eddyv(a,d) + ((p->A246==2 && b->breaking(a,d)==1) ? p->A250 : 0.0) + (p->A246==4 ? b->vb(a,d) : 0.0))*WL(a,d); };
 
     slice &f = (comp==1) ? U : V;
     const int di[4]={1,-1,0,0}, dj[4]={0,0,1,-1};
