@@ -70,6 +70,19 @@ public:
     // the run id a run record or a root's zarr.json text holds, or ""
     static std::string run_id(const std::string &json);
 
+    // rank 0: the case's solids (SPEC 12, group "solids": points float64 (np, 3),
+    // triangles int32 (nt, 3)) from DIVEMesh's <paraview>/REEF3D_Solid.vtp, when that is
+    // the case's (DIVEMesh writes it only for a case with solids: a file older than
+    // its DIVEMesh_Partition.vtp or DIVEMesh_grid-preview.vts by more than an hour is
+    // left over from another case). begin_run writes them into a new store, so a store
+    // copied elsewhere shows its structures. Returns the triangles written (0: none).
+    int write_solids(const std::string &paraview="./DIVEMesh_Paraview") const;
+
+    // DIVEMesh's REEF3D_Solid.vtp (raw appended Float64 or Float32 points, Int32
+    // connectivity and offsets of triangles) read: false if it is not such a file
+    static bool read_solid_vtp(const std::string &file, std::vector<double> &points,
+                               std::vector<int32_t> &triangles);
+
     // rank 0, once per output stream: the group, its grid lines and time arrays
     // grid: "sigma" (levels: their σ, 0 at the bed, 1 at the surface), "cartesian"
     // (levels: their heights z, CFD) or "surface" (levels empty)
