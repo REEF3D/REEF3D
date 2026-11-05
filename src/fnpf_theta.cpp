@@ -44,13 +44,22 @@ namespace
         Eigen::SparseLU<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int>> lu;
         bool analysed = false;
         int n = 0;
+        
+        // the rows of the last assembly: row of node (i,k) (-1 inactive), number of Laplace rows,
+        // sz stencil, right-hand side and solution
+        std::vector<int> rid;
+        int nlap = 0;
+        int np = 0;
+        const double *wsz = nullptr;
+        Eigen::SparseMatrix<double> A;
+        Eigen::VectorXd b, x;
     };
     std::unique_ptr<theta_lu> tlu;
 }
 
 fnpf_theta::fnpf_theta(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_ini(p,c,pgc),fnpf_sigma(p,c,pgc),
                                                       ek(p),fk(p),Ne(p),Nf(p),Neo(p),Nfo(p),wn(p),erk1(p),frk1(p),
-                                                      Rs(p),fnew(p),wnew(p),en(p)
+                                                      nEm(p),nFm(p),eko(p),fko(p),erk2(p),R0(p),Rs(p),fnew(p),wnew(p),en(p)
 {
     gcval=250;
     if(p->j_dir==0)
@@ -70,6 +79,7 @@ fnpf_theta::fnpf_theta(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_ini(p,c,pgc
     }
     
     theta = p->A300;
+    npass = MAX(p->A302,0);
     nstep = 0;
     dt_prev = 0.0;
     solvetime = 0.0;
@@ -103,7 +113,7 @@ fnpf_theta::fnpf_theta(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_ini(p,c,pgc
     };
     
     if(p->mpirank==0)
-    cout<<"FNPF time integration A 310 5: theta-Robin (prototype), theta = "<<theta<<", nonlinear terms Adams-Bashforth 2"<<endl;
+    cout<<"FNPF time integration A 310 5: theta-Robin (prototype), theta = "<<theta<<", corrector passes A 302 "<<npass<<endl;
 }
 
 fnpf_theta::~fnpf_theta()
@@ -146,18 +156,20 @@ void fnpf_theta::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, con
     
     SLICELOOP4
     {
-    const double nE = ab0*Ne(i,j) + ab1*Neo(i,j);
-    const double nF = ab0*Nf(i,j) + ab1*Nfo(i,j);
+    // pass 0: N at t^n+1/2 extrapolated
+    nEm(i,j) = ab0*Ne(i,j) + ab1*Neo(i,j);
+    nFm(i,j) = ab0*Nf(i,j) + ab1*Nfo(i,j);
     
-    Rs(i,j) = c->Fifsf(i,j) - g*dt*c->eta(i,j) - g*theta*(1.0-theta)*dt*dt*wn(i,j) - g*theta*dt*dt*nE + dt*nF;
+    R0(i,j) = c->Fifsf(i,j) - g*dt*c->eta(i,j) - g*theta*(1.0-theta)*dt*dt*wn(i,j);
+    Rs(i,j) = R0(i,j) - g*theta*dt*dt*nEm(i,j) + dt*nFm(i,j);
     
-    // predictor (sigma grid of the solve, lagged cross terms and boundary values)
-    erk1(i,j) = c->eta(i,j) + dt*ek(i,j);
-    frk1(i,j) = c->Fifsf(i,j) + dt*fk(i,j);
+    // predictor of eta^n+1 and Fifsf^n+1, Adams-Bashforth 2 of the full tendencies: the sigma grid of
+    // the solve (an Euler predictor makes an O(dt^2) grid error per step) and the cross terms of pass 0
+    erk1(i,j) = c->eta(i,j) + dt*(ab0*ek(i,j) + ab1*eko(i,j));
+    frk1(i,j) = c->Fifsf(i,j) + dt*(ab0*fk(i,j) + ab1*fko(i,j));
     
-    // keep the effective nonlinear terms for the eta update
-    ek(i,j) = nE;
-    fk(i,j) = nF;
+    eko(i,j) = ek(i,j);
+    fko(i,j) = fk(i,j);
     }
     
     pflow->eta_relax(p,pgc,erk1);
@@ -174,12 +186,20 @@ void fnpf_theta::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, con
     bedbc_sig(p,c,pgc,c->Fi,pf);
     pgc->start7V(p,c->Fi,c->bc,gcval);
     
-    // one Laplace problem with the Robin condition: Fi, Fifsf^n+1 (fnew) and w^n+1 (wnew)
+    // pass 0: one Laplace problem with the Robin condition: Fi, Fifsf^n+1 (fnew) and w^n+1 (wnew)
     robin_solve(p,c,pgc,psolv,frk1,Rs,fnew);
+    
+    // corrector passes: N at t^n+1/2 trapezoidal, the sigma grid of the solve at eta^n+1 of the last
+    // solution and the cross terms with the last solution; defect correction with the factorisation of pass 0
+    for(int q=0; q<npass; ++q)
+    {
+    corrector_state(p,c,pgc);
+    robin_correct(p,c,pgc,psolv,Rs,fnew);
+    }
     
     SLICELOOP4
     {
-    c->eta(i,j) = en(i,j) + dt*(theta*wnew(i,j) + (1.0-theta)*wn(i,j) + ek(i,j));
+    c->eta(i,j) = en(i,j) + dt*(theta*wnew(i,j) + (1.0-theta)*wn(i,j) + nEm(i,j));
     c->Fifsf(i,j) = fnew(i,j);
     
     Neo(i,j) = Ne(i,j);
@@ -242,31 +262,73 @@ void fnpf_theta::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, con
     cout<<"theta-Robin solve: "<<setprecision(3)<<solvetime<<" s total"<<endl;
 }
 
+// Corrector: eta^n+1 of the current solution (eta update with Fifsf^n+1 = fnew, w^n+1 = wnew), N^n+1 on it,
+// N^n+1/2 = (N^n + N^n+1)/2, the right-hand side R of the Robin rows, and the sigma grid of eta^n+1 with the
+// current solution as boundary values for the next assembly
+void fnpf_theta::corrector_state(lexer *p, fdm_fnpf *c, ghostcell *pgc)
+{
+    const double g  = fabs(p->W22);
+    const double dt = p->dt;
+    
+    SLICELOOP4
+    {
+    erk2(i,j) = en(i,j) + dt*(theta*wnew(i,j) + (1.0-theta)*wn(i,j) + nEm(i,j));
+    c->Fz(i,j) = wnew(i,j);
+    }
+    
+    pgc->gcsl_start4(p,erk2,gcval_eta);
+    
+    // Fx, Ex, Exu of eta^n+1, Fifsf^n+1 (the upwinding of A315 uses the Fz just set)
+    pf->fsfdisc(p,c,pgc,erk2,fnew);
+    
+    pf->kfsfbc(p,c,pgc);
+    SLICELOOP4
+    nEm(i,j) = 0.5*(Ne(i,j) + c->K(i,j) - wnew(i,j));
+    
+    pf->dfsfbc(p,c,pgc,erk2);
+    SLICELOOP4
+    {
+    nFm(i,j) = 0.5*(Nf(i,j) + c->K(i,j) + g*erk2(i,j));
+    Rs(i,j) = R0(i,j) - g*theta*dt*dt*nEm(i,j) + dt*nFm(i,j);
+    }
+    
+    pgc->gcsl_start4(p,Rs,gcval_fifsf);
+    
+    // the sigma grid of eta^n+1
+    sigma_update(p,c,pgc,pf,erk2);
+    
+    fsfbc_sig(p,c,pgc,fnew,c->Fi);
+    bedbc_sig(p,c,pgc,c->Fi,pf);
+    pgc->start7V(p,c->Fi,c->bc,gcval);
+}
+
 // The rows of fnpf_laplace_cds2 for the interior nodes k = 0..knoz-1 (assembled only) plus one Robin row per column
 // for the surface node:  Fs + alpha sum_m w_m Fi(knoz-m) = R,  alpha = g theta^2 dt^2 sigz, w_m the sz weights
 // (fnpf_sz_weights, Fi(knoz) = Fs). The coupling mt of the top row to the surface node is recovered from two
 // assemblies with the surface values f and f + 1 (rhs = ... - mt f; the explicit sigma cross terms only use
 // differences of the surface values and do not change). M does not depend on f, so the second assembly gives
-// M, and rhs is that of the first.
-void fnpf_theta::robin_solve(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, slice &fs, slice &R, slice &fout)
+// M, and rhs is that of the first. The sigma cross terms are those of the current Fi (interior) and fs.
+//
+// Note: the calls to the other classes (SLICELOOP4 in 2D) leave the member index j = 1, so the loops over the
+// rows set j = 0 first.
+void fnpf_theta::robin_build(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, slice &fs, slice &R, slice &ftmp)
 {
-    const double t0 = pgc->timer();
     const double g = fabs(p->W22);
     const int N = p->knoz;
 
-    // --- assembly with Fifsf = fs: rhs of the solve
+    // --- assembly with Fifsf = fs: rhs
     plap0->assemble_only = true;
     plap0->start(p,c,pgc,psolv,pf,c->Fi,fs);
     rhsA = c->rhsvec.V;
 
     // --- assembly with Fifsf = fs + 1: M, and the coupling mt0 = rhs(fs) - rhs(fs+1) of the top rows
     SLICELOOP4
-    fout(i,j) = fs(i,j) + 1.0;
+    ftmp(i,j) = fs(i,j) + 1.0;
 
-    pgc->gcsl_start4(p,fout,gcval_fifsf);
-    fsfbc_sig(p,c,pgc,fout,c->Fi);
+    pgc->gcsl_start4(p,ftmp,gcval_fifsf);
+    fsfbc_sig(p,c,pgc,ftmp,c->Fi);
     pgc->start7V(p,c->Fi,c->bc,gcval);
-    plap0->start(p,c,pgc,psolv,pf,c->Fi,fout);
+    plap0->start(p,c,pgc,psolv,pf,c->Fi,ftmp);
     plap0->assemble_only = false;
 
     const int nrow = int(rhsA.size()) < int(c->rhsvec.V.size()) ? int(rhsA.size()) : int(c->rhsvec.V.size());
@@ -279,28 +341,42 @@ void fnpf_theta::robin_solve(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psol
     fsfbc_sig(p,c,pgc,fs,c->Fi);
     pgc->start7V(p,c->Fi,c->bc,gcval);
     
+    if(!tlu)
+    tlu = std::make_unique<theta_lu>();
+    
+    theta_lu &L = *tlu;
+    
     // --- row index of the nodes (as fnpf_laplace_cds2: ILOOP JLOOP KLOOP with flag4 > 0)
-    std::vector<int> rid(p->knox*N, -1);
+    L.rid.assign(p->knox*N, -1);
     int n=0;
     ILOOP
     JLOOP
     KLOOP
     if(p->flag4[IJK]>0)
     {
-    rid[i*N+k] = n;
+    L.rid[i*N+k] = n;
     ++n;
     }
     
     const int ncol = p->knox;
     const int ntot = n + ncol;
+    L.nlap = n;
     
     // sz weights of the free-surface stencil
     int np = 3;
     if(p->A311==2 || p->A311==4 || p->A311==5) np = 5;
     if(p->A311==6) np = 7;
     while(np>3 && N<np-1) np -= 2;
-    fnpf_sz_weights szw(p);
+    static const fnpf_sz_weights szw(p);
     const double *wsz = szw.weights(np);
+    L.np = np;
+    L.wsz = wsz;
+    
+    if(wsz==nullptr)
+    {
+    cout<<"A 310 5: no sz stencil with "<<np<<" points for "<<N<<" sigma layers"<<endl;
+    pgc->final(true);
+    }
     
     const double *Mp = c->M.p.data();
     const double *Mn = c->M.n.data();
@@ -308,16 +384,11 @@ void fnpf_theta::robin_solve(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psol
     const double *Mt = c->M.t.data();
     const double *Mb = c->M.b.data();
     const double *rhs = rhsA.data();
-
-    if(wsz==nullptr)
-    {
-    cout<<"A 310 5: no sz stencil with "<<np<<" points for "<<N<<" sigma layers"<<endl;
-    pgc->final(true);
-    }
+    const std::vector<int> &rid = L.rid;
     
     std::vector<Eigen::Triplet<double>> T;
     T.reserve(size_t(ntot)*7);
-    Eigen::VectorXd b(ntot), x(ntot);
+    L.b.resize(ntot);
     
     j=0;
     ILOOP
@@ -343,7 +414,7 @@ void fnpf_theta::robin_solve(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psol
         rr += mt0[r]*fs(i,j);
         }
         
-        b(r) = rr;
+        L.b(r) = rr;
     }
     
     // Robin rows
@@ -361,53 +432,106 @@ void fnpf_theta::robin_solve(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psol
         T.emplace_back(s,rk,alpha*wsz[m]);
         }
         
-        b(s) = R(i,j);
+        L.b(s) = R(i,j);
     }
     
-    Eigen::SparseMatrix<double> A(ntot,ntot);
-    A.setFromTriplets(T.begin(),T.end());
-    A.makeCompressed();
+    L.A.resize(ntot,ntot);
+    L.A.setFromTriplets(T.begin(),T.end());
+    L.A.makeCompressed();
+}
+
+// Pass 0: assembly on the predicted sigma grid, factorisation and solve
+void fnpf_theta::robin_solve(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, slice &fs, slice &R, slice &fout)
+{
+    const double t0 = pgc->timer();
     
-    if(!tlu || tlu->n!=ntot)
+    robin_build(p,c,pgc,psolv,fs,R,fout);
+    
+    theta_lu &L = *tlu;
+    const int ntot = int(L.b.size());
+    
+    if(L.n!=ntot)
     {
-    tlu = std::make_unique<theta_lu>();
-    tlu->n = ntot;
+    L.n = ntot;
+    L.analysed = false;
     }
     
-    if(!tlu->analysed)
+    if(!L.analysed)
     {
-    tlu->lu.analyzePattern(A);
-    tlu->analysed = true;
+    L.lu.analyzePattern(L.A);
+    L.analysed = true;
     }
     
-    tlu->lu.factorize(A);
+    L.lu.factorize(L.A);
     
-    if(tlu->lu.info()!=Eigen::Success)
+    if(L.lu.info()!=Eigen::Success)
     {
     cout<<"A 310 5: factorisation of the theta-Robin system failed"<<endl;
     pgc->final(true);
     }
     
-    x = tlu->lu.solve(b);
+    L.x = L.lu.solve(L.b);
     
-    // --- back to Fi, Fifsf^n+1 and w^n+1
+    robin_unpack(p,c,pgc,fout);
+    
+    p->poissoniter = 1;
+    solvetime += pgc->timer() - t0;
+    p->poissontime = pgc->timer() - t0;
+}
+
+// Corrector pass: the system on the current sigma grid (eta^n+1 of the last solution) with the cross terms of
+// the last solution and R; one defect-correction step x += A0^-1 (b - A x) with the factorisation A0 of pass 0.
+// A - A0 is of the size of the change of the sigma grid, so the step converges fast.
+void fnpf_theta::robin_correct(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, slice &R, slice &fout)
+{
+    const double t0 = pgc->timer();
+    theta_lu &L = *tlu;
+    const Eigen::VectorXd xold = L.x;
+    
+    // the factorisation stays that of pass 0; robin_build replaces A and b
+    robin_build(p,c,pgc,psolv,fout,R,wnew);
+    
+    if(int(L.b.size())!=int(xold.size()))
+    {
+    cout<<"A 310 5: the rows of the corrector differ from those of the solve"<<endl;
+    pgc->final(true);
+    }
+    
+    const Eigen::VectorXd res = L.b - L.A*xold;
+    L.x = xold + L.lu.solve(res);
+    
+    robin_unpack(p,c,pgc,fout);
+    
+    p->poissoniter += 1;
+    solvetime += pgc->timer() - t0;
+    p->poissontime += pgc->timer() - t0;
+}
+
+void fnpf_theta::robin_unpack(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &fout)
+{
+    const int N = p->knoz;
+    const theta_lu &L = *tlu;
+    const std::vector<int> &rid = L.rid;
+    const int n = L.nlap;
+    
+    j=0;
     ILOOP
     {
         KLOOP
         {
         const int r = rid[i*N+k];
         if(r>=0)
-        c->Fi[FIJK] = x(r);
+        c->Fi[FIJK] = L.x(r);
         }
         
-        fout(i,j) = x(n+i);
+        fout(i,j) = L.x(n+i);
         
-        double sz = wsz[0]*x(n+i);
-        for(int m=1;m<np;++m)
+        double sz = L.wsz[0]*L.x(n+i);
+        for(int m=1;m<L.np;++m)
         {
         const int rk = rid[i*N+N-m];
         if(rk>=0)
-        sz += wsz[m]*x(rk);
+        sz += L.wsz[m]*L.x(rk);
         }
         
         wnew(i,j) = p->sigz[IJ]*sz;
@@ -415,10 +539,6 @@ void fnpf_theta::robin_solve(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psol
     
     pgc->gcsl_start4(p,fout,gcval_fifsf);
     pgc->gcsl_start4(p,wnew,gcval_fifsf);
-    
-    p->poissoniter = 1;
-    solvetime += pgc->timer() - t0;
-    p->poissontime = pgc->timer() - t0;
 }
 
 void fnpf_theta::inidisc_step1(lexer *p, fdm_fnpf *c, ghostcell *pgc, ioflow *pflow, solver *psolv)
