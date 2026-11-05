@@ -89,8 +89,10 @@ using namespace std;
 //   at 2x with one pass, -2.5 % converged, A 303 0; step 3, 5 November 2026), hence the passes to convergence.
 //
 //   Zones once per theta step relax less per time than in the three RK3 stages (weaker beach, 6-8 % higher
-//   Stokes waves from reflection); A 303 < 0 (default) relaxes per time as RK3 at N 47 0.75 (dt_crit of
-//   fnpf_timestep).
+//   Stokes waves from reflection); A 303 < 0 (default -0.75) relaxes per time as RK3 at N 47 -A 303 (dt_crit of
+//   fnpf_timestep), and per step at least as one RK3 step: at smaller steps as an RK3 run with the same step.
+//   The zone strength per time matters: in the 3D short-crested sea (step 5) the gauges after the generation
+//   zone change by up to 7 % in Hm0 between zones per time as RK3 at N 47 0.75 and at N 47 0.25.
 //
 // Edits of the surface after the solve (breaking damping and filters A 350/A 352, coastline): Fi below would be
 // that of the unedited surface (as with the relaxation zones before patch 0006); when an edit changed eta or
@@ -99,8 +101,8 @@ using namespace std;
 // A 305 linear solver (1 REEFMG, default; 2 SparseLU), A 306 residual reduction of the REEFMG solves (default
 // 1e-2; 0: N 44).
 // A 300 theta (default 0.5: 0.55 damps 9 % per period at 21 steps), A 302 corrector passes (default 4),
-// A 303 relaxation zones: > 0 factors r^(dt/A 303), 0 r per step, < 0 (default) per time as the three RK3 stages
-// of an RK3 run at N 47 0.75; A 304 tolerance of the corrector (default 1e-3).
+// A 303 relaxation zones: > 0 factors r^(dt/A 303), 0 r per step, < 0 (default -0.75) per time as the three RK3
+// stages of an RK3 run at N 47 -A 303; A 304 tolerance of the corrector (default 1e-3).
 // ---------------------------------------------------------------------------
 
 class fnpf_theta final : public fnpf_ini, public fnpf_sigma
