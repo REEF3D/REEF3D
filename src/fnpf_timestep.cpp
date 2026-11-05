@@ -508,6 +508,10 @@ void fnpf_timestep::ini(fdm_fnpf* c, lexer* p,ghostcell* pgc)
     if(p->N48==1)
     accuracy_cap(p);
     
+    // N 48 0: the fixed time step N 49 from the first step on, as in start()
+    if(p->N48==0)
+    p->dt=maxtimestep;
+    
 	p->dt_old=p->dt;
     
     if(p->mpirank==0 && p->N51>0)
