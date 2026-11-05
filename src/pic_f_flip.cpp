@@ -29,7 +29,7 @@ Architect: Hans Bihs
 #include"field3.h"
 #include<vector>
 
-// Phase 2 (F 81 2): the momentum of the water from the particles, the air Eulerian.
+// Phase 2 (F 81 1, 2): the momentum of the water from the particles (F 81 2: the air Eulerian).
 // step_begin, before the momentum step: the particle velocities go to the velocity faces in
 // the water (phi at the face >= 0), weighted with the trilinear weights of the interpolation
 // (the particles of the neighbours near the subdomain boundary come as a halo); faces in the water
@@ -48,8 +48,13 @@ Architect: Hans Bihs
 // the weighted mean of the particle velocities smooths away. F 77 2: the affine velocities with
 // the FLIP/PIC update (F 82). Sloshing tank, first mode, 1 / 2 / 4 cells per wave height: decay
 // per period 4.3 / 2.8 / 1.7 % with FLIP/PIC, 1.2 / 1.4 / 0.9 % with APIC, 2.7 / 1.3 / 0.9 % with
-// F 77 2, 0.5 / 0.3 / 0.4 % with the level set; 1.5 % at 2 cells with the Eulerian momentum
-// (F 81 1), so what remains there comes from the free surface of the particles, not the transfer.
+// F 77 2, 0.5 / 0.3 / 0.4 % with the level set; 1.5 % at 2 cells with the Eulerian momentum and
+// the surface from the particles (the F 81 1 of patches 0004-0008), so what remains there comes
+// from the free surface of the particles, not the transfer.
+// F 81 1 (single phase): the faces next to a cell in the water take the particle velocities (as
+// for the projection, pic_gfm.cpp), those in the air come from the water after each projection
+// (pic_f::air_velocity), and the grid has no convection; a particle more than 2 cells away from
+// the water flies on under gravity (pic_f::g2p).
 // In the relaxation zones of the waves the update is the same as elsewhere: the PIC update there
 // (patch 0005) damped the waves of the generation by 8 %.
 
@@ -123,7 +128,12 @@ void pic_f::step_begin(lexer *p, fdm *a, ghostcell *pgc)
             if(flag[g]<=0 || sw[g]<=1.0e-12)
             continue;
 
-            if(0.5*(a->phi(i,j,k) + a->phi(i+di,j+dj,k+dk)) < 0.0)
+            // the faces in the water: phi >= 0 at the face (the mean of its two cells); single phase
+            // (F 81 1) all faces next to a cell in the water, as for the projection (pjm_corr) and
+            // the extension (pic_f::air_velocity)
+            const double f0 = a->phi(i,j,k), f1 = a->phi(i+di,j+dj,k+dk);
+
+            if(single ? (f0<0.0 && f1<0.0) : (0.5*(f0+f1) < 0.0))
             continue;
 
             f(i,j,k) = sv[g]/sw[g];
@@ -154,6 +164,21 @@ void pic_f::g2p(lexer *p, fdm *a)
 
     for(auto &q : P)
     {
+        // single phase (F 81 1): a particle more than 2 cells away from the water (spray, a drop) is
+        // beyond the velocities extended into the air (3 layers, 0 beyond, pic_f::air_velocity): it
+        // flies on under gravity with its own velocity (pic_f::move) until it comes back to the water
+        if(single && ballistic(p,a,q))
+        {
+        q.u += p->dt*p->W20;
+        q.v = p->j_dir==1 ? q.v + p->dt*p->W21 : 0.0;
+        q.w += p->dt*p->W22;
+
+            for(int m=0; m<9; ++m)
+            q.b[m] = 0.0;
+
+        continue;
+        }
+
         double un,vn,wn;
         velocity(p,a,q.x,q.y,q.z,un,vn,wn);
 
@@ -173,18 +198,28 @@ void pic_f::g2p(lexer *p, fdm *a)
     }
 }
 
+// F 81 1: a particle more than 2 cells away from the water
+bool pic_f::ballistic(lexer *p, fdm *a, const pic_data &q) const
+{
+    return ipol(p,a->phi,4,q.x,q.y,q.z) < -2.0*p->DXM;
+}
+
 // APIC: the gradients of the water velocity (extended into the air) at the particle
 void pic_f::affine(lexer *p, pic_data &q)
 {
+    field &fu = *uw;
+    field &fv = *vw;
+    field &fw = *ww;
+
     double val;
-    ipol_grad(p,*uw,1,q.x,q.y,q.z,val,q.b);
+    ipol_grad(p,fu,1,q.x,q.y,q.z,val,q.b);
 
     if(p->j_dir==1)
-    ipol_grad(p,*vw,2,q.x,q.y,q.z,val,q.b+3);
+    ipol_grad(p,fv,2,q.x,q.y,q.z,val,q.b+3);
     else
     q.b[3] = q.b[4] = q.b[5] = 0.0;
 
-    ipol_grad(p,*ww,3,q.x,q.y,q.z,val,q.b+6);
+    ipol_grad(p,fw,3,q.x,q.y,q.z,val,q.b+6);
 }
 
 // momentum_rk: no convection on the faces in the water (the particles carry the momentum there)

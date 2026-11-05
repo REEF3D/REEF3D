@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"fnpf_laplace_cds2.h"
@@ -377,6 +377,8 @@ void fnpf_laplace_cds2::start(lexer* p, fdm_fnpf *c, ghostcell *pgc, solver *pso
             if(flag7[q+2]<0 && flag7[q+1]>0)
             {
             rv -= mt*f[q+2];
+            if(mtsurf!=nullptr)
+            mtsurf[n] = mt;
             mt = 0.0;
             }
             

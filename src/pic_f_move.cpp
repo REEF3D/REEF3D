@@ -48,6 +48,15 @@ void pic_f::move(lexer *p, fdm *a, ghostcell *pgc)
         const double x0=q.x, y0=q.y, z0=q.z;
         double u1,v1,w1, u2,v2,w2, u3,v3,w3;
 
+        // F 81 1: spray more than 2 cells away from the water with its own velocity (pic_f::g2p)
+        if(single && ballistic(p,a,q))
+        {
+        q.x = x0 + dt*q.u;
+        q.y = y0 + dt*q.v;
+        q.z = z0 + dt*q.w;
+        }
+        else
+        {
         velocity(p,a,x0,y0,z0,u1,v1,w1);
         velocity(p,a,x0+0.5*dt*u1, y0+0.5*dt*v1, z0+0.5*dt*w1, u2,v2,w2);
         velocity(p,a,x0+0.75*dt*u2, y0+0.75*dt*v2, z0+0.75*dt*w2, u3,v3,w3);
@@ -55,6 +64,7 @@ void pic_f::move(lexer *p, fdm *a, ghostcell *pgc)
         q.x = x0 + dt/9.0*(2.0*u1 + 3.0*u2 + 4.0*u3);
         q.y = y0 + dt/9.0*(2.0*v1 + 3.0*v2 + 4.0*v3);
         q.z = z0 + dt/9.0*(2.0*w1 + 3.0*w2 + 4.0*w3);
+        }
 
         if(!domain(p,q.x,q.y,q.z))
         {
@@ -70,7 +80,7 @@ void pic_f::move(lexer *p, fdm *a, ghostcell *pgc)
         if(p->X10>0)
         push_out(p,a,q);
 
-        // the velocity at the new position (F 81 2: the particles carry their own, pic_f::g2p)
+        // the velocity at the new position (F 81 1, 2: the particles carry their own, pic_f::g2p)
         if(!flipmode)
         velocity(p,a,q.x,q.y,q.z,q.u,q.v,q.w);
 

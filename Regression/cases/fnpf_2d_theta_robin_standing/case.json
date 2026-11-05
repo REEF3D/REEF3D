@@ -1,5 +1,5 @@
 {
- "description": "FNPF theta-Robin time integration A 310 5 (theta A 300 0.5, Robin row at the free surface, Eigen SparseLU, prototype 2D serial) with the corrector to convergence (A 302 4 passes at most, A 304 1e-3: sigma grid of eta^n+1, trapezoidal nonlinear terms, cross terms of the last solution, defect correction), standing wave of fnpf_2d_standing_a301 at 10 steps per period (beyond the RK3 limit of the grid cut-off mode, omega_max dt 2.3), nonlinear FSBC A 314 2.",
+ "description": "FNPF theta-Robin time integration A 310 5 (theta A 305 0.5, Robin row at the free surface, Eigen SparseLU A 306 2, 2D serial) with the corrector to convergence (A 302 4 passes at most, A 304 1e-3: sigma grid of eta^n+1, trapezoidal nonlinear terms, cross terms of the last solution, defect correction), standing wave of fnpf_2d_standing_a301 at 10 steps per period (beyond the RK3 limit of the grid cut-off mode, omega_max dt 2.3), nonlinear FSBC A 314 2.",
  "solver": "fnpf",
  "np": 1,
  "steps": 30,

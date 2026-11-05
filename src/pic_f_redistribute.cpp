@@ -41,7 +41,7 @@ Architect: Hans Bihs
 // depend on the decomposition; the walls of the domain repel with the mirror images of the
 // particles. Fixed are the particles within one cell of the surface (phi < h, as in Kelly et al.,
 // so the surface stays where the particles put it) and moves into a solid or a floating body are
-// not done. With F 81 2 a particle keeps its velocity plus the change of the water velocity
+// not done. With F 81 1, 2 a particle keeps its velocity plus the change of the water velocity
 // between the two positions (no PIC smoothing of the velocity).
 
 void pic_f::redistribute(lexer *p, fdm *a, ghostcell *pgc)
@@ -231,7 +231,7 @@ void pic_f::redistribute(lexer *p, fdm *a, ghostcell *pgc)
         }
     }
 
-    // F 81 2: the change of the water velocity between the old and the new position
+    // F 81 1, 2: the change of the water velocity between the old and the new position
     for(size_t m=0; m<np; ++m)
     {
         pic_data &q = P[m];

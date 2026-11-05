@@ -650,7 +650,8 @@ void driver::logic_cfd()
 
     momentum_forcing::pdem = pdem;
 
-// PIC (F 81 1, 2: the free surface from the particles, F 81 2 also the momentum of the water;
+// PIC (F 81 1, 2: the free surface and the momentum of the water from the particles; F 81 1
+// single phase (p = 0 at the surface, no air), F 81 2 with the air on the grid;
 // F 81 10: passive particles)
     const bool picfsf = (p->F81==1 || p->F81==2);
     removed_option(p,pgc,p->F81!=0 && p->F81!=1 && p->F81!=2 && p->F81!=10,"F 81: unknown PIC option; use 1 (single-phase), 2 (water particles, Eulerian air) or 10 (passive particles).");
@@ -658,8 +659,9 @@ void driver::logic_cfd()
     removed_option(p,pgc,p->F81>0 && p->G1>0,"F 81: PIC is not available with the mesh refinement (G 1) yet.");
     removed_option(p,pgc,p->F81>0 && p->F83<1,"F 83: PIC needs at least 1 particle per cell and direction.");
     removed_option(p,pgc,picfsf && p->B90>0 && ((p->B98!=0 && p->B98!=2) || (p->B99!=0 && p->B99!=1 && p->B99!=2)),"F 81 1/2: waves only with the relaxation zones (B 98 2, B 99 1 or 2) with the free surface from the particles yet; the Dirichlet wave generation and the active absorption bring no particles in.");
-    removed_option(p,pgc,p->F81==2 && (p->F77<0 || p->F77>2),"F 77: the velocity transfer of the particles is 0 (FLIP/PIC, F 82), 1 (APIC) or 2 (FLIP/PIC with the affine velocities of APIC).");
-    removed_option(p,pgc,p->F81==2 && (p->N40==0 || p->N40==33),"F 81 2: the momentum of the particles needs the non-conservative Runge-Kutta momentum (N 40 2, 3, 4, 12, 13, 22, 23, 24, 44).");
+    removed_option(p,pgc,picfsf && (p->F77<0 || p->F77>2),"F 77: the velocity transfer of the particles is 0 (FLIP/PIC, F 82), 1 (APIC) or 2 (FLIP/PIC with the affine velocities of APIC).");
+    removed_option(p,pgc,picfsf && (p->N40==0 || p->N40==33),"F 81 1/2: the momentum of the particles needs the non-conservative Runge-Kutta momentum (N 40 2, 3, 4, 12, 13, 22, 23, 24, 44).");
+    removed_option(p,pgc,p->F81==1 && (p->D30<1 || p->D30>3 || p->W32>0),"F 81 1: the single phase (p = 0 at the free surface) needs the incompressible projection (D 30 1, 2, 3, no W 32).");
     removed_option(p,pgc,picfsf && p->F46>0,"F 81 1/2: the volume correction of the level set (F 46) does not apply to the free surface from the particles.");
 
     if(p->F81>0)

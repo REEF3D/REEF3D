@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #ifndef REEFMG_H_
@@ -88,15 +88,18 @@ private:
     int *CVAL4;
 
     matrix_diag *Mcur;          // REEF3D's matrix for the current solve
-    bool mixed=false;           // Mcur carries the FNPF sigma cross-couplings
-                                // nt..eb (A 328 1): Krylov operator via
-                                // fine_apply() also in fp64 mode
+    bool mixed=false;           // Mcur carries couplings the hierarchy does not
+                                // hold: Krylov operator via fine_apply()
+                                // also in fp64 mode
+    bool cross=false;           // the FNPF sigma cross-couplings nt..eb (A 328 1)
+    bool colx=false;            // in-column couplings xcol (FNPF theta-Robin, A 310 5)
     std::vector<int> rowmap;    // reefmg fine cell -> matrix_diag row, -1 inactive
     std::vector<int> colrow0;   // first row of a fully active column with
                                 // consecutive rows, -1 otherwise
     bool fill_ini=false;        // CVAL4 and the zero halo set up (first fill)
     std::vector<int> wetsig;    // p->wet at the last rowmap/colrow0 build
     bool fill_topo=true;        // the wet/dry pattern changed in the last fill_matrix8
+    bool rmap_ok=false;         // rowmap and colrow0 are those of the current wet/dry pattern
     unsigned long long mkey=0;  // var 8: hash of the rows of the last coarsen()
     bool mkey_ok=false;         // (cleared by the other paths that coarsen mg)
     int count;

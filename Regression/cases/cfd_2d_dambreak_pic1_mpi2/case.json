@@ -1,0 +1,17 @@
+{
+ "base": "cfd_2d_dambreak_pic1",
+ "np": 2,
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "pic",
+  "mpi"
+ ],
+ "description": "as cfd_2d_dambreak_pic1 (single phase) on 2 ranks: the ghost fluid method and the extension of the water velocity into the air across the subdomain boundary",
+ "covers": [
+  "pic_gfm across the ranks",
+  "pic_f::extend with the marks of the neighbours (gcparax)"
+ ],
+ "architect": "Hans Bihs"
+}

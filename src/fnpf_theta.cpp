@@ -59,7 +59,8 @@ namespace
 
 fnpf_theta::fnpf_theta(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_ini(p,c,pgc),fnpf_sigma(p,c,pgc),
                                                       ek(p),fk(p),Ne(p),Nf(p),Neo(p),Nfo(p),wn(p),erk1(p),frk1(p),
-                                                      nEm(p),nFm(p),eko(p),fko(p),erk2(p),R0(p),Rs(p),relR(p),relT(p),relRe(p),relTe(p),fnew(p),wnew(p),en(p)
+                                                      nEm(p),nFm(p),eko(p),fko(p),erk2(p),R0(p),Rs(p),relR(p),relT(p),relRe(p),relTe(p),fnew(p),wnew(p),en(p),
+                                                      colD(p),colA(p),colB(p),fsold(p)
 {
     gcval=250;
     if(p->j_dir==0)
@@ -78,7 +79,12 @@ fnpf_theta::fnpf_theta(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_ini(p,c,pgc
     gcval_fifsf = 160;
     }
     
-    theta = p->A300;
+    theta = p->A305;
+    lsolv = (p->A306==2) ? 2 : 1;
+    ctol = p->A307;
+    cycsum0 = cycsumc = 0;
+    npt = 0;
+    wsz = nullptr;
     npass = MAX(p->A302,0);
     passtol = p->A304;
     passsum = stepsum = editsum = 0;
@@ -86,17 +92,19 @@ fnpf_theta::fnpf_theta(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_ini(p,c,pgc
     dt_prev = 0.0;
     solvetime = 0.0;
     
-    // prototype limits
+    // limits
     int bad=0;
-    if(p->j_dir==1)                 {bad=1; if(p->mpirank==0) cout<<"A 310 5: 2D only (prototype)"<<endl;}
-    if(p->M10>1)                    {bad=1; if(p->mpirank==0) cout<<"A 310 5: serial only (prototype, M 10 1)"<<endl;}
+    if(lsolv==2 && p->j_dir==1)     {bad=1; if(p->mpirank==0) cout<<"A 310 5: SparseLU (A 306 2) 2D only"<<endl;}
+    if(lsolv==2 && p->M10>1)        {bad=1; if(p->mpirank==0) cout<<"A 310 5: SparseLU (A 306 2) serial only (M 10 1)"<<endl;}
+    if(lsolv==1 && p->N10!=1)       {bad=1; if(p->mpirank==0) cout<<"A 310 5: needs REEFMG (N 10 1) or SparseLU (A 306 2)"<<endl;}
+    if(p->A324>0)                   {bad=1; if(p->mpirank==0) cout<<"A 310 5: no Picard passes of the Laplace solve (A 324 0; the corrector passes iterate)"<<endl;}
     if(p->A343!=0)                  {bad=1; if(p->mpirank==0) cout<<"A 310 5: no wetting-drying (A 343 0)"<<endl;}
     if(p->X10>0)                    {bad=1; if(p->mpirank==0) cout<<"A 310 5: no resolved bodies (X 10)"<<endl;}
     if(p->G1>0)                     {bad=1; if(p->mpirank==0) cout<<"A 310 5: no mesh refinement (G 1)"<<endl;}
     if(p->A311==3 || p->A327!=1)    {bad=1; if(p->mpirank==0) cout<<"A 310 5: needs the Fornberg sz stencil (A 327 1) and A 311 1, 2, 4, 5 or 6"<<endl;}
     if(p->A328==1)                  {bad=1; if(p->mpirank==0) cout<<"A 310 5: sigma cross terms explicit only (A 328 0)"<<endl;}
     if(p->B98>2 || p->B99>2)        {bad=1; if(p->mpirank==0) cout<<"A 310 5: relaxation zones only (B 98 0-2, B 99 0-2)"<<endl;}
-    if(theta<0.5)                   {bad=1; if(p->mpirank==0) cout<<"A 310 5: theta (A 300) >= 0.5"<<endl;}
+    if(theta<0.5)                   {bad=1; if(p->mpirank==0) cout<<"A 310 5: theta (A 305) >= 0.5"<<endl;}
     
     if(bad==1)
     pgc->final(true);
@@ -116,7 +124,7 @@ fnpf_theta::fnpf_theta(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_ini(p,c,pgc
     };
     
     if(p->mpirank==0)
-    cout<<"FNPF time integration A 310 5: theta-Robin (prototype), theta = "<<theta<<", corrector passes A 302 "<<npass<<endl;
+    cout<<"FNPF time integration A 310 5: theta-Robin, theta = "<<theta<<", corrector passes A 302 "<<npass<<", "<<(lsolv==2 ? "SparseLU" : "REEFMG")<<endl;
 }
 
 fnpf_theta::~fnpf_theta()
@@ -206,14 +214,17 @@ void fnpf_theta::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, con
     relax_affine(p,pgc,pflow,1,relR,relT);
     
     // pass 0: one Laplace problem with the Robin condition: Fi, Fifsf^n+1 (fnew) and w^n+1 (wnew)
+    if(lsolv==2)
     robin_solve(p,c,pgc,psolv,frk1,Rs,fnew);
+    else
+    robin_solve_mg(p,c,pgc,psolv,frk1,Rs,fnew,0);
     
     // corrector passes: N at t^n+1/2 trapezoidal, the sigma grid of the solve at eta^n+1 of the last
     // solution and the cross terms with the last solution; defect correction with the factorisation of pass 0
     for(int q=0; q<npass; ++q)
     {
     corrector_state(p,c,pgc,pflow);
-    const double chg = robin_correct(p,c,pgc,psolv,Rs,fnew);
+    const double chg = (lsolv==2) ? robin_correct(p,c,pgc,psolv,Rs,fnew) : robin_solve_mg(p,c,pgc,psolv,fnew,Rs,fnew,1);
     ++passsum;
     
     // A 304: stop when the change of the solution is below A 304 times its size
@@ -315,7 +326,12 @@ void fnpf_theta::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, con
     c->vel_state = 2;
     
     if(p->mpirank==0 && (p->count%p->P12==0))
-    cout<<"theta-Robin solve: "<<setprecision(3)<<solvetime<<" s total, corrector passes per step "<<double(passsum)/double(MAX(stepsum,1L))<<", consistency solves "<<editsum<<endl;
+    {
+    cout<<"theta-Robin solve: "<<setprecision(3)<<solvetime<<" s total, corrector passes per step "<<double(passsum)/double(MAX(stepsum,1L))<<", consistency solves "<<editsum;
+    if(lsolv==1)
+    cout<<", REEFMG cycles per step: pass 0 "<<double(cycsum0)/double(MAX(stepsum,1L))<<", corrector "<<double(cycsumc)/double(MAX(stepsum,1L));
+    cout<<endl;
+    }
 }
 
 // Corrector: eta^n+1 of the current solution (eta update with Fifsf^n+1 = fnew, w^n+1 = wnew), N^n+1 on it,
@@ -604,6 +620,190 @@ void fnpf_theta::robin_unpack(lexer *p, fdm_fnpf *c, ghostcell *pgc, slice &fout
     pgc->gcsl_start4(p,wnew,gcval_fifsf);
 }
 
+// The points and weights of the sz stencil (fnpf_sz_weights, as A 311): w = sigz sum_m w_m Fi(knoz-m), Fi(knoz) = Fs
+void fnpf_theta::sz_stencil(lexer *p, ghostcell *pgc)
+{
+    if(wsz!=nullptr)
+    return;
+    
+    const int N = p->knoz;
+    int np = 3;
+    if(p->A311==2 || p->A311==4 || p->A311==5) np = 5;
+    if(p->A311==6) np = 7;
+    while(np>3 && N<np-1) np -= 2;
+    static const fnpf_sz_weights szw(p);
+    wsz = szw.weights(np);
+    npt = np;
+    
+    if(wsz==nullptr)
+    {
+    if(p->mpirank==0)
+    cout<<"A 310 5: no sz stencil with "<<np<<" points for "<<N<<" sigma layers"<<endl;
+    pgc->final(true);
+    }
+}
+
+// A 306 1 (REEFMG). The Robin row of a column, with the surface node Fs = Fi(knoz) and Fi(knoz-m) its sz stencil,
+//   D Fs + A sum_m>=1 w_m Fi(knoz-m) = B,   A = r g theta^2 dt^2 sigz,  D = 1 + A w_0,  B = r R + T,
+// is eliminated into the top Laplace row (k = knoz-1), whose coupling to the surface node is mt:
+//   Fs = (B - A sum_m>=1 w_m Fi(knoz-m))/D,
+//   top row: diagonal - mt A w_1/D, k-1 coupling - mt A w_2/D, rhs + mt fs - mt B/D (the assembly had -mt fs),
+//   and for stencils of more than three points the couplings - mt A w_m/D to k = knoz-m, m >= 3, in xcol:
+//   REEFMG's BiCGStab multiplies with them, the V-cycle preconditions with the 7-point part.
+// D >= 1 (A >= 0, w_0 > 0); r = 0 (Dirichlet zone): Fs = T. In the limit of large steps the top row becomes that
+// of a Neumann condition, which the line solve treats exactly. The sigma cross terms of rhs are those of the
+// current Fi (interior) and fs, as with SparseLU.
+void fnpf_theta::robin_build_mg(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, slice &fs, slice &R)
+{
+    const double g = fabs(p->W22);
+    const int N = p->knoz;
+    
+    sz_stencil(p,pgc);
+    
+    // one assembly with Fifsf = fs, the coupling mt of the top rows to the surface node stored in mts
+    if(int(mts.size())!=int(c->M.p.size()))
+    mts.assign(c->M.p.size(),0.0);
+    
+    plap0->assemble_only = true;
+    plap0->mtsurf = mts.data();
+    plap0->start(p,c,pgc,psolv,pf,c->Fi,fs);
+    plap0->mtsurf = nullptr;
+    plap0->assemble_only = false;
+    
+    double *Mp = c->M.p.data();
+    double *Mb = c->M.b.data();
+    double *rhs = c->rhsvec.V.data();
+    
+    c->M.xcol.clear();
+    
+    int n=0;
+    ILOOP
+    JLOOP
+    {
+        colD(i,j) = 0.0;
+        
+        KLOOP
+        if(p->flag4[IJK]>0)
+        {
+            const int r = n;
+            ++n;
+            
+            if(k!=N-1 || p->wet[IJ]==0 || p->flag7[FIJK]<=0)
+            continue;
+            
+            const double mt = mts[r];
+            const double A = relR(i,j)*g*theta*theta*p->dt*p->dt*p->sigz[IJ];
+            const double D = 1.0 + A*wsz[0];
+            const double B = relR(i,j)*R(i,j) + relT(i,j);
+            
+            colD(i,j) = D;
+            colA(i,j) = A;
+            colB(i,j) = B;
+            
+            rhs[r] += mt*fs(i,j) - mt*B/D;
+            Mp[r] += -mt*A*wsz[1]/D;
+            
+            if(npt>2 && N>1)
+            Mb[r] += -mt*A*wsz[2]/D;
+            
+            for(int m=3;m<npt;++m)
+            if(N-m>=0)
+            {
+            const double v = -mt*A*wsz[m]/D;
+            if(v!=0.0)
+            c->M.xcol.push_back({i,j,N-1,N-m,v});
+            }
+        }
+    }
+}
+
+// A 306 1: build and solve with REEFMG (warm start from the current Fi), Fs and w^n+1 from the Robin rows.
+// Returns the change of Fi and Fs relative to their size.
+double fnpf_theta::robin_solve_mg(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, slice &fs, slice &R, slice &fout, int pass)
+{
+    const double t0 = pgc->timer();
+    const int N = p->knoz;
+    
+    robin_build_mg(p,c,pgc,psolv,fs,R);
+    
+    // Fi and Fs before the solve
+    const int nf = p->imax*p->jmax*(p->kmax+2);
+    if(int(fiold.size())!=nf)
+    fiold.resize(nf);
+    
+    ILOOP
+    JLOOP
+    {
+    KLOOP
+    fiold[FIJK] = c->Fi[FIJK];
+    fsold(i,j) = fs(i,j);
+    }
+    
+    // A 307 > 0: inexact solves when corrector passes follow (and in them): the residual is reduced by A 307
+    // relative to that of the warm start (REEFMG, tolerance < 0); the passes re-solve the whole problem,
+    // so the error of a pass does not accumulate, and the last one is A 307 times its (small) initial residual
+    const double tol0 = p->N44;
+    if(ctol>0.0 && npass>0)
+    p->N44 = -ctol;
+    
+    psolv->startF(p,pgc,c->Fi,c->rhsvec,c->M,8);
+    
+    p->N44 = tol0;
+    c->M.xcol.clear();
+    
+    if(pass==0)
+    cycsum0 += p->solveriter;
+    else
+    cycsumc += p->solveriter;
+    
+    // Fs and w^n+1
+    double dmax=0.0, xmax=0.0;
+    
+    ILOOP
+    JLOOP
+    {
+        if(colD(i,j)>0.0)
+        {
+        double sm = 0.0;
+        for(int m=1;m<npt;++m)
+        {
+        k = N-m;
+        sm += wsz[m]*c->Fi[FIJK];
+        }
+        
+        const double Fs = (colB(i,j) - colA(i,j)*sm)/colD(i,j);
+        fout(i,j) = Fs;
+        wnew(i,j) = p->sigz[IJ]*(wsz[0]*Fs + sm);
+        
+        dmax = MAX(dmax,fabs(Fs-fsold(i,j)));
+        xmax = MAX(xmax,fabs(Fs));
+        }
+        
+        KLOOP
+        if(p->flag4[IJK]>0)
+        {
+        dmax = MAX(dmax,fabs(c->Fi[FIJK]-fiold[FIJK]));
+        xmax = MAX(xmax,fabs(c->Fi[FIJK]));
+        }
+    }
+    
+    dmax = pgc->globalmax(dmax);
+    xmax = pgc->globalmax(xmax);
+    
+    pgc->gcsl_start4(p,fout,gcval_fifsf);
+    pgc->gcsl_start4(p,wnew,gcval_fifsf);
+    
+    if(pass==0)
+    p->poissoniter = p->solveriter;
+    else
+    p->poissoniter += p->solveriter;
+    
+    solvetime += pgc->timer() - t0;
+    p->poissontime = (pass==0) ? pgc->timer() - t0 : p->poissontime + pgc->timer() - t0;
+    
+    return dmax/MAX(xmax,1.0e-20);
+}
+
 // The relaxation zones act as f -> r f + (1-r) f_target. iowave applies them to a field; here the affine map
 // is read off by applying them to f = 0 and f = 1 (which = 0: eta, 1: Fifsf), and with A 303 > 0 the factors
 // become r^(dt/A 303), so that over a fixed time the zones relax by the same amount whatever the step
@@ -628,9 +828,12 @@ void fnpf_theta::relax_affine(lexer *p, ghostcell *pgc, ioflow *pflow, int which
     }
     
     // A 303 > 0: factors r^(dt/A 303)
-    // A 303 < 0 (default): the zones act per time as in an RK3 run at N 47 0.75: an RK3 step relaxes the
-    // deviation from the target in its three stages by F(r) = r (1/3 + 2/3 r (3/4 + r/4)); the theta step,
-    // s = dt/(0.75 dt_crit) of those steps long, by F(r)^s (dt_crit: the step of the time-step criterion at N 47 1)
+    // A 303 < 0 (default -0.75): the zones act per time as in an RK3 run at N 47 = -A 303, and per step at least
+    // as in an RK3 step: an RK3 step relaxes the deviation from the target in its three stages by
+    // F(r) = r (1/3 + 2/3 r (3/4 + r/4)); the theta step, s = dt/(-A 303 dt_crit) of those steps long, by
+    // F(r)^max(s,1) (dt_crit: the step of the time-step criterion at N 47 1). Below the step of N 47 = -A 303 the
+    // zones are those of an RK3 run with the same step, which gets stronger zones per time with smaller steps;
+    // above it they do not weaken with the step.
     double fac = 1.0;
     int rk3eq = 0;
     if(p->A303>0.0)
@@ -638,7 +841,7 @@ void fnpf_theta::relax_affine(lexer *p, ghostcell *pgc, ioflow *pflow, int which
     if(p->A303<0.0 && p->dt_crit>0.0)
     {
     rk3eq = 1;
-    fac = p->dt/(0.75*p->dt_crit);
+    fac = MAX(p->dt/(-p->A303*p->dt_crit), 1.0);
     }
     
     SLICELOOP4

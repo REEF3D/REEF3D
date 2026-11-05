@@ -1,0 +1,23 @@
+{
+ "base": "fnpf_3d_two_edges",
+ "ctrl_set": {
+  "A 310": "5",
+  "N 47": "1.5",
+  "N 48": "1",
+  "N 51": "2"
+ },
+ "description": "FNPF 3D basin of fnpf_3d_two_edges (waves from two edges, zones with own sources, beaches) with the theta-Robin time integration (A 310 5, REEFMG, A 302 4, A 304 1e-3, A 307 1e-2) at twice the RK3 step of N 47 0.75 (N 51 2, N 47 1.5), 2 MPI ranks.",
+ "tags": [
+  "quick",
+  "3d",
+  "fnpf",
+  "waves",
+  "iowave",
+  "mpi"
+ ],
+ "covers": [
+  "fnpf_theta 3D",
+  "fnpf_theta MPI",
+  "relaxation zones with own sources in the Robin rows"
+ ]
+}

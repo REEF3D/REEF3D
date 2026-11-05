@@ -68,10 +68,12 @@ pic_f::pic_f(lexer *p, fdm *a, ghostcell *pgc, reini *ppreini, ioflow *ppflow, h
     added = removed = added_total = removed_total = 0;
     phitime = 0.0;
 
-    // F 81 1, 2: the free surface from the particles, in place of the level set transport;
-    // the density and viscosity follow it (the fluid update of the level set)
+    // F 81 1, 2: the free surface and the momentum of the water from the particles, in place of
+    // the level set transport; with F 81 2 the density and viscosity follow it (the fluid update of
+    // the level set), F 81 1 is single phase (those of the water)
     surface = (p->F81==1 || p->F81==2);
-    flipmode = (p->F81==2);
+    flipmode = (p->F81==1 || p->F81==2);
+    single = (p->F81==1);
     apic = flipmode && (p->F77==1 || p->F77==2);
     relaxzones = surface && p->B90>0 && (p->B98==2 || p->B99==1 || p->B99==2);
     inflowsrc = surface && p->B60>0;
@@ -120,6 +122,7 @@ pic_f::pic_f(lexer *p, fdm *a, ghostcell *pgc, reini *ppreini, ioflow *ppflow, h
         km1 = new field1(p);
         km2 = new field2(p);
         km3 = new field3(p);
+
     }
 
     if(flipmode)
@@ -137,7 +140,7 @@ pic_f::pic_f(lexer *p, fdm *a, ghostcell *pgc, reini *ppreini, ioflow *ppflow, h
     logout<<"t \t particles \t left_domain \t sent_between_ranks \t added \t removed \t phi_time"<<endl;
 
     if(flipmode)
-    cout<<"PIC (F 81 "<<p->F81<<"): the free surface and the momentum of the water from the particles ("
+    cout<<"PIC (F 81 "<<p->F81<<"): the free surface and the momentum of the water from the particles"<<(single ? ", single phase, " : ", the air Eulerian, ")<<"("
         <<(p->F77==1 ? std::string("APIC") : (p->F77==2 ? "FLIP "+std::to_string(p->F82)+" with the affine velocities" : "FLIP "+std::to_string(p->F82)))<<"), "<<npc<<" per cell"<<endl;
     else if(surface)
     cout<<"PIC (F 81 "<<p->F81<<"): the free surface from the particles, "<<npc<<" per cell"<<endl;
@@ -185,7 +188,7 @@ void pic_f::start(lexer *p, fdm *a, ghostcell *pgc)
     if(surface)
     water_velocity(p,a,pgc);
 
-    // F 81 2: the particles take the change of the water velocity
+    // F 81 1, 2: the particles take the velocity (APIC) or its change (FLIP) of the water
     if(flipmode)
     g2p(p,a);
 

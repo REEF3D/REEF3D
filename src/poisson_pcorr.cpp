@@ -38,6 +38,7 @@ Author: Hans Bihs
 #include"density_vof.h"
 #include"density_rheo.h"
 #include"density_pst.h"
+#include"pic_gfm.h"
 
 poisson_pcorr::poisson_pcorr(lexer *p, heat *&pheat, concentration *&pconc) 
 {
@@ -163,7 +164,8 @@ void poisson_pcorr::start(lexer* p, fdm *a, field &press)
     if(p->amr_patch==0)
     MPI_Allreduce(&ndirichlet,&nd_glob,1,MPI_INT,MPI_SUM,reef3d_comm());
 
-    if(nd_glob==0 && p->amr_patch==0 && p->W32==0)
+    // (not with the single phase of PIC, F 81 1: p = 0 at the free surface)
+    if(nd_glob==0 && p->amr_patch==0 && p->W32==0 && p->F81!=1)
     {
         int myrank = (pin_n>=0) ? p->mpirank : 1<<30;
         int pinrank = 1<<30;
@@ -282,4 +284,8 @@ void poisson_pcorr::start(lexer* p, fdm *a, field &press)
 	}
     
   
+
+    // PIC single phase (F 81 1): the pressure in the water only, p = 0 at the free surface
+    if(p->F81==1)
+    pic_gfm_matrix(p,a);
 }

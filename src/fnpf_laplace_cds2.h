@@ -17,7 +17,7 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------
-Author: Hans Bihs
+Architect: Hans Bihs
 --------------------------------------------------------------------*/
 
 #ifndef LAPLACE_FNPF_CDS2_H_
@@ -41,6 +41,10 @@ public:
     
     // mesh refinement (fnpf_amr): assemble M and rhs, but do not solve
     bool assemble_only = false;
+    
+    // theta-Robin (A 310 5): if set, the coupling mt of the top rows to the free-surface node (moved to rhs as
+    // -mt Fifsf) is stored at their row index; the other rows are not written
+    double *mtsurf = nullptr;
 
     // mesh refinement, A 324 > 0: the bed ghost nodes and the halo of f before the next Picard
     // assembly, as start() does between its own solves
