@@ -28,6 +28,7 @@ Author: Hans Bihs
 #include"wave_lib_steady_fi.h"
 #include"wave_lib_elliptic.h"
 #include"increment.h"
+#include"wave_lib_cnoidal_consistent.h"
 
 using namespace std;
 
@@ -53,9 +54,8 @@ public:
     
 private:
     wave_lib_steady_fi sfi;    // the velocity potential (wave_lib_steady_fi.h)
-    double wht,acn,delta,epsilon,wR;
-    double singamma,cosgamma;    
-    double ubar;
+    cnoidal_consistent::Model model;    // eta, u, w (wave_lib_cnoidal_consistent.h)
+    double singamma,cosgamma;
 };
 
 #endif
