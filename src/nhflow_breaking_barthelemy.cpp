@@ -102,7 +102,7 @@ void nhflow_breaking::breaking_barthelemy(lexer *p, fdm_nhf *d, ghostcell *pgc, 
     pgc->gcsl_start4(p,bt_us,1);
     pgc->gcsl_start4(p,bt_vs,1);
 
-    bt->detect(p,pgc,eta_n,bt_us,bt_vs,d->WL,brkzone_built ? brkzone.V : nullptr,t);
+    bt->detect(p,pgc,eta_n,bt_us,bt_vs,d->WL,brkzone_built ? brkzone.data() : nullptr,t);
 
     // the seed: front faces and bands of the breaking crest points, with their wavenumber
     // painted behind the crest: A 502 L_k, L_k = tanh(k h)/k (h in shallow water; A 502 h reached over the trough
@@ -118,7 +118,7 @@ void nhflow_breaking::breaking_barthelemy(lexer *p, fdm_nhf *d, ghostcell *pgc, 
         brkseed(i,j) = 0;
     }
 
-    bt->rays(p,pgc,eta_n,d->WL,t,sback,integrand,epsf,bt_vbs,brkseed.V,&brkkseed);
+    bt->rays(p,pgc,eta_n,d->WL,t,sback,integrand,epsf,bt_vbs,brkseed.data(),&brkkseed);
 
     pgc->gcsl_start4int(p,brkseed,50);
     pgc->gcsl_start4(p,brkkseed,1);

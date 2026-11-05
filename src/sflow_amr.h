@@ -241,7 +241,7 @@ public:
     void flush_outputs() { gaugeout.flush(); logout.flush(); }
     // the arrays of the refinement on level 0 that carry over to the next step (shoreline offsets)
     void ckpt_fields0(const std::function<void(const char*, char, double*)> &fd, const std::function<void(const char*, char, int*)>&)
-    { if(sfs0!=nullptr) fd("amr_sfs0",'S',sfs0->V); }
+    { if(sfs0!=nullptr) fd("amr_sfs0",'S',sfs0->data()); }
     void dump_grids(lexer*);        // REEF3D_AMR_DUMP: every grid of the rank (own cells) to <dir>/amr_r<rank>.bin (tests)
 
     // called by sflow_HLL between flux_bc and the divergence (ipol 1-4)

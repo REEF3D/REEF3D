@@ -86,17 +86,17 @@ void initialize::inifdm(lexer* p, fdm* a, ghostcell* pgc)
 
 		a->press(i,j,k)=p->I55;
         
-        if(a->Fi.V!=nullptr)    // unallocated on the patches of the mesh refinement (fdm lean)
+        if(a->Fi.size()!=0)    // unallocated on the patches of the mesh refinement (fdm lean)
         a->Fi(i,j,k)=0.0;
 
 		a->ro(i,j,k)=p->W1;
 		a->visc(i,j,k)=p->W2;
 		a->eddyv(i,j,k)=0.0;
 		a->phi(i,j,k)=1.0;
-        if(a->vof.V!=nullptr)
+        if(a->vof.size()!=0)
         a->vof(i,j,k)=1.0;
 
-        if(a->conc.V!=nullptr)
+        if(a->conc.size()!=0)
 		a->conc(i,j,k)=0.0;
 	}
 
@@ -131,7 +131,7 @@ void initialize::nodecalc(lexer* p, fdm* a)
 	{
 	++count;
 	++p->pointnum;
-    if(a->nodeval.V!=nullptr)
+    if(a->nodeval.size()!=0)
 	a->nodeval(i,j,k)=count;
 	}
 

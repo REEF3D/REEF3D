@@ -130,7 +130,7 @@ void sflow_breaking_kb::tracking(lexer *p, fdm2D *b, ghostcell *pgc, slice &eta)
     pgc->gcsl_start4(p,us,1);
     pgc->gcsl_start4(p,vs,1);
 
-    bt->detect(p,pgc,eta,us,vs,b->WL,zones_built ? brkzone.V : nullptr,t);
+    bt->detect(p,pgc,eta,us,vs,b->WL,zones_built ? brkzone.data() : nullptr,t);
 
     // the seed: front faces and the band of A 502 L_k behind the breaking crest points, with their wavenumber
     auto sback = [&](const bc3_point &R) { return p->A502*((R.kw>0.0) ? tanh(R.kw*R.wl)/R.kw : R.wl); };
@@ -144,7 +144,7 @@ void sflow_breaking_kb::tracking(lexer *p, fdm2D *b, ghostcell *pgc, slice &eta)
     brkseed(i,j) = 0;
     }
 
-    bt->rays(p,pgc,eta,b->WL,t,sback,integrand,epsf,vbs,brkseed.V,&brkkseed);
+    bt->rays(p,pgc,eta,b->WL,t,sback,integrand,epsf,vbs,brkseed.data(),&brkkseed);
 
     pgc->gcsl_start4int(p,brkseed,50);
     pgc->gcsl_start4(p,brkkseed,1);

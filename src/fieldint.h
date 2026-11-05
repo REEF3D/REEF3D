@@ -28,8 +28,11 @@ Author: Hans Bihs
 class fieldint : public field_base<int>
 {
 public:
-    fieldint(lexer* p, bool allocate=true) : field_base<int>(p,allocate) {}
-    virtual ~fieldint() = default;
+    explicit fieldint(lexer *p, bool allocate=true) : field_base<int>(p,allocate) {}
+    ~fieldint() override;
+
+protected:
+    fieldint(lexer *p, int kz, std::size_t slack) : field_base<int>(p, kz, slack) {}
 };
 
 #endif

@@ -175,14 +175,14 @@ public:
     void ckpt_fields(const std::function<void(const char*, char, double*)> &fd, const std::function<void(const char*, char, int*)> &fi) override
     {
         fsfbody_ckpt_fields(fd);
-        fd("si_qx",'S',qx.V); fd("si_qxn",'S',qxn.V); fd("si_qxE",'S',qxE.V); fd("si_Hx",'S',Hx.V);
-        fd("si_alx",'S',alx.V); fd("si_gmx",'S',gmx.V); fd("si_ax",'S',ax.V); fd("si_kx",'S',kx.V);
-        fd("si_gx0",'S',gx0.V); fd("si_cx0",'S',cx0.V); fd("si_qy",'S',qy.V); fd("si_qyn",'S',qyn.V);
-        fd("si_qyE",'S',qyE.V); fd("si_Hy",'S',Hy.V); fd("si_aly",'S',aly.V); fd("si_gmy",'S',gmy.V);
-        fd("si_ay",'S',ay.V); fd("si_ky",'S',ky.V); fd("si_gy0",'S',gy0.V); fd("si_cy0",'S',cy0.V);
-        fd("si_eta0",'S',eta0.V); fd("si_WL0",'S',WL0.V); fd("si_etaI",'S',etaI.V); fd("si_gmc",'S',gmc.V);
-        fd("si_rhsW",'S',rhsW.V); fd("si_bdiag",'S',bdiag.V); fd("si_tS",'S',tS.V); fd("si_tE",'S',tE.V);
-        fd("si_WLk",'S',WLk.V); fd("si_etaB",'S',etaB.V); fd("si_WLb",'S',WLb.V); fd("si_Qx",'C',Qx);
+        fd("si_qx",'S',qx.data()); fd("si_qxn",'S',qxn.data()); fd("si_qxE",'S',qxE.data()); fd("si_Hx",'S',Hx.data());
+        fd("si_alx",'S',alx.data()); fd("si_gmx",'S',gmx.data()); fd("si_ax",'S',ax.data()); fd("si_kx",'S',kx.data());
+        fd("si_gx0",'S',gx0.data()); fd("si_cx0",'S',cx0.data()); fd("si_qy",'S',qy.data()); fd("si_qyn",'S',qyn.data());
+        fd("si_qyE",'S',qyE.data()); fd("si_Hy",'S',Hy.data()); fd("si_aly",'S',aly.data()); fd("si_gmy",'S',gmy.data());
+        fd("si_ay",'S',ay.data()); fd("si_ky",'S',ky.data()); fd("si_gy0",'S',gy0.data()); fd("si_cy0",'S',cy0.data());
+        fd("si_eta0",'S',eta0.data()); fd("si_WL0",'S',WL0.data()); fd("si_etaI",'S',etaI.data()); fd("si_gmc",'S',gmc.data());
+        fd("si_rhsW",'S',rhsW.data()); fd("si_bdiag",'S',bdiag.data()); fd("si_tS",'S',tS.data()); fd("si_tE",'S',tE.data());
+        fd("si_WLk",'S',WLk.data()); fd("si_etaB",'S',etaB.data()); fd("si_WLb",'S',WLb.data()); fd("si_Qx",'C',Qx);
         fd("si_Qy",'C',Qy); fd("si_Qxn",'C',Qxn); fd("si_Qyn",'C',Qyn); fd("si_Tx",'C',Tx);
         fd("si_Ty",'C',Ty); fd("si_QAx",'C',QAx); fd("si_QAy",'C',QAy); fd("si_Rx",'C',Rx);
         fd("si_Ry",'C',Ry); fd("si_UH0",'C',UH0); fd("si_VH0",'C',VH0); fd("si_WH0",'C',WH0);

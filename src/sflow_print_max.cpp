@@ -459,9 +459,9 @@ void sflow_print_max::write_points(lexer *p, fdm2D *b, ghostcell *pgc)
 
 void sflow_print_max::ckpt_fields(const std::function<void(const char*, char, double*)> &fd, const std::function<void(const char*, char, int*)> &fi)
 {
-    fd("max_eta",'S',mx[ETA]->V);          fd("max_teta",'S',mx[TETA]->V);
-    fd("max_depth",'S',mx[DEPTH]->V);      fd("max_speed",'S',mx[SPEED]->V);
-    fd("max_tspeed",'S',mx[TSPEED]->V);    fd("max_duration",'S',mx[DUR]->V);
-    fd("max_first",'S',mx[FIRST]->V);      fd("max_class",'S',mx[CLASS]->V);
-    fd("max_wind",'S',mx[WIND]->V);        fd("max_pa",'S',mx[PA]->V);
+    fd("max_eta",'S',mx[ETA]->data());          fd("max_teta",'S',mx[TETA]->data());
+    fd("max_depth",'S',mx[DEPTH]->data());      fd("max_speed",'S',mx[SPEED]->data());
+    fd("max_tspeed",'S',mx[TSPEED]->data());    fd("max_duration",'S',mx[DUR]->data());
+    fd("max_first",'S',mx[FIRST]->data());      fd("max_class",'S',mx[CLASS]->data());
+    fd("max_wind",'S',mx[WIND]->data());        fd("max_pa",'S',mx[PA]->data());
 }

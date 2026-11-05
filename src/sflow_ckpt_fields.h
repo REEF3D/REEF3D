@@ -34,34 +34,34 @@ Author: Hans Bihs
 template<class FD, class FI>
 void sflow_ckpt_fields(lexer *p, fdm2D *b, FD &&fd, FI &&fi)
 {
-    fd("U",'S',b->U.V); fd("V",'S',b->V.V); fd("W",'S',b->W.V); fd("UH",'S',b->UH.V); fd("VH",'S',b->VH.V);
-    fd("WH",'S',b->WH.V); fd("UA",'S',b->UA.V); fd("VA",'S',b->VA.V); fd("MX",'S',b->MX.V);
-    fd("MY",'S',b->MY.V); fd("Fx",'S',b->Fx.V); fd("Fs",'S',b->Fs.V); fd("Fn",'S',b->Fn.V);
-    fd("FEx",'S',b->FEx.V); fd("Fy",'S',b->Fy.V); fd("Fe",'S',b->Fe.V); fd("Fw",'S',b->Fw.V);
-    fd("FEy",'S',b->FEy.V); fd("Ss",'S',b->Ss.V); fd("Sn",'S',b->Sn.V); fd("SSx",'S',b->SSx.V);
-    fd("Se",'S',b->Se.V); fd("Sw",'S',b->Sw.V); fd("SSy",'S',b->SSy.V); fd("Un",'S',b->Un.V);
-    fd("Us",'S',b->Us.V); fd("Ue",'S',b->Ue.V); fd("Uw",'S',b->Uw.V); fd("Vn",'S',b->Vn.V);
-    fd("Vs",'S',b->Vs.V); fd("Ve",'S',b->Ve.V); fd("Vw",'S',b->Vw.V); fd("Wn",'S',b->Wn.V);
-    fd("Ws",'S',b->Ws.V); fd("We",'S',b->We.V); fd("Ww",'S',b->Ww.V); fd("UHn",'S',b->UHn.V);
-    fd("UHs",'S',b->UHs.V); fd("UHe",'S',b->UHe.V); fd("UHw",'S',b->UHw.V); fd("VHn",'S',b->VHn.V);
-    fd("VHs",'S',b->VHs.V); fd("VHe",'S',b->VHe.V); fd("VHw",'S',b->VHw.V); fd("WHn",'S',b->WHn.V);
-    fd("WHs",'S',b->WHs.V); fd("WHe",'S',b->WHe.V); fd("WHw",'S',b->WHw.V); fd("QUn",'S',b->QUn.V);
-    fd("QUs",'S',b->QUs.V); fd("QUe",'S',b->QUe.V); fd("QUw",'S',b->QUw.V); fd("QVn",'S',b->QVn.V);
-    fd("QVs",'S',b->QVs.V); fd("QVe",'S',b->QVe.V); fd("QVw",'S',b->QVw.V); fd("ETAs",'S',b->ETAs.V);
-    fd("ETAn",'S',b->ETAn.V); fd("ETAe",'S',b->ETAe.V); fd("ETAw",'S',b->ETAw.V); fd("Ds",'S',b->Ds.V);
-    fd("Dn",'S',b->Dn.V); fd("De",'S',b->De.V); fd("Dw",'S',b->Dw.V); fd("dfx",'S',b->dfx.V);
-    fd("dfy",'S',b->dfy.V); fd("WL",'S',b->WL.V); fd("eta",'S',b->eta.V); fd("eta_n",'S',b->eta_n.V);
-    fd("P",'S',b->P.V); fd("Pn",'S',b->Pn.V); fd("F",'S',b->F.V); fd("Q",'S',b->Q.V); fd("Qn",'S',b->Qn.V);
-    fd("G",'S',b->G.V); fd("H",'S',b->H.V); fd("L",'S',b->L.V); fd("Fext",'S',b->Fext.V);
-    fd("Gext",'S',b->Gext.V); fd("Hext",'S',b->Hext.V); fd("ws",'S',b->ws.V); fd("press",'S',b->press.V);
-    fd("eddyv",'S',b->eddyv.V); fd("kin",'S',b->kin.V); fd("eps",'S',b->eps.V); fd("hx",'S',b->hx.V);
-    fd("hy",'S',b->hy.V); fd("hp",'S',b->hp.V); fd("dpx",'S',b->dpx.V); fd("dpy",'S',b->dpy.V);
-    fd("test",'S',b->test.V); fd("Hs",'S',b->Hs.V); fd("fs",'S',b->fs.V); fd("fx",'S',b->fx.V);
-    fd("fy",'S',b->fy.V); fd("fz",'S',b->fz.V); fd("bed",'S',b->bed.V); fd("bed0",'S',b->bed0.V);
-    fd("depth",'S',b->depth.V); fd("solidbed",'S',b->solidbed.V); fd("topobed",'S',b->topobed.V);
-    fd("bednode",'S',b->bednode.V); fd("breaking_print",'S',b->breaking_print.V); fd("ks",'S',b->ks.V);
-    fi("breaking",'S',b->breaking.V); fi("wet1",'S',b->wet1.V);
-    fi("deep1",'S',b->deep1.V); fi("wet2",'S',b->wet2.V); fi("deep2",'S',b->deep2.V);
+    fd("U",'S',b->U.data()); fd("V",'S',b->V.data()); fd("W",'S',b->W.data()); fd("UH",'S',b->UH.data()); fd("VH",'S',b->VH.data());
+    fd("WH",'S',b->WH.data()); fd("UA",'S',b->UA.data()); fd("VA",'S',b->VA.data()); fd("MX",'S',b->MX.data());
+    fd("MY",'S',b->MY.data()); fd("Fx",'S',b->Fx.data()); fd("Fs",'S',b->Fs.data()); fd("Fn",'S',b->Fn.data());
+    fd("FEx",'S',b->FEx.data()); fd("Fy",'S',b->Fy.data()); fd("Fe",'S',b->Fe.data()); fd("Fw",'S',b->Fw.data());
+    fd("FEy",'S',b->FEy.data()); fd("Ss",'S',b->Ss.data()); fd("Sn",'S',b->Sn.data()); fd("SSx",'S',b->SSx.data());
+    fd("Se",'S',b->Se.data()); fd("Sw",'S',b->Sw.data()); fd("SSy",'S',b->SSy.data()); fd("Un",'S',b->Un.data());
+    fd("Us",'S',b->Us.data()); fd("Ue",'S',b->Ue.data()); fd("Uw",'S',b->Uw.data()); fd("Vn",'S',b->Vn.data());
+    fd("Vs",'S',b->Vs.data()); fd("Ve",'S',b->Ve.data()); fd("Vw",'S',b->Vw.data()); fd("Wn",'S',b->Wn.data());
+    fd("Ws",'S',b->Ws.data()); fd("We",'S',b->We.data()); fd("Ww",'S',b->Ww.data()); fd("UHn",'S',b->UHn.data());
+    fd("UHs",'S',b->UHs.data()); fd("UHe",'S',b->UHe.data()); fd("UHw",'S',b->UHw.data()); fd("VHn",'S',b->VHn.data());
+    fd("VHs",'S',b->VHs.data()); fd("VHe",'S',b->VHe.data()); fd("VHw",'S',b->VHw.data()); fd("WHn",'S',b->WHn.data());
+    fd("WHs",'S',b->WHs.data()); fd("WHe",'S',b->WHe.data()); fd("WHw",'S',b->WHw.data()); fd("QUn",'S',b->QUn.data());
+    fd("QUs",'S',b->QUs.data()); fd("QUe",'S',b->QUe.data()); fd("QUw",'S',b->QUw.data()); fd("QVn",'S',b->QVn.data());
+    fd("QVs",'S',b->QVs.data()); fd("QVe",'S',b->QVe.data()); fd("QVw",'S',b->QVw.data()); fd("ETAs",'S',b->ETAs.data());
+    fd("ETAn",'S',b->ETAn.data()); fd("ETAe",'S',b->ETAe.data()); fd("ETAw",'S',b->ETAw.data()); fd("Ds",'S',b->Ds.data());
+    fd("Dn",'S',b->Dn.data()); fd("De",'S',b->De.data()); fd("Dw",'S',b->Dw.data()); fd("dfx",'S',b->dfx.data());
+    fd("dfy",'S',b->dfy.data()); fd("WL",'S',b->WL.data()); fd("eta",'S',b->eta.data()); fd("eta_n",'S',b->eta_n.data());
+    fd("P",'S',b->P.data()); fd("Pn",'S',b->Pn.data()); fd("F",'S',b->F.data()); fd("Q",'S',b->Q.data()); fd("Qn",'S',b->Qn.data());
+    fd("G",'S',b->G.data()); fd("H",'S',b->H.data()); fd("L",'S',b->L.data()); fd("Fext",'S',b->Fext.data());
+    fd("Gext",'S',b->Gext.data()); fd("Hext",'S',b->Hext.data()); fd("ws",'S',b->ws.data()); fd("press",'S',b->press.data());
+    fd("eddyv",'S',b->eddyv.data()); fd("kin",'S',b->kin.data()); fd("eps",'S',b->eps.data()); fd("hx",'S',b->hx.data());
+    fd("hy",'S',b->hy.data()); fd("hp",'S',b->hp.data()); fd("dpx",'S',b->dpx.data()); fd("dpy",'S',b->dpy.data());
+    fd("test",'S',b->test.data()); fd("Hs",'S',b->Hs.data()); fd("fs",'S',b->fs.data()); fd("fx",'S',b->fx.data());
+    fd("fy",'S',b->fy.data()); fd("fz",'S',b->fz.data()); fd("bed",'S',b->bed.data()); fd("bed0",'S',b->bed0.data());
+    fd("depth",'S',b->depth.data()); fd("solidbed",'S',b->solidbed.data()); fd("topobed",'S',b->topobed.data());
+    fd("bednode",'S',b->bednode.data()); fd("breaking_print",'S',b->breaking_print.data()); fd("ks",'S',b->ks.data());
+    fi("breaking",'S',b->breaking.data()); fi("wet1",'S',b->wet1.data());
+    fi("deep1",'S',b->deep1.data()); fi("wet2",'S',b->wet2.data()); fi("deep2",'S',b->deep2.data());
 
     // the wet/dry flags of the lexer
     fi("wet",'S',p->wet); fi("lwet_n",'S',p->wet_n); fi("deep",'S',p->deep);
