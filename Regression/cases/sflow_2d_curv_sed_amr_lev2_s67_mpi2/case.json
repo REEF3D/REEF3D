@@ -1,0 +1,10 @@
+{
+ "base": "sflow_2d_curv_sed_amr_lev2_mpi2",
+ "ctrl_set": {
+  "S 67": "400.0"
+ },
+ "description": "sflow_2d_curv_sed_amr_lev2_mpi2 with S 67 400 (no bed load below 0.2 m of water, full from 0.4 m; the water is 0.14-0.26 m deep): S 67 on the mesh refinement path, every grid scales its own qbe (sediment_amr.cpp amr_physics_sflow), two levels, two ranks.",
+ "covers": [
+  "sediment_f::shallow_bedload in sediment_f::amr_physics_sflow (mesh refinement and multi-block grids)"
+ ]
+}

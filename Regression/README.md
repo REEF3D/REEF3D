@@ -567,6 +567,7 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `nhflow_3d_curv_sed_river_rot30_mpi2` | 2 | the river with NHFLOW (hydrostatic, fixed dt) turned by 30 deg at UTM coordinates on two ranks: P, Q and the bed gradient across the partition, the slide on several ranks |
 | `nhflow_3d_curv_sed_amr_adaptive` | 1 | sediment on the NHFLOW mesh refinement (turned grid, patches following the surface, regrid every 4 steps, sand slide): flux matching of the Exner fluxes, one dtsed, qb restriction and fill, the filter and the slide over all grids (reefamr_sed.h), the water level of the cells around the patches after a bed update |
 | `sflow_2d_curv_sed_amr_lev2_mpi2` | 2 | sediment on the SFLOW mesh refinement: two levels in a static box on the turned grid, two ranks (remote fills of qb and the bed, remote flux matching) |
+| `sflow_2d_curv_sed_amr_lev2_s67_mpi2` | 2 | `sflow_2d_curv_sed_amr_lev2_mpi2` with S 67 400 (bed load from 0.2 m of water, full from 0.4 m, the water is 0.14-0.26 m deep): S 67 on the mesh refinement path (`sediment_f::amr_physics_sflow`) |
 | `nhflow_3d_mb_sed_amr` | 1 | sediment on the NHFLOW multi-block grid (the four turned quadrants, steep bump, filter and sand slide, one level over the vertex): interfaces of the blocks and of the patches open for the filter and the slide; the same bed as one block |
 | `sflow_2d_mb_sed_mpi2` | 2 | the quadrants with SFLOW and the weighted multi-direction slide (S 90 4) on two ranks: remote fills and the reverse exchange of the slid material (xrun_rev) |
 | `fnpf_3d_amr_basin` (+ `_mpi2`, `_place2`) | 1/2 | FNPF AMR waves through a static box (composite Laplace); `_place2` G 40 2: remote parents in the FAC preconditioner |
@@ -948,6 +949,8 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `hydro_catchment_reservoir`, `_release` | 1 | reservoir (R 110 1, `hydro_reservoir.dat`): a level pool of 5000 m2 with a weir in cell 10 of the chain, at the crest / 0.2 m below with a release series; `REEF3D-HYDRO-Reservoirs.dat` as text (validation 09: the level to 1e-10 m of an independent implicit solve) |
 | `sflow_2d_hydro_valley_banks_si` | 1 | REEF3D::HYDRO rain-on-grid (36 mm/h) and a point source of 1 m3/s on a valley of 1000 m x 100 m (10 m cells, side slopes 5 %, channel slope 1 %, free outfall), semi-implicit, 500 steps: the channel level lies below the bed of the banks; the face predictor weights the two cells by their water above the higher bed of the face (`sflow_momentum_SI::face_weights`, patch HYDRO/0009). Before 0009 the channel pushed half its momentum through the thin bank faces and the outlet surged by +-1 m3/s on 2 m3/s (validation/10_sflow_surges) |
 | `sflow_2d_hydro_valley_banks_mpi2` | 2 | the same on 2 ranks: the face weights from eta of the ghost cells at the rank boundary |
+| `sflow_2d_sed_steep_valley_s67` | 1 | SFLOW bed load (MPM, d50 0.3 m) in a steep valley: 200 m x 60 m, 2 m cells, slope 10 %, side slopes 0.4 beside a 6 m channel, 150 m3/s and 30 mm/h of rain on the dry valley, semi-implicit, 1500 steps; S 67 1: no bed load below 1 d50 of water, full from 2 d50 (`sediment_f::shallow_bedload`, patch HYDRO/0010). Without S 67 the bed runs away: -8 .. +15 m at 160 s (1500 steps), -115 .. +65 m at 270 s; validation/13_sflow_steep_bedload) |
+| `sflow_2d_sed_steep_valley_s67_mpi2` | 2 | the same on 2 ranks |
 | `cfd_2d_soil_stress_s217` | 1 | soil stress model S 200 1 (quasi-static Biot u-p, `soil_stress`): periodic box 2.8 m, 0.5 m of fine sand below a fixed bed (S 10 1, S 57 0), still water above, the bed pressure prescribed as a progressive wave 707 cos(kx - wt) Pa (S 217); MINRES with the Cholesky block preconditioner, BDF2, soil probes S 216 (p, u, liquefaction potential) (needs Soil Stress patch 0001) |
 | `cfd_2d_soil_stress_s217_mpi2` | 2 | the same on 2 ranks: the halo of the soil model, the parallel periodic direction, the column communicator of the liquefaction potential |
 | `cfd_3d_soil_stress_s217` | 1 | the same in 3D (3 cells in y, roller side walls S 211 1): uy and the xy, yz shear edges; uniform in y |
@@ -992,6 +995,9 @@ run `./regression.py run ... --cases <new>`, check it, then `bless`.
   `_amr_source_si`, `_amr_source_mpi2`, `_curv_amr_si`, `_curv_amr_wet_si`, `_mb_quadrants_si`, `_raster_si`, `_source_si`,
   `_source_mpi2`; new `sflow_2d_hydro_valley_banks_si`, `_mpi2`. All other cases (`sflow_*`, `hydro_*`) A/B bitwise; the
   restarts bitwise to their full runs (`regression.py ranks`).
+- Patch HYDRO/0010 (S 67, no SFLOW bed load in water shallower than the grains, default off): new
+  `sflow_2d_sed_steep_valley_s67`, `_mpi2`, `sflow_2d_curv_sed_amr_lev2_s67_mpi2`, blessed with ab6042d1b + 0010.
+  A/B of ab6042d1b against ab6042d1b + 0010 (the 133 `*sed*`, `*bedload*`, `*topo*`, `hydro_*`, `sflow_*mpi2` cases): all bitwise identical.
 - The HDC cases (`*_hdc*`) need DIVEMesh 95ae3a4 or later (state file names in
   `hdc_filename_in.cpp`); `nhflow_2d_hdc_nhflow` also needs the pressure skip in
   `hdc_read_nhflow.cpp` (NHFLOW state files with the default P 44 1).
