@@ -31,7 +31,7 @@ class field;
 
 using namespace std;
 
-class kepsilon_bc : public increment, public roughness
+class kepsilon_bc : public roughness
 {
 public:
 	kepsilon_bc(lexer*);

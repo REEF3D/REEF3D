@@ -36,6 +36,7 @@ using namespace std;
 class mooring
 {
 public:
+    virtual ~mooring() = default;
 
 	virtual void start(lexer*, ghostcell*)=0;
 	virtual void initialize(lexer*, ghostcell*)=0;	

@@ -37,7 +37,6 @@ class reini
 public:
     virtual ~reini() = default;
 
-
 	virtual void start(fdm*,lexer*,field&,ghostcell*,ioflow*)=0;
 };
 

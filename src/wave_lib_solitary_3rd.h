@@ -30,8 +30,7 @@ Author: Hans Bihs
 
 using namespace std;
 
-class wave_lib_solitary_3rd final : public wave_lib_precalc, public wave_lib_parameters, public wave_lib_elliptic,
-                              public increment
+class wave_lib_solitary_3rd final : public wave_lib_precalc, public wave_lib_parameters, public wave_lib_elliptic
 {
 public:
     int wave_lexer_fields() const override {return 0;}

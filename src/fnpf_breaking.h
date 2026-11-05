@@ -48,7 +48,7 @@ public:
 	fnpf_breaking(lexer*, fdm_fnpf*, ghostcell*);
 	virtual ~fnpf_breaking();
     
-    void breaking(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&,slice&,double);
+    void breaking(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&,slice&,double) override;
     
     void breaking_baquet_wd(lexer*,fdm_fnpf*,ghostcell*,slice&,slice&,slice&,double);
     

@@ -37,7 +37,7 @@ class nhflow_reinidisc_fsf;
 
 using namespace std;
 
-class nhflow_geometry : public increment, private vtp3D
+class nhflow_geometry : public increment, protected vtp3D
 {
 public:
 	nhflow_geometry(lexer*, fdm_nhf*, ghostcell*);

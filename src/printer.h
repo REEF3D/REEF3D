@@ -45,6 +45,8 @@ class amr_column_lookup;
 class printer
 {
 public:
+    virtual ~printer() = default;
+
     // checkpoints (P 48, I 45): the counters of the outputs (file numbers, print windows)
     virtual void ckpt_state(std::vector<double>&) {};
     virtual void ckpt_restore(const std::vector<double>&) {};
