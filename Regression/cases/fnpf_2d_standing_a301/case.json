@@ -1,5 +1,5 @@
 {
- "description": "FNPF closed tank (walls at both ends), kh 1: linear standing wave initial condition A 301 (eta = a cos(2 pi x/L) at rest, Fi = 0), RK3 at 20 steps per period.",
+ "description": "FNPF closed tank (walls at both ends), kh 1, without wave generation (B 90 0: still-water depth from F 60): linear standing wave initial condition A 301 (eta = a cos(2 pi x/L) at rest, Fi = 0), RK3 at 20 steps per period with a fixed step (N 48 0, also the first step).",
  "solver": "fnpf",
  "np": 1,
  "steps": 40,
@@ -10,6 +10,8 @@
   "waves"
  ],
  "covers": [
-  "driver_ini_fnpf A 301"
+  "driver_ini_fnpf A 301",
+  "driver_logic_fnpf wd without iowave",
+  "fnpf_timestep::ini N 48 0"
  ]
 }

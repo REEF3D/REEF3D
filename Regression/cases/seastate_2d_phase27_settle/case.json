@@ -1,0 +1,18 @@
+{
+ "base": "seastate_2d_phase26_mp_komen_dt900",
+ "ctrl_set": {
+  "A 707": "10"
+ },
+ "ctrl_add": [
+  "A 779 0.003"
+ ],
+ "description": "seastate_2d_phase26_mp_komen_dt900 (Komen, A 769 2, growth from rest, 16 steps of 900 s) with the iterations of a step until the largest relative change of Hs is below 0.003 (A 779, Phase 27), at most 10 (A 707): many iterations while the sea grows, few at its steady state; the iterations of every step in REEF3D_SEASTATE_Log/REEF3D_SEASTATE_convergence.dat. Validation in Dropbox SEASTATE/validation/83_settle.",
+ "tags": [
+  "quick",
+  "2d",
+  "seastate"
+ ],
+ "covers": [
+  "seastate_f::transport: the convergence within a nonstationary step (A 779)"
+ ]
+}
