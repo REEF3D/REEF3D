@@ -693,6 +693,15 @@ void driver::logic_cfd()
     mom_rk=true;
     }
 
+    // N 54 (gravity out of the acceleration term of the time step) is in the Runge-Kutta momentum
+    if(p->N54>0.0 && !mom_rk)
+    {
+        if(p->mpirank==0)
+        cout<<"N 54 needs the Runge-Kutta momentum (N 40 2, 3, 4, 12, 13, 22, 23, 24, 33, 44, F 80 not 4): the time step with gravity (N 54 0)"<<endl;
+
+        p->N54=0.0;
+    }
+
     // the point-implicit VRANS resistance (B 268 1) is in momentum_rk, explicit for the other schemes
     if(!mom_rk && p->B268==1)
     {

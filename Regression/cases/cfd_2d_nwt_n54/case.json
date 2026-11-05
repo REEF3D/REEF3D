@@ -1,0 +1,19 @@
+{
+ "base": "cfd_2d_nwt",
+ "np": 1,
+ "steps": 100,
+ "ctrl_add": [
+  "N 54 1.0"
+ ],
+ "description": "cfd_2d_nwt with gravity out of the acceleration term of the time step and the gravity-wave limit omega dt <= 1, omega = sqrt(pi g / dx) (N 54 1): 2.5 times fewer steps than cfd_2d_nwt; over 20 s the gauges within 1.6 % of the wave height of N 54 0 (validation 72).",
+ "tags": [
+  "quick",
+  "2d",
+  "waves",
+  "levelset"
+ ],
+ "covers": [
+  "momentum_rk::rhs: the acceleration term without gravity (N 54)",
+  "ietimestep: the gravity-wave limit (cfd_gravitywave_dt)"
+ ]
+}

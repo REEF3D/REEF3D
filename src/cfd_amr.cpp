@@ -22,6 +22,7 @@ Architect: Hans Bihs
 
 #include<cstring>
 #include"cfd_amr.h"
+#include"cfd_gravitywave_dt.h"
 #include"reef3d_mpmd.h"
 #include"patchBC_codes.h"
 #include"lexer.h"
@@ -1502,6 +1503,8 @@ void cfd_amr::timestep(lexer *p, fdm *a, ghostcell *pgc)
     const double dt0 = p->dt;
     double lim[11] = {1.0e10,0,0,0,0,0,0,0,0,0,0};
     double cvel = 1.0e10;
+    // N 54: the gravity-wave limit of the patches (the acceleration term is without gravity)
+    double dtg = 1.0e10;
 
     for(int id=0; id<npat; ++id)
     {
@@ -1545,7 +1548,7 @@ void cfd_amr::timestep(lexer *p, fdm *a, ghostcell *pgc)
         if(p->count==0)
         vel = MAX(vel,sqrt(2.0*sqrt(p->W20*p->W20+p->W21*p->W21+p->W22*p->W22)*(p->zcoormax-p->zcoormin)));
 
-        double dxm = 1.0e10;
+        double dxm = 1.0e10, dxg = 1.0e10;
         for(int i=0; i<pp->knox; ++i)
         for(int j=0; j<pp->knoy; ++j)
         for(int k=0; k<pp->knoz; ++k)
@@ -1554,6 +1557,7 @@ void cfd_amr::timestep(lexer *p, fdm *a, ghostcell *pgc)
             continue;
             const double dx = MIN3(pp->DXN[i+marge],pp->DYN[j+marge],pp->DZN[k+marge]);
             dxm = MIN(dxm,dx);
+            dxg = MIN(dxg,(pp->j_dir==1) ? dx : MIN(pp->DXN[i+marge],pp->DZN[k+marge]));
             if(p->N50==2)
             {
                 cp = MIN(cp,2.0/(umax/pp->DXN[i+marge] + sqrt(4.0*fabs(fa->maxF)/pp->DXN[i+marge])));
@@ -1569,6 +1573,9 @@ void cfd_amr::timestep(lexer *p, fdm *a, ghostcell *pgc)
         if(sub)
         cp *= double(1<<c->lev);
         cu = MIN(cu,cp);
+
+        if(p->N54>0.0)
+        dtg = MIN(dtg,cfd_gravitywave_dt(p->N54,p->W20,p->W21,p->W22,dxg)*(sub ? double(1<<c->lev) : 1.0));
 
         // (P 8) the terms of the patch
         if(dxm<1.0e9)
@@ -1593,6 +1600,8 @@ void cfd_amr::timestep(lexer *p, fdm *a, ghostcell *pgc)
     double g = -cu;
     MPI_Allreduce(MPI_IN_PLACE,&g,1,MPI_DOUBLE,MPI_MAX,reef3d_comm());
     cu = -g;
+    if(p->N54>0.0)
+    MPI_Allreduce(MPI_IN_PLACE,&dtg,1,MPI_DOUBLE,MPI_MIN,reef3d_comm());
 
     // (P 8) the limiting patch of all ranks, and what limits the step: level 0, or the velocity or
     // the acceleration term of a patch (|F|: the explicit acceleration of the momentum step, gravity
@@ -1607,23 +1616,33 @@ void cfd_amr::timestep(lexer *p, fdm *a, ghostcell *pgc)
         if(p->count>0 && lim[0]<1.0e9)
         {
             ++dtl_n;
-            if(dt0<=dtp)
+            if(dtg<MIN(dt0,dtp))
+            ++dtl_gw;
+            else if(dt0<=dtp)
             ++dtl_l0;
             else if(lim[3]>lim[2])
             ++dtl_acc;
-            dtl_dt += MIN(dt0,dtp);
+            dtl_dt += MIN3(dt0,dtp,dtg);
             dtl_dtv += dtv;
         }
         if(myrank==0 && p->count%p->P12==0 && lim[0]<1.0e9)
         {
             const double gg = sqrt(p->W20*p->W20+p->W21*p->W21+p->W22*p->W22);
-            cout<<"CFD AMR: time step "<<setprecision(3)<<MIN(dt0,dtp)<<" s: level 0 allows "<<dt0<<", the patches "<<dtp
+            cout<<"CFD AMR: time step "<<setprecision(3)<<MIN3(dt0,dtp,dtg)<<" s: level 0 allows "<<dt0<<", the patches "<<dtp
                 <<"; the limiting patch level "<<int(lim[1])<<" at ("<<lim[7]<<", "<<lim[8]<<", "<<lim[9]<<"), dx "<<lim[6]
                 <<": |u|/dx "<<lim[2]<<" 1/s (|u| "<<lim[4]<<"), sqrt(4|F|/dx) "<<lim[3]<<" 1/s (|F| "<<lim[5]<<", g "<<gg<<")"
-                <<"; the velocity term alone would allow "<<dtv<<endl;
+                <<"; the velocity term alone would allow "<<dtv;
+            if(p->N54>0.0)
+            cout<<"; N 54: |F| without gravity, the gravity-wave limit of the patches allows "<<dtg;
+            cout<<endl;
             if(dtl_n>0)
+            {
             cout<<"CFD AMR: time step over "<<dtl_n<<" steps: set by level 0 in "<<dtl_l0<<", by the acceleration term of a patch in "<<dtl_acc
-                <<", by the velocity term in "<<dtl_n-dtl_l0-dtl_acc<<"; the velocity term alone would allow "<<dtl_dtv/dtl_dt<<" times the steps' sum"<<endl;
+                <<", by the velocity term in "<<dtl_n-dtl_l0-dtl_acc-dtl_gw;
+            if(p->N54>0.0)
+            cout<<", by the gravity-wave limit of a patch in "<<dtl_gw;
+            cout<<"; the velocity term alone would allow "<<dtl_dtv/dtl_dt<<" times the steps' sum"<<endl;
+            }
         }
     }
 
@@ -1694,6 +1713,7 @@ void cfd_amr::timestep(lexer *p, fdm *a, ghostcell *pgc)
     }
 
     p->dt = MIN(p->dt,p->N47*cu);
+    p->dt = MIN(p->dt,dtg);
 
     for(auto q : P)
     {

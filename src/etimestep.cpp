@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"etimestep.h"
+#include"cfd_gravitywave_dt.h"
 #include<iomanip>
 #include"lexer.h"
 #include"fdm.h"
@@ -190,6 +191,16 @@ void etimestep::start(fdm *a, lexer *p, ghostcell *pgc, turbulence *pturb)
 
 	p->dt=p->N47*cu;
    // p->dt = MIN(p->dt,10.0*p->dt_old);
+
+    // N 54: the gravity-wave limit (the acceleration term is without gravity then)
+    if(p->N54>0.0)
+    {
+    double dxg = 1.0e10;
+    LOOP
+    dxg = MIN(dxg, (p->j_dir==1) ? MIN3(p->DXN[IP],p->DYN[JP],p->DZN[KP]) : MIN(p->DXN[IP],p->DZN[KP]));
+    dxg = pgc->globalmin(dxg);
+    p->dt = MIN(p->dt, cfd_gravitywave_dt(p->N54,p->W20,p->W21,p->W22,dxg));
+    }
     
 	a->maxF=0.0;
 	a->maxG=0.0;

@@ -908,13 +908,20 @@ void momentum_rk::sources(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, int c
 }
 
 // gravity, external forces and the source terms collected in rhsvec, added to F, G, H
+// the acceleration term of the time step (maxF, maxG, maxH): the sources and gravity; with N 54 the
+// sources alone: gravity is balanced by the pressure of the projection (the gravity-wave limit of the
+// time step takes its place)
 void momentum_rk::rhs(lexer *p, fdm *a, int c)
 {
 	n=0;
+    const bool nog = (p->N54>0.0);
 
     if(c==0)
 	ULOOP
 	{
+    if(nog)
+    a->maxF=MAX(fabs(a->rhsvec.V[n]),a->maxF);
+    else
     a->maxF=MAX(fabs(a->rhsvec.V[n] + a->gi),a->maxF);
 	a->F(i,j,k) += (a->rhsvec.V[n] + a->gi + p->W29_x + a->Fext(i,j,k))*PORVAL1;
 
@@ -926,6 +933,9 @@ void momentum_rk::rhs(lexer *p, fdm *a, int c)
     if(c==1)
 	VLOOP
 	{
+    if(nog)
+    a->maxG=MAX(fabs(a->rhsvec.V[n]),a->maxG);
+    else
     a->maxG=MAX(fabs(a->rhsvec.V[n] + a->gj),a->maxG);
 	a->G(i,j,k) += (a->rhsvec.V[n] + a->gj + p->W29_y + a->Gext(i,j,k))*PORVAL2;
 
@@ -937,6 +947,9 @@ void momentum_rk::rhs(lexer *p, fdm *a, int c)
     if(c==2)
 	WLOOP
 	{
+    if(nog)
+    a->maxH=MAX(fabs(a->rhsvec.V[n]),a->maxH);
+    else
     a->maxH=MAX(fabs(a->rhsvec.V[n] + a->gk),a->maxH);
 	a->H(i,j,k) += (a->rhsvec.V[n] + a->gk + p->W29_z + a->Hext(i,j,k))*PORVAL3;
 

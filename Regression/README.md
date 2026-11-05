@@ -114,6 +114,7 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | case | np | what it exercises |
 |---|---|---|
 | `cfd_2d_nwt` | 1 | default N40=3 (FC3), relaxation waves, level set, implicit diffusion, gauges/probes |
+| `cfd_2d_nwt_n54` | 1 | gravity out of the acceleration term of the time step, the gravity-wave limit (N 54 1) |
 | `cfd_2d_relax_ramp_ls` | 1 | `cfd_2d_nwt` with level set RK3 (N40=13) and the start-up ramp B 101 1: the ramp acts on the wave elevation only (phi_relax, fixed in fe03b66a) |
 | `cfd_2d_relax_ramp_plic` | 1 | `cfd_2d_nwt` with PLIC VOF (F80=4) and the start-up ramp B 101 1: the ramp acts on the wave elevation only, not on the still water level of zone and beach (vof_relax, fe03b66a) |
 | `cfd_2d_nwt_rk3` / `_rk2` / `_fc2` / `_rkls3` | 1 | N40=13 / 12 / 2 / 44 momentum + level-set variants |
