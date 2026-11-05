@@ -1,0 +1,20 @@
+{
+ "base": "cfd_2d_dambreak_amr3_adapt",
+ "np": 1,
+ "steps": 60,
+ "ctrl_set": {
+  "N 40": "1"
+ },
+ "description": "cfd_2d_dambreak_amr3_adapt with the one-step scheme (N 40 1): cfd_amr::step with one stage, the momentum of all levels and the composite projection first, then the level set of all levels with the projected velocities.",
+ "tags": [
+  "quick",
+  "2d",
+  "dambreak",
+  "levelset",
+  "amr"
+ ],
+ "covers": [
+  "cfd_amr::step: the order of the one-step scheme (mom_block, ls_block, end_block)",
+  "godunov on the patches"
+ ]
+}
