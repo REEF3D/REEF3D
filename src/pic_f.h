@@ -58,6 +58,8 @@ public:
     void start(lexer*, fdm*, ghostcell*) override;
     void step_begin(lexer*, fdm*, ghostcell*) override;
     bool flip() const override { return flipmode; }
+    bool singlephase() const override { return single; }
+    void air_velocity(lexer*, fdm*, ghostcell*, field&, field&, field&) override;
     void mask_convection(lexer*, fdm*, int, const double*, field&) override;
 
 private:
@@ -99,8 +101,10 @@ private:
 
     // the velocity of the water, extended into the air (pic_f_extend.cpp; F 81 1, 2)
     void water_velocity(lexer*, fdm*, ghostcell*);
+    void extend(lexer*, fdm*, ghostcell*, field&, field&, int, int, bool);
+    bool ballistic(lexer*, fdm*, const pic_data&) const;
 
-    // the FLIP / PIC update of the particle velocities (pic_f_flip.cpp; F 81 2)
+    // the FLIP / PIC update of the particle velocities (pic_f_flip.cpp; F 81 1, 2)
     void g2p(lexer*, fdm*);
 
     // the redistribution of the particles (pic_f_redistribute.cpp; F 78, F 79)
@@ -133,8 +137,9 @@ private:
     int npd;                  // particles per cell and direction (F 83)
     int npc;                  // particles per cell
     bool surface;             // F 81 1, 2: the free surface (phi) from the particles; F 81 10: passive particles
-    bool flipmode;            // F 81 2: the momentum of the water from the particles
-    bool apic;                // F 81 2 with F 77 1, 2: affine velocities (Jiang et al. 2015)
+    bool flipmode;            // F 81 1, 2: the momentum of the water from the particles
+    bool single;              // F 81 1: single phase (PICIN), p = 0 at the surface, no air in the momentum
+    bool apic;                // F 81 1, 2 with F 77 1, 2: affine velocities (Jiang et al. 2015)
     bool relaxzones;          // the relaxation zones of the waves (B 90 with B 98 2, B 99 1, 2)
     std::vector<char> zcol;   // per cell column of the subdomain: in a relaxation zone
     bool inflowsrc;           // B 60: particles in the ghost cells of the inflow (x-min)

@@ -2692,6 +2692,7 @@
         <File Name="pic_f_phi.cpp"/>
         <File Name="pic_f_reseed.cpp"/>
         <File Name="pic_f_extend.cpp"/>
+        <File Name="pic_gfm.cpp"/>
         <File Name="pic_f_flip.cpp"/>
         <File Name="pic_f_redist.cpp"/>
         <File Name="pic_f_redistribute.cpp"/>

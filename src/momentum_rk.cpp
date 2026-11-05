@@ -946,11 +946,18 @@ void momentum_rk::rhs(lexer *p, fdm *a, int c)
 	}
 }
 
-// PIC (F 81 2): no convection on the faces in the water, the particles carry the momentum there
+// PIC (F 81 1, 2): no convection on the faces in the water, the particles carry the momentum there
 pic *momentum_rk::ppic = nullptr;
 
 void momentum_rk::convection_start(lexer *p, fdm *a, int c, field &f, field &U, field &V, field &W)
 {
+    // F 81 1 (single phase): no convection on the grid at all. The particles carry it on the faces
+    // next to the water (by the mean of phi, as for F 81 2, the faces from the water to the air
+    // got the convection with the extended velocities: 0.2 % more decay per period in the sloshing
+    // tank), and those in the air are extended from the water after the projection (pic_f::air_velocity)
+    if(ppic!=nullptr && ppic->singlephase())
+    return;
+
     if(ppic!=nullptr && ppic->flip())
     {
         field &F = FGH(a,c);
@@ -1000,6 +1007,10 @@ void momentum_rk::amr_project_after(lexer *p, fdm *a, ghostcell *pgc, field &u, 
 	pgc->start1(p,u,gcval_u);
 	pgc->start2(p,v,gcval_v);
 	pgc->start3(p,w,gcval_w);
+
+    // PIC single phase (F 81 1): the faces in the air from the water
+    if(ppic!=nullptr && ppic->singlephase())
+    ppic->air_velocity(p,a,pgc,u,v,w);
 }
 
 // ---------------------------------------------------------------------------------------------

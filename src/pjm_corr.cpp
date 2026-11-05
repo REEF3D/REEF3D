@@ -21,6 +21,7 @@ Author: Hans Bihs
 --------------------------------------------------------------------*/
 
 #include"pjm_corr.h"
+#include"pic_gfm.h"
 #include"lexer.h"
 #include"fdm.h" 
 #include"ghostcell.h"
@@ -132,6 +133,9 @@ void pjm_corr::amr_finish(lexer *p, fdm *a, ghostcell *pgc, field &uvel, field &
 {
     pgc->start4(p,pcorr,gcval_press);
     presscorr(p,a,uvel,vvel,wvel,pcorr,alpha);
+
+    // PIC single phase (F 81 1): the pressure is 0 at the free surface, no reference
+    if(p->F81!=1)
     reference_start(p,a,pgc);
 	pgc->start4(p,a->press,gcval_press);
     
@@ -141,14 +145,30 @@ void pjm_corr::amr_finish(lexer *p, fdm *a, ghostcell *pgc, field &uvel, field &
 }
 
 void pjm_corr::ucorr(lexer* p, fdm* a, field& uvel,double alpha)
-{	
+{
+    // PIC single phase (F 81 1): the gradient of the ghost fluid method at the free surface
+    if(p->F81==1)
+    {
+    ULOOP
+	uvel(i,j,k) -= alpha*p->dt*CPOR1*PORVAL1*pic_gfm_grad(p,a,pcorr,i,j,k,1,0,0,p->DXP[IP])/pd->roface(p,a,1,0,0);
+    return;
+    }
+
 	ULOOP
 	uvel(i,j,k) -= alpha*p->dt*CPOR1*PORVAL1*((pcorr(i+1,j,k)-pcorr(i,j,k))
 	/(p->DXP[IP]*pd->roface(p,a,1,0,0)));
 }
 
 void pjm_corr::vcorr(lexer* p, fdm* a, field& vvel,double alpha)
-{	
+{
+    if(p->F81==1)
+    {
+    if(p->j_dir==1)
+    VLOOP
+	vvel(i,j,k) -= alpha*p->dt*CPOR2*PORVAL2*pic_gfm_grad(p,a,pcorr,i,j,k,0,1,0,p->DYP[JP])/pd->roface(p,a,0,1,0);
+    return;
+    }
+
     if(p->j_dir==1)
 	VLOOP
 	vvel(i,j,k) -= alpha*p->dt*CPOR2*PORVAL2*((pcorr(i,j+1,k)-pcorr(i,j,k))
@@ -156,7 +176,14 @@ void pjm_corr::vcorr(lexer* p, fdm* a, field& vvel,double alpha)
 }
 
 void pjm_corr::wcorr(lexer* p, fdm* a, field& wvel,double alpha)
-{	
+{
+    if(p->F81==1)
+    {
+    WLOOP
+	wvel(i,j,k) -= alpha*p->dt*CPOR3*PORVAL3*pic_gfm_grad(p,a,pcorr,i,j,k,0,0,1,p->DZP[KP])/pd->roface(p,a,0,0,1);
+    return;
+    }
+
 	WLOOP
 	wvel(i,j,k) -= alpha*p->dt*CPOR3*PORVAL3*((pcorr(i,j,k+1)-pcorr(i,j,k))
 	/(p->DZP[KP]*pd->roface(p,a,0,0,1)));
@@ -164,6 +191,15 @@ void pjm_corr::wcorr(lexer* p, fdm* a, field& wvel,double alpha)
 
 void pjm_corr::presscorr(lexer* p, fdm* a, field& uvel, field& vvel, field& wvel, field& pcorr, double alpha)
 {
+    // PIC single phase (F 81 1): 0 in the air (the gradients of the ghost fluid method do not use
+    // the pressure there, pic_gfm_grad)
+    if(p->F81==1)
+    {
+    LOOP
+    a->press(i,j,k) = a->phi(i,j,k)>=0.0 ? a->press(i,j,k) + pcorr(i,j,k) : 0.0;
+    return;
+    }
+
     LOOP
     a->press(i,j,k) += pcorr(i,j,k); 
 }
@@ -215,12 +251,31 @@ void pjm_corr::vel_setup(lexer *p, fdm* a, ghostcell *pgc, field &u, field &v, f
 
 void pjm_corr::upgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
 {
+    // PIC single phase (F 81 1): the gradient of the ghost fluid method at the free surface, as in
+    // the correction (pjm_corr::ucorr), so that the pressure is 0 at the surface after it
+    if(p->F81==1)
+    {
+    ULOOP
+    a->F(i,j,k) -= PORVAL1*pic_gfm_grad(p,a,a->press,i,j,k,1,0,0,p->DXP[IP])/pd->roface(p,a,1,0,0);
+    return;
+    }
+
     ULOOP
     a->F(i,j,k) -= PORVAL1*(a->press(i+1,j,k)-a->press(i,j,k))/(p->DXP[IP]*pd->roface(p,a,1,0,0));
 }
 
 void pjm_corr::vpgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
 {
+    // PIC single phase (F 81 1): the gradient of the ghost fluid method at the free surface, as in
+    // the correction (pjm_corr::vcorr), so that the pressure is 0 at the surface after it
+    if(p->F81==1)
+    {
+    if(p->j_dir==1)
+    VLOOP
+    a->G(i,j,k) -= PORVAL2*pic_gfm_grad(p,a,a->press,i,j,k,0,1,0,p->DYP[JP])/pd->roface(p,a,0,1,0);
+    return;
+    }
+
     if(p->j_dir==1)
     VLOOP
     a->G(i,j,k) -= PORVAL2*(a->press(i,j+1,k)-a->press(i,j,k))/(p->DYP[JP]*pd->roface(p,a,0,1,0));
@@ -228,6 +283,15 @@ void pjm_corr::vpgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
 
 void pjm_corr::wpgrad(lexer*p,fdm* a, slice &eta, slice &eta_n)
 {
+    // PIC single phase (F 81 1): the gradient of the ghost fluid method at the free surface, as in
+    // the correction (pjm_corr::wcorr), so that the pressure is 0 at the surface after it
+    if(p->F81==1)
+    {
+    WLOOP
+    a->H(i,j,k) -= PORVAL3*pic_gfm_grad(p,a,a->press,i,j,k,0,0,1,p->DZP[KP])/pd->roface(p,a,0,0,1);
+    return;
+    }
+
     WLOOP
     a->H(i,j,k) -= PORVAL3*(a->press(i,j,k+1)-a->press(i,j,k))/(p->DZP[KP]*pd->roface(p,a,0,0,1));
 }

@@ -745,10 +745,10 @@ void control::ini_default()
 	F71=0;             // int number of phi 2 ini boxes
 	F72=0;             // int number of phi 1 ini regions
 	F80=0;             // int time scheme VOF
-    F81=0;             // int PIC free surface flow: 1 single-phase, 2 water particles with Eulerian air (phase 1: phi from the particles), 10 passive particles
-    F82=0.96;          // double PIC FLIP share of the particle velocity update (F 81 2), 1 - F82 PIC
+    F81=0;             // int PIC free surface flow: 1 single phase (water particles, p = 0 at the surface), 2 water particles with Eulerian air, 10 passive particles
+    F82=0.96;          // double PIC FLIP share of the particle velocity update (F 81 1, 2), 1 - F82 PIC
     F83=2;             // int PIC particles per cell and direction
-    F77=1;             // int PIC velocity transfer (F 81 2): 0 FLIP/PIC (F 82), 1 APIC, 2 FLIP/PIC (F 82) with the affine velocities of APIC
+    F77=1;             // int PIC velocity transfer (F 81 1, 2): 0 FLIP/PIC (F 82), 1 APIC, 2 FLIP/PIC (F 82) with the affine velocities of APIC
     F78=30;            // int PIC redistribution of the particles every F78 steps (0: off)
     F86=1;             // int PIC particles kept in the water every F86 steps (0: off)
     F87=-1.0;          // double PIC output interval in seconds; <= 0: with the CFD output (P 30, P 20)

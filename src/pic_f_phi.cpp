@@ -407,5 +407,18 @@ void pic_f::phi_build(lexer *p, fdm *a, ghostcell *pgc)
     // density and viscosity
     pupdate->start(p,a,pgc,a->u,a->v,a->w);
 
+    // F 81 1, single phase: those of the water everywhere (the air is not in the momentum; the
+    // pressure is 0 at the surface, pic_gfm.cpp)
+    if(single)
+    {
+        const int size = p->imax*p->jmax*p->kmax;
+
+        for(int n=0; n<size; ++n)
+        {
+        a->ro.V[n] = p->W1;
+        a->visc.V[n] = p->W2;
+        }
+    }
+
     phitime += pgc->timer() - starttime;
 }
