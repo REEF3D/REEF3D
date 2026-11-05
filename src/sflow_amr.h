@@ -362,6 +362,11 @@ private:
     double si_interp(lexer*, fdm2D*, slice&, int, int, int, int);
     void si_hooks(bool);
     void si_match(int);                 // 0: q^E, q^n before the right-hand sides; 1: q after the face update
+    // A 220 2/3 (sflow_amr_si.cpp): the coupled eta-P system over the leaf cells of all grids (FGMRES, the
+    // preconditioner of every grid on its own cells, the covered cells with the mean residual of their children)
+    void si_nh_solve(lexer*, ghostcell*, rsi_result&);
+    void si_nh_quad(const std::function<slice&(int)> &F, bool wetonly);   // quadratic prolongation into the cells around the patches
+    void si_nh_qrestrict();            // the face discharges of the covered coarse faces: the mean of the fine faces
     void si_timestep(lexer*, ghostcell*);
     void si_log(lexer*, ghostcell*);
     static sflow_amr_patch* SP(reefamr_patch *c) { return static_cast<sflow_amr_patch*>(c); }

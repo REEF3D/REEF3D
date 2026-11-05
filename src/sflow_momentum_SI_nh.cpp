@@ -63,7 +63,10 @@ Author: Hans Bihs
 // NHFLOW A 550 4, sflow_breaking_kb; A 246 2: A 250) through the implicit diffusion of the predictor.
 // Time step (sflow_timestep_SI): the advective limit is halved (WH with AB2), it acts in run-down and bores.
 //
-// Limits (check()): one grid, Cartesian. Non-hydrostatic cells: wet,
+// Mesh refinement (G 1, static or adaptive, not with subcycling G 7 1): the composite coupled system over the leaf
+// cells of all grids, sflow_amr::si_nh_solve (sflow_amr_sinh.cpp) with the parts of sflow_momentum_SI_nh_amr.cpp.
+//
+// Limits (check()): Cartesian, no multi-block grid. Non-hydrostatic cells: wet,
 // deeper than 10 A 244, not next to the shoreline (p->deep), wet neighbours; P = 0 elsewhere. Open boundary faces carry no pressure term.
 // ---------------------------------------------------------------------------
 
@@ -82,84 +85,7 @@ Author: Hans Bihs
 #include<memory>
 #include<algorithm>
 
-// work space of the coupled solve: band LU, FGMRES vectors, the face map of the open boundaries
-struct sflow_si_nh_lu
-{
-    // band LU (row-major, each row holds the columns r-kl .. r+ku+kl)
-    int n=0, kl=5, ku=5, W=0;
-    std::vector<double> AB;
-    std::vector<int> piv;
-
-    double& at(int r, int c) { return AB[(size_t)r*W + (c - r + kl)]; }
-
-    void resize(int nn) { n=nn; W=2*kl+ku+1; AB.assign((size_t)n*W,0.0); piv.assign(n,0); }
-
-    bool factor()
-    {
-        for(int k=0; k<n; ++k)
-        {
-            int pr=k; double pm=fabs(at(k,k));
-            for(int r=k+1; r<=std::min(n-1,k+kl); ++r)
-            if(fabs(at(r,k))>pm) { pm=fabs(at(r,k)); pr=r; }
-
-            if(pm==0.0)
-            return false;
-
-            piv[k]=pr;
-            const int cmax = std::min(n-1,k+ku+kl);
-
-            if(pr!=k)
-            for(int c=k; c<=cmax; ++c)
-            std::swap(at(k,c),at(pr,c));
-
-            const double d = at(k,k);
-
-            for(int r=k+1; r<=std::min(n-1,k+kl); ++r)
-            {
-                const double l = at(r,k)/d;
-                at(r,k) = l;
-
-                if(l!=0.0)
-                for(int c=k+1; c<=cmax; ++c)
-                at(r,c) -= l*at(k,c);
-            }
-        }
-        return true;
-    }
-
-    void solve(std::vector<double> &x)
-    {
-        for(int k=0; k<n; ++k)
-        {
-            if(piv[k]!=k)
-            std::swap(x[k],x[piv[k]]);
-
-            for(int r=k+1; r<=std::min(n-1,k+kl); ++r)
-            x[r] -= at(r,k)*x[k];
-        }
-
-        for(int k=n-1; k>=0; --k)
-        {
-            double s = x[k];
-            for(int c=k+1; c<=std::min(n-1,k+ku+kl); ++c)
-            s -= at(k,c)*x[c];
-            x[k] = s/at(k,k);
-        }
-    }
-
-    // FGMRES
-    std::vector<std::vector<double>> V, Z;
-    std::vector<double> H, cs, sn, g;
-
-    // open boundary face of x-face / y-face (i,j): index into bcf, -1 none
-    std::vector<int> bfx, bfy;
-    int nbcf=-1;
-
-    // preconditioner: M5 (the 5-point Schur operator) and A2 = I - div(rho grad) (the A 220 3 term), one V-cycle each
-    std::unique_ptr<reefmg2D> mg1, mg2;
-    std::unique_ptr<matrix2D> M1, M2;
-    std::unique_ptr<vec2D> r1, r2;
-};
+#include"sflow_momentum_SI_nh.h"
 
 void sflow_momentum_SI::nh_ini(lexer *p)
 {
@@ -425,11 +351,11 @@ void sflow_momentum_SI::nh_predictor(lexer *p, fdm2D *b, ghostcell *pgc)
     }
 }
 
-void sflow_momentum_SI::nh_solve(lexer *p, fdm2D *b, ghostcell *pgc)
+void sflow_momentum_SI::nh_assemble(lexer *p, fdm2D *b, ghostcell *pgc)
 {
-    // the coupled eta-P system, unknowns 2n (eta) and 2n+1 (P) of cell n (SLICELOOP4 order)
-    const double starttime_nh = pgc->timer();
-
+    // nA (non-hydrostatic cells), the face coefficients of the pressure terms (nxR ...), the slope of the constraint
+    // (nsx, nsy) and the face form of the discharges of the step (kxEL ...): the first part of nh_solve, also called
+    // per grid by the composite solve of the mesh refinement (sflow_amr::si_nh_solve)
     const double dt = p->dt;
     const double tdt = theta*dt;
     const bool yd = (p->j_dir==1);
@@ -526,8 +452,6 @@ void sflow_momentum_SI::nh_solve(lexer *p, fdm2D *b, ghostcell *pgc)
         }
     }
 
-    // ---- the operator: x (eta, P) -> y (mass row, constraint row); with c the affine terms
-    std::vector<double> xv(2*N), yv(2*N);
 
     // face coefficients of the discharge of the step: q = EL E_L + ER E_R + PL P_L + PR P_R + B (L_R - L_L)
     // + k1 (mode 1: the constants of the mass row; the q^E of the faces are in rhsW) + k2 (mode 2: all constants);
@@ -601,6 +525,32 @@ void sflow_momentum_SI::nh_solve(lexer *p, fdm2D *b, ghostcell *pgc)
     exchange1(p,pgc,kx1); exchange1(p,pgc,kx2);
     exchange2(p,pgc,kyEL); exchange2(p,pgc,kyER); exchange2(p,pgc,kyPL); exchange2(p,pgc,kyPR);
     exchange2(p,pgc,ky1); exchange2(p,pgc,ky2);
+
+}
+
+void sflow_momentum_SI::nh_solve(lexer *p, fdm2D *b, ghostcell *pgc)
+{
+    // the coupled eta-P system, unknowns 2n (eta) and 2n+1 (P) of cell n (SLICELOOP4 order)
+    const double starttime_nh = pgc->timer();
+
+    const double dt = p->dt;
+    const double tdt = theta*dt;
+    const bool yd = (p->j_dir==1);
+
+    auto id = [&](int a, int c) { return (a-p->imin)*p->jmax + (c-p->jmin); };
+    auto in = [&](int a, int c) { return p->flagslice4[id(a,c)]>0; };
+
+    nh_assemble(p,b,pgc);
+
+    auto &S = *nhlu;
+    auto ac = [&](int a, int c) { return in(a,c) && nA(a,c)>0.5; };
+
+    int N=0;
+    SLICELOOP4
+    ++N;
+
+    // ---- the operator: x (eta, P) -> y (mass row, constraint row); with c the affine terms
+    std::vector<double> xv(2*N), yv(2*N);
 
     const bool bd = (Bdisp>0.0);
 

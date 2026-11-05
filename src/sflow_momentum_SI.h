@@ -270,7 +270,26 @@ private:
     int nh_active(lexer*, fdm2D*, int, int);
     void nh_predictor(lexer*, fdm2D*, ghostcell*);
     void nh_solve(lexer*, fdm2D*, ghostcell*);
+    void nh_assemble(lexer*, fdm2D*, ghostcell*);    // nA, face and cell coefficients of the coupled system
     void nh_cell(lexer*, fdm2D*, ghostcell*);
+
+    // the coupled system on the grids of the mesh refinement (sflow_momentum_SI_nh_amr.cpp; sflow_amr::si_nh_solve
+    // runs the composite solve over the leaf cells of all grids): per grid the cell terms, the h^3 lap(eta) term and
+    // the face discharges of (nE, nP), the rows, the preconditioner of the grid and the face terms of the solution
+    //  nF1x/y: face discharges with the constants of the mass row, nF2x/y: with all constants (the constraint)
+    slice1 nF1x, nF2x;
+    slice2 nF1y, nF2y;
+    slice4 nH3, nW2, nCs, nRm, nRc, nZE, nZP;
+    bool nh_rb1 = true, nh_rb2 = true;     // the V-cycle hierarchies of the preconditioner: rebuilt after nh_amr_prec_setup
+    void nh_amr_cells(lexer*, fdm2D*);
+    void nh_amr_guess(lexer*, fdm2D*);
+    void nh_amr_lap(lexer*, ghostcell*);
+    void nh_amr_faces(lexer*, bool affine);
+    void nh_amr_row(lexer*, fdm2D*, int, int, bool affine, double &ym, double &yc);
+    void nh_amr_prec_setup(lexer*, ghostcell*, const std::function<bool(int,int)> &own);
+    void nh_amr_prec(lexer*, ghostcell*, const std::function<bool(int,int)> &own);
+    void nh_amr_finish(lexer*, fdm2D*, ghostcell*);
+    int nh_amr_wetdry(lexer*, fdm2D*, const std::function<bool(int,int)> &leaf);
 };
 
 #endif
