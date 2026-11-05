@@ -89,6 +89,8 @@ private:
     double *kapC;               // X 15 10: water fraction of the cells
     void solid_velocity(lexer*, fdm_nhf*, ghostcell*, double*, double*, double*, slice&);
     void stage_cut(lexer*, fdm_nhf*, ghostcell*, double, double*, double*, double*, slice&);
+    double cut_lam(lexer*, int, int, int) const;
+    double cut_zlink(lexer*, int, int, int) const;
     void loads_cut(lexer*, fdm_nhf*, slice&, const std::function<bool(double,double)>*, double*, double*);
     double hyst;                // hysteresis distance
     double Rn;                  // hydraulic resistance of the blocked links [m/s]

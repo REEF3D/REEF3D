@@ -974,6 +974,29 @@ static double cut_quad(double a, double b, double c, double d)
     return 0.25*(cut_tri(a,b,c) + cut_tri(a,c,d) + cut_tri(a,b,d) + cut_tri(b,c,d));
 }
 
+// the height of the horizontal wall part of cut cell (i,j,k) between its two nodes, as a fraction of the cell: the water
+// fraction below a wall above the water (more open at the bottom), one minus it above a wall below the water
+double nhflow_hullbody::cut_lam(lexer *p, int i, int j, int k) const
+{
+    const double a0 = tb->azn[IJK], a1 = k<p->knoz-1 ? tb->azn[IJKp1] : tb->atop_(i,j);
+    const double kap = MAX(MIN(kapC[IJK],1.0),0.0);
+    
+    return a0>a1+1.0e-6 ? kap : (a1>a0+1.0e-6 ? 1.0-kap : 0.5);
+}
+
+// the vertical link mobility of cut cell (i,j,k): (1 - lam) a_k+1 + lam a_k
+double nhflow_hullbody::cut_zlink(lexer *p, int i, int j, int k) const
+{
+    const double a0 = tb->azn[IJK], a1 = k<p->knoz-1 ? tb->azn[IJKp1] : tb->atop_(i,j);
+    
+    if(fabs(a0-a1)<=1.0e-6)
+    return 0.5*(a0+a1);
+    
+    const double lam = cut_lam(p,i,j,k);
+    
+    return (1.0-lam)*a1 + lam*a0;
+}
+
 void nhflow_hullbody::stage_cut(lexer *p, fdm_nhf *d, ghostcell *pgc, double alpha, double *UH, double *VH, double *WH, slice &WL)
 {
     const int ncell = p->imax*p->jmax*(p->kmax+2);
@@ -1213,7 +1236,12 @@ void nhflow_hullbody::stage_cut(lexer *p, fdm_nhf *d, ghostcell *pgc, double alp
         ++nbz;
         }
         
-        d->MBZ[IJK] = MAX(tb->azc[IJK], beta(p->DZN[KP]*WL(i,j)));
+        // the vertical link of the cell: its vertical pressure force as a finite volume, with the pressure on the
+        // horizontal wall part at the height of the wall between the two nodes, p_w = P_k + lam (P_k+1 - P_k) (lam = kap
+        // below a wall above the water, 1 - kap above a wall below it): ((1 - lam) a_k+1 + lam a_k)(P_k+1 - P_k), a link
+        // with that mobility in the correction (wcorr) and the matrix alike; the loads take the same wall pressure
+        // (loads_cut)
+        d->MBZ[IJK] = MAX(cut_zlink(p,i,j,k), beta(p->DZN[KP]*WL(i,j)));
     }
     
     pgc->start4V(p,d->MBX,1);
@@ -1310,7 +1338,7 @@ void nhflow_hullbody::loads_cut(lexer *p, fdm_nhf *d, slice &WL, const std::func
         
         const double fx = -hh*ax*p->DYN[JP]*p->DZN[KP] - pn*ox;
         const double fy = -hh*ay*p->DXN[IP]*p->DZN[KP] - pn*oy;
-        const double fz = -pc*az*p->DXN[IP]*p->DYN[JP];
+        const double fz = -(rg*eh + P[FIJK] + cut_lam(p,i,j,k)*(P[FIJKp1]-P[FIJK]))*az*p->DXN[IP]*p->DYN[JP];
         
         ++nf;
         Fx += fx;
