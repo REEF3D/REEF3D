@@ -86,13 +86,17 @@ reefmg::reefmg(lexer *p, ghostcell *pgc, int solve_input, int precon_input)
     mg.set_agglomeration(p->N15==1 ? 1 : 0);
 
     //  N 16: the V-cycle on a device - 1 the Apple Silicon GPU (Metal, in
-    //  every macOS build), 2 the reference device (the GPU kernels on the
+    //  every macOS build), 3 the reference device (the GPU kernels on the
     //  CPU, for tests).  One single-precision hierarchy of the whole domain
     //  on the device, built and cycled by rank 0 for all ranks through an
     //  MPI shared-memory window (all ranks on one node); red-black line
     //  smoothing whatever N 12 says.  BiCGStab and the exact operator stay
-    //  distributed on the CPU ranks in double.  Falls back to the CPU with a
-    //  message if the device is not available.  Must precede setup().
+    //  distributed on the CPU ranks in double.  2 (Metal) and 4 (reference):
+    //  the Krylov solve on the device as well - BiCGStab in single
+    //  precision on the device as the preconditioner of GCR in double on
+    //  the CPU ranks, about two exact-operator products per solve instead of
+    //  four (reefmg_core::set_device).  Falls back to the CPU with a message
+    //  if the device is not available.  Must precede setup().
     mg.set_device(p->N16);
 
     //  N 17 / N 19: V-cycles per preconditioner application and smoothing

@@ -1,6 +1,7 @@
 // Standalone test of the REEFMG device path (N 16): the V-cycle kernels of
-// src/reefmg_device_kernels.h on the reference device (N 16 2, any machine)
-// and on the Apple Silicon GPU (N 16 1, on macOS),
+// src/reefmg_device_kernels.h on the reference device (N 16 3, any machine)
+// and on the Apple Silicon GPU (N 16 1, on macOS), and the Krylov solve on
+// the device (N 16 4, Metal N 16 2),
 // against the CPU V-cycle of reefmg_core.
 // Architect: Hans Bihs
 //
@@ -29,7 +30,10 @@
 //      iteration more than the CPU red-black cycle, and its solution equals
 //      the CPU fp64 lexicographic solution to 1e-8
 //   3. V-cycles alone (mode 0) and with fallback (mode 2) converge on the device
-//   4. Metal (if built): one V-cycle = the reference device to 1e-5, the
+//   4. the Krylov solve on the device (N 16 4): GCR to 1e-10 in at most 4
+//      iterations, the solution = the CPU fp64 solution to 1e-8, solve modes 0
+//      and 1 the same (Metal N 16 2: the same iterations +-1)
+//   5. Metal (if built): one V-cycle = the reference device to 1e-5, the
 //      same BiCGStab iterations (+-1)
 
 #include "reefmg_core.h"
@@ -169,7 +173,7 @@ static void suite(const char *name,const problem &pr,int bits,int levels,bool me
 
     config ref;  ref.bits=64;                         // CPU fp64 lexicographic, the reference solution
     config zeb;  zeb.bits=bits; zeb.ordering=1;       // CPU red-black, the algorithm the device runs
-    config dev;  dev.bits=bits; dev.device=2;         // reference device
+    config dev;  dev.bits=bits; dev.device=3;         // reference device
     ref.levels=zeb.levels=dev.levels=levels;
 
     // 1. one V-cycle (mode 0, one iteration: defect correction from u = 0)
@@ -273,6 +277,36 @@ static void suite(const char *name,const problem &pr,int bits,int levels,bool me
         check(a.relres<=1.0e-8,fmt("device V-cycles (mode 0): %g cycles to %.1e",a.it,a.relres));
         check(b.relres<=1.0e-8,fmt("device V-cycles with fallback (mode 2): %g iterations to %.1e",b.it,b.relres));
     }
+
+    // 4. the Krylov solve on the device (N 16 4, Metal N 16 2): GCR in double on the host around
+    //    BiCGStab in single precision on the device, which gains about 1e-4 per GCR iteration
+    {
+        config dk=dev; dk.device=4;
+        const result rk=run(pr,dk);
+        check(rk.on_device && rk.relres<=1.0e-10,
+              fmt("Krylov solve on the device (N 16 4): GCR %g iterations to %.1e",rk.it,rk.relres));
+        std::printf("        %s\n",rk.timing.c_str());
+        const double ek=maxdiff(pr,r0.u,rk.u);
+        check(ek<1.0e-8,fmt("N 16 4 solution = CPU fp64 solution to %.1e",ek));
+        check(rk.it<=4,fmt("N 16 4: %g GCR iterations to 1e-10 (at most 4)",rk.it));
+
+        // solve mode 0 takes the same path
+        config dk0=dk; dk0.mode=0;
+        const result rk0=run(pr,dk0);
+        const double e0=maxdiff(pr,rk.u,rk0.u);
+        check(rk0.it==rk.it && e0==0.0,fmt("N 16 4, solve mode 0 = mode 1: %g iterations, difference %.1e",rk0.it,e0));
+
+        if(metal)
+        {
+            config mk=dk; mk.device=2;
+            const result rm=run(pr,mk);
+            check(rm.on_device && rm.relres<=1.0e-10 && std::abs(rm.it-rk.it)<=1,
+                  fmt("Metal Krylov solve (N 16 2): GCR %g iterations (reference device %g), relres %.1e",rm.it,rk.it,rm.relres));
+            std::printf("        %s\n",rm.timing.c_str());
+            const double em=maxdiff(pr,r0.u,rm.u);
+            check(em<1.0e-8,fmt("N 16 2 solution = CPU fp64 solution to %.1e",em));
+        }
+    }
 }
 
 static void bench(int nx,int ny,int nz)
@@ -292,9 +326,13 @@ static void bench(int nx,int ny,int nz)
     {config c; c.tol=1e-8; c.device=1; c.tail=512; rows.push_back({"Metal, tail 512 columns",c});}
     {config c; c.tol=1e-8; c.device=1; c.tail=8192; rows.push_back({"Metal, tail 8192 columns",c});}
     {config c; c.tol=1e-8; c.device=1; c.dcycles=1; c.dsweeps=1; rows.push_back({"Metal, 1 V-cycle, 1 sweep",c});}
+    {config c; c.tol=1e-8; c.device=2; rows.push_back({"Metal, Krylov solve (N 16 2)",c});}
+    {config c; c.tol=1e-8; c.device=2; c.dcycles=2; rows.push_back({"Metal, Krylov, 2 V-cycles",c});}
 #endif
     if(nx*ny*nz<=4000000)
-    {config c; c.tol=1e-8; c.device=2; rows.push_back({"reference device (N 16 2)",c});}
+    {config c; c.tol=1e-8; c.device=3; rows.push_back({"reference device (N 16 3)",c});}
+    if(nx*ny*nz<=4000000)
+    {config c; c.tol=1e-8; c.device=4; rows.push_back({"reference device, Krylov (N 16 4)",c});}
 
     for(size_t r=0;r<rows.size();++r)
     {

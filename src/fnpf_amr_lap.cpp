@@ -269,7 +269,7 @@ void fnpf_amr::lap_prepare(ghostcell *pgc)
             // the patch-local cycles stay on the CPU.  A 2D grid solves level 0 exactly (xz0), no device
             if(sy!=0)
             {
-                mg0->set_device(p0->N16);
+                mg0->set_device(reefmg_core::vcycle_device(p0->N16));   // N 16 2, 4: the V-cycle device
                 mg0->set_device_cycle(p0->N17,p0->N19);
                 mg0->set_device_precision(p0->N21);
             }

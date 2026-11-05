@@ -1,0 +1,20 @@
+{
+ "base": "nhflow_2d_nwt_stokes5",
+ "np": 1,
+ "ctrl_add": [
+  "N 16 4"
+ ],
+ "same_as": "nhflow_2d_nwt_stokes5",
+ "same_as_rtol": 1e-05,
+ "description": "nhflow_2d_nwt_stokes5 with the Krylov solve on the reference device (N 16 4): the NHFLOW non-hydrostatic pressure by GCR in double around a single-precision BiCGStab on the device; within 1e-5 of the CPU run",
+ "tags": [
+  "2d",
+  "nhflow",
+  "waves",
+  "solver"
+ ],
+ "covers": [
+  "REEFMG Krylov solve on the device (N 16 4): reefmg_device::krylov, reefmg_core::solve_gcr",
+  "device kernels rmg_apply, rmg_axpy3, rmg_dot2, reference device"
+ ]
+}

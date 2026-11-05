@@ -26,9 +26,9 @@ Architect: Hans Bihs
 //  The kernels of the REEFMG device path (N 16), written once and compiled
 //  twice:
 //
-//    - as C++ in namespace rmg_kern, for the reference device (N 16 2) that
-//      runs them in plain loops on the CPU, and
-//    - as Metal Shading Language (MSL) for the Apple GPU (N 16 1): the same
+//    - as C++ in namespace rmg_kern, for the reference device (N 16 3, 4)
+//      that runs them in plain loops on the CPU, and
+//    - as Metal Shading Language (MSL) for the Apple GPU (N 16 1, 2): the same
 //      text, stringified into rmg_kernel_source and compiled at run time by
 //      the Metal framework (reefmg_device_metal.cpp adds the entry points).
 //      No offline Metal compiler is needed.
@@ -81,6 +81,11 @@ Architect: Hans Bihs
 //    rmg_factor_h  the same, and the scaled couplings of rmg_smooth_h
 //    rmg_wrap      one halo cell of a periodic direction
 //    rmg_zero      one entry of an array
+//    rmg_apply     one cell: y = A u or f - A u (the Krylov solve, N 16 2, 4)
+//    rmg_axpy3     one entry: w = c0 w + c1 a + c2 b
+//    rmg_dot2      one partial sum each of two dot products
+//    rmg_axpy3_dot rmg_axpy3 on the entries of one partial sum, and the
+//                  partial sums of (w,w) and (w,h)
 //
 //  And one threadgroup:
 //    rmg_tail_run  the whole V-cycle of the small coarse levels at the bottom
@@ -670,6 +675,95 @@ inline int rmg_nwrap(const rmg_lp P)
 inline void rmg_zero(unsigned t, device float *a)
 {
     a[t] = 0.0f;
+}
+
+//  ------------------------------------------- the Krylov solve (N 16 2, 4)
+//  Vector operations of reefmg_device::krylov on level 0; they run over
+//  every entry n of the level, halo and padding included - those entries
+//  are zero in every vector whose dot product is taken (only the cells are
+//  written by rmg_apply).
+struct rmg_vp
+{
+    float c0, c1, c2;
+    int n;            // entries of the level
+    int g;            // work items of a dot product (RMG_DOTG)
+};
+
+//  y = A u (mode 0) or y = f - A u (mode 1) at one cell, the sums of
+//  rmg_resid_at
+inline void rmg_apply(const rmg_lp P, int m, int r, int k, int mode,
+                      const device float *f, const device float *u, device float *y,
+                      const device float *cp, const device float *cn,
+                      const device float *cs, const device float *cw,
+                      const device float *ce, const device float *ct,
+                      const device float *cb)
+{
+    if(m>=P.hh)
+    return;
+    const rmg_ijk x = rmg_cell(m,r,k,P.ny);
+    if(!x.ok || x.i>=P.nx)
+    return;
+    const int q = rmg_q(x.i,x.j,x.k,P.hh,P.si,P.sk);
+    const int o = (1-2*x.c)*P.hh;
+    float a = cp[q]*u[q] + cn[q]*u[q+P.si+o] + cs[q]*u[q-P.si+o]
+                         + cw[q]*u[q+o+x.b] + ce[q]*u[q+o+x.b-1];
+    if(x.k<P.nz-1)
+    a += ct[q]*u[q+P.sk];
+    if(x.k>0)
+    a += cb[q]*u[q-P.sk];
+    y[q] = (mode!=0) ? f[q] - a : a;
+}
+
+//  w = c0 w + c1 a + c2 b at entry t; w is not read if c0 = 0
+inline void rmg_axpy3(const rmg_vp V, unsigned t, device float *w,
+                      const device float *a, const device float *b)
+{
+    const int q = int(t);
+    if(q>=V.n)
+    return;
+    float s = V.c1*a[q] + V.c2*b[q];
+    if(V.c0!=0.0f)
+    s += V.c0*w[q];
+    w[q] = s;
+}
+
+//  rmg_axpy3 at the entries t, t+g, t+2g, ... (the work items of rmg_dot2),
+//  and the partial sums of (w,w) and (w,h) of the new w; h may be w
+inline void rmg_axpy3_dot(const rmg_vp V, unsigned t, device float *w,
+                          const device float *a, const device float *b,
+                          const device float *h, device float *part)
+{
+    const int g = V.g;
+    float s1 = 0.0f, s2 = 0.0f;
+    for(int q=int(t); q<V.n; q+=g)
+    {
+        float s = V.c1*a[q] + V.c2*b[q];
+        if(V.c0!=0.0f)
+        s += V.c0*w[q];
+        w[q] = s;
+        s1 += s*s;
+        s2 += s*h[q];
+    }
+    part[t] = s1;
+    part[g+int(t)] = s2;
+}
+
+//  work item t of g: the partial sums of (a,b) and (c,d) over the entries
+//  t, t+g, t+2g, ... into part[t] and part[g+t]
+inline void rmg_dot2(const rmg_vp V, unsigned t,
+                     const device float *a, const device float *b,
+                     const device float *c, const device float *d,
+                     device float *part)
+{
+    const int g = V.g;
+    float s1 = 0.0f, s2 = 0.0f;
+    for(int q=int(t); q<V.n; q+=g)
+    {
+        s1 += a[q]*b[q];
+        s2 += c[q]*d[q];
+    }
+    part[t] = s1;
+    part[g+int(t)] = s2;
 }
 
 //  ------------------------------------------------------------ the tail

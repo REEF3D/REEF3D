@@ -939,8 +939,8 @@ void control::ini_default()
     N20=20;        //  int precondioner switch iter
     N22=0;         //  int precondioner switch SFLOW
     N15=0;         //  int REEFMG coarse-grid agglomeration: 1 on
-    N16=0;         //  int REEFMG V-cycle device: 0 CPU, 1 Metal GPU (macOS), 2 reference device
-    N17=0;         //  int REEFMG device: V-cycles per preconditioner application, 0: 2
+    N16=0;         //  int REEFMG device: 0 CPU, 1 Metal GPU (macOS), 2 Metal with the Krylov solve on the GPU, 3 reference device, 4 reference with the Krylov solve
+    N17=0;         //  int REEFMG device: V-cycles per preconditioner application, 0: 2 (N 16 2, 4: in the device solve, 0: 1)
     N19=0;         //  int REEFMG device: pre- and post-smoothing sweeps, 0: 2
     N21=0;         //  int REEFMG device: precision of the smoother coefficients, 16 (0: 16) or 32
     N23=0;         //  int precondioner switch FNPF
