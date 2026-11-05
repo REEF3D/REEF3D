@@ -29,7 +29,7 @@ Author: Hans Bihs
 class sliceint1 final : public sliceint
 {
 public:
-    sliceint1(lexer* p) : sliceint(p) {}
+    explicit sliceint1(lexer* p) : sliceint(p) {}
     virtual ~sliceint1() = default;
 };
 

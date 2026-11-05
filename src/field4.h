@@ -28,7 +28,7 @@ Author: Hans Bihs
 class field4 final : public field
 {
 public:
-    field4(lexer *p, bool allocate=true) : field(p,allocate) {}
+    explicit field4(lexer *p, bool allocate=true) : field(p,allocate) {}
     virtual ~field4() = default;
 };
 

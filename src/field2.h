@@ -28,7 +28,7 @@ Author: Hans Bihs
 class field2 final : public field
 {
 public:
-    field2(lexer *p) : field(p) {}
+    explicit field2(lexer *p) : field(p) {}
     virtual ~field2() = default;
 };
 

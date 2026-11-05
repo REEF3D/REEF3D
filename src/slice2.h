@@ -28,7 +28,7 @@ Author: Hans Bihs
 class slice2 final : public slice
 {
 public:
-    slice2(lexer *p) : slice(p) {}
+    explicit slice2(lexer *p) : slice(p) {}
     virtual ~slice2() = default;
 };
 

@@ -28,7 +28,7 @@ Author: Hans Bihs
 class slice : public slice_base<double>
 {
 public:
-    slice(lexer *p) : slice_base<double>(p) {}
+    explicit slice(lexer *p) : slice_base<double>(p) {}
     virtual ~slice() = default;
 };
 

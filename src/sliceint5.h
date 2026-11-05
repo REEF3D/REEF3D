@@ -28,7 +28,7 @@ Author: Hans Bihs
 class sliceint5 final : public sliceint
 {
 public:
-    sliceint5(lexer* p) : sliceint(p) {}
+    explicit sliceint5(lexer* p) : sliceint(p) {}
     virtual ~sliceint5() = default;
 };
 
