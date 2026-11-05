@@ -1,0 +1,22 @@
+{
+ "description": "FNPF 3D short-crested waves from a SWAN spectral file (B 85 12), interpolated to REEF3D bins (B 146 1), equal energy in frequency and direction.",
+ "solver": "fnpf",
+ "np": 2,
+ "steps": 60,
+ "tags": [
+  "3d",
+  "fnpf",
+  "waves",
+  "iowave",
+  "irregular",
+  "mpi"
+ ],
+ "covers": [
+  "SWAN spectral file B 85 12",
+  "interpolation to REEF3D bins B 146",
+  "equal energy B 84 2, B 136 4"
+ ],
+ "files": [
+  "SWAN.SPC"
+ ]
+}

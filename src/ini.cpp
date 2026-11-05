@@ -531,6 +531,14 @@ void control::ini_default()
     B138=0;         // int seed number multidir waves
     B138_1=B138_2=0;  // int seeds (B 138)
     B139=0;         // int seed number wave spectrum
+    B140=1;         // int SWAN spectral file (B 85 12): location number
+    B141=0;         // int SWAN spectral file: location closest to B 141 x y
+    B141_x=B141_y=0.0;  // double location in the coordinates of the file
+    B142=1;         // int SWAN spectral file: record number, -1 the last one
+    B143=-1;        // int 2D spectrum: number of components, single summation; 0 double summation; -1 default
+    B144=-1.0;      // double 2D spectrum: fraction of the energy dropped with the weakest bins (double summation); -1 default
+    B145=0;         // int 2D spectrum: 1 scale to the Hs of the full spectrum after the sector and band limits
+    B146=0;         // int 2D spectrum: 1 interpolate to the REEF3D bins B 86, B 133, B 84, B 136
     B160=5;        // int number of vertical layers for 2D wave generation
     B170=1024;     // int number of Fourier modes for the generation of steady surface gravity waves
 	B180=0;           // int gravity waves

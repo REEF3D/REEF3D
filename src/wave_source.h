@@ -42,8 +42,8 @@ struct wave_lexer_context
     int wN;
 
     // wave input that may differ per source
-    int B84,B85,B86,B87,B91,B92,B93,B94,B130,B133,B136,B138,B138_1,B138_2,B139;
-    double B87_1,B87_2,B88,B91_1,B91_2,B93_1,B93_2,B94_wdt,B105_1,B131,B132_s,B132_e,B134;
+    int B84,B85,B86,B87,B91,B92,B93,B94,B130,B133,B136,B138,B138_1,B138_2,B139,B140,B141,B142,B143,B145,B146;
+    double B87_1,B87_2,B88,B91_1,B91_2,B93_1,B93_2,B94_wdt,B105_1,B131,B132_s,B132_e,B134,B141_x,B141_y,B144;
 
     void save(const lexer*);
     void load(lexer*) const;

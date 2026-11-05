@@ -3776,6 +3776,7 @@
           <File Name="wave_lib_spectrum_TMA.cpp"/>
           <File Name="wave_lib_spectrum.cpp"/>
           <File Name="wave_lib_spectrum_file.cpp"/>
+          <File Name="wave_lib_spectrum_swan.cpp"/>
           <File Name="wave_lib_spectrum_JONSWAP.cpp"/>
           <File Name="wave_lib_spectrum_PM.cpp"/>
           <File Name="wave_lib_spectrum_recon.cpp"/>

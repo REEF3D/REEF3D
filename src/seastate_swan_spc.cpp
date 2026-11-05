@@ -59,7 +59,7 @@ namespace
     }
 }
 
-bool seastate_swan_spc::read(const std::string &file, std::string &error)
+bool seastate_swan_spc::read(const std::string &file, std::string &error, const seastate_swan_spc_select &sel)
 {
     const double pi = 3.14159265358979323846;
 
@@ -72,9 +72,11 @@ bool seastate_swan_spc::read(const std::string &file, std::string &error)
     }
 
     f.clear(); dir.clear(); E.clear();
+    lx.clear(); ly.clear();
+    lonlat = false; nodata = false; date.clear();
 
     std::string line, key;
-    bool nautical=false, energy=false;
+    bool nautical=false, energy=false, action=false, timedep=false;
     int nloc=0;
     double exception=-99.0;
 
@@ -89,20 +91,22 @@ bool seastate_swan_spc::read(const std::string &file, std::string &error)
         if(key=="TIME")
         {
         next_line(in,line,key);     // time coding option
+        timedep = true;
         }
         else if(key=="LOCATIONS" || key=="LONLAT")
         {
+        lonlat = (key=="LONLAT");
         next_line(in,line,key);
         nloc = first_int(line);
 
             for(int n=0; n<nloc; ++n)
             {
             next_line(in,line,key);
-                if(n==0)
-                {
-                std::istringstream s(line);
-                s>>x>>y;
-                }
+            std::istringstream s(line);
+            double xl=0.0, yl=0.0;
+            s>>xl>>yl;
+            lx.push_back(xl);
+            ly.push_back(yl);
             }
         }
         else if(key=="AFREQ" || key=="RFREQ")
@@ -137,7 +141,10 @@ bool seastate_swan_spc::read(const std::string &file, std::string &error)
             {
             next_line(in,line,key);             // name
                 if(n==0)
+                {
                 energy = (key=="EnDens");
+                action = (key=="AcDens");
+                }
             next_line(in,line,key);             // unit
             next_line(in,line,key);             // exception value
                 if(n==0)
@@ -146,6 +153,8 @@ bool seastate_swan_spc::read(const std::string &file, std::string &error)
         }
         else if(key=="FACTOR" || key=="ZERO" || key=="NODATA" || key=="LOCATION")
         break;
+        else if(timedep)
+        date = key;                 // date-time line of the first record
     }
 
     if(f.empty() || dir.empty())
@@ -162,11 +171,62 @@ bool seastate_swan_spc::read(const std::string &file, std::string &error)
     error = file+": 1D spectra (QUANT 3) are not supported, write a 2D spectrum (SPECOUT ... SPEC2D)";
     return false;
     }
+    // location of the file to read
+    const int nl = std::max(nloc,1);
+    loc = sel.loc;
 
-    if(key=="FACTOR")
+    if(sel.nearest && !lx.empty())
     {
-    next_line(in,line,key);
-    const double factor = std::stod(key);
+    const double cl = lonlat ? std::cos(sel.y*pi/180.0) : 1.0;
+    double dmin = 1.0e300;
+
+        for(size_t n=0; n<lx.size(); ++n)
+        {
+        const double dx = (lx[n]-sel.x)*cl, dy = ly[n]-sel.y;
+        const double d = dx*dx + dy*dy;
+
+            if(d<dmin)
+            {
+            dmin = d;
+            loc = int(n)+1;
+            }
+        }
+    }
+
+    if(loc<1 || loc>nl)
+    {
+    error = file+": location "+std::to_string(loc)+" requested, the file has "+std::to_string(nl);
+    return false;
+    }
+
+    if(!lx.empty())
+    {
+    x = lx[loc-1];
+    y = ly[loc-1];
+    }
+
+    // one block of the table: FACTOR with its rows, or ZERO / NODATA; key holds the first word.
+    // keep: into E, otherwise over-read
+    auto block = [&](bool keep)
+    {
+        if(key=="ZERO" || key=="NODATA")
+        {
+            if(keep)
+            {
+            std::fill(E.begin(),E.end(),0.0);
+            nodata = true;
+            }
+        return true;
+        }
+
+        if(key!="FACTOR")
+        {
+        error = file+": FACTOR, ZERO or NODATA expected, found "+key;
+        return false;
+        }
+
+        next_line(in,line,key);
+        const double factor = std::stod(key);
 
         for(size_t l=0; l<nf; ++l)
         {
@@ -193,15 +253,76 @@ bool seastate_swan_spc::read(const std::string &file, std::string &error)
                 s.str(line);
                 s>>v;
                 }
-            E[l*nd+m] = (v==exception) ? 0.0 : std::max(v*factor,0.0);
+
+                if(keep)
+                E[l*nd+m] = (v==exception) ? 0.0 : std::max(v*factor,0.0);
             }
         }
+
+        if(keep)
+        nodata = false;
+
+        return true;
+    };
+
+    // records: time by time, location by location. The first word of the first block is in key;
+    // time -1 keeps the requested location of every record, so the last one stays
+    int rec = 1;
+    bool found = false;
+    std::string d0 = date;
+
+    while(true)
+    {
+        for(int n=1; n<=nl; ++n)
+        {
+        const bool keep = (n==loc) && (sel.time==-1 || rec==sel.time);
+
+            if(n>1 && !next_line(in,line,key))
+            {
+            error = file+": record "+std::to_string(rec)+" ends early";
+            return false;
+            }
+
+            if(!block(keep))
+            return false;
+
+            if(keep)
+            {
+            found = true;
+            time = rec;
+            d0 = date;
+            }
+        }
+
+        if(sel.time>0 && rec==sel.time)
+        break;
+
+        if(!timedep || !next_line(in,line,key))
+        break;
+
+        date = key;                         // date-time line of the next record
+        ++rec;
+
+        if(!next_line(in,line,key))
+        break;
     }
-    // ZERO or NODATA: zero spectrum
+
+    date = timedep ? d0 : std::string();
+
+    if(!found)
+    {
+    error = file+": record "+std::to_string(sel.time)+" requested, the file has "+std::to_string(rec);
+    return false;
+    }
 
     if(energy)
     for(double &v : E)
     v /= 1025.0*9.81;
+
+    if(action)
+    for(size_t l=0; l<nf; ++l)
+    for(size_t m=0; m<nd; ++m)
+    E[l*nd+m] *= 2.0*pi*f[l];
 
     // directions: Cartesian direction of propagation in [0,360), sorted ascending
     for(double &d : dir)
@@ -227,7 +348,6 @@ bool seastate_swan_spc::read(const std::string &file, std::string &error)
     dir.swap(d2);
     E.swap(E2);
 
-    (void)pi;
     return true;
 }
 

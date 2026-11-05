@@ -305,6 +305,9 @@ VTU/state print keys (`P 20/30/40/41/42`), so runs are short and output stays sm
 | `fnpf_2d_coral_mooring_system_lagoon` | 1 | `fnpf_2d_coral_mooring_system` with the LAGOON store instead of the VTP files (P 18 1, bodies every 0.1 s): the body and CORAL's six mooring lines (particles/coral_mooring: lines, tension at the points, line number) at the same outputs; the solution that of the case without the store (needs patch CORAL/0050) |
 | `fnpf_2d_irregular_decomp` | 1 | FNPF JONSWAP waves, decomposed relaxation precalc (B89=1) |
 | `fnpf_3d_shortcrested` | 2 | FNPF 3D short-crested waves (B130=2) |
+| `fnpf_3d_swan_spc` | 2 | FNPF 3D waves from a SWAN spectral file read directly (B 85 12): location by coordinates (B 141), record (B 142), single summation (B 143) |
+| `fnpf_3d_swan_spc_double` | 2 | as `fnpf_3d_swan_spc`, double summation without the weakest bins (B 143 0, B 144) |
+| `fnpf_3d_swan_spc_bins` | 2 | as `fnpf_3d_swan_spc`, interpolated to REEF3D bins with equal energy (B 146 1, B 84 2, B 136 4) |
 | `fnpf_3d_shortcrested_n16_2` | 2 | `fnpf_3d_shortcrested` with the REEFMG V-cycle on the reference device (N 16 2): one hierarchy of the whole domain for both ranks, their blocks in an MPI shared-memory window; `same_as` the CPU run within 1e-5 (needs patches REEFMG/0002-0003) |
 | `fnpf_3d_amr_basin_mpi2_n16_2` | 2 | `fnpf_3d_amr_basin_mpi2` with the level-0 V-cycle of the REEFAMR Laplace preconditioner on the reference device (N 16 2), the patch-local cycles on the CPU; `same_as` the CPU run within 1e-5 (needs patch REEFMG/0009) |
 | `nhflow_2d_two_sources` (+ `_mpi2`) | 1/2 | wave_field: B 92 linear wave + linear source 2 with phase (B 500/501); P 50 prints the summed target |

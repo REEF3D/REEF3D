@@ -23,6 +23,8 @@ Author: Hans Bihs
 #ifndef WAVE_LIB_SPECTRUM_H_
 #define WAVE_LIB_SPECTRUM_H_
 
+#include<string>
+
 class lexer;
 class fdm;
 class ghostcell;
@@ -65,6 +67,10 @@ public:
     void print_spectrum_2d(lexer*);
     void print_components_2d(lexer*);
 
+    // 2D spectrum to wave components (wave_lib_spectrum_swan.cpp): B 85 12, and B 85 11 with B 143 or B 144
+    bool spec2d_active(lexer*);
+    void spec2d_parameters(lexer*);
+
     double *Si,*Ai,*Li,*ki,*Ti,*wi,*ei,*ww,*cdf,*wee,*dee,*Sn;
     int NN, ND;
 	  double wp,ws,we,*dw;
@@ -98,6 +104,8 @@ private:
     double *dir_2d;
 
 	double **spectrum;
+
+    void spec2d_abort(lexer*, int, const std::string&);
 };
 
 #endif

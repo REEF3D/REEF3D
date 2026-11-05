@@ -38,6 +38,8 @@ void wave_lexer_context::save(const lexer *p)
     B87_1=p->B87_1; B87_2=p->B87_2; B88=p->B88; B91_1=p->B91_1; B91_2=p->B91_2;
     B93_1=p->B93_1; B93_2=p->B93_2; B94_wdt=p->B94_wdt; B105_1=p->B105_1; B131=p->B131;
     B132_s=p->B132_s; B132_e=p->B132_e; B134=p->B134;
+    B140=p->B140; B141=p->B141; B142=p->B142; B143=p->B143; B145=p->B145; B146=p->B146;
+    B141_x=p->B141_x; B141_y=p->B141_y; B144=p->B144;
 }
 
 void wave_lexer_context::load(lexer *p) const
@@ -53,6 +55,8 @@ void wave_lexer_context::load(lexer *p) const
     p->B87_1=B87_1; p->B87_2=B87_2; p->B88=B88; p->B91_1=B91_1; p->B91_2=B91_2;
     p->B93_1=B93_1; p->B93_2=B93_2; p->B94_wdt=B94_wdt; p->B105_1=B105_1; p->B131=B131;
     p->B132_s=B132_s; p->B132_e=B132_e; p->B134=B134;
+    p->B140=B140; p->B141=B141; p->B142=B142; p->B143=B143; p->B145=B145; p->B146=B146;
+    p->B141_x=B141_x; p->B141_y=B141_y; p->B144=B144;
 }
 
 wave_source::wave_source(int iid, int itype) : id(iid), type(itype), H(0.0), T(0.0), rot(0.0), phase(0.0),

@@ -1,0 +1,22 @@
+{
+ "description": "FNPF 3D short-crested waves from a SWAN spectral file (B 85 12): 3 locations, 2 records, single summation.",
+ "solver": "fnpf",
+ "np": 2,
+ "steps": 60,
+ "tags": [
+  "3d",
+  "fnpf",
+  "waves",
+  "iowave",
+  "irregular",
+  "mpi"
+ ],
+ "covers": [
+  "SWAN spectral file B 85 12",
+  "location B 141, record B 142",
+  "single summation B 143"
+ ],
+ "files": [
+  "SWAN.SPC"
+ ]
+}

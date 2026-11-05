@@ -68,7 +68,7 @@ double wave_lib_spectrum::wave_spectrum(lexer *p, double w)
     if(p->B85==10)
     Sval = spectrum_file(p,w);
 
-    if(p->B85==11)
+    if(p->B85==11 || p->B85==12)
     Sval = 0.0;  // For 2D spectrum, this function should not be called directly
 
     return Sval;
@@ -83,6 +83,13 @@ void wave_lib_spectrum::irregular_parameters(lexer *p)
 	if(p->B94==1)
 	wD=p->B94_wdt;
 
+	// SWAN spectral file (B 85 12), or a 2D spectrum file with the discretisation of B 143 / B 144
+	if(spec2d_active(p))
+	{
+	spec2d_parameters(p);
+	return;
+	}
+
 	if(p->B85==10)
 	spectrum_file_read(p);
 
@@ -92,6 +99,10 @@ void wave_lib_spectrum::irregular_parameters(lexer *p)
 	if(p->B85==11)
 	{
 	spectrum_file_2d_read(p);
+
+	// the components are built by directional_spreading, B 130 0 gave a wave field of zero amplitude
+	if(p->B130==0)
+	p->B130 = 1;
 
 	// Override p->wN and p->B133 with actual dimensions from file
 	p->wN = ptnum_freq_2d;
@@ -610,7 +621,7 @@ void wave_lib_spectrum::irregular_parameters(lexer *p)
 
 void wave_lib_spectrum::amplitudes_irregular(lexer *p)
 {
-    if(p->B85==11)
+    if(p->B85==11 || p->B85==12)
     {
         // Amplitudes for 2D spectrum file
         // Si[n] already contains S(w,beta) from directional spreading

@@ -414,6 +414,45 @@ static void test_swan_spc()
 
     seastate_swan_spc bad;
     check(!bad.read("no_such_file.spc",err),"missing file reported");
+
+    // location and record of a nonstationary file with several locations
+    {
+        std::ofstream o("seastate_test_tmp.spc");
+        o<<"SWAN   1\n$ test\nTIME\n     1\nLOCATIONS\n     3\n 10.0 20.0\n 30.0 40.0\n 50.0 60.0\n";
+        o<<"AFREQ\n     2\n 0.1\n 0.2\nNDIR\n     2\n 270.0\n 90.0\n";
+        o<<"QUANT\n     1\nVaDens\nm2/Hz/degr\n -0.9900E+02\n";
+        o<<"20240101.000000\nFACTOR\n 1.0\n 1 2\n 3 4\nFACTOR\n 1.0\n 5 6\n 7 8\nNODATA\n";
+        o<<"20240101.060000\nFACTOR\n 2.0\n 1 2\n 3 4\nZERO\nFACTOR\n 1.0\n 9 9\n 9 9\n";
+    }
+    {
+        seastate_swan_spc s;
+        seastate_swan_spc_select q;
+
+        q.loc = 2; q.time = 1;
+        check(s.read("seastate_test_tmp.spc",err,q) && s.E[0]==5.0 && s.E[1]==6.0 && s.x==30.0 && s.date=="20240101.000000","SPC: location 2, record 1");
+
+        q.loc = 1; q.time = 2;
+        check(s.read("seastate_test_tmp.spc",err,q) && s.E[0]==2.0 && s.E[3]==8.0 && s.date=="20240101.060000","SPC: location 1, record 2 with its FACTOR");
+
+        q.loc = 3; q.time = -1;
+        check(s.read("seastate_test_tmp.spc",err,q) && s.time==2 && !s.nodata && s.E[0]==9.0,"SPC: last record");
+
+        q.loc = 3; q.time = 1;
+        check(s.read("seastate_test_tmp.spc",err,q) && s.nodata,"SPC: NODATA location reported");
+
+        q.loc = 2; q.time = 2;
+        check(s.read("seastate_test_tmp.spc",err,q) && s.nodata,"SPC: ZERO location reported");
+
+        q.loc = 1; q.time = 1; q.nearest = true; q.x = 49.0; q.y = 59.0;
+        check(s.read("seastate_test_tmp.spc",err,q) && s.loc==3,"SPC: closest location");
+
+        q.nearest = false; q.loc = 4;
+        check(!s.read("seastate_test_tmp.spc",err,q),"SPC: location out of range reported");
+
+        q.loc = 1; q.time = 3;
+        check(!s.read("seastate_test_tmp.spc",err,q),"SPC: record out of range reported");
+    }
+    std::remove("seastate_test_tmp.spc");
 }
 
 // ---------------------------------------------------------------------------------------------

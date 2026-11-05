@@ -81,7 +81,7 @@ wave_lib_irregular_1st::wave_lib_irregular_1st(lexer *p, ghostcell *pgc) : wave_
 	wavepackets_parameters(p);
 
     // Print components based on spectrum type
-    if(p->B85==11)
+    if(p->B85==11 || p->B85==12)
         print_components_2d(p);
     else
         print_components(p);
