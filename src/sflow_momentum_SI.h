@@ -273,6 +273,12 @@ private:
     void nh_assemble(lexer*, fdm2D*, ghostcell*);    // nA, face and cell coefficients of the coupled system
     void nh_cell(lexer*, fdm2D*, ghostcell*);
 
+    // ship waves (X 10 3): the pressure of the moving body as the surface level it holds, in the face predictor and
+    // the cell momentum with the gravity term
+    bool ship = false;
+    slice4 sps;
+    void ship_level(lexer*, fdm2D*, ghostcell*);
+
     // the coupled system on the grids of the mesh refinement (sflow_momentum_SI_nh_amr.cpp; sflow_amr::si_nh_solve
     // runs the composite solve over the leaf cells of all grids): per grid the cell terms, the h^3 lap(eta) term and
     // the face discharges of (nE, nP), the rows, the preconditioner of the grid and the face terms of the solution

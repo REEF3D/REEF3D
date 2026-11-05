@@ -27,7 +27,7 @@ Authors: Hans Bihs, Tobias Martin
 #include<cstdio>
 #include<string>
    
-sixdof_sflow::sixdof_sflow(lexer *p, ghostcell *pgc) : press(p)
+sixdof_sflow::sixdof_sflow(lexer *p, ghostcell *pgc) : press(p), press_n(p)
 {
     if(p->mpirank==0)
     cout<<"6DOF startup ..."<<endl;
@@ -92,6 +92,14 @@ void sixdof_sflow::start_oneway(lexer *p, ghostcell *pgc, int iter, slice &fsglo
 
 void sixdof_sflow::start_shipwave(lexer *p, ghostcell *pgc, int iter, slice &fsglobal, slice &P, slice&Q, slice &fx, slice &fy, slice &eta, bool finalize)
 {
+    // the semi-implicit step: the pressure of the start of the step, before the body moves to its end
+    if(finalize==1 && mid)
+    {
+    SLICELOOP4
+    press_n(i,j) = press(i,j);
+    pgc->gcsl_start4(p,press_n,50);
+    }
+
     if(finalize==1)
     for (int nb=0; nb<number6DOF;++nb)
     {

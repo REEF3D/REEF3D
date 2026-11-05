@@ -91,6 +91,15 @@ double sflow_timestep_SI::advective(lexer *p, fdm2D* b, ghostcell* pgc, double &
     cmin = MIN(cmin, 0.5/(visc*lam + 1.0e-20)/(2.0*cfl));
     }
 
+    // X 10 3: the moving pressure travels at most about one cell per step (the predictor takes it explicitly)
+    if(p->X10==3)
+    {
+    const double us = fabs(p->ufbi)/p->DXM + p->y_dir*fabs(p->vfbi)/p->DXM;
+
+    if(us>1.0e-20)
+    cmin = MIN(cmin,1.0/us);
+    }
+
     cmin = pgc->globalmin(cmin);
     hmax = pgc->globalmax(hmax);
     p->viscmax = pgc->globalmax(p->viscmax);

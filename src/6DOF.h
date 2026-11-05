@@ -92,6 +92,13 @@ public:
     
     virtual void isource2D(lexer*,fdm2D*,ghostcell*)=0;
     virtual void jsource2D(lexer*,fdm2D*,ghostcell*)=0;
+
+    // SFLOW ship waves (X 10 3) with the semi-implicit step (A 226 1): the pressure of the step is the mean of the
+    // pressure of its start and of its end (the step moves the body first)
+    virtual void sflow_midpoint(bool) {}
+    // the pressure of the step (the stored sign: minus the pressure on the water) into ps, all cells of the array;
+    // false: none
+    virtual bool sflow_press_step(lexer*, slice&) { return false; }
 };
 
 #endif
