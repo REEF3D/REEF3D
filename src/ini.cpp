@@ -1597,7 +1597,7 @@ void control::ini_default()
     X190=2;     // int remeshing (X 185 4): cell size, 1 grid metric (anisotropic), 2 geometric mean of dx,dy,dz, 3 smallest spacing
     X188=1;     // int ray cast algorithm
     X195=0;     // int deforming bodies (X 195 id type a lambda f t_ramp): undulatory swimming, number of entries; type 1 linear, 2 carangiform, 3 anguilliform envelope (lateral shear of the hull), 11-13 the same on an inextensible midline
-    X196=1;     // int deforming bodies (X 195): recoil correction (no net momentum and angular momentum of the deformation), 0 off
+    X196=1;     // int deforming bodies (X 195): recoil correction (no net momentum and angular momentum of the deformation), 0 off, 2 with X 198 also the discrete correction of the grid (the deformation without the rigid-body part of its velocity in the hull region of the grid, each stage)
     X198=0;     // int CFD: fluid-momentum coupling of the bodies (X 198 1 c): the rigid-body motion fitted to the predicted velocity in the hull region gives the loads, no added-mass stabilisation (X 197) needed; neutrally buoyant or heavier bodies; c relaxation of the fluid momentum (default 1)
     X198_c=1.0; // double CFD: X 198 relaxation factor
     X197=0.0;   // double CFD: stabilised body coupling (M + A) a = F + A a_prev, A = X197 times (the added mass of the equivalent ellipsoid of the hull, 2D elliptic cylinder, + the fluid inside the hull); 0: off (mesh refinement G 7: 0.5 times the displaced fluid); neutrally buoyant slender bodies (X 195 fish): about 8-32, larger on finer grids (too small: the loads oscillate and grow)

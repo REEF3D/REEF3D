@@ -467,7 +467,7 @@ void sixdof_deform::at(const mtab &m, double s, station &st) const
     st.ths = (m.th[q+1] - m.th[q])/(L_/double(N-1));
 }
 
-void sixdof_deform::displacement(double x, double l, double &dx, double &dl) const
+void sixdof_deform::displacement_raw(double x, double l, double &dx, double &dl) const
 {
     // displacement of the material point at (x, l) of the undeformed body frame (axial, lateral):
     // the midline map, the recoil translation and the recoil rotation (a rigid rotation by -phi
@@ -491,7 +491,7 @@ void sixdof_deform::displacement(double x, double l, double &dx, double &dl) con
     dl = -sp*a1 + cp*l1 - l;
 }
 
-void sixdof_deform::velocity(double x, double l, double &vx, double &vl) const
+void sixdof_deform::velocity_raw(double x, double l, double &vx, double &vl) const
 {
     // velocity of the material point at (x, l) of the undeformed body frame: the time derivative
     // of displacement
@@ -520,7 +520,7 @@ void sixdof_deform::velocity(double x, double l, double &vx, double &vl) const
     vl = -sp*u1 + cp*w1 - phit_*af;
 }
 
-void sixdof_deform::velocity_at(double px, double pl, double &vx, double &vl) const
+void sixdof_deform::velocity_at_raw(double px, double pl, double &vx, double &vl) const
 {
     // velocity of the deformation at the point (px, pl) of the body frame (a point of the deformed
     // body): its material coordinates (x, l) from Newton iterations on x + d(x,l) = p, with the
@@ -542,7 +542,7 @@ void sixdof_deform::velocity_at(double px, double pl, double &vx, double &vl) co
     for(int it=0; it<10; ++it)
     {
         double dx, dl;
-        displacement(x,l,dx,dl);
+        displacement_raw(x,l,dx,dl);
         
         // residual, rotated back into the frame of the midline map
         const double ra = x + dx - px, rb = l + dl - pl;
@@ -568,5 +568,68 @@ void sixdof_deform::velocity_at(double px, double pl, double &vx, double &vl) co
         x = std::min(xhead_ + 0.5*L_, std::max(xtail_ - 0.5*L_, x));
     }
     
-    velocity(x,l,vx,vl);
+    velocity_raw(x,l,vx,vl);
+}
+
+// ---------------------------------------------------------------------------------------------
+// discrete recoil correction (X 198): a rigid motion in the plane of the undulation after the
+// recoil, translation (tx, tl) and rotation psi about the CoG, and their rates; the 6DOF body
+// integrates them so that the deformation carries no momentum and angular momentum in the hull
+// region of the grid either
+// ---------------------------------------------------------------------------------------------
+
+void sixdof_deform::displacement(double x, double l, double &dx, double &dl) const
+{
+    displacement_raw(x,l,dx,dl);
+    
+    if(!corr_on_)
+    return;
+    
+    const double a = x + dx, b = l + dl;
+    const double cp = std::cos(cr_.psi), sp = std::sin(cr_.psi);
+    
+    dx = cp*a - sp*b + cr_.tx - x;
+    dl = sp*a + cp*b + cr_.tl - l;
+}
+
+void sixdof_deform::velocity(double x, double l, double &vx, double &vl) const
+{
+    velocity_raw(x,l,vx,vl);
+    
+    if(!corr_on_)
+    return;
+    
+    double dx, dl;
+    displacement_raw(x,l,dx,dl);
+    correct_velocity(x+dx,l+dl,vx,vl);
+}
+
+void sixdof_deform::velocity_at(double px, double pl, double &vx, double &vl) const
+{
+    if(!corr_on_)
+    {
+    velocity_at_raw(px,pl,vx,vl);
+    return;
+    }
+    
+    // the point without the correction: X = Rot(-psi)(p - t)
+    const double cp = std::cos(cr_.psi), sp = std::sin(cr_.psi);
+    const double qa = px - cr_.tx, qb = pl - cr_.tl;
+    const double a =  cp*qa + sp*qb;
+    const double b = -sp*qa + cp*qb;
+    
+    velocity_at_raw(a,b,vx,vl);
+    correct_velocity(a,b,vx,vl);
+}
+
+void sixdof_deform::correct_velocity(double a, double b, double &vx, double &vl) const
+{
+    // d/dt (Rot(psi) X + t) = Rot(psi) dX/dt + psi_t e_n x Rot(psi) X + dt/dt, X = (a, b) the
+    // position before the correction
+    const double cp = std::cos(cr_.psi), sp = std::sin(cr_.psi);
+    const double ra = cp*a - sp*b, rb = sp*a + cp*b;
+    const double ua = cp*vx - sp*vl, ub = sp*vx + cp*vl;
+    
+    vx = ua - cr_.psit*rb + cr_.vx;
+    vl = ub + cr_.psit*ra + cr_.vl;
 }

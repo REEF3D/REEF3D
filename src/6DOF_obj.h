@@ -168,6 +168,8 @@ public:
     // deformation for stage iter of the body (t^n + c_iter dt of its RK scheme), before its pose update
     void deform_stage(lexer*, int);
     bool deform_on() const {return fish_!=nullptr;}
+    // X 198: the end of the step (the discrete recoil correction at t^n of the next step)
+    void deform_step_end();
 
 
     // read-only access for the SFLOW mesh refinement (sflow_amr)
@@ -415,6 +417,11 @@ protected:
     // velocity of the stage in the hull region (weights rho (2H - 1) dV, deformation velocity removed)
     Eigen::Matrix<double,6,1> mom_fit_ = Eigen::Matrix<double,6,1>::Zero();
     bool mom_ok_ = false;
+    // ... the discrete recoil correction of a deforming body (X 195, sixdof_deform::correction): its
+    // value at the start of the step (n), the register of the RK stage (k), the rates of the last
+    // stage (low-storage RK3)
+    double dcn_[6] = {0,0,0,0,0,0}, dck_[6] = {0,0,0,0,0,0}, dcr_[3] = {0,0,0};
+    bool dc_on_ = false;
 
     void added_mass_ellipsoid(lexer*);
 

@@ -42,6 +42,13 @@ void sixdof_obj::deform_setup(lexer *p, ghostcell *pgc)
     deform_time(p->simtime);
     geom.deform = fish_;
     
+    // X 196 2 with X 198: the discrete recoil correction of the grid (zero at the start)
+    if(p->X198>0 && p->X196==2)
+    {
+    fish_->set_corr(sixdof_deform::correction());
+    dc_on_ = true;
+    }
+    
     // the hull in the deformed shape of the start time (with a ramp: the undeformed one)
     geom.transform(R_,c_);
 
@@ -50,7 +57,7 @@ void sixdof_obj::deform_setup(lexer *p, ghostcell *pgc)
         cout<<"6DOF body "<<n6DOF<<": deforming (X 195), L: "<<fish_->length()<<" m, head at x_B = "<<fish_->xhead()
             <<", tail at x_B = "<<fish_->xtail()<<", volume: "<<fish_->volume()<<" m^3 (body: "<<geom.volume()<<")"
             <<", tail amplitude: "<<fish_->tail_amplitude()<<" m, f: "<<fish_->frequency()<<" Hz, lateral axis: "
-            <<(fish_->lateral()==1 ? "y" : "z")<<", recoil: "<<(p->X196==1 ? "on" : "off")<<endl;
+            <<(fish_->lateral()==1 ? "y" : "z")<<", recoil: "<<(p->X196==0 ? "off" : (dc_on_ ? "on, discrete correction of the grid (X 196 2)" : "on"))<<endl;
 
         char str[1000];
         snprintf(str,sizeof(str),"%s/REEF3D_6DOF_fish_%i.dat",sixdof_output_dir(p),n6DOF);
@@ -88,6 +95,54 @@ void sixdof_obj::deform_stage(lexer *p, int iter)
     }
 
     deform_time(p->simtime + c*p->dt);
+    
+    // X 198: the discrete recoil correction with the RK stage of the body (its rates from the
+    // forcing of the last stage): y^s = c1 y^n + c2 (y^(s-1) + dt y'), low-storage RK3
+    // y^s = y^(s-1) + gamma dt y' + zeta dt y'_k
+    if(dc_on_ && iter>=0 && iter<3)
+    {
+        sixdof_deform::correction cr = fish_->corr();
+        double y[3] = {cr.tx, cr.tl, cr.psi};
+        const double r[3] = {cr.vx, cr.vl, cr.psit};
+        const double dt = p->dt;
+        
+        if(gamma[0]!=0.0)
+        {
+            for(int q=0; q<3; ++q)
+            {
+            y[q] += gamma[iter]*dt*r[q] + zeta[iter]*dt*dcr_[q];
+            dcr_[q] = r[q];
+            }
+        }
+        
+        else
+        {
+            if(iter==0)
+            for(int q=0; q<3; ++q)
+            dck_[q] = y[q];
+            
+            const double c2 = alpha[iter];
+            const double c1 = (iter==0) ? 0.0 : 1.0 - c2;
+            
+            for(int q=0; q<3; ++q)
+            y[q] = c1*dck_[q] + c2*(y[q] + dt*r[q]);
+        }
+        
+        cr.tx = y[0];
+        cr.tl = y[1];
+        cr.psi = y[2];
+        fish_->set_corr(cr);
+    }
+}
+
+void sixdof_obj::deform_step_end()
+{
+    if(!dc_on_)
+    return;
+    
+    const sixdof_deform::correction &cr = fish_->corr();
+    dcn_[0] = cr.tx; dcn_[1] = cr.tl; dcn_[2] = cr.psi;
+    dcn_[3] = cr.vx; dcn_[4] = cr.vl; dcn_[5] = cr.psit;
 }
 
 Eigen::Vector3d sixdof_obj::deform_vel(double x, double y, double z) const

@@ -94,6 +94,13 @@ public:
     void velocity(double x, double l, double &vx, double &vl) const;
     void velocity_at(double x, double l, double &vx, double &vl) const;
     bool inextensible() const {return inext_;}
+    
+    // discrete recoil correction (X 198): rigid motion in the plane of the undulation after the
+    // recoil (translation axial/lateral, rotation psi from the axis towards the lateral axis, about
+    // the CoG) and its rates
+    struct correction {double tx = 0.0, tl = 0.0, psi = 0.0, vx = 0.0, vl = 0.0, psit = 0.0;};
+    const correction &corr() const {return cr_;}
+    void set_corr(const correction &c) {cr_ = c; corr_on_ = true;}
 
     // lateral axis of the body frame: 1 y, 2 z
     int lateral() const {return lat_;}
@@ -111,6 +118,13 @@ public:
 
 private:
 
+    void displacement_raw(double, double, double&, double&) const;
+    void velocity_raw(double, double, double&, double&) const;
+    void velocity_at_raw(double, double, double&, double&) const;
+    void correct_velocity(double, double, double&, double&) const;
+    correction cr_;
+    bool corr_on_ = false;
+    
     double envelope(double) const;
     double envelope_s(double) const;
     void raw(double, double&, double&) const;       // h and dh/dt without the recoil terms

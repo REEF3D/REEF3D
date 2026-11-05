@@ -78,7 +78,7 @@ sixdof_obj::sixdof_obj(lexer *p, ghostcell *pgc, int number) : ddweno_f_nug(p),
     {
     delete fish_;
     fish_ = new sixdof_deform(p->X195_type[n], p->X195_a[n], p->X195_lambda[n], p->X195_f[n], p->X195_tramp[n],
-                              (p->j_dir==0) ? 2 : 1, p->X196==1);
+                              (p->j_dir==0) ? 2 : 1, p->X196>=1);
     }
     
     rb.twoD = (p->j_dir==0);

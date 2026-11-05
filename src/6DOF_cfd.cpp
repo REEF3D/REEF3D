@@ -116,6 +116,9 @@ void sixdof_cfd::start_cfd(lexer* p, fdm* a, ghostcell* pgc, int iter, field &uv
         
         fb_obj[nb]->update_forcing(p,a,pgc,uvel,vvel,wvel,fx,fy,fz,iter);
         
+        if(finalize)
+        fb_obj[nb]->deform_step_end();
+        
         for(int q=0; q<3; ++q)
         fb_obj[nb]->sfh[q] = nullptr;
         

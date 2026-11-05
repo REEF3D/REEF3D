@@ -40,6 +40,10 @@ static inline double Hlimit(double H, double hb, double hs)
 
 void sixdof_obj_cfd::update_forcing(lexer *p, fdm *a, ghostcell *pgc,field& uvel, field& vvel, field& wvel, field &fx, field &fy, field &fz,int iter)
 {
+    // X 198: the rates of the discrete recoil correction of a deforming body at the new pose
+    if(dc_on_ && amr_loads==nullptr)
+    momentum_deform(p,a,pgc);
+
     
 // Calculate forcing fields
     double H,Ht, uf, vf, wf;

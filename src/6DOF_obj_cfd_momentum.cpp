@@ -46,15 +46,12 @@ Architect: Hans Bihs
 //  relaxes the fitted velocity with the factor c.
 
 template<class G>
-Eigen::Matrix<double,6,1> sixdof_obj_cfd::momentum_lsq(lexer *p, fdm *a, ghostcell *pgc, G val, Eigen::Matrix<double,6,1> *ok)
+void sixdof_obj_cfd::momentum_acc(lexer *p, fdm *a, G val, Eigen::Matrix<double,6,6> &N, Eigen::Matrix<double,6,1> &b)
 {
-    // least-squares rigid-body motion (U, omega about the CoG) of the face values val(d,x,y,z) in the
-    // hull region: weights rho (2H - 1) dV at the faces inside the hull (H the forcing weight, 1/2 at
-    // the hull); normal equations of the rows g = (e_d, r x e_d) summed over the ranks, solved for the
-    // modes of the grid (2D: surge, heave, pitch). ok(0) = 1 when solved
-    Eigen::Matrix<double,6,6> N = Eigen::Matrix<double,6,6>::Zero();
-    Eigen::Matrix<double,6,1> b = Eigen::Matrix<double,6,1>::Zero();
-    
+    // the normal equations of the least-squares rigid-body motion (U, omega about the CoG) of the face
+    // values val(d,x,y,z) in the hull region of the grid (p, a): weights rho (2H - 1) dV at the faces
+    // inside the hull (H the forcing weight, 1/2 at the hull), rows g = (e_d, r x e_d); this rank's
+    // part, added to N, b
     auto add = [&](int d, double x, double y, double z, double w, double u)
     {
         const Eigen::Vector3d r(x - c_(0), y - c_(1), z - c_(2));
@@ -109,7 +106,12 @@ Eigen::Matrix<double,6,1> sixdof_obj_cfd::momentum_lsq(lexer *p, fdm *a, ghostce
         const double ro = 0.5*(a->ro(i,j,k) + a->ro(i,j,k+1));
         add(2,p->pos3_x(),p->pos3_y(),p->pos3_z(),ro*H*p->DXN[IP]*p->DYN[JP]*p->DZP[KP],val(2,p->pos3_x(),p->pos3_y(),p->pos3_z()));
     }
-    
+}
+
+Eigen::Matrix<double,6,1> sixdof_obj_cfd::momentum_solve(lexer *p, ghostcell *pgc, Eigen::Matrix<double,6,6> &N, Eigen::Matrix<double,6,1> &b, bool &ok)
+{
+    // the normal equations summed over the ranks, solved for the modes of the grid (2D: surge, heave,
+    // pitch)
     for(int q=0; q<6; ++q)
     {
         b(q) = pgc->globalsum(b(q));
@@ -135,9 +137,7 @@ Eigen::Matrix<double,6,1> sixdof_obj_cfd::momentum_lsq(lexer *p, fdm *a, ghostce
     }
     
     Eigen::Matrix<double,6,1> res = Eigen::Matrix<double,6,1>::Zero();
-    
-    if(ok!=nullptr)
-    ok->setZero();
+    ok = false;
     
     if(Ns(0,0)>0.0)
     {
@@ -150,8 +150,7 @@ Eigen::Matrix<double,6,1> sixdof_obj_cfd::momentum_lsq(lexer *p, fdm *a, ghostce
             for(int q=0; q<n; ++q)
             res(idx[q]) = qs(q);
             
-            if(ok!=nullptr)
-            (*ok)(0) = 1.0;
+            ok = true;
         }
     }
     
@@ -160,18 +159,44 @@ Eigen::Matrix<double,6,1> sixdof_obj_cfd::momentum_lsq(lexer *p, fdm *a, ghostce
 
 void sixdof_obj_cfd::momentum_fit(lexer *p, fdm *a, ghostcell *pgc, field &uvel, field &vvel, field &wvel, int iter)
 {
+    momentum_fit_begin(p,iter);
+    momentum_fit_add(p,a,uvel,vvel,wvel);
+    momentum_fit_end(p,pgc);
+}
+
+void sixdof_obj_cfd::momentum_fit_begin(lexer *p, int iter)
+{
     // the deformation velocity in u* of the stage: the RK combination c1 u_def(t^n) + c2 u_def(t^(s-1))
     // of the forced deformation velocities (TVD RK3, RK2; low-storage RK3 and the first stage:
     // u_def(t^(s-1)))
     const bool ls = (gamma[0]!=0.0);
-    const double c2 = (ls || iter<=0 || iter>2) ? 1.0 : alpha[iter];
-    const double c1 = 1.0 - c2;
+    mf_c2_ = (ls || iter<=0 || iter>2) ? 1.0 : alpha[iter];
+    mf_c1_ = 1.0 - mf_c2_;
+    mf_tn_ = p->simtime;
+    mf_N_.setZero();
+    mf_b_.setZero();
+}
+
+void sixdof_obj_cfd::momentum_fit_add(lexer *p, fdm *a, field &uvel, field &vvel, field &wvel)
+{
+    // the part of the grid (p, a) with its predicted velocity (level 0, or a patch of the mesh
+    // refinement)
+    const double c1 = mf_c1_, c2 = mf_c2_;
     std::vector<double> udn[3];
     
     if(fish_!=nullptr && c1>0.0)
     {
         const double tcur = fish_->time();
-        deform_time(p->simtime);
+        const sixdof_deform::correction ccur = fish_->corr();
+        deform_time(mf_tn_);
+        
+        if(dc_on_)
+        {
+        sixdof_deform::correction cn;
+        cn.tx = dcn_[0]; cn.tl = dcn_[1]; cn.psi = dcn_[2];
+        cn.vx = dcn_[3]; cn.vl = dcn_[4]; cn.psit = dcn_[5];
+        fish_->set_corr(cn);
+        }
         
         ULOOP
         if(2.0*Hsolidface(p,a,1,0,0) - 1.0 > 0.0 && (amr_cover==nullptr || !amr_cover[IJK]))
@@ -187,6 +212,9 @@ void sixdof_obj_cfd::momentum_fit(lexer *p, fdm *a, ghostcell *pgc, field &uvel,
         udn[2].push_back(deform_vel(p->pos3_x(),p->pos3_y(),p->pos3_z())(2));
         
         deform_time(tcur);
+        
+        if(dc_on_)
+        fish_->set_corr(ccur);
     }
     
     size_t kn[3] = {0,0,0};
@@ -209,10 +237,70 @@ void sixdof_obj_cfd::momentum_fit(lexer *p, fdm *a, ghostcell *pgc, field &uvel,
         return u;
     };
     
-    Eigen::Matrix<double,6,1> ok;
-    mom_fit_ = momentum_lsq(p,a,pgc,rel,&ok);
-    mom_ok_ = (ok(0)>0.5);
+    momentum_acc(p,a,rel,mf_N_,mf_b_);
+}
 
+void sixdof_obj_cfd::momentum_fit_end(lexer *p, ghostcell *pgc)
+{
+    bool ok;
+    mom_fit_ = momentum_solve(p,pgc,mf_N_,mf_b_,ok);
+    mom_ok_ = ok;
+}
+
+void sixdof_obj_cfd::momentum_deform(lexer *p, fdm *a, ghostcell *pgc)
+{
+    momentum_deform_begin();
+    momentum_deform_add(p,a);
+    momentum_deform_end(p,pgc);
+}
+
+void sixdof_obj_cfd::momentum_deform_begin()
+{
+    // the rates of the discrete recoil correction at the pose of the stage: minus the rigid part of
+    // the deformation velocity (without the rates) in the hull region, in the plane of the
+    // undulation (body frame: axial, lateral, rotation about e_x x e_l)
+    mf_N_.setZero();
+    mf_b_.setZero();
+    
+    if(!dc_on_)
+    return;
+    
+    sixdof_deform::correction cr = fish_->corr();
+    cr.vx = cr.vl = cr.psit = 0.0;
+    fish_->set_corr(cr);
+}
+
+void sixdof_obj_cfd::momentum_deform_add(lexer *p, fdm *a)
+{
+    if(!dc_on_)
+    return;
+    
+    momentum_acc(p,a,[&](int d, double x, double y, double z){return deform_vel(x,y,z)(d);},mf_N_,mf_b_);
+}
+
+void sixdof_obj_cfd::momentum_deform_end(lexer *p, ghostcell *pgc)
+{
+    if(!dc_on_)
+    return;
+    
+    bool ok;
+    const Eigen::Matrix<double,6,1> q = momentum_solve(p,pgc,mf_N_,mf_b_,ok);
+    
+    if(!ok)
+    return;
+    
+    sixdof_deform::correction cr = fish_->corr();
+    const int l = fish_->lateral();
+    const Eigen::Vector3d QB = R_.transpose()*q.head<3>();
+    const Eigen::Vector3d WB = R_.transpose()*q.tail<3>();
+    Eigen::Vector3d ex = Eigen::Vector3d::Zero(), el = Eigen::Vector3d::Zero();
+    ex(0) = 1.0;
+    el(l) = 1.0;
+    
+    cr.vx = -QB(0);
+    cr.vl = -QB(l);
+    cr.psit = -WB.dot(ex.cross(el));
+    fish_->set_corr(cr);
 }
 
 void sixdof_obj_cfd::momentum_loads(lexer *p, int iter)

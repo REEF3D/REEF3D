@@ -65,7 +65,20 @@ public:
     // X 198: fluid-momentum coupling (6DOF_obj_cfd_momentum.cpp): the rigid-body motion fitted to the
     // predicted velocity of the stage in the hull region gives the loads of the body
     void momentum_fit(lexer*, fdm*, ghostcell*, field&, field&, field&, int);
-    template<class G> Eigen::Matrix<double,6,1> momentum_lsq(lexer*, fdm*, ghostcell*, G, Eigen::Matrix<double,6,1>*);
+    void momentum_deform(lexer*, fdm*, ghostcell*);
+    // ... in parts for the mesh refinement (cfd_amr: the predicted velocity of the patches of the
+    // finest level): begin, add the grids, end (sums over the ranks, the solve)
+    void momentum_fit_begin(lexer*, int);
+    void momentum_fit_add(lexer*, fdm*, field&, field&, field&);
+    void momentum_fit_end(lexer*, ghostcell*);
+    void momentum_deform_begin();
+    void momentum_deform_add(lexer*, fdm*);
+    void momentum_deform_end(lexer*, ghostcell*);
+    template<class G> void momentum_acc(lexer*, fdm*, G, Eigen::Matrix<double,6,6>&, Eigen::Matrix<double,6,1>&);
+    Eigen::Matrix<double,6,1> momentum_solve(lexer*, ghostcell*, Eigen::Matrix<double,6,6>&, Eigen::Matrix<double,6,1>&, bool&);
+    Eigen::Matrix<double,6,6> mf_N_ = Eigen::Matrix<double,6,6>::Zero();
+    Eigen::Matrix<double,6,1> mf_b_ = Eigen::Matrix<double,6,1>::Zero();
+    double mf_c1_ = 0.0, mf_c2_ = 1.0, mf_tn_ = 0.0;
     void momentum_loads(lexer*, int);
     
     // actuator disks of the load models (body-force propellers): acceleration of the fluid,
