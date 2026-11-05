@@ -144,6 +144,13 @@ void driver::logic_cfd()
 	if(p->D10>=10 && p->D10<30)
 	pconvec=new hires(p,p->D10);
 
+    // the one-step scheme (N 40 1): the Godunov convection, time-centred, whatever D 10 is
+    if(p->N40==1)
+    {
+    delete pconvec;
+    pconvec=new godunov(p);
+    }
+
 
 	// Convection Turbulence
 	if(p->T12==0)
@@ -201,7 +208,13 @@ void driver::logic_cfd()
 
 	if(p->F35>=40 && p->F35<50)
 	pfsfdisc=new hires(p,p->F35);
-    
+
+    // the one-step scheme (N 40 1): the level set with the Godunov convection as well
+    if(p->N40==1 && p->F30>0)
+    {
+    delete pfsfdisc;
+    pfsfdisc=new godunov(p);
+    }
   
 //  Convection Multiphase LSM
 	if(p->F305==0)
@@ -417,7 +430,7 @@ void driver::logic_cfd()
 
    
 // Free Surface
-    if(((p->F30==0) || (p->N40==2||p->N40==3||p->N40==4||p->N40==22||p->N40==23||p->N40==24||p->N40==33)) && p->F80==0)
+    if(((p->F30==0) || (p->N40==1||p->N40==2||p->N40==3||p->N40==4||p->N40==22||p->N40==23||p->N40==24||p->N40==33)) && p->F80==0)
 	pfsf = new levelset_void(p,a,pgc,pheat,pconc);
     
 	if(p->F30==2 && (p->N40==44||p->N40==12||p->N40==13||p->N40==14))
@@ -681,12 +694,21 @@ void driver::logic_cfd()
 // Velocities
 	if(p->N40==0)
 	pmom = new momentum_void();
+
+    // the one-step scheme (N 40 1, a prototype): the level set or single phase flow, no bodies, VOF or particles yet
+    if(p->N40==1 && (p->X10>0 || p->F80>0 || p->F81>0 || p->F300>0 || p->Z10>0 || p->E10>0))
+    {
+        if(p->mpirank==0)
+        cout<<"N 40 1 (the one-step scheme) works with the level set or single phase flow, without floating bodies (X 10), VOF (F 80), PIC (F 81), multiphase (F 300), FSI (Z 10) or DEM (E 10)"<<endl;
+
+        exit(1);
+    }
     
     // RK2, RK3 and low-storage RK3 with the level set outside (12, 13, 44) or inside the stages
     // (2, 3, 4), conservative form (33)
     bool mom_rk=false;
 
-    if(p->N40==2 || p->N40==22 || p->N40==12 || p->N40==44
+    if(p->N40==1 || p->N40==2 || p->N40==22 || p->N40==12 || p->N40==44
     || ((p->N40==3 || p->N40==23 || p->N40==4 || p->N40==24 || p->N40==13 || p->N40==33) && p->F80!=4))
     {
 	pmom = new momentum_rk(p,a,pgc,pconvec,pfsfdisc,pdiff,ppress,ppois,pturb,psolv,ppoissonsolv,pflow,pheat,pconc,preini,pfsi);

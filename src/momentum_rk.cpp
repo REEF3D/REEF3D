@@ -115,10 +115,15 @@ momentum_rk::momentum_rk(lexer *p, fdm *a, ghostcell *pgc, convection *pconvecti
     if(p->N40==2 || p->N40==22 || p->N40==12)
     stages = 2;
 
+    // the one-step scheme (P9 of the CFD AMR performance plan): one stage, the Godunov convection
+    // (godunov) of the momentum and the level set, one projection
+    if(p->N40==1)
+    stages = 1;
+
     if(p->N40==4 || p->N40==24 || p->N40==44)
     scheme = LOWSTORAGE;
 
-    if(p->N40==2 || p->N40==22 || p->N40==3 || p->N40==23 || p->N40==4 || p->N40==24 || p->N40==33)
+    if(p->N40==1 || p->N40==2 || p->N40==22 || p->N40==3 || p->N40==23 || p->N40==4 || p->N40==24 || p->N40==33)
     levelset = true;
 
     // PIC (F 81 1, 2): the free surface comes from the particles (pic_f), not from the level set
@@ -127,7 +132,14 @@ momentum_rk::momentum_rk(lexer *p, fdm *a, ghostcell *pgc, convection *pconvecti
 
     conservative = (p->N40==33);
 
-    // SSP-RK2 (Heun) and SSP-RK3 (Shu-Osher)
+    // one step (the convection is time-centred), SSP-RK2 (Heun) and SSP-RK3 (Shu-Osher)
+    if(stages==1)
+    {
+    ssp_a[0]=0.0;       ssp_b[0]=1.0;
+    ssp_a[1]=0.0;       ssp_b[1]=0.0;
+    ssp_a[2]=0.0;       ssp_b[2]=0.0;
+    }
+
     if(stages==2)
     {
     ssp_a[0]=0.0;       ssp_b[0]=1.0;
@@ -291,6 +303,27 @@ void momentum_rk::step_ssp(lexer *p, fdm *a, ghostcell *pgc, vrans *pvrans, sixd
 {
     amr_step_begin(p,a,pgc);
 
+    // one step: the momentum and the projection first, with the density of the level set as it is;
+    // the level set then moves with the projected u(n+1). The level set is thus half a step ahead of
+    // the velocities, as in the leapfrog (Stoermer-Verlet) scheme: the waves of the interface keep
+    // their amplitude and phase. With the level set moved by u(n) the scheme would be the forward Euler
+    // step, with the mean of u(n) and the predicted u* it amplifies the waves; both were tried.
+    if(stages==1)
+    {
+        amr_momentum(p,a,pgc,pvrans,p6dof,0,1);
+
+        projection(p,a,pgc,a->u,a->v,a->w,1.0);
+
+        amr_ls_transport(p,a,pgc,0);
+
+        if(levelset)
+        amr_ls_finish(p,a,pgc,0,true,-1);
+
+        amr_stage_end(p,a,pgc,0);
+
+        return;
+    }
+
     for(int s=0; s<stages; ++s)
     {
         amr_ls_transport(p,a,pgc,s);
@@ -320,6 +353,15 @@ void momentum_rk::amr_step_begin(lexer *p, fdm *a, ghostcell *pgc)
     pflow->discharge(p,a,pgc);
     pflow->inflow(p,a,pgc,a->u,a->v,a->w);
 	pflow->rkinflow(p,a,pgc,urk1,vrk1,wrk1);
+
+    // one step: u(n) with its ghost cells as the input of the stage
+    if(stages==1)
+    {
+    const size_t nn = size_t(p->imax)*p->jmax*p->kmax;
+    std::copy(a->u.V, a->u.V + nn, urk1.V);
+    std::copy(a->v.V, a->v.V + nn, vrk1.V);
+    std::copy(a->w.V, a->w.V + nn, wrk1.V);
+    }
 
     if(stages==3)
 	pflow->rkinflow(p,a,pgc,urk2,vrk2,wrk2);
@@ -477,6 +519,7 @@ void momentum_rk::levelset_transport(lexer *p, fdm *a, ghostcell *pgc, int s)
         (*ls)(i,j,k)=a->phi(i,j,k);
         }
 
+        // (the one-step scheme: a->u is the projected u(n+1) here)
         pfsfdisc->start(p,a,*ls,4,a->u,a->v,a->w);
 
         LOOP
@@ -1041,6 +1084,10 @@ void momentum_rk::imex_step_setup(lexer *p)
     imex_w[s]=0.0;
     }
 
+    // one step: the implicit diffusion backward in time
+    if(scheme==SSP && stages==1)
+    imex_g[0]=1.0;
+
     if(scheme==SSP && stages==3)
     {
     // (u1, u2, u3): [1], [1/4, 1/4], [-1/2, 1, 1/2]; Shu-Osher inherits b3*(row 2) = [1/6, 1/6]
@@ -1162,6 +1209,11 @@ field& momentum_rk::comp(fdm *a, field &u, field &v, field &w, int c)
 
 field& momentum_rk::vel(fdm *a, int c, int s)
 {
+    // one step: the output is a->u, the input the copy of u(n) in urk1 (amr_step_begin), so that
+    // the convection of v and w sees u(n)
+    if(s==0 && stages==1)
+    return comp(a,urk1,vrk1,wrk1,c);
+
     if(s==0)
     return comp(a,a->u,a->v,a->w,c);
 
