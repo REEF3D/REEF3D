@@ -33,8 +33,9 @@ Author: Alexander Hanke
 class fieldint7 final : public fieldint
 {
 public:
-    explicit fieldint7(lexer *p) : fieldint(p, p->kmaxF,
-                                   static_cast<std::size_t>(p->imax)*static_cast<std::size_t>(p->jmax)) {}
+    // checkpoint=false: scratch storage, kept out of the checkpoint registry
+    explicit fieldint7(lexer *p, bool checkpoint=true) : fieldint(p, p->kmaxF,
+                                   static_cast<std::size_t>(p->imax)*static_cast<std::size_t>(p->jmax), checkpoint) {}
     ~fieldint7() override;
 };
 

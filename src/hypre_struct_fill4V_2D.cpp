@@ -34,7 +34,7 @@ void hypre_struct::fill_matrix4V_2D(lexer* p, ghostcell* pgc, double *f, vec &rh
     count=0;
     LOOP
     {
-        CVAL4[IJK]=count;
+        CVAL4(i,j,k)=count;
         ++count;
     }
 
@@ -48,7 +48,7 @@ void hypre_struct::fill_matrix4V_2D(lexer* p, ghostcell* pgc, double *f, vec &rh
     {
         PFLUIDCHECK
         {
-            n=CVAL4[IJK];
+            n=CVAL4(i,j,k);
 
             values[count]=M.p[n];
             ++count;
@@ -107,7 +107,7 @@ void hypre_struct::fill_matrix4V_2D(lexer* p, ghostcell* pgc, double *f, vec &rh
     {
         PFLUIDCHECK
         {
-            n=CVAL4[IJK];
+            n=CVAL4(i,j,k);
             values[count] = rhs.V[n];
         }
         SFLUIDCHECK

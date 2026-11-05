@@ -32,7 +32,7 @@ public:
     ~fieldint() override;
 
 protected:
-    fieldint(lexer *p, int kz, std::size_t slack) : field_base<int>(p, kz, slack) {}
+    fieldint(lexer *p, int kz, std::size_t slack, bool checkpoint=true) : field_base<int>(p, kz, slack, true, checkpoint) {}
 };
 
 #endif

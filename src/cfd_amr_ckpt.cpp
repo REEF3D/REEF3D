@@ -65,7 +65,7 @@ struct ckpatch
 
 double code_of(const ckpt_registry::entry &e)
 {
-    return (e.kind=='C' ? 0.0 : (e.kind=='S' ? 2.0 : 8.0)) + (e.isint ? 1.0 : 0.0) + (e.local ? 4.0 : 0.0);
+    return (e.kind=='C' ? 0.0 : (e.kind=='S' ? 2.0 : (e.kind=='F' ? 16.0 : 8.0))) + (e.isint ? 1.0 : 0.0) + (e.local ? 4.0 : 0.0);
 }
 
 long long count_of(const ckpt_registry::entry &e, const lexer *q)
@@ -73,7 +73,13 @@ long long count_of(const ckpt_registry::entry &e, const lexer *q)
     if(e.kind=='R')
     return e.n;
     const long long s = (long long)q->imax*q->jmax;
-    return e.kind=='C' ? s*q->kmax : s;
+    return e.kind=='C' ? s*q->kmax : (e.kind=='F' ? s*q->kmaxF : s);
+}
+
+// the values per column of a field of kind k (C cells, F nodes: kmaxF = kmax+1, S one) on a grid of kmax
+inline int nk_of(char k, int kmax)
+{
+    return k=='C' ? kmax : (k=='F' ? kmax+1 : 1);
 }
 }
 
@@ -375,7 +381,6 @@ bool cfd_amr::ckpt_read(reefckpt &ck, string &msg)
             f = false;
             fits[t] = f ? 1 : 0;
         }
-        const int jk = q->jmax*q->kmax;
         for(size_t r=0; r<e.size(); ++r)
         {
             // the scalars of the objects (the same on all patches of the level): from one of them
@@ -391,11 +396,14 @@ bool cfd_amr::ckpt_read(reefckpt &ck, string &msg)
             }
             if(e[r].kind=='R' || e[r].local)
             continue;
-            const bool cell = (e[r].kind=='C');
+            const bool cell = (e[r].kind=='C' || e[r].kind=='F');
+            const int node = (e[r].kind=='F') ? 1 : 0;   // the closing top plane of a node field
+            const int nk = nk_of(e[r].kind,q->kmax);
+            const int k0 = cell ? q->kmin : 0;
 
             for(int ii=q->imin; ii<q->imin+q->imax; ++ii)
             for(int jj=q->jmin; jj<q->jmin+q->jmax; ++jj)
-            for(int kk=(cell ? q->kmin : 0); kk<(cell ? q->kmin+q->kmax : 1); ++kk)
+            for(int kk=k0; kk<k0+nk; ++kk)
             {
                 const int I = c->lo[0]+ii, J = c->lo[1]+jj, K = c->lo[2]+kk;
 
@@ -409,9 +417,9 @@ bool cfd_amr::ckpt_read(reefckpt &ck, string &msg)
                     const int oi = I-o.lo[0], oj = J-o.lo[1], ok = K-o.lo[2];
                     if(oi<o.imin || oi>=o.imin+o.imax || oj<o.jmin || oj>=o.jmin+o.jmax)
                     continue;
-                    if(cell && (ok<o.kmin || ok>=o.kmin+o.kmax))
+                    if(cell && (ok<o.kmin || ok>=o.kmin+o.kmax+node))
                     continue;
-                    const bool inner = (I>=o.lo[0] && I<=o.hi[0] && J>=o.lo[1] && J<=o.hi[1] && (!cell || (K>=o.lo[2] && K<=o.hi[2])));
+                    const bool inner = (I>=o.lo[0] && I<=o.hi[0] && J>=o.lo[1] && J<=o.hi[1] && (!cell || (K>=o.lo[2] && K<=o.hi[2]+node)));
                     const int rank = inner ? 0 : 1;
                     if(rank<best)
                     {
@@ -425,10 +433,9 @@ bool cfd_amr::ckpt_read(reefckpt &ck, string &msg)
                 continue;
 
                 const int oi = I-src->lo[0], oj = J-src->lo[1], ok = K-src->lo[2];
-                const size_t si = cell ? (size_t)(oi-src->imin)*src->jmax*src->kmax + (size_t)(oj-src->jmin)*src->kmax + (ok-src->kmin)
-                                       : (size_t)(oi-src->imin)*src->jmax + (oj-src->jmin);
-                const size_t di = cell ? (size_t)(ii-q->imin)*jk + (size_t)(jj-q->jmin)*q->kmax + (kk-q->kmin)
-                                       : (size_t)(ii-q->imin)*q->jmax + (jj-q->jmin);
+                const int snk = nk_of(e[r].kind,src->kmax);
+                const size_t si = ((size_t)(oi-src->imin)*src->jmax + (oj-src->jmin))*snk + (cell ? ok-src->kmin : 0);
+                const size_t di = ((size_t)(ii-q->imin)*q->jmax + (jj-q->jmin))*nk + (kk-k0);
                 const double v = src->data[r][si];
                 if(e[r].isint)
                 ((int*)e[r].V)[di] = int(v);

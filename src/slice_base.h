@@ -26,6 +26,7 @@ Author: Alexander Hanke
 #include "lexer.h"
 #include "ckpt_registry.h"
 
+#include <cassert>
 #include <cstddef>
 #include <type_traits>
 #include <vector>
@@ -60,6 +61,36 @@ public:
     inline T &operator()(int ii, int jj) noexcept {return m_base[ii*m_js + jj];}
     inline const T &operator()(int ii, int jj) const noexcept {return m_base[ii*m_js + jj];}
 
+    /*!
+     * @brief Lightweight, capture-by-value view: the folded base pointer and
+     * stride copied out once, so a loop body indexes local values instead of
+     * reloading this->m_base/m_js through operator(). Mirrors the amrex::Array4
+     * captured by FIELDLOOP under USE_AMREX (materialized once per tile, then
+     * indexed by value) so the same LOOP macros can be hoisted out of the loop
+     * body and stay vectorizable.
+     *
+     * Same __restrict aliasing rules as field_base::View; they apply to slices
+     * unchanged (e.g. out(i,j) = in(i+1,j) on a single slice is undefined).
+     */
+    struct View
+    {
+        T *__restrict base;        ///< already origin-folded, see cache_addressing()
+        stride_t js;
+        inline T &operator()(int ii, int jj) const noexcept
+        { return base[ii*js + jj]; }
+    };
+
+    struct ConstView
+    {
+        const T *__restrict base;
+        stride_t js;
+        inline const T &operator()(int ii, int jj) const noexcept
+        { return base[ii*js + jj]; }
+    };
+
+    inline View view() noexcept { return View{m_base, m_js}; }
+    inline ConstView const_view() const noexcept { return ConstView{m_base, m_js}; }
+
     T *data() noexcept {return V.data();}
     const T *data() const noexcept {return V.data();}
 
@@ -83,6 +114,9 @@ protected:
      */
     void cache_addressing() noexcept
     {
+        // m_base stays inside the allocation only if no origin is positive
+        assert(imin<=0 && jmin<=0);
+
         m_js   = jmax;
         m_base = V.data() - static_cast<long>(imin)*jmax - jmin;
     }
