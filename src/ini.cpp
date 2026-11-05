@@ -69,6 +69,8 @@ void control::ini_default()
 
     // FNPF
     A300=0.5;    // double FNPF theta of the theta-Robin time integration (A 310 5)
+    A301_1=0.0;  // double FNPF initial standing wave: amplitude [m], 0 off
+    A301_2=1.0;  // double FNPF initial standing wave: wave length [m]
     A309=1;      // int interpolation sweeps for bed
     A310=3;		  // int time scheme for FNPF velocities
     A311=5;		  // int convection scheme for FNPF velocities

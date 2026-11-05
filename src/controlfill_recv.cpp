@@ -198,6 +198,10 @@ void control::ctrlrecv()
 
     A300 = dctrl[dd];
     dd++;
+    A301_1 = dctrl[dd];
+    dd++;
+    A301_2 = dctrl[dd];
+    dd++;
     A309 = ictrl[ii];
     ii++;
     A310 = ictrl[ii];
