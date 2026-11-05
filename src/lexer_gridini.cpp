@@ -53,9 +53,9 @@ void lexer::flagini()
     control_calc();
 	gridsize();
 
-	Iarray(flag1,imax*jmax*kmax);
-	Iarray(flag2,imax*jmax*kmax);
-	Iarray(flag3,imax*jmax*kmax);
+    flag1.resize(OBJ_FLAG);
+    flag2.resize(OBJ_FLAG);
+    flag3.resize(OBJ_FLAG);
     Iarray(flag5,imax*jmax*kmax);
 
 	Iarray(flagsf4,imax*jmax*kmax);
@@ -75,11 +75,6 @@ void lexer::flagini()
     Iarray(DF2,imax*jmax*kmax);
     Iarray(DF3,imax*jmax*kmax);
     Iarray(DFF,imax*jmax*(kmax+1));
-
-    // flag
-	makeflag(flag1);
-	makeflag(flag2);
-	makeflag(flag3);
 
     for(i=-margin; i<knox+margin; ++i)
     for(j=-margin; j<knoy+margin; ++j)
@@ -255,10 +250,9 @@ void lexer::flagfree_fnpf()
     const int n3 = imax*jmax*kmax;
     const int nF = imax*jmax*(kmax+1);
     
-    del_Iarray(flag1,n3);
-    del_Iarray(flag2,n3);
-    del_Iarray(flag3,n3);
-    
+    flag1.release();
+    flag2.release();
+    flag3.release();
     del_Iarray(flagsf4,n3);
     
     del_Iarray(IO,n3);

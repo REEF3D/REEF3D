@@ -111,9 +111,9 @@ public:
     {
         int *flag = p->flag4.data();
         int ul=0, vl=0, wl=0;
-        if(var==1) { flag = p->flag1; ul = p->ulast; }
-        if(var==2) { flag = p->flag2; vl = p->vlast; }
-        if(var==3) { flag = p->flag3; wl = p->wlast; }
+        if(var==1) { flag = p->flag1.data(); ul = p->ulast; }
+        if(var==2) { flag = p->flag2.data(); vl = p->vlast; }
+        if(var==3) { flag = p->flag3.data(); wl = p->wlast; }
 
         const int sI = p->jmax*p->kmax, sJ = p->kmax;
         const vector<signed char> &mk = *mkind;
@@ -575,8 +575,7 @@ namespace
 // the cell arrays of a patch lexer (build_lexer, flagini); the lexer has no destructor for them
 void free_lexer_cells(lexer *q)
 {
-    int **ia[] = {&q->flag1,&q->flag2,&q->flag3,&q->flag5,&q->flagsf4,
-                  &q->IO,&q->DF,&q->DF1,&q->DF2,&q->DF3,&q->DFF};
+    int **ia[] = {&q->flag5,&q->flagsf4,&q->IO,&q->DF,&q->DF1,&q->DF2,&q->DF3,&q->DFF};
     for(int **a : ia)
     {
         delete [] *a;

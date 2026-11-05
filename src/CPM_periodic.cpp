@@ -112,7 +112,7 @@ void CPM::periodic_wrap(lexer *p, double *PX0, double *PY0, double *PX1, double 
 void CPM::periodic_flags(lexer *p)
 {
     auto id = [&](int ii, int jj, int kk) {return (ii-p->imin)*p->jmax*p->kmax + (jj-p->jmin)*p->kmax + kk-p->kmin;};
-    int *fl[4] = {p->flag1,p->flag2,p->flag3,p->flag4.data()};
+    int *fl[4] = {p->flag1.data(),p->flag2.data(),p->flag3.data(),p->flag4.data()};
     
     if(perx==1)
     for(int jj=p->jmin;jj<p->jmin+p->jmax;++jj)

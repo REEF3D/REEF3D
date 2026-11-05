@@ -287,7 +287,7 @@ void nhflow_reconstruct_weno::reconstruct_3D_x(lexer* p, ghostcell *pgc, fdm_nhf
     const long sti = long(p->jmax)*long(p->kmax);
     const double eps_ = epsilon, psi_ = psi, ct_ = teno_ct;
     const int wt_ = wtype;
-    const int *__restrict flag = p->flag1;
+    const int *__restrict flag = p->flag1.data();
     weno_coef c;
 
     for(i=0; i<p->knox-p->ulast; ++i)
@@ -345,7 +345,7 @@ void nhflow_reconstruct_weno::reconstruct_3D_y(lexer* p, ghostcell *pgc, fdm_nhf
     const long stj = long(p->kmax);
     const double eps_ = epsilon, psi_ = psi, ct_ = teno_ct;
     const int wt_ = wtype;
-    const int *__restrict flag = p->flag2;
+    const int *__restrict flag = p->flag2.data();
     weno_coef c;
 
     for(i=0; i<p->knox; ++i)

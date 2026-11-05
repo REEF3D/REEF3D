@@ -160,22 +160,22 @@ void sediment_part::topo_flags_off(lexer *p, fdm *a, ghostcell *pgc)
     {
         i=ci[q]; j=cj[q]; k=ck[q];
         
-        face(p->flag1,i,j,k,1,0,0);
-        face(p->flag1,i-1,j,k,1,0,0);
+        face(p->flag1.data(),i,j,k,1,0,0);
+        face(p->flag1.data(),i-1,j,k,1,0,0);
         
         if(p->j_dir==1)
         {
-        face(p->flag2,i,j,k,0,1,0);
-        face(p->flag2,i,j-1,k,0,1,0);
+        face(p->flag2.data(),i,j,k,0,1,0);
+        face(p->flag2.data(),i,j-1,k,0,1,0);
         }
         else
         p->flag2[IJK] = p->flag4(i,j,k);
         
-        face(p->flag3,i,j,k,0,0,1);
-        face(p->flag3,i,j,k-1,0,0,1);
+        face(p->flag3.data(),i,j,k,0,0,1);
+        face(p->flag3.data(),i,j,k-1,0,0,1);
     }
     
-    pgc->flagx(p,p->flag1);
-    pgc->flagx(p,p->flag2);
-    pgc->flagx(p,p->flag3);
+    pgc->flagx(p,p->flag1.data());
+    pgc->flagx(p,p->flag2.data());
+    pgc->flagx(p,p->flag3.data());
 }

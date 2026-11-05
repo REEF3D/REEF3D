@@ -104,21 +104,21 @@ void diff_wallghost::update(lexer *p, ghostcell *pgc, int c, int gcv)
     {
     gcb = p->gcb1;
     gcb_count = p->gcb1_count;
-    flag = p->flag1;
+    flag = p->flag1.data();
     }
 
     if(c==1)
     {
     gcb = p->gcb2;
     gcb_count = p->gcb2_count;
-    flag = p->flag2;
+    flag = p->flag2.data();
     }
 
     if(c==2)
     {
     gcb = p->gcb3;
     gcb_count = p->gcb3_count;
-    flag = p->flag3;
+    flag = p->flag3.data();
     }
 
     gcv_probe = gcv;
