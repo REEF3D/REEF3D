@@ -1461,6 +1461,7 @@
         <File Name="wave_lib.h"/>
         <File Name="wave_lib_cnoidal_1st.h"/>
         <File Name="wave_lib_cnoidal_5th.h"/>
+        <File Name="wave_lib_cnoidal_consistent.h"/>
         <File Name="wave_lib_steady_fi.h"/>
         <File Name="wave_lib_cnoidal_shallow.h"/>
         <File Name="wave_lib_deep.h"/>
