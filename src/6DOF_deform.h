@@ -56,6 +56,19 @@ class sixdof_geometry;
 //  deformation velocity (0, dh/dt(x)) is divergence free, so the direct forcing of the body
 //  needs no source term in the pressure Poisson equation. The midline stretches with the slope of h
 //  (by about <h_x^2>/2: 1-5 % for the usual amplitudes).
+//
+//  Types 11-13: the same envelopes on an inextensible midline (Carling et al. 1998, Kern &
+//  Koumoutsakos 2006, Gazzola et al. 2011): y(s,t) = r L A(s) sin(2 pi (s/lambda - f t)) along the
+//  arc length s, sin theta = dy/ds, the axial position from the inextensibility (the midline keeps
+//  its length L, the body contracts axially by int (1 - cos theta) ds), the cross-sections normal
+//  to the midline: the material point (x, l) of the undeformed body (l lateral) goes to
+//      M(s) + l (sin theta, cos theta)     (axial, lateral),  M(s) = (x + int_0^s (1 - cos theta), y)
+//  Recoil: translation (axial and lateral) and rotation in the plane of the undulation from the
+//  momentum and angular momentum of the deformation (volume and the first and second moments of l
+//  per bin along x). The velocity at a point of the deformed body (direct forcing) from its
+//  material coordinates (Newton iterations on the map). The deformation velocity of these types
+//  has the divergence -l (d2 theta/ds dt)/(1 - l dtheta/ds) (the sections turn), which the
+//  projection of the direct forcing does not keep.
 
 class sixdof_deform
 {
@@ -70,9 +83,17 @@ public:
     void set_time(double t);
     double time() const {return t_;}
 
-    // lateral displacement and lateral velocity at the body-frame axial coordinate x (relative to the CoG)
+    // lateral displacement and lateral velocity at the body-frame axial coordinate x (relative to the
+    // CoG), types 1-3
     double disp(double x) const;
     double vel(double x) const;
+    
+    // all types: displacement and velocity (axial, lateral) of the material point (x, l) of the
+    // undeformed body frame, and the velocity at the point (x, l) of the deformed body
+    void displacement(double x, double l, double &dx, double &dl) const;
+    void velocity(double x, double l, double &vx, double &vl) const;
+    void velocity_at(double x, double l, double &vx, double &vl) const;
+    bool inextensible() const {return inext_;}
 
     // lateral axis of the body frame: 1 y, 2 z
     int lateral() const {return lat_;}
@@ -91,10 +112,13 @@ public:
 private:
 
     double envelope(double) const;
+    double envelope_s(double) const;
     void raw(double, double&, double&) const;       // h and dh/dt without the recoil terms
     void fit(const std::vector<double>&, double&, double&) const;
 
-    const int type_, lat_;
+    const int type_;
+    const bool inext_;
+    const int lat_;
     const double a_, lambda_, f_, tramp_;
     const bool recoil_;
 
@@ -106,6 +130,29 @@ private:
     // mass (volume) distribution along x: bin centres and volumes
     std::vector<double> xb_, mb_;
     double S0_ = 0.0, S1_ = 0.0, S2_ = 0.0;
+    
+    // ... and the first and second moments of the lateral coordinate per bin, the moment of inertia
+    // of the volume in the plane of the undulation
+    std::vector<double> n1b_, n2b_;
+    double In_ = 0.0;
+    
+    // inextensible midline (types 11-13): tables over the arc length, recoil (translation cx, cl,
+    // rotation phi and their rates; phi integrated in time)
+    struct station {double th, tht, ths, y, yt, ax, axt;};
+    struct mtab
+    {
+        std::vector<double> th, tht, ym, ymt, ax, axt;
+        double cx, cl, vx, vl, phit;
+    };
+    void midline(double, double, double, mtab&) const;
+    void ramp(double, double&, double&) const;
+    void at(double, station&) const;
+    void at(const mtab&, double, station&) const;
+    double phit_at(double) const;
+    double phi_at(double);
+    mtab tab_;
+    std::vector<double> phik_;      // recoil rotation at the multiples of T/64
+    double cx_ = 0.0, cl_ = 0.0, phi_ = 0.0, vx_ = 0.0, vl_ = 0.0, phit_ = 0.0;
 };
 
 #endif

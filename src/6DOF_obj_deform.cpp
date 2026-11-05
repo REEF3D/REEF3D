@@ -97,16 +97,18 @@ Eigen::Vector3d sixdof_obj::deform_vel(double x, double y, double z) const
     if(fish_==nullptr)
     return v;
 
-    // axial coordinate of the point in the body frame (the shear keeps it)
-    const double xb = R_(0,0)*(x - c_(0)) + R_(1,0)*(y - c_(1)) + R_(2,0)*(z - c_(2));
-
-    const double vl = fish_->vel(xb);
+    // the point in the body frame: axial and lateral coordinate
     const int l = fish_->lateral();
+    const double xb = R_(0,0)*(x - c_(0)) + R_(1,0)*(y - c_(1)) + R_(2,0)*(z - c_(2));
+    const double lb = R_(0,l)*(x - c_(0)) + R_(1,l)*(y - c_(1)) + R_(2,l)*(z - c_(2));
 
-    // R e_l vl
-    v(0) = R_(0,l)*vl;
-    v(1) = R_(1,l)*vl;
-    v(2) = R_(2,l)*vl;
+    double vx, vl;
+    fish_->velocity_at(xb,lb,vx,vl);
+
+    // R (e_x vx + e_l vl)
+    v(0) = R_(0,0)*vx + R_(0,l)*vl;
+    v(1) = R_(1,0)*vx + R_(1,l)*vl;
+    v(2) = R_(2,0)*vx + R_(2,l)*vl;
 
     return v;
 }
@@ -128,6 +130,9 @@ void sixdof_obj::print_fish(lexer *p, double t)
     const double St = (fabs(Us)>1.0e-12) ? 2.0*fish_->frequency()*fish_->tail_amplitude()/fabs(Us) : 0.0;
     const double Re = fabs(Us)*fish_->length()/p->W2;
 
-    printfish<<t<<" \t "<<Us<<" \t "<<Ub(l)<<" \t "<<heading*(180.0/PI)<<" \t "<<fish_->disp(fish_->xtail())
+    double dxt, dlt;
+    fish_->displacement(fish_->xtail(),0.0,dxt,dlt);
+
+    printfish<<t<<" \t "<<Us<<" \t "<<Ub(l)<<" \t "<<heading*(180.0/PI)<<" \t "<<dlt
              <<" \t "<<fish_->ramp()<<" \t "<<fish_power_<<" \t "<<St<<" \t "<<Re<<endl;
 }

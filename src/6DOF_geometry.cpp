@@ -263,9 +263,15 @@ void sixdof_geometry::transform(const Eigen::Matrix3d &R, const Eigen::Vector3d 
         {
             Eigen::Vector3d point(tri_x0[n][q], tri_y0[n][q], tri_z0[n][q]);
             
-            // lateral displacement of the deformation in the body frame
+            // displacement of the deformation in the body frame (axial and lateral)
             if(deform!=nullptr)
-            point(deform->lateral()) += deform->disp(tri_x0[n][q]);
+            {
+            const int l = deform->lateral();
+            double dx, dl;
+            deform->displacement(point(0),point(l),dx,dl);
+            point(0) += dx;
+            point(l) += dl;
+            }
 					
             point = R*point;
         
