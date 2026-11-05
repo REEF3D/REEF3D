@@ -39,7 +39,7 @@ class fnpf_laplace_cds2;
 using namespace std;
 
 // ---------------------------------------------------------------------------
-// FNPF theta-Robin time integration (A 310 5), prototype: 2D, serial, no wetting-drying, no bodies, no AMR.
+// FNPF theta-Robin time integration (A 310 5): 2D and 3D, MPI (REEFMG); no wetting-drying, no bodies, no AMR.
 //
 // The linear part of the free-surface conditions, eta_t = w and Fifsf_t = -g eta, is integrated with the
 // theta method, the nonlinear rest N (Zakharov terms, wind) at t^n+1/2:
@@ -55,9 +55,11 @@ using namespace std;
 // the linear gravity waves are unconditionally stable; theta = 1/2 is Crank-Nicolson (no damping), theta > 1/2
 // damps the grid-scale waves.
 //
-// The Laplace rows are those of fnpf_laplace_cds2 (assembled, not solved); the surface nodes are added as
-// unknowns with the Robin row and the system is solved with a sparse direct solver (Eigen SparseLU). For the
-// production version the Robin row goes into REEFMG.
+// The Laplace rows are those of fnpf_laplace_cds2 (assembled, not solved). A 305 1 (default, REEFMG): the Robin
+// row of each column is eliminated into its top Laplace row (Fs from the Robin row), which keeps the 7-point
+// structure for the V-cycle; the couplings of the sz stencil beyond k-1 (5 and 7 points) are in REEFMG's Krylov
+// operator only (matrix_diag::xcol). A 305 2: the surface nodes are added as unknowns and the system is solved
+// with a sparse direct solver (Eigen SparseLU, 2D serial, the prototype of steps 1-3).
 //
 // Time levels (test-plan step 2):
 //   - predictor: the sigma grid of the solve is that of eta^n+1 predicted with Adams-Bashforth 2 (second order;
@@ -67,8 +69,11 @@ using namespace std;
 //   - A 302 corrector passes (at most, default 4; A 304: stop when the change of the solution is below A 304
 //     times its size, default 1e-3): the sigma grid of eta^n+1 of the last solution, N at t^n+1/2 as the
 //     mean of N^n and N^n+1 of the last solution (trapezoidal), and the cross-derivative terms with the last
-//     solution. A pass assembles the system on that grid and makes one defect-correction step with the
-//     factorisation of pass 0 (no new factorisation).
+//     solution. A pass assembles the system on that grid; SparseLU makes one defect-correction step with the
+//     factorisation of pass 0, REEFMG solves it from the last solution (warm start). With REEFMG the solves are
+//     inexact (A 306, default 1e-2): each reduces its residual by A 306 relative to the warm start (BiCGStab,
+//     about one iteration). The passes re-solve the whole problem, so the solver error does not accumulate; the
+//     convergence of the passes is set by the nonlinear coupling, not by the linear solves (5 November 2026).
 //
 // Relaxation zones (B 98 2, B 99 1/2), targets at t^n+1 (wavegen_precalc_fnpf again in start()): the relaxation of Fifsf, f -> r f + T, is part of the Robin rows,
 //   Fifsf^n+1 + r g theta^2 dt^2 w^n+1 = r R + T,
@@ -91,6 +96,8 @@ using namespace std;
 // that of the unedited surface (as with the relaxation zones before patch 0006); when an edit changed eta or
 // Fifsf, a Dirichlet Laplace solve on the final grid follows (as the last RK3 stage). Breaking events only.
 //
+// A 305 linear solver (1 REEFMG, default; 2 SparseLU), A 306 residual reduction of the REEFMG solves (default
+// 1e-2; 0: N 44).
 // A 300 theta (default 0.5: 0.55 damps 9 % per period at 21 steps), A 302 corrector passes (default 4),
 // A 303 relaxation zones: > 0 factors r^(dt/A 303), 0 r per step, < 0 (default) per time as the three RK3 stages
 // of an RK3 run at N 47 0.75; A 304 tolerance of the corrector (default 1e-3).
@@ -122,6 +129,12 @@ private:
     // the relaxation of the zones as f -> R f + T (from f = 0 and f = 1), with the factors r^(dt/A 303)
     void relax_affine(lexer*, ghostcell*, ioflow*, int, slice&, slice&);
     
+    // A 305 1 (REEFMG): the Robin rows eliminated into the top Laplace rows, one solve per pass (N 44, or
+    // inexact with A 306); returns the change of the solution
+    double robin_solve_mg(lexer*, fdm_fnpf*, ghostcell*, solver*, slice&, slice&, slice&, int);
+    void robin_build_mg(lexer*, fdm_fnpf*, ghostcell*, solver*, slice&, slice&);
+    void sz_stencil(lexer*, ghostcell*);
+    
     int gcval,gcval_u,gcval_v,gcval_w;
     int gcval_eta,gcval_fifsf;
     
@@ -137,8 +150,17 @@ private:
     slice4 relRe,relTe;    // relaxation of eta in the zones
     slice4 fnew,wnew;      // Fifsf^n+1, w^n+1 of the solve
     slice4 en;
+    slice4 colD,colA,colB; // REEFMG: Robin row per column, D Fs + A sum_m>=1 w_m Fi(knoz-m) = B
+    slice4 fsold;          // REEFMG: Fifsf^n+1 of the last pass
     
     double theta;
+    int lsolv;             // A 305: 1 REEFMG, 2 SparseLU
+    double ctol;           // A 306: residual reduction of the inexact solves (REEFMG, 0: N 44)
+    long cycsum0, cycsumc; // REEFMG cycles of pass 0 and of the corrector passes
+    int npt;               // points of the sz stencil
+    const double *wsz;     // its weights
+    std::vector<double> mts;   // REEFMG: coupling of the top rows to the surface node
+    std::vector<double> fiold; // REEFMG: Fi of the last pass
     int npass;
     double passtol;
     long passsum, stepsum, editsum;
