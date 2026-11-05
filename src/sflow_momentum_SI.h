@@ -287,12 +287,19 @@ private:
     slice2 nF1y, nF2y;
     slice4 nH3, nW2, nCs, nRm, nRc, nZE, nZP;
     std::vector<char> nh_own;              // the own cells of the solve (nh_amr_prec_setup)
+    std::vector<int> nh_cq;                // the cells in SLICELOOP4 order (nh_amr_prec_setup)
+    std::vector<double> nh_dxn, nh_dyn;    // their widths
+    std::vector<double> nh_lc;             // the coefficients of lap(nE) of the cells (nh_amr_cells)
+    std::vector<int> nh_lq;                // the leaf cells of the solve (nh_amr_leaf)
+    std::vector<double> nh_ldx, nh_ldy;    // their widths
     bool nh_rb1 = true, nh_rb2 = true;     // the V-cycle hierarchies of the preconditioner: rebuilt after nh_amr_prec_setup
     void nh_amr_cells(lexer*, fdm2D*);
     void nh_amr_guess(lexer*, fdm2D*);
     void nh_amr_lap(lexer*, ghostcell*);
     void nh_amr_faces(lexer*, bool affine);
     void nh_amr_row(lexer*, fdm2D*, int, int, bool affine, double &ym, double &yc);
+    void nh_amr_leaf(lexer*, const std::vector<int> &leaf);   // the leaf cells (i, j pairs) for nh_amr_rows
+    void nh_amr_rows(lexer*, bool affine, double *y);           // nh_amr_row of all leaf cells
     void nh_amr_prec_setup(lexer*, ghostcell*, const std::function<bool(int,int)> &own);
     void nh_amr_prec(lexer*, ghostcell*, const std::function<bool(int,int)> &own);
     void nh_amr_finish(lexer*, fdm2D*, ghostcell*);
