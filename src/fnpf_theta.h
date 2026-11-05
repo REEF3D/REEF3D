@@ -87,6 +87,10 @@ using namespace std;
 //   Stokes waves from reflection); A 303 < 0 (default) relaxes per time as RK3 at N 47 0.75 (dt_crit of
 //   fnpf_timestep).
 //
+// Edits of the surface after the solve (breaking damping and filters A 350/A 352, coastline): Fi below would be
+// that of the unedited surface (as with the relaxation zones before patch 0006); when an edit changed eta or
+// Fifsf, a Dirichlet Laplace solve on the final grid follows (as the last RK3 stage). Breaking events only.
+//
 // A 300 theta (default 0.5: 0.55 damps 9 % per period at 21 steps), A 302 corrector passes (default 4),
 // A 303 relaxation zones: > 0 factors r^(dt/A 303), 0 r per step, < 0 (default) per time as the three RK3 stages
 // of an RK3 run at N 47 0.75; A 304 tolerance of the corrector (default 1e-3).
@@ -137,7 +141,7 @@ private:
     double theta;
     int npass;
     double passtol;
-    long passsum, stepsum;
+    long passsum, stepsum, editsum;
     int nstep;
     double dt_prev;
     

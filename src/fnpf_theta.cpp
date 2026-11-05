@@ -81,7 +81,7 @@ fnpf_theta::fnpf_theta(lexer *p, fdm_fnpf *c, ghostcell *pgc) : fnpf_ini(p,c,pgc
     theta = p->A300;
     npass = MAX(p->A302,0);
     passtol = p->A304;
-    passsum = stepsum = 0;
+    passsum = stepsum = editsum = 0;
     nstep = 0;
     dt_prev = 0.0;
     solvetime = 0.0;
@@ -234,12 +234,23 @@ void fnpf_theta::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, con
     dt_prev = dt;
     ++nstep;
     
-    // damping, wave generation and absorption, as the last RK3 stage
+    // wave generation and absorption of eta (Fifsf: in the Robin rows)
+    SLICELOOP4
+    c->eta(i,j) = relRe(i,j)*c->eta(i,j) + relTe(i,j);
+    
+    // the surface of the solve: the edits below (breaking damping and filters, coastline) change it after the
+    // solve, and Fi below would no longer be that of the edited surface (as with the relaxation zones before
+    // patch 0006); then a Dirichlet solve on the final grid follows (as the last RK3 stage)
+    SLICELOOP4
+    {
+    erk1(i,j) = c->eta(i,j);
+    frk1(i,j) = c->Fifsf(i,j);
+    }
+    
+    // damping, as the last RK3 stage
     pf->damping(p,c,pgc,c->eta,gcval_eta,1.0);
     pf->damping(p,c,pgc,c->Fifsf,gcval_fifsf,1.0);
     
-    SLICELOOP4
-    c->eta(i,j) = relRe(i,j)*c->eta(i,j) + relTe(i,j);
     pf->wetdry(p,c,pgc,c->eta,c->Fifsf);
     pgc->gcsl_start4(p,c->eta,gcval_eta);
     pf->coastline_eta(p,c,pgc,c->eta);
@@ -263,7 +274,26 @@ void fnpf_theta::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, con
     bedbc_sig(p,c,pgc,c->Fi,pf);
     pgc->start7V(p,c->Fi,c->bc,gcval);
     
-    // w^n+1 for the next step (the relaxation zones changed Fifsf after the solve)
+    // consistency solve after edits of the surface
+    {
+    double emax=0.0, escale=0.0;
+    SLICELOOP4
+    {
+    emax = MAX(emax, MAX(fabs(c->eta(i,j)-erk1(i,j)), fabs(c->Fifsf(i,j)-frk1(i,j))));
+    escale = MAX(escale, MAX(fabs(erk1(i,j)), fabs(frk1(i,j))));
+    }
+    emax = pgc->globalmax(emax);
+    escale = pgc->globalmax(escale);
+    
+    if(emax>1.0e-12*MAX(escale,1.0e-20))
+    {
+    plap0->start(p,c,pgc,psolv,pf,c->Fi,c->Fifsf);
+    pgc->start7V(p,c->Fi,c->bc,gcval);
+    ++editsum;
+    }
+    }
+    
+    // w^n+1 for the next step
     pf->fsfwvel(p,c,pgc,c->eta,c->Fifsf);
     
     bedbc_sig(p,c,pgc,c->Fi,pf);
@@ -285,7 +315,7 @@ void fnpf_theta::start(lexer *p, fdm_fnpf *c, ghostcell *pgc, solver *psolv, con
     c->vel_state = 2;
     
     if(p->mpirank==0 && (p->count%p->P12==0))
-    cout<<"theta-Robin solve: "<<setprecision(3)<<solvetime<<" s total, corrector passes per step "<<double(passsum)/double(MAX(stepsum,1L))<<endl;
+    cout<<"theta-Robin solve: "<<setprecision(3)<<solvetime<<" s total, corrector passes per step "<<double(passsum)/double(MAX(stepsum,1L))<<", consistency solves "<<editsum<<endl;
 }
 
 // Corrector: eta^n+1 of the current solution (eta update with Fifsf^n+1 = fnew, w^n+1 = wnew), N^n+1 on it,
